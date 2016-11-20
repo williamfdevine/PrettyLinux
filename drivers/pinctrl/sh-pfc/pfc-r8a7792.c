@@ -28,7 +28,8 @@
 	PORT_GP_32(10, fn, sfx),					\
 	PORT_GP_30(11, fn, sfx)
 
-enum {
+enum
+{
 	PINMUX_RESERVED = 0,
 
 	PINMUX_DATA_BEGIN,
@@ -333,7 +334,8 @@ enum {
 	PINMUX_MARK_END,
 };
 
-static const u16 pinmux_data[] = {
+static const u16 pinmux_data[] =
+{
 	PINMUX_DATA_GP_ALL(), /* PINMUX_DATA(GP_M_N_DATA, GP_M_N_FN...), */
 
 	PINMUX_SINGLE(DU1_DB2_C0_DATA12),
@@ -727,36 +729,46 @@ static const u16 pinmux_data[] = {
 	PINMUX_IPSR_GPSR(IP7_20, AUDIO_CLKB),
 };
 
-static const struct sh_pfc_pin pinmux_pins[] = {
+static const struct sh_pfc_pin pinmux_pins[] =
+{
 	PINMUX_GPIO_GP_ALL(),
 };
 
 /* - AVB -------------------------------------------------------------------- */
-static const unsigned int avb_link_pins[] = {
+static const unsigned int avb_link_pins[] =
+{
 	RCAR_GP_PIN(7, 9),
 };
-static const unsigned int avb_link_mux[] = {
+static const unsigned int avb_link_mux[] =
+{
 	AVB_LINK_MARK,
 };
-static const unsigned int avb_magic_pins[] = {
+static const unsigned int avb_magic_pins[] =
+{
 	RCAR_GP_PIN(7, 10),
 };
-static const unsigned int avb_magic_mux[] = {
+static const unsigned int avb_magic_mux[] =
+{
 	AVB_MAGIC_MARK,
 };
-static const unsigned int avb_phy_int_pins[] = {
+static const unsigned int avb_phy_int_pins[] =
+{
 	RCAR_GP_PIN(7, 11),
 };
-static const unsigned int avb_phy_int_mux[] = {
+static const unsigned int avb_phy_int_mux[] =
+{
 	AVB_PHY_INT_MARK,
 };
-static const unsigned int avb_mdio_pins[] = {
+static const unsigned int avb_mdio_pins[] =
+{
 	RCAR_GP_PIN(7, 7), RCAR_GP_PIN(7, 8),
 };
-static const unsigned int avb_mdio_mux[] = {
+static const unsigned int avb_mdio_mux[] =
+{
 	AVB_MDC_MARK, AVB_MDIO_MARK,
 };
-static const unsigned int avb_mii_pins[] = {
+static const unsigned int avb_mii_pins[] =
+{
 	RCAR_GP_PIN(6, 14), RCAR_GP_PIN(6, 15), RCAR_GP_PIN(6, 16),
 	RCAR_GP_PIN(6, 12),
 
@@ -767,7 +779,8 @@ static const unsigned int avb_mii_pins[] = {
 	RCAR_GP_PIN(7, 12), RCAR_GP_PIN(6, 13), RCAR_GP_PIN(7, 5),
 	RCAR_GP_PIN(7, 0),  RCAR_GP_PIN(6, 11),
 };
-static const unsigned int avb_mii_mux[] = {
+static const unsigned int avb_mii_mux[] =
+{
 	AVB_TXD0_MARK, AVB_TXD1_MARK, AVB_TXD2_MARK,
 	AVB_TXD3_MARK,
 
@@ -778,7 +791,8 @@ static const unsigned int avb_mii_mux[] = {
 	AVB_CRS_MARK, AVB_TX_EN_MARK, AVB_TX_ER_MARK,
 	AVB_TX_CLK_MARK, AVB_COL_MARK,
 };
-static const unsigned int avb_gmii_pins[] = {
+static const unsigned int avb_gmii_pins[] =
+{
 	RCAR_GP_PIN(6, 14), RCAR_GP_PIN(6, 15), RCAR_GP_PIN(6, 16),
 	RCAR_GP_PIN(6, 12), RCAR_GP_PIN(7, 1),  RCAR_GP_PIN(7, 2),
 	RCAR_GP_PIN(7, 3),  RCAR_GP_PIN(7, 4),
@@ -792,7 +806,8 @@ static const unsigned int avb_gmii_pins[] = {
 	RCAR_GP_PIN(6, 13), RCAR_GP_PIN(7, 5), RCAR_GP_PIN(7, 0),
 	RCAR_GP_PIN(6, 11),
 };
-static const unsigned int avb_gmii_mux[] = {
+static const unsigned int avb_gmii_mux[] =
+{
 	AVB_TXD0_MARK, AVB_TXD1_MARK, AVB_TXD2_MARK,
 	AVB_TXD3_MARK, AVB_TXD4_MARK, AVB_TXD5_MARK,
 	AVB_TXD6_MARK, AVB_TXD7_MARK,
@@ -806,36 +821,45 @@ static const unsigned int avb_gmii_mux[] = {
 	AVB_TX_EN_MARK, AVB_TX_ER_MARK, AVB_TX_CLK_MARK,
 	AVB_COL_MARK,
 };
-static const unsigned int avb_avtp_match_pins[] = {
+static const unsigned int avb_avtp_match_pins[] =
+{
 	RCAR_GP_PIN(7, 15),
 };
-static const unsigned int avb_avtp_match_mux[] = {
+static const unsigned int avb_avtp_match_mux[] =
+{
 	AVB_AVTP_MATCH_MARK,
 };
 /* - CAN -------------------------------------------------------------------- */
-static const unsigned int can0_data_pins[] = {
+static const unsigned int can0_data_pins[] =
+{
 	/* TX, RX */
 	RCAR_GP_PIN(10, 27), RCAR_GP_PIN(10, 28),
 };
-static const unsigned int can0_data_mux[] = {
+static const unsigned int can0_data_mux[] =
+{
 	CAN0_TX_MARK, CAN0_RX_MARK,
 };
-static const unsigned int can1_data_pins[] = {
+static const unsigned int can1_data_pins[] =
+{
 	/* TX, RX */
 	RCAR_GP_PIN(10, 30), RCAR_GP_PIN(10, 31),
 };
-static const unsigned int can1_data_mux[] = {
+static const unsigned int can1_data_mux[] =
+{
 	CAN1_TX_MARK, CAN1_RX_MARK,
 };
-static const unsigned int can_clk_pins[] = {
+static const unsigned int can_clk_pins[] =
+{
 	/* CAN_CLK */
 	RCAR_GP_PIN(10, 29),
 };
-static const unsigned int can_clk_mux[] = {
+static const unsigned int can_clk_mux[] =
+{
 	CAN_CLK_MARK,
 };
 /* - DU --------------------------------------------------------------------- */
-static const unsigned int du0_rgb666_pins[] = {
+static const unsigned int du0_rgb666_pins[] =
+{
 	/* R[7:2], G[7:2], B[7:2] */
 	RCAR_GP_PIN(0, 7), RCAR_GP_PIN(0, 6), RCAR_GP_PIN(0, 5),
 	RCAR_GP_PIN(0, 4), RCAR_GP_PIN(0, 3), RCAR_GP_PIN(0, 2),
@@ -844,7 +868,8 @@ static const unsigned int du0_rgb666_pins[] = {
 	RCAR_GP_PIN(0, 23), RCAR_GP_PIN(0, 22), RCAR_GP_PIN(0, 21),
 	RCAR_GP_PIN(0, 20), RCAR_GP_PIN(0, 19), RCAR_GP_PIN(0, 18),
 };
-static const unsigned int du0_rgb666_mux[] = {
+static const unsigned int du0_rgb666_mux[] =
+{
 	DU0_DR7_Y9_DATA7_MARK, DU0_DR6_Y8_DATA6_MARK, DU0_DR5_Y7_DATA5_MARK,
 	DU0_DR4_Y6_DATA4_MARK, DU0_DR3_Y5_DATA3_MARK, DU0_DR2_Y4_DATA2_MARK,
 	DU0_DG7_Y3_DATA15_MARK, DU0_DG6_Y2_DATA14_MARK, DU0_DG5_Y1_DATA13_MARK,
@@ -852,7 +877,8 @@ static const unsigned int du0_rgb666_mux[] = {
 	DU0_DB7_C5_MARK, DU0_DB6_C4_MARK, DU0_DB5_C3_MARK,
 	DU0_DB4_C2_MARK, DU0_DB3_C1_MARK, DU0_DB2_C0_MARK,
 };
-static const unsigned int du0_rgb888_pins[] = {
+static const unsigned int du0_rgb888_pins[] =
+{
 	/* R[7:0], G[7:0], B[7:0] */
 	RCAR_GP_PIN(0, 7), RCAR_GP_PIN(0, 6), RCAR_GP_PIN(0, 5),
 	RCAR_GP_PIN(0, 4), RCAR_GP_PIN(0, 3), RCAR_GP_PIN(0, 2),
@@ -864,7 +890,8 @@ static const unsigned int du0_rgb888_pins[] = {
 	RCAR_GP_PIN(0, 20), RCAR_GP_PIN(0, 19), RCAR_GP_PIN(0, 18),
 	RCAR_GP_PIN(0, 17), RCAR_GP_PIN(0, 16),
 };
-static const unsigned int du0_rgb888_mux[] = {
+static const unsigned int du0_rgb888_mux[] =
+{
 	DU0_DR7_Y9_DATA7_MARK, DU0_DR6_Y8_DATA6_MARK, DU0_DR5_Y7_DATA5_MARK,
 	DU0_DR4_Y6_DATA4_MARK, DU0_DR3_Y5_DATA3_MARK, DU0_DR2_Y4_DATA2_MARK,
 	DU0_DR1_DATA1_MARK, DU0_DR0_DATA0_MARK,
@@ -875,35 +902,44 @@ static const unsigned int du0_rgb888_mux[] = {
 	DU0_DB4_C2_MARK, DU0_DB3_C1_MARK, DU0_DB2_C0_MARK,
 	DU0_DB1_MARK, DU0_DB0_MARK,
 };
-static const unsigned int du0_sync_pins[] = {
+static const unsigned int du0_sync_pins[] =
+{
 	/* EXVSYNC/VSYNC, EXHSYNC/HSYNC */
 	RCAR_GP_PIN(0, 25), RCAR_GP_PIN(0, 24),
 };
-static const unsigned int du0_sync_mux[] = {
+static const unsigned int du0_sync_mux[] =
+{
 	DU0_EXVSYNC_DU0_VSYNC_MARK, DU0_EXHSYNC_DU0_HSYNC_MARK,
 };
-static const unsigned int du0_oddf_pins[] = {
+static const unsigned int du0_oddf_pins[] =
+{
 	/* EXODDF/ODDF/DISP/CDE */
 	RCAR_GP_PIN(0, 26),
 };
-static const unsigned int du0_oddf_mux[] = {
+static const unsigned int du0_oddf_mux[] =
+{
 	DU0_EXODDF_DU0_ODDF_DISP_CDE_MARK
 };
-static const unsigned int du0_disp_pins[] = {
+static const unsigned int du0_disp_pins[] =
+{
 	/* DISP */
 	RCAR_GP_PIN(0, 27),
 };
-static const unsigned int du0_disp_mux[] = {
+static const unsigned int du0_disp_mux[] =
+{
 	DU0_DISP_MARK,
 };
-static const unsigned int du0_cde_pins[] = {
+static const unsigned int du0_cde_pins[] =
+{
 	/* CDE */
 	RCAR_GP_PIN(0, 28),
 };
-static const unsigned int du0_cde_mux[] = {
+static const unsigned int du0_cde_mux[] =
+{
 	DU0_CDE_MARK,
 };
-static const unsigned int du1_rgb666_pins[] = {
+static const unsigned int du1_rgb666_pins[] =
+{
 	/* R[7:2], G[7:2], B[7:2] */
 	RCAR_GP_PIN(1, 5), RCAR_GP_PIN(1, 4), RCAR_GP_PIN(1, 3),
 	RCAR_GP_PIN(1, 2), RCAR_GP_PIN(1, 1), RCAR_GP_PIN(1, 0),
@@ -912,7 +948,8 @@ static const unsigned int du1_rgb666_pins[] = {
 	RCAR_GP_PIN(1, 17), RCAR_GP_PIN(1, 16), RCAR_GP_PIN(1, 15),
 	RCAR_GP_PIN(1, 14), RCAR_GP_PIN(1, 13), RCAR_GP_PIN(1, 12),
 };
-static const unsigned int du1_rgb666_mux[] = {
+static const unsigned int du1_rgb666_mux[] =
+{
 	DU1_DR7_DATA5_MARK, DU1_DR6_DATA4_MARK, DU1_DR5_Y7_DATA3_MARK,
 	DU1_DR4_Y6_DATA2_MARK, DU1_DR3_Y5_DATA1_MARK, DU1_DR2_Y4_DATA0_MARK,
 	DU1_DG7_Y3_DATA11_MARK, DU1_DG6_Y2_DATA10_MARK, DU1_DG5_Y1_DATA9_MARK,
@@ -920,277 +957,352 @@ static const unsigned int du1_rgb666_mux[] = {
 	DU1_DB7_C5_MARK, DU1_DB6_C4_MARK, DU1_DB5_C3_DATA15_MARK,
 	DU1_DB4_C2_DATA14_MARK, DU1_DB3_C1_DATA13_MARK, DU1_DB2_C0_DATA12_MARK,
 };
-static const unsigned int du1_sync_pins[] = {
+static const unsigned int du1_sync_pins[] =
+{
 	/* EXVSYNC/VSYNC, EXHSYNC/HSYNC */
 	RCAR_GP_PIN(1, 19), RCAR_GP_PIN(1, 18),
 };
-static const unsigned int du1_sync_mux[] = {
+static const unsigned int du1_sync_mux[] =
+{
 	DU1_EXVSYNC_DU1_VSYNC_MARK, DU1_EXHSYNC_DU1_HSYNC_MARK,
 };
-static const unsigned int du1_oddf_pins[] = {
+static const unsigned int du1_oddf_pins[] =
+{
 	/* EXODDF/ODDF/DISP/CDE */
 	RCAR_GP_PIN(1, 20),
 };
-static const unsigned int du1_oddf_mux[] = {
+static const unsigned int du1_oddf_mux[] =
+{
 	DU1_EXODDF_DU1_ODDF_DISP_CDE_MARK
 };
-static const unsigned int du1_disp_pins[] = {
+static const unsigned int du1_disp_pins[] =
+{
 	/* DISP */
 	RCAR_GP_PIN(1, 21),
 };
-static const unsigned int du1_disp_mux[] = {
+static const unsigned int du1_disp_mux[] =
+{
 	DU1_DISP_MARK,
 };
-static const unsigned int du1_cde_pins[] = {
+static const unsigned int du1_cde_pins[] =
+{
 	/* CDE */
 	RCAR_GP_PIN(1, 22),
 };
-static const unsigned int du1_cde_mux[] = {
+static const unsigned int du1_cde_mux[] =
+{
 	DU1_CDE_MARK,
 };
 /* - INTC ------------------------------------------------------------------- */
-static const unsigned int intc_irq0_pins[] = {
+static const unsigned int intc_irq0_pins[] =
+{
 	/* IRQ0 */
 	RCAR_GP_PIN(3, 19),
 };
-static const unsigned int intc_irq0_mux[] = {
+static const unsigned int intc_irq0_mux[] =
+{
 	IRQ0_MARK,
 };
-static const unsigned int intc_irq1_pins[] = {
+static const unsigned int intc_irq1_pins[] =
+{
 	/* IRQ1 */
 	RCAR_GP_PIN(3, 20),
 };
-static const unsigned int intc_irq1_mux[] = {
+static const unsigned int intc_irq1_mux[] =
+{
 	IRQ1_MARK,
 };
-static const unsigned int intc_irq2_pins[] = {
+static const unsigned int intc_irq2_pins[] =
+{
 	/* IRQ2 */
 	RCAR_GP_PIN(3, 21),
 };
-static const unsigned int intc_irq2_mux[] = {
+static const unsigned int intc_irq2_mux[] =
+{
 	IRQ2_MARK,
 };
-static const unsigned int intc_irq3_pins[] = {
+static const unsigned int intc_irq3_pins[] =
+{
 	/* IRQ3 */
 	RCAR_GP_PIN(3, 22),
 };
-static const unsigned int intc_irq3_mux[] = {
+static const unsigned int intc_irq3_mux[] =
+{
 	IRQ3_MARK,
 };
 /* - LBSC ------------------------------------------------------------------- */
-static const unsigned int lbsc_cs0_pins[] = {
+static const unsigned int lbsc_cs0_pins[] =
+{
 	/* CS0# */
 	RCAR_GP_PIN(3, 27),
 };
-static const unsigned int lbsc_cs0_mux[] = {
+static const unsigned int lbsc_cs0_mux[] =
+{
 	CS0_N_MARK,
 };
-static const unsigned int lbsc_cs1_pins[] = {
+static const unsigned int lbsc_cs1_pins[] =
+{
 	/* CS1#_A26 */
 	RCAR_GP_PIN(3, 6),
 };
-static const unsigned int lbsc_cs1_mux[] = {
+static const unsigned int lbsc_cs1_mux[] =
+{
 	CS1_N_A26_MARK,
 };
-static const unsigned int lbsc_ex_cs0_pins[] = {
+static const unsigned int lbsc_ex_cs0_pins[] =
+{
 	/* EX_CS0# */
 	RCAR_GP_PIN(3, 7),
 };
-static const unsigned int lbsc_ex_cs0_mux[] = {
+static const unsigned int lbsc_ex_cs0_mux[] =
+{
 	EX_CS0_N_MARK,
 };
-static const unsigned int lbsc_ex_cs1_pins[] = {
+static const unsigned int lbsc_ex_cs1_pins[] =
+{
 	/* EX_CS1# */
 	RCAR_GP_PIN(3, 8),
 };
-static const unsigned int lbsc_ex_cs1_mux[] = {
+static const unsigned int lbsc_ex_cs1_mux[] =
+{
 	EX_CS1_N_MARK,
 };
-static const unsigned int lbsc_ex_cs2_pins[] = {
+static const unsigned int lbsc_ex_cs2_pins[] =
+{
 	/* EX_CS2# */
 	RCAR_GP_PIN(3, 9),
 };
-static const unsigned int lbsc_ex_cs2_mux[] = {
+static const unsigned int lbsc_ex_cs2_mux[] =
+{
 	EX_CS2_N_MARK,
 };
-static const unsigned int lbsc_ex_cs3_pins[] = {
+static const unsigned int lbsc_ex_cs3_pins[] =
+{
 	/* EX_CS3# */
 	RCAR_GP_PIN(3, 10),
 };
-static const unsigned int lbsc_ex_cs3_mux[] = {
+static const unsigned int lbsc_ex_cs3_mux[] =
+{
 	EX_CS3_N_MARK,
 };
-static const unsigned int lbsc_ex_cs4_pins[] = {
+static const unsigned int lbsc_ex_cs4_pins[] =
+{
 	/* EX_CS4# */
 	RCAR_GP_PIN(3, 11),
 };
-static const unsigned int lbsc_ex_cs4_mux[] = {
+static const unsigned int lbsc_ex_cs4_mux[] =
+{
 	EX_CS4_N_MARK,
 };
-static const unsigned int lbsc_ex_cs5_pins[] = {
+static const unsigned int lbsc_ex_cs5_pins[] =
+{
 	/* EX_CS5# */
 	RCAR_GP_PIN(3, 12),
 };
-static const unsigned int lbsc_ex_cs5_mux[] = {
+static const unsigned int lbsc_ex_cs5_mux[] =
+{
 	EX_CS5_N_MARK,
 };
 /* - MSIOF0 ----------------------------------------------------------------- */
-static const unsigned int msiof0_clk_pins[] = {
+static const unsigned int msiof0_clk_pins[] =
+{
 	/* SCK */
 	RCAR_GP_PIN(10, 0),
 };
-static const unsigned int msiof0_clk_mux[] = {
+static const unsigned int msiof0_clk_mux[] =
+{
 	MSIOF0_SCK_MARK,
 };
-static const unsigned int msiof0_sync_pins[] = {
+static const unsigned int msiof0_sync_pins[] =
+{
 	/* SYNC */
 	RCAR_GP_PIN(10, 1),
 };
-static const unsigned int msiof0_sync_mux[] = {
+static const unsigned int msiof0_sync_mux[] =
+{
 	MSIOF0_SYNC_MARK,
 };
-static const unsigned int msiof0_rx_pins[] = {
+static const unsigned int msiof0_rx_pins[] =
+{
 	/* RXD */
 	RCAR_GP_PIN(10, 4),
 };
-static const unsigned int msiof0_rx_mux[] = {
+static const unsigned int msiof0_rx_mux[] =
+{
 	MSIOF0_RXD_MARK,
 };
-static const unsigned int msiof0_tx_pins[] = {
+static const unsigned int msiof0_tx_pins[] =
+{
 	/* TXD */
 	RCAR_GP_PIN(10, 3),
 };
-static const unsigned int msiof0_tx_mux[] = {
+static const unsigned int msiof0_tx_mux[] =
+{
 	MSIOF0_TXD_MARK,
 };
 /* - MSIOF1 ----------------------------------------------------------------- */
-static const unsigned int msiof1_clk_pins[] = {
+static const unsigned int msiof1_clk_pins[] =
+{
 	/* SCK */
 	RCAR_GP_PIN(10, 5),
 };
-static const unsigned int msiof1_clk_mux[] = {
+static const unsigned int msiof1_clk_mux[] =
+{
 	MSIOF1_SCK_MARK,
 };
-static const unsigned int msiof1_sync_pins[] = {
+static const unsigned int msiof1_sync_pins[] =
+{
 	/* SYNC */
 	RCAR_GP_PIN(10, 6),
 };
-static const unsigned int msiof1_sync_mux[] = {
+static const unsigned int msiof1_sync_mux[] =
+{
 	MSIOF1_SYNC_MARK,
 };
-static const unsigned int msiof1_rx_pins[] = {
+static const unsigned int msiof1_rx_pins[] =
+{
 	/* RXD */
 	RCAR_GP_PIN(10, 9),
 };
-static const unsigned int msiof1_rx_mux[] = {
+static const unsigned int msiof1_rx_mux[] =
+{
 	MSIOF1_RXD_MARK,
 };
-static const unsigned int msiof1_tx_pins[] = {
+static const unsigned int msiof1_tx_pins[] =
+{
 	/* TXD */
 	RCAR_GP_PIN(10, 8),
 };
-static const unsigned int msiof1_tx_mux[] = {
+static const unsigned int msiof1_tx_mux[] =
+{
 	MSIOF1_TXD_MARK,
 };
 /* - QSPI ------------------------------------------------------------------- */
-static const unsigned int qspi_ctrl_pins[] = {
+static const unsigned int qspi_ctrl_pins[] =
+{
 	/* SPCLK, SSL */
 	RCAR_GP_PIN(3, 25), RCAR_GP_PIN(3, 26),
 };
-static const unsigned int qspi_ctrl_mux[] = {
+static const unsigned int qspi_ctrl_mux[] =
+{
 	SPCLK_MARK, SSL_MARK,
 };
-static const unsigned int qspi_data2_pins[] = {
+static const unsigned int qspi_data2_pins[] =
+{
 	/* MOSI_IO0, MISO_IO1 */
 	RCAR_GP_PIN(3, 4), RCAR_GP_PIN(3, 5),
 };
-static const unsigned int qspi_data2_mux[] = {
+static const unsigned int qspi_data2_mux[] =
+{
 	MOSI_IO0_MARK, MISO_IO1_MARK,
 };
-static const unsigned int qspi_data4_pins[] = {
+static const unsigned int qspi_data4_pins[] =
+{
 	/* MOSI_IO0, MISO_IO1, IO2, IO3 */
 	RCAR_GP_PIN(3, 4), RCAR_GP_PIN(3, 5), RCAR_GP_PIN(3, 23),
 	RCAR_GP_PIN(3, 24),
 };
-static const unsigned int qspi_data4_mux[] = {
+static const unsigned int qspi_data4_mux[] =
+{
 	MOSI_IO0_MARK, MISO_IO1_MARK, IO2_MARK,	IO3_MARK,
 };
 /* - SCIF0 ------------------------------------------------------------------ */
-static const unsigned int scif0_data_pins[] = {
+static const unsigned int scif0_data_pins[] =
+{
 	/* RX, TX */
 	RCAR_GP_PIN(10, 14), RCAR_GP_PIN(10, 13),
 };
-static const unsigned int scif0_data_mux[] = {
+static const unsigned int scif0_data_mux[] =
+{
 	RX0_MARK, TX0_MARK,
 };
-static const unsigned int scif0_clk_pins[] = {
+static const unsigned int scif0_clk_pins[] =
+{
 	/* SCK */
 	RCAR_GP_PIN(10, 10),
 };
-static const unsigned int scif0_clk_mux[] = {
+static const unsigned int scif0_clk_mux[] =
+{
 	SCK0_MARK,
 };
-static const unsigned int scif0_ctrl_pins[] = {
+static const unsigned int scif0_ctrl_pins[] =
+{
 	/* RTS, CTS */
 	RCAR_GP_PIN(10, 12), RCAR_GP_PIN(10, 11),
 };
-static const unsigned int scif0_ctrl_mux[] = {
+static const unsigned int scif0_ctrl_mux[] =
+{
 	RTS0_N_MARK, CTS0_N_MARK,
 };
 /* - SCIF3 ------------------------------------------------------------------ */
-static const unsigned int scif3_data_pins[] = {
+static const unsigned int scif3_data_pins[] =
+{
 	/* RX, TX */
 	RCAR_GP_PIN(10, 25), RCAR_GP_PIN(10, 24),
 };
-static const unsigned int scif3_data_mux[] = {
+static const unsigned int scif3_data_mux[] =
+{
 	RX3_MARK, TX3_MARK,
 };
-static const unsigned int scif3_clk_pins[] = {
+static const unsigned int scif3_clk_pins[] =
+{
 	/* SCK */
 	RCAR_GP_PIN(10, 23),
 };
-static const unsigned int scif3_clk_mux[] = {
+static const unsigned int scif3_clk_mux[] =
+{
 	SCK3_MARK,
 };
 /* - SDHI0 ------------------------------------------------------------------ */
-static const unsigned int sdhi0_data1_pins[] = {
+static const unsigned int sdhi0_data1_pins[] =
+{
 	/* DAT0 */
 	RCAR_GP_PIN(11, 7),
 };
-static const unsigned int sdhi0_data1_mux[] = {
+static const unsigned int sdhi0_data1_mux[] =
+{
 	SD0_DAT0_MARK,
 };
-static const unsigned int sdhi0_data4_pins[] = {
+static const unsigned int sdhi0_data4_pins[] =
+{
 	/* DAT[0-3] */
 	RCAR_GP_PIN(11, 7), RCAR_GP_PIN(11, 8),
 	RCAR_GP_PIN(11, 9), RCAR_GP_PIN(11, 10),
 };
-static const unsigned int sdhi0_data4_mux[] = {
+static const unsigned int sdhi0_data4_mux[] =
+{
 	SD0_DAT0_MARK, SD0_DAT1_MARK, SD0_DAT2_MARK, SD0_DAT3_MARK,
 };
-static const unsigned int sdhi0_ctrl_pins[] = {
+static const unsigned int sdhi0_ctrl_pins[] =
+{
 	/* CLK, CMD */
 	RCAR_GP_PIN(11, 5), RCAR_GP_PIN(11, 6),
 };
-static const unsigned int sdhi0_ctrl_mux[] = {
+static const unsigned int sdhi0_ctrl_mux[] =
+{
 	SD0_CLK_MARK, SD0_CMD_MARK,
 };
-static const unsigned int sdhi0_cd_pins[] = {
+static const unsigned int sdhi0_cd_pins[] =
+{
 	/* CD */
 	RCAR_GP_PIN(11, 11),
 };
-static const unsigned int sdhi0_cd_mux[] = {
+static const unsigned int sdhi0_cd_mux[] =
+{
 	SD0_CD_MARK,
 };
-static const unsigned int sdhi0_wp_pins[] = {
+static const unsigned int sdhi0_wp_pins[] =
+{
 	/* WP */
 	RCAR_GP_PIN(11, 12),
 };
-static const unsigned int sdhi0_wp_mux[] = {
+static const unsigned int sdhi0_wp_mux[] =
+{
 	SD0_WP_MARK,
 };
 /* - VIN0 ------------------------------------------------------------------- */
-static const union vin_data vin0_data_pins = {
+static const union vin_data vin0_data_pins =
+{
 	.data24 = {
 		/* B */
 		RCAR_GP_PIN(4, 4), RCAR_GP_PIN(4, 5),
@@ -1209,7 +1321,8 @@ static const union vin_data vin0_data_pins = {
 		RCAR_GP_PIN(8, 11), RCAR_GP_PIN(8, 12),
 	},
 };
-static const union vin_data vin0_data_mux = {
+static const union vin_data vin0_data_mux =
+{
 	.data24 = {
 		/* B */
 		VI0_D0_B0_C0_MARK, VI0_D1_B1_C1_MARK,
@@ -1228,7 +1341,8 @@ static const union vin_data vin0_data_mux = {
 		VI0_D22_R6_MARK, VI0_D23_R7_MARK,
 	},
 };
-static const unsigned int vin0_data18_pins[] = {
+static const unsigned int vin0_data18_pins[] =
+{
 	/* B */
 	RCAR_GP_PIN(4, 6), RCAR_GP_PIN(4, 7),
 	RCAR_GP_PIN(4, 8), RCAR_GP_PIN(4, 9),
@@ -1242,7 +1356,8 @@ static const unsigned int vin0_data18_pins[] = {
 	RCAR_GP_PIN(8, 9), RCAR_GP_PIN(8, 10),
 	RCAR_GP_PIN(8, 11), RCAR_GP_PIN(8, 12),
 };
-static const unsigned int vin0_data18_mux[] = {
+static const unsigned int vin0_data18_mux[] =
+{
 	/* B */
 	VI0_D2_B2_C2_MARK, VI0_D3_B3_C3_MARK,
 	VI0_D4_B4_C4_MARK, VI0_D5_B5_C5_MARK,
@@ -1256,33 +1371,42 @@ static const unsigned int vin0_data18_mux[] = {
 	VI0_D20_R4_MARK, VI0_D21_R5_MARK,
 	VI0_D22_R6_MARK, VI0_D23_R7_MARK,
 };
-static const unsigned int vin0_sync_pins[] = {
+static const unsigned int vin0_sync_pins[] =
+{
 	/* HSYNC#, VSYNC# */
 	RCAR_GP_PIN(4, 2), RCAR_GP_PIN(4, 3),
 };
-static const unsigned int vin0_sync_mux[] = {
+static const unsigned int vin0_sync_mux[] =
+{
 	VI0_HSYNC_N_MARK, VI0_VSYNC_N_MARK,
 };
-static const unsigned int vin0_field_pins[] = {
+static const unsigned int vin0_field_pins[] =
+{
 	RCAR_GP_PIN(4, 16),
 };
-static const unsigned int vin0_field_mux[] = {
+static const unsigned int vin0_field_mux[] =
+{
 	VI0_FIELD_MARK,
 };
-static const unsigned int vin0_clkenb_pins[] = {
+static const unsigned int vin0_clkenb_pins[] =
+{
 	RCAR_GP_PIN(4, 1),
 };
-static const unsigned int vin0_clkenb_mux[] = {
+static const unsigned int vin0_clkenb_mux[] =
+{
 	VI0_CLKENB_MARK,
 };
-static const unsigned int vin0_clk_pins[] = {
+static const unsigned int vin0_clk_pins[] =
+{
 	RCAR_GP_PIN(4, 0),
 };
-static const unsigned int vin0_clk_mux[] = {
+static const unsigned int vin0_clk_mux[] =
+{
 	VI0_CLK_MARK,
 };
 /* - VIN1 ------------------------------------------------------------------- */
-static const union vin_data vin1_data_pins = {
+static const union vin_data vin1_data_pins =
+{
 	.data24 = {
 		/* B */
 		RCAR_GP_PIN(5, 4), RCAR_GP_PIN(5, 5),
@@ -1301,7 +1425,8 @@ static const union vin_data vin1_data_pins = {
 		RCAR_GP_PIN(9, 11), RCAR_GP_PIN(9, 12),
 	},
 };
-static const union vin_data vin1_data_mux = {
+static const union vin_data vin1_data_mux =
+{
 	.data24 = {
 		/* B */
 		VI1_D0_B0_C0_MARK, VI1_D1_B1_C1_MARK,
@@ -1320,7 +1445,8 @@ static const union vin_data vin1_data_mux = {
 		VI1_D22_R6_MARK, VI1_D23_R7_MARK,
 	},
 };
-static const unsigned int vin1_data18_pins[] = {
+static const unsigned int vin1_data18_pins[] =
+{
 	/* B */
 	RCAR_GP_PIN(5, 6), RCAR_GP_PIN(5, 7),
 	RCAR_GP_PIN(5, 8), RCAR_GP_PIN(5, 9),
@@ -1334,7 +1460,8 @@ static const unsigned int vin1_data18_pins[] = {
 	RCAR_GP_PIN(9, 9), RCAR_GP_PIN(9, 10),
 	RCAR_GP_PIN(9, 11), RCAR_GP_PIN(9, 12),
 };
-static const unsigned int vin1_data18_mux[] = {
+static const unsigned int vin1_data18_mux[] =
+{
 	/* B */
 	VI1_D2_B2_C2_MARK, VI1_D3_B3_C3_MARK,
 	VI1_D4_B4_C4_MARK, VI1_D5_B5_C5_MARK,
@@ -1348,7 +1475,8 @@ static const unsigned int vin1_data18_mux[] = {
 	VI1_D20_R4_MARK, VI1_D21_R5_MARK,
 	VI1_D22_R6_MARK, VI1_D23_R7_MARK,
 };
-static const union vin_data vin1_data_b_pins = {
+static const union vin_data vin1_data_b_pins =
+{
 	.data24 = {
 		/* B */
 		RCAR_GP_PIN(5, 4), RCAR_GP_PIN(5, 5),
@@ -1367,7 +1495,8 @@ static const union vin_data vin1_data_b_pins = {
 		RCAR_GP_PIN(9, 11), RCAR_GP_PIN(9, 12),
 	},
 };
-static const union vin_data vin1_data_b_mux = {
+static const union vin_data vin1_data_b_mux =
+{
 	.data24 = {
 		/* B */
 		VI1_D0_B0_C0_MARK, VI1_D1_B1_C1_MARK,
@@ -1386,7 +1515,8 @@ static const union vin_data vin1_data_b_mux = {
 		VI1_D22_R6_MARK, VI1_D23_R7_MARK,
 	},
 };
-static const unsigned int vin1_data18_b_pins[] = {
+static const unsigned int vin1_data18_b_pins[] =
+{
 	/* B */
 	RCAR_GP_PIN(5, 6), RCAR_GP_PIN(5, 7),
 	RCAR_GP_PIN(5, 8), RCAR_GP_PIN(5, 9),
@@ -1400,7 +1530,8 @@ static const unsigned int vin1_data18_b_pins[] = {
 	RCAR_GP_PIN(9, 9), RCAR_GP_PIN(9, 10),
 	RCAR_GP_PIN(9, 11), RCAR_GP_PIN(9, 12),
 };
-static const unsigned int vin1_data18_b_mux[] = {
+static const unsigned int vin1_data18_b_mux[] =
+{
 	/* B */
 	VI1_D2_B2_C2_MARK, VI1_D3_B3_C3_MARK,
 	VI1_D4_B4_C4_MARK, VI1_D5_B5_C5_MARK,
@@ -1414,33 +1545,42 @@ static const unsigned int vin1_data18_b_mux[] = {
 	VI1_D20_R4_MARK, VI1_D21_R5_MARK,
 	VI1_D22_R6_MARK, VI1_D23_R7_MARK,
 };
-static const unsigned int vin1_sync_pins[] = {
+static const unsigned int vin1_sync_pins[] =
+{
 	/* HSYNC#, VSYNC# */
 	RCAR_GP_PIN(5, 2), RCAR_GP_PIN(5, 3),
 };
-static const unsigned int vin1_sync_mux[] = {
+static const unsigned int vin1_sync_mux[] =
+{
 	VI1_HSYNC_N_MARK, VI1_VSYNC_N_MARK,
 };
-static const unsigned int vin1_field_pins[] = {
+static const unsigned int vin1_field_pins[] =
+{
 	RCAR_GP_PIN(5, 16),
 };
-static const unsigned int vin1_field_mux[] = {
+static const unsigned int vin1_field_mux[] =
+{
 	VI1_FIELD_MARK,
 };
-static const unsigned int vin1_clkenb_pins[] = {
+static const unsigned int vin1_clkenb_pins[] =
+{
 	RCAR_GP_PIN(5, 1),
 };
-static const unsigned int vin1_clkenb_mux[] = {
+static const unsigned int vin1_clkenb_mux[] =
+{
 	VI1_CLKENB_MARK,
 };
-static const unsigned int vin1_clk_pins[] = {
+static const unsigned int vin1_clk_pins[] =
+{
 	RCAR_GP_PIN(5, 0),
 };
-static const unsigned int vin1_clk_mux[] = {
+static const unsigned int vin1_clk_mux[] =
+{
 	VI1_CLK_MARK,
 };
 /* - VIN2 ------------------------------------------------------------------- */
-static const union vin_data vin2_data_pins = {
+static const union vin_data vin2_data_pins =
+{
 	.data16 = {
 		RCAR_GP_PIN(6, 4), RCAR_GP_PIN(6, 5),
 		RCAR_GP_PIN(6, 6), RCAR_GP_PIN(6, 7),
@@ -1452,7 +1592,8 @@ static const union vin_data vin2_data_pins = {
 		RCAR_GP_PIN(8, 11), RCAR_GP_PIN(8, 12),
 	},
 };
-static const union vin_data vin2_data_mux = {
+static const union vin_data vin2_data_mux =
+{
 	.data16 = {
 		VI2_D0_C0_MARK, VI2_D1_C1_MARK,
 		VI2_D2_C2_MARK,	VI2_D3_C3_MARK,
@@ -1464,33 +1605,42 @@ static const union vin_data vin2_data_mux = {
 		VI2_D14_Y6_MARK, VI2_D15_Y7_MARK,
 	},
 };
-static const unsigned int vin2_sync_pins[] = {
+static const unsigned int vin2_sync_pins[] =
+{
 	/* HSYNC#, VSYNC# */
 	RCAR_GP_PIN(6, 2), RCAR_GP_PIN(6, 3),
 };
-static const unsigned int vin2_sync_mux[] = {
+static const unsigned int vin2_sync_mux[] =
+{
 	VI2_HSYNC_N_MARK, VI2_VSYNC_N_MARK,
 };
-static const unsigned int vin2_field_pins[] = {
+static const unsigned int vin2_field_pins[] =
+{
 	RCAR_GP_PIN(6, 16),
 };
-static const unsigned int vin2_field_mux[] = {
+static const unsigned int vin2_field_mux[] =
+{
 	VI2_FIELD_MARK,
 };
-static const unsigned int vin2_clkenb_pins[] = {
+static const unsigned int vin2_clkenb_pins[] =
+{
 	RCAR_GP_PIN(6, 1),
 };
-static const unsigned int vin2_clkenb_mux[] = {
+static const unsigned int vin2_clkenb_mux[] =
+{
 	VI2_CLKENB_MARK,
 };
-static const unsigned int vin2_clk_pins[] = {
+static const unsigned int vin2_clk_pins[] =
+{
 	RCAR_GP_PIN(6, 0),
 };
-static const unsigned int vin2_clk_mux[] = {
+static const unsigned int vin2_clk_mux[] =
+{
 	VI2_CLK_MARK,
 };
 /* - VIN3 ------------------------------------------------------------------- */
-static const union vin_data vin3_data_pins = {
+static const union vin_data vin3_data_pins =
+{
 	.data16 = {
 		RCAR_GP_PIN(7, 4), RCAR_GP_PIN(7, 5),
 		RCAR_GP_PIN(7, 6), RCAR_GP_PIN(7, 7),
@@ -1502,7 +1652,8 @@ static const union vin_data vin3_data_pins = {
 		RCAR_GP_PIN(8, 15), RCAR_GP_PIN(8, 16),
 	},
 };
-static const union vin_data vin3_data_mux = {
+static const union vin_data vin3_data_mux =
+{
 	.data16 = {
 		VI3_D0_C0_MARK, VI3_D1_C1_MARK,
 		VI3_D2_C2_MARK,	VI3_D3_C3_MARK,
@@ -1514,33 +1665,42 @@ static const union vin_data vin3_data_mux = {
 		VI3_D14_Y6_MARK, VI3_D15_Y7_MARK,
 	},
 };
-static const unsigned int vin3_sync_pins[] = {
+static const unsigned int vin3_sync_pins[] =
+{
 	/* HSYNC#, VSYNC# */
 	RCAR_GP_PIN(7, 2), RCAR_GP_PIN(7, 3),
 };
-static const unsigned int vin3_sync_mux[] = {
+static const unsigned int vin3_sync_mux[] =
+{
 	VI3_HSYNC_N_MARK, VI3_VSYNC_N_MARK,
 };
-static const unsigned int vin3_field_pins[] = {
+static const unsigned int vin3_field_pins[] =
+{
 	RCAR_GP_PIN(7, 16),
 };
-static const unsigned int vin3_field_mux[] = {
+static const unsigned int vin3_field_mux[] =
+{
 	VI3_FIELD_MARK,
 };
-static const unsigned int vin3_clkenb_pins[] = {
+static const unsigned int vin3_clkenb_pins[] =
+{
 	RCAR_GP_PIN(7, 1),
 };
-static const unsigned int vin3_clkenb_mux[] = {
+static const unsigned int vin3_clkenb_mux[] =
+{
 	VI3_CLKENB_MARK,
 };
-static const unsigned int vin3_clk_pins[] = {
+static const unsigned int vin3_clk_pins[] =
+{
 	RCAR_GP_PIN(7, 0),
 };
-static const unsigned int vin3_clk_mux[] = {
+static const unsigned int vin3_clk_mux[] =
+{
 	VI3_CLK_MARK,
 };
 /* - VIN4 ------------------------------------------------------------------- */
-static const union vin_data vin4_data_pins = {
+static const union vin_data vin4_data_pins =
+{
 	.data12 = {
 		RCAR_GP_PIN(8, 4), RCAR_GP_PIN(8, 5),
 		RCAR_GP_PIN(8, 6), RCAR_GP_PIN(8, 7),
@@ -1550,7 +1710,8 @@ static const union vin_data vin4_data_pins = {
 		RCAR_GP_PIN(8, 14), RCAR_GP_PIN(8, 15),
 	},
 };
-static const union vin_data vin4_data_mux = {
+static const union vin_data vin4_data_mux =
+{
 	.data12 = {
 		VI4_D0_C0_MARK, VI4_D1_C1_MARK,
 		VI4_D2_C2_MARK, VI4_D3_C3_MARK,
@@ -1560,33 +1721,42 @@ static const union vin_data vin4_data_mux = {
 		VI4_D10_Y2_MARK, VI4_D11_Y3_MARK,
 	},
 };
-static const unsigned int vin4_sync_pins[] = {
-	 /* HSYNC#, VSYNC# */
+static const unsigned int vin4_sync_pins[] =
+{
+	/* HSYNC#, VSYNC# */
 	RCAR_GP_PIN(8, 2), RCAR_GP_PIN(8, 3),
 };
-static const unsigned int vin4_sync_mux[] = {
+static const unsigned int vin4_sync_mux[] =
+{
 	VI4_HSYNC_N_MARK, VI4_VSYNC_N_MARK,
 };
-static const unsigned int vin4_field_pins[] = {
+static const unsigned int vin4_field_pins[] =
+{
 	RCAR_GP_PIN(8, 16),
 };
-static const unsigned int vin4_field_mux[] = {
+static const unsigned int vin4_field_mux[] =
+{
 	VI4_FIELD_MARK,
 };
-static const unsigned int vin4_clkenb_pins[] = {
+static const unsigned int vin4_clkenb_pins[] =
+{
 	RCAR_GP_PIN(8, 1),
 };
-static const unsigned int vin4_clkenb_mux[] = {
+static const unsigned int vin4_clkenb_mux[] =
+{
 	VI4_CLKENB_MARK,
 };
-static const unsigned int vin4_clk_pins[] = {
+static const unsigned int vin4_clk_pins[] =
+{
 	RCAR_GP_PIN(8, 0),
 };
-static const unsigned int vin4_clk_mux[] = {
+static const unsigned int vin4_clk_mux[] =
+{
 	VI4_CLK_MARK,
 };
 /* - VIN5 ------------------------------------------------------------------- */
-static const union vin_data vin5_data_pins = {
+static const union vin_data vin5_data_pins =
+{
 	.data12 = {
 		RCAR_GP_PIN(9, 4), RCAR_GP_PIN(9, 5),
 		RCAR_GP_PIN(9, 6), RCAR_GP_PIN(9, 7),
@@ -1596,7 +1766,8 @@ static const union vin_data vin5_data_pins = {
 		RCAR_GP_PIN(9, 14), RCAR_GP_PIN(9, 15),
 	},
 };
-static const union vin_data vin5_data_mux = {
+static const union vin_data vin5_data_mux =
+{
 	.data12 = {
 		VI5_D0_C0_MARK, VI5_D1_C1_MARK,
 		VI5_D2_C2_MARK, VI5_D3_C3_MARK,
@@ -1606,33 +1777,42 @@ static const union vin_data vin5_data_mux = {
 		VI5_D10_Y2_MARK, VI5_D11_Y3_MARK,
 	},
 };
-static const unsigned int vin5_sync_pins[] = {
+static const unsigned int vin5_sync_pins[] =
+{
 	/* HSYNC#, VSYNC# */
 	RCAR_GP_PIN(9, 2), RCAR_GP_PIN(9, 3),
 };
-static const unsigned int vin5_sync_mux[] = {
+static const unsigned int vin5_sync_mux[] =
+{
 	VI5_HSYNC_N_MARK, VI5_VSYNC_N_MARK,
 };
-static const unsigned int vin5_field_pins[] = {
+static const unsigned int vin5_field_pins[] =
+{
 	RCAR_GP_PIN(9, 16),
 };
-static const unsigned int vin5_field_mux[] = {
+static const unsigned int vin5_field_mux[] =
+{
 	VI5_FIELD_MARK,
 };
-static const unsigned int vin5_clkenb_pins[] = {
+static const unsigned int vin5_clkenb_pins[] =
+{
 	RCAR_GP_PIN(9, 1),
 };
-static const unsigned int vin5_clkenb_mux[] = {
+static const unsigned int vin5_clkenb_mux[] =
+{
 	VI5_CLKENB_MARK,
 };
-static const unsigned int vin5_clk_pins[] = {
+static const unsigned int vin5_clk_pins[] =
+{
 	RCAR_GP_PIN(9, 0),
 };
-static const unsigned int vin5_clk_mux[] = {
+static const unsigned int vin5_clk_mux[] =
+{
 	VI5_CLK_MARK,
 };
 
-static const struct sh_pfc_pin_group pinmux_groups[] = {
+static const struct sh_pfc_pin_group pinmux_groups[] =
+{
 	SH_PFC_PIN_GROUP(avb_link),
 	SH_PFC_PIN_GROUP(avb_magic),
 	SH_PFC_PIN_GROUP(avb_phy_int),
@@ -1745,7 +1925,8 @@ static const struct sh_pfc_pin_group pinmux_groups[] = {
 	SH_PFC_PIN_GROUP(vin5_clk),
 };
 
-static const char * const avb_groups[] = {
+static const char *const avb_groups[] =
+{
 	"avb_link",
 	"avb_magic",
 	"avb_phy_int",
@@ -1755,17 +1936,20 @@ static const char * const avb_groups[] = {
 	"avb_avtp_match",
 };
 
-static const char * const can0_groups[] = {
+static const char *const can0_groups[] =
+{
 	"can0_data",
 	"can_clk",
 };
 
-static const char * const can1_groups[] = {
+static const char *const can1_groups[] =
+{
 	"can1_data",
 	"can_clk",
 };
 
-static const char * const du0_groups[] = {
+static const char *const du0_groups[] =
+{
 	"du0_rgb666",
 	"du0_rgb888",
 	"du0_sync",
@@ -1774,7 +1958,8 @@ static const char * const du0_groups[] = {
 	"du0_cde",
 };
 
-static const char * const du1_groups[] = {
+static const char *const du1_groups[] =
+{
 	"du1_rgb666",
 	"du1_sync",
 	"du1_oddf",
@@ -1782,14 +1967,16 @@ static const char * const du1_groups[] = {
 	"du1_cde",
 };
 
-static const char * const intc_groups[] = {
+static const char *const intc_groups[] =
+{
 	"intc_irq0",
 	"intc_irq1",
 	"intc_irq2",
 	"intc_irq3",
 };
 
-static const char * const lbsc_groups[] = {
+static const char *const lbsc_groups[] =
+{
 	"lbsc_cs0",
 	"lbsc_cs1",
 	"lbsc_ex_cs0",
@@ -1800,38 +1987,44 @@ static const char * const lbsc_groups[] = {
 	"lbsc_ex_cs5",
 };
 
-static const char * const msiof0_groups[] = {
+static const char *const msiof0_groups[] =
+{
 	"msiof0_clk",
 	"msiof0_sync",
 	"msiof0_rx",
 	"msiof0_tx",
 };
 
-static const char * const msiof1_groups[] = {
+static const char *const msiof1_groups[] =
+{
 	"msiof1_clk",
 	"msiof1_sync",
 	"msiof1_rx",
 	"msiof1_tx",
 };
 
-static const char * const qspi_groups[] = {
+static const char *const qspi_groups[] =
+{
 	"qspi_ctrl",
 	"qspi_data2",
 	"qspi_data4",
 };
 
-static const char * const scif0_groups[] = {
+static const char *const scif0_groups[] =
+{
 	"scif0_data",
 	"scif0_clk",
 	"scif0_ctrl",
 };
 
-static const char * const scif3_groups[] = {
+static const char *const scif3_groups[] =
+{
 	"scif3_data",
 	"scif3_clk",
 };
 
-static const char * const sdhi0_groups[] = {
+static const char *const sdhi0_groups[] =
+{
 	"sdhi0_data1",
 	"sdhi0_data4",
 	"sdhi0_ctrl",
@@ -1839,7 +2032,8 @@ static const char * const sdhi0_groups[] = {
 	"sdhi0_wp",
 };
 
-static const char * const vin0_groups[] = {
+static const char *const vin0_groups[] =
+{
 	"vin0_data24",
 	"vin0_data20",
 	"vin0_data18",
@@ -1853,7 +2047,8 @@ static const char * const vin0_groups[] = {
 	"vin0_clk",
 };
 
-static const char * const vin1_groups[] = {
+static const char *const vin1_groups[] =
+{
 	"vin1_data24",
 	"vin1_data20",
 	"vin1_data18",
@@ -1870,7 +2065,8 @@ static const char * const vin1_groups[] = {
 	"vin1_clk",
 };
 
-static const char * const vin2_groups[] = {
+static const char *const vin2_groups[] =
+{
 	"vin2_data16",
 	"vin2_data12",
 	"vin2_data10",
@@ -1881,7 +2077,8 @@ static const char * const vin2_groups[] = {
 	"vin2_clk",
 };
 
-static const char * const vin3_groups[] = {
+static const char *const vin3_groups[] =
+{
 	"vin3_data16",
 	"vin3_data12",
 	"vin3_data10",
@@ -1892,7 +2089,8 @@ static const char * const vin3_groups[] = {
 	"vin3_clk",
 };
 
-static const char * const vin4_groups[] = {
+static const char *const vin4_groups[] =
+{
 	"vin4_data12",
 	"vin4_data10",
 	"vin4_data8",
@@ -1902,7 +2100,8 @@ static const char * const vin4_groups[] = {
 	"vin4_clk",
 };
 
-static const char * const vin5_groups[] = {
+static const char *const vin5_groups[] =
+{
 	"vin5_data12",
 	"vin5_data10",
 	"vin5_data8",
@@ -1912,7 +2111,8 @@ static const char * const vin5_groups[] = {
 	"vin5_clk",
 };
 
-static const struct sh_pfc_function pinmux_functions[] = {
+static const struct sh_pfc_function pinmux_functions[] =
+{
 	SH_PFC_FUNCTION(avb),
 	SH_PFC_FUNCTION(can0),
 	SH_PFC_FUNCTION(can1),
@@ -1934,792 +2134,854 @@ static const struct sh_pfc_function pinmux_functions[] = {
 	SH_PFC_FUNCTION(vin5),
 };
 
-static const struct pinmux_cfg_reg pinmux_config_regs[] = {
-	{ PINMUX_CFG_REG("GPSR0", 0xE6060004, 32, 1) {
-		0, 0,
-		0, 0,
-		0, 0,
-		GP_0_28_FN, FN_IP1_4,
-		GP_0_27_FN, FN_IP1_3,
-		GP_0_26_FN, FN_IP1_2,
-		GP_0_25_FN, FN_IP1_1,
-		GP_0_24_FN, FN_IP1_0,
-		GP_0_23_FN, FN_IP0_23,
-		GP_0_22_FN, FN_IP0_22,
-		GP_0_21_FN, FN_IP0_21,
-		GP_0_20_FN, FN_IP0_20,
-		GP_0_19_FN, FN_IP0_19,
-		GP_0_18_FN, FN_IP0_18,
-		GP_0_17_FN, FN_IP0_17,
-		GP_0_16_FN, FN_IP0_16,
-		GP_0_15_FN, FN_IP0_15,
-		GP_0_14_FN, FN_IP0_14,
-		GP_0_13_FN, FN_IP0_13,
-		GP_0_12_FN, FN_IP0_12,
-		GP_0_11_FN, FN_IP0_11,
-		GP_0_10_FN, FN_IP0_10,
-		GP_0_9_FN, FN_IP0_9,
-		GP_0_8_FN, FN_IP0_8,
-		GP_0_7_FN, FN_IP0_7,
-		GP_0_6_FN, FN_IP0_6,
-		GP_0_5_FN, FN_IP0_5,
-		GP_0_4_FN, FN_IP0_4,
-		GP_0_3_FN, FN_IP0_3,
-		GP_0_2_FN, FN_IP0_2,
-		GP_0_1_FN, FN_IP0_1,
-		GP_0_0_FN, FN_IP0_0 }
+static const struct pinmux_cfg_reg pinmux_config_regs[] =
+{
+	{
+		PINMUX_CFG_REG("GPSR0", 0xE6060004, 32, 1)
+		{
+			0, 0,
+			0, 0,
+			0, 0,
+			GP_0_28_FN, FN_IP1_4,
+			GP_0_27_FN, FN_IP1_3,
+			GP_0_26_FN, FN_IP1_2,
+			GP_0_25_FN, FN_IP1_1,
+			GP_0_24_FN, FN_IP1_0,
+			GP_0_23_FN, FN_IP0_23,
+			GP_0_22_FN, FN_IP0_22,
+			GP_0_21_FN, FN_IP0_21,
+			GP_0_20_FN, FN_IP0_20,
+			GP_0_19_FN, FN_IP0_19,
+			GP_0_18_FN, FN_IP0_18,
+			GP_0_17_FN, FN_IP0_17,
+			GP_0_16_FN, FN_IP0_16,
+			GP_0_15_FN, FN_IP0_15,
+			GP_0_14_FN, FN_IP0_14,
+			GP_0_13_FN, FN_IP0_13,
+			GP_0_12_FN, FN_IP0_12,
+			GP_0_11_FN, FN_IP0_11,
+			GP_0_10_FN, FN_IP0_10,
+			GP_0_9_FN, FN_IP0_9,
+			GP_0_8_FN, FN_IP0_8,
+			GP_0_7_FN, FN_IP0_7,
+			GP_0_6_FN, FN_IP0_6,
+			GP_0_5_FN, FN_IP0_5,
+			GP_0_4_FN, FN_IP0_4,
+			GP_0_3_FN, FN_IP0_3,
+			GP_0_2_FN, FN_IP0_2,
+			GP_0_1_FN, FN_IP0_1,
+			GP_0_0_FN, FN_IP0_0
+		}
 	},
-	{ PINMUX_CFG_REG("GPSR1", 0xE6060008, 32, 1) {
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		GP_1_22_FN, FN_DU1_CDE,
-		GP_1_21_FN, FN_DU1_DISP,
-		GP_1_20_FN, FN_DU1_EXODDF_DU1_ODDF_DISP_CDE,
-		GP_1_19_FN, FN_DU1_EXVSYNC_DU1_VSYNC,
-		GP_1_18_FN, FN_DU1_EXHSYNC_DU1_HSYNC,
-		GP_1_17_FN, FN_DU1_DB7_C5,
-		GP_1_16_FN, FN_DU1_DB6_C4,
-		GP_1_15_FN, FN_DU1_DB5_C3_DATA15,
-		GP_1_14_FN, FN_DU1_DB4_C2_DATA14,
-		GP_1_13_FN, FN_DU1_DB3_C1_DATA13,
-		GP_1_12_FN, FN_DU1_DB2_C0_DATA12,
-		GP_1_11_FN, FN_IP1_16,
-		GP_1_10_FN, FN_IP1_15,
-		GP_1_9_FN, FN_IP1_14,
-		GP_1_8_FN, FN_IP1_13,
-		GP_1_7_FN, FN_IP1_12,
-		GP_1_6_FN, FN_IP1_11,
-		GP_1_5_FN, FN_IP1_10,
-		GP_1_4_FN, FN_IP1_9,
-		GP_1_3_FN, FN_IP1_8,
-		GP_1_2_FN, FN_IP1_7,
-		GP_1_1_FN, FN_IP1_6,
-		GP_1_0_FN, FN_IP1_5, }
+	{
+		PINMUX_CFG_REG("GPSR1", 0xE6060008, 32, 1)
+		{
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			GP_1_22_FN, FN_DU1_CDE,
+			GP_1_21_FN, FN_DU1_DISP,
+			GP_1_20_FN, FN_DU1_EXODDF_DU1_ODDF_DISP_CDE,
+			GP_1_19_FN, FN_DU1_EXVSYNC_DU1_VSYNC,
+			GP_1_18_FN, FN_DU1_EXHSYNC_DU1_HSYNC,
+			GP_1_17_FN, FN_DU1_DB7_C5,
+			GP_1_16_FN, FN_DU1_DB6_C4,
+			GP_1_15_FN, FN_DU1_DB5_C3_DATA15,
+			GP_1_14_FN, FN_DU1_DB4_C2_DATA14,
+			GP_1_13_FN, FN_DU1_DB3_C1_DATA13,
+			GP_1_12_FN, FN_DU1_DB2_C0_DATA12,
+			GP_1_11_FN, FN_IP1_16,
+			GP_1_10_FN, FN_IP1_15,
+			GP_1_9_FN, FN_IP1_14,
+			GP_1_8_FN, FN_IP1_13,
+			GP_1_7_FN, FN_IP1_12,
+			GP_1_6_FN, FN_IP1_11,
+			GP_1_5_FN, FN_IP1_10,
+			GP_1_4_FN, FN_IP1_9,
+			GP_1_3_FN, FN_IP1_8,
+			GP_1_2_FN, FN_IP1_7,
+			GP_1_1_FN, FN_IP1_6,
+			GP_1_0_FN, FN_IP1_5,
+		}
 	},
-	{ PINMUX_CFG_REG("GPSR2", 0xE606000C, 32, 1) {
-		GP_2_31_FN, FN_A15,
-		GP_2_30_FN, FN_A14,
-		GP_2_29_FN, FN_A13,
-		GP_2_28_FN, FN_A12,
-		GP_2_27_FN, FN_A11,
-		GP_2_26_FN, FN_A10,
-		GP_2_25_FN, FN_A9,
-		GP_2_24_FN, FN_A8,
-		GP_2_23_FN, FN_A7,
-		GP_2_22_FN, FN_A6,
-		GP_2_21_FN, FN_A5,
-		GP_2_20_FN, FN_A4,
-		GP_2_19_FN, FN_A3,
-		GP_2_18_FN, FN_A2,
-		GP_2_17_FN, FN_A1,
-		GP_2_16_FN, FN_A0,
-		GP_2_15_FN, FN_D15,
-		GP_2_14_FN, FN_D14,
-		GP_2_13_FN, FN_D13,
-		GP_2_12_FN, FN_D12,
-		GP_2_11_FN, FN_D11,
-		GP_2_10_FN, FN_D10,
-		GP_2_9_FN, FN_D9,
-		GP_2_8_FN, FN_D8,
-		GP_2_7_FN, FN_D7,
-		GP_2_6_FN, FN_D6,
-		GP_2_5_FN, FN_D5,
-		GP_2_4_FN, FN_D4,
-		GP_2_3_FN, FN_D3,
-		GP_2_2_FN, FN_D2,
-		GP_2_1_FN, FN_D1,
-		GP_2_0_FN, FN_D0 }
+	{
+		PINMUX_CFG_REG("GPSR2", 0xE606000C, 32, 1)
+		{
+			GP_2_31_FN, FN_A15,
+			GP_2_30_FN, FN_A14,
+			GP_2_29_FN, FN_A13,
+			GP_2_28_FN, FN_A12,
+			GP_2_27_FN, FN_A11,
+			GP_2_26_FN, FN_A10,
+			GP_2_25_FN, FN_A9,
+			GP_2_24_FN, FN_A8,
+			GP_2_23_FN, FN_A7,
+			GP_2_22_FN, FN_A6,
+			GP_2_21_FN, FN_A5,
+			GP_2_20_FN, FN_A4,
+			GP_2_19_FN, FN_A3,
+			GP_2_18_FN, FN_A2,
+			GP_2_17_FN, FN_A1,
+			GP_2_16_FN, FN_A0,
+			GP_2_15_FN, FN_D15,
+			GP_2_14_FN, FN_D14,
+			GP_2_13_FN, FN_D13,
+			GP_2_12_FN, FN_D12,
+			GP_2_11_FN, FN_D11,
+			GP_2_10_FN, FN_D10,
+			GP_2_9_FN, FN_D9,
+			GP_2_8_FN, FN_D8,
+			GP_2_7_FN, FN_D7,
+			GP_2_6_FN, FN_D6,
+			GP_2_5_FN, FN_D5,
+			GP_2_4_FN, FN_D4,
+			GP_2_3_FN, FN_D3,
+			GP_2_2_FN, FN_D2,
+			GP_2_1_FN, FN_D1,
+			GP_2_0_FN, FN_D0
+		}
 	},
-	{ PINMUX_CFG_REG("GPSR3", 0xE6060010, 32, 1) {
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		GP_3_27_FN, FN_CS0_N,
-		GP_3_26_FN, FN_IP1_22,
-		GP_3_25_FN, FN_IP1_21,
-		GP_3_24_FN, FN_IP1_20,
-		GP_3_23_FN, FN_IP1_19,
-		GP_3_22_FN, FN_IRQ3,
-		GP_3_21_FN, FN_IRQ2,
-		GP_3_20_FN, FN_IRQ1,
-		GP_3_19_FN, FN_IRQ0,
-		GP_3_18_FN, FN_EX_WAIT0,
-		GP_3_17_FN, FN_WE1_N,
-		GP_3_16_FN, FN_WE0_N,
-		GP_3_15_FN, FN_RD_WR_N,
-		GP_3_14_FN, FN_RD_N,
-		GP_3_13_FN, FN_BS_N,
-		GP_3_12_FN, FN_EX_CS5_N,
-		GP_3_11_FN, FN_EX_CS4_N,
-		GP_3_10_FN, FN_EX_CS3_N,
-		GP_3_9_FN, FN_EX_CS2_N,
-		GP_3_8_FN, FN_EX_CS1_N,
-		GP_3_7_FN, FN_EX_CS0_N,
-		GP_3_6_FN, FN_CS1_N_A26,
-		GP_3_5_FN, FN_IP1_18,
-		GP_3_4_FN, FN_IP1_17,
-		GP_3_3_FN, FN_A19,
-		GP_3_2_FN, FN_A18,
-		GP_3_1_FN, FN_A17,
-		GP_3_0_FN, FN_A16 }
+	{
+		PINMUX_CFG_REG("GPSR3", 0xE6060010, 32, 1)
+		{
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			GP_3_27_FN, FN_CS0_N,
+			GP_3_26_FN, FN_IP1_22,
+			GP_3_25_FN, FN_IP1_21,
+			GP_3_24_FN, FN_IP1_20,
+			GP_3_23_FN, FN_IP1_19,
+			GP_3_22_FN, FN_IRQ3,
+			GP_3_21_FN, FN_IRQ2,
+			GP_3_20_FN, FN_IRQ1,
+			GP_3_19_FN, FN_IRQ0,
+			GP_3_18_FN, FN_EX_WAIT0,
+			GP_3_17_FN, FN_WE1_N,
+			GP_3_16_FN, FN_WE0_N,
+			GP_3_15_FN, FN_RD_WR_N,
+			GP_3_14_FN, FN_RD_N,
+			GP_3_13_FN, FN_BS_N,
+			GP_3_12_FN, FN_EX_CS5_N,
+			GP_3_11_FN, FN_EX_CS4_N,
+			GP_3_10_FN, FN_EX_CS3_N,
+			GP_3_9_FN, FN_EX_CS2_N,
+			GP_3_8_FN, FN_EX_CS1_N,
+			GP_3_7_FN, FN_EX_CS0_N,
+			GP_3_6_FN, FN_CS1_N_A26,
+			GP_3_5_FN, FN_IP1_18,
+			GP_3_4_FN, FN_IP1_17,
+			GP_3_3_FN, FN_A19,
+			GP_3_2_FN, FN_A18,
+			GP_3_1_FN, FN_A17,
+			GP_3_0_FN, FN_A16
+		}
 	},
-	{ PINMUX_CFG_REG("GPSR4", 0xE6060014, 32, 1) {
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		GP_4_16_FN, FN_VI0_FIELD,
-		GP_4_15_FN, FN_VI0_D11_G3_Y3,
-		GP_4_14_FN, FN_VI0_D10_G2_Y2,
-		GP_4_13_FN, FN_VI0_D9_G1_Y1,
-		GP_4_12_FN, FN_VI0_D8_G0_Y0,
-		GP_4_11_FN, FN_VI0_D7_B7_C7,
-		GP_4_10_FN, FN_VI0_D6_B6_C6,
-		GP_4_9_FN, FN_VI0_D5_B5_C5,
-		GP_4_8_FN, FN_VI0_D4_B4_C4,
-		GP_4_7_FN, FN_VI0_D3_B3_C3,
-		GP_4_6_FN, FN_VI0_D2_B2_C2,
-		GP_4_5_FN, FN_VI0_D1_B1_C1,
-		GP_4_4_FN, FN_VI0_D0_B0_C0,
-		GP_4_3_FN, FN_VI0_VSYNC_N,
-		GP_4_2_FN, FN_VI0_HSYNC_N,
-		GP_4_1_FN, FN_VI0_CLKENB,
-		GP_4_0_FN, FN_VI0_CLK }
+	{
+		PINMUX_CFG_REG("GPSR4", 0xE6060014, 32, 1)
+		{
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			GP_4_16_FN, FN_VI0_FIELD,
+			GP_4_15_FN, FN_VI0_D11_G3_Y3,
+			GP_4_14_FN, FN_VI0_D10_G2_Y2,
+			GP_4_13_FN, FN_VI0_D9_G1_Y1,
+			GP_4_12_FN, FN_VI0_D8_G0_Y0,
+			GP_4_11_FN, FN_VI0_D7_B7_C7,
+			GP_4_10_FN, FN_VI0_D6_B6_C6,
+			GP_4_9_FN, FN_VI0_D5_B5_C5,
+			GP_4_8_FN, FN_VI0_D4_B4_C4,
+			GP_4_7_FN, FN_VI0_D3_B3_C3,
+			GP_4_6_FN, FN_VI0_D2_B2_C2,
+			GP_4_5_FN, FN_VI0_D1_B1_C1,
+			GP_4_4_FN, FN_VI0_D0_B0_C0,
+			GP_4_3_FN, FN_VI0_VSYNC_N,
+			GP_4_2_FN, FN_VI0_HSYNC_N,
+			GP_4_1_FN, FN_VI0_CLKENB,
+			GP_4_0_FN, FN_VI0_CLK
+		}
 	},
-	{ PINMUX_CFG_REG("GPSR5", 0xE6060018, 32, 1) {
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		GP_5_16_FN, FN_VI1_FIELD,
-		GP_5_15_FN, FN_VI1_D11_G3_Y3,
-		GP_5_14_FN, FN_VI1_D10_G2_Y2,
-		GP_5_13_FN, FN_VI1_D9_G1_Y1,
-		GP_5_12_FN, FN_VI1_D8_G0_Y0,
-		GP_5_11_FN, FN_VI1_D7_B7_C7,
-		GP_5_10_FN, FN_VI1_D6_B6_C6,
-		GP_5_9_FN, FN_VI1_D5_B5_C5,
-		GP_5_8_FN, FN_VI1_D4_B4_C4,
-		GP_5_7_FN, FN_VI1_D3_B3_C3,
-		GP_5_6_FN, FN_VI1_D2_B2_C2,
-		GP_5_5_FN, FN_VI1_D1_B1_C1,
-		GP_5_4_FN, FN_VI1_D0_B0_C0,
-		GP_5_3_FN, FN_VI1_VSYNC_N,
-		GP_5_2_FN, FN_VI1_HSYNC_N,
-		GP_5_1_FN, FN_VI1_CLKENB,
-		GP_5_0_FN, FN_VI1_CLK }
+	{
+		PINMUX_CFG_REG("GPSR5", 0xE6060018, 32, 1)
+		{
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			GP_5_16_FN, FN_VI1_FIELD,
+			GP_5_15_FN, FN_VI1_D11_G3_Y3,
+			GP_5_14_FN, FN_VI1_D10_G2_Y2,
+			GP_5_13_FN, FN_VI1_D9_G1_Y1,
+			GP_5_12_FN, FN_VI1_D8_G0_Y0,
+			GP_5_11_FN, FN_VI1_D7_B7_C7,
+			GP_5_10_FN, FN_VI1_D6_B6_C6,
+			GP_5_9_FN, FN_VI1_D5_B5_C5,
+			GP_5_8_FN, FN_VI1_D4_B4_C4,
+			GP_5_7_FN, FN_VI1_D3_B3_C3,
+			GP_5_6_FN, FN_VI1_D2_B2_C2,
+			GP_5_5_FN, FN_VI1_D1_B1_C1,
+			GP_5_4_FN, FN_VI1_D0_B0_C0,
+			GP_5_3_FN, FN_VI1_VSYNC_N,
+			GP_5_2_FN, FN_VI1_HSYNC_N,
+			GP_5_1_FN, FN_VI1_CLKENB,
+			GP_5_0_FN, FN_VI1_CLK
+		}
 	},
-	{ PINMUX_CFG_REG("GPSR6", 0xE606001C, 32, 1) {
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		GP_6_16_FN, FN_IP2_16,
-		GP_6_15_FN, FN_IP2_15,
-		GP_6_14_FN, FN_IP2_14,
-		GP_6_13_FN, FN_IP2_13,
-		GP_6_12_FN, FN_IP2_12,
-		GP_6_11_FN, FN_IP2_11,
-		GP_6_10_FN, FN_IP2_10,
-		GP_6_9_FN, FN_IP2_9,
-		GP_6_8_FN, FN_IP2_8,
-		GP_6_7_FN, FN_IP2_7,
-		GP_6_6_FN, FN_IP2_6,
-		GP_6_5_FN, FN_IP2_5,
-		GP_6_4_FN, FN_IP2_4,
-		GP_6_3_FN, FN_IP2_3,
-		GP_6_2_FN, FN_IP2_2,
-		GP_6_1_FN, FN_IP2_1,
-		GP_6_0_FN, FN_IP2_0 }
+	{
+		PINMUX_CFG_REG("GPSR6", 0xE606001C, 32, 1)
+		{
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			GP_6_16_FN, FN_IP2_16,
+			GP_6_15_FN, FN_IP2_15,
+			GP_6_14_FN, FN_IP2_14,
+			GP_6_13_FN, FN_IP2_13,
+			GP_6_12_FN, FN_IP2_12,
+			GP_6_11_FN, FN_IP2_11,
+			GP_6_10_FN, FN_IP2_10,
+			GP_6_9_FN, FN_IP2_9,
+			GP_6_8_FN, FN_IP2_8,
+			GP_6_7_FN, FN_IP2_7,
+			GP_6_6_FN, FN_IP2_6,
+			GP_6_5_FN, FN_IP2_5,
+			GP_6_4_FN, FN_IP2_4,
+			GP_6_3_FN, FN_IP2_3,
+			GP_6_2_FN, FN_IP2_2,
+			GP_6_1_FN, FN_IP2_1,
+			GP_6_0_FN, FN_IP2_0
+		}
 	},
-	{ PINMUX_CFG_REG("GPSR7", 0xE6060020, 32, 1) {
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		GP_7_16_FN, FN_VI3_FIELD,
-		GP_7_15_FN, FN_IP3_14,
-		GP_7_14_FN, FN_VI3_D10_Y2,
-		GP_7_13_FN, FN_IP3_13,
-		GP_7_12_FN, FN_IP3_12,
-		GP_7_11_FN, FN_IP3_11,
-		GP_7_10_FN, FN_IP3_10,
-		GP_7_9_FN, FN_IP3_9,
-		GP_7_8_FN, FN_IP3_8,
-		GP_7_7_FN, FN_IP3_7,
-		GP_7_6_FN, FN_IP3_6,
-		GP_7_5_FN, FN_IP3_5,
-		GP_7_4_FN, FN_IP3_4,
-		GP_7_3_FN, FN_IP3_3,
-		GP_7_2_FN, FN_IP3_2,
-		GP_7_1_FN, FN_IP3_1,
-		GP_7_0_FN, FN_IP3_0 }
+	{
+		PINMUX_CFG_REG("GPSR7", 0xE6060020, 32, 1)
+		{
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			GP_7_16_FN, FN_VI3_FIELD,
+			GP_7_15_FN, FN_IP3_14,
+			GP_7_14_FN, FN_VI3_D10_Y2,
+			GP_7_13_FN, FN_IP3_13,
+			GP_7_12_FN, FN_IP3_12,
+			GP_7_11_FN, FN_IP3_11,
+			GP_7_10_FN, FN_IP3_10,
+			GP_7_9_FN, FN_IP3_9,
+			GP_7_8_FN, FN_IP3_8,
+			GP_7_7_FN, FN_IP3_7,
+			GP_7_6_FN, FN_IP3_6,
+			GP_7_5_FN, FN_IP3_5,
+			GP_7_4_FN, FN_IP3_4,
+			GP_7_3_FN, FN_IP3_3,
+			GP_7_2_FN, FN_IP3_2,
+			GP_7_1_FN, FN_IP3_1,
+			GP_7_0_FN, FN_IP3_0
+		}
 	},
-	{ PINMUX_CFG_REG("GPSR8", 0xE6060024, 32, 1) {
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		GP_8_16_FN, FN_IP4_24,
-		GP_8_15_FN, FN_IP4_23,
-		GP_8_14_FN, FN_IP4_22,
-		GP_8_13_FN, FN_IP4_21,
-		GP_8_12_FN, FN_IP4_20_19,
-		GP_8_11_FN, FN_IP4_18_17,
-		GP_8_10_FN, FN_IP4_16_15,
-		GP_8_9_FN, FN_IP4_14_13,
-		GP_8_8_FN, FN_IP4_12_11,
-		GP_8_7_FN, FN_IP4_10_9,
-		GP_8_6_FN, FN_IP4_8_7,
-		GP_8_5_FN, FN_IP4_6_5,
-		GP_8_4_FN, FN_IP4_4,
-		GP_8_3_FN, FN_IP4_3_2,
-		GP_8_2_FN, FN_IP4_1,
-		GP_8_1_FN, FN_IP4_0,
-		GP_8_0_FN, FN_VI4_CLK }
+	{
+		PINMUX_CFG_REG("GPSR8", 0xE6060024, 32, 1)
+		{
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			GP_8_16_FN, FN_IP4_24,
+			GP_8_15_FN, FN_IP4_23,
+			GP_8_14_FN, FN_IP4_22,
+			GP_8_13_FN, FN_IP4_21,
+			GP_8_12_FN, FN_IP4_20_19,
+			GP_8_11_FN, FN_IP4_18_17,
+			GP_8_10_FN, FN_IP4_16_15,
+			GP_8_9_FN, FN_IP4_14_13,
+			GP_8_8_FN, FN_IP4_12_11,
+			GP_8_7_FN, FN_IP4_10_9,
+			GP_8_6_FN, FN_IP4_8_7,
+			GP_8_5_FN, FN_IP4_6_5,
+			GP_8_4_FN, FN_IP4_4,
+			GP_8_3_FN, FN_IP4_3_2,
+			GP_8_2_FN, FN_IP4_1,
+			GP_8_1_FN, FN_IP4_0,
+			GP_8_0_FN, FN_VI4_CLK
+		}
 	},
-	{ PINMUX_CFG_REG("GPSR9", 0xE6060028, 32, 1) {
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		GP_9_16_FN, FN_VI5_FIELD,
-		GP_9_15_FN, FN_VI5_D11_Y3,
-		GP_9_14_FN, FN_VI5_D10_Y2,
-		GP_9_13_FN, FN_VI5_D9_Y1,
-		GP_9_12_FN, FN_IP5_11,
-		GP_9_11_FN, FN_IP5_10,
-		GP_9_10_FN, FN_IP5_9,
-		GP_9_9_FN, FN_IP5_8,
-		GP_9_8_FN, FN_IP5_7,
-		GP_9_7_FN, FN_IP5_6,
-		GP_9_6_FN, FN_IP5_5,
-		GP_9_5_FN, FN_IP5_4,
-		GP_9_4_FN, FN_IP5_3,
-		GP_9_3_FN, FN_IP5_2,
-		GP_9_2_FN, FN_IP5_1,
-		GP_9_1_FN, FN_IP5_0,
-		GP_9_0_FN, FN_VI5_CLK }
+	{
+		PINMUX_CFG_REG("GPSR9", 0xE6060028, 32, 1)
+		{
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			GP_9_16_FN, FN_VI5_FIELD,
+			GP_9_15_FN, FN_VI5_D11_Y3,
+			GP_9_14_FN, FN_VI5_D10_Y2,
+			GP_9_13_FN, FN_VI5_D9_Y1,
+			GP_9_12_FN, FN_IP5_11,
+			GP_9_11_FN, FN_IP5_10,
+			GP_9_10_FN, FN_IP5_9,
+			GP_9_9_FN, FN_IP5_8,
+			GP_9_8_FN, FN_IP5_7,
+			GP_9_7_FN, FN_IP5_6,
+			GP_9_6_FN, FN_IP5_5,
+			GP_9_5_FN, FN_IP5_4,
+			GP_9_4_FN, FN_IP5_3,
+			GP_9_3_FN, FN_IP5_2,
+			GP_9_2_FN, FN_IP5_1,
+			GP_9_1_FN, FN_IP5_0,
+			GP_9_0_FN, FN_VI5_CLK
+		}
 	},
-	{ PINMUX_CFG_REG("GPSR10", 0xE606002C, 32, 1) {
-		GP_10_31_FN, FN_CAN1_RX,
-		GP_10_30_FN, FN_CAN1_TX,
-		GP_10_29_FN, FN_CAN_CLK,
-		GP_10_28_FN, FN_CAN0_RX,
-		GP_10_27_FN, FN_CAN0_TX,
-		GP_10_26_FN, FN_SCIF_CLK,
-		GP_10_25_FN, FN_IP6_18_17,
-		GP_10_24_FN, FN_IP6_16,
-		GP_10_23_FN, FN_IP6_15_14,
-		GP_10_22_FN, FN_IP6_13_12,
-		GP_10_21_FN, FN_IP6_11_10,
-		GP_10_20_FN, FN_IP6_9_8,
-		GP_10_19_FN, FN_RX1,
-		GP_10_18_FN, FN_TX1,
-		GP_10_17_FN, FN_RTS1_N,
-		GP_10_16_FN, FN_CTS1_N,
-		GP_10_15_FN, FN_SCK1,
-		GP_10_14_FN, FN_RX0,
-		GP_10_13_FN, FN_TX0,
-		GP_10_12_FN, FN_RTS0_N,
-		GP_10_11_FN, FN_CTS0_N,
-		GP_10_10_FN, FN_SCK0,
-		GP_10_9_FN, FN_IP6_7,
-		GP_10_8_FN, FN_IP6_6,
-		GP_10_7_FN, FN_HCTS1_N,
-		GP_10_6_FN, FN_IP6_5,
-		GP_10_5_FN, FN_IP6_4,
-		GP_10_4_FN, FN_IP6_3,
-		GP_10_3_FN, FN_IP6_2,
-		GP_10_2_FN, FN_HRTS0_N,
-		GP_10_1_FN, FN_IP6_1,
-		GP_10_0_FN, FN_IP6_0 }
+	{
+		PINMUX_CFG_REG("GPSR10", 0xE606002C, 32, 1)
+		{
+			GP_10_31_FN, FN_CAN1_RX,
+			GP_10_30_FN, FN_CAN1_TX,
+			GP_10_29_FN, FN_CAN_CLK,
+			GP_10_28_FN, FN_CAN0_RX,
+			GP_10_27_FN, FN_CAN0_TX,
+			GP_10_26_FN, FN_SCIF_CLK,
+			GP_10_25_FN, FN_IP6_18_17,
+			GP_10_24_FN, FN_IP6_16,
+			GP_10_23_FN, FN_IP6_15_14,
+			GP_10_22_FN, FN_IP6_13_12,
+			GP_10_21_FN, FN_IP6_11_10,
+			GP_10_20_FN, FN_IP6_9_8,
+			GP_10_19_FN, FN_RX1,
+			GP_10_18_FN, FN_TX1,
+			GP_10_17_FN, FN_RTS1_N,
+			GP_10_16_FN, FN_CTS1_N,
+			GP_10_15_FN, FN_SCK1,
+			GP_10_14_FN, FN_RX0,
+			GP_10_13_FN, FN_TX0,
+			GP_10_12_FN, FN_RTS0_N,
+			GP_10_11_FN, FN_CTS0_N,
+			GP_10_10_FN, FN_SCK0,
+			GP_10_9_FN, FN_IP6_7,
+			GP_10_8_FN, FN_IP6_6,
+			GP_10_7_FN, FN_HCTS1_N,
+			GP_10_6_FN, FN_IP6_5,
+			GP_10_5_FN, FN_IP6_4,
+			GP_10_4_FN, FN_IP6_3,
+			GP_10_3_FN, FN_IP6_2,
+			GP_10_2_FN, FN_HRTS0_N,
+			GP_10_1_FN, FN_IP6_1,
+			GP_10_0_FN, FN_IP6_0
+		}
 	},
-	{ PINMUX_CFG_REG("GPSR11", 0xE6060030, 32, 1) {
-		0, 0,
-		0, 0,
-		GP_11_29_FN, FN_AVS2,
-		GP_11_28_FN, FN_AVS1,
-		GP_11_27_FN, FN_ADICHS2,
-		GP_11_26_FN, FN_ADICHS1,
-		GP_11_25_FN, FN_ADICHS0,
-		GP_11_24_FN, FN_ADIDATA,
-		GP_11_23_FN, FN_ADICS_SAMP,
-		GP_11_22_FN, FN_ADICLK,
-		GP_11_21_FN, FN_IP7_20,
-		GP_11_20_FN, FN_IP7_19,
-		GP_11_19_FN, FN_IP7_18,
-		GP_11_18_FN, FN_IP7_17,
-		GP_11_17_FN, FN_IP7_16,
-		GP_11_16_FN, FN_IP7_15_14,
-		GP_11_15_FN, FN_IP7_13_12,
-		GP_11_14_FN, FN_IP7_11_10,
-		GP_11_13_FN, FN_IP7_9_8,
-		GP_11_12_FN, FN_SD0_WP,
-		GP_11_11_FN, FN_SD0_CD,
-		GP_11_10_FN, FN_SD0_DAT3,
-		GP_11_9_FN, FN_SD0_DAT2,
-		GP_11_8_FN, FN_SD0_DAT1,
-		GP_11_7_FN, FN_SD0_DAT0,
-		GP_11_6_FN, FN_SD0_CMD,
-		GP_11_5_FN, FN_SD0_CLK,
-		GP_11_4_FN, FN_IP7_7,
-		GP_11_3_FN, FN_IP7_6,
-		GP_11_2_FN, FN_IP7_5_4,
-		GP_11_1_FN, FN_IP7_3_2,
-		GP_11_0_FN, FN_IP7_1_0 }
+	{
+		PINMUX_CFG_REG("GPSR11", 0xE6060030, 32, 1)
+		{
+			0, 0,
+			0, 0,
+			GP_11_29_FN, FN_AVS2,
+			GP_11_28_FN, FN_AVS1,
+			GP_11_27_FN, FN_ADICHS2,
+			GP_11_26_FN, FN_ADICHS1,
+			GP_11_25_FN, FN_ADICHS0,
+			GP_11_24_FN, FN_ADIDATA,
+			GP_11_23_FN, FN_ADICS_SAMP,
+			GP_11_22_FN, FN_ADICLK,
+			GP_11_21_FN, FN_IP7_20,
+			GP_11_20_FN, FN_IP7_19,
+			GP_11_19_FN, FN_IP7_18,
+			GP_11_18_FN, FN_IP7_17,
+			GP_11_17_FN, FN_IP7_16,
+			GP_11_16_FN, FN_IP7_15_14,
+			GP_11_15_FN, FN_IP7_13_12,
+			GP_11_14_FN, FN_IP7_11_10,
+			GP_11_13_FN, FN_IP7_9_8,
+			GP_11_12_FN, FN_SD0_WP,
+			GP_11_11_FN, FN_SD0_CD,
+			GP_11_10_FN, FN_SD0_DAT3,
+			GP_11_9_FN, FN_SD0_DAT2,
+			GP_11_8_FN, FN_SD0_DAT1,
+			GP_11_7_FN, FN_SD0_DAT0,
+			GP_11_6_FN, FN_SD0_CMD,
+			GP_11_5_FN, FN_SD0_CLK,
+			GP_11_4_FN, FN_IP7_7,
+			GP_11_3_FN, FN_IP7_6,
+			GP_11_2_FN, FN_IP7_5_4,
+			GP_11_1_FN, FN_IP7_3_2,
+			GP_11_0_FN, FN_IP7_1_0
+		}
 	},
-	{ PINMUX_CFG_REG_VAR("IPSR0", 0xE6060040, 32,
-			     4, 4,
-			     1, 1, 1, 1, 1, 1, 1, 1,
-			     1, 1, 1, 1, 1, 1, 1, 1,
-			     1, 1, 1, 1, 1, 1, 1, 1) {
-		/* IP0_31_28 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP0_27_24 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0,	0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP0_23 [1] */
-		FN_DU0_DB7_C5, 0,
-		/* IP0_22 [1] */
-		FN_DU0_DB6_C4, 0,
-		/* IP0_21 [1] */
-		FN_DU0_DB5_C3, 0,
-		/* IP0_20 [1] */
-		FN_DU0_DB4_C2, 0,
-		/* IP0_19 [1] */
-		FN_DU0_DB3_C1, 0,
-		/* IP0_18 [1] */
-		FN_DU0_DB2_C0, 0,
-		/* IP0_17 [1] */
-		FN_DU0_DB1, 0,
-		/* IP0_16 [1] */
-		FN_DU0_DB0, 0,
-		/* IP0_15 [1] */
-		FN_DU0_DG7_Y3_DATA15, 0,
-		/* IP0_14 [1] */
-		FN_DU0_DG6_Y2_DATA14, 0,
-		/* IP0_13 [1] */
-		FN_DU0_DG5_Y1_DATA13, 0,
-		/* IP0_12 [1] */
-		FN_DU0_DG4_Y0_DATA12, 0,
-		/* IP0_11 [1] */
-		FN_DU0_DG3_C7_DATA11, 0,
-		/* IP0_10 [1] */
-		FN_DU0_DG2_C6_DATA10, 0,
-		/* IP0_9 [1] */
-		FN_DU0_DG1_DATA9, 0,
-		/* IP0_8 [1] */
-		FN_DU0_DG0_DATA8, 0,
-		/* IP0_7 [1] */
-		FN_DU0_DR7_Y9_DATA7, 0,
-		/* IP0_6 [1] */
-		FN_DU0_DR6_Y8_DATA6, 0,
-		/* IP0_5 [1] */
-		FN_DU0_DR5_Y7_DATA5, 0,
-		/* IP0_4 [1] */
-		FN_DU0_DR4_Y6_DATA4, 0,
-		/* IP0_3 [1] */
-		FN_DU0_DR3_Y5_DATA3, 0,
-		/* IP0_2 [1] */
-		FN_DU0_DR2_Y4_DATA2, 0,
-		/* IP0_1 [1] */
-		FN_DU0_DR1_DATA1, 0,
-		/* IP0_0 [1] */
-		FN_DU0_DR0_DATA0, 0 }
+	{
+		PINMUX_CFG_REG_VAR("IPSR0", 0xE6060040, 32,
+		4, 4,
+		1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1)
+		{
+			/* IP0_31_28 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP0_27_24 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0,	0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP0_23 [1] */
+			FN_DU0_DB7_C5, 0,
+			/* IP0_22 [1] */
+			FN_DU0_DB6_C4, 0,
+			/* IP0_21 [1] */
+			FN_DU0_DB5_C3, 0,
+			/* IP0_20 [1] */
+			FN_DU0_DB4_C2, 0,
+			/* IP0_19 [1] */
+			FN_DU0_DB3_C1, 0,
+			/* IP0_18 [1] */
+			FN_DU0_DB2_C0, 0,
+			/* IP0_17 [1] */
+			FN_DU0_DB1, 0,
+			/* IP0_16 [1] */
+			FN_DU0_DB0, 0,
+			/* IP0_15 [1] */
+			FN_DU0_DG7_Y3_DATA15, 0,
+			/* IP0_14 [1] */
+			FN_DU0_DG6_Y2_DATA14, 0,
+			/* IP0_13 [1] */
+			FN_DU0_DG5_Y1_DATA13, 0,
+			/* IP0_12 [1] */
+			FN_DU0_DG4_Y0_DATA12, 0,
+			/* IP0_11 [1] */
+			FN_DU0_DG3_C7_DATA11, 0,
+			/* IP0_10 [1] */
+			FN_DU0_DG2_C6_DATA10, 0,
+			/* IP0_9 [1] */
+			FN_DU0_DG1_DATA9, 0,
+			/* IP0_8 [1] */
+			FN_DU0_DG0_DATA8, 0,
+			/* IP0_7 [1] */
+			FN_DU0_DR7_Y9_DATA7, 0,
+			/* IP0_6 [1] */
+			FN_DU0_DR6_Y8_DATA6, 0,
+			/* IP0_5 [1] */
+			FN_DU0_DR5_Y7_DATA5, 0,
+			/* IP0_4 [1] */
+			FN_DU0_DR4_Y6_DATA4, 0,
+			/* IP0_3 [1] */
+			FN_DU0_DR3_Y5_DATA3, 0,
+			/* IP0_2 [1] */
+			FN_DU0_DR2_Y4_DATA2, 0,
+			/* IP0_1 [1] */
+			FN_DU0_DR1_DATA1, 0,
+			/* IP0_0 [1] */
+			FN_DU0_DR0_DATA0, 0
+		}
 	},
-	{ PINMUX_CFG_REG_VAR("IPSR1", 0xE6060044, 32,
-			     4, 4,
-			     1, 1, 1, 1, 1, 1, 1, 1,
-			     1, 1, 1, 1, 1, 1, 1, 1,
-			     1, 1, 1, 1, 1, 1, 1, 1) {
-		/* IP1_31_28 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP1_27_24 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0,	0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP1_23 [1] */
-		0, 0,
-		/* IP1_22 [1] */
-		FN_A25, FN_SSL,
-		/* IP1_21 [1] */
-		FN_A24, FN_SPCLK,
-		/* IP1_20 [1] */
-		FN_A23, FN_IO3,
-		/* IP1_19 [1] */
-		FN_A22, FN_IO2,
-		/* IP1_18 [1] */
-		FN_A21, FN_MISO_IO1,
-		/* IP1_17 [1] */
-		FN_A20, FN_MOSI_IO0,
-		/* IP1_16 [1] */
-		FN_DU1_DG7_Y3_DATA11, 0,
-		/* IP1_15 [1] */
-		FN_DU1_DG6_Y2_DATA10, 0,
-		/* IP1_14 [1] */
-		FN_DU1_DG5_Y1_DATA9, 0,
-		/* IP1_13 [1] */
-		FN_DU1_DG4_Y0_DATA8, 0,
-		/* IP1_12 [1] */
-		FN_DU1_DG3_C7_DATA7, 0,
-		/* IP1_11 [1] */
-		FN_DU1_DG2_C6_DATA6, 0,
-		/* IP1_10 [1] */
-		FN_DU1_DR7_DATA5, 0,
-		/* IP1_9 [1] */
-		FN_DU1_DR6_DATA4, 0,
-		/* IP1_8 [1] */
-		FN_DU1_DR5_Y7_DATA3, 0,
-		/* IP1_7 [1] */
-		FN_DU1_DR4_Y6_DATA2, 0,
-		/* IP1_6 [1] */
-		FN_DU1_DR3_Y5_DATA1, 0,
-		/* IP1_5 [1] */
-		FN_DU1_DR2_Y4_DATA0, 0,
-		/* IP1_4 [1] */
-		FN_DU0_CDE, 0,
-		/* IP1_3 [1] */
-		FN_DU0_DISP, 0,
-		/* IP1_2 [1] */
-		FN_DU0_EXODDF_DU0_ODDF_DISP_CDE, 0,
-		/* IP1_1 [1] */
-		FN_DU0_EXVSYNC_DU0_VSYNC, 0,
-		/* IP1_0 [1] */
-		FN_DU0_EXHSYNC_DU0_HSYNC, 0 }
+	{
+		PINMUX_CFG_REG_VAR("IPSR1", 0xE6060044, 32,
+		4, 4,
+		1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1)
+		{
+			/* IP1_31_28 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP1_27_24 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0,	0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP1_23 [1] */
+			0, 0,
+			/* IP1_22 [1] */
+			FN_A25, FN_SSL,
+			/* IP1_21 [1] */
+			FN_A24, FN_SPCLK,
+			/* IP1_20 [1] */
+			FN_A23, FN_IO3,
+			/* IP1_19 [1] */
+			FN_A22, FN_IO2,
+			/* IP1_18 [1] */
+			FN_A21, FN_MISO_IO1,
+			/* IP1_17 [1] */
+			FN_A20, FN_MOSI_IO0,
+			/* IP1_16 [1] */
+			FN_DU1_DG7_Y3_DATA11, 0,
+			/* IP1_15 [1] */
+			FN_DU1_DG6_Y2_DATA10, 0,
+			/* IP1_14 [1] */
+			FN_DU1_DG5_Y1_DATA9, 0,
+			/* IP1_13 [1] */
+			FN_DU1_DG4_Y0_DATA8, 0,
+			/* IP1_12 [1] */
+			FN_DU1_DG3_C7_DATA7, 0,
+			/* IP1_11 [1] */
+			FN_DU1_DG2_C6_DATA6, 0,
+			/* IP1_10 [1] */
+			FN_DU1_DR7_DATA5, 0,
+			/* IP1_9 [1] */
+			FN_DU1_DR6_DATA4, 0,
+			/* IP1_8 [1] */
+			FN_DU1_DR5_Y7_DATA3, 0,
+			/* IP1_7 [1] */
+			FN_DU1_DR4_Y6_DATA2, 0,
+			/* IP1_6 [1] */
+			FN_DU1_DR3_Y5_DATA1, 0,
+			/* IP1_5 [1] */
+			FN_DU1_DR2_Y4_DATA0, 0,
+			/* IP1_4 [1] */
+			FN_DU0_CDE, 0,
+			/* IP1_3 [1] */
+			FN_DU0_DISP, 0,
+			/* IP1_2 [1] */
+			FN_DU0_EXODDF_DU0_ODDF_DISP_CDE, 0,
+			/* IP1_1 [1] */
+			FN_DU0_EXVSYNC_DU0_VSYNC, 0,
+			/* IP1_0 [1] */
+			FN_DU0_EXHSYNC_DU0_HSYNC, 0
+		}
 	},
-	{ PINMUX_CFG_REG_VAR("IPSR2", 0xE6060048, 32,
-			     4, 4,
-			     4, 3, 1,
-			     1, 1, 1, 1, 1, 1, 1, 1,
-			     1, 1, 1, 1, 1, 1, 1, 1) {
-		/* IP2_31_28 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP2_27_24 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0,	0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP2_23_20 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP2_19_17 [3] */
-		0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP2_16 [1] */
-		FN_VI2_FIELD, FN_AVB_TXD2,
-		/* IP2_15 [1] */
-		FN_VI2_D11_Y3, FN_AVB_TXD1,
-		/* IP2_14 [1] */
-		FN_VI2_D10_Y2, FN_AVB_TXD0,
-		/* IP2_13 [1] */
-		FN_VI2_D9_Y1, FN_AVB_TX_EN,
-		/* IP2_12 [1] */
-		FN_VI2_D8_Y0, FN_AVB_TXD3,
-		/* IP2_11 [1] */
-		FN_VI2_D7_C7, FN_AVB_COL,
-		/* IP2_10 [1] */
-		FN_VI2_D6_C6, FN_AVB_RX_ER,
-		/* IP2_9 [1] */
-		FN_VI2_D5_C5, FN_AVB_RXD7,
-		/* IP2_8 [1] */
-		FN_VI2_D4_C4, FN_AVB_RXD6,
-		/* IP2_7 [1] */
-		FN_VI2_D3_C3, FN_AVB_RXD5,
-		/* IP2_6 [1] */
-		FN_VI2_D2_C2, FN_AVB_RXD4,
-		/* IP2_5 [1] */
-		FN_VI2_D1_C1, FN_AVB_RXD3,
-		/* IP2_4 [1] */
-		FN_VI2_D0_C0, FN_AVB_RXD2,
-		/* IP2_3 [1] */
-		FN_VI2_VSYNC_N, FN_AVB_RXD1,
-		/* IP2_2 [1] */
-		FN_VI2_HSYNC_N, FN_AVB_RXD0,
-		/* IP2_1 [1] */
-		FN_VI2_CLKENB, FN_AVB_RX_DV,
-		/* IP2_0 [1] */
-		FN_VI2_CLK, FN_AVB_RX_CLK }
+	{
+		PINMUX_CFG_REG_VAR("IPSR2", 0xE6060048, 32,
+		4, 4,
+		4, 3, 1,
+		1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1)
+		{
+			/* IP2_31_28 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP2_27_24 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0,	0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP2_23_20 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP2_19_17 [3] */
+			0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP2_16 [1] */
+			FN_VI2_FIELD, FN_AVB_TXD2,
+			/* IP2_15 [1] */
+			FN_VI2_D11_Y3, FN_AVB_TXD1,
+			/* IP2_14 [1] */
+			FN_VI2_D10_Y2, FN_AVB_TXD0,
+			/* IP2_13 [1] */
+			FN_VI2_D9_Y1, FN_AVB_TX_EN,
+			/* IP2_12 [1] */
+			FN_VI2_D8_Y0, FN_AVB_TXD3,
+			/* IP2_11 [1] */
+			FN_VI2_D7_C7, FN_AVB_COL,
+			/* IP2_10 [1] */
+			FN_VI2_D6_C6, FN_AVB_RX_ER,
+			/* IP2_9 [1] */
+			FN_VI2_D5_C5, FN_AVB_RXD7,
+			/* IP2_8 [1] */
+			FN_VI2_D4_C4, FN_AVB_RXD6,
+			/* IP2_7 [1] */
+			FN_VI2_D3_C3, FN_AVB_RXD5,
+			/* IP2_6 [1] */
+			FN_VI2_D2_C2, FN_AVB_RXD4,
+			/* IP2_5 [1] */
+			FN_VI2_D1_C1, FN_AVB_RXD3,
+			/* IP2_4 [1] */
+			FN_VI2_D0_C0, FN_AVB_RXD2,
+			/* IP2_3 [1] */
+			FN_VI2_VSYNC_N, FN_AVB_RXD1,
+			/* IP2_2 [1] */
+			FN_VI2_HSYNC_N, FN_AVB_RXD0,
+			/* IP2_1 [1] */
+			FN_VI2_CLKENB, FN_AVB_RX_DV,
+			/* IP2_0 [1] */
+			FN_VI2_CLK, FN_AVB_RX_CLK
+		}
 	},
-	{ PINMUX_CFG_REG_VAR("IPSR3", 0xE606004C, 32,
-			     4, 4,
-			     4, 4,
-			     1, 1, 1, 1, 1, 1, 1, 1,
-			     1, 1, 1, 1, 1, 1, 1, 1) {
-		/* IP3_31_28 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP3_27_24 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0,	0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP3_23_20 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP3_19_16 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP3_15 [1] */
-		0, 0,
-		/* IP3_14 [1] */
-		FN_VI3_D11_Y3, FN_AVB_AVTP_MATCH,
-		/* IP3_13 [1] */
-		FN_VI3_D9_Y1, FN_AVB_GTXREFCLK,
-		/* IP3_12 [1] */
-		FN_VI3_D8_Y0, FN_AVB_CRS,
-		/* IP3_11 [1] */
-		FN_VI3_D7_C7, FN_AVB_PHY_INT,
-		/* IP3_10 [1] */
-		FN_VI3_D6_C6, FN_AVB_MAGIC,
-		/* IP3_9 [1] */
-		FN_VI3_D5_C5, FN_AVB_LINK,
-		/* IP3_8 [1] */
-		FN_VI3_D4_C4, FN_AVB_MDIO,
-		/* IP3_7 [1] */
-		FN_VI3_D3_C3, FN_AVB_MDC,
-		/* IP3_6 [1] */
-		FN_VI3_D2_C2, FN_AVB_GTX_CLK,
-		/* IP3_5 [1] */
-		FN_VI3_D1_C1, FN_AVB_TX_ER,
-		/* IP3_4 [1] */
-		FN_VI3_D0_C0, FN_AVB_TXD7,
-		/* IP3_3 [1] */
-		FN_VI3_VSYNC_N, FN_AVB_TXD6,
-		/* IP3_2 [1] */
-		FN_VI3_HSYNC_N, FN_AVB_TXD5,
-		/* IP3_1 [1] */
-		FN_VI3_CLKENB, FN_AVB_TXD4,
-		/* IP3_0 [1] */
-		FN_VI3_CLK, FN_AVB_TX_CLK }
+	{
+		PINMUX_CFG_REG_VAR("IPSR3", 0xE606004C, 32,
+		4, 4,
+		4, 4,
+		1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1)
+		{
+			/* IP3_31_28 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP3_27_24 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0,	0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP3_23_20 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP3_19_16 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP3_15 [1] */
+			0, 0,
+			/* IP3_14 [1] */
+			FN_VI3_D11_Y3, FN_AVB_AVTP_MATCH,
+			/* IP3_13 [1] */
+			FN_VI3_D9_Y1, FN_AVB_GTXREFCLK,
+			/* IP3_12 [1] */
+			FN_VI3_D8_Y0, FN_AVB_CRS,
+			/* IP3_11 [1] */
+			FN_VI3_D7_C7, FN_AVB_PHY_INT,
+			/* IP3_10 [1] */
+			FN_VI3_D6_C6, FN_AVB_MAGIC,
+			/* IP3_9 [1] */
+			FN_VI3_D5_C5, FN_AVB_LINK,
+			/* IP3_8 [1] */
+			FN_VI3_D4_C4, FN_AVB_MDIO,
+			/* IP3_7 [1] */
+			FN_VI3_D3_C3, FN_AVB_MDC,
+			/* IP3_6 [1] */
+			FN_VI3_D2_C2, FN_AVB_GTX_CLK,
+			/* IP3_5 [1] */
+			FN_VI3_D1_C1, FN_AVB_TX_ER,
+			/* IP3_4 [1] */
+			FN_VI3_D0_C0, FN_AVB_TXD7,
+			/* IP3_3 [1] */
+			FN_VI3_VSYNC_N, FN_AVB_TXD6,
+			/* IP3_2 [1] */
+			FN_VI3_HSYNC_N, FN_AVB_TXD5,
+			/* IP3_1 [1] */
+			FN_VI3_CLKENB, FN_AVB_TXD4,
+			/* IP3_0 [1] */
+			FN_VI3_CLK, FN_AVB_TX_CLK
+		}
 	},
-	{ PINMUX_CFG_REG_VAR("IPSR4", 0xE6060050, 32,
-			     4, 3, 1,
-			     1, 1, 1, 2, 2, 2,
-			     2, 2, 2, 2, 2, 1, 2, 1, 1) {
-		/* IP4_31_28 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP4_27_25 [3] */
-		0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP4_24 [1] */
-		FN_VI4_FIELD, FN_VI3_D15_Y7,
-		/* IP4_23 [1] */
-		FN_VI4_D11_Y3, FN_VI3_D14_Y6,
-		/* IP4_22 [1] */
-		FN_VI4_D10_Y2, FN_VI3_D13_Y5,
-		/* IP4_21 [1] */
-		FN_VI4_D9_Y1, FN_VI3_D12_Y4,
-		/* IP4_20_19 [2] */
-		FN_VI4_D8_Y0, FN_VI0_D23_R7, FN_VI2_D15_Y7, 0,
-		/* IP4_18_17 [2] */
-		FN_VI4_D7_C7, FN_VI0_D22_R6, FN_VI2_D14_Y6, 0,
-		/* IP4_16_15 [2] */
-		FN_VI4_D6_C6, FN_VI0_D21_R5, FN_VI2_D13_Y5, 0,
-		/* IP4_14_13 [2] */
-		FN_VI4_D5_C5, FN_VI0_D20_R4, FN_VI2_D12_Y4, 0,
-		/* IP4_12_11 [2] */
-		FN_VI4_D4_C4, FN_VI0_D19_R3, FN_VI1_D15_G7_Y7, 0,
-		/* IP4_10_9 [2] */
-		FN_VI4_D3_C3, FN_VI0_D18_R2, FN_VI1_D14_G6_Y6, 0,
-		/* IP4_8_7 [2] */
-		FN_VI4_D2_C2, 0, FN_VI0_D17_R1, FN_VI1_D13_G5_Y5,
-		/* IP4_6_5 [2] */
-		FN_VI4_D1_C1, FN_VI0_D16_R0, FN_VI1_D12_G4_Y4, 0,
-		/* IP4_4 [1] */
-		FN_VI4_D0_C0, FN_VI0_D15_G7_Y7,
-		/* IP4_3_2 [2] */
-		FN_VI4_VSYNC_N, FN_VI0_D14_G6_Y6, 0, 0,
-		/* IP4_1 [1] */
-		FN_VI4_HSYNC_N, FN_VI0_D13_G5_Y5,
-		/* IP4_0 [1] */
-		FN_VI4_CLKENB, FN_VI0_D12_G4_Y4 }
+	{
+		PINMUX_CFG_REG_VAR("IPSR4", 0xE6060050, 32,
+		4, 3, 1,
+		1, 1, 1, 2, 2, 2,
+		2, 2, 2, 2, 2, 1, 2, 1, 1)
+		{
+			/* IP4_31_28 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP4_27_25 [3] */
+			0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP4_24 [1] */
+			FN_VI4_FIELD, FN_VI3_D15_Y7,
+			/* IP4_23 [1] */
+			FN_VI4_D11_Y3, FN_VI3_D14_Y6,
+			/* IP4_22 [1] */
+			FN_VI4_D10_Y2, FN_VI3_D13_Y5,
+			/* IP4_21 [1] */
+			FN_VI4_D9_Y1, FN_VI3_D12_Y4,
+			/* IP4_20_19 [2] */
+			FN_VI4_D8_Y0, FN_VI0_D23_R7, FN_VI2_D15_Y7, 0,
+			/* IP4_18_17 [2] */
+			FN_VI4_D7_C7, FN_VI0_D22_R6, FN_VI2_D14_Y6, 0,
+			/* IP4_16_15 [2] */
+			FN_VI4_D6_C6, FN_VI0_D21_R5, FN_VI2_D13_Y5, 0,
+			/* IP4_14_13 [2] */
+			FN_VI4_D5_C5, FN_VI0_D20_R4, FN_VI2_D12_Y4, 0,
+			/* IP4_12_11 [2] */
+			FN_VI4_D4_C4, FN_VI0_D19_R3, FN_VI1_D15_G7_Y7, 0,
+			/* IP4_10_9 [2] */
+			FN_VI4_D3_C3, FN_VI0_D18_R2, FN_VI1_D14_G6_Y6, 0,
+			/* IP4_8_7 [2] */
+			FN_VI4_D2_C2, 0, FN_VI0_D17_R1, FN_VI1_D13_G5_Y5,
+			/* IP4_6_5 [2] */
+			FN_VI4_D1_C1, FN_VI0_D16_R0, FN_VI1_D12_G4_Y4, 0,
+			/* IP4_4 [1] */
+			FN_VI4_D0_C0, FN_VI0_D15_G7_Y7,
+			/* IP4_3_2 [2] */
+			FN_VI4_VSYNC_N, FN_VI0_D14_G6_Y6, 0, 0,
+			/* IP4_1 [1] */
+			FN_VI4_HSYNC_N, FN_VI0_D13_G5_Y5,
+			/* IP4_0 [1] */
+			FN_VI4_CLKENB, FN_VI0_D12_G4_Y4
+		}
 	},
-	{ PINMUX_CFG_REG_VAR("IPSR5", 0xE6060054, 32,
-			     4, 4,
-			     4, 4,
-			     4, 1, 1, 1, 1,
-			     1, 1, 1, 1, 1, 1, 1, 1) {
-		/* IP5_31_28 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP5_27_24 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP5_23_20 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP5_19_16 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP5_15_12 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP5_11 [1] */
-		FN_VI5_D8_Y0, FN_VI1_D23_R7,
-		/* IP5_10 [1] */
-		FN_VI5_D7_C7, FN_VI1_D22_R6,
-		/* IP5_9 [1] */
-		FN_VI5_D6_C6, FN_VI1_D21_R5,
-		/* IP5_8 [1] */
-		FN_VI5_D5_C5, FN_VI1_D20_R4,
-		/* IP5_7 [1] */
-		FN_VI5_D4_C4, FN_VI1_D19_R3,
-		/* IP5_6 [1] */
-		FN_VI5_D3_C3, FN_VI1_D18_R2,
-		/* IP5_5 [1] */
-		FN_VI5_D2_C2, FN_VI1_D17_R1,
-		/* IP5_4 [1] */
-		FN_VI5_D1_C1, FN_VI1_D16_R0,
-		/* IP5_3 [1] */
-		FN_VI5_D0_C0, FN_VI1_D15_G7_Y7_B,
-		/* IP5_2 [1] */
-		FN_VI5_VSYNC_N, FN_VI1_D14_G6_Y6_B,
-		/* IP5_1 [1] */
-		FN_VI5_HSYNC_N, FN_VI1_D13_G5_Y5_B,
-		/* IP5_0 [1] */
-		FN_VI5_CLKENB, FN_VI1_D12_G4_Y4_B }
+	{
+		PINMUX_CFG_REG_VAR("IPSR5", 0xE6060054, 32,
+		4, 4,
+		4, 4,
+		4, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1)
+		{
+			/* IP5_31_28 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP5_27_24 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP5_23_20 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP5_19_16 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP5_15_12 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP5_11 [1] */
+			FN_VI5_D8_Y0, FN_VI1_D23_R7,
+			/* IP5_10 [1] */
+			FN_VI5_D7_C7, FN_VI1_D22_R6,
+			/* IP5_9 [1] */
+			FN_VI5_D6_C6, FN_VI1_D21_R5,
+			/* IP5_8 [1] */
+			FN_VI5_D5_C5, FN_VI1_D20_R4,
+			/* IP5_7 [1] */
+			FN_VI5_D4_C4, FN_VI1_D19_R3,
+			/* IP5_6 [1] */
+			FN_VI5_D3_C3, FN_VI1_D18_R2,
+			/* IP5_5 [1] */
+			FN_VI5_D2_C2, FN_VI1_D17_R1,
+			/* IP5_4 [1] */
+			FN_VI5_D1_C1, FN_VI1_D16_R0,
+			/* IP5_3 [1] */
+			FN_VI5_D0_C0, FN_VI1_D15_G7_Y7_B,
+			/* IP5_2 [1] */
+			FN_VI5_VSYNC_N, FN_VI1_D14_G6_Y6_B,
+			/* IP5_1 [1] */
+			FN_VI5_HSYNC_N, FN_VI1_D13_G5_Y5_B,
+			/* IP5_0 [1] */
+			FN_VI5_CLKENB, FN_VI1_D12_G4_Y4_B
+		}
 	},
-	{ PINMUX_CFG_REG_VAR("IPSR6", 0xE6060058, 32,
-			     4, 4,
-			     4, 1, 2, 1,
-			     2, 2, 2, 2,
-			     1, 1, 1, 1, 1, 1, 1, 1) {
-		/* IP6_31_28 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP6_27_24 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP6_23_20 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP6_19 [1] */
-		0, 0,
-		/* IP6_18_17 [2] */
-		FN_DREQ1_N, FN_RX3, 0, 0,
-		/* IP6_16 [1] */
-		FN_TX3, 0,
-		/* IP6_15_14 [2] */
-		FN_DACK1, FN_SCK3, 0, 0,
-		/* IP6_13_12 [2] */
-		FN_DREQ0_N, FN_RX2, 0, 0,
-		/* IP6_11_10 [2] */
-		FN_DACK0, FN_TX2, 0, 0,
-		/* IP6_9_8 [2] */
-		FN_DRACK0, FN_SCK2, 0, 0,
-		/* IP6_7 [1] */
-		FN_MSIOF1_RXD, FN_HRX1,
-		/* IP6_6 [1] */
-		FN_MSIOF1_TXD, FN_HTX1,
-		/* IP6_5 [1] */
-		FN_MSIOF1_SYNC, FN_HRTS1_N,
-		/* IP6_4 [1] */
-		FN_MSIOF1_SCK, FN_HSCK1,
-		/* IP6_3 [1] */
-		FN_MSIOF0_RXD, FN_HRX0,
-		/* IP6_2 [1] */
-		FN_MSIOF0_TXD, FN_HTX0,
-		/* IP6_1 [1] */
-		FN_MSIOF0_SYNC, FN_HCTS0_N,
-		/* IP6_0 [1] */
-		FN_MSIOF0_SCK, FN_HSCK0 }
+	{
+		PINMUX_CFG_REG_VAR("IPSR6", 0xE6060058, 32,
+		4, 4,
+		4, 1, 2, 1,
+		2, 2, 2, 2,
+		1, 1, 1, 1, 1, 1, 1, 1)
+		{
+			/* IP6_31_28 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP6_27_24 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP6_23_20 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP6_19 [1] */
+			0, 0,
+			/* IP6_18_17 [2] */
+			FN_DREQ1_N, FN_RX3, 0, 0,
+			/* IP6_16 [1] */
+			FN_TX3, 0,
+			/* IP6_15_14 [2] */
+			FN_DACK1, FN_SCK3, 0, 0,
+			/* IP6_13_12 [2] */
+			FN_DREQ0_N, FN_RX2, 0, 0,
+			/* IP6_11_10 [2] */
+			FN_DACK0, FN_TX2, 0, 0,
+			/* IP6_9_8 [2] */
+			FN_DRACK0, FN_SCK2, 0, 0,
+			/* IP6_7 [1] */
+			FN_MSIOF1_RXD, FN_HRX1,
+			/* IP6_6 [1] */
+			FN_MSIOF1_TXD, FN_HTX1,
+			/* IP6_5 [1] */
+			FN_MSIOF1_SYNC, FN_HRTS1_N,
+			/* IP6_4 [1] */
+			FN_MSIOF1_SCK, FN_HSCK1,
+			/* IP6_3 [1] */
+			FN_MSIOF0_RXD, FN_HRX0,
+			/* IP6_2 [1] */
+			FN_MSIOF0_TXD, FN_HTX0,
+			/* IP6_1 [1] */
+			FN_MSIOF0_SYNC, FN_HCTS0_N,
+			/* IP6_0 [1] */
+			FN_MSIOF0_SCK, FN_HSCK0
+		}
 	},
-	{ PINMUX_CFG_REG_VAR("IPSR7", 0xE606005C, 32,
-			     4, 4,
-			     3, 1, 1, 1, 1, 1,
-			     2, 2, 2, 2,
-			     1, 1, 2, 2, 2) {
-		/* IP7_31_28 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP7_27_24 [4] */
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP7_23_21 [3] */
-		0, 0, 0, 0, 0, 0, 0, 0,
-		/* IP7_20 [1] */
-		FN_AUDIO_CLKB, 0,
-		/* IP7_19 [1] */
-		FN_AUDIO_CLKA, 0,
-		/* IP7_18 [1] */
-		FN_AUDIO_CLKOUT, 0,
-		/* IP7_17 [1] */
-		FN_SSI_SDATA4, 0,
-		/* IP7_16 [1] */
-		FN_SSI_WS4, 0,
-		/* IP7_15_14 [2] */
-		FN_SSI_SCK4, FN_TPU0TO3, 0, 0,
-		/* IP7_13_12 [2] */
-		FN_SSI_SDATA3, FN_TPU0TO2, 0, 0,
-		/* IP7_11_10 [2] */
-		FN_SSI_WS34, FN_TPU0TO1, 0, 0,
-		/* IP7_9_8 [2] */
-		FN_SSI_SCK34, FN_TPU0TO0, 0, 0,
-		/* IP7_7 [1] */
-		FN_PWM4, 0,
-		/* IP7_6 [1] */
-		FN_PWM3, 0,
-		/* IP7_5_4 [2] */
-		FN_PWM2, FN_TCLK3, FN_FSO_TOE, 0,
-		/* IP7_3_2 [2] */
-		FN_PWM1, FN_TCLK2, FN_FSO_CFE_1, 0,
-		/* IP7_1_0 [2] */
-		FN_PWM0, FN_TCLK1, FN_FSO_CFE_0, 0 }
+	{
+		PINMUX_CFG_REG_VAR("IPSR7", 0xE606005C, 32,
+		4, 4,
+		3, 1, 1, 1, 1, 1,
+		2, 2, 2, 2,
+		1, 1, 2, 2, 2)
+		{
+			/* IP7_31_28 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP7_27_24 [4] */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP7_23_21 [3] */
+			0, 0, 0, 0, 0, 0, 0, 0,
+			/* IP7_20 [1] */
+			FN_AUDIO_CLKB, 0,
+			/* IP7_19 [1] */
+			FN_AUDIO_CLKA, 0,
+			/* IP7_18 [1] */
+			FN_AUDIO_CLKOUT, 0,
+			/* IP7_17 [1] */
+			FN_SSI_SDATA4, 0,
+			/* IP7_16 [1] */
+			FN_SSI_WS4, 0,
+			/* IP7_15_14 [2] */
+			FN_SSI_SCK4, FN_TPU0TO3, 0, 0,
+			/* IP7_13_12 [2] */
+			FN_SSI_SDATA3, FN_TPU0TO2, 0, 0,
+			/* IP7_11_10 [2] */
+			FN_SSI_WS34, FN_TPU0TO1, 0, 0,
+			/* IP7_9_8 [2] */
+			FN_SSI_SCK34, FN_TPU0TO0, 0, 0,
+			/* IP7_7 [1] */
+			FN_PWM4, 0,
+			/* IP7_6 [1] */
+			FN_PWM3, 0,
+			/* IP7_5_4 [2] */
+			FN_PWM2, FN_TCLK3, FN_FSO_TOE, 0,
+			/* IP7_3_2 [2] */
+			FN_PWM1, FN_TCLK2, FN_FSO_CFE_1, 0,
+			/* IP7_1_0 [2] */
+			FN_PWM0, FN_TCLK1, FN_FSO_CFE_0, 0
+		}
 	},
 	{ },
 };
 
-const struct sh_pfc_soc_info r8a7792_pinmux_info = {
+const struct sh_pfc_soc_info r8a7792_pinmux_info =
+{
 	.name = "r8a77920_pfc",
 	.unlock_reg = 0xe6060000, /* PMMR */
 

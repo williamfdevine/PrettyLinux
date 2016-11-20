@@ -130,7 +130,7 @@
  * Functions prototype uses union iwreq_data
  * -----------------------------------------
  * Some would have preferred functions defined this way :
- *	static int mydriver_ioctl_setrate(struct net_device *dev, 
+ *	static int mydriver_ioctl_setrate(struct net_device *dev,
  *					  long rate, int auto)
  * 1) The kernel code doesn't "validate" the content of iwreq_data, and
  * can't do it (different hardware may have different notion of what a
@@ -276,7 +276,7 @@
 #define IW_DESCR_FLAG_DUMP	0x0001	/* Not part of the dump command */
 #define IW_DESCR_FLAG_EVENT	0x0002	/* Generate an event on SET */
 #define IW_DESCR_FLAG_RESTRICT	0x0004	/* GET : request is ROOT only */
-				/* SET : Omit payload from generated iwevent */
+/* SET : Omit payload from generated iwevent */
 #define IW_DESCR_FLAG_NOMAX	0x0008	/* GET : no limit on request size */
 /* Driver level flags */
 #define IW_DESCR_FLAG_WAIT	0x0100	/* Wait for driver event */
@@ -300,7 +300,8 @@
  * This struct is also my long term insurance. I can add new fields here
  * without breaking the prototype of iw_handler...
  */
-struct iw_request_info {
+struct iw_request_info
+{
 	__u16		cmd;		/* Wireless Extension command */
 	__u16		flags;		/* More to come ;-) */
 };
@@ -312,7 +313,7 @@ struct net_device;
  * like (both get and set, standard and private).
  */
 typedef int (*iw_handler)(struct net_device *dev, struct iw_request_info *info,
-			  union iwreq_data *wrqu, char *extra);
+						  union iwreq_data *wrqu, char *extra);
 
 /*
  * This define all the handler that the driver export.
@@ -320,35 +321,36 @@ typedef int (*iw_handler)(struct net_device *dev, struct iw_request_info *info,
  * shared by all driver instances... Same for the members...
  * This will be linked from net_device in <linux/netdevice.h>
  */
-struct iw_handler_def {
+struct iw_handler_def
+{
 
-	/* Array of handlers for standard ioctls
-	 * We will call dev->wireless_handlers->standard[ioctl - SIOCIWFIRST]
-	 */
-	const iw_handler *	standard;
-	/* Number of handlers defined (more precisely, index of the
-	 * last defined handler + 1) */
-	__u16			num_standard;
+		/* Array of handlers for standard ioctls
+		 * We will call dev->wireless_handlers->standard[ioctl - SIOCIWFIRST]
+		 */
+		const iw_handler 	*standard;
+		/* Number of handlers defined (more precisely, index of the
+		 * last defined handler + 1) */
+		__u16			num_standard;
 
 #ifdef CONFIG_WEXT_PRIV
-	__u16			num_private;
-	/* Number of private arg description */
-	__u16			num_private_args;
-	/* Array of handlers for private ioctls
-	 * Will call dev->wireless_handlers->private[ioctl - SIOCIWFIRSTPRIV]
-	 */
-	const iw_handler *	private;
+		__u16			num_private;
+		/* Number of private arg description */
+		__u16			num_private_args;
+		/* Array of handlers for private ioctls
+		 * Will call dev->wireless_handlers->private[ioctl - SIOCIWFIRSTPRIV]
+		 */
+		const iw_handler 	*private;
 
-	/* Arguments of private handler. This one is just a list, so you
-	 * can put it in any order you want and should not leave holes...
-	 * We will automatically export that to user space... */
-	const struct iw_priv_args *	private_args;
+		/* Arguments of private handler. This one is just a list, so you
+		 * can put it in any order you want and should not leave holes...
+		 * We will automatically export that to user space... */
+		const struct iw_priv_args 	*private_args;
 #endif
 
-	/* New location of get_wireless_stats, to de-bloat struct net_device.
-	 * The old pointer in struct net_device will be gradually phased
-	 * out, and drivers are encouraged to use this one... */
-	struct iw_statistics*	(*get_wireless_stats)(struct net_device *dev);
+		/* New location of get_wireless_stats, to de-bloat struct net_device.
+		 * The old pointer in struct net_device will be gradually phased
+		 * out, and drivers are encouraged to use this one... */
+		struct iw_statistics	*(*get_wireless_stats)(struct net_device *dev);
 };
 
 /* ---------------------- IOCTL DESCRIPTION ---------------------- */
@@ -370,7 +372,8 @@ struct iw_handler_def {
 /*
  * Describe how a standard IOCTL looks like.
  */
-struct iw_ioctl_description {
+struct iw_ioctl_description
+{
 	__u8	header_type;		/* NULL, iw_point or other */
 	__u8	token_type;		/* Future */
 	__u16	token_size;		/* Granularity of payload */
@@ -392,7 +395,8 @@ struct iw_ioctl_description {
 /*
  * Instance specific spy data, i.e. addresses spied and quality for them.
  */
-struct iw_spy_data {
+struct iw_spy_data
+{
 	/* --- Standard spy support --- */
 	int			spy_number;
 	u_char			spy_address[IW_MAX_SPY][ETH_ALEN];
@@ -416,11 +420,12 @@ struct iw_spy_data {
 /* Forward declaration */
 struct libipw_device;
 /* The struct */
-struct iw_public_data {
+struct iw_public_data
+{
 	/* Driver enhanced spy support */
-	struct iw_spy_data *		spy_data;
+	struct iw_spy_data 		*spy_data;
 	/* Legacy structure managed by the ipw2x00-specific IEEE 802.11 layer */
-	struct libipw_device *		libipw;
+	struct libipw_device 		*libipw;
 };
 
 /**************************** PROTOTYPES ****************************/
@@ -438,7 +443,7 @@ int dev_get_wireless_info(char *buffer, char **start, off_t offset, int length);
 
 /* Send a single event to user space */
 void wireless_send_event(struct net_device *dev, unsigned int cmd,
-			 union iwreq_data *wrqu, const char *extra);
+						 union iwreq_data *wrqu, const char *extra);
 #ifdef CONFIG_WEXT_CORE
 /* flush all previous wext events - if work is done from netdev notifiers */
 void wireless_nlevent_flush(void);
@@ -451,19 +456,19 @@ static inline void wireless_nlevent_flush(void) {}
 
 /* Standard handler for SIOCSIWSPY */
 int iw_handler_set_spy(struct net_device *dev, struct iw_request_info *info,
-		       union iwreq_data *wrqu, char *extra);
+					   union iwreq_data *wrqu, char *extra);
 /* Standard handler for SIOCGIWSPY */
 int iw_handler_get_spy(struct net_device *dev, struct iw_request_info *info,
-		       union iwreq_data *wrqu, char *extra);
+					   union iwreq_data *wrqu, char *extra);
 /* Standard handler for SIOCSIWTHRSPY */
 int iw_handler_set_thrspy(struct net_device *dev, struct iw_request_info *info,
-			  union iwreq_data *wrqu, char *extra);
+						  union iwreq_data *wrqu, char *extra);
 /* Standard handler for SIOCGIWTHRSPY */
 int iw_handler_get_thrspy(struct net_device *dev, struct iw_request_info *info,
-			  union iwreq_data *wrqu, char *extra);
+						  union iwreq_data *wrqu, char *extra);
 /* Driver call to update spy records */
 void wireless_spy_update(struct net_device *dev, unsigned char *address,
-			 struct iw_quality *wstats);
+						 struct iw_quality *wstats);
 
 /************************* INLINE FUNTIONS *************************/
 /*
@@ -473,8 +478,12 @@ void wireless_spy_update(struct net_device *dev, unsigned char *address,
 static inline int iwe_stream_lcp_len(struct iw_request_info *info)
 {
 #ifdef CONFIG_COMPAT
+
 	if (info->flags & IW_REQUEST_FLAG_COMPAT)
+	{
 		return IW_EV_COMPAT_LCP_LEN;
+	}
+
 #endif
 	return IW_EV_LCP_LEN;
 }
@@ -482,20 +491,27 @@ static inline int iwe_stream_lcp_len(struct iw_request_info *info)
 static inline int iwe_stream_point_len(struct iw_request_info *info)
 {
 #ifdef CONFIG_COMPAT
+
 	if (info->flags & IW_REQUEST_FLAG_COMPAT)
+	{
 		return IW_EV_COMPAT_POINT_LEN;
+	}
+
 #endif
 	return IW_EV_POINT_LEN;
 }
 
 static inline int iwe_stream_event_len_adjust(struct iw_request_info *info,
-					      int event_len)
+		int event_len)
 {
 #ifdef CONFIG_COMPAT
-	if (info->flags & IW_REQUEST_FLAG_COMPAT) {
+
+	if (info->flags & IW_REQUEST_FLAG_COMPAT)
+	{
 		event_len -= IW_EV_LCP_LEN;
 		event_len += IW_EV_COMPAT_LCP_LEN;
 	}
+
 #endif
 
 	return event_len;
@@ -507,32 +523,37 @@ static inline int iwe_stream_event_len_adjust(struct iw_request_info *info,
  */
 static inline char *
 iwe_stream_add_event(struct iw_request_info *info, char *stream, char *ends,
-		     struct iw_event *iwe, int event_len)
+					 struct iw_event *iwe, int event_len)
 {
 	int lcp_len = iwe_stream_lcp_len(info);
 
 	event_len = iwe_stream_event_len_adjust(info, event_len);
 
 	/* Check if it's possible */
-	if(likely((stream + event_len) < ends)) {
+	if (likely((stream + event_len) < ends))
+	{
 		iwe->len = event_len;
 		/* Beware of alignement issues on 64 bits */
 		memcpy(stream, (char *) iwe, IW_EV_LCP_PK_LEN);
 		memcpy(stream + lcp_len, &iwe->u,
-		       event_len - lcp_len);
+			   event_len - lcp_len);
 		stream += event_len;
 	}
+
 	return stream;
 }
 
 static inline char *
 iwe_stream_add_event_check(struct iw_request_info *info, char *stream,
-			   char *ends, struct iw_event *iwe, int event_len)
+						   char *ends, struct iw_event *iwe, int event_len)
 {
 	char *res = iwe_stream_add_event(info, stream, ends, iwe, event_len);
 
 	if (res == stream)
+	{
 		return ERR_PTR(-E2BIG);
+	}
+
 	return res;
 }
 
@@ -543,33 +564,38 @@ iwe_stream_add_event_check(struct iw_request_info *info, char *stream,
  */
 static inline char *
 iwe_stream_add_point(struct iw_request_info *info, char *stream, char *ends,
-		     struct iw_event *iwe, char *extra)
+					 struct iw_event *iwe, char *extra)
 {
 	int event_len = iwe_stream_point_len(info) + iwe->u.data.length;
 	int point_len = iwe_stream_point_len(info);
 	int lcp_len   = iwe_stream_lcp_len(info);
 
 	/* Check if it's possible */
-	if(likely((stream + event_len) < ends)) {
+	if (likely((stream + event_len) < ends))
+	{
 		iwe->len = event_len;
 		memcpy(stream, (char *) iwe, IW_EV_LCP_PK_LEN);
 		memcpy(stream + lcp_len,
-		       ((char *) &iwe->u) + IW_EV_POINT_OFF,
-		       IW_EV_POINT_PK_LEN - IW_EV_LCP_PK_LEN);
+			   ((char *) &iwe->u) + IW_EV_POINT_OFF,
+			   IW_EV_POINT_PK_LEN - IW_EV_LCP_PK_LEN);
 		memcpy(stream + point_len, extra, iwe->u.data.length);
 		stream += event_len;
 	}
+
 	return stream;
 }
 
 static inline char *
 iwe_stream_add_point_check(struct iw_request_info *info, char *stream,
-			   char *ends, struct iw_event *iwe, char *extra)
+						   char *ends, struct iw_event *iwe, char *extra)
 {
 	char *res = iwe_stream_add_point(info, stream, ends, iwe, extra);
 
 	if (res == stream)
+	{
 		return ERR_PTR(-E2BIG);
+	}
+
 	return res;
 }
 
@@ -581,7 +607,7 @@ iwe_stream_add_point_check(struct iw_request_info *info, char *stream,
  */
 static inline char *
 iwe_stream_add_value(struct iw_request_info *info, char *event, char *value,
-		     char *ends, struct iw_event *iwe, int event_len)
+					 char *ends, struct iw_event *iwe, int event_len)
 {
 	int lcp_len = iwe_stream_lcp_len(info);
 
@@ -589,7 +615,8 @@ iwe_stream_add_value(struct iw_request_info *info, char *event, char *value,
 	event_len -= IW_EV_LCP_LEN;
 
 	/* Check if it's possible */
-	if(likely((value + event_len) < ends)) {
+	if (likely((value + event_len) < ends))
+	{
 		/* Add new value */
 		memcpy(value, &iwe->u, event_len);
 		value += event_len;
@@ -597,6 +624,7 @@ iwe_stream_add_value(struct iw_request_info *info, char *event, char *value,
 		iwe->len = value - event;
 		memcpy(event, (char *) iwe, lcp_len);
 	}
+
 	return value;
 }
 

@@ -39,7 +39,8 @@ static void segv(int signum, siginfo_t *info, void *ctxt_v)
 	ucontext_t *ctxt = (ucontext_t *)ctxt_v;
 	struct pt_regs *regs = ctxt->uc_mcontext.regs;
 
-	if (!in_test) {
+	if (!in_test)
+	{
 		fprintf(stderr, "Segfault outside of test !\n");
 		exit(1);
 	}
@@ -54,7 +55,7 @@ static inline void do_read(const volatile void *addr)
 	int ret;
 
 	asm volatile("lwz %0,0(%1); twi 0,%0,0; isync;\n"
-		     : "=r" (ret) : "r" (addr) : "memory");
+				 : "=r" (ret) : "r" (addr) : "memory");
 }
 
 static inline void do_write(const volatile void *addr)
@@ -62,7 +63,7 @@ static inline void do_write(const volatile void *addr)
 	int val = 0x1234567;
 
 	asm volatile("stw %0,0(%1); sync; \n"
-		     : : "r" (val), "r" (addr) : "memory");
+				 : : "r" (val), "r" (addr) : "memory");
 }
 
 static inline void check_faulted(void *addr, long page, long subpage, int write)
@@ -70,21 +71,27 @@ static inline void check_faulted(void *addr, long page, long subpage, int write)
 	int want_fault = (subpage == ((page + 3) % 16));
 
 	if (write)
+	{
 		want_fault |= (subpage == ((page + 1) % 16));
+	}
 
-	if (faulted != want_fault) {
+	if (faulted != want_fault)
+	{
 		printf("Failed at %p (p=%ld,sp=%ld,w=%d), want=%s, got=%s !\n",
-		       addr, page, subpage, write,
-		       want_fault ? "fault" : "pass",
-		       faulted ? "fault" : "pass");
+			   addr, page, subpage, write,
+			   want_fault ? "fault" : "pass",
+			   faulted ? "fault" : "pass");
 		++errors;
 	}
 
-	if (faulted) {
-		if (dar != addr) {
+	if (faulted)
+	{
+		if (dar != addr)
+		{
 			printf("Fault expected at %p and happened at %p !\n",
-			       addr, dar);
+				   addr, dar);
 		}
+
 		faulted = 0;
 		asm volatile("sync" : : : "memory");
 	}
@@ -103,22 +110,29 @@ static int run_test(void *addr, unsigned long size)
 	 * for each page, mark subpage i % 16 read only and subpage
 	 * (i + 3) % 16 inaccessible
 	 */
-	for (i = 0; i < pages; i++) {
+	for (i = 0; i < pages; i++)
+	{
 		map[i] = (0x40000000 >> (((i + 1) * 2) % 32)) |
-			(0xc0000000 >> (((i + 3) * 2) % 32));
+				 (0xc0000000 >> (((i + 3) * 2) % 32));
 	}
 
 	err = syscall(__NR_subpage_prot, addr, size, map);
-	if (err) {
+
+	if (err)
+	{
 		perror("subpage_perm");
 		return 1;
 	}
+
 	free(map);
 
 	in_test = 1;
 	errors = 0;
-	for (i = 0; i < pages; i++) {
-		for (j = 0; j < 16; j++, addr += 0x1000) {
+
+	for (i = 0; i < pages; i++)
+	{
+		for (j = 0; j < 16; j++, addr += 0x1000)
+		{
 			do_read(addr);
 			check_faulted(addr, i, j, 0);
 			do_write(addr);
@@ -127,7 +141,9 @@ static int run_test(void *addr, unsigned long size)
 	}
 
 	in_test = 0;
-	if (errors) {
+
+	if (errors)
+	{
 		printf("%d errors detected\n", errors);
 		return 1;
 	}
@@ -138,14 +154,16 @@ static int run_test(void *addr, unsigned long size)
 int test_anon(void)
 {
 	unsigned long align;
-	struct sigaction act = {
+	struct sigaction act =
+	{
 		.sa_sigaction = segv,
 		.sa_flags = SA_SIGINFO
 	};
 	void *mallocblock;
 	unsigned long mallocsize;
 
-	if (getpagesize() != 0x10000) {
+	if (getpagesize() != 0x10000)
+	{
 		fprintf(stderr, "Kernel page size must be 64K!\n");
 		return 1;
 	}
@@ -157,13 +175,16 @@ int test_anon(void)
 	FAIL_IF(posix_memalign(&mallocblock, 64 * 1024, mallocsize));
 
 	align = (unsigned long)mallocblock;
+
 	if (align & 0xffff)
+	{
 		align = (align | 0xffff) + 1;
+	}
 
 	mallocblock = (void *)align;
 
 	printf("allocated malloc block of 0x%lx bytes at %p\n",
-	       mallocsize, mallocblock);
+		   mallocsize, mallocblock);
 
 	printf("testing malloc block...\n");
 
@@ -172,7 +193,8 @@ int test_anon(void)
 
 int test_file(void)
 {
-	struct sigaction act = {
+	struct sigaction act =
+	{
 		.sa_sigaction = segv,
 		.sa_flags = SA_SIGINFO
 	};
@@ -181,24 +203,33 @@ int test_file(void)
 	int fd;
 
 	fd = open(file_name, O_RDWR);
-	if (fd == -1) {
+
+	if (fd == -1)
+	{
 		perror("failed to open file");
 		return 1;
 	}
+
 	sigaction(SIGSEGV, &act, NULL);
 
 	filesize = lseek(fd, 0, SEEK_END);
+
 	if (filesize & 0xffff)
+	{
 		filesize &= ~0xfffful;
+	}
 
 	fileblock = mmap(NULL, filesize, PROT_READ | PROT_WRITE,
-			 MAP_SHARED, fd, 0);
-	if (fileblock == MAP_FAILED) {
+					 MAP_SHARED, fd, 0);
+
+	if (fileblock == MAP_FAILED)
+	{
 		perror("failed to map file");
 		return 1;
 	}
+
 	printf("allocated %s for 0x%lx bytes at %p\n",
-	       file_name, filesize, fileblock);
+		   file_name, filesize, fileblock);
 
 	printf("testing file map...\n");
 
@@ -210,13 +241,20 @@ int main(int argc, char *argv[])
 	int rc;
 
 	rc = test_harness(test_anon, "subpage_prot_anon");
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	if (argc > 1)
+	{
 		file_name = argv[1];
+	}
 	else
+	{
 		file_name = "tempfile";
+	}
 
 	return test_harness(test_file, "subpage_prot_file");
 }

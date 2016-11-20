@@ -31,8 +31,8 @@
 
 struct SMC_Evergreen_MCRegisterAddress
 {
-    uint16_t s0;
-    uint16_t s1;
+	uint16_t s0;
+	uint16_t s1;
 };
 
 typedef struct SMC_Evergreen_MCRegisterAddress SMC_Evergreen_MCRegisterAddress;
@@ -40,17 +40,17 @@ typedef struct SMC_Evergreen_MCRegisterAddress SMC_Evergreen_MCRegisterAddress;
 
 struct SMC_Evergreen_MCRegisterSet
 {
-    uint32_t value[SMC_EVERGREEN_MC_REGISTER_ARRAY_SIZE];
+	uint32_t value[SMC_EVERGREEN_MC_REGISTER_ARRAY_SIZE];
 };
 
 typedef struct SMC_Evergreen_MCRegisterSet SMC_Evergreen_MCRegisterSet;
 
 struct SMC_Evergreen_MCRegisters
 {
-    uint8_t                             last;
-    uint8_t                             reserved[3];
-    SMC_Evergreen_MCRegisterAddress     address[SMC_EVERGREEN_MC_REGISTER_ARRAY_SIZE];
-    SMC_Evergreen_MCRegisterSet         data[5];
+	uint8_t                             last;
+	uint8_t                             reserved[3];
+	SMC_Evergreen_MCRegisterAddress     address[SMC_EVERGREEN_MC_REGISTER_ARRAY_SIZE];
+	SMC_Evergreen_MCRegisterSet         data[5];
 };
 
 typedef struct SMC_Evergreen_MCRegisters SMC_Evergreen_MCRegisters;

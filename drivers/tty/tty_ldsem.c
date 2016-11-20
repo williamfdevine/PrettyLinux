@@ -36,9 +36,9 @@
 
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
 # define __acq(l, s, t, r, c, n, i)		\
-				lock_acquire(&(l)->dep_map, s, t, r, c, n, i)
+	lock_acquire(&(l)->dep_map, s, t, r, c, n, i)
 # define __rel(l, n, i)				\
-				lock_release(&(l)->dep_map, n, i)
+	lock_release(&(l)->dep_map, n, i)
 #define lockdep_acquire(l, s, t, i)		__acq(l, s, t, 0, 1, NULL, i)
 #define lockdep_acquire_nest(l, s, t, n, i)	__acq(l, s, t, 0, 1, n, i)
 #define lockdep_acquire_read(l, s, t, i)	__acq(l, s, t, 1, 1, NULL, i)
@@ -51,16 +51,16 @@
 #endif
 
 #ifdef CONFIG_LOCK_STAT
-# define lock_stat(_lock, stat)		lock_##stat(&(_lock)->dep_map, _RET_IP_)
+	#define lock_stat(_lock, stat)		lock_##stat(&(_lock)->dep_map, _RET_IP_)
 #else
-# define lock_stat(_lock, stat)		do { } while (0)
+	#define lock_stat(_lock, stat)		do { } while (0)
 #endif
 
 
 #if BITS_PER_LONG == 64
-# define LDSEM_ACTIVE_MASK	0xffffffffL
+	#define LDSEM_ACTIVE_MASK	0xffffffffL
 #else
-# define LDSEM_ACTIVE_MASK	0x0000ffffL
+	#define LDSEM_ACTIVE_MASK	0x0000ffffL
 #endif
 
 #define LDSEM_UNLOCKED		0L
@@ -69,7 +69,8 @@
 #define LDSEM_READ_BIAS		LDSEM_ACTIVE_BIAS
 #define LDSEM_WRITE_BIAS	(LDSEM_WAIT_BIAS + LDSEM_ACTIVE_BIAS)
 
-struct ldsem_waiter {
+struct ldsem_waiter
+{
 	struct list_head list;
 	struct task_struct *task;
 };
@@ -87,10 +88,14 @@ static inline long ldsem_atomic_update(long delta, struct ld_semaphore *sem)
 static inline int ldsem_cmpxchg(long *old, long new, struct ld_semaphore *sem)
 {
 	long tmp = atomic_long_cmpxchg(&sem->count, *old, new);
-	if (tmp == *old) {
+
+	if (tmp == *old)
+	{
 		*old = new;
 		return 1;
-	} else {
+	}
+	else
+	{
 		*old = tmp;
 		return 0;
 	}
@@ -100,7 +105,7 @@ static inline int ldsem_cmpxchg(long *old, long new, struct ld_semaphore *sem)
  * Initialize an ldsem:
  */
 void __init_ldsem(struct ld_semaphore *sem, const char *name,
-		  struct lock_class_key *key)
+				  struct lock_class_key *key)
 {
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
 	/*
@@ -128,14 +133,23 @@ static void __ldsem_wake_readers(struct ld_semaphore *sem)
 	 */
 	adjust = sem->wait_readers * (LDSEM_ACTIVE_BIAS - LDSEM_WAIT_BIAS);
 	count = ldsem_atomic_update(adjust, sem);
-	do {
-		if (count > 0)
-			break;
-		if (ldsem_cmpxchg(&count, count - adjust, sem))
-			return;
-	} while (1);
 
-	list_for_each_entry_safe(waiter, next, &sem->read_wait, list) {
+	do
+	{
+		if (count > 0)
+		{
+			break;
+		}
+
+		if (ldsem_cmpxchg(&count, count - adjust, sem))
+		{
+			return;
+		}
+	}
+	while (1);
+
+	list_for_each_entry_safe(waiter, next, &sem->read_wait, list)
+	{
 		tsk = waiter->task;
 		smp_mb();
 		waiter->task = NULL;
@@ -152,12 +166,20 @@ static inline int writer_trylock(struct ld_semaphore *sem)
 	 * transitioned from 0 -> 1
 	 */
 	long count = ldsem_atomic_update(LDSEM_ACTIVE_BIAS, sem);
-	do {
+
+	do
+	{
 		if ((count & LDSEM_ACTIVE_MASK) == LDSEM_ACTIVE_BIAS)
+		{
 			return 1;
+		}
+
 		if (ldsem_cmpxchg(&count, count - LDSEM_ACTIVE_BIAS, sem))
+		{
 			return 0;
-	} while (1);
+		}
+	}
+	while (1);
 }
 
 static void __ldsem_wake_writer(struct ld_semaphore *sem)
@@ -179,9 +201,13 @@ static void __ldsem_wake_writer(struct ld_semaphore *sem)
 static void __ldsem_wake(struct ld_semaphore *sem)
 {
 	if (!list_empty(&sem->write_wait))
+	{
 		__ldsem_wake_writer(sem);
+	}
 	else if (!list_empty(&sem->read_wait))
+	{
 		__ldsem_wake_readers(sem);
+	}
 }
 
 static void ldsem_wake(struct ld_semaphore *sem)
@@ -209,14 +235,20 @@ down_read_failed(struct ld_semaphore *sem, long count, long timeout)
 	/* Try to reverse the lock attempt but if the count has changed
 	 * so that reversing fails, check if there are are no waiters,
 	 * and early-out if not */
-	do {
+	do
+	{
 		if (ldsem_cmpxchg(&count, count + adjust, sem))
+		{
 			break;
-		if (count > 0) {
+		}
+
+		if (count > 0)
+		{
 			raw_spin_unlock_irq(&sem->wait_lock);
 			return sem;
 		}
-	} while (1);
+	}
+	while (1);
 
 	list_add_tail(&waiter.list, &sem->read_wait);
 	sem->wait_readers++;
@@ -226,35 +258,48 @@ down_read_failed(struct ld_semaphore *sem, long count, long timeout)
 
 	/* if there are no active locks, wake the new lock owner(s) */
 	if ((count & LDSEM_ACTIVE_MASK) == 0)
+	{
 		__ldsem_wake(sem);
+	}
 
 	raw_spin_unlock_irq(&sem->wait_lock);
 
 	/* wait to be given the lock */
-	for (;;) {
+	for (;;)
+	{
 		set_task_state(tsk, TASK_UNINTERRUPTIBLE);
 
 		if (!waiter.task)
+		{
 			break;
+		}
+
 		if (!timeout)
+		{
 			break;
+		}
+
 		timeout = schedule_timeout(timeout);
 	}
 
 	__set_task_state(tsk, TASK_RUNNING);
 
-	if (!timeout) {
+	if (!timeout)
+	{
 		/* lock timed out but check if this task was just
 		 * granted lock ownership - if so, pretend there
 		 * was no timeout; otherwise, cleanup lock wait */
 		raw_spin_lock_irq(&sem->wait_lock);
-		if (waiter.task) {
+
+		if (waiter.task)
+		{
 			ldsem_atomic_update(-LDSEM_WAIT_BIAS, sem);
 			list_del(&waiter.list);
 			raw_spin_unlock_irq(&sem->wait_lock);
 			put_task_struct(waiter.task);
 			return NULL;
 		}
+
 		raw_spin_unlock_irq(&sem->wait_lock);
 	}
 
@@ -278,34 +323,51 @@ down_write_failed(struct ld_semaphore *sem, long count, long timeout)
 	/* Try to reverse the lock attempt but if the count has changed
 	 * so that reversing fails, check if the lock is now owned,
 	 * and early-out if so */
-	do {
+	do
+	{
 		if (ldsem_cmpxchg(&count, count + adjust, sem))
+		{
 			break;
-		if ((count & LDSEM_ACTIVE_MASK) == LDSEM_ACTIVE_BIAS) {
+		}
+
+		if ((count & LDSEM_ACTIVE_MASK) == LDSEM_ACTIVE_BIAS)
+		{
 			raw_spin_unlock_irq(&sem->wait_lock);
 			return sem;
 		}
-	} while (1);
+	}
+	while (1);
 
 	list_add_tail(&waiter.list, &sem->write_wait);
 
 	waiter.task = tsk;
 
 	set_task_state(tsk, TASK_UNINTERRUPTIBLE);
-	for (;;) {
+
+	for (;;)
+	{
 		if (!timeout)
+		{
 			break;
+		}
+
 		raw_spin_unlock_irq(&sem->wait_lock);
 		timeout = schedule_timeout(timeout);
 		raw_spin_lock_irq(&sem->wait_lock);
 		set_task_state(tsk, TASK_UNINTERRUPTIBLE);
 		locked = writer_trylock(sem);
+
 		if (locked)
+		{
 			break;
+		}
 	}
 
 	if (!locked)
+	{
 		ldsem_atomic_update(-LDSEM_WAIT_BIAS, sem);
+	}
+
 	list_del(&waiter.list);
 	raw_spin_unlock_irq(&sem->wait_lock);
 
@@ -313,46 +375,59 @@ down_write_failed(struct ld_semaphore *sem, long count, long timeout)
 
 	/* lock wait may have timed out */
 	if (!locked)
+	{
 		return NULL;
+	}
+
 	return sem;
 }
 
 
 
 static int __ldsem_down_read_nested(struct ld_semaphore *sem,
-					   int subclass, long timeout)
+									int subclass, long timeout)
 {
 	long count;
 
 	lockdep_acquire_read(sem, subclass, 0, _RET_IP_);
 
 	count = ldsem_atomic_update(LDSEM_READ_BIAS, sem);
-	if (count <= 0) {
+
+	if (count <= 0)
+	{
 		lock_stat(sem, contended);
-		if (!down_read_failed(sem, count, timeout)) {
+
+		if (!down_read_failed(sem, count, timeout))
+		{
 			lockdep_release(sem, 1, _RET_IP_);
 			return 0;
 		}
 	}
+
 	lock_stat(sem, acquired);
 	return 1;
 }
 
 static int __ldsem_down_write_nested(struct ld_semaphore *sem,
-					    int subclass, long timeout)
+									 int subclass, long timeout)
 {
 	long count;
 
 	lockdep_acquire(sem, subclass, 0, _RET_IP_);
 
 	count = ldsem_atomic_update(LDSEM_WRITE_BIAS, sem);
-	if ((count & LDSEM_ACTIVE_MASK) != LDSEM_ACTIVE_BIAS) {
+
+	if ((count & LDSEM_ACTIVE_MASK) != LDSEM_ACTIVE_BIAS)
+	{
 		lock_stat(sem, contended);
-		if (!down_write_failed(sem, count, timeout)) {
+
+		if (!down_write_failed(sem, count, timeout))
+		{
 			lockdep_release(sem, 1, _RET_IP_);
 			return 0;
 		}
 	}
+
 	lock_stat(sem, acquired);
 	return 1;
 }
@@ -374,13 +449,16 @@ int ldsem_down_read_trylock(struct ld_semaphore *sem)
 {
 	long count = sem->count;
 
-	while (count >= 0) {
-		if (ldsem_cmpxchg(&count, count + LDSEM_READ_BIAS, sem)) {
+	while (count >= 0)
+	{
+		if (ldsem_cmpxchg(&count, count + LDSEM_READ_BIAS, sem))
+		{
 			lockdep_acquire_read(sem, 0, 1, _RET_IP_);
 			lock_stat(sem, acquired);
 			return 1;
 		}
 	}
+
 	return 0;
 }
 
@@ -400,13 +478,16 @@ int ldsem_down_write_trylock(struct ld_semaphore *sem)
 {
 	long count = sem->count;
 
-	while ((count & LDSEM_ACTIVE_MASK) == 0) {
-		if (ldsem_cmpxchg(&count, count + LDSEM_WRITE_BIAS, sem)) {
+	while ((count & LDSEM_ACTIVE_MASK) == 0)
+	{
+		if (ldsem_cmpxchg(&count, count + LDSEM_WRITE_BIAS, sem))
+		{
 			lockdep_acquire(sem, 0, 1, _RET_IP_);
 			lock_stat(sem, acquired);
 			return 1;
 		}
 	}
+
 	return 0;
 }
 
@@ -420,8 +501,11 @@ void ldsem_up_read(struct ld_semaphore *sem)
 	lockdep_release(sem, 1, _RET_IP_);
 
 	count = ldsem_atomic_update(-LDSEM_READ_BIAS, sem);
+
 	if (count < 0 && (count & LDSEM_ACTIVE_MASK) == 0)
+	{
 		ldsem_wake(sem);
+	}
 }
 
 /*
@@ -434,8 +518,11 @@ void ldsem_up_write(struct ld_semaphore *sem)
 	lockdep_release(sem, 1, _RET_IP_);
 
 	count = ldsem_atomic_update(-LDSEM_WRITE_BIAS, sem);
+
 	if (count < 0)
+	{
 		ldsem_wake(sem);
+	}
 }
 
 
@@ -448,7 +535,7 @@ int ldsem_down_read_nested(struct ld_semaphore *sem, int subclass, long timeout)
 }
 
 int ldsem_down_write_nested(struct ld_semaphore *sem, int subclass,
-			    long timeout)
+							long timeout)
 {
 	might_sleep();
 	return __ldsem_down_write_nested(sem, subclass, timeout);

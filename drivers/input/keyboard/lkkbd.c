@@ -98,15 +98,15 @@ MODULE_PARM_DESC(ctrlclick_volume, "Ctrlclick volume (in %), default is 100%");
 static int lk201_compose_is_alt;
 module_param(lk201_compose_is_alt, int, 0);
 MODULE_PARM_DESC(lk201_compose_is_alt,
-		 "If set non-zero, LK201' Compose key will act as an Alt key");
+				 "If set non-zero, LK201' Compose key will act as an Alt key");
 
 
 
 #undef LKKBD_DEBUG
 #ifdef LKKBD_DEBUG
-#define DBG(x...) printk(x)
+	#define DBG(x...) printk(x)
 #else
-#define DBG(x...) do {} while (0)
+	#define DBG(x...) do {} while (0)
 #endif
 
 /* LED control */
@@ -152,7 +152,8 @@ MODULE_PARM_DESC(lk201_compose_is_alt,
 #define LK_NUM_KEYCODES		256
 #define LK_NUM_IGNORE_BYTES	6
 
-static unsigned short lkkbd_keycode[LK_NUM_KEYCODES] = {
+static unsigned short lkkbd_keycode[LK_NUM_KEYCODES] =
+{
 	[0x56] = KEY_F1,
 	[0x57] = KEY_F2,
 	[0x58] = KEY_F3,
@@ -264,16 +265,17 @@ static unsigned short lkkbd_keycode[LK_NUM_KEYCODES] = {
 };
 
 #define CHECK_LED(LK, VAR_ON, VAR_OFF, LED, BITS) do {		\
-	if (test_bit(LED, (LK)->dev->led))			\
-		VAR_ON |= BITS;					\
-	else							\
-		VAR_OFF |= BITS;				\
+		if (test_bit(LED, (LK)->dev->led))			\
+			VAR_ON |= BITS;					\
+		else							\
+			VAR_OFF |= BITS;				\
 	} while (0)
 
 /*
  * Per-keyboard data
  */
-struct lkkbd {
+struct lkkbd
+{
 	unsigned short keycode[LK_NUM_KEYCODES];
 	int ignore_bytes;
 	unsigned char id[LK_NUM_IGNORE_BYTES];
@@ -292,10 +294,12 @@ struct lkkbd {
 /*
  * Responses from the keyboard and mapping back to their names.
  */
-static struct {
+static struct
+{
 	unsigned char value;
 	unsigned char *name;
-} lk_response[] = {
+} lk_response[] =
+{
 #define RESPONSE(x) { .value = (x), .name = #x, }
 	RESPONSE(LK_STUCK_KEY),
 	RESPONSE(LK_SELFTEST_FAILED),
@@ -317,7 +321,9 @@ static unsigned char *response_name(unsigned char value)
 
 	for (i = 0; i < ARRAY_SIZE(lk_response); i++)
 		if (lk_response[i].value == value)
+		{
 			return lk_response[i].name;
+		}
 
 	return "<unknown>";
 }
@@ -331,26 +337,54 @@ static unsigned char volume_to_hw(int volume_percent)
 	unsigned char ret = 0;
 
 	if (volume_percent < 0)
+	{
 		volume_percent = 0;
+	}
+
 	if (volume_percent > 100)
+	{
 		volume_percent = 100;
+	}
 
 	if (volume_percent >= 0)
+	{
 		ret = 7;
+	}
+
 	if (volume_percent >= 13)	/* 12.5 */
+	{
 		ret = 6;
+	}
+
 	if (volume_percent >= 25)
+	{
 		ret = 5;
+	}
+
 	if (volume_percent >= 38)	/* 37.5 */
+	{
 		ret = 4;
+	}
+
 	if (volume_percent >= 50)
+	{
 		ret = 3;
+	}
+
 	if (volume_percent >= 63)	/* 62.5 */
-		ret = 2;		/* This is the default volume */
+	{
+		ret = 2;    /* This is the default volume */
+	}
+
 	if (volume_percent >= 75)
+	{
 		ret = 1;
+	}
+
 	if (volume_percent >= 88)	/* 87.5 */
+	{
 		ret = 0;
+	}
 
 	ret |= 0x80;
 
@@ -369,57 +403,66 @@ static void lkkbd_detection_done(struct lkkbd *lk)
 	/*
 	 * Print keyboard name and modify Compose=Alt on user's request.
 	 */
-	switch (lk->id[4]) {
-	case 1:
-		strlcpy(lk->name, "DEC LK201 keyboard", sizeof(lk->name));
+	switch (lk->id[4])
+	{
+		case 1:
+			strlcpy(lk->name, "DEC LK201 keyboard", sizeof(lk->name));
 
-		if (lk201_compose_is_alt)
-			lk->keycode[0xb1] = KEY_LEFTALT;
-		break;
+			if (lk201_compose_is_alt)
+			{
+				lk->keycode[0xb1] = KEY_LEFTALT;
+			}
 
-	case 2:
-		strlcpy(lk->name, "DEC LK401 keyboard", sizeof(lk->name));
-		break;
+			break;
 
-	default:
-		strlcpy(lk->name, "Unknown DEC keyboard", sizeof(lk->name));
-		printk(KERN_ERR
-			"lkkbd: keyboard on %s is unknown, please report to "
-			"Jan-Benedict Glaw <jbglaw@lug-owl.de>\n", lk->phys);
-		printk(KERN_ERR "lkkbd: keyboard ID'ed as:");
-		for (i = 0; i < LK_NUM_IGNORE_BYTES; i++)
-			printk(" 0x%02x", lk->id[i]);
-		printk("\n");
-		break;
+		case 2:
+			strlcpy(lk->name, "DEC LK401 keyboard", sizeof(lk->name));
+			break;
+
+		default:
+			strlcpy(lk->name, "Unknown DEC keyboard", sizeof(lk->name));
+			printk(KERN_ERR
+				   "lkkbd: keyboard on %s is unknown, please report to "
+				   "Jan-Benedict Glaw <jbglaw@lug-owl.de>\n", lk->phys);
+			printk(KERN_ERR "lkkbd: keyboard ID'ed as:");
+
+			for (i = 0; i < LK_NUM_IGNORE_BYTES; i++)
+			{
+				printk(" 0x%02x", lk->id[i]);
+			}
+
+			printk("\n");
+			break;
 	}
 
 	printk(KERN_INFO "lkkbd: keyboard on %s identified as: %s\n",
-		lk->phys, lk->name);
+		   lk->phys, lk->name);
 
 	/*
 	 * Report errors during keyboard boot-up.
 	 */
-	switch (lk->id[2]) {
-	case 0x00:
-		/* All okay */
-		break;
+	switch (lk->id[2])
+	{
+		case 0x00:
+			/* All okay */
+			break;
 
-	case LK_STUCK_KEY:
-		printk(KERN_ERR "lkkbd: Stuck key on keyboard at %s\n",
-			lk->phys);
-		break;
+		case LK_STUCK_KEY:
+			printk(KERN_ERR "lkkbd: Stuck key on keyboard at %s\n",
+				   lk->phys);
+			break;
 
-	case LK_SELFTEST_FAILED:
-		printk(KERN_ERR
-			"lkkbd: Selftest failed on keyboard at %s, "
-			"keyboard may not work properly\n", lk->phys);
-		break;
+		case LK_SELFTEST_FAILED:
+			printk(KERN_ERR
+				   "lkkbd: Selftest failed on keyboard at %s, "
+				   "keyboard may not work properly\n", lk->phys);
+			break;
 
-	default:
-		printk(KERN_ERR
-			"lkkbd: Unknown error %02x on keyboard at %s\n",
-			lk->id[2], lk->phys);
-		break;
+		default:
+			printk(KERN_ERR
+				   "lkkbd: Unknown error %02x on keyboard at %s\n",
+				   lk->id[2], lk->phys);
+			break;
 	}
 
 	/*
@@ -427,8 +470,8 @@ static void lkkbd_detection_done(struct lkkbd *lk)
 	 */
 	if (lk->id[2] == LK_STUCK_KEY && lk->id[3] != 0)
 		printk(KERN_ERR
-			"Scancode of stuck key is 0x%02x, keycode is 0x%04x\n",
-			lk->id[3], lk->keycode[lk->id[3]]);
+			   "Scancode of stuck key is 0x%02x, keycode is 0x%04x\n",
+			   lk->id[3], lk->keycode[lk->id[3]]);
 }
 
 /*
@@ -436,7 +479,7 @@ static void lkkbd_detection_done(struct lkkbd *lk)
  * is received.
  */
 static irqreturn_t lkkbd_interrupt(struct serio *serio,
-				   unsigned char data, unsigned int flags)
+								   unsigned char data, unsigned int flags)
 {
 	struct lkkbd *lk = serio_get_drvdata(serio);
 	struct input_dev *input_dev = lk->dev;
@@ -445,53 +488,64 @@ static irqreturn_t lkkbd_interrupt(struct serio *serio,
 
 	DBG(KERN_INFO "Got byte 0x%02x\n", data);
 
-	if (lk->ignore_bytes > 0) {
+	if (lk->ignore_bytes > 0)
+	{
 		DBG(KERN_INFO "Ignoring a byte on %s\n", lk->name);
 		lk->id[LK_NUM_IGNORE_BYTES - lk->ignore_bytes--] = data;
 
 		if (lk->ignore_bytes == 0)
+		{
 			lkkbd_detection_done(lk);
+		}
 
 		return IRQ_HANDLED;
 	}
 
-	switch (data) {
-	case LK_ALL_KEYS_UP:
-		for (i = 0; i < ARRAY_SIZE(lkkbd_keycode); i++)
-			input_report_key(input_dev, lk->keycode[i], 0);
-		input_sync(input_dev);
-		break;
+	switch (data)
+	{
+		case LK_ALL_KEYS_UP:
+			for (i = 0; i < ARRAY_SIZE(lkkbd_keycode); i++)
+			{
+				input_report_key(input_dev, lk->keycode[i], 0);
+			}
 
-	case 0x01:
-		DBG(KERN_INFO "Got 0x01, scheduling re-initialization\n");
-		lk->ignore_bytes = LK_NUM_IGNORE_BYTES;
-		lk->id[LK_NUM_IGNORE_BYTES - lk->ignore_bytes--] = data;
-		schedule_work(&lk->tq);
-		break;
-
-	case LK_METRONOME:
-	case LK_OUTPUT_ERROR:
-	case LK_INPUT_ERROR:
-	case LK_KBD_LOCKED:
-	case LK_KBD_TEST_MODE_ACK:
-	case LK_PREFIX_KEY_DOWN:
-	case LK_MODE_CHANGE_ACK:
-	case LK_RESPONSE_RESERVED:
-		DBG(KERN_INFO "Got %s and don't know how to handle...\n",
-			response_name(data));
-		break;
-
-	default:
-		keycode = lk->keycode[data];
-		if (keycode != KEY_RESERVED) {
-			input_report_key(input_dev, keycode,
-					 !test_bit(keycode, input_dev->key));
 			input_sync(input_dev);
-		} else {
-			printk(KERN_WARNING
-				"%s: Unknown key with scancode 0x%02x on %s.\n",
-				__FILE__, data, lk->name);
-		}
+			break;
+
+		case 0x01:
+			DBG(KERN_INFO "Got 0x01, scheduling re-initialization\n");
+			lk->ignore_bytes = LK_NUM_IGNORE_BYTES;
+			lk->id[LK_NUM_IGNORE_BYTES - lk->ignore_bytes--] = data;
+			schedule_work(&lk->tq);
+			break;
+
+		case LK_METRONOME:
+		case LK_OUTPUT_ERROR:
+		case LK_INPUT_ERROR:
+		case LK_KBD_LOCKED:
+		case LK_KBD_TEST_MODE_ACK:
+		case LK_PREFIX_KEY_DOWN:
+		case LK_MODE_CHANGE_ACK:
+		case LK_RESPONSE_RESERVED:
+			DBG(KERN_INFO "Got %s and don't know how to handle...\n",
+				response_name(data));
+			break;
+
+		default:
+			keycode = lk->keycode[data];
+
+			if (keycode != KEY_RESERVED)
+			{
+				input_report_key(input_dev, keycode,
+								 !test_bit(keycode, input_dev->key));
+				input_sync(input_dev);
+			}
+			else
+			{
+				printk(KERN_WARNING
+					   "%s: Unknown key with scancode 0x%02x on %s.\n",
+					   __FILE__, data, lk->name);
+			}
 	}
 
 	return IRQ_HANDLED;
@@ -507,11 +561,15 @@ static void lkkbd_toggle_leds(struct lkkbd *lk)
 	CHECK_LED(lk, leds_on, leds_off, LED_COMPOSE, LK_LED_COMPOSE);
 	CHECK_LED(lk, leds_on, leds_off, LED_SCROLLL, LK_LED_SCROLLLOCK);
 	CHECK_LED(lk, leds_on, leds_off, LED_SLEEP, LK_LED_WAIT);
-	if (leds_on != 0) {
+
+	if (leds_on != 0)
+	{
 		serio_write(serio, LK_CMD_LED_ON);
 		serio_write(serio, leds_on);
 	}
-	if (leds_off != 0) {
+
+	if (leds_off != 0)
+	{
 		serio_write(serio, LK_CMD_LED_OFF);
 		serio_write(serio, leds_off);
 	}
@@ -521,13 +579,16 @@ static void lkkbd_toggle_keyclick(struct lkkbd *lk, bool on)
 {
 	struct serio *serio = lk->serio;
 
-	if (on) {
+	if (on)
+	{
 		DBG("%s: Activating key clicks\n", __func__);
 		serio_write(serio, LK_CMD_ENABLE_KEYCLICK);
 		serio_write(serio, volume_to_hw(lk->keyclick_volume));
 		serio_write(serio, LK_CMD_ENABLE_CTRCLICK);
 		serio_write(serio, volume_to_hw(lk->ctrlclick_volume));
-	} else {
+	}
+	else
+	{
 		DBG("%s: Deactivating key clicks\n", __func__);
 		serio_write(serio, LK_CMD_DISABLE_KEYCLICK);
 		serio_write(serio, LK_CMD_DISABLE_CTRCLICK);
@@ -539,33 +600,37 @@ static void lkkbd_toggle_keyclick(struct lkkbd *lk, bool on)
  * lkkbd_event() handles events from the input module.
  */
 static int lkkbd_event(struct input_dev *dev,
-			unsigned int type, unsigned int code, int value)
+					   unsigned int type, unsigned int code, int value)
 {
 	struct lkkbd *lk = input_get_drvdata(dev);
 
-	switch (type) {
-	case EV_LED:
-		lkkbd_toggle_leds(lk);
-		return 0;
-
-	case EV_SND:
-		switch (code) {
-		case SND_CLICK:
-			lkkbd_toggle_keyclick(lk, value);
+	switch (type)
+	{
+		case EV_LED:
+			lkkbd_toggle_leds(lk);
 			return 0;
 
-		case SND_BELL:
-			if (value != 0)
-				serio_write(lk->serio, LK_CMD_SOUND_BELL);
+		case EV_SND:
+			switch (code)
+			{
+				case SND_CLICK:
+					lkkbd_toggle_keyclick(lk, value);
+					return 0;
 
-			return 0;
-		}
+				case SND_BELL:
+					if (value != 0)
+					{
+						serio_write(lk->serio, LK_CMD_SOUND_BELL);
+					}
 
-		break;
+					return 0;
+			}
 
-	default:
-		printk(KERN_ERR "%s(): Got unknown type %d, code %d, value %d\n",
-			__func__, type, code, value);
+			break;
+
+		default:
+			printk(KERN_ERR "%s(): Got unknown type %d, code %d, value %d\n",
+				   __func__, type, code, value);
 	}
 
 	return -1;
@@ -599,7 +664,7 @@ static void lkkbd_reinit(struct work_struct *work)
 	/* Set all keys to UPDOWN mode */
 	for (division = 1; division <= 14; division++)
 		serio_write(lk->serio,
-			    LK_CMD_SET_MODE(LK_MODE_UPDOWN, division));
+					LK_CMD_SET_MODE(LK_MODE_UPDOWN, division));
 
 	/* Enable bell and set volume */
 	serio_write(lk->serio, LK_CMD_ENABLE_BELL);
@@ -610,7 +675,9 @@ static void lkkbd_reinit(struct work_struct *work)
 
 	/* Sound the bell if needed */
 	if (test_bit(SND_BELL, lk->dev->snd))
+	{
 		serio_write(lk->serio, LK_CMD_SOUND_BELL);
+	}
 }
 
 /*
@@ -625,7 +692,9 @@ static int lkkbd_connect(struct serio *serio, struct serio_driver *drv)
 
 	lk = kzalloc(sizeof(struct lkkbd), GFP_KERNEL);
 	input_dev = input_allocate_device();
-	if (!lk || !input_dev) {
+
+	if (!lk || !input_dev)
+	{
 		err = -ENOMEM;
 		goto fail1;
 	}
@@ -668,26 +737,35 @@ static int lkkbd_connect(struct serio *serio, struct serio_driver *drv)
 	input_dev->keycodemax = ARRAY_SIZE(lk->keycode);
 
 	for (i = 0; i < LK_NUM_KEYCODES; i++)
+	{
 		__set_bit(lk->keycode[i], input_dev->keybit);
+	}
+
 	__clear_bit(KEY_RESERVED, input_dev->keybit);
 
 	serio_set_drvdata(serio, lk);
 
 	err = serio_open(serio, drv);
+
 	if (err)
+	{
 		goto fail2;
+	}
 
 	err = input_register_device(lk->dev);
+
 	if (err)
+	{
 		goto fail3;
+	}
 
 	serio_write(lk->serio, LK_CMD_POWERCYCLE_RESET);
 
 	return 0;
 
- fail3:	serio_close(serio);
- fail2:	serio_set_drvdata(serio, NULL);
- fail1:	input_free_device(input_dev);
+fail3:	serio_close(serio);
+fail2:	serio_set_drvdata(serio, NULL);
+fail1:	input_free_device(input_dev);
 	kfree(lk);
 	return err;
 }
@@ -707,7 +785,8 @@ static void lkkbd_disconnect(struct serio *serio)
 	kfree(lk);
 }
 
-static struct serio_device_id lkkbd_serio_ids[] = {
+static struct serio_device_id lkkbd_serio_ids[] =
+{
 	{
 		.type	= SERIO_RS232,
 		.proto	= SERIO_LKKBD,
@@ -719,7 +798,8 @@ static struct serio_device_id lkkbd_serio_ids[] = {
 
 MODULE_DEVICE_TABLE(serio, lkkbd_serio_ids);
 
-static struct serio_driver lkkbd_drv = {
+static struct serio_driver lkkbd_drv =
+{
 	.driver		= {
 		.name	= "lkkbd",
 	},

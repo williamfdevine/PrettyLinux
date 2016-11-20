@@ -5,7 +5,7 @@
  *  written with much help from Jon Howell
  *
  * Updated for 3D RAGE PRO and 3D RAGE Mobility by Geert Uytterhoeven
- *	
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version
@@ -681,18 +681,18 @@
 #define VBLANK_BIT2_INT_AK	VBLANK_BIT2_INT
 
 #define CRTC_INT_EN_MASK	(CRTC_VBLANK_INT_EN |	\
-				 CRTC_VLINE_INT_EN |	\
-				 SNAPSHOT_INT_EN |	\
-				 I2C_INT_EN |		\
-				 CRTC2_VBLANK_INT_EN |	\
-				 CRTC2_VLINE_INT_EN |	\
-				 CAPBUF0_INT_EN |	\
-				 CAPBUF1_INT_EN |	\
-				 OVERLAY_EOF_INT_EN |	\
-				 ONESHOT_CAP_INT_EN |	\
-				 BUSMASTER_EOL_INT_EN |	\
-				 GP_INT_EN |		\
-				 SNAPSHOT2_INT_EN)
+							 CRTC_VLINE_INT_EN |	\
+							 SNAPSHOT_INT_EN |	\
+							 I2C_INT_EN |		\
+							 CRTC2_VBLANK_INT_EN |	\
+							 CRTC2_VLINE_INT_EN |	\
+							 CAPBUF0_INT_EN |	\
+							 CAPBUF1_INT_EN |	\
+							 OVERLAY_EOF_INT_EN |	\
+							 ONESHOT_CAP_INT_EN |	\
+							 BUSMASTER_EOL_INT_EN |	\
+							 GP_INT_EN |		\
+							 SNAPSHOT2_INT_EN)
 
 /* DAC control values */
 
@@ -986,8 +986,8 @@
 #define GL_CHIP_ID	0x474c	/* RAGE XL, PQFP, PCI66 */
 
 #define IS_XL(id) ((id)==GR_CHIP_ID || (id)==GS_CHIP_ID || \
-		   (id)==GM_CHIP_ID || (id)==GN_CHIP_ID || \
-		   (id)==GO_CHIP_ID || (id)==GL_CHIP_ID)
+				   (id)==GM_CHIP_ID || (id)==GN_CHIP_ID || \
+				   (id)==GO_CHIP_ID || (id)==GL_CHIP_ID)
 
 #define GT_CHIP_ID	0x4754	/* RAGE (GT) */
 #define GU_CHIP_ID	0x4755	/* RAGE II/II+ (GTB) */
@@ -1006,7 +1006,7 @@
 #define LS_CHIP_ID	0x4c53	/* RAGE Mobility PCI */
 
 #define IS_MOBILITY(id) ((id)==LM_CHIP_ID || (id)==LN_CHIP_ID || \
-			(id)==LR_CHIP_ID || (id)==LS_CHIP_ID)
+						 (id)==LR_CHIP_ID || (id)==LS_CHIP_ID)
 /* Mach64 major ASIC revisions */
 #define MACH64_ASIC_NEC_VT_A3		0x08
 #define MACH64_ASIC_NEC_VT_A4		0x48

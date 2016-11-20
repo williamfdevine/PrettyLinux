@@ -21,18 +21,18 @@ struct iio_dev;
 extern struct device_type iio_device_type;
 
 int __iio_add_chan_devattr(const char *postfix,
-			   struct iio_chan_spec const *chan,
-			   ssize_t (*func)(struct device *dev,
-					   struct device_attribute *attr,
-					   char *buf),
-			   ssize_t (*writefunc)(struct device *dev,
-						struct device_attribute *attr,
-						const char *buf,
-						size_t len),
-			   u64 mask,
-			   enum iio_shared_by shared_by,
-			   struct device *dev,
-			   struct list_head *attr_list);
+						   struct iio_chan_spec const *chan,
+						   ssize_t (*func)(struct device *dev,
+								   struct device_attribute *attr,
+								   char *buf),
+						   ssize_t (*writefunc)(struct device *dev,
+								   struct device_attribute *attr,
+								   const char *buf,
+								   size_t len),
+						   u64 mask,
+						   enum iio_shared_by shared_by,
+						   struct device *dev,
+						   struct list_head *attr_list);
 void iio_free_chan_devattr_list(struct list_head *attr_list);
 
 ssize_t iio_format_value(char *buf, unsigned int type, int size, int *vals);
@@ -44,9 +44,9 @@ ssize_t iio_format_value(char *buf, unsigned int type, int size, int *vals);
 struct poll_table_struct;
 
 unsigned int iio_buffer_poll(struct file *filp,
-			     struct poll_table_struct *wait);
+							 struct poll_table_struct *wait);
 ssize_t iio_buffer_read_first_n_outer(struct file *filp, char __user *buf,
-				      size_t n, loff_t *f_ps);
+									  size_t n, loff_t *f_ps);
 
 int iio_buffer_alloc_sysfs_and_mask(struct iio_dev *indio_dev);
 void iio_buffer_free_sysfs_and_mask(struct iio_dev *indio_dev);

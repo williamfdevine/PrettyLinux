@@ -58,7 +58,7 @@ static inline uint xlog_get_client_id(__be32 i)
 #define XLOG_STATE_SYNCING   0x0004 /* This IC log is syncing */
 #define XLOG_STATE_DONE_SYNC 0x0008 /* Done syncing to disk */
 #define XLOG_STATE_DO_CALLBACK \
-			     0x0010 /* Process callback functions */
+	0x0010 /* Process callback functions */
 #define XLOG_STATE_CALLBACK  0x0020 /* Callback functions now */
 #define XLOG_STATE_DIRTY     0x0040 /* Dirty IC log, not ready for ACTIVE status*/
 #define XLOG_STATE_IOERROR   0x0080 /* IO error happened in sync'ing log */
@@ -151,7 +151,7 @@ static inline uint xlog_get_client_id(__be32 i)
 
 #define XLOG_COVER_OPS		5
 
-/* Ticket reservation region accounting */ 
+/* Ticket reservation region accounting */
 #define XLOG_TIC_LEN_MAX	15
 
 /*
@@ -159,12 +159,14 @@ static inline uint xlog_get_client_id(__be32 i)
  * As would be stored in xfs_log_iovec but without the i_addr which
  * we don't care about.
  */
-typedef struct xlog_res {
+typedef struct xlog_res
+{
 	uint	r_len;	/* region length		:4 */
 	uint	r_type;	/* region's transaction type	:4 */
 } xlog_res_t;
 
-typedef struct xlog_ticket {
+typedef struct xlog_ticket
+{
 	struct list_head   t_queue;	 /* reserve/write queue */
 	struct task_struct *t_task;	 /* task that owns this ticket */
 	xlog_tid_t	   t_tid;	 /* transaction identifier	 : 4  */
@@ -176,12 +178,12 @@ typedef struct xlog_ticket {
 	char		   t_clientid;	 /* who does this belong to;	 : 1  */
 	char		   t_flags;	 /* properties of reservation	 : 1  */
 
-        /* reservation array fields */
+	/* reservation array fields */
 	uint		   t_res_num;                    /* num in array : 4 */
 	uint		   t_res_num_ophdrs;		 /* num op hdrs  : 4 */
 	uint		   t_res_arr_sum;		 /* array sum    : 4 */
 	uint		   t_res_o_flow;		 /* sum overflow : 4 */
-	xlog_res_t	   t_res_arr[XLOG_TIC_LEN_MAX];  /* array of res : 8 * 15 */ 
+	xlog_res_t	   t_res_arr[XLOG_TIC_LEN_MAX];  /* array of res : 8 * 15 */
 } xlog_ticket_t;
 
 /*
@@ -213,7 +215,8 @@ typedef struct xlog_ticket {
  * We'll put all the read-only and l_icloglock fields in the first cacheline,
  * and move everything else out to subsequent cachelines.
  */
-typedef struct xlog_in_core {
+typedef struct xlog_in_core
+{
 	wait_queue_head_t	ic_force_wait;
 	wait_queue_head_t	ic_write_wait;
 	struct xlog_in_core	*ic_next;
@@ -245,7 +248,8 @@ typedef struct xlog_in_core {
  */
 struct xfs_cil;
 
-struct xfs_cil_ctx {
+struct xfs_cil_ctx
+{
 	struct xfs_cil		*cil;
 	xfs_lsn_t		sequence;	/* chkpt sequence # */
 	xfs_lsn_t		start_lsn;	/* first LSN of chkpt commit */
@@ -275,7 +279,8 @@ struct xfs_cil_ctx {
  * the commit LSN to be determined as well. This should make synchronous
  * operations almost as efficient as the old logging methods.
  */
-struct xfs_cil {
+struct xfs_cil
+{
 	struct xlog		*xc_log;
 	struct list_head	xc_cil;
 	spinlock_t		xc_cil_lock;
@@ -344,7 +349,8 @@ struct xfs_cil {
  * ticket grant locks, queues and accounting have their own cachlines
  * as these are quite hot and can be operated on concurrently.
  */
-struct xlog_grant_head {
+struct xlog_grant_head
+{
 	spinlock_t		lock ____cacheline_aligned_in_smp;
 	struct list_head	waiters;
 	atomic64_t		grant;
@@ -356,7 +362,8 @@ struct xlog_grant_head {
  * overflow 31 bits worth of byte offset, so using a byte number will mean
  * that round off problems won't occur when releasing partial reservations.
  */
-struct xlog {
+struct xlog
+{
 	/* The following fields don't need locking */
 	struct xfs_mount	*l_mp;	        /* mount point */
 	struct xfs_ail		*l_ailp;	/* AIL log is working with */
@@ -380,7 +387,7 @@ struct xlog {
 
 	/* The following block of fields are changed while holding icloglock */
 	wait_queue_head_t	l_flush_wait ____cacheline_aligned_in_smp;
-						/* waiting for iclog flush */
+	/* waiting for iclog flush */
 	int			l_covered_state;/* state of "covering disk
 						 * log entries" */
 	xlog_in_core_t		*l_iclog;       /* head log queue	*/
@@ -433,7 +440,7 @@ extern int
 xlog_recover_cancel(struct xlog *);
 
 extern __le32	 xlog_cksum(struct xlog *log, struct xlog_rec_header *rhead,
-			    char *dp, int size);
+							char *dp, int size);
 
 extern kmem_zone_t *xfs_log_ticket_zone;
 struct xlog_ticket *
@@ -595,7 +602,8 @@ xlog_valid_lsn(
 	cur_block = ACCESS_ONCE(log->l_curr_block);
 
 	if ((CYCLE_LSN(lsn) > cur_cycle) ||
-	    (CYCLE_LSN(lsn) == cur_cycle && BLOCK_LSN(lsn) > cur_block)) {
+		(CYCLE_LSN(lsn) == cur_cycle && BLOCK_LSN(lsn) > cur_block))
+	{
 		/*
 		 * If the metadata LSN appears invalid, it's possible the check
 		 * above raced with a wrap to the next log cycle. Grab the lock
@@ -607,8 +615,10 @@ xlog_valid_lsn(
 		spin_unlock(&log->l_icloglock);
 
 		if ((CYCLE_LSN(lsn) > cur_cycle) ||
-		    (CYCLE_LSN(lsn) == cur_cycle && BLOCK_LSN(lsn) > cur_block))
+			(CYCLE_LSN(lsn) == cur_cycle && BLOCK_LSN(lsn) > cur_block))
+		{
 			valid = false;
+		}
 	}
 
 	return valid;

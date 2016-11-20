@@ -24,7 +24,8 @@
 #include "io.h"
 
 /* FIXME: this is static data nowadays and the table can be removed */
-static enum wl12xx_acx_int_reg wl1251_io_reg_table[ACX_REG_TABLE_LEN] = {
+static enum wl12xx_acx_int_reg wl1251_io_reg_table[ACX_REG_TABLE_LEN] =
+{
 	[ACX_REG_INTERRUPT_TRIG]     = (REGISTERS_BASE + 0x0474),
 	[ACX_REG_INTERRUPT_TRIG_H]   = (REGISTERS_BASE + 0x0478),
 	[ACX_REG_INTERRUPT_MASK]     = (REGISTERS_BASE + 0x0494),
@@ -43,12 +44,15 @@ static int wl1251_translate_reg_addr(struct wl1251 *wl, int addr)
 	/* If the address is lower than REGISTERS_BASE, it means that this is
 	 * a chip-specific register address, so look it up in the registers
 	 * table */
-	if (addr < REGISTERS_BASE) {
+	if (addr < REGISTERS_BASE)
+	{
 		/* Make sure we don't go over the table */
-		if (addr >= ACX_REG_TABLE_LEN) {
+		if (addr >= ACX_REG_TABLE_LEN)
+		{
 			wl1251_error("address out of range (%d)", addr);
 			return -EINVAL;
 		}
+
 		addr = wl1251_io_reg_table[addr];
 	}
 
@@ -132,50 +136,54 @@ void wl1251_reg_write32(struct wl1251 *wl, int addr, u32 val)
  *
  */
 void wl1251_set_partition(struct wl1251 *wl,
-			  u32 mem_start, u32 mem_size,
-			  u32 reg_start, u32 reg_size)
+						  u32 mem_start, u32 mem_size,
+						  u32 reg_start, u32 reg_size)
 {
 	struct wl1251_partition partition[2];
 
 	wl1251_debug(DEBUG_SPI, "mem_start %08X mem_size %08X",
-		     mem_start, mem_size);
+				 mem_start, mem_size);
 	wl1251_debug(DEBUG_SPI, "reg_start %08X reg_size %08X",
-		     reg_start, reg_size);
+				 reg_start, reg_size);
 
 	/* Make sure that the two partitions together don't exceed the
 	 * address range */
-	if ((mem_size + reg_size) > HW_ACCESS_MEMORY_MAX_RANGE) {
+	if ((mem_size + reg_size) > HW_ACCESS_MEMORY_MAX_RANGE)
+	{
 		wl1251_debug(DEBUG_SPI, "Total size exceeds maximum virtual"
-			     " address range.  Truncating partition[0].");
+					 " address range.  Truncating partition[0].");
 		mem_size = HW_ACCESS_MEMORY_MAX_RANGE - reg_size;
 		wl1251_debug(DEBUG_SPI, "mem_start %08X mem_size %08X",
-			     mem_start, mem_size);
+					 mem_start, mem_size);
 		wl1251_debug(DEBUG_SPI, "reg_start %08X reg_size %08X",
-			     reg_start, reg_size);
+					 reg_start, reg_size);
 	}
 
 	if ((mem_start < reg_start) &&
-	    ((mem_start + mem_size) > reg_start)) {
+		((mem_start + mem_size) > reg_start))
+	{
 		/* Guarantee that the memory partition doesn't overlap the
 		 * registers partition */
 		wl1251_debug(DEBUG_SPI, "End of partition[0] is "
-			     "overlapping partition[1].  Adjusted.");
+					 "overlapping partition[1].  Adjusted.");
 		mem_size = reg_start - mem_start;
 		wl1251_debug(DEBUG_SPI, "mem_start %08X mem_size %08X",
-			     mem_start, mem_size);
+					 mem_start, mem_size);
 		wl1251_debug(DEBUG_SPI, "reg_start %08X reg_size %08X",
-			     reg_start, reg_size);
-	} else if ((reg_start < mem_start) &&
-		   ((reg_start + reg_size) > mem_start)) {
+					 reg_start, reg_size);
+	}
+	else if ((reg_start < mem_start) &&
+			 ((reg_start + reg_size) > mem_start))
+	{
 		/* Guarantee that the register partition doesn't overlap the
 		 * memory partition */
 		wl1251_debug(DEBUG_SPI, "End of partition[1] is"
-			     " overlapping partition[0].  Adjusted.");
+					 " overlapping partition[0].  Adjusted.");
 		reg_size = mem_start - reg_start;
 		wl1251_debug(DEBUG_SPI, "mem_start %08X mem_size %08X",
-			     mem_start, mem_size);
+					 mem_start, mem_size);
 		wl1251_debug(DEBUG_SPI, "reg_start %08X reg_size %08X",
-			     reg_start, reg_size);
+					 reg_start, reg_size);
 	}
 
 	partition[0].start = mem_start;
@@ -190,5 +198,5 @@ void wl1251_set_partition(struct wl1251 *wl,
 	wl->virtual_reg_addr = mem_size;
 
 	wl->if_ops->write(wl, HW_ACCESS_PART0_SIZE_ADDR, partition,
-		sizeof(partition));
+					  sizeof(partition));
 }

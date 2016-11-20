@@ -36,15 +36,17 @@
 #define PWR_CUT_ALL_MSK		0xFF
 
 
-enum pwrseq_cmd_delat_unit {
+enum pwrseq_cmd_delat_unit
+{
 	PWRSEQ_DELAY_US,
 	PWRSEQ_DELAY_MS,
 };
 
-struct wl_pwr_cfg {
+struct wl_pwr_cfg
+{
 	u16 offset;
 	u8 cut_msk;
-	u8 cmd:4;
+	u8 cmd: 4;
 	u8 msk;
 	u8 value;
 };
@@ -56,6 +58,6 @@ struct wl_pwr_cfg {
 #define GET_PWR_CFG_VALUE(__PWR_CMD)		__PWR_CMD.value
 
 u8 rtl88eu_pwrseqcmdparsing(struct adapter *padapter, u8 cut_vers,
-			    struct wl_pwr_cfg pwrcfgCmd[]);
+							struct wl_pwr_cfg pwrcfgCmd[]);
 
 #endif

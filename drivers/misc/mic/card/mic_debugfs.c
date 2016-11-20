@@ -66,7 +66,8 @@ static int mic_intr_test_release(struct inode *inode, struct file *file)
 	return single_release(inode, file);
 }
 
-static const struct file_operations intr_test_ops = {
+static const struct file_operations intr_test_ops =
+{
 	.owner   = THIS_MODULE,
 	.open    = mic_intr_test_open,
 	.read    = seq_read,
@@ -82,20 +83,25 @@ void __init mic_create_card_debug_dir(struct mic_driver *mdrv)
 	struct dentry *d;
 
 	if (!mic_dbg)
+	{
 		return;
+	}
 
 	mdrv->dbg_dir = debugfs_create_dir(mdrv->name, mic_dbg);
-	if (!mdrv->dbg_dir) {
+
+	if (!mdrv->dbg_dir)
+	{
 		dev_err(mdrv->dev, "Cant create dbg_dir %s\n", mdrv->name);
 		return;
 	}
 
 	d = debugfs_create_file("intr_test", 0444, mdrv->dbg_dir,
-		mdrv, &intr_test_ops);
+							mdrv, &intr_test_ops);
 
-	if (!d) {
+	if (!d)
+	{
 		dev_err(mdrv->dev,
-			"Cant create dbg intr_test %s\n", mdrv->name);
+				"Cant create dbg intr_test %s\n", mdrv->name);
 		return;
 	}
 }
@@ -106,7 +112,9 @@ void __init mic_create_card_debug_dir(struct mic_driver *mdrv)
 void mic_delete_card_debug_dir(struct mic_driver *mdrv)
 {
 	if (!mdrv->dbg_dir)
+	{
 		return;
+	}
 
 	debugfs_remove_recursive(mdrv->dbg_dir);
 }
@@ -117,8 +125,11 @@ void mic_delete_card_debug_dir(struct mic_driver *mdrv)
 void __init mic_init_card_debugfs(void)
 {
 	mic_dbg = debugfs_create_dir(KBUILD_MODNAME, NULL);
+
 	if (!mic_dbg)
+	{
 		pr_err("can't create debugfs dir\n");
+	}
 }
 
 /**

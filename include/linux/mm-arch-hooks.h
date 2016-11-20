@@ -15,8 +15,8 @@
 
 #ifndef arch_remap
 static inline void arch_remap(struct mm_struct *mm,
-			      unsigned long old_start, unsigned long old_end,
-			      unsigned long new_start, unsigned long new_end)
+							  unsigned long old_start, unsigned long old_end,
+							  unsigned long new_start, unsigned long new_end)
 {
 }
 #define arch_remap arch_remap

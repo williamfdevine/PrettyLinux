@@ -69,7 +69,8 @@
  * Each element denotes a version of the API; existing numbers may not
  * change; any additions must go at the end
  */
-enum ixgbe_pfvf_api_rev {
+enum ixgbe_pfvf_api_rev
+{
 	ixgbe_mbox_api_10,	/* API version 1.0, linux/freebsd VF driver */
 	ixgbe_mbox_api_20,	/* API version 2.0, solaris Phase1 VF driver */
 	ixgbe_mbox_api_11,	/* API version 1.1, linux/freebsd VF driver */
@@ -120,7 +121,7 @@ s32 ixgbe_check_for_msg(struct ixgbe_hw *, u16);
 s32 ixgbe_check_for_ack(struct ixgbe_hw *, u16);
 s32 ixgbe_check_for_rst(struct ixgbe_hw *, u16);
 #ifdef CONFIG_PCI_IOV
-void ixgbe_init_mbx_params_pf(struct ixgbe_hw *);
+	void ixgbe_init_mbx_params_pf(struct ixgbe_hw *);
 #endif /* CONFIG_PCI_IOV */
 
 extern const struct ixgbe_mbx_operations mbx_ops_generic;

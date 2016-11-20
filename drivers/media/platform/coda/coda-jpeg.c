@@ -23,32 +23,38 @@
  * chrominance from JPEG ITU-T.81 (ISO/IEC 10918-1) Annex K.3
  */
 
-static const unsigned char luma_dc_bits[16] = {
+static const unsigned char luma_dc_bits[16] =
+{
 	0x00, 0x01, 0x05, 0x01, 0x01, 0x01, 0x01, 0x01,
 	0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
-static const unsigned char luma_dc_value[12] = {
+static const unsigned char luma_dc_value[12] =
+{
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
 	0x08, 0x09, 0x0a, 0x0b,
 };
 
-static const unsigned char chroma_dc_bits[16] = {
+static const unsigned char chroma_dc_bits[16] =
+{
 	0x00, 0x03, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
 	0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
-static const unsigned char chroma_dc_value[12] = {
+static const unsigned char chroma_dc_value[12] =
+{
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
 	0x08, 0x09, 0x0a, 0x0b,
 };
 
-static const unsigned char luma_ac_bits[16] = {
+static const unsigned char luma_ac_bits[16] =
+{
 	0x00, 0x02, 0x01, 0x03, 0x03, 0x02, 0x04, 0x03,
 	0x05, 0x05, 0x04, 0x04, 0x00, 0x00, 0x01, 0x7d,
 };
 
-static const unsigned char luma_ac_value[162 + 2] = {
+static const unsigned char luma_ac_value[162 + 2] =
+{
 	0x01, 0x02, 0x03, 0x00, 0x04, 0x11, 0x05, 0x12,
 	0x21, 0x31, 0x41, 0x06, 0x13, 0x51, 0x61, 0x07,
 	0x22, 0x71, 0x14, 0x32, 0x81, 0x91, 0xa1, 0x08,
@@ -72,12 +78,14 @@ static const unsigned char luma_ac_value[162 + 2] = {
 	0xf9, 0xfa, /* padded to 32-bit */
 };
 
-static const unsigned char chroma_ac_bits[16] = {
+static const unsigned char chroma_ac_bits[16] =
+{
 	0x00, 0x02, 0x01, 0x02, 0x04, 0x04, 0x03, 0x04,
 	0x07, 0x05, 0x04, 0x04, 0x00, 0x01, 0x02, 0x77,
 };
 
-static const unsigned char chroma_ac_value[162 + 2] = {
+static const unsigned char chroma_ac_value[162 + 2] =
+{
 	0x00, 0x01, 0x02, 0x03, 0x11, 0x04, 0x05, 0x21,
 	0x31, 0x06, 0x12, 0x41, 0x51, 0x07, 0x61, 0x71,
 	0x13, 0x22, 0x32, 0x81, 0x08, 0x14, 0x42, 0x91,
@@ -106,7 +114,8 @@ static const unsigned char chroma_ac_value[162 + 2] = {
  * zig-zag scan order from the Freescale i.MX VPU libaries
  */
 
-static unsigned char luma_q[64] = {
+static unsigned char luma_q[64] =
+{
 	0x06, 0x04, 0x04, 0x04, 0x05, 0x04, 0x06, 0x05,
 	0x05, 0x06, 0x09, 0x06, 0x05, 0x06, 0x09, 0x0b,
 	0x08, 0x06, 0x06, 0x08, 0x0b, 0x0c, 0x0a, 0x0a,
@@ -117,7 +126,8 @@ static unsigned char luma_q[64] = {
 	0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
 };
 
-static unsigned char chroma_q[64] = {
+static unsigned char chroma_q[64] =
+{
 	0x07, 0x07, 0x07, 0x0d, 0x0c, 0x0d, 0x18, 0x10,
 	0x10, 0x18, 0x14, 0x0e, 0x0e, 0x0e, 0x14, 0x14,
 	0x0e, 0x0e, 0x0e, 0x0e, 0x14, 0x11, 0x0c, 0x0c,
@@ -128,21 +138,23 @@ static unsigned char chroma_q[64] = {
 	0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
 };
 
-struct coda_memcpy_desc {
+struct coda_memcpy_desc
+{
 	int offset;
 	const void *src;
 	size_t len;
 };
 
 static void coda_memcpy_parabuf(void *parabuf,
-				const struct coda_memcpy_desc *desc)
+								const struct coda_memcpy_desc *desc)
 {
 	u32 *dst = parabuf + desc->offset;
 	const u32 *src = desc->src;
 	int len = desc->len / 4;
 	int i;
 
-	for (i = 0; i < len; i += 2) {
+	for (i = 0; i < len; i += 2)
+	{
 		dst[i + 1] = swab32(src[i]);
 		dst[i] = swab32(src[i + 1]);
 	}
@@ -151,7 +163,8 @@ static void coda_memcpy_parabuf(void *parabuf,
 int coda_jpeg_write_tables(struct coda_ctx *ctx)
 {
 	int i;
-	static const struct coda_memcpy_desc huff[8] = {
+	static const struct coda_memcpy_desc huff[8] =
+	{
 		{ 0,   luma_dc_bits,    sizeof(luma_dc_bits)    },
 		{ 16,  luma_dc_value,   sizeof(luma_dc_value)   },
 		{ 32,  luma_ac_bits,    sizeof(luma_ac_bits)    },
@@ -161,7 +174,8 @@ int coda_jpeg_write_tables(struct coda_ctx *ctx)
 		{ 248, chroma_ac_bits,  sizeof(chroma_ac_bits)  },
 		{ 264, chroma_ac_value, sizeof(chroma_ac_value) },
 	};
-	struct coda_memcpy_desc qmat[3] = {
+	struct coda_memcpy_desc qmat[3] =
+	{
 		{ 512, ctx->params.jpeg_qmat_tab[0], 64 },
 		{ 576, ctx->params.jpeg_qmat_tab[1], 64 },
 		{ 640, ctx->params.jpeg_qmat_tab[1], 64 },
@@ -169,11 +183,15 @@ int coda_jpeg_write_tables(struct coda_ctx *ctx)
 
 	/* Write huffman tables to parameter memory */
 	for (i = 0; i < ARRAY_SIZE(huff); i++)
+	{
 		coda_memcpy_parabuf(ctx->parabuf.vaddr, huff + i);
+	}
 
 	/* Write Q-matrix to parameter memory */
 	for (i = 0; i < ARRAY_SIZE(qmat); i++)
+	{
 		coda_memcpy_parabuf(ctx->parabuf.vaddr, qmat + i);
+	}
 
 	return 0;
 }
@@ -185,16 +203,26 @@ bool coda_jpeg_check_buffer(struct coda_ctx *ctx, struct vb2_buffer *vb)
 	int len, i;
 
 	soi = be16_to_cpup((__be16 *)vaddr);
+
 	if (soi != SOI_MARKER)
+	{
 		return false;
+	}
 
 	len = vb2_get_plane_payload(vb, 0);
 	vaddr += len - 2;
-	for (i = 0; i < 32; i++) {
+
+	for (i = 0; i < 32; i++)
+	{
 		eoi = be16_to_cpup((__be16 *)(vaddr - i));
-		if (eoi == EOI_MARKER) {
+
+		if (eoi == EOI_MARKER)
+		{
 			if (i > 0)
+			{
 				vb2_set_plane_payload(vb, 0, len - i);
+			}
+
 			return true;
 		}
 	}
@@ -211,12 +239,20 @@ static void coda_scale_quant_table(u8 *q_tab, int scale)
 	unsigned int temp;
 	int i;
 
-	for (i = 0; i < 64; i++) {
+	for (i = 0; i < 64; i++)
+	{
 		temp = DIV_ROUND_CLOSEST((unsigned int)q_tab[i] * scale, 100);
+
 		if (temp <= 0)
+		{
 			temp = 1;
+		}
+
 		if (temp > 255)
+		{
 			temp = 255;
+		}
+
 		q_tab[i] = (unsigned char)temp;
 	}
 }
@@ -229,24 +265,36 @@ void coda_set_jpeg_compression_quality(struct coda_ctx *ctx, int quality)
 
 	/* Clip quality setting to [5,100] interval */
 	if (quality > 100)
+	{
 		quality = 100;
+	}
+
 	if (quality < 5)
+	{
 		quality = 5;
+	}
 
 	/*
 	 * Non-linear scaling factor:
 	 * [5,50] -> [1000..100], [51,100] -> [98..0]
 	 */
 	if (quality < 50)
+	{
 		scale = 5000 / quality;
+	}
 	else
+	{
 		scale = 200 - 2 * quality;
+	}
 
-	if (ctx->params.jpeg_qmat_tab[0]) {
+	if (ctx->params.jpeg_qmat_tab[0])
+	{
 		memcpy(ctx->params.jpeg_qmat_tab[0], luma_q, 64);
 		coda_scale_quant_table(ctx->params.jpeg_qmat_tab[0], scale);
 	}
-	if (ctx->params.jpeg_qmat_tab[1]) {
+
+	if (ctx->params.jpeg_qmat_tab[1])
+	{
 		memcpy(ctx->params.jpeg_qmat_tab[1], chroma_q, 64);
 		coda_scale_quant_table(ctx->params.jpeg_qmat_tab[1], scale);
 	}

@@ -101,45 +101,53 @@ void acpi_rs_dump_resource_list(struct acpi_resource *resource_list)
 
 	/* Check if debug output enabled */
 
-	if (!ACPI_IS_DEBUG_ENABLED(ACPI_LV_RESOURCES, _COMPONENT)) {
+	if (!ACPI_IS_DEBUG_ENABLED(ACPI_LV_RESOURCES, _COMPONENT))
+	{
 		return;
 	}
 
 	/* Walk list and dump all resource descriptors (END_TAG terminates) */
 
-	do {
+	do
+	{
 		acpi_os_printf("\n[%02X] ", count);
 		count++;
 
 		/* Validate Type before dispatch */
 
 		type = resource_list->type;
-		if (type > ACPI_RESOURCE_TYPE_MAX) {
+
+		if (type > ACPI_RESOURCE_TYPE_MAX)
+		{
 			acpi_os_printf
-			    ("Invalid descriptor type (%X) in resource list\n",
-			     resource_list->type);
+			("Invalid descriptor type (%X) in resource list\n",
+			 resource_list->type);
 			return;
 		}
 
 		/* Sanity check the length. It must not be zero, or we loop forever */
 
-		if (!resource_list->length) {
+		if (!resource_list->length)
+		{
 			acpi_os_printf
-			    ("Invalid zero length descriptor in resource list\n");
+			("Invalid zero length descriptor in resource list\n");
 			return;
 		}
 
 		/* Dump the resource descriptor */
 
-		if (type == ACPI_RESOURCE_TYPE_SERIAL_BUS) {
+		if (type == ACPI_RESOURCE_TYPE_SERIAL_BUS)
+		{
 			acpi_rs_dump_descriptor(&resource_list->data,
-						acpi_gbl_dump_serial_bus_dispatch
-						[resource_list->data.
-						 common_serial_bus.type]);
-		} else {
+									acpi_gbl_dump_serial_bus_dispatch
+									[resource_list->data.
+									 common_serial_bus.type]);
+		}
+		else
+		{
 			acpi_rs_dump_descriptor(&resource_list->data,
-						acpi_gbl_dump_resource_dispatch
-						[type]);
+									acpi_gbl_dump_resource_dispatch
+									[type]);
 		}
 
 		/* Point to the next resource structure */
@@ -148,7 +156,8 @@ void acpi_rs_dump_resource_list(struct acpi_resource *resource_list)
 
 		/* Exit when END_TAG descriptor is reached */
 
-	} while (type != ACPI_RESOURCE_TYPE_END_TAG);
+	}
+	while (type != ACPI_RESOURCE_TYPE_END_TAG);
 }
 
 /*******************************************************************************
@@ -172,7 +181,8 @@ void acpi_rs_dump_irq_list(u8 *route_table)
 
 	/* Check if debug output enabled */
 
-	if (!ACPI_IS_DEBUG_ENABLED(ACPI_LV_RESOURCES, _COMPONENT)) {
+	if (!ACPI_IS_DEBUG_ENABLED(ACPI_LV_RESOURCES, _COMPONENT))
+	{
 		return;
 	}
 
@@ -180,13 +190,14 @@ void acpi_rs_dump_irq_list(u8 *route_table)
 
 	/* Dump all table elements, Exit on zero length element */
 
-	for (count = 0; prt_element->length; count++) {
+	for (count = 0; prt_element->length; count++)
+	{
 		acpi_os_printf("\n[%02X] PCI IRQ Routing Table Package\n",
-			       count);
+					   count);
 		acpi_rs_dump_descriptor(prt_element, acpi_rs_dump_prt);
 
 		prt_element = ACPI_ADD_PTR(struct acpi_pci_routing_table,
-					   prt_element, prt_element->length);
+								   prt_element, prt_element->length);
 	}
 }
 
@@ -215,167 +226,191 @@ acpi_rs_dump_descriptor(void *resource, struct acpi_rsdump_info *table)
 
 	count = table->offset;
 
-	while (count) {
+	while (count)
+	{
 		previous_target = target;
 		target = ACPI_ADD_PTR(u8, resource, table->offset);
 		name = table->name;
 
-		switch (table->opcode) {
-		case ACPI_RSD_TITLE:
-			/*
-			 * Optional resource title
-			 */
-			if (table->name) {
-				acpi_os_printf("%s Resource\n", name);
-			}
-			break;
+		switch (table->opcode)
+		{
+			case ACPI_RSD_TITLE:
+
+				/*
+				 * Optional resource title
+				 */
+				if (table->name)
+				{
+					acpi_os_printf("%s Resource\n", name);
+				}
+
+				break;
 
 			/* Strings */
 
-		case ACPI_RSD_LITERAL:
+			case ACPI_RSD_LITERAL:
 
-			acpi_rs_out_string(name,
-					   ACPI_CAST_PTR(char, table->pointer));
-			break;
+				acpi_rs_out_string(name,
+								   ACPI_CAST_PTR(char, table->pointer));
+				break;
 
-		case ACPI_RSD_STRING:
+			case ACPI_RSD_STRING:
 
-			acpi_rs_out_string(name, ACPI_CAST_PTR(char, target));
-			break;
+				acpi_rs_out_string(name, ACPI_CAST_PTR(char, target));
+				break;
 
 			/* Data items, 8/16/32/64 bit */
 
-		case ACPI_RSD_UINT8:
+			case ACPI_RSD_UINT8:
 
-			if (table->pointer) {
-				acpi_rs_out_string(name,
-						   table->pointer[*target]);
-			} else {
-				acpi_rs_out_integer8(name, ACPI_GET8(target));
-			}
-			break;
+				if (table->pointer)
+				{
+					acpi_rs_out_string(name,
+									   table->pointer[*target]);
+				}
+				else
+				{
+					acpi_rs_out_integer8(name, ACPI_GET8(target));
+				}
 
-		case ACPI_RSD_UINT16:
+				break;
 
-			acpi_rs_out_integer16(name, ACPI_GET16(target));
-			break;
+			case ACPI_RSD_UINT16:
 
-		case ACPI_RSD_UINT32:
+				acpi_rs_out_integer16(name, ACPI_GET16(target));
+				break;
 
-			acpi_rs_out_integer32(name, ACPI_GET32(target));
-			break;
+			case ACPI_RSD_UINT32:
 
-		case ACPI_RSD_UINT64:
+				acpi_rs_out_integer32(name, ACPI_GET32(target));
+				break;
 
-			acpi_rs_out_integer64(name, ACPI_GET64(target));
-			break;
+			case ACPI_RSD_UINT64:
+
+				acpi_rs_out_integer64(name, ACPI_GET64(target));
+				break;
 
 			/* Flags: 1-bit and 2-bit flags supported */
 
-		case ACPI_RSD_1BITFLAG:
+			case ACPI_RSD_1BITFLAG:
 
-			acpi_rs_out_string(name,
-					   table->pointer[*target & 0x01]);
-			break;
+				acpi_rs_out_string(name,
+								   table->pointer[*target & 0x01]);
+				break;
 
-		case ACPI_RSD_2BITFLAG:
+			case ACPI_RSD_2BITFLAG:
 
-			acpi_rs_out_string(name,
-					   table->pointer[*target & 0x03]);
-			break;
+				acpi_rs_out_string(name,
+								   table->pointer[*target & 0x03]);
+				break;
 
-		case ACPI_RSD_3BITFLAG:
+			case ACPI_RSD_3BITFLAG:
 
-			acpi_rs_out_string(name,
-					   table->pointer[*target & 0x07]);
-			break;
+				acpi_rs_out_string(name,
+								   table->pointer[*target & 0x07]);
+				break;
 
-		case ACPI_RSD_SHORTLIST:
-			/*
-			 * Short byte list (single line output) for DMA and IRQ resources
-			 * Note: The list length is obtained from the previous table entry
-			 */
-			if (previous_target) {
-				acpi_rs_out_title(name);
-				acpi_rs_dump_short_byte_list(*previous_target,
-							     target);
-			}
-			break;
+			case ACPI_RSD_SHORTLIST:
 
-		case ACPI_RSD_SHORTLISTX:
-			/*
-			 * Short byte list (single line output) for GPIO vendor data
-			 * Note: The list length is obtained from the previous table entry
-			 */
-			if (previous_target) {
-				acpi_rs_out_title(name);
-				acpi_rs_dump_short_byte_list(*previous_target,
-							     *
-							     (ACPI_CAST_INDIRECT_PTR
-							      (u8, target)));
-			}
-			break;
+				/*
+				 * Short byte list (single line output) for DMA and IRQ resources
+				 * Note: The list length is obtained from the previous table entry
+				 */
+				if (previous_target)
+				{
+					acpi_rs_out_title(name);
+					acpi_rs_dump_short_byte_list(*previous_target,
+												 target);
+				}
 
-		case ACPI_RSD_LONGLIST:
-			/*
-			 * Long byte list for Vendor resource data
-			 * Note: The list length is obtained from the previous table entry
-			 */
-			if (previous_target) {
-				acpi_rs_dump_byte_list(ACPI_GET16
-						       (previous_target),
-						       target);
-			}
-			break;
+				break;
 
-		case ACPI_RSD_DWORDLIST:
-			/*
-			 * Dword list for Extended Interrupt resources
-			 * Note: The list length is obtained from the previous table entry
-			 */
-			if (previous_target) {
-				acpi_rs_dump_dword_list(*previous_target,
-							ACPI_CAST_PTR(u32,
-								      target));
-			}
-			break;
+			case ACPI_RSD_SHORTLISTX:
 
-		case ACPI_RSD_WORDLIST:
-			/*
-			 * Word list for GPIO Pin Table
-			 * Note: The list length is obtained from the previous table entry
-			 */
-			if (previous_target) {
-				acpi_rs_dump_word_list(*previous_target,
-						       *(ACPI_CAST_INDIRECT_PTR
-							 (u16, target)));
-			}
-			break;
+				/*
+				 * Short byte list (single line output) for GPIO vendor data
+				 * Note: The list length is obtained from the previous table entry
+				 */
+				if (previous_target)
+				{
+					acpi_rs_out_title(name);
+					acpi_rs_dump_short_byte_list(*previous_target,
+												 *
+												 (ACPI_CAST_INDIRECT_PTR
+												  (u8, target)));
+				}
 
-		case ACPI_RSD_ADDRESS:
-			/*
-			 * Common flags for all Address resources
-			 */
-			acpi_rs_dump_address_common(ACPI_CAST_PTR
-						    (union acpi_resource_data,
-						     target));
-			break;
+				break;
 
-		case ACPI_RSD_SOURCE:
-			/*
-			 * Optional resource_source for Address resources
-			 */
-			acpi_rs_dump_resource_source(ACPI_CAST_PTR
-						     (struct
-								   acpi_resource_source,
-								   target));
-			break;
+			case ACPI_RSD_LONGLIST:
 
-		default:
+				/*
+				 * Long byte list for Vendor resource data
+				 * Note: The list length is obtained from the previous table entry
+				 */
+				if (previous_target)
+				{
+					acpi_rs_dump_byte_list(ACPI_GET16
+										   (previous_target),
+										   target);
+				}
 
-			acpi_os_printf("**** Invalid table opcode [%X] ****\n",
-				       table->opcode);
-			return;
+				break;
+
+			case ACPI_RSD_DWORDLIST:
+
+				/*
+				 * Dword list for Extended Interrupt resources
+				 * Note: The list length is obtained from the previous table entry
+				 */
+				if (previous_target)
+				{
+					acpi_rs_dump_dword_list(*previous_target,
+											ACPI_CAST_PTR(u32,
+														  target));
+				}
+
+				break;
+
+			case ACPI_RSD_WORDLIST:
+
+				/*
+				 * Word list for GPIO Pin Table
+				 * Note: The list length is obtained from the previous table entry
+				 */
+				if (previous_target)
+				{
+					acpi_rs_dump_word_list(*previous_target,
+										   *(ACPI_CAST_INDIRECT_PTR
+											 (u16, target)));
+				}
+
+				break;
+
+			case ACPI_RSD_ADDRESS:
+				/*
+				 * Common flags for all Address resources
+				 */
+				acpi_rs_dump_address_common(ACPI_CAST_PTR
+											(union acpi_resource_data,
+											 target));
+				break;
+
+			case ACPI_RSD_SOURCE:
+				/*
+				 * Optional resource_source for Address resources
+				 */
+				acpi_rs_dump_resource_source(ACPI_CAST_PTR
+											 (struct
+											  acpi_resource_source,
+											  target));
+				break;
+
+			default:
+
+				acpi_os_printf("**** Invalid table opcode [%X] ****\n",
+							   table->opcode);
+				return;
 		}
 
 		table++;
@@ -401,15 +436,16 @@ acpi_rs_dump_resource_source(struct acpi_resource_source *resource_source)
 {
 	ACPI_FUNCTION_ENTRY();
 
-	if (resource_source->index == 0xFF) {
+	if (resource_source->index == 0xFF)
+	{
 		return;
 	}
 
 	acpi_rs_out_integer8("Resource Source Index", resource_source->index);
 
 	acpi_rs_out_string("Resource Source",
-			   resource_source->string_ptr ?
-			   resource_source->string_ptr : "[Not Specified]");
+					   resource_source->string_ptr ?
+					   resource_source->string_ptr : "[Not Specified]");
 }
 
 /*******************************************************************************
@@ -431,27 +467,28 @@ static void acpi_rs_dump_address_common(union acpi_resource_data *resource)
 
 	/* Decode the type-specific flags */
 
-	switch (resource->address.resource_type) {
-	case ACPI_MEMORY_RANGE:
+	switch (resource->address.resource_type)
+	{
+		case ACPI_MEMORY_RANGE:
 
-		acpi_rs_dump_descriptor(resource, acpi_rs_dump_memory_flags);
-		break;
+			acpi_rs_dump_descriptor(resource, acpi_rs_dump_memory_flags);
+			break;
 
-	case ACPI_IO_RANGE:
+		case ACPI_IO_RANGE:
 
-		acpi_rs_dump_descriptor(resource, acpi_rs_dump_io_flags);
-		break;
+			acpi_rs_dump_descriptor(resource, acpi_rs_dump_io_flags);
+			break;
 
-	case ACPI_BUS_NUMBER_RANGE:
+		case ACPI_BUS_NUMBER_RANGE:
 
-		acpi_rs_out_string("Resource Type", "Bus Number Range");
-		break;
+			acpi_rs_out_string("Resource Type", "Bus Number Range");
+			break;
 
-	default:
+		default:
 
-		acpi_rs_out_integer8("Resource Type",
-				     (u8) resource->address.resource_type);
-		break;
+			acpi_rs_out_integer8("Resource Type",
+								 (u8) resource->address.resource_type);
+			break;
 	}
 
 	/* Decode the general flags */
@@ -477,9 +514,12 @@ static void acpi_rs_out_string(const char *title, const char *value)
 {
 
 	acpi_os_printf("%27s : %s", title, value);
-	if (!*value) {
+
+	if (!*value)
+	{
 		acpi_os_printf("[NULL NAMESTRING]");
 	}
+
 	acpi_os_printf("\n");
 }
 
@@ -525,31 +565,34 @@ static void acpi_rs_out_title(const char *title)
  *
  ******************************************************************************/
 
-static void acpi_rs_dump_byte_list(u16 length, u8 * data)
+static void acpi_rs_dump_byte_list(u16 length, u8 *data)
 {
 	u8 i;
 
-	for (i = 0; i < length; i++) {
+	for (i = 0; i < length; i++)
+	{
 		acpi_os_printf("%25s%2.2X : %2.2X\n", "Byte", i, data[i]);
 	}
 }
 
-static void acpi_rs_dump_short_byte_list(u8 length, u8 * data)
+static void acpi_rs_dump_short_byte_list(u8 length, u8 *data)
 {
 	u8 i;
 
-	for (i = 0; i < length; i++) {
+	for (i = 0; i < length; i++)
+	{
 		acpi_os_printf("%X ", data[i]);
 	}
 
 	acpi_os_printf("\n");
 }
 
-static void acpi_rs_dump_dword_list(u8 length, u32 * data)
+static void acpi_rs_dump_dword_list(u8 length, u32 *data)
 {
 	u8 i;
 
-	for (i = 0; i < length; i++) {
+	for (i = 0; i < length; i++)
+	{
 		acpi_os_printf("%25s%2.2X : %8.8X\n", "Dword", i, data[i]);
 	}
 }
@@ -558,7 +601,8 @@ static void acpi_rs_dump_word_list(u16 length, u16 *data)
 {
 	u16 i;
 
-	for (i = 0; i < length; i++) {
+	for (i = 0; i < length; i++)
+	{
 		acpi_os_printf("%25s%2.2X : %4.4X\n", "Word", i, data[i]);
 	}
 }

@@ -44,7 +44,8 @@ MODULE_LICENSE("GPL");
 
 static int cobra_btn[] = { BTN_START, BTN_SELECT, BTN_TL, BTN_TR, BTN_X, BTN_Y, BTN_Z, BTN_A, BTN_B, BTN_C, BTN_TL2, BTN_TR2, 0 };
 
-struct cobra {
+struct cobra
+{
 	struct gameport *gameport;
 	struct input_dev *dev[2];
 	int reads;
@@ -63,7 +64,8 @@ static unsigned char cobra_read_packet(struct gameport *gameport, unsigned int *
 
 	int strobe = gameport_time(gameport, COBRA_MAX_STROBE);
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		r[i] = buf[i] = 0;
 		t[i] = COBRA_MAX_STROBE;
 	}
@@ -72,35 +74,44 @@ static unsigned char cobra_read_packet(struct gameport *gameport, unsigned int *
 
 	u = gameport_read(gameport);
 
-	do {
+	do
+	{
 		t[0]--; t[1]--;
 		v = gameport_read(gameport);
+
 		for (i = 0, w = u ^ v; i < 2 && w; i++, w >>= 2)
-			if (w & 0x30) {
-				if ((w & 0x30) < 0x30 && r[i] < COBRA_LENGTH && t[i] > 0) {
+			if (w & 0x30)
+			{
+				if ((w & 0x30) < 0x30 && r[i] < COBRA_LENGTH && t[i] > 0)
+				{
 					buf[i] |= (__u64)((w >> 5) & 1) << r[i]++;
 					t[i] = strobe;
 					u = v;
-				} else t[i] = 0;
+				}
+				else { t[i] = 0; }
 			}
-	} while (t[0] > 0 || t[1] > 0);
+	}
+	while (t[0] > 0 || t[1] > 0);
 
 	local_irq_restore(flags);
 
 	ret = 0;
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 
-		if (r[i] != COBRA_LENGTH) continue;
+		if (r[i] != COBRA_LENGTH) { continue; }
 
 		for (j = 0; j < COBRA_LENGTH && (buf[i] & 0x04104107f) ^ 0x041041040; j++)
+		{
 			buf[i] = (buf[i] >> 1) | ((__u64)(buf[i] & 1) << (COBRA_LENGTH - 1));
+		}
 
-		if (j < COBRA_LENGTH) ret |= (1 << i);
+		if (j < COBRA_LENGTH) { ret |= (1 << i); }
 
 		data[i] = ((buf[i] >>  7) & 0x000001f) | ((buf[i] >>  8) & 0x00003e0)
-			| ((buf[i] >>  9) & 0x0007c00) | ((buf[i] >> 10) & 0x00f8000)
-			| ((buf[i] >> 11) & 0x1f00000);
+				  | ((buf[i] >>  9) & 0x0007c00) | ((buf[i] >> 10) & 0x00f8000)
+				  | ((buf[i] >> 11) & 0x1f00000);
 
 	}
 
@@ -116,13 +127,15 @@ static void cobra_poll(struct gameport *gameport)
 
 	cobra->reads++;
 
-	if ((r = cobra_read_packet(gameport, data)) != cobra->exists) {
+	if ((r = cobra_read_packet(gameport, data)) != cobra->exists)
+	{
 		cobra->bads++;
 		return;
 	}
 
 	for (i = 0; i < 2; i++)
-		if (cobra->exists & r & (1 << i)) {
+		if (cobra->exists & r & (1 << i))
+		{
 
 			dev = cobra->dev[i];
 
@@ -130,7 +143,9 @@ static void cobra_poll(struct gameport *gameport)
 			input_report_abs(dev, ABS_Y, ((data[i] >> 2) & 1) - ((data[i] >> 1) & 1));
 
 			for (j = 0; cobra_btn[j]; j++)
+			{
 				input_report_key(dev, cobra_btn[j], data[i] & (0x20 << j));
+			}
 
 			input_sync(dev);
 
@@ -161,27 +176,35 @@ static int cobra_connect(struct gameport *gameport, struct gameport_driver *drv)
 	int err;
 
 	cobra = kzalloc(sizeof(struct cobra), GFP_KERNEL);
+
 	if (!cobra)
+	{
 		return -ENOMEM;
+	}
 
 	cobra->gameport = gameport;
 
 	gameport_set_drvdata(gameport, cobra);
 
 	err = gameport_open(gameport, drv, GAMEPORT_MODE_RAW);
+
 	if (err)
+	{
 		goto fail1;
+	}
 
 	cobra->exists = cobra_read_packet(gameport, data);
 
 	for (i = 0; i < 2; i++)
-		if ((cobra->exists >> i) & data[i] & 1) {
+		if ((cobra->exists >> i) & data[i] & 1)
+		{
 			printk(KERN_WARNING "cobra.c: Device %d on %s has the Ext bit set. ID is: %d"
-				" Contact vojtech@ucw.cz\n", i, gameport->phys, (data[i] >> 2) & 7);
+				   " Contact vojtech@ucw.cz\n", i, gameport->phys, (data[i] >> 2) & 7);
 			cobra->exists &= ~(1 << i);
 		}
 
-	if (!cobra->exists) {
+	if (!cobra->exists)
+	{
 		err = -ENODEV;
 		goto fail2;
 	}
@@ -189,18 +212,23 @@ static int cobra_connect(struct gameport *gameport, struct gameport_driver *drv)
 	gameport_set_poll_handler(gameport, cobra_poll);
 	gameport_set_poll_interval(gameport, 20);
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		if (~(cobra->exists >> i) & 1)
+		{
 			continue;
+		}
 
 		cobra->dev[i] = input_dev = input_allocate_device();
-		if (!input_dev) {
+
+		if (!input_dev)
+		{
 			err = -ENOMEM;
 			goto fail3;
 		}
 
 		snprintf(cobra->phys[i], sizeof(cobra->phys[i]),
-			 "%s/input%d", gameport->phys, i);
+				 "%s/input%d", gameport->phys, i);
 
 		input_dev->name = "Creative Labs Blaster GamePad Cobra";
 		input_dev->phys = cobra->phys[i];
@@ -218,22 +246,33 @@ static int cobra_connect(struct gameport *gameport, struct gameport_driver *drv)
 		input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS);
 		input_set_abs_params(input_dev, ABS_X, -1, 1, 0, 0);
 		input_set_abs_params(input_dev, ABS_Y, -1, 1, 0, 0);
+
 		for (j = 0; cobra_btn[j]; j++)
+		{
 			set_bit(cobra_btn[j], input_dev->keybit);
+		}
 
 		err = input_register_device(cobra->dev[i]);
+
 		if (err)
+		{
 			goto fail4;
+		}
 	}
 
 	return 0;
 
- fail4:	input_free_device(cobra->dev[i]);
- fail3:	while (--i >= 0)
+fail4:	input_free_device(cobra->dev[i]);
+fail3:
+
+	while (--i >= 0)
 		if (cobra->dev[i])
+		{
 			input_unregister_device(cobra->dev[i]);
- fail2:	gameport_close(gameport);
- fail1:	gameport_set_drvdata(gameport, NULL);
+		}
+
+fail2:	gameport_close(gameport);
+fail1:	gameport_set_drvdata(gameport, NULL);
 	kfree(cobra);
 	return err;
 }
@@ -245,13 +284,17 @@ static void cobra_disconnect(struct gameport *gameport)
 
 	for (i = 0; i < 2; i++)
 		if ((cobra->exists >> i) & 1)
+		{
 			input_unregister_device(cobra->dev[i]);
+		}
+
 	gameport_close(gameport);
 	gameport_set_drvdata(gameport, NULL);
 	kfree(cobra);
 }
 
-static struct gameport_driver cobra_drv = {
+static struct gameport_driver cobra_drv =
+{
 	.driver		= {
 		.name	= "cobra",
 	},

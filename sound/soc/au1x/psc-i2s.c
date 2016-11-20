@@ -52,7 +52,7 @@
 
 
 static int au1xpsc_i2s_set_fmt(struct snd_soc_dai *cpu_dai,
-			       unsigned int fmt)
+							   unsigned int fmt)
 {
 	struct au1xpsc_audio_data *pscdata = snd_soc_dai_get_drvdata(cpu_dai);
 	unsigned long ct;
@@ -63,45 +63,59 @@ static int au1xpsc_i2s_set_fmt(struct snd_soc_dai *cpu_dai,
 	ct = pscdata->cfg;
 
 	ct &= ~(PSC_I2SCFG_XM | PSC_I2SCFG_MLJ);	/* left-justified */
-	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-	case SND_SOC_DAIFMT_I2S:
-		ct |= PSC_I2SCFG_XM;	/* enable I2S mode */
-		break;
-	case SND_SOC_DAIFMT_MSB:
-		break;
-	case SND_SOC_DAIFMT_LSB:
-		ct |= PSC_I2SCFG_MLJ;	/* LSB (right-) justified */
-		break;
-	default:
-		goto out;
+
+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK)
+	{
+		case SND_SOC_DAIFMT_I2S:
+			ct |= PSC_I2SCFG_XM;	/* enable I2S mode */
+			break;
+
+		case SND_SOC_DAIFMT_MSB:
+			break;
+
+		case SND_SOC_DAIFMT_LSB:
+			ct |= PSC_I2SCFG_MLJ;	/* LSB (right-) justified */
+			break;
+
+		default:
+			goto out;
 	}
 
 	ct &= ~(PSC_I2SCFG_BI | PSC_I2SCFG_WI);		/* IB-IF */
-	switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
-	case SND_SOC_DAIFMT_NB_NF:
-		ct |= PSC_I2SCFG_BI | PSC_I2SCFG_WI;
-		break;
-	case SND_SOC_DAIFMT_NB_IF:
-		ct |= PSC_I2SCFG_BI;
-		break;
-	case SND_SOC_DAIFMT_IB_NF:
-		ct |= PSC_I2SCFG_WI;
-		break;
-	case SND_SOC_DAIFMT_IB_IF:
-		break;
-	default:
-		goto out;
+
+	switch (fmt & SND_SOC_DAIFMT_INV_MASK)
+	{
+		case SND_SOC_DAIFMT_NB_NF:
+			ct |= PSC_I2SCFG_BI | PSC_I2SCFG_WI;
+			break;
+
+		case SND_SOC_DAIFMT_NB_IF:
+			ct |= PSC_I2SCFG_BI;
+			break;
+
+		case SND_SOC_DAIFMT_IB_NF:
+			ct |= PSC_I2SCFG_WI;
+			break;
+
+		case SND_SOC_DAIFMT_IB_IF:
+			break;
+
+		default:
+			goto out;
 	}
 
-	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
-	case SND_SOC_DAIFMT_CBM_CFM:	/* CODEC master */
-		ct |= PSC_I2SCFG_MS;	/* PSC I2S slave mode */
-		break;
-	case SND_SOC_DAIFMT_CBS_CFS:	/* CODEC slave */
-		ct &= ~PSC_I2SCFG_MS;	/* PSC I2S Master mode */
-		break;
-	default:
-		goto out;
+	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK)
+	{
+		case SND_SOC_DAIFMT_CBM_CFM:	/* CODEC master */
+			ct |= PSC_I2SCFG_MS;	/* PSC I2S slave mode */
+			break;
+
+		case SND_SOC_DAIFMT_CBS_CFS:	/* CODEC slave */
+			ct &= ~PSC_I2SCFG_MS;	/* PSC I2S Master mode */
+			break;
+
+		default:
+			goto out;
 	}
 
 	pscdata->cfg = ct;
@@ -111,8 +125,8 @@ out:
 }
 
 static int au1xpsc_i2s_hw_params(struct snd_pcm_substream *substream,
-				 struct snd_pcm_hw_params *params,
-				 struct snd_soc_dai *dai)
+								 struct snd_pcm_hw_params *params,
+								 struct snd_soc_dai *dai)
 {
 	struct au1xpsc_audio_data *pscdata = snd_soc_dai_get_drvdata(dai);
 
@@ -121,19 +135,27 @@ static int au1xpsc_i2s_hw_params(struct snd_pcm_substream *substream,
 
 	/* check if the PSC is already streaming data */
 	stat = __raw_readl(I2S_STAT(pscdata));
-	if (stat & (PSC_I2SSTAT_TB | PSC_I2SSTAT_RB)) {
+
+	if (stat & (PSC_I2SSTAT_TB | PSC_I2SSTAT_RB))
+	{
 		/* reject parameters not currently set up in hardware */
 		cfgbits = __raw_readl(I2S_CFG(pscdata));
+
 		if ((PSC_I2SCFG_GET_LEN(cfgbits) != params->msbits) ||
-		    (params_rate(params) != pscdata->rate))
+			(params_rate(params) != pscdata->rate))
+		{
 			return -EINVAL;
-	} else {
+		}
+	}
+	else
+	{
 		/* set sample bitdepth */
 		pscdata->cfg &= ~(0x1f << 4);
 		pscdata->cfg |= PSC_I2SCFG_SET_LEN(params->msbits);
 		/* remember current rate for other stream */
 		pscdata->rate = params_rate(params);
 	}
+
 	return 0;
 }
 
@@ -153,11 +175,16 @@ static int au1xpsc_i2s_configure(struct au1xpsc_audio_data *pscdata)
 	wmb(); /* drain writebuffer */
 
 	tmo = 1000000;
+
 	while (!(__raw_readl(I2S_STAT(pscdata)) & PSC_I2SSTAT_SR) && tmo)
+	{
 		tmo--;
+	}
 
 	if (!tmo)
+	{
 		goto psc_err;
+	}
 
 	__raw_writel(0, I2S_CFG(pscdata));
 	wmb(); /* drain writebuffer */
@@ -166,11 +193,16 @@ static int au1xpsc_i2s_configure(struct au1xpsc_audio_data *pscdata)
 
 	/* wait for I2S controller to become ready */
 	tmo = 1000000;
+
 	while (!(__raw_readl(I2S_STAT(pscdata)) & PSC_I2SSTAT_DR) && tmo)
+	{
 		tmo--;
+	}
 
 	if (tmo)
+	{
 		return 0;
+	}
 
 psc_err:
 	__raw_writel(0, I2S_CFG(pscdata));
@@ -188,10 +220,15 @@ static int au1xpsc_i2s_start(struct au1xpsc_audio_data *pscdata, int stype)
 
 	/* if both TX and RX are idle, configure the PSC  */
 	stat = __raw_readl(I2S_STAT(pscdata));
-	if (!(stat & (PSC_I2SSTAT_TB | PSC_I2SSTAT_RB))) {
+
+	if (!(stat & (PSC_I2SSTAT_TB | PSC_I2SSTAT_RB)))
+	{
 		ret = au1xpsc_i2s_configure(pscdata);
+
 		if (ret)
+		{
 			goto out;
+		}
 	}
 
 	__raw_writel(I2SPCR_CLRFIFO(stype), I2S_PCR(pscdata));
@@ -201,14 +238,19 @@ static int au1xpsc_i2s_start(struct au1xpsc_audio_data *pscdata, int stype)
 
 	/* wait for start confirmation */
 	tmo = 1000000;
-	while (!(__raw_readl(I2S_STAT(pscdata)) & I2SSTAT_BUSY(stype)) && tmo)
-		tmo--;
 
-	if (!tmo) {
+	while (!(__raw_readl(I2S_STAT(pscdata)) & I2SSTAT_BUSY(stype)) && tmo)
+	{
+		tmo--;
+	}
+
+	if (!tmo)
+	{
 		__raw_writel(I2SPCR_STOP(stype), I2S_PCR(pscdata));
 		wmb(); /* drain writebuffer */
 		ret = -ETIMEDOUT;
 	}
+
 out:
 	return ret;
 }
@@ -222,57 +264,69 @@ static int au1xpsc_i2s_stop(struct au1xpsc_audio_data *pscdata, int stype)
 
 	/* wait for stop confirmation */
 	tmo = 1000000;
+
 	while ((__raw_readl(I2S_STAT(pscdata)) & I2SSTAT_BUSY(stype)) && tmo)
+	{
 		tmo--;
+	}
 
 	/* if both TX and RX are idle, disable PSC */
 	stat = __raw_readl(I2S_STAT(pscdata));
-	if (!(stat & (PSC_I2SSTAT_TB | PSC_I2SSTAT_RB))) {
+
+	if (!(stat & (PSC_I2SSTAT_TB | PSC_I2SSTAT_RB)))
+	{
 		__raw_writel(0, I2S_CFG(pscdata));
 		wmb(); /* drain writebuffer */
 		__raw_writel(PSC_CTRL_SUSPEND, PSC_CTRL(pscdata));
 		wmb(); /* drain writebuffer */
 	}
+
 	return 0;
 }
 
 static int au1xpsc_i2s_trigger(struct snd_pcm_substream *substream, int cmd,
-			       struct snd_soc_dai *dai)
+							   struct snd_soc_dai *dai)
 {
 	struct au1xpsc_audio_data *pscdata = snd_soc_dai_get_drvdata(dai);
 	int ret, stype = substream->stream;
 
-	switch (cmd) {
-	case SNDRV_PCM_TRIGGER_START:
-	case SNDRV_PCM_TRIGGER_RESUME:
-		ret = au1xpsc_i2s_start(pscdata, stype);
-		break;
-	case SNDRV_PCM_TRIGGER_STOP:
-	case SNDRV_PCM_TRIGGER_SUSPEND:
-		ret = au1xpsc_i2s_stop(pscdata, stype);
-		break;
-	default:
-		ret = -EINVAL;
+	switch (cmd)
+	{
+		case SNDRV_PCM_TRIGGER_START:
+		case SNDRV_PCM_TRIGGER_RESUME:
+			ret = au1xpsc_i2s_start(pscdata, stype);
+			break;
+
+		case SNDRV_PCM_TRIGGER_STOP:
+		case SNDRV_PCM_TRIGGER_SUSPEND:
+			ret = au1xpsc_i2s_stop(pscdata, stype);
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
+
 	return ret;
 }
 
 static int au1xpsc_i2s_startup(struct snd_pcm_substream *substream,
-			       struct snd_soc_dai *dai)
+							   struct snd_soc_dai *dai)
 {
 	struct au1xpsc_audio_data *pscdata = snd_soc_dai_get_drvdata(dai);
 	snd_soc_dai_set_dma_data(dai, substream, &pscdata->dmaids[0]);
 	return 0;
 }
 
-static const struct snd_soc_dai_ops au1xpsc_i2s_dai_ops = {
+static const struct snd_soc_dai_ops au1xpsc_i2s_dai_ops =
+{
 	.startup	= au1xpsc_i2s_startup,
 	.trigger	= au1xpsc_i2s_trigger,
 	.hw_params	= au1xpsc_i2s_hw_params,
 	.set_fmt	= au1xpsc_i2s_set_fmt,
 };
 
-static const struct snd_soc_dai_driver au1xpsc_i2s_dai_template = {
+static const struct snd_soc_dai_driver au1xpsc_i2s_dai_template =
+{
 	.playback = {
 		.rates		= AU1XPSC_I2S_RATES,
 		.formats	= AU1XPSC_I2S_FMTS,
@@ -288,7 +342,8 @@ static const struct snd_soc_dai_driver au1xpsc_i2s_dai_template = {
 	.ops = &au1xpsc_i2s_dai_ops,
 };
 
-static const struct snd_soc_component_driver au1xpsc_i2s_component = {
+static const struct snd_soc_component_driver au1xpsc_i2s_component =
+{
 	.name		= "au1xpsc-i2s",
 };
 
@@ -299,23 +354,37 @@ static int au1xpsc_i2s_drvprobe(struct platform_device *pdev)
 	struct au1xpsc_audio_data *wd;
 
 	wd = devm_kzalloc(&pdev->dev, sizeof(struct au1xpsc_audio_data),
-			  GFP_KERNEL);
+					  GFP_KERNEL);
+
 	if (!wd)
+	{
 		return -ENOMEM;
+	}
 
 	iores = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	wd->mmio = devm_ioremap_resource(&pdev->dev, iores);
+
 	if (IS_ERR(wd->mmio))
+	{
 		return PTR_ERR(wd->mmio);
+	}
 
 	dmares = platform_get_resource(pdev, IORESOURCE_DMA, 0);
+
 	if (!dmares)
+	{
 		return -EBUSY;
+	}
+
 	wd->dmaids[SNDRV_PCM_STREAM_PLAYBACK] = dmares->start;
 
 	dmares = platform_get_resource(pdev, IORESOURCE_DMA, 1);
+
 	if (!dmares)
+	{
 		return -EBUSY;
+	}
+
 	wd->dmaids[SNDRV_PCM_STREAM_CAPTURE] = dmares->start;
 
 	/* preserve PSC clock source set up by platform (dev.platform_data
@@ -338,13 +407,13 @@ static int au1xpsc_i2s_drvprobe(struct platform_device *pdev)
 
 	/* name the DAI like this device instance ("au1xpsc-i2s.PSCINDEX") */
 	memcpy(&wd->dai_drv, &au1xpsc_i2s_dai_template,
-	       sizeof(struct snd_soc_dai_driver));
+		   sizeof(struct snd_soc_dai_driver));
 	wd->dai_drv.name = dev_name(&pdev->dev);
 
 	platform_set_drvdata(pdev, wd);
 
 	return snd_soc_register_component(&pdev->dev, &au1xpsc_i2s_component,
-					  &wd->dai_drv, 1);
+									  &wd->dai_drv, 1);
 }
 
 static int au1xpsc_i2s_drvremove(struct platform_device *pdev)
@@ -392,7 +461,8 @@ static int au1xpsc_i2s_drvresume(struct device *dev)
 	return 0;
 }
 
-static struct dev_pm_ops au1xpsci2s_pmops = {
+static struct dev_pm_ops au1xpsci2s_pmops =
+{
 	.suspend	= au1xpsc_i2s_drvsuspend,
 	.resume		= au1xpsc_i2s_drvresume,
 };
@@ -405,7 +475,8 @@ static struct dev_pm_ops au1xpsci2s_pmops = {
 
 #endif
 
-static struct platform_driver au1xpsc_i2s_driver = {
+static struct platform_driver au1xpsc_i2s_driver =
+{
 	.driver		= {
 		.name	= "au1xpsc_i2s",
 		.pm	= AU1XPSCI2S_PMOPS,

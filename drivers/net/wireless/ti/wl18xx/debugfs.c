@@ -72,7 +72,7 @@ WL18XX_DEBUGFS_FWSTATS_FILE(tx, tx_exch, "%u");
 WL18XX_DEBUGFS_FWSTATS_FILE(tx, tx_retry_template, "%u");
 WL18XX_DEBUGFS_FWSTATS_FILE(tx, tx_retry_data, "%u");
 WL18XX_DEBUGFS_FWSTATS_FILE_ARRAY(tx, tx_retry_per_rate,
-				  NUM_OF_RATES_INDEXES);
+								  NUM_OF_RATES_INDEXES);
 WL18XX_DEBUGFS_FWSTATS_FILE(tx, tx_exch_pending, "%u");
 WL18XX_DEBUGFS_FWSTATS_FILE(tx, tx_exch_expiry, "%u");
 WL18XX_DEBUGFS_FWSTATS_FILE(tx, tx_done_template, "%u");
@@ -123,7 +123,7 @@ WL18XX_DEBUGFS_FWSTATS_FILE(pwr, missing_bcns_cnt, "%u");
 WL18XX_DEBUGFS_FWSTATS_FILE(pwr, rcvd_bcns_cnt, "%u");
 WL18XX_DEBUGFS_FWSTATS_FILE(pwr, connection_out_of_sync, "%u");
 WL18XX_DEBUGFS_FWSTATS_FILE_ARRAY(pwr, cont_miss_bcns_spread,
-				  PWR_STAT_MAX_CONT_MISSED_BCNS_SPREAD);
+								  PWR_STAT_MAX_CONT_MISSED_BCNS_SPREAD);
 WL18XX_DEBUGFS_FWSTATS_FILE(pwr, rcvd_awake_bcns_cnt, "%u");
 WL18XX_DEBUGFS_FWSTATS_FILE(pwr, sleep_time_count, "%u");
 WL18XX_DEBUGFS_FWSTATS_FILE(pwr, sleep_time_avg, "%u");
@@ -146,11 +146,11 @@ WL18XX_DEBUGFS_FWSTATS_FILE(rx_filter, max_arp_queue_dep, "%u");
 WL18XX_DEBUGFS_FWSTATS_FILE_ARRAY(rx_rate, rx_frames_per_rates, 50);
 
 WL18XX_DEBUGFS_FWSTATS_FILE_ARRAY(aggr_size, tx_agg_rate,
-				  AGGR_STATS_TX_AGG);
+								  AGGR_STATS_TX_AGG);
 WL18XX_DEBUGFS_FWSTATS_FILE_ARRAY(aggr_size, tx_agg_len,
-				  AGGR_STATS_TX_AGG);
+								  AGGR_STATS_TX_AGG);
 WL18XX_DEBUGFS_FWSTATS_FILE_ARRAY(aggr_size, rx_size,
-				  AGGR_STATS_RX_SIZE_LEN);
+								  AGGR_STATS_RX_SIZE_LEN);
 
 WL18XX_DEBUGFS_FWSTATS_FILE(pipeline, hs_tx_stat_fifo_int, "%u");
 WL18XX_DEBUGFS_FWSTATS_FILE(pipeline, enc_tx_stat_fifo_int, "%u");
@@ -166,10 +166,10 @@ WL18XX_DEBUGFS_FWSTATS_FILE(pipeline, dec_packet_in_fifo_full, "%u");
 WL18XX_DEBUGFS_FWSTATS_FILE(pipeline, dec_packet_out, "%u");
 
 WL18XX_DEBUGFS_FWSTATS_FILE_ARRAY(pipeline, pipeline_fifo_full,
-				  PIPE_STATS_HW_FIFO);
+								  PIPE_STATS_HW_FIFO);
 
 WL18XX_DEBUGFS_FWSTATS_FILE_ARRAY(diversity, num_of_packets_per_ant,
-				  DIVERSITY_STATS_NUM_OF_ANT);
+								  DIVERSITY_STATS_NUM_OF_ANT);
 WL18XX_DEBUGFS_FWSTATS_FILE(diversity, total_num_of_toggles, "%u");
 
 WL18XX_DEBUGFS_FWSTATS_FILE(thermal, irq_thr_low, "%u");
@@ -180,7 +180,7 @@ WL18XX_DEBUGFS_FWSTATS_FILE(thermal, false_irq, "%u");
 WL18XX_DEBUGFS_FWSTATS_FILE(thermal, adc_source_unexpected, "%u");
 
 WL18XX_DEBUGFS_FWSTATS_FILE_ARRAY(calib, fail_count,
-				  WL18XX_NUM_OF_CALIBRATIONS_ERRORS);
+								  WL18XX_NUM_OF_CALIBRATIONS_ERRORS);
 WL18XX_DEBUGFS_FWSTATS_FILE(calib, calib_count, "%u");
 
 WL18XX_DEBUGFS_FWSTATS_FILE(roaming, rssi_level, "%d");
@@ -188,7 +188,7 @@ WL18XX_DEBUGFS_FWSTATS_FILE(roaming, rssi_level, "%d");
 WL18XX_DEBUGFS_FWSTATS_FILE(dfs, num_of_radar_detections, "%d");
 
 static ssize_t conf_read(struct file *file, char __user *user_buf,
-			 size_t count, loff_t *ppos)
+						 size_t count, loff_t *ppos)
 {
 	struct wl1271 *wl = file->private_data;
 	struct wl18xx_priv *priv = wl->priv;
@@ -199,8 +199,11 @@ static ssize_t conf_read(struct file *file, char __user *user_buf,
 
 	len = WL18XX_CONF_SIZE;
 	buf = kmalloc(len, GFP_KERNEL);
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	header.magic	= cpu_to_le32(WL18XX_CONF_MAGIC);
 	header.version	= cpu_to_le32(WL18XX_CONF_VERSION);
@@ -223,15 +226,16 @@ static ssize_t conf_read(struct file *file, char __user *user_buf,
 	return ret;
 }
 
-static const struct file_operations conf_ops = {
+static const struct file_operations conf_ops =
+{
 	.read = conf_read,
 	.open = simple_open,
 	.llseek = default_llseek,
 };
 
 static ssize_t clear_fw_stats_write(struct file *file,
-			      const char __user *user_buf,
-			      size_t count, loff_t *ppos)
+									const char __user *user_buf,
+									size_t count, loff_t *ppos)
 {
 	struct wl1271 *wl = file->private_data;
 	int ret;
@@ -239,34 +243,42 @@ static ssize_t clear_fw_stats_write(struct file *file,
 	mutex_lock(&wl->mutex);
 
 	if (unlikely(wl->state != WLCORE_STATE_ON))
+	{
 		goto out;
+	}
 
 	ret = wl18xx_acx_clear_statistics(wl);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		count = ret;
 		goto out;
 	}
+
 out:
 	mutex_unlock(&wl->mutex);
 	return count;
 }
 
-static const struct file_operations clear_fw_stats_ops = {
+static const struct file_operations clear_fw_stats_ops =
+{
 	.write = clear_fw_stats_write,
 	.open = simple_open,
 	.llseek = default_llseek,
 };
 
 static ssize_t radar_detection_write(struct file *file,
-				     const char __user *user_buf,
-				     size_t count, loff_t *ppos)
+									 const char __user *user_buf,
+									 size_t count, loff_t *ppos)
 {
 	struct wl1271 *wl = file->private_data;
 	int ret;
 	u8 channel;
 
 	ret = kstrtou8_from_user(user_buf, count, 10, &channel);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		wl1271_warning("illegal channel");
 		return -EINVAL;
 	}
@@ -274,15 +286,23 @@ static ssize_t radar_detection_write(struct file *file,
 	mutex_lock(&wl->mutex);
 
 	if (unlikely(wl->state != WLCORE_STATE_ON))
+	{
 		goto out;
+	}
 
 	ret = wl1271_ps_elp_wakeup(wl);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	ret = wl18xx_cmd_radar_detection_debug(wl, channel);
+
 	if (ret < 0)
+	{
 		count = ret;
+	}
 
 	wl1271_ps_elp_sleep(wl);
 out:
@@ -290,38 +310,50 @@ out:
 	return count;
 }
 
-static const struct file_operations radar_detection_ops = {
+static const struct file_operations radar_detection_ops =
+{
 	.write = radar_detection_write,
 	.open = simple_open,
 	.llseek = default_llseek,
 };
 
 static ssize_t dynamic_fw_traces_write(struct file *file,
-					const char __user *user_buf,
-					size_t count, loff_t *ppos)
+									   const char __user *user_buf,
+									   size_t count, loff_t *ppos)
 {
 	struct wl1271 *wl = file->private_data;
 	unsigned long value;
 	int ret;
 
 	ret = kstrtoul_from_user(user_buf, count, 0, &value);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	mutex_lock(&wl->mutex);
 
 	wl->dynamic_fw_traces = value;
 
 	if (unlikely(wl->state != WLCORE_STATE_ON))
+	{
 		goto out;
+	}
 
 	ret = wl1271_ps_elp_wakeup(wl);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	ret = wl18xx_acx_dynamic_fw_traces(wl);
+
 	if (ret < 0)
+	{
 		count = ret;
+	}
 
 	wl1271_ps_elp_sleep(wl);
 out:
@@ -330,15 +362,16 @@ out:
 }
 
 static ssize_t dynamic_fw_traces_read(struct file *file,
-					char __user *userbuf,
-					size_t count, loff_t *ppos)
+									  char __user *userbuf,
+									  size_t count, loff_t *ppos)
 {
 	struct wl1271 *wl = file->private_data;
 	return wl1271_format_buffer(userbuf, count, ppos,
-				    "%d\n", wl->dynamic_fw_traces);
+								"%d\n", wl->dynamic_fw_traces);
 }
 
-static const struct file_operations dynamic_fw_traces_ops = {
+static const struct file_operations dynamic_fw_traces_ops =
+{
 	.read = dynamic_fw_traces_read,
 	.write = dynamic_fw_traces_write,
 	.open = simple_open,
@@ -347,8 +380,8 @@ static const struct file_operations dynamic_fw_traces_ops = {
 
 #ifdef CONFIG_CFG80211_CERTIFICATION_ONUS
 static ssize_t radar_debug_mode_write(struct file *file,
-				      const char __user *user_buf,
-				      size_t count, loff_t *ppos)
+									  const char __user *user_buf,
+									  size_t count, loff_t *ppos)
 {
 	struct wl1271 *wl = file->private_data;
 	struct wl12xx_vif *wlvif;
@@ -356,13 +389,16 @@ static ssize_t radar_debug_mode_write(struct file *file,
 	int ret;
 
 	ret = kstrtoul_from_user(user_buf, count, 10, &value);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		wl1271_warning("illegal radar_debug_mode value!");
 		return -EINVAL;
 	}
 
 	/* valid values: 0/1 */
-	if (!(value == 0 || value == 1)) {
+	if (!(value == 0 || value == 1))
+	{
 		wl1271_warning("value is not in valid!");
 		return -EINVAL;
 	}
@@ -372,16 +408,22 @@ static ssize_t radar_debug_mode_write(struct file *file,
 	wl->radar_debug_mode = value;
 
 	if (unlikely(wl->state != WLCORE_STATE_ON))
+	{
 		goto out;
+	}
 
 	ret = wl1271_ps_elp_wakeup(wl);
-	if (ret < 0)
-		goto out;
 
-	wl12xx_for_each_wlvif_ap(wl, wlvif) {
+	if (ret < 0)
+	{
+		goto out;
+	}
+
+	wl12xx_for_each_wlvif_ap(wl, wlvif)
+	{
 		wlcore_cmd_generic_cfg(wl, wlvif,
-				       WLCORE_CFG_FEATURE_RADAR_DEBUG,
-				       wl->radar_debug_mode, 0);
+							   WLCORE_CFG_FEATURE_RADAR_DEBUG,
+							   wl->radar_debug_mode, 0);
 	}
 
 	wl1271_ps_elp_sleep(wl);
@@ -391,16 +433,17 @@ out:
 }
 
 static ssize_t radar_debug_mode_read(struct file *file,
-				     char __user *userbuf,
-				     size_t count, loff_t *ppos)
+									 char __user *userbuf,
+									 size_t count, loff_t *ppos)
 {
 	struct wl1271 *wl = file->private_data;
 
 	return wl1271_format_buffer(userbuf, count, ppos,
-				    "%d\n", wl->radar_debug_mode);
+								"%d\n", wl->radar_debug_mode);
 }
 
-static const struct file_operations radar_debug_mode_ops = {
+static const struct file_operations radar_debug_mode_ops =
+{
 	.write = radar_debug_mode_write,
 	.read = radar_debug_mode_read,
 	.open = simple_open,
@@ -409,19 +452,23 @@ static const struct file_operations radar_debug_mode_ops = {
 #endif /* CFG80211_CERTIFICATION_ONUS */
 
 int wl18xx_debugfs_add_files(struct wl1271 *wl,
-			     struct dentry *rootdir)
+							 struct dentry *rootdir)
 {
 	int ret = 0;
 	struct dentry *entry, *stats, *moddir;
 
 	moddir = debugfs_create_dir(KBUILD_MODNAME, rootdir);
-	if (!moddir || IS_ERR(moddir)) {
+
+	if (!moddir || IS_ERR(moddir))
+	{
 		entry = moddir;
 		goto err;
 	}
 
 	stats = debugfs_create_dir("fw_stats", moddir);
-	if (!stats || IS_ERR(stats)) {
+
+	if (!stats || IS_ERR(stats))
+	{
 		entry = stats;
 		goto err;
 	}
@@ -581,10 +628,15 @@ int wl18xx_debugfs_add_files(struct wl1271 *wl,
 	return 0;
 
 err:
+
 	if (IS_ERR(entry))
+	{
 		ret = PTR_ERR(entry);
+	}
 	else
+	{
 		ret = -ENOMEM;
+	}
 
 	return ret;
 }

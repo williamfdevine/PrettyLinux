@@ -24,7 +24,8 @@
 #ifndef CIK_STRUCTS_H_
 #define CIK_STRUCTS_H_
 
-struct cik_mqd {
+struct cik_mqd
+{
 	uint32_t header;
 	uint32_t compute_dispatch_initiator;
 	uint32_t compute_dim_x;
@@ -155,7 +156,8 @@ struct cik_mqd {
 	uint32_t queue_doorbell_id15;
 };
 
-struct cik_sdma_rlc_registers {
+struct cik_sdma_rlc_registers
+{
 	uint32_t sdma_rlc_rb_cntl;
 	uint32_t sdma_rlc_rb_base;
 	uint32_t sdma_rlc_rb_base_hi;

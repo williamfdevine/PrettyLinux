@@ -63,59 +63,72 @@ void rxe_do_task(unsigned long data)
 	struct rxe_task *task = (struct rxe_task *)data;
 
 	spin_lock_irqsave(&task->state_lock, flags);
-	switch (task->state) {
-	case TASK_STATE_START:
-		task->state = TASK_STATE_BUSY;
-		spin_unlock_irqrestore(&task->state_lock, flags);
-		break;
 
-	case TASK_STATE_BUSY:
-		task->state = TASK_STATE_ARMED;
+	switch (task->state)
+	{
+		case TASK_STATE_START:
+			task->state = TASK_STATE_BUSY;
+			spin_unlock_irqrestore(&task->state_lock, flags);
+			break;
+
+		case TASK_STATE_BUSY:
+			task->state = TASK_STATE_ARMED;
+
 		/* fall through to */
-	case TASK_STATE_ARMED:
-		spin_unlock_irqrestore(&task->state_lock, flags);
-		return;
+		case TASK_STATE_ARMED:
+			spin_unlock_irqrestore(&task->state_lock, flags);
+			return;
 
-	default:
-		spin_unlock_irqrestore(&task->state_lock, flags);
-		pr_warn("bad state = %d in rxe_do_task\n", task->state);
-		return;
+		default:
+			spin_unlock_irqrestore(&task->state_lock, flags);
+			pr_warn("bad state = %d in rxe_do_task\n", task->state);
+			return;
 	}
 
-	do {
+	do
+	{
 		cont = 0;
 		ret = task->func(task->arg);
 
 		spin_lock_irqsave(&task->state_lock, flags);
-		switch (task->state) {
-		case TASK_STATE_BUSY:
-			if (ret)
-				task->state = TASK_STATE_START;
-			else
+
+		switch (task->state)
+		{
+			case TASK_STATE_BUSY:
+				if (ret)
+				{
+					task->state = TASK_STATE_START;
+				}
+				else
+				{
+					cont = 1;
+				}
+
+				break;
+
+			/* soneone tried to run the task since the last time we called
+			 * func, so we will call one more time regardless of the
+			 * return value
+			 */
+			case TASK_STATE_ARMED:
+				task->state = TASK_STATE_BUSY;
 				cont = 1;
-			break;
+				break;
 
-		/* soneone tried to run the task since the last time we called
-		 * func, so we will call one more time regardless of the
-		 * return value
-		 */
-		case TASK_STATE_ARMED:
-			task->state = TASK_STATE_BUSY;
-			cont = 1;
-			break;
-
-		default:
-			pr_warn("bad state = %d in rxe_do_task\n",
-				task->state);
+			default:
+				pr_warn("bad state = %d in rxe_do_task\n",
+						task->state);
 		}
+
 		spin_unlock_irqrestore(&task->state_lock, flags);
-	} while (cont);
+	}
+	while (cont);
 
 	task->ret = ret;
 }
 
 int rxe_init_task(void *obj, struct rxe_task *task,
-		  void *arg, int (*func)(void *), char *name)
+				  void *arg, int (*func)(void *), char *name)
 {
 	task->obj	= obj;
 	task->arg	= arg;
@@ -138,9 +151,13 @@ void rxe_cleanup_task(struct rxe_task *task)
 void rxe_run_task(struct rxe_task *task, int sched)
 {
 	if (sched)
+	{
 		tasklet_schedule(&task->tasklet);
+	}
 	else
+	{
 		rxe_do_task((unsigned long)task);
+	}
 }
 
 void rxe_disable_task(struct rxe_task *task)

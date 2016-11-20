@@ -73,11 +73,13 @@ static u32 zorro8390_msg_enable;
 
 #define WORDSWAP(a)	((((a) >> 8) & 0xff) | ((a) << 8))
 
-static struct card_info {
+static struct card_info
+{
 	zorro_id id;
 	const char *name;
 	unsigned int offset;
-} cards[] = {
+} cards[] =
+{
 	{ ZORRO_PROD_VILLAGE_TRONIC_ARIADNE2, "Ariadne II", 0x0600 },
 	{ ZORRO_PROD_INDIVIDUAL_COMPUTERS_X_SURF, "X-Surf", 0x8600 },
 };
@@ -99,10 +101,12 @@ static void zorro8390_reset_8390(struct net_device *dev)
 
 	/* This check _should_not_ be necessary, omit eventually. */
 	while ((z_readb(NE_BASE + NE_EN0_ISR) & ENISR_RESET) == 0)
-		if (time_after(jiffies, reset_start_time + 2 * HZ / 100)) {
+		if (time_after(jiffies, reset_start_time + 2 * HZ / 100))
+		{
 			netdev_warn(dev, "%s: did not complete\n", __func__);
 			break;
 		}
+
 	z_writeb(ENISR_RESET, NE_BASE + NE_EN0_ISR);	/* Ack intr */
 }
 
@@ -111,7 +115,7 @@ static void zorro8390_reset_8390(struct net_device *dev)
  * the start of a page, so we optimize accordingly.
  */
 static void zorro8390_get_8390_hdr(struct net_device *dev,
-				   struct e8390_pkt_hdr *hdr, int ring_page)
+								   struct e8390_pkt_hdr *hdr, int ring_page)
 {
 	int nic_base = dev->base_addr;
 	int cnt;
@@ -120,10 +124,11 @@ static void zorro8390_get_8390_hdr(struct net_device *dev,
 	/* This *shouldn't* happen.
 	 * If it does, it's the last thing you'll see
 	 */
-	if (ei_status.dmaing) {
+	if (ei_status.dmaing)
+	{
 		netdev_warn(dev,
-			    "%s: DMAing conflict [DMAstat:%d][irqlock:%d]\n",
-			    __func__, ei_status.dmaing, ei_status.irqlock);
+					"%s: DMAing conflict [DMAstat:%d][irqlock:%d]\n",
+					__func__, ei_status.dmaing, ei_status.irqlock);
 		return;
 	}
 
@@ -134,11 +139,14 @@ static void zorro8390_get_8390_hdr(struct net_device *dev,
 	z_writeb(0, nic_base + NE_EN0_RCNTHI);
 	z_writeb(0, nic_base + NE_EN0_RSARLO);		/* On page boundary */
 	z_writeb(ring_page, nic_base + NE_EN0_RSARHI);
-	z_writeb(E8390_RREAD+E8390_START, nic_base + NE_CMD);
+	z_writeb(E8390_RREAD + E8390_START, nic_base + NE_CMD);
 
 	ptrs = (short *)hdr;
+
 	for (cnt = 0; cnt < sizeof(struct e8390_pkt_hdr) >> 1; cnt++)
+	{
 		*ptrs++ = z_readw(NE_BASE + NE_DATAPORT);
+	}
 
 	z_writeb(ENISR_RDC, nic_base + NE_EN0_ISR);	/* Ack intr */
 
@@ -154,7 +162,7 @@ static void zorro8390_get_8390_hdr(struct net_device *dev,
  * using z_writeb.
  */
 static void zorro8390_block_input(struct net_device *dev, int count,
-				  struct sk_buff *skb, int ring_offset)
+								  struct sk_buff *skb, int ring_offset)
 {
 	int nic_base = dev->base_addr;
 	char *buf = skb->data;
@@ -164,11 +172,13 @@ static void zorro8390_block_input(struct net_device *dev, int count,
 	/* This *shouldn't* happen.
 	 * If it does, it's the last thing you'll see
 	 */
-	if (ei_status.dmaing) {
+	if (ei_status.dmaing)
+	{
 		netdev_err(dev, "%s: DMAing conflict [DMAstat:%d][irqlock:%d]\n",
-			   __func__, ei_status.dmaing, ei_status.irqlock);
+				   __func__, ei_status.dmaing, ei_status.irqlock);
 		return;
 	}
+
 	ei_status.dmaing |= 0x01;
 	z_writeb(E8390_NODMA + E8390_PAGE0 + E8390_START, nic_base + NE_CMD);
 	z_writeb(ENISR_RDC, nic_base + NE_EN0_ISR);
@@ -176,20 +186,26 @@ static void zorro8390_block_input(struct net_device *dev, int count,
 	z_writeb(count >> 8, nic_base + NE_EN0_RCNTHI);
 	z_writeb(ring_offset & 0xff, nic_base + NE_EN0_RSARLO);
 	z_writeb(ring_offset >> 8, nic_base + NE_EN0_RSARHI);
-	z_writeb(E8390_RREAD+E8390_START, nic_base + NE_CMD);
+	z_writeb(E8390_RREAD + E8390_START, nic_base + NE_CMD);
 	ptrs = (short *)buf;
+
 	for (cnt = 0; cnt < count >> 1; cnt++)
+	{
 		*ptrs++ = z_readw(NE_BASE + NE_DATAPORT);
+	}
+
 	if (count & 0x01)
+	{
 		buf[count - 1] = z_readb(NE_BASE + NE_DATAPORT);
+	}
 
 	z_writeb(ENISR_RDC, nic_base + NE_EN0_ISR);	/* Ack intr */
 	ei_status.dmaing &= ~0x01;
 }
 
 static void zorro8390_block_output(struct net_device *dev, int count,
-				   const unsigned char *buf,
-				   const int start_page)
+								   const unsigned char *buf,
+								   const int start_page)
 {
 	int nic_base = NE_BASE;
 	unsigned long dma_start;
@@ -201,19 +217,23 @@ static void zorro8390_block_output(struct net_device *dev, int count,
 	 * I should check someday.
 	 */
 	if (count & 0x01)
+	{
 		count++;
+	}
 
 	/* This *shouldn't* happen.
 	 * If it does, it's the last thing you'll see
 	 */
-	if (ei_status.dmaing) {
+	if (ei_status.dmaing)
+	{
 		netdev_err(dev, "%s: DMAing conflict [DMAstat:%d][irqlock:%d]\n",
-			   __func__, ei_status.dmaing, ei_status.irqlock);
+				   __func__, ei_status.dmaing, ei_status.irqlock);
 		return;
 	}
+
 	ei_status.dmaing |= 0x01;
 	/* We should already be in page 0, but to be safe... */
-	z_writeb(E8390_PAGE0+E8390_START+E8390_NODMA, nic_base + NE_CMD);
+	z_writeb(E8390_PAGE0 + E8390_START + E8390_NODMA, nic_base + NE_CMD);
 
 	z_writeb(ENISR_RDC, nic_base + NE_EN0_ISR);
 
@@ -225,14 +245,18 @@ static void zorro8390_block_output(struct net_device *dev, int count,
 
 	z_writeb(E8390_RWRITE + E8390_START, nic_base + NE_CMD);
 	ptrs = (short *)buf;
+
 	for (cnt = 0; cnt < count >> 1; cnt++)
+	{
 		z_writew(*ptrs++, NE_BASE + NE_DATAPORT);
+	}
 
 	dma_start = jiffies;
 
 	while ((z_readb(NE_BASE + NE_EN0_ISR) & ENISR_RDC) == 0)
-		if (time_after(jiffies, dma_start + 2 * HZ / 100)) {
-					/* 20ms */
+		if (time_after(jiffies, dma_start + 2 * HZ / 100))
+		{
+			/* 20ms */
 			netdev_warn(dev, "timeout waiting for Tx RDC\n");
 			zorro8390_reset_8390(dev);
 			__NS8390_init(dev, 1);
@@ -268,14 +292,16 @@ static void zorro8390_remove_one(struct zorro_dev *z)
 	free_netdev(dev);
 }
 
-static struct zorro_device_id zorro8390_zorro_tbl[] = {
+static struct zorro_device_id zorro8390_zorro_tbl[] =
+{
 	{ ZORRO_PROD_VILLAGE_TRONIC_ARIADNE2, },
 	{ ZORRO_PROD_INDIVIDUAL_COMPUTERS_X_SURF, },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(zorro, zorro8390_zorro_tbl);
 
-static const struct net_device_ops zorro8390_netdev_ops = {
+static const struct net_device_ops zorro8390_netdev_ops =
+{
 	.ndo_open		= zorro8390_open,
 	.ndo_stop		= zorro8390_close,
 	.ndo_start_xmit		= __ei_start_xmit,
@@ -291,14 +317,15 @@ static const struct net_device_ops zorro8390_netdev_ops = {
 };
 
 static int zorro8390_init(struct net_device *dev, unsigned long board,
-			  const char *name, void __iomem *ioaddr)
+						  const char *name, void __iomem *ioaddr)
 {
 	int i;
 	int err;
 	unsigned char SA_prom[32];
 	int start_page, stop_page;
 	struct ei_device *ei_local = netdev_priv(dev);
-	static u32 zorro8390_offsets[16] = {
+	static u32 zorro8390_offsets[16] =
+	{
 		0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e,
 		0x10, 0x12, 0x14, 0x16, 0x18, 0x1a, 0x1c, 0x1e,
 	};
@@ -311,7 +338,8 @@ static int zorro8390_init(struct net_device *dev, unsigned long board,
 
 		while ((z_readb(ioaddr + NE_EN0_ISR) & ENISR_RESET) == 0)
 			if (time_after(jiffies,
-				       reset_start_time + 2 * HZ / 100)) {
+						   reset_start_time + 2 * HZ / 100))
+			{
 				netdev_warn(dev, "not found (no reset ack)\n");
 				return -ENODEV;
 			}
@@ -326,12 +354,14 @@ static int zorro8390_init(struct net_device *dev, unsigned long board,
 	 * (I learned the hard way!).
 	 */
 	{
-		static const struct {
+		static const struct
+		{
 			u32 value;
 			u32 offset;
-		} program_seq[] = {
+		} program_seq[] =
+		{
 			{E8390_NODMA + E8390_PAGE0 + E8390_STOP, NE_CMD},
-						/* Select page 0 */
+			/* Select page 0 */
 			{0x48,	NE_EN0_DCFG},	/* 0x48: Set byte-wide access */
 			{0x00,	NE_EN0_RCNTLO},	/* Clear the count regs */
 			{0x00,	NE_EN0_RCNTHI},
@@ -345,11 +375,14 @@ static int zorro8390_init(struct net_device *dev, unsigned long board,
 			{0x00,	NE_EN0_RSARHI},
 			{E8390_RREAD + E8390_START, NE_CMD},
 		};
+
 		for (i = 0; i < ARRAY_SIZE(program_seq); i++)
 			z_writeb(program_seq[i].value,
-				 ioaddr + program_seq[i].offset);
+					 ioaddr + program_seq[i].offset);
 	}
-	for (i = 0; i < 16; i++) {
+
+	for (i = 0; i < 16; i++)
+	{
 		SA_prom[i] = z_readb(ioaddr + NE_DATAPORT);
 		(void)z_readb(ioaddr + NE_DATAPORT);
 	}
@@ -364,12 +397,17 @@ static int zorro8390_init(struct net_device *dev, unsigned long board,
 
 	/* Install the Interrupt handler */
 	i = request_irq(IRQ_AMIGA_PORTS, __ei_interrupt,
-			IRQF_SHARED, DRV_NAME, dev);
+					IRQF_SHARED, DRV_NAME, dev);
+
 	if (i)
+	{
 		return i;
+	}
 
 	for (i = 0; i < ETH_ALEN; i++)
+	{
 		dev->dev_addr[i] = SA_prom[i];
+	}
 
 	pr_debug("Found ethernet address: %pM\n", dev->dev_addr);
 
@@ -392,19 +430,21 @@ static int zorro8390_init(struct net_device *dev, unsigned long board,
 	ei_local->msg_enable = zorro8390_msg_enable;
 
 	err = register_netdev(dev);
-	if (err) {
+
+	if (err)
+	{
 		free_irq(IRQ_AMIGA_PORTS, dev);
 		return err;
 	}
 
 	netdev_info(dev, "%s at 0x%08lx, Ethernet Address %pM\n",
-		    name, board, dev->dev_addr);
+				name, board, dev->dev_addr);
 
 	return 0;
 }
 
 static int zorro8390_init_one(struct zorro_dev *z,
-			      const struct zorro_device_id *ent)
+							  const struct zorro_device_id *ent)
 {
 	struct net_device *dev;
 	unsigned long board, ioaddr;
@@ -412,30 +452,45 @@ static int zorro8390_init_one(struct zorro_dev *z,
 
 	for (i = ARRAY_SIZE(cards) - 1; i >= 0; i--)
 		if (z->id == cards[i].id)
+		{
 			break;
+		}
+
 	if (i < 0)
+	{
 		return -ENODEV;
+	}
 
 	board = z->resource.start;
 	ioaddr = board + cards[i].offset;
 	dev = ____alloc_ei_netdev(0);
+
 	if (!dev)
+	{
 		return -ENOMEM;
-	if (!request_mem_region(ioaddr, NE_IO_EXTENT * 2, DRV_NAME)) {
+	}
+
+	if (!request_mem_region(ioaddr, NE_IO_EXTENT * 2, DRV_NAME))
+	{
 		free_netdev(dev);
 		return -EBUSY;
 	}
+
 	err = zorro8390_init(dev, board, cards[i].name, ZTWO_VADDR(ioaddr));
-	if (err) {
+
+	if (err)
+	{
 		release_mem_region(ioaddr, NE_IO_EXTENT * 2);
 		free_netdev(dev);
 		return err;
 	}
+
 	zorro_set_drvdata(z, dev);
 	return 0;
 }
 
-static struct zorro_driver zorro8390_driver = {
+static struct zorro_driver zorro8390_driver =
+{
 	.name		= "zorro8390",
 	.id_table	= zorro8390_zorro_tbl,
 	.probe		= zorro8390_init_one,

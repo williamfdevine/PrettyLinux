@@ -16,7 +16,8 @@
 #include <linux/spinlock.h>
 #include <linux/stringify.h>
 
-enum {
+enum
+{
 	PINMUX_TYPE_NONE,
 	PINMUX_TYPE_FUNCTION,
 	PINMUX_TYPE_GPIO,
@@ -32,7 +33,8 @@ enum {
 #define SH_PFC_PIN_CFG_DRIVE_STRENGTH	(1 << 5)
 #define SH_PFC_PIN_CFG_NO_GPIO		(1 << 31)
 
-struct sh_pfc_pin {
+struct sh_pfc_pin
+{
 	u16 pin;
 	u16 enum_id;
 	const char *name;
@@ -42,12 +44,13 @@ struct sh_pfc_pin {
 #define SH_PFC_PIN_GROUP(n)				\
 	{						\
 		.name = #n,				\
-		.pins = n##_pins,			\
-		.mux = n##_mux,				\
-		.nr_pins = ARRAY_SIZE(n##_pins),	\
+				.pins = n##_pins,			\
+						.mux = n##_mux,				\
+							   .nr_pins = ARRAY_SIZE(n##_pins),	\
 	}
 
-struct sh_pfc_pin_group {
+struct sh_pfc_pin_group
+{
 	const char *name;
 	const unsigned int *pins;
 	const unsigned int *mux;
@@ -62,12 +65,13 @@ struct sh_pfc_pin_group {
 #define VIN_DATA_PIN_GROUP(n, s)				\
 	{							\
 		.name = #n#s,					\
-		.pins = n##_pins.data##s,			\
-		.mux = n##_mux.data##s,				\
-		.nr_pins = ARRAY_SIZE(n##_pins.data##s),	\
+				.pins = n##_pins.data##s,			\
+						.mux = n##_mux.data##s,				\
+							   .nr_pins = ARRAY_SIZE(n##_pins.data##s),	\
 	}
 
-union vin_data {
+union vin_data
+{
 	unsigned int data24[24];
 	unsigned int data20[20];
 	unsigned int data16[16];
@@ -80,22 +84,25 @@ union vin_data {
 #define SH_PFC_FUNCTION(n)				\
 	{						\
 		.name = #n,				\
-		.groups = n##_groups,			\
-		.nr_groups = ARRAY_SIZE(n##_groups),	\
+				.groups = n##_groups,			\
+						  .nr_groups = ARRAY_SIZE(n##_groups),	\
 	}
 
-struct sh_pfc_function {
+struct sh_pfc_function
+{
 	const char *name;
-	const char * const *groups;
+	const char *const *groups;
 	unsigned int nr_groups;
 };
 
-struct pinmux_func {
+struct pinmux_func
+{
 	u16 enum_id;
 	const char *name;
 };
 
-struct pinmux_cfg_reg {
+struct pinmux_cfg_reg
+{
 	u32 reg;
 	u8 reg_width, field_width;
 	const u16 *enum_ids;
@@ -114,7 +121,7 @@ struct pinmux_cfg_reg {
  */
 #define PINMUX_CFG_REG(name, r, r_width, f_width) \
 	.reg = r, .reg_width = r_width, .field_width = f_width,		\
-	.enum_ids = (const u16 [(r_width / f_width) * (1 << f_width)])
+						   .enum_ids = (const u16 [(r_width / f_width) * (1 << f_width)])
 
 /*
  * Describe a config register consisting of several fields of different widths
@@ -129,26 +136,29 @@ struct pinmux_cfg_reg {
  */
 #define PINMUX_CFG_REG_VAR(name, r, r_width, var_fw0, var_fwn...) \
 	.reg = r, .reg_width = r_width,	\
-	.var_field_width = (const u8 [r_width]) \
-		{ var_fw0, var_fwn, 0 }, \
+						   .var_field_width = (const u8 [r_width]) \
+	{ var_fw0, var_fwn, 0 }, \
 	.enum_ids = (const u16 [])
 
-struct pinmux_drive_reg_field {
+struct pinmux_drive_reg_field
+{
 	u16 pin;
 	u8 offset;
 	u8 size;
 };
 
-struct pinmux_drive_reg {
+struct pinmux_drive_reg
+{
 	u32 reg;
 	const struct pinmux_drive_reg_field fields[8];
 };
 
 #define PINMUX_DRIVE_REG(name, r) \
 	.reg = r, \
-	.fields =
+		   .fields =
 
-struct pinmux_data_reg {
+struct pinmux_data_reg
+{
 	u32 reg;
 	u8 reg_width;
 	const u16 *enum_ids;
@@ -164,197 +174,203 @@ struct pinmux_data_reg {
  */
 #define PINMUX_DATA_REG(name, r, r_width) \
 	.reg = r, .reg_width = r_width,	\
-	.enum_ids = (const u16 [r_width]) \
+						   .enum_ids = (const u16 [r_width]) \
 
-struct pinmux_irq {
-	const short *gpios;
-};
+									   struct pinmux_irq
+	{
+		const short *gpios;
+	};
 
-/*
- * Describe the mapping from GPIOs to a single IRQ
- *   - ids...: List of GPIOs that are mapped to the same IRQ
- */
+	/*
+	 * Describe the mapping from GPIOs to a single IRQ
+	 *   - ids...: List of GPIOs that are mapped to the same IRQ
+	 */
 #define PINMUX_IRQ(ids...)			   \
 	{ .gpios = (const short []) { ids, -1 } }
 
-struct pinmux_range {
-	u16 begin;
-	u16 end;
-	u16 force;
-};
+	struct pinmux_range
+	{
+		u16 begin;
+		u16 end;
+		u16 force;
+	};
 
-struct sh_pfc_window {
-	phys_addr_t phys;
-	void __iomem *virt;
-	unsigned long size;
-};
+	struct sh_pfc_window
+	{
+		phys_addr_t phys;
+		void __iomem *virt;
+		unsigned long size;
+	};
 
-struct sh_pfc_pin_range;
+	struct sh_pfc_pin_range;
 
-struct sh_pfc {
-	struct device *dev;
-	const struct sh_pfc_soc_info *info;
-	spinlock_t lock;
+	struct sh_pfc
+	{
+		struct device *dev;
+		const struct sh_pfc_soc_info *info;
+		spinlock_t lock;
 
-	unsigned int num_windows;
-	struct sh_pfc_window *windows;
-	unsigned int num_irqs;
-	unsigned int *irqs;
+		unsigned int num_windows;
+		struct sh_pfc_window *windows;
+		unsigned int num_irqs;
+		unsigned int *irqs;
 
-	struct sh_pfc_pin_range *ranges;
-	unsigned int nr_ranges;
+		struct sh_pfc_pin_range *ranges;
+		unsigned int nr_ranges;
 
-	unsigned int nr_gpio_pins;
+		unsigned int nr_gpio_pins;
 
-	struct sh_pfc_chip *gpio;
-};
+		struct sh_pfc_chip *gpio;
+	};
 
-struct sh_pfc_soc_operations {
-	int (*init)(struct sh_pfc *pfc);
-	unsigned int (*get_bias)(struct sh_pfc *pfc, unsigned int pin);
-	void (*set_bias)(struct sh_pfc *pfc, unsigned int pin,
-			 unsigned int bias);
-	int (*pin_to_pocctrl)(struct sh_pfc *pfc, unsigned int pin, u32 *pocctrl);
-};
+	struct sh_pfc_soc_operations
+	{
+		int (*init)(struct sh_pfc *pfc);
+		unsigned int (*get_bias)(struct sh_pfc *pfc, unsigned int pin);
+		void (*set_bias)(struct sh_pfc *pfc, unsigned int pin,
+						 unsigned int bias);
+		int (*pin_to_pocctrl)(struct sh_pfc *pfc, unsigned int pin, u32 *pocctrl);
+	};
 
-struct sh_pfc_soc_info {
-	const char *name;
-	const struct sh_pfc_soc_operations *ops;
+	struct sh_pfc_soc_info
+	{
+		const char *name;
+		const struct sh_pfc_soc_operations *ops;
 
-	struct pinmux_range input;
-	struct pinmux_range output;
-	struct pinmux_range function;
+		struct pinmux_range input;
+		struct pinmux_range output;
+		struct pinmux_range function;
 
-	const struct sh_pfc_pin *pins;
-	unsigned int nr_pins;
-	const struct sh_pfc_pin_group *groups;
-	unsigned int nr_groups;
-	const struct sh_pfc_function *functions;
-	unsigned int nr_functions;
+		const struct sh_pfc_pin *pins;
+		unsigned int nr_pins;
+		const struct sh_pfc_pin_group *groups;
+		unsigned int nr_groups;
+		const struct sh_pfc_function *functions;
+		unsigned int nr_functions;
 
 #ifdef CONFIG_SUPERH
-	const struct pinmux_func *func_gpios;
-	unsigned int nr_func_gpios;
+		const struct pinmux_func *func_gpios;
+		unsigned int nr_func_gpios;
 #endif
 
-	const struct pinmux_cfg_reg *cfg_regs;
-	const struct pinmux_drive_reg *drive_regs;
-	const struct pinmux_data_reg *data_regs;
+		const struct pinmux_cfg_reg *cfg_regs;
+		const struct pinmux_drive_reg *drive_regs;
+		const struct pinmux_data_reg *data_regs;
 
-	const u16 *pinmux_data;
-	unsigned int pinmux_data_size;
+		const u16 *pinmux_data;
+		unsigned int pinmux_data_size;
 
-	const struct pinmux_irq *gpio_irq;
-	unsigned int gpio_irq_size;
+		const struct pinmux_irq *gpio_irq;
+		unsigned int gpio_irq_size;
 
-	u32 unlock_reg;
-};
+		u32 unlock_reg;
+	};
 
-extern const struct sh_pfc_soc_info emev2_pinmux_info;
-extern const struct sh_pfc_soc_info r8a73a4_pinmux_info;
-extern const struct sh_pfc_soc_info r8a7740_pinmux_info;
-extern const struct sh_pfc_soc_info r8a7778_pinmux_info;
-extern const struct sh_pfc_soc_info r8a7779_pinmux_info;
-extern const struct sh_pfc_soc_info r8a7790_pinmux_info;
-extern const struct sh_pfc_soc_info r8a7791_pinmux_info;
-extern const struct sh_pfc_soc_info r8a7792_pinmux_info;
-extern const struct sh_pfc_soc_info r8a7793_pinmux_info;
-extern const struct sh_pfc_soc_info r8a7794_pinmux_info;
-extern const struct sh_pfc_soc_info r8a7795_pinmux_info;
-extern const struct sh_pfc_soc_info r8a7796_pinmux_info;
-extern const struct sh_pfc_soc_info sh7203_pinmux_info;
-extern const struct sh_pfc_soc_info sh7264_pinmux_info;
-extern const struct sh_pfc_soc_info sh7269_pinmux_info;
-extern const struct sh_pfc_soc_info sh73a0_pinmux_info;
-extern const struct sh_pfc_soc_info sh7720_pinmux_info;
-extern const struct sh_pfc_soc_info sh7722_pinmux_info;
-extern const struct sh_pfc_soc_info sh7723_pinmux_info;
-extern const struct sh_pfc_soc_info sh7724_pinmux_info;
-extern const struct sh_pfc_soc_info sh7734_pinmux_info;
-extern const struct sh_pfc_soc_info sh7757_pinmux_info;
-extern const struct sh_pfc_soc_info sh7785_pinmux_info;
-extern const struct sh_pfc_soc_info sh7786_pinmux_info;
-extern const struct sh_pfc_soc_info shx3_pinmux_info;
+	extern const struct sh_pfc_soc_info emev2_pinmux_info;
+	extern const struct sh_pfc_soc_info r8a73a4_pinmux_info;
+	extern const struct sh_pfc_soc_info r8a7740_pinmux_info;
+	extern const struct sh_pfc_soc_info r8a7778_pinmux_info;
+	extern const struct sh_pfc_soc_info r8a7779_pinmux_info;
+	extern const struct sh_pfc_soc_info r8a7790_pinmux_info;
+	extern const struct sh_pfc_soc_info r8a7791_pinmux_info;
+	extern const struct sh_pfc_soc_info r8a7792_pinmux_info;
+	extern const struct sh_pfc_soc_info r8a7793_pinmux_info;
+	extern const struct sh_pfc_soc_info r8a7794_pinmux_info;
+	extern const struct sh_pfc_soc_info r8a7795_pinmux_info;
+	extern const struct sh_pfc_soc_info r8a7796_pinmux_info;
+	extern const struct sh_pfc_soc_info sh7203_pinmux_info;
+	extern const struct sh_pfc_soc_info sh7264_pinmux_info;
+	extern const struct sh_pfc_soc_info sh7269_pinmux_info;
+	extern const struct sh_pfc_soc_info sh73a0_pinmux_info;
+	extern const struct sh_pfc_soc_info sh7720_pinmux_info;
+	extern const struct sh_pfc_soc_info sh7722_pinmux_info;
+	extern const struct sh_pfc_soc_info sh7723_pinmux_info;
+	extern const struct sh_pfc_soc_info sh7724_pinmux_info;
+	extern const struct sh_pfc_soc_info sh7734_pinmux_info;
+	extern const struct sh_pfc_soc_info sh7757_pinmux_info;
+	extern const struct sh_pfc_soc_info sh7785_pinmux_info;
+	extern const struct sh_pfc_soc_info sh7786_pinmux_info;
+	extern const struct sh_pfc_soc_info shx3_pinmux_info;
 
-/* -----------------------------------------------------------------------------
- * Helper macros to create pin and port lists
- */
+	/* -----------------------------------------------------------------------------
+	 * Helper macros to create pin and port lists
+	 */
 
-/*
- * sh_pfc_soc_info pinmux_data array macros
- */
+	/*
+	 * sh_pfc_soc_info pinmux_data array macros
+	 */
 
-/*
- * Describe generic pinmux data
- *   - data_or_mark: *_DATA or *_MARK enum ID
- *   - ids...: List of enum IDs to associate with data_or_mark
- */
+	/*
+	 * Describe generic pinmux data
+	 *   - data_or_mark: *_DATA or *_MARK enum ID
+	 *   - ids...: List of enum IDs to associate with data_or_mark
+	 */
 #define PINMUX_DATA(data_or_mark, ids...)	data_or_mark, ids, 0
 
-/*
- * Describe a pinmux configuration without GPIO function that needs
- * configuration in a Peripheral Function Select Register (IPSR)
- *   - ipsr: IPSR field (unused, for documentation purposes only)
- *   - fn: Function name, referring to a field in the IPSR
- */
+	/*
+	 * Describe a pinmux configuration without GPIO function that needs
+	 * configuration in a Peripheral Function Select Register (IPSR)
+	 *   - ipsr: IPSR field (unused, for documentation purposes only)
+	 *   - fn: Function name, referring to a field in the IPSR
+	 */
 #define PINMUX_IPSR_NOGP(ipsr, fn)					\
 	PINMUX_DATA(fn##_MARK, FN_##fn)
 
-/*
- * Describe a pinmux configuration with GPIO function that needs configuration
- * in both a Peripheral Function Select Register (IPSR) and in a
- * GPIO/Peripheral Function Select Register (GPSR)
- *   - ipsr: IPSR field
- *   - fn: Function name, also referring to the IPSR field
- */
+	/*
+	 * Describe a pinmux configuration with GPIO function that needs configuration
+	 * in both a Peripheral Function Select Register (IPSR) and in a
+	 * GPIO/Peripheral Function Select Register (GPSR)
+	 *   - ipsr: IPSR field
+	 *   - fn: Function name, also referring to the IPSR field
+	 */
 #define PINMUX_IPSR_GPSR(ipsr, fn)					\
 	PINMUX_DATA(fn##_MARK, FN_##fn, FN_##ipsr)
 
-/*
- * Describe a pinmux configuration without GPIO function that needs
- * configuration in a Peripheral Function Select Register (IPSR), and where the
- * pinmux function has a representation in a Module Select Register (MOD_SEL).
- *   - ipsr: IPSR field (unused, for documentation purposes only)
- *   - fn: Function name, also referring to the IPSR field
- *   - msel: Module selector
- */
+	/*
+	 * Describe a pinmux configuration without GPIO function that needs
+	 * configuration in a Peripheral Function Select Register (IPSR), and where the
+	 * pinmux function has a representation in a Module Select Register (MOD_SEL).
+	 *   - ipsr: IPSR field (unused, for documentation purposes only)
+	 *   - fn: Function name, also referring to the IPSR field
+	 *   - msel: Module selector
+	 */
 #define PINMUX_IPSR_NOGM(ipsr, fn, msel)				\
 	PINMUX_DATA(fn##_MARK, FN_##fn, FN_##msel)
 
-/*
- * Describe a pinmux configuration with GPIO function where the pinmux function
- * has no representation in a Peripheral Function Select Register (IPSR), but
- * instead solely depends on a group selection.
- *   - gpsr: GPSR field
- *   - fn: Function name, also referring to the GPSR field
- *   - gsel: Group selector
- */
+	/*
+	 * Describe a pinmux configuration with GPIO function where the pinmux function
+	 * has no representation in a Peripheral Function Select Register (IPSR), but
+	 * instead solely depends on a group selection.
+	 *   - gpsr: GPSR field
+	 *   - fn: Function name, also referring to the GPSR field
+	 *   - gsel: Group selector
+	 */
 #define PINMUX_IPSR_NOFN(gpsr, fn, gsel)				\
 	PINMUX_DATA(fn##_MARK, FN_##gpsr, FN_##gsel)
 
-/*
- * Describe a pinmux configuration with GPIO function that needs configuration
- * in both a Peripheral Function Select Register (IPSR) and a GPIO/Peripheral
- * Function Select Register (GPSR), and where the pinmux function has a
- * representation in a Module Select Register (MOD_SEL).
- *   - ipsr: IPSR field
- *   - fn: Function name, also referring to the IPSR field
- *   - msel: Module selector
- */
+	/*
+	 * Describe a pinmux configuration with GPIO function that needs configuration
+	 * in both a Peripheral Function Select Register (IPSR) and a GPIO/Peripheral
+	 * Function Select Register (GPSR), and where the pinmux function has a
+	 * representation in a Module Select Register (MOD_SEL).
+	 *   - ipsr: IPSR field
+	 *   - fn: Function name, also referring to the IPSR field
+	 *   - msel: Module selector
+	 */
 #define PINMUX_IPSR_MSEL(ipsr, fn, msel)				\
 	PINMUX_DATA(fn##_MARK, FN_##msel, FN_##fn, FN_##ipsr)
 
-/*
- * Describe a pinmux configuration for a single-function pin with GPIO
- * capability.
- *   - fn: Function name
- */
+	/*
+	 * Describe a pinmux configuration for a single-function pin with GPIO
+	 * capability.
+	 *   - fn: Function name
+	 */
 #define PINMUX_SINGLE(fn)						\
 	PINMUX_DATA(fn##_MARK, FN_##fn)
 
-/*
- * GP port style (32 ports banks)
- */
+	/*
+	 * GP port style (32 ports banks)
+	 */
 
 #define PORT_GP_CFG_1(bank, pin, fn, sfx, cfg)				\
 	fn(bank, pin, GP_##bank##_##pin, sfx, cfg)
@@ -473,27 +489,27 @@ extern const struct sh_pfc_soc_info shx3_pinmux_info;
 	PORT_GP_1(bank, 3,  fn, sfx), PORT_GP_1(bank, 2,  fn, sfx),	\
 	PORT_GP_1(bank, 1,  fn, sfx), PORT_GP_1(bank, 0,  fn, sfx)
 
-/* GP_ALL(suffix) - Expand to a list of GP_#_#_suffix */
+	/* GP_ALL(suffix) - Expand to a list of GP_#_#_suffix */
 #define _GP_ALL(bank, pin, name, sfx, cfg)	name##_##sfx
 #define GP_ALL(str)			CPU_ALL_PORT(_GP_ALL, str)
 
-/* PINMUX_GPIO_GP_ALL - Expand to a list of sh_pfc_pin entries */
+	/* PINMUX_GPIO_GP_ALL - Expand to a list of sh_pfc_pin entries */
 #define _GP_GPIO(bank, _pin, _name, sfx, cfg)				\
 	{								\
 		.pin = (bank * 32) + _pin,				\
-		.name = __stringify(_name),				\
-		.enum_id = _name##_DATA,				\
-		.configs = cfg,						\
+			   .name = __stringify(_name),				\
+					   .enum_id = _name##_DATA,				\
+								  .configs = cfg,						\
 	}
 #define PINMUX_GPIO_GP_ALL()		CPU_ALL_PORT(_GP_GPIO, unused)
 
-/* PINMUX_DATA_GP_ALL -  Expand to a list of name_DATA, name_FN marks */
+	/* PINMUX_DATA_GP_ALL -  Expand to a list of name_DATA, name_FN marks */
 #define _GP_DATA(bank, pin, name, sfx, cfg)	PINMUX_DATA(name##_DATA, name##_FN)
 #define PINMUX_DATA_GP_ALL()		CPU_ALL_PORT(_GP_DATA, unused)
 
-/*
- * PORT style (linear pin space)
- */
+	/*
+	 * PORT style (linear pin space)
+	 */
 
 #define PORT_1(pn, fn, pfx, sfx) fn(pn, pfx, sfx)
 
@@ -511,55 +527,55 @@ extern const struct sh_pfc_soc_info shx3_pinmux_info;
 	PORT_10(pn+70, fn, pfx##7, sfx), PORT_10(pn+80, fn, pfx##8, sfx), \
 	PORT_10(pn+90, fn, pfx##9, sfx)
 
-/* PORT_ALL(suffix) - Expand to a list of PORT_#_suffix */
+	/* PORT_ALL(suffix) - Expand to a list of PORT_#_suffix */
 #define _PORT_ALL(pn, pfx, sfx)		pfx##_##sfx
 #define PORT_ALL(str)			CPU_ALL_PORT(_PORT_ALL, PORT, str)
 
-/* PINMUX_GPIO - Expand to a sh_pfc_pin entry */
+	/* PINMUX_GPIO - Expand to a sh_pfc_pin entry */
 #define PINMUX_GPIO(_pin)						\
 	[GPIO_##_pin] = {						\
-		.pin = (u16)-1,						\
-		.name = __stringify(GPIO_##_pin),			\
-		.enum_id = _pin##_DATA,					\
-	}
+											.pin = (u16)-1,						\
+											.name = __stringify(GPIO_##_pin),			\
+											.enum_id = _pin##_DATA,					\
+					}
 
-/* SH_PFC_PIN_CFG - Expand to a sh_pfc_pin entry (named PORT#) with config */
+	/* SH_PFC_PIN_CFG - Expand to a sh_pfc_pin entry (named PORT#) with config */
 #define SH_PFC_PIN_CFG(_pin, cfgs)					\
 	{								\
 		.pin = _pin,						\
-		.name = __stringify(PORT##_pin),			\
-		.enum_id = PORT##_pin##_DATA,				\
-		.configs = cfgs,					\
+			   .name = __stringify(PORT##_pin),			\
+					   .enum_id = PORT##_pin##_DATA,				\
+								  .configs = cfgs,					\
 	}
 
-/* SH_PFC_PIN_NAMED - Expand to a sh_pfc_pin entry with the given name */
+	/* SH_PFC_PIN_NAMED - Expand to a sh_pfc_pin entry with the given name */
 #define SH_PFC_PIN_NAMED(row, col, _name)				\
 	{								\
 		.pin = PIN_NUMBER(row, col),				\
-		.name = __stringify(PIN_##_name),			\
-		.configs = SH_PFC_PIN_CFG_NO_GPIO,			\
+			   .name = __stringify(PIN_##_name),			\
+					   .configs = SH_PFC_PIN_CFG_NO_GPIO,			\
 	}
 
-/* PINMUX_DATA_ALL - Expand to a list of PORT_name_DATA, PORT_name_FN0,
- *		     PORT_name_OUT, PORT_name_IN marks
- */
+	/* PINMUX_DATA_ALL - Expand to a list of PORT_name_DATA, PORT_name_FN0,
+	 *		     PORT_name_OUT, PORT_name_IN marks
+	 */
 #define _PORT_DATA(pn, pfx, sfx)					\
 	PINMUX_DATA(PORT##pfx##_DATA, PORT##pfx##_FN0,			\
-		    PORT##pfx##_OUT, PORT##pfx##_IN)
+				PORT##pfx##_OUT, PORT##pfx##_IN)
 #define PINMUX_DATA_ALL()		CPU_ALL_PORT(_PORT_DATA, , unused)
 
-/* GPIO_FN(name) - Expand to a sh_pfc_pin entry for a function GPIO */
+	/* GPIO_FN(name) - Expand to a sh_pfc_pin entry for a function GPIO */
 #define PINMUX_GPIO_FN(gpio, base, data_or_mark)			\
 	[gpio - (base)] = {						\
-		.name = __stringify(gpio),				\
-		.enum_id = data_or_mark,				\
-	}
+											.name = __stringify(gpio),				\
+											.enum_id = data_or_mark,				\
+					  }
 #define GPIO_FN(str)							\
 	PINMUX_GPIO_FN(GPIO_FN_##str, PINMUX_FN_BASE, str##_MARK)
 
-/*
- * PORTnCR helper macro for SH-Mobile/R-Mobile
- */
+	/*
+	 * PORTnCR helper macro for SH-Mobile/R-Mobile
+	 */
 #define PORTCR(nr, reg)							\
 	{								\
 		PINMUX_CFG_REG_VAR("PORT" nr "CR", reg, 8, 2, 2, 1, 3) {\
@@ -577,9 +593,9 @@ extern const struct sh_pfc_soc_info shx3_pinmux_info;
 		}							\
 	}
 
-/*
- * GPIO number helper macro for R-Car
- */
+	/*
+	 * GPIO number helper macro for R-Car
+	 */
 #define RCAR_GP_PIN(bank, pin)		(((bank) * 32) + (pin))
 
 #endif /* __SH_PFC_H */

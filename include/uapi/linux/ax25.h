@@ -42,11 +42,13 @@
 #define AX25_NOUID_DEFAULT	0
 #define AX25_NOUID_BLOCK	1
 
-typedef struct {
+typedef struct
+{
 	char		ax25_call[7];	/* 6 call + SSID (shifted ascii!) */
 } ax25_address;
 
-struct sockaddr_ax25 {
+struct sockaddr_ax25
+{
 	__kernel_sa_family_t sax25_family;
 	ax25_address	sax25_call;
 	int		sax25_ndigis;
@@ -55,37 +57,42 @@ struct sockaddr_ax25 {
 
 #define sax25_uid	sax25_ndigis
 
-struct full_sockaddr_ax25 {
+struct full_sockaddr_ax25
+{
 	struct sockaddr_ax25 fsa_ax25;
 	ax25_address	fsa_digipeater[AX25_MAX_DIGIS];
 };
 
-struct ax25_routes_struct {
+struct ax25_routes_struct
+{
 	ax25_address	port_addr;
 	ax25_address	dest_addr;
 	unsigned char	digi_count;
 	ax25_address	digi_addr[AX25_MAX_DIGIS];
 };
 
-struct ax25_route_opt_struct {
+struct ax25_route_opt_struct
+{
 	ax25_address	port_addr;
 	ax25_address	dest_addr;
 	int		cmd;
 	int		arg;
 };
 
-struct ax25_ctl_struct {
-        ax25_address            port_addr;
-        ax25_address            source_addr;
-        ax25_address            dest_addr;
-        unsigned int            cmd;
-        unsigned long           arg;
-        unsigned char           digi_count;
-        ax25_address            digi_addr[AX25_MAX_DIGIS];
+struct ax25_ctl_struct
+{
+	ax25_address            port_addr;
+	ax25_address            source_addr;
+	ax25_address            dest_addr;
+	unsigned int            cmd;
+	unsigned long           arg;
+	unsigned char           digi_count;
+	ax25_address            digi_addr[AX25_MAX_DIGIS];
 };
 
 /* this will go away. Please do not export to user land */
-struct ax25_info_struct_deprecated {
+struct ax25_info_struct_deprecated
+{
 	unsigned int	n2, n2count;
 	unsigned int	t1, t1timer;
 	unsigned int	t2, t2timer;
@@ -95,7 +102,8 @@ struct ax25_info_struct_deprecated {
 	unsigned int	rcv_q, snd_q;
 };
 
-struct ax25_info_struct {
+struct ax25_info_struct
+{
 	unsigned int	n2, n2count;
 	unsigned int	t1, t1timer;
 	unsigned int	t2, t2timer;
@@ -108,7 +116,8 @@ struct ax25_info_struct {
 	unsigned int	window;
 };
 
-struct ax25_fwd_struct {
+struct ax25_fwd_struct
+{
 	ax25_address	port_from;
 	ax25_address	port_to;
 };

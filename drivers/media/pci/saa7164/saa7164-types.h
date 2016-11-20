@@ -24,7 +24,8 @@
 /* Some structues are passed directly to/from the firmware and
  * have strict alignment requirements. This is one of them.
  */
-struct tmComResHWDescr {
+struct tmComResHWDescr
+{
 	u8	bLength;
 	u8	bDescriptorType;
 	u8	bDescriptorSubtype;
@@ -44,7 +45,8 @@ struct tmComResHWDescr {
  * I've manually padded with Reserved[3] bytes to match the hardware,
  * but this could break if GCC decies to pack in a different way.
  */
-struct tmComResInterfaceDescr {
+struct tmComResInterfaceDescr
+{
 	u8	bLength;
 	u8	bDescriptorType;
 	u8	bDescriptorSubtype;
@@ -58,7 +60,8 @@ struct tmComResInterfaceDescr {
 	u8	Reserved[3];
 };
 
-struct tmComResBusDescr {
+struct tmComResBusDescr
+{
 	u64	CommandRing;
 	u64	ResponseRing;
 	u32	CommandWrite;
@@ -67,7 +70,8 @@ struct tmComResBusDescr {
 	u32	ResponseRead;
 };
 
-enum tmBusType {
+enum tmBusType
+{
 	NONE		= 0,
 	TYPE_BUS_PCI	= 1,
 	TYPE_BUS_PCIe	= 2,
@@ -75,7 +79,8 @@ enum tmBusType {
 	TYPE_BUS_I2C	= 4
 };
 
-struct tmComResBusInfo {
+struct tmComResBusInfo
+{
 	enum tmBusType Type;
 	u16	m_wMaxReqSize;
 	u8 __iomem *m_pdwSetRing;
@@ -92,7 +97,8 @@ struct tmComResBusInfo {
 
 };
 
-struct tmComResInfo {
+struct tmComResInfo
+{
 	u8	id;
 	u8	flags;
 	u16	size;
@@ -101,7 +107,8 @@ struct tmComResInfo {
 	u8	seqno;
 } __attribute__((packed));
 
-enum tmComResCmd {
+enum tmComResCmd
+{
 	SET_CUR  = 0x01,
 	GET_CUR  = 0x81,
 	GET_MIN  = 0x82,
@@ -112,7 +119,8 @@ enum tmComResCmd {
 	GET_DEF  = 0x87
 };
 
-struct cmd {
+struct cmd
+{
 	u8 seqno;
 	u32 inuse;
 	u32 timeout;
@@ -121,20 +129,23 @@ struct cmd {
 	wait_queue_head_t wait;
 };
 
-struct tmDescriptor {
+struct tmDescriptor
+{
 	u32	pathid;
 	u32	size;
 	void	*descriptor;
 };
 
-struct tmComResDescrHeader {
+struct tmComResDescrHeader
+{
 	u8	len;
 	u8	type;
 	u8	subtype;
 	u8	unitid;
 } __attribute__((packed));
 
-struct tmComResExtDevDescrHeader {
+struct tmComResExtDevDescrHeader
+{
 	u8	len;
 	u8	type;
 	u8	subtype;
@@ -146,12 +157,14 @@ struct tmComResExtDevDescrHeader {
 	u8	controlsize;
 } __attribute__((packed));
 
-struct tmComResGPIO {
+struct tmComResGPIO
+{
 	u32	pin;
 	u8	state;
 } __attribute__((packed));
 
-struct tmComResPathDescrHeader {
+struct tmComResPathDescrHeader
+{
 	u8	len;
 	u8	type;
 	u8	subtype;
@@ -159,7 +172,8 @@ struct tmComResPathDescrHeader {
 } __attribute__((packed));
 
 /* terminaltype */
-enum tmComResTermType {
+enum tmComResTermType
+{
 	ITT_ANTENNA              = 0x0203,
 	LINE_CONNECTOR           = 0x0603,
 	SPDIF_CONNECTOR          = 0x0605,
@@ -169,7 +183,8 @@ enum tmComResTermType {
 	STANDARD_DMA             = 0xF101
 };
 
-struct tmComResAntTermDescrHeader {
+struct tmComResAntTermDescrHeader
+{
 	u8	len;
 	u8	type;
 	u8	subtype;
@@ -180,7 +195,8 @@ struct tmComResAntTermDescrHeader {
 	u8	controlsize;
 } __attribute__((packed));
 
-struct tmComResTunerDescrHeader {
+struct tmComResTunerDescrHeader
+{
 	u8	len;
 	u8	type;
 	u8	subtype;
@@ -192,7 +208,8 @@ struct tmComResTunerDescrHeader {
 	u32	controls;
 } __attribute__((packed));
 
-enum tmBufferFlag {
+enum tmBufferFlag
+{
 	/* the buffer does not contain any valid data */
 	TM_BUFFER_FLAG_EMPTY,
 
@@ -203,7 +220,8 @@ enum tmBufferFlag {
 	TM_BUFFER_FLAG_DUMMY_BUFFER
 };
 
-struct tmBuffer {
+struct tmBuffer
+{
 	u64		*pagetablevirt;
 	u64		pagetablephys;
 	u16		offset;
@@ -217,7 +235,8 @@ struct tmBuffer {
 	u64		*addressvirt;
 };
 
-struct tmHWStreamParameters {
+struct tmHWStreamParameters
+{
 	u32	bitspersample;
 	u32	samplesperline;
 	u32	numberoflines;
@@ -229,13 +248,15 @@ struct tmHWStreamParameters {
 	u32	numpagetableentries;
 };
 
-struct tmStreamParameters {
+struct tmStreamParameters
+{
 	struct tmHWStreamParameters	HWStreamParameters;
 	u64				qwDummyPageTablePhys;
 	u64				*pDummyPageTableVirt;
 };
 
-struct tmComResDMATermDescrHeader {
+struct tmComResDMATermDescrHeader
+{
 	u8	len;
 	u8	type;
 	u8	subtyle;
@@ -274,7 +295,8 @@ struct tmComResDMATermDescrHeader {
  *                            Data is to be ignored by the application.
  *
  */
-struct tmComResTSFormatDescrHeader {
+struct tmComResTSFormatDescrHeader
+{
 	u8	len;
 	u8	type;
 	u8	subtype;
@@ -288,7 +310,8 @@ struct tmComResTSFormatDescrHeader {
 /* Encoder related structures */
 
 /* A/V Mux Selector */
-struct tmComResSelDescrHeader {
+struct tmComResSelDescrHeader
+{
 	u8	len;
 	u8	type;
 	u8	subtype;
@@ -298,7 +321,8 @@ struct tmComResSelDescrHeader {
 } __attribute__((packed));
 
 /* A/V Audio processor definitions */
-struct tmComResProcDescrHeader {
+struct tmComResProcDescrHeader
+{
 	u8	len;
 	u8	type;
 	u8	subtype;
@@ -312,14 +336,16 @@ struct tmComResProcDescrHeader {
 #define EU_VIDEO_BIT_RATE_MODE_CONSTANT		(0)
 #define EU_VIDEO_BIT_RATE_MODE_VARIABLE_AVERAGE (1)
 #define EU_VIDEO_BIT_RATE_MODE_VARIABLE_PEAK	(2)
-struct tmComResEncVideoBitRate {
+struct tmComResEncVideoBitRate
+{
 	u8	ucVideoBitRateMode;
 	u32	dwVideoBitRate;
 	u32	dwVideoBitRatePeak;
 } __attribute__((packed));
 
 /* Video Encoder Aspect Ratio message */
-struct tmComResEncVideoInputAspectRatio {
+struct tmComResEncVideoInputAspectRatio
+{
 	u8	width;
 	u8	height;
 } __attribute__((packed));
@@ -330,13 +356,15 @@ struct tmComResEncVideoInputAspectRatio {
 /* 3. IBBPBBPBBPBBP   */
 #define SAA7164_ENCODER_DEFAULT_GOP_DIST (1)
 #define SAA7164_ENCODER_DEFAULT_GOP_SIZE (15)
-struct tmComResEncVideoGopStructure {
+struct tmComResEncVideoGopStructure
+{
 	u8	ucGOPSize;	/* GOP Size 12, 15 */
 	u8	ucRefFrameDist; /* Reference Frame Distance */
 } __attribute__((packed));
 
 /* Encoder processor definition */
-struct tmComResEncoderDescrHeader {
+struct tmComResEncoderDescrHeader
+{
 	u8	len;
 	u8	type;
 	u8	subtype;
@@ -355,7 +383,8 @@ struct tmComResEncoderDescrHeader {
 } __attribute__((packed));
 
 /* Audio processor definition */
-struct tmComResAFeatureDescrHeader {
+struct tmComResAFeatureDescrHeader
+{
 	u8	len;
 	u8	type;
 	u8	subtype;
@@ -365,7 +394,8 @@ struct tmComResAFeatureDescrHeader {
 } __attribute__((packed));
 
 /* Audio control messages */
-struct tmComResAudioDefaults {
+struct tmComResAudioDefaults
+{
 	u8	ucDecoderLevel;
 	u8	ucDecoderFM_Level;
 	u8	ucMonoLevel;
@@ -375,24 +405,28 @@ struct tmComResAudioDefaults {
 } __attribute__((packed));
 
 /* Audio bitrate control message */
-struct tmComResEncAudioBitRate {
+struct tmComResEncAudioBitRate
+{
 	u8	ucAudioBitRateMode;
 	u32	dwAudioBitRate;
 	u32	dwAudioBitRatePeak;
 } __attribute__((packed));
 
 /* Tuner / AV Decoder messages */
-struct tmComResTunerStandard {
+struct tmComResTunerStandard
+{
 	u8	std;
 	u32	country;
 } __attribute__((packed));
 
-struct tmComResTunerStandardAuto {
+struct tmComResTunerStandardAuto
+{
 	u8	mode;
 } __attribute__((packed));
 
 /* EEPROM definition for PS stream types */
-struct tmComResPSFormatDescrHeader {
+struct tmComResPSFormatDescrHeader
+{
 	u8	len;
 	u8	type;
 	u8	subtype;
@@ -403,7 +437,8 @@ struct tmComResPSFormatDescrHeader {
 } __attribute__((packed));
 
 /* VBI control structure */
-struct tmComResVBIFormatDescrHeader {
+struct tmComResVBIFormatDescrHeader
+{
 	u8	len;
 	u8	type;
 	u8	subtype; /* VS_FORMAT_VBI */
@@ -415,22 +450,26 @@ struct tmComResVBIFormatDescrHeader {
 	u8	bNumLines; /* Unused - scheduled for removal */
 } __attribute__((packed));
 
-struct tmComResProbeCommit {
+struct tmComResProbeCommit
+{
 	u16	bmHint;
 	u8	bFormatIndex;
 	u8	bFrameIndex;
 } __attribute__((packed));
 
-struct tmComResDebugSetLevel {
+struct tmComResDebugSetLevel
+{
 	u32	dwDebugLevel;
 } __attribute__((packed));
 
-struct tmComResDebugGetData {
+struct tmComResDebugGetData
+{
 	u32	dwResult;
 	u8	ucDebugData[256];
 } __attribute__((packed));
 
-struct tmFwInfoStruct {
+struct tmFwInfoStruct
+{
 	u32	status;
 	u32	mode;
 	u32	devicespec;

@@ -35,7 +35,8 @@
 #define BQ32K_TCH2		0x08	/* Trickle charge enable */
 #define BQ32K_CFG2		0x09	/* Trickle charger control */
 
-struct bq32k_regs {
+struct bq32k_regs
+{
 	uint8_t		seconds;
 	uint8_t		minutes;
 	uint8_t		cent_hours;
@@ -50,7 +51,8 @@ static struct i2c_driver bq32k_driver;
 static int bq32k_read(struct device *dev, void *data, uint8_t off, uint8_t len)
 {
 	struct i2c_client *client = to_i2c_client(dev);
-	struct i2c_msg msgs[] = {
+	struct i2c_msg msgs[] =
+	{
 		{
 			.addr = client->addr,
 			.flags = 0,
@@ -65,7 +67,9 @@ static int bq32k_read(struct device *dev, void *data, uint8_t off, uint8_t len)
 	};
 
 	if (i2c_transfer(client->adapter, msgs, 2) == 2)
+	{
 		return 0;
+	}
 
 	return -EIO;
 }
@@ -79,7 +83,9 @@ static int bq32k_write(struct device *dev, void *data, uint8_t off, uint8_t len)
 	memcpy(&buffer[1], data, len);
 
 	if (i2c_master_send(client, buffer, len + 1) == len + 1)
+	{
 		return 0;
+	}
 
 	return -EIO;
 }
@@ -90,15 +96,20 @@ static int bq32k_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	int error;
 
 	error = bq32k_read(dev, &regs, 0, sizeof(regs));
+
 	if (error)
+	{
 		return error;
+	}
 
 	/*
 	 * In case of oscillator failure, the register contents should be
 	 * considered invalid. The flag is cleared the next time the RTC is set.
 	 */
 	if (regs.minutes & BQ32K_OF)
+	{
 		return -EINVAL;
+	}
 
 	tm->tm_sec = bcd2bin(regs.seconds & BQ32K_SECONDS_MASK);
 	tm->tm_min = bcd2bin(regs.minutes & BQ32K_MINUTES_MASK);
@@ -107,7 +118,7 @@ static int bq32k_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	tm->tm_wday = bcd2bin(regs.day) - 1;
 	tm->tm_mon = bcd2bin(regs.month) - 1;
 	tm->tm_year = bcd2bin(regs.years) +
-				((regs.cent_hours & BQ32K_CENT) ? 100 : 0);
+				  ((regs.cent_hours & BQ32K_CENT) ? 100 : 0);
 
 	return rtc_valid_tm(tm);
 }
@@ -123,16 +134,21 @@ static int bq32k_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	regs.date = bin2bcd(tm->tm_mday);
 	regs.month = bin2bcd(tm->tm_mon + 1);
 
-	if (tm->tm_year >= 100) {
+	if (tm->tm_year >= 100)
+	{
 		regs.cent_hours |= BQ32K_CENT;
 		regs.years = bin2bcd(tm->tm_year - 100);
-	} else
+	}
+	else
+	{
 		regs.years = bin2bcd(tm->tm_year);
+	}
 
 	return bq32k_write(dev, &regs, 0, sizeof(regs));
 }
 
-static const struct rtc_class_ops bq32k_rtc_ops = {
+static const struct rtc_class_ops bq32k_rtc_ops =
+{
 	.read_time	= bq32k_rtc_read_time,
 	.set_time	= bq32k_rtc_set_time,
 };
@@ -144,52 +160,67 @@ static int trickle_charger_of_init(struct device *dev, struct device_node *node)
 	u32 ohms = 0;
 
 	if (of_property_read_u32(node, "trickle-resistor-ohms" , &ohms))
+	{
 		return 0;
+	}
 
-	switch (ohms) {
-	case 180+940:
-		/*
-		 * TCHE[3:0] == 0x05, TCH2 == 1, TCFE == 0 (charging
-		 * over diode and 940ohm resistor)
-		 */
+	switch (ohms)
+	{
+		case 180+940:
 
-		if (of_property_read_bool(node, "trickle-diode-disable")) {
-			dev_err(dev, "diode and resistor mismatch\n");
+			/*
+			 * TCHE[3:0] == 0x05, TCH2 == 1, TCFE == 0 (charging
+			 * over diode and 940ohm resistor)
+			 */
+
+			if (of_property_read_bool(node, "trickle-diode-disable"))
+			{
+				dev_err(dev, "diode and resistor mismatch\n");
+				return -EINVAL;
+			}
+
+			reg = 0x05;
+			break;
+
+		case 180+20000:
+
+			/* diode disabled */
+
+			if (!of_property_read_bool(node, "trickle-diode-disable"))
+			{
+				dev_err(dev, "bq32k: diode and resistor mismatch\n");
+				return -EINVAL;
+			}
+
+			reg = 0x45;
+			break;
+
+		default:
+			dev_err(dev, "invalid resistor value (%d)\n", ohms);
 			return -EINVAL;
-		}
-		reg = 0x05;
-		break;
-
-	case 180+20000:
-		/* diode disabled */
-
-		if (!of_property_read_bool(node, "trickle-diode-disable")) {
-			dev_err(dev, "bq32k: diode and resistor mismatch\n");
-			return -EINVAL;
-		}
-		reg = 0x45;
-		break;
-
-	default:
-		dev_err(dev, "invalid resistor value (%d)\n", ohms);
-		return -EINVAL;
 	}
 
 	error = bq32k_write(dev, &reg, BQ32K_CFG2, 1);
+
 	if (error)
+	{
 		return error;
+	}
 
 	reg = 0x20;
 	error = bq32k_write(dev, &reg, BQ32K_TCH2, 1);
+
 	if (error)
+	{
 		return error;
+	}
 
 	dev_info(dev, "Enabled trickle RTC battery charge.\n");
 	return 0;
 }
 
 static int bq32k_probe(struct i2c_client *client,
-				const struct i2c_device_id *id)
+					   const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
 	struct rtc_device *rtc;
@@ -197,45 +228,65 @@ static int bq32k_probe(struct i2c_client *client,
 	int error;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		return -ENODEV;
+	}
 
 	/* Check Oscillator Stop flag */
 	error = bq32k_read(dev, &reg, BQ32K_SECONDS, 1);
-	if (!error && (reg & BQ32K_STOP)) {
+
+	if (!error && (reg & BQ32K_STOP))
+	{
 		dev_warn(dev, "Oscillator was halted. Restarting...\n");
 		reg &= ~BQ32K_STOP;
 		error = bq32k_write(dev, &reg, BQ32K_SECONDS, 1);
 	}
+
 	if (error)
+	{
 		return error;
+	}
 
 	/* Check Oscillator Failure flag */
 	error = bq32k_read(dev, &reg, BQ32K_MINUTES, 1);
+
 	if (error)
+	{
 		return error;
+	}
+
 	if (reg & BQ32K_OF)
+	{
 		dev_warn(dev, "Oscillator Failure. Check RTC battery.\n");
+	}
 
 	if (client->dev.of_node)
+	{
 		trickle_charger_of_init(dev, client->dev.of_node);
+	}
 
 	rtc = devm_rtc_device_register(&client->dev, bq32k_driver.driver.name,
-						&bq32k_rtc_ops, THIS_MODULE);
+								   &bq32k_rtc_ops, THIS_MODULE);
+
 	if (IS_ERR(rtc))
+	{
 		return PTR_ERR(rtc);
+	}
 
 	i2c_set_clientdata(client, rtc);
 
 	return 0;
 }
 
-static const struct i2c_device_id bq32k_id[] = {
+static const struct i2c_device_id bq32k_id[] =
+{
 	{ "bq32000", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, bq32k_id);
 
-static struct i2c_driver bq32k_driver = {
+static struct i2c_driver bq32k_driver =
+{
 	.driver = {
 		.name	= "bq32k",
 	},

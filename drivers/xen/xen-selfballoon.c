@@ -156,18 +156,27 @@ static void frontswap_selfshrink(void)
 
 	last_frontswap_pages = cur_frontswap_pages;
 	cur_frontswap_pages = frontswap_curr_pages();
+
 	if (!cur_frontswap_pages ||
-			(cur_frontswap_pages > last_frontswap_pages)) {
+		(cur_frontswap_pages > last_frontswap_pages))
+	{
 		frontswap_inertia_counter = frontswap_inertia;
 		return;
 	}
+
 	if (frontswap_inertia_counter && --frontswap_inertia_counter)
+	{
 		return;
+	}
+
 	if (cur_frontswap_pages <= frontswap_hysteresis)
+	{
 		tgt_frontswap_pages = 0;
+	}
 	else
 		tgt_frontswap_pages = cur_frontswap_pages -
-			(cur_frontswap_pages / frontswap_hysteresis);
+							  (cur_frontswap_pages / frontswap_hysteresis);
+
 	frontswap_shrink(tgt_frontswap_pages);
 	frontswap_inertia_counter = frontswap_inertia;
 }
@@ -187,57 +196,76 @@ static void selfballoon_process(struct work_struct *work)
 	unsigned long useful_pages;
 	bool reset_timer = false;
 
-	if (xen_selfballooning_enabled) {
+	if (xen_selfballooning_enabled)
+	{
 		cur_pages = totalram_pages;
 		tgt_pages = cur_pages; /* default is no change */
 		goal_pages = vm_memory_committed() +
-				totalreserve_pages +
-				MB2PAGES(selfballoon_reserved_mb);
+					 totalreserve_pages +
+					 MB2PAGES(selfballoon_reserved_mb);
 #ifdef CONFIG_FRONTSWAP
+
 		/* allow space for frontswap pages to be repatriated */
 		if (frontswap_selfshrinking)
+		{
 			goal_pages += frontswap_curr_pages();
+		}
+
 #endif
+
 		if (cur_pages > goal_pages)
 			tgt_pages = cur_pages -
-				((cur_pages - goal_pages) /
-				  selfballoon_downhysteresis);
+						((cur_pages - goal_pages) /
+						 selfballoon_downhysteresis);
 		else if (cur_pages < goal_pages)
 			tgt_pages = cur_pages +
-				((goal_pages - cur_pages) /
-				  selfballoon_uphysteresis);
+						((goal_pages - cur_pages) /
+						 selfballoon_uphysteresis);
+
 		/* else if cur_pages == goal_pages, no change */
 		useful_pages = max_pfn - totalreserve_pages;
+
 		if (selfballoon_min_usable_mb != 0)
 			floor_pages = totalreserve_pages +
-					MB2PAGES(selfballoon_min_usable_mb);
+						  MB2PAGES(selfballoon_min_usable_mb);
 		/* piecewise linear function ending in ~3% slope */
 		else if (useful_pages < MB2PAGES(16))
-			floor_pages = max_pfn; /* not worth ballooning */
+		{
+			floor_pages = max_pfn;    /* not worth ballooning */
+		}
 		else if (useful_pages < MB2PAGES(64))
 			floor_pages = totalreserve_pages + MB2PAGES(16) +
-					((useful_pages - MB2PAGES(16)) >> 1);
+						  ((useful_pages - MB2PAGES(16)) >> 1);
 		else if (useful_pages < MB2PAGES(512))
 			floor_pages = totalreserve_pages + MB2PAGES(40) +
-					((useful_pages - MB2PAGES(40)) >> 3);
+						  ((useful_pages - MB2PAGES(40)) >> 3);
 		else /* useful_pages >= MB2PAGES(512) */
 			floor_pages = totalreserve_pages + MB2PAGES(99) +
-					((useful_pages - MB2PAGES(99)) >> 5);
+						  ((useful_pages - MB2PAGES(99)) >> 5);
+
 		if (tgt_pages < floor_pages)
+		{
 			tgt_pages = floor_pages;
+		}
+
 		balloon_set_new_target(tgt_pages +
-			balloon_stats.current_pages - totalram_pages);
+							   balloon_stats.current_pages - totalram_pages);
 		reset_timer = true;
 	}
+
 #ifdef CONFIG_FRONTSWAP
-	if (frontswap_selfshrinking) {
+
+	if (frontswap_selfshrinking)
+	{
 		frontswap_selfshrink();
 		reset_timer = true;
 	}
+
 #endif
+
 	if (reset_timer)
 		schedule_delayed_work(&selfballoon_worker,
-			selfballoon_interval * HZ);
+							  selfballoon_interval * HZ);
 }
 
 #ifdef CONFIG_SYSFS
@@ -246,8 +274,8 @@ static void selfballoon_process(struct work_struct *work)
 
 #define SELFBALLOON_SHOW(name, format, args...)				\
 	static ssize_t show_##name(struct device *dev,	\
-					  struct device_attribute *attr, \
-					  char *buf) \
+							   struct device_attribute *attr, \
+							   char *buf) \
 	{ \
 		return sprintf(buf, format, ##args); \
 	}
@@ -255,243 +283,334 @@ static void selfballoon_process(struct work_struct *work)
 SELFBALLOON_SHOW(selfballooning, "%d\n", xen_selfballooning_enabled);
 
 static ssize_t store_selfballooning(struct device *dev,
-			    struct device_attribute *attr,
-			    const char *buf,
-			    size_t count)
+									struct device_attribute *attr,
+									const char *buf,
+									size_t count)
 {
 	bool was_enabled = xen_selfballooning_enabled;
 	unsigned long tmp;
 	int err;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	err = kstrtoul(buf, 10, &tmp);
+
 	if (err)
+	{
 		return err;
+	}
+
 	if ((tmp != 0) && (tmp != 1))
+	{
 		return -EINVAL;
+	}
 
 	xen_selfballooning_enabled = !!tmp;
+
 	if (!was_enabled && xen_selfballooning_enabled)
 		schedule_delayed_work(&selfballoon_worker,
-			selfballoon_interval * HZ);
+							  selfballoon_interval * HZ);
 
 	return count;
 }
 
 static DEVICE_ATTR(selfballooning, S_IRUGO | S_IWUSR,
-		   show_selfballooning, store_selfballooning);
+				   show_selfballooning, store_selfballooning);
 
 SELFBALLOON_SHOW(selfballoon_interval, "%d\n", selfballoon_interval);
 
 static ssize_t store_selfballoon_interval(struct device *dev,
-					  struct device_attribute *attr,
-					  const char *buf,
-					  size_t count)
+		struct device_attribute *attr,
+		const char *buf,
+		size_t count)
 {
 	unsigned long val;
 	int err;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
+
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
+
 	if (val == 0)
+	{
 		return -EINVAL;
+	}
+
 	selfballoon_interval = val;
 	return count;
 }
 
 static DEVICE_ATTR(selfballoon_interval, S_IRUGO | S_IWUSR,
-		   show_selfballoon_interval, store_selfballoon_interval);
+				   show_selfballoon_interval, store_selfballoon_interval);
 
 SELFBALLOON_SHOW(selfballoon_downhys, "%d\n", selfballoon_downhysteresis);
 
 static ssize_t store_selfballoon_downhys(struct device *dev,
-					 struct device_attribute *attr,
-					 const char *buf,
-					 size_t count)
+		struct device_attribute *attr,
+		const char *buf,
+		size_t count)
 {
 	unsigned long val;
 	int err;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
+
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
+
 	if (val == 0)
+	{
 		return -EINVAL;
+	}
+
 	selfballoon_downhysteresis = val;
 	return count;
 }
 
 static DEVICE_ATTR(selfballoon_downhysteresis, S_IRUGO | S_IWUSR,
-		   show_selfballoon_downhys, store_selfballoon_downhys);
+				   show_selfballoon_downhys, store_selfballoon_downhys);
 
 
 SELFBALLOON_SHOW(selfballoon_uphys, "%d\n", selfballoon_uphysteresis);
 
 static ssize_t store_selfballoon_uphys(struct device *dev,
-				       struct device_attribute *attr,
-				       const char *buf,
-				       size_t count)
+									   struct device_attribute *attr,
+									   const char *buf,
+									   size_t count)
 {
 	unsigned long val;
 	int err;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
+
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
+
 	if (val == 0)
+	{
 		return -EINVAL;
+	}
+
 	selfballoon_uphysteresis = val;
 	return count;
 }
 
 static DEVICE_ATTR(selfballoon_uphysteresis, S_IRUGO | S_IWUSR,
-		   show_selfballoon_uphys, store_selfballoon_uphys);
+				   show_selfballoon_uphys, store_selfballoon_uphys);
 
 SELFBALLOON_SHOW(selfballoon_min_usable_mb, "%d\n",
-				selfballoon_min_usable_mb);
+				 selfballoon_min_usable_mb);
 
 static ssize_t store_selfballoon_min_usable_mb(struct device *dev,
-					       struct device_attribute *attr,
-					       const char *buf,
-					       size_t count)
+		struct device_attribute *attr,
+		const char *buf,
+		size_t count)
 {
 	unsigned long val;
 	int err;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
+
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
+
 	if (val == 0)
+	{
 		return -EINVAL;
+	}
+
 	selfballoon_min_usable_mb = val;
 	return count;
 }
 
 static DEVICE_ATTR(selfballoon_min_usable_mb, S_IRUGO | S_IWUSR,
-		   show_selfballoon_min_usable_mb,
-		   store_selfballoon_min_usable_mb);
+				   show_selfballoon_min_usable_mb,
+				   store_selfballoon_min_usable_mb);
 
 SELFBALLOON_SHOW(selfballoon_reserved_mb, "%d\n",
-				selfballoon_reserved_mb);
+				 selfballoon_reserved_mb);
 
 static ssize_t store_selfballoon_reserved_mb(struct device *dev,
-					     struct device_attribute *attr,
-					     const char *buf,
-					     size_t count)
+		struct device_attribute *attr,
+		const char *buf,
+		size_t count)
 {
 	unsigned long val;
 	int err;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
+
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
+
 	if (val == 0)
+	{
 		return -EINVAL;
+	}
+
 	selfballoon_reserved_mb = val;
 	return count;
 }
 
 static DEVICE_ATTR(selfballoon_reserved_mb, S_IRUGO | S_IWUSR,
-		   show_selfballoon_reserved_mb,
-		   store_selfballoon_reserved_mb);
+				   show_selfballoon_reserved_mb,
+				   store_selfballoon_reserved_mb);
 
 
 #ifdef CONFIG_FRONTSWAP
 SELFBALLOON_SHOW(frontswap_selfshrinking, "%d\n", frontswap_selfshrinking);
 
 static ssize_t store_frontswap_selfshrinking(struct device *dev,
-					     struct device_attribute *attr,
-					     const char *buf,
-					     size_t count)
+		struct device_attribute *attr,
+		const char *buf,
+		size_t count)
 {
 	bool was_enabled = frontswap_selfshrinking;
 	unsigned long tmp;
 	int err;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
+
 	err = kstrtoul(buf, 10, &tmp);
+
 	if (err)
+	{
 		return err;
+	}
+
 	if ((tmp != 0) && (tmp != 1))
+	{
 		return -EINVAL;
+	}
+
 	frontswap_selfshrinking = !!tmp;
+
 	if (!was_enabled && !xen_selfballooning_enabled &&
-	     frontswap_selfshrinking)
+		frontswap_selfshrinking)
 		schedule_delayed_work(&selfballoon_worker,
-			selfballoon_interval * HZ);
+							  selfballoon_interval * HZ);
 
 	return count;
 }
 
 static DEVICE_ATTR(frontswap_selfshrinking, S_IRUGO | S_IWUSR,
-		   show_frontswap_selfshrinking, store_frontswap_selfshrinking);
+				   show_frontswap_selfshrinking, store_frontswap_selfshrinking);
 
 SELFBALLOON_SHOW(frontswap_inertia, "%d\n", frontswap_inertia);
 
 static ssize_t store_frontswap_inertia(struct device *dev,
-				       struct device_attribute *attr,
-				       const char *buf,
-				       size_t count)
+									   struct device_attribute *attr,
+									   const char *buf,
+									   size_t count)
 {
 	unsigned long val;
 	int err;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
+
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
+
 	if (val == 0)
+	{
 		return -EINVAL;
+	}
+
 	frontswap_inertia = val;
 	frontswap_inertia_counter = val;
 	return count;
 }
 
 static DEVICE_ATTR(frontswap_inertia, S_IRUGO | S_IWUSR,
-		   show_frontswap_inertia, store_frontswap_inertia);
+				   show_frontswap_inertia, store_frontswap_inertia);
 
 SELFBALLOON_SHOW(frontswap_hysteresis, "%d\n", frontswap_hysteresis);
 
 static ssize_t store_frontswap_hysteresis(struct device *dev,
-					  struct device_attribute *attr,
-					  const char *buf,
-					  size_t count)
+		struct device_attribute *attr,
+		const char *buf,
+		size_t count)
 {
 	unsigned long val;
 	int err;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
+
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
+
 	if (val == 0)
+	{
 		return -EINVAL;
+	}
+
 	frontswap_hysteresis = val;
 	return count;
 }
 
 static DEVICE_ATTR(frontswap_hysteresis, S_IRUGO | S_IWUSR,
-		   show_frontswap_hysteresis, store_frontswap_hysteresis);
+				   show_frontswap_hysteresis, store_frontswap_hysteresis);
 
 #endif /* CONFIG_FRONTSWAP */
 
-static struct attribute *selfballoon_attrs[] = {
+static struct attribute *selfballoon_attrs[] =
+{
 	&dev_attr_selfballooning.attr,
 	&dev_attr_selfballoon_interval.attr,
 	&dev_attr_selfballoon_downhysteresis.attr,
@@ -506,7 +625,8 @@ static struct attribute *selfballoon_attrs[] = {
 	NULL
 };
 
-static const struct attribute_group selfballoon_group = {
+static const struct attribute_group selfballoon_group =
+{
 	.name = "selfballoon",
 	.attrs = selfballoon_attrs
 };
@@ -529,27 +649,39 @@ int xen_selfballoon_init(bool use_selfballooning, bool use_frontswap_selfshrink)
 	unsigned long reserve_pages;
 
 	if (!xen_domain())
+	{
 		return -ENODEV;
+	}
 
-	if (xen_initial_domain()) {
+	if (xen_initial_domain())
+	{
 		pr_info("Xen selfballooning driver disabled for domain0\n");
 		return -ENODEV;
 	}
 
 	xen_selfballooning_enabled = tmem_enabled && use_selfballooning;
-	if (xen_selfballooning_enabled) {
+
+	if (xen_selfballooning_enabled)
+	{
 		pr_info("Initializing Xen selfballooning driver\n");
 		enable = true;
 	}
+
 #ifdef CONFIG_FRONTSWAP
 	frontswap_selfshrinking = tmem_enabled && use_frontswap_selfshrink;
-	if (frontswap_selfshrinking) {
+
+	if (frontswap_selfshrinking)
+	{
 		pr_info("Initializing frontswap selfshrinking driver\n");
 		enable = true;
 	}
+
 #endif
+
 	if (!enable)
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * Give selfballoon_reserved_mb a default value(10% of total ram pages)
@@ -567,10 +699,12 @@ int xen_selfballoon_init(bool use_selfballooning, bool use_frontswap_selfshrink)
 	 * By reserving extra 10% of total ram pages, we can keep the system
 	 * much more reliably and response faster in some cases.
 	 */
-	if (!selfballoon_reserved_mb) {
+	if (!selfballoon_reserved_mb)
+	{
 		reserve_pages = totalram_pages / 10;
 		selfballoon_reserved_mb = PAGES2MB(reserve_pages);
 	}
+
 	schedule_delayed_work(&selfballoon_worker, selfballoon_interval * HZ);
 
 	return 0;

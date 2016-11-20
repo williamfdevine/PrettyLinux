@@ -27,11 +27,11 @@
 /* 00 - 07: Not used */
 #define P17V_PLAYBACK_FIFO_PTR	0x08	/* Current playback fifo pointer
 					 * and number of sound samples in cache.
-					 */  
+					 */
 /* 09 - 12: Not used */
 #define P17V_CAPTURE_FIFO_PTR	0x13	/* Current capture fifo pointer
 					 * and number of sound samples in cache.
-					 */  
+					 */
 /* 14 - 17: Not used */
 #define P17V_PB_CHN_SEL		0x18	/* P17v playback channel select */
 #define P17V_SE_SLOT_SEL_L	0x19	/* Sound Engine slot select low */
@@ -58,7 +58,7 @@
 #define I2C_A_ADC_LAST		0x00000400	/*I2C last transaction */
 #define I2C_A_ADC_BYTE		0x00000800	/*I2C one byte mode */
 
-#define I2C_D_ADC_REG_MASK	0xfe000000  	/*ADC address register */ 
+#define I2C_D_ADC_REG_MASK	0xfe000000  	/*ADC address register */
 #define I2C_D_ADC_DAT_MASK	0x01ff0000  	/*ADC data register */
 
 #define ADC_TIMEOUT		0x00000007	/*ADC Timeout Clock Disable */
@@ -74,15 +74,15 @@
 #define ADC_LIMIT_CTRL		0x00000014	/*ADC Limiter Control */
 #define ADC_MUX			0x00000015  	/*ADC Mux offset */
 #if 0
-/* FIXME: Not tested yet. */
-#define ADC_GAIN_MASK		0x000000ff	//Mask for ADC Gain
-#define ADC_ZERODB		0x000000cf	//Value to set ADC to 0dB
-#define ADC_MUTE_MASK		0x000000c0	//Mask for ADC mute
-#define ADC_MUTE		0x000000c0	//Value to mute ADC
-#define ADC_OSR			0x00000008	//Mask for ADC oversample rate select
-#define ADC_TIMEOUT_DISABLE	0x00000008	//Value and mask to disable Timeout clock
-#define ADC_HPF_DISABLE		0x00000100	//Value and mask to disable High pass filter
-#define ADC_TRANWIN_MASK	0x00000070	//Mask for Length of Transient Window
+	/* FIXME: Not tested yet. */
+	#define ADC_GAIN_MASK		0x000000ff	//Mask for ADC Gain
+	#define ADC_ZERODB		0x000000cf	//Value to set ADC to 0dB
+	#define ADC_MUTE_MASK		0x000000c0	//Mask for ADC mute
+	#define ADC_MUTE		0x000000c0	//Value to mute ADC
+	#define ADC_OSR			0x00000008	//Mask for ADC oversample rate select
+	#define ADC_TIMEOUT_DISABLE	0x00000008	//Value and mask to disable Timeout clock
+	#define ADC_HPF_DISABLE		0x00000100	//Value and mask to disable High pass filter
+	#define ADC_TRANWIN_MASK	0x00000070	//Mask for Length of Transient Window
 #endif
 
 #define ADC_MUX_MASK		0x0000000f	//Mask for ADC Mux

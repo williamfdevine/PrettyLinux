@@ -34,18 +34,23 @@ gf117_ibus_init(struct nvkm_subdev *ibus)
 }
 
 static const struct nvkm_subdev_func
-gf117_ibus = {
+	gf117_ibus =
+{
 	.init = gf117_ibus_init,
 	.intr = gf100_ibus_intr,
 };
 
 int
 gf117_ibus_new(struct nvkm_device *device, int index,
-	       struct nvkm_subdev **pibus)
+			   struct nvkm_subdev **pibus)
 {
 	struct nvkm_subdev *ibus;
+
 	if (!(ibus = *pibus = kzalloc(sizeof(*ibus), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	nvkm_subdev_ctor(&gf117_ibus, device, index, ibus);
 	return 0;
 }

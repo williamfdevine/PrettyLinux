@@ -32,7 +32,10 @@ void nvdimm_bus_lock(struct device *dev)
 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
 
 	if (!nvdimm_bus)
+	{
 		return;
+	}
+
 	mutex_lock(&nvdimm_bus->reconfig_mutex);
 }
 EXPORT_SYMBOL(nvdimm_bus_lock);
@@ -42,7 +45,10 @@ void nvdimm_bus_unlock(struct device *dev)
 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
 
 	if (!nvdimm_bus)
+	{
 		return;
+	}
+
 	mutex_unlock(&nvdimm_bus->reconfig_mutex);
 }
 EXPORT_SYMBOL(nvdimm_bus_unlock);
@@ -52,18 +58,23 @@ bool is_nvdimm_bus_locked(struct device *dev)
 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
 
 	if (!nvdimm_bus)
+	{
 		return false;
+	}
+
 	return mutex_is_locked(&nvdimm_bus->reconfig_mutex);
 }
 EXPORT_SYMBOL(is_nvdimm_bus_locked);
 
-struct nvdimm_map {
+struct nvdimm_map
+{
 	struct nvdimm_bus *nvdimm_bus;
 	struct list_head list;
 	resource_size_t offset;
 	unsigned long flags;
 	size_t size;
-	union {
+	union
+	{
 		void *mem;
 		void __iomem *iomem;
 	};
@@ -77,8 +88,12 @@ static struct nvdimm_map *find_nvdimm_map(struct device *dev,
 	struct nvdimm_map *nvdimm_map;
 
 	list_for_each_entry(nvdimm_map, &nvdimm_bus->mapping_list, list)
-		if (nvdimm_map->offset == offset)
-			return nvdimm_map;
+
+	if (nvdimm_map->offset == offset)
+	{
+		return nvdimm_map;
+	}
+
 	return NULL;
 }
 
@@ -89,8 +104,11 @@ static struct nvdimm_map *alloc_nvdimm_map(struct device *dev,
 	struct nvdimm_map *nvdimm_map;
 
 	nvdimm_map = kzalloc(sizeof(*nvdimm_map), GFP_KERNEL);
+
 	if (!nvdimm_map)
+	{
 		return NULL;
+	}
 
 	INIT_LIST_HEAD(&nvdimm_map->list);
 	nvdimm_map->nvdimm_bus = nvdimm_bus;
@@ -99,29 +117,36 @@ static struct nvdimm_map *alloc_nvdimm_map(struct device *dev,
 	nvdimm_map->size = size;
 	kref_init(&nvdimm_map->kref);
 
-	if (!request_mem_region(offset, size, dev_name(&nvdimm_bus->dev))) {
+	if (!request_mem_region(offset, size, dev_name(&nvdimm_bus->dev)))
+	{
 		dev_err(&nvdimm_bus->dev, "failed to request %pa + %zd for %s\n",
 				&offset, size, dev_name(dev));
 		goto err_request_region;
 	}
 
 	if (flags)
+	{
 		nvdimm_map->mem = memremap(offset, size, flags);
+	}
 	else
+	{
 		nvdimm_map->iomem = ioremap(offset, size);
+	}
 
 	if (!nvdimm_map->mem)
+	{
 		goto err_map;
+	}
 
 	dev_WARN_ONCE(dev, !is_nvdimm_bus_locked(dev), "%s: bus unlocked!",
-			__func__);
+				  __func__);
 	list_add(&nvdimm_map->list, &nvdimm_bus->mapping_list);
 
 	return nvdimm_map;
 
- err_map:
+err_map:
 	release_mem_region(offset, size);
- err_request_region:
+err_request_region:
 	kfree(nvdimm_map);
 	return NULL;
 }
@@ -136,10 +161,16 @@ static void nvdimm_map_release(struct kref *kref)
 
 	dev_dbg(&nvdimm_bus->dev, "%s: %pa\n", __func__, &nvdimm_map->offset);
 	list_del(&nvdimm_map->list);
+
 	if (nvdimm_map->flags)
+	{
 		memunmap(nvdimm_map->mem);
+	}
 	else
+	{
 		iounmap(nvdimm_map->iomem);
+	}
+
 	release_mem_region(nvdimm_map->offset, nvdimm_map->size);
 	kfree(nvdimm_map);
 }
@@ -162,23 +193,33 @@ static void nvdimm_map_put(void *data)
  * @flags: memremap flags, or, if zero, perform an ioremap instead
  */
 void *devm_nvdimm_memremap(struct device *dev, resource_size_t offset,
-		size_t size, unsigned long flags)
+						   size_t size, unsigned long flags)
 {
 	struct nvdimm_map *nvdimm_map;
 
 	nvdimm_bus_lock(dev);
 	nvdimm_map = find_nvdimm_map(dev, offset);
+
 	if (!nvdimm_map)
+	{
 		nvdimm_map = alloc_nvdimm_map(dev, offset, size, flags);
+	}
 	else
+	{
 		kref_get(&nvdimm_map->kref);
+	}
+
 	nvdimm_bus_unlock(dev);
 
 	if (!nvdimm_map)
+	{
 		return NULL;
+	}
 
 	if (devm_add_action_or_reset(dev, nvdimm_map_put, nvdimm_map))
+	{
 		return NULL;
+	}
 
 	return nvdimm_map->mem;
 }
@@ -191,7 +232,8 @@ u64 nd_fletcher64(void *addr, size_t len, bool le)
 	u64 hi32 = 0;
 	int i;
 
-	for (i = 0; i < len / sizeof(u32); i++) {
+	for (i = 0; i < len / sizeof(u32); i++)
+	{
 		lo32 += le ? le32_to_cpu((__le32) buf[i]) : buf[i];
 		hi32 += lo32;
 	}
@@ -217,19 +259,24 @@ EXPORT_SYMBOL_GPL(to_nvdimm_bus_dev);
 static bool is_uuid_sep(char sep)
 {
 	if (sep == '\n' || sep == '-' || sep == ':' || sep == '\0')
+	{
 		return true;
+	}
+
 	return false;
 }
 
 static int nd_uuid_parse(struct device *dev, u8 *uuid_out, const char *buf,
-		size_t len)
+						 size_t len)
 {
 	const char *str = buf;
 	u8 uuid[16];
 	int i;
 
-	for (i = 0; i < 16; i++) {
-		if (!isxdigit(str[0]) || !isxdigit(str[1])) {
+	for (i = 0; i < 16; i++)
+	{
+		if (!isxdigit(str[0]) || !isxdigit(str[1]))
+		{
 			dev_dbg(dev, "%s: pos: %d buf[%zd]: %c buf[%zd]: %c\n",
 					__func__, i, str - buf, str[0],
 					str + 1 - buf, str[1]);
@@ -238,8 +285,11 @@ static int nd_uuid_parse(struct device *dev, u8 *uuid_out, const char *buf,
 
 		uuid[i] = (hex_to_bin(str[0]) << 4) | hex_to_bin(str[1]);
 		str += 2;
+
 		if (is_uuid_sep(*str))
+		{
 			str++;
+		}
 	}
 
 	memcpy(uuid_out, uuid, sizeof(uuid));
@@ -257,62 +307,85 @@ static int nd_uuid_parse(struct device *dev, u8 *uuid_out, const char *buf,
  * LOCKING: expects device_lock() is held on entry
  */
 int nd_uuid_store(struct device *dev, u8 **uuid_out, const char *buf,
-		size_t len)
+				  size_t len)
 {
 	u8 uuid[16];
 	int rc;
 
 	if (dev->driver)
+	{
 		return -EBUSY;
+	}
 
 	rc = nd_uuid_parse(dev, uuid, buf, len);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	kfree(*uuid_out);
 	*uuid_out = kmemdup(uuid, sizeof(uuid), GFP_KERNEL);
+
 	if (!(*uuid_out))
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
 
 ssize_t nd_sector_size_show(unsigned long current_lbasize,
-		const unsigned long *supported, char *buf)
+							const unsigned long *supported, char *buf)
 {
 	ssize_t len = 0;
 	int i;
 
 	for (i = 0; supported[i]; i++)
 		if (current_lbasize == supported[i])
+		{
 			len += sprintf(buf + len, "[%ld] ", supported[i]);
+		}
 		else
+		{
 			len += sprintf(buf + len, "%ld ", supported[i]);
+		}
+
 	len += sprintf(buf + len, "\n");
 	return len;
 }
 
 ssize_t nd_sector_size_store(struct device *dev, const char *buf,
-		unsigned long *current_lbasize, const unsigned long *supported)
+							 unsigned long *current_lbasize, const unsigned long *supported)
 {
 	unsigned long lbasize;
 	int rc, i;
 
 	if (dev->driver)
+	{
 		return -EBUSY;
+	}
 
 	rc = kstrtoul(buf, 0, &lbasize);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	for (i = 0; supported[i]; i++)
 		if (lbasize == supported[i])
+		{
 			break;
+		}
 
-	if (supported[i]) {
+	if (supported[i])
+	{
 		*current_lbasize = lbasize;
 		return 0;
-	} else {
+	}
+	else
+	{
 		return -EINVAL;
 	}
 }
@@ -347,14 +420,14 @@ void nd_iostat_end(struct bio *bio, unsigned long start)
 EXPORT_SYMBOL(nd_iostat_end);
 
 static ssize_t commands_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+							 struct device_attribute *attr, char *buf)
 {
 	int cmd, len = 0;
 	struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
 	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
 
 	for_each_set_bit(cmd, &nd_desc->cmd_mask, BITS_PER_LONG)
-		len += sprintf(buf + len, "%s ", nvdimm_bus_cmd_name(cmd));
+	len += sprintf(buf + len, "%s ", nvdimm_bus_cmd_name(cmd));
 	len += sprintf(buf + len, "\n");
 	return len;
 }
@@ -366,15 +439,21 @@ static const char *nvdimm_bus_provider(struct nvdimm_bus *nvdimm_bus)
 	struct device *parent = nvdimm_bus->dev.parent;
 
 	if (nd_desc->provider_name)
+	{
 		return nd_desc->provider_name;
+	}
 	else if (parent)
+	{
 		return dev_name(parent);
+	}
 	else
+	{
 		return "unknown";
+	}
 }
 
 static ssize_t provider_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+							 struct device_attribute *attr, char *buf)
 {
 	struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
 
@@ -398,31 +477,38 @@ static int flush_regions_dimms(struct device *dev, void *data)
 }
 
 static ssize_t wait_probe_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
 	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
 	int rc;
 
-	if (nd_desc->flush_probe) {
+	if (nd_desc->flush_probe)
+	{
 		rc = nd_desc->flush_probe(nd_desc);
+
 		if (rc)
+		{
 			return rc;
+		}
 	}
+
 	nd_synchronize();
 	device_for_each_child(dev, NULL, flush_regions_dimms);
 	return sprintf(buf, "1\n");
 }
 static DEVICE_ATTR_RO(wait_probe);
 
-static struct attribute *nvdimm_bus_attributes[] = {
+static struct attribute *nvdimm_bus_attributes[] =
+{
 	&dev_attr_commands.attr,
 	&dev_attr_wait_probe.attr,
 	&dev_attr_provider.attr,
 	NULL,
 };
 
-struct attribute_group nvdimm_bus_attribute_group = {
+struct attribute_group nvdimm_bus_attribute_group =
+{
 	.attrs = nvdimm_bus_attributes,
 };
 EXPORT_SYMBOL_GPL(nvdimm_bus_attribute_group);
@@ -431,10 +517,11 @@ static void set_badblock(struct badblocks *bb, sector_t s, int num)
 {
 	dev_dbg(bb->dev, "Found a poison range (0x%llx, 0x%llx)\n",
 			(u64) s * 512, (u64) num * 512);
+
 	/* this isn't an error as the hardware will still throw an exception */
 	if (badblocks_set(bb, s, num, 1))
 		dev_info_once(bb->dev, "%s: failed for sector %llx\n",
-				__func__, (u64) s);
+					  __func__, (u64) s);
 }
 
 /**
@@ -456,61 +543,89 @@ static void __add_badblock_range(struct badblocks *bb, u64 ns_offset, u64 len)
 
 	start_sector = div_u64(ns_offset, sector_size);
 	num_sectors = div_u64_rem(len, sector_size, &rem);
-	if (rem)
-		num_sectors++;
 
-	if (unlikely(num_sectors > (u64)INT_MAX)) {
+	if (rem)
+	{
+		num_sectors++;
+	}
+
+	if (unlikely(num_sectors > (u64)INT_MAX))
+	{
 		u64 remaining = num_sectors;
 		sector_t s = start_sector;
 
-		while (remaining) {
+		while (remaining)
+		{
 			int done = min_t(u64, remaining, INT_MAX);
 
 			set_badblock(bb, s, done);
 			remaining -= done;
 			s += done;
 		}
-	} else
+	}
+	else
+	{
 		set_badblock(bb, start_sector, num_sectors);
+	}
 }
 
 static void badblocks_populate(struct list_head *poison_list,
-		struct badblocks *bb, const struct resource *res)
+							   struct badblocks *bb, const struct resource *res)
 {
 	struct nd_poison *pl;
 
 	if (list_empty(poison_list))
+	{
 		return;
+	}
 
-	list_for_each_entry(pl, poison_list, list) {
+	list_for_each_entry(pl, poison_list, list)
+	{
 		u64 pl_end = pl->start + pl->length - 1;
 
 		/* Discard intervals with no intersection */
 		if (pl_end < res->start)
+		{
 			continue;
+		}
+
 		if (pl->start >  res->end)
+		{
 			continue;
+		}
+
 		/* Deal with any overlap after start of the namespace */
-		if (pl->start >= res->start) {
+		if (pl->start >= res->start)
+		{
 			u64 start = pl->start;
 			u64 len;
 
 			if (pl_end <= res->end)
+			{
 				len = pl->length;
+			}
 			else
 				len = res->start + resource_size(res)
-					- pl->start;
+					  - pl->start;
+
 			__add_badblock_range(bb, start - res->start, len);
 			continue;
 		}
+
 		/* Deal with overlap for poison starting before the namespace */
-		if (pl->start < res->start) {
+		if (pl->start < res->start)
+		{
 			u64 len;
 
 			if (pl_end < res->end)
+			{
 				len = pl->start + pl->length - res->start;
+			}
 			else
+			{
 				len = resource_size(res);
+			}
+
 			__add_badblock_range(bb, 0, len);
 		}
 	}
@@ -528,16 +643,18 @@ static void badblocks_populate(struct list_head *poison_list,
  * and add badblocks entries for all matching sub-ranges
  */
 void nvdimm_badblocks_populate(struct nd_region *nd_region,
-		struct badblocks *bb, const struct resource *res)
+							   struct badblocks *bb, const struct resource *res)
 {
 	struct nvdimm_bus *nvdimm_bus;
 	struct list_head *poison_list;
 
-	if (!is_nd_pmem(&nd_region->dev)) {
+	if (!is_nd_pmem(&nd_region->dev))
+	{
 		dev_WARN_ONCE(&nd_region->dev, 1,
-				"%s only valid for pmem regions\n", __func__);
+					  "%s only valid for pmem regions\n", __func__);
 		return;
 	}
+
 	nvdimm_bus = walk_to_nvdimm_bus(&nd_region->dev);
 	poison_list = &nvdimm_bus->poison_list;
 
@@ -548,13 +665,16 @@ void nvdimm_badblocks_populate(struct nd_region *nd_region,
 EXPORT_SYMBOL_GPL(nvdimm_badblocks_populate);
 
 static int add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length,
-			gfp_t flags)
+					  gfp_t flags)
 {
 	struct nd_poison *pl;
 
 	pl = kzalloc(sizeof(*pl), flags);
+
 	if (!pl)
+	{
 		return -ENOMEM;
+	}
 
 	pl->start = addr;
 	pl->length = length;
@@ -568,7 +688,9 @@ static int bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
 	struct nd_poison *pl;
 
 	if (list_empty(&nvdimm_bus->poison_list))
+	{
 		return add_poison(nvdimm_bus, addr, length, GFP_KERNEL);
+	}
 
 	/*
 	 * There is a chance this is a duplicate, check for those first.
@@ -576,12 +698,17 @@ static int bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
 	 * errors in the SPA space, and we can't query it per region
 	 */
 	list_for_each_entry(pl, &nvdimm_bus->poison_list, list)
-		if (pl->start == addr) {
-			/* If length has changed, update this list entry */
-			if (pl->length != length)
-				pl->length = length;
-			return 0;
+
+	if (pl->start == addr)
+	{
+		/* If length has changed, update this list entry */
+		if (pl->length != length)
+		{
+			pl->length = length;
 		}
+
+		return 0;
+	}
 
 	/*
 	 * If not a duplicate or a simple length update, add the entry as is,
@@ -604,7 +731,7 @@ int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
 EXPORT_SYMBOL_GPL(nvdimm_bus_add_poison);
 
 void nvdimm_clear_from_poison_list(struct nvdimm_bus *nvdimm_bus,
-		phys_addr_t start, unsigned int len)
+								   phys_addr_t start, unsigned int len)
 {
 	struct list_head *poison_list = &nvdimm_bus->poison_list;
 	u64 clr_end = start + len - 1;
@@ -621,38 +748,52 @@ void nvdimm_clear_from_poison_list(struct nvdimm_bus *nvdimm_bus,
 	 * split into two based on the overlap characteristics
 	 */
 
-	list_for_each_entry_safe(pl, next, poison_list, list) {
+	list_for_each_entry_safe(pl, next, poison_list, list)
+	{
 		u64 pl_end = pl->start + pl->length - 1;
 
 		/* Skip intervals with no intersection */
 		if (pl_end < start)
+		{
 			continue;
+		}
+
 		if (pl->start >  clr_end)
+		{
 			continue;
+		}
+
 		/* Delete completely overlapped poison entries */
-		if ((pl->start >= start) && (pl_end <= clr_end)) {
+		if ((pl->start >= start) && (pl_end <= clr_end))
+		{
 			list_del(&pl->list);
 			kfree(pl);
 			continue;
 		}
+
 		/* Adjust start point of partially cleared entries */
-		if ((start <= pl->start) && (clr_end > pl->start)) {
+		if ((start <= pl->start) && (clr_end > pl->start))
+		{
 			pl->length -= clr_end - pl->start + 1;
 			pl->start = clr_end + 1;
 			continue;
 		}
+
 		/* Adjust pl->length for partial clearing at the tail end */
-		if ((pl->start < start) && (pl_end <= clr_end)) {
+		if ((pl->start < start) && (pl_end <= clr_end))
+		{
 			/* pl->start remains the same */
 			pl->length = start - pl->start;
 			continue;
 		}
+
 		/*
 		 * If clearing in the middle of an entry, we split it into
 		 * two by modifying the current entry to represent one half of
 		 * the split, and adding a new entry for the second half.
 		 */
-		if ((pl->start < start) && (pl_end > clr_end)) {
+		if ((pl->start < start) && (pl_end > clr_end))
+		{
 			u64 new_start = clr_end + 1;
 			u64 new_len = pl_end - new_start + 1;
 
@@ -673,7 +814,9 @@ int nd_integrity_init(struct gendisk *disk, unsigned long meta_size)
 	struct blk_integrity bi;
 
 	if (meta_size == 0)
+	{
 		return 0;
+	}
 
 	memset(&bi, 0, sizeof(bi));
 
@@ -701,18 +844,30 @@ static __init int libnvdimm_init(void)
 	int rc;
 
 	rc = nvdimm_bus_init();
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	rc = nvdimm_init();
+
 	if (rc)
+	{
 		goto err_dimm;
+	}
+
 	rc = nd_region_init();
+
 	if (rc)
+	{
 		goto err_region;
+	}
+
 	return 0;
- err_region:
+err_region:
 	nvdimm_exit();
- err_dimm:
+err_dimm:
 	nvdimm_bus_exit();
 	return rc;
 }

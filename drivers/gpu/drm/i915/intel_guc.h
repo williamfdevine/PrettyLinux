@@ -62,7 +62,8 @@ struct drm_i915_gem_request;
  *           crashes? We probably need to reset the GPU to recover.
  *   retcode: errno from last guc_submit()
  */
-struct i915_guc_client {
+struct i915_guc_client
+{
 	struct i915_vma *vma;
 	void *client_base;		/* first page (only) of above	*/
 	struct i915_gem_context *owner;
@@ -91,7 +92,8 @@ struct i915_guc_client {
 	uint64_t submissions[I915_NUM_ENGINES];
 };
 
-enum intel_guc_fw_status {
+enum intel_guc_fw_status
+{
 	GUC_FIRMWARE_FAIL = -1,
 	GUC_FIRMWARE_NONE = 0,
 	GUC_FIRMWARE_PENDING,
@@ -102,11 +104,12 @@ enum intel_guc_fw_status {
  * This structure encapsulates all the data needed during the process
  * of fetching, caching, and loading the firmware image into the GuC.
  */
-struct intel_guc_fw {
-	struct drm_device *		guc_dev;
-	const char *			guc_fw_path;
+struct intel_guc_fw
+{
+	struct drm_device 		*guc_dev;
+	const char 			*guc_fw_path;
 	size_t				guc_fw_size;
-	struct drm_i915_gem_object *	guc_fw_obj;
+	struct drm_i915_gem_object 	*guc_fw_obj;
 	enum intel_guc_fw_status	guc_fw_fetch_status;
 	enum intel_guc_fw_status	guc_fw_load_status;
 
@@ -123,7 +126,8 @@ struct intel_guc_fw {
 	uint32_t ucode_offset;
 };
 
-struct intel_guc {
+struct intel_guc
+{
 	struct intel_guc_fw guc_fw;
 	uint32_t log_flags;
 	struct i915_vma *log_vma;

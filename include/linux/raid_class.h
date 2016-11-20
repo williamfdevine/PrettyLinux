@@ -7,18 +7,21 @@
  */
 #include <linux/transport_class.h>
 
-struct raid_template {
+struct raid_template
+{
 	struct transport_container raid_attrs;
 };
 
-struct raid_function_template {
+struct raid_function_template
+{
 	void *cookie;
 	int (*is_raid)(struct device *);
 	void (*get_resync)(struct device *);
 	void (*get_state)(struct device *);
 };
 
-enum raid_state {
+enum raid_state
+{
 	RAID_STATE_UNKNOWN = 0,
 	RAID_STATE_ACTIVE,
 	RAID_STATE_DEGRADED,
@@ -26,7 +29,8 @@ enum raid_state {
 	RAID_STATE_OFFLINE,
 };
 
-enum raid_level {
+enum raid_level
+{
 	RAID_LEVEL_UNKNOWN = 0,
 	RAID_LEVEL_LINEAR,
 	RAID_LEVEL_0,
@@ -40,7 +44,8 @@ enum raid_level {
 	RAID_LEVEL_6,
 };
 
-struct raid_data {
+struct raid_data
+{
 	struct list_head component_list;
 	int component_count;
 	enum raid_level level;
@@ -52,32 +57,32 @@ struct raid_data {
 #define RAID_MAX_RESYNC		(10000)
 
 #define DEFINE_RAID_ATTRIBUTE(type, attr)				      \
-static inline void							      \
-raid_set_##attr(struct raid_template *r, struct device *dev, type value) {    \
-	struct device *device =						      \
-		attribute_container_find_class_device(&r->raid_attrs.ac, dev);\
-	struct raid_data *rd;						      \
-	BUG_ON(!device);						      \
-	rd = dev_get_drvdata(device);					      \
-	rd->attr = value;						      \
-}									      \
-static inline type							      \
-raid_get_##attr(struct raid_template *r, struct device *dev) {		      \
-	struct device *device =						      \
-		attribute_container_find_class_device(&r->raid_attrs.ac, dev);\
-	struct raid_data *rd;						      \
-	BUG_ON(!device);						      \
-	rd = dev_get_drvdata(device);					      \
-	return rd->attr;						      \
-}
+	static inline void							      \
+	raid_set_##attr(struct raid_template *r, struct device *dev, type value) {    \
+		struct device *device =						      \
+				attribute_container_find_class_device(&r->raid_attrs.ac, dev);\
+		struct raid_data *rd;						      \
+		BUG_ON(!device);						      \
+		rd = dev_get_drvdata(device);					      \
+		rd->attr = value;						      \
+	}									      \
+	static inline type							      \
+	raid_get_##attr(struct raid_template *r, struct device *dev) {		      \
+		struct device *device =						      \
+				attribute_container_find_class_device(&r->raid_attrs.ac, dev);\
+		struct raid_data *rd;						      \
+		BUG_ON(!device);						      \
+		rd = dev_get_drvdata(device);					      \
+		return rd->attr;						      \
+	}
 
 DEFINE_RAID_ATTRIBUTE(enum raid_level, level)
 DEFINE_RAID_ATTRIBUTE(int, resync)
 DEFINE_RAID_ATTRIBUTE(enum raid_state, state)
-	
+
 struct raid_template *raid_class_attach(struct raid_function_template *);
 void raid_class_release(struct raid_template *);
 
 int __must_check raid_component_add(struct raid_template *, struct device *,
-				    struct device *);
+									struct device *);
 

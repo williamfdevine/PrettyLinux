@@ -23,7 +23,8 @@
 #define PLL_ODIV0_REG	0x8
 #define PLL_ODIV1_REG	0xC
 
-struct i2s_pll_cfg {
+struct i2s_pll_cfg
+{
 	unsigned int rate;
 	unsigned int idiv;
 	unsigned int fbdiv;
@@ -31,7 +32,8 @@ struct i2s_pll_cfg {
 	unsigned int odiv1;
 };
 
-static const struct i2s_pll_cfg i2s_pll_cfg_27m[] = {
+static const struct i2s_pll_cfg i2s_pll_cfg_27m[] =
+{
 	/* 27 Mhz */
 	{ 1024000, 0x104, 0x451, 0x10E38, 0x2000 },
 	{ 1411200, 0x104, 0x596, 0x10D35, 0x2000 },
@@ -44,7 +46,8 @@ static const struct i2s_pll_cfg i2s_pll_cfg_27m[] = {
 	{ 0, 0, 0, 0, 0 },
 };
 
-static const struct i2s_pll_cfg i2s_pll_cfg_28m[] = {
+static const struct i2s_pll_cfg i2s_pll_cfg_28m[] =
+{
 	/* 28.224 Mhz */
 	{ 1024000, 0x82, 0x105, 0x107DF, 0x2000 },
 	{ 1411200, 0x28A, 0x1, 0x10001, 0x2000 },
@@ -57,20 +60,21 @@ static const struct i2s_pll_cfg i2s_pll_cfg_28m[] = {
 	{ 0, 0, 0, 0, 0 },
 };
 
-struct i2s_pll_clk {
+struct i2s_pll_clk
+{
 	void __iomem *base;
 	struct clk_hw hw;
 	struct device *dev;
 };
 
 static inline void i2s_pll_write(struct i2s_pll_clk *clk, unsigned int reg,
-		unsigned int val)
+								 unsigned int val)
 {
 	writel_relaxed(val, clk->base + reg);
 }
 
 static inline unsigned int i2s_pll_read(struct i2s_pll_clk *clk,
-		unsigned int reg)
+										unsigned int reg)
 {
 	return readl_relaxed(clk->base + reg);
 }
@@ -87,18 +91,21 @@ static inline unsigned int i2s_pll_get_value(unsigned int val)
 
 static const struct i2s_pll_cfg *i2s_pll_get_cfg(unsigned long prate)
 {
-	switch (prate) {
-	case 27000000:
-		return i2s_pll_cfg_27m;
-	case 28224000:
-		return i2s_pll_cfg_28m;
-	default:
-		return NULL;
+	switch (prate)
+	{
+		case 27000000:
+			return i2s_pll_cfg_27m;
+
+		case 28224000:
+			return i2s_pll_cfg_28m;
+
+		default:
+			return NULL;
 	}
 }
 
 static unsigned long i2s_pll_recalc_rate(struct clk_hw *hw,
-			unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct i2s_pll_clk *clk = to_i2s_pll_clk(hw);
 	unsigned int idiv, fbdiv, odiv;
@@ -111,38 +118,44 @@ static unsigned long i2s_pll_recalc_rate(struct clk_hw *hw,
 }
 
 static long i2s_pll_round_rate(struct clk_hw *hw, unsigned long rate,
-			unsigned long *prate)
+							   unsigned long *prate)
 {
 	struct i2s_pll_clk *clk = to_i2s_pll_clk(hw);
 	const struct i2s_pll_cfg *pll_cfg = i2s_pll_get_cfg(*prate);
 	int i;
 
-	if (!pll_cfg) {
+	if (!pll_cfg)
+	{
 		dev_err(clk->dev, "invalid parent rate=%ld\n", *prate);
 		return -EINVAL;
 	}
 
 	for (i = 0; pll_cfg[i].rate != 0; i++)
 		if (pll_cfg[i].rate == rate)
+		{
 			return rate;
+		}
 
 	return -EINVAL;
 }
 
 static int i2s_pll_set_rate(struct clk_hw *hw, unsigned long rate,
-			unsigned long parent_rate)
+							unsigned long parent_rate)
 {
 	struct i2s_pll_clk *clk = to_i2s_pll_clk(hw);
 	const struct i2s_pll_cfg *pll_cfg = i2s_pll_get_cfg(parent_rate);
 	int i;
 
-	if (!pll_cfg) {
+	if (!pll_cfg)
+	{
 		dev_err(clk->dev, "invalid parent rate=%ld\n", parent_rate);
 		return -EINVAL;
 	}
 
-	for (i = 0; pll_cfg[i].rate != 0; i++) {
-		if (pll_cfg[i].rate == rate) {
+	for (i = 0; pll_cfg[i].rate != 0; i++)
+	{
+		if (pll_cfg[i].rate == rate)
+		{
 			i2s_pll_write(clk, PLL_IDIV_REG, pll_cfg[i].idiv);
 			i2s_pll_write(clk, PLL_FBDIV_REG, pll_cfg[i].fbdiv);
 			i2s_pll_write(clk, PLL_ODIV0_REG, pll_cfg[i].odiv0);
@@ -156,7 +169,8 @@ static int i2s_pll_set_rate(struct clk_hw *hw, unsigned long rate,
 	return -EINVAL;
 }
 
-static const struct clk_ops i2s_pll_ops = {
+static const struct clk_ops i2s_pll_ops =
+{
 	.recalc_rate = i2s_pll_recalc_rate,
 	.round_rate = i2s_pll_round_rate,
 	.set_rate = i2s_pll_set_rate,
@@ -174,13 +188,19 @@ static int i2s_pll_clk_probe(struct platform_device *pdev)
 	struct resource *mem;
 
 	pll_clk = devm_kzalloc(dev, sizeof(*pll_clk), GFP_KERNEL);
+
 	if (!pll_clk)
+	{
 		return -ENOMEM;
+	}
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	pll_clk->base = devm_ioremap_resource(dev, mem);
+
 	if (IS_ERR(pll_clk->base))
+	{
 		return PTR_ERR(pll_clk->base);
+	}
 
 	clk_name = node->name;
 	init.name = clk_name;
@@ -192,7 +212,9 @@ static int i2s_pll_clk_probe(struct platform_device *pdev)
 	pll_clk->dev = dev;
 
 	clk = devm_clk_register(dev, &pll_clk->hw);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(dev, "failed to register %s clock (%ld)\n",
 				clk_name, PTR_ERR(clk));
 		return PTR_ERR(clk);
@@ -207,13 +229,15 @@ static int i2s_pll_clk_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id i2s_pll_clk_id[] = {
+static const struct of_device_id i2s_pll_clk_id[] =
+{
 	{ .compatible = "snps,axs10x-i2s-pll-clock", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, i2s_pll_clk_id);
 
-static struct platform_driver i2s_pll_clk_driver = {
+static struct platform_driver i2s_pll_clk_driver =
+{
 	.driver = {
 		.name = "axs10x-i2s-pll-clock",
 		.of_match_table = i2s_pll_clk_id,

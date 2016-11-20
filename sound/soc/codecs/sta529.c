@@ -62,16 +62,16 @@
 #define STA529_MAX_REGISTER	0x32
 
 #define STA529_RATES		(SNDRV_PCM_RATE_8000 | \
-				SNDRV_PCM_RATE_11025 | \
-				SNDRV_PCM_RATE_16000 | \
-				SNDRV_PCM_RATE_22050 | \
-				SNDRV_PCM_RATE_32000 | \
-				SNDRV_PCM_RATE_44100 | \
-				SNDRV_PCM_RATE_48000)
+							 SNDRV_PCM_RATE_11025 | \
+							 SNDRV_PCM_RATE_16000 | \
+							 SNDRV_PCM_RATE_22050 | \
+							 SNDRV_PCM_RATE_32000 | \
+							 SNDRV_PCM_RATE_44100 | \
+							 SNDRV_PCM_RATE_48000)
 
 #define STA529_FORMAT		(SNDRV_PCM_FMTBIT_S16_LE | \
-				SNDRV_PCM_FMTBIT_S24_LE | \
-				SNDRV_PCM_FMTBIT_S32_LE)
+							 SNDRV_PCM_FMTBIT_S24_LE | \
+							 SNDRV_PCM_FMTBIT_S32_LE)
 #define	S2PC_VALUE		0x98
 #define CLOCK_OUT		0x60
 #define DATA_FORMAT_MSK		0x0E
@@ -94,7 +94,8 @@
 #define BCLK_TO_FS_MSK		0x30
 #define AUDIO_MUTE_MSK		0x80
 
-static const struct reg_default sta529_reg_defaults[] = {
+static const struct reg_default sta529_reg_defaults[] =
+{
 	{ 0,  0x35 },     /* R0   - FFX Configuration reg 0 */
 	{ 1,  0xc8 },     /* R1   - FFX Configuration reg 1 */
 	{ 2,  0x50 },     /* R2   - Master Volume */
@@ -109,74 +110,85 @@ static const struct reg_default sta529_reg_defaults[] = {
 	{ 32, 0x21 },     /* R32  - Misc Register */
 };
 
-struct sta529 {
+struct sta529
+{
 	struct regmap *regmap;
 };
 
 static bool sta529_readable(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
+	switch (reg)
+	{
 
-	case STA529_FFXCFG0:
-	case STA529_FFXCFG1:
-	case STA529_MVOL:
-	case STA529_LVOL:
-	case STA529_RVOL:
-	case STA529_S2PCFG0:
-	case STA529_S2PCFG1:
-	case STA529_P2SCFG0:
-	case STA529_P2SCFG1:
-	case STA529_ADCCFG:
-	case STA529_CKOCFG:
-	case STA529_MISC:
-		return true;
-	default:
-		return false;
+		case STA529_FFXCFG0:
+		case STA529_FFXCFG1:
+		case STA529_MVOL:
+		case STA529_LVOL:
+		case STA529_RVOL:
+		case STA529_S2PCFG0:
+		case STA529_S2PCFG1:
+		case STA529_P2SCFG0:
+		case STA529_P2SCFG1:
+		case STA529_ADCCFG:
+		case STA529_CKOCFG:
+		case STA529_MISC:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
 
 static const char *pwm_mode_text[] = { "Binary", "Headphone", "Ternary",
-	"Phase-shift"};
+									   "Phase-shift"
+									 };
 
 static const DECLARE_TLV_DB_SCALE(out_gain_tlv, -9150, 50, 0);
 static const DECLARE_TLV_DB_SCALE(master_vol_tlv, -12750, 50, 0);
 static SOC_ENUM_SINGLE_DECL(pwm_src, STA529_FFXCFG1, 4, pwm_mode_text);
 
-static const struct snd_kcontrol_new sta529_snd_controls[] = {
+static const struct snd_kcontrol_new sta529_snd_controls[] =
+{
 	SOC_DOUBLE_R_TLV("Digital Playback Volume", STA529_LVOL, STA529_RVOL, 0,
-			127, 0, out_gain_tlv),
+	127, 0, out_gain_tlv),
 	SOC_SINGLE_TLV("Master Playback Volume", STA529_MVOL, 0, 127, 1,
-			master_vol_tlv),
+	master_vol_tlv),
 	SOC_ENUM("PWM Select", pwm_src),
 };
 
 static int sta529_set_bias_level(struct snd_soc_codec *codec, enum
-		snd_soc_bias_level level)
+								 snd_soc_bias_level level)
 {
 	struct sta529 *sta529 = snd_soc_codec_get_drvdata(codec);
 
-	switch (level) {
-	case SND_SOC_BIAS_ON:
-	case SND_SOC_BIAS_PREPARE:
-		snd_soc_update_bits(codec, STA529_FFXCFG0, POWER_CNTLMSAK,
-				POWER_UP);
-		snd_soc_update_bits(codec, STA529_MISC,	FFX_CLK_MSK,
-				FFX_CLK_ENB);
-		break;
-	case SND_SOC_BIAS_STANDBY:
-		if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF)
-			regcache_sync(sta529->regmap);
-		snd_soc_update_bits(codec, STA529_FFXCFG0,
-					POWER_CNTLMSAK, POWER_STDBY);
-		/* Making FFX output to zero */
-		snd_soc_update_bits(codec, STA529_FFXCFG0, FFX_MASK,
-				FFX_OFF);
-		snd_soc_update_bits(codec, STA529_MISC, FFX_CLK_MSK,
-				FFX_CLK_DIS);
-		break;
-	case SND_SOC_BIAS_OFF:
-		break;
+	switch (level)
+	{
+		case SND_SOC_BIAS_ON:
+		case SND_SOC_BIAS_PREPARE:
+			snd_soc_update_bits(codec, STA529_FFXCFG0, POWER_CNTLMSAK,
+								POWER_UP);
+			snd_soc_update_bits(codec, STA529_MISC,	FFX_CLK_MSK,
+								FFX_CLK_ENB);
+			break;
+
+		case SND_SOC_BIAS_STANDBY:
+			if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF)
+			{
+				regcache_sync(sta529->regmap);
+			}
+
+			snd_soc_update_bits(codec, STA529_FFXCFG0,
+								POWER_CNTLMSAK, POWER_STDBY);
+			/* Making FFX output to zero */
+			snd_soc_update_bits(codec, STA529_FFXCFG0, FFX_MASK,
+								FFX_OFF);
+			snd_soc_update_bits(codec, STA529_MISC, FFX_CLK_MSK,
+								FFX_CLK_DIS);
+			break;
+
+		case SND_SOC_BIAS_OFF:
+			break;
 	}
 
 	return 0;
@@ -184,68 +196,78 @@ static int sta529_set_bias_level(struct snd_soc_codec *codec, enum
 }
 
 static int sta529_hw_params(struct snd_pcm_substream *substream,
-		struct snd_pcm_hw_params *params,
-		struct snd_soc_dai *dai)
+							struct snd_pcm_hw_params *params,
+							struct snd_soc_dai *dai)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	int pdata, play_freq_val, record_freq_val;
 	int bclk_to_fs_ratio;
 
-	switch (params_width(params)) {
-	case 16:
-		pdata = 1;
-		bclk_to_fs_ratio = 0;
-		break;
-	case 24:
-		pdata = 2;
-		bclk_to_fs_ratio = 1;
-		break;
-	case 32:
-		pdata = 3;
-		bclk_to_fs_ratio = 2;
-		break;
-	default:
-		dev_err(codec->dev, "Unsupported format\n");
-		return -EINVAL;
+	switch (params_width(params))
+	{
+		case 16:
+			pdata = 1;
+			bclk_to_fs_ratio = 0;
+			break;
+
+		case 24:
+			pdata = 2;
+			bclk_to_fs_ratio = 1;
+			break;
+
+		case 32:
+			pdata = 3;
+			bclk_to_fs_ratio = 2;
+			break;
+
+		default:
+			dev_err(codec->dev, "Unsupported format\n");
+			return -EINVAL;
 	}
 
-	switch (params_rate(params)) {
-	case 8000:
-	case 11025:
-		play_freq_val = 0;
-		record_freq_val = 2;
-		break;
-	case 16000:
-	case 22050:
-		play_freq_val = 1;
-		record_freq_val = 0;
-		break;
+	switch (params_rate(params))
+	{
+		case 8000:
+		case 11025:
+			play_freq_val = 0;
+			record_freq_val = 2;
+			break;
 
-	case 32000:
-	case 44100:
-	case 48000:
-		play_freq_val = 2;
-		record_freq_val = 0;
-		break;
-	default:
-		dev_err(codec->dev, "Unsupported rate\n");
-		return -EINVAL;
+		case 16000:
+		case 22050:
+			play_freq_val = 1;
+			record_freq_val = 0;
+			break;
+
+		case 32000:
+		case 44100:
+		case 48000:
+			play_freq_val = 2;
+			record_freq_val = 0;
+			break;
+
+		default:
+			dev_err(codec->dev, "Unsupported rate\n");
+			return -EINVAL;
 	}
 
-	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
+	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+	{
 		snd_soc_update_bits(codec, STA529_S2PCFG1, PDATA_LEN_MSK,
-				pdata << 6);
+							pdata << 6);
 		snd_soc_update_bits(codec, STA529_S2PCFG1, BCLK_TO_FS_MSK,
-				bclk_to_fs_ratio << 4);
+							bclk_to_fs_ratio << 4);
 		snd_soc_update_bits(codec, STA529_MISC, PLAY_FREQ_RANGE_MSK,
-				play_freq_val << 4);
-	} else {
+							play_freq_val << 4);
+	}
+	else
+	{
 		snd_soc_update_bits(codec, STA529_P2SCFG1, PDATA_LEN_MSK,
-				pdata << 6);
+							pdata << 6);
 		snd_soc_update_bits(codec, STA529_P2SCFG1, BCLK_TO_FS_MSK,
-				bclk_to_fs_ratio << 4);
+							bclk_to_fs_ratio << 4);
 		snd_soc_update_bits(codec, STA529_MISC, CAP_FREQ_RANGE_MSK,
-				record_freq_val << 2);
+							record_freq_val << 2);
 	}
 
 	return 0;
@@ -256,7 +278,9 @@ static int sta529_mute(struct snd_soc_dai *dai, int mute)
 	u8 val = 0;
 
 	if (mute)
+	{
 		val |= CODEC_MUTE_VAL;
+	}
 
 	snd_soc_update_bits(dai->codec, STA529_FFXCFG0, AUDIO_MUTE_MSK, val);
 
@@ -269,18 +293,22 @@ static int sta529_set_dai_fmt(struct snd_soc_dai *codec_dai, u32 fmt)
 	u8 mode = 0;
 
 	/* interface format */
-	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-	case SND_SOC_DAIFMT_LEFT_J:
-		mode = LEFT_J_DATA_FORMAT;
-		break;
-	case SND_SOC_DAIFMT_I2S:
-		mode = I2S_DATA_FORMAT;
-		break;
-	case SND_SOC_DAIFMT_RIGHT_J:
-		mode = RIGHT_J_DATA_FORMAT;
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK)
+	{
+		case SND_SOC_DAIFMT_LEFT_J:
+			mode = LEFT_J_DATA_FORMAT;
+			break;
+
+		case SND_SOC_DAIFMT_I2S:
+			mode = I2S_DATA_FORMAT;
+			break;
+
+		case SND_SOC_DAIFMT_RIGHT_J:
+			mode = RIGHT_J_DATA_FORMAT;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	snd_soc_update_bits(codec, STA529_S2PCFG0, DATA_FORMAT_MSK, mode);
@@ -288,13 +316,15 @@ static int sta529_set_dai_fmt(struct snd_soc_dai *codec_dai, u32 fmt)
 	return 0;
 }
 
-static const struct snd_soc_dai_ops sta529_dai_ops = {
+static const struct snd_soc_dai_ops sta529_dai_ops =
+{
 	.hw_params	=	sta529_hw_params,
 	.set_fmt	=	sta529_set_dai_fmt,
 	.digital_mute	=	sta529_mute,
 };
 
-static struct snd_soc_dai_driver sta529_dai = {
+static struct snd_soc_dai_driver sta529_dai =
+{
 	.name = "sta529-audio",
 	.playback = {
 		.stream_name = "Playback",
@@ -313,7 +343,8 @@ static struct snd_soc_dai_driver sta529_dai = {
 	.ops	= &sta529_dai_ops,
 };
 
-static const struct snd_soc_codec_driver sta529_codec_driver = {
+static const struct snd_soc_codec_driver sta529_codec_driver =
+{
 	.set_bias_level = sta529_set_bias_level,
 	.suspend_bias_off = true,
 
@@ -323,7 +354,8 @@ static const struct snd_soc_codec_driver sta529_codec_driver = {
 	},
 };
 
-static const struct regmap_config sta529_regmap = {
+static const struct regmap_config sta529_regmap =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 
@@ -336,17 +368,22 @@ static const struct regmap_config sta529_regmap = {
 };
 
 static int sta529_i2c_probe(struct i2c_client *i2c,
-			    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct sta529 *sta529;
 	int ret;
 
 	sta529 = devm_kzalloc(&i2c->dev, sizeof(struct sta529), GFP_KERNEL);
+
 	if (!sta529)
+	{
 		return -ENOMEM;
+	}
 
 	sta529->regmap = devm_regmap_init_i2c(i2c, &sta529_regmap);
-	if (IS_ERR(sta529->regmap)) {
+
+	if (IS_ERR(sta529->regmap))
+	{
 		ret = PTR_ERR(sta529->regmap);
 		dev_err(&i2c->dev, "Failed to allocate regmap: %d\n", ret);
 		return ret;
@@ -355,9 +392,12 @@ static int sta529_i2c_probe(struct i2c_client *i2c,
 	i2c_set_clientdata(i2c, sta529);
 
 	ret = snd_soc_register_codec(&i2c->dev,
-			&sta529_codec_driver, &sta529_dai, 1);
+								 &sta529_codec_driver, &sta529_dai, 1);
+
 	if (ret != 0)
+	{
 		dev_err(&i2c->dev, "Failed to register CODEC: %d\n", ret);
+	}
 
 	return ret;
 }
@@ -369,13 +409,15 @@ static int sta529_i2c_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id sta529_i2c_id[] = {
+static const struct i2c_device_id sta529_i2c_id[] =
+{
 	{ "sta529", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, sta529_i2c_id);
 
-static struct i2c_driver sta529_i2c_driver = {
+static struct i2c_driver sta529_i2c_driver =
+{
 	.driver = {
 		.name = "sta529",
 	},

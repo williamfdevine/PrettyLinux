@@ -30,7 +30,8 @@ static int ixp4xx_set_mode(struct ata_link *link, struct ata_device **error)
 {
 	struct ata_device *dev;
 
-	ata_for_each_dev(dev, link, ENABLED) {
+	ata_for_each_dev(dev, link, ENABLED)
+	{
 		ata_dev_info(dev, "configured for PIO0\n");
 		dev->pio_mode = XFER_PIO_0;
 		dev->xfer_mode = XFER_PIO_0;
@@ -41,7 +42,7 @@ static int ixp4xx_set_mode(struct ata_link *link, struct ata_device **error)
 }
 
 static unsigned int ixp4xx_mmio_data_xfer(struct ata_device *dev,
-				unsigned char *buf, unsigned int buflen, int rw)
+		unsigned char *buf, unsigned int buflen, int rw)
 {
 	unsigned int i;
 	unsigned int words = buflen >> 1;
@@ -59,23 +60,32 @@ static unsigned int ixp4xx_mmio_data_xfer(struct ata_device *dev,
 	/* Transfer multiple of 2 bytes */
 	if (rw == READ)
 		for (i = 0; i < words; i++)
+		{
 			buf16[i] = readw(mmio);
+		}
 	else
 		for (i = 0; i < words; i++)
+		{
 			writew(buf16[i], mmio);
+		}
 
 	/* Transfer trailing 1 byte, if any. */
-	if (unlikely(buflen & 0x01)) {
+	if (unlikely(buflen & 0x01))
+	{
 		u16 align_buf[1] = { 0 };
 		unsigned char *trailing_buf = buf + buflen - 1;
 
-		if (rw == READ) {
+		if (rw == READ)
+		{
 			align_buf[0] = readw(mmio);
 			memcpy(trailing_buf, align_buf, 1);
-		} else {
+		}
+		else
+		{
 			memcpy(align_buf, trailing_buf, 1);
 			writew(align_buf[0], mmio);
 		}
+
 		words++;
 	}
 
@@ -85,11 +95,13 @@ static unsigned int ixp4xx_mmio_data_xfer(struct ata_device *dev,
 	return words << 1;
 }
 
-static struct scsi_host_template ixp4xx_sht = {
+static struct scsi_host_template ixp4xx_sht =
+{
 	ATA_PIO_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations ixp4xx_port_ops = {
+static struct ata_port_operations ixp4xx_port_ops =
+{
 	.inherits		= &ata_sff_port_ops,
 	.sff_data_xfer		= ixp4xx_mmio_data_xfer,
 	.cable_detect		= ata_cable_40wire,
@@ -97,8 +109,8 @@ static struct ata_port_operations ixp4xx_port_ops = {
 };
 
 static void ixp4xx_setup_port(struct ata_port *ap,
-			      struct ixp4xx_pata_data *data,
-			      unsigned long raw_cs0, unsigned long raw_cs1)
+							  struct ixp4xx_pata_data *data,
+							  unsigned long raw_cs0, unsigned long raw_cs1)
 {
 	struct ata_ioports *ioaddr = &ap->ioaddr;
 	unsigned long raw_cmd = raw_cs0;
@@ -150,27 +162,40 @@ static int ixp4xx_pata_probe(struct platform_device *pdev)
 	cs1 = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 
 	if (!cs0 || !cs1)
+	{
 		return -EINVAL;
+	}
 
 	/* allocate host */
 	host = ata_host_alloc(&pdev->dev, 1);
+
 	if (!host)
+	{
 		return -ENOMEM;
+	}
 
 	/* acquire resources and fill host */
 	ret = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	data->cs0 = devm_ioremap(&pdev->dev, cs0->start, 0x1000);
 	data->cs1 = devm_ioremap(&pdev->dev, cs1->start, 0x1000);
 
 	if (!data->cs0 || !data->cs1)
+	{
 		return -ENOMEM;
+	}
 
 	irq = platform_get_irq(pdev, 0);
+
 	if (irq)
+	{
 		irq_set_irq_type(irq, IRQ_TYPE_EDGE_RISING);
+	}
 
 	/* Setup expansion bus chip selects */
 	*data->cs0_cfg = data->cs0_bits;
@@ -190,7 +215,8 @@ static int ixp4xx_pata_probe(struct platform_device *pdev)
 	return ata_host_activate(host, irq, ata_sff_interrupt, 0, &ixp4xx_sht);
 }
 
-static struct platform_driver ixp4xx_pata_platform_driver = {
+static struct platform_driver ixp4xx_pata_platform_driver =
+{
 	.driver	 = {
 		.name   = DRV_NAME,
 	},

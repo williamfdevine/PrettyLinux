@@ -64,21 +64,24 @@ ACPI_MODULE_NAME("utcache")
  ******************************************************************************/
 acpi_status
 acpi_os_create_cache(char *cache_name,
-		     u16 object_size,
-		     u16 max_depth, struct acpi_memory_list **return_cache)
+					 u16 object_size,
+					 u16 max_depth, struct acpi_memory_list **return_cache)
 {
 	struct acpi_memory_list *cache;
 
 	ACPI_FUNCTION_ENTRY();
 
-	if (!cache_name || !return_cache || (object_size < 16)) {
+	if (!cache_name || !return_cache || (object_size < 16))
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
 	/* Create the cache object */
 
 	cache = acpi_os_allocate(sizeof(struct acpi_memory_list));
-	if (!cache) {
+
+	if (!cache)
+	{
 		return (AE_NO_MEMORY);
 	}
 
@@ -112,18 +115,22 @@ acpi_status acpi_os_purge_cache(struct acpi_memory_list *cache)
 
 	ACPI_FUNCTION_ENTRY();
 
-	if (!cache) {
+	if (!cache)
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
 	status = acpi_ut_acquire_mutex(ACPI_MTX_CACHES);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
 	/* Walk the list of objects in this cache */
 
-	while (cache->list_head) {
+	while (cache->list_head)
+	{
 
 		/* Delete and unlink one cached state object */
 
@@ -160,7 +167,9 @@ acpi_status acpi_os_delete_cache(struct acpi_memory_list *cache)
 	/* Purge all objects in the cache */
 
 	status = acpi_os_purge_cache(cache);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
@@ -190,22 +199,27 @@ acpi_status acpi_os_release_object(struct acpi_memory_list *cache, void *object)
 
 	ACPI_FUNCTION_ENTRY();
 
-	if (!cache || !object) {
+	if (!cache || !object)
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
 	/* If cache is full, just free this object */
 
-	if (cache->current_depth >= cache->max_depth) {
+	if (cache->current_depth >= cache->max_depth)
+	{
 		ACPI_FREE(object);
 		ACPI_MEM_TRACKING(cache->total_freed++);
 	}
 
 	/* Otherwise put this object back into the cache */
 
-	else {
+	else
+	{
 		status = acpi_ut_acquire_mutex(ACPI_MTX_CACHES);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return (status);
 		}
 
@@ -246,12 +260,15 @@ void *acpi_os_acquire_object(struct acpi_memory_list *cache)
 
 	ACPI_FUNCTION_TRACE(os_acquire_object);
 
-	if (!cache) {
+	if (!cache)
+	{
 		return_PTR(NULL);
 	}
 
 	status = acpi_ut_acquire_mutex(ACPI_MTX_CACHES);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return_PTR(NULL);
 	}
 
@@ -259,7 +276,8 @@ void *acpi_os_acquire_object(struct acpi_memory_list *cache)
 
 	/* Check the cache first */
 
-	if (cache->list_head) {
+	if (cache->list_head)
+	{
 
 		/* There is an object available, use it */
 
@@ -270,39 +288,50 @@ void *acpi_os_acquire_object(struct acpi_memory_list *cache)
 
 		ACPI_MEM_TRACKING(cache->hits++);
 		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
-				  "Object %p from %s cache\n", object,
-				  cache->list_name));
+						  "Object %p from %s cache\n", object,
+						  cache->list_name));
 
 		status = acpi_ut_release_mutex(ACPI_MTX_CACHES);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return_PTR(NULL);
 		}
 
 		/* Clear (zero) the previously used Object */
 
 		memset(object, 0, cache->object_size);
-	} else {
+	}
+	else
+	{
 		/* The cache is empty, create a new object */
 
 		ACPI_MEM_TRACKING(cache->total_allocated++);
 
 #ifdef ACPI_DBG_TRACK_ALLOCATIONS
+
 		if ((cache->total_allocated - cache->total_freed) >
-		    cache->max_occupied) {
+			cache->max_occupied)
+		{
 			cache->max_occupied =
-			    cache->total_allocated - cache->total_freed;
+				cache->total_allocated - cache->total_freed;
 		}
+
 #endif
 
 		/* Avoid deadlock with ACPI_ALLOCATE_ZEROED */
 
 		status = acpi_ut_release_mutex(ACPI_MTX_CACHES);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return_PTR(NULL);
 		}
 
 		object = ACPI_ALLOCATE_ZEROED(cache->object_size);
-		if (!object) {
+
+		if (!object)
+		{
 			return_PTR(NULL);
 		}
 	}

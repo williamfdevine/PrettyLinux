@@ -38,13 +38,17 @@ static void ioc_setscl(void *data, int state)
 	u_int ones = force_ones;
 
 	if (state)
+	{
 		ones |= SCL;
+	}
 	else
+	{
 		ones &= ~SCL;
+	}
 
 	force_ones = ones;
 
- 	ioc_writeb(ioc_control | ones, IOC_CONTROL);
+	ioc_writeb(ioc_control | ones, IOC_CONTROL);
 }
 
 static void ioc_setsda(void *data, int state)
@@ -53,13 +57,17 @@ static void ioc_setsda(void *data, int state)
 	u_int ones = force_ones;
 
 	if (state)
+	{
 		ones |= SDA;
+	}
 	else
+	{
 		ones &= ~SDA;
+	}
 
 	force_ones = ones;
 
- 	ioc_writeb(ioc_control | ones, IOC_CONTROL);
+	ioc_writeb(ioc_control | ones, IOC_CONTROL);
 }
 
 static int ioc_getscl(void *data)
@@ -72,7 +80,8 @@ static int ioc_getsda(void *data)
 	return (ioc_readb(IOC_CONTROL) & SDA) != 0;
 }
 
-static struct i2c_algo_bit_data ioc_data = {
+static struct i2c_algo_bit_data ioc_data =
+{
 	.setsda		= ioc_setsda,
 	.setscl		= ioc_setscl,
 	.getsda		= ioc_getsda,
@@ -81,7 +90,8 @@ static struct i2c_algo_bit_data ioc_data = {
 	.timeout	= HZ,
 };
 
-static struct i2c_adapter ioc_ops = {
+static struct i2c_adapter ioc_ops =
+{
 	.nr			= 0,
 	.algo_data		= &ioc_data,
 };

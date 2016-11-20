@@ -100,7 +100,8 @@ typedef __u32 can_err_mask_t;
  * @__res1:  reserved / padding
  * @data:    CAN frame payload (up to 8 byte)
  */
-struct can_frame {
+struct can_frame
+{
 	canid_t can_id;  /* 32 bit CAN_ID + EFF/RTR/ERR flags */
 	__u8    can_dlc; /* frame payload length in byte (0 .. CAN_MAX_DLEN) */
 	__u8    __pad;   /* padding */
@@ -137,7 +138,8 @@ struct can_frame {
  * @__res1: reserved / padding
  * @data:   CAN FD frame payload (up to CANFD_MAX_DLEN byte)
  */
-struct canfd_frame {
+struct canfd_frame
+{
 	canid_t can_id;  /* 32 bit CAN_ID + EFF/RTR/ERR flags */
 	__u8    len;     /* frame payload length in byte */
 	__u8    flags;   /* additional flags for CAN FD */
@@ -166,10 +168,12 @@ struct canfd_frame {
  * @can_ifindex: CAN network interface index.
  * @can_addr:    protocol specific address information
  */
-struct sockaddr_can {
+struct sockaddr_can
+{
 	__kernel_sa_family_t can_family;
 	int         can_ifindex;
-	union {
+	union
+	{
 		/* transport protocol class address information (e.g. ISOTP) */
 		struct { canid_t rx_id, tx_id; } tp;
 
@@ -190,7 +194,8 @@ struct sockaddr_can {
  * The filter can be inverted (CAN_INV_FILTER bit set in can_id) or it can
  * filter for error message frames (CAN_ERR_FLAG bit set in mask).
  */
-struct can_filter {
+struct can_filter
+{
 	canid_t can_id;
 	canid_t can_mask;
 };

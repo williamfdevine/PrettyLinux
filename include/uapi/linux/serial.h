@@ -2,8 +2,8 @@
  * include/linux/serial.h
  *
  * Copyright (C) 1992 by Theodore Ts'o.
- * 
- * Redistribution of this file is permitted under the terms of the GNU 
+ *
+ * Redistribution of this file is permitted under the terms of the GNU
  * Public License (GPL)
  */
 
@@ -15,7 +15,8 @@
 #include <linux/tty_flags.h>
 
 
-struct serial_struct {
+struct serial_struct
+{
 	int	type;
 	int	line;
 	unsigned int	port;
@@ -80,7 +81,8 @@ struct serial_struct {
 /*
  * Multiport serial configuration structure --- external structure
  */
-struct serial_multiport_struct {
+struct serial_multiport_struct
+{
 	int		irq;
 	int		port1;
 	unsigned char	mask1, match1;
@@ -98,7 +100,8 @@ struct serial_multiport_struct {
  * Serial input interrupt line counters -- external structure
  * Four lines can interrupt: CTS, DSR, RI, DCD
  */
-struct serial_icounter_struct {
+struct serial_icounter_struct
+{
 	int cts, dsr, rng, dcd;
 	int rx, tx;
 	int frame, overrun, parity, brk;
@@ -113,7 +116,8 @@ struct serial_icounter_struct {
  * reverted appropriately.
  */
 
-struct serial_rs485 {
+struct serial_rs485
+{
 	__u32	flags;			/* RS485 feature flags */
 #define SER_RS485_ENABLED		(1 << 0)	/* If enabled */
 #define SER_RS485_RTS_ON_SEND		(1 << 1)	/* Logical level for

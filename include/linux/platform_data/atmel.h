@@ -11,8 +11,9 @@
 #include <linux/mtd/partitions.h>
 #include <linux/serial.h>
 
- /* Compact Flash */
-struct at91_cf_data {
+/* Compact Flash */
+struct at91_cf_data
+{
 	int	irq_pin;		/* I/O IRQ */
 	int	det_pin;		/* Card detect */
 	int	vcc_pin;		/* power switching */
@@ -23,8 +24,9 @@ struct at91_cf_data {
 #define AT91_IDE_SWAP_A0_A2	0x02
 };
 
- /* NAND / SmartMedia */
-struct atmel_nand_data {
+/* NAND / SmartMedia */
+struct atmel_nand_data
+{
 	int		enable_pin;		/* chip enable */
 	int		det_pin;		/* card detect */
 	int		rdy_pin;		/* ready/busy */
@@ -42,8 +44,9 @@ struct atmel_nand_data {
 	bool		need_reset_workaround;
 };
 
- /* Serial */
-struct atmel_uart_data {
+/* Serial */
+struct atmel_uart_data
+{
 	int			num;		/* port num */
 	short			use_dma_tx;	/* use transmit DMA? */
 	short			use_dma_rx;	/* use receive DMA? */

@@ -113,9 +113,9 @@
 #define CCR_GCC			0x42 /* Gated Clock Control		*/
 #define CCR_USC			0x50 /* Unified Software Clear		*/
 #define CCR_VRAMRTC		0x60 /* VRAM Timing Control		*/
-				/* 0x61 VRAM Refresh Control		*/
+/* 0x61 VRAM Refresh Control		*/
 #define CCR_VRAMSAC		0x62 /* VRAM Access Control		*/
-				/* 0x63	VRAM Status			*/
+/* 0x63	VRAM Status			*/
 #define CCR_VRAMBC		0x64 /* VRAM Block Control		*/
 
 /*
@@ -193,7 +193,8 @@
 
 static char *mode_option;
 
-struct tmiofb_par {
+struct tmiofb_par
+{
 	u32				pseudo_palette[16];
 
 #ifdef CONFIG_FB_TMIO_ACCELL
@@ -225,17 +226,22 @@ static irqreturn_t tmiofb_irq(int irq, void *__info)
 	tmio_iowrite16(bbisc, par->lcr + LCR_BBISC);
 
 #ifdef CONFIG_FB_TMIO_ACCELL
+
 	/*
 	 * We were in polling mode and now we got correct irq.
 	 * Switch back to IRQ-based sync of command FIFO
 	 */
-	if (unlikely(par->use_polling && irq != -1)) {
+	if (unlikely(par->use_polling && irq != -1))
+	{
 		printk(KERN_INFO "tmiofb: switching to waitq\n");
 		par->use_polling = false;
 	}
 
 	if (bbisc & 1)
+	{
 		wake_up(&par->wait_acc);
+	}
+
 #endif
 
 	return IRQ_HANDLED;
@@ -275,7 +281,9 @@ static int tmiofb_hw_init(struct platform_device *dev)
 	unsigned long base;
 
 	if (nlcr == NULL || vram == NULL)
+	{
 		return -EINVAL;
+	}
 
 	base = nlcr->start;
 
@@ -358,27 +366,37 @@ static int __must_check
 tmiofb_acc_wait(struct fb_info *info, unsigned int ccs)
 {
 	struct tmiofb_par *par = info->par;
+
 	/*
 	 * This code can be called with interrupts disabled.
 	 * So instead of relaying on irq to trigger the event,
 	 * poll the state till the necessary command is executed.
 	 */
-	if (irqs_disabled() || par->use_polling) {
+	if (irqs_disabled() || par->use_polling)
+	{
 		int i = 0;
-		while (tmio_ioread16(par->lcr + LCR_CCS) > ccs) {
+
+		while (tmio_ioread16(par->lcr + LCR_CCS) > ccs)
+		{
 			udelay(1);
 			i++;
-			if (i > 10000) {
+
+			if (i > 10000)
+			{
 				pr_err("tmiofb: timeout waiting for %d\n",
-						ccs);
+					   ccs);
 				return -ETIMEDOUT;
 			}
+
 			tmiofb_irq(-1, info);
 		}
-	} else {
+	}
+	else
+	{
 		if (!wait_event_interruptible_timeout(par->wait_acc,
-				tmio_ioread16(par->lcr + LCR_CCS) <= ccs,
-				1000)) {
+											  tmio_ioread16(par->lcr + LCR_CCS) <= ccs,
+											  1000))
+		{
 			pr_err("tmiofb: timeout waiting for %d\n", ccs);
 			return -ETIMEDOUT;
 		}
@@ -397,10 +415,14 @@ tmiofb_acc_write(struct fb_info *info, const u32 *cmd, unsigned int count)
 	int ret;
 
 	ret = tmiofb_acc_wait(info, TMIOFB_FIFO_SIZE - count);
-	if (ret)
-		return ret;
 
-	for (; count; count--, cmd++) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	for (; count; count--, cmd++)
+	{
 		tmio_iowrite16(*cmd >> 16, par->lcr + LCR_CMDH);
 		tmio_iowrite16(*cmd, par->lcr + LCR_CMDL);
 	}
@@ -421,10 +443,13 @@ static int tmiofb_sync(struct fb_info *fbi)
 
 	ret = tmiofb_acc_wait(fbi, 0);
 
-	while (tmio_ioread16(par->lcr + LCR_BBES) & 2) { /* blit active */
+	while (tmio_ioread16(par->lcr + LCR_BBES) & 2)   /* blit active */
+	{
 		udelay(1);
 		i++ ;
-		if (i > 10000) {
+
+		if (i > 10000)
+		{
 			printk(KERN_ERR "timeout waiting for blit to end!\n");
 			return -ETIMEDOUT;
 		}
@@ -436,7 +461,8 @@ static int tmiofb_sync(struct fb_info *fbi)
 static void
 tmiofb_fillrect(struct fb_info *fbi, const struct fb_fillrect *rect)
 {
-	const u32 cmd[] = {
+	const u32 cmd[] =
+	{
 		TMIOFB_ACC_DSADR((rect->dy * fbi->mode->xres + rect->dx) * 2),
 		TMIOFB_ACC_DHPIX(rect->width - 1),
 		TMIOFB_ACC_DVPIX(rect->height - 1),
@@ -445,7 +471,8 @@ tmiofb_fillrect(struct fb_info *fbi, const struct fb_fillrect *rect)
 	};
 
 	if (fbi->state != FBINFO_STATE_RUNNING ||
-	    fbi->flags & FBINFO_HWACCEL_DISABLED) {
+		fbi->flags & FBINFO_HWACCEL_DISABLED)
+	{
 		cfb_fillrect(fbi, rect);
 		return;
 	}
@@ -456,7 +483,8 @@ tmiofb_fillrect(struct fb_info *fbi, const struct fb_fillrect *rect)
 static void
 tmiofb_copyarea(struct fb_info *fbi, const struct fb_copyarea *area)
 {
-	const u32 cmd[] = {
+	const u32 cmd[] =
+	{
 		TMIOFB_ACC_DSADR((area->dy * fbi->mode->xres + area->dx) * 2),
 		TMIOFB_ACC_DHPIX(area->width - 1),
 		TMIOFB_ACC_DVPIX(area->height - 1),
@@ -465,7 +493,8 @@ tmiofb_copyarea(struct fb_info *fbi, const struct fb_copyarea *area)
 	};
 
 	if (fbi->state != FBINFO_STATE_RUNNING ||
-	    fbi->flags & FBINFO_HWACCEL_DISABLED) {
+		fbi->flags & FBINFO_HWACCEL_DISABLED)
+	{
 		cfb_copyarea(fbi, area);
 		return;
 	}
@@ -476,7 +505,8 @@ tmiofb_copyarea(struct fb_info *fbi, const struct fb_copyarea *area)
 
 static void tmiofb_clearscreen(struct fb_info *info)
 {
-	const struct fb_fillrect rect = {
+	const struct fb_fillrect rect =
+	{
 		.dx	= 0,
 		.dy	= 0,
 		.width	= info->mode->xres,
@@ -497,51 +527,72 @@ static int tmiofb_vblank(struct fb_info *fbi, struct fb_vblank *vblank)
 
 	vblank->vcount = vcount;
 	vblank->flags = FB_VBLANK_HAVE_VBLANK | FB_VBLANK_HAVE_VCOUNT
-						| FB_VBLANK_HAVE_VSYNC;
+					| FB_VBLANK_HAVE_VSYNC;
 
 	if (vcount < mode->vsync_len)
+	{
 		vblank->flags |= FB_VBLANK_VSYNCING;
+	}
 
 	if (vcount < vds || vcount > vds + mode->yres)
+	{
 		vblank->flags |= FB_VBLANK_VBLANKING;
+	}
 
 	return 0;
 }
 
 
 static int tmiofb_ioctl(struct fb_info *fbi,
-		unsigned int cmd, unsigned long arg)
+						unsigned int cmd, unsigned long arg)
 {
-	switch (cmd) {
-	case FBIOGET_VBLANK: {
-		struct fb_vblank vblank = {0};
-		void __user *argp = (void __user *) arg;
+	switch (cmd)
+	{
+		case FBIOGET_VBLANK:
+			{
+				struct fb_vblank vblank = {0};
+				void __user *argp = (void __user *) arg;
 
-		tmiofb_vblank(fbi, &vblank);
-		if (copy_to_user(argp, &vblank, sizeof vblank))
-			return -EFAULT;
-		return 0;
-	}
+				tmiofb_vblank(fbi, &vblank);
+
+				if (copy_to_user(argp, &vblank, sizeof vblank))
+				{
+					return -EFAULT;
+				}
+
+				return 0;
+			}
 
 #ifdef CONFIG_FB_TMIO_ACCELL
-	case FBIO_TMIO_ACC_SYNC:
-		tmiofb_sync(fbi);
-		return 0;
 
-	case FBIO_TMIO_ACC_WRITE: {
-		u32 __user *argp = (void __user *) arg;
-		u32 len;
-		u32 acc[16];
+		case FBIO_TMIO_ACC_SYNC:
+			tmiofb_sync(fbi);
+			return 0;
 
-		if (get_user(len, argp))
-			return -EFAULT;
-		if (len > ARRAY_SIZE(acc))
-			return -EINVAL;
-		if (copy_from_user(acc, argp + 1, sizeof(u32) * len))
-			return -EFAULT;
+		case FBIO_TMIO_ACC_WRITE:
+			{
+				u32 __user *argp = (void __user *) arg;
+				u32 len;
+				u32 acc[16];
 
-		return tmiofb_acc_write(fbi, acc, len);
-	}
+				if (get_user(len, argp))
+				{
+					return -EFAULT;
+				}
+
+				if (len > ARRAY_SIZE(acc))
+				{
+					return -EINVAL;
+				}
+
+				if (copy_from_user(acc, argp + 1, sizeof(u32) * len))
+				{
+					return -EFAULT;
+				}
+
+				return tmiofb_acc_write(fbi, acc, len);
+			}
+
 #endif
 	}
 
@@ -561,13 +612,16 @@ tmiofb_find_mode(struct fb_info *info, struct fb_var_screeninfo *var)
 	struct fb_videomode *best = NULL;
 	int i;
 
-	for (i = 0; i < data->num_modes; i++) {
+	for (i = 0; i < data->num_modes; i++)
+	{
 		struct fb_videomode *mode = data->modes + i;
 
 		if (mode->xres >= var->xres && mode->yres >= var->yres
-				&& (!best || (mode->xres < best->xres
-					   && mode->yres < best->yres)))
+			&& (!best || (mode->xres < best->xres
+						  && mode->yres < best->yres)))
+		{
 			best = mode;
+		}
 	}
 
 	return best;
@@ -580,8 +634,11 @@ static int tmiofb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 	struct tmio_fb_data *data = dev_get_platdata(info->device);
 
 	mode = tmiofb_find_mode(info, var);
+
 	if (!mode || var->bits_per_pixel > 16)
+	{
 		return -EINVAL;
+	}
 
 	fb_videomode_to_var(var, mode);
 
@@ -589,7 +646,9 @@ static int tmiofb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 	var->yres_virtual = info->screen_size / (mode->xres * 2);
 
 	if (var->yres_virtual < var->yres)
+	{
 		return -EINVAL;
+	}
 
 	var->xoffset = 0;
 	var->yoffset = 0;
@@ -616,12 +675,15 @@ static int tmiofb_set_par(struct fb_info *info)
 	struct fb_videomode *mode;
 
 	mode = tmiofb_find_mode(info, var);
+
 	if (!mode)
+	{
 		return -EINVAL;
+	}
 
 	info->mode = mode;
 	info->fix.line_length = info->mode->xres *
-			var->bits_per_pixel / 8;
+							var->bits_per_pixel / 8;
 
 	tmiofb_hw_mode(to_platform_device(info->device));
 	tmiofb_clearscreen(info);
@@ -629,12 +691,13 @@ static int tmiofb_set_par(struct fb_info *info)
 }
 
 static int tmiofb_setcolreg(unsigned regno, unsigned red, unsigned green,
-			   unsigned blue, unsigned transp,
-			   struct fb_info *info)
+							unsigned blue, unsigned transp,
+							struct fb_info *info)
 {
 	struct tmiofb_par *par = info->par;
 
-	if (regno < ARRAY_SIZE(par->pseudo_palette)) {
+	if (regno < ARRAY_SIZE(par->pseudo_palette))
+	{
 		par->pseudo_palette[regno] =
 			((red & 0xf800)) |
 			((green & 0xfc00) >>  5) |
@@ -654,7 +717,8 @@ static int tmiofb_blank(int blank, struct fb_info *info)
 	return 0;
 }
 
-static struct fb_ops tmiofb_ops = {
+static struct fb_ops tmiofb_ops =
+{
 	.owner		= THIS_MODULE,
 
 	.fb_ioctl	= tmiofb_ioctl,
@@ -690,11 +754,14 @@ static int tmiofb_probe(struct platform_device *dev)
 	/*
 	 * This is the only way ATM to disable the fb
 	 */
-	if (data == NULL) {
+	if (data == NULL)
+	{
 		dev_err(&dev->dev, "NULL platform data!\n");
 		return -EINVAL;
 	}
-	if (ccr == NULL || lcr == NULL || vram == NULL || irq < 0) {
+
+	if (ccr == NULL || lcr == NULL || vram == NULL || irq < 0)
+	{
 		dev_err(&dev->dev, "missing resources\n");
 		return -EINVAL;
 	}
@@ -702,7 +769,9 @@ static int tmiofb_probe(struct platform_device *dev)
 	info = framebuffer_alloc(sizeof(struct tmiofb_par), &dev->dev);
 
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	par = info->par;
 
@@ -712,7 +781,7 @@ static int tmiofb_probe(struct platform_device *dev)
 	par->use_polling = true;
 
 	info->flags = FBINFO_DEFAULT | FBINFO_HWACCEL_COPYAREA
-			| FBINFO_HWACCEL_FILLRECT;
+				  | FBINFO_HWACCEL_FILLRECT;
 #else
 	info->flags = FBINFO_DEFAULT;
 #endif
@@ -731,66 +800,90 @@ static int tmiofb_probe(struct platform_device *dev)
 	info->pseudo_palette = par->pseudo_palette;
 
 	par->ccr = ioremap(ccr->start, resource_size(ccr));
-	if (!par->ccr) {
+
+	if (!par->ccr)
+	{
 		retval = -ENOMEM;
 		goto err_ioremap_ccr;
 	}
 
 	par->lcr = ioremap(info->fix.mmio_start, info->fix.mmio_len);
-	if (!par->lcr) {
+
+	if (!par->lcr)
+	{
 		retval = -ENOMEM;
 		goto err_ioremap_lcr;
 	}
 
 	info->screen_base = ioremap(info->fix.smem_start, info->fix.smem_len);
-	if (!info->screen_base) {
+
+	if (!info->screen_base)
+	{
 		retval = -ENOMEM;
 		goto err_ioremap_vram;
 	}
 
 	retval = request_irq(irq, &tmiofb_irq, 0,
-					dev_name(&dev->dev), info);
+						 dev_name(&dev->dev), info);
 
 	if (retval)
+	{
 		goto err_request_irq;
+	}
 
 	platform_set_drvdata(dev, info);
 
 	retval = fb_find_mode(&info->var, info, mode_option,
-			data->modes, data->num_modes,
-			data->modes, 16);
-	if (!retval) {
+						  data->modes, data->num_modes,
+						  data->modes, 16);
+
+	if (!retval)
+	{
 		retval = -EINVAL;
 		goto err_find_mode;
 	}
 
-	if (cell->enable) {
+	if (cell->enable)
+	{
 		retval = cell->enable(dev);
+
 		if (retval)
+		{
 			goto err_enable;
+		}
 	}
 
 	retval = tmiofb_hw_init(dev);
+
 	if (retval)
+	{
 		goto err_hw_init;
+	}
 
 	fb_videomode_to_modelist(data->modes, data->num_modes,
-				 &info->modelist);
+							 &info->modelist);
 
 	retval = register_framebuffer(info);
+
 	if (retval < 0)
+	{
 		goto err_register_framebuffer;
+	}
 
 	fb_info(info, "%s frame buffer device\n", info->fix.id);
 
 	return 0;
 
 err_register_framebuffer:
-/*err_set_par:*/
+	/*err_set_par:*/
 	tmiofb_hw_stop(dev);
 err_hw_init:
+
 	if (cell->disable)
+	{
 		cell->disable(dev);
+	}
+
 err_enable:
 err_find_mode:
 	free_irq(irq, info);
@@ -812,14 +905,17 @@ static int tmiofb_remove(struct platform_device *dev)
 	int irq = platform_get_irq(dev, 0);
 	struct tmiofb_par *par;
 
-	if (info) {
+	if (info)
+	{
 		par = info->par;
 		unregister_framebuffer(info);
 
 		tmiofb_hw_stop(dev);
 
 		if (cell->disable)
+		{
 			cell->disable(dev);
+		}
 
 		free_irq(irq, info);
 
@@ -841,7 +937,7 @@ static void tmiofb_dump_regs(struct platform_device *dev)
 
 	printk(KERN_DEBUG "lhccr:\n");
 #define CCR_PR(n)	printk(KERN_DEBUG "\t" #n " = \t%04x\n",\
-		tmio_ioread16(par->ccr + CCR_ ## n));
+						   tmio_ioread16(par->ccr + CCR_ ## n));
 	CCR_PR(CMD);
 	CCR_PR(REVID);
 	CCR_PR(BASEL);
@@ -856,7 +952,7 @@ static void tmiofb_dump_regs(struct platform_device *dev)
 
 	printk(KERN_DEBUG "lcr: \n");
 #define LCR_PR(n)	printk(KERN_DEBUG "\t" #n " = \t%04x\n",\
-		tmio_ioread16(par->lcr + LCR_ ## n));
+						   tmio_ioread16(par->lcr + LCR_ ## n));
 	LCR_PR(UIS);
 	LCR_PR(VHPN);
 	LCR_PR(CFSAL);
@@ -943,7 +1039,9 @@ static int tmiofb_suspend(struct platform_device *dev, pm_message_t state)
 	fb_set_suspend(info, 1);
 
 	if (info->fbops->fb_sync)
+	{
 		info->fbops->fb_sync(info);
+	}
 
 
 #ifdef CONFIG_FB_TMIO_ACCELL
@@ -957,7 +1055,9 @@ static int tmiofb_suspend(struct platform_device *dev, pm_message_t state)
 	tmiofb_hw_stop(dev);
 
 	if (cell->suspend)
+	{
 		retval = cell->suspend(dev);
+	}
 
 	console_unlock();
 
@@ -972,10 +1072,14 @@ static int tmiofb_resume(struct platform_device *dev)
 
 	console_lock();
 
-	if (cell->resume) {
+	if (cell->resume)
+	{
 		retval = cell->resume(dev);
+
 		if (retval)
+		{
 			goto out;
+		}
 	}
 
 	tmiofb_irq(-1, info);
@@ -994,7 +1098,8 @@ out:
 #define tmiofb_resume	NULL
 #endif
 
-static struct platform_driver tmiofb_driver = {
+static struct platform_driver tmiofb_driver =
+{
 	.driver.name	= "tmio-fb",
 	.driver.owner	= THIS_MODULE,
 	.probe		= tmiofb_probe,
@@ -1011,11 +1116,17 @@ static void __init tmiofb_setup(char *options)
 	char *this_opt;
 
 	if (!options || !*options)
+	{
 		return;
+	}
 
-	while ((this_opt = strsep(&options, ",")) != NULL) {
+	while ((this_opt = strsep(&options, ",")) != NULL)
+	{
 		if (!*this_opt)
+		{
 			continue;
+		}
+
 		/*
 		 * FIXME
 		 */
@@ -1029,7 +1140,10 @@ static int __init tmiofb_init(void)
 	char *option = NULL;
 
 	if (fb_get_options("tmiofb", &option))
+	{
 		return -ENODEV;
+	}
+
 	tmiofb_setup(option);
 #endif
 	return platform_driver_register(&tmiofb_driver);

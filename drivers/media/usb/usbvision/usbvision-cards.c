@@ -31,7 +31,8 @@
 #include "usbvision-cards.h"
 
 /* Supported Devices: A table for usbvision.c*/
-struct usbvision_device_data_st  usbvision_device_data[] = {
+struct usbvision_device_data_st  usbvision_device_data[] =
+{
 	[XANBOO] = {
 		.interface      = -1,
 		.codec          = CODEC_SAA7113,
@@ -1059,7 +1060,8 @@ const int usbvision_device_data_size = ARRAY_SIZE(usbvision_device_data);
 
 /* Supported Devices */
 
-struct usb_device_id usbvision_table[] = {
+struct usb_device_id usbvision_table[] =
+{
 	{ USB_DEVICE(0x0a6f, 0x0400), .driver_info = XANBOO },
 	{ USB_DEVICE(0x050d, 0x0106), .driver_info = BELKIN_VIDEOBUS_II },
 	{ USB_DEVICE(0x050d, 0x0207), .driver_info = BELKIN_VIDEOBUS },

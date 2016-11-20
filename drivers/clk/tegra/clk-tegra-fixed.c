@@ -30,9 +30,9 @@
 #define OSC_CTRL_PLL_REF_DIV_SHIFT	26
 
 int __init tegra_osc_clk_init(void __iomem *clk_base, struct tegra_clk *clks,
-			      unsigned long *input_freqs, unsigned int num,
-			      unsigned int clk_m_div, unsigned long *osc_freq,
-			      unsigned long *pll_ref_freq)
+							  unsigned long *input_freqs, unsigned int num,
+							  unsigned int clk_m_div, unsigned long *osc_freq,
+							  unsigned long *pll_ref_freq)
 {
 	struct clk *clk, *osc;
 	struct clk **dt_clk;
@@ -43,11 +43,16 @@ int __init tegra_osc_clk_init(void __iomem *clk_base, struct tegra_clk *clks,
 	osc_idx = val >> OSC_CTRL_OSC_FREQ_SHIFT;
 
 	if (osc_idx < num)
+	{
 		*osc_freq = input_freqs[osc_idx];
+	}
 	else
+	{
 		*osc_freq = 0;
+	}
 
-	if (!*osc_freq) {
+	if (!*osc_freq)
+	{
 		WARN_ON(1);
 		return -EINVAL;
 	}
@@ -55,26 +60,34 @@ int __init tegra_osc_clk_init(void __iomem *clk_base, struct tegra_clk *clks,
 	osc = clk_register_fixed_rate(NULL, "osc", NULL, 0, *osc_freq);
 
 	dt_clk = tegra_lookup_dt_id(tegra_clk_clk_m, clks);
+
 	if (!dt_clk)
+	{
 		return 0;
+	}
 
 	clk = clk_register_fixed_factor(NULL, "clk_m", "osc",
-					0, 1, clk_m_div);
+									0, 1, clk_m_div);
 	*dt_clk = clk;
 
 	/* pll_ref */
 	val = (val >> OSC_CTRL_PLL_REF_DIV_SHIFT) & 3;
 	pll_ref_div = 1 << val;
 	dt_clk = tegra_lookup_dt_id(tegra_clk_pll_ref, clks);
+
 	if (!dt_clk)
+	{
 		return 0;
+	}
 
 	clk = clk_register_fixed_factor(NULL, "pll_ref", "osc",
-					0, 1, pll_ref_div);
+									0, 1, pll_ref_div);
 	*dt_clk = clk;
 
 	if (pll_ref_freq)
+	{
 		*pll_ref_freq = *osc_freq / pll_ref_div;
+	}
 
 	return 0;
 }
@@ -86,24 +99,30 @@ void __init tegra_fixed_clk_init(struct tegra_clk *tegra_clks)
 
 	/* clk_32k */
 	dt_clk = tegra_lookup_dt_id(tegra_clk_clk_32k, tegra_clks);
-	if (dt_clk) {
+
+	if (dt_clk)
+	{
 		clk = clk_register_fixed_rate(NULL, "clk_32k", NULL, 0, 32768);
 		*dt_clk = clk;
 	}
 
 	/* clk_m_div2 */
 	dt_clk = tegra_lookup_dt_id(tegra_clk_clk_m_div2, tegra_clks);
-	if (dt_clk) {
+
+	if (dt_clk)
+	{
 		clk = clk_register_fixed_factor(NULL, "clk_m_div2", "clk_m",
-					CLK_SET_RATE_PARENT, 1, 2);
+										CLK_SET_RATE_PARENT, 1, 2);
 		*dt_clk = clk;
 	}
 
 	/* clk_m_div4 */
 	dt_clk = tegra_lookup_dt_id(tegra_clk_clk_m_div4, tegra_clks);
-	if (dt_clk) {
+
+	if (dt_clk)
+	{
 		clk = clk_register_fixed_factor(NULL, "clk_m_div4", "clk_m",
-					CLK_SET_RATE_PARENT, 1, 4);
+										CLK_SET_RATE_PARENT, 1, 4);
 		*dt_clk = clk;
 	}
 }

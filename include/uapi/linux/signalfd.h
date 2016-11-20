@@ -16,7 +16,8 @@
 #define SFD_CLOEXEC O_CLOEXEC
 #define SFD_NONBLOCK O_NONBLOCK
 
-struct signalfd_siginfo {
+struct signalfd_siginfo
+{
 	__u32 ssi_signo;
 	__s32 ssi_errno;
 	__s32 ssi_code;

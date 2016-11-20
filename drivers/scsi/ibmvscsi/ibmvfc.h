@@ -36,7 +36,7 @@
 #define IBMVFC_ADISC_CANCEL_TIMEOUT	45
 #define IBMVFC_ADISC_TIMEOUT		15
 #define IBMVFC_ADISC_PLUS_CANCEL_TIMEOUT	\
-		(IBMVFC_ADISC_TIMEOUT + IBMVFC_ADISC_CANCEL_TIMEOUT)
+	(IBMVFC_ADISC_TIMEOUT + IBMVFC_ADISC_CANCEL_TIMEOUT)
 #define IBMVFC_INIT_TIMEOUT		120
 #define IBMVFC_ABORT_TIMEOUT		8
 #define IBMVFC_ABORT_WAIT_TIMEOUT	40
@@ -72,19 +72,22 @@
 #define IBMVFC_MAD_DRIVER_FAILED	0xEE
 #define IBMVFC_MAD_CRQ_ERROR		0xEF
 
-enum ibmvfc_crq_valid {
+enum ibmvfc_crq_valid
+{
 	IBMVFC_CRQ_CMD_RSP		= 0x80,
 	IBMVFC_CRQ_INIT_RSP		= 0xC0,
 	IBMVFC_CRQ_XPORT_EVENT		= 0xFF,
 };
 
-enum ibmvfc_crq_format {
+enum ibmvfc_crq_format
+{
 	IBMVFC_CRQ_INIT			= 0x01,
 	IBMVFC_CRQ_INIT_COMPLETE	= 0x02,
 	IBMVFC_PARTITION_MIGRATED	= 0x06,
 };
 
-enum ibmvfc_cmd_status_flags {
+enum ibmvfc_cmd_status_flags
+{
 	IBMVFC_FABRIC_MAPPED		= 0x0001,
 	IBMVFC_VIOS_FAILURE		= 0x0002,
 	IBMVFC_FC_FAILURE			= 0x0004,
@@ -93,7 +96,8 @@ enum ibmvfc_cmd_status_flags {
 	IBMVFC_VIOS_LOGGED		= 0x0020,
 };
 
-enum ibmvfc_fabric_mapped_errors {
+enum ibmvfc_fabric_mapped_errors
+{
 	IBMVFC_UNABLE_TO_ESTABLISH	= 0x0001,
 	IBMVFC_XPORT_FAULT		= 0x0002,
 	IBMVFC_CMD_TIMEOUT		= 0x0003,
@@ -110,7 +114,8 @@ enum ibmvfc_fabric_mapped_errors {
 	IBMVFC_XPORT_GENERAL		= 0x8000,
 };
 
-enum ibmvfc_vios_errors {
+enum ibmvfc_vios_errors
+{
 	IBMVFC_CRQ_FAILURE			= 0x0001,
 	IBMVFC_SW_FAILURE				= 0x0002,
 	IBMVFC_INVALID_PARAMETER		= 0x0003,
@@ -123,7 +128,8 @@ enum ibmvfc_vios_errors {
 	IBMVFC_COMMAND_FAILED			= 0x8000,
 };
 
-enum ibmvfc_mad_types {
+enum ibmvfc_mad_types
+{
 	IBMVFC_NPIV_LOGIN		= 0x0001,
 	IBMVFC_DISC_TARGETS	= 0x0002,
 	IBMVFC_PORT_LOGIN		= 0x0004,
@@ -135,27 +141,31 @@ enum ibmvfc_mad_types {
 	IBMVFC_NPIV_LOGOUT	= 0x0800,
 };
 
-struct ibmvfc_mad_common {
+struct ibmvfc_mad_common
+{
 	__be32 version;
 	__be32 reserved;
 	__be32 opcode;
 	__be16 status;
 	__be16 length;
 	__be64 tag;
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-struct ibmvfc_npiv_login_mad {
+struct ibmvfc_npiv_login_mad
+{
 	struct ibmvfc_mad_common common;
 	struct srp_direct_buf buffer;
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-struct ibmvfc_npiv_logout_mad {
+struct ibmvfc_npiv_logout_mad
+{
 	struct ibmvfc_mad_common common;
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
 #define IBMVFC_MAX_NAME 256
 
-struct ibmvfc_npiv_login {
+struct ibmvfc_npiv_login
+{
 	__be32 ostype;
 #define IBMVFC_OS_LINUX	0x02
 	__be32 pad;
@@ -177,18 +187,20 @@ struct ibmvfc_npiv_login {
 	u8 device_name[IBMVFC_MAX_NAME];
 	u8 drc_name[IBMVFC_MAX_NAME];
 	__be64 reserved2[2];
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-struct ibmvfc_common_svc_parms {
+struct ibmvfc_common_svc_parms
+{
 	__be16 fcph_version;
 	__be16 b2b_credit;
 	__be16 features;
 	__be16 bb_rcv_sz; /* upper nibble is BB_SC_N */
 	__be32 ratov;
 	__be32 edtov;
-}__attribute__((packed, aligned (4)));
+} __attribute__((packed, aligned (4)));
 
-struct ibmvfc_service_parms {
+struct ibmvfc_service_parms
+{
 	struct ibmvfc_common_svc_parms common;
 	u8 port_name[8];
 	u8 node_name[8];
@@ -201,9 +213,10 @@ struct ibmvfc_service_parms {
 	__be32 ext_len;
 	__be32 reserved[30];
 	__be32 clk_sync_qos[2];
-}__attribute__((packed, aligned (4)));
+} __attribute__((packed, aligned (4)));
 
-struct ibmvfc_npiv_login_resp {
+struct ibmvfc_npiv_login_resp
+{
 	__be32 version;
 	__be16 status;
 	__be16 error;
@@ -226,19 +239,22 @@ struct ibmvfc_npiv_login_resp {
 	u8 drc_name[IBMVFC_MAX_NAME];
 	struct ibmvfc_service_parms service_parms;
 	__be64 reserved2;
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-union ibmvfc_npiv_login_data {
+union ibmvfc_npiv_login_data
+{
 	struct ibmvfc_npiv_login login;
 	struct ibmvfc_npiv_login_resp resp;
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-struct ibmvfc_discover_targets_buf {
+struct ibmvfc_discover_targets_buf
+{
 	__be32 scsi_id[1];
 #define IBMVFC_DISC_TGT_SCSI_ID_MASK	0x00ffffff
 };
 
-struct ibmvfc_discover_targets {
+struct ibmvfc_discover_targets
+{
 	struct ibmvfc_mad_common common;
 	struct srp_direct_buf buffer;
 	__be32 flags;
@@ -248,9 +264,10 @@ struct ibmvfc_discover_targets {
 	__be32 num_avail;
 	__be32 num_written;
 	__be64 reserved[2];
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-enum ibmvfc_fc_reason {
+enum ibmvfc_fc_reason
+{
 	IBMVFC_INVALID_ELS_CMD_CODE	= 0x01,
 	IBMVFC_INVALID_VERSION		= 0x02,
 	IBMVFC_LOGICAL_ERROR		= 0x03,
@@ -264,7 +281,8 @@ enum ibmvfc_fc_reason {
 	IBMVFC_VENDOR_SPECIFIC		= 0xFF,
 };
 
-enum ibmvfc_fc_type {
+enum ibmvfc_fc_type
+{
 	IBMVFC_FABRIC_REJECT	= 0x01,
 	IBMVFC_PORT_REJECT	= 0x02,
 	IBMVFC_LS_REJECT		= 0x03,
@@ -273,11 +291,13 @@ enum ibmvfc_fc_type {
 	IBMVFC_BASIC_REJECT	= 0x06,
 };
 
-enum ibmvfc_gs_explain {
+enum ibmvfc_gs_explain
+{
 	IBMVFC_PORT_NAME_NOT_REG	= 0x02,
 };
 
-struct ibmvfc_port_login {
+struct ibmvfc_port_login
+{
 	struct ibmvfc_mad_common common;
 	__be64 scsi_id;
 	__be16 reserved;
@@ -292,9 +312,10 @@ struct ibmvfc_port_login {
 	struct ibmvfc_service_parms service_parms;
 	struct ibmvfc_service_parms service_parms_change;
 	__be64 reserved3[2];
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-struct ibmvfc_prli_svc_parms {
+struct ibmvfc_prli_svc_parms
+{
 	u8 type;
 #define IBMVFC_SCSI_FCP_TYPE		0x08
 	u8 type_ext;
@@ -312,9 +333,10 @@ struct ibmvfc_prli_svc_parms {
 #define IBMVFC_PRLI_TARGET_FUNC			0x00000010
 #define IBMVFC_PRLI_READ_FCP_XFER_RDY_DISABLED	0x00000002
 #define IBMVFC_PRLI_WR_FCP_XFER_RDY_DISABLED	0x00000001
-}__attribute__((packed, aligned (4)));
+} __attribute__((packed, aligned (4)));
 
-struct ibmvfc_process_login {
+struct ibmvfc_process_login
+{
 	struct ibmvfc_mad_common common;
 	__be64 scsi_id;
 	struct ibmvfc_prli_svc_parms parms;
@@ -323,9 +345,10 @@ struct ibmvfc_process_login {
 	__be16 error;			/* also fc_reason */
 	__be32 reserved2;
 	__be64 reserved3[2];
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-struct ibmvfc_query_tgt {
+struct ibmvfc_query_tgt
+{
 	struct ibmvfc_mad_common common;
 	__be64 wwpn;
 	__be64 scsi_id;
@@ -334,15 +357,17 @@ struct ibmvfc_query_tgt {
 	__be16 fc_explain;
 	__be16 fc_type;
 	__be64 reserved[2];
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-struct ibmvfc_implicit_logout {
+struct ibmvfc_implicit_logout
+{
 	struct ibmvfc_mad_common common;
 	__be64 old_scsi_id;
 	__be64 reserved[2];
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-struct ibmvfc_tmf {
+struct ibmvfc_tmf
+{
 	struct ibmvfc_mad_common common;
 	__be64 scsi_id;
 	struct scsi_lun lun;
@@ -357,22 +382,25 @@ struct ibmvfc_tmf {
 	__be32 my_cancel_key;
 	__be32 pad;
 	__be64 reserved[2];
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-enum ibmvfc_fcp_rsp_info_codes {
+enum ibmvfc_fcp_rsp_info_codes
+{
 	RSP_NO_FAILURE		= 0x00,
 	RSP_TMF_REJECTED		= 0x04,
 	RSP_TMF_FAILED		= 0x05,
 	RSP_TMF_INVALID_LUN	= 0x09,
 };
 
-struct ibmvfc_fcp_rsp_info {
+struct ibmvfc_fcp_rsp_info
+{
 	__be16 reserved;
 	u8 rsp_code;
 	u8 reserved2[4];
-}__attribute__((packed, aligned (2)));
+} __attribute__((packed, aligned (2)));
 
-enum ibmvfc_fcp_rsp_flags {
+enum ibmvfc_fcp_rsp_flags
+{
 	FCP_BIDI_RSP			= 0x80,
 	FCP_BIDI_READ_RESID_UNDER	= 0x40,
 	FCP_BIDI_READ_RESID_OVER	= 0x20,
@@ -383,12 +411,14 @@ enum ibmvfc_fcp_rsp_flags {
 	FCP_RSP_LEN_VALID			= 0x01,
 };
 
-union ibmvfc_fcp_rsp_data {
+union ibmvfc_fcp_rsp_data
+{
 	struct ibmvfc_fcp_rsp_info info;
 	u8 sense[SCSI_SENSE_BUFFERSIZE + sizeof(struct ibmvfc_fcp_rsp_info)];
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-struct ibmvfc_fcp_rsp {
+struct ibmvfc_fcp_rsp
+{
 	__be64 reserved;
 	__be16 retry_delay_timer;
 	u8 flags;
@@ -397,9 +427,10 @@ struct ibmvfc_fcp_rsp {
 	__be32 fcp_sense_len;
 	__be32 fcp_rsp_len;
 	union ibmvfc_fcp_rsp_data data;
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-enum ibmvfc_cmd_flags {
+enum ibmvfc_cmd_flags
+{
 	IBMVFC_SCATTERLIST	= 0x0001,
 	IBMVFC_NO_MEM_DESC	= 0x0002,
 	IBMVFC_READ			= 0x0004,
@@ -408,20 +439,23 @@ enum ibmvfc_cmd_flags {
 	IBMVFC_CLASS_3_ERR	= 0x0100,
 };
 
-enum ibmvfc_fc_task_attr {
+enum ibmvfc_fc_task_attr
+{
 	IBMVFC_SIMPLE_TASK	= 0x00,
 	IBMVFC_HEAD_OF_QUEUE	= 0x01,
 	IBMVFC_ORDERED_TASK	= 0x02,
 	IBMVFC_ACA_TASK		= 0x04,
 };
 
-enum ibmvfc_fc_tmf_flags {
+enum ibmvfc_fc_tmf_flags
+{
 	IBMVFC_ABORT_TASK_SET	= 0x02,
 	IBMVFC_LUN_RESET		= 0x10,
 	IBMVFC_TARGET_RESET	= 0x20,
 };
 
-struct ibmvfc_fcp_cmd_iu {
+struct ibmvfc_fcp_cmd_iu
+{
 	struct scsi_lun lun;
 	u8 crn;
 	u8 pri_task_attr;
@@ -431,9 +465,10 @@ struct ibmvfc_fcp_cmd_iu {
 #define IBMVFC_WRDATA		0x01
 	u8 cdb[IBMVFC_MAX_CDB_LEN];
 	__be32 xfer_len;
-}__attribute__((packed, aligned (4)));
+} __attribute__((packed, aligned (4)));
 
-struct ibmvfc_cmd {
+struct ibmvfc_cmd
+{
 	__be64 task_tag;
 	__be32 frame_type;
 	__be32 payload_len;
@@ -455,15 +490,17 @@ struct ibmvfc_cmd {
 	__be64 reserved3[2];
 	struct ibmvfc_fcp_cmd_iu iu;
 	struct ibmvfc_fcp_rsp rsp;
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-struct ibmvfc_passthru_fc_iu {
+struct ibmvfc_passthru_fc_iu
+{
 	__be32 payload[7];
 #define IBMVFC_ADISC	0x52000000
 	__be32 response[7];
 };
 
-struct ibmvfc_passthru_iu {
+struct ibmvfc_passthru_iu
+{
 	__be64 task_tag;
 	__be32 cmd_len;
 	__be32 rsp_len;
@@ -482,29 +519,33 @@ struct ibmvfc_passthru_iu {
 	__be64 scsi_id;
 	__be64 tag;
 	__be64 reserved2[2];
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-struct ibmvfc_passthru_mad {
+struct ibmvfc_passthru_mad
+{
 	struct ibmvfc_mad_common common;
 	struct srp_direct_buf cmd_ioba;
 	struct ibmvfc_passthru_iu iu;
 	struct ibmvfc_passthru_fc_iu fc_iu;
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-struct ibmvfc_trace_start_entry {
+struct ibmvfc_trace_start_entry
+{
 	u32 xfer_len;
-}__attribute__((packed));
+} __attribute__((packed));
 
-struct ibmvfc_trace_end_entry {
+struct ibmvfc_trace_end_entry
+{
 	u16 status;
 	u16 error;
 	u8 fcp_rsp_flags;
 	u8 rsp_code;
 	u8 scsi_status;
 	u8 reserved;
-}__attribute__((packed));
+} __attribute__((packed));
 
-struct ibmvfc_trace_entry {
+struct ibmvfc_trace_entry
+{
 	struct ibmvfc_event *evt;
 	u32 time;
 	u32 scsi_id;
@@ -515,19 +556,22 @@ struct ibmvfc_trace_entry {
 	u8 type;
 #define IBMVFC_TRC_START	0x00
 #define IBMVFC_TRC_END		0xff
-	union {
+	union
+	{
 		struct ibmvfc_trace_start_entry start;
 		struct ibmvfc_trace_end_entry end;
 	} u;
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-enum ibmvfc_crq_formats {
+enum ibmvfc_crq_formats
+{
 	IBMVFC_CMD_FORMAT		= 0x01,
 	IBMVFC_ASYNC_EVENT	= 0x02,
 	IBMVFC_MAD_FORMAT		= 0x04,
 };
 
-enum ibmvfc_async_event {
+enum ibmvfc_async_event
+{
 	IBMVFC_AE_ELS_PLOGI		= 0x0001,
 	IBMVFC_AE_ELS_LOGO		= 0x0002,
 	IBMVFC_AE_ELS_PRLO		= 0x0004,
@@ -543,33 +587,38 @@ enum ibmvfc_async_event {
 	IBMVFC_AE_ADAPTER_FAILED	= 0x1000,
 };
 
-struct ibmvfc_async_desc {
+struct ibmvfc_async_desc
+{
 	const char *desc;
 	enum ibmvfc_async_event ae;
 	int log_level;
 };
 
-struct ibmvfc_crq {
+struct ibmvfc_crq
+{
 	volatile u8 valid;
 	volatile u8 format;
 	u8 reserved[6];
 	volatile __be64 ioba;
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-struct ibmvfc_crq_queue {
+struct ibmvfc_crq_queue
+{
 	struct ibmvfc_crq *msgs;
 	int size, cur;
 	dma_addr_t msg_token;
 };
 
-enum ibmvfc_ae_link_state {
+enum ibmvfc_ae_link_state
+{
 	IBMVFC_AE_LS_LINK_UP		= 0x01,
 	IBMVFC_AE_LS_LINK_BOUNCED	= 0x02,
 	IBMVFC_AE_LS_LINK_DOWN		= 0x04,
 	IBMVFC_AE_LS_LINK_DEAD		= 0x08,
 };
 
-struct ibmvfc_async_crq {
+struct ibmvfc_async_crq
+{
 	volatile u8 valid;
 	u8 link_state;
 	u8 pad[2];
@@ -579,15 +628,17 @@ struct ibmvfc_async_crq {
 	volatile __be64 wwpn;
 	volatile __be64 node_name;
 	__be64 reserved;
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-struct ibmvfc_async_crq_queue {
+struct ibmvfc_async_crq_queue
+{
 	struct ibmvfc_async_crq *msgs;
 	int size, cur;
 	dma_addr_t msg_token;
 };
 
-union ibmvfc_iu {
+union ibmvfc_iu
+{
 	struct ibmvfc_mad_common mad_common;
 	struct ibmvfc_npiv_login_mad npiv_login;
 	struct ibmvfc_npiv_logout_mad npiv_logout;
@@ -599,9 +650,10 @@ union ibmvfc_iu {
 	struct ibmvfc_tmf tmf;
 	struct ibmvfc_cmd cmd;
 	struct ibmvfc_passthru_mad passthru;
-}__attribute__((packed, aligned (8)));
+} __attribute__((packed, aligned (8)));
 
-enum ibmvfc_target_action {
+enum ibmvfc_target_action
+{
 	IBMVFC_TGT_ACTION_NONE = 0,
 	IBMVFC_TGT_ACTION_INIT,
 	IBMVFC_TGT_ACTION_INIT_WAIT,
@@ -609,7 +661,8 @@ enum ibmvfc_target_action {
 	IBMVFC_TGT_ACTION_DELETED_RPORT,
 };
 
-struct ibmvfc_target {
+struct ibmvfc_target
+{
 	struct list_head queue;
 	struct ibmvfc_host *vhost;
 	u64 scsi_id;
@@ -631,7 +684,8 @@ struct ibmvfc_target {
 };
 
 /* a unit of work for the hosting partition */
-struct ibmvfc_event {
+struct ibmvfc_event
+{
 	struct list_head queue;
 	struct ibmvfc_host *vhost;
 	struct ibmvfc_target *tgt;
@@ -650,14 +704,16 @@ struct ibmvfc_event {
 };
 
 /* a pool of event structs for use */
-struct ibmvfc_event_pool {
+struct ibmvfc_event_pool
+{
 	struct ibmvfc_event *events;
 	u32 size;
 	union ibmvfc_iu *iu_storage;
 	dma_addr_t iu_token;
 };
 
-enum ibmvfc_host_action {
+enum ibmvfc_host_action
+{
 	IBMVFC_HOST_ACTION_NONE = 0,
 	IBMVFC_HOST_ACTION_RESET,
 	IBMVFC_HOST_ACTION_REENABLE,
@@ -673,7 +729,8 @@ enum ibmvfc_host_action {
 	IBMVFC_HOST_ACTION_TGT_DEL_FAILED,
 };
 
-enum ibmvfc_host_state {
+enum ibmvfc_host_state
+{
 	IBMVFC_NO_CRQ = 0,
 	IBMVFC_INITIALIZING,
 	IBMVFC_ACTIVE,
@@ -683,7 +740,8 @@ enum ibmvfc_host_state {
 	IBMVFC_HOST_OFFLINE,
 };
 
-struct ibmvfc_host {
+struct ibmvfc_host
+{
 	char name[8];
 	struct list_head queue;
 	struct Scsi_Host *host;
@@ -693,7 +751,7 @@ struct ibmvfc_host {
 #define IBMVFC_NUM_TRACE_ENTRIES		(1 << IBMVFC_NUM_TRACE_INDEX_BITS)
 #define IBMVFC_TRACE_SIZE	(sizeof(struct ibmvfc_trace_entry) * IBMVFC_NUM_TRACE_ENTRIES)
 	struct ibmvfc_trace_entry *trace;
-	u32 trace_index:IBMVFC_NUM_TRACE_INDEX_BITS;
+u32 trace_index: IBMVFC_NUM_TRACE_INDEX_BITS;
 	int num_targets;
 	struct list_head targets;
 	struct list_head sent;
@@ -766,11 +824,11 @@ struct ibmvfc_host {
 #define LEAVE DBG_CMD(printk(KERN_INFO IBMVFC_NAME": Leaving %s\n", __func__))
 
 #ifdef CONFIG_SCSI_IBMVFC_TRACE
-#define ibmvfc_create_trace_file(kobj, attr) sysfs_create_bin_file(kobj, attr)
-#define ibmvfc_remove_trace_file(kobj, attr) sysfs_remove_bin_file(kobj, attr)
+	#define ibmvfc_create_trace_file(kobj, attr) sysfs_create_bin_file(kobj, attr)
+	#define ibmvfc_remove_trace_file(kobj, attr) sysfs_remove_bin_file(kobj, attr)
 #else
-#define ibmvfc_create_trace_file(kobj, attr) 0
-#define ibmvfc_remove_trace_file(kobj, attr) do { } while (0)
+	#define ibmvfc_create_trace_file(kobj, attr) 0
+	#define ibmvfc_remove_trace_file(kobj, attr) do { } while (0)
 #endif
 
 #endif

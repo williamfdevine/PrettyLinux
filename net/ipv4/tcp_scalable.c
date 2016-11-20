@@ -20,23 +20,28 @@ static void tcp_scalable_cong_avoid(struct sock *sk, u32 ack, u32 acked)
 	struct tcp_sock *tp = tcp_sk(sk);
 
 	if (!tcp_is_cwnd_limited(sk))
+	{
 		return;
+	}
 
 	if (tcp_in_slow_start(tp))
+	{
 		tcp_slow_start(tp, acked);
+	}
 	else
 		tcp_cong_avoid_ai(tp, min(tp->snd_cwnd, TCP_SCALABLE_AI_CNT),
-				  1);
+						  1);
 }
 
 static u32 tcp_scalable_ssthresh(struct sock *sk)
 {
 	const struct tcp_sock *tp = tcp_sk(sk);
 
-	return max(tp->snd_cwnd - (tp->snd_cwnd>>TCP_SCALABLE_MD_SCALE), 2U);
+	return max(tp->snd_cwnd - (tp->snd_cwnd >> TCP_SCALABLE_MD_SCALE), 2U);
 }
 
-static struct tcp_congestion_ops tcp_scalable __read_mostly = {
+static struct tcp_congestion_ops tcp_scalable __read_mostly =
+{
 	.ssthresh	= tcp_scalable_ssthresh,
 	.cong_avoid	= tcp_scalable_cong_avoid,
 

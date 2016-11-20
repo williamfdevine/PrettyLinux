@@ -48,7 +48,8 @@ MODULE_DESCRIPTION("PS3 vuart");
 
 enum {PORT_COUNT = 3,};
 
-enum vuart_param {
+enum vuart_param
+{
 	PARAM_TX_TRIGGER = 0,
 	PARAM_RX_TRIGGER = 1,
 	PARAM_INTERRUPT_MASK = 2,
@@ -59,13 +60,15 @@ enum vuart_param {
 	PARAM_INTERRUPT_STATUS = 7, /* read only */
 };
 
-enum vuart_interrupt_bit {
+enum vuart_interrupt_bit
+{
 	INTERRUPT_BIT_TX = 0,
 	INTERRUPT_BIT_RX = 1,
 	INTERRUPT_BIT_DISCONNECT = 2,
 };
 
-enum vuart_interrupt_mask {
+enum vuart_interrupt_mask
+{
 	INTERRUPT_MASK_TX = 1,
 	INTERRUPT_MASK_RX = 2,
 	INTERRUPT_MASK_DISCONNECT = 4,
@@ -75,14 +78,17 @@ enum vuart_interrupt_mask {
  * struct ps3_vuart_port_priv - private vuart device data.
  */
 
-struct ps3_vuart_port_priv {
+struct ps3_vuart_port_priv
+{
 	u64 interrupt_mask;
 
-	struct {
+	struct
+	{
 		spinlock_t lock;
 		struct list_head head;
 	} tx_list;
-	struct {
+	struct
+	{
 		struct ps3_vuart_work work;
 		unsigned long bytes_held;
 		spinlock_t lock;
@@ -106,7 +112,8 @@ static struct ps3_vuart_port_priv *to_port_priv(
  * to these bits.  Must not cross a page boundary.
  */
 
-struct ports_bmp {
+struct ports_bmp
+{
 	u64 status;
 	u64 unused[3];
 } __attribute__((aligned(32)));
@@ -120,10 +127,11 @@ static void __maybe_unused _dump_ports_bmp(
 
 #define dump_port_params(_b) _dump_port_params(_b, __func__, __LINE__)
 static void __maybe_unused _dump_port_params(unsigned int port_number,
-	const char *func, int line)
+		const char *func, int line)
 {
 #if defined(DEBUG)
-	static const char *strings[] = {
+	static const char *strings[] =
+	{
 		"tx_trigger      ",
 		"rx_trigger      ",
 		"interrupt_mask  ",
@@ -137,22 +145,26 @@ static void __maybe_unused _dump_port_params(unsigned int port_number,
 	unsigned int i;
 	u64 value;
 
-	for (i = 0; i < ARRAY_SIZE(strings); i++) {
+	for (i = 0; i < ARRAY_SIZE(strings); i++)
+	{
 		result = lv1_get_virtual_uart_param(port_number, i, &value);
 
-		if (result) {
+		if (result)
+		{
 			pr_debug("%s:%d: port_%u: %s failed: %s\n", func, line,
-				port_number, strings[i], ps3_result(result));
+					 port_number, strings[i], ps3_result(result));
 			continue;
 		}
+
 		pr_debug("%s:%d: port_%u: %s = %lxh\n",
-			func, line, port_number, strings[i], value);
+				 func, line, port_number, strings[i], value);
 	}
+
 #endif
 }
 
 int ps3_vuart_get_triggers(struct ps3_system_bus_device *dev,
-	struct vuart_triggers *trig)
+						   struct vuart_triggers *trig)
 {
 	int result;
 	u64 size;
@@ -160,94 +172,100 @@ int ps3_vuart_get_triggers(struct ps3_system_bus_device *dev,
 	u64 tx;
 
 	result = lv1_get_virtual_uart_param(dev->port_number,
-		PARAM_TX_TRIGGER, &tx);
+										PARAM_TX_TRIGGER, &tx);
 	trig->tx = tx;
 
-	if (result) {
+	if (result)
+	{
 		dev_dbg(&dev->core, "%s:%d: tx_trigger failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+				__func__, __LINE__, ps3_result(result));
 		return result;
 	}
 
 	result = lv1_get_virtual_uart_param(dev->port_number,
-		PARAM_RX_BUF_SIZE, &size);
+										PARAM_RX_BUF_SIZE, &size);
 
-	if (result) {
+	if (result)
+	{
 		dev_dbg(&dev->core, "%s:%d: tx_buf_size failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+				__func__, __LINE__, ps3_result(result));
 		return result;
 	}
 
 	result = lv1_get_virtual_uart_param(dev->port_number,
-		PARAM_RX_TRIGGER, &val);
+										PARAM_RX_TRIGGER, &val);
 
-	if (result) {
+	if (result)
+	{
 		dev_dbg(&dev->core, "%s:%d: rx_trigger failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+				__func__, __LINE__, ps3_result(result));
 		return result;
 	}
 
 	trig->rx = size - val;
 
 	dev_dbg(&dev->core, "%s:%d: tx %lxh, rx %lxh\n", __func__, __LINE__,
-		trig->tx, trig->rx);
+			trig->tx, trig->rx);
 
 	return result;
 }
 
 int ps3_vuart_set_triggers(struct ps3_system_bus_device *dev, unsigned int tx,
-	unsigned int rx)
+						   unsigned int rx)
 {
 	int result;
 	u64 size;
 
 	result = lv1_set_virtual_uart_param(dev->port_number,
-		PARAM_TX_TRIGGER, tx);
+										PARAM_TX_TRIGGER, tx);
 
-	if (result) {
+	if (result)
+	{
 		dev_dbg(&dev->core, "%s:%d: tx_trigger failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+				__func__, __LINE__, ps3_result(result));
 		return result;
 	}
 
 	result = lv1_get_virtual_uart_param(dev->port_number,
-		PARAM_RX_BUF_SIZE, &size);
+										PARAM_RX_BUF_SIZE, &size);
 
-	if (result) {
+	if (result)
+	{
 		dev_dbg(&dev->core, "%s:%d: tx_buf_size failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+				__func__, __LINE__, ps3_result(result));
 		return result;
 	}
 
 	result = lv1_set_virtual_uart_param(dev->port_number,
-		PARAM_RX_TRIGGER, size - rx);
+										PARAM_RX_TRIGGER, size - rx);
 
-	if (result) {
+	if (result)
+	{
 		dev_dbg(&dev->core, "%s:%d: rx_trigger failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+				__func__, __LINE__, ps3_result(result));
 		return result;
 	}
 
 	dev_dbg(&dev->core, "%s:%d: tx %xh, rx %xh\n", __func__, __LINE__,
-		tx, rx);
+			tx, rx);
 
 	return result;
 }
 
 static int ps3_vuart_get_rx_bytes_waiting(struct ps3_system_bus_device *dev,
-	u64 *bytes_waiting)
+		u64 *bytes_waiting)
 {
 	int result;
 
 	result = lv1_get_virtual_uart_param(dev->port_number,
-		PARAM_RX_BYTES, bytes_waiting);
+										PARAM_RX_BYTES, bytes_waiting);
 
 	if (result)
 		dev_dbg(&dev->core, "%s:%d: rx_bytes failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+				__func__, __LINE__, ps3_result(result));
 
 	dev_dbg(&dev->core, "%s:%d: %llxh\n", __func__, __LINE__,
-		*bytes_waiting);
+			*bytes_waiting);
 	return result;
 }
 
@@ -258,7 +276,7 @@ static int ps3_vuart_get_rx_bytes_waiting(struct ps3_system_bus_device *dev,
  */
 
 static int ps3_vuart_set_interrupt_mask(struct ps3_system_bus_device *dev,
-	unsigned long mask)
+										unsigned long mask)
 {
 	int result;
 	struct ps3_vuart_port_priv *priv = to_port_priv(dev);
@@ -268,33 +286,33 @@ static int ps3_vuart_set_interrupt_mask(struct ps3_system_bus_device *dev,
 	priv->interrupt_mask = mask;
 
 	result = lv1_set_virtual_uart_param(dev->port_number,
-		PARAM_INTERRUPT_MASK, priv->interrupt_mask);
+										PARAM_INTERRUPT_MASK, priv->interrupt_mask);
 
 	if (result)
 		dev_dbg(&dev->core, "%s:%d: interrupt_mask failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+				__func__, __LINE__, ps3_result(result));
 
 	return result;
 }
 
 static int ps3_vuart_get_interrupt_status(struct ps3_system_bus_device *dev,
-	unsigned long *status)
+		unsigned long *status)
 {
 	int result;
 	struct ps3_vuart_port_priv *priv = to_port_priv(dev);
 	u64 tmp;
 
 	result = lv1_get_virtual_uart_param(dev->port_number,
-		PARAM_INTERRUPT_STATUS, &tmp);
+										PARAM_INTERRUPT_STATUS, &tmp);
 
 	if (result)
 		dev_dbg(&dev->core, "%s:%d: interrupt_status failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+				__func__, __LINE__, ps3_result(result));
 
 	*status = tmp & priv->interrupt_mask;
 
 	dev_dbg(&dev->core, "%s:%d: m %llxh, s %llxh, m&s %lxh\n",
-		__func__, __LINE__, priv->interrupt_mask, tmp, *status);
+			__func__, __LINE__, priv->interrupt_mask, tmp, *status);
 
 	return result;
 }
@@ -304,8 +322,8 @@ int ps3_vuart_enable_interrupt_tx(struct ps3_system_bus_device *dev)
 	struct ps3_vuart_port_priv *priv = to_port_priv(dev);
 
 	return (priv->interrupt_mask & INTERRUPT_MASK_TX) ? 0
-		: ps3_vuart_set_interrupt_mask(dev, priv->interrupt_mask
-		| INTERRUPT_MASK_TX);
+		   : ps3_vuart_set_interrupt_mask(dev, priv->interrupt_mask
+										  | INTERRUPT_MASK_TX);
 }
 
 int ps3_vuart_enable_interrupt_rx(struct ps3_system_bus_device *dev)
@@ -313,8 +331,8 @@ int ps3_vuart_enable_interrupt_rx(struct ps3_system_bus_device *dev)
 	struct ps3_vuart_port_priv *priv = to_port_priv(dev);
 
 	return (priv->interrupt_mask & INTERRUPT_MASK_RX) ? 0
-		: ps3_vuart_set_interrupt_mask(dev, priv->interrupt_mask
-		| INTERRUPT_MASK_RX);
+		   : ps3_vuart_set_interrupt_mask(dev, priv->interrupt_mask
+										  | INTERRUPT_MASK_RX);
 }
 
 int ps3_vuart_enable_interrupt_disconnect(struct ps3_system_bus_device *dev)
@@ -322,8 +340,8 @@ int ps3_vuart_enable_interrupt_disconnect(struct ps3_system_bus_device *dev)
 	struct ps3_vuart_port_priv *priv = to_port_priv(dev);
 
 	return (priv->interrupt_mask & INTERRUPT_MASK_DISCONNECT) ? 0
-		: ps3_vuart_set_interrupt_mask(dev, priv->interrupt_mask
-		| INTERRUPT_MASK_DISCONNECT);
+		   : ps3_vuart_set_interrupt_mask(dev, priv->interrupt_mask
+										  | INTERRUPT_MASK_DISCONNECT);
 }
 
 int ps3_vuart_disable_interrupt_tx(struct ps3_system_bus_device *dev)
@@ -331,8 +349,8 @@ int ps3_vuart_disable_interrupt_tx(struct ps3_system_bus_device *dev)
 	struct ps3_vuart_port_priv *priv = to_port_priv(dev);
 
 	return (priv->interrupt_mask & INTERRUPT_MASK_TX)
-		? ps3_vuart_set_interrupt_mask(dev, priv->interrupt_mask
-		& ~INTERRUPT_MASK_TX) : 0;
+		   ? ps3_vuart_set_interrupt_mask(dev, priv->interrupt_mask
+										  & ~INTERRUPT_MASK_TX) : 0;
 }
 
 int ps3_vuart_disable_interrupt_rx(struct ps3_system_bus_device *dev)
@@ -340,8 +358,8 @@ int ps3_vuart_disable_interrupt_rx(struct ps3_system_bus_device *dev)
 	struct ps3_vuart_port_priv *priv = to_port_priv(dev);
 
 	return (priv->interrupt_mask & INTERRUPT_MASK_RX)
-		? ps3_vuart_set_interrupt_mask(dev, priv->interrupt_mask
-		& ~INTERRUPT_MASK_RX) : 0;
+		   ? ps3_vuart_set_interrupt_mask(dev, priv->interrupt_mask
+										  & ~INTERRUPT_MASK_RX) : 0;
 }
 
 int ps3_vuart_disable_interrupt_disconnect(struct ps3_system_bus_device *dev)
@@ -349,8 +367,8 @@ int ps3_vuart_disable_interrupt_disconnect(struct ps3_system_bus_device *dev)
 	struct ps3_vuart_port_priv *priv = to_port_priv(dev);
 
 	return (priv->interrupt_mask & INTERRUPT_MASK_DISCONNECT)
-		? ps3_vuart_set_interrupt_mask(dev, priv->interrupt_mask
-		& ~INTERRUPT_MASK_DISCONNECT) : 0;
+		   ? ps3_vuart_set_interrupt_mask(dev, priv->interrupt_mask
+										  & ~INTERRUPT_MASK_DISCONNECT) : 0;
 }
 
 /**
@@ -361,24 +379,25 @@ int ps3_vuart_disable_interrupt_disconnect(struct ps3_system_bus_device *dev)
  */
 
 static int ps3_vuart_raw_write(struct ps3_system_bus_device *dev,
-	const void *buf, unsigned int bytes, u64 *bytes_written)
+							   const void *buf, unsigned int bytes, u64 *bytes_written)
 {
 	int result;
 	struct ps3_vuart_port_priv *priv = to_port_priv(dev);
 
 	result = lv1_write_virtual_uart(dev->port_number,
-		ps3_mm_phys_to_lpar(__pa(buf)), bytes, bytes_written);
+									ps3_mm_phys_to_lpar(__pa(buf)), bytes, bytes_written);
 
-	if (result) {
+	if (result)
+	{
 		dev_dbg(&dev->core, "%s:%d: lv1_write_virtual_uart failed: "
-			"%s\n", __func__, __LINE__, ps3_result(result));
+				"%s\n", __func__, __LINE__, ps3_result(result));
 		return result;
 	}
 
 	priv->stats.bytes_written += *bytes_written;
 
 	dev_dbg(&dev->core, "%s:%d: wrote %llxh/%xh=>%lxh\n", __func__, __LINE__,
-		*bytes_written, bytes, priv->stats.bytes_written);
+			*bytes_written, bytes, priv->stats.bytes_written);
 
 	return result;
 }
@@ -391,7 +410,7 @@ static int ps3_vuart_raw_write(struct ps3_system_bus_device *dev,
  */
 
 static int ps3_vuart_raw_read(struct ps3_system_bus_device *dev, void *buf,
-	unsigned int bytes, u64 *bytes_read)
+							  unsigned int bytes, u64 *bytes_read)
 {
 	int result;
 	struct ps3_vuart_port_priv *priv = to_port_priv(dev);
@@ -399,18 +418,19 @@ static int ps3_vuart_raw_read(struct ps3_system_bus_device *dev, void *buf,
 	dev_dbg(&dev->core, "%s:%d: %xh\n", __func__, __LINE__, bytes);
 
 	result = lv1_read_virtual_uart(dev->port_number,
-		ps3_mm_phys_to_lpar(__pa(buf)), bytes, bytes_read);
+								   ps3_mm_phys_to_lpar(__pa(buf)), bytes, bytes_read);
 
-	if (result) {
+	if (result)
+	{
 		dev_dbg(&dev->core, "%s:%d: lv1_read_virtual_uart failed: %s\n",
-			__func__, __LINE__, ps3_result(result));
+				__func__, __LINE__, ps3_result(result));
 		return result;
 	}
 
 	priv->stats.bytes_read += *bytes_read;
 
 	dev_dbg(&dev->core, "%s:%d: read %llxh/%xh=>%lxh\n", __func__, __LINE__,
-		*bytes_read, bytes, priv->stats.bytes_read);
+			*bytes_read, bytes, priv->stats.bytes_read);
 
 	return result;
 }
@@ -424,7 +444,7 @@ static int ps3_vuart_raw_read(struct ps3_system_bus_device *dev, void *buf,
  */
 
 void ps3_vuart_clear_rx_bytes(struct ps3_system_bus_device *dev,
-	unsigned int bytes)
+							  unsigned int bytes)
 {
 	int result;
 	struct ps3_vuart_port_priv *priv = to_port_priv(dev);
@@ -440,7 +460,9 @@ void ps3_vuart_clear_rx_bytes(struct ps3_system_bus_device *dev,
 	dev_dbg(&dev->core, "%s:%d: %u\n", __func__, __LINE__, bytes);
 
 	if (!bytes)
+	{
 		return;
+	}
 
 	/* Add some extra space for recently arrived data. */
 
@@ -449,7 +471,9 @@ void ps3_vuart_clear_rx_bytes(struct ps3_system_bus_device *dev,
 	tmp = kmalloc(bytes, GFP_KERNEL);
 
 	if (!tmp)
+	{
 		return;
+	}
 
 	ps3_vuart_raw_read(dev, tmp, bytes, &bytes_waiting);
 
@@ -465,7 +489,8 @@ EXPORT_SYMBOL_GPL(ps3_vuart_clear_rx_bytes);
  * struct list_buffer - An element for a port device fifo buffer list.
  */
 
-struct list_buffer {
+struct list_buffer
+{
 	struct list_head link;
 	const unsigned char *head;
 	const unsigned char *tail;
@@ -484,7 +509,7 @@ struct list_buffer {
  */
 
 int ps3_vuart_write(struct ps3_system_bus_device *dev, const void *buf,
-	unsigned int bytes)
+					unsigned int bytes)
 {
 	static unsigned long dbg_number;
 	int result;
@@ -493,39 +518,47 @@ int ps3_vuart_write(struct ps3_system_bus_device *dev, const void *buf,
 	struct list_buffer *lb;
 
 	dev_dbg(&dev->core, "%s:%d: %u(%xh) bytes\n", __func__, __LINE__,
-		bytes, bytes);
+			bytes, bytes);
 
 	spin_lock_irqsave(&priv->tx_list.lock, flags);
 
-	if (list_empty(&priv->tx_list.head)) {
+	if (list_empty(&priv->tx_list.head))
+	{
 		u64 bytes_written;
 
 		result = ps3_vuart_raw_write(dev, buf, bytes, &bytes_written);
 
 		spin_unlock_irqrestore(&priv->tx_list.lock, flags);
 
-		if (result) {
+		if (result)
+		{
 			dev_dbg(&dev->core,
-				"%s:%d: ps3_vuart_raw_write failed\n",
-				__func__, __LINE__);
+					"%s:%d: ps3_vuart_raw_write failed\n",
+					__func__, __LINE__);
 			return result;
 		}
 
-		if (bytes_written == bytes) {
+		if (bytes_written == bytes)
+		{
 			dev_dbg(&dev->core, "%s:%d: wrote %xh bytes\n",
-				__func__, __LINE__, bytes);
+					__func__, __LINE__, bytes);
 			return 0;
 		}
 
 		bytes -= bytes_written;
 		buf += bytes_written;
-	} else
+	}
+	else
+	{
 		spin_unlock_irqrestore(&priv->tx_list.lock, flags);
+	}
 
 	lb = kmalloc(sizeof(struct list_buffer) + bytes, GFP_KERNEL);
 
 	if (!lb)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(lb->data, buf, bytes);
 	lb->head = lb->data;
@@ -538,7 +571,7 @@ int ps3_vuart_write(struct ps3_system_bus_device *dev, const void *buf,
 	spin_unlock_irqrestore(&priv->tx_list.lock, flags);
 
 	dev_dbg(&dev->core, "%s:%d: queued buf_%lu, %xh bytes\n",
-		__func__, __LINE__, lb->dbg_number, bytes);
+			__func__, __LINE__, lb->dbg_number, bytes);
 
 	return 0;
 }
@@ -553,7 +586,7 @@ EXPORT_SYMBOL_GPL(ps3_vuart_write);
  */
 
 static int ps3_vuart_queue_rx_bytes(struct ps3_system_bus_device *dev,
-	u64 *bytes_queued)
+									u64 *bytes_queued)
 {
 	static unsigned long dbg_number;
 	int result;
@@ -567,10 +600,14 @@ static int ps3_vuart_queue_rx_bytes(struct ps3_system_bus_device *dev,
 	BUG_ON(result);
 
 	if (result)
+	{
 		return -EIO;
+	}
 
 	if (!bytes)
+	{
 		return 0;
+	}
 
 	/* Add some extra space for recently arrived data. */
 
@@ -579,7 +616,9 @@ static int ps3_vuart_queue_rx_bytes(struct ps3_system_bus_device *dev,
 	lb = kmalloc(sizeof(struct list_buffer) + bytes, GFP_ATOMIC);
 
 	if (!lb)
+	{
 		return -ENOMEM;
+	}
 
 	ps3_vuart_raw_read(dev, lb->data, bytes, &bytes);
 
@@ -591,7 +630,7 @@ static int ps3_vuart_queue_rx_bytes(struct ps3_system_bus_device *dev,
 	priv->rx_list.bytes_held += bytes;
 
 	dev_dbg(&dev->core, "%s:%d: buf_%lu: queued %llxh bytes\n",
-		__func__, __LINE__, lb->dbg_number, bytes);
+			__func__, __LINE__, lb->dbg_number, bytes);
 
 	*bytes_queued = bytes;
 
@@ -608,7 +647,7 @@ static int ps3_vuart_queue_rx_bytes(struct ps3_system_bus_device *dev,
  */
 
 int ps3_vuart_read(struct ps3_system_bus_device *dev, void *buf,
-	unsigned int bytes)
+				   unsigned int bytes)
 {
 	int result;
 	struct ps3_vuart_port_priv *priv = to_port_priv(dev);
@@ -617,26 +656,30 @@ int ps3_vuart_read(struct ps3_system_bus_device *dev, void *buf,
 	unsigned long bytes_read;
 
 	dev_dbg(&dev->core, "%s:%d: %u(%xh) bytes\n", __func__, __LINE__,
-		bytes, bytes);
+			bytes, bytes);
 
 	spin_lock_irqsave(&priv->rx_list.lock, flags);
 
 	/* Queue rx bytes here for polled reads. */
 
-	while (priv->rx_list.bytes_held < bytes) {
+	while (priv->rx_list.bytes_held < bytes)
+	{
 		u64 tmp;
 
 		result = ps3_vuart_queue_rx_bytes(dev, &tmp);
-		if (result || !tmp) {
+
+		if (result || !tmp)
+		{
 			dev_dbg(&dev->core, "%s:%d: starved for %lxh bytes\n",
-				__func__, __LINE__,
-				bytes - priv->rx_list.bytes_held);
+					__func__, __LINE__,
+					bytes - priv->rx_list.bytes_held);
 			spin_unlock_irqrestore(&priv->rx_list.lock, flags);
 			return -EAGAIN;
 		}
 	}
 
-	list_for_each_entry_safe(lb, n, &priv->rx_list.head, link) {
+	list_for_each_entry_safe(lb, n, &priv->rx_list.head, link)
+	{
 		bytes_read = min((unsigned int)(lb->tail - lb->head), bytes);
 
 		memcpy(buf, lb->head, bytes_read);
@@ -644,18 +687,19 @@ int ps3_vuart_read(struct ps3_system_bus_device *dev, void *buf,
 		bytes -= bytes_read;
 		priv->rx_list.bytes_held -= bytes_read;
 
-		if (bytes_read < lb->tail - lb->head) {
+		if (bytes_read < lb->tail - lb->head)
+		{
 			lb->head += bytes_read;
 			dev_dbg(&dev->core, "%s:%d: buf_%lu: dequeued %lxh "
-				"bytes\n", __func__, __LINE__, lb->dbg_number,
-				bytes_read);
+					"bytes\n", __func__, __LINE__, lb->dbg_number,
+					bytes_read);
 			spin_unlock_irqrestore(&priv->rx_list.lock, flags);
 			return 0;
 		}
 
 		dev_dbg(&dev->core, "%s:%d: buf_%lu: free, dequeued %lxh "
-			"bytes\n", __func__, __LINE__, lb->dbg_number,
-			bytes_read);
+				"bytes\n", __func__, __LINE__, lb->dbg_number,
+				bytes_read);
 
 		list_del(&lb->link);
 		kfree(lb);
@@ -686,18 +730,21 @@ int ps3_vuart_read_async(struct ps3_system_bus_device *dev, unsigned int bytes)
 	struct ps3_vuart_port_priv *priv = to_port_priv(dev);
 	unsigned long flags;
 
-	if (priv->rx_list.work.trigger) {
+	if (priv->rx_list.work.trigger)
+	{
 		dev_dbg(&dev->core, "%s:%d: warning, multiple calls\n",
-			__func__, __LINE__);
+				__func__, __LINE__);
 		return -EAGAIN;
 	}
 
 	BUG_ON(!bytes);
 
 	spin_lock_irqsave(&priv->rx_list.lock, flags);
-	if (priv->rx_list.bytes_held >= bytes) {
+
+	if (priv->rx_list.bytes_held >= bytes)
+	{
 		dev_dbg(&dev->core, "%s:%d: schedule_work %xh bytes\n",
-			__func__, __LINE__, bytes);
+				__func__, __LINE__, bytes);
 		schedule_work(&priv->rx_list.work.work);
 		spin_unlock_irqrestore(&priv->rx_list.lock, flags);
 		return 0;
@@ -707,7 +754,7 @@ int ps3_vuart_read_async(struct ps3_system_bus_device *dev, unsigned int bytes)
 	spin_unlock_irqrestore(&priv->rx_list.lock, flags);
 
 	dev_dbg(&dev->core, "%s:%d: waiting for %u(%xh) bytes\n", __func__,
-		__LINE__, bytes, bytes);
+			__LINE__, bytes, bytes);
 
 	return 0;
 }
@@ -739,33 +786,36 @@ static int ps3_vuart_handle_interrupt_tx(struct ps3_system_bus_device *dev)
 
 	spin_lock_irqsave(&priv->tx_list.lock, flags);
 
-	list_for_each_entry_safe(lb, n, &priv->tx_list.head, link) {
+	list_for_each_entry_safe(lb, n, &priv->tx_list.head, link)
+	{
 
 		u64 bytes_written;
 
 		result = ps3_vuart_raw_write(dev, lb->head, lb->tail - lb->head,
-			&bytes_written);
+									 &bytes_written);
 
-		if (result) {
+		if (result)
+		{
 			dev_dbg(&dev->core,
-				"%s:%d: ps3_vuart_raw_write failed\n",
-				__func__, __LINE__);
+					"%s:%d: ps3_vuart_raw_write failed\n",
+					__func__, __LINE__);
 			break;
 		}
 
 		bytes_total += bytes_written;
 
-		if (bytes_written < lb->tail - lb->head) {
+		if (bytes_written < lb->tail - lb->head)
+		{
 			lb->head += bytes_written;
 			dev_dbg(&dev->core,
-				"%s:%d cleared buf_%lu, %llxh bytes\n",
-				__func__, __LINE__, lb->dbg_number,
-				bytes_written);
+					"%s:%d cleared buf_%lu, %llxh bytes\n",
+					__func__, __LINE__, lb->dbg_number,
+					bytes_written);
 			goto port_full;
 		}
 
 		dev_dbg(&dev->core, "%s:%d free buf_%lu\n", __func__, __LINE__,
-			lb->dbg_number);
+				lb->dbg_number);
 
 		list_del(&lb->link);
 		kfree(lb);
@@ -775,7 +825,7 @@ static int ps3_vuart_handle_interrupt_tx(struct ps3_system_bus_device *dev)
 port_full:
 	spin_unlock_irqrestore(&priv->tx_list.lock, flags);
 	dev_dbg(&dev->core, "%s:%d wrote %lxh bytes total\n",
-		__func__, __LINE__, bytes_total);
+			__func__, __LINE__, bytes_total);
 	return result;
 }
 
@@ -799,15 +849,17 @@ static int ps3_vuart_handle_interrupt_rx(struct ps3_system_bus_device *dev)
 	spin_lock_irqsave(&priv->rx_list.lock, flags);
 	result = ps3_vuart_queue_rx_bytes(dev, &bytes);
 
-	if (result) {
+	if (result)
+	{
 		spin_unlock_irqrestore(&priv->rx_list.lock, flags);
 		return result;
 	}
 
 	if (priv->rx_list.work.trigger && priv->rx_list.bytes_held
-		>= priv->rx_list.work.trigger) {
+		>= priv->rx_list.work.trigger)
+	{
 		dev_dbg(&dev->core, "%s:%d: schedule_work %lxh bytes\n",
-			__func__, __LINE__, priv->rx_list.work.trigger);
+				__func__, __LINE__, priv->rx_list.work.trigger);
 		priv->rx_list.work.trigger = 0;
 		schedule_work(&priv->rx_list.work.work);
 	}
@@ -841,36 +893,51 @@ static int ps3_vuart_handle_port_interrupt(struct ps3_system_bus_device *dev)
 	result = ps3_vuart_get_interrupt_status(dev, &status);
 
 	if (result)
+	{
 		return result;
+	}
 
 	dev_dbg(&dev->core, "%s:%d: status: %lxh\n", __func__, __LINE__,
-		status);
+			status);
 
-	if (status & INTERRUPT_MASK_DISCONNECT) {
+	if (status & INTERRUPT_MASK_DISCONNECT)
+	{
 		priv->stats.disconnect_interrupts++;
 		result = ps3_vuart_handle_interrupt_disconnect(dev);
+
 		if (result)
+		{
 			ps3_vuart_disable_interrupt_disconnect(dev);
+		}
 	}
 
-	if (status & INTERRUPT_MASK_TX) {
+	if (status & INTERRUPT_MASK_TX)
+	{
 		priv->stats.tx_interrupts++;
 		result = ps3_vuart_handle_interrupt_tx(dev);
+
 		if (result)
+		{
 			ps3_vuart_disable_interrupt_tx(dev);
+		}
 	}
 
-	if (status & INTERRUPT_MASK_RX) {
+	if (status & INTERRUPT_MASK_RX)
+	{
 		priv->stats.rx_interrupts++;
 		result = ps3_vuart_handle_interrupt_rx(dev);
+
 		if (result)
+		{
 			ps3_vuart_disable_interrupt_rx(dev);
+		}
 	}
 
 	return 0;
 }
 
-struct vuart_bus_priv {
+struct vuart_bus_priv
+{
 	struct ports_bmp *bmp;
 	unsigned int virq;
 	struct mutex probe_mutex;
@@ -892,7 +959,8 @@ static irqreturn_t ps3_vuart_irq_handler(int irq, void *_private)
 
 	BUG_ON(!bus_priv);
 
-	while (1) {
+	while (1)
+	{
 		unsigned int port;
 
 		dump_ports_bmp(bus_priv->bmp);
@@ -900,7 +968,9 @@ static irqreturn_t ps3_vuart_irq_handler(int irq, void *_private)
 		port = (BITS_PER_LONG - 1) - __ilog2(bus_priv->bmp->status);
 
 		if (port == BITS_PER_LONG)
+		{
 			break;
+		}
 
 		BUG_ON(port >= PORT_COUNT);
 		BUG_ON(!bus_priv->devices[port]);
@@ -922,34 +992,39 @@ static int ps3_vuart_bus_interrupt_get(void)
 	BUG_ON(vuart_bus_priv.use_count > 2);
 
 	if (vuart_bus_priv.use_count != 1)
+	{
 		return 0;
+	}
 
 	BUG_ON(vuart_bus_priv.bmp);
 
 	vuart_bus_priv.bmp = kzalloc(sizeof(struct ports_bmp), GFP_KERNEL);
 
-	if (!vuart_bus_priv.bmp) {
+	if (!vuart_bus_priv.bmp)
+	{
 		pr_debug("%s:%d: kzalloc failed.\n", __func__, __LINE__);
 		result = -ENOMEM;
 		goto fail_bmp_malloc;
 	}
 
 	result = ps3_vuart_irq_setup(PS3_BINDING_CPU_ANY, vuart_bus_priv.bmp,
-		&vuart_bus_priv.virq);
+								 &vuart_bus_priv.virq);
 
-	if (result) {
+	if (result)
+	{
 		pr_debug("%s:%d: ps3_vuart_irq_setup failed (%d)\n",
-			__func__, __LINE__, result);
+				 __func__, __LINE__, result);
 		result = -EPERM;
 		goto fail_alloc_irq;
 	}
 
 	result = request_irq(vuart_bus_priv.virq, ps3_vuart_irq_handler,
-		0, "vuart", &vuart_bus_priv);
+						 0, "vuart", &vuart_bus_priv);
 
-	if (result) {
+	if (result)
+	{
 		pr_debug("%s:%d: request_irq failed (%d)\n",
-			__func__, __LINE__, result);
+				 __func__, __LINE__, result);
 		goto fail_request_irq;
 	}
 
@@ -977,7 +1052,9 @@ static int ps3_vuart_bus_interrupt_put(void)
 	BUG_ON(vuart_bus_priv.use_count < 0);
 
 	if (vuart_bus_priv.use_count != 0)
+	{
 		return 0;
+	}
 
 	free_irq(vuart_bus_priv.virq, &vuart_bus_priv);
 
@@ -1003,9 +1080,10 @@ static int ps3_vuart_probe(struct ps3_system_bus_device *dev)
 	BUG_ON(!drv);
 
 	dev_dbg(&dev->core, "%s:%d: (%s)\n", __func__, __LINE__,
-		drv->core.core.name);
+			drv->core.core.name);
 
-	if (dev->port_number >= PORT_COUNT) {
+	if (dev->port_number >= PORT_COUNT)
+	{
 		BUG();
 		return -EINVAL;
 	}
@@ -1015,11 +1093,14 @@ static int ps3_vuart_probe(struct ps3_system_bus_device *dev)
 	result = ps3_vuart_bus_interrupt_get();
 
 	if (result)
+	{
 		goto fail_setup_interrupt;
+	}
 
-	if (vuart_bus_priv.devices[dev->port_number]) {
+	if (vuart_bus_priv.devices[dev->port_number])
+	{
 		dev_dbg(&dev->core, "%s:%d: port busy (%d)\n", __func__,
-			__LINE__, dev->port_number);
+				__LINE__, dev->port_number);
 		result = -EBUSY;
 		goto fail_busy;
 	}
@@ -1029,9 +1110,10 @@ static int ps3_vuart_probe(struct ps3_system_bus_device *dev)
 	/* Setup dev->driver_priv. */
 
 	dev->driver_priv = kzalloc(sizeof(struct ps3_vuart_port_priv),
-		GFP_KERNEL);
+							   GFP_KERNEL);
 
-	if (!dev->driver_priv) {
+	if (!dev->driver_priv)
+	{
 		result = -ENOMEM;
 		goto fail_dev_malloc;
 	}
@@ -1057,16 +1139,20 @@ static int ps3_vuart_probe(struct ps3_system_bus_device *dev)
 	ps3_vuart_set_triggers(dev, 1, 1);
 
 	if (drv->probe)
+	{
 		result = drv->probe(dev);
-	else {
+	}
+	else
+	{
 		result = 0;
 		dev_info(&dev->core, "%s:%d: no probe method\n", __func__,
-			__LINE__);
+				 __LINE__);
 	}
 
-	if (result) {
+	if (result)
+	{
 		dev_dbg(&dev->core, "%s:%d: drv->probe failed\n",
-			__func__, __LINE__);
+				__func__, __LINE__);
 		goto fail_probe;
 	}
 
@@ -1125,11 +1211,12 @@ static int ps3_vuart_remove(struct ps3_system_bus_device *dev)
 	mutex_lock(&vuart_bus_priv.probe_mutex);
 
 	dev_dbg(&dev->core, " -> %s:%d: match_id %d\n", __func__, __LINE__,
-		dev->match_id);
+			dev->match_id);
 
-	if (!dev->core.driver) {
+	if (!dev->core.driver)
+	{
 		dev_dbg(&dev->core, "%s:%d: no driver bound\n", __func__,
-			__LINE__);
+				__LINE__);
 		mutex_unlock(&vuart_bus_priv.probe_mutex);
 		return 0;
 	}
@@ -1138,11 +1225,14 @@ static int ps3_vuart_remove(struct ps3_system_bus_device *dev)
 
 	BUG_ON(!drv);
 
-	if (drv->remove) {
+	if (drv->remove)
+	{
 		drv->remove(dev);
-	} else {
+	}
+	else
+	{
 		dev_dbg(&dev->core, "%s:%d: no remove method\n", __func__,
-		__LINE__);
+				__LINE__);
 		BUG();
 	}
 
@@ -1176,11 +1266,12 @@ static int ps3_vuart_shutdown(struct ps3_system_bus_device *dev)
 	mutex_lock(&vuart_bus_priv.probe_mutex);
 
 	dev_dbg(&dev->core, " -> %s:%d: match_id %d\n", __func__, __LINE__,
-		dev->match_id);
+			dev->match_id);
 
-	if (!dev->core.driver) {
+	if (!dev->core.driver)
+	{
 		dev_dbg(&dev->core, "%s:%d: no driver bound\n", __func__,
-			__LINE__);
+				__LINE__);
 		mutex_unlock(&vuart_bus_priv.probe_mutex);
 		return 0;
 	}
@@ -1190,14 +1281,19 @@ static int ps3_vuart_shutdown(struct ps3_system_bus_device *dev)
 	BUG_ON(!drv);
 
 	if (drv->shutdown)
+	{
 		drv->shutdown(dev);
-	else if (drv->remove) {
+	}
+	else if (drv->remove)
+	{
 		dev_dbg(&dev->core, "%s:%d: no shutdown, calling remove\n",
-			__func__, __LINE__);
+				__func__, __LINE__);
 		drv->remove(dev);
-	} else {
+	}
+	else
+	{
 		dev_dbg(&dev->core, "%s:%d: no shutdown method\n", __func__,
-			__LINE__);
+				__LINE__);
 		BUG();
 	}
 
@@ -1214,7 +1310,9 @@ static int __init ps3_vuart_bus_init(void)
 	pr_debug("%s:%d:\n", __func__, __LINE__);
 
 	if (!firmware_has_feature(FW_FEATURE_PS3_LV1))
+	{
 		return -ENODEV;
+	}
 
 	mutex_init(&vuart_bus_priv.probe_mutex);
 

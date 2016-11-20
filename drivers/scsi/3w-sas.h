@@ -149,7 +149,7 @@ static char *twl_aen_severity_table[] =
 #define TW_MESSAGE_SOURCE_CONTROLLER_EVENT    4
 #define TW_DRIVER 			      6
 #ifndef PCI_DEVICE_ID_3WARE_9750
-#define PCI_DEVICE_ID_3WARE_9750 0x1010
+	#define PCI_DEVICE_ID_3WARE_9750 0x1010
 #endif
 
 /* Bitmask macros to eliminate bitfields */
@@ -192,11 +192,11 @@ static char *twl_aen_severity_table[] =
 
 /* Macros */
 #define TW_PRINTK(h,a,b,c) { \
-if (h) \
-printk(KERN_WARNING "3w-sas: scsi%d: ERROR: (0x%02X:0x%04X): %s.\n",h->host_no,a,b,c); \
-else \
-printk(KERN_WARNING "3w-sas: ERROR: (0x%02X:0x%04X): %s.\n",a,b,c); \
-}
+		if (h) \
+			printk(KERN_WARNING "3w-sas: scsi%d: ERROR: (0x%02X:0x%04X): %s.\n",h->host_no,a,b,c); \
+		else \
+			printk(KERN_WARNING "3w-sas: ERROR: (0x%02X:0x%04X): %s.\n",a,b,c); \
+	}
 #define TW_MAX_LUNS 16
 #define TW_COMMAND_SIZE (sizeof(dma_addr_t) > 4 ? 6 : 4)
 #define TW_LIBERATOR_MAX_SGL_LENGTH (sizeof(dma_addr_t) > 4 ? 46 : 92)
@@ -208,13 +208,15 @@ printk(KERN_WARNING "3w-sas: ERROR: (0x%02X:0x%04X): %s.\n",a,b,c); \
 #pragma pack(1)
 
 /* SGL entry */
-typedef struct TAG_TW_SG_Entry_ISO {
+typedef struct TAG_TW_SG_Entry_ISO
+{
 	dma_addr_t address;
 	dma_addr_t length;
 } TW_SG_Entry_ISO;
 
 /* Old Command Packet with ISO SGL */
-typedef struct TW_Command {
+typedef struct TW_Command
+{
 	unsigned char opcode__sgloffset;
 	unsigned char size;
 	unsigned char request_id;
@@ -222,17 +224,21 @@ typedef struct TW_Command {
 	/* Second DWORD */
 	unsigned char status;
 	unsigned char flags;
-	union {
+	union
+	{
 		unsigned short block_count;
 		unsigned short parameter_count;
 	} byte6_offset;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u32 lba;
 			TW_SG_Entry_ISO sgl[TW_LIBERATOR_MAX_SGL_LENGTH_OLD];
 			unsigned char padding[TW_PADDING_LENGTH_LIBERATOR_OLD];
 		} io;
-		struct {
+		struct
+		{
 			TW_SG_Entry_ISO sgl[TW_LIBERATOR_MAX_SGL_LENGTH_OLD];
 			u32 padding;
 			unsigned char padding2[TW_PADDING_LENGTH_LIBERATOR_OLD];
@@ -241,7 +247,8 @@ typedef struct TW_Command {
 } TW_Command;
 
 /* New Command Packet with ISO SGL */
-typedef struct TAG_TW_Command_Apache {
+typedef struct TAG_TW_Command_Apache
+{
 	unsigned char opcode__reserved;
 	unsigned char unit;
 	unsigned short request_id__lunl;
@@ -254,16 +261,19 @@ typedef struct TAG_TW_Command_Apache {
 } TW_Command_Apache;
 
 /* New command packet header */
-typedef struct TAG_TW_Command_Apache_Header {
+typedef struct TAG_TW_Command_Apache_Header
+{
 	unsigned char sense_data[TW_SENSE_DATA_LENGTH];
-	struct {
+	struct
+	{
 		char reserved[4];
 		unsigned short error;
 		unsigned char padding;
 		unsigned char severity__reserved;
 	} status_block;
 	unsigned char err_specific_desc[98];
-	struct {
+	struct
+	{
 		unsigned char size_header;
 		unsigned short request_id;
 		unsigned char size_sense;
@@ -271,16 +281,19 @@ typedef struct TAG_TW_Command_Apache_Header {
 } TW_Command_Apache_Header;
 
 /* This struct is a union of the 2 command packets */
-typedef struct TAG_TW_Command_Full {
+typedef struct TAG_TW_Command_Full
+{
 	TW_Command_Apache_Header header;
-	union {
+	union
+	{
 		TW_Command oldcommand;
 		TW_Command_Apache newcommand;
 	} command;
 } TW_Command_Full;
 
 /* Initconnection structure */
-typedef struct TAG_TW_Initconnect {
+typedef struct TAG_TW_Initconnect
+{
 	unsigned char opcode__reserved;
 	unsigned char size;
 	unsigned char request_id;
@@ -309,7 +322,8 @@ typedef struct TAG_TW_Event
 	unsigned char parameter_data[98];
 } TW_Event;
 
-typedef struct TAG_TW_Ioctl_Driver_Command {
+typedef struct TAG_TW_Ioctl_Driver_Command
+{
 	unsigned int control_code;
 	unsigned int status;
 	unsigned int unique_id;
@@ -318,15 +332,17 @@ typedef struct TAG_TW_Ioctl_Driver_Command {
 	unsigned int buffer_length;
 } TW_Ioctl_Driver_Command;
 
-typedef struct TAG_TW_Ioctl_Apache {
+typedef struct TAG_TW_Ioctl_Apache
+{
 	TW_Ioctl_Driver_Command driver_command;
-        char padding[488];
+	char padding[488];
 	TW_Command_Full firmware_command;
 	char data_buffer[1];
 } TW_Ioctl_Buf_Apache;
 
 /* GetParam descriptor */
-typedef struct {
+typedef struct
+{
 	unsigned short	table_id;
 	unsigned short	parameter_id;
 	unsigned short	parameter_size_bytes;
@@ -354,7 +370,8 @@ typedef struct TAG_TW_Compatibility_Info
 
 #pragma pack()
 
-typedef struct TAG_TW_Device_Extension {
+typedef struct TAG_TW_Device_Extension
+{
 	void                     __iomem *base_addr;
 	unsigned long	       	*generic_buffer_virt[TW_Q_LENGTH];
 	dma_addr_t	       	generic_buffer_phys[TW_Q_LENGTH];

@@ -15,10 +15,10 @@
 #include <linux/delay.h>
 #include <linux/slab.h>
 #ifdef CONFIG_W1_SLAVE_DS2433_CRC
-#include <linux/crc16.h>
+	#include <linux/crc16.h>
 
-#define CRC16_INIT		0
-#define CRC16_VALID		0xb001
+	#define CRC16_INIT		0
+	#define CRC16_VALID		0xb001
 
 #endif
 
@@ -44,7 +44,8 @@ MODULE_ALIAS("w1-family-" __stringify(W1_EEPROM_DS2433));
 #define W1_F23_READ_SCRATCH	0xAA
 #define W1_F23_COPY_SCRATCH	0x55
 
-struct w1_f23_data {
+struct w1_f23_data
+{
 	u8	memory[W1_EEPROM_SIZE];
 	u32	validcrc;
 };
@@ -56,25 +57,32 @@ struct w1_f23_data {
 static inline size_t w1_f23_fix_count(loff_t off, size_t count, size_t size)
 {
 	if (off > size)
+	{
 		return 0;
+	}
 
 	if ((off + count) > size)
+	{
 		return (size - off);
+	}
 
 	return count;
 }
 
 #ifdef CONFIG_W1_SLAVE_DS2433_CRC
 static int w1_f23_refresh_block(struct w1_slave *sl, struct w1_f23_data *data,
-				int block)
+								int block)
 {
 	u8	wrbuf[3];
 	int	off = block * W1_PAGE_SIZE;
 
 	if (data->validcrc & (1 << block))
+	{
 		return 0;
+	}
 
-	if (w1_reset_select_slave(sl)) {
+	if (w1_reset_select_slave(sl))
+	{
 		data->validcrc = 0;
 		return -EIO;
 	}
@@ -87,15 +95,17 @@ static int w1_f23_refresh_block(struct w1_slave *sl, struct w1_f23_data *data,
 
 	/* cache the block if the CRC is valid */
 	if (crc16(CRC16_INIT, &data->memory[off], W1_PAGE_SIZE) == CRC16_VALID)
+	{
 		data->validcrc |= (1 << block);
+	}
 
 	return 0;
 }
 #endif	/* CONFIG_W1_SLAVE_DS2433_CRC */
 
 static ssize_t eeprom_read(struct file *filp, struct kobject *kobj,
-			   struct bin_attribute *bin_attr, char *buf,
-			   loff_t off, size_t count)
+						   struct bin_attribute *bin_attr, char *buf,
+						   loff_t off, size_t count)
 {
 	struct w1_slave *sl = kobj_to_w1_slave(kobj);
 #ifdef CONFIG_W1_SLAVE_DS2433_CRC
@@ -106,7 +116,9 @@ static ssize_t eeprom_read(struct file *filp, struct kobject *kobj,
 #endif
 
 	if ((count = w1_f23_fix_count(off, count, W1_EEPROM_SIZE)) == 0)
+	{
 		return 0;
+	}
 
 	mutex_lock(&sl->master->bus_mutex);
 
@@ -114,18 +126,23 @@ static ssize_t eeprom_read(struct file *filp, struct kobject *kobj,
 
 	min_page = (off >> W1_PAGE_BITS);
 	max_page = (off + count - 1) >> W1_PAGE_BITS;
-	for (i = min_page; i <= max_page; i++) {
-		if (w1_f23_refresh_block(sl, data, i)) {
+
+	for (i = min_page; i <= max_page; i++)
+	{
+		if (w1_f23_refresh_block(sl, data, i))
+		{
 			count = -EIO;
 			goto out_up;
 		}
 	}
+
 	memcpy(buf, &data->memory[off], count);
 
 #else 	/* CONFIG_W1_SLAVE_DS2433_CRC */
 
 	/* read directly from the EEPROM */
-	if (w1_reset_select_slave(sl)) {
+	if (w1_reset_select_slave(sl))
+	{
 		count = -EIO;
 		goto out_up;
 	}
@@ -167,7 +184,9 @@ static int w1_f23_write(struct w1_slave *sl, int addr, int len, const u8 *data)
 
 	/* Write the data to the scratchpad */
 	if (w1_reset_select_slave(sl))
+	{
 		return -1;
+	}
 
 	wrbuf[0] = W1_F23_WRITE_SCRATCH;
 	wrbuf[1] = addr & 0xff;
@@ -178,19 +197,25 @@ static int w1_f23_write(struct w1_slave *sl, int addr, int len, const u8 *data)
 
 	/* Read the scratchpad and verify */
 	if (w1_reset_select_slave(sl))
+	{
 		return -1;
+	}
 
 	w1_write_8(sl->master, W1_F23_READ_SCRATCH);
 	w1_read_block(sl->master, rdbuf, len + 3);
 
 	/* Compare what was read against the data written */
 	if ((rdbuf[0] != wrbuf[1]) || (rdbuf[1] != wrbuf[2]) ||
-	    (rdbuf[2] != es) || (memcmp(data, &rdbuf[3], len) != 0))
+		(rdbuf[2] != es) || (memcmp(data, &rdbuf[3], len) != 0))
+	{
 		return -1;
+	}
 
 	/* Copy the scratchpad to EEPROM */
 	if (w1_reset_select_slave(sl))
+	{
 		return -1;
+	}
 
 	wrbuf[0] = W1_F23_COPY_SCRATCH;
 	wrbuf[3] = es;
@@ -208,46 +233,60 @@ static int w1_f23_write(struct w1_slave *sl, int addr, int len, const u8 *data)
 }
 
 static ssize_t eeprom_write(struct file *filp, struct kobject *kobj,
-			    struct bin_attribute *bin_attr, char *buf,
-			    loff_t off, size_t count)
+							struct bin_attribute *bin_attr, char *buf,
+							loff_t off, size_t count)
 {
 	struct w1_slave *sl = kobj_to_w1_slave(kobj);
 	int addr, len, idx;
 
 	if ((count = w1_f23_fix_count(off, count, W1_EEPROM_SIZE)) == 0)
+	{
 		return 0;
+	}
 
 #ifdef CONFIG_W1_SLAVE_DS2433_CRC
+
 	/* can only write full blocks in cached mode */
-	if ((off & W1_PAGE_MASK) || (count & W1_PAGE_MASK)) {
+	if ((off & W1_PAGE_MASK) || (count & W1_PAGE_MASK))
+	{
 		dev_err(&sl->dev, "invalid offset/count off=%d cnt=%zd\n",
-			(int)off, count);
+				(int)off, count);
 		return -EINVAL;
 	}
 
 	/* make sure the block CRCs are valid */
-	for (idx = 0; idx < count; idx += W1_PAGE_SIZE) {
-		if (crc16(CRC16_INIT, &buf[idx], W1_PAGE_SIZE) != CRC16_VALID) {
+	for (idx = 0; idx < count; idx += W1_PAGE_SIZE)
+	{
+		if (crc16(CRC16_INIT, &buf[idx], W1_PAGE_SIZE) != CRC16_VALID)
+		{
 			dev_err(&sl->dev, "bad CRC at offset %d\n", (int)off);
 			return -EINVAL;
 		}
 	}
+
 #endif	/* CONFIG_W1_SLAVE_DS2433_CRC */
 
 	mutex_lock(&sl->master->bus_mutex);
 
 	/* Can only write data to one page at a time */
 	idx = 0;
-	while (idx < count) {
+
+	while (idx < count)
+	{
 		addr = off + idx;
 		len = W1_PAGE_SIZE - (addr & W1_PAGE_MASK);
-		if (len > (count - idx))
-			len = count - idx;
 
-		if (w1_f23_write(sl, addr, len, &buf[idx]) < 0) {
+		if (len > (count - idx))
+		{
+			len = count - idx;
+		}
+
+		if (w1_f23_write(sl, addr, len, &buf[idx]) < 0)
+		{
 			count = -EIO;
 			goto out_up;
 		}
+
 		idx += len;
 	}
 
@@ -259,16 +298,19 @@ out_up:
 
 static BIN_ATTR_RW(eeprom, W1_EEPROM_SIZE);
 
-static struct bin_attribute *w1_f23_bin_attributes[] = {
+static struct bin_attribute *w1_f23_bin_attributes[] =
+{
 	&bin_attr_eeprom,
 	NULL,
 };
 
-static const struct attribute_group w1_f23_group = {
+static const struct attribute_group w1_f23_group =
+{
 	.bin_attrs = w1_f23_bin_attributes,
 };
 
-static const struct attribute_group *w1_f23_groups[] = {
+static const struct attribute_group *w1_f23_groups[] =
+{
 	&w1_f23_group,
 	NULL,
 };
@@ -279,8 +321,12 @@ static int w1_f23_add_slave(struct w1_slave *sl)
 	struct w1_f23_data *data;
 
 	data = kzalloc(sizeof(struct w1_f23_data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
+
 	sl->family_data = data;
 
 #endif	/* CONFIG_W1_SLAVE_DS2433_CRC */
@@ -295,13 +341,15 @@ static void w1_f23_remove_slave(struct w1_slave *sl)
 #endif	/* CONFIG_W1_SLAVE_DS2433_CRC */
 }
 
-static struct w1_family_ops w1_f23_fops = {
+static struct w1_family_ops w1_f23_fops =
+{
 	.add_slave      = w1_f23_add_slave,
 	.remove_slave   = w1_f23_remove_slave,
 	.groups		= w1_f23_groups,
 };
 
-static struct w1_family w1_family_23 = {
+static struct w1_family w1_family_23 =
+{
 	.fid = W1_EEPROM_DS2433,
 	.fops = &w1_f23_fops,
 };

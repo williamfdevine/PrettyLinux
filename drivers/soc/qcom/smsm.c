@@ -80,7 +80,8 @@ struct smsm_host;
  * @entries:	context for each of the entries
  * @hosts:	context for each of the hosts
  */
-struct qcom_smsm {
+struct qcom_smsm
+{
 	struct device *dev;
 
 	u32 local_host;
@@ -110,7 +111,8 @@ struct qcom_smsm {
  * @subscription: pointer to a row in the subscription matrix representing this
  *		entry
  */
-struct smsm_entry {
+struct smsm_entry
+{
 	struct qcom_smsm *smsm;
 
 	struct irq_domain *domain;
@@ -129,7 +131,8 @@ struct smsm_entry {
  * @ipc_offset:	offset in @ipc_regmap for outgoing interrupt
  * @ipc_bit:	bit in @ipc_regmap + @ipc_offset for outgoing interrupt
  */
-struct smsm_host {
+struct smsm_host
+{
 	struct regmap *ipc_regmap;
 	int ipc_offset;
 	int ipc_bit;
@@ -163,7 +166,9 @@ static int smsm_update_bits(void *data, u32 mask, u32 value)
 
 	/* Don't signal if we didn't change the value */
 	changes = val ^ orig;
-	if (!changes) {
+
+	if (!changes)
+	{
 		spin_unlock_irqrestore(&smsm->lock, flags);
 		goto done;
 	}
@@ -176,14 +181,17 @@ static int smsm_update_bits(void *data, u32 mask, u32 value)
 	wmb();
 
 	/* Iterate over all hosts to check whom wants a kick */
-	for (host = 0; host < smsm->num_hosts; host++) {
+	for (host = 0; host < smsm->num_hosts; host++)
+	{
 		hostp = &smsm->hosts[host];
 
 		val = readl(smsm->subscription + host);
-		if (val & changes && hostp->ipc_regmap) {
+
+		if (val & changes && hostp->ipc_regmap)
+		{
 			regmap_write(hostp->ipc_regmap,
-				     hostp->ipc_offset,
-				     BIT(hostp->ipc_bit));
+						 hostp->ipc_offset,
+						 BIT(hostp->ipc_bit));
 		}
 	}
 
@@ -191,7 +199,8 @@ done:
 	return 0;
 }
 
-static const struct qcom_smem_state_ops smsm_state_ops = {
+static const struct qcom_smem_state_ops smsm_state_ops =
+{
 	.update_bits = smsm_update_bits,
 };
 
@@ -215,17 +224,25 @@ static irqreturn_t smsm_intr(int irq, void *data)
 	changed = val ^ entry->last_value;
 	entry->last_value = val;
 
-	for_each_set_bit(i, entry->irq_enabled, 32) {
+	for_each_set_bit(i, entry->irq_enabled, 32)
+	{
 		if (!(changed & BIT(i)))
+		{
 			continue;
+		}
 
-		if (val & BIT(i)) {
-			if (test_bit(i, entry->irq_rising)) {
+		if (val & BIT(i))
+		{
+			if (test_bit(i, entry->irq_rising))
+			{
 				irq_pin = irq_find_mapping(entry->domain, i);
 				handle_nested_irq(irq_pin);
 			}
-		} else {
-			if (test_bit(i, entry->irq_falling)) {
+		}
+		else
+		{
+			if (test_bit(i, entry->irq_falling))
+			{
 				irq_pin = irq_find_mapping(entry->domain, i);
 				handle_nested_irq(irq_pin);
 			}
@@ -249,7 +266,8 @@ static void smsm_mask_irq(struct irq_data *irqd)
 	struct qcom_smsm *smsm = entry->smsm;
 	u32 val;
 
-	if (entry->subscription) {
+	if (entry->subscription)
+	{
 		val = readl(entry->subscription + smsm->local_host);
 		val &= ~BIT(irq);
 		writel(val, entry->subscription + smsm->local_host);
@@ -276,7 +294,8 @@ static void smsm_unmask_irq(struct irq_data *irqd)
 
 	set_bit(irq, entry->irq_enabled);
 
-	if (entry->subscription) {
+	if (entry->subscription)
+	{
 		val = readl(entry->subscription + smsm->local_host);
 		val |= BIT(irq);
 		writel(val, entry->subscription + smsm->local_host);
@@ -294,22 +313,33 @@ static int smsm_set_irq_type(struct irq_data *irqd, unsigned int type)
 	irq_hw_number_t irq = irqd_to_hwirq(irqd);
 
 	if (!(type & IRQ_TYPE_EDGE_BOTH))
+	{
 		return -EINVAL;
+	}
 
 	if (type & IRQ_TYPE_EDGE_RISING)
+	{
 		set_bit(irq, entry->irq_rising);
+	}
 	else
+	{
 		clear_bit(irq, entry->irq_rising);
+	}
 
 	if (type & IRQ_TYPE_EDGE_FALLING)
+	{
 		set_bit(irq, entry->irq_falling);
+	}
 	else
+	{
 		clear_bit(irq, entry->irq_falling);
+	}
 
 	return 0;
 }
 
-static struct irq_chip smsm_irq_chip = {
+static struct irq_chip smsm_irq_chip =
+{
 	.name           = "smsm",
 	.irq_mask       = smsm_mask_irq,
 	.irq_unmask     = smsm_unmask_irq,
@@ -323,8 +353,8 @@ static struct irq_chip smsm_irq_chip = {
  * @hw:		unused
  */
 static int smsm_irq_map(struct irq_domain *d,
-			unsigned int irq,
-			irq_hw_number_t hw)
+						unsigned int irq,
+						irq_hw_number_t hw)
 {
 	struct smsm_entry *entry = d->host_data;
 
@@ -335,7 +365,8 @@ static int smsm_irq_map(struct irq_domain *d,
 	return 0;
 }
 
-static const struct irq_domain_ops smsm_irq_ops = {
+static const struct irq_domain_ops smsm_irq_ops =
+{
 	.map = smsm_irq_map,
 	.xlate = irq_domain_xlate_twocell,
 };
@@ -358,21 +389,31 @@ static int smsm_parse_ipc(struct qcom_smsm *smsm, unsigned host_id)
 
 	snprintf(key, sizeof(key), "qcom,ipc-%d", host_id);
 	syscon = of_parse_phandle(node, key, 0);
+
 	if (!syscon)
+	{
 		return 0;
+	}
 
 	host->ipc_regmap = syscon_node_to_regmap(syscon);
+
 	if (IS_ERR(host->ipc_regmap))
+	{
 		return PTR_ERR(host->ipc_regmap);
+	}
 
 	ret = of_property_read_u32_index(node, key, 1, &host->ipc_offset);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(smsm->dev, "no offset in %s\n", key);
 		return -EINVAL;
 	}
 
 	ret = of_property_read_u32_index(node, key, 2, &host->ipc_bit);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(smsm->dev, "no bit in %s\n", key);
 		return -EINVAL;
 	}
@@ -387,29 +428,35 @@ static int smsm_parse_ipc(struct qcom_smsm *smsm, unsigned host_id)
  * @node:	dt node containing the entry's properties
  */
 static int smsm_inbound_entry(struct qcom_smsm *smsm,
-			      struct smsm_entry *entry,
-			      struct device_node *node)
+							  struct smsm_entry *entry,
+							  struct device_node *node)
 {
 	int ret;
 	int irq;
 
 	irq = irq_of_parse_and_map(node, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		dev_err(smsm->dev, "failed to parse smsm interrupt\n");
 		return -EINVAL;
 	}
 
 	ret = devm_request_threaded_irq(smsm->dev, irq,
-					NULL, smsm_intr,
-					IRQF_ONESHOT,
-					"smsm", (void *)entry);
-	if (ret) {
+									NULL, smsm_intr,
+									IRQF_ONESHOT,
+									"smsm", (void *)entry);
+
+	if (ret)
+	{
 		dev_err(smsm->dev, "failed to request interrupt\n");
 		return ret;
 	}
 
 	entry->domain = irq_domain_add_linear(node, 32, &smsm_irq_ops, entry);
-	if (!entry->domain) {
+
+	if (!entry->domain)
+	{
 		dev_err(smsm->dev, "failed to add irq_domain\n");
 		return -ENOMEM;
 	}
@@ -431,7 +478,8 @@ static int smsm_inbound_entry(struct qcom_smsm *smsm,
 static int smsm_get_size_info(struct qcom_smsm *smsm)
 {
 	size_t size;
-	struct {
+	struct
+	{
 		u32 num_hosts;
 		u32 num_entries;
 		u32 reserved0;
@@ -439,12 +487,16 @@ static int smsm_get_size_info(struct qcom_smsm *smsm)
 	} *info;
 
 	info = qcom_smem_get(QCOM_SMEM_HOST_ANY, SMEM_SMSM_SIZE_INFO, &size);
-	if (PTR_ERR(info) == -ENOENT || size != sizeof(*info)) {
+
+	if (PTR_ERR(info) == -ENOENT || size != sizeof(*info))
+	{
 		dev_warn(smsm->dev, "no smsm size info, using defaults\n");
 		smsm->num_entries = SMSM_DEFAULT_NUM_ENTRIES;
 		smsm->num_hosts = SMSM_DEFAULT_NUM_HOSTS;
 		return 0;
-	} else if (IS_ERR(info)) {
+	}
+	else if (IS_ERR(info))
+	{
 		dev_err(smsm->dev, "unable to retrieve smsm size info\n");
 		return PTR_ERR(info);
 	}
@@ -453,8 +505,8 @@ static int smsm_get_size_info(struct qcom_smsm *smsm)
 	smsm->num_hosts = info->num_hosts;
 
 	dev_dbg(smsm->dev,
-		"found custom size of smsm: %d entries %d hosts\n",
-		smsm->num_entries, smsm->num_hosts);
+			"found custom size of smsm: %d entries %d hosts\n",
+			smsm->num_entries, smsm->num_hosts);
 
 	return 0;
 }
@@ -472,56 +524,79 @@ static int qcom_smsm_probe(struct platform_device *pdev)
 	int ret;
 
 	smsm = devm_kzalloc(&pdev->dev, sizeof(*smsm), GFP_KERNEL);
+
 	if (!smsm)
+	{
 		return -ENOMEM;
+	}
+
 	smsm->dev = &pdev->dev;
 	spin_lock_init(&smsm->lock);
 
 	ret = smsm_get_size_info(smsm);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	smsm->entries = devm_kcalloc(&pdev->dev,
-				     smsm->num_entries,
-				     sizeof(struct smsm_entry),
-				     GFP_KERNEL);
+								 smsm->num_entries,
+								 sizeof(struct smsm_entry),
+								 GFP_KERNEL);
+
 	if (!smsm->entries)
+	{
 		return -ENOMEM;
+	}
 
 	smsm->hosts = devm_kcalloc(&pdev->dev,
-				   smsm->num_hosts,
-				   sizeof(struct smsm_host),
-				   GFP_KERNEL);
+							   smsm->num_hosts,
+							   sizeof(struct smsm_host),
+							   GFP_KERNEL);
+
 	if (!smsm->hosts)
+	{
 		return -ENOMEM;
+	}
 
 	local_node = of_find_node_with_property(pdev->dev.of_node, "#qcom,smem-state-cells");
-	if (!local_node) {
+
+	if (!local_node)
+	{
 		dev_err(&pdev->dev, "no state entry\n");
 		return -EINVAL;
 	}
 
 	of_property_read_u32(pdev->dev.of_node,
-			     "qcom,local-host",
-			     &smsm->local_host);
+						 "qcom,local-host",
+						 &smsm->local_host);
 
 	/* Parse the host properties */
-	for (id = 0; id < smsm->num_hosts; id++) {
+	for (id = 0; id < smsm->num_hosts; id++)
+	{
 		ret = smsm_parse_ipc(smsm, id);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	/* Acquire the main SMSM state vector */
 	ret = qcom_smem_alloc(QCOM_SMEM_HOST_ANY, SMEM_SMSM_SHARED_STATE,
-			      smsm->num_entries * sizeof(u32));
-	if (ret < 0 && ret != -EEXIST) {
+						  smsm->num_entries * sizeof(u32));
+
+	if (ret < 0 && ret != -EEXIST)
+	{
 		dev_err(&pdev->dev, "unable to allocate shared state entry\n");
 		return ret;
 	}
 
 	states = qcom_smem_get(QCOM_SMEM_HOST_ANY, SMEM_SMSM_SHARED_STATE, NULL);
-	if (IS_ERR(states)) {
+
+	if (IS_ERR(states))
+	{
 		dev_err(&pdev->dev, "Unable to acquire shared state entry\n");
 		return PTR_ERR(states);
 	}
@@ -529,13 +604,17 @@ static int qcom_smsm_probe(struct platform_device *pdev)
 	/* Acquire the list of interrupt mask vectors */
 	size = smsm->num_entries * smsm->num_hosts * sizeof(u32);
 	ret = qcom_smem_alloc(QCOM_SMEM_HOST_ANY, SMEM_SMSM_CPU_INTR_MASK, size);
-	if (ret < 0 && ret != -EEXIST) {
+
+	if (ret < 0 && ret != -EEXIST)
+	{
 		dev_err(&pdev->dev, "unable to allocate smsm interrupt mask\n");
 		return ret;
 	}
 
 	intr_mask = qcom_smem_get(QCOM_SMEM_HOST_ANY, SMEM_SMSM_CPU_INTR_MASK, NULL);
-	if (IS_ERR(intr_mask)) {
+
+	if (IS_ERR(intr_mask))
+	{
 		dev_err(&pdev->dev, "unable to acquire shared memory interrupt mask\n");
 		return PTR_ERR(intr_mask);
 	}
@@ -546,23 +625,35 @@ static int qcom_smsm_probe(struct platform_device *pdev)
 
 	/* Register the outgoing state */
 	smsm->state = qcom_smem_state_register(local_node, &smsm_state_ops, smsm);
-	if (IS_ERR(smsm->state)) {
+
+	if (IS_ERR(smsm->state))
+	{
 		dev_err(smsm->dev, "failed to register qcom_smem_state\n");
 		return PTR_ERR(smsm->state);
 	}
 
 	/* Register handlers for remote processor entries of interest. */
-	for_each_available_child_of_node(pdev->dev.of_node, node) {
+	for_each_available_child_of_node(pdev->dev.of_node, node)
+	{
 		if (!of_property_read_bool(node, "interrupt-controller"))
+		{
 			continue;
+		}
 
 		ret = of_property_read_u32(node, "reg", &id);
-		if (ret || id >= smsm->num_entries) {
+
+		if (ret || id >= smsm->num_entries)
+		{
 			dev_err(&pdev->dev, "invalid reg of entry\n");
+
 			if (!ret)
+			{
 				ret = -EINVAL;
+			}
+
 			goto unwind_interfaces;
 		}
+
 		entry = &smsm->entries[id];
 
 		entry->smsm = smsm;
@@ -573,8 +664,11 @@ static int qcom_smsm_probe(struct platform_device *pdev)
 		writel(0, entry->subscription + smsm->local_host);
 
 		ret = smsm_inbound_entry(smsm, entry, node);
+
 		if (ret < 0)
+		{
 			goto unwind_interfaces;
+		}
 	}
 
 	platform_set_drvdata(pdev, smsm);
@@ -582,9 +676,12 @@ static int qcom_smsm_probe(struct platform_device *pdev)
 	return 0;
 
 unwind_interfaces:
+
 	for (id = 0; id < smsm->num_entries; id++)
 		if (smsm->entries[id].domain)
+		{
 			irq_domain_remove(smsm->entries[id].domain);
+		}
 
 	qcom_smem_state_unregister(smsm->state);
 
@@ -598,20 +695,24 @@ static int qcom_smsm_remove(struct platform_device *pdev)
 
 	for (id = 0; id < smsm->num_entries; id++)
 		if (smsm->entries[id].domain)
+		{
 			irq_domain_remove(smsm->entries[id].domain);
+		}
 
 	qcom_smem_state_unregister(smsm->state);
 
 	return 0;
 }
 
-static const struct of_device_id qcom_smsm_of_match[] = {
+static const struct of_device_id qcom_smsm_of_match[] =
+{
 	{ .compatible = "qcom,smsm" },
 	{}
 };
 MODULE_DEVICE_TABLE(of, qcom_smsm_of_match);
 
-static struct platform_driver qcom_smsm_driver = {
+static struct platform_driver qcom_smsm_driver =
+{
 	.probe = qcom_smsm_probe,
 	.remove = qcom_smsm_remove,
 	.driver  = {

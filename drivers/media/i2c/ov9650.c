@@ -199,22 +199,27 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
 #define OV9650_ID		0x9650
 #define OV9652_ID		0x9652
 
-struct ov965x_ctrls {
+struct ov965x_ctrls
+{
 	struct v4l2_ctrl_handler handler;
-	struct {
+	struct
+	{
 		struct v4l2_ctrl *auto_exp;
 		struct v4l2_ctrl *exposure;
 	};
-	struct {
+	struct
+	{
 		struct v4l2_ctrl *auto_wb;
 		struct v4l2_ctrl *blue_balance;
 		struct v4l2_ctrl *red_balance;
 	};
-	struct {
+	struct
+	{
 		struct v4l2_ctrl *hflip;
 		struct v4l2_ctrl *vflip;
 	};
-	struct {
+	struct
+	{
 		struct v4l2_ctrl *auto_gain;
 		struct v4l2_ctrl *gain;
 	};
@@ -225,27 +230,31 @@ struct ov965x_ctrls {
 	u8 update;
 };
 
-struct ov965x_framesize {
+struct ov965x_framesize
+{
 	u16 width;
 	u16 height;
 	u16 max_exp_lines;
 	const u8 *regs;
 };
 
-struct ov965x_interval {
+struct ov965x_interval
+{
 	struct v4l2_fract interval;
 	/* Maximum resolution for this interval */
 	struct v4l2_frmsize_discrete size;
 	u8 clkrc_div;
 };
 
-enum gpio_id {
+enum gpio_id
+{
 	GPIO_PWDN,
 	GPIO_RST,
 	NUM_GPIOS,
 };
 
-struct ov965x {
+struct ov965x
+{
 	struct v4l2_subdev sd;
 	struct media_pad pad;
 	enum v4l2_mbus_type bus_type;
@@ -277,12 +286,14 @@ struct ov965x {
 	u8 apply_frame_fmt;
 };
 
-struct i2c_rv {
+struct i2c_rv
+{
 	u8 addr;
 	u8 value;
 };
 
-static const struct i2c_rv ov965x_init_regs[] = {
+static const struct i2c_rv ov965x_init_regs[] =
+{
 	{ REG_COM2, 0x10 },	/* Set soft sleep mode */
 	{ REG_COM5, 0x00 },	/* System clock options */
 	{ REG_COM2, 0x01 },	/* Output drive, soft sleep mode */
@@ -344,28 +355,33 @@ static const struct i2c_rv ov965x_init_regs[] = {
  * COM7,  COM3,  COM4, HSTART, HSTOP, HREF, VSTART, VSTOP, VREF,
  * EXHCH, EXHCL, ADC,  OCOM,   OFON
  */
-static const u8 frame_size_reg_addr[NUM_FMT_REGS] = {
+static const u8 frame_size_reg_addr[NUM_FMT_REGS] =
+{
 	0x12, 0x0c, 0x0d, 0x17, 0x18, 0x32, 0x19, 0x1a, 0x03,
 	0x2a, 0x2b, 0x37, 0x38, 0x39,
 };
 
-static const u8 ov965x_sxga_regs[NUM_FMT_REGS] = {
+static const u8 ov965x_sxga_regs[NUM_FMT_REGS] =
+{
 	0x00, 0x00, 0x00, 0x1e, 0xbe, 0xbf, 0x01, 0x81, 0x12,
 	0x10, 0x34, 0x81, 0x93, 0x51,
 };
 
-static const u8 ov965x_vga_regs[NUM_FMT_REGS] = {
+static const u8 ov965x_vga_regs[NUM_FMT_REGS] =
+{
 	0x40, 0x04, 0x80, 0x26, 0xc6, 0xed, 0x01, 0x3d, 0x00,
 	0x10, 0x40, 0x91, 0x12, 0x43,
 };
 
 /* Determined empirically. */
-static const u8 ov965x_qvga_regs[NUM_FMT_REGS] = {
+static const u8 ov965x_qvga_regs[NUM_FMT_REGS] =
+{
 	0x10, 0x04, 0x80, 0x25, 0xc5, 0xbf, 0x00, 0x80, 0x12,
 	0x10, 0x40, 0x91, 0x12, 0x43,
 };
 
-static const struct ov965x_framesize ov965x_framesizes[] = {
+static const struct ov965x_framesize ov965x_framesizes[] =
+{
 	{
 		.width		= SXGA_WIDTH,
 		.height		= SXGA_HEIGHT,
@@ -384,14 +400,16 @@ static const struct ov965x_framesize ov965x_framesizes[] = {
 	},
 };
 
-struct ov965x_pixfmt {
+struct ov965x_pixfmt
+{
 	u32 code;
 	u32 colorspace;
 	/* REG_TSLB value, only bits [3:2] may be set. */
 	u8 tslb_reg;
 };
 
-static const struct ov965x_pixfmt ov965x_formats[] = {
+static const struct ov965x_pixfmt ov965x_formats[] =
+{
 	{ MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_JPEG, 0x00},
 	{ MEDIA_BUS_FMT_YVYU8_2X8, V4L2_COLORSPACE_JPEG, 0x04},
 	{ MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_JPEG, 0x0c},
@@ -403,7 +421,8 @@ static const struct ov965x_pixfmt ov965x_formats[] = {
  * combinations. Default CLKRC[5:0] divider values are valid
  * only for 24 MHz external clock frequency.
  */
-static struct ov965x_interval ov965x_intervals[] = {
+static struct ov965x_interval ov965x_intervals[] =
+{
 	{{ 100, 625 }, { SXGA_WIDTH, SXGA_HEIGHT }, 0 },  /* 6.25 fps */
 	{{ 10,  125 }, { VGA_WIDTH, VGA_HEIGHT },   1 },  /* 12.5 fps */
 	{{ 10,  125 }, { QVGA_WIDTH, QVGA_HEIGHT }, 3 },  /* 12.5 fps */
@@ -424,7 +443,8 @@ static inline struct ov965x *to_ov965x(struct v4l2_subdev *sd)
 static int ov965x_read(struct i2c_client *client, u8 addr, u8 *val)
 {
 	u8 buf = addr;
-	struct i2c_msg msg = {
+	struct i2c_msg msg =
+	{
 		.addr = client->addr,
 		.flags = 0,
 		.len = 1,
@@ -433,16 +453,20 @@ static int ov965x_read(struct i2c_client *client, u8 addr, u8 *val)
 	int ret;
 
 	ret = i2c_transfer(client->adapter, &msg, 1);
-	if (ret == 1) {
+
+	if (ret == 1)
+	{
 		msg.flags = I2C_M_RD;
 		ret = i2c_transfer(client->adapter, &msg, 1);
 
 		if (ret == 1)
+		{
 			*val = buf;
+		}
 	}
 
 	v4l2_dbg(2, debug, client, "%s: 0x%02x @ 0x%02x. (%d)\n",
-		 __func__, *val, addr, ret);
+			 __func__, *val, addr, ret);
 
 	return ret == 1 ? 0 : ret;
 }
@@ -454,25 +478,28 @@ static int ov965x_write(struct i2c_client *client, u8 addr, u8 val)
 	int ret = i2c_master_send(client, buf, 2);
 
 	v4l2_dbg(2, debug, client, "%s: 0x%02x @ 0x%02X (%d)\n",
-		 __func__, val, addr, ret);
+			 __func__, val, addr, ret);
 
 	return ret == 2 ? 0 : ret;
 }
 
 static int ov965x_write_array(struct i2c_client *client,
-			      const struct i2c_rv *regs)
+							  const struct i2c_rv *regs)
 {
 	int i, ret = 0;
 
 	for (i = 0; ret == 0 && regs[i].addr != REG_NULL; i++)
+	{
 		ret = ov965x_write(client, regs[i].addr, regs[i].value);
+	}
 
 	return ret;
 }
 
 static int ov965x_set_default_gamma_curve(struct ov965x *ov965x)
 {
-	static const u8 gamma_curve[] = {
+	static const u8 gamma_curve[] =
+	{
 		/* Values taken from OV application note. */
 		0x40, 0x30, 0x4b, 0x60, 0x70, 0x70, 0x70, 0x70,
 		0x60, 0x60, 0x50, 0x48, 0x3a, 0x2e, 0x28, 0x22,
@@ -482,10 +509,15 @@ static int ov965x_set_default_gamma_curve(struct ov965x *ov965x)
 	u8 addr = REG_GSP;
 	unsigned int i;
 
-	for (i = 0; i < ARRAY_SIZE(gamma_curve); i++) {
+	for (i = 0; i < ARRAY_SIZE(gamma_curve); i++)
+	{
 		int ret = ov965x_write(ov965x->client, addr, gamma_curve[i]);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		addr++;
 	}
 
@@ -494,17 +526,23 @@ static int ov965x_set_default_gamma_curve(struct ov965x *ov965x)
 
 static int ov965x_set_color_matrix(struct ov965x *ov965x)
 {
-	static const u8 mtx[] = {
+	static const u8 mtx[] =
+	{
 		/* MTX1..MTX9, MTXS */
 		0x3a, 0x3d, 0x03, 0x12, 0x26, 0x38, 0x40, 0x40, 0x40, 0x0d
 	};
 	u8 addr = REG_MTX(1);
 	unsigned int i;
 
-	for (i = 0; i < ARRAY_SIZE(mtx); i++) {
+	for (i = 0; i < ARRAY_SIZE(mtx); i++)
+	{
 		int ret = ov965x_write(ov965x->client, addr, mtx[i]);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		addr++;
 	}
 
@@ -514,16 +552,21 @@ static int ov965x_set_color_matrix(struct ov965x *ov965x)
 static void ov965x_gpio_set(int gpio, int val)
 {
 	if (gpio_is_valid(gpio))
+	{
 		gpio_set_value(gpio, val);
+	}
 }
 
 static void __ov965x_set_power(struct ov965x *ov965x, int on)
 {
-	if (on) {
+	if (on)
+	{
 		ov965x_gpio_set(ov965x->gpios[GPIO_PWDN], 0);
 		ov965x_gpio_set(ov965x->gpios[GPIO_RST], 0);
 		usleep_range(25000, 26000);
-	} else {
+	}
+	else
+	{
 		ov965x_gpio_set(ov965x->gpios[GPIO_RST], 1);
 		ov965x_gpio_set(ov965x->gpios[GPIO_PWDN], 1);
 	}
@@ -540,17 +583,24 @@ static int ov965x_s_power(struct v4l2_subdev *sd, int on)
 	v4l2_dbg(1, debug, client, "%s: on: %d\n", __func__, on);
 
 	mutex_lock(&ov965x->lock);
-	if (ov965x->power == !on) {
+
+	if (ov965x->power == !on)
+	{
 		__ov965x_set_power(ov965x, on);
-		if (on) {
+
+		if (on)
+		{
 			ret = ov965x_write_array(client,
-						 ov965x_init_regs);
+									 ov965x_init_regs);
 			ov965x->apply_frame_fmt = 1;
 			ov965x->ctrls.update = 1;
 		}
 	}
+
 	if (!ret)
+	{
 		ov965x->power += on ? 1 : -1;
+	}
 
 	WARN_ON(ov965x->power < 0);
 	mutex_unlock(&ov965x->lock);
@@ -569,14 +619,17 @@ static void ov965x_update_exposure_ctrl(struct ov965x *ov965x)
 	u8 clkrc;
 
 	mutex_lock(&ov965x->lock);
-	if (WARN_ON(!ctrl || !ov965x->frame_size)) {
+
+	if (WARN_ON(!ctrl || !ov965x->frame_size))
+	{
 		mutex_unlock(&ov965x->lock);
 		return;
 	}
+
 	clkrc = DEF_CLKRC + ov965x->fiv->clkrc_div;
 	/* Calculate internal clock frequency */
 	fint = ov965x->mclk_frequency * ((clkrc >> 7) + 1) /
-				((2 * ((clkrc & 0x3f) + 1)));
+		   ((2 * ((clkrc & 0x3f) + 1)));
 	/* and the row interval (in us). */
 	trow = (2 * 1520 * 1000000UL) / fint;
 	max = ov965x->frame_size->max_exp_lines * trow;
@@ -584,7 +637,7 @@ static void ov965x_update_exposure_ctrl(struct ov965x *ov965x)
 	mutex_unlock(&ov965x->lock);
 
 	v4l2_dbg(1, debug, &ov965x->sd, "clkrc: %#x, fi: %lu, tr: %lu, %d\n",
-		 clkrc, fint, trow, max);
+			 clkrc, fint, trow, max);
 
 	/* Update exposure time range to match current frame format. */
 	min = (trow + 100) / 100;
@@ -592,7 +645,9 @@ static void ov965x_update_exposure_ctrl(struct ov965x *ov965x)
 	def = min + (max - min) / 2;
 
 	if (v4l2_ctrl_modify_range(ctrl, min, max, 1, def))
+	{
 		v4l2_err(&ov965x->sd, "Exposure ctrl range update failed\n");
+	}
 }
 
 static int ov965x_set_banding_filter(struct ov965x *ov965x, int value)
@@ -602,25 +657,44 @@ static int ov965x_set_banding_filter(struct ov965x *ov965x, int value)
 	u8 reg;
 
 	ret = ov965x_read(ov965x->client, REG_COM8, &reg);
-	if (!ret) {
+
+	if (!ret)
+	{
 		if (value == V4L2_CID_POWER_LINE_FREQUENCY_DISABLED)
+		{
 			reg &= ~COM8_BFILT;
+		}
 		else
+		{
 			reg |= COM8_BFILT;
+		}
+
 		ret = ov965x_write(ov965x->client, REG_COM8, reg);
 	}
+
 	if (value == V4L2_CID_POWER_LINE_FREQUENCY_DISABLED)
+	{
 		return 0;
+	}
+
 	if (WARN_ON(ov965x->fiv == NULL))
+	{
 		return -EINVAL;
+	}
+
 	/* Set minimal exposure time for 50/60 HZ lighting */
 	if (value == V4L2_CID_POWER_LINE_FREQUENCY_50HZ)
+	{
 		light_freq = 50;
+	}
 	else
+	{
 		light_freq = 60;
+	}
+
 	mbd = (1000UL * ov965x->fiv->interval.denominator *
-	       ov965x->frame_size->max_exp_lines) /
-	       ov965x->fiv->interval.numerator;
+		   ov965x->frame_size->max_exp_lines) /
+		  ov965x->fiv->interval.numerator;
 	mbd = ((mbd / (light_freq * 2)) + 500) / 1000UL;
 
 	return ov965x_write(ov965x->client, REG_MBD, mbd);
@@ -632,18 +706,27 @@ static int ov965x_set_white_balance(struct ov965x *ov965x, int awb)
 	u8 reg;
 
 	ret = ov965x_read(ov965x->client, REG_COM8, &reg);
-	if (!ret) {
+
+	if (!ret)
+	{
 		reg = awb ? reg | REG_COM8 : reg & ~REG_COM8;
 		ret = ov965x_write(ov965x->client, REG_COM8, reg);
 	}
-	if (!ret && !awb) {
+
+	if (!ret && !awb)
+	{
 		ret = ov965x_write(ov965x->client, REG_BLUE,
-				   ov965x->ctrls.blue_balance->val);
+						   ov965x->ctrls.blue_balance->val);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		ret = ov965x_write(ov965x->client, REG_RED,
-				   ov965x->ctrls.red_balance->val);
+						   ov965x->ctrls.red_balance->val);
 	}
+
 	return ret;
 }
 
@@ -652,7 +735,8 @@ static int ov965x_set_white_balance(struct ov965x *ov965x, int awb)
 
 static int ov965x_set_brightness(struct ov965x *ov965x, int val)
 {
-	static const u8 regs[NUM_BR_LEVELS + 1][NUM_BR_REGS] = {
+	static const u8 regs[NUM_BR_LEVELS + 1][NUM_BR_REGS] =
+	{
 		{ REG_AEW, REG_AEB, REG_VPT },
 		{ 0x1c, 0x12, 0x50 }, /* -3 */
 		{ 0x3d, 0x30, 0x71 }, /* -2 */
@@ -665,12 +749,16 @@ static int ov965x_set_brightness(struct ov965x *ov965x, int val)
 	int i, ret = 0;
 
 	val += (NUM_BR_LEVELS / 2 + 1);
+
 	if (val > NUM_BR_LEVELS)
+	{
 		return -EINVAL;
+	}
 
 	for (i = 0; i < NUM_BR_REGS && !ret; i++)
 		ret = ov965x_write(ov965x->client, regs[0][i],
-				   regs[val][i]);
+						   regs[val][i]);
+
 	return ret;
 }
 
@@ -680,48 +768,79 @@ static int ov965x_set_gain(struct ov965x *ov965x, int auto_gain)
 	struct ov965x_ctrls *ctrls = &ov965x->ctrls;
 	int ret = 0;
 	u8 reg;
+
 	/*
 	 * For manual mode we need to disable AGC first, so
 	 * gain value in REG_VREF, REG_GAIN is not overwritten.
 	 */
-	if (ctrls->auto_gain->is_new) {
+	if (ctrls->auto_gain->is_new)
+	{
 		ret = ov965x_read(client, REG_COM8, &reg);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		if (ctrls->auto_gain->val)
+		{
 			reg |= COM8_AGC;
+		}
 		else
+		{
 			reg &= ~COM8_AGC;
+		}
+
 		ret = ov965x_write(client, REG_COM8, reg);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
-	if (ctrls->gain->is_new && !auto_gain) {
+	if (ctrls->gain->is_new && !auto_gain)
+	{
 		unsigned int gain = ctrls->gain->val;
 		unsigned int rgain;
 		int m;
+
 		/*
 		 * Convert gain control value to the sensor's gain
 		 * registers (VREF[7:6], GAIN[7:0]) format.
 		 */
 		for (m = 6; m >= 0; m--)
 			if (gain >= (1 << m) * 16)
+			{
 				break;
+			}
+
 		rgain = (gain - ((1 << m) * 16)) / (1 << m);
 		rgain |= (((1 << m) - 1) << 4);
 
 		ret = ov965x_write(client, REG_GAIN, rgain & 0xff);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		ret = ov965x_read(client, REG_VREF, &reg);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		reg &= ~VREF_GAIN_MASK;
 		reg |= (((rgain >> 8) & 0x3) << 6);
 		ret = ov965x_write(client, REG_VREF, reg);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		/* Return updated control's value to userspace */
 		ctrls->gain->val = (1 << m) * (16 + (rgain & 0xf));
 	}
@@ -735,22 +854,38 @@ static int ov965x_set_sharpness(struct ov965x *ov965x, unsigned int value)
 	int ret;
 
 	ret = ov965x_read(ov965x->client, REG_COM14, &com14);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	ret = ov965x_read(ov965x->client, REG_EDGE, &edge);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	com14 = value ? com14 | COM14_EDGE_EN : com14 & ~COM14_EDGE_EN;
 	value--;
-	if (value > 0x0f) {
+
+	if (value > 0x0f)
+	{
 		com14 |= COM14_EEF_X2;
 		value >>= 1;
-	} else {
+	}
+	else
+	{
 		com14 &= ~COM14_EEF_X2;
 	}
+
 	ret = ov965x_write(ov965x->client, REG_COM14, com14);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	edge &= ~EDGE_FACTOR_MASK;
 	edge |= ((u8)value & 0x0f);
@@ -766,38 +901,58 @@ static int ov965x_set_exposure(struct ov965x *ov965x, int exp)
 	int ret;
 	u8 reg;
 
-	if (ctrls->auto_exp->is_new) {
+	if (ctrls->auto_exp->is_new)
+	{
 		ret = ov965x_read(client, REG_COM8, &reg);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		if (auto_exposure)
+		{
 			reg |= (COM8_AEC | COM8_AGC);
+		}
 		else
+		{
 			reg &= ~(COM8_AEC | COM8_AGC);
+		}
+
 		ret = ov965x_write(client, REG_COM8, reg);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
-	if (!auto_exposure && ctrls->exposure->is_new) {
+	if (!auto_exposure && ctrls->exposure->is_new)
+	{
 		unsigned int exposure = (ctrls->exposure->val * 100)
-					 / ov965x->exp_row_interval;
+								/ ov965x->exp_row_interval;
 		/*
 		 * Manual exposure value
 		 * [b15:b0] - AECHM (b15:b10), AECH (b9:b2), COM1 (b1:b0)
 		 */
 		ret = ov965x_write(client, REG_COM1, exposure & 0x3);
+
 		if (!ret)
 			ret = ov965x_write(client, REG_AECH,
-					   (exposure >> 2) & 0xff);
+							   (exposure >> 2) & 0xff);
+
 		if (!ret)
 			ret = ov965x_write(client, REG_AECHM,
-					   (exposure >> 10) & 0x3f);
+							   (exposure >> 10) & 0x3f);
+
 		/* Update the value to minimize rounding errors */
 		ctrls->exposure->val = ((exposure * ov965x->exp_row_interval)
-							+ 50) / 100;
+								+ 50) / 100;
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	v4l2_ctrl_activate(ov965x->ctrls.brightness, !exp);
@@ -809,10 +964,14 @@ static int ov965x_set_flip(struct ov965x *ov965x)
 	u8 mvfp = 0;
 
 	if (ov965x->ctrls.hflip->val)
+	{
 		mvfp |= MVFP_MIRROR;
+	}
 
 	if (ov965x->ctrls.vflip->val)
+	{
 		mvfp |= MVFP_FLIP;
+	}
 
 	return ov965x_write(ov965x->client, REG_MVFP, mvfp);
 }
@@ -822,7 +981,8 @@ static int ov965x_set_flip(struct ov965x *ov965x)
 
 static int ov965x_set_saturation(struct ov965x *ov965x, int val)
 {
-	static const u8 regs[NUM_SAT_LEVELS][NUM_SAT_REGS] = {
+	static const u8 regs[NUM_SAT_LEVELS][NUM_SAT_REGS] =
+	{
 		/* MTX(1)...MTX(6) */
 		{ 0x1d, 0x1f, 0x02, 0x09, 0x13, 0x1c }, /* -2 */
 		{ 0x2e, 0x31, 0x02, 0x0e, 0x1e, 0x2d }, /* -1 */
@@ -834,11 +994,16 @@ static int ov965x_set_saturation(struct ov965x *ov965x, int val)
 	int i, ret = 0;
 
 	val += (NUM_SAT_LEVELS / 2);
+
 	if (val >= NUM_SAT_LEVELS)
+	{
 		return -EINVAL;
+	}
 
 	for (i = 0; i < NUM_SAT_REGS && !ret; i++)
+	{
 		ret = ov965x_write(ov965x->client, addr + i, regs[val][i]);
+	}
 
 	return ret;
 }
@@ -849,8 +1014,12 @@ static int ov965x_set_test_pattern(struct ov965x *ov965x, int value)
 	u8 reg;
 
 	ret = ov965x_read(ov965x->client, REG_COM23, &reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	reg = value ? reg | COM23_TEST_MODE : reg & ~COM23_TEST_MODE;
 	return ov965x_write(ov965x->client, REG_COM23, reg);
 }
@@ -863,38 +1032,65 @@ static int __g_volatile_ctrl(struct ov965x *ov965x, struct v4l2_ctrl *ctrl)
 	int ret;
 
 	if (!ov965x->power)
+	{
 		return 0;
+	}
 
-	switch (ctrl->id) {
-	case V4L2_CID_AUTOGAIN:
-		if (!ctrl->val)
-			return 0;
-		ret = ov965x_read(client, REG_GAIN, &reg0);
-		if (ret < 0)
-			return ret;
-		ret = ov965x_read(client, REG_VREF, &reg1);
-		if (ret < 0)
-			return ret;
-		gain = ((reg1 >> 6) << 8) | reg0;
-		m = 0x01 << fls(gain >> 4);
-		ov965x->ctrls.gain->val = m * (16 + (gain & 0xf));
-		break;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_AUTOGAIN:
+			if (!ctrl->val)
+			{
+				return 0;
+			}
 
-	case V4L2_CID_EXPOSURE_AUTO:
-		if (ctrl->val == V4L2_EXPOSURE_MANUAL)
-			return 0;
-		ret = ov965x_read(client, REG_COM1, &reg0);
-		if (!ret)
-			ret = ov965x_read(client, REG_AECH, &reg1);
-		if (!ret)
-			ret = ov965x_read(client, REG_AECHM, &reg2);
-		if (ret < 0)
-			return ret;
-		exposure = ((reg2 & 0x3f) << 10) | (reg1 << 2) |
-						(reg0 & 0x3);
-		ov965x->ctrls.exposure->val = ((exposure *
-				ov965x->exp_row_interval) + 50) / 100;
-		break;
+			ret = ov965x_read(client, REG_GAIN, &reg0);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			ret = ov965x_read(client, REG_VREF, &reg1);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			gain = ((reg1 >> 6) << 8) | reg0;
+			m = 0x01 << fls(gain >> 4);
+			ov965x->ctrls.gain->val = m * (16 + (gain & 0xf));
+			break;
+
+		case V4L2_CID_EXPOSURE_AUTO:
+			if (ctrl->val == V4L2_EXPOSURE_MANUAL)
+			{
+				return 0;
+			}
+
+			ret = ov965x_read(client, REG_COM1, &reg0);
+
+			if (!ret)
+			{
+				ret = ov965x_read(client, REG_AECH, &reg1);
+			}
+
+			if (!ret)
+			{
+				ret = ov965x_read(client, REG_AECHM, &reg2);
+			}
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			exposure = ((reg2 & 0x3f) << 10) | (reg1 << 2) |
+					   (reg0 & 0x3);
+			ov965x->ctrls.exposure->val = ((exposure *
+											ov965x->exp_row_interval) + 50) / 100;
+			break;
 	}
 
 	return 0;
@@ -921,66 +1117,71 @@ static int ov965x_s_ctrl(struct v4l2_ctrl *ctrl)
 	int ret = -EINVAL;
 
 	v4l2_dbg(1, debug, sd, "s_ctrl: %s, value: %d. power: %d\n",
-		 ctrl->name, ctrl->val, ov965x->power);
+			 ctrl->name, ctrl->val, ov965x->power);
 
 	mutex_lock(&ov965x->lock);
+
 	/*
 	 * If the device is not powered up now postpone applying control's
 	 * value to the hardware, until it is ready to accept commands.
 	 */
-	if (ov965x->power == 0) {
+	if (ov965x->power == 0)
+	{
 		mutex_unlock(&ov965x->lock);
 		return 0;
 	}
 
-	switch (ctrl->id) {
-	case V4L2_CID_AUTO_WHITE_BALANCE:
-		ret = ov965x_set_white_balance(ov965x, ctrl->val);
-		break;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_AUTO_WHITE_BALANCE:
+			ret = ov965x_set_white_balance(ov965x, ctrl->val);
+			break;
 
-	case V4L2_CID_BRIGHTNESS:
-		ret = ov965x_set_brightness(ov965x, ctrl->val);
-		break;
+		case V4L2_CID_BRIGHTNESS:
+			ret = ov965x_set_brightness(ov965x, ctrl->val);
+			break;
 
-	case V4L2_CID_EXPOSURE_AUTO:
-		ret = ov965x_set_exposure(ov965x, ctrl->val);
-		break;
+		case V4L2_CID_EXPOSURE_AUTO:
+			ret = ov965x_set_exposure(ov965x, ctrl->val);
+			break;
 
-	case V4L2_CID_AUTOGAIN:
-		ret = ov965x_set_gain(ov965x, ctrl->val);
-		break;
+		case V4L2_CID_AUTOGAIN:
+			ret = ov965x_set_gain(ov965x, ctrl->val);
+			break;
 
-	case V4L2_CID_HFLIP:
-		ret = ov965x_set_flip(ov965x);
-		break;
+		case V4L2_CID_HFLIP:
+			ret = ov965x_set_flip(ov965x);
+			break;
 
-	case V4L2_CID_POWER_LINE_FREQUENCY:
-		ret = ov965x_set_banding_filter(ov965x, ctrl->val);
-		break;
+		case V4L2_CID_POWER_LINE_FREQUENCY:
+			ret = ov965x_set_banding_filter(ov965x, ctrl->val);
+			break;
 
-	case V4L2_CID_SATURATION:
-		ret = ov965x_set_saturation(ov965x, ctrl->val);
-		break;
+		case V4L2_CID_SATURATION:
+			ret = ov965x_set_saturation(ov965x, ctrl->val);
+			break;
 
-	case V4L2_CID_SHARPNESS:
-		ret = ov965x_set_sharpness(ov965x, ctrl->val);
-		break;
+		case V4L2_CID_SHARPNESS:
+			ret = ov965x_set_sharpness(ov965x, ctrl->val);
+			break;
 
-	case V4L2_CID_TEST_PATTERN:
-		ret = ov965x_set_test_pattern(ov965x, ctrl->val);
-		break;
+		case V4L2_CID_TEST_PATTERN:
+			ret = ov965x_set_test_pattern(ov965x, ctrl->val);
+			break;
 	}
 
 	mutex_unlock(&ov965x->lock);
 	return ret;
 }
 
-static const struct v4l2_ctrl_ops ov965x_ctrl_ops = {
+static const struct v4l2_ctrl_ops ov965x_ctrl_ops =
+{
 	.g_volatile_ctrl = ov965x_g_volatile_ctrl,
 	.s_ctrl	= ov965x_s_ctrl,
 };
 
-static const char * const test_pattern_menu[] = {
+static const char *const test_pattern_menu[] =
+{
 	"Disabled",
 	"Color bars",
 	NULL
@@ -994,50 +1195,55 @@ static int ov965x_initialize_controls(struct ov965x *ov965x)
 	int ret;
 
 	ret = v4l2_ctrl_handler_init(hdl, 16);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Auto/manual white balance */
 	ctrls->auto_wb = v4l2_ctrl_new_std(hdl, ops,
-				V4L2_CID_AUTO_WHITE_BALANCE,
-				0, 1, 1, 1);
+									   V4L2_CID_AUTO_WHITE_BALANCE,
+									   0, 1, 1, 1);
 	ctrls->blue_balance = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_BLUE_BALANCE,
-						0, 0xff, 1, 0x80);
+											0, 0xff, 1, 0x80);
 	ctrls->red_balance = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_RED_BALANCE,
-						0, 0xff, 1, 0x80);
+										   0, 0xff, 1, 0x80);
 	/* Auto/manual exposure */
 	ctrls->auto_exp = v4l2_ctrl_new_std_menu(hdl, ops,
-				V4L2_CID_EXPOSURE_AUTO,
-				V4L2_EXPOSURE_MANUAL, 0, V4L2_EXPOSURE_AUTO);
+					  V4L2_CID_EXPOSURE_AUTO,
+					  V4L2_EXPOSURE_MANUAL, 0, V4L2_EXPOSURE_AUTO);
 	/* Exposure time, in 100 us units. min/max is updated dynamically. */
 	ctrls->exposure = v4l2_ctrl_new_std(hdl, ops,
-				V4L2_CID_EXPOSURE_ABSOLUTE,
-				2, 1500, 1, 500);
+										V4L2_CID_EXPOSURE_ABSOLUTE,
+										2, 1500, 1, 500);
 	/* Auto/manual gain */
 	ctrls->auto_gain = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_AUTOGAIN,
-						0, 1, 1, 1);
+										 0, 1, 1, 1);
 	ctrls->gain = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_GAIN,
-						16, 64 * (16 + 15), 1, 64 * 16);
+									16, 64 * (16 + 15), 1, 64 * 16);
 
 	ctrls->saturation = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_SATURATION,
-						-2, 2, 1, 0);
+										  -2, 2, 1, 0);
 	ctrls->brightness = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_BRIGHTNESS,
-						-3, 3, 1, 0);
+										  -3, 3, 1, 0);
 	ctrls->sharpness = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_SHARPNESS,
-						0, 32, 1, 6);
+										 0, 32, 1, 6);
 
 	ctrls->hflip = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_HFLIP, 0, 1, 1, 0);
 	ctrls->vflip = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_VFLIP, 0, 1, 1, 0);
 
 	ctrls->light_freq = v4l2_ctrl_new_std_menu(hdl, ops,
-				V4L2_CID_POWER_LINE_FREQUENCY,
-				V4L2_CID_POWER_LINE_FREQUENCY_60HZ, ~0x7,
-				V4L2_CID_POWER_LINE_FREQUENCY_50HZ);
+						V4L2_CID_POWER_LINE_FREQUENCY,
+						V4L2_CID_POWER_LINE_FREQUENCY_60HZ, ~0x7,
+						V4L2_CID_POWER_LINE_FREQUENCY_50HZ);
 
 	v4l2_ctrl_new_std_menu_items(hdl, ops, V4L2_CID_TEST_PATTERN,
-				ARRAY_SIZE(test_pattern_menu) - 1, 0, 0,
-				test_pattern_menu);
-	if (hdl->error) {
+								 ARRAY_SIZE(test_pattern_menu) - 1, 0, 0,
+								 test_pattern_menu);
+
+	if (hdl->error)
+	{
 		ret = hdl->error;
 		v4l2_ctrl_handler_free(hdl);
 		return ret;
@@ -1068,28 +1274,34 @@ static void ov965x_get_default_format(struct v4l2_mbus_framefmt *mf)
 }
 
 static int ov965x_enum_mbus_code(struct v4l2_subdev *sd,
-				 struct v4l2_subdev_pad_config *cfg,
-				 struct v4l2_subdev_mbus_code_enum *code)
+								 struct v4l2_subdev_pad_config *cfg,
+								 struct v4l2_subdev_mbus_code_enum *code)
 {
 	if (code->index >= ARRAY_SIZE(ov965x_formats))
+	{
 		return -EINVAL;
+	}
 
 	code->code = ov965x_formats[code->index].code;
 	return 0;
 }
 
 static int ov965x_enum_frame_sizes(struct v4l2_subdev *sd,
-				   struct v4l2_subdev_pad_config *cfg,
-				   struct v4l2_subdev_frame_size_enum *fse)
+								   struct v4l2_subdev_pad_config *cfg,
+								   struct v4l2_subdev_frame_size_enum *fse)
 {
 	int i = ARRAY_SIZE(ov965x_formats);
 
 	if (fse->index >= ARRAY_SIZE(ov965x_framesizes))
+	{
 		return -EINVAL;
+	}
 
 	while (--i)
 		if (fse->code == ov965x_formats[i].code)
+		{
 			break;
+		}
 
 	fse->code = ov965x_formats[i].code;
 
@@ -1102,7 +1314,7 @@ static int ov965x_enum_frame_sizes(struct v4l2_subdev *sd,
 }
 
 static int ov965x_g_frame_interval(struct v4l2_subdev *sd,
-				   struct v4l2_subdev_frame_interval *fi)
+								   struct v4l2_subdev_frame_interval *fi)
 {
 	struct ov965x *ov965x = to_ov965x(sd);
 
@@ -1114,7 +1326,7 @@ static int ov965x_g_frame_interval(struct v4l2_subdev *sd,
 }
 
 static int __ov965x_set_frame_interval(struct ov965x *ov965x,
-				       struct v4l2_subdev_frame_interval *fi)
+									   struct v4l2_subdev_frame_interval *fi)
 {
 	struct v4l2_mbus_framefmt *mbus_fmt = &ov965x->format;
 	const struct ov965x_interval *fiv = &ov965x_intervals[0];
@@ -1123,40 +1335,49 @@ static int __ov965x_set_frame_interval(struct ov965x *ov965x,
 
 
 	if (fi->interval.denominator == 0)
+	{
 		return -EINVAL;
+	}
 
 	req_int = (u64)(fi->interval.numerator * 10000) /
-		fi->interval.denominator;
+			  fi->interval.denominator;
 
-	for (i = 0; i < ARRAY_SIZE(ov965x_intervals); i++) {
+	for (i = 0; i < ARRAY_SIZE(ov965x_intervals); i++)
+	{
 		const struct ov965x_interval *iv = &ov965x_intervals[i];
 
 		if (mbus_fmt->width != iv->size.width ||
-		    mbus_fmt->height != iv->size.height)
+			mbus_fmt->height != iv->size.height)
+		{
 			continue;
+		}
+
 		err = abs((u64)(iv->interval.numerator * 10000) /
-			    iv->interval.denominator - req_int);
-		if (err < min_err) {
+				  iv->interval.denominator - req_int);
+
+		if (err < min_err)
+		{
 			fiv = iv;
 			min_err = err;
 		}
 	}
+
 	ov965x->fiv = fiv;
 
 	v4l2_dbg(1, debug, &ov965x->sd, "Changed frame interval to %u us\n",
-		 fiv->interval.numerator * 1000000 / fiv->interval.denominator);
+			 fiv->interval.numerator * 1000000 / fiv->interval.denominator);
 
 	return 0;
 }
 
 static int ov965x_s_frame_interval(struct v4l2_subdev *sd,
-				   struct v4l2_subdev_frame_interval *fi)
+								   struct v4l2_subdev_frame_interval *fi)
 {
 	struct ov965x *ov965x = to_ov965x(sd);
 	int ret;
 
 	v4l2_dbg(1, debug, sd, "Setting %d/%d frame interval\n",
-		 fi->interval.numerator, fi->interval.denominator);
+			 fi->interval.numerator, fi->interval.denominator);
 
 	mutex_lock(&ov965x->lock);
 	ret = __ov965x_set_frame_interval(ov965x, fi);
@@ -1166,12 +1387,13 @@ static int ov965x_s_frame_interval(struct v4l2_subdev *sd,
 }
 
 static int ov965x_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
-			  struct v4l2_subdev_format *fmt)
+						  struct v4l2_subdev_format *fmt)
 {
 	struct ov965x *ov965x = to_ov965x(sd);
 	struct v4l2_mbus_framefmt *mf;
 
-	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
+	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
+	{
 		mf = v4l2_subdev_get_try_format(sd, cfg, 0);
 		fmt->format = *mf;
 		return 0;
@@ -1185,32 +1407,43 @@ static int ov965x_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config 
 }
 
 static void __ov965x_try_frame_size(struct v4l2_mbus_framefmt *mf,
-				    const struct ov965x_framesize **size)
+									const struct ov965x_framesize **size)
 {
 	const struct ov965x_framesize *fsize = &ov965x_framesizes[0],
-		*match = NULL;
+									   *match = NULL;
 	int i = ARRAY_SIZE(ov965x_framesizes);
 	unsigned int min_err = UINT_MAX;
 
-	while (i--) {
+	while (i--)
+	{
 		int err = abs(fsize->width - mf->width)
-				+ abs(fsize->height - mf->height);
-		if (err < min_err) {
+				  + abs(fsize->height - mf->height);
+
+		if (err < min_err)
+		{
 			min_err = err;
 			match = fsize;
 		}
+
 		fsize++;
 	}
+
 	if (!match)
+	{
 		match = &ov965x_framesizes[0];
+	}
+
 	mf->width  = match->width;
 	mf->height = match->height;
+
 	if (size)
+	{
 		*size = match;
+	}
 }
 
 static int ov965x_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
-			  struct v4l2_subdev_format *fmt)
+						  struct v4l2_subdev_format *fmt)
 {
 	unsigned int index = ARRAY_SIZE(ov965x_formats);
 	struct v4l2_mbus_framefmt *mf = &fmt->format;
@@ -1222,7 +1455,9 @@ static int ov965x_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config 
 
 	while (--index)
 		if (ov965x_formats[index].code == mf->code)
+		{
 			break;
+		}
 
 	mf->colorspace	= V4L2_COLORSPACE_JPEG;
 	mf->code	= ov965x_formats[index].code;
@@ -1230,15 +1465,22 @@ static int ov965x_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config 
 
 	mutex_lock(&ov965x->lock);
 
-	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-		if (cfg != NULL) {
+	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
+	{
+		if (cfg != NULL)
+		{
 			mf = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
 			*mf = fmt->format;
 		}
-	} else {
-		if (ov965x->streaming) {
+	}
+	else
+	{
+		if (ov965x->streaming)
+		{
 			ret = -EBUSY;
-		} else {
+		}
+		else
+		{
 			ov965x->frame_size = size;
 			ov965x->format = fmt->format;
 			ov965x->tslb_reg = ov965x_formats[index].tslb_reg;
@@ -1246,17 +1488,22 @@ static int ov965x_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config 
 		}
 	}
 
-	if (!ret && fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-		struct v4l2_subdev_frame_interval fiv = {
+	if (!ret && fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+	{
+		struct v4l2_subdev_frame_interval fiv =
+		{
 			.interval = { 0, 1 }
 		};
 		/* Reset to minimum possible frame interval */
 		__ov965x_set_frame_interval(ov965x, &fiv);
 	}
+
 	mutex_unlock(&ov965x->lock);
 
 	if (!ret)
+	{
 		ov965x_update_exposure_ctrl(ov965x);
+	}
 
 	return ret;
 }
@@ -1267,7 +1514,8 @@ static int ov965x_set_frame_size(struct ov965x *ov965x)
 
 	for (i = 0; ret == 0 && i < NUM_FMT_REGS; i++)
 		ret = ov965x_write(ov965x->client, frame_size_reg_addr[i],
-				   ov965x->frame_size->regs[i]);
+						   ov965x->frame_size->regs[i]);
+
 	return ret;
 }
 
@@ -1278,39 +1526,72 @@ static int __ov965x_set_params(struct ov965x *ov965x)
 	int ret = 0;
 	u8 reg;
 
-	if (ov965x->apply_frame_fmt) {
+	if (ov965x->apply_frame_fmt)
+	{
 		reg = DEF_CLKRC + ov965x->fiv->clkrc_div;
 		ret = ov965x_write(client, REG_CLKRC, reg);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		ret = ov965x_set_frame_size(ov965x);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		ret = ov965x_read(client, REG_TSLB, &reg);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		reg &= ~TSLB_YUYV_MASK;
 		reg |= ov965x->tslb_reg;
 		ret = ov965x_write(client, REG_TSLB, reg);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
+
 	ret = ov965x_set_default_gamma_curve(ov965x);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	ret = ov965x_set_color_matrix(ov965x);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	/*
 	 * Select manual banding filter, the filter will
 	 * be enabled further if required.
 	 */
 	ret = ov965x_read(client, REG_COM11, &reg);
+
 	if (!ret)
+	{
 		reg |= COM11_BANDING;
+	}
+
 	ret = ov965x_write(client, REG_COM11, reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	/*
 	 * Banding filter (REG_MBD value) needs to match selected
 	 * resolution and frame rate, so it's always updated here.
@@ -1328,11 +1609,16 @@ static int ov965x_s_stream(struct v4l2_subdev *sd, int on)
 	v4l2_dbg(1, debug, client, "%s: on: %d\n", __func__, on);
 
 	mutex_lock(&ov965x->lock);
-	if (ov965x->streaming == !on) {
-		if (on)
-			ret = __ov965x_set_params(ov965x);
 
-		if (!ret && ctrls->update) {
+	if (ov965x->streaming == !on)
+	{
+		if (on)
+		{
+			ret = __ov965x_set_params(ov965x);
+		}
+
+		if (!ret && ctrls->update)
+		{
 			/*
 			 * ov965x_s_ctrl callback takes the mutex
 			 * so it needs to be released here.
@@ -1341,15 +1627,22 @@ static int ov965x_s_stream(struct v4l2_subdev *sd, int on)
 			ret = v4l2_ctrl_handler_setup(&ctrls->handler);
 
 			mutex_lock(&ov965x->lock);
+
 			if (!ret)
+			{
 				ctrls->update = 0;
+			}
 		}
+
 		if (!ret)
 			ret = ov965x_write(client, REG_COM2,
-					   on ? 0x01 : 0x11);
+							   on ? 0x01 : 0x11);
 	}
+
 	if (!ret)
+	{
 		ov965x->streaming += on ? 1 : -1;
+	}
 
 	WARN_ON(ov965x->streaming < 0);
 	mutex_unlock(&ov965x->lock);
@@ -1368,32 +1661,37 @@ static int ov965x_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
 	return 0;
 }
 
-static const struct v4l2_subdev_pad_ops ov965x_pad_ops = {
+static const struct v4l2_subdev_pad_ops ov965x_pad_ops =
+{
 	.enum_mbus_code = ov965x_enum_mbus_code,
 	.enum_frame_size = ov965x_enum_frame_sizes,
 	.get_fmt = ov965x_get_fmt,
 	.set_fmt = ov965x_set_fmt,
 };
 
-static const struct v4l2_subdev_video_ops ov965x_video_ops = {
+static const struct v4l2_subdev_video_ops ov965x_video_ops =
+{
 	.s_stream = ov965x_s_stream,
 	.g_frame_interval = ov965x_g_frame_interval,
 	.s_frame_interval = ov965x_s_frame_interval,
 
 };
 
-static const struct v4l2_subdev_internal_ops ov965x_sd_internal_ops = {
+static const struct v4l2_subdev_internal_ops ov965x_sd_internal_ops =
+{
 	.open = ov965x_open,
 };
 
-static const struct v4l2_subdev_core_ops ov965x_core_ops = {
+static const struct v4l2_subdev_core_ops ov965x_core_ops =
+{
 	.s_power = ov965x_s_power,
 	.log_status = v4l2_ctrl_subdev_log_status,
 	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
 	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
 };
 
-static const struct v4l2_subdev_ops ov965x_subdev_ops = {
+static const struct v4l2_subdev_ops ov965x_subdev_ops =
+{
 	.core = &ov965x_core_ops,
 	.pad = &ov965x_pad_ops,
 	.video = &ov965x_video_ops,
@@ -1403,22 +1701,30 @@ static const struct v4l2_subdev_ops ov965x_subdev_ops = {
  * Reset and power down GPIOs configuration
  */
 static int ov965x_configure_gpios(struct ov965x *ov965x,
-				  const struct ov9650_platform_data *pdata)
+								  const struct ov9650_platform_data *pdata)
 {
 	int ret, i;
 
 	ov965x->gpios[GPIO_PWDN] = pdata->gpio_pwdn;
 	ov965x->gpios[GPIO_RST]  = pdata->gpio_reset;
 
-	for (i = 0; i < ARRAY_SIZE(ov965x->gpios); i++) {
+	for (i = 0; i < ARRAY_SIZE(ov965x->gpios); i++)
+	{
 		int gpio = ov965x->gpios[i];
 
 		if (!gpio_is_valid(gpio))
+		{
 			continue;
+		}
+
 		ret = devm_gpio_request_one(&ov965x->client->dev, gpio,
-					    GPIOF_OUT_INIT_HIGH, "OV965X");
+									GPIOF_OUT_INIT_HIGH, "OV965X");
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		v4l2_dbg(1, debug, &ov965x->sd, "set gpio %d to 1\n", gpio);
 
 		gpio_set_value(gpio, 1);
@@ -1442,47 +1748,61 @@ static int ov965x_detect_sensor(struct v4l2_subdev *sd)
 
 	/* Check sensor revision */
 	ret = ov965x_read(client, REG_PID, &pid);
+
 	if (!ret)
+	{
 		ret = ov965x_read(client, REG_VER, &ver);
+	}
 
 	__ov965x_set_power(ov965x, 0);
 
-	if (!ret) {
+	if (!ret)
+	{
 		ov965x->id = OV965X_ID(pid, ver);
-		if (ov965x->id == OV9650_ID || ov965x->id == OV9652_ID) {
+
+		if (ov965x->id == OV9650_ID || ov965x->id == OV9652_ID)
+		{
 			v4l2_info(sd, "Found OV%04X sensor\n", ov965x->id);
-		} else {
+		}
+		else
+		{
 			v4l2_err(sd, "Sensor detection failed (%04X, %d)\n",
-				 ov965x->id, ret);
+					 ov965x->id, ret);
 			ret = -ENODEV;
 		}
 	}
+
 	mutex_unlock(&ov965x->lock);
 
 	return ret;
 }
 
 static int ov965x_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	const struct ov9650_platform_data *pdata = client->dev.platform_data;
 	struct v4l2_subdev *sd;
 	struct ov965x *ov965x;
 	int ret;
 
-	if (pdata == NULL) {
+	if (pdata == NULL)
+	{
 		dev_err(&client->dev, "platform data not specified\n");
 		return -EINVAL;
 	}
 
-	if (pdata->mclk_frequency == 0) {
+	if (pdata->mclk_frequency == 0)
+	{
 		dev_err(&client->dev, "MCLK frequency not specified\n");
 		return -EINVAL;
 	}
 
 	ov965x = devm_kzalloc(&client->dev, sizeof(*ov965x), GFP_KERNEL);
+
 	if (!ov965x)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&ov965x->lock);
 	ov965x->client = client;
@@ -1494,36 +1814,51 @@ static int ov965x_probe(struct i2c_client *client,
 
 	sd->internal_ops = &ov965x_sd_internal_ops;
 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
-		     V4L2_SUBDEV_FL_HAS_EVENTS;
+				 V4L2_SUBDEV_FL_HAS_EVENTS;
 
 	ret = ov965x_configure_gpios(ov965x, pdata);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ov965x->pad.flags = MEDIA_PAD_FL_SOURCE;
 	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
 	ret = media_entity_pads_init(&sd->entity, 1, &ov965x->pad);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = ov965x_initialize_controls(ov965x);
+
 	if (ret < 0)
+	{
 		goto err_me;
+	}
 
 	ov965x_get_default_format(&ov965x->format);
 	ov965x->frame_size = &ov965x_framesizes[0];
 	ov965x->fiv = &ov965x_intervals[0];
 
 	ret = ov965x_detect_sensor(sd);
+
 	if (ret < 0)
+	{
 		goto err_ctrls;
+	}
 
 	/* Update exposure time min/max to match frame format */
 	ov965x_update_exposure_ctrl(ov965x);
 
 	ret = v4l2_async_register_subdev(sd);
+
 	if (ret < 0)
+	{
 		goto err_ctrls;
+	}
 
 	return 0;
 err_ctrls:
@@ -1544,14 +1879,16 @@ static int ov965x_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id ov965x_id[] = {
+static const struct i2c_device_id ov965x_id[] =
+{
 	{ "OV9650", 0 },
 	{ "OV9652", 0 },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(i2c, ov965x_id);
 
-static struct i2c_driver ov965x_i2c_driver = {
+static struct i2c_driver ov965x_i2c_driver =
+{
 	.driver = {
 		.name	= DRIVER_NAME,
 	},

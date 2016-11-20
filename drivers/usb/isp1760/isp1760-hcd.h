@@ -26,27 +26,31 @@ struct usb_hcd;
 #define MAX_PAYLOAD_SIZE BLOCK_3_SIZE
 #define PAYLOAD_AREA_SIZE 0xf000
 
-struct isp1760_slotinfo {
+struct isp1760_slotinfo
+{
 	struct isp1760_qh *qh;
 	struct isp1760_qtd *qtd;
 	unsigned long timestamp;
 };
 
 /* chip memory management */
-struct isp1760_memory_chunk {
+struct isp1760_memory_chunk
+{
 	unsigned int start;
 	unsigned int size;
 	unsigned int free;
 };
 
-enum isp1760_queue_head_types {
+enum isp1760_queue_head_types
+{
 	QH_CONTROL,
 	QH_BULK,
 	QH_INTERRUPT,
 	QH_END
 };
 
-struct isp1760_hcd {
+struct isp1760_hcd
+{
 #ifdef CONFIG_USB_ISP1760_HCD
 	struct usb_hcd		*hcd;
 
@@ -70,17 +74,17 @@ struct isp1760_hcd {
 
 #ifdef CONFIG_USB_ISP1760_HCD
 int isp1760_hcd_register(struct isp1760_hcd *priv, void __iomem *regs,
-			 struct resource *mem, int irq, unsigned long irqflags,
-			 struct device *dev);
+						 struct resource *mem, int irq, unsigned long irqflags,
+						 struct device *dev);
 void isp1760_hcd_unregister(struct isp1760_hcd *priv);
 
 int isp1760_init_kmem_once(void);
 void isp1760_deinit_kmem_cache(void);
 #else
 static inline int isp1760_hcd_register(struct isp1760_hcd *priv,
-				       void __iomem *regs, struct resource *mem,
-				       int irq, unsigned long irqflags,
-				       struct device *dev)
+									   void __iomem *regs, struct resource *mem,
+									   int irq, unsigned long irqflags,
+									   struct device *dev)
 {
 	return 0;
 }

@@ -22,22 +22,26 @@
 #include "dvb_frontend.h"
 
 
-enum lgdt3306a_mpeg_mode {
+enum lgdt3306a_mpeg_mode
+{
 	LGDT3306A_MPEG_PARALLEL = 0,
 	LGDT3306A_MPEG_SERIAL = 1,
 };
 
-enum lgdt3306a_tp_clock_edge {
+enum lgdt3306a_tp_clock_edge
+{
 	LGDT3306A_TPCLK_RISING_EDGE = 0,
 	LGDT3306A_TPCLK_FALLING_EDGE = 1,
 };
 
-enum lgdt3306a_tp_valid_polarity {
+enum lgdt3306a_tp_valid_polarity
+{
 	LGDT3306A_TP_VALID_LOW = 0,
 	LGDT3306A_TP_VALID_HIGH = 1,
 };
 
-struct lgdt3306a_config {
+struct lgdt3306a_config
+{
 	u8 i2c_addr;
 
 	/* user defined IF frequency in KHz */
@@ -45,10 +49,10 @@ struct lgdt3306a_config {
 	u16 vsb_if_khz;
 
 	/* disable i2c repeater - 0:repeater enabled 1:repeater disabled */
-	unsigned int deny_i2c_rptr:1;
+	unsigned int deny_i2c_rptr: 1;
 
 	/* spectral inversion - 0:disabled 1:enabled */
-	unsigned int spectral_inversion:1;
+	unsigned int spectral_inversion: 1;
 
 	enum lgdt3306a_mpeg_mode mpeg_mode;
 	enum lgdt3306a_tp_clock_edge tpclk_edge;
@@ -60,11 +64,11 @@ struct lgdt3306a_config {
 
 #if IS_REACHABLE(CONFIG_DVB_LGDT3306A)
 struct dvb_frontend *lgdt3306a_attach(const struct lgdt3306a_config *config,
-				      struct i2c_adapter *i2c_adap);
+									  struct i2c_adapter *i2c_adap);
 #else
 static inline
 struct dvb_frontend *lgdt3306a_attach(const struct lgdt3306a_config *config,
-				      struct i2c_adapter *i2c_adap)
+									  struct i2c_adapter *i2c_adap)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

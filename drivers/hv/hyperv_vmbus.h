@@ -44,7 +44,8 @@
  * The below CPUID leaves are present if VersionAndFeatures.HypervisorPresent
  * is set by CPUID(HVCPUID_VERSION_FEATURES).
  */
-enum hv_cpuid_function {
+enum hv_cpuid_function
+{
 	HVCPUID_VERSION_FEATURES		= 0x00000001,
 	HVCPUID_VENDOR_MAXFUNCTION		= 0x40000000,
 	HVCPUID_INTERFACE			= 0x40000001,
@@ -84,47 +85,58 @@ enum hv_cpuid_function {
 #define HV_PARTITION_ID_INVALID		((u64)0x0)
 
 /* Define port type. */
-enum hv_port_type {
+enum hv_port_type
+{
 	HVPORT_MSG	= 1,
 	HVPORT_EVENT		= 2,
 	HVPORT_MONITOR	= 3
 };
 
 /* Define port information structure. */
-struct hv_port_info {
+struct hv_port_info
+{
 	enum hv_port_type port_type;
 	u32 padding;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u32 target_sint;
 			u32 target_vp;
 			u64 rsvdz;
 		} message_port_info;
-		struct {
+		struct
+		{
 			u32 target_sint;
 			u32 target_vp;
 			u16 base_flag_number;
 			u16 flag_count;
 			u32 rsvdz;
 		} event_port_info;
-		struct {
+		struct
+		{
 			u64 monitor_address;
 			u64 rsvdz;
 		} monitor_port_info;
 	};
 };
 
-struct hv_connection_info {
+struct hv_connection_info
+{
 	enum hv_port_type port_type;
 	u32 padding;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u64 rsvdz;
 		} message_connection_info;
-		struct {
+		struct
+		{
 			u64 rsvdz;
 		} event_connection_info;
-		struct {
+		struct
+		{
 			u64 monitor_address;
 		} monitor_connection_info;
 	};
@@ -133,16 +145,18 @@ struct hv_connection_info {
 /*
  * Timer configuration register.
  */
-union hv_timer_config {
+union hv_timer_config
+{
 	u64 as_uint64;
-	struct {
-		u64 enable:1;
-		u64 periodic:1;
-		u64 lazy:1;
-		u64 auto_enable:1;
-		u64 reserved_z0:12;
-		u64 sintx:4;
-		u64 reserved_z1:44;
+	struct
+	{
+		u64 enable: 1;
+		u64 periodic: 1;
+		u64 lazy: 1;
+		u64 auto_enable: 1;
+		u64 reserved_z0: 12;
+		u64 sintx: 4;
+		u64 reserved_z1: 44;
 	};
 };
 
@@ -150,78 +164,93 @@ union hv_timer_config {
 #define HV_PORT_MESSAGE_BUFFER_COUNT	(16)
 
 /* Define the synthetic interrupt controller event flags format. */
-union hv_synic_event_flags {
+union hv_synic_event_flags
+{
 	u8 flags8[HV_EVENT_FLAGS_BYTE_COUNT];
 	u32 flags32[HV_EVENT_FLAGS_DWORD_COUNT];
 };
 
 /* Define the synthetic interrupt flags page layout. */
-struct hv_synic_event_flags_page {
+struct hv_synic_event_flags_page
+{
 	union hv_synic_event_flags sintevent_flags[HV_SYNIC_SINT_COUNT];
 };
 
 /* Define SynIC control register. */
-union hv_synic_scontrol {
+union hv_synic_scontrol
+{
 	u64 as_uint64;
-	struct {
-		u64 enable:1;
-		u64 reserved:63;
+	struct
+	{
+		u64 enable: 1;
+		u64 reserved: 63;
 	};
 };
 
 /* Define synthetic interrupt source. */
-union hv_synic_sint {
+union hv_synic_sint
+{
 	u64 as_uint64;
-	struct {
-		u64 vector:8;
-		u64 reserved1:8;
-		u64 masked:1;
-		u64 auto_eoi:1;
-		u64 reserved2:46;
+	struct
+	{
+		u64 vector: 8;
+		u64 reserved1: 8;
+		u64 masked: 1;
+		u64 auto_eoi: 1;
+		u64 reserved2: 46;
 	};
 };
 
 /* Define the format of the SIMP register */
-union hv_synic_simp {
+union hv_synic_simp
+{
 	u64 as_uint64;
-	struct {
-		u64 simp_enabled:1;
-		u64 preserved:11;
-		u64 base_simp_gpa:52;
+	struct
+	{
+		u64 simp_enabled: 1;
+		u64 preserved: 11;
+		u64 base_simp_gpa: 52;
 	};
 };
 
 /* Define the format of the SIEFP register */
-union hv_synic_siefp {
+union hv_synic_siefp
+{
 	u64 as_uint64;
-	struct {
-		u64 siefp_enabled:1;
-		u64 preserved:11;
-		u64 base_siefp_gpa:52;
+	struct
+	{
+		u64 siefp_enabled: 1;
+		u64 preserved: 11;
+		u64 base_siefp_gpa: 52;
 	};
 };
 
 /* Definitions for the monitored notification facility */
-union hv_monitor_trigger_group {
+union hv_monitor_trigger_group
+{
 	u64 as_uint64;
-	struct {
+	struct
+	{
 		u32 pending;
 		u32 armed;
 	};
 };
 
-struct hv_monitor_parameter {
+struct hv_monitor_parameter
+{
 	union hv_connection_id connectionid;
 	u16 flagnumber;
 	u16 rsvdz;
 };
 
-union hv_monitor_trigger_state {
+union hv_monitor_trigger_state
+{
 	u32 asu32;
 
-	struct {
-		u32 group_enable:4;
-		u32 rsvdz:28;
+	struct
+	{
+		u32 group_enable: 4;
+		u32 rsvdz: 28;
 	};
 };
 
@@ -244,7 +273,8 @@ union hv_monitor_trigger_state {
 /* | ...                                                | */
 /* | 840 | Rsvd4[0]                                     | */
 /* ------------------------------------------------------ */
-struct hv_monitor_page {
+struct hv_monitor_page
+{
 	union hv_monitor_trigger_state trigger_state;
 	u32 rsvdz1;
 
@@ -262,7 +292,8 @@ struct hv_monitor_page {
 };
 
 /* Definition of the hv_post_message hypercall input structure. */
-struct hv_input_post_message {
+struct hv_input_post_message
+{
 	union hv_connection_id connectionid;
 	u32 reserved;
 	u32 message_type;
@@ -276,11 +307,13 @@ struct hv_input_post_message {
  */
 
 /* Version info reported by guest OS's */
-enum hv_guest_os_vendor {
+enum hv_guest_os_vendor
+{
 	HVGUESTOS_VENDOR_MICROSOFT	= 0x0001
 };
 
-enum hv_guest_os_microsoft_ids {
+enum hv_guest_os_microsoft_ids
+{
 	HVGUESTOS_MICROSOFT_UNDEFINED	= 0x00,
 	HVGUESTOS_MICROSOFT_MSDOS		= 0x01,
 	HVGUESTOS_MICROSOFT_WINDOWS3X	= 0x02,
@@ -294,15 +327,17 @@ enum hv_guest_os_microsoft_ids {
  */
 #define HV_X64_MSR_GUEST_OS_ID	0x40000000
 
-union hv_x64_msr_guest_os_id_contents {
+union hv_x64_msr_guest_os_id_contents
+{
 	u64 as_uint64;
-	struct {
-		u64 build_number:16;
-		u64 service_version:8; /* Service Pack, etc. */
-		u64 minor_version:8;
-		u64 major_version:8;
-		u64 os_id:8; /* enum hv_guest_os_microsoft_ids (if Vendor=MS) */
-		u64 vendor_id:16; /* enum hv_guest_os_vendor */
+	struct
+	{
+		u64 build_number: 16;
+		u64 service_version: 8; /* Service Pack, etc. */
+		u64 minor_version: 8;
+		u64 major_version: 8;
+		u64 os_id: 8; /* enum hv_guest_os_microsoft_ids (if Vendor=MS) */
+		u64 vendor_id: 16; /* enum hv_guest_os_vendor */
 	};
 };
 
@@ -311,17 +346,20 @@ union hv_x64_msr_guest_os_id_contents {
  */
 #define HV_X64_MSR_HYPERCALL	0x40000001
 
-union hv_x64_msr_hypercall_contents {
+union hv_x64_msr_hypercall_contents
+{
 	u64 as_uint64;
-	struct {
-		u64 enable:1;
-		u64 reserved:11;
-		u64 guest_physical_address:52;
+	struct
+	{
+		u64 enable: 1;
+		u64 reserved: 11;
+		u64 guest_physical_address: 52;
 	};
 };
 
 
-enum {
+enum
+{
 	VMBUS_MESSAGE_CONNECTION_ID	= 1,
 	VMBUS_MESSAGE_PORT_ID		= 1,
 	VMBUS_EVENT_CONNECTION_ID	= 2,
@@ -366,7 +404,7 @@ enum {
  */
 
 static inline  __u64 generate_guest_id(__u8 d_info1, __u32 kernel_version,
-					__u16 d_info2)
+									   __u16 d_info2)
 {
 	__u64 guest_id = 0;
 
@@ -414,7 +452,8 @@ static inline  __u64 generate_guest_id(__u8 d_info1, __u32 kernel_version,
 /* #define VMBUS_PORT_ID		11 */
 
 /* 628180B8-308D-4c5e-B7DB-1BEB62E62EF4 */
-static const uuid_le VMBUS_SERVICE_ID = {
+static const uuid_le VMBUS_SERVICE_ID =
+{
 	.b = {
 		0xb8, 0x80, 0x81, 0x62, 0x8d, 0x30, 0x5e, 0x4c,
 		0xb7, 0xdb, 0x1b, 0xeb, 0x62, 0xe6, 0x2e, 0xf4
@@ -423,7 +462,8 @@ static const uuid_le VMBUS_SERVICE_ID = {
 
 
 
-struct hv_context {
+struct hv_context
+{
 	/* We only support running on top of Hyper-V
 	* So at this point this really can only contain the Hyper-V ID
 	*/
@@ -475,7 +515,8 @@ struct hv_context {
 
 extern struct hv_context hv_context;
 
-struct ms_hyperv_tsc_page {
+struct ms_hyperv_tsc_page
+{
 	volatile u32 tsc_sequence;
 	u32 reserved1;
 	volatile u64 tsc_scale;
@@ -483,7 +524,8 @@ struct ms_hyperv_tsc_page {
 	u64 reserved2[509];
 };
 
-struct hv_ring_buffer_debug_info {
+struct hv_ring_buffer_debug_info
+{
 	u32 current_interrupt_mask;
 	u32 current_read_index;
 	u32 current_write_index;
@@ -498,8 +540,8 @@ extern int hv_init(void);
 extern void hv_cleanup(bool crash);
 
 extern int hv_post_message(union hv_connection_id connection_id,
-			 enum hv_message_type message_type,
-			 void *payload, size_t payload_size);
+						   enum hv_message_type message_type,
+						   void *payload, size_t payload_size);
 
 extern int hv_synic_alloc(void);
 
@@ -523,21 +565,21 @@ extern unsigned int host_info_edx;
 
 
 int hv_ringbuffer_init(struct hv_ring_buffer_info *ring_info,
-		       struct page *pages, u32 pagecnt);
+					   struct page *pages, u32 pagecnt);
 
 void hv_ringbuffer_cleanup(struct hv_ring_buffer_info *ring_info);
 
 int hv_ringbuffer_write(struct hv_ring_buffer_info *ring_info,
-		    struct kvec *kv_list,
-		    u32 kv_count, bool *signal, bool lock,
-		    enum hv_signal_policy policy);
+						struct kvec *kv_list,
+						u32 kv_count, bool *signal, bool lock,
+						enum hv_signal_policy policy);
 
 int hv_ringbuffer_read(struct hv_ring_buffer_info *inring_info,
-		       void *buffer, u32 buflen, u32 *buffer_actual_len,
-		       u64 *requestid, bool *signal, bool raw);
+					   void *buffer, u32 buflen, u32 *buffer_actual_len,
+					   u64 *requestid, bool *signal, bool raw);
 
 void hv_ringbuffer_get_debuginfo(struct hv_ring_buffer_info *ring_info,
-			    struct hv_ring_buffer_debug_info *debug_info);
+								 struct hv_ring_buffer_debug_info *debug_info);
 
 void hv_begin_read(struct hv_ring_buffer_info *rbi);
 
@@ -555,7 +597,8 @@ u32 hv_end_read(struct hv_ring_buffer_info *rbi);
 #define MAX_NUM_CHANNELS_SUPPORTED	256
 
 
-enum vmbus_connect_state {
+enum vmbus_connect_state
+{
 	DISCONNECTED,
 	CONNECTING,
 	CONNECTED,
@@ -564,7 +607,8 @@ enum vmbus_connect_state {
 
 #define MAX_SIZE_CHANNEL_MESSAGE	HV_MESSAGE_PAYLOAD_BYTE_COUNT
 
-struct vmbus_connection {
+struct vmbus_connection
+{
 	enum vmbus_connect_state conn_state;
 
 	atomic_t next_gpadl_handle;
@@ -597,7 +641,8 @@ struct vmbus_connection {
 };
 
 
-struct vmbus_msginfo {
+struct vmbus_msginfo
+{
 	/* Bookkeeping stuff */
 	struct list_head msglist_entry;
 
@@ -608,7 +653,8 @@ struct vmbus_msginfo {
 
 extern struct vmbus_connection vmbus_connection;
 
-enum vmbus_message_handler_type {
+enum vmbus_message_handler_type
+{
 	/* The related handler can sleep. */
 	VMHT_BLOCKING = 0,
 
@@ -616,7 +662,8 @@ enum vmbus_message_handler_type {
 	VMHT_NON_BLOCKING = 1,
 };
 
-struct vmbus_channel_message_table_entry {
+struct vmbus_channel_message_table_entry
+{
 	enum vmbus_channel_message_type message_type;
 	enum vmbus_message_handler_type handler_type;
 	void (*message_handler)(struct vmbus_channel_message_header *msg);
@@ -639,8 +686,10 @@ static inline void vmbus_signal_eom(struct hv_message *msg, u32 old_msg_type)
 	 * on crash.
 	 */
 	if (cmpxchg(&msg->header.message_type, old_msg_type,
-		    HVMSG_NONE) != old_msg_type)
+				HVMSG_NONE) != old_msg_type)
+	{
 		return;
+	}
 
 	/*
 	 * Make sure the write to MessageType (ie set to
@@ -651,7 +700,8 @@ static inline void vmbus_signal_eom(struct hv_message *msg, u32 old_msg_type)
 	 */
 	mb();
 
-	if (msg->header.message_flags.msg_pending) {
+	if (msg->header.message_flags.msg_pending)
+	{
 		/*
 		 * This will cause message queue rescan to
 		 * possibly deliver another msg from the
@@ -664,8 +714,8 @@ static inline void vmbus_signal_eom(struct hv_message *msg, u32 old_msg_type)
 /* General vmbus interface */
 
 struct hv_device *vmbus_device_create(const uuid_le *type,
-				      const uuid_le *instance,
-				      struct vmbus_channel *channel);
+									  const uuid_le *instance,
+									  struct vmbus_channel *channel);
 
 int vmbus_device_register(struct hv_device *child_device_obj);
 void vmbus_device_unregister(struct hv_device *device_obj);
@@ -702,15 +752,18 @@ void hv_fcopy_onchannelcallback(void *);
 void vmbus_initiate_unload(bool crash);
 
 static inline void hv_poll_channel(struct vmbus_channel *channel,
-				   void (*cb)(void *))
+								   void (*cb)(void *))
 {
 	if (!channel)
+	{
 		return;
+	}
 
 	smp_call_function_single(channel->target_cpu, cb, channel, true);
 }
 
-enum hvutil_device_state {
+enum hvutil_device_state
+{
 	HVUTIL_DEVICE_INIT = 0,  /* driver is loaded, waiting for userspace */
 	HVUTIL_READY,            /* userspace is registered */
 	HVUTIL_HOSTMSG_RECEIVED, /* message from the host was received */

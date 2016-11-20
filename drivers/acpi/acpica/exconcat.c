@@ -52,7 +52,7 @@ ACPI_MODULE_NAME("exconcat")
 /* Local Prototypes */
 static acpi_status
 acpi_ex_convert_to_object_type_string(union acpi_operand_object *obj_desc,
-				      union acpi_operand_object **result_desc);
+									  union acpi_operand_object **result_desc);
 
 /*******************************************************************************
  *
@@ -79,9 +79,9 @@ acpi_ex_convert_to_object_type_string(union acpi_operand_object *obj_desc,
 
 acpi_status
 acpi_ex_do_concatenate(union acpi_operand_object *operand0,
-		       union acpi_operand_object *operand1,
-		       union acpi_operand_object **actual_return_desc,
-		       struct acpi_walk_state *walk_state)
+					   union acpi_operand_object *operand1,
+					   union acpi_operand_object **actual_return_desc,
+					   struct acpi_walk_state *walk_state)
 {
 	union acpi_operand_object *local_operand0 = operand0;
 	union acpi_operand_object *local_operand1 = operand1;
@@ -96,52 +96,58 @@ acpi_ex_do_concatenate(union acpi_operand_object *operand0,
 
 	/* Operand 0 preprocessing */
 
-	switch (operand0->common.type) {
-	case ACPI_TYPE_INTEGER:
-	case ACPI_TYPE_STRING:
-	case ACPI_TYPE_BUFFER:
+	switch (operand0->common.type)
+	{
+		case ACPI_TYPE_INTEGER:
+		case ACPI_TYPE_STRING:
+		case ACPI_TYPE_BUFFER:
 
-		operand0_type = operand0->common.type;
-		break;
+			operand0_type = operand0->common.type;
+			break;
 
-	default:
+		default:
 
-		/* For all other types, get the "object type" string */
+			/* For all other types, get the "object type" string */
 
-		status =
-		    acpi_ex_convert_to_object_type_string(operand0,
-							  &local_operand0);
-		if (ACPI_FAILURE(status)) {
-			goto cleanup;
-		}
+			status =
+				acpi_ex_convert_to_object_type_string(operand0,
+						&local_operand0);
 
-		operand0_type = ACPI_TYPE_STRING;
-		break;
+			if (ACPI_FAILURE(status))
+			{
+				goto cleanup;
+			}
+
+			operand0_type = ACPI_TYPE_STRING;
+			break;
 	}
 
 	/* Operand 1 preprocessing */
 
-	switch (operand1->common.type) {
-	case ACPI_TYPE_INTEGER:
-	case ACPI_TYPE_STRING:
-	case ACPI_TYPE_BUFFER:
+	switch (operand1->common.type)
+	{
+		case ACPI_TYPE_INTEGER:
+		case ACPI_TYPE_STRING:
+		case ACPI_TYPE_BUFFER:
 
-		operand1_type = operand1->common.type;
-		break;
+			operand1_type = operand1->common.type;
+			break;
 
-	default:
+		default:
 
-		/* For all other types, get the "object type" string */
+			/* For all other types, get the "object type" string */
 
-		status =
-		    acpi_ex_convert_to_object_type_string(operand1,
-							  &local_operand1);
-		if (ACPI_FAILURE(status)) {
-			goto cleanup;
-		}
+			status =
+				acpi_ex_convert_to_object_type_string(operand1,
+						&local_operand1);
 
-		operand1_type = ACPI_TYPE_STRING;
-		break;
+			if (ACPI_FAILURE(status))
+			{
+				goto cleanup;
+			}
+
+			operand1_type = ACPI_TYPE_STRING;
+			break;
 	}
 
 	/*
@@ -151,56 +157,61 @@ acpi_ex_do_concatenate(union acpi_operand_object *operand0,
 	 * guaranteed to be either Integer/String/Buffer by the operand
 	 * resolution mechanism.
 	 */
-	switch (operand0_type) {
-	case ACPI_TYPE_INTEGER:
-
-		status =
-		    acpi_ex_convert_to_integer(local_operand1, &temp_operand1,
-					       ACPI_STRTOUL_BASE16);
-		break;
-
-	case ACPI_TYPE_BUFFER:
-
-		status =
-		    acpi_ex_convert_to_buffer(local_operand1, &temp_operand1);
-		break;
-
-	case ACPI_TYPE_STRING:
-
-		switch (operand1_type) {
+	switch (operand0_type)
+	{
 		case ACPI_TYPE_INTEGER:
-		case ACPI_TYPE_STRING:
-		case ACPI_TYPE_BUFFER:
-
-			/* Other types have already been converted to string */
 
 			status =
-			    acpi_ex_convert_to_string(local_operand1,
-						      &temp_operand1,
-						      ACPI_IMPLICIT_CONVERT_HEX);
+				acpi_ex_convert_to_integer(local_operand1, &temp_operand1,
+										   ACPI_STRTOUL_BASE16);
+			break;
+
+		case ACPI_TYPE_BUFFER:
+
+			status =
+				acpi_ex_convert_to_buffer(local_operand1, &temp_operand1);
+			break;
+
+		case ACPI_TYPE_STRING:
+
+			switch (operand1_type)
+			{
+				case ACPI_TYPE_INTEGER:
+				case ACPI_TYPE_STRING:
+				case ACPI_TYPE_BUFFER:
+
+					/* Other types have already been converted to string */
+
+					status =
+						acpi_ex_convert_to_string(local_operand1,
+												  &temp_operand1,
+												  ACPI_IMPLICIT_CONVERT_HEX);
+					break;
+
+				default:
+
+					status = AE_OK;
+					break;
+			}
+
 			break;
 
 		default:
 
-			status = AE_OK;
-			break;
-		}
-		break;
-
-	default:
-
-		ACPI_ERROR((AE_INFO, "Invalid object type: 0x%X",
-			    operand0->common.type));
-		status = AE_AML_INTERNAL;
+			ACPI_ERROR((AE_INFO, "Invalid object type: 0x%X",
+						operand0->common.type));
+			status = AE_AML_INTERNAL;
 	}
 
-	if (ACPI_FAILURE(status)) {
+	if (ACPI_FAILURE(status))
+	{
 		goto cleanup;
 	}
 
 	/* Take care with any newly created operand objects */
 
-	if ((local_operand1 != operand1) && (local_operand1 != temp_operand1)) {
+	if ((local_operand1 != operand1) && (local_operand1 != temp_operand1))
+	{
 		acpi_ut_remove_reference(local_operand1);
 	}
 
@@ -217,99 +228,109 @@ acpi_ex_do_concatenate(union acpi_operand_object *operand0,
 	 * 2) Two Strings concatenated to produce a new String
 	 * 3) Two Buffers concatenated to produce a new Buffer
 	 */
-	switch (operand0_type) {
-	case ACPI_TYPE_INTEGER:
+	switch (operand0_type)
+	{
+		case ACPI_TYPE_INTEGER:
 
-		/* Result of two Integers is a Buffer */
-		/* Need enough buffer space for two integers */
+			/* Result of two Integers is a Buffer */
+			/* Need enough buffer space for two integers */
 
-		return_desc = acpi_ut_create_buffer_object((acpi_size)
-							   ACPI_MUL_2
-							   (acpi_gbl_integer_byte_width));
-		if (!return_desc) {
-			status = AE_NO_MEMORY;
+			return_desc = acpi_ut_create_buffer_object((acpi_size)
+						  ACPI_MUL_2
+						  (acpi_gbl_integer_byte_width));
+
+			if (!return_desc)
+			{
+				status = AE_NO_MEMORY;
+				goto cleanup;
+			}
+
+			buffer = (char *)return_desc->buffer.pointer;
+
+			/* Copy the first integer, LSB first */
+
+			memcpy(buffer, &operand0->integer.value,
+				   acpi_gbl_integer_byte_width);
+
+			/* Copy the second integer (LSB first) after the first */
+
+			memcpy(buffer + acpi_gbl_integer_byte_width,
+				   &local_operand1->integer.value,
+				   acpi_gbl_integer_byte_width);
+			break;
+
+		case ACPI_TYPE_STRING:
+
+			/* Result of two Strings is a String */
+
+			return_desc = acpi_ut_create_string_object(((acpi_size)
+						  local_operand0->
+						  string.length +
+						  local_operand1->
+						  string.length));
+
+			if (!return_desc)
+			{
+				status = AE_NO_MEMORY;
+				goto cleanup;
+			}
+
+			buffer = return_desc->string.pointer;
+
+			/* Concatenate the strings */
+
+			strcpy(buffer, local_operand0->string.pointer);
+			strcat(buffer, local_operand1->string.pointer);
+			break;
+
+		case ACPI_TYPE_BUFFER:
+
+			/* Result of two Buffers is a Buffer */
+
+			return_desc = acpi_ut_create_buffer_object(((acpi_size)
+						  operand0->buffer.
+						  length +
+						  local_operand1->
+						  buffer.length));
+
+			if (!return_desc)
+			{
+				status = AE_NO_MEMORY;
+				goto cleanup;
+			}
+
+			buffer = (char *)return_desc->buffer.pointer;
+
+			/* Concatenate the buffers */
+
+			memcpy(buffer, operand0->buffer.pointer,
+				   operand0->buffer.length);
+			memcpy(buffer + operand0->buffer.length,
+				   local_operand1->buffer.pointer,
+				   local_operand1->buffer.length);
+			break;
+
+		default:
+
+			/* Invalid object type, should not happen here */
+
+			ACPI_ERROR((AE_INFO, "Invalid object type: 0x%X",
+						operand0->common.type));
+			status = AE_AML_INTERNAL;
 			goto cleanup;
-		}
-
-		buffer = (char *)return_desc->buffer.pointer;
-
-		/* Copy the first integer, LSB first */
-
-		memcpy(buffer, &operand0->integer.value,
-		       acpi_gbl_integer_byte_width);
-
-		/* Copy the second integer (LSB first) after the first */
-
-		memcpy(buffer + acpi_gbl_integer_byte_width,
-		       &local_operand1->integer.value,
-		       acpi_gbl_integer_byte_width);
-		break;
-
-	case ACPI_TYPE_STRING:
-
-		/* Result of two Strings is a String */
-
-		return_desc = acpi_ut_create_string_object(((acpi_size)
-							    local_operand0->
-							    string.length +
-							    local_operand1->
-							    string.length));
-		if (!return_desc) {
-			status = AE_NO_MEMORY;
-			goto cleanup;
-		}
-
-		buffer = return_desc->string.pointer;
-
-		/* Concatenate the strings */
-
-		strcpy(buffer, local_operand0->string.pointer);
-		strcat(buffer, local_operand1->string.pointer);
-		break;
-
-	case ACPI_TYPE_BUFFER:
-
-		/* Result of two Buffers is a Buffer */
-
-		return_desc = acpi_ut_create_buffer_object(((acpi_size)
-							    operand0->buffer.
-							    length +
-							    local_operand1->
-							    buffer.length));
-		if (!return_desc) {
-			status = AE_NO_MEMORY;
-			goto cleanup;
-		}
-
-		buffer = (char *)return_desc->buffer.pointer;
-
-		/* Concatenate the buffers */
-
-		memcpy(buffer, operand0->buffer.pointer,
-		       operand0->buffer.length);
-		memcpy(buffer + operand0->buffer.length,
-		       local_operand1->buffer.pointer,
-		       local_operand1->buffer.length);
-		break;
-
-	default:
-
-		/* Invalid object type, should not happen here */
-
-		ACPI_ERROR((AE_INFO, "Invalid object type: 0x%X",
-			    operand0->common.type));
-		status = AE_AML_INTERNAL;
-		goto cleanup;
 	}
 
 	*actual_return_desc = return_desc;
 
 cleanup:
-	if (local_operand0 != operand0) {
+
+	if (local_operand0 != operand0)
+	{
 		acpi_ut_remove_reference(local_operand0);
 	}
 
-	if (local_operand1 != operand1) {
+	if (local_operand1 != operand1)
+	{
 		acpi_ut_remove_reference(local_operand1);
 	}
 
@@ -333,7 +354,7 @@ cleanup:
 
 static acpi_status
 acpi_ex_convert_to_object_type_string(union acpi_operand_object *obj_desc,
-				      union acpi_operand_object **result_desc)
+									  union acpi_operand_object **result_desc)
 {
 	union acpi_operand_object *return_desc;
 	const char *type_string;
@@ -341,7 +362,9 @@ acpi_ex_convert_to_object_type_string(union acpi_operand_object *obj_desc,
 	type_string = acpi_ut_get_type_name(obj_desc->common.type);
 
 	return_desc = acpi_ut_create_string_object(((acpi_size)strlen(type_string) + 9));	/* 9 For "[ Object]" */
-	if (!return_desc) {
+
+	if (!return_desc)
+	{
 		return (AE_NO_MEMORY);
 	}
 
@@ -370,9 +393,9 @@ acpi_ex_convert_to_object_type_string(union acpi_operand_object *obj_desc,
 
 acpi_status
 acpi_ex_concat_template(union acpi_operand_object *operand0,
-			union acpi_operand_object *operand1,
-			union acpi_operand_object **actual_return_desc,
-			struct acpi_walk_state *walk_state)
+						union acpi_operand_object *operand1,
+						union acpi_operand_object **actual_return_desc,
+						struct acpi_walk_state *walk_state)
 {
 	acpi_status status;
 	union acpi_operand_object *return_desc;
@@ -393,7 +416,9 @@ acpi_ex_concat_template(union acpi_operand_object *operand0,
 	/* Get the length of the first resource template */
 
 	status = acpi_ut_get_resource_end_tag(operand0, &end_tag);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
@@ -402,7 +427,9 @@ acpi_ex_concat_template(union acpi_operand_object *operand0,
 	/* Get the length of the second resource template */
 
 	status = acpi_ut_get_resource_end_tag(operand1, &end_tag);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
@@ -415,7 +442,9 @@ acpi_ex_concat_template(union acpi_operand_object *operand0,
 	/* Create a new buffer object for the result (with one end_tag) */
 
 	return_desc = acpi_ut_create_buffer_object(new_length);
-	if (!return_desc) {
+
+	if (!return_desc)
+	{
 		return_ACPI_STATUS(AE_NO_MEMORY);
 	}
 

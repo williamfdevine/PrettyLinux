@@ -182,12 +182,14 @@ struct snd_gus_card;
 
 /* GF1 specific structure */
 
-struct snd_gf1_bank_info {
+struct snd_gf1_bank_info
+{
 	unsigned int address;
 	unsigned int size;
 };
 
-struct snd_gf1_mem_block {
+struct snd_gf1_mem_block
+{
 	unsigned short flags;	/* flags - SNDRV_GF1_MEM_BLOCK_XXXX */
 	unsigned short owner;	/* owner - SNDRV_GF1_MEM_OWNER_XXXX */
 	unsigned int share;	/* share count */
@@ -199,7 +201,8 @@ struct snd_gf1_mem_block {
 	struct snd_gf1_mem_block *prev;
 };
 
-struct snd_gf1_mem {
+struct snd_gf1_mem
+{
 	struct snd_gf1_bank_info banks_8[4];
 	struct snd_gf1_bank_info banks_16[4];
 	struct snd_gf1_mem_block *first;
@@ -207,20 +210,22 @@ struct snd_gf1_mem {
 	struct mutex memory_mutex;
 };
 
-struct snd_gf1_dma_block {
+struct snd_gf1_dma_block
+{
 	void *buffer;		/* buffer in computer's RAM */
 	unsigned long buf_addr;	/* buffer address */
 	unsigned int addr;	/* address in onboard memory */
 	unsigned int count;	/* count in bytes */
 	unsigned int cmd;	/* DMA command (format) */
-	void (*ack)(struct snd_gus_card * gus, void *private_data);
+	void (*ack)(struct snd_gus_card *gus, void *private_data);
 	void *private_data;
 	struct snd_gf1_dma_block *next;
 };
 
-struct snd_gus_port {
-	struct snd_midi_channel_set * chset;
-	struct snd_gus_card * gus;
+struct snd_gus_port
+{
+	struct snd_midi_channel_set *chset;
+	struct snd_gus_card *gus;
 	int mode;		/* operation mode */
 	int client;		/* sequencer client number */
 	int port;		/* sequencer port number */
@@ -237,7 +242,8 @@ struct snd_gus_voice;
 #define SNDRV_GF1_VFLG_EFFECT_TIMER1	(1<<1)
 #define SNDRV_GF1_VFLG_PAN		(1<<2)
 
-enum snd_gus_volume_state {
+enum snd_gus_volume_state
+{
 	VENV_BEFORE,
 	VENV_ATTACK,
 	VENV_SUSTAIN,
@@ -246,26 +252,27 @@ enum snd_gus_volume_state {
 	VENV_VOLUME
 };
 
-struct snd_gus_voice {
+struct snd_gus_voice
+{
 	int number;
 	unsigned int use: 1,
-	    pcm: 1,
-	    synth:1,
-	    midi: 1;
+			 pcm: 1,
+			 synth: 1,
+			 midi: 1;
 	unsigned int flags;
 	unsigned char client;
 	unsigned char port;
 	unsigned char index;
 	unsigned char pad;
-	
+
 #ifdef CONFIG_SND_DEBUG
 	unsigned int interrupt_stat_wave;
 	unsigned int interrupt_stat_volume;
 #endif
-	void (*handler_wave) (struct snd_gus_card * gus, struct snd_gus_voice * voice);
-	void (*handler_volume) (struct snd_gus_card * gus, struct snd_gus_voice * voice);
-	void (*handler_effect) (struct snd_gus_card * gus, struct snd_gus_voice * voice);
-	void (*volume_change) (struct snd_gus_card * gus);
+	void (*handler_wave) (struct snd_gus_card *gus, struct snd_gus_voice *voice);
+	void (*handler_volume) (struct snd_gus_card *gus, struct snd_gus_voice *voice);
+	void (*handler_effect) (struct snd_gus_card *gus, struct snd_gus_voice *voice);
+	void (*volume_change) (struct snd_gus_card *gus);
 
 	struct snd_gus_sample_ops *sample_ops;
 
@@ -285,19 +292,20 @@ struct snd_gus_voice {
 	unsigned short vlo;
 	unsigned short vro;
 	unsigned short gf1_effect_volume;
-	
+
 	/* --- */
 
 	void *private_data;
 	void (*private_free)(struct snd_gus_voice *voice);
 };
 
-struct snd_gf1 {
+struct snd_gf1
+{
 
-	unsigned int enh_mode:1,	/* enhanced mode (GFA1) */
-		     hw_lfo:1,		/* use hardware LFO */
-		     sw_lfo:1,		/* use software LFO */
-		     effect:1;		/* use effect voices */
+	unsigned int enh_mode: 1,	/* enhanced mode (GFA1) */
+			 hw_lfo: 1,		/* use hardware LFO */
+			 sw_lfo: 1,		/* use software LFO */
+			 effect: 1;		/* use effect voices */
 
 	unsigned long port;		/* port of GF1 chip */
 	struct resource *res_port1;
@@ -342,12 +350,12 @@ struct snd_gf1 {
 
 	/* interrupt handlers */
 
-	void (*interrupt_handler_midi_out) (struct snd_gus_card * gus);
-	void (*interrupt_handler_midi_in) (struct snd_gus_card * gus);
-	void (*interrupt_handler_timer1) (struct snd_gus_card * gus);
-	void (*interrupt_handler_timer2) (struct snd_gus_card * gus);
-	void (*interrupt_handler_dma_write) (struct snd_gus_card * gus);
-	void (*interrupt_handler_dma_read) (struct snd_gus_card * gus);
+	void (*interrupt_handler_midi_out) (struct snd_gus_card *gus);
+	void (*interrupt_handler_midi_in) (struct snd_gus_card *gus);
+	void (*interrupt_handler_timer1) (struct snd_gus_card *gus);
+	void (*interrupt_handler_timer2) (struct snd_gus_card *gus);
+	void (*interrupt_handler_dma_write) (struct snd_gus_card *gus);
+	void (*interrupt_handler_dma_read) (struct snd_gus_card *gus);
 
 #ifdef CONFIG_SND_DEBUG
 	unsigned int interrupt_stat_midi_out;
@@ -384,40 +392,41 @@ struct snd_gf1 {
 	struct snd_gf1_dma_block *dma_data_pcm_last;
 	struct snd_gf1_dma_block *dma_data_synth;
 	struct snd_gf1_dma_block *dma_data_synth_last;
-	void (*dma_ack)(struct snd_gus_card * gus, void *private_data);
+	void (*dma_ack)(struct snd_gus_card *gus, void *private_data);
 	void *dma_private_data;
 
 	/* pcm */
 	int pcm_channels;
 	int pcm_alloc_voices;
-        unsigned short pcm_volume_level_left;
+	unsigned short pcm_volume_level_left;
 	unsigned short pcm_volume_level_right;
 	unsigned short pcm_volume_level_left1;
 	unsigned short pcm_volume_level_right1;
-                                
+
 	unsigned char pcm_rcntrl_reg;
 	unsigned char pad_end;
 };
 
 /* main structure for GUS card */
 
-struct snd_gus_card {
+struct snd_gus_card
+{
 	struct snd_card *card;
 
 	unsigned int
-	 initialized: 1,		/* resources were initialized */
-	 equal_irq:1,			/* GF1 and CODEC shares IRQ (GUS MAX only) */
-	 equal_dma:1,			/* if dma channels are equal (not valid for daughter board) */
-	 ics_flag:1,			/* have we ICS mixer chip */
-	 ics_flipped:1,			/* ICS mixer have flipped some channels? */
-	 codec_flag:1,			/* have we CODEC chip? */
-	 max_flag:1,			/* have we GUS MAX card? */
-	 max_ctrl_flag:1,		/* have we original GUS MAX card? */
-	 daughter_flag:1,		/* have we daughter board? */
-	 interwave:1,			/* hey - we have InterWave card */
-	 ess_flag:1,			/* ESS chip found... GUS Extreme */
-	 ace_flag:1,			/* GUS ACE detected */
-	 uart_enable:1;			/* enable MIDI UART */
+	initialized: 1,		/* resources were initialized */
+				 equal_irq: 1,			/* GF1 and CODEC shares IRQ (GUS MAX only) */
+				 equal_dma: 1,			/* if dma channels are equal (not valid for daughter board) */
+				 ics_flag: 1,			/* have we ICS mixer chip */
+				 ics_flipped: 1,			/* ICS mixer have flipped some channels? */
+				 codec_flag: 1,			/* have we CODEC chip? */
+				 max_flag: 1,			/* have we GUS MAX card? */
+				 max_ctrl_flag: 1,		/* have we original GUS MAX card? */
+				 daughter_flag: 1,		/* have we daughter board? */
+				 interwave: 1,			/* hey - we have InterWave card */
+				 ess_flag: 1,			/* ESS chip found... GUS Extreme */
+				 ace_flag: 1,			/* GUS ACE detected */
+				 uart_enable: 1;			/* enable MIDI UART */
 	unsigned short revision;	/* revision of chip */
 	unsigned short max_cntrl_val;	/* GUS MAX control value */
 	unsigned short mix_cntrl_reg;	/* mixer control register */
@@ -448,79 +457,83 @@ struct snd_gus_card {
 
 /* I/O functions for GF1/InterWave chip - gus_io.c */
 
-static inline void snd_gf1_select_voice(struct snd_gus_card * gus, int voice)
+static inline void snd_gf1_select_voice(struct snd_gus_card *gus, int voice)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&gus->active_voice_lock, flags);
-	if (voice != gus->gf1.active_voice) {
+
+	if (voice != gus->gf1.active_voice)
+	{
 		gus->gf1.active_voice = voice;
 		outb(voice, GUSP(gus, GF1PAGE));
 	}
+
 	spin_unlock_irqrestore(&gus->active_voice_lock, flags);
 }
 
-static inline void snd_gf1_uart_cmd(struct snd_gus_card * gus, unsigned char b)
+static inline void snd_gf1_uart_cmd(struct snd_gus_card *gus, unsigned char b)
 {
 	outb(gus->gf1.uart_cmd = b, GUSP(gus, MIDICTRL));
 }
 
-static inline unsigned char snd_gf1_uart_stat(struct snd_gus_card * gus)
+static inline unsigned char snd_gf1_uart_stat(struct snd_gus_card *gus)
 {
 	return inb(GUSP(gus, MIDISTAT));
 }
 
-static inline void snd_gf1_uart_put(struct snd_gus_card * gus, unsigned char b)
+static inline void snd_gf1_uart_put(struct snd_gus_card *gus, unsigned char b)
 {
 	outb(b, GUSP(gus, MIDIDATA));
 }
 
-static inline unsigned char snd_gf1_uart_get(struct snd_gus_card * gus)
+static inline unsigned char snd_gf1_uart_get(struct snd_gus_card *gus)
 {
 	return inb(GUSP(gus, MIDIDATA));
 }
 
-extern void snd_gf1_delay(struct snd_gus_card * gus);
+extern void snd_gf1_delay(struct snd_gus_card *gus);
 
-extern void snd_gf1_ctrl_stop(struct snd_gus_card * gus, unsigned char reg);
+extern void snd_gf1_ctrl_stop(struct snd_gus_card *gus, unsigned char reg);
 
-extern void snd_gf1_write8(struct snd_gus_card * gus, unsigned char reg, unsigned char data);
-extern unsigned char snd_gf1_look8(struct snd_gus_card * gus, unsigned char reg);
-static inline unsigned char snd_gf1_read8(struct snd_gus_card * gus, unsigned char reg)
+extern void snd_gf1_write8(struct snd_gus_card *gus, unsigned char reg, unsigned char data);
+extern unsigned char snd_gf1_look8(struct snd_gus_card *gus, unsigned char reg);
+static inline unsigned char snd_gf1_read8(struct snd_gus_card *gus, unsigned char reg)
 {
 	return snd_gf1_look8(gus, reg | 0x80);
 }
-extern void snd_gf1_write16(struct snd_gus_card * gus, unsigned char reg, unsigned int data);
-extern unsigned short snd_gf1_look16(struct snd_gus_card * gus, unsigned char reg);
-static inline unsigned short snd_gf1_read16(struct snd_gus_card * gus, unsigned char reg)
+extern void snd_gf1_write16(struct snd_gus_card *gus, unsigned char reg, unsigned int data);
+extern unsigned short snd_gf1_look16(struct snd_gus_card *gus, unsigned char reg);
+static inline unsigned short snd_gf1_read16(struct snd_gus_card *gus, unsigned char reg)
 {
 	return snd_gf1_look16(gus, reg | 0x80);
 }
-extern void snd_gf1_adlib_write(struct snd_gus_card * gus, unsigned char reg, unsigned char data);
-extern void snd_gf1_dram_addr(struct snd_gus_card * gus, unsigned int addr);
-extern void snd_gf1_poke(struct snd_gus_card * gus, unsigned int addr, unsigned char data);
-extern unsigned char snd_gf1_peek(struct snd_gus_card * gus, unsigned int addr);
-extern void snd_gf1_write_addr(struct snd_gus_card * gus, unsigned char reg, unsigned int addr, short w_16bit);
-extern unsigned int snd_gf1_read_addr(struct snd_gus_card * gus, unsigned char reg, short w_16bit);
-extern void snd_gf1_i_ctrl_stop(struct snd_gus_card * gus, unsigned char reg);
-extern void snd_gf1_i_write8(struct snd_gus_card * gus, unsigned char reg, unsigned char data);
-extern unsigned char snd_gf1_i_look8(struct snd_gus_card * gus, unsigned char reg);
-extern void snd_gf1_i_write16(struct snd_gus_card * gus, unsigned char reg, unsigned int data);
-static inline unsigned char snd_gf1_i_read8(struct snd_gus_card * gus, unsigned char reg)
+extern void snd_gf1_adlib_write(struct snd_gus_card *gus, unsigned char reg, unsigned char data);
+extern void snd_gf1_dram_addr(struct snd_gus_card *gus, unsigned int addr);
+extern void snd_gf1_poke(struct snd_gus_card *gus, unsigned int addr, unsigned char data);
+extern unsigned char snd_gf1_peek(struct snd_gus_card *gus, unsigned int addr);
+extern void snd_gf1_write_addr(struct snd_gus_card *gus, unsigned char reg, unsigned int addr, short w_16bit);
+extern unsigned int snd_gf1_read_addr(struct snd_gus_card *gus, unsigned char reg, short w_16bit);
+extern void snd_gf1_i_ctrl_stop(struct snd_gus_card *gus, unsigned char reg);
+extern void snd_gf1_i_write8(struct snd_gus_card *gus, unsigned char reg, unsigned char data);
+extern unsigned char snd_gf1_i_look8(struct snd_gus_card *gus, unsigned char reg);
+extern void snd_gf1_i_write16(struct snd_gus_card *gus, unsigned char reg, unsigned int data);
+static inline unsigned char snd_gf1_i_read8(struct snd_gus_card *gus, unsigned char reg)
 {
 	return snd_gf1_i_look8(gus, reg | 0x80);
 }
-extern unsigned short snd_gf1_i_look16(struct snd_gus_card * gus, unsigned char reg);
-static inline unsigned short snd_gf1_i_read16(struct snd_gus_card * gus, unsigned char reg)
+extern unsigned short snd_gf1_i_look16(struct snd_gus_card *gus, unsigned char reg);
+static inline unsigned short snd_gf1_i_read16(struct snd_gus_card *gus, unsigned char reg)
 {
 	return snd_gf1_i_look16(gus, reg | 0x80);
 }
 
-extern void snd_gf1_select_active_voices(struct snd_gus_card * gus);
+extern void snd_gf1_select_active_voices(struct snd_gus_card *gus);
 
 /* gus_lfo.c */
 
-struct _SND_IW_LFO_PROGRAM {
+struct _SND_IW_LFO_PROGRAM
+{
 	unsigned short freq_and_control;
 	unsigned char depth_final;
 	unsigned char depth_inc;
@@ -529,93 +542,94 @@ struct _SND_IW_LFO_PROGRAM {
 };
 
 #if 0
-extern irqreturn_t snd_gf1_lfo_effect_interrupt(struct snd_gus_card * gus, snd_gf1_voice_t * voice);
+	extern irqreturn_t snd_gf1_lfo_effect_interrupt(struct snd_gus_card *gus, snd_gf1_voice_t *voice);
 #endif
-extern void snd_gf1_lfo_init(struct snd_gus_card * gus);
-extern void snd_gf1_lfo_done(struct snd_gus_card * gus);
-extern void snd_gf1_lfo_program(struct snd_gus_card * gus, int voice, int lfo_type, struct _SND_IW_LFO_PROGRAM *program);
-extern void snd_gf1_lfo_enable(struct snd_gus_card * gus, int voice, int lfo_type);
-extern void snd_gf1_lfo_disable(struct snd_gus_card * gus, int voice, int lfo_type);
-extern void snd_gf1_lfo_change_freq(struct snd_gus_card * gus, int voice, int lfo_type, int freq);
-extern void snd_gf1_lfo_change_depth(struct snd_gus_card * gus, int voice, int lfo_type, int depth);
-extern void snd_gf1_lfo_setup(struct snd_gus_card * gus, int voice, int lfo_type, int freq, int current_depth, int depth, int sweep, int shape);
-extern void snd_gf1_lfo_shutdown(struct snd_gus_card * gus, int voice, int lfo_type);
+extern void snd_gf1_lfo_init(struct snd_gus_card *gus);
+extern void snd_gf1_lfo_done(struct snd_gus_card *gus);
+extern void snd_gf1_lfo_program(struct snd_gus_card *gus, int voice, int lfo_type, struct _SND_IW_LFO_PROGRAM *program);
+extern void snd_gf1_lfo_enable(struct snd_gus_card *gus, int voice, int lfo_type);
+extern void snd_gf1_lfo_disable(struct snd_gus_card *gus, int voice, int lfo_type);
+extern void snd_gf1_lfo_change_freq(struct snd_gus_card *gus, int voice, int lfo_type, int freq);
+extern void snd_gf1_lfo_change_depth(struct snd_gus_card *gus, int voice, int lfo_type, int depth);
+extern void snd_gf1_lfo_setup(struct snd_gus_card *gus, int voice, int lfo_type, int freq, int current_depth, int depth,
+							  int sweep, int shape);
+extern void snd_gf1_lfo_shutdown(struct snd_gus_card *gus, int voice, int lfo_type);
 #if 0
-extern void snd_gf1_lfo_command(struct snd_gus_card * gus, int voice, unsigned char *command);
+	extern void snd_gf1_lfo_command(struct snd_gus_card *gus, int voice, unsigned char *command);
 #endif
 
 /* gus_mem.c */
 
-void snd_gf1_mem_lock(struct snd_gf1_mem * alloc, int xup);
-int snd_gf1_mem_xfree(struct snd_gf1_mem * alloc, struct snd_gf1_mem_block * block);
-struct snd_gf1_mem_block *snd_gf1_mem_alloc(struct snd_gf1_mem * alloc, int owner,
-				       char *name, int size, int w_16,
-				       int align, unsigned int *share_id);
-int snd_gf1_mem_free(struct snd_gf1_mem * alloc, unsigned int address);
-int snd_gf1_mem_free_owner(struct snd_gf1_mem * alloc, int owner);
-int snd_gf1_mem_init(struct snd_gus_card * gus);
-int snd_gf1_mem_done(struct snd_gus_card * gus);
+void snd_gf1_mem_lock(struct snd_gf1_mem *alloc, int xup);
+int snd_gf1_mem_xfree(struct snd_gf1_mem *alloc, struct snd_gf1_mem_block *block);
+struct snd_gf1_mem_block *snd_gf1_mem_alloc(struct snd_gf1_mem *alloc, int owner,
+		char *name, int size, int w_16,
+		int align, unsigned int *share_id);
+int snd_gf1_mem_free(struct snd_gf1_mem *alloc, unsigned int address);
+int snd_gf1_mem_free_owner(struct snd_gf1_mem *alloc, int owner);
+int snd_gf1_mem_init(struct snd_gus_card *gus);
+int snd_gf1_mem_done(struct snd_gus_card *gus);
 
 /* gus_mem_proc.c */
 
-int snd_gf1_mem_proc_init(struct snd_gus_card * gus);
+int snd_gf1_mem_proc_init(struct snd_gus_card *gus);
 
 /* gus_dma.c */
 
-int snd_gf1_dma_init(struct snd_gus_card * gus);
-int snd_gf1_dma_done(struct snd_gus_card * gus);
-int snd_gf1_dma_transfer_block(struct snd_gus_card * gus,
-			       struct snd_gf1_dma_block * block,
-			       int atomic,
-			       int synth);
+int snd_gf1_dma_init(struct snd_gus_card *gus);
+int snd_gf1_dma_done(struct snd_gus_card *gus);
+int snd_gf1_dma_transfer_block(struct snd_gus_card *gus,
+							   struct snd_gf1_dma_block *block,
+							   int atomic,
+							   int synth);
 
 /* gus_volume.c */
 
 unsigned short snd_gf1_lvol_to_gvol_raw(unsigned int vol);
-unsigned short snd_gf1_translate_freq(struct snd_gus_card * gus, unsigned int freq2);
+unsigned short snd_gf1_translate_freq(struct snd_gus_card *gus, unsigned int freq2);
 
 /* gus_reset.c */
 
-void snd_gf1_set_default_handlers(struct snd_gus_card * gus, unsigned int what);
-void snd_gf1_smart_stop_voice(struct snd_gus_card * gus, unsigned short voice);
-void snd_gf1_stop_voice(struct snd_gus_card * gus, unsigned short voice);
-void snd_gf1_stop_voices(struct snd_gus_card * gus, unsigned short v_min, unsigned short v_max);
-struct snd_gus_voice *snd_gf1_alloc_voice(struct snd_gus_card * gus, int type, int client, int port);
-void snd_gf1_free_voice(struct snd_gus_card * gus, struct snd_gus_voice *voice);
-int snd_gf1_start(struct snd_gus_card * gus);
-int snd_gf1_stop(struct snd_gus_card * gus);
+void snd_gf1_set_default_handlers(struct snd_gus_card *gus, unsigned int what);
+void snd_gf1_smart_stop_voice(struct snd_gus_card *gus, unsigned short voice);
+void snd_gf1_stop_voice(struct snd_gus_card *gus, unsigned short voice);
+void snd_gf1_stop_voices(struct snd_gus_card *gus, unsigned short v_min, unsigned short v_max);
+struct snd_gus_voice *snd_gf1_alloc_voice(struct snd_gus_card *gus, int type, int client, int port);
+void snd_gf1_free_voice(struct snd_gus_card *gus, struct snd_gus_voice *voice);
+int snd_gf1_start(struct snd_gus_card *gus);
+int snd_gf1_stop(struct snd_gus_card *gus);
 
 /* gus_mixer.c */
 
-int snd_gf1_new_mixer(struct snd_gus_card * gus);
+int snd_gf1_new_mixer(struct snd_gus_card *gus);
 
 /* gus_pcm.c */
 
 int snd_gf1_pcm_new(struct snd_gus_card *gus, int pcm_dev, int control_index);
 
 #ifdef CONFIG_SND_DEBUG
-extern void snd_gf1_print_voice_registers(struct snd_gus_card * gus);
+	extern void snd_gf1_print_voice_registers(struct snd_gus_card *gus);
 #endif
 
 /* gus.c */
 
-int snd_gus_use_inc(struct snd_gus_card * gus);
-void snd_gus_use_dec(struct snd_gus_card * gus);
+int snd_gus_use_inc(struct snd_gus_card *gus);
+void snd_gus_use_dec(struct snd_gus_card *gus);
 int snd_gus_create(struct snd_card *card,
-		   unsigned long port,
-		   int irq, int dma1, int dma2,
-		   int timer_dev,
-		   int voices,
-		   int pcm_channels,
-		   int effect,
-		   struct snd_gus_card ** rgus);
-int snd_gus_initialize(struct snd_gus_card * gus);
+				   unsigned long port,
+				   int irq, int dma1, int dma2,
+				   int timer_dev,
+				   int voices,
+				   int pcm_channels,
+				   int effect,
+				   struct snd_gus_card **rgus);
+int snd_gus_initialize(struct snd_gus_card *gus);
 
 /* gus_irq.c */
 
 irqreturn_t snd_gus_interrupt(int irq, void *dev_id);
 #ifdef CONFIG_SND_DEBUG
-void snd_gus_irq_profile_init(struct snd_gus_card *gus);
+	void snd_gus_irq_profile_init(struct snd_gus_card *gus);
 #endif
 
 /* gus_uart.c */
@@ -624,8 +638,8 @@ int snd_gf1_rawmidi_new(struct snd_gus_card *gus, int device);
 
 /* gus_dram.c */
 int snd_gus_dram_write(struct snd_gus_card *gus, char __user *ptr,
-		       unsigned int addr, unsigned int size);
+					   unsigned int addr, unsigned int size);
 int snd_gus_dram_read(struct snd_gus_card *gus, char __user *ptr,
-		      unsigned int addr, unsigned int size, int rom);
+					  unsigned int addr, unsigned int size, int rom);
 
 #endif /* __SOUND_GUS_H */

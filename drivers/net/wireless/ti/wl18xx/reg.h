@@ -194,21 +194,24 @@
  */
 #define WL18XX_SCR_PAD8_PLT	0xBABABEBE
 
-enum {
+enum
+{
 	COMPONENT_NO_SWITCH	= 0x0,
 	COMPONENT_2_WAY_SWITCH	= 0x1,
 	COMPONENT_3_WAY_SWITCH	= 0x2,
 	COMPONENT_MATCHING	= 0x3,
 };
 
-enum {
+enum
+{
 	FEM_NONE	= 0x0,
 	FEM_VENDOR_1	= 0x1,
 	FEM_VENDOR_2	= 0x2,
 	FEM_VENDOR_3	= 0x3,
 };
 
-enum {
+enum
+{
 	BOARD_TYPE_EVB_18XX     = 0,
 	BOARD_TYPE_DVP_18XX     = 1,
 	BOARD_TYPE_HDK_18XX     = 2,
@@ -218,7 +221,8 @@ enum {
 	NUM_BOARD_TYPES,
 };
 
-enum wl18xx_rdl_num {
+enum wl18xx_rdl_num
+{
 	RDL_NONE	= 0,
 	RDL_1_HP	= 1,
 	RDL_2_SP	= 2,

@@ -37,11 +37,13 @@
 
 #include <drm/drm_pciids.h>
 
-static struct pci_device_id pciidlist[] = {
+static struct pci_device_id pciidlist[] =
+{
 	r128_PCI_IDS
 };
 
-static const struct file_operations r128_driver_fops = {
+static const struct file_operations r128_driver_fops =
+{
 	.owner = THIS_MODULE,
 	.open = drm_open,
 	.release = drm_release,
@@ -54,10 +56,11 @@ static const struct file_operations r128_driver_fops = {
 	.llseek = noop_llseek,
 };
 
-static struct drm_driver driver = {
+static struct drm_driver driver =
+{
 	.driver_features =
-	    DRIVER_USE_AGP | DRIVER_PCI_DMA | DRIVER_SG | DRIVER_LEGACY |
-	    DRIVER_HAVE_DMA | DRIVER_HAVE_IRQ | DRIVER_IRQ_SHARED,
+	DRIVER_USE_AGP | DRIVER_PCI_DMA | DRIVER_SG | DRIVER_LEGACY |
+	DRIVER_HAVE_DMA | DRIVER_HAVE_IRQ | DRIVER_IRQ_SHARED,
 	.dev_priv_size = sizeof(drm_r128_buf_priv_t),
 	.load = r128_driver_load,
 	.preclose = r128_driver_preclose,
@@ -87,7 +90,8 @@ int r128_driver_load(struct drm_device *dev, unsigned long flags)
 	return drm_vblank_init(dev, 1);
 }
 
-static struct pci_driver r128_pci_driver = {
+static struct pci_driver r128_pci_driver =
+{
 	.name = DRIVER_NAME,
 	.id_table = pciidlist,
 };

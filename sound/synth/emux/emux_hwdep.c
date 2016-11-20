@@ -37,19 +37,32 @@ snd_emux_hwdep_load_patch(struct snd_emux *emu, void __user *arg)
 	struct soundfont_patch_info patch;
 
 	if (copy_from_user(&patch, arg, sizeof(patch)))
+	{
 		return -EFAULT;
+	}
 
 	if (patch.type >= SNDRV_SFNT_LOAD_INFO &&
-	    patch.type <= SNDRV_SFNT_PROBE_DATA) {
+		patch.type <= SNDRV_SFNT_PROBE_DATA)
+	{
 		err = snd_soundfont_load(emu->sflist, arg, patch.len + sizeof(patch), TMP_CLIENT_ID);
+
 		if (err < 0)
+		{
 			return err;
-	} else {
-		if (emu->ops.load_fx)
-			return emu->ops.load_fx(emu, patch.type, patch.optarg, arg, patch.len + sizeof(patch));
-		else
-			return -EINVAL;
+		}
 	}
+	else
+	{
+		if (emu->ops.load_fx)
+		{
+			return emu->ops.load_fx(emu, patch.type, patch.optarg, arg, patch.len + sizeof(patch));
+		}
+		else
+		{
+			return -EINVAL;
+		}
+	}
+
 	return 0;
 }
 
@@ -63,17 +76,30 @@ snd_emux_hwdep_misc_mode(struct snd_emux *emu, void __user *arg)
 	int i;
 
 	if (copy_from_user(&info, arg, sizeof(info)))
+	{
 		return -EFAULT;
-	if (info.mode < 0 || info.mode >= EMUX_MD_END)
-		return -EINVAL;
-
-	if (info.port < 0) {
-		for (i = 0; i < emu->num_ports; i++)
-			emu->portptrs[i]->ctrls[info.mode] = info.value;
-	} else {
-		if (info.port < emu->num_ports)
-			emu->portptrs[info.port]->ctrls[info.mode] = info.value;
 	}
+
+	if (info.mode < 0 || info.mode >= EMUX_MD_END)
+	{
+		return -EINVAL;
+	}
+
+	if (info.port < 0)
+	{
+		for (i = 0; i < emu->num_ports; i++)
+		{
+			emu->portptrs[i]->ctrls[info.mode] = info.value;
+		}
+	}
+	else
+	{
+		if (info.port < emu->num_ports)
+		{
+			emu->portptrs[info.port]->ctrls[info.mode] = info.value;
+		}
+	}
+
 	return 0;
 }
 
@@ -82,30 +108,38 @@ snd_emux_hwdep_misc_mode(struct snd_emux *emu, void __user *arg)
  * ioctl
  */
 static int
-snd_emux_hwdep_ioctl(struct snd_hwdep * hw, struct file *file,
-		     unsigned int cmd, unsigned long arg)
+snd_emux_hwdep_ioctl(struct snd_hwdep *hw, struct file *file,
+					 unsigned int cmd, unsigned long arg)
 {
 	struct snd_emux *emu = hw->private_data;
 
-	switch (cmd) {
-	case SNDRV_EMUX_IOCTL_VERSION:
-		return put_user(SNDRV_EMUX_VERSION, (unsigned int __user *)arg);
-	case SNDRV_EMUX_IOCTL_LOAD_PATCH:
-		return snd_emux_hwdep_load_patch(emu, (void __user *)arg);
-	case SNDRV_EMUX_IOCTL_RESET_SAMPLES:
-		snd_soundfont_remove_samples(emu->sflist);
-		break;
-	case SNDRV_EMUX_IOCTL_REMOVE_LAST_SAMPLES:
-		snd_soundfont_remove_unlocked(emu->sflist);
-		break;
-	case SNDRV_EMUX_IOCTL_MEM_AVAIL:
-		if (emu->memhdr) {
-			int size = snd_util_mem_avail(emu->memhdr);
-			return put_user(size, (unsigned int __user *)arg);
-		}
-		break;
-	case SNDRV_EMUX_IOCTL_MISC_MODE:
-		return snd_emux_hwdep_misc_mode(emu, (void __user *)arg);
+	switch (cmd)
+	{
+		case SNDRV_EMUX_IOCTL_VERSION:
+			return put_user(SNDRV_EMUX_VERSION, (unsigned int __user *)arg);
+
+		case SNDRV_EMUX_IOCTL_LOAD_PATCH:
+			return snd_emux_hwdep_load_patch(emu, (void __user *)arg);
+
+		case SNDRV_EMUX_IOCTL_RESET_SAMPLES:
+			snd_soundfont_remove_samples(emu->sflist);
+			break;
+
+		case SNDRV_EMUX_IOCTL_REMOVE_LAST_SAMPLES:
+			snd_soundfont_remove_unlocked(emu->sflist);
+			break;
+
+		case SNDRV_EMUX_IOCTL_MEM_AVAIL:
+			if (emu->memhdr)
+			{
+				int size = snd_util_mem_avail(emu->memhdr);
+				return put_user(size, (unsigned int __user *)arg);
+			}
+
+			break;
+
+		case SNDRV_EMUX_IOCTL_MISC_MODE:
+			return snd_emux_hwdep_misc_mode(emu, (void __user *)arg);
 	}
 
 	return 0;
@@ -123,7 +157,10 @@ snd_emux_init_hwdep(struct snd_emux *emu)
 	int err;
 
 	if ((err = snd_hwdep_new(emu->card, SNDRV_EMUX_HWDEP_NAME, emu->hwdep_idx, &hw)) < 0)
+	{
 		return err;
+	}
+
 	emu->hwdep = hw;
 	strcpy(hw->name, SNDRV_EMUX_HWDEP_NAME);
 	hw->iface = SNDRV_HWDEP_IFACE_EMUX_WAVETABLE;
@@ -133,8 +170,11 @@ snd_emux_init_hwdep(struct snd_emux *emu)
 	hw->ops.ioctl_compat = snd_emux_hwdep_ioctl;
 	hw->exclusive = 1;
 	hw->private_data = emu;
+
 	if ((err = snd_card_register(emu->card)) < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -146,7 +186,8 @@ snd_emux_init_hwdep(struct snd_emux *emu)
 void
 snd_emux_delete_hwdep(struct snd_emux *emu)
 {
-	if (emu->hwdep) {
+	if (emu->hwdep)
+	{
 		snd_device_free(emu->card, emu->hwdep);
 		emu->hwdep = NULL;
 	}

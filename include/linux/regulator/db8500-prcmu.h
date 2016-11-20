@@ -12,7 +12,8 @@
 #define __REGULATOR_H__
 
 /* Number of DB8500 regulators and regulator enumeration */
-enum db8500_regulator_id {
+enum db8500_regulator_id
+{
 	DB8500_REGULATOR_VAPE,
 	DB8500_REGULATOR_VARM,
 	DB8500_REGULATOR_VMODEM,

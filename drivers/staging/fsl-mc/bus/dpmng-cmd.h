@@ -45,11 +45,13 @@
 #define DPMNG_CMDID_GET_CONT_ID			0x830
 #define DPMNG_CMDID_GET_VERSION			0x831
 
-struct dpmng_rsp_get_container_id {
+struct dpmng_rsp_get_container_id
+{
 	__le32 container_id;
 };
 
-struct dpmng_rsp_get_version {
+struct dpmng_rsp_get_version
+{
 	__le32 revision;
 	__le32 version_major;
 	__le32 version_minor;

@@ -40,7 +40,8 @@ void nes_queue_mgt_skbs(struct sk_buff *skb, struct nes_vnic *nesvnic, struct ne
 void nes_destroy_mgt(struct nes_vnic *nesvnic);
 void nes_destroy_pau_qp(struct nes_device *nesdev, struct nes_qp *nesqp);
 
-struct nes_hw_mgt {
+struct nes_hw_mgt
+{
 	struct nes_hw_nic_rq_wqe *rq_vbase;	/* virtual address of rq */
 	dma_addr_t rq_pbase;			/* PCI memory for host rings */
 	struct sk_buff *rx_skb[NES_NIC_WQ_SIZE];
@@ -54,7 +55,8 @@ struct nes_hw_mgt {
 	spinlock_t rq_lock;
 };
 
-struct nes_vnic_mgt {
+struct nes_vnic_mgt
+{
 	struct nes_vnic        *nesvnic;
 	struct nes_hw_mgt      mgt;
 	struct nes_hw_nic_cq   mgt_cq;
@@ -64,14 +66,16 @@ struct nes_vnic_mgt {
 };
 
 #define MAX_FPDU_FRAGS 4
-struct pau_fpdu_frag {
+struct pau_fpdu_frag
+{
 	struct sk_buff         *skb;
 	u64                    physaddr;
 	u32                    frag_len;
 	bool                   cmplt;
 };
 
-struct pau_fpdu_info {
+struct pau_fpdu_info
+{
 	struct nes_qp          *nesqp;
 	struct nes_cqp_request *cqp_request;
 	void                   *hdr_vbase;
@@ -82,13 +86,15 @@ struct pau_fpdu_info {
 	struct pau_fpdu_frag   frags[MAX_FPDU_FRAGS];
 };
 
-enum pau_qh_state {
+enum pau_qh_state
+{
 	PAU_DEL_QH,
 	PAU_ADD_LB_QH,
 	PAU_READY
 };
 
-struct pau_qh_chg {
+struct pau_qh_chg
+{
 	struct nes_device *nesdev;
 	struct nes_vnic *nesvnic;
 	struct nes_qp *nesqp;

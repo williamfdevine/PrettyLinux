@@ -23,35 +23,41 @@
 #define _DAVINCI_VPFE_DM365_IPIPEIF_USER_H
 
 /* clockdiv for IPIPE 5.1 */
-struct ipipeif_5_1_clkdiv {
+struct ipipeif_5_1_clkdiv
+{
 	unsigned char m;
 	unsigned char n;
 };
 
-enum ipipeif_decimation {
+enum ipipeif_decimation
+{
 	IPIPEIF_DECIMATION_OFF,
 	IPIPEIF_DECIMATION_ON
 };
 
 /* DPC at the if for IPIPE 5.1 */
-struct ipipeif_dpc {
+struct ipipeif_dpc
+{
 	/* 0 - disable, 1 - enable */
 	unsigned char en;
 	/* threshold */
 	unsigned short thr;
 };
 
-enum ipipeif_clock {
+enum ipipeif_clock
+{
 	IPIPEIF_PIXCEL_CLK,
 	IPIPEIF_SDRAM_CLK
 };
 
-enum  ipipeif_avg_filter {
+enum  ipipeif_avg_filter
+{
 	IPIPEIF_AVG_OFF,
 	IPIPEIF_AVG_ON
 };
 
-struct ipipeif_5_1 {
+struct ipipeif_5_1
+{
 	struct ipipeif_5_1_clkdiv clk_div;
 	/* Defect pixel correction */
 	struct ipipeif_dpc dpc;
@@ -69,7 +75,8 @@ struct ipipeif_5_1 {
 	unsigned short df_gain_thr;
 };
 
-struct ipipeif_params {
+struct ipipeif_params
+{
 	enum ipipeif_clock clock_select;
 	unsigned int ppln;
 	unsigned int lpfr;

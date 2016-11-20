@@ -22,13 +22,15 @@
 
 #define ARIZONA_MAX_CORE_SUPPLIES 2
 
-enum {
+enum
+{
 	ARIZONA_MCLK1,
 	ARIZONA_MCLK2,
 	ARIZONA_NUM_MCLK
 };
 
-enum arizona_type {
+enum arizona_type
+{
 	WM5102 = 1,
 	WM5110 = 2,
 	WM8997 = 3,
@@ -119,7 +121,8 @@ enum arizona_type {
 
 struct snd_soc_dapm_context;
 
-struct arizona {
+struct arizona
+{
 	struct regmap *regmap;
 	struct device *dev;
 
@@ -133,7 +136,7 @@ struct arizona {
 
 	struct arizona_pdata pdata;
 
-	unsigned int external_dcvdd:1;
+	unsigned int external_dcvdd: 1;
 
 	int irq;
 	struct irq_domain *virq;
@@ -163,8 +166,8 @@ struct arizona {
 };
 
 static inline int arizona_call_notifiers(struct arizona *arizona,
-					 unsigned long event,
-					 void *data)
+		unsigned long event,
+		void *data)
 {
 	return blocking_notifier_call_chain(&arizona->notifier, event, data);
 }
@@ -173,7 +176,7 @@ int arizona_clk32k_enable(struct arizona *arizona);
 int arizona_clk32k_disable(struct arizona *arizona);
 
 int arizona_request_irq(struct arizona *arizona, int irq, char *name,
-			irq_handler_t handler, void *data);
+						irq_handler_t handler, void *data);
 void arizona_free_irq(struct arizona *arizona, int irq, void *data);
 int arizona_set_irq_wake(struct arizona *arizona, int irq, int on);
 

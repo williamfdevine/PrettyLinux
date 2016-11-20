@@ -5,7 +5,8 @@
  */
 #include "util.h"
 
-enum {
+enum
+{
 	S = GIT_SPACE,
 	A = GIT_ALPHA,
 	D = GIT_DIGIT,
@@ -16,12 +17,13 @@ enum {
 	PS = GIT_SPACE | GIT_PRINT_EXTRA,
 };
 
-unsigned char sane_ctype[256] = {
-/*	0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F			    */
+unsigned char sane_ctype[256] =
+{
+	/*	0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F			    */
 
 	0, 0, 0, 0, 0, 0, 0, 0, 0, S, S, 0, 0, S, 0, 0,		/*   0.. 15 */
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,		/*  16.. 31 */
-	PS,P, P, P, R, P, P, P, R, R, G, R, P, P, R, P,		/*  32.. 47 */
+	PS, P, P, P, R, P, P, P, R, R, G, R, P, P, R, P,		/*  32.. 47 */
 	D, D, D, D, D, D, D, D, D, D, P, P, P, P, P, G,		/*  48.. 63 */
 	P, A, A, A, A, A, A, A, A, A, A, A, A, A, A, A,		/*  64.. 79 */
 	A, A, A, A, A, A, A, A, A, A, A, G, G, P, R, P,		/*  80.. 95 */

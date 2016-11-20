@@ -1,7 +1,7 @@
 /* atmdev.h - ATM device driver declarations and various related items */
- 
+
 /* Written 1995-2000 by Werner Almesberger, EPFL LRC/ICA */
- 
+
 
 #ifndef _UAPILINUX_ATMDEV_H
 #define _UAPILINUX_ATMDEV_H
@@ -15,36 +15,38 @@
 #define ESI_LEN		6
 
 #define ATM_OC3_PCR	(155520000/270*260/8/53)
-			/* OC3 link rate:  155520000 bps
-			   SONET overhead: /270*260 (9 section, 1 path)
-			   bits per cell:  /8/53
-			   max cell rate:  353207.547 cells/sec */
+/* OC3 link rate:  155520000 bps
+   SONET overhead: /270*260 (9 section, 1 path)
+   bits per cell:  /8/53
+   max cell rate:  353207.547 cells/sec */
 #define ATM_25_PCR	((25600000/8-8000)/54)
-			/* 25 Mbps ATM cell rate (59111) */
+/* 25 Mbps ATM cell rate (59111) */
 #define ATM_OC12_PCR	(622080000/1080*1040/8/53)
-			/* OC12 link rate: 622080000 bps
-			   SONET overhead: /1080*1040
-			   bits per cell:  /8/53
-			   max cell rate:  1412830.188 cells/sec */
+/* OC12 link rate: 622080000 bps
+   SONET overhead: /1080*1040
+   bits per cell:  /8/53
+   max cell rate:  1412830.188 cells/sec */
 #define ATM_DS3_PCR	(8000*12)
-			/* DS3: 12 cells in a 125 usec time slot */
+/* DS3: 12 cells in a 125 usec time slot */
 
 
 #define __AAL_STAT_ITEMS \
-    __HANDLE_ITEM(tx);			/* TX okay */ \
-    __HANDLE_ITEM(tx_err);		/* TX errors */ \
-    __HANDLE_ITEM(rx);			/* RX okay */ \
-    __HANDLE_ITEM(rx_err);		/* RX errors */ \
-    __HANDLE_ITEM(rx_drop);		/* RX out of memory */
+	__HANDLE_ITEM(tx);			/* TX okay */ \
+	__HANDLE_ITEM(tx_err);		/* TX errors */ \
+	__HANDLE_ITEM(rx);			/* RX okay */ \
+	__HANDLE_ITEM(rx_err);		/* RX errors */ \
+	__HANDLE_ITEM(rx_drop);		/* RX out of memory */
 
-struct atm_aal_stats {
+struct atm_aal_stats
+{
 #define __HANDLE_ITEM(i) int i
 	__AAL_STAT_ITEMS
 #undef __HANDLE_ITEM
 };
 
 
-struct atm_dev_stats {
+struct atm_dev_stats
+{
 	struct atm_aal_stats aal0;
 	struct atm_aal_stats aal34;
 	struct atm_aal_stats aal5;
@@ -52,67 +54,67 @@ struct atm_dev_stats {
 
 
 #define ATM_GETLINKRATE	_IOW('a',ATMIOC_ITF+1,struct atmif_sioc)
-					/* get link rate */
+/* get link rate */
 #define ATM_GETNAMES	_IOW('a',ATMIOC_ITF+3,struct atm_iobuf)
-					/* get interface names (numbers) */
+/* get interface names (numbers) */
 #define ATM_GETTYPE	_IOW('a',ATMIOC_ITF+4,struct atmif_sioc)
-					/* get interface type name */
+/* get interface type name */
 #define ATM_GETESI	_IOW('a',ATMIOC_ITF+5,struct atmif_sioc)
-					/* get interface ESI */
+/* get interface ESI */
 #define ATM_GETADDR	_IOW('a',ATMIOC_ITF+6,struct atmif_sioc)
-					/* get itf's local ATM addr. list */
+/* get itf's local ATM addr. list */
 #define ATM_RSTADDR	_IOW('a',ATMIOC_ITF+7,struct atmif_sioc)
-					/* reset itf's ATM address list */
+/* reset itf's ATM address list */
 #define ATM_ADDADDR	_IOW('a',ATMIOC_ITF+8,struct atmif_sioc)
-					/* add a local ATM address */
+/* add a local ATM address */
 #define ATM_DELADDR	_IOW('a',ATMIOC_ITF+9,struct atmif_sioc)
-					/* remove a local ATM address */
+/* remove a local ATM address */
 #define ATM_GETCIRANGE	_IOW('a',ATMIOC_ITF+10,struct atmif_sioc)
-					/* get connection identifier range */
+/* get connection identifier range */
 #define ATM_SETCIRANGE	_IOW('a',ATMIOC_ITF+11,struct atmif_sioc)
-					/* set connection identifier range */
+/* set connection identifier range */
 #define ATM_SETESI	_IOW('a',ATMIOC_ITF+12,struct atmif_sioc)
-					/* set interface ESI */
+/* set interface ESI */
 #define ATM_SETESIF	_IOW('a',ATMIOC_ITF+13,struct atmif_sioc)
-					/* force interface ESI */
+/* force interface ESI */
 #define ATM_ADDLECSADDR	_IOW('a', ATMIOC_ITF+14, struct atmif_sioc)
-					/* register a LECS address */
+/* register a LECS address */
 #define ATM_DELLECSADDR	_IOW('a', ATMIOC_ITF+15, struct atmif_sioc)
-					/* unregister a LECS address */
+/* unregister a LECS address */
 #define ATM_GETLECSADDR	_IOW('a', ATMIOC_ITF+16, struct atmif_sioc)
-					/* retrieve LECS address(es) */
+/* retrieve LECS address(es) */
 
 #define ATM_GETSTAT	_IOW('a',ATMIOC_SARCOM+0,struct atmif_sioc)
-					/* get AAL layer statistics */
+/* get AAL layer statistics */
 #define ATM_GETSTATZ	_IOW('a',ATMIOC_SARCOM+1,struct atmif_sioc)
-					/* get AAL layer statistics and zero */
+/* get AAL layer statistics and zero */
 #define ATM_GETLOOP	_IOW('a',ATMIOC_SARCOM+2,struct atmif_sioc)
-					/* get loopback mode */
+/* get loopback mode */
 #define ATM_SETLOOP	_IOW('a',ATMIOC_SARCOM+3,struct atmif_sioc)
-					/* set loopback mode */
+/* set loopback mode */
 #define ATM_QUERYLOOP	_IOW('a',ATMIOC_SARCOM+4,struct atmif_sioc)
-					/* query supported loopback modes */
+/* query supported loopback modes */
 #define ATM_SETSC	_IOW('a',ATMIOC_SPECIAL+1,int)
-					/* enable or disable single-copy */
+/* enable or disable single-copy */
 #define ATM_SETBACKEND	_IOW('a',ATMIOC_SPECIAL+2,atm_backend_t)
-					/* set backend handler */
+/* set backend handler */
 #define ATM_NEWBACKENDIF _IOW('a',ATMIOC_SPECIAL+3,atm_backend_t)
-					/* use backend to make new if */
+/* use backend to make new if */
 #define ATM_ADDPARTY  	_IOW('a', ATMIOC_SPECIAL+4,struct atm_iobuf)
- 					/* add party to p2mp call */
+/* add party to p2mp call */
 #ifdef CONFIG_COMPAT
-/* It actually takes struct sockaddr_atmsvc, not struct atm_iobuf */
-#define COMPAT_ATM_ADDPARTY  	_IOW('a', ATMIOC_SPECIAL+4,struct compat_atm_iobuf)
+	/* It actually takes struct sockaddr_atmsvc, not struct atm_iobuf */
+	#define COMPAT_ATM_ADDPARTY  	_IOW('a', ATMIOC_SPECIAL+4,struct compat_atm_iobuf)
 #endif
 #define ATM_DROPPARTY 	_IOW('a', ATMIOC_SPECIAL+5,int)
-					/* drop party from p2mp call */
+/* drop party from p2mp call */
 
 /*
  * These are backend handkers that can be set via the ATM_SETBACKEND call
  * above.  In the future we may support dynamic loading of these - for now,
  * they're just being used to share the ATMIOC_BACKEND ioctls
  */
-#define ATM_BACKEND_RAW		0	
+#define ATM_BACKEND_RAW		0
 #define ATM_BACKEND_PPP		1	/* PPPoATM - RFC2364 */
 #define ATM_BACKEND_BR2684	2	/* Bridged RFC1483/2684 */
 
@@ -156,7 +158,8 @@ struct atm_dev_stats {
  */
 
 
-struct atm_iobuf {
+struct atm_iobuf
+{
 	int length;
 	void __user *buffer;
 };
@@ -164,8 +167,9 @@ struct atm_iobuf {
 /* for ATM_GETCIRANGE / ATM_SETCIRANGE */
 
 #define ATM_CI_MAX      -1              /* use maximum range of VPI/VCI */
- 
-struct atm_cirange {
+
+struct atm_cirange
+{
 	signed char	vpi_bits;	/* 1..8, ATM_CI_MAX (-1) for maximum */
 	signed char	vci_bits;	/* 1..16, ATM_CI_MAX (-1) for maximum */
 };
@@ -188,7 +192,7 @@ struct atm_cirange {
 #define ATM_MF_BWD	32	/* Set the backward direction parameters */
 
 #define ATM_MF_SET	(ATM_MF_INC_RSV | ATM_MF_INC_SHP | ATM_MF_DEC_RSV | \
-			  ATM_MF_DEC_SHP | ATM_MF_BWD)
+					 ATM_MF_DEC_SHP | ATM_MF_BWD)
 
 /*
  * ATM_VS_* are used to express VC state in a human-friendly way.
@@ -202,13 +206,13 @@ struct atm_cirange {
 #define ATM_VS_BOUND	5	/* VC is bound */
 
 #define ATM_VS2TXT_MAP \
-    "IDLE", "CONNECTED", "CLOSING", "LISTEN", "INUSE", "BOUND"
+	"IDLE", "CONNECTED", "CLOSING", "LISTEN", "INUSE", "BOUND"
 
 #define ATM_VF2TXT_MAP \
-    "ADDR",	"READY",	"PARTIAL",	"REGIS", \
-    "RELEASED", "HASQOS",	"LISTEN",	"META", \
-    "256",	"512",		"1024",		"2048", \
-    "SESSION",	"HASSAP",	"BOUND",	"CLOSE"
+	"ADDR",	"READY",	"PARTIAL",	"REGIS", \
+	"RELEASED", "HASQOS",	"LISTEN",	"META", \
+	"256",	"512",		"1024",		"2048", \
+	"SESSION",	"HASSAP",	"BOUND",	"CLOSE"
 
 
 

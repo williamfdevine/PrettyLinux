@@ -74,7 +74,8 @@
 #define SIGNAL_HIGH		2
 #define SIGNAL_LOW		0
 
-struct qe_ic {
+struct qe_ic
+{
 	/* Control registers offset */
 	volatile u32 __iomem *regs;
 
@@ -92,7 +93,8 @@ struct qe_ic {
 /*
  * QE interrupt controller internal structure
  */
-struct qe_ic_info {
+struct qe_ic_info
+{
 	u32	mask;	  /* location of this source at the QIMR register. */
 	u32	mask_reg; /* Mask register offset */
 	u8	pri_code; /* for grouped interrupts sources - the interrupt

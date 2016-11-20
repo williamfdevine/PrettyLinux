@@ -49,7 +49,8 @@
  * This is the private codec state for the hardware associated with an
  * I2S channel such as the register mappings and clock sources.
  */
-struct s3c_i2sv2_info {
+struct s3c_i2sv2_info
+{
 	struct device	*dev;
 	void __iomem	*regs;
 
@@ -72,14 +73,15 @@ struct s3c_i2sv2_info {
 
 extern struct clk *s3c_i2sv2_get_clock(struct snd_soc_dai *cpu_dai);
 
-struct s3c_i2sv2_rate_calc {
+struct s3c_i2sv2_rate_calc
+{
 	unsigned int	clk_div;	/* for prescaler */
 	unsigned int	fs_div;		/* for root frame clock */
 };
 
 extern int s3c_i2sv2_iis_calc_rate(struct s3c_i2sv2_rate_calc *info,
-				   unsigned int *fstab,
-				   unsigned int rate, struct clk *clk);
+								   unsigned int *fstab,
+								   unsigned int rate, struct clk *clk);
 
 /**
  * s3c_i2sv2_probe - probe for i2s device helper
@@ -88,8 +90,8 @@ extern int s3c_i2sv2_iis_calc_rate(struct s3c_i2sv2_rate_calc *info,
  * @base: The base address for the registers.
  */
 extern int s3c_i2sv2_probe(struct snd_soc_dai *dai,
-			   struct s3c_i2sv2_info *i2s,
-			   unsigned long base);
+						   struct s3c_i2sv2_info *i2s,
+						   unsigned long base);
 
 /**
  * s3c_i2sv2_register_component - register component and dai with soc core
@@ -101,7 +103,7 @@ extern int s3c_i2sv2_probe(struct snd_soc_dai *dai,
  * soc core.
  */
 extern int s3c_i2sv2_register_component(struct device *dev, int id,
-					const struct snd_soc_component_driver *cmp_drv,
-					struct snd_soc_dai_driver *dai_drv);
+										const struct snd_soc_component_driver *cmp_drv,
+										struct snd_soc_dai_driver *dai_drv);
 
 #endif /* __SND_SOC_S3C24XX_S3C_I2SV2_I2S_H */

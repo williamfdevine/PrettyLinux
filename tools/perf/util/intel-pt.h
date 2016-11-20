@@ -18,7 +18,8 @@
 
 #define INTEL_PT_PMU_NAME "intel_pt"
 
-enum {
+enum
+{
 	INTEL_PT_PMU_TYPE,
 	INTEL_PT_TIME_SHIFT,
 	INTEL_PT_TIME_MULT,
@@ -49,7 +50,7 @@ struct perf_pmu;
 struct auxtrace_record *intel_pt_recording_init(int *err);
 
 int intel_pt_process_auxtrace_info(union perf_event *event,
-				   struct perf_session *session);
+								   struct perf_session *session);
 
 struct perf_event_attr *intel_pt_pmu_default_config(struct perf_pmu *pmu);
 

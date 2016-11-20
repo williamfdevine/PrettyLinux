@@ -48,23 +48,39 @@ void dealloc_slot_struct(struct slot *slot)
 }
 
 struct slot *alloc_slot_struct(struct device_node *dn,
-		int drc_index, char *drc_name, int power_domain)
+							   int drc_index, char *drc_name, int power_domain)
 {
 	struct slot *slot;
 
 	slot = kzalloc(sizeof(struct slot), GFP_KERNEL);
+
 	if (!slot)
+	{
 		goto error_nomem;
+	}
+
 	slot->hotplug_slot = kzalloc(sizeof(struct hotplug_slot), GFP_KERNEL);
+
 	if (!slot->hotplug_slot)
+	{
 		goto error_slot;
+	}
+
 	slot->hotplug_slot->info = kzalloc(sizeof(struct hotplug_slot_info),
-					   GFP_KERNEL);
+									   GFP_KERNEL);
+
 	if (!slot->hotplug_slot->info)
+	{
 		goto error_hpslot;
+	}
+
 	slot->name = kstrdup(drc_name, GFP_KERNEL);
+
 	if (!slot->name)
+	{
 		goto error_info;
+	}
+
 	slot->dn = dn;
 	slot->index = drc_index;
 	slot->power_domain = power_domain;
@@ -88,9 +104,12 @@ static int is_registered(struct slot *slot)
 {
 	struct slot *tmp_slot;
 
-	list_for_each_entry(tmp_slot, &rpaphp_slot_head, rpaphp_slot_list) {
+	list_for_each_entry(tmp_slot, &rpaphp_slot_head, rpaphp_slot_list)
+	{
 		if (!strcmp(tmp_slot->name, slot->name))
+		{
 			return 1;
+		}
 	}
 	return 0;
 }
@@ -100,14 +119,17 @@ int rpaphp_deregister_slot(struct slot *slot)
 	int retval = 0;
 	struct hotplug_slot *php_slot = slot->hotplug_slot;
 
-	 dbg("%s - Entry: deregistering slot=%s\n",
+	dbg("%s - Entry: deregistering slot=%s\n",
 		__func__, slot->name);
 
 	list_del(&slot->rpaphp_slot_list);
 
 	retval = pci_hp_deregister(php_slot);
+
 	if (retval)
+	{
 		err("Problem unregistering a slot %s\n", slot->name);
+	}
 
 	dbg("%s - Exit: rc[%d]\n", __func__, retval);
 	return retval;
@@ -127,14 +149,18 @@ int rpaphp_register_slot(struct slot *slot)
 		slot->power_domain, slot->type);
 
 	/* should not try to register the same slot twice */
-	if (is_registered(slot)) {
+	if (is_registered(slot))
+	{
 		err("rpaphp_register_slot: slot[%s] is already registered\n", slot->name);
 		return -EAGAIN;
 	}
 
-	for_each_child_of_node(slot->dn, child) {
+	for_each_child_of_node(slot->dn, child)
+	{
 		retval = of_property_read_u32(child, "ibm,my-drc-index", &my_index);
-		if (my_index == slot->index) {
+
+		if (my_index == slot->index)
+		{
 			slotno = PCI_SLOT(PCI_DN(child)->devfn);
 			of_node_put(child);
 			break;
@@ -142,7 +168,9 @@ int rpaphp_register_slot(struct slot *slot)
 	}
 
 	retval = pci_hp_register(php_slot, slot->bus, slotno, slot->name);
-	if (retval) {
+
+	if (retval)
+	{
 		err("pci_hp_register failed with error %d\n", retval);
 		return retval;
 	}

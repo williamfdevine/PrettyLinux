@@ -184,7 +184,8 @@
 #define BUP_ICH_SEL_300UA		0x08
 #define BUP_ICH_SEL_700UA		0x0C
 
-enum bup_vch_sel {
+enum bup_vch_sel
+{
 	BUP_VCH_SEL_2P5V,
 	BUP_VCH_SEL_2P6V,
 	BUP_VCH_SEL_2P8V,
@@ -282,7 +283,8 @@ enum bup_vch_sel {
  * @temp:			battery pack temperature in Celcius
  * @resist:			NTC resistor net total resistance
  */
-struct res_to_temp {
+struct res_to_temp
+{
 	int temp;
 	int resist;
 };
@@ -293,7 +295,8 @@ struct res_to_temp {
  * @temp:			battery pack temperature in Celcius
  * @resist:			battery internal reistance in mOhm
  */
-struct batres_vs_temp {
+struct batres_vs_temp
+{
 	int temp;
 	int resist;
 };
@@ -329,7 +332,8 @@ struct ab8500_fg;
  * @pcut_max_restart:		Max number of restarts
  * @pcut_debunce_time:	Sets battery debounce time
  */
-struct ab8500_fg_parameters {
+struct ab8500_fg_parameters
+{
 	int recovery_sleep_timer;
 	int recovery_total_time;
 	int init_timer;
@@ -358,7 +362,8 @@ struct ab8500_fg_parameters {
  * @maxi_wait_cycles:	cycles to wait before setting charger current
  * @charger_curr_step	delta between two charger current settings (mA)
  */
-struct ab8500_maxim_parameters {
+struct ab8500_maxim_parameters
+{
 	bool ena_maxi;
 	int chg_curr;
 	int wait_cycles;
@@ -373,7 +378,8 @@ struct ab8500_maxim_parameters {
  * @high:		high capacity level in percent
  * @full:		full capacity level in percent
  */
-struct ab8500_bm_capacity_levels {
+struct ab8500_bm_capacity_levels
+{
 	int critical;
 	int low;
 	int normal;
@@ -388,7 +394,8 @@ struct ab8500_bm_capacity_levels {
  * @ac_volt_max:	maximum allowed AC charger voltage in mV
  * @ac_curr_max:	maximum allowed AC charger current in mA
  */
-struct ab8500_bm_charger_parameters {
+struct ab8500_bm_charger_parameters
+{
 	int usb_volt_max;
 	int usb_curr_max;
 	int ac_volt_max;
@@ -425,7 +432,8 @@ struct ab8500_bm_charger_parameters {
  * @chg_params		charger parameters
  * @fg_params		fuel gauge parameters
  */
-struct ab8500_bm_data {
+struct ab8500_bm_data
+{
 	int temp_under;
 	int temp_low;
 	int temp_high;
@@ -459,20 +467,20 @@ struct ab8500_gpadc;
 struct ab8500_fg;
 
 #ifdef CONFIG_AB8500_BM
-extern struct abx500_bm_data ab8500_bm_data;
+	extern struct abx500_bm_data ab8500_bm_data;
 
-void ab8500_charger_usb_state_changed(u8 bm_usb_state, u16 mA);
-struct ab8500_btemp *ab8500_btemp_get(void);
-int ab8500_btemp_get_batctrl_temp(struct ab8500_btemp *btemp);
-int ab8500_btemp_get_temp(struct ab8500_btemp *btemp);
-struct ab8500_fg *ab8500_fg_get(void);
-int ab8500_fg_inst_curr_blocking(struct ab8500_fg *dev);
-int ab8500_fg_inst_curr_start(struct ab8500_fg *di);
-int ab8500_fg_inst_curr_finalize(struct ab8500_fg *di, int *res);
-int ab8500_fg_inst_curr_started(struct ab8500_fg *di);
-int ab8500_fg_inst_curr_done(struct ab8500_fg *di);
+	void ab8500_charger_usb_state_changed(u8 bm_usb_state, u16 mA);
+	struct ab8500_btemp *ab8500_btemp_get(void);
+	int ab8500_btemp_get_batctrl_temp(struct ab8500_btemp *btemp);
+	int ab8500_btemp_get_temp(struct ab8500_btemp *btemp);
+	struct ab8500_fg *ab8500_fg_get(void);
+	int ab8500_fg_inst_curr_blocking(struct ab8500_fg *dev);
+	int ab8500_fg_inst_curr_start(struct ab8500_fg *di);
+	int ab8500_fg_inst_curr_finalize(struct ab8500_fg *di, int *res);
+	int ab8500_fg_inst_curr_started(struct ab8500_fg *di);
+	int ab8500_fg_inst_curr_done(struct ab8500_fg *di);
 
 #else
-static struct abx500_bm_data ab8500_bm_data;
+	static struct abx500_bm_data ab8500_bm_data;
 #endif
 #endif /* _AB8500_BM_H */

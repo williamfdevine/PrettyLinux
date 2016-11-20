@@ -61,19 +61,21 @@ MODULE_LICENSE("GPL");
 
 struct CHIPSTATE;
 typedef int  (*getvalue)(int);
-typedef int  (*checkit)(struct CHIPSTATE*);
-typedef int  (*initialize)(struct CHIPSTATE*);
+typedef int  (*checkit)(struct CHIPSTATE *);
+typedef int  (*initialize)(struct CHIPSTATE *);
 typedef int  (*getrxsubchans)(struct CHIPSTATE *);
-typedef void (*setaudmode)(struct CHIPSTATE*, int mode);
+typedef void (*setaudmode)(struct CHIPSTATE *, int mode);
 
 /* i2c command */
-typedef struct AUDIOCMD {
+typedef struct AUDIOCMD
+{
 	int             count;             /* # of bytes to send */
-	unsigned char   bytes[MAXREGS+1];  /* addr, data, data, ... */
+	unsigned char   bytes[MAXREGS + 1]; /* addr, data, data, ... */
 } audiocmd;
 
 /* chip description */
-struct CHIPDESC {
+struct CHIPDESC
+{
 	char       *name;             /* chip name         */
 	int        addr_lo, addr_hi;  /* i2c address range */
 	int        registers;         /* # of registers    */
@@ -111,10 +113,12 @@ struct CHIPDESC {
 };
 
 /* current state of the chip */
-struct CHIPSTATE {
+struct CHIPSTATE
+{
 	struct v4l2_subdev sd;
 	struct v4l2_ctrl_handler hdl;
-	struct {
+	struct
+	{
 		/* volume/balance cluster */
 		struct v4l2_ctrl *volume;
 		struct v4l2_ctrl *balance;
@@ -159,55 +163,70 @@ static int chip_write(struct CHIPSTATE *chip, int subaddr, int val)
 	struct i2c_client *c = v4l2_get_subdevdata(sd);
 	unsigned char buffer[2];
 
-	if (subaddr < 0) {
+	if (subaddr < 0)
+	{
 		v4l2_dbg(1, debug, sd, "chip_write: 0x%x\n", val);
 		chip->shadow.bytes[1] = val;
 		buffer[0] = val;
-		if (1 != i2c_master_send(c, buffer, 1)) {
+
+		if (1 != i2c_master_send(c, buffer, 1))
+		{
 			v4l2_warn(sd, "I/O error (write 0x%x)\n", val);
 			return -1;
 		}
-	} else {
-		if (subaddr + 1 >= ARRAY_SIZE(chip->shadow.bytes)) {
+	}
+	else
+	{
+		if (subaddr + 1 >= ARRAY_SIZE(chip->shadow.bytes))
+		{
 			v4l2_info(sd,
-				"Tried to access a non-existent register: %d\n",
-				subaddr);
+					  "Tried to access a non-existent register: %d\n",
+					  subaddr);
 			return -EINVAL;
 		}
 
 		v4l2_dbg(1, debug, sd, "chip_write: reg%d=0x%x\n",
-			subaddr, val);
-		chip->shadow.bytes[subaddr+1] = val;
+				 subaddr, val);
+		chip->shadow.bytes[subaddr + 1] = val;
 		buffer[0] = subaddr;
 		buffer[1] = val;
-		if (2 != i2c_master_send(c, buffer, 2)) {
+
+		if (2 != i2c_master_send(c, buffer, 2))
+		{
 			v4l2_warn(sd, "I/O error (write reg%d=0x%x)\n",
-				subaddr, val);
+					  subaddr, val);
 			return -1;
 		}
 	}
+
 	return 0;
 }
 
 static int chip_write_masked(struct CHIPSTATE *chip,
-			     int subaddr, int val, int mask)
+							 int subaddr, int val, int mask)
 {
 	struct v4l2_subdev *sd = &chip->sd;
 
-	if (mask != 0) {
-		if (subaddr < 0) {
+	if (mask != 0)
+	{
+		if (subaddr < 0)
+		{
 			val = (chip->shadow.bytes[1] & ~mask) | (val & mask);
-		} else {
-			if (subaddr + 1 >= ARRAY_SIZE(chip->shadow.bytes)) {
+		}
+		else
+		{
+			if (subaddr + 1 >= ARRAY_SIZE(chip->shadow.bytes))
+			{
 				v4l2_info(sd,
-					"Tried to access a non-existent register: %d\n",
-					subaddr);
+						  "Tried to access a non-existent register: %d\n",
+						  subaddr);
 				return -EINVAL;
 			}
 
-			val = (chip->shadow.bytes[subaddr+1] & ~mask) | (val & mask);
+			val = (chip->shadow.bytes[subaddr + 1] & ~mask) | (val & mask);
 		}
 	}
+
 	return chip_write(chip, subaddr, val);
 }
 
@@ -217,10 +236,12 @@ static int chip_read(struct CHIPSTATE *chip)
 	struct i2c_client *c = v4l2_get_subdevdata(sd);
 	unsigned char buffer;
 
-	if (1 != i2c_master_recv(c, &buffer, 1)) {
+	if (1 != i2c_master_recv(c, &buffer, 1))
+	{
 		v4l2_warn(sd, "I/O error (read)\n");
 		return -1;
 	}
+
 	v4l2_dbg(1, debug, sd, "chip_read: 0x%x\n", buffer);
 	return buffer;
 }
@@ -231,7 +252,8 @@ static int chip_read2(struct CHIPSTATE *chip, int subaddr)
 	struct i2c_client *c = v4l2_get_subdevdata(sd);
 	unsigned char write[1];
 	unsigned char read[1];
-	struct i2c_msg msgs[2] = {
+	struct i2c_msg msgs[2] =
+	{
 		{
 			.addr = c->addr,
 			.len = 1,
@@ -247,12 +269,14 @@ static int chip_read2(struct CHIPSTATE *chip, int subaddr)
 
 	write[0] = subaddr;
 
-	if (2 != i2c_transfer(c->adapter, msgs, 2)) {
+	if (2 != i2c_transfer(c->adapter, msgs, 2))
+	{
 		v4l2_warn(sd, "I/O error (read2)\n");
 		return -1;
 	}
+
 	v4l2_dbg(1, debug, sd, "chip_read2: reg%d=0x%x\n",
-		subaddr, read[0]);
+			 subaddr, read[0]);
 	return read[0];
 }
 
@@ -263,12 +287,15 @@ static int chip_cmd(struct CHIPSTATE *chip, char *name, audiocmd *cmd)
 	int i;
 
 	if (0 == cmd->count)
+	{
 		return 0;
+	}
 
-	if (cmd->count + cmd->bytes[0] - 1 >= ARRAY_SIZE(chip->shadow.bytes)) {
+	if (cmd->count + cmd->bytes[0] - 1 >= ARRAY_SIZE(chip->shadow.bytes))
+	{
 		v4l2_info(sd,
-			 "Tried to access a non-existent register range: %d to %d\n",
-			 cmd->bytes[0] + 1, cmd->bytes[0] + cmd->count - 1);
+				  "Tried to access a non-existent register range: %d to %d\n",
+				  cmd->bytes[0] + 1, cmd->bytes[0] + cmd->count - 1);
 		return -EINVAL;
 	}
 
@@ -276,20 +303,30 @@ static int chip_cmd(struct CHIPSTATE *chip, char *name, audiocmd *cmd)
 
 	/* update our shadow register set; print bytes if (debug > 0) */
 	v4l2_dbg(1, debug, sd, "chip_cmd(%s): reg=%d, data:",
-		name, cmd->bytes[0]);
-	for (i = 1; i < cmd->count; i++) {
+			 name, cmd->bytes[0]);
+
+	for (i = 1; i < cmd->count; i++)
+	{
 		if (debug)
+		{
 			printk(KERN_CONT " 0x%x", cmd->bytes[i]);
-		chip->shadow.bytes[i+cmd->bytes[0]] = cmd->bytes[i];
+		}
+
+		chip->shadow.bytes[i + cmd->bytes[0]] = cmd->bytes[i];
 	}
+
 	if (debug)
+	{
 		printk(KERN_CONT "\n");
+	}
 
 	/* send data to the chip */
-	if (cmd->count != i2c_master_send(c, cmd->bytes, cmd->count)) {
+	if (cmd->count != i2c_master_send(c, cmd->bytes, cmd->count))
+	{
 		v4l2_warn(sd, "I/O error (%s)\n", name);
 		return -1;
 	}
+
 	return 0;
 }
 
@@ -302,7 +339,7 @@ static int chip_cmd(struct CHIPSTATE *chip, char *name, audiocmd *cmd)
 
 static void chip_thread_wake(unsigned long data)
 {
-	struct CHIPSTATE *chip = (struct CHIPSTATE*)data;
+	struct CHIPSTATE *chip = (struct CHIPSTATE *)data;
 	wake_up_process(chip->thread);
 }
 
@@ -315,24 +352,39 @@ static int chip_thread(void *data)
 
 	v4l2_dbg(1, debug, sd, "thread started\n");
 	set_freezable();
-	for (;;) {
+
+	for (;;)
+	{
 		set_current_state(TASK_INTERRUPTIBLE);
+
 		if (!kthread_should_stop())
+		{
 			schedule();
+		}
+
 		set_current_state(TASK_RUNNING);
 		try_to_freeze();
+
 		if (kthread_should_stop())
+		{
 			break;
+		}
+
 		v4l2_dbg(1, debug, sd, "thread wakeup\n");
 
 		/* don't do anything for radio */
 		if (chip->radio)
+		{
 			continue;
+		}
 
 		/* have a look what's going on */
 		mode = desc->getrxsubchans(chip);
+
 		if (mode == chip->prevmode)
+		{
 			continue;
+		}
 
 		/* chip detected a new audio mode - set it */
 		v4l2_dbg(1, debug, sd, "thread checkmode\n");
@@ -340,34 +392,57 @@ static int chip_thread(void *data)
 		chip->prevmode = mode;
 
 		selected = V4L2_TUNER_MODE_MONO;
-		switch (chip->audmode) {
-		case V4L2_TUNER_MODE_MONO:
-			if (mode & V4L2_TUNER_SUB_LANG1)
-				selected = V4L2_TUNER_MODE_LANG1;
-			break;
-		case V4L2_TUNER_MODE_STEREO:
-		case V4L2_TUNER_MODE_LANG1:
-			if (mode & V4L2_TUNER_SUB_LANG1)
-				selected = V4L2_TUNER_MODE_LANG1;
-			else if (mode & V4L2_TUNER_SUB_STEREO)
-				selected = V4L2_TUNER_MODE_STEREO;
-			break;
-		case V4L2_TUNER_MODE_LANG2:
-			if (mode & V4L2_TUNER_SUB_LANG2)
-				selected = V4L2_TUNER_MODE_LANG2;
-			else if (mode & V4L2_TUNER_SUB_STEREO)
-				selected = V4L2_TUNER_MODE_STEREO;
-			break;
-		case V4L2_TUNER_MODE_LANG1_LANG2:
-			if (mode & V4L2_TUNER_SUB_LANG2)
-				selected = V4L2_TUNER_MODE_LANG1_LANG2;
-			else if (mode & V4L2_TUNER_SUB_STEREO)
-				selected = V4L2_TUNER_MODE_STEREO;
+
+		switch (chip->audmode)
+		{
+			case V4L2_TUNER_MODE_MONO:
+				if (mode & V4L2_TUNER_SUB_LANG1)
+				{
+					selected = V4L2_TUNER_MODE_LANG1;
+				}
+
+				break;
+
+			case V4L2_TUNER_MODE_STEREO:
+			case V4L2_TUNER_MODE_LANG1:
+				if (mode & V4L2_TUNER_SUB_LANG1)
+				{
+					selected = V4L2_TUNER_MODE_LANG1;
+				}
+				else if (mode & V4L2_TUNER_SUB_STEREO)
+				{
+					selected = V4L2_TUNER_MODE_STEREO;
+				}
+
+				break;
+
+			case V4L2_TUNER_MODE_LANG2:
+				if (mode & V4L2_TUNER_SUB_LANG2)
+				{
+					selected = V4L2_TUNER_MODE_LANG2;
+				}
+				else if (mode & V4L2_TUNER_SUB_STEREO)
+				{
+					selected = V4L2_TUNER_MODE_STEREO;
+				}
+
+				break;
+
+			case V4L2_TUNER_MODE_LANG1_LANG2:
+				if (mode & V4L2_TUNER_SUB_LANG2)
+				{
+					selected = V4L2_TUNER_MODE_LANG1_LANG2;
+				}
+				else if (mode & V4L2_TUNER_SUB_STEREO)
+				{
+					selected = V4L2_TUNER_MODE_STEREO;
+				}
 		}
+
 		desc->setaudmode(chip, selected);
 
 		/* schedule next check */
-		mod_timer(&chip->wt, jiffies+msecs_to_jiffies(2000));
+		mod_timer(&chip->wt, jiffies + msecs_to_jiffies(2000));
 	}
 
 	v4l2_dbg(1, debug, sd, "thread exiting\n");
@@ -404,14 +479,20 @@ static int tda9840_getrxsubchans(struct CHIPSTATE *chip)
 
 	val = chip_read(chip);
 	mode = V4L2_TUNER_SUB_MONO;
+
 	if (val & TDA9840_DS_DUAL)
+	{
 		mode |= V4L2_TUNER_SUB_LANG1 | V4L2_TUNER_SUB_LANG2;
+	}
+
 	if (val & TDA9840_ST_STEREO)
+	{
 		mode = V4L2_TUNER_SUB_STEREO;
+	}
 
 	v4l2_dbg(1, debug, sd,
-		"tda9840_getrxsubchans(): raw chip read: %d, return: %d\n",
-		val, mode);
+			 "tda9840_getrxsubchans(): raw chip read: %d, return: %d\n",
+			 val, mode);
 	return mode;
 }
 
@@ -420,28 +501,36 @@ static void tda9840_setaudmode(struct CHIPSTATE *chip, int mode)
 	int update = 1;
 	int t = chip->shadow.bytes[TDA9840_SW + 1] & ~0x7e;
 
-	switch (mode) {
-	case V4L2_TUNER_MODE_MONO:
-		t |= TDA9840_MONO;
-		break;
-	case V4L2_TUNER_MODE_STEREO:
-		t |= TDA9840_STEREO;
-		break;
-	case V4L2_TUNER_MODE_LANG1:
-		t |= TDA9840_DUALA;
-		break;
-	case V4L2_TUNER_MODE_LANG2:
-		t |= TDA9840_DUALB;
-		break;
-	case V4L2_TUNER_MODE_LANG1_LANG2:
-		t |= TDA9840_DUALAB;
-		break;
-	default:
-		update = 0;
+	switch (mode)
+	{
+		case V4L2_TUNER_MODE_MONO:
+			t |= TDA9840_MONO;
+			break;
+
+		case V4L2_TUNER_MODE_STEREO:
+			t |= TDA9840_STEREO;
+			break;
+
+		case V4L2_TUNER_MODE_LANG1:
+			t |= TDA9840_DUALA;
+			break;
+
+		case V4L2_TUNER_MODE_LANG2:
+			t |= TDA9840_DUALB;
+			break;
+
+		case V4L2_TUNER_MODE_LANG1_LANG2:
+			t |= TDA9840_DUALAB;
+			break;
+
+		default:
+			update = 0;
 	}
 
 	if (update)
+	{
 		chip_write(chip, TDA9840_SW, t);
+	}
 }
 
 static int tda9840_checkit(struct CHIPSTATE *chip)
@@ -506,9 +595,9 @@ static int tda9840_checkit(struct CHIPSTATE *chip)
 #define TDA9855_AVL	1<<6 /* AVL, Automatic Volume Level */
 #define TDA9855_LOUD	1<<5 /* Loudness, 1==off */
 #define TDA9855_SUR	1<<3 /* Surround / Subwoofer 1==.5(L-R) 0==.5(L+R) */
-			     /* Bits 0 to 3 select various combinations
-			      * of line in and line out, only the
-			      * interesting ones are defined */
+/* Bits 0 to 3 select various combinations
+ * of line in and line out, only the
+ * interesting ones are defined */
 #define TDA9855_EXT	1<<2 /* Selects inputs LIR and LIL.  Pins 41 & 12 */
 #define TDA9855_INT	0    /* Selects inputs LOR and LOL.  (internal) */
 
@@ -553,9 +642,9 @@ static int tda9840_checkit(struct CHIPSTATE *chip)
  * -10% (0x2), nominal (0x3), +10% (0x6), +20% (0x5), +30% (0x4) */
 #define TDA985x_ADJ	1<<7 /* Stereo adjust on/off (wideband and spectral */
 
-static int tda9855_volume(int val) { return val/0x2e8+0x27; }
-static int tda9855_bass(int val)   { return val/0xccc+0x06; }
-static int tda9855_treble(int val) { return (val/0x1c71+0x3)<<1; }
+static int tda9855_volume(int val) { return val / 0x2e8 + 0x27; }
+static int tda9855_bass(int val)   { return val / 0xccc + 0x06; }
+static int tda9855_treble(int val) { return (val / 0x1c71 + 0x3) << 1; }
 
 static int  tda985x_getrxsubchans(struct CHIPSTATE *chip)
 {
@@ -565,37 +654,52 @@ static int  tda985x_getrxsubchans(struct CHIPSTATE *chip)
 	/* Allows forced mono */
 	mode = V4L2_TUNER_SUB_MONO;
 	val = chip_read(chip);
+
 	if (val & TDA985x_STP)
+	{
 		mode = V4L2_TUNER_SUB_STEREO;
+	}
+
 	if (val & TDA985x_SAPP)
+	{
 		mode |= V4L2_TUNER_SUB_SAP;
+	}
+
 	return mode;
 }
 
 static void tda985x_setaudmode(struct CHIPSTATE *chip, int mode)
 {
 	int update = 1;
-	int c6 = chip->shadow.bytes[TDA985x_C6+1] & 0x3f;
+	int c6 = chip->shadow.bytes[TDA985x_C6 + 1] & 0x3f;
 
-	switch (mode) {
-	case V4L2_TUNER_MODE_MONO:
-		c6 |= TDA985x_MONO;
-		break;
-	case V4L2_TUNER_MODE_STEREO:
-	case V4L2_TUNER_MODE_LANG1:
-		c6 |= TDA985x_STEREO;
-		break;
-	case V4L2_TUNER_MODE_SAP:
-		c6 |= TDA985x_SAP;
-		break;
-	case V4L2_TUNER_MODE_LANG1_LANG2:
-		c6 |= TDA985x_MONOSAP;
-		break;
-	default:
-		update = 0;
+	switch (mode)
+	{
+		case V4L2_TUNER_MODE_MONO:
+			c6 |= TDA985x_MONO;
+			break;
+
+		case V4L2_TUNER_MODE_STEREO:
+		case V4L2_TUNER_MODE_LANG1:
+			c6 |= TDA985x_STEREO;
+			break;
+
+		case V4L2_TUNER_MODE_SAP:
+			c6 |= TDA985x_SAP;
+			break;
+
+		case V4L2_TUNER_MODE_LANG1_LANG2:
+			c6 |= TDA985x_MONOSAP;
+			break;
+
+		default:
+			update = 0;
 	}
+
 	if (update)
-		chip_write(chip,TDA985x_C6,c6);
+	{
+		chip_write(chip, TDA985x_C6, c6);
+	}
 }
 
 
@@ -720,70 +824,87 @@ static void tda985x_setaudmode(struct CHIPSTATE *chip, int mode)
 static int tda9873_getrxsubchans(struct CHIPSTATE *chip)
 {
 	struct v4l2_subdev *sd = &chip->sd;
-	int val,mode;
+	int val, mode;
 
 	val = chip_read(chip);
 	mode = V4L2_TUNER_SUB_MONO;
+
 	if (val & TDA9873_STEREO)
+	{
 		mode = V4L2_TUNER_SUB_STEREO;
+	}
+
 	if (val & TDA9873_DUAL)
+	{
 		mode |= V4L2_TUNER_SUB_LANG1 | V4L2_TUNER_SUB_LANG2;
+	}
+
 	v4l2_dbg(1, debug, sd,
-		"tda9873_getrxsubchans(): raw chip read: %d, return: %d\n",
-		val, mode);
+			 "tda9873_getrxsubchans(): raw chip read: %d, return: %d\n",
+			 val, mode);
 	return mode;
 }
 
 static void tda9873_setaudmode(struct CHIPSTATE *chip, int mode)
 {
 	struct v4l2_subdev *sd = &chip->sd;
-	int sw_data  = chip->shadow.bytes[TDA9873_SW+1] & ~ TDA9873_TR_MASK;
+	int sw_data  = chip->shadow.bytes[TDA9873_SW + 1] & ~ TDA9873_TR_MASK;
 	/*	int adj_data = chip->shadow.bytes[TDA9873_AD+1] ; */
 
-	if ((sw_data & TDA9873_INP_MASK) != TDA9873_INTERNAL) {
+	if ((sw_data & TDA9873_INP_MASK) != TDA9873_INTERNAL)
+	{
 		v4l2_dbg(1, debug, sd,
-			 "tda9873_setaudmode(): external input\n");
+				 "tda9873_setaudmode(): external input\n");
 		return;
 	}
 
 	v4l2_dbg(1, debug, sd,
-		 "tda9873_setaudmode(): chip->shadow.bytes[%d] = %d\n",
-		 TDA9873_SW+1, chip->shadow.bytes[TDA9873_SW+1]);
+			 "tda9873_setaudmode(): chip->shadow.bytes[%d] = %d\n",
+			 TDA9873_SW + 1, chip->shadow.bytes[TDA9873_SW + 1]);
 	v4l2_dbg(1, debug, sd, "tda9873_setaudmode(): sw_data  = %d\n",
-		 sw_data);
+			 sw_data);
 
-	switch (mode) {
-	case V4L2_TUNER_MODE_MONO:
-		sw_data |= TDA9873_TR_MONO;
-		break;
-	case V4L2_TUNER_MODE_STEREO:
-		sw_data |= TDA9873_TR_STEREO;
-		break;
-	case V4L2_TUNER_MODE_LANG1:
-		sw_data |= TDA9873_TR_DUALA;
-		break;
-	case V4L2_TUNER_MODE_LANG2:
-		sw_data |= TDA9873_TR_DUALB;
-		break;
-	case V4L2_TUNER_MODE_LANG1_LANG2:
-		sw_data |= TDA9873_TR_DUALAB;
-		break;
-	default:
-		return;
+	switch (mode)
+	{
+		case V4L2_TUNER_MODE_MONO:
+			sw_data |= TDA9873_TR_MONO;
+			break;
+
+		case V4L2_TUNER_MODE_STEREO:
+			sw_data |= TDA9873_TR_STEREO;
+			break;
+
+		case V4L2_TUNER_MODE_LANG1:
+			sw_data |= TDA9873_TR_DUALA;
+			break;
+
+		case V4L2_TUNER_MODE_LANG2:
+			sw_data |= TDA9873_TR_DUALB;
+			break;
+
+		case V4L2_TUNER_MODE_LANG1_LANG2:
+			sw_data |= TDA9873_TR_DUALAB;
+			break;
+
+		default:
+			return;
 	}
 
 	chip_write(chip, TDA9873_SW, sw_data);
 	v4l2_dbg(1, debug, sd,
-		"tda9873_setaudmode(): req. mode %d; chip_write: %d\n",
-		mode, sw_data);
+			 "tda9873_setaudmode(): req. mode %d; chip_write: %d\n",
+			 mode, sw_data);
 }
 
 static int tda9873_checkit(struct CHIPSTATE *chip)
 {
 	int rc;
 
-	if (-1 == (rc = chip_read2(chip,254)))
+	if (-1 == (rc = chip_read2(chip, 254)))
+	{
 		return 0;
+	}
+
 	return (rc & ~0x1f) == 0x80;
 }
 
@@ -857,28 +978,48 @@ module_param(tda9874a_STD, int, 0444);
  *  - FM de-emphasis register (slow identification mode)
  * Note: frequency registers must be written in single i2c transfer.
  */
-static struct tda9874a_MODES {
+static struct tda9874a_MODES
+{
 	char *name;
 	audiocmd cmd;
-} tda9874a_modelist[9] = {
-  {	"A2, B/G", /* default */
-	{ 9, { TDA9874A_C1FRA, 0x72,0x95,0x55, 0x77,0xA0,0x00, 0x00,0x00 }} },
-  {	"A2, M (Korea)",
-	{ 9, { TDA9874A_C1FRA, 0x5D,0xC0,0x00, 0x62,0x6A,0xAA, 0x20,0x22 }} },
-  {	"A2, D/K (1)",
-	{ 9, { TDA9874A_C1FRA, 0x87,0x6A,0xAA, 0x82,0x60,0x00, 0x00,0x00 }} },
-  {	"A2, D/K (2)",
-	{ 9, { TDA9874A_C1FRA, 0x87,0x6A,0xAA, 0x8C,0x75,0x55, 0x00,0x00 }} },
-  {	"A2, D/K (3)",
-	{ 9, { TDA9874A_C1FRA, 0x87,0x6A,0xAA, 0x77,0xA0,0x00, 0x00,0x00 }} },
-  {	"NICAM, I",
-	{ 9, { TDA9874A_C1FRA, 0x7D,0x00,0x00, 0x88,0x8A,0xAA, 0x08,0x33 }} },
-  {	"NICAM, B/G",
-	{ 9, { TDA9874A_C1FRA, 0x72,0x95,0x55, 0x79,0xEA,0xAA, 0x08,0x33 }} },
-  {	"NICAM, D/K",
-	{ 9, { TDA9874A_C1FRA, 0x87,0x6A,0xAA, 0x79,0xEA,0xAA, 0x08,0x33 }} },
-  {	"NICAM, L",
-	{ 9, { TDA9874A_C1FRA, 0x87,0x6A,0xAA, 0x79,0xEA,0xAA, 0x09,0x33 }} }
+} tda9874a_modelist[9] =
+{
+	{
+		"A2, B/G", /* default */
+		{ 9, { TDA9874A_C1FRA, 0x72, 0x95, 0x55, 0x77, 0xA0, 0x00, 0x00, 0x00 }}
+	},
+	{
+		"A2, M (Korea)",
+		{ 9, { TDA9874A_C1FRA, 0x5D, 0xC0, 0x00, 0x62, 0x6A, 0xAA, 0x20, 0x22 }}
+	},
+	{
+		"A2, D/K (1)",
+		{ 9, { TDA9874A_C1FRA, 0x87, 0x6A, 0xAA, 0x82, 0x60, 0x00, 0x00, 0x00 }}
+	},
+	{
+		"A2, D/K (2)",
+		{ 9, { TDA9874A_C1FRA, 0x87, 0x6A, 0xAA, 0x8C, 0x75, 0x55, 0x00, 0x00 }}
+	},
+	{
+		"A2, D/K (3)",
+		{ 9, { TDA9874A_C1FRA, 0x87, 0x6A, 0xAA, 0x77, 0xA0, 0x00, 0x00, 0x00 }}
+	},
+	{
+		"NICAM, I",
+		{ 9, { TDA9874A_C1FRA, 0x7D, 0x00, 0x00, 0x88, 0x8A, 0xAA, 0x08, 0x33 }}
+	},
+	{
+		"NICAM, B/G",
+		{ 9, { TDA9874A_C1FRA, 0x72, 0x95, 0x55, 0x79, 0xEA, 0xAA, 0x08, 0x33 }}
+	},
+	{
+		"NICAM, D/K",
+		{ 9, { TDA9874A_C1FRA, 0x87, 0x6A, 0xAA, 0x79, 0xEA, 0xAA, 0x08, 0x33 }}
+	},
+	{
+		"NICAM, L",
+		{ 9, { TDA9874A_C1FRA, 0x87, 0x6A, 0xAA, 0x79, 0xEA, 0xAA, 0x09, 0x33 }}
+	}
 };
 
 static int tda9874a_setup(struct CHIPSTATE *chip)
@@ -887,13 +1028,18 @@ static int tda9874a_setup(struct CHIPSTATE *chip)
 
 	chip_write(chip, TDA9874A_AGCGR, 0x00); /* 0 dB */
 	chip_write(chip, TDA9874A_GCONR, tda9874a_GCONR);
-	chip_write(chip, TDA9874A_MSR, (tda9874a_mode) ? 0x03:0x02);
-	if(tda9874a_dic == 0x11) {
+	chip_write(chip, TDA9874A_MSR, (tda9874a_mode) ? 0x03 : 0x02);
+
+	if (tda9874a_dic == 0x11)
+	{
 		chip_write(chip, TDA9874A_FMMR, 0x80);
-	} else { /* dic == 0x07 */
-		chip_cmd(chip,"tda9874_modelist",&tda9874a_modelist[tda9874a_STD].cmd);
+	}
+	else     /* dic == 0x07 */
+	{
+		chip_cmd(chip, "tda9874_modelist", &tda9874a_modelist[tda9874a_STD].cmd);
 		chip_write(chip, TDA9874A_FMMR, 0x00);
 	}
+
 	chip_write(chip, TDA9874A_C1OLAR, 0x00); /* 0 dB */
 	chip_write(chip, TDA9874A_C2OLAR, 0x00); /* 0 dB */
 	chip_write(chip, TDA9874A_NCONR, tda9874a_NCONR);
@@ -904,42 +1050,55 @@ static int tda9874a_setup(struct CHIPSTATE *chip)
 	chip_write(chip, TDA9874A_NLELR, 0x14); /* default */
 	chip_write(chip, TDA9874A_NUELR, 0x50); /* default */
 
-	if(tda9874a_dic == 0x11) {
+	if (tda9874a_dic == 0x11)
+	{
 		chip_write(chip, TDA9874A_AMCONR, 0xf9);
-		chip_write(chip, TDA9874A_SDACOSR, (tda9874a_mode) ? 0x81:0x80);
+		chip_write(chip, TDA9874A_SDACOSR, (tda9874a_mode) ? 0x81 : 0x80);
 		chip_write(chip, TDA9874A_AOSR, 0x80);
-		chip_write(chip, TDA9874A_MDACOSR, (tda9874a_mode) ? 0x82:0x80);
+		chip_write(chip, TDA9874A_MDACOSR, (tda9874a_mode) ? 0x82 : 0x80);
 		chip_write(chip, TDA9874A_ESP, tda9874a_ESP);
-	} else { /* dic == 0x07 */
+	}
+	else     /* dic == 0x07 */
+	{
 		chip_write(chip, TDA9874A_AMCONR, 0xfb);
-		chip_write(chip, TDA9874A_SDACOSR, (tda9874a_mode) ? 0x81:0x80);
+		chip_write(chip, TDA9874A_SDACOSR, (tda9874a_mode) ? 0x81 : 0x80);
 		chip_write(chip, TDA9874A_AOSR, 0x00); /* or 0x10 */
 	}
+
 	v4l2_dbg(1, debug, sd, "tda9874a_setup(): %s [0x%02X].\n",
-		tda9874a_modelist[tda9874a_STD].name,tda9874a_STD);
+			 tda9874a_modelist[tda9874a_STD].name, tda9874a_STD);
 	return 1;
 }
 
 static int tda9874a_getrxsubchans(struct CHIPSTATE *chip)
 {
 	struct v4l2_subdev *sd = &chip->sd;
-	int dsr,nsr,mode;
+	int dsr, nsr, mode;
 	int necr; /* just for debugging */
 
 	mode = V4L2_TUNER_SUB_MONO;
 
-	if(-1 == (dsr = chip_read2(chip,TDA9874A_DSR)))
+	if (-1 == (dsr = chip_read2(chip, TDA9874A_DSR)))
+	{
 		return mode;
-	if(-1 == (nsr = chip_read2(chip,TDA9874A_NSR)))
+	}
+
+	if (-1 == (nsr = chip_read2(chip, TDA9874A_NSR)))
+	{
 		return mode;
-	if(-1 == (necr = chip_read2(chip,TDA9874A_NECR)))
+	}
+
+	if (-1 == (necr = chip_read2(chip, TDA9874A_NECR)))
+	{
 		return mode;
+	}
 
 	/* need to store dsr/nsr somewhere */
-	chip->shadow.bytes[MAXREGS-2] = dsr;
-	chip->shadow.bytes[MAXREGS-1] = nsr;
+	chip->shadow.bytes[MAXREGS - 2] = dsr;
+	chip->shadow.bytes[MAXREGS - 1] = nsr;
 
-	if(tda9874a_mode) {
+	if (tda9874a_mode)
+	{
 		/* Note: DSR.RSSF and DSR.AMSTAT bits are also checked.
 		 * If NICAM auto-muting is enabled, DSR.AMSTAT=1 indicates
 		 * that sound has (temporarily) switched from NICAM to
@@ -948,20 +1107,32 @@ static int tda9874a_getrxsubchans(struct CHIPSTATE *chip)
 		 * But changing the mode to V4L2_TUNER_MODE_MONO would switch
 		 * external 4052 multiplexer in audio_hook().
 		 */
-		if(nsr & 0x02) /* NSR.S/MB=1 */
+		if (nsr & 0x02) /* NSR.S/MB=1 */
+		{
 			mode = V4L2_TUNER_SUB_STEREO;
-		if(nsr & 0x01) /* NSR.D/SB=1 */
+		}
+
+		if (nsr & 0x01) /* NSR.D/SB=1 */
+		{
 			mode |= V4L2_TUNER_SUB_LANG1 | V4L2_TUNER_SUB_LANG2;
-	} else {
-		if(dsr & 0x02) /* DSR.IDSTE=1 */
+		}
+	}
+	else
+	{
+		if (dsr & 0x02) /* DSR.IDSTE=1 */
+		{
 			mode = V4L2_TUNER_SUB_STEREO;
-		if(dsr & 0x04) /* DSR.IDDUA=1 */
+		}
+
+		if (dsr & 0x04) /* DSR.IDDUA=1 */
+		{
 			mode |= V4L2_TUNER_SUB_LANG1 | V4L2_TUNER_SUB_LANG2;
+		}
 	}
 
 	v4l2_dbg(1, debug, sd,
-		 "tda9874a_getrxsubchans(): DSR=0x%X, NSR=0x%X, NECR=0x%X, return: %d.\n",
-		 dsr, nsr, necr, mode);
+			 "tda9874a_getrxsubchans(): DSR=0x%X, NSR=0x%X, NECR=0x%X, return: %d.\n",
+			 dsr, nsr, necr, mode);
 	return mode;
 }
 
@@ -971,11 +1142,17 @@ static void tda9874a_setaudmode(struct CHIPSTATE *chip, int mode)
 
 	/* Disable/enable NICAM auto-muting (based on DSR.RSSF status bit). */
 	/* If auto-muting is disabled, we can hear a signal of degrading quality. */
-	if (tda9874a_mode) {
-		if(chip->shadow.bytes[MAXREGS-2] & 0x20) /* DSR.RSSF=1 */
-			tda9874a_NCONR &= 0xfe; /* enable */
+	if (tda9874a_mode)
+	{
+		if (chip->shadow.bytes[MAXREGS - 2] & 0x20) /* DSR.RSSF=1 */
+		{
+			tda9874a_NCONR &= 0xfe;    /* enable */
+		}
 		else
-			tda9874a_NCONR |= 0x01; /* disable */
+		{
+			tda9874a_NCONR |= 0x01;    /* disable */
+		}
+
 		chip_write(chip, TDA9874A_NCONR, tda9874a_NCONR);
 	}
 
@@ -985,118 +1162,161 @@ static void tda9874a_setaudmode(struct CHIPSTATE *chip, int mode)
 	 * TDA9874A also has additional mono output pin (OUTM), which
 	 * on same (all?) tv-cards is not used, anyway (as well as MONOIN).
 	 */
-	if(tda9874a_dic == 0x11) {
+	if (tda9874a_dic == 0x11)
+	{
 		int aosr = 0x80;
-		int mdacosr = (tda9874a_mode) ? 0x82:0x80;
+		int mdacosr = (tda9874a_mode) ? 0x82 : 0x80;
 
-		switch(mode) {
-		case V4L2_TUNER_MODE_MONO:
-		case V4L2_TUNER_MODE_STEREO:
-			break;
-		case V4L2_TUNER_MODE_LANG1:
-			aosr = 0x80; /* auto-select, dual A/A */
-			mdacosr = (tda9874a_mode) ? 0x82:0x80;
-			break;
-		case V4L2_TUNER_MODE_LANG2:
-			aosr = 0xa0; /* auto-select, dual B/B */
-			mdacosr = (tda9874a_mode) ? 0x83:0x81;
-			break;
-		case V4L2_TUNER_MODE_LANG1_LANG2:
-			aosr = 0x00; /* always route L to L and R to R */
-			mdacosr = (tda9874a_mode) ? 0x82:0x80;
-			break;
-		default:
-			return;
+		switch (mode)
+		{
+			case V4L2_TUNER_MODE_MONO:
+			case V4L2_TUNER_MODE_STEREO:
+				break;
+
+			case V4L2_TUNER_MODE_LANG1:
+				aosr = 0x80; /* auto-select, dual A/A */
+				mdacosr = (tda9874a_mode) ? 0x82 : 0x80;
+				break;
+
+			case V4L2_TUNER_MODE_LANG2:
+				aosr = 0xa0; /* auto-select, dual B/B */
+				mdacosr = (tda9874a_mode) ? 0x83 : 0x81;
+				break;
+
+			case V4L2_TUNER_MODE_LANG1_LANG2:
+				aosr = 0x00; /* always route L to L and R to R */
+				mdacosr = (tda9874a_mode) ? 0x82 : 0x80;
+				break;
+
+			default:
+				return;
 		}
+
 		chip_write(chip, TDA9874A_AOSR, aosr);
 		chip_write(chip, TDA9874A_MDACOSR, mdacosr);
 
 		v4l2_dbg(1, debug, sd,
-			"tda9874a_setaudmode(): req. mode %d; AOSR=0x%X, MDACOSR=0x%X.\n",
-			mode, aosr, mdacosr);
+				 "tda9874a_setaudmode(): req. mode %d; AOSR=0x%X, MDACOSR=0x%X.\n",
+				 mode, aosr, mdacosr);
 
-	} else { /* dic == 0x07 */
-		int fmmr,aosr;
+	}
+	else     /* dic == 0x07 */
+	{
+		int fmmr, aosr;
 
-		switch(mode) {
-		case V4L2_TUNER_MODE_MONO:
-			fmmr = 0x00; /* mono */
-			aosr = 0x10; /* A/A */
-			break;
-		case V4L2_TUNER_MODE_STEREO:
-			if(tda9874a_mode) {
-				fmmr = 0x00;
-				aosr = 0x00; /* handled by NICAM auto-mute */
-			} else {
-				fmmr = (tda9874a_ESP == 1) ? 0x05 : 0x04; /* stereo */
-				aosr = 0x00;
-			}
-			break;
-		case V4L2_TUNER_MODE_LANG1:
-			fmmr = 0x02; /* dual */
-			aosr = 0x10; /* dual A/A */
-			break;
-		case V4L2_TUNER_MODE_LANG2:
-			fmmr = 0x02; /* dual */
-			aosr = 0x20; /* dual B/B */
-			break;
-		case V4L2_TUNER_MODE_LANG1_LANG2:
-			fmmr = 0x02; /* dual */
-			aosr = 0x00; /* dual A/B */
-			break;
-		default:
-			return;
+		switch (mode)
+		{
+			case V4L2_TUNER_MODE_MONO:
+				fmmr = 0x00; /* mono */
+				aosr = 0x10; /* A/A */
+				break;
+
+			case V4L2_TUNER_MODE_STEREO:
+				if (tda9874a_mode)
+				{
+					fmmr = 0x00;
+					aosr = 0x00; /* handled by NICAM auto-mute */
+				}
+				else
+				{
+					fmmr = (tda9874a_ESP == 1) ? 0x05 : 0x04; /* stereo */
+					aosr = 0x00;
+				}
+
+				break;
+
+			case V4L2_TUNER_MODE_LANG1:
+				fmmr = 0x02; /* dual */
+				aosr = 0x10; /* dual A/A */
+				break;
+
+			case V4L2_TUNER_MODE_LANG2:
+				fmmr = 0x02; /* dual */
+				aosr = 0x20; /* dual B/B */
+				break;
+
+			case V4L2_TUNER_MODE_LANG1_LANG2:
+				fmmr = 0x02; /* dual */
+				aosr = 0x00; /* dual A/B */
+				break;
+
+			default:
+				return;
 		}
+
 		chip_write(chip, TDA9874A_FMMR, fmmr);
 		chip_write(chip, TDA9874A_AOSR, aosr);
 
 		v4l2_dbg(1, debug, sd,
-			"tda9874a_setaudmode(): req. mode %d; FMMR=0x%X, AOSR=0x%X.\n",
-			mode, fmmr, aosr);
+				 "tda9874a_setaudmode(): req. mode %d; FMMR=0x%X, AOSR=0x%X.\n",
+				 mode, fmmr, aosr);
 	}
 }
 
 static int tda9874a_checkit(struct CHIPSTATE *chip)
 {
 	struct v4l2_subdev *sd = &chip->sd;
-	int dic,sic;	/* device id. and software id. codes */
+	int dic, sic;	/* device id. and software id. codes */
 
-	if(-1 == (dic = chip_read2(chip,TDA9874A_DIC)))
+	if (-1 == (dic = chip_read2(chip, TDA9874A_DIC)))
+	{
 		return 0;
-	if(-1 == (sic = chip_read2(chip,TDA9874A_SIC)))
+	}
+
+	if (-1 == (sic = chip_read2(chip, TDA9874A_SIC)))
+	{
 		return 0;
+	}
 
 	v4l2_dbg(1, debug, sd, "tda9874a_checkit(): DIC=0x%X, SIC=0x%X.\n", dic, sic);
 
-	if((dic == 0x11)||(dic == 0x07)) {
+	if ((dic == 0x11) || (dic == 0x07))
+	{
 		v4l2_info(sd, "found tda9874%s.\n", (dic == 0x11) ? "a" : "h");
 		tda9874a_dic = dic;	/* remember device id. */
 		return 1;
 	}
+
 	return 0;	/* not found */
 }
 
 static int tda9874a_initialize(struct CHIPSTATE *chip)
 {
 	if (tda9874a_SIF > 2)
+	{
 		tda9874a_SIF = 1;
-	if (tda9874a_STD >= ARRAY_SIZE(tda9874a_modelist))
-		tda9874a_STD = 0;
-	if(tda9874a_AMSEL > 1)
-		tda9874a_AMSEL = 0;
+	}
 
-	if(tda9874a_SIF == 1)
-		tda9874a_GCONR = 0xc0;	/* sound IF input 1 */
+	if (tda9874a_STD >= ARRAY_SIZE(tda9874a_modelist))
+	{
+		tda9874a_STD = 0;
+	}
+
+	if (tda9874a_AMSEL > 1)
+	{
+		tda9874a_AMSEL = 0;
+	}
+
+	if (tda9874a_SIF == 1)
+	{
+		tda9874a_GCONR = 0xc0;    /* sound IF input 1 */
+	}
 	else
-		tda9874a_GCONR = 0xc1;	/* sound IF input 2 */
+	{
+		tda9874a_GCONR = 0xc1;    /* sound IF input 2 */
+	}
 
 	tda9874a_ESP = tda9874a_STD;
 	tda9874a_mode = (tda9874a_STD < 5) ? 0 : 1;
 
-	if(tda9874a_AMSEL == 0)
-		tda9874a_NCONR = 0x01; /* auto-mute: analog mono input */
+	if (tda9874a_AMSEL == 0)
+	{
+		tda9874a_NCONR = 0x01;    /* auto-mute: analog mono input */
+	}
 	else
-		tda9874a_NCONR = 0x05; /* auto-mute: 1st carrier FM or AM */
+	{
+		tda9874a_NCONR = 0x05;    /* auto-mute: 1st carrier FM or AM */
+	}
 
 	tda9874a_setup(chip);
 	return 0;
@@ -1205,11 +1425,13 @@ static int tda9875_checkit(struct CHIPSTATE *chip)
 	dic = chip_read2(chip, 254);
 	rev = chip_read2(chip, 255);
 
-	if (dic == 0 || dic == 2) { /* tda9875 and tda9875A */
+	if (dic == 0 || dic == 2)   /* tda9875 and tda9875A */
+	{
 		v4l2_info(sd, "found tda9875%s rev. %d.\n",
-			dic == 0 ? "" : "A", rev);
+				  dic == 0 ? "" : "A", rev);
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -1222,7 +1444,7 @@ static int tda9875_checkit(struct CHIPSTATE *chip)
 #define TEA6300_TR         0x03  /* treble */
 #define TEA6300_FA         0x04  /* fader control */
 #define TEA6300_S          0x05  /* switch register */
-				 /* values for those registers: */
+/* values for those registers: */
 #define TEA6300_S_SA       0x01  /* stereo A input */
 #define TEA6300_S_SB       0x02  /* stereo B */
 #define TEA6300_S_SC       0x04  /* stereo C */
@@ -1236,7 +1458,7 @@ static int tda9875_checkit(struct CHIPSTATE *chip)
 #define TEA6320_BA         0x05  /* bass (0-4) */
 #define TEA6320_TR         0x06  /* treble (0-4) */
 #define TEA6320_S          0x07  /* switch register */
-				 /* values for those registers: */
+/* values for those registers: */
 #define TEA6320_S_SA       0x07  /* stereo A input */
 #define TEA6320_S_SB       0x06  /* stereo B */
 #define TEA6320_S_SC       0x05  /* stereo C */
@@ -1255,9 +1477,9 @@ static int tea6300_shift12(int val) { return val >> 12; }
 
 /* Assumes 16bit input (values 0x3f to 0x0c are unique, values less than */
 /* 0x0c mirror those immediately higher) */
-static int tea6320_volume(int val) { return (val / (65535/(63-12)) + 12) & 0x3f; }
+static int tea6320_volume(int val) { return (val / (65535 / (63 - 12)) + 12) & 0x3f; }
 static int tea6320_shift11(int val) { return val >> 11; }
-static int tea6320_initialize(struct CHIPSTATE * chip)
+static int tea6320_initialize(struct CHIPSTATE *chip)
 {
 	chip_write(chip, TEA6320_FFR, 0x3f);
 	chip_write(chip, TEA6320_FFL, 0x3f);
@@ -1276,7 +1498,7 @@ static int tea6320_initialize(struct CHIPSTATE * chip)
 #define TDA8425_BA         0x02  /* bass */
 #define TDA8425_TR         0x03  /* treble */
 #define TDA8425_S1         0x08  /* switch functions */
-				 /* values for those registers: */
+/* values for those registers: */
 #define TDA8425_S1_OFF     0xEE  /* audio off (mute on) */
 #define TDA8425_S1_CH1     0xCE  /* audio channel 1 (mute off) - "linear stereo" mode */
 #define TDA8425_S1_CH2     0xCF  /* audio channel 2 (mute off) - "linear stereo" mode */
@@ -1298,33 +1520,40 @@ static int tda8425_shift12(int val) { return (val >> 12) | 0xf0; }
 
 static void tda8425_setaudmode(struct CHIPSTATE *chip, int mode)
 {
-	int s1 = chip->shadow.bytes[TDA8425_S1+1] & 0xe1;
+	int s1 = chip->shadow.bytes[TDA8425_S1 + 1] & 0xe1;
 
-	switch (mode) {
-	case V4L2_TUNER_MODE_LANG1:
-		s1 |= TDA8425_S1_ML_SOUND_A;
-		s1 |= TDA8425_S1_STEREO_PSEUDO;
-		break;
-	case V4L2_TUNER_MODE_LANG2:
-		s1 |= TDA8425_S1_ML_SOUND_B;
-		s1 |= TDA8425_S1_STEREO_PSEUDO;
-		break;
-	case V4L2_TUNER_MODE_LANG1_LANG2:
-		s1 |= TDA8425_S1_ML_STEREO;
-		s1 |= TDA8425_S1_STEREO_LINEAR;
-		break;
-	case V4L2_TUNER_MODE_MONO:
-		s1 |= TDA8425_S1_ML_STEREO;
-		s1 |= TDA8425_S1_STEREO_MONO;
-		break;
-	case V4L2_TUNER_MODE_STEREO:
-		s1 |= TDA8425_S1_ML_STEREO;
-		s1 |= TDA8425_S1_STEREO_SPATIAL;
-		break;
-	default:
-		return;
+	switch (mode)
+	{
+		case V4L2_TUNER_MODE_LANG1:
+			s1 |= TDA8425_S1_ML_SOUND_A;
+			s1 |= TDA8425_S1_STEREO_PSEUDO;
+			break;
+
+		case V4L2_TUNER_MODE_LANG2:
+			s1 |= TDA8425_S1_ML_SOUND_B;
+			s1 |= TDA8425_S1_STEREO_PSEUDO;
+			break;
+
+		case V4L2_TUNER_MODE_LANG1_LANG2:
+			s1 |= TDA8425_S1_ML_STEREO;
+			s1 |= TDA8425_S1_STEREO_LINEAR;
+			break;
+
+		case V4L2_TUNER_MODE_MONO:
+			s1 |= TDA8425_S1_ML_STEREO;
+			s1 |= TDA8425_S1_STEREO_MONO;
+			break;
+
+		case V4L2_TUNER_MODE_STEREO:
+			s1 |= TDA8425_S1_ML_STEREO;
+			s1 |= TDA8425_S1_STEREO_SPATIAL;
+			break;
+
+		default:
+			return;
 	}
-	chip_write(chip,TDA8425_S1,s1);
+
+	chip_write(chip, TDA8425_S1, s1);
 }
 
 
@@ -1337,7 +1566,7 @@ static void tda8425_setaudmode(struct CHIPSTATE *chip, int mode)
 
 /* bit definition of the RESET register, I2C data. */
 #define PIC16C54_MISC_RESET_REMOTE_CTL 0x01 /* bit 0, Reset to receive the key */
-					    /*        code of remote controller */
+/*        code of remote controller */
 #define PIC16C54_MISC_MTS_MAIN         0x02 /* bit 1 */
 #define PIC16C54_MISC_MTS_SAP          0x04 /* bit 2 */
 #define PIC16C54_MISC_MTS_BOTH         0x08 /* bit 3 */
@@ -1381,11 +1610,16 @@ static int ta8874z_getrxsubchans(struct CHIPSTATE *chip)
 
 	val = chip_read(chip);
 	mode = V4L2_TUNER_SUB_MONO;
-	if (val & TA8874Z_B1){
+
+	if (val & TA8874Z_B1)
+	{
 		mode |= V4L2_TUNER_SUB_LANG1 | V4L2_TUNER_SUB_LANG2;
-	}else if (!(val & TA8874Z_B0)){
+	}
+	else if (!(val & TA8874Z_B0))
+	{
 		mode = V4L2_TUNER_SUB_STEREO;
 	}
+
 	/* v4l2_dbg(1, debug, &chip->sd,
 		 "ta8874z_getrxsubchans(): raw chip read: 0x%02x, return: 0x%02x\n",
 		 val, mode); */
@@ -1406,28 +1640,36 @@ static void ta8874z_setaudmode(struct CHIPSTATE *chip, int mode)
 
 	v4l2_dbg(1, debug, sd, "ta8874z_setaudmode(): mode: 0x%02x\n", mode);
 
-	switch(mode){
-	case V4L2_TUNER_MODE_MONO:
-		t = &ta8874z_mono;
-		break;
-	case V4L2_TUNER_MODE_STEREO:
-		t = &ta8874z_stereo;
-		break;
-	case V4L2_TUNER_MODE_LANG1:
-		t = &ta8874z_main;
-		break;
-	case V4L2_TUNER_MODE_LANG2:
-		t = &ta8874z_sub;
-		break;
-	case V4L2_TUNER_MODE_LANG1_LANG2:
-		t = &ta8874z_both;
-		break;
-	default:
-		update = 0;
+	switch (mode)
+	{
+		case V4L2_TUNER_MODE_MONO:
+			t = &ta8874z_mono;
+			break;
+
+		case V4L2_TUNER_MODE_STEREO:
+			t = &ta8874z_stereo;
+			break;
+
+		case V4L2_TUNER_MODE_LANG1:
+			t = &ta8874z_main;
+			break;
+
+		case V4L2_TUNER_MODE_LANG2:
+			t = &ta8874z_sub;
+			break;
+
+		case V4L2_TUNER_MODE_LANG1_LANG2:
+			t = &ta8874z_both;
+			break;
+
+		default:
+			update = 0;
 	}
 
-	if(update)
+	if (update)
+	{
 		chip_cmd(chip, "TA8874Z", t);
+	}
 }
 
 static int ta8874z_checkit(struct CHIPSTATE *chip)
@@ -1467,7 +1709,8 @@ module_param(tea6420, int, 0444);
 module_param(pic16c54, int, 0444);
 module_param(ta8874z, int, 0444);
 
-static struct CHIPDESC chiplist[] = {
+static struct CHIPDESC chiplist[] =
+{
 	{
 		.name       = "tda9840",
 		.insmodopt  = &tda9840,
@@ -1481,8 +1724,12 @@ static struct CHIPDESC chiplist[] = {
 		.getrxsubchans = tda9840_getrxsubchans,
 		.setaudmode = tda9840_setaudmode,
 
-		.init       = { 2, { TDA9840_TEST, TDA9840_TEST_INT1SN
-				/* ,TDA9840_SW, TDA9840_MONO */} }
+		.init       = {
+			2, {
+				TDA9840_TEST, TDA9840_TEST_INT1SN
+				/* ,TDA9840_SW, TDA9840_MONO */
+			}
+		}
 	},
 	{
 		.name       = "tda9873h",
@@ -1501,7 +1748,7 @@ static struct CHIPDESC chiplist[] = {
 		.inputreg   = TDA9873_SW,
 		.inputmute  = TDA9873_MUTE | TDA9873_AUTOMUTE,
 		.inputmap   = {0xa0, 0xa2, 0xa0, 0xa0},
-		.inputmask  = TDA9873_INP_MASK|TDA9873_MUTE|TDA9873_AUTOMUTE,
+		.inputmask  = TDA9873_INP_MASK | TDA9873_MUTE | TDA9873_AUTOMUTE,
 
 	},
 	{
@@ -1568,10 +1815,14 @@ static struct CHIPDESC chiplist[] = {
 		.getrxsubchans = tda985x_getrxsubchans,
 		.setaudmode = tda985x_setaudmode,
 
-		.init       = { 12, { 0, 0x6f, 0x6f, 0x0e, 0x07<<1, 0x8<<2,
-				    TDA9855_MUTE | TDA9855_AVL | TDA9855_LOUD | TDA9855_INT,
-				    TDA985x_STEREO | TDA9855_LINEAR | TDA9855_TZCM | TDA9855_VZCM,
-				    0x07, 0x10, 0x10, 0x03 }}
+		.init       = {
+			12, {
+				0, 0x6f, 0x6f, 0x0e, 0x07 << 1, 0x8 << 2,
+				TDA9855_MUTE | TDA9855_AVL | TDA9855_LOUD | TDA9855_INT,
+				TDA985x_STEREO | TDA9855_LINEAR | TDA9855_TZCM | TDA9855_VZCM,
+				0x07, 0x10, 0x10, 0x03
+			}
+		}
 	},
 	{
 		.name       = "tea6300",
@@ -1659,15 +1910,17 @@ static struct CHIPDESC chiplist[] = {
 		.name       = "pic16c54 (PV951)",
 		.insmodopt  = &pic16c54,
 		.addr_lo    = I2C_ADDR_PIC16C54 >> 1,
-		.addr_hi    = I2C_ADDR_PIC16C54>> 1,
+		.addr_hi    = I2C_ADDR_PIC16C54 >> 1,
 		.registers  = 2,
 		.flags      = CHIP_HAS_INPUTSEL,
 
 		.inputreg   = PIC16C54_REG_MISC,
-		.inputmap   = {PIC16C54_MISC_SND_NOTMUTE|PIC16C54_MISC_SWITCH_TUNER,
-			     PIC16C54_MISC_SND_NOTMUTE|PIC16C54_MISC_SWITCH_LINE,
-			     PIC16C54_MISC_SND_NOTMUTE|PIC16C54_MISC_SWITCH_LINE,
-			     PIC16C54_MISC_SND_MUTE},
+		.inputmap   = {
+			PIC16C54_MISC_SND_NOTMUTE | PIC16C54_MISC_SWITCH_TUNER,
+			PIC16C54_MISC_SND_NOTMUTE | PIC16C54_MISC_SWITCH_LINE,
+			PIC16C54_MISC_SND_NOTMUTE | PIC16C54_MISC_SWITCH_LINE,
+			PIC16C54_MISC_SND_MUTE
+		},
 		.inputmute  = PIC16C54_MISC_SND_MUTE,
 	},
 	{
@@ -1696,35 +1949,45 @@ static int tvaudio_s_ctrl(struct v4l2_ctrl *ctrl)
 	struct CHIPSTATE *chip = to_state(sd);
 	struct CHIPDESC *desc = chip->desc;
 
-	switch (ctrl->id) {
-	case V4L2_CID_AUDIO_MUTE:
-		chip->muted = ctrl->val;
-		if (chip->muted)
-			chip_write_masked(chip,desc->inputreg,desc->inputmute,desc->inputmask);
-		else
-			chip_write_masked(chip,desc->inputreg,
-					desc->inputmap[chip->input],desc->inputmask);
-		return 0;
-	case V4L2_CID_AUDIO_VOLUME: {
-		u32 volume, balance;
-		u32 left, right;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_AUDIO_MUTE:
+			chip->muted = ctrl->val;
 
-		volume = chip->volume->val;
-		balance = chip->balance->val;
-		left = (min(65536U - balance, 32768U) * volume) / 32768U;
-		right = (min(balance, 32768U) * volume) / 32768U;
+			if (chip->muted)
+			{
+				chip_write_masked(chip, desc->inputreg, desc->inputmute, desc->inputmask);
+			}
+			else
+				chip_write_masked(chip, desc->inputreg,
+								  desc->inputmap[chip->input], desc->inputmask);
 
-		chip_write(chip, desc->leftreg, desc->volfunc(left));
-		chip_write(chip, desc->rightreg, desc->volfunc(right));
-		return 0;
+			return 0;
+
+		case V4L2_CID_AUDIO_VOLUME:
+			{
+				u32 volume, balance;
+				u32 left, right;
+
+				volume = chip->volume->val;
+				balance = chip->balance->val;
+				left = (min(65536U - balance, 32768U) * volume) / 32768U;
+				right = (min(balance, 32768U) * volume) / 32768U;
+
+				chip_write(chip, desc->leftreg, desc->volfunc(left));
+				chip_write(chip, desc->rightreg, desc->volfunc(right));
+				return 0;
+			}
+
+		case V4L2_CID_AUDIO_BASS:
+			chip_write(chip, desc->bassreg, desc->bassfunc(ctrl->val));
+			return 0;
+
+		case V4L2_CID_AUDIO_TREBLE:
+			chip_write(chip, desc->treblereg, desc->treblefunc(ctrl->val));
+			return 0;
 	}
-	case V4L2_CID_AUDIO_BASS:
-		chip_write(chip, desc->bassreg, desc->bassfunc(ctrl->val));
-		return 0;
-	case V4L2_CID_AUDIO_TREBLE:
-		chip_write(chip, desc->treblereg, desc->treblefunc(ctrl->val));
-		return 0;
-	}
+
 	return -EINVAL;
 }
 
@@ -1742,21 +2005,31 @@ static int tvaudio_s_radio(struct v4l2_subdev *sd)
 }
 
 static int tvaudio_s_routing(struct v4l2_subdev *sd,
-			     u32 input, u32 output, u32 config)
+							 u32 input, u32 output, u32 config)
 {
 	struct CHIPSTATE *chip = to_state(sd);
 	struct CHIPDESC *desc = chip->desc;
 
 	if (!(desc->flags & CHIP_HAS_INPUTSEL))
+	{
 		return 0;
+	}
+
 	if (input >= 4)
+	{
 		return -EINVAL;
+	}
+
 	/* There are four inputs: tuner, radio, extern and intern. */
 	chip->input = input;
+
 	if (chip->muted)
+	{
 		return 0;
+	}
+
 	chip_write_masked(chip, desc->inputreg,
-			desc->inputmap[chip->input], desc->inputmask);
+					  desc->inputmap[chip->input], desc->inputmask);
 	return 0;
 }
 
@@ -1766,26 +2039,38 @@ static int tvaudio_s_tuner(struct v4l2_subdev *sd, const struct v4l2_tuner *vt)
 	struct CHIPDESC *desc = chip->desc;
 
 	if (!desc->setaudmode)
+	{
 		return 0;
-	if (chip->radio)
-		return 0;
-
-	switch (vt->audmode) {
-	case V4L2_TUNER_MODE_MONO:
-	case V4L2_TUNER_MODE_STEREO:
-	case V4L2_TUNER_MODE_LANG1:
-	case V4L2_TUNER_MODE_LANG2:
-	case V4L2_TUNER_MODE_LANG1_LANG2:
-		break;
-	default:
-		return -EINVAL;
 	}
+
+	if (chip->radio)
+	{
+		return 0;
+	}
+
+	switch (vt->audmode)
+	{
+		case V4L2_TUNER_MODE_MONO:
+		case V4L2_TUNER_MODE_STEREO:
+		case V4L2_TUNER_MODE_LANG1:
+		case V4L2_TUNER_MODE_LANG2:
+		case V4L2_TUNER_MODE_LANG1_LANG2:
+			break;
+
+		default:
+			return -EINVAL;
+	}
+
 	chip->audmode = vt->audmode;
 
 	if (chip->thread)
+	{
 		wake_up_process(chip->thread);
+	}
 	else
+	{
 		desc->setaudmode(chip, vt->audmode);
+	}
 
 	return 0;
 }
@@ -1796,14 +2081,19 @@ static int tvaudio_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
 	struct CHIPDESC *desc = chip->desc;
 
 	if (!desc->getrxsubchans)
+	{
 		return 0;
+	}
+
 	if (chip->radio)
+	{
 		return 0;
+	}
 
 	vt->audmode = chip->audmode;
 	vt->rxsubchans = desc->getrxsubchans(chip);
 	vt->capability |= V4L2_TUNER_CAP_STEREO |
-		V4L2_TUNER_CAP_LANG1 | V4L2_TUNER_CAP_LANG2;
+					  V4L2_TUNER_CAP_LANG1 | V4L2_TUNER_CAP_LANG2;
 
 	return 0;
 }
@@ -1829,11 +2119,13 @@ static int tvaudio_s_frequency(struct v4l2_subdev *sd, const struct v4l2_frequen
 	   to follow whatever audio standard is pointed by the
 	   audio carrier.
 	 */
-	if (chip->thread) {
+	if (chip->thread)
+	{
 		desc->setaudmode(chip, V4L2_TUNER_MODE_MONO);
 		chip->prevmode = -1; /* reset previous mode */
-		mod_timer(&chip->wt, jiffies+msecs_to_jiffies(2000));
+		mod_timer(&chip->wt, jiffies + msecs_to_jiffies(2000));
 	}
+
 	return 0;
 }
 
@@ -1849,30 +2141,36 @@ static int tvaudio_log_status(struct v4l2_subdev *sd)
 
 /* ----------------------------------------------------------------------- */
 
-static const struct v4l2_ctrl_ops tvaudio_ctrl_ops = {
+static const struct v4l2_ctrl_ops tvaudio_ctrl_ops =
+{
 	.s_ctrl = tvaudio_s_ctrl,
 };
 
-static const struct v4l2_subdev_core_ops tvaudio_core_ops = {
+static const struct v4l2_subdev_core_ops tvaudio_core_ops =
+{
 	.log_status = tvaudio_log_status,
 };
 
-static const struct v4l2_subdev_tuner_ops tvaudio_tuner_ops = {
+static const struct v4l2_subdev_tuner_ops tvaudio_tuner_ops =
+{
 	.s_radio = tvaudio_s_radio,
 	.s_frequency = tvaudio_s_frequency,
 	.s_tuner = tvaudio_s_tuner,
 	.g_tuner = tvaudio_g_tuner,
 };
 
-static const struct v4l2_subdev_audio_ops tvaudio_audio_ops = {
+static const struct v4l2_subdev_audio_ops tvaudio_audio_ops =
+{
 	.s_routing = tvaudio_s_routing,
 };
 
-static const struct v4l2_subdev_video_ops tvaudio_video_ops = {
+static const struct v4l2_subdev_video_ops tvaudio_video_ops =
+{
 	.s_std = tvaudio_s_std,
 };
 
-static const struct v4l2_subdev_ops tvaudio_ops = {
+static const struct v4l2_subdev_ops tvaudio_ops =
+{
 	.core = &tvaudio_core_ops,
 	.tuner = &tvaudio_tuner_ops,
 	.audio = &tvaudio_audio_ops,
@@ -1890,129 +2188,182 @@ static int tvaudio_probe(struct i2c_client *client, const struct i2c_device_id *
 	struct CHIPDESC  *desc;
 	struct v4l2_subdev *sd;
 
-	if (debug) {
+	if (debug)
+	{
 		printk(KERN_INFO "tvaudio: TV audio decoder + audio/video mux driver\n");
 		printk(KERN_INFO "tvaudio: known chips: ");
+
 		for (desc = chiplist; desc->name != NULL; desc++)
+		{
 			printk("%s%s", (desc == chiplist) ? "" : ", ", desc->name);
+		}
+
 		printk("\n");
 	}
 
 	chip = devm_kzalloc(&client->dev, sizeof(*chip), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
+
 	sd = &chip->sd;
 	v4l2_i2c_subdev_init(sd, client, &tvaudio_ops);
 
 	/* find description for the chip */
-	v4l2_dbg(1, debug, sd, "chip found @ 0x%x\n", client->addr<<1);
-	for (desc = chiplist; desc->name != NULL; desc++) {
+	v4l2_dbg(1, debug, sd, "chip found @ 0x%x\n", client->addr << 1);
+
+	for (desc = chiplist; desc->name != NULL; desc++)
+	{
 		if (0 == *(desc->insmodopt))
+		{
 			continue;
+		}
+
 		if (client->addr < desc->addr_lo ||
-		    client->addr > desc->addr_hi)
+			client->addr > desc->addr_hi)
+		{
 			continue;
+		}
+
 		if (desc->checkit && !desc->checkit(chip))
+		{
 			continue;
+		}
+
 		break;
 	}
-	if (desc->name == NULL) {
+
+	if (desc->name == NULL)
+	{
 		v4l2_dbg(1, debug, sd, "no matching chip description found\n");
 		return -EIO;
 	}
-	v4l2_info(sd, "%s found @ 0x%x (%s)\n", desc->name, client->addr<<1, client->adapter->name);
-	if (desc->flags) {
+
+	v4l2_info(sd, "%s found @ 0x%x (%s)\n", desc->name, client->addr << 1, client->adapter->name);
+
+	if (desc->flags)
+	{
 		v4l2_dbg(1, debug, sd, "matches:%s%s%s.\n",
-			(desc->flags & CHIP_HAS_VOLUME)     ? " volume"      : "",
-			(desc->flags & CHIP_HAS_BASSTREBLE) ? " bass/treble" : "",
-			(desc->flags & CHIP_HAS_INPUTSEL)   ? " audiomux"    : "");
+				 (desc->flags & CHIP_HAS_VOLUME)     ? " volume"      : "",
+				 (desc->flags & CHIP_HAS_BASSTREBLE) ? " bass/treble" : "",
+				 (desc->flags & CHIP_HAS_INPUTSEL)   ? " audiomux"    : "");
 	}
 
 	/* fill required data structures */
 	if (!id)
+	{
 		strlcpy(client->name, desc->name, I2C_NAME_SIZE);
+	}
+
 	chip->desc = desc;
-	chip->shadow.count = desc->registers+1;
+	chip->shadow.count = desc->registers + 1;
 	chip->prevmode = -1;
 	chip->audmode = V4L2_TUNER_MODE_LANG1;
 
 	/* initialization  */
 	if (desc->initialize != NULL)
+	{
 		desc->initialize(chip);
+	}
 	else
+	{
 		chip_cmd(chip, "init", &desc->init);
+	}
 
 	v4l2_ctrl_handler_init(&chip->hdl, 5);
+
 	if (desc->flags & CHIP_HAS_INPUTSEL)
 		v4l2_ctrl_new_std(&chip->hdl, &tvaudio_ctrl_ops,
-			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
-	if (desc->flags & CHIP_HAS_VOLUME) {
-		if (!desc->volfunc) {
+						  V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
+
+	if (desc->flags & CHIP_HAS_VOLUME)
+	{
+		if (!desc->volfunc)
+		{
 			/* This shouldn't be happen. Warn user, but keep working
 			   without volume controls
 			 */
 			v4l2_info(sd, "volume callback undefined!\n");
 			desc->flags &= ~CHIP_HAS_VOLUME;
-		} else {
+		}
+		else
+		{
 			chip->volume = v4l2_ctrl_new_std(&chip->hdl,
-				&tvaudio_ctrl_ops, V4L2_CID_AUDIO_VOLUME,
-				0, 65535, 65535 / 100,
-				desc->volinit ? desc->volinit : 65535);
+											 &tvaudio_ctrl_ops, V4L2_CID_AUDIO_VOLUME,
+											 0, 65535, 65535 / 100,
+											 desc->volinit ? desc->volinit : 65535);
 			chip->balance = v4l2_ctrl_new_std(&chip->hdl,
-				&tvaudio_ctrl_ops, V4L2_CID_AUDIO_BALANCE,
-				0, 65535, 65535 / 100, 32768);
+											  &tvaudio_ctrl_ops, V4L2_CID_AUDIO_BALANCE,
+											  0, 65535, 65535 / 100, 32768);
 			v4l2_ctrl_cluster(2, &chip->volume);
 		}
 	}
-	if (desc->flags & CHIP_HAS_BASSTREBLE) {
-		if (!desc->bassfunc || !desc->treblefunc) {
+
+	if (desc->flags & CHIP_HAS_BASSTREBLE)
+	{
+		if (!desc->bassfunc || !desc->treblefunc)
+		{
 			/* This shouldn't be happen. Warn user, but keep working
 			   without bass/treble controls
 			 */
 			v4l2_info(sd, "bass/treble callbacks undefined!\n");
 			desc->flags &= ~CHIP_HAS_BASSTREBLE;
-		} else {
+		}
+		else
+		{
 			v4l2_ctrl_new_std(&chip->hdl,
-				&tvaudio_ctrl_ops, V4L2_CID_AUDIO_BASS,
-				0, 65535, 65535 / 100,
-				desc->bassinit ? desc->bassinit : 32768);
+							  &tvaudio_ctrl_ops, V4L2_CID_AUDIO_BASS,
+							  0, 65535, 65535 / 100,
+							  desc->bassinit ? desc->bassinit : 32768);
 			v4l2_ctrl_new_std(&chip->hdl,
-				&tvaudio_ctrl_ops, V4L2_CID_AUDIO_TREBLE,
-				0, 65535, 65535 / 100,
-				desc->trebleinit ? desc->trebleinit : 32768);
+							  &tvaudio_ctrl_ops, V4L2_CID_AUDIO_TREBLE,
+							  0, 65535, 65535 / 100,
+							  desc->trebleinit ? desc->trebleinit : 32768);
 		}
 	}
 
 	sd->ctrl_handler = &chip->hdl;
-	if (chip->hdl.error) {
+
+	if (chip->hdl.error)
+	{
 		int err = chip->hdl.error;
 
 		v4l2_ctrl_handler_free(&chip->hdl);
 		return err;
 	}
+
 	/* set controls to the default values */
 	v4l2_ctrl_handler_setup(&chip->hdl);
 
 	chip->thread = NULL;
 	init_timer(&chip->wt);
-	if (desc->flags & CHIP_NEED_CHECKMODE) {
-		if (!desc->getrxsubchans || !desc->setaudmode) {
+
+	if (desc->flags & CHIP_NEED_CHECKMODE)
+	{
+		if (!desc->getrxsubchans || !desc->setaudmode)
+		{
 			/* This shouldn't be happen. Warn user, but keep working
 			   without kthread
 			 */
 			v4l2_info(sd, "set/get mode callbacks undefined!\n");
 			return 0;
 		}
+
 		/* start async thread */
 		chip->wt.function = chip_thread_wake;
 		chip->wt.data     = (unsigned long)chip;
 		chip->thread = kthread_run(chip_thread, chip, "%s",
-					   client->name);
-		if (IS_ERR(chip->thread)) {
+								   client->name);
+
+		if (IS_ERR(chip->thread))
+		{
 			v4l2_warn(sd, "failed to create kthread\n");
 			chip->thread = NULL;
 		}
 	}
+
 	return 0;
 }
 
@@ -2022,7 +2373,9 @@ static int tvaudio_remove(struct i2c_client *client)
 	struct CHIPSTATE *chip = to_state(sd);
 
 	del_timer_sync(&chip->wt);
-	if (chip->thread) {
+
+	if (chip->thread)
+	{
 		/* shutdown async thread */
 		kthread_stop(chip->thread);
 		chip->thread = NULL;
@@ -2036,13 +2389,15 @@ static int tvaudio_remove(struct i2c_client *client)
 /* This driver supports many devices and the idea is to let the driver
    detect which device is present. So rather than listing all supported
    devices here, we pretend to support a single, fake device type. */
-static const struct i2c_device_id tvaudio_id[] = {
+static const struct i2c_device_id tvaudio_id[] =
+{
 	{ "tvaudio", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, tvaudio_id);
 
-static struct i2c_driver tvaudio_driver = {
+static struct i2c_driver tvaudio_driver =
+{
 	.driver = {
 		.name	= "tvaudio",
 	},

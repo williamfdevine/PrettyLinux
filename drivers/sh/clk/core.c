@@ -37,10 +37,10 @@ static DEFINE_MUTEX(clock_list_sem);
 static int allow_disable;
 
 void clk_rate_table_build(struct clk *clk,
-			  struct cpufreq_frequency_table *freq_table,
-			  int nr_freqs,
-			  struct clk_div_mult_table *src_table,
-			  unsigned long *bitmap)
+						  struct cpufreq_frequency_table *freq_table,
+						  int nr_freqs,
+						  struct clk_div_mult_table *src_table,
+						  unsigned long *bitmap)
 {
 	unsigned long mult, div;
 	unsigned long freq;
@@ -48,20 +48,29 @@ void clk_rate_table_build(struct clk *clk,
 
 	clk->nr_freqs = nr_freqs;
 
-	for (i = 0; i < nr_freqs; i++) {
+	for (i = 0; i < nr_freqs; i++)
+	{
 		div = 1;
 		mult = 1;
 
 		if (src_table->divisors && i < src_table->nr_divisors)
+		{
 			div = src_table->divisors[i];
+		}
 
 		if (src_table->multipliers && i < src_table->nr_multipliers)
+		{
 			mult = src_table->multipliers[i];
+		}
 
 		if (!div || !mult || (bitmap && !test_bit(i, bitmap)))
+		{
 			freq = CPUFREQ_ENTRY_INVALID;
+		}
 		else
+		{
 			freq = clk->parent->rate * mult / div;
+		}
 
 		freq_table[i].driver_data = i;
 		freq_table[i].frequency = freq;
@@ -74,7 +83,8 @@ void clk_rate_table_build(struct clk *clk,
 
 struct clk_rate_round_data;
 
-struct clk_rate_round_data {
+struct clk_rate_round_data
+{
 	unsigned long rate;
 	unsigned int min, max;
 	long (*func)(unsigned int, struct clk_rate_round_data *);
@@ -83,7 +93,7 @@ struct clk_rate_round_data {
 
 #define for_each_frequency(pos, r, freq)			\
 	for (pos = r->min, freq = r->func(pos, r);		\
-	     pos <= r->max; pos++, freq = r->func(pos, r))	\
+		 pos <= r->max; pos++, freq = r->func(pos, r))	\
 		if (unlikely(freq == 0))			\
 			;					\
 		else
@@ -98,47 +108,65 @@ static long clk_rate_round_helper(struct clk_rate_round_data *rounder)
 	highest = 0;
 	lowest = ~0UL;
 
-	for_each_frequency(i, rounder, freq) {
+	for_each_frequency(i, rounder, freq)
+	{
 		if (freq > highest)
+		{
 			highest = freq;
+		}
+
 		if (freq < lowest)
+		{
 			lowest = freq;
+		}
 
 		rate_error = abs(freq - rounder->rate);
-		if (rate_error < rate_error_prev) {
+
+		if (rate_error < rate_error_prev)
+		{
 			rate_best_fit = freq;
 			rate_error_prev = rate_error;
 		}
 
 		if (rate_error == 0)
+		{
 			break;
+		}
 	}
 
 	if (rounder->rate >= highest)
+	{
 		rate_best_fit = highest;
+	}
+
 	if (rounder->rate <= lowest)
+	{
 		rate_best_fit = lowest;
+	}
 
 	return rate_best_fit;
 }
 
 static long clk_rate_table_iter(unsigned int pos,
-				struct clk_rate_round_data *rounder)
+								struct clk_rate_round_data *rounder)
 {
 	struct cpufreq_frequency_table *freq_table = rounder->arg;
 	unsigned long freq = freq_table[pos].frequency;
 
 	if (freq == CPUFREQ_ENTRY_INVALID)
+	{
 		freq = 0;
+	}
 
 	return freq;
 }
 
 long clk_rate_table_round(struct clk *clk,
-			  struct cpufreq_frequency_table *freq_table,
-			  unsigned long rate)
+						  struct cpufreq_frequency_table *freq_table,
+						  unsigned long rate)
 {
-	struct clk_rate_round_data table_round = {
+	struct clk_rate_round_data table_round =
+	{
 		.min	= 0,
 		.max	= clk->nr_freqs - 1,
 		.func	= clk_rate_table_iter,
@@ -147,21 +175,24 @@ long clk_rate_table_round(struct clk *clk,
 	};
 
 	if (clk->nr_freqs < 1)
+	{
 		return -ENOSYS;
+	}
 
 	return clk_rate_round_helper(&table_round);
 }
 
 static long clk_rate_div_range_iter(unsigned int pos,
-				    struct clk_rate_round_data *rounder)
+									struct clk_rate_round_data *rounder)
 {
 	return clk_get_rate(rounder->arg) / pos;
 }
 
 long clk_rate_div_range_round(struct clk *clk, unsigned int div_min,
-			      unsigned int div_max, unsigned long rate)
+							  unsigned int div_max, unsigned long rate)
 {
-	struct clk_rate_round_data div_range_round = {
+	struct clk_rate_round_data div_range_round =
+	{
 		.min	= div_min,
 		.max	= div_max,
 		.func	= clk_rate_div_range_iter,
@@ -173,15 +204,16 @@ long clk_rate_div_range_round(struct clk *clk, unsigned int div_min,
 }
 
 static long clk_rate_mult_range_iter(unsigned int pos,
-				      struct clk_rate_round_data *rounder)
+									 struct clk_rate_round_data *rounder)
 {
 	return clk_get_rate(rounder->arg) * pos;
 }
 
 long clk_rate_mult_range_round(struct clk *clk, unsigned int mult_min,
-			       unsigned int mult_max, unsigned long rate)
+							   unsigned int mult_max, unsigned long rate)
 {
-	struct clk_rate_round_data mult_range_round = {
+	struct clk_rate_round_data mult_range_round =
+	{
 		.min	= mult_min,
 		.max	= mult_max,
 		.func	= clk_rate_mult_range_iter,
@@ -193,14 +225,17 @@ long clk_rate_mult_range_round(struct clk *clk, unsigned int mult_min,
 }
 
 int clk_rate_table_find(struct clk *clk,
-			struct cpufreq_frequency_table *freq_table,
-			unsigned long rate)
+						struct cpufreq_frequency_table *freq_table,
+						unsigned long rate)
 {
 	struct cpufreq_frequency_table *pos;
 
 	cpufreq_for_each_valid_entry(pos, freq_table)
-		if (pos->frequency == rate)
-			return pos - freq_table;
+
+	if (pos->frequency == rate)
+	{
+		return pos - freq_table;
+	}
 
 	return -ENOENT;
 }
@@ -214,8 +249,12 @@ unsigned long followparent_recalc(struct clk *clk)
 int clk_reparent(struct clk *child, struct clk *parent)
 {
 	list_del_init(&child->sibling);
+
 	if (parent)
+	{
 		list_add(&child->sibling, &parent->children);
+	}
+
 	child->parent = parent;
 
 	return 0;
@@ -226,9 +265,12 @@ void propagate_rate(struct clk *tclk)
 {
 	struct clk *clkp;
 
-	list_for_each_entry(clkp, &tclk->children, sibling) {
+	list_for_each_entry(clkp, &tclk->children, sibling)
+	{
 		if (clkp->ops && clkp->ops->recalc)
+		{
 			clkp->rate = clkp->ops->recalc(clkp);
+		}
 
 		propagate_rate(clkp);
 	}
@@ -237,14 +279,22 @@ void propagate_rate(struct clk *tclk)
 static void __clk_disable(struct clk *clk)
 {
 	if (WARN(!clk->usecount, "Trying to disable clock %p with 0 usecount\n",
-		 clk))
+			 clk))
+	{
 		return;
+	}
 
-	if (!(--clk->usecount)) {
+	if (!(--clk->usecount))
+	{
 		if (likely(allow_disable && clk->ops && clk->ops->disable))
+		{
 			clk->ops->disable(clk);
+		}
+
 		if (likely(clk->parent))
+		{
 			__clk_disable(clk->parent);
+		}
 	}
 }
 
@@ -253,7 +303,9 @@ void clk_disable(struct clk *clk)
 	unsigned long flags;
 
 	if (!clk)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&clock_lock, flags);
 	__clk_disable(clk);
@@ -265,18 +317,29 @@ static int __clk_enable(struct clk *clk)
 {
 	int ret = 0;
 
-	if (clk->usecount++ == 0) {
-		if (clk->parent) {
+	if (clk->usecount++ == 0)
+	{
+		if (clk->parent)
+		{
 			ret = __clk_enable(clk->parent);
+
 			if (unlikely(ret))
+			{
 				goto err;
+			}
 		}
 
-		if (clk->ops && clk->ops->enable) {
+		if (clk->ops && clk->ops->enable)
+		{
 			ret = clk->ops->enable(clk);
-			if (ret) {
+
+			if (ret)
+			{
 				if (clk->parent)
+				{
 					__clk_disable(clk->parent);
+				}
+
 				goto err;
 			}
 		}
@@ -294,7 +357,9 @@ int clk_enable(struct clk *clk)
 	int ret;
 
 	if (!clk)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&clock_lock, flags);
 	ret = __clk_enable(clk);
@@ -317,9 +382,13 @@ void recalculate_root_clocks(void)
 {
 	struct clk *clkp;
 
-	list_for_each_entry(clkp, &root_clks, sibling) {
+	list_for_each_entry(clkp, &root_clks, sibling)
+	{
 		if (clkp->ops && clkp->ops->recalc)
+		{
 			clkp->rate = clkp->ops->recalc(clkp);
+		}
+
 		propagate_rate(clkp);
 	}
 }
@@ -329,7 +398,9 @@ static struct clk_mapping dummy_mapping;
 static struct clk *lookup_root_clock(struct clk *clk)
 {
 	while (clk->parent)
+	{
 		clk = clk->parent;
+	}
 
 	return clk;
 }
@@ -341,13 +412,15 @@ static int clk_establish_mapping(struct clk *clk)
 	/*
 	 * Propagate mappings.
 	 */
-	if (!mapping) {
+	if (!mapping)
+	{
 		struct clk *clkp;
 
 		/*
 		 * dummy mapping for root clocks with no specified ranges
 		 */
-		if (!clk->parent) {
+		if (!clk->parent)
+		{
 			clk->mapping = &dummy_mapping;
 			goto out;
 		}
@@ -364,13 +437,19 @@ static int clk_establish_mapping(struct clk *clk)
 	/*
 	 * Establish initial mapping.
 	 */
-	if (!mapping->base && mapping->phys) {
+	if (!mapping->base && mapping->phys)
+	{
 		kref_init(&mapping->ref);
 
 		mapping->base = ioremap_nocache(mapping->phys, mapping->len);
+
 		if (unlikely(!mapping->base))
+		{
 			return -ENXIO;
-	} else if (mapping->base) {
+		}
+	}
+	else if (mapping->base)
+	{
 		/*
 		 * Bump the refcount for an existing mapping
 		 */
@@ -399,7 +478,9 @@ static void clk_teardown_mapping(struct clk *clk)
 
 	/* Nothing to do */
 	if (mapping == &dummy_mapping)
+	{
 		goto out;
+	}
 
 	kref_put(&mapping->ref, clk_destroy_mapping);
 	clk->mapping = NULL;
@@ -412,13 +493,17 @@ int clk_register(struct clk *clk)
 	int ret;
 
 	if (IS_ERR_OR_NULL(clk))
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * trap out already registered clocks
 	 */
 	if (clk->node.next || clk->node.prev)
+	{
 		return 0;
+	}
 
 	mutex_lock(&clock_list_sem);
 
@@ -426,19 +511,30 @@ int clk_register(struct clk *clk)
 	clk->usecount = 0;
 
 	ret = clk_establish_mapping(clk);
+
 	if (unlikely(ret))
+	{
 		goto out_unlock;
+	}
 
 	if (clk->parent)
+	{
 		list_add(&clk->sibling, &clk->parent->children);
+	}
 	else
+	{
 		list_add(&clk->sibling, &root_clks);
+	}
 
 	list_add(&clk->node, &clock_list);
 
 #ifdef CONFIG_SH_CLK_CPG_LEGACY
+
 	if (clk->ops && clk->ops->init)
+	{
 		clk->ops->init(clk);
+	}
+
 #endif
 
 out_unlock:
@@ -463,14 +559,19 @@ void clk_enable_init_clocks(void)
 	struct clk *clkp;
 
 	list_for_each_entry(clkp, &clock_list, node)
-		if (clkp->flags & CLK_ENABLE_ON_INIT)
-			clk_enable(clkp);
+
+	if (clkp->flags & CLK_ENABLE_ON_INIT)
+	{
+		clk_enable(clkp);
+	}
 }
 
 unsigned long clk_get_rate(struct clk *clk)
 {
 	if (!clk)
+	{
 		return 0;
+	}
 
 	return clk->rate;
 }
@@ -482,21 +583,31 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
 	unsigned long flags;
 
 	if (!clk)
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&clock_lock, flags);
 
-	if (likely(clk->ops && clk->ops->set_rate)) {
+	if (likely(clk->ops && clk->ops->set_rate))
+	{
 		ret = clk->ops->set_rate(clk, rate);
+
 		if (ret != 0)
+		{
 			goto out_unlock;
-	} else {
+		}
+	}
+	else
+	{
 		clk->rate = rate;
 		ret = 0;
 	}
 
 	if (clk->ops && clk->ops->recalc)
+	{
 		clk->rate = clk->ops->recalc(clk);
+	}
 
 	propagate_rate(clk);
 
@@ -513,26 +624,45 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
 	int ret = -EINVAL;
 
 	if (!parent || !clk)
+	{
 		return ret;
+	}
+
 	if (clk->parent == parent)
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&clock_lock, flags);
-	if (clk->usecount == 0) {
-		if (clk->ops->set_parent)
-			ret = clk->ops->set_parent(clk, parent);
-		else
-			ret = clk_reparent(clk, parent);
 
-		if (ret == 0) {
+	if (clk->usecount == 0)
+	{
+		if (clk->ops->set_parent)
+		{
+			ret = clk->ops->set_parent(clk, parent);
+		}
+		else
+		{
+			ret = clk_reparent(clk, parent);
+		}
+
+		if (ret == 0)
+		{
 			if (clk->ops->recalc)
+			{
 				clk->rate = clk->ops->recalc(clk);
+			}
+
 			pr_debug("set parent of %p to %p (new rate %ld)\n",
-				 clk, clk->parent, clk->rate);
+					 clk, clk->parent, clk->rate);
 			propagate_rate(clk);
 		}
-	} else
+	}
+	else
+	{
 		ret = -EBUSY;
+	}
+
 	spin_unlock_irqrestore(&clock_lock, flags);
 
 	return ret;
@@ -542,7 +672,9 @@ EXPORT_SYMBOL_GPL(clk_set_parent);
 struct clk *clk_get_parent(struct clk *clk)
 {
 	if (!clk)
+	{
 		return NULL;
+	}
 
 	return clk->parent;
 }
@@ -551,9 +683,12 @@ EXPORT_SYMBOL_GPL(clk_get_parent);
 long clk_round_rate(struct clk *clk, unsigned long rate)
 {
 	if (!clk)
+	{
 		return 0;
+	}
 
-	if (likely(clk->ops && clk->ops->round_rate)) {
+	if (likely(clk->ops && clk->ops->round_rate))
+	{
 		unsigned long flags, rounded;
 
 		spin_lock_irqsave(&clock_lock, flags);
@@ -572,22 +707,30 @@ static void clks_core_resume(void)
 {
 	struct clk *clkp;
 
-	list_for_each_entry(clkp, &clock_list, node) {
-		if (likely(clkp->usecount && clkp->ops)) {
+	list_for_each_entry(clkp, &clock_list, node)
+	{
+		if (likely(clkp->usecount && clkp->ops))
+		{
 			unsigned long rate = clkp->rate;
 
 			if (likely(clkp->ops->set_parent))
 				clkp->ops->set_parent(clkp,
-					clkp->parent);
+									  clkp->parent);
+
 			if (likely(clkp->ops->set_rate))
+			{
 				clkp->ops->set_rate(clkp, rate);
+			}
 			else if (likely(clkp->ops->recalc))
+			{
 				clkp->rate = clkp->ops->recalc(clkp);
+			}
 		}
 	}
 }
 
-static struct syscore_ops clks_syscore_ops = {
+static struct syscore_ops clks_syscore_ops =
+{
 	.resume = clks_core_resume,
 };
 
@@ -610,8 +753,11 @@ static int __init clk_late_init(void)
 	spin_lock_irqsave(&clock_lock, flags);
 
 	list_for_each_entry(clk, &clock_list, node)
-		if (!clk->usecount && clk->ops && clk->ops->disable)
-			clk->ops->disable(clk);
+
+	if (!clk->usecount && clk->ops && clk->ops->disable)
+	{
+		clk->ops->disable(clk);
+	}
 
 	/* from now on allow clock disable operations */
 	allow_disable = 1;

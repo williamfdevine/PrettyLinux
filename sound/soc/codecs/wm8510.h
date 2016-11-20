@@ -93,7 +93,8 @@
 #define WM8510_MCLKDIV_8	(6 << 5)
 #define WM8510_MCLKDIV_12	(7 << 5)
 
-struct wm8510_setup_data {
+struct wm8510_setup_data
+{
 	int spi;
 	int i2c_bus;
 	unsigned short i2c_address;

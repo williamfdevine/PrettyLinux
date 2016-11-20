@@ -34,7 +34,8 @@
 /* Private API for handling mjpeg capture / playback.                       */
 /****************************************************************************/
 
-struct meye_params {
+struct meye_params
+{
 	unsigned char subsample;
 	unsigned char quality;
 	unsigned char sharpness;

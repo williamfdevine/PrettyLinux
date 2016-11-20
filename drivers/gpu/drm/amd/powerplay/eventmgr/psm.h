@@ -29,7 +29,8 @@
 
 int psm_get_ui_state(struct pp_eventmgr *eventmgr, enum PP_StateUILabel ui_label, unsigned long *state_id);
 
-int psm_get_state_by_classification(struct pp_eventmgr *eventmgr, enum PP_StateClassificationFlag flag, unsigned long *state_id);
+int psm_get_state_by_classification(struct pp_eventmgr *eventmgr, enum PP_StateClassificationFlag flag,
+									unsigned long *state_id);
 
 int psm_set_states(struct pp_eventmgr *eventmgr, unsigned long *state_id);
 

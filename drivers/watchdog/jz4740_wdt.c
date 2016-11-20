@@ -52,17 +52,18 @@
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-		 "Watchdog cannot be stopped once started (default="
-		 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 static unsigned int heartbeat = DEFAULT_HEARTBEAT;
 module_param(heartbeat, uint, 0);
 MODULE_PARM_DESC(heartbeat,
-		"Watchdog heartbeat period in seconds from 1 to "
-		__MODULE_STRING(MAX_HEARTBEAT) ", default "
-		__MODULE_STRING(DEFAULT_HEARTBEAT));
+				 "Watchdog heartbeat period in seconds from 1 to "
+				 __MODULE_STRING(MAX_HEARTBEAT) ", default "
+				 __MODULE_STRING(DEFAULT_HEARTBEAT));
 
-struct jz4740_wdt_drvdata {
+struct jz4740_wdt_drvdata
+{
 	struct watchdog_device wdt;
 	void __iomem *base;
 	struct clk *rtc_clk;
@@ -77,7 +78,7 @@ static int jz4740_wdt_ping(struct watchdog_device *wdt_dev)
 }
 
 static int jz4740_wdt_set_timeout(struct watchdog_device *wdt_dev,
-				    unsigned int new_timeout)
+								  unsigned int new_timeout)
 {
 	struct jz4740_wdt_drvdata *drvdata = watchdog_get_drvdata(wdt_dev);
 	unsigned int rtc_clk_rate;
@@ -87,13 +88,17 @@ static int jz4740_wdt_set_timeout(struct watchdog_device *wdt_dev,
 	rtc_clk_rate = clk_get_rate(drvdata->rtc_clk);
 
 	timeout_value = rtc_clk_rate * new_timeout;
-	while (timeout_value > 0xffff) {
-		if (clock_div == JZ_WDT_CLOCK_DIV_1024) {
+
+	while (timeout_value > 0xffff)
+	{
+		if (clock_div == JZ_WDT_CLOCK_DIV_1024)
+		{
 			/* Requested timeout too high;
 			* use highest possible value. */
 			timeout_value = 0xffff;
 			break;
 		}
+
 		timeout_value >>= 2;
 		clock_div += (1 << JZ_WDT_CLOCK_DIV_SHIFT);
 	}
@@ -104,7 +109,7 @@ static int jz4740_wdt_set_timeout(struct watchdog_device *wdt_dev,
 	writew((u16)timeout_value, drvdata->base + JZ_REG_WDT_TIMER_DATA);
 	writew(0x0, drvdata->base + JZ_REG_WDT_TIMER_COUNTER);
 	writew(clock_div | JZ_WDT_CLOCK_RTC,
-		drvdata->base + JZ_REG_WDT_TIMER_CONTROL);
+		   drvdata->base + JZ_REG_WDT_TIMER_CONTROL);
 
 	writeb(0x1, drvdata->base + JZ_REG_WDT_COUNTER_ENABLE);
 
@@ -130,12 +135,14 @@ static int jz4740_wdt_stop(struct watchdog_device *wdt_dev)
 	return 0;
 }
 
-static const struct watchdog_info jz4740_wdt_info = {
+static const struct watchdog_info jz4740_wdt_info =
+{
 	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE,
 	.identity = "jz4740 Watchdog",
 };
 
-static const struct watchdog_ops jz4740_wdt_ops = {
+static const struct watchdog_ops jz4740_wdt_ops =
+{
 	.owner = THIS_MODULE,
 	.start = jz4740_wdt_start,
 	.stop = jz4740_wdt_stop,
@@ -144,7 +151,8 @@ static const struct watchdog_ops jz4740_wdt_ops = {
 };
 
 #ifdef CONFIG_OF
-static const struct of_device_id jz4740_wdt_of_matches[] = {
+static const struct of_device_id jz4740_wdt_of_matches[] =
+{
 	{ .compatible = "ingenic,jz4740-watchdog", },
 	{ /* sentinel */ }
 };
@@ -159,12 +167,17 @@ static int jz4740_wdt_probe(struct platform_device *pdev)
 	int ret;
 
 	drvdata = devm_kzalloc(&pdev->dev, sizeof(struct jz4740_wdt_drvdata),
-			       GFP_KERNEL);
+						   GFP_KERNEL);
+
 	if (!drvdata)
+	{
 		return -ENOMEM;
+	}
 
 	if (heartbeat < 1 || heartbeat > MAX_HEARTBEAT)
+	{
 		heartbeat = DEFAULT_HEARTBEAT;
+	}
 
 	jz4740_wdt = &drvdata->wdt;
 	jz4740_wdt->info = &jz4740_wdt_info;
@@ -178,21 +191,28 @@ static int jz4740_wdt_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	drvdata->base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(drvdata->base)) {
+
+	if (IS_ERR(drvdata->base))
+	{
 		ret = PTR_ERR(drvdata->base);
 		goto err_out;
 	}
 
 	drvdata->rtc_clk = clk_get(&pdev->dev, "rtc");
-	if (IS_ERR(drvdata->rtc_clk)) {
+
+	if (IS_ERR(drvdata->rtc_clk))
+	{
 		dev_err(&pdev->dev, "cannot find RTC clock\n");
 		ret = PTR_ERR(drvdata->rtc_clk);
 		goto err_out;
 	}
 
 	ret = watchdog_register_device(&drvdata->wdt);
+
 	if (ret < 0)
+	{
 		goto err_disable_clk;
+	}
 
 	platform_set_drvdata(pdev, drvdata);
 	return 0;
@@ -214,7 +234,8 @@ static int jz4740_wdt_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver jz4740_wdt_driver = {
+static struct platform_driver jz4740_wdt_driver =
+{
 	.probe = jz4740_wdt_probe,
 	.remove = jz4740_wdt_remove,
 	.driver = {

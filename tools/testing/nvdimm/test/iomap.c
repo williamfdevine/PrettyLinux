@@ -24,10 +24,12 @@
 
 static LIST_HEAD(iomap_head);
 
-static struct iomap_ops {
+static struct iomap_ops
+{
 	nfit_test_lookup_fn nfit_test_lookup;
 	struct list_head list;
-} iomap_ops = {
+} iomap_ops =
+{
 	.list = LIST_HEAD_INIT(iomap_ops.list),
 };
 
@@ -50,8 +52,12 @@ static struct nfit_test_resource *__get_nfit_res(resource_size_t resource)
 	struct iomap_ops *ops;
 
 	ops = list_first_or_null_rcu(&iomap_head, typeof(*ops), list);
+
 	if (ops)
+	{
 		return ops->nfit_test_lookup(resource);
+	}
+
 	return NULL;
 }
 
@@ -68,13 +74,14 @@ struct nfit_test_resource *get_nfit_res(resource_size_t resource)
 EXPORT_SYMBOL(get_nfit_res);
 
 void __iomem *__nfit_test_ioremap(resource_size_t offset, unsigned long size,
-		void __iomem *(*fallback_fn)(resource_size_t, unsigned long))
+								  void __iomem * (*fallback_fn)(resource_size_t, unsigned long))
 {
 	struct nfit_test_resource *nfit_res = get_nfit_res(offset);
 
 	if (nfit_res)
 		return (void __iomem *) nfit_res->buf + offset
-			- nfit_res->res.start;
+			   - nfit_res->res.start;
+
 	return fallback_fn(offset, size);
 }
 
@@ -85,30 +92,37 @@ void __iomem *__wrap_devm_ioremap_nocache(struct device *dev,
 
 	if (nfit_res)
 		return (void __iomem *) nfit_res->buf + offset
-			- nfit_res->res.start;
+			   - nfit_res->res.start;
+
 	return devm_ioremap_nocache(dev, offset, size);
 }
 EXPORT_SYMBOL(__wrap_devm_ioremap_nocache);
 
 void *__wrap_devm_memremap(struct device *dev, resource_size_t offset,
-		size_t size, unsigned long flags)
+						   size_t size, unsigned long flags)
 {
 	struct nfit_test_resource *nfit_res = get_nfit_res(offset);
 
 	if (nfit_res)
+	{
 		return nfit_res->buf + offset - nfit_res->res.start;
+	}
+
 	return devm_memremap(dev, offset, size, flags);
 }
 EXPORT_SYMBOL(__wrap_devm_memremap);
 
 void *__wrap_devm_memremap_pages(struct device *dev, struct resource *res,
-		struct percpu_ref *ref, struct vmem_altmap *altmap)
+								 struct percpu_ref *ref, struct vmem_altmap *altmap)
 {
 	resource_size_t offset = res->start;
 	struct nfit_test_resource *nfit_res = get_nfit_res(offset);
 
 	if (nfit_res)
+	{
 		return nfit_res->buf + offset - nfit_res->res.start;
+	}
+
 	return devm_memremap_pages(dev, res, ref, altmap);
 }
 EXPORT_SYMBOL(__wrap_devm_memremap_pages);
@@ -118,18 +132,24 @@ pfn_t __wrap_phys_to_pfn_t(phys_addr_t addr, unsigned long flags)
 	struct nfit_test_resource *nfit_res = get_nfit_res(addr);
 
 	if (nfit_res)
+	{
 		flags &= ~PFN_MAP;
-        return phys_to_pfn_t(addr, flags);
+	}
+
+	return phys_to_pfn_t(addr, flags);
 }
 EXPORT_SYMBOL(__wrap_phys_to_pfn_t);
 
 void *__wrap_memremap(resource_size_t offset, size_t size,
-		unsigned long flags)
+					  unsigned long flags)
 {
 	struct nfit_test_resource *nfit_res = get_nfit_res(offset);
 
 	if (nfit_res)
+	{
 		return nfit_res->buf + offset - nfit_res->res.start;
+	}
+
 	return memremap(offset, size, flags);
 }
 EXPORT_SYMBOL(__wrap_memremap);
@@ -139,7 +159,10 @@ void __wrap_devm_memunmap(struct device *dev, void *addr)
 	struct nfit_test_resource *nfit_res = get_nfit_res((long) addr);
 
 	if (nfit_res)
+	{
 		return;
+	}
+
 	return devm_memunmap(dev, addr);
 }
 EXPORT_SYMBOL(__wrap_devm_memunmap);
@@ -159,8 +182,12 @@ EXPORT_SYMBOL(__wrap_ioremap_wc);
 void __wrap_iounmap(volatile void __iomem *addr)
 {
 	struct nfit_test_resource *nfit_res = get_nfit_res((long) addr);
+
 	if (nfit_res)
+	{
 		return;
+	}
+
 	return iounmap(addr);
 }
 EXPORT_SYMBOL(__wrap_iounmap);
@@ -170,21 +197,24 @@ void __wrap_memunmap(void *addr)
 	struct nfit_test_resource *nfit_res = get_nfit_res((long) addr);
 
 	if (nfit_res)
+	{
 		return;
+	}
+
 	return memunmap(addr);
 }
 EXPORT_SYMBOL(__wrap_memunmap);
 
 static bool nfit_test_release_region(struct device *dev,
-		struct resource *parent, resource_size_t start,
-		resource_size_t n);
+									 struct resource *parent, resource_size_t start,
+									 resource_size_t n);
 
 static void nfit_devres_release(struct device *dev, void *data)
 {
 	struct resource *res = *((struct resource **) data);
 
 	WARN_ON(!nfit_test_release_region(NULL, &iomem_resource, res->start,
-			resource_size(res)));
+									  resource_size(res)));
 }
 
 static int match(struct device *dev, void *__res, void *match_data)
@@ -196,39 +226,50 @@ static int match(struct device *dev, void *__res, void *match_data)
 }
 
 static bool nfit_test_release_region(struct device *dev,
-		struct resource *parent, resource_size_t start,
-		resource_size_t n)
+									 struct resource *parent, resource_size_t start,
+									 resource_size_t n)
 {
-	if (parent == &iomem_resource) {
+	if (parent == &iomem_resource)
+	{
 		struct nfit_test_resource *nfit_res = get_nfit_res(start);
 
-		if (nfit_res) {
+		if (nfit_res)
+		{
 			struct nfit_test_request *req;
 			struct resource *res = NULL;
 
-			if (dev) {
+			if (dev)
+			{
 				devres_release(dev, nfit_devres_release, match,
-						&start);
+							   &start);
 				return true;
 			}
 
 			spin_lock(&nfit_res->lock);
 			list_for_each_entry(req, &nfit_res->requests, list)
-				if (req->res.start == start) {
-					res = &req->res;
-					list_del(&req->list);
-					break;
-				}
+
+			if (req->res.start == start)
+			{
+				res = &req->res;
+				list_del(&req->list);
+				break;
+			}
+
 			spin_unlock(&nfit_res->lock);
 
 			WARN(!res || resource_size(res) != n,
-					"%s: start: %llx n: %llx mismatch: %pr\n",
-						__func__, start, n, res);
+				 "%s: start: %llx n: %llx mismatch: %pr\n",
+				 __func__, start, n, res);
+
 			if (res)
+			{
 				kfree(req);
+			}
+
 			return true;
 		}
 	}
+
 	return false;
 }
 
@@ -238,36 +279,48 @@ static struct resource *nfit_test_request_region(struct device *dev,
 {
 	struct nfit_test_resource *nfit_res;
 
-	if (parent == &iomem_resource) {
+	if (parent == &iomem_resource)
+	{
 		nfit_res = get_nfit_res(start);
-		if (nfit_res) {
+
+		if (nfit_res)
+		{
 			struct nfit_test_request *req;
 			struct resource *res = NULL;
 
 			if (start + n > nfit_res->res.start
-					+ resource_size(&nfit_res->res)) {
+				+ resource_size(&nfit_res->res))
+			{
 				pr_debug("%s: start: %llx n: %llx overflow: %pr\n",
-						__func__, start, n,
-						&nfit_res->res);
+						 __func__, start, n,
+						 &nfit_res->res);
 				return NULL;
 			}
 
 			spin_lock(&nfit_res->lock);
 			list_for_each_entry(req, &nfit_res->requests, list)
-				if (start == req->res.start) {
-					res = &req->res;
-					break;
-				}
+
+			if (start == req->res.start)
+			{
+				res = &req->res;
+				break;
+			}
+
 			spin_unlock(&nfit_res->lock);
 
-			if (res) {
+			if (res)
+			{
 				WARN(1, "%pr already busy\n", res);
 				return NULL;
 			}
 
 			req = kzalloc(sizeof(*req), GFP_KERNEL);
+
 			if (!req)
+			{
 				return NULL;
+			}
+
 			INIT_LIST_HEAD(&req->list);
 			res = &req->res;
 
@@ -280,14 +333,19 @@ static struct resource *nfit_test_request_region(struct device *dev,
 			list_add(&req->list, &nfit_res->requests);
 			spin_unlock(&nfit_res->lock);
 
-			if (dev) {
+			if (dev)
+			{
 				struct resource **d;
 
 				d = devres_alloc(nfit_devres_release,
-						sizeof(struct resource *),
-						GFP_KERNEL);
+								 sizeof(struct resource *),
+								 GFP_KERNEL);
+
 				if (!d)
+				{
 					return NULL;
+				}
+
 				*d = res;
 				devres_add(dev, d);
 			}
@@ -296,8 +354,12 @@ static struct resource *nfit_test_request_region(struct device *dev,
 			return res;
 		}
 	}
+
 	if (dev)
+	{
 		return __devm_request_region(dev, parent, start, n, name);
+	}
+
 	return __request_region(parent, start, n, name, flags);
 }
 
@@ -312,7 +374,10 @@ EXPORT_SYMBOL(__wrap___request_region);
 int __wrap_insert_resource(struct resource *parent, struct resource *res)
 {
 	if (get_nfit_res(res->start))
+	{
 		return 0;
+	}
+
 	return insert_resource(parent, res);
 }
 EXPORT_SYMBOL(__wrap_insert_resource);
@@ -320,7 +385,10 @@ EXPORT_SYMBOL(__wrap_insert_resource);
 int __wrap_remove_resource(struct resource *res)
 {
 	if (get_nfit_res(res->start))
+	{
 		return 0;
+	}
+
 	return remove_resource(res);
 }
 EXPORT_SYMBOL(__wrap_remove_resource);
@@ -330,35 +398,44 @@ struct resource *__wrap___devm_request_region(struct device *dev,
 		resource_size_t n, const char *name)
 {
 	if (!dev)
+	{
 		return NULL;
+	}
+
 	return nfit_test_request_region(dev, parent, start, n, name, 0);
 }
 EXPORT_SYMBOL(__wrap___devm_request_region);
 
 void __wrap___release_region(struct resource *parent, resource_size_t start,
-		resource_size_t n)
+							 resource_size_t n)
 {
 	if (!nfit_test_release_region(NULL, parent, start, n))
+	{
 		__release_region(parent, start, n);
+	}
 }
 EXPORT_SYMBOL(__wrap___release_region);
 
 void __wrap___devm_release_region(struct device *dev, struct resource *parent,
-		resource_size_t start, resource_size_t n)
+								  resource_size_t start, resource_size_t n)
 {
 	if (!nfit_test_release_region(dev, parent, start, n))
+	{
 		__devm_release_region(dev, parent, start, n);
+	}
 }
 EXPORT_SYMBOL(__wrap___devm_release_region);
 
 acpi_status __wrap_acpi_evaluate_object(acpi_handle handle, acpi_string path,
-		struct acpi_object_list *p, struct acpi_buffer *buf)
+										struct acpi_object_list *p, struct acpi_buffer *buf)
 {
 	struct nfit_test_resource *nfit_res = get_nfit_res((long) handle);
 	union acpi_object **obj;
 
 	if (!nfit_res || strcmp(path, "_FIT") || !buf)
+	{
 		return acpi_evaluate_object(handle, path, p, buf);
+	}
 
 	obj = nfit_res->buf;
 	buf->length = sizeof(union acpi_object);

@@ -24,7 +24,8 @@
 
 #define MII_PHY_SEL_MASK	BIT(23)
 
-struct stm32_dwmac {
+struct stm32_dwmac
+{
 	struct clk *clk_tx;
 	struct clk *clk_rx;
 	u32 mode_reg;		/* MAC glue-logic mode register */
@@ -41,16 +42,25 @@ static int stm32_dwmac_init(struct plat_stmmacenet_data *plat_dat)
 
 	val = (plat_dat->interface == PHY_INTERFACE_MODE_MII) ? 0 : 1;
 	ret = regmap_update_bits(dwmac->regmap, reg, MII_PHY_SEL_MASK, val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = clk_prepare_enable(dwmac->clk_tx);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = clk_prepare_enable(dwmac->clk_rx);
+
 	if (ret)
+	{
 		clk_disable_unprepare(dwmac->clk_tx);
+	}
 
 	return ret;
 }
@@ -62,31 +72,42 @@ static void stm32_dwmac_clk_disable(struct stm32_dwmac *dwmac)
 }
 
 static int stm32_dwmac_parse_data(struct stm32_dwmac *dwmac,
-				  struct device *dev)
+								  struct device *dev)
 {
 	struct device_node *np = dev->of_node;
 	int err;
 
 	/*  Get TX/RX clocks */
 	dwmac->clk_tx = devm_clk_get(dev, "mac-clk-tx");
-	if (IS_ERR(dwmac->clk_tx)) {
+
+	if (IS_ERR(dwmac->clk_tx))
+	{
 		dev_err(dev, "No tx clock provided...\n");
 		return PTR_ERR(dwmac->clk_tx);
 	}
+
 	dwmac->clk_rx = devm_clk_get(dev, "mac-clk-rx");
-	if (IS_ERR(dwmac->clk_rx)) {
+
+	if (IS_ERR(dwmac->clk_rx))
+	{
 		dev_err(dev, "No rx clock provided...\n");
 		return PTR_ERR(dwmac->clk_rx);
 	}
 
 	/* Get mode register */
 	dwmac->regmap = syscon_regmap_lookup_by_phandle(np, "st,syscon");
+
 	if (IS_ERR(dwmac->regmap))
+	{
 		return PTR_ERR(dwmac->regmap);
+	}
 
 	err = of_property_read_u32_index(np, "st,syscon", 1, &dwmac->mode_reg);
+
 	if (err)
+	{
 		dev_err(dev, "Can't get sysconfig mode offset (%d)\n", err);
+	}
 
 	return err;
 }
@@ -99,19 +120,30 @@ static int stm32_dwmac_probe(struct platform_device *pdev)
 	int ret;
 
 	ret = stmmac_get_platform_resources(pdev, &stmmac_res);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	plat_dat = stmmac_probe_config_dt(pdev, &stmmac_res.mac);
+
 	if (IS_ERR(plat_dat))
+	{
 		return PTR_ERR(plat_dat);
+	}
 
 	dwmac = devm_kzalloc(&pdev->dev, sizeof(*dwmac), GFP_KERNEL);
+
 	if (!dwmac)
+	{
 		return -ENOMEM;
+	}
 
 	ret = stm32_dwmac_parse_data(dwmac, &pdev->dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Unable to parse OF data\n");
 		return ret;
 	}
@@ -119,12 +151,18 @@ static int stm32_dwmac_probe(struct platform_device *pdev)
 	plat_dat->bsp_priv = dwmac;
 
 	ret = stm32_dwmac_init(plat_dat);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = stmmac_dvr_probe(&pdev->dev, plat_dat, &stmmac_res);
+
 	if (ret)
+	{
 		stm32_dwmac_clk_disable(dwmac);
+	}
 
 	return ret;
 }
@@ -160,8 +198,11 @@ static int stm32_dwmac_resume(struct device *dev)
 	int ret;
 
 	ret = stm32_dwmac_init(priv->plat);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = stmmac_resume(dev);
 
@@ -170,15 +211,17 @@ static int stm32_dwmac_resume(struct device *dev)
 #endif /* CONFIG_PM_SLEEP */
 
 static SIMPLE_DEV_PM_OPS(stm32_dwmac_pm_ops,
-	stm32_dwmac_suspend, stm32_dwmac_resume);
+						 stm32_dwmac_suspend, stm32_dwmac_resume);
 
-static const struct of_device_id stm32_dwmac_match[] = {
+static const struct of_device_id stm32_dwmac_match[] =
+{
 	{ .compatible = "st,stm32-dwmac"},
 	{ }
 };
 MODULE_DEVICE_TABLE(of, stm32_dwmac_match);
 
-static struct platform_driver stm32_dwmac_driver = {
+static struct platform_driver stm32_dwmac_driver =
+{
 	.probe  = stm32_dwmac_probe,
 	.remove = stm32_dwmac_remove,
 	.driver = {

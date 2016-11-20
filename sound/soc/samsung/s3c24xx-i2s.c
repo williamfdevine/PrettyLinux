@@ -32,17 +32,20 @@
 
 #include <linux/platform_data/asoc-s3c.h>
 
-static struct snd_dmaengine_dai_dma_data s3c24xx_i2s_pcm_stereo_out = {
+static struct snd_dmaengine_dai_dma_data s3c24xx_i2s_pcm_stereo_out =
+{
 	.chan_name	= "tx",
 	.addr_width	= 2,
 };
 
-static struct snd_dmaengine_dai_dma_data s3c24xx_i2s_pcm_stereo_in = {
+static struct snd_dmaengine_dai_dma_data s3c24xx_i2s_pcm_stereo_in =
+{
 	.chan_name	= "rx",
 	.addr_width	= 2,
 };
 
-struct s3c24xx_i2s_info {
+struct s3c24xx_i2s_info
+{
 	void __iomem	*regs;
 	struct clk	*iis_clk;
 	u32		iiscon;
@@ -66,7 +69,8 @@ static void s3c24xx_snd_txctrl(int on)
 
 	pr_debug("r: IISCON: %x IISMOD: %x IISFCON: %x\n", iiscon, iismod, iisfcon);
 
-	if (on) {
+	if (on)
+	{
 		iisfcon |= S3C2410_IISFCON_TXDMA | S3C2410_IISFCON_TXENABLE;
 		iiscon  |= S3C2410_IISCON_TXDMAEN | S3C2410_IISCON_IISEN;
 		iiscon  &= ~S3C2410_IISCON_TXIDLE;
@@ -75,7 +79,9 @@ static void s3c24xx_snd_txctrl(int on)
 		writel(iismod,  s3c24xx_i2s.regs + S3C2410_IISMOD);
 		writel(iisfcon, s3c24xx_i2s.regs + S3C2410_IISFCON);
 		writel(iiscon,  s3c24xx_i2s.regs + S3C2410_IISCON);
-	} else {
+	}
+	else
+	{
 		/* note, we have to disable the FIFOs otherwise bad things
 		 * seem to happen when the DMA stops. According to the
 		 * Samsung supplied kernel, this should allow the DMA
@@ -111,7 +117,8 @@ static void s3c24xx_snd_rxctrl(int on)
 
 	pr_debug("r: IISCON: %x IISMOD: %x IISFCON: %x\n", iiscon, iismod, iisfcon);
 
-	if (on) {
+	if (on)
+	{
 		iisfcon |= S3C2410_IISFCON_RXDMA | S3C2410_IISFCON_RXENABLE;
 		iiscon  |= S3C2410_IISCON_RXDMAEN | S3C2410_IISCON_IISEN;
 		iiscon  &= ~S3C2410_IISCON_RXIDLE;
@@ -120,7 +127,9 @@ static void s3c24xx_snd_rxctrl(int on)
 		writel(iismod,  s3c24xx_i2s.regs + S3C2410_IISMOD);
 		writel(iisfcon, s3c24xx_i2s.regs + S3C2410_IISFCON);
 		writel(iiscon,  s3c24xx_i2s.regs + S3C2410_IISCON);
-	} else {
+	}
+	else
+	{
 		/* note, we have to disable the FIFOs otherwise bad things
 		 * seem to happen when the DMA stops. According to the
 		 * Samsung supplied kernel, this should allow the DMA
@@ -153,13 +162,20 @@ static int s3c24xx_snd_lrsync(void)
 
 	pr_debug("Entered %s\n", __func__);
 
-	while (1) {
+	while (1)
+	{
 		iiscon = readl(s3c24xx_i2s.regs + S3C2410_IISCON);
+
 		if (iiscon & S3C2410_IISCON_LRINDEX)
+		{
 			break;
+		}
 
 		if (!timeout--)
+		{
 			return -ETIMEDOUT;
+		}
+
 		udelay(100);
 	}
 
@@ -173,14 +189,14 @@ static inline int s3c24xx_snd_is_clkmaster(void)
 {
 	pr_debug("Entered %s\n", __func__);
 
-	return (readl(s3c24xx_i2s.regs + S3C2410_IISMOD) & S3C2410_IISMOD_SLAVE) ? 0:1;
+	return (readl(s3c24xx_i2s.regs + S3C2410_IISMOD) & S3C2410_IISMOD_SLAVE) ? 0 : 1;
 }
 
 /*
  * Set S3C24xx I2S DAI format
  */
 static int s3c24xx_i2s_set_fmt(struct snd_soc_dai *cpu_dai,
-		unsigned int fmt)
+							   unsigned int fmt)
 {
 	u32 iismod;
 
@@ -189,26 +205,32 @@ static int s3c24xx_i2s_set_fmt(struct snd_soc_dai *cpu_dai,
 	iismod = readl(s3c24xx_i2s.regs + S3C2410_IISMOD);
 	pr_debug("hw_params r: IISMOD: %x \n", iismod);
 
-	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
-	case SND_SOC_DAIFMT_CBM_CFM:
-		iismod |= S3C2410_IISMOD_SLAVE;
-		break;
-	case SND_SOC_DAIFMT_CBS_CFS:
-		iismod &= ~S3C2410_IISMOD_SLAVE;
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK)
+	{
+		case SND_SOC_DAIFMT_CBM_CFM:
+			iismod |= S3C2410_IISMOD_SLAVE;
+			break;
+
+		case SND_SOC_DAIFMT_CBS_CFS:
+			iismod &= ~S3C2410_IISMOD_SLAVE;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
-	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-	case SND_SOC_DAIFMT_LEFT_J:
-		iismod |= S3C2410_IISMOD_MSB;
-		break;
-	case SND_SOC_DAIFMT_I2S:
-		iismod &= ~S3C2410_IISMOD_MSB;
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK)
+	{
+		case SND_SOC_DAIFMT_LEFT_J:
+			iismod |= S3C2410_IISMOD_MSB;
+			break;
+
+		case SND_SOC_DAIFMT_I2S:
+			iismod &= ~S3C2410_IISMOD_MSB;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	writel(iismod, s3c24xx_i2s.regs + S3C2410_IISMOD);
@@ -217,8 +239,8 @@ static int s3c24xx_i2s_set_fmt(struct snd_soc_dai *cpu_dai,
 }
 
 static int s3c24xx_i2s_hw_params(struct snd_pcm_substream *substream,
-				 struct snd_pcm_hw_params *params,
-				 struct snd_soc_dai *dai)
+								 struct snd_pcm_hw_params *params,
+								 struct snd_soc_dai *dai)
 {
 	struct snd_dmaengine_dai_dma_data *dma_data;
 	u32 iismod;
@@ -231,17 +253,20 @@ static int s3c24xx_i2s_hw_params(struct snd_pcm_substream *substream,
 	iismod = readl(s3c24xx_i2s.regs + S3C2410_IISMOD);
 	pr_debug("hw_params r: IISMOD: %x\n", iismod);
 
-	switch (params_width(params)) {
-	case 8:
-		iismod &= ~S3C2410_IISMOD_16BIT;
-		dma_data->addr_width = 1;
-		break;
-	case 16:
-		iismod |= S3C2410_IISMOD_16BIT;
-		dma_data->addr_width = 2;
-		break;
-	default:
-		return -EINVAL;
+	switch (params_width(params))
+	{
+		case 8:
+			iismod &= ~S3C2410_IISMOD_16BIT;
+			dma_data->addr_width = 1;
+			break;
+
+		case 16:
+			iismod |= S3C2410_IISMOD_16BIT;
+			dma_data->addr_width = 2;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	writel(iismod, s3c24xx_i2s.regs + S3C2410_IISMOD);
@@ -250,39 +275,55 @@ static int s3c24xx_i2s_hw_params(struct snd_pcm_substream *substream,
 }
 
 static int s3c24xx_i2s_trigger(struct snd_pcm_substream *substream, int cmd,
-			       struct snd_soc_dai *dai)
+							   struct snd_soc_dai *dai)
 {
 	int ret = 0;
 
 	pr_debug("Entered %s\n", __func__);
 
-	switch (cmd) {
-	case SNDRV_PCM_TRIGGER_START:
-	case SNDRV_PCM_TRIGGER_RESUME:
-	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-		if (!s3c24xx_snd_is_clkmaster()) {
-			ret = s3c24xx_snd_lrsync();
-			if (ret)
-				goto exit_err;
-		}
+	switch (cmd)
+	{
+		case SNDRV_PCM_TRIGGER_START:
+		case SNDRV_PCM_TRIGGER_RESUME:
+		case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+			if (!s3c24xx_snd_is_clkmaster())
+			{
+				ret = s3c24xx_snd_lrsync();
 
-		if (substream->stream == SNDRV_PCM_STREAM_CAPTURE)
-			s3c24xx_snd_rxctrl(1);
-		else
-			s3c24xx_snd_txctrl(1);
+				if (ret)
+				{
+					goto exit_err;
+				}
+			}
 
-		break;
-	case SNDRV_PCM_TRIGGER_STOP:
-	case SNDRV_PCM_TRIGGER_SUSPEND:
-	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
-		if (substream->stream == SNDRV_PCM_STREAM_CAPTURE)
-			s3c24xx_snd_rxctrl(0);
-		else
-			s3c24xx_snd_txctrl(0);
-		break;
-	default:
-		ret = -EINVAL;
-		break;
+			if (substream->stream == SNDRV_PCM_STREAM_CAPTURE)
+			{
+				s3c24xx_snd_rxctrl(1);
+			}
+			else
+			{
+				s3c24xx_snd_txctrl(1);
+			}
+
+			break;
+
+		case SNDRV_PCM_TRIGGER_STOP:
+		case SNDRV_PCM_TRIGGER_SUSPEND:
+		case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+			if (substream->stream == SNDRV_PCM_STREAM_CAPTURE)
+			{
+				s3c24xx_snd_rxctrl(0);
+			}
+			else
+			{
+				s3c24xx_snd_txctrl(0);
+			}
+
+			break;
+
+		default:
+			ret = -EINVAL;
+			break;
 	}
 
 exit_err:
@@ -293,7 +334,7 @@ exit_err:
  * Set S3C24xx Clock source
  */
 static int s3c24xx_i2s_set_sysclk(struct snd_soc_dai *cpu_dai,
-	int clk_id, unsigned int freq, int dir)
+								  int clk_id, unsigned int freq, int dir)
 {
 	u32 iismod = readl(s3c24xx_i2s.regs + S3C2410_IISMOD);
 
@@ -301,14 +342,17 @@ static int s3c24xx_i2s_set_sysclk(struct snd_soc_dai *cpu_dai,
 
 	iismod &= ~S3C2440_IISMOD_MPLL;
 
-	switch (clk_id) {
-	case S3C24XX_CLKSRC_PCLK:
-		break;
-	case S3C24XX_CLKSRC_MPLL:
-		iismod |= S3C2440_IISMOD_MPLL;
-		break;
-	default:
-		return -EINVAL;
+	switch (clk_id)
+	{
+		case S3C24XX_CLKSRC_PCLK:
+			break;
+
+		case S3C24XX_CLKSRC_MPLL:
+			iismod |= S3C2440_IISMOD_MPLL;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	writel(iismod, s3c24xx_i2s.regs + S3C2410_IISMOD);
@@ -319,28 +363,32 @@ static int s3c24xx_i2s_set_sysclk(struct snd_soc_dai *cpu_dai,
  * Set S3C24xx Clock dividers
  */
 static int s3c24xx_i2s_set_clkdiv(struct snd_soc_dai *cpu_dai,
-	int div_id, int div)
+								  int div_id, int div)
 {
 	u32 reg;
 
 	pr_debug("Entered %s\n", __func__);
 
-	switch (div_id) {
-	case S3C24XX_DIV_BCLK:
-		reg = readl(s3c24xx_i2s.regs + S3C2410_IISMOD) & ~S3C2410_IISMOD_FS_MASK;
-		writel(reg | div, s3c24xx_i2s.regs + S3C2410_IISMOD);
-		break;
-	case S3C24XX_DIV_MCLK:
-		reg = readl(s3c24xx_i2s.regs + S3C2410_IISMOD) & ~(S3C2410_IISMOD_384FS);
-		writel(reg | div, s3c24xx_i2s.regs + S3C2410_IISMOD);
-		break;
-	case S3C24XX_DIV_PRESCALER:
-		writel(div, s3c24xx_i2s.regs + S3C2410_IISPSR);
-		reg = readl(s3c24xx_i2s.regs + S3C2410_IISCON);
-		writel(reg | S3C2410_IISCON_PSCEN, s3c24xx_i2s.regs + S3C2410_IISCON);
-		break;
-	default:
-		return -EINVAL;
+	switch (div_id)
+	{
+		case S3C24XX_DIV_BCLK:
+			reg = readl(s3c24xx_i2s.regs + S3C2410_IISMOD) & ~S3C2410_IISMOD_FS_MASK;
+			writel(reg | div, s3c24xx_i2s.regs + S3C2410_IISMOD);
+			break;
+
+		case S3C24XX_DIV_MCLK:
+			reg = readl(s3c24xx_i2s.regs + S3C2410_IISMOD) & ~(S3C2410_IISMOD_384FS);
+			writel(reg | div, s3c24xx_i2s.regs + S3C2410_IISMOD);
+			break;
+
+		case S3C24XX_DIV_PRESCALER:
+			writel(div, s3c24xx_i2s.regs + S3C2410_IISPSR);
+			reg = readl(s3c24xx_i2s.regs + S3C2410_IISCON);
+			writel(reg | S3C2410_IISCON_PSCEN, s3c24xx_i2s.regs + S3C2410_IISCON);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -361,18 +409,21 @@ static int s3c24xx_i2s_probe(struct snd_soc_dai *dai)
 	pr_debug("Entered %s\n", __func__);
 
 	snd_soc_dai_init_dma_data(dai, &s3c24xx_i2s_pcm_stereo_out,
-					&s3c24xx_i2s_pcm_stereo_in);
+							  &s3c24xx_i2s_pcm_stereo_in);
 
 	s3c24xx_i2s.iis_clk = devm_clk_get(dai->dev, "iis");
-	if (IS_ERR(s3c24xx_i2s.iis_clk)) {
+
+	if (IS_ERR(s3c24xx_i2s.iis_clk))
+	{
 		pr_err("failed to get iis_clock\n");
 		return PTR_ERR(s3c24xx_i2s.iis_clk);
 	}
+
 	clk_prepare_enable(s3c24xx_i2s.iis_clk);
 
 	/* Configure the I2S pins (GPE0...GPE4) in correct mode */
 	s3c_gpio_cfgall_range(S3C2410_GPE(0), 5, S3C_GPIO_SFN(2),
-			      S3C_GPIO_PULL_NONE);
+						  S3C_GPIO_PULL_NONE);
 
 	writel(S3C2410_IISCON_IISEN, s3c24xx_i2s.regs + S3C2410_IISCON);
 
@@ -417,10 +468,11 @@ static int s3c24xx_i2s_resume(struct snd_soc_dai *cpu_dai)
 
 #define S3C24XX_I2S_RATES \
 	(SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_11025 | SNDRV_PCM_RATE_16000 | \
-	SNDRV_PCM_RATE_22050 | SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 | \
-	SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000)
+	 SNDRV_PCM_RATE_22050 | SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 | \
+	 SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000)
 
-static const struct snd_soc_dai_ops s3c24xx_i2s_dai_ops = {
+static const struct snd_soc_dai_ops s3c24xx_i2s_dai_ops =
+{
 	.trigger	= s3c24xx_i2s_trigger,
 	.hw_params	= s3c24xx_i2s_hw_params,
 	.set_fmt	= s3c24xx_i2s_set_fmt,
@@ -428,7 +480,8 @@ static const struct snd_soc_dai_ops s3c24xx_i2s_dai_ops = {
 	.set_sysclk	= s3c24xx_i2s_set_sysclk,
 };
 
-static struct snd_soc_dai_driver s3c24xx_i2s_dai = {
+static struct snd_soc_dai_driver s3c24xx_i2s_dai =
+{
 	.probe = s3c24xx_i2s_probe,
 	.suspend = s3c24xx_i2s_suspend,
 	.resume = s3c24xx_i2s_resume,
@@ -436,16 +489,19 @@ static struct snd_soc_dai_driver s3c24xx_i2s_dai = {
 		.channels_min = 2,
 		.channels_max = 2,
 		.rates = S3C24XX_I2S_RATES,
-		.formats = SNDRV_PCM_FMTBIT_S8 | SNDRV_PCM_FMTBIT_S16_LE,},
+		.formats = SNDRV_PCM_FMTBIT_S8 | SNDRV_PCM_FMTBIT_S16_LE,
+	},
 	.capture = {
 		.channels_min = 2,
 		.channels_max = 2,
 		.rates = S3C24XX_I2S_RATES,
-		.formats = SNDRV_PCM_FMTBIT_S8 | SNDRV_PCM_FMTBIT_S16_LE,},
+		.formats = SNDRV_PCM_FMTBIT_S8 | SNDRV_PCM_FMTBIT_S16_LE,
+	},
 	.ops = &s3c24xx_i2s_dai_ops,
 };
 
-static const struct snd_soc_component_driver s3c24xx_i2s_component = {
+static const struct snd_soc_component_driver s3c24xx_i2s_component =
+{
 	.name		= "s3c24xx-i2s",
 };
 
@@ -455,19 +511,26 @@ static int s3c24xx_iis_dev_probe(struct platform_device *pdev)
 	struct resource *res;
 	struct s3c_audio_pdata *pdata = dev_get_platdata(&pdev->dev);
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		dev_err(&pdev->dev, "missing platform data");
 		return -ENXIO;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "Can't get IO resource.\n");
 		return -ENOENT;
 	}
+
 	s3c24xx_i2s.regs = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(s3c24xx_i2s.regs))
+	{
 		return PTR_ERR(s3c24xx_i2s.regs);
+	}
 
 	s3c24xx_i2s_pcm_stereo_out.addr = res->start + S3C2410_IISFIFO;
 	s3c24xx_i2s_pcm_stereo_out.filter_data = pdata->dma_playback;
@@ -475,22 +538,28 @@ static int s3c24xx_iis_dev_probe(struct platform_device *pdev)
 	s3c24xx_i2s_pcm_stereo_in.filter_data = pdata->dma_capture;
 
 	ret = samsung_asoc_dma_platform_register(&pdev->dev,
-						 pdata->dma_filter,
-						 NULL, NULL);
-	if (ret) {
+			pdata->dma_filter,
+			NULL, NULL);
+
+	if (ret)
+	{
 		pr_err("failed to register the dma: %d\n", ret);
 		return ret;
 	}
 
 	ret = devm_snd_soc_register_component(&pdev->dev,
-			&s3c24xx_i2s_component, &s3c24xx_i2s_dai, 1);
+										  &s3c24xx_i2s_component, &s3c24xx_i2s_dai, 1);
+
 	if (ret)
+	{
 		pr_err("failed to register the dai\n");
+	}
 
 	return ret;
 }
 
-static struct platform_driver s3c24xx_iis_driver = {
+static struct platform_driver s3c24xx_iis_driver =
+{
 	.probe  = s3c24xx_iis_dev_probe,
 	.driver = {
 		.name = "s3c24xx-iis",

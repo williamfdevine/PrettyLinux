@@ -50,26 +50,34 @@ isl38xx_disable_interrupts(void __iomem *device)
 
 void
 isl38xx_handle_sleep_request(isl38xx_control_block *control_block,
-			     int *powerstate, void __iomem *device_base)
+							 int *powerstate, void __iomem *device_base)
 {
 	/* device requests to go into sleep mode
 	 * check whether the transmit queues for data and management are empty */
 	if (isl38xx_in_queue(control_block, ISL38XX_CB_TX_DATA_LQ))
 		/* data tx queue not empty */
+	{
 		return;
+	}
 
 	if (isl38xx_in_queue(control_block, ISL38XX_CB_TX_MGMTQ))
 		/* management tx queue not empty */
+	{
 		return;
+	}
 
 	/* check also whether received frames are pending */
 	if (isl38xx_in_queue(control_block, ISL38XX_CB_RX_DATA_LQ))
 		/* data rx queue not empty */
+	{
 		return;
+	}
 
 	if (isl38xx_in_queue(control_block, ISL38XX_CB_RX_MGMTQ))
 		/* management rx queue not empty */
+	{
 		return;
+	}
 
 #if VERBOSE > SHOW_ERROR_MESSAGES
 	DEBUG(SHOW_TRACING, "Device going to sleep mode\n");
@@ -80,21 +88,23 @@ isl38xx_handle_sleep_request(isl38xx_control_block *control_block,
 
 	/* assert the Sleep interrupt in the Device Interrupt Register */
 	isl38xx_w32_flush(device_base, ISL38XX_DEV_INT_SLEEP,
-			  ISL38XX_DEV_INT_REG);
+					  ISL38XX_DEV_INT_REG);
 	udelay(ISL38XX_WRITEIO_DELAY);
 }
 
 void
 isl38xx_handle_wakeup(isl38xx_control_block *control_block,
-		      int *powerstate, void __iomem *device_base)
+					  int *powerstate, void __iomem *device_base)
 {
 	/* device is in active state, update the powerstate flag */
 	*powerstate = ISL38XX_PSM_ACTIVE_STATE;
 
 	/* now check whether there are frames pending for the card */
 	if (!isl38xx_in_queue(control_block, ISL38XX_CB_TX_DATA_LQ)
-	    && !isl38xx_in_queue(control_block, ISL38XX_CB_TX_MGMTQ))
+		&& !isl38xx_in_queue(control_block, ISL38XX_CB_TX_MGMTQ))
+	{
 		return;
+	}
 
 #if VERBOSE > SHOW_ERROR_MESSAGES
 	DEBUG(SHOW_ANYTHING, "Wake up handler trigger the device\n");
@@ -103,7 +113,7 @@ isl38xx_handle_wakeup(isl38xx_control_block *control_block,
 	/* either data or management transmit queue has a frame pending
 	 * trigger the device by setting the Update bit in the Device Int reg */
 	isl38xx_w32_flush(device_base, ISL38XX_DEV_INT_UPDATE,
-			  ISL38XX_DEV_INT_REG);
+					  ISL38XX_DEV_INT_REG);
 	udelay(ISL38XX_WRITEIO_DELAY);
 }
 
@@ -119,29 +129,34 @@ isl38xx_trigger_device(int asleep, void __iomem *device_base)
 #endif
 
 	/* check whether the device is in power save mode */
-	if (asleep) {
+	if (asleep)
+	{
 		/* device is in powersave, trigger the device for wakeup */
 #if VERBOSE > SHOW_ERROR_MESSAGES
 		ktime_get_real_ts64(&current_ts64);
 		DEBUG(SHOW_TRACING, "%lld.%09ld Device wakeup triggered\n",
-		      (s64)current_ts64.tv_sec, current_ts64.tv_nsec);
+			  (s64)current_ts64.tv_sec, current_ts64.tv_nsec);
 
 		DEBUG(SHOW_TRACING, "%lld.%09ld Device register read %08x\n",
-		      (s64)current_ts64.tv_sec, current_ts64.tv_nsec,
-		      readl(device_base + ISL38XX_CTRL_STAT_REG));
+			  (s64)current_ts64.tv_sec, current_ts64.tv_nsec,
+			  readl(device_base + ISL38XX_CTRL_STAT_REG));
 #endif
 
 		reg = readl(device_base + ISL38XX_INT_IDENT_REG);
-		if (reg == 0xabadface) {
+
+		if (reg == 0xabadface)
+		{
 #if VERBOSE > SHOW_ERROR_MESSAGES
 			ktime_get_real_ts64(&current_ts64);
 			DEBUG(SHOW_TRACING,
-			      "%lld.%09ld Device register abadface\n",
-			      (s64)current_ts64.tv_sec, current_ts64.tv_nsec);
+				  "%lld.%09ld Device register abadface\n",
+				  (s64)current_ts64.tv_sec, current_ts64.tv_nsec);
 #endif
+
 			/* read the Device Status Register until Sleepmode bit is set */
 			while (reg = readl(device_base + ISL38XX_CTRL_STAT_REG),
-			       (reg & ISL38XX_CTRL_STAT_SLEEPMODE) == 0) {
+				   (reg & ISL38XX_CTRL_STAT_SLEEPMODE) == 0)
+			{
 				udelay(ISL38XX_WRITEIO_DELAY);
 #if VERBOSE > SHOW_ERROR_MESSAGES
 				counter++;
@@ -150,19 +165,20 @@ isl38xx_trigger_device(int asleep, void __iomem *device_base)
 
 #if VERBOSE > SHOW_ERROR_MESSAGES
 			DEBUG(SHOW_TRACING,
-			      "%lld.%09ld Device register read %08x\n",
-			      (s64)current_ts64.tv_sec, current_ts64.tv_nsec,
-			      readl(device_base + ISL38XX_CTRL_STAT_REG));
+				  "%lld.%09ld Device register read %08x\n",
+				  (s64)current_ts64.tv_sec, current_ts64.tv_nsec,
+				  readl(device_base + ISL38XX_CTRL_STAT_REG));
 			ktime_get_real_ts64(&current_ts64);
 			DEBUG(SHOW_TRACING,
-			      "%lld.%09ld Device asleep counter %i\n",
-			      (s64)current_ts64.tv_sec, current_ts64.tv_nsec,
-			      counter);
+				  "%lld.%09ld Device asleep counter %i\n",
+				  (s64)current_ts64.tv_sec, current_ts64.tv_nsec,
+				  counter);
 #endif
 		}
+
 		/* assert the Wakeup interrupt in the Device Interrupt Register */
 		isl38xx_w32_flush(device_base, ISL38XX_DEV_INT_WAKEUP,
-				  ISL38XX_DEV_INT_REG);
+						  ISL38XX_DEV_INT_REG);
 
 #if VERBOSE > SHOW_ERROR_MESSAGES
 		udelay(ISL38XX_WRITEIO_DELAY);
@@ -171,9 +187,11 @@ isl38xx_trigger_device(int asleep, void __iomem *device_base)
 		reg = readl(device_base + ISL38XX_CTRL_STAT_REG);
 		ktime_get_real_ts64(&current_ts64);
 		DEBUG(SHOW_TRACING, "%lld.%00ld Device register read %08x\n",
-		      (s64)current_ts64.tv_sec, current_ts64.tv_nsec, reg);
+			  (s64)current_ts64.tv_sec, current_ts64.tv_nsec, reg);
 #endif
-	} else {
+	}
+	else
+	{
 		/* device is (still) awake  */
 #if VERBOSE > SHOW_ERROR_MESSAGES
 		DEBUG(SHOW_TRACING, "Device is in active state\n");
@@ -181,7 +199,7 @@ isl38xx_trigger_device(int asleep, void __iomem *device_base)
 		/* trigger the device by setting the Update bit in the Device Int reg */
 
 		isl38xx_w32_flush(device_base, ISL38XX_DEV_INT_UPDATE,
-				  ISL38XX_DEV_INT_REG);
+						  ISL38XX_DEV_INT_REG);
 	}
 }
 
@@ -215,7 +233,7 @@ isl38xx_enable_common_interrupts(void __iomem *device_base)
 	u32 reg;
 
 	reg = ISL38XX_INT_IDENT_UPDATE | ISL38XX_INT_IDENT_SLEEP |
-	      ISL38XX_INT_IDENT_WAKEUP;
+		  ISL38XX_INT_IDENT_WAKEUP;
 	isl38xx_w32_flush(device_base, reg, ISL38XX_INT_EN_REG);
 	udelay(ISL38XX_WRITEIO_DELAY);
 }
@@ -224,33 +242,35 @@ int
 isl38xx_in_queue(isl38xx_control_block *cb, int queue)
 {
 	const s32 delta = (le32_to_cpu(cb->driver_curr_frag[queue]) -
-			   le32_to_cpu(cb->device_curr_frag[queue]));
+					   le32_to_cpu(cb->device_curr_frag[queue]));
 
 	/* determine the amount of fragments in the queue depending on the type
 	 * of the queue, either transmit or receive */
 
 	BUG_ON(delta < 0);	/* driver ptr must be ahead of device ptr */
 
-	switch (queue) {
+	switch (queue)
+	{
 		/* send queues */
-	case ISL38XX_CB_TX_MGMTQ:
-		BUG_ON(delta > ISL38XX_CB_MGMT_QSIZE);
+		case ISL38XX_CB_TX_MGMTQ:
+			BUG_ON(delta > ISL38XX_CB_MGMT_QSIZE);
 
-	case ISL38XX_CB_TX_DATA_LQ:
-	case ISL38XX_CB_TX_DATA_HQ:
-		BUG_ON(delta > ISL38XX_CB_TX_QSIZE);
-		return delta;
+		case ISL38XX_CB_TX_DATA_LQ:
+		case ISL38XX_CB_TX_DATA_HQ:
+			BUG_ON(delta > ISL38XX_CB_TX_QSIZE);
+			return delta;
 
 		/* receive queues */
-	case ISL38XX_CB_RX_MGMTQ:
-		BUG_ON(delta > ISL38XX_CB_MGMT_QSIZE);
-		return ISL38XX_CB_MGMT_QSIZE - delta;
+		case ISL38XX_CB_RX_MGMTQ:
+			BUG_ON(delta > ISL38XX_CB_MGMT_QSIZE);
+			return ISL38XX_CB_MGMT_QSIZE - delta;
 
-	case ISL38XX_CB_RX_DATA_LQ:
-	case ISL38XX_CB_RX_DATA_HQ:
-		BUG_ON(delta > ISL38XX_CB_RX_QSIZE);
-		return ISL38XX_CB_RX_QSIZE - delta;
+		case ISL38XX_CB_RX_DATA_LQ:
+		case ISL38XX_CB_RX_DATA_HQ:
+			BUG_ON(delta > ISL38XX_CB_RX_QSIZE);
+			return ISL38XX_CB_RX_QSIZE - delta;
 	}
+
 	BUG();
 	return 0;
 }

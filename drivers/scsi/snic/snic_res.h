@@ -26,12 +26,12 @@
 
 static inline void
 snic_icmnd_init(struct snic_host_req *req, u32 cmnd_id, u32 host_id, u64 ctx,
-		u16 flags, u64 tgt_id, u8 *lun, u8 *scsi_cdb, u8 cdb_len,
-		u32 data_len, u16 sg_cnt, ulong sgl_addr,
-		dma_addr_t sns_addr_pa, u32 sense_len)
+				u16 flags, u64 tgt_id, u8 *lun, u8 *scsi_cdb, u8 cdb_len,
+				u32 data_len, u16 sg_cnt, ulong sgl_addr,
+				dma_addr_t sns_addr_pa, u32 sense_len)
 {
 	snic_io_hdr_enc(&req->hdr, SNIC_REQ_ICMND, 0, cmnd_id, host_id, sg_cnt,
-			ctx);
+					ctx);
 
 	req->u.icmnd.flags = cpu_to_le16(flags);
 	req->u.icmnd.tgt_id = cpu_to_le64(tgt_id);
@@ -47,7 +47,7 @@ snic_icmnd_init(struct snic_host_req *req, u32 cmnd_id, u32 host_id, u64 ctx,
 
 static inline void
 snic_itmf_init(struct snic_host_req *req, u32 cmnd_id, u32 host_id, ulong ctx,
-	       u16 flags, u32 req_id, u64 tgt_id, u8 *lun, u8 tm_type)
+			   u16 flags, u32 req_id, u64 tgt_id, u8 *lun, u8 tm_type)
 {
 	snic_io_hdr_enc(&req->hdr, SNIC_REQ_ITMF, 0, cmnd_id, host_id, 0, ctx);
 
@@ -61,27 +61,27 @@ snic_itmf_init(struct snic_host_req *req, u32 cmnd_id, u32 host_id, ulong ctx,
 
 static inline void
 snic_queue_wq_eth_desc(struct vnic_wq *wq,
-		       void *os_buf,
-		       dma_addr_t dma_addr,
-		       unsigned int len,
-		       int vlan_tag_insert,
-		       unsigned int vlan_tag,
-		       int cq_entry)
+					   void *os_buf,
+					   dma_addr_t dma_addr,
+					   unsigned int len,
+					   int vlan_tag_insert,
+					   unsigned int vlan_tag,
+					   int cq_entry)
 {
 	struct wq_enet_desc *desc = svnic_wq_next_desc(wq);
 
 	wq_enet_desc_enc(desc,
-			(u64)dma_addr | VNIC_PADDR_TARGET,
-			(u16)len,
-			0, /* mss_or_csum_offset */
-			0, /* fc_eof */
-			0, /* offload mode */
-			1, /* eop */
-			(u8)cq_entry,
-			0, /* fcoe_encap */
-			(u8)vlan_tag_insert,
-			(u16)vlan_tag,
-			0 /* loopback */);
+					 (u64)dma_addr | VNIC_PADDR_TARGET,
+					 (u16)len,
+					 0, /* mss_or_csum_offset */
+					 0, /* fc_eof */
+					 0, /* offload mode */
+					 1, /* eop */
+					 (u8)cq_entry,
+					 0, /* fcoe_encap */
+					 (u8)vlan_tag_insert,
+					 (u16)vlan_tag,
+					 0 /* loopback */);
 
 	svnic_wq_post(wq, os_buf, dma_addr, len, 1, 1);
 }

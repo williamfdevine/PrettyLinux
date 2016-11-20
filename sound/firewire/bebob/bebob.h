@@ -41,7 +41,8 @@
 struct snd_bebob;
 
 #define SND_BEBOB_STRM_FMT_ENTRIES	7
-struct snd_bebob_stream_formation {
+struct snd_bebob_stream_formation
+{
 	unsigned int pcm;
 	unsigned int midi;
 };
@@ -49,33 +50,39 @@ struct snd_bebob_stream_formation {
 extern const unsigned int snd_bebob_rate_table[SND_BEBOB_STRM_FMT_ENTRIES];
 
 /* device specific operations */
-enum snd_bebob_clock_type {
+enum snd_bebob_clock_type
+{
 	SND_BEBOB_CLOCK_TYPE_INTERNAL = 0,
 	SND_BEBOB_CLOCK_TYPE_EXTERNAL,
 	SND_BEBOB_CLOCK_TYPE_SYT,
 };
-struct snd_bebob_clock_spec {
+struct snd_bebob_clock_spec
+{
 	unsigned int num;
 	const char *const *labels;
 	enum snd_bebob_clock_type *types;
 	int (*get)(struct snd_bebob *bebob, unsigned int *id);
 };
-struct snd_bebob_rate_spec {
+struct snd_bebob_rate_spec
+{
 	int (*get)(struct snd_bebob *bebob, unsigned int *rate);
 	int (*set)(struct snd_bebob *bebob, unsigned int rate);
 };
-struct snd_bebob_meter_spec {
+struct snd_bebob_meter_spec
+{
 	unsigned int num;
 	const char *const *labels;
 	int (*get)(struct snd_bebob *bebob, u32 *target, unsigned int size);
 };
-struct snd_bebob_spec {
+struct snd_bebob_spec
+{
 	const struct snd_bebob_clock_spec *clock;
 	const struct snd_bebob_rate_spec *rate;
 	const struct snd_bebob_meter_spec *meter;
 };
 
-struct snd_bebob {
+struct snd_bebob
+{
 	struct snd_card *card;
 	struct fw_unit *unit;
 	int card_index;
@@ -123,44 +130,48 @@ static inline int
 snd_bebob_read_block(struct fw_unit *unit, u64 addr, void *buf, int size)
 {
 	return snd_fw_transaction(unit, TCODE_READ_BLOCK_REQUEST,
-				  BEBOB_ADDR_REG_INFO + addr,
-				  buf, size, 0);
+							  BEBOB_ADDR_REG_INFO + addr,
+							  buf, size, 0);
 }
 
 static inline int
 snd_bebob_read_quad(struct fw_unit *unit, u64 addr, u32 *buf)
 {
 	return snd_fw_transaction(unit, TCODE_READ_QUADLET_REQUEST,
-				  BEBOB_ADDR_REG_INFO + addr,
-				  (void *)buf, sizeof(u32), 0);
+							  BEBOB_ADDR_REG_INFO + addr,
+							  (void *)buf, sizeof(u32), 0);
 }
 
 /* AV/C Audio Subunit Specification 1.0 (Oct 2000, 1394TA) */
 int avc_audio_set_selector(struct fw_unit *unit, unsigned int subunit_id,
-			   unsigned int fb_id, unsigned int num);
+						   unsigned int fb_id, unsigned int num);
 int avc_audio_get_selector(struct fw_unit *unit, unsigned  int subunit_id,
-			   unsigned int fb_id, unsigned int *num);
+						   unsigned int fb_id, unsigned int *num);
 
 /*
  * AVC command extensions, AV/C Unit and Subunit, Revision 17
  * (Nov 2003, BridgeCo)
  */
 #define	AVC_BRIDGECO_ADDR_BYTES	6
-enum avc_bridgeco_plug_dir {
+enum avc_bridgeco_plug_dir
+{
 	AVC_BRIDGECO_PLUG_DIR_IN	= 0x00,
 	AVC_BRIDGECO_PLUG_DIR_OUT	= 0x01
 };
-enum avc_bridgeco_plug_mode {
+enum avc_bridgeco_plug_mode
+{
 	AVC_BRIDGECO_PLUG_MODE_UNIT		= 0x00,
 	AVC_BRIDGECO_PLUG_MODE_SUBUNIT		= 0x01,
 	AVC_BRIDGECO_PLUG_MODE_FUNCTION_BLOCK	= 0x02
 };
-enum avc_bridgeco_plug_unit {
+enum avc_bridgeco_plug_unit
+{
 	AVC_BRIDGECO_PLUG_UNIT_ISOC	= 0x00,
 	AVC_BRIDGECO_PLUG_UNIT_EXT	= 0x01,
 	AVC_BRIDGECO_PLUG_UNIT_ASYNC	= 0x02
 };
-enum avc_bridgeco_plug_type {
+enum avc_bridgeco_plug_type
+{
 	AVC_BRIDGECO_PLUG_TYPE_ISOC	= 0x00,
 	AVC_BRIDGECO_PLUG_TYPE_ASYNC	= 0x01,
 	AVC_BRIDGECO_PLUG_TYPE_MIDI	= 0x02,
@@ -171,9 +182,9 @@ enum avc_bridgeco_plug_type {
 };
 static inline void
 avc_bridgeco_fill_unit_addr(u8 buf[AVC_BRIDGECO_ADDR_BYTES],
-			    enum avc_bridgeco_plug_dir dir,
-			    enum avc_bridgeco_plug_unit unit,
-			    unsigned int pid)
+							enum avc_bridgeco_plug_dir dir,
+							enum avc_bridgeco_plug_unit unit,
+							unsigned int pid)
 {
 	buf[0] = 0xff;	/* Unit */
 	buf[1] = dir;
@@ -184,8 +195,8 @@ avc_bridgeco_fill_unit_addr(u8 buf[AVC_BRIDGECO_ADDR_BYTES],
 }
 static inline void
 avc_bridgeco_fill_msu_addr(u8 buf[AVC_BRIDGECO_ADDR_BYTES],
-			   enum avc_bridgeco_plug_dir dir,
-			   unsigned int pid)
+						   enum avc_bridgeco_plug_dir dir,
+						   unsigned int pid)
 {
 	buf[0] = 0x60;	/* Music subunit */
 	buf[1] = dir;
@@ -195,26 +206,26 @@ avc_bridgeco_fill_msu_addr(u8 buf[AVC_BRIDGECO_ADDR_BYTES],
 	buf[5] = 0xff;	/* reserved */
 }
 int avc_bridgeco_get_plug_ch_pos(struct fw_unit *unit,
-				 u8 addr[AVC_BRIDGECO_ADDR_BYTES],
-				 u8 *buf, unsigned int len);
+								 u8 addr[AVC_BRIDGECO_ADDR_BYTES],
+								 u8 *buf, unsigned int len);
 int avc_bridgeco_get_plug_type(struct fw_unit *unit,
-			       u8 addr[AVC_BRIDGECO_ADDR_BYTES],
-			       enum avc_bridgeco_plug_type *type);
+							   u8 addr[AVC_BRIDGECO_ADDR_BYTES],
+							   enum avc_bridgeco_plug_type *type);
 int avc_bridgeco_get_plug_section_type(struct fw_unit *unit,
-				       u8 addr[AVC_BRIDGECO_ADDR_BYTES],
-				       unsigned int id, u8 *type);
+									   u8 addr[AVC_BRIDGECO_ADDR_BYTES],
+									   unsigned int id, u8 *type);
 int avc_bridgeco_get_plug_input(struct fw_unit *unit,
-				u8 addr[AVC_BRIDGECO_ADDR_BYTES],
-				u8 input[7]);
+								u8 addr[AVC_BRIDGECO_ADDR_BYTES],
+								u8 input[7]);
 int avc_bridgeco_get_plug_strm_fmt(struct fw_unit *unit,
-				   u8 addr[AVC_BRIDGECO_ADDR_BYTES], u8 *buf,
-				   unsigned int *len, unsigned int eid);
+								   u8 addr[AVC_BRIDGECO_ADDR_BYTES], u8 *buf,
+								   unsigned int *len, unsigned int eid);
 
 /* for AMDTP streaming */
 int snd_bebob_stream_get_rate(struct snd_bebob *bebob, unsigned int *rate);
 int snd_bebob_stream_set_rate(struct snd_bebob *bebob, unsigned int rate);
 int snd_bebob_stream_get_clock_src(struct snd_bebob *bebob,
-				   enum snd_bebob_clock_type *src);
+								   enum snd_bebob_clock_type *src);
 int snd_bebob_stream_discover(struct snd_bebob *bebob);
 int snd_bebob_stream_init_duplex(struct snd_bebob *bebob);
 int snd_bebob_stream_start_duplex(struct snd_bebob *bebob, unsigned int rate);
@@ -250,12 +261,12 @@ int snd_bebob_maudio_special_discover(struct snd_bebob *bebob, bool is1814);
 int snd_bebob_maudio_load_firmware(struct fw_unit *unit);
 
 #define SND_BEBOB_DEV_ENTRY(vendor, model, data) \
-{ \
-	.match_flags	= IEEE1394_MATCH_VENDOR_ID | \
-			  IEEE1394_MATCH_MODEL_ID, \
-	.vendor_id	= vendor, \
-	.model_id	= model, \
-	.driver_data	= (kernel_ulong_t)data \
-}
+	{ \
+		.match_flags	= IEEE1394_MATCH_VENDOR_ID | \
+						  IEEE1394_MATCH_MODEL_ID, \
+						  .vendor_id	= vendor, \
+										.model_id	= model, \
+												.driver_data	= (kernel_ulong_t)data \
+	}
 
 #endif

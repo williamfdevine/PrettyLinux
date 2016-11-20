@@ -51,7 +51,7 @@ extern bool rpaphp_debug;
 	do {							\
 		if (rpaphp_debug)				\
 			printk(KERN_DEBUG "%s: " format,	\
-				MY_NAME, ## arg);		\
+				   MY_NAME, ## arg);		\
 	} while (0)
 #define err(format, arg...) printk(KERN_ERR "%s: " format, MY_NAME, ## arg)
 #define info(format, arg...) printk(KERN_INFO "%s: " format, MY_NAME, ## arg)
@@ -67,7 +67,8 @@ extern bool rpaphp_debug;
 /*
  * struct slot - slot information for each *physical* slot
  */
-struct slot {
+struct slot
+{
 	struct list_head rpaphp_slot_list;
 	int state;
 	u32 index;
@@ -92,7 +93,7 @@ int rpaphp_get_sensor_state(struct slot *slot, int *state);
 /* rpaphp_core.c */
 int rpaphp_add_slot(struct device_node *dn);
 int rpaphp_get_drc_props(struct device_node *dn, int *drc_index,
-		char **drc_name, char **drc_type, int *drc_power_domain);
+						 char **drc_name, char **drc_type, int *drc_power_domain);
 
 /* rpaphp_slot.c */
 void dealloc_slot_struct(struct slot *slot);

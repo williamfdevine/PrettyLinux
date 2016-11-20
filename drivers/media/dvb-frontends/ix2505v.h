@@ -31,7 +31,8 @@
  * @return FE pointer on success, NULL on failure.
  */
 
-struct ix2505v_config {
+struct ix2505v_config
+{
 	u8 tuner_address;
 
 	/*Baseband AMP gain control 0/1=0dB(default) 2=-2bB 3=-4dB */
@@ -50,10 +51,10 @@ struct ix2505v_config {
 
 #if IS_REACHABLE(CONFIG_DVB_IX2505V)
 extern struct dvb_frontend *ix2505v_attach(struct dvb_frontend *fe,
-	const struct ix2505v_config *config, struct i2c_adapter *i2c);
+		const struct ix2505v_config *config, struct i2c_adapter *i2c);
 #else
 static inline struct dvb_frontend *ix2505v_attach(struct dvb_frontend *fe,
-	const struct ix2505v_config *config, struct i2c_adapter *i2c)
+		const struct ix2505v_config *config, struct i2c_adapter *i2c)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

@@ -32,9 +32,10 @@ static int odd_parity(u8 c)
 	return c & 1;
 }
 
-static int decode_vps(u8 * dst, u8 * p)
+static int decode_vps(u8 *dst, u8 *p)
 {
-	static const u8 biphase_tbl[] = {
+	static const u8 biphase_tbl[] =
+	{
 		0xf0, 0x78, 0x70, 0xf0, 0xb4, 0x3c, 0x34, 0xb4,
 		0xb0, 0x38, 0x30, 0xb0, 0xf0, 0x78, 0x70, 0xf0,
 		0xd2, 0x5a, 0x52, 0xd2, 0x96, 0x1e, 0x16, 0x96,
@@ -72,10 +73,11 @@ static int decode_vps(u8 * dst, u8 * p)
 	u8 c, err = 0;
 	int i;
 
-	for (i = 0; i < 2 * 13; i += 2) {
+	for (i = 0; i < 2 * 13; i += 2)
+	{
 		err |= biphase_tbl[p[i]] | biphase_tbl[p[i + 1]];
 		c = (biphase_tbl[p[i + 1]] & 0xf) |
-		    ((biphase_tbl[p[i]] & 0xf) << 4);
+			((biphase_tbl[p[i]] & 0xf) << 4);
 		dst[i / 2] = c;
 	}
 
@@ -86,7 +88,8 @@ int cx25840_g_sliced_fmt(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct cx25840_state *state = to_state(sd);
-	static const u16 lcr2vbi[] = {
+	static const u16 lcr2vbi[] =
+	{
 		0, V4L2_SLICED_TELETEXT_B, 0,	/* 1 */
 		0, V4L2_SLICED_WSS_625, 0,	/* 4 */
 		V4L2_SLICED_CAPTION_525,	/* 6 */
@@ -98,31 +101,40 @@ int cx25840_g_sliced_fmt(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *
 
 	memset(svbi->service_lines, 0, sizeof(svbi->service_lines));
 	svbi->service_set = 0;
+
 	/* we're done if raw VBI is active */
 	if ((cx25840_read(client, 0x404) & 0x10) == 0)
+	{
 		return 0;
+	}
 
-	if (is_pal) {
-		for (i = 7; i <= 23; i++) {
+	if (is_pal)
+	{
+		for (i = 7; i <= 23; i++)
+		{
 			u8 v = cx25840_read(client,
-				 state->vbi_regs_offset + 0x424 + i - 7);
+								state->vbi_regs_offset + 0x424 + i - 7);
 
 			svbi->service_lines[0][i] = lcr2vbi[v >> 4];
 			svbi->service_lines[1][i] = lcr2vbi[v & 0xf];
 			svbi->service_set |= svbi->service_lines[0][i] |
-					     svbi->service_lines[1][i];
-		}
-	} else {
-		for (i = 10; i <= 21; i++) {
-			u8 v = cx25840_read(client,
-				state->vbi_regs_offset + 0x424 + i - 10);
-
-			svbi->service_lines[0][i] = lcr2vbi[v >> 4];
-			svbi->service_lines[1][i] = lcr2vbi[v & 0xf];
-			svbi->service_set |= svbi->service_lines[0][i] |
-					     svbi->service_lines[1][i];
+								 svbi->service_lines[1][i];
 		}
 	}
+	else
+	{
+		for (i = 10; i <= 21; i++)
+		{
+			u8 v = cx25840_read(client,
+								state->vbi_regs_offset + 0x424 + i - 10);
+
+			svbi->service_lines[0][i] = lcr2vbi[v >> 4];
+			svbi->service_lines[1][i] = lcr2vbi[v & 0xf];
+			svbi->service_set |= svbi->service_lines[0][i] |
+								 svbi->service_lines[1][i];
+		}
+	}
+
 	return 0;
 }
 
@@ -138,9 +150,14 @@ int cx25840_s_raw_fmt(struct v4l2_subdev *sd, struct v4l2_vbi_format *fmt)
 
 	/* VBI Offset */
 	if (is_cx23888(state))
+	{
 		cx25840_write(client, 0x54f, vbi_offset);
+	}
 	else
+	{
 		cx25840_write(client, 0x47f, vbi_offset);
+	}
+
 	cx25840_write(client, 0x404, 0x2e);
 	return 0;
 }
@@ -155,7 +172,9 @@ int cx25840_s_sliced_fmt(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *
 	u8 lcr[24];
 
 	for (x = 0; x <= 23; x++)
+	{
 		lcr[x] = 0x00;
+	}
 
 	/* Setup standard */
 	cx25840_std_setup(client);
@@ -163,16 +182,24 @@ int cx25840_s_sliced_fmt(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *
 	/* Sliced VBI */
 	cx25840_write(client, 0x404, 0x32);	/* Ancillary data */
 	cx25840_write(client, 0x406, 0x13);
-	if (is_cx23888(state))
-		cx25840_write(client, 0x54f, vbi_offset);
-	else
-		cx25840_write(client, 0x47f, vbi_offset);
 
-	if (is_pal) {
+	if (is_cx23888(state))
+	{
+		cx25840_write(client, 0x54f, vbi_offset);
+	}
+	else
+	{
+		cx25840_write(client, 0x47f, vbi_offset);
+	}
+
+	if (is_pal)
+	{
 		for (i = 0; i <= 6; i++)
 			svbi->service_lines[0][i] =
 				svbi->service_lines[1][i] = 0;
-	} else {
+	}
+	else
+	{
 		for (i = 0; i <= 9; i++)
 			svbi->service_lines[0][i] =
 				svbi->service_lines[1][i] = 0;
@@ -182,43 +209,65 @@ int cx25840_s_sliced_fmt(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *
 				svbi->service_lines[1][i] = 0;
 	}
 
-	for (i = 7; i <= 23; i++) {
-		for (x = 0; x <= 1; x++) {
-			switch (svbi->service_lines[1-x][i]) {
-			case V4L2_SLICED_TELETEXT_B:
-				lcr[i] |= 1 << (4 * x);
-				break;
-			case V4L2_SLICED_WSS_625:
-				lcr[i] |= 4 << (4 * x);
-				break;
-			case V4L2_SLICED_CAPTION_525:
-				lcr[i] |= 6 << (4 * x);
-				break;
-			case V4L2_SLICED_VPS:
-				lcr[i] |= 9 << (4 * x);
-				break;
+	for (i = 7; i <= 23; i++)
+	{
+		for (x = 0; x <= 1; x++)
+		{
+			switch (svbi->service_lines[1 - x][i])
+			{
+				case V4L2_SLICED_TELETEXT_B:
+					lcr[i] |= 1 << (4 * x);
+					break;
+
+				case V4L2_SLICED_WSS_625:
+					lcr[i] |= 4 << (4 * x);
+					break;
+
+				case V4L2_SLICED_CAPTION_525:
+					lcr[i] |= 6 << (4 * x);
+					break;
+
+				case V4L2_SLICED_VPS:
+					lcr[i] |= 9 << (4 * x);
+					break;
 			}
 		}
 	}
 
-	if (is_pal) {
+	if (is_pal)
+	{
 		for (x = 1, i = state->vbi_regs_offset + 0x424;
-		     i <= state->vbi_regs_offset + 0x434; i++, x++)
+			 i <= state->vbi_regs_offset + 0x434; i++, x++)
+		{
 			cx25840_write(client, i, lcr[6 + x]);
-	} else {
+		}
+	}
+	else
+	{
 		for (x = 1, i = state->vbi_regs_offset + 0x424;
-		     i <= state->vbi_regs_offset + 0x430; i++, x++)
+			 i <= state->vbi_regs_offset + 0x430; i++, x++)
+		{
 			cx25840_write(client, i, lcr[9 + x]);
+		}
+
 		for (i = state->vbi_regs_offset + 0x431;
-		     i <= state->vbi_regs_offset + 0x434; i++)
+			 i <= state->vbi_regs_offset + 0x434; i++)
+		{
 			cx25840_write(client, i, 0);
+		}
 	}
 
 	cx25840_write(client, state->vbi_regs_offset + 0x43c, 0x16);
+
 	if (is_cx23888(state))
+	{
 		cx25840_write(client, 0x428, is_pal ? 0x2a : 0x22);
+	}
 	else
+	{
 		cx25840_write(client, 0x474, is_pal ? 0x2a : 0x22);
+	}
+
 	return 0;
 }
 
@@ -229,7 +278,8 @@ int cx25840_decode_vbi_line(struct v4l2_subdev *sd, struct v4l2_decode_vbi_line 
 	int id1, id2, l, err = 0;
 
 	if (p[0] || p[1] != 0xff || p[2] != 0xff ||
-			(p[3] != 0x55 && p[3] != 0x91)) {
+		(p[3] != 0x55 && p[3] != 0x91))
+	{
 		vbi->line = vbi->type = 0;
 		return 0;
 	}
@@ -241,26 +291,35 @@ int cx25840_decode_vbi_line(struct v4l2_subdev *sd, struct v4l2_decode_vbi_line 
 	l += state->vbi_line_offset;
 	p += 4;
 
-	switch (id2) {
-	case 1:
-		id2 = V4L2_SLICED_TELETEXT_B;
-		break;
-	case 4:
-		id2 = V4L2_SLICED_WSS_625;
-		break;
-	case 6:
-		id2 = V4L2_SLICED_CAPTION_525;
-		err = !odd_parity(p[0]) || !odd_parity(p[1]);
-		break;
-	case 9:
-		id2 = V4L2_SLICED_VPS;
-		if (decode_vps(p, p) != 0)
+	switch (id2)
+	{
+		case 1:
+			id2 = V4L2_SLICED_TELETEXT_B;
+			break;
+
+		case 4:
+			id2 = V4L2_SLICED_WSS_625;
+			break;
+
+		case 6:
+			id2 = V4L2_SLICED_CAPTION_525;
+			err = !odd_parity(p[0]) || !odd_parity(p[1]);
+			break;
+
+		case 9:
+			id2 = V4L2_SLICED_VPS;
+
+			if (decode_vps(p, p) != 0)
+			{
+				err = 1;
+			}
+
+			break;
+
+		default:
+			id2 = 0;
 			err = 1;
-		break;
-	default:
-		id2 = 0;
-		err = 1;
-		break;
+			break;
 	}
 
 	vbi->type = err ? 0 : id2;

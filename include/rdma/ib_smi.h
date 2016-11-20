@@ -42,7 +42,8 @@
 #define IB_SMP_DATA_SIZE			64
 #define IB_SMP_MAX_PATH_HOPS			64
 
-struct ib_smp {
+struct ib_smp
+{
 	u8	base_version;
 	u8	mgmt_class;
 	u8	class_version;
@@ -83,7 +84,8 @@ struct ib_smp {
 #define IB_SMP_ATTR_LED_INFO			cpu_to_be16(0x0031)
 #define IB_SMP_ATTR_VENDOR_MASK			cpu_to_be16(0xFF00)
 
-struct ib_port_info {
+struct ib_port_info
+{
 	__be64 mkey;
 	__be64 gid_prefix;
 	__be16 lid;
@@ -119,7 +121,8 @@ struct ib_port_info {
 	u8 link_roundtrip_latency[3];
 };
 
-struct ib_node_info {
+struct ib_node_info
+{
 	u8 base_version;
 	u8 class_version;
 	u8 node_type;
@@ -134,9 +137,10 @@ struct ib_node_info {
 	u8 vendor_id[3];
 } __packed;
 
-struct ib_vl_weight_elem {
+struct ib_vl_weight_elem
+{
 	u8      vl;     /* IB: VL is low 4 bits, upper 4 bits reserved */
-                        /* OPA: VL is low 5 bits, upper 3 bits reserved */
+	/* OPA: VL is low 5 bits, upper 3 bits reserved */
 	u8      weight;
 };
 

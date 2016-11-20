@@ -11,7 +11,8 @@ struct perf_evlist;
 struct perf_evsel;
 struct perf_session;
 
-struct perf_top {
+struct perf_top
+{
 	struct perf_tool   tool;
 	struct perf_evlist *evlist;
 	struct record_opts record_opts;

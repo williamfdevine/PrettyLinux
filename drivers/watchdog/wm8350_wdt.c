@@ -22,22 +22,24 @@
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-		 "Watchdog cannot be stopped once started (default="
-		 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 static DEFINE_MUTEX(wdt_mutex);
 
-static struct {
+static struct
+{
 	unsigned int time;  /* Seconds */
 	u16 val;	    /* To be set in WM8350_SYSTEM_CONTROL_2 */
-} wm8350_wdt_cfgs[] = {
+} wm8350_wdt_cfgs[] =
+{
 	{ 1, 0x02 },
 	{ 2, 0x04 },
 	{ 4, 0x05 },
 };
 
 static int wm8350_wdt_set_timeout(struct watchdog_device *wdt_dev,
-				  unsigned int timeout)
+								  unsigned int timeout)
 {
 	struct wm8350 *wm8350 = watchdog_get_drvdata(wdt_dev);
 	int ret, i;
@@ -45,9 +47,14 @@ static int wm8350_wdt_set_timeout(struct watchdog_device *wdt_dev,
 
 	for (i = 0; i < ARRAY_SIZE(wm8350_wdt_cfgs); i++)
 		if (wm8350_wdt_cfgs[i].time == timeout)
+		{
 			break;
+		}
+
 	if (i == ARRAY_SIZE(wm8350_wdt_cfgs))
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&wdt_mutex);
 	wm8350_reg_unlock(wm8350);
@@ -119,12 +126,14 @@ static int wm8350_wdt_ping(struct watchdog_device *wdt_dev)
 	return ret;
 }
 
-static const struct watchdog_info wm8350_wdt_info = {
+static const struct watchdog_info wm8350_wdt_info =
+{
 	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE,
 	.identity = "WM8350 Watchdog",
 };
 
-static const struct watchdog_ops wm8350_wdt_ops = {
+static const struct watchdog_ops wm8350_wdt_ops =
+{
 	.owner = THIS_MODULE,
 	.start = wm8350_wdt_start,
 	.stop = wm8350_wdt_stop,
@@ -132,7 +141,8 @@ static const struct watchdog_ops wm8350_wdt_ops = {
 	.set_timeout = wm8350_wdt_set_timeout,
 };
 
-static struct watchdog_device wm8350_wdt = {
+static struct watchdog_device wm8350_wdt =
+{
 	.info = &wm8350_wdt_info,
 	.ops = &wm8350_wdt_ops,
 	.timeout = 4,
@@ -144,7 +154,8 @@ static int wm8350_wdt_probe(struct platform_device *pdev)
 {
 	struct wm8350 *wm8350 = platform_get_drvdata(pdev);
 
-	if (!wm8350) {
+	if (!wm8350)
+	{
 		pr_err("No driver data supplied\n");
 		return -ENODEV;
 	}
@@ -165,7 +176,8 @@ static int wm8350_wdt_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver wm8350_wdt_driver = {
+static struct platform_driver wm8350_wdt_driver =
+{
 	.probe = wm8350_wdt_probe,
 	.remove = wm8350_wdt_remove,
 	.driver = {

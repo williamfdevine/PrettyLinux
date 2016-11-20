@@ -65,7 +65,7 @@
 
 #define SCIF_MAX_UNALIGNED_BUF_SIZE (1024 * 1024ULL)
 #define SCIF_KMEM_UNALIGNED_BUF_SIZE (SCIF_MAX_UNALIGNED_BUF_SIZE + \
-				      (L1_CACHE_BYTES << 1))
+									  (L1_CACHE_BYTES << 1))
 
 #define SCIF_IOVA_START_PFN		(1)
 #define SCIF_IOVA_PFN(addr) ((addr) >> PAGE_SHIFT)
@@ -96,7 +96,8 @@
  * @vma_list: List of vmas with remote memory mappings
  * @markwq: Wait queue used for scif_fence_mark/scif_fence_wait
 */
-struct scif_endpt_rma_info {
+struct scif_endpt_rma_info
+{
 	struct list_head reg_list;
 	struct list_head remote_reg_list;
 	struct iova_domain iovad;
@@ -121,7 +122,8 @@ struct scif_endpt_rma_info {
  * @wq: Fences wait on this queue
  * @dma_mark: Used for storing the DMA mark
  */
-struct scif_fence_info {
+struct scif_fence_info
+{
 	enum scif_msg_state state;
 	struct completion comp;
 	int dma_mark;
@@ -133,7 +135,8 @@ struct scif_fence_info {
  * @msg: List of SCIF node QP fence messages
  * @list: Link to list of remote fence requests
  */
-struct scif_remote_fence_info {
+struct scif_remote_fence_info
+{
 	struct scifmsg msg;
 	struct list_head list;
 };
@@ -144,7 +147,8 @@ struct scif_remote_fence_info {
  * Unregistration can span across complete windows. scif_get_pages() can span a
  * single window. A window can also be of type self or peer.
  */
-enum scif_window_type {
+enum scif_window_type
+{
 	SCIF_WINDOW_PARTIAL,
 	SCIF_WINDOW_SINGLE,
 	SCIF_WINDOW_FULL,
@@ -165,7 +169,8 @@ enum scif_window_type {
  * @lookup: Array of offsets
  * @offset: DMA offset of lookup array
  */
-struct scif_rma_lookup {
+struct scif_rma_lookup
+{
 	dma_addr_t *lookup;
 	dma_addr_t offset;
 };
@@ -183,7 +188,8 @@ struct scif_rma_lookup {
  * @magic: A magic value
  * @pages: Array of pointers to struct pages populated with get_user_pages(..)
  */
-struct scif_pinned_pages {
+struct scif_pinned_pages
+{
 	s64 nr_pages;
 	int prot;
 	int map_flags;
@@ -199,7 +205,8 @@ struct scif_pinned_pages {
  * @val: src location for value to be written to the destination
  * @ep: SCIF endpoint
  */
-struct scif_status {
+struct scif_status
+{
 	dma_addr_t src_dma_addr;
 	u64 val;
 	struct scif_endpt *ep;
@@ -239,7 +246,8 @@ struct scif_status {
  * @dma_addr: Array of physical addresses used for Mgmt node & MIC initiated DMA
  * @num_pages: Array specifying number of pages for each physical address
  */
-struct scif_window {
+struct scif_window
+{
 	s64 nr_pages;
 	int nr_contig_chunks;
 	int prot;
@@ -257,15 +265,18 @@ struct scif_window {
 	bool temp;
 	struct mm_struct *mm;
 	struct sg_table *st;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			struct scif_pinned_pages *pinned_pages;
 			struct scif_allocmsg alloc_handle;
 			wait_queue_head_t regwq;
 			enum scif_msg_state reg_state;
 			wait_queue_head_t unregwq;
 		};
-		struct {
+		struct
+		{
 			struct scif_rma_lookup dma_addr_lookup;
 			struct scif_rma_lookup num_pages_lookup;
 			int nr_lookup;
@@ -285,7 +296,8 @@ struct scif_window {
  * @ep: SCIF endpoint
  * @list: link to list of MMU notifier information
  */
-struct scif_mmu_notif {
+struct scif_mmu_notif
+{
 #ifdef CONFIG_MMU_NOTIFIER
 	struct mmu_notifier ep_mmu_notifier;
 #endif
@@ -295,7 +307,8 @@ struct scif_mmu_notif {
 	struct list_head list;
 };
 
-enum scif_rma_dir {
+enum scif_rma_dir
+{
 	SCIF_LOCAL_TO_REMOTE,
 	SCIF_REMOTE_TO_LOCAL
 };
@@ -307,19 +320,19 @@ void scif_rma_ep_init(struct scif_endpt *ep);
 int scif_rma_ep_can_uninit(struct scif_endpt *ep);
 /* Obtain a new offset. Callee must grab RMA lock */
 int scif_get_window_offset(struct scif_endpt *ep, int flags,
-			   s64 offset, int nr_pages, s64 *out_offset);
+						   s64 offset, int nr_pages, s64 *out_offset);
 /* Free offset. Callee must grab RMA lock */
 void scif_free_window_offset(struct scif_endpt *ep,
-			     struct scif_window *window, s64 offset);
+							 struct scif_window *window, s64 offset);
 /* Create self registration window */
 struct scif_window *scif_create_window(struct scif_endpt *ep, int nr_pages,
-				       s64 offset, bool temp);
+									   s64 offset, bool temp);
 /* Destroy self registration window.*/
 int scif_destroy_window(struct scif_endpt *ep, struct scif_window *window);
 void scif_unmap_window(struct scif_dev *remote_dev, struct scif_window *window);
 /* Map pages of self window to Aperture/PCI */
 int scif_map_window(struct scif_dev *remote_dev,
-		    struct scif_window *window);
+					struct scif_window *window);
 /* Unregister a self window */
 int scif_unregister_window(struct scif_window *window);
 /* Destroy remote registration window */
@@ -336,7 +349,7 @@ int scif_reserve_dma_chan(struct scif_endpt *ep);
 /* Setup a DMA mark for an endpoint */
 int _scif_fence_mark(scif_epd_t epd, int *mark);
 int scif_prog_signal(scif_epd_t epd, off_t offset, u64 val,
-		     enum scif_window_type type);
+					 enum scif_window_type type);
 void scif_alloc_req(struct scif_dev *scifdev, struct scifmsg *msg);
 void scif_alloc_gnt_rej(struct scif_dev *scifdev, struct scifmsg *msg);
 void scif_free_virt(struct scif_dev *scifdev, struct scifmsg *msg);
@@ -360,7 +373,8 @@ void scif_rma_destroy_windows(void);
 void scif_rma_destroy_tcw_invalid(void);
 int scif_drain_dma_intr(struct scif_hw_dev *sdev, struct dma_chan *chan);
 
-struct scif_window_iter {
+struct scif_window_iter
+{
 	s64 offset;
 	int index;
 };
@@ -373,8 +387,8 @@ scif_init_window_iter(struct scif_window *window, struct scif_window_iter *iter)
 }
 
 dma_addr_t scif_off_to_dma_addr(struct scif_window *window, s64 off,
-				size_t *nr_bytes,
-				struct scif_window_iter *iter);
+								size_t *nr_bytes,
+								struct scif_window_iter *iter);
 static inline
 dma_addr_t __scif_off_to_dma_addr(struct scif_window *window, s64 off)
 {
@@ -403,7 +417,8 @@ static inline void *scif_zalloc(size_t size)
 
 	if (align && get_order(align) < MAX_ORDER)
 		ret = (void *)__get_free_pages(GFP_KERNEL | __GFP_ZERO,
-					       get_order(align));
+									   get_order(align));
+
 	return ret ? ret : vzalloc(align);
 }
 
@@ -418,9 +433,13 @@ static inline void scif_free(void *addr, size_t size)
 	size_t align = ALIGN(size, PAGE_SIZE);
 
 	if (is_vmalloc_addr(addr))
+	{
 		vfree(addr);
+	}
 	else
+	{
 		free_pages((unsigned long)addr, get_order(align));
+	}
 }
 
 static inline void scif_get_window(struct scif_window *window, int nr_pages)

@@ -22,7 +22,8 @@
 #include "si2157.h"
 
 /* state struct */
-struct si2157_dev {
+struct si2157_dev
+{
 	struct mutex i2c_mutex;
 	struct dvb_frontend *fe;
 	bool active;
@@ -45,7 +46,8 @@ struct si2157_dev {
 
 /* firmware command struct */
 #define SI2157_ARGLEN      30
-struct si2157_cmd {
+struct si2157_cmd
+{
 	u8 args[SI2157_ARGLEN];
 	unsigned wlen;
 	unsigned rlen;

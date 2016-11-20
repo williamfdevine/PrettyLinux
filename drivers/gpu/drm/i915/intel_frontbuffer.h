@@ -28,19 +28,19 @@ struct drm_i915_private;
 struct drm_i915_gem_object;
 
 void intel_frontbuffer_flip_prepare(struct drm_i915_private *dev_priv,
-				    unsigned frontbuffer_bits);
+									unsigned frontbuffer_bits);
 void intel_frontbuffer_flip_complete(struct drm_i915_private *dev_priv,
-				     unsigned frontbuffer_bits);
+									 unsigned frontbuffer_bits);
 void intel_frontbuffer_flip(struct drm_i915_private *dev_priv,
-			    unsigned frontbuffer_bits);
+							unsigned frontbuffer_bits);
 
 void __intel_fb_obj_invalidate(struct drm_i915_gem_object *obj,
-			       enum fb_op_origin origin,
-			       unsigned int frontbuffer_bits);
+							   enum fb_op_origin origin,
+							   unsigned int frontbuffer_bits);
 void __intel_fb_obj_flush(struct drm_i915_gem_object *obj,
-			  bool retire,
-			  enum fb_op_origin origin,
-			  unsigned int frontbuffer_bits);
+						  bool retire,
+						  enum fb_op_origin origin,
+						  unsigned int frontbuffer_bits);
 
 /**
  * intel_fb_obj_invalidate - invalidate frontbuffer object
@@ -54,13 +54,16 @@ void __intel_fb_obj_flush(struct drm_i915_gem_object *obj,
  * scheduled.
  */
 static inline void intel_fb_obj_invalidate(struct drm_i915_gem_object *obj,
-					   enum fb_op_origin origin)
+		enum fb_op_origin origin)
 {
 	unsigned int frontbuffer_bits;
 
 	frontbuffer_bits = atomic_read(&obj->frontbuffer_bits);
+
 	if (!frontbuffer_bits)
+	{
 		return;
+	}
 
 	__intel_fb_obj_invalidate(obj, origin, frontbuffer_bits);
 }
@@ -76,14 +79,17 @@ static inline void intel_fb_obj_invalidate(struct drm_i915_gem_object *obj,
  * then any delayed flushes will be unblocked.
  */
 static inline void intel_fb_obj_flush(struct drm_i915_gem_object *obj,
-				      bool retire,
-				      enum fb_op_origin origin)
+									  bool retire,
+									  enum fb_op_origin origin)
 {
 	unsigned int frontbuffer_bits;
 
 	frontbuffer_bits = atomic_read(&obj->frontbuffer_bits);
+
 	if (!frontbuffer_bits)
+	{
 		return;
+	}
 
 	__intel_fb_obj_flush(obj, retire, origin, frontbuffer_bits);
 }

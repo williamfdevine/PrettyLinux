@@ -65,7 +65,7 @@ struct rchan
 	struct kref kref;		/* channel refcount */
 	void *private_data;		/* for user-defined data */
 	size_t last_toobig;		/* tried to log event > subbuf size */
-	struct rchan_buf ** __percpu buf; /* per-cpu channel buffers */
+	struct rchan_buf **__percpu buf;  /* per-cpu channel buffers */
 	int is_global;			/* One global buffer ? */
 	struct list_head list;		/* for channel list */
 	struct dentry *parent;		/* parent dentry passed to open */
@@ -96,9 +96,9 @@ struct rchan_callbacks
 	 *       sub-buffer by calling subbuf_start_reserve() in this callback.
 	 */
 	int (*subbuf_start) (struct rchan_buf *buf,
-			     void *subbuf,
-			     void *prev_subbuf,
-			     size_t prev_padding);
+						 void *subbuf,
+						 void *prev_subbuf,
+						 size_t prev_padding);
 
 	/*
 	 * buf_mapped - relay buffer mmap notification
@@ -107,8 +107,8 @@ struct rchan_callbacks
 	 *
 	 * Called when a relay file is successfully mmapped
 	 */
-        void (*buf_mapped)(struct rchan_buf *buf,
-			   struct file *filp);
+	void (*buf_mapped)(struct rchan_buf *buf,
+					   struct file *filp);
 
 	/*
 	 * buf_unmapped - relay buffer unmap notification
@@ -117,8 +117,8 @@ struct rchan_callbacks
 	 *
 	 * Called when a relay file is successfully unmapped
 	 */
-        void (*buf_unmapped)(struct rchan_buf *buf,
-			     struct file *filp);
+	void (*buf_unmapped)(struct rchan_buf *buf,
+						 struct file *filp);
 	/*
 	 * create_buf_file - create file to represent a relay channel buffer
 	 * @filename: the name of the file to create
@@ -143,10 +143,10 @@ struct rchan_callbacks
 	 * See Documentation/filesystems/relay.txt for more info.
 	 */
 	struct dentry *(*create_buf_file)(const char *filename,
-					  struct dentry *parent,
-					  umode_t mode,
-					  struct rchan_buf *buf,
-					  int *is_global);
+									  struct dentry *parent,
+									  umode_t mode,
+									  struct rchan_buf *buf,
+									  int *is_global);
 
 	/*
 	 * remove_buf_file - remove file representing a relay channel buffer
@@ -166,24 +166,24 @@ struct rchan_callbacks
  */
 
 struct rchan *relay_open(const char *base_filename,
-			 struct dentry *parent,
-			 size_t subbuf_size,
-			 size_t n_subbufs,
-			 struct rchan_callbacks *cb,
-			 void *private_data);
+						 struct dentry *parent,
+						 size_t subbuf_size,
+						 size_t n_subbufs,
+						 struct rchan_callbacks *cb,
+						 void *private_data);
 extern int relay_late_setup_files(struct rchan *chan,
-				  const char *base_filename,
-				  struct dentry *parent);
+								  const char *base_filename,
+								  struct dentry *parent);
 extern void relay_close(struct rchan *chan);
 extern void relay_flush(struct rchan *chan);
 extern void relay_subbufs_consumed(struct rchan *chan,
-				   unsigned int cpu,
-				   size_t consumed);
+								   unsigned int cpu,
+								   size_t consumed);
 extern void relay_reset(struct rchan *chan);
 extern int relay_buf_full(struct rchan_buf *buf);
 
 extern size_t relay_switch_subbuf(struct rchan_buf *buf,
-				  size_t length);
+								  size_t length);
 
 /**
  *	relay_write - write data into the channel
@@ -199,16 +199,20 @@ extern size_t relay_switch_subbuf(struct rchan_buf *buf,
  *	interrupt context.
  */
 static inline void relay_write(struct rchan *chan,
-			       const void *data,
-			       size_t length)
+							   const void *data,
+							   size_t length)
 {
 	unsigned long flags;
 	struct rchan_buf *buf;
 
 	local_irq_save(flags);
 	buf = *this_cpu_ptr(chan->buf);
+
 	if (unlikely(buf->offset + length > chan->subbuf_size))
+	{
 		length = relay_switch_subbuf(buf, length);
+	}
+
 	memcpy(buf->data + buf->offset, data, length);
 	buf->offset += length;
 	local_irq_restore(flags);
@@ -227,14 +231,18 @@ static inline void relay_write(struct rchan *chan,
  *	context.
  */
 static inline void __relay_write(struct rchan *chan,
-				 const void *data,
-				 size_t length)
+								 const void *data,
+								 size_t length)
 {
 	struct rchan_buf *buf;
 
 	buf = *get_cpu_ptr(chan->buf);
+
 	if (unlikely(buf->offset + length > buf->chan->subbuf_size))
+	{
 		length = relay_switch_subbuf(buf, length);
+	}
+
 	memcpy(buf->data + buf->offset, data, length);
 	buf->offset += length;
 	put_cpu_ptr(chan->buf);
@@ -256,11 +264,16 @@ static inline void *relay_reserve(struct rchan *chan, size_t length)
 	void *reserved = NULL;
 	struct rchan_buf *buf = *get_cpu_ptr(chan->buf);
 
-	if (unlikely(buf->offset + length > buf->chan->subbuf_size)) {
+	if (unlikely(buf->offset + length > buf->chan->subbuf_size))
+	{
 		length = relay_switch_subbuf(buf, length);
+
 		if (!length)
+		{
 			goto end;
+		}
 	}
+
 	reserved = buf->data + buf->offset;
 	buf->offset += length;
 
@@ -278,7 +291,7 @@ end:
  *	a sub-buffer in the subbuf_start() callback.
  */
 static inline void subbuf_start_reserve(struct rchan_buf *buf,
-					size_t length)
+										size_t length)
 {
 	BUG_ON(length >= buf->chan->subbuf_size - 1);
 	buf->offset = length;
@@ -290,9 +303,9 @@ static inline void subbuf_start_reserve(struct rchan_buf *buf,
 extern const struct file_operations relay_file_operations;
 
 #ifdef CONFIG_RELAY
-int relay_prepare_cpu(unsigned int cpu);
+	int relay_prepare_cpu(unsigned int cpu);
 #else
-#define relay_prepare_cpu     NULL
+	#define relay_prepare_cpu     NULL
 #endif
 
 #endif /* _LINUX_RELAY_H */

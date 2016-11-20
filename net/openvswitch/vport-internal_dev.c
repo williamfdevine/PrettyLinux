@@ -32,7 +32,8 @@
 #include "vport-internal_dev.h"
 #include "vport-netdev.h"
 
-struct internal_dev {
+struct internal_dev
+{
 	struct vport *vport;
 };
 
@@ -53,16 +54,20 @@ static int internal_dev_xmit(struct sk_buff *skb, struct net_device *netdev)
 	err = ovs_vport_receive(internal_dev_priv(netdev)->vport, skb, NULL);
 	rcu_read_unlock();
 
-	if (likely(!err)) {
+	if (likely(!err))
+	{
 		struct pcpu_sw_netstats *tstats = this_cpu_ptr(netdev->tstats);
 
 		u64_stats_update_begin(&tstats->syncp);
 		tstats->tx_bytes += len;
 		tstats->tx_packets++;
 		u64_stats_update_end(&tstats->syncp);
-	} else {
+	}
+	else
+	{
 		netdev->stats.tx_errors++;
 	}
+
 	return 0;
 }
 
@@ -79,12 +84,13 @@ static int internal_dev_stop(struct net_device *netdev)
 }
 
 static void internal_dev_getinfo(struct net_device *netdev,
-				 struct ethtool_drvinfo *info)
+								 struct ethtool_drvinfo *info)
 {
 	strlcpy(info->driver, "openvswitch", sizeof(info->driver));
 }
 
-static const struct ethtool_ops internal_dev_ethtool_ops = {
+static const struct ethtool_ops internal_dev_ethtool_ops =
+{
 	.get_drvinfo	= internal_dev_getinfo,
 	.get_link	= ethtool_op_get_link,
 };
@@ -92,7 +98,9 @@ static const struct ethtool_ops internal_dev_ethtool_ops = {
 static int internal_dev_change_mtu(struct net_device *netdev, int new_mtu)
 {
 	if (new_mtu < 68)
+	{
 		return -EINVAL;
+	}
 
 	netdev->mtu = new_mtu;
 	return 0;
@@ -117,17 +125,20 @@ internal_get_stats(struct net_device *dev, struct rtnl_link_stats64 *stats)
 	stats->tx_dropped = dev->stats.tx_dropped;
 	stats->rx_dropped = dev->stats.rx_dropped;
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		const struct pcpu_sw_netstats *percpu_stats;
 		struct pcpu_sw_netstats local_stats;
 		unsigned int start;
 
 		percpu_stats = per_cpu_ptr(dev->tstats, i);
 
-		do {
+		do
+		{
 			start = u64_stats_fetch_begin_irq(&percpu_stats->syncp);
 			local_stats = *percpu_stats;
-		} while (u64_stats_fetch_retry_irq(&percpu_stats->syncp, start));
+		}
+		while (u64_stats_fetch_retry_irq(&percpu_stats->syncp, start));
 
 		stats->rx_bytes         += local_stats.rx_bytes;
 		stats->rx_packets       += local_stats.rx_packets;
@@ -143,7 +154,8 @@ static void internal_set_rx_headroom(struct net_device *dev, int new_hr)
 	dev->needed_headroom = new_hr < 0 ? 0 : new_hr;
 }
 
-static const struct net_device_ops internal_dev_netdev_ops = {
+static const struct net_device_ops internal_dev_netdev_ops =
+{
 	.ndo_open = internal_dev_open,
 	.ndo_stop = internal_dev_stop,
 	.ndo_start_xmit = internal_dev_xmit,
@@ -153,7 +165,8 @@ static const struct net_device_ops internal_dev_netdev_ops = {
 	.ndo_set_rx_headroom = internal_set_rx_headroom,
 };
 
-static struct rtnl_link_ops internal_dev_link_ops __read_mostly = {
+static struct rtnl_link_ops internal_dev_link_ops __read_mostly =
+{
 	.kind = "openvswitch",
 };
 
@@ -165,14 +178,14 @@ static void do_setup(struct net_device *netdev)
 
 	netdev->priv_flags &= ~IFF_TX_SKB_SHARING;
 	netdev->priv_flags |= IFF_LIVE_ADDR_CHANGE | IFF_OPENVSWITCH |
-			      IFF_PHONY_HEADROOM | IFF_NO_QUEUE;
+						  IFF_PHONY_HEADROOM | IFF_NO_QUEUE;
 	netdev->destructor = internal_dev_destructor;
 	netdev->ethtool_ops = &internal_dev_ethtool_ops;
 	netdev->rtnl_link_ops = &internal_dev_link_ops;
 
 	netdev->features = NETIF_F_LLTX | NETIF_F_SG | NETIF_F_FRAGLIST |
-			   NETIF_F_HIGHDMA | NETIF_F_HW_CSUM |
-			   NETIF_F_GSO_SOFTWARE | NETIF_F_GSO_ENCAP_ALL;
+					   NETIF_F_HIGHDMA | NETIF_F_HW_CSUM |
+					   NETIF_F_GSO_SOFTWARE | NETIF_F_GSO_ENCAP_ALL;
 
 	netdev->vlan_features = netdev->features;
 	netdev->hw_enc_features = netdev->features;
@@ -189,22 +202,30 @@ static struct vport *internal_dev_create(const struct vport_parms *parms)
 	int err;
 
 	vport = ovs_vport_alloc(0, &ovs_internal_vport_ops, parms);
-	if (IS_ERR(vport)) {
+
+	if (IS_ERR(vport))
+	{
 		err = PTR_ERR(vport);
 		goto error;
 	}
 
 	vport->dev = alloc_netdev(sizeof(struct internal_dev),
-				  parms->name, NET_NAME_USER, do_setup);
-	if (!vport->dev) {
+							  parms->name, NET_NAME_USER, do_setup);
+
+	if (!vport->dev)
+	{
 		err = -ENOMEM;
 		goto error_free_vport;
 	}
+
 	vport->dev->tstats = netdev_alloc_pcpu_stats(struct pcpu_sw_netstats);
-	if (!vport->dev->tstats) {
+
+	if (!vport->dev->tstats)
+	{
 		err = -ENOMEM;
 		goto error_free_netdev;
 	}
+
 	vport->dev->needed_headroom = vport->dp->max_headroom;
 
 	dev_net_set(vport->dev, ovs_dp_get_net(vport->dp));
@@ -213,12 +234,17 @@ static struct vport *internal_dev_create(const struct vport_parms *parms)
 
 	/* Restrict bridge port to current netns. */
 	if (vport->port_no == OVSP_LOCAL)
+	{
 		vport->dev->features |= NETIF_F_NETNS_LOCAL;
+	}
 
 	rtnl_lock();
 	err = register_netdevice(vport->dev);
+
 	if (err)
+	{
 		goto error_unlock;
+	}
 
 	dev_set_promiscuity(vport->dev, 1);
 	rtnl_unlock();
@@ -254,7 +280,8 @@ static netdev_tx_t internal_dev_recv(struct sk_buff *skb)
 	struct net_device *netdev = skb->dev;
 	struct pcpu_sw_netstats *stats;
 
-	if (unlikely(!(netdev->flags & IFF_UP))) {
+	if (unlikely(!(netdev->flags & IFF_UP)))
+	{
 		kfree_skb(skb);
 		netdev->stats.rx_dropped++;
 		return NETDEV_TX_OK;
@@ -278,7 +305,8 @@ static netdev_tx_t internal_dev_recv(struct sk_buff *skb)
 	return NETDEV_TX_OK;
 }
 
-static struct vport_ops ovs_internal_vport_ops = {
+static struct vport_ops ovs_internal_vport_ops =
+{
 	.type		= OVS_VPORT_TYPE_INTERNAL,
 	.create		= internal_dev_create,
 	.destroy	= internal_dev_destroy,
@@ -293,7 +321,9 @@ int ovs_is_internal_dev(const struct net_device *netdev)
 struct vport *ovs_internal_dev_get_vport(struct net_device *netdev)
 {
 	if (!ovs_is_internal_dev(netdev))
+	{
 		return NULL;
+	}
 
 	return internal_dev_priv(netdev)->vport;
 }
@@ -303,12 +333,18 @@ int ovs_internal_dev_rtnl_link_register(void)
 	int err;
 
 	err = rtnl_link_register(&internal_dev_link_ops);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = ovs_vport_ops_register(&ovs_internal_vport_ops);
+
 	if (err < 0)
+	{
 		rtnl_link_unregister(&internal_dev_link_ops);
+	}
 
 	return err;
 }

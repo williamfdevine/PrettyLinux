@@ -18,7 +18,8 @@
 #include <linux/slab.h>
 #include "fimc-is-i2c.h"
 
-struct fimc_is_i2c {
+struct fimc_is_i2c
+{
 	struct i2c_adapter adapter;
 	struct clk *clock;
 };
@@ -38,11 +39,16 @@ static int fimc_is_i2c_probe(struct platform_device *pdev)
 	int ret;
 
 	isp_i2c = devm_kzalloc(&pdev->dev, sizeof(*isp_i2c), GFP_KERNEL);
+
 	if (!isp_i2c)
+	{
 		return -ENOMEM;
+	}
 
 	isp_i2c->clock = devm_clk_get(&pdev->dev, "i2c_isp");
-	if (IS_ERR(isp_i2c->clock)) {
+
+	if (IS_ERR(isp_i2c->clock))
+	{
 		dev_err(&pdev->dev, "failed to get the clock\n");
 		return PTR_ERR(isp_i2c->clock);
 	}
@@ -59,8 +65,12 @@ static int fimc_is_i2c_probe(struct platform_device *pdev)
 	pm_runtime_enable(&pdev->dev);
 
 	ret = i2c_add_adapter(i2c_adap);
+
 	if (ret < 0)
+	{
 		goto err_pm_dis;
+	}
+
 	/*
 	 * Client drivers of this adapter don't do any I2C transfers as that
 	 * is handled by the ISP firmware.  But we rely on the runtime PM
@@ -109,7 +119,9 @@ static int fimc_is_i2c_runtime_resume(struct device *dev)
 static int fimc_is_i2c_suspend(struct device *dev)
 {
 	if (pm_runtime_suspended(dev))
+	{
 		return 0;
+	}
 
 	return fimc_is_i2c_runtime_suspend(dev);
 }
@@ -117,24 +129,29 @@ static int fimc_is_i2c_suspend(struct device *dev)
 static int fimc_is_i2c_resume(struct device *dev)
 {
 	if (pm_runtime_suspended(dev))
+	{
 		return 0;
+	}
 
 	return fimc_is_i2c_runtime_resume(dev);
 }
 #endif
 
-static struct dev_pm_ops fimc_is_i2c_pm_ops = {
+static struct dev_pm_ops fimc_is_i2c_pm_ops =
+{
 	SET_RUNTIME_PM_OPS(fimc_is_i2c_runtime_suspend,
-					fimc_is_i2c_runtime_resume, NULL)
+	fimc_is_i2c_runtime_resume, NULL)
 	SET_SYSTEM_SLEEP_PM_OPS(fimc_is_i2c_suspend, fimc_is_i2c_resume)
 };
 
-static const struct of_device_id fimc_is_i2c_of_match[] = {
+static const struct of_device_id fimc_is_i2c_of_match[] =
+{
 	{ .compatible = FIMC_IS_I2C_COMPATIBLE },
 	{ },
 };
 
-static struct platform_driver fimc_is_i2c_driver = {
+static struct platform_driver fimc_is_i2c_driver =
+{
 	.probe		= fimc_is_i2c_probe,
 	.remove		= fimc_is_i2c_remove,
 	.driver = {

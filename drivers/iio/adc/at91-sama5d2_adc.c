@@ -148,47 +148,49 @@
 #define AT91_SAMA5D2_CHAN_SINGLE(num, addr)				\
 	{								\
 		.type = IIO_VOLTAGE,					\
-		.channel = num,						\
-		.address = addr,					\
-		.scan_type = {						\
-			.sign = 'u',					\
-			.realbits = 12,					\
-		},							\
-		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
-		.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
-		.info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ),\
-		.datasheet_name = "CH"#num,				\
-		.indexed = 1,						\
+				.channel = num,						\
+						   .address = addr,					\
+									  .scan_type = {						\
+																		  .sign = 'u',					\
+																		  .realbits = 12,					\
+												   },							\
+											  .info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
+													  .info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
+															  .info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ),\
+																	  .datasheet_name = "CH"#num,				\
+																			  .indexed = 1,						\
 	}
 
 #define AT91_SAMA5D2_CHAN_DIFF(num, num2, addr)				\
 	{								\
 		.type = IIO_VOLTAGE,					\
-		.differential = 1,					\
-		.channel = num,						\
-		.channel2 = num2,					\
-		.address = addr,					\
-		.scan_type = {						\
-			.sign = 's',					\
-			.realbits = 12,					\
-		},							\
-		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
-		.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
-		.info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ),\
-		.datasheet_name = "CH"#num"-CH"#num2,			\
-		.indexed = 1,						\
+				.differential = 1,					\
+								.channel = num,						\
+										   .channel2 = num2,					\
+												   .address = addr,					\
+														   .scan_type = {						\
+																							   .sign = 's',					\
+																							   .realbits = 12,					\
+																		},							\
+																   .info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
+																		   .info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
+																				   .info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ),\
+																						   .datasheet_name = "CH"#num"-CH"#num2,			\
+																								   .indexed = 1,						\
 	}
 
 #define at91_adc_readl(st, reg)		readl_relaxed(st->base + reg)
 #define at91_adc_writel(st, reg, val)	writel_relaxed(val, st->base + reg)
 
-struct at91_adc_soc_info {
+struct at91_adc_soc_info
+{
 	unsigned			startup_time;
 	unsigned			min_sample_rate;
 	unsigned			max_sample_rate;
 };
 
-struct at91_adc_state {
+struct at91_adc_state
+{
 	void __iomem			*base;
 	int				irq;
 	struct clk			*per_clk;
@@ -207,7 +209,8 @@ struct at91_adc_state {
 	struct mutex			lock;
 };
 
-static const struct iio_chan_spec at91_adc_channels[] = {
+static const struct iio_chan_spec at91_adc_channels[] =
+{
 	AT91_SAMA5D2_CHAN_SINGLE(0, 0x50),
 	AT91_SAMA5D2_CHAN_SINGLE(1, 0x54),
 	AT91_SAMA5D2_CHAN_SINGLE(2, 0x58),
@@ -229,14 +232,15 @@ static const struct iio_chan_spec at91_adc_channels[] = {
 };
 
 static unsigned at91_adc_startup_time(unsigned startup_time_min,
-				      unsigned adc_clk_khz)
+									  unsigned adc_clk_khz)
 {
-	const unsigned startup_lookup[] = {
-		  0,   8,  16,  24,
-		 64,  80,  96, 112,
+	const unsigned startup_lookup[] =
+	{
+		0,   8,  16,  24,
+		64,  80,  96, 112,
 		512, 576, 640, 704,
 		768, 832, 896, 960
-		};
+	};
 	unsigned ticks_min, i;
 
 	/*
@@ -245,9 +249,12 @@ static unsigned at91_adc_startup_time(unsigned startup_time_min,
 	 */
 
 	ticks_min = startup_time_min * adc_clk_khz / 1000;
+
 	for (i = 0; i < ARRAY_SIZE(startup_lookup); i++)
 		if (startup_lookup[i] > ticks_min)
+		{
 			break;
+		}
 
 	return i;
 }
@@ -261,7 +268,7 @@ static void at91_adc_setup_samp_freq(struct at91_adc_state *st, unsigned freq)
 	prescal = (f_per / (2 * freq)) - 1;
 
 	startup = at91_adc_startup_time(st->soc_info.startup_time,
-					freq / 1000);
+									freq / 1000);
 
 	mr = at91_adc_readl(st, AT91_SAMA5D2_MR);
 	mr &= ~(AT91_SAMA5D2_MR_STARTUP_MASK | AT91_SAMA5D2_MR_PRESCAL_MASK);
@@ -270,7 +277,7 @@ static void at91_adc_setup_samp_freq(struct at91_adc_state *st, unsigned freq)
 	at91_adc_writel(st, AT91_SAMA5D2_MR, mr);
 
 	dev_dbg(&indio_dev->dev, "freq: %u, startup: %u, prescal: %u\n",
-		freq, startup, prescal);
+			freq, startup, prescal);
 }
 
 static unsigned at91_adc_get_sample_freq(struct at91_adc_state *st)
@@ -280,7 +287,7 @@ static unsigned at91_adc_get_sample_freq(struct at91_adc_state *st)
 
 	mr = at91_adc_readl(st, AT91_SAMA5D2_MR);
 	prescal = (mr >> AT91_SAMA5D2_MR_PRESCAL_OFFSET)
-		  & AT91_SAMA5D2_MR_PRESCAL_MAX;
+			  & AT91_SAMA5D2_MR_PRESCAL_MAX;
 	f_adc = f_per / (2 * (prescal + 1));
 
 	return f_adc;
@@ -293,7 +300,8 @@ static irqreturn_t at91_adc_interrupt(int irq, void *private)
 	u32 status = at91_adc_readl(st, AT91_SAMA5D2_ISR);
 	u32 imr = at91_adc_readl(st, AT91_SAMA5D2_IMR);
 
-	if (status & imr) {
+	if (status & imr)
+	{
 		st->conversion_value = at91_adc_readl(st, st->chan->address);
 		st->conversion_done = true;
 		wake_up_interruptible(&st->wq_data_available);
@@ -304,83 +312,101 @@ static irqreturn_t at91_adc_interrupt(int irq, void *private)
 }
 
 static int at91_adc_read_raw(struct iio_dev *indio_dev,
-			     struct iio_chan_spec const *chan,
-			     int *val, int *val2, long mask)
+							 struct iio_chan_spec const *chan,
+							 int *val, int *val2, long mask)
 {
 	struct at91_adc_state *st = iio_priv(indio_dev);
 	u32 cor = 0;
 	int ret;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		mutex_lock(&st->lock);
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			mutex_lock(&st->lock);
 
-		st->chan = chan;
+			st->chan = chan;
 
-		if (chan->differential)
-			cor = (BIT(chan->channel) | BIT(chan->channel2)) <<
-			      AT91_SAMA5D2_COR_DIFF_OFFSET;
+			if (chan->differential)
+				cor = (BIT(chan->channel) | BIT(chan->channel2)) <<
+					  AT91_SAMA5D2_COR_DIFF_OFFSET;
 
-		at91_adc_writel(st, AT91_SAMA5D2_COR, cor);
-		at91_adc_writel(st, AT91_SAMA5D2_CHER, BIT(chan->channel));
-		at91_adc_writel(st, AT91_SAMA5D2_IER, BIT(chan->channel));
-		at91_adc_writel(st, AT91_SAMA5D2_CR, AT91_SAMA5D2_CR_START);
+			at91_adc_writel(st, AT91_SAMA5D2_COR, cor);
+			at91_adc_writel(st, AT91_SAMA5D2_CHER, BIT(chan->channel));
+			at91_adc_writel(st, AT91_SAMA5D2_IER, BIT(chan->channel));
+			at91_adc_writel(st, AT91_SAMA5D2_CR, AT91_SAMA5D2_CR_START);
 
-		ret = wait_event_interruptible_timeout(st->wq_data_available,
-						       st->conversion_done,
-						       msecs_to_jiffies(1000));
-		if (ret == 0)
-			ret = -ETIMEDOUT;
+			ret = wait_event_interruptible_timeout(st->wq_data_available,
+												   st->conversion_done,
+												   msecs_to_jiffies(1000));
 
-		if (ret > 0) {
-			*val = st->conversion_value;
-			if (chan->scan_type.sign == 's')
-				*val = sign_extend32(*val, 11);
-			ret = IIO_VAL_INT;
-			st->conversion_done = false;
-		}
+			if (ret == 0)
+			{
+				ret = -ETIMEDOUT;
+			}
 
-		at91_adc_writel(st, AT91_SAMA5D2_IDR, BIT(chan->channel));
-		at91_adc_writel(st, AT91_SAMA5D2_CHDR, BIT(chan->channel));
+			if (ret > 0)
+			{
+				*val = st->conversion_value;
 
-		mutex_unlock(&st->lock);
-		return ret;
+				if (chan->scan_type.sign == 's')
+				{
+					*val = sign_extend32(*val, 11);
+				}
 
-	case IIO_CHAN_INFO_SCALE:
-		*val = st->vref_uv / 1000;
-		if (chan->differential)
-			*val *= 2;
-		*val2 = chan->scan_type.realbits;
-		return IIO_VAL_FRACTIONAL_LOG2;
+				ret = IIO_VAL_INT;
+				st->conversion_done = false;
+			}
 
-	case IIO_CHAN_INFO_SAMP_FREQ:
-		*val = at91_adc_get_sample_freq(st);
-		return IIO_VAL_INT;
+			at91_adc_writel(st, AT91_SAMA5D2_IDR, BIT(chan->channel));
+			at91_adc_writel(st, AT91_SAMA5D2_CHDR, BIT(chan->channel));
 
-	default:
-		return -EINVAL;
+			mutex_unlock(&st->lock);
+			return ret;
+
+		case IIO_CHAN_INFO_SCALE:
+			*val = st->vref_uv / 1000;
+
+			if (chan->differential)
+			{
+				*val *= 2;
+			}
+
+			*val2 = chan->scan_type.realbits;
+			return IIO_VAL_FRACTIONAL_LOG2;
+
+		case IIO_CHAN_INFO_SAMP_FREQ:
+			*val = at91_adc_get_sample_freq(st);
+			return IIO_VAL_INT;
+
+		default:
+			return -EINVAL;
 	}
 }
 
 static int at91_adc_write_raw(struct iio_dev *indio_dev,
-			      struct iio_chan_spec const *chan,
-			      int val, int val2, long mask)
+							  struct iio_chan_spec const *chan,
+							  int val, int val2, long mask)
 {
 	struct at91_adc_state *st = iio_priv(indio_dev);
 
 	if (mask != IIO_CHAN_INFO_SAMP_FREQ)
+	{
 		return -EINVAL;
+	}
 
 	if (val < st->soc_info.min_sample_rate ||
-	    val > st->soc_info.max_sample_rate)
+		val > st->soc_info.max_sample_rate)
+	{
 		return -EINVAL;
+	}
 
 	at91_adc_setup_samp_freq(st, val);
 
 	return 0;
 }
 
-static const struct iio_info at91_adc_info = {
+static const struct iio_info at91_adc_info =
+{
 	.read_raw = &at91_adc_read_raw,
 	.write_raw = &at91_adc_write_raw,
 	.driver_module = THIS_MODULE,
@@ -394,8 +420,11 @@ static int at91_adc_probe(struct platform_device *pdev)
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&pdev->dev, sizeof(*st));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	indio_dev->dev.parent = &pdev->dev;
 	indio_dev->name = dev_name(&pdev->dev);
@@ -407,28 +436,34 @@ static int at91_adc_probe(struct platform_device *pdev)
 	st = iio_priv(indio_dev);
 
 	ret = of_property_read_u32(pdev->dev.of_node,
-				   "atmel,min-sample-rate-hz",
-				   &st->soc_info.min_sample_rate);
-	if (ret) {
+							   "atmel,min-sample-rate-hz",
+							   &st->soc_info.min_sample_rate);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev,
-			"invalid or missing value for atmel,min-sample-rate-hz\n");
+				"invalid or missing value for atmel,min-sample-rate-hz\n");
 		return ret;
 	}
 
 	ret = of_property_read_u32(pdev->dev.of_node,
-				   "atmel,max-sample-rate-hz",
-				   &st->soc_info.max_sample_rate);
-	if (ret) {
+							   "atmel,max-sample-rate-hz",
+							   &st->soc_info.max_sample_rate);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev,
-			"invalid or missing value for atmel,max-sample-rate-hz\n");
+				"invalid or missing value for atmel,max-sample-rate-hz\n");
 		return ret;
 	}
 
 	ret = of_property_read_u32(pdev->dev.of_node, "atmel,startup-time-ms",
-				   &st->soc_info.startup_time);
-	if (ret) {
+							   &st->soc_info.startup_time);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev,
-			"invalid or missing value for atmel,startup-time-ms\n");
+				"invalid or missing value for atmel,startup-time-ms\n");
 		return ret;
 	}
 
@@ -436,48 +471,78 @@ static int at91_adc_probe(struct platform_device *pdev)
 	mutex_init(&st->lock);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		return -EINVAL;
+	}
 
 	st->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(st->base))
+	{
 		return PTR_ERR(st->base);
+	}
 
 	st->irq = platform_get_irq(pdev, 0);
-	if (st->irq <= 0) {
+
+	if (st->irq <= 0)
+	{
 		if (!st->irq)
+		{
 			st->irq = -ENXIO;
+		}
 
 		return st->irq;
 	}
 
 	st->per_clk = devm_clk_get(&pdev->dev, "adc_clk");
+
 	if (IS_ERR(st->per_clk))
+	{
 		return PTR_ERR(st->per_clk);
+	}
 
 	st->reg = devm_regulator_get(&pdev->dev, "vddana");
+
 	if (IS_ERR(st->reg))
+	{
 		return PTR_ERR(st->reg);
+	}
 
 	st->vref = devm_regulator_get(&pdev->dev, "vref");
+
 	if (IS_ERR(st->vref))
+	{
 		return PTR_ERR(st->vref);
+	}
 
 	ret = devm_request_irq(&pdev->dev, st->irq, at91_adc_interrupt, 0,
-			       pdev->dev.driver->name, indio_dev);
+						   pdev->dev.driver->name, indio_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = regulator_enable(st->reg);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = regulator_enable(st->vref);
+
 	if (ret)
+	{
 		goto reg_disable;
+	}
 
 	st->vref_uv = regulator_get_voltage(st->vref);
-	if (st->vref_uv <= 0) {
+
+	if (st->vref_uv <= 0)
+	{
 		ret = -EINVAL;
 		goto vref_disable;
 	}
@@ -489,22 +554,28 @@ static int at91_adc_probe(struct platform_device *pdev)
 	 * allows different analog settings for each channel.
 	 */
 	at91_adc_writel(st, AT91_SAMA5D2_MR,
-			AT91_SAMA5D2_MR_TRANSFER(2) | AT91_SAMA5D2_MR_ANACH);
+					AT91_SAMA5D2_MR_TRANSFER(2) | AT91_SAMA5D2_MR_ANACH);
 
 	at91_adc_setup_samp_freq(st, st->soc_info.min_sample_rate);
 
 	ret = clk_prepare_enable(st->per_clk);
+
 	if (ret)
+	{
 		goto vref_disable;
+	}
 
 	platform_set_drvdata(pdev, indio_dev);
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret < 0)
+	{
 		goto per_clk_disable_unprepare;
+	}
 
 	dev_info(&pdev->dev, "version: %x\n",
-		 readl_relaxed(st->base + AT91_SAMA5D2_VERSION));
+			 readl_relaxed(st->base + AT91_SAMA5D2_VERSION));
 
 	return 0;
 
@@ -532,7 +603,8 @@ static int at91_adc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id at91_adc_dt_match[] = {
+static const struct of_device_id at91_adc_dt_match[] =
+{
 	{
 		.compatible = "atmel,sama5d2-adc",
 	}, {
@@ -541,7 +613,8 @@ static const struct of_device_id at91_adc_dt_match[] = {
 };
 MODULE_DEVICE_TABLE(of, at91_adc_dt_match);
 
-static struct platform_driver at91_adc_driver = {
+static struct platform_driver at91_adc_driver =
+{
 	.probe = at91_adc_probe,
 	.remove = at91_adc_remove,
 	.driver = {

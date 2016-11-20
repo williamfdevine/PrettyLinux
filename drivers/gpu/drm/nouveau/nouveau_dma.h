@@ -32,7 +32,7 @@
 
 int nouveau_dma_wait(struct nouveau_channel *, int slots, int size);
 void nv50_dma_push(struct nouveau_channel *, struct nouveau_bo *,
-		   int delta, int length);
+				   int delta, int length);
 
 /*
  * There's a hw race condition where you can't jump to your PUT offset,
@@ -47,7 +47,8 @@ void nv50_dma_push(struct nouveau_channel *, struct nouveau_bo *,
 #define NOUVEAU_DMA_SKIPS (128 / 4)
 
 /* Hardcoded object assignments to subchannels (subchannel id). */
-enum {
+enum
+{
 	NvSubCtxSurf2D  = 0,
 	NvSubSw		= 1,
 	NvSubImageBlit  = 2,
@@ -59,7 +60,8 @@ enum {
 };
 
 /* Object handles - for stuff that's doesn't use handle == oclass. */
-enum {
+enum
+{
 	NvDmaFB		= 0x80000002,
 	NvDmaTT		= 0x80000003,
 	NvNotify0       = 0x80000006,
@@ -91,8 +93,11 @@ RING_SPACE(struct nouveau_channel *chan, int size)
 	int ret;
 
 	ret = nouveau_dma_wait(chan, 1, size);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	chan->dma.free -= size;
 	return 0;
@@ -138,22 +143,28 @@ BEGIN_IMC0(struct nouveau_channel *chan, int subc, int mthd, u16 data)
 }
 
 #define WRITE_PUT(val) do {                                                    \
-	mb();                                                   \
-	nouveau_bo_rd32(chan->push.buffer, 0);                                 \
-	nvif_wr32(&chan->user, chan->user_put, ((val) << 2) + chan->push.vma.offset); \
-} while (0)
+		mb();                                                   \
+		nouveau_bo_rd32(chan->push.buffer, 0);                                 \
+		nvif_wr32(&chan->user, chan->user_put, ((val) << 2) + chan->push.vma.offset); \
+	} while (0)
 
 static inline void
 FIRE_RING(struct nouveau_channel *chan)
 {
 	if (chan->dma.cur == chan->dma.put)
+	{
 		return;
+	}
+
 	chan->accel_done = true;
 
-	if (chan->dma.ib_max) {
+	if (chan->dma.ib_max)
+	{
 		nv50_dma_push(chan, chan->push.buffer, chan->dma.put << 2,
-			      (chan->dma.cur - chan->dma.put) << 2);
-	} else {
+					  (chan->dma.cur - chan->dma.put) << 2);
+	}
+	else
+	{
 		WRITE_PUT(chan->dma.cur);
 	}
 

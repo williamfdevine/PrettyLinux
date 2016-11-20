@@ -73,9 +73,10 @@
 
 #define XLP9XX_I2C_FIFO_WCNT_MASK	0xff
 #define XLP9XX_I2C_STATUS_ERRMASK	(XLP9XX_I2C_INTEN_ARLOST | \
-			XLP9XX_I2C_INTEN_NACKADDR | XLP9XX_I2C_INTEN_BUSERR)
+									 XLP9XX_I2C_INTEN_NACKADDR | XLP9XX_I2C_INTEN_BUSERR)
 
-struct xlp9xx_i2c_dev {
+struct xlp9xx_i2c_dev
+{
 	struct device *dev;
 	struct i2c_adapter adapter;
 	struct completion msg_complete;
@@ -90,13 +91,13 @@ struct xlp9xx_i2c_dev {
 };
 
 static inline void xlp9xx_write_i2c_reg(struct xlp9xx_i2c_dev *priv,
-					unsigned long reg, u32 val)
+										unsigned long reg, u32 val)
 {
 	writel(val, priv->base + reg);
 }
 
 static inline u32 xlp9xx_read_i2c_reg(struct xlp9xx_i2c_dev *priv,
-				      unsigned long reg)
+									  unsigned long reg)
 {
 	return readl(priv->base + reg);
 }
@@ -123,7 +124,7 @@ static void xlp9xx_i2c_update_rx_fifo_thres(struct xlp9xx_i2c_dev *priv)
 
 	thres = min(priv->msg_buf_remaining, XLP9XX_I2C_FIFO_SIZE);
 	xlp9xx_write_i2c_reg(priv, XLP9XX_I2C_MFIFOCTRL,
-			     thres << XLP9XX_I2C_MFIFOCTRL_HITH_SHIFT);
+						 thres << XLP9XX_I2C_MFIFOCTRL_HITH_SHIFT);
 }
 
 static void xlp9xx_i2c_fill_tx_fifo(struct xlp9xx_i2c_dev *priv)
@@ -132,8 +133,12 @@ static void xlp9xx_i2c_fill_tx_fifo(struct xlp9xx_i2c_dev *priv)
 	u8 *buf = priv->msg_buf;
 
 	len = min(priv->msg_buf_remaining, XLP9XX_I2C_FIFO_SIZE);
+
 	for (i = 0; i < len; i++)
+	{
 		xlp9xx_write_i2c_reg(priv, XLP9XX_I2C_MTXFIFO, buf[i]);
+	}
+
 	priv->msg_buf_remaining -= len;
 	priv->msg_buf += len;
 }
@@ -144,16 +149,21 @@ static void xlp9xx_i2c_drain_rx_fifo(struct xlp9xx_i2c_dev *priv)
 	u8 *buf = priv->msg_buf;
 
 	len = xlp9xx_read_i2c_reg(priv, XLP9XX_I2C_FIFOWCNT) &
-				  XLP9XX_I2C_FIFO_WCNT_MASK;
+		  XLP9XX_I2C_FIFO_WCNT_MASK;
 	len = min(priv->msg_buf_remaining, len);
+
 	for (i = 0; i < len; i++, buf++)
+	{
 		*buf = xlp9xx_read_i2c_reg(priv, XLP9XX_I2C_MRXFIFO);
+	}
 
 	priv->msg_buf_remaining -= len;
 	priv->msg_buf = buf;
 
 	if (priv->msg_buf_remaining)
+	{
 		xlp9xx_i2c_update_rx_fifo_thres(priv);
+	}
 }
 
 static irqreturn_t xlp9xx_i2c_isr(int irq, void *dev_id)
@@ -162,40 +172,58 @@ static irqreturn_t xlp9xx_i2c_isr(int irq, void *dev_id)
 	u32 status;
 
 	status = xlp9xx_read_i2c_reg(priv, XLP9XX_I2C_INTST);
+
 	if (status == 0)
+	{
 		return IRQ_NONE;
+	}
 
 	xlp9xx_write_i2c_reg(priv, XLP9XX_I2C_INTST, status);
-	if (status & XLP9XX_I2C_STATUS_ERRMASK) {
+
+	if (status & XLP9XX_I2C_STATUS_ERRMASK)
+	{
 		priv->msg_err = status;
 		goto xfer_done;
 	}
 
 	/* SADDR ACK for SMBUS_QUICK */
 	if ((status & XLP9XX_I2C_INTEN_SADDR) && (priv->msg_len == 0))
+	{
 		goto xfer_done;
+	}
 
-	if (!priv->msg_read) {
-		if (status & XLP9XX_I2C_INTEN_MFIFOEMTY) {
+	if (!priv->msg_read)
+	{
+		if (status & XLP9XX_I2C_INTEN_MFIFOEMTY)
+		{
 			/* TX FIFO got empty, fill it up again */
 			if (priv->msg_buf_remaining)
+			{
 				xlp9xx_i2c_fill_tx_fifo(priv);
+			}
 			else
 				xlp9xx_i2c_mask_irq(priv,
-						    XLP9XX_I2C_INTEN_MFIFOEMTY);
+									XLP9XX_I2C_INTEN_MFIFOEMTY);
 		}
-	} else {
+	}
+	else
+	{
 		if (status & (XLP9XX_I2C_INTEN_DATADONE |
-			      XLP9XX_I2C_INTEN_MFIFOHI)) {
+					  XLP9XX_I2C_INTEN_MFIFOHI))
+		{
 			/* data is in FIFO, read it */
 			if (priv->msg_buf_remaining)
+			{
 				xlp9xx_i2c_drain_rx_fifo(priv);
+			}
 		}
 	}
 
 	/* Transfer complete */
 	if (status & XLP9XX_I2C_INTEN_DATADONE)
+	{
 		goto xfer_done;
+	}
 
 	return IRQ_HANDLED;
 
@@ -217,7 +245,7 @@ static int xlp9xx_i2c_init(struct xlp9xx_i2c_dev *priv)
 	prescale = ((prescale - 8) / 5) - 1;
 	xlp9xx_write_i2c_reg(priv, XLP9XX_I2C_CTRL, XLP9XX_I2C_CTRL_RST);
 	xlp9xx_write_i2c_reg(priv, XLP9XX_I2C_CTRL, XLP9XX_I2C_CTRL_EN |
-			     XLP9XX_I2C_CTRL_MASTER);
+						 XLP9XX_I2C_CTRL_MASTER);
 	xlp9xx_write_i2c_reg(priv, XLP9XX_I2C_DIV, prescale);
 	xlp9xx_write_i2c_reg(priv, XLP9XX_I2C_INTEN, 0);
 
@@ -225,7 +253,7 @@ static int xlp9xx_i2c_init(struct xlp9xx_i2c_dev *priv)
 }
 
 static int xlp9xx_i2c_xfer_msg(struct xlp9xx_i2c_dev *priv, struct i2c_msg *msg,
-			       int last_msg)
+							   int last_msg)
 {
 	unsigned long timeleft;
 	u32 intr_mask, cmd, val;
@@ -238,73 +266,106 @@ static int xlp9xx_i2c_xfer_msg(struct xlp9xx_i2c_dev *priv, struct i2c_msg *msg,
 
 	/* Reset FIFO */
 	xlp9xx_write_i2c_reg(priv, XLP9XX_I2C_MFIFOCTRL,
-			     XLP9XX_I2C_MFIFOCTRL_RST);
+						 XLP9XX_I2C_MFIFOCTRL_RST);
 
 	/* set FIFO threshold if reading */
 	if (priv->msg_read)
+	{
 		xlp9xx_i2c_update_rx_fifo_thres(priv);
+	}
 
 	/* set slave addr */
 	xlp9xx_write_i2c_reg(priv, XLP9XX_I2C_SLAVEADDR,
-			     (msg->addr << XLP9XX_I2C_SLAVEADDR_ADDR_SHIFT) |
-			     (priv->msg_read ? XLP9XX_I2C_SLAVEADDR_RW : 0));
+						 (msg->addr << XLP9XX_I2C_SLAVEADDR_ADDR_SHIFT) |
+						 (priv->msg_read ? XLP9XX_I2C_SLAVEADDR_RW : 0));
 
 	/* Build control word for transfer */
 	val = xlp9xx_read_i2c_reg(priv, XLP9XX_I2C_CTRL);
+
 	if (!priv->msg_read)
+	{
 		val &= ~XLP9XX_I2C_CTRL_FIFORD;
+	}
 	else
-		val |= XLP9XX_I2C_CTRL_FIFORD;	/* read */
+	{
+		val |= XLP9XX_I2C_CTRL_FIFORD;    /* read */
+	}
 
 	if (msg->flags & I2C_M_TEN)
-		val |= XLP9XX_I2C_CTRL_ADDMODE;	/* 10-bit address mode*/
+	{
+		val |= XLP9XX_I2C_CTRL_ADDMODE;    /* 10-bit address mode*/
+	}
 	else
+	{
 		val &= ~XLP9XX_I2C_CTRL_ADDMODE;
+	}
 
 	/* set data length to be transferred */
 	val = (val & ~XLP9XX_I2C_CTRL_MCTLEN_MASK) |
-	      (msg->len << XLP9XX_I2C_CTRL_MCTLEN_SHIFT);
+		  (msg->len << XLP9XX_I2C_CTRL_MCTLEN_SHIFT);
 	xlp9xx_write_i2c_reg(priv, XLP9XX_I2C_CTRL, val);
 
 	/* fill fifo during tx */
 	if (!priv->msg_read)
+	{
 		xlp9xx_i2c_fill_tx_fifo(priv);
+	}
 
 	/* set interrupt mask */
 	intr_mask = (XLP9XX_I2C_INTEN_ARLOST | XLP9XX_I2C_INTEN_BUSERR |
-		     XLP9XX_I2C_INTEN_NACKADDR | XLP9XX_I2C_INTEN_DATADONE);
+				 XLP9XX_I2C_INTEN_NACKADDR | XLP9XX_I2C_INTEN_DATADONE);
 
-	if (priv->msg_read) {
+	if (priv->msg_read)
+	{
 		intr_mask |= XLP9XX_I2C_INTEN_MFIFOHI;
+
 		if (msg->len == 0)
+		{
 			intr_mask |= XLP9XX_I2C_INTEN_SADDR;
-	} else {
-		if (msg->len == 0)
-			intr_mask |= XLP9XX_I2C_INTEN_SADDR;
-		else
-			intr_mask |= XLP9XX_I2C_INTEN_MFIFOEMTY;
+		}
 	}
+	else
+	{
+		if (msg->len == 0)
+		{
+			intr_mask |= XLP9XX_I2C_INTEN_SADDR;
+		}
+		else
+		{
+			intr_mask |= XLP9XX_I2C_INTEN_MFIFOEMTY;
+		}
+	}
+
 	xlp9xx_i2c_unmask_irq(priv, intr_mask);
 
 	/* set cmd reg */
 	cmd = XLP9XX_I2C_CMD_START;
 	cmd |= (priv->msg_read ? XLP9XX_I2C_CMD_READ : XLP9XX_I2C_CMD_WRITE);
+
 	if (last_msg)
+	{
 		cmd |= XLP9XX_I2C_CMD_STOP;
+	}
 
 	xlp9xx_write_i2c_reg(priv, XLP9XX_I2C_CMD, cmd);
 
 	timeleft = msecs_to_jiffies(XLP9XX_I2C_TIMEOUT_MS);
 	timeleft = wait_for_completion_timeout(&priv->msg_complete, timeleft);
 
-	if (priv->msg_err) {
+	if (priv->msg_err)
+	{
 		dev_dbg(priv->dev, "transfer error %x!\n", priv->msg_err);
+
 		if (priv->msg_err & XLP9XX_I2C_INTEN_BUSERR)
+		{
 			xlp9xx_i2c_init(priv);
+		}
+
 		return -EIO;
 	}
 
-	if (timeleft == 0) {
+	if (timeleft == 0)
+	{
 		dev_dbg(priv->dev, "i2c transfer timed out!\n");
 		xlp9xx_i2c_init(priv);
 		return -ETIMEDOUT;
@@ -314,15 +375,19 @@ static int xlp9xx_i2c_xfer_msg(struct xlp9xx_i2c_dev *priv, struct i2c_msg *msg,
 }
 
 static int xlp9xx_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
-			   int num)
+						   int num)
 {
 	int i, ret;
 	struct xlp9xx_i2c_dev *priv = i2c_get_adapdata(adap);
 
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num; i++)
+	{
 		ret = xlp9xx_i2c_xfer_msg(priv, &msgs[i], i == num - 1);
+
 		if (ret != 0)
+		{
 			return ret;
+		}
 	}
 
 	return num;
@@ -331,29 +396,35 @@ static int xlp9xx_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
 static u32 xlp9xx_i2c_functionality(struct i2c_adapter *adapter)
 {
 	return I2C_FUNC_SMBUS_EMUL | I2C_FUNC_I2C |
-		I2C_FUNC_10BIT_ADDR;
+		   I2C_FUNC_10BIT_ADDR;
 }
 
-static struct i2c_algorithm xlp9xx_i2c_algo = {
+static struct i2c_algorithm xlp9xx_i2c_algo =
+{
 	.master_xfer = xlp9xx_i2c_xfer,
 	.functionality = xlp9xx_i2c_functionality,
 };
 
 static int xlp9xx_i2c_get_frequency(struct platform_device *pdev,
-				    struct xlp9xx_i2c_dev *priv)
+									struct xlp9xx_i2c_dev *priv)
 {
 	u32 freq;
 	int err;
 
 	err = device_property_read_u32(&pdev->dev, "clock-frequency", &freq);
-	if (err) {
+
+	if (err)
+	{
 		freq = XLP9XX_I2C_DEFAULT_FREQ;
 		dev_dbg(&pdev->dev, "using default frequency %u\n", freq);
-	} else if (freq == 0 || freq > XLP9XX_I2C_HIGH_FREQ) {
+	}
+	else if (freq == 0 || freq > XLP9XX_I2C_HIGH_FREQ)
+	{
 		dev_warn(&pdev->dev, "invalid frequency %u, using default\n",
-			 freq);
+				 freq);
 		freq = XLP9XX_I2C_DEFAULT_FREQ;
 	}
+
 	priv->clk_hz = freq;
 
 	return 0;
@@ -366,16 +437,24 @@ static int xlp9xx_i2c_probe(struct platform_device *pdev)
 	int err = 0;
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(priv->base))
+	{
 		return PTR_ERR(priv->base);
+	}
 
 	priv->irq = platform_get_irq(pdev, 0);
-	if (priv->irq <= 0) {
+
+	if (priv->irq <= 0)
+	{
 		dev_err(&pdev->dev, "invalid irq!\n");
 		return priv->irq;
 	}
@@ -384,8 +463,10 @@ static int xlp9xx_i2c_probe(struct platform_device *pdev)
 	xlp9xx_i2c_init(priv);
 
 	err = devm_request_irq(&pdev->dev, priv->irq, xlp9xx_i2c_isr, 0,
-			       pdev->name, priv);
-	if (err) {
+						   pdev->name, priv);
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "IRQ request failed!\n");
 		return err;
 	}
@@ -400,8 +481,11 @@ static int xlp9xx_i2c_probe(struct platform_device *pdev)
 	i2c_set_adapdata(&priv->adapter, priv);
 
 	err = i2c_add_adapter(&priv->adapter);
+
 	if (err)
+	{
 		return err;
+	}
 
 	platform_set_drvdata(pdev, priv);
 	dev_dbg(&pdev->dev, "I2C bus:%d added\n", priv->adapter.nr);
@@ -422,21 +506,24 @@ static int xlp9xx_i2c_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id xlp9xx_i2c_of_match[] = {
+static const struct of_device_id xlp9xx_i2c_of_match[] =
+{
 	{ .compatible = "netlogic,xlp980-i2c", },
 	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(of, xlp9xx_i2c_of_match);
 
 #ifdef CONFIG_ACPI
-static const struct acpi_device_id xlp9xx_i2c_acpi_ids[] = {
+static const struct acpi_device_id xlp9xx_i2c_acpi_ids[] =
+{
 	{"BRCM9007", 0},
 	{}
 };
 MODULE_DEVICE_TABLE(acpi, xlp9xx_i2c_acpi_ids);
 #endif
 
-static struct platform_driver xlp9xx_i2c_driver = {
+static struct platform_driver xlp9xx_i2c_driver =
+{
 	.probe = xlp9xx_i2c_probe,
 	.remove = xlp9xx_i2c_remove,
 	.driver = {

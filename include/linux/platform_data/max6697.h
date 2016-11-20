@@ -17,7 +17,8 @@
  * bit 0:    local temperature
  * bit 1..7: remote temperatures
  */
-struct max6697_platform_data {
+struct max6697_platform_data
+{
 	bool smbus_timeout_disable;	/* set to disable SMBus timeouts */
 	bool extended_range_enable;	/* set to enable extended temp range */
 	bool beta_compensation;		/* set to enable beta compensation */

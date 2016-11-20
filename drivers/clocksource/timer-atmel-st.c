@@ -46,12 +46,20 @@ static inline unsigned long read_CRTR(void)
 	unsigned int x1, x2;
 
 	regmap_read(regmap_st, AT91_ST_CRTR, &x1);
-	do {
+
+	do
+	{
 		regmap_read(regmap_st, AT91_ST_CRTR, &x2);
+
 		if (x1 == x2)
+		{
 			break;
+		}
+
 		x1 = x2;
-	} while (1);
+	}
+	while (1);
+
 	return x1;
 }
 
@@ -72,19 +80,23 @@ static irqreturn_t at91rm9200_timer_interrupt(int irq, void *dev_id)
 	WARN_ON_ONCE(!irqs_disabled());
 
 	/* simulate "oneshot" timer with alarm */
-	if (sr & AT91_ST_ALMS) {
+	if (sr & AT91_ST_ALMS)
+	{
 		clkevt.event_handler(&clkevt);
 		return IRQ_HANDLED;
 	}
 
 	/* periodic mode should handle delayed ticks */
-	if (sr & AT91_ST_PITS) {
+	if (sr & AT91_ST_PITS)
+	{
 		u32	crtr = read_CRTR();
 
-		while (((crtr - last_crtr) & AT91_ST_CRTV) >= timer_latch) {
+		while (((crtr - last_crtr) & AT91_ST_CRTV) >= timer_latch)
+		{
 			last_crtr += timer_latch;
 			clkevt.event_handler(&clkevt);
 		}
+
 		return IRQ_HANDLED;
 	}
 
@@ -97,7 +109,8 @@ static cycle_t read_clk32k(struct clocksource *cs)
 	return read_CRTR();
 }
 
-static struct clocksource clk32k = {
+static struct clocksource clk32k =
+{
 	.name		= "32k_counter",
 	.rating		= 150,
 	.read		= read_clk32k,
@@ -179,10 +192,11 @@ clkevt32k_next_event(unsigned long delta, struct clock_event_device *dev)
 	return status;
 }
 
-static struct clock_event_device clkevt = {
+static struct clock_event_device clkevt =
+{
 	.name			= "at91_tick",
 	.features		= CLOCK_EVT_FEAT_PERIODIC |
-				  CLOCK_EVT_FEAT_ONESHOT,
+	CLOCK_EVT_FEAT_ONESHOT,
 	.rating			= 150,
 	.set_next_event		= clkevt32k_next_event,
 	.set_state_shutdown	= clkevt32k_shutdown,
@@ -201,49 +215,62 @@ static int __init atmel_st_timer_init(struct device_node *node)
 	int irq, ret;
 
 	regmap_st = syscon_node_to_regmap(node);
-	if (IS_ERR(regmap_st)) {
+
+	if (IS_ERR(regmap_st))
+	{
 		pr_err("Unable to get regmap\n");
 		return PTR_ERR(regmap_st);
 	}
 
 	/* Disable all timer interrupts, and clear any pending ones */
 	regmap_write(regmap_st, AT91_ST_IDR,
-		AT91_ST_PITS | AT91_ST_WDOVF | AT91_ST_RTTINC | AT91_ST_ALMS);
+				 AT91_ST_PITS | AT91_ST_WDOVF | AT91_ST_RTTINC | AT91_ST_ALMS);
 	regmap_read(regmap_st, AT91_ST_SR, &val);
 
 	/* Get the interrupts property */
 	irq  = irq_of_parse_and_map(node, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		pr_err("Unable to get IRQ from DT\n");
 		return -EINVAL;
 	}
 
 	/* Make IRQs happen for the system timer */
 	ret = request_irq(irq, at91rm9200_timer_interrupt,
-			  IRQF_SHARED | IRQF_TIMER | IRQF_IRQPOLL,
-			  "at91_tick", regmap_st);
-	if (ret) {
+					  IRQF_SHARED | IRQF_TIMER | IRQF_IRQPOLL,
+					  "at91_tick", regmap_st);
+
+	if (ret)
+	{
 		pr_err("Unable to setup IRQ\n");
 		return ret;
 	}
 
 	sclk = of_clk_get(node, 0);
-	if (IS_ERR(sclk)) {
+
+	if (IS_ERR(sclk))
+	{
 		pr_err("Unable to get slow clock\n");
 		return PTR_ERR(sclk);
 	}
 
 	ret = clk_prepare_enable(sclk);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Could not enable slow clock\n");
 		return ret;
 	}
 
 	sclk_rate = clk_get_rate(sclk);
-	if (!sclk_rate) {
+
+	if (!sclk_rate)
+	{
 		pr_err("Invalid slow clock rate\n");
 		return -EINVAL;
 	}
+
 	timer_latch = (sclk_rate + HZ / 2) / HZ;
 
 	/* The 32KiHz "Slow Clock" (tick every 30517.58 nanoseconds) is used
@@ -255,10 +282,10 @@ static int __init atmel_st_timer_init(struct device_node *node)
 	/* Setup timer clockevent, with minimum of two ticks (important!!) */
 	clkevt.cpumask = cpumask_of(0);
 	clockevents_config_and_register(&clkevt, sclk_rate,
-					2, AT91_ST_ALMV);
+									2, AT91_ST_ALMV);
 
 	/* register clocksource */
 	return clocksource_register_hz(&clk32k, sclk_rate);
 }
 CLOCKSOURCE_OF_DECLARE(atmel_st_timer, "atmel,at91rm9200-st",
-		       atmel_st_timer_init);
+					   atmel_st_timer_init);

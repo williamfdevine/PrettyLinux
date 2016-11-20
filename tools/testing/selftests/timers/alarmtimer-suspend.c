@@ -67,30 +67,42 @@ struct timespec start_time;
 
 char *clockstring(int clockid)
 {
-	switch (clockid) {
-	case CLOCK_REALTIME:
-		return "CLOCK_REALTIME";
-	case CLOCK_MONOTONIC:
-		return "CLOCK_MONOTONIC";
-	case CLOCK_PROCESS_CPUTIME_ID:
-		return "CLOCK_PROCESS_CPUTIME_ID";
-	case CLOCK_THREAD_CPUTIME_ID:
-		return "CLOCK_THREAD_CPUTIME_ID";
-	case CLOCK_MONOTONIC_RAW:
-		return "CLOCK_MONOTONIC_RAW";
-	case CLOCK_REALTIME_COARSE:
-		return "CLOCK_REALTIME_COARSE";
-	case CLOCK_MONOTONIC_COARSE:
-		return "CLOCK_MONOTONIC_COARSE";
-	case CLOCK_BOOTTIME:
-		return "CLOCK_BOOTTIME";
-	case CLOCK_REALTIME_ALARM:
-		return "CLOCK_REALTIME_ALARM";
-	case CLOCK_BOOTTIME_ALARM:
-		return "CLOCK_BOOTTIME_ALARM";
-	case CLOCK_TAI:
-		return "CLOCK_TAI";
+	switch (clockid)
+	{
+		case CLOCK_REALTIME:
+			return "CLOCK_REALTIME";
+
+		case CLOCK_MONOTONIC:
+			return "CLOCK_MONOTONIC";
+
+		case CLOCK_PROCESS_CPUTIME_ID:
+			return "CLOCK_PROCESS_CPUTIME_ID";
+
+		case CLOCK_THREAD_CPUTIME_ID:
+			return "CLOCK_THREAD_CPUTIME_ID";
+
+		case CLOCK_MONOTONIC_RAW:
+			return "CLOCK_MONOTONIC_RAW";
+
+		case CLOCK_REALTIME_COARSE:
+			return "CLOCK_REALTIME_COARSE";
+
+		case CLOCK_MONOTONIC_COARSE:
+			return "CLOCK_MONOTONIC_COARSE";
+
+		case CLOCK_BOOTTIME:
+			return "CLOCK_BOOTTIME";
+
+		case CLOCK_REALTIME_ALARM:
+			return "CLOCK_REALTIME_ALARM";
+
+		case CLOCK_BOOTTIME_ALARM:
+			return "CLOCK_BOOTTIME_ALARM";
+
+		case CLOCK_TAI:
+			return "CLOCK_TAI";
 	};
+
 	return "UNKNOWN_CLOCKID";
 }
 
@@ -117,13 +129,17 @@ void sigalarm(int signo)
 	delta_ns -= NSEC_PER_SEC * SUSPEND_SECS * alarmcount;
 
 	printf("ALARM(%i): %ld:%ld latency: %lld ns ", alarmcount, ts.tv_sec,
-							ts.tv_nsec, delta_ns);
+		   ts.tv_nsec, delta_ns);
 
-	if (delta_ns > UNREASONABLE_LAT) {
+	if (delta_ns > UNREASONABLE_LAT)
+	{
 		printf("[FAIL]\n");
 		final_ret = -1;
-	} else
+	}
+	else
+	{
 		printf("[OK]\n");
+	}
 
 }
 
@@ -148,19 +164,22 @@ int main(void)
 	se.sigev_value.sival_int = 0;
 
 	for (alarm_clock_id = CLOCK_REALTIME_ALARM;
-			alarm_clock_id <= CLOCK_BOOTTIME_ALARM;
-			alarm_clock_id++) {
+		 alarm_clock_id <= CLOCK_BOOTTIME_ALARM;
+		 alarm_clock_id++)
+	{
 
 		alarmcount = 0;
-		if (timer_create(alarm_clock_id, &se, &tm1) == -1) {
+
+		if (timer_create(alarm_clock_id, &se, &tm1) == -1)
+		{
 			printf("timer_create failed, %s unsupported?\n",
-					clockstring(alarm_clock_id));
+				   clockstring(alarm_clock_id));
 			break;
 		}
 
 		clock_gettime(alarm_clock_id, &start_time);
 		printf("Start time (%s): %ld:%ld\n", clockstring(alarm_clock_id),
-				start_time.tv_sec, start_time.tv_nsec);
+			   start_time.tv_sec, start_time.tv_nsec);
 		printf("Setting alarm for every %i seconds\n", SUSPEND_SECS);
 		its1.it_value = start_time;
 		its1.it_value.tv_sec += SUSPEND_SECS;
@@ -170,20 +189,32 @@ int main(void)
 		timer_settime(tm1, TIMER_ABSTIME, &its1, &its2);
 
 		while (alarmcount < 5)
-			sleep(1); /* First 5 alarms, do nothing */
+		{
+			sleep(1);    /* First 5 alarms, do nothing */
+		}
 
 		printf("Starting suspend loops\n");
-		while (alarmcount < 10) {
+
+		while (alarmcount < 10)
+		{
 			int ret;
 
 			sleep(3);
 			ret = system("echo mem > /sys/power/state");
+
 			if (ret)
+			{
 				break;
+			}
 		}
+
 		timer_delete(tm1);
 	}
+
 	if (final_ret)
+	{
 		return ksft_exit_fail();
+	}
+
 	return ksft_exit_pass();
 }

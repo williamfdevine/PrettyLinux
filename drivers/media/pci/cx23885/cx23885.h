@@ -125,12 +125,13 @@
 
 /* Currently unsupported by the driver: PAL/H, NTSC/Kr, SECAM B/G/H/LC */
 #define CX23885_NORMS (\
-	V4L2_STD_NTSC_M |  V4L2_STD_NTSC_M_JP |  V4L2_STD_NTSC_443 | \
-	V4L2_STD_PAL_BG |  V4L2_STD_PAL_DK    |  V4L2_STD_PAL_I    | \
-	V4L2_STD_PAL_M  |  V4L2_STD_PAL_N     |  V4L2_STD_PAL_Nc   | \
-	V4L2_STD_PAL_60 |  V4L2_STD_SECAM_L   |  V4L2_STD_SECAM_DK)
+					   V4L2_STD_NTSC_M |  V4L2_STD_NTSC_M_JP |  V4L2_STD_NTSC_443 | \
+					   V4L2_STD_PAL_BG |  V4L2_STD_PAL_DK    |  V4L2_STD_PAL_I    | \
+					   V4L2_STD_PAL_M  |  V4L2_STD_PAL_N     |  V4L2_STD_PAL_Nc   | \
+					   V4L2_STD_PAL_60 |  V4L2_STD_SECAM_L   |  V4L2_STD_SECAM_DK)
 
-struct cx23885_fmt {
+struct cx23885_fmt
+{
 	char  *name;
 	u32   fourcc;          /* v4l2 format id */
 	int   depth;
@@ -138,14 +139,16 @@ struct cx23885_fmt {
 	u32   cxformat;
 };
 
-struct cx23885_tvnorm {
+struct cx23885_tvnorm
+{
 	char		*name;
 	v4l2_std_id	id;
 	u32		cxiformat;
 	u32		cxoformat;
 };
 
-enum cx23885_itype {
+enum cx23885_itype
+{
 	CX23885_VMUX_COMPOSITE1 = 1,
 	CX23885_VMUX_COMPOSITE2,
 	CX23885_VMUX_COMPOSITE3,
@@ -159,12 +162,14 @@ enum cx23885_itype {
 	CX23885_RADIO,
 };
 
-enum cx23885_src_sel_type {
+enum cx23885_src_sel_type
+{
 	CX23885_SRC_SEL_EXT_656_VIDEO = 0,
 	CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO
 };
 
-struct cx23885_riscmem {
+struct cx23885_riscmem
+{
 	unsigned int   size;
 	__le32         *cpu;
 	__le32         *jmp;
@@ -172,7 +177,8 @@ struct cx23885_riscmem {
 };
 
 /* buffer for one video frame */
-struct cx23885_buffer {
+struct cx23885_buffer
+{
 	/* common v4l buffer stuff -- must be first */
 	struct vb2_v4l2_buffer vb;
 	struct list_head queue;
@@ -184,21 +190,24 @@ struct cx23885_buffer {
 	u32                    count;
 };
 
-struct cx23885_input {
+struct cx23885_input
+{
 	enum cx23885_itype type;
 	unsigned int    vmux;
 	unsigned int    amux;
 	u32             gpio0, gpio1, gpio2, gpio3;
 };
 
-typedef enum {
+typedef enum
+{
 	CX23885_MPEG_UNDEFINED = 0,
 	CX23885_MPEG_DVB,
 	CX23885_ANALOG_VIDEO,
 	CX23885_MPEG_ENCODER,
 } port_t;
 
-struct cx23885_board {
+struct cx23885_board
+{
 	char                    *name;
 	port_t			porta, portb, portc;
 	int		num_fds_portb, num_fds_portc;
@@ -224,13 +233,15 @@ struct cx23885_board {
 	u32                     force_bff;
 };
 
-struct cx23885_subid {
+struct cx23885_subid
+{
 	u16     subvendor;
 	u16     subdevice;
 	u32     card;
 };
 
-struct cx23885_i2c {
+struct cx23885_i2c
+{
 	struct cx23885_dev *dev;
 
 	int                        nr;
@@ -249,12 +260,14 @@ struct cx23885_i2c {
 	u32                        reg_wdata;
 };
 
-struct cx23885_dmaqueue {
+struct cx23885_dmaqueue
+{
 	struct list_head       active;
 	u32                    count;
 };
 
-struct cx23885_tsport {
+struct cx23885_tsport
+{
 	struct cx23885_dev *dev;
 
 	unsigned                   nr;
@@ -313,10 +326,11 @@ struct cx23885_tsport {
 
 	int (*set_frontend)(struct dvb_frontend *fe);
 	int (*fe_set_voltage)(struct dvb_frontend *fe,
-			      enum fe_sec_voltage voltage);
+						  enum fe_sec_voltage voltage);
 };
 
-struct cx23885_kernel_ir {
+struct cx23885_kernel_ir
+{
 	struct cx23885_dev	*cx;
 	char			*name;
 	char			*phys;
@@ -324,7 +338,8 @@ struct cx23885_kernel_ir {
 	struct rc_dev		*rc;
 };
 
-struct cx23885_audio_buffer {
+struct cx23885_audio_buffer
+{
 	unsigned int		bpl;
 	struct cx23885_riscmem	risc;
 	void			*vaddr;
@@ -333,7 +348,8 @@ struct cx23885_audio_buffer {
 	int                     nr_pages;
 };
 
-struct cx23885_audio_dev {
+struct cx23885_audio_dev
+{
 	struct cx23885_dev	*dev;
 
 	struct pci_dev		*pci;
@@ -353,7 +369,8 @@ struct cx23885_audio_dev {
 	struct snd_pcm_substream *substream;
 };
 
-struct cx23885_dev {
+struct cx23885_dev
+{
 	atomic_t                   refcount;
 	struct v4l2_device 	   v4l2_dev;
 	struct v4l2_ctrl_handler   ctrl_handler;
@@ -388,7 +405,8 @@ struct cx23885_dev {
 	/* sram configuration */
 	struct sram_channel        *sram_channels;
 
-	enum {
+	enum
+	{
 		CX23885_BRIDGE_UNDEFINED = 0,
 		CX23885_BRIDGE_885 = 885,
 		CX23885_BRIDGE_887 = 887,
@@ -479,7 +497,8 @@ extern struct v4l2_subdev *cx23885_find_hw(struct cx23885_dev *dev, u32 hw);
 #define SRAM_CH14 13 /* MOE Vid */
 #define SRAM_CH15 14 /* MOE RSLT */
 
-struct sram_channel {
+struct sram_channel
+{
 	char *name;
 	u32  cmds_start;
 	u32  ctrl_start;
@@ -499,8 +518,8 @@ struct sram_channel {
 #define cx_write(reg, value)     writel((value), dev->lmmio + ((reg)>>2))
 
 #define cx_andor(reg, mask, value) \
-  writel((readl(dev->lmmio+((reg)>>2)) & ~(mask)) |\
-  ((value) & (mask)), dev->lmmio+((reg)>>2))
+	writel((readl(dev->lmmio+((reg)>>2)) & ~(mask)) |\
+		   ((value) & (mask)), dev->lmmio+((reg)>>2))
 
 #define cx_set(reg, bit)          cx_andor((reg), (bit), (bit))
 #define cx_clear(reg, bit)        cx_andor((reg), (bit), 0)
@@ -509,25 +528,25 @@ struct sram_channel {
 /* cx23885-core.c                                              */
 
 extern int cx23885_sram_channel_setup(struct cx23885_dev *dev,
-	struct sram_channel *ch,
-	unsigned int bpl, u32 risc);
+									  struct sram_channel *ch,
+									  unsigned int bpl, u32 risc);
 
 extern void cx23885_sram_channel_dump(struct cx23885_dev *dev,
-	struct sram_channel *ch);
+									  struct sram_channel *ch);
 
 extern int cx23885_risc_buffer(struct pci_dev *pci, struct cx23885_riscmem *risc,
-	struct scatterlist *sglist,
-	unsigned int top_offset, unsigned int bottom_offset,
-	unsigned int bpl, unsigned int padding, unsigned int lines);
+							   struct scatterlist *sglist,
+							   unsigned int top_offset, unsigned int bottom_offset,
+							   unsigned int bpl, unsigned int padding, unsigned int lines);
 
 extern int cx23885_risc_vbibuffer(struct pci_dev *pci,
-	struct cx23885_riscmem *risc, struct scatterlist *sglist,
-	unsigned int top_offset, unsigned int bottom_offset,
-	unsigned int bpl, unsigned int padding, unsigned int lines);
+								  struct cx23885_riscmem *risc, struct scatterlist *sglist,
+								  unsigned int top_offset, unsigned int bottom_offset,
+								  unsigned int bpl, unsigned int padding, unsigned int lines);
 
 int cx23885_start_dma(struct cx23885_tsport *port,
-			     struct cx23885_dmaqueue *q,
-			     struct cx23885_buffer   *buf);
+					  struct cx23885_dmaqueue *q,
+					  struct cx23885_buffer   *buf);
 void cx23885_cancel_buffers(struct cx23885_tsport *port);
 
 
@@ -535,7 +554,7 @@ extern void cx23885_gpio_set(struct cx23885_dev *dev, u32 mask);
 extern void cx23885_gpio_clear(struct cx23885_dev *dev, u32 mask);
 extern u32 cx23885_gpio_get(struct cx23885_dev *dev, u32 mask);
 extern void cx23885_gpio_enable(struct cx23885_dev *dev, u32 mask,
-	int asoutput);
+								int asoutput);
 
 extern void cx23885_irq_add_enable(struct cx23885_dev *dev, u32 mask);
 extern void cx23885_irq_enable(struct cx23885_dev *dev, u32 mask);
@@ -551,7 +570,7 @@ extern struct cx23885_subid cx23885_subids[];
 extern const unsigned int cx23885_idcount;
 
 extern int cx23885_tuner_callback(void *priv, int component,
-	int command, int arg);
+								  int command, int arg);
 extern void cx23885_card_list(struct cx23885_dev *dev);
 extern int  cx23885_ir_init(struct cx23885_dev *dev);
 extern void cx23885_ir_pci_int_enable(struct cx23885_dev *dev);
@@ -564,11 +583,11 @@ extern int cx23885_dvb_register(struct cx23885_tsport *port);
 extern int cx23885_dvb_unregister(struct cx23885_tsport *port);
 
 extern int cx23885_buf_prepare(struct cx23885_buffer *buf,
-			       struct cx23885_tsport *port);
+							   struct cx23885_tsport *port);
 extern void cx23885_buf_queue(struct cx23885_tsport *port,
-			      struct cx23885_buffer *buf);
+							  struct cx23885_buffer *buf);
 extern void cx23885_free_buffer(struct cx23885_dev *dev,
-				struct cx23885_buffer *buf);
+								struct cx23885_buffer *buf);
 
 /* ----------------------------------------------------------- */
 /* cx23885-video.c                                             */
@@ -577,7 +596,7 @@ extern int cx23885_video_register(struct cx23885_dev *dev);
 extern void cx23885_video_unregister(struct cx23885_dev *dev);
 extern int cx23885_video_irq(struct cx23885_dev *dev, u32 status);
 extern void cx23885_video_wakeup(struct cx23885_dev *dev,
-	struct cx23885_dmaqueue *q, u32 count);
+								 struct cx23885_dmaqueue *q, u32 count);
 int cx23885_enum_input(struct cx23885_dev *dev, struct v4l2_input *i);
 int cx23885_set_input(struct file *file, void *priv, unsigned int i);
 int cx23885_get_input(struct file *file, void *priv, unsigned int *i);
@@ -587,7 +606,7 @@ int cx23885_set_tvnorm(struct cx23885_dev *dev, v4l2_std_id norm);
 /* ----------------------------------------------------------- */
 /* cx23885-vbi.c                                               */
 extern int cx23885_vbi_fmt(struct file *file, void *priv,
-	struct v4l2_format *f);
+						   struct v4l2_format *f);
 extern void cx23885_vbi_timeout(unsigned long data);
 extern struct vb2_ops cx23885_vbi_qops;
 extern int cx23885_vbi_irq(struct cx23885_dev *dev, u32 status);
@@ -607,9 +626,9 @@ extern void cx23885_mc417_init(struct cx23885_dev *dev);
 extern int mc417_memory_read(struct cx23885_dev *dev, u32 address, u32 *value);
 extern int mc417_memory_write(struct cx23885_dev *dev, u32 address, u32 value);
 extern int mc417_register_read(struct cx23885_dev *dev,
-				u16 address, u32 *value);
+							   u16 address, u32 *value);
 extern int mc417_register_write(struct cx23885_dev *dev,
-				u16 address, u32 value);
+								u16 address, u32 value);
 extern void mc417_gpio_set(struct cx23885_dev *dev, u32 mask);
 extern void mc417_gpio_clear(struct cx23885_dev *dev, u32 mask);
 extern void mc417_gpio_enable(struct cx23885_dev *dev, u32 mask, int asoutput);
@@ -617,15 +636,15 @@ extern void mc417_gpio_enable(struct cx23885_dev *dev, u32 mask, int asoutput);
 /* ----------------------------------------------------------- */
 /* cx23885-alsa.c                                             */
 extern struct cx23885_audio_dev *cx23885_audio_register(
-					struct cx23885_dev *dev);
+	struct cx23885_dev *dev);
 extern void cx23885_audio_unregister(struct cx23885_dev *dev);
 extern int cx23885_audio_irq(struct cx23885_dev *dev, u32 status, u32 mask);
 extern int cx23885_risc_databuffer(struct pci_dev *pci,
-				   struct cx23885_riscmem *risc,
-				   struct scatterlist *sglist,
-				   unsigned int bpl,
-				   unsigned int lines,
-				   unsigned int lpi);
+								   struct cx23885_riscmem *risc,
+								   struct scatterlist *sglist,
+								   unsigned int bpl,
+								   unsigned int lines,
+								   unsigned int lpi);
 
 /* ----------------------------------------------------------- */
 /* tv norms                                                    */

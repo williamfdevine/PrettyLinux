@@ -51,7 +51,7 @@ MODULE_VERSION(QEDR_MODULE_VERSION);
 #define QEDR_WQ_MULTIPLIER_DFT	(3)
 
 void qedr_ib_dispatch_event(struct qedr_dev *dev, u8 port_num,
-			    enum ib_event_type type)
+							enum ib_event_type type)
 {
 	struct ib_event ibev;
 
@@ -63,20 +63,20 @@ void qedr_ib_dispatch_event(struct qedr_dev *dev, u8 port_num,
 }
 
 static enum rdma_link_layer qedr_link_layer(struct ib_device *device,
-					    u8 port_num)
+		u8 port_num)
 {
 	return IB_LINK_LAYER_ETHERNET;
 }
 
 static void qedr_get_dev_fw_str(struct ib_device *ibdev, char *str,
-				size_t str_len)
+								size_t str_len)
 {
 	struct qedr_dev *qedr = get_qedr_dev(ibdev);
 	u32 fw_ver = (u32)qedr->attr.fw_ver;
 
 	snprintf(str, str_len, "%d. %d. %d. %d",
-		 (fw_ver >> 24) & 0xFF, (fw_ver >> 16) & 0xFF,
-		 (fw_ver >> 8) & 0xFF, fw_ver & 0xFF);
+			 (fw_ver >> 24) & 0xFF, (fw_ver >> 16) & 0xFF,
+			 (fw_ver >> 8) & 0xFF, fw_ver & 0xFF);
 }
 
 static struct net_device *qedr_get_netdev(struct ib_device *dev, u8 port_num)
@@ -103,24 +103,24 @@ static int qedr_register_device(struct qedr_dev *dev)
 	dev->ibdev.uverbs_abi_ver = QEDR_ABI_VERSION;
 
 	dev->ibdev.uverbs_cmd_mask = QEDR_UVERBS(GET_CONTEXT) |
-				     QEDR_UVERBS(QUERY_DEVICE) |
-				     QEDR_UVERBS(QUERY_PORT) |
-				     QEDR_UVERBS(ALLOC_PD) |
-				     QEDR_UVERBS(DEALLOC_PD) |
-				     QEDR_UVERBS(CREATE_COMP_CHANNEL) |
-				     QEDR_UVERBS(CREATE_CQ) |
-				     QEDR_UVERBS(RESIZE_CQ) |
-				     QEDR_UVERBS(DESTROY_CQ) |
-				     QEDR_UVERBS(REQ_NOTIFY_CQ) |
-				     QEDR_UVERBS(CREATE_QP) |
-				     QEDR_UVERBS(MODIFY_QP) |
-				     QEDR_UVERBS(QUERY_QP) |
-				     QEDR_UVERBS(DESTROY_QP) |
-				     QEDR_UVERBS(REG_MR) |
-				     QEDR_UVERBS(DEREG_MR) |
-				     QEDR_UVERBS(POLL_CQ) |
-				     QEDR_UVERBS(POST_SEND) |
-				     QEDR_UVERBS(POST_RECV);
+								 QEDR_UVERBS(QUERY_DEVICE) |
+								 QEDR_UVERBS(QUERY_PORT) |
+								 QEDR_UVERBS(ALLOC_PD) |
+								 QEDR_UVERBS(DEALLOC_PD) |
+								 QEDR_UVERBS(CREATE_COMP_CHANNEL) |
+								 QEDR_UVERBS(CREATE_CQ) |
+								 QEDR_UVERBS(RESIZE_CQ) |
+								 QEDR_UVERBS(DESTROY_CQ) |
+								 QEDR_UVERBS(REQ_NOTIFY_CQ) |
+								 QEDR_UVERBS(CREATE_QP) |
+								 QEDR_UVERBS(MODIFY_QP) |
+								 QEDR_UVERBS(QUERY_QP) |
+								 QEDR_UVERBS(DESTROY_QP) |
+								 QEDR_UVERBS(REG_MR) |
+								 QEDR_UVERBS(DEREG_MR) |
+								 QEDR_UVERBS(POLL_CQ) |
+								 QEDR_UVERBS(POST_SEND) |
+								 QEDR_UVERBS(POST_RECV);
 
 	dev->ibdev.phys_port_cnt = 1;
 	dev->ibdev.num_comp_vectors = dev->num_cnq;
@@ -180,24 +180,29 @@ static int qedr_register_device(struct qedr_dev *dev)
 
 /* This function allocates fast-path status block memory */
 static int qedr_alloc_mem_sb(struct qedr_dev *dev,
-			     struct qed_sb_info *sb_info, u16 sb_id)
+							 struct qed_sb_info *sb_info, u16 sb_id)
 {
 	struct status_block *sb_virt;
 	dma_addr_t sb_phys;
 	int rc;
 
 	sb_virt = dma_alloc_coherent(&dev->pdev->dev,
-				     sizeof(*sb_virt), &sb_phys, GFP_KERNEL);
+								 sizeof(*sb_virt), &sb_phys, GFP_KERNEL);
+
 	if (!sb_virt)
+	{
 		return -ENOMEM;
+	}
 
 	rc = dev->ops->common->sb_init(dev->cdev, sb_info,
-				       sb_virt, sb_phys, sb_id,
-				       QED_SB_TYPE_CNQ);
-	if (rc) {
+								   sb_virt, sb_phys, sb_id,
+								   QED_SB_TYPE_CNQ);
+
+	if (rc)
+	{
 		pr_err("Status block initialization failed\n");
 		dma_free_coherent(&dev->pdev->dev, sizeof(*sb_virt),
-				  sb_virt, sb_phys);
+						  sb_virt, sb_phys);
 		return rc;
 	}
 
@@ -205,12 +210,13 @@ static int qedr_alloc_mem_sb(struct qedr_dev *dev,
 }
 
 static void qedr_free_mem_sb(struct qedr_dev *dev,
-			     struct qed_sb_info *sb_info, int sb_id)
+							 struct qed_sb_info *sb_info, int sb_id)
 {
-	if (sb_info->sb_virt) {
+	if (sb_info->sb_virt)
+	{
 		dev->ops->common->sb_release(dev->cdev, sb_info, sb_id);
 		dma_free_coherent(&dev->pdev->dev, sizeof(*sb_info->sb_virt),
-				  (void *)sb_info->sb_virt, sb_info->sb_phys);
+						  (void *)sb_info->sb_virt, sb_info->sb_phys);
 	}
 }
 
@@ -218,7 +224,8 @@ static void qedr_free_resources(struct qedr_dev *dev)
 {
 	int i;
 
-	for (i = 0; i < dev->num_cnq; i++) {
+	for (i = 0; i < dev->num_cnq; i++)
+	{
 		qedr_free_mem_sb(dev, &dev->sb_array[i], dev->sb_start + i);
 		dev->ops->common->chain_free(dev->cdev, &dev->cnq_array[i].pbl);
 	}
@@ -236,23 +243,30 @@ static int qedr_alloc_resources(struct qedr_dev *dev)
 	int i, rc;
 
 	dev->sgid_tbl = kzalloc(sizeof(union ib_gid) *
-				QEDR_MAX_SGID, GFP_KERNEL);
+							QEDR_MAX_SGID, GFP_KERNEL);
+
 	if (!dev->sgid_tbl)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&dev->sgid_lock);
 
 	/* Allocate Status blocks for CNQ */
 	dev->sb_array = kcalloc(dev->num_cnq, sizeof(*dev->sb_array),
-				GFP_KERNEL);
-	if (!dev->sb_array) {
+							GFP_KERNEL);
+
+	if (!dev->sb_array)
+	{
 		rc = -ENOMEM;
 		goto err1;
 	}
 
 	dev->cnq_array = kcalloc(dev->num_cnq,
-				 sizeof(*dev->cnq_array), GFP_KERNEL);
-	if (!dev->cnq_array) {
+							 sizeof(*dev->cnq_array), GFP_KERNEL);
+
+	if (!dev->cnq_array)
+	{
 		rc = -ENOMEM;
 		goto err2;
 	}
@@ -261,23 +275,31 @@ static int qedr_alloc_resources(struct qedr_dev *dev)
 
 	/* Allocate CNQ PBLs */
 	n_entries = min_t(u32, QED_RDMA_MAX_CNQ_SIZE, QEDR_ROCE_MAX_CNQ_SIZE);
-	for (i = 0; i < dev->num_cnq; i++) {
+
+	for (i = 0; i < dev->num_cnq; i++)
+	{
 		cnq = &dev->cnq_array[i];
 
 		rc = qedr_alloc_mem_sb(dev, &dev->sb_array[i],
-				       dev->sb_start + i);
+							   dev->sb_start + i);
+
 		if (rc)
+		{
 			goto err3;
+		}
 
 		rc = dev->ops->common->chain_alloc(dev->cdev,
-						   QED_CHAIN_USE_TO_CONSUME,
-						   QED_CHAIN_MODE_PBL,
-						   QED_CHAIN_CNT_TYPE_U16,
-						   n_entries,
-						   sizeof(struct regpair *),
-						   &cnq->pbl);
+										   QED_CHAIN_USE_TO_CONSUME,
+										   QED_CHAIN_MODE_PBL,
+										   QED_CHAIN_CNT_TYPE_U16,
+										   n_entries,
+										   sizeof(struct regpair *),
+										   &cnq->pbl);
+
 		if (rc)
+		{
 			goto err4;
+		}
 
 		cnq->dev = dev;
 		cnq->sb = &dev->sb_array[i];
@@ -287,17 +309,20 @@ static int qedr_alloc_resources(struct qedr_dev *dev)
 		sprintf(cnq->name, "qedr%d@pci:%s", i, pci_name(dev->pdev));
 
 		DP_DEBUG(dev, QEDR_MSG_INIT, "cnq[%d].cons=%d\n",
-			 i, qed_chain_get_cons_idx(&cnq->pbl));
+				 i, qed_chain_get_cons_idx(&cnq->pbl));
 	}
 
 	return 0;
 err4:
 	qedr_free_mem_sb(dev, &dev->sb_array[i], dev->sb_start + i);
 err3:
-	for (--i; i >= 0; i--) {
+
+	for (--i; i >= 0; i--)
+	{
 		dev->ops->common->chain_free(dev->cdev, &dev->cnq_array[i].pbl);
 		qedr_free_mem_sb(dev, &dev->sb_array[i], dev->sb_start + i);
 	}
+
 	kfree(dev->cnq_array);
 err2:
 	kfree(dev->sb_array);
@@ -308,7 +333,7 @@ err1:
 
 /* QEDR sysfs interface */
 static ssize_t show_rev(struct device *device, struct device_attribute *attr,
-			char *buf)
+						char *buf)
 {
 	struct qedr_dev *dev = dev_get_drvdata(device);
 
@@ -316,7 +341,7 @@ static ssize_t show_rev(struct device *device, struct device_attribute *attr,
 }
 
 static ssize_t show_hca_type(struct device *device,
-			     struct device_attribute *attr, char *buf)
+							 struct device_attribute *attr, char *buf)
 {
 	return scnprintf(buf, PAGE_SIZE, "%s\n", "HCA_TYPE_TO_SET");
 }
@@ -324,7 +349,8 @@ static ssize_t show_hca_type(struct device *device,
 static DEVICE_ATTR(hw_rev, S_IRUGO, show_rev, NULL);
 static DEVICE_ATTR(hca_type, S_IRUGO, show_hca_type, NULL);
 
-static struct device_attribute *qedr_attributes[] = {
+static struct device_attribute *qedr_attributes[] =
+{
 	&dev_attr_hw_rev,
 	&dev_attr_hca_type
 };
@@ -334,7 +360,9 @@ static void qedr_remove_sysfiles(struct qedr_dev *dev)
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(qedr_attributes); i++)
+	{
 		device_remove_file(&dev->ibdev.dev, qedr_attributes[i]);
+	}
 }
 
 static void qedr_pci_set_atomic(struct qedr_dev *dev, struct pci_dev *pdev)
@@ -345,37 +373,49 @@ static void qedr_pci_set_atomic(struct qedr_dev *dev, struct pci_dev *pdev)
 	dev->atomic_cap = IB_ATOMIC_NONE;
 
 	bridge = pdev->bus->self;
+
 	if (!bridge)
+	{
 		return;
+	}
 
 	/* Check whether we are connected directly or via a switch */
-	while (bridge && bridge->bus->parent) {
+	while (bridge && bridge->bus->parent)
+	{
 		DP_DEBUG(dev, QEDR_MSG_INIT,
-			 "Device is not connected directly to root. bridge->bus->number=%d primary=%d\n",
-			 bridge->bus->number, bridge->bus->primary);
+				 "Device is not connected directly to root. bridge->bus->number=%d primary=%d\n",
+				 bridge->bus->number, bridge->bus->primary);
 		/* Need to check Atomic Op Routing Supported all the way to
 		 * root complex.
 		 */
 		pcie_capability_read_dword(bridge, PCI_EXP_DEVCAP2, &val);
-		if (!(val & PCI_EXP_DEVCAP2_ATOMIC_ROUTE)) {
+
+		if (!(val & PCI_EXP_DEVCAP2_ATOMIC_ROUTE))
+		{
 			pcie_capability_clear_word(pdev,
-						   PCI_EXP_DEVCTL2,
-						   PCI_EXP_DEVCTL2_ATOMIC_REQ);
+									   PCI_EXP_DEVCTL2,
+									   PCI_EXP_DEVCTL2_ATOMIC_REQ);
 			return;
 		}
+
 		bridge = bridge->bus->parent->self;
 	}
+
 	bridge = pdev->bus->self;
 
 	/* according to bridge capability */
 	pcie_capability_read_dword(bridge, PCI_EXP_DEVCAP2, &val);
-	if (val & PCI_EXP_DEVCAP2_ATOMIC_COMP64) {
+
+	if (val & PCI_EXP_DEVCAP2_ATOMIC_COMP64)
+	{
 		pcie_capability_set_word(pdev, PCI_EXP_DEVCTL2,
-					 PCI_EXP_DEVCTL2_ATOMIC_REQ);
+								 PCI_EXP_DEVCTL2_ATOMIC_REQ);
 		dev->atomic_cap = IB_ATOMIC_GLOB;
-	} else {
+	}
+	else
+	{
 		pcie_capability_clear_word(pdev, PCI_EXP_DEVCTL2,
-					   PCI_EXP_DEVCTL2_ATOMIC_REQ);
+								   PCI_EXP_DEVCTL2_ATOMIC_REQ);
 	}
 }
 
@@ -400,24 +440,27 @@ static irqreturn_t qedr_irq_handler(int irq, void *handle)
 	/* Align protocol-index and chain reads */
 	rmb();
 
-	while (sw_comp_cons != hw_comp_cons) {
+	while (sw_comp_cons != hw_comp_cons)
+	{
 		cq_handle = (struct regpair *)qed_chain_consume(&cnq->pbl);
 		cq = (struct qedr_cq *)(uintptr_t)HILO_U64(cq_handle->hi,
 				cq_handle->lo);
 
-		if (cq == NULL) {
+		if (cq == NULL)
+		{
 			DP_ERR(cnq->dev,
-			       "Received NULL CQ cq_handle->hi=%d cq_handle->lo=%d sw_comp_cons=%d hw_comp_cons=%d\n",
-			       cq_handle->hi, cq_handle->lo, sw_comp_cons,
-			       hw_comp_cons);
+				   "Received NULL CQ cq_handle->hi=%d cq_handle->lo=%d sw_comp_cons=%d hw_comp_cons=%d\n",
+				   cq_handle->hi, cq_handle->lo, sw_comp_cons,
+				   hw_comp_cons);
 
 			break;
 		}
 
-		if (cq->sig != QEDR_CQ_MAGIC_NUMBER) {
+		if (cq->sig != QEDR_CQ_MAGIC_NUMBER)
+		{
 			DP_ERR(cnq->dev,
-			       "Problem with cq signature, cq_handle->hi=%d ch_handle->lo=%d cq=%p\n",
-			       cq_handle->hi, cq_handle->lo, cq);
+				   "Problem with cq signature, cq_handle->hi=%d ch_handle->lo=%d cq=%p\n",
+				   cq_handle->hi, cq_handle->lo, cq);
 			break;
 		}
 
@@ -425,7 +468,7 @@ static irqreturn_t qedr_irq_handler(int irq, void *handle)
 
 		if (cq->ibcq.comp_handler)
 			(*cq->ibcq.comp_handler)
-				(&cq->ibcq, cq->ibcq.cq_context);
+			(&cq->ibcq, cq->ibcq.cq_context);
 
 		sw_comp_cons = qed_chain_get_cons_idx(&cnq->pbl);
 
@@ -434,7 +477,7 @@ static irqreturn_t qedr_irq_handler(int irq, void *handle)
 	}
 
 	qed_ops->rdma_cnq_prod_update(cnq->dev->rdma_ctx, cnq->index,
-				      sw_comp_cons);
+								  sw_comp_cons);
 
 	qed_sb_ack(cnq->sb, IGU_INT_ENABLE, 1);
 
@@ -446,8 +489,10 @@ static void qedr_sync_free_irqs(struct qedr_dev *dev)
 	u32 vector;
 	int i;
 
-	for (i = 0; i < dev->int_info.used_cnt; i++) {
-		if (dev->int_info.msix_cnt) {
+	for (i = 0; i < dev->int_info.used_cnt; i++)
+	{
+		if (dev->int_info.msix_cnt)
+		{
 			vector = dev->int_info.msix[i * dev->num_hwfns].vector;
 			synchronize_irq(vector);
 			free_irq(vector, &dev->cnq_array[i]);
@@ -461,25 +506,31 @@ static int qedr_req_msix_irqs(struct qedr_dev *dev)
 {
 	int i, rc = 0;
 
-	if (dev->num_cnq > dev->int_info.msix_cnt) {
+	if (dev->num_cnq > dev->int_info.msix_cnt)
+	{
 		DP_ERR(dev,
-		       "Interrupt mismatch: %d CNQ queues > %d MSI-x vectors\n",
-		       dev->num_cnq, dev->int_info.msix_cnt);
+			   "Interrupt mismatch: %d CNQ queues > %d MSI-x vectors\n",
+			   dev->num_cnq, dev->int_info.msix_cnt);
 		return -EINVAL;
 	}
 
-	for (i = 0; i < dev->num_cnq; i++) {
+	for (i = 0; i < dev->num_cnq; i++)
+	{
 		rc = request_irq(dev->int_info.msix[i * dev->num_hwfns].vector,
-				 qedr_irq_handler, 0, dev->cnq_array[i].name,
-				 &dev->cnq_array[i]);
-		if (rc) {
+						 qedr_irq_handler, 0, dev->cnq_array[i].name,
+						 &dev->cnq_array[i]);
+
+		if (rc)
+		{
 			DP_ERR(dev, "Request cnq %d irq failed\n", i);
 			qedr_sync_free_irqs(dev);
-		} else {
+		}
+		else
+		{
 			DP_DEBUG(dev, QEDR_MSG_INIT,
-				 "Requested cnq irq for %s [entry %d]. Cookie is at %p\n",
-				 dev->cnq_array[i].name, i,
-				 &dev->cnq_array[i]);
+					 "Requested cnq irq for %s [entry %d]. Cookie is at %p\n",
+					 dev->cnq_array[i].name, i,
+					 &dev->cnq_array[i]);
 			dev->int_info.used_cnt++;
 		}
 	}
@@ -495,21 +546,30 @@ static int qedr_setup_irqs(struct qedr_dev *dev)
 
 	/* Learn Interrupt configuration */
 	rc = dev->ops->rdma_set_rdma_int(dev->cdev, dev->num_cnq);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	rc = dev->ops->rdma_get_rdma_int(dev->cdev, &dev->int_info);
-	if (rc) {
+
+	if (rc)
+	{
 		DP_DEBUG(dev, QEDR_MSG_INIT, "get_rdma_int failed\n");
 		return rc;
 	}
 
-	if (dev->int_info.msix_cnt) {
+	if (dev->int_info.msix_cnt)
+	{
 		DP_DEBUG(dev, QEDR_MSG_INIT, "rdma msix_cnt = %d\n",
-			 dev->int_info.msix_cnt);
+				 dev->int_info.msix_cnt);
 		rc = qedr_req_msix_irqs(dev);
+
 		if (rc)
+		{
 			return rc;
+		}
 	}
 
 	DP_DEBUG(dev, QEDR_MSG_INIT, "qedr_setup_irqs succeeded\n");
@@ -528,10 +588,12 @@ static int qedr_set_device_attr(struct qedr_dev *dev)
 
 	/* Part 2 - check capabilities */
 	page_size = ~dev->attr.page_size_caps + 1;
-	if (page_size > PAGE_SIZE) {
+
+	if (page_size > PAGE_SIZE)
+	{
 		DP_ERR(dev,
-		       "Kernel PAGE_SIZE is %ld which is smaller than minimum page size (%d) required by qedr\n",
-		       PAGE_SIZE, page_size);
+			   "Kernel PAGE_SIZE is %ld which is smaller than minimum page size (%d) required by qedr\n",
+			   PAGE_SIZE, page_size);
 		return -ENODEV;
 	}
 
@@ -551,7 +613,7 @@ static int qedr_set_device_attr(struct qedr_dev *dev)
 	attr->max_qp_resp_rd_atomic_resc = qed_attr->max_qp_resp_rd_atomic_resc;
 	attr->max_qp_req_rd_atomic_resc = qed_attr->max_qp_req_rd_atomic_resc;
 	attr->max_dev_resp_rd_atomic_resc =
-	    qed_attr->max_dev_resp_rd_atomic_resc;
+		qed_attr->max_dev_resp_rd_atomic_resc;
 	attr->max_cq = qed_attr->max_cq;
 	attr->max_qp = qed_attr->max_qp;
 	attr->max_mr = qed_attr->max_mr;
@@ -577,7 +639,7 @@ static int qedr_set_device_attr(struct qedr_dev *dev)
 }
 
 void qedr_unaffiliated_event(void *context,
-			     u8 event_code)
+							 u8 event_code)
 {
 	pr_err("unaffiliated event not implemented yet\n");
 }
@@ -590,7 +652,7 @@ void qedr_affiliated_event(void *context, u8 e_code, void *fw_handle)
 	struct qedr_dev *dev = (struct qedr_dev *)context;
 	union event_ring_data *data = fw_handle;
 	u64 roce_handle64 = ((u64)data->roce_handle.hi << 32) +
-			    data->roce_handle.lo;
+						data->roce_handle.lo;
 	u8 event_type = EVENT_TYPE_NOT_DEFINED;
 	struct ib_event event;
 	struct ib_cq *ibcq;
@@ -598,67 +660,90 @@ void qedr_affiliated_event(void *context, u8 e_code, void *fw_handle)
 	struct qedr_cq *cq;
 	struct qedr_qp *qp;
 
-	switch (e_code) {
-	case ROCE_ASYNC_EVENT_CQ_OVERFLOW_ERR:
-		event.event = IB_EVENT_CQ_ERR;
-		event_type = EVENT_TYPE_CQ;
-		break;
-	case ROCE_ASYNC_EVENT_SQ_DRAINED:
-		event.event = IB_EVENT_SQ_DRAINED;
-		event_type = EVENT_TYPE_QP;
-		break;
-	case ROCE_ASYNC_EVENT_QP_CATASTROPHIC_ERR:
-		event.event = IB_EVENT_QP_FATAL;
-		event_type = EVENT_TYPE_QP;
-		break;
-	case ROCE_ASYNC_EVENT_LOCAL_INVALID_REQUEST_ERR:
-		event.event = IB_EVENT_QP_REQ_ERR;
-		event_type = EVENT_TYPE_QP;
-		break;
-	case ROCE_ASYNC_EVENT_LOCAL_ACCESS_ERR:
-		event.event = IB_EVENT_QP_ACCESS_ERR;
-		event_type = EVENT_TYPE_QP;
-		break;
-	default:
-		DP_ERR(dev, "unsupported event %d on handle=%llx\n", e_code,
-		       roce_handle64);
+	switch (e_code)
+	{
+		case ROCE_ASYNC_EVENT_CQ_OVERFLOW_ERR:
+			event.event = IB_EVENT_CQ_ERR;
+			event_type = EVENT_TYPE_CQ;
+			break;
+
+		case ROCE_ASYNC_EVENT_SQ_DRAINED:
+			event.event = IB_EVENT_SQ_DRAINED;
+			event_type = EVENT_TYPE_QP;
+			break;
+
+		case ROCE_ASYNC_EVENT_QP_CATASTROPHIC_ERR:
+			event.event = IB_EVENT_QP_FATAL;
+			event_type = EVENT_TYPE_QP;
+			break;
+
+		case ROCE_ASYNC_EVENT_LOCAL_INVALID_REQUEST_ERR:
+			event.event = IB_EVENT_QP_REQ_ERR;
+			event_type = EVENT_TYPE_QP;
+			break;
+
+		case ROCE_ASYNC_EVENT_LOCAL_ACCESS_ERR:
+			event.event = IB_EVENT_QP_ACCESS_ERR;
+			event_type = EVENT_TYPE_QP;
+			break;
+
+		default:
+			DP_ERR(dev, "unsupported event %d on handle=%llx\n", e_code,
+				   roce_handle64);
 	}
 
-	switch (event_type) {
-	case EVENT_TYPE_CQ:
-		cq = (struct qedr_cq *)(uintptr_t)roce_handle64;
-		if (cq) {
-			ibcq = &cq->ibcq;
-			if (ibcq->event_handler) {
-				event.device = ibcq->device;
-				event.element.cq = ibcq;
-				ibcq->event_handler(&event, ibcq->cq_context);
+	switch (event_type)
+	{
+		case EVENT_TYPE_CQ:
+			cq = (struct qedr_cq *)(uintptr_t)roce_handle64;
+
+			if (cq)
+			{
+				ibcq = &cq->ibcq;
+
+				if (ibcq->event_handler)
+				{
+					event.device = ibcq->device;
+					event.element.cq = ibcq;
+					ibcq->event_handler(&event, ibcq->cq_context);
+				}
 			}
-		} else {
-			WARN(1,
-			     "Error: CQ event with NULL pointer ibcq. Handle=%llx\n",
-			     roce_handle64);
-		}
-		DP_ERR(dev, "CQ event %d on hanlde %p\n", e_code, cq);
-		break;
-	case EVENT_TYPE_QP:
-		qp = (struct qedr_qp *)(uintptr_t)roce_handle64;
-		if (qp) {
-			ibqp = &qp->ibqp;
-			if (ibqp->event_handler) {
-				event.device = ibqp->device;
-				event.element.qp = ibqp;
-				ibqp->event_handler(&event, ibqp->qp_context);
+			else
+			{
+				WARN(1,
+					 "Error: CQ event with NULL pointer ibcq. Handle=%llx\n",
+					 roce_handle64);
 			}
-		} else {
-			WARN(1,
-			     "Error: QP event with NULL pointer ibqp. Handle=%llx\n",
-			     roce_handle64);
-		}
-		DP_ERR(dev, "QP event %d on hanlde %p\n", e_code, qp);
-		break;
-	default:
-		break;
+
+			DP_ERR(dev, "CQ event %d on hanlde %p\n", e_code, cq);
+			break;
+
+		case EVENT_TYPE_QP:
+			qp = (struct qedr_qp *)(uintptr_t)roce_handle64;
+
+			if (qp)
+			{
+				ibqp = &qp->ibqp;
+
+				if (ibqp->event_handler)
+				{
+					event.device = ibqp->device;
+					event.element.qp = ibqp;
+					ibqp->event_handler(&event, ibqp->qp_context);
+				}
+			}
+			else
+			{
+				WARN(1,
+					 "Error: QP event with NULL pointer ibqp. Handle=%llx\n",
+					 roce_handle64);
+			}
+
+			DP_ERR(dev, "QP event %d on hanlde %p\n", e_code, qp);
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -674,13 +759,17 @@ static int qedr_init_hw(struct qedr_dev *dev)
 	int i;
 
 	in_params =  kzalloc(sizeof(*in_params), GFP_KERNEL);
-	if (!in_params) {
+
+	if (!in_params)
+	{
 		rc = -ENOMEM;
 		goto out;
 	}
 
 	in_params->desired_cnq = dev->num_cnq;
-	for (i = 0; i < dev->num_cnq; i++) {
+
+	for (i = 0; i < dev->num_cnq; i++)
+	{
 		cur_pbl = &in_params->cnq_pbl_list[i];
 
 		page_cnt = qed_chain_get_page_cnt(&dev->cnq_array[i].pbl);
@@ -700,12 +789,18 @@ static int qedr_init_hw(struct qedr_dev *dev)
 	ether_addr_copy(&in_params->mac_addr[0], dev->ndev->dev_addr);
 
 	rc = dev->ops->rdma_init(dev->cdev, in_params);
+
 	if (rc)
+	{
 		goto out;
+	}
 
 	rc = dev->ops->rdma_add_user(dev->rdma_ctx, &out_params);
+
 	if (rc)
+	{
 		goto out;
+	}
 
 	dev->db_addr = (void *)(uintptr_t)out_params.dpi_addr;
 	dev->db_phys_addr = out_params.dpi_phys_addr;
@@ -715,8 +810,11 @@ static int qedr_init_hw(struct qedr_dev *dev)
 	rc = qedr_set_device_attr(dev);
 out:
 	kfree(in_params);
+
 	if (rc)
+	{
 		DP_ERR(dev, "Init HW Failed rc = %d\n", rc);
+	}
 
 	return rc;
 }
@@ -728,14 +826,16 @@ void qedr_stop_hw(struct qedr_dev *dev)
 }
 
 static struct qedr_dev *qedr_add(struct qed_dev *cdev, struct pci_dev *pdev,
-				 struct net_device *ndev)
+								 struct net_device *ndev)
 {
 	struct qed_dev_rdma_info dev_info;
 	struct qedr_dev *dev;
 	int rc = 0, i;
 
 	dev = (struct qedr_dev *)ib_alloc_device(sizeof(*dev));
-	if (!dev) {
+
+	if (!dev)
+	{
 		pr_err("Unable to allocate ib device\n");
 		return NULL;
 	}
@@ -747,21 +847,28 @@ static struct qedr_dev *qedr_add(struct qed_dev *cdev, struct pci_dev *pdev,
 	dev->cdev = cdev;
 
 	qed_ops = qed_get_rdma_ops();
-	if (!qed_ops) {
+
+	if (!qed_ops)
+	{
 		DP_ERR(dev, "Failed to get qed roce operations\n");
 		goto init_err;
 	}
 
 	dev->ops = qed_ops;
 	rc = qed_ops->fill_dev_info(cdev, &dev_info);
+
 	if (rc)
+	{
 		goto init_err;
+	}
 
 	dev->num_hwfns = dev_info.common.num_hwfns;
 	dev->rdma_ctx = dev->ops->rdma_get_rdma_ctx(cdev);
 
 	dev->num_cnq = dev->ops->rdma_get_min_cnq_msix(cdev);
-	if (!dev->num_cnq) {
+
+	if (!dev->num_cnq)
+	{
 		DP_ERR(dev, "not enough CNQ resources.\n");
 		goto init_err;
 	}
@@ -771,26 +878,39 @@ static struct qedr_dev *qedr_add(struct qed_dev *cdev, struct pci_dev *pdev,
 	qedr_pci_set_atomic(dev, pdev);
 
 	rc = qedr_alloc_resources(dev);
+
 	if (rc)
+	{
 		goto init_err;
+	}
 
 	rc = qedr_init_hw(dev);
+
 	if (rc)
+	{
 		goto alloc_err;
+	}
 
 	rc = qedr_setup_irqs(dev);
+
 	if (rc)
+	{
 		goto irq_err;
+	}
 
 	rc = qedr_register_device(dev);
-	if (rc) {
+
+	if (rc)
+	{
 		DP_ERR(dev, "Unable to allocate register device\n");
 		goto reg_err;
 	}
 
 	for (i = 0; i < ARRAY_SIZE(qedr_attributes); i++)
 		if (device_create_file(&dev->ibdev.dev, qedr_attributes[i]))
+		{
 			goto sysfs_err;
+		}
 
 	DP_DEBUG(dev, QEDR_MSG_INIT, "qedr driver loaded successfully\n");
 	return dev;
@@ -858,15 +978,17 @@ static void qedr_mac_address_change(struct qedr_dev *dev)
 
 	/* Update LL2 */
 	rc = dev->ops->roce_ll2_set_mac_filter(dev->cdev,
-					       dev->gsi_ll2_mac_address,
-					       dev->ndev->dev_addr);
+										   dev->gsi_ll2_mac_address,
+										   dev->ndev->dev_addr);
 
 	ether_addr_copy(dev->gsi_ll2_mac_address, dev->ndev->dev_addr);
 
 	qedr_ib_dispatch_event(dev, 1, IB_EVENT_GID_CHANGE);
 
 	if (rc)
+	{
 		DP_ERR(dev, "Error updating mac filter\n");
+	}
 }
 
 /* event handling via NIC driver ensures that all the NIC specific
@@ -875,25 +997,31 @@ static void qedr_mac_address_change(struct qedr_dev *dev)
  */
 static void qedr_notify(struct qedr_dev *dev, enum qede_roce_event event)
 {
-	switch (event) {
-	case QEDE_UP:
-		qedr_ib_dispatch_event(dev, 1, IB_EVENT_PORT_ACTIVE);
-		break;
-	case QEDE_DOWN:
-		qedr_close(dev);
-		break;
-	case QEDE_CLOSE:
-		qedr_shutdown(dev);
-		break;
-	case QEDE_CHANGE_ADDR:
-		qedr_mac_address_change(dev);
-		break;
-	default:
-		pr_err("Event not supported\n");
+	switch (event)
+	{
+		case QEDE_UP:
+			qedr_ib_dispatch_event(dev, 1, IB_EVENT_PORT_ACTIVE);
+			break;
+
+		case QEDE_DOWN:
+			qedr_close(dev);
+			break;
+
+		case QEDE_CLOSE:
+			qedr_shutdown(dev);
+			break;
+
+		case QEDE_CHANGE_ADDR:
+			qedr_mac_address_change(dev);
+			break;
+
+		default:
+			pr_err("Event not supported\n");
 	}
 }
 
-static struct qedr_driver qedr_drv = {
+static struct qedr_driver qedr_drv =
+{
 	.name = "qedr_driver",
 	.add = qedr_add,
 	.remove = qedr_remove,

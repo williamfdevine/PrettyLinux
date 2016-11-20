@@ -10,7 +10,8 @@
 #ifndef _UAPI_IIO_TYPES_H_
 #define _UAPI_IIO_TYPES_H_
 
-enum iio_chan_type {
+enum iio_chan_type
+{
 	IIO_VOLTAGE,
 	IIO_CURRENT,
 	IIO_POWER,
@@ -42,7 +43,8 @@ enum iio_chan_type {
 	IIO_ELECTRICALCONDUCTIVITY,
 };
 
-enum iio_modifier {
+enum iio_modifier
+{
 	IIO_NO_MOD,
 	IIO_MOD_X,
 	IIO_MOD_Y,
@@ -82,7 +84,8 @@ enum iio_modifier {
 	IIO_MOD_LIGHT_UV,
 };
 
-enum iio_event_type {
+enum iio_event_type
+{
 	IIO_EV_TYPE_THRESH,
 	IIO_EV_TYPE_MAG,
 	IIO_EV_TYPE_ROC,
@@ -91,7 +94,8 @@ enum iio_event_type {
 	IIO_EV_TYPE_CHANGE,
 };
 
-enum iio_event_direction {
+enum iio_event_direction
+{
 	IIO_EV_DIR_EITHER,
 	IIO_EV_DIR_RISING,
 	IIO_EV_DIR_FALLING,

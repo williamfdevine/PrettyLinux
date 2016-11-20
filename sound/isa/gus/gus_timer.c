@@ -29,7 +29,7 @@
  *  Timer 1 - 80us
  */
 
-static int snd_gf1_timer1_start(struct snd_timer * timer)
+static int snd_gf1_timer1_start(struct snd_timer *timer)
 {
 	unsigned long flags;
 	unsigned char tmp;
@@ -47,7 +47,7 @@ static int snd_gf1_timer1_start(struct snd_timer * timer)
 	return 0;
 }
 
-static int snd_gf1_timer1_stop(struct snd_timer * timer)
+static int snd_gf1_timer1_stop(struct snd_timer *timer)
 {
 	unsigned long flags;
 	unsigned char tmp;
@@ -65,7 +65,7 @@ static int snd_gf1_timer1_stop(struct snd_timer * timer)
  *  Timer 2 - 320us
  */
 
-static int snd_gf1_timer2_start(struct snd_timer * timer)
+static int snd_gf1_timer2_start(struct snd_timer *timer)
 {
 	unsigned long flags;
 	unsigned char tmp;
@@ -83,7 +83,7 @@ static int snd_gf1_timer2_start(struct snd_timer * timer)
 	return 0;
 }
 
-static int snd_gf1_timer2_stop(struct snd_timer * timer)
+static int snd_gf1_timer2_stop(struct snd_timer *timer)
 {
 	unsigned long flags;
 	unsigned char tmp;
@@ -101,21 +101,27 @@ static int snd_gf1_timer2_stop(struct snd_timer * timer)
 
  */
 
-static void snd_gf1_interrupt_timer1(struct snd_gus_card * gus)
+static void snd_gf1_interrupt_timer1(struct snd_gus_card *gus)
 {
 	struct snd_timer *timer = gus->gf1.timer1;
 
 	if (timer == NULL)
+	{
 		return;
+	}
+
 	snd_timer_interrupt(timer, timer->sticks);
 }
 
-static void snd_gf1_interrupt_timer2(struct snd_gus_card * gus)
+static void snd_gf1_interrupt_timer2(struct snd_gus_card *gus)
 {
 	struct snd_timer *timer = gus->gf1.timer2;
 
 	if (timer == NULL)
+	{
 		return;
+	}
+
 	snd_timer_interrupt(timer, timer->sticks);
 }
 
@@ -153,13 +159,15 @@ static void snd_gf1_timer2_free(struct snd_timer *timer)
 	gus->gf1.timer2 = NULL;
 }
 
-void snd_gf1_timers_init(struct snd_gus_card * gus)
+void snd_gf1_timers_init(struct snd_gus_card *gus)
 {
 	struct snd_timer *timer;
 	struct snd_timer_id tid;
 
 	if (gus->gf1.timer1 != NULL || gus->gf1.timer2 != NULL)
+	{
 		return;
+	}
 
 	gus->gf1.interrupt_handler_timer1 = snd_gf1_interrupt_timer1;
 	gus->gf1.interrupt_handler_timer2 = snd_gf1_interrupt_timer2;
@@ -170,33 +178,41 @@ void snd_gf1_timers_init(struct snd_gus_card * gus)
 	tid.device = gus->timer_dev;
 	tid.subdevice = 0;
 
-	if (snd_timer_new(gus->card, "GF1 timer", &tid, &timer) >= 0) {
+	if (snd_timer_new(gus->card, "GF1 timer", &tid, &timer) >= 0)
+	{
 		strcpy(timer->name, "GF1 timer #1");
 		timer->private_data = gus;
 		timer->private_free = snd_gf1_timer1_free;
 		timer->hw = snd_gf1_timer1;
 	}
+
 	gus->gf1.timer1 = timer;
 
 	tid.device++;
 
-	if (snd_timer_new(gus->card, "GF1 timer", &tid, &timer) >= 0) {
+	if (snd_timer_new(gus->card, "GF1 timer", &tid, &timer) >= 0)
+	{
 		strcpy(timer->name, "GF1 timer #2");
 		timer->private_data = gus;
 		timer->private_free = snd_gf1_timer2_free;
 		timer->hw = snd_gf1_timer2;
 	}
+
 	gus->gf1.timer2 = timer;
 }
 
-void snd_gf1_timers_done(struct snd_gus_card * gus)
+void snd_gf1_timers_done(struct snd_gus_card *gus)
 {
 	snd_gf1_set_default_handlers(gus, SNDRV_GF1_HANDLER_TIMER1 | SNDRV_GF1_HANDLER_TIMER2);
-	if (gus->gf1.timer1) {
+
+	if (gus->gf1.timer1)
+	{
 		snd_device_free(gus->card, gus->gf1.timer1);
 		gus->gf1.timer1 = NULL;
 	}
-	if (gus->gf1.timer2) {
+
+	if (gus->gf1.timer2)
+	{
 		snd_device_free(gus->card, gus->gf1.timer2);
 		gus->gf1.timer2 = NULL;
 	}

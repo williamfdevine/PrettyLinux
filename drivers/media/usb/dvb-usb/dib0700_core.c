@@ -10,47 +10,53 @@
 
 /* debug */
 int dvb_usb_dib0700_debug;
-module_param_named(debug,dvb_usb_dib0700_debug, int, 0644);
+module_param_named(debug, dvb_usb_dib0700_debug, int, 0644);
 MODULE_PARM_DESC(debug, "set debugging level (1=info,2=fw,4=fwdata,8=data (or-able))." DVB_USB_DEBUG_STATUS);
 
 static int nb_packet_buffer_size = 21;
 module_param(nb_packet_buffer_size, int, 0644);
 MODULE_PARM_DESC(nb_packet_buffer_size,
-	"Set the dib0700 driver data buffer size. This parameter "
-	"corresponds to the number of TS packets. The actual size of "
-	"the data buffer corresponds to this parameter "
-	"multiplied by 188 (default: 21)");
+				 "Set the dib0700 driver data buffer size. This parameter "
+				 "corresponds to the number of TS packets. The actual size of "
+				 "the data buffer corresponds to this parameter "
+				 "multiplied by 188 (default: 21)");
 
 DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
 
 
 int dib0700_get_version(struct dvb_usb_device *d, u32 *hwversion,
-			u32 *romversion, u32 *ramversion, u32 *fwtype)
+						u32 *romversion, u32 *ramversion, u32 *fwtype)
 {
 	struct dib0700_state *st = d->priv;
 	int ret;
 
-	if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+	if (mutex_lock_interruptible(&d->usb_mutex) < 0)
+	{
 		err("could not acquire lock");
 		return -EINTR;
 	}
 
 	ret = usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0),
-				  REQUEST_GET_VERSION,
-				  USB_TYPE_VENDOR | USB_DIR_IN, 0, 0,
-				  st->buf, 16, USB_CTRL_GET_TIMEOUT);
+						  REQUEST_GET_VERSION,
+						  USB_TYPE_VENDOR | USB_DIR_IN, 0, 0,
+						  st->buf, 16, USB_CTRL_GET_TIMEOUT);
+
 	if (hwversion != NULL)
 		*hwversion  = (st->buf[0] << 24)  | (st->buf[1] << 16)  |
-			(st->buf[2] << 8)  | st->buf[3];
+					  (st->buf[2] << 8)  | st->buf[3];
+
 	if (romversion != NULL)
 		*romversion = (st->buf[4] << 24)  | (st->buf[5] << 16)  |
-			(st->buf[6] << 8)  | st->buf[7];
+					  (st->buf[6] << 8)  | st->buf[7];
+
 	if (ramversion != NULL)
 		*ramversion = (st->buf[8] << 24)  | (st->buf[9] << 16)  |
-			(st->buf[10] << 8) | st->buf[11];
+					  (st->buf[10] << 8) | st->buf[11];
+
 	if (fwtype != NULL)
 		*fwtype     = (st->buf[12] << 24) | (st->buf[13] << 16) |
-			(st->buf[14] << 8) | st->buf[15];
+					  (st->buf[14] << 8) | st->buf[15];
+
 	mutex_unlock(&d->usb_mutex);
 	return ret;
 }
@@ -63,12 +69,14 @@ static int dib0700_ctrl_wr(struct dvb_usb_device *d, u8 *tx, u8 txlen)
 	deb_data(">>> ");
 	debug_dump(tx, txlen, deb_data);
 
-	status = usb_control_msg(d->udev, usb_sndctrlpipe(d->udev,0),
-		tx[0], USB_TYPE_VENDOR | USB_DIR_OUT, 0, 0, tx, txlen,
-		USB_CTRL_GET_TIMEOUT);
+	status = usb_control_msg(d->udev, usb_sndctrlpipe(d->udev, 0),
+							 tx[0], USB_TYPE_VENDOR | USB_DIR_OUT, 0, 0, tx, txlen,
+							 USB_CTRL_GET_TIMEOUT);
 
 	if (status != txlen)
-		deb_data("ep 0 write error (status = %d, len: %d)\n",status,txlen);
+	{
+		deb_data("ep 0 write error (status = %d, len: %d)\n", status, txlen);
+	}
 
 	return status < 0 ? status : 0;
 }
@@ -79,31 +87,42 @@ int dib0700_ctrl_rd(struct dvb_usb_device *d, u8 *tx, u8 txlen, u8 *rx, u8 rxlen
 	u16 index, value;
 	int status;
 
-	if (txlen < 2) {
+	if (txlen < 2)
+	{
 		err("tx buffer length is smaller than 2. Makes no sense.");
 		return -EINVAL;
 	}
-	if (txlen > 4) {
+
+	if (txlen > 4)
+	{
 		err("tx buffer length is larger than 4. Not supported.");
 		return -EINVAL;
 	}
 
 	deb_data(">>> ");
-	debug_dump(tx,txlen,deb_data);
+	debug_dump(tx, txlen, deb_data);
 
 	value = ((txlen - 2) << 8) | tx[1];
 	index = 0;
-	if (txlen > 2)
-		index |= (tx[2] << 8);
-	if (txlen > 3)
-		index |= tx[3];
 
-	status = usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev,0), tx[0],
-			USB_TYPE_VENDOR | USB_DIR_IN, value, index, rx, rxlen,
-			USB_CTRL_GET_TIMEOUT);
+	if (txlen > 2)
+	{
+		index |= (tx[2] << 8);
+	}
+
+	if (txlen > 3)
+	{
+		index |= tx[3];
+	}
+
+	status = usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0), tx[0],
+							 USB_TYPE_VENDOR | USB_DIR_IN, value, index, rx, rxlen,
+							 USB_CTRL_GET_TIMEOUT);
 
 	if (status < 0)
-		deb_info("ep 0 read error (status = %d)\n",status);
+	{
+		deb_info("ep 0 read error (status = %d)\n", status);
+	}
 
 	deb_data("<<< ");
 	debug_dump(rx, rxlen, deb_data);
@@ -116,7 +135,8 @@ int dib0700_set_gpio(struct dvb_usb_device *d, enum dib07x0_gpios gpio, u8 gpio_
 	struct dib0700_state *st = d->priv;
 	int ret;
 
-	if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+	if (mutex_lock_interruptible(&d->usb_mutex) < 0)
+	{
 		err("could not acquire lock");
 		return -EINTR;
 	}
@@ -136,8 +156,10 @@ static int dib0700_set_usb_xfer_len(struct dvb_usb_device *d, u16 nb_ts_packets)
 	struct dib0700_state *st = d->priv;
 	int ret;
 
-	if (st->fw_version >= 0x10201) {
-		if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+	if (st->fw_version >= 0x10201)
+	{
+		if (mutex_lock_interruptible(&d->usb_mutex) < 0)
+		{
 			err("could not acquire lock");
 			return -EINTR;
 		}
@@ -150,7 +172,9 @@ static int dib0700_set_usb_xfer_len(struct dvb_usb_device *d, u16 nb_ts_packets)
 
 		ret = dib0700_ctrl_wr(d, st->buf, 3);
 		mutex_unlock(&d->usb_mutex);
-	} else {
+	}
+	else
+	{
 		deb_info("this firmware does not allow to change the USB xfer len\n");
 		ret = -EIO;
 	}
@@ -162,7 +186,7 @@ static int dib0700_set_usb_xfer_len(struct dvb_usb_device *d, u16 nb_ts_packets)
  * I2C master xfer function (supported in 1.20 firmware)
  */
 static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
-				int num)
+								int num)
 {
 	/* The new i2c firmware messages are more reliable and in particular
 	   properly support i2c read calls not preceded by a write */
@@ -178,52 +202,66 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
 	/* Ensure nobody else hits the i2c bus while we're sending our
 	   sequence of messages, (such as the remote control thread) */
 	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+	{
 		return -EINTR;
+	}
 
-	for (i = 0; i < num; i++) {
-		if (i == 0) {
+	for (i = 0; i < num; i++)
+	{
+		if (i == 0)
+		{
 			/* First message in the transaction */
 			en_start = 1;
-		} else if (!(msg[i].flags & I2C_M_NOSTART)) {
+		}
+		else if (!(msg[i].flags & I2C_M_NOSTART))
+		{
 			/* Device supports repeated-start */
 			en_start = 1;
-		} else {
+		}
+		else
+		{
 			/* Not the first packet and device doesn't support
 			   repeated start */
 			en_start = 0;
 		}
-		if (i == (num - 1)) {
+
+		if (i == (num - 1))
+		{
 			/* Last message in the transaction */
 			en_stop = 1;
 		}
 
-		if (msg[i].flags & I2C_M_RD) {
+		if (msg[i].flags & I2C_M_RD)
+		{
 			/* Read request */
 			u16 index, value;
 			uint8_t i2c_dest;
 
 			i2c_dest = (msg[i].addr << 1);
 			value = ((en_start << 7) | (en_stop << 6) |
-				 (msg[i].len & 0x3F)) << 8 | i2c_dest;
+					 (msg[i].len & 0x3F)) << 8 | i2c_dest;
 			/* I2C ctrl + FE bus; */
 			index = ((gen_mode << 6) & 0xC0) |
-				((bus_mode << 4) & 0x30);
+					((bus_mode << 4) & 0x30);
 
 			result = usb_control_msg(d->udev,
-						 usb_rcvctrlpipe(d->udev, 0),
-						 REQUEST_NEW_I2C_READ,
-						 USB_TYPE_VENDOR | USB_DIR_IN,
-						 value, index, st->buf,
-						 msg[i].len,
-						 USB_CTRL_GET_TIMEOUT);
-			if (result < 0) {
+									 usb_rcvctrlpipe(d->udev, 0),
+									 REQUEST_NEW_I2C_READ,
+									 USB_TYPE_VENDOR | USB_DIR_IN,
+									 value, index, st->buf,
+									 msg[i].len,
+									 USB_CTRL_GET_TIMEOUT);
+
+			if (result < 0)
+			{
 				deb_info("i2c read error (status = %d)\n", result);
 				break;
 			}
 
-			if (msg[i].len > sizeof(st->buf)) {
+			if (msg[i].len > sizeof(st->buf))
+			{
 				deb_info("buffer too small to fit %d bytes\n",
-					 msg[i].len);
+						 msg[i].len);
 				return -EIO;
 			}
 
@@ -232,24 +270,29 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
 			deb_data("<<< ");
 			debug_dump(msg[i].buf, msg[i].len, deb_data);
 
-		} else {
+		}
+		else
+		{
 			/* Write request */
-			if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+			if (mutex_lock_interruptible(&d->usb_mutex) < 0)
+			{
 				err("could not acquire lock");
 				mutex_unlock(&d->i2c_mutex);
 				return -EINTR;
 			}
+
 			st->buf[0] = REQUEST_NEW_I2C_WRITE;
 			st->buf[1] = msg[i].addr << 1;
 			st->buf[2] = (en_start << 7) | (en_stop << 6) |
-				(msg[i].len & 0x3F);
+						 (msg[i].len & 0x3F);
 			/* I2C ctrl + FE bus; */
 			st->buf[3] = ((gen_mode << 6) & 0xC0) |
-				 ((bus_mode << 4) & 0x30);
+						 ((bus_mode << 4) & 0x30);
 
-			if (msg[i].len > sizeof(st->buf) - 4) {
+			if (msg[i].len > sizeof(st->buf) - 4)
+			{
 				deb_info("i2c message to big: %d\n",
-					 msg[i].len);
+						 msg[i].len);
 				return -EIO;
 			}
 
@@ -260,18 +303,21 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
 			debug_dump(st->buf, msg[i].len + 4, deb_data);
 
 			result = usb_control_msg(d->udev,
-						 usb_sndctrlpipe(d->udev, 0),
-						 REQUEST_NEW_I2C_WRITE,
-						 USB_TYPE_VENDOR | USB_DIR_OUT,
-						 0, 0, st->buf, msg[i].len + 4,
-						 USB_CTRL_GET_TIMEOUT);
+									 usb_sndctrlpipe(d->udev, 0),
+									 REQUEST_NEW_I2C_WRITE,
+									 USB_TYPE_VENDOR | USB_DIR_OUT,
+									 0, 0, st->buf, msg[i].len + 4,
+									 USB_CTRL_GET_TIMEOUT);
 			mutex_unlock(&d->usb_mutex);
-			if (result < 0) {
+
+			if (result < 0)
+			{
 				deb_info("i2c write error (status = %d)\n", result);
 				break;
 			}
 		}
 	}
+
 	mutex_unlock(&d->i2c_mutex);
 	return i;
 }
@@ -280,61 +326,80 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
  * I2C master xfer function (pre-1.20 firmware)
  */
 static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
-				   struct i2c_msg *msg, int num)
+								   struct i2c_msg *msg, int num)
 {
 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
 	struct dib0700_state *st = d->priv;
-	int i,len;
+	int i, len;
 
 	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+	{
 		return -EINTR;
-	if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+	}
+
+	if (mutex_lock_interruptible(&d->usb_mutex) < 0)
+	{
 		err("could not acquire lock");
 		mutex_unlock(&d->i2c_mutex);
 		return -EINTR;
 	}
 
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num; i++)
+	{
 		/* fill in the address */
 		st->buf[1] = msg[i].addr << 1;
+
 		/* fill the buffer */
-		if (msg[i].len > sizeof(st->buf) - 2) {
+		if (msg[i].len > sizeof(st->buf) - 2)
+		{
 			deb_info("i2c xfer to big: %d\n",
-				msg[i].len);
+					 msg[i].len);
 			return -EIO;
 		}
+
 		memcpy(&st->buf[2], msg[i].buf, msg[i].len);
 
 		/* write/read request */
-		if (i+1 < num && (msg[i+1].flags & I2C_M_RD)) {
+		if (i + 1 < num && (msg[i + 1].flags & I2C_M_RD))
+		{
 			st->buf[0] = REQUEST_I2C_READ;
 			st->buf[1] |= 1;
 
 			/* special thing in the current firmware: when length is zero the read-failed */
 			len = dib0700_ctrl_rd(d, st->buf, msg[i].len + 2,
-					      st->buf, msg[i + 1].len);
-			if (len <= 0) {
+								  st->buf, msg[i + 1].len);
+
+			if (len <= 0)
+			{
 				deb_info("I2C read failed on address 0x%02x\n",
-						msg[i].addr);
+						 msg[i].addr);
 				break;
 			}
 
-			if (msg[i + 1].len > sizeof(st->buf)) {
+			if (msg[i + 1].len > sizeof(st->buf))
+			{
 				deb_info("i2c xfer buffer to small for %d\n",
-					msg[i].len);
+						 msg[i].len);
 				return -EIO;
 			}
+
 			memcpy(msg[i + 1].buf, st->buf, msg[i + 1].len);
 
-			msg[i+1].len = len;
+			msg[i + 1].len = len;
 
 			i++;
-		} else {
+		}
+		else
+		{
 			st->buf[0] = REQUEST_I2C_WRITE;
+
 			if (dib0700_ctrl_wr(d, st->buf, msg[i].len + 2) < 0)
+			{
 				break;
+			}
 		}
 	}
+
 	mutex_unlock(&d->usb_mutex);
 	mutex_unlock(&d->i2c_mutex);
 
@@ -342,15 +407,18 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
 }
 
 static int dib0700_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msg,
-			    int num)
+							int num)
 {
 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
 	struct dib0700_state *st = d->priv;
 
-	if (st->fw_use_new_i2c_api == 1) {
+	if (st->fw_use_new_i2c_api == 1)
+	{
 		/* User running at least fw 1.20 */
 		return dib0700_i2c_xfer_new(adap, msg, num);
-	} else {
+	}
+	else
+	{
 		/* Use legacy calls */
 		return dib0700_i2c_xfer_legacy(adap, msg, num);
 	}
@@ -361,26 +429,30 @@ static u32 dib0700_i2c_func(struct i2c_adapter *adapter)
 	return I2C_FUNC_I2C;
 }
 
-struct i2c_algorithm dib0700_i2c_algo = {
+struct i2c_algorithm dib0700_i2c_algo =
+{
 	.master_xfer   = dib0700_i2c_xfer,
 	.functionality = dib0700_i2c_func,
 };
 
 int dib0700_identify_state(struct usb_device *udev, struct dvb_usb_device_properties *props,
-			struct dvb_usb_device_description **desc, int *cold)
+						   struct dvb_usb_device_description **desc, int *cold)
 {
 	s16 ret;
 	u8 *b;
 
 	b = kmalloc(16, GFP_KERNEL);
+
 	if (!b)
+	{
 		return	-ENOMEM;
+	}
 
 
 	ret = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
-		REQUEST_GET_VERSION, USB_TYPE_VENDOR | USB_DIR_IN, 0, 0, b, 16, USB_CTRL_GET_TIMEOUT);
+						  REQUEST_GET_VERSION, USB_TYPE_VENDOR | USB_DIR_IN, 0, 0, b, 16, USB_CTRL_GET_TIMEOUT);
 
-	deb_info("FW GET_VERSION length: %d\n",ret);
+	deb_info("FW GET_VERSION length: %d\n", ret);
 
 	*cold = ret <= 0;
 	deb_info("cold: %d\n", *cold);
@@ -390,20 +462,21 @@ int dib0700_identify_state(struct usb_device *udev, struct dvb_usb_device_proper
 }
 
 static int dib0700_set_clock(struct dvb_usb_device *d, u8 en_pll,
-	u8 pll_src, u8 pll_range, u8 clock_gpio3, u16 pll_prediv,
-	u16 pll_loopdiv, u16 free_div, u16 dsuScaler)
+							 u8 pll_src, u8 pll_range, u8 clock_gpio3, u16 pll_prediv,
+							 u16 pll_loopdiv, u16 free_div, u16 dsuScaler)
 {
 	struct dib0700_state *st = d->priv;
 	int ret;
 
-	if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+	if (mutex_lock_interruptible(&d->usb_mutex) < 0)
+	{
 		err("could not acquire lock");
 		return -EINTR;
 	}
 
 	st->buf[0] = REQUEST_SET_CLOCK;
 	st->buf[1] = (en_pll << 7) | (pll_src << 6) |
-		(pll_range << 5) | (clock_gpio3 << 4);
+				 (pll_range << 5) | (clock_gpio3 << 4);
 	st->buf[2] = (pll_prediv >> 8)  & 0xff; /* MSB */
 	st->buf[3] =  pll_prediv        & 0xff; /* LSB */
 	st->buf[4] = (pll_loopdiv >> 8) & 0xff; /* MSB */
@@ -426,9 +499,12 @@ int dib0700_set_i2c_speed(struct dvb_usb_device *d, u16 scl_kHz)
 	int ret;
 
 	if (scl_kHz == 0)
+	{
 		return -EINVAL;
+	}
 
-	if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+	if (mutex_lock_interruptible(&d->usb_mutex) < 0)
+	{
 		err("could not acquire lock");
 		return -EINTR;
 	}
@@ -446,8 +522,8 @@ int dib0700_set_i2c_speed(struct dvb_usb_device *d, u16 scl_kHz)
 	st->buf[7] = (u8) (divider & 0xff);
 
 	deb_info("setting I2C speed: %04x %04x %04x (%d kHz).",
-		(st->buf[2] << 8) | (st->buf[3]), (st->buf[4] << 8) |
-		st->buf[5], (st->buf[6] << 8) | st->buf[7], scl_kHz);
+			 (st->buf[2] << 8) | (st->buf[3]), (st->buf[4] << 8) |
+			 st->buf[5], (st->buf[6] << 8) | st->buf[7], scl_kHz);
 
 	ret = dib0700_ctrl_wr(d, st->buf, 8);
 	mutex_unlock(&d->usb_mutex);
@@ -458,10 +534,13 @@ int dib0700_set_i2c_speed(struct dvb_usb_device *d, u16 scl_kHz)
 
 int dib0700_ctrl_clock(struct dvb_usb_device *d, u32 clk_MHz, u8 clock_out_gp3)
 {
-	switch (clk_MHz) {
+	switch (clk_MHz)
+	{
 		case 72: dib0700_set_clock(d, 1, 0, 1, clock_out_gp3, 2, 24, 0, 0x4c); break;
+
 		default: return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -471,8 +550,12 @@ static int dib0700_jumpram(struct usb_device *udev, u32 address)
 	u8 *buf;
 
 	buf = kmalloc(8, GFP_KERNEL);
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
+
 	buf[0] = REQUEST_JUMPRAM;
 	buf[1] = 0;
 	buf[2] = 0;
@@ -482,15 +565,19 @@ static int dib0700_jumpram(struct usb_device *udev, u32 address)
 	buf[6] = (address >> 8)  & 0xff;
 	buf[7] =  address        & 0xff;
 
-	if ((ret = usb_bulk_msg(udev, usb_sndbulkpipe(udev, 0x01),buf,8,&actlen,1000)) < 0) {
-		deb_fw("jumpram to 0x%x failed\n",address);
+	if ((ret = usb_bulk_msg(udev, usb_sndbulkpipe(udev, 0x01), buf, 8, &actlen, 1000)) < 0)
+	{
+		deb_fw("jumpram to 0x%x failed\n", address);
 		goto out;
 	}
-	if (actlen != 8) {
-		deb_fw("jumpram to 0x%x failed\n",address);
+
+	if (actlen != 8)
+	{
+		deb_fw("jumpram to 0x%x failed\n", address);
 		ret = -EIO;
 		goto out;
 	}
+
 out:
 	kfree(buf);
 	return ret;
@@ -504,69 +591,91 @@ int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw
 	u32 fw_version;
 
 	buf = kmalloc(260, GFP_KERNEL);
-	if (!buf)
-		return -ENOMEM;
 
-	while ((ret = dvb_usb_get_hexline(fw, &hx, &pos)) > 0) {
+	if (!buf)
+	{
+		return -ENOMEM;
+	}
+
+	while ((ret = dvb_usb_get_hexline(fw, &hx, &pos)) > 0)
+	{
 		deb_fwdata("writing to address 0x%08x (buffer: 0x%02x %02x)\n",
-				hx.addr, hx.len, hx.chk);
+				   hx.addr, hx.len, hx.chk);
 
 		buf[0] = hx.len;
 		buf[1] = (hx.addr >> 8) & 0xff;
 		buf[2] =  hx.addr       & 0xff;
 		buf[3] = hx.type;
-		memcpy(&buf[4],hx.data,hx.len);
-		buf[4+hx.len] = hx.chk;
+		memcpy(&buf[4], hx.data, hx.len);
+		buf[4 + hx.len] = hx.chk;
 
 		ret = usb_bulk_msg(udev,
-			usb_sndbulkpipe(udev, 0x01),
-			buf,
-			hx.len + 5,
-			&act_len,
-			1000);
+						   usb_sndbulkpipe(udev, 0x01),
+						   buf,
+						   hx.len + 5,
+						   &act_len,
+						   1000);
 
-		if (ret < 0) {
-			err("firmware download failed at %d with %d",pos,ret);
+		if (ret < 0)
+		{
+			err("firmware download failed at %d with %d", pos, ret);
 			goto out;
 		}
 	}
 
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		/* start the firmware */
-		if ((ret = dib0700_jumpram(udev, 0x70000000)) == 0) {
+		if ((ret = dib0700_jumpram(udev, 0x70000000)) == 0)
+		{
 			info("firmware started successfully.");
 			msleep(500);
 		}
-	} else
+	}
+	else
+	{
 		ret = -EIO;
+	}
 
 	/* the number of ts packet has to be at least 1 */
 	if (nb_packet_buffer_size < 1)
+	{
 		nb_packet_buffer_size = 1;
+	}
 
 	/* get the firmware version */
 	usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
-				  REQUEST_GET_VERSION,
-				  USB_TYPE_VENDOR | USB_DIR_IN, 0, 0,
-				  buf, 16, USB_CTRL_GET_TIMEOUT);
+					REQUEST_GET_VERSION,
+					USB_TYPE_VENDOR | USB_DIR_IN, 0, 0,
+					buf, 16, USB_CTRL_GET_TIMEOUT);
 	fw_version = (buf[8] << 24) | (buf[9] << 16) | (buf[10] << 8) | buf[11];
 
 	/* set the buffer size - DVB-USB is allocating URB buffers
 	 * only after the firwmare download was successful */
-	for (i = 0; i < dib0700_device_count; i++) {
+	for (i = 0; i < dib0700_device_count; i++)
+	{
 		for (adap_num = 0; adap_num < dib0700_devices[i].num_adapters;
-				adap_num++) {
-			if (fw_version >= 0x10201) {
-				dib0700_devices[i].adapter[adap_num].fe[0].stream.u.bulk.buffersize = 188*nb_packet_buffer_size;
-			} else {
+			 adap_num++)
+		{
+			if (fw_version >= 0x10201)
+			{
+				dib0700_devices[i].adapter[adap_num].fe[0].stream.u.bulk.buffersize = 188 * nb_packet_buffer_size;
+			}
+			else
+			{
 				/* for fw version older than 1.20.1,
 				 * the buffersize has to be n times 512 */
-				dib0700_devices[i].adapter[adap_num].fe[0].stream.u.bulk.buffersize = ((188*nb_packet_buffer_size+188/2)/512)*512;
+				dib0700_devices[i].adapter[adap_num].fe[0].stream.u.bulk.buffersize = ((188 * nb_packet_buffer_size + 188 / 2) / 512) *
+						512;
+
 				if (dib0700_devices[i].adapter[adap_num].fe[0].stream.u.bulk.buffersize < 512)
+				{
 					dib0700_devices[i].adapter[adap_num].fe[0].stream.u.bulk.buffersize = 512;
+				}
 			}
 		}
 	}
+
 out:
 	kfree(buf);
 	return ret;
@@ -577,12 +686,15 @@ int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
 	struct dib0700_state *st = adap->dev->priv;
 	int ret;
 
-	if ((onoff != 0) && (st->fw_version >= 0x10201)) {
+	if ((onoff != 0) && (st->fw_version >= 0x10201))
+	{
 		/* for firmware later than 1.20.1,
 		 * the USB xfer length can be set  */
 		ret = dib0700_set_usb_xfer_len(adap->dev,
-			st->nb_packet_buffer_size);
-		if (ret < 0) {
+									   st->nb_packet_buffer_size);
+
+		if (ret < 0)
+		{
 			deb_info("can not set the USB xfer len\n");
 			return ret;
 		}
@@ -596,27 +708,44 @@ int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
 	st->buf[1] = (onoff << 4) | 0x00;
 
 	if (st->disable_streaming_master_mode == 1)
+	{
 		st->buf[2] = 0x00;
+	}
 	else
-		st->buf[2] = 0x01 << 4; /* Master mode */
+	{
+		st->buf[2] = 0x01 << 4;    /* Master mode */
+	}
 
 	st->buf[3] = 0x00;
 
 	deb_info("modifying (%d) streaming state for %d\n", onoff, adap->id);
 
 	st->channel_state &= ~0x3;
+
 	if ((adap->fe_adap[0].stream.props.endpoint != 2)
-			&& (adap->fe_adap[0].stream.props.endpoint != 3)) {
+		&& (adap->fe_adap[0].stream.props.endpoint != 3))
+	{
 		deb_info("the endpoint number (%i) is not correct, use the adapter id instead", adap->fe_adap[0].stream.props.endpoint);
+
 		if (onoff)
+		{
 			st->channel_state |=	1 << (adap->id);
+		}
 		else
+		{
 			st->channel_state |=	1 << ~(adap->id);
-	} else {
+		}
+	}
+	else
+	{
 		if (onoff)
-			st->channel_state |=	1 << (adap->fe_adap[0].stream.props.endpoint-2);
+		{
+			st->channel_state |=	1 << (adap->fe_adap[0].stream.props.endpoint - 2);
+		}
 		else
-			st->channel_state |=	1 << (3-adap->fe_adap[0].stream.props.endpoint);
+		{
+			st->channel_state |=	1 << (3 - adap->fe_adap[0].stream.props.endpoint);
+		}
 	}
 
 	st->buf[2] |= st->channel_state;
@@ -635,7 +764,8 @@ int dib0700_change_protocol(struct rc_dev *rc, u64 *rc_type)
 	struct dib0700_state *st = d->priv;
 	int new_proto, ret;
 
-	if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+	if (mutex_lock_interruptible(&d->usb_mutex) < 0)
+	{
 		err("could not acquire lock");
 		return -EINTR;
 	}
@@ -645,20 +775,29 @@ int dib0700_change_protocol(struct rc_dev *rc, u64 *rc_type)
 	st->buf[2] = 0;
 
 	/* Set the IR mode */
-	if (*rc_type & RC_BIT_RC5) {
+	if (*rc_type & RC_BIT_RC5)
+	{
 		new_proto = 1;
 		*rc_type = RC_BIT_RC5;
-	} else if (*rc_type & RC_BIT_NEC) {
+	}
+	else if (*rc_type & RC_BIT_NEC)
+	{
 		new_proto = 0;
 		*rc_type = RC_BIT_NEC;
-	} else if (*rc_type & RC_BIT_RC6_MCE) {
-		if (st->fw_version < 0x10200) {
+	}
+	else if (*rc_type & RC_BIT_RC6_MCE)
+	{
+		if (st->fw_version < 0x10200)
+		{
 			ret = -EINVAL;
 			goto out;
 		}
+
 		new_proto = 2;
 		*rc_type = RC_BIT_RC6_MCE;
-	} else {
+	}
+	else
+	{
 		ret = -EINVAL;
 		goto out;
 	}
@@ -666,7 +805,9 @@ int dib0700_change_protocol(struct rc_dev *rc, u64 *rc_type)
 	st->buf[1] = new_proto;
 
 	ret = dib0700_ctrl_wr(d, st->buf, 3);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		err("ir protocol setup failed");
 		goto out;
 	}
@@ -679,17 +820,21 @@ out:
 }
 
 /* This is the structure of the RC response packet starting in firmware 1.20 */
-struct dib0700_rc_response {
+struct dib0700_rc_response
+{
 	u8 report_id;
 	u8 data_state;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u8 system;
 			u8 not_system;
 			u8 data;
 			u8 not_data;
 		} nec;
-		struct {
+		struct
+		{
 			u8 not_used;
 			u8 system;
 			u8 data;
@@ -708,7 +853,9 @@ static void dib0700_rc_urb_completion(struct urb *purb)
 	u8 toggle;
 
 	deb_info("%s()\n", __func__);
-	if (d->rc_dev == NULL) {
+
+	if (d->rc_dev == NULL)
+	{
 		/* This will occur if disable_rc_polling=1 */
 		kfree(purb->transfer_buffer);
 		usb_free_urb(purb);
@@ -717,75 +864,86 @@ static void dib0700_rc_urb_completion(struct urb *purb)
 
 	poll_reply = purb->transfer_buffer;
 
-	if (purb->status < 0) {
+	if (purb->status < 0)
+	{
 		deb_info("discontinuing polling\n");
 		kfree(purb->transfer_buffer);
 		usb_free_urb(purb);
 		return;
 	}
 
-	if (purb->actual_length != RC_MSG_SIZE_V1_20) {
+	if (purb->actual_length != RC_MSG_SIZE_V1_20)
+	{
 		deb_info("malformed rc msg size=%d\n", purb->actual_length);
 		goto resubmit;
 	}
 
 	deb_data("IR ID = %02X state = %02X System = %02X %02X Cmd = %02X %02X (len %d)\n",
-		 poll_reply->report_id, poll_reply->data_state,
-		 poll_reply->nec.system, poll_reply->nec.not_system,
-		 poll_reply->nec.data, poll_reply->nec.not_data,
-		 purb->actual_length);
+			 poll_reply->report_id, poll_reply->data_state,
+			 poll_reply->nec.system, poll_reply->nec.not_system,
+			 poll_reply->nec.data, poll_reply->nec.not_data,
+			 purb->actual_length);
 
-	switch (d->props.rc.core.protocol) {
-	case RC_BIT_NEC:
-		toggle = 0;
+	switch (d->props.rc.core.protocol)
+	{
+		case RC_BIT_NEC:
+			toggle = 0;
 
-		/* NEC protocol sends repeat code as 0 0 0 FF */
-		if (poll_reply->nec.system     == 0x00 &&
-		    poll_reply->nec.not_system == 0x00 &&
-		    poll_reply->nec.data       == 0x00 &&
-		    poll_reply->nec.not_data   == 0xff) {
-			poll_reply->data_state = 2;
-			rc_repeat(d->rc_dev);
-			goto resubmit;
-		}
+			/* NEC protocol sends repeat code as 0 0 0 FF */
+			if (poll_reply->nec.system     == 0x00 &&
+				poll_reply->nec.not_system == 0x00 &&
+				poll_reply->nec.data       == 0x00 &&
+				poll_reply->nec.not_data   == 0xff)
+			{
+				poll_reply->data_state = 2;
+				rc_repeat(d->rc_dev);
+				goto resubmit;
+			}
 
-		if ((poll_reply->nec.data ^ poll_reply->nec.not_data) != 0xff) {
-			deb_data("NEC32 protocol\n");
-			keycode = RC_SCANCODE_NEC32(poll_reply->nec.system     << 24 |
-						     poll_reply->nec.not_system << 16 |
-						     poll_reply->nec.data       << 8  |
-						     poll_reply->nec.not_data);
-			protocol = RC_TYPE_NEC32;
-		} else if ((poll_reply->nec.system ^ poll_reply->nec.not_system) != 0xff) {
-			deb_data("NEC extended protocol\n");
-			keycode = RC_SCANCODE_NECX(poll_reply->nec.system << 8 |
-						    poll_reply->nec.not_system,
-						    poll_reply->nec.data);
+			if ((poll_reply->nec.data ^ poll_reply->nec.not_data) != 0xff)
+			{
+				deb_data("NEC32 protocol\n");
+				keycode = RC_SCANCODE_NEC32(poll_reply->nec.system     << 24 |
+											poll_reply->nec.not_system << 16 |
+											poll_reply->nec.data       << 8  |
+											poll_reply->nec.not_data);
+				protocol = RC_TYPE_NEC32;
+			}
+			else if ((poll_reply->nec.system ^ poll_reply->nec.not_system) != 0xff)
+			{
+				deb_data("NEC extended protocol\n");
+				keycode = RC_SCANCODE_NECX(poll_reply->nec.system << 8 |
+										   poll_reply->nec.not_system,
+										   poll_reply->nec.data);
 
-			protocol = RC_TYPE_NECX;
-		} else {
-			deb_data("NEC normal protocol\n");
-			keycode = RC_SCANCODE_NEC(poll_reply->nec.system,
-						   poll_reply->nec.data);
-			protocol = RC_TYPE_NEC;
-		}
+				protocol = RC_TYPE_NECX;
+			}
+			else
+			{
+				deb_data("NEC normal protocol\n");
+				keycode = RC_SCANCODE_NEC(poll_reply->nec.system,
+										  poll_reply->nec.data);
+				protocol = RC_TYPE_NEC;
+			}
 
-		break;
-	default:
-		deb_data("RC5 protocol\n");
-		protocol = RC_TYPE_RC5;
-		toggle = poll_reply->report_id;
-		keycode = RC_SCANCODE_RC5(poll_reply->rc5.system, poll_reply->rc5.data);
+			break;
 
-		if ((poll_reply->rc5.data ^ poll_reply->rc5.not_data) != 0xff) {
-			/* Key failed integrity check */
-			err("key failed integrity check: %02x %02x %02x %02x",
-			    poll_reply->rc5.not_used, poll_reply->rc5.system,
-			    poll_reply->rc5.data, poll_reply->rc5.not_data);
-			goto resubmit;
-		}
+		default:
+			deb_data("RC5 protocol\n");
+			protocol = RC_TYPE_RC5;
+			toggle = poll_reply->report_id;
+			keycode = RC_SCANCODE_RC5(poll_reply->rc5.system, poll_reply->rc5.data);
 
-		break;
+			if ((poll_reply->rc5.data ^ poll_reply->rc5.not_data) != 0xff)
+			{
+				/* Key failed integrity check */
+				err("key failed integrity check: %02x %02x %02x %02x",
+					poll_reply->rc5.not_used, poll_reply->rc5.system,
+					poll_reply->rc5.data, poll_reply->rc5.not_data);
+				goto resubmit;
+			}
+
+			break;
 	}
 
 	rc_keydown(d->rc_dev, protocol, keycode, toggle);
@@ -808,16 +966,23 @@ int dib0700_rc_setup(struct dvb_usb_device *d, struct usb_interface *intf)
 
 	/* Poll-based. Don't initialize bulk mode */
 	if (st->fw_version < 0x10200 || !intf)
+	{
 		return 0;
+	}
 
 	/* Starting in firmware 1.20, the RC info is provided on a bulk pipe */
 
 	purb = usb_alloc_urb(0, GFP_KERNEL);
+
 	if (purb == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	purb->transfer_buffer = kzalloc(RC_MSG_SIZE_V1_20, GFP_KERNEL);
-	if (purb->transfer_buffer == NULL) {
+
+	if (purb->transfer_buffer == NULL)
+	{
 		err("rc kzalloc failed");
 		usb_free_urb(purb);
 		return -ENOMEM;
@@ -830,24 +995,30 @@ int dib0700_rc_setup(struct dvb_usb_device *d, struct usb_interface *intf)
 	 * endpoint, while others use a bulk one.
 	 */
 	e = &intf->altsetting[0].endpoint[rc_ep].desc;
-	if (usb_endpoint_dir_in(e)) {
-		if (usb_endpoint_xfer_bulk(e)) {
+
+	if (usb_endpoint_dir_in(e))
+	{
+		if (usb_endpoint_xfer_bulk(e))
+		{
 			pipe = usb_rcvbulkpipe(d->udev, rc_ep);
 			usb_fill_bulk_urb(purb, d->udev, pipe,
-					  purb->transfer_buffer,
-					  RC_MSG_SIZE_V1_20,
-					  dib0700_rc_urb_completion, d);
+							  purb->transfer_buffer,
+							  RC_MSG_SIZE_V1_20,
+							  dib0700_rc_urb_completion, d);
 
-		} else if (usb_endpoint_xfer_int(e)) {
+		}
+		else if (usb_endpoint_xfer_int(e))
+		{
 			pipe = usb_rcvintpipe(d->udev, rc_ep);
 			usb_fill_int_urb(purb, d->udev, pipe,
-					  purb->transfer_buffer,
-					  RC_MSG_SIZE_V1_20,
-					  dib0700_rc_urb_completion, d, 1);
+							 purb->transfer_buffer,
+							 RC_MSG_SIZE_V1_20,
+							 dib0700_rc_urb_completion, d, 1);
 		}
 	}
 
-	if (!pipe) {
+	if (!pipe)
+	{
 		err("There's no endpoint for remote controller");
 		kfree(purb->transfer_buffer);
 		usb_free_urb(purb);
@@ -855,7 +1026,9 @@ int dib0700_rc_setup(struct dvb_usb_device *d, struct usb_interface *intf)
 	}
 
 	ret = usb_submit_urb(purb, GFP_ATOMIC);
-	if (ret) {
+
+	if (ret)
+	{
 		err("rc submit urb failed");
 		kfree(purb->transfer_buffer);
 		usb_free_urb(purb);
@@ -865,31 +1038,36 @@ int dib0700_rc_setup(struct dvb_usb_device *d, struct usb_interface *intf)
 }
 
 static int dib0700_probe(struct usb_interface *intf,
-		const struct usb_device_id *id)
+						 const struct usb_device_id *id)
 {
 	int i;
 	struct dvb_usb_device *dev;
 
 	for (i = 0; i < dib0700_device_count; i++)
 		if (dvb_usb_device_init(intf, &dib0700_devices[i], THIS_MODULE,
-		    &dev, adapter_nr) == 0) {
+								&dev, adapter_nr) == 0)
+		{
 			struct dib0700_state *st = dev->priv;
 			u32 hwversion, romversion, fw_version, fwtype;
 
 			dib0700_get_version(dev, &hwversion, &romversion,
-				&fw_version, &fwtype);
+								&fw_version, &fwtype);
 
 			deb_info("Firmware version: %x, %d, 0x%x, %d\n",
-				hwversion, romversion, fw_version, fwtype);
+					 hwversion, romversion, fw_version, fwtype);
 
 			st->fw_version = fw_version;
 			st->nb_packet_buffer_size = (u32)nb_packet_buffer_size;
 
 			/* Disable polling mode on newer firmwares */
 			if (st->fw_version >= 0x10200)
+			{
 				dev->props.rc.core.bulk_mode = true;
+			}
 			else
+			{
 				dev->props.rc.core.bulk_mode = false;
+			}
 
 			dib0700_rc_setup(dev, intf);
 
@@ -899,7 +1077,8 @@ static int dib0700_probe(struct usb_interface *intf,
 	return -ENODEV;
 }
 
-static struct usb_driver dib0700_driver = {
+static struct usb_driver dib0700_driver =
+{
 	.name       = "dvb_usb_dib0700",
 	.probe      = dib0700_probe,
 	.disconnect = dvb_usb_device_exit,

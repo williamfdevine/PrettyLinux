@@ -1,7 +1,8 @@
 #ifndef _HWBM_H
 #define _HWBM_H
 
-struct hwbm_pool {
+struct hwbm_pool
+{
 	/* Capacity of the pool */
 	int size;
 	/* Size of the buffers managed */

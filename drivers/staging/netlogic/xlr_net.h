@@ -1012,13 +1012,15 @@
 #define MAX_CLASS_2_SPILL               (MAX_NUM_DESC_SPILL << 2)
 #define MAX_CLASS_3_SPILL               (MAX_NUM_DESC_SPILL << 2)
 
-enum {
+enum
+{
 	SGMII_SPEED_10 = 0x00000000,
 	SGMII_SPEED_100 = 0x02000000,
 	SGMII_SPEED_1000 = 0x04000000,
 };
 
-enum tsv_rsv_reg {
+enum tsv_rsv_reg
+{
 	TX_RX_64_BYTE_FRAME = 0x20,
 	TX_RX_64_127_BYTE_FRAME,
 	TX_RX_128_255_BYTE_FRAME,
@@ -1070,11 +1072,13 @@ enum tsv_rsv_reg {
 	CARRY_REG_2 = 0x4d,
 };
 
-struct xlr_adapter {
+struct xlr_adapter
+{
 	struct net_device *netdev[4];
 };
 
-struct xlr_net_priv {
+struct xlr_net_priv
+{
 	u32 __iomem *base_addr;
 	struct net_device *ndev;
 	struct xlr_adapter *adapter;

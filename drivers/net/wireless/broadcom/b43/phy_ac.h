@@ -30,7 +30,8 @@
 #define B43_PHY_AC_C3_CLIP			0xad4
 #define  B43_PHY_AC_C3_CLIP_DIS			0x4000
 
-struct b43_phy_ac {
+struct b43_phy_ac
+{
 };
 
 extern const struct b43_phy_operations b43_phyops_ac;

@@ -37,7 +37,8 @@
 #define TS_COMM_LEN		32	/* should be >= TASK_COMM_LEN
 					 * in linux/sched.h */
 
-struct taskstats {
+struct taskstats
+{
 
 	/* The version number of this struct. This field is always set to
 	 * TAKSTATS_VERSION, which is defined in <linux/taskstats.h>.
@@ -104,16 +105,16 @@ struct taskstats {
 	/* Basic Accounting Fields start */
 	char	ac_comm[TS_COMM_LEN];	/* Command name */
 	__u8	ac_sched __attribute__((aligned(8)));
-					/* Scheduling discipline */
+	/* Scheduling discipline */
 	__u8	ac_pad[3];
 	__u32	ac_uid __attribute__((aligned(8)));
-					/* User ID */
+	/* User ID */
 	__u32	ac_gid;			/* Group ID */
 	__u32	ac_pid;			/* Process ID */
 	__u32	ac_ppid;		/* Parent process ID */
 	__u32	ac_btime;		/* Begin time [sec since 1970] */
 	__u64	ac_etime __attribute__((aligned(8)));
-					/* Elapsed time [usec] */
+	/* Elapsed time [usec] */
 	__u64	ac_utime;		/* User CPU time [usec] */
 	__u64	ac_stime;		/* SYstem CPU time [usec] */
 	__u64	ac_minflt;		/* Minor Page Fault Count */
@@ -172,7 +173,8 @@ struct taskstats {
  * prior to __TASKSTATS_CMD_MAX
  */
 
-enum {
+enum
+{
 	TASKSTATS_CMD_UNSPEC = 0,	/* Reserved */
 	TASKSTATS_CMD_GET,		/* user->kernel request/get-response */
 	TASKSTATS_CMD_NEW,		/* kernel->user event */
@@ -181,7 +183,8 @@ enum {
 
 #define TASKSTATS_CMD_MAX (__TASKSTATS_CMD_MAX - 1)
 
-enum {
+enum
+{
 	TASKSTATS_TYPE_UNSPEC = 0,	/* Reserved */
 	TASKSTATS_TYPE_PID,		/* Process id */
 	TASKSTATS_TYPE_TGID,		/* Thread group id */
@@ -194,7 +197,8 @@ enum {
 
 #define TASKSTATS_TYPE_MAX (__TASKSTATS_TYPE_MAX - 1)
 
-enum {
+enum
+{
 	TASKSTATS_CMD_ATTR_UNSPEC = 0,
 	TASKSTATS_CMD_ATTR_PID,
 	TASKSTATS_CMD_ATTR_TGID,

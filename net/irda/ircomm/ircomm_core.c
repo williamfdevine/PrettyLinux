@@ -48,13 +48,14 @@
 
 static int __ircomm_close(struct ircomm_cb *self);
 static void ircomm_control_indication(struct ircomm_cb *self,
-				      struct sk_buff *skb, int clen);
+									  struct sk_buff *skb, int clen);
 
 #ifdef CONFIG_PROC_FS
 extern struct proc_dir_entry *proc_irda;
 static int ircomm_seq_open(struct inode *, struct file *);
 
-static const struct file_operations ircomm_proc_fops = {
+static const struct file_operations ircomm_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open           = ircomm_seq_open,
 	.read           = seq_read,
@@ -68,19 +69,24 @@ hashbin_t *ircomm = NULL;
 static int __init ircomm_init(void)
 {
 	ircomm = hashbin_new(HB_LOCK);
-	if (ircomm == NULL) {
+
+	if (ircomm == NULL)
+	{
 		net_err_ratelimited("%s(), can't allocate hashbin!\n",
-				    __func__);
+							__func__);
 		return -ENOMEM;
 	}
 
 #ifdef CONFIG_PROC_FS
-	{ struct proc_dir_entry *ent;
-	ent = proc_create("ircomm", 0, proc_irda, &ircomm_proc_fops);
-	if (!ent) {
-		printk(KERN_ERR "ircomm_init: can't create /proc entry!\n");
-		return -ENODEV;
-	}
+	{
+		struct proc_dir_entry *ent;
+		ent = proc_create("ircomm", 0, proc_irda, &ircomm_proc_fops);
+
+		if (!ent)
+		{
+			printk(KERN_ERR "ircomm_init: can't create /proc entry!\n");
+			return -ENODEV;
+		}
 	}
 #endif /* CONFIG_PROC_FS */
 
@@ -110,25 +116,33 @@ struct ircomm_cb *ircomm_open(notify_t *notify, __u8 service_type, int line)
 	int ret;
 
 	pr_debug("%s(), service_type=0x%02x\n", __func__ ,
-		 service_type);
+			 service_type);
 
 	IRDA_ASSERT(ircomm != NULL, return NULL;);
 
 	self = kzalloc(sizeof(struct ircomm_cb), GFP_KERNEL);
+
 	if (self == NULL)
+	{
 		return NULL;
+	}
 
 	self->notify = *notify;
 	self->magic = IRCOMM_MAGIC;
 
 	/* Check if we should use IrLMP or IrTTP */
-	if (service_type & IRCOMM_3_WIRE_RAW) {
+	if (service_type & IRCOMM_3_WIRE_RAW)
+	{
 		self->flow_status = FLOW_START;
 		ret = ircomm_open_lsap(self);
-	} else
+	}
+	else
+	{
 		ret = ircomm_open_tsap(self);
+	}
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		kfree(self);
 		return NULL;
 	}
@@ -157,16 +171,19 @@ static int __ircomm_close(struct ircomm_cb *self)
 	ircomm_do_event(self, IRCOMM_DISCONNECT_REQUEST, NULL, NULL);
 
 	/* Remove TSAP */
-	if (self->tsap) {
+	if (self->tsap)
+	{
 		irttp_close_tsap(self->tsap);
 		self->tsap = NULL;
 	}
 
 	/* Remove LSAP */
-	if (self->lsap) {
+	if (self->lsap)
+	{
 		irlmp_close_lsap(self->lsap);
 		self->lsap = NULL;
 	}
+
 	self->magic = 0;
 
 	kfree(self);
@@ -204,8 +221,8 @@ EXPORT_SYMBOL(ircomm_close);
  *
  */
 int ircomm_connect_request(struct ircomm_cb *self, __u8 dlsap_sel,
-			   __u32 saddr, __u32 daddr, struct sk_buff *skb,
-			   __u8 service_type)
+						   __u32 saddr, __u32 daddr, struct sk_buff *skb,
+						   __u8 service_type)
 {
 	struct ircomm_info info;
 	int ret;
@@ -213,7 +230,7 @@ int ircomm_connect_request(struct ircomm_cb *self, __u8 dlsap_sel,
 	IRDA_ASSERT(self != NULL, return -1;);
 	IRDA_ASSERT(self->magic == IRCOMM_MAGIC, return -1;);
 
-	self->service_type= service_type;
+	self->service_type = service_type;
 
 	info.dlsap_sel = dlsap_sel;
 	info.saddr = saddr;
@@ -233,7 +250,7 @@ EXPORT_SYMBOL(ircomm_connect_request);
  *
  */
 void ircomm_connect_indication(struct ircomm_cb *self, struct sk_buff *skb,
-			       struct ircomm_info *info)
+							   struct ircomm_info *info)
 {
 	/*
 	 * If there are any data hiding in the control channel, we must
@@ -242,9 +259,10 @@ void ircomm_connect_indication(struct ircomm_cb *self, struct sk_buff *skb,
 	 */
 	if (self->notify.connect_indication)
 		self->notify.connect_indication(self->notify.instance, self,
-						info->qos, info->max_data_size,
-						info->max_header_size, skb);
-	else {
+										info->qos, info->max_data_size,
+										info->max_header_size, skb);
+	else
+	{
 		pr_debug("%s(), missing handler\n", __func__);
 	}
 }
@@ -276,14 +294,15 @@ EXPORT_SYMBOL(ircomm_connect_response);
  *
  */
 void ircomm_connect_confirm(struct ircomm_cb *self, struct sk_buff *skb,
-			    struct ircomm_info *info)
+							struct ircomm_info *info)
 {
 	if (self->notify.connect_confirm )
 		self->notify.connect_confirm(self->notify.instance,
-					     self, info->qos,
-					     info->max_data_size,
-					     info->max_header_size, skb);
-	else {
+									 self, info->qos,
+									 info->max_data_size,
+									 info->max_header_size, skb);
+	else
+	{
 		pr_debug("%s(), missing handler\n", __func__);
 	}
 }
@@ -320,8 +339,11 @@ void ircomm_data_indication(struct ircomm_cb *self, struct sk_buff *skb)
 	IRDA_ASSERT(skb->len > 0, return;);
 
 	if (self->notify.data_indication)
+	{
 		self->notify.data_indication(self->notify.instance, self, skb);
-	else {
+	}
+	else
+	{
 		pr_debug("%s(), missing handler\n", __func__);
 	}
 }
@@ -346,9 +368,10 @@ void ircomm_process_data(struct ircomm_cb *self, struct sk_buff *skb)
 	 * illegal; if we throw away just this frame then it seems to carry on
 	 * fine
 	 */
-	if (unlikely(skb->len < (clen + 1))) {
+	if (unlikely(skb->len < (clen + 1)))
+	{
 		pr_debug("%s() throwing away illegal frame\n",
-			 __func__);
+				 __func__);
 		return;
 	}
 
@@ -358,16 +381,21 @@ void ircomm_process_data(struct ircomm_cb *self, struct sk_buff *skb)
 	 * will be removed from the skb
 	 */
 	if (clen > 0)
+	{
 		ircomm_control_indication(self, skb, clen);
+	}
 
 	/* Remove control channel from data channel */
-	skb_pull(skb, clen+1);
+	skb_pull(skb, clen + 1);
 
 	if (skb->len)
+	{
 		ircomm_data_indication(self, skb);
-	else {
+	}
+	else
+	{
 		pr_debug("%s(), data was control info only!\n",
-			 __func__);
+				 __func__);
 	}
 }
 
@@ -399,27 +427,33 @@ EXPORT_SYMBOL(ircomm_control_request);
  *
  */
 static void ircomm_control_indication(struct ircomm_cb *self,
-				      struct sk_buff *skb, int clen)
+									  struct sk_buff *skb, int clen)
 {
 	/* Use udata for delivering data on the control channel */
-	if (self->notify.udata_indication) {
+	if (self->notify.udata_indication)
+	{
 		struct sk_buff *ctrl_skb;
 
 		/* We don't own the skb, so clone it */
 		ctrl_skb = skb_clone(skb, GFP_ATOMIC);
+
 		if (!ctrl_skb)
+		{
 			return;
+		}
 
 		/* Remove data channel from control channel */
-		skb_trim(ctrl_skb, clen+1);
+		skb_trim(ctrl_skb, clen + 1);
 
 		self->notify.udata_indication(self->notify.instance, self,
-					      ctrl_skb);
+									  ctrl_skb);
 
 		/* Drop reference count -
 		 * see ircomm_tty_control_indication(). */
 		dev_kfree_skb(ctrl_skb);
-	} else {
+	}
+	else
+	{
 		pr_debug("%s(), missing handler\n", __func__);
 	}
 }
@@ -439,7 +473,7 @@ int ircomm_disconnect_request(struct ircomm_cb *self, struct sk_buff *userdata)
 	IRDA_ASSERT(self->magic == IRCOMM_MAGIC, return -1;);
 
 	ret = ircomm_do_event(self, IRCOMM_DISCONNECT_REQUEST, userdata,
-			      &info);
+						  &info);
 	return ret;
 }
 
@@ -452,14 +486,17 @@ EXPORT_SYMBOL(ircomm_disconnect_request);
  *
  */
 void ircomm_disconnect_indication(struct ircomm_cb *self, struct sk_buff *skb,
-				  struct ircomm_info *info)
+								  struct ircomm_info *info)
 {
 	IRDA_ASSERT(info != NULL, return;);
 
-	if (self->notify.disconnect_indication) {
+	if (self->notify.disconnect_indication)
+	{
 		self->notify.disconnect_indication(self->notify.instance, self,
-						   info->reason, skb);
-	} else {
+										   info->reason, skb);
+	}
+	else
+	{
 		pr_debug("%s(), missing handler\n", __func__);
 	}
 }
@@ -476,7 +513,9 @@ void ircomm_flow_request(struct ircomm_cb *self, LOCAL_FLOW flow)
 	IRDA_ASSERT(self->magic == IRCOMM_MAGIC, return;);
 
 	if (self->service_type == IRCOMM_3_WIRE_RAW)
+	{
 		return;
+	}
 
 	irttp_flow_request(self->tsap, flow);
 }
@@ -492,12 +531,16 @@ static void *ircomm_seq_start(struct seq_file *seq, loff_t *pos)
 	spin_lock_irq(&ircomm->hb_spinlock);
 
 	for (self = (struct ircomm_cb *) hashbin_get_first(ircomm);
-	     self != NULL;
-	     self = (struct ircomm_cb *) hashbin_get_next(ircomm)) {
+		 self != NULL;
+		 self = (struct ircomm_cb *) hashbin_get_next(ircomm))
+	{
 		if (off++ == *pos)
+		{
 			break;
+		}
 
 	}
+
 	return self;
 }
 
@@ -519,30 +562,47 @@ static int ircomm_seq_show(struct seq_file *seq, void *v)
 
 	IRDA_ASSERT(self->magic == IRCOMM_MAGIC, return -EINVAL; );
 
-	if(self->line < 0x10)
+	if (self->line < 0x10)
+	{
 		seq_printf(seq, "ircomm%d", self->line);
+	}
 	else
+	{
 		seq_printf(seq, "irlpt%d", self->line - 0x10);
+	}
 
 	seq_printf(seq,
-		   " state: %s, slsap_sel: %#02x, dlsap_sel: %#02x, mode:",
-		   ircomm_state[ self->state],
-		   self->slsap_sel, self->dlsap_sel);
+			   " state: %s, slsap_sel: %#02x, dlsap_sel: %#02x, mode:",
+			   ircomm_state[ self->state],
+			   self->slsap_sel, self->dlsap_sel);
 
-	if(self->service_type & IRCOMM_3_WIRE_RAW)
+	if (self->service_type & IRCOMM_3_WIRE_RAW)
+	{
 		seq_printf(seq, " 3-wire-raw");
-	if(self->service_type & IRCOMM_3_WIRE)
+	}
+
+	if (self->service_type & IRCOMM_3_WIRE)
+	{
 		seq_printf(seq, " 3-wire");
-	if(self->service_type & IRCOMM_9_WIRE)
+	}
+
+	if (self->service_type & IRCOMM_9_WIRE)
+	{
 		seq_printf(seq, " 9-wire");
-	if(self->service_type & IRCOMM_CENTRONICS)
+	}
+
+	if (self->service_type & IRCOMM_CENTRONICS)
+	{
 		seq_printf(seq, " Centronics");
+	}
+
 	seq_putc(seq, '\n');
 
 	return 0;
 }
 
-static const struct seq_operations ircomm_seq_ops = {
+static const struct seq_operations ircomm_seq_ops =
+{
 	.start  = ircomm_seq_start,
 	.next   = ircomm_seq_next,
 	.stop   = ircomm_seq_stop,

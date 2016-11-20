@@ -22,43 +22,50 @@
 #define ICS_ARCIN_V6_INTROFFSET_2	0x3200
 #define ICS_ARCIN_V6_INTRSTAT_2		0x3290
 
-struct portinfo {
+struct portinfo
+{
 	unsigned int dataoffset;
 	unsigned int ctrloffset;
 	unsigned int stepping;
 };
 
-static const struct portinfo pata_icside_portinfo_v5 = {
+static const struct portinfo pata_icside_portinfo_v5 =
+{
 	.dataoffset	= 0x2800,
 	.ctrloffset	= 0x2b80,
 	.stepping	= 6,
 };
 
-static const struct portinfo pata_icside_portinfo_v6_1 = {
+static const struct portinfo pata_icside_portinfo_v6_1 =
+{
 	.dataoffset	= 0x2000,
 	.ctrloffset	= 0x2380,
 	.stepping	= 6,
 };
 
-static const struct portinfo pata_icside_portinfo_v6_2 = {
+static const struct portinfo pata_icside_portinfo_v6_2 =
+{
 	.dataoffset	= 0x3000,
 	.ctrloffset	= 0x3380,
 	.stepping	= 6,
 };
 
-struct pata_icside_state {
+struct pata_icside_state
+{
 	void __iomem *irq_port;
 	void __iomem *ioc_base;
 	unsigned int type;
 	unsigned int dma;
-	struct {
+	struct
+	{
 		u8 port_sel;
 		u8 disabled;
 		unsigned int speed[ATA_MAX_DEVICES];
 	} port[2];
 };
 
-struct pata_icside_info {
+struct pata_icside_info
+{
 	struct pata_icside_state *state;
 	struct expansion_card	*ec;
 	void __iomem		*base;
@@ -99,7 +106,8 @@ static void pata_icside_irqdisable_arcin_v5 (struct expansion_card *ec, int irqn
 	readb(state->irq_port + ICS_ARCIN_V5_INTROFFSET);
 }
 
-static const expansioncard_ops_t pata_icside_ops_arcin_v5 = {
+static const expansioncard_ops_t pata_icside_ops_arcin_v5 =
+{
 	.irqenable	= pata_icside_irqenable_arcin_v5,
 	.irqdisable	= pata_icside_irqdisable_arcin_v5,
 };
@@ -115,9 +123,14 @@ static void pata_icside_irqenable_arcin_v6 (struct expansion_card *ec, int irqnr
 	void __iomem *base = state->irq_port;
 
 	if (!state->port[0].disabled)
+	{
 		writeb(0, base + ICS_ARCIN_V6_INTROFFSET_1);
+	}
+
 	if (!state->port[1].disabled)
+	{
 		writeb(0, base + ICS_ARCIN_V6_INTROFFSET_2);
+	}
 }
 
 /* Prototype: pata_icside_irqdisable_arcin_v6 (struct expansion_card *ec, int irqnr)
@@ -139,10 +152,11 @@ static int pata_icside_irqpending_arcin_v6(struct expansion_card *ec)
 	struct pata_icside_state *state = ec->irq_data;
 
 	return readb(state->irq_port + ICS_ARCIN_V6_INTRSTAT_1) & 1 ||
-	       readb(state->irq_port + ICS_ARCIN_V6_INTRSTAT_2) & 1;
+		   readb(state->irq_port + ICS_ARCIN_V6_INTRSTAT_2) & 1;
 }
 
-static const expansioncard_ops_t pata_icside_ops_arcin_v6 = {
+static const expansioncard_ops_t pata_icside_ops_arcin_v6 =
+{
 	.irqenable	= pata_icside_irqenable_arcin_v6,
 	.irqdisable	= pata_icside_irqdisable_arcin_v6,
 	.irqpending	= pata_icside_irqpending_arcin_v6,
@@ -195,23 +209,33 @@ static void pata_icside_set_dmamode(struct ata_port *ap, struct ata_device *adev
 	 * DMA is based on a 16MHz clock
 	 */
 	if (ata_timing_compute(adev, adev->dma_mode, &t, 1000, 1))
+	{
 		return;
+	}
 
 	/*
 	 * Choose the IOMD cycle timing which ensure that the interface
 	 * satisfies the measured active, recovery and cycle times.
 	 */
 	if (t.active <= 50 && t.recover <= 375 && t.cycle <= 425)
+	{
 		iomd_type = 'D', cycle = 187;
+	}
 	else if (t.active <= 125 && t.recover <= 375 && t.cycle <= 500)
+	{
 		iomd_type = 'C', cycle = 250;
+	}
 	else if (t.active <= 200 && t.recover <= 550 && t.cycle <= 750)
+	{
 		iomd_type = 'B', cycle = 437;
+	}
 	else
+	{
 		iomd_type = 'A', cycle = 562;
+	}
 
 	ata_dev_info(adev, "timings: act %dns rec %dns cyc %dns (%c)\n",
-		     t.active, t.recover, t.cycle, iomd_type);
+				 t.active, t.recover, t.cycle, iomd_type);
 
 	state->port[ap->port_no].speed[adev->devno] = cycle;
 }
@@ -267,7 +291,7 @@ static u8 pata_icside_bmdma_status(struct ata_port *ap)
 	void __iomem *irq_port;
 
 	irq_port = state->irq_port + (ap->port_no ? ICS_ARCIN_V6_INTRSTAT_2 :
-						    ICS_ARCIN_V6_INTRSTAT_1);
+								  ICS_ARCIN_V6_INTRSTAT_1);
 
 	return readb(irq_port) & 1 ? ATA_DMA_INTR : 0;
 }
@@ -278,12 +302,14 @@ static int icside_dma_init(struct pata_icside_info *info)
 	struct expansion_card *ec = info->ec;
 	int i;
 
-	for (i = 0; i < ATA_MAX_DEVICES; i++) {
+	for (i = 0; i < ATA_MAX_DEVICES; i++)
+	{
 		state->port[0].speed[i] = 480;
 		state->port[1].speed[i] = 480;
 	}
 
-	if (ec->dma != NO_DMA && !request_dma(ec->dma, DRV_NAME)) {
+	if (ec->dma != NO_DMA && !request_dma(ec->dma, DRV_NAME))
+	{
 		state->dma = ec->dma;
 		info->mwdma_mask = ATA_MWDMA2;
 	}
@@ -292,7 +318,8 @@ static int icside_dma_init(struct pata_icside_info *info)
 }
 
 
-static struct scsi_host_template pata_icside_sht = {
+static struct scsi_host_template pata_icside_sht =
+{
 	ATA_BASE_SHT(DRV_NAME),
 	.sg_tablesize		= SG_MAX_SEGMENTS,
 	.dma_boundary		= IOMD_DMA_BOUNDARY,
@@ -304,23 +331,27 @@ static void pata_icside_postreset(struct ata_link *link, unsigned int *classes)
 	struct pata_icside_state *state = ap->host->private_data;
 
 	if (classes[0] != ATA_DEV_NONE || classes[1] != ATA_DEV_NONE)
+	{
 		return ata_sff_postreset(link, classes);
+	}
 
 	state->port[ap->port_no].disabled = 1;
 
-	if (state->type == ICS_TYPE_V6) {
+	if (state->type == ICS_TYPE_V6)
+	{
 		/*
 		 * Disable interrupts from this port, otherwise we
 		 * receive spurious interrupts from the floating
 		 * interrupt line.
 		 */
 		void __iomem *irq_port = state->irq_port +
-				(ap->port_no ? ICS_ARCIN_V6_INTROFFSET_2 : ICS_ARCIN_V6_INTROFFSET_1);
+								 (ap->port_no ? ICS_ARCIN_V6_INTROFFSET_2 : ICS_ARCIN_V6_INTROFFSET_1);
 		readb(irq_port);
 	}
 }
 
-static struct ata_port_operations pata_icside_port_ops = {
+static struct ata_port_operations pata_icside_port_ops =
+{
 	.inherits		= &ata_bmdma_port_ops,
 	/* no need to build any PRD tables for DMA */
 	.qc_prep		= ata_noop_qc_prep,
@@ -338,8 +369,8 @@ static struct ata_port_operations pata_icside_port_ops = {
 };
 
 static void pata_icside_setup_ioaddr(struct ata_port *ap, void __iomem *base,
-				     struct pata_icside_info *info,
-				     const struct portinfo *port)
+									 struct pata_icside_info *info,
+									 const struct portinfo *port)
 {
 	struct ata_ioports *ioaddr = &ap->ioaddr;
 	void __iomem *cmd = base + port->dataoffset;
@@ -360,11 +391,13 @@ static void pata_icside_setup_ioaddr(struct ata_port *ap, void __iomem *base,
 	ioaddr->altstatus_addr	= ioaddr->ctl_addr;
 
 	ata_port_desc(ap, "cmd 0x%lx ctl 0x%lx",
-		      info->raw_base + port->dataoffset,
-		      info->raw_base + port->ctrloffset);
+				  info->raw_base + port->dataoffset,
+				  info->raw_base + port->ctrloffset);
 
 	if (info->raw_ioc_base)
+	{
 		ata_port_desc(ap, "iocbase 0x%lx", info->raw_ioc_base);
+	}
 }
 
 static int pata_icside_register_v5(struct pata_icside_info *info)
@@ -373,8 +406,11 @@ static int pata_icside_register_v5(struct pata_icside_info *info)
 	void __iomem *base;
 
 	base = ecardm_iomap(info->ec, ECARD_RES_MEMC, 0, 0);
+
 	if (!base)
+	{
 		return -ENOMEM;
+	}
 
 	state->irq_port = base;
 
@@ -398,15 +434,22 @@ static int pata_icside_register_v6(struct pata_icside_info *info)
 	unsigned int sel = 0;
 
 	ioc_base = ecardm_iomap(ec, ECARD_RES_IOCFAST, 0, 0);
+
 	if (!ioc_base)
+	{
 		return -ENOMEM;
+	}
 
 	easi_base = ioc_base;
 
-	if (ecard_resource_flags(ec, ECARD_RES_EASI)) {
+	if (ecard_resource_flags(ec, ECARD_RES_EASI))
+	{
 		easi_base = ecardm_iomap(ec, ECARD_RES_EASI, 0, 0);
+
 		if (!easi_base)
+		{
 			return -ENOMEM;
+		}
 
 		/*
 		 * Enable access to the EASI region.
@@ -439,12 +482,16 @@ static int pata_icside_add_ports(struct pata_icside_info *info)
 	struct ata_host *host;
 	int i;
 
-	if (info->irqaddr) {
+	if (info->irqaddr)
+	{
 		ec->irqaddr = info->irqaddr;
 		ec->irqmask = info->irqmask;
 	}
+
 	if (info->irqops)
+	{
 		ecard_setirq(ec, info->irqops, info->state);
+	}
 
 	/*
 	 * Be on the safe side - disable interrupts
@@ -452,13 +499,17 @@ static int pata_icside_add_ports(struct pata_icside_info *info)
 	ec->ops->irqdisable(ec, ec->irq);
 
 	host = ata_host_alloc(&ec->dev, info->nr_ports);
+
 	if (!host)
+	{
 		return -ENOMEM;
+	}
 
 	host->private_data = info->state;
 	host->flags = ATA_HOST_SIMPLEX;
 
-	for (i = 0; i < info->nr_ports; i++) {
+	for (i = 0; i < info->nr_ports; i++)
+	{
 		struct ata_port *ap = host->ports[i];
 
 		ap->pio_mask = ATA_PIO4;
@@ -470,11 +521,11 @@ static int pata_icside_add_ports(struct pata_icside_info *info)
 	}
 
 	return ata_host_activate(host, ec->irq, ata_bmdma_interrupt, 0,
-				 &pata_icside_sht);
+							 &pata_icside_sht);
 }
 
 static int pata_icside_probe(struct expansion_card *ec,
-			     const struct ecard_id *id)
+							 const struct ecard_id *id)
 {
 	struct pata_icside_state *state;
 	struct pata_icside_info info;
@@ -482,11 +533,16 @@ static int pata_icside_probe(struct expansion_card *ec,
 	int ret;
 
 	ret = ecard_request_resources(ec);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	state = devm_kzalloc(&ec->dev, sizeof(*state), GFP_KERNEL);
-	if (!state) {
+
+	if (!state)
+	{
 		ret = -ENOMEM;
 		goto release;
 	}
@@ -495,7 +551,9 @@ static int pata_icside_probe(struct expansion_card *ec,
 	state->dma = NO_DMA;
 
 	idmem = ecardm_iomap(ec, ECARD_RES_IOCFAST, 0, 0);
-	if (idmem) {
+
+	if (idmem)
+	{
 		unsigned int type;
 
 		type = readb(idmem + ICS_IDENT_OFFSET) & 1;
@@ -511,40 +569,45 @@ static int pata_icside_probe(struct expansion_card *ec,
 	info.state = state;
 	info.ec = ec;
 
-	switch (state->type) {
-	case ICS_TYPE_A3IN:
-		dev_warn(&ec->dev, "A3IN unsupported\n");
-		ret = -ENODEV;
-		break;
+	switch (state->type)
+	{
+		case ICS_TYPE_A3IN:
+			dev_warn(&ec->dev, "A3IN unsupported\n");
+			ret = -ENODEV;
+			break;
 
-	case ICS_TYPE_A3USER:
-		dev_warn(&ec->dev, "A3USER unsupported\n");
-		ret = -ENODEV;
-		break;
+		case ICS_TYPE_A3USER:
+			dev_warn(&ec->dev, "A3USER unsupported\n");
+			ret = -ENODEV;
+			break;
 
-	case ICS_TYPE_V5:
-		ret = pata_icside_register_v5(&info);
-		break;
+		case ICS_TYPE_V5:
+			ret = pata_icside_register_v5(&info);
+			break;
 
-	case ICS_TYPE_V6:
-		ret = pata_icside_register_v6(&info);
-		break;
+		case ICS_TYPE_V6:
+			ret = pata_icside_register_v6(&info);
+			break;
 
-	default:
-		dev_warn(&ec->dev, "unknown interface type\n");
-		ret = -ENODEV;
-		break;
+		default:
+			dev_warn(&ec->dev, "unknown interface type\n");
+			ret = -ENODEV;
+			break;
 	}
 
 	if (ret == 0)
+	{
 		ret = pata_icside_add_ports(&info);
+	}
 
 	if (ret == 0)
+	{
 		goto out;
+	}
 
- release:
+release:
 	ecard_release_resources(ec);
- out:
+out:
 	return ret;
 }
 
@@ -567,10 +630,14 @@ static void pata_icside_shutdown(struct expansion_card *ec)
 	 * after a soft reboot.  This also disables access to
 	 * the IDE taskfile via the EASI region.
 	 */
-	if (host) {
+	if (host)
+	{
 		struct pata_icside_state *state = host->private_data;
+
 		if (state->ioc_base)
+		{
 			writeb(0, state->ioc_base);
+		}
 	}
 }
 
@@ -588,18 +655,22 @@ static void pata_icside_remove(struct expansion_card *ec)
 	 * to free the ata_host structure.
 	 */
 	if (state->dma != NO_DMA)
+	{
 		free_dma(state->dma);
+	}
 
 	ecard_release_resources(ec);
 }
 
-static const struct ecard_id pata_icside_ids[] = {
+static const struct ecard_id pata_icside_ids[] =
+{
 	{ MANU_ICS,  PROD_ICS_IDE  },
 	{ MANU_ICS2, PROD_ICS2_IDE },
 	{ 0xffff, 0xffff }
 };
 
-static struct ecard_driver pata_icside_driver = {
+static struct ecard_driver pata_icside_driver =
+{
 	.probe		= pata_icside_probe,
 	.remove 	= pata_icside_remove,
 	.shutdown	= pata_icside_shutdown,

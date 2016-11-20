@@ -42,10 +42,14 @@ int crypto_rng_reset(struct crypto_rng *tfm, const u8 *seed, unsigned int slen)
 	u8 *buf = NULL;
 	int err;
 
-	if (!seed && slen) {
+	if (!seed && slen)
+	{
 		buf = kmalloc(slen, GFP_KERNEL);
+
 		if (!buf)
+		{
 			return -ENOMEM;
+		}
 
 		get_random_bytes(buf, slen);
 		seed = buf;
@@ -80,8 +84,11 @@ static int crypto_rng_report(struct sk_buff *skb, struct crypto_alg *alg)
 	rrng.seedsize = seedsize(alg);
 
 	if (nla_put(skb, CRYPTOCFGA_REPORT_RNG,
-		    sizeof(struct crypto_report_rng), &rrng))
+				sizeof(struct crypto_report_rng), &rrng))
+	{
 		goto nla_put_failure;
+	}
+
 	return 0;
 
 nla_put_failure:
@@ -95,14 +102,15 @@ static int crypto_rng_report(struct sk_buff *skb, struct crypto_alg *alg)
 #endif
 
 static void crypto_rng_show(struct seq_file *m, struct crypto_alg *alg)
-	__attribute__ ((unused));
+__attribute__ ((unused));
 static void crypto_rng_show(struct seq_file *m, struct crypto_alg *alg)
 {
 	seq_printf(m, "type         : rng\n");
 	seq_printf(m, "seedsize     : %u\n", seedsize(alg));
 }
 
-static const struct crypto_type crypto_rng_type = {
+static const struct crypto_type crypto_rng_type =
+{
 	.extsize = crypto_alg_extsize,
 	.init_tfm = crypto_rng_init_tfm,
 #ifdef CONFIG_PROC_FS
@@ -127,14 +135,21 @@ int crypto_get_default_rng(void)
 	int err;
 
 	mutex_lock(&crypto_default_rng_lock);
-	if (!crypto_default_rng) {
+
+	if (!crypto_default_rng)
+	{
 		rng = crypto_alloc_rng("stdrng", 0, 0);
 		err = PTR_ERR(rng);
+
 		if (IS_ERR(rng))
+		{
 			goto unlock;
+		}
 
 		err = crypto_rng_reset(rng, NULL, crypto_rng_seedsize(rng));
-		if (err) {
+
+		if (err)
+		{
 			crypto_free_rng(rng);
 			goto unlock;
 		}
@@ -166,8 +181,11 @@ int crypto_del_default_rng(void)
 	int err = -EBUSY;
 
 	mutex_lock(&crypto_default_rng_lock);
+
 	if (crypto_default_rng_refcnt)
+	{
 		goto out;
+	}
 
 	crypto_free_rng(crypto_default_rng);
 	crypto_default_rng = NULL;
@@ -187,7 +205,9 @@ int crypto_register_rng(struct rng_alg *alg)
 	struct crypto_alg *base = &alg->base;
 
 	if (alg->seedsize > PAGE_SIZE / 8)
+	{
 		return -EINVAL;
+	}
 
 	base->cra_type = &crypto_rng_type;
 	base->cra_flags &= ~CRYPTO_ALG_TYPE_MASK;
@@ -207,17 +227,24 @@ int crypto_register_rngs(struct rng_alg *algs, int count)
 {
 	int i, ret;
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		ret = crypto_register_rng(algs + i);
+
 		if (ret)
+		{
 			goto err;
+		}
 	}
 
 	return 0;
 
 err:
+
 	for (--i; i >= 0; --i)
+	{
 		crypto_unregister_rng(algs + i);
+	}
 
 	return ret;
 }
@@ -228,7 +255,9 @@ void crypto_unregister_rngs(struct rng_alg *algs, int count)
 	int i;
 
 	for (i = count - 1; i >= 0; --i)
+	{
 		crypto_unregister_rng(algs + i);
+	}
 }
 EXPORT_SYMBOL_GPL(crypto_unregister_rngs);
 

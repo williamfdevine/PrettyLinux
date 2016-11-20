@@ -49,29 +49,47 @@ static void clk_gate_endisable(struct clk_hw *hw, int enable)
 	set ^= enable;
 
 	if (gate->lock)
+	{
 		spin_lock_irqsave(gate->lock, flags);
+	}
 	else
+	{
 		__acquire(gate->lock);
+	}
 
-	if (gate->flags & CLK_GATE_HIWORD_MASK) {
+	if (gate->flags & CLK_GATE_HIWORD_MASK)
+	{
 		reg = BIT(gate->bit_idx + 16);
+
 		if (set)
+		{
 			reg |= BIT(gate->bit_idx);
-	} else {
+		}
+	}
+	else
+	{
 		reg = clk_readl(gate->reg);
 
 		if (set)
+		{
 			reg |= BIT(gate->bit_idx);
+		}
 		else
+		{
 			reg &= ~BIT(gate->bit_idx);
+		}
 	}
 
 	clk_writel(reg, gate->reg);
 
 	if (gate->lock)
+	{
 		spin_unlock_irqrestore(gate->lock, flags);
+	}
 	else
+	{
 		__release(gate->lock);
+	}
 }
 
 static int clk_gate_enable(struct clk_hw *hw)
@@ -95,14 +113,17 @@ static int clk_gate_is_enabled(struct clk_hw *hw)
 
 	/* if a set bit disables this clk, flip it before masking */
 	if (gate->flags & CLK_GATE_SET_TO_DISABLE)
+	{
 		reg ^= BIT(gate->bit_idx);
+	}
 
 	reg &= BIT(gate->bit_idx);
 
 	return reg ? 1 : 0;
 }
 
-const struct clk_ops clk_gate_ops = {
+const struct clk_ops clk_gate_ops =
+{
 	.enable = clk_gate_enable,
 	.disable = clk_gate_disable,
 	.is_enabled = clk_gate_is_enabled,
@@ -121,17 +142,19 @@ EXPORT_SYMBOL_GPL(clk_gate_ops);
  * @lock: shared register lock for this clock
  */
 struct clk_hw *clk_hw_register_gate(struct device *dev, const char *name,
-		const char *parent_name, unsigned long flags,
-		void __iomem *reg, u8 bit_idx,
-		u8 clk_gate_flags, spinlock_t *lock)
+									const char *parent_name, unsigned long flags,
+									void __iomem *reg, u8 bit_idx,
+									u8 clk_gate_flags, spinlock_t *lock)
 {
 	struct clk_gate *gate;
 	struct clk_hw *hw;
 	struct clk_init_data init;
 	int ret;
 
-	if (clk_gate_flags & CLK_GATE_HIWORD_MASK) {
-		if (bit_idx > 15) {
+	if (clk_gate_flags & CLK_GATE_HIWORD_MASK)
+	{
+		if (bit_idx > 15)
+		{
 			pr_err("gate bit exceeds LOWORD field\n");
 			return ERR_PTR(-EINVAL);
 		}
@@ -139,13 +162,16 @@ struct clk_hw *clk_hw_register_gate(struct device *dev, const char *name,
 
 	/* allocate the gate */
 	gate = kzalloc(sizeof(*gate), GFP_KERNEL);
+
 	if (!gate)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = &clk_gate_ops;
 	init.flags = flags | CLK_IS_BASIC;
-	init.parent_names = (parent_name ? &parent_name: NULL);
+	init.parent_names = (parent_name ? &parent_name : NULL);
 	init.num_parents = (parent_name ? 1 : 0);
 
 	/* struct clk_gate assignments */
@@ -157,7 +183,9 @@ struct clk_hw *clk_hw_register_gate(struct device *dev, const char *name,
 
 	hw = &gate->hw;
 	ret = clk_hw_register(dev, hw);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(gate);
 		hw = ERR_PTR(ret);
 	}
@@ -167,16 +195,20 @@ struct clk_hw *clk_hw_register_gate(struct device *dev, const char *name,
 EXPORT_SYMBOL_GPL(clk_hw_register_gate);
 
 struct clk *clk_register_gate(struct device *dev, const char *name,
-		const char *parent_name, unsigned long flags,
-		void __iomem *reg, u8 bit_idx,
-		u8 clk_gate_flags, spinlock_t *lock)
+							  const char *parent_name, unsigned long flags,
+							  void __iomem *reg, u8 bit_idx,
+							  u8 clk_gate_flags, spinlock_t *lock)
 {
 	struct clk_hw *hw;
 
 	hw = clk_hw_register_gate(dev, name, parent_name, flags, reg,
-				  bit_idx, clk_gate_flags, lock);
+							  bit_idx, clk_gate_flags, lock);
+
 	if (IS_ERR(hw))
+	{
 		return ERR_CAST(hw);
+	}
+
 	return hw->clk;
 }
 EXPORT_SYMBOL_GPL(clk_register_gate);
@@ -187,8 +219,11 @@ void clk_unregister_gate(struct clk *clk)
 	struct clk_hw *hw;
 
 	hw = __clk_get_hw(clk);
+
 	if (!hw)
+	{
 		return;
+	}
 
 	gate = to_clk_gate(hw);
 

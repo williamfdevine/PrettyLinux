@@ -32,14 +32,16 @@
 #define BPP		16
 #define FPS		20
 #define DEFAULT_GAMMA	"26 09 24 2C 1F 23 24 25 22 26 25 23 0D 00\n" \
-			"1C 1A 13 1D 0B 11 12 10 13 15 36 19 00 0D"
+	"1C 1A 13 1D 0B 11 12 10 13 15 36 19 00 0D"
 
 static int init_display(struct fbtft_par *par)
 {
 	par->fbtftops.reset(par);
 
 	if (par->gpio.cs != -1)
-		gpio_set_value(par->gpio.cs, 0);  /* Activate chip */
+	{
+		gpio_set_value(par->gpio.cs, 0);    /* Activate chip */
+	}
 
 	/* Initialization sequence from Lib_UTFT */
 
@@ -80,45 +82,54 @@ static int init_display(struct fbtft_par *par)
 
 static void set_addr_win(struct fbtft_par *par, int xs, int ys, int xe, int ye)
 {
-	switch (par->info->var.rotate) {
-	/* R20h = Horizontal GRAM Start Address */
-	/* R21h = Vertical GRAM Start Address */
-	case 0:
-		write_reg(par, 0x0020, xs);
-		write_reg(par, 0x0021, ys);
-		break;
-	case 180:
-		write_reg(par, 0x0020, WIDTH - 1 - xs);
-		write_reg(par, 0x0021, HEIGHT - 1 - ys);
-		break;
-	case 270:
-		write_reg(par, 0x0020, WIDTH - 1 - ys);
-		write_reg(par, 0x0021, xs);
-		break;
-	case 90:
-		write_reg(par, 0x0020, ys);
-		write_reg(par, 0x0021, HEIGHT - 1 - xs);
-		break;
+	switch (par->info->var.rotate)
+	{
+		/* R20h = Horizontal GRAM Start Address */
+		/* R21h = Vertical GRAM Start Address */
+		case 0:
+			write_reg(par, 0x0020, xs);
+			write_reg(par, 0x0021, ys);
+			break;
+
+		case 180:
+			write_reg(par, 0x0020, WIDTH - 1 - xs);
+			write_reg(par, 0x0021, HEIGHT - 1 - ys);
+			break;
+
+		case 270:
+			write_reg(par, 0x0020, WIDTH - 1 - ys);
+			write_reg(par, 0x0021, xs);
+			break;
+
+		case 90:
+			write_reg(par, 0x0020, ys);
+			write_reg(par, 0x0021, HEIGHT - 1 - xs);
+			break;
 	}
+
 	write_reg(par, 0x0022); /* Write Data to GRAM */
 }
 
 static int set_var(struct fbtft_par *par)
 {
-	switch (par->info->var.rotate) {
-	/* AM: GRAM update direction */
-	case 0:
-		write_reg(par, 0x03, 0x0003 | (par->bgr << 12));
-		break;
-	case 180:
-		write_reg(par, 0x03, 0x0000 | (par->bgr << 12));
-		break;
-	case 270:
-		write_reg(par, 0x03, 0x000A | (par->bgr << 12));
-		break;
-	case 90:
-		write_reg(par, 0x03, 0x0009 | (par->bgr << 12));
-		break;
+	switch (par->info->var.rotate)
+	{
+		/* AM: GRAM update direction */
+		case 0:
+			write_reg(par, 0x03, 0x0003 | (par->bgr << 12));
+			break;
+
+		case 180:
+			write_reg(par, 0x03, 0x0000 | (par->bgr << 12));
+			break;
+
+		case 270:
+			write_reg(par, 0x03, 0x000A | (par->bgr << 12));
+			break;
+
+		case 90:
+			write_reg(par, 0x03, 0x0009 | (par->bgr << 12));
+			break;
 	}
 
 	return 0;
@@ -132,7 +143,8 @@ static int set_var(struct fbtft_par *par)
 #define CURVE(num, idx)  curves[num * par->gamma.num_values + idx]
 static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 {
-	unsigned long mask[] = {
+	unsigned long mask[] =
+	{
 		0x3f, 0x3f, 0x3f, 0x3f, 0x3f, 0x3f, 0x3f, 0x3f, 0x3f, 0x3f,
 		0x3f, 0x3f, 0x1f, 0x1f, 0x3f, 0x3f, 0x3f, 0x3f, 0x3f, 0x3f,
 		0x3f, 0x3f, 0x3f, 0x3f, 0x3f, 0x3f, 0x1f, 0x1f,
@@ -142,7 +154,9 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 	/* apply mask */
 	for (i = 0; i < 2; i++)
 		for (j = 0; j < 14; j++)
+		{
 			CURVE(i, j) &= mask[i * par->gamma.num_values + j];
+		}
 
 	write_reg(par, 0x0030, CURVE(0, 1) << 8 | CURVE(0, 0));
 	write_reg(par, 0x0031, CURVE(0, 3) << 8 | CURVE(0, 2));
@@ -165,7 +179,8 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 }
 #undef CURVE
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 16,
 	.width = WIDTH,
 	.height = HEIGHT,

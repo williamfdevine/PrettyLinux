@@ -29,10 +29,11 @@
  *  @li_is_closed:	Whether @li_seqno is older than 1 RTT
  *  @li_length:		Loss interval sequence length
  */
-struct tfrc_loss_interval {
-	u64		 li_seqno:48,
-			 li_ccval:4,
-			 li_is_closed:1;
+struct tfrc_loss_interval
+{
+	u64		 li_seqno: 48,
+			 li_ccval: 4,
+			 li_is_closed: 1;
 	u32		 li_length;
 };
 
@@ -42,7 +43,8 @@ struct tfrc_loss_interval {
  *  @counter:	Current count of entries (can be more than %LIH_SIZE)
  *  @i_mean:	Current Average Loss Interval [RFC 3448, 5.4]
  */
-struct tfrc_loss_hist {
+struct tfrc_loss_hist
+{
 	struct tfrc_loss_interval	*ring[LIH_SIZE];
 	u8				counter;
 	u32				i_mean;
@@ -66,7 +68,7 @@ static inline u8 tfrc_lh_length(struct tfrc_loss_hist *lh)
 struct tfrc_rx_hist;
 
 int tfrc_lh_interval_add(struct tfrc_loss_hist *, struct tfrc_rx_hist *,
-			 u32 (*first_li)(struct sock *), struct sock *);
+						 u32 (*first_li)(struct sock *), struct sock *);
 u8 tfrc_lh_update_i_mean(struct tfrc_loss_hist *lh, struct sk_buff *);
 void tfrc_lh_cleanup(struct tfrc_loss_hist *lh);
 

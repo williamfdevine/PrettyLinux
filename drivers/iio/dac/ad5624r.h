@@ -36,7 +36,8 @@
  * @int_vref_mv:	AD5620/40/60: the internal reference voltage
  */
 
-struct ad5624r_chip_info {
+struct ad5624r_chip_info
+{
 	const struct iio_chan_spec	*channels;
 	u16				int_vref_mv;
 };
@@ -52,7 +53,8 @@ struct ad5624r_chip_info {
  * @pwr_down_mode	current power down mode
  */
 
-struct ad5624r_state {
+struct ad5624r_state
+{
 	struct spi_device		*us;
 	const struct ad5624r_chip_info	*chip_info;
 	struct regulator		*reg;
@@ -67,7 +69,8 @@ struct ad5624r_state {
  * fixed internal reference voltage options.
  */
 
-enum ad5624r_supported_device_ids {
+enum ad5624r_supported_device_ids
+{
 	ID_AD5624R3,
 	ID_AD5644R3,
 	ID_AD5664R3,

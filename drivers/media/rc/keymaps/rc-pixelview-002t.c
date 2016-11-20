@@ -17,7 +17,8 @@
  * Keytable for 002-T IR remote provided together with Pixelview
  * SBTVD Hybrid Remote Controller. Uses NEC extended format.
  */
-static struct rc_map_table pixelview_002t[] = {
+static struct rc_map_table pixelview_002t[] =
+{
 	{ 0x866b13, KEY_MUTE },
 	{ 0x866b12, KEY_POWER2 },	/* power */
 
@@ -52,7 +53,8 @@ static struct rc_map_table pixelview_002t[] = {
 	{ 0x866b1a, KEY_STOP },
 };
 
-static struct rc_map_list pixelview_map = {
+static struct rc_map_list pixelview_map =
+{
 	.map = {
 		.scan    = pixelview_002t,
 		.size    = ARRAY_SIZE(pixelview_002t),

@@ -133,7 +133,8 @@
 
 #define LOOP_TIMEOUT_MAX	0x00010000
 
-enum flctl_ecc_res_t {
+enum flctl_ecc_res_t
+{
 	FL_SUCCESS,
 	FL_REPAIRABLE,
 	FL_ERROR,
@@ -142,7 +143,8 @@ enum flctl_ecc_res_t {
 
 struct dma_chan;
 
-struct sh_flctl {
+struct sh_flctl
+{
 	struct nand_chip	chip;
 	struct platform_device	*pdev;
 	struct dev_pm_qos_request pm_qos;
@@ -161,10 +163,10 @@ struct sh_flctl {
 	uint32_t flcmncr_base;	/* base value of FLCMNCR */
 	uint32_t flintdmacr_base;	/* irq enable bits */
 
-	unsigned page_size:1;	/* NAND page size (0 = 512, 1 = 2048) */
-	unsigned hwecc:1;	/* Hardware ECC (0 = disabled, 1 = enabled) */
-	unsigned holden:1;	/* Hardware has FLHOLDCR and HOLDEN is set */
-	unsigned qos_request:1;	/* QoS request to prevent deep power shutdown */
+	unsigned page_size: 1;	/* NAND page size (0 = 512, 1 = 2048) */
+	unsigned hwecc: 1;	/* Hardware ECC (0 = disabled, 1 = enabled) */
+	unsigned holden: 1;	/* Hardware has FLHOLDCR and HOLDEN is set */
+	unsigned qos_request: 1;	/* QoS request to prevent deep power shutdown */
 
 	/* DMA related objects */
 	struct dma_chan		*chan_fifo0_rx;
@@ -172,13 +174,14 @@ struct sh_flctl {
 	struct completion	dma_complete;
 };
 
-struct sh_flctl_platform_data {
+struct sh_flctl_platform_data
+{
 	struct mtd_partition	*parts;
 	int			nr_parts;
 	unsigned long		flcmncr_val;
 
-	unsigned has_hwecc:1;
-	unsigned use_holden:1;
+	unsigned has_hwecc: 1;
+	unsigned use_holden: 1;
 
 	unsigned int            slave_id_fifo0_tx;
 	unsigned int            slave_id_fifo0_rx;

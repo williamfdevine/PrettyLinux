@@ -26,13 +26,14 @@
 #define SYNTH_KBD_VERSION_MAJOR 1
 #define SYNTH_KBD_VERSION_MINOR	0
 #define SYNTH_KBD_VERSION		(SYNTH_KBD_VERSION_MINOR | \
-					 (SYNTH_KBD_VERSION_MAJOR << 16))
+								 (SYNTH_KBD_VERSION_MAJOR << 16))
 
 
 /*
  * Message types in the synthetic input protocol
  */
-enum synth_kbd_msg_type {
+enum synth_kbd_msg_type
+{
 	SYNTH_KBD_PROTOCOL_REQUEST = 1,
 	SYNTH_KBD_PROTOCOL_RESPONSE = 2,
 	SYNTH_KBD_EVENT = 3,
@@ -42,29 +43,34 @@ enum synth_kbd_msg_type {
 /*
  * Basic message structures.
  */
-struct synth_kbd_msg_hdr {
+struct synth_kbd_msg_hdr
+{
 	__le32 type;
 };
 
-struct synth_kbd_msg {
+struct synth_kbd_msg
+{
 	struct synth_kbd_msg_hdr header;
 	char data[]; /* Enclosed message */
 };
 
-union synth_kbd_version {
+union synth_kbd_version
+{
 	__le32 version;
 };
 
 /*
  * Protocol messages
  */
-struct synth_kbd_protocol_request {
+struct synth_kbd_protocol_request
+{
 	struct synth_kbd_msg_hdr header;
 	union synth_kbd_version version_requested;
 };
 
 #define PROTOCOL_ACCEPTED	BIT(0)
-struct synth_kbd_protocol_response {
+struct synth_kbd_protocol_response
+{
 	struct synth_kbd_msg_hdr header;
 	__le32 proto_status;
 };
@@ -73,7 +79,8 @@ struct synth_kbd_protocol_response {
 #define IS_BREAK	BIT(1)
 #define IS_E0		BIT(2)
 #define IS_E1		BIT(3)
-struct synth_kbd_keystroke {
+struct synth_kbd_keystroke
+{
 	struct synth_kbd_msg_hdr header;
 	__le16 make_code;
 	__le16 reserved0;
@@ -94,7 +101,8 @@ struct synth_kbd_keystroke {
 /*
  * Represents a keyboard device
  */
-struct hv_kbd_dev {
+struct hv_kbd_dev
+{
 	struct hv_device *hv_dev;
 	struct serio *hv_serio;
 	struct synth_kbd_protocol_request protocol_req;
@@ -106,7 +114,7 @@ struct hv_kbd_dev {
 };
 
 static void hv_kbd_on_receive(struct hv_device *hv_dev,
-			      struct synth_kbd_msg *msg, u32 msg_length)
+							  struct synth_kbd_msg *msg, u32 msg_length)
 {
 	struct hv_kbd_dev *kbd_dev = hv_get_drvdata(hv_dev);
 	struct synth_kbd_keystroke *ks_msg;
@@ -115,131 +123,149 @@ static void hv_kbd_on_receive(struct hv_device *hv_dev,
 	u32 info;
 	u16 scan_code;
 
-	switch (msg_type) {
-	case SYNTH_KBD_PROTOCOL_RESPONSE:
-		/*
-		 * Validate the information provided by the host.
-		 * If the host is giving us a bogus packet,
-		 * drop the packet (hoping the problem
-		 * goes away).
-		 */
-		if (msg_length < sizeof(struct synth_kbd_protocol_response)) {
-			dev_err(&hv_dev->device,
-				"Illegal protocol response packet (len: %d)\n",
-				msg_length);
+	switch (msg_type)
+	{
+		case SYNTH_KBD_PROTOCOL_RESPONSE:
+
+			/*
+			 * Validate the information provided by the host.
+			 * If the host is giving us a bogus packet,
+			 * drop the packet (hoping the problem
+			 * goes away).
+			 */
+			if (msg_length < sizeof(struct synth_kbd_protocol_response))
+			{
+				dev_err(&hv_dev->device,
+						"Illegal protocol response packet (len: %d)\n",
+						msg_length);
+				break;
+			}
+
+			memcpy(&kbd_dev->protocol_resp, msg,
+				   sizeof(struct synth_kbd_protocol_response));
+			complete(&kbd_dev->wait_event);
 			break;
-		}
 
-		memcpy(&kbd_dev->protocol_resp, msg,
-			sizeof(struct synth_kbd_protocol_response));
-		complete(&kbd_dev->wait_event);
-		break;
+		case SYNTH_KBD_EVENT:
 
-	case SYNTH_KBD_EVENT:
-		/*
-		 * Validate the information provided by the host.
-		 * If the host is giving us a bogus packet,
-		 * drop the packet (hoping the problem
-		 * goes away).
-		 */
-		if (msg_length < sizeof(struct  synth_kbd_keystroke)) {
-			dev_err(&hv_dev->device,
-				"Illegal keyboard event packet (len: %d)\n",
-				msg_length);
+			/*
+			 * Validate the information provided by the host.
+			 * If the host is giving us a bogus packet,
+			 * drop the packet (hoping the problem
+			 * goes away).
+			 */
+			if (msg_length < sizeof(struct  synth_kbd_keystroke))
+			{
+				dev_err(&hv_dev->device,
+						"Illegal keyboard event packet (len: %d)\n",
+						msg_length);
+				break;
+			}
+
+			ks_msg = (struct synth_kbd_keystroke *)msg;
+			info = __le32_to_cpu(ks_msg->info);
+
+			/*
+			 * Inject the information through the serio interrupt.
+			 */
+			spin_lock_irqsave(&kbd_dev->lock, flags);
+
+			if (kbd_dev->started)
+			{
+				if (info & IS_E0)
+					serio_interrupt(kbd_dev->hv_serio,
+									XTKBD_EMUL0, 0);
+
+				if (info & IS_E1)
+					serio_interrupt(kbd_dev->hv_serio,
+									XTKBD_EMUL1, 0);
+
+				scan_code = __le16_to_cpu(ks_msg->make_code);
+
+				if (info & IS_BREAK)
+				{
+					scan_code |= XTKBD_RELEASE;
+				}
+
+				serio_interrupt(kbd_dev->hv_serio, scan_code, 0);
+			}
+
+			spin_unlock_irqrestore(&kbd_dev->lock, flags);
+
+			/*
+			 * Only trigger a wakeup on key down, otherwise
+			 * "echo freeze > /sys/power/state" can't really enter the
+			 * state because the Enter-UP can trigger a wakeup at once.
+			 */
+			if (!(info & IS_BREAK))
+			{
+				pm_wakeup_event(&hv_dev->device, 0);
+			}
+
 			break;
-		}
 
-		ks_msg = (struct synth_kbd_keystroke *)msg;
-		info = __le32_to_cpu(ks_msg->info);
-
-		/*
-		 * Inject the information through the serio interrupt.
-		 */
-		spin_lock_irqsave(&kbd_dev->lock, flags);
-		if (kbd_dev->started) {
-			if (info & IS_E0)
-				serio_interrupt(kbd_dev->hv_serio,
-						XTKBD_EMUL0, 0);
-			if (info & IS_E1)
-				serio_interrupt(kbd_dev->hv_serio,
-						XTKBD_EMUL1, 0);
-			scan_code = __le16_to_cpu(ks_msg->make_code);
-			if (info & IS_BREAK)
-				scan_code |= XTKBD_RELEASE;
-
-			serio_interrupt(kbd_dev->hv_serio, scan_code, 0);
-		}
-		spin_unlock_irqrestore(&kbd_dev->lock, flags);
-
-		/*
-		 * Only trigger a wakeup on key down, otherwise
-		 * "echo freeze > /sys/power/state" can't really enter the
-		 * state because the Enter-UP can trigger a wakeup at once.
-		 */
-		if (!(info & IS_BREAK))
-			pm_wakeup_event(&hv_dev->device, 0);
-
-		break;
-
-	default:
-		dev_err(&hv_dev->device,
-			"unhandled message type %d\n", msg_type);
+		default:
+			dev_err(&hv_dev->device,
+					"unhandled message type %d\n", msg_type);
 	}
 }
 
 static void hv_kbd_handle_received_packet(struct hv_device *hv_dev,
-					  struct vmpacket_descriptor *desc,
-					  u32 bytes_recvd,
-					  u64 req_id)
+		struct vmpacket_descriptor *desc,
+		u32 bytes_recvd,
+		u64 req_id)
 {
 	struct synth_kbd_msg *msg;
 	u32 msg_sz;
 
-	switch (desc->type) {
-	case VM_PKT_COMP:
-		break;
-
-	case VM_PKT_DATA_INBAND:
-		/*
-		 * We have a packet that has "inband" data. The API used
-		 * for retrieving the packet guarantees that the complete
-		 * packet is read. So, minimally, we should be able to
-		 * parse the payload header safely (assuming that the host
-		 * can be trusted.  Trusting the host seems to be a
-		 * reasonable assumption because in a virtualized
-		 * environment there is not whole lot you can do if you
-		 * don't trust the host.
-		 *
-		 * Nonetheless, let us validate if the host can be trusted
-		 * (in a trivial way).  The interesting aspect of this
-		 * validation is how do you recover if we discover that the
-		 * host is not to be trusted? Simply dropping the packet, I
-		 * don't think is an appropriate recovery.  In the interest
-		 * of failing fast, it may be better to crash the guest.
-		 * For now, I will just drop the packet!
-		 */
-
-		msg_sz = bytes_recvd - (desc->offset8 << 3);
-		if (msg_sz <= sizeof(struct synth_kbd_msg_hdr)) {
-			/*
-			 * Drop the packet and hope
-			 * the problem magically goes away.
-			 */
-			dev_err(&hv_dev->device,
-				"Illegal packet (type: %d, tid: %llx, size: %d)\n",
-				desc->type, req_id, msg_sz);
+	switch (desc->type)
+	{
+		case VM_PKT_COMP:
 			break;
-		}
 
-		msg = (void *)desc + (desc->offset8 << 3);
-		hv_kbd_on_receive(hv_dev, msg, msg_sz);
-		break;
+		case VM_PKT_DATA_INBAND:
+			/*
+			 * We have a packet that has "inband" data. The API used
+			 * for retrieving the packet guarantees that the complete
+			 * packet is read. So, minimally, we should be able to
+			 * parse the payload header safely (assuming that the host
+			 * can be trusted.  Trusting the host seems to be a
+			 * reasonable assumption because in a virtualized
+			 * environment there is not whole lot you can do if you
+			 * don't trust the host.
+			 *
+			 * Nonetheless, let us validate if the host can be trusted
+			 * (in a trivial way).  The interesting aspect of this
+			 * validation is how do you recover if we discover that the
+			 * host is not to be trusted? Simply dropping the packet, I
+			 * don't think is an appropriate recovery.  In the interest
+			 * of failing fast, it may be better to crash the guest.
+			 * For now, I will just drop the packet!
+			 */
 
-	default:
-		dev_err(&hv_dev->device,
-			"unhandled packet type %d, tid %llx len %d\n",
-			desc->type, req_id, bytes_recvd);
-		break;
+			msg_sz = bytes_recvd - (desc->offset8 << 3);
+
+			if (msg_sz <= sizeof(struct synth_kbd_msg_hdr))
+			{
+				/*
+				 * Drop the packet and hope
+				 * the problem magically goes away.
+				 */
+				dev_err(&hv_dev->device,
+						"Illegal packet (type: %d, tid: %llx, size: %d)\n",
+						desc->type, req_id, msg_sz);
+				break;
+			}
+
+			msg = (void *)desc + (desc->offset8 << 3);
+			hv_kbd_on_receive(hv_dev, msg, msg_sz);
+			break;
+
+		default:
+			dev_err(&hv_dev->device,
+					"unhandled packet type %d, tid %llx len %d\n",
+					desc->type, req_id, bytes_recvd);
+			break;
 	}
 }
 
@@ -253,31 +279,42 @@ static void hv_kbd_on_channel_callback(void *context)
 	int error;
 
 	buffer = kmalloc(bufferlen, GFP_ATOMIC);
+
 	if (!buffer)
+	{
 		return;
+	}
 
-	while (1) {
+	while (1)
+	{
 		error = vmbus_recvpacket_raw(hv_dev->channel, buffer, bufferlen,
-					     &bytes_recvd, &req_id);
-		switch (error) {
-		case 0:
-			if (bytes_recvd == 0) {
+									 &bytes_recvd, &req_id);
+
+		switch (error)
+		{
+			case 0:
+				if (bytes_recvd == 0)
+				{
+					kfree(buffer);
+					return;
+				}
+
+				hv_kbd_handle_received_packet(hv_dev, buffer,
+											  bytes_recvd, req_id);
+				break;
+
+			case -ENOBUFS:
 				kfree(buffer);
-				return;
-			}
+				/* Handle large packet */
+				bufferlen = bytes_recvd;
+				buffer = kmalloc(bytes_recvd, GFP_ATOMIC);
 
-			hv_kbd_handle_received_packet(hv_dev, buffer,
-						      bytes_recvd, req_id);
-			break;
+				if (!buffer)
+				{
+					return;
+				}
 
-		case -ENOBUFS:
-			kfree(buffer);
-			/* Handle large packet */
-			bufferlen = bytes_recvd;
-			buffer = kmalloc(bytes_recvd, GFP_ATOMIC);
-			if (!buffer)
-				return;
-			break;
+				break;
 		}
 	}
 }
@@ -296,22 +333,29 @@ static int hv_kbd_connect_to_vsp(struct hv_device *hv_dev)
 	request->version_requested.version = __cpu_to_le32(SYNTH_KBD_VERSION);
 
 	error = vmbus_sendpacket(hv_dev->channel, request,
-				 sizeof(struct synth_kbd_protocol_request),
-				 (unsigned long)request,
-				 VM_PKT_DATA_INBAND,
-				 VMBUS_DATA_PACKET_FLAG_COMPLETION_REQUESTED);
+							 sizeof(struct synth_kbd_protocol_request),
+							 (unsigned long)request,
+							 VM_PKT_DATA_INBAND,
+							 VMBUS_DATA_PACKET_FLAG_COMPLETION_REQUESTED);
+
 	if (error)
+	{
 		return error;
+	}
 
 	if (!wait_for_completion_timeout(&kbd_dev->wait_event, 10 * HZ))
+	{
 		return -ETIMEDOUT;
+	}
 
 	response = &kbd_dev->protocol_resp;
 	proto_status = __le32_to_cpu(response->proto_status);
-	if (!(proto_status & PROTOCOL_ACCEPTED)) {
+
+	if (!(proto_status & PROTOCOL_ACCEPTED))
+	{
 		dev_err(&hv_dev->device,
-			"synth_kbd protocol request failed (version %d)\n",
-		        SYNTH_KBD_VERSION);
+				"synth_kbd protocol request failed (version %d)\n",
+				SYNTH_KBD_VERSION);
 		return -ENODEV;
 	}
 
@@ -341,7 +385,7 @@ static void hv_kbd_stop(struct serio *serio)
 }
 
 static int hv_kbd_probe(struct hv_device *hv_dev,
-			const struct hv_vmbus_device_id *dev_id)
+						const struct hv_vmbus_device_id *dev_id)
 {
 	struct hv_kbd_dev *kbd_dev;
 	struct serio *hv_serio;
@@ -349,7 +393,9 @@ static int hv_kbd_probe(struct hv_device *hv_dev,
 
 	kbd_dev = kzalloc(sizeof(struct hv_kbd_dev), GFP_KERNEL);
 	hv_serio = kzalloc(sizeof(struct serio), GFP_KERNEL);
-	if (!kbd_dev || !hv_serio) {
+
+	if (!kbd_dev || !hv_serio)
+	{
 		error = -ENOMEM;
 		goto err_free_mem;
 	}
@@ -364,25 +410,31 @@ static int hv_kbd_probe(struct hv_device *hv_dev,
 	hv_serio->id.type = SERIO_8042_XL;
 	hv_serio->port_data = kbd_dev;
 	strlcpy(hv_serio->name, dev_name(&hv_dev->device),
-		sizeof(hv_serio->name));
+			sizeof(hv_serio->name));
 	strlcpy(hv_serio->phys, dev_name(&hv_dev->device),
-		sizeof(hv_serio->phys));
+			sizeof(hv_serio->phys));
 
 	hv_serio->start = hv_kbd_start;
 	hv_serio->stop = hv_kbd_stop;
 
 	error = vmbus_open(hv_dev->channel,
-			   KBD_VSC_SEND_RING_BUFFER_SIZE,
-			   KBD_VSC_RECV_RING_BUFFER_SIZE,
-			   NULL, 0,
-			   hv_kbd_on_channel_callback,
-			   hv_dev);
+					   KBD_VSC_SEND_RING_BUFFER_SIZE,
+					   KBD_VSC_RECV_RING_BUFFER_SIZE,
+					   NULL, 0,
+					   hv_kbd_on_channel_callback,
+					   hv_dev);
+
 	if (error)
+	{
 		goto err_free_mem;
+	}
 
 	error = hv_kbd_connect_to_vsp(hv_dev);
+
 	if (error)
+	{
 		goto err_close_vmbus;
+	}
 
 	serio_register_port(kbd_dev->hv_serio);
 
@@ -412,7 +464,8 @@ static int hv_kbd_remove(struct hv_device *hv_dev)
 	return 0;
 }
 
-static const struct hv_vmbus_device_id id_table[] = {
+static const struct hv_vmbus_device_id id_table[] =
+{
 	/* Keyboard guid */
 	{ HV_KBD_GUID, },
 	{ },
@@ -420,7 +473,8 @@ static const struct hv_vmbus_device_id id_table[] = {
 
 MODULE_DEVICE_TABLE(vmbus, id_table);
 
-static struct  hv_driver hv_kbd_drv = {
+static struct  hv_driver hv_kbd_drv =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = id_table,
 	.probe = hv_kbd_probe,

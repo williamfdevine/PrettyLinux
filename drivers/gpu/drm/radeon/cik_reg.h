@@ -206,19 +206,22 @@
 #define	SDMA0_CNTL					0xD010
 #define	SDMA1_CNTL					0xD810
 
-enum {
+enum
+{
 	MAX_TRAPID = 8,		/* 3 bits in the bitfield.  */
 	MAX_WATCH_ADDRESSES = 4
 };
 
-enum {
+enum
+{
 	ADDRESS_WATCH_REG_ADDR_HI = 0,
 	ADDRESS_WATCH_REG_ADDR_LO,
 	ADDRESS_WATCH_REG_CNTL,
 	ADDRESS_WATCH_REG_MAX
 };
 
-enum {				/*  not defined in the CI/KV reg file  */
+enum  				/*  not defined in the CI/KV reg file  */
+{
 	ADDRESS_WATCH_REG_CNTL_ATC_BIT = 0x10000000UL,
 	ADDRESS_WATCH_REG_CNTL_DEFAULT_MASK = 0x00FFFFFF,
 	ADDRESS_WATCH_REG_ADDLOW_MASK_EXTENSION = 0x03000000,
@@ -227,13 +230,15 @@ enum {				/*  not defined in the CI/KV reg file  */
 	ADDRESS_WATCH_REG_ADDHIGH_MASK = 0xFFFF
 };
 
-union TCP_WATCH_CNTL_BITS {
-	struct {
-		uint32_t mask:24;
-		uint32_t vmid:4;
-		uint32_t atc:1;
-		uint32_t mode:2;
-		uint32_t valid:1;
+union TCP_WATCH_CNTL_BITS
+{
+	struct
+	{
+		uint32_t mask: 24;
+		uint32_t vmid: 4;
+		uint32_t atc: 1;
+		uint32_t mode: 2;
+		uint32_t valid: 1;
 	} bitfields, bits;
 	uint32_t u32All;
 	signed int i32All;

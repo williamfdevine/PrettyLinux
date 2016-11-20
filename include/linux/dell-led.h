@@ -1,7 +1,8 @@
 #ifndef __DELL_LED_H__
 #define __DELL_LED_H__
 
-enum {
+enum
+{
 	DELL_LED_MICMUTE,
 };
 

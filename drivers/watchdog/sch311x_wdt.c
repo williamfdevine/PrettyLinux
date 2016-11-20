@@ -53,7 +53,8 @@ static struct platform_device *sch311x_wdt_pdev;
 
 static int sch311x_ioports[] = { 0x2e, 0x4e, 0x162e, 0x164e, 0x00 };
 
-static struct {	/* The devices private data */
+static struct  	/* The devices private data */
+{
 	/* the Runtime Register base address */
 	unsigned short runtime_reg;
 	/* The card's boot status */
@@ -71,14 +72,14 @@ MODULE_PARM_DESC(force_id, "Override the detected device ID");
 static int timeout = WATCHDOG_TIMEOUT;	/* in seconds */
 module_param(timeout, int, 0);
 MODULE_PARM_DESC(timeout,
-	"Watchdog timeout in seconds. 1<= timeout <=15300, default="
-		__MODULE_STRING(WATCHDOG_TIMEOUT) ".");
+				 "Watchdog timeout in seconds. 1<= timeout <=15300, default="
+				 __MODULE_STRING(WATCHDOG_TIMEOUT) ".");
 
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-	"Watchdog cannot be stopped once started (default="
-		__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 /*
  *	Super-IO functions
@@ -115,7 +116,8 @@ static void sch311x_wdt_set_timeout(int t)
 	unsigned char timeout_unit = 0x80;
 
 	/* When new timeout is bigger then 255 seconds, we will use minutes */
-	if (t > 255) {
+	if (t > 255)
+	{
 		timeout_unit = 0;
 		t /= 60;
 	}
@@ -181,13 +183,17 @@ static void sch311x_wdt_keepalive(void)
 
 static int sch311x_wdt_set_heartbeat(int t)
 {
-	if (t < 1 || t > (255*60))
+	if (t < 1 || t > (255 * 60))
+	{
 		return -EINVAL;
+	}
 
 	/* When new timeout is bigger then 255 seconds,
 	 * we will round up to minutes (with a max of 255) */
 	if (t > 255)
+	{
 		t = (((t - 1) / 60) + 1) * 60;
+	}
 
 	timeout = t;
 	return 0;
@@ -212,8 +218,11 @@ static void sch311x_wdt_get_status(int *status)
 	 * Bit 4-7 Reserved
 	 */
 	new_status = inb(sch311x_wdt_data.runtime_reg + WDT_CTRL);
+
 	if (new_status & 0x01)
+	{
 		*status |= WDIOF_CARDRESET;
+	}
 
 	spin_unlock(&sch311x_wdt_data.io_lock);
 }
@@ -223,95 +232,132 @@ static void sch311x_wdt_get_status(int *status)
  */
 
 static ssize_t sch311x_wdt_write(struct file *file, const char __user *buf,
-						size_t count, loff_t *ppos)
+								 size_t count, loff_t *ppos)
 {
-	if (count) {
-		if (!nowayout) {
+	if (count)
+	{
+		if (!nowayout)
+		{
 			size_t i;
 
 			sch311x_wdt_expect_close = 0;
 
-			for (i = 0; i != count; i++) {
+			for (i = 0; i != count; i++)
+			{
 				char c;
+
 				if (get_user(c, buf + i))
+				{
 					return -EFAULT;
+				}
+
 				if (c == 'V')
+				{
 					sch311x_wdt_expect_close = 42;
+				}
 			}
 		}
+
 		sch311x_wdt_keepalive();
 	}
+
 	return count;
 }
 
 static long sch311x_wdt_ioctl(struct file *file, unsigned int cmd,
-							unsigned long arg)
+							  unsigned long arg)
 {
 	int status;
 	int new_timeout;
 	void __user *argp = (void __user *)arg;
 	int __user *p = argp;
-	static const struct watchdog_info ident = {
+	static const struct watchdog_info ident =
+	{
 		.options		= WDIOF_KEEPALIVEPING |
-					  WDIOF_SETTIMEOUT |
-					  WDIOF_MAGICCLOSE,
+		WDIOF_SETTIMEOUT |
+		WDIOF_MAGICCLOSE,
 		.firmware_version	= 1,
 		.identity		= DRV_NAME,
 	};
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		if (copy_to_user(argp, &ident, sizeof(ident)))
-			return -EFAULT;
-		break;
-
-	case WDIOC_GETSTATUS:
+	switch (cmd)
 	{
-		sch311x_wdt_get_status(&status);
-		return put_user(status, p);
-	}
-	case WDIOC_GETBOOTSTATUS:
-		return put_user(sch311x_wdt_data.boot_status, p);
+		case WDIOC_GETSUPPORT:
+			if (copy_to_user(argp, &ident, sizeof(ident)))
+			{
+				return -EFAULT;
+			}
 
-	case WDIOC_SETOPTIONS:
-	{
-		int options, retval = -EINVAL;
+			break;
 
-		if (get_user(options, p))
-			return -EFAULT;
-		if (options & WDIOS_DISABLECARD) {
-			sch311x_wdt_stop();
-			retval = 0;
-		}
-		if (options & WDIOS_ENABLECARD) {
-			sch311x_wdt_start();
-			retval = 0;
-		}
-		return retval;
-	}
-	case WDIOC_KEEPALIVE:
-		sch311x_wdt_keepalive();
-		break;
+		case WDIOC_GETSTATUS:
+			{
+				sch311x_wdt_get_status(&status);
+				return put_user(status, p);
+			}
 
-	case WDIOC_SETTIMEOUT:
-		if (get_user(new_timeout, p))
-			return -EFAULT;
-		if (sch311x_wdt_set_heartbeat(new_timeout))
-			return -EINVAL;
-		sch311x_wdt_keepalive();
+		case WDIOC_GETBOOTSTATUS:
+			return put_user(sch311x_wdt_data.boot_status, p);
+
+		case WDIOC_SETOPTIONS:
+			{
+				int options, retval = -EINVAL;
+
+				if (get_user(options, p))
+				{
+					return -EFAULT;
+				}
+
+				if (options & WDIOS_DISABLECARD)
+				{
+					sch311x_wdt_stop();
+					retval = 0;
+				}
+
+				if (options & WDIOS_ENABLECARD)
+				{
+					sch311x_wdt_start();
+					retval = 0;
+				}
+
+				return retval;
+			}
+
+		case WDIOC_KEEPALIVE:
+			sch311x_wdt_keepalive();
+			break;
+
+		case WDIOC_SETTIMEOUT:
+			if (get_user(new_timeout, p))
+			{
+				return -EFAULT;
+			}
+
+			if (sch311x_wdt_set_heartbeat(new_timeout))
+			{
+				return -EINVAL;
+			}
+
+			sch311x_wdt_keepalive();
+
 		/* Fall */
-	case WDIOC_GETTIMEOUT:
-		return put_user(timeout, p);
-	default:
-		return -ENOTTY;
+		case WDIOC_GETTIMEOUT:
+			return put_user(timeout, p);
+
+		default:
+			return -ENOTTY;
 	}
+
 	return 0;
 }
 
 static int sch311x_wdt_open(struct inode *inode, struct file *file)
 {
 	if (test_and_set_bit(0, &sch311x_wdt_is_open))
+	{
 		return -EBUSY;
+	}
+
 	/*
 	 *	Activate
 	 */
@@ -321,12 +367,16 @@ static int sch311x_wdt_open(struct inode *inode, struct file *file)
 
 static int sch311x_wdt_close(struct inode *inode, struct file *file)
 {
-	if (sch311x_wdt_expect_close == 42) {
+	if (sch311x_wdt_expect_close == 42)
+	{
 		sch311x_wdt_stop();
-	} else {
+	}
+	else
+	{
 		pr_crit("Unexpected close, not stopping watchdog!\n");
 		sch311x_wdt_keepalive();
 	}
+
 	clear_bit(0, &sch311x_wdt_is_open);
 	sch311x_wdt_expect_close = 0;
 	return 0;
@@ -336,7 +386,8 @@ static int sch311x_wdt_close(struct inode *inode, struct file *file)
  *	Kernel Interfaces
  */
 
-static const struct file_operations sch311x_wdt_fops = {
+static const struct file_operations sch311x_wdt_fops =
+{
 	.owner		= THIS_MODULE,
 	.llseek		= no_llseek,
 	.write		= sch311x_wdt_write,
@@ -345,7 +396,8 @@ static const struct file_operations sch311x_wdt_fops = {
 	.release	= sch311x_wdt_close,
 };
 
-static struct miscdevice sch311x_wdt_miscdev = {
+static struct miscdevice sch311x_wdt_miscdev =
+{
 	.minor	= WATCHDOG_MINOR,
 	.name	= "watchdog",
 	.fops	= &sch311x_wdt_fops,
@@ -362,19 +414,21 @@ static int sch311x_wdt_probe(struct platform_device *pdev)
 
 	spin_lock_init(&sch311x_wdt_data.io_lock);
 
-	if (!request_region(sch311x_wdt_data.runtime_reg + GP60, 1, DRV_NAME)) {
+	if (!request_region(sch311x_wdt_data.runtime_reg + GP60, 1, DRV_NAME))
+	{
 		dev_err(dev, "Failed to request region 0x%04x-0x%04x.\n",
-			sch311x_wdt_data.runtime_reg + GP60,
-			sch311x_wdt_data.runtime_reg + GP60);
+				sch311x_wdt_data.runtime_reg + GP60,
+				sch311x_wdt_data.runtime_reg + GP60);
 		err = -EBUSY;
 		goto exit;
 	}
 
 	if (!request_region(sch311x_wdt_data.runtime_reg + WDT_TIME_OUT, 4,
-								DRV_NAME)) {
+						DRV_NAME))
+	{
 		dev_err(dev, "Failed to request region 0x%04x-0x%04x.\n",
-			sch311x_wdt_data.runtime_reg + WDT_TIME_OUT,
-			sch311x_wdt_data.runtime_reg + WDT_CTRL);
+				sch311x_wdt_data.runtime_reg + WDT_TIME_OUT,
+				sch311x_wdt_data.runtime_reg + WDT_CTRL);
 		err = -EBUSY;
 		goto exit_release_region;
 	}
@@ -395,10 +449,11 @@ static int sch311x_wdt_probe(struct platform_device *pdev)
 
 	/* Check that the heartbeat value is within it's range ;
 	 * if not reset to the default */
-	if (sch311x_wdt_set_heartbeat(timeout)) {
+	if (sch311x_wdt_set_heartbeat(timeout))
+	{
 		sch311x_wdt_set_heartbeat(WATCHDOG_TIMEOUT);
 		dev_info(dev, "timeout value must be 1<=x<=15300, using %d\n",
-			timeout);
+				 timeout);
 	}
 
 	/* Get status at boot */
@@ -407,15 +462,17 @@ static int sch311x_wdt_probe(struct platform_device *pdev)
 	sch311x_wdt_miscdev.parent = dev;
 
 	err = misc_register(&sch311x_wdt_miscdev);
-	if (err != 0) {
+
+	if (err != 0)
+	{
 		dev_err(dev, "cannot register miscdev on minor=%d (err=%d)\n",
-							WATCHDOG_MINOR, err);
+				WATCHDOG_MINOR, err);
 		goto exit_release_region2;
 	}
 
 	dev_info(dev,
-		"SMSC SCH311x WDT initialized. timeout=%d sec (nowayout=%d)\n",
-		timeout, nowayout);
+			 "SMSC SCH311x WDT initialized. timeout=%d sec (nowayout=%d)\n",
+			 timeout, nowayout);
 
 	return 0;
 
@@ -432,7 +489,9 @@ static int sch311x_wdt_remove(struct platform_device *pdev)
 {
 	/* Stop the timer before we leave */
 	if (!nowayout)
+	{
 		sch311x_wdt_stop();
+	}
 
 	/* Deregister */
 	misc_deregister(&sch311x_wdt_miscdev);
@@ -448,7 +507,8 @@ static void sch311x_wdt_shutdown(struct platform_device *dev)
 	sch311x_wdt_stop();
 }
 
-static struct platform_driver sch311x_wdt_driver = {
+static struct platform_driver sch311x_wdt_driver =
+{
 	.probe		= sch311x_wdt_probe,
 	.remove		= sch311x_wdt_remove,
 	.shutdown	= sch311x_wdt_shutdown,
@@ -468,10 +528,13 @@ static int __init sch311x_detect(int sio_config_port, unsigned short *addr)
 	/* Check device ID. We currently know about:
 	 * SCH3112 (0x7c), SCH3114 (0x7d), and SCH3116 (0x7f). */
 	reg = force_id ? force_id : sch311x_sio_inb(sio_config_port, 0x20);
-	if (!(reg == 0x7c || reg == 0x7d || reg == 0x7f)) {
+
+	if (!(reg == 0x7c || reg == 0x7d || reg == 0x7f))
+	{
 		err = -ENODEV;
 		goto exit;
 	}
+
 	dev_id = reg == 0x7c ? 2 : reg == 0x7d ? 4 : 6;
 
 	/* Select logical device A (runtime registers) */
@@ -479,16 +542,21 @@ static int __init sch311x_detect(int sio_config_port, unsigned short *addr)
 
 	/* Check if Logical Device Register is currently active */
 	if ((sch311x_sio_inb(sio_config_port, 0x30) & 0x01) == 0)
+	{
 		pr_info("Seems that LDN 0x0a is not active...\n");
+	}
 
 	/* Get the base address of the runtime registers */
 	base_addr = (sch311x_sio_inb(sio_config_port, 0x60) << 8) |
-			   sch311x_sio_inb(sio_config_port, 0x61);
-	if (!base_addr) {
+				sch311x_sio_inb(sio_config_port, 0x61);
+
+	if (!base_addr)
+	{
 		pr_err("Base address not set\n");
 		err = -ENODEV;
 		goto exit;
 	}
+
 	*addr = base_addr;
 
 	pr_info("Found an SMSC SCH311%d chip at 0x%04x\n", dev_id, base_addr);
@@ -505,21 +573,29 @@ static int __init sch311x_wdt_init(void)
 
 	for (i = 0; !found && sch311x_ioports[i]; i++)
 		if (sch311x_detect(sch311x_ioports[i], &addr) == 0)
+		{
 			found++;
+		}
 
 	if (!found)
+	{
 		return -ENODEV;
+	}
 
 	sch311x_wdt_data.runtime_reg = addr;
 
 	err = platform_driver_register(&sch311x_wdt_driver);
+
 	if (err)
+	{
 		return err;
+	}
 
 	sch311x_wdt_pdev = platform_device_register_simple(DRV_NAME, addr,
-								NULL, 0);
+					   NULL, 0);
 
-	if (IS_ERR(sch311x_wdt_pdev)) {
+	if (IS_ERR(sch311x_wdt_pdev))
+	{
 		err = PTR_ERR(sch311x_wdt_pdev);
 		goto unreg_platform_driver;
 	}

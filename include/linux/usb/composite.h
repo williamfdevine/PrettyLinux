@@ -66,7 +66,8 @@ struct usb_configuration;
  * @data: Extended Property blob
  * @item: Represents this Extended Property in configfs
  */
-struct usb_os_desc_ext_prop {
+struct usb_os_desc_ext_prop
+{
 	struct list_head	entry;
 	u8			type;
 	int			name_len;
@@ -86,7 +87,8 @@ struct usb_os_desc_ext_prop {
  * @group: Represents OS descriptors associated with an interface in configfs
  * @owner: Module associated with this OS descriptor
  */
-struct usb_os_desc {
+struct usb_os_desc
+{
 	char			*ext_compat_id;
 	struct list_head	ext_prop;
 	int			ext_prop_len;
@@ -106,7 +108,8 @@ struct usb_os_desc {
  * Each interface can have at most one "Extended Compatibility ID" and a
  * number of "Extended Properties".
  */
-struct usb_os_desc_table {
+struct usb_os_desc_table
+{
 	int			if_id;
 	struct usb_os_desc	*os_desc;
 };
@@ -184,7 +187,8 @@ struct usb_os_desc_table {
  * several independent logical data links to a USB host.
  */
 
-struct usb_function {
+struct usb_function
+{
 	const char			*name;
 	struct usb_gadget_strings	**strings;
 	struct usb_descriptor_header	**fs_descriptors;
@@ -205,37 +209,37 @@ struct usb_function {
 
 	/* configuration management:  bind/unbind */
 	int			(*bind)(struct usb_configuration *,
-					struct usb_function *);
+						struct usb_function *);
 	void			(*unbind)(struct usb_configuration *,
-					struct usb_function *);
+							  struct usb_function *);
 	void			(*free_func)(struct usb_function *f);
 	struct module		*mod;
 
 	/* runtime state management */
 	int			(*set_alt)(struct usb_function *,
-					unsigned interface, unsigned alt);
+						   unsigned interface, unsigned alt);
 	int			(*get_alt)(struct usb_function *,
-					unsigned interface);
+						   unsigned interface);
 	void			(*disable)(struct usb_function *);
 	int			(*setup)(struct usb_function *,
-					const struct usb_ctrlrequest *);
+						 const struct usb_ctrlrequest *);
 	bool			(*req_match)(struct usb_function *,
-					const struct usb_ctrlrequest *,
-					bool config0);
+								 const struct usb_ctrlrequest *,
+								 bool config0);
 	void			(*suspend)(struct usb_function *);
 	void			(*resume)(struct usb_function *);
 
 	/* USB 3.0 additions */
 	int			(*get_status)(struct usb_function *);
 	int			(*func_suspend)(struct usb_function *,
-						u8 suspend_opt);
+								u8 suspend_opt);
 	/* private: */
 	/* internals */
 	struct list_head		list;
 	DECLARE_BITMAP(endpoints, 32);
 	const struct usb_function_instance *fi;
 
-	unsigned int		bind_deactivated:1;
+	unsigned int		bind_deactivated: 1;
 };
 
 int usb_add_function(struct usb_configuration *, struct usb_function *);
@@ -246,7 +250,7 @@ int usb_function_activate(struct usb_function *);
 int usb_interface_id(struct usb_configuration *, struct usb_function *);
 
 int config_ep_by_speed(struct usb_gadget *g, struct usb_function *f,
-			struct usb_ep *_ep);
+					   struct usb_ep *_ep);
 
 #define	MAX_CONFIG_INTERFACES		16	/* arbitrary; max 255 */
 
@@ -292,7 +296,8 @@ int config_ep_by_speed(struct usb_gadget *g, struct usb_function *f,
  * descriptors complete by the time the composite driver returns from
  * its bind() routine.
  */
-struct usb_configuration {
+struct usb_configuration
+{
 	const char			*label;
 	struct usb_gadget_strings	**strings;
 	const struct usb_descriptor_header **descriptors;
@@ -305,7 +310,7 @@ struct usb_configuration {
 	/* configuration management: unbind/setup */
 	void			(*unbind)(struct usb_configuration *);
 	int			(*setup)(struct usb_configuration *,
-					const struct usb_ctrlrequest *);
+						 const struct usb_ctrlrequest *);
 
 	/* fields in the config descriptor */
 	u8			bConfigurationValue;
@@ -320,22 +325,23 @@ struct usb_configuration {
 	struct list_head	list;
 	struct list_head	functions;
 	u8			next_interface_id;
-	unsigned		superspeed:1;
-	unsigned		highspeed:1;
-	unsigned		fullspeed:1;
-	unsigned		superspeed_plus:1;
+	unsigned		superspeed: 1;
+	unsigned		highspeed: 1;
+	unsigned		fullspeed: 1;
+	unsigned		superspeed_plus: 1;
 	struct usb_function	*interface[MAX_CONFIG_INTERFACES];
 };
 
 int usb_add_config(struct usb_composite_dev *,
-		struct usb_configuration *,
-		int (*)(struct usb_configuration *));
+				   struct usb_configuration *,
+				   int (*)(struct usb_configuration *));
 
 void usb_remove_config(struct usb_composite_dev *,
-		struct usb_configuration *);
+					   struct usb_configuration *);
 
 /* predefined index for usb_composite_driver */
-enum {
+enum
+{
 	USB_GADGET_MANUFACTURER_IDX	= 0,
 	USB_GADGET_PRODUCT_IDX,
 	USB_GADGET_SERIAL_IDX,
@@ -378,12 +384,13 @@ enum {
  * they are defined in @dev and @strings.)  The correct ep0 maxpacket size
  * is also reported, as defined by the underlying controller driver.
  */
-struct usb_composite_driver {
+struct usb_composite_driver
+{
 	const char				*name;
 	const struct usb_device_descriptor	*dev;
 	struct usb_gadget_strings		**strings;
 	enum usb_device_speed			max_speed;
-	unsigned		needs_serial:1;
+	unsigned		needs_serial: 1;
 
 	int			(*bind)(struct usb_composite_dev *cdev);
 	int			(*unbind)(struct usb_composite_dev *);
@@ -411,17 +418,17 @@ extern void usb_composite_unregister(struct usb_composite_driver *driver);
  */
 #define module_usb_composite_driver(__usb_composite_driver) \
 	module_driver(__usb_composite_driver, usb_composite_probe, \
-		       usb_composite_unregister)
+				  usb_composite_unregister)
 
 extern void usb_composite_setup_continue(struct usb_composite_dev *cdev);
 extern int composite_dev_prepare(struct usb_composite_driver *composite,
-		struct usb_composite_dev *cdev);
+								 struct usb_composite_dev *cdev);
 extern int composite_os_desc_req_prepare(struct usb_composite_dev *cdev,
-					 struct usb_ep *ep0);
+		struct usb_ep *ep0);
 void composite_dev_cleanup(struct usb_composite_dev *cdev);
 
 static inline struct usb_composite_driver *to_cdriver(
-		struct usb_gadget_driver *gdrv)
+	struct usb_gadget_driver *gdrv)
 {
 	return container_of(gdrv, struct usb_composite_driver, gadget_driver);
 }
@@ -467,7 +474,8 @@ static inline struct usb_composite_driver *to_cdriver(
  *     configs, including appropriate association setup support;
  * (h) more, TBD.
  */
-struct usb_composite_dev {
+struct usb_composite_dev
+{
 	struct usb_gadget		*gadget;
 	struct usb_request		*req;
 	struct usb_request		*os_desc_req;
@@ -478,11 +486,11 @@ struct usb_composite_dev {
 	u8				qw_sign[OS_STRING_QW_SIGN_LEN];
 	u8				b_vendor_code;
 	struct usb_configuration	*os_desc_config;
-	unsigned int			use_os_string:1;
+	unsigned int			use_os_string: 1;
 
 	/* private: */
 	/* internals */
-	unsigned int			suspended:1;
+	unsigned int			suspended: 1;
 	struct usb_device_descriptor	desc;
 	struct list_head		configs;
 	struct list_head		gstrings;
@@ -503,13 +511,13 @@ struct usb_composite_dev {
 	/* protects deactivations and delayed_status counts*/
 	spinlock_t			lock;
 
-	unsigned			setup_pending:1;
-	unsigned			os_desc_pending:1;
+	unsigned			setup_pending: 1;
+	unsigned			os_desc_pending: 1;
 };
 
 extern int usb_string_id(struct usb_composite_dev *c);
 extern int usb_string_ids_tab(struct usb_composite_dev *c,
-			      struct usb_string *str);
+							  struct usb_string *str);
 extern struct usb_string *usb_gstrings_attach(struct usb_composite_dev *cdev,
 		struct usb_gadget_strings **sp, unsigned n_strings);
 
@@ -517,7 +525,7 @@ extern int usb_string_ids_n(struct usb_composite_dev *c, unsigned n);
 
 extern void composite_disconnect(struct usb_gadget *gadget);
 extern int composite_setup(struct usb_gadget *gadget,
-		const struct usb_ctrlrequest *ctrl);
+						   const struct usb_ctrlrequest *ctrl);
 extern void composite_suspend(struct usb_gadget *gadget);
 extern void composite_resume(struct usb_gadget *gadget);
 
@@ -526,7 +534,8 @@ extern void composite_resume(struct usb_gadget *gadget);
  * published in the device descriptor, either numbers or strings or both.
  * String parameters are in UTF-8 (superset of ASCII's 7 bit characters).
  */
-struct usb_composite_overwrite {
+struct usb_composite_overwrite
+{
 	u16	idVendor;
 	u16	idProduct;
 	u16	bcdDevice;
@@ -536,29 +545,29 @@ struct usb_composite_overwrite {
 };
 #define USB_GADGET_COMPOSITE_OPTIONS()					\
 	static struct usb_composite_overwrite coverwrite;		\
-									\
+	\
 	module_param_named(idVendor, coverwrite.idVendor, ushort, S_IRUGO); \
 	MODULE_PARM_DESC(idVendor, "USB Vendor ID");			\
-									\
+	\
 	module_param_named(idProduct, coverwrite.idProduct, ushort, S_IRUGO); \
 	MODULE_PARM_DESC(idProduct, "USB Product ID");			\
-									\
+	\
 	module_param_named(bcdDevice, coverwrite.bcdDevice, ushort, S_IRUGO); \
 	MODULE_PARM_DESC(bcdDevice, "USB Device version (BCD)");	\
-									\
+	\
 	module_param_named(iSerialNumber, coverwrite.serial_number, charp, \
-			S_IRUGO); \
+					   S_IRUGO); \
 	MODULE_PARM_DESC(iSerialNumber, "SerialNumber string");		\
-									\
+	\
 	module_param_named(iManufacturer, coverwrite.manufacturer, charp, \
-			S_IRUGO); \
+					   S_IRUGO); \
 	MODULE_PARM_DESC(iManufacturer, "USB Manufacturer string");	\
-									\
+	\
 	module_param_named(iProduct, coverwrite.product, charp, S_IRUGO); \
 	MODULE_PARM_DESC(iProduct, "USB Product string")
 
 void usb_composite_overwrite_options(struct usb_composite_dev *cdev,
-		struct usb_composite_overwrite *covr);
+									 struct usb_composite_overwrite *covr);
 
 static inline u16 get_default_bcdDevice(void)
 {
@@ -569,7 +578,8 @@ static inline u16 get_default_bcdDevice(void)
 	return bcdDevice;
 }
 
-struct usb_function_driver {
+struct usb_function_driver
+{
 	const char *name;
 	struct module *mod;
 	struct list_head list;
@@ -577,12 +587,13 @@ struct usb_function_driver {
 	struct usb_function *(*alloc_func)(struct usb_function_instance *inst);
 };
 
-struct usb_function_instance {
+struct usb_function_instance
+{
 	struct config_group group;
 	struct list_head cfs_list;
 	struct usb_function_driver *fd;
 	int (*set_inst_name)(struct usb_function_instance *inst,
-			      const char *name);
+						 const char *name);
 	void (*free_func_inst)(struct usb_function_instance *inst);
 };
 
@@ -596,15 +607,15 @@ struct usb_function *usb_get_function(struct usb_function_instance *fi);
 struct usb_configuration *usb_get_config(struct usb_composite_dev *cdev,
 		int val);
 int usb_add_config_only(struct usb_composite_dev *cdev,
-		struct usb_configuration *config);
+						struct usb_configuration *config);
 void usb_remove_function(struct usb_configuration *c, struct usb_function *f);
 
 #define DECLARE_USB_FUNCTION(_name, _inst_alloc, _func_alloc)		\
 	static struct usb_function_driver _name ## usb_func = {		\
 		.name = __stringify(_name),				\
-		.mod  = THIS_MODULE,					\
-		.alloc_inst = _inst_alloc,				\
-		.alloc_func = _func_alloc,				\
+				.mod  = THIS_MODULE,					\
+						.alloc_inst = _inst_alloc,				\
+									  .alloc_func = _func_alloc,				\
 	};								\
 	MODULE_ALIAS("usbfunc:"__stringify(_name));
 

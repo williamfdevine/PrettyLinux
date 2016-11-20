@@ -1355,30 +1355,35 @@
 /* Mic Level Detect */
 #define DA7218_MIC_LVL_DET_DELAY	50
 
-enum da7218_biq_cfg {
+enum da7218_biq_cfg
+{
 	DA7218_BIQ_CFG_DATA = 0,
 	DA7218_BIQ_CFG_ADDR,
 	DA7218_BIQ_CFG_SIZE,
 };
 
-enum da7218_clk_src {
+enum da7218_clk_src
+{
 	DA7218_CLKSRC_MCLK = 0,
 	DA7218_CLKSRC_MCLK_SQR,
 };
 
-enum da7218_sys_clk {
+enum da7218_sys_clk
+{
 	DA7218_SYSCLK_MCLK = 0,
 	DA7218_SYSCLK_PLL,
 	DA7218_SYSCLK_PLL_SRM,
 };
 
-enum da7218_dev_id {
+enum da7218_dev_id
+{
 	DA7217_DEV_ID = 0,
 	DA7218_DEV_ID,
 };
 
 /* Regulators */
-enum da7218_supplies {
+enum da7218_supplies
+{
 	DA7218_SUPPLY_VDD = 0,
 	DA7218_SUPPLY_VDDMIC,
 	DA7218_SUPPLY_VDDIO,
@@ -1386,7 +1391,8 @@ enum da7218_supplies {
 };
 
 /* Private data */
-struct da7218_priv {
+struct da7218_priv
+{
 	struct da7218_pdata *pdata;
 
 	struct regulator_bulk_data supplies[DA7218_NUM_SUPPLIES];

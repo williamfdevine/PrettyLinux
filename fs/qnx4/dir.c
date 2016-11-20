@@ -28,42 +28,68 @@ static int qnx4_readdir(struct file *file, struct dir_context *ctx)
 	QNX4DEBUG((KERN_INFO "qnx4_readdir:i_size = %ld\n", (long) inode->i_size));
 	QNX4DEBUG((KERN_INFO "pos                 = %ld\n", (long) ctx->pos));
 
-	while (ctx->pos < inode->i_size) {
+	while (ctx->pos < inode->i_size)
+	{
 		blknum = qnx4_block_map(inode, ctx->pos >> QNX4_BLOCK_SIZE_BITS);
 		bh = sb_bread(inode->i_sb, blknum);
-		if (bh == NULL) {
+
+		if (bh == NULL)
+		{
 			printk(KERN_ERR "qnx4_readdir: bread failed (%ld)\n", blknum);
 			return 0;
 		}
+
 		ix = (ctx->pos >> QNX4_DIR_ENTRY_SIZE_BITS) % QNX4_INODES_PER_BLOCK;
-		for (; ix < QNX4_INODES_PER_BLOCK; ix++, ctx->pos += QNX4_DIR_ENTRY_SIZE) {
+
+		for (; ix < QNX4_INODES_PER_BLOCK; ix++, ctx->pos += QNX4_DIR_ENTRY_SIZE)
+		{
 			offset = ix * QNX4_DIR_ENTRY_SIZE;
 			de = (struct qnx4_inode_entry *) (bh->b_data + offset);
+
 			if (!de->di_fname[0])
+			{
 				continue;
-			if (!(de->di_status & (QNX4_FILE_USED|QNX4_FILE_LINK)))
+			}
+
+			if (!(de->di_status & (QNX4_FILE_USED | QNX4_FILE_LINK)))
+			{
 				continue;
+			}
+
 			if (!(de->di_status & QNX4_FILE_LINK))
+			{
 				size = QNX4_SHORT_NAME_MAX;
+			}
 			else
+			{
 				size = QNX4_NAME_MAX;
+			}
+
 			size = strnlen(de->di_fname, size);
 			QNX4DEBUG((KERN_INFO "qnx4_readdir:%.*s\n", size, de->di_fname));
+
 			if (!(de->di_status & QNX4_FILE_LINK))
+			{
 				ino = blknum * QNX4_INODES_PER_BLOCK + ix - 1;
-			else {
-				le  = (struct qnx4_link_info*)de;
-				ino = ( le32_to_cpu(le->dl_inode_blk) - 1 ) *
-					QNX4_INODES_PER_BLOCK +
-					le->dl_inode_ndx;
 			}
-			if (!dir_emit(ctx, de->di_fname, size, ino, DT_UNKNOWN)) {
+			else
+			{
+				le  = (struct qnx4_link_info *)de;
+				ino = ( le32_to_cpu(le->dl_inode_blk) - 1 ) *
+					  QNX4_INODES_PER_BLOCK +
+					  le->dl_inode_ndx;
+			}
+
+			if (!dir_emit(ctx, de->di_fname, size, ino, DT_UNKNOWN))
+			{
 				brelse(bh);
 				return 0;
 			}
 		}
+
 		brelse(bh);
 	}
+
 	return 0;
 }
 

@@ -27,17 +27,17 @@
 #include "wlcore.h"
 
 int wlcore_scan(struct wl1271 *wl, struct ieee80211_vif *vif,
-		const u8 *ssid, size_t ssid_len,
-		struct cfg80211_scan_request *req);
-int wl1271_scan_build_probe_req(struct wl1271 *wl,
 				const u8 *ssid, size_t ssid_len,
-				const u8 *ie, size_t ie_len, u8 band);
+				struct cfg80211_scan_request *req);
+int wl1271_scan_build_probe_req(struct wl1271 *wl,
+								const u8 *ssid, size_t ssid_len,
+								const u8 *ie, size_t ie_len, u8 band);
 void wl1271_scan_stm(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 void wl1271_scan_complete_work(struct work_struct *work);
 int wl1271_scan_sched_scan_config(struct wl1271 *wl,
-				     struct wl12xx_vif *wlvif,
-				     struct cfg80211_sched_scan_request *req,
-				     struct ieee80211_scan_ies *ies);
+								  struct wl12xx_vif *wlvif,
+								  struct cfg80211_sched_scan_request *req,
+								  struct ieee80211_scan_ies *ies);
 int wl1271_scan_sched_scan_start(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 void wlcore_scan_sched_scan_results(struct wl1271 *wl);
 
@@ -55,7 +55,8 @@ void wlcore_scan_sched_scan_results(struct wl1271 *wl);
 
 #define WL1271_SCAN_TIMEOUT    30000 /* msec */
 
-enum {
+enum
+{
 	WL1271_SCAN_STATE_IDLE,
 	WL1271_SCAN_STATE_2GHZ_ACTIVE,
 	WL1271_SCAN_STATE_2GHZ_PASSIVE,
@@ -64,7 +65,8 @@ enum {
 	WL1271_SCAN_STATE_DONE
 };
 
-struct wl1271_cmd_trigger_scan_to {
+struct wl1271_cmd_trigger_scan_to
+{
 	struct wl1271_cmd_header header;
 
 	__le32 timeout;
@@ -91,14 +93,16 @@ struct wl1271_cmd_trigger_scan_to {
 #define SCAN_MAX_SHORT_INTERVALS (SCAN_MAX_CYCLE_INTERVALS - 2)
 #define SCAN_MAX_BANDS 3
 
-enum {
+enum
+{
 	SCAN_SSID_FILTER_ANY      = 0,
 	SCAN_SSID_FILTER_SPECIFIC = 1,
 	SCAN_SSID_FILTER_LIST     = 2,
 	SCAN_SSID_FILTER_DISABLED = 3
 };
 
-enum {
+enum
+{
 	SCAN_BSS_TYPE_INDEPENDENT,
 	SCAN_BSS_TYPE_INFRASTRUCTURE,
 	SCAN_BSS_TYPE_ANY,
@@ -108,7 +112,8 @@ enum {
 						  activity is detected on it */
 #define SCAN_CHANNEL_FLAGS_DFS_ENABLED	BIT(1)
 
-struct conn_scan_ch_params {
+struct conn_scan_ch_params
+{
 	__le16 min_duration;
 	__le16 max_duration;
 	__le16 passive_duration;
@@ -124,19 +129,22 @@ struct conn_scan_ch_params {
 
 #define SCHED_SCAN_MAX_SSIDS 16
 
-enum {
+enum
+{
 	SCAN_SSID_TYPE_PUBLIC = 0,
 	SCAN_SSID_TYPE_HIDDEN = 1,
 };
 
-struct wl1271_ssid {
+struct wl1271_ssid
+{
 	u8 type;
 	u8 len;
 	u8 ssid[IEEE80211_MAX_SSID_LEN];
 	/* u8 padding[2]; */
 } __packed;
 
-struct wl1271_cmd_sched_scan_ssid_list {
+struct wl1271_cmd_sched_scan_ssid_list
+{
 	struct wl1271_cmd_header header;
 
 	u8 n_ssids;
@@ -145,7 +153,8 @@ struct wl1271_cmd_sched_scan_ssid_list {
 	u8 padding[2];
 } __packed;
 
-struct wlcore_scan_channels {
+struct wlcore_scan_channels
+{
 	u8 passive[SCAN_MAX_BANDS]; /* number of passive scan channels */
 	u8 active[SCAN_MAX_BANDS];  /* number of active scan channels */
 	u8 dfs;		   /* number of dfs channels in 5ghz */
@@ -156,7 +165,8 @@ struct wlcore_scan_channels {
 	struct conn_scan_ch_params channels_4[MAX_CHANNELS_4GHZ];
 };
 
-enum {
+enum
+{
 	SCAN_TYPE_SEARCH	= 0,
 	SCAN_TYPE_PERIODIC	= 1,
 	SCAN_TYPE_TRACKING	= 2,
@@ -164,15 +174,15 @@ enum {
 
 bool
 wlcore_set_scan_chan_params(struct wl1271 *wl,
-			    struct wlcore_scan_channels *cfg,
-			    struct ieee80211_channel *channels[],
-			    u32 n_channels,
-			    u32 n_ssids,
-			    int scan_type);
+							struct wlcore_scan_channels *cfg,
+							struct ieee80211_channel *channels[],
+							u32 n_channels,
+							u32 n_ssids,
+							int scan_type);
 
 int
 wlcore_scan_sched_scan_ssid_list(struct wl1271 *wl,
-				 struct wl12xx_vif *wlvif,
-				 struct cfg80211_sched_scan_request *req);
+								 struct wl12xx_vif *wlvif,
+								 struct cfg80211_sched_scan_request *req);
 
 #endif /* __WL1271_SCAN_H__ */

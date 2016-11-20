@@ -88,7 +88,8 @@
  * @refresh_base:	Virtual address of the watchdog refresh frame
  * @control_base:	Virtual address of the watchdog control frame
  */
-struct sbsa_gwdt {
+struct sbsa_gwdt
+{
 	struct watchdog_device	wdd;
 	u32			clk;
 	void __iomem		*refresh_base;
@@ -100,8 +101,8 @@ struct sbsa_gwdt {
 static unsigned int timeout;
 module_param(timeout, uint, 0);
 MODULE_PARM_DESC(timeout,
-		 "Watchdog timeout in seconds. (>=0, default="
-		 __MODULE_STRING(DEFAULT_TIMEOUT) ")");
+				 "Watchdog timeout in seconds. (>=0, default="
+				 __MODULE_STRING(DEFAULT_TIMEOUT) ")");
 
 /*
  * action refers to action taken when watchdog gets WS0
@@ -112,19 +113,19 @@ MODULE_PARM_DESC(timeout,
 static int action;
 module_param(action, int, 0);
 MODULE_PARM_DESC(action, "after watchdog gets WS0 interrupt, do: "
-		 "0 = skip(*)  1 = panic");
+				 "0 = skip(*)  1 = panic");
 
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, S_IRUGO);
 MODULE_PARM_DESC(nowayout,
-		 "Watchdog cannot be stopped once started (default="
-		 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 /*
  * watchdog operation functions
  */
 static int sbsa_gwdt_set_timeout(struct watchdog_device *wdd,
-				 unsigned int timeout)
+								 unsigned int timeout)
 {
 	struct sbsa_gwdt *gwdt = watchdog_get_drvdata(wdd);
 
@@ -132,7 +133,7 @@ static int sbsa_gwdt_set_timeout(struct watchdog_device *wdd,
 
 	if (action)
 		writel(gwdt->clk * timeout,
-		       gwdt->control_base + SBSA_GWDT_WOR);
+			   gwdt->control_base + SBSA_GWDT_WOR);
 	else
 		/*
 		 * In the single stage mode, The first signal (WS0) is ignored,
@@ -140,7 +141,7 @@ static int sbsa_gwdt_set_timeout(struct watchdog_device *wdd,
 		 * to half value of timeout.
 		 */
 		writel(gwdt->clk / 2 * timeout,
-		       gwdt->control_base + SBSA_GWDT_WOR);
+			   gwdt->control_base + SBSA_GWDT_WOR);
 
 	return 0;
 }
@@ -156,11 +157,13 @@ static unsigned int sbsa_gwdt_get_timeleft(struct watchdog_device *wdd)
 	 * timeleft = WOR + (WCV - system counter)
 	 */
 	if (!action &&
-	    !(readl(gwdt->control_base + SBSA_GWDT_WCS) & SBSA_GWDT_WCS_WS0))
+		!(readl(gwdt->control_base + SBSA_GWDT_WCS) & SBSA_GWDT_WCS_WS0))
+	{
 		timeleft += readl(gwdt->control_base + SBSA_GWDT_WOR);
+	}
 
 	timeleft += readq(gwdt->control_base + SBSA_GWDT_WCV) -
-		    arch_counter_get_cntvct();
+				arch_counter_get_cntvct();
 
 	do_div(timeleft, gwdt->clk);
 
@@ -207,15 +210,17 @@ static irqreturn_t sbsa_gwdt_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct watchdog_info sbsa_gwdt_info = {
+static struct watchdog_info sbsa_gwdt_info =
+{
 	.identity	= WATCHDOG_NAME,
 	.options	= WDIOF_SETTIMEOUT |
-			  WDIOF_KEEPALIVEPING |
-			  WDIOF_MAGICCLOSE |
-			  WDIOF_CARDRESET,
+	WDIOF_KEEPALIVEPING |
+	WDIOF_MAGICCLOSE |
+	WDIOF_CARDRESET,
 };
 
-static struct watchdog_ops sbsa_gwdt_ops = {
+static struct watchdog_ops sbsa_gwdt_ops =
+{
 	.owner		= THIS_MODULE,
 	.start		= sbsa_gwdt_start,
 	.stop		= sbsa_gwdt_stop,
@@ -235,19 +240,29 @@ static int sbsa_gwdt_probe(struct platform_device *pdev)
 	u32 status;
 
 	gwdt = devm_kzalloc(dev, sizeof(*gwdt), GFP_KERNEL);
+
 	if (!gwdt)
+	{
 		return -ENOMEM;
+	}
+
 	platform_set_drvdata(pdev, gwdt);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	cf_base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(cf_base))
+	{
 		return PTR_ERR(cf_base);
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 	rf_base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(rf_base))
+	{
 		return PTR_ERR(rf_base);
+	}
 
 	/*
 	 * Get the frequency of system counter from the cp15 interface of ARM
@@ -269,40 +284,58 @@ static int sbsa_gwdt_probe(struct platform_device *pdev)
 	watchdog_set_nowayout(wdd, nowayout);
 
 	status = readl(cf_base + SBSA_GWDT_WCS);
-	if (status & SBSA_GWDT_WCS_WS1) {
+
+	if (status & SBSA_GWDT_WCS_WS1)
+	{
 		dev_warn(dev, "System reset by WDT.\n");
 		wdd->bootstatus |= WDIOF_CARDRESET;
 	}
-	if (status & SBSA_GWDT_WCS_EN)
-		set_bit(WDOG_HW_RUNNING, &wdd->status);
 
-	if (action) {
+	if (status & SBSA_GWDT_WCS_EN)
+	{
+		set_bit(WDOG_HW_RUNNING, &wdd->status);
+	}
+
+	if (action)
+	{
 		irq = platform_get_irq(pdev, 0);
-		if (irq < 0) {
+
+		if (irq < 0)
+		{
 			action = 0;
 			dev_warn(dev, "unable to get ws0 interrupt.\n");
-		} else {
+		}
+		else
+		{
 			/*
 			 * In case there is a pending ws0 interrupt, just ping
 			 * the watchdog before registering the interrupt routine
 			 */
 			writel(0, rf_base + SBSA_GWDT_WRR);
+
 			if (devm_request_irq(dev, irq, sbsa_gwdt_interrupt, 0,
-					     pdev->name, gwdt)) {
+								 pdev->name, gwdt))
+			{
 				action = 0;
 				dev_warn(dev, "unable to request IRQ %d.\n",
-					 irq);
+						 irq);
 			}
 		}
+
 		if (!action)
+		{
 			dev_warn(dev, "falling back to single stage mode.\n");
+		}
 	}
+
 	/*
 	 * In the single stage mode, The first signal (WS0) is ignored,
 	 * the timeout is (WOR * 2), so the maximum timeout should be doubled.
 	 */
 	if (!action)
+	{
 		wdd->max_hw_heartbeat_ms *= 2;
+	}
 
 	watchdog_init_timeout(wdd, timeout, dev);
 	/*
@@ -313,12 +346,15 @@ static int sbsa_gwdt_probe(struct platform_device *pdev)
 	sbsa_gwdt_set_timeout(wdd, wdd->timeout);
 
 	ret = watchdog_register_device(wdd);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dev_info(dev, "Initialized with %ds timeout @ %u Hz, action=%d.%s\n",
-		 wdd->timeout, gwdt->clk, action,
-		 status & SBSA_GWDT_WCS_EN ? " [enabled]" : "");
+			 wdd->timeout, gwdt->clk, action,
+			 status & SBSA_GWDT_WCS_EN ? " [enabled]" : "");
 
 	return 0;
 }
@@ -345,7 +381,9 @@ static int __maybe_unused sbsa_gwdt_suspend(struct device *dev)
 	struct sbsa_gwdt *gwdt = dev_get_drvdata(dev);
 
 	if (watchdog_active(&gwdt->wdd))
+	{
 		sbsa_gwdt_stop(&gwdt->wdd);
+	}
 
 	return 0;
 }
@@ -356,28 +394,34 @@ static int __maybe_unused sbsa_gwdt_resume(struct device *dev)
 	struct sbsa_gwdt *gwdt = dev_get_drvdata(dev);
 
 	if (watchdog_active(&gwdt->wdd))
+	{
 		sbsa_gwdt_start(&gwdt->wdd);
+	}
 
 	return 0;
 }
 
-static const struct dev_pm_ops sbsa_gwdt_pm_ops = {
+static const struct dev_pm_ops sbsa_gwdt_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(sbsa_gwdt_suspend, sbsa_gwdt_resume)
 };
 
-static const struct of_device_id sbsa_gwdt_of_match[] = {
+static const struct of_device_id sbsa_gwdt_of_match[] =
+{
 	{ .compatible = "arm,sbsa-gwdt", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, sbsa_gwdt_of_match);
 
-static const struct platform_device_id sbsa_gwdt_pdev_match[] = {
+static const struct platform_device_id sbsa_gwdt_pdev_match[] =
+{
 	{ .name = DRV_NAME, },
 	{},
 };
 MODULE_DEVICE_TABLE(platform, sbsa_gwdt_pdev_match);
 
-static struct platform_driver sbsa_gwdt_driver = {
+static struct platform_driver sbsa_gwdt_driver =
+{
 	.driver = {
 		.name = DRV_NAME,
 		.pm = &sbsa_gwdt_pm_ops,

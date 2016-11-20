@@ -16,14 +16,16 @@
 #include <linux/mfd/rt5033-private.h>
 #include <linux/regulator/of_regulator.h>
 
-static struct regulator_ops rt5033_safe_ldo_ops = {
+static struct regulator_ops rt5033_safe_ldo_ops =
+{
 	.is_enabled		= regulator_is_enabled_regmap,
 	.enable			= regulator_enable_regmap,
 	.disable		= regulator_disable_regmap,
 	.list_voltage		= regulator_list_voltage_linear,
 };
 
-static struct regulator_ops rt5033_buck_ops = {
+static struct regulator_ops rt5033_buck_ops =
+{
 	.is_enabled		= regulator_is_enabled_regmap,
 	.enable			= regulator_enable_regmap,
 	.disable		= regulator_disable_regmap,
@@ -33,7 +35,8 @@ static struct regulator_ops rt5033_buck_ops = {
 	.set_voltage_sel	= regulator_set_voltage_sel_regmap,
 };
 
-static const struct regulator_desc rt5033_supported_regulators[] = {
+static const struct regulator_desc rt5033_supported_regulators[] =
+{
 	[RT5033_BUCK] = {
 		.name		= "BUCK",
 		.of_match	= of_match_ptr("BUCK"),
@@ -90,18 +93,21 @@ static int rt5033_regulator_probe(struct platform_device *pdev)
 	config.dev = rt5033->dev;
 	config.driver_data = rt5033;
 
-	for (i = 0; i < ARRAY_SIZE(rt5033_supported_regulators); i++) {
+	for (i = 0; i < ARRAY_SIZE(rt5033_supported_regulators); i++)
+	{
 		struct regulator_dev *regulator;
 
 		config.regmap = rt5033->regmap;
 
 		regulator = devm_regulator_register(&pdev->dev,
-				&rt5033_supported_regulators[i], &config);
-		if (IS_ERR(regulator)) {
+											&rt5033_supported_regulators[i], &config);
+
+		if (IS_ERR(regulator))
+		{
 			ret = PTR_ERR(regulator);
 			dev_err(&pdev->dev,
-				"Regulator init failed %d: with error: %d\n",
-				i, ret);
+					"Regulator init failed %d: with error: %d\n",
+					i, ret);
 			return ret;
 		}
 	}
@@ -109,13 +115,15 @@ static int rt5033_regulator_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct platform_device_id rt5033_regulator_id[] = {
+static const struct platform_device_id rt5033_regulator_id[] =
+{
 	{ "rt5033-regulator", },
 	{ }
 };
 MODULE_DEVICE_TABLE(platform, rt5033_regulator_id);
 
-static struct platform_driver rt5033_regulator_driver = {
+static struct platform_driver rt5033_regulator_driver =
+{
 	.driver = {
 		.name = "rt5033-regulator",
 	},

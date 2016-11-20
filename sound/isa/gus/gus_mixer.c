@@ -30,10 +30,10 @@
  */
 
 #define GF1_SINGLE(xname, xindex, shift, invert) \
-{ .iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = xname, .index = xindex, \
-  .info = snd_gf1_info_single, \
-  .get = snd_gf1_get_single, .put = snd_gf1_put_single, \
-  .private_value = shift | (invert << 8) }
+	{ .iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = xname, .index = xindex, \
+				.info = snd_gf1_info_single, \
+						.get = snd_gf1_get_single, .put = snd_gf1_put_single, \
+								.private_value = shift | (invert << 8) }
 
 #define snd_gf1_info_single	snd_ctl_boolean_mono_info
 
@@ -42,10 +42,14 @@ static int snd_gf1_get_single(struct snd_kcontrol *kcontrol, struct snd_ctl_elem
 	struct snd_gus_card *gus = snd_kcontrol_chip(kcontrol);
 	int shift = kcontrol->private_value & 0xff;
 	int invert = (kcontrol->private_value >> 8) & 1;
-	
+
 	ucontrol->value.integer.value[0] = (gus->mix_cntrl_reg >> shift) & 1;
+
 	if (invert)
+	{
 		ucontrol->value.integer.value[0] ^= 1;
+	}
+
 	return 0;
 }
 
@@ -57,10 +61,14 @@ static int snd_gf1_put_single(struct snd_kcontrol *kcontrol, struct snd_ctl_elem
 	int invert = (kcontrol->private_value >> 8) & 1;
 	int change;
 	unsigned char oval, nval;
-	
+
 	nval = ucontrol->value.integer.value[0] & 1;
+
 	if (invert)
+	{
 		nval ^= 1;
+	}
+
 	nval <<= shift;
 	spin_lock_irqsave(&gus->reg_lock, flags);
 	oval = gus->mix_cntrl_reg;
@@ -73,10 +81,10 @@ static int snd_gf1_put_single(struct snd_kcontrol *kcontrol, struct snd_ctl_elem
 }
 
 #define ICS_DOUBLE(xname, xindex, addr) \
-{ .iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = xname, .index = xindex, \
-  .info = snd_ics_info_double, \
-  .get = snd_ics_get_double, .put = snd_ics_put_double, \
-  .private_value = addr }
+	{ .iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = xname, .index = xindex, \
+				.info = snd_ics_info_double, \
+						.get = snd_ics_get_double, .put = snd_ics_put_double, \
+								.private_value = addr }
 
 static int snd_ics_info_double(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_info *uinfo)
 {
@@ -93,7 +101,7 @@ static int snd_ics_get_double(struct snd_kcontrol *kcontrol, struct snd_ctl_elem
 	unsigned long flags;
 	int addr = kcontrol->private_value & 0xff;
 	unsigned char left, right;
-	
+
 	spin_lock_irqsave(&gus->reg_lock, flags);
 	left = gus->gf1.ics_regs[addr][0];
 	right = gus->gf1.ics_regs[addr][1];
@@ -110,7 +118,7 @@ static int snd_ics_put_double(struct snd_kcontrol *kcontrol, struct snd_ctl_elem
 	int addr = kcontrol->private_value & 0xff;
 	int change;
 	unsigned char val1, val2, oval1, oval2;
-	
+
 	val1 = ucontrol->value.integer.value[0] & 127;
 	val2 = ucontrol->value.integer.value[1] & 127;
 	spin_lock_irqsave(&gus->reg_lock, flags);
@@ -119,9 +127,13 @@ static int snd_ics_put_double(struct snd_kcontrol *kcontrol, struct snd_ctl_elem
 	change = val1 != oval1 || val2 != oval2;
 	gus->gf1.ics_regs[addr][0] = val1;
 	gus->gf1.ics_regs[addr][1] = val2;
+
 	if (gus->ics_flag && gus->ics_flipped &&
-	    (addr == SNDRV_ICS_GF1_DEV || addr == SNDRV_ICS_MASTER_DEV))
+		(addr == SNDRV_ICS_GF1_DEV || addr == SNDRV_ICS_MASTER_DEV))
+	{
 		swap(val1, val2);
+	}
+
 	addr <<= 3;
 	outb(addr | 0, GUSP(gus, MIXCNTRLPORT));
 	outb(1, GUSP(gus, MIXDATAPORT));
@@ -135,56 +147,84 @@ static int snd_ics_put_double(struct snd_kcontrol *kcontrol, struct snd_ctl_elem
 	return change;
 }
 
-static struct snd_kcontrol_new snd_gf1_controls[] = {
-GF1_SINGLE("Master Playback Switch", 0, 1, 1),
-GF1_SINGLE("Line Switch", 0, 0, 1),
-GF1_SINGLE("Mic Switch", 0, 2, 0)
+static struct snd_kcontrol_new snd_gf1_controls[] =
+{
+	GF1_SINGLE("Master Playback Switch", 0, 1, 1),
+	GF1_SINGLE("Line Switch", 0, 0, 1),
+	GF1_SINGLE("Mic Switch", 0, 2, 0)
 };
 
-static struct snd_kcontrol_new snd_ics_controls[] = {
-GF1_SINGLE("Master Playback Switch", 0, 1, 1),
-ICS_DOUBLE("Master Playback Volume", 0, SNDRV_ICS_MASTER_DEV),
-ICS_DOUBLE("Synth Playback Volume", 0, SNDRV_ICS_GF1_DEV),
-GF1_SINGLE("Line Switch", 0, 0, 1),
-ICS_DOUBLE("Line Playback Volume", 0, SNDRV_ICS_LINE_DEV),
-GF1_SINGLE("Mic Switch", 0, 2, 0),
-ICS_DOUBLE("Mic Playback Volume", 0, SNDRV_ICS_MIC_DEV),
-ICS_DOUBLE("CD Playback Volume", 0, SNDRV_ICS_CD_DEV)
+static struct snd_kcontrol_new snd_ics_controls[] =
+{
+	GF1_SINGLE("Master Playback Switch", 0, 1, 1),
+	ICS_DOUBLE("Master Playback Volume", 0, SNDRV_ICS_MASTER_DEV),
+	ICS_DOUBLE("Synth Playback Volume", 0, SNDRV_ICS_GF1_DEV),
+	GF1_SINGLE("Line Switch", 0, 0, 1),
+	ICS_DOUBLE("Line Playback Volume", 0, SNDRV_ICS_LINE_DEV),
+	GF1_SINGLE("Mic Switch", 0, 2, 0),
+	ICS_DOUBLE("Mic Playback Volume", 0, SNDRV_ICS_MIC_DEV),
+	ICS_DOUBLE("CD Playback Volume", 0, SNDRV_ICS_CD_DEV)
 };
 
-int snd_gf1_new_mixer(struct snd_gus_card * gus)
+int snd_gf1_new_mixer(struct snd_gus_card *gus)
 {
 	struct snd_card *card;
 	unsigned int idx, max;
 	int err;
 
 	if (snd_BUG_ON(!gus))
+	{
 		return -EINVAL;
+	}
+
 	card = gus->card;
+
 	if (snd_BUG_ON(!card))
+	{
 		return -EINVAL;
+	}
 
 	if (gus->ics_flag)
+	{
 		snd_component_add(card, "ICS2101");
-	if (card->mixername[0] == '\0') {
+	}
+
+	if (card->mixername[0] == '\0')
+	{
 		strcpy(card->mixername, gus->ics_flag ? "GF1,ICS2101" : "GF1");
-	} else {
+	}
+	else
+	{
 		if (gus->ics_flag)
+		{
 			strcat(card->mixername, ",ICS2101");
+		}
+
 		strcat(card->mixername, ",GF1");
 	}
 
-	if (!gus->ics_flag) {
+	if (!gus->ics_flag)
+	{
 		max = gus->ess_flag ? 1 : ARRAY_SIZE(snd_gf1_controls);
-		for (idx = 0; idx < max; idx++) {
+
+		for (idx = 0; idx < max; idx++)
+		{
 			if ((err = snd_ctl_add(card, snd_ctl_new1(&snd_gf1_controls[idx], gus))) < 0)
+			{
 				return err;
-		}
-	} else {
-		for (idx = 0; idx < ARRAY_SIZE(snd_ics_controls); idx++) {
-			if ((err = snd_ctl_add(card, snd_ctl_new1(&snd_ics_controls[idx], gus))) < 0)
-				return err;
+			}
 		}
 	}
+	else
+	{
+		for (idx = 0; idx < ARRAY_SIZE(snd_ics_controls); idx++)
+		{
+			if ((err = snd_ctl_add(card, snd_ctl_new1(&snd_ics_controls[idx], gus))) < 0)
+			{
+				return err;
+			}
+		}
+	}
+
 	return 0;
 }

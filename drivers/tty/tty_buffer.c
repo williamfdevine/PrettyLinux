@@ -70,8 +70,11 @@ void tty_buffer_unlock_exclusive(struct tty_port *port)
 
 	atomic_dec(&buf->priority);
 	mutex_unlock(&buf->lock);
+
 	if (restart)
+	{
 		queue_work(system_unbound_wq, &buf->work);
+	}
 }
 EXPORT_SYMBOL_GPL(tty_buffer_unlock_exclusive);
 
@@ -118,14 +121,19 @@ void tty_buffer_free_all(struct tty_port *port)
 	struct tty_buffer *p, *next;
 	struct llist_node *llist;
 
-	while ((p = buf->head) != NULL) {
+	while ((p = buf->head) != NULL)
+	{
 		buf->head = p->next;
+
 		if (p->size > 0)
+		{
 			kfree(p);
+		}
 	}
+
 	llist = llist_del_all(&buf->free);
 	llist_for_each_entry_safe(p, next, llist, free)
-		kfree(p);
+	kfree(p);
 
 	tty_buffer_reset(&buf->sentinel, 0);
 	buf->head = &buf->sentinel;
@@ -154,9 +162,12 @@ static struct tty_buffer *tty_buffer_alloc(struct tty_port *port, size_t size)
 	/* Round the buffer size out */
 	size = __ALIGN_MASK(size, TTYB_ALIGN_MASK);
 
-	if (size <= MIN_TTYB_SIZE) {
+	if (size <= MIN_TTYB_SIZE)
+	{
 		free = llist_del_first(&port->buf.free);
-		if (free) {
+
+		if (free)
+		{
 			p = llist_entry(free, struct tty_buffer, free);
 			goto found;
 		}
@@ -165,10 +176,16 @@ static struct tty_buffer *tty_buffer_alloc(struct tty_port *port, size_t size)
 	/* Should possibly check if this fails for the largest buffer we
 	   have queued and recycle that ? */
 	if (atomic_read(&port->buf.mem_used) > port->buf.mem_limit)
+	{
 		return NULL;
+	}
+
 	p = kmalloc(sizeof(struct tty_buffer) + 2 * size, GFP_ATOMIC);
+
 	if (p == NULL)
+	{
 		return NULL;
+	}
 
 found:
 	tty_buffer_reset(p, size);
@@ -193,9 +210,13 @@ static void tty_buffer_free(struct tty_port *port, struct tty_buffer *b)
 	WARN_ON(atomic_sub_return(b->size, &buf->mem_used) < 0);
 
 	if (b->size > MIN_TTYB_SIZE)
+	{
 		kfree(b);
+	}
 	else if (b->size > 0)
+	{
 		llist_add(&b->free, &buf->free);
+	}
 }
 
 /**
@@ -219,17 +240,22 @@ void tty_buffer_flush(struct tty_struct *tty, struct tty_ldisc *ld)
 	atomic_inc(&buf->priority);
 
 	mutex_lock(&buf->lock);
+
 	/* paired w/ release in __tty_buffer_request_room; ensures there are
 	 * no pending memory accesses to the freed buffer
 	 */
-	while ((next = smp_load_acquire(&buf->head->next)) != NULL) {
+	while ((next = smp_load_acquire(&buf->head->next)) != NULL)
+	{
 		tty_buffer_free(port, buf->head);
 		buf->head = next;
 	}
+
 	buf->head->read = buf->head->commit;
 
 	if (ld && ld->ops->flush_buffer)
+	{
 		ld->ops->flush_buffer(tty);
+	}
 
 	atomic_dec(&buf->priority);
 	mutex_unlock(&buf->lock);
@@ -249,23 +275,32 @@ void tty_buffer_flush(struct tty_struct *tty, struct tty_ldisc *ld)
  *	a flags buffer.
  */
 static int __tty_buffer_request_room(struct tty_port *port, size_t size,
-				     int flags)
+									 int flags)
 {
 	struct tty_bufhead *buf = &port->buf;
 	struct tty_buffer *b, *n;
 	int left, change;
 
 	b = buf->tail;
+
 	if (b->flags & TTYB_NORMAL)
+	{
 		left = 2 * b->size - b->used;
+	}
 	else
+	{
 		left = b->size - b->used;
+	}
 
 	change = (b->flags & TTYB_NORMAL) && (~flags & TTYB_NORMAL);
-	if (change || left < size) {
+
+	if (change || left < size)
+	{
 		/* This is the slow path - looking for new buffers to use */
 		n = tty_buffer_alloc(port, size);
-		if (n != NULL) {
+
+		if (n != NULL)
+		{
 			n->flags = flags;
 			buf->tail = n;
 			/* paired w/ acquire in flush_to_ldisc(); ensures
@@ -277,11 +312,17 @@ static int __tty_buffer_request_room(struct tty_port *port, size_t size,
 			 * advanced to the next buffer
 			 */
 			smp_store_release(&b->next, n);
-		} else if (change)
+		}
+		else if (change)
+		{
 			size = 0;
+		}
 		else
+		{
 			size = left;
+		}
 	}
+
 	return size;
 }
 
@@ -303,25 +344,37 @@ EXPORT_SYMBOL_GPL(tty_buffer_request_room);
  */
 
 int tty_insert_flip_string_fixed_flag(struct tty_port *port,
-		const unsigned char *chars, char flag, size_t size)
+									  const unsigned char *chars, char flag, size_t size)
 {
 	int copied = 0;
-	do {
+
+	do
+	{
 		int goal = min_t(size_t, size - copied, TTY_BUFFER_PAGE);
 		int flags = (flag == TTY_NORMAL) ? TTYB_NORMAL : 0;
 		int space = __tty_buffer_request_room(port, goal, flags);
 		struct tty_buffer *tb = port->buf.tail;
+
 		if (unlikely(space == 0))
+		{
 			break;
+		}
+
 		memcpy(char_buf_ptr(tb, tb->used), chars, space);
+
 		if (~tb->flags & TTYB_NORMAL)
+		{
 			memset(flag_buf_ptr(tb, tb->used), flag, space);
+		}
+
 		tb->used += space;
 		copied += space;
 		chars += space;
 		/* There is a small chance that we need to split the data over
 		   several buffers. If this is the case we must loop */
-	} while (unlikely(size > copied));
+	}
+	while (unlikely(size > copied));
+
 	return copied;
 }
 EXPORT_SYMBOL(tty_insert_flip_string_fixed_flag);
@@ -339,15 +392,21 @@ EXPORT_SYMBOL(tty_insert_flip_string_fixed_flag);
  */
 
 int tty_insert_flip_string_flags(struct tty_port *port,
-		const unsigned char *chars, const char *flags, size_t size)
+								 const unsigned char *chars, const char *flags, size_t size)
 {
 	int copied = 0;
-	do {
+
+	do
+	{
 		int goal = min_t(size_t, size - copied, TTY_BUFFER_PAGE);
 		int space = tty_buffer_request_room(port, goal);
 		struct tty_buffer *tb = port->buf.tail;
+
 		if (unlikely(space == 0))
+		{
 			break;
+		}
+
 		memcpy(char_buf_ptr(tb, tb->used), chars, space);
 		memcpy(flag_buf_ptr(tb, tb->used), flags, space);
 		tb->used += space;
@@ -356,7 +415,9 @@ int tty_insert_flip_string_flags(struct tty_port *port,
 		flags += space;
 		/* There is a small chance that we need to split the data over
 		   several buffers. If this is the case we must loop */
-	} while (unlikely(size > copied));
+	}
+	while (unlikely(size > copied));
+
 	return copied;
 }
 EXPORT_SYMBOL(tty_insert_flip_string_flags);
@@ -396,16 +457,23 @@ EXPORT_SYMBOL(tty_schedule_flip);
  */
 
 int tty_prepare_flip_string(struct tty_port *port, unsigned char **chars,
-		size_t size)
+							size_t size)
 {
 	int space = __tty_buffer_request_room(port, size, TTYB_NORMAL);
-	if (likely(space)) {
+
+	if (likely(space))
+	{
 		struct tty_buffer *tb = port->buf.tail;
 		*chars = char_buf_ptr(tb, tb->used);
+
 		if (~tb->flags & TTYB_NORMAL)
+		{
 			memset(flag_buf_ptr(tb, tb->used), TTY_NORMAL, space);
+		}
+
 		tb->used += space;
 	}
+
 	return space;
 }
 EXPORT_SYMBOL_GPL(tty_prepare_flip_string);
@@ -423,15 +491,22 @@ EXPORT_SYMBOL_GPL(tty_prepare_flip_string);
  *	Returns the number of bytes not processed
  */
 int tty_ldisc_receive_buf(struct tty_ldisc *ld, unsigned char *p,
-			  char *f, int count)
+						  char *f, int count)
 {
 	if (ld->ops->receive_buf2)
+	{
 		count = ld->ops->receive_buf2(ld->tty, p, f, count);
-	else {
-		count = min_t(int, count, ld->tty->receive_room);
-		if (count && ld->ops->receive_buf)
-			ld->ops->receive_buf(ld->tty, p, f, count);
 	}
+	else
+	{
+		count = min_t(int, count, ld->tty->receive_room);
+
+		if (count && ld->ops->receive_buf)
+		{
+			ld->ops->receive_buf(ld->tty, p, f, count);
+		}
+	}
+
 	return count;
 }
 EXPORT_SYMBOL_GPL(tty_ldisc_receive_buf);
@@ -443,7 +518,9 @@ receive_buf(struct tty_ldisc *ld, struct tty_buffer *head, int count)
 	char	      *f = NULL;
 
 	if (~head->flags & TTYB_NORMAL)
+	{
 		f = flag_buf_ptr(head, head->read);
+	}
 
 	return tty_ldisc_receive_buf(ld, p, f, count);
 }
@@ -469,23 +546,32 @@ static void flush_to_ldisc(struct work_struct *work)
 	struct tty_ldisc *disc;
 
 	tty = READ_ONCE(port->itty);
+
 	if (tty == NULL)
+	{
 		return;
+	}
 
 	disc = tty_ldisc_ref(tty);
+
 	if (disc == NULL)
+	{
 		return;
+	}
 
 	mutex_lock(&buf->lock);
 
-	while (1) {
+	while (1)
+	{
 		struct tty_buffer *head = buf->head;
 		struct tty_buffer *next;
 		int count;
 
 		/* Ldisc or user is trying to gain exclusive access */
 		if (atomic_read(&buf->priority))
+		{
 			break;
+		}
 
 		/* paired w/ release in __tty_buffer_request_room();
 		 * ensures commit value read is not stale if the head
@@ -496,17 +582,26 @@ static void flush_to_ldisc(struct work_struct *work)
 		 * tty_buffer_flush(); ensures we see the committed buffer data
 		 */
 		count = smp_load_acquire(&head->commit) - head->read;
-		if (!count) {
+
+		if (!count)
+		{
 			if (next == NULL)
+			{
 				break;
+			}
+
 			buf->head = next;
 			tty_buffer_free(port, head);
 			continue;
 		}
 
 		count = receive_buf(disc, head, count);
+
 		if (!count)
+		{
 			break;
+		}
+
 		head->read += count;
 	}
 
@@ -566,7 +661,10 @@ void tty_buffer_init(struct tty_port *port)
 int tty_buffer_set_limit(struct tty_port *port, int limit)
 {
 	if (limit < MIN_TTYB_SIZE)
+	{
 		return -EINVAL;
+	}
+
 	port->buf.mem_limit = limit;
 	return 0;
 }

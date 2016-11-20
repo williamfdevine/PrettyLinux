@@ -52,30 +52,35 @@ static DEFINE_SPINLOCK(logfs_inode_lock);
 
 static void logfs_inode_setops(struct inode *inode)
 {
-	switch (inode->i_mode & S_IFMT) {
-	case S_IFDIR:
-		inode->i_op = &logfs_dir_iops;
-		inode->i_fop = &logfs_dir_fops;
-		inode->i_mapping->a_ops = &logfs_reg_aops;
-		break;
-	case S_IFREG:
-		inode->i_op = &logfs_reg_iops;
-		inode->i_fop = &logfs_reg_fops;
-		inode->i_mapping->a_ops = &logfs_reg_aops;
-		break;
-	case S_IFLNK:
-		inode->i_op = &page_symlink_inode_operations;
-		inode_nohighmem(inode);
-		inode->i_mapping->a_ops = &logfs_reg_aops;
-		break;
-	case S_IFSOCK:	/* fall through */
-	case S_IFBLK:	/* fall through */
-	case S_IFCHR:	/* fall through */
-	case S_IFIFO:
-		init_special_inode(inode, inode->i_mode, inode->i_rdev);
-		break;
-	default:
-		BUG();
+	switch (inode->i_mode & S_IFMT)
+	{
+		case S_IFDIR:
+			inode->i_op = &logfs_dir_iops;
+			inode->i_fop = &logfs_dir_fops;
+			inode->i_mapping->a_ops = &logfs_reg_aops;
+			break;
+
+		case S_IFREG:
+			inode->i_op = &logfs_reg_iops;
+			inode->i_fop = &logfs_reg_fops;
+			inode->i_mapping->a_ops = &logfs_reg_aops;
+			break;
+
+		case S_IFLNK:
+			inode->i_op = &page_symlink_inode_operations;
+			inode_nohighmem(inode);
+			inode->i_mapping->a_ops = &logfs_reg_aops;
+			break;
+
+		case S_IFSOCK:	/* fall through */
+		case S_IFBLK:	/* fall through */
+		case S_IFCHR:	/* fall through */
+		case S_IFIFO:
+			init_special_inode(inode, inode->i_mode, inode->i_rdev);
+			break;
+
+		default:
+			BUG();
 	}
 }
 
@@ -85,20 +90,31 @@ static struct inode *__logfs_iget(struct super_block *sb, ino_t ino)
 	int err;
 
 	if (!inode)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	if (!(inode->i_state & I_NEW))
+	{
 		return inode;
+	}
 
 	err = logfs_read_inode(inode);
-	if (err || inode->i_nlink == 0) {
+
+	if (err || inode->i_nlink == 0)
+	{
 		/* inode->i_nlink == 0 can be true when called from
 		 * block validator */
 		/* set i_nlink to 0 to prevent caching */
 		clear_nlink(inode);
 		logfs_inode(inode)->li_flags |= LOGFS_IF_ZOMBIE;
 		iget_failed(inode);
+
 		if (!err)
+		{
 			err = -ENOENT;
+		}
+
 		return ERR_PTR(err);
 	}
 
@@ -124,18 +140,26 @@ struct inode *logfs_safe_iget(struct super_block *sb, ino_t ino, int *is_cached)
 	struct logfs_inode *li;
 
 	if (ino == LOGFS_INO_MASTER)
+	{
 		return super->s_master_inode;
+	}
+
 	if (ino == LOGFS_INO_SEGFILE)
+	{
 		return super->s_segfile_inode;
+	}
 
 	spin_lock(&logfs_inode_lock);
 	list_for_each_entry(li, &super->s_freeing_list, li_freeing_list)
-		if (li->vfs_inode.i_ino == ino) {
-			li->li_refcount++;
-			spin_unlock(&logfs_inode_lock);
-			*is_cached = 1;
-			return &li->vfs_inode;
-		}
+
+	if (li->vfs_inode.i_ino == ino)
+	{
+		li->li_refcount++;
+		spin_unlock(&logfs_inode_lock);
+		*is_cached = 1;
+		return &li->vfs_inode;
+	}
+
 	spin_unlock(&logfs_inode_lock);
 
 	*is_cached = 0;
@@ -168,7 +192,8 @@ static void logfs_destroy_inode(struct inode *inode)
 {
 	struct logfs_inode *li = logfs_inode(inode);
 
-	if (inode->i_ino < LOGFS_RESERVED_INOS) {
+	if (inode->i_ino < LOGFS_RESERVED_INOS)
+	{
 		/*
 		 * The reserved inodes are never destroyed unless we are in
 		 * unmont path.
@@ -180,19 +205,29 @@ static void logfs_destroy_inode(struct inode *inode)
 	BUG_ON(list_empty(&li->li_freeing_list));
 	spin_lock(&logfs_inode_lock);
 	li->li_refcount--;
+
 	if (li->li_refcount == 0)
+	{
 		__logfs_destroy_inode(inode);
+	}
+
 	spin_unlock(&logfs_inode_lock);
 }
 
 void logfs_safe_iput(struct inode *inode, int is_cached)
 {
 	if (inode->i_ino == LOGFS_INO_MASTER)
+	{
 		return;
-	if (inode->i_ino == LOGFS_INO_SEGFILE)
-		return;
+	}
 
-	if (is_cached) {
+	if (inode->i_ino == LOGFS_INO_SEGFILE)
+	{
+		return;
+	}
+
+	if (is_cached)
+	{
 		logfs_destroy_inode(inode);
 		return;
 	}
@@ -219,7 +254,9 @@ static void logfs_init_inode(struct super_block *sb, struct inode *inode)
 	INIT_LIST_HEAD(&li->li_freeing_list);
 
 	for (i = 0; i < LOGFS_EMBEDDED_FIELDS; i++)
+	{
 		li->li_data[i] = 0;
+	}
 
 	return;
 }
@@ -229,8 +266,12 @@ static struct inode *logfs_alloc_inode(struct super_block *sb)
 	struct logfs_inode *li;
 
 	li = kmem_cache_alloc(logfs_inode_cache, GFP_NOFS);
+
 	if (!li)
+	{
 		return NULL;
+	}
+
 	logfs_init_inode(sb, &li->vfs_inode);
 	return &li->vfs_inode;
 }
@@ -265,8 +306,11 @@ struct inode *logfs_new_meta_inode(struct super_block *sb, u64 ino)
 	struct inode *inode;
 
 	inode = new_inode(sb);
+
 	if (!inode)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	inode->i_mode = S_IFREG;
 	inode->i_ino = ino;
@@ -282,14 +326,20 @@ struct inode *logfs_read_meta_inode(struct super_block *sb, u64 ino)
 	int err;
 
 	inode = logfs_new_meta_inode(sb, ino);
+
 	if (IS_ERR(inode))
+	{
 		return inode;
+	}
 
 	err = logfs_read_inode(inode);
-	if (err) {
+
+	if (err)
+	{
 		iput(inode);
 		return ERR_PTR(err);
 	}
+
 	logfs_inode_setops(inode);
 	return inode;
 }
@@ -301,7 +351,9 @@ static int logfs_write_inode(struct inode *inode, struct writeback_control *wbc)
 
 	/* Can only happen if creat() failed.  Safe to skip. */
 	if (logfs_inode(inode)->li_flags & LOGFS_IF_STILLBORN)
+	{
 		return 0;
+	}
 
 	ret = __logfs_write_inode(inode, NULL, flags);
 	LOGFS_BUG_ON(ret, inode->i_sb);
@@ -321,7 +373,7 @@ static int logfs_drop_inode(struct inode *inode)
 }
 
 static void logfs_set_ino_generation(struct super_block *sb,
-		struct inode *inode)
+									 struct inode *inode)
 {
 	struct logfs_super *super = logfs_super(sb);
 	u64 ino;
@@ -330,11 +382,14 @@ static void logfs_set_ino_generation(struct super_block *sb,
 	ino = logfs_seek_hole(super->s_master_inode, super->s_last_ino + 1);
 	super->s_last_ino = ino;
 	super->s_inos_till_wrap--;
-	if (super->s_inos_till_wrap < 0) {
+
+	if (super->s_inos_till_wrap < 0)
+	{
 		super->s_last_ino = LOGFS_RESERVED_INOS;
 		super->s_generation++;
 		super->s_inos_till_wrap = INOS_PER_WRAP;
 	}
+
 	inode->i_ino = ino;
 	inode->i_generation = super->s_generation;
 	mutex_unlock(&super->s_journal_mutex);
@@ -346,8 +401,11 @@ struct inode *logfs_new_inode(struct inode *dir, umode_t mode)
 	struct inode *inode;
 
 	inode = new_inode(sb);
+
 	if (!inode)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	logfs_init_inode(sb, inode);
 
@@ -373,8 +431,12 @@ static void logfs_init_once(void *_li)
 	li->li_flags = 0;
 	li->li_used_bytes = 0;
 	li->li_refcount = 1;
+
 	for (i = 0; i < LOGFS_EMBEDDED_FIELDS; i++)
+	{
 		li->li_data[i] = 0;
+	}
+
 	inode_init_once(&li->vfs_inode);
 }
 
@@ -395,7 +457,8 @@ static void logfs_put_super(struct super_block *sb)
 	iput(super->s_mapping_inode);
 }
 
-const struct super_operations logfs_super_operations = {
+const struct super_operations logfs_super_operations =
+{
 	.alloc_inode	= logfs_alloc_inode,
 	.destroy_inode	= logfs_destroy_inode,
 	.evict_inode	= logfs_evict_inode,
@@ -409,11 +472,15 @@ const struct super_operations logfs_super_operations = {
 int logfs_init_inode_cache(void)
 {
 	logfs_inode_cache = kmem_cache_create("logfs_inode_cache",
-			sizeof(struct logfs_inode), 0,
-			SLAB_RECLAIM_ACCOUNT|SLAB_ACCOUNT,
-			logfs_init_once);
+										  sizeof(struct logfs_inode), 0,
+										  SLAB_RECLAIM_ACCOUNT | SLAB_ACCOUNT,
+										  logfs_init_once);
+
 	if (!logfs_inode_cache)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 

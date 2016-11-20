@@ -24,7 +24,8 @@
 #include "priv.h"
 
 static const struct nvkm_mc_func
-gk20a_mc = {
+	gk20a_mc =
+{
 	.init = nv50_mc_init,
 	.intr = gk104_mc_intr,
 	.intr_unarm = gf100_mc_intr_unarm,

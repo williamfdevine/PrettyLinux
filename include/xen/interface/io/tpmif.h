@@ -28,7 +28,8 @@
  *   3. Backend unmaps grant and event, changes state to InitWait
  */
 
-enum vtpm_shared_page_state {
+enum vtpm_shared_page_state
+{
 	VTPM_STATE_IDLE,         /* no contents / vTPM idle / cancel complete */
 	VTPM_STATE_SUBMIT,       /* request ready / vTPM working */
 	VTPM_STATE_FINISH,       /* response ready / vTPM idle */
@@ -38,7 +39,8 @@ enum vtpm_shared_page_state {
  * frontend should only change to SUBMIT or CANCEL. */
 
 
-struct vtpm_shared_page {
+struct vtpm_shared_page
+{
 	uint32_t length;         /* request/response length in bytes */
 
 	uint8_t state;           /* enum vtpm_shared_page_state */

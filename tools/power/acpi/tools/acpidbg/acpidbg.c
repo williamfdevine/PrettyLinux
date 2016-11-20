@@ -60,14 +60,14 @@
 		_ret = acpi_aml_##_op(_fd, &acpi_aml_##_buf##_crc);	\
 		if (_ret == 0) {					\
 			fprintf(stderr,					\
-				"%s %s pipe closed.\n", #_buf, #_op);	\
+					"%s %s pipe closed.\n", #_buf, #_op);	\
 			return;						\
 		}							\
 	} while (0)
 #define ACPI_AML_BATCH_DO(_fd, _op, _buf, _ret)				\
 	do {								\
 		_ret = acpi_aml_##_op##_batch_##_buf(_fd,		\
-			 &acpi_aml_##_buf##_crc);			\
+											 &acpi_aml_##_buf##_crc);			\
 		if (_ret == 0)						\
 			return;						\
 	} while (0)
@@ -75,12 +75,14 @@
 
 static char acpi_aml_cmd_buf[ACPI_AML_BUF_SIZE];
 static char acpi_aml_log_buf[ACPI_AML_BUF_SIZE];
-static struct circ_buf acpi_aml_cmd_crc = {
+static struct circ_buf acpi_aml_cmd_crc =
+{
 	.buf = acpi_aml_cmd_buf,
 	.head = 0,
 	.tail = 0,
 };
-static struct circ_buf acpi_aml_log_crc = {
+static struct circ_buf acpi_aml_log_crc =
+{
 	.buf = acpi_aml_log_buf,
 	.head = 0,
 	.tail = 0,
@@ -102,23 +104,32 @@ static int acpi_aml_set_fl(int fd, int flags)
 	int ret;
 
 	ret = fcntl(fd, F_GETFL, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		perror("fcntl(F_GETFL)");
 		return ret;
 	}
+
 	flags |= ret;
 	ret = fcntl(fd, F_SETFL, flags);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		perror("fcntl(F_SETFL)");
 		return ret;
 	}
+
 	return ret;
 }
 
 static int acpi_aml_set_fd(int fd, int maxfd, fd_set *set)
 {
 	if (fd > maxfd)
+	{
 		maxfd = fd;
+	}
+
 	FD_SET(fd, set);
 	return maxfd;
 }
@@ -131,10 +142,16 @@ static int acpi_aml_read(int fd, struct circ_buf *crc)
 	p = &crc->buf[crc->head];
 	len = circ_space_to_end(crc);
 	len = read(fd, p, len);
+
 	if (len < 0)
+	{
 		perror("read");
+	}
 	else if (len > 0)
+	{
 		crc->head = (crc->head + len) & (ACPI_AML_BUF_SIZE - 1);
+	}
+
 	return len;
 }
 
@@ -146,16 +163,24 @@ static int acpi_aml_read_batch_cmd(int unused, struct circ_buf *crc)
 
 	p = &crc->buf[crc->head];
 	len = circ_space_to_end(crc);
-	if (len > remained) {
+
+	if (len > remained)
+	{
 		memcpy(p, acpi_aml_batch_pos, remained);
 		acpi_aml_batch_pos += remained;
 		len = remained;
-	} else {
+	}
+	else
+	{
 		memcpy(p, acpi_aml_batch_pos, len);
 		acpi_aml_batch_pos += len;
 	}
+
 	if (len > 0)
+	{
 		crc->head = (crc->head + len) & (ACPI_AML_BUF_SIZE - 1);
+	}
+
 	return len;
 }
 
@@ -167,59 +192,89 @@ static int acpi_aml_read_batch_log(int fd, struct circ_buf *crc)
 
 	p = &crc->buf[crc->head];
 	len = circ_space_to_end(crc);
-	while (ret < len && acpi_aml_log_state != ACPI_AML_LOG_STOP) {
-		if (acpi_aml_log_state == ACPI_AML_PROMPT_ROLL) {
+
+	while (ret < len && acpi_aml_log_state != ACPI_AML_LOG_STOP)
+	{
+		if (acpi_aml_log_state == ACPI_AML_PROMPT_ROLL)
+		{
 			*p = acpi_aml_batch_roll;
 			len = 1;
 			crc->head = (crc->head + 1) & (ACPI_AML_BUF_SIZE - 1);
 			ret += 1;
 			acpi_aml_log_state = ACPI_AML_LOG_START;
-		} else {
+		}
+		else
+		{
 			len = read(fd, p, 1);
-			if (len <= 0) {
+
+			if (len <= 0)
+			{
 				if (len < 0)
+				{
 					perror("read");
+				}
+
 				ret = len;
 				break;
 			}
 		}
-		switch (acpi_aml_log_state) {
-		case ACPI_AML_LOG_START:
-			if (*p == '\n')
-				acpi_aml_log_state = ACPI_AML_PROMPT_START;
-			crc->head = (crc->head + 1) & (ACPI_AML_BUF_SIZE - 1);
-			ret += 1;
-			break;
-		case ACPI_AML_PROMPT_START:
-			if (*p == ACPI_DEBUGGER_COMMAND_PROMPT ||
-			    *p == ACPI_DEBUGGER_EXECUTE_PROMPT) {
-				acpi_aml_batch_prompt = *p;
-				acpi_aml_log_state = ACPI_AML_PROMPT_STOP;
-			} else {
-				if (*p != '\n')
-					acpi_aml_log_state = ACPI_AML_LOG_START;
+
+		switch (acpi_aml_log_state)
+		{
+			case ACPI_AML_LOG_START:
+				if (*p == '\n')
+				{
+					acpi_aml_log_state = ACPI_AML_PROMPT_START;
+				}
+
 				crc->head = (crc->head + 1) & (ACPI_AML_BUF_SIZE - 1);
 				ret += 1;
-			}
-			break;
-		case ACPI_AML_PROMPT_STOP:
-			if (*p == ' ') {
-				acpi_aml_log_state = ACPI_AML_LOG_STOP;
-				acpi_aml_exit = true;
-			} else {
-				/* Roll back */
-				acpi_aml_log_state = ACPI_AML_PROMPT_ROLL;
-				acpi_aml_batch_roll = *p;
-				*p = acpi_aml_batch_prompt;
-				crc->head = (crc->head + 1) & (ACPI_AML_BUF_SIZE - 1);
-				ret += 1;
-			}
-			break;
-		default:
-			assert(0);
-			break;
+				break;
+
+			case ACPI_AML_PROMPT_START:
+				if (*p == ACPI_DEBUGGER_COMMAND_PROMPT ||
+					*p == ACPI_DEBUGGER_EXECUTE_PROMPT)
+				{
+					acpi_aml_batch_prompt = *p;
+					acpi_aml_log_state = ACPI_AML_PROMPT_STOP;
+				}
+				else
+				{
+					if (*p != '\n')
+					{
+						acpi_aml_log_state = ACPI_AML_LOG_START;
+					}
+
+					crc->head = (crc->head + 1) & (ACPI_AML_BUF_SIZE - 1);
+					ret += 1;
+				}
+
+				break;
+
+			case ACPI_AML_PROMPT_STOP:
+				if (*p == ' ')
+				{
+					acpi_aml_log_state = ACPI_AML_LOG_STOP;
+					acpi_aml_exit = true;
+				}
+				else
+				{
+					/* Roll back */
+					acpi_aml_log_state = ACPI_AML_PROMPT_ROLL;
+					acpi_aml_batch_roll = *p;
+					*p = acpi_aml_batch_prompt;
+					crc->head = (crc->head + 1) & (ACPI_AML_BUF_SIZE - 1);
+					ret += 1;
+				}
+
+				break;
+
+			default:
+				assert(0);
+				break;
 		}
 	}
+
 	return ret;
 }
 
@@ -231,10 +286,16 @@ static int acpi_aml_write(int fd, struct circ_buf *crc)
 	p = &crc->buf[crc->tail];
 	len = circ_count_to_end(crc);
 	len = write(fd, p, len);
+
 	if (len < 0)
+	{
 		perror("write");
+	}
 	else if (len > 0)
+	{
 		crc->tail = (crc->tail + len) & (ACPI_AML_BUF_SIZE - 1);
+	}
+
 	return len;
 }
 
@@ -245,13 +306,22 @@ static int acpi_aml_write_batch_log(int fd, struct circ_buf *crc)
 
 	p = &crc->buf[crc->tail];
 	len = circ_count_to_end(crc);
-	if (!acpi_aml_batch_drain) {
+
+	if (!acpi_aml_batch_drain)
+	{
 		len = write(fd, p, len);
+
 		if (len < 0)
+		{
 			perror("write");
+		}
 	}
+
 	if (len > 0)
+	{
 		crc->tail = (crc->tail + len) & (ACPI_AML_BUF_SIZE - 1);
+	}
+
 	return len;
 }
 
@@ -260,8 +330,12 @@ static int acpi_aml_write_batch_cmd(int fd, struct circ_buf *crc)
 	int len;
 
 	len = acpi_aml_write(fd, crc);
+
 	if (circ_count_to_end(crc) == 0)
+	{
 		acpi_aml_batch_state = ACPI_AML_BATCH_READ_LOG;
+	}
+
 	return len;
 }
 
@@ -273,64 +347,111 @@ static void acpi_aml_loop(int fd)
 	int ret;
 	int maxfd = 0;
 
-	if (acpi_aml_mode == ACPI_AML_BATCH) {
+	if (acpi_aml_mode == ACPI_AML_BATCH)
+	{
 		acpi_aml_log_state = ACPI_AML_LOG_START;
 		acpi_aml_batch_pos = acpi_aml_batch_cmd;
+
 		if (acpi_aml_batch_drain)
+		{
 			acpi_aml_batch_state = ACPI_AML_BATCH_READ_LOG;
+		}
 		else
+		{
 			acpi_aml_batch_state = ACPI_AML_BATCH_WRITE_CMD;
+		}
 	}
+
 	acpi_aml_exit = false;
-	while (!acpi_aml_exit) {
+
+	while (!acpi_aml_exit)
+	{
 		tv.tv_sec = ACPI_AML_SEC_TICK;
 		tv.tv_usec = 0;
 		FD_ZERO(&rfds);
 		FD_ZERO(&wfds);
 
-		if (acpi_aml_cmd_space()) {
+		if (acpi_aml_cmd_space())
+		{
 			if (acpi_aml_mode == ACPI_AML_INTERACTIVE)
+			{
 				maxfd = acpi_aml_set_fd(STDIN_FILENO, maxfd, &rfds);
+			}
 			else if (strlen(acpi_aml_batch_pos) &&
-				 acpi_aml_batch_state == ACPI_AML_BATCH_WRITE_CMD)
+					 acpi_aml_batch_state == ACPI_AML_BATCH_WRITE_CMD)
+			{
 				ACPI_AML_BATCH_DO(STDIN_FILENO, read, cmd, ret);
+			}
 		}
-		if (acpi_aml_cmd_count() &&
-		    (acpi_aml_mode == ACPI_AML_INTERACTIVE ||
-		     acpi_aml_batch_state == ACPI_AML_BATCH_WRITE_CMD))
-			maxfd = acpi_aml_set_fd(fd, maxfd, &wfds);
-		if (acpi_aml_log_space() &&
-		    (acpi_aml_mode == ACPI_AML_INTERACTIVE ||
-		     acpi_aml_batch_state == ACPI_AML_BATCH_READ_LOG))
-			maxfd = acpi_aml_set_fd(fd, maxfd, &rfds);
-		if (acpi_aml_log_count())
-			maxfd = acpi_aml_set_fd(STDOUT_FILENO, maxfd, &wfds);
 
-		ret = select(maxfd+1, &rfds, &wfds, NULL, &tv);
-		if (ret < 0) {
+		if (acpi_aml_cmd_count() &&
+			(acpi_aml_mode == ACPI_AML_INTERACTIVE ||
+			 acpi_aml_batch_state == ACPI_AML_BATCH_WRITE_CMD))
+		{
+			maxfd = acpi_aml_set_fd(fd, maxfd, &wfds);
+		}
+
+		if (acpi_aml_log_space() &&
+			(acpi_aml_mode == ACPI_AML_INTERACTIVE ||
+			 acpi_aml_batch_state == ACPI_AML_BATCH_READ_LOG))
+		{
+			maxfd = acpi_aml_set_fd(fd, maxfd, &rfds);
+		}
+
+		if (acpi_aml_log_count())
+		{
+			maxfd = acpi_aml_set_fd(STDOUT_FILENO, maxfd, &wfds);
+		}
+
+		ret = select(maxfd + 1, &rfds, &wfds, NULL, &tv);
+
+		if (ret < 0)
+		{
 			perror("select");
 			break;
 		}
-		if (ret > 0) {
+
+		if (ret > 0)
+		{
 			if (FD_ISSET(STDIN_FILENO, &rfds))
+			{
 				ACPI_AML_DO(STDIN_FILENO, read, cmd, ret);
-			if (FD_ISSET(fd, &wfds)) {
+			}
+
+			if (FD_ISSET(fd, &wfds))
+			{
 				if (acpi_aml_mode == ACPI_AML_BATCH)
+				{
 					ACPI_AML_BATCH_DO(fd, write, cmd, ret);
+				}
 				else
+				{
 					ACPI_AML_DO(fd, write, cmd, ret);
+				}
 			}
-			if (FD_ISSET(fd, &rfds)) {
+
+			if (FD_ISSET(fd, &rfds))
+			{
 				if (acpi_aml_mode == ACPI_AML_BATCH)
+				{
 					ACPI_AML_BATCH_DO(fd, read, log, ret);
+				}
 				else
+				{
 					ACPI_AML_DO(fd, read, log, ret);
+				}
 			}
-			if (FD_ISSET(STDOUT_FILENO, &wfds)) {
+
+			if (FD_ISSET(STDOUT_FILENO, &wfds))
+			{
 				if (acpi_aml_mode == ACPI_AML_BATCH)
+				{
 					ACPI_AML_BATCH_DO(STDOUT_FILENO, write, log, ret);
+				}
 				else
+				{
 					ACPI_AML_DO(STDOUT_FILENO, write, log, ret);
+				}
 			}
 		}
 	}
@@ -347,11 +468,18 @@ static bool acpi_aml_readable(int fd)
 	tv.tv_usec = ACPI_AML_USEC_PEEK;
 	FD_ZERO(&rfds);
 	maxfd = acpi_aml_set_fd(fd, maxfd, &rfds);
-	ret = select(maxfd+1, &rfds, NULL, NULL, &tv);
+	ret = select(maxfd + 1, &rfds, NULL, NULL, &tv);
+
 	if (ret < 0)
+	{
 		perror("select");
+	}
+
 	if (ret > 0 && FD_ISSET(fd, &rfds))
+	{
 		return true;
+	}
+
 	return false;
 }
 
@@ -362,7 +490,8 @@ static bool acpi_aml_readable(int fd)
  */
 static void acpi_aml_flush(int fd)
 {
-	while (acpi_aml_readable(fd)) {
+	while (acpi_aml_readable(fd))
+	{
 		acpi_aml_batch_drain = true;
 		acpi_aml_loop(fd);
 		acpi_aml_batch_drain = false;
@@ -386,59 +515,82 @@ int main(int argc, char **argv)
 	int len;
 	int ret = EXIT_SUCCESS;
 
-	while ((ch = getopt(argc, argv, "b:f:h")) != -1) {
-		switch (ch) {
-		case 'b':
-			if (acpi_aml_batch_cmd) {
-				fprintf(stderr, "Already specify %s\n",
-					acpi_aml_batch_cmd);
+	while ((ch = getopt(argc, argv, "b:f:h")) != -1)
+	{
+		switch (ch)
+		{
+			case 'b':
+				if (acpi_aml_batch_cmd)
+				{
+					fprintf(stderr, "Already specify %s\n",
+							acpi_aml_batch_cmd);
+					ret = EXIT_FAILURE;
+					goto exit;
+				}
+
+				len = strlen(optarg);
+				acpi_aml_batch_cmd = calloc(len + 2, 1);
+
+				if (!acpi_aml_batch_cmd)
+				{
+					perror("calloc");
+					ret = EXIT_FAILURE;
+					goto exit;
+				}
+
+				memcpy(acpi_aml_batch_cmd, optarg, len);
+				acpi_aml_batch_cmd[len] = '\n';
+				acpi_aml_mode = ACPI_AML_BATCH;
+				break;
+
+			case 'f':
+				acpi_aml_file_path = optarg;
+				break;
+
+			case 'h':
+				usage(stdout, argv[0]);
+				goto exit;
+				break;
+
+			case '?':
+			default:
+				usage(stderr, argv[0]);
 				ret = EXIT_FAILURE;
 				goto exit;
-			}
-			len = strlen(optarg);
-			acpi_aml_batch_cmd = calloc(len + 2, 1);
-			if (!acpi_aml_batch_cmd) {
-				perror("calloc");
-				ret = EXIT_FAILURE;
-				goto exit;
-			}
-			memcpy(acpi_aml_batch_cmd, optarg, len);
-			acpi_aml_batch_cmd[len] = '\n';
-			acpi_aml_mode = ACPI_AML_BATCH;
-			break;
-		case 'f':
-			acpi_aml_file_path = optarg;
-			break;
-		case 'h':
-			usage(stdout, argv[0]);
-			goto exit;
-			break;
-		case '?':
-		default:
-			usage(stderr, argv[0]);
-			ret = EXIT_FAILURE;
-			goto exit;
-			break;
+				break;
 		}
 	}
 
 	fd = open(acpi_aml_file_path, O_RDWR | O_NONBLOCK);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		perror("open");
 		ret = EXIT_FAILURE;
 		goto exit;
 	}
+
 	acpi_aml_set_fl(STDIN_FILENO, O_NONBLOCK);
 	acpi_aml_set_fl(STDOUT_FILENO, O_NONBLOCK);
 
 	if (acpi_aml_mode == ACPI_AML_BATCH)
+	{
 		acpi_aml_flush(fd);
+	}
+
 	acpi_aml_loop(fd);
 
 exit:
+
 	if (fd >= 0)
+	{
 		close(fd);
+	}
+
 	if (acpi_aml_batch_cmd)
+	{
 		free(acpi_aml_batch_cmd);
+	}
+
 	return ret;
 }

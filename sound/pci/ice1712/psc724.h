@@ -3,7 +3,7 @@
 
 /* ID */
 #define PSC724_DEVICE_DESC	\
-		"{Philips,PSC724 Ultimate Edge},"
+	"{Philips,PSC724 Ultimate Edge},"
 
 #define VT1724_SUBDEVICE_PSC724		0xab170619
 

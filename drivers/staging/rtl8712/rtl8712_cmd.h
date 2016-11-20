@@ -31,12 +31,14 @@
 u8 r8712_fw_cmd(struct _adapter *pAdapter, u32 cmd);
 void r8712_fw_cmd_data(struct _adapter *pAdapter, u32 *value, u8 flag);
 
-struct cmd_hdr {
+struct cmd_hdr
+{
 	u32 cmd_dw0;
 	u32 cmd_dw1;
 };
 
-enum rtl8712_h2c_cmd {
+enum rtl8712_h2c_cmd
+{
 	GEN_CMD_CODE(_Read_MACREG),	/*0*/
 	GEN_CMD_CODE(_Write_MACREG),
 	GEN_CMD_CODE(_Read_BBREG),
@@ -89,7 +91,7 @@ enum rtl8712_h2c_cmd {
 	GEN_CMD_CODE(_AddBAReq), /*45*/
 
 	GEN_CMD_CODE(_SetChannel), /*46*/
-/* MP_OFFLOAD Start (47~54)*/
+	/* MP_OFFLOAD Start (47~54)*/
 	GEN_CMD_CODE(_SetTxPower),
 	GEN_CMD_CODE(_SwitchAntenna),
 	GEN_CMD_CODE(_SetCrystalCap),
@@ -98,7 +100,7 @@ enum rtl8712_h2c_cmd {
 	GEN_CMD_CODE(_SetCarrierSuppressionTx),
 	GEN_CMD_CODE(_SetContinuousTx),
 	GEN_CMD_CODE(_SwitchBandwidth), /*54*/
-/* MP_OFFLOAD End*/
+	/* MP_OFFLOAD End*/
 	GEN_CMD_CODE(_TX_Beacon), /*55*/
 	GEN_CMD_CODE(_SetPowerTracking),
 	GEN_CMD_CODE(_AMSDU_TO_AMPDU), /*57*/
@@ -149,7 +151,8 @@ enum rtl8712_h2c_cmd {
 #define _SetRFIntFs_CMD_	(MAX_H2CCMD+2)
 
 #ifdef _RTL8712_CMD_C_
-static struct _cmd_callback	cmd_callback[] = {
+static struct _cmd_callback	cmd_callback[] =
+{
 	{GEN_CMD_CODE(_Read_MACREG), NULL}, /*0*/
 	{GEN_CMD_CODE(_Write_MACREG), NULL},
 	{GEN_CMD_CODE(_Read_BBREG), &r8712_getbbrfreg_cmdrsp_callback},
@@ -202,7 +205,7 @@ static struct _cmd_callback	cmd_callback[] = {
 	{GEN_CMD_CODE(_AddBAReq), NULL}, /*45*/
 
 	{GEN_CMD_CODE(_SetChannel), NULL},		/*46*/
-/* MP_OFFLOAD Start (47~54)*/
+	/* MP_OFFLOAD Start (47~54)*/
 	{GEN_CMD_CODE(_SetTxPower), NULL},
 	{GEN_CMD_CODE(_SwitchAntenna), NULL},
 	{GEN_CMD_CODE(_SetCrystalCap), NULL},
@@ -211,7 +214,7 @@ static struct _cmd_callback	cmd_callback[] = {
 	{GEN_CMD_CODE(_SetCarrierSuppressionTx), NULL},
 	{GEN_CMD_CODE(_SetContinuousTx), NULL},
 	{GEN_CMD_CODE(_SwitchBandwidth), NULL},		/*54*/
-/* MP_OFFLOAD End*/
+	/* MP_OFFLOAD End*/
 	{GEN_CMD_CODE(_TX_Beacon), NULL}, /*55*/
 	{GEN_CMD_CODE(_SetPowerTracking), NULL},
 	{GEN_CMD_CODE(_AMSDU_TO_AMPDU), NULL}, /*57*/

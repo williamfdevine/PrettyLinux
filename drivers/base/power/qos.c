@@ -67,15 +67,23 @@ enum pm_qos_flags_status __dev_pm_qos_flags(struct device *dev, s32 mask)
 	lockdep_assert_held(&dev->power.lock);
 
 	if (IS_ERR_OR_NULL(qos))
+	{
 		return PM_QOS_FLAGS_UNDEFINED;
+	}
 
 	pqf = &qos->flags;
+
 	if (list_empty(&pqf->list))
+	{
 		return PM_QOS_FLAGS_UNDEFINED;
+	}
 
 	val = pqf->effective_flags & mask;
+
 	if (val)
+	{
 		return (val == mask) ? PM_QOS_FLAGS_ALL : PM_QOS_FLAGS_SOME;
+	}
 
 	return PM_QOS_FLAGS_NONE;
 }
@@ -109,7 +117,7 @@ s32 __dev_pm_qos_read_value(struct device *dev)
 	lockdep_assert_held(&dev->power.lock);
 
 	return IS_ERR_OR_NULL(dev->power.qos) ?
-		0 : pm_qos_read_value(&dev->power.qos->resume_latency);
+		   0 : pm_qos_read_value(&dev->power.qos->resume_latency);
 }
 
 /**
@@ -139,36 +147,46 @@ s32 dev_pm_qos_read_value(struct device *dev)
  * callbacks
  */
 static int apply_constraint(struct dev_pm_qos_request *req,
-			    enum pm_qos_req_action action, s32 value)
+							enum pm_qos_req_action action, s32 value)
 {
 	struct dev_pm_qos *qos = req->dev->power.qos;
 	int ret;
 
-	switch(req->type) {
-	case DEV_PM_QOS_RESUME_LATENCY:
-		ret = pm_qos_update_target(&qos->resume_latency,
-					   &req->data.pnode, action, value);
-		if (ret) {
-			value = pm_qos_read_value(&qos->resume_latency);
-			blocking_notifier_call_chain(&dev_pm_notifiers,
-						     (unsigned long)value,
-						     req);
-		}
-		break;
-	case DEV_PM_QOS_LATENCY_TOLERANCE:
-		ret = pm_qos_update_target(&qos->latency_tolerance,
-					   &req->data.pnode, action, value);
-		if (ret) {
-			value = pm_qos_read_value(&qos->latency_tolerance);
-			req->dev->power.set_latency_tolerance(req->dev, value);
-		}
-		break;
-	case DEV_PM_QOS_FLAGS:
-		ret = pm_qos_update_flags(&qos->flags, &req->data.flr,
-					  action, value);
-		break;
-	default:
-		ret = -EINVAL;
+	switch (req->type)
+	{
+		case DEV_PM_QOS_RESUME_LATENCY:
+			ret = pm_qos_update_target(&qos->resume_latency,
+									   &req->data.pnode, action, value);
+
+			if (ret)
+			{
+				value = pm_qos_read_value(&qos->resume_latency);
+				blocking_notifier_call_chain(&dev_pm_notifiers,
+											 (unsigned long)value,
+											 req);
+			}
+
+			break;
+
+		case DEV_PM_QOS_LATENCY_TOLERANCE:
+			ret = pm_qos_update_target(&qos->latency_tolerance,
+									   &req->data.pnode, action, value);
+
+			if (ret)
+			{
+				value = pm_qos_read_value(&qos->latency_tolerance);
+				req->dev->power.set_latency_tolerance(req->dev, value);
+			}
+
+			break;
+
+		case DEV_PM_QOS_FLAGS:
+			ret = pm_qos_update_flags(&qos->flags, &req->data.flr,
+									  action, value);
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	return ret;
@@ -188,14 +206,20 @@ static int dev_pm_qos_constraints_allocate(struct device *dev)
 	struct blocking_notifier_head *n;
 
 	qos = kzalloc(sizeof(*qos), GFP_KERNEL);
+
 	if (!qos)
+	{
 		return -ENOMEM;
+	}
 
 	n = kzalloc(sizeof(*n), GFP_KERNEL);
-	if (!n) {
+
+	if (!n)
+	{
 		kfree(qos);
 		return -ENOMEM;
 	}
+
 	BLOCKING_INIT_NOTIFIER_HEAD(n);
 
 	c = &qos->resume_latency;
@@ -253,12 +277,16 @@ void dev_pm_qos_constraints_destroy(struct device *dev)
 	__dev_pm_qos_hide_flags(dev);
 
 	qos = dev->power.qos;
+
 	if (!qos)
+	{
 		goto out;
+	}
 
 	/* Flush the constraints lists for the device. */
 	c = &qos->resume_latency;
-	plist_for_each_entry_safe(req, tmp, &c->list, data.pnode) {
+	plist_for_each_entry_safe(req, tmp, &c->list, data.pnode)
+	{
 		/*
 		 * Update constraints list and call the notification
 		 * callbacks if needed
@@ -267,12 +295,14 @@ void dev_pm_qos_constraints_destroy(struct device *dev)
 		memset(req, 0, sizeof(*req));
 	}
 	c = &qos->latency_tolerance;
-	plist_for_each_entry_safe(req, tmp, &c->list, data.pnode) {
+	plist_for_each_entry_safe(req, tmp, &c->list, data.pnode)
+	{
 		apply_constraint(req, PM_QOS_REMOVE_REQ, PM_QOS_DEFAULT_VALUE);
 		memset(req, 0, sizeof(*req));
 	}
 	f = &qos->flags;
-	list_for_each_entry_safe(req, tmp, &f->list, data.flr.node) {
+	list_for_each_entry_safe(req, tmp, &f->list, data.flr.node)
+	{
 		apply_constraint(req, PM_QOS_REMOVE_REQ, PM_QOS_DEFAULT_VALUE);
 		memset(req, 0, sizeof(*req));
 	}
@@ -284,43 +314,54 @@ void dev_pm_qos_constraints_destroy(struct device *dev)
 	kfree(c->notifiers);
 	kfree(qos);
 
- out:
+out:
 	mutex_unlock(&dev_pm_qos_mtx);
 
 	mutex_unlock(&dev_pm_qos_sysfs_mtx);
 }
 
 static bool dev_pm_qos_invalid_request(struct device *dev,
-				       struct dev_pm_qos_request *req)
+									   struct dev_pm_qos_request *req)
 {
 	return !req || (req->type == DEV_PM_QOS_LATENCY_TOLERANCE
-			&& !dev->power.set_latency_tolerance);
+					&& !dev->power.set_latency_tolerance);
 }
 
 static int __dev_pm_qos_add_request(struct device *dev,
-				    struct dev_pm_qos_request *req,
-				    enum dev_pm_qos_req_type type, s32 value)
+									struct dev_pm_qos_request *req,
+									enum dev_pm_qos_req_type type, s32 value)
 {
 	int ret = 0;
 
 	if (!dev || dev_pm_qos_invalid_request(dev, req))
+	{
 		return -EINVAL;
+	}
 
 	if (WARN(dev_pm_qos_request_active(req),
-		 "%s() called for already added request\n", __func__))
+			 "%s() called for already added request\n", __func__))
+	{
 		return -EINVAL;
+	}
 
 	if (IS_ERR(dev->power.qos))
+	{
 		ret = -ENODEV;
+	}
 	else if (!dev->power.qos)
+	{
 		ret = dev_pm_qos_constraints_allocate(dev);
+	}
 
 	trace_dev_pm_qos_add_request(dev_name(dev), type, value);
-	if (!ret) {
+
+	if (!ret)
+	{
 		req->dev = dev;
 		req->type = type;
 		ret = apply_constraint(req, PM_QOS_ADD_REQ, value);
 	}
+
 	return ret;
 }
 
@@ -347,7 +388,7 @@ static int __dev_pm_qos_add_request(struct device *dev,
  * using this function for requests of type DEV_PM_QOS_FLAGS.
  */
 int dev_pm_qos_add_request(struct device *dev, struct dev_pm_qos_request *req,
-			   enum dev_pm_qos_req_type type, s32 value)
+						   enum dev_pm_qos_req_type type, s32 value)
 {
 	int ret;
 
@@ -364,37 +405,49 @@ EXPORT_SYMBOL_GPL(dev_pm_qos_add_request);
  * @new_value: New value to request.
  */
 static int __dev_pm_qos_update_request(struct dev_pm_qos_request *req,
-				       s32 new_value)
+									   s32 new_value)
 {
 	s32 curr_value;
 	int ret = 0;
 
 	if (!req) /*guard against callers passing in null */
-		return -EINVAL;
-
-	if (WARN(!dev_pm_qos_request_active(req),
-		 "%s() called for unknown object\n", __func__))
-		return -EINVAL;
-
-	if (IS_ERR_OR_NULL(req->dev->power.qos))
-		return -ENODEV;
-
-	switch(req->type) {
-	case DEV_PM_QOS_RESUME_LATENCY:
-	case DEV_PM_QOS_LATENCY_TOLERANCE:
-		curr_value = req->data.pnode.prio;
-		break;
-	case DEV_PM_QOS_FLAGS:
-		curr_value = req->data.flr.flags;
-		break;
-	default:
+	{
 		return -EINVAL;
 	}
 
+	if (WARN(!dev_pm_qos_request_active(req),
+			 "%s() called for unknown object\n", __func__))
+	{
+		return -EINVAL;
+	}
+
+	if (IS_ERR_OR_NULL(req->dev->power.qos))
+	{
+		return -ENODEV;
+	}
+
+	switch (req->type)
+	{
+		case DEV_PM_QOS_RESUME_LATENCY:
+		case DEV_PM_QOS_LATENCY_TOLERANCE:
+			curr_value = req->data.pnode.prio;
+			break;
+
+		case DEV_PM_QOS_FLAGS:
+			curr_value = req->data.flr.flags;
+			break;
+
+		default:
+			return -EINVAL;
+	}
+
 	trace_dev_pm_qos_update_request(dev_name(req->dev), req->type,
-					new_value);
+									new_value);
+
 	if (curr_value != new_value)
+	{
 		ret = apply_constraint(req, PM_QOS_UPDATE_REQ, new_value);
+	}
 
 	return ret;
 }
@@ -433,17 +486,23 @@ static int __dev_pm_qos_remove_request(struct dev_pm_qos_request *req)
 	int ret;
 
 	if (!req) /*guard against callers passing in null */
+	{
 		return -EINVAL;
+	}
 
 	if (WARN(!dev_pm_qos_request_active(req),
-		 "%s() called for unknown object\n", __func__))
+			 "%s() called for unknown object\n", __func__))
+	{
 		return -EINVAL;
+	}
 
 	if (IS_ERR_OR_NULL(req->dev->power.qos))
+	{
 		return -ENODEV;
+	}
 
 	trace_dev_pm_qos_remove_request(dev_name(req->dev), req->type,
-					PM_QOS_DEFAULT_VALUE);
+									PM_QOS_DEFAULT_VALUE);
 	ret = apply_constraint(req, PM_QOS_REMOVE_REQ, PM_QOS_DEFAULT_VALUE);
 	memset(req, 0, sizeof(*req));
 	return ret;
@@ -495,13 +554,17 @@ int dev_pm_qos_add_notifier(struct device *dev, struct notifier_block *notifier)
 	mutex_lock(&dev_pm_qos_mtx);
 
 	if (IS_ERR(dev->power.qos))
+	{
 		ret = -ENODEV;
+	}
 	else if (!dev->power.qos)
+	{
 		ret = dev_pm_qos_constraints_allocate(dev);
+	}
 
 	if (!ret)
 		ret = blocking_notifier_chain_register(dev->power.qos->resume_latency.notifiers,
-						       notifier);
+											   notifier);
 
 	mutex_unlock(&dev_pm_qos_mtx);
 	return ret;
@@ -519,7 +582,7 @@ EXPORT_SYMBOL_GPL(dev_pm_qos_add_notifier);
  * upon changes to the target value.
  */
 int dev_pm_qos_remove_notifier(struct device *dev,
-			       struct notifier_block *notifier)
+							   struct notifier_block *notifier)
 {
 	int retval = 0;
 
@@ -528,7 +591,7 @@ int dev_pm_qos_remove_notifier(struct device *dev,
 	/* Silently return if the constraints object is not present. */
 	if (!IS_ERR_OR_NULL(dev->power.qos))
 		retval = blocking_notifier_chain_unregister(dev->power.qos->resume_latency.notifiers,
-							    notifier);
+				 notifier);
 
 	mutex_unlock(&dev_pm_qos_mtx);
 	return retval;
@@ -573,61 +636,77 @@ EXPORT_SYMBOL_GPL(dev_pm_qos_remove_global_notifier);
  * @value: Constraint latency value.
  */
 int dev_pm_qos_add_ancestor_request(struct device *dev,
-				    struct dev_pm_qos_request *req,
-				    enum dev_pm_qos_req_type type, s32 value)
+									struct dev_pm_qos_request *req,
+									enum dev_pm_qos_req_type type, s32 value)
 {
 	struct device *ancestor = dev->parent;
 	int ret = -ENODEV;
 
-	switch (type) {
-	case DEV_PM_QOS_RESUME_LATENCY:
-		while (ancestor && !ancestor->power.ignore_children)
-			ancestor = ancestor->parent;
+	switch (type)
+	{
+		case DEV_PM_QOS_RESUME_LATENCY:
+			while (ancestor && !ancestor->power.ignore_children)
+			{
+				ancestor = ancestor->parent;
+			}
 
-		break;
-	case DEV_PM_QOS_LATENCY_TOLERANCE:
-		while (ancestor && !ancestor->power.set_latency_tolerance)
-			ancestor = ancestor->parent;
+			break;
 
-		break;
-	default:
-		ancestor = NULL;
+		case DEV_PM_QOS_LATENCY_TOLERANCE:
+			while (ancestor && !ancestor->power.set_latency_tolerance)
+			{
+				ancestor = ancestor->parent;
+			}
+
+			break;
+
+		default:
+			ancestor = NULL;
 	}
+
 	if (ancestor)
+	{
 		ret = dev_pm_qos_add_request(ancestor, req, type, value);
+	}
 
 	if (ret < 0)
+	{
 		req->dev = NULL;
+	}
 
 	return ret;
 }
 EXPORT_SYMBOL_GPL(dev_pm_qos_add_ancestor_request);
 
 static void __dev_pm_qos_drop_user_request(struct device *dev,
-					   enum dev_pm_qos_req_type type)
+		enum dev_pm_qos_req_type type)
 {
 	struct dev_pm_qos_request *req = NULL;
 
-	switch(type) {
-	case DEV_PM_QOS_RESUME_LATENCY:
-		req = dev->power.qos->resume_latency_req;
-		dev->power.qos->resume_latency_req = NULL;
-		break;
-	case DEV_PM_QOS_LATENCY_TOLERANCE:
-		req = dev->power.qos->latency_tolerance_req;
-		dev->power.qos->latency_tolerance_req = NULL;
-		break;
-	case DEV_PM_QOS_FLAGS:
-		req = dev->power.qos->flags_req;
-		dev->power.qos->flags_req = NULL;
-		break;
+	switch (type)
+	{
+		case DEV_PM_QOS_RESUME_LATENCY:
+			req = dev->power.qos->resume_latency_req;
+			dev->power.qos->resume_latency_req = NULL;
+			break;
+
+		case DEV_PM_QOS_LATENCY_TOLERANCE:
+			req = dev->power.qos->latency_tolerance_req;
+			dev->power.qos->latency_tolerance_req = NULL;
+			break;
+
+		case DEV_PM_QOS_FLAGS:
+			req = dev->power.qos->flags_req;
+			dev->power.qos->flags_req = NULL;
+			break;
 	}
+
 	__dev_pm_qos_remove_request(req);
 	kfree(req);
 }
 
 static void dev_pm_qos_drop_user_request(struct device *dev,
-					 enum dev_pm_qos_req_type type)
+		enum dev_pm_qos_req_type type)
 {
 	mutex_lock(&dev_pm_qos_mtx);
 	__dev_pm_qos_drop_user_request(dev, type);
@@ -645,14 +724,21 @@ int dev_pm_qos_expose_latency_limit(struct device *dev, s32 value)
 	int ret;
 
 	if (!device_is_registered(dev) || value < 0)
+	{
 		return -EINVAL;
+	}
 
 	req = kzalloc(sizeof(*req), GFP_KERNEL);
+
 	if (!req)
+	{
 		return -ENOMEM;
+	}
 
 	ret = dev_pm_qos_add_request(dev, req, DEV_PM_QOS_RESUME_LATENCY, value);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		kfree(req);
 		return ret;
 	}
@@ -662,25 +748,34 @@ int dev_pm_qos_expose_latency_limit(struct device *dev, s32 value)
 	mutex_lock(&dev_pm_qos_mtx);
 
 	if (IS_ERR_OR_NULL(dev->power.qos))
+	{
 		ret = -ENODEV;
+	}
 	else if (dev->power.qos->resume_latency_req)
+	{
 		ret = -EEXIST;
+	}
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		__dev_pm_qos_remove_request(req);
 		kfree(req);
 		mutex_unlock(&dev_pm_qos_mtx);
 		goto out;
 	}
+
 	dev->power.qos->resume_latency_req = req;
 
 	mutex_unlock(&dev_pm_qos_mtx);
 
 	ret = pm_qos_sysfs_add_resume_latency(dev);
-	if (ret)
-		dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_RESUME_LATENCY);
 
- out:
+	if (ret)
+	{
+		dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_RESUME_LATENCY);
+	}
+
+out:
 	mutex_unlock(&dev_pm_qos_sysfs_mtx);
 	return ret;
 }
@@ -689,7 +784,9 @@ EXPORT_SYMBOL_GPL(dev_pm_qos_expose_latency_limit);
 static void __dev_pm_qos_hide_latency_limit(struct device *dev)
 {
 	if (!IS_ERR_OR_NULL(dev->power.qos) && dev->power.qos->resume_latency_req)
+	{
 		__dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_RESUME_LATENCY);
+	}
 }
 
 /**
@@ -721,14 +818,21 @@ int dev_pm_qos_expose_flags(struct device *dev, s32 val)
 	int ret;
 
 	if (!device_is_registered(dev))
+	{
 		return -EINVAL;
+	}
 
 	req = kzalloc(sizeof(*req), GFP_KERNEL);
+
 	if (!req)
+	{
 		return -ENOMEM;
+	}
 
 	ret = dev_pm_qos_add_request(dev, req, DEV_PM_QOS_FLAGS, val);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		kfree(req);
 		return ret;
 	}
@@ -739,25 +843,34 @@ int dev_pm_qos_expose_flags(struct device *dev, s32 val)
 	mutex_lock(&dev_pm_qos_mtx);
 
 	if (IS_ERR_OR_NULL(dev->power.qos))
+	{
 		ret = -ENODEV;
+	}
 	else if (dev->power.qos->flags_req)
+	{
 		ret = -EEXIST;
+	}
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		__dev_pm_qos_remove_request(req);
 		kfree(req);
 		mutex_unlock(&dev_pm_qos_mtx);
 		goto out;
 	}
+
 	dev->power.qos->flags_req = req;
 
 	mutex_unlock(&dev_pm_qos_mtx);
 
 	ret = pm_qos_sysfs_add_flags(dev);
-	if (ret)
-		dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
 
- out:
+	if (ret)
+	{
+		dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
+	}
+
+out:
 	mutex_unlock(&dev_pm_qos_sysfs_mtx);
 	pm_runtime_put(dev);
 	return ret;
@@ -767,7 +880,9 @@ EXPORT_SYMBOL_GPL(dev_pm_qos_expose_flags);
 static void __dev_pm_qos_hide_flags(struct device *dev)
 {
 	if (!IS_ERR_OR_NULL(dev->power.qos) && dev->power.qos->flags_req)
+	{
 		__dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
+	}
 }
 
 /**
@@ -804,20 +919,26 @@ int dev_pm_qos_update_flags(struct device *dev, s32 mask, bool set)
 	pm_runtime_get_sync(dev);
 	mutex_lock(&dev_pm_qos_mtx);
 
-	if (IS_ERR_OR_NULL(dev->power.qos) || !dev->power.qos->flags_req) {
+	if (IS_ERR_OR_NULL(dev->power.qos) || !dev->power.qos->flags_req)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
 
 	value = dev_pm_qos_requested_flags(dev);
+
 	if (set)
+	{
 		value |= mask;
+	}
 	else
+	{
 		value &= ~mask;
+	}
 
 	ret = __dev_pm_qos_update_request(dev->power.qos->flags_req, value);
 
- out:
+out:
 	mutex_unlock(&dev_pm_qos_mtx);
 	pm_runtime_put(dev);
 	return ret;
@@ -833,9 +954,9 @@ s32 dev_pm_qos_get_user_latency_tolerance(struct device *dev)
 
 	mutex_lock(&dev_pm_qos_mtx);
 	ret = IS_ERR_OR_NULL(dev->power.qos)
-		|| !dev->power.qos->latency_tolerance_req ?
-			PM_QOS_LATENCY_TOLERANCE_NO_CONSTRAINT :
-			dev->power.qos->latency_tolerance_req->data.pnode.prio;
+		  || !dev->power.qos->latency_tolerance_req ?
+		  PM_QOS_LATENCY_TOLERANCE_NO_CONSTRAINT :
+		  dev->power.qos->latency_tolerance_req->data.pnode.prio;
 	mutex_unlock(&dev_pm_qos_mtx);
 	return ret;
 }
@@ -852,34 +973,48 @@ int dev_pm_qos_update_user_latency_tolerance(struct device *dev, s32 val)
 	mutex_lock(&dev_pm_qos_mtx);
 
 	if (IS_ERR_OR_NULL(dev->power.qos)
-	    || !dev->power.qos->latency_tolerance_req) {
+		|| !dev->power.qos->latency_tolerance_req)
+	{
 		struct dev_pm_qos_request *req;
 
-		if (val < 0) {
+		if (val < 0)
+		{
 			ret = -EINVAL;
 			goto out;
 		}
+
 		req = kzalloc(sizeof(*req), GFP_KERNEL);
-		if (!req) {
+
+		if (!req)
+		{
 			ret = -ENOMEM;
 			goto out;
 		}
+
 		ret = __dev_pm_qos_add_request(dev, req, DEV_PM_QOS_LATENCY_TOLERANCE, val);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			kfree(req);
 			goto out;
 		}
+
 		dev->power.qos->latency_tolerance_req = req;
-	} else {
-		if (val < 0) {
+	}
+	else
+	{
+		if (val < 0)
+		{
 			__dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_LATENCY_TOLERANCE);
 			ret = 0;
-		} else {
+		}
+		else
+		{
 			ret = __dev_pm_qos_update_request(dev->power.qos->latency_tolerance_req, val);
 		}
 	}
 
- out:
+out:
 	mutex_unlock(&dev_pm_qos_mtx);
 	return ret;
 }
@@ -893,7 +1028,9 @@ int dev_pm_qos_expose_latency_tolerance(struct device *dev)
 	int ret;
 
 	if (!dev->power.set_latency_tolerance)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&dev_pm_qos_sysfs_mtx);
 	ret = pm_qos_sysfs_add_latency_tolerance(dev);
@@ -916,7 +1053,7 @@ void dev_pm_qos_hide_latency_tolerance(struct device *dev)
 	/* Remove the request from user space now */
 	pm_runtime_get_sync(dev);
 	dev_pm_qos_update_user_latency_tolerance(dev,
-		PM_QOS_LATENCY_TOLERANCE_NO_CONSTRAINT);
+			PM_QOS_LATENCY_TOLERANCE_NO_CONSTRAINT);
 	pm_runtime_put(dev);
 }
 EXPORT_SYMBOL_GPL(dev_pm_qos_hide_latency_tolerance);

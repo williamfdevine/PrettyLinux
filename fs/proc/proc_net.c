@@ -38,7 +38,7 @@ static struct net *get_proc_net(const struct inode *inode)
 }
 
 int seq_open_net(struct inode *ino, struct file *f,
-		 const struct seq_operations *ops, int size)
+				 const struct seq_operations *ops, int size)
 {
 	struct net *net;
 	struct seq_net_private *p;
@@ -46,14 +46,20 @@ int seq_open_net(struct inode *ino, struct file *f,
 	BUG_ON(size < sizeof(*p));
 
 	net = get_proc_net(ino);
+
 	if (net == NULL)
+	{
 		return -ENXIO;
+	}
 
 	p = __seq_open_private(f, ops, size);
-	if (p == NULL) {
+
+	if (p == NULL)
+	{
 		put_net(net);
 		return -ENOMEM;
 	}
+
 #ifdef CONFIG_NET_NS
 	p->net = net;
 #endif
@@ -62,19 +68,25 @@ int seq_open_net(struct inode *ino, struct file *f,
 EXPORT_SYMBOL_GPL(seq_open_net);
 
 int single_open_net(struct inode *inode, struct file *file,
-		int (*show)(struct seq_file *, void *))
+					int (*show)(struct seq_file *, void *))
 {
 	int err;
 	struct net *net;
 
 	err = -ENXIO;
 	net = get_proc_net(inode);
+
 	if (net == NULL)
+	{
 		goto err_net;
+	}
 
 	err = single_open(file, show, net);
+
 	if (err < 0)
+	{
 		goto err_open;
+	}
 
 	return 0;
 
@@ -113,13 +125,20 @@ static struct net *get_proc_task_net(struct inode *dir)
 
 	rcu_read_lock();
 	task = pid_task(proc_pid(dir), PIDTYPE_PID);
-	if (task != NULL) {
+
+	if (task != NULL)
+	{
 		task_lock(task);
 		ns = task->nsproxy;
+
 		if (ns != NULL)
+		{
 			net = get_net(ns->net_ns);
+		}
+
 		task_unlock(task);
 	}
+
 	rcu_read_unlock();
 
 	return net;
@@ -133,15 +152,18 @@ static struct dentry *proc_tgid_net_lookup(struct inode *dir,
 
 	de = ERR_PTR(-ENOENT);
 	net = get_proc_task_net(dir);
-	if (net != NULL) {
+
+	if (net != NULL)
+	{
 		de = proc_lookup_de(net->proc_net, dir, dentry);
 		put_net(net);
 	}
+
 	return de;
 }
 
 static int proc_tgid_net_getattr(struct vfsmount *mnt, struct dentry *dentry,
-		struct kstat *stat)
+								 struct kstat *stat)
 {
 	struct inode *inode = d_inode(dentry);
 	struct net *net;
@@ -150,7 +172,8 @@ static int proc_tgid_net_getattr(struct vfsmount *mnt, struct dentry *dentry,
 
 	generic_fillattr(inode, stat);
 
-	if (net != NULL) {
+	if (net != NULL)
+	{
 		stat->nlink = net->proc_net->nlink;
 		put_net(net);
 	}
@@ -158,7 +181,8 @@ static int proc_tgid_net_getattr(struct vfsmount *mnt, struct dentry *dentry,
 	return 0;
 }
 
-const struct inode_operations proc_net_inode_operations = {
+const struct inode_operations proc_net_inode_operations =
+{
 	.lookup		= proc_tgid_net_lookup,
 	.getattr	= proc_tgid_net_getattr,
 };
@@ -170,14 +194,18 @@ static int proc_tgid_net_readdir(struct file *file, struct dir_context *ctx)
 
 	ret = -EINVAL;
 	net = get_proc_task_net(file_inode(file));
-	if (net != NULL) {
+
+	if (net != NULL)
+	{
 		ret = proc_readdir_de(net->proc_net, file, ctx);
 		put_net(net);
 	}
+
 	return ret;
 }
 
-const struct file_operations proc_net_operations = {
+const struct file_operations proc_net_operations =
+{
 	.llseek		= generic_file_llseek,
 	.read		= generic_read_dir,
 	.iterate_shared	= proc_tgid_net_readdir,
@@ -192,8 +220,11 @@ static __net_init int proc_net_ns_init(struct net *net)
 
 	err = -ENOMEM;
 	netd = kzalloc(sizeof(*netd) + 4, GFP_KERNEL);
+
 	if (!netd)
+	{
 		goto out;
+	}
 
 	netd->subdir = RB_ROOT;
 	netd->data = net;
@@ -203,19 +234,28 @@ static __net_init int proc_net_ns_init(struct net *net)
 	memcpy(netd->name, "net", 4);
 
 	uid = make_kuid(net->user_ns, 0);
+
 	if (!uid_valid(uid))
+	{
 		uid = netd->uid;
+	}
 
 	gid = make_kgid(net->user_ns, 0);
+
 	if (!gid_valid(gid))
+	{
 		gid = netd->gid;
+	}
 
 	proc_set_user(netd, uid, gid);
 
 	err = -EEXIST;
 	net_statd = proc_net_mkdir(net, "stat", netd);
+
 	if (!net_statd)
+	{
 		goto free_net;
+	}
 
 	net->proc_net = netd;
 	net->proc_net_stat = net_statd;
@@ -233,7 +273,8 @@ static __net_exit void proc_net_ns_exit(struct net *net)
 	kfree(net->proc_net);
 }
 
-static struct pernet_operations __net_initdata proc_net_ns_ops = {
+static struct pernet_operations __net_initdata proc_net_ns_ops =
+{
 	.init = proc_net_ns_init,
 	.exit = proc_net_ns_exit,
 };

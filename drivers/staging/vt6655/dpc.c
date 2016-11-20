@@ -36,7 +36,7 @@
 #include "dpc.h"
 
 static bool vnt_rx_data(struct vnt_private *priv, struct sk_buff *skb,
-			u16 bytes_received)
+						u16 bytes_received)
 {
 	struct ieee80211_hw *hw = priv->hw;
 	struct ieee80211_supported_band *sband;
@@ -55,7 +55,9 @@ static bool vnt_rx_data(struct vnt_private *priv, struct sk_buff *skb,
 
 	/* [31:16]RcvByteCount ( not include 4-byte Status ) */
 	frame_size = le16_to_cpu(*((__le16 *)(skb->data + 2)));
-	if (frame_size > 2346 || frame_size < 14) {
+
+	if (frame_size > 2346 || frame_size < 14)
+	{
 		dev_dbg(&priv->pcid->dev, "------- WRONG Length 1\n");
 		return false;
 	}
@@ -67,21 +69,27 @@ static bool vnt_rx_data(struct vnt_private *priv, struct sk_buff *skb,
 
 	sband = hw->wiphy->bands[hw->conf.chandef.chan->band];
 
-	for (r = RATE_1M; r < MAX_RATE; r++) {
+	for (r = RATE_1M; r < MAX_RATE; r++)
+	{
 		if (*rx_rate == rate[r])
+		{
 			break;
+		}
 	}
 
 	priv->rx_rate = r;
 
-	for (ii = 0; ii < sband->n_bitrates; ii++) {
-		if (sband->bitrates[ii].hw_value == r) {
+	for (ii = 0; ii < sband->n_bitrates; ii++)
+	{
+		if (sband->bitrates[ii].hw_value == r)
+		{
 			rate_idx = ii;
-				break;
+			break;
 		}
 	}
 
-	if (ii == sband->n_bitrates) {
+	if (ii == sband->n_bitrates)
+	{
 		dev_dbg(&priv->pcid->dev, "Wrong RxRate %x\n", *rx_rate);
 		return false;
 	}
@@ -91,8 +99,11 @@ static bool vnt_rx_data(struct vnt_private *priv, struct sk_buff *skb,
 	new_rsr = skb_data + bytes_received - 3;
 	rssi = skb_data + bytes_received - 2;
 	rsr = skb_data + bytes_received - 1;
+
 	if (*rsr & (RSR_IVLDTYP | RSR_IVLDLEN))
+	{
 		return false;
+	}
 
 	RFvRSSITodBm(priv, *rssi, &rx_dbm);
 
@@ -109,20 +120,27 @@ static bool vnt_rx_data(struct vnt_private *priv, struct sk_buff *skb,
 	rx_status.freq = hw->conf.chandef.chan->center_freq;
 
 	if (!(*rsr & RSR_CRCOK))
+	{
 		rx_status.flag |= RX_FLAG_FAILED_FCS_CRC;
+	}
 
 	hdr = (struct ieee80211_hdr *)(skb->data);
 	fc = hdr->frame_control;
 
 	rx_status.rate_idx = rate_idx;
 
-	if (ieee80211_has_protected(fc)) {
+	if (ieee80211_has_protected(fc))
+	{
 		if (priv->byLocalID > REV_ID_VT3253_A1)
+		{
 			rx_status.flag |= RX_FLAG_DECRYPTED;
+		}
 
 		/* Drop packet */
 		if (!(*new_rsr & NEWRSR_DECRYPTOK))
+		{
 			return false;
+		}
 	}
 
 	memcpy(IEEE80211_SKB_RXCB(skb), &rx_status, sizeof(rx_status));
@@ -141,12 +159,13 @@ bool vnt_receive_frame(struct vnt_private *priv, struct vnt_rx_desc *curr_rd)
 	skb = rd_info->skb;
 
 	dma_unmap_single(&priv->pcid->dev, rd_info->skb_dma,
-			 priv->rx_buf_sz, DMA_FROM_DEVICE);
+					 priv->rx_buf_sz, DMA_FROM_DEVICE);
 
 	frame_size = le16_to_cpu(curr_rd->rd1.req_count)
-			- le16_to_cpu(curr_rd->rd0.res_count);
+				 - le16_to_cpu(curr_rd->rd0.res_count);
 
-	if ((frame_size > 2364) || (frame_size < 33)) {
+	if ((frame_size > 2364) || (frame_size < 33))
+	{
 		/* Frame Size error drop this packet.*/
 		dev_dbg(&priv->pcid->dev, "Wrong frame size %d\n", frame_size);
 		dev_kfree_skb_irq(skb);
@@ -154,7 +173,9 @@ bool vnt_receive_frame(struct vnt_private *priv, struct vnt_rx_desc *curr_rd)
 	}
 
 	if (vnt_rx_data(priv, skb, frame_size))
+	{
 		return true;
+	}
 
 	dev_kfree_skb_irq(skb);
 

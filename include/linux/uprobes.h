@@ -39,20 +39,22 @@ struct page;
 
 #define MAX_URETPROBE_DEPTH		64
 
-enum uprobe_filter_ctx {
+enum uprobe_filter_ctx
+{
 	UPROBE_FILTER_REGISTER,
 	UPROBE_FILTER_UNREGISTER,
 	UPROBE_FILTER_MMAP,
 };
 
-struct uprobe_consumer {
+struct uprobe_consumer
+{
 	int (*handler)(struct uprobe_consumer *self, struct pt_regs *regs);
 	int (*ret_handler)(struct uprobe_consumer *self,
-				unsigned long func,
-				struct pt_regs *regs);
+					   unsigned long func,
+					   struct pt_regs *regs);
 	bool (*filter)(struct uprobe_consumer *self,
-				enum uprobe_filter_ctx ctx,
-				struct mm_struct *mm);
+				   enum uprobe_filter_ctx ctx,
+				   struct mm_struct *mm);
 
 	struct uprobe_consumer *next;
 };
@@ -60,7 +62,8 @@ struct uprobe_consumer {
 #ifdef CONFIG_UPROBES
 #include <asm/uprobes.h>
 
-enum uprobe_task_state {
+enum uprobe_task_state
+{
 	UTASK_RUNNING,
 	UTASK_SSTEP,
 	UTASK_SSTEP_ACK,
@@ -70,16 +73,20 @@ enum uprobe_task_state {
 /*
  * uprobe_task: Metadata of a task while it singlesteps.
  */
-struct uprobe_task {
+struct uprobe_task
+{
 	enum uprobe_task_state		state;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			struct arch_uprobe_task	autask;
 			unsigned long		vaddr;
 		};
 
-		struct {
+		struct
+		{
 			struct callback_head	dup_xol_work;
 			unsigned long		dup_xol_addr;
 		};
@@ -92,7 +99,8 @@ struct uprobe_task {
 	unsigned int			depth;
 };
 
-struct return_instance {
+struct return_instance
+{
 	struct uprobe		*uprobe;
 	unsigned long		func;
 	unsigned long		stack;		/* stack pointer */
@@ -102,7 +110,8 @@ struct return_instance {
 	struct return_instance	*next;		/* keep as stack */
 };
 
-enum rp_check {
+enum rp_check
+{
 	RP_CHECK_CALL,
 	RP_CHECK_CHAIN_CALL,
 	RP_CHECK_RET,
@@ -110,7 +119,8 @@ enum rp_check {
 
 struct xol_area;
 
-struct uprobes_state {
+struct uprobes_state
+{
 	struct xol_area		*xol_area;
 };
 
@@ -147,9 +157,10 @@ extern unsigned long arch_uretprobe_hijack_return_addr(unsigned long trampoline_
 extern bool arch_uretprobe_is_alive(struct return_instance *ret, enum rp_check ctx, struct pt_regs *regs);
 extern bool arch_uprobe_ignore(struct arch_uprobe *aup, struct pt_regs *regs);
 extern void arch_uprobe_copy_ixol(struct page *page, unsigned long vaddr,
-					 void *src, unsigned long len);
+								  void *src, unsigned long len);
 #else /* !CONFIG_UPROBES */
-struct uprobes_state {
+struct uprobes_state
+{
 };
 
 #define uprobe_get_trap_addr(regs)	instruction_pointer(regs)

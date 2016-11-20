@@ -30,12 +30,13 @@ realm_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	return (info->id == (dst->tclassid & info->mask)) ^ info->invert;
 }
 
-static struct xt_match realm_mt_reg __read_mostly = {
+static struct xt_match realm_mt_reg __read_mostly =
+{
 	.name		= "realm",
 	.match		= realm_mt,
 	.matchsize	= sizeof(struct xt_realm_info),
 	.hooks		= (1 << NF_INET_POST_ROUTING) | (1 << NF_INET_FORWARD) |
-			  (1 << NF_INET_LOCAL_OUT) | (1 << NF_INET_LOCAL_IN),
+	(1 << NF_INET_LOCAL_OUT) | (1 << NF_INET_LOCAL_IN),
 	.family		= NFPROTO_UNSPEC,
 	.me		= THIS_MODULE
 };

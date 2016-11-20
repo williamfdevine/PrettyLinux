@@ -4,7 +4,8 @@
 #include <linux/fs.h>
 #include <net/netns/generic.h>
 
-struct lockd_net {
+struct lockd_net
+{
 	unsigned int nlmsvc_users;
 	unsigned long next_gc;
 	unsigned long nrhosts;

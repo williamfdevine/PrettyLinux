@@ -55,7 +55,8 @@ typedef u64            hfn_t;
 
 typedef hfn_t kvm_pfn_t;
 
-struct gfn_to_hva_cache {
+struct gfn_to_hva_cache
+{
 	u64 generation;
 	gpa_t gpa;
 	unsigned long hva;

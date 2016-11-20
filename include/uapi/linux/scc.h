@@ -15,7 +15,8 @@
 
 /* DEV ioctl() commands */
 
-enum SCC_ioctl_cmds {
+enum SCC_ioctl_cmds
+{
 	SIOCSCCRESERVED = SIOCDEVPRIVATE,
 	SIOCSCCCFG,
 	SIOCSCCINI,
@@ -29,7 +30,8 @@ enum SCC_ioctl_cmds {
 
 /* Device parameter control (from WAMPES) */
 
-enum L1_params {
+enum L1_params
+{
 	PARAM_DATA,
 	PARAM_TXDELAY,
 	PARAM_PERSIST,
@@ -55,7 +57,8 @@ enum L1_params {
 
 /* fulldup parameter */
 
-enum FULLDUP_modes {
+enum FULLDUP_modes
+{
 	KISS_DUPLEX_HALF,	/* normal CSMA operation */
 	KISS_DUPLEX_FULL,	/* fullduplex, key down trx after transmission */
 	KISS_DUPLEX_LINK,	/* fullduplex, key down trx after 'idletime' sec */
@@ -69,7 +72,8 @@ enum FULLDUP_modes {
 
 /* HWEVENT parameter */
 
-enum HWEVENT_opts {
+enum HWEVENT_opts
+{
 	HWEV_DCD_ON,
 	HWEV_DCD_OFF,
 	HWEV_ALL_SENT
@@ -82,18 +86,20 @@ enum HWEVENT_opts {
 
 /* Tx/Rx clock sources */
 
-enum CLOCK_sources {
+enum CLOCK_sources
+{
 	CLK_DPLL,	/* normal halfduplex operation */
 	CLK_EXTERNAL,	/* external clocking (G3RUH/DF9IC modems) */
 	CLK_DIVIDER,	/* Rx = DPLL, Tx = divider (fullduplex with */
-			/* modems without clock regeneration */
+	/* modems without clock regeneration */
 	CLK_BRG		/* experimental fullduplex mode with DPLL/BRG for */
-			/* MODEMs without clock recovery */
+	/* MODEMs without clock recovery */
 };
 
 /* Tx state */
 
-enum TX_state {
+enum TX_state
+{
 	TXS_IDLE,	/* Transmitter off, no data pending */
 	TXS_BUSY,	/* waiting for permission to send / tailtime */
 	TXS_ACTIVE,	/* Transmitter on, sending data */
@@ -107,17 +113,18 @@ typedef unsigned long io_port;	/* type definition for an 'io port address' */
 
 /* SCC statistical information */
 
-struct scc_stat {
-        long rxints;            /* Receiver interrupts */
-        long txints;            /* Transmitter interrupts */
-        long exints;            /* External/status interrupts */
-        long spints;            /* Special receiver interrupts */
+struct scc_stat
+{
+	long rxints;            /* Receiver interrupts */
+	long txints;            /* Transmitter interrupts */
+	long exints;            /* External/status interrupts */
+	long spints;            /* Special receiver interrupts */
 
-        long txframes;          /* Packets sent */
-        long rxframes;          /* Number of Frames Actually Received */
-        long rxerrs;            /* CRC Errors */
-        long txerrs;		/* KISS errors */
-        
+	long txframes;          /* Packets sent */
+	long rxframes;          /* Number of Frames Actually Received */
+	long rxerrs;            /* CRC Errors */
+	long txerrs;		/* KISS errors */
+
 	unsigned int nospace;	/* "Out of buffers" */
 	unsigned int rx_over;	/* Receiver Overruns */
 	unsigned int tx_under;	/* Transmitter Underruns */
@@ -129,18 +136,21 @@ struct scc_stat {
 	unsigned int bufsize;	/* used buffersize */
 };
 
-struct scc_modem {
+struct scc_modem
+{
 	long speed;		/* Line speed, bps */
 	char clocksrc;		/* 0 = DPLL, 1 = external, 2 = divider */
-	char nrz;		/* NRZ instead of NRZI */	
+	char nrz;		/* NRZ instead of NRZI */
 };
 
-struct scc_kiss_cmd {
+struct scc_kiss_cmd
+{
 	int  	 command;	/* one of the KISS-Commands defined above */
 	unsigned param;		/* KISS-Param */
 };
 
-struct scc_hw_config {
+struct scc_hw_config
+{
 	io_port data_a;		/* data port channel A */
 	io_port ctrl_a;		/* control port channel A */
 	io_port data_b;		/* data port channel B */
@@ -159,12 +169,14 @@ struct scc_hw_config {
 /* (#) only one INTACK latch allowed. */
 
 
-struct scc_mem_config {
+struct scc_mem_config
+{
 	unsigned int dummy;
 	unsigned int bufsize;
 };
 
-struct scc_calibrate {
+struct scc_calibrate
+{
 	unsigned int time;
 	unsigned char pattern;
 };

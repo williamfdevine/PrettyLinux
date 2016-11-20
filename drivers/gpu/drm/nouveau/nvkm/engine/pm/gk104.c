@@ -24,101 +24,161 @@
 #include "gf100.h"
 
 static const struct nvkm_specsrc
-gk104_pmfb_sources[] = {
-	{ 0x140028, (const struct nvkm_specmux[]) {
+	gk104_pmfb_sources[] =
+{
+	{
+		0x140028, (const struct nvkm_specmux[])
+		{
 			{ 0x3fff, 0, "unk0" },
 			{ 0x7, 16, "unk16" },
 			{ 0x3, 24, "unk24" },
 			{ 0x2, 28, "unk28" },
 			{}
-		}, "pmfb0_pm_unk28" },
-	{ 0x14125c, (const struct nvkm_specmux[]) {
+		}, "pmfb0_pm_unk28"
+	},
+	{
+		0x14125c, (const struct nvkm_specmux[])
+		{
 			{ 0x3fff, 0, "unk0" },
 			{}
-		}, "pmfb0_subp0_pm_unk25c" },
-	{ 0x14165c, (const struct nvkm_specmux[]) {
+		}, "pmfb0_subp0_pm_unk25c"
+	},
+	{
+		0x14165c, (const struct nvkm_specmux[])
+		{
 			{ 0x3fff, 0, "unk0" },
 			{}
-		}, "pmfb0_subp1_pm_unk25c" },
-	{ 0x141a5c, (const struct nvkm_specmux[]) {
+		}, "pmfb0_subp1_pm_unk25c"
+	},
+	{
+		0x141a5c, (const struct nvkm_specmux[])
+		{
 			{ 0x3fff, 0, "unk0" },
 			{}
-		}, "pmfb0_subp2_pm_unk25c" },
-	{ 0x141e5c, (const struct nvkm_specmux[]) {
+		}, "pmfb0_subp2_pm_unk25c"
+	},
+	{
+		0x141e5c, (const struct nvkm_specmux[])
+		{
 			{ 0x3fff, 0, "unk0" },
 			{}
-		}, "pmfb0_subp3_pm_unk25c" },
+		}, "pmfb0_subp3_pm_unk25c"
+	},
 	{}
 };
 
 static const struct nvkm_specsrc
-gk104_tex_sources[] = {
-	{ 0x5042c0, (const struct nvkm_specmux[]) {
+	gk104_tex_sources[] =
+{
+	{
+		0x5042c0, (const struct nvkm_specmux[])
+		{
 			{ 0xf, 0, "sel0", true },
 			{ 0x7, 8, "sel1", true },
 			{}
-		}, "pgraph_gpc0_tpc0_tex_pm_mux_c_d" },
-	{ 0x5042c8, (const struct nvkm_specmux[]) {
+		}, "pgraph_gpc0_tpc0_tex_pm_mux_c_d"
+	},
+	{
+		0x5042c8, (const struct nvkm_specmux[])
+		{
 			{ 0x1f, 0, "sel", true },
 			{}
-		}, "pgraph_gpc0_tpc0_tex_pm_unkc8" },
-	{ 0x5042b8, (const struct nvkm_specmux[]) {
+		}, "pgraph_gpc0_tpc0_tex_pm_unkc8"
+	},
+	{
+		0x5042b8, (const struct nvkm_specmux[])
+		{
 			{ 0xff, 0, "sel", true },
 			{}
-		}, "pgraph_gpc0_tpc0_tex_pm_unkb8" },
+		}, "pgraph_gpc0_tpc0_tex_pm_unkb8"
+	},
 	{}
 };
 
 static const struct nvkm_specdom
-gk104_pm_hub[] = {
-	{ 0x60, (const struct nvkm_specsig[]) {
+	gk104_pm_hub[] =
+{
+	{
+		0x60, (const struct nvkm_specsig[])
+		{
 			{ 0x47, "hub00_user_0" },
 			{}
-		}, &gf100_perfctr_func },
-	{ 0x40, (const struct nvkm_specsig[]) {
+		}, &gf100_perfctr_func
+	},
+	{
+		0x40, (const struct nvkm_specsig[])
+		{
 			{ 0x27, "hub01_user_0" },
 			{}
-		}, &gf100_perfctr_func },
-	{ 0x60, (const struct nvkm_specsig[]) {
+		}, &gf100_perfctr_func
+	},
+	{
+		0x60, (const struct nvkm_specsig[])
+		{
 			{ 0x47, "hub02_user_0" },
 			{}
-		}, &gf100_perfctr_func },
-	{ 0x60, (const struct nvkm_specsig[]) {
+		}, &gf100_perfctr_func
+	},
+	{
+		0x60, (const struct nvkm_specsig[])
+		{
 			{ 0x47, "hub03_user_0" },
 			{}
-		}, &gf100_perfctr_func },
-	{ 0x40, (const struct nvkm_specsig[]) {
+		}, &gf100_perfctr_func
+	},
+	{
+		0x40, (const struct nvkm_specsig[])
+		{
 			{ 0x03, "host_mmio_rd" },
 			{ 0x27, "hub04_user_0" },
 			{}
-		}, &gf100_perfctr_func },
-	{ 0x60, (const struct nvkm_specsig[]) {
+		}, &gf100_perfctr_func
+	},
+	{
+		0x60, (const struct nvkm_specsig[])
+		{
 			{ 0x47, "hub05_user_0" },
 			{}
-		}, &gf100_perfctr_func },
-	{ 0xc0, (const struct nvkm_specsig[]) {
+		}, &gf100_perfctr_func
+	},
+	{
+		0xc0, (const struct nvkm_specsig[])
+		{
 			{ 0x74, "host_fb_rd3x" },
 			{ 0x75, "host_fb_rd3x_2" },
 			{ 0xa7, "hub06_user_0" },
 			{}
-		}, &gf100_perfctr_func },
-	{ 0x60, (const struct nvkm_specsig[]) {
+		}, &gf100_perfctr_func
+	},
+	{
+		0x60, (const struct nvkm_specsig[])
+		{
 			{ 0x47, "hub07_user_0" },
 			{}
-		}, &gf100_perfctr_func },
+		}, &gf100_perfctr_func
+	},
 	{}
 };
 
 static const struct nvkm_specdom
-gk104_pm_gpc[] = {
-	{ 0xe0, (const struct nvkm_specsig[]) {
+	gk104_pm_gpc[] =
+{
+	{
+		0xe0, (const struct nvkm_specsig[])
+		{
 			{ 0xc7, "gpc00_user_0" },
 			{}
-		}, &gf100_perfctr_func },
-	{ 0x20, (const struct nvkm_specsig[]) {
+		}, &gf100_perfctr_func
+	},
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &gf100_perfctr_func },
-	{ 0x20, (const struct nvkm_specsig[]) {
+		}, &gf100_perfctr_func
+	},
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{ 0x00, "gpc02_tex_00", gk104_tex_sources },
 			{ 0x01, "gpc02_tex_01", gk104_tex_sources },
 			{ 0x02, "gpc02_tex_02", gk104_tex_sources },
@@ -138,13 +198,17 @@ gk104_pm_gpc[] = {
 			{ 0x11, "gpc02_tex_11", gk104_tex_sources },
 			{ 0x12, "gpc02_tex_12", gk104_tex_sources },
 			{}
-		}, &gf100_perfctr_func },
+		}, &gf100_perfctr_func
+	},
 	{}
 };
 
 static const struct nvkm_specdom
-gk104_pm_part[] = {
-	{ 0x60, (const struct nvkm_specsig[]) {
+	gk104_pm_part[] =
+{
+	{
+		0x60, (const struct nvkm_specsig[])
+		{
 			{ 0x00, "part00_pbfb_00", gf100_pbfb_sources },
 			{ 0x01, "part00_pbfb_01", gf100_pbfb_sources },
 			{ 0x0c, "part00_pmfb_00", gk104_pmfb_sources },
@@ -162,16 +226,21 @@ gk104_pm_part[] = {
 			{ 0x27, "part00_pmfb_0c", gk104_pmfb_sources },
 			{ 0x47, "part00_user_0" },
 			{}
-		}, &gf100_perfctr_func },
-	{ 0x60, (const struct nvkm_specsig[]) {
+		}, &gf100_perfctr_func
+	},
+	{
+		0x60, (const struct nvkm_specsig[])
+		{
 			{ 0x47, "part01_user_0" },
 			{}
-		}, &gf100_perfctr_func },
+		}, &gf100_perfctr_func
+	},
 	{}
 };
 
 static const struct gf100_pm_func
-gk104_pm = {
+	gk104_pm =
+{
 	.doms_gpc = gk104_pm_gpc,
 	.doms_hub = gk104_pm_hub,
 	.doms_part = gk104_pm_part,

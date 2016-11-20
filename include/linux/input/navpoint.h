@@ -6,7 +6,8 @@
  *  published by the Free Software Foundation.
  */
 
-struct navpoint_platform_data {
+struct navpoint_platform_data
+{
 	int		port;		/* PXA SSP port for pxa_ssp_request() */
 	int		gpio;		/* GPIO for power on/off */
 };

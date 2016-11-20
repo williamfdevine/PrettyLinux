@@ -35,22 +35,27 @@
 
 struct nfcmrvl_private;
 
-struct nfcmrvl_fw_uart_config {
+struct nfcmrvl_fw_uart_config
+{
 	uint8_t flow_control;
 	uint32_t baudrate;
 } __packed;
 
-struct nfcmrvl_fw_i2c_config {
+struct nfcmrvl_fw_i2c_config
+{
 	uint32_t clk;
 } __packed;
 
-struct nfcmrvl_fw_spi_config {
+struct nfcmrvl_fw_spi_config
+{
 	uint32_t clk;
 } __packed;
 
-struct nfcmrvl_fw_binary_config {
+struct nfcmrvl_fw_binary_config
+{
 	uint32_t offset;
-	union {
+	union
+	{
 		void *config;
 		struct nfcmrvl_fw_uart_config uart;
 		struct nfcmrvl_fw_i2c_config i2c;
@@ -59,7 +64,8 @@ struct nfcmrvl_fw_binary_config {
 	};
 } __packed;
 
-struct nfcmrvl_fw {
+struct nfcmrvl_fw
+{
 	uint32_t magic;
 	uint32_t ref_clock;
 	uint32_t phy;
@@ -69,7 +75,8 @@ struct nfcmrvl_fw {
 	uint8_t reserved[64];
 } __packed;
 
-struct nfcmrvl_fw_dnld {
+struct nfcmrvl_fw_dnld
+{
 	char name[NFC_FIRMWARE_NAME_MAXSIZE + 1];
 	const struct firmware *fw;
 
@@ -93,6 +100,6 @@ void nfcmrvl_fw_dnld_deinit(struct nfcmrvl_private *priv);
 void nfcmrvl_fw_dnld_abort(struct nfcmrvl_private *priv);
 int nfcmrvl_fw_dnld_start(struct nci_dev *ndev, const char *firmware_name);
 void nfcmrvl_fw_dnld_recv_frame(struct nfcmrvl_private *priv,
-				struct sk_buff *skb);
+								struct sk_buff *skb);
 
 #endif

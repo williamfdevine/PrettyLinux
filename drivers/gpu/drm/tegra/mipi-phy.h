@@ -18,7 +18,8 @@
  *
  * All parameters are specified in nanoseconds.
  */
-struct mipi_dphy_timing {
+struct mipi_dphy_timing
+{
 	unsigned int clkmiss;
 	unsigned int clkpost;
 	unsigned int clkpre;
@@ -44,8 +45,8 @@ struct mipi_dphy_timing {
 };
 
 int mipi_dphy_timing_get_default(struct mipi_dphy_timing *timing,
-				 unsigned long period);
+								 unsigned long period);
 int mipi_dphy_timing_validate(struct mipi_dphy_timing *timing,
-			      unsigned long period);
+							  unsigned long period);
 
 #endif

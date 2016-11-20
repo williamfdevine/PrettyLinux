@@ -10,7 +10,7 @@
 
 /*
  * This driver and the hardware supported are in term of EE-191 of ADI.
- * http://www.analog.com/static/imported-files/application_notes/EE191.pdf 
+ * http://www.analog.com/static/imported-files/application_notes/EE191.pdf
  * This application note describe how to implement a UART on a Sharc DSP,
  * but this driver is implemented on Blackfin Processor.
  * Transmit Frame Sync is not used by this driver to transfer data out.
@@ -43,16 +43,16 @@
  * to prevent interruption while reading the FIFO.
  */
 #define SPORT_GET_RX32(sport) \
-({ \
-	unsigned int __ret; \
-	unsigned long flags; \
-	if (ANOMALY_05000473) \
-		local_irq_save(flags); \
-	__ret = bfin_read32((sport)->port.membase + OFFSET_RX); \
-	if (ANOMALY_05000473) \
-		local_irq_restore(flags); \
-	__ret; \
-})
+	({ \
+		unsigned int __ret; \
+		unsigned long flags; \
+		if (ANOMALY_05000473) \
+			local_irq_save(flags); \
+		__ret = bfin_read32((sport)->port.membase + OFFSET_RX); \
+		if (ANOMALY_05000473) \
+			local_irq_restore(flags); \
+		__ret; \
+	})
 #define SPORT_GET_RCR1(sport)		bfin_read16(((sport)->port.membase + OFFSET_RCR1))
 #define SPORT_GET_RCR2(sport)		bfin_read16(((sport)->port.membase + OFFSET_RCR2))
 #define SPORT_GET_RCLKDIV(sport)	bfin_read16(((sport)->port.membase + OFFSET_RCLKDIV))
@@ -81,7 +81,7 @@
 	|| defined(CONFIG_SERIAL_BFIN_SPORT1_UART_CTSRTS) \
 	|| defined(CONFIG_SERIAL_BFIN_SPORT2_UART_CTSRTS) \
 	|| defined(CONFIG_SERIAL_BFIN_SPORT3_UART_CTSRTS)
-# define CONFIG_SERIAL_BFIN_SPORT_CTSRTS
+	#define CONFIG_SERIAL_BFIN_SPORT_CTSRTS
 #endif
 
 #endif /* _BFIN_SPORT_UART_H */

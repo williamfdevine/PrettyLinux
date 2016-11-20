@@ -42,12 +42,14 @@
 
 #define IS_DMA64			(sizeof(dma_addr_t) == 8)
 
-enum mvumi_qc_result {
+enum mvumi_qc_result
+{
 	MV_QUEUE_COMMAND_RESULT_SENT = 0,
 	MV_QUEUE_COMMAND_RESULT_NO_RESOURCE,
 };
 
-struct mvumi_hw_regs {
+struct mvumi_hw_regs
+{
 	/* For CPU */
 	void *main_int_cause_reg;
 	void *enpointa_mask_reg;
@@ -102,7 +104,8 @@ struct mvumi_hw_regs {
 	u32 clic_out_err;
 };
 
-struct mvumi_dyn_list_entry {
+struct mvumi_dyn_list_entry
+{
 	u32 src_low_addr;
 	u32 src_high_addr;
 	u32 if_length;
@@ -113,7 +116,8 @@ struct mvumi_dyn_list_entry {
 #define CDB_CORE_MODULE			0x1
 #define CDB_CORE_SHUTDOWN		0xB
 
-enum {
+enum
+{
 	DRBL_HANDSHAKE			= 1 << 0,
 	DRBL_SOFT_RESET			= 1 << 1,
 	DRBL_BUS_CHANGE			= 1 << 2,
@@ -143,13 +147,15 @@ enum {
 #define DEVICE_OFFLINE	0
 #define DEVICE_ONLINE	1
 
-struct mvumi_hotplug_event {
+struct mvumi_hotplug_event
+{
 	u16 size;
 	u8 dummy[2];
 	u8 bitmap[0];
 };
 
-struct mvumi_driver_event {
+struct mvumi_driver_event
+{
 	u32	time_stamp;
 	u32	sequence_no;
 	u32	event_id;
@@ -162,13 +168,15 @@ struct mvumi_driver_event {
 	u8	sense_data[30];
 };
 
-struct mvumi_event_req {
+struct mvumi_event_req
+{
 	unsigned char	count;
 	unsigned char	reserved[3];
 	struct mvumi_driver_event  events[MAX_EVENTS_RETURNED];
 };
 
-struct mvumi_events_wq {
+struct mvumi_events_wq
+{
 	struct work_struct work_q;
 	struct mvumi_hba *mhba;
 	unsigned int event;
@@ -184,13 +192,15 @@ struct mvumi_events_wq {
 #define SGD_EOT			(1L << 27)
 #define SGD_EOT_CP		(1L << 22)
 
-struct mvumi_sgl {
+struct mvumi_sgl
+{
 	u32	baseaddr_l;
 	u32	baseaddr_h;
 	u32	flags;
 	u32	size;
 };
-struct mvumi_compact_sgl {
+struct mvumi_compact_sgl
+{
 	u32	baseaddr_l;
 	u32	baseaddr_h;
 	u32	flags;
@@ -200,31 +210,32 @@ struct mvumi_compact_sgl {
 	((((struct mvumi_compact_sgl *)(sgd))->flags) & 0x3FFFFFL)
 
 #define SET_COMPACT_SGD_SIZE(sgd, sz) do {			\
-	(((struct mvumi_compact_sgl *)(sgd))->flags) &= ~0x3FFFFFL;	\
-	(((struct mvumi_compact_sgl *)(sgd))->flags) |= (sz);		\
-} while (0)
+		(((struct mvumi_compact_sgl *)(sgd))->flags) &= ~0x3FFFFFL;	\
+		(((struct mvumi_compact_sgl *)(sgd))->flags) |= (sz);		\
+	} while (0)
 #define sgd_getsz(_mhba, sgd, sz) do {				\
-	if (_mhba->hba_capability & HS_CAPABILITY_SUPPORT_COMPACT_SG)	\
-		(sz) = GET_COMPACT_SGD_SIZE(sgd);	\
-	else \
-		(sz) = (sgd)->size;			\
-} while (0)
+		if (_mhba->hba_capability & HS_CAPABILITY_SUPPORT_COMPACT_SG)	\
+			(sz) = GET_COMPACT_SGD_SIZE(sgd);	\
+		else \
+			(sz) = (sgd)->size;			\
+	} while (0)
 
 #define sgd_setsz(_mhba, sgd, sz) do {				\
-	if (_mhba->hba_capability & HS_CAPABILITY_SUPPORT_COMPACT_SG)	\
-		SET_COMPACT_SGD_SIZE(sgd, sz);		\
-	else \
-		(sgd)->size = (sz);			\
-} while (0)
+		if (_mhba->hba_capability & HS_CAPABILITY_SUPPORT_COMPACT_SG)	\
+			SET_COMPACT_SGD_SIZE(sgd, sz);		\
+		else \
+			(sgd)->size = (sz);			\
+	} while (0)
 
 #define sgd_inc(_mhba, sgd) do {	\
-	if (_mhba->hba_capability & HS_CAPABILITY_SUPPORT_COMPACT_SG)	\
-		sgd = (struct mvumi_sgl *)(((unsigned char *) (sgd)) + 12); \
-	else \
-		sgd = (struct mvumi_sgl *)(((unsigned char *) (sgd)) + 16); \
-} while (0)
+		if (_mhba->hba_capability & HS_CAPABILITY_SUPPORT_COMPACT_SG)	\
+			sgd = (struct mvumi_sgl *)(((unsigned char *) (sgd)) + 12); \
+		else \
+			sgd = (struct mvumi_sgl *)(((unsigned char *) (sgd)) + 16); \
+	} while (0)
 
-struct mvumi_res {
+struct mvumi_res
+{
 	struct list_head entry;
 	dma_addr_t bus_addr;
 	void *virt_addr;
@@ -233,20 +244,22 @@ struct mvumi_res {
 };
 
 /* Resource type */
-enum resource_type {
+enum resource_type
+{
 	RESOURCE_CACHED_MEMORY = 0,
 	RESOURCE_UNCACHED_MEMORY
 };
 
-struct mvumi_sense_data {
-	u8 error_code:7;
-	u8 valid:1;
+struct mvumi_sense_data
+{
+	u8 error_code: 7;
+	u8 valid: 1;
 	u8 segment_number;
-	u8 sense_key:4;
-	u8 reserved:1;
-	u8 incorrect_length:1;
-	u8 end_of_media:1;
-	u8 file_mark:1;
+	u8 sense_key: 4;
+	u8 reserved: 1;
+	u8 incorrect_length: 1;
+	u8 end_of_media: 1;
+	u8 file_mark: 1;
 	u8 information[4];
 	u8 additional_sense_length;
 	u8 command_specific_information[4];
@@ -259,7 +272,8 @@ struct mvumi_sense_data {
 /* Request initiator must set the status to REQ_STATUS_PENDING. */
 #define REQ_STATUS_PENDING		0x80
 
-struct mvumi_cmd {
+struct mvumi_cmd
+{
 	struct list_head queue_pointer;
 	struct mvumi_msg_frame *frame;
 	dma_addr_t frame_phys;
@@ -275,7 +289,8 @@ struct mvumi_cmd {
  */
 #define CL_FUN_SCSI_CMD			0x1
 
-struct mvumi_msg_frame {
+struct mvumi_msg_frame
+{
 	u16 device_id;
 	u16 tag;
 	u8 cmd_flag;
@@ -295,7 +310,8 @@ struct mvumi_msg_frame {
 #define CL_RSP_FLAG_NODATA		0x0
 #define CL_RSP_FLAG_SENSEDATA		0x1
 
-struct mvumi_rsp_frame {
+struct mvumi_rsp_frame
+{
 	u16 device_id;
 	u16 tag;
 	u8 req_status;
@@ -304,12 +320,14 @@ struct mvumi_rsp_frame {
 	u32 payload[1];
 };
 
-struct mvumi_ob_data {
+struct mvumi_ob_data
+{
 	struct list_head list;
 	unsigned char data[0];
 };
 
-struct version_info {
+struct version_info
+{
 	u32 ver_major;
 	u32 ver_minor;
 	u32 ver_oem;
@@ -355,7 +373,8 @@ struct version_info {
 #define HS_SET_STATUS(a, b)		(a |= ((b & 0xFFFF) << 16))
 
 /* handshake frame */
-struct mvumi_hs_frame {
+struct mvumi_hs_frame
+{
 	u16 size;
 	/* host information */
 	u8 host_type;
@@ -383,7 +402,8 @@ struct mvumi_hs_frame {
 	u64 seconds_since1970;
 };
 
-struct mvumi_hs_header {
+struct mvumi_hs_header
+{
 	u8	page_code;
 	u8	checksum;
 	u16	frame_length;
@@ -402,15 +422,16 @@ struct mvumi_hs_header {
 #define HSP_SIZE(i)	sizeof(struct mvumi_hs_page##i)
 
 #define HSP_MAX_SIZE ({					\
-	int size, m1, m2;				\
-	m1 = max(HSP_SIZE(1), HSP_SIZE(3));		\
-	m2 = max(HSP_SIZE(2), HSP_SIZE(4));		\
-	size = max(m1, m2);				\
-	size;						\
-})
+		int size, m1, m2;				\
+		m1 = max(HSP_SIZE(1), HSP_SIZE(3));		\
+		m2 = max(HSP_SIZE(2), HSP_SIZE(4));		\
+		size = max(m1, m2);				\
+		size;						\
+	})
 
 /* The format of the page code for Firmware capability */
-struct mvumi_hs_page1 {
+struct mvumi_hs_page1
+{
 	u8 pagecode;
 	u8 checksum;
 	u16 frame_length;
@@ -430,7 +451,8 @@ struct mvumi_hs_page1 {
 };
 
 /* The format of the page code for Host information */
-struct mvumi_hs_page2 {
+struct mvumi_hs_page2
+{
 	u8 pagecode;
 	u8 checksum;
 	u16 frame_length;
@@ -447,7 +469,8 @@ struct mvumi_hs_page2 {
 };
 
 /* The format of the page code for firmware control  */
-struct mvumi_hs_page3 {
+struct mvumi_hs_page3
+{
 	u8	pagecode;
 	u8	checksum;
 	u16	frame_length;
@@ -459,7 +482,8 @@ struct mvumi_hs_page3 {
 	u32	host_eventaddr_h;
 };
 
-struct mvumi_hs_page4 {
+struct mvumi_hs_page4
+{
 	u8	pagecode;
 	u8	checksum;
 	u16	frame_length;
@@ -473,13 +497,15 @@ struct mvumi_hs_page4 {
 	u8	ib_depth;
 };
 
-struct mvumi_tag {
+struct mvumi_tag
+{
 	unsigned short *stack;
 	unsigned short top;
 	unsigned short size;
 };
 
-struct mvumi_device {
+struct mvumi_device
+{
 	struct list_head list;
 	struct scsi_device *sdev;
 	u64	wwid;
@@ -487,7 +513,8 @@ struct mvumi_device {
 	int	id;
 };
 
-struct mvumi_hba {
+struct mvumi_hba
+{
 	void *base_addr[MAX_BASE_ADDRESS];
 	u32 pci_base[MAX_BASE_ADDRESS];
 	void *mmio;
@@ -557,7 +584,8 @@ struct mvumi_hba {
 	atomic_t pnp_count;
 };
 
-struct mvumi_instance_template {
+struct mvumi_instance_template
+{
 	void (*fire_cmd) (struct mvumi_hba *, struct mvumi_cmd *);
 	void (*enable_intr) (struct mvumi_hba *);
 	void (*disable_intr) (struct mvumi_hba *);
@@ -565,7 +593,7 @@ struct mvumi_instance_template {
 	unsigned int (*read_fw_status_reg) (struct mvumi_hba *);
 	unsigned int (*check_ib_list) (struct mvumi_hba *);
 	int (*check_ob_list) (struct mvumi_hba *, unsigned int *,
-			      unsigned int *);
+						  unsigned int *);
 	int (*reset_host) (struct mvumi_hba *);
 };
 

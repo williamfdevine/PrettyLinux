@@ -57,24 +57,34 @@ static int dp83848_config_intr(struct phy_device *phydev)
 	int control, ret;
 
 	control = phy_read(phydev, DP83848_MICR);
-	if (control < 0)
-		return control;
 
-	if (phydev->interrupts == PHY_INTERRUPT_ENABLED) {
+	if (control < 0)
+	{
+		return control;
+	}
+
+	if (phydev->interrupts == PHY_INTERRUPT_ENABLED)
+	{
 		control |= DP83848_MICR_INT_OE;
 		control |= DP83848_MICR_INTEN;
 
 		ret = phy_write(phydev, DP83848_MISR, DP83848_INT_EN_MASK);
+
 		if (ret < 0)
+		{
 			return ret;
-	} else {
+		}
+	}
+	else
+	{
 		control &= ~DP83848_MICR_INTEN;
 	}
 
 	return phy_write(phydev, DP83848_MICR, control);
 }
 
-static struct mdio_device_id __maybe_unused dp83848_tbl[] = {
+static struct mdio_device_id __maybe_unused dp83848_tbl[] =
+{
 	{ TI_DP83848C_PHY_ID, 0xfffffff0 },
 	{ NS_DP83848C_PHY_ID, 0xfffffff0 },
 	{ TLK10X_PHY_ID, 0xfffffff0 },
@@ -86,24 +96,25 @@ MODULE_DEVICE_TABLE(mdio, dp83848_tbl);
 #define DP83848_PHY_DRIVER(_id, _name)				\
 	{							\
 		.phy_id		= _id,				\
-		.phy_id_mask	= 0xfffffff0,			\
-		.name		= _name,			\
-		.features	= PHY_BASIC_FEATURES,		\
-		.flags		= PHY_HAS_INTERRUPT,		\
-								\
-		.soft_reset	= genphy_soft_reset,		\
-		.config_init	= genphy_config_init,		\
-		.suspend	= genphy_suspend,		\
-		.resume		= genphy_resume,		\
-		.config_aneg	= genphy_config_aneg,		\
-		.read_status	= genphy_read_status,		\
-								\
-		/* IRQ related */				\
-		.ack_interrupt	= dp83848_ack_interrupt,	\
-		.config_intr	= dp83848_config_intr,		\
+					  .phy_id_mask	= 0xfffffff0,			\
+										.name		= _name,			\
+												.features	= PHY_BASIC_FEATURES,		\
+														.flags		= PHY_HAS_INTERRUPT,		\
+																\
+																.soft_reset	= genphy_soft_reset,		\
+																		.config_init	= genphy_config_init,		\
+																				.suspend	= genphy_suspend,		\
+																						.resume		= genphy_resume,		\
+																								.config_aneg	= genphy_config_aneg,		\
+																										.read_status	= genphy_read_status,		\
+																												\
+																												/* IRQ related */				\
+																												.ack_interrupt	= dp83848_ack_interrupt,	\
+																														.config_intr	= dp83848_config_intr,		\
 	}
 
-static struct phy_driver dp83848_driver[] = {
+static struct phy_driver dp83848_driver[] =
+{
 	DP83848_PHY_DRIVER(TI_DP83848C_PHY_ID, "TI DP83848C 10/100 Mbps PHY"),
 	DP83848_PHY_DRIVER(NS_DP83848C_PHY_ID, "NS DP83848C 10/100 Mbps PHY"),
 	DP83848_PHY_DRIVER(TLK10X_PHY_ID, "TI TLK10X 10/100 Mbps PHY"),

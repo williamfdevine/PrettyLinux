@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-struct unix_diag_req {
+struct unix_diag_req
+{
 	__u8	sdiag_family;
 	__u8	sdiag_protocol;
 	__u16	pad;
@@ -20,7 +21,8 @@ struct unix_diag_req {
 #define UDIAG_SHOW_RQLEN	0x00000010	/* show skb receive queue len */
 #define UDIAG_SHOW_MEMINFO	0x00000020	/* show memory info of a socket */
 
-struct unix_diag_msg {
+struct unix_diag_msg
+{
 	__u8	udiag_family;
 	__u8	udiag_type;
 	__u8	udiag_state;
@@ -30,7 +32,8 @@ struct unix_diag_msg {
 	__u32	udiag_cookie[2];
 };
 
-enum {
+enum
+{
 	/* UNIX_DIAG_NONE, standard nl API requires this attribute!  */
 	UNIX_DIAG_NAME,
 	UNIX_DIAG_VFS,
@@ -45,12 +48,14 @@ enum {
 
 #define UNIX_DIAG_MAX (__UNIX_DIAG_MAX - 1)
 
-struct unix_diag_vfs {
+struct unix_diag_vfs
+{
 	__u32	udiag_vfs_ino;
 	__u32	udiag_vfs_dev;
 };
 
-struct unix_diag_rqlen {
+struct unix_diag_rqlen
+{
 	__u32	udiag_rqueue;
 	__u32	udiag_wqueue;
 };

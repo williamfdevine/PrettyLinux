@@ -10,7 +10,8 @@
 
 struct armada_gem_object;
 
-struct armada_regs {
+struct armada_regs
+{
 	uint32_t offset;
 	uint32_t mask;
 	uint32_t val;
@@ -35,13 +36,15 @@ struct armada_crtc;
 struct armada_plane;
 struct armada_variant;
 
-struct armada_plane_work {
+struct armada_plane_work
+{
 	void			(*fn)(struct armada_crtc *,
-				      struct armada_plane *,
-				      struct armada_plane_work *);
+						  struct armada_plane *,
+						  struct armada_plane_work *);
 };
 
-struct armada_plane {
+struct armada_plane
+{
 	struct drm_plane	base;
 	wait_queue_head_t	frame_wait;
 	struct armada_plane_work *work;
@@ -50,19 +53,21 @@ struct armada_plane {
 
 int armada_drm_plane_init(struct armada_plane *plane);
 int armada_drm_plane_work_queue(struct armada_crtc *dcrtc,
-	struct armada_plane *plane, struct armada_plane_work *work);
+								struct armada_plane *plane, struct armada_plane_work *work);
 int armada_drm_plane_work_wait(struct armada_plane *plane, long timeout);
 struct armada_plane_work *armada_drm_plane_work_cancel(
 	struct armada_crtc *dcrtc, struct armada_plane *plane);
 
-struct armada_crtc {
+struct armada_crtc
+{
 	struct drm_crtc		crtc;
 	const struct armada_variant *variant;
 	unsigned		num;
 	void __iomem		*base;
 	struct clk		*clk;
 	struct clk		*extclk[2];
-	struct {
+	struct
+	{
 		uint32_t	spu_v_h_total;
 		uint32_t	spu_v_porch;
 		uint32_t	spu_adv_reg;
@@ -99,7 +104,7 @@ void armada_drm_crtc_enable_irq(struct armada_crtc *, u32);
 void armada_drm_crtc_update_regs(struct armada_crtc *, struct armada_regs *);
 
 void armada_drm_crtc_plane_disable(struct armada_crtc *dcrtc,
-	struct drm_plane *plane);
+								   struct drm_plane *plane);
 
 extern struct platform_driver armada_lcd_platform_driver;
 

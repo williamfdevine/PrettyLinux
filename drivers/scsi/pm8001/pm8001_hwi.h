@@ -137,7 +137,8 @@
 
 /* for new SPC controllers MEMBASE III is shared between BIOS and DATA */
 #define GSM_SM_BASE			0x4F0000
-struct mpi_msg_hdr{
+struct mpi_msg_hdr
+{
 	__le32	header;	/* Bits [11:0]  - Message operation code */
 	/* Bits [15:12] - Message Category */
 	/* Bits [21:16] - Outboundqueue ID for the
@@ -154,7 +155,8 @@ struct mpi_msg_hdr{
  * brief the data structure of PHY Start Command
  * use to describe enable the phy (64 bytes)
  */
-struct phy_start_req {
+struct phy_start_req
+{
 	__le32	tag;
 	__le32	ase_sh_lm_slr_phyid;
 	struct sas_identify_frame sas_identify;
@@ -166,7 +168,8 @@ struct phy_start_req {
  * brief the data structure of PHY Start Command
  * use to disable the phy (64 bytes)
  */
-struct phy_stop_req {
+struct phy_stop_req
+{
 	__le32	tag;
 	__le32	phy_id;
 	u32	reserved[13];
@@ -174,7 +177,8 @@ struct phy_stop_req {
 
 
 /* set device bits fis - device to host */
-struct  set_dev_bits_fis {
+struct  set_dev_bits_fis
+{
 	u8	fis_type;	/* 0xA1*/
 	u8	n_i_pmport;
 	/* b7 : n Bit. Notification bit. If set device needs attention. */
@@ -186,7 +190,8 @@ struct  set_dev_bits_fis {
 	u32	_r_a;
 } __attribute__ ((packed));
 /* PIO setup FIS - device to host */
-struct  pio_setup_fis {
+struct  pio_setup_fis
+{
 	u8	fis_type;	/* 0x5f */
 	u8	i_d_pmPort;
 	/* b7 : reserved */
@@ -217,7 +222,8 @@ struct  pio_setup_fis {
  * brief the data structure of SATA Completion Response
  * use to describe the sata task response (64 bytes)
  */
-struct sata_completion_resp {
+struct sata_completion_resp
+{
 	__le32	tag;
 	__le32	status;
 	__le32	param;
@@ -229,7 +235,8 @@ struct sata_completion_resp {
  * brief the data structure of SAS HW Event Notification
  * use to alert the host about the hardware event(64 bytes)
  */
-struct hw_event_resp {
+struct hw_event_resp
+{
 	__le32	lr_evt_status_phyid_portid;
 	__le32	evt_param;
 	__le32	npip_portstate;
@@ -243,7 +250,8 @@ struct hw_event_resp {
  * use to describe MPI REGISTER DEVICE Command (64 bytes)
  */
 
-struct reg_dev_req {
+struct reg_dev_req
+{
 	__le32	tag;
 	__le32	phyid_portid;
 	__le32	dtype_dlr_retry;
@@ -260,7 +268,8 @@ struct reg_dev_req {
  * with the device id (64 bytes)
  */
 
-struct dereg_dev_req {
+struct dereg_dev_req
+{
 	__le32	tag;
 	__le32	device_id;
 	u32	reserved[13];
@@ -272,7 +281,8 @@ struct dereg_dev_req {
  * use to notify the completion of the device registration  (64 bytes)
  */
 
-struct dev_reg_resp {
+struct dev_reg_resp
+{
 	__le32	tag;
 	__le32	status;
 	__le32	device_id;
@@ -284,7 +294,8 @@ struct dev_reg_resp {
  * brief the data structure of Local PHY Control Command
  * use to issue PHY CONTROL to local phy (64 bytes)
  */
-struct local_phy_ctl_req {
+struct local_phy_ctl_req
+{
 	__le32	tag;
 	__le32	phyop_phyid;
 	u32	reserved1[13];
@@ -295,7 +306,8 @@ struct local_phy_ctl_req {
  * brief the data structure of Local Phy Control Response
  * use to describe MPI Local Phy Control Response (64 bytes)
  */
-struct local_phy_ctl_resp {
+struct local_phy_ctl_resp
+{
 	__le32	tag;
 	__le32	phyop_phyid;
 	__le32	status;
@@ -311,7 +323,8 @@ struct local_phy_ctl_resp {
  * use to control port properties (64 bytes)
  */
 
-struct port_ctl_req {
+struct port_ctl_req
+{
 	__le32	tag;
 	__le32	portop_portid;
 	__le32	param0;
@@ -325,7 +338,8 @@ struct port_ctl_req {
  * use to acknowledge receive HW event (64 bytes)
  */
 
-struct hw_event_ack_req {
+struct hw_event_ack_req
+{
 	__le32	tag;
 	__le32	sea_phyid_portid;
 	__le32	param0;
@@ -338,7 +352,8 @@ struct hw_event_ack_req {
  * brief the data structure of SSP Completion Response
  * use to indicate a SSP Completion  (n bytes)
  */
-struct ssp_completion_resp {
+struct ssp_completion_resp
+{
 	__le32	tag;
 	__le32	status;
 	__le32	param;
@@ -355,7 +370,8 @@ struct ssp_completion_resp {
  * use to indicate a SATA Completion  (64 bytes)
  */
 
-struct sata_event_resp {
+struct sata_event_resp
+{
 	__le32	tag;
 	__le32	event;
 	__le32	port_id;
@@ -368,7 +384,8 @@ struct sata_event_resp {
  * use to indicate a SSP Completion  (64 bytes)
  */
 
-struct ssp_event_resp {
+struct ssp_event_resp
+{
 	__le32	tag;
 	__le32	event;
 	__le32	port_id;
@@ -380,7 +397,8 @@ struct ssp_event_resp {
  * brief the data structure of General Event Notification Response
  * use to describe MPI General Event Notification Response (64 bytes)
  */
-struct general_event_resp {
+struct general_event_resp
+{
 	__le32	status;
 	__le32	inb_IOMB_payload[14];
 } __attribute__((packed, aligned(4)));
@@ -393,7 +411,8 @@ struct general_event_resp {
  * brief the data structure of SMP Request Command
  * use to describe MPI SMP REQUEST Command (64 bytes)
  */
-struct smp_req {
+struct smp_req
+{
 	__le32	tag;
 	__le32	device_id;
 	__le32	len_ip_ir;
@@ -403,23 +422,26 @@ struct smp_req {
 	/* Bits [23:16] - direct payload Len */
 	/* Bits [31:24] - Reserved */
 	u8	smp_req16[16];
-	union {
+	union
+	{
 		u8	smp_req[32];
-		struct {
+		struct
+		{
 			__le64 long_req_addr;/* sg dma address, LE */
 			__le32 long_req_size;/* LE */
 			u32	_r_a;
 			__le64 long_resp_addr;/* sg dma address, LE */
 			__le32 long_resp_size;/* LE */
 			u32	_r_b;
-			} long_smp_req;/* sequencer extension */
+		} long_smp_req;/* sequencer extension */
 	};
 } __attribute__((packed, aligned(4)));
 /*
  * brief the data structure of SMP Completion Response
  * use to describe MPI SMP Completion Response (64 bytes)
  */
-struct smp_completion_resp {
+struct smp_completion_resp
+{
 	__le32	tag;
 	__le32	status;
 	__le32	param;
@@ -430,7 +452,8 @@ struct smp_completion_resp {
  *brief the data structure of SSP SMP SATA Abort Command
  * use to describe MPI SSP SMP & SATA Abort Command (64 bytes)
  */
-struct task_abort_req {
+struct task_abort_req
+{
 	__le32	tag;
 	__le32	device_id;
 	__le32	tag_to_abort;
@@ -447,7 +470,8 @@ struct task_abort_req {
  * brief the data structure of SSP SATA SMP Abort Response
  * use to describe SSP SMP & SATA Abort Response ( 64 bytes)
  */
-struct task_abort_resp {
+struct task_abort_resp
+{
 	__le32	tag;
 	__le32	status;
 	__le32	scp;
@@ -459,7 +483,8 @@ struct task_abort_resp {
  * brief the data structure of SAS Diagnostic Start/End Command
  * use to describe MPI SAS Diagnostic Start/End Command (64 bytes)
  */
-struct sas_diag_start_end_req {
+struct sas_diag_start_end_req
+{
 	__le32	tag;
 	__le32	operation_phyid;
 	u32	reserved[13];
@@ -470,7 +495,8 @@ struct sas_diag_start_end_req {
  * brief the data structure of SAS Diagnostic Execute Command
  * use to describe MPI SAS Diagnostic Execute Command (64 bytes)
  */
-struct sas_diag_execute_req{
+struct sas_diag_execute_req
+{
 	__le32	tag;
 	__le32	cmdtype_cmddesc_phyid;
 	__le32	pat1_pat2;
@@ -488,7 +514,8 @@ struct sas_diag_execute_req{
  * brief the data structure of Set Device State Command
  * use to describe MPI Set Device State Command (64 bytes)
  */
-struct set_dev_state_req {
+struct set_dev_state_req
+{
 	__le32	tag;
 	__le32	device_id;
 	__le32	nds;
@@ -498,7 +525,8 @@ struct set_dev_state_req {
 /*
  * brief the data structure of sas_re_initialization
  */
-struct sas_re_initialization_req {
+struct sas_re_initialization_req
+{
 
 	__le32	tag;
 	__le32	SSAHOLT;/* bit29-set max port;
@@ -520,7 +548,8 @@ struct sas_re_initialization_req {
  * use to describe MPI SATA IO Start Command (64 bytes)
  */
 
-struct sata_start_req {
+struct sata_start_req
+{
 	__le32	tag;
 	__le32	device_id;
 	__le32	data_len;
@@ -538,7 +567,8 @@ struct sata_start_req {
  * brief the data structure of SSP INI TM Start Command
  * use to describe MPI SSP INI TM Start Command (64 bytes)
  */
-struct ssp_ini_tm_start_req {
+struct ssp_ini_tm_start_req
+{
 	__le32	tag;
 	__le32	device_id;
 	__le32	relate_tag;
@@ -549,7 +579,8 @@ struct ssp_ini_tm_start_req {
 } __attribute__((packed, aligned(4)));
 
 
-struct ssp_info_unit {
+struct ssp_info_unit
+{
 	u8	lun[8];/* SCSI Logical Unit Number */
 	u8	reserved1;/* reserved */
 	u8	efb_prio_attr;
@@ -568,7 +599,8 @@ struct ssp_info_unit {
  * brief the data structure of SSP INI IO Start Command
  * use to describe MPI SSP INI IO Start Command (64 bytes)
  */
-struct ssp_ini_io_start_req {
+struct ssp_ini_io_start_req
+{
 	__le32	tag;
 	__le32	device_id;
 	__le32	data_len;
@@ -585,7 +617,8 @@ struct ssp_ini_io_start_req {
  * brief the data structure of Firmware download
  * use to describe MPI FW DOWNLOAD Command (64 bytes)
  */
-struct fw_flash_Update_req {
+struct fw_flash_Update_req
+{
 	__le32	tag;
 	__le32	cur_image_offset;
 	__le32	cur_image_len;
@@ -604,7 +637,8 @@ struct fw_flash_Update_req {
  * use to describe MPI FW_FLASH_UPDATE Response (64 bytes)
  *
  */
-struct fw_flash_Update_resp {
+struct fw_flash_Update_resp
+{
 	__le32	tag;
 	__le32	status;
 	u32	reserved[13];
@@ -615,7 +649,8 @@ struct fw_flash_Update_resp {
  * brief the data structure of Get NVM Data Command
  * use to get data from NVM in HBA(64 bytes)
  */
-struct get_nvm_data_req {
+struct get_nvm_data_req
+{
 	__le32	tag;
 	__le32	len_ir_vpdd;
 	__le32	vpd_offset;
@@ -627,7 +662,8 @@ struct get_nvm_data_req {
 } __attribute__((packed, aligned(4)));
 
 
-struct set_nvm_data_req {
+struct set_nvm_data_req
+{
 	__le32	tag;
 	__le32	len_ir_vpdd;
 	__le32	vpd_offset;
@@ -654,7 +690,8 @@ struct set_nvm_data_req {
  * brief the data structure of Get NVMD Data Response
  * use to describe MPI Get NVMD Data Response (64 bytes)
  */
-struct get_nvm_data_resp {
+struct get_nvm_data_resp
+{
 	__le32		tag;
 	__le32		ir_tda_bn_dps_das_nvm;
 	__le32		dlen_status;
@@ -667,7 +704,8 @@ struct get_nvm_data_resp {
  * use to describe MPI SAS Diagnostic Start/End Response (64 bytes)
  *
  */
-struct sas_diag_start_end_resp {
+struct sas_diag_start_end_resp
+{
 	__le32		tag;
 	__le32		status;
 	u32		reserved[13];
@@ -679,7 +717,8 @@ struct sas_diag_start_end_resp {
  * use to describe MPI SAS Diagnostic Execute Response (64 bytes)
  *
  */
-struct sas_diag_execute_resp {
+struct sas_diag_execute_resp
+{
 	__le32		tag;
 	__le32		cmdtype_cmddesc_phyid;
 	__le32		Status;
@@ -693,7 +732,8 @@ struct sas_diag_execute_resp {
  * use to describe MPI Set Device State Response (64 bytes)
  *
  */
-struct set_dev_state_resp {
+struct set_dev_state_resp
+{
 	__le32		tag;
 	__le32		status;
 	__le32		device_id;
@@ -874,7 +914,7 @@ struct set_dev_state_resp {
 #define SCRATCH_PAD1_RESERVED		0x000003F8   /* Scratch Pad1
  Reserved bit 3 to 9 */
 
- /* state definition for Scratch Pad2 register */
+/* state definition for Scratch Pad2 register */
 #define SCRATCH_PAD2_POR		0x00  /* power on state */
 #define SCRATCH_PAD2_SFR		0x01  /* soft reset state */
 #define SCRATCH_PAD2_ERR		0x02  /* error state */

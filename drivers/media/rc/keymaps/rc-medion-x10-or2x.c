@@ -26,7 +26,8 @@
 #include <linux/module.h>
 #include <media/rc-map.h>
 
-static struct rc_map_table medion_x10_or2x[] = {
+static struct rc_map_table medion_x10_or2x[] =
+{
 	{ 0x02, KEY_POWER },
 	{ 0x16, KEY_TEXT },   /* "T" in a box, for teletext */
 
@@ -81,7 +82,8 @@ static struct rc_map_table medion_x10_or2x[] = {
 	{ 0x38, KEY_NUMERIC_POUND },
 };
 
-static struct rc_map_list medion_x10_or2x_map = {
+static struct rc_map_list medion_x10_or2x_map =
+{
 	.map = {
 		.scan    = medion_x10_or2x,
 		.size    = ARRAY_SIZE(medion_x10_or2x),

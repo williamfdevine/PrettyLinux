@@ -1,16 +1,20 @@
 #ifndef __NVBIOS_PLL_H__
 #define __NVBIOS_PLL_H__
 /*XXX: kill me */
-struct nvkm_pll_vals {
-	union {
-		struct {
+struct nvkm_pll_vals
+{
+	union
+	{
+		struct
+		{
 #ifdef __BIG_ENDIAN
 			uint8_t N1, M1, N2, M2;
 #else
 			uint8_t M1, N1, M2, N2;
 #endif
 		};
-		struct {
+		struct
+		{
 			uint16_t NM1, NM2;
 		} __attribute__((packed));
 	};
@@ -24,7 +28,8 @@ struct nvkm_pll_vals {
  * specific pll needs to be referenced, but the exact
  * register isn't known.
  */
-enum nvbios_pll_type {
+enum nvbios_pll_type
+{
 	PLL_CORE   = 0x01,
 	PLL_SHADER = 0x02,
 	PLL_UNK03  = 0x03,
@@ -40,7 +45,8 @@ enum nvbios_pll_type {
 	PLL_MAX    = 0xff
 };
 
-struct nvbios_pll {
+struct nvbios_pll
+{
 	enum nvbios_pll_type type;
 	u32 reg;
 	u32 refclk;
@@ -59,7 +65,8 @@ struct nvbios_pll {
 	 */
 	u8 max_p_usable;
 
-	struct {
+	struct
+	{
 		u32 min_freq;
 		u32 max_freq;
 		u32 min_inputfreq;

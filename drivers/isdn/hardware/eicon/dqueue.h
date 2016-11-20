@@ -5,7 +5,8 @@
 
 #define DIVA_UM_IDI_MAX_MSGS 64
 
-typedef struct _diva_um_idi_data_queue {
+typedef struct _diva_um_idi_data_queue
+{
 	int segments;
 	int max_length;
 	int read;
@@ -17,14 +18,14 @@ typedef struct _diva_um_idi_data_queue {
 } diva_um_idi_data_queue_t;
 
 int diva_data_q_init(diva_um_idi_data_queue_t *q,
-		     int max_length, int max_segments);
+					 int max_length, int max_segments);
 int diva_data_q_finit(diva_um_idi_data_queue_t *q);
 int diva_data_q_get_max_length(const diva_um_idi_data_queue_t *q);
 void *diva_data_q_get_segment4write(diva_um_idi_data_queue_t *q);
 void diva_data_q_ack_segment4write(diva_um_idi_data_queue_t *q,
-				   int length);
+								   int length);
 const void *diva_data_q_get_segment4read(const diva_um_idi_data_queue_t *
-					 q);
+		q);
 int diva_data_q_get_segment_length(const diva_um_idi_data_queue_t *q);
 void diva_data_q_ack_segment4read(diva_um_idi_data_queue_t *q);
 

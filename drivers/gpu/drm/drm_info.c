@@ -55,12 +55,22 @@ int drm_name_info(struct seq_file *m, void *data)
 	mutex_lock(&dev->master_mutex);
 	master = dev->master;
 	seq_printf(m, "%s", dev->driver->name);
+
 	if (dev->dev)
+	{
 		seq_printf(m, " dev=%s", dev_name(dev->dev));
+	}
+
 	if (master && master->unique)
+	{
 		seq_printf(m, " master=%s", master->unique);
+	}
+
 	if (dev->unique)
+	{
 		seq_printf(m, " unique=%s", dev->unique);
+	}
+
 	seq_printf(m, "\n");
 	mutex_unlock(&dev->master_mutex);
 
@@ -79,31 +89,32 @@ int drm_clients_info(struct seq_file *m, void *data)
 	kuid_t uid;
 
 	seq_printf(m,
-		   "%20s %5s %3s master a %5s %10s\n",
-		   "command",
-		   "pid",
-		   "dev",
-		   "uid",
-		   "magic");
+			   "%20s %5s %3s master a %5s %10s\n",
+			   "command",
+			   "pid",
+			   "dev",
+			   "uid",
+			   "magic");
 
 	/* dev->filelist is sorted youngest first, but we want to present
 	 * oldest first (i.e. kernel, servers, clients), so walk backwardss.
 	 */
 	mutex_lock(&dev->filelist_mutex);
-	list_for_each_entry_reverse(priv, &dev->filelist, lhead) {
+	list_for_each_entry_reverse(priv, &dev->filelist, lhead)
+	{
 		struct task_struct *task;
 
 		rcu_read_lock(); /* locks pid_task()->comm */
 		task = pid_task(priv->pid, PIDTYPE_PID);
 		uid = task ? __task_cred(task)->euid : GLOBAL_ROOT_UID;
 		seq_printf(m, "%20s %5d %3d   %c    %c %5d %10u\n",
-			   task ? task->comm : "<unknown>",
-			   pid_vnr(priv->pid),
-			   priv->minor->index,
-			   drm_is_current_master(priv) ? 'y' : 'n',
-			   priv->authenticated ? 'y' : 'n',
-			   from_kuid_munged(seq_user_ns(m), uid),
-			   priv->magic);
+				   task ? task->comm : "<unknown>",
+				   pid_vnr(priv->pid),
+				   priv->minor->index,
+				   drm_is_current_master(priv) ? 'y' : 'n',
+				   priv->authenticated ? 'y' : 'n',
+				   from_kuid_munged(seq_user_ns(m), uid),
+				   priv->magic);
 		rcu_read_unlock();
 	}
 	mutex_unlock(&dev->filelist_mutex);
@@ -116,9 +127,9 @@ static int drm_gem_one_name_info(int id, void *ptr, void *data)
 	struct seq_file *m = data;
 
 	seq_printf(m, "%6d %8zd %7d %8d\n",
-		   obj->name, obj->size,
-		   obj->handle_count,
-		   atomic_read(&obj->refcount.refcount));
+			   obj->name, obj->size,
+			   obj->handle_count,
+			   atomic_read(&obj->refcount.refcount));
 	return 0;
 }
 

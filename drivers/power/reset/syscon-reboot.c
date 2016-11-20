@@ -24,7 +24,8 @@
 #include <linux/reboot.h>
 #include <linux/regmap.h>
 
-struct syscon_reboot_context {
+struct syscon_reboot_context
+{
 	struct regmap *map;
 	u32 offset;
 	u32 mask;
@@ -32,11 +33,11 @@ struct syscon_reboot_context {
 };
 
 static int syscon_restart_handle(struct notifier_block *this,
-					unsigned long mode, void *cmd)
+								 unsigned long mode, void *cmd)
 {
 	struct syscon_reboot_context *ctx =
-			container_of(this, struct syscon_reboot_context,
-					restart_handler);
+		container_of(this, struct syscon_reboot_context,
+					 restart_handler);
 
 	/* Issue the reboot */
 	regmap_write(ctx->map, ctx->offset, ctx->mask);
@@ -54,34 +55,49 @@ static int syscon_reboot_probe(struct platform_device *pdev)
 	int err;
 
 	ctx = devm_kzalloc(&pdev->dev, sizeof(*ctx), GFP_KERNEL);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	ctx->map = syscon_regmap_lookup_by_phandle(dev->of_node, "regmap");
+
 	if (IS_ERR(ctx->map))
+	{
 		return PTR_ERR(ctx->map);
+	}
 
 	if (of_property_read_u32(pdev->dev.of_node, "offset", &ctx->offset))
+	{
 		return -EINVAL;
+	}
 
 	if (of_property_read_u32(pdev->dev.of_node, "mask", &ctx->mask))
+	{
 		return -EINVAL;
+	}
 
 	ctx->restart_handler.notifier_call = syscon_restart_handle;
 	ctx->restart_handler.priority = 192;
 	err = register_restart_handler(&ctx->restart_handler);
+
 	if (err)
+	{
 		dev_err(dev, "can't register restart notifier (err=%d)\n", err);
+	}
 
 	return err;
 }
 
-static const struct of_device_id syscon_reboot_of_match[] = {
+static const struct of_device_id syscon_reboot_of_match[] =
+{
 	{ .compatible = "syscon-reboot" },
 	{}
 };
 
-static struct platform_driver syscon_reboot_driver = {
+static struct platform_driver syscon_reboot_driver =
+{
 	.probe = syscon_reboot_probe,
 	.driver = {
 		.name = "syscon-reboot",

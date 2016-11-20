@@ -30,7 +30,8 @@
 #include <linux/types.h>
 
 typedef
-struct _version {
+struct _version
+{
 	unsigned char   major;
 	unsigned char   minor;
 	unsigned char   build;
@@ -46,26 +47,27 @@ struct _version {
 #define DEVICE_FULL_DRV_NAM "VIA Networking Solomon-A/B/G Wireless LAN Adapter Driver"
 
 #ifndef MAJOR_VERSION
-#define MAJOR_VERSION       1
+	#define MAJOR_VERSION       1
 #endif
 
 #ifndef MINOR_VERSION
-#define MINOR_VERSION       17
+	#define MINOR_VERSION       17
 #endif
 
 #ifndef DEVICE_VERSION
-#define DEVICE_VERSION       "1.19.12"
+	#define DEVICE_VERSION       "1.19.12"
 #endif
 
 #include <linux/fs.h>
 #include <linux/fcntl.h>
 #ifndef CONFIG_PATH
-#define CONFIG_PATH            "/etc/vntconfiguration.dat"
+	#define CONFIG_PATH            "/etc/vntconfiguration.dat"
 #endif
 
 #define PKT_BUF_SZ          2390
 
-typedef enum  _chip_type {
+typedef enum  _chip_type
+{
 	VT3253 = 1
 } CHIP_TYPE, *PCHIP_TYPE;
 

@@ -25,19 +25,21 @@
 #define NPWM	6
 
 #define ATMEL_TC_ACMR_MASK	(ATMEL_TC_ACPA | ATMEL_TC_ACPC |	\
-				 ATMEL_TC_AEEVT | ATMEL_TC_ASWTRG)
+							 ATMEL_TC_AEEVT | ATMEL_TC_ASWTRG)
 
 #define ATMEL_TC_BCMR_MASK	(ATMEL_TC_BCPB | ATMEL_TC_BCPC |	\
-				 ATMEL_TC_BEEVT | ATMEL_TC_BSWTRG)
+							 ATMEL_TC_BEEVT | ATMEL_TC_BSWTRG)
 
-struct atmel_tcb_pwm_device {
+struct atmel_tcb_pwm_device
+{
 	enum pwm_polarity polarity;	/* PWM polarity */
 	unsigned div;			/* PWM clock divider */
 	unsigned duty;			/* PWM duty expressed in clk cycles */
 	unsigned period;		/* PWM period expressed in clk cycles */
 };
 
-struct atmel_tcb_pwm_chip {
+struct atmel_tcb_pwm_chip
+{
 	struct pwm_chip chip;
 	spinlock_t lock;
 	struct atmel_tc *tc;
@@ -50,8 +52,8 @@ static inline struct atmel_tcb_pwm_chip *to_tcb_chip(struct pwm_chip *chip)
 }
 
 static int atmel_tcb_pwm_set_polarity(struct pwm_chip *chip,
-				      struct pwm_device *pwm,
-				      enum pwm_polarity polarity)
+									  struct pwm_device *pwm,
+									  enum pwm_polarity polarity)
 {
 	struct atmel_tcb_pwm_device *tcbpwm = pwm_get_chip_data(pwm);
 
@@ -61,7 +63,7 @@ static int atmel_tcb_pwm_set_polarity(struct pwm_chip *chip,
 }
 
 static int atmel_tcb_pwm_request(struct pwm_chip *chip,
-				 struct pwm_device *pwm)
+								 struct pwm_device *pwm)
 {
 	struct atmel_tcb_pwm_chip *tcbpwmc = to_tcb_chip(chip);
 	struct atmel_tcb_pwm_device *tcbpwm;
@@ -73,11 +75,16 @@ static int atmel_tcb_pwm_request(struct pwm_chip *chip,
 	int ret;
 
 	tcbpwm = devm_kzalloc(chip->dev, sizeof(*tcbpwm), GFP_KERNEL);
+
 	if (!tcbpwm)
+	{
 		return -ENOMEM;
+	}
 
 	ret = clk_prepare_enable(tc->clk[group]);
-	if (ret) {
+
+	if (ret)
+	{
 		devm_kfree(chip->dev, tcbpwm);
 		return ret;
 	}
@@ -90,11 +97,13 @@ static int atmel_tcb_pwm_request(struct pwm_chip *chip,
 
 	spin_lock(&tcbpwmc->lock);
 	cmr = __raw_readl(regs + ATMEL_TC_REG(group, CMR));
+
 	/*
 	 * Get init config from Timer Counter registers if
 	 * Timer Counter is already configured as a PWM generator.
 	 */
-	if (cmr & ATMEL_TC_WAVE) {
+	if (cmr & ATMEL_TC_WAVE)
+	{
 		if (index == 0)
 			tcbpwm->duty =
 				__raw_readl(regs + ATMEL_TC_REG(group, RA));
@@ -105,9 +114,12 @@ static int atmel_tcb_pwm_request(struct pwm_chip *chip,
 		tcbpwm->div = cmr & ATMEL_TC_TCCLKS;
 		tcbpwm->period = __raw_readl(regs + ATMEL_TC_REG(group, RC));
 		cmr &= (ATMEL_TC_TCCLKS | ATMEL_TC_ACMR_MASK |
-			ATMEL_TC_BCMR_MASK);
-	} else
+				ATMEL_TC_BCMR_MASK);
+	}
+	else
+	{
 		cmr = 0;
+	}
 
 	cmr |= ATMEL_TC_WAVE | ATMEL_TC_WAVESEL_UP_AUTO | ATMEL_TC_EEVT_XC0;
 	__raw_writel(cmr, regs + ATMEL_TC_REG(group, CMR));
@@ -149,24 +161,39 @@ static void atmel_tcb_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 	 * This is why we're reverting polarity in this case.
 	 */
 	if (tcbpwm->duty == 0)
+	{
 		polarity = !polarity;
+	}
 
 	spin_lock(&tcbpwmc->lock);
 	cmr = __raw_readl(regs + ATMEL_TC_REG(group, CMR));
 
 	/* flush old setting and set the new one */
-	if (index == 0) {
+	if (index == 0)
+	{
 		cmr &= ~ATMEL_TC_ACMR_MASK;
+
 		if (polarity == PWM_POLARITY_INVERSED)
+		{
 			cmr |= ATMEL_TC_ASWTRG_CLEAR;
+		}
 		else
+		{
 			cmr |= ATMEL_TC_ASWTRG_SET;
-	} else {
+		}
+	}
+	else
+	{
 		cmr &= ~ATMEL_TC_BCMR_MASK;
+
 		if (polarity == PWM_POLARITY_INVERSED)
+		{
 			cmr |= ATMEL_TC_BSWTRG_CLEAR;
+		}
 		else
+		{
 			cmr |= ATMEL_TC_BSWTRG_SET;
+		}
 	}
 
 	__raw_writel(cmr, regs + ATMEL_TC_REG(group, CMR));
@@ -177,10 +204,10 @@ static void atmel_tcb_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 	 */
 	if (!(cmr & (ATMEL_TC_ACPC | ATMEL_TC_BCPC)))
 		__raw_writel(ATMEL_TC_SWTRG | ATMEL_TC_CLKDIS,
-			     regs + ATMEL_TC_REG(group, CCR));
+					 regs + ATMEL_TC_REG(group, CCR));
 	else
 		__raw_writel(ATMEL_TC_SWTRG, regs +
-			     ATMEL_TC_REG(group, CCR));
+					 ATMEL_TC_REG(group, CCR));
 
 	spin_unlock(&tcbpwmc->lock);
 }
@@ -205,7 +232,9 @@ static int atmel_tcb_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 	 * This is why we're reverting polarity in this case.
 	 */
 	if (tcbpwm->duty == 0)
+	{
 		polarity = !polarity;
+	}
 
 	spin_lock(&tcbpwmc->lock);
 	cmr = __raw_readl(regs + ATMEL_TC_REG(group, CMR));
@@ -213,20 +242,32 @@ static int atmel_tcb_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 	/* flush old setting and set the new one */
 	cmr &= ~ATMEL_TC_TCCLKS;
 
-	if (index == 0) {
+	if (index == 0)
+	{
 		cmr &= ~ATMEL_TC_ACMR_MASK;
 
 		/* Set CMR flags according to given polarity */
 		if (polarity == PWM_POLARITY_INVERSED)
+		{
 			cmr |= ATMEL_TC_ASWTRG_CLEAR;
+		}
 		else
+		{
 			cmr |= ATMEL_TC_ASWTRG_SET;
-	} else {
+		}
+	}
+	else
+	{
 		cmr &= ~ATMEL_TC_BCMR_MASK;
+
 		if (polarity == PWM_POLARITY_INVERSED)
+		{
 			cmr |= ATMEL_TC_BSWTRG_CLEAR;
+		}
 		else
+		{
 			cmr |= ATMEL_TC_BSWTRG_SET;
+		}
 	}
 
 	/*
@@ -235,17 +276,29 @@ static int atmel_tcb_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 	 * The output will be configured on software trigger and keep
 	 * this config till next config call.
 	 */
-	if (tcbpwm->duty != tcbpwm->period && tcbpwm->duty > 0) {
-		if (index == 0) {
+	if (tcbpwm->duty != tcbpwm->period && tcbpwm->duty > 0)
+	{
+		if (index == 0)
+		{
 			if (polarity == PWM_POLARITY_INVERSED)
+			{
 				cmr |= ATMEL_TC_ACPA_SET | ATMEL_TC_ACPC_CLEAR;
+			}
 			else
+			{
 				cmr |= ATMEL_TC_ACPA_CLEAR | ATMEL_TC_ACPC_SET;
-		} else {
+			}
+		}
+		else
+		{
 			if (polarity == PWM_POLARITY_INVERSED)
+			{
 				cmr |= ATMEL_TC_BCPB_SET | ATMEL_TC_BCPC_CLEAR;
+			}
 			else
+			{
 				cmr |= ATMEL_TC_BCPB_CLEAR | ATMEL_TC_BCPC_SET;
+			}
 		}
 	}
 
@@ -254,21 +307,25 @@ static int atmel_tcb_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 	__raw_writel(cmr, regs + ATMEL_TC_REG(group, CMR));
 
 	if (index == 0)
+	{
 		__raw_writel(tcbpwm->duty, regs + ATMEL_TC_REG(group, RA));
+	}
 	else
+	{
 		__raw_writel(tcbpwm->duty, regs + ATMEL_TC_REG(group, RB));
+	}
 
 	__raw_writel(tcbpwm->period, regs + ATMEL_TC_REG(group, RC));
 
 	/* Use software trigger to apply the new setting */
 	__raw_writel(ATMEL_TC_CLKEN | ATMEL_TC_SWTRG,
-		     regs + ATMEL_TC_REG(group, CCR));
+				 regs + ATMEL_TC_REG(group, CCR));
 	spin_unlock(&tcbpwmc->lock);
 	return 0;
 }
 
 static int atmel_tcb_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
-				int duty_ns, int period_ns)
+								int duty_ns, int period_ns)
 {
 	struct atmel_tcb_pwm_chip *tcbpwmc = to_tcb_chip(chip);
 	struct atmel_tcb_pwm_device *tcbpwm = pwm_get_chip_data(pwm);
@@ -288,22 +345,29 @@ static int atmel_tcb_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	 * Find best clk divisor:
 	 * the smallest divisor which can fulfill the period_ns requirements.
 	 */
-	for (i = 0; i < 5; ++i) {
-		if (atmel_tc_divisors[i] == 0) {
+	for (i = 0; i < 5; ++i)
+	{
+		if (atmel_tc_divisors[i] == 0)
+		{
 			slowclk = i;
 			continue;
 		}
+
 		min = div_u64((u64)NSEC_PER_SEC * atmel_tc_divisors[i], rate);
 		max = min << tc->tcb_config->counter_width;
+
 		if (max >= period_ns)
+		{
 			break;
+		}
 	}
 
 	/*
 	 * If none of the divisor are small enough to represent period_ns
 	 * take slow clock (32KHz).
 	 */
-	if (i == 5) {
+	if (i == 5)
+	{
 		i = slowclk;
 		rate = clk_get_rate(tc->slow_clk);
 		min = div_u64(NSEC_PER_SEC, rate);
@@ -311,16 +375,22 @@ static int atmel_tcb_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 
 		/* If period is too big return ERANGE error */
 		if (max < period_ns)
+		{
 			return -ERANGE;
+		}
 	}
 
 	duty = div_u64(duty_ns, min);
 	period = div_u64(period_ns, min);
 
 	if (index == 0)
+	{
 		atcbpwm = tcbpwmc->pwms[pwm->hwpwm + 1];
+	}
 	else
+	{
 		atcbpwm = tcbpwmc->pwms[pwm->hwpwm - 1];
+	}
 
 	/*
 	 * PWM devices provided by TCB driver are grouped by 2:
@@ -335,10 +405,11 @@ static int atmel_tcb_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	 * in this group before applying the new config.
 	 */
 	if ((atcbpwm && atcbpwm->duty > 0 &&
-			atcbpwm->duty != atcbpwm->period) &&
-		(atcbpwm->div != i || atcbpwm->period != period)) {
+		 atcbpwm->duty != atcbpwm->period) &&
+		(atcbpwm->div != i || atcbpwm->period != period))
+	{
 		dev_err(chip->dev,
-			"failed to configure period_ns: PWM group already configured with a different value\n");
+				"failed to configure period_ns: PWM group already configured with a different value\n");
 		return -EINVAL;
 	}
 
@@ -348,12 +419,15 @@ static int atmel_tcb_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 
 	/* If the PWM is enabled, call enable to apply the new conf */
 	if (pwm_is_enabled(pwm))
+	{
 		atmel_tcb_pwm_enable(chip, pwm);
+	}
 
 	return 0;
 }
 
-static const struct pwm_ops atmel_tcb_pwm_ops = {
+static const struct pwm_ops atmel_tcb_pwm_ops =
+{
 	.request = atmel_tcb_pwm_request,
 	.free = atmel_tcb_pwm_free,
 	.config = atmel_tcb_pwm_config,
@@ -372,21 +446,27 @@ static int atmel_tcb_pwm_probe(struct platform_device *pdev)
 	int tcblock;
 
 	err = of_property_read_u32(np, "tc-block", &tcblock);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(&pdev->dev,
-			"failed to get Timer Counter Block number from device tree (error: %d)\n",
-			err);
+				"failed to get Timer Counter Block number from device tree (error: %d)\n",
+				err);
 		return err;
 	}
 
 	tc = atmel_tc_alloc(tcblock);
-	if (tc == NULL) {
+
+	if (tc == NULL)
+	{
 		dev_err(&pdev->dev, "failed to allocate Timer Counter Block\n");
 		return -ENOMEM;
 	}
 
 	tcbpwm = devm_kzalloc(&pdev->dev, sizeof(*tcbpwm), GFP_KERNEL);
-	if (tcbpwm == NULL) {
+
+	if (tcbpwm == NULL)
+	{
 		err = -ENOMEM;
 		dev_err(&pdev->dev, "failed to allocate memory\n");
 		goto err_free_tc;
@@ -401,14 +481,20 @@ static int atmel_tcb_pwm_probe(struct platform_device *pdev)
 	tcbpwm->tc = tc;
 
 	err = clk_prepare_enable(tc->slow_clk);
+
 	if (err)
+	{
 		goto err_free_tc;
+	}
 
 	spin_lock_init(&tcbpwm->lock);
 
 	err = pwmchip_add(&tcbpwm->chip);
+
 	if (err < 0)
+	{
 		goto err_disable_clk;
+	}
 
 	platform_set_drvdata(pdev, tcbpwm);
 
@@ -431,21 +517,26 @@ static int atmel_tcb_pwm_remove(struct platform_device *pdev)
 	clk_disable_unprepare(tcbpwm->tc->slow_clk);
 
 	err = pwmchip_remove(&tcbpwm->chip);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	atmel_tc_free(tcbpwm->tc);
 
 	return 0;
 }
 
-static const struct of_device_id atmel_tcb_pwm_dt_ids[] = {
+static const struct of_device_id atmel_tcb_pwm_dt_ids[] =
+{
 	{ .compatible = "atmel,tcb-pwm", },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, atmel_tcb_pwm_dt_ids);
 
-static struct platform_driver atmel_tcb_pwm_driver = {
+static struct platform_driver atmel_tcb_pwm_driver =
+{
 	.driver = {
 		.name = "atmel-tcb-pwm",
 		.of_match_table = atmel_tcb_pwm_dt_ids,

@@ -110,7 +110,8 @@ extern void wa_process_errored_transfers_run(struct work_struct *ws);
  * submitting seg_lock has to be taken. If segs_avail > 0, then we can
  * submit; if not, we have to queue them.
  */
-struct wa_rpipe {
+struct wa_rpipe
+{
 	struct kref refcnt;
 	struct usb_rpipe_descriptor descr;
 	struct usb_host_endpoint *ep;
@@ -123,13 +124,15 @@ struct wa_rpipe {
 };
 
 
-enum wa_dti_state {
+enum wa_dti_state
+{
 	WA_DTI_TRANSFER_RESULT_PENDING,
 	WA_DTI_ISOC_PACKET_STATUS_PENDING,
 	WA_DTI_BUF_IN_DATA_PENDING
 };
 
-enum wa_quirks {
+enum wa_quirks
+{
 	/*
 	 * The Alereon HWA expects the data frames in isochronous transfer
 	 * requests to be concatenated and not sent as separate packets.
@@ -142,7 +145,8 @@ enum wa_quirks {
 	WUSB_QUIRK_ALEREON_HWA_DISABLE_XFER_NOTIFICATIONS	= 0x02,
 };
 
-enum wa_vendor_specific_requests {
+enum wa_vendor_specific_requests
+{
 	WA_REQ_ALEREON_DISABLE_XFER_NOTIFICATIONS = 0x4C,
 	WA_REQ_ALEREON_FEATURE_SET = 0x01,
 	WA_REQ_ALEREON_FEATURE_CLEAR = 0x00,
@@ -183,12 +187,14 @@ enum wa_vendor_specific_requests {
  *        commonalities with WHCI), a wa layer (for sharing
  *        commonalities with DWA-RC).
  */
-struct wahc {
+struct wahc
+{
 	struct usb_device *usb_dev;
 	struct usb_interface *usb_iface;
 
 	/* HC to deliver notifications */
-	union {
+	union
+	{
 		struct wusbhc *wusb;
 		struct dwahc *dwa;
 	};
@@ -219,7 +225,7 @@ struct wahc {
 	u32 dti_isoc_xfer_in_progress;
 	u8  dti_isoc_xfer_seg;
 	struct urb *dti_urb;		/* URB for reading xfer results */
-					/* URBs for reading data in */
+	/* URBs for reading data in */
 	struct urb buf_in_urbs[WA_MAX_BUF_IN_URBS];
 	int active_buf_in_urbs;		/* number of buf_in_urbs active. */
 	struct edc dti_edc;		/* DTI error density counter */
@@ -247,14 +253,15 @@ struct wahc {
 
 
 extern int wa_create(struct wahc *wa, struct usb_interface *iface,
-	kernel_ulong_t);
+					 kernel_ulong_t);
 extern void __wa_destroy(struct wahc *wa);
 extern int wa_dti_start(struct wahc *wa);
 void wa_reset_all(struct wahc *wa);
 
 
 /* Miscellaneous constants */
-enum {
+enum
+{
 	/** Max number of EPROTO errors we tolerate on the NEP in a
 	 * period of time */
 	HWAHC_EPROTO_MAX = 16,
@@ -306,9 +313,13 @@ static inline void wa_init(struct wahc *wa)
 	INIT_WORK(&wa->xfer_error_work, wa_process_errored_transfers_run);
 	wa->dto_in_use = 0;
 	atomic_set(&wa->xfer_id_count, 1);
+
 	/* init the buf in URBs */
 	for (index = 0; index < WA_MAX_BUF_IN_URBS; ++index)
+	{
 		usb_init_urb(&(wa->buf_in_urbs[index]));
+	}
+
 	wa->active_buf_in_urbs = 0;
 }
 
@@ -325,7 +336,7 @@ void __rpipe_get(struct wa_rpipe *rpipe)
 	kref_get(&rpipe->refcnt);
 }
 extern int rpipe_get_by_ep(struct wahc *, struct usb_host_endpoint *,
-			   struct urb *, gfp_t);
+						   struct urb *, gfp_t);
 static inline void rpipe_put(struct wa_rpipe *rpipe)
 {
 	kref_put(&rpipe->refcnt, rpipe_destroy);
@@ -333,7 +344,7 @@ static inline void rpipe_put(struct wa_rpipe *rpipe)
 }
 extern void rpipe_ep_disable(struct wahc *, struct usb_host_endpoint *);
 extern void rpipe_clear_feature_stalled(struct wahc *,
-			struct usb_host_endpoint *);
+										struct usb_host_endpoint *);
 extern int wa_rpipes_create(struct wahc *);
 extern void wa_rpipes_destroy(struct wahc *);
 static inline void rpipe_avail_dec(struct wa_rpipe *rpipe)
@@ -347,13 +358,13 @@ static inline void rpipe_avail_dec(struct wa_rpipe *rpipe)
 static inline int rpipe_avail_inc(struct wa_rpipe *rpipe)
 {
 	return atomic_inc_return(&rpipe->segs_available) > 0
-		&& !list_empty(&rpipe->seg_list);
+		   && !list_empty(&rpipe->seg_list);
 }
 
 
 /* Transferring data */
 extern int wa_urb_enqueue(struct wahc *, struct usb_host_endpoint *,
-			  struct urb *, gfp_t);
+						  struct urb *, gfp_t);
 extern int wa_urb_dequeue(struct wahc *, struct urb *, int);
 extern void wa_handle_notif_xfer(struct wahc *, struct wa_notif_hdr *);
 
@@ -384,11 +395,11 @@ static inline void wa_put(struct wahc *wa)
 static inline int __wa_feature(struct wahc *wa, unsigned op, u16 feature)
 {
 	return usb_control_msg(wa->usb_dev, usb_sndctrlpipe(wa->usb_dev, 0),
-			op ? USB_REQ_SET_FEATURE : USB_REQ_CLEAR_FEATURE,
-			USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
-			feature,
-			wa->usb_iface->cur_altsetting->desc.bInterfaceNumber,
-			NULL, 0, USB_CTRL_SET_TIMEOUT);
+						   op ? USB_REQ_SET_FEATURE : USB_REQ_CLEAR_FEATURE,
+						   USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
+						   feature,
+						   wa->usb_iface->cur_altsetting->desc.bInterfaceNumber,
+						   NULL, 0, USB_CTRL_SET_TIMEOUT);
 }
 
 
@@ -418,13 +429,17 @@ s32 __wa_get_status(struct wahc *wa)
 {
 	s32 result;
 	result = usb_control_msg(
-		wa->usb_dev, usb_rcvctrlpipe(wa->usb_dev, 0),
-		USB_REQ_GET_STATUS,
-		USB_DIR_IN | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
-		0, wa->usb_iface->cur_altsetting->desc.bInterfaceNumber,
-		&wa->status, sizeof(wa->status), USB_CTRL_GET_TIMEOUT);
+				 wa->usb_dev, usb_rcvctrlpipe(wa->usb_dev, 0),
+				 USB_REQ_GET_STATUS,
+				 USB_DIR_IN | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
+				 0, wa->usb_iface->cur_altsetting->desc.bInterfaceNumber,
+				 &wa->status, sizeof(wa->status), USB_CTRL_GET_TIMEOUT);
+
 	if (result >= 0)
+	{
 		result = wa->status;
+	}
+
 	return result;
 }
 
@@ -445,16 +460,25 @@ static inline s32 __wa_wait_status(struct wahc *wa, u32 mask, u32 value)
 {
 	s32 result;
 	unsigned loops = 10;
-	do {
+
+	do
+	{
 		msleep(50);
 		result = __wa_get_status(wa);
+
 		if ((result & mask) == value)
+		{
 			break;
-		if (loops-- == 0) {
+		}
+
+		if (loops-- == 0)
+		{
 			result = -ETIMEDOUT;
 			break;
 		}
-	} while (result >= 0);
+	}
+	while (result >= 0);
+
 	return result;
 }
 
@@ -466,13 +490,20 @@ static inline int __wa_stop(struct wahc *wa)
 	struct device *dev = &wa->usb_iface->dev;
 
 	result = __wa_clear_feature(wa, WA_ENABLE);
-	if (result < 0 && result != -ENODEV) {
+
+	if (result < 0 && result != -ENODEV)
+	{
 		dev_err(dev, "error commanding HC to stop: %d\n", result);
 		goto out;
 	}
+
 	result = __wa_wait_status(wa, WA_ENABLE, 0);
+
 	if (result < 0 && result != -ENODEV)
+	{
 		dev_err(dev, "error waiting for HC to stop: %d\n", result);
+	}
+
 out:
 	return 0;
 }

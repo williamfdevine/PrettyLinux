@@ -30,23 +30,25 @@
 #define GID_T_MAX (((gid_t)~0U) >> 1)
 
 /* Compatibility glue so we can support IPv6 when it's compiled as a module */
-struct pingv6_ops {
+struct pingv6_ops
+{
 	int (*ipv6_recv_error)(struct sock *sk, struct msghdr *msg, int len,
-			       int *addr_len);
+						   int *addr_len);
 	void (*ip6_datagram_recv_common_ctl)(struct sock *sk,
-					     struct msghdr *msg,
-					     struct sk_buff *skb);
+										 struct msghdr *msg,
+										 struct sk_buff *skb);
 	void (*ip6_datagram_recv_specific_ctl)(struct sock *sk,
-					       struct msghdr *msg,
-					       struct sk_buff *skb);
+										   struct msghdr *msg,
+										   struct sk_buff *skb);
 	int (*icmpv6_err_convert)(u8 type, u8 code, int *err);
 	void (*ipv6_icmp_error)(struct sock *sk, struct sk_buff *skb, int err,
-				__be16 port, u32 info, u8 *payload);
+							__be16 port, u32 info, u8 *payload);
 	int (*ipv6_chk_addr)(struct net *net, const struct in6_addr *addr,
-			     const struct net_device *dev, int strict);
+						 const struct net_device *dev, int strict);
 };
 
-struct ping_iter_state {
+struct ping_iter_state
+{
 	struct seq_net_private  p;
 	int			bucket;
 	sa_family_t		family;
@@ -54,10 +56,11 @@ struct ping_iter_state {
 
 extern struct proto ping_prot;
 #if IS_ENABLED(CONFIG_IPV6)
-extern struct pingv6_ops pingv6_ops;
+	extern struct pingv6_ops pingv6_ops;
 #endif
 
-struct pingfakehdr {
+struct pingfakehdr
+{
 	struct icmphdr icmph;
 	struct msghdr *msg;
 	sa_family_t family;
@@ -73,17 +76,18 @@ void ping_close(struct sock *sk, long timeout);
 int  ping_bind(struct sock *sk, struct sockaddr *uaddr, int addr_len);
 void ping_err(struct sk_buff *skb, int offset, u32 info);
 int  ping_getfrag(void *from, char *to, int offset, int fraglen, int odd,
-		  struct sk_buff *);
+				  struct sk_buff *);
 
 int  ping_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int noblock,
-		  int flags, int *addr_len);
+				  int flags, int *addr_len);
 int  ping_common_sendmsg(int family, struct msghdr *msg, size_t len,
-			 void *user_icmph, size_t icmph_len);
+						 void *user_icmph, size_t icmph_len);
 int  ping_queue_rcv_skb(struct sock *sk, struct sk_buff *skb);
 bool ping_rcv(struct sk_buff *skb);
 
 #ifdef CONFIG_PROC_FS
-struct ping_seq_afinfo {
+struct ping_seq_afinfo
+{
 	char				*name;
 	sa_family_t			family;
 	const struct file_operations	*seq_fops;

@@ -35,7 +35,7 @@ static inline void acpi_iort_init(void) { }
 static inline u32 iort_msi_map_rid(struct device *dev, u32 req_id)
 { return req_id; }
 static inline struct irq_domain *iort_get_device_domain(struct device *dev,
-							u32 req_id)
+		u32 req_id)
 { return NULL; }
 #endif
 

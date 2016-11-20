@@ -60,10 +60,13 @@ xfs_perag_get(
 
 	rcu_read_lock();
 	pag = radix_tree_lookup(&mp->m_perag_tree, agno);
-	if (pag) {
+
+	if (pag)
+	{
 		ASSERT(atomic_read(&pag->pag_ref) >= 0);
 		ref = atomic_inc_return(&pag->pag_ref);
 	}
+
 	rcu_read_unlock();
 	trace_xfs_perag_get(mp, agno, ref, _RET_IP_);
 	return pag;
@@ -84,11 +87,14 @@ xfs_perag_get_tag(
 
 	rcu_read_lock();
 	found = radix_tree_gang_lookup_tag(&mp->m_perag_tree,
-					(void **)&pag, first, 1, tag);
-	if (found <= 0) {
+									   (void **)&pag, first, 1, tag);
+
+	if (found <= 0)
+	{
 		rcu_read_unlock();
 		return NULL;
 	}
+
 	ref = atomic_inc_return(&pag->pag_ref);
 	rcu_read_unlock();
 	trace_xfs_perag_get_tag(mp, pag->pag_agno, ref, _RET_IP_);
@@ -116,13 +122,15 @@ xfs_mount_validate_sb(
 	bool		check_inprogress,
 	bool		check_version)
 {
-	if (sbp->sb_magicnum != XFS_SB_MAGIC) {
+	if (sbp->sb_magicnum != XFS_SB_MAGIC)
+	{
 		xfs_warn(mp, "bad magic number");
 		return -EWRONGFS;
 	}
 
 
-	if (!xfs_sb_good_version(sbp)) {
+	if (!xfs_sb_good_version(sbp))
+	{
 		xfs_warn(mp, "bad version");
 		return -EWRONGFS;
 	}
@@ -132,43 +140,52 @@ xfs_mount_validate_sb(
 	 * kernel cannot support up front before checking anything else. For
 	 * write validation, we don't need to check feature masks.
 	 */
-	if (check_version && XFS_SB_VERSION_NUM(sbp) == XFS_SB_VERSION_5) {
+	if (check_version && XFS_SB_VERSION_NUM(sbp) == XFS_SB_VERSION_5)
+	{
 		if (xfs_sb_has_compat_feature(sbp,
-					XFS_SB_FEAT_COMPAT_UNKNOWN)) {
+									  XFS_SB_FEAT_COMPAT_UNKNOWN))
+		{
 			xfs_warn(mp,
-"Superblock has unknown compatible features (0x%x) enabled.",
-				(sbp->sb_features_compat &
-						XFS_SB_FEAT_COMPAT_UNKNOWN));
+					 "Superblock has unknown compatible features (0x%x) enabled.",
+					 (sbp->sb_features_compat &
+					  XFS_SB_FEAT_COMPAT_UNKNOWN));
 			xfs_warn(mp,
-"Using a more recent kernel is recommended.");
+					 "Using a more recent kernel is recommended.");
 		}
 
 		if (xfs_sb_has_ro_compat_feature(sbp,
-					XFS_SB_FEAT_RO_COMPAT_UNKNOWN)) {
+										 XFS_SB_FEAT_RO_COMPAT_UNKNOWN))
+		{
 			xfs_alert(mp,
-"Superblock has unknown read-only compatible features (0x%x) enabled.",
-				(sbp->sb_features_ro_compat &
-						XFS_SB_FEAT_RO_COMPAT_UNKNOWN));
-			if (!(mp->m_flags & XFS_MOUNT_RDONLY)) {
+					  "Superblock has unknown read-only compatible features (0x%x) enabled.",
+					  (sbp->sb_features_ro_compat &
+					   XFS_SB_FEAT_RO_COMPAT_UNKNOWN));
+
+			if (!(mp->m_flags & XFS_MOUNT_RDONLY))
+			{
 				xfs_warn(mp,
-"Attempted to mount read-only compatible filesystem read-write.");
+						 "Attempted to mount read-only compatible filesystem read-write.");
 				xfs_warn(mp,
-"Filesystem can only be safely mounted read only.");
+						 "Filesystem can only be safely mounted read only.");
 
 				return -EINVAL;
 			}
 		}
+
 		if (xfs_sb_has_incompat_feature(sbp,
-					XFS_SB_FEAT_INCOMPAT_UNKNOWN)) {
+										XFS_SB_FEAT_INCOMPAT_UNKNOWN))
+		{
 			xfs_warn(mp,
-"Superblock has unknown incompatible features (0x%x) enabled.",
-				(sbp->sb_features_incompat &
-						XFS_SB_FEAT_INCOMPAT_UNKNOWN));
+					 "Superblock has unknown incompatible features (0x%x) enabled.",
+					 (sbp->sb_features_incompat &
+					  XFS_SB_FEAT_INCOMPAT_UNKNOWN));
 			xfs_warn(mp,
-"Filesystem can not be safely mounted by this kernel.");
+					 "Filesystem can not be safely mounted by this kernel.");
 			return -EINVAL;
 		}
-	} else if (xfs_sb_version_hascrc(sbp)) {
+	}
+	else if (xfs_sb_version_hascrc(sbp))
+	{
 		/*
 		 * We can't read verify the sb LSN because the read verifier is
 		 * called before the log is allocated and processed. We know the
@@ -176,20 +193,26 @@ xfs_mount_validate_sb(
 		 * so just check it here.
 		 */
 		if (!xfs_log_check_lsn(mp, sbp->sb_lsn))
-			return -EFSCORRUPTED;
-	}
-
-	if (xfs_sb_version_has_pquotino(sbp)) {
-		if (sbp->sb_qflags & (XFS_OQUOTA_ENFD | XFS_OQUOTA_CHKD)) {
-			xfs_notice(mp,
-			   "Version 5 of Super block has XFS_OQUOTA bits.");
+		{
 			return -EFSCORRUPTED;
 		}
-	} else if (sbp->sb_qflags & (XFS_PQUOTA_ENFD | XFS_GQUOTA_ENFD |
-				XFS_PQUOTA_CHKD | XFS_GQUOTA_CHKD)) {
+	}
+
+	if (xfs_sb_version_has_pquotino(sbp))
+	{
+		if (sbp->sb_qflags & (XFS_OQUOTA_ENFD | XFS_OQUOTA_CHKD))
+		{
 			xfs_notice(mp,
-"Superblock earlier than Version 5 has XFS_[PQ]UOTA_{ENFD|CHKD} bits.");
+					   "Version 5 of Super block has XFS_OQUOTA bits.");
 			return -EFSCORRUPTED;
+		}
+	}
+	else if (sbp->sb_qflags & (XFS_PQUOTA_ENFD | XFS_GQUOTA_ENFD |
+							   XFS_PQUOTA_CHKD | XFS_GQUOTA_CHKD))
+	{
+		xfs_notice(mp,
+				   "Superblock earlier than Version 5 has XFS_[PQ]UOTA_{ENFD|CHKD} bits.");
+		return -EFSCORRUPTED;
 	}
 
 	/*
@@ -197,32 +220,37 @@ xfs_mount_validate_sb(
 	 * sparse inodes are enabled to support the sparse chunk
 	 * allocation algorithm and prevent overlapping inode records.
 	 */
-	if (xfs_sb_version_hassparseinodes(sbp)) {
+	if (xfs_sb_version_hassparseinodes(sbp))
+	{
 		uint32_t	align;
 
 		align = XFS_INODES_PER_CHUNK * sbp->sb_inodesize
 				>> sbp->sb_blocklog;
-		if (sbp->sb_inoalignmt != align) {
+
+		if (sbp->sb_inoalignmt != align)
+		{
 			xfs_warn(mp,
-"Inode block alignment (%u) must match chunk size (%u) for sparse inodes.",
-				 sbp->sb_inoalignmt, align);
+					 "Inode block alignment (%u) must match chunk size (%u) for sparse inodes.",
+					 sbp->sb_inoalignmt, align);
 			return -EINVAL;
 		}
 	}
 
 	if (unlikely(
-	    sbp->sb_logstart == 0 && mp->m_logdev_targp == mp->m_ddev_targp)) {
+			sbp->sb_logstart == 0 && mp->m_logdev_targp == mp->m_ddev_targp))
+	{
 		xfs_warn(mp,
-		"filesystem is marked as having an external log; "
-		"specify logdev on the mount command line.");
+				 "filesystem is marked as having an external log; "
+				 "specify logdev on the mount command line.");
 		return -EINVAL;
 	}
 
 	if (unlikely(
-	    sbp->sb_logstart != 0 && mp->m_logdev_targp != mp->m_ddev_targp)) {
+			sbp->sb_logstart != 0 && mp->m_logdev_targp != mp->m_ddev_targp))
+	{
 		xfs_warn(mp,
-		"filesystem is marked as having an internal log; "
-		"do not specify logdev on the mount command line.");
+				 "filesystem is marked as having an internal log; "
+				 "do not specify logdev on the mount command line.");
 		return -EINVAL;
 	}
 
@@ -231,33 +259,34 @@ xfs_mount_validate_sb(
 	 * xfs_repair.
 	 */
 	if (unlikely(
-	    sbp->sb_agcount <= 0					||
-	    sbp->sb_sectsize < XFS_MIN_SECTORSIZE			||
-	    sbp->sb_sectsize > XFS_MAX_SECTORSIZE			||
-	    sbp->sb_sectlog < XFS_MIN_SECTORSIZE_LOG			||
-	    sbp->sb_sectlog > XFS_MAX_SECTORSIZE_LOG			||
-	    sbp->sb_sectsize != (1 << sbp->sb_sectlog)			||
-	    sbp->sb_blocksize < XFS_MIN_BLOCKSIZE			||
-	    sbp->sb_blocksize > XFS_MAX_BLOCKSIZE			||
-	    sbp->sb_blocklog < XFS_MIN_BLOCKSIZE_LOG			||
-	    sbp->sb_blocklog > XFS_MAX_BLOCKSIZE_LOG			||
-	    sbp->sb_blocksize != (1 << sbp->sb_blocklog)		||
-	    sbp->sb_dirblklog > XFS_MAX_BLOCKSIZE_LOG			||
-	    sbp->sb_inodesize < XFS_DINODE_MIN_SIZE			||
-	    sbp->sb_inodesize > XFS_DINODE_MAX_SIZE			||
-	    sbp->sb_inodelog < XFS_DINODE_MIN_LOG			||
-	    sbp->sb_inodelog > XFS_DINODE_MAX_LOG			||
-	    sbp->sb_inodesize != (1 << sbp->sb_inodelog)		||
-	    sbp->sb_logsunit > XLOG_MAX_RECORD_BSIZE			||
-	    sbp->sb_inopblock != howmany(sbp->sb_blocksize,sbp->sb_inodesize) ||
-	    (sbp->sb_blocklog - sbp->sb_inodelog != sbp->sb_inopblog)	||
-	    (sbp->sb_rextsize * sbp->sb_blocksize > XFS_MAX_RTEXTSIZE)	||
-	    (sbp->sb_rextsize * sbp->sb_blocksize < XFS_MIN_RTEXTSIZE)	||
-	    (sbp->sb_imax_pct > 100 /* zero sb_imax_pct is valid */)	||
-	    sbp->sb_dblocks == 0					||
-	    sbp->sb_dblocks > XFS_MAX_DBLOCKS(sbp)			||
-	    sbp->sb_dblocks < XFS_MIN_DBLOCKS(sbp)			||
-	    sbp->sb_shared_vn != 0)) {
+			sbp->sb_agcount <= 0					||
+			sbp->sb_sectsize < XFS_MIN_SECTORSIZE			||
+			sbp->sb_sectsize > XFS_MAX_SECTORSIZE			||
+			sbp->sb_sectlog < XFS_MIN_SECTORSIZE_LOG			||
+			sbp->sb_sectlog > XFS_MAX_SECTORSIZE_LOG			||
+			sbp->sb_sectsize != (1 << sbp->sb_sectlog)			||
+			sbp->sb_blocksize < XFS_MIN_BLOCKSIZE			||
+			sbp->sb_blocksize > XFS_MAX_BLOCKSIZE			||
+			sbp->sb_blocklog < XFS_MIN_BLOCKSIZE_LOG			||
+			sbp->sb_blocklog > XFS_MAX_BLOCKSIZE_LOG			||
+			sbp->sb_blocksize != (1 << sbp->sb_blocklog)		||
+			sbp->sb_dirblklog > XFS_MAX_BLOCKSIZE_LOG			||
+			sbp->sb_inodesize < XFS_DINODE_MIN_SIZE			||
+			sbp->sb_inodesize > XFS_DINODE_MAX_SIZE			||
+			sbp->sb_inodelog < XFS_DINODE_MIN_LOG			||
+			sbp->sb_inodelog > XFS_DINODE_MAX_LOG			||
+			sbp->sb_inodesize != (1 << sbp->sb_inodelog)		||
+			sbp->sb_logsunit > XLOG_MAX_RECORD_BSIZE			||
+			sbp->sb_inopblock != howmany(sbp->sb_blocksize, sbp->sb_inodesize) ||
+			(sbp->sb_blocklog - sbp->sb_inodelog != sbp->sb_inopblog)	||
+			(sbp->sb_rextsize * sbp->sb_blocksize > XFS_MAX_RTEXTSIZE)	||
+			(sbp->sb_rextsize * sbp->sb_blocksize < XFS_MIN_RTEXTSIZE)	||
+			(sbp->sb_imax_pct > 100 /* zero sb_imax_pct is valid */)	||
+			sbp->sb_dblocks == 0					||
+			sbp->sb_dblocks > XFS_MAX_DBLOCKS(sbp)			||
+			sbp->sb_dblocks < XFS_MIN_DBLOCKS(sbp)			||
+			sbp->sb_shared_vn != 0))
+	{
 		xfs_notice(mp, "SB sanity check failed");
 		return -EFSCORRUPTED;
 	}
@@ -265,40 +294,46 @@ xfs_mount_validate_sb(
 	/*
 	 * Until this is fixed only page-sized or smaller data blocks work.
 	 */
-	if (unlikely(sbp->sb_blocksize > PAGE_SIZE)) {
+	if (unlikely(sbp->sb_blocksize > PAGE_SIZE))
+	{
 		xfs_warn(mp,
-		"File system with blocksize %d bytes. "
-		"Only pagesize (%ld) or less will currently work.",
-				sbp->sb_blocksize, PAGE_SIZE);
+				 "File system with blocksize %d bytes. "
+				 "Only pagesize (%ld) or less will currently work.",
+				 sbp->sb_blocksize, PAGE_SIZE);
 		return -ENOSYS;
 	}
 
 	/*
 	 * Currently only very few inode sizes are supported.
 	 */
-	switch (sbp->sb_inodesize) {
-	case 256:
-	case 512:
-	case 1024:
-	case 2048:
-		break;
-	default:
-		xfs_warn(mp, "inode size of %d bytes not supported",
-				sbp->sb_inodesize);
-		return -ENOSYS;
+	switch (sbp->sb_inodesize)
+	{
+		case 256:
+		case 512:
+		case 1024:
+		case 2048:
+			break;
+
+		default:
+			xfs_warn(mp, "inode size of %d bytes not supported",
+					 sbp->sb_inodesize);
+			return -ENOSYS;
 	}
 
 	if (xfs_sb_validate_fsb_count(sbp, sbp->sb_dblocks) ||
-	    xfs_sb_validate_fsb_count(sbp, sbp->sb_rblocks)) {
+		xfs_sb_validate_fsb_count(sbp, sbp->sb_rblocks))
+	{
 		xfs_warn(mp,
-		"file system too large to be mounted on this system.");
+				 "file system too large to be mounted on this system.");
 		return -EFBIG;
 	}
 
-	if (check_inprogress && sbp->sb_inprogress) {
+	if (check_inprogress && sbp->sb_inprogress)
+	{
 		xfs_warn(mp, "Offline file system operation in progress!");
 		return -EFSCORRUPTED;
 	}
+
 	return 0;
 }
 
@@ -317,28 +352,41 @@ xfs_sb_quota_from_disk(struct xfs_sb *sbp)
 	 * not written to disk unless the superblock supports pquotino.
 	 */
 	if (sbp->sb_uquotino == 0)
+	{
 		sbp->sb_uquotino = NULLFSINO;
+	}
+
 	if (sbp->sb_gquotino == 0)
+	{
 		sbp->sb_gquotino = NULLFSINO;
+	}
+
 	if (sbp->sb_pquotino == 0)
+	{
 		sbp->sb_pquotino = NULLFSINO;
+	}
 
 	/*
 	 * We need to do these manipilations only if we are working
 	 * with an older version of on-disk superblock.
 	 */
 	if (xfs_sb_version_has_pquotino(sbp))
+	{
 		return;
+	}
 
 	if (sbp->sb_qflags & XFS_OQUOTA_ENFD)
 		sbp->sb_qflags |= (sbp->sb_qflags & XFS_PQUOTA_ACCT) ?
-					XFS_PQUOTA_ENFD : XFS_GQUOTA_ENFD;
+						  XFS_PQUOTA_ENFD : XFS_GQUOTA_ENFD;
+
 	if (sbp->sb_qflags & XFS_OQUOTA_CHKD)
 		sbp->sb_qflags |= (sbp->sb_qflags & XFS_PQUOTA_ACCT) ?
-					XFS_PQUOTA_CHKD : XFS_GQUOTA_CHKD;
+						  XFS_PQUOTA_CHKD : XFS_GQUOTA_CHKD;
+
 	sbp->sb_qflags &= ~(XFS_OQUOTA_ENFD | XFS_OQUOTA_CHKD);
 
-	if (sbp->sb_qflags & XFS_PQUOTA_ACCT)  {
+	if (sbp->sb_qflags & XFS_PQUOTA_ACCT)
+	{
 		/*
 		 * In older version of superblock, on-disk superblock only
 		 * has sb_gquotino, and in-core superblock has both sb_gquotino
@@ -407,23 +455,31 @@ __xfs_sb_from_disk(
 	to->sb_features_ro_compat = be32_to_cpu(from->sb_features_ro_compat);
 	to->sb_features_incompat = be32_to_cpu(from->sb_features_incompat);
 	to->sb_features_log_incompat =
-				be32_to_cpu(from->sb_features_log_incompat);
+		be32_to_cpu(from->sb_features_log_incompat);
 	/* crc is only used on disk, not in memory; just init to 0 here. */
 	to->sb_crc = 0;
 	to->sb_spino_align = be32_to_cpu(from->sb_spino_align);
 	to->sb_pquotino = be64_to_cpu(from->sb_pquotino);
 	to->sb_lsn = be64_to_cpu(from->sb_lsn);
+
 	/*
 	 * sb_meta_uuid is only on disk if it differs from sb_uuid and the
 	 * feature flag is set; if not set we keep it only in memory.
 	 */
 	if (xfs_sb_version_hasmetauuid(to))
+	{
 		uuid_copy(&to->sb_meta_uuid, &from->sb_meta_uuid);
+	}
 	else
+	{
 		uuid_copy(&to->sb_meta_uuid, &from->sb_uuid);
+	}
+
 	/* Convert on-disk flags to in-memory flags? */
 	if (convert_xquota)
+	{
 		xfs_sb_quota_from_disk(to);
+	}
 }
 
 void
@@ -442,7 +498,9 @@ xfs_sb_quota_to_disk(
 	__uint16_t	qflags = from->sb_qflags;
 
 	to->sb_uquotino = cpu_to_be64(from->sb_uquotino);
-	if (xfs_sb_version_has_pquotino(from)) {
+
+	if (xfs_sb_version_has_pquotino(from))
+	{
 		to->sb_qflags = cpu_to_be16(from->sb_qflags);
 		to->sb_gquotino = cpu_to_be64(from->sb_gquotino);
 		to->sb_pquotino = cpu_to_be64(from->sb_pquotino);
@@ -455,14 +513,20 @@ xfs_sb_quota_to_disk(
 	 * XFS_{PG}QUOTA_* flags to on-disk XFS_OQUOTA_* flags.
 	 */
 	qflags &= ~(XFS_PQUOTA_ENFD | XFS_PQUOTA_CHKD |
-			XFS_GQUOTA_ENFD | XFS_GQUOTA_CHKD);
+				XFS_GQUOTA_ENFD | XFS_GQUOTA_CHKD);
 
 	if (from->sb_qflags &
-			(XFS_PQUOTA_ENFD | XFS_GQUOTA_ENFD))
+		(XFS_PQUOTA_ENFD | XFS_GQUOTA_ENFD))
+	{
 		qflags |= XFS_OQUOTA_ENFD;
+	}
+
 	if (from->sb_qflags &
-			(XFS_PQUOTA_CHKD | XFS_GQUOTA_CHKD))
+		(XFS_PQUOTA_CHKD | XFS_GQUOTA_CHKD))
+	{
 		qflags |= XFS_OQUOTA_CHKD;
+	}
+
 	to->sb_qflags = cpu_to_be16(qflags);
 
 	/*
@@ -475,10 +539,15 @@ xfs_sb_quota_to_disk(
 	 * it beyond the "end" of the valid non-pquotino superblock.
 	 */
 	if (from->sb_qflags & XFS_GQUOTA_ACCT)
+	{
 		to->sb_gquotino = cpu_to_be64(from->sb_gquotino);
+	}
 	else if (from->sb_qflags & XFS_PQUOTA_ACCT)
+	{
 		to->sb_gquotino = cpu_to_be64(from->sb_pquotino);
-	else {
+	}
+	else
+	{
 		/*
 		 * We can't rely on just the fields being logged to tell us
 		 * that it is safe to write NULLFSINO - we should only do that
@@ -486,8 +555,10 @@ xfs_sb_quota_to_disk(
 		 * NULLFSINO if both in-core quota inodes are NULL.
 		 */
 		if (from->sb_gquotino == NULLFSINO &&
-		    from->sb_pquotino == NULLFSINO)
+			from->sb_pquotino == NULLFSINO)
+		{
 			to->sb_gquotino = cpu_to_be64(NULLFSINO);
+		}
 	}
 
 	to->sb_pquotino = 0;
@@ -552,18 +623,22 @@ xfs_sb_to_disk(
 	to->sb_features2 = cpu_to_be32(from->sb_features2);
 	to->sb_bad_features2 = cpu_to_be32(from->sb_bad_features2);
 
-	if (xfs_sb_version_hascrc(from)) {
+	if (xfs_sb_version_hascrc(from))
+	{
 		to->sb_features_compat = cpu_to_be32(from->sb_features_compat);
 		to->sb_features_ro_compat =
-				cpu_to_be32(from->sb_features_ro_compat);
+			cpu_to_be32(from->sb_features_ro_compat);
 		to->sb_features_incompat =
-				cpu_to_be32(from->sb_features_incompat);
+			cpu_to_be32(from->sb_features_incompat);
 		to->sb_features_log_incompat =
-				cpu_to_be32(from->sb_features_log_incompat);
+			cpu_to_be32(from->sb_features_log_incompat);
 		to->sb_spino_align = cpu_to_be32(from->sb_spino_align);
 		to->sb_lsn = cpu_to_be64(from->sb_lsn);
+
 		if (xfs_sb_version_hasmetauuid(from))
+		{
 			uuid_copy(&to->sb_meta_uuid, &from->sb_meta_uuid);
+		}
 	}
 }
 
@@ -576,7 +651,7 @@ xfs_sb_verify(
 	struct xfs_sb	sb;
 
 	/*
-	 * Use call variant which doesn't convert quota flags from disk 
+	 * Use call variant which doesn't convert quota flags from disk
 	 * format, because xfs_mount_validate_sb checks the on-disk flags.
 	 */
 	__xfs_sb_from_disk(&sb, XFS_BUF_TO_SBP(bp), false);
@@ -586,8 +661,8 @@ xfs_sb_verify(
 	 * mkfs.xfs doesn't clear it from secondary superblocks.
 	 */
 	return xfs_mount_validate_sb(mp, &sb,
-				     bp->b_maps[0].bm_bn == XFS_SB_DADDR,
-				     check_version);
+								 bp->b_maps[0].bm_bn == XFS_SB_DADDR,
+								 check_version);
 }
 
 /*
@@ -615,26 +690,35 @@ xfs_sb_read_verify(
 	 * superblock from disk order just to check the version number
 	 */
 	if (dsb->sb_magicnum == cpu_to_be32(XFS_SB_MAGIC) &&
-	    (((be16_to_cpu(dsb->sb_versionnum) & XFS_SB_VERSION_NUMBITS) ==
-						XFS_SB_VERSION_5) ||
-	     dsb->sb_crc != 0)) {
+		(((be16_to_cpu(dsb->sb_versionnum) & XFS_SB_VERSION_NUMBITS) ==
+		  XFS_SB_VERSION_5) ||
+		 dsb->sb_crc != 0))
+	{
 
-		if (!xfs_buf_verify_cksum(bp, XFS_SB_CRC_OFF)) {
+		if (!xfs_buf_verify_cksum(bp, XFS_SB_CRC_OFF))
+		{
 			/* Only fail bad secondaries on a known V5 filesystem */
 			if (bp->b_bn == XFS_SB_DADDR ||
-			    xfs_sb_version_hascrc(&mp->m_sb)) {
+				xfs_sb_version_hascrc(&mp->m_sb))
+			{
 				error = -EFSBADCRC;
 				goto out_error;
 			}
 		}
 	}
+
 	error = xfs_sb_verify(bp, true);
 
 out_error:
-	if (error) {
+
+	if (error)
+	{
 		xfs_buf_ioerror(bp, error);
+
 		if (error == -EFSCORRUPTED || error == -EFSBADCRC)
+		{
 			xfs_verifier_error(bp);
+		}
 	}
 }
 
@@ -650,11 +734,13 @@ xfs_sb_quiet_read_verify(
 {
 	struct xfs_dsb	*dsb = XFS_BUF_TO_SBP(bp);
 
-	if (dsb->sb_magicnum == cpu_to_be32(XFS_SB_MAGIC)) {
+	if (dsb->sb_magicnum == cpu_to_be32(XFS_SB_MAGIC))
+	{
 		/* XFS filesystem, verify noisily! */
 		xfs_sb_read_verify(bp);
 		return;
 	}
+
 	/* quietly fail */
 	xfs_buf_ioerror(bp, -EWRONGFS);
 }
@@ -668,28 +754,36 @@ xfs_sb_write_verify(
 	int			error;
 
 	error = xfs_sb_verify(bp, false);
-	if (error) {
+
+	if (error)
+	{
 		xfs_buf_ioerror(bp, error);
 		xfs_verifier_error(bp);
 		return;
 	}
 
 	if (!xfs_sb_version_hascrc(&mp->m_sb))
+	{
 		return;
+	}
 
 	if (bip)
+	{
 		XFS_BUF_TO_SBP(bp)->sb_lsn = cpu_to_be64(bip->bli_item.li_lsn);
+	}
 
 	xfs_buf_update_cksum(bp, XFS_SB_CRC_OFF);
 }
 
-const struct xfs_buf_ops xfs_sb_buf_ops = {
+const struct xfs_buf_ops xfs_sb_buf_ops =
+{
 	.name = "xfs_sb",
 	.verify_read = xfs_sb_read_verify,
 	.verify_write = xfs_sb_write_verify,
 };
 
-const struct xfs_buf_ops xfs_sb_quiet_buf_ops = {
+const struct xfs_buf_ops xfs_sb_quiet_buf_ops =
+{
 	.name = "xfs_sb_quiet",
 	.verify_read = xfs_sb_quiet_read_verify,
 	.verify_write = xfs_sb_write_verify,
@@ -740,21 +834,26 @@ xfs_sb_mount_common(
 	mp->m_rmap_mnr[1] = mp->m_rmap_mxr[1] / 2;
 
 	mp->m_refc_mxr[0] = xfs_refcountbt_maxrecs(mp, sbp->sb_blocksize,
-			true);
+						true);
 	mp->m_refc_mxr[1] = xfs_refcountbt_maxrecs(mp, sbp->sb_blocksize,
-			false);
+						false);
 	mp->m_refc_mnr[0] = mp->m_refc_mxr[0] / 2;
 	mp->m_refc_mnr[1] = mp->m_refc_mxr[1] / 2;
 
 	mp->m_bsize = XFS_FSB_TO_BB(mp, 1);
 	mp->m_ialloc_inos = (int)MAX((__uint16_t)XFS_INODES_PER_CHUNK,
-					sbp->sb_inopblock);
+								 sbp->sb_inopblock);
 	mp->m_ialloc_blks = mp->m_ialloc_inos >> sbp->sb_inopblog;
 
 	if (sbp->sb_spino_align)
+	{
 		mp->m_ialloc_min_blks = sbp->sb_spino_align;
+	}
 	else
+	{
 		mp->m_ialloc_min_blks = mp->m_ialloc_blks;
+	}
+
 	mp->m_alloc_set_aside = xfs_alloc_set_aside(mp);
 	mp->m_ag_max_usable = xfs_alloc_ag_max_usable(mp);
 }
@@ -782,19 +881,27 @@ xfs_initialize_perag_data(
 	uint64_t	btree = 0;
 	int		error;
 
-	for (index = 0; index < agcount; index++) {
+	for (index = 0; index < agcount; index++)
+	{
 		/*
 		 * read the agf, then the agi. This gets us
 		 * all the information we need and populates the
 		 * per-ag structures for us.
 		 */
 		error = xfs_alloc_pagf_init(mp, NULL, index, 0);
+
 		if (error)
+		{
 			return error;
+		}
 
 		error = xfs_ialloc_pagi_init(mp, NULL, index);
+
 		if (error)
+		{
 			return error;
+		}
+
 		pag = xfs_perag_get(mp, index);
 		ifree += pag->pagi_freecount;
 		ialloc += pag->pagi_count;
@@ -858,12 +965,19 @@ xfs_sync_sb(
 	int			error;
 
 	error = xfs_trans_alloc(mp, &M_RES(mp)->tr_sb, 0, 0,
-			XFS_TRANS_NO_WRITECOUNT, &tp);
+							XFS_TRANS_NO_WRITECOUNT, &tp);
+
 	if (error)
+	{
 		return error;
+	}
 
 	xfs_log_sb(tp);
+
 	if (wait)
+	{
 		xfs_trans_set_sync(tp);
+	}
+
 	return xfs_trans_commit(tp);
 }

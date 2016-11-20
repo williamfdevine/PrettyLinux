@@ -43,16 +43,23 @@ int uwb_pal_register(struct uwb_pal *pal)
 	struct uwb_rc *rc = pal->rc;
 	int ret;
 
-	if (pal->device) {
+	if (pal->device)
+	{
 		/* create a link to the uwb_rc in the PAL device's directory. */
 		ret = sysfs_create_link(&pal->device->kobj,
-					&rc->uwb_dev.dev.kobj, "uwb_rc");
+								&rc->uwb_dev.dev.kobj, "uwb_rc");
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		/* create a link to the PAL in the UWB device's directory. */
 		ret = sysfs_create_link(&rc->uwb_dev.dev.kobj,
-					&pal->device->kobj, pal->name);
-		if (ret < 0) {
+								&pal->device->kobj, pal->name);
+
+		if (ret < 0)
+		{
 			sysfs_remove_link(&pal->device->kobj, "uwb_rc");
 			return ret;
 		}
@@ -73,16 +80,24 @@ static int find_rc(struct device *dev, const void *data)
 	const struct uwb_rc *target_rc = data;
 	struct uwb_rc *rc = dev_get_drvdata(dev);
 
-	if (rc == NULL) {
+	if (rc == NULL)
+	{
 		WARN_ON(1);
 		return 0;
 	}
-	if (rc == target_rc) {
+
+	if (rc == target_rc)
+	{
 		if (rc->ready == 0)
+		{
 			return 0;
+		}
 		else
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 
@@ -118,10 +133,13 @@ void uwb_pal_unregister(struct uwb_pal *pal)
 
 	debugfs_remove(pal->debugfs_dir);
 
-	if (pal->device) {
+	if (pal->device)
+	{
 		/* remove link to the PAL in the UWB device's directory. */
 		if (uwb_rc_class_device_exists(rc))
+		{
 			sysfs_remove_link(&rc->uwb_dev.dev.kobj, pal->name);
+		}
 
 		/* remove link to uwb_rc in the PAL device's directory. */
 		sysfs_remove_link(&pal->device->kobj, "uwb_rc");

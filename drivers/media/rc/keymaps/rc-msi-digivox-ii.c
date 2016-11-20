@@ -21,7 +21,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table msi_digivox_ii[] = {
+static struct rc_map_table msi_digivox_ii[] =
+{
 	{ 0x0302, KEY_2 },
 	{ 0x0303, KEY_UP },              /* up */
 	{ 0x0304, KEY_3 },
@@ -42,7 +43,8 @@ static struct rc_map_table msi_digivox_ii[] = {
 	{ 0x031f, KEY_VOLUMEDOWN },
 };
 
-static struct rc_map_list msi_digivox_ii_map = {
+static struct rc_map_list msi_digivox_ii_map =
+{
 	.map = {
 		.scan    = msi_digivox_ii,
 		.size    = ARRAY_SIZE(msi_digivox_ii),

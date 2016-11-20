@@ -36,12 +36,14 @@
 
 #define AMDGPU_TTM_LRU_SIZE	20
 
-struct amdgpu_mman_lru {
+struct amdgpu_mman_lru
+{
 	struct list_head		*lru[TTM_NUM_MEM_TYPES];
 	struct list_head		*swap_lru;
 };
 
-struct amdgpu_mman {
+struct amdgpu_mman
+{
 	struct ttm_bo_global_ref        bo_global_ref;
 	struct drm_global_reference	mem_global_ref;
 	struct ttm_bo_device		bdev;
@@ -68,20 +70,20 @@ struct amdgpu_mman {
 extern const struct ttm_mem_type_manager_func amdgpu_gtt_mgr_func;
 
 int amdgpu_gtt_mgr_alloc(struct ttm_mem_type_manager *man,
-			 struct ttm_buffer_object *tbo,
-			 const struct ttm_place *place,
-			 struct ttm_mem_reg *mem);
+						 struct ttm_buffer_object *tbo,
+						 const struct ttm_place *place,
+						 struct ttm_mem_reg *mem);
 
 int amdgpu_copy_buffer(struct amdgpu_ring *ring,
-		       uint64_t src_offset,
-		       uint64_t dst_offset,
-		       uint32_t byte_count,
-		       struct reservation_object *resv,
-		       struct fence **fence, bool direct_submit);
+					   uint64_t src_offset,
+					   uint64_t dst_offset,
+					   uint32_t byte_count,
+					   struct reservation_object *resv,
+					   struct fence **fence, bool direct_submit);
 int amdgpu_fill_buffer(struct amdgpu_bo *bo,
-			uint32_t src_data,
-			struct reservation_object *resv,
-			struct fence **fence);
+					   uint32_t src_data,
+					   struct reservation_object *resv,
+					   struct fence **fence);
 
 int amdgpu_mmap(struct file *filp, struct vm_area_struct *vma);
 bool amdgpu_ttm_is_bound(struct ttm_tt *ttm);

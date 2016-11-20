@@ -3,7 +3,8 @@
 
 #include <sys/types.h>
 
-struct xyarray {
+struct xyarray
+{
 	size_t row_size;
 	size_t entry_size;
 	size_t entries;

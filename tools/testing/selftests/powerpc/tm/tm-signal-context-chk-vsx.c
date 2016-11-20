@@ -40,15 +40,16 @@ long tm_signal_self_context_load(pid_t pid, long *gprs, double *fps, vector int 
 
 static sig_atomic_t fail;
 
-vector int vss[] = {
-	{1, 2, 3, 4 },{5, 6, 7, 8 },{9, 10,11,12},
-	{13,14,15,16},{17,18,19,20},{21,22,23,24},
-	{25,26,27,28},{29,30,31,32},{33,34,35,36},
-	{37,38,39,40},{41,42,43,44},{45,46,47,48},
-	{-1, -2, -3, -4 },{-5, -6, -7, -8 },{-9, -10,-11,-12},
-	{-13,-14,-15,-16},{-17,-18,-19,-20},{-21,-22,-23,-24},
-	{-25,-26,-27,-28},{-29,-30,-31,-32},{-33,-34,-35,-36},
-	{-37,-38,-39,-40},{-41,-42,-43,-44},{-45,-46,-47,-48}
+vector int vss[] =
+{
+	{1, 2, 3, 4 }, {5, 6, 7, 8 }, {9, 10, 11, 12},
+	{13, 14, 15, 16}, {17, 18, 19, 20}, {21, 22, 23, 24},
+	{25, 26, 27, 28}, {29, 30, 31, 32}, {33, 34, 35, 36},
+	{37, 38, 39, 40}, {41, 42, 43, 44}, {45, 46, 47, 48},
+	{ -1, -2, -3, -4 }, { -5, -6, -7, -8 }, { -9, -10, -11, -12},
+	{ -13, -14, -15, -16}, { -17, -18, -19, -20}, { -21, -22, -23, -24},
+	{ -25, -26, -27, -28}, { -29, -30, -31, -32}, { -33, -34, -35, -36},
+	{ -37, -38, -39, -40}, { -41, -42, -43, -44}, { -45, -46, -47, -48}
 };
 
 static void signal_usr1(int signum, siginfo_t *info, void *uc)
@@ -70,7 +71,9 @@ static void signal_usr1(int signum, siginfo_t *info, void *uc)
 	 */
 	long *vsx_ptr = (long *)(ucp->uc_mcontext.v_regs + 1);
 	long *tm_vsx_ptr = (long *)(tm_ucp->uc_mcontext.v_regs + 1);
-	for (i = 0; i < NV_VSX_REGS && !fail; i++) {
+
+	for (i = 0; i < NV_VSX_REGS && !fail; i++)
+	{
 		memcpy(vsc, &ucp->uc_mcontext.fp_regs[i + 20], 8);
 		memcpy(vsc + 8, &vsx_ptr[20 + i], 8);
 		fail = memcmp(vsc, &vss[i], sizeof(vector int));
@@ -78,15 +81,24 @@ static void signal_usr1(int signum, siginfo_t *info, void *uc)
 		memcpy(vst + 8, &tm_vsx_ptr[20 + i], 8);
 		fail |= memcmp(vst, &vss[i + NV_VSX_REGS], sizeof(vector int));
 
-		if (fail) {
+		if (fail)
+		{
 			int j;
 
 			fprintf(stderr, "Failed on %d vsx 0x", i);
+
 			for (j = 0; j < 16; j++)
+			{
 				fprintf(stderr, "%02x", vsc[j]);
+			}
+
 			fprintf(stderr, " vs 0x");
+
 			for (j = 0; j < 16; j++)
+			{
 				fprintf(stderr, "%02x", vst[j]);
+			}
+
 			fprintf(stderr, "\n");
 		}
 	}
@@ -104,13 +116,17 @@ static int tm_signal_context_chk()
 	act.sa_sigaction = signal_usr1;
 	sigemptyset(&act.sa_mask);
 	act.sa_flags = SA_SIGINFO;
-	if (sigaction(SIGUSR1, &act, NULL) < 0) {
+
+	if (sigaction(SIGUSR1, &act, NULL) < 0)
+	{
 		perror("sigaction sigusr1");
 		exit(1);
 	}
 
 	i = 0;
-	while (i < MAX_ATTEMPT && !fail) {
+
+	while (i < MAX_ATTEMPT && !fail)
+	{
 		rc = tm_signal_self_context_load(pid, NULL, NULL, NULL, vss);
 		FAIL_IF(rc != pid);
 		i++;

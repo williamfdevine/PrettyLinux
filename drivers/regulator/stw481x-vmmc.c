@@ -17,7 +17,8 @@
 #include <linux/regulator/driver.h>
 #include <linux/regulator/of_regulator.h>
 
-static const unsigned int stw481x_vmmc_voltages[] = {
+static const unsigned int stw481x_vmmc_voltages[] =
+{
 	1800000,
 	1800000,
 	2850000,
@@ -28,7 +29,8 @@ static const unsigned int stw481x_vmmc_voltages[] = {
 	3300000,
 };
 
-static struct regulator_ops stw481x_vmmc_ops = {
+static struct regulator_ops stw481x_vmmc_ops =
+{
 	.list_voltage = regulator_list_voltage_table,
 	.enable      = regulator_enable_regmap,
 	.disable     = regulator_disable_regmap,
@@ -37,7 +39,8 @@ static struct regulator_ops stw481x_vmmc_ops = {
 	.set_voltage_sel = regulator_set_voltage_sel_regmap,
 };
 
-static struct regulator_desc vmmc_regulator = {
+static struct regulator_desc vmmc_regulator =
+{
 	.name = "VMMC",
 	.id   = 0,
 	.ops  = &stw481x_vmmc_ops,
@@ -61,8 +64,10 @@ static int stw481x_vmmc_regulator_probe(struct platform_device *pdev)
 
 	/* First disable the external VMMC if it's active */
 	ret = regmap_update_bits(stw481x->map, STW_CONF2,
-				 STW_CONF2_VMMC_EXT, 0);
-	if (ret) {
+							 STW_CONF2_VMMC_EXT, 0);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "could not disable external VMMC\n");
 		return ret;
 	}
@@ -73,13 +78,15 @@ static int stw481x_vmmc_regulator_probe(struct platform_device *pdev)
 	config.regmap = stw481x->map;
 	config.of_node = pdev->dev.of_node;
 	config.init_data = of_get_regulator_init_data(&pdev->dev,
-						      pdev->dev.of_node,
-						      &vmmc_regulator);
+					   pdev->dev.of_node,
+					   &vmmc_regulator);
 
 	rdev = devm_regulator_register(&pdev->dev, &vmmc_regulator, &config);
-	if (IS_ERR(rdev)) {
+
+	if (IS_ERR(rdev))
+	{
 		dev_err(&pdev->dev,
-			"error initializing STw481x VMMC regulator\n");
+				"error initializing STw481x VMMC regulator\n");
 		return PTR_ERR(rdev);
 	}
 
@@ -87,12 +94,14 @@ static int stw481x_vmmc_regulator_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id stw481x_vmmc_match[] = {
+static const struct of_device_id stw481x_vmmc_match[] =
+{
 	{ .compatible = "st,stw481x-vmmc", },
 	{},
 };
 
-static struct platform_driver stw481x_vmmc_regulator_driver = {
+static struct platform_driver stw481x_vmmc_regulator_driver =
+{
 	.driver = {
 		.name  = "stw481x-vmmc-regulator",
 		.of_match_table = stw481x_vmmc_match,

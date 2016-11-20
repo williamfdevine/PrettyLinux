@@ -69,7 +69,8 @@
  * @gid - Remote GID in GRH
  * @flow_label - Flow label in GRH
  */
-struct ib_user_mad_hdr_old {
+struct ib_user_mad_hdr_old
+{
 	__u32	id;
 	__u32	status;
 	__u32	timeout_ms;
@@ -113,7 +114,8 @@ struct ib_user_mad_hdr_old {
  * @flow_label - Flow label in GRH
  * @pkey_index - P_Key index
  */
-struct ib_user_mad_hdr {
+struct ib_user_mad_hdr
+{
 	__u32	id;
 	__u32	status;
 	__u32	timeout_ms;
@@ -140,7 +142,8 @@ struct ib_user_mad_hdr {
  * @data - Contents of MAD
  *
  */
-struct ib_user_mad {
+struct ib_user_mad
+{
 	struct ib_user_mad_hdr hdr;
 	__u64	data[0];
 };
@@ -181,7 +184,8 @@ typedef unsigned long __attribute__((aligned(4))) packed_ulong;
  * @rmpp_version: If set, indicates the RMPP version used.
  *
  */
-struct ib_user_mad_reg_req {
+struct ib_user_mad_reg_req
+{
 	__u32	id;
 	packed_ulong method_mask[IB_USER_MAD_LONGS_PER_METHOD_MASK];
 	__u8	qpn;
@@ -213,11 +217,13 @@ struct ib_user_mad_reg_req {
  *                       used.
  * @rmpp_version       - If set, indicates the RMPP version to use.
  */
-enum {
+enum
+{
 	IB_USER_MAD_USER_RMPP = (1 << 0),
 };
 #define IB_USER_MAD_REG_FLAGS_CAP (IB_USER_MAD_USER_RMPP)
-struct ib_user_mad_reg_req2 {
+struct ib_user_mad_reg_req2
+{
 	__u32	id;
 	__u32	qpn;
 	__u8	mgmt_class;
@@ -233,13 +239,13 @@ struct ib_user_mad_reg_req2 {
 #define IB_IOCTL_MAGIC		0x1b
 
 #define IB_USER_MAD_REGISTER_AGENT	_IOWR(IB_IOCTL_MAGIC, 1, \
-					      struct ib_user_mad_reg_req)
+		struct ib_user_mad_reg_req)
 
 #define IB_USER_MAD_UNREGISTER_AGENT	_IOW(IB_IOCTL_MAGIC, 2, __u32)
 
 #define IB_USER_MAD_ENABLE_PKEY		_IO(IB_IOCTL_MAGIC, 3)
 
 #define IB_USER_MAD_REGISTER_AGENT2     _IOWR(IB_IOCTL_MAGIC, 4, \
-					      struct ib_user_mad_reg_req2)
+		struct ib_user_mad_reg_req2)
 
 #endif /* IB_USER_MAD_H */

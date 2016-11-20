@@ -22,7 +22,8 @@ MODULE_LICENSE("GPL");
 /****************************************/
 /* structure containing interface to hl */
 /****************************************/
-isdn_divert_if divert_if = {
+isdn_divert_if divert_if =
+{
 	DIVERT_IF_MAGIC,	/* magic value */
 	DIVERT_CMD_REG,		/* register cmd */
 	ll_callback,		/* callback routine from ll */
@@ -39,15 +40,19 @@ static int __init divert_init(void)
 {
 	int i;
 
-	if (divert_dev_init()) {
+	if (divert_dev_init())
+	{
 		printk(KERN_WARNING "dss1_divert: cannot install device, not loaded\n");
 		return (-EIO);
 	}
-	if ((i = DIVERT_REG_NAME(&divert_if)) != DIVERT_NO_ERR) {
+
+	if ((i = DIVERT_REG_NAME(&divert_if)) != DIVERT_NO_ERR)
+	{
 		divert_dev_deinit();
 		printk(KERN_WARNING "dss1_divert: error %d registering module, not loaded\n", i);
 		return (-EIO);
 	}
+
 	printk(KERN_INFO "dss1_divert module successfully installed\n");
 	return (0);
 }
@@ -62,16 +67,21 @@ static void __exit divert_exit(void)
 
 	spin_lock_irqsave(&divert_lock, flags);
 	divert_if.cmd = DIVERT_CMD_REL; /* release */
-	if ((i = DIVERT_REG_NAME(&divert_if)) != DIVERT_NO_ERR) {
+
+	if ((i = DIVERT_REG_NAME(&divert_if)) != DIVERT_NO_ERR)
+	{
 		printk(KERN_WARNING "dss1_divert: error %d releasing module\n", i);
 		spin_unlock_irqrestore(&divert_lock, flags);
 		return;
 	}
-	if (divert_dev_deinit()) {
+
+	if (divert_dev_deinit())
+	{
 		printk(KERN_WARNING "dss1_divert: device busy, remove cancelled\n");
 		spin_unlock_irqrestore(&divert_lock, flags);
 		return;
 	}
+
 	spin_unlock_irqrestore(&divert_lock, flags);
 	deleterule(-1); /* delete all rules and free mem */
 	deleteprocs();

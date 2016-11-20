@@ -155,7 +155,8 @@ int po1030_init_controls(struct sd *sd);
 int po1030_start(struct sd *sd);
 void po1030_disconnect(struct sd *sd);
 
-static const struct m5602_sensor po1030 = {
+static const struct m5602_sensor po1030 =
+{
 	.name = "PO1030",
 
 	.i2c_slave_id = 0xdc,

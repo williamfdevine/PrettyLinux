@@ -43,7 +43,7 @@
 #define REG_RGMII_RX_CLOCK_DELAY_CNTRL	0x08
 #define REG_RGMII_CNTRL_SIZE		0x0C
 #define REG_RGMII_CNTRL_P(x)		(REG_RGMII_0_BASE + \
-					((x) * REG_RGMII_CNTRL_SIZE))
+									 ((x) * REG_RGMII_CNTRL_SIZE))
 /* Relative to REG_RGMII_CNTRL */
 #define  RGMII_MODE_EN			(1 << 0)
 #define  ID_MODE_DIS			(1 << 1)
@@ -81,10 +81,10 @@
 #define P_GPHY_IRQ(x)			(1 << (4 + (x)))
 #define P_NUM_IRQ			5
 #define P_IRQ_MASK(x)			(P_LINK_UP_IRQ((x)) | \
-					 P_LINK_DOWN_IRQ((x)) | \
-					 P_ENERGY_ON_IRQ((x)) | \
-					 P_ENERGY_OFF_IRQ((x)) | \
-					 P_GPHY_IRQ((x)))
+								 P_LINK_DOWN_IRQ((x)) | \
+								 P_ENERGY_ON_IRQ((x)) | \
+								 P_ENERGY_OFF_IRQ((x)) | \
+								 P_GPHY_IRQ((x)))
 
 /* INTRL2_0 interrupt sources */
 #define P0_IRQ_OFF			0
@@ -223,7 +223,7 @@
 #define  P_TXQ_PSM_VDD_SHIFT		2
 #define  P_TXQ_PSM_VDD_MASK		0x3
 #define  P_TXQ_PSM_VDD(x)		(P_TXQ_PSM_VDD_MASK << \
-					((x) * P_TXQ_PSM_VDD_SHIFT))
+								 ((x) * P_TXQ_PSM_VDD_SHIFT))
 
 #define CORE_PORT_VLAN_CTL_PORT(x)	(0xc400 + ((x) * 0x8))
 #define  PORT_VLAN_CTRL_MASK		0x1ff

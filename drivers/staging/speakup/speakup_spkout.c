@@ -28,7 +28,8 @@
 
 static void synth_flush(struct spk_synth *synth);
 
-static struct var_t vars[] = {
+static struct var_t vars[] =
+{
 	{ CAPS_START, .u.s = {"\x05P+" } },
 	{ CAPS_STOP, .u.s = {"\x05P-" } },
 	{ RATE, .u.n = {"\x05R%d", 7, 0, 9, 0, 0, NULL } },
@@ -44,36 +45,37 @@ static struct var_t vars[] = {
  * These attributes will appear in /sys/accessibility/speakup/spkout.
  */
 static struct kobj_attribute caps_start_attribute =
-	__ATTR(caps_start, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(caps_start, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute caps_stop_attribute =
-	__ATTR(caps_stop, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(caps_stop, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute pitch_attribute =
-	__ATTR(pitch, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(pitch, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute punct_attribute =
-	__ATTR(punct, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(punct, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute rate_attribute =
-	__ATTR(rate, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(rate, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute tone_attribute =
-	__ATTR(tone, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(tone, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute vol_attribute =
-	__ATTR(vol, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(vol, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 
 static struct kobj_attribute delay_time_attribute =
-	__ATTR(delay_time, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(delay_time, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute direct_attribute =
-	__ATTR(direct, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(direct, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute full_time_attribute =
-	__ATTR(full_time, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(full_time, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute jiffy_delta_attribute =
-	__ATTR(jiffy_delta, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(jiffy_delta, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute trigger_time_attribute =
-	__ATTR(trigger_time, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(trigger_time, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 
 /*
  * Create a group of attributes so that we can create and destroy them all
  * at once.
  */
-static struct attribute *synth_attrs[] = {
+static struct attribute *synth_attrs[] =
+{
 	&caps_start_attribute.attr,
 	&caps_stop_attribute.attr,
 	&pitch_attribute.attr,
@@ -89,7 +91,8 @@ static struct attribute *synth_attrs[] = {
 	NULL,	/* need to NULL terminate the list of attributes */
 };
 
-static struct spk_synth synth_spkout = {
+static struct spk_synth synth_spkout =
+{
 	.name = "spkout",
 	.version = DRV_VERSION,
 	.long_name = "Speakout",
@@ -128,11 +131,16 @@ static void synth_flush(struct spk_synth *synth)
 {
 	int timeout = SPK_XMITR_TIMEOUT;
 
-	while (spk_serial_tx_busy()) {
+	while (spk_serial_tx_busy())
+	{
 		if (!--timeout)
+		{
 			break;
+		}
+
 		udelay(1);
 	}
+
 	outb(SYNTH_CLEAR, speakup_info.port_tts);
 }
 

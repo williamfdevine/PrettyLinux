@@ -22,50 +22,50 @@
 #include "ince1pc.h"
 
 #ifdef CONFIG_HYSDN_CAPI
-#include <linux/capi.h>
-#include <linux/isdn/capicmd.h>
-#include <linux/isdn/capiutil.h>
-#include <linux/isdn/capilli.h>
+	#include <linux/capi.h>
+	#include <linux/isdn/capicmd.h>
+	#include <linux/isdn/capiutil.h>
+	#include <linux/isdn/capilli.h>
 
-/***************************/
-/*   CAPI-Profile values.  */
-/***************************/
+	/***************************/
+	/*   CAPI-Profile values.  */
+	/***************************/
 
-#define GLOBAL_OPTION_INTERNAL_CONTROLLER 0x0001
-#define GLOBAL_OPTION_EXTERNAL_CONTROLLER 0x0002
-#define GLOBAL_OPTION_HANDSET             0x0004
-#define GLOBAL_OPTION_DTMF                0x0008
-#define GLOBAL_OPTION_SUPPL_SERVICES      0x0010
-#define GLOBAL_OPTION_CHANNEL_ALLOCATION  0x0020
-#define GLOBAL_OPTION_B_CHANNEL_OPERATION 0x0040
+	#define GLOBAL_OPTION_INTERNAL_CONTROLLER 0x0001
+	#define GLOBAL_OPTION_EXTERNAL_CONTROLLER 0x0002
+	#define GLOBAL_OPTION_HANDSET             0x0004
+	#define GLOBAL_OPTION_DTMF                0x0008
+	#define GLOBAL_OPTION_SUPPL_SERVICES      0x0010
+	#define GLOBAL_OPTION_CHANNEL_ALLOCATION  0x0020
+	#define GLOBAL_OPTION_B_CHANNEL_OPERATION 0x0040
 
-#define B1_PROT_64KBIT_HDLC        0x0001
-#define B1_PROT_64KBIT_TRANSPARENT 0x0002
-#define B1_PROT_V110_ASYNCH        0x0004
-#define B1_PROT_V110_SYNCH         0x0008
-#define B1_PROT_T30                0x0010
-#define B1_PROT_64KBIT_INV_HDLC    0x0020
-#define B1_PROT_56KBIT_TRANSPARENT 0x0040
+	#define B1_PROT_64KBIT_HDLC        0x0001
+	#define B1_PROT_64KBIT_TRANSPARENT 0x0002
+	#define B1_PROT_V110_ASYNCH        0x0004
+	#define B1_PROT_V110_SYNCH         0x0008
+	#define B1_PROT_T30                0x0010
+	#define B1_PROT_64KBIT_INV_HDLC    0x0020
+	#define B1_PROT_56KBIT_TRANSPARENT 0x0040
 
-#define B2_PROT_ISO7776            0x0001
-#define B2_PROT_TRANSPARENT        0x0002
-#define B2_PROT_SDLC               0x0004
-#define B2_PROT_LAPD               0x0008
-#define B2_PROT_T30                0x0010
-#define B2_PROT_PPP                0x0020
-#define B2_PROT_TRANSPARENT_IGNORE_B1_FRAMING_ERRORS 0x0040
+	#define B2_PROT_ISO7776            0x0001
+	#define B2_PROT_TRANSPARENT        0x0002
+	#define B2_PROT_SDLC               0x0004
+	#define B2_PROT_LAPD               0x0008
+	#define B2_PROT_T30                0x0010
+	#define B2_PROT_PPP                0x0020
+	#define B2_PROT_TRANSPARENT_IGNORE_B1_FRAMING_ERRORS 0x0040
 
-#define B3_PROT_TRANSPARENT        0x0001
-#define B3_PROT_T90NL              0x0002
-#define B3_PROT_ISO8208            0x0004
-#define B3_PROT_X25_DCE            0x0008
-#define B3_PROT_T30                0x0010
-#define B3_PROT_T30EXT             0x0020
+	#define B3_PROT_TRANSPARENT        0x0001
+	#define B3_PROT_T90NL              0x0002
+	#define B3_PROT_ISO8208            0x0004
+	#define B3_PROT_X25_DCE            0x0008
+	#define B3_PROT_T30                0x0010
+	#define B3_PROT_T30EXT             0x0020
 
-#define HYSDN_MAXVERSION		8
+	#define HYSDN_MAXVERSION		8
 
-/* Number of sendbuffers in CAPI-queue */
-#define HYSDN_MAX_CAPI_SKB             20
+	/* Number of sendbuffers in CAPI-queue */
+	#define HYSDN_MAX_CAPI_SKB             20
 
 #endif /* CONFIG_HYSDN_CAPI*/
 
@@ -134,7 +134,8 @@
 /*******************************/
 /* data structure for one card */
 /*******************************/
-typedef struct HYSDN_CARD {
+typedef struct HYSDN_CARD
+{
 
 	/* general variables for the cards */
 	int myid;		/* own driver card id */
@@ -191,7 +192,8 @@ typedef struct HYSDN_CARD {
 
 	spinlock_t hysdn_lock;
 #ifdef CONFIG_HYSDN_CAPI
-	struct hycapictrl_info {
+	struct hycapictrl_info
+	{
 		char cardname[32];
 		spinlock_t lock;
 		int versionlen;
@@ -213,7 +215,7 @@ typedef struct HYSDN_CARD {
 } hysdn_card;
 
 #ifdef CONFIG_HYSDN_CAPI
-typedef struct hycapictrl_info hycapictrl_info;
+	typedef struct hycapictrl_info hycapictrl_info;
 #endif /* CONFIG_HYSDN_CAPI */
 
 
@@ -249,12 +251,12 @@ extern int EvalSysrTokData(hysdn_card *, unsigned char *, int);		/* Check Sysrea
 
 /* hysdn_sched.c */
 extern int hysdn_sched_tx(hysdn_card *, unsigned char *,
-			  unsigned short volatile *, unsigned short volatile *,
-			  unsigned short);
+						  unsigned short volatile *, unsigned short volatile *,
+						  unsigned short);
 extern int hysdn_sched_rx(hysdn_card *, unsigned char *, unsigned short,
-			  unsigned short);
+						  unsigned short);
 extern int hysdn_tx_cfgline(hysdn_card *, unsigned char *,
-			    unsigned short);	/* send one cfg line */
+							unsigned short);	/* send one cfg line */
 
 /* hysdn_net.c */
 extern unsigned int hynet_enable;
@@ -264,7 +266,7 @@ extern char *hysdn_net_getname(hysdn_card *);	/* get name of net interface */
 extern void hysdn_tx_netack(hysdn_card *);	/* acknowledge a packet tx */
 extern struct sk_buff *hysdn_tx_netget(hysdn_card *);	/* get next network packet */
 extern void hysdn_rx_netpkt(hysdn_card *, unsigned char *,
-			    unsigned short);	/* rxed packet from network */
+							unsigned short);	/* rxed packet from network */
 
 #ifdef CONFIG_HYSDN_CAPI
 extern unsigned int hycapi_enable;
@@ -272,7 +274,7 @@ extern int hycapi_capi_create(hysdn_card *);	/* create a new capi device */
 extern int hycapi_capi_release(hysdn_card *);	/* delete the device */
 extern int hycapi_capi_stop(hysdn_card *card);   /* suspend */
 extern void hycapi_rx_capipkt(hysdn_card *card, unsigned char *buf,
-			      unsigned short len);
+							  unsigned short len);
 extern void hycapi_tx_capiack(hysdn_card *card);
 extern struct sk_buff *hycapi_tx_capiget(hysdn_card *card);
 extern int hycapi_init(void);

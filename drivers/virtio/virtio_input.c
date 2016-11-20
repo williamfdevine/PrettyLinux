@@ -6,7 +6,8 @@
 #include <uapi/linux/virtio_ids.h>
 #include <uapi/linux/virtio_input.h>
 
-struct virtio_input {
+struct virtio_input
+{
 	struct virtio_device       *vdev;
 	struct input_dev           *idev;
 	char                       name[64];
@@ -19,7 +20,7 @@ struct virtio_input {
 };
 
 static void virtinput_queue_evtbuf(struct virtio_input *vi,
-				   struct virtio_input_event *evtbuf)
+								   struct virtio_input_event *evtbuf)
 {
 	struct scatterlist sg[1];
 
@@ -35,18 +36,23 @@ static void virtinput_recv_events(struct virtqueue *vq)
 	unsigned int len;
 
 	spin_lock_irqsave(&vi->lock, flags);
-	if (vi->ready) {
-		while ((event = virtqueue_get_buf(vi->evt, &len)) != NULL) {
+
+	if (vi->ready)
+	{
+		while ((event = virtqueue_get_buf(vi->evt, &len)) != NULL)
+		{
 			spin_unlock_irqrestore(&vi->lock, flags);
 			input_event(vi->idev,
-				    le16_to_cpu(event->type),
-				    le16_to_cpu(event->code),
-				    le32_to_cpu(event->value));
+						le16_to_cpu(event->type),
+						le16_to_cpu(event->code),
+						le32_to_cpu(event->value));
 			spin_lock_irqsave(&vi->lock, flags);
 			virtinput_queue_evtbuf(vi, event);
 		}
+
 		virtqueue_kick(vq);
 	}
+
 	spin_unlock_irqrestore(&vi->lock, flags);
 }
 
@@ -55,7 +61,7 @@ static void virtinput_recv_events(struct virtqueue *vq)
  * this is typically used for stuff like keyboard leds.
  */
 static int virtinput_send_status(struct virtio_input *vi,
-				 u16 type, u16 code, s32 value)
+								 u16 type, u16 code, s32 value)
 {
 	struct virtio_input_event *stsbuf;
 	struct scatterlist sg[1];
@@ -63,8 +69,11 @@ static int virtinput_send_status(struct virtio_input *vi,
 	int rc;
 
 	stsbuf = kzalloc(sizeof(*stsbuf), GFP_ATOMIC);
+
 	if (!stsbuf)
+	{
 		return -ENOMEM;
+	}
 
 	stsbuf->type  = cpu_to_le16(type);
 	stsbuf->code  = cpu_to_le16(code);
@@ -72,16 +81,24 @@ static int virtinput_send_status(struct virtio_input *vi,
 	sg_init_one(sg, stsbuf, sizeof(*stsbuf));
 
 	spin_lock_irqsave(&vi->lock, flags);
-	if (vi->ready) {
+
+	if (vi->ready)
+	{
 		rc = virtqueue_add_outbuf(vi->sts, sg, 1, stsbuf, GFP_ATOMIC);
 		virtqueue_kick(vi->sts);
-	} else {
+	}
+	else
+	{
 		rc = -ENODEV;
 	}
+
 	spin_unlock_irqrestore(&vi->lock, flags);
 
 	if (rc != 0)
+	{
 		kfree(stsbuf);
+	}
+
 	return rc;
 }
 
@@ -93,13 +110,17 @@ static void virtinput_recv_status(struct virtqueue *vq)
 	unsigned int len;
 
 	spin_lock_irqsave(&vi->lock, flags);
+
 	while ((stsbuf = virtqueue_get_buf(vi->sts, &len)) != NULL)
+	{
 		kfree(stsbuf);
+	}
+
 	spin_unlock_irqrestore(&vi->lock, flags);
 }
 
 static int virtinput_status(struct input_dev *idev, unsigned int type,
-			    unsigned int code, int value)
+							unsigned int code, int value)
 {
 	struct virtio_input *vi = input_get_drvdata(idev);
 
@@ -107,7 +128,7 @@ static int virtinput_status(struct input_dev *idev, unsigned int type,
 }
 
 static u8 virtinput_cfg_select(struct virtio_input *vi,
-			       u8 select, u8 subsel)
+							   u8 select, u8 subsel)
 {
 	u8 size;
 
@@ -118,17 +139,23 @@ static u8 virtinput_cfg_select(struct virtio_input *vi,
 }
 
 static void virtinput_cfg_bits(struct virtio_input *vi, int select, int subsel,
-			       unsigned long *bits, unsigned int bitcount)
+							   unsigned long *bits, unsigned int bitcount)
 {
 	unsigned int bit;
 	u8 *virtio_bits;
 	u8 bytes;
 
 	bytes = virtinput_cfg_select(vi, select, subsel);
+
 	if (!bytes)
+	{
 		return;
+	}
+
 	if (bitcount > bytes * 8)
+	{
 		bitcount = bytes * 8;
+	}
 
 	/*
 	 * Bitmap in virtio config space is a simple stream of bytes,
@@ -136,19 +163,30 @@ static void virtinput_cfg_bits(struct virtio_input *vi, int select, int subsel,
 	 * so on.
 	 */
 	virtio_bits = kzalloc(bytes, GFP_KERNEL);
+
 	if (!virtio_bits)
+	{
 		return;
-	virtio_cread_bytes(vi->vdev, offsetof(struct virtio_input_config,
-					      u.bitmap),
-			   virtio_bits, bytes);
-	for (bit = 0; bit < bitcount; bit++) {
-		if (virtio_bits[bit / 8] & (1 << (bit % 8)))
-			__set_bit(bit, bits);
 	}
+
+	virtio_cread_bytes(vi->vdev, offsetof(struct virtio_input_config,
+										  u.bitmap),
+					   virtio_bits, bytes);
+
+	for (bit = 0; bit < bitcount; bit++)
+	{
+		if (virtio_bits[bit / 8] & (1 << (bit % 8)))
+		{
+			__set_bit(bit, bits);
+		}
+	}
+
 	kfree(virtio_bits);
 
 	if (select == VIRTIO_INPUT_CFG_EV_BITS)
+	{
 		__set_bit(subsel, vi->idev->evbit);
+	}
 }
 
 static void virtinput_cfg_abs(struct virtio_input *vi, int abs)
@@ -169,13 +207,18 @@ static int virtinput_init_vqs(struct virtio_input *vi)
 {
 	struct virtqueue *vqs[2];
 	vq_callback_t *cbs[] = { virtinput_recv_events,
-				 virtinput_recv_status };
-	static const char * const names[] = { "events", "status" };
+							 virtinput_recv_status
+						   };
+	static const char *const names[] = { "events", "status" };
 	int err;
 
 	err = vi->vdev->config->find_vqs(vi->vdev, 2, vqs, cbs, names);
+
 	if (err)
+	{
 		return err;
+	}
+
 	vi->evt = vqs[0];
 	vi->sts = vqs[1];
 
@@ -189,10 +232,17 @@ static void virtinput_fill_evt(struct virtio_input *vi)
 
 	spin_lock_irqsave(&vi->lock, flags);
 	size = virtqueue_get_vring_size(vi->evt);
+
 	if (size > ARRAY_SIZE(vi->evts))
+	{
 		size = ARRAY_SIZE(vi->evts);
+	}
+
 	for (i = 0; i < size; i++)
+	{
 		virtinput_queue_evtbuf(vi, &vi->evts[i]);
+	}
+
 	virtqueue_kick(vi->evt);
 	spin_unlock_irqrestore(&vi->lock, flags);
 }
@@ -205,86 +255,109 @@ static int virtinput_probe(struct virtio_device *vdev)
 	int abs, err;
 
 	if (!virtio_has_feature(vdev, VIRTIO_F_VERSION_1))
+	{
 		return -ENODEV;
+	}
 
 	vi = kzalloc(sizeof(*vi), GFP_KERNEL);
+
 	if (!vi)
+	{
 		return -ENOMEM;
+	}
 
 	vdev->priv = vi;
 	vi->vdev = vdev;
 	spin_lock_init(&vi->lock);
 
 	err = virtinput_init_vqs(vi);
+
 	if (err)
+	{
 		goto err_init_vq;
+	}
 
 	vi->idev = input_allocate_device();
-	if (!vi->idev) {
+
+	if (!vi->idev)
+	{
 		err = -ENOMEM;
 		goto err_input_alloc;
 	}
+
 	input_set_drvdata(vi->idev, vi);
 
 	size = virtinput_cfg_select(vi, VIRTIO_INPUT_CFG_ID_NAME, 0);
 	virtio_cread_bytes(vi->vdev, offsetof(struct virtio_input_config,
-					      u.string),
-			   vi->name, min(size, sizeof(vi->name)));
+										  u.string),
+					   vi->name, min(size, sizeof(vi->name)));
 	size = virtinput_cfg_select(vi, VIRTIO_INPUT_CFG_ID_SERIAL, 0);
 	virtio_cread_bytes(vi->vdev, offsetof(struct virtio_input_config,
-					      u.string),
-			   vi->serial, min(size, sizeof(vi->serial)));
+										  u.string),
+					   vi->serial, min(size, sizeof(vi->serial)));
 	snprintf(vi->phys, sizeof(vi->phys),
-		 "virtio%d/input0", vdev->index);
+			 "virtio%d/input0", vdev->index);
 	vi->idev->name = vi->name;
 	vi->idev->phys = vi->phys;
 	vi->idev->uniq = vi->serial;
 
 	size = virtinput_cfg_select(vi, VIRTIO_INPUT_CFG_ID_DEVIDS, 0);
-	if (size >= sizeof(struct virtio_input_devids)) {
+
+	if (size >= sizeof(struct virtio_input_devids))
+	{
 		virtio_cread(vi->vdev, struct virtio_input_config,
-			     u.ids.bustype, &vi->idev->id.bustype);
+					 u.ids.bustype, &vi->idev->id.bustype);
 		virtio_cread(vi->vdev, struct virtio_input_config,
-			     u.ids.vendor, &vi->idev->id.vendor);
+					 u.ids.vendor, &vi->idev->id.vendor);
 		virtio_cread(vi->vdev, struct virtio_input_config,
-			     u.ids.product, &vi->idev->id.product);
+					 u.ids.product, &vi->idev->id.product);
 		virtio_cread(vi->vdev, struct virtio_input_config,
-			     u.ids.version, &vi->idev->id.version);
-	} else {
+					 u.ids.version, &vi->idev->id.version);
+	}
+	else
+	{
 		vi->idev->id.bustype = BUS_VIRTUAL;
 	}
 
 	virtinput_cfg_bits(vi, VIRTIO_INPUT_CFG_PROP_BITS, 0,
-			   vi->idev->propbit, INPUT_PROP_CNT);
+					   vi->idev->propbit, INPUT_PROP_CNT);
 	size = virtinput_cfg_select(vi, VIRTIO_INPUT_CFG_EV_BITS, EV_REP);
+
 	if (size)
+	{
 		__set_bit(EV_REP, vi->idev->evbit);
+	}
 
 	vi->idev->dev.parent = &vdev->dev;
 	vi->idev->event = virtinput_status;
 
 	/* device -> kernel */
 	virtinput_cfg_bits(vi, VIRTIO_INPUT_CFG_EV_BITS, EV_KEY,
-			   vi->idev->keybit, KEY_CNT);
+					   vi->idev->keybit, KEY_CNT);
 	virtinput_cfg_bits(vi, VIRTIO_INPUT_CFG_EV_BITS, EV_REL,
-			   vi->idev->relbit, REL_CNT);
+					   vi->idev->relbit, REL_CNT);
 	virtinput_cfg_bits(vi, VIRTIO_INPUT_CFG_EV_BITS, EV_ABS,
-			   vi->idev->absbit, ABS_CNT);
+					   vi->idev->absbit, ABS_CNT);
 	virtinput_cfg_bits(vi, VIRTIO_INPUT_CFG_EV_BITS, EV_MSC,
-			   vi->idev->mscbit, MSC_CNT);
+					   vi->idev->mscbit, MSC_CNT);
 	virtinput_cfg_bits(vi, VIRTIO_INPUT_CFG_EV_BITS, EV_SW,
-			   vi->idev->swbit,  SW_CNT);
+					   vi->idev->swbit,  SW_CNT);
 
 	/* kernel -> device */
 	virtinput_cfg_bits(vi, VIRTIO_INPUT_CFG_EV_BITS, EV_LED,
-			   vi->idev->ledbit, LED_CNT);
+					   vi->idev->ledbit, LED_CNT);
 	virtinput_cfg_bits(vi, VIRTIO_INPUT_CFG_EV_BITS, EV_SND,
-			   vi->idev->sndbit, SND_CNT);
+					   vi->idev->sndbit, SND_CNT);
 
-	if (test_bit(EV_ABS, vi->idev->evbit)) {
-		for (abs = 0; abs < ABS_CNT; abs++) {
+	if (test_bit(EV_ABS, vi->idev->evbit))
+	{
+		for (abs = 0; abs < ABS_CNT; abs++)
+		{
 			if (!test_bit(abs, vi->idev->absbit))
+			{
 				continue;
+			}
+
 			virtinput_cfg_abs(vi, abs);
 		}
 	}
@@ -292,8 +365,11 @@ static int virtinput_probe(struct virtio_device *vdev)
 	virtio_device_ready(vdev);
 	vi->ready = true;
 	err = input_register_device(vi->idev);
+
 	if (err)
+	{
 		goto err_input_register;
+	}
 
 	virtinput_fill_evt(vi);
 	return 0;
@@ -322,8 +398,12 @@ static void virtinput_remove(struct virtio_device *vdev)
 
 	input_unregister_device(vi->idev);
 	vdev->config->reset(vdev);
+
 	while ((buf = virtqueue_detach_unused_buf(vi->sts)) != NULL)
+	{
 		kfree(buf);
+	}
+
 	vdev->config->del_vqs(vdev);
 	kfree(vi);
 }
@@ -348,8 +428,11 @@ static int virtinput_restore(struct virtio_device *vdev)
 	int err;
 
 	err = virtinput_init_vqs(vi);
+
 	if (err)
+	{
 		return err;
+	}
 
 	virtio_device_ready(vdev);
 	vi->ready = true;
@@ -358,15 +441,18 @@ static int virtinput_restore(struct virtio_device *vdev)
 }
 #endif
 
-static unsigned int features[] = {
+static unsigned int features[] =
+{
 	/* none */
 };
-static struct virtio_device_id id_table[] = {
+static struct virtio_device_id id_table[] =
+{
 	{ VIRTIO_ID_INPUT, VIRTIO_DEV_ANY_ID },
 	{ 0 },
 };
 
-static struct virtio_driver virtio_input_driver = {
+static struct virtio_driver virtio_input_driver =
+{
 	.driver.name         = KBUILD_MODNAME,
 	.driver.owner        = THIS_MODULE,
 	.feature_table       = features,

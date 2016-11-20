@@ -14,7 +14,8 @@
 #define SNAP_SIZE sizeof(struct ieee80211_snap_hdr)
 
 /* for Rx reordering buffer control */
-struct recv_reorder_ctrl {
+struct recv_reorder_ctrl
+{
 	struct _adapter	*padapter;
 	u16 indicate_seq; /* =wstart_b, init_value=0xffff */
 	u16 wend_b;
@@ -23,7 +24,8 @@ struct recv_reorder_ctrl {
 	struct timer_list reordering_ctrl_timer;
 };
 
-struct	stainfo_rxcache	{
+struct	stainfo_rxcache
+{
 	u16	tid_rxseq[16];
 };
 
@@ -31,14 +33,16 @@ struct	stainfo_rxcache	{
 #define		PHY_LINKQUALITY_SLID_WIN_MAX		20
 
 
-struct smooth_rssi_data {
+struct smooth_rssi_data
+{
 	u32	elements[100];	/* array to store values */
 	u32	index;		/* index to current array to store */
 	u32	total_num;	/* num of valid elements */
 	u32	total_val;	/* sum of valid elements */
 };
 
-struct rx_pkt_attrib {
+struct rx_pkt_attrib
+{
 
 	u8	amsdu;
 	u8	order;
@@ -80,7 +84,8 @@ recv_thread(passive) ; returnpkt(dispatch)
 
 using enter_critical section to protect
 */
-struct recv_priv {
+struct recv_priv
+{
 	spinlock_t lock;
 	struct  __queue	free_recv_queue;
 	struct  __queue	recv_pending_queue;
@@ -113,7 +118,8 @@ struct recv_priv {
 	struct smooth_rssi_data signal_strength_data;
 };
 
-struct sta_recv_priv {
+struct sta_recv_priv
+{
 	spinlock_t lock;
 	sint	option;
 	struct  __queue defrag_q; /* keeping the fragment frame until defrag */
@@ -128,9 +134,9 @@ struct sta_recv_priv {
 /* get a free recv_frame from pfree_recv_queue */
 union recv_frame *r8712_alloc_recvframe(struct  __queue *pfree_recv_queue);
 int r8712_free_recvframe(union recv_frame *precvframe,
-			  struct  __queue *pfree_recv_queue);
+						 struct  __queue *pfree_recv_queue);
 void r8712_free_recvframe_queue(struct  __queue *pframequeue,
-				 struct  __queue *pfree_recv_queue);
+								struct  __queue *pfree_recv_queue);
 int r8712_wlanhdr_to_ethhdr(union recv_frame *precvframe);
 int recv_func(struct _adapter *padapter, void *pcontext);
 
@@ -138,7 +144,10 @@ static inline u8 *get_rxmem(union recv_frame *precvframe)
 {
 	/* always return rx_head... */
 	if (precvframe == NULL)
+	{
 		return NULL;
+	}
+
 	return precvframe->u.hdr.rx_head;
 }
 
@@ -146,7 +155,10 @@ static inline u8 *get_recvframe_data(union recv_frame *precvframe)
 {
 	/* always return rx_data */
 	if (precvframe == NULL)
+	{
 		return NULL;
+	}
+
 	return precvframe->u.hdr.rx_data;
 }
 
@@ -156,12 +168,18 @@ static inline u8 *recvframe_pull(union recv_frame *precvframe, sint sz)
 	 * the updated rx_data to the caller
 	 */
 	if (precvframe == NULL)
+	{
 		return NULL;
+	}
+
 	precvframe->u.hdr.rx_data += sz;
-	if (precvframe->u.hdr.rx_data > precvframe->u.hdr.rx_tail) {
+
+	if (precvframe->u.hdr.rx_data > precvframe->u.hdr.rx_tail)
+	{
 		precvframe->u.hdr.rx_data -= sz;
 		return NULL;
 	}
+
 	precvframe->u.hdr.len -= sz;
 	return precvframe->u.hdr.rx_data;
 }
@@ -173,12 +191,18 @@ static inline u8 *recvframe_put(union recv_frame *precvframe, sint sz)
 	 * after putting, rx_tail must be still larger than rx_end.
 	 */
 	if (precvframe == NULL)
+	{
 		return NULL;
+	}
+
 	precvframe->u.hdr.rx_tail += sz;
-	if (precvframe->u.hdr.rx_tail > precvframe->u.hdr.rx_end) {
+
+	if (precvframe->u.hdr.rx_tail > precvframe->u.hdr.rx_end)
+	{
 		precvframe->u.hdr.rx_tail -= sz;
 		return NULL;
 	}
+
 	precvframe->u.hdr.len += sz;
 	return precvframe->u.hdr.rx_tail;
 }
@@ -191,12 +215,18 @@ static inline u8 *recvframe_pull_tail(union recv_frame *precvframe, sint sz)
 	 * after pulling, rx_end must be still larger than rx_data.
 	 */
 	if (precvframe == NULL)
+	{
 		return NULL;
+	}
+
 	precvframe->u.hdr.rx_tail -= sz;
-	if (precvframe->u.hdr.rx_tail < precvframe->u.hdr.rx_data) {
+
+	if (precvframe->u.hdr.rx_tail < precvframe->u.hdr.rx_data)
+	{
 		precvframe->u.hdr.rx_tail += sz;
 		return NULL;
 	}
+
 	precvframe->u.hdr.len -= sz;
 	return precvframe->u.hdr.rx_tail;
 }
@@ -205,15 +235,15 @@ struct sta_info;
 
 void	_r8712_init_sta_recv_priv(struct sta_recv_priv *psta_recvpriv);
 sint r8712_recvframe_chkmic(struct _adapter *adapter,
-			    union recv_frame *precvframe);
+							union recv_frame *precvframe);
 union recv_frame *r8712_decryptor(struct _adapter *adapter,
-				  union recv_frame *precv_frame);
+									  union recv_frame *precv_frame);
 union recv_frame *r8712_recvframe_chk_defrag(struct _adapter *adapter,
-					     union recv_frame *precv_frame);
+			union recv_frame *precv_frame);
 int r8712_validate_recv_frame(struct _adapter *adapter,
-			      union recv_frame *precv_frame);
+							  union recv_frame *precv_frame);
 union recv_frame *r8712_portctrl(struct _adapter *adapter,
-				 union recv_frame *precv_frame);
+									 union recv_frame *precv_frame);
 
 #endif
 

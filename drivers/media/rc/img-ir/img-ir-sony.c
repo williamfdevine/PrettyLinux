@@ -13,49 +13,63 @@
 
 /* Convert Sony data to a scancode */
 static int img_ir_sony_scancode(int len, u64 raw, u64 enabled_protocols,
-				struct img_ir_scancode_req *request)
+								struct img_ir_scancode_req *request)
 {
 	unsigned int dev, subdev, func;
 
-	switch (len) {
-	case 12:
-		if (!(enabled_protocols & RC_BIT_SONY12))
+	switch (len)
+	{
+		case 12:
+			if (!(enabled_protocols & RC_BIT_SONY12))
+			{
+				return -EINVAL;
+			}
+
+			func   = raw & 0x7f;	/* first 7 bits */
+			raw    >>= 7;
+			dev    = raw & 0x1f;	/* next 5 bits */
+			subdev = 0;
+			request->protocol = RC_TYPE_SONY12;
+			break;
+
+		case 15:
+			if (!(enabled_protocols & RC_BIT_SONY15))
+			{
+				return -EINVAL;
+			}
+
+			func   = raw & 0x7f;	/* first 7 bits */
+			raw    >>= 7;
+			dev    = raw & 0xff;	/* next 8 bits */
+			subdev = 0;
+			request->protocol = RC_TYPE_SONY15;
+			break;
+
+		case 20:
+			if (!(enabled_protocols & RC_BIT_SONY20))
+			{
+				return -EINVAL;
+			}
+
+			func   = raw & 0x7f;	/* first 7 bits */
+			raw    >>= 7;
+			dev    = raw & 0x1f;	/* next 5 bits */
+			raw    >>= 5;
+			subdev = raw & 0xff;	/* next 8 bits */
+			request->protocol = RC_TYPE_SONY20;
+			break;
+
+		default:
 			return -EINVAL;
-		func   = raw & 0x7f;	/* first 7 bits */
-		raw    >>= 7;
-		dev    = raw & 0x1f;	/* next 5 bits */
-		subdev = 0;
-		request->protocol = RC_TYPE_SONY12;
-		break;
-	case 15:
-		if (!(enabled_protocols & RC_BIT_SONY15))
-			return -EINVAL;
-		func   = raw & 0x7f;	/* first 7 bits */
-		raw    >>= 7;
-		dev    = raw & 0xff;	/* next 8 bits */
-		subdev = 0;
-		request->protocol = RC_TYPE_SONY15;
-		break;
-	case 20:
-		if (!(enabled_protocols & RC_BIT_SONY20))
-			return -EINVAL;
-		func   = raw & 0x7f;	/* first 7 bits */
-		raw    >>= 7;
-		dev    = raw & 0x1f;	/* next 5 bits */
-		raw    >>= 5;
-		subdev = raw & 0xff;	/* next 8 bits */
-		request->protocol = RC_TYPE_SONY20;
-		break;
-	default:
-		return -EINVAL;
 	}
+
 	request->scancode = dev << 16 | subdev << 8 | func;
 	return IMG_IR_SCANCODE;
 }
 
 /* Convert NEC scancode to NEC data filter */
 static int img_ir_sony_filter(const struct rc_scancode_filter *in,
-			      struct img_ir_filter *out, u64 protocols)
+							  struct img_ir_filter *out, u64 protocols)
 {
 	unsigned int dev, subdev, func;
 	unsigned int dev_m, subdev_m, func_m;
@@ -68,22 +82,36 @@ static int img_ir_sony_filter(const struct rc_scancode_filter *in,
 	func     = (in->data >> 0)  & 0x7f;
 	func_m   = (in->mask >> 0)  & 0x7f;
 
-	if (subdev & subdev_m) {
+	if (subdev & subdev_m)
+	{
 		/* can't encode subdev and higher device bits */
 		if (dev & dev_m & 0xe0)
+		{
 			return -EINVAL;
+		}
+
 		/* subdevice (extended) bits only in 20 bit encoding */
 		if (!(protocols & RC_BIT_SONY20))
+		{
 			return -EINVAL;
+		}
+
 		len = 20;
 		dev_m &= 0x1f;
-	} else if (dev & dev_m & 0xe0) {
+	}
+	else if (dev & dev_m & 0xe0)
+	{
 		/* upper device bits only in 15 bit encoding */
 		if (!(protocols & RC_BIT_SONY15))
+		{
 			return -EINVAL;
+		}
+
 		len = 15;
 		subdev_m = 0;
-	} else {
+	}
+	else
+	{
 		/*
 		 * The hardware mask cannot distinguish high device bits and low
 		 * extended bits, so logically AND those bits of the masks
@@ -99,16 +127,18 @@ static int img_ir_sony_filter(const struct rc_scancode_filter *in,
 
 	/* write the hardware filter */
 	out->data = func          |
-		    dev      << 7 |
-		    subdev   << 15;
+				dev      << 7 |
+				subdev   << 15;
 	out->mask = func_m        |
-		    dev_m    << 7 |
-		    subdev_m << 15;
+				dev_m    << 7 |
+				subdev_m << 15;
 
-	if (len) {
+	if (len)
+	{
 		out->minlen = len;
 		out->maxlen = len;
 	}
+
 	return 0;
 }
 
@@ -117,7 +147,8 @@ static int img_ir_sony_filter(const struct rc_scancode_filter *in,
  * See also http://www.sbprojects.com/knowledge/ir/sirc.php
  *          http://picprojects.org.uk/projects/sirc/sonysirc.pdf
  */
-struct img_ir_decoder img_ir_sony = {
+struct img_ir_decoder img_ir_sony =
+{
 	.type = RC_BIT_SONY12 | RC_BIT_SONY15 | RC_BIT_SONY20,
 	.control = {
 		.decoden = 1,

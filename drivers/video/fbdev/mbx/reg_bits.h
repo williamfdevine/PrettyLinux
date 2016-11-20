@@ -191,11 +191,11 @@
 
 #define GSCTRL_GSWIDTH Fld(11,11)
 #define Gsctrl_Width(Pixel)	/* Display Width [1..2048 pix.]  */ \
-                        (((Pixel) - 1) << FShft(GSCTRL_GSWIDTH))
+	(((Pixel) - 1) << FShft(GSCTRL_GSWIDTH))
 
 #define GSCTRL_GSHEIGHT Fld(11,0)
 #define Gsctrl_Height(Pixel)	/* Display Height [1..2048 pix.]  */ \
-                        (((Pixel) - 1) << FShft(GSCTRL_GSHEIGHT))
+	(((Pixel) - 1) << FShft(GSCTRL_GSHEIGHT))
 
 /* GBBASE fileds */
 #define GBBASE_GLALPHA Fld(8,24)
@@ -254,10 +254,10 @@
 #define VSCTRL_COSITED		(1 << 22)
 #define VSCTRL_VSWIDTH		Fld(11,11)
 #define Vsctrl_Width(Pixels) /* Video Width [1-2048] */ \
-			(((Pixels) - 1) << FShft(VSCTRL_VSWIDTH))
+	(((Pixels) - 1) << FShft(VSCTRL_VSWIDTH))
 #define VSCTRL_VSHEIGHT		Fld(11,0)
 #define Vsctrl_Height(Pixels) /* Video Height [1-2048] */ \
-			(((Pixels) - 1) << FShft(VSCTRL_VSHEIGHT))
+	(((Pixels) - 1) << FShft(VSCTRL_VSHEIGHT))
 
 /* VBBASE - Video Blending Base Register */
 #define VBBASE_GLALPHA		Fld(8,24)
@@ -315,10 +315,10 @@
 #define VSCTRL_COSITED		(1 << 22)
 #define VSCTRL_VSWIDTH		Fld(11,11)
 #define Vsctrl_Width(Pixels) /* Video Width [1-2048] */ \
-			(((Pixels) - 1) << FShft(VSCTRL_VSWIDTH))
+	(((Pixels) - 1) << FShft(VSCTRL_VSWIDTH))
 #define VSCTRL_VSHEIGHT		Fld(11,0)
 #define Vsctrl_Height(Pixels) /* Video Height [1-2048] */ \
-			(((Pixels) - 1) << FShft(VSCTRL_VSHEIGHT))
+	(((Pixels) - 1) << FShft(VSCTRL_VSHEIGHT))
 
 /* VBBASE - Video Blending Base Register */
 #define VBBASE_GLALPHA		Fld(8,24)

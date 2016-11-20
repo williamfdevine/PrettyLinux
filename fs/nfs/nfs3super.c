@@ -7,7 +7,8 @@
 #include "nfs3_fs.h"
 #include "nfs.h"
 
-struct nfs_subversion nfs_v3 = {
+struct nfs_subversion nfs_v3 =
+{
 	.owner = THIS_MODULE,
 	.nfs_fs   = &nfs_fs_type,
 	.rpc_vers = &nfs_version3,

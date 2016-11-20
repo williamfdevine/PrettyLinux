@@ -76,7 +76,8 @@
  * @led1_flash_brt: led1 flash mode brightness, uA
  * @led1_torch_brt: led1 torch mode brightness, uA
  */
-struct lm3646_platform_data {
+struct lm3646_platform_data
+{
 
 	u32 flash_timeout;
 

@@ -16,7 +16,8 @@
 #include <linux/of.h>
 #include "common.h"
 
-static const struct coreclk_ratio orion_coreclk_ratios[] __initconst = {
+static const struct coreclk_ratio orion_coreclk_ratios[] __initconst =
+{
 	{ .id = 0, .name = "ddrclk", }
 };
 
@@ -30,15 +31,24 @@ static const struct coreclk_ratio orion_coreclk_ratios[] __initconst = {
 static u32 __init mv88f5181_get_tclk_freq(void __iomem *sar)
 {
 	u32 opt = (readl(sar) >> SAR_MV88F5181_TCLK_FREQ) &
-		SAR_MV88F5181_TCLK_FREQ_MASK;
+			  SAR_MV88F5181_TCLK_FREQ_MASK;
+
 	if (opt == 0)
+	{
 		return 133333333;
+	}
 	else if (opt == 1)
+	{
 		return 150000000;
+	}
 	else if (opt == 2)
+	{
 		return 166666667;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 #define SAR_MV88F5181_CPU_FREQ       4
@@ -47,35 +57,51 @@ static u32 __init mv88f5181_get_tclk_freq(void __iomem *sar)
 static u32 __init mv88f5181_get_cpu_freq(void __iomem *sar)
 {
 	u32 opt = (readl(sar) >> SAR_MV88F5181_CPU_FREQ) &
-		SAR_MV88F5181_CPU_FREQ_MASK;
+			  SAR_MV88F5181_CPU_FREQ_MASK;
+
 	if (opt == 0)
+	{
 		return 333333333;
+	}
 	else if (opt == 1 || opt == 2)
+	{
 		return 400000000;
+	}
 	else if (opt == 3)
+	{
 		return 500000000;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static void __init mv88f5181_get_clk_ratio(void __iomem *sar, int id,
-					   int *mult, int *div)
+		int *mult, int *div)
 {
 	u32 opt = (readl(sar) >> SAR_MV88F5181_CPU_FREQ) &
-		SAR_MV88F5181_CPU_FREQ_MASK;
-	if (opt == 0 || opt == 1) {
+			  SAR_MV88F5181_CPU_FREQ_MASK;
+
+	if (opt == 0 || opt == 1)
+	{
 		*mult = 1;
 		*div  = 2;
-	} else if (opt == 2 || opt == 3) {
+	}
+	else if (opt == 2 || opt == 3)
+	{
 		*mult = 1;
 		*div  = 3;
-	} else {
+	}
+	else
+	{
 		*mult = 0;
 		*div  = 1;
 	}
 }
 
-static const struct coreclk_soc_desc mv88f5181_coreclks = {
+static const struct coreclk_soc_desc mv88f5181_coreclks =
+{
 	.get_tclk_freq = mv88f5181_get_tclk_freq,
 	.get_cpu_freq = mv88f5181_get_cpu_freq,
 	.get_clk_ratio = mv88f5181_get_clk_ratio,
@@ -100,13 +126,20 @@ CLK_OF_DECLARE(mv88f5181_clk, "marvell,mv88f5181-core-clock", mv88f5181_clk_init
 static u32 __init mv88f5182_get_tclk_freq(void __iomem *sar)
 {
 	u32 opt = (readl(sar) >> SAR_MV88F5182_TCLK_FREQ) &
-		SAR_MV88F5182_TCLK_FREQ_MASK;
+			  SAR_MV88F5182_TCLK_FREQ_MASK;
+
 	if (opt == 1)
+	{
 		return 150000000;
+	}
 	else if (opt == 2)
+	{
 		return 166666667;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 #define SAR_MV88F5182_CPU_FREQ       4
@@ -115,35 +148,51 @@ static u32 __init mv88f5182_get_tclk_freq(void __iomem *sar)
 static u32 __init mv88f5182_get_cpu_freq(void __iomem *sar)
 {
 	u32 opt = (readl(sar) >> SAR_MV88F5182_CPU_FREQ) &
-		SAR_MV88F5182_CPU_FREQ_MASK;
+			  SAR_MV88F5182_CPU_FREQ_MASK;
+
 	if (opt == 0)
+	{
 		return 333333333;
+	}
 	else if (opt == 1 || opt == 2)
+	{
 		return 400000000;
+	}
 	else if (opt == 3)
+	{
 		return 500000000;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static void __init mv88f5182_get_clk_ratio(void __iomem *sar, int id,
-					   int *mult, int *div)
+		int *mult, int *div)
 {
 	u32 opt = (readl(sar) >> SAR_MV88F5182_CPU_FREQ) &
-		SAR_MV88F5182_CPU_FREQ_MASK;
-	if (opt == 0 || opt == 1) {
+			  SAR_MV88F5182_CPU_FREQ_MASK;
+
+	if (opt == 0 || opt == 1)
+	{
 		*mult = 1;
 		*div  = 2;
-	} else if (opt == 2 || opt == 3) {
+	}
+	else if (opt == 2 || opt == 3)
+	{
 		*mult = 1;
 		*div  = 3;
-	} else {
+	}
+	else
+	{
 		*mult = 0;
 		*div  = 1;
 	}
 }
 
-static const struct coreclk_soc_desc mv88f5182_coreclks = {
+static const struct coreclk_soc_desc mv88f5182_coreclks =
+{
 	.get_tclk_freq = mv88f5182_get_tclk_freq,
 	.get_cpu_freq = mv88f5182_get_cpu_freq,
 	.get_clk_ratio = mv88f5182_get_clk_ratio,
@@ -174,33 +223,47 @@ static u32 __init mv88f5281_get_tclk_freq(void __iomem *sar)
 static u32 __init mv88f5281_get_cpu_freq(void __iomem *sar)
 {
 	u32 opt = (readl(sar) >> SAR_MV88F5281_CPU_FREQ) &
-		SAR_MV88F5281_CPU_FREQ_MASK;
+			  SAR_MV88F5281_CPU_FREQ_MASK;
+
 	if (opt == 1 || opt == 2)
+	{
 		return 400000000;
+	}
 	else if (opt == 3)
+	{
 		return 500000000;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static void __init mv88f5281_get_clk_ratio(void __iomem *sar, int id,
-					   int *mult, int *div)
+		int *mult, int *div)
 {
 	u32 opt = (readl(sar) >> SAR_MV88F5281_CPU_FREQ) &
-		SAR_MV88F5281_CPU_FREQ_MASK;
-	if (opt == 1) {
+			  SAR_MV88F5281_CPU_FREQ_MASK;
+
+	if (opt == 1)
+	{
 		*mult = 1;
 		*div = 2;
-	} else if (opt == 2 || opt == 3) {
+	}
+	else if (opt == 2 || opt == 3)
+	{
 		*mult = 1;
 		*div = 3;
-	} else {
+	}
+	else
+	{
 		*mult = 0;
 		*div = 1;
 	}
 }
 
-static const struct coreclk_soc_desc mv88f5281_coreclks = {
+static const struct coreclk_soc_desc mv88f5281_coreclks =
+{
 	.get_tclk_freq = mv88f5281_get_tclk_freq,
 	.get_cpu_freq = mv88f5281_get_cpu_freq,
 	.get_clk_ratio = mv88f5281_get_clk_ratio,
@@ -225,13 +288,20 @@ CLK_OF_DECLARE(mv88f5281_clk, "marvell,mv88f5281-core-clock", mv88f5281_clk_init
 static u32 __init mv88f6183_get_tclk_freq(void __iomem *sar)
 {
 	u32 opt = (readl(sar) >> SAR_MV88F6183_TCLK_FREQ) &
-		SAR_MV88F6183_TCLK_FREQ_MASK;
+			  SAR_MV88F6183_TCLK_FREQ_MASK;
+
 	if (opt == 0)
+	{
 		return 133333333;
+	}
 	else if (opt == 1)
+	{
 		return 166666667;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 #define SAR_MV88F6183_CPU_FREQ       1
@@ -240,30 +310,42 @@ static u32 __init mv88f6183_get_tclk_freq(void __iomem *sar)
 static u32 __init mv88f6183_get_cpu_freq(void __iomem *sar)
 {
 	u32 opt = (readl(sar) >> SAR_MV88F6183_CPU_FREQ) &
-		SAR_MV88F6183_CPU_FREQ_MASK;
+			  SAR_MV88F6183_CPU_FREQ_MASK;
+
 	if (opt == 9)
+	{
 		return 333333333;
+	}
 	else if (opt == 17)
+	{
 		return 400000000;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static void __init mv88f6183_get_clk_ratio(void __iomem *sar, int id,
-					   int *mult, int *div)
+		int *mult, int *div)
 {
 	u32 opt = (readl(sar) >> SAR_MV88F6183_CPU_FREQ) &
-		SAR_MV88F6183_CPU_FREQ_MASK;
-	if (opt == 9 || opt == 17) {
+			  SAR_MV88F6183_CPU_FREQ_MASK;
+
+	if (opt == 9 || opt == 17)
+	{
 		*mult = 1;
 		*div  = 2;
-	} else {
+	}
+	else
+	{
 		*mult = 0;
 		*div  = 1;
 	}
 }
 
-static const struct coreclk_soc_desc mv88f6183_coreclks = {
+static const struct coreclk_soc_desc mv88f6183_coreclks =
+{
 	.get_tclk_freq = mv88f6183_get_tclk_freq,
 	.get_cpu_freq = mv88f6183_get_cpu_freq,
 	.get_clk_ratio = mv88f6183_get_clk_ratio,

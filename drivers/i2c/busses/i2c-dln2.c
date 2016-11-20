@@ -42,7 +42,8 @@
 #define DLN2_I2C_MAX_XFER_SIZE		256
 #define DLN2_I2C_BUF_SIZE		(DLN2_I2C_MAX_XFER_SIZE + 16)
 
-struct dln2_i2c {
+struct dln2_i2c
+{
 	struct platform_device *pdev;
 	struct i2c_adapter adapter;
 	u8 port;
@@ -56,25 +57,31 @@ struct dln2_i2c {
 static int dln2_i2c_enable(struct dln2_i2c *dln2, bool enable)
 {
 	u16 cmd;
-	struct {
+	struct
+	{
 		u8 port;
 	} tx;
 
 	tx.port = dln2->port;
 
 	if (enable)
+	{
 		cmd = DLN2_I2C_ENABLE;
+	}
 	else
+	{
 		cmd = DLN2_I2C_DISABLE;
+	}
 
 	return dln2_transfer_tx(dln2->pdev, cmd, &tx, sizeof(tx));
 }
 
 static int dln2_i2c_write(struct dln2_i2c *dln2, u8 addr,
-			  u8 *data, u16 data_len)
+						  u8 *data, u16 data_len)
 {
 	int ret;
-	struct {
+	struct
+	{
 		u8 port;
 		u8 addr;
 		u8 mem_addr_len;
@@ -95,24 +102,29 @@ static int dln2_i2c_write(struct dln2_i2c *dln2, u8 addr,
 
 	len = sizeof(*tx) + data_len - DLN2_I2C_MAX_XFER_SIZE;
 	ret = dln2_transfer_tx(dln2->pdev, DLN2_I2C_WRITE, tx, len);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return data_len;
 }
 
 static int dln2_i2c_read(struct dln2_i2c *dln2, u16 addr, u8 *data,
-			 u16 data_len)
+						 u16 data_len)
 {
 	int ret;
-	struct {
+	struct
+	{
 		u8 port;
 		u8 addr;
 		u8 mem_addr_len;
 		__le32 mem_addr;
 		__le16 buf_len;
 	} __packed tx;
-	struct {
+	struct
+	{
 		__le16 buf_len;
 		u8 buf[DLN2_I2C_MAX_XFER_SIZE];
 	} __packed *rx = dln2->buf;
@@ -127,13 +139,22 @@ static int dln2_i2c_read(struct dln2_i2c *dln2, u16 addr, u8 *data,
 	tx.buf_len = cpu_to_le16(data_len);
 
 	ret = dln2_transfer(dln2->pdev, DLN2_I2C_READ, &tx, sizeof(tx),
-			    rx, &rx_len);
+						rx, &rx_len);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (rx_len < sizeof(rx->buf_len) + data_len)
+	{
 		return -EPROTO;
+	}
+
 	if (le16_to_cpu(rx->buf_len) != data_len)
+	{
 		return -EPROTO;
+	}
 
 	memcpy(data, rx->buf, data_len);
 
@@ -141,29 +162,39 @@ static int dln2_i2c_read(struct dln2_i2c *dln2, u16 addr, u8 *data,
 }
 
 static int dln2_i2c_xfer(struct i2c_adapter *adapter,
-			 struct i2c_msg *msgs, int num)
+						 struct i2c_msg *msgs, int num)
 {
 	struct dln2_i2c *dln2 = i2c_get_adapdata(adapter);
 	struct i2c_msg *pmsg;
 	int i;
 
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num; i++)
+	{
 		int ret;
 
 		pmsg = &msgs[i];
 
-		if (pmsg->flags & I2C_M_RD) {
+		if (pmsg->flags & I2C_M_RD)
+		{
 			ret = dln2_i2c_read(dln2, pmsg->addr, pmsg->buf,
-					    pmsg->len);
+								pmsg->len);
+
 			if (ret < 0)
+			{
 				return ret;
+			}
 
 			pmsg->len = ret;
-		} else {
+		}
+		else
+		{
 			ret = dln2_i2c_write(dln2, pmsg->addr, pmsg->buf,
-					     pmsg->len);
+								 pmsg->len);
+
 			if (ret != pmsg->len)
+			{
 				return -EPROTO;
+			}
 		}
 	}
 
@@ -173,16 +204,18 @@ static int dln2_i2c_xfer(struct i2c_adapter *adapter,
 static u32 dln2_i2c_func(struct i2c_adapter *a)
 {
 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_BYTE | I2C_FUNC_SMBUS_BYTE_DATA |
-		I2C_FUNC_SMBUS_WORD_DATA | I2C_FUNC_SMBUS_BLOCK_PROC_CALL |
-		I2C_FUNC_SMBUS_I2C_BLOCK;
+		   I2C_FUNC_SMBUS_WORD_DATA | I2C_FUNC_SMBUS_BLOCK_PROC_CALL |
+		   I2C_FUNC_SMBUS_I2C_BLOCK;
 }
 
-static const struct i2c_algorithm dln2_i2c_usb_algorithm = {
+static const struct i2c_algorithm dln2_i2c_usb_algorithm =
+{
 	.master_xfer = dln2_i2c_xfer,
 	.functionality = dln2_i2c_func,
 };
 
-static struct i2c_adapter_quirks dln2_i2c_quirks = {
+static struct i2c_adapter_quirks dln2_i2c_quirks =
+{
 	.max_read_len = DLN2_I2C_MAX_XFER_SIZE,
 	.max_write_len = DLN2_I2C_MAX_XFER_SIZE,
 };
@@ -195,12 +228,18 @@ static int dln2_i2c_probe(struct platform_device *pdev)
 	struct dln2_platform_data *pdata = dev_get_platdata(&pdev->dev);
 
 	dln2 = devm_kzalloc(dev, sizeof(*dln2), GFP_KERNEL);
+
 	if (!dln2)
+	{
 		return -ENOMEM;
+	}
 
 	dln2->buf = devm_kmalloc(dev, DLN2_I2C_BUF_SIZE, GFP_KERNEL);
+
 	if (!dln2->buf)
+	{
 		return -ENOMEM;
+	}
 
 	dln2->pdev = pdev;
 	dln2->port = pdata->port;
@@ -215,21 +254,26 @@ static int dln2_i2c_probe(struct platform_device *pdev)
 	dln2->adapter.dev.of_node = dev->of_node;
 	i2c_set_adapdata(&dln2->adapter, dln2);
 	snprintf(dln2->adapter.name, sizeof(dln2->adapter.name), "%s-%s-%d",
-		 "dln2-i2c", dev_name(pdev->dev.parent), dln2->port);
+			 "dln2-i2c", dev_name(pdev->dev.parent), dln2->port);
 
 	platform_set_drvdata(pdev, dln2);
 
 	/* initialize the i2c interface */
 	ret = dln2_i2c_enable(dln2, true);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to initialize adapter: %d\n", ret);
 		return ret;
 	}
 
 	/* and finally attach to i2c layer */
 	ret = i2c_add_adapter(&dln2->adapter);
+
 	if (ret < 0)
+	{
 		goto out_disable;
+	}
 
 	return 0;
 
@@ -249,7 +293,8 @@ static int dln2_i2c_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver dln2_i2c_driver = {
+static struct platform_driver dln2_i2c_driver =
+{
 	.driver.name	= "dln2-i2c",
 	.probe		= dln2_i2c_probe,
 	.remove		= dln2_i2c_remove,

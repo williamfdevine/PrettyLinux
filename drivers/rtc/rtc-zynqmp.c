@@ -51,7 +51,8 @@
 #define RTC_CALIB_MASK		0x1FFFFF
 #define RTC_SEC_MAX_VAL		0xFFFFFFFF
 
-struct xlnx_rtc_dev {
+struct xlnx_rtc_dev
+{
 	struct rtc_device	*rtc;
 	void __iomem		*reg_base;
 	int			alarm_irq;
@@ -72,7 +73,9 @@ static int xlnx_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	new_time = rtc_tm_to_time64(tm) + 1;
 
 	if (new_time > RTC_SEC_MAX_VAL)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Writing into calibration register will clear the Tick Counter and
@@ -104,13 +107,16 @@ static int xlnx_rtc_read_time(struct device *dev, struct rtc_time *tm)
 
 	status = readl(xrtcdev->reg_base + RTC_INT_STS);
 
-	if (status & RTC_INT_SEC) {
+	if (status & RTC_INT_SEC)
+	{
 		/*
 		 * RTC has updated the CURRENT_TIME with the time written into
 		 * SET_TIME_WRITE register.
 		 */
 		rtc_time64_to_tm(readl(xrtcdev->reg_base + RTC_CUR_TM), tm);
-	} else {
+	}
+	else
+	{
 		/*
 		 * Time written in SET_TIME_WRITE has not yet updated into
 		 * the seconds read register, so read the time from the
@@ -140,9 +146,13 @@ static int xlnx_rtc_alarm_irq_enable(struct device *dev, u32 enabled)
 	struct xlnx_rtc_dev *xrtcdev = dev_get_drvdata(dev);
 
 	if (enabled)
+	{
 		writel(RTC_INT_ALRM, xrtcdev->reg_base + RTC_INT_EN);
+	}
 	else
+	{
 		writel(RTC_INT_ALRM, xrtcdev->reg_base + RTC_INT_DIS);
+	}
 
 	return 0;
 }
@@ -155,7 +165,9 @@ static int xlnx_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	alarm_time = rtc_tm_to_time64(&alrm->time);
 
 	if (alarm_time > RTC_SEC_MAX_VAL)
+	{
 		return -EINVAL;
+	}
 
 	writel((u32)alarm_time, (xrtcdev->reg_base + RTC_ALRM));
 
@@ -183,7 +195,8 @@ static void xlnx_init_rtc(struct xlnx_rtc_dev *xrtcdev)
 	writel(xrtcdev->calibval, (xrtcdev->reg_base + RTC_CALIB_WR));
 }
 
-static const struct rtc_class_ops xlnx_rtc_ops = {
+static const struct rtc_class_ops xlnx_rtc_ops =
+{
 	.set_time	  = xlnx_rtc_set_time,
 	.read_time	  = xlnx_rtc_read_time,
 	.read_alarm	  = xlnx_rtc_read_alarm,
@@ -197,15 +210,20 @@ static irqreturn_t xlnx_rtc_interrupt(int irq, void *id)
 	unsigned int status;
 
 	status = readl(xrtcdev->reg_base + RTC_INT_STS);
+
 	/* Check if interrupt asserted */
 	if (!(status & (RTC_INT_SEC | RTC_INT_ALRM)))
+	{
 		return IRQ_NONE;
+	}
 
 	/* Clear RTC_INT_ALRM interrupt only */
 	writel(RTC_INT_ALRM, xrtcdev->reg_base + RTC_INT_STS);
 
 	if (status & RTC_INT_ALRM)
+	{
 		rtc_update_irq(xrtcdev->rtc, 1, RTC_IRQF | RTC_AF);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -217,54 +235,73 @@ static int xlnx_rtc_probe(struct platform_device *pdev)
 	int ret;
 
 	xrtcdev = devm_kzalloc(&pdev->dev, sizeof(*xrtcdev), GFP_KERNEL);
+
 	if (!xrtcdev)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, xrtcdev);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 
 	xrtcdev->reg_base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(xrtcdev->reg_base))
+	{
 		return PTR_ERR(xrtcdev->reg_base);
+	}
 
 	xrtcdev->alarm_irq = platform_get_irq_byname(pdev, "alarm");
-	if (xrtcdev->alarm_irq < 0) {
+
+	if (xrtcdev->alarm_irq < 0)
+	{
 		dev_err(&pdev->dev, "no irq resource\n");
 		return xrtcdev->alarm_irq;
 	}
+
 	ret = devm_request_irq(&pdev->dev, xrtcdev->alarm_irq,
-			       xlnx_rtc_interrupt, 0,
-			       dev_name(&pdev->dev), xrtcdev);
-	if (ret) {
+						   xlnx_rtc_interrupt, 0,
+						   dev_name(&pdev->dev), xrtcdev);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "request irq failed\n");
 		return ret;
 	}
 
 	xrtcdev->sec_irq = platform_get_irq_byname(pdev, "sec");
-	if (xrtcdev->sec_irq < 0) {
+
+	if (xrtcdev->sec_irq < 0)
+	{
 		dev_err(&pdev->dev, "no irq resource\n");
 		return xrtcdev->sec_irq;
 	}
+
 	ret = devm_request_irq(&pdev->dev, xrtcdev->sec_irq,
-			       xlnx_rtc_interrupt, 0,
-			       dev_name(&pdev->dev), xrtcdev);
-	if (ret) {
+						   xlnx_rtc_interrupt, 0,
+						   dev_name(&pdev->dev), xrtcdev);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "request irq failed\n");
 		return ret;
 	}
 
 	ret = of_property_read_u32(pdev->dev.of_node, "calibration",
-				   &xrtcdev->calibval);
+							   &xrtcdev->calibval);
+
 	if (ret)
+	{
 		xrtcdev->calibval = RTC_CALIB_DEF;
+	}
 
 	xlnx_init_rtc(xrtcdev);
 
 	device_init_wakeup(&pdev->dev, 1);
 
 	xrtcdev->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
-					 &xlnx_rtc_ops, THIS_MODULE);
+											&xlnx_rtc_ops, THIS_MODULE);
 	return PTR_ERR_OR_ZERO(xrtcdev->rtc);
 }
 
@@ -282,9 +319,13 @@ static int __maybe_unused xlnx_rtc_suspend(struct device *dev)
 	struct xlnx_rtc_dev *xrtcdev = platform_get_drvdata(pdev);
 
 	if (device_may_wakeup(&pdev->dev))
+	{
 		enable_irq_wake(xrtcdev->alarm_irq);
+	}
 	else
+	{
 		xlnx_rtc_alarm_irq_enable(dev, 0);
+	}
 
 	return 0;
 }
@@ -295,22 +336,28 @@ static int __maybe_unused xlnx_rtc_resume(struct device *dev)
 	struct xlnx_rtc_dev *xrtcdev = platform_get_drvdata(pdev);
 
 	if (device_may_wakeup(&pdev->dev))
+	{
 		disable_irq_wake(xrtcdev->alarm_irq);
+	}
 	else
+	{
 		xlnx_rtc_alarm_irq_enable(dev, 1);
+	}
 
 	return 0;
 }
 
 static SIMPLE_DEV_PM_OPS(xlnx_rtc_pm_ops, xlnx_rtc_suspend, xlnx_rtc_resume);
 
-static const struct of_device_id xlnx_rtc_of_match[] = {
+static const struct of_device_id xlnx_rtc_of_match[] =
+{
 	{.compatible = "xlnx,zynqmp-rtc" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, xlnx_rtc_of_match);
 
-static struct platform_driver xlnx_rtc_driver = {
+static struct platform_driver xlnx_rtc_driver =
+{
 	.probe		= xlnx_rtc_probe,
 	.remove		= xlnx_rtc_remove,
 	.driver		= {

@@ -41,10 +41,12 @@ nfqueue_tg_v1(struct sk_buff *skb, const struct xt_action_param *par)
 	const struct xt_NFQ_info_v1 *info = par->targinfo;
 	u32 queue = info->queuenum;
 
-	if (info->queues_total > 1) {
+	if (info->queues_total > 1)
+	{
 		queue = nfqueue_hash(skb, queue, info->queues_total,
-				     par->family, jhash_initval);
+							 par->family, jhash_initval);
 	}
+
 	return NF_QUEUE_NR(queue);
 }
 
@@ -55,7 +57,10 @@ nfqueue_tg_v2(struct sk_buff *skb, const struct xt_action_param *par)
 	unsigned int ret = nfqueue_tg_v1(skb, par);
 
 	if (info->bypass)
+	{
 		ret |= NF_VERDICT_FLAG_QUEUE_BYPASS;
+	}
+
 	return ret;
 }
 
@@ -66,20 +71,30 @@ static int nfqueue_tg_check(const struct xt_tgchk_param *par)
 
 	init_hashrandom(&jhash_initval);
 
-	if (info->queues_total == 0) {
+	if (info->queues_total == 0)
+	{
 		pr_err("NFQUEUE: number of total queues is 0\n");
 		return -EINVAL;
 	}
+
 	maxid = info->queues_total - 1 + info->queuenum;
-	if (maxid > 0xffff) {
+
+	if (maxid > 0xffff)
+	{
 		pr_err("NFQUEUE: number of queues (%u) out of range (got %u)\n",
-		       info->queues_total, maxid);
+			   info->queues_total, maxid);
 		return -ERANGE;
 	}
+
 	if (par->target->revision == 2 && info->flags > 1)
+	{
 		return -EINVAL;
+	}
+
 	if (par->target->revision == 3 && info->flags & ~NFQ_FLAG_MASK)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -91,25 +106,33 @@ nfqueue_tg_v3(struct sk_buff *skb, const struct xt_action_param *par)
 	u32 queue = info->queuenum;
 	int ret;
 
-	if (info->queues_total > 1) {
-		if (info->flags & NFQ_FLAG_CPU_FANOUT) {
+	if (info->queues_total > 1)
+	{
+		if (info->flags & NFQ_FLAG_CPU_FANOUT)
+		{
 			int cpu = smp_processor_id();
 
 			queue = info->queuenum + cpu % info->queues_total;
-		} else {
+		}
+		else
+		{
 			queue = nfqueue_hash(skb, queue, info->queues_total,
-					     par->family, jhash_initval);
+								 par->family, jhash_initval);
 		}
 	}
 
 	ret = NF_QUEUE_NR(queue);
+
 	if (info->flags & NFQ_FLAG_BYPASS)
+	{
 		ret |= NF_VERDICT_FLAG_QUEUE_BYPASS;
+	}
 
 	return ret;
 }
 
-static struct xt_target nfqueue_tg_reg[] __read_mostly = {
+static struct xt_target nfqueue_tg_reg[] __read_mostly =
+{
 	{
 		.name		= "NFQUEUE",
 		.family		= NFPROTO_UNSPEC,

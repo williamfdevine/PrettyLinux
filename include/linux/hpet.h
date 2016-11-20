@@ -8,22 +8,26 @@
  * Offsets into HPET Registers
  */
 
-struct hpet {
+struct hpet
+{
 	u64 hpet_cap;		/* capabilities */
 	u64 res0;		/* reserved */
 	u64 hpet_config;	/* configuration */
 	u64 res1;		/* reserved */
 	u64 hpet_isr;		/* interrupt status reg */
 	u64 res2[25];		/* reserved */
-	union {			/* main counter */
+	union  			/* main counter */
+	{
 		u64 _hpet_mc64;
 		u32 _hpet_mc32;
 		unsigned long _hpet_mc;
 	} _u0;
 	u64 res3;		/* reserved */
-	struct hpet_timer {
+	struct hpet_timer
+	{
 		u64 hpet_config;	/* configuration/cap */
-		union {		/* timer compare register */
+		union  		/* timer compare register */
+		{
 			u64 _hpet_hc64;
 			u32 _hpet_hc32;
 			unsigned long _hpet_compare;
@@ -91,7 +95,8 @@ struct hpet {
  * exported interfaces
  */
 
-struct hpet_data {
+struct hpet_data
+{
 	unsigned long hd_phys_address;
 	void __iomem *hd_address;
 	unsigned short hd_nirqs;

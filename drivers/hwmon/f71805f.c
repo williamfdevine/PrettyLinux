@@ -140,10 +140,10 @@ superio_exit(int base)
 /* pwm/fan pwmnr from 0 to 2, auto point apnr from 0 to 2 */
 /* map Fintek numbers to our numbers as follows: 9->0, 5->1, 1->2 */
 #define F71805F_REG_PWM_AUTO_POINT_TEMP(pwmnr, apnr) \
-					(0xA0 + 0x10 * (pwmnr) + (2 - (apnr)))
+	(0xA0 + 0x10 * (pwmnr) + (2 - (apnr)))
 #define F71805F_REG_PWM_AUTO_POINT_FAN(pwmnr, apnr) \
-					(0xA4 + 0x10 * (pwmnr) + \
-						2 * (2 - (apnr)))
+	(0xA4 + 0x10 * (pwmnr) + \
+	 2 * (2 - (apnr)))
 
 #define F71805F_REG_START		0x00
 /* status nr from 0 to 2 */
@@ -161,12 +161,14 @@ superio_exit(int base)
  * Data structures and manipulation thereof
  */
 
-struct f71805f_auto_point {
+struct f71805f_auto_point
+{
 	u8 temp[3];
 	u16 fan[3];
 };
 
-struct f71805f_data {
+struct f71805f_data
+{
 	unsigned short addr;
 	const char *name;
 	struct device *hwmon_dev;
@@ -195,7 +197,8 @@ struct f71805f_data {
 	struct f71805f_auto_point auto_points[3];
 };
 
-struct f71805f_sio_data {
+struct f71805f_sio_data
+{
 	enum kinds kind;
 	u8 fnsel1;
 };
@@ -209,9 +212,15 @@ static inline long in_from_reg(u8 reg)
 static inline u8 in_to_reg(long val)
 {
 	if (val <= 0)
+	{
 		return 0;
+	}
+
 	if (val >= 2016)
+	{
 		return 0xfc;
+	}
+
 	return ((val + 16) / 32) << 2;
 }
 
@@ -224,9 +233,15 @@ static inline long in0_from_reg(u8 reg)
 static inline u8 in0_to_reg(long val)
 {
 	if (val <= 0)
+	{
 		return 0;
+	}
+
 	if (val >= 4032)
+	{
 		return 0xfc;
+	}
+
 	return ((val + 32) / 64) << 2;
 }
 
@@ -234,8 +249,12 @@ static inline u8 in0_to_reg(long val)
 static inline long fan_from_reg(u16 reg)
 {
 	reg &= 0xfff;
+
 	if (!reg || reg == 0xfff)
+	{
 		return 0;
+	}
+
 	return 1500000 / reg;
 }
 
@@ -247,7 +266,10 @@ static inline u16 fan_to_reg(long rpm)
 	 * so that no alarm will ever trigger.
 	 */
 	if (rpm < 367)
+	{
 		return 0xfff;
+	}
+
 	return 1500000 / rpm;
 }
 
@@ -256,21 +278,35 @@ static inline unsigned long pwm_freq_from_reg(u8 reg)
 	unsigned long clock = (reg & 0x80) ? 48000000UL : 1000000UL;
 
 	reg &= 0x7f;
+
 	if (reg == 0)
+	{
 		reg++;
+	}
+
 	return clock / (reg << 8);
 }
 
 static inline u8 pwm_freq_to_reg(unsigned long val)
 {
 	if (val >= 187500)	/* The highest we can do */
+	{
 		return 0x80;
+	}
+
 	if (val >= 1475)	/* Use 48 MHz clock */
+	{
 		return 0x80 | (48000000UL / (val << 8));
+	}
+
 	if (val < 31)		/* The lowest we can do */
+	{
 		return 0x7f;
+	}
 	else			/* Use 1 MHz clock */
+	{
 		return 1000000UL / (val << 8);
+	}
 }
 
 static inline int pwm_mode_from_reg(u8 reg)
@@ -286,9 +322,15 @@ static inline long temp_from_reg(u8 reg)
 static inline u8 temp_to_reg(long val)
 {
 	if (val <= 0)
+	{
 		return 0;
+	}
+
 	if (val >= 1000 * 0xff)
+	{
 		return 0xff;
+	}
+
 	return (val + 500) / 1000;
 }
 
@@ -345,40 +387,53 @@ static struct f71805f_data *f71805f_update_device(struct device *dev)
 
 	/* Limit registers cache is refreshed after 60 seconds */
 	if (time_after(jiffies, data->last_updated + 60 * HZ)
-	 || !data->valid) {
-		for (nr = 0; nr < 11; nr++) {
+		|| !data->valid)
+	{
+		for (nr = 0; nr < 11; nr++)
+		{
 			if (!(data->has_in & (1 << nr)))
+			{
 				continue;
+			}
+
 			data->in_high[nr] = f71805f_read8(data,
-					    F71805F_REG_IN_HIGH(nr));
+											  F71805F_REG_IN_HIGH(nr));
 			data->in_low[nr] = f71805f_read8(data,
-					   F71805F_REG_IN_LOW(nr));
+											 F71805F_REG_IN_LOW(nr));
 		}
-		for (nr = 0; nr < 3; nr++) {
+
+		for (nr = 0; nr < 3; nr++)
+		{
 			data->fan_low[nr] = f71805f_read16(data,
-					    F71805F_REG_FAN_LOW(nr));
+											   F71805F_REG_FAN_LOW(nr));
 			data->fan_target[nr] = f71805f_read16(data,
-					       F71805F_REG_FAN_TARGET(nr));
+												  F71805F_REG_FAN_TARGET(nr));
 			data->pwm_freq[nr] = f71805f_read8(data,
-					     F71805F_REG_PWM_FREQ(nr));
+											   F71805F_REG_PWM_FREQ(nr));
 		}
-		for (nr = 0; nr < 3; nr++) {
+
+		for (nr = 0; nr < 3; nr++)
+		{
 			data->temp_high[nr] = f71805f_read8(data,
-					      F71805F_REG_TEMP_HIGH(nr));
+												F71805F_REG_TEMP_HIGH(nr));
 			data->temp_hyst[nr] = f71805f_read8(data,
-					      F71805F_REG_TEMP_HYST(nr));
+												F71805F_REG_TEMP_HYST(nr));
 		}
+
 		data->temp_mode = f71805f_read8(data, F71805F_REG_TEMP_MODE);
-		for (nr = 0; nr < 3; nr++) {
-			for (apnr = 0; apnr < 3; apnr++) {
+
+		for (nr = 0; nr < 3; nr++)
+		{
+			for (apnr = 0; apnr < 3; apnr++)
+			{
 				data->auto_points[nr].temp[apnr] =
 					f71805f_read8(data,
-					F71805F_REG_PWM_AUTO_POINT_TEMP(nr,
-									apnr));
+								  F71805F_REG_PWM_AUTO_POINT_TEMP(nr,
+										  apnr));
 				data->auto_points[nr].fan[apnr] =
 					f71805f_read16(data,
-					F71805F_REG_PWM_AUTO_POINT_FAN(nr,
-								       apnr));
+								   F71805F_REG_PWM_AUTO_POINT_FAN(nr,
+										   apnr));
 			}
 		}
 
@@ -387,28 +442,38 @@ static struct f71805f_data *f71805f_update_device(struct device *dev)
 
 	/* Measurement registers cache is refreshed after 1 second */
 	if (time_after(jiffies, data->last_updated + HZ)
-	 || !data->valid) {
-		for (nr = 0; nr < 11; nr++) {
+		|| !data->valid)
+	{
+		for (nr = 0; nr < 11; nr++)
+		{
 			if (!(data->has_in & (1 << nr)))
+			{
 				continue;
+			}
+
 			data->in[nr] = f71805f_read8(data,
-				       F71805F_REG_IN(nr));
+										 F71805F_REG_IN(nr));
 		}
-		for (nr = 0; nr < 3; nr++) {
+
+		for (nr = 0; nr < 3; nr++)
+		{
 			data->fan[nr] = f71805f_read16(data,
-					F71805F_REG_FAN(nr));
+										   F71805F_REG_FAN(nr));
 			data->fan_ctrl[nr] = f71805f_read8(data,
-					     F71805F_REG_FAN_CTRL(nr));
+											   F71805F_REG_FAN_CTRL(nr));
 			data->pwm[nr] = f71805f_read8(data,
-					F71805F_REG_PWM_DUTY(nr));
+										  F71805F_REG_PWM_DUTY(nr));
 		}
-		for (nr = 0; nr < 3; nr++) {
+
+		for (nr = 0; nr < 3; nr++)
+		{
 			data->temp[nr] = f71805f_read8(data,
-					 F71805F_REG_TEMP(nr));
+										   F71805F_REG_TEMP(nr));
 		}
+
 		data->alarms = f71805f_read8(data, F71805F_REG_STATUS(0))
-			+ (f71805f_read8(data, F71805F_REG_STATUS(1)) << 8)
-			+ (f71805f_read8(data, F71805F_REG_STATUS(2)) << 16);
+					   + (f71805f_read8(data, F71805F_REG_STATUS(1)) << 8)
+					   + (f71805f_read8(data, F71805F_REG_STATUS(2)) << 16);
 
 		data->last_updated = jiffies;
 		data->valid = 1;
@@ -424,7 +489,7 @@ static struct f71805f_data *f71805f_update_device(struct device *dev)
  */
 
 static ssize_t show_in0(struct device *dev, struct device_attribute *devattr,
-			char *buf)
+						char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -434,7 +499,7 @@ static ssize_t show_in0(struct device *dev, struct device_attribute *devattr,
 }
 
 static ssize_t show_in0_max(struct device *dev, struct device_attribute
-			    *devattr, char *buf)
+							*devattr, char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -444,7 +509,7 @@ static ssize_t show_in0_max(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_in0_min(struct device *dev, struct device_attribute
-			    *devattr, char *buf)
+							*devattr, char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -454,7 +519,7 @@ static ssize_t show_in0_min(struct device *dev, struct device_attribute
 }
 
 static ssize_t set_in0_max(struct device *dev, struct device_attribute
-			   *devattr, const char *buf, size_t count)
+						   *devattr, const char *buf, size_t count)
 {
 	struct f71805f_data *data = dev_get_drvdata(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -463,8 +528,11 @@ static ssize_t set_in0_max(struct device *dev, struct device_attribute
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->in_high[nr] = in0_to_reg(val);
@@ -475,7 +543,7 @@ static ssize_t set_in0_max(struct device *dev, struct device_attribute
 }
 
 static ssize_t set_in0_min(struct device *dev, struct device_attribute
-			   *devattr, const char *buf, size_t count)
+						   *devattr, const char *buf, size_t count)
 {
 	struct f71805f_data *data = dev_get_drvdata(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -484,8 +552,11 @@ static ssize_t set_in0_min(struct device *dev, struct device_attribute
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->in_low[nr] = in0_to_reg(val);
@@ -496,7 +567,7 @@ static ssize_t set_in0_min(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_in(struct device *dev, struct device_attribute *devattr,
-		       char *buf)
+					   char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -506,7 +577,7 @@ static ssize_t show_in(struct device *dev, struct device_attribute *devattr,
 }
 
 static ssize_t show_in_max(struct device *dev, struct device_attribute
-			   *devattr, char *buf)
+						   *devattr, char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -516,7 +587,7 @@ static ssize_t show_in_max(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_in_min(struct device *dev, struct device_attribute
-			   *devattr, char *buf)
+						   *devattr, char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -526,7 +597,7 @@ static ssize_t show_in_min(struct device *dev, struct device_attribute
 }
 
 static ssize_t set_in_max(struct device *dev, struct device_attribute
-			  *devattr, const char *buf, size_t count)
+						  *devattr, const char *buf, size_t count)
 {
 	struct f71805f_data *data = dev_get_drvdata(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -535,8 +606,11 @@ static ssize_t set_in_max(struct device *dev, struct device_attribute
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->in_high[nr] = in_to_reg(val);
@@ -547,7 +621,7 @@ static ssize_t set_in_max(struct device *dev, struct device_attribute
 }
 
 static ssize_t set_in_min(struct device *dev, struct device_attribute
-			  *devattr, const char *buf, size_t count)
+						  *devattr, const char *buf, size_t count)
 {
 	struct f71805f_data *data = dev_get_drvdata(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -556,8 +630,11 @@ static ssize_t set_in_min(struct device *dev, struct device_attribute
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->in_low[nr] = in_to_reg(val);
@@ -568,7 +645,7 @@ static ssize_t set_in_min(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_fan(struct device *dev, struct device_attribute *devattr,
-			char *buf)
+						char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -578,7 +655,7 @@ static ssize_t show_fan(struct device *dev, struct device_attribute *devattr,
 }
 
 static ssize_t show_fan_min(struct device *dev, struct device_attribute
-			    *devattr, char *buf)
+							*devattr, char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -588,7 +665,7 @@ static ssize_t show_fan_min(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_fan_target(struct device *dev, struct device_attribute
-			       *devattr, char *buf)
+							   *devattr, char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -598,7 +675,7 @@ static ssize_t show_fan_target(struct device *dev, struct device_attribute
 }
 
 static ssize_t set_fan_min(struct device *dev, struct device_attribute
-			   *devattr, const char *buf, size_t count)
+						   *devattr, const char *buf, size_t count)
 {
 	struct f71805f_data *data = dev_get_drvdata(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -607,8 +684,11 @@ static ssize_t set_fan_min(struct device *dev, struct device_attribute
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->fan_low[nr] = fan_to_reg(val);
@@ -619,7 +699,7 @@ static ssize_t set_fan_min(struct device *dev, struct device_attribute
 }
 
 static ssize_t set_fan_target(struct device *dev, struct device_attribute
-			      *devattr, const char *buf, size_t count)
+							  *devattr, const char *buf, size_t count)
 {
 	struct f71805f_data *data = dev_get_drvdata(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -628,20 +708,23 @@ static ssize_t set_fan_target(struct device *dev, struct device_attribute
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->fan_target[nr] = fan_to_reg(val);
 	f71805f_write16(data, F71805F_REG_FAN_TARGET(nr),
-			data->fan_target[nr]);
+					data->fan_target[nr]);
 	mutex_unlock(&data->update_lock);
 
 	return count;
 }
 
 static ssize_t show_pwm(struct device *dev, struct device_attribute *devattr,
-			char *buf)
+						char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -651,29 +734,32 @@ static ssize_t show_pwm(struct device *dev, struct device_attribute *devattr,
 }
 
 static ssize_t show_pwm_enable(struct device *dev, struct device_attribute
-			       *devattr, char *buf)
+							   *devattr, char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	int nr = attr->index;
 	int mode;
 
-	switch (data->fan_ctrl[nr] & FAN_CTRL_MODE_MASK) {
-	case FAN_CTRL_MODE_SPEED:
-		mode = 3;
-		break;
-	case FAN_CTRL_MODE_TEMPERATURE:
-		mode = 2;
-		break;
-	default: /* MANUAL */
-		mode = 1;
+	switch (data->fan_ctrl[nr] & FAN_CTRL_MODE_MASK)
+	{
+		case FAN_CTRL_MODE_SPEED:
+			mode = 3;
+			break;
+
+		case FAN_CTRL_MODE_TEMPERATURE:
+			mode = 2;
+			break;
+
+		default: /* MANUAL */
+			mode = 1;
 	}
 
 	return sprintf(buf, "%d\n", mode);
 }
 
 static ssize_t show_pwm_freq(struct device *dev, struct device_attribute
-			     *devattr, char *buf)
+							 *devattr, char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -683,7 +769,7 @@ static ssize_t show_pwm_freq(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_pwm_mode(struct device *dev, struct device_attribute
-			     *devattr, char *buf)
+							 *devattr, char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -693,7 +779,7 @@ static ssize_t show_pwm_mode(struct device *dev, struct device_attribute
 }
 
 static ssize_t set_pwm(struct device *dev, struct device_attribute *devattr,
-		       const char *buf, size_t count)
+					   const char *buf, size_t count)
 {
 	struct f71805f_data *data = dev_get_drvdata(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -702,11 +788,16 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *devattr,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (val > 255)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->pwm[nr] = val;
@@ -719,7 +810,7 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *devattr,
 static struct attribute *f71805f_attr_pwm[];
 
 static ssize_t set_pwm_enable(struct device *dev, struct device_attribute
-			      *devattr, const char *buf, size_t count)
+							  *devattr, const char *buf, size_t count)
 {
 	struct f71805f_data *data = dev_get_drvdata(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -729,47 +820,63 @@ static ssize_t set_pwm_enable(struct device *dev, struct device_attribute
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (val < 1 || val > 3)
+	{
 		return -EINVAL;
+	}
 
-	if (val > 1) { /* Automatic mode, user can't set PWM value */
+	if (val > 1)   /* Automatic mode, user can't set PWM value */
+	{
 		if (sysfs_chmod_file(&dev->kobj, f71805f_attr_pwm[nr],
-				     S_IRUGO))
+							 S_IRUGO))
+		{
 			dev_dbg(dev, "chmod -w pwm%d failed\n", nr + 1);
+		}
 	}
 
 	mutex_lock(&data->update_lock);
 	reg = f71805f_read8(data, F71805F_REG_FAN_CTRL(nr))
-	    & ~FAN_CTRL_MODE_MASK;
-	switch (val) {
-	case 1:
-		reg |= FAN_CTRL_MODE_MANUAL;
-		break;
-	case 2:
-		reg |= FAN_CTRL_MODE_TEMPERATURE;
-		break;
-	case 3:
-		reg |= FAN_CTRL_MODE_SPEED;
-		break;
+		  & ~FAN_CTRL_MODE_MASK;
+
+	switch (val)
+	{
+		case 1:
+			reg |= FAN_CTRL_MODE_MANUAL;
+			break;
+
+		case 2:
+			reg |= FAN_CTRL_MODE_TEMPERATURE;
+			break;
+
+		case 3:
+			reg |= FAN_CTRL_MODE_SPEED;
+			break;
 	}
+
 	data->fan_ctrl[nr] = reg;
 	f71805f_write8(data, F71805F_REG_FAN_CTRL(nr), reg);
 	mutex_unlock(&data->update_lock);
 
-	if (val == 1) { /* Manual mode, user can set PWM value */
+	if (val == 1)   /* Manual mode, user can set PWM value */
+	{
 		if (sysfs_chmod_file(&dev->kobj, f71805f_attr_pwm[nr],
-				     S_IRUGO | S_IWUSR))
+							 S_IRUGO | S_IWUSR))
+		{
 			dev_dbg(dev, "chmod +w pwm%d failed\n", nr + 1);
+		}
 	}
 
 	return count;
 }
 
 static ssize_t set_pwm_freq(struct device *dev, struct device_attribute
-			    *devattr, const char *buf, size_t count)
+							*devattr, const char *buf, size_t count)
 {
 	struct f71805f_data *data = dev_get_drvdata(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -778,8 +885,11 @@ static ssize_t set_pwm_freq(struct device *dev, struct device_attribute
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->pwm_freq[nr] = pwm_freq_to_reg(val);
@@ -790,8 +900,8 @@ static ssize_t set_pwm_freq(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_pwm_auto_point_temp(struct device *dev,
-					struct device_attribute *devattr,
-					char *buf)
+										struct device_attribute *devattr,
+										char *buf)
 {
 	struct f71805f_data *data = dev_get_drvdata(dev);
 	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
@@ -799,12 +909,12 @@ static ssize_t show_pwm_auto_point_temp(struct device *dev,
 	int apnr = attr->index;
 
 	return sprintf(buf, "%ld\n",
-		       temp_from_reg(data->auto_points[pwmnr].temp[apnr]));
+				   temp_from_reg(data->auto_points[pwmnr].temp[apnr]));
 }
 
 static ssize_t set_pwm_auto_point_temp(struct device *dev,
-				       struct device_attribute *devattr,
-				       const char *buf, size_t count)
+									   struct device_attribute *devattr,
+									   const char *buf, size_t count)
 {
 	struct f71805f_data *data = dev_get_drvdata(dev);
 	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
@@ -814,21 +924,24 @@ static ssize_t set_pwm_auto_point_temp(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->auto_points[pwmnr].temp[apnr] = temp_to_reg(val);
 	f71805f_write8(data, F71805F_REG_PWM_AUTO_POINT_TEMP(pwmnr, apnr),
-		       data->auto_points[pwmnr].temp[apnr]);
+				   data->auto_points[pwmnr].temp[apnr]);
 	mutex_unlock(&data->update_lock);
 
 	return count;
 }
 
 static ssize_t show_pwm_auto_point_fan(struct device *dev,
-				       struct device_attribute *devattr,
-				       char *buf)
+									   struct device_attribute *devattr,
+									   char *buf)
 {
 	struct f71805f_data *data = dev_get_drvdata(dev);
 	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
@@ -836,12 +949,12 @@ static ssize_t show_pwm_auto_point_fan(struct device *dev,
 	int apnr = attr->index;
 
 	return sprintf(buf, "%ld\n",
-		       fan_from_reg(data->auto_points[pwmnr].fan[apnr]));
+				   fan_from_reg(data->auto_points[pwmnr].fan[apnr]));
 }
 
 static ssize_t set_pwm_auto_point_fan(struct device *dev,
-				      struct device_attribute *devattr,
-				      const char *buf, size_t count)
+									  struct device_attribute *devattr,
+									  const char *buf, size_t count)
 {
 	struct f71805f_data *data = dev_get_drvdata(dev);
 	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
@@ -851,20 +964,23 @@ static ssize_t set_pwm_auto_point_fan(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->auto_points[pwmnr].fan[apnr] = fan_to_reg(val);
 	f71805f_write16(data, F71805F_REG_PWM_AUTO_POINT_FAN(pwmnr, apnr),
-			data->auto_points[pwmnr].fan[apnr]);
+					data->auto_points[pwmnr].fan[apnr]);
 	mutex_unlock(&data->update_lock);
 
 	return count;
 }
 
 static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
-			 char *buf)
+						 char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -874,7 +990,7 @@ static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
 }
 
 static ssize_t show_temp_max(struct device *dev, struct device_attribute
-			     *devattr, char *buf)
+							 *devattr, char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -884,7 +1000,7 @@ static ssize_t show_temp_max(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_temp_hyst(struct device *dev, struct device_attribute
-			      *devattr, char *buf)
+							  *devattr, char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -894,7 +1010,7 @@ static ssize_t show_temp_hyst(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_temp_type(struct device *dev, struct device_attribute
-			      *devattr, char *buf)
+							  *devattr, char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -905,7 +1021,7 @@ static ssize_t show_temp_type(struct device *dev, struct device_attribute
 }
 
 static ssize_t set_temp_max(struct device *dev, struct device_attribute
-			    *devattr, const char *buf, size_t count)
+							*devattr, const char *buf, size_t count)
 {
 	struct f71805f_data *data = dev_get_drvdata(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -914,8 +1030,11 @@ static ssize_t set_temp_max(struct device *dev, struct device_attribute
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->temp_high[nr] = temp_to_reg(val);
@@ -926,7 +1045,7 @@ static ssize_t set_temp_max(struct device *dev, struct device_attribute
 }
 
 static ssize_t set_temp_hyst(struct device *dev, struct device_attribute
-			     *devattr, const char *buf, size_t count)
+							 *devattr, const char *buf, size_t count)
 {
 	struct f71805f_data *data = dev_get_drvdata(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -935,8 +1054,11 @@ static ssize_t set_temp_hyst(struct device *dev, struct device_attribute
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->temp_hyst[nr] = temp_to_reg(val);
@@ -947,7 +1069,7 @@ static ssize_t set_temp_hyst(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_alarms_in(struct device *dev, struct device_attribute
-			      *devattr, char *buf)
+							  *devattr, char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 
@@ -955,7 +1077,7 @@ static ssize_t show_alarms_in(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_alarms_fan(struct device *dev, struct device_attribute
-			       *devattr, char *buf)
+							   *devattr, char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 
@@ -963,7 +1085,7 @@ static ssize_t show_alarms_fan(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_alarms_temp(struct device *dev, struct device_attribute
-				*devattr, char *buf)
+								*devattr, char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 
@@ -971,7 +1093,7 @@ static ssize_t show_alarms_temp(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_alarm(struct device *dev, struct device_attribute
-			  *devattr, char *buf)
+						  *devattr, char *buf)
 {
 	struct f71805f_data *data = f71805f_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
@@ -981,7 +1103,7 @@ static ssize_t show_alarm(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_name(struct device *dev, struct device_attribute
-			 *devattr, char *buf)
+						 *devattr, char *buf)
 {
 	struct f71805f_data *data = dev_get_drvdata(dev);
 
@@ -990,93 +1112,93 @@ static ssize_t show_name(struct device *dev, struct device_attribute
 
 static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, show_in0, NULL, 0);
 static SENSOR_DEVICE_ATTR(in0_max, S_IRUGO | S_IWUSR,
-			  show_in0_max, set_in0_max, 0);
+						  show_in0_max, set_in0_max, 0);
 static SENSOR_DEVICE_ATTR(in0_min, S_IRUGO | S_IWUSR,
-			  show_in0_min, set_in0_min, 0);
+						  show_in0_min, set_in0_min, 0);
 static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, show_in, NULL, 1);
 static SENSOR_DEVICE_ATTR(in1_max, S_IRUGO | S_IWUSR,
-			  show_in_max, set_in_max, 1);
+						  show_in_max, set_in_max, 1);
 static SENSOR_DEVICE_ATTR(in1_min, S_IRUGO | S_IWUSR,
-			  show_in_min, set_in_min, 1);
+						  show_in_min, set_in_min, 1);
 static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, show_in, NULL, 2);
 static SENSOR_DEVICE_ATTR(in2_max, S_IRUGO | S_IWUSR,
-			  show_in_max, set_in_max, 2);
+						  show_in_max, set_in_max, 2);
 static SENSOR_DEVICE_ATTR(in2_min, S_IRUGO | S_IWUSR,
-			  show_in_min, set_in_min, 2);
+						  show_in_min, set_in_min, 2);
 static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, show_in, NULL, 3);
 static SENSOR_DEVICE_ATTR(in3_max, S_IRUGO | S_IWUSR,
-			  show_in_max, set_in_max, 3);
+						  show_in_max, set_in_max, 3);
 static SENSOR_DEVICE_ATTR(in3_min, S_IRUGO | S_IWUSR,
-			  show_in_min, set_in_min, 3);
+						  show_in_min, set_in_min, 3);
 static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, show_in, NULL, 4);
 static SENSOR_DEVICE_ATTR(in4_max, S_IRUGO | S_IWUSR,
-			  show_in_max, set_in_max, 4);
+						  show_in_max, set_in_max, 4);
 static SENSOR_DEVICE_ATTR(in4_min, S_IRUGO | S_IWUSR,
-			  show_in_min, set_in_min, 4);
+						  show_in_min, set_in_min, 4);
 static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, show_in, NULL, 5);
 static SENSOR_DEVICE_ATTR(in5_max, S_IRUGO | S_IWUSR,
-			  show_in_max, set_in_max, 5);
+						  show_in_max, set_in_max, 5);
 static SENSOR_DEVICE_ATTR(in5_min, S_IRUGO | S_IWUSR,
-			  show_in_min, set_in_min, 5);
+						  show_in_min, set_in_min, 5);
 static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, show_in, NULL, 6);
 static SENSOR_DEVICE_ATTR(in6_max, S_IRUGO | S_IWUSR,
-			  show_in_max, set_in_max, 6);
+						  show_in_max, set_in_max, 6);
 static SENSOR_DEVICE_ATTR(in6_min, S_IRUGO | S_IWUSR,
-			  show_in_min, set_in_min, 6);
+						  show_in_min, set_in_min, 6);
 static SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, show_in, NULL, 7);
 static SENSOR_DEVICE_ATTR(in7_max, S_IRUGO | S_IWUSR,
-			  show_in_max, set_in_max, 7);
+						  show_in_max, set_in_max, 7);
 static SENSOR_DEVICE_ATTR(in7_min, S_IRUGO | S_IWUSR,
-			  show_in_min, set_in_min, 7);
+						  show_in_min, set_in_min, 7);
 static SENSOR_DEVICE_ATTR(in8_input, S_IRUGO, show_in, NULL, 8);
 static SENSOR_DEVICE_ATTR(in8_max, S_IRUGO | S_IWUSR,
-			  show_in_max, set_in_max, 8);
+						  show_in_max, set_in_max, 8);
 static SENSOR_DEVICE_ATTR(in8_min, S_IRUGO | S_IWUSR,
-			  show_in_min, set_in_min, 8);
+						  show_in_min, set_in_min, 8);
 static SENSOR_DEVICE_ATTR(in9_input, S_IRUGO, show_in0, NULL, 9);
 static SENSOR_DEVICE_ATTR(in9_max, S_IRUGO | S_IWUSR,
-			  show_in0_max, set_in0_max, 9);
+						  show_in0_max, set_in0_max, 9);
 static SENSOR_DEVICE_ATTR(in9_min, S_IRUGO | S_IWUSR,
-			  show_in0_min, set_in0_min, 9);
+						  show_in0_min, set_in0_min, 9);
 static SENSOR_DEVICE_ATTR(in10_input, S_IRUGO, show_in0, NULL, 10);
 static SENSOR_DEVICE_ATTR(in10_max, S_IRUGO | S_IWUSR,
-			  show_in0_max, set_in0_max, 10);
+						  show_in0_max, set_in0_max, 10);
 static SENSOR_DEVICE_ATTR(in10_min, S_IRUGO | S_IWUSR,
-			  show_in0_min, set_in0_min, 10);
+						  show_in0_min, set_in0_min, 10);
 
 static SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, show_fan, NULL, 0);
 static SENSOR_DEVICE_ATTR(fan1_min, S_IRUGO | S_IWUSR,
-			  show_fan_min, set_fan_min, 0);
+						  show_fan_min, set_fan_min, 0);
 static SENSOR_DEVICE_ATTR(fan1_target, S_IRUGO | S_IWUSR,
-			  show_fan_target, set_fan_target, 0);
+						  show_fan_target, set_fan_target, 0);
 static SENSOR_DEVICE_ATTR(fan2_input, S_IRUGO, show_fan, NULL, 1);
 static SENSOR_DEVICE_ATTR(fan2_min, S_IRUGO | S_IWUSR,
-			  show_fan_min, set_fan_min, 1);
+						  show_fan_min, set_fan_min, 1);
 static SENSOR_DEVICE_ATTR(fan2_target, S_IRUGO | S_IWUSR,
-			  show_fan_target, set_fan_target, 1);
+						  show_fan_target, set_fan_target, 1);
 static SENSOR_DEVICE_ATTR(fan3_input, S_IRUGO, show_fan, NULL, 2);
 static SENSOR_DEVICE_ATTR(fan3_min, S_IRUGO | S_IWUSR,
-			  show_fan_min, set_fan_min, 2);
+						  show_fan_min, set_fan_min, 2);
 static SENSOR_DEVICE_ATTR(fan3_target, S_IRUGO | S_IWUSR,
-			  show_fan_target, set_fan_target, 2);
+						  show_fan_target, set_fan_target, 2);
 
 static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
 static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO | S_IWUSR,
-		    show_temp_max, set_temp_max, 0);
+						  show_temp_max, set_temp_max, 0);
 static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IRUGO | S_IWUSR,
-		    show_temp_hyst, set_temp_hyst, 0);
+						  show_temp_hyst, set_temp_hyst, 0);
 static SENSOR_DEVICE_ATTR(temp1_type, S_IRUGO, show_temp_type, NULL, 0);
 static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1);
 static SENSOR_DEVICE_ATTR(temp2_max, S_IRUGO | S_IWUSR,
-		    show_temp_max, set_temp_max, 1);
+						  show_temp_max, set_temp_max, 1);
 static SENSOR_DEVICE_ATTR(temp2_max_hyst, S_IRUGO | S_IWUSR,
-		    show_temp_hyst, set_temp_hyst, 1);
+						  show_temp_hyst, set_temp_hyst, 1);
 static SENSOR_DEVICE_ATTR(temp2_type, S_IRUGO, show_temp_type, NULL, 1);
 static SENSOR_DEVICE_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 2);
 static SENSOR_DEVICE_ATTR(temp3_max, S_IRUGO | S_IWUSR,
-		    show_temp_max, set_temp_max, 2);
+						  show_temp_max, set_temp_max, 2);
 static SENSOR_DEVICE_ATTR(temp3_max_hyst, S_IRUGO | S_IWUSR,
-		    show_temp_hyst, set_temp_hyst, 2);
+						  show_temp_hyst, set_temp_hyst, 2);
 static SENSOR_DEVICE_ATTR(temp3_type, S_IRUGO, show_temp_type, NULL, 2);
 
 /*
@@ -1085,79 +1207,79 @@ static SENSOR_DEVICE_ATTR(temp3_type, S_IRUGO, show_temp_type, NULL, 2);
  */
 static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO, show_pwm, set_pwm, 0);
 static SENSOR_DEVICE_ATTR(pwm1_enable, S_IRUGO | S_IWUSR,
-			  show_pwm_enable, set_pwm_enable, 0);
+						  show_pwm_enable, set_pwm_enable, 0);
 static SENSOR_DEVICE_ATTR(pwm1_freq, S_IRUGO | S_IWUSR,
-			  show_pwm_freq, set_pwm_freq, 0);
+						  show_pwm_freq, set_pwm_freq, 0);
 static SENSOR_DEVICE_ATTR(pwm1_mode, S_IRUGO, show_pwm_mode, NULL, 0);
 static SENSOR_DEVICE_ATTR(pwm2, S_IRUGO, show_pwm, set_pwm, 1);
 static SENSOR_DEVICE_ATTR(pwm2_enable, S_IRUGO | S_IWUSR,
-			  show_pwm_enable, set_pwm_enable, 1);
+						  show_pwm_enable, set_pwm_enable, 1);
 static SENSOR_DEVICE_ATTR(pwm2_freq, S_IRUGO | S_IWUSR,
-			  show_pwm_freq, set_pwm_freq, 1);
+						  show_pwm_freq, set_pwm_freq, 1);
 static SENSOR_DEVICE_ATTR(pwm2_mode, S_IRUGO, show_pwm_mode, NULL, 1);
 static SENSOR_DEVICE_ATTR(pwm3, S_IRUGO, show_pwm, set_pwm, 2);
 static SENSOR_DEVICE_ATTR(pwm3_enable, S_IRUGO | S_IWUSR,
-			  show_pwm_enable, set_pwm_enable, 2);
+						  show_pwm_enable, set_pwm_enable, 2);
 static SENSOR_DEVICE_ATTR(pwm3_freq, S_IRUGO | S_IWUSR,
-			  show_pwm_freq, set_pwm_freq, 2);
+						  show_pwm_freq, set_pwm_freq, 2);
 static SENSOR_DEVICE_ATTR(pwm3_mode, S_IRUGO, show_pwm_mode, NULL, 2);
 
 static SENSOR_DEVICE_ATTR_2(pwm1_auto_point1_temp, S_IRUGO | S_IWUSR,
-			    show_pwm_auto_point_temp, set_pwm_auto_point_temp,
-			    0, 0);
+							show_pwm_auto_point_temp, set_pwm_auto_point_temp,
+							0, 0);
 static SENSOR_DEVICE_ATTR_2(pwm1_auto_point1_fan, S_IRUGO | S_IWUSR,
-			    show_pwm_auto_point_fan, set_pwm_auto_point_fan,
-			    0, 0);
+							show_pwm_auto_point_fan, set_pwm_auto_point_fan,
+							0, 0);
 static SENSOR_DEVICE_ATTR_2(pwm1_auto_point2_temp, S_IRUGO | S_IWUSR,
-			    show_pwm_auto_point_temp, set_pwm_auto_point_temp,
-			    0, 1);
+							show_pwm_auto_point_temp, set_pwm_auto_point_temp,
+							0, 1);
 static SENSOR_DEVICE_ATTR_2(pwm1_auto_point2_fan, S_IRUGO | S_IWUSR,
-			    show_pwm_auto_point_fan, set_pwm_auto_point_fan,
-			    0, 1);
+							show_pwm_auto_point_fan, set_pwm_auto_point_fan,
+							0, 1);
 static SENSOR_DEVICE_ATTR_2(pwm1_auto_point3_temp, S_IRUGO | S_IWUSR,
-			    show_pwm_auto_point_temp, set_pwm_auto_point_temp,
-			    0, 2);
+							show_pwm_auto_point_temp, set_pwm_auto_point_temp,
+							0, 2);
 static SENSOR_DEVICE_ATTR_2(pwm1_auto_point3_fan, S_IRUGO | S_IWUSR,
-			    show_pwm_auto_point_fan, set_pwm_auto_point_fan,
-			    0, 2);
+							show_pwm_auto_point_fan, set_pwm_auto_point_fan,
+							0, 2);
 
 static SENSOR_DEVICE_ATTR_2(pwm2_auto_point1_temp, S_IRUGO | S_IWUSR,
-			    show_pwm_auto_point_temp, set_pwm_auto_point_temp,
-			    1, 0);
+							show_pwm_auto_point_temp, set_pwm_auto_point_temp,
+							1, 0);
 static SENSOR_DEVICE_ATTR_2(pwm2_auto_point1_fan, S_IRUGO | S_IWUSR,
-			    show_pwm_auto_point_fan, set_pwm_auto_point_fan,
-			    1, 0);
+							show_pwm_auto_point_fan, set_pwm_auto_point_fan,
+							1, 0);
 static SENSOR_DEVICE_ATTR_2(pwm2_auto_point2_temp, S_IRUGO | S_IWUSR,
-			    show_pwm_auto_point_temp, set_pwm_auto_point_temp,
-			    1, 1);
+							show_pwm_auto_point_temp, set_pwm_auto_point_temp,
+							1, 1);
 static SENSOR_DEVICE_ATTR_2(pwm2_auto_point2_fan, S_IRUGO | S_IWUSR,
-			    show_pwm_auto_point_fan, set_pwm_auto_point_fan,
-			    1, 1);
+							show_pwm_auto_point_fan, set_pwm_auto_point_fan,
+							1, 1);
 static SENSOR_DEVICE_ATTR_2(pwm2_auto_point3_temp, S_IRUGO | S_IWUSR,
-			    show_pwm_auto_point_temp, set_pwm_auto_point_temp,
-			    1, 2);
+							show_pwm_auto_point_temp, set_pwm_auto_point_temp,
+							1, 2);
 static SENSOR_DEVICE_ATTR_2(pwm2_auto_point3_fan, S_IRUGO | S_IWUSR,
-			    show_pwm_auto_point_fan, set_pwm_auto_point_fan,
-			    1, 2);
+							show_pwm_auto_point_fan, set_pwm_auto_point_fan,
+							1, 2);
 
 static SENSOR_DEVICE_ATTR_2(pwm3_auto_point1_temp, S_IRUGO | S_IWUSR,
-			    show_pwm_auto_point_temp, set_pwm_auto_point_temp,
-			    2, 0);
+							show_pwm_auto_point_temp, set_pwm_auto_point_temp,
+							2, 0);
 static SENSOR_DEVICE_ATTR_2(pwm3_auto_point1_fan, S_IRUGO | S_IWUSR,
-			    show_pwm_auto_point_fan, set_pwm_auto_point_fan,
-			    2, 0);
+							show_pwm_auto_point_fan, set_pwm_auto_point_fan,
+							2, 0);
 static SENSOR_DEVICE_ATTR_2(pwm3_auto_point2_temp, S_IRUGO | S_IWUSR,
-			    show_pwm_auto_point_temp, set_pwm_auto_point_temp,
-			    2, 1);
+							show_pwm_auto_point_temp, set_pwm_auto_point_temp,
+							2, 1);
 static SENSOR_DEVICE_ATTR_2(pwm3_auto_point2_fan, S_IRUGO | S_IWUSR,
-			    show_pwm_auto_point_fan, set_pwm_auto_point_fan,
-			    2, 1);
+							show_pwm_auto_point_fan, set_pwm_auto_point_fan,
+							2, 1);
 static SENSOR_DEVICE_ATTR_2(pwm3_auto_point3_temp, S_IRUGO | S_IWUSR,
-			    show_pwm_auto_point_temp, set_pwm_auto_point_temp,
-			    2, 2);
+							show_pwm_auto_point_temp, set_pwm_auto_point_temp,
+							2, 2);
 static SENSOR_DEVICE_ATTR_2(pwm3_auto_point3_fan, S_IRUGO | S_IWUSR,
-			    show_pwm_auto_point_fan, set_pwm_auto_point_fan,
-			    2, 2);
+							show_pwm_auto_point_fan, set_pwm_auto_point_fan,
+							2, 2);
 
 static SENSOR_DEVICE_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0);
 static SENSOR_DEVICE_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1);
@@ -1182,7 +1304,8 @@ static DEVICE_ATTR(alarms_temp, S_IRUGO, show_alarms_temp, NULL);
 
 static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
 
-static struct attribute *f71805f_attributes[] = {
+static struct attribute *f71805f_attributes[] =
+{
 	&sensor_dev_attr_in0_input.dev_attr.attr,
 	&sensor_dev_attr_in0_max.dev_attr.attr,
 	&sensor_dev_attr_in0_min.dev_attr.attr,
@@ -1278,11 +1401,13 @@ static struct attribute *f71805f_attributes[] = {
 	NULL
 };
 
-static const struct attribute_group f71805f_group = {
+static const struct attribute_group f71805f_group =
+{
 	.attrs = f71805f_attributes,
 };
 
-static struct attribute *f71805f_attributes_optin[4][5] = {
+static struct attribute *f71805f_attributes_optin[4][5] =
+{
 	{
 		&sensor_dev_attr_in4_input.dev_attr.attr,
 		&sensor_dev_attr_in4_max.dev_attr.attr,
@@ -1310,7 +1435,8 @@ static struct attribute *f71805f_attributes_optin[4][5] = {
 	}
 };
 
-static const struct attribute_group f71805f_group_optin[4] = {
+static const struct attribute_group f71805f_group_optin[4] =
+{
 	{ .attrs = f71805f_attributes_optin[0] },
 	{ .attrs = f71805f_attributes_optin[1] },
 	{ .attrs = f71805f_attributes_optin[2] },
@@ -1321,19 +1447,22 @@ static const struct attribute_group f71805f_group_optin[4] = {
  * We don't include pwm_freq files in the arrays above, because they must be
  * created conditionally (only if pwm_mode is 1 == PWM)
  */
-static struct attribute *f71805f_attributes_pwm_freq[] = {
+static struct attribute *f71805f_attributes_pwm_freq[] =
+{
 	&sensor_dev_attr_pwm1_freq.dev_attr.attr,
 	&sensor_dev_attr_pwm2_freq.dev_attr.attr,
 	&sensor_dev_attr_pwm3_freq.dev_attr.attr,
 	NULL
 };
 
-static const struct attribute_group f71805f_group_pwm_freq = {
+static const struct attribute_group f71805f_group_pwm_freq =
+{
 	.attrs = f71805f_attributes_pwm_freq,
 };
 
 /* We also need an indexed access to pwmN files to toggle writability */
-static struct attribute *f71805f_attr_pwm[] = {
+static struct attribute *f71805f_attr_pwm[] =
+{
 	&sensor_dev_attr_pwm1.dev_attr.attr,
 	&sensor_dev_attr_pwm2.dev_attr.attr,
 	&sensor_dev_attr_pwm3.dev_attr.attr,
@@ -1349,7 +1478,9 @@ static void f71805f_init_device(struct f71805f_data *data)
 	int i;
 
 	reg = f71805f_read8(data, F71805F_REG_START);
-	if ((reg & 0x41) != 0x01) {
+
+	if ((reg & 0x41) != 0x01)
+	{
 		pr_debug("Starting monitoring operations\n");
 		f71805f_write8(data, F71805F_REG_START, (reg | 0x01) & ~0x40);
 	}
@@ -1358,17 +1489,20 @@ static void f71805f_init_device(struct f71805f_data *data)
 	 * Fan monitoring can be disabled. If it is, we won't be polling
 	 * the register values, and won't create the related sysfs files.
 	 */
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		data->fan_ctrl[i] = f71805f_read8(data,
-						  F71805F_REG_FAN_CTRL(i));
+										  F71805F_REG_FAN_CTRL(i));
+
 		/*
 		 * Clear latch full bit, else "speed mode" fan speed control
 		 * doesn't work
 		 */
-		if (data->fan_ctrl[i] & FAN_CTRL_LATCH_FULL) {
+		if (data->fan_ctrl[i] & FAN_CTRL_LATCH_FULL)
+		{
 			data->fan_ctrl[i] &= ~FAN_CTRL_LATCH_FULL;
 			f71805f_write8(data, F71805F_REG_FAN_CTRL(i),
-				       data->fan_ctrl[i]);
+						   data->fan_ctrl[i]);
 		}
 	}
 }
@@ -1380,24 +1514,31 @@ static int f71805f_probe(struct platform_device *pdev)
 	struct resource *res;
 	int i, err;
 
-	static const char * const names[] = {
+	static const char *const names[] =
+	{
 		"f71805f",
 		"f71872f",
 	};
 
 	data = devm_kzalloc(&pdev->dev, sizeof(struct f71805f_data),
-			    GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+
 	if (!devm_request_region(&pdev->dev, res->start + ADDR_REG_OFFSET, 2,
-				 DRVNAME)) {
+							 DRVNAME))
+	{
 		dev_err(&pdev->dev, "Failed to request region 0x%lx-0x%lx\n",
-			(unsigned long)(res->start + ADDR_REG_OFFSET),
-			(unsigned long)(res->start + ADDR_REG_OFFSET + 1));
+				(unsigned long)(res->start + ADDR_REG_OFFSET),
+				(unsigned long)(res->start + ADDR_REG_OFFSET + 1));
 		return -EBUSY;
 	}
+
 	data->addr = res->start;
 	data->name = names[sio_data->kind];
 	mutex_init(&data->update_lock);
@@ -1405,17 +1546,26 @@ static int f71805f_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, data);
 
 	/* Some voltage inputs depend on chip model and configuration */
-	switch (sio_data->kind) {
-	case f71805f:
-		data->has_in = 0x1ff;
-		break;
-	case f71872f:
-		data->has_in = 0x6ef;
-		if (sio_data->fnsel1 & 0x01)
-			data->has_in |= (1 << 4); /* in4 */
-		if (sio_data->fnsel1 & 0x02)
-			data->has_in |= (1 << 8); /* in8 */
-		break;
+	switch (sio_data->kind)
+	{
+		case f71805f:
+			data->has_in = 0x1ff;
+			break;
+
+		case f71872f:
+			data->has_in = 0x6ef;
+
+			if (sio_data->fnsel1 & 0x01)
+			{
+				data->has_in |= (1 << 4);    /* in4 */
+			}
+
+			if (sio_data->fnsel1 & 0x02)
+			{
+				data->has_in |= (1 << 8);    /* in8 */
+			}
+
+			break;
 	}
 
 	/* Initialize the F71805F chip */
@@ -1423,55 +1573,90 @@ static int f71805f_probe(struct platform_device *pdev)
 
 	/* Register sysfs interface files */
 	err = sysfs_create_group(&pdev->dev.kobj, &f71805f_group);
+
 	if (err)
+	{
 		return err;
-	if (data->has_in & (1 << 4)) { /* in4 */
-		err = sysfs_create_group(&pdev->dev.kobj,
-					 &f71805f_group_optin[0]);
-		if (err)
-			goto exit_remove_files;
 	}
-	if (data->has_in & (1 << 8)) { /* in8 */
+
+	if (data->has_in & (1 << 4))   /* in4 */
+	{
 		err = sysfs_create_group(&pdev->dev.kobj,
-					 &f71805f_group_optin[1]);
+								 &f71805f_group_optin[0]);
+
 		if (err)
+		{
 			goto exit_remove_files;
-	}
-	if (data->has_in & (1 << 9)) { /* in9 (F71872F/FG only) */
-		err = sysfs_create_group(&pdev->dev.kobj,
-					 &f71805f_group_optin[2]);
-		if (err)
-			goto exit_remove_files;
-	}
-	if (data->has_in & (1 << 10)) { /* in9 (F71872F/FG only) */
-		err = sysfs_create_group(&pdev->dev.kobj,
-					 &f71805f_group_optin[3]);
-		if (err)
-			goto exit_remove_files;
-	}
-	for (i = 0; i < 3; i++) {
-		/* If control mode is PWM, create pwm_freq file */
-		if (!(data->fan_ctrl[i] & FAN_CTRL_DC_MODE)) {
-			err = sysfs_create_file(&pdev->dev.kobj,
-						f71805f_attributes_pwm_freq[i]);
-			if (err)
-				goto exit_remove_files;
 		}
+	}
+
+	if (data->has_in & (1 << 8))   /* in8 */
+	{
+		err = sysfs_create_group(&pdev->dev.kobj,
+								 &f71805f_group_optin[1]);
+
+		if (err)
+		{
+			goto exit_remove_files;
+		}
+	}
+
+	if (data->has_in & (1 << 9))   /* in9 (F71872F/FG only) */
+	{
+		err = sysfs_create_group(&pdev->dev.kobj,
+								 &f71805f_group_optin[2]);
+
+		if (err)
+		{
+			goto exit_remove_files;
+		}
+	}
+
+	if (data->has_in & (1 << 10))   /* in9 (F71872F/FG only) */
+	{
+		err = sysfs_create_group(&pdev->dev.kobj,
+								 &f71805f_group_optin[3]);
+
+		if (err)
+		{
+			goto exit_remove_files;
+		}
+	}
+
+	for (i = 0; i < 3; i++)
+	{
+		/* If control mode is PWM, create pwm_freq file */
+		if (!(data->fan_ctrl[i] & FAN_CTRL_DC_MODE))
+		{
+			err = sysfs_create_file(&pdev->dev.kobj,
+									f71805f_attributes_pwm_freq[i]);
+
+			if (err)
+			{
+				goto exit_remove_files;
+			}
+		}
+
 		/* If PWM is in manual mode, add write permission */
-		if (data->fan_ctrl[i] & FAN_CTRL_MODE_MANUAL) {
+		if (data->fan_ctrl[i] & FAN_CTRL_MODE_MANUAL)
+		{
 			err = sysfs_chmod_file(&pdev->dev.kobj,
-					       f71805f_attr_pwm[i],
-					       S_IRUGO | S_IWUSR);
-			if (err) {
+								   f71805f_attr_pwm[i],
+								   S_IRUGO | S_IWUSR);
+
+			if (err)
+			{
 				dev_err(&pdev->dev, "chmod +w pwm%d failed\n",
-					i + 1);
+						i + 1);
 				goto exit_remove_files;
 			}
 		}
 	}
 
 	data->hwmon_dev = hwmon_device_register(&pdev->dev);
-	if (IS_ERR(data->hwmon_dev)) {
+
+	if (IS_ERR(data->hwmon_dev))
+	{
 		err = PTR_ERR(data->hwmon_dev);
 		dev_err(&pdev->dev, "Class registration failed (%d)\n", err);
 		goto exit_remove_files;
@@ -1481,8 +1666,12 @@ static int f71805f_probe(struct platform_device *pdev)
 
 exit_remove_files:
 	sysfs_remove_group(&pdev->dev.kobj, &f71805f_group);
+
 	for (i = 0; i < 4; i++)
+	{
 		sysfs_remove_group(&pdev->dev.kobj, &f71805f_group_optin[i]);
+	}
+
 	sysfs_remove_group(&pdev->dev.kobj, &f71805f_group_pwm_freq);
 	return err;
 }
@@ -1494,14 +1683,19 @@ static int f71805f_remove(struct platform_device *pdev)
 
 	hwmon_device_unregister(data->hwmon_dev);
 	sysfs_remove_group(&pdev->dev.kobj, &f71805f_group);
+
 	for (i = 0; i < 4; i++)
+	{
 		sysfs_remove_group(&pdev->dev.kobj, &f71805f_group_optin[i]);
+	}
+
 	sysfs_remove_group(&pdev->dev.kobj, &f71805f_group_pwm_freq);
 
 	return 0;
 }
 
-static struct platform_driver f71805f_driver = {
+static struct platform_driver f71805f_driver =
+{
 	.driver = {
 		.name	= DRVNAME,
 	},
@@ -1510,9 +1704,10 @@ static struct platform_driver f71805f_driver = {
 };
 
 static int __init f71805f_device_add(unsigned short address,
-				     const struct f71805f_sio_data *sio_data)
+									 const struct f71805f_sio_data *sio_data)
 {
-	struct resource res = {
+	struct resource res =
+	{
 		.start	= address,
 		.end	= address + REGION_LENGTH - 1,
 		.flags	= IORESOURCE_IO,
@@ -1520,7 +1715,9 @@ static int __init f71805f_device_add(unsigned short address,
 	int err;
 
 	pdev = platform_device_alloc(DRVNAME, address);
-	if (!pdev) {
+
+	if (!pdev)
+	{
 		err = -ENOMEM;
 		pr_err("Device allocation failed\n");
 		goto exit;
@@ -1528,24 +1725,33 @@ static int __init f71805f_device_add(unsigned short address,
 
 	res.name = pdev->name;
 	err = acpi_check_resource_conflict(&res);
+
 	if (err)
+	{
 		goto exit_device_put;
+	}
 
 	err = platform_device_add_resources(pdev, &res, 1);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Device resource addition failed (%d)\n", err);
 		goto exit_device_put;
 	}
 
 	err = platform_device_add_data(pdev, sio_data,
-				       sizeof(struct f71805f_sio_data));
-	if (err) {
+								   sizeof(struct f71805f_sio_data));
+
+	if (err)
+	{
 		pr_err("Platform data allocation failed\n");
 		goto exit_device_put;
 	}
 
 	err = platform_device_add(pdev);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Device addition failed (%d)\n", err);
 		goto exit_device_put;
 	}
@@ -1559,12 +1765,13 @@ exit:
 }
 
 static int __init f71805f_find(int sioaddr, unsigned short *address,
-			       struct f71805f_sio_data *sio_data)
+							   struct f71805f_sio_data *sio_data)
 {
 	int err = -ENODEV;
 	u16 devid;
 
-	static const char * const names[] = {
+	static const char *const names[] =
+	{
 		"F71805F/FG",
 		"F71872F/FG or F71806F/FG",
 	};
@@ -1572,40 +1779,52 @@ static int __init f71805f_find(int sioaddr, unsigned short *address,
 	superio_enter(sioaddr);
 
 	devid = superio_inw(sioaddr, SIO_REG_MANID);
-	if (devid != SIO_FINTEK_ID)
-		goto exit;
 
-	devid = force_id ? force_id : superio_inw(sioaddr, SIO_REG_DEVID);
-	switch (devid) {
-	case SIO_F71805F_ID:
-		sio_data->kind = f71805f;
-		break;
-	case SIO_F71872F_ID:
-		sio_data->kind = f71872f;
-		sio_data->fnsel1 = superio_inb(sioaddr, SIO_REG_FNSEL1);
-		break;
-	default:
-		pr_info("Unsupported Fintek device, skipping\n");
+	if (devid != SIO_FINTEK_ID)
+	{
 		goto exit;
 	}
 
+	devid = force_id ? force_id : superio_inw(sioaddr, SIO_REG_DEVID);
+
+	switch (devid)
+	{
+		case SIO_F71805F_ID:
+			sio_data->kind = f71805f;
+			break;
+
+		case SIO_F71872F_ID:
+			sio_data->kind = f71872f;
+			sio_data->fnsel1 = superio_inb(sioaddr, SIO_REG_FNSEL1);
+			break;
+
+		default:
+			pr_info("Unsupported Fintek device, skipping\n");
+			goto exit;
+	}
+
 	superio_select(sioaddr, F71805F_LD_HWM);
-	if (!(superio_inb(sioaddr, SIO_REG_ENABLE) & 0x01)) {
+
+	if (!(superio_inb(sioaddr, SIO_REG_ENABLE) & 0x01))
+	{
 		pr_warn("Device not activated, skipping\n");
 		goto exit;
 	}
 
 	*address = superio_inw(sioaddr, SIO_REG_ADDR);
-	if (*address == 0) {
+
+	if (*address == 0)
+	{
 		pr_warn("Base address not set, skipping\n");
 		goto exit;
 	}
+
 	*address &= ~(REGION_LENGTH - 1);	/* Ignore 3 LSB */
 
 	err = 0;
 	pr_info("Found %s chip at %#x, revision %u\n",
-		names[sio_data->kind], *address,
-		superio_inb(sioaddr, SIO_REG_DEVREV));
+			names[sio_data->kind], *address,
+			superio_inb(sioaddr, SIO_REG_DEVREV));
 
 exit:
 	superio_exit(sioaddr);
@@ -1619,17 +1838,25 @@ static int __init f71805f_init(void)
 	struct f71805f_sio_data sio_data;
 
 	if (f71805f_find(0x2e, &address, &sio_data)
-	 && f71805f_find(0x4e, &address, &sio_data))
+		&& f71805f_find(0x4e, &address, &sio_data))
+	{
 		return -ENODEV;
+	}
 
 	err = platform_driver_register(&f71805f_driver);
+
 	if (err)
+	{
 		goto exit;
+	}
 
 	/* Sets global pdev as a side effect */
 	err = f71805f_device_add(address, &sio_data);
+
 	if (err)
+	{
 		goto exit_driver;
+	}
 
 	return 0;
 

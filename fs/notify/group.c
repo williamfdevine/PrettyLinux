@@ -34,7 +34,9 @@
 static void fsnotify_final_destroy_group(struct fsnotify_group *group)
 {
 	if (group->ops->free_group_priv)
+	{
 		group->ops->free_group_priv(group);
+	}
 
 	kfree(group);
 }
@@ -88,7 +90,9 @@ void fsnotify_destroy_group(struct fsnotify_group *group)
 	 * that deliberately ignores overflow events.
 	 */
 	if (group->overflow_event)
+	{
 		group->ops->free_event(group->overflow_event);
+	}
 
 	fsnotify_put_group(group);
 }
@@ -107,7 +111,9 @@ void fsnotify_get_group(struct fsnotify_group *group)
 void fsnotify_put_group(struct fsnotify_group *group)
 {
 	if (atomic_dec_and_test(&group->refcnt))
+	{
 		fsnotify_final_destroy_group(group);
+	}
 }
 
 /*
@@ -118,8 +124,11 @@ struct fsnotify_group *fsnotify_alloc_group(const struct fsnotify_ops *ops)
 	struct fsnotify_group *group;
 
 	group = kzalloc(sizeof(struct fsnotify_group), GFP_KERNEL);
+
 	if (!group)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	/* set to 0 when there a no external references to this group */
 	atomic_set(&group->refcnt, 1);

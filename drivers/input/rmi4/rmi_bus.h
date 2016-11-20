@@ -29,7 +29,8 @@ struct rmi_device;
  *
  * @node: entry in device's list of functions
  */
-struct rmi_function {
+struct rmi_function
+{
 	struct rmi_function_descriptor fd;
 	struct rmi_device *rmi_dev;
 	struct device dev;
@@ -67,7 +68,8 @@ void rmi_unregister_function(struct rmi_function *);
  *
  * All callbacks are expected to return 0 on success, error code on failure.
  */
-struct rmi_function_handler {
+struct rmi_function_handler
+{
 	struct device_driver driver;
 
 	u8 func;
@@ -82,10 +84,10 @@ struct rmi_function_handler {
 };
 
 #define to_rmi_function_handler(d) \
-		container_of(d, struct rmi_function_handler, driver)
+	container_of(d, struct rmi_function_handler, driver)
 
 int __must_check __rmi_register_function_handler(struct rmi_function_handler *,
-						 struct module *, const char *);
+		struct module *, const char *);
 #define rmi_register_function_handler(handler) \
 	__rmi_register_function_handler(handler, THIS_MODULE, KBUILD_MODNAME)
 
@@ -131,7 +133,7 @@ static inline int rmi_read(struct rmi_device *d, u16 addr, u8 *buf)
  * error code.
  */
 static inline int rmi_read_block(struct rmi_device *d, u16 addr,
-				 void *buf, size_t len)
+								 void *buf, size_t len)
 {
 	return d->xport->ops->read_block(d->xport, addr, buf, len);
 }
@@ -161,7 +163,7 @@ static inline int rmi_write(struct rmi_device *d, u16 addr, u8 data)
  * protocol.  It returns the amount of bytes written or a negative error code.
  */
 static inline int rmi_write_block(struct rmi_device *d, u16 addr,
-				  const void *buf, size_t len)
+								  const void *buf, size_t len)
 {
 	return d->xport->ops->write_block(d->xport, addr, buf, len);
 }
@@ -171,7 +173,7 @@ int rmi_for_each_dev(void *data, int (*func)(struct device *dev, void *data));
 extern struct bus_type rmi_bus_type;
 
 int rmi_of_property_read_u32(struct device *dev, u32 *result,
-				const char *prop, bool optional);
+							 const char *prop, bool optional);
 
 #define RMI_DEBUG_CORE			BIT(0)
 #define RMI_DEBUG_XPORT			BIT(1)

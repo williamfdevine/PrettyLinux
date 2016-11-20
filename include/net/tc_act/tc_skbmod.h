@@ -13,7 +13,8 @@
 #include <net/act_api.h>
 #include <linux/tc_act/tc_skbmod.h>
 
-struct tcf_skbmod_params {
+struct tcf_skbmod_params
+{
 	struct rcu_head	rcu;
 	u64	flags; /*up to 64 types of operations; extend if needed */
 	u8	eth_dst[ETH_ALEN];
@@ -21,7 +22,8 @@ struct tcf_skbmod_params {
 	u8	eth_src[ETH_ALEN];
 };
 
-struct tcf_skbmod {
+struct tcf_skbmod
+{
 	struct tc_action	common;
 	struct tcf_skbmod_params __rcu *skbmod_p;
 };

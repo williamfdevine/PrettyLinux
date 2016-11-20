@@ -11,15 +11,19 @@ static inline void arch_ftrace_nmi_exit(void) { }
 #endif
 
 #ifdef CONFIG_HWLAT_TRACER
-extern bool trace_hwlat_callback_enabled;
-extern void trace_hwlat_callback(bool enter);
+	extern bool trace_hwlat_callback_enabled;
+	extern void trace_hwlat_callback(bool enter);
 #endif
 
 static inline void ftrace_nmi_enter(void)
 {
 #ifdef CONFIG_HWLAT_TRACER
+
 	if (trace_hwlat_callback_enabled)
+	{
 		trace_hwlat_callback(true);
+	}
+
 #endif
 	arch_ftrace_nmi_enter();
 }
@@ -28,8 +32,12 @@ static inline void ftrace_nmi_exit(void)
 {
 	arch_ftrace_nmi_exit();
 #ifdef CONFIG_HWLAT_TRACER
+
 	if (trace_hwlat_callback_enabled)
+	{
 		trace_hwlat_callback(false);
+	}
+
 #endif
 }
 

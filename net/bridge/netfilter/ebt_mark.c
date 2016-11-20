@@ -25,13 +25,21 @@ ebt_mark_tg(struct sk_buff *skb, const struct xt_action_param *par)
 	int action = info->target & -16;
 
 	if (action == MARK_SET_VALUE)
+	{
 		skb->mark = info->mark;
+	}
 	else if (action == MARK_OR_VALUE)
+	{
 		skb->mark |= info->mark;
+	}
 	else if (action == MARK_AND_VALUE)
+	{
 		skb->mark &= info->mark;
+	}
 	else
+	{
 		skb->mark ^= info->mark;
+	}
 
 	return info->target | ~EBT_VERDICT_BITS;
 }
@@ -42,18 +50,30 @@ static int ebt_mark_tg_check(const struct xt_tgchk_param *par)
 	int tmp;
 
 	tmp = info->target | ~EBT_VERDICT_BITS;
+
 	if (BASE_CHAIN && tmp == EBT_RETURN)
+	{
 		return -EINVAL;
+	}
+
 	if (tmp < -NUM_STANDARD_TARGETS || tmp >= 0)
+	{
 		return -EINVAL;
+	}
+
 	tmp = info->target & ~EBT_VERDICT_BITS;
+
 	if (tmp != MARK_SET_VALUE && tmp != MARK_OR_VALUE &&
-	    tmp != MARK_AND_VALUE && tmp != MARK_XOR_VALUE)
+		tmp != MARK_AND_VALUE && tmp != MARK_XOR_VALUE)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 #ifdef CONFIG_COMPAT
-struct compat_ebt_mark_t_info {
+struct compat_ebt_mark_t_info
+{
 	compat_ulong_t mark;
 	compat_uint_t target;
 };
@@ -73,13 +93,17 @@ static int mark_tg_compat_to_user(void __user *dst, const void *src)
 	const struct ebt_mark_t_info *kern = src;
 
 	if (put_user(kern->mark, &user->mark) ||
-	    put_user(kern->target, &user->target))
+		put_user(kern->target, &user->target))
+	{
 		return -EFAULT;
+	}
+
 	return 0;
 }
 #endif
 
-static struct xt_target ebt_mark_tg_reg __read_mostly = {
+static struct xt_target ebt_mark_tg_reg __read_mostly =
+{
 	.name		= "mark",
 	.revision	= 0,
 	.family		= NFPROTO_BRIDGE,

@@ -4,10 +4,11 @@
 #include "smu72.h"
 
 #if !defined(SMC_MICROCODE)
-#pragma pack(push, 1)
+	#pragma pack(push, 1)
 #endif
 
-struct SMIO_Pattern {
+struct SMIO_Pattern
+{
 	uint16_t Voltage;
 	uint8_t  Smio;
 	uint8_t  padding;
@@ -15,13 +16,15 @@ struct SMIO_Pattern {
 
 typedef struct SMIO_Pattern SMIO_Pattern;
 
-struct SMIO_Table {
+struct SMIO_Table
+{
 	SMIO_Pattern Pattern[SMU_MAX_SMIO_LEVELS];
 };
 
 typedef struct SMIO_Table SMIO_Table;
 
-struct SMU72_Discrete_GraphicsLevel {
+struct SMU72_Discrete_GraphicsLevel
+{
 	SMU_VoltageLevel MinVoltage;
 
 	uint32_t    SclkFrequency;
@@ -48,7 +51,8 @@ struct SMU72_Discrete_GraphicsLevel {
 
 typedef struct SMU72_Discrete_GraphicsLevel SMU72_Discrete_GraphicsLevel;
 
-struct SMU72_Discrete_ACPILevel {
+struct SMU72_Discrete_ACPILevel
+{
 	uint32_t    Flags;
 	SMU_VoltageLevel MinVoltage;
 	uint32_t    SclkFrequency;
@@ -68,7 +72,8 @@ struct SMU72_Discrete_ACPILevel {
 
 typedef struct SMU72_Discrete_ACPILevel SMU72_Discrete_ACPILevel;
 
-struct SMU72_Discrete_Ulv {
+struct SMU72_Discrete_Ulv
+{
 	uint32_t    CcPwrDynRm;
 	uint32_t    CcPwrDynRm1;
 	uint16_t    VddcOffset;
@@ -79,7 +84,8 @@ struct SMU72_Discrete_Ulv {
 
 typedef struct SMU72_Discrete_Ulv SMU72_Discrete_Ulv;
 
-struct SMU72_Discrete_MemoryLevel {
+struct SMU72_Discrete_MemoryLevel
+{
 	SMU_VoltageLevel MinVoltage;
 	uint32_t    MinMvdd;
 
@@ -117,7 +123,8 @@ struct SMU72_Discrete_MemoryLevel {
 
 typedef struct SMU72_Discrete_MemoryLevel SMU72_Discrete_MemoryLevel;
 
-struct SMU72_Discrete_LinkLevel {
+struct SMU72_Discrete_LinkLevel
+{
 	uint8_t     PcieGenSpeed;           /*< 0:PciE-gen1 1:PciE-gen2 2:PciE-gen3 */
 	uint8_t     PcieLaneCount;          /*< 1=x1, 2=x2, 3=x4, 4=x8, 5=x12, 6=x16 */
 	uint8_t     EnabledForActivity;
@@ -130,7 +137,8 @@ struct SMU72_Discrete_LinkLevel {
 typedef struct SMU72_Discrete_LinkLevel SMU72_Discrete_LinkLevel;
 
 /* MC ARB DRAM Timing registers. */
-struct SMU72_Discrete_MCArbDramTimingTableEntry {
+struct SMU72_Discrete_MCArbDramTimingTableEntry
+{
 	uint32_t McArbDramTiming;
 	uint32_t McArbDramTiming2;
 	uint8_t  McArbBurstTime;
@@ -139,14 +147,16 @@ struct SMU72_Discrete_MCArbDramTimingTableEntry {
 
 typedef struct SMU72_Discrete_MCArbDramTimingTableEntry SMU72_Discrete_MCArbDramTimingTableEntry;
 
-struct SMU72_Discrete_MCArbDramTimingTable {
+struct SMU72_Discrete_MCArbDramTimingTable
+{
 	SMU72_Discrete_MCArbDramTimingTableEntry entries[SMU__NUM_SCLK_DPM_STATE][SMU__NUM_MCLK_DPM_LEVELS];
 };
 
 typedef struct SMU72_Discrete_MCArbDramTimingTable SMU72_Discrete_MCArbDramTimingTable;
 
 /* UVD VCLK/DCLK state (level) definition. */
-struct SMU72_Discrete_UvdLevel {
+struct SMU72_Discrete_UvdLevel
+{
 	uint32_t VclkFrequency;
 	uint32_t DclkFrequency;
 	SMU_VoltageLevel MinVoltage;
@@ -158,7 +168,8 @@ struct SMU72_Discrete_UvdLevel {
 typedef struct SMU72_Discrete_UvdLevel SMU72_Discrete_UvdLevel;
 
 /* Clocks for other external blocks (VCE, ACP, SAMU). */
-struct SMU72_Discrete_ExtClkLevel {
+struct SMU72_Discrete_ExtClkLevel
+{
 	uint32_t Frequency;
 	SMU_VoltageLevel MinVoltage;
 	uint8_t  Divider;
@@ -167,7 +178,8 @@ struct SMU72_Discrete_ExtClkLevel {
 
 typedef struct SMU72_Discrete_ExtClkLevel SMU72_Discrete_ExtClkLevel;
 
-struct SMU72_Discrete_StateInfo {
+struct SMU72_Discrete_StateInfo
+{
 	uint32_t SclkFrequency;
 	uint32_t MclkFrequency;
 	uint32_t VclkFrequency;
@@ -190,7 +202,8 @@ struct SMU72_Discrete_StateInfo {
 
 typedef struct SMU72_Discrete_StateInfo SMU72_Discrete_StateInfo;
 
-struct SMU72_Discrete_DpmTable {
+struct SMU72_Discrete_DpmTable
+{
 	/* Multi-DPM controller settings */
 	SMU72_PIDController                  GraphicsPIDController;
 	SMU72_PIDController                  MemoryPIDController;
@@ -330,20 +343,23 @@ typedef struct SMU72_Discrete_DpmTable SMU72_Discrete_DpmTable;
 #define SMU72_DISCRETE_MC_REGISTER_ARRAY_SIZE 16
 #define SMU72_DISCRETE_MC_REGISTER_ARRAY_SET_COUNT SMU72_MAX_LEVELS_MEMORY /* DPM */
 
-struct SMU72_Discrete_MCRegisterAddress {
+struct SMU72_Discrete_MCRegisterAddress
+{
 	uint16_t s0;
 	uint16_t s1;
 };
 
 typedef struct SMU72_Discrete_MCRegisterAddress SMU72_Discrete_MCRegisterAddress;
 
-struct SMU72_Discrete_MCRegisterSet {
+struct SMU72_Discrete_MCRegisterSet
+{
 	uint32_t value[SMU72_DISCRETE_MC_REGISTER_ARRAY_SIZE];
 };
 
 typedef struct SMU72_Discrete_MCRegisterSet SMU72_Discrete_MCRegisterSet;
 
-struct SMU72_Discrete_MCRegisters {
+struct SMU72_Discrete_MCRegisters
+{
 	uint8_t                             last;
 	uint8_t                             reserved[3];
 	SMU72_Discrete_MCRegisterAddress     address[SMU72_DISCRETE_MC_REGISTER_ARRAY_SIZE];
@@ -355,7 +371,8 @@ typedef struct SMU72_Discrete_MCRegisters SMU72_Discrete_MCRegisters;
 
 /* --------------------------------------------------- Fan Table ----------------------------------------------------------- */
 
-struct SMU72_Discrete_FanTable {
+struct SMU72_Discrete_FanTable
+{
 	uint16_t FdoMode;
 	int16_t  TempMin;
 	int16_t  TempMed;
@@ -381,7 +398,8 @@ typedef struct SMU72_Discrete_FanTable SMU72_Discrete_FanTable;
 #define SMU7_DISCRETE_GPIO_SCLK_DEBUG             4
 #define SMU7_DISCRETE_GPIO_SCLK_DEBUG_BIT         (0x1 << SMU7_DISCRETE_GPIO_SCLK_DEBUG)
 
-struct SMU7_MclkDpmScoreboard {
+struct SMU7_MclkDpmScoreboard
+{
 
 	uint32_t PercentageBusy;
 
@@ -452,7 +470,8 @@ struct SMU7_MclkDpmScoreboard {
 
 typedef struct SMU7_MclkDpmScoreboard SMU7_MclkDpmScoreboard;
 
-struct SMU7_UlvScoreboard {
+struct SMU7_UlvScoreboard
+{
 	uint8_t     EnterUlv;
 	uint8_t     ExitUlv;
 	uint8_t     UlvActive;
@@ -467,7 +486,8 @@ struct SMU7_UlvScoreboard {
 
 typedef struct SMU7_UlvScoreboard SMU7_UlvScoreboard;
 
-struct VddgfxSavedRegisters {
+struct VddgfxSavedRegisters
+{
 	uint32_t GPU_DBG[3];
 	uint32_t MEC_BaseAddress_Hi;
 	uint32_t MEC_BaseAddress_Lo;
@@ -478,7 +498,8 @@ struct VddgfxSavedRegisters {
 
 typedef struct VddgfxSavedRegisters VddgfxSavedRegisters;
 
-struct SMU7_VddGfxScoreboard {
+struct SMU7_VddGfxScoreboard
+{
 	uint8_t     VddGfxEnable;
 	uint8_t     VddGfxActive;
 	uint8_t     VPUResetOccured;
@@ -494,7 +515,8 @@ struct SMU7_VddGfxScoreboard {
 
 typedef struct SMU7_VddGfxScoreboard SMU7_VddGfxScoreboard;
 
-struct SMU7_TdcLimitScoreboard {
+struct SMU7_TdcLimitScoreboard
+{
 	uint8_t  Enable;
 	uint8_t  Running;
 	uint16_t Alpha;
@@ -506,7 +528,8 @@ struct SMU7_TdcLimitScoreboard {
 
 typedef struct SMU7_TdcLimitScoreboard SMU7_TdcLimitScoreboard;
 
-struct SMU7_PkgPwrLimitScoreboard {
+struct SMU7_PkgPwrLimitScoreboard
+{
 	uint8_t  Enable;
 	uint8_t  Running;
 	uint16_t Alpha;
@@ -519,7 +542,8 @@ struct SMU7_PkgPwrLimitScoreboard {
 
 typedef struct SMU7_PkgPwrLimitScoreboard SMU7_PkgPwrLimitScoreboard;
 
-struct SMU7_BapmScoreboard {
+struct SMU7_BapmScoreboard
+{
 	uint32_t source_powers[SMU72_DTE_SOURCES];
 	uint32_t source_powers_last[SMU72_DTE_SOURCES];
 	int32_t entity_temperatures[SMU72_NUM_GPU_TES];
@@ -546,7 +570,8 @@ struct SMU7_BapmScoreboard {
 
 typedef struct SMU7_BapmScoreboard SMU7_BapmScoreboard;
 
-struct SMU7_AcpiScoreboard {
+struct SMU7_AcpiScoreboard
+{
 	uint32_t SavedInterruptMask[2];
 	uint8_t LastACPIRequest;
 	uint8_t CgBifResp;
@@ -557,7 +582,8 @@ struct SMU7_AcpiScoreboard {
 
 typedef struct SMU7_AcpiScoreboard SMU7_AcpiScoreboard;
 
-struct SMU72_Discrete_PmFuses {
+struct SMU72_Discrete_PmFuses
+{
 	/* dw1  */
 	uint8_t SviLoadLineEn;
 	uint8_t SviLoadLineVddC;
@@ -599,7 +625,8 @@ struct SMU72_Discrete_PmFuses {
 
 typedef struct SMU72_Discrete_PmFuses SMU72_Discrete_PmFuses;
 
-struct SMU7_Discrete_Log_Header_Table {
+struct SMU7_Discrete_Log_Header_Table
+{
 	uint32_t    version;
 	uint32_t    asic_id;
 	uint16_t    flags;
@@ -614,7 +641,8 @@ struct SMU7_Discrete_Log_Header_Table {
 
 typedef struct SMU7_Discrete_Log_Header_Table SMU7_Discrete_Log_Header_Table;
 
-struct SMU7_Discrete_Log_Cntl {
+struct SMU7_Discrete_Log_Cntl
+{
 	uint8_t             Enabled;
 	uint8_t             Type;
 	uint8_t             padding[2];
@@ -629,14 +657,16 @@ typedef struct SMU7_Discrete_Log_Cntl SMU7_Discrete_Log_Cntl;
 
 #define CAC_ACC_NW_NUM_OF_SIGNALS 87
 
-struct SMU7_Discrete_Cac_Collection_Table {
+struct SMU7_Discrete_Cac_Collection_Table
+{
 	uint32_t temperature;
 	uint32_t cac_acc_nw[CAC_ACC_NW_NUM_OF_SIGNALS];
 };
 
 typedef struct SMU7_Discrete_Cac_Collection_Table SMU7_Discrete_Cac_Collection_Table;
 
-struct SMU7_Discrete_Cac_Verification_Table {
+struct SMU7_Discrete_Cac_Verification_Table
+{
 	uint32_t VddcTotalPower;
 	uint32_t VddcLeakagePower;
 	uint32_t VddcConstantPower;
@@ -662,7 +692,8 @@ struct SMU7_Discrete_Cac_Verification_Table {
 
 typedef struct SMU7_Discrete_Cac_Verification_Table SMU7_Discrete_Cac_Verification_Table;
 
-struct SMU7_Discrete_Pm_Status_Table {
+struct SMU7_Discrete_Pm_Status_Table
+{
 	/* Thermal entities */
 	int32_t T_meas_max;
 	int32_t T_meas_acc;
@@ -752,7 +783,7 @@ typedef struct SMU7_Discrete_Pm_Status_Table SMU7_Discrete_Pm_Status_Table;
 #define SMU7_THERM_OUT_MODE_THERM_VRHOT   0x2
 
 #if !defined(SMC_MICROCODE)
-#pragma pack(pop)
+	#pragma pack(pop)
 #endif
 
 

@@ -30,7 +30,8 @@
 #define SUN9I_MMC_GATE_BIT	16
 #define SUN9I_MMC_RESET_BIT	18
 
-struct sun9i_mmc_clk_data {
+struct sun9i_mmc_clk_data
+{
 	spinlock_t			lock;
 	void __iomem			*membase;
 	struct clk			*clk;
@@ -40,11 +41,11 @@ struct sun9i_mmc_clk_data {
 };
 
 static int sun9i_mmc_reset_assert(struct reset_controller_dev *rcdev,
-			      unsigned long id)
+								  unsigned long id)
 {
 	struct sun9i_mmc_clk_data *data = container_of(rcdev,
-						       struct sun9i_mmc_clk_data,
-						       rcdev);
+									  struct sun9i_mmc_clk_data,
+									  rcdev);
 	unsigned long flags;
 	void __iomem *reg = data->membase + SUN9I_MMC_WIDTH * id;
 	u32 val;
@@ -62,11 +63,11 @@ static int sun9i_mmc_reset_assert(struct reset_controller_dev *rcdev,
 }
 
 static int sun9i_mmc_reset_deassert(struct reset_controller_dev *rcdev,
-				unsigned long id)
+									unsigned long id)
 {
 	struct sun9i_mmc_clk_data *data = container_of(rcdev,
-						       struct sun9i_mmc_clk_data,
-						       rcdev);
+									  struct sun9i_mmc_clk_data,
+									  rcdev);
 	unsigned long flags;
 	void __iomem *reg = data->membase + SUN9I_MMC_WIDTH * id;
 	u32 val;
@@ -83,7 +84,8 @@ static int sun9i_mmc_reset_deassert(struct reset_controller_dev *rcdev,
 	return 0;
 }
 
-static const struct reset_control_ops sun9i_mmc_reset_ops = {
+static const struct reset_control_ops sun9i_mmc_reset_ops =
+{
 	.assert		= sun9i_mmc_reset_assert,
 	.deassert	= sun9i_mmc_reset_deassert,
 };
@@ -99,8 +101,11 @@ static int sun9i_a80_mmc_config_clk_probe(struct platform_device *pdev)
 	int count, i, ret;
 
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&data->lock);
 
@@ -108,54 +113,72 @@ static int sun9i_a80_mmc_config_clk_probe(struct platform_device *pdev)
 	/* one clock/reset pair per word */
 	count = DIV_ROUND_UP((resource_size(r)), SUN9I_MMC_WIDTH);
 	data->membase = devm_ioremap_resource(&pdev->dev, r);
+
 	if (IS_ERR(data->membase))
+	{
 		return PTR_ERR(data->membase);
+	}
 
 	clk_data = &data->clk_data;
 	clk_data->clk_num = count;
 	clk_data->clks = devm_kcalloc(&pdev->dev, count, sizeof(struct clk *),
-				      GFP_KERNEL);
+								  GFP_KERNEL);
+
 	if (!clk_data->clks)
+	{
 		return -ENOMEM;
+	}
 
 	data->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(data->clk)) {
+
+	if (IS_ERR(data->clk))
+	{
 		dev_err(&pdev->dev, "Could not get clock\n");
 		return PTR_ERR(data->clk);
 	}
 
 	data->reset = devm_reset_control_get(&pdev->dev, NULL);
-	if (IS_ERR(data->reset)) {
+
+	if (IS_ERR(data->reset))
+	{
 		dev_err(&pdev->dev, "Could not get reset control\n");
 		return PTR_ERR(data->reset);
 	}
 
 	ret = reset_control_deassert(data->reset);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Reset deassert err %d\n", ret);
 		return ret;
 	}
 
 	clk_parent = __clk_get_name(data->clk);
-	for (i = 0; i < count; i++) {
+
+	for (i = 0; i < count; i++)
+	{
 		of_property_read_string_index(np, "clock-output-names",
-					      i, &clk_name);
+									  i, &clk_name);
 
 		clk_data->clks[i] = clk_register_gate(&pdev->dev, clk_name,
-						      clk_parent, 0,
-						      data->membase + SUN9I_MMC_WIDTH * i,
-						      SUN9I_MMC_GATE_BIT, 0,
-						      &data->lock);
+											  clk_parent, 0,
+											  data->membase + SUN9I_MMC_WIDTH * i,
+											  SUN9I_MMC_GATE_BIT, 0,
+											  &data->lock);
 
-		if (IS_ERR(clk_data->clks[i])) {
+		if (IS_ERR(clk_data->clks[i]))
+		{
 			ret = PTR_ERR(clk_data->clks[i]);
 			goto err_clk_register;
 		}
 	}
 
 	ret = of_clk_add_provider(np, of_clk_src_onecell_get, clk_data);
+
 	if (ret)
+	{
 		goto err_clk_provider;
+	}
 
 	data->rcdev.owner = THIS_MODULE;
 	data->rcdev.nr_resets = count;
@@ -163,8 +186,11 @@ static int sun9i_a80_mmc_config_clk_probe(struct platform_device *pdev)
 	data->rcdev.of_node = pdev->dev.of_node;
 
 	ret = reset_controller_register(&data->rcdev);
+
 	if (ret)
+	{
 		goto err_rc_reg;
+	}
 
 	platform_set_drvdata(pdev, data);
 
@@ -174,8 +200,11 @@ err_rc_reg:
 	of_clk_del_provider(np);
 
 err_clk_provider:
+
 	for (i = 0; i < count; i++)
+	{
 		clk_unregister(clk_data->clks[i]);
+	}
 
 err_clk_register:
 	reset_control_assert(data->reset);
@@ -183,12 +212,14 @@ err_clk_register:
 	return ret;
 }
 
-static const struct of_device_id sun9i_a80_mmc_config_clk_dt_ids[] = {
+static const struct of_device_id sun9i_a80_mmc_config_clk_dt_ids[] =
+{
 	{ .compatible = "allwinner,sun9i-a80-mmc-config-clk" },
 	{ /* sentinel */ }
 };
 
-static struct platform_driver sun9i_a80_mmc_config_clk_driver = {
+static struct platform_driver sun9i_a80_mmc_config_clk_driver =
+{
 	.driver = {
 		.name = "sun9i-a80-mmc-config-clk",
 		.suppress_bind_attrs = true,

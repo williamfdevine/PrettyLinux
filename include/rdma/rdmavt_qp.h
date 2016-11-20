@@ -125,8 +125,8 @@
  * Wait flags that would prevent send work requests from making progress.
  */
 #define RVT_S_ANY_WAIT_SEND (RVT_S_WAIT_FENCE | RVT_S_WAIT_RDMAR | \
-	RVT_S_WAIT_RNR | RVT_S_WAIT_SSN_CREDIT | RVT_S_WAIT_DMA | \
-	RVT_S_WAIT_PSN | RVT_S_WAIT_ACK)
+							 RVT_S_WAIT_RNR | RVT_S_WAIT_SSN_CREDIT | RVT_S_WAIT_DMA | \
+							 RVT_S_WAIT_PSN | RVT_S_WAIT_ACK)
 
 #define RVT_S_ANY_WAIT (RVT_S_ANY_WAIT_IO | RVT_S_ANY_WAIT_SEND)
 
@@ -155,8 +155,10 @@
  * The size of the sg_list is determined when the QP is created and stored
  * in qp->s_max_sge.
  */
-struct rvt_swqe {
-	union {
+struct rvt_swqe
+{
+	union
+	{
 		struct ib_send_wr wr;   /* don't use wr.sg_list */
 		struct ib_ud_wr ud_wr;
 		struct ib_reg_wr reg_wr;
@@ -175,7 +177,8 @@ struct rvt_swqe {
  * The size of the sg_list is determined when the QP (or SRQ) is created
  * and stored in qp->r_rq.max_sge (or srq->rq.max_sge).
  */
-struct rvt_rwqe {
+struct rvt_rwqe
+{
 	u64 wr_id;
 	u8 num_sge;
 	struct ib_sge sg_list[0];
@@ -189,13 +192,15 @@ struct rvt_rwqe {
  * just index into the array to get the N'th element;
  * use get_rwqe_ptr() instead.
  */
-struct rvt_rwq {
+struct rvt_rwq
+{
 	u32 head;               /* new work requests posted to the head */
 	u32 tail;               /* receives pull requests from here. */
 	struct rvt_rwqe wq[0];
 };
 
-struct rvt_rq {
+struct rvt_rq
+{
 	struct rvt_rwq *wq;
 	u32 size;               /* size of RWQE array */
 	u8 max_sge;
@@ -208,7 +213,8 @@ struct rvt_rq {
  * when an mmap() request is made.  The vm_area_struct then uses
  * this as its vm_private_data.
  */
-struct rvt_mmap_info {
+struct rvt_mmap_info
+{
 	struct list_head pending_mmaps;
 	struct ib_ucontext *context;
 	void *obj;
@@ -221,7 +227,8 @@ struct rvt_mmap_info {
  * This structure holds the information that the send tasklet needs
  * to send a RDMA read response or atomic operation.
  */
-struct rvt_ack_entry {
+struct rvt_ack_entry
+{
 	struct rvt_sge rdma_sge;
 	u64 atomic_data;
 	u32 psn;
@@ -252,7 +259,8 @@ struct rvt_ack_entry {
  *
  **/
 
-struct rvt_operation_params {
+struct rvt_operation_params
+{
 	size_t length;
 	u32 qpt_support;
 	u32 flags;
@@ -262,7 +270,8 @@ struct rvt_operation_params {
  * Common variables are protected by both r_rq.lock and s_lock in that order
  * which only happens in modify_qp() or changing the QP 'state'.
  */
-struct rvt_qp {
+struct rvt_qp
+{
 	struct ib_qp ibqp;
 	void *priv; /* Driver private data */
 	/* read mostly fields above and below */
@@ -379,7 +388,8 @@ struct rvt_qp {
 		____cacheline_aligned_in_smp;
 };
 
-struct rvt_srq {
+struct rvt_srq
+{
 	struct ib_srq ibsrq;
 	struct rvt_rq rq;
 	struct rvt_mmap_info *ip;
@@ -398,11 +408,13 @@ struct rvt_srq {
  * first use and are never deallocated. This way,
  * large bitmaps are not allocated unless large numbers of QPs are used.
  */
-struct rvt_qpn_map {
+struct rvt_qpn_map
+{
 	void *page;
 };
 
-struct rvt_qpn_table {
+struct rvt_qpn_table
+{
 	spinlock_t lock; /* protect changes to the qp table */
 	unsigned flags;         /* flags for QP0/1 allocated for each port */
 	u32 last;               /* last QP number allocated */
@@ -413,7 +425,8 @@ struct rvt_qpn_table {
 	struct rvt_qpn_map map[RVT_QPNMAP_ENTRIES];
 };
 
-struct rvt_qp_ibdev {
+struct rvt_qp_ibdev
+{
 	u32 qp_table_size;
 	u32 qp_table_bits;
 	struct rvt_qp __rcu **qp_table;
@@ -426,12 +439,14 @@ struct rvt_qp_ibdev {
  * All attached QPs are then stored as a list of
  * struct rvt_mcast_qp.
  */
-struct rvt_mcast_qp {
+struct rvt_mcast_qp
+{
 	struct list_head list;
 	struct rvt_qp *qp;
 };
 
-struct rvt_mcast {
+struct rvt_mcast
+{
 	struct rb_node rb_node;
 	union ib_gid mgid;
 	struct list_head qp_list;
@@ -445,12 +460,12 @@ struct rvt_mcast {
  * struct rvt_qp.s_wq.  This function does the array index computation.
  */
 static inline struct rvt_swqe *rvt_get_swqe_ptr(struct rvt_qp *qp,
-						unsigned n)
+		unsigned n)
 {
 	return (struct rvt_swqe *)((char *)qp->s_wq +
-				     (sizeof(struct rvt_swqe) +
-				      qp->s_max_sge *
-				      sizeof(struct rvt_sge)) * n);
+							   (sizeof(struct rvt_swqe) +
+								qp->s_max_sge *
+								sizeof(struct rvt_sge)) * n);
 }
 
 /*
@@ -460,9 +475,9 @@ static inline struct rvt_swqe *rvt_get_swqe_ptr(struct rvt_qp *qp,
 static inline struct rvt_rwqe *rvt_get_rwqe_ptr(struct rvt_rq *rq, unsigned n)
 {
 	return (struct rvt_rwqe *)
-		((char *)rq->wq->wq +
-		 (sizeof(struct rvt_rwqe) +
-		  rq->max_sge * sizeof(struct ib_sge)) * n);
+		   ((char *)rq->wq->wq +
+			(sizeof(struct rvt_rwqe) +
+			 rq->max_sge * sizeof(struct ib_sge)) * n);
 }
 
 /**
@@ -481,7 +496,9 @@ static inline void rvt_get_qp(struct rvt_qp *qp)
 static inline void rvt_put_qp(struct rvt_qp *qp)
 {
 	if (qp && atomic_dec_and_test(&qp->refcount))
+	{
 		wake_up(&qp->wait);
+	}
 }
 
 /**
@@ -519,7 +536,8 @@ static inline void rvt_qp_wqe_unreserve(
 	struct rvt_qp *qp,
 	struct rvt_swqe *wqe)
 {
-	if (unlikely(wqe->wr.send_flags & RVT_SEND_RESERVE_USED)) {
+	if (unlikely(wqe->wr.send_flags & RVT_SEND_RESERVE_USED))
+	{
 		wqe->wr.send_flags &= ~RVT_SEND_RESERVE_USED;
 		atomic_dec(&qp->s_reserved_used);
 		/* insure no compiler re-order up to s_last change */

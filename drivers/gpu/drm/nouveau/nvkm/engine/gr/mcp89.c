@@ -24,7 +24,8 @@
 #include "nv50.h"
 
 static const struct nvkm_gr_func
-mcp89_gr = {
+	mcp89_gr =
+{
 	.init = nv50_gr_init,
 	.intr = nv50_gr_intr,
 	.chan_new = nv50_gr_chan_new,

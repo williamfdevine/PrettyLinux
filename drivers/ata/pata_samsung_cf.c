@@ -52,7 +52,8 @@
 #define S3C_ATA_CFG_SWAP	0x40
 #define S3C_ATA_CFG_IORDYEN	0x02
 
-enum s3c_cpu_type {
+enum s3c_cpu_type
+{
 	TYPE_S3C64XX,
 	TYPE_S5PV210,
 };
@@ -66,7 +67,8 @@ enum s3c_cpu_type {
  * @cpu_type: The exact type of this controller.
  * @fifo_status_reg: The ATA_FIFO_STATUS register offset.
  */
-struct s3c_ide_info {
+struct s3c_ide_info
+{
 	struct clk *clk;
 	void __iomem *ide_addr;
 	void __iomem *sfr_addr;
@@ -86,7 +88,7 @@ static void pata_s3c_cfg_mode(void __iomem *s3c_ide_sfrbase)
 {
 	/* Select true-ide as the internal operating mode */
 	writel(readl(s3c_ide_sfrbase + S3C_CFATA_MUX) | S3C_CFATA_MUX_TRUEIDE,
-		s3c_ide_sfrbase + S3C_CFATA_MUX);
+		   s3c_ide_sfrbase + S3C_CFATA_MUX);
 }
 
 static unsigned long
@@ -112,14 +114,18 @@ static void pata_s3c_set_piomode(struct ata_port *ap, struct ata_device *adev)
 
 	/* Enables IORDY if mode requires it */
 	if (ata_pio_need_iordy(adev))
+	{
 		ata_cfg |= S3C_ATA_CFG_IORDYEN;
+	}
 	else
+	{
 		ata_cfg &= ~S3C_ATA_CFG_IORDYEN;
+	}
 
 	cycle_time = (int)(1000000000UL / clk_get_rate(info->clk));
 
 	ata_timing_compute(adev, adev->pio_mode, &timing,
-					cycle_time * 1000, 0);
+					   cycle_time * 1000, 0);
 
 	piotime = pata_s3c_setup_timing(info, &timing);
 
@@ -138,10 +144,15 @@ static int wait_for_host_ready(struct s3c_ide_info *info)
 
 	/* wait for maximum of 20 msec */
 	timeout = jiffies + msecs_to_jiffies(20);
-	while (time_before(jiffies, timeout)) {
+
+	while (time_before(jiffies, timeout))
+	{
 		if ((readl(fifo_reg) >> 28) == 0)
+		{
 			return 0;
+		}
 	}
+
 	return -EBUSY;
 }
 
@@ -175,18 +186,20 @@ static u8 ata_inb(struct ata_host *host, void __iomem *reg)
  * pata_s3c_tf_load - send taskfile registers to host controller
  */
 static void pata_s3c_tf_load(struct ata_port *ap,
-				const struct ata_taskfile *tf)
+							 const struct ata_taskfile *tf)
 {
 	struct ata_ioports *ioaddr = &ap->ioaddr;
 	unsigned int is_addr = tf->flags & ATA_TFLAG_ISADDR;
 
-	if (tf->ctl != ap->last_ctl) {
+	if (tf->ctl != ap->last_ctl)
+	{
 		ata_outb(ap->host, tf->ctl, ioaddr->ctl_addr);
 		ap->last_ctl = tf->ctl;
 		ata_wait_idle(ap);
 	}
 
-	if (is_addr && (tf->flags & ATA_TFLAG_LBA48)) {
+	if (is_addr && (tf->flags & ATA_TFLAG_LBA48))
+	{
 		ata_outb(ap->host, tf->hob_feature, ioaddr->feature_addr);
 		ata_outb(ap->host, tf->hob_nsect, ioaddr->nsect_addr);
 		ata_outb(ap->host, tf->hob_lbal, ioaddr->lbal_addr);
@@ -194,7 +207,8 @@ static void pata_s3c_tf_load(struct ata_port *ap,
 		ata_outb(ap->host, tf->hob_lbah, ioaddr->lbah_addr);
 	}
 
-	if (is_addr) {
+	if (is_addr)
+	{
 		ata_outb(ap->host, tf->feature, ioaddr->feature_addr);
 		ata_outb(ap->host, tf->nsect, ioaddr->nsect_addr);
 		ata_outb(ap->host, tf->lbal, ioaddr->lbal_addr);
@@ -203,7 +217,9 @@ static void pata_s3c_tf_load(struct ata_port *ap,
 	}
 
 	if (tf->flags & ATA_TFLAG_DEVICE)
+	{
 		ata_outb(ap->host, tf->device, ioaddr->device_addr);
+	}
 
 	ata_wait_idle(ap);
 }
@@ -222,7 +238,8 @@ static void pata_s3c_tf_read(struct ata_port *ap, struct ata_taskfile *tf)
 	tf->lbah = ata_inb(ap->host, ioaddr->lbah_addr);
 	tf->device = ata_inb(ap->host, ioaddr->device_addr);
 
-	if (tf->flags & ATA_TFLAG_LBA48) {
+	if (tf->flags & ATA_TFLAG_LBA48)
+	{
 		ata_outb(ap->host, tf->ctl | ATA_HOB, ioaddr->ctl_addr);
 		tf->hob_feature = ata_inb(ap->host, ioaddr->error_addr);
 		tf->hob_nsect = ata_inb(ap->host, ioaddr->nsect_addr);
@@ -238,7 +255,7 @@ static void pata_s3c_tf_read(struct ata_port *ap, struct ata_taskfile *tf)
  * pata_s3c_exec_command - issue ATA command to host controller
  */
 static void pata_s3c_exec_command(struct ata_port *ap,
-				const struct ata_taskfile *tf)
+								  const struct ata_taskfile *tf)
 {
 	ata_outb(ap->host, tf->command, ap->ioaddr.command_addr);
 	ata_sff_pause(ap);
@@ -264,7 +281,7 @@ static u8 pata_s3c_check_altstatus(struct ata_port *ap)
  * pata_s3c_data_xfer - Transfer data by PIO
  */
 static unsigned int pata_s3c_data_xfer(struct ata_device *dev,
-				unsigned char *buf, unsigned int buflen, int rw)
+									   unsigned char *buf, unsigned int buflen, int rw)
 {
 	struct ata_port *ap = dev->link->ap;
 	struct s3c_ide_info *info = ap->host->private_data;
@@ -274,21 +291,25 @@ static unsigned int pata_s3c_data_xfer(struct ata_device *dev,
 
 	/* Requires wait same as in ata_inb/ata_outb */
 	if (rw == READ)
-		for (i = 0; i < words; i++, data_ptr++) {
+		for (i = 0; i < words; i++, data_ptr++)
+		{
 			wait_for_host_ready(info);
 			(void) readw(data_addr);
 			wait_for_host_ready(info);
 			*data_ptr = readw(info->ide_addr
-					+ S3C_ATA_PIO_RDATA);
+							  + S3C_ATA_PIO_RDATA);
 		}
 	else
-		for (i = 0; i < words; i++, data_ptr++) {
+		for (i = 0; i < words; i++, data_ptr++)
+		{
 			wait_for_host_ready(info);
 			writew(*data_ptr, data_addr);
 		}
 
 	if (buflen & 0x01)
+	{
 		dev_err(ap->dev, "unexpected trailing data\n");
+	}
 
 	return words << 1;
 }
@@ -301,7 +322,9 @@ static void pata_s3c_dev_select(struct ata_port *ap, unsigned int device)
 	u8 tmp = ATA_DEVICE_OBS;
 
 	if (device != 0)
+	{
 		tmp |= ATA_DEV1;
+	}
 
 	ata_outb(ap->host, tmp, ap->ioaddr.device_addr);
 	ata_sff_pause(ap);
@@ -311,7 +334,7 @@ static void pata_s3c_dev_select(struct ata_port *ap, unsigned int device)
  * pata_s3c_devchk - PATA device presence detection
  */
 static unsigned int pata_s3c_devchk(struct ata_port *ap,
-				unsigned int device)
+									unsigned int device)
 {
 	struct ata_ioports *ioaddr = &ap->ioaddr;
 	u8 nsect, lbal;
@@ -331,7 +354,9 @@ static unsigned int pata_s3c_devchk(struct ata_port *ap,
 	lbal = ata_inb(ap->host, ioaddr->lbal_addr);
 
 	if ((nsect == 0x55) && (lbal == 0xaa))
-		return 1;	/* we found a device */
+	{
+		return 1;    /* we found a device */
+	}
 
 	return 0;		/* nothing found */
 }
@@ -340,7 +365,7 @@ static unsigned int pata_s3c_devchk(struct ata_port *ap,
  * pata_s3c_wait_after_reset - wait for devices to become ready after reset
  */
 static int pata_s3c_wait_after_reset(struct ata_link *link,
-		unsigned long deadline)
+									 unsigned long deadline)
 {
 	int rc;
 
@@ -348,11 +373,14 @@ static int pata_s3c_wait_after_reset(struct ata_link *link,
 
 	/* always check readiness of the master device */
 	rc = ata_sff_wait_ready(link, deadline);
+
 	/* -ENODEV means the odd clown forgot the D7 pulldown resistor
 	 * and TF status is 0xff, bail out on it too.
 	 */
 	if (rc)
+	{
 		return rc;
+	}
 
 	return 0;
 }
@@ -361,7 +389,7 @@ static int pata_s3c_wait_after_reset(struct ata_link *link,
  * pata_s3c_bus_softreset - PATA device software reset
  */
 static int pata_s3c_bus_softreset(struct ata_port *ap,
-		unsigned long deadline)
+								  unsigned long deadline)
 {
 	struct ata_ioports *ioaddr = &ap->ioaddr;
 
@@ -380,7 +408,7 @@ static int pata_s3c_bus_softreset(struct ata_port *ap,
  * pata_s3c_softreset - reset host port via ATA SRST
  */
 static int pata_s3c_softreset(struct ata_link *link, unsigned int *classes,
-			 unsigned long deadline)
+							  unsigned long deadline)
 {
 	struct ata_port *ap = link->ap;
 	unsigned int devmask = 0;
@@ -389,22 +417,26 @@ static int pata_s3c_softreset(struct ata_link *link, unsigned int *classes,
 
 	/* determine if device 0 is present */
 	if (pata_s3c_devchk(ap, 0))
+	{
 		devmask |= (1 << 0);
+	}
 
 	/* select device 0 again */
 	pata_s3c_dev_select(ap, 0);
 
 	/* issue bus reset */
 	rc = pata_s3c_bus_softreset(ap, deadline);
+
 	/* if link is occupied, -ENODEV too is an error */
-	if (rc && rc != -ENODEV) {
+	if (rc && rc != -ENODEV)
+	{
 		ata_link_err(link, "SRST failed (errno=%d)\n", rc);
 		return rc;
 	}
 
 	/* determine by signature whether we have ATA or ATAPI devices */
 	classes[0] = ata_sff_dev_classify(&ap->link.device[0],
-					  devmask & (1 << 0), &err);
+									  devmask & (1 << 0), &err);
 
 	return 0;
 }
@@ -417,11 +449,13 @@ static void pata_s3c_set_devctl(struct ata_port *ap, u8 ctl)
 	ata_outb(ap->host, ctl, ap->ioaddr.ctl_addr);
 }
 
-static struct scsi_host_template pata_s3c_sht = {
+static struct scsi_host_template pata_s3c_sht =
+{
 	ATA_PIO_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations pata_s3c_port_ops = {
+static struct ata_port_operations pata_s3c_port_ops =
+{
 	.inherits		= &ata_sff_port_ops,
 	.sff_check_status	= pata_s3c_check_status,
 	.sff_check_altstatus    = pata_s3c_check_altstatus,
@@ -435,7 +469,8 @@ static struct ata_port_operations pata_s3c_port_ops = {
 	.set_piomode		= pata_s3c_set_piomode,
 };
 
-static struct ata_port_operations pata_s5p_port_ops = {
+static struct ata_port_operations pata_s5p_port_ops =
+{
 	.inherits		= &ata_sff_port_ops,
 	.set_piomode		= pata_s3c_set_piomode,
 };
@@ -460,34 +495,35 @@ static irqreturn_t pata_s3c_irq(int irq, void *dev_instance)
 }
 
 static void pata_s3c_hwinit(struct s3c_ide_info *info,
-				struct s3c_ide_platdata *pdata)
+							struct s3c_ide_platdata *pdata)
 {
-	switch (info->cpu_type) {
-	case TYPE_S3C64XX:
-		/* Configure as big endian */
-		pata_s3c_cfg_mode(info->sfr_addr);
-		pata_s3c_set_endian(info->ide_addr, 1);
-		pata_s3c_enable(info->ide_addr, true);
-		msleep(100);
+	switch (info->cpu_type)
+	{
+		case TYPE_S3C64XX:
+			/* Configure as big endian */
+			pata_s3c_cfg_mode(info->sfr_addr);
+			pata_s3c_set_endian(info->ide_addr, 1);
+			pata_s3c_enable(info->ide_addr, true);
+			msleep(100);
 
-		/* Remove IRQ Status */
-		writel(0x1f, info->ide_addr + S3C_ATA_IRQ);
-		writel(0x1b, info->ide_addr + S3C_ATA_IRQ_MSK);
-		break;
+			/* Remove IRQ Status */
+			writel(0x1f, info->ide_addr + S3C_ATA_IRQ);
+			writel(0x1b, info->ide_addr + S3C_ATA_IRQ_MSK);
+			break;
 
-	case TYPE_S5PV210:
-		/* Configure as little endian */
-		pata_s3c_set_endian(info->ide_addr, 0);
-		pata_s3c_enable(info->ide_addr, true);
-		msleep(100);
+		case TYPE_S5PV210:
+			/* Configure as little endian */
+			pata_s3c_set_endian(info->ide_addr, 0);
+			pata_s3c_enable(info->ide_addr, true);
+			msleep(100);
 
-		/* Remove IRQ Status */
-		writel(0x3f, info->ide_addr + S3C_ATA_IRQ);
-		writel(0x3f, info->ide_addr + S3C_ATA_IRQ_MSK);
-		break;
+			/* Remove IRQ Status */
+			writel(0x3f, info->ide_addr + S3C_ATA_IRQ);
+			writel(0x3f, info->ide_addr + S3C_ATA_IRQ_MSK);
+			break;
 
-	default:
-		BUG();
+		default:
+			BUG();
 	}
 }
 
@@ -505,7 +541,9 @@ static int __init pata_s3c_probe(struct platform_device *pdev)
 	cpu_type = platform_get_device_id(pdev)->driver_data;
 
 	info = devm_kzalloc(dev, sizeof(*info), GFP_KERNEL);
-	if (!info) {
+
+	if (!info)
+	{
 		dev_err(dev, "failed to allocate memory for device data\n");
 		return -ENOMEM;
 	}
@@ -515,11 +553,16 @@ static int __init pata_s3c_probe(struct platform_device *pdev)
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 
 	info->ide_addr = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(info->ide_addr))
+	{
 		return PTR_ERR(info->ide_addr);
+	}
 
 	info->clk = devm_clk_get(&pdev->dev, "cfcon");
-	if (IS_ERR(info->clk)) {
+
+	if (IS_ERR(info->clk))
+	{
 		dev_err(dev, "failed to get access to cf controller clock\n");
 		ret = PTR_ERR(info->clk);
 		info->clk = NULL;
@@ -530,7 +573,9 @@ static int __init pata_s3c_probe(struct platform_device *pdev)
 
 	/* init ata host */
 	host = ata_host_alloc(dev, 1);
-	if (!host) {
+
+	if (!host)
+	{
 		dev_err(dev, "failed to allocate ide host\n");
 		ret = -ENOMEM;
 		goto stop_clk;
@@ -539,19 +584,23 @@ static int __init pata_s3c_probe(struct platform_device *pdev)
 	ap = host->ports[0];
 	ap->pio_mask = ATA_PIO4;
 
-	if (cpu_type == TYPE_S3C64XX) {
+	if (cpu_type == TYPE_S3C64XX)
+	{
 		ap->ops = &pata_s3c_port_ops;
 		info->sfr_addr = info->ide_addr + 0x1800;
 		info->ide_addr += 0x1900;
 		info->fifo_status_reg = 0x94;
-	} else {
+	}
+	else
+	{
 		ap->ops = &pata_s5p_port_ops;
 		info->fifo_status_reg = 0x84;
 	}
 
 	info->cpu_type = cpu_type;
 
-	if (info->irq <= 0) {
+	if (info->irq <= 0)
+	{
 		ap->flags |= ATA_FLAG_PIO_POLLING;
 		info->irq = 0;
 		ata_port_desc(ap, "no IRQ, using PIO polling\n");
@@ -572,12 +621,14 @@ static int __init pata_s3c_probe(struct platform_device *pdev)
 	ap->ioaddr.ctl_addr = info->ide_addr + S3C_ATA_PIO_DAD;
 
 	ata_port_desc(ap, "mmio cmd 0x%llx ",
-			(unsigned long long)res->start);
+				  (unsigned long long)res->start);
 
 	host->private_data = info;
 
 	if (pdata && pdata->setup_gpio)
+	{
 		pdata->setup_gpio();
+	}
 
 	/* Set endianness and enable the interface */
 	pata_s3c_hwinit(info, pdata);
@@ -585,10 +636,13 @@ static int __init pata_s3c_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, host);
 
 	ret = ata_host_activate(host, info->irq,
-				info->irq ? pata_s3c_irq : NULL,
-				0, &pata_s3c_sht);
+							info->irq ? pata_s3c_irq : NULL,
+							0, &pata_s3c_sht);
+
 	if (ret)
+	{
 		goto stop_clk;
+	}
 
 	return 0;
 
@@ -631,14 +685,16 @@ static int pata_s3c_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops pata_s3c_pm_ops = {
+static const struct dev_pm_ops pata_s3c_pm_ops =
+{
 	.suspend	= pata_s3c_suspend,
 	.resume		= pata_s3c_resume,
 };
 #endif
 
 /* driver device registration */
-static const struct platform_device_id pata_s3c_driver_ids[] = {
+static const struct platform_device_id pata_s3c_driver_ids[] =
+{
 	{
 		.name		= "s3c64xx-pata",
 		.driver_data	= TYPE_S3C64XX,
@@ -651,7 +707,8 @@ static const struct platform_device_id pata_s3c_driver_ids[] = {
 
 MODULE_DEVICE_TABLE(platform, pata_s3c_driver_ids);
 
-static struct platform_driver pata_s3c_driver = {
+static struct platform_driver pata_s3c_driver =
+{
 	.remove		= __exit_p(pata_s3c_remove),
 	.id_table	= pata_s3c_driver_ids,
 	.driver		= {

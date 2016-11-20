@@ -64,7 +64,8 @@ extern const struct xfs_buf_ops xfs_rtbuf_ops;
  * the amount of space needed to log the item it describes
  * once we get to commit processing (see xfs_trans_commit()).
  */
-struct xfs_log_item_desc {
+struct xfs_log_item_desc
+{
 	struct xfs_log_item	*lid_item;
 	struct list_head	lid_trans;
 	unsigned char		lid_flags;
@@ -138,10 +139,10 @@ int	xfs_log_calc_minimum_size(struct xfs_mount *);
  */
 int xfs_symlink_blocks(struct xfs_mount *mp, int pathlen);
 int xfs_symlink_hdr_set(struct xfs_mount *mp, xfs_ino_t ino, uint32_t offset,
-			uint32_t size, struct xfs_buf *bp);
+						uint32_t size, struct xfs_buf *bp);
 bool xfs_symlink_hdr_ok(xfs_ino_t ino, uint32_t offset,
-			uint32_t size, struct xfs_buf *bp);
+						uint32_t size, struct xfs_buf *bp);
 void xfs_symlink_local_to_remote(struct xfs_trans *tp, struct xfs_buf *bp,
-				 struct xfs_inode *ip, struct xfs_ifork *ifp);
+								 struct xfs_inode *ip, struct xfs_ifork *ifp);
 
 #endif /* __XFS_SHARED_H__ */

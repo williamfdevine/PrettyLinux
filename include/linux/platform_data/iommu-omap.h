@@ -24,12 +24,14 @@
  * dev_archdata so generic IOMMU API can be used without having to
  * utilize omap-specific plumbing anymore.
  */
-struct omap_iommu_arch_data {
+struct omap_iommu_arch_data
+{
 	const char *name;
 	struct omap_iommu *iommu_dev;
 };
 
-struct iommu_platform_data {
+struct iommu_platform_data
+{
 	const char *name;
 	const char *reset_name;
 	int nr_tlb_entries;

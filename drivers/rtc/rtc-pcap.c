@@ -20,7 +20,8 @@
 #include <linux/slab.h>
 #include <linux/platform_device.h>
 
-struct pcap_rtc {
+struct pcap_rtc
+{
 	struct pcap_chip *pcap;
 	struct rtc_device *rtc;
 };
@@ -31,11 +32,17 @@ static irqreturn_t pcap_rtc_irq(int irq, void *_pcap_rtc)
 	unsigned long rtc_events;
 
 	if (irq == pcap_to_irq(pcap_rtc->pcap, PCAP_IRQ_1HZ))
+	{
 		rtc_events = RTC_IRQF | RTC_UF;
+	}
 	else if (irq == pcap_to_irq(pcap_rtc->pcap, PCAP_IRQ_TODA))
+	{
 		rtc_events = RTC_IRQF | RTC_AF;
+	}
 	else
+	{
 		rtc_events = 0;
+	}
 
 	rtc_update_irq(pcap_rtc->rtc, 1, rtc_events);
 	return IRQ_HANDLED;
@@ -119,9 +126,13 @@ static int pcap_rtc_irq_enable(struct device *dev, int pirq, unsigned int en)
 	struct pcap_rtc *pcap_rtc = platform_get_drvdata(pdev);
 
 	if (en)
+	{
 		enable_irq(pcap_to_irq(pcap_rtc->pcap, pirq));
+	}
 	else
+	{
 		disable_irq(pcap_to_irq(pcap_rtc->pcap, pirq));
+	}
 
 	return 0;
 }
@@ -131,7 +142,8 @@ static int pcap_rtc_alarm_irq_enable(struct device *dev, unsigned int en)
 	return pcap_rtc_irq_enable(dev, PCAP_IRQ_TODA, en);
 }
 
-static const struct rtc_class_ops pcap_rtc_ops = {
+static const struct rtc_class_ops pcap_rtc_ops =
+{
 	.read_time = pcap_rtc_read_time,
 	.read_alarm = pcap_rtc_read_alarm,
 	.set_alarm = pcap_rtc_set_alarm,
@@ -146,9 +158,12 @@ static int __init pcap_rtc_probe(struct platform_device *pdev)
 	int err = -ENOMEM;
 
 	pcap_rtc = devm_kzalloc(&pdev->dev, sizeof(struct pcap_rtc),
-				GFP_KERNEL);
+							GFP_KERNEL);
+
 	if (!pcap_rtc)
+	{
 		return err;
+	}
 
 	pcap_rtc->pcap = dev_get_drvdata(pdev->dev.parent);
 
@@ -156,21 +171,30 @@ static int __init pcap_rtc_probe(struct platform_device *pdev)
 
 	pcap_rtc->rtc = devm_rtc_device_register(&pdev->dev, "pcap",
 					&pcap_rtc_ops, THIS_MODULE);
+
 	if (IS_ERR(pcap_rtc->rtc))
+	{
 		return PTR_ERR(pcap_rtc->rtc);
+	}
 
 	timer_irq = pcap_to_irq(pcap_rtc->pcap, PCAP_IRQ_1HZ);
 	alarm_irq = pcap_to_irq(pcap_rtc->pcap, PCAP_IRQ_TODA);
 
 	err = devm_request_irq(&pdev->dev, timer_irq, pcap_rtc_irq, 0,
-				"RTC Timer", pcap_rtc);
+						   "RTC Timer", pcap_rtc);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = devm_request_irq(&pdev->dev, alarm_irq, pcap_rtc_irq, 0,
-				"RTC Alarm", pcap_rtc);
+						   "RTC Alarm", pcap_rtc);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -180,7 +204,8 @@ static int __exit pcap_rtc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver pcap_rtc_driver = {
+static struct platform_driver pcap_rtc_driver =
+{
 	.remove = __exit_p(pcap_rtc_remove),
 	.driver = {
 		.name  = "pcap-rtc",

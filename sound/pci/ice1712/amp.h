@@ -22,15 +22,15 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
- */      
+ */
 
 #define  AMP_AUDIO2000_DEVICE_DESC 	       "{AMP Ltd,AUDIO2000},"\
-					       "{Chaintech,AV-710},"
+	"{Chaintech,AV-710},"
 
 #if 0
-#define VT1724_SUBDEVICE_AUDIO2000	0x12142417	/* Advanced Micro Peripherals Ltd AUDIO2000 */
+	#define VT1724_SUBDEVICE_AUDIO2000	0x12142417	/* Advanced Micro Peripherals Ltd AUDIO2000 */
 #else
-#define VT1724_SUBDEVICE_AUDIO2000	0x00030003	/* a dummy ID for AMP Audio2000 */
+	#define VT1724_SUBDEVICE_AUDIO2000	0x00030003	/* a dummy ID for AMP Audio2000 */
 #endif
 #define VT1724_SUBDEVICE_AV710		0x12142417	/* AV710 - the same ID with Audio2000! */
 

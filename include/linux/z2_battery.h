@@ -1,7 +1,8 @@
 #ifndef _LINUX_Z2_BATTERY_H
 #define _LINUX_Z2_BATTERY_H
 
-struct z2_battery_info {
+struct z2_battery_info
+{
 	int	 batt_I2C_bus;
 	int	 batt_I2C_addr;
 	int	 batt_I2C_reg;

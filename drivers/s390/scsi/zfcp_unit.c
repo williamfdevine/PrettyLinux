@@ -27,13 +27,13 @@ void zfcp_unit_scsi_scan(struct zfcp_unit *unit)
 
 	if (rport && rport->port_state == FC_PORTSTATE_ONLINE)
 		scsi_scan_target(&rport->dev, 0, rport->scsi_target_id, lun,
-				 SCSI_SCAN_MANUAL);
+						 SCSI_SCAN_MANUAL);
 }
 
 static void zfcp_unit_scsi_scan_work(struct work_struct *work)
 {
 	struct zfcp_unit *unit = container_of(work, struct zfcp_unit,
-					      scsi_work);
+										  scsi_work);
 
 	zfcp_unit_scsi_scan(unit);
 	put_device(&unit->dev);
@@ -54,11 +54,15 @@ void zfcp_unit_queue_scsi_scan(struct zfcp_port *port)
 	struct zfcp_unit *unit;
 
 	read_lock_irq(&port->unit_list_lock);
-	list_for_each_entry(unit, &port->unit_list, list) {
+	list_for_each_entry(unit, &port->unit_list, list)
+	{
 		get_device(&unit->dev);
+
 		if (scsi_queue_work(port->adapter->scsi_host,
-				    &unit->scsi_work) <= 0)
+							&unit->scsi_work) <= 0)
+		{
 			put_device(&unit->dev);
+		}
 	}
 	read_unlock_irq(&port->unit_list_lock);
 }
@@ -68,10 +72,12 @@ static struct zfcp_unit *_zfcp_unit_find(struct zfcp_port *port, u64 fcp_lun)
 	struct zfcp_unit *unit;
 
 	list_for_each_entry(unit, &port->unit_list, list)
-		if (unit->fcp_lun == fcp_lun) {
-			get_device(&unit->dev);
-			return unit;
-		}
+
+	if (unit->fcp_lun == fcp_lun)
+	{
+		get_device(&unit->dev);
+		return unit;
+	}
 
 	return NULL;
 }
@@ -123,21 +129,27 @@ int zfcp_unit_add(struct zfcp_port *port, u64 fcp_lun)
 	int retval = 0;
 
 	mutex_lock(&zfcp_sysfs_port_units_mutex);
-	if (atomic_read(&port->units) == -1) {
+
+	if (atomic_read(&port->units) == -1)
+	{
 		/* port is already gone */
 		retval = -ENODEV;
 		goto out;
 	}
 
 	unit = zfcp_unit_find(port, fcp_lun);
-	if (unit) {
+
+	if (unit)
+	{
 		put_device(&unit->dev);
 		retval = -EEXIST;
 		goto out;
 	}
 
 	unit = kzalloc(sizeof(struct zfcp_unit), GFP_KERNEL);
-	if (!unit) {
+
+	if (!unit)
+	{
 		retval = -ENOMEM;
 		goto out;
 	}
@@ -150,13 +162,15 @@ int zfcp_unit_add(struct zfcp_port *port, u64 fcp_lun)
 	INIT_WORK(&unit->scsi_work, zfcp_unit_scsi_scan_work);
 
 	if (dev_set_name(&unit->dev, "0x%016llx",
-			 (unsigned long long) fcp_lun)) {
+					 (unsigned long long) fcp_lun))
+	{
 		kfree(unit);
 		retval = -ENOMEM;
 		goto out;
 	}
 
-	if (device_register(&unit->dev)) {
+	if (device_register(&unit->dev))
+	{
 		put_device(&unit->dev);
 		retval = -ENOMEM;
 		goto out;
@@ -211,7 +225,9 @@ unsigned int zfcp_unit_sdev_status(struct zfcp_unit *unit)
 	struct zfcp_scsi_dev *zfcp_sdev;
 
 	sdev = zfcp_unit_sdev(unit);
-	if (sdev) {
+
+	if (sdev)
+	{
 		zfcp_sdev = sdev_to_zfcp(sdev);
 		status = atomic_read(&zfcp_sdev->status);
 		scsi_device_put(sdev);
@@ -235,15 +251,23 @@ int zfcp_unit_remove(struct zfcp_port *port, u64 fcp_lun)
 
 	write_lock_irq(&port->unit_list_lock);
 	unit = _zfcp_unit_find(port, fcp_lun);
+
 	if (unit)
+	{
 		list_del(&unit->list);
+	}
+
 	write_unlock_irq(&port->unit_list_lock);
 
 	if (!unit)
+	{
 		return -EINVAL;
+	}
 
 	sdev = zfcp_unit_sdev(unit);
-	if (sdev) {
+
+	if (sdev)
+	{
 		scsi_remove_device(sdev);
 		scsi_device_put(sdev);
 	}

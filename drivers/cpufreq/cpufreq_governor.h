@@ -37,7 +37,8 @@ enum {OD_NORMAL_SAMPLE, OD_SUB_SAMPLE};
  */
 
 /* Governor demand based switching data (per-policy or global). */
-struct dbs_data {
+struct dbs_data
+{
 	struct gov_attr_set attr_set;
 	void *tuners;
 	unsigned int min_sampling_rate;
@@ -54,32 +55,33 @@ static inline struct dbs_data *to_dbs_data(struct gov_attr_set *attr_set)
 }
 
 #define gov_show_one(_gov, file_name)					\
-static ssize_t show_##file_name						\
-(struct gov_attr_set *attr_set, char *buf)				\
-{									\
-	struct dbs_data *dbs_data = to_dbs_data(attr_set);		\
-	struct _gov##_dbs_tuners *tuners = dbs_data->tuners;		\
-	return sprintf(buf, "%u\n", tuners->file_name);			\
-}
+	static ssize_t show_##file_name						\
+	(struct gov_attr_set *attr_set, char *buf)				\
+	{									\
+		struct dbs_data *dbs_data = to_dbs_data(attr_set);		\
+		struct _gov##_dbs_tuners *tuners = dbs_data->tuners;		\
+		return sprintf(buf, "%u\n", tuners->file_name);			\
+	}
 
 #define gov_show_one_common(file_name)					\
-static ssize_t show_##file_name						\
-(struct gov_attr_set *attr_set, char *buf)				\
-{									\
-	struct dbs_data *dbs_data = to_dbs_data(attr_set);		\
-	return sprintf(buf, "%u\n", dbs_data->file_name);		\
-}
+	static ssize_t show_##file_name						\
+	(struct gov_attr_set *attr_set, char *buf)				\
+	{									\
+		struct dbs_data *dbs_data = to_dbs_data(attr_set);		\
+		return sprintf(buf, "%u\n", dbs_data->file_name);		\
+	}
 
 #define gov_attr_ro(_name)						\
-static struct governor_attr _name =					\
-__ATTR(_name, 0444, show_##_name, NULL)
+	static struct governor_attr _name =					\
+			__ATTR(_name, 0444, show_##_name, NULL)
 
 #define gov_attr_rw(_name)						\
-static struct governor_attr _name =					\
-__ATTR(_name, 0644, show_##_name, store_##_name)
+	static struct governor_attr _name =					\
+			__ATTR(_name, 0644, show_##_name, store_##_name)
 
 /* Common to all CPUs of a policy */
-struct policy_dbs_info {
+struct policy_dbs_info
+{
 	struct cpufreq_policy *policy;
 	/*
 	 * Per policy mutex that serializes load evaluation from limit-change
@@ -103,13 +105,14 @@ struct policy_dbs_info {
 };
 
 static inline void gov_update_sample_delay(struct policy_dbs_info *policy_dbs,
-					   unsigned int delay_us)
+		unsigned int delay_us)
 {
 	policy_dbs->sample_delay_ns = delay_us * NSEC_PER_USEC;
 }
 
 /* Per cpu structures */
-struct cpu_dbs_info {
+struct cpu_dbs_info
+{
 	u64 prev_cpu_idle;
 	u64 prev_update_time;
 	u64 prev_cpu_nice;
@@ -125,7 +128,8 @@ struct cpu_dbs_info {
 };
 
 /* Common Governor data across policies */
-struct dbs_governor {
+struct dbs_governor
+{
 	struct cpufreq_governor gov;
 	struct kobj_type kobj_type;
 
@@ -158,27 +162,28 @@ void cpufreq_dbs_governor_limits(struct cpufreq_policy *policy);
 #define CPUFREQ_DBS_GOVERNOR_INITIALIZER(_name_)			\
 	{								\
 		.name = _name_,						\
-		.max_transition_latency	= TRANSITION_LATENCY_LIMIT,	\
-		.owner = THIS_MODULE,					\
-		.init = cpufreq_dbs_governor_init,			\
-		.exit = cpufreq_dbs_governor_exit,			\
-		.start = cpufreq_dbs_governor_start,			\
-		.stop = cpufreq_dbs_governor_stop,			\
-		.limits = cpufreq_dbs_governor_limits,			\
+				.max_transition_latency	= TRANSITION_LATENCY_LIMIT,	\
+										  .owner = THIS_MODULE,					\
+												  .init = cpufreq_dbs_governor_init,			\
+														  .exit = cpufreq_dbs_governor_exit,			\
+																  .start = cpufreq_dbs_governor_start,			\
+																		  .stop = cpufreq_dbs_governor_stop,			\
+																				  .limits = cpufreq_dbs_governor_limits,			\
 	}
 
 /* Governor specific operations */
-struct od_ops {
+struct od_ops
+{
 	unsigned int (*powersave_bias_target)(struct cpufreq_policy *policy,
-			unsigned int freq_next, unsigned int relation);
+										  unsigned int freq_next, unsigned int relation);
 };
 
 unsigned int dbs_update(struct cpufreq_policy *policy);
 void od_register_powersave_bias_handler(unsigned int (*f)
-		(struct cpufreq_policy *, unsigned int, unsigned int),
-		unsigned int powersave_bias);
+										(struct cpufreq_policy *, unsigned int, unsigned int),
+										unsigned int powersave_bias);
 void od_unregister_powersave_bias_handler(void);
 ssize_t store_sampling_rate(struct gov_attr_set *attr_set, const char *buf,
-			    size_t count);
+							size_t count);
 void gov_update_cpu_data(struct dbs_data *dbs_data);
 #endif /* _CPUFREQ_GOVERNOR_H */

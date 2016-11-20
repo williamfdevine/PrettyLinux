@@ -15,62 +15,63 @@
 
 #ifdef __KERNEL__
 
-/* Set to 1 to use kernel-wide empty_zero_page */
-#define RAID6_USE_EMPTY_ZERO_PAGE 0
-#include <linux/blkdev.h>
+	/* Set to 1 to use kernel-wide empty_zero_page */
+	#define RAID6_USE_EMPTY_ZERO_PAGE 0
+	#include <linux/blkdev.h>
 
-/* We need a pre-zeroed page... if we don't want to use the kernel-provided
-   one define it here */
-#if RAID6_USE_EMPTY_ZERO_PAGE
-# define raid6_empty_zero_page empty_zero_page
-#else
-extern const char raid6_empty_zero_page[PAGE_SIZE];
-#endif
+	/* We need a pre-zeroed page... if we don't want to use the kernel-provided
+	one define it here */
+	#if RAID6_USE_EMPTY_ZERO_PAGE
+		#define raid6_empty_zero_page empty_zero_page
+	#else
+		extern const char raid6_empty_zero_page[PAGE_SIZE];
+	#endif
 
 #else /* ! __KERNEL__ */
-/* Used for testing in user space */
+	/* Used for testing in user space */
 
-#include <errno.h>
-#include <inttypes.h>
-#include <limits.h>
-#include <stddef.h>
-#include <sys/mman.h>
-#include <sys/types.h>
+	#include <errno.h>
+	#include <inttypes.h>
+	#include <limits.h>
+	#include <stddef.h>
+	#include <sys/mman.h>
+	#include <sys/types.h>
 
-/* Not standard, but glibc defines it */
-#define BITS_PER_LONG __WORDSIZE
+	/* Not standard, but glibc defines it */
+	#define BITS_PER_LONG __WORDSIZE
 
-typedef uint8_t  u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
+	typedef uint8_t  u8;
+	typedef uint16_t u16;
+	typedef uint32_t u32;
+	typedef uint64_t u64;
 
-#ifndef PAGE_SIZE
-# define PAGE_SIZE 4096
-#endif
-extern const char raid6_empty_zero_page[PAGE_SIZE];
+	#ifndef PAGE_SIZE
+		#define PAGE_SIZE 4096
+	#endif
+	extern const char raid6_empty_zero_page[PAGE_SIZE];
 
-#define __init
-#define __exit
-#define __attribute_const__ __attribute__((const))
-#define noinline __attribute__((noinline))
+	#define __init
+	#define __exit
+	#define __attribute_const__ __attribute__((const))
+	#define noinline __attribute__((noinline))
 
-#define preempt_enable()
-#define preempt_disable()
-#define cpu_has_feature(x) 1
-#define enable_kernel_altivec()
-#define disable_kernel_altivec()
+	#define preempt_enable()
+	#define preempt_disable()
+	#define cpu_has_feature(x) 1
+	#define enable_kernel_altivec()
+	#define disable_kernel_altivec()
 
-#define EXPORT_SYMBOL(sym)
-#define EXPORT_SYMBOL_GPL(sym)
-#define MODULE_LICENSE(licence)
-#define MODULE_DESCRIPTION(desc)
-#define subsys_initcall(x)
-#define module_exit(x)
+	#define EXPORT_SYMBOL(sym)
+	#define EXPORT_SYMBOL_GPL(sym)
+	#define MODULE_LICENSE(licence)
+	#define MODULE_DESCRIPTION(desc)
+	#define subsys_initcall(x)
+	#define module_exit(x)
 #endif /* __KERNEL__ */
 
 /* Routine choices */
-struct raid6_calls {
+struct raid6_calls
+{
 	void (*gen_syndrome)(int, size_t, void **);
 	void (*xor_syndrome)(int, int, int, size_t, void **);
 	int  (*valid)(void);	/* Returns 1 if this routine set is usable */
@@ -108,7 +109,8 @@ extern const struct raid6_calls raid6_avx512x4;
 extern const struct raid6_calls raid6_tilegx8;
 extern const struct raid6_calls raid6_s390vx8;
 
-struct raid6_recov_calls {
+struct raid6_recov_calls
+{
 	void (*data2)(int, size_t, int, int, void **);
 	void (*datap)(int, size_t, int, void **);
 	int  (*valid)(void);
@@ -128,7 +130,7 @@ extern const struct raid6_calls raid6_neonx4;
 extern const struct raid6_calls raid6_neonx8;
 
 /* Algorithm list */
-extern const struct raid6_calls * const raid6_algos[];
+extern const struct raid6_calls *const raid6_algos[];
 extern const struct raid6_recov_calls *const raid6_recov_algos[];
 int raid6_select_algo(void);
 
@@ -147,11 +149,11 @@ extern const u8 raid6_gfexi[256]      __attribute__((aligned(256)));
 
 /* Recovery routines */
 extern void (*raid6_2data_recov)(int disks, size_t bytes, int faila, int failb,
-		       void **ptrs);
+								 void **ptrs);
 extern void (*raid6_datap_recov)(int disks, size_t bytes, int faila,
-			void **ptrs);
+								 void **ptrs);
 void raid6_dual_recov(int disks, size_t bytes, int faila, int failb,
-		      void **ptrs);
+					  void **ptrs);
 
 /* Some definitions to allow code to be compiled for testing in userspace */
 #ifndef __KERNEL__
@@ -162,9 +164,9 @@ void raid6_dual_recov(int disks, size_t bytes, int faila, int failb,
 # define pr_info(format, ...) fprintf(stdout, format, ## __VA_ARGS__)
 # define GFP_KERNEL	0
 # define __get_free_pages(x, y)	((unsigned long)mmap(NULL, PAGE_SIZE << (y), \
-						     PROT_READ|PROT_WRITE,   \
-						     MAP_PRIVATE|MAP_ANONYMOUS,\
-						     0, 0))
+								 PROT_READ|PROT_WRITE,   \
+								 MAP_PRIVATE|MAP_ANONYMOUS,\
+								 0, 0))
 # define free_pages(x, y)	munmap((void *)(x), PAGE_SIZE << (y))
 
 static inline void cpu_relax(void)
@@ -178,7 +180,7 @@ static inline uint32_t raid6_jiffies(void)
 {
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
-	return tv.tv_sec*1000 + tv.tv_usec/1000;
+	return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
 #endif /* ! __KERNEL__ */

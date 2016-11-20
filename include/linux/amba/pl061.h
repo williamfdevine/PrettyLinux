@@ -2,7 +2,8 @@
 
 /* platform data for the PL061 GPIO driver */
 
-struct pl061_platform_data {
+struct pl061_platform_data
+{
 	/* number of the first GPIO */
 	unsigned	gpio_base;
 

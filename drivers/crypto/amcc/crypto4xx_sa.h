@@ -26,26 +26,28 @@
 /**
  * Contents of Dynamic Security Association (SA) with all possible fields
  */
-union dynamic_sa_contents {
-	struct {
-		u32 arc4_state_ptr:1;
-		u32 arc4_ij_ptr:1;
-		u32 state_ptr:1;
-		u32 iv3:1;
-		u32 iv2:1;
-		u32 iv1:1;
-		u32 iv0:1;
-		u32 seq_num_mask3:1;
-		u32 seq_num_mask2:1;
-		u32 seq_num_mask1:1;
-		u32 seq_num_mask0:1;
-		u32 seq_num1:1;
-		u32 seq_num0:1;
-		u32 spi:1;
-		u32 outer_size:5;
-		u32 inner_size:5;
-		u32 key_size:4;
-		u32 cmd_size:4;
+union dynamic_sa_contents
+{
+	struct
+	{
+		u32 arc4_state_ptr: 1;
+		u32 arc4_ij_ptr: 1;
+		u32 state_ptr: 1;
+		u32 iv3: 1;
+		u32 iv2: 1;
+		u32 iv1: 1;
+		u32 iv0: 1;
+		u32 seq_num_mask3: 1;
+		u32 seq_num_mask2: 1;
+		u32 seq_num_mask1: 1;
+		u32 seq_num_mask0: 1;
+		u32 seq_num1: 1;
+		u32 seq_num0: 1;
+		u32 spi: 1;
+		u32 outer_size: 5;
+		u32 inner_size: 5;
+		u32 key_size: 4;
+		u32 cmd_size: 4;
 	} bf;
 	u32 w;
 } __attribute__((packed));
@@ -87,25 +89,27 @@ union dynamic_sa_contents {
 #define SA_HEADER_PROC				1
 #define SA_NO_HEADER_PROC			0
 
-union sa_command_0 {
-	struct {
-		u32 scatter:1;
-		u32 gather:1;
-		u32 save_hash_state:1;
-		u32 save_iv:1;
-		u32 load_hash_state:2;
-		u32 load_iv:2;
-		u32 digest_len:4;
-		u32 hdr_proc:1;
-		u32 extend_pad:1;
-		u32 stream_cipher_pad:1;
-		u32 rsv:1;
-		u32 hash_alg:4;
-		u32 cipher_alg:4;
-		u32 pad_type:2;
-		u32 op_group:2;
-		u32 dir:1;
-		u32 opcode:3;
+union sa_command_0
+{
+	struct
+	{
+		u32 scatter: 1;
+		u32 gather: 1;
+		u32 save_hash_state: 1;
+		u32 save_iv: 1;
+		u32 load_hash_state: 2;
+		u32 load_iv: 2;
+		u32 digest_len: 4;
+		u32 hdr_proc: 1;
+		u32 extend_pad: 1;
+		u32 stream_cipher_pad: 1;
+		u32 rsv: 1;
+		u32 hash_alg: 4;
+		u32 cipher_alg: 4;
+		u32 pad_type: 2;
+		u32 op_group: 2;
+		u32 dir: 1;
+		u32 opcode: 3;
 	} bf;
 	u32 w;
 } __attribute__((packed));
@@ -144,31 +148,34 @@ union sa_command_0 {
 #define SA_SEQ_MASK_OFF				0
 #define SA_SEQ_MASK_ON				1
 
-union sa_command_1 {
-	struct {
-		u32 crypto_mode31:1;
-		u32 save_arc4_state:1;
-		u32 arc4_stateful:1;
-		u32 key_len:5;
-		u32 hash_crypto_offset:8;
-		u32 sa_rev:2;
-		u32 byte_offset:1;
-		u32 hmac_muting:1;
-		u32 feedback_mode:2;
-		u32 crypto_mode9_8:2;
-		u32 extended_seq_num:1;
-		u32 seq_num_mask:1;
-		u32 mutable_bit_proc:1;
-		u32 ip_version:1;
-		u32 copy_pad:1;
-		u32 copy_payload:1;
-		u32 copy_hdr:1;
-		u32 rsv1:1;
+union sa_command_1
+{
+	struct
+	{
+		u32 crypto_mode31: 1;
+		u32 save_arc4_state: 1;
+		u32 arc4_stateful: 1;
+		u32 key_len: 5;
+		u32 hash_crypto_offset: 8;
+		u32 sa_rev: 2;
+		u32 byte_offset: 1;
+		u32 hmac_muting: 1;
+		u32 feedback_mode: 2;
+		u32 crypto_mode9_8: 2;
+		u32 extended_seq_num: 1;
+		u32 seq_num_mask: 1;
+		u32 mutable_bit_proc: 1;
+		u32 ip_version: 1;
+		u32 copy_pad: 1;
+		u32 copy_payload: 1;
+		u32 copy_hdr: 1;
+		u32 rsv1: 1;
 	} bf;
 	u32 w;
 } __attribute__((packed));
 
-struct dynamic_sa_ctl {
+struct dynamic_sa_ctl
+{
 	u32 sa_contents;
 	union sa_command_0 sa_command_0;
 	union sa_command_1 sa_command_1;
@@ -177,7 +184,8 @@ struct dynamic_sa_ctl {
 /**
  * State Record for Security Association (SA)
  */
-struct  sa_state_record {
+struct  sa_state_record
+{
 	u32 save_iv[4];
 	u32 save_hash_byte_cnt[2];
 	u32 save_digest[16];
@@ -187,7 +195,8 @@ struct  sa_state_record {
  * Security Association (SA) for AES128
  *
  */
-struct dynamic_sa_aes128 {
+struct dynamic_sa_aes128
+{
 	struct dynamic_sa_ctl	ctrl;
 	u32 key[4];
 	u32 iv[4]; /* for CBC, OFC, and CFB mode */
@@ -201,7 +210,8 @@ struct dynamic_sa_aes128 {
 /*
  * Security Association (SA) for AES192
  */
-struct dynamic_sa_aes192 {
+struct dynamic_sa_aes192
+{
 	struct dynamic_sa_ctl ctrl;
 	u32 key[6];
 	u32 iv[4]; /* for CBC, OFC, and CFB mode */
@@ -215,7 +225,8 @@ struct dynamic_sa_aes192 {
 /**
  * Security Association (SA) for AES256
  */
-struct dynamic_sa_aes256 {
+struct dynamic_sa_aes256
+{
 	struct dynamic_sa_ctl ctrl;
 	u32 key[8];
 	u32 iv[4]; /* for CBC, OFC, and CFB mode */
@@ -230,7 +241,8 @@ struct dynamic_sa_aes256 {
 /**
  * Security Association (SA) for HASH160: HMAC-SHA1
  */
-struct dynamic_sa_hash160 {
+struct dynamic_sa_hash160
+{
 	struct dynamic_sa_ctl ctrl;
 	u32 inner_digest[5];
 	u32 outer_digest[5];

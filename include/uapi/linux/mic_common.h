@@ -37,7 +37,8 @@
  * @status: A status byte, written by the Guest.
  * @config: Start of the following variable length config.
  */
-struct mic_device_desc {
+struct mic_device_desc
+{
 	__s8 type;
 	__u8 num_vq;
 	__u8 feature_len;
@@ -60,7 +61,8 @@ struct mic_device_desc {
  * @c2h_vdev_db: The doorbell number to be used by guest. Set by host.
  * @h2c_vdev_db: The doorbell number to be used by host. Set by guest.
  */
-struct mic_device_ctrl {
+struct mic_device_ctrl
+{
 	__le64 vdev;
 	__u8 config_change;
 	__u8 vdev_reset;
@@ -82,7 +84,8 @@ struct mic_device_ctrl {
  * @scif_host_dma_addr - SCIF host queue pair DMA address
  * @scif_card_dma_addr - SCIF card queue pair DMA address
  */
-struct mic_bootparam {
+struct mic_bootparam
+{
 	__le32 magic;
 	__s8 h2c_config_db;
 	__u8 node_id;
@@ -99,7 +102,8 @@ struct mic_bootparam {
  * status updates between MIC host and card drivers.
  * @desc: Array of MIC virtio device descriptors.
  */
-struct mic_device_page {
+struct mic_device_page
+{
 	struct mic_bootparam bootparam;
 	struct mic_device_desc desc[0];
 };
@@ -112,7 +116,8 @@ struct mic_device_page {
  * @used_address: Guest/MIC physical address of the used ring
  * @num: The number of entries in the virtio_ring
  */
-struct mic_vqconfig {
+struct mic_vqconfig
+{
 	__le64 address;
 	__le64 used_address;
 	__le16 num;
@@ -149,7 +154,8 @@ struct mic_vqconfig {
  * @avail_idx: host avail idx
  * @magic: A magic debug cookie.
  */
-struct _mic_vring_info {
+struct _mic_vring_info
+{
 	__u16 avail_idx;
 	__le32 magic;
 };
@@ -163,7 +169,8 @@ struct _mic_vring_info {
  * @va: The va for the buffer allocated for vr and info.
  * @len: The length of the buffer required for allocating vr and info.
  */
-struct mic_vring {
+struct mic_vring
+{
 	struct vring vr;
 	struct _mic_vring_info *info;
 	void *va;
@@ -176,7 +183,7 @@ struct mic_vring {
 static inline unsigned mic_desc_size(const struct mic_device_desc *desc)
 {
 	return sizeof(*desc) + desc->num_vq * sizeof(struct mic_vqconfig)
-		+ desc->feature_len * 2 + desc->config_len;
+		   + desc->feature_len * 2 + desc->config_len;
 }
 
 static inline struct mic_vqconfig *
@@ -208,7 +215,8 @@ static inline unsigned mic_total_desc_size(struct mic_device_desc *desc)
 /**
  * enum mic_states - MIC states.
  */
-enum mic_states {
+enum mic_states
+{
 	MIC_READY = 0,
 	MIC_BOOTING,
 	MIC_ONLINE,
@@ -222,7 +230,8 @@ enum mic_states {
  * enum mic_status - MIC status reported by card after
  * a host or card initiated shutdown or a card crash.
  */
-enum mic_status {
+enum mic_status
+{
 	MIC_NOP = 0,
 	MIC_CRASHED,
 	MIC_HALTED,

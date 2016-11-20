@@ -47,7 +47,7 @@
 #define ISPH3A_PCR_AEW_ALAW_EN	(1 << 17)
 #define ISPH3A_PCR_AEW_BUSY	(1 << 18)
 #define ISPH3A_PCR_AEW_MASK	(ISPH3A_PCR_AEW_ALAW_EN | \
-				 ISPH3A_PCR_AEW_AVE2LMT_MASK)
+							 ISPH3A_PCR_AEW_AVE2LMT_MASK)
 
 /*
  * --------
@@ -69,7 +69,7 @@
 #define AF_ALAW_EN			(1 << 1)
 #define AF_EN				(1 << 0)
 #define AF_PCR_MASK			(AF_FVMODE | AF_RGBPOS | AF_MED_TH | \
-					 AF_MED_EN | AF_ALAW_EN)
+							 AF_MED_EN | AF_ALAW_EN)
 
 /* AFPAX1 fields */
 #define AF_PAXW				(0x7F << 16)

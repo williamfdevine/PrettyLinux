@@ -30,7 +30,8 @@
  *
  * Clock which can gate its output.
  */
-struct clk_branch {
+struct clk_branch
+{
 	u32	hwcg_reg;
 	u32	halt_reg;
 	u8	hwcg_bit;

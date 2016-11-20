@@ -101,14 +101,14 @@
 extern insn_attr_t inat_get_opcode_attribute(insn_byte_t opcode);
 extern int inat_get_last_prefix_id(insn_byte_t last_pfx);
 extern insn_attr_t inat_get_escape_attribute(insn_byte_t opcode,
-					     int lpfx_id,
-					     insn_attr_t esc_attr);
+		int lpfx_id,
+		insn_attr_t esc_attr);
 extern insn_attr_t inat_get_group_attribute(insn_byte_t modrm,
-					    int lpfx_id,
-					    insn_attr_t esc_attr);
+		int lpfx_id,
+		insn_attr_t esc_attr);
 extern insn_attr_t inat_get_avx_attribute(insn_byte_t opcode,
-					  insn_byte_t vex_m,
-					  insn_byte_t vex_pp);
+		insn_byte_t vex_m,
+		insn_byte_t vex_pp);
 
 /* Attribute checking functions */
 static inline int inat_is_legacy_prefix(insn_attr_t attr)
@@ -135,16 +135,20 @@ static inline int inat_is_rex_prefix(insn_attr_t attr)
 static inline int inat_last_prefix_id(insn_attr_t attr)
 {
 	if ((attr & INAT_PFX_MASK) > INAT_LSTPFX_MAX)
+	{
 		return 0;
+	}
 	else
+	{
 		return attr & INAT_PFX_MASK;
+	}
 }
 
 static inline int inat_is_vex_prefix(insn_attr_t attr)
 {
 	attr &= INAT_PFX_MASK;
 	return attr == INAT_PFX_VEX2 || attr == INAT_PFX_VEX3 ||
-	       attr == INAT_PFX_EVEX;
+		   attr == INAT_PFX_EVEX;
 }
 
 static inline int inat_is_evex_prefix(insn_attr_t attr)

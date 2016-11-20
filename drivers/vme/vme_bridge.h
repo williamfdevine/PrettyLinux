@@ -7,7 +7,8 @@
 /*
  * Resource structures
  */
-struct vme_master_resource {
+struct vme_master_resource
+{
 	struct list_head list;
 	struct vme_bridge *parent;
 	/*
@@ -24,7 +25,8 @@ struct vme_master_resource {
 	void __iomem *kern_base;
 };
 
-struct vme_slave_resource {
+struct vme_slave_resource
+{
 	struct list_head list;
 	struct vme_bridge *parent;
 	struct mutex mtx;
@@ -34,30 +36,35 @@ struct vme_slave_resource {
 	u32 cycle_attr;
 };
 
-struct vme_dma_pattern {
+struct vme_dma_pattern
+{
 	u32 pattern;
 	u32 type;
 };
 
-struct vme_dma_pci {
+struct vme_dma_pci
+{
 	dma_addr_t address;
 };
 
-struct vme_dma_vme {
+struct vme_dma_vme
+{
 	unsigned long long address;
 	u32 aspace;
 	u32 cycle;
 	u32 dwidth;
 };
 
-struct vme_dma_list {
+struct vme_dma_list
+{
 	struct list_head list;
 	struct vme_dma_resource *parent;
 	struct list_head entries;
 	struct mutex mtx;
 };
 
-struct vme_dma_resource {
+struct vme_dma_resource
+{
 	struct list_head list;
 	struct vme_bridge *parent;
 	struct mutex mtx;
@@ -68,7 +75,8 @@ struct vme_dma_resource {
 	u32 route_attr;
 };
 
-struct vme_lm_resource {
+struct vme_lm_resource
+{
 	struct list_head list;
 	struct vme_bridge *parent;
 	struct mutex mtx;
@@ -77,7 +85,8 @@ struct vme_lm_resource {
 	int monitors;
 };
 
-struct vme_error_handler {
+struct vme_error_handler
+{
 	struct list_head list;
 	unsigned long long start;	/* Beginning of error window */
 	unsigned long long end;		/* End of error window */
@@ -86,12 +95,14 @@ struct vme_error_handler {
 	unsigned num_errors;		/* Number of errors */
 };
 
-struct vme_callback {
-	void (*func)(int, int, void*);
+struct vme_callback
+{
+	void (*func)(int, int, void *);
 	void *priv_data;
 };
 
-struct vme_irq {
+struct vme_irq
+{
 	int count;
 	struct vme_callback callback[VME_NUM_STATUSID];
 };
@@ -103,7 +114,8 @@ struct vme_irq {
  * The structure should be dynamically allocated by the driver and one instance
  * of the structure should be present for each VME chip present in the system.
  */
-struct vme_bridge {
+struct vme_bridge
+{
 	char name[VMENAMSIZ];
 	int num;
 	struct list_head master_resources;
@@ -128,27 +140,27 @@ struct vme_bridge {
 
 	/* Slave Functions */
 	int (*slave_get) (struct vme_slave_resource *, int *,
-		unsigned long long *, unsigned long long *, dma_addr_t *,
-		u32 *, u32 *);
+					  unsigned long long *, unsigned long long *, dma_addr_t *,
+					  u32 *, u32 *);
 	int (*slave_set) (struct vme_slave_resource *, int, unsigned long long,
-		unsigned long long, dma_addr_t, u32, u32);
+					  unsigned long long, dma_addr_t, u32, u32);
 
 	/* Master Functions */
 	int (*master_get) (struct vme_master_resource *, int *,
-		unsigned long long *, unsigned long long *, u32 *, u32 *,
-		u32 *);
+					   unsigned long long *, unsigned long long *, u32 *, u32 *,
+					   u32 *);
 	int (*master_set) (struct vme_master_resource *, int,
-		unsigned long long, unsigned long long,  u32, u32, u32);
+					   unsigned long long, unsigned long long,  u32, u32, u32);
 	ssize_t (*master_read) (struct vme_master_resource *, void *, size_t,
-		loff_t);
+							loff_t);
 	ssize_t (*master_write) (struct vme_master_resource *, void *, size_t,
-		loff_t);
+							 loff_t);
 	unsigned int (*master_rmw) (struct vme_master_resource *, unsigned int,
-		unsigned int, unsigned int, loff_t);
+								unsigned int, unsigned int, loff_t);
 
 	/* DMA Functions */
 	int (*dma_list_add) (struct vme_dma_list *, struct vme_dma_attr *,
-		struct vme_dma_attr *, size_t);
+						 struct vme_dma_attr *, size_t);
 	int (*dma_list_exec) (struct vme_dma_list *);
 	int (*dma_list_empty) (struct vme_dma_list *);
 
@@ -159,9 +171,9 @@ struct vme_bridge {
 	/* Location monitor functions */
 	int (*lm_set) (struct vme_lm_resource *, unsigned long long, u32, u32);
 	int (*lm_get) (struct vme_lm_resource *, unsigned long long *, u32 *,
-		u32 *);
+				   u32 *);
 	int (*lm_attach)(struct vme_lm_resource *, int,
-			 void (*callback)(void *), void *);
+					 void (*callback)(void *), void *);
 	int (*lm_detach) (struct vme_lm_resource *, int);
 
 	/* CR/CSR space functions */
@@ -169,13 +181,13 @@ struct vme_bridge {
 
 	/* Bridge parent interface */
 	void *(*alloc_consistent)(struct device *dev, size_t size,
-		dma_addr_t *dma);
+							  dma_addr_t *dma);
 	void (*free_consistent)(struct device *dev, size_t size,
-		void *vaddr, dma_addr_t dma);
+							void *vaddr, dma_addr_t dma);
 };
 
 void vme_bus_error_handler(struct vme_bridge *bridge,
-			   unsigned long long address, int am);
+						   unsigned long long address, int am);
 void vme_irq_handler(struct vme_bridge *, int, int);
 
 struct vme_bridge *vme_init_bridge(struct vme_bridge *);

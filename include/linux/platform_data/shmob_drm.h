@@ -21,13 +21,15 @@
 struct sh_mobile_meram_cfg;
 struct sh_mobile_meram_info;
 
-enum shmob_drm_clk_source {
+enum shmob_drm_clk_source
+{
 	SHMOB_DRM_CLK_BUS,
 	SHMOB_DRM_CLK_PERIPHERAL,
 	SHMOB_DRM_CLK_EXTERNAL,
 };
 
-enum shmob_drm_interface {
+enum shmob_drm_interface
+{
 	SHMOB_DRM_IFACE_RGB8,		/* 24bpp, 8:8:8 */
 	SHMOB_DRM_IFACE_RGB9,		/* 18bpp, 9:9 */
 	SHMOB_DRM_IFACE_RGB12A,		/* 24bpp, 12:12 */
@@ -49,30 +51,33 @@ enum shmob_drm_interface {
 	SHMOB_DRM_IFACE_SYS24,		/* 24bpp */
 };
 
-struct shmob_drm_backlight_data {
+struct shmob_drm_backlight_data
+{
 	const char *name;
 	int max_brightness;
 	int (*get_brightness)(void);
 	int (*set_brightness)(int brightness);
 };
 
-struct shmob_drm_panel_data {
+struct shmob_drm_panel_data
+{
 	unsigned int width_mm;		/* Panel width in mm */
 	unsigned int height_mm;		/* Panel height in mm */
 	struct drm_mode_modeinfo mode;
 };
 
-struct shmob_drm_sys_interface_data {
-	unsigned int read_latch:6;
-	unsigned int read_setup:8;
-	unsigned int read_cycle:8;
-	unsigned int read_strobe:8;
-	unsigned int write_setup:8;
-	unsigned int write_cycle:8;
-	unsigned int write_strobe:8;
-	unsigned int cs_setup:3;
-	unsigned int vsync_active_high:1;
-	unsigned int vsync_dir_input:1;
+struct shmob_drm_sys_interface_data
+{
+	unsigned int read_latch: 6;
+	unsigned int read_setup: 8;
+	unsigned int read_cycle: 8;
+	unsigned int read_strobe: 8;
+	unsigned int write_setup: 8;
+	unsigned int write_cycle: 8;
+	unsigned int write_strobe: 8;
+	unsigned int cs_setup: 3;
+	unsigned int vsync_active_high: 1;
+	unsigned int vsync_dir_input: 1;
 };
 
 #define SHMOB_DRM_IFACE_FL_DWPOL (1 << 0) /* Rising edge dot clock data latch */
@@ -81,14 +86,16 @@ struct shmob_drm_sys_interface_data {
 #define SHMOB_DRM_IFACE_FL_HSCNT (1 << 3) /* Disable HSYNC during VBLANK */
 #define SHMOB_DRM_IFACE_FL_DWCNT (1 << 4) /* Disable dotclock during blanking */
 
-struct shmob_drm_interface_data {
+struct shmob_drm_interface_data
+{
 	enum shmob_drm_interface interface;
 	struct shmob_drm_sys_interface_data sys;
 	unsigned int clk_div;
 	unsigned int flags;
 };
 
-struct shmob_drm_platform_data {
+struct shmob_drm_platform_data
+{
 	enum shmob_drm_clk_source clk_source;
 	struct shmob_drm_interface_data iface;
 	struct shmob_drm_panel_data panel;

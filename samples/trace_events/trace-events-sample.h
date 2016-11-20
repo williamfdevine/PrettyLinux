@@ -195,14 +195,18 @@ static inline int __length_of(const int *list)
 	int i;
 
 	if (!list)
+	{
 		return 0;
+	}
 
 	for (i = 0; list[i]; i++)
 		;
+
 	return i;
 }
 
-enum {
+enum
+{
 	TRACE_SAMPLE_FOO = 2,
 	TRACE_SAMPLE_BAR = 4,
 	TRACE_SAMPLE_ZOO = 8,
@@ -227,47 +231,47 @@ TRACE_DEFINE_ENUM(TRACE_SAMPLE_ZOO);
 
 TRACE_EVENT(foo_bar,
 
-	TP_PROTO(const char *foo, int bar, const int *lst,
-		 const char *string, const struct cpumask *mask),
+			TP_PROTO(const char *foo, int bar, const int *lst,
+					 const char *string, const struct cpumask *mask),
 
-	TP_ARGS(foo, bar, lst, string, mask),
+			TP_ARGS(foo, bar, lst, string, mask),
 
-	TP_STRUCT__entry(
-		__array(	char,	foo,    10		)
-		__field(	int,	bar			)
-		__dynamic_array(int,	list,   __length_of(lst))
-		__string(	str,	string			)
-		__bitmask(	cpus,	num_possible_cpus()	)
-	),
+			TP_STRUCT__entry(
+				__array(	char,	foo,    10		)
+				__field(	int,	bar			)
+				__dynamic_array(int,	list,   __length_of(lst))
+				__string(	str,	string			)
+				__bitmask(	cpus,	num_possible_cpus()	)
+			),
 
-	TP_fast_assign(
-		strlcpy(__entry->foo, foo, 10);
-		__entry->bar	= bar;
-		memcpy(__get_dynamic_array(list), lst,
-		       __length_of(lst) * sizeof(int));
-		__assign_str(str, string);
-		__assign_bitmask(cpus, cpumask_bits(mask), num_possible_cpus());
-	),
+			TP_fast_assign(
+				strlcpy(__entry->foo, foo, 10);
+				__entry->bar	= bar;
+				memcpy(__get_dynamic_array(list), lst,
+					   __length_of(lst) * sizeof(int));
+				__assign_str(str, string);
+				__assign_bitmask(cpus, cpumask_bits(mask), num_possible_cpus());
+			),
 
-	TP_printk("foo %s %d %s %s %s %s (%s)", __entry->foo, __entry->bar,
+			TP_printk("foo %s %d %s %s %s %s (%s)", __entry->foo, __entry->bar,
 
-/*
- * Notice here the use of some helper functions. This includes:
- *
- *  __print_symbolic( variable, { value, "string" }, ... ),
- *
- *    The variable is tested against each value of the { } pair. If
- *    the variable matches one of the values, then it will print the
- *    string in that pair. If non are matched, it returns a string
- *    version of the number (if __entry->bar == 7 then "7" is returned).
- */
-		  __print_symbolic(__entry->bar,
-				   { 0, "zero" },
-				   { TRACE_SAMPLE_FOO, "TWO" },
-				   { TRACE_SAMPLE_BAR, "FOUR" },
-				   { TRACE_SAMPLE_ZOO, "EIGHT" },
-				   { 10, "TEN" }
-			  ),
+					  /*
+					   * Notice here the use of some helper functions. This includes:
+					   *
+					   *  __print_symbolic( variable, { value, "string" }, ... ),
+					   *
+					   *    The variable is tested against each value of the { } pair. If
+					   *    the variable matches one of the values, then it will print the
+					   *    string in that pair. If non are matched, it returns a string
+					   *    version of the number (if __entry->bar == 7 then "7" is returned).
+					   */
+					  __print_symbolic(__entry->bar,
+{ 0, "zero" },
+{ TRACE_SAMPLE_FOO, "TWO" },
+{ TRACE_SAMPLE_BAR, "FOUR" },
+{ TRACE_SAMPLE_ZOO, "EIGHT" },
+{ 10, "TEN" }
+									  ),
 
 /*
  *  __print_flags( variable, "delim", { value, "flag" }, ... ),
@@ -279,22 +283,22 @@ TRACE_EVENT(foo_bar,
  *    If not all bits are accounted for, then the not found bits will be
  *    added in hex format: 0x506 will show BIT2|BIT4|0x500
  */
-		  __print_flags(__entry->bar, "|",
-				{ 1, "BIT1" },
-				{ 2, "BIT2" },
-				{ 4, "BIT3" },
-				{ 8, "BIT4" }
-			  ),
+__print_flags(__entry->bar, "|",
+{ 1, "BIT1" },
+{ 2, "BIT2" },
+{ 4, "BIT3" },
+{ 8, "BIT4" }
+			 ),
 /*
  *  __print_array( array, len, element_size )
  *
  *    This prints out the array that is defined by __array in a nice format.
  */
-		  __print_array(__get_dynamic_array(list),
-				__get_dynamic_array_len(list) / sizeof(int),
-				sizeof(int)),
-		  __get_str(str), __get_bitmask(cpus))
-);
+__print_array(__get_dynamic_array(list),
+			  __get_dynamic_array_len(list) / sizeof(int),
+			  sizeof(int)),
+__get_str(str), __get_bitmask(cpus))
+		   );
 
 /*
  * There may be a case where a tracepoint should only be called if
@@ -335,24 +339,24 @@ TRACE_EVENT(foo_bar,
  */
 TRACE_EVENT_CONDITION(foo_bar_with_cond,
 
-	TP_PROTO(const char *foo, int bar),
+					  TP_PROTO(const char *foo, int bar),
 
-	TP_ARGS(foo, bar),
+					  TP_ARGS(foo, bar),
 
-	TP_CONDITION(!(bar % 10)),
+					  TP_CONDITION(!(bar % 10)),
 
-	TP_STRUCT__entry(
-		__string(	foo,    foo		)
-		__field(	int,	bar			)
-	),
+					  TP_STRUCT__entry(
+						  __string(	foo,    foo		)
+						  __field(	int,	bar			)
+					  ),
 
-	TP_fast_assign(
-		__assign_str(foo, foo);
-		__entry->bar	= bar;
-	),
+					  TP_fast_assign(
+						  __assign_str(foo, foo);
+						  __entry->bar	= bar;
+					  ),
 
-	TP_printk("foo %s %d", __get_str(foo), __entry->bar)
-);
+					  TP_printk("foo %s %d", __get_str(foo), __entry->bar)
+					 );
 
 void foo_bar_reg(void);
 void foo_bar_unreg(void);
@@ -378,24 +382,24 @@ void foo_bar_unreg(void);
  */
 TRACE_EVENT_FN(foo_bar_with_fn,
 
-	TP_PROTO(const char *foo, int bar),
+			   TP_PROTO(const char *foo, int bar),
 
-	TP_ARGS(foo, bar),
+			   TP_ARGS(foo, bar),
 
-	TP_STRUCT__entry(
-		__string(	foo,    foo		)
-		__field(	int,	bar		)
-	),
+			   TP_STRUCT__entry(
+				   __string(	foo,    foo		)
+				   __field(	int,	bar		)
+			   ),
 
-	TP_fast_assign(
-		__assign_str(foo, foo);
-		__entry->bar	= bar;
-	),
+			   TP_fast_assign(
+				   __assign_str(foo, foo);
+				   __entry->bar	= bar;
+			   ),
 
-	TP_printk("foo %s %d", __get_str(foo), __entry->bar),
+			   TP_printk("foo %s %d", __get_str(foo), __entry->bar),
 
-	foo_bar_reg, foo_bar_unreg
-);
+			   foo_bar_reg, foo_bar_unreg
+			  );
 
 /*
  * Each TRACE_EVENT macro creates several helper functions to produce
@@ -425,41 +429,41 @@ TRACE_EVENT_FN(foo_bar_with_fn,
  */
 DECLARE_EVENT_CLASS(foo_template,
 
-	TP_PROTO(const char *foo, int bar),
+					TP_PROTO(const char *foo, int bar),
 
-	TP_ARGS(foo, bar),
+					TP_ARGS(foo, bar),
 
-	TP_STRUCT__entry(
-		__string(	foo,    foo		)
-		__field(	int,	bar		)
-	),
+					TP_STRUCT__entry(
+						__string(	foo,    foo		)
+						__field(	int,	bar		)
+					),
 
-	TP_fast_assign(
-		__assign_str(foo, foo);
-		__entry->bar	= bar;
-	),
+					TP_fast_assign(
+						__assign_str(foo, foo);
+						__entry->bar	= bar;
+					),
 
-	TP_printk("foo %s %d", __get_str(foo), __entry->bar)
-);
+					TP_printk("foo %s %d", __get_str(foo), __entry->bar)
+				   );
 
 /*
  * Here's a better way for the previous samples (except, the first
  * exmaple had more fields and could not be used here).
  */
 DEFINE_EVENT(foo_template, foo_with_template_simple,
-	TP_PROTO(const char *foo, int bar),
-	TP_ARGS(foo, bar));
+			 TP_PROTO(const char *foo, int bar),
+			 TP_ARGS(foo, bar));
 
 DEFINE_EVENT_CONDITION(foo_template, foo_with_template_cond,
-	TP_PROTO(const char *foo, int bar),
-	TP_ARGS(foo, bar),
-	TP_CONDITION(!(bar % 8)));
+					   TP_PROTO(const char *foo, int bar),
+					   TP_ARGS(foo, bar),
+					   TP_CONDITION(!(bar % 8)));
 
 
 DEFINE_EVENT_FN(foo_template, foo_with_template_fn,
-	TP_PROTO(const char *foo, int bar),
-	TP_ARGS(foo, bar),
-	foo_bar_reg, foo_bar_unreg);
+				TP_PROTO(const char *foo, int bar),
+				TP_ARGS(foo, bar),
+				foo_bar_reg, foo_bar_unreg);
 
 /*
  * Anytime two events share basically the same values and have
@@ -474,9 +478,9 @@ DEFINE_EVENT_FN(foo_template, foo_with_template_fn,
  */
 
 DEFINE_EVENT_PRINT(foo_template, foo_with_template_print,
-	TP_PROTO(const char *foo, int bar),
-	TP_ARGS(foo, bar),
-	TP_printk("bar %s %d", __get_str(foo), __entry->bar));
+				   TP_PROTO(const char *foo, int bar),
+				   TP_ARGS(foo, bar),
+				   TP_printk("bar %s %d", __get_str(foo), __entry->bar));
 
 #endif
 

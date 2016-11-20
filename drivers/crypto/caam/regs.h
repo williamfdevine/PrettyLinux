@@ -69,22 +69,22 @@
 extern bool caam_little_end;
 
 #define caam_to_cpu(len)				\
-static inline u##len caam##len ## _to_cpu(u##len val)	\
-{							\
-	if (caam_little_end)				\
-		return le##len ## _to_cpu(val);		\
-	else						\
-		return be##len ## _to_cpu(val);		\
-}
+	static inline u##len caam##len ## _to_cpu(u##len val)	\
+	{							\
+		if (caam_little_end)				\
+			return le##len ## _to_cpu(val);		\
+		else						\
+			return be##len ## _to_cpu(val);		\
+	}
 
 #define cpu_to_caam(len)				\
-static inline u##len cpu_to_caam##len(u##len val)	\
-{							\
-	if (caam_little_end)				\
-		return cpu_to_le##len(val);		\
-	else						\
-		return cpu_to_be##len(val);		\
-}
+	static inline u##len cpu_to_caam##len(u##len val)	\
+	{							\
+		if (caam_little_end)				\
+			return cpu_to_le##len(val);		\
+		else						\
+			return cpu_to_be##len(val);		\
+	}
 
 caam_to_cpu(16)
 caam_to_cpu(32)
@@ -96,15 +96,21 @@ cpu_to_caam(64)
 static inline void wr_reg32(void __iomem *reg, u32 data)
 {
 	if (caam_little_end)
+	{
 		iowrite32(data, reg);
+	}
 	else
+	{
 		iowrite32be(data, reg);
+	}
 }
 
 static inline u32 rd_reg32(void __iomem *reg)
 {
 	if (caam_little_end)
+	{
 		return ioread32(reg);
+	}
 
 	return ioread32be(reg);
 }
@@ -112,9 +118,13 @@ static inline u32 rd_reg32(void __iomem *reg)
 static inline void clrsetbits_32(void __iomem *reg, u32 clear, u32 set)
 {
 	if (caam_little_end)
+	{
 		iowrite32((ioread32(reg) & ~clear) | set, reg);
+	}
 	else
+	{
 		iowrite32be((ioread32be(reg) & ~clear) | set, reg);
+	}
 }
 
 /*
@@ -138,27 +148,38 @@ static inline void clrsetbits_32(void __iomem *reg, u32 clear, u32 set)
 static inline void wr_reg64(void __iomem *reg, u64 data)
 {
 	if (caam_little_end)
+	{
 		iowrite64(data, reg);
+	}
 	else
+	{
 		iowrite64be(data, reg);
+	}
 }
 
 static inline u64 rd_reg64(void __iomem *reg)
 {
 	if (caam_little_end)
+	{
 		return ioread64(reg);
+	}
 	else
+	{
 		return ioread64be(reg);
+	}
 }
 
 #else /* CONFIG_64BIT */
 static inline void wr_reg64(void __iomem *reg, u64 data)
 {
 #ifndef CONFIG_CRYPTO_DEV_FSL_CAAM_IMX
-	if (caam_little_end) {
+
+	if (caam_little_end)
+	{
 		wr_reg32((u32 __iomem *)(reg) + 1, data >> 32);
 		wr_reg32((u32 __iomem *)(reg), data);
-	} else
+	}
+	else
 #endif
 	{
 		wr_reg32((u32 __iomem *)(reg), data >> 32);
@@ -169,24 +190,25 @@ static inline void wr_reg64(void __iomem *reg, u64 data)
 static inline u64 rd_reg64(void __iomem *reg)
 {
 #ifndef CONFIG_CRYPTO_DEV_FSL_CAAM_IMX
+
 	if (caam_little_end)
 		return ((u64)rd_reg32((u32 __iomem *)(reg) + 1) << 32 |
-			(u64)rd_reg32((u32 __iomem *)(reg)));
+				(u64)rd_reg32((u32 __iomem *)(reg)));
 	else
 #endif
 		return ((u64)rd_reg32((u32 __iomem *)(reg)) << 32 |
-			(u64)rd_reg32((u32 __iomem *)(reg) + 1));
+				(u64)rd_reg32((u32 __iomem *)(reg) + 1));
 }
 #endif /* CONFIG_64BIT  */
 
 #ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
 #ifdef CONFIG_SOC_IMX7D
 #define cpu_to_caam_dma(value) \
-		(((u64)cpu_to_caam32(lower_32_bits(value)) << 32) | \
-		  (u64)cpu_to_caam32(upper_32_bits(value)))
+	(((u64)cpu_to_caam32(lower_32_bits(value)) << 32) | \
+	 (u64)cpu_to_caam32(upper_32_bits(value)))
 #define caam_dma_to_cpu(value) \
-		(((u64)caam32_to_cpu(lower_32_bits(value)) << 32) | \
-		  (u64)caam32_to_cpu(upper_32_bits(value)))
+	(((u64)caam32_to_cpu(lower_32_bits(value)) << 32) | \
+	 (u64)caam32_to_cpu(upper_32_bits(value)))
 #else
 #define cpu_to_caam_dma(value) cpu_to_caam64(value)
 #define caam_dma_to_cpu(value) caam64_to_cpu(value)
@@ -198,8 +220,8 @@ static inline u64 rd_reg64(void __iomem *reg)
 
 #ifdef CONFIG_CRYPTO_DEV_FSL_CAAM_IMX
 #define cpu_to_caam_dma64(value) \
-		(((u64)cpu_to_caam32(lower_32_bits(value)) << 32) | \
-		 (u64)cpu_to_caam32(upper_32_bits(value)))
+	(((u64)cpu_to_caam32(lower_32_bits(value)) << 32) | \
+	 (u64)cpu_to_caam32(upper_32_bits(value)))
 #else
 #define cpu_to_caam_dma64(value) cpu_to_caam64(value)
 #endif
@@ -208,7 +230,8 @@ static inline u64 rd_reg64(void __iomem *reg)
  * jr_outentry
  * Represents each entry in a JobR output ring
  */
-struct jr_outentry {
+struct jr_outentry
+{
 	dma_addr_t desc;/* Pointer to completed descriptor */
 	u32 jrstatus;	/* Status for completed descriptor */
 } __packed;
@@ -271,13 +294,15 @@ struct jr_outentry {
 #define CHA_ID_MS_JR_SHIFT	28
 #define CHA_ID_MS_JR_MASK	(0xfull << CHA_ID_MS_JR_SHIFT)
 
-struct sec_vid {
+struct sec_vid
+{
 	u16 ip_id;
 	u8 maj_rev;
 	u8 min_rev;
 };
 
-struct caam_perfmon {
+struct caam_perfmon
+{
 	/* Performance Monitor Registers			f00-f9f */
 	u64 req_dequeued;	/* PC_REQ_DEQ - Dequeued Requests	     */
 	u64 ob_enc_req;	/* PC_OB_ENC_REQ - Outbound Encrypt Requests */
@@ -327,20 +352,23 @@ struct caam_perfmon {
 #define MSTRID_LOCK_MAKETRUSTED	0x00010000	/* only for JR masterid */
 
 #define MSTRID_LIODN_MASK	0x0fff
-struct masterid {
+struct masterid
+{
 	u32 liodn_ms;	/* lock and make-trusted control bits */
 	u32 liodn_ls;	/* LIODN for non-sequence and seq access */
 };
 
 /* Partition ID for DMA configuration */
-struct partid {
+struct partid
+{
 	u32 rsvd1;
 	u32 pidr;	/* partition ID, DECO */
 };
 
 /* RNGB test mode (replicated twice in some configurations) */
 /* Padded out to 0x100 */
-struct rngtst {
+struct rngtst
+{
 	u32 mode;		/* RTSTMODEx - Test mode */
 	u32 rsvd1[3];
 	u32 reset;		/* RTSTRESETx - Test reset control */
@@ -372,7 +400,8 @@ struct rngtst {
 };
 
 /* RNG4 TRNG test registers */
-struct rng4tst {
+struct rng4tst
+{
 #define RTMCTL_PRGM	0x00010000	/* 1 -> program mode, 0 -> run mode */
 #define RTMCTL_SAMP_MODE_VON_NEUMANN_ES_SC	0 /* use von Neumann data in
 						     both entropy shifter and
@@ -387,7 +416,8 @@ struct rng4tst {
 	u32 rtmctl;		/* misc. control register */
 	u32 rtscmisc;		/* statistical check misc. register */
 	u32 rtpkrrng;		/* poker range register */
-	union {
+	union
+	{
 		u32 rtpkrmax;	/* PRGM=1: poker max. limit register */
 		u32 rtpkrsq;	/* PRGM=0: poker square calc. result register */
 	};
@@ -396,13 +426,15 @@ struct rng4tst {
 #define RTSDCTL_ENT_DLY_MIN 3200
 #define RTSDCTL_ENT_DLY_MAX 12800
 	u32 rtsdctl;		/* seed control register */
-	union {
+	union
+	{
 		u32 rtsblim;	/* PRGM=1: sparse bit limit register */
 		u32 rttotsam;	/* PRGM=0: total samples register */
 	};
 	u32 rtfrqmin;		/* frequency count min. limit register */
 #define RTFRQMAX_DISABLE	(1 << 20)
-	union {
+	union
+	{
 		u32 rtfrqmax;	/* PRGM=1: freq. count max. limit register */
 		u32 rtfrqcnt;	/* PRGM=0: freq. count register */
 	};
@@ -432,7 +464,8 @@ struct rng4tst {
 #define DECO_RESET_3	(DECO_RESET << 3)
 #define DECO_RESET_4	(DECO_RESET << 4)
 
-struct caam_ctrl {
+struct caam_ctrl
+{
 	/* Basic Configuration Section				000-01f */
 	/* Read/Writable					        */
 	u32 rsvd1;
@@ -469,7 +502,8 @@ struct caam_ctrl {
 
 	/* RNG Test/Verification/Debug Access                   600-7ff */
 	/* (Useful in Test/Debug modes only...)                         */
-	union {
+	union
+	{
 		struct rngtst rtst[2];
 		struct rng4tst r4tst[2];
 	};
@@ -528,7 +562,8 @@ struct caam_ctrl {
  * 1-4 possible per instantiation, base + 1000/2000/3000/4000
  * Padded out to 0x1000
  */
-struct caam_job_ring {
+struct caam_job_ring
+{
 	/* Input ring */
 	u64 inpring_base;	/* IRBAx -  Input desc ring baseaddr */
 	u32 rsvd1;
@@ -693,23 +728,27 @@ struct caam_job_ring {
  * base + 0x6000 padded out to 0x1000
  */
 
-struct rtic_element {
+struct rtic_element
+{
 	u64 address;
 	u32 rsvd;
 	u32 length;
 };
 
-struct rtic_block {
+struct rtic_block
+{
 	struct rtic_element element[2];
 };
 
-struct rtic_memhash {
+struct rtic_memhash
+{
 	u32 memhash_be[32];
 	u32 memhash_le[32];
 };
 
-struct caam_assurance {
-    /* Status/Command/Watchdog */
+struct caam_assurance
+{
+	/* Status/Command/Watchdog */
 	u32 rsvd1;
 	u32 status;		/* RSTA - Status */
 	u32 rsvd2;
@@ -738,7 +777,8 @@ struct caam_assurance {
  * starts base + 0x7000, padded out to 0x1000 long
  */
 
-struct caam_queue_if {
+struct caam_queue_if
+{
 	u32 qi_control_hi;	/* QICTL  - QI Control */
 	u32 qi_control_lo;
 	u32 rsvd1;
@@ -785,7 +825,8 @@ struct caam_queue_if {
 #define QISTA_STOPD     0x80000000        /* QI Stopped (see QICTL)    */
 
 /* deco_sg_table - DECO view of scatter/gather table */
-struct deco_sg_table {
+struct deco_sg_table
+{
 	u64 addr;		/* Segment Address */
 	u32 elen;		/* E, F bits + 30-bit length */
 	u32 bpid_offset;	/* Buffer Pool ID + 16-bit length */
@@ -800,7 +841,8 @@ struct deco_sg_table {
  * 5 typical, base + 0x8000/9000/a000/b000
  * Padded out to 0x1000 long
  */
-struct caam_deco {
+struct caam_deco
+{
 	u32 rsvd1;
 	u32 cls1_mode;	/* CxC1MR -  Class 1 Mode */
 	u32 rsvd2;

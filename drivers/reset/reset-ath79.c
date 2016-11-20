@@ -18,7 +18,8 @@
 #include <linux/reset-controller.h>
 #include <linux/reboot.h>
 
-struct ath79_reset {
+struct ath79_reset
+{
 	struct reset_controller_dev rcdev;
 	struct notifier_block restart_nb;
 	void __iomem *base;
@@ -28,7 +29,7 @@ struct ath79_reset {
 #define FULL_CHIP_RESET 24
 
 static int ath79_reset_update(struct reset_controller_dev *rcdev,
-			unsigned long id, bool assert)
+							  unsigned long id, bool assert)
 {
 	struct ath79_reset *ath79_reset =
 		container_of(rcdev, struct ath79_reset, rcdev);
@@ -37,10 +38,16 @@ static int ath79_reset_update(struct reset_controller_dev *rcdev,
 
 	spin_lock_irqsave(&ath79_reset->lock, flags);
 	val = readl(ath79_reset->base);
+
 	if (assert)
+	{
 		val |= BIT(id);
+	}
 	else
+	{
 		val &= ~BIT(id);
+	}
+
 	writel(val, ath79_reset->base);
 	spin_unlock_irqrestore(&ath79_reset->lock, flags);
 
@@ -48,19 +55,19 @@ static int ath79_reset_update(struct reset_controller_dev *rcdev,
 }
 
 static int ath79_reset_assert(struct reset_controller_dev *rcdev,
-			unsigned long id)
+							  unsigned long id)
 {
 	return ath79_reset_update(rcdev, id, true);
 }
 
 static int ath79_reset_deassert(struct reset_controller_dev *rcdev,
-				unsigned long id)
+								unsigned long id)
 {
 	return ath79_reset_update(rcdev, id, false);
 }
 
 static int ath79_reset_status(struct reset_controller_dev *rcdev,
-			unsigned long id)
+							  unsigned long id)
 {
 	struct ath79_reset *ath79_reset =
 		container_of(rcdev, struct ath79_reset, rcdev);
@@ -71,14 +78,15 @@ static int ath79_reset_status(struct reset_controller_dev *rcdev,
 	return !!(val & BIT(id));
 }
 
-static const struct reset_control_ops ath79_reset_ops = {
+static const struct reset_control_ops ath79_reset_ops =
+{
 	.assert = ath79_reset_assert,
 	.deassert = ath79_reset_deassert,
 	.status = ath79_reset_status,
 };
 
 static int ath79_reset_restart_handler(struct notifier_block *nb,
-				unsigned long action, void *data)
+									   unsigned long action, void *data)
 {
 	struct ath79_reset *ath79_reset =
 		container_of(nb, struct ath79_reset, restart_nb);
@@ -95,16 +103,22 @@ static int ath79_reset_probe(struct platform_device *pdev)
 	int err;
 
 	ath79_reset = devm_kzalloc(&pdev->dev,
-				sizeof(*ath79_reset), GFP_KERNEL);
+							   sizeof(*ath79_reset), GFP_KERNEL);
+
 	if (!ath79_reset)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, ath79_reset);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ath79_reset->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(ath79_reset->base))
+	{
 		return PTR_ERR(ath79_reset->base);
+	}
 
 	spin_lock_init(&ath79_reset->lock);
 	ath79_reset->rcdev.ops = &ath79_reset_ops;
@@ -114,15 +128,21 @@ static int ath79_reset_probe(struct platform_device *pdev)
 	ath79_reset->rcdev.nr_resets = 32;
 
 	err = devm_reset_controller_register(&pdev->dev, &ath79_reset->rcdev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	ath79_reset->restart_nb.notifier_call = ath79_reset_restart_handler;
 	ath79_reset->restart_nb.priority = 128;
 
 	err = register_restart_handler(&ath79_reset->restart_nb);
+
 	if (err)
+	{
 		dev_warn(&pdev->dev, "Failed to register restart handler\n");
+	}
 
 	return 0;
 }
@@ -136,13 +156,15 @@ static int ath79_reset_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id ath79_reset_dt_ids[] = {
+static const struct of_device_id ath79_reset_dt_ids[] =
+{
 	{ .compatible = "qca,ar7100-reset", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, ath79_reset_dt_ids);
 
-static struct platform_driver ath79_reset_driver = {
+static struct platform_driver ath79_reset_driver =
+{
 	.probe	= ath79_reset_probe,
 	.remove = ath79_reset_remove,
 	.driver = {

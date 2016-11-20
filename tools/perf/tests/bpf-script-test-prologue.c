@@ -3,8 +3,8 @@
  * Test BPF prologue
  */
 #ifndef LINUX_VERSION_CODE
-# error Need LINUX_VERSION_CODE
-# error Example: for 4.2 kernel, put 'clang-opt="-DLINUX_VERSION_CODE=0x40200" into llvm section of ~/.perfconfig'
+	# error Need LINUX_VERSION_CODE
+	# error Example: for 4.2 kernel, put 'clang-opt="-DLINUX_VERSION_CODE=0x40200" into llvm section of ~/.perfconfig'
 #endif
 #define SEC(NAME) __attribute__((section(NAME), used))
 
@@ -18,16 +18,28 @@ static void (*bpf_trace_printk)(const char *fmt, int fmt_size, ...) =
 
 SEC("func=null_lseek file->f_mode offset orig")
 int bpf_func__null_lseek(void *ctx, int err, unsigned long f_mode,
-			 unsigned long offset, unsigned long orig)
+						 unsigned long offset, unsigned long orig)
 {
 	if (err)
+	{
 		return 0;
+	}
+
 	if (f_mode & FMODE_WRITE)
+	{
 		return 0;
+	}
+
 	if (offset & 1)
+	{
 		return 0;
+	}
+
 	if (orig == SEEK_CUR)
+	{
 		return 0;
+	}
+
 	return 1;
 }
 

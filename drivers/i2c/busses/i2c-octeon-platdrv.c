@@ -70,8 +70,11 @@ static void __octeon_i2c_irq_disable(atomic_t *cnt, int irq)
 	 * track with the atomic variable.
 	 */
 	count = atomic_dec_if_positive(cnt);
+
 	if (count >= 0)
+	{
 		disable_irq_nosync(irq);
+	}
 }
 
 /* disable the CORE interrupt */
@@ -118,15 +121,17 @@ static void octeon_i2c_hlc_int_enable(struct octeon_i2c *i2c)
 static u32 octeon_i2c_functionality(struct i2c_adapter *adap)
 {
 	return I2C_FUNC_I2C | (I2C_FUNC_SMBUS_EMUL & ~I2C_FUNC_SMBUS_QUICK) |
-	       I2C_FUNC_SMBUS_READ_BLOCK_DATA | I2C_SMBUS_BLOCK_PROC_CALL;
+		   I2C_FUNC_SMBUS_READ_BLOCK_DATA | I2C_SMBUS_BLOCK_PROC_CALL;
 }
 
-static const struct i2c_algorithm octeon_i2c_algo = {
+static const struct i2c_algorithm octeon_i2c_algo =
+{
 	.master_xfer = octeon_i2c_xfer,
 	.functionality = octeon_i2c_functionality,
 };
 
-static struct i2c_adapter octeon_i2c_ops = {
+static struct i2c_adapter octeon_i2c_ops =
+{
 	.owner = THIS_MODULE,
 	.name = "OCTEON adapter",
 	.algo = &octeon_i2c_algo,
@@ -141,26 +146,42 @@ static int octeon_i2c_probe(struct platform_device *pdev)
 	bool cn78xx_style;
 
 	cn78xx_style = of_device_is_compatible(node, "cavium,octeon-7890-twsi");
-	if (cn78xx_style) {
+
+	if (cn78xx_style)
+	{
 		hlc_irq = platform_get_irq(pdev, 0);
+
 		if (hlc_irq < 0)
+		{
 			return hlc_irq;
+		}
 
 		irq = platform_get_irq(pdev, 2);
+
 		if (irq < 0)
+		{
 			return irq;
-	} else {
+		}
+	}
+	else
+	{
 		/* All adaptors have an irq.  */
 		irq = platform_get_irq(pdev, 0);
+
 		if (irq < 0)
+		{
 			return irq;
+		}
 	}
 
 	i2c = devm_kzalloc(&pdev->dev, sizeof(*i2c), GFP_KERNEL);
-	if (!i2c) {
+
+	if (!i2c)
+	{
 		result = -ENOMEM;
 		goto out;
 	}
+
 	i2c->dev = &pdev->dev;
 
 	i2c->roff.sw_twsi = 0x00;
@@ -169,7 +190,9 @@ static int octeon_i2c_probe(struct platform_device *pdev)
 
 	res_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	i2c->twsi_base = devm_ioremap_resource(&pdev->dev, res_mem);
-	if (IS_ERR(i2c->twsi_base)) {
+
+	if (IS_ERR(i2c->twsi_base))
+	{
 		result = PTR_ERR(i2c->twsi_base);
 		goto out;
 	}
@@ -180,9 +203,10 @@ static int octeon_i2c_probe(struct platform_device *pdev)
 	 * fall back if it doesn't exist.
 	 */
 	if (of_property_read_u32(node, "clock-frequency", &i2c->twsi_freq) &&
-	    of_property_read_u32(node, "clock-rate", &i2c->twsi_freq)) {
+		of_property_read_u32(node, "clock-rate", &i2c->twsi_freq))
+	{
 		dev_err(i2c->dev,
-			"no I2C 'clock-rate' or 'clock-frequency' property\n");
+				"no I2C 'clock-rate' or 'clock-frequency' property\n");
 		result = -ENXIO;
 		goto out;
 	}
@@ -193,7 +217,8 @@ static int octeon_i2c_probe(struct platform_device *pdev)
 
 	i2c->irq = irq;
 
-	if (cn78xx_style) {
+	if (cn78xx_style)
+	{
 		i2c->hlc_irq = hlc_irq;
 
 		i2c->int_enable = octeon_i2c_int_enable78;
@@ -205,13 +230,17 @@ static int octeon_i2c_probe(struct platform_device *pdev)
 		irq_set_status_flags(i2c->hlc_irq, IRQ_NOAUTOEN);
 
 		result = devm_request_irq(&pdev->dev, i2c->hlc_irq,
-					  octeon_i2c_hlc_isr78, 0,
-					  DRV_NAME, i2c);
-		if (result < 0) {
+								  octeon_i2c_hlc_isr78, 0,
+								  DRV_NAME, i2c);
+
+		if (result < 0)
+		{
 			dev_err(i2c->dev, "failed to attach interrupt\n");
 			goto out;
 		}
-	} else {
+	}
+	else
+	{
 		i2c->int_enable = octeon_i2c_int_enable;
 		i2c->int_disable = octeon_i2c_int_disable;
 		i2c->hlc_int_enable = octeon_i2c_hlc_int_enable;
@@ -219,17 +248,23 @@ static int octeon_i2c_probe(struct platform_device *pdev)
 	}
 
 	result = devm_request_irq(&pdev->dev, i2c->irq,
-				  octeon_i2c_isr, 0, DRV_NAME, i2c);
-	if (result < 0) {
+							  octeon_i2c_isr, 0, DRV_NAME, i2c);
+
+	if (result < 0)
+	{
 		dev_err(i2c->dev, "failed to attach interrupt\n");
 		goto out;
 	}
 
 	if (OCTEON_IS_MODEL(OCTEON_CN38XX))
+	{
 		i2c->broken_irq_check = true;
+	}
 
 	result = octeon_i2c_init_lowlevel(i2c);
-	if (result) {
+
+	if (result)
+	{
 		dev_err(i2c->dev, "init low level failed\n");
 		goto  out;
 	}
@@ -246,8 +281,12 @@ static int octeon_i2c_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, i2c);
 
 	result = i2c_add_adapter(&i2c->adap);
+
 	if (result < 0)
+	{
 		goto out;
+	}
+
 	dev_info(i2c->dev, "probed\n");
 	return 0;
 
@@ -263,14 +302,16 @@ static int octeon_i2c_remove(struct platform_device *pdev)
 	return 0;
 };
 
-static const struct of_device_id octeon_i2c_match[] = {
+static const struct of_device_id octeon_i2c_match[] =
+{
 	{ .compatible = "cavium,octeon-3860-twsi", },
 	{ .compatible = "cavium,octeon-7890-twsi", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, octeon_i2c_match);
 
-static struct platform_driver octeon_i2c_driver = {
+static struct platform_driver octeon_i2c_driver =
+{
 	.probe		= octeon_i2c_probe,
 	.remove		= octeon_i2c_remove,
 	.driver		= {

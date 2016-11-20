@@ -21,14 +21,16 @@
 #include <linux/leds.h>
 #include <linux/types.h>
 
-enum {
+enum
+{
 	LED_PIN_LED0,
 	LED_PIN_LED1,
 	LED_PIN_GPIO0,
 	LED_PIN_HW
 };
 
-enum {
+enum
+{
 	EEPROM_CID_RSVD0 = 0x00,
 	EEPROM_CID_RSVD1 = 0xFF,
 	EEPROM_CID_ALPHA0 = 0x01,
@@ -39,7 +41,8 @@ enum {
 	EEPROM_CID_DELL = 0x08
 };
 
-struct rtl8187_led {
+struct rtl8187_led
+{
 	struct ieee80211_hw *dev;
 	/* The LED class device */
 	struct led_classdev led_dev;

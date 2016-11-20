@@ -32,7 +32,8 @@
  * Debugging levels can be set using debug insmod variable
  * They can also be compiled out completely.
  */
-enum {
+enum
+{
 	DBG_INIT	= 0x01,
 	DBG_BASIC	= 0x02,
 	DBG_CORE	= 0x04,
@@ -53,10 +54,10 @@ enum {
 };
 
 #define jsm_dbg(nlevel, pdev, fmt, ...)				\
-do {								\
-	if (DBG_##nlevel & jsm_debug)				\
-		dev_dbg(pdev->dev, fmt, ##__VA_ARGS__);		\
-} while (0)
+	do {								\
+		if (DBG_##nlevel & jsm_debug)				\
+			dev_dbg(pdev->dev, fmt, ##__VA_ARGS__);		\
+	} while (0)
 
 #define	MAXLINES	256
 #define MAXPORTS	8
@@ -109,7 +110,8 @@ struct jsm_channel;
 /************************************************************************
  * Per board operations structure					*
  ************************************************************************/
-struct board_ops {
+struct board_ops
+{
 	irq_handler_t intr;
 	void (*uart_init)(struct jsm_channel *ch);
 	void (*uart_off)(struct jsm_channel *ch);
@@ -198,7 +200,8 @@ struct jsm_board
 /************************************************************************
  * Channel information structure.
  ************************************************************************/
-struct jsm_channel {
+struct jsm_channel
+{
 	struct uart_port uart_port;
 	struct jsm_board	*ch_bd;		/* Board structure pointer	*/
 
@@ -265,7 +268,8 @@ struct jsm_channel {
  *			U = Unused.					*
  ************************************************************************/
 
-struct cls_uart_struct {
+struct cls_uart_struct
+{
 	u8 txrx;	/* WR  RHR/THR - Holding Reg */
 	u8 ier;		/* WR  IER - Interrupt Enable Reg */
 	u8 isr_fcr;	/* WR  ISR/FCR - Interrupt Status Reg/Fifo Control Reg*/
@@ -320,28 +324,29 @@ struct cls_uart_struct {
  *			U = Unused.					*
  ************************************************************************/
 
-struct neo_uart_struct {
-	 u8 txrx;		/* WR	RHR/THR - Holding Reg */
-	 u8 ier;		/* WR	IER - Interrupt Enable Reg */
-	 u8 isr_fcr;		/* WR	ISR/FCR - Interrupt Status Reg/Fifo Control Reg */
-	 u8 lcr;		/* WR	LCR - Line Control Reg */
-	 u8 mcr;		/* WR	MCR - Modem Control Reg */
-	 u8 lsr;		/* WR	LSR - Line Status Reg */
-	 u8 msr;		/* WR	MSR - Modem Status Reg */
-	 u8 spr;		/* WR	SPR - Scratch Pad Reg */
-	 u8 fctr;		/* WR	FCTR - Feature Control Reg */
-	 u8 efr;		/* WR	EFR - Enhanced Function Reg */
-	 u8 tfifo;		/* WR	TXCNT/TXTRG - Transmit FIFO Reg */
-	 u8 rfifo;		/* WR	RXCNT/RXTRG - Receive FIFO Reg */
-	 u8 xoffchar1;	/* WR	XOFF 1 - XOff Character 1 Reg */
-	 u8 xoffchar2;	/* WR	XOFF 2 - XOff Character 2 Reg */
-	 u8 xonchar1;	/* WR	XON 1 - Xon Character 1 Reg */
-	 u8 xonchar2;	/* WR	XON 2 - XOn Character 2 Reg */
+struct neo_uart_struct
+{
+	u8 txrx;		/* WR	RHR/THR - Holding Reg */
+	u8 ier;		/* WR	IER - Interrupt Enable Reg */
+	u8 isr_fcr;		/* WR	ISR/FCR - Interrupt Status Reg/Fifo Control Reg */
+	u8 lcr;		/* WR	LCR - Line Control Reg */
+	u8 mcr;		/* WR	MCR - Modem Control Reg */
+	u8 lsr;		/* WR	LSR - Line Status Reg */
+	u8 msr;		/* WR	MSR - Modem Status Reg */
+	u8 spr;		/* WR	SPR - Scratch Pad Reg */
+	u8 fctr;		/* WR	FCTR - Feature Control Reg */
+	u8 efr;		/* WR	EFR - Enhanced Function Reg */
+	u8 tfifo;		/* WR	TXCNT/TXTRG - Transmit FIFO Reg */
+	u8 rfifo;		/* WR	RXCNT/RXTRG - Receive FIFO Reg */
+	u8 xoffchar1;	/* WR	XOFF 1 - XOff Character 1 Reg */
+	u8 xoffchar2;	/* WR	XOFF 2 - XOff Character 2 Reg */
+	u8 xonchar1;	/* WR	XON 1 - Xon Character 1 Reg */
+	u8 xonchar2;	/* WR	XON 2 - XOn Character 2 Reg */
 
-	 u8 reserved1[0x2ff - 0x200]; /* U	Reserved by Exar */
-	 u8 txrxburst[64];	/* RW	64 bytes of RX/TX FIFO Data */
-	 u8 reserved2[0x37f - 0x340]; /* U	Reserved by Exar */
-	 u8 rxburst_with_errors[64];	/* R	64 bytes of RX FIFO Data + LSR */
+	u8 reserved1[0x2ff - 0x200]; /* U	Reserved by Exar */
+	u8 txrxburst[64];	/* RW	64 bytes of RX/TX FIFO Data */
+	u8 reserved2[0x37f - 0x340]; /* U	Reserved by Exar */
+	u8 rxburst_with_errors[64];	/* R	64 bytes of RX FIFO Data + LSR */
 };
 
 /* Where to read the extended interrupt register (32bits instead of 8bits) */

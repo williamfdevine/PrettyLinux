@@ -11,10 +11,10 @@
 #include <linux/slab.h>
 
 struct clk_hw *__init clk_hw_register_pll(struct device *dev,
-					  const char *name,
-					  const char *parent_name,
-					  const struct clk_ops *ops,
-					  unsigned long flags)
+		const char *name,
+		const char *parent_name,
+		const struct clk_ops *ops,
+		unsigned long flags)
 {
 	int ret;
 	struct clk_hw *hw;
@@ -22,8 +22,11 @@ struct clk_hw *__init clk_hw_register_pll(struct device *dev,
 
 	/* allocate the divider */
 	hw = kzalloc(sizeof(*hw), GFP_KERNEL);
+
 	if (!hw)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = ops;
@@ -34,7 +37,9 @@ struct clk_hw *__init clk_hw_register_pll(struct device *dev,
 
 	/* register the clock */
 	ret = clk_hw_register(dev, hw);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(hw);
 		hw = ERR_PTR(ret);
 	}

@@ -49,7 +49,7 @@
 #include <linux/usb/otg.h>
 
 #ifdef CONFIG_ARCH_LUBBOCK
-#include <mach/lubbock.h>
+	#include <mach/lubbock.h>
 #endif
 
 #define UDCCR	 0x0000 /* UDC Control Register */
@@ -146,10 +146,10 @@
 #define UDCCS_IO_RFS	(1 << 0)	/* Receive FIFO service */
 #define UDCCS_IO_RPC	(1 << 1)	/* Receive packet complete */
 #ifdef CONFIG_ARCH_IXP4XX /* FIXME: is this right?, datasheed says '2' */
-#define UDCCS_IO_ROF	(1 << 3)	/* Receive overflow */
+	#define UDCCS_IO_ROF	(1 << 3)	/* Receive overflow */
 #endif
 #ifdef CONFIG_ARCH_PXA
-#define UDCCS_IO_ROF	(1 << 2)	/* Receive overflow */
+	#define UDCCS_IO_ROF	(1 << 2)	/* Receive overflow */
 #endif
 #define UDCCS_IO_DME	(1 << 3)	/* DMA enable */
 #define UDCCS_IO_RNE	(1 << 6)	/* Receive FIFO not empty */
@@ -235,16 +235,16 @@ static const char ep0name [] = "ep0";
 
 #ifdef CONFIG_ARCH_IXP4XX
 
-/* cpu-specific register addresses are compiled in to this code */
-#ifdef CONFIG_ARCH_PXA
-#error "Can't configure both IXP and PXA"
-#endif
+	/* cpu-specific register addresses are compiled in to this code */
+	#ifdef CONFIG_ARCH_PXA
+		#error "Can't configure both IXP and PXA"
+	#endif
 
-/* IXP doesn't yet support <linux/clk.h> */
-#define clk_get(dev,name)	NULL
-#define clk_enable(clk)		do { } while (0)
-#define clk_disable(clk)	do { } while (0)
-#define clk_put(clk)		do { } while (0)
+	/* IXP doesn't yet support <linux/clk.h> */
+	#define clk_get(dev,name)	NULL
+	#define clk_enable(clk)		do { } while (0)
+	#define clk_disable(clk)	do { } while (0)
+	#define clk_put(clk)		do { } while (0)
 
 #endif
 
@@ -252,9 +252,9 @@ static const char ep0name [] = "ep0";
 
 
 #ifdef	CONFIG_USB_PXA25X_SMALL
-#define SIZE_STR	" (small)"
+	#define SIZE_STR	" (small)"
 #else
-#define SIZE_STR	""
+	#define SIZE_STR	""
 #endif
 
 /* ---------------------------------------------------------------------------
@@ -273,9 +273,13 @@ static void pullup_off(void)
 	int off_level = mach->gpio_pullup_inverted;
 
 	if (gpio_is_valid(mach->gpio_pullup))
+	{
 		gpio_set_value(mach->gpio_pullup, off_level);
+	}
 	else if (mach->udc_command)
+	{
 		mach->udc_command(PXA2XX_UDC_CMD_DISCONNECT);
+	}
 }
 
 static void pullup_on(void)
@@ -284,9 +288,13 @@ static void pullup_on(void)
 	int on_level = !mach->gpio_pullup_inverted;
 
 	if (gpio_is_valid(mach->gpio_pullup))
+	{
 		gpio_set_value(mach->gpio_pullup, on_level);
+	}
 	else if (mach->udc_command)
+	{
 		mach->udc_command(PXA2XX_UDC_CMD_CONNECT);
+	}
 }
 
 #if defined(CONFIG_CPU_BIG_ENDIAN)
@@ -323,13 +331,14 @@ static void pio_irq_enable(struct pxa25x_ep *ep)
 {
 	u32 bEndpointAddress = ep->bEndpointAddress & 0xf;
 
-        if (bEndpointAddress < 8)
+	if (bEndpointAddress < 8)
 		udc_set_reg(ep->dev, UICR0, udc_get_reg(ep->dev, UICR0) &
-						~(1 << bEndpointAddress));
-        else {
-                bEndpointAddress -= 8;
+					~(1 << bEndpointAddress));
+	else
+	{
+		bEndpointAddress -= 8;
 		udc_set_reg(ep->dev, UICR1, udc_get_reg(ep->dev, UICR1) &
-						~(1 << bEndpointAddress));
+					~(1 << bEndpointAddress));
 	}
 }
 
@@ -337,14 +346,15 @@ static void pio_irq_disable(struct pxa25x_ep *ep)
 {
 	u32 bEndpointAddress = ep->bEndpointAddress & 0xf;
 
-        if (bEndpointAddress < 8)
-                udc_set_reg(ep->dev, UICR0, udc_get_reg(ep->dev, UICR0) |
-						(1 << bEndpointAddress));
-        else {
-                bEndpointAddress -= 8;
-                udc_set_reg(ep->dev, UICR1, udc_get_reg(ep->dev, UICR1) |
-						(1 << bEndpointAddress));
-        }
+	if (bEndpointAddress < 8)
+		udc_set_reg(ep->dev, UICR0, udc_get_reg(ep->dev, UICR0) |
+					(1 << bEndpointAddress));
+	else
+	{
+		bEndpointAddress -= 8;
+		udc_set_reg(ep->dev, UICR1, udc_get_reg(ep->dev, UICR1) |
+					(1 << bEndpointAddress));
+	}
 }
 
 /* The UDCCR reg contains mask and interrupt status bits,
@@ -424,39 +434,45 @@ static inline u32 udc_ep_get_UBCR(struct pxa25x_ep *ep)
  * iso endpoints must be in non-default altsettings.
  */
 static int pxa25x_ep_enable (struct usb_ep *_ep,
-		const struct usb_endpoint_descriptor *desc)
+							 const struct usb_endpoint_descriptor *desc)
 {
 	struct pxa25x_ep        *ep;
 	struct pxa25x_udc       *dev;
 
 	ep = container_of (_ep, struct pxa25x_ep, ep);
+
 	if (!_ep || !desc || _ep->name == ep0name
-			|| desc->bDescriptorType != USB_DT_ENDPOINT
-			|| ep->bEndpointAddress != desc->bEndpointAddress
-			|| ep->fifo_size < usb_endpoint_maxp (desc)) {
+		|| desc->bDescriptorType != USB_DT_ENDPOINT
+		|| ep->bEndpointAddress != desc->bEndpointAddress
+		|| ep->fifo_size < usb_endpoint_maxp (desc))
+	{
 		DMSG("%s, bad ep or descriptor\n", __func__);
 		return -EINVAL;
 	}
 
 	/* xfer types must match, except that interrupt ~= bulk */
 	if (ep->bmAttributes != desc->bmAttributes
-			&& ep->bmAttributes != USB_ENDPOINT_XFER_BULK
-			&& desc->bmAttributes != USB_ENDPOINT_XFER_INT) {
+		&& ep->bmAttributes != USB_ENDPOINT_XFER_BULK
+		&& desc->bmAttributes != USB_ENDPOINT_XFER_INT)
+	{
 		DMSG("%s, %s type mismatch\n", __func__, _ep->name);
 		return -EINVAL;
 	}
 
 	/* hardware _could_ do smaller, but driver doesn't */
 	if ((desc->bmAttributes == USB_ENDPOINT_XFER_BULK
-				&& usb_endpoint_maxp (desc)
-						!= BULK_FIFO_SIZE)
-			|| !desc->wMaxPacketSize) {
+		 && usb_endpoint_maxp (desc)
+		 != BULK_FIFO_SIZE)
+		|| !desc->wMaxPacketSize)
+	{
 		DMSG("%s, bad %s maxpacket\n", __func__, _ep->name);
 		return -ERANGE;
 	}
 
 	dev = ep->dev;
-	if (!dev->driver || dev->gadget.speed == USB_SPEED_UNKNOWN) {
+
+	if (!dev->driver || dev->gadget.speed == USB_SPEED_UNKNOWN)
+	{
 		DMSG("%s, bogus device state\n", __func__);
 		return -ESHUTDOWN;
 	}
@@ -481,11 +497,14 @@ static int pxa25x_ep_disable (struct usb_ep *_ep)
 	unsigned long		flags;
 
 	ep = container_of (_ep, struct pxa25x_ep, ep);
-	if (!_ep || !ep->ep.desc) {
+
+	if (!_ep || !ep->ep.desc)
+	{
 		DMSG("%s, %s not enabled\n", __func__,
-			_ep ? ep->ep.name : NULL);
+			 _ep ? ep->ep.name : NULL);
 		return -EINVAL;
 	}
+
 	local_irq_save(flags);
 
 	nuke (ep, -ESHUTDOWN);
@@ -517,8 +536,11 @@ pxa25x_ep_alloc_request (struct usb_ep *_ep, gfp_t gfp_flags)
 	struct pxa25x_request *req;
 
 	req = kzalloc(sizeof(*req), gfp_flags);
+
 	if (!req)
+	{
 		return NULL;
+	}
 
 	INIT_LIST_HEAD (&req->queue);
 	return &req->req;
@@ -550,9 +572,13 @@ static void done(struct pxa25x_ep *ep, struct pxa25x_request *req, int status)
 	list_del_init(&req->queue);
 
 	if (likely (req->req.status == -EINPROGRESS))
+	{
 		req->req.status = status;
+	}
 	else
+	{
 		status = req->req.status;
+	}
 
 	if (status && status != -ESHUTDOWN)
 		DBG(DBG_VERBOSE, "complete %s req %p stat %d len %u/%u\n",
@@ -585,8 +611,11 @@ write_packet(struct pxa25x_ep *ep, struct pxa25x_request *req, unsigned max)
 	req->req.actual += length;
 
 	count = length;
+
 	while (likely(count--))
+	{
 		udc_ep_set_UDDR(ep, *buf++);
+	}
 
 	return length;
 }
@@ -602,7 +631,9 @@ write_fifo (struct pxa25x_ep *ep, struct pxa25x_request *req)
 	unsigned		max;
 
 	max = usb_endpoint_maxp(ep->ep.desc);
-	do {
+
+	do
+	{
 		unsigned	count;
 		int		is_last, is_short;
 
@@ -610,13 +641,21 @@ write_fifo (struct pxa25x_ep *ep, struct pxa25x_request *req)
 
 		/* last packet is usually short (or a zlp) */
 		if (unlikely (count != max))
+		{
 			is_last = is_short = 1;
-		else {
+		}
+		else
+		{
 			if (likely(req->req.length != req->req.actual)
-					|| req->req.zero)
+				|| req->req.zero)
+			{
 				is_last = 0;
+			}
 			else
+			{
 				is_last = 1;
+			}
+
 			/* interrupt/iso maxpacket may not fill the fifo */
 			is_short = unlikely (max < ep->fifo_size);
 		}
@@ -631,14 +670,22 @@ write_fifo (struct pxa25x_ep *ep, struct pxa25x_request *req)
 		 * bit values are the same for all normal IN endpoints.
 		 */
 		udc_ep_set_UDCCS(ep, UDCCS_BI_TPC);
+
 		if (is_short)
+		{
 			udc_ep_set_UDCCS(ep, UDCCS_BI_TSP);
+		}
 
 		/* requests complete when all IN data is in the FIFO */
-		if (is_last) {
+		if (is_last)
+		{
 			done (ep, req, 0);
+
 			if (list_empty(&ep->queue))
+			{
 				pio_irq_disable(ep);
+			}
+
 			return 1;
 		}
 
@@ -646,7 +693,9 @@ write_fifo (struct pxa25x_ep *ep, struct pxa25x_request *req)
 		// double buffering is off in the default fifo mode, which
 		// prevents TFS from being set here.
 
-	} while (udc_ep_get_UDCCS(ep) & UDCCS_BI_TFS);
+	}
+	while (udc_ep_get_UDCCS(ep) & UDCCS_BI_TFS);
+
 	return 0;
 }
 
@@ -656,7 +705,7 @@ write_fifo (struct pxa25x_ep *ep, struct pxa25x_request *req)
 static inline
 void ep0start(struct pxa25x_udc *dev, u32 flags, const char *tag)
 {
-	udc_ep0_set_UDCCS(dev, flags|UDCCS0_SA|UDCCS0_OPR);
+	udc_ep0_set_UDCCS(dev, flags | UDCCS0_SA | UDCCS0_OPR);
 	udc_set_reg(dev, USIR0, USIR0_IR0);
 	dev->req_pending = 0;
 	DBG(DBG_VERY_NOISY, "%s %s, %02x/%02x\n",
@@ -679,39 +728,56 @@ write_ep0_fifo (struct pxa25x_ep *ep, struct pxa25x_request *req)
 	DBG(DBG_VERY_NOISY, "ep0in %d bytes %d left %p\n", count,
 		req->req.length - req->req.actual, req);
 
-	if (unlikely (is_short)) {
+	if (unlikely (is_short))
+	{
 		if (ep->dev->req_pending)
+		{
 			ep0start(ep->dev, UDCCS0_IPR, "short IN");
+		}
 		else
+		{
 			udc_ep0_set_UDCCS(dev, UDCCS0_IPR);
+		}
 
 		count = req->req.length;
 		done (ep, req, 0);
 		ep0_idle(ep->dev);
 #ifndef CONFIG_ARCH_IXP4XX
 #if 1
+
 		/* This seems to get rid of lost status irqs in some cases:
 		 * host responds quickly, or next request involves config
 		 * change automagic, or should have been hidden, or ...
 		 *
 		 * FIXME get rid of all udelays possible...
 		 */
-		if (count >= EP0_FIFO_SIZE) {
+		if (count >= EP0_FIFO_SIZE)
+		{
 			count = 100;
-			do {
-				if ((udc_ep0_get_UDCCS(dev) & UDCCS0_OPR) != 0) {
+
+			do
+			{
+				if ((udc_ep0_get_UDCCS(dev) & UDCCS0_OPR) != 0)
+				{
 					/* clear OPR, generate ack */
 					udc_ep0_set_UDCCS(dev, UDCCS0_OPR);
 					break;
 				}
+
 				count--;
 				udelay(1);
-			} while (count);
+			}
+			while (count);
 		}
+
 #endif
 #endif
-	} else if (ep->dev->req_pending)
+	}
+	else if (ep->dev->req_pending)
+	{
 		ep0start(ep->dev, 0, "IN");
+	}
+
 	return is_short;
 }
 
@@ -727,7 +793,8 @@ write_ep0_fifo (struct pxa25x_ep *ep, struct pxa25x_request *req)
 static int
 read_fifo (struct pxa25x_ep *ep, struct pxa25x_request *req)
 {
-	for (;;) {
+	for (;;)
+	{
 		u32		udccs;
 		u8		*buf;
 		unsigned	bufferspace, count, is_short;
@@ -737,61 +804,87 @@ read_fifo (struct pxa25x_ep *ep, struct pxa25x_request *req)
 		 * UDCCS_{BO,IO}_RNE are all the same bit value.
 		 */
 		udccs = udc_ep_get_UDCCS(ep);
+
 		if (unlikely ((udccs & UDCCS_BO_RPC) == 0))
+		{
 			break;
+		}
+
 		buf = req->req.buf + req->req.actual;
 		prefetchw(buf);
 		bufferspace = req->req.length - req->req.actual;
 
 		/* read all bytes from this packet */
-		if (likely (udccs & UDCCS_BO_RNE)) {
+		if (likely (udccs & UDCCS_BO_RNE))
+		{
 			count = 1 + (0x0ff & udc_ep_get_UBCR(ep));
 			req->req.actual += min (count, bufferspace);
-		} else /* zlp */
+		}
+		else   /* zlp */
+		{
 			count = 0;
+		}
+
 		is_short = (count < ep->ep.maxpacket);
 		DBG(DBG_VERY_NOISY, "read %s %02x, %d bytes%s req %p %d/%d\n",
 			ep->ep.name, udccs, count,
 			is_short ? "/S" : "",
 			req, req->req.actual, req->req.length);
-		while (likely (count-- != 0)) {
+
+		while (likely (count-- != 0))
+		{
 			u8	byte = (u8) udc_ep_get_UDDR(ep);
 
-			if (unlikely (bufferspace == 0)) {
+			if (unlikely (bufferspace == 0))
+			{
 				/* this happens when the driver's buffer
 				 * is smaller than what the host sent.
 				 * discard the extra data.
 				 */
 				if (req->req.status != -EOVERFLOW)
 					DMSG("%s overflow %d\n",
-						ep->ep.name, count);
+						 ep->ep.name, count);
+
 				req->req.status = -EOVERFLOW;
-			} else {
+			}
+			else
+			{
 				*buf++ = byte;
 				bufferspace--;
 			}
 		}
+
 		udc_ep_set_UDCCS(ep, UDCCS_BO_RPC);
 		/* RPC/RSP/RNE could now reflect the other packet buffer */
 
 		/* iso is one request per packet */
-		if (ep->bmAttributes == USB_ENDPOINT_XFER_ISOC) {
+		if (ep->bmAttributes == USB_ENDPOINT_XFER_ISOC)
+		{
 			if (udccs & UDCCS_IO_ROF)
+			{
 				req->req.status = -EHOSTUNREACH;
+			}
+
 			/* more like "is_done" */
 			is_short = 1;
 		}
 
 		/* completion */
-		if (is_short || req->req.actual == req->req.length) {
+		if (is_short || req->req.actual == req->req.length)
+		{
 			done (ep, req, 0);
+
 			if (list_empty(&ep->queue))
+			{
 				pio_irq_disable(ep);
+			}
+
 			return 1;
 		}
 
 		/* finished that packet.  the next one may be waiting... */
 	}
+
 	return 0;
 }
 
@@ -810,18 +903,25 @@ read_ep0_fifo (struct pxa25x_ep *ep, struct pxa25x_request *req)
 	buf = req->req.buf + req->req.actual;
 	bufferspace = req->req.length - req->req.actual;
 
-	while (udc_ep_get_UDCCS(ep) & UDCCS0_RNE) {
+	while (udc_ep_get_UDCCS(ep) & UDCCS0_RNE)
+	{
 		byte = (u8) UDDR0;
 
-		if (unlikely (bufferspace == 0)) {
+		if (unlikely (bufferspace == 0))
+		{
 			/* this happens when the driver's buffer
 			 * is smaller than what the host sent.
 			 * discard the extra data.
 			 */
 			if (req->req.status != -EOVERFLOW)
+			{
 				DMSG("%s overflow\n", ep->ep.name);
+			}
+
 			req->req.status = -EOVERFLOW;
-		} else {
+		}
+		else
+		{
 			*buf++ = byte;
 			req->req.actual++;
 			bufferspace--;
@@ -832,7 +932,9 @@ read_ep0_fifo (struct pxa25x_ep *ep, struct pxa25x_request *req)
 
 	/* completion */
 	if (req->req.actual >= req->req.length)
+	{
 		return 1;
+	}
 
 	/* finished that packet.  the next one may be waiting... */
 	return 0;
@@ -849,21 +951,27 @@ pxa25x_ep_queue(struct usb_ep *_ep, struct usb_request *_req, gfp_t gfp_flags)
 	unsigned long		flags;
 
 	req = container_of(_req, struct pxa25x_request, req);
+
 	if (unlikely (!_req || !_req->complete || !_req->buf
-			|| !list_empty(&req->queue))) {
+				  || !list_empty(&req->queue)))
+	{
 		DMSG("%s, bad params\n", __func__);
 		return -EINVAL;
 	}
 
 	ep = container_of(_ep, struct pxa25x_ep, ep);
-	if (unlikely(!_ep || (!ep->ep.desc && ep->ep.name != ep0name))) {
+
+	if (unlikely(!_ep || (!ep->ep.desc && ep->ep.name != ep0name)))
+	{
 		DMSG("%s, bad ep\n", __func__);
 		return -EINVAL;
 	}
 
 	dev = ep->dev;
+
 	if (unlikely (!dev->driver
-			|| dev->gadget.speed == USB_SPEED_UNKNOWN)) {
+				  || dev->gadget.speed == USB_SPEED_UNKNOWN))
+	{
 		DMSG("%s, bogus device state\n", __func__);
 		return -ESHUTDOWN;
 	}
@@ -872,8 +980,10 @@ pxa25x_ep_queue(struct usb_ep *_ep, struct usb_request *_req, gfp_t gfp_flags)
 	 * we can report per-packet status.  that also helps with dma.
 	 */
 	if (unlikely (ep->bmAttributes == USB_ENDPOINT_XFER_ISOC
-			&& req->req.length > usb_endpoint_maxp(ep->ep.desc)))
+				  && req->req.length > usb_endpoint_maxp(ep->ep.desc)))
+	{
 		return -EMSGSIZE;
+	}
 
 	DBG(DBG_NOISY, "%s queue req %p, len %d buf %p\n",
 		_ep->name, _req, _req->length, _req->buf);
@@ -884,63 +994,92 @@ pxa25x_ep_queue(struct usb_ep *_ep, struct usb_request *_req, gfp_t gfp_flags)
 	_req->actual = 0;
 
 	/* kickstart this i/o queue? */
-	if (list_empty(&ep->queue) && !ep->stopped) {
-		if (ep->ep.desc == NULL/* ep0 */) {
+	if (list_empty(&ep->queue) && !ep->stopped)
+	{
+		if (ep->ep.desc == NULL/* ep0 */)
+		{
 			unsigned	length = _req->length;
 
-			switch (dev->ep0state) {
-			case EP0_IN_DATA_PHASE:
-				dev->stats.write.ops++;
-				if (write_ep0_fifo(ep, req))
-					req = NULL;
-				break;
+			switch (dev->ep0state)
+			{
+				case EP0_IN_DATA_PHASE:
+					dev->stats.write.ops++;
 
-			case EP0_OUT_DATA_PHASE:
-				dev->stats.read.ops++;
-				/* messy ... */
-				if (dev->req_config) {
-					DBG(DBG_VERBOSE, "ep0 config ack%s\n",
-						dev->has_cfr ?  "" : " raced");
-					if (dev->has_cfr)
-						udc_set_reg(dev, UDCCFR, UDCCFR_AREN |
-							    UDCCFR_ACM | UDCCFR_MB1);
-					done(ep, req, 0);
-					dev->ep0state = EP0_END_XFER;
+					if (write_ep0_fifo(ep, req))
+					{
+						req = NULL;
+					}
+
+					break;
+
+				case EP0_OUT_DATA_PHASE:
+					dev->stats.read.ops++;
+
+					/* messy ... */
+					if (dev->req_config)
+					{
+						DBG(DBG_VERBOSE, "ep0 config ack%s\n",
+							dev->has_cfr ?  "" : " raced");
+
+						if (dev->has_cfr)
+							udc_set_reg(dev, UDCCFR, UDCCFR_AREN |
+										UDCCFR_ACM | UDCCFR_MB1);
+
+						done(ep, req, 0);
+						dev->ep0state = EP0_END_XFER;
+						local_irq_restore (flags);
+						return 0;
+					}
+
+					if (dev->req_pending)
+					{
+						ep0start(dev, UDCCS0_IPR, "OUT");
+					}
+
+					if (length == 0 || ((udc_ep0_get_UDCCS(dev) & UDCCS0_RNE) != 0
+										&& read_ep0_fifo(ep, req)))
+					{
+						ep0_idle(dev);
+						done(ep, req, 0);
+						req = NULL;
+					}
+
+					break;
+
+				default:
+					DMSG("ep0 i/o, odd state %d\n", dev->ep0state);
 					local_irq_restore (flags);
-					return 0;
-				}
-				if (dev->req_pending)
-					ep0start(dev, UDCCS0_IPR, "OUT");
-				if (length == 0 || ((udc_ep0_get_UDCCS(dev) & UDCCS0_RNE) != 0
-						&& read_ep0_fifo(ep, req))) {
-					ep0_idle(dev);
-					done(ep, req, 0);
-					req = NULL;
-				}
-				break;
-
-			default:
-				DMSG("ep0 i/o, odd state %d\n", dev->ep0state);
-				local_irq_restore (flags);
-				return -EL2HLT;
+					return -EL2HLT;
 			}
-		/* can the FIFO can satisfy the request immediately? */
-		} else if ((ep->bEndpointAddress & USB_DIR_IN) != 0) {
+
+			/* can the FIFO can satisfy the request immediately? */
+		}
+		else if ((ep->bEndpointAddress & USB_DIR_IN) != 0)
+		{
 			if ((udc_ep_get_UDCCS(ep) & UDCCS_BI_TFS) != 0
-					&& write_fifo(ep, req))
+				&& write_fifo(ep, req))
+			{
 				req = NULL;
-		} else if ((udc_ep_get_UDCCS(ep) & UDCCS_BO_RFS) != 0
-				&& read_fifo(ep, req)) {
+			}
+		}
+		else if ((udc_ep_get_UDCCS(ep) & UDCCS_BO_RFS) != 0
+				 && read_fifo(ep, req))
+		{
 			req = NULL;
 		}
 
 		if (likely(req && ep->ep.desc))
+		{
 			pio_irq_enable(ep);
+		}
 	}
 
 	/* pio or dma irq handler advances the queue. */
 	if (likely(req != NULL))
+	{
 		list_add_tail(&req->queue, &ep->queue);
+	}
+
 	local_irq_restore(flags);
 
 	return 0;
@@ -955,14 +1094,18 @@ static void nuke(struct pxa25x_ep *ep, int status)
 	struct pxa25x_request *req;
 
 	/* called with irqs blocked */
-	while (!list_empty(&ep->queue)) {
+	while (!list_empty(&ep->queue))
+	{
 		req = list_entry(ep->queue.next,
-				struct pxa25x_request,
-				queue);
+						 struct pxa25x_request,
+						 queue);
 		done(ep, req, status);
 	}
+
 	if (ep->ep.desc)
+	{
 		pio_irq_disable(ep);
+	}
 }
 
 
@@ -974,17 +1117,25 @@ static int pxa25x_ep_dequeue(struct usb_ep *_ep, struct usb_request *_req)
 	unsigned long		flags;
 
 	ep = container_of(_ep, struct pxa25x_ep, ep);
+
 	if (!_ep || ep->ep.name == ep0name)
+	{
 		return -EINVAL;
+	}
 
 	local_irq_save(flags);
 
 	/* make sure it's actually queued on this endpoint */
-	list_for_each_entry (req, &ep->queue, queue) {
+	list_for_each_entry (req, &ep->queue, queue)
+	{
 		if (&req->req == _req)
+		{
 			break;
+		}
 	}
-	if (&req->req != _req) {
+
+	if (&req->req != _req)
+	{
 		local_irq_restore(flags);
 		return -EINVAL;
 	}
@@ -1003,13 +1154,17 @@ static int pxa25x_ep_set_halt(struct usb_ep *_ep, int value)
 	unsigned long		flags;
 
 	ep = container_of(_ep, struct pxa25x_ep, ep);
+
 	if (unlikely (!_ep
-			|| (!ep->ep.desc && ep->ep.name != ep0name))
-			|| ep->bmAttributes == USB_ENDPOINT_XFER_ISOC) {
+				  || (!ep->ep.desc && ep->ep.name != ep0name))
+		|| ep->bmAttributes == USB_ENDPOINT_XFER_ISOC)
+	{
 		DMSG("%s, bad ep\n", __func__);
 		return -EINVAL;
 	}
-	if (value == 0) {
+
+	if (value == 0)
+	{
 		/* this path (reset toggle+halt) is needed to implement
 		 * SET_INTERFACE on normal hardware.  but it can't be
 		 * done from software on the PXA UDC, and the hardware
@@ -1022,30 +1177,40 @@ static int pxa25x_ep_set_halt(struct usb_ep *_ep, int value)
 	local_irq_save(flags);
 
 	if ((ep->bEndpointAddress & USB_DIR_IN) != 0
-			&& ((udc_ep_get_UDCCS(ep) & UDCCS_BI_TFS) == 0
-			   || !list_empty(&ep->queue))) {
+		&& ((udc_ep_get_UDCCS(ep) & UDCCS_BI_TFS) == 0
+			|| !list_empty(&ep->queue)))
+	{
 		local_irq_restore(flags);
 		return -EAGAIN;
 	}
 
 	/* FST bit is the same for control, bulk in, bulk out, interrupt in */
-	udc_ep_set_UDCCS(ep, UDCCS_BI_FST|UDCCS_BI_FTF);
+	udc_ep_set_UDCCS(ep, UDCCS_BI_FST | UDCCS_BI_FTF);
 
 	/* ep0 needs special care */
-	if (!ep->ep.desc) {
+	if (!ep->ep.desc)
+	{
 		start_watchdog(ep->dev);
 		ep->dev->req_pending = 0;
 		ep->dev->ep0state = EP0_STALL;
 
-	/* and bulk/intr endpoints like dropping stalls too */
-	} else {
+		/* and bulk/intr endpoints like dropping stalls too */
+	}
+	else
+	{
 		unsigned i;
-		for (i = 0; i < 1000; i += 20) {
+
+		for (i = 0; i < 1000; i += 20)
+		{
 			if (udc_ep_get_UDCCS(ep) & UDCCS_BI_SST)
+			{
 				break;
+			}
+
 			udelay(20);
 		}
 	}
+
 	local_irq_restore(flags);
 
 	DBG(DBG_VERBOSE, "%s halt\n", _ep->name);
@@ -1057,18 +1222,28 @@ static int pxa25x_ep_fifo_status(struct usb_ep *_ep)
 	struct pxa25x_ep        *ep;
 
 	ep = container_of(_ep, struct pxa25x_ep, ep);
-	if (!_ep) {
+
+	if (!_ep)
+	{
 		DMSG("%s, bad ep\n", __func__);
 		return -ENODEV;
 	}
+
 	/* pxa can't report unclaimed bytes from IN fifos */
 	if ((ep->bEndpointAddress & USB_DIR_IN) != 0)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	if (ep->dev->gadget.speed == USB_SPEED_UNKNOWN
-			|| (udc_ep_get_UDCCS(ep) & UDCCS_BO_RFS) == 0)
+		|| (udc_ep_get_UDCCS(ep) & UDCCS_BO_RFS) == 0)
+	{
 		return 0;
+	}
 	else
+	{
 		return (udc_ep_get_UBCR(ep) & 0xfff) + 1;
+	}
 }
 
 static void pxa25x_ep_fifo_flush(struct usb_ep *_ep)
@@ -1076,7 +1251,9 @@ static void pxa25x_ep_fifo_flush(struct usb_ep *_ep)
 	struct pxa25x_ep        *ep;
 
 	ep = container_of(_ep, struct pxa25x_ep, ep);
-	if (!_ep || ep->ep.name == ep0name || !list_empty(&ep->queue)) {
+
+	if (!_ep || ep->ep.name == ep0name || !list_empty(&ep->queue))
+	{
 		DMSG("%s, bad ep\n", __func__);
 		return;
 	}
@@ -1084,20 +1261,25 @@ static void pxa25x_ep_fifo_flush(struct usb_ep *_ep)
 	/* toggle and halt bits stay unchanged */
 
 	/* for OUT, just read and discard the FIFO contents. */
-	if ((ep->bEndpointAddress & USB_DIR_IN) == 0) {
+	if ((ep->bEndpointAddress & USB_DIR_IN) == 0)
+	{
 		while (((udc_ep_get_UDCCS(ep)) & UDCCS_BO_RNE) != 0)
+		{
 			(void)udc_ep_get_UDDR(ep);
+		}
+
 		return;
 	}
 
 	/* most IN status is the same, but ISO can't stall */
-	udc_ep_set_UDCCS(ep, UDCCS_BI_TPC|UDCCS_BI_FTF|UDCCS_BI_TUR
-		| (ep->bmAttributes == USB_ENDPOINT_XFER_ISOC
-			? 0 : UDCCS_BI_SST));
+	udc_ep_set_UDCCS(ep, UDCCS_BI_TPC | UDCCS_BI_FTF | UDCCS_BI_TUR
+					 | (ep->bmAttributes == USB_ENDPOINT_XFER_ISOC
+						? 0 : UDCCS_BI_SST));
 }
 
 
-static struct usb_ep_ops pxa25x_ep_ops = {
+static struct usb_ep_ops pxa25x_ep_ops =
+{
 	.enable		= pxa25x_ep_enable,
 	.disable	= pxa25x_ep_disable,
 
@@ -1124,7 +1306,7 @@ static int pxa25x_udc_get_frame(struct usb_gadget *_gadget)
 
 	dev = container_of(_gadget, struct pxa25x_udc, gadget);
 	return ((udc_get_reg(dev, UFNRH) & 0x07) << 8) |
-		(udc_get_reg(dev, UFNRL) & 0xff);
+		   (udc_get_reg(dev, UFNRL) & 0xff);
 }
 
 static int pxa25x_udc_wakeup(struct usb_gadget *_gadget)
@@ -1135,7 +1317,10 @@ static int pxa25x_udc_wakeup(struct usb_gadget *_gadget)
 
 	/* host may not have enabled remote wakeup */
 	if ((udc_ep0_get_UDCCS(udc) & UDCCS0_DRWF) == 0)
+	{
 		return -EHOSTUNREACH;
+	}
+
 	udc_set_mask_UDCCR(udc, UDCCR_RSM);
 	return 0;
 }
@@ -1151,21 +1336,29 @@ static int pullup(struct pxa25x_udc *udc)
 {
 	int is_active = udc->vbus && udc->pullup && !udc->suspended;
 	DMSG("%s\n", is_active ? "active" : "inactive");
-	if (is_active) {
-		if (!udc->active) {
+
+	if (is_active)
+	{
+		if (!udc->active)
+		{
 			udc->active = 1;
 			/* Enable clock for USB device */
 			clk_enable(udc->clk);
 			udc_enable(udc);
 		}
-	} else {
-		if (udc->active) {
-			if (udc->gadget.speed != USB_SPEED_UNKNOWN) {
+	}
+	else
+	{
+		if (udc->active)
+		{
+			if (udc->gadget.speed != USB_SPEED_UNKNOWN)
+			{
 				DMSG("disconnect %s\n", udc->driver
-					? udc->driver->driver.name
-					: "(no driver)");
+					 ? udc->driver->driver.name
+					 : "(no driver)");
 				stop_activity(udc, udc->driver);
 			}
+
 			udc_disable(udc);
 			/* Disable clock for USB device */
 			clk_disable(udc->clk);
@@ -1173,6 +1366,7 @@ static int pullup(struct pxa25x_udc *udc)
 		}
 
 	}
+
 	return 0;
 }
 
@@ -1197,7 +1391,9 @@ static int pxa25x_udc_pullup(struct usb_gadget *_gadget, int is_active)
 
 	/* not all boards support pullup control */
 	if (!gpio_is_valid(udc->mach->gpio_pullup) && !udc->mach->udc_command)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	udc->pullup = (is_active != 0);
 	pullup(udc);
@@ -1215,15 +1411,19 @@ static int pxa25x_udc_vbus_draw(struct usb_gadget *_gadget, unsigned mA)
 	udc = container_of(_gadget, struct pxa25x_udc, gadget);
 
 	if (!IS_ERR_OR_NULL(udc->transceiver))
+	{
 		return usb_phy_set_power(udc->transceiver, mA);
+	}
+
 	return -EOPNOTSUPP;
 }
 
 static int pxa25x_udc_start(struct usb_gadget *g,
-		struct usb_gadget_driver *driver);
+							struct usb_gadget_driver *driver);
 static int pxa25x_udc_stop(struct usb_gadget *g);
 
-static const struct usb_gadget_ops pxa25x_udc_ops = {
+static const struct usb_gadget_ops pxa25x_udc_ops =
+{
 	.get_frame	= pxa25x_udc_get_frame,
 	.wakeup		= pxa25x_udc_wakeup,
 	.vbus_session	= pxa25x_udc_vbus_session,
@@ -1249,89 +1449,102 @@ udc_seq_show(struct seq_file *m, void *_d)
 
 	/* basic device status */
 	seq_printf(m, DRIVER_DESC "\n"
-		"%s version: %s\nGadget driver: %s\nHost %s\n\n",
-		driver_name, DRIVER_VERSION SIZE_STR "(pio)",
-		dev->driver ? dev->driver->driver.name : "(none)",
-		dev->gadget.speed == USB_SPEED_FULL ? "full speed" : "disconnected");
+			   "%s version: %s\nGadget driver: %s\nHost %s\n\n",
+			   driver_name, DRIVER_VERSION SIZE_STR "(pio)",
+			   dev->driver ? dev->driver->driver.name : "(none)",
+			   dev->gadget.speed == USB_SPEED_FULL ? "full speed" : "disconnected");
 
 	/* registers for device and ep0 */
 	seq_printf(m,
-		"uicr %02X.%02X, usir %02X.%02x, ufnr %02X.%02X\n",
-		udc_get_reg(dev, UICR1), udc_get_reg(dev, UICR0),
-		udc_get_reg(dev, USIR1), udc_get_reg(dev, USIR0),
-		udc_get_reg(dev, UFNRH), udc_get_reg(dev, UFNRL));
+			   "uicr %02X.%02X, usir %02X.%02x, ufnr %02X.%02X\n",
+			   udc_get_reg(dev, UICR1), udc_get_reg(dev, UICR0),
+			   udc_get_reg(dev, USIR1), udc_get_reg(dev, USIR0),
+			   udc_get_reg(dev, UFNRH), udc_get_reg(dev, UFNRL));
 
 	tmp = udc_get_reg(dev, UDCCR);
 	seq_printf(m,
-		"udccr %02X =%s%s%s%s%s%s%s%s\n", tmp,
-		(tmp & UDCCR_REM) ? " rem" : "",
-		(tmp & UDCCR_RSTIR) ? " rstir" : "",
-		(tmp & UDCCR_SRM) ? " srm" : "",
-		(tmp & UDCCR_SUSIR) ? " susir" : "",
-		(tmp & UDCCR_RESIR) ? " resir" : "",
-		(tmp & UDCCR_RSM) ? " rsm" : "",
-		(tmp & UDCCR_UDA) ? " uda" : "",
-		(tmp & UDCCR_UDE) ? " ude" : "");
+			   "udccr %02X =%s%s%s%s%s%s%s%s\n", tmp,
+			   (tmp & UDCCR_REM) ? " rem" : "",
+			   (tmp & UDCCR_RSTIR) ? " rstir" : "",
+			   (tmp & UDCCR_SRM) ? " srm" : "",
+			   (tmp & UDCCR_SUSIR) ? " susir" : "",
+			   (tmp & UDCCR_RESIR) ? " resir" : "",
+			   (tmp & UDCCR_RSM) ? " rsm" : "",
+			   (tmp & UDCCR_UDA) ? " uda" : "",
+			   (tmp & UDCCR_UDE) ? " ude" : "");
 
 	tmp = udc_ep0_get_UDCCS(dev);
 	seq_printf(m,
-		"udccs0 %02X =%s%s%s%s%s%s%s%s\n", tmp,
-		(tmp & UDCCS0_SA) ? " sa" : "",
-		(tmp & UDCCS0_RNE) ? " rne" : "",
-		(tmp & UDCCS0_FST) ? " fst" : "",
-		(tmp & UDCCS0_SST) ? " sst" : "",
-		(tmp & UDCCS0_DRWF) ? " dwrf" : "",
-		(tmp & UDCCS0_FTF) ? " ftf" : "",
-		(tmp & UDCCS0_IPR) ? " ipr" : "",
-		(tmp & UDCCS0_OPR) ? " opr" : "");
+			   "udccs0 %02X =%s%s%s%s%s%s%s%s\n", tmp,
+			   (tmp & UDCCS0_SA) ? " sa" : "",
+			   (tmp & UDCCS0_RNE) ? " rne" : "",
+			   (tmp & UDCCS0_FST) ? " fst" : "",
+			   (tmp & UDCCS0_SST) ? " sst" : "",
+			   (tmp & UDCCS0_DRWF) ? " dwrf" : "",
+			   (tmp & UDCCS0_FTF) ? " ftf" : "",
+			   (tmp & UDCCS0_IPR) ? " ipr" : "",
+			   (tmp & UDCCS0_OPR) ? " opr" : "");
 
-	if (dev->has_cfr) {
+	if (dev->has_cfr)
+	{
 		tmp = udc_get_reg(dev, UDCCFR);
 		seq_printf(m,
-			"udccfr %02X =%s%s\n", tmp,
-			(tmp & UDCCFR_AREN) ? " aren" : "",
-			(tmp & UDCCFR_ACM) ? " acm" : "");
+				   "udccfr %02X =%s%s\n", tmp,
+				   (tmp & UDCCFR_AREN) ? " aren" : "",
+				   (tmp & UDCCFR_ACM) ? " acm" : "");
 	}
 
 	if (dev->gadget.speed != USB_SPEED_FULL || !dev->driver)
+	{
 		goto done;
+	}
 
 	seq_printf(m, "ep0 IN %lu/%lu, OUT %lu/%lu\nirqs %lu\n\n",
-		dev->stats.write.bytes, dev->stats.write.ops,
-		dev->stats.read.bytes, dev->stats.read.ops,
-		dev->stats.irqs);
+			   dev->stats.write.bytes, dev->stats.write.ops,
+			   dev->stats.read.bytes, dev->stats.read.ops,
+			   dev->stats.irqs);
 
 	/* dump endpoint queues */
-	for (i = 0; i < PXA_UDC_NUM_ENDPOINTS; i++) {
+	for (i = 0; i < PXA_UDC_NUM_ENDPOINTS; i++)
+	{
 		struct pxa25x_ep	*ep = &dev->ep [i];
 		struct pxa25x_request	*req;
 
-		if (i != 0) {
+		if (i != 0)
+		{
 			const struct usb_endpoint_descriptor	*desc;
 
 			desc = ep->ep.desc;
+
 			if (!desc)
+			{
 				continue;
+			}
+
 			tmp = udc_ep_get_UDCCS(&dev->ep[i]);
 			seq_printf(m,
-				"%s max %d %s udccs %02x irqs %lu\n",
-				ep->ep.name, usb_endpoint_maxp(desc),
-				"pio", tmp, ep->pio_irqs);
+					   "%s max %d %s udccs %02x irqs %lu\n",
+					   ep->ep.name, usb_endpoint_maxp(desc),
+					   "pio", tmp, ep->pio_irqs);
 			/* TODO translate all five groups of udccs bits! */
 
-		} else /* ep0 should only have one transfer queued */
+		}
+		else   /* ep0 should only have one transfer queued */
 			seq_printf(m, "ep0 max 16 pio irqs %lu\n",
-				ep->pio_irqs);
+					   ep->pio_irqs);
 
-		if (list_empty(&ep->queue)) {
+		if (list_empty(&ep->queue))
+		{
 			seq_printf(m, "\t(nothing queued)\n");
 			continue;
 		}
-		list_for_each_entry(req, &ep->queue, queue) {
+
+		list_for_each_entry(req, &ep->queue, queue)
+		{
 			seq_printf(m,
-					"\treq %p len %d/%d buf %p\n",
-					&req->req, req->req.actual,
-					req->req.length, req->req.buf);
+					   "\treq %p len %d/%d buf %p\n",
+					   &req->req, req->req.actual,
+					   req->req.length, req->req.buf);
 		}
 	}
 
@@ -1346,7 +1559,8 @@ udc_debugfs_open(struct inode *inode, struct file *file)
 	return single_open(file, udc_seq_show, inode->i_private);
 }
 
-static const struct file_operations debug_fops = {
+static const struct file_operations debug_fops =
+{
 	.open		= udc_debugfs_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -1357,7 +1571,7 @@ static const struct file_operations debug_fops = {
 #define create_debug_files(dev) \
 	do { \
 		dev->debugfs_udc = debugfs_create_file(dev->gadget.name, \
-			S_IRUGO, NULL, dev, &debug_fops); \
+											   S_IRUGO, NULL, dev, &debug_fops); \
 	} while (0)
 #define remove_debug_files(dev) debugfs_remove(dev->debugfs_udc)
 
@@ -1376,7 +1590,7 @@ static const struct file_operations debug_fops = {
 static void udc_disable(struct pxa25x_udc *dev)
 {
 	/* block all irqs */
-	udc_set_mask_UDCCR(dev, UDCCR_SRM|UDCCR_REM);
+	udc_set_mask_UDCCR(dev, UDCCR_SRM | UDCCR_REM);
 	udc_set_reg(dev, UICR0, 0xff);
 	udc_set_reg(dev, UICR1, 0xff);
 	udc_set_reg(dev, UFNRH, UFNRH_SIM);
@@ -1405,11 +1619,14 @@ static void udc_reinit(struct pxa25x_udc *dev)
 	dev->gadget.quirk_altset_not_supp = 1;
 
 	/* basic endpoint records init */
-	for (i = 0; i < PXA_UDC_NUM_ENDPOINTS; i++) {
+	for (i = 0; i < PXA_UDC_NUM_ENDPOINTS; i++)
+	{
 		struct pxa25x_ep *ep = &dev->ep[i];
 
 		if (i != 0)
+		{
 			list_add_tail (&ep->ep.ep_list, &dev->gadget.ep_list);
+		}
 
 		ep->ep.desc = NULL;
 		ep->stopped = 0;
@@ -1429,7 +1646,7 @@ static void udc_enable (struct pxa25x_udc *dev)
 	udc_clear_mask_UDCCR(dev, UDCCR_UDE);
 
 	/* try to clear these bits before we enable the udc */
-	udc_ack_int_UDCCR(dev, UDCCR_SUSIR|/*UDCCR_RSTIR|*/UDCCR_RESIR);
+	udc_ack_int_UDCCR(dev, UDCCR_SUSIR |/*UDCCR_RSTIR|*/UDCCR_RESIR);
 
 	ep0_idle(dev);
 	dev->gadget.speed = USB_SPEED_UNKNOWN;
@@ -1442,15 +1659,21 @@ static void udc_enable (struct pxa25x_udc *dev)
 	 * - unmask reset interrupt
 	 */
 	udc_set_mask_UDCCR(dev, UDCCR_UDE);
-	if (!(udc_get_reg(dev, UDCCR) & UDCCR_UDA))
-		udc_ack_int_UDCCR(dev, UDCCR_RSTIR);
 
-	if (dev->has_cfr /* UDC_RES2 is defined */) {
+	if (!(udc_get_reg(dev, UDCCR) & UDCCR_UDA))
+	{
+		udc_ack_int_UDCCR(dev, UDCCR_RSTIR);
+	}
+
+	if (dev->has_cfr /* UDC_RES2 is defined */)
+	{
 		/* pxa255 (a0+) can avoid a set_config race that could
 		 * prevent gadget drivers from configuring correctly
 		 */
 		udc_set_reg(dev, UDCCFR, UDCCFR_ACM | UDCCFR_MB1);
-	} else {
+	}
+	else
+	{
 		/* "USB test mode" for pxa250 errata 40-42 (stepping a0, a1)
 		 * which could result in missing packets and interrupts.
 		 * supposedly one bit per endpoint, controlling whether it
@@ -1479,7 +1702,7 @@ static void udc_enable (struct pxa25x_udc *dev)
  * the driver might get unbound.
  */
 static int pxa25x_udc_start(struct usb_gadget *g,
-		struct usb_gadget_driver *driver)
+							struct usb_gadget_driver *driver)
 {
 	struct pxa25x_udc	*dev = to_pxa25x(g);
 	int			retval;
@@ -1492,11 +1715,15 @@ static int pxa25x_udc_start(struct usb_gadget *g,
 	 * for set_configuration as well as eventual disconnect.
 	 */
 	/* connect to bus through transceiver */
-	if (!IS_ERR_OR_NULL(dev->transceiver)) {
+	if (!IS_ERR_OR_NULL(dev->transceiver))
+	{
 		retval = otg_set_peripheral(dev->transceiver->otg,
-						&dev->gadget);
+									&dev->gadget);
+
 		if (retval)
+		{
 			goto bind_fail;
+		}
 	}
 
 	dump_state(dev);
@@ -1512,21 +1739,28 @@ reset_gadget(struct pxa25x_udc *dev, struct usb_gadget_driver *driver)
 
 	/* don't disconnect drivers more than once */
 	if (dev->gadget.speed == USB_SPEED_UNKNOWN)
+	{
 		driver = NULL;
+	}
+
 	dev->gadget.speed = USB_SPEED_UNKNOWN;
 
 	/* prevent new request submissions, kill any outstanding requests  */
-	for (i = 0; i < PXA_UDC_NUM_ENDPOINTS; i++) {
+	for (i = 0; i < PXA_UDC_NUM_ENDPOINTS; i++)
+	{
 		struct pxa25x_ep *ep = &dev->ep[i];
 
 		ep->stopped = 1;
 		nuke(ep, -ESHUTDOWN);
 	}
+
 	del_timer_sync(&dev->timer);
 
 	/* report reset; the driver is already quiesced */
 	if (driver)
+	{
 		usb_gadget_udc_reset(&dev->gadget, driver);
+	}
 
 	/* re-init driver-visible data structures */
 	udc_reinit(dev);
@@ -1539,27 +1773,34 @@ stop_activity(struct pxa25x_udc *dev, struct usb_gadget_driver *driver)
 
 	/* don't disconnect drivers more than once */
 	if (dev->gadget.speed == USB_SPEED_UNKNOWN)
+	{
 		driver = NULL;
+	}
+
 	dev->gadget.speed = USB_SPEED_UNKNOWN;
 
 	/* prevent new request submissions, kill any outstanding requests  */
-	for (i = 0; i < PXA_UDC_NUM_ENDPOINTS; i++) {
+	for (i = 0; i < PXA_UDC_NUM_ENDPOINTS; i++)
+	{
 		struct pxa25x_ep *ep = &dev->ep[i];
 
 		ep->stopped = 1;
 		nuke(ep, -ESHUTDOWN);
 	}
+
 	del_timer_sync(&dev->timer);
 
 	/* report disconnect; the driver is already quiesced */
 	if (driver)
+	{
 		driver->disconnect(&dev->gadget);
+	}
 
 	/* re-init driver-visible data structures */
 	udc_reinit(dev);
 }
 
-static int pxa25x_udc_stop(struct usb_gadget*g)
+static int pxa25x_udc_stop(struct usb_gadget *g)
 {
 	struct pxa25x_udc	*dev = to_pxa25x(g);
 
@@ -1569,7 +1810,9 @@ static int pxa25x_udc_stop(struct usb_gadget*g)
 	local_irq_enable();
 
 	if (!IS_ERR_OR_NULL(dev->transceiver))
+	{
 		(void) otg_set_peripheral(dev->transceiver->otg, NULL);
+	}
 
 	dev->driver = NULL;
 
@@ -1593,19 +1836,23 @@ lubbock_vbus_irq(int irq, void *_dev)
 	int			vbus;
 
 	dev->stats.irqs++;
-	switch (irq) {
-	case LUBBOCK_USB_IRQ:
-		vbus = 1;
-		disable_irq(LUBBOCK_USB_IRQ);
-		enable_irq(LUBBOCK_USB_DISC_IRQ);
-		break;
-	case LUBBOCK_USB_DISC_IRQ:
-		vbus = 0;
-		disable_irq(LUBBOCK_USB_DISC_IRQ);
-		enable_irq(LUBBOCK_USB_IRQ);
-		break;
-	default:
-		return IRQ_NONE;
+
+	switch (irq)
+	{
+		case LUBBOCK_USB_IRQ:
+			vbus = 1;
+			disable_irq(LUBBOCK_USB_IRQ);
+			enable_irq(LUBBOCK_USB_DISC_IRQ);
+			break;
+
+		case LUBBOCK_USB_DISC_IRQ:
+			vbus = 0;
+			disable_irq(LUBBOCK_USB_DISC_IRQ);
+			enable_irq(LUBBOCK_USB_IRQ);
+			break;
+
+		default:
+			return IRQ_NONE;
 	}
 
 	pxa25x_udc_vbus_session(&dev->gadget, vbus);
@@ -1625,7 +1872,9 @@ static inline void clear_ep_state (struct pxa25x_udc *dev)
 	 * fifos, and pending transactions mustn't be continued in any case.
 	 */
 	for (i = 1; i < PXA_UDC_NUM_ENDPOINTS; i++)
+	{
 		nuke(&dev->ep[i], -ECONNABORTED);
+	}
 }
 
 static void udc_watchdog(unsigned long _dev)
@@ -1633,13 +1882,16 @@ static void udc_watchdog(unsigned long _dev)
 	struct pxa25x_udc	*dev = (void *)_dev;
 
 	local_irq_disable();
+
 	if (dev->ep0state == EP0_STALL
-			&& (udc_ep0_get_UDCCS(dev) & UDCCS0_FST) == 0
-			&& (udc_ep0_get_UDCCS(dev) & UDCCS0_SST) == 0) {
-		udc_ep0_set_UDCCS(dev, UDCCS0_FST|UDCCS0_FTF);
+		&& (udc_ep0_get_UDCCS(dev) & UDCCS0_FST) == 0
+		&& (udc_ep0_get_UDCCS(dev) & UDCCS0_SST) == 0)
+	{
+		udc_ep0_set_UDCCS(dev, UDCCS0_FST | UDCCS0_FTF);
 		DBG(DBG_VERBOSE, "ep0 re-stall\n");
 		start_watchdog(dev);
 	}
+
 	local_irq_enable();
 }
 
@@ -1648,19 +1900,25 @@ static void handle_ep0 (struct pxa25x_udc *dev)
 	u32			udccs0 = udc_ep0_get_UDCCS(dev);
 	struct pxa25x_ep	*ep = &dev->ep [0];
 	struct pxa25x_request	*req;
-	union {
+	union
+	{
 		struct usb_ctrlrequest	r;
 		u8			raw [8];
 		u32			word [2];
 	} u;
 
 	if (list_empty(&ep->queue))
+	{
 		req = NULL;
+	}
 	else
+	{
 		req = list_entry(ep->queue.next, struct pxa25x_request, queue);
+	}
 
 	/* clear stall status */
-	if (udccs0 & UDCCS0_SST) {
+	if (udccs0 & UDCCS0_SST)
+	{
 		nuke(ep, -EPIPE);
 		udc_ep0_set_UDCCS(dev, UDCCS0_SST);
 		del_timer(&dev->timer);
@@ -1668,202 +1926,281 @@ static void handle_ep0 (struct pxa25x_udc *dev)
 	}
 
 	/* previous request unfinished?  non-error iff back-to-back ... */
-	if ((udccs0 & UDCCS0_SA) != 0 && dev->ep0state != EP0_IDLE) {
+	if ((udccs0 & UDCCS0_SA) != 0 && dev->ep0state != EP0_IDLE)
+	{
 		nuke(ep, 0);
 		del_timer(&dev->timer);
 		ep0_idle(dev);
 	}
 
-	switch (dev->ep0state) {
-	case EP0_IDLE:
-		/* late-breaking status? */
-		udccs0 = udc_ep0_get_UDCCS(dev);
+	switch (dev->ep0state)
+	{
+		case EP0_IDLE:
+			/* late-breaking status? */
+			udccs0 = udc_ep0_get_UDCCS(dev);
 
-		/* start control request? */
-		if (likely((udccs0 & (UDCCS0_OPR|UDCCS0_SA|UDCCS0_RNE))
-				== (UDCCS0_OPR|UDCCS0_SA|UDCCS0_RNE))) {
-			int i;
+			/* start control request? */
+			if (likely((udccs0 & (UDCCS0_OPR | UDCCS0_SA | UDCCS0_RNE))
+					   == (UDCCS0_OPR | UDCCS0_SA | UDCCS0_RNE)))
+			{
+				int i;
 
-			nuke (ep, -EPROTO);
+				nuke (ep, -EPROTO);
 
-			/* read SETUP packet */
-			for (i = 0; i < 8; i++) {
-				if (unlikely(!(udc_ep0_get_UDCCS(dev) & UDCCS0_RNE))) {
+				/* read SETUP packet */
+				for (i = 0; i < 8; i++)
+				{
+					if (unlikely(!(udc_ep0_get_UDCCS(dev) & UDCCS0_RNE)))
+					{
 bad_setup:
-					DMSG("SETUP %d!\n", i);
-					goto stall;
+						DMSG("SETUP %d!\n", i);
+						goto stall;
+					}
+
+					u.raw [i] = (u8) UDDR0;
 				}
-				u.raw [i] = (u8) UDDR0;
-			}
-			if (unlikely((udc_ep0_get_UDCCS(dev) & UDCCS0_RNE) != 0))
-				goto bad_setup;
+
+				if (unlikely((udc_ep0_get_UDCCS(dev) & UDCCS0_RNE) != 0))
+				{
+					goto bad_setup;
+				}
 
 got_setup:
-			DBG(DBG_VERBOSE, "SETUP %02x.%02x v%04x i%04x l%04x\n",
-				u.r.bRequestType, u.r.bRequest,
-				le16_to_cpu(u.r.wValue),
-				le16_to_cpu(u.r.wIndex),
-				le16_to_cpu(u.r.wLength));
+				DBG(DBG_VERBOSE, "SETUP %02x.%02x v%04x i%04x l%04x\n",
+					u.r.bRequestType, u.r.bRequest,
+					le16_to_cpu(u.r.wValue),
+					le16_to_cpu(u.r.wIndex),
+					le16_to_cpu(u.r.wLength));
 
-			/* cope with automagic for some standard requests. */
-			dev->req_std = (u.r.bRequestType & USB_TYPE_MASK)
-						== USB_TYPE_STANDARD;
-			dev->req_config = 0;
-			dev->req_pending = 1;
-			switch (u.r.bRequest) {
-			/* hardware restricts gadget drivers here! */
-			case USB_REQ_SET_CONFIGURATION:
-				if (u.r.bRequestType == USB_RECIP_DEVICE) {
-					/* reflect hardware's automagic
-					 * up to the gadget driver.
-					 */
+				/* cope with automagic for some standard requests. */
+				dev->req_std = (u.r.bRequestType & USB_TYPE_MASK)
+							   == USB_TYPE_STANDARD;
+				dev->req_config = 0;
+				dev->req_pending = 1;
+
+				switch (u.r.bRequest)
+				{
+					/* hardware restricts gadget drivers here! */
+					case USB_REQ_SET_CONFIGURATION:
+						if (u.r.bRequestType == USB_RECIP_DEVICE)
+						{
+							/* reflect hardware's automagic
+							 * up to the gadget driver.
+							 */
 config_change:
-					dev->req_config = 1;
-					clear_ep_state(dev);
-					/* if !has_cfr, there's no synch
-					 * else use AREN (later) not SA|OPR
-					 * USIR0_IR0 acts edge sensitive
-					 */
-				}
-				break;
-			/* ... and here, even more ... */
-			case USB_REQ_SET_INTERFACE:
-				if (u.r.bRequestType == USB_RECIP_INTERFACE) {
-					/* udc hardware is broken by design:
-					 *  - altsetting may only be zero;
-					 *  - hw resets all interfaces' eps;
-					 *  - ep reset doesn't include halt(?).
-					 */
-					DMSG("broken set_interface (%d/%d)\n",
-						le16_to_cpu(u.r.wIndex),
-						le16_to_cpu(u.r.wValue));
-					goto config_change;
-				}
-				break;
-			/* hardware was supposed to hide this */
-			case USB_REQ_SET_ADDRESS:
-				if (u.r.bRequestType == USB_RECIP_DEVICE) {
-					ep0start(dev, 0, "address");
-					return;
-				}
-				break;
-			}
+							dev->req_config = 1;
+							clear_ep_state(dev);
+							/* if !has_cfr, there's no synch
+							 * else use AREN (later) not SA|OPR
+							 * USIR0_IR0 acts edge sensitive
+							 */
+						}
 
-			if (u.r.bRequestType & USB_DIR_IN)
-				dev->ep0state = EP0_IN_DATA_PHASE;
-			else
-				dev->ep0state = EP0_OUT_DATA_PHASE;
+						break;
 
-			i = dev->driver->setup(&dev->gadget, &u.r);
-			if (i < 0) {
-				/* hardware automagic preventing STALL... */
-				if (dev->req_config) {
-					/* hardware sometimes neglects to tell
-					 * tell us about config change events,
-					 * so later ones may fail...
-					 */
-					WARNING("config change %02x fail %d?\n",
-						u.r.bRequest, i);
-					return;
-					/* TODO experiment:  if has_cfr,
-					 * hardware didn't ACK; maybe we
-					 * could actually STALL!
-					 */
+					/* ... and here, even more ... */
+					case USB_REQ_SET_INTERFACE:
+						if (u.r.bRequestType == USB_RECIP_INTERFACE)
+						{
+							/* udc hardware is broken by design:
+							 *  - altsetting may only be zero;
+							 *  - hw resets all interfaces' eps;
+							 *  - ep reset doesn't include halt(?).
+							 */
+							DMSG("broken set_interface (%d/%d)\n",
+								 le16_to_cpu(u.r.wIndex),
+								 le16_to_cpu(u.r.wValue));
+							goto config_change;
+						}
+
+						break;
+
+					/* hardware was supposed to hide this */
+					case USB_REQ_SET_ADDRESS:
+						if (u.r.bRequestType == USB_RECIP_DEVICE)
+						{
+							ep0start(dev, 0, "address");
+							return;
+						}
+
+						break;
 				}
-				DBG(DBG_VERBOSE, "protocol STALL, "
-					"%02x err %d\n", udc_ep0_get_UDCCS(dev), i);
-stall:
-				/* the watchdog timer helps deal with cases
-				 * where udc seems to clear FST wrongly, and
-				 * then NAKs instead of STALLing.
-				 */
-				ep0start(dev, UDCCS0_FST|UDCCS0_FTF, "stall");
-				start_watchdog(dev);
-				dev->ep0state = EP0_STALL;
 
-			/* deferred i/o == no response yet */
-			} else if (dev->req_pending) {
-				if (likely(dev->ep0state == EP0_IN_DATA_PHASE
-						|| dev->req_std || u.r.wLength))
-					ep0start(dev, 0, "defer");
+				if (u.r.bRequestType & USB_DIR_IN)
+				{
+					dev->ep0state = EP0_IN_DATA_PHASE;
+				}
 				else
-					ep0start(dev, UDCCS0_IPR, "defer/IPR");
+				{
+					dev->ep0state = EP0_OUT_DATA_PHASE;
+				}
+
+				i = dev->driver->setup(&dev->gadget, &u.r);
+
+				if (i < 0)
+				{
+					/* hardware automagic preventing STALL... */
+					if (dev->req_config)
+					{
+						/* hardware sometimes neglects to tell
+						 * tell us about config change events,
+						 * so later ones may fail...
+						 */
+						WARNING("config change %02x fail %d?\n",
+								u.r.bRequest, i);
+						return;
+						/* TODO experiment:  if has_cfr,
+						 * hardware didn't ACK; maybe we
+						 * could actually STALL!
+						 */
+					}
+
+					DBG(DBG_VERBOSE, "protocol STALL, "
+						"%02x err %d\n", udc_ep0_get_UDCCS(dev), i);
+stall:
+					/* the watchdog timer helps deal with cases
+					 * where udc seems to clear FST wrongly, and
+					 * then NAKs instead of STALLing.
+					 */
+					ep0start(dev, UDCCS0_FST | UDCCS0_FTF, "stall");
+					start_watchdog(dev);
+					dev->ep0state = EP0_STALL;
+
+					/* deferred i/o == no response yet */
+				}
+				else if (dev->req_pending)
+				{
+					if (likely(dev->ep0state == EP0_IN_DATA_PHASE
+							   || dev->req_std || u.r.wLength))
+					{
+						ep0start(dev, 0, "defer");
+					}
+					else
+					{
+						ep0start(dev, UDCCS0_IPR, "defer/IPR");
+					}
+				}
+
+				/* expect at least one data or status stage irq */
+				return;
+
+			}
+			else if (likely((udccs0 & (UDCCS0_OPR | UDCCS0_SA))
+							== (UDCCS0_OPR | UDCCS0_SA)))
+			{
+				unsigned i;
+
+				/* pxa210/250 erratum 131 for B0/B1 says RNE lies.
+				 * still observed on a pxa255 a0.
+				 */
+				DBG(DBG_VERBOSE, "e131\n");
+				nuke(ep, -EPROTO);
+
+				/* read SETUP data, but don't trust it too much */
+				for (i = 0; i < 8; i++)
+				{
+					u.raw [i] = (u8) UDDR0;
+				}
+
+				if ((u.r.bRequestType & USB_RECIP_MASK)
+					> USB_RECIP_OTHER)
+				{
+					goto stall;
+				}
+
+				if (u.word [0] == 0 && u.word [1] == 0)
+				{
+					goto stall;
+				}
+
+				goto got_setup;
+			}
+			else
+			{
+				/* some random early IRQ:
+				 * - we acked FST
+				 * - IPR cleared
+				 * - OPR got set, without SA (likely status stage)
+				 */
+				udc_ep0_set_UDCCS(dev, udccs0 & (UDCCS0_SA | UDCCS0_OPR));
 			}
 
-			/* expect at least one data or status stage irq */
-			return;
+			break;
 
-		} else if (likely((udccs0 & (UDCCS0_OPR|UDCCS0_SA))
-				== (UDCCS0_OPR|UDCCS0_SA))) {
-			unsigned i;
+		case EP0_IN_DATA_PHASE:			/* GET_DESCRIPTOR etc */
+			if (udccs0 & UDCCS0_OPR)
+			{
+				udc_ep0_set_UDCCS(dev, UDCCS0_OPR | UDCCS0_FTF);
+				DBG(DBG_VERBOSE, "ep0in premature status\n");
 
-			/* pxa210/250 erratum 131 for B0/B1 says RNE lies.
-			 * still observed on a pxa255 a0.
-			 */
-			DBG(DBG_VERBOSE, "e131\n");
-			nuke(ep, -EPROTO);
-
-			/* read SETUP data, but don't trust it too much */
-			for (i = 0; i < 8; i++)
-				u.raw [i] = (u8) UDDR0;
-			if ((u.r.bRequestType & USB_RECIP_MASK)
-					> USB_RECIP_OTHER)
-				goto stall;
-			if (u.word [0] == 0 && u.word [1] == 0)
-				goto stall;
-			goto got_setup;
-		} else {
-			/* some random early IRQ:
-			 * - we acked FST
-			 * - IPR cleared
-			 * - OPR got set, without SA (likely status stage)
-			 */
-			udc_ep0_set_UDCCS(dev, udccs0 & (UDCCS0_SA|UDCCS0_OPR));
-		}
-		break;
-	case EP0_IN_DATA_PHASE:			/* GET_DESCRIPTOR etc */
-		if (udccs0 & UDCCS0_OPR) {
-			udc_ep0_set_UDCCS(dev, UDCCS0_OPR|UDCCS0_FTF);
-			DBG(DBG_VERBOSE, "ep0in premature status\n");
-			if (req)
-				done(ep, req, 0);
-			ep0_idle(dev);
-		} else /* irq was IPR clearing */ {
-			if (req) {
-				/* this IN packet might finish the request */
-				(void) write_ep0_fifo(ep, req);
-			} /* else IN token before response was written */
-		}
-		break;
-	case EP0_OUT_DATA_PHASE:		/* SET_DESCRIPTOR etc */
-		if (udccs0 & UDCCS0_OPR) {
-			if (req) {
-				/* this OUT packet might finish the request */
-				if (read_ep0_fifo(ep, req))
+				if (req)
+				{
 					done(ep, req, 0);
-				/* else more OUT packets expected */
-			} /* else OUT token before read was issued */
-		} else /* irq was IPR clearing */ {
-			DBG(DBG_VERBOSE, "ep0out premature status\n");
+				}
+
+				ep0_idle(dev);
+			}
+			else /* irq was IPR clearing */
+			{
+				if (req)
+				{
+					/* this IN packet might finish the request */
+					(void) write_ep0_fifo(ep, req);
+				} /* else IN token before response was written */
+			}
+
+			break;
+
+		case EP0_OUT_DATA_PHASE:		/* SET_DESCRIPTOR etc */
+			if (udccs0 & UDCCS0_OPR)
+			{
+				if (req)
+				{
+					/* this OUT packet might finish the request */
+					if (read_ep0_fifo(ep, req))
+					{
+						done(ep, req, 0);
+					}
+
+					/* else more OUT packets expected */
+				} /* else OUT token before read was issued */
+			}
+			else /* irq was IPR clearing */
+			{
+				DBG(DBG_VERBOSE, "ep0out premature status\n");
+
+				if (req)
+				{
+					done(ep, req, 0);
+				}
+
+				ep0_idle(dev);
+			}
+
+			break;
+
+		case EP0_END_XFER:
 			if (req)
+			{
 				done(ep, req, 0);
+			}
+
+			/* ack control-IN status (maybe in-zlp was skipped)
+			 * also appears after some config change events.
+			 */
+			if (udccs0 & UDCCS0_OPR)
+			{
+				udc_ep0_set_UDCCS(dev, UDCCS0_OPR);
+			}
+
 			ep0_idle(dev);
-		}
-		break;
-	case EP0_END_XFER:
-		if (req)
-			done(ep, req, 0);
-		/* ack control-IN status (maybe in-zlp was skipped)
-		 * also appears after some config change events.
-		 */
-		if (udccs0 & UDCCS0_OPR)
-			udc_ep0_set_UDCCS(dev, UDCCS0_OPR);
-		ep0_idle(dev);
-		break;
-	case EP0_STALL:
-		udc_ep0_set_UDCCS(dev, UDCCS0_FST);
-		break;
+			break;
+
+		case EP0_STALL:
+			udc_ep0_set_UDCCS(dev, UDCCS0_FST);
+			break;
 	}
+
 	udc_set_reg(dev, USIR0, USIR0_IR0);
 }
 
@@ -1874,44 +2211,76 @@ static void handle_ep(struct pxa25x_ep *ep)
 	int			completed;
 	u32			udccs, tmp;
 
-	do {
+	do
+	{
 		completed = 0;
+
 		if (likely (!list_empty(&ep->queue)))
 			req = list_entry(ep->queue.next,
-					struct pxa25x_request, queue);
+							 struct pxa25x_request, queue);
 		else
+		{
 			req = NULL;
+		}
 
 		// TODO check FST handling
 
 		udccs = udc_ep_get_UDCCS(ep);
-		if (unlikely(is_in)) {	/* irq from TPC, SST, or (ISO) TUR */
-			tmp = UDCCS_BI_TUR;
-			if (likely(ep->bmAttributes == USB_ENDPOINT_XFER_BULK))
-				tmp |= UDCCS_BI_SST;
-			tmp &= udccs;
-			if (likely (tmp))
-				udc_ep_set_UDCCS(ep, tmp);
-			if (req && likely ((udccs & UDCCS_BI_TFS) != 0))
-				completed = write_fifo(ep, req);
 
-		} else {	/* irq from RPC (or for ISO, ROF) */
+		if (unlikely(is_in))  	/* irq from TPC, SST, or (ISO) TUR */
+		{
+			tmp = UDCCS_BI_TUR;
+
 			if (likely(ep->bmAttributes == USB_ENDPOINT_XFER_BULK))
-				tmp = UDCCS_BO_SST | UDCCS_BO_DME;
-			else
-				tmp = UDCCS_IO_ROF | UDCCS_IO_DME;
+			{
+				tmp |= UDCCS_BI_SST;
+			}
+
 			tmp &= udccs;
-			if (likely(tmp))
+
+			if (likely (tmp))
+			{
 				udc_ep_set_UDCCS(ep, tmp);
+			}
+
+			if (req && likely ((udccs & UDCCS_BI_TFS) != 0))
+			{
+				completed = write_fifo(ep, req);
+			}
+
+		}
+		else  	/* irq from RPC (or for ISO, ROF) */
+		{
+			if (likely(ep->bmAttributes == USB_ENDPOINT_XFER_BULK))
+			{
+				tmp = UDCCS_BO_SST | UDCCS_BO_DME;
+			}
+			else
+			{
+				tmp = UDCCS_IO_ROF | UDCCS_IO_DME;
+			}
+
+			tmp &= udccs;
+
+			if (likely(tmp))
+			{
+				udc_ep_set_UDCCS(ep, tmp);
+			}
 
 			/* fifos can hold packets, ready for reading... */
-			if (likely(req)) {
+			if (likely(req))
+			{
 				completed = read_fifo(ep, req);
-			} else
+			}
+			else
+			{
 				pio_irq_disable(ep);
+			}
 		}
+
 		ep->pio_irqs++;
-	} while (completed);
+	}
+	while (completed);
 }
 
 /*
@@ -1928,42 +2297,53 @@ pxa25x_udc_irq(int irq, void *_dev)
 	int			handled;
 
 	dev->stats.irqs++;
-	do {
+
+	do
+	{
 		u32		udccr = udc_get_reg(dev, UDCCR);
 
 		handled = 0;
 
 		/* SUSpend Interrupt Request */
-		if (unlikely(udccr & UDCCR_SUSIR)) {
+		if (unlikely(udccr & UDCCR_SUSIR))
+		{
 			udc_ack_int_UDCCR(dev, UDCCR_SUSIR);
 			handled = 1;
 			DBG(DBG_VERBOSE, "USB suspend\n");
 
 			if (dev->gadget.speed != USB_SPEED_UNKNOWN
-					&& dev->driver
-					&& dev->driver->suspend)
+				&& dev->driver
+				&& dev->driver->suspend)
+			{
 				dev->driver->suspend(&dev->gadget);
+			}
+
 			ep0_idle (dev);
 		}
 
 		/* RESume Interrupt Request */
-		if (unlikely(udccr & UDCCR_RESIR)) {
+		if (unlikely(udccr & UDCCR_RESIR))
+		{
 			udc_ack_int_UDCCR(dev, UDCCR_RESIR);
 			handled = 1;
 			DBG(DBG_VERBOSE, "USB resume\n");
 
 			if (dev->gadget.speed != USB_SPEED_UNKNOWN
-					&& dev->driver
-					&& dev->driver->resume)
+				&& dev->driver
+				&& dev->driver->resume)
+			{
 				dev->driver->resume(&dev->gadget);
+			}
 		}
 
 		/* ReSeT Interrupt Request - USB reset */
-		if (unlikely(udccr & UDCCR_RSTIR)) {
+		if (unlikely(udccr & UDCCR_RSTIR))
+		{
 			udc_ack_int_UDCCR(dev, UDCCR_RSTIR);
 			handled = 1;
 
-			if ((udc_get_reg(dev, UDCCR) & UDCCR_UDA) == 0) {
+			if ((udc_get_reg(dev, UDCCR) & UDCCR_UDA) == 0)
+			{
 				DBG(DBG_VERBOSE, "USB reset start\n");
 
 				/* reset driver and endpoints,
@@ -1971,56 +2351,71 @@ pxa25x_udc_irq(int irq, void *_dev)
 				 */
 				reset_gadget(dev, dev->driver);
 
-			} else {
+			}
+			else
+			{
 				DBG(DBG_VERBOSE, "USB reset end\n");
 				dev->gadget.speed = USB_SPEED_FULL;
 				memset(&dev->stats, 0, sizeof dev->stats);
 				/* driver and endpoints are still reset */
 			}
 
-		} else {
+		}
+		else
+		{
 			u32	usir0 = udc_get_reg(dev, USIR0) &
-					~udc_get_reg(dev, UICR0);
+						~udc_get_reg(dev, UICR0);
 			u32	usir1 = udc_get_reg(dev, USIR1) &
-					~udc_get_reg(dev, UICR1);
+						~udc_get_reg(dev, UICR1);
 			int	i;
 
 			if (unlikely (!usir0 && !usir1))
+			{
 				continue;
+			}
 
 			DBG(DBG_VERY_NOISY, "irq %02x.%02x\n", usir1, usir0);
 
 			/* control traffic */
-			if (usir0 & USIR0_IR0) {
+			if (usir0 & USIR0_IR0)
+			{
 				dev->ep[0].pio_irqs++;
 				handle_ep0(dev);
 				handled = 1;
 			}
 
 			/* endpoint data transfers */
-			for (i = 0; i < 8; i++) {
+			for (i = 0; i < 8; i++)
+			{
 				u32	tmp = 1 << i;
 
-				if (i && (usir0 & tmp)) {
+				if (i && (usir0 & tmp))
+				{
 					handle_ep(&dev->ep[i]);
 					udc_set_reg(dev, USIR0,
-						udc_get_reg(dev, USIR0) | tmp);
+								udc_get_reg(dev, USIR0) | tmp);
 					handled = 1;
 				}
+
 #ifndef	CONFIG_USB_PXA25X_SMALL
-				if (usir1 & tmp) {
-					handle_ep(&dev->ep[i+8]);
+
+				if (usir1 & tmp)
+				{
+					handle_ep(&dev->ep[i + 8]);
 					udc_set_reg(dev, USIR1,
-						udc_get_reg(dev, USIR1) | tmp);
+								udc_get_reg(dev, USIR1) | tmp);
 					handled = 1;
 				}
+
 #endif
 			}
 		}
 
 		/* we could also ask for 1 msec SOF (SIR) interrupts */
 
-	} while (handled);
+	}
+	while (handled);
+
 	return IRQ_HANDLED;
 }
 
@@ -2035,7 +2430,8 @@ static void nop_release (struct device *dev)
  * doing it at run-time) to save code, eliminate fault paths, and
  * be more obviously correct.
  */
-static struct pxa25x_udc memory = {
+static struct pxa25x_udc memory =
+{
 	.gadget = {
 		.ops		= &pxa25x_udc_ops,
 		.ep0		= &memory.ep[0].ep,
@@ -2053,7 +2449,7 @@ static struct pxa25x_udc memory = {
 			.ops		= &pxa25x_ep_ops,
 			.maxpacket	= EP0_FIFO_SIZE,
 			.caps		= USB_EP_CAPS(USB_EP_CAPS_TYPE_CONTROL,
-						USB_EP_CAPS_DIR_ALL),
+			USB_EP_CAPS_DIR_ALL),
 		},
 		.dev		= &memory,
 		.regoff_udccs	= UDCCS0,
@@ -2067,7 +2463,7 @@ static struct pxa25x_udc memory = {
 			.ops		= &pxa25x_ep_ops,
 			.maxpacket	= BULK_FIFO_SIZE,
 			.caps		= USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK,
-						USB_EP_CAPS_DIR_IN),
+			USB_EP_CAPS_DIR_IN),
 		},
 		.dev		= &memory,
 		.fifo_size	= BULK_FIFO_SIZE,
@@ -2082,7 +2478,7 @@ static struct pxa25x_udc memory = {
 			.ops		= &pxa25x_ep_ops,
 			.maxpacket	= BULK_FIFO_SIZE,
 			.caps		= USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK,
-						USB_EP_CAPS_DIR_OUT),
+			USB_EP_CAPS_DIR_OUT),
 		},
 		.dev		= &memory,
 		.fifo_size	= BULK_FIFO_SIZE,
@@ -2099,7 +2495,7 @@ static struct pxa25x_udc memory = {
 			.ops		= &pxa25x_ep_ops,
 			.maxpacket	= ISO_FIFO_SIZE,
 			.caps		= USB_EP_CAPS(USB_EP_CAPS_TYPE_ISO,
-						USB_EP_CAPS_DIR_IN),
+			USB_EP_CAPS_DIR_IN),
 		},
 		.dev		= &memory,
 		.fifo_size	= ISO_FIFO_SIZE,
@@ -2114,7 +2510,7 @@ static struct pxa25x_udc memory = {
 			.ops		= &pxa25x_ep_ops,
 			.maxpacket	= ISO_FIFO_SIZE,
 			.caps		= USB_EP_CAPS(USB_EP_CAPS_TYPE_ISO,
-						USB_EP_CAPS_DIR_OUT),
+			USB_EP_CAPS_DIR_OUT),
 		},
 		.dev		= &memory,
 		.fifo_size	= ISO_FIFO_SIZE,
@@ -2146,7 +2542,7 @@ static struct pxa25x_udc memory = {
 			.ops		= &pxa25x_ep_ops,
 			.maxpacket	= BULK_FIFO_SIZE,
 			.caps		= USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK,
-						USB_EP_CAPS_DIR_IN),
+			USB_EP_CAPS_DIR_IN),
 		},
 		.dev		= &memory,
 		.fifo_size	= BULK_FIFO_SIZE,
@@ -2161,7 +2557,7 @@ static struct pxa25x_udc memory = {
 			.ops		= &pxa25x_ep_ops,
 			.maxpacket	= BULK_FIFO_SIZE,
 			.caps		= USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK,
-						USB_EP_CAPS_DIR_OUT),
+			USB_EP_CAPS_DIR_OUT),
 		},
 		.dev		= &memory,
 		.fifo_size	= BULK_FIFO_SIZE,
@@ -2177,7 +2573,7 @@ static struct pxa25x_udc memory = {
 			.ops		= &pxa25x_ep_ops,
 			.maxpacket	= ISO_FIFO_SIZE,
 			.caps		= USB_EP_CAPS(USB_EP_CAPS_TYPE_ISO,
-						USB_EP_CAPS_DIR_IN),
+			USB_EP_CAPS_DIR_IN),
 		},
 		.dev		= &memory,
 		.fifo_size	= ISO_FIFO_SIZE,
@@ -2192,7 +2588,7 @@ static struct pxa25x_udc memory = {
 			.ops		= &pxa25x_ep_ops,
 			.maxpacket	= ISO_FIFO_SIZE,
 			.caps		= USB_EP_CAPS(USB_EP_CAPS_TYPE_ISO,
-						USB_EP_CAPS_DIR_OUT),
+			USB_EP_CAPS_DIR_OUT),
 		},
 		.dev		= &memory,
 		.fifo_size	= ISO_FIFO_SIZE,
@@ -2224,7 +2620,7 @@ static struct pxa25x_udc memory = {
 			.ops		= &pxa25x_ep_ops,
 			.maxpacket	= BULK_FIFO_SIZE,
 			.caps		= USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK,
-						USB_EP_CAPS_DIR_IN),
+			USB_EP_CAPS_DIR_IN),
 		},
 		.dev		= &memory,
 		.fifo_size	= BULK_FIFO_SIZE,
@@ -2239,7 +2635,7 @@ static struct pxa25x_udc memory = {
 			.ops		= &pxa25x_ep_ops,
 			.maxpacket	= BULK_FIFO_SIZE,
 			.caps		= USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK,
-						USB_EP_CAPS_DIR_OUT),
+			USB_EP_CAPS_DIR_OUT),
 		},
 		.dev		= &memory,
 		.fifo_size	= BULK_FIFO_SIZE,
@@ -2255,7 +2651,7 @@ static struct pxa25x_udc memory = {
 			.ops		= &pxa25x_ep_ops,
 			.maxpacket	= ISO_FIFO_SIZE,
 			.caps		= USB_EP_CAPS(USB_EP_CAPS_TYPE_ISO,
-						USB_EP_CAPS_DIR_IN),
+			USB_EP_CAPS_DIR_IN),
 		},
 		.dev		= &memory,
 		.fifo_size	= ISO_FIFO_SIZE,
@@ -2270,7 +2666,7 @@ static struct pxa25x_udc memory = {
 			.ops		= &pxa25x_ep_ops,
 			.maxpacket	= ISO_FIFO_SIZE,
 			.caps		= USB_EP_CAPS(USB_EP_CAPS_TYPE_ISO,
-						USB_EP_CAPS_DIR_OUT),
+			USB_EP_CAPS_DIR_OUT),
 		},
 		.dev		= &memory,
 		.fifo_size	= ISO_FIFO_SIZE,
@@ -2300,10 +2696,10 @@ static struct pxa25x_udc memory = {
 #define CP15R0_VENDOR_MASK	0xffffe000
 
 #if	defined(CONFIG_ARCH_PXA)
-#define CP15R0_XSCALE_VALUE	0x69052000	/* intel/arm/xscale */
+	#define CP15R0_XSCALE_VALUE	0x69052000	/* intel/arm/xscale */
 
 #elif	defined(CONFIG_ARCH_IXP4XX)
-#define CP15R0_XSCALE_VALUE	0x69054000	/* intel/arm/ixp4xx */
+	#define CP15R0_XSCALE_VALUE	0x69054000	/* intel/arm/ixp4xx */
 
 #endif
 
@@ -2345,59 +2741,77 @@ static int pxa25x_udc_probe(struct platform_device *pdev)
 
 	/* insist on Intel/ARM/XScale */
 	asm("mrc%? p15, 0, %0, c0, c0" : "=r" (chiprev));
-	if ((chiprev & CP15R0_VENDOR_MASK) != CP15R0_XSCALE_VALUE) {
+
+	if ((chiprev & CP15R0_VENDOR_MASK) != CP15R0_XSCALE_VALUE)
+	{
 		pr_err("%s: not XScale!\n", driver_name);
 		return -ENODEV;
 	}
 
 	/* trigger chiprev-specific logic */
-	switch (chiprev & CP15R0_PRODREV_MASK) {
+	switch (chiprev & CP15R0_PRODREV_MASK)
+	{
 #if	defined(CONFIG_ARCH_PXA)
-	case PXA255_A0:
-		dev->has_cfr = 1;
-		break;
-	case PXA250_A0:
-	case PXA250_A1:
+
+		case PXA255_A0:
+			dev->has_cfr = 1;
+			break;
+
+		case PXA250_A0:
+		case PXA250_A1:
+
 		/* A0/A1 "not released"; ep 13, 15 unusable */
 		/* fall through */
-	case PXA250_B2: case PXA210_B2:
-	case PXA250_B1: case PXA210_B1:
-	case PXA250_B0: case PXA210_B0:
+		case PXA250_B2: case PXA210_B2:
+		case PXA250_B1: case PXA210_B1:
+		case PXA250_B0: case PXA210_B0:
+
 		/* OUT-DMA is broken ... */
 		/* fall through */
-	case PXA250_C0: case PXA210_C0:
-		break;
+		case PXA250_C0: case PXA210_C0:
+			break;
 #elif	defined(CONFIG_ARCH_IXP4XX)
-	case IXP425_A0:
-	case IXP425_B0:
-	case IXP465_AD:
-		dev->has_cfr = 1;
-		break;
+
+		case IXP425_A0:
+		case IXP425_B0:
+		case IXP465_AD:
+			dev->has_cfr = 1;
+			break;
 #endif
-	default:
-		pr_err("%s: unrecognized processor: %08x\n",
-			driver_name, chiprev);
-		/* iop3xx, ixp4xx, ... */
-		return -ENODEV;
+
+		default:
+			pr_err("%s: unrecognized processor: %08x\n",
+				   driver_name, chiprev);
+			/* iop3xx, ixp4xx, ... */
+			return -ENODEV;
 	}
 
 	irq = platform_get_irq(pdev, 0);
+
 	if (irq < 0)
+	{
 		return -ENODEV;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	dev->regs = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(dev->regs))
+	{
 		return PTR_ERR(dev->regs);
+	}
 
 	dev->clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(dev->clk))
+	{
 		return PTR_ERR(dev->clk);
+	}
 
 	pr_debug("%s: IRQ %d%s%s\n", driver_name, irq,
-		dev->has_cfr ? "" : " (!cfr)",
-		SIZE_STR "(pio)"
-		);
+			 dev->has_cfr ? "" : " (!cfr)",
+			 SIZE_STR "(pio)"
+			);
 
 	/* other non-static parts of init */
 	dev->dev = &pdev->dev;
@@ -2405,15 +2819,19 @@ static int pxa25x_udc_probe(struct platform_device *pdev)
 
 	dev->transceiver = devm_usb_get_phy(&pdev->dev, USB_PHY_TYPE_USB2);
 
-	if (gpio_is_valid(dev->mach->gpio_pullup)) {
+	if (gpio_is_valid(dev->mach->gpio_pullup))
+	{
 		retval = devm_gpio_request(&pdev->dev, dev->mach->gpio_pullup,
-					   "pca25x_udc GPIO PULLUP");
-		if (retval) {
+								   "pca25x_udc GPIO PULLUP");
+
+		if (retval)
+		{
 			dev_dbg(&pdev->dev,
-				"can't get pullup gpio %d, err: %d\n",
-				dev->mach->gpio_pullup, retval);
+					"can't get pullup gpio %d, err: %d\n",
+					dev->mach->gpio_pullup, retval);
 			goto err;
 		}
+
 		gpio_direction_output(dev->mach->gpio_pullup, 0);
 	}
 
@@ -2431,44 +2849,62 @@ static int pxa25x_udc_probe(struct platform_device *pdev)
 
 	/* irq setup after old hardware state is cleaned up */
 	retval = devm_request_irq(&pdev->dev, irq, pxa25x_udc_irq, 0,
-				  driver_name, dev);
-	if (retval != 0) {
+							  driver_name, dev);
+
+	if (retval != 0)
+	{
 		pr_err("%s: can't get irq %d, err %d\n",
-			driver_name, irq, retval);
+			   driver_name, irq, retval);
 		goto err;
 	}
+
 	dev->got_irq = 1;
 
 #ifdef CONFIG_ARCH_LUBBOCK
-	if (machine_is_lubbock()) {
+
+	if (machine_is_lubbock())
+	{
 		retval = devm_request_irq(&pdev->dev, LUBBOCK_USB_DISC_IRQ,
-					  lubbock_vbus_irq, 0, driver_name,
-					  dev);
-		if (retval != 0) {
+								  lubbock_vbus_irq, 0, driver_name,
+								  dev);
+
+		if (retval != 0)
+		{
 			pr_err("%s: can't get irq %i, err %d\n",
-				driver_name, LUBBOCK_USB_DISC_IRQ, retval);
+				   driver_name, LUBBOCK_USB_DISC_IRQ, retval);
 			goto err;
 		}
+
 		retval = devm_request_irq(&pdev->dev, LUBBOCK_USB_IRQ,
-					  lubbock_vbus_irq, 0, driver_name,
-					  dev);
-		if (retval != 0) {
+								  lubbock_vbus_irq, 0, driver_name,
+								  dev);
+
+		if (retval != 0)
+		{
 			pr_err("%s: can't get irq %i, err %d\n",
-				driver_name, LUBBOCK_USB_IRQ, retval);
+				   driver_name, LUBBOCK_USB_IRQ, retval);
 			goto err;
 		}
-	} else
+	}
+	else
 #endif
-	create_debug_files(dev);
+		create_debug_files(dev);
 
 	retval = usb_add_gadget_udc(&pdev->dev, &dev->gadget);
+
 	if (!retval)
+	{
 		return retval;
+	}
 
 	remove_debug_files(dev);
- err:
+err:
+
 	if (!IS_ERR_OR_NULL(dev->transceiver))
+	{
 		dev->transceiver = NULL;
+	}
+
 	return retval;
 }
 
@@ -2482,7 +2918,9 @@ static int pxa25x_udc_remove(struct platform_device *pdev)
 	struct pxa25x_udc *dev = platform_get_drvdata(pdev);
 
 	if (dev->driver)
+	{
 		return -EBUSY;
+	}
 
 	usb_del_gadget_udc(&dev->gadget);
 	dev->pullup = 0;
@@ -2491,7 +2929,9 @@ static int pxa25x_udc_remove(struct platform_device *pdev)
 	remove_debug_files(dev);
 
 	if (!IS_ERR_OR_NULL(dev->transceiver))
+	{
 		dev->transceiver = NULL;
+	}
 
 	the_controller = NULL;
 	return 0;
@@ -2519,7 +2959,10 @@ static int pxa25x_udc_suspend(struct platform_device *dev, pm_message_t state)
 	unsigned long flags;
 
 	if (!gpio_is_valid(udc->mach->gpio_pullup) && !udc->mach->udc_command)
+	{
 		WARNING("USB host won't detect disconnect!\n");
+	}
+
 	udc->suspended = 1;
 
 	local_irq_save(flags);
@@ -2549,7 +2992,8 @@ static int pxa25x_udc_resume(struct platform_device *dev)
 
 /*-------------------------------------------------------------------------*/
 
-static struct platform_driver udc_driver = {
+static struct platform_driver udc_driver =
+{
 	.shutdown	= pxa25x_udc_shutdown,
 	.probe		= pxa25x_udc_probe,
 	.remove		= pxa25x_udc_remove,

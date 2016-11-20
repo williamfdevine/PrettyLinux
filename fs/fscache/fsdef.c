@@ -14,15 +14,15 @@
 #include "internal.h"
 
 static uint16_t fscache_fsdef_netfs_get_key(const void *cookie_netfs_data,
-					    void *buffer, uint16_t bufmax);
+		void *buffer, uint16_t bufmax);
 
 static uint16_t fscache_fsdef_netfs_get_aux(const void *cookie_netfs_data,
-					    void *buffer, uint16_t bufmax);
+		void *buffer, uint16_t bufmax);
 
 static
 enum fscache_checkaux fscache_fsdef_netfs_check_aux(void *cookie_netfs_data,
-						    const void *data,
-						    uint16_t datalen);
+		const void *data,
+		uint16_t datalen);
 
 /*
  * The root index is owned by FS-Cache itself.
@@ -48,12 +48,14 @@ enum fscache_checkaux fscache_fsdef_netfs_check_aux(void *cookie_netfs_data,
  * cache.  It can create whatever objects it likes in that index, including
  * further indices.
  */
-static struct fscache_cookie_def fscache_fsdef_index_def = {
+static struct fscache_cookie_def fscache_fsdef_index_def =
+{
 	.name		= ".FS-Cache",
 	.type		= FSCACHE_COOKIE_TYPE_INDEX,
 };
 
-struct fscache_cookie fscache_fsdef_index = {
+struct fscache_cookie fscache_fsdef_index =
+{
 	.usage		= ATOMIC_INIT(1),
 	.n_active	= ATOMIC_INIT(1),
 	.lock		= __SPIN_LOCK_UNLOCKED(fscache_fsdef_index.lock),
@@ -68,7 +70,8 @@ EXPORT_SYMBOL(fscache_fsdef_index);
  * a specific netfs and only applicable to a particular version of the index
  * structure used by that netfs.
  */
-struct fscache_cookie_def fscache_fsdef_netfs_def = {
+struct fscache_cookie_def fscache_fsdef_netfs_def =
+{
 	.name		= "FSDEF.netfs",
 	.type		= FSCACHE_COOKIE_TYPE_INDEX,
 	.get_key	= fscache_fsdef_netfs_get_key,
@@ -81,7 +84,7 @@ struct fscache_cookie_def fscache_fsdef_netfs_def = {
  * for which this entry is created
  */
 static uint16_t fscache_fsdef_netfs_get_key(const void *cookie_netfs_data,
-					    void *buffer, uint16_t bufmax)
+		void *buffer, uint16_t bufmax)
 {
 	const struct fscache_netfs *netfs = cookie_netfs_data;
 	unsigned klen;
@@ -89,8 +92,11 @@ static uint16_t fscache_fsdef_netfs_get_key(const void *cookie_netfs_data,
 	_enter("{%s.%u},", netfs->name, netfs->version);
 
 	klen = strlen(netfs->name);
+
 	if (klen > bufmax)
+	{
 		return 0;
+	}
 
 	memcpy(buffer, netfs->name, klen);
 	return klen;
@@ -101,7 +107,7 @@ static uint16_t fscache_fsdef_netfs_get_key(const void *cookie_netfs_data,
  * structure version number of the netfs for which this version is created
  */
 static uint16_t fscache_fsdef_netfs_get_aux(const void *cookie_netfs_data,
-					    void *buffer, uint16_t bufmax)
+		void *buffer, uint16_t bufmax)
 {
 	const struct fscache_netfs *netfs = cookie_netfs_data;
 	unsigned dlen;
@@ -109,8 +115,11 @@ static uint16_t fscache_fsdef_netfs_get_aux(const void *cookie_netfs_data,
 	_enter("{%s.%u},", netfs->name, netfs->version);
 
 	dlen = sizeof(uint32_t);
+
 	if (dlen > bufmax)
+	{
 		return 0;
+	}
 
 	memcpy(buffer, &netfs->version, dlen);
 	return dlen;
@@ -130,13 +139,16 @@ static enum fscache_checkaux fscache_fsdef_netfs_check_aux(
 
 	_enter("{%s},,%hu", netfs->name, datalen);
 
-	if (datalen != sizeof(version)) {
+	if (datalen != sizeof(version))
+	{
 		_leave(" = OBSOLETE [dl=%d v=%zu]", datalen, sizeof(version));
 		return FSCACHE_CHECKAUX_OBSOLETE;
 	}
 
 	memcpy(&version, data, sizeof(version));
-	if (version != netfs->version) {
+
+	if (version != netfs->version)
+	{
 		_leave(" = OBSOLETE [ver=%x net=%x]", version, netfs->version);
 		return FSCACHE_CHECKAUX_OBSOLETE;
 	}

@@ -8,7 +8,8 @@
 static const char *param_name(int op)
 {
 #define PARAM(x) [HVM_PARAM_##x] = #x
-	static const char *const names[] = {
+	static const char *const names[] =
+	{
 		PARAM(CALLBACK_IRQ),
 		PARAM(STORE_PFN),
 		PARAM(STORE_EVTCHN),
@@ -28,10 +29,14 @@ static const char *param_name(int op)
 #undef PARAM
 
 	if (op >= ARRAY_SIZE(names))
+	{
 		return "unknown";
+	}
 
 	if (!names[op])
+	{
 		return "reserved";
+	}
 
 	return names[op];
 }
@@ -43,11 +48,14 @@ static inline int hvm_get_parameter(int idx, uint64_t *value)
 	xhv.domid = DOMID_SELF;
 	xhv.index = idx;
 	r = HYPERVISOR_hvm_op(HVMOP_get_param, &xhv);
-	if (r < 0) {
+
+	if (r < 0)
+	{
 		pr_err("Cannot get hvm parameter %s (%d): %d!\n",
-		       param_name(idx), idx, r);
+			   param_name(idx), idx, r);
 		return r;
 	}
+
 	*value = xhv.value;
 	return r;
 }
@@ -55,6 +63,6 @@ static inline int hvm_get_parameter(int idx, uint64_t *value)
 #define HVM_CALLBACK_VIA_TYPE_VECTOR 0x2
 #define HVM_CALLBACK_VIA_TYPE_SHIFT 56
 #define HVM_CALLBACK_VECTOR(x) (((uint64_t)HVM_CALLBACK_VIA_TYPE_VECTOR)<<\
-		HVM_CALLBACK_VIA_TYPE_SHIFT | (x))
+								HVM_CALLBACK_VIA_TYPE_SHIFT | (x))
 
 #endif /* XEN_HVM_H__ */

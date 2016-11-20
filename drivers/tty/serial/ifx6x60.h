@@ -55,7 +55,7 @@
 #define IFX_SPI_UPDATE			8
 
 #define IFX_SPI_PAYLOAD_SIZE		(IFX_SPI_TRANSFER_SIZE - \
-						IFX_SPI_HEADER_OVERHEAD)
+									 IFX_SPI_HEADER_OVERHEAD)
 
 #define IFX_SPI_IRQ_TYPE		DETECT_EDGE_RISING
 #define IFX_SPI_GPIO_TARGET		0
@@ -67,7 +67,8 @@
 #define IFX_SPI_POWER_DATA_PENDING	1
 #define IFX_SPI_POWER_SRDY		2
 
-struct ifx_spi_device {
+struct ifx_spi_device
+{
 	/* Our SPI device */
 	struct spi_device *spi_dev;
 
@@ -108,7 +109,8 @@ struct ifx_spi_device {
 	struct spi_message spi_msg;
 	struct spi_transfer spi_xfer;
 
-	struct {
+	struct
+	{
 		/* gpio lines */
 		unsigned short srdy;		/* slave-ready gpio */
 		unsigned short mrdy;		/* master-ready gpio */

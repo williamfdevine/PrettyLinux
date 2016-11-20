@@ -23,13 +23,15 @@
 #ifndef __SMP_H
 #define __SMP_H
 
-struct smp_command_hdr {
+struct smp_command_hdr
+{
 	__u8	code;
 } __packed;
 
 #define SMP_CMD_PAIRING_REQ	0x01
 #define SMP_CMD_PAIRING_RSP	0x02
-struct smp_cmd_pairing {
+struct smp_cmd_pairing
+{
 	__u8	io_capability;
 	__u8	oob_flag;
 	__u8	auth_req;
@@ -59,65 +61,77 @@ struct smp_cmd_pairing {
 #define SMP_AUTH_KEYPRESS	0x10
 
 #define SMP_CMD_PAIRING_CONFIRM	0x03
-struct smp_cmd_pairing_confirm {
+struct smp_cmd_pairing_confirm
+{
 	__u8	confirm_val[16];
 } __packed;
 
 #define SMP_CMD_PAIRING_RANDOM	0x04
-struct smp_cmd_pairing_random {
+struct smp_cmd_pairing_random
+{
 	__u8	rand_val[16];
 } __packed;
 
 #define SMP_CMD_PAIRING_FAIL	0x05
-struct smp_cmd_pairing_fail {
+struct smp_cmd_pairing_fail
+{
 	__u8	reason;
 } __packed;
 
 #define SMP_CMD_ENCRYPT_INFO	0x06
-struct smp_cmd_encrypt_info {
+struct smp_cmd_encrypt_info
+{
 	__u8	ltk[16];
 } __packed;
 
 #define SMP_CMD_MASTER_IDENT	0x07
-struct smp_cmd_master_ident {
+struct smp_cmd_master_ident
+{
 	__le16	ediv;
 	__le64	rand;
 } __packed;
 
 #define SMP_CMD_IDENT_INFO	0x08
-struct smp_cmd_ident_info {
+struct smp_cmd_ident_info
+{
 	__u8	irk[16];
 } __packed;
 
 #define SMP_CMD_IDENT_ADDR_INFO	0x09
-struct smp_cmd_ident_addr_info {
+struct smp_cmd_ident_addr_info
+{
 	__u8	addr_type;
 	bdaddr_t bdaddr;
 } __packed;
 
 #define SMP_CMD_SIGN_INFO	0x0a
-struct smp_cmd_sign_info {
+struct smp_cmd_sign_info
+{
 	__u8	csrk[16];
 } __packed;
 
 #define SMP_CMD_SECURITY_REQ	0x0b
-struct smp_cmd_security_req {
+struct smp_cmd_security_req
+{
 	__u8	auth_req;
 } __packed;
 
 #define SMP_CMD_PUBLIC_KEY	0x0c
-struct smp_cmd_public_key {
+struct smp_cmd_public_key
+{
 	__u8	x[32];
 	__u8	y[32];
 } __packed;
 
 #define SMP_CMD_DHKEY_CHECK	0x0d
-struct smp_cmd_dhkey_check {
+struct smp_cmd_dhkey_check
+{
 	__u8	e[16];
 } __packed;
 
 #define SMP_CMD_KEYPRESS_NOTIFY	0x0e
-struct smp_cmd_keypress_notify {
+struct smp_cmd_keypress_notify
+{
 	__u8	value;
 } __packed;
 
@@ -142,7 +156,8 @@ struct smp_cmd_keypress_notify {
 #define SMP_MAX_ENC_KEY_SIZE		16
 
 /* LTK types used in internal storage (struct smp_ltk) */
-enum {
+enum
+{
 	SMP_STK,
 	SMP_LTK,
 	SMP_LTK_SLAVE,
@@ -152,10 +167,11 @@ enum {
 
 static inline bool smp_ltk_is_sc(struct smp_ltk *key)
 {
-	switch (key->type) {
-	case SMP_LTK_P256:
-	case SMP_LTK_P256_DEBUG:
-		return true;
+	switch (key->type)
+	{
+		case SMP_LTK_P256:
+		case SMP_LTK_P256_DEBUG:
+			return true;
 	}
 
 	return false;
@@ -163,18 +179,24 @@ static inline bool smp_ltk_is_sc(struct smp_ltk *key)
 
 static inline u8 smp_ltk_sec_level(struct smp_ltk *key)
 {
-	if (key->authenticated) {
+	if (key->authenticated)
+	{
 		if (smp_ltk_is_sc(key))
+		{
 			return BT_SECURITY_FIPS;
+		}
 		else
+		{
 			return BT_SECURITY_HIGH;
+		}
 	}
 
 	return BT_SECURITY_MEDIUM;
 }
 
 /* Key preferences for smp_sufficient security */
-enum smp_key_pref {
+enum smp_key_pref
+{
 	SMP_ALLOW_STK,
 	SMP_USE_LTK,
 };
@@ -182,12 +204,12 @@ enum smp_key_pref {
 /* SMP Commands */
 void smp_cancel_pairing(struct hci_conn *hcon);
 bool smp_sufficient_security(struct hci_conn *hcon, u8 sec_level,
-			     enum smp_key_pref key_pref);
+							 enum smp_key_pref key_pref);
 int smp_conn_security(struct hci_conn *hcon, __u8 sec_level);
 int smp_user_confirm_reply(struct hci_conn *conn, u16 mgmt_op, __le32 passkey);
 
 bool smp_irk_matches(struct hci_dev *hdev, const u8 irk[16],
-		     const bdaddr_t *bdaddr);
+					 const bdaddr_t *bdaddr);
 int smp_generate_rpa(struct hci_dev *hdev, const u8 irk[16], bdaddr_t *rpa);
 int smp_generate_oob(struct hci_dev *hdev, u8 hash[16], u8 rand[16]);
 

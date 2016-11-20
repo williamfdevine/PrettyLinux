@@ -15,7 +15,8 @@
 
 #include <linux/regmap.h>
 
-struct ac100_dev {
+struct ac100_dev
+{
 	struct device			*dev;
 	struct regmap			*regmap;
 };

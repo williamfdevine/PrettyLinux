@@ -19,7 +19,8 @@
 static const char *s0box_revision = "$Revision: 2.6.2.4 $";
 
 static inline void
-writereg(unsigned int padr, signed int addr, u_char off, u_char val) {
+writereg(unsigned int padr, signed int addr, u_char off, u_char val)
+{
 	outb_p(0x1c, padr + 2);
 	outb_p(0x14, padr + 2);
 	outb_p((addr + off) & 0x7f, padr);
@@ -31,11 +32,13 @@ writereg(unsigned int padr, signed int addr, u_char off, u_char val) {
 }
 
 static u_char nibtab[] = { 1, 9, 5, 0xd, 3, 0xb, 7, 0xf,
-			   0, 0, 0, 0, 0, 0, 0, 0,
-			   0, 8, 4, 0xc, 2, 0xa, 6, 0xe };
+						   0, 0, 0, 0, 0, 0, 0, 0,
+						   0, 8, 4, 0xc, 2, 0xa, 6, 0xe
+						 };
 
 static inline u_char
-readreg(unsigned int padr, signed int addr, u_char off) {
+readreg(unsigned int padr, signed int addr, u_char off)
+{
 	register u_char n1, n2;
 
 	outb_p(0x1c, padr + 2);
@@ -61,13 +64,16 @@ read_fifo(unsigned int padr, signed int adr, u_char *data, int size)
 	outb_p(0x14, padr + 2);
 	outb_p(adr | 0x80, padr);
 	outb_p(0x16, padr + 2);
-	for (i = 0; i < size; i++) {
+
+	for (i = 0; i < size; i++)
+	{
 		outb_p(0x17, padr + 2);
 		n1 = (inb_p(padr + 1) >> 3) & 0x17;
 		outb_p(0x16, padr + 2);
 		n2 = (inb_p(padr + 1) >> 3) & 0x17;
 		*(data++) = nibtab[n1] | (nibtab[n2] << 4);
 	}
+
 	outb_p(0x14, padr + 2);
 	outb_p(0x1c, padr + 2);
 	return;
@@ -80,11 +86,14 @@ write_fifo(unsigned int padr, signed int adr, u_char *data, int size)
 	outb_p(0x1c, padr + 2);
 	outb_p(0x14, padr + 2);
 	outb_p(adr & 0x7f, padr);
-	for (i = 0; i < size; i++) {
+
+	for (i = 0; i < size; i++)
+	{
 		outb_p(0x16, padr + 2);
 		outb_p(*(data++), padr);
 		outb_p(0x17, padr + 2);
 	}
+
 	outb_p(0x14, padr + 2);
 	outb_p(0x1c, padr + 2);
 	return;
@@ -151,27 +160,50 @@ s0box_interrupt(int intno, void *dev_id)
 	spin_lock_irqsave(&cs->lock, flags);
 	val = readreg(cs->hw.teles3.cfg_reg, cs->hw.teles3.hscx[1], HSCX_ISTA);
 Start_HSCX:
+
 	if (val)
+	{
 		hscx_int_main(cs, val);
+	}
+
 	val = readreg(cs->hw.teles3.cfg_reg, cs->hw.teles3.isac, ISAC_ISTA);
 Start_ISAC:
+
 	if (val)
+	{
 		isac_interrupt(cs, val);
+	}
+
 	count++;
 	val = readreg(cs->hw.teles3.cfg_reg, cs->hw.teles3.hscx[1], HSCX_ISTA);
-	if (val && count < MAXCOUNT) {
+
+	if (val && count < MAXCOUNT)
+	{
 		if (cs->debug & L1_DEB_HSCX)
+		{
 			debugl1(cs, "HSCX IntStat after IntRoutine");
+		}
+
 		goto Start_HSCX;
 	}
+
 	val = readreg(cs->hw.teles3.cfg_reg, cs->hw.teles3.isac, ISAC_ISTA);
-	if (val && count < MAXCOUNT) {
+
+	if (val && count < MAXCOUNT)
+	{
 		if (cs->debug & L1_DEB_ISAC)
+		{
 			debugl1(cs, "ISAC IntStat after IntRoutine");
+		}
+
 		goto Start_ISAC;
 	}
+
 	if (count >= MAXCOUNT)
+	{
 		printk(KERN_WARNING "S0Box: more than %d loops in s0box_interrupt\n", count);
+	}
+
 	writereg(cs->hw.teles3.cfg_reg, cs->hw.teles3.hscx[0], HSCX_MASK, 0xFF);
 	writereg(cs->hw.teles3.cfg_reg, cs->hw.teles3.hscx[1], HSCX_MASK, 0xFF);
 	writereg(cs->hw.teles3.cfg_reg, cs->hw.teles3.isac, ISAC_MASK, 0xFF);
@@ -193,20 +225,25 @@ S0Box_card_msg(struct IsdnCardState *cs, int mt, void *arg)
 {
 	u_long flags;
 
-	switch (mt) {
-	case CARD_RESET:
-		break;
-	case CARD_RELEASE:
-		release_io_s0box(cs);
-		break;
-	case CARD_INIT:
-		spin_lock_irqsave(&cs->lock, flags);
-		inithscxisac(cs, 3);
-		spin_unlock_irqrestore(&cs->lock, flags);
-		break;
-	case CARD_TEST:
-		break;
+	switch (mt)
+	{
+		case CARD_RESET:
+			break;
+
+		case CARD_RELEASE:
+			release_io_s0box(cs);
+			break;
+
+		case CARD_INIT:
+			spin_lock_irqsave(&cs->lock, flags);
+			inithscxisac(cs, 3);
+			spin_unlock_irqrestore(&cs->lock, flags);
+			break;
+
+		case CARD_TEST:
+			break;
 	}
+
 	return (0);
 }
 
@@ -217,8 +254,11 @@ int setup_s0box(struct IsdnCard *card)
 
 	strcpy(tmp, s0box_revision);
 	printk(KERN_INFO "HiSax: S0Box IO driver Rev. %s\n", HiSax_getrev(tmp));
+
 	if (cs->typ != ISDN_CTYPE_S0BOX)
+	{
 		return (0);
+	}
 
 	cs->hw.teles3.cfg_reg = card->para[1];
 	cs->hw.teles3.hscx[0] = -0x20;
@@ -228,17 +268,20 @@ int setup_s0box(struct IsdnCard *card)
 	cs->hw.teles3.hscxfifo[0] = cs->hw.teles3.hscx[0] + 0x3e;
 	cs->hw.teles3.hscxfifo[1] = cs->hw.teles3.hscx[1] + 0x3e;
 	cs->irq = card->para[0];
-	if (!request_region(cs->hw.teles3.cfg_reg, 8, "S0Box parallel I/O")) {
+
+	if (!request_region(cs->hw.teles3.cfg_reg, 8, "S0Box parallel I/O"))
+	{
 		printk(KERN_WARNING "HiSax: S0Box ports %x-%x already in use\n",
-		       cs->hw.teles3.cfg_reg,
-		       cs->hw.teles3.cfg_reg + 7);
+			   cs->hw.teles3.cfg_reg,
+			   cs->hw.teles3.cfg_reg + 7);
 		return 0;
 	}
+
 	printk(KERN_INFO "HiSax: S0Box config irq:%d isac:0x%x  cfg:0x%x\n",
-	       cs->irq,
-	       cs->hw.teles3.isac, cs->hw.teles3.cfg_reg);
+		   cs->irq,
+		   cs->hw.teles3.isac, cs->hw.teles3.cfg_reg);
 	printk(KERN_INFO "HiSax: hscx A:0x%x  hscx B:0x%x\n",
-	       cs->hw.teles3.hscx[0], cs->hw.teles3.hscx[1]);
+		   cs->hw.teles3.hscx[0], cs->hw.teles3.hscx[1]);
 	setup_isac(cs);
 	cs->readisac = &ReadISAC;
 	cs->writeisac = &WriteISAC;
@@ -250,11 +293,14 @@ int setup_s0box(struct IsdnCard *card)
 	cs->cardmsg = &S0Box_card_msg;
 	cs->irq_func = &s0box_interrupt;
 	ISACVersion(cs, "S0Box:");
-	if (HscxVersion(cs, "S0Box:")) {
+
+	if (HscxVersion(cs, "S0Box:"))
+	{
 		printk(KERN_WARNING
-		       "S0Box: wrong HSCX versions check IO address\n");
+			   "S0Box: wrong HSCX versions check IO address\n");
 		release_io_s0box(cs);
 		return (0);
 	}
+
 	return (1);
 }

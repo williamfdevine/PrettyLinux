@@ -113,10 +113,15 @@ static void ucb1x00_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 	unsigned long flags;
 
 	spin_lock_irqsave(&ucb->io_lock, flags);
+
 	if (value)
+	{
 		ucb->io_out |= 1 << offset;
+	}
 	else
+	{
 		ucb->io_out &= ~(1 << offset);
+	}
 
 	ucb1x00_enable(ucb);
 	ucb1x00_reg_write(ucb, UCB_IO_DATA, ucb->io_out);
@@ -160,19 +165,29 @@ static int ucb1x00_gpio_direction_output(struct gpio_chip *chip, unsigned offset
 
 	spin_lock_irqsave(&ucb->io_lock, flags);
 	old = ucb->io_out;
+
 	if (value)
+	{
 		ucb->io_out |= mask;
+	}
 	else
+	{
 		ucb->io_out &= ~mask;
+	}
 
 	ucb1x00_enable(ucb);
-	if (old != ucb->io_out)
-		ucb1x00_reg_write(ucb, UCB_IO_DATA, ucb->io_out);
 
-	if (!(ucb->io_dir & mask)) {
+	if (old != ucb->io_out)
+	{
+		ucb1x00_reg_write(ucb, UCB_IO_DATA, ucb->io_out);
+	}
+
+	if (!(ucb->io_dir & mask))
+	{
 		ucb->io_dir |= mask;
 		ucb1x00_reg_write(ucb, UCB_IO_DIR, ucb->io_dir);
 	}
+
 	ucb1x00_disable(ucb);
 	spin_unlock_irqrestore(&ucb->io_lock, flags);
 
@@ -242,15 +257,22 @@ unsigned int ucb1x00_adc_read(struct ucb1x00 *ucb, int adc_channel, int sync)
 	unsigned int val;
 
 	if (sync)
+	{
 		adc_channel |= UCB_ADC_SYNC_ENA;
+	}
 
 	ucb1x00_reg_write(ucb, UCB_ADC_CR, ucb->adc_cr | adc_channel);
 	ucb1x00_reg_write(ucb, UCB_ADC_CR, ucb->adc_cr | adc_channel | UCB_ADC_START);
 
-	for (;;) {
+	for (;;)
+	{
 		val = ucb1x00_reg_read(ucb, UCB_ADC_DATA);
+
 		if (val & UCB_ADC_DAT_VAL)
+		{
 			break;
+		}
+
 		/* yield to other processes */
 		set_current_state(TASK_INTERRUPTIBLE);
 		schedule_timeout(1);
@@ -294,19 +316,25 @@ static void ucb1x00_irq(struct irq_desc *desc)
 
 	for (i = 0; i < 16 && isr; i++, isr >>= 1)
 		if (isr & 1)
+		{
 			generic_handle_irq(ucb->irq_base + i);
+		}
+
 	ucb1x00_disable(ucb);
 }
 
 static void ucb1x00_irq_update(struct ucb1x00 *ucb, unsigned mask)
 {
 	ucb1x00_enable(ucb);
+
 	if (ucb->irq_ris_enbl & mask)
 		ucb1x00_reg_write(ucb, UCB_IE_RIS, ucb->irq_ris_enbl &
-				  ucb->irq_mask);
+						  ucb->irq_mask);
+
 	if (ucb->irq_fal_enbl & mask)
 		ucb1x00_reg_write(ucb, UCB_IE_FAL, ucb->irq_fal_enbl &
-				  ucb->irq_mask);
+						  ucb->irq_mask);
+
 	ucb1x00_disable(ucb);
 }
 
@@ -342,21 +370,33 @@ static int ucb1x00_irq_set_type(struct irq_data *data, unsigned int type)
 	unsigned mask = 1 << (data->irq - ucb->irq_base);
 
 	raw_spin_lock(&ucb->irq_lock);
+
 	if (type & IRQ_TYPE_EDGE_RISING)
+	{
 		ucb->irq_ris_enbl |= mask;
+	}
 	else
+	{
 		ucb->irq_ris_enbl &= ~mask;
+	}
 
 	if (type & IRQ_TYPE_EDGE_FALLING)
+	{
 		ucb->irq_fal_enbl |= mask;
-	else
-		ucb->irq_fal_enbl &= ~mask;
-	if (ucb->irq_mask & mask) {
-		ucb1x00_reg_write(ucb, UCB_IE_RIS, ucb->irq_ris_enbl &
-				  ucb->irq_mask);
-		ucb1x00_reg_write(ucb, UCB_IE_FAL, ucb->irq_fal_enbl &
-				  ucb->irq_mask);
 	}
+	else
+	{
+		ucb->irq_fal_enbl &= ~mask;
+	}
+
+	if (ucb->irq_mask & mask)
+	{
+		ucb1x00_reg_write(ucb, UCB_IE_RIS, ucb->irq_ris_enbl &
+						  ucb->irq_mask);
+		ucb1x00_reg_write(ucb, UCB_IE_FAL, ucb->irq_fal_enbl &
+						  ucb->irq_mask);
+	}
+
 	raw_spin_unlock(&ucb->irq_lock);
 
 	return 0;
@@ -369,19 +409,28 @@ static int ucb1x00_irq_set_wake(struct irq_data *data, unsigned int on)
 	unsigned mask = 1 << (data->irq - ucb->irq_base);
 
 	if (!pdata || !pdata->can_wakeup)
+	{
 		return -EINVAL;
+	}
 
 	raw_spin_lock(&ucb->irq_lock);
+
 	if (on)
+	{
 		ucb->irq_wake |= mask;
+	}
 	else
+	{
 		ucb->irq_wake &= ~mask;
+	}
+
 	raw_spin_unlock(&ucb->irq_lock);
 
 	return 0;
 }
 
-static struct irq_chip ucb1x00_irqchip = {
+static struct irq_chip ucb1x00_irqchip =
+{
 	.name = "ucb1x00",
 	.irq_ack = ucb1x00_irq_noop,
 	.irq_mask = ucb1x00_irq_mask,
@@ -396,14 +445,19 @@ static int ucb1x00_add_dev(struct ucb1x00 *ucb, struct ucb1x00_driver *drv)
 	int ret;
 
 	dev = kmalloc(sizeof(struct ucb1x00_dev), GFP_KERNEL);
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	dev->ucb = ucb;
 	dev->drv = drv;
 
 	ret = drv->add(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(dev);
 		return ret;
 	}
@@ -465,6 +519,7 @@ static int ucb1x00_detect_irq(struct ucb1x00 *ucb)
 	 * Wait for the conversion to complete.
 	 */
 	while ((ucb1x00_reg_read(ucb, UCB_ADC_DATA) & UCB_ADC_DAT_VAL) == 0);
+
 	ucb1x00_reg_write(ucb, UCB_ADC_CR, 0);
 
 	/*
@@ -487,10 +542,11 @@ static void ucb1x00_release(struct device *dev)
 	kfree(ucb);
 }
 
-static struct class ucb1x00_class = {
-	.name		= "ucb1x00",
-	.dev_release	= ucb1x00_release,
-};
+static struct class ucb1x00_class =
+	{
+			.name		= "ucb1x00",
+			.dev_release	= ucb1x00_release,
+	};
 
 static int ucb1x00_probe(struct mcp *mcp)
 {
@@ -502,21 +558,27 @@ static int ucb1x00_probe(struct mcp *mcp)
 
 	/* Tell the platform to deassert the UCB1x00 reset */
 	if (pdata && pdata->reset)
+	{
 		pdata->reset(UCB_RST_PROBE);
+	}
 
 	mcp_enable(mcp);
 	id = mcp_reg_read(mcp, UCB_ID);
 	mcp_disable(mcp);
 
-	if (id != UCB_ID_1200 && id != UCB_ID_1300 && id != UCB_ID_TC35143) {
+	if (id != UCB_ID_1200 && id != UCB_ID_1300 && id != UCB_ID_TC35143)
+	{
 		printk(KERN_WARNING "UCB1x00 ID not found: %04x\n", id);
 		goto out;
 	}
 
 	ucb = kzalloc(sizeof(struct ucb1x00), GFP_KERNEL);
 	ret = -ENOMEM;
+
 	if (!ucb)
+	{
 		goto out;
+	}
 
 	device_initialize(&ucb->dev);
 	ucb->dev.class = &ucb1x00_class;
@@ -531,13 +593,18 @@ static int ucb1x00_probe(struct mcp *mcp)
 	ucb->mcp = mcp;
 
 	ret = device_add(&ucb->dev);
+
 	if (ret)
+	{
 		goto err_dev_add;
+	}
 
 	ucb1x00_enable(ucb);
 	ucb->irq = ucb1x00_detect_irq(ucb);
 	ucb1x00_disable(ucb);
-	if (!ucb->irq) {
+
+	if (!ucb->irq)
+	{
 		dev_err(&ucb->dev, "IRQ probe failed\n");
 		ret = -ENODEV;
 		goto err_no_irq;
@@ -546,14 +613,17 @@ static int ucb1x00_probe(struct mcp *mcp)
 	ucb->gpio.base = -1;
 	irq_base = pdata ? pdata->irq_base : 0;
 	ucb->irq_base = irq_alloc_descs(-1, irq_base, 16, -1);
-	if (ucb->irq_base < 0) {
+
+	if (ucb->irq_base < 0)
+	{
 		dev_err(&ucb->dev, "unable to allocate 16 irqs: %d\n",
-			ucb->irq_base);
+				ucb->irq_base);
 		ret = ucb->irq_base;
 		goto err_irq_alloc;
 	}
 
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 16; i++)
+	{
 		unsigned irq = ucb->irq_base + i;
 
 		irq_set_chip_and_handler(irq, &ucb1x00_irqchip, handle_edge_irq);
@@ -564,7 +634,8 @@ static int ucb1x00_probe(struct mcp *mcp)
 	irq_set_irq_type(ucb->irq, IRQ_TYPE_EDGE_RISING);
 	irq_set_chained_handler_and_data(ucb->irq, ucb1x00_irq, ucb);
 
-	if (pdata && pdata->gpio_base) {
+	if (pdata && pdata->gpio_base)
+	{
 		ucb->gpio.label = dev_name(&ucb->dev);
 		ucb->gpio.parent = &ucb->dev;
 		ucb->gpio.owner = THIS_MODULE;
@@ -576,38 +647,55 @@ static int ucb1x00_probe(struct mcp *mcp)
 		ucb->gpio.direction_output = ucb1x00_gpio_direction_output;
 		ucb->gpio.to_irq = ucb1x00_to_irq;
 		ret = gpiochip_add_data(&ucb->gpio, ucb);
+
 		if (ret)
+		{
 			goto err_gpio_add;
-	} else
+		}
+	}
+	else
+	{
 		dev_info(&ucb->dev, "gpio_base not set so no gpiolib support");
+	}
 
 	mcp_set_drvdata(mcp, ucb);
 
 	if (pdata)
+	{
 		device_set_wakeup_capable(&ucb->dev, pdata->can_wakeup);
+	}
 
 	INIT_LIST_HEAD(&ucb->devs);
 	mutex_lock(&ucb1x00_mutex);
 	list_add_tail(&ucb->node, &ucb1x00_devices);
-	list_for_each_entry(drv, &ucb1x00_drivers, node) {
+	list_for_each_entry(drv, &ucb1x00_drivers, node)
+	{
 		ucb1x00_add_dev(ucb, drv);
 	}
 	mutex_unlock(&ucb1x00_mutex);
 
 	return ret;
 
- err_gpio_add:
+err_gpio_add:
 	irq_set_chained_handler(ucb->irq, NULL);
- err_irq_alloc:
+err_irq_alloc:
+
 	if (ucb->irq_base > 0)
+	{
 		irq_free_descs(ucb->irq_base, 16);
- err_no_irq:
+	}
+
+err_no_irq:
 	device_del(&ucb->dev);
- err_dev_add:
+err_dev_add:
 	put_device(&ucb->dev);
- out:
+out:
+
 	if (pdata && pdata->reset)
+	{
 		pdata->reset(UCB_RST_PROBE_FAIL);
+	}
+
 	return ret;
 }
 
@@ -619,21 +707,26 @@ static void ucb1x00_remove(struct mcp *mcp)
 
 	mutex_lock(&ucb1x00_mutex);
 	list_del(&ucb->node);
-	list_for_each_safe(l, n, &ucb->devs) {
+	list_for_each_safe(l, n, &ucb->devs)
+	{
 		struct ucb1x00_dev *dev = list_entry(l, struct ucb1x00_dev, dev_node);
 		ucb1x00_remove_dev(dev);
 	}
 	mutex_unlock(&ucb1x00_mutex);
 
 	if (ucb->gpio.base != -1)
+	{
 		gpiochip_remove(&ucb->gpio);
+	}
 
 	irq_set_chained_handler(ucb->irq, NULL);
 	irq_free_descs(ucb->irq_base, 16);
 	device_unregister(&ucb->dev);
 
 	if (pdata && pdata->reset)
+	{
 		pdata->reset(UCB_RST_REMOVE);
+	}
 }
 
 int ucb1x00_register_driver(struct ucb1x00_driver *drv)
@@ -643,7 +736,8 @@ int ucb1x00_register_driver(struct ucb1x00_driver *drv)
 	INIT_LIST_HEAD(&drv->devs);
 	mutex_lock(&ucb1x00_mutex);
 	list_add_tail(&drv->node, &ucb1x00_drivers);
-	list_for_each_entry(ucb, &ucb1x00_devices, node) {
+	list_for_each_entry(ucb, &ucb1x00_devices, node)
+	{
 		ucb1x00_add_dev(ucb, drv);
 	}
 	mutex_unlock(&ucb1x00_mutex);
@@ -656,7 +750,8 @@ void ucb1x00_unregister_driver(struct ucb1x00_driver *drv)
 
 	mutex_lock(&ucb1x00_mutex);
 	list_del(&drv->node);
-	list_for_each_safe(l, n, &drv->devs) {
+	list_for_each_safe(l, n, &drv->devs)
+	{
 		struct ucb1x00_dev *dev = list_entry(l, struct ucb1x00_dev, drv_node);
 		ucb1x00_remove_dev(dev);
 	}
@@ -671,27 +766,34 @@ static int ucb1x00_suspend(struct device *dev)
 	struct ucb1x00_dev *udev;
 
 	mutex_lock(&ucb1x00_mutex);
-	list_for_each_entry(udev, &ucb->devs, dev_node) {
+	list_for_each_entry(udev, &ucb->devs, dev_node)
+	{
 		if (udev->drv->suspend)
+		{
 			udev->drv->suspend(udev);
+		}
 	}
 	mutex_unlock(&ucb1x00_mutex);
 
-	if (ucb->irq_wake) {
+	if (ucb->irq_wake)
+	{
 		unsigned long flags;
 
 		raw_spin_lock_irqsave(&ucb->irq_lock, flags);
 		ucb1x00_enable(ucb);
 		ucb1x00_reg_write(ucb, UCB_IE_RIS, ucb->irq_ris_enbl &
-				  ucb->irq_wake);
+						  ucb->irq_wake);
 		ucb1x00_reg_write(ucb, UCB_IE_FAL, ucb->irq_fal_enbl &
-				  ucb->irq_wake);
+						  ucb->irq_wake);
 		ucb1x00_disable(ucb);
 		raw_spin_unlock_irqrestore(&ucb->irq_lock, flags);
 
 		enable_irq_wake(ucb->irq);
-	} else if (pdata && pdata->reset)
+	}
+	else if (pdata && pdata->reset)
+	{
 		pdata->reset(UCB_RST_SUSPEND);
+	}
 
 	return 0;
 }
@@ -703,30 +805,37 @@ static int ucb1x00_resume(struct device *dev)
 	struct ucb1x00_dev *udev;
 
 	if (!ucb->irq_wake && pdata && pdata->reset)
+	{
 		pdata->reset(UCB_RST_RESUME);
+	}
 
 	ucb1x00_enable(ucb);
 	ucb1x00_reg_write(ucb, UCB_IO_DATA, ucb->io_out);
 	ucb1x00_reg_write(ucb, UCB_IO_DIR, ucb->io_dir);
 
-	if (ucb->irq_wake) {
+	if (ucb->irq_wake)
+	{
 		unsigned long flags;
 
 		raw_spin_lock_irqsave(&ucb->irq_lock, flags);
 		ucb1x00_reg_write(ucb, UCB_IE_RIS, ucb->irq_ris_enbl &
-				  ucb->irq_mask);
+						  ucb->irq_mask);
 		ucb1x00_reg_write(ucb, UCB_IE_FAL, ucb->irq_fal_enbl &
-				  ucb->irq_mask);
+						  ucb->irq_mask);
 		raw_spin_unlock_irqrestore(&ucb->irq_lock, flags);
 
 		disable_irq_wake(ucb->irq);
 	}
+
 	ucb1x00_disable(ucb);
 
 	mutex_lock(&ucb1x00_mutex);
-	list_for_each_entry(udev, &ucb->devs, dev_node) {
+	list_for_each_entry(udev, &ucb->devs, dev_node)
+	{
 		if (udev->drv->resume)
+		{
 			udev->drv->resume(udev);
+		}
 	}
 	mutex_unlock(&ucb1x00_mutex);
 	return 0;
@@ -735,7 +844,8 @@ static int ucb1x00_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(ucb1x00_pm_ops, ucb1x00_suspend, ucb1x00_resume);
 
-static struct mcp_driver ucb1x00_driver = {
+static struct mcp_driver ucb1x00_driver =
+{
 	.drv		= {
 		.name	= "ucb1x00",
 		.owner	= THIS_MODULE,
@@ -748,11 +858,17 @@ static struct mcp_driver ucb1x00_driver = {
 static int __init ucb1x00_init(void)
 {
 	int ret = class_register(&ucb1x00_class);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		ret = mcp_driver_register(&ucb1x00_driver);
+
 		if (ret)
+		{
 			class_unregister(&ucb1x00_class);
+		}
 	}
+
 	return ret;
 }
 

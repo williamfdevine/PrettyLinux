@@ -8,7 +8,8 @@
 
 #define FONTDATAMAX (11*256)
 
-static const unsigned char fontdata_6x11[FONTDATAMAX] = {
+static const unsigned char fontdata_6x11[FONTDATAMAX] =
+{
 
 	/* 0 0x00 '^@' */
 	0x00, /* 00000000 */
@@ -3341,7 +3342,8 @@ static const unsigned char fontdata_6x11[FONTDATAMAX] = {
 };
 
 
-const struct font_desc font_vga_6x11 = {
+const struct font_desc font_vga_6x11 =
+{
 	.idx	= VGA6x11_IDX,
 	.name	= "ProFont6x11",
 	.width	= 6,

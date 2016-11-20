@@ -33,7 +33,7 @@
 #include "netns.h"
 
 #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
-# define RPCDBG_FACILITY	RPCDBG_BIND
+	#define RPCDBG_FACILITY	RPCDBG_BIND
 #endif
 
 #define RPCBIND_SOCK_PATHNAME	"/var/run/rpcbind.sock"
@@ -45,7 +45,8 @@
 #define RPCBVERS_3		(3u)
 #define RPCBVERS_4		(4u)
 
-enum {
+enum
+{
 	RPCBPROC_NULL,
 	RPCBPROC_SET,
 	RPCBPROC_UNSET,
@@ -96,10 +97,10 @@ enum {
  * XDR argument and result sizes
  */
 #define RPCB_mappingargs_sz	(RPCB_program_sz + RPCB_version_sz + \
-				RPCB_protocol_sz + RPCB_port_sz)
+							 RPCB_protocol_sz + RPCB_port_sz)
 #define RPCB_getaddrargs_sz	(RPCB_program_sz + RPCB_version_sz + \
-				RPCB_netid_sz + RPCB_addr_sz + \
-				RPCB_ownerstring_sz)
+							 RPCB_netid_sz + RPCB_addr_sz + \
+							 RPCB_ownerstring_sz)
 
 #define RPCB_getportres_sz	RPCB_port_sz
 #define RPCB_setres_sz		RPCB_boolean_sz
@@ -114,16 +115,17 @@ static void			rpcb_getport_done(struct rpc_task *, void *);
 static void			rpcb_map_release(void *data);
 static const struct rpc_program	rpcb_program;
 
-struct rpcbind_args {
-	struct rpc_xprt *	r_xprt;
+struct rpcbind_args
+{
+	struct rpc_xprt 	*r_xprt;
 
 	u32			r_prog;
 	u32			r_vers;
 	u32			r_prot;
 	unsigned short		r_port;
-	const char *		r_netid;
-	const char *		r_addr;
-	const char *		r_owner;
+	const char 		*r_netid;
+	const char 		*r_addr;
+	const char 		*r_owner;
 
 	int			r_status;
 };
@@ -132,15 +134,17 @@ static struct rpc_procinfo rpcb_procedures2[];
 static struct rpc_procinfo rpcb_procedures3[];
 static struct rpc_procinfo rpcb_procedures4[];
 
-struct rpcb_info {
+struct rpcb_info
+{
 	u32			rpc_vers;
-	struct rpc_procinfo *	rpc_proc;
+	struct rpc_procinfo 	*rpc_proc;
 };
 
 static const struct rpcb_info rpcb_next_version[];
 static const struct rpcb_info rpcb_next_version6[];
 
-static const struct rpc_call_ops rpcb_getport_ops = {
+static const struct rpc_call_ops rpcb_getport_ops =
+{
 	.rpc_call_done		= rpcb_getport_done,
 	.rpc_release		= rpcb_map_release,
 };
@@ -167,8 +171,12 @@ static int rpcb_get_local(struct net *net)
 	struct sunrpc_net *sn = net_generic(net, sunrpc_net_id);
 
 	spin_lock(&sn->rpcb_clnt_lock);
+
 	if (sn->rpcb_users)
+	{
 		sn->rpcb_users++;
+	}
+
 	cnt = sn->rpcb_users;
 	spin_unlock(&sn->rpcb_clnt_lock);
 
@@ -183,29 +191,40 @@ void rpcb_put_local(struct net *net)
 	int shutdown = 0;
 
 	spin_lock(&sn->rpcb_clnt_lock);
-	if (sn->rpcb_users) {
-		if (--sn->rpcb_users == 0) {
+
+	if (sn->rpcb_users)
+	{
+		if (--sn->rpcb_users == 0)
+		{
 			sn->rpcb_local_clnt = NULL;
 			sn->rpcb_local_clnt4 = NULL;
 		}
+
 		shutdown = !sn->rpcb_users;
 	}
+
 	spin_unlock(&sn->rpcb_clnt_lock);
 
-	if (shutdown) {
+	if (shutdown)
+	{
 		/*
 		 * cleanup_rpcb_clnt - remove xprtsock's sysctls, unregister
 		 */
 		if (clnt4)
+		{
 			rpc_shutdown_client(clnt4);
+		}
+
 		if (clnt)
+		{
 			rpc_shutdown_client(clnt);
+		}
 	}
 }
 
 static void rpcb_set_local(struct net *net, struct rpc_clnt *clnt,
-			struct rpc_clnt *clnt4,
-			bool is_af_local)
+						   struct rpc_clnt *clnt4,
+						   bool is_af_local)
 {
 	struct sunrpc_net *sn = net_generic(net, sunrpc_net_id);
 
@@ -213,7 +232,7 @@ static void rpcb_set_local(struct net *net, struct rpc_clnt *clnt,
 	sn->rpcb_local_clnt = clnt;
 	sn->rpcb_local_clnt4 = clnt4;
 	sn->rpcb_is_af_local = is_af_local ? 1 : 0;
-	smp_wmb(); 
+	smp_wmb();
 	sn->rpcb_users = 1;
 	dprintk("RPC:       created new rpcb local clients (rpcb_local_clnt: "
 			"%p, rpcb_local_clnt4: %p) for net %p%s\n",
@@ -227,14 +246,16 @@ static void rpcb_set_local(struct net *net, struct rpc_clnt *clnt,
  */
 static int rpcb_create_local_unix(struct net *net)
 {
-	static const struct sockaddr_un rpcb_localaddr_rpcbind = {
+	static const struct sockaddr_un rpcb_localaddr_rpcbind =
+	{
 		.sun_family		= AF_LOCAL,
 		.sun_path		= RPCBIND_SOCK_PATHNAME,
 	};
-	struct rpc_create_args args = {
+	struct rpc_create_args args =
+	{
 		.net		= net,
 		.protocol	= XPRT_TRANSPORT_LOCAL,
-		.address	= (struct sockaddr *)&rpcb_localaddr_rpcbind,
+		.address	= (struct sockaddr *) &rpcb_localaddr_rpcbind,
 		.addrsize	= sizeof(rpcb_localaddr_rpcbind),
 		.servername	= "localhost",
 		.program	= &rpcb_program,
@@ -258,7 +279,9 @@ static int rpcb_create_local_unix(struct net *net)
 	 * it's listening on AF_LOCAL on the named socket.
 	 */
 	clnt = rpc_create(&args);
-	if (IS_ERR(clnt)) {
+
+	if (IS_ERR(clnt))
+	{
 		dprintk("RPC:       failed to create AF_LOCAL rpcbind "
 				"client (errno %ld).\n", PTR_ERR(clnt));
 		result = PTR_ERR(clnt);
@@ -266,7 +289,9 @@ static int rpcb_create_local_unix(struct net *net)
 	}
 
 	clnt4 = rpc_bind_new_program(clnt, &rpcb_program, RPCBVERS_4);
-	if (IS_ERR(clnt4)) {
+
+	if (IS_ERR(clnt4))
+	{
 		dprintk("RPC:       failed to bind second program to "
 				"rpcbind v4 client (errno %ld).\n",
 				PTR_ERR(clnt4));
@@ -285,15 +310,17 @@ out:
  */
 static int rpcb_create_local_net(struct net *net)
 {
-	static const struct sockaddr_in rpcb_inaddr_loopback = {
+	static const struct sockaddr_in rpcb_inaddr_loopback =
+	{
 		.sin_family		= AF_INET,
 		.sin_addr.s_addr	= htonl(INADDR_LOOPBACK),
 		.sin_port		= htons(RPCBIND_PORT),
 	};
-	struct rpc_create_args args = {
+	struct rpc_create_args args =
+	{
 		.net		= net,
 		.protocol	= XPRT_TRANSPORT_TCP,
-		.address	= (struct sockaddr *)&rpcb_inaddr_loopback,
+		.address	= (struct sockaddr *) &rpcb_inaddr_loopback,
 		.addrsize	= sizeof(rpcb_inaddr_loopback),
 		.servername	= "localhost",
 		.program	= &rpcb_program,
@@ -305,7 +332,9 @@ static int rpcb_create_local_net(struct net *net)
 	int result = 0;
 
 	clnt = rpc_create(&args);
-	if (IS_ERR(clnt)) {
+
+	if (IS_ERR(clnt))
+	{
 		dprintk("RPC:       failed to create local rpcbind "
 				"client (errno %ld).\n", PTR_ERR(clnt));
 		result = PTR_ERR(clnt);
@@ -318,7 +347,9 @@ static int rpcb_create_local_net(struct net *net)
 	 * v4 upcalls.
 	 */
 	clnt4 = rpc_bind_new_program(clnt, &rpcb_program, RPCBVERS_4);
-	if (IS_ERR(clnt4)) {
+
+	if (IS_ERR(clnt4))
+	{
 		dprintk("RPC:       failed to bind second program to "
 				"rpcbind v4 client (errno %ld).\n",
 				PTR_ERR(clnt4));
@@ -341,14 +372,21 @@ int rpcb_create_local(struct net *net)
 	int result = 0;
 
 	if (rpcb_get_local(net))
+	{
 		return result;
+	}
 
 	mutex_lock(&rpcb_create_local_mutex);
+
 	if (rpcb_get_local(net))
+	{
 		goto out;
+	}
 
 	if (rpcb_create_local_unix(net) != 0)
+	{
 		result = rpcb_create_local_net(net);
+	}
 
 out:
 	mutex_unlock(&rpcb_create_local_mutex);
@@ -356,11 +394,12 @@ out:
 }
 
 static struct rpc_clnt *rpcb_create(struct net *net, const char *nodename,
-				    const char *hostname,
-				    struct sockaddr *srvaddr, size_t salen,
-				    int proto, u32 version)
+									const char *hostname,
+									struct sockaddr *srvaddr, size_t salen,
+									int proto, u32 version)
 {
-	struct rpc_create_args args = {
+	struct rpc_create_args args =
+	{
 		.net		= net,
 		.protocol	= proto,
 		.address	= srvaddr,
@@ -371,18 +410,21 @@ static struct rpc_clnt *rpcb_create(struct net *net, const char *nodename,
 		.version	= version,
 		.authflavor	= RPC_AUTH_UNIX,
 		.flags		= (RPC_CLNT_CREATE_NOPING |
-					RPC_CLNT_CREATE_NONPRIVPORT),
+		RPC_CLNT_CREATE_NONPRIVPORT),
 	};
 
-	switch (srvaddr->sa_family) {
-	case AF_INET:
-		((struct sockaddr_in *)srvaddr)->sin_port = htons(RPCBIND_PORT);
-		break;
-	case AF_INET6:
-		((struct sockaddr_in6 *)srvaddr)->sin6_port = htons(RPCBIND_PORT);
-		break;
-	default:
-		return ERR_PTR(-EAFNOSUPPORT);
+	switch (srvaddr->sa_family)
+	{
+		case AF_INET:
+			((struct sockaddr_in *)srvaddr)->sin_port = htons(RPCBIND_PORT);
+			break;
+
+		case AF_INET6:
+			((struct sockaddr_in6 *)srvaddr)->sin6_port = htons(RPCBIND_PORT);
+			break;
+
+		default:
+			return ERR_PTR(-EAFNOSUPPORT);
 	}
 
 	return rpc_create(&args);
@@ -394,18 +436,26 @@ static int rpcb_register_call(struct sunrpc_net *sn, struct rpc_clnt *clnt, stru
 	int error, result = 0;
 
 	if (is_set || !sn->rpcb_is_af_local)
+	{
 		flags = RPC_TASK_SOFTCONN;
+	}
+
 	msg->rpc_resp = &result;
 
 	error = rpc_call_sync(clnt, msg, flags);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		dprintk("RPC:       failed to contact local rpcbind "
 				"server (errno %d).\n", -error);
 		return error;
 	}
 
 	if (!result)
+	{
 		return -EACCES;
+	}
+
 	return 0;
 }
 
@@ -444,13 +494,15 @@ static int rpcb_register_call(struct sunrpc_net *sn, struct rpc_clnt *clnt, stru
  */
 int rpcb_register(struct net *net, u32 prog, u32 vers, int prot, unsigned short port)
 {
-	struct rpcbind_args map = {
+	struct rpcbind_args map =
+	{
 		.r_prog		= prog,
 		.r_vers		= vers,
 		.r_prot		= prot,
 		.r_port		= port,
 	};
-	struct rpc_message msg = {
+	struct rpc_message msg =
+	{
 		.rpc_argp	= &map,
 	};
 	struct sunrpc_net *sn = net_generic(net, sunrpc_net_id);
@@ -461,7 +513,9 @@ int rpcb_register(struct net *net, u32 prog, u32 vers, int prot, unsigned short 
 			prog, vers, prot, port);
 
 	msg.rpc_proc = &rpcb_procedures2[RPCBPROC_UNSET];
-	if (port != 0) {
+
+	if (port != 0)
+	{
 		msg.rpc_proc = &rpcb_procedures2[RPCBPROC_SET];
 		is_set = true;
 	}
@@ -473,8 +527,8 @@ int rpcb_register(struct net *net, u32 prog, u32 vers, int prot, unsigned short 
  * Fill in AF_INET family-specific arguments to register
  */
 static int rpcb_register_inet4(struct sunrpc_net *sn,
-			       const struct sockaddr *sap,
-			       struct rpc_message *msg)
+							   const struct sockaddr *sap,
+							   struct rpc_message *msg)
 {
 	const struct sockaddr_in *sin = (const struct sockaddr_in *)sap;
 	struct rpcbind_args *map = msg->rpc_argp;
@@ -485,12 +539,14 @@ static int rpcb_register_inet4(struct sunrpc_net *sn,
 	map->r_addr = rpc_sockaddr2uaddr(sap, GFP_KERNEL);
 
 	dprintk("RPC:       %sregistering [%u, %u, %s, '%s'] with "
-		"local rpcbind\n", (port ? "" : "un"),
+			"local rpcbind\n", (port ? "" : "un"),
 			map->r_prog, map->r_vers,
 			map->r_addr, map->r_netid);
 
 	msg->rpc_proc = &rpcb_procedures4[RPCBPROC_UNSET];
-	if (port != 0) {
+
+	if (port != 0)
+	{
 		msg->rpc_proc = &rpcb_procedures4[RPCBPROC_SET];
 		is_set = true;
 	}
@@ -504,8 +560,8 @@ static int rpcb_register_inet4(struct sunrpc_net *sn,
  * Fill in AF_INET6 family-specific arguments to register
  */
 static int rpcb_register_inet6(struct sunrpc_net *sn,
-			       const struct sockaddr *sap,
-			       struct rpc_message *msg)
+							   const struct sockaddr *sap,
+							   struct rpc_message *msg)
 {
 	const struct sockaddr_in6 *sin6 = (const struct sockaddr_in6 *)sap;
 	struct rpcbind_args *map = msg->rpc_argp;
@@ -516,12 +572,14 @@ static int rpcb_register_inet6(struct sunrpc_net *sn,
 	map->r_addr = rpc_sockaddr2uaddr(sap, GFP_KERNEL);
 
 	dprintk("RPC:       %sregistering [%u, %u, %s, '%s'] with "
-		"local rpcbind\n", (port ? "" : "un"),
+			"local rpcbind\n", (port ? "" : "un"),
 			map->r_prog, map->r_vers,
 			map->r_addr, map->r_netid);
 
 	msg->rpc_proc = &rpcb_procedures4[RPCBPROC_UNSET];
-	if (port != 0) {
+
+	if (port != 0)
+	{
 		msg->rpc_proc = &rpcb_procedures4[RPCBPROC_SET];
 		is_set = true;
 	}
@@ -532,12 +590,12 @@ static int rpcb_register_inet6(struct sunrpc_net *sn,
 }
 
 static int rpcb_unregister_all_protofamilies(struct sunrpc_net *sn,
-					     struct rpc_message *msg)
+		struct rpc_message *msg)
 {
 	struct rpcbind_args *map = msg->rpc_argp;
 
 	dprintk("RPC:       unregistering [%u, %u, '%s'] with "
-		"local rpcbind\n",
+			"local rpcbind\n",
 			map->r_prog, map->r_vers, map->r_netid);
 
 	map->r_addr = "";
@@ -591,30 +649,38 @@ static int rpcb_unregister_all_protofamilies(struct sunrpc_net *sn,
  * advertises the service on all IPv4 and IPv6 addresses.
  */
 int rpcb_v4_register(struct net *net, const u32 program, const u32 version,
-		     const struct sockaddr *address, const char *netid)
+					 const struct sockaddr *address, const char *netid)
 {
-	struct rpcbind_args map = {
+	struct rpcbind_args map =
+	{
 		.r_prog		= program,
 		.r_vers		= version,
 		.r_netid	= netid,
 		.r_owner	= RPCB_OWNER_STRING,
 	};
-	struct rpc_message msg = {
+	struct rpc_message msg =
+	{
 		.rpc_argp	= &map,
 	};
 	struct sunrpc_net *sn = net_generic(net, sunrpc_net_id);
 
 	if (sn->rpcb_local_clnt4 == NULL)
+	{
 		return -EPROTONOSUPPORT;
+	}
 
 	if (address == NULL)
+	{
 		return rpcb_unregister_all_protofamilies(sn, &msg);
+	}
 
-	switch (address->sa_family) {
-	case AF_INET:
-		return rpcb_register_inet4(sn, address, &msg);
-	case AF_INET6:
-		return rpcb_register_inet6(sn, address, &msg);
+	switch (address->sa_family)
+	{
+		case AF_INET:
+			return rpcb_register_inet4(sn, address, &msg);
+
+		case AF_INET6:
+			return rpcb_register_inet6(sn, address, &msg);
 	}
 
 	return -EAFNOSUPPORT;
@@ -622,12 +688,14 @@ int rpcb_v4_register(struct net *net, const u32 program, const u32 version,
 
 static struct rpc_task *rpcb_call_async(struct rpc_clnt *rpcb_clnt, struct rpcbind_args *map, struct rpc_procinfo *proc)
 {
-	struct rpc_message msg = {
+	struct rpc_message msg =
+	{
 		.rpc_proc = proc,
 		.rpc_argp = map,
 		.rpc_resp = map,
 	};
-	struct rpc_task_setup task_setup_data = {
+	struct rpc_task_setup task_setup_data =
+	{
 		.rpc_client = rpcb_clnt,
 		.rpc_message = &msg,
 		.callback_ops = &rpcb_getport_ops,
@@ -650,14 +718,22 @@ static struct rpc_clnt *rpcb_find_transport_owner(struct rpc_clnt *clnt)
 	struct rpc_clnt *parent = clnt->cl_parent;
 	struct rpc_xprt_switch *xps = rcu_access_pointer(clnt->cl_xpi.xpi_xpswitch);
 
-	while (parent != clnt) {
+	while (parent != clnt)
+	{
 		if (rcu_access_pointer(parent->cl_xpi.xpi_xpswitch) != xps)
+		{
 			break;
+		}
+
 		if (clnt->cl_autobind)
+		{
 			break;
+		}
+
 		clnt = parent;
 		parent = parent->cl_parent;
 	}
+
 	return clnt;
 }
 
@@ -688,25 +764,27 @@ void rpcb_getport_async(struct rpc_task *task)
 	xprt = xprt_get(task->tk_xprt);
 
 	dprintk("RPC: %5u %s(%s, %u, %u, %d)\n",
-		task->tk_pid, __func__,
-		xprt->servername, clnt->cl_prog, clnt->cl_vers, xprt->prot);
+			task->tk_pid, __func__,
+			xprt->servername, clnt->cl_prog, clnt->cl_vers, xprt->prot);
 
 	/* Put self on the wait queue to ensure we get notified if
 	 * some other task is already attempting to bind the port */
 	rpc_sleep_on(&xprt->binding, task, NULL);
 
-	if (xprt_test_and_set_binding(xprt)) {
+	if (xprt_test_and_set_binding(xprt))
+	{
 		dprintk("RPC: %5u %s: waiting for another binder\n",
-			task->tk_pid, __func__);
+				task->tk_pid, __func__);
 		xprt_put(xprt);
 		return;
 	}
 
 	/* Someone else may have bound if we slept */
-	if (xprt_bound(xprt)) {
+	if (xprt_bound(xprt))
+	{
 		status = 0;
 		dprintk("RPC: %5u %s: already bound\n",
-			task->tk_pid, __func__);
+				task->tk_pid, __func__);
 		goto bailout_nofree;
 	}
 
@@ -714,50 +792,60 @@ void rpcb_getport_async(struct rpc_task *task)
 	salen = rpc_peeraddr(clnt, sap, sizeof(addr));
 
 	/* Don't ever use rpcbind v2 for AF_INET6 requests */
-	switch (sap->sa_family) {
-	case AF_INET:
-		proc = rpcb_next_version[xprt->bind_index].rpc_proc;
-		bind_version = rpcb_next_version[xprt->bind_index].rpc_vers;
-		break;
-	case AF_INET6:
-		proc = rpcb_next_version6[xprt->bind_index].rpc_proc;
-		bind_version = rpcb_next_version6[xprt->bind_index].rpc_vers;
-		break;
-	default:
-		status = -EAFNOSUPPORT;
-		dprintk("RPC: %5u %s: bad address family\n",
-				task->tk_pid, __func__);
-		goto bailout_nofree;
+	switch (sap->sa_family)
+	{
+		case AF_INET:
+			proc = rpcb_next_version[xprt->bind_index].rpc_proc;
+			bind_version = rpcb_next_version[xprt->bind_index].rpc_vers;
+			break;
+
+		case AF_INET6:
+			proc = rpcb_next_version6[xprt->bind_index].rpc_proc;
+			bind_version = rpcb_next_version6[xprt->bind_index].rpc_vers;
+			break;
+
+		default:
+			status = -EAFNOSUPPORT;
+			dprintk("RPC: %5u %s: bad address family\n",
+					task->tk_pid, __func__);
+			goto bailout_nofree;
 	}
-	if (proc == NULL) {
+
+	if (proc == NULL)
+	{
 		xprt->bind_index = 0;
 		status = -EPFNOSUPPORT;
 		dprintk("RPC: %5u %s: no more getport versions available\n",
-			task->tk_pid, __func__);
+				task->tk_pid, __func__);
 		goto bailout_nofree;
 	}
 
 	dprintk("RPC: %5u %s: trying rpcbind version %u\n",
-		task->tk_pid, __func__, bind_version);
+			task->tk_pid, __func__, bind_version);
 
 	rpcb_clnt = rpcb_create(xprt->xprt_net,
-				clnt->cl_nodename,
-				xprt->servername, sap, salen,
-				xprt->prot, bind_version);
-	if (IS_ERR(rpcb_clnt)) {
+							clnt->cl_nodename,
+							xprt->servername, sap, salen,
+							xprt->prot, bind_version);
+
+	if (IS_ERR(rpcb_clnt))
+	{
 		status = PTR_ERR(rpcb_clnt);
 		dprintk("RPC: %5u %s: rpcb_create failed, error %ld\n",
-			task->tk_pid, __func__, PTR_ERR(rpcb_clnt));
+				task->tk_pid, __func__, PTR_ERR(rpcb_clnt));
 		goto bailout_nofree;
 	}
 
 	map = kzalloc(sizeof(struct rpcbind_args), GFP_ATOMIC);
-	if (!map) {
+
+	if (!map)
+	{
 		status = -ENOMEM;
 		dprintk("RPC: %5u %s: no memory available\n",
-			task->tk_pid, __func__);
+				task->tk_pid, __func__);
 		goto bailout_release_client;
 	}
+
 	map->r_prog = clnt->cl_prog;
 	map->r_vers = clnt->cl_vers;
 	map->r_prot = xprt->prot;
@@ -765,26 +853,31 @@ void rpcb_getport_async(struct rpc_task *task)
 	map->r_xprt = xprt;
 	map->r_status = -EIO;
 
-	switch (bind_version) {
-	case RPCBVERS_4:
-	case RPCBVERS_3:
-		map->r_netid = xprt->address_strings[RPC_DISPLAY_NETID];
-		map->r_addr = rpc_sockaddr2uaddr(sap, GFP_ATOMIC);
-		map->r_owner = "";
-		break;
-	case RPCBVERS_2:
-		map->r_addr = NULL;
-		break;
-	default:
-		BUG();
+	switch (bind_version)
+	{
+		case RPCBVERS_4:
+		case RPCBVERS_3:
+			map->r_netid = xprt->address_strings[RPC_DISPLAY_NETID];
+			map->r_addr = rpc_sockaddr2uaddr(sap, GFP_ATOMIC);
+			map->r_owner = "";
+			break;
+
+		case RPCBVERS_2:
+			map->r_addr = NULL;
+			break;
+
+		default:
+			BUG();
 	}
 
 	child = rpcb_call_async(rpcb_clnt, map, proc);
 	rpc_release_client(rpcb_clnt);
-	if (IS_ERR(child)) {
+
+	if (IS_ERR(child))
+	{
 		/* rpcb_map_release() has freed the arguments */
 		dprintk("RPC: %5u %s: rpc_run_task failed\n",
-			task->tk_pid, __func__);
+				task->tk_pid, __func__);
 		return;
 	}
 
@@ -812,20 +905,29 @@ static void rpcb_getport_done(struct rpc_task *child, void *data)
 
 	/* Garbage reply: retry with a lesser rpcbind version */
 	if (status == -EIO)
+	{
 		status = -EPROTONOSUPPORT;
+	}
 
 	/* rpcbind server doesn't support this rpcbind protocol version */
 	if (status == -EPROTONOSUPPORT)
+	{
 		xprt->bind_index++;
+	}
 
-	if (status < 0) {
+	if (status < 0)
+	{
 		/* rpcbind server not available on remote host? */
 		xprt->ops->set_port(xprt, 0);
-	} else if (map->r_port == 0) {
+	}
+	else if (map->r_port == 0)
+	{
 		/* Requested RPC service wasn't registered on remote host */
 		xprt->ops->set_port(xprt, 0);
 		status = -EACCES;
-	} else {
+	}
+	else
+	{
 		/* Succeeded */
 		xprt->ops->set_port(xprt, map->r_port);
 		xprt_set_bound(xprt);
@@ -843,7 +945,7 @@ static void rpcb_getport_done(struct rpc_task *child, void *data)
  */
 
 static void rpcb_enc_mapping(struct rpc_rqst *req, struct xdr_stream *xdr,
-			     const struct rpcbind_args *rpcb)
+							 const struct rpcbind_args *rpcb)
 {
 	__be32 *p;
 
@@ -860,7 +962,7 @@ static void rpcb_enc_mapping(struct rpc_rqst *req, struct xdr_stream *xdr,
 }
 
 static int rpcb_dec_getport(struct rpc_rqst *req, struct xdr_stream *xdr,
-			    struct rpcbind_args *rpcb)
+							struct rpcbind_args *rpcb)
 {
 	unsigned long port;
 	__be32 *p;
@@ -868,31 +970,43 @@ static int rpcb_dec_getport(struct rpc_rqst *req, struct xdr_stream *xdr,
 	rpcb->r_port = 0;
 
 	p = xdr_inline_decode(xdr, 4);
+
 	if (unlikely(p == NULL))
+	{
 		return -EIO;
+	}
 
 	port = be32_to_cpup(p);
 	dprintk("RPC: %5u PMAP_%s result: %lu\n", req->rq_task->tk_pid,
 			req->rq_task->tk_msg.rpc_proc->p_name, port);
+
 	if (unlikely(port > USHRT_MAX))
+	{
 		return -EIO;
+	}
 
 	rpcb->r_port = port;
 	return 0;
 }
 
 static int rpcb_dec_set(struct rpc_rqst *req, struct xdr_stream *xdr,
-			unsigned int *boolp)
+						unsigned int *boolp)
 {
 	__be32 *p;
 
 	p = xdr_inline_decode(xdr, 4);
+
 	if (unlikely(p == NULL))
+	{
 		return -EIO;
+	}
 
 	*boolp = 0;
+
 	if (*p != xdr_zero)
+	{
 		*boolp = 1;
+	}
 
 	dprintk("RPC: %5u RPCB_%s call %s\n",
 			req->rq_task->tk_pid,
@@ -902,22 +1016,26 @@ static int rpcb_dec_set(struct rpc_rqst *req, struct xdr_stream *xdr,
 }
 
 static void encode_rpcb_string(struct xdr_stream *xdr, const char *string,
-			       const u32 maxstrlen)
+							   const u32 maxstrlen)
 {
 	__be32 *p;
 	u32 len;
 
 	len = strlen(string);
 	WARN_ON_ONCE(len > maxstrlen);
+
 	if (len > maxstrlen)
 		/* truncate and hope for the best */
+	{
 		len = maxstrlen;
+	}
+
 	p = xdr_reserve_space(xdr, 4 + len);
 	xdr_encode_opaque(p, string, len);
 }
 
 static void rpcb_enc_getaddr(struct rpc_rqst *req, struct xdr_stream *xdr,
-			     const struct rpcbind_args *rpcb)
+							 const struct rpcbind_args *rpcb)
 {
 	__be32 *p;
 
@@ -937,7 +1055,7 @@ static void rpcb_enc_getaddr(struct rpc_rqst *req, struct xdr_stream *xdr,
 }
 
 static int rpcb_dec_getaddr(struct rpc_rqst *req, struct xdr_stream *xdr,
-			    struct rpcbind_args *rpcb)
+							struct rpcbind_args *rpcb)
 {
 	struct sockaddr_storage address;
 	struct sockaddr *sap = (struct sockaddr *)&address;
@@ -947,32 +1065,46 @@ static int rpcb_dec_getaddr(struct rpc_rqst *req, struct xdr_stream *xdr,
 	rpcb->r_port = 0;
 
 	p = xdr_inline_decode(xdr, 4);
+
 	if (unlikely(p == NULL))
+	{
 		goto out_fail;
+	}
+
 	len = be32_to_cpup(p);
 
 	/*
 	 * If the returned universal address is a null string,
 	 * the requested RPC service was not registered.
 	 */
-	if (len == 0) {
+	if (len == 0)
+	{
 		dprintk("RPC: %5u RPCB reply: program not registered\n",
 				req->rq_task->tk_pid);
 		return 0;
 	}
 
 	if (unlikely(len > RPCBIND_MAXUADDRLEN))
+	{
 		goto out_fail;
+	}
 
 	p = xdr_inline_decode(xdr, len);
+
 	if (unlikely(p == NULL))
+	{
 		goto out_fail;
+	}
+
 	dprintk("RPC: %5u RPCB_%s reply: %s\n", req->rq_task->tk_pid,
 			req->rq_task->tk_msg.rpc_proc->p_name, (char *)p);
 
 	if (rpc_uaddr2sockaddr(req->rq_xprt->xprt_net, (char *)p, len,
-				sap, sizeof(address)) == 0)
+						   sap, sizeof(address)) == 0)
+	{
 		goto out_fail;
+	}
+
 	rpcb->r_port = rpc_get_port(sap);
 
 	return 0;
@@ -989,7 +1121,8 @@ out_fail:
  * since the Linux kernel RPC code requires only these.
  */
 
-static struct rpc_procinfo rpcb_procedures2[] = {
+static struct rpc_procinfo rpcb_procedures2[] =
+{
 	[RPCBPROC_SET] = {
 		.p_proc		= RPCBPROC_SET,
 		.p_encode	= (kxdreproc_t)rpcb_enc_mapping,
@@ -1022,7 +1155,8 @@ static struct rpc_procinfo rpcb_procedures2[] = {
 	},
 };
 
-static struct rpc_procinfo rpcb_procedures3[] = {
+static struct rpc_procinfo rpcb_procedures3[] =
+{
 	[RPCBPROC_SET] = {
 		.p_proc		= RPCBPROC_SET,
 		.p_encode	= (kxdreproc_t)rpcb_enc_getaddr,
@@ -1055,7 +1189,8 @@ static struct rpc_procinfo rpcb_procedures3[] = {
 	},
 };
 
-static struct rpc_procinfo rpcb_procedures4[] = {
+static struct rpc_procinfo rpcb_procedures4[] =
+{
 	[RPCBPROC_SET] = {
 		.p_proc		= RPCBPROC_SET,
 		.p_encode	= (kxdreproc_t)rpcb_enc_getaddr,
@@ -1088,7 +1223,8 @@ static struct rpc_procinfo rpcb_procedures4[] = {
 	},
 };
 
-static const struct rpcb_info rpcb_next_version[] = {
+static const struct rpcb_info rpcb_next_version[] =
+{
 	{
 		.rpc_vers	= RPCBVERS_2,
 		.rpc_proc	= &rpcb_procedures2[RPCBPROC_GETPORT],
@@ -1098,7 +1234,8 @@ static const struct rpcb_info rpcb_next_version[] = {
 	},
 };
 
-static const struct rpcb_info rpcb_next_version6[] = {
+static const struct rpcb_info rpcb_next_version6[] =
+{
 	{
 		.rpc_vers	= RPCBVERS_4,
 		.rpc_proc	= &rpcb_procedures4[RPCBPROC_GETADDR],
@@ -1112,25 +1249,29 @@ static const struct rpcb_info rpcb_next_version6[] = {
 	},
 };
 
-static const struct rpc_version rpcb_version2 = {
+static const struct rpc_version rpcb_version2 =
+{
 	.number		= RPCBVERS_2,
 	.nrprocs	= ARRAY_SIZE(rpcb_procedures2),
 	.procs		= rpcb_procedures2
 };
 
-static const struct rpc_version rpcb_version3 = {
+static const struct rpc_version rpcb_version3 =
+{
 	.number		= RPCBVERS_3,
 	.nrprocs	= ARRAY_SIZE(rpcb_procedures3),
 	.procs		= rpcb_procedures3
 };
 
-static const struct rpc_version rpcb_version4 = {
+static const struct rpc_version rpcb_version4 =
+{
 	.number		= RPCBVERS_4,
 	.nrprocs	= ARRAY_SIZE(rpcb_procedures4),
 	.procs		= rpcb_procedures4
 };
 
-static const struct rpc_version *rpcb_version[] = {
+static const struct rpc_version *rpcb_version[] =
+{
 	NULL,
 	NULL,
 	&rpcb_version2,
@@ -1140,7 +1281,8 @@ static const struct rpc_version *rpcb_version[] = {
 
 static struct rpc_stat rpcb_stats;
 
-static const struct rpc_program rpcb_program = {
+static const struct rpc_program rpcb_program =
+{
 	.name		= "rpcbind",
 	.number		= RPCBIND_PROGRAM,
 	.nrvers		= ARRAY_SIZE(rpcb_version),

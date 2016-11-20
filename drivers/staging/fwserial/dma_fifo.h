@@ -44,12 +44,14 @@
 
 #define DMA_FIFO_GUARD 3   /* # of cache lines to reserve for the guard area */
 
-struct dma_fifo {
+struct dma_fifo
+{
 	unsigned int	 in;
 	unsigned int	 out;		/* updated when dma is pended         */
 	unsigned int	 done;		/* updated upon dma completion        */
-	struct {
-		unsigned corrupt:1;
+	struct
+	{
+		unsigned corrupt: 1;
 	};
 	int		 size;		/* 'apparent' size of fifo	      */
 	int		 guard;		/* ofs of guard area		      */
@@ -63,7 +65,8 @@ struct dma_fifo {
 	void		 *data;
 };
 
-struct dma_pending {
+struct dma_pending
+{
 	struct list_head link;
 	void		 *data;
 	unsigned int	 len;
@@ -83,13 +86,13 @@ static inline bool dp_is_completed(struct dma_pending *dp)
 
 void dma_fifo_init(struct dma_fifo *fifo);
 int dma_fifo_alloc(struct dma_fifo *fifo, int size, unsigned int align,
-		   int tx_limit, int open_limit, gfp_t gfp_mask);
+				   int tx_limit, int open_limit, gfp_t gfp_mask);
 void dma_fifo_free(struct dma_fifo *fifo);
 void dma_fifo_reset(struct dma_fifo *fifo);
 int dma_fifo_in(struct dma_fifo *fifo, const void *src, int n);
 int dma_fifo_out_pend(struct dma_fifo *fifo, struct dma_pending *pended);
 int dma_fifo_out_complete(struct dma_fifo *fifo,
-			  struct dma_pending *complete);
+						  struct dma_pending *complete);
 
 /* returns the # of used bytes in the fifo */
 static inline int dma_fifo_level(struct dma_fifo *fifo)

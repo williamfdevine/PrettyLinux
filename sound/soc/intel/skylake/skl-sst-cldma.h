@@ -57,61 +57,61 @@
 #define CL_SD_CTL_SRST_SHIFT		0
 #define CL_SD_CTL_SRST_MASK		(1 << CL_SD_CTL_SRST_SHIFT)
 #define CL_SD_CTL_SRST(x)		\
-			((x << CL_SD_CTL_SRST_SHIFT) & CL_SD_CTL_SRST_MASK)
+	((x << CL_SD_CTL_SRST_SHIFT) & CL_SD_CTL_SRST_MASK)
 
 /* Stream Run */
 #define CL_SD_CTL_RUN_SHIFT		1
 #define CL_SD_CTL_RUN_MASK		(1 << CL_SD_CTL_RUN_SHIFT)
 #define CL_SD_CTL_RUN(x)		\
-			((x << CL_SD_CTL_RUN_SHIFT) & CL_SD_CTL_RUN_MASK)
+	((x << CL_SD_CTL_RUN_SHIFT) & CL_SD_CTL_RUN_MASK)
 
 /* Interrupt On Completion Enable */
 #define CL_SD_CTL_IOCE_SHIFT		2
 #define CL_SD_CTL_IOCE_MASK		(1 << CL_SD_CTL_IOCE_SHIFT)
 #define CL_SD_CTL_IOCE(x)		\
-			((x << CL_SD_CTL_IOCE_SHIFT) & CL_SD_CTL_IOCE_MASK)
+	((x << CL_SD_CTL_IOCE_SHIFT) & CL_SD_CTL_IOCE_MASK)
 
 /* FIFO Error Interrupt Enable */
 #define CL_SD_CTL_FEIE_SHIFT		3
 #define CL_SD_CTL_FEIE_MASK		(1 << CL_SD_CTL_FEIE_SHIFT)
 #define CL_SD_CTL_FEIE(x)		\
-			((x << CL_SD_CTL_FEIE_SHIFT) & CL_SD_CTL_FEIE_MASK)
+	((x << CL_SD_CTL_FEIE_SHIFT) & CL_SD_CTL_FEIE_MASK)
 
 /* Descriptor Error Interrupt Enable */
 #define CL_SD_CTL_DEIE_SHIFT		4
 #define CL_SD_CTL_DEIE_MASK		(1 << CL_SD_CTL_DEIE_SHIFT)
 #define CL_SD_CTL_DEIE(x)		\
-			((x << CL_SD_CTL_DEIE_SHIFT) & CL_SD_CTL_DEIE_MASK)
+	((x << CL_SD_CTL_DEIE_SHIFT) & CL_SD_CTL_DEIE_MASK)
 
 /* FIFO Limit Change */
 #define CL_SD_CTL_FIFOLC_SHIFT		5
 #define CL_SD_CTL_FIFOLC_MASK		(1 << CL_SD_CTL_FIFOLC_SHIFT)
 #define CL_SD_CTL_FIFOLC(x)		\
-			((x << CL_SD_CTL_FIFOLC_SHIFT) & CL_SD_CTL_FIFOLC_MASK)
+	((x << CL_SD_CTL_FIFOLC_SHIFT) & CL_SD_CTL_FIFOLC_MASK)
 
 /* Stripe Control */
 #define CL_SD_CTL_STRIPE_SHIFT		16
 #define CL_SD_CTL_STRIPE_MASK		(0x3 << CL_SD_CTL_STRIPE_SHIFT)
 #define CL_SD_CTL_STRIPE(x)		\
-			((x << CL_SD_CTL_STRIPE_SHIFT) & CL_SD_CTL_STRIPE_MASK)
+	((x << CL_SD_CTL_STRIPE_SHIFT) & CL_SD_CTL_STRIPE_MASK)
 
 /* Traffic Priority */
 #define CL_SD_CTL_TP_SHIFT		18
 #define CL_SD_CTL_TP_MASK		(1 << CL_SD_CTL_TP_SHIFT)
 #define CL_SD_CTL_TP(x)			\
-			((x << CL_SD_CTL_TP_SHIFT) & CL_SD_CTL_TP_MASK)
+	((x << CL_SD_CTL_TP_SHIFT) & CL_SD_CTL_TP_MASK)
 
 /* Bidirectional Direction Control */
 #define CL_SD_CTL_DIR_SHIFT		19
 #define CL_SD_CTL_DIR_MASK		(1 << CL_SD_CTL_DIR_SHIFT)
 #define CL_SD_CTL_DIR(x)		\
-			((x << CL_SD_CTL_DIR_SHIFT) & CL_SD_CTL_DIR_MASK)
+	((x << CL_SD_CTL_DIR_SHIFT) & CL_SD_CTL_DIR_MASK)
 
 /* Stream Number */
 #define CL_SD_CTL_STRM_SHIFT		20
 #define CL_SD_CTL_STRM_MASK		(0xf << CL_SD_CTL_STRM_SHIFT)
 #define CL_SD_CTL_STRM(x)		\
-			((x << CL_SD_CTL_STRM_SHIFT) & CL_SD_CTL_STRM_MASK)
+	((x << CL_SD_CTL_STRM_SHIFT) & CL_SD_CTL_STRM_MASK)
 
 /* CL: Stream Descriptor x Status */
 
@@ -137,7 +137,7 @@
 #define CL_SD_FIFOW_SHIFT		0
 #define CL_SD_FIFOW_MASK		(0x7 << CL_SD_FIFOW_SHIFT)
 #define CL_SD_FIFOW(x)			\
-			((x << CL_SD_FIFOW_SHIFT) & CL_SD_FIFOW_MASK)
+	((x << CL_SD_FIFOW_SHIFT) & CL_SD_FIFOW_MASK)
 
 /* CL: Stream Descriptor x Buffer Descriptor List Pointer Lower Base Address */
 
@@ -145,7 +145,7 @@
 #define CL_SD_BDLPLBA_PROT_SHIFT	0
 #define CL_SD_BDLPLBA_PROT_MASK		(1 << CL_SD_BDLPLBA_PROT_SHIFT)
 #define CL_SD_BDLPLBA_PROT(x)		\
-		((x << CL_SD_BDLPLBA_PROT_SHIFT) & CL_SD_BDLPLBA_PROT_MASK)
+	((x << CL_SD_BDLPLBA_PROT_SHIFT) & CL_SD_BDLPLBA_PROT_MASK)
 
 /* Buffer Descriptor List Lower Base Address */
 #define CL_SD_BDLPLBA_SHIFT		7
@@ -157,7 +157,7 @@
 #define CL_SD_BDLPUBA_SHIFT		0
 #define CL_SD_BDLPUBA_MASK		(0xffffffff << CL_SD_BDLPUBA_SHIFT)
 #define CL_SD_BDLPUBA(x)		\
-		((upper_32_bits(x) << CL_SD_BDLPUBA_SHIFT) & CL_SD_BDLPUBA_MASK)
+	((upper_32_bits(x) << CL_SD_BDLPUBA_SHIFT) & CL_SD_BDLPUBA_MASK)
 
 /*
  * Code Loader - Software Position Based FIFO
@@ -168,13 +168,13 @@
 #define CL_SPBFIFO_SPBFCH_PTR_SHIFT	0
 #define CL_SPBFIFO_SPBFCH_PTR_MASK	(0xff << CL_SPBFIFO_SPBFCH_PTR_SHIFT)
 #define CL_SPBFIFO_SPBFCH_PTR(x)	\
-		((x << CL_SPBFIFO_SPBFCH_PTR_SHIFT) & CL_SPBFIFO_SPBFCH_PTR_MASK)
+	((x << CL_SPBFIFO_SPBFCH_PTR_SHIFT) & CL_SPBFIFO_SPBFCH_PTR_MASK)
 
 /* Capability Identifier */
 #define CL_SPBFIFO_SPBFCH_ID_SHIFT	16
 #define CL_SPBFIFO_SPBFCH_ID_MASK	(0xfff << CL_SPBFIFO_SPBFCH_ID_SHIFT)
 #define CL_SPBFIFO_SPBFCH_ID(x)		\
-		((x << CL_SPBFIFO_SPBFCH_ID_SHIFT) & CL_SPBFIFO_SPBFCH_ID_MASK)
+	((x << CL_SPBFIFO_SPBFCH_ID_SHIFT) & CL_SPBFIFO_SPBFCH_ID_MASK)
 
 /* Capability Version */
 #define CL_SPBFIFO_SPBFCH_VER_SHIFT	28
@@ -192,7 +192,8 @@
 #define SKL_WAIT_TIMEOUT		500	/* 500 msec */
 #define SKL_MAX_BUFFER_SIZE		(32 * PAGE_SIZE)
 
-enum skl_cl_dma_wake_states {
+enum skl_cl_dma_wake_states
+{
 	SKL_CL_DMA_STATUS_NONE = 0,
 	SKL_CL_DMA_BUF_COMPLETE,
 	SKL_CL_DMA_ERR,	/* TODO: Expand the error states */
@@ -200,20 +201,21 @@ enum skl_cl_dma_wake_states {
 
 struct sst_dsp;
 
-struct skl_cl_dev_ops {
+struct skl_cl_dev_ops
+{
 	void (*cl_setup_bdle)(struct sst_dsp *ctx,
-			struct snd_dma_buffer *dmab_data,
-			u32 **bdlp, int size, int with_ioc);
+						  struct snd_dma_buffer *dmab_data,
+						  u32 **bdlp, int size, int with_ioc);
 	void (*cl_setup_controller)(struct sst_dsp *ctx,
-			struct snd_dma_buffer *dmab_bdl,
-			unsigned int max_size, u32 page_count);
+								struct snd_dma_buffer *dmab_bdl,
+								unsigned int max_size, u32 page_count);
 	void (*cl_setup_spb)(struct sst_dsp  *ctx,
-			unsigned int size, bool enable);
+						 unsigned int size, bool enable);
 	void (*cl_cleanup_spb)(struct sst_dsp  *ctx);
 	void (*cl_trigger)(struct sst_dsp  *ctx, bool enable);
 	void (*cl_cleanup_controller)(struct sst_dsp  *ctx);
 	int (*cl_copy_to_dmabuf)(struct sst_dsp *ctx,
-			const void *bin, u32 size);
+							 const void *bin, u32 size);
 	void (*cl_stop_dma)(struct sst_dsp *ctx);
 };
 
@@ -232,7 +234,8 @@ struct skl_cl_dev_ops {
  * @wait_condition: condition to wait on wait queue
  * @cl_dma_lock: for synchronized access to cldma
  */
-struct skl_cl_dev {
+struct skl_cl_dev
+{
 	struct snd_dma_buffer dmab_data;
 	struct snd_dma_buffer dmab_bdl;
 

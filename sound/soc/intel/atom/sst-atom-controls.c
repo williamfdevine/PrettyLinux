@@ -1,25 +1,25 @@
- /*
- *  sst-atom-controls.c - Intel MID Platform driver DPCM ALSA controls for Mrfld
- *
- *  Copyright (C) 2013-14 Intel Corp
- *  Author: Omair Mohammed Abdullah <omair.m.abdullah@intel.com>
- *	Vinod Koul <vinod.koul@intel.com>
- *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; version 2 of the License.
- *
- *  This program is distributed in the hope that it will be useful, but
- *  WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  In the dpcm driver modelling when a particular FE/BE/Mixer/Pipe is active
- *  we forward the settings and parameters, rest we keep the values  in
- *  driver and forward when DAPM enables them
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
+/*
+*  sst-atom-controls.c - Intel MID Platform driver DPCM ALSA controls for Mrfld
+*
+*  Copyright (C) 2013-14 Intel Corp
+*  Author: Omair Mohammed Abdullah <omair.m.abdullah@intel.com>
+*	Vinod Koul <vinod.koul@intel.com>
+*  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*
+*  This program is free software; you can redistribute it and/or modify
+*  it under the terms of the GNU General Public License as published by
+*  the Free Software Foundation; version 2 of the License.
+*
+*  This program is distributed in the hope that it will be useful, but
+*  WITHOUT ANY WARRANTY; without even the implied warranty of
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+*  General Public License for more details.
+*
+*  In the dpcm driver modelling when a particular FE/BE/Mixer/Pipe is active
+*  we forward the settings and parameters, rest we keep the values  in
+*  driver and forward when DAPM enables them
+* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
 #include <linux/slab.h>
@@ -29,9 +29,9 @@
 #include "sst-atom-controls.h"
 
 static int sst_fill_byte_control(struct sst_data *drv,
-					 u8 ipc_msg, u8 block,
-					 u8 task_id, u8 pipe_id,
-					 u16 len, void *cmd_data)
+								 u8 ipc_msg, u8 block,
+								 u8 task_id, u8 pipe_id,
+								 u16 len, void *cmd_data)
 {
 	struct snd_sst_bytes_v2 *byte_data = drv->byte_stream;
 
@@ -41,27 +41,33 @@ static int sst_fill_byte_control(struct sst_data *drv,
 	byte_data->task_id = task_id;
 	byte_data->pipe_id = pipe_id;
 
-	if (len > SST_MAX_BIN_BYTES - sizeof(*byte_data)) {
+	if (len > SST_MAX_BIN_BYTES - sizeof(*byte_data))
+	{
 		dev_err(&drv->pdev->dev, "command length too big (%u)", len);
 		return -EINVAL;
 	}
+
 	byte_data->len = len;
 	memcpy(byte_data->bytes, cmd_data, len);
 	print_hex_dump_bytes("writing to lpe: ", DUMP_PREFIX_OFFSET,
-			     byte_data, len + sizeof(*byte_data));
+						 byte_data, len + sizeof(*byte_data));
 	return 0;
 }
 
 static int sst_fill_and_send_cmd_unlocked(struct sst_data *drv,
-				 u8 ipc_msg, u8 block, u8 task_id, u8 pipe_id,
-				 void *cmd_data, u16 len)
+		u8 ipc_msg, u8 block, u8 task_id, u8 pipe_id,
+		void *cmd_data, u16 len)
 {
 	int ret = 0;
 
 	ret = sst_fill_byte_control(drv, ipc_msg,
-				block, task_id, pipe_id, len, cmd_data);
+								block, task_id, pipe_id, len, cmd_data);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return sst->ops->send_byte_stream(sst->dev, drv->byte_stream);
 }
 
@@ -71,14 +77,14 @@ static int sst_fill_and_send_cmd_unlocked(struct sst_data *drv,
  * @cmd_data:	the IPC payload
  */
 static int sst_fill_and_send_cmd(struct sst_data *drv,
-				 u8 ipc_msg, u8 block, u8 task_id, u8 pipe_id,
-				 void *cmd_data, u16 len)
+								 u8 ipc_msg, u8 block, u8 task_id, u8 pipe_id,
+								 void *cmd_data, u16 len)
 {
 	int ret;
 
 	mutex_lock(&drv->lock);
 	ret = sst_fill_and_send_cmd_unlocked(drv, ipc_msg, block,
-					task_id, pipe_id, cmd_data, len);
+										 task_id, pipe_id, cmd_data, len);
 	mutex_unlock(&drv->lock);
 
 	return ret;
@@ -92,7 +98,8 @@ static int sst_fill_and_send_cmd(struct sst_data *drv,
  *
  * e.g. slot 0 rx map =	00001100b -> data from slot 0 goes into codec_in1 L,R
  */
-static u8 sst_ssp_tx_map[SST_MAX_TDM_SLOTS] = {
+static u8 sst_ssp_tx_map[SST_MAX_TDM_SLOTS] =
+{
 	0x1, 0x2, 0x4, 0x8, 0x10, 0x20, 0x40, 0x80, /* default rx map */
 };
 
@@ -103,7 +110,8 @@ static u8 sst_ssp_tx_map[SST_MAX_TDM_SLOTS] = {
  *
  * e.g. codec1_0 tx map = 00000101b -> data from codec_out1_0 goes into slot 0, 2
  */
-static u8 sst_ssp_rx_map[SST_MAX_TDM_SLOTS] = {
+static u8 sst_ssp_rx_map[SST_MAX_TDM_SLOTS] =
+{
 	0x1, 0x2, 0x4, 0x8, 0x10, 0x20, 0x40, 0x80, /* default tx map */
 };
 
@@ -117,7 +125,7 @@ static int sst_send_slot_map(struct sst_data *drv)
 	SST_FILL_DEFAULT_DESTINATION(cmd.header.dst);
 	cmd.header.command_id = SBA_SET_SSP_SLOT_MAP;
 	cmd.header.length = sizeof(struct sst_param_sba_ssp_slot_map)
-				- sizeof(struct sst_dsp_header);
+						- sizeof(struct sst_dsp_header);
 
 	cmd.param_id = SBA_SET_SSP_SLOT_MAP;
 	cmd.param_len = sizeof(cmd.rx_slot_map) + sizeof(cmd.tx_slot_map)
@@ -128,12 +136,12 @@ static int sst_send_slot_map(struct sst_data *drv)
 	memcpy(cmd.tx_slot_map, &sst_ssp_rx_map[0], sizeof(cmd.tx_slot_map));
 
 	return sst_fill_and_send_cmd_unlocked(drv, SST_IPC_IA_SET_PARAMS,
-			SST_FLAG_BLOCKED, SST_TASK_SBA, 0, &cmd,
-			      sizeof(cmd.header) + cmd.header.length);
+										  SST_FLAG_BLOCKED, SST_TASK_SBA, 0, &cmd,
+										  sizeof(cmd.header) + cmd.header.length);
 }
 
 static int sst_slot_enum_info(struct snd_kcontrol *kcontrol,
-		       struct snd_ctl_elem_info *uinfo)
+							  struct snd_ctl_elem_info *uinfo)
 {
 	struct sst_enum *e = (struct sst_enum *)kcontrol->private_value;
 
@@ -142,9 +150,12 @@ static int sst_slot_enum_info(struct snd_kcontrol *kcontrol,
 	uinfo->value.enumerated.items = e->max;
 
 	if (uinfo->value.enumerated.item > e->max - 1)
+	{
 		uinfo->value.enumerated.item = e->max - 1;
+	}
+
 	strcpy(uinfo->value.enumerated.name,
-		e->texts[uinfo->value.enumerated.item]);
+		   e->texts[uinfo->value.enumerated.item]);
 
 	return 0;
 }
@@ -157,7 +168,7 @@ static int sst_slot_enum_info(struct snd_kcontrol *kcontrol,
  * an enumerated control, there is only one possible value.
  */
 static int sst_slot_get(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_value *ucontrol)
+						struct snd_ctl_elem_value *ucontrol)
 {
 	struct sst_enum *e = (void *)kcontrol->private_value;
 	struct snd_soc_component *c = snd_kcontrol_chip(kcontrol);
@@ -169,17 +180,20 @@ static int sst_slot_get(struct snd_kcontrol *kcontrol,
 
 	mutex_lock(&drv->lock);
 	val = 1 << ctl_no;
+
 	/* search which slot/channel has this bit set - there should be only one */
 	for (mux = e->max; mux > 0;  mux--)
 		if (map[mux - 1] & val)
+		{
 			break;
+		}
 
 	ucontrol->value.enumerated.item[0] = mux;
 	mutex_unlock(&drv->lock);
 
 	dev_dbg(c->dev, "%s - %s map = %#x\n",
 			is_tx ? "tx channel" : "rx slot",
-			 e->texts[mux], mux ? map[mux - 1] : -1);
+			e->texts[mux], mux ? map[mux - 1] : -1);
 	return 0;
 }
 
@@ -194,10 +208,13 @@ static int sst_check_and_send_slot_map(struct sst_data *drv, struct snd_kcontrol
 	int ret = 0;
 
 	if (e->w && e->w->power)
+	{
 		ret = sst_send_slot_map(drv);
+	}
 	else if (!e->w)
 		dev_err(&drv->pdev->dev, "Slot control: %s doesn't have DAPM widget!!!\n",
 				kcontrol->id.name);
+
 	return ret;
 }
 
@@ -215,7 +232,7 @@ static int sst_check_and_send_slot_map(struct sst_data *drv, struct snd_kcontrol
  * for that kcontrol_no for all the interleaver OR deinterleaver registers
  */
 static int sst_slot_put(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_value *ucontrol)
+						struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_component *c = snd_soc_kcontrol_component(kcontrol);
 	struct sst_data *drv = snd_soc_component_get_drvdata(c);
@@ -231,15 +248,22 @@ static int sst_slot_put(struct snd_kcontrol *kcontrol,
 
 	val = 1 << ctl_no;
 	mux = ucontrol->value.enumerated.item[0];
+
 	if (mux > e->max - 1)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&drv->lock);
+
 	/* first clear all registers of this bit */
 	for (i = 0; i < e->max; i++)
+	{
 		map[i] &= ~val;
+	}
 
-	if (mux == 0) {
+	if (mux == 0)
+	{
 		/* kctl set to 'none' and we reset the bits so send IPC */
 		ret = sst_check_and_send_slot_map(drv, kcontrol);
 
@@ -262,7 +286,7 @@ static int sst_slot_put(struct snd_kcontrol *kcontrol,
 }
 
 static int sst_send_algo_cmd(struct sst_data *drv,
-			      struct sst_algo_control *bc)
+							 struct sst_algo_control *bc)
 {
 	int len, ret = 0;
 	struct sst_cmd_set_params *cmd;
@@ -271,15 +295,18 @@ static int sst_send_algo_cmd(struct sst_data *drv,
 	len = sizeof(cmd->dst) + sizeof(cmd->command_id) + bc->max;
 
 	cmd = kzalloc(len, GFP_KERNEL);
+
 	if (cmd == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	SST_FILL_DESTINATION(2, cmd->dst, bc->pipe_id, bc->module_id);
 	cmd->command_id = bc->cmd_id;
 	memcpy(cmd->params, bc->params, bc->max);
 
 	ret = sst_fill_and_send_cmd_unlocked(drv, SST_IPC_IA_SET_PARAMS,
-				SST_FLAG_BLOCKED, bc->task_id, 0, cmd, len);
+										 SST_FLAG_BLOCKED, bc->task_id, 0, cmd, len);
 	kfree(cmd);
 	return ret;
 }
@@ -292,7 +319,7 @@ static int sst_send_algo_cmd(struct sst_data *drv,
  * Called with lock held
  */
 static int sst_find_and_send_pipe_algo(struct sst_data *drv,
-					const char *pipe, struct sst_ids *ids)
+									   const char *pipe, struct sst_ids *ids)
 {
 	int ret = 0;
 	struct sst_algo_control *bc;
@@ -300,20 +327,24 @@ static int sst_find_and_send_pipe_algo(struct sst_data *drv,
 
 	dev_dbg(&drv->pdev->dev, "Enter: widget=%s\n", pipe);
 
-	list_for_each_entry(algo, &ids->algo_list, node) {
+	list_for_each_entry(algo, &ids->algo_list, node)
+	{
 		bc = (void *)algo->kctl->private_value;
 
 		dev_dbg(&drv->pdev->dev, "Found algo control name=%s pipe=%s\n",
 				algo->kctl->id.name, pipe);
 		ret = sst_send_algo_cmd(drv, bc);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 	return ret;
 }
 
 static int sst_algo_bytes_ctl_info(struct snd_kcontrol *kcontrol,
-			    struct snd_ctl_elem_info *uinfo)
+								   struct snd_ctl_elem_info *uinfo)
 {
 	struct sst_algo_control *bc = (void *)kcontrol->private_value;
 
@@ -324,26 +355,29 @@ static int sst_algo_bytes_ctl_info(struct snd_kcontrol *kcontrol,
 }
 
 static int sst_algo_control_get(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+								struct snd_ctl_elem_value *ucontrol)
 {
 	struct sst_algo_control *bc = (void *)kcontrol->private_value;
 	struct snd_soc_component *component = snd_kcontrol_chip(kcontrol);
 
-	switch (bc->type) {
-	case SST_ALGO_PARAMS:
-		memcpy(ucontrol->value.bytes.data, bc->params, bc->max);
-		break;
-	default:
-		dev_err(component->dev, "Invalid Input- algo type:%d\n",
-				bc->type);
-		return -EINVAL;
+	switch (bc->type)
+	{
+		case SST_ALGO_PARAMS:
+			memcpy(ucontrol->value.bytes.data, bc->params, bc->max);
+			break;
+
+		default:
+			dev_err(component->dev, "Invalid Input- algo type:%d\n",
+					bc->type);
+			return -EINVAL;
 
 	}
+
 	return 0;
 }
 
 static int sst_algo_control_set(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+								struct snd_ctl_elem_value *ucontrol)
 {
 	int ret = 0;
 	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
@@ -352,26 +386,33 @@ static int sst_algo_control_set(struct snd_kcontrol *kcontrol,
 
 	dev_dbg(cmpnt->dev, "control_name=%s\n", kcontrol->id.name);
 	mutex_lock(&drv->lock);
-	switch (bc->type) {
-	case SST_ALGO_PARAMS:
-		memcpy(bc->params, ucontrol->value.bytes.data, bc->max);
-		break;
-	default:
-		mutex_unlock(&drv->lock);
-		dev_err(cmpnt->dev, "Invalid Input- algo type:%d\n",
-				bc->type);
-		return -EINVAL;
+
+	switch (bc->type)
+	{
+		case SST_ALGO_PARAMS:
+			memcpy(bc->params, ucontrol->value.bytes.data, bc->max);
+			break;
+
+		default:
+			mutex_unlock(&drv->lock);
+			dev_err(cmpnt->dev, "Invalid Input- algo type:%d\n",
+					bc->type);
+			return -EINVAL;
 	}
+
 	/*if pipe is enabled, need to send the algo params from here*/
 	if (bc->w && bc->w->power)
+	{
 		ret = sst_send_algo_cmd(drv, bc);
+	}
+
 	mutex_unlock(&drv->lock);
 
 	return ret;
 }
 
 static int sst_gain_ctl_info(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_info *uinfo)
+							 struct snd_ctl_elem_info *uinfo)
 {
 	struct sst_gain_mixer_control *mc = (void *)kcontrol->private_value;
 
@@ -398,7 +439,7 @@ static int sst_gain_ctl_info(struct snd_kcontrol *kcontrol,
  * sent.
  */
 static int sst_send_gain_cmd(struct sst_data *drv, struct sst_gain_value *gv,
-			      u16 task_id, u16 loc_id, u16 module_id, int mute)
+							 u16 task_id, u16 loc_id, u16 module_id, int mute)
 {
 	struct sst_cmd_set_gain_dual cmd;
 
@@ -408,59 +449,63 @@ static int sst_send_gain_cmd(struct sst_data *drv, struct sst_gain_value *gv,
 	SST_FILL_DEFAULT_DESTINATION(cmd.header.dst);
 	cmd.gain_cell_num = 1;
 
-	if (mute || gv->mute) {
+	if (mute || gv->mute)
+	{
 		cmd.cell_gains[0].cell_gain_left = SST_GAIN_MIN_VALUE;
 		cmd.cell_gains[0].cell_gain_right = SST_GAIN_MIN_VALUE;
-	} else {
+	}
+	else
+	{
 		cmd.cell_gains[0].cell_gain_left = gv->l_gain;
 		cmd.cell_gains[0].cell_gain_right = gv->r_gain;
 	}
 
 	SST_FILL_DESTINATION(2, cmd.cell_gains[0].dest,
-			     loc_id, module_id);
+						 loc_id, module_id);
 	cmd.cell_gains[0].gain_time_constant = gv->ramp_duration;
 
 	cmd.header.length = sizeof(struct sst_cmd_set_gain_dual)
-				- sizeof(struct sst_dsp_header);
+						- sizeof(struct sst_dsp_header);
 
 	/* we are with lock held, so call the unlocked api  to send */
 	return sst_fill_and_send_cmd_unlocked(drv, SST_IPC_IA_SET_PARAMS,
-				SST_FLAG_BLOCKED, task_id, 0, &cmd,
-			      sizeof(cmd.header) + cmd.header.length);
+										  SST_FLAG_BLOCKED, task_id, 0, &cmd,
+										  sizeof(cmd.header) + cmd.header.length);
 }
 
 static int sst_gain_get(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_value *ucontrol)
+						struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_component *component = snd_kcontrol_chip(kcontrol);
 	struct sst_gain_mixer_control *mc = (void *)kcontrol->private_value;
 	struct sst_gain_value *gv = mc->gain_val;
 
-	switch (mc->type) {
-	case SST_GAIN_TLV:
-		ucontrol->value.integer.value[0] = gv->l_gain;
-		ucontrol->value.integer.value[1] = gv->r_gain;
-		break;
+	switch (mc->type)
+	{
+		case SST_GAIN_TLV:
+			ucontrol->value.integer.value[0] = gv->l_gain;
+			ucontrol->value.integer.value[1] = gv->r_gain;
+			break;
 
-	case SST_GAIN_MUTE:
-		ucontrol->value.integer.value[0] = gv->mute ? 0 : 1;
-		break;
+		case SST_GAIN_MUTE:
+			ucontrol->value.integer.value[0] = gv->mute ? 0 : 1;
+			break;
 
-	case SST_GAIN_RAMP_DURATION:
-		ucontrol->value.integer.value[0] = gv->ramp_duration;
-		break;
+		case SST_GAIN_RAMP_DURATION:
+			ucontrol->value.integer.value[0] = gv->ramp_duration;
+			break;
 
-	default:
-		dev_err(component->dev, "Invalid Input- gain type:%d\n",
-				mc->type);
-		return -EINVAL;
+		default:
+			dev_err(component->dev, "Invalid Input- gain type:%d\n",
+					mc->type);
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
 static int sst_gain_put(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_value *ucontrol)
+						struct snd_ctl_elem_value *ucontrol)
 {
 	int ret = 0;
 	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
@@ -470,45 +515,47 @@ static int sst_gain_put(struct snd_kcontrol *kcontrol,
 
 	mutex_lock(&drv->lock);
 
-	switch (mc->type) {
-	case SST_GAIN_TLV:
-		gv->l_gain = ucontrol->value.integer.value[0];
-		gv->r_gain = ucontrol->value.integer.value[1];
-		dev_dbg(cmpnt->dev, "%s: Volume %d, %d\n",
-				mc->pname, gv->l_gain, gv->r_gain);
-		break;
+	switch (mc->type)
+	{
+		case SST_GAIN_TLV:
+			gv->l_gain = ucontrol->value.integer.value[0];
+			gv->r_gain = ucontrol->value.integer.value[1];
+			dev_dbg(cmpnt->dev, "%s: Volume %d, %d\n",
+					mc->pname, gv->l_gain, gv->r_gain);
+			break;
 
-	case SST_GAIN_MUTE:
-		gv->mute = !ucontrol->value.integer.value[0];
-		dev_dbg(cmpnt->dev, "%s: Mute %d\n", mc->pname, gv->mute);
-		break;
+		case SST_GAIN_MUTE:
+			gv->mute = !ucontrol->value.integer.value[0];
+			dev_dbg(cmpnt->dev, "%s: Mute %d\n", mc->pname, gv->mute);
+			break;
 
-	case SST_GAIN_RAMP_DURATION:
-		gv->ramp_duration = ucontrol->value.integer.value[0];
-		dev_dbg(cmpnt->dev, "%s: Ramp Delay%d\n",
+		case SST_GAIN_RAMP_DURATION:
+			gv->ramp_duration = ucontrol->value.integer.value[0];
+			dev_dbg(cmpnt->dev, "%s: Ramp Delay%d\n",
 					mc->pname, gv->ramp_duration);
-		break;
+			break;
 
-	default:
-		mutex_unlock(&drv->lock);
-		dev_err(cmpnt->dev, "Invalid Input- gain type:%d\n",
-				mc->type);
-		return -EINVAL;
+		default:
+			mutex_unlock(&drv->lock);
+			dev_err(cmpnt->dev, "Invalid Input- gain type:%d\n",
+					mc->type);
+			return -EINVAL;
 	}
 
 	if (mc->w && mc->w->power)
 		ret = sst_send_gain_cmd(drv, gv, mc->task_id,
-			mc->pipe_id | mc->instance_id, mc->module_id, 0);
+								mc->pipe_id | mc->instance_id, mc->module_id, 0);
+
 	mutex_unlock(&drv->lock);
 
 	return ret;
 }
 
 static int sst_set_pipe_gain(struct sst_ids *ids,
-				struct sst_data *drv, int mute);
+							 struct sst_data *drv, int mute);
 
 static int sst_send_pipe_module_params(struct snd_soc_dapm_widget *w,
-		struct snd_kcontrol *kcontrol)
+									   struct snd_kcontrol *kcontrol)
 {
 	struct snd_soc_component *c = snd_soc_dapm_to_component(w->dapm);
 	struct sst_data *drv = snd_soc_component_get_drvdata(c);
@@ -523,17 +570,21 @@ static int sst_send_pipe_module_params(struct snd_soc_dapm_widget *w,
 }
 
 static int sst_generic_modules_event(struct snd_soc_dapm_widget *w,
-				     struct snd_kcontrol *k, int event)
+									 struct snd_kcontrol *k, int event)
 {
 	if (SND_SOC_DAPM_EVENT_ON(event))
+	{
 		return sst_send_pipe_module_params(w, k);
+	}
+
 	return 0;
 }
 
 static const DECLARE_TLV_DB_SCALE(sst_gain_tlv_common, SST_GAIN_MIN_VALUE * 10, 10, 0);
 
 /* Look up table to convert MIXER SW bit regs to SWM inputs */
-static const uint swm_mixer_input_ids[SST_SWM_INPUT_COUNT] = {
+static const uint swm_mixer_input_ids[SST_SWM_INPUT_COUNT] =
+{
 	[SST_IP_MODEM]		= SST_SWM_IN_MODEM,
 	[SST_IP_CODEC0]		= SST_SWM_IN_CODEC0,
 	[SST_IP_CODEC1]		= SST_SWM_IN_CODEC1,
@@ -555,30 +606,37 @@ static const uint swm_mixer_input_ids[SST_SWM_INPUT_COUNT] = {
  * lookup table to get the input-id and fill it in the structure.
  */
 static int fill_swm_input(struct snd_soc_component *cmpnt,
-		struct swm_input_ids *swm_input, unsigned int reg)
+						  struct swm_input_ids *swm_input, unsigned int reg)
 {
 	uint i, is_set, nb_inputs = 0;
 	u16 input_loc_id;
 
 	dev_dbg(cmpnt->dev, "reg: %#x\n", reg);
-	for (i = 0; i < SST_SWM_INPUT_COUNT; i++) {
+
+	for (i = 0; i < SST_SWM_INPUT_COUNT; i++)
+	{
 		is_set = reg & BIT(i);
+
 		if (!is_set)
+		{
 			continue;
+		}
 
 		input_loc_id = swm_mixer_input_ids[i];
 		SST_FILL_DESTINATION(2, swm_input->input_id,
-				     input_loc_id, SST_DEFAULT_MODULE_ID);
+							 input_loc_id, SST_DEFAULT_MODULE_ID);
 		nb_inputs++;
 		swm_input++;
 		dev_dbg(cmpnt->dev, "input id: %#x, nb_inputs: %d\n",
 				input_loc_id, nb_inputs);
 
-		if (nb_inputs == SST_CMD_SWM_MAX_INPUTS) {
+		if (nb_inputs == SST_CMD_SWM_MAX_INPUTS)
+		{
 			dev_warn(cmpnt->dev, "SET_SWM cmd max inputs reached");
 			break;
 		}
 	}
+
 	return nb_inputs;
 }
 
@@ -587,14 +645,15 @@ static int fill_swm_input(struct snd_soc_component *cmpnt,
  * called with lock held
  */
 static int sst_set_pipe_gain(struct sst_ids *ids,
-			struct sst_data *drv, int mute)
+							 struct sst_data *drv, int mute)
 {
 	int ret = 0;
 	struct sst_gain_mixer_control *mc;
 	struct sst_gain_value *gv;
 	struct sst_module *gain = NULL;
 
-	list_for_each_entry(gain, &ids->gain_list, node) {
+	list_for_each_entry(gain, &ids->gain_list, node)
+	{
 		struct snd_kcontrol *kctl = gain->kctl;
 
 		dev_dbg(&drv->pdev->dev, "control name=%s\n", kctl->id.name);
@@ -602,15 +661,18 @@ static int sst_set_pipe_gain(struct sst_ids *ids,
 		gv = mc->gain_val;
 
 		ret = sst_send_gain_cmd(drv, gv, mc->task_id,
-			mc->pipe_id | mc->instance_id, mc->module_id, mute);
+								mc->pipe_id | mc->instance_id, mc->module_id, mute);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 	return ret;
 }
 
 static int sst_swm_mixer_event(struct snd_soc_dapm_widget *w,
-			struct snd_kcontrol *k, int event)
+							   struct snd_kcontrol *k, int event)
 {
 	struct sst_cmd_set_swm cmd;
 	struct snd_soc_component *cmpnt = snd_soc_dapm_to_component(w->dapm);
@@ -622,54 +684,70 @@ static int sst_swm_mixer_event(struct snd_soc_dapm_widget *w,
 	int i = 0;
 
 	dev_dbg(cmpnt->dev, "widget = %s\n", w->name);
+
 	/*
 	 * Identify which mixer input is on and send the bitmap of the
 	 * inputs as an IPC to the DSP.
 	 */
-	for (i = 0; i < w->num_kcontrols; i++) {
-		if (dapm_kcontrol_get_value(w->kcontrols[i])) {
+	for (i = 0; i < w->num_kcontrols; i++)
+	{
+		if (dapm_kcontrol_get_value(w->kcontrols[i]))
+		{
 			mc = (struct soc_mixer_control *)(w->kcontrols[i])->private_value;
 			val |= 1 << mc->shift;
 		}
 	}
+
 	dev_dbg(cmpnt->dev, "val = %#x\n", val);
 
-	switch (event) {
-	case SND_SOC_DAPM_PRE_PMU:
-	case SND_SOC_DAPM_POST_PMD:
-		set_mixer = true;
-		break;
-	case SND_SOC_DAPM_POST_REG:
-		if (w->power)
+	switch (event)
+	{
+		case SND_SOC_DAPM_PRE_PMU:
+		case SND_SOC_DAPM_POST_PMD:
 			set_mixer = true;
-		break;
-	default:
-		set_mixer = false;
+			break;
+
+		case SND_SOC_DAPM_POST_REG:
+			if (w->power)
+			{
+				set_mixer = true;
+			}
+
+			break;
+
+		default:
+			set_mixer = false;
 	}
 
 	if (set_mixer == false)
+	{
 		return 0;
+	}
 
 	if (SND_SOC_DAPM_EVENT_ON(event) ||
-	    event == SND_SOC_DAPM_POST_REG)
+		event == SND_SOC_DAPM_POST_REG)
+	{
 		cmd.switch_state = SST_SWM_ON;
+	}
 	else
+	{
 		cmd.switch_state = SST_SWM_OFF;
+	}
 
 	SST_FILL_DEFAULT_DESTINATION(cmd.header.dst);
 	/* MMX_SET_SWM == SBA_SET_SWM */
 	cmd.header.command_id = SBA_SET_SWM;
 
 	SST_FILL_DESTINATION(2, cmd.output_id,
-			     ids->location_id, SST_DEFAULT_MODULE_ID);
+						 ids->location_id, SST_DEFAULT_MODULE_ID);
 	cmd.nb_inputs =	fill_swm_input(cmpnt, &cmd.input[0], val);
 	cmd.header.length = offsetof(struct sst_cmd_set_swm, input)
-				- sizeof(struct sst_dsp_header)
-				+ (cmd.nb_inputs * sizeof(cmd.input[0]));
+						- sizeof(struct sst_dsp_header)
+						+ (cmd.nb_inputs * sizeof(cmd.input[0]));
 
 	return sst_fill_and_send_cmd(drv, SST_IPC_IA_CMD, SST_FLAG_BLOCKED,
-			      ids->task_id, 0, &cmd,
-			      sizeof(cmd.header) + cmd.header.length);
+								 ids->task_id, 0, &cmd,
+								 sizeof(cmd.header) + cmd.header.length);
 }
 
 /* SBA mixers - 16 inputs */
@@ -737,49 +815,70 @@ int sst_handle_vb_timer(struct snd_soc_dai *dai, bool enable)
 	static int timer_usage;
 
 	if (enable)
+	{
 		cmd.header.command_id = SBA_VB_START;
+	}
 	else
+	{
 		cmd.header.command_id = SBA_IDLE;
+	}
+
 	dev_dbg(dai->dev, "enable=%u, usage=%d\n", enable, timer_usage);
 
 	SST_FILL_DEFAULT_DESTINATION(cmd.header.dst);
 	cmd.header.length = 0;
 
-	if (enable) {
+	if (enable)
+	{
 		ret = sst->ops->power(sst->dev, true);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	mutex_lock(&drv->lock);
+
 	if (enable)
+	{
 		timer_usage++;
+	}
 	else
+	{
 		timer_usage--;
+	}
 
 	/*
 	 * Send the command only if this call is the first enable or last
 	 * disable
 	 */
 	if ((enable && (timer_usage == 1)) ||
-	    (!enable && (timer_usage == 0))) {
+		(!enable && (timer_usage == 0)))
+	{
 		ret = sst_fill_and_send_cmd_unlocked(drv, SST_IPC_IA_CMD,
-				SST_FLAG_BLOCKED, SST_TASK_SBA, 0, &cmd,
-				sizeof(cmd.header) + cmd.header.length);
-		if (ret && enable) {
+											 SST_FLAG_BLOCKED, SST_TASK_SBA, 0, &cmd,
+											 sizeof(cmd.header) + cmd.header.length);
+
+		if (ret && enable)
+		{
 			timer_usage--;
 			enable  = false;
 		}
 	}
+
 	mutex_unlock(&drv->lock);
 
 	if (!enable)
+	{
 		sst->ops->power(sst->dev, false);
+	}
+
 	return ret;
 }
 
 int sst_fill_ssp_slot(struct snd_soc_dai *dai, unsigned int tx_mask,
-		unsigned int rx_mask, int slots, int slot_width)
+					  unsigned int rx_mask, int slots, int slot_width)
 {
 	struct sst_data *ctx = snd_soc_dai_get_drvdata(dai);
 
@@ -792,24 +891,29 @@ int sst_fill_ssp_slot(struct snd_soc_dai *dai, unsigned int tx_mask,
 }
 
 static int sst_get_frame_sync_polarity(struct snd_soc_dai *dai,
-		unsigned int fmt)
+									   unsigned int fmt)
 {
 	int format;
 
 	format = fmt & SND_SOC_DAIFMT_INV_MASK;
 	dev_dbg(dai->dev, "Enter:%s, format=%x\n", __func__, format);
 
-	switch (format) {
-	case SND_SOC_DAIFMT_NB_NF:
-		return SSP_FS_ACTIVE_LOW;
-	case SND_SOC_DAIFMT_NB_IF:
-		return SSP_FS_ACTIVE_HIGH;
-	case SND_SOC_DAIFMT_IB_IF:
-		return SSP_FS_ACTIVE_LOW;
-	case SND_SOC_DAIFMT_IB_NF:
-		return SSP_FS_ACTIVE_HIGH;
-	default:
-		dev_err(dai->dev, "Invalid frame sync polarity %d\n", format);
+	switch (format)
+	{
+		case SND_SOC_DAIFMT_NB_NF:
+			return SSP_FS_ACTIVE_LOW;
+
+		case SND_SOC_DAIFMT_NB_IF:
+			return SSP_FS_ACTIVE_HIGH;
+
+		case SND_SOC_DAIFMT_IB_IF:
+			return SSP_FS_ACTIVE_LOW;
+
+		case SND_SOC_DAIFMT_IB_NF:
+			return SSP_FS_ACTIVE_HIGH;
+
+		default:
+			dev_err(dai->dev, "Invalid frame sync polarity %d\n", format);
 	}
 
 	return -EINVAL;
@@ -822,13 +926,16 @@ static int sst_get_ssp_mode(struct snd_soc_dai *dai, unsigned int fmt)
 	format = (fmt & SND_SOC_DAIFMT_MASTER_MASK);
 	dev_dbg(dai->dev, "Enter:%s, format=%x\n", __func__, format);
 
-	switch (format) {
-	case SND_SOC_DAIFMT_CBS_CFS:
-		return SSP_MODE_MASTER;
-	case SND_SOC_DAIFMT_CBM_CFM:
-		return SSP_MODE_SLAVE;
-	default:
-		dev_err(dai->dev, "Invalid ssp protocol: %d\n", format);
+	switch (format)
+	{
+		case SND_SOC_DAIFMT_CBS_CFS:
+			return SSP_MODE_MASTER;
+
+		case SND_SOC_DAIFMT_CBM_CFM:
+			return SSP_MODE_SLAVE;
+
+		default:
+			dev_err(dai->dev, "Invalid ssp protocol: %d\n", format);
 	}
 
 	return -EINVAL;
@@ -843,46 +950,50 @@ int sst_fill_ssp_config(struct snd_soc_dai *dai, unsigned int fmt)
 
 	mode = fmt & SND_SOC_DAIFMT_FORMAT_MASK;
 
-	switch (mode) {
-	case SND_SOC_DAIFMT_DSP_B:
-		ctx->ssp_cmd.ssp_protocol = SSP_MODE_PCM;
-		ctx->ssp_cmd.mode = sst_get_ssp_mode(dai, fmt) | (SSP_PCM_MODE_NETWORK << 1);
-		ctx->ssp_cmd.start_delay = 0;
-		ctx->ssp_cmd.data_polarity = 1;
-		ctx->ssp_cmd.frame_sync_width = 1;
-		break;
+	switch (mode)
+	{
+		case SND_SOC_DAIFMT_DSP_B:
+			ctx->ssp_cmd.ssp_protocol = SSP_MODE_PCM;
+			ctx->ssp_cmd.mode = sst_get_ssp_mode(dai, fmt) | (SSP_PCM_MODE_NETWORK << 1);
+			ctx->ssp_cmd.start_delay = 0;
+			ctx->ssp_cmd.data_polarity = 1;
+			ctx->ssp_cmd.frame_sync_width = 1;
+			break;
 
-	case SND_SOC_DAIFMT_DSP_A:
-		ctx->ssp_cmd.ssp_protocol = SSP_MODE_PCM;
-		ctx->ssp_cmd.mode = sst_get_ssp_mode(dai, fmt) | (SSP_PCM_MODE_NETWORK << 1);
-		ctx->ssp_cmd.start_delay = 1;
-		ctx->ssp_cmd.data_polarity = 1;
-		ctx->ssp_cmd.frame_sync_width = 1;
-		break;
+		case SND_SOC_DAIFMT_DSP_A:
+			ctx->ssp_cmd.ssp_protocol = SSP_MODE_PCM;
+			ctx->ssp_cmd.mode = sst_get_ssp_mode(dai, fmt) | (SSP_PCM_MODE_NETWORK << 1);
+			ctx->ssp_cmd.start_delay = 1;
+			ctx->ssp_cmd.data_polarity = 1;
+			ctx->ssp_cmd.frame_sync_width = 1;
+			break;
 
-	case SND_SOC_DAIFMT_I2S:
-		ctx->ssp_cmd.ssp_protocol = SSP_MODE_I2S;
-		ctx->ssp_cmd.mode = sst_get_ssp_mode(dai, fmt) | (SSP_PCM_MODE_NORMAL << 1);
-		ctx->ssp_cmd.start_delay = 1;
-		ctx->ssp_cmd.data_polarity = 0;
-		ctx->ssp_cmd.frame_sync_width = ctx->ssp_cmd.nb_bits_per_slots;
-		break;
+		case SND_SOC_DAIFMT_I2S:
+			ctx->ssp_cmd.ssp_protocol = SSP_MODE_I2S;
+			ctx->ssp_cmd.mode = sst_get_ssp_mode(dai, fmt) | (SSP_PCM_MODE_NORMAL << 1);
+			ctx->ssp_cmd.start_delay = 1;
+			ctx->ssp_cmd.data_polarity = 0;
+			ctx->ssp_cmd.frame_sync_width = ctx->ssp_cmd.nb_bits_per_slots;
+			break;
 
-	case SND_SOC_DAIFMT_LEFT_J:
-		ctx->ssp_cmd.ssp_protocol = SSP_MODE_I2S;
-		ctx->ssp_cmd.mode = sst_get_ssp_mode(dai, fmt) | (SSP_PCM_MODE_NORMAL << 1);
-		ctx->ssp_cmd.start_delay = 0;
-		ctx->ssp_cmd.data_polarity = 0;
-		ctx->ssp_cmd.frame_sync_width = ctx->ssp_cmd.nb_bits_per_slots;
-		break;
+		case SND_SOC_DAIFMT_LEFT_J:
+			ctx->ssp_cmd.ssp_protocol = SSP_MODE_I2S;
+			ctx->ssp_cmd.mode = sst_get_ssp_mode(dai, fmt) | (SSP_PCM_MODE_NORMAL << 1);
+			ctx->ssp_cmd.start_delay = 0;
+			ctx->ssp_cmd.data_polarity = 0;
+			ctx->ssp_cmd.frame_sync_width = ctx->ssp_cmd.nb_bits_per_slots;
+			break;
 
-	default:
-		dev_dbg(dai->dev, "using default ssp configs\n");
+		default:
+			dev_dbg(dai->dev, "using default ssp configs\n");
 	}
 
 	fs_polarity = sst_get_frame_sync_polarity(dai, fmt);
+
 	if (fs_polarity < 0)
+	{
 		return fs_polarity;
+	}
 
 	ctx->ssp_cmd.frame_sync_polarity = fs_polarity;
 
@@ -893,7 +1004,8 @@ int sst_fill_ssp_config(struct snd_soc_dai *dai, unsigned int fmt)
  * sst_ssp_config - contains SSP configuration for media UC
  * this can be overwritten by set_dai_xxx APIs
  */
-static const struct sst_ssp_config sst_ssp_configs = {
+static const struct sst_ssp_config sst_ssp_configs =
+{
 	.ssp_id = SSP_CODEC,
 	.bits_per_slot = 24,
 	.slots = 4,
@@ -940,10 +1052,15 @@ int send_ssp_cmd(struct snd_soc_dai *dai, const char *id, bool enable)
 	dev_info(dai->dev, "Enter: enable=%d port_name=%s\n", enable, id);
 
 	if (strcmp(id, "ssp0-port") == 0)
+	{
 		ssp_id = SSP_MODEM;
+	}
 	else if (strcmp(id, "ssp2-port") == 0)
+	{
 		ssp_id = SSP_CODEC;
-	else {
+	}
+	else
+	{
 		dev_dbg(dai->dev, "port %s is not supported\n", id);
 		return -1;
 	}
@@ -951,23 +1068,27 @@ int send_ssp_cmd(struct snd_soc_dai *dai, const char *id, bool enable)
 	SST_FILL_DEFAULT_DESTINATION(drv->ssp_cmd.header.dst);
 	drv->ssp_cmd.header.command_id = SBA_HW_SET_SSP;
 	drv->ssp_cmd.header.length = sizeof(struct sst_cmd_sba_hw_set_ssp)
-				- sizeof(struct sst_dsp_header);
+								 - sizeof(struct sst_dsp_header);
 
 	drv->ssp_cmd.selection = ssp_id;
 	dev_dbg(dai->dev, "ssp_id: %u\n", ssp_id);
 
 	if (enable)
+	{
 		drv->ssp_cmd.switch_state = SST_SWITCH_ON;
+	}
 	else
+	{
 		drv->ssp_cmd.switch_state = SST_SWITCH_OFF;
+	}
 
 	return sst_fill_and_send_cmd(drv, SST_IPC_IA_CMD, SST_FLAG_BLOCKED,
-				SST_TASK_SBA, 0, &drv->ssp_cmd,
-				sizeof(drv->ssp_cmd.header) + drv->ssp_cmd.header.length);
+								 SST_TASK_SBA, 0, &drv->ssp_cmd,
+								 sizeof(drv->ssp_cmd.header) + drv->ssp_cmd.header.length);
 }
 
 static int sst_set_be_modules(struct snd_soc_dapm_widget *w,
-			 struct snd_kcontrol *k, int event)
+							  struct snd_kcontrol *k, int event)
 {
 	int ret = 0;
 	struct snd_soc_component *c = snd_soc_dapm_to_component(w->dapm);
@@ -975,17 +1096,23 @@ static int sst_set_be_modules(struct snd_soc_dapm_widget *w,
 
 	dev_dbg(c->dev, "Enter: widget=%s\n", w->name);
 
-	if (SND_SOC_DAPM_EVENT_ON(event)) {
+	if (SND_SOC_DAPM_EVENT_ON(event))
+	{
 		ret = sst_send_slot_map(drv);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		ret = sst_send_pipe_module_params(w, k);
 	}
+
 	return ret;
 }
 
 static int sst_set_media_path(struct snd_soc_dapm_widget *w,
-			      struct snd_kcontrol *k, int event)
+							  struct snd_kcontrol *k, int event)
 {
 	int ret = 0;
 	struct sst_cmd_set_media_path cmd;
@@ -995,34 +1122,44 @@ static int sst_set_media_path(struct snd_soc_dapm_widget *w,
 
 	dev_dbg(c->dev, "widget=%s\n", w->name);
 	dev_dbg(c->dev, "task=%u, location=%#x\n",
-				ids->task_id, ids->location_id);
+			ids->task_id, ids->location_id);
 
 	if (SND_SOC_DAPM_EVENT_ON(event))
+	{
 		cmd.switch_state = SST_PATH_ON;
+	}
 	else
+	{
 		cmd.switch_state = SST_PATH_OFF;
+	}
 
 	SST_FILL_DESTINATION(2, cmd.header.dst,
-			     ids->location_id, SST_DEFAULT_MODULE_ID);
+						 ids->location_id, SST_DEFAULT_MODULE_ID);
 
 	/* MMX_SET_MEDIA_PATH == SBA_SET_MEDIA_PATH */
 	cmd.header.command_id = MMX_SET_MEDIA_PATH;
 	cmd.header.length = sizeof(struct sst_cmd_set_media_path)
-				- sizeof(struct sst_dsp_header);
+						- sizeof(struct sst_dsp_header);
 
 	ret = sst_fill_and_send_cmd(drv, SST_IPC_IA_CMD, SST_FLAG_BLOCKED,
-			      ids->task_id, 0, &cmd,
-			      sizeof(cmd.header) + cmd.header.length);
+								ids->task_id, 0, &cmd,
+								sizeof(cmd.header) + cmd.header.length);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (SND_SOC_DAPM_EVENT_ON(event))
+	{
 		ret = sst_send_pipe_module_params(w, k);
+	}
+
 	return ret;
 }
 
 static int sst_set_media_loop(struct snd_soc_dapm_widget *w,
-			struct snd_kcontrol *k, int event)
+							  struct snd_kcontrol *k, int event)
 {
 	int ret = 0;
 	struct sst_cmd_sba_set_media_loop_map cmd;
@@ -1031,17 +1168,22 @@ static int sst_set_media_loop(struct snd_soc_dapm_widget *w,
 	struct sst_ids *ids = w->priv;
 
 	dev_dbg(c->dev, "Enter:widget=%s\n", w->name);
+
 	if (SND_SOC_DAPM_EVENT_ON(event))
+	{
 		cmd.switch_state = SST_SWITCH_ON;
+	}
 	else
+	{
 		cmd.switch_state = SST_SWITCH_OFF;
+	}
 
 	SST_FILL_DESTINATION(2, cmd.header.dst,
-			     ids->location_id, SST_DEFAULT_MODULE_ID);
+						 ids->location_id, SST_DEFAULT_MODULE_ID);
 
 	cmd.header.command_id = SBA_SET_MEDIA_LOOP_MAP;
 	cmd.header.length = sizeof(struct sst_cmd_sba_set_media_loop_map)
-				 - sizeof(struct sst_dsp_header);
+						- sizeof(struct sst_dsp_header);
 	cmd.param.part.cfg.rate = 2; /* 48khz */
 
 	cmd.param.part.cfg.format = ids->format; /* stereo/Mono */
@@ -1049,17 +1191,24 @@ static int sst_set_media_loop(struct snd_soc_dapm_widget *w,
 	cmd.map = 0; /* Algo sequence: Gain - DRP - FIR - IIR */
 
 	ret = sst_fill_and_send_cmd(drv, SST_IPC_IA_CMD, SST_FLAG_BLOCKED,
-			      SST_TASK_SBA, 0, &cmd,
-			      sizeof(cmd.header) + cmd.header.length);
+								SST_TASK_SBA, 0, &cmd,
+								sizeof(cmd.header) + cmd.header.length);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (SND_SOC_DAPM_EVENT_ON(event))
+	{
 		ret = sst_send_pipe_module_params(w, k);
+	}
+
 	return ret;
 }
 
-static const struct snd_soc_dapm_widget sst_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget sst_dapm_widgets[] =
+{
 	SST_AIF_IN("modem_in", sst_set_be_modules),
 	SST_AIF_IN("codec_in0", sst_set_be_modules),
 	SST_AIF_IN("codec_in1", sst_set_be_modules),
@@ -1093,37 +1242,38 @@ static const struct snd_soc_dapm_widget sst_dapm_widgets[] = {
 
 	/* Media Mixers */
 	SST_SWM_MIXER("media0_out mix 0", SND_SOC_NOPM, SST_TASK_MMX, SST_SWM_OUT_MEDIA0,
-		      sst_mix_media0_controls, sst_swm_mixer_event),
+	sst_mix_media0_controls, sst_swm_mixer_event),
 	SST_SWM_MIXER("media1_out mix 0", SND_SOC_NOPM, SST_TASK_MMX, SST_SWM_OUT_MEDIA1,
-		      sst_mix_media1_controls, sst_swm_mixer_event),
+	sst_mix_media1_controls, sst_swm_mixer_event),
 
 	/* SBA PCM mixers */
 	SST_SWM_MIXER("pcm0_out mix 0", SND_SOC_NOPM, SST_TASK_SBA, SST_SWM_OUT_PCM0,
-		      sst_mix_pcm0_controls, sst_swm_mixer_event),
+	sst_mix_pcm0_controls, sst_swm_mixer_event),
 	SST_SWM_MIXER("pcm1_out mix 0", SND_SOC_NOPM, SST_TASK_SBA, SST_SWM_OUT_PCM1,
-		      sst_mix_pcm1_controls, sst_swm_mixer_event),
+	sst_mix_pcm1_controls, sst_swm_mixer_event),
 	SST_SWM_MIXER("pcm2_out mix 0", SND_SOC_NOPM, SST_TASK_SBA, SST_SWM_OUT_PCM2,
-		      sst_mix_pcm2_controls, sst_swm_mixer_event),
+	sst_mix_pcm2_controls, sst_swm_mixer_event),
 
 	/* SBA Loop mixers */
 	SST_SWM_MIXER("sprot_loop_out mix 0", SND_SOC_NOPM, SST_TASK_SBA, SST_SWM_OUT_SPROT_LOOP,
-		      sst_mix_sprot_l0_controls, sst_swm_mixer_event),
+	sst_mix_sprot_l0_controls, sst_swm_mixer_event),
 	SST_SWM_MIXER("media_loop1_out mix 0", SND_SOC_NOPM, SST_TASK_SBA, SST_SWM_OUT_MEDIA_LOOP1,
-		      sst_mix_media_l1_controls, sst_swm_mixer_event),
+	sst_mix_media_l1_controls, sst_swm_mixer_event),
 	SST_SWM_MIXER("media_loop2_out mix 0", SND_SOC_NOPM, SST_TASK_SBA, SST_SWM_OUT_MEDIA_LOOP2,
-		      sst_mix_media_l2_controls, sst_swm_mixer_event),
+	sst_mix_media_l2_controls, sst_swm_mixer_event),
 
 	/* SBA Backend mixers */
 	SST_SWM_MIXER("codec_out0 mix 0", SND_SOC_NOPM, SST_TASK_SBA, SST_SWM_OUT_CODEC0,
-		      sst_mix_codec0_controls, sst_swm_mixer_event),
+	sst_mix_codec0_controls, sst_swm_mixer_event),
 	SST_SWM_MIXER("codec_out1 mix 0", SND_SOC_NOPM, SST_TASK_SBA, SST_SWM_OUT_CODEC1,
-		      sst_mix_codec1_controls, sst_swm_mixer_event),
+	sst_mix_codec1_controls, sst_swm_mixer_event),
 	SST_SWM_MIXER("modem_out mix 0", SND_SOC_NOPM, SST_TASK_SBA, SST_SWM_OUT_MODEM,
-		      sst_mix_modem_controls, sst_swm_mixer_event),
+	sst_mix_modem_controls, sst_swm_mixer_event),
 
 };
 
-static const struct snd_soc_dapm_route intercon[] = {
+static const struct snd_soc_dapm_route intercon[] =
+{
 	{"media0_in", NULL, "Compress Playback"},
 	{"media1_in", NULL, "Headset Playback"},
 	{"media2_in", NULL, "pcm0_out"},
@@ -1171,13 +1321,15 @@ static const struct snd_soc_dapm_route intercon[] = {
 
 
 };
-static const char * const slot_names[] = {
+static const char *const slot_names[] =
+{
 	"none",
 	"slot 0", "slot 1", "slot 2", "slot 3",
 	"slot 4", "slot 5", "slot 6", "slot 7", /* not supported by FW */
 };
 
-static const char * const channel_names[] = {
+static const char *const channel_names[] =
+{
 	"none",
 	"codec_out0_0", "codec_out0_1", "codec_out1_0", "codec_out1_1",
 	"codec_out2_0", "codec_out2_1", "codec_out3_0", "codec_out3_1", /* not supported by FW */
@@ -1185,13 +1337,14 @@ static const char * const channel_names[] = {
 
 #define SST_INTERLEAVER(xpname, slot_name, slotno) \
 	SST_SSP_SLOT_CTL(xpname, "tx interleaver", slot_name, slotno, true, \
-			 channel_names, sst_slot_get, sst_slot_put)
+					 channel_names, sst_slot_get, sst_slot_put)
 
 #define SST_DEINTERLEAVER(xpname, channel_name, channel_no) \
 	SST_SSP_SLOT_CTL(xpname, "rx deinterleaver", channel_name, channel_no, false, \
-			 slot_names, sst_slot_get, sst_slot_put)
+					 slot_names, sst_slot_get, sst_slot_put)
 
-static const struct snd_kcontrol_new sst_slot_controls[] = {
+static const struct snd_kcontrol_new sst_slot_controls[] =
+{
 	SST_INTERLEAVER("codec_out", "slot 0", 0),
 	SST_INTERLEAVER("codec_out", "slot 1", 1),
 	SST_INTERLEAVER("codec_out", "slot 2", 2),
@@ -1205,21 +1358,22 @@ static const struct snd_kcontrol_new sst_slot_controls[] = {
 /* Gain helper with min/max set */
 #define SST_GAIN(name, path_id, task_id, instance, gain_var)				\
 	SST_GAIN_KCONTROLS(name, "Gain", SST_GAIN_MIN_VALUE, SST_GAIN_MAX_VALUE,	\
-		SST_GAIN_TC_MIN, SST_GAIN_TC_MAX,					\
-		sst_gain_get, sst_gain_put,						\
-		SST_MODULE_ID_GAIN_CELL, path_id, instance, task_id,			\
-		sst_gain_tlv_common, gain_var)
+					   SST_GAIN_TC_MIN, SST_GAIN_TC_MAX,					\
+					   sst_gain_get, sst_gain_put,						\
+					   SST_MODULE_ID_GAIN_CELL, path_id, instance, task_id,			\
+					   sst_gain_tlv_common, gain_var)
 
 #define SST_VOLUME(name, path_id, task_id, instance, gain_var)				\
 	SST_GAIN_KCONTROLS(name, "Volume", SST_GAIN_MIN_VALUE, SST_GAIN_MAX_VALUE,	\
-		SST_GAIN_TC_MIN, SST_GAIN_TC_MAX,					\
-		sst_gain_get, sst_gain_put,						\
-		SST_MODULE_ID_VOLUME, path_id, instance, task_id,			\
-		sst_gain_tlv_common, gain_var)
+					   SST_GAIN_TC_MIN, SST_GAIN_TC_MAX,					\
+					   sst_gain_get, sst_gain_put,						\
+					   SST_MODULE_ID_VOLUME, path_id, instance, task_id,			\
+					   sst_gain_tlv_common, gain_var)
 
 static struct sst_gain_value sst_gains[];
 
-static const struct snd_kcontrol_new sst_gain_controls[] = {
+static const struct snd_kcontrol_new sst_gain_controls[] =
+{
 	SST_GAIN("media0_in", SST_PATH_INDEX_MEDIA0_IN, SST_TASK_MMX, 0, &sst_gains[0]),
 	SST_GAIN("media1_in", SST_PATH_INDEX_MEDIA1_IN, SST_TASK_MMX, 0, &sst_gains[1]),
 	SST_GAIN("media2_in", SST_PATH_INDEX_MEDIA2_IN, SST_TASK_MMX, 0, &sst_gains[2]),
@@ -1251,27 +1405,28 @@ static const struct snd_kcontrol_new sst_gain_controls[] = {
  * below caulcation for gain cell memory.
  * This gets rid of static number and issues while adding new controls
  */
-static struct sst_gain_value sst_gains[ARRAY_SIZE(sst_gain_controls)/SST_GAIN_NUM_CONTROLS];
+static struct sst_gain_value sst_gains[ARRAY_SIZE(sst_gain_controls) / SST_GAIN_NUM_CONTROLS];
 
-static const struct snd_kcontrol_new sst_algo_controls[] = {
+static const struct snd_kcontrol_new sst_algo_controls[] =
+{
 	SST_ALGO_KCONTROL_BYTES("media_loop1_out", "fir", 272, SST_MODULE_ID_FIR_24,
-		 SST_PATH_INDEX_MEDIA_LOOP1_OUT, 0, SST_TASK_SBA, SBA_VB_SET_FIR),
+	SST_PATH_INDEX_MEDIA_LOOP1_OUT, 0, SST_TASK_SBA, SBA_VB_SET_FIR),
 	SST_ALGO_KCONTROL_BYTES("media_loop1_out", "iir", 300, SST_MODULE_ID_IIR_24,
-		SST_PATH_INDEX_MEDIA_LOOP1_OUT, 0, SST_TASK_SBA, SBA_VB_SET_IIR),
+	SST_PATH_INDEX_MEDIA_LOOP1_OUT, 0, SST_TASK_SBA, SBA_VB_SET_IIR),
 	SST_ALGO_KCONTROL_BYTES("media_loop1_out", "mdrp", 286, SST_MODULE_ID_MDRP,
-		SST_PATH_INDEX_MEDIA_LOOP1_OUT, 0, SST_TASK_SBA, SBA_SET_MDRP),
+	SST_PATH_INDEX_MEDIA_LOOP1_OUT, 0, SST_TASK_SBA, SBA_SET_MDRP),
 	SST_ALGO_KCONTROL_BYTES("media_loop2_out", "fir", 272, SST_MODULE_ID_FIR_24,
-		SST_PATH_INDEX_MEDIA_LOOP2_OUT, 0, SST_TASK_SBA, SBA_VB_SET_FIR),
+	SST_PATH_INDEX_MEDIA_LOOP2_OUT, 0, SST_TASK_SBA, SBA_VB_SET_FIR),
 	SST_ALGO_KCONTROL_BYTES("media_loop2_out", "iir", 300, SST_MODULE_ID_IIR_24,
-		SST_PATH_INDEX_MEDIA_LOOP2_OUT, 0, SST_TASK_SBA, SBA_VB_SET_IIR),
+	SST_PATH_INDEX_MEDIA_LOOP2_OUT, 0, SST_TASK_SBA, SBA_VB_SET_IIR),
 	SST_ALGO_KCONTROL_BYTES("media_loop2_out", "mdrp", 286, SST_MODULE_ID_MDRP,
-		SST_PATH_INDEX_MEDIA_LOOP2_OUT, 0, SST_TASK_SBA, SBA_SET_MDRP),
+	SST_PATH_INDEX_MEDIA_LOOP2_OUT, 0, SST_TASK_SBA, SBA_SET_MDRP),
 	SST_ALGO_KCONTROL_BYTES("sprot_loop_out", "lpro", 192, SST_MODULE_ID_SPROT,
-		SST_PATH_INDEX_SPROT_LOOP_OUT, 0, SST_TASK_SBA, SBA_VB_LPRO),
+	SST_PATH_INDEX_SPROT_LOOP_OUT, 0, SST_TASK_SBA, SBA_VB_LPRO),
 	SST_ALGO_KCONTROL_BYTES("codec_in0", "dcr", 52, SST_MODULE_ID_FILT_DCR,
-		SST_PATH_INDEX_CODEC_IN0, 0, SST_TASK_SBA, SBA_VB_SET_IIR),
+	SST_PATH_INDEX_CODEC_IN0, 0, SST_TASK_SBA, SBA_VB_SET_IIR),
 	SST_ALGO_KCONTROL_BYTES("codec_in1", "dcr", 52, SST_MODULE_ID_FILT_DCR,
-		SST_PATH_INDEX_CODEC_IN1, 0, SST_TASK_SBA, SBA_VB_SET_IIR),
+	SST_PATH_INDEX_CODEC_IN1, 0, SST_TASK_SBA, SBA_VB_SET_IIR),
 
 };
 
@@ -1279,28 +1434,36 @@ static int sst_algo_control_init(struct device *dev)
 {
 	int i = 0;
 	struct sst_algo_control *bc;
+
 	/*allocate space to cache the algo parameters in the driver*/
-	for (i = 0; i < ARRAY_SIZE(sst_algo_controls); i++) {
+	for (i = 0; i < ARRAY_SIZE(sst_algo_controls); i++)
+	{
 		bc = (struct sst_algo_control *)sst_algo_controls[i].private_value;
 		bc->params = devm_kzalloc(dev, bc->max, GFP_KERNEL);
+
 		if (bc->params == NULL)
+		{
 			return -ENOMEM;
+		}
 	}
+
 	return 0;
 }
 
 static bool is_sst_dapm_widget(struct snd_soc_dapm_widget *w)
 {
-	switch (w->id) {
-	case snd_soc_dapm_pga:
-	case snd_soc_dapm_aif_in:
-	case snd_soc_dapm_aif_out:
-	case snd_soc_dapm_input:
-	case snd_soc_dapm_output:
-	case snd_soc_dapm_mixer:
-		return true;
-	default:
-		return false;
+	switch (w->id)
+	{
+		case snd_soc_dapm_pga:
+		case snd_soc_dapm_aif_in:
+		case snd_soc_dapm_aif_out:
+		case snd_soc_dapm_input:
+		case snd_soc_dapm_output:
+		case snd_soc_dapm_mixer:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
@@ -1319,16 +1482,21 @@ int sst_send_pipe_gains(struct snd_soc_dai *dai, int stream, int mute)
 
 	dev_dbg(dai->dev, "enter, dai-name=%s dir=%d\n", dai->name, stream);
 
-	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
+	if (stream == SNDRV_PCM_STREAM_PLAYBACK)
+	{
 		dev_dbg(dai->dev, "Stream name=%s\n",
 				dai->playback_widget->name);
 		w = dai->playback_widget;
-		snd_soc_dapm_widget_for_each_sink_path(w, p) {
+		snd_soc_dapm_widget_for_each_sink_path(w, p)
+		{
 			if (p->connected && !p->connected(w, p->sink))
+			{
 				continue;
+			}
 
 			if (p->connect && p->sink->power &&
-					is_sst_dapm_widget(p->sink)) {
+				is_sst_dapm_widget(p->sink))
+			{
 				struct sst_ids *ids = p->sink->priv;
 
 				dev_dbg(dai->dev, "send gains for widget=%s\n",
@@ -1338,16 +1506,22 @@ int sst_send_pipe_gains(struct snd_soc_dai *dai, int stream, int mute)
 				mutex_unlock(&drv->lock);
 			}
 		}
-	} else {
+	}
+	else
+	{
 		dev_dbg(dai->dev, "Stream name=%s\n",
 				dai->capture_widget->name);
 		w = dai->capture_widget;
-		snd_soc_dapm_widget_for_each_source_path(w, p) {
+		snd_soc_dapm_widget_for_each_source_path(w, p)
+		{
 			if (p->connected && !p->connected(w, p->sink))
+			{
 				continue;
+			}
 
 			if (p->connect &&  p->source->power &&
-					is_sst_dapm_widget(p->source)) {
+				is_sst_dapm_widget(p->source))
+			{
 				struct sst_ids *ids = p->source->priv;
 
 				dev_dbg(dai->dev, "send gain for widget=%s\n",
@@ -1358,6 +1532,7 @@ int sst_send_pipe_gains(struct snd_soc_dai *dai, int stream, int mute)
 			}
 		}
 	}
+
 	return 0;
 }
 
@@ -1375,7 +1550,7 @@ int sst_send_pipe_gains(struct snd_soc_dai *dai, int stream, int mute)
  * event handler. Each widget (pipe) has multiple algos stored in the algo_list.
  */
 static int sst_fill_module_list(struct snd_kcontrol *kctl,
-	 struct snd_soc_dapm_widget *w, int type)
+								struct snd_soc_dapm_widget *w, int type)
 {
 	struct sst_module *module = NULL;
 	struct snd_soc_component *c = snd_soc_dapm_to_component(w->dapm);
@@ -1383,22 +1558,30 @@ static int sst_fill_module_list(struct snd_kcontrol *kctl,
 	int ret = 0;
 
 	module = devm_kzalloc(c->dev, sizeof(*module), GFP_KERNEL);
-	if (!module)
-		return -ENOMEM;
 
-	if (type == SST_MODULE_GAIN) {
+	if (!module)
+	{
+		return -ENOMEM;
+	}
+
+	if (type == SST_MODULE_GAIN)
+	{
 		struct sst_gain_mixer_control *mc = (void *)kctl->private_value;
 
 		mc->w = w;
 		module->kctl = kctl;
 		list_add_tail(&module->node, &ids->gain_list);
-	} else if (type == SST_MODULE_ALGO) {
+	}
+	else if (type == SST_MODULE_ALGO)
+	{
 		struct sst_algo_control *bc = (void *)kctl->private_value;
 
 		bc->w = w;
 		module->kctl = kctl;
 		list_add_tail(&module->node, &ids->algo_list);
-	} else {
+	}
+	else
+	{
 		dev_err(c->dev, "invoked for unknown type %d module %s",
 				type, kctl->id.name);
 		ret = -EINVAL;
@@ -1416,7 +1599,7 @@ static int sst_fill_module_list(struct snd_kcontrol *kctl,
  * name. First part of control name contains the pipe name (widget name).
  */
 static int sst_fill_widget_module_info(struct snd_soc_dapm_widget *w,
-	struct snd_soc_platform *platform)
+									   struct snd_soc_platform *platform)
 {
 	struct snd_kcontrol *kctl;
 	int index, ret = 0;
@@ -1425,39 +1608,57 @@ static int sst_fill_widget_module_info(struct snd_soc_dapm_widget *w,
 
 	down_read(&card->controls_rwsem);
 
-	list_for_each_entry(kctl, &card->controls, list) {
+	list_for_each_entry(kctl, &card->controls, list)
+	{
 		idx = strchr(kctl->id.name, ' ');
+
 		if (idx == NULL)
+		{
 			continue;
-		index = idx - (char*)kctl->id.name;
+		}
+
+		index = idx - (char *)kctl->id.name;
+
 		if (strncmp(kctl->id.name, w->name, index))
+		{
 			continue;
+		}
 
 		if (strstr(kctl->id.name, "Volume"))
+		{
 			ret = sst_fill_module_list(kctl, w, SST_MODULE_GAIN);
+		}
 
 		else if (strstr(kctl->id.name, "params"))
+		{
 			ret = sst_fill_module_list(kctl, w, SST_MODULE_ALGO);
+		}
 
 		else if (strstr(kctl->id.name, "Switch") &&
-			 strstr(kctl->id.name, "Gain")) {
+				 strstr(kctl->id.name, "Gain"))
+		{
 			struct sst_gain_mixer_control *mc =
-						(void *)kctl->private_value;
+				(void *)kctl->private_value;
 
 			mc->w = w;
 
-		} else if (strstr(kctl->id.name, "interleaver")) {
+		}
+		else if (strstr(kctl->id.name, "interleaver"))
+		{
 			struct sst_enum *e = (void *)kctl->private_value;
 
 			e->w = w;
 
-		} else if (strstr(kctl->id.name, "deinterleaver")) {
+		}
+		else if (strstr(kctl->id.name, "deinterleaver"))
+		{
 			struct sst_enum *e = (void *)kctl->private_value;
 
 			e->w = w;
 		}
 
-		if (ret < 0) {
+		if (ret < 0)
+		{
 			up_read(&card->controls_rwsem);
 			return ret;
 		}
@@ -1471,13 +1672,15 @@ static int sst_fill_widget_module_info(struct snd_soc_dapm_widget *w,
  * sst_fill_linked_widgets - fill the parent pointer for the linked widget
  */
 static void sst_fill_linked_widgets(struct snd_soc_platform *platform,
-						struct sst_ids *ids)
+									struct sst_ids *ids)
 {
 	struct snd_soc_dapm_widget *w;
 	unsigned int len = strlen(ids->parent_wname);
 
-	list_for_each_entry(w, &platform->component.card->widgets, list) {
-		if (!strncmp(ids->parent_wname, w->name, len)) {
+	list_for_each_entry(w, &platform->component.card->widgets, list)
+	{
+		if (!strncmp(ids->parent_wname, w->name, len))
+		{
 			ids->parent_w = w;
 			break;
 		}
@@ -1492,8 +1695,10 @@ static int sst_map_modules_to_pipe(struct snd_soc_platform *platform)
 	struct snd_soc_dapm_widget *w;
 	int ret = 0;
 
-	list_for_each_entry(w, &platform->component.card->widgets, list) {
-		if (is_sst_dapm_widget(w) && (w->priv)) {
+	list_for_each_entry(w, &platform->component.card->widgets, list)
+	{
+		if (is_sst_dapm_widget(w) && (w->priv))
+		{
 			struct sst_ids *ids = w->priv;
 
 			dev_dbg(platform->dev, "widget type=%d name=%s\n",
@@ -1503,11 +1708,15 @@ static int sst_map_modules_to_pipe(struct snd_soc_platform *platform)
 			ret = sst_fill_widget_module_info(w, platform);
 
 			if (ret < 0)
+			{
 				return ret;
+			}
 
 			/* fill linked widgets */
 			if (ids->parent_wname !=  NULL)
+			{
 				sst_fill_linked_widgets(platform, ids);
+			}
 		}
 	}
 	return 0;
@@ -1517,22 +1726,26 @@ int sst_dsp_init_v2_dpcm(struct snd_soc_platform *platform)
 {
 	int i, ret = 0;
 	struct snd_soc_dapm_context *dapm =
-			snd_soc_component_get_dapm(&platform->component);
+		snd_soc_component_get_dapm(&platform->component);
 	struct sst_data *drv = snd_soc_platform_get_drvdata(platform);
-	unsigned int gains = ARRAY_SIZE(sst_gain_controls)/3;
+	unsigned int gains = ARRAY_SIZE(sst_gain_controls) / 3;
 
 	drv->byte_stream = devm_kzalloc(platform->dev,
-					SST_MAX_BIN_BYTES, GFP_KERNEL);
+									SST_MAX_BIN_BYTES, GFP_KERNEL);
+
 	if (!drv->byte_stream)
+	{
 		return -ENOMEM;
+	}
 
 	snd_soc_dapm_new_controls(dapm, sst_dapm_widgets,
-			ARRAY_SIZE(sst_dapm_widgets));
+							  ARRAY_SIZE(sst_dapm_widgets));
 	snd_soc_dapm_add_routes(dapm, intercon,
-			ARRAY_SIZE(intercon));
+							ARRAY_SIZE(intercon));
 	snd_soc_dapm_new_widgets(dapm->card);
 
-	for (i = 0; i < gains; i++) {
+	for (i = 0; i < gains; i++)
+	{
 		sst_gains[i].mute = SST_GAIN_MUTE_DEFAULT;
 		sst_gains[i].l_gain = SST_GAIN_VOLUME_DEFAULT;
 		sst_gains[i].r_gain = SST_GAIN_VOLUME_DEFAULT;
@@ -1540,23 +1753,36 @@ int sst_dsp_init_v2_dpcm(struct snd_soc_platform *platform)
 	}
 
 	ret = snd_soc_add_platform_controls(platform, sst_gain_controls,
-			ARRAY_SIZE(sst_gain_controls));
+										ARRAY_SIZE(sst_gain_controls));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Initialize algo control params */
 	ret = sst_algo_control_init(platform->dev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = snd_soc_add_platform_controls(platform, sst_algo_controls,
-			ARRAY_SIZE(sst_algo_controls));
+										ARRAY_SIZE(sst_algo_controls));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = snd_soc_add_platform_controls(platform, sst_slot_controls,
-			ARRAY_SIZE(sst_slot_controls));
+										ARRAY_SIZE(sst_slot_controls));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = sst_map_modules_to_pipe(platform);
 

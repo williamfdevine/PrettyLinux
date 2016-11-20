@@ -22,7 +22,8 @@
  * @ADAU1977_MICBIAS_8V5: MICBIAS is set to 8.5 V
  * @ADAU1977_MICBIAS_9V0: MICBIAS is set to 9.0 V
  */
-enum adau1977_micbias {
+enum adau1977_micbias
+{
 	ADAU1977_MICBIAS_5V0 = 0x0,
 	ADAU1977_MICBIAS_5V5 = 0x1,
 	ADAU1977_MICBIAS_6V0 = 0x2,
@@ -38,7 +39,8 @@ enum adau1977_micbias {
  * struct adau1977_platform_data - Platform configuration data for the ADAU1977
  * @micbias: Specifies the voltage for the MICBIAS pin
  */
-struct adau1977_platform_data {
+struct adau1977_platform_data
+{
 	enum adau1977_micbias micbias;
 };
 

@@ -26,10 +26,11 @@ struct notifier_block;		/* in notifier.h */
  * Can be overriden by arch-specific value.
  */
 #ifndef IOREMAP_MAX_ORDER
-#define IOREMAP_MAX_ORDER	(7 + PAGE_SHIFT)	/* 128 pages */
+	#define IOREMAP_MAX_ORDER	(7 + PAGE_SHIFT)	/* 128 pages */
 #endif
 
-struct vm_struct {
+struct vm_struct
+{
 	struct vm_struct	*next;
 	void			*addr;
 	unsigned long		size;
@@ -40,7 +41,8 @@ struct vm_struct {
 	const void		*caller;
 };
 
-struct vmap_area {
+struct vmap_area
+{
 	unsigned long va_start;
 	unsigned long va_end;
 	unsigned long flags;
@@ -56,7 +58,7 @@ struct vmap_area {
  */
 extern void vm_unmap_ram(const void *mem, unsigned int count);
 extern void *vm_map_ram(struct page **pages, unsigned int count,
-				int node, pgprot_t prot);
+						int node, pgprot_t prot);
 extern void vm_unmap_aliases(void);
 
 #ifdef CONFIG_MMU
@@ -77,24 +79,24 @@ extern void *vmalloc_32(unsigned long size);
 extern void *vmalloc_32_user(unsigned long size);
 extern void *__vmalloc(unsigned long size, gfp_t gfp_mask, pgprot_t prot);
 extern void *__vmalloc_node_range(unsigned long size, unsigned long align,
-			unsigned long start, unsigned long end, gfp_t gfp_mask,
-			pgprot_t prot, unsigned long vm_flags, int node,
-			const void *caller);
+								  unsigned long start, unsigned long end, gfp_t gfp_mask,
+								  pgprot_t prot, unsigned long vm_flags, int node,
+								  const void *caller);
 
 extern void vfree(const void *addr);
 
 extern void *vmap(struct page **pages, unsigned int count,
-			unsigned long flags, pgprot_t prot);
+				  unsigned long flags, pgprot_t prot);
 extern void vunmap(const void *addr);
 
 extern int remap_vmalloc_range_partial(struct vm_area_struct *vma,
-				       unsigned long uaddr, void *kaddr,
-				       unsigned long size);
+									   unsigned long uaddr, void *kaddr,
+									   unsigned long size);
 
 extern int remap_vmalloc_range(struct vm_area_struct *vma, void *addr,
-							unsigned long pgoff);
+							   unsigned long pgoff);
 void vmalloc_sync_all(void);
- 
+
 /*
  *	Lowlevel-APIs (not for driver use!)
  */
@@ -103,35 +105,39 @@ static inline size_t get_vm_area_size(const struct vm_struct *area)
 {
 	if (!(area->flags & VM_NO_GUARD))
 		/* return actual size without guard page */
+	{
 		return area->size - PAGE_SIZE;
+	}
 	else
+	{
 		return area->size;
+	}
 
 }
 
 extern struct vm_struct *get_vm_area(unsigned long size, unsigned long flags);
 extern struct vm_struct *get_vm_area_caller(unsigned long size,
-					unsigned long flags, const void *caller);
+		unsigned long flags, const void *caller);
 extern struct vm_struct *__get_vm_area(unsigned long size, unsigned long flags,
-					unsigned long start, unsigned long end);
+									   unsigned long start, unsigned long end);
 extern struct vm_struct *__get_vm_area_caller(unsigned long size,
-					unsigned long flags,
-					unsigned long start, unsigned long end,
-					const void *caller);
+		unsigned long flags,
+		unsigned long start, unsigned long end,
+		const void *caller);
 extern struct vm_struct *remove_vm_area(const void *addr);
 extern struct vm_struct *find_vm_area(const void *addr);
 
 extern int map_vm_area(struct vm_struct *area, pgprot_t prot,
-			struct page **pages);
+					   struct page **pages);
 #ifdef CONFIG_MMU
 extern int map_kernel_range_noflush(unsigned long start, unsigned long size,
-				    pgprot_t prot, struct page **pages);
+									pgprot_t prot, struct page **pages);
 extern void unmap_kernel_range_noflush(unsigned long addr, unsigned long size);
 extern void unmap_kernel_range(unsigned long addr, unsigned long size);
 #else
 static inline int
 map_kernel_range_noflush(unsigned long start, unsigned long size,
-			pgprot_t prot, struct page **pages)
+						 pgprot_t prot, struct page **pages)
 {
 	return size >> PAGE_SHIFT;
 }
@@ -163,15 +169,15 @@ extern __init void vm_area_register_early(struct vm_struct *vm, size_t align);
 #ifdef CONFIG_SMP
 # ifdef CONFIG_MMU
 struct vm_struct **pcpu_get_vm_areas(const unsigned long *offsets,
-				     const size_t *sizes, int nr_vms,
-				     size_t align);
+									 const size_t *sizes, int nr_vms,
+									 size_t align);
 
 void pcpu_free_vm_areas(struct vm_struct **vms, int nr_vms);
 # else
 static inline struct vm_struct **
 pcpu_get_vm_areas(const unsigned long *offsets,
-		const size_t *sizes, int nr_vms,
-		size_t align)
+				  const size_t *sizes, int nr_vms,
+				  size_t align)
 {
 	return NULL;
 }
@@ -184,9 +190,9 @@ pcpu_free_vm_areas(struct vm_struct **vms, int nr_vms)
 #endif
 
 #ifdef CONFIG_MMU
-#define VMALLOC_TOTAL (VMALLOC_END - VMALLOC_START)
+	#define VMALLOC_TOTAL (VMALLOC_END - VMALLOC_START)
 #else
-#define VMALLOC_TOTAL 0UL
+	#define VMALLOC_TOTAL 0UL
 #endif
 
 int register_vmap_purge_notifier(struct notifier_block *nb);

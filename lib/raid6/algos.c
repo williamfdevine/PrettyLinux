@@ -18,22 +18,23 @@
 
 #include <linux/raid/pq.h>
 #ifndef __KERNEL__
-#include <sys/mman.h>
-#include <stdio.h>
+	#include <sys/mman.h>
+	#include <stdio.h>
 #else
-#include <linux/module.h>
-#include <linux/gfp.h>
-#if !RAID6_USE_EMPTY_ZERO_PAGE
-/* In .bss so it's zeroed */
-const char raid6_empty_zero_page[PAGE_SIZE] __attribute__((aligned(256)));
-EXPORT_SYMBOL(raid6_empty_zero_page);
-#endif
+	#include <linux/module.h>
+	#include <linux/gfp.h>
+	#if !RAID6_USE_EMPTY_ZERO_PAGE
+		/* In .bss so it's zeroed */
+		const char raid6_empty_zero_page[PAGE_SIZE] __attribute__((aligned(256)));
+		EXPORT_SYMBOL(raid6_empty_zero_page);
+	#endif
 #endif
 
 struct raid6_calls raid6_call;
 EXPORT_SYMBOL_GPL(raid6_call);
 
-const struct raid6_calls * const raid6_algos[] = {
+const struct raid6_calls *const raid6_algos[] =
+{
 #if defined(__ia64__)
 	&raid6_intx16,
 	&raid6_intx32,
@@ -100,7 +101,8 @@ EXPORT_SYMBOL_GPL(raid6_2data_recov);
 void (*raid6_datap_recov)(int, size_t, int, void **);
 EXPORT_SYMBOL_GPL(raid6_datap_recov);
 
-const struct raid6_recov_calls *const raid6_recov_algos[] = {
+const struct raid6_recov_calls *const raid6_recov_algos[] =
+{
 #ifdef CONFIG_AS_AVX512
 	&raid6_recov_avx512,
 #endif
@@ -118,11 +120,11 @@ const struct raid6_recov_calls *const raid6_recov_algos[] = {
 };
 
 #ifdef __KERNEL__
-#define RAID6_TIME_JIFFIES_LG2	4
+	#define RAID6_TIME_JIFFIES_LG2	4
 #else
-/* Need more time to be stable in userspace */
-#define RAID6_TIME_JIFFIES_LG2	9
-#define time_before(x, y) ((x) < (y))
+	/* Need more time to be stable in userspace */
+	#define RAID6_TIME_JIFFIES_LG2	9
+	#define time_before(x, y) ((x) < (y))
 #endif
 
 static inline const struct raid6_recov_calls *raid6_choose_recov(void)
@@ -133,87 +135,121 @@ static inline const struct raid6_recov_calls *raid6_choose_recov(void)
 	for (best = NULL, algo = raid6_recov_algos; *algo; algo++)
 		if (!best || (*algo)->priority > best->priority)
 			if (!(*algo)->valid || (*algo)->valid())
+			{
 				best = *algo;
+			}
 
-	if (best) {
+	if (best)
+	{
 		raid6_2data_recov = best->data2;
 		raid6_datap_recov = best->datap;
 
 		pr_info("raid6: using %s recovery algorithm\n", best->name);
-	} else
+	}
+	else
+	{
 		pr_err("raid6: Yikes! No recovery algorithm found!\n");
+	}
 
 	return best;
 }
 
 static inline const struct raid6_calls *raid6_choose_gen(
-	void *(*const dptrs)[(65536/PAGE_SIZE)+2], const int disks)
+	void *(*const dptrs)[(65536 / PAGE_SIZE) + 2], const int disks)
 {
 	unsigned long perf, bestgenperf, bestxorperf, j0, j1;
-	int start = (disks>>1)-1, stop = disks-3;	/* work on the second half of the disks */
+	int start = (disks >> 1) - 1, stop = disks - 3;	/* work on the second half of the disks */
 	const struct raid6_calls *const *algo;
 	const struct raid6_calls *best;
 
-	for (bestgenperf = 0, bestxorperf = 0, best = NULL, algo = raid6_algos; *algo; algo++) {
-		if (!best || (*algo)->prefer >= best->prefer) {
+	for (bestgenperf = 0, bestxorperf = 0, best = NULL, algo = raid6_algos; *algo; algo++)
+	{
+		if (!best || (*algo)->prefer >= best->prefer)
+		{
 			if ((*algo)->valid && !(*algo)->valid())
+			{
 				continue;
+			}
 
 			perf = 0;
 
 			preempt_disable();
 			j0 = jiffies;
+
 			while ((j1 = jiffies) == j0)
+			{
 				cpu_relax();
+			}
+
 			while (time_before(jiffies,
-					    j1 + (1<<RAID6_TIME_JIFFIES_LG2))) {
+							   j1 + (1 << RAID6_TIME_JIFFIES_LG2)))
+			{
 				(*algo)->gen_syndrome(disks, PAGE_SIZE, *dptrs);
 				perf++;
 			}
+
 			preempt_enable();
 
-			if (perf > bestgenperf) {
+			if (perf > bestgenperf)
+			{
 				bestgenperf = perf;
 				best = *algo;
 			}
+
 			pr_info("raid6: %-8s gen() %5ld MB/s\n", (*algo)->name,
-			       (perf*HZ) >> (20-16+RAID6_TIME_JIFFIES_LG2));
+					(perf * HZ) >> (20 - 16 + RAID6_TIME_JIFFIES_LG2));
 
 			if (!(*algo)->xor_syndrome)
+			{
 				continue;
+			}
 
 			perf = 0;
 
 			preempt_disable();
 			j0 = jiffies;
+
 			while ((j1 = jiffies) == j0)
+			{
 				cpu_relax();
+			}
+
 			while (time_before(jiffies,
-					    j1 + (1<<RAID6_TIME_JIFFIES_LG2))) {
+							   j1 + (1 << RAID6_TIME_JIFFIES_LG2)))
+			{
 				(*algo)->xor_syndrome(disks, start, stop,
-						      PAGE_SIZE, *dptrs);
+									  PAGE_SIZE, *dptrs);
 				perf++;
 			}
+
 			preempt_enable();
 
 			if (best == *algo)
+			{
 				bestxorperf = perf;
+			}
 
 			pr_info("raid6: %-8s xor() %5ld MB/s\n", (*algo)->name,
-				(perf*HZ) >> (20-16+RAID6_TIME_JIFFIES_LG2+1));
+					(perf * HZ) >> (20 - 16 + RAID6_TIME_JIFFIES_LG2 + 1));
 		}
 	}
 
-	if (best) {
+	if (best)
+	{
 		pr_info("raid6: using algorithm %s gen() %ld MB/s\n",
-		       best->name,
-		       (bestgenperf*HZ) >> (20-16+RAID6_TIME_JIFFIES_LG2));
+				best->name,
+				(bestgenperf * HZ) >> (20 - 16 + RAID6_TIME_JIFFIES_LG2));
+
 		if (best->xor_syndrome)
 			pr_info("raid6: .... xor() %ld MB/s, rmw enabled\n",
-			       (bestxorperf*HZ) >> (20-16+RAID6_TIME_JIFFIES_LG2+1));
+					(bestxorperf * HZ) >> (20 - 16 + RAID6_TIME_JIFFIES_LG2 + 1));
+
 		raid6_call = *best;
-	} else
+	}
+	else
+	{
 		pr_err("raid6: Yikes!  No algorithm found!\n");
+	}
 
 	return best;
 }
@@ -224,27 +260,30 @@ static inline const struct raid6_calls *raid6_choose_gen(
 
 int __init raid6_select_algo(void)
 {
-	const int disks = (65536/PAGE_SIZE)+2;
+	const int disks = (65536 / PAGE_SIZE) + 2;
 
 	const struct raid6_calls *gen_best;
 	const struct raid6_recov_calls *rec_best;
 	char *syndromes;
-	void *dptrs[(65536/PAGE_SIZE)+2];
+	void *dptrs[(65536 / PAGE_SIZE) + 2];
 	int i;
 
-	for (i = 0; i < disks-2; i++)
-		dptrs[i] = ((char *)raid6_gfmul) + PAGE_SIZE*i;
+	for (i = 0; i < disks - 2; i++)
+	{
+		dptrs[i] = ((char *)raid6_gfmul) + PAGE_SIZE * i;
+	}
 
 	/* Normal code - use a 2-page allocation to avoid D$ conflict */
 	syndromes = (void *) __get_free_pages(GFP_KERNEL, 1);
 
-	if (!syndromes) {
+	if (!syndromes)
+	{
 		pr_err("raid6: Yikes!  No memory available.\n");
 		return -ENOMEM;
 	}
 
-	dptrs[disks-2] = syndromes;
-	dptrs[disks-1] = syndromes + PAGE_SIZE;
+	dptrs[disks - 2] = syndromes;
+	dptrs[disks - 1] = syndromes + PAGE_SIZE;
 
 	/* select raid gen_syndrome function */
 	gen_best = raid6_choose_gen(&dptrs, disks);
@@ -259,7 +298,8 @@ int __init raid6_select_algo(void)
 
 static void raid6_exit(void)
 {
-	do { } while (0);
+	do { }
+	while (0);
 }
 
 subsys_initcall(raid6_select_algo);

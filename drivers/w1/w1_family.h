@@ -84,7 +84,7 @@ extern spinlock_t w1_flock;
 
 void w1_family_put(struct w1_family *);
 void __w1_family_get(struct w1_family *);
-struct w1_family * w1_family_registered(u8);
+struct w1_family *w1_family_registered(u8);
 void w1_unregister_family(struct w1_family *);
 int w1_register_family(struct w1_family *);
 
@@ -98,6 +98,6 @@ int w1_register_family(struct w1_family *);
  */
 #define module_w1_family(__w1_family) \
 	module_driver(__w1_family, w1_register_family, \
-			w1_unregister_family)
+				  w1_unregister_family)
 
 #endif /* __W1_FAMILY_H */

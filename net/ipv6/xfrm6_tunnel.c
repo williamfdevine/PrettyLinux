@@ -38,7 +38,8 @@
 #define XFRM6_TUNNEL_SPI_MIN	1
 #define XFRM6_TUNNEL_SPI_MAX	0xffffffff
 
-struct xfrm6_tunnel_net {
+struct xfrm6_tunnel_net
+{
 	struct hlist_head spi_byaddr[XFRM6_TUNNEL_SPI_BYADDR_HSIZE];
 	struct hlist_head spi_byspi[XFRM6_TUNNEL_SPI_BYSPI_HSIZE];
 	u32 spi;
@@ -54,7 +55,8 @@ static inline struct xfrm6_tunnel_net *xfrm6_tunnel_pernet(struct net *net)
  * xfrm_tunnel_spi things are for allocating unique id ("spi")
  * per xfrm_address_t.
  */
-struct xfrm6_tunnel_spi {
+struct xfrm6_tunnel_spi
+{
 	struct hlist_node	list_byaddr;
 	struct hlist_node	list_byspi;
 	xfrm_address_t		addr;
@@ -90,10 +92,13 @@ static struct xfrm6_tunnel_spi *__xfrm6_tunnel_spi_lookup(struct net *net, const
 	struct xfrm6_tunnel_spi *x6spi;
 
 	hlist_for_each_entry_rcu(x6spi,
-			     &xfrm6_tn->spi_byaddr[xfrm6_tunnel_spi_hash_byaddr(saddr)],
-			     list_byaddr) {
+							 &xfrm6_tn->spi_byaddr[xfrm6_tunnel_spi_hash_byaddr(saddr)],
+							 list_byaddr)
+	{
 		if (xfrm6_addr_equal(&x6spi->addr, saddr))
+		{
 			return x6spi;
+		}
 	}
 
 	return NULL;
@@ -119,10 +124,13 @@ static int __xfrm6_tunnel_spi_check(struct net *net, u32 spi)
 	int index = xfrm6_tunnel_spi_hash_byspi(spi);
 
 	hlist_for_each_entry(x6spi,
-			     &xfrm6_tn->spi_byspi[index],
-			     list_byspi) {
+						 &xfrm6_tn->spi_byspi[index],
+						 list_byspi)
+	{
 		if (x6spi->spi == spi)
+		{
 			return -1;
+		}
 	}
 	return index;
 }
@@ -135,28 +143,45 @@ static u32 __xfrm6_tunnel_alloc_spi(struct net *net, xfrm_address_t *saddr)
 	int index;
 
 	if (xfrm6_tn->spi < XFRM6_TUNNEL_SPI_MIN ||
-	    xfrm6_tn->spi >= XFRM6_TUNNEL_SPI_MAX)
+		xfrm6_tn->spi >= XFRM6_TUNNEL_SPI_MAX)
+	{
 		xfrm6_tn->spi = XFRM6_TUNNEL_SPI_MIN;
+	}
 	else
+	{
 		xfrm6_tn->spi++;
+	}
 
-	for (spi = xfrm6_tn->spi; spi <= XFRM6_TUNNEL_SPI_MAX; spi++) {
+	for (spi = xfrm6_tn->spi; spi <= XFRM6_TUNNEL_SPI_MAX; spi++)
+	{
 		index = __xfrm6_tunnel_spi_check(net, spi);
+
 		if (index >= 0)
+		{
 			goto alloc_spi;
+		}
 	}
-	for (spi = XFRM6_TUNNEL_SPI_MIN; spi < xfrm6_tn->spi; spi++) {
+
+	for (spi = XFRM6_TUNNEL_SPI_MIN; spi < xfrm6_tn->spi; spi++)
+	{
 		index = __xfrm6_tunnel_spi_check(net, spi);
+
 		if (index >= 0)
+		{
 			goto alloc_spi;
+		}
 	}
+
 	spi = 0;
 	goto out;
 alloc_spi:
 	xfrm6_tn->spi = spi;
 	x6spi = kmem_cache_alloc(xfrm6_tunnel_spi_kmem, GFP_ATOMIC);
+
 	if (!x6spi)
+	{
 		goto out;
+	}
 
 	memcpy(&x6spi->addr, saddr, sizeof(x6spi->addr));
 	x6spi->spi = spi;
@@ -177,11 +202,17 @@ __be32 xfrm6_tunnel_alloc_spi(struct net *net, xfrm_address_t *saddr)
 
 	spin_lock_bh(&xfrm6_tunnel_spi_lock);
 	x6spi = __xfrm6_tunnel_spi_lookup(net, saddr);
-	if (x6spi) {
+
+	if (x6spi)
+	{
 		atomic_inc(&x6spi->refcnt);
 		spi = x6spi->spi;
-	} else
+	}
+	else
+	{
 		spi = __xfrm6_tunnel_alloc_spi(net, saddr);
+	}
+
 	spin_unlock_bh(&xfrm6_tunnel_spi_lock);
 
 	return htonl(spi);
@@ -191,7 +222,7 @@ EXPORT_SYMBOL(xfrm6_tunnel_alloc_spi);
 static void x6spi_destroy_rcu(struct rcu_head *head)
 {
 	kmem_cache_free(xfrm6_tunnel_spi_kmem,
-			container_of(head, struct xfrm6_tunnel_spi, rcu_head));
+					container_of(head, struct xfrm6_tunnel_spi, rcu_head));
 }
 
 static void xfrm6_tunnel_free_spi(struct net *net, xfrm_address_t *saddr)
@@ -203,11 +234,13 @@ static void xfrm6_tunnel_free_spi(struct net *net, xfrm_address_t *saddr)
 	spin_lock_bh(&xfrm6_tunnel_spi_lock);
 
 	hlist_for_each_entry_safe(x6spi, n,
-				  &xfrm6_tn->spi_byaddr[xfrm6_tunnel_spi_hash_byaddr(saddr)],
-				  list_byaddr)
+							  &xfrm6_tn->spi_byaddr[xfrm6_tunnel_spi_hash_byaddr(saddr)],
+							  list_byaddr)
 	{
-		if (xfrm6_addr_equal(&x6spi->addr, saddr)) {
-			if (atomic_dec_and_test(&x6spi->refcnt)) {
+		if (xfrm6_addr_equal(&x6spi->addr, saddr))
+		{
+			if (atomic_dec_and_test(&x6spi->refcnt))
+			{
 				hlist_del_rcu(&x6spi->list_byaddr);
 				hlist_del_rcu(&x6spi->list_byspi);
 				call_rcu(&x6spi->rcu_head, x6spi_destroy_rcu);
@@ -240,41 +273,55 @@ static int xfrm6_tunnel_rcv(struct sk_buff *skb)
 }
 
 static int xfrm6_tunnel_err(struct sk_buff *skb, struct inet6_skb_parm *opt,
-			    u8 type, u8 code, int offset, __be32 info)
+							u8 type, u8 code, int offset, __be32 info)
 {
 	/* xfrm6_tunnel native err handling */
-	switch (type) {
-	case ICMPV6_DEST_UNREACH:
-		switch (code) {
-		case ICMPV6_NOROUTE:
-		case ICMPV6_ADM_PROHIBITED:
-		case ICMPV6_NOT_NEIGHBOUR:
-		case ICMPV6_ADDR_UNREACH:
-		case ICMPV6_PORT_UNREACH:
+	switch (type)
+	{
+		case ICMPV6_DEST_UNREACH:
+			switch (code)
+			{
+				case ICMPV6_NOROUTE:
+				case ICMPV6_ADM_PROHIBITED:
+				case ICMPV6_NOT_NEIGHBOUR:
+				case ICMPV6_ADDR_UNREACH:
+				case ICMPV6_PORT_UNREACH:
+				default:
+					break;
+			}
+
+			break;
+
+		case ICMPV6_PKT_TOOBIG:
+			break;
+
+		case ICMPV6_TIME_EXCEED:
+			switch (code)
+			{
+				case ICMPV6_EXC_HOPLIMIT:
+					break;
+
+				case ICMPV6_EXC_FRAGTIME:
+				default:
+					break;
+			}
+
+			break;
+
+		case ICMPV6_PARAMPROB:
+			switch (code)
+			{
+				case ICMPV6_HDR_FIELD: break;
+
+				case ICMPV6_UNK_NEXTHDR: break;
+
+				case ICMPV6_UNK_OPTION: break;
+			}
+
+			break;
+
 		default:
 			break;
-		}
-		break;
-	case ICMPV6_PKT_TOOBIG:
-		break;
-	case ICMPV6_TIME_EXCEED:
-		switch (code) {
-		case ICMPV6_EXC_HOPLIMIT:
-			break;
-		case ICMPV6_EXC_FRAGTIME:
-		default:
-			break;
-		}
-		break;
-	case ICMPV6_PARAMPROB:
-		switch (code) {
-		case ICMPV6_HDR_FIELD: break;
-		case ICMPV6_UNK_NEXTHDR: break;
-		case ICMPV6_UNK_OPTION: break;
-		}
-		break;
-	default:
-		break;
 	}
 
 	return 0;
@@ -283,10 +330,14 @@ static int xfrm6_tunnel_err(struct sk_buff *skb, struct inet6_skb_parm *opt,
 static int xfrm6_tunnel_init_state(struct xfrm_state *x)
 {
 	if (x->props.mode != XFRM_MODE_TUNNEL)
+	{
 		return -EINVAL;
+	}
 
 	if (x->encap)
+	{
 		return -EINVAL;
+	}
 
 	x->props.header_len = sizeof(struct ipv6hdr);
 
@@ -300,7 +351,8 @@ static void xfrm6_tunnel_destroy(struct xfrm_state *x)
 	xfrm6_tunnel_free_spi(net, (xfrm_address_t *)&x->props.saddr);
 }
 
-static const struct xfrm_type xfrm6_tunnel_type = {
+static const struct xfrm_type xfrm6_tunnel_type =
+{
 	.description	= "IP6IP6",
 	.owner          = THIS_MODULE,
 	.proto		= IPPROTO_IPV6,
@@ -310,13 +362,15 @@ static const struct xfrm_type xfrm6_tunnel_type = {
 	.output		= xfrm6_tunnel_output,
 };
 
-static struct xfrm6_tunnel xfrm6_tunnel_handler __read_mostly = {
+static struct xfrm6_tunnel xfrm6_tunnel_handler __read_mostly =
+{
 	.handler	= xfrm6_tunnel_rcv,
 	.err_handler	= xfrm6_tunnel_err,
 	.priority	= 2,
 };
 
-static struct xfrm6_tunnel xfrm46_tunnel_handler __read_mostly = {
+static struct xfrm6_tunnel xfrm46_tunnel_handler __read_mostly =
+{
 	.handler	= xfrm6_tunnel_rcv,
 	.err_handler	= xfrm6_tunnel_err,
 	.priority	= 2,
@@ -328,9 +382,15 @@ static int __net_init xfrm6_tunnel_net_init(struct net *net)
 	unsigned int i;
 
 	for (i = 0; i < XFRM6_TUNNEL_SPI_BYADDR_HSIZE; i++)
+	{
 		INIT_HLIST_HEAD(&xfrm6_tn->spi_byaddr[i]);
+	}
+
 	for (i = 0; i < XFRM6_TUNNEL_SPI_BYSPI_HSIZE; i++)
+	{
 		INIT_HLIST_HEAD(&xfrm6_tn->spi_byspi[i]);
+	}
+
 	xfrm6_tn->spi = 0;
 
 	return 0;
@@ -340,7 +400,8 @@ static void __net_exit xfrm6_tunnel_net_exit(struct net *net)
 {
 }
 
-static struct pernet_operations xfrm6_tunnel_net_ops = {
+static struct pernet_operations xfrm6_tunnel_net_ops =
+{
 	.init	= xfrm6_tunnel_net_init,
 	.exit	= xfrm6_tunnel_net_exit,
 	.id	= &xfrm6_tunnel_net_id,
@@ -352,23 +413,43 @@ static int __init xfrm6_tunnel_init(void)
 	int rv;
 
 	xfrm6_tunnel_spi_kmem = kmem_cache_create("xfrm6_tunnel_spi",
-						  sizeof(struct xfrm6_tunnel_spi),
-						  0, SLAB_HWCACHE_ALIGN,
-						  NULL);
+							sizeof(struct xfrm6_tunnel_spi),
+							0, SLAB_HWCACHE_ALIGN,
+							NULL);
+
 	if (!xfrm6_tunnel_spi_kmem)
+	{
 		return -ENOMEM;
+	}
+
 	rv = register_pernet_subsys(&xfrm6_tunnel_net_ops);
+
 	if (rv < 0)
+	{
 		goto out_pernet;
+	}
+
 	rv = xfrm_register_type(&xfrm6_tunnel_type, AF_INET6);
+
 	if (rv < 0)
+	{
 		goto out_type;
+	}
+
 	rv = xfrm6_tunnel_register(&xfrm6_tunnel_handler, AF_INET6);
+
 	if (rv < 0)
+	{
 		goto out_xfrm6;
+	}
+
 	rv = xfrm6_tunnel_register(&xfrm46_tunnel_handler, AF_INET);
+
 	if (rv < 0)
+	{
 		goto out_xfrm46;
+	}
+
 	return 0;
 
 out_xfrm46:

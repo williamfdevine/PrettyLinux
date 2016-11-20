@@ -9,7 +9,7 @@
 #include "./tascam.h"
 
 static void proc_read_firmware(struct snd_info_entry *entry,
-			       struct snd_info_buffer *buffer)
+							   struct snd_info_buffer *buffer)
 {
 	struct snd_tscm *tscm = entry->private_data;
 	__be32 data;
@@ -17,31 +17,47 @@ static void proc_read_firmware(struct snd_info_entry *entry,
 	int err;
 
 	err = snd_fw_transaction(tscm->unit, TCODE_READ_QUADLET_REQUEST,
-			TSCM_ADDR_BASE + TSCM_OFFSET_FIRMWARE_REGISTER,
-			&data, sizeof(data), 0);
+							 TSCM_ADDR_BASE + TSCM_OFFSET_FIRMWARE_REGISTER,
+							 &data, sizeof(data), 0);
+
 	if (err < 0)
+	{
 		return;
+	}
+
 	reg = be32_to_cpu(data);
 
 	err = snd_fw_transaction(tscm->unit, TCODE_READ_QUADLET_REQUEST,
-			TSCM_ADDR_BASE + TSCM_OFFSET_FIRMWARE_FPGA,
-			&data, sizeof(data), 0);
+							 TSCM_ADDR_BASE + TSCM_OFFSET_FIRMWARE_FPGA,
+							 &data, sizeof(data), 0);
+
 	if (err < 0)
+	{
 		return;
+	}
+
 	fpga = be32_to_cpu(data);
 
 	err = snd_fw_transaction(tscm->unit, TCODE_READ_QUADLET_REQUEST,
-			TSCM_ADDR_BASE + TSCM_OFFSET_FIRMWARE_ARM,
-			&data, sizeof(data), 0);
+							 TSCM_ADDR_BASE + TSCM_OFFSET_FIRMWARE_ARM,
+							 &data, sizeof(data), 0);
+
 	if (err < 0)
+	{
 		return;
+	}
+
 	arm = be32_to_cpu(data);
 
 	err = snd_fw_transaction(tscm->unit, TCODE_READ_QUADLET_REQUEST,
-			TSCM_ADDR_BASE + TSCM_OFFSET_FIRMWARE_HW,
-			&data, sizeof(data), 0);
+							 TSCM_ADDR_BASE + TSCM_OFFSET_FIRMWARE_HW,
+							 &data, sizeof(data), 0);
+
 	if (err < 0)
+	{
 		return;
+	}
+
 	hw = be32_to_cpu(data);
 
 	snd_iprintf(buffer, "Register: %d (0x%08x)\n", reg & 0xffff, reg);
@@ -51,19 +67,25 @@ static void proc_read_firmware(struct snd_info_entry *entry,
 }
 
 static void add_node(struct snd_tscm *tscm, struct snd_info_entry *root,
-		     const char *name,
-		     void (*op)(struct snd_info_entry *e,
-				struct snd_info_buffer *b))
+					 const char *name,
+					 void (*op)(struct snd_info_entry *e,
+								struct snd_info_buffer *b))
 {
 	struct snd_info_entry *entry;
 
 	entry = snd_info_create_card_entry(tscm->card, name, root);
+
 	if (entry == NULL)
+	{
 		return;
+	}
 
 	snd_info_set_text_ops(entry, tscm, op);
+
 	if (snd_info_register(entry) < 0)
+	{
 		snd_info_free_entry(entry);
+	}
 }
 
 void snd_tscm_proc_init(struct snd_tscm *tscm)
@@ -75,11 +97,17 @@ void snd_tscm_proc_init(struct snd_tscm *tscm)
 	 * by following to link list.
 	 */
 	root = snd_info_create_card_entry(tscm->card, "firewire",
-					  tscm->card->proc_root);
+									  tscm->card->proc_root);
+
 	if (root == NULL)
+	{
 		return;
+	}
+
 	root->mode = S_IFDIR | S_IRUGO | S_IXUGO;
-	if (snd_info_register(root) < 0) {
+
+	if (snd_info_register(root) < 0)
+	{
 		snd_info_free_entry(root);
 		return;
 	}

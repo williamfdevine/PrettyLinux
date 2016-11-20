@@ -19,7 +19,8 @@
 #ifndef BOOT_LOADER_EXPORT_H_
 #define BOOT_LOADER_EXPORT_H_
 
-struct bl_dedicated_registers_v1 {
+struct bl_dedicated_registers_v1
+{
 	__le32	boot_loader_ready;		/* 0x880A3C driver will poll
 						 * this Dword until BL will
 						 * set it to 1 (initial value
@@ -45,7 +46,8 @@ struct bl_dedicated_registers_v1 {
 
 /* the following struct is the version 0 struct */
 
-struct bl_dedicated_registers_v0 {
+struct bl_dedicated_registers_v0
+{
 	__le32	boot_loader_ready;		/* 0x880A3C driver will poll
 						 * this Dword until BL will
 						 * set it to 1 (initial value

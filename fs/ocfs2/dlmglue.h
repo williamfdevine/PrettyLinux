@@ -31,7 +31,8 @@
 
 #define OCFS2_LVB_VERSION 5
 
-struct ocfs2_meta_lvb {
+struct ocfs2_meta_lvb
+{
 	__u8         lvb_version;
 	__u8         lvb_reserved0;
 	__be16       lvb_idynfeatures;
@@ -51,7 +52,8 @@ struct ocfs2_meta_lvb {
 
 #define OCFS2_QINFO_LVB_VERSION 1
 
-struct ocfs2_qinfo_lvb {
+struct ocfs2_qinfo_lvb
+{
 	__u8	lvb_version;
 	__u8	lvb_reserved[3];
 	__be32	lvb_bgrace;
@@ -64,7 +66,8 @@ struct ocfs2_qinfo_lvb {
 
 #define OCFS2_ORPHAN_LVB_VERSION 1
 
-struct ocfs2_orphan_scan_lvb {
+struct ocfs2_orphan_scan_lvb
+{
 	__u8	lvb_version;
 	__u8	lvb_reserved[3];
 	__be32	lvb_os_seqno;
@@ -79,7 +82,8 @@ struct ocfs2_orphan_scan_lvb {
 #define OCFS2_LOCK_NONBLOCK		(0x04)
 
 /* Locking subclasses of inode cluster lock */
-enum {
+enum
+{
 	OI_LS_NORMAL = 0,
 	OI_LS_PARENT,
 	OI_LS_RENAME1,
@@ -91,20 +95,20 @@ int ocfs2_dlm_init(struct ocfs2_super *osb);
 void ocfs2_dlm_shutdown(struct ocfs2_super *osb, int hangup_pending);
 void ocfs2_lock_res_init_once(struct ocfs2_lock_res *res);
 void ocfs2_inode_lock_res_init(struct ocfs2_lock_res *res,
-			       enum ocfs2_lock_type type,
-			       unsigned int generation,
-			       struct inode *inode);
+							   enum ocfs2_lock_type type,
+							   unsigned int generation,
+							   struct inode *inode);
 void ocfs2_dentry_lock_res_init(struct ocfs2_dentry_lock *dl,
-				u64 parent, struct inode *inode);
+								u64 parent, struct inode *inode);
 struct ocfs2_file_private;
 void ocfs2_file_lock_res_init(struct ocfs2_lock_res *lockres,
-			      struct ocfs2_file_private *fp);
+							  struct ocfs2_file_private *fp);
 struct ocfs2_mem_dqinfo;
 void ocfs2_qinfo_lock_res_init(struct ocfs2_lock_res *lockres,
-                               struct ocfs2_mem_dqinfo *info);
+							   struct ocfs2_mem_dqinfo *info);
 void ocfs2_refcount_lock_res_init(struct ocfs2_lock_res *lockres,
-				  struct ocfs2_super *osb, u64 ref_blkno,
-				  unsigned int generation);
+								  struct ocfs2_super *osb, u64 ref_blkno,
+								  unsigned int generation);
 void ocfs2_lock_res_free(struct ocfs2_lock_res *res);
 int ocfs2_create_new_inode_locks(struct inode *inode);
 int ocfs2_drop_inode_locks(struct inode *inode);
@@ -114,31 +118,31 @@ int ocfs2_open_lock(struct inode *inode);
 int ocfs2_try_open_lock(struct inode *inode, int write);
 void ocfs2_open_unlock(struct inode *inode);
 int ocfs2_inode_lock_atime(struct inode *inode,
-			  struct vfsmount *vfsmnt,
-			  int *level);
+						   struct vfsmount *vfsmnt,
+						   int *level);
 int ocfs2_inode_lock_full_nested(struct inode *inode,
-			 struct buffer_head **ret_bh,
-			 int ex,
-			 int arg_flags,
-			 int subclass);
+								 struct buffer_head **ret_bh,
+								 int ex,
+								 int arg_flags,
+								 int subclass);
 int ocfs2_inode_lock_with_page(struct inode *inode,
-			      struct buffer_head **ret_bh,
-			      int ex,
-			      struct page *page);
+							   struct buffer_head **ret_bh,
+							   int ex,
+							   struct page *page);
 /* Variants without special locking class or flags */
 #define ocfs2_inode_lock_full(i, r, e, f)\
-		ocfs2_inode_lock_full_nested(i, r, e, f, OI_LS_NORMAL)
+	ocfs2_inode_lock_full_nested(i, r, e, f, OI_LS_NORMAL)
 #define ocfs2_inode_lock_nested(i, b, e, s)\
-		ocfs2_inode_lock_full_nested(i, b, e, 0, s)
+	ocfs2_inode_lock_full_nested(i, b, e, 0, s)
 /* 99% of the time we don't want to supply any additional flags --
  * those are for very specific cases only. */
 #define ocfs2_inode_lock(i, b, e) ocfs2_inode_lock_full_nested(i, b, e, 0, OI_LS_NORMAL)
 void ocfs2_inode_unlock(struct inode *inode,
-		       int ex);
+						int ex);
 int ocfs2_super_lock(struct ocfs2_super *osb,
-		     int ex);
+					 int ex);
 void ocfs2_super_unlock(struct ocfs2_super *osb,
-			int ex);
+						int ex);
 int ocfs2_orphan_scan_lock(struct ocfs2_super *osb, u32 *seqno);
 void ocfs2_orphan_scan_unlock(struct ocfs2_super *osb, u32 seqno);
 
@@ -158,9 +162,9 @@ void ocfs2_refcount_unlock(struct ocfs2_refcount_tree *ref_tree, int ex);
 
 
 void ocfs2_mark_lockres_freeing(struct ocfs2_super *osb,
-				struct ocfs2_lock_res *lockres);
+								struct ocfs2_lock_res *lockres);
 void ocfs2_simple_drop_lockres(struct ocfs2_super *osb,
-			       struct ocfs2_lock_res *lockres);
+							   struct ocfs2_lock_res *lockres);
 
 /* for the downconvert thread */
 void ocfs2_wake_downconvert_thread(struct ocfs2_super *osb);

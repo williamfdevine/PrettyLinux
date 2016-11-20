@@ -32,40 +32,43 @@
 
 struct drm_file;
 
-struct drm_vma_offset_file {
+struct drm_vma_offset_file
+{
 	struct rb_node vm_rb;
 	struct drm_file *vm_tag;
 	unsigned long vm_count;
 };
 
-struct drm_vma_offset_node {
+struct drm_vma_offset_node
+{
 	rwlock_t vm_lock;
 	struct drm_mm_node vm_node;
 	struct rb_root vm_files;
 };
 
-struct drm_vma_offset_manager {
+struct drm_vma_offset_manager
+{
 	rwlock_t vm_lock;
 	struct drm_mm vm_addr_space_mm;
 };
 
 void drm_vma_offset_manager_init(struct drm_vma_offset_manager *mgr,
-				 unsigned long page_offset, unsigned long size);
+								 unsigned long page_offset, unsigned long size);
 void drm_vma_offset_manager_destroy(struct drm_vma_offset_manager *mgr);
 
 struct drm_vma_offset_node *drm_vma_offset_lookup_locked(struct drm_vma_offset_manager *mgr,
-							   unsigned long start,
-							   unsigned long pages);
+		unsigned long start,
+		unsigned long pages);
 int drm_vma_offset_add(struct drm_vma_offset_manager *mgr,
-		       struct drm_vma_offset_node *node, unsigned long pages);
+					   struct drm_vma_offset_node *node, unsigned long pages);
 void drm_vma_offset_remove(struct drm_vma_offset_manager *mgr,
-			   struct drm_vma_offset_node *node);
+						   struct drm_vma_offset_node *node);
 
 int drm_vma_node_allow(struct drm_vma_offset_node *node, struct drm_file *tag);
 void drm_vma_node_revoke(struct drm_vma_offset_node *node,
-			 struct drm_file *tag);
+						 struct drm_file *tag);
 bool drm_vma_node_is_allowed(struct drm_vma_offset_node *node,
-			     struct drm_file *tag);
+							 struct drm_file *tag);
 
 /**
  * drm_vma_offset_exact_lookup_locked() - Look up node by exact address
@@ -81,8 +84,8 @@ bool drm_vma_node_is_allowed(struct drm_vma_offset_node *node,
  */
 static inline struct drm_vma_offset_node *
 drm_vma_offset_exact_lookup_locked(struct drm_vma_offset_manager *mgr,
-				   unsigned long start,
-				   unsigned long pages)
+								   unsigned long start,
+								   unsigned long pages)
 {
 	struct drm_vma_offset_node *node;
 
@@ -205,12 +208,12 @@ static inline __u64 drm_vma_node_offset_addr(struct drm_vma_offset_node *node)
  * is not called on this node concurrently.
  */
 static inline void drm_vma_node_unmap(struct drm_vma_offset_node *node,
-				      struct address_space *file_mapping)
+									  struct address_space *file_mapping)
 {
 	if (drm_mm_node_allocated(&node->vm_node))
 		unmap_mapping_range(file_mapping,
-				    drm_vma_node_offset_addr(node),
-				    drm_vma_node_size(node) << PAGE_SHIFT, 1);
+							drm_vma_node_offset_addr(node),
+							drm_vma_node_size(node) << PAGE_SHIFT, 1);
 }
 
 /**
@@ -226,7 +229,7 @@ static inline void drm_vma_node_unmap(struct drm_vma_offset_node *node,
  * 0 if access is granted, -EACCES otherwise.
  */
 static inline int drm_vma_node_verify_access(struct drm_vma_offset_node *node,
-					     struct drm_file *tag)
+		struct drm_file *tag)
 {
 	return drm_vma_node_is_allowed(node, tag) ? 0 : -EACCES;
 }

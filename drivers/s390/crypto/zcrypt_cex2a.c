@@ -57,7 +57,8 @@
 #define CEX2A_CLEANUP_TIME	(15*HZ)
 #define CEX3A_CLEANUP_TIME	CEX2A_CLEANUP_TIME
 
-static struct ap_device_id zcrypt_cex2a_ids[] = {
+static struct ap_device_id zcrypt_cex2a_ids[] =
+{
 	{ AP_DEVICE(AP_DEVICE_TYPE_CEX2A) },
 	{ AP_DEVICE(AP_DEVICE_TYPE_CEX3A) },
 	{ /* end of list */ },
@@ -66,13 +67,14 @@ static struct ap_device_id zcrypt_cex2a_ids[] = {
 MODULE_DEVICE_TABLE(ap, zcrypt_cex2a_ids);
 MODULE_AUTHOR("IBM Corporation");
 MODULE_DESCRIPTION("CEX2A Cryptographic Coprocessor device driver, " \
-		   "Copyright IBM Corp. 2001, 2012");
+				   "Copyright IBM Corp. 2001, 2012");
 MODULE_LICENSE("GPL");
 
 static int zcrypt_cex2a_probe(struct ap_device *ap_dev);
 static void zcrypt_cex2a_remove(struct ap_device *ap_dev);
 
-static struct ap_driver zcrypt_cex2a_driver = {
+static struct ap_driver zcrypt_cex2a_driver =
+{
 	.probe = zcrypt_cex2a_probe,
 	.remove = zcrypt_cex2a_remove,
 	.ids = zcrypt_cex2a_ids,
@@ -89,51 +91,71 @@ static int zcrypt_cex2a_probe(struct ap_device *ap_dev)
 	struct zcrypt_device *zdev = NULL;
 	int rc = 0;
 
-	switch (ap_dev->device_type) {
-	case AP_DEVICE_TYPE_CEX2A:
-		zdev = zcrypt_device_alloc(CEX2A_MAX_RESPONSE_SIZE);
-		if (!zdev)
-			return -ENOMEM;
-		zdev->user_space_type = ZCRYPT_CEX2A;
-		zdev->type_string = "CEX2A";
-		zdev->min_mod_size = CEX2A_MIN_MOD_SIZE;
-		zdev->max_mod_size = CEX2A_MAX_MOD_SIZE;
-		zdev->short_crt = 1;
-		zdev->speed_rating = CEX2A_SPEED_RATING;
-		zdev->max_exp_bit_length = CEX2A_MAX_MOD_SIZE;
-		break;
-	case AP_DEVICE_TYPE_CEX3A:
-		zdev = zcrypt_device_alloc(CEX3A_MAX_RESPONSE_SIZE);
-		if (!zdev)
-			return -ENOMEM;
-		zdev->user_space_type = ZCRYPT_CEX3A;
-		zdev->type_string = "CEX3A";
-		zdev->min_mod_size = CEX2A_MIN_MOD_SIZE;
-		zdev->max_mod_size = CEX2A_MAX_MOD_SIZE;
-		zdev->max_exp_bit_length = CEX2A_MAX_MOD_SIZE;
-		if (ap_test_bit(&ap_dev->functions, AP_FUNC_MEX4K) &&
-		    ap_test_bit(&ap_dev->functions, AP_FUNC_CRT4K)) {
-			zdev->max_mod_size = CEX3A_MAX_MOD_SIZE;
-			zdev->max_exp_bit_length = CEX3A_MAX_MOD_SIZE;
-		}
-		zdev->short_crt = 1;
-		zdev->speed_rating = CEX3A_SPEED_RATING;
-		break;
+	switch (ap_dev->device_type)
+	{
+		case AP_DEVICE_TYPE_CEX2A:
+			zdev = zcrypt_device_alloc(CEX2A_MAX_RESPONSE_SIZE);
+
+			if (!zdev)
+			{
+				return -ENOMEM;
+			}
+
+			zdev->user_space_type = ZCRYPT_CEX2A;
+			zdev->type_string = "CEX2A";
+			zdev->min_mod_size = CEX2A_MIN_MOD_SIZE;
+			zdev->max_mod_size = CEX2A_MAX_MOD_SIZE;
+			zdev->short_crt = 1;
+			zdev->speed_rating = CEX2A_SPEED_RATING;
+			zdev->max_exp_bit_length = CEX2A_MAX_MOD_SIZE;
+			break;
+
+		case AP_DEVICE_TYPE_CEX3A:
+			zdev = zcrypt_device_alloc(CEX3A_MAX_RESPONSE_SIZE);
+
+			if (!zdev)
+			{
+				return -ENOMEM;
+			}
+
+			zdev->user_space_type = ZCRYPT_CEX3A;
+			zdev->type_string = "CEX3A";
+			zdev->min_mod_size = CEX2A_MIN_MOD_SIZE;
+			zdev->max_mod_size = CEX2A_MAX_MOD_SIZE;
+			zdev->max_exp_bit_length = CEX2A_MAX_MOD_SIZE;
+
+			if (ap_test_bit(&ap_dev->functions, AP_FUNC_MEX4K) &&
+				ap_test_bit(&ap_dev->functions, AP_FUNC_CRT4K))
+			{
+				zdev->max_mod_size = CEX3A_MAX_MOD_SIZE;
+				zdev->max_exp_bit_length = CEX3A_MAX_MOD_SIZE;
+			}
+
+			zdev->short_crt = 1;
+			zdev->speed_rating = CEX3A_SPEED_RATING;
+			break;
 	}
+
 	if (!zdev)
+	{
 		return -ENODEV;
+	}
+
 	zdev->ops = zcrypt_msgtype_request(MSGTYPE50_NAME,
-					   MSGTYPE50_VARIANT_DEFAULT);
+									   MSGTYPE50_VARIANT_DEFAULT);
 	zdev->ap_dev = ap_dev;
 	zdev->online = 1;
 	ap_device_init_reply(ap_dev, &zdev->reply);
 	ap_dev->private = zdev;
 	rc = zcrypt_device_register(zdev);
-	if (rc) {
+
+	if (rc)
+	{
 		ap_dev->private = NULL;
 		zcrypt_msgtype_release(zdev->ops);
 		zcrypt_device_free(zdev);
 	}
+
 	return rc;
 }
 

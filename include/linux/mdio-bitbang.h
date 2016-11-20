@@ -7,7 +7,8 @@ struct module;
 
 struct mdiobb_ctrl;
 
-struct mdiobb_ops {
+struct mdiobb_ops
+{
 	struct module *owner;
 
 	/* Set the Management Data Clock high if level is one,
@@ -30,7 +31,8 @@ struct mdiobb_ops {
 	int (*get_mdio_data)(struct mdiobb_ctrl *ctrl);
 };
 
-struct mdiobb_ctrl {
+struct mdiobb_ctrl
+{
 	const struct mdiobb_ops *ops;
 	/* reset callback */
 	int (*reset)(struct mii_bus *bus);

@@ -24,7 +24,8 @@
 #define nv4e_i2c_bus(p) container_of((p), struct nv4e_i2c_bus, base)
 #include "bus.h"
 
-struct nv4e_i2c_bus {
+struct nv4e_i2c_bus
+{
 	struct nvkm_i2c_bus base;
 	u32 addr;
 };
@@ -62,7 +63,8 @@ nv4e_i2c_bus_sense_sda(struct nvkm_i2c_bus *base)
 }
 
 static const struct nvkm_i2c_bus_func
-nv4e_i2c_bus_func = {
+	nv4e_i2c_bus_func =
+{
 	.drive_scl = nv4e_i2c_bus_drive_scl,
 	.drive_sda = nv4e_i2c_bus_drive_sda,
 	.sense_scl = nv4e_i2c_bus_sense_scl,
@@ -72,12 +74,15 @@ nv4e_i2c_bus_func = {
 
 int
 nv4e_i2c_bus_new(struct nvkm_i2c_pad *pad, int id, u8 drive,
-		 struct nvkm_i2c_bus **pbus)
+				 struct nvkm_i2c_bus **pbus)
 {
 	struct nv4e_i2c_bus *bus;
 
 	if (!(bus = kzalloc(sizeof(*bus), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pbus = &bus->base;
 
 	nvkm_i2c_bus_ctor(&nv4e_i2c_bus_func, pad, id, &bus->base);

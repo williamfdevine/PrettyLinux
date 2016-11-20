@@ -24,7 +24,9 @@ static int ila_output(struct net *net, struct sock *sk, struct sk_buff *skb)
 	struct dst_entry *dst = skb_dst(skb);
 
 	if (skb->protocol != htons(ETH_P_IPV6))
+	{
 		goto drop;
+	}
 
 	ila_update_ipv6_locator(skb, ila_params_lwtunnel(dst->lwtstate), true);
 
@@ -40,7 +42,9 @@ static int ila_input(struct sk_buff *skb)
 	struct dst_entry *dst = skb_dst(skb);
 
 	if (skb->protocol != htons(ETH_P_IPV6))
+	{
 		goto drop;
+	}
 
 	ila_update_ipv6_locator(skb, ila_params_lwtunnel(dst->lwtstate), false);
 
@@ -51,14 +55,15 @@ drop:
 	return -EINVAL;
 }
 
-static const struct nla_policy ila_nl_policy[ILA_ATTR_MAX + 1] = {
+static const struct nla_policy ila_nl_policy[ILA_ATTR_MAX + 1] =
+{
 	[ILA_ATTR_LOCATOR] = { .type = NLA_U64, },
 	[ILA_ATTR_CSUM_MODE] = { .type = NLA_U8, },
 };
 
 static int ila_build_state(struct net_device *dev, struct nlattr *nla,
-			   unsigned int family, const void *cfg,
-			   struct lwtunnel_state **ts)
+						   unsigned int family, const void *cfg,
+						   struct lwtunnel_state **ts)
 {
 	struct ila_params *p;
 	struct nlattr *tb[ILA_ATTR_MAX + 1];
@@ -69,9 +74,12 @@ static int ila_build_state(struct net_device *dev, struct nlattr *nla,
 	int ret;
 
 	if (family != AF_INET6)
+	{
 		return -EINVAL;
+	}
 
-	if (cfg6->fc_dst_len < sizeof(struct ila_locator) + 1) {
+	if (cfg6->fc_dst_len < sizeof(struct ila_locator) + 1)
+	{
 		/* Need to have full locator and at least type field
 		 * included in destination
 		 */
@@ -80,7 +88,8 @@ static int ila_build_state(struct net_device *dev, struct nlattr *nla,
 
 	iaddr = (struct ila_addr *)&cfg6->fc_dst;
 
-	if (!ila_addr_is_ila(iaddr) || ila_csum_neutral_set(iaddr->ident)) {
+	if (!ila_addr_is_ila(iaddr) || ila_csum_neutral_set(iaddr->ident))
+	{
 		/* Don't allow translation for a non-ILA address or checksum
 		 * neutral flag to be set.
 		 */
@@ -88,16 +97,24 @@ static int ila_build_state(struct net_device *dev, struct nlattr *nla,
 	}
 
 	ret = nla_parse_nested(tb, ILA_ATTR_MAX, nla,
-			       ila_nl_policy);
+						   ila_nl_policy);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (!tb[ILA_ATTR_LOCATOR])
+	{
 		return -EINVAL;
+	}
 
 	newts = lwtunnel_state_alloc(encap_len);
+
 	if (!newts)
+	{
 		return -ENOMEM;
+	}
 
 	newts->len = encap_len;
 	p = ila_params_lwtunnel(newts);
@@ -109,16 +126,18 @@ static int ila_build_state(struct net_device *dev, struct nlattr *nla,
 	 */
 	p->locator_match = iaddr->loc;
 	p->csum_diff = compute_csum_diff8(
-		(__be32 *)&p->locator_match, (__be32 *)&p->locator);
+					   (__be32 *)&p->locator_match, (__be32 *)&p->locator);
 
 	if (tb[ILA_ATTR_CSUM_MODE])
+	{
 		p->csum_mode = nla_get_u8(tb[ILA_ATTR_CSUM_MODE]);
+	}
 
 	ila_init_saved_csum(p);
 
 	newts->type = LWTUNNEL_ENCAP_ILA;
 	newts->flags |= LWTUNNEL_STATE_OUTPUT_REDIRECT |
-			LWTUNNEL_STATE_INPUT_REDIRECT;
+					LWTUNNEL_STATE_INPUT_REDIRECT;
 
 	*ts = newts;
 
@@ -126,15 +145,20 @@ static int ila_build_state(struct net_device *dev, struct nlattr *nla,
 }
 
 static int ila_fill_encap_info(struct sk_buff *skb,
-			       struct lwtunnel_state *lwtstate)
+							   struct lwtunnel_state *lwtstate)
 {
 	struct ila_params *p = ila_params_lwtunnel(lwtstate);
 
 	if (nla_put_u64_64bit(skb, ILA_ATTR_LOCATOR, (__force u64)p->locator.v64,
-			      ILA_ATTR_PAD))
+						  ILA_ATTR_PAD))
+	{
 		goto nla_put_failure;
+	}
+
 	if (nla_put_u8(skb, ILA_ATTR_CSUM_MODE, (__force u8)p->csum_mode))
+	{
 		goto nla_put_failure;
+	}
 
 	return 0;
 
@@ -145,8 +169,8 @@ nla_put_failure:
 static int ila_encap_nlsize(struct lwtunnel_state *lwtstate)
 {
 	return nla_total_size_64bit(sizeof(u64)) + /* ILA_ATTR_LOCATOR */
-	       nla_total_size(sizeof(u8)) +        /* ILA_ATTR_CSUM_MODE */
-	       0;
+		   nla_total_size(sizeof(u8)) +        /* ILA_ATTR_CSUM_MODE */
+		   0;
 }
 
 static int ila_encap_cmp(struct lwtunnel_state *a, struct lwtunnel_state *b)
@@ -157,7 +181,8 @@ static int ila_encap_cmp(struct lwtunnel_state *a, struct lwtunnel_state *b)
 	return (a_p->locator.v64 != b_p->locator.v64);
 }
 
-static const struct lwtunnel_encap_ops ila_encap_ops = {
+static const struct lwtunnel_encap_ops ila_encap_ops =
+{
 	.build_state = ila_build_state,
 	.output = ila_output,
 	.input = ila_input,

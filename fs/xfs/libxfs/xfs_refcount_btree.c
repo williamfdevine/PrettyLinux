@@ -41,8 +41,8 @@ xfs_refcountbt_dup_cursor(
 	struct xfs_btree_cur	*cur)
 {
 	return xfs_refcountbt_init_cursor(cur->bc_mp, cur->bc_tp,
-			cur->bc_private.a.agbp, cur->bc_private.a.agno,
-			cur->bc_private.a.dfops);
+									  cur->bc_private.a.agbp, cur->bc_private.a.agno,
+									  cur->bc_private.a.dfops);
 }
 
 STATIC void
@@ -64,7 +64,7 @@ xfs_refcountbt_set_root(
 	xfs_perag_put(pag);
 
 	xfs_alloc_log_agf(cur->bc_tp, agbp,
-			XFS_AGF_REFCOUNT_ROOT | XFS_AGF_REFCOUNT_LEVEL);
+					  XFS_AGF_REFCOUNT_ROOT | XFS_AGF_REFCOUNT_LEVEL);
 }
 
 STATIC int
@@ -86,22 +86,29 @@ xfs_refcountbt_alloc_block(
 	args.mp = cur->bc_mp;
 	args.type = XFS_ALLOCTYPE_NEAR_BNO;
 	args.fsbno = XFS_AGB_TO_FSB(cur->bc_mp, cur->bc_private.a.agno,
-			xfs_refc_block(args.mp));
+								xfs_refc_block(args.mp));
 	args.firstblock = args.fsbno;
 	xfs_rmap_ag_owner(&args.oinfo, XFS_RMAP_OWN_REFC);
 	args.minlen = args.maxlen = args.prod = 1;
 	args.resv = XFS_AG_RESV_METADATA;
 
 	error = xfs_alloc_vextent(&args);
+
 	if (error)
+	{
 		goto out_error;
+	}
+
 	trace_xfs_refcountbt_alloc_block(cur->bc_mp, cur->bc_private.a.agno,
-			args.agbno, 1);
-	if (args.fsbno == NULLFSBLOCK) {
+									 args.agbno, 1);
+
+	if (args.fsbno == NULLFSBLOCK)
+	{
 		XFS_BTREE_TRACE_CURSOR(cur, XBT_EXIT);
 		*stat = 0;
 		return 0;
 	}
+
 	ASSERT(args.agno == cur->bc_private.a.agno);
 	ASSERT(args.len == 1);
 
@@ -131,14 +138,17 @@ xfs_refcountbt_free_block(
 	int			error;
 
 	trace_xfs_refcountbt_free_block(cur->bc_mp, cur->bc_private.a.agno,
-			XFS_FSB_TO_AGBNO(cur->bc_mp, fsbno), 1);
+									XFS_FSB_TO_AGBNO(cur->bc_mp, fsbno), 1);
 	xfs_rmap_ag_owner(&oinfo, XFS_RMAP_OWN_REFC);
 	be32_add_cpu(&agf->agf_refcount_blocks, -1);
 	xfs_alloc_log_agf(cur->bc_tp, agbp, XFS_AGF_REFCOUNT_BLOCKS);
 	error = xfs_free_extent(cur->bc_tp, fsbno, 1, &oinfo,
-			XFS_AG_RESV_METADATA);
+							XFS_AG_RESV_METADATA);
+
 	if (error)
+	{
 		return error;
+	}
 
 	return error;
 }
@@ -220,7 +230,7 @@ xfs_refcountbt_diff_two_keys(
 	union xfs_btree_key	*k2)
 {
 	return (__int64_t)be32_to_cpu(k1->refc.rc_startblock) -
-			  be32_to_cpu(k2->refc.rc_startblock);
+		   be32_to_cpu(k2->refc.rc_startblock);
 }
 
 STATIC bool
@@ -233,19 +243,33 @@ xfs_refcountbt_verify(
 	unsigned int		level;
 
 	if (block->bb_magic != cpu_to_be32(XFS_REFC_CRC_MAGIC))
+	{
 		return false;
+	}
 
 	if (!xfs_sb_version_hasreflink(&mp->m_sb))
+	{
 		return false;
+	}
+
 	if (!xfs_btree_sblock_v5hdr_verify(bp))
+	{
 		return false;
+	}
 
 	level = be16_to_cpu(block->bb_level);
-	if (pag && pag->pagf_init) {
+
+	if (pag && pag->pagf_init)
+	{
 		if (level >= pag->pagf_refcount_level)
+		{
 			return false;
-	} else if (level >= mp->m_refc_maxlevels)
+		}
+	}
+	else if (level >= mp->m_refc_maxlevels)
+	{
 		return false;
+	}
 
 	return xfs_btree_sblock_verify(bp, mp->m_refc_mxr[level != 0]);
 }
@@ -255,11 +279,16 @@ xfs_refcountbt_read_verify(
 	struct xfs_buf	*bp)
 {
 	if (!xfs_btree_sblock_verify_crc(bp))
+	{
 		xfs_buf_ioerror(bp, -EFSBADCRC);
+	}
 	else if (!xfs_refcountbt_verify(bp))
+	{
 		xfs_buf_ioerror(bp, -EFSCORRUPTED);
+	}
 
-	if (bp->b_error) {
+	if (bp->b_error)
+	{
 		trace_xfs_btree_corrupt(bp, _RET_IP_);
 		xfs_verifier_error(bp);
 	}
@@ -269,17 +298,20 @@ STATIC void
 xfs_refcountbt_write_verify(
 	struct xfs_buf	*bp)
 {
-	if (!xfs_refcountbt_verify(bp)) {
+	if (!xfs_refcountbt_verify(bp))
+	{
 		trace_xfs_btree_corrupt(bp, _RET_IP_);
 		xfs_buf_ioerror(bp, -EFSCORRUPTED);
 		xfs_verifier_error(bp);
 		return;
 	}
+
 	xfs_btree_sblock_calc_crc(bp);
 
 }
 
-const struct xfs_buf_ops xfs_refcountbt_buf_ops = {
+const struct xfs_buf_ops xfs_refcountbt_buf_ops =
+{
 	.name			= "xfs_refcountbt",
 	.verify_read		= xfs_refcountbt_read_verify,
 	.verify_write		= xfs_refcountbt_write_verify,
@@ -293,7 +325,7 @@ xfs_refcountbt_keys_inorder(
 	union xfs_btree_key	*k2)
 {
 	return be32_to_cpu(k1->refc.rc_startblock) <
-	       be32_to_cpu(k2->refc.rc_startblock);
+		   be32_to_cpu(k2->refc.rc_startblock);
 }
 
 STATIC int
@@ -303,12 +335,13 @@ xfs_refcountbt_recs_inorder(
 	union xfs_btree_rec	*r2)
 {
 	return  be32_to_cpu(r1->refc.rc_startblock) +
-		be32_to_cpu(r1->refc.rc_blockcount) <=
-		be32_to_cpu(r2->refc.rc_startblock);
+			be32_to_cpu(r1->refc.rc_blockcount) <=
+			be32_to_cpu(r2->refc.rc_startblock);
 }
 #endif
 
-static const struct xfs_btree_ops xfs_refcountbt_ops = {
+static const struct xfs_btree_ops xfs_refcountbt_ops =
+{
 	.rec_len		= sizeof(struct xfs_refcount_rec),
 	.key_len		= sizeof(struct xfs_refcount_key),
 
@@ -380,9 +413,12 @@ xfs_refcountbt_maxrecs(
 	blocklen -= XFS_REFCOUNT_BLOCK_LEN;
 
 	if (leaf)
+	{
 		return blocklen / sizeof(struct xfs_refcount_rec);
+	}
+
 	return blocklen / (sizeof(struct xfs_refcount_key) +
-			   sizeof(xfs_refcount_ptr_t));
+					   sizeof(xfs_refcount_ptr_t));
 }
 
 /* Compute the maximum height of a refcount btree. */
@@ -391,7 +427,7 @@ xfs_refcountbt_compute_maxlevels(
 	struct xfs_mount		*mp)
 {
 	mp->m_refc_maxlevels = xfs_btree_compute_maxlevels(mp,
-			mp->m_refc_mnr, mp->m_sb.sb_agblocks);
+						   mp->m_refc_mnr, mp->m_sb.sb_agblocks);
 }
 
 /* Calculate the refcount btree size for some records. */
@@ -412,7 +448,9 @@ xfs_refcountbt_max_size(
 {
 	/* Bail out if we're uninitialized, which can happen in mkfs. */
 	if (mp->m_refc_mxr[0] == 0)
+	{
 		return 0;
+	}
 
 	return xfs_refcountbt_calc_size(mp, mp->m_sb.sb_agblocks);
 }
@@ -433,13 +471,18 @@ xfs_refcountbt_calc_reserves(
 	int			error;
 
 	if (!xfs_sb_version_hasreflink(&mp->m_sb))
+	{
 		return 0;
+	}
 
 	*ask += xfs_refcountbt_max_size(mp);
 
 	error = xfs_alloc_read_agf(mp, NULL, agno, 0, &agbp);
+
 	if (error)
+	{
 		return error;
+	}
 
 	agf = XFS_BUF_TO_AGF(agbp);
 	tree_len = be32_to_cpu(agf->agf_refcount_blocks);

@@ -24,67 +24,97 @@
 #include "nv40.h"
 
 const struct nvkm_specsrc
-nv50_zcull_sources[] = {
-	{ 0x402ca4, (const struct nvkm_specmux[]) {
+	nv50_zcull_sources[] =
+{
+	{
+		0x402ca4, (const struct nvkm_specmux[])
+		{
 			{ 0x7fff, 0, "unk0" },
 			{}
-		}, "pgraph_zcull_pm_unka4" },
+		}, "pgraph_zcull_pm_unka4"
+	},
 	{}
 };
 
 const struct nvkm_specsrc
-nv50_zrop_sources[] = {
-	{ 0x40708c, (const struct nvkm_specmux[]) {
+	nv50_zrop_sources[] =
+{
+	{
+		0x40708c, (const struct nvkm_specmux[])
+		{
 			{ 0xf, 0, "sel0", true },
 			{ 0xf, 16, "sel1", true },
 			{}
-		}, "pgraph_rop0_zrop_pm_mux" },
+		}, "pgraph_rop0_zrop_pm_mux"
+	},
 	{}
 };
 
 static const struct nvkm_specsrc
-nv50_prop_sources[] = {
-	{ 0x40be50, (const struct nvkm_specmux[]) {
+	nv50_prop_sources[] =
+{
+	{
+		0x40be50, (const struct nvkm_specmux[])
+		{
 			{ 0x1f, 0, "sel", true },
 			{}
-		}, "pgraph_tpc3_prop_pm_mux" },
+		}, "pgraph_tpc3_prop_pm_mux"
+	},
 	{}
 };
 
 static const struct nvkm_specsrc
-nv50_crop_sources[] = {
-        { 0x407008, (const struct nvkm_specmux[]) {
-                        { 0x7, 0, "sel0", true },
-                        { 0x7, 16, "sel1", true },
-                        {}
-                }, "pgraph_rop0_crop_pm_mux" },
-        {}
+	nv50_crop_sources[] =
+{
+	{
+		0x407008, (const struct nvkm_specmux[])
+		{
+			{ 0x7, 0, "sel0", true },
+			{ 0x7, 16, "sel1", true },
+			{}
+		}, "pgraph_rop0_crop_pm_mux"
+	},
+	{}
 };
 
 static const struct nvkm_specsrc
-nv50_tex_sources[] = {
-	{ 0x40b808, (const struct nvkm_specmux[]) {
+	nv50_tex_sources[] =
+{
+	{
+		0x40b808, (const struct nvkm_specmux[])
+		{
 			{ 0x3fff, 0, "unk0" },
 			{}
-		}, "pgraph_tpc3_tex_unk08" },
+		}, "pgraph_tpc3_tex_unk08"
+	},
 	{}
 };
 
 static const struct nvkm_specsrc
-nv50_vfetch_sources[] = {
-	{ 0x400c0c, (const struct nvkm_specmux[]) {
+	nv50_vfetch_sources[] =
+{
+	{
+		0x400c0c, (const struct nvkm_specmux[])
+		{
 			{ 0x1, 0, "unk0" },
 			{}
-		}, "pgraph_vfetch_unk0c" },
+		}, "pgraph_vfetch_unk0c"
+	},
 	{}
 };
 
 static const struct nvkm_specdom
-nv50_pm[] = {
-	{ 0x20, (const struct nvkm_specsig[]) {
+	nv50_pm[] =
+{
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
-	{ 0xf0, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0xf0, (const struct nvkm_specsig[])
+		{
 			{ 0xc8, "pc01_gr_idle" },
 			{ 0x7f, "pc01_strmout_00" },
 			{ 0x80, "pc01_strmout_01" },
@@ -131,8 +161,11 @@ nv50_pm[] = {
 			{ 0xae, "pc01_unk00" },
 			{ 0xee, "pc01_trailer" },
 			{}
-		}, &nv40_perfctr_func },
-	{ 0xf0, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0xf0, (const struct nvkm_specsig[])
+		{
 			{ 0x52, "pc02_crop_00", nv50_crop_sources },
 			{ 0x53, "pc02_crop_01", nv50_crop_sources },
 			{ 0x54, "pc02_crop_02", nv50_crop_sources },
@@ -158,13 +191,20 @@ nv50_pm[] = {
 			{ 0x6f, "pc02_zrop_03", nv50_zrop_sources },
 			{ 0xee, "pc02_trailer" },
 			{}
-		}, &nv40_perfctr_func },
-	{ 0x20, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
-	{ 0x20, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
+		}, &nv40_perfctr_func
+	},
 	{}
 };
 

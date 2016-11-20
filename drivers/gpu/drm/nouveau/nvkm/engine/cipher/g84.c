@@ -32,11 +32,13 @@
 
 static int
 g84_cipher_oclass_bind(struct nvkm_object *object, struct nvkm_gpuobj *parent,
-		       int align, struct nvkm_gpuobj **pgpuobj)
+					   int align, struct nvkm_gpuobj **pgpuobj)
 {
 	int ret = nvkm_gpuobj_new(object->engine->subdev.device, 16,
-				  align, false, parent, pgpuobj);
-	if (ret == 0) {
+							  align, false, parent, pgpuobj);
+
+	if (ret == 0)
+	{
 		nvkm_kmap(*pgpuobj);
 		nvkm_wo32(*pgpuobj, 0x00, object->oclass);
 		nvkm_wo32(*pgpuobj, 0x04, 0x00000000);
@@ -44,30 +46,34 @@ g84_cipher_oclass_bind(struct nvkm_object *object, struct nvkm_gpuobj *parent,
 		nvkm_wo32(*pgpuobj, 0x0c, 0x00000000);
 		nvkm_done(*pgpuobj);
 	}
+
 	return ret;
 }
 
 static const struct nvkm_object_func
-g84_cipher_oclass_func = {
+	g84_cipher_oclass_func =
+{
 	.bind = g84_cipher_oclass_bind,
 };
 
 static int
 g84_cipher_cclass_bind(struct nvkm_object *object, struct nvkm_gpuobj *parent,
-		       int align, struct nvkm_gpuobj **pgpuobj)
+					   int align, struct nvkm_gpuobj **pgpuobj)
 {
 	return nvkm_gpuobj_new(object->engine->subdev.device, 256,
-			       align, true, parent, pgpuobj);
+						   align, true, parent, pgpuobj);
 
 }
 
 static const struct nvkm_object_func
-g84_cipher_cclass = {
+	g84_cipher_cclass =
+{
 	.bind = g84_cipher_cclass_bind,
 };
 
 static const struct nvkm_bitfield
-g84_cipher_intr_mask[] = {
+	g84_cipher_intr_mask[] =
+{
 	{ 0x00000001, "INVALID_STATE" },
 	{ 0x00000002, "ILLEGAL_MTHD" },
 	{ 0x00000004, "ILLEGAL_CLASS" },
@@ -91,14 +97,17 @@ g84_cipher_intr(struct nvkm_engine *cipher)
 	char msg[128];
 
 	chan = nvkm_fifo_chan_inst(fifo, (u64)inst << 12, &flags);
-	if (stat) {
+
+	if (stat)
+	{
 		nvkm_snprintbf(msg, sizeof(msg), g84_cipher_intr_mask, stat);
 		nvkm_error(subdev,  "%08x [%s] ch %d [%010llx %s] "
-				    "mthd %04x data %08x\n", stat, msg,
-			   chan ? chan->chid : -1, (u64)inst << 12,
-			   chan ? chan->object.client->name : "unknown",
-			   mthd, data);
+				   "mthd %04x data %08x\n", stat, msg,
+				   chan ? chan->chid : -1, (u64)inst << 12,
+				   chan ? chan->object.client->name : "unknown",
+				   mthd, data);
 	}
+
 	nvkm_fifo_chan_put(fifo, flags, &chan);
 
 	nvkm_wr32(device, 0x102130, stat);
@@ -116,7 +125,8 @@ g84_cipher_init(struct nvkm_engine *cipher)
 }
 
 static const struct nvkm_engine_func
-g84_cipher = {
+	g84_cipher =
+{
 	.init = g84_cipher_init,
 	.intr = g84_cipher_intr,
 	.cclass = &g84_cipher_cclass,
@@ -128,7 +138,7 @@ g84_cipher = {
 
 int
 g84_cipher_new(struct nvkm_device *device, int index,
-	       struct nvkm_engine **pengine)
+			   struct nvkm_engine **pengine)
 {
 	return nvkm_engine_new_(&g84_cipher, device, index, true, pengine);
 }

@@ -21,7 +21,8 @@
 typedef unsigned short	apm_event_t;
 typedef unsigned short	apm_eventinfo_t;
 
-struct apm_bios_info {
+struct apm_bios_info
+{
 	__u16	version;
 	__u16	cseg;
 	__u32	offset;

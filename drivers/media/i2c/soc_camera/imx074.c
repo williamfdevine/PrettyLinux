@@ -70,18 +70,21 @@
 #define IMX074_HEIGHT			780
 
 /* IMX074 has only one fixed colorspace per pixelcode */
-struct imx074_datafmt {
+struct imx074_datafmt
+{
 	u32	code;
 	enum v4l2_colorspace		colorspace;
 };
 
-struct imx074 {
+struct imx074
+{
 	struct v4l2_subdev		subdev;
 	const struct imx074_datafmt	*fmt;
 	struct v4l2_clk			*clk;
 };
 
-static const struct imx074_datafmt imx074_colour_fmts[] = {
+static const struct imx074_datafmt imx074_colour_fmts[] =
+{
 	{MEDIA_BUS_FMT_SBGGR8_1X8, V4L2_COLORSPACE_SRGB},
 };
 
@@ -97,7 +100,9 @@ static const struct imx074_datafmt *imx074_find_datafmt(u32 code)
 
 	for (i = 0; i < ARRAY_SIZE(imx074_colour_fmts); i++)
 		if (imx074_colour_fmts[i].code == code)
+		{
 			return imx074_colour_fmts + i;
+		}
 
 	return NULL;
 }
@@ -129,7 +134,8 @@ static int reg_read(struct i2c_client *client, const u16 addr)
 {
 	u8 buf[2] = {addr >> 8, addr & 0xff};
 	int ret;
-	struct i2c_msg msgs[] = {
+	struct i2c_msg msgs[] =
+	{
 		{
 			.addr  = client->addr,
 			.flags = 0,
@@ -144,9 +150,11 @@ static int reg_read(struct i2c_client *client, const u16 addr)
 	};
 
 	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_warn(&client->dev, "Reading register %x from %x failed\n",
-			 addr, client->addr);
+				 addr, client->addr);
 		return ret;
 	}
 
@@ -154,8 +162,8 @@ static int reg_read(struct i2c_client *client, const u16 addr)
 }
 
 static int imx074_set_fmt(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_format *format)
+						  struct v4l2_subdev_pad_config *cfg,
+						  struct v4l2_subdev_format *format)
 {
 	struct v4l2_mbus_framefmt *mf = &format->format;
 	const struct imx074_datafmt *fmt = imx074_find_datafmt(mf->code);
@@ -163,14 +171,20 @@ static int imx074_set_fmt(struct v4l2_subdev *sd,
 	struct imx074 *priv = to_imx074(client);
 
 	if (format->pad)
+	{
 		return -EINVAL;
+	}
 
 	dev_dbg(sd->v4l2_dev->dev, "%s(%u)\n", __func__, mf->code);
 
-	if (!fmt) {
+	if (!fmt)
+	{
 		/* MIPI CSI could have changed the format, double-check */
 		if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+		{
 			return -EINVAL;
+		}
+
 		mf->code	= imx074_colour_fmts[0].code;
 		mf->colorspace	= imx074_colour_fmts[0].colorspace;
 	}
@@ -180,16 +194,20 @@ static int imx074_set_fmt(struct v4l2_subdev *sd,
 	mf->field	= V4L2_FIELD_NONE;
 
 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+	{
 		priv->fmt = imx074_find_datafmt(mf->code);
+	}
 	else
+	{
 		cfg->try_fmt = *mf;
+	}
 
 	return 0;
 }
 
 static int imx074_get_fmt(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_format *format)
+						  struct v4l2_subdev_pad_config *cfg,
+						  struct v4l2_subdev_format *format)
 {
 	struct v4l2_mbus_framefmt *mf = &format->format;
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
@@ -198,7 +216,9 @@ static int imx074_get_fmt(struct v4l2_subdev *sd,
 	const struct imx074_datafmt *fmt = priv->fmt;
 
 	if (format->pad)
+	{
 		return -EINVAL;
+	}
 
 	mf->code	= fmt->code;
 	mf->colorspace	= fmt->colorspace;
@@ -210,34 +230,40 @@ static int imx074_get_fmt(struct v4l2_subdev *sd,
 }
 
 static int imx074_get_selection(struct v4l2_subdev *sd,
-				struct v4l2_subdev_pad_config *cfg,
-				struct v4l2_subdev_selection *sel)
+								struct v4l2_subdev_pad_config *cfg,
+								struct v4l2_subdev_selection *sel)
 {
 	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+	{
 		return -EINVAL;
+	}
 
 	sel->r.left = 0;
 	sel->r.top = 0;
 	sel->r.width = IMX074_WIDTH;
 	sel->r.height = IMX074_HEIGHT;
 
-	switch (sel->target) {
-	case V4L2_SEL_TGT_CROP_BOUNDS:
-	case V4L2_SEL_TGT_CROP_DEFAULT:
-	case V4L2_SEL_TGT_CROP:
-		return 0;
-	default:
-		return -EINVAL;
+	switch (sel->target)
+	{
+		case V4L2_SEL_TGT_CROP_BOUNDS:
+		case V4L2_SEL_TGT_CROP_DEFAULT:
+		case V4L2_SEL_TGT_CROP:
+			return 0;
+
+		default:
+			return -EINVAL;
 	}
 }
 
 static int imx074_enum_mbus_code(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_mbus_code_enum *code)
+								 struct v4l2_subdev_pad_config *cfg,
+								 struct v4l2_subdev_mbus_code_enum *code)
 {
 	if (code->pad ||
-	    (unsigned int)code->index >= ARRAY_SIZE(imx074_colour_fmts))
+		(unsigned int)code->index >= ARRAY_SIZE(imx074_colour_fmts))
+	{
 		return -EINVAL;
+	}
 
 	code->code = imx074_colour_fmts[code->index].code;
 	return 0;
@@ -261,33 +287,37 @@ static int imx074_s_power(struct v4l2_subdev *sd, int on)
 }
 
 static int imx074_g_mbus_config(struct v4l2_subdev *sd,
-				struct v4l2_mbus_config *cfg)
+								struct v4l2_mbus_config *cfg)
 {
 	cfg->type = V4L2_MBUS_CSI2;
 	cfg->flags = V4L2_MBUS_CSI2_2_LANE |
-		V4L2_MBUS_CSI2_CHANNEL_0 |
-		V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
+				 V4L2_MBUS_CSI2_CHANNEL_0 |
+				 V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
 
 	return 0;
 }
 
-static struct v4l2_subdev_video_ops imx074_subdev_video_ops = {
+static struct v4l2_subdev_video_ops imx074_subdev_video_ops =
+{
 	.s_stream	= imx074_s_stream,
 	.g_mbus_config	= imx074_g_mbus_config,
 };
 
-static struct v4l2_subdev_core_ops imx074_subdev_core_ops = {
+static struct v4l2_subdev_core_ops imx074_subdev_core_ops =
+{
 	.s_power	= imx074_s_power,
 };
 
-static const struct v4l2_subdev_pad_ops imx074_subdev_pad_ops = {
+static const struct v4l2_subdev_pad_ops imx074_subdev_pad_ops =
+{
 	.enum_mbus_code = imx074_enum_mbus_code,
 	.get_selection	= imx074_get_selection,
 	.get_fmt	= imx074_get_fmt,
 	.set_fmt	= imx074_set_fmt,
 };
 
-static struct v4l2_subdev_ops imx074_subdev_ops = {
+static struct v4l2_subdev_ops imx074_subdev_ops =
+{
 	.core	= &imx074_subdev_core_ops,
 	.video	= &imx074_subdev_video_ops,
 	.pad	= &imx074_subdev_pad_ops,
@@ -300,25 +330,35 @@ static int imx074_video_probe(struct i2c_client *client)
 	u16 id;
 
 	ret = imx074_s_power(subdev, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Read sensor Model ID */
 	ret = reg_read(client, 0);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	id = ret << 8;
 
 	ret = reg_read(client, 1);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	id |= ret;
 
 	dev_info(&client->dev, "Chip ID 0x%04x detected\n", id);
 
-	if (id != 0x74) {
+	if (id != 0x74)
+	{
 		ret = -ENODEV;
 		goto done;
 	}
@@ -411,49 +451,65 @@ done:
 }
 
 static int imx074_probe(struct i2c_client *client,
-			const struct i2c_device_id *did)
+						const struct i2c_device_id *did)
 {
 	struct imx074 *priv;
 	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
 	int ret;
 
-	if (!ssdd) {
+	if (!ssdd)
+	{
 		dev_err(&client->dev, "IMX074: missing platform data!\n");
 		return -EINVAL;
 	}
 
-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		dev_warn(&adapter->dev,
-			 "I2C-Adapter doesn't support I2C_FUNC_SMBUS_BYTE\n");
+				 "I2C-Adapter doesn't support I2C_FUNC_SMBUS_BYTE\n");
 		return -EIO;
 	}
 
 	priv = devm_kzalloc(&client->dev, sizeof(struct imx074), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	v4l2_i2c_subdev_init(&priv->subdev, client, &imx074_subdev_ops);
 
 	priv->fmt	= &imx074_colour_fmts[0];
 
 	priv->clk = v4l2_clk_get(&client->dev, "mclk");
-	if (IS_ERR(priv->clk)) {
+
+	if (IS_ERR(priv->clk))
+	{
 		dev_info(&client->dev, "Error %ld getting clock\n", PTR_ERR(priv->clk));
 		return -EPROBE_DEFER;
 	}
 
 	ret = soc_camera_power_init(&client->dev, ssdd);
+
 	if (ret < 0)
+	{
 		goto epwrinit;
+	}
 
 	ret = imx074_video_probe(client);
+
 	if (ret < 0)
+	{
 		goto eprobe;
+	}
 
 	ret = v4l2_async_register_subdev(&priv->subdev);
+
 	if (!ret)
+	{
 		return 0;
+	}
 
 epwrinit:
 eprobe:
@@ -470,18 +526,22 @@ static int imx074_remove(struct i2c_client *client)
 	v4l2_clk_put(priv->clk);
 
 	if (ssdd->free_bus)
+	{
 		ssdd->free_bus(ssdd);
+	}
 
 	return 0;
 }
 
-static const struct i2c_device_id imx074_id[] = {
+static const struct i2c_device_id imx074_id[] =
+{
 	{ "imx074", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, imx074_id);
 
-static struct i2c_driver imx074_i2c_driver = {
+static struct i2c_driver imx074_i2c_driver =
+{
 	.driver = {
 		.name = "imx074",
 	},

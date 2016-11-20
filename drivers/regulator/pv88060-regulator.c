@@ -29,7 +29,8 @@
 #define PV88060_MAX_REGULATORS	14
 
 /* PV88060 REGULATOR IDs */
-enum {
+enum
+{
 	/* BUCKs */
 	PV88060_ID_BUCK1,
 
@@ -51,7 +52,8 @@ enum {
 	PV88060_ID_SW6,
 };
 
-struct pv88060_regulator {
+struct pv88060_regulator
+{
 	struct regulator_desc desc;
 	/* Current limiting */
 	unsigned	n_current_limits;
@@ -60,13 +62,15 @@ struct pv88060_regulator {
 	unsigned int conf;		/* buck configuration register */
 };
 
-struct pv88060 {
+struct pv88060
+{
 	struct device *dev;
 	struct regmap *regmap;
 	struct regulator_dev *rdev[PV88060_MAX_REGULATORS];
 };
 
-static const struct regmap_config pv88060_regmap_config = {
+static const struct regmap_config pv88060_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 };
@@ -75,7 +79,8 @@ static const struct regmap_config pv88060_regmap_config = {
  * Entry indexes corresponds to register values.
  */
 
-static const int pv88060_buck1_limits[] = {
+static const int pv88060_buck1_limits[] =
+{
 	1496000, 2393000, 3291000, 4189000
 };
 
@@ -86,62 +91,74 @@ static unsigned int pv88060_buck_get_mode(struct regulator_dev *rdev)
 	int ret, mode = 0;
 
 	ret = regmap_read(rdev->regmap, info->conf, &data);
-	if (ret < 0)
-		return ret;
 
-	switch (data & PV88060_BUCK_MODE_MASK) {
-	case PV88060_BUCK_MODE_SYNC:
-		mode = REGULATOR_MODE_FAST;
-		break;
-	case PV88060_BUCK_MODE_AUTO:
-		mode = REGULATOR_MODE_NORMAL;
-		break;
-	case PV88060_BUCK_MODE_SLEEP:
-		mode = REGULATOR_MODE_STANDBY;
-		break;
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	switch (data & PV88060_BUCK_MODE_MASK)
+	{
+		case PV88060_BUCK_MODE_SYNC:
+			mode = REGULATOR_MODE_FAST;
+			break;
+
+		case PV88060_BUCK_MODE_AUTO:
+			mode = REGULATOR_MODE_NORMAL;
+			break;
+
+		case PV88060_BUCK_MODE_SLEEP:
+			mode = REGULATOR_MODE_STANDBY;
+			break;
 	}
 
 	return mode;
 }
 
 static int pv88060_buck_set_mode(struct regulator_dev *rdev,
-					unsigned int mode)
+								 unsigned int mode)
 {
 	struct pv88060_regulator *info = rdev_get_drvdata(rdev);
 	int val = 0;
 
-	switch (mode) {
-	case REGULATOR_MODE_FAST:
-		val = PV88060_BUCK_MODE_SYNC;
-		break;
-	case REGULATOR_MODE_NORMAL:
-		val = PV88060_BUCK_MODE_AUTO;
-		break;
-	case REGULATOR_MODE_STANDBY:
-		val = PV88060_BUCK_MODE_SLEEP;
-		break;
-	default:
-		return -EINVAL;
+	switch (mode)
+	{
+		case REGULATOR_MODE_FAST:
+			val = PV88060_BUCK_MODE_SYNC;
+			break;
+
+		case REGULATOR_MODE_NORMAL:
+			val = PV88060_BUCK_MODE_AUTO;
+			break;
+
+		case REGULATOR_MODE_STANDBY:
+			val = PV88060_BUCK_MODE_SLEEP;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return regmap_update_bits(rdev->regmap, info->conf,
-					PV88060_BUCK_MODE_MASK, val);
+							  PV88060_BUCK_MODE_MASK, val);
 }
 
 static int pv88060_set_current_limit(struct regulator_dev *rdev, int min,
-				    int max)
+									 int max)
 {
 	struct pv88060_regulator *info = rdev_get_drvdata(rdev);
 	int i;
 
 	/* search for closest to maximum */
-	for (i = info->n_current_limits; i >= 0; i--) {
+	for (i = info->n_current_limits; i >= 0; i--)
+	{
 		if (min <= info->current_limits[i]
-			&& max >= info->current_limits[i]) {
+			&& max >= info->current_limits[i])
+		{
 			return regmap_update_bits(rdev->regmap,
-				info->conf,
-				info->limit_mask,
-				i << PV88060_BUCK_ILIM_SHIFT);
+									  info->conf,
+									  info->limit_mask,
+									  i << PV88060_BUCK_ILIM_SHIFT);
 		}
 	}
 
@@ -155,14 +172,18 @@ static int pv88060_get_current_limit(struct regulator_dev *rdev)
 	int ret;
 
 	ret = regmap_read(rdev->regmap, info->conf, &data);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	data = (data & info->limit_mask) >> PV88060_BUCK_ILIM_SHIFT;
 	return info->current_limits[data];
 }
 
-static struct regulator_ops pv88060_buck_ops = {
+static struct regulator_ops pv88060_buck_ops =
+{
 	.get_mode = pv88060_buck_get_mode,
 	.set_mode = pv88060_buck_set_mode,
 	.enable = regulator_enable_regmap,
@@ -175,7 +196,8 @@ static struct regulator_ops pv88060_buck_ops = {
 	.get_current_limit = pv88060_get_current_limit,
 };
 
-static struct regulator_ops pv88060_ldo_ops = {
+static struct regulator_ops pv88060_ldo_ops =
+{
 	.enable = regulator_enable_regmap,
 	.disable = regulator_disable_regmap,
 	.is_enabled = regulator_is_enabled_regmap,
@@ -185,70 +207,71 @@ static struct regulator_ops pv88060_ldo_ops = {
 };
 
 #define PV88060_BUCK(chip, regl_name, min, step, max, limits_array) \
-{\
-	.desc	=	{\
-		.id = chip##_ID_##regl_name,\
-		.name = __stringify(chip##_##regl_name),\
-		.of_match = of_match_ptr(#regl_name),\
-		.regulators_node = of_match_ptr("regulators"),\
-		.type = REGULATOR_VOLTAGE,\
-		.owner = THIS_MODULE,\
-		.ops = &pv88060_buck_ops,\
-		.min_uV = min,\
-		.uV_step = step,\
-		.n_voltages = ((max) - (min))/(step) + 1,\
-		.enable_reg = PV88060_REG_##regl_name##_CONF0,\
-		.enable_mask = PV88060_BUCK_EN, \
-		.vsel_reg = PV88060_REG_##regl_name##_CONF0,\
-		.vsel_mask = PV88060_VBUCK_MASK,\
-	},\
-	.current_limits = limits_array,\
-	.n_current_limits = ARRAY_SIZE(limits_array),\
-	.limit_mask = PV88060_BUCK_ILIM_MASK, \
-	.conf = PV88060_REG_##regl_name##_CONF1,\
-}
+	{\
+		.desc	=	{\
+					 .id = chip##_ID_##regl_name,\
+					 .name = __stringify(chip##_##regl_name),\
+					 .of_match = of_match_ptr(#regl_name),\
+					 .regulators_node = of_match_ptr("regulators"),\
+					 .type = REGULATOR_VOLTAGE,\
+					 .owner = THIS_MODULE,\
+					 .ops = &pv88060_buck_ops,\
+					 .min_uV = min,\
+					 .uV_step = step,\
+					 .n_voltages = ((max) - (min))/(step) + 1,\
+					 .enable_reg = PV88060_REG_##regl_name##_CONF0,\
+					 .enable_mask = PV88060_BUCK_EN, \
+					 .vsel_reg = PV88060_REG_##regl_name##_CONF0,\
+					 .vsel_mask = PV88060_VBUCK_MASK,\
+				},\
+					.current_limits = limits_array,\
+									  .n_current_limits = ARRAY_SIZE(limits_array),\
+											  .limit_mask = PV88060_BUCK_ILIM_MASK, \
+													  .conf = PV88060_REG_##regl_name##_CONF1,\
+	}
 
 #define PV88060_LDO(chip, regl_name, min, step, max) \
-{\
-	.desc	=	{\
-		.id = chip##_ID_##regl_name,\
-		.name = __stringify(chip##_##regl_name),\
-		.of_match = of_match_ptr(#regl_name),\
-		.regulators_node = of_match_ptr("regulators"),\
-		.type = REGULATOR_VOLTAGE,\
-		.owner = THIS_MODULE,\
-		.ops = &pv88060_ldo_ops,\
-		.min_uV = min, \
-		.uV_step = step, \
-		.n_voltages = (step) ? ((max - min) / step + 1) : 1, \
-		.enable_reg = PV88060_REG_##regl_name##_CONF, \
-		.enable_mask = PV88060_LDO_EN, \
-		.vsel_reg = PV88060_REG_##regl_name##_CONF, \
-		.vsel_mask = PV88060_VLDO_MASK, \
-	},\
-}
+	{\
+		.desc	=	{\
+					 .id = chip##_ID_##regl_name,\
+					 .name = __stringify(chip##_##regl_name),\
+					 .of_match = of_match_ptr(#regl_name),\
+					 .regulators_node = of_match_ptr("regulators"),\
+					 .type = REGULATOR_VOLTAGE,\
+					 .owner = THIS_MODULE,\
+					 .ops = &pv88060_ldo_ops,\
+					 .min_uV = min, \
+					 .uV_step = step, \
+					 .n_voltages = (step) ? ((max - min) / step + 1) : 1, \
+					 .enable_reg = PV88060_REG_##regl_name##_CONF, \
+					 .enable_mask = PV88060_LDO_EN, \
+					 .vsel_reg = PV88060_REG_##regl_name##_CONF, \
+					 .vsel_mask = PV88060_VLDO_MASK, \
+				},\
+	}
 
 #define PV88060_SW(chip, regl_name, max) \
-{\
-	.desc	=	{\
-		.id = chip##_ID_##regl_name,\
-		.name = __stringify(chip##_##regl_name),\
-		.of_match = of_match_ptr(#regl_name),\
-		.regulators_node = of_match_ptr("regulators"),\
-		.type = REGULATOR_VOLTAGE,\
-		.owner = THIS_MODULE,\
-		.ops = &pv88060_ldo_ops,\
-		.min_uV = max,\
-		.uV_step = 0,\
-		.n_voltages = 1,\
-		.enable_reg = PV88060_REG_##regl_name##_CONF,\
-		.enable_mask = PV88060_SW_EN,\
-	},\
-}
+	{\
+		.desc	=	{\
+					 .id = chip##_ID_##regl_name,\
+					 .name = __stringify(chip##_##regl_name),\
+					 .of_match = of_match_ptr(#regl_name),\
+					 .regulators_node = of_match_ptr("regulators"),\
+					 .type = REGULATOR_VOLTAGE,\
+					 .owner = THIS_MODULE,\
+					 .ops = &pv88060_ldo_ops,\
+					 .min_uV = max,\
+					 .uV_step = 0,\
+					 .n_voltages = 1,\
+					 .enable_reg = PV88060_REG_##regl_name##_CONF,\
+					 .enable_mask = PV88060_SW_EN,\
+				},\
+	}
 
-static const struct pv88060_regulator pv88060_regulator_info[] = {
+static const struct pv88060_regulator pv88060_regulator_info[] =
+{
 	PV88060_BUCK(PV88060, BUCK1, 2800000, 12500, 4387500,
-		pv88060_buck1_limits),
+	pv88060_buck1_limits),
 	PV88060_LDO(PV88060, LDO1, 1200000, 50000, 3350000),
 	PV88060_LDO(PV88060, LDO2, 1200000, 50000, 3350000),
 	PV88060_LDO(PV88060, LDO3, 1200000, 50000, 3350000),
@@ -270,39 +293,54 @@ static irqreturn_t pv88060_irq_handler(int irq, void *data)
 	int i, reg_val, err, ret = IRQ_NONE;
 
 	err = regmap_read(chip->regmap, PV88060_REG_EVENT_A, &reg_val);
-	if (err < 0)
-		goto error_i2c;
 
-	if (reg_val & PV88060_E_VDD_FLT) {
-		for (i = 0; i < PV88060_MAX_REGULATORS; i++) {
-			if (chip->rdev[i] != NULL) {
+	if (err < 0)
+	{
+		goto error_i2c;
+	}
+
+	if (reg_val & PV88060_E_VDD_FLT)
+	{
+		for (i = 0; i < PV88060_MAX_REGULATORS; i++)
+		{
+			if (chip->rdev[i] != NULL)
+			{
 				regulator_notifier_call_chain(chip->rdev[i],
-					REGULATOR_EVENT_UNDER_VOLTAGE,
-					NULL);
+											  REGULATOR_EVENT_UNDER_VOLTAGE,
+											  NULL);
 			}
 		}
 
 		err = regmap_write(chip->regmap, PV88060_REG_EVENT_A,
-			PV88060_E_VDD_FLT);
+						   PV88060_E_VDD_FLT);
+
 		if (err < 0)
+		{
 			goto error_i2c;
+		}
 
 		ret = IRQ_HANDLED;
 	}
 
-	if (reg_val & PV88060_E_OVER_TEMP) {
-		for (i = 0; i < PV88060_MAX_REGULATORS; i++) {
-			if (chip->rdev[i] != NULL) {
+	if (reg_val & PV88060_E_OVER_TEMP)
+	{
+		for (i = 0; i < PV88060_MAX_REGULATORS; i++)
+		{
+			if (chip->rdev[i] != NULL)
+			{
 				regulator_notifier_call_chain(chip->rdev[i],
-					REGULATOR_EVENT_OVER_TEMP,
-					NULL);
+											  REGULATOR_EVENT_OVER_TEMP,
+											  NULL);
 			}
 		}
 
 		err = regmap_write(chip->regmap, PV88060_REG_EVENT_A,
-			PV88060_E_OVER_TEMP);
+						   PV88060_E_OVER_TEMP);
+
 		if (err < 0)
+		{
 			goto error_i2c;
+		}
 
 		ret = IRQ_HANDLED;
 	}
@@ -318,7 +356,7 @@ error_i2c:
  * I2C driver interface functions
  */
 static int pv88060_i2c_probe(struct i2c_client *i2c,
-		const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	struct regulator_init_data *init_data = dev_get_platdata(&i2c->dev);
 	struct pv88060 *chip;
@@ -326,77 +364,100 @@ static int pv88060_i2c_probe(struct i2c_client *i2c,
 	int error, i, ret = 0;
 
 	chip = devm_kzalloc(&i2c->dev, sizeof(struct pv88060), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
 
 	chip->dev = &i2c->dev;
 	chip->regmap = devm_regmap_init_i2c(i2c, &pv88060_regmap_config);
-	if (IS_ERR(chip->regmap)) {
+
+	if (IS_ERR(chip->regmap))
+	{
 		error = PTR_ERR(chip->regmap);
 		dev_err(chip->dev, "Failed to allocate register map: %d\n",
-			error);
+				error);
 		return error;
 	}
 
 	i2c_set_clientdata(i2c, chip);
 
-	if (i2c->irq != 0) {
+	if (i2c->irq != 0)
+	{
 		ret = regmap_write(chip->regmap, PV88060_REG_MASK_A, 0xFF);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(chip->dev,
-				"Failed to mask A reg: %d\n", ret);
+					"Failed to mask A reg: %d\n", ret);
 			return ret;
 		}
 
 		ret = regmap_write(chip->regmap, PV88060_REG_MASK_B, 0xFF);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(chip->dev,
-				"Failed to mask B reg: %d\n", ret);
+					"Failed to mask B reg: %d\n", ret);
 			return ret;
 		}
 
 		ret = regmap_write(chip->regmap, PV88060_REG_MASK_C, 0xFF);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(chip->dev,
-				"Failed to mask C reg: %d\n", ret);
+					"Failed to mask C reg: %d\n", ret);
 			return ret;
 		}
 
 		ret = devm_request_threaded_irq(&i2c->dev, i2c->irq, NULL,
-					pv88060_irq_handler,
-					IRQF_TRIGGER_LOW|IRQF_ONESHOT,
-					"pv88060", chip);
-		if (ret != 0) {
+										pv88060_irq_handler,
+										IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+										"pv88060", chip);
+
+		if (ret != 0)
+		{
 			dev_err(chip->dev, "Failed to request IRQ: %d\n",
-				i2c->irq);
+					i2c->irq);
 			return ret;
 		}
 
 		ret = regmap_update_bits(chip->regmap, PV88060_REG_MASK_A,
-			PV88060_M_VDD_FLT | PV88060_M_OVER_TEMP, 0);
-		if (ret < 0) {
+								 PV88060_M_VDD_FLT | PV88060_M_OVER_TEMP, 0);
+
+		if (ret < 0)
+		{
 			dev_err(chip->dev,
-				"Failed to update mask reg: %d\n", ret);
+					"Failed to update mask reg: %d\n", ret);
 			return ret;
 		}
 
-	} else {
+	}
+	else
+	{
 		dev_warn(chip->dev, "No IRQ configured\n");
 	}
 
 	config.dev = chip->dev;
 	config.regmap = chip->regmap;
 
-	for (i = 0; i < PV88060_MAX_REGULATORS; i++) {
+	for (i = 0; i < PV88060_MAX_REGULATORS; i++)
+	{
 		if (init_data)
+		{
 			config.init_data = &init_data[i];
+		}
 
 		config.driver_data = (void *)&pv88060_regulator_info[i];
 		chip->rdev[i] = devm_regulator_register(chip->dev,
-			&pv88060_regulator_info[i].desc, &config);
-		if (IS_ERR(chip->rdev[i])) {
+												&pv88060_regulator_info[i].desc, &config);
+
+		if (IS_ERR(chip->rdev[i]))
+		{
 			dev_err(chip->dev,
-				"Failed to register PV88060 regulator\n");
+					"Failed to register PV88060 regulator\n");
 			return PTR_ERR(chip->rdev[i]);
 		}
 	}
@@ -404,21 +465,24 @@ static int pv88060_i2c_probe(struct i2c_client *i2c,
 	return 0;
 }
 
-static const struct i2c_device_id pv88060_i2c_id[] = {
+static const struct i2c_device_id pv88060_i2c_id[] =
+{
 	{"pv88060", 0},
 	{},
 };
 MODULE_DEVICE_TABLE(i2c, pv88060_i2c_id);
 
 #ifdef CONFIG_OF
-static const struct of_device_id pv88060_dt_ids[] = {
+static const struct of_device_id pv88060_dt_ids[] =
+{
 	{ .compatible = "pvs,pv88060", .data = &pv88060_i2c_id[0] },
 	{},
 };
 MODULE_DEVICE_TABLE(of, pv88060_dt_ids);
 #endif
 
-static struct i2c_driver pv88060_regulator_driver = {
+static struct i2c_driver pv88060_regulator_driver =
+{
 	.driver = {
 		.name = "pv88060",
 		.of_match_table = of_match_ptr(pv88060_dt_ids),

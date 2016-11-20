@@ -51,7 +51,8 @@
  * Furthermore, commands that are compliant with the MIPI DCS have been left
  * out as well to avoid duplicate entries.
  */
-enum st7789v_command {
+enum st7789v_command
+{
 	PORCTRL = 0xB2,
 	GCTRL = 0xB7,
 	VCOMS = 0xBB,
@@ -144,22 +145,31 @@ static int set_var(struct fbtft_par *par)
 	u8 madctl_par = 0;
 
 	if (par->bgr)
+	{
 		madctl_par |= MADCTL_BGR;
-	switch (par->info->var.rotate) {
-	case 0:
-		break;
-	case 90:
-		madctl_par |= (MADCTL_MV | MADCTL_MY);
-		break;
-	case 180:
-		madctl_par |= (MADCTL_MX | MADCTL_MY);
-		break;
-	case 270:
-		madctl_par |= (MADCTL_MV | MADCTL_MX);
-		break;
-	default:
-		return -EINVAL;
 	}
+
+	switch (par->info->var.rotate)
+	{
+		case 0:
+			break;
+
+		case 90:
+			madctl_par |= (MADCTL_MV | MADCTL_MY);
+			break;
+
+		case 180:
+			madctl_par |= (MADCTL_MX | MADCTL_MY);
+			break;
+
+		case 270:
+			madctl_par |= (MADCTL_MV | MADCTL_MX);
+			break;
+
+		default:
+			return -EINVAL;
+	}
+
 	write_reg(par, MIPI_DCS_SET_ADDRESS_MODE, madctl_par);
 	return 0;
 }
@@ -189,7 +199,8 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 	 * The masks are the same for both positive and negative voltage
 	 * gamma curves.
 	 */
-	const u8 gamma_par_mask[] = {
+	const u8 gamma_par_mask[] =
+	{
 		0xFF, /* V63[3:0], V0[3:0]*/
 		0x3F, /* V1[5:0] */
 		0x3F, /* V2[5:0] */
@@ -206,10 +217,15 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 		0x3F, /* V62[5:0] */
 	};
 
-	for (i = 0; i < par->gamma.num_curves; i++) {
+	for (i = 0; i < par->gamma.num_curves; i++)
+	{
 		c = i * par->gamma.num_values;
+
 		for (j = 0; j < par->gamma.num_values; j++)
+		{
 			curves[c + j] &= gamma_par_mask[j];
+		}
+
 		write_reg(
 			par, PVGAMCTRL + i,
 			curves[c + 0], curves[c + 1], curves[c + 2],
@@ -218,6 +234,7 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 			curves[c + 9], curves[c + 10], curves[c + 11],
 			curves[c + 12], curves[c + 13]);
 	}
+
 	return 0;
 }
 
@@ -232,13 +249,19 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 static int blank(struct fbtft_par *par, bool on)
 {
 	if (on)
+	{
 		write_reg(par, MIPI_DCS_SET_DISPLAY_OFF);
+	}
 	else
+	{
 		write_reg(par, MIPI_DCS_SET_DISPLAY_ON);
+	}
+
 	return 0;
 }
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 8,
 	.width = 240,
 	.height = 320,

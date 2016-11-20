@@ -29,7 +29,8 @@
  * can be set to NULL. The AC97C driver will take use of this when setting up
  * the sound streams.
  */
-struct ac97c_platform_data {
+struct ac97c_platform_data
+{
 	struct dw_dma_slave	rx_dws;
 	struct dw_dma_slave	tx_dws;
 	int			reset_pin;

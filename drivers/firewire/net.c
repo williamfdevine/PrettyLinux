@@ -66,7 +66,8 @@ static bool fwnet_hwaddr_is_multicast(u8 *ha)
 }
 
 /* IPv4 and IPv6 encapsulation header */
-struct rfc2734_header {
+struct rfc2734_header
+{
 	u32 w0;
 	u32 w1;
 };
@@ -85,38 +86,40 @@ struct rfc2734_header {
 #define fwnet_set_hdr_dgl(dgl)		((dgl) << 16)
 
 static inline void fwnet_make_uf_hdr(struct rfc2734_header *hdr,
-		unsigned ether_type)
+									 unsigned ether_type)
 {
 	hdr->w0 = fwnet_set_hdr_lf(RFC2374_HDR_UNFRAG)
-		  | fwnet_set_hdr_ether_type(ether_type);
+			  | fwnet_set_hdr_ether_type(ether_type);
 }
 
 static inline void fwnet_make_ff_hdr(struct rfc2734_header *hdr,
-		unsigned ether_type, unsigned dg_size, unsigned dgl)
+									 unsigned ether_type, unsigned dg_size, unsigned dgl)
 {
 	hdr->w0 = fwnet_set_hdr_lf(RFC2374_HDR_FIRSTFRAG)
-		  | fwnet_set_hdr_dg_size(dg_size)
-		  | fwnet_set_hdr_ether_type(ether_type);
+			  | fwnet_set_hdr_dg_size(dg_size)
+			  | fwnet_set_hdr_ether_type(ether_type);
 	hdr->w1 = fwnet_set_hdr_dgl(dgl);
 }
 
 static inline void fwnet_make_sf_hdr(struct rfc2734_header *hdr,
-		unsigned lf, unsigned dg_size, unsigned fg_off, unsigned dgl)
+									 unsigned lf, unsigned dg_size, unsigned fg_off, unsigned dgl)
 {
 	hdr->w0 = fwnet_set_hdr_lf(lf)
-		  | fwnet_set_hdr_dg_size(dg_size)
-		  | fwnet_set_hdr_fg_off(fg_off);
+			  | fwnet_set_hdr_dg_size(dg_size)
+			  | fwnet_set_hdr_fg_off(fg_off);
 	hdr->w1 = fwnet_set_hdr_dgl(dgl);
 }
 
 /* This list keeps track of what parts of the datagram have been filled in */
-struct fwnet_fragment_info {
+struct fwnet_fragment_info
+{
 	struct list_head fi_link;
 	u16 offset;
 	u16 len;
 };
 
-struct fwnet_partial_datagram {
+struct fwnet_partial_datagram
+{
 	struct list_head pd_link;
 	struct list_head fi_list;
 	struct sk_buff *skb;
@@ -130,10 +133,12 @@ struct fwnet_partial_datagram {
 static DEFINE_MUTEX(fwnet_device_mutex);
 static LIST_HEAD(fwnet_device_list);
 
-struct fwnet_device {
+struct fwnet_device
+{
 	struct list_head dev_link;
 	spinlock_t lock;
-	enum {
+	enum
+	{
 		FWNET_BROADCAST_ERROR,
 		FWNET_BROADCAST_RUNNING,
 		FWNET_BROADCAST_STOPPED,
@@ -168,7 +173,8 @@ struct fwnet_device {
 	struct net_device *netdev;
 };
 
-struct fwnet_peer {
+struct fwnet_peer
+{
 	struct list_head peer_link;
 	struct fwnet_device *dev;
 	u64 guid;
@@ -185,7 +191,8 @@ struct fwnet_peer {
 };
 
 /* This is our task struct. It's used for the packet complete callback.  */
-struct fwnet_packet_task {
+struct fwnet_packet_task
+{
 	struct fw_transaction transaction;
 	struct rfc2734_header hdr;
 	struct sk_buff *skb;
@@ -206,7 +213,7 @@ struct fwnet_packet_task {
 static __u64 fwnet_hwaddr_fifo(union fwnet_hwaddr *ha)
 {
 	return (u64)get_unaligned_be16(&ha->uc.fifo_hi) << 32
-	       | get_unaligned_be32(&ha->uc.fifo_lo);
+		   | get_unaligned_be32(&ha->uc.fifo_lo);
 }
 
 /*
@@ -214,21 +221,23 @@ static __u64 fwnet_hwaddr_fifo(union fwnet_hwaddr *ha)
  * daddr == NULL means leave destination address (eg unresolved arp).
  */
 static int fwnet_header_create(struct sk_buff *skb, struct net_device *net,
-			unsigned short type, const void *daddr,
-			const void *saddr, unsigned len)
+							   unsigned short type, const void *daddr,
+							   const void *saddr, unsigned len)
 {
 	struct fwnet_header *h;
 
 	h = (struct fwnet_header *)skb_push(skb, sizeof(*h));
 	put_unaligned_be16(type, &h->h_proto);
 
-	if (net->flags & (IFF_LOOPBACK | IFF_NOARP)) {
+	if (net->flags & (IFF_LOOPBACK | IFF_NOARP))
+	{
 		memset(h->h_dest, 0, net->addr_len);
 
 		return net->hard_header_len;
 	}
 
-	if (daddr) {
+	if (daddr)
+	{
 		memcpy(h->h_dest, daddr, net->addr_len);
 
 		return net->hard_header_len;
@@ -238,13 +247,16 @@ static int fwnet_header_create(struct sk_buff *skb, struct net_device *net,
 }
 
 static int fwnet_header_cache(const struct neighbour *neigh,
-			      struct hh_cache *hh, __be16 type)
+							  struct hh_cache *hh, __be16 type)
 {
 	struct net_device *net;
 	struct fwnet_header *h;
 
 	if (type == cpu_to_be16(ETH_P_802_3))
+	{
 		return -1;
+	}
+
 	net = neigh->dev;
 	h = (struct fwnet_header *)((u8 *)hh->hh_data + HH_DATA_OFF(sizeof(*h)));
 	h->h_proto = type;
@@ -256,7 +268,7 @@ static int fwnet_header_cache(const struct neighbour *neigh,
 
 /* Called by Address Resolution module to notify changes in address. */
 static void fwnet_header_cache_update(struct hh_cache *hh,
-		const struct net_device *net, const unsigned char *haddr)
+									  const struct net_device *net, const unsigned char *haddr)
 {
 	memcpy((u8 *)hh->hh_data + HH_DATA_OFF(FWNET_HLEN), haddr, net->addr_len);
 }
@@ -268,7 +280,8 @@ static int fwnet_header_parse(const struct sk_buff *skb, unsigned char *haddr)
 	return FWNET_ALEN;
 }
 
-static const struct header_ops fwnet_header_ops = {
+static const struct header_ops fwnet_header_ops =
+{
 	.create         = fwnet_header_create,
 	.cache		= fwnet_header_cache,
 	.cache_update	= fwnet_header_cache_update,
@@ -277,14 +290,17 @@ static const struct header_ops fwnet_header_ops = {
 
 /* FIXME: is this correct for all cases? */
 static bool fwnet_frag_overlap(struct fwnet_partial_datagram *pd,
-			       unsigned offset, unsigned len)
+							   unsigned offset, unsigned len)
 {
 	struct fwnet_fragment_info *fi;
 	unsigned end = offset + len;
 
 	list_for_each_entry(fi, &pd->fi_list, fi_link)
-		if (offset < fi->offset + fi->len && end > fi->offset)
-			return true;
+
+	if (offset < fi->offset + fi->len && end > fi->offset)
+	{
+		return true;
+	}
 
 	return false;
 }
@@ -297,29 +313,39 @@ static struct fwnet_fragment_info *fwnet_frag_new(
 	struct list_head *list;
 
 	list = &pd->fi_list;
-	list_for_each_entry(fi, &pd->fi_list, fi_link) {
-		if (fi->offset + fi->len == offset) {
+	list_for_each_entry(fi, &pd->fi_list, fi_link)
+	{
+		if (fi->offset + fi->len == offset)
+		{
 			/* The new fragment can be tacked on to the end */
 			/* Did the new fragment plug a hole? */
 			fi2 = list_entry(fi->fi_link.next,
-					 struct fwnet_fragment_info, fi_link);
-			if (fi->offset + fi->len == fi2->offset) {
+							 struct fwnet_fragment_info, fi_link);
+
+			if (fi->offset + fi->len == fi2->offset)
+			{
 				/* glue fragments together */
 				fi->len += len + fi2->len;
 				list_del(&fi2->fi_link);
 				kfree(fi2);
-			} else {
+			}
+			else
+			{
 				fi->len += len;
 			}
 
 			return fi;
 		}
-		if (offset + len == fi->offset) {
+
+		if (offset + len == fi->offset)
+		{
 			/* The new fragment can be tacked on to the beginning */
 			/* Did the new fragment plug a hole? */
 			fi2 = list_entry(fi->fi_link.prev,
-					 struct fwnet_fragment_info, fi_link);
-			if (fi2->offset + fi2->len == fi->offset) {
+							 struct fwnet_fragment_info, fi_link);
+
+			if (fi2->offset + fi2->len == fi->offset)
+			{
 				/* glue fragments together */
 				fi2->len += fi->len + len;
 				list_del(&fi->fi_link);
@@ -327,24 +353,32 @@ static struct fwnet_fragment_info *fwnet_frag_new(
 
 				return fi2;
 			}
+
 			fi->offset = offset;
 			fi->len += len;
 
 			return fi;
 		}
-		if (offset > fi->offset + fi->len) {
+
+		if (offset > fi->offset + fi->len)
+		{
 			list = &fi->fi_link;
 			break;
 		}
-		if (offset + len < fi->offset) {
+
+		if (offset + len < fi->offset)
+		{
 			list = fi->fi_link.prev;
 			break;
 		}
 	}
 
 	new = kmalloc(sizeof(*new), GFP_ATOMIC);
+
 	if (!new)
+	{
 		return NULL;
+	}
 
 	new->offset = offset;
 	new->len = len;
@@ -361,19 +395,28 @@ static struct fwnet_partial_datagram *fwnet_pd_new(struct net_device *net,
 	struct fwnet_fragment_info *fi;
 
 	new = kmalloc(sizeof(*new), GFP_ATOMIC);
+
 	if (!new)
+	{
 		goto fail;
+	}
 
 	INIT_LIST_HEAD(&new->fi_list);
 	fi = fwnet_frag_new(new, frag_off, frag_len);
+
 	if (fi == NULL)
+	{
 		goto fail_w_new;
+	}
 
 	new->datagram_label = datagram_label;
 	new->datagram_size = dg_size;
 	new->skb = dev_alloc_skb(dg_size + LL_RESERVED_SPACE(net));
+
 	if (new->skb == NULL)
+	{
 		goto fail_w_fi;
+	}
 
 	skb_reserve(new->skb, LL_RESERVED_SPACE(net));
 	new->pbuf = skb_put(new->skb, dg_size);
@@ -391,13 +434,16 @@ fail:
 }
 
 static struct fwnet_partial_datagram *fwnet_pd_find(struct fwnet_peer *peer,
-						    u16 datagram_label)
+		u16 datagram_label)
 {
 	struct fwnet_partial_datagram *pd;
 
 	list_for_each_entry(pd, &peer->pd_list, pd_link)
-		if (pd->datagram_label == datagram_label)
-			return pd;
+
+	if (pd->datagram_label == datagram_label)
+	{
+		return pd;
+	}
 
 	return NULL;
 }
@@ -408,7 +454,7 @@ static void fwnet_pd_delete(struct fwnet_partial_datagram *old)
 	struct fwnet_fragment_info *fi, *n;
 
 	list_for_each_entry_safe(fi, n, &old->fi_list, fi_link)
-		kfree(fi);
+	kfree(fi);
 
 	list_del(&old->pd_link);
 	dev_kfree_skb_any(old->skb);
@@ -416,11 +462,13 @@ static void fwnet_pd_delete(struct fwnet_partial_datagram *old)
 }
 
 static bool fwnet_pd_update(struct fwnet_peer *peer,
-		struct fwnet_partial_datagram *pd, void *frag_buf,
-		unsigned frag_off, unsigned frag_len)
+							struct fwnet_partial_datagram *pd, void *frag_buf,
+							unsigned frag_off, unsigned frag_len)
 {
 	if (fwnet_frag_new(pd, frag_off, frag_len) == NULL)
+	{
 		return false;
+	}
 
 	memcpy(pd->pbuf + frag_off, frag_buf, frag_len);
 
@@ -444,27 +492,33 @@ static bool fwnet_pd_is_complete(struct fwnet_partial_datagram *pd)
 
 /* caller must hold dev->lock */
 static struct fwnet_peer *fwnet_peer_find_by_guid(struct fwnet_device *dev,
-						  u64 guid)
+		u64 guid)
 {
 	struct fwnet_peer *peer;
 
 	list_for_each_entry(peer, &dev->peer_list, peer_link)
-		if (peer->guid == guid)
-			return peer;
+
+	if (peer->guid == guid)
+	{
+		return peer;
+	}
 
 	return NULL;
 }
 
 /* caller must hold dev->lock */
 static struct fwnet_peer *fwnet_peer_find_by_node_id(struct fwnet_device *dev,
-						int node_id, int generation)
+		int node_id, int generation)
 {
 	struct fwnet_peer *peer;
 
 	list_for_each_entry(peer, &dev->peer_list, peer_link)
-		if (peer->node_id    == node_id &&
-		    peer->generation == generation)
-			return peer;
+
+	if (peer->node_id    == node_id &&
+		peer->generation == generation)
+	{
+		return peer;
+	}
 
 	return NULL;
 }
@@ -480,22 +534,24 @@ static unsigned fwnet_max_payload(unsigned max_rec, unsigned speed)
 
 
 static int fwnet_finish_incoming_packet(struct net_device *net,
-					struct sk_buff *skb, u16 source_node_id,
-					bool is_broadcast, u16 ether_type)
+										struct sk_buff *skb, u16 source_node_id,
+										bool is_broadcast, u16 ether_type)
 {
 	struct fwnet_device *dev;
 	int status;
 	__be64 guid;
 
-	switch (ether_type) {
-	case ETH_P_ARP:
-	case ETH_P_IP:
+	switch (ether_type)
+	{
+		case ETH_P_ARP:
+		case ETH_P_IP:
 #if IS_ENABLED(CONFIG_IPV6)
-	case ETH_P_IPV6:
+		case ETH_P_IPV6:
 #endif
-		break;
-	default:
-		goto err;
+			break;
+
+		default:
+			goto err;
 	}
 
 	dev = netdev_priv(net);
@@ -508,9 +564,11 @@ static int fwnet_finish_incoming_packet(struct net_device *net,
 	 * converting to an ethernet-like pseudo frame header.
 	 */
 	guid = cpu_to_be64(dev->card->guid);
+
 	if (dev_hard_header(skb, net, ether_type,
-			   is_broadcast ? net->broadcast : net->dev_addr,
-			   NULL, skb->len) >= 0) {
+						is_broadcast ? net->broadcast : net->dev_addr,
+						NULL, skb->len) >= 0)
+	{
 		struct fwnet_header *eth;
 		u16 *rawp;
 		__be16 protocol;
@@ -518,41 +576,68 @@ static int fwnet_finish_incoming_packet(struct net_device *net,
 		skb_reset_mac_header(skb);
 		skb_pull(skb, sizeof(*eth));
 		eth = (struct fwnet_header *)skb_mac_header(skb);
-		if (fwnet_hwaddr_is_multicast(eth->h_dest)) {
+
+		if (fwnet_hwaddr_is_multicast(eth->h_dest))
+		{
 			if (memcmp(eth->h_dest, net->broadcast,
-				   net->addr_len) == 0)
+					   net->addr_len) == 0)
+			{
 				skb->pkt_type = PACKET_BROADCAST;
+			}
+
 #if 0
 			else
+			{
 				skb->pkt_type = PACKET_MULTICAST;
+			}
+
 #endif
-		} else {
+		}
+		else
+		{
 			if (memcmp(eth->h_dest, net->dev_addr, net->addr_len))
+			{
 				skb->pkt_type = PACKET_OTHERHOST;
+			}
 		}
-		if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN) {
+
+		if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN)
+		{
 			protocol = eth->h_proto;
-		} else {
-			rawp = (u16 *)skb->data;
-			if (*rawp == 0xffff)
-				protocol = htons(ETH_P_802_3);
-			else
-				protocol = htons(ETH_P_802_2);
 		}
+		else
+		{
+			rawp = (u16 *)skb->data;
+
+			if (*rawp == 0xffff)
+			{
+				protocol = htons(ETH_P_802_3);
+			}
+			else
+			{
+				protocol = htons(ETH_P_802_2);
+			}
+		}
+
 		skb->protocol = protocol;
 	}
+
 	status = netif_rx(skb);
-	if (status == NET_RX_DROP) {
+
+	if (status == NET_RX_DROP)
+	{
 		net->stats.rx_errors++;
 		net->stats.rx_dropped++;
-	} else {
+	}
+	else
+	{
 		net->stats.rx_packets++;
 		net->stats.rx_bytes += skb->len;
 	}
 
 	return 0;
 
- err:
+err:
 	net->stats.rx_errors++;
 	net->stats.rx_dropped++;
 
@@ -562,8 +647,8 @@ static int fwnet_finish_incoming_packet(struct net_device *net,
 }
 
 static int fwnet_incoming_packet(struct fwnet_device *dev, __be32 *buf, int len,
-				 int source_node_id, int generation,
-				 bool is_broadcast)
+								 int source_node_id, int generation,
+								 bool is_broadcast)
 {
 	struct sk_buff *skb;
 	struct net_device *net = dev->netdev;
@@ -579,11 +664,15 @@ static int fwnet_incoming_packet(struct fwnet_device *dev, __be32 *buf, int len,
 	u16 ether_type;
 
 	if (len <= RFC2374_UNFRAG_HDR_SIZE)
+	{
 		return 0;
+	}
 
 	hdr.w0 = be32_to_cpu(buf[0]);
 	lf = fwnet_get_hdr_lf(&hdr);
-	if (lf == RFC2374_HDR_UNFRAG) {
+
+	if (lf == RFC2374_HDR_UNFRAG)
+	{
 		/*
 		 * An unfragmented datagram has been received by the ieee1394
 		 * bus. Build an skbuff around it so we can pass it to the
@@ -594,79 +683,108 @@ static int fwnet_incoming_packet(struct fwnet_device *dev, __be32 *buf, int len,
 		len -= RFC2374_UNFRAG_HDR_SIZE;
 
 		skb = dev_alloc_skb(len + LL_RESERVED_SPACE(net));
-		if (unlikely(!skb)) {
+
+		if (unlikely(!skb))
+		{
 			net->stats.rx_dropped++;
 
 			return -ENOMEM;
 		}
+
 		skb_reserve(skb, LL_RESERVED_SPACE(net));
 		memcpy(skb_put(skb, len), buf, len);
 
 		return fwnet_finish_incoming_packet(net, skb, source_node_id,
-						    is_broadcast, ether_type);
+											is_broadcast, ether_type);
 	}
 
 	/* A datagram fragment has been received, now the fun begins. */
 
 	if (len <= RFC2374_FRAG_HDR_SIZE)
+	{
 		return 0;
+	}
 
 	hdr.w1 = ntohl(buf[1]);
 	buf += 2;
 	len -= RFC2374_FRAG_HDR_SIZE;
-	if (lf == RFC2374_HDR_FIRSTFRAG) {
+
+	if (lf == RFC2374_HDR_FIRSTFRAG)
+	{
 		ether_type = fwnet_get_hdr_ether_type(&hdr);
 		fg_off = 0;
-	} else {
+	}
+	else
+	{
 		ether_type = 0;
 		fg_off = fwnet_get_hdr_fg_off(&hdr);
 	}
+
 	datagram_label = fwnet_get_hdr_dgl(&hdr);
 	dg_size = fwnet_get_hdr_dg_size(&hdr);
 
 	if (fg_off + len > dg_size)
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&dev->lock, flags);
 
 	peer = fwnet_peer_find_by_node_id(dev, source_node_id, generation);
-	if (!peer) {
+
+	if (!peer)
+	{
 		retval = -ENOENT;
 		goto fail;
 	}
 
 	pd = fwnet_pd_find(peer, datagram_label);
-	if (pd == NULL) {
-		while (peer->pdg_size >= FWNET_MAX_FRAGMENTS) {
+
+	if (pd == NULL)
+	{
+		while (peer->pdg_size >= FWNET_MAX_FRAGMENTS)
+		{
 			/* remove the oldest */
 			fwnet_pd_delete(list_first_entry(&peer->pd_list,
-				struct fwnet_partial_datagram, pd_link));
+											 struct fwnet_partial_datagram, pd_link));
 			peer->pdg_size--;
 		}
+
 		pd = fwnet_pd_new(net, peer, datagram_label,
-				  dg_size, buf, fg_off, len);
-		if (pd == NULL) {
+						  dg_size, buf, fg_off, len);
+
+		if (pd == NULL)
+		{
 			retval = -ENOMEM;
 			goto fail;
 		}
+
 		peer->pdg_size++;
-	} else {
+	}
+	else
+	{
 		if (fwnet_frag_overlap(pd, fg_off, len) ||
-		    pd->datagram_size != dg_size) {
+			pd->datagram_size != dg_size)
+		{
 			/*
 			 * Differing datagram sizes or overlapping fragments,
 			 * discard old datagram and start a new one.
 			 */
 			fwnet_pd_delete(pd);
 			pd = fwnet_pd_new(net, peer, datagram_label,
-					  dg_size, buf, fg_off, len);
-			if (pd == NULL) {
+							  dg_size, buf, fg_off, len);
+
+			if (pd == NULL)
+			{
 				peer->pdg_size--;
 				retval = -ENOMEM;
 				goto fail;
 			}
-		} else {
-			if (!fwnet_pd_update(peer, pd, buf, fg_off, len)) {
+		}
+		else
+		{
+			if (!fwnet_pd_update(peer, pd, buf, fg_off, len))
+			{
 				/*
 				 * Couldn't save off fragment anyway
 				 * so might as well obliterate the
@@ -681,9 +799,12 @@ static int fwnet_incoming_packet(struct fwnet_device *dev, __be32 *buf, int len,
 	} /* new datagram or add to existing one */
 
 	if (lf == RFC2374_HDR_FIRSTFRAG)
+	{
 		pd->ether_type = ether_type;
+	}
 
-	if (fwnet_pd_is_complete(pd)) {
+	if (fwnet_pd_is_complete(pd))
+	{
 		ether_type = pd->ether_type;
 		peer->pdg_size--;
 		skb = skb_get(pd->skb);
@@ -692,43 +813,53 @@ static int fwnet_incoming_packet(struct fwnet_device *dev, __be32 *buf, int len,
 		spin_unlock_irqrestore(&dev->lock, flags);
 
 		return fwnet_finish_incoming_packet(net, skb, source_node_id,
-						    false, ether_type);
+											false, ether_type);
 	}
+
 	/*
 	 * Datagram is not complete, we're done for the
 	 * moment.
 	 */
 	retval = 0;
- fail:
+fail:
 	spin_unlock_irqrestore(&dev->lock, flags);
 
 	return retval;
 }
 
 static void fwnet_receive_packet(struct fw_card *card, struct fw_request *r,
-		int tcode, int destination, int source, int generation,
-		unsigned long long offset, void *payload, size_t length,
-		void *callback_data)
+								 int tcode, int destination, int source, int generation,
+								 unsigned long long offset, void *payload, size_t length,
+								 void *callback_data)
 {
 	struct fwnet_device *dev = callback_data;
 	int rcode;
 
-	if (destination == IEEE1394_ALL_NODES) {
+	if (destination == IEEE1394_ALL_NODES)
+	{
 		kfree(r);
 
 		return;
 	}
 
 	if (offset != dev->handler.offset)
+	{
 		rcode = RCODE_ADDRESS_ERROR;
+	}
 	else if (tcode != TCODE_WRITE_BLOCK_REQUEST)
+	{
 		rcode = RCODE_TYPE_ERROR;
+	}
 	else if (fwnet_incoming_packet(dev, payload, length,
-				       source, generation, false) != 0) {
+								   source, generation, false) != 0)
+	{
 		dev_err(&dev->netdev->dev, "incoming packet failure\n");
 		rcode = RCODE_CONFLICT_ERROR;
-	} else
+	}
+	else
+	{
 		rcode = RCODE_COMPLETE;
+	}
 
 	fw_send_response(card, r, rcode);
 }
@@ -741,7 +872,7 @@ static int gasp_source_id(__be32 *p)
 static u32 gasp_specifier_id(__be32 *p)
 {
 	return (be32_to_cpu(p[0]) & 0xffff) << 8 |
-	       (be32_to_cpu(p[1]) & 0xff000000) >> 24;
+		   (be32_to_cpu(p[1]) & 0xff000000) >> 24;
 }
 
 static u32 gasp_version(__be32 *p)
@@ -750,7 +881,7 @@ static u32 gasp_version(__be32 *p)
 }
 
 static void fwnet_receive_broadcast(struct fw_iso_context *context,
-		u32 cycle, size_t header_length, void *header, void *data)
+									u32 cycle, size_t header_length, void *header, void *data)
 {
 	struct fwnet_device *dev;
 	struct fw_iso_packet packet;
@@ -769,22 +900,25 @@ static void fwnet_receive_broadcast(struct fw_iso_context *context,
 
 	offset = dev->rcv_buffer_size * dev->broadcast_rcv_next_ptr;
 	buf_ptr = dev->broadcast_rcv_buffer_ptrs[dev->broadcast_rcv_next_ptr++];
+
 	if (dev->broadcast_rcv_next_ptr == dev->num_broadcast_rcv_ptrs)
+	{
 		dev->broadcast_rcv_next_ptr = 0;
+	}
 
 	spin_unlock_irqrestore(&dev->lock, flags);
 
 	if (length > IEEE1394_GASP_HDR_SIZE &&
-	    gasp_specifier_id(buf_ptr) == IANA_SPECIFIER_ID &&
-	    (gasp_version(buf_ptr) == RFC2734_SW_VERSION
+		gasp_specifier_id(buf_ptr) == IANA_SPECIFIER_ID &&
+		(gasp_version(buf_ptr) == RFC2734_SW_VERSION
 #if IS_ENABLED(CONFIG_IPV6)
-	     || gasp_version(buf_ptr) == RFC3146_SW_VERSION
+		 || gasp_version(buf_ptr) == RFC3146_SW_VERSION
 #endif
-	    ))
+		))
 		fwnet_incoming_packet(dev, buf_ptr + 2,
-				      length - IEEE1394_GASP_HDR_SIZE,
-				      gasp_source_id(buf_ptr),
-				      context->card->generation, true);
+							  length - IEEE1394_GASP_HDR_SIZE,
+							  gasp_source_id(buf_ptr),
+							  context->card->generation, true);
 
 	packet.payload_length = dev->rcv_buffer_size;
 	packet.interrupt = 1;
@@ -796,14 +930,18 @@ static void fwnet_receive_broadcast(struct fw_iso_context *context,
 	spin_lock_irqsave(&dev->lock, flags);
 
 	retval = fw_iso_context_queue(dev->broadcast_rcv_context, &packet,
-				      &dev->broadcast_rcv_buffer, offset);
+								  &dev->broadcast_rcv_buffer, offset);
 
 	spin_unlock_irqrestore(&dev->lock, flags);
 
 	if (retval >= 0)
+	{
 		fw_iso_context_queue_flush(dev->broadcast_rcv_context);
+	}
 	else
+	{
 		dev_err(&dev->netdev->dev, "requeue failed\n");
+	}
 }
 
 static struct kmem_cache *fwnet_packet_task_cache;
@@ -818,7 +956,9 @@ static void fwnet_free_ptask(struct fwnet_packet_task *ptask)
 static void dec_queued_datagrams(struct fwnet_device *dev)
 {
 	if (--dev->queued_datagrams == FWNET_MIN_QUEUED_DATAGRAMS)
+	{
 		netif_wake_queue(dev->netdev);
+	}
 }
 
 static int fwnet_send_packet(struct fwnet_packet_task *ptask);
@@ -836,17 +976,22 @@ static void fwnet_transmit_packet_done(struct fwnet_packet_task *ptask)
 
 	/* Check whether we or the networking TX soft-IRQ is last user. */
 	free = (ptask->outstanding_pkts == 0 && ptask->enqueued);
-	if (free)
-		dec_queued_datagrams(dev);
 
-	if (ptask->outstanding_pkts == 0) {
+	if (free)
+	{
+		dec_queued_datagrams(dev);
+	}
+
+	if (ptask->outstanding_pkts == 0)
+	{
 		dev->netdev->stats.tx_packets++;
 		dev->netdev->stats.tx_bytes += skb->len;
 	}
 
 	spin_unlock_irqrestore(&dev->lock, flags);
 
-	if (ptask->outstanding_pkts > 0) {
+	if (ptask->outstanding_pkts > 0)
+	{
 		u16 dg_size;
 		u16 fg_off;
 		u16 datagram_label;
@@ -854,50 +999,62 @@ static void fwnet_transmit_packet_done(struct fwnet_packet_task *ptask)
 
 		/* Update the ptask to point to the next fragment and send it */
 		lf = fwnet_get_hdr_lf(&ptask->hdr);
-		switch (lf) {
-		case RFC2374_HDR_LASTFRAG:
-		case RFC2374_HDR_UNFRAG:
-		default:
-			dev_err(&dev->netdev->dev,
-				"outstanding packet %x lf %x, header %x,%x\n",
-				ptask->outstanding_pkts, lf, ptask->hdr.w0,
-				ptask->hdr.w1);
-			BUG();
 
-		case RFC2374_HDR_FIRSTFRAG:
-			/* Set frag type here for future interior fragments */
-			dg_size = fwnet_get_hdr_dg_size(&ptask->hdr);
-			fg_off = ptask->max_payload - RFC2374_FRAG_HDR_SIZE;
-			datagram_label = fwnet_get_hdr_dgl(&ptask->hdr);
-			break;
+		switch (lf)
+		{
+			case RFC2374_HDR_LASTFRAG:
+			case RFC2374_HDR_UNFRAG:
+			default:
+				dev_err(&dev->netdev->dev,
+						"outstanding packet %x lf %x, header %x,%x\n",
+						ptask->outstanding_pkts, lf, ptask->hdr.w0,
+						ptask->hdr.w1);
+				BUG();
 
-		case RFC2374_HDR_INTFRAG:
-			dg_size = fwnet_get_hdr_dg_size(&ptask->hdr);
-			fg_off = fwnet_get_hdr_fg_off(&ptask->hdr)
-				  + ptask->max_payload - RFC2374_FRAG_HDR_SIZE;
-			datagram_label = fwnet_get_hdr_dgl(&ptask->hdr);
-			break;
+			case RFC2374_HDR_FIRSTFRAG:
+				/* Set frag type here for future interior fragments */
+				dg_size = fwnet_get_hdr_dg_size(&ptask->hdr);
+				fg_off = ptask->max_payload - RFC2374_FRAG_HDR_SIZE;
+				datagram_label = fwnet_get_hdr_dgl(&ptask->hdr);
+				break;
+
+			case RFC2374_HDR_INTFRAG:
+				dg_size = fwnet_get_hdr_dg_size(&ptask->hdr);
+				fg_off = fwnet_get_hdr_fg_off(&ptask->hdr)
+						 + ptask->max_payload - RFC2374_FRAG_HDR_SIZE;
+				datagram_label = fwnet_get_hdr_dgl(&ptask->hdr);
+				break;
 		}
 
-		if (ptask->dest_node == IEEE1394_ALL_NODES) {
+		if (ptask->dest_node == IEEE1394_ALL_NODES)
+		{
 			skb_pull(skb,
-				 ptask->max_payload + IEEE1394_GASP_HDR_SIZE);
-		} else {
+					 ptask->max_payload + IEEE1394_GASP_HDR_SIZE);
+		}
+		else
+		{
 			skb_pull(skb, ptask->max_payload);
 		}
-		if (ptask->outstanding_pkts > 1) {
+
+		if (ptask->outstanding_pkts > 1)
+		{
 			fwnet_make_sf_hdr(&ptask->hdr, RFC2374_HDR_INTFRAG,
-					  dg_size, fg_off, datagram_label);
-		} else {
+							  dg_size, fg_off, datagram_label);
+		}
+		else
+		{
 			fwnet_make_sf_hdr(&ptask->hdr, RFC2374_HDR_LASTFRAG,
-					  dg_size, fg_off, datagram_label);
+							  dg_size, fg_off, datagram_label);
 			ptask->max_payload = skb->len + RFC2374_FRAG_HDR_SIZE;
 		}
+
 		fwnet_send_packet(ptask);
 	}
 
 	if (free)
+	{
 		fwnet_free_ptask(ptask);
+	}
 }
 
 static void fwnet_transmit_packet_failed(struct fwnet_packet_task *ptask)
@@ -913,8 +1070,11 @@ static void fwnet_transmit_packet_failed(struct fwnet_packet_task *ptask)
 
 	/* Check whether we or the networking TX soft-IRQ is last user. */
 	free = ptask->enqueued;
+
 	if (free)
+	{
 		dec_queued_datagrams(dev);
+	}
 
 	dev->netdev->stats.tx_dropped++;
 	dev->netdev->stats.tx_errors++;
@@ -922,29 +1082,38 @@ static void fwnet_transmit_packet_failed(struct fwnet_packet_task *ptask)
 	spin_unlock_irqrestore(&dev->lock, flags);
 
 	if (free)
+	{
 		fwnet_free_ptask(ptask);
+	}
 }
 
 static void fwnet_write_complete(struct fw_card *card, int rcode,
-				 void *payload, size_t length, void *data)
+								 void *payload, size_t length, void *data)
 {
 	struct fwnet_packet_task *ptask = data;
 	static unsigned long j;
 	static int last_rcode, errors_skipped;
 
-	if (rcode == RCODE_COMPLETE) {
+	if (rcode == RCODE_COMPLETE)
+	{
 		fwnet_transmit_packet_done(ptask);
-	} else {
-		if (printk_timed_ratelimit(&j,  1000) || rcode != last_rcode) {
+	}
+	else
+	{
+		if (printk_timed_ratelimit(&j,  1000) || rcode != last_rcode)
+		{
 			dev_err(&ptask->dev->netdev->dev,
-				"fwnet_write_complete failed: %x (skipped %d)\n",
-				rcode, errors_skipped);
+					"fwnet_write_complete failed: %x (skipped %d)\n",
+					rcode, errors_skipped);
 
 			errors_skipped = 0;
 			last_rcode = rcode;
-		} else {
+		}
+		else
+		{
 			errors_skipped++;
 		}
+
 		fwnet_transmit_packet_failed(ptask);
 	}
 }
@@ -959,26 +1128,30 @@ static int fwnet_send_packet(struct fwnet_packet_task *ptask)
 
 	dev = ptask->dev;
 	tx_len = ptask->max_payload;
-	switch (fwnet_get_hdr_lf(&ptask->hdr)) {
-	case RFC2374_HDR_UNFRAG:
-		bufhdr = (struct rfc2734_header *)
-				skb_push(ptask->skb, RFC2374_UNFRAG_HDR_SIZE);
-		put_unaligned_be32(ptask->hdr.w0, &bufhdr->w0);
-		break;
 
-	case RFC2374_HDR_FIRSTFRAG:
-	case RFC2374_HDR_INTFRAG:
-	case RFC2374_HDR_LASTFRAG:
-		bufhdr = (struct rfc2734_header *)
-				skb_push(ptask->skb, RFC2374_FRAG_HDR_SIZE);
-		put_unaligned_be32(ptask->hdr.w0, &bufhdr->w0);
-		put_unaligned_be32(ptask->hdr.w1, &bufhdr->w1);
-		break;
+	switch (fwnet_get_hdr_lf(&ptask->hdr))
+	{
+		case RFC2374_HDR_UNFRAG:
+			bufhdr = (struct rfc2734_header *)
+					 skb_push(ptask->skb, RFC2374_UNFRAG_HDR_SIZE);
+			put_unaligned_be32(ptask->hdr.w0, &bufhdr->w0);
+			break;
 
-	default:
-		BUG();
+		case RFC2374_HDR_FIRSTFRAG:
+		case RFC2374_HDR_INTFRAG:
+		case RFC2374_HDR_LASTFRAG:
+			bufhdr = (struct rfc2734_header *)
+					 skb_push(ptask->skb, RFC2374_FRAG_HDR_SIZE);
+			put_unaligned_be32(ptask->hdr.w0, &bufhdr->w0);
+			put_unaligned_be32(ptask->hdr.w1, &bufhdr->w1);
+			break;
+
+		default:
+			BUG();
 	}
-	if (ptask->dest_node == IEEE1394_ALL_NODES) {
+
+	if (ptask->dest_node == IEEE1394_ALL_NODES)
+	{
 		u8 *p;
 		int generation;
 		int node_id;
@@ -989,37 +1162,44 @@ static int fwnet_send_packet(struct fwnet_packet_task *ptask)
 		smp_rmb();
 		node_id = dev->card->node_id;
 
-		switch (ptask->skb->protocol) {
-		default:
-			sw_version = RFC2734_SW_VERSION;
-			break;
+		switch (ptask->skb->protocol)
+		{
+			default:
+				sw_version = RFC2734_SW_VERSION;
+				break;
 #if IS_ENABLED(CONFIG_IPV6)
-		case htons(ETH_P_IPV6):
-			sw_version = RFC3146_SW_VERSION;
+
+			case htons(ETH_P_IPV6):
+				sw_version = RFC3146_SW_VERSION;
 #endif
 		}
 
 		p = skb_push(ptask->skb, IEEE1394_GASP_HDR_SIZE);
 		put_unaligned_be32(node_id << 16 | IANA_SPECIFIER_ID >> 8, p);
 		put_unaligned_be32((IANA_SPECIFIER_ID & 0xff) << 24
-						| sw_version, &p[4]);
+						   | sw_version, &p[4]);
 
 		/* We should not transmit if broadcast_channel.valid == 0. */
 		fw_send_request(dev->card, &ptask->transaction,
-				TCODE_STREAM_DATA,
-				fw_stream_packet_destination_id(3,
-						IEEE1394_BROADCAST_CHANNEL, 0),
-				generation, SCODE_100, 0ULL, ptask->skb->data,
-				tx_len + 8, fwnet_write_complete, ptask);
+						TCODE_STREAM_DATA,
+						fw_stream_packet_destination_id(3,
+								IEEE1394_BROADCAST_CHANNEL, 0),
+						generation, SCODE_100, 0ULL, ptask->skb->data,
+						tx_len + 8, fwnet_write_complete, ptask);
 
 		spin_lock_irqsave(&dev->lock, flags);
 
 		/* If the AT tasklet already ran, we may be last user. */
 		free = (ptask->outstanding_pkts == 0 && !ptask->enqueued);
+
 		if (!free)
+		{
 			ptask->enqueued = true;
+		}
 		else
+		{
 			dec_queued_datagrams(dev);
+		}
 
 		spin_unlock_irqrestore(&dev->lock, flags);
 
@@ -1027,25 +1207,33 @@ static int fwnet_send_packet(struct fwnet_packet_task *ptask)
 	}
 
 	fw_send_request(dev->card, &ptask->transaction,
-			TCODE_WRITE_BLOCK_REQUEST, ptask->dest_node,
-			ptask->generation, ptask->speed, ptask->fifo_addr,
-			ptask->skb->data, tx_len, fwnet_write_complete, ptask);
+					TCODE_WRITE_BLOCK_REQUEST, ptask->dest_node,
+					ptask->generation, ptask->speed, ptask->fifo_addr,
+					ptask->skb->data, tx_len, fwnet_write_complete, ptask);
 
 	spin_lock_irqsave(&dev->lock, flags);
 
 	/* If the AT tasklet already ran, we may be last user. */
 	free = (ptask->outstanding_pkts == 0 && !ptask->enqueued);
+
 	if (!free)
+	{
 		ptask->enqueued = true;
+	}
 	else
+	{
 		dec_queued_datagrams(dev);
+	}
 
 	spin_unlock_irqrestore(&dev->lock, flags);
 
 	netif_trans_update(dev->netdev);
- out:
+out:
+
 	if (free)
+	{
 		fwnet_free_ptask(ptask);
+	}
 
 	return 0;
 }
@@ -1053,7 +1241,9 @@ static int fwnet_send_packet(struct fwnet_packet_task *ptask)
 static void fwnet_fifo_stop(struct fwnet_device *dev)
 {
 	if (dev->local_fifo == FWNET_NO_FIFO_ADDR)
+	{
 		return;
+	}
 
 	fw_core_remove_address_handler(&dev->handler);
 	dev->local_fifo = FWNET_NO_FIFO_ADDR;
@@ -1064,16 +1254,21 @@ static int fwnet_fifo_start(struct fwnet_device *dev)
 	int retval;
 
 	if (dev->local_fifo != FWNET_NO_FIFO_ADDR)
+	{
 		return 0;
+	}
 
 	dev->handler.length = 4096;
 	dev->handler.address_callback = fwnet_receive_packet;
 	dev->handler.callback_data = dev;
 
 	retval = fw_core_add_address_handler(&dev->handler,
-					     &fw_high_memory_region);
+										 &fw_high_memory_region);
+
 	if (retval < 0)
+	{
 		return retval;
+	}
 
 	dev->local_fifo = dev->handler.offset;
 
@@ -1084,15 +1279,22 @@ static void __fwnet_broadcast_stop(struct fwnet_device *dev)
 {
 	unsigned u;
 
-	if (dev->broadcast_state != FWNET_BROADCAST_ERROR) {
+	if (dev->broadcast_state != FWNET_BROADCAST_ERROR)
+	{
 		for (u = 0; u < FWNET_ISO_PAGE_COUNT; u++)
+		{
 			kunmap(dev->broadcast_rcv_buffer.pages[u]);
+		}
+
 		fw_iso_buffer_destroy(&dev->broadcast_rcv_buffer, dev->card);
 	}
-	if (dev->broadcast_rcv_context) {
+
+	if (dev->broadcast_rcv_context)
+	{
 		fw_iso_context_destroy(dev->broadcast_rcv_context);
 		dev->broadcast_rcv_context = NULL;
 	}
+
 	kfree(dev->broadcast_rcv_buffer_ptrs);
 	dev->broadcast_rcv_buffer_ptrs = NULL;
 	dev->broadcast_state = FWNET_BROADCAST_ERROR;
@@ -1101,7 +1303,10 @@ static void __fwnet_broadcast_stop(struct fwnet_device *dev)
 static void fwnet_broadcast_stop(struct fwnet_device *dev)
 {
 	if (dev->broadcast_state == FWNET_BROADCAST_ERROR)
+	{
 		return;
+	}
+
 	fw_iso_context_stop(dev->broadcast_rcv_context);
 	__fwnet_broadcast_stop(dev);
 }
@@ -1118,42 +1323,57 @@ static int fwnet_broadcast_start(struct fwnet_device *dev)
 	unsigned u;
 
 	if (dev->broadcast_state != FWNET_BROADCAST_ERROR)
+	{
 		return 0;
+	}
 
 	max_receive = 1U << (dev->card->max_receive + 1);
 	num_packets = (FWNET_ISO_PAGE_COUNT * PAGE_SIZE) / max_receive;
 
 	ptrptr = kmalloc(sizeof(void *) * num_packets, GFP_KERNEL);
-	if (!ptrptr) {
+
+	if (!ptrptr)
+	{
 		retval = -ENOMEM;
 		goto failed;
 	}
+
 	dev->broadcast_rcv_buffer_ptrs = ptrptr;
 
 	context = fw_iso_context_create(dev->card, FW_ISO_CONTEXT_RECEIVE,
-					IEEE1394_BROADCAST_CHANNEL,
-					dev->card->link_speed, 8,
-					fwnet_receive_broadcast, dev);
-	if (IS_ERR(context)) {
+									IEEE1394_BROADCAST_CHANNEL,
+									dev->card->link_speed, 8,
+									fwnet_receive_broadcast, dev);
+
+	if (IS_ERR(context))
+	{
 		retval = PTR_ERR(context);
 		goto failed;
 	}
 
 	retval = fw_iso_buffer_init(&dev->broadcast_rcv_buffer, dev->card,
-				    FWNET_ISO_PAGE_COUNT, DMA_FROM_DEVICE);
+								FWNET_ISO_PAGE_COUNT, DMA_FROM_DEVICE);
+
 	if (retval < 0)
+	{
 		goto failed;
+	}
 
 	dev->broadcast_state = FWNET_BROADCAST_STOPPED;
 
-	for (u = 0; u < FWNET_ISO_PAGE_COUNT; u++) {
+	for (u = 0; u < FWNET_ISO_PAGE_COUNT; u++)
+	{
 		void *ptr;
 		unsigned v;
 
 		ptr = kmap(dev->broadcast_rcv_buffer.pages[u]);
+
 		for (v = 0; v < num_packets / FWNET_ISO_PAGE_COUNT; v++)
+		{
 			*ptrptr++ = (void *) ((char *)ptr + v * max_receive);
+		}
 	}
+
 	dev->broadcast_rcv_context = context;
 
 	packet.payload_length = max_receive;
@@ -1164,30 +1384,38 @@ static int fwnet_broadcast_start(struct fwnet_device *dev)
 	packet.header_length = IEEE1394_GASP_HDR_SIZE;
 	offset = 0;
 
-	for (u = 0; u < num_packets; u++) {
+	for (u = 0; u < num_packets; u++)
+	{
 		retval = fw_iso_context_queue(context, &packet,
-				&dev->broadcast_rcv_buffer, offset);
+									  &dev->broadcast_rcv_buffer, offset);
+
 		if (retval < 0)
+		{
 			goto failed;
+		}
 
 		offset += max_receive;
 	}
+
 	dev->num_broadcast_rcv_ptrs = num_packets;
 	dev->rcv_buffer_size = max_receive;
 	dev->broadcast_rcv_next_ptr = 0U;
 	retval = fw_iso_context_start(context, -1, 0,
-			FW_ISO_CONTEXT_MATCH_ALL_TAGS); /* ??? sync */
+								  FW_ISO_CONTEXT_MATCH_ALL_TAGS); /* ??? sync */
+
 	if (retval < 0)
+	{
 		goto failed;
+	}
 
 	/* FIXME: adjust it according to the min. speed of all known peers? */
 	dev->broadcast_xmt_max_payload = IEEE1394_MAX_PAYLOAD_S100
-			- IEEE1394_GASP_HDR_SIZE - RFC2374_UNFRAG_HDR_SIZE;
+									 - IEEE1394_GASP_HDR_SIZE - RFC2374_UNFRAG_HDR_SIZE;
 	dev->broadcast_state = FWNET_BROADCAST_RUNNING;
 
 	return 0;
 
- failed:
+failed:
 	__fwnet_broadcast_stop(dev);
 	return retval;
 }
@@ -1195,9 +1423,13 @@ static int fwnet_broadcast_start(struct fwnet_device *dev)
 static void set_carrier_state(struct fwnet_device *dev)
 {
 	if (dev->peer_count > 1)
+	{
 		netif_carrier_on(dev->netdev);
+	}
 	else
+	{
 		netif_carrier_off(dev->netdev);
+	}
 }
 
 /* ifup */
@@ -1207,8 +1439,11 @@ static int fwnet_open(struct net_device *net)
 	int ret;
 
 	ret = fwnet_broadcast_start(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	netif_start_queue(net);
 
@@ -1246,19 +1481,26 @@ static netdev_tx_t fwnet_tx(struct sk_buff *skb, struct net_device *net)
 	spin_lock_irqsave(&dev->lock, flags);
 
 	/* Can this happen? */
-	if (netif_queue_stopped(dev->netdev)) {
+	if (netif_queue_stopped(dev->netdev))
+	{
 		spin_unlock_irqrestore(&dev->lock, flags);
 
 		return NETDEV_TX_BUSY;
 	}
 
 	ptask = kmem_cache_alloc(fwnet_packet_task_cache, GFP_ATOMIC);
+
 	if (ptask == NULL)
+	{
 		goto fail;
+	}
 
 	skb = skb_share_check(skb, GFP_ATOMIC);
+
 	if (!skb)
+	{
 		goto fail;
+	}
 
 	/*
 	 * Make a copy of the driver-specific header.
@@ -1267,15 +1509,17 @@ static netdev_tx_t fwnet_tx(struct sk_buff *skb, struct net_device *net)
 	memcpy(&hdr_buf, skb->data, sizeof(hdr_buf));
 	proto = hdr_buf.h_proto;
 
-	switch (proto) {
-	case htons(ETH_P_ARP):
-	case htons(ETH_P_IP):
+	switch (proto)
+	{
+		case htons(ETH_P_ARP):
+		case htons(ETH_P_IP):
 #if IS_ENABLED(CONFIG_IPV6)
-	case htons(ETH_P_IPV6):
+		case htons(ETH_P_IPV6):
 #endif
-		break;
-	default:
-		goto fail;
+			break;
+
+		default:
+			goto fail;
 	}
 
 	skb_pull(skb, sizeof(hdr_buf));
@@ -1285,7 +1529,8 @@ static netdev_tx_t fwnet_tx(struct sk_buff *skb, struct net_device *net)
 	 * Set the transmission type for the packet.  ARP packets and IP
 	 * broadcast packets are sent via GASP.
 	 */
-	if (fwnet_hwaddr_is_multicast(hdr_buf.h_dest)) {
+	if (fwnet_hwaddr_is_multicast(hdr_buf.h_dest))
+	{
 		max_payload        = dev->broadcast_xmt_max_payload;
 		datagram_label_ptr = &dev->broadcast_xmt_datagramlabel;
 
@@ -1293,14 +1538,19 @@ static netdev_tx_t fwnet_tx(struct sk_buff *skb, struct net_device *net)
 		ptask->generation  = 0;
 		ptask->dest_node   = IEEE1394_ALL_NODES;
 		ptask->speed       = SCODE_100;
-	} else {
+	}
+	else
+	{
 		union fwnet_hwaddr *ha = (union fwnet_hwaddr *)hdr_buf.h_dest;
 		__be64 guid = get_unaligned(&ha->uc.uniq_id);
 		u8 generation;
 
 		peer = fwnet_peer_find_by_guid(dev, be64_to_cpu(guid));
+
 		if (!peer)
+		{
 			goto fail;
+		}
 
 		generation         = peer->generation;
 		dest_node          = peer->node_id;
@@ -1319,23 +1569,28 @@ static netdev_tx_t fwnet_tx(struct sk_buff *skb, struct net_device *net)
 	ptask->dev = dev;
 
 	/* Does it all fit in one packet? */
-	if (dg_size <= max_payload) {
+	if (dg_size <= max_payload)
+	{
 		fwnet_make_uf_hdr(&ptask->hdr, ntohs(proto));
 		ptask->outstanding_pkts = 1;
 		max_payload = dg_size + RFC2374_UNFRAG_HDR_SIZE;
-	} else {
+	}
+	else
+	{
 		u16 datagram_label;
 
 		max_payload -= RFC2374_FRAG_OVERHEAD;
 		datagram_label = (*datagram_label_ptr)++;
 		fwnet_make_ff_hdr(&ptask->hdr, ntohs(proto), dg_size,
-				  datagram_label);
+						  datagram_label);
 		ptask->outstanding_pkts = DIV_ROUND_UP(dg_size, max_payload);
 		max_payload += RFC2374_FRAG_HDR_SIZE;
 	}
 
 	if (++dev->queued_datagrams == FWNET_MAX_QUEUED_DATAGRAMS)
+	{
 		netif_stop_queue(dev->netdev);
+	}
 
 	spin_unlock_irqrestore(&dev->lock, flags);
 
@@ -1346,14 +1601,18 @@ static netdev_tx_t fwnet_tx(struct sk_buff *skb, struct net_device *net)
 
 	return NETDEV_TX_OK;
 
- fail:
+fail:
 	spin_unlock_irqrestore(&dev->lock, flags);
 
 	if (ptask)
+	{
 		kmem_cache_free(fwnet_packet_task_cache, ptask);
+	}
 
 	if (skb != NULL)
+	{
 		dev_kfree_skb(skb);
+	}
 
 	net->stats.tx_dropped++;
 	net->stats.tx_errors++;
@@ -1371,17 +1630,21 @@ static netdev_tx_t fwnet_tx(struct sk_buff *skb, struct net_device *net)
 static int fwnet_change_mtu(struct net_device *net, int new_mtu)
 {
 	if (new_mtu < 68)
+	{
 		return -EINVAL;
+	}
 
 	net->mtu = new_mtu;
 	return 0;
 }
 
-static const struct ethtool_ops fwnet_ethtool_ops = {
+static const struct ethtool_ops fwnet_ethtool_ops =
+{
 	.get_link	= ethtool_op_get_link,
 };
 
-static const struct net_device_ops fwnet_netdev_ops = {
+static const struct net_device_ops fwnet_netdev_ops =
+{
 	.ndo_open       = fwnet_open,
 	.ndo_stop	= fwnet_stop,
 	.ndo_start_xmit = fwnet_tx,
@@ -1408,20 +1671,26 @@ static struct fwnet_device *fwnet_dev_find(struct fw_card *card)
 	struct fwnet_device *dev;
 
 	list_for_each_entry(dev, &fwnet_device_list, dev_link)
-		if (dev->card == card)
-			return dev;
+
+	if (dev->card == card)
+	{
+		return dev;
+	}
 
 	return NULL;
 }
 
 static int fwnet_add_peer(struct fwnet_device *dev,
-			  struct fw_unit *unit, struct fw_device *device)
+						  struct fw_unit *unit, struct fw_device *device)
 {
 	struct fwnet_peer *peer;
 
 	peer = kmalloc(sizeof(*peer), GFP_KERNEL);
+
 	if (!peer)
+	{
 		return -ENOMEM;
+	}
 
 	dev_set_drvdata(&unit->device, peer);
 
@@ -1447,7 +1716,7 @@ static int fwnet_add_peer(struct fwnet_device *dev,
 }
 
 static int fwnet_probe(struct fw_unit *unit,
-		       const struct ieee1394_device_id *id)
+					   const struct ieee1394_device_id *id)
 {
 	struct fw_device *device = fw_parent_device(unit);
 	struct fw_card *card = device->card;
@@ -1461,14 +1730,18 @@ static int fwnet_probe(struct fw_unit *unit,
 	mutex_lock(&fwnet_device_mutex);
 
 	dev = fwnet_dev_find(card);
-	if (dev) {
+
+	if (dev)
+	{
 		net = dev->netdev;
 		goto have_dev;
 	}
 
 	net = alloc_netdev(sizeof(*dev), "firewire%d", NET_NAME_UNKNOWN,
-			   fwnet_init_dev);
-	if (net == NULL) {
+					   fwnet_init_dev);
+
+	if (net == NULL)
+	{
 		mutex_unlock(&fwnet_device_mutex);
 		return -ENOMEM;
 	}
@@ -1489,8 +1762,12 @@ static int fwnet_probe(struct fw_unit *unit,
 	dev->netdev = net;
 
 	ret = fwnet_fifo_start(dev);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
+
 	dev->local_fifo = dev->handler.offset;
 
 	/*
@@ -1498,7 +1775,7 @@ static int fwnet_probe(struct fw_unit *unit,
 	 * as initial MTU
 	 */
 	max_mtu = (1 << (card->max_receive + 1))
-		  - sizeof(struct rfc2734_header) - IEEE1394_GASP_HDR_SIZE;
+			  - sizeof(struct rfc2734_header) - IEEE1394_GASP_HDR_SIZE;
 	net->mtu = min(1500U, max_mtu);
 
 	/* Set our hardware address while we're at it */
@@ -1512,18 +1789,23 @@ static int fwnet_probe(struct fw_unit *unit,
 	memset(net->broadcast, -1, net->addr_len);
 
 	ret = register_netdev(net);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	list_add_tail(&dev->dev_link, &fwnet_device_list);
 	dev_notice(&net->dev, "IP over IEEE 1394 on card %s\n",
-		   dev_name(card->device));
- have_dev:
+			   dev_name(card->device));
+have_dev:
 	ret = fwnet_add_peer(dev, unit, device);
-	if (ret && allocated_netdev) {
+
+	if (ret && allocated_netdev)
+	{
 		unregister_netdev(net);
 		list_del(&dev->dev_link);
- out:
+out:
 		fwnet_fifo_stop(dev);
 		free_netdev(net);
 	}
@@ -1562,7 +1844,7 @@ static void fwnet_remove_peer(struct fwnet_peer *peer, struct fwnet_device *dev)
 	spin_unlock_irq(&dev->lock);
 
 	list_for_each_entry_safe(pd, pd_next, &peer->pd_list, pd_link)
-		fwnet_pd_delete(pd);
+	fwnet_pd_delete(pd);
 
 	kfree(peer);
 }
@@ -1580,13 +1862,17 @@ static void fwnet_remove(struct fw_unit *unit)
 
 	fwnet_remove_peer(peer, dev);
 
-	if (list_empty(&dev->peer_list)) {
+	if (list_empty(&dev->peer_list))
+	{
 		unregister_netdev(net);
 
 		fwnet_fifo_stop(dev);
 
 		for (i = 0; dev->queued_datagrams && i < 5; i++)
+		{
 			ssleep(1);
+		}
+
 		WARN_ON(dev->queued_datagrams);
 		list_del(&dev->dev_link);
 
@@ -1596,17 +1882,18 @@ static void fwnet_remove(struct fw_unit *unit)
 	mutex_unlock(&fwnet_device_mutex);
 }
 
-static const struct ieee1394_device_id fwnet_id_table[] = {
+static const struct ieee1394_device_id fwnet_id_table[] =
+{
 	{
 		.match_flags  = IEEE1394_MATCH_SPECIFIER_ID |
-				IEEE1394_MATCH_VERSION,
+		IEEE1394_MATCH_VERSION,
 		.specifier_id = IANA_SPECIFIER_ID,
 		.version      = RFC2734_SW_VERSION,
 	},
 #if IS_ENABLED(CONFIG_IPV6)
 	{
 		.match_flags  = IEEE1394_MATCH_SPECIFIER_ID |
-				IEEE1394_MATCH_VERSION,
+		IEEE1394_MATCH_VERSION,
 		.specifier_id = IANA_SPECIFIER_ID,
 		.version      = RFC3146_SW_VERSION,
 	},
@@ -1614,7 +1901,8 @@ static const struct ieee1394_device_id fwnet_id_table[] = {
 	{ }
 };
 
-static struct fw_driver fwnet_driver = {
+static struct fw_driver fwnet_driver =
+{
 	.driver = {
 		.owner  = THIS_MODULE,
 		.name   = KBUILD_MODNAME,
@@ -1626,7 +1914,8 @@ static struct fw_driver fwnet_driver = {
 	.id_table = fwnet_id_table,
 };
 
-static const u32 rfc2374_unit_directory_data[] = {
+static const u32 rfc2374_unit_directory_data[] =
+{
 	0x00040000,	/* directory_length		*/
 	0x1200005e,	/* unit_specifier_id: IANA	*/
 	0x81000003,	/* textual descriptor offset	*/
@@ -1642,14 +1931,16 @@ static const u32 rfc2374_unit_directory_data[] = {
 	0x49507634,	/* I P v 4			*/
 };
 
-static struct fw_descriptor rfc2374_unit_directory = {
+static struct fw_descriptor rfc2374_unit_directory =
+{
 	.length = ARRAY_SIZE(rfc2374_unit_directory_data),
 	.key    = (CSR_DIRECTORY | CSR_UNIT) << 24,
 	.data   = rfc2374_unit_directory_data
 };
 
 #if IS_ENABLED(CONFIG_IPV6)
-static const u32 rfc3146_unit_directory_data[] = {
+static const u32 rfc3146_unit_directory_data[] =
+{
 	0x00040000,	/* directory_length		*/
 	0x1200005e,	/* unit_specifier_id: IANA	*/
 	0x81000003,	/* textual descriptor offset	*/
@@ -1665,7 +1956,8 @@ static const u32 rfc3146_unit_directory_data[] = {
 	0x49507636,	/* I P v 6			*/
 };
 
-static struct fw_descriptor rfc3146_unit_directory = {
+static struct fw_descriptor rfc3146_unit_directory =
+{
 	.length = ARRAY_SIZE(rfc3146_unit_directory_data),
 	.key    = (CSR_DIRECTORY | CSR_UNIT) << 24,
 	.data   = rfc3146_unit_directory_data
@@ -1677,25 +1969,37 @@ static int __init fwnet_init(void)
 	int err;
 
 	err = fw_core_add_descriptor(&rfc2374_unit_directory);
+
 	if (err)
+	{
 		return err;
+	}
 
 #if IS_ENABLED(CONFIG_IPV6)
 	err = fw_core_add_descriptor(&rfc3146_unit_directory);
+
 	if (err)
+	{
 		goto out;
+	}
+
 #endif
 
 	fwnet_packet_task_cache = kmem_cache_create("packet_task",
-			sizeof(struct fwnet_packet_task), 0, 0, NULL);
-	if (!fwnet_packet_task_cache) {
+							  sizeof(struct fwnet_packet_task), 0, 0, NULL);
+
+	if (!fwnet_packet_task_cache)
+	{
 		err = -ENOMEM;
 		goto out2;
 	}
 
 	err = driver_register(&fwnet_driver.driver);
+
 	if (!err)
+	{
 		return 0;
+	}
 
 	kmem_cache_destroy(fwnet_packet_task_cache);
 out2:

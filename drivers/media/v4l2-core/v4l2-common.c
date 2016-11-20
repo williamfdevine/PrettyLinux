@@ -52,7 +52,7 @@
 #include <linux/errno.h>
 #include <linux/i2c.h>
 #if defined(CONFIG_SPI)
-#include <linux/spi/spi.h>
+	#include <linux/spi/spi.h>
 #endif
 #include <asm/uaccess.h>
 #include <asm/pgtable.h>
@@ -90,10 +90,12 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 _min, s32 _max, s32 _
 	s64 def = _def;
 
 	v4l2_ctrl_fill(qctrl->id, &name, &qctrl->type,
-		       &min, &max, &step, &def, &qctrl->flags);
+				   &min, &max, &step, &def, &qctrl->flags);
 
 	if (name == NULL)
+	{
 		return -EINVAL;
+	}
 
 	qctrl->minimum = min;
 	qctrl->maximum = max;
@@ -110,7 +112,7 @@ EXPORT_SYMBOL(v4l2_ctrl_query_fill);
 #if IS_ENABLED(CONFIG_I2C)
 
 void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
-		const struct v4l2_subdev_ops *ops)
+						  const struct v4l2_subdev_ops *ops)
 {
 	v4l2_subdev_init(sd, ops);
 	sd->flags |= V4L2_SUBDEV_FL_IS_I2C;
@@ -122,8 +124,8 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
 	i2c_set_clientdata(client, sd);
 	/* initialize name */
 	snprintf(sd->name, sizeof(sd->name), "%s %d-%04x",
-		client->dev.driver->name, i2c_adapter_id(client->adapter),
-		client->addr);
+			 client->dev.driver->name, i2c_adapter_id(client->adapter),
+			 client->addr);
 }
 EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
 
@@ -142,9 +144,11 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
 	/* Create the i2c client */
 	if (info->addr == 0 && probe_addrs)
 		client = i2c_new_probed_device(adapter, info, probe_addrs,
-					       NULL);
+									   NULL);
 	else
+	{
 		client = i2c_new_device(adapter, info);
+	}
 
 	/* Note: by loading the module first we are certain that c->driver
 	   will be set if the driver was found. If the module was not loaded
@@ -154,32 +158,44 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
 	   want to use the i2c device, so explicitly loading the module
 	   is the best alternative. */
 	if (client == NULL || client->dev.driver == NULL)
+	{
 		goto error;
+	}
 
 	/* Lock the module so we can safely get the v4l2_subdev pointer */
 	if (!try_module_get(client->dev.driver->owner))
+	{
 		goto error;
+	}
+
 	sd = i2c_get_clientdata(client);
 
 	/* Register with the v4l2_device which increases the module's
 	   use count as well. */
 	if (v4l2_device_register_subdev(v4l2_dev, sd))
+	{
 		sd = NULL;
+	}
+
 	/* Decrease the module use count to match the first try_module_get. */
 	module_put(client->dev.driver->owner);
 
 error:
+
 	/* If we have a client but no subdev, then something went wrong and
 	   we must unregister the client. */
 	if (client && sd == NULL)
+	{
 		i2c_unregister_device(client);
+	}
+
 	return sd;
 }
 EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev_board);
 
 struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
-		struct i2c_adapter *adapter, const char *client_type,
-		u8 addr, const unsigned short *probe_addrs)
+										struct i2c_adapter *adapter, const char *client_type,
+										u8 addr, const unsigned short *probe_addrs)
 {
 	struct i2c_board_info info;
 
@@ -206,33 +222,41 @@ EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_addr);
    addresses are unknown. */
 const unsigned short *v4l2_i2c_tuner_addrs(enum v4l2_i2c_tuner_type type)
 {
-	static const unsigned short radio_addrs[] = {
+	static const unsigned short radio_addrs[] =
+	{
 #if IS_ENABLED(CONFIG_MEDIA_TUNER_TEA5761)
 		0x10,
 #endif
 		0x60,
 		I2C_CLIENT_END
 	};
-	static const unsigned short demod_addrs[] = {
+	static const unsigned short demod_addrs[] =
+	{
 		0x42, 0x43, 0x4a, 0x4b,
 		I2C_CLIENT_END
 	};
-	static const unsigned short tv_addrs[] = {
+	static const unsigned short tv_addrs[] =
+	{
 		0x42, 0x43, 0x4a, 0x4b,		/* tda8290 */
 		0x60, 0x61, 0x62, 0x63, 0x64,
 		I2C_CLIENT_END
 	};
 
-	switch (type) {
-	case ADDRS_RADIO:
-		return radio_addrs;
-	case ADDRS_DEMOD:
-		return demod_addrs;
-	case ADDRS_TV:
-		return tv_addrs;
-	case ADDRS_TV_WITH_DEMOD:
-		return tv_addrs + 4;
+	switch (type)
+	{
+		case ADDRS_RADIO:
+			return radio_addrs;
+
+		case ADDRS_DEMOD:
+			return demod_addrs;
+
+		case ADDRS_TV:
+			return tv_addrs;
+
+		case ADDRS_TV_WITH_DEMOD:
+			return tv_addrs + 4;
 	}
+
 	return NULL;
 }
 EXPORT_SYMBOL_GPL(v4l2_i2c_tuner_addrs);
@@ -244,7 +268,7 @@ EXPORT_SYMBOL_GPL(v4l2_i2c_tuner_addrs);
 /* Load an spi sub-device. */
 
 void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
-		const struct v4l2_subdev_ops *ops)
+						  const struct v4l2_subdev_ops *ops)
 {
 	v4l2_subdev_init(sd, ops);
 	sd->flags |= V4L2_SUBDEV_FL_IS_SPI;
@@ -260,7 +284,7 @@ void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
 EXPORT_SYMBOL_GPL(v4l2_spi_subdev_init);
 
 struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
-		struct spi_master *master, struct spi_board_info *info)
+										struct spi_master *master, struct spi_board_info *info)
 {
 	struct v4l2_subdev *sd = NULL;
 	struct spi_device *spi = NULL;
@@ -268,31 +292,42 @@ struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
 	BUG_ON(!v4l2_dev);
 
 	if (info->modalias[0])
+	{
 		request_module(info->modalias);
+	}
 
 	spi = spi_new_device(master, info);
 
 	if (spi == NULL || spi->dev.driver == NULL)
+	{
 		goto error;
+	}
 
 	if (!try_module_get(spi->dev.driver->owner))
+	{
 		goto error;
+	}
 
 	sd = spi_get_drvdata(spi);
 
 	/* Register with the v4l2_device which increases the module's
 	   use count as well. */
 	if (v4l2_device_register_subdev(v4l2_dev, sd))
+	{
 		sd = NULL;
+	}
 
 	/* Decrease the module use count to match the first try_module_get. */
 	module_put(spi->dev.driver->owner);
 
 error:
+
 	/* If we have a client but no subdev, then something went wrong and
 	   we must unregister the client. */
 	if (!sd)
+	{
 		spi_unregister_device(spi);
+	}
 
 	return sd;
 }
@@ -305,7 +340,7 @@ EXPORT_SYMBOL_GPL(v4l2_spi_new_subdev);
  * value.  E.g., min=17,max=31,align=4 is not allowed as there are no multiples
  * of 16 between 17 and 31.  */
 static unsigned int clamp_align(unsigned int x, unsigned int min,
-				unsigned int max, unsigned int align)
+								unsigned int max, unsigned int align)
 {
 	/* Bits that must be zero to be aligned */
 	unsigned int mask = ~((1 << align) - 1);
@@ -315,7 +350,9 @@ static unsigned int clamp_align(unsigned int x, unsigned int min,
 
 	/* Round to nearest aligned value */
 	if (align)
+	{
 		x = (x + (1 << (align - 1))) & mask;
+	}
 
 	return x;
 }
@@ -335,61 +372,78 @@ static unsigned int clamp_align(unsigned int x, unsigned int min,
  * the initial value.
  */
 void v4l_bound_align_image(u32 *w, unsigned int wmin, unsigned int wmax,
-			   unsigned int walign,
-			   u32 *h, unsigned int hmin, unsigned int hmax,
-			   unsigned int halign, unsigned int salign)
+						   unsigned int walign,
+						   u32 *h, unsigned int hmin, unsigned int hmax,
+						   unsigned int halign, unsigned int salign)
 {
 	*w = clamp_align(*w, wmin, wmax, walign);
 	*h = clamp_align(*h, hmin, hmax, halign);
 
 	/* Usually we don't need to align the size and are done now. */
 	if (!salign)
+	{
 		return;
+	}
 
 	/* How much alignment do we have? */
 	walign = __ffs(*w);
 	halign = __ffs(*h);
+
 	/* Enough to satisfy the image alignment? */
-	if (walign + halign < salign) {
+	if (walign + halign < salign)
+	{
 		/* Max walign where there is still a valid width */
 		unsigned int wmaxa = __fls(wmax ^ (wmin - 1));
 		/* Max halign where there is still a valid height */
 		unsigned int hmaxa = __fls(hmax ^ (hmin - 1));
 
 		/* up the smaller alignment until we have enough */
-		do {
+		do
+		{
 			if (halign >= hmaxa ||
-			    (walign <= halign && walign < wmaxa)) {
+				(walign <= halign && walign < wmaxa))
+			{
 				*w = clamp_align(*w, wmin, wmax, walign + 1);
 				walign = __ffs(*w);
-			} else {
+			}
+			else
+			{
 				*h = clamp_align(*h, hmin, hmax, halign + 1);
 				halign = __ffs(*h);
 			}
-		} while (halign + walign < salign);
+		}
+		while (halign + walign < salign);
 	}
 }
 EXPORT_SYMBOL_GPL(v4l_bound_align_image);
 
 const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
-		const struct v4l2_discrete_probe *probe,
-		s32 width, s32 height)
+	const struct v4l2_discrete_probe *probe,
+	s32 width, s32 height)
 {
 	int i;
 	u32 error, min_error = UINT_MAX;
 	const struct v4l2_frmsize_discrete *size, *best = NULL;
 
 	if (!probe)
+	{
 		return best;
+	}
 
-	for (i = 0, size = probe->sizes; i < probe->num_sizes; i++, size++) {
+	for (i = 0, size = probe->sizes; i < probe->num_sizes; i++, size++)
+	{
 		error = abs(size->width - width) + abs(size->height - height);
-		if (error < min_error) {
+
+		if (error < min_error)
+		{
 			min_error = error;
 			best = size;
 		}
+
 		if (!error)
+		{
 			break;
+		}
 	}
 
 	return best;

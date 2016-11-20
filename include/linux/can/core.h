@@ -33,7 +33,8 @@
  * @ops:        pointer to struct proto_ops for sock->ops.
  * @prot:       pointer to struct proto structure.
  */
-struct can_proto {
+struct can_proto
+{
 	int type;
 	int protocol;
 	const struct proto_ops *ops;
@@ -46,14 +47,14 @@ extern int  can_proto_register(const struct can_proto *cp);
 extern void can_proto_unregister(const struct can_proto *cp);
 
 extern int  can_rx_register(struct net_device *dev, canid_t can_id,
-			    canid_t mask,
-			    void (*func)(struct sk_buff *, void *),
-			    void *data, char *ident);
+							canid_t mask,
+							void (*func)(struct sk_buff *, void *),
+							void *data, char *ident);
 
 extern void can_rx_unregister(struct net_device *dev, canid_t can_id,
-			      canid_t mask,
-			      void (*func)(struct sk_buff *, void *),
-			      void *data);
+							  canid_t mask,
+							  void (*func)(struct sk_buff *, void *),
+							  void *data);
 
 extern int can_send(struct sk_buff *skb, int loop);
 extern int can_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg);

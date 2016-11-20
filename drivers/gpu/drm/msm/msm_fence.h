@@ -20,7 +20,8 @@
 
 #include "msm_drv.h"
 
-struct msm_fence_context {
+struct msm_fence_context
+{
 	struct drm_device *dev;
 	const char *name;
 	unsigned context;
@@ -31,16 +32,16 @@ struct msm_fence_context {
 	spinlock_t spinlock;
 };
 
-struct msm_fence_context * msm_fence_context_alloc(struct drm_device *dev,
+struct msm_fence_context *msm_fence_context_alloc(struct drm_device *dev,
 		const char *name);
 void msm_fence_context_free(struct msm_fence_context *fctx);
 
 int msm_wait_fence(struct msm_fence_context *fctx, uint32_t fence,
-		ktime_t *timeout, bool interruptible);
+				   ktime_t *timeout, bool interruptible);
 int msm_queue_fence_cb(struct msm_fence_context *fctx,
-		struct msm_fence_cb *cb, uint32_t fence);
+					   struct msm_fence_cb *cb, uint32_t fence);
 void msm_update_fence(struct msm_fence_context *fctx, uint32_t fence);
 
-struct fence * msm_fence_alloc(struct msm_fence_context *fctx);
+struct fence *msm_fence_alloc(struct msm_fence_context *fctx);
 
 #endif

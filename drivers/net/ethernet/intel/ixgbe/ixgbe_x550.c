@@ -38,7 +38,9 @@ static s32 ixgbe_get_invariants_X550_x(struct ixgbe_hw *hw)
 	ixgbe_get_invariants_X540(hw);
 
 	if (mac->ops.get_media_type(hw) != ixgbe_media_type_copper)
+	{
 		phy->ops.set_phy_power = NULL;
+	}
 
 	return 0;
 }
@@ -50,10 +52,12 @@ static void ixgbe_setup_mux_ctl(struct ixgbe_hw *hw)
 {
 	u32 esdp = IXGBE_READ_REG(hw, IXGBE_ESDP);
 
-	if (hw->bus.lan_id) {
+	if (hw->bus.lan_id)
+	{
 		esdp &= ~(IXGBE_ESDP_SDP1_NATIVE | IXGBE_ESDP_SDP1);
 		esdp |= IXGBE_ESDP_SDP1_DIR;
 	}
+
 	esdp &= ~(IXGBE_ESDP_SDP0_NATIVE | IXGBE_ESDP_SDP0_DIR);
 	IXGBE_WRITE_REG(hw, IXGBE_ESDP, esdp);
 	IXGBE_WRITE_FLUSH(hw);
@@ -70,7 +74,7 @@ static void ixgbe_setup_mux_ctl(struct ixgbe_hw *hw)
 static s32 ixgbe_read_cs4227(struct ixgbe_hw *hw, u16 reg, u16 *value)
 {
 	return hw->phy.ops.read_i2c_combined_unlocked(hw, IXGBE_CS4227, reg,
-						      value);
+			value);
 }
 
 /**
@@ -84,7 +88,7 @@ static s32 ixgbe_read_cs4227(struct ixgbe_hw *hw, u16 reg, u16 *value)
 static s32 ixgbe_write_cs4227(struct ixgbe_hw *hw, u16 reg, u16 value)
 {
 	return hw->phy.ops.write_i2c_combined_unlocked(hw, IXGBE_CS4227, reg,
-						       value);
+			value);
 }
 
 /**
@@ -100,8 +104,12 @@ static s32 ixgbe_read_pe(struct ixgbe_hw *hw, u8 reg, u8 *value)
 	s32 status;
 
 	status = ixgbe_read_i2c_byte_generic_unlocked(hw, reg, IXGBE_PE, value);
+
 	if (status)
+	{
 		hw_err(hw, "port expander access failed with %d\n", status);
+	}
+
 	return status;
 }
 
@@ -118,9 +126,13 @@ static s32 ixgbe_write_pe(struct ixgbe_hw *hw, u8 reg, u8 value)
 	s32 status;
 
 	status = ixgbe_write_i2c_byte_generic_unlocked(hw, reg, IXGBE_PE,
-						       value);
+			 value);
+
 	if (status)
+	{
 		hw_err(hw, "port expander access failed with %d\n", status);
+	}
+
 	return status;
 }
 
@@ -140,55 +152,93 @@ static s32 ixgbe_reset_cs4227(struct ixgbe_hw *hw)
 
 	/* Trigger hard reset. */
 	status = ixgbe_read_pe(hw, IXGBE_PE_OUTPUT, &reg);
+
 	if (status)
+	{
 		return status;
+	}
+
 	reg |= IXGBE_PE_BIT1;
 	status = ixgbe_write_pe(hw, IXGBE_PE_OUTPUT, reg);
+
 	if (status)
+	{
 		return status;
+	}
 
 	status = ixgbe_read_pe(hw, IXGBE_PE_CONFIG, &reg);
+
 	if (status)
+	{
 		return status;
+	}
+
 	reg &= ~IXGBE_PE_BIT1;
 	status = ixgbe_write_pe(hw, IXGBE_PE_CONFIG, reg);
+
 	if (status)
+	{
 		return status;
+	}
 
 	status = ixgbe_read_pe(hw, IXGBE_PE_OUTPUT, &reg);
+
 	if (status)
+	{
 		return status;
+	}
+
 	reg &= ~IXGBE_PE_BIT1;
 	status = ixgbe_write_pe(hw, IXGBE_PE_OUTPUT, reg);
+
 	if (status)
+	{
 		return status;
+	}
 
 	usleep_range(IXGBE_CS4227_RESET_HOLD, IXGBE_CS4227_RESET_HOLD + 100);
 
 	status = ixgbe_read_pe(hw, IXGBE_PE_OUTPUT, &reg);
+
 	if (status)
+	{
 		return status;
+	}
+
 	reg |= IXGBE_PE_BIT1;
 	status = ixgbe_write_pe(hw, IXGBE_PE_OUTPUT, reg);
+
 	if (status)
+	{
 		return status;
+	}
 
 	/* Wait for the reset to complete. */
 	msleep(IXGBE_CS4227_RESET_DELAY);
-	for (retry = 0; retry < IXGBE_CS4227_RETRIES; retry++) {
+
+	for (retry = 0; retry < IXGBE_CS4227_RETRIES; retry++)
+	{
 		status = ixgbe_read_cs4227(hw, IXGBE_CS4227_EFUSE_STATUS,
-					   &value);
+								   &value);
+
 		if (!status && value == IXGBE_CS4227_EEPROM_LOAD_OK)
+		{
 			break;
+		}
+
 		msleep(IXGBE_CS4227_CHECK_DELAY);
 	}
-	if (retry == IXGBE_CS4227_RETRIES) {
+
+	if (retry == IXGBE_CS4227_RETRIES)
+	{
 		hw_err(hw, "CS4227 reset did not complete\n");
 		return IXGBE_ERR_PHY;
 	}
 
 	status = ixgbe_read_cs4227(hw, IXGBE_CS4227_EEPROM_STATUS, &value);
-	if (status || !(value & IXGBE_CS4227_EEPROM_LOAD_OK)) {
+
+	if (status || !(value & IXGBE_CS4227_EEPROM_LOAD_OK))
+	{
 		hw_err(hw, "CS4227 EEPROM did not load successfully\n");
 		return IXGBE_ERR_PHY;
 	}
@@ -207,9 +257,12 @@ static void ixgbe_check_cs4227(struct ixgbe_hw *hw)
 	u16 value;
 	u8 retry;
 
-	for (retry = 0; retry < IXGBE_CS4227_RETRIES; retry++) {
+	for (retry = 0; retry < IXGBE_CS4227_RETRIES; retry++)
+	{
 		status = hw->mac.ops.acquire_swfw_sync(hw, swfw_mask);
-		if (status) {
+
+		if (status)
+		{
 			hw_err(hw, "semaphore failed with %d\n", status);
 			msleep(IXGBE_CS4227_CHECK_DELAY);
 			continue;
@@ -217,20 +270,29 @@ static void ixgbe_check_cs4227(struct ixgbe_hw *hw)
 
 		/* Get status of reset flow. */
 		status = ixgbe_read_cs4227(hw, IXGBE_CS4227_SCRATCH, &value);
+
 		if (!status && value == IXGBE_CS4227_RESET_COMPLETE)
+		{
 			goto out;
+		}
 
 		if (status || value != IXGBE_CS4227_RESET_PENDING)
+		{
 			break;
+		}
 
 		/* Reset is pending. Wait and check again. */
 		hw->mac.ops.release_swfw_sync(hw, swfw_mask);
 		msleep(IXGBE_CS4227_CHECK_DELAY);
 	}
+
 	/* If still pending, assume other instance failed. */
-	if (retry == IXGBE_CS4227_RETRIES) {
+	if (retry == IXGBE_CS4227_RETRIES)
+	{
 		status = hw->mac.ops.acquire_swfw_sync(hw, swfw_mask);
-		if (status) {
+
+		if (status)
+		{
 			hw_err(hw, "semaphore failed with %d\n", status);
 			return;
 		}
@@ -238,7 +300,9 @@ static void ixgbe_check_cs4227(struct ixgbe_hw *hw)
 
 	/* Reset the CS4227. */
 	status = ixgbe_reset_cs4227(hw);
-	if (status) {
+
+	if (status)
+	{
 		hw_err(hw, "CS4227 reset failed: %d", status);
 		goto out;
 	}
@@ -247,18 +311,20 @@ static void ixgbe_check_cs4227(struct ixgbe_hw *hw)
 	 * other driver instance is waiting for the reset indication.
 	 */
 	ixgbe_write_cs4227(hw, IXGBE_CS4227_SCRATCH,
-			   IXGBE_CS4227_RESET_PENDING);
+					   IXGBE_CS4227_RESET_PENDING);
 	hw->mac.ops.release_swfw_sync(hw, swfw_mask);
 	usleep_range(10000, 12000);
 	status = hw->mac.ops.acquire_swfw_sync(hw, swfw_mask);
-	if (status) {
+
+	if (status)
+	{
 		hw_err(hw, "semaphore failed with %d", status);
 		return;
 	}
 
 	/* Record completion for next time. */
 	status = ixgbe_write_cs4227(hw, IXGBE_CS4227_SCRATCH,
-				    IXGBE_CS4227_RESET_COMPLETE);
+								IXGBE_CS4227_RESET_COMPLETE);
 
 out:
 	hw->mac.ops.release_swfw_sync(hw, swfw_mask);
@@ -272,52 +338,70 @@ out:
  */
 static s32 ixgbe_identify_phy_x550em(struct ixgbe_hw *hw)
 {
-	switch (hw->device_id) {
-	case IXGBE_DEV_ID_X550EM_A_SFP:
-		if (hw->bus.lan_id)
-			hw->phy.phy_semaphore_mask = IXGBE_GSSR_PHY1_SM;
-		else
-			hw->phy.phy_semaphore_mask = IXGBE_GSSR_PHY0_SM;
-		return ixgbe_identify_module_generic(hw);
-	case IXGBE_DEV_ID_X550EM_X_SFP:
-		/* set up for CS4227 usage */
-		hw->phy.phy_semaphore_mask = IXGBE_GSSR_SHARED_I2C_SM;
-		ixgbe_setup_mux_ctl(hw);
-		ixgbe_check_cs4227(hw);
+	switch (hw->device_id)
+	{
+		case IXGBE_DEV_ID_X550EM_A_SFP:
+			if (hw->bus.lan_id)
+			{
+				hw->phy.phy_semaphore_mask = IXGBE_GSSR_PHY1_SM;
+			}
+			else
+			{
+				hw->phy.phy_semaphore_mask = IXGBE_GSSR_PHY0_SM;
+			}
+
+			return ixgbe_identify_module_generic(hw);
+
+		case IXGBE_DEV_ID_X550EM_X_SFP:
+			/* set up for CS4227 usage */
+			hw->phy.phy_semaphore_mask = IXGBE_GSSR_SHARED_I2C_SM;
+			ixgbe_setup_mux_ctl(hw);
+			ixgbe_check_cs4227(hw);
+
 		/* Fallthrough */
-	case IXGBE_DEV_ID_X550EM_A_SFP_N:
-		return ixgbe_identify_module_generic(hw);
-	case IXGBE_DEV_ID_X550EM_X_KX4:
-		hw->phy.type = ixgbe_phy_x550em_kx4;
-		break;
-	case IXGBE_DEV_ID_X550EM_X_KR:
-	case IXGBE_DEV_ID_X550EM_A_KR:
-	case IXGBE_DEV_ID_X550EM_A_KR_L:
-		hw->phy.type = ixgbe_phy_x550em_kr;
-		break;
-	case IXGBE_DEV_ID_X550EM_A_10G_T:
-		if (hw->bus.lan_id)
-			hw->phy.phy_semaphore_mask = IXGBE_GSSR_PHY1_SM;
-		else
-			hw->phy.phy_semaphore_mask = IXGBE_GSSR_PHY0_SM;
+		case IXGBE_DEV_ID_X550EM_A_SFP_N:
+			return ixgbe_identify_module_generic(hw);
+
+		case IXGBE_DEV_ID_X550EM_X_KX4:
+			hw->phy.type = ixgbe_phy_x550em_kx4;
+			break;
+
+		case IXGBE_DEV_ID_X550EM_X_KR:
+		case IXGBE_DEV_ID_X550EM_A_KR:
+		case IXGBE_DEV_ID_X550EM_A_KR_L:
+			hw->phy.type = ixgbe_phy_x550em_kr;
+			break;
+
+		case IXGBE_DEV_ID_X550EM_A_10G_T:
+			if (hw->bus.lan_id)
+			{
+				hw->phy.phy_semaphore_mask = IXGBE_GSSR_PHY1_SM;
+			}
+			else
+			{
+				hw->phy.phy_semaphore_mask = IXGBE_GSSR_PHY0_SM;
+			}
+
 		/* Fallthrough */
-	case IXGBE_DEV_ID_X550EM_X_1G_T:
-	case IXGBE_DEV_ID_X550EM_X_10G_T:
-		return ixgbe_identify_phy_generic(hw);
-	default:
-		break;
+		case IXGBE_DEV_ID_X550EM_X_1G_T:
+		case IXGBE_DEV_ID_X550EM_X_10G_T:
+			return ixgbe_identify_phy_generic(hw);
+
+		default:
+			break;
 	}
+
 	return 0;
 }
 
 static s32 ixgbe_read_phy_reg_x550em(struct ixgbe_hw *hw, u32 reg_addr,
-				     u32 device_type, u16 *phy_data)
+									 u32 device_type, u16 *phy_data)
 {
 	return IXGBE_NOT_IMPLEMENTED;
 }
 
 static s32 ixgbe_write_phy_reg_x550em(struct ixgbe_hw *hw, u32 reg_addr,
-				      u32 device_type, u16 phy_data)
+									  u32 device_type, u16 phy_data)
 {
 	return IXGBE_NOT_IMPLEMENTED;
 }
@@ -334,18 +418,19 @@ static s32 ixgbe_init_eeprom_params_X550(struct ixgbe_hw *hw)
 	u32 eec;
 	u16 eeprom_size;
 
-	if (eeprom->type == ixgbe_eeprom_uninitialized) {
+	if (eeprom->type == ixgbe_eeprom_uninitialized)
+	{
 		eeprom->semaphore_delay = 10;
 		eeprom->type = ixgbe_flash;
 
 		eec = IXGBE_READ_REG(hw, IXGBE_EEC(hw));
 		eeprom_size = (u16)((eec & IXGBE_EEC_SIZE) >>
-				    IXGBE_EEC_SIZE_SHIFT);
+							IXGBE_EEC_SIZE_SHIFT);
 		eeprom->word_size = BIT(eeprom_size +
-					IXGBE_EEPROM_WORD_SIZE_SHIFT);
+								IXGBE_EEPROM_WORD_SIZE_SHIFT);
 
 		hw_dbg(hw, "Eeprom params: type = %d, size = %d\n",
-		       eeprom->type, eeprom->word_size);
+			   eeprom->type, eeprom->word_size);
 	}
 
 	return 0;
@@ -368,15 +453,25 @@ static s32 ixgbe_iosf_wait(struct ixgbe_hw *hw, u32 *ctrl)
 	 * The SB IOSF BUSY bit will clear when the operation is
 	 * complete.
 	 */
-	for (i = 0; i < IXGBE_MDIO_COMMAND_TIMEOUT; i++) {
+	for (i = 0; i < IXGBE_MDIO_COMMAND_TIMEOUT; i++)
+	{
 		command = IXGBE_READ_REG(hw, IXGBE_SB_IOSF_INDIRECT_CTRL);
+
 		if (!(command & IXGBE_SB_IOSF_CTRL_BUSY))
+		{
 			break;
+		}
+
 		udelay(10);
 	}
+
 	if (ctrl)
+	{
 		*ctrl = command;
-	if (i == IXGBE_MDIO_COMMAND_TIMEOUT) {
+	}
+
+	if (i == IXGBE_MDIO_COMMAND_TIMEOUT)
+	{
 		hw_dbg(hw, "IOSF wait timed out\n");
 		return IXGBE_ERR_PHY;
 	}
@@ -392,37 +487,46 @@ static s32 ixgbe_iosf_wait(struct ixgbe_hw *hw, u32 *ctrl)
  *  @phy_data: Pointer to read data from the register
  **/
 static s32 ixgbe_read_iosf_sb_reg_x550(struct ixgbe_hw *hw, u32 reg_addr,
-				       u32 device_type, u32 *data)
+									   u32 device_type, u32 *data)
 {
 	u32 gssr = IXGBE_GSSR_PHY1_SM | IXGBE_GSSR_PHY0_SM;
 	u32 command, error;
 	s32 ret;
 
 	ret = hw->mac.ops.acquire_swfw_sync(hw, gssr);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = ixgbe_iosf_wait(hw, NULL);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	command = ((reg_addr << IXGBE_SB_IOSF_CTRL_ADDR_SHIFT) |
-		   (device_type << IXGBE_SB_IOSF_CTRL_TARGET_SELECT_SHIFT));
+			   (device_type << IXGBE_SB_IOSF_CTRL_TARGET_SELECT_SHIFT));
 
 	/* Write IOSF control register */
 	IXGBE_WRITE_REG(hw, IXGBE_SB_IOSF_INDIRECT_CTRL, command);
 
 	ret = ixgbe_iosf_wait(hw, &command);
 
-	if ((command & IXGBE_SB_IOSF_CTRL_RESP_STAT_MASK) != 0) {
+	if ((command & IXGBE_SB_IOSF_CTRL_RESP_STAT_MASK) != 0)
+	{
 		error = (command & IXGBE_SB_IOSF_CTRL_CMPL_ERR_MASK) >>
-			 IXGBE_SB_IOSF_CTRL_CMPL_ERR_SHIFT;
+				IXGBE_SB_IOSF_CTRL_CMPL_ERR_SHIFT;
 		hw_dbg(hw, "Failed to read, error %x\n", error);
 		return IXGBE_ERR_PHY;
 	}
 
 	if (!ret)
+	{
 		*data = IXGBE_READ_REG(hw, IXGBE_SB_IOSF_INDIRECT_DATA);
+	}
 
 out:
 	hw->mac.ops.release_swfw_sync(hw, gssr);
@@ -446,14 +550,23 @@ static s32 ixgbe_get_phy_token(struct ixgbe_hw *hw)
 	token_cmd.command_type = FW_PHY_TOKEN_REQ;
 	token_cmd.pad = 0;
 	status = ixgbe_host_interface_command(hw, &token_cmd, sizeof(token_cmd),
-					      IXGBE_HI_COMMAND_TIMEOUT,
-					      true);
+										  IXGBE_HI_COMMAND_TIMEOUT,
+										  true);
+
 	if (status)
+	{
 		return status;
+	}
+
 	if (token_cmd.hdr.cmd_or_resp.ret_status == FW_PHY_TOKEN_OK)
+	{
 		return 0;
+	}
+
 	if (token_cmd.hdr.cmd_or_resp.ret_status != FW_PHY_TOKEN_RETRY)
+	{
 		return IXGBE_ERR_FW_RESP_INVALID;
+	}
 
 	return IXGBE_ERR_TOKEN_RETRY;
 }
@@ -475,12 +588,19 @@ static s32 ixgbe_put_phy_token(struct ixgbe_hw *hw)
 	token_cmd.command_type = FW_PHY_TOKEN_REL;
 	token_cmd.pad = 0;
 	status = ixgbe_host_interface_command(hw, &token_cmd, sizeof(token_cmd),
-					      IXGBE_HI_COMMAND_TIMEOUT,
-					      true);
+										  IXGBE_HI_COMMAND_TIMEOUT,
+										  true);
+
 	if (status)
+	{
 		return status;
+	}
+
 	if (token_cmd.hdr.cmd_or_resp.ret_status == FW_PHY_TOKEN_OK)
+	{
 		return 0;
+	}
+
 	return IXGBE_ERR_FW_RESP_INVALID;
 }
 
@@ -492,8 +612,8 @@ static s32 ixgbe_put_phy_token(struct ixgbe_hw *hw)
  *  @data: Data to write to the register
  **/
 static s32 ixgbe_write_iosf_sb_reg_x550a(struct ixgbe_hw *hw, u32 reg_addr,
-					 __always_unused u32 device_type,
-					 u32 data)
+		__always_unused u32 device_type,
+		u32 data)
 {
 	struct ixgbe_hic_internal_phy_req write_cmd;
 
@@ -507,7 +627,7 @@ static s32 ixgbe_write_iosf_sb_reg_x550a(struct ixgbe_hw *hw, u32 reg_addr,
 	write_cmd.write_data = cpu_to_be32(data);
 
 	return ixgbe_host_interface_command(hw, &write_cmd, sizeof(write_cmd),
-					    IXGBE_HI_COMMAND_TIMEOUT, false);
+										IXGBE_HI_COMMAND_TIMEOUT, false);
 }
 
 /**
@@ -518,10 +638,11 @@ static s32 ixgbe_write_iosf_sb_reg_x550a(struct ixgbe_hw *hw, u32 reg_addr,
  *  @data: Pointer to read data from the register
  **/
 static s32 ixgbe_read_iosf_sb_reg_x550a(struct ixgbe_hw *hw, u32 reg_addr,
-					__always_unused u32 device_type,
-					u32 *data)
+										__always_unused u32 device_type,
+										u32 *data)
 {
-	union {
+	union
+	{
 		struct ixgbe_hic_internal_phy_req cmd;
 		struct ixgbe_hic_internal_phy_resp rsp;
 	} hic;
@@ -536,7 +657,7 @@ static s32 ixgbe_read_iosf_sb_reg_x550a(struct ixgbe_hw *hw, u32 reg_addr,
 	hic.cmd.address = cpu_to_be16(reg_addr);
 
 	status = ixgbe_host_interface_command(hw, &hic.cmd, sizeof(hic.cmd),
-					      IXGBE_HI_COMMAND_TIMEOUT, true);
+										  IXGBE_HI_COMMAND_TIMEOUT, true);
 
 	/* Extract the register value from the response. */
 	*data = be32_to_cpu(hic.rsp.read_data);
@@ -553,7 +674,7 @@ static s32 ixgbe_read_iosf_sb_reg_x550a(struct ixgbe_hw *hw, u32 reg_addr,
  *  Reads a 16 bit word from the EEPROM using the hostif.
  **/
 static s32 ixgbe_read_ee_hostif_data_X550(struct ixgbe_hw *hw, u16 offset,
-					  u16 *data)
+		u16 *data)
 {
 	s32 status;
 	struct ixgbe_hic_read_shadow_ram buffer;
@@ -569,12 +690,15 @@ static s32 ixgbe_read_ee_hostif_data_X550(struct ixgbe_hw *hw, u16 offset,
 	buffer.length = cpu_to_be16(sizeof(u16));
 
 	status = ixgbe_host_interface_command(hw, &buffer, sizeof(buffer),
-					      IXGBE_HI_COMMAND_TIMEOUT, false);
+										  IXGBE_HI_COMMAND_TIMEOUT, false);
+
 	if (status)
+	{
 		return status;
+	}
 
 	*data = (u16)IXGBE_READ_REG_ARRAY(hw, IXGBE_FLEX_MNG,
-					  FW_NVM_DATA_OFFSET);
+									  FW_NVM_DATA_OFFSET);
 
 	return 0;
 }
@@ -588,7 +712,7 @@ static s32 ixgbe_read_ee_hostif_data_X550(struct ixgbe_hw *hw, u16 offset,
  *  Reads a 16 bit word(s) from the EEPROM using the hostif.
  **/
 static s32 ixgbe_read_ee_hostif_buffer_X550(struct ixgbe_hw *hw,
-					    u16 offset, u16 words, u16 *data)
+		u16 offset, u16 words, u16 *data)
 {
 	struct ixgbe_hic_read_shadow_ram buffer;
 	u32 current_word = 0;
@@ -598,16 +722,23 @@ static s32 ixgbe_read_ee_hostif_buffer_X550(struct ixgbe_hw *hw,
 
 	/* Take semaphore for the entire operation. */
 	status = hw->mac.ops.acquire_swfw_sync(hw, IXGBE_GSSR_EEP_SM);
-	if (status) {
+
+	if (status)
+	{
 		hw_dbg(hw, "EEPROM read buffer - semaphore failed\n");
 		return status;
 	}
 
-	while (words) {
+	while (words)
+	{
 		if (words > FW_MAX_READ_BUFFER_SIZE / 2)
+		{
 			words_to_read = FW_MAX_READ_BUFFER_SIZE / 2;
+		}
 		else
+		{
 			words_to_read = words;
+		}
 
 		buffer.hdr.req.cmd = FW_READ_SHADOW_RAM_CMD;
 		buffer.hdr.req.buf_lenh = 0;
@@ -619,28 +750,34 @@ static s32 ixgbe_read_ee_hostif_buffer_X550(struct ixgbe_hw *hw,
 		buffer.length = cpu_to_be16(words_to_read * 2);
 
 		status = ixgbe_host_interface_command(hw, &buffer,
-						      sizeof(buffer),
-						      IXGBE_HI_COMMAND_TIMEOUT,
-						      false);
-		if (status) {
+											  sizeof(buffer),
+											  IXGBE_HI_COMMAND_TIMEOUT,
+											  false);
+
+		if (status)
+		{
 			hw_dbg(hw, "Host interface command failed\n");
 			goto out;
 		}
 
-		for (i = 0; i < words_to_read; i++) {
+		for (i = 0; i < words_to_read; i++)
+		{
 			u32 reg = IXGBE_FLEX_MNG + (FW_NVM_DATA_OFFSET << 2) +
-				  2 * i;
+					  2 * i;
 			u32 value = IXGBE_READ_REG(hw, reg);
 
 			data[current_word] = (u16)(value & 0xffff);
 			current_word++;
 			i++;
-			if (i < words_to_read) {
+
+			if (i < words_to_read)
+			{
 				value >>= 16;
 				data[current_word] = (u16)(value & 0xffff);
 				current_word++;
 			}
 		}
+
 		words -= words_to_read;
 	}
 
@@ -658,8 +795,8 @@ out:
  *  Returns error status for any failure
  **/
 static s32 ixgbe_checksum_ptr_x550(struct ixgbe_hw *hw, u16 ptr,
-				   u16 size, u16 *csum, u16 *buffer,
-				   u32 buffer_size)
+								   u16 size, u16 *csum, u16 *buffer,
+								   u32 buffer_size)
 {
 	u16 buf[256];
 	s32 status;
@@ -669,52 +806,77 @@ static s32 ixgbe_checksum_ptr_x550(struct ixgbe_hw *hw, u16 ptr,
 	bufsz = sizeof(buf) / sizeof(buf[0]);
 
 	/* Read a chunk at the pointer location */
-	if (!buffer) {
+	if (!buffer)
+	{
 		status = ixgbe_read_ee_hostif_buffer_X550(hw, ptr, bufsz, buf);
-		if (status) {
+
+		if (status)
+		{
 			hw_dbg(hw, "Failed to read EEPROM image\n");
 			return status;
 		}
+
 		local_buffer = buf;
-	} else {
+	}
+	else
+	{
 		if (buffer_size < ptr)
+		{
 			return  IXGBE_ERR_PARAM;
+		}
+
 		local_buffer = &buffer[ptr];
 	}
 
-	if (size) {
+	if (size)
+	{
 		start = 0;
 		length = size;
-	} else {
+	}
+	else
+	{
 		start = 1;
 		length = local_buffer[0];
 
 		/* Skip pointer section if length is invalid. */
 		if (length == 0xFFFF || length == 0 ||
-		    (ptr + length) >= hw->eeprom.word_size)
+			(ptr + length) >= hw->eeprom.word_size)
+		{
 			return 0;
+		}
 	}
 
 	if (buffer && ((u32)start + (u32)length > buffer_size))
+	{
 		return IXGBE_ERR_PARAM;
+	}
 
-	for (i = start; length; i++, length--) {
-		if (i == bufsz && !buffer) {
+	for (i = start; length; i++, length--)
+	{
+		if (i == bufsz && !buffer)
+		{
 			ptr += bufsz;
 			i = 0;
+
 			if (length < bufsz)
+			{
 				bufsz = length;
+			}
 
 			/* Read a chunk at the pointer location */
 			status = ixgbe_read_ee_hostif_buffer_X550(hw, ptr,
-								  bufsz, buf);
-			if (status) {
+					 bufsz, buf);
+
+			if (status)
+			{
 				hw_dbg(hw, "Failed to read EEPROM image\n");
 				return status;
 			}
 		}
+
 		*csum += local_buffer[i];
 	}
+
 	return 0;
 }
 
@@ -726,7 +888,7 @@ static s32 ixgbe_checksum_ptr_x550(struct ixgbe_hw *hw, u16 ptr,
  *  Returns a negative error code on error, or the 16-bit checksum
  **/
 static s32 ixgbe_calc_checksum_X550(struct ixgbe_hw *hw, u16 *buffer,
-				    u32 buffer_size)
+									u32 buffer_size)
 {
 	u16 eeprom_ptrs[IXGBE_EEPROM_LAST_WORD + 1];
 	u16 *local_buffer;
@@ -736,19 +898,28 @@ static s32 ixgbe_calc_checksum_X550(struct ixgbe_hw *hw, u16 *buffer,
 
 	hw->eeprom.ops.init_params(hw);
 
-	if (!buffer) {
+	if (!buffer)
+	{
 		/* Read pointer area */
 		status = ixgbe_read_ee_hostif_buffer_X550(hw, 0,
-						IXGBE_EEPROM_LAST_WORD + 1,
-						eeprom_ptrs);
-		if (status) {
+				 IXGBE_EEPROM_LAST_WORD + 1,
+				 eeprom_ptrs);
+
+		if (status)
+		{
 			hw_dbg(hw, "Failed to read EEPROM image\n");
 			return status;
 		}
+
 		local_buffer = eeprom_ptrs;
-	} else {
+	}
+	else
+	{
 		if (buffer_size < IXGBE_EEPROM_LAST_WORD)
+		{
 			return IXGBE_ERR_PARAM;
+		}
+
 		local_buffer = buffer;
 	}
 
@@ -757,39 +928,52 @@ static s32 ixgbe_calc_checksum_X550(struct ixgbe_hw *hw, u16 *buffer,
 	 */
 	for (i = 0; i <= IXGBE_EEPROM_LAST_WORD; i++)
 		if (i != IXGBE_EEPROM_CHECKSUM)
+		{
 			checksum += local_buffer[i];
+		}
 
 	/* Include all data from pointers 0x3, 0x6-0xE.  This excludes the
 	 * FW, PHY module, and PCIe Expansion/Option ROM pointers.
 	 */
-	for (i = IXGBE_PCIE_ANALOG_PTR_X550; i < IXGBE_FW_PTR; i++) {
+	for (i = IXGBE_PCIE_ANALOG_PTR_X550; i < IXGBE_FW_PTR; i++)
+	{
 		if (i == IXGBE_PHY_PTR || i == IXGBE_OPTION_ROM_PTR)
+		{
 			continue;
+		}
 
 		pointer = local_buffer[i];
 
 		/* Skip pointer section if the pointer is invalid. */
 		if (pointer == 0xFFFF || pointer == 0 ||
-		    pointer >= hw->eeprom.word_size)
+			pointer >= hw->eeprom.word_size)
+		{
 			continue;
+		}
 
-		switch (i) {
-		case IXGBE_PCIE_GENERAL_PTR:
-			size = IXGBE_IXGBE_PCIE_GENERAL_SIZE;
-			break;
-		case IXGBE_PCIE_CONFIG0_PTR:
-		case IXGBE_PCIE_CONFIG1_PTR:
-			size = IXGBE_PCIE_CONFIG_SIZE;
-			break;
-		default:
-			size = 0;
-			break;
+		switch (i)
+		{
+			case IXGBE_PCIE_GENERAL_PTR:
+				size = IXGBE_IXGBE_PCIE_GENERAL_SIZE;
+				break;
+
+			case IXGBE_PCIE_CONFIG0_PTR:
+			case IXGBE_PCIE_CONFIG1_PTR:
+				size = IXGBE_PCIE_CONFIG_SIZE;
+				break;
+
+			default:
+				size = 0;
+				break;
 		}
 
 		status = ixgbe_checksum_ptr_x550(hw, pointer, size, &checksum,
-						 buffer, buffer_size);
+										 buffer, buffer_size);
+
 		if (status)
+		{
 			return status;
+		}
 	}
 
 	checksum = (u16)IXGBE_EEPROM_SUM - checksum;
@@ -818,10 +1002,13 @@ static s32 ixgbe_read_ee_hostif_X550(struct ixgbe_hw *hw, u16 offset, u16 *data)
 {
 	s32 status = 0;
 
-	if (hw->mac.ops.acquire_swfw_sync(hw, IXGBE_GSSR_EEP_SM) == 0) {
+	if (hw->mac.ops.acquire_swfw_sync(hw, IXGBE_GSSR_EEP_SM) == 0)
+	{
 		status = ixgbe_read_ee_hostif_data_X550(hw, offset, data);
 		hw->mac.ops.release_swfw_sync(hw, IXGBE_GSSR_EEP_SM);
-	} else {
+	}
+	else
+	{
 		status = IXGBE_ERR_SWFW_SYNC;
 	}
 
@@ -836,7 +1023,7 @@ static s32 ixgbe_read_ee_hostif_X550(struct ixgbe_hw *hw, u16 offset, u16 *data)
  *  caller does not need checksum_val, the value can be NULL.
  **/
 static s32 ixgbe_validate_eeprom_checksum_X550(struct ixgbe_hw *hw,
-					       u16 *checksum_val)
+		u16 *checksum_val)
 {
 	s32 status;
 	u16 checksum;
@@ -847,33 +1034,44 @@ static s32 ixgbe_validate_eeprom_checksum_X550(struct ixgbe_hw *hw,
 	 * EEPROM read fails
 	 */
 	status = hw->eeprom.ops.read(hw, 0, &checksum);
-	if (status) {
+
+	if (status)
+	{
 		hw_dbg(hw, "EEPROM read failed\n");
 		return status;
 	}
 
 	status = hw->eeprom.ops.calc_checksum(hw);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	checksum = (u16)(status & 0xffff);
 
 	status = ixgbe_read_ee_hostif_X550(hw, IXGBE_EEPROM_CHECKSUM,
-					   &read_checksum);
+									   &read_checksum);
+
 	if (status)
+	{
 		return status;
+	}
 
 	/* Verify read checksum from EEPROM is the same as
 	 * calculated checksum
 	 */
-	if (read_checksum != checksum) {
+	if (read_checksum != checksum)
+	{
 		status = IXGBE_ERR_EEPROM_CHECKSUM;
 		hw_dbg(hw, "Invalid EEPROM checksum");
 	}
 
 	/* If the user cares, return the calculated checksum */
 	if (checksum_val)
+	{
 		*checksum_val = checksum;
+	}
 
 	return status;
 }
@@ -886,7 +1084,7 @@ static s32 ixgbe_validate_eeprom_checksum_X550(struct ixgbe_hw *hw,
  *  Write a 16 bit word to the EEPROM using the hostif.
  **/
 static s32 ixgbe_write_ee_hostif_data_X550(struct ixgbe_hw *hw, u16 offset,
-					   u16 data)
+		u16 data)
 {
 	s32 status;
 	struct ixgbe_hic_write_shadow_ram buffer;
@@ -902,7 +1100,7 @@ static s32 ixgbe_write_ee_hostif_data_X550(struct ixgbe_hw *hw, u16 offset,
 	buffer.address = cpu_to_be32(offset * 2);
 
 	status = ixgbe_host_interface_command(hw, &buffer, sizeof(buffer),
-					      IXGBE_HI_COMMAND_TIMEOUT, false);
+										  IXGBE_HI_COMMAND_TIMEOUT, false);
 	return status;
 }
 
@@ -917,10 +1115,13 @@ static s32 ixgbe_write_ee_hostif_X550(struct ixgbe_hw *hw, u16 offset, u16 data)
 {
 	s32 status = 0;
 
-	if (hw->mac.ops.acquire_swfw_sync(hw, IXGBE_GSSR_EEP_SM) == 0) {
+	if (hw->mac.ops.acquire_swfw_sync(hw, IXGBE_GSSR_EEP_SM) == 0)
+	{
 		status = ixgbe_write_ee_hostif_data_X550(hw, offset, data);
 		hw->mac.ops.release_swfw_sync(hw, IXGBE_GSSR_EEP_SM);
-	} else {
+	}
+	else
+	{
 		hw_dbg(hw, "write ee hostif failed to get semaphore");
 		status = IXGBE_ERR_SWFW_SYNC;
 	}
@@ -944,7 +1145,7 @@ static s32 ixgbe_update_flash_X550(struct ixgbe_hw *hw)
 	buffer.req.checksum = FW_DEFAULT_CHECKSUM;
 
 	status = ixgbe_host_interface_command(hw, &buffer, sizeof(buffer),
-					      IXGBE_HI_COMMAND_TIMEOUT, false);
+										  IXGBE_HI_COMMAND_TIMEOUT, false);
 	return status;
 }
 
@@ -977,13 +1178,19 @@ static void ixgbe_disable_rx_x550(struct ixgbe_hw *hw)
 	struct ixgbe_hic_disable_rxen fw_cmd;
 
 	rxctrl = IXGBE_READ_REG(hw, IXGBE_RXCTRL);
-	if (rxctrl & IXGBE_RXCTRL_RXEN) {
+
+	if (rxctrl & IXGBE_RXCTRL_RXEN)
+	{
 		pfdtxgswc = IXGBE_READ_REG(hw, IXGBE_PFDTXGSWC);
-		if (pfdtxgswc & IXGBE_PFDTXGSWC_VT_LBEN) {
+
+		if (pfdtxgswc & IXGBE_PFDTXGSWC_VT_LBEN)
+		{
 			pfdtxgswc &= ~IXGBE_PFDTXGSWC_VT_LBEN;
 			IXGBE_WRITE_REG(hw, IXGBE_PFDTXGSWC, pfdtxgswc);
 			hw->mac.set_lben = true;
-		} else {
+		}
+		else
+		{
 			hw->mac.set_lben = false;
 		}
 
@@ -993,13 +1200,16 @@ static void ixgbe_disable_rx_x550(struct ixgbe_hw *hw)
 		fw_cmd.port_number = hw->bus.lan_id;
 
 		status = ixgbe_host_interface_command(hw, &fw_cmd,
-					sizeof(struct ixgbe_hic_disable_rxen),
-					IXGBE_HI_COMMAND_TIMEOUT, true);
+											  sizeof(struct ixgbe_hic_disable_rxen),
+											  IXGBE_HI_COMMAND_TIMEOUT, true);
 
 		/* If we fail - disable RX using register write */
-		if (status) {
+		if (status)
+		{
 			rxctrl = IXGBE_READ_REG(hw, IXGBE_RXCTRL);
-			if (rxctrl & IXGBE_RXCTRL_RXEN) {
+
+			if (rxctrl & IXGBE_RXCTRL_RXEN)
+			{
 				rxctrl &= ~IXGBE_RXCTRL_RXEN;
 				IXGBE_WRITE_REG(hw, IXGBE_RXCTRL, rxctrl);
 			}
@@ -1024,21 +1234,29 @@ static s32 ixgbe_update_eeprom_checksum_X550(struct ixgbe_hw *hw)
 	 * EEPROM read fails
 	 */
 	status = ixgbe_read_ee_hostif_X550(hw, 0, &checksum);
-	if (status) {
+
+	if (status)
+	{
 		hw_dbg(hw, "EEPROM read failed\n");
 		return status;
 	}
 
 	status = ixgbe_calc_eeprom_checksum_X550(hw);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	checksum = (u16)(status & 0xffff);
 
 	status = ixgbe_write_ee_hostif_X550(hw, IXGBE_EEPROM_CHECKSUM,
-					    checksum);
+										checksum);
+
 	if (status)
+	{
 		return status;
+	}
 
 	status = ixgbe_update_flash_X550(hw);
 
@@ -1055,23 +1273,28 @@ static s32 ixgbe_update_eeprom_checksum_X550(struct ixgbe_hw *hw)
  *  Write a 16 bit word(s) to the EEPROM using the hostif.
  **/
 static s32 ixgbe_write_ee_hostif_buffer_X550(struct ixgbe_hw *hw,
-					     u16 offset, u16 words,
-					     u16 *data)
+		u16 offset, u16 words,
+		u16 *data)
 {
 	s32 status = 0;
 	u32 i = 0;
 
 	/* Take semaphore for the entire operation. */
 	status = hw->mac.ops.acquire_swfw_sync(hw, IXGBE_GSSR_EEP_SM);
-	if (status) {
+
+	if (status)
+	{
 		hw_dbg(hw, "EEPROM write buffer - semaphore failed\n");
 		return status;
 	}
 
-	for (i = 0; i < words; i++) {
+	for (i = 0; i < words; i++)
+	{
 		status = ixgbe_write_ee_hostif_data_X550(hw, offset + i,
-							 data[i]);
-		if (status) {
+				 data[i]);
+
+		if (status)
+		{
 			hw_dbg(hw, "Eeprom buffered write failed\n");
 			break;
 		}
@@ -1091,22 +1314,28 @@ static s32 ixgbe_write_ee_hostif_buffer_X550(struct ixgbe_hw *hw,
  *  @data: Data to write to the register
  **/
 static s32 ixgbe_write_iosf_sb_reg_x550(struct ixgbe_hw *hw, u32 reg_addr,
-					u32 device_type, u32 data)
+										u32 device_type, u32 data)
 {
 	u32 gssr = IXGBE_GSSR_PHY1_SM | IXGBE_GSSR_PHY0_SM;
 	u32 command, error;
 	s32 ret;
 
 	ret = hw->mac.ops.acquire_swfw_sync(hw, gssr);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = ixgbe_iosf_wait(hw, NULL);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	command = ((reg_addr << IXGBE_SB_IOSF_CTRL_ADDR_SHIFT) |
-		   (device_type << IXGBE_SB_IOSF_CTRL_TARGET_SELECT_SHIFT));
+			   (device_type << IXGBE_SB_IOSF_CTRL_TARGET_SELECT_SHIFT));
 
 	/* Write IOSF control register */
 	IXGBE_WRITE_REG(hw, IXGBE_SB_IOSF_INDIRECT_CTRL, command);
@@ -1116,9 +1345,10 @@ static s32 ixgbe_write_iosf_sb_reg_x550(struct ixgbe_hw *hw, u32 reg_addr,
 
 	ret = ixgbe_iosf_wait(hw, &command);
 
-	if ((command & IXGBE_SB_IOSF_CTRL_RESP_STAT_MASK) != 0) {
+	if ((command & IXGBE_SB_IOSF_CTRL_RESP_STAT_MASK) != 0)
+	{
 		error = (command & IXGBE_SB_IOSF_CTRL_CMPL_ERR_MASK) >>
-			 IXGBE_SB_IOSF_CTRL_CMPL_ERR_SHIFT;
+				IXGBE_SB_IOSF_CTRL_CMPL_ERR_SHIFT;
 		hw_dbg(hw, "Failed to write, error %x\n", error);
 		return IXGBE_ERR_PHY;
 	}
@@ -1142,106 +1372,142 @@ static s32 ixgbe_setup_ixfi_x550em(struct ixgbe_hw *hw, ixgbe_link_speed *speed)
 
 	/* Disable AN and force speed to 10G Serial. */
 	status = ixgbe_read_iosf_sb_reg_x550(hw,
-					IXGBE_KRM_LINK_CTRL_1(hw->bus.lan_id),
-					IXGBE_SB_IOSF_TARGET_KR_PHY, &reg_val);
+										 IXGBE_KRM_LINK_CTRL_1(hw->bus.lan_id),
+										 IXGBE_SB_IOSF_TARGET_KR_PHY, &reg_val);
+
 	if (status)
+	{
 		return status;
+	}
 
 	reg_val &= ~IXGBE_KRM_LINK_CTRL_1_TETH_AN_ENABLE;
 	reg_val &= ~IXGBE_KRM_LINK_CTRL_1_TETH_FORCE_SPEED_MASK;
 
 	/* Select forced link speed for internal PHY. */
-	switch (*speed) {
-	case IXGBE_LINK_SPEED_10GB_FULL:
-		reg_val |= IXGBE_KRM_LINK_CTRL_1_TETH_FORCE_SPEED_10G;
-		break;
-	case IXGBE_LINK_SPEED_1GB_FULL:
-		reg_val |= IXGBE_KRM_LINK_CTRL_1_TETH_FORCE_SPEED_1G;
-		break;
-	default:
-		/* Other link speeds are not supported by internal KR PHY. */
-		return IXGBE_ERR_LINK_SETUP;
+	switch (*speed)
+	{
+		case IXGBE_LINK_SPEED_10GB_FULL:
+			reg_val |= IXGBE_KRM_LINK_CTRL_1_TETH_FORCE_SPEED_10G;
+			break;
+
+		case IXGBE_LINK_SPEED_1GB_FULL:
+			reg_val |= IXGBE_KRM_LINK_CTRL_1_TETH_FORCE_SPEED_1G;
+			break;
+
+		default:
+			/* Other link speeds are not supported by internal KR PHY. */
+			return IXGBE_ERR_LINK_SETUP;
 	}
 
 	status = ixgbe_write_iosf_sb_reg_x550(hw,
-				IXGBE_KRM_LINK_CTRL_1(hw->bus.lan_id),
-				IXGBE_SB_IOSF_TARGET_KR_PHY, reg_val);
+										  IXGBE_KRM_LINK_CTRL_1(hw->bus.lan_id),
+										  IXGBE_SB_IOSF_TARGET_KR_PHY, reg_val);
+
 	if (status)
+	{
 		return status;
+	}
 
 	/* Disable training protocol FSM. */
 	status = ixgbe_read_iosf_sb_reg_x550(hw,
-				IXGBE_KRM_RX_TRN_LINKUP_CTRL(hw->bus.lan_id),
-				IXGBE_SB_IOSF_TARGET_KR_PHY, &reg_val);
+										 IXGBE_KRM_RX_TRN_LINKUP_CTRL(hw->bus.lan_id),
+										 IXGBE_SB_IOSF_TARGET_KR_PHY, &reg_val);
+
 	if (status)
+	{
 		return status;
+	}
 
 	reg_val |= IXGBE_KRM_RX_TRN_LINKUP_CTRL_CONV_WO_PROTOCOL;
 	status = ixgbe_write_iosf_sb_reg_x550(hw,
-				IXGBE_KRM_RX_TRN_LINKUP_CTRL(hw->bus.lan_id),
-				IXGBE_SB_IOSF_TARGET_KR_PHY, reg_val);
+										  IXGBE_KRM_RX_TRN_LINKUP_CTRL(hw->bus.lan_id),
+										  IXGBE_SB_IOSF_TARGET_KR_PHY, reg_val);
+
 	if (status)
+	{
 		return status;
+	}
 
 	/* Disable Flex from training TXFFE. */
 	status = ixgbe_read_iosf_sb_reg_x550(hw,
-				IXGBE_KRM_DSP_TXFFE_STATE_4(hw->bus.lan_id),
-				IXGBE_SB_IOSF_TARGET_KR_PHY, &reg_val);
+										 IXGBE_KRM_DSP_TXFFE_STATE_4(hw->bus.lan_id),
+										 IXGBE_SB_IOSF_TARGET_KR_PHY, &reg_val);
+
 	if (status)
+	{
 		return status;
+	}
 
 	reg_val &= ~IXGBE_KRM_DSP_TXFFE_STATE_C0_EN;
 	reg_val &= ~IXGBE_KRM_DSP_TXFFE_STATE_CP1_CN1_EN;
 	reg_val &= ~IXGBE_KRM_DSP_TXFFE_STATE_CO_ADAPT_EN;
 	status = ixgbe_write_iosf_sb_reg_x550(hw,
-				IXGBE_KRM_DSP_TXFFE_STATE_4(hw->bus.lan_id),
-				IXGBE_SB_IOSF_TARGET_KR_PHY, reg_val);
+										  IXGBE_KRM_DSP_TXFFE_STATE_4(hw->bus.lan_id),
+										  IXGBE_SB_IOSF_TARGET_KR_PHY, reg_val);
+
 	if (status)
+	{
 		return status;
+	}
 
 	status = ixgbe_read_iosf_sb_reg_x550(hw,
-				IXGBE_KRM_DSP_TXFFE_STATE_5(hw->bus.lan_id),
-				IXGBE_SB_IOSF_TARGET_KR_PHY, &reg_val);
+										 IXGBE_KRM_DSP_TXFFE_STATE_5(hw->bus.lan_id),
+										 IXGBE_SB_IOSF_TARGET_KR_PHY, &reg_val);
+
 	if (status)
+	{
 		return status;
+	}
 
 	reg_val &= ~IXGBE_KRM_DSP_TXFFE_STATE_C0_EN;
 	reg_val &= ~IXGBE_KRM_DSP_TXFFE_STATE_CP1_CN1_EN;
 	reg_val &= ~IXGBE_KRM_DSP_TXFFE_STATE_CO_ADAPT_EN;
 	status = ixgbe_write_iosf_sb_reg_x550(hw,
-				IXGBE_KRM_DSP_TXFFE_STATE_5(hw->bus.lan_id),
-				IXGBE_SB_IOSF_TARGET_KR_PHY, reg_val);
+										  IXGBE_KRM_DSP_TXFFE_STATE_5(hw->bus.lan_id),
+										  IXGBE_SB_IOSF_TARGET_KR_PHY, reg_val);
+
 	if (status)
+	{
 		return status;
+	}
 
 	/* Enable override for coefficients. */
 	status = ixgbe_read_iosf_sb_reg_x550(hw,
-				IXGBE_KRM_TX_COEFF_CTRL_1(hw->bus.lan_id),
-				IXGBE_SB_IOSF_TARGET_KR_PHY, &reg_val);
+										 IXGBE_KRM_TX_COEFF_CTRL_1(hw->bus.lan_id),
+										 IXGBE_SB_IOSF_TARGET_KR_PHY, &reg_val);
+
 	if (status)
+	{
 		return status;
+	}
 
 	reg_val |= IXGBE_KRM_TX_COEFF_CTRL_1_OVRRD_EN;
 	reg_val |= IXGBE_KRM_TX_COEFF_CTRL_1_CZERO_EN;
 	reg_val |= IXGBE_KRM_TX_COEFF_CTRL_1_CPLUS1_OVRRD_EN;
 	reg_val |= IXGBE_KRM_TX_COEFF_CTRL_1_CMINUS1_OVRRD_EN;
 	status = ixgbe_write_iosf_sb_reg_x550(hw,
-				IXGBE_KRM_TX_COEFF_CTRL_1(hw->bus.lan_id),
-				IXGBE_SB_IOSF_TARGET_KR_PHY, reg_val);
+										  IXGBE_KRM_TX_COEFF_CTRL_1(hw->bus.lan_id),
+										  IXGBE_SB_IOSF_TARGET_KR_PHY, reg_val);
+
 	if (status)
+	{
 		return status;
+	}
 
 	/* Toggle port SW reset by AN reset. */
 	status = ixgbe_read_iosf_sb_reg_x550(hw,
-				IXGBE_KRM_LINK_CTRL_1(hw->bus.lan_id),
-				IXGBE_SB_IOSF_TARGET_KR_PHY, &reg_val);
+										 IXGBE_KRM_LINK_CTRL_1(hw->bus.lan_id),
+										 IXGBE_SB_IOSF_TARGET_KR_PHY, &reg_val);
+
 	if (status)
+	{
 		return status;
+	}
 
 	reg_val |= IXGBE_KRM_LINK_CTRL_1_TETH_AN_RESTART;
 	status = ixgbe_write_iosf_sb_reg_x550(hw,
-				IXGBE_KRM_LINK_CTRL_1(hw->bus.lan_id),
-				IXGBE_SB_IOSF_TARGET_KR_PHY, reg_val);
+										  IXGBE_KRM_LINK_CTRL_1(hw->bus.lan_id),
+										  IXGBE_SB_IOSF_TARGET_KR_PHY, reg_val);
 
 	return status;
 }
@@ -1253,28 +1519,32 @@ static s32 ixgbe_setup_ixfi_x550em(struct ixgbe_hw *hw, ixgbe_link_speed *speed)
  */
 static s32 ixgbe_supported_sfp_modules_X550em(struct ixgbe_hw *hw, bool *linear)
 {
-	switch (hw->phy.sfp_type) {
-	case ixgbe_sfp_type_not_present:
-		return IXGBE_ERR_SFP_NOT_PRESENT;
-	case ixgbe_sfp_type_da_cu_core0:
-	case ixgbe_sfp_type_da_cu_core1:
-		*linear = true;
-		break;
-	case ixgbe_sfp_type_srlr_core0:
-	case ixgbe_sfp_type_srlr_core1:
-	case ixgbe_sfp_type_da_act_lmt_core0:
-	case ixgbe_sfp_type_da_act_lmt_core1:
-	case ixgbe_sfp_type_1g_sx_core0:
-	case ixgbe_sfp_type_1g_sx_core1:
-	case ixgbe_sfp_type_1g_lx_core0:
-	case ixgbe_sfp_type_1g_lx_core1:
-		*linear = false;
-		break;
-	case ixgbe_sfp_type_unknown:
-	case ixgbe_sfp_type_1g_cu_core0:
-	case ixgbe_sfp_type_1g_cu_core1:
-	default:
-		return IXGBE_ERR_SFP_NOT_SUPPORTED;
+	switch (hw->phy.sfp_type)
+	{
+		case ixgbe_sfp_type_not_present:
+			return IXGBE_ERR_SFP_NOT_PRESENT;
+
+		case ixgbe_sfp_type_da_cu_core0:
+		case ixgbe_sfp_type_da_cu_core1:
+			*linear = true;
+			break;
+
+		case ixgbe_sfp_type_srlr_core0:
+		case ixgbe_sfp_type_srlr_core1:
+		case ixgbe_sfp_type_da_act_lmt_core0:
+		case ixgbe_sfp_type_da_act_lmt_core1:
+		case ixgbe_sfp_type_1g_sx_core0:
+		case ixgbe_sfp_type_1g_sx_core1:
+		case ixgbe_sfp_type_1g_lx_core0:
+		case ixgbe_sfp_type_1g_lx_core1:
+			*linear = false;
+			break;
+
+		case ixgbe_sfp_type_unknown:
+		case ixgbe_sfp_type_1g_cu_core0:
+		case ixgbe_sfp_type_1g_cu_core1:
+		default:
+			return IXGBE_ERR_SFP_NOT_SUPPORTED;
 	}
 
 	return 0;
@@ -1288,8 +1558,8 @@ static s32 ixgbe_supported_sfp_modules_X550em(struct ixgbe_hw *hw, bool *linear)
  */
 static s32
 ixgbe_setup_mac_link_sfp_x550em(struct ixgbe_hw *hw,
-				ixgbe_link_speed speed,
-				__always_unused bool autoneg_wait_to_complete)
+								ixgbe_link_speed speed,
+								__always_unused bool autoneg_wait_to_complete)
 {
 	s32 status;
 	u16 slice, value;
@@ -1303,70 +1573,108 @@ ixgbe_setup_mac_link_sfp_x550em(struct ixgbe_hw *hw,
 	 * not accepted in the setup MAC link flow.
 	 */
 	if (status == IXGBE_ERR_SFP_NOT_PRESENT)
+	{
 		return 0;
+	}
 
 	if (status)
+	{
 		return status;
+	}
 
-	if (!(hw->phy.nw_mng_if_sel & IXGBE_NW_MNG_IF_SEL_INT_PHY_MODE)) {
+	if (!(hw->phy.nw_mng_if_sel & IXGBE_NW_MNG_IF_SEL_INT_PHY_MODE))
+	{
 		/* Configure CS4227 LINE side to 10G SR. */
 		slice = IXGBE_CS4227_LINE_SPARE22_MSB + (hw->bus.lan_id << 12);
 		value = IXGBE_CS4227_SPEED_10G;
 		status = ixgbe_write_i2c_combined_generic(hw, IXGBE_CS4227,
-							  slice, value);
+				 slice, value);
+
 		if (status)
+		{
 			goto i2c_err;
+		}
 
 		slice = IXGBE_CS4227_LINE_SPARE24_LSB + (hw->bus.lan_id << 12);
 		value = (IXGBE_CS4227_EDC_MODE_SR << 1) | 1;
 		status = ixgbe_write_i2c_combined_generic(hw, IXGBE_CS4227,
-							  slice, value);
+				 slice, value);
+
 		if (status)
+		{
 			goto i2c_err;
+		}
 
 		/* Configure CS4227 for HOST connection rate then type. */
 		slice = IXGBE_CS4227_HOST_SPARE22_MSB + (hw->bus.lan_id << 12);
 		value = speed & IXGBE_LINK_SPEED_10GB_FULL ?
-			IXGBE_CS4227_SPEED_10G : IXGBE_CS4227_SPEED_1G;
+				IXGBE_CS4227_SPEED_10G : IXGBE_CS4227_SPEED_1G;
 		status = ixgbe_write_i2c_combined_generic(hw, IXGBE_CS4227,
-							  slice, value);
+				 slice, value);
+
 		if (status)
+		{
 			goto i2c_err;
+		}
 
 		slice = IXGBE_CS4227_HOST_SPARE24_LSB + (hw->bus.lan_id << 12);
+
 		if (setup_linear)
+		{
 			value = (IXGBE_CS4227_EDC_MODE_CX1 << 1) | 1;
+		}
 		else
+		{
 			value = (IXGBE_CS4227_EDC_MODE_SR << 1) | 1;
+		}
+
 		status = ixgbe_write_i2c_combined_generic(hw, IXGBE_CS4227,
-							  slice, value);
+				 slice, value);
+
 		if (status)
+		{
 			goto i2c_err;
+		}
 
 		/* Setup XFI internal link. */
 		status = ixgbe_setup_ixfi_x550em(hw, &speed);
-		if (status) {
+
+		if (status)
+		{
 			hw_dbg(hw, "setup_ixfi failed with %d\n", status);
 			return status;
 		}
-	} else {
+	}
+	else
+	{
 		/* Configure internal PHY for KR/KX. */
 		status = ixgbe_setup_kr_speed_x550em(hw, speed);
-		if (status) {
+
+		if (status)
+		{
 			hw_dbg(hw, "setup_kr_speed failed with %d\n", status);
 			return status;
 		}
 
 		/* Configure CS4227 LINE side to proper mode. */
 		slice = IXGBE_CS4227_LINE_SPARE24_LSB + (hw->bus.lan_id << 12);
+
 		if (setup_linear)
+		{
 			value = (IXGBE_CS4227_EDC_MODE_CX1 << 1) | 1;
+		}
 		else
+		{
 			value = (IXGBE_CS4227_EDC_MODE_SR << 1) | 1;
+		}
+
 		status = ixgbe_write_i2c_combined_generic(hw, IXGBE_CS4227,
-							  slice, value);
+				 slice, value);
+
 		if (status)
+		{
 			goto i2c_err;
+		}
 	}
 
 	return 0;
@@ -1384,7 +1692,7 @@ i2c_err:
  */
 static s32
 ixgbe_setup_mac_link_sfp_n(struct ixgbe_hw *hw, ixgbe_link_speed speed,
-			   __always_unused bool autoneg_wait_to_complete)
+						   __always_unused bool autoneg_wait_to_complete)
 {
 	bool setup_linear = false;
 	u32 reg_phy_int;
@@ -1397,33 +1705,46 @@ ixgbe_setup_mac_link_sfp_n(struct ixgbe_hw *hw, ixgbe_link_speed speed,
 	 * SFP not present error is not excepted in the setup MAC link flow.
 	 */
 	if (rc == IXGBE_ERR_SFP_NOT_PRESENT)
+	{
 		return 0;
+	}
 
 	if (!rc)
+	{
 		return rc;
+	}
 
 	/* Configure internal PHY for native SFI */
 	rc = hw->mac.ops.read_iosf_sb_reg(hw,
-					  IXGBE_KRM_AN_CNTL_8(hw->bus.lan_id),
-					  IXGBE_SB_IOSF_TARGET_KR_PHY,
-					  &reg_phy_int);
-	if (rc)
-		return rc;
+									  IXGBE_KRM_AN_CNTL_8(hw->bus.lan_id),
+									  IXGBE_SB_IOSF_TARGET_KR_PHY,
+									  &reg_phy_int);
 
-	if (setup_linear) {
+	if (rc)
+	{
+		return rc;
+	}
+
+	if (setup_linear)
+	{
 		reg_phy_int &= ~IXGBE_KRM_AN_CNTL_8_LIMITING;
 		reg_phy_int |= IXGBE_KRM_AN_CNTL_8_LINEAR;
-	} else {
+	}
+	else
+	{
 		reg_phy_int |= IXGBE_KRM_AN_CNTL_8_LIMITING;
 		reg_phy_int &= ~IXGBE_KRM_AN_CNTL_8_LINEAR;
 	}
 
 	rc = hw->mac.ops.write_iosf_sb_reg(hw,
-					   IXGBE_KRM_AN_CNTL_8(hw->bus.lan_id),
-					   IXGBE_SB_IOSF_TARGET_KR_PHY,
-					   reg_phy_int);
+									   IXGBE_KRM_AN_CNTL_8(hw->bus.lan_id),
+									   IXGBE_SB_IOSF_TARGET_KR_PHY,
+									   reg_phy_int);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* Setup XFI/SFI internal link */
 	return ixgbe_setup_ixfi_x550em(hw, &speed);
@@ -1437,7 +1758,7 @@ ixgbe_setup_mac_link_sfp_n(struct ixgbe_hw *hw, ixgbe_link_speed speed,
  */
 static s32
 ixgbe_setup_mac_link_sfp_x550a(struct ixgbe_hw *hw, ixgbe_link_speed speed,
-			       __always_unused bool autoneg_wait_to_complete)
+							   __always_unused bool autoneg_wait_to_complete)
 {
 	u32 reg_slice, slice_offset;
 	bool setup_linear = false;
@@ -1451,40 +1772,57 @@ ixgbe_setup_mac_link_sfp_x550a(struct ixgbe_hw *hw, ixgbe_link_speed speed,
 	 * SFP not present error is not excepted in the setup MAC link flow.
 	 */
 	if (rc == IXGBE_ERR_SFP_NOT_PRESENT)
+	{
 		return 0;
+	}
 
 	if (!rc)
+	{
 		return rc;
+	}
 
 	/* Configure internal PHY for KR/KX. */
 	ixgbe_setup_kr_speed_x550em(hw, speed);
 
 	if (hw->phy.mdio.prtad == MDIO_PRTAD_NONE)
+	{
 		return IXGBE_ERR_PHY_ADDR_INVALID;
+	}
 
 	/* Get external PHY device id */
 	rc = hw->phy.ops.read_reg(hw, IXGBE_CS4227_GLOBAL_ID_MSB,
-				  IXGBE_MDIO_ZERO_DEV_TYPE, &reg_phy_ext);
+							  IXGBE_MDIO_ZERO_DEV_TYPE, &reg_phy_ext);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* When configuring quad port CS4223, the MAC instance is part
 	 * of the slice offset.
 	 */
 	if (reg_phy_ext == IXGBE_CS4223_PHY_ID)
 		slice_offset = (hw->bus.lan_id +
-				(hw->bus.instance_id << 1)) << 12;
+						(hw->bus.instance_id << 1)) << 12;
 	else
+	{
 		slice_offset = hw->bus.lan_id << 12;
+	}
 
 	/* Configure CS4227/CS4223 LINE side to proper mode. */
 	reg_slice = IXGBE_CS4227_LINE_SPARE24_LSB + slice_offset;
+
 	if (setup_linear)
+	{
 		reg_phy_ext = (IXGBE_CS4227_EDC_MODE_CX1 << 1) | 1;
+	}
 	else
+	{
 		reg_phy_ext = (IXGBE_CS4227_EDC_MODE_SR << 1) | 1;
+	}
+
 	return hw->phy.ops.write_reg(hw, reg_slice, IXGBE_MDIO_ZERO_DEV_TYPE,
-				     reg_phy_ext);
+								 reg_phy_ext);
 }
 
 /**
@@ -1499,8 +1837,8 @@ ixgbe_setup_mac_link_sfp_x550a(struct ixgbe_hw *hw, ixgbe_link_speed speed,
  * Returns error status for any failure
  **/
 static s32 ixgbe_setup_mac_link_t_X550em(struct ixgbe_hw *hw,
-					 ixgbe_link_speed speed,
-					 bool autoneg_wait)
+		ixgbe_link_speed speed,
+		bool autoneg_wait)
 {
 	s32 status;
 	ixgbe_link_speed force_speed;
@@ -1509,16 +1847,23 @@ static s32 ixgbe_setup_mac_link_t_X550em(struct ixgbe_hw *hw,
 	 * only 1G is auto advertised then setup KX link.
 	 */
 	if (speed & IXGBE_LINK_SPEED_10GB_FULL)
+	{
 		force_speed = IXGBE_LINK_SPEED_10GB_FULL;
+	}
 	else
+	{
 		force_speed = IXGBE_LINK_SPEED_1GB_FULL;
+	}
 
 	/* If internal link mode is XFI, then setup XFI internal link. */
-	if (!(hw->phy.nw_mng_if_sel & IXGBE_NW_MNG_IF_SEL_INT_PHY_MODE)) {
+	if (!(hw->phy.nw_mng_if_sel & IXGBE_NW_MNG_IF_SEL_INT_PHY_MODE))
+	{
 		status = ixgbe_setup_ixfi_x550em(hw, &force_speed);
 
 		if (status)
+		{
 			return status;
+		}
 	}
 
 	return hw->phy.ops.setup_link_speed(hw, speed, autoneg_wait);
@@ -1533,35 +1878,44 @@ static s32 ixgbe_setup_mac_link_t_X550em(struct ixgbe_hw *hw,
   * Check that both the MAC and X557 external PHY have link.
   **/
 static s32 ixgbe_check_link_t_X550em(struct ixgbe_hw *hw,
-				     ixgbe_link_speed *speed,
-				     bool *link_up,
-				     bool link_up_wait_to_complete)
+									 ixgbe_link_speed *speed,
+									 bool *link_up,
+									 bool link_up_wait_to_complete)
 {
 	u32 status;
 	u16 autoneg_status;
 
 	if (hw->mac.ops.get_media_type(hw) != ixgbe_media_type_copper)
+	{
 		return IXGBE_ERR_CONFIG;
+	}
 
 	status = ixgbe_check_mac_link_generic(hw, speed, link_up,
-					      link_up_wait_to_complete);
+										  link_up_wait_to_complete);
 
 	/* If check link fails or MAC link is not up, then return */
 	if (status || !(*link_up))
+	{
 		return status;
+	}
 
-	 /* MAC link is up, so check external PHY link.
-	  * Read this twice back to back to indicate current status.
-	  */
+	/* MAC link is up, so check external PHY link.
+	 * Read this twice back to back to indicate current status.
+	 */
 	status = hw->phy.ops.read_reg(hw, IXGBE_MDIO_AUTO_NEG_STATUS,
-				      IXGBE_MDIO_AUTO_NEG_DEV_TYPE,
-				      &autoneg_status);
+								  IXGBE_MDIO_AUTO_NEG_DEV_TYPE,
+								  &autoneg_status);
+
 	if (status)
+	{
 		return status;
+	}
 
 	/* If external PHY link is not up, then indicate link not up */
 	if (!(autoneg_status & IXGBE_MDIO_AUTO_NEG_LINK_STATUS))
+	{
 		*link_up = false;
+	}
 
 	return 0;
 }
@@ -1572,17 +1926,20 @@ static s32 ixgbe_check_link_t_X550em(struct ixgbe_hw *hw,
  */
 static s32
 ixgbe_setup_sgmii(struct ixgbe_hw *hw, __always_unused ixgbe_link_speed speed,
-		  __always_unused bool autoneg_wait_to_complete)
+				  __always_unused bool autoneg_wait_to_complete)
 {
 	struct ixgbe_mac_info *mac = &hw->mac;
 	u32 lval, sval;
 	s32 rc;
 
 	rc = mac->ops.read_iosf_sb_reg(hw,
-				       IXGBE_KRM_LINK_CTRL_1(hw->bus.lan_id),
-				       IXGBE_SB_IOSF_TARGET_KR_PHY, &lval);
+								   IXGBE_KRM_LINK_CTRL_1(hw->bus.lan_id),
+								   IXGBE_SB_IOSF_TARGET_KR_PHY, &lval);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	lval &= ~IXGBE_KRM_LINK_CTRL_1_TETH_AN_ENABLE;
 	lval &= ~IXGBE_KRM_LINK_CTRL_1_TETH_FORCE_SPEED_MASK;
@@ -1590,29 +1947,38 @@ ixgbe_setup_sgmii(struct ixgbe_hw *hw, __always_unused ixgbe_link_speed speed,
 	lval |= IXGBE_KRM_LINK_CTRL_1_TETH_AN_CLAUSE_37_EN;
 	lval |= IXGBE_KRM_LINK_CTRL_1_TETH_FORCE_SPEED_1G;
 	rc = mac->ops.write_iosf_sb_reg(hw,
-					IXGBE_KRM_LINK_CTRL_1(hw->bus.lan_id),
-					IXGBE_SB_IOSF_TARGET_KR_PHY, lval);
+									IXGBE_KRM_LINK_CTRL_1(hw->bus.lan_id),
+									IXGBE_SB_IOSF_TARGET_KR_PHY, lval);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = mac->ops.read_iosf_sb_reg(hw,
-				       IXGBE_KRM_SGMII_CTRL(hw->bus.lan_id),
-				       IXGBE_SB_IOSF_TARGET_KR_PHY, &sval);
+								   IXGBE_KRM_SGMII_CTRL(hw->bus.lan_id),
+								   IXGBE_SB_IOSF_TARGET_KR_PHY, &sval);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	sval |= IXGBE_KRM_SGMII_CTRL_MAC_TAR_FORCE_10_D;
 	sval |= IXGBE_KRM_SGMII_CTRL_MAC_TAR_FORCE_100_D;
 	rc = mac->ops.write_iosf_sb_reg(hw,
-					IXGBE_KRM_SGMII_CTRL(hw->bus.lan_id),
-					IXGBE_SB_IOSF_TARGET_KR_PHY, sval);
+									IXGBE_KRM_SGMII_CTRL(hw->bus.lan_id),
+									IXGBE_SB_IOSF_TARGET_KR_PHY, sval);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	lval |= IXGBE_KRM_LINK_CTRL_1_TETH_AN_RESTART;
 	rc = mac->ops.write_iosf_sb_reg(hw,
-					IXGBE_KRM_LINK_CTRL_1(hw->bus.lan_id),
-					IXGBE_SB_IOSF_TARGET_KR_PHY, lval);
+									IXGBE_KRM_LINK_CTRL_1(hw->bus.lan_id),
+									IXGBE_SB_IOSF_TARGET_KR_PHY, lval);
 
 	return rc;
 }
@@ -1626,43 +1992,55 @@ static void ixgbe_init_mac_link_ops_X550em(struct ixgbe_hw *hw)
 
 	mac->ops.setup_fc = ixgbe_setup_fc_x550em;
 
-	switch (mac->ops.get_media_type(hw)) {
-	case ixgbe_media_type_fiber:
-		/* CS4227 does not support autoneg, so disable the laser control
-		 * functions for SFP+ fiber
-		 */
-		mac->ops.disable_tx_laser = NULL;
-		mac->ops.enable_tx_laser = NULL;
-		mac->ops.flap_tx_laser = NULL;
-		mac->ops.setup_link = ixgbe_setup_mac_link_multispeed_fiber;
-		switch (hw->device_id) {
-		case IXGBE_DEV_ID_X550EM_A_SFP_N:
-			mac->ops.setup_mac_link = ixgbe_setup_mac_link_sfp_n;
-			break;
-		case IXGBE_DEV_ID_X550EM_A_SFP:
-			mac->ops.setup_mac_link =
+	switch (mac->ops.get_media_type(hw))
+	{
+		case ixgbe_media_type_fiber:
+			/* CS4227 does not support autoneg, so disable the laser control
+			 * functions for SFP+ fiber
+			 */
+			mac->ops.disable_tx_laser = NULL;
+			mac->ops.enable_tx_laser = NULL;
+			mac->ops.flap_tx_laser = NULL;
+			mac->ops.setup_link = ixgbe_setup_mac_link_multispeed_fiber;
+
+			switch (hw->device_id)
+			{
+				case IXGBE_DEV_ID_X550EM_A_SFP_N:
+					mac->ops.setup_mac_link = ixgbe_setup_mac_link_sfp_n;
+					break;
+
+				case IXGBE_DEV_ID_X550EM_A_SFP:
+					mac->ops.setup_mac_link =
 						ixgbe_setup_mac_link_sfp_x550a;
-			break;
-		default:
-			mac->ops.setup_mac_link =
+					break;
+
+				default:
+					mac->ops.setup_mac_link =
 						ixgbe_setup_mac_link_sfp_x550em;
+					break;
+			}
+
+			mac->ops.set_rate_select_speed =
+				ixgbe_set_soft_rate_select_speed;
 			break;
-		}
-		mac->ops.set_rate_select_speed =
-					ixgbe_set_soft_rate_select_speed;
-		break;
-	case ixgbe_media_type_copper:
-		mac->ops.setup_link = ixgbe_setup_mac_link_t_X550em;
-		mac->ops.setup_fc = ixgbe_setup_fc_generic;
-		mac->ops.check_link = ixgbe_check_link_t_X550em;
-		return;
-	case ixgbe_media_type_backplane:
-		if (hw->device_id == IXGBE_DEV_ID_X550EM_A_SGMII ||
-		    hw->device_id == IXGBE_DEV_ID_X550EM_A_SGMII_L)
-			mac->ops.setup_link = ixgbe_setup_sgmii;
-		break;
-	default:
-		break;
+
+		case ixgbe_media_type_copper:
+			mac->ops.setup_link = ixgbe_setup_mac_link_t_X550em;
+			mac->ops.setup_fc = ixgbe_setup_fc_generic;
+			mac->ops.check_link = ixgbe_check_link_t_X550em;
+			return;
+
+		case ixgbe_media_type_backplane:
+			if (hw->device_id == IXGBE_DEV_ID_X550EM_A_SGMII ||
+				hw->device_id == IXGBE_DEV_ID_X550EM_A_SGMII_L)
+			{
+				mac->ops.setup_link = ixgbe_setup_sgmii;
+			}
+
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -1676,8 +2054,11 @@ static s32 ixgbe_setup_sfp_modules_X550em(struct ixgbe_hw *hw)
 
 	/* Check if SFP module is supported */
 	status = ixgbe_supported_sfp_modules_X550em(hw, &linear);
+
 	if (status)
+	{
 		return status;
+	}
 
 	ixgbe_init_mac_link_ops_X550em(hw);
 	hw->phy.ops.reset = NULL;
@@ -1691,16 +2072,18 @@ static s32 ixgbe_setup_sfp_modules_X550em(struct ixgbe_hw *hw)
  * @autoneg: true when autoneg or autotry is enabled
  **/
 static s32 ixgbe_get_link_capabilities_X550em(struct ixgbe_hw *hw,
-					      ixgbe_link_speed *speed,
-					      bool *autoneg)
+		ixgbe_link_speed *speed,
+		bool *autoneg)
 {
 	/* SFP */
-	if (hw->phy.media_type == ixgbe_media_type_fiber) {
+	if (hw->phy.media_type == ixgbe_media_type_fiber)
+	{
 		/* CS4227 SFP must not enable auto-negotiation */
 		*autoneg = false;
 
 		if (hw->phy.sfp_type == ixgbe_sfp_type_1g_sx_core0 ||
-		    hw->phy.sfp_type == ixgbe_sfp_type_1g_sx_core1) {
+			hw->phy.sfp_type == ixgbe_sfp_type_1g_sx_core1)
+		{
 			*speed = IXGBE_LINK_SPEED_1GB_FULL;
 			return 0;
 		}
@@ -1708,14 +2091,19 @@ static s32 ixgbe_get_link_capabilities_X550em(struct ixgbe_hw *hw,
 		/* Link capabilities are based on SFP */
 		if (hw->phy.multispeed_fiber)
 			*speed = IXGBE_LINK_SPEED_10GB_FULL |
-				 IXGBE_LINK_SPEED_1GB_FULL;
+					 IXGBE_LINK_SPEED_1GB_FULL;
 		else
+		{
 			*speed = IXGBE_LINK_SPEED_10GB_FULL;
-	} else {
+		}
+	}
+	else
+	{
 		*speed = IXGBE_LINK_SPEED_10GB_FULL |
-			 IXGBE_LINK_SPEED_1GB_FULL;
+				 IXGBE_LINK_SPEED_1GB_FULL;
 		*autoneg = true;
 	}
+
 	return 0;
 }
 
@@ -1740,45 +2128,58 @@ static s32 ixgbe_get_lasi_ext_t_x550em(struct ixgbe_hw *hw, bool *lsc)
 
 	/* Vendor alarm triggered */
 	status = hw->phy.ops.read_reg(hw, IXGBE_MDIO_GLOBAL_CHIP_STD_INT_FLAG,
-				      IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
-				      &reg);
+								  IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
+								  &reg);
 
 	if (status || !(reg & IXGBE_MDIO_GLOBAL_VEN_ALM_INT_EN))
+	{
 		return status;
+	}
 
 	/* Vendor Auto-Neg alarm triggered or Global alarm 1 triggered */
 	status = hw->phy.ops.read_reg(hw, IXGBE_MDIO_GLOBAL_INT_CHIP_VEN_FLAG,
-				      IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
-				      &reg);
+								  IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
+								  &reg);
 
 	if (status || !(reg & (IXGBE_MDIO_GLOBAL_AN_VEN_ALM_INT_EN |
-				IXGBE_MDIO_GLOBAL_ALARM_1_INT)))
+						   IXGBE_MDIO_GLOBAL_ALARM_1_INT)))
+	{
 		return status;
+	}
 
 	/* Global alarm triggered */
 	status = hw->phy.ops.read_reg(hw, IXGBE_MDIO_GLOBAL_ALARM_1,
-				      IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
-				      &reg);
+								  IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
+								  &reg);
 
 	if (status)
+	{
 		return status;
+	}
 
 	/* If high temperature failure, then return over temp error and exit */
-	if (reg & IXGBE_MDIO_GLOBAL_ALM_1_HI_TMP_FAIL) {
+	if (reg & IXGBE_MDIO_GLOBAL_ALM_1_HI_TMP_FAIL)
+	{
 		/* power down the PHY in case the PHY FW didn't already */
 		ixgbe_set_copper_phy_power(hw, false);
 		return IXGBE_ERR_OVERTEMP;
 	}
-	if (reg & IXGBE_MDIO_GLOBAL_ALM_1_DEV_FAULT) {
+
+	if (reg & IXGBE_MDIO_GLOBAL_ALM_1_DEV_FAULT)
+	{
 		/*  device fault alarm triggered */
 		status = hw->phy.ops.read_reg(hw, IXGBE_MDIO_GLOBAL_FAULT_MSG,
-					  IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
-					  &reg);
+									  IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
+									  &reg);
+
 		if (status)
+		{
 			return status;
+		}
 
 		/* if device fault was due to high temp alarm handle and exit */
-		if (reg == IXGBE_MDIO_GLOBAL_FAULT_MSG_HI_TMP) {
+		if (reg == IXGBE_MDIO_GLOBAL_FAULT_MSG_HI_TMP)
+		{
 			/* power down the PHY in case the PHY FW didn't */
 			ixgbe_set_copper_phy_power(hw, false);
 			return IXGBE_ERR_OVERTEMP;
@@ -1787,21 +2188,27 @@ static s32 ixgbe_get_lasi_ext_t_x550em(struct ixgbe_hw *hw, bool *lsc)
 
 	/* Vendor alarm 2 triggered */
 	status = hw->phy.ops.read_reg(hw, IXGBE_MDIO_GLOBAL_CHIP_STD_INT_FLAG,
-				      IXGBE_MDIO_AUTO_NEG_DEV_TYPE, &reg);
+								  IXGBE_MDIO_AUTO_NEG_DEV_TYPE, &reg);
 
 	if (status || !(reg & IXGBE_MDIO_GLOBAL_STD_ALM2_INT))
+	{
 		return status;
+	}
 
 	/* link connect/disconnect event occurred */
 	status = hw->phy.ops.read_reg(hw, IXGBE_MDIO_AUTO_NEG_VENDOR_TX_ALARM2,
-				      IXGBE_MDIO_AUTO_NEG_DEV_TYPE, &reg);
+								  IXGBE_MDIO_AUTO_NEG_DEV_TYPE, &reg);
 
 	if (status)
+	{
 		return status;
+	}
 
 	/* Indicate LSC */
 	if (reg & IXGBE_MDIO_AUTO_NEG_VEN_LSC)
+	{
 		*lsc = true;
+	}
 
 	return 0;
 }
@@ -1826,61 +2233,82 @@ static s32 ixgbe_enable_lasi_ext_t_x550em(struct ixgbe_hw *hw)
 
 	/* Enable link status change alarm */
 	status = hw->phy.ops.read_reg(hw, IXGBE_MDIO_PMA_TX_VEN_LASI_INT_MASK,
-				      IXGBE_MDIO_AUTO_NEG_DEV_TYPE, &reg);
+								  IXGBE_MDIO_AUTO_NEG_DEV_TYPE, &reg);
+
 	if (status)
+	{
 		return status;
+	}
 
 	reg |= IXGBE_MDIO_PMA_TX_VEN_LASI_INT_EN;
 
 	status = hw->phy.ops.write_reg(hw, IXGBE_MDIO_PMA_TX_VEN_LASI_INT_MASK,
-				       IXGBE_MDIO_AUTO_NEG_DEV_TYPE, reg);
+								   IXGBE_MDIO_AUTO_NEG_DEV_TYPE, reg);
+
 	if (status)
+	{
 		return status;
+	}
 
 	/* Enable high temperature failure and global fault alarms */
 	status = hw->phy.ops.read_reg(hw, IXGBE_MDIO_GLOBAL_INT_MASK,
-				      IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
-				      &reg);
+								  IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
+								  &reg);
+
 	if (status)
+	{
 		return status;
+	}
 
 	reg |= (IXGBE_MDIO_GLOBAL_INT_HI_TEMP_EN |
-		IXGBE_MDIO_GLOBAL_INT_DEV_FAULT_EN);
+			IXGBE_MDIO_GLOBAL_INT_DEV_FAULT_EN);
 
 	status = hw->phy.ops.write_reg(hw, IXGBE_MDIO_GLOBAL_INT_MASK,
-				       IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
-				       reg);
+								   IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
+								   reg);
+
 	if (status)
+	{
 		return status;
+	}
 
 	/* Enable vendor Auto-Neg alarm and Global Interrupt Mask 1 alarm */
 	status = hw->phy.ops.read_reg(hw, IXGBE_MDIO_GLOBAL_INT_CHIP_VEN_MASK,
-				      IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
-				      &reg);
+								  IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
+								  &reg);
+
 	if (status)
+	{
 		return status;
+	}
 
 	reg |= (IXGBE_MDIO_GLOBAL_AN_VEN_ALM_INT_EN |
-		IXGBE_MDIO_GLOBAL_ALARM_1_INT);
+			IXGBE_MDIO_GLOBAL_ALARM_1_INT);
 
 	status = hw->phy.ops.write_reg(hw, IXGBE_MDIO_GLOBAL_INT_CHIP_VEN_MASK,
-				       IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
-				       reg);
+								   IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
+								   reg);
+
 	if (status)
+	{
 		return status;
+	}
 
 	/* Enable chip-wide vendor alarm */
 	status = hw->phy.ops.read_reg(hw, IXGBE_MDIO_GLOBAL_INT_CHIP_STD_MASK,
-				      IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
-				      &reg);
+								  IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
+								  &reg);
+
 	if (status)
+	{
 		return status;
+	}
 
 	reg |= IXGBE_MDIO_GLOBAL_VEN_ALM_INT_EN;
 
 	status = hw->phy.ops.write_reg(hw, IXGBE_MDIO_GLOBAL_INT_CHIP_STD_MASK,
-				       IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
-				       reg);
+								   IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
+								   reg);
 
 	return status;
 }
@@ -1903,11 +2331,16 @@ static s32 ixgbe_handle_lasi_ext_t_x550em(struct ixgbe_hw *hw)
 	u32 status;
 
 	status = ixgbe_get_lasi_ext_t_x550em(hw, &lsc);
+
 	if (status)
+	{
 		return status;
+	}
 
 	if (lsc && phy->ops.setup_internal_link)
+	{
 		return phy->ops.setup_internal_link(hw);
+	}
 
 	return 0;
 }
@@ -1920,36 +2353,43 @@ static s32 ixgbe_handle_lasi_ext_t_x550em(struct ixgbe_hw *hw)
  * Configures the integrated KR PHY.
  **/
 static s32 ixgbe_setup_kr_speed_x550em(struct ixgbe_hw *hw,
-				       ixgbe_link_speed speed)
+									   ixgbe_link_speed speed)
 {
 	s32 status;
 	u32 reg_val;
 
 	status = hw->mac.ops.read_iosf_sb_reg(hw,
-					IXGBE_KRM_LINK_CTRL_1(hw->bus.lan_id),
-					IXGBE_SB_IOSF_TARGET_KR_PHY, &reg_val);
+										  IXGBE_KRM_LINK_CTRL_1(hw->bus.lan_id),
+										  IXGBE_SB_IOSF_TARGET_KR_PHY, &reg_val);
+
 	if (status)
+	{
 		return status;
+	}
 
 	reg_val |= IXGBE_KRM_LINK_CTRL_1_TETH_AN_ENABLE;
 	reg_val &= ~(IXGBE_KRM_LINK_CTRL_1_TETH_AN_FEC_REQ |
-		     IXGBE_KRM_LINK_CTRL_1_TETH_AN_CAP_FEC);
+				 IXGBE_KRM_LINK_CTRL_1_TETH_AN_CAP_FEC);
 	reg_val &= ~(IXGBE_KRM_LINK_CTRL_1_TETH_AN_CAP_KR |
-		     IXGBE_KRM_LINK_CTRL_1_TETH_AN_CAP_KX);
+				 IXGBE_KRM_LINK_CTRL_1_TETH_AN_CAP_KX);
 
 	/* Advertise 10G support. */
 	if (speed & IXGBE_LINK_SPEED_10GB_FULL)
+	{
 		reg_val |= IXGBE_KRM_LINK_CTRL_1_TETH_AN_CAP_KR;
+	}
 
 	/* Advertise 1G support. */
 	if (speed & IXGBE_LINK_SPEED_1GB_FULL)
+	{
 		reg_val |= IXGBE_KRM_LINK_CTRL_1_TETH_AN_CAP_KX;
+	}
 
 	/* Restart auto-negotiation. */
 	reg_val |= IXGBE_KRM_LINK_CTRL_1_TETH_AN_RESTART;
 	status = hw->mac.ops.write_iosf_sb_reg(hw,
-					IXGBE_KRM_LINK_CTRL_1(hw->bus.lan_id),
-					IXGBE_SB_IOSF_TARGET_KR_PHY, reg_val);
+										   IXGBE_KRM_LINK_CTRL_1(hw->bus.lan_id),
+										   IXGBE_SB_IOSF_TARGET_KR_PHY, reg_val);
 
 	return status;
 }
@@ -1965,29 +2405,36 @@ static s32 ixgbe_setup_kx4_x550em(struct ixgbe_hw *hw)
 	u32 reg_val;
 
 	status = hw->mac.ops.read_iosf_sb_reg(hw, IXGBE_KX4_LINK_CNTL_1,
-					      IXGBE_SB_IOSF_TARGET_KX4_PCS0 +
-					      hw->bus.lan_id, &reg_val);
+										  IXGBE_SB_IOSF_TARGET_KX4_PCS0 +
+										  hw->bus.lan_id, &reg_val);
+
 	if (status)
+	{
 		return status;
+	}
 
 	reg_val &= ~(IXGBE_KX4_LINK_CNTL_1_TETH_AN_CAP_KX4 |
-		     IXGBE_KX4_LINK_CNTL_1_TETH_AN_CAP_KX);
+				 IXGBE_KX4_LINK_CNTL_1_TETH_AN_CAP_KX);
 
 	reg_val |= IXGBE_KX4_LINK_CNTL_1_TETH_AN_ENABLE;
 
 	/* Advertise 10G support. */
 	if (hw->phy.autoneg_advertised & IXGBE_LINK_SPEED_10GB_FULL)
+	{
 		reg_val |= IXGBE_KX4_LINK_CNTL_1_TETH_AN_CAP_KX4;
+	}
 
 	/* Advertise 1G support. */
 	if (hw->phy.autoneg_advertised & IXGBE_LINK_SPEED_1GB_FULL)
+	{
 		reg_val |= IXGBE_KX4_LINK_CNTL_1_TETH_AN_CAP_KX;
+	}
 
 	/* Restart auto-negotiation. */
 	reg_val |= IXGBE_KX4_LINK_CNTL_1_TETH_AN_RESTART;
 	status = hw->mac.ops.write_iosf_sb_reg(hw, IXGBE_KX4_LINK_CNTL_1,
-					       IXGBE_SB_IOSF_TARGET_KX4_PCS0 +
-					       hw->bus.lan_id, reg_val);
+										   IXGBE_SB_IOSF_TARGET_KX4_PCS0 +
+										   hw->bus.lan_id, reg_val);
 
 	return status;
 }
@@ -2001,7 +2448,9 @@ static s32 ixgbe_setup_kx4_x550em(struct ixgbe_hw *hw)
 static s32 ixgbe_setup_kr_x550em(struct ixgbe_hw *hw)
 {
 	if (hw->mac.type != ixgbe_mac_X550EM_x)
+	{
 		return 0;
+	}
 
 	return ixgbe_setup_kr_speed_x550em(hw, hw->phy.autoneg_advertised);
 }
@@ -2021,16 +2470,22 @@ static s32 ixgbe_ext_phy_t_x550em_get_link(struct ixgbe_hw *hw, bool *link_up)
 
 	/* read this twice back to back to indicate current status */
 	ret = hw->phy.ops.read_reg(hw, IXGBE_MDIO_AUTO_NEG_STATUS,
-				   IXGBE_MDIO_AUTO_NEG_DEV_TYPE,
-				   &autoneg_status);
+							   IXGBE_MDIO_AUTO_NEG_DEV_TYPE,
+							   &autoneg_status);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = hw->phy.ops.read_reg(hw, IXGBE_MDIO_AUTO_NEG_STATUS,
-				   IXGBE_MDIO_AUTO_NEG_DEV_TYPE,
-				   &autoneg_status);
+							   IXGBE_MDIO_AUTO_NEG_DEV_TYPE,
+							   &autoneg_status);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	*link_up = !!(autoneg_status & IXGBE_MDIO_AUTO_NEG_LINK_STATUS);
 
@@ -2056,49 +2511,68 @@ static s32 ixgbe_setup_internal_phy_t_x550em(struct ixgbe_hw *hw)
 	u16 speed;
 
 	if (hw->mac.ops.get_media_type(hw) != ixgbe_media_type_copper)
+	{
 		return IXGBE_ERR_CONFIG;
+	}
 
-	if (hw->phy.nw_mng_if_sel & IXGBE_NW_MNG_IF_SEL_INT_PHY_MODE) {
+	if (hw->phy.nw_mng_if_sel & IXGBE_NW_MNG_IF_SEL_INT_PHY_MODE)
+	{
 		speed = IXGBE_LINK_SPEED_10GB_FULL |
-			IXGBE_LINK_SPEED_1GB_FULL;
+				IXGBE_LINK_SPEED_1GB_FULL;
 		return ixgbe_setup_kr_speed_x550em(hw, speed);
 	}
 
 	/* If link is not up, then there is no setup necessary so return  */
 	status = ixgbe_ext_phy_t_x550em_get_link(hw, &link_up);
+
 	if (status)
+	{
 		return status;
+	}
 
 	if (!link_up)
+	{
 		return 0;
+	}
 
 	status = hw->phy.ops.read_reg(hw, IXGBE_MDIO_AUTO_NEG_VENDOR_STAT,
-				      IXGBE_MDIO_AUTO_NEG_DEV_TYPE,
-				      &speed);
+								  IXGBE_MDIO_AUTO_NEG_DEV_TYPE,
+								  &speed);
+
 	if (status)
+	{
 		return status;
+	}
 
 	/* If link is not still up, then no setup is necessary so return */
 	status = ixgbe_ext_phy_t_x550em_get_link(hw, &link_up);
+
 	if (status)
+	{
 		return status;
+	}
 
 	if (!link_up)
+	{
 		return 0;
+	}
 
 	/* clear everything but the speed and duplex bits */
 	speed &= IXGBE_MDIO_AUTO_NEG_VENDOR_STATUS_MASK;
 
-	switch (speed) {
-	case IXGBE_MDIO_AUTO_NEG_VENDOR_STATUS_10GB_FULL:
-		force_speed = IXGBE_LINK_SPEED_10GB_FULL;
-		break;
-	case IXGBE_MDIO_AUTO_NEG_VENDOR_STATUS_1GB_FULL:
-		force_speed = IXGBE_LINK_SPEED_1GB_FULL;
-		break;
-	default:
-		/* Internal PHY does not support anything else */
-		return IXGBE_ERR_INVALID_LINK_SETTINGS;
+	switch (speed)
+	{
+		case IXGBE_MDIO_AUTO_NEG_VENDOR_STATUS_10GB_FULL:
+			force_speed = IXGBE_LINK_SPEED_10GB_FULL;
+			break;
+
+		case IXGBE_MDIO_AUTO_NEG_VENDOR_STATUS_1GB_FULL:
+			force_speed = IXGBE_LINK_SPEED_1GB_FULL;
+			break;
+
+		default:
+			/* Internal PHY does not support anything else */
+			return IXGBE_ERR_INVALID_LINK_SETTINGS;
 	}
 
 	return ixgbe_setup_ixfi_x550em(hw, &force_speed);
@@ -2114,7 +2588,9 @@ static s32 ixgbe_reset_phy_t_X550em(struct ixgbe_hw *hw)
 	status = ixgbe_reset_phy_generic(hw);
 
 	if (status)
+	{
 		return status;
+	}
 
 	/* Configure Link Status Alarm and Temperature Threshold interrupts */
 	return ixgbe_enable_lasi_ext_t_x550em(hw);
@@ -2130,14 +2606,16 @@ static s32 ixgbe_led_on_t_x550em(struct ixgbe_hw *hw, u32 led_idx)
 	u16 phy_data;
 
 	if (led_idx >= IXGBE_X557_MAX_LED_INDEX)
+	{
 		return IXGBE_ERR_PARAM;
+	}
 
 	/* To turn on the LED, set mode to ON. */
 	hw->phy.ops.read_reg(hw, IXGBE_X557_LED_PROVISIONING + led_idx,
-			     IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE, &phy_data);
+						 IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE, &phy_data);
 	phy_data |= IXGBE_X557_LED_MANUAL_SET_MASK;
 	hw->phy.ops.write_reg(hw, IXGBE_X557_LED_PROVISIONING + led_idx,
-			      IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE, phy_data);
+						  IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE, phy_data);
 
 	return 0;
 }
@@ -2152,14 +2630,16 @@ static s32 ixgbe_led_off_t_x550em(struct ixgbe_hw *hw, u32 led_idx)
 	u16 phy_data;
 
 	if (led_idx >= IXGBE_X557_MAX_LED_INDEX)
+	{
 		return IXGBE_ERR_PARAM;
+	}
 
 	/* To turn on the LED, set mode to ON. */
 	hw->phy.ops.read_reg(hw, IXGBE_X557_LED_PROVISIONING + led_idx,
-			     IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE, &phy_data);
+						 IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE, &phy_data);
 	phy_data &= ~IXGBE_X557_LED_MANUAL_SET_MASK;
 	hw->phy.ops.write_reg(hw, IXGBE_X557_LED_PROVISIONING + led_idx,
-			      IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE, phy_data);
+						  IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE, phy_data);
 
 	return 0;
 }
@@ -2171,7 +2651,7 @@ static s32 ixgbe_led_off_t_x550em(struct ixgbe_hw *hw, u32 led_idx)
  *  Determine lowest common link speed with link partner.
  **/
 static s32 ixgbe_get_lcd_t_x550em(struct ixgbe_hw *hw,
-				  ixgbe_link_speed *lcd_speed)
+								  ixgbe_link_speed *lcd_speed)
 {
 	u16 an_lp_status;
 	s32 status;
@@ -2180,21 +2660,27 @@ static s32 ixgbe_get_lcd_t_x550em(struct ixgbe_hw *hw,
 	*lcd_speed = IXGBE_LINK_SPEED_UNKNOWN;
 
 	status = hw->phy.ops.read_reg(hw, IXGBE_AUTO_NEG_LP_STATUS,
-				      IXGBE_MDIO_AUTO_NEG_DEV_TYPE,
-				      &an_lp_status);
+								  IXGBE_MDIO_AUTO_NEG_DEV_TYPE,
+								  &an_lp_status);
+
 	if (status)
+	{
 		return status;
+	}
 
 	/* If link partner advertised 1G, return 1G */
-	if (an_lp_status & IXGBE_AUTO_NEG_LP_1000BASE_CAP) {
+	if (an_lp_status & IXGBE_AUTO_NEG_LP_1000BASE_CAP)
+	{
 		*lcd_speed = IXGBE_LINK_SPEED_1GB_FULL;
 		return status;
 	}
 
 	/* If 10G disabled for LPLU via NVM D10GMP, then return no valid LCD */
 	if ((hw->bus.lan_id && (word & NVM_INIT_CTRL_3_D10GMP_PORT1)) ||
-	    (word & NVM_INIT_CTRL_3_D10GMP_PORT0))
+		(word & NVM_INIT_CTRL_3_D10GMP_PORT0))
+	{
 		return status;
+	}
 
 	/* Link partner not capable of lower speeds, return 10G */
 	*lcd_speed = IXGBE_LINK_SPEED_10GB_FULL;
@@ -2212,7 +2698,8 @@ static s32 ixgbe_setup_fc_x550em(struct ixgbe_hw *hw)
 	s32 rc;
 
 	/* Validate the requested mode */
-	if (hw->fc.strict_ieee && hw->fc.requested_mode == ixgbe_fc_rx_pause) {
+	if (hw->fc.strict_ieee && hw->fc.requested_mode == ixgbe_fc_rx_pause)
+	{
 		hw_err(hw, "ixgbe_fc_rx_pause not valid in strict IEEE mode\n");
 		return IXGBE_ERR_INVALID_LINK_SETTINGS;
 	}
@@ -2221,19 +2708,25 @@ static s32 ixgbe_setup_fc_x550em(struct ixgbe_hw *hw)
 	 * default flow control setting, so we explicitly set it to full.
 	 */
 	if (hw->fc.requested_mode == ixgbe_fc_default)
+	{
 		hw->fc.requested_mode = ixgbe_fc_full;
+	}
 
 	/* Determine PAUSE and ASM_DIR bits. */
-	switch (hw->fc.requested_mode) {
-	case ixgbe_fc_none:
-		pause = false;
-		asm_dir = false;
-		break;
-	case ixgbe_fc_tx_pause:
-		pause = false;
-		asm_dir = true;
-		break;
-	case ixgbe_fc_rx_pause:
+	switch (hw->fc.requested_mode)
+	{
+		case ixgbe_fc_none:
+			pause = false;
+			asm_dir = false;
+			break;
+
+		case ixgbe_fc_tx_pause:
+			pause = false;
+			asm_dir = true;
+			break;
+
+		case ixgbe_fc_rx_pause:
+
 		/* Rx Flow control is enabled and Tx Flow control is
 		 * disabled by software override. Since there really
 		 * isn't a way to advertise that we are capable of RX
@@ -2243,37 +2736,50 @@ static s32 ixgbe_setup_fc_x550em(struct ixgbe_hw *hw)
 		 * disable the adapter's ability to send PAUSE frames.
 		 */
 		/* Fallthrough */
-	case ixgbe_fc_full:
-		pause = true;
-		asm_dir = true;
-		break;
-	default:
-		hw_err(hw, "Flow control param set incorrectly\n");
-		return IXGBE_ERR_CONFIG;
+		case ixgbe_fc_full:
+			pause = true;
+			asm_dir = true;
+			break;
+
+		default:
+			hw_err(hw, "Flow control param set incorrectly\n");
+			return IXGBE_ERR_CONFIG;
 	}
 
 	if (hw->device_id != IXGBE_DEV_ID_X550EM_X_KR &&
-	    hw->device_id != IXGBE_DEV_ID_X550EM_A_KR &&
-	    hw->device_id != IXGBE_DEV_ID_X550EM_A_KR_L)
+		hw->device_id != IXGBE_DEV_ID_X550EM_A_KR &&
+		hw->device_id != IXGBE_DEV_ID_X550EM_A_KR_L)
+	{
 		return 0;
+	}
 
 	rc = hw->mac.ops.read_iosf_sb_reg(hw,
-					  IXGBE_KRM_AN_CNTL_1(hw->bus.lan_id),
-					  IXGBE_SB_IOSF_TARGET_KR_PHY,
-					  &reg_val);
+									  IXGBE_KRM_AN_CNTL_1(hw->bus.lan_id),
+									  IXGBE_SB_IOSF_TARGET_KR_PHY,
+									  &reg_val);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	reg_val &= ~(IXGBE_KRM_AN_CNTL_1_SYM_PAUSE |
-		     IXGBE_KRM_AN_CNTL_1_ASM_PAUSE);
+				 IXGBE_KRM_AN_CNTL_1_ASM_PAUSE);
+
 	if (pause)
+	{
 		reg_val |= IXGBE_KRM_AN_CNTL_1_SYM_PAUSE;
+	}
+
 	if (asm_dir)
+	{
 		reg_val |= IXGBE_KRM_AN_CNTL_1_ASM_PAUSE;
+	}
+
 	rc = hw->mac.ops.write_iosf_sb_reg(hw,
-					   IXGBE_KRM_AN_CNTL_1(hw->bus.lan_id),
-					   IXGBE_SB_IOSF_TARGET_KR_PHY,
-					   reg_val);
+									   IXGBE_KRM_AN_CNTL_1(hw->bus.lan_id),
+									   IXGBE_SB_IOSF_TARGET_KR_PHY,
+									   reg_val);
 
 	/* This device does not fully support AN. */
 	hw->fc.disable_fc_autoneg = true;
@@ -2298,74 +2804,106 @@ static s32 ixgbe_enter_lplu_t_x550em(struct ixgbe_hw *hw)
 
 	/* If blocked by MNG FW, then don't restart AN */
 	if (ixgbe_check_reset_blocked(hw))
+	{
 		return 0;
+	}
 
 	status = ixgbe_ext_phy_t_x550em_get_link(hw, &link_up);
+
 	if (status)
+	{
 		return status;
+	}
 
 	status = hw->eeprom.ops.read(hw, NVM_INIT_CTRL_3,
-				     &hw->eeprom.ctrl_word_3);
+								 &hw->eeprom.ctrl_word_3);
+
 	if (status)
+	{
 		return status;
+	}
 
 	/* If link is down, LPLU disabled in NVM, WoL disabled, or
 	 * manageability disabled, then force link down by entering
 	 * low power mode.
 	 */
 	if (!link_up || !(hw->eeprom.ctrl_word_3 & NVM_INIT_CTRL_3_LPLU) ||
-	    !(hw->wol_enabled || ixgbe_mng_present(hw)))
+		!(hw->wol_enabled || ixgbe_mng_present(hw)))
+	{
 		return ixgbe_set_copper_phy_power(hw, false);
+	}
 
 	/* Determine LCD */
 	status = ixgbe_get_lcd_t_x550em(hw, &lcd_speed);
+
 	if (status)
+	{
 		return status;
+	}
 
 	/* If no valid LCD link speed, then force link down and exit. */
 	if (lcd_speed == IXGBE_LINK_SPEED_UNKNOWN)
+	{
 		return ixgbe_set_copper_phy_power(hw, false);
+	}
 
 	status = hw->phy.ops.read_reg(hw, IXGBE_MDIO_AUTO_NEG_VENDOR_STAT,
-				      IXGBE_MDIO_AUTO_NEG_DEV_TYPE,
-				      &speed);
+								  IXGBE_MDIO_AUTO_NEG_DEV_TYPE,
+								  &speed);
+
 	if (status)
+	{
 		return status;
+	}
 
 	/* If no link now, speed is invalid so take link down */
 	status = ixgbe_ext_phy_t_x550em_get_link(hw, &link_up);
+
 	if (status)
+	{
 		return ixgbe_set_copper_phy_power(hw, false);
+	}
 
 	/* clear everything but the speed bits */
 	speed &= IXGBE_MDIO_AUTO_NEG_VEN_STAT_SPEED_MASK;
 
 	/* If current speed is already LCD, then exit. */
 	if (((speed == IXGBE_MDIO_AUTO_NEG_VENDOR_STATUS_1GB) &&
-	     (lcd_speed == IXGBE_LINK_SPEED_1GB_FULL)) ||
-	    ((speed == IXGBE_MDIO_AUTO_NEG_VENDOR_STATUS_10GB) &&
-	     (lcd_speed == IXGBE_LINK_SPEED_10GB_FULL)))
+		 (lcd_speed == IXGBE_LINK_SPEED_1GB_FULL)) ||
+		((speed == IXGBE_MDIO_AUTO_NEG_VENDOR_STATUS_10GB) &&
+		 (lcd_speed == IXGBE_LINK_SPEED_10GB_FULL)))
+	{
 		return status;
+	}
 
 	/* Clear AN completed indication */
 	status = hw->phy.ops.read_reg(hw, IXGBE_MDIO_AUTO_NEG_VENDOR_TX_ALARM,
-				      IXGBE_MDIO_AUTO_NEG_DEV_TYPE,
-				      &autoneg_reg);
+								  IXGBE_MDIO_AUTO_NEG_DEV_TYPE,
+								  &autoneg_reg);
+
 	if (status)
+	{
 		return status;
+	}
 
 	status = hw->phy.ops.read_reg(hw, IXGBE_MII_10GBASE_T_AUTONEG_CTRL_REG,
-				      IXGBE_MDIO_AUTO_NEG_DEV_TYPE,
-				      &an_10g_cntl_reg);
+								  IXGBE_MDIO_AUTO_NEG_DEV_TYPE,
+								  &an_10g_cntl_reg);
+
 	if (status)
+	{
 		return status;
+	}
 
 	status = hw->phy.ops.read_reg(hw,
-				      IXGBE_MII_AUTONEG_VENDOR_PROVISION_1_REG,
-				      IXGBE_MDIO_AUTO_NEG_DEV_TYPE,
-				      &autoneg_reg);
+								  IXGBE_MII_AUTONEG_VENDOR_PROVISION_1_REG,
+								  IXGBE_MDIO_AUTO_NEG_DEV_TYPE,
+								  &autoneg_reg);
+
 	if (status)
+	{
 		return status;
+	}
 
 	save_autoneg = hw->phy.autoneg_advertised;
 
@@ -2395,10 +2933,11 @@ static void ixgbe_read_mng_if_sel_x550em(struct ixgbe_hw *hw)
 	 * PHY address. This register field was has only been used for X552.
 	 */
 	if (hw->mac.type == ixgbe_mac_x550em_a &&
-	    hw->phy.nw_mng_if_sel & IXGBE_NW_MNG_IF_SEL_MDIO_ACT) {
+		hw->phy.nw_mng_if_sel & IXGBE_NW_MNG_IF_SEL_MDIO_ACT)
+	{
 		hw->phy.mdio.prtad = (hw->phy.nw_mng_if_sel &
-				      IXGBE_NW_MNG_IF_SEL_MDIO_PHY_ADD) >>
-				     IXGBE_NW_MNG_IF_SEL_MDIO_PHY_ADD_SHIFT;
+							  IXGBE_NW_MNG_IF_SEL_MDIO_PHY_ADD) >>
+							 IXGBE_NW_MNG_IF_SEL_MDIO_PHY_ADD_SHIFT;
 	}
 }
 
@@ -2418,7 +2957,8 @@ static s32 ixgbe_init_phy_ops_X550em(struct ixgbe_hw *hw)
 
 	ixgbe_read_mng_if_sel_x550em(hw);
 
-	if (hw->mac.ops.get_media_type(hw) == ixgbe_media_type_fiber) {
+	if (hw->mac.ops.get_media_type(hw) == ixgbe_media_type_fiber)
+	{
 		phy->phy_semaphore_mask = IXGBE_GSSR_SHARED_I2C_SM;
 		ixgbe_setup_mux_ctl(hw);
 	}
@@ -2428,44 +2968,53 @@ static s32 ixgbe_init_phy_ops_X550em(struct ixgbe_hw *hw)
 
 	/* Setup function pointers based on detected hardware */
 	ixgbe_init_mac_link_ops_X550em(hw);
+
 	if (phy->sfp_type != ixgbe_sfp_type_unknown)
+	{
 		phy->ops.reset = NULL;
+	}
 
 	/* Set functions pointers based on phy type */
-	switch (hw->phy.type) {
-	case ixgbe_phy_x550em_kx4:
-		phy->ops.setup_link = ixgbe_setup_kx4_x550em;
-		phy->ops.read_reg = ixgbe_read_phy_reg_x550em;
-		phy->ops.write_reg = ixgbe_write_phy_reg_x550em;
-		break;
-	case ixgbe_phy_x550em_kr:
-		phy->ops.setup_link = ixgbe_setup_kr_x550em;
-		phy->ops.read_reg = ixgbe_read_phy_reg_x550em;
-		phy->ops.write_reg = ixgbe_write_phy_reg_x550em;
-		break;
-	case ixgbe_phy_x550em_ext_t:
-		/* Save NW management interface connected on board. This is used
-		 * to determine internal PHY mode
-		 */
-		phy->nw_mng_if_sel = IXGBE_READ_REG(hw, IXGBE_NW_MNG_IF_SEL);
+	switch (hw->phy.type)
+	{
+		case ixgbe_phy_x550em_kx4:
+			phy->ops.setup_link = ixgbe_setup_kx4_x550em;
+			phy->ops.read_reg = ixgbe_read_phy_reg_x550em;
+			phy->ops.write_reg = ixgbe_write_phy_reg_x550em;
+			break;
 
-		/* If internal link mode is XFI, then setup iXFI internal link,
-		 * else setup KR now.
-		 */
-		phy->ops.setup_internal_link =
-					      ixgbe_setup_internal_phy_t_x550em;
+		case ixgbe_phy_x550em_kr:
+			phy->ops.setup_link = ixgbe_setup_kr_x550em;
+			phy->ops.read_reg = ixgbe_read_phy_reg_x550em;
+			phy->ops.write_reg = ixgbe_write_phy_reg_x550em;
+			break;
 
-		/* setup SW LPLU only for first revision */
-		if (hw->mac.type == ixgbe_mac_X550EM_x &&
-		    !(IXGBE_READ_REG(hw, IXGBE_FUSES0_GROUP(0)) &
-		      IXGBE_FUSES0_REV_MASK))
-			phy->ops.enter_lplu = ixgbe_enter_lplu_t_x550em;
+		case ixgbe_phy_x550em_ext_t:
+			/* Save NW management interface connected on board. This is used
+			 * to determine internal PHY mode
+			 */
+			phy->nw_mng_if_sel = IXGBE_READ_REG(hw, IXGBE_NW_MNG_IF_SEL);
 
-		phy->ops.handle_lasi = ixgbe_handle_lasi_ext_t_x550em;
-		phy->ops.reset = ixgbe_reset_phy_t_X550em;
-		break;
-	default:
-		break;
+			/* If internal link mode is XFI, then setup iXFI internal link,
+			 * else setup KR now.
+			 */
+			phy->ops.setup_internal_link =
+				ixgbe_setup_internal_phy_t_x550em;
+
+			/* setup SW LPLU only for first revision */
+			if (hw->mac.type == ixgbe_mac_X550EM_x &&
+				!(IXGBE_READ_REG(hw, IXGBE_FUSES0_GROUP(0)) &
+				  IXGBE_FUSES0_REV_MASK))
+			{
+				phy->ops.enter_lplu = ixgbe_enter_lplu_t_x550em;
+			}
+
+			phy->ops.handle_lasi = ixgbe_handle_lasi_ext_t_x550em;
+			phy->ops.reset = ixgbe_reset_phy_t_X550em;
+			break;
+
+		default:
+			break;
 	}
 
 	return ret_val;
@@ -2482,31 +3031,37 @@ static enum ixgbe_media_type ixgbe_get_media_type_X550em(struct ixgbe_hw *hw)
 	enum ixgbe_media_type media_type;
 
 	/* Detect if there is a copper PHY attached. */
-	switch (hw->device_id) {
-	case IXGBE_DEV_ID_X550EM_A_SGMII:
-	case IXGBE_DEV_ID_X550EM_A_SGMII_L:
-		hw->phy.type = ixgbe_phy_sgmii;
+	switch (hw->device_id)
+	{
+		case IXGBE_DEV_ID_X550EM_A_SGMII:
+		case IXGBE_DEV_ID_X550EM_A_SGMII_L:
+			hw->phy.type = ixgbe_phy_sgmii;
+
 		/* Fallthrough */
-	case IXGBE_DEV_ID_X550EM_X_KR:
-	case IXGBE_DEV_ID_X550EM_X_KX4:
-	case IXGBE_DEV_ID_X550EM_A_KR:
-	case IXGBE_DEV_ID_X550EM_A_KR_L:
-		media_type = ixgbe_media_type_backplane;
-		break;
-	case IXGBE_DEV_ID_X550EM_X_SFP:
-	case IXGBE_DEV_ID_X550EM_A_SFP:
-	case IXGBE_DEV_ID_X550EM_A_SFP_N:
-		media_type = ixgbe_media_type_fiber;
-		break;
-	case IXGBE_DEV_ID_X550EM_X_1G_T:
-	case IXGBE_DEV_ID_X550EM_X_10G_T:
-	case IXGBE_DEV_ID_X550EM_A_10G_T:
-		media_type = ixgbe_media_type_copper;
-		break;
-	default:
-		media_type = ixgbe_media_type_unknown;
-		break;
+		case IXGBE_DEV_ID_X550EM_X_KR:
+		case IXGBE_DEV_ID_X550EM_X_KX4:
+		case IXGBE_DEV_ID_X550EM_A_KR:
+		case IXGBE_DEV_ID_X550EM_A_KR_L:
+			media_type = ixgbe_media_type_backplane;
+			break;
+
+		case IXGBE_DEV_ID_X550EM_X_SFP:
+		case IXGBE_DEV_ID_X550EM_A_SFP:
+		case IXGBE_DEV_ID_X550EM_A_SFP_N:
+			media_type = ixgbe_media_type_fiber;
+			break;
+
+		case IXGBE_DEV_ID_X550EM_X_1G_T:
+		case IXGBE_DEV_ID_X550EM_X_10G_T:
+		case IXGBE_DEV_ID_X550EM_A_10G_T:
+			media_type = ixgbe_media_type_copper;
+			break;
+
+		default:
+			media_type = ixgbe_media_type_unknown;
+			break;
 	}
+
 	return media_type;
 }
 
@@ -2519,31 +3074,41 @@ static s32 ixgbe_init_ext_t_x550em(struct ixgbe_hw *hw)
 	u16 reg;
 
 	status = hw->phy.ops.read_reg(hw,
-				      IXGBE_MDIO_TX_VENDOR_ALARMS_3,
-				      IXGBE_MDIO_PMA_PMD_DEV_TYPE,
-				      &reg);
+								  IXGBE_MDIO_TX_VENDOR_ALARMS_3,
+								  IXGBE_MDIO_PMA_PMD_DEV_TYPE,
+								  &reg);
+
 	if (status)
+	{
 		return status;
+	}
 
 	/* If PHY FW reset completed bit is set then this is the first
 	 * SW instance after a power on so the PHY FW must be un-stalled.
 	 */
-	if (reg & IXGBE_MDIO_TX_VENDOR_ALARMS_3_RST_MASK) {
+	if (reg & IXGBE_MDIO_TX_VENDOR_ALARMS_3_RST_MASK)
+	{
 		status = hw->phy.ops.read_reg(hw,
-					IXGBE_MDIO_GLOBAL_RES_PR_10,
-					IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
-					&reg);
+									  IXGBE_MDIO_GLOBAL_RES_PR_10,
+									  IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
+									  &reg);
+
 		if (status)
+		{
 			return status;
+		}
 
 		reg &= ~IXGBE_MDIO_POWER_UP_STALL;
 
 		status = hw->phy.ops.write_reg(hw,
-					IXGBE_MDIO_GLOBAL_RES_PR_10,
-					IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
-					reg);
+									   IXGBE_MDIO_GLOBAL_RES_PR_10,
+									   IXGBE_MDIO_VENDOR_SPECIFIC_1_DEV_TYPE,
+									   reg);
+
 		if (status)
+		{
 			return status;
+		}
 	}
 
 	return status;
@@ -2557,19 +3122,21 @@ static void ixgbe_set_mdio_speed(struct ixgbe_hw *hw)
 {
 	u32 hlreg0;
 
-	switch (hw->device_id) {
-	case IXGBE_DEV_ID_X550EM_X_10G_T:
-	case IXGBE_DEV_ID_X550EM_A_SGMII:
-	case IXGBE_DEV_ID_X550EM_A_SGMII_L:
-	case IXGBE_DEV_ID_X550EM_A_10G_T:
-	case IXGBE_DEV_ID_X550EM_A_SFP:
-		/* Config MDIO clock speed before the first MDIO PHY access */
-		hlreg0 = IXGBE_READ_REG(hw, IXGBE_HLREG0);
-		hlreg0 &= ~IXGBE_HLREG0_MDCSPD;
-		IXGBE_WRITE_REG(hw, IXGBE_HLREG0, hlreg0);
-		break;
-	default:
-		break;
+	switch (hw->device_id)
+	{
+		case IXGBE_DEV_ID_X550EM_X_10G_T:
+		case IXGBE_DEV_ID_X550EM_A_SGMII:
+		case IXGBE_DEV_ID_X550EM_A_SGMII_L:
+		case IXGBE_DEV_ID_X550EM_A_10G_T:
+		case IXGBE_DEV_ID_X550EM_A_SFP:
+			/* Config MDIO clock speed before the first MDIO PHY access */
+			hlreg0 = IXGBE_READ_REG(hw, IXGBE_HLREG0);
+			hlreg0 &= ~IXGBE_HLREG0_MDCSPD;
+			IXGBE_WRITE_REG(hw, IXGBE_HLREG0, hlreg0);
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -2590,8 +3157,11 @@ static s32 ixgbe_reset_hw_X550em(struct ixgbe_hw *hw)
 
 	/* Call adapter stop to disable Tx/Rx and clear interrupts */
 	status = hw->mac.ops.stop_adapter(hw);
+
 	if (status)
+	{
 		return status;
+	}
 
 	/* flush pending Tx transactions */
 	ixgbe_clear_tx_pending(hw);
@@ -2602,21 +3172,28 @@ static s32 ixgbe_reset_hw_X550em(struct ixgbe_hw *hw)
 	status = hw->phy.ops.init(hw);
 
 	/* start the external PHY */
-	if (hw->phy.type == ixgbe_phy_x550em_ext_t) {
+	if (hw->phy.type == ixgbe_phy_x550em_ext_t)
+	{
 		status = ixgbe_init_ext_t_x550em(hw);
+
 		if (status)
+		{
 			return status;
+		}
 	}
 
 	/* Setup SFP module if there is one present. */
-	if (hw->phy.sfp_setup_needed) {
+	if (hw->phy.sfp_setup_needed)
+	{
 		status = hw->mac.ops.setup_sfp(hw);
 		hw->phy.sfp_setup_needed = false;
 	}
 
 	/* Reset PHY */
 	if (!hw->phy.reset_disable && hw->phy.ops.reset)
+	{
 		hw->phy.ops.reset(hw);
+	}
 
 mac_reset_top:
 	/* Issue global reset to the MAC.  Needs to be SW reset if link is up.
@@ -2626,10 +3203,14 @@ mac_reset_top:
 	 */
 	ctrl = IXGBE_CTRL_LNK_RST;
 
-	if (!hw->force_full_reset) {
+	if (!hw->force_full_reset)
+	{
 		hw->mac.ops.check_link(hw, &link_speed, &link_up, false);
+
 		if (link_up)
+		{
 			ctrl = IXGBE_CTRL_RST;
+		}
 	}
 
 	ctrl |= IXGBE_READ_REG(hw, IXGBE_CTRL);
@@ -2638,14 +3219,20 @@ mac_reset_top:
 	usleep_range(1000, 1200);
 
 	/* Poll for reset bit to self-clear meaning reset is complete */
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; i++)
+	{
 		ctrl = IXGBE_READ_REG(hw, IXGBE_CTRL);
+
 		if (!(ctrl & IXGBE_CTRL_RST_MASK))
+		{
 			break;
+		}
+
 		udelay(1);
 	}
 
-	if (ctrl & IXGBE_CTRL_RST_MASK) {
+	if (ctrl & IXGBE_CTRL_RST_MASK)
+	{
 		status = IXGBE_ERR_RESET_FAILED;
 		hw_dbg(hw, "Reset polling failed to complete.\n");
 	}
@@ -2656,7 +3243,8 @@ mac_reset_top:
 	 * clear the multicast table.  Also reset num_rar_entries to 128,
 	 * since we modify this value when programming the SAN MAC address.
 	 */
-	if (hw->mac.flags & IXGBE_FLAGS_DOUBLE_RESET_REQUIRED) {
+	if (hw->mac.flags & IXGBE_FLAGS_DOUBLE_RESET_REQUIRED)
+	{
 		hw->mac.flags &= ~IXGBE_FLAGS_DOUBLE_RESET_REQUIRED;
 		goto mac_reset_top;
 	}
@@ -2674,7 +3262,9 @@ mac_reset_top:
 	ixgbe_set_mdio_speed(hw);
 
 	if (hw->device_id == IXGBE_DEV_ID_X550EM_X_SFP)
+	{
 		ixgbe_setup_mux_ctl(hw);
+	}
 
 	return status;
 }
@@ -2686,17 +3276,22 @@ mac_reset_top:
  *  @vf: Virtual Function pool - VF Pool to set for Ethertype anti-spoofing
  **/
 static void ixgbe_set_ethertype_anti_spoofing_X550(struct ixgbe_hw *hw,
-						   bool enable, int vf)
+		bool enable, int vf)
 {
 	int vf_target_reg = vf >> 3;
 	int vf_target_shift = vf % 8 + IXGBE_SPOOF_ETHERTYPEAS_SHIFT;
 	u32 pfvfspoof;
 
 	pfvfspoof = IXGBE_READ_REG(hw, IXGBE_PFVFSPOOF(vf_target_reg));
+
 	if (enable)
+	{
 		pfvfspoof |= BIT(vf_target_shift);
+	}
 	else
+	{
 		pfvfspoof &= ~BIT(vf_target_shift);
+	}
 
 	IXGBE_WRITE_REG(hw, IXGBE_PFVFSPOOF(vf_target_reg), pfvfspoof);
 }
@@ -2707,22 +3302,28 @@ static void ixgbe_set_ethertype_anti_spoofing_X550(struct ixgbe_hw *hw,
  *  @pool: Rx pool to set source address pruning for
  **/
 static void ixgbe_set_source_address_pruning_X550(struct ixgbe_hw *hw,
-						  bool enable,
-						  unsigned int pool)
+		bool enable,
+		unsigned int pool)
 {
 	u64 pfflp;
 
 	/* max rx pool is 63 */
 	if (pool > 63)
+	{
 		return;
+	}
 
 	pfflp = (u64)IXGBE_READ_REG(hw, IXGBE_PFFLPL);
 	pfflp |= (u64)IXGBE_READ_REG(hw, IXGBE_PFFLPH) << 32;
 
 	if (enable)
+	{
 		pfflp |= (1ULL << pool);
+	}
 	else
+	{
 		pfflp &= ~(1ULL << pool);
+	}
 
 	IXGBE_WRITE_REG(hw, IXGBE_PFFLPL, (u32)pfflp);
 	IXGBE_WRITE_REG(hw, IXGBE_PFFLPH, (u32)(pfflp >> 32));
@@ -2738,12 +3339,21 @@ static void ixgbe_set_mux(struct ixgbe_hw *hw, u8 state)
 	u32 esdp;
 
 	if (!hw->bus.lan_id)
+	{
 		return;
+	}
+
 	esdp = IXGBE_READ_REG(hw, IXGBE_ESDP);
+
 	if (state)
+	{
 		esdp |= IXGBE_ESDP_SDP1;
+	}
 	else
+	{
 		esdp &= ~IXGBE_ESDP_SDP1;
+	}
+
 	IXGBE_WRITE_REG(hw, IXGBE_ESDP, esdp);
 	IXGBE_WRITE_FLUSH(hw);
 }
@@ -2760,11 +3370,16 @@ static s32 ixgbe_acquire_swfw_sync_X550em(struct ixgbe_hw *hw, u32 mask)
 	s32 status;
 
 	status = ixgbe_acquire_swfw_sync_X540(hw, mask);
+
 	if (status)
+	{
 		return status;
+	}
 
 	if (mask & IXGBE_GSSR_I2C_MASK)
+	{
 		ixgbe_set_mux(hw, 1);
+	}
 
 	return 0;
 }
@@ -2779,7 +3394,9 @@ static s32 ixgbe_acquire_swfw_sync_X550em(struct ixgbe_hw *hw, u32 mask)
 static void ixgbe_release_swfw_sync_X550em(struct ixgbe_hw *hw, u32 mask)
 {
 	if (mask & IXGBE_GSSR_I2C_MASK)
+	{
 		ixgbe_set_mux(hw, 0);
+	}
 
 	ixgbe_release_swfw_sync_X540(hw, mask);
 }
@@ -2797,22 +3414,42 @@ static s32 ixgbe_acquire_swfw_sync_x550em_a(struct ixgbe_hw *hw, u32 mask)
 	int retries = FW_PHY_TOKEN_RETRIES;
 	s32 status;
 
-	while (--retries) {
+	while (--retries)
+	{
 		status = 0;
+
 		if (hmask)
+		{
 			status = ixgbe_acquire_swfw_sync_X540(hw, hmask);
+		}
+
 		if (status)
+		{
 			return status;
+		}
+
 		if (!(mask & IXGBE_GSSR_TOKEN_SM))
+		{
 			return 0;
+		}
 
 		status = ixgbe_get_phy_token(hw);
+
 		if (!status)
+		{
 			return 0;
+		}
+
 		if (hmask)
+		{
 			ixgbe_release_swfw_sync_X540(hw, hmask);
+		}
+
 		if (status != IXGBE_ERR_TOKEN_RETRY)
+		{
 			return status;
+		}
+
 		msleep(FW_PHY_TOKEN_DELAY);
 	}
 
@@ -2831,10 +3468,14 @@ static void ixgbe_release_swfw_sync_x550em_a(struct ixgbe_hw *hw, u32 mask)
 	u32 hmask = mask & ~IXGBE_GSSR_TOKEN_SM;
 
 	if (mask & IXGBE_GSSR_TOKEN_SM)
+	{
 		ixgbe_put_phy_token(hw);
+	}
 
 	if (hmask)
+	{
 		ixgbe_release_swfw_sync_X540(hw, hmask);
+	}
 }
 
 /**
@@ -2848,13 +3489,15 @@ static void ixgbe_release_swfw_sync_x550em_a(struct ixgbe_hw *hw, u32 mask)
  * instances.
  */
 static s32 ixgbe_read_phy_reg_x550a(struct ixgbe_hw *hw, u32 reg_addr,
-				    u32 device_type, u16 *phy_data)
+									u32 device_type, u16 *phy_data)
 {
 	u32 mask = hw->phy.phy_semaphore_mask | IXGBE_GSSR_TOKEN_SM;
 	s32 status;
 
 	if (hw->mac.ops.acquire_swfw_sync(hw, mask))
+	{
 		return IXGBE_ERR_SWFW_SYNC;
+	}
 
 	status = hw->phy.ops.read_reg_mdi(hw, reg_addr, device_type, phy_data);
 
@@ -2874,13 +3517,15 @@ static s32 ixgbe_read_phy_reg_x550a(struct ixgbe_hw *hw, u32 reg_addr,
  * The PHY Token is needed since the MDIO is shared between to MAC instances.
  */
 static s32 ixgbe_write_phy_reg_x550a(struct ixgbe_hw *hw, u32 reg_addr,
-				     u32 device_type, u16 phy_data)
+									 u32 device_type, u16 phy_data)
 {
 	u32 mask = hw->phy.phy_semaphore_mask | IXGBE_GSSR_TOKEN_SM;
 	s32 status;
 
 	if (hw->mac.ops.acquire_swfw_sync(hw, mask))
+	{
 		return IXGBE_ERR_SWFW_SYNC;
+	}
 
 	status = ixgbe_write_phy_reg_mdi(hw, reg_addr, device_type, phy_data);
 	hw->mac.ops.release_swfw_sync(hw, mask);
@@ -2890,207 +3535,221 @@ static s32 ixgbe_write_phy_reg_x550a(struct ixgbe_hw *hw, u32 reg_addr,
 
 #define X550_COMMON_MAC \
 	.init_hw			= &ixgbe_init_hw_generic, \
-	.start_hw			= &ixgbe_start_hw_X540, \
-	.clear_hw_cntrs			= &ixgbe_clear_hw_cntrs_generic, \
-	.enable_rx_dma			= &ixgbe_enable_rx_dma_generic, \
-	.get_mac_addr			= &ixgbe_get_mac_addr_generic, \
-	.get_device_caps		= &ixgbe_get_device_caps_generic, \
-	.stop_adapter			= &ixgbe_stop_adapter_generic, \
-	.set_lan_id			= &ixgbe_set_lan_id_multi_port_pcie, \
-	.read_analog_reg8		= NULL, \
-	.write_analog_reg8		= NULL, \
-	.set_rxpba			= &ixgbe_set_rxpba_generic, \
-	.check_link			= &ixgbe_check_mac_link_generic, \
-	.blink_led_start		= &ixgbe_blink_led_start_X540, \
-	.blink_led_stop			= &ixgbe_blink_led_stop_X540, \
-	.set_rar			= &ixgbe_set_rar_generic, \
-	.clear_rar			= &ixgbe_clear_rar_generic, \
-	.set_vmdq			= &ixgbe_set_vmdq_generic, \
-	.set_vmdq_san_mac		= &ixgbe_set_vmdq_san_mac_generic, \
-	.clear_vmdq			= &ixgbe_clear_vmdq_generic, \
-	.init_rx_addrs			= &ixgbe_init_rx_addrs_generic, \
-	.update_mc_addr_list		= &ixgbe_update_mc_addr_list_generic, \
-	.enable_mc			= &ixgbe_enable_mc_generic, \
-	.disable_mc			= &ixgbe_disable_mc_generic, \
-	.clear_vfta			= &ixgbe_clear_vfta_generic, \
-	.set_vfta			= &ixgbe_set_vfta_generic, \
-	.fc_enable			= &ixgbe_fc_enable_generic, \
-	.set_fw_drv_ver			= &ixgbe_set_fw_drv_ver_generic, \
-	.init_uta_tables		= &ixgbe_init_uta_tables_generic, \
-	.set_mac_anti_spoofing		= &ixgbe_set_mac_anti_spoofing, \
-	.set_vlan_anti_spoofing		= &ixgbe_set_vlan_anti_spoofing, \
-	.set_source_address_pruning	= \
-				&ixgbe_set_source_address_pruning_X550, \
-	.set_ethertype_anti_spoofing	= \
-				&ixgbe_set_ethertype_anti_spoofing_X550, \
-	.disable_rx_buff		= &ixgbe_disable_rx_buff_generic, \
-	.enable_rx_buff			= &ixgbe_enable_rx_buff_generic, \
-	.get_thermal_sensor_data	= NULL, \
-	.init_thermal_sensor_thresh	= NULL, \
-	.enable_rx			= &ixgbe_enable_rx_generic, \
-	.disable_rx			= &ixgbe_disable_rx_x550, \
+						  .start_hw			= &ixgbe_start_hw_X540, \
+								  .clear_hw_cntrs			= &ixgbe_clear_hw_cntrs_generic, \
+										  .enable_rx_dma			= &ixgbe_enable_rx_dma_generic, \
+												  .get_mac_addr			= &ixgbe_get_mac_addr_generic, \
+														  .get_device_caps		= &ixgbe_get_device_caps_generic, \
+																  .stop_adapter			= &ixgbe_stop_adapter_generic, \
+																		  .set_lan_id			= &ixgbe_set_lan_id_multi_port_pcie, \
+																				  .read_analog_reg8		= NULL, \
+																						  .write_analog_reg8		= NULL, \
+																								  .set_rxpba			= &ixgbe_set_rxpba_generic, \
+																										  .check_link			= &ixgbe_check_mac_link_generic, \
+																												  .blink_led_start		= &ixgbe_blink_led_start_X540, \
+																														  .blink_led_stop			= &ixgbe_blink_led_stop_X540, \
+																																  .set_rar			= &ixgbe_set_rar_generic, \
+																																		  .clear_rar			= &ixgbe_clear_rar_generic, \
+																																				  .set_vmdq			= &ixgbe_set_vmdq_generic, \
+																																						  .set_vmdq_san_mac		= &ixgbe_set_vmdq_san_mac_generic, \
+																																								  .clear_vmdq			= &ixgbe_clear_vmdq_generic, \
+																																										  .init_rx_addrs			= &ixgbe_init_rx_addrs_generic, \
+																																												  .update_mc_addr_list		= &ixgbe_update_mc_addr_list_generic, \
+																																														  .enable_mc			= &ixgbe_enable_mc_generic, \
+																																																  .disable_mc			= &ixgbe_disable_mc_generic, \
+																																																		  .clear_vfta			= &ixgbe_clear_vfta_generic, \
+																																																				  .set_vfta			= &ixgbe_set_vfta_generic, \
+																																																						  .fc_enable			= &ixgbe_fc_enable_generic, \
+																																																								  .set_fw_drv_ver			= &ixgbe_set_fw_drv_ver_generic, \
+																																																										  .init_uta_tables		= &ixgbe_init_uta_tables_generic, \
+																																																												  .set_mac_anti_spoofing		= &ixgbe_set_mac_anti_spoofing, \
+																																																														  .set_vlan_anti_spoofing		= &ixgbe_set_vlan_anti_spoofing, \
+																																																																  .set_source_address_pruning	= \
+																																																																		  &ixgbe_set_source_address_pruning_X550, \
+																																																																		  .set_ethertype_anti_spoofing	= \
+																																																																				  &ixgbe_set_ethertype_anti_spoofing_X550, \
+																																																																				  .disable_rx_buff		= &ixgbe_disable_rx_buff_generic, \
+																																																																						  .enable_rx_buff			= &ixgbe_enable_rx_buff_generic, \
+																																																																								  .get_thermal_sensor_data	= NULL, \
+																																																																										  .init_thermal_sensor_thresh	= NULL, \
+																																																																												  .enable_rx			= &ixgbe_enable_rx_generic, \
+																																																																														  .disable_rx			= &ixgbe_disable_rx_x550, \
 
-static const struct ixgbe_mac_operations mac_ops_X550 = {
-	X550_COMMON_MAC
-	.led_on			= ixgbe_led_on_generic,
-	.led_off		= ixgbe_led_off_generic,
-	.reset_hw		= &ixgbe_reset_hw_X540,
-	.get_media_type		= &ixgbe_get_media_type_X540,
-	.get_san_mac_addr	= &ixgbe_get_san_mac_addr_generic,
-	.get_wwn_prefix		= &ixgbe_get_wwn_prefix_generic,
-	.setup_link		= &ixgbe_setup_mac_link_X540,
-	.get_link_capabilities	= &ixgbe_get_copper_link_capabilities_generic,
-	.get_bus_info		= &ixgbe_get_bus_info_generic,
-	.setup_sfp		= NULL,
-	.acquire_swfw_sync	= &ixgbe_acquire_swfw_sync_X540,
-	.release_swfw_sync	= &ixgbe_release_swfw_sync_X540,
-	.init_swfw_sync		= &ixgbe_init_swfw_sync_X540,
-	.prot_autoc_read	= prot_autoc_read_generic,
-	.prot_autoc_write	= prot_autoc_write_generic,
-	.setup_fc		= ixgbe_setup_fc_generic,
-};
+																																																																																  static const struct ixgbe_mac_operations mac_ops_X550 =
+	{
+		X550_COMMON_MAC
+		.led_on			= ixgbe_led_on_generic,
+		.led_off		= ixgbe_led_off_generic,
+		.reset_hw		= &ixgbe_reset_hw_X540,
+		.get_media_type		= &ixgbe_get_media_type_X540,
+		.get_san_mac_addr	= &ixgbe_get_san_mac_addr_generic,
+		.get_wwn_prefix		= &ixgbe_get_wwn_prefix_generic,
+		.setup_link		= &ixgbe_setup_mac_link_X540,
+		.get_link_capabilities	= &ixgbe_get_copper_link_capabilities_generic,
+		.get_bus_info		= &ixgbe_get_bus_info_generic,
+		.setup_sfp		= NULL,
+		.acquire_swfw_sync	= &ixgbe_acquire_swfw_sync_X540,
+		.release_swfw_sync	= &ixgbe_release_swfw_sync_X540,
+		.init_swfw_sync		= &ixgbe_init_swfw_sync_X540,
+		.prot_autoc_read	= prot_autoc_read_generic,
+		.prot_autoc_write	= prot_autoc_write_generic,
+		.setup_fc		= ixgbe_setup_fc_generic,
+	};
 
-static const struct ixgbe_mac_operations mac_ops_X550EM_x = {
-	X550_COMMON_MAC
-	.led_on			= ixgbe_led_on_t_x550em,
-	.led_off		= ixgbe_led_off_t_x550em,
-	.reset_hw		= &ixgbe_reset_hw_X550em,
-	.get_media_type		= &ixgbe_get_media_type_X550em,
-	.get_san_mac_addr	= NULL,
-	.get_wwn_prefix		= NULL,
-	.setup_link		= &ixgbe_setup_mac_link_X540,
-	.get_link_capabilities	= &ixgbe_get_link_capabilities_X550em,
-	.get_bus_info		= &ixgbe_get_bus_info_X550em,
-	.setup_sfp		= ixgbe_setup_sfp_modules_X550em,
-	.acquire_swfw_sync	= &ixgbe_acquire_swfw_sync_X550em,
-	.release_swfw_sync	= &ixgbe_release_swfw_sync_X550em,
-	.init_swfw_sync		= &ixgbe_init_swfw_sync_X540,
-	.setup_fc		= NULL, /* defined later */
-	.read_iosf_sb_reg	= ixgbe_read_iosf_sb_reg_x550,
-	.write_iosf_sb_reg	= ixgbe_write_iosf_sb_reg_x550,
-};
+	static const struct ixgbe_mac_operations mac_ops_X550EM_x =
+	{
+		X550_COMMON_MAC
+		.led_on			= ixgbe_led_on_t_x550em,
+		.led_off		= ixgbe_led_off_t_x550em,
+		.reset_hw		= &ixgbe_reset_hw_X550em,
+		.get_media_type		= &ixgbe_get_media_type_X550em,
+		.get_san_mac_addr	= NULL,
+		.get_wwn_prefix		= NULL,
+		.setup_link		= &ixgbe_setup_mac_link_X540,
+		.get_link_capabilities	= &ixgbe_get_link_capabilities_X550em,
+		.get_bus_info		= &ixgbe_get_bus_info_X550em,
+		.setup_sfp		= ixgbe_setup_sfp_modules_X550em,
+		.acquire_swfw_sync	= &ixgbe_acquire_swfw_sync_X550em,
+		.release_swfw_sync	= &ixgbe_release_swfw_sync_X550em,
+		.init_swfw_sync		= &ixgbe_init_swfw_sync_X540,
+		.setup_fc		= NULL, /* defined later */
+		.read_iosf_sb_reg	= ixgbe_read_iosf_sb_reg_x550,
+		.write_iosf_sb_reg	= ixgbe_write_iosf_sb_reg_x550,
+	};
 
-static struct ixgbe_mac_operations mac_ops_x550em_a = {
-	X550_COMMON_MAC
-	.led_on			= ixgbe_led_on_t_x550em,
-	.led_off		= ixgbe_led_off_t_x550em,
-	.reset_hw		= ixgbe_reset_hw_X550em,
-	.get_media_type		= ixgbe_get_media_type_X550em,
-	.get_san_mac_addr	= NULL,
-	.get_wwn_prefix		= NULL,
-	.setup_link		= NULL, /* defined later */
-	.get_link_capabilities	= ixgbe_get_link_capabilities_X550em,
-	.get_bus_info		= ixgbe_get_bus_info_X550em,
-	.setup_sfp		= ixgbe_setup_sfp_modules_X550em,
-	.acquire_swfw_sync	= ixgbe_acquire_swfw_sync_x550em_a,
-	.release_swfw_sync	= ixgbe_release_swfw_sync_x550em_a,
-	.setup_fc		= ixgbe_setup_fc_x550em,
-	.read_iosf_sb_reg	= ixgbe_read_iosf_sb_reg_x550a,
-	.write_iosf_sb_reg	= ixgbe_write_iosf_sb_reg_x550a,
-};
+	static struct ixgbe_mac_operations mac_ops_x550em_a =
+	{
+		X550_COMMON_MAC
+		.led_on			= ixgbe_led_on_t_x550em,
+		.led_off		= ixgbe_led_off_t_x550em,
+		.reset_hw		= ixgbe_reset_hw_X550em,
+		.get_media_type		= ixgbe_get_media_type_X550em,
+		.get_san_mac_addr	= NULL,
+		.get_wwn_prefix		= NULL,
+		.setup_link		= NULL, /* defined later */
+		.get_link_capabilities	= ixgbe_get_link_capabilities_X550em,
+		.get_bus_info		= ixgbe_get_bus_info_X550em,
+		.setup_sfp		= ixgbe_setup_sfp_modules_X550em,
+		.acquire_swfw_sync	= ixgbe_acquire_swfw_sync_x550em_a,
+		.release_swfw_sync	= ixgbe_release_swfw_sync_x550em_a,
+		.setup_fc		= ixgbe_setup_fc_x550em,
+		.read_iosf_sb_reg	= ixgbe_read_iosf_sb_reg_x550a,
+		.write_iosf_sb_reg	= ixgbe_write_iosf_sb_reg_x550a,
+	};
 
 #define X550_COMMON_EEP \
 	.read			= &ixgbe_read_ee_hostif_X550, \
-	.read_buffer		= &ixgbe_read_ee_hostif_buffer_X550, \
-	.write			= &ixgbe_write_ee_hostif_X550, \
-	.write_buffer		= &ixgbe_write_ee_hostif_buffer_X550, \
-	.validate_checksum	= &ixgbe_validate_eeprom_checksum_X550, \
-	.update_checksum	= &ixgbe_update_eeprom_checksum_X550, \
-	.calc_checksum		= &ixgbe_calc_eeprom_checksum_X550, \
+					  .read_buffer		= &ixgbe_read_ee_hostif_buffer_X550, \
+											.write			= &ixgbe_write_ee_hostif_X550, \
+													.write_buffer		= &ixgbe_write_ee_hostif_buffer_X550, \
+															.validate_checksum	= &ixgbe_validate_eeprom_checksum_X550, \
+																	.update_checksum	= &ixgbe_update_eeprom_checksum_X550, \
+																			.calc_checksum		= &ixgbe_calc_eeprom_checksum_X550, \
 
-static const struct ixgbe_eeprom_operations eeprom_ops_X550 = {
-	X550_COMMON_EEP
-	.init_params		= &ixgbe_init_eeprom_params_X550,
-};
+																					static const struct ixgbe_eeprom_operations eeprom_ops_X550 =
+	{
+		X550_COMMON_EEP
+		.init_params		= &ixgbe_init_eeprom_params_X550,
+	};
 
-static const struct ixgbe_eeprom_operations eeprom_ops_X550EM_x = {
-	X550_COMMON_EEP
-	.init_params		= &ixgbe_init_eeprom_params_X540,
-};
+	static const struct ixgbe_eeprom_operations eeprom_ops_X550EM_x =
+	{
+		X550_COMMON_EEP
+		.init_params		= &ixgbe_init_eeprom_params_X540,
+	};
 
 #define X550_COMMON_PHY	\
 	.identify_sfp		= &ixgbe_identify_module_generic, \
-	.reset			= NULL, \
-	.setup_link_speed	= &ixgbe_setup_phy_link_speed_generic, \
-	.read_i2c_byte		= &ixgbe_read_i2c_byte_generic, \
-	.write_i2c_byte		= &ixgbe_write_i2c_byte_generic, \
-	.read_i2c_sff8472	= &ixgbe_read_i2c_sff8472_generic, \
-	.read_i2c_eeprom	= &ixgbe_read_i2c_eeprom_generic, \
-	.write_i2c_eeprom	= &ixgbe_write_i2c_eeprom_generic, \
-	.setup_link		= &ixgbe_setup_phy_link_generic, \
-	.set_phy_power		= NULL, \
-	.check_overtemp		= &ixgbe_tn_check_overtemp, \
-	.get_firmware_version	= &ixgbe_get_phy_firmware_version_generic,
+						  .reset			= NULL, \
+											.setup_link_speed	= &ixgbe_setup_phy_link_speed_generic, \
+													.read_i2c_byte		= &ixgbe_read_i2c_byte_generic, \
+															.write_i2c_byte		= &ixgbe_write_i2c_byte_generic, \
+																	.read_i2c_sff8472	= &ixgbe_read_i2c_sff8472_generic, \
+																			.read_i2c_eeprom	= &ixgbe_read_i2c_eeprom_generic, \
+																					.write_i2c_eeprom	= &ixgbe_write_i2c_eeprom_generic, \
+																							.setup_link		= &ixgbe_setup_phy_link_generic, \
+																									.set_phy_power		= NULL, \
+																											.check_overtemp		= &ixgbe_tn_check_overtemp, \
+																													.get_firmware_version	= &ixgbe_get_phy_firmware_version_generic,
 
-static const struct ixgbe_phy_operations phy_ops_X550 = {
-	X550_COMMON_PHY
-	.init			= NULL,
-	.identify		= &ixgbe_identify_phy_generic,
-	.read_reg		= &ixgbe_read_phy_reg_generic,
-	.write_reg		= &ixgbe_write_phy_reg_generic,
-};
+	static const struct ixgbe_phy_operations phy_ops_X550 =
+	{
+		X550_COMMON_PHY
+		.init			= NULL,
+		.identify		= &ixgbe_identify_phy_generic,
+		.read_reg		= &ixgbe_read_phy_reg_generic,
+		.write_reg		= &ixgbe_write_phy_reg_generic,
+	};
 
-static const struct ixgbe_phy_operations phy_ops_X550EM_x = {
-	X550_COMMON_PHY
-	.init			= &ixgbe_init_phy_ops_X550em,
-	.identify		= &ixgbe_identify_phy_x550em,
-	.read_reg		= &ixgbe_read_phy_reg_generic,
-	.write_reg		= &ixgbe_write_phy_reg_generic,
-	.read_i2c_combined	= &ixgbe_read_i2c_combined_generic,
-	.write_i2c_combined	= &ixgbe_write_i2c_combined_generic,
-	.read_i2c_combined_unlocked = &ixgbe_read_i2c_combined_generic_unlocked,
-	.write_i2c_combined_unlocked =
-				     &ixgbe_write_i2c_combined_generic_unlocked,
-};
+	static const struct ixgbe_phy_operations phy_ops_X550EM_x =
+	{
+		X550_COMMON_PHY
+		.init			= &ixgbe_init_phy_ops_X550em,
+		.identify		= &ixgbe_identify_phy_x550em,
+		.read_reg		= &ixgbe_read_phy_reg_generic,
+		.write_reg		= &ixgbe_write_phy_reg_generic,
+		.read_i2c_combined	= &ixgbe_read_i2c_combined_generic,
+		.write_i2c_combined	= &ixgbe_write_i2c_combined_generic,
+		.read_i2c_combined_unlocked = &ixgbe_read_i2c_combined_generic_unlocked,
+		.write_i2c_combined_unlocked =
+		&ixgbe_write_i2c_combined_generic_unlocked,
+	};
 
-static const struct ixgbe_phy_operations phy_ops_x550em_a = {
-	X550_COMMON_PHY
-	.init			= &ixgbe_init_phy_ops_X550em,
-	.identify		= &ixgbe_identify_phy_x550em,
-	.read_reg		= &ixgbe_read_phy_reg_x550a,
-	.write_reg		= &ixgbe_write_phy_reg_x550a,
-	.read_reg_mdi		= &ixgbe_read_phy_reg_mdi,
-	.write_reg_mdi		= &ixgbe_write_phy_reg_mdi,
-};
+	static const struct ixgbe_phy_operations phy_ops_x550em_a =
+	{
+		X550_COMMON_PHY
+		.init			= &ixgbe_init_phy_ops_X550em,
+		.identify		= &ixgbe_identify_phy_x550em,
+		.read_reg		= &ixgbe_read_phy_reg_x550a,
+		.write_reg		= &ixgbe_write_phy_reg_x550a,
+		.read_reg_mdi		= &ixgbe_read_phy_reg_mdi,
+		.write_reg_mdi		= &ixgbe_write_phy_reg_mdi,
+	};
 
-static const u32 ixgbe_mvals_X550[IXGBE_MVALS_IDX_LIMIT] = {
-	IXGBE_MVALS_INIT(X550)
-};
+	static const u32 ixgbe_mvals_X550[IXGBE_MVALS_IDX_LIMIT] =
+	{
+		IXGBE_MVALS_INIT(X550)
+	};
 
-static const u32 ixgbe_mvals_X550EM_x[IXGBE_MVALS_IDX_LIMIT] = {
-	IXGBE_MVALS_INIT(X550EM_x)
-};
+	static const u32 ixgbe_mvals_X550EM_x[IXGBE_MVALS_IDX_LIMIT] =
+	{
+		IXGBE_MVALS_INIT(X550EM_x)
+	};
 
-static const u32 ixgbe_mvals_x550em_a[IXGBE_MVALS_IDX_LIMIT] = {
-	IXGBE_MVALS_INIT(X550EM_a)
-};
+	static const u32 ixgbe_mvals_x550em_a[IXGBE_MVALS_IDX_LIMIT] =
+	{
+		IXGBE_MVALS_INIT(X550EM_a)
+	};
 
-const struct ixgbe_info ixgbe_X550_info = {
-	.mac			= ixgbe_mac_X550,
-	.get_invariants		= &ixgbe_get_invariants_X540,
-	.mac_ops		= &mac_ops_X550,
-	.eeprom_ops		= &eeprom_ops_X550,
-	.phy_ops		= &phy_ops_X550,
-	.mbx_ops		= &mbx_ops_generic,
-	.mvals			= ixgbe_mvals_X550,
-};
+	const struct ixgbe_info ixgbe_X550_info =
+	{
+		.mac			= ixgbe_mac_X550,
+		.get_invariants		= &ixgbe_get_invariants_X540,
+		.mac_ops		= &mac_ops_X550,
+		.eeprom_ops		= &eeprom_ops_X550,
+		.phy_ops		= &phy_ops_X550,
+		.mbx_ops		= &mbx_ops_generic,
+		.mvals			= ixgbe_mvals_X550,
+	};
 
-const struct ixgbe_info ixgbe_X550EM_x_info = {
-	.mac			= ixgbe_mac_X550EM_x,
-	.get_invariants		= &ixgbe_get_invariants_X550_x,
-	.mac_ops		= &mac_ops_X550EM_x,
-	.eeprom_ops		= &eeprom_ops_X550EM_x,
-	.phy_ops		= &phy_ops_X550EM_x,
-	.mbx_ops		= &mbx_ops_generic,
-	.mvals			= ixgbe_mvals_X550EM_x,
-};
+	const struct ixgbe_info ixgbe_X550EM_x_info =
+	{
+		.mac			= ixgbe_mac_X550EM_x,
+		.get_invariants		= &ixgbe_get_invariants_X550_x,
+		.mac_ops		= &mac_ops_X550EM_x,
+		.eeprom_ops		= &eeprom_ops_X550EM_x,
+		.phy_ops		= &phy_ops_X550EM_x,
+		.mbx_ops		= &mbx_ops_generic,
+		.mvals			= ixgbe_mvals_X550EM_x,
+	};
 
-const struct ixgbe_info ixgbe_x550em_a_info = {
-	.mac			= ixgbe_mac_x550em_a,
-	.get_invariants		= &ixgbe_get_invariants_X550_x,
-	.mac_ops		= &mac_ops_x550em_a,
-	.eeprom_ops		= &eeprom_ops_X550EM_x,
-	.phy_ops		= &phy_ops_x550em_a,
-	.mbx_ops		= &mbx_ops_generic,
-	.mvals			= ixgbe_mvals_x550em_a,
-};
+	const struct ixgbe_info ixgbe_x550em_a_info =
+	{
+		.mac			= ixgbe_mac_x550em_a,
+		.get_invariants		= &ixgbe_get_invariants_X550_x,
+		.mac_ops		= &mac_ops_x550em_a,
+		.eeprom_ops		= &eeprom_ops_X550EM_x,
+		.phy_ops		= &phy_ops_x550em_a,
+		.mbx_ops		= &mbx_ops_generic,
+		.mvals			= ixgbe_mvals_x550em_a,
+	};

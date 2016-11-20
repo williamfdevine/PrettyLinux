@@ -18,12 +18,18 @@ __fru_get_board_tl(struct fru_common_header *header, int nr)
 
 	bia = fru_get_board_area(header);
 	tl = bia->tl;
-	while (nr > 0 && !fru_is_eof(tl)) {
+
+	while (nr > 0 && !fru_is_eof(tl))
+	{
 		tl = fru_next_tl(tl);
 		nr--;
 	}
+
 	if (fru_is_eof(tl))
+	{
 		return NULL;
+	}
+
 	return tl;
 }
 
@@ -34,12 +40,20 @@ static char *__fru_alloc_get_tl(struct fru_common_header *header, int nr)
 	int len;
 
 	tl = __fru_get_board_tl(header, nr);
+
 	if (!tl)
+	{
 		return NULL;
+	}
+
 	len = fru_strlen(tl);
 	res = fru_alloc(fru_strlen(tl) + 1);
+
 	if (!res)
+	{
 		return NULL;
+	}
+
 	return fru_strcpy(res, tl);
 }
 
@@ -50,7 +64,10 @@ int fru_header_cksum_ok(struct fru_common_header *header)
 	int i, sum;
 
 	for (i = sum = 0; i < sizeof(*header); i++)
+	{
 		sum += ptr[i];
+	}
+
 	return (sum & 0xff) == 0;
 }
 int fru_bia_cksum_ok(struct fru_board_info_area *bia)
@@ -59,7 +76,10 @@ int fru_bia_cksum_ok(struct fru_board_info_area *bia)
 	int i, sum;
 
 	for (i = sum = 0; i < 8 * bia->area_len; i++)
+	{
 		sum += ptr[i];
+	}
+
 	return (sum & 0xff) == 0;
 }
 

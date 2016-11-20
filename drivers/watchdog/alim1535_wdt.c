@@ -37,14 +37,14 @@ static DEFINE_SPINLOCK(ali_lock);	/* Guards the hardware */
 static int timeout = WATCHDOG_TIMEOUT;
 module_param(timeout, int, 0);
 MODULE_PARM_DESC(timeout,
-		"Watchdog timeout in seconds. (0 < timeout < 18000, default="
-				__MODULE_STRING(WATCHDOG_TIMEOUT) ")");
+				 "Watchdog timeout in seconds. (0 < timeout < 18000, default="
+				 __MODULE_STRING(WATCHDOG_TIMEOUT) ")");
 
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-		"Watchdog cannot be stopped once started (default="
-				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 /*
  *	ali_start	-	start watchdog countdown
@@ -108,15 +108,25 @@ static void ali_keepalive(void)
 static int ali_settimer(int t)
 {
 	if (t < 0)
+	{
 		return -EINVAL;
+	}
 	else if (t < 60)
-		ali_timeout_bits = t|(1 << 6);
+	{
+		ali_timeout_bits = t | (1 << 6);
+	}
 	else if (t < 3600)
-		ali_timeout_bits = (t / 60)|(1 << 7);
+	{
+		ali_timeout_bits = (t / 60) | (1 << 7);
+	}
 	else if (t < 18000)
-		ali_timeout_bits = (t / 300)|(1 << 6)|(1 << 7);
+	{
+		ali_timeout_bits = (t / 300) | (1 << 6) | (1 << 7);
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	timeout = t;
 	return 0;
@@ -139,11 +149,13 @@ static int ali_settimer(int t)
  */
 
 static ssize_t ali_write(struct file *file, const char __user *data,
-						size_t len, loff_t *ppos)
+						 size_t len, loff_t *ppos)
 {
 	/* See if we got the magic character 'V' and reload the timer */
-	if (len) {
-		if (!nowayout) {
+	if (len)
+	{
+		if (!nowayout)
+		{
 			size_t i;
 
 			/* note: just in case someone wrote the
@@ -152,18 +164,26 @@ static ssize_t ali_write(struct file *file, const char __user *data,
 
 			/* scan to see whether or not we got
 			   the magic character */
-			for (i = 0; i != len; i++) {
+			for (i = 0; i != len; i++)
+			{
 				char c;
+
 				if (get_user(c, data + i))
+				{
 					return -EFAULT;
+				}
+
 				if (c == 'V')
+				{
 					ali_expect_release = 42;
+				}
 			}
 		}
 
 		/* someone wrote to us, we should reload the timer */
 		ali_start();
 	}
+
 	return len;
 }
 
@@ -181,54 +201,75 @@ static long ali_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	void __user *argp = (void __user *)arg;
 	int __user *p = argp;
-	static const struct watchdog_info ident = {
+	static const struct watchdog_info ident =
+	{
 		.options =		WDIOF_KEEPALIVEPING |
-					WDIOF_SETTIMEOUT |
-					WDIOF_MAGICCLOSE,
+		WDIOF_SETTIMEOUT |
+		WDIOF_MAGICCLOSE,
 		.firmware_version =	0,
 		.identity =		"ALi M1535 WatchDog Timer",
 	};
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
-
-	case WDIOC_GETSTATUS:
-	case WDIOC_GETBOOTSTATUS:
-		return put_user(0, p);
-	case WDIOC_SETOPTIONS:
+	switch (cmd)
 	{
-		int new_options, retval = -EINVAL;
+		case WDIOC_GETSUPPORT:
+			return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
 
-		if (get_user(new_options, p))
-			return -EFAULT;
-		if (new_options & WDIOS_DISABLECARD) {
-			ali_stop();
-			retval = 0;
-		}
-		if (new_options & WDIOS_ENABLECARD) {
-			ali_start();
-			retval = 0;
-		}
-		return retval;
-	}
-	case WDIOC_KEEPALIVE:
-		ali_keepalive();
-		return 0;
-	case WDIOC_SETTIMEOUT:
-	{
-		int new_timeout;
-		if (get_user(new_timeout, p))
-			return -EFAULT;
-		if (ali_settimer(new_timeout))
-			return -EINVAL;
-		ali_keepalive();
-		/* Fall */
-	}
-	case WDIOC_GETTIMEOUT:
-		return put_user(timeout, p);
-	default:
-		return -ENOTTY;
+		case WDIOC_GETSTATUS:
+		case WDIOC_GETBOOTSTATUS:
+			return put_user(0, p);
+
+		case WDIOC_SETOPTIONS:
+			{
+				int new_options, retval = -EINVAL;
+
+				if (get_user(new_options, p))
+				{
+					return -EFAULT;
+				}
+
+				if (new_options & WDIOS_DISABLECARD)
+				{
+					ali_stop();
+					retval = 0;
+				}
+
+				if (new_options & WDIOS_ENABLECARD)
+				{
+					ali_start();
+					retval = 0;
+				}
+
+				return retval;
+			}
+
+		case WDIOC_KEEPALIVE:
+			ali_keepalive();
+			return 0;
+
+		case WDIOC_SETTIMEOUT:
+			{
+				int new_timeout;
+
+				if (get_user(new_timeout, p))
+				{
+					return -EFAULT;
+				}
+
+				if (ali_settimer(new_timeout))
+				{
+					return -EINVAL;
+				}
+
+				ali_keepalive();
+				/* Fall */
+			}
+
+		case WDIOC_GETTIMEOUT:
+			return put_user(timeout, p);
+
+		default:
+			return -ENOTTY;
 	}
 }
 
@@ -245,7 +286,9 @@ static int ali_open(struct inode *inode, struct file *file)
 {
 	/* /dev/watchdog can only be opened once */
 	if (test_and_set_bit(0, &ali_is_open))
+	{
 		return -EBUSY;
+	}
 
 	/* Activate */
 	ali_start();
@@ -267,11 +310,15 @@ static int ali_release(struct inode *inode, struct file *file)
 	 *      Shut off the timer.
 	 */
 	if (ali_expect_release == 42)
+	{
 		ali_stop();
-	else {
+	}
+	else
+	{
 		pr_crit("Unexpected close, not stopping watchdog!\n");
 		ali_keepalive();
 	}
+
 	clear_bit(0, &ali_is_open);
 	ali_expect_release = 0;
 	return 0;
@@ -285,10 +332,13 @@ static int ali_release(struct inode *inode, struct file *file)
 
 
 static int ali_notify_sys(struct notifier_block *this,
-					unsigned long code, void *unused)
+						  unsigned long code, void *unused)
 {
 	if (code == SYS_DOWN || code == SYS_HALT)
-		ali_stop();		/* Turn the WDT off */
+	{
+		ali_stop();    /* Turn the WDT off */
+	}
+
 	return NOTIFY_DONE;
 }
 
@@ -301,7 +351,8 @@ static int ali_notify_sys(struct notifier_block *this,
  *	want to register another driver on the same PCI id.
  */
 
-static const struct pci_device_id ali_pci_tbl[] __used = {
+static const struct pci_device_id ali_pci_tbl[] __used =
+{
 	{ PCI_VENDOR_ID_AL, 0x1533, PCI_ANY_ID, PCI_ANY_ID,},
 	{ PCI_VENDOR_ID_AL, 0x1535, PCI_ANY_ID, PCI_ANY_ID,},
 	{ 0, },
@@ -322,18 +373,29 @@ static int __init ali_find_watchdog(void)
 
 	/* Check for a 1533/1535 series bridge */
 	pdev = pci_get_device(PCI_VENDOR_ID_AL, 0x1535, NULL);
+
 	if (pdev == NULL)
+	{
 		pdev = pci_get_device(PCI_VENDOR_ID_AL, 0x1533, NULL);
+	}
+
 	if (pdev == NULL)
+	{
 		return -ENODEV;
+	}
+
 	pci_dev_put(pdev);
 
 	/* Check for the a 7101 PMU */
 	pdev = pci_get_device(PCI_VENDOR_ID_AL, 0x7101, NULL);
-	if (pdev == NULL)
-		return -ENODEV;
 
-	if (pci_enable_device(pdev)) {
+	if (pdev == NULL)
+	{
+		return -ENODEV;
+	}
+
+	if (pci_enable_device(pdev))
+	{
 		pci_dev_put(pdev);
 		return -EIO;
 	}
@@ -348,9 +410,9 @@ static int __init ali_find_watchdog(void)
 	/* Timer bits */
 	wdog &= ~0x3F;
 	/* Issued events */
-	wdog &= ~((1 << 27)|(1 << 26)|(1 << 25)|(1 << 24));
+	wdog &= ~((1 << 27) | (1 << 26) | (1 << 25) | (1 << 24));
 	/* No monitor bits */
-	wdog &= ~((1 << 16)|(1 << 13)|(1 << 12)|(1 << 11)|(1 << 10)|(1 << 9));
+	wdog &= ~((1 << 16) | (1 << 13) | (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9));
 
 	pci_write_config_dword(pdev, 0xCC, wdog);
 
@@ -361,7 +423,8 @@ static int __init ali_find_watchdog(void)
  *	Kernel Interfaces
  */
 
-static const struct file_operations ali_fops = {
+static const struct file_operations ali_fops =
+{
 	.owner		=	THIS_MODULE,
 	.llseek		=	no_llseek,
 	.write		=	ali_write,
@@ -370,13 +433,15 @@ static const struct file_operations ali_fops = {
 	.release	=	ali_release,
 };
 
-static struct miscdevice ali_miscdev = {
+static struct miscdevice ali_miscdev =
+{
 	.minor =	WATCHDOG_MINOR,
 	.name =		"watchdog",
 	.fops =		&ali_fops,
 };
 
-static struct notifier_block ali_notifier = {
+static struct notifier_block ali_notifier =
+{
 	.notifier_call =	ali_notify_sys,
 };
 
@@ -393,34 +458,41 @@ static int __init watchdog_init(void)
 
 	/* Check whether or not the hardware watchdog is there */
 	if (ali_find_watchdog() != 0)
+	{
 		return -ENODEV;
+	}
 
 	/* Check that the timeout value is within it's range;
 	   if not reset to the default */
-	if (timeout < 1 || timeout >= 18000) {
+	if (timeout < 1 || timeout >= 18000)
+	{
 		timeout = WATCHDOG_TIMEOUT;
 		pr_info("timeout value must be 0 < timeout < 18000, using %d\n",
-			timeout);
+				timeout);
 	}
 
 	/* Calculate the watchdog's timeout */
 	ali_settimer(timeout);
 
 	ret = register_reboot_notifier(&ali_notifier);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		pr_err("cannot register reboot notifier (err=%d)\n", ret);
 		goto out;
 	}
 
 	ret = misc_register(&ali_miscdev);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		pr_err("cannot register miscdev on minor=%d (err=%d)\n",
-		       WATCHDOG_MINOR, ret);
+			   WATCHDOG_MINOR, ret);
 		goto unreg_reboot;
 	}
 
 	pr_info("initialized. timeout=%d sec (nowayout=%d)\n",
-		timeout, nowayout);
+			timeout, nowayout);
 
 out:
 	return ret;

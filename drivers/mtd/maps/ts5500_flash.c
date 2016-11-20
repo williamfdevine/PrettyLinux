@@ -36,14 +36,16 @@
 #define WINDOW_ADDR	0x09400000
 #define WINDOW_SIZE	0x00200000
 
-static struct map_info ts5500_map = {
+static struct map_info ts5500_map =
+{
 	.name = "TS-5500 Flash",
 	.size = WINDOW_SIZE,
 	.bankwidth = 1,
 	.phys = WINDOW_ADDR
 };
 
-static struct mtd_partition ts5500_partitions[] = {
+static struct mtd_partition ts5500_partitions[] =
+{
 	{
 		.name = "Drive A",
 		.offset = 0,
@@ -71,7 +73,8 @@ static int __init init_ts5500_map(void)
 
 	ts5500_map.virt = ioremap_nocache(ts5500_map.phys, ts5500_map.size);
 
-	if (!ts5500_map.virt) {
+	if (!ts5500_map.virt)
+	{
 		printk(KERN_ERR "Failed to ioremap_nocache\n");
 		rc = -EIO;
 		goto err2;
@@ -80,10 +83,14 @@ static int __init init_ts5500_map(void)
 	simple_map_init(&ts5500_map);
 
 	mymtd = do_map_probe("jedec_probe", &ts5500_map);
-	if (!mymtd)
-		mymtd = do_map_probe("map_rom", &ts5500_map);
 
-	if (!mymtd) {
+	if (!mymtd)
+	{
+		mymtd = do_map_probe("map_rom", &ts5500_map);
+	}
+
+	if (!mymtd)
+	{
 		rc = -ENXIO;
 		goto err1;
 	}
@@ -101,12 +108,14 @@ err2:
 
 static void __exit cleanup_ts5500_map(void)
 {
-	if (mymtd) {
+	if (mymtd)
+	{
 		mtd_device_unregister(mymtd);
 		map_destroy(mymtd);
 	}
 
-	if (ts5500_map.virt) {
+	if (ts5500_map.virt)
+	{
 		iounmap(ts5500_map.virt);
 		ts5500_map.virt = NULL;
 	}

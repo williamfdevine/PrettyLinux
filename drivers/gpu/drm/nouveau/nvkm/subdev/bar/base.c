@@ -27,7 +27,9 @@ void
 nvkm_bar_flush(struct nvkm_bar *bar)
 {
 	if (bar && bar->func->flush)
+	{
 		bar->func->flush(bar);
+	}
 }
 
 struct nvkm_vm *
@@ -35,7 +37,10 @@ nvkm_bar_kmap(struct nvkm_bar *bar)
 {
 	/* disallow kmap() until after vm has been bootstrapped */
 	if (bar && bar->func->kmap && bar->subdev.oneinit)
+	{
 		return bar->func->kmap(bar);
+	}
+
 	return NULL;
 }
 
@@ -67,7 +72,8 @@ nvkm_bar_dtor(struct nvkm_subdev *subdev)
 }
 
 static const struct nvkm_subdev_func
-nvkm_bar = {
+	nvkm_bar =
+{
 	.dtor = nvkm_bar_dtor,
 	.oneinit = nvkm_bar_oneinit,
 	.init = nvkm_bar_init,
@@ -75,7 +81,7 @@ nvkm_bar = {
 
 void
 nvkm_bar_ctor(const struct nvkm_bar_func *func, struct nvkm_device *device,
-	      int index, struct nvkm_bar *bar)
+			  int index, struct nvkm_bar *bar)
 {
 	nvkm_subdev_ctor(&nvkm_bar, device, index, &bar->subdev);
 	bar->func = func;

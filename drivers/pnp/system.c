@@ -14,7 +14,8 @@
 #include <linux/kernel.h>
 #include <linux/ioport.h>
 
-static const struct pnp_device_id pnp_dev_table[] = {
+static const struct pnp_device_id pnp_dev_table[] =
+{
 	/* General ID for reserving resources */
 	{"PNP0c02", 0},
 	/* memory controller */
@@ -30,18 +31,31 @@ static void reserve_range(struct pnp_dev *dev, struct resource *r, int port)
 	struct resource *res;
 
 	regionid = kmalloc(16, GFP_KERNEL);
+
 	if (!regionid)
+	{
 		return;
+	}
 
 	snprintf(regionid, 16, "pnp %s", pnpid);
+
 	if (port)
+	{
 		res = request_region(start, end - start + 1, regionid);
+	}
 	else
+	{
 		res = request_mem_region(start, end - start + 1, regionid);
+	}
+
 	if (res)
+	{
 		res->flags &= ~IORESOURCE_BUSY;
+	}
 	else
+	{
 		kfree(regionid);
+	}
 
 	/*
 	 * Failures at this point are usually harmless. pci quirks for
@@ -49,7 +63,7 @@ static void reserve_range(struct pnp_dev *dev, struct resource *r, int port)
 	 * have double reservations.
 	 */
 	dev_info(&dev->dev, "%pR %s reserved\n", r,
-		 res ? "has been" : "could not be");
+			 res ? "has been" : "could not be");
 }
 
 static void reserve_resources_of_dev(struct pnp_dev *dev)
@@ -57,11 +71,18 @@ static void reserve_resources_of_dev(struct pnp_dev *dev)
 	struct resource *res;
 	int i;
 
-	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IO, i)); i++) {
+	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IO, i)); i++)
+	{
 		if (res->flags & IORESOURCE_DISABLED)
+		{
 			continue;
+		}
+
 		if (res->start == 0)
-			continue;	/* disabled */
+		{
+			continue;    /* disabled */
+		}
+
 		if (res->start < 0x100)
 			/*
 			 * Below 0x100 is only standard PC hardware
@@ -71,29 +92,38 @@ static void reserve_resources_of_dev(struct pnp_dev *dev)
 			 * (see arch/i386/kernel/setup.c).
 			 * So, do nothing
 			 */
+		{
 			continue;
+		}
+
 		if (res->end < res->start)
-			continue;	/* invalid */
+		{
+			continue;    /* invalid */
+		}
 
 		reserve_range(dev, res, 1);
 	}
 
-	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
+	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++)
+	{
 		if (res->flags & IORESOURCE_DISABLED)
+		{
 			continue;
+		}
 
 		reserve_range(dev, res, 0);
 	}
 }
 
 static int system_pnp_probe(struct pnp_dev *dev,
-			    const struct pnp_device_id *dev_id)
+							const struct pnp_device_id *dev_id)
 {
 	reserve_resources_of_dev(dev);
 	return 0;
 }
 
-static struct pnp_driver system_pnp_driver = {
+static struct pnp_driver system_pnp_driver =
+{
 	.name     = "system",
 	.id_table = pnp_dev_table,
 	.flags    = PNP_DRIVER_RES_DO_NOT_CHANGE,

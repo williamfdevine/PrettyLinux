@@ -121,7 +121,7 @@ static inline void WriteDOC_(u8 data, u16 __iomem *addr, unsigned long reg)
 #endif
 
 #if defined(__i386__) || defined(__x86_64__)
-#define USE_MEMCPY
+	#define USE_MEMCPY
 #endif
 
 /* These are provided to directly use the DoC_xxx defines */
@@ -171,7 +171,8 @@ static inline void WriteDOC_(u8 data, u16 __iomem *addr, unsigned long reg)
 #define DOC_ECC_EN (DOC_ECC__EN | DOC_ECC_RESV)
 #define DOC_ECC_DIS (DOC_ECC_RESV)
 
-struct Nand {
+struct Nand
+{
 	char floor, chip;
 	unsigned long curadr;
 	unsigned char curmode;
@@ -191,7 +192,8 @@ struct Nand {
 #define ADDR_PAGE 2
 #define ADDR_COLUMN_PAGE 3
 
-struct DiskOnChip {
+struct DiskOnChip
+{
 	unsigned long physadr;
 	void __iomem *virtadr;
 	unsigned long totlen;

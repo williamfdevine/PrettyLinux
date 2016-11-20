@@ -42,18 +42,21 @@
 #define MLX4_EN_NUM_TC		8
 
 #define VLAN_FLTR_SIZE	128
-struct mlx4_set_vlan_fltr_mbox {
+struct mlx4_set_vlan_fltr_mbox
+{
 	__be32 entry[VLAN_FLTR_SIZE];
 };
 
 
-enum {
+enum
+{
 	MLX4_MCAST_CONFIG       = 0,
 	MLX4_MCAST_DISABLE      = 1,
 	MLX4_MCAST_ENABLE       = 2,
 };
 
-enum mlx4_link_mode {
+enum mlx4_link_mode
+{
 	MLX4_1000BASE_CX_SGMII	 = 0,
 	MLX4_1000BASE_KX	 = 1,
 	MLX4_10GBASE_CX4	 = 2,
@@ -75,7 +78,8 @@ enum mlx4_link_mode {
 
 #define MLX4_PROT_MASK(link_mode) (1<<link_mode)
 
-enum {
+enum
+{
 	MLX4_EN_100M_SPEED	= 0x04,
 	MLX4_EN_10G_SPEED_XAUI	= 0x00,
 	MLX4_EN_10G_SPEED_XFI	= 0x01,
@@ -86,7 +90,8 @@ enum {
 	MLX4_EN_OTHER_SPEED	= 0x0f,
 };
 
-struct mlx4_en_query_port_context {
+struct mlx4_en_query_port_context
+{
 	u8 link_up;
 #define MLX4_EN_LINK_UP_MASK	0x80
 #define MLX4_EN_ANC_MASK	0x40
@@ -102,7 +107,8 @@ struct mlx4_en_query_port_context {
 };
 
 
-struct mlx4_en_stat_out_mbox {
+struct mlx4_en_stat_out_mbox
+{
 	/* Received frames with a length of 64 octets */
 	__be64 R64_prio_0;
 	__be64 R64_prio_1;

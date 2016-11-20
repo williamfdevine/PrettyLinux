@@ -35,7 +35,8 @@ MODULE_ALIAS("spi:cw1200_wlan_spi");
 
 /* #define SPI_DEBUG */
 
-struct hwbus_priv {
+struct hwbus_priv
+{
 	struct spi_device	*func;
 	struct cw1200_common	*core;
 	const struct cw1200_platform_data_spi *pdata;
@@ -58,25 +59,27 @@ struct hwbus_priv {
 */
 
 static int cw1200_spi_memcpy_fromio(struct hwbus_priv *self,
-				     unsigned int addr,
-				     void *dst, int count)
+									unsigned int addr,
+									void *dst, int count)
 {
 	int ret, i;
 	u16 regaddr;
 	struct spi_message      m;
 
-	struct spi_transfer     t_addr = {
+	struct spi_transfer     t_addr =
+	{
 		.tx_buf         = &regaddr,
 		.len            = sizeof(regaddr),
 	};
-	struct spi_transfer     t_msg = {
+	struct spi_transfer     t_msg =
+	{
 		.rx_buf         = dst,
 		.len            = count,
 	};
 
-	regaddr = (SDIO_TO_SPI_ADDR(addr))<<12;
+	regaddr = (SDIO_TO_SPI_ADDR(addr)) << 12;
 	regaddr |= SET_READ;
-	regaddr |= (count>>1);
+	regaddr |= (count >> 1);
 
 #ifdef SPI_DEBUG
 	pr_info("READ : %04d from 0x%02x (%04x)\n", count, addr, regaddr);
@@ -89,6 +92,7 @@ static int cw1200_spi_memcpy_fromio(struct hwbus_priv *self,
 	   or we are running on a Big Endian system
 	*/
 #if defined(__LITTLE_ENDIAN)
+
 	if (self->func->bits_per_word == 8)
 #endif
 		regaddr = swab16(regaddr);
@@ -100,11 +104,19 @@ static int cw1200_spi_memcpy_fromio(struct hwbus_priv *self,
 
 #ifdef SPI_DEBUG
 	pr_info("READ : ");
+
 	for (i = 0; i < t_addr.len; i++)
+	{
 		printk("%02x ", ((u8 *)t_addr.tx_buf)[i]);
+	}
+
 	printk(" : ");
+
 	for (i = 0; i < t_msg.len; i++)
+	{
 		printk("%02x ", ((u8 *)t_msg.rx_buf)[i]);
+	}
+
 	printk("\n");
 #endif
 
@@ -112,36 +124,42 @@ static int cw1200_spi_memcpy_fromio(struct hwbus_priv *self,
 	   or we are running on a Big Endian system
 	*/
 #if defined(__LITTLE_ENDIAN)
+
 	if (self->func->bits_per_word == 8)
 #endif
 	{
 		uint16_t *buf = (uint16_t *)dst;
+
 		for (i = 0; i < ((count + 1) >> 1); i++)
+		{
 			buf[i] = swab16(buf[i]);
+		}
 	}
 
 	return ret;
 }
 
 static int cw1200_spi_memcpy_toio(struct hwbus_priv *self,
-				   unsigned int addr,
-				   const void *src, int count)
+								  unsigned int addr,
+								  const void *src, int count)
 {
 	int rval, i;
 	u16 regaddr;
-	struct spi_transfer     t_addr = {
+	struct spi_transfer     t_addr =
+	{
 		.tx_buf         = &regaddr,
 		.len            = sizeof(regaddr),
 	};
-	struct spi_transfer     t_msg = {
+	struct spi_transfer     t_msg =
+	{
 		.tx_buf         = src,
 		.len            = count,
 	};
 	struct spi_message      m;
 
-	regaddr = (SDIO_TO_SPI_ADDR(addr))<<12;
+	regaddr = (SDIO_TO_SPI_ADDR(addr)) << 12;
 	regaddr &= SET_WRITE;
-	regaddr |= (count>>1);
+	regaddr |= (count >> 1);
 
 #ifdef SPI_DEBUG
 	pr_info("WRITE: %04d  to  0x%02x (%04x)\n", count, addr, regaddr);
@@ -154,22 +172,34 @@ static int cw1200_spi_memcpy_toio(struct hwbus_priv *self,
 	   or we are running on a Big Endian system
 	*/
 #if defined(__LITTLE_ENDIAN)
+
 	if (self->func->bits_per_word == 8)
 #endif
 	{
 		uint16_t *buf = (uint16_t *)src;
-	        regaddr = swab16(regaddr);
+		regaddr = swab16(regaddr);
+
 		for (i = 0; i < ((count + 1) >> 1); i++)
+		{
 			buf[i] = swab16(buf[i]);
+		}
 	}
 
 #ifdef SPI_DEBUG
 	pr_info("WRITE: ");
+
 	for (i = 0; i < t_addr.len; i++)
+	{
 		printk("%02x ", ((u8 *)t_addr.tx_buf)[i]);
+	}
+
 	printk(" : ");
+
 	for (i = 0; i < t_msg.len; i++)
+	{
 		printk("%02x ", ((u8 *)t_msg.tx_buf)[i]);
+	}
+
 	printk("\n");
 #endif
 
@@ -183,14 +213,19 @@ static int cw1200_spi_memcpy_toio(struct hwbus_priv *self,
 #endif
 
 #if defined(__LITTLE_ENDIAN)
+
 	/* We have to byteswap if the SPI bus is limited to 8b operation */
 	if (self->func->bits_per_word == 8)
 #endif
 	{
 		uint16_t *buf = (uint16_t *)src;
+
 		for (i = 0; i < ((count + 1) >> 1); i++)
+		{
 			buf[i] = swab16(buf[i]);
+		}
 	}
+
 	return rval;
 }
 
@@ -204,14 +239,21 @@ static void cw1200_spi_lock(struct hwbus_priv *self)
 
 	add_wait_queue(&self->wq, &wait);
 	spin_lock_irqsave(&self->lock, flags);
-	while (1) {
+
+	while (1)
+	{
 		set_current_state(TASK_UNINTERRUPTIBLE);
+
 		if (!self->claimed)
+		{
 			break;
+		}
+
 		spin_unlock_irqrestore(&self->lock, flags);
 		schedule();
 		spin_lock_irqsave(&self->lock, flags);
 	}
+
 	set_current_state(TASK_RUNNING);
 	self->claimed = 1;
 	spin_unlock_irqrestore(&self->lock, flags);
@@ -236,12 +278,15 @@ static irqreturn_t cw1200_spi_irq_handler(int irq, void *dev_id)
 {
 	struct hwbus_priv *self = dev_id;
 
-	if (self->core) {
+	if (self->core)
+	{
 		cw1200_spi_lock(self);
 		cw1200_irq_handler(self->core);
 		cw1200_spi_unlock(self);
 		return IRQ_HANDLED;
-	} else {
+	}
+	else
+	{
 		return IRQ_NONE;
 	}
 }
@@ -253,15 +298,21 @@ static int cw1200_spi_irq_subscribe(struct hwbus_priv *self)
 	pr_debug("SW IRQ subscribe\n");
 
 	ret = request_threaded_irq(self->func->irq, NULL,
-				   cw1200_spi_irq_handler,
-				   IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
-				   "cw1200_wlan_irq", self);
+							   cw1200_spi_irq_handler,
+							   IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
+							   "cw1200_wlan_irq", self);
+
 	if (WARN_ON(ret < 0))
+	{
 		goto exit;
+	}
 
 	ret = enable_irq_wake(self->func->irq);
+
 	if (WARN_ON(ret))
+	{
 		goto free_irq;
+	}
 
 	return 0;
 
@@ -284,16 +335,22 @@ static int cw1200_spi_irq_unsubscribe(struct hwbus_priv *self)
 
 static int cw1200_spi_off(const struct cw1200_platform_data_spi *pdata)
 {
-	if (pdata->reset) {
+	if (pdata->reset)
+	{
 		gpio_set_value(pdata->reset, 0);
 		msleep(30); /* Min is 2 * CLK32K cycles */
 		gpio_free(pdata->reset);
 	}
 
 	if (pdata->power_ctrl)
+	{
 		pdata->power_ctrl(pdata, false);
+	}
+
 	if (pdata->clk_ctrl)
+	{
 		pdata->clk_ctrl(pdata, false);
+	}
 
 	return 0;
 }
@@ -301,44 +358,59 @@ static int cw1200_spi_off(const struct cw1200_platform_data_spi *pdata)
 static int cw1200_spi_on(const struct cw1200_platform_data_spi *pdata)
 {
 	/* Ensure I/Os are pulled low */
-	if (pdata->reset) {
+	if (pdata->reset)
+	{
 		gpio_request(pdata->reset, "cw1200_wlan_reset");
 		gpio_direction_output(pdata->reset, 0);
 	}
-	if (pdata->powerup) {
+
+	if (pdata->powerup)
+	{
 		gpio_request(pdata->powerup, "cw1200_wlan_powerup");
 		gpio_direction_output(pdata->powerup, 0);
 	}
+
 	if (pdata->reset || pdata->powerup)
-		msleep(10); /* Settle time? */
+	{
+		msleep(10);    /* Settle time? */
+	}
 
 	/* Enable 3v3 and 1v8 to hardware */
-	if (pdata->power_ctrl) {
-		if (pdata->power_ctrl(pdata, true)) {
+	if (pdata->power_ctrl)
+	{
+		if (pdata->power_ctrl(pdata, true))
+		{
 			pr_err("power_ctrl() failed!\n");
 			return -1;
 		}
 	}
 
 	/* Enable CLK32K */
-	if (pdata->clk_ctrl) {
-		if (pdata->clk_ctrl(pdata, true)) {
+	if (pdata->clk_ctrl)
+	{
+		if (pdata->clk_ctrl(pdata, true))
+		{
 			pr_err("clk_ctrl() failed!\n");
 			return -1;
 		}
+
 		msleep(10); /* Delay until clock is stable for 2 cycles */
 	}
 
 	/* Enable POWERUP signal */
-	if (pdata->powerup) {
+	if (pdata->powerup)
+	{
 		gpio_set_value(pdata->powerup, 1);
 		msleep(250); /* or more..? */
 	}
+
 	/* Enable RSTn signal */
-	if (pdata->reset) {
+	if (pdata->reset)
+	{
 		gpio_set_value(pdata->reset, 1);
 		msleep(50); /* Or more..? */
 	}
+
 	return 0;
 }
 
@@ -352,7 +424,8 @@ static int cw1200_spi_pm(struct hwbus_priv *self, bool suspend)
 	return irq_set_irq_wake(self->func->irq, suspend);
 }
 
-static struct hwbus_ops cw1200_spi_hwbus_ops = {
+static struct hwbus_ops cw1200_spi_hwbus_ops =
+{
 	.hwbus_memcpy_fromio	= cw1200_spi_memcpy_fromio,
 	.hwbus_memcpy_toio	= cw1200_spi_memcpy_toio,
 	.lock			= cw1200_spi_lock,
@@ -371,35 +444,49 @@ static int cw1200_spi_probe(struct spi_device *func)
 
 	/* Sanity check speed */
 	if (func->max_speed_hz > 52000000)
+	{
 		func->max_speed_hz = 52000000;
+	}
+
 	if (func->max_speed_hz < 1000000)
+	{
 		func->max_speed_hz = 1000000;
+	}
 
 	/* Fix up transfer size */
 	if (plat_data->spi_bits_per_word)
+	{
 		func->bits_per_word = plat_data->spi_bits_per_word;
+	}
+
 	if (!func->bits_per_word)
+	{
 		func->bits_per_word = 16;
+	}
 
 	/* And finally.. */
 	func->mode = SPI_MODE_0;
 
 	pr_info("cw1200_wlan_spi: Probe called (CS %d M %d BPW %d CLK %d)\n",
-		func->chip_select, func->mode, func->bits_per_word,
-		func->max_speed_hz);
+			func->chip_select, func->mode, func->bits_per_word,
+			func->max_speed_hz);
 
-	if (cw1200_spi_on(plat_data)) {
+	if (cw1200_spi_on(plat_data))
+	{
 		pr_err("spi_on() failed!\n");
 		return -1;
 	}
 
-	if (spi_setup(func)) {
+	if (spi_setup(func))
+	{
 		pr_err("spi_setup() failed!\n");
 		return -1;
 	}
 
 	self = devm_kzalloc(&func->dev, sizeof(*self), GFP_KERNEL);
-	if (!self) {
+
+	if (!self)
+	{
 		pr_err("Can't allocate SPI hwbus_priv.");
 		return -ENOMEM;
 	}
@@ -415,13 +502,14 @@ static int cw1200_spi_probe(struct spi_device *func)
 	status = cw1200_spi_irq_subscribe(self);
 
 	status = cw1200_core_probe(&cw1200_spi_hwbus_ops,
-				   self, &func->dev, &self->core,
-				   self->pdata->ref_clk,
-				   self->pdata->macaddr,
-				   self->pdata->sdd_file,
-				   self->pdata->have_5ghz);
+							   self, &func->dev, &self->core,
+							   self->pdata->ref_clk,
+							   self->pdata->macaddr,
+							   self->pdata->sdd_file,
+							   self->pdata->have_5ghz);
 
-	if (status) {
+	if (status)
+	{
 		cw1200_spi_irq_unsubscribe(self);
 		cw1200_spi_off(plat_data);
 	}
@@ -434,13 +522,17 @@ static int cw1200_spi_disconnect(struct spi_device *func)
 {
 	struct hwbus_priv *self = spi_get_drvdata(func);
 
-	if (self) {
+	if (self)
+	{
 		cw1200_spi_irq_unsubscribe(self);
-		if (self->core) {
+
+		if (self->core)
+		{
 			cw1200_core_release(self->core);
 			self->core = NULL;
 		}
 	}
+
 	cw1200_spi_off(dev_get_platdata(&func->dev));
 
 	return 0;
@@ -451,7 +543,9 @@ static int __maybe_unused cw1200_spi_suspend(struct device *dev)
 	struct hwbus_priv *self = spi_get_drvdata(to_spi_device(dev));
 
 	if (!cw1200_can_suspend(self->core))
+	{
 		return -EAGAIN;
+	}
 
 	/* XXX notify host that we have to keep CW1200 powered on? */
 	return 0;
@@ -459,7 +553,8 @@ static int __maybe_unused cw1200_spi_suspend(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(cw1200_pm_ops, cw1200_spi_suspend, NULL);
 
-static struct spi_driver spi_driver = {
+static struct spi_driver spi_driver =
+{
 	.probe		= cw1200_spi_probe,
 	.remove		= cw1200_spi_disconnect,
 	.driver = {

@@ -14,7 +14,8 @@
  * @ctl_fd:	fd of control path, /dev/virtio-ports/agent-ctl-path
  * @rw_ti:	structure managing information of read/write threads
  */
-struct agent_info {
+struct agent_info
+{
 	unsigned long pipe_size;
 	bool use_stdout;
 	int cpus;
@@ -31,7 +32,8 @@ struct agent_info {
  * @write_pipe:	fd of write pipe
  * @pipe_size:	size of pipe (default 1MB)
  */
-struct rw_thread_info {
+struct rw_thread_info
+{
 	int cpu_num;
 	int in_fd;
 	int out_fd;
@@ -55,8 +57,8 @@ extern void *rw_ctl_loop(int ctl_fd);
 /* for trace read/write thread */
 extern void *rw_thread_info_new(void);
 extern void *rw_thread_init(int cpu, const char *in_path, const char *out_path,
-			bool stdout_flag, unsigned long pipe_size,
-			struct rw_thread_info *rw_ti);
+							bool stdout_flag, unsigned long pipe_size,
+							struct rw_thread_info *rw_ti);
 extern pthread_t rw_thread_run(struct rw_thread_info *rw_ti);
 
 static inline void *zalloc(size_t size)
@@ -67,9 +69,9 @@ static inline void *zalloc(size_t size)
 #define pr_err(format, ...) fprintf(stderr, format, ## __VA_ARGS__)
 #define pr_info(format, ...) fprintf(stdout, format, ## __VA_ARGS__)
 #ifdef DEBUG
-#define pr_debug(format, ...) fprintf(stderr, format, ## __VA_ARGS__)
+	#define pr_debug(format, ...) fprintf(stderr, format, ## __VA_ARGS__)
 #else
-#define pr_debug(format, ...) do {} while (0)
+	#define pr_debug(format, ...) do {} while (0)
 #endif
 
 #endif /*__TRACE_AGENT_H__*/

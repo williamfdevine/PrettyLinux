@@ -32,7 +32,8 @@ static const char hcd_name[] = "ehci-atmel";
 #define hcd_to_atmel_ehci_priv(h) \
 	((struct atmel_ehci_priv *)hcd_to_ehci(h)->priv)
 
-struct atmel_ehci_priv {
+struct atmel_ehci_priv
+{
 	struct clk *iclk;
 	struct clk *uclk;
 	bool clocked;
@@ -40,7 +41,8 @@ struct atmel_ehci_priv {
 
 static struct hc_driver __read_mostly ehci_atmel_hc_driver;
 
-static const struct ehci_driver_overrides ehci_atmel_drv_overrides __initconst = {
+static const struct ehci_driver_overrides ehci_atmel_drv_overrides __initconst =
+{
 	.extra_priv_size = sizeof(struct atmel_ehci_priv),
 };
 
@@ -49,7 +51,9 @@ static const struct ehci_driver_overrides ehci_atmel_drv_overrides __initconst =
 static void atmel_start_clock(struct atmel_ehci_priv *atmel_ehci)
 {
 	if (atmel_ehci->clocked)
+	{
 		return;
+	}
 
 	clk_prepare_enable(atmel_ehci->uclk);
 	clk_prepare_enable(atmel_ehci->iclk);
@@ -59,7 +63,9 @@ static void atmel_start_clock(struct atmel_ehci_priv *atmel_ehci)
 static void atmel_stop_clock(struct atmel_ehci_priv *atmel_ehci)
 {
 	if (!atmel_ehci->clocked)
+	{
 		return;
+	}
 
 	clk_disable_unprepare(atmel_ehci->iclk);
 	clk_disable_unprepare(atmel_ehci->uclk);
@@ -97,15 +103,19 @@ static int ehci_atmel_drv_probe(struct platform_device *pdev)
 	int retval;
 
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	pr_debug("Initializing Atmel-SoC USB Host Controller\n");
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		dev_err(&pdev->dev,
-			"Found HC with no IRQ. Check %s setup!\n",
-			dev_name(&pdev->dev));
+				"Found HC with no IRQ. Check %s setup!\n",
+				dev_name(&pdev->dev));
 		retval = -ENODEV;
 		goto fail_create_hcd;
 	}
@@ -115,19 +125,27 @@ static int ehci_atmel_drv_probe(struct platform_device *pdev)
 	 * Once we have dma capability bindings this can go away.
 	 */
 	retval = dma_coerce_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
+
 	if (retval)
+	{
 		goto fail_create_hcd;
+	}
 
 	hcd = usb_create_hcd(driver, &pdev->dev, dev_name(&pdev->dev));
-	if (!hcd) {
+
+	if (!hcd)
+	{
 		retval = -ENOMEM;
 		goto fail_create_hcd;
 	}
+
 	atmel_ehci = hcd_to_atmel_ehci_priv(hcd);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	hcd->regs = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(hcd->regs)) {
+
+	if (IS_ERR(hcd->regs))
+	{
 		retval = PTR_ERR(hcd->regs);
 		goto fail_request_resource;
 	}
@@ -136,14 +154,18 @@ static int ehci_atmel_drv_probe(struct platform_device *pdev)
 	hcd->rsrc_len = resource_size(res);
 
 	atmel_ehci->iclk = devm_clk_get(&pdev->dev, "ehci_clk");
-	if (IS_ERR(atmel_ehci->iclk)) {
+
+	if (IS_ERR(atmel_ehci->iclk))
+	{
 		dev_err(&pdev->dev, "Error getting interface clock\n");
 		retval = -ENOENT;
 		goto fail_request_resource;
 	}
 
 	atmel_ehci->uclk = devm_clk_get(&pdev->dev, "usb_clk");
-	if (IS_ERR(atmel_ehci->uclk)) {
+
+	if (IS_ERR(atmel_ehci->uclk))
+	{
 		dev_err(&pdev->dev, "failed to get uclk\n");
 		retval = PTR_ERR(atmel_ehci->uclk);
 		goto fail_request_resource;
@@ -156,8 +178,12 @@ static int ehci_atmel_drv_probe(struct platform_device *pdev)
 	atmel_start_ehci(pdev);
 
 	retval = usb_add_hcd(hcd, irq, IRQF_SHARED);
+
 	if (retval)
+	{
 		goto fail_add_hcd;
+	}
+
 	device_wakeup_enable(hcd->self.controller);
 
 	return retval;
@@ -168,7 +194,7 @@ fail_request_resource:
 	usb_put_hcd(hcd);
 fail_create_hcd:
 	dev_err(&pdev->dev, "init %s fail, %d\n",
-		dev_name(&pdev->dev), retval);
+			dev_name(&pdev->dev), retval);
 
 	return retval;
 }
@@ -192,8 +218,11 @@ static int __maybe_unused ehci_atmel_drv_suspend(struct device *dev)
 	int ret;
 
 	ret = ehci_suspend(hcd, false);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	atmel_stop_clock(atmel_ehci);
 	return 0;
@@ -209,7 +238,8 @@ static int __maybe_unused ehci_atmel_drv_resume(struct device *dev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id atmel_ehci_dt_ids[] = {
+static const struct of_device_id atmel_ehci_dt_ids[] =
+{
 	{ .compatible = "atmel,at91sam9g45-ehci" },
 	{ /* sentinel */ }
 };
@@ -218,9 +248,10 @@ MODULE_DEVICE_TABLE(of, atmel_ehci_dt_ids);
 #endif
 
 static SIMPLE_DEV_PM_OPS(ehci_atmel_pm_ops, ehci_atmel_drv_suspend,
-					ehci_atmel_drv_resume);
+						 ehci_atmel_drv_resume);
 
-static struct platform_driver ehci_atmel_driver = {
+static struct platform_driver ehci_atmel_driver =
+{
 	.probe		= ehci_atmel_drv_probe,
 	.remove		= ehci_atmel_drv_remove,
 	.shutdown	= usb_hcd_platform_shutdown,
@@ -234,7 +265,9 @@ static struct platform_driver ehci_atmel_driver = {
 static int __init ehci_atmel_init(void)
 {
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	pr_info("%s: " DRIVER_DESC "\n", hcd_name);
 	ehci_init_driver(&ehci_atmel_hc_driver, &ehci_atmel_drv_overrides);

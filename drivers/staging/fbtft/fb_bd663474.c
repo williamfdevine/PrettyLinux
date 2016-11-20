@@ -34,7 +34,9 @@
 static int init_display(struct fbtft_par *par)
 {
 	if (par->gpio.cs != -1)
-		gpio_set_value(par->gpio.cs, 0);  /* Activate chip */
+	{
+		gpio_set_value(par->gpio.cs, 0);    /* Activate chip */
+	}
 
 	par->fbtftops.reset(par);
 
@@ -116,51 +118,61 @@ static int init_display(struct fbtft_par *par)
 
 static void set_addr_win(struct fbtft_par *par, int xs, int ys, int xe, int ye)
 {
-	switch (par->info->var.rotate) {
-	/* R200h = Horizontal GRAM Start Address */
-	/* R201h = Vertical GRAM Start Address */
-	case 0:
-		write_reg(par, 0x0200, xs);
-		write_reg(par, 0x0201, ys);
-		break;
-	case 180:
-		write_reg(par, 0x0200, WIDTH - 1 - xs);
-		write_reg(par, 0x0201, HEIGHT - 1 - ys);
-		break;
-	case 270:
-		write_reg(par, 0x0200, WIDTH - 1 - ys);
-		write_reg(par, 0x0201, xs);
-		break;
-	case 90:
-		write_reg(par, 0x0200, ys);
-		write_reg(par, 0x0201, HEIGHT - 1 - xs);
-		break;
+	switch (par->info->var.rotate)
+	{
+		/* R200h = Horizontal GRAM Start Address */
+		/* R201h = Vertical GRAM Start Address */
+		case 0:
+			write_reg(par, 0x0200, xs);
+			write_reg(par, 0x0201, ys);
+			break;
+
+		case 180:
+			write_reg(par, 0x0200, WIDTH - 1 - xs);
+			write_reg(par, 0x0201, HEIGHT - 1 - ys);
+			break;
+
+		case 270:
+			write_reg(par, 0x0200, WIDTH - 1 - ys);
+			write_reg(par, 0x0201, xs);
+			break;
+
+		case 90:
+			write_reg(par, 0x0200, ys);
+			write_reg(par, 0x0201, HEIGHT - 1 - xs);
+			break;
 	}
+
 	write_reg(par, 0x202); /* Write Data to GRAM */
 }
 
 static int set_var(struct fbtft_par *par)
 {
-	switch (par->info->var.rotate) {
-	/* AM: GRAM update direction */
-	case 0:
-		write_reg(par, 0x003, 0x1230);
-		break;
-	case 180:
-		write_reg(par, 0x003, 0x1200);
-		break;
-	case 270:
-		write_reg(par, 0x003, 0x1228);
-		break;
-	case 90:
-		write_reg(par, 0x003, 0x1218);
-		break;
+	switch (par->info->var.rotate)
+	{
+		/* AM: GRAM update direction */
+		case 0:
+			write_reg(par, 0x003, 0x1230);
+			break;
+
+		case 180:
+			write_reg(par, 0x003, 0x1200);
+			break;
+
+		case 270:
+			write_reg(par, 0x003, 0x1228);
+			break;
+
+		case 90:
+			write_reg(par, 0x003, 0x1218);
+			break;
 	}
 
 	return 0;
 }
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 16,
 	.width = WIDTH,
 	.height = HEIGHT,

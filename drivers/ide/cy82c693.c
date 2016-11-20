@@ -90,12 +90,15 @@ static void cy82c693_set_pio_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 	u8 time_16, time_8;
 
 	/* select primary or secondary channel */
-	if (drive->dn > 1) {  /* drive is on the secondary channel */
-		dev = pci_get_slot(dev->bus, dev->devfn+1);
-		if (!dev) {
+	if (drive->dn > 1)    /* drive is on the secondary channel */
+	{
+		dev = pci_get_slot(dev->bus, dev->devfn + 1);
+
+		if (!dev)
+		{
 			printk(KERN_ERR "%s: tune_drive: "
-				"Cannot find secondary interface!\n",
-				drive->name);
+				   "Cannot find secondary interface!\n",
+				   drive->name);
 			return;
 		}
 	}
@@ -103,12 +106,13 @@ static void cy82c693_set_pio_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 	ide_timing_compute(drive, drive->pio_mode, &t, T, 1);
 
 	time_16 = clamp_val(t.recover - 1, 0, 15) |
-		  (clamp_val(t.active - 1, 0, 15) << 4);
+			  (clamp_val(t.active - 1, 0, 15) << 4);
 	time_8 = clamp_val(t.act8b - 1, 0, 15) |
-		 (clamp_val(t.rec8b - 1, 0, 15) << 4);
+			 (clamp_val(t.rec8b - 1, 0, 15) << 4);
 
 	/* now let's write  the clocks registers */
-	if ((drive->dn & 1) == 0) {
+	if ((drive->dn & 1) == 0)
+	{
 		/*
 		 * set master drive
 		 * address setup control register
@@ -124,7 +128,9 @@ static void cy82c693_set_pio_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 		pci_write_config_byte(dev, CY82_IDE_MASTER_IOR, time_16);
 		pci_write_config_byte(dev, CY82_IDE_MASTER_IOW, time_16);
 		pci_write_config_byte(dev, CY82_IDE_MASTER_8BIT, time_8);
-	} else {
+	}
+	else
+	{
 		/*
 		 * set slave drive
 		 * address setup control register
@@ -141,8 +147,11 @@ static void cy82c693_set_pio_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 		pci_write_config_byte(dev, CY82_IDE_SLAVE_IOW, time_16);
 		pci_write_config_byte(dev, CY82_IDE_SLAVE_8BIT, time_8);
 	}
+
 	if (drive->dn > 1)
+	{
 		pci_dev_put(dev);
+	}
 }
 
 static void init_iops_cy82c693(ide_hwif_t *hwif)
@@ -151,19 +160,24 @@ static void init_iops_cy82c693(ide_hwif_t *hwif)
 	struct pci_dev *dev = to_pci_dev(hwif->dev);
 
 	if (PCI_FUNC(dev->devfn) == 1)
+	{
 		primary = hwif;
-	else {
+	}
+	else
+	{
 		hwif->mate = primary;
 		hwif->channel = 1;
 	}
 }
 
-static const struct ide_port_ops cy82c693_port_ops = {
+static const struct ide_port_ops cy82c693_port_ops =
+{
 	.set_pio_mode		= cy82c693_set_pio_mode,
 	.set_dma_mode		= cy82c693_set_dma_mode,
 };
 
-static const struct ide_port_info cy82c693_chipset = {
+static const struct ide_port_info cy82c693_chipset =
+{
 	.name		= DRV_NAME,
 	.init_iops	= init_iops_cy82c693,
 	.port_ops	= &cy82c693_port_ops,
@@ -174,7 +188,7 @@ static const struct ide_port_info cy82c693_chipset = {
 };
 
 static int cy82c693_init_one(struct pci_dev *dev,
-			     const struct pci_device_id *id)
+							 const struct pci_device_id *id)
 {
 	struct pci_dev *dev2;
 	int ret = -ENODEV;
@@ -182,12 +196,17 @@ static int cy82c693_init_one(struct pci_dev *dev,
 	/* CY82C693 is more than only a IDE controller.
 	   Function 1 is primary IDE channel, function 2 - secondary. */
 	if ((dev->class >> 8) == PCI_CLASS_STORAGE_IDE &&
-	    PCI_FUNC(dev->devfn) == 1) {
+		PCI_FUNC(dev->devfn) == 1)
+	{
 		dev2 = pci_get_slot(dev->bus, dev->devfn + 1);
 		ret = ide_pci_init_two(dev, dev2, &cy82c693_chipset, NULL);
+
 		if (ret)
+		{
 			pci_dev_put(dev2);
+		}
 	}
+
 	return ret;
 }
 
@@ -200,13 +219,15 @@ static void cy82c693_remove(struct pci_dev *dev)
 	pci_dev_put(dev2);
 }
 
-static const struct pci_device_id cy82c693_pci_tbl[] = {
+static const struct pci_device_id cy82c693_pci_tbl[] =
+{
 	{ PCI_VDEVICE(CONTAQ, PCI_DEVICE_ID_CONTAQ_82C693), 0 },
 	{ 0, },
 };
 MODULE_DEVICE_TABLE(pci, cy82c693_pci_tbl);
 
-static struct pci_driver cy82c693_pci_driver = {
+static struct pci_driver cy82c693_pci_driver =
+{
 	.name		= "Cypress_IDE",
 	.id_table	= cy82c693_pci_tbl,
 	.probe		= cy82c693_init_one,

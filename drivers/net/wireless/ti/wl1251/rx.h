@@ -48,7 +48,7 @@
 
 #define WL1251_RX_ALIGN_TO 4
 #define WL1251_RX_ALIGN(len) (((len) + WL1251_RX_ALIGN_TO - 1) & \
-			     ~(WL1251_RX_ALIGN_TO - 1))
+							  ~(WL1251_RX_ALIGN_TO - 1))
 
 #define SHORT_PREAMBLE_BIT   BIT(0)
 #define OFDM_RATE_BIT        BIT(6)
@@ -72,7 +72,8 @@
 #define	RX_DESC_MIC_FAIL	  0x2000
 #define	RX_DESC_DECRYPT_FAIL	  0x4000
 
-struct wl1251_rx_descriptor {
+struct wl1251_rx_descriptor
+{
 	u32 timestamp; /* In microseconds */
 	u16 length; /* Paylod length, including headers */
 	u16 flags;

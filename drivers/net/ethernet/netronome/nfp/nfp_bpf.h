@@ -46,19 +46,22 @@
  */
 #define OP_BR_SPECIAL	0xff00000000000000ULL
 
-enum br_special {
+enum br_special
+{
 	OP_BR_NORMAL = 0,
 	OP_BR_GO_OUT,
 	OP_BR_GO_ABORT,
 };
 
-enum static_regs {
+enum static_regs
+{
 	STATIC_REG_PKT		= 1,
 #define REG_PKT_BANK	ALU_DST_A
 	STATIC_REG_IMM		= 2, /* Bank AB */
 };
 
-enum nfp_bpf_action_type {
+enum nfp_bpf_action_type
+{
 	NN_ACT_TC_DROP,
 	NN_ACT_TC_REDIR,
 	NN_ACT_DIRECT,
@@ -68,7 +71,8 @@ enum nfp_bpf_action_type {
 #define NN_REG_TYPE	GENMASK(31, 24)
 #define NN_REG_VAL	GENMASK(7, 0)
 
-enum nfp_bpf_reg_type {
+enum nfp_bpf_reg_type
+{
 	NN_REG_GPR_A =	BIT(0),
 	NN_REG_GPR_B =	BIT(1),
 	NN_REG_NNR =	BIT(2),
@@ -118,7 +122,8 @@ typedef int (*instr_cb_t)(struct nfp_prog *, struct nfp_insn_meta *);
  * @double_cb: callback for second part of the instruction
  * @l: link on nfp_prog->insns list
  */
-struct nfp_insn_meta {
+struct nfp_insn_meta
+{
 	struct bpf_insn insn;
 	unsigned int off;
 	unsigned short n;
@@ -166,7 +171,8 @@ static inline u8 mbpf_mode(const struct nfp_insn_meta *meta)
  * @error: error code if something went wrong
  * @insns: list of BPF instruction wrappers (struct nfp_insn_meta)
  */
-struct nfp_prog {
+struct nfp_prog
+{
 	u64 *prog;
 	unsigned int prog_len;
 	unsigned int __prog_alloc_len;
@@ -187,15 +193,16 @@ struct nfp_prog {
 	struct list_head insns;
 };
 
-struct nfp_bpf_result {
+struct nfp_bpf_result
+{
 	unsigned int n_instr;
 	bool dense_mode;
 };
 
 int
 nfp_bpf_jit(struct bpf_prog *filter, void *prog, enum nfp_bpf_action_type act,
-	    unsigned int prog_start, unsigned int prog_done,
-	    unsigned int prog_sz, struct nfp_bpf_result *res);
+			unsigned int prog_start, unsigned int prog_done,
+			unsigned int prog_sz, struct nfp_bpf_result *res);
 
 int nfp_prog_verify(struct nfp_prog *nfp_prog, struct bpf_prog *prog);
 

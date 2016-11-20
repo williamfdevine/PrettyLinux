@@ -88,11 +88,13 @@
 
 
 /* IOCTL support */
-struct cap_ioc_get_endpoint_uid {
+struct cap_ioc_get_endpoint_uid
+{
 	__u8			uid[8];
 } __attribute__ ((__packed__));
 
-struct cap_ioc_get_ims_certificate {
+struct cap_ioc_get_ims_certificate
+{
 	__u32			certificate_class;
 	__u32			certificate_id;
 
@@ -101,7 +103,8 @@ struct cap_ioc_get_ims_certificate {
 	__u8			certificate[CAP_CERTIFICATE_MAX_SIZE];
 } __attribute__ ((__packed__));
 
-struct cap_ioc_authenticate {
+struct cap_ioc_authenticate
+{
 	__u32			auth_type;
 	__u8			uid[8];
 	__u8			challenge[32];

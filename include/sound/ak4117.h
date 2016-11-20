@@ -155,11 +155,12 @@
 typedef void (ak4117_write_t)(void *private_data, unsigned char addr, unsigned char data);
 typedef unsigned char (ak4117_read_t)(void *private_data, unsigned char addr);
 
-struct ak4117 {
+struct ak4117
+{
 	struct snd_card *card;
-	ak4117_write_t * write;
-	ak4117_read_t * read;
-	void * private_data;
+	ak4117_write_t *write;
+	ak4117_read_t *read;
+	void *private_data;
 	unsigned int init: 1;
 	spinlock_t lock;
 	unsigned char regmap[5];
@@ -178,7 +179,7 @@ struct ak4117 {
 };
 
 int snd_ak4117_create(struct snd_card *card, ak4117_read_t *read, ak4117_write_t *write,
-		      const unsigned char pgm[5], void *private_data, struct ak4117 **r_ak4117);
+					  const unsigned char pgm[5], void *private_data, struct ak4117 **r_ak4117);
 void snd_ak4117_reg_write(struct ak4117 *ak4117, unsigned char reg, unsigned char mask, unsigned char val);
 void snd_ak4117_reinit(struct ak4117 *ak4117);
 int snd_ak4117_build(struct ak4117 *ak4117, struct snd_pcm_substream *capture_substream);

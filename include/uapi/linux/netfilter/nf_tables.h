@@ -15,7 +15,8 @@
  * map to areas of size 16, the 4 byte registers are addressed using
  * NFT_REG32_00 - NFT_REG32_15.
  */
-enum nft_registers {
+enum nft_registers
+{
 	NFT_REG_VERDICT,
 	NFT_REG_1,
 	NFT_REG_2,
@@ -56,7 +57,8 @@ enum nft_registers {
  *
  * The nf_tables verdicts share their numeric space with the netfilter verdicts.
  */
-enum nft_verdicts {
+enum nft_verdicts
+{
 	NFT_CONTINUE	= -1,
 	NFT_BREAK	= -2,
 	NFT_JUMP	= -3,
@@ -86,7 +88,8 @@ enum nft_verdicts {
  * @NFT_MSG_GETGEN: get the rule-set generation (enum nft_gen_attributes)
  * @NFT_MSG_TRACE: trace event (enum nft_trace_attributes)
  */
-enum nf_tables_msg_types {
+enum nf_tables_msg_types
+{
 	NFT_MSG_NEWTABLE,
 	NFT_MSG_GETTABLE,
 	NFT_MSG_DELTABLE,
@@ -113,7 +116,8 @@ enum nf_tables_msg_types {
  *
  * @NFTA_LIST_ELEM: list element (NLA_NESTED)
  */
-enum nft_list_attributes {
+enum nft_list_attributes
+{
 	NFTA_LIST_UNPEC,
 	NFTA_LIST_ELEM,
 	__NFTA_LIST_MAX
@@ -127,7 +131,8 @@ enum nft_list_attributes {
  * @NFTA_HOOK_PRIORITY: netfilter hook priority (NLA_U32)
  * @NFTA_HOOK_DEV: netdevice name (NLA_STRING)
  */
-enum nft_hook_attributes {
+enum nft_hook_attributes
+{
 	NFTA_HOOK_UNSPEC,
 	NFTA_HOOK_HOOKNUM,
 	NFTA_HOOK_PRIORITY,
@@ -141,7 +146,8 @@ enum nft_hook_attributes {
  *
  * @NFT_TABLE_F_DORMANT: this table is not active
  */
-enum nft_table_flags {
+enum nft_table_flags
+{
 	NFT_TABLE_F_DORMANT	= 0x1,
 };
 
@@ -152,7 +158,8 @@ enum nft_table_flags {
  * @NFTA_TABLE_FLAGS: bitmask of enum nft_table_flags (NLA_U32)
  * @NFTA_TABLE_USE: number of chains in this table (NLA_U32)
  */
-enum nft_table_attributes {
+enum nft_table_attributes
+{
 	NFTA_TABLE_UNSPEC,
 	NFTA_TABLE_NAME,
 	NFTA_TABLE_FLAGS,
@@ -173,7 +180,8 @@ enum nft_table_attributes {
  * @NFTA_CHAIN_TYPE: type name of the string (NLA_NUL_STRING)
  * @NFTA_CHAIN_COUNTERS: counter specification of the chain (NLA_NESTED: nft_counter_attributes)
  */
-enum nft_chain_attributes {
+enum nft_chain_attributes
+{
 	NFTA_CHAIN_UNSPEC,
 	NFTA_CHAIN_TABLE,
 	NFTA_CHAIN_HANDLE,
@@ -199,7 +207,8 @@ enum nft_chain_attributes {
  * @NFTA_RULE_POSITION: numeric handle of the previous rule (NLA_U64)
  * @NFTA_RULE_USERDATA: user data (NLA_BINARY, NFT_USERDATA_MAXLEN)
  */
-enum nft_rule_attributes {
+enum nft_rule_attributes
+{
 	NFTA_RULE_UNSPEC,
 	NFTA_RULE_TABLE,
 	NFTA_RULE_CHAIN,
@@ -218,7 +227,8 @@ enum nft_rule_attributes {
  *
  * @NFT_RULE_COMPAT_F_INV: invert the check result
  */
-enum nft_rule_compat_flags {
+enum nft_rule_compat_flags
+{
 	NFT_RULE_COMPAT_F_INV	= (1 << 1),
 	NFT_RULE_COMPAT_F_MASK	= NFT_RULE_COMPAT_F_INV,
 };
@@ -229,7 +239,8 @@ enum nft_rule_compat_flags {
  * @NFTA_RULE_COMPAT_PROTO: numerice value of handled protocol (NLA_U32)
  * @NFTA_RULE_COMPAT_FLAGS: bitmask of enum nft_rule_compat_flags (NLA_U32)
  */
-enum nft_rule_compat_attributes {
+enum nft_rule_compat_attributes
+{
 	NFTA_RULE_COMPAT_UNSPEC,
 	NFTA_RULE_COMPAT_PROTO,
 	NFTA_RULE_COMPAT_FLAGS,
@@ -247,7 +258,8 @@ enum nft_rule_compat_attributes {
  * @NFT_SET_TIMEOUT: set uses timeouts
  * @NFT_SET_EVAL: set contains expressions for evaluation
  */
-enum nft_set_flags {
+enum nft_set_flags
+{
 	NFT_SET_ANONYMOUS		= 0x1,
 	NFT_SET_CONSTANT		= 0x2,
 	NFT_SET_INTERVAL		= 0x4,
@@ -262,7 +274,8 @@ enum nft_set_flags {
  * @NFT_SET_POL_PERFORMANCE: prefer high performance over low memory use
  * @NFT_SET_POL_MEMORY: prefer low memory use over high performance
  */
-enum nft_set_policies {
+enum nft_set_policies
+{
 	NFT_SET_POL_PERFORMANCE,
 	NFT_SET_POL_MEMORY,
 };
@@ -272,7 +285,8 @@ enum nft_set_policies {
  *
  * @NFTA_SET_DESC_SIZE: number of elements in set (NLA_U32)
  */
-enum nft_set_desc_attributes {
+enum nft_set_desc_attributes
+{
 	NFTA_SET_DESC_UNSPEC,
 	NFTA_SET_DESC_SIZE,
 	__NFTA_SET_DESC_MAX
@@ -296,7 +310,8 @@ enum nft_set_desc_attributes {
  * @NFTA_SET_GC_INTERVAL: garbage collection interval (NLA_U32)
  * @NFTA_SET_USERDATA: user data (NLA_BINARY)
  */
-enum nft_set_attributes {
+enum nft_set_attributes
+{
 	NFTA_SET_UNSPEC,
 	NFTA_SET_TABLE,
 	NFTA_SET_NAME,
@@ -321,7 +336,8 @@ enum nft_set_attributes {
  *
  * @NFT_SET_ELEM_INTERVAL_END: element ends the previous interval
  */
-enum nft_set_elem_flags {
+enum nft_set_elem_flags
+{
 	NFT_SET_ELEM_INTERVAL_END	= 0x1,
 };
 
@@ -336,7 +352,8 @@ enum nft_set_elem_flags {
  * @NFTA_SET_ELEM_USERDATA: user data (NLA_BINARY)
  * @NFTA_SET_ELEM_EXPR: expression (NLA_NESTED: nft_expr_attributes)
  */
-enum nft_set_elem_attributes {
+enum nft_set_elem_attributes
+{
 	NFTA_SET_ELEM_UNSPEC,
 	NFTA_SET_ELEM_KEY,
 	NFTA_SET_ELEM_DATA,
@@ -358,7 +375,8 @@ enum nft_set_elem_attributes {
  * @NFTA_SET_ELEM_LIST_ELEMENTS: list of set elements (NLA_NESTED: nft_set_elem_attributes)
  * @NFTA_SET_ELEM_LIST_SET_ID: uniquely identifies a set in a transaction (NLA_U32)
  */
-enum nft_set_elem_list_attributes {
+enum nft_set_elem_list_attributes
+{
 	NFTA_SET_ELEM_LIST_UNSPEC,
 	NFTA_SET_ELEM_LIST_TABLE,
 	NFTA_SET_ELEM_LIST_SET,
@@ -382,7 +400,8 @@ enum nft_set_elem_list_attributes {
  * The remaining range can be freely used by userspace to encode types, all
  * values are equivalent to NFT_DATA_VALUE.
  */
-enum nft_data_types {
+enum nft_data_types
+{
 	NFT_DATA_VALUE,
 	NFT_DATA_VERDICT	= 0xffffff00U,
 };
@@ -395,7 +414,8 @@ enum nft_data_types {
  * @NFTA_DATA_VALUE: generic data (NLA_BINARY)
  * @NFTA_DATA_VERDICT: nf_tables verdict (NLA_NESTED: nft_verdict_attributes)
  */
-enum nft_data_attributes {
+enum nft_data_attributes
+{
 	NFTA_DATA_UNSPEC,
 	NFTA_DATA_VALUE,
 	NFTA_DATA_VERDICT,
@@ -412,7 +432,8 @@ enum nft_data_attributes {
  * @NFTA_VERDICT_CODE: nf_tables verdict (NLA_U32: enum nft_verdicts)
  * @NFTA_VERDICT_CHAIN: jump target chain name (NLA_STRING)
  */
-enum nft_verdict_attributes {
+enum nft_verdict_attributes
+{
 	NFTA_VERDICT_UNSPEC,
 	NFTA_VERDICT_CODE,
 	NFTA_VERDICT_CHAIN,
@@ -426,7 +447,8 @@ enum nft_verdict_attributes {
  * @NFTA_EXPR_NAME: name of the expression type (NLA_STRING)
  * @NFTA_EXPR_DATA: type specific data (NLA_NESTED)
  */
-enum nft_expr_attributes {
+enum nft_expr_attributes
+{
 	NFTA_EXPR_UNSPEC,
 	NFTA_EXPR_NAME,
 	NFTA_EXPR_DATA,
@@ -440,7 +462,8 @@ enum nft_expr_attributes {
  * @NFTA_IMMEDIATE_DREG: destination register to load data into (NLA_U32)
  * @NFTA_IMMEDIATE_DATA: data to load (NLA_NESTED: nft_data_attributes)
  */
-enum nft_immediate_attributes {
+enum nft_immediate_attributes
+{
 	NFTA_IMMEDIATE_UNSPEC,
 	NFTA_IMMEDIATE_DREG,
 	NFTA_IMMEDIATE_DATA,
@@ -469,7 +492,8 @@ enum nft_immediate_attributes {
  * XOR:		1	x
  * AND:		x	0
  */
-enum nft_bitwise_attributes {
+enum nft_bitwise_attributes
+{
 	NFTA_BITWISE_UNSPEC,
 	NFTA_BITWISE_SREG,
 	NFTA_BITWISE_DREG,
@@ -486,7 +510,8 @@ enum nft_bitwise_attributes {
  * @NFT_BYTEORDER_NTOH: network to host operator
  * @NFT_BYTEORDER_HTON: host to network opertaor
  */
-enum nft_byteorder_ops {
+enum nft_byteorder_ops
+{
 	NFT_BYTEORDER_NTOH,
 	NFT_BYTEORDER_HTON,
 };
@@ -500,7 +525,8 @@ enum nft_byteorder_ops {
  * @NFTA_BYTEORDER_LEN: length of the data (NLA_U32)
  * @NFTA_BYTEORDER_SIZE: data size in bytes (NLA_U32: 2 or 4)
  */
-enum nft_byteorder_attributes {
+enum nft_byteorder_attributes
+{
 	NFTA_BYTEORDER_UNSPEC,
 	NFTA_BYTEORDER_SREG,
 	NFTA_BYTEORDER_DREG,
@@ -521,7 +547,8 @@ enum nft_byteorder_attributes {
  * @NFT_CMP_GT: greater than
  * @NFT_CMP_GTE: greater than or equal to
  */
-enum nft_cmp_ops {
+enum nft_cmp_ops
+{
 	NFT_CMP_EQ,
 	NFT_CMP_NEQ,
 	NFT_CMP_LT,
@@ -537,7 +564,8 @@ enum nft_cmp_ops {
  * @NFTA_CMP_OP: cmp operation (NLA_U32: nft_cmp_ops)
  * @NFTA_CMP_DATA: data to compare against (NLA_NESTED: nft_data_attributes)
  */
-enum nft_cmp_attributes {
+enum nft_cmp_attributes
+{
 	NFTA_CMP_UNSPEC,
 	NFTA_CMP_SREG,
 	NFTA_CMP_OP,
@@ -552,7 +580,8 @@ enum nft_cmp_attributes {
  * @NFT_RANGE_EQ: equal
  * @NFT_RANGE_NEQ: not equal
  */
-enum nft_range_ops {
+enum nft_range_ops
+{
 	NFT_RANGE_EQ,
 	NFT_RANGE_NEQ,
 };
@@ -565,7 +594,8 @@ enum nft_range_ops {
  * @NFTA_RANGE_FROM_DATA: data range from (NLA_NESTED: nft_data_attributes)
  * @NFTA_RANGE_TO_DATA: data range to (NLA_NESTED: nft_data_attributes)
  */
-enum nft_range_attributes {
+enum nft_range_attributes
+{
 	NFTA_RANGE_UNSPEC,
 	NFTA_RANGE_SREG,
 	NFTA_RANGE_OP,
@@ -575,7 +605,8 @@ enum nft_range_attributes {
 };
 #define NFTA_RANGE_MAX		(__NFTA_RANGE_MAX - 1)
 
-enum nft_lookup_flags {
+enum nft_lookup_flags
+{
 	NFT_LOOKUP_F_INV = (1 << 0),
 };
 
@@ -588,7 +619,8 @@ enum nft_lookup_flags {
  * @NFTA_LOOKUP_SET_ID: uniquely identifies a set in a transaction (NLA_U32)
  * @NFTA_LOOKUP_FLAGS: flags (NLA_U32: enum nft_lookup_flags)
  */
-enum nft_lookup_attributes {
+enum nft_lookup_attributes
+{
 	NFTA_LOOKUP_UNSPEC,
 	NFTA_LOOKUP_SET,
 	NFTA_LOOKUP_SREG,
@@ -599,12 +631,14 @@ enum nft_lookup_attributes {
 };
 #define NFTA_LOOKUP_MAX		(__NFTA_LOOKUP_MAX - 1)
 
-enum nft_dynset_ops {
+enum nft_dynset_ops
+{
 	NFT_DYNSET_OP_ADD,
 	NFT_DYNSET_OP_UPDATE,
 };
 
-enum nft_dynset_flags {
+enum nft_dynset_flags
+{
 	NFT_DYNSET_F_INV	= (1 << 0),
 };
 
@@ -620,7 +654,8 @@ enum nft_dynset_flags {
  * @NFTA_DYNSET_EXPR: expression (NLA_NESTED: nft_expr_attributes)
  * @NFTA_DYNSET_FLAGS: flags (NLA_U32)
  */
-enum nft_dynset_attributes {
+enum nft_dynset_attributes
+{
 	NFTA_DYNSET_UNSPEC,
 	NFTA_DYNSET_SET_NAME,
 	NFTA_DYNSET_SET_ID,
@@ -642,7 +677,8 @@ enum nft_dynset_attributes {
  * @NFT_PAYLOAD_NETWORK_HEADER: network header
  * @NFT_PAYLOAD_TRANSPORT_HEADER: transport header
  */
-enum nft_payload_bases {
+enum nft_payload_bases
+{
 	NFT_PAYLOAD_LL_HEADER,
 	NFT_PAYLOAD_NETWORK_HEADER,
 	NFT_PAYLOAD_TRANSPORT_HEADER,
@@ -654,7 +690,8 @@ enum nft_payload_bases {
  * @NFT_PAYLOAD_CSUM_NONE: no checksumming
  * @NFT_PAYLOAD_CSUM_INET: internet checksum (RFC 791)
  */
-enum nft_payload_csum_types {
+enum nft_payload_csum_types
+{
 	NFT_PAYLOAD_CSUM_NONE,
 	NFT_PAYLOAD_CSUM_INET,
 };
@@ -670,7 +707,8 @@ enum nft_payload_csum_types {
  * @NFTA_PAYLOAD_CSUM_TYPE: checksum type (NLA_U32)
  * @NFTA_PAYLOAD_CSUM_OFFSET: checksum offset relative to base (NLA_U32)
  */
-enum nft_payload_attributes {
+enum nft_payload_attributes
+{
 	NFTA_PAYLOAD_UNSPEC,
 	NFTA_PAYLOAD_DREG,
 	NFTA_PAYLOAD_BASE,
@@ -691,7 +729,8 @@ enum nft_payload_attributes {
  * @NFTA_EXTHDR_OFFSET: extension header offset (NLA_U32)
  * @NFTA_EXTHDR_LEN: extension header length (NLA_U32)
  */
-enum nft_exthdr_attributes {
+enum nft_exthdr_attributes
+{
 	NFTA_EXTHDR_UNSPEC,
 	NFTA_EXTHDR_DREG,
 	NFTA_EXTHDR_TYPE,
@@ -730,7 +769,8 @@ enum nft_exthdr_attributes {
  * @NFT_META_CGROUP: socket control group (skb->sk->sk_classid)
  * @NFT_META_PRANDOM: a 32bit pseudo-random number
  */
-enum nft_meta_keys {
+enum nft_meta_keys
+{
 	NFT_META_LEN,
 	NFT_META_PROTOCOL,
 	NFT_META_PRIORITY,
@@ -768,7 +808,8 @@ enum nft_meta_keys {
  * @NFTA_HASH_SEED: seed value (NLA_U32)
  * @NFTA_HASH_OFFSET: add this offset value to hash result (NLA_U32)
  */
-enum nft_hash_attributes {
+enum nft_hash_attributes
+{
 	NFTA_HASH_UNSPEC,
 	NFTA_HASH_SREG,
 	NFTA_HASH_DREG,
@@ -787,7 +828,8 @@ enum nft_hash_attributes {
  * @NFTA_META_KEY: meta data item to load (NLA_U32: nft_meta_keys)
  * @NFTA_META_SREG: source register (NLA_U32)
  */
-enum nft_meta_attributes {
+enum nft_meta_attributes
+{
 	NFTA_META_UNSPEC,
 	NFTA_META_DREG,
 	NFTA_META_KEY,
@@ -813,7 +855,8 @@ enum nft_meta_attributes {
  * @NFT_CT_PROTO_SRC: conntrack layer 4 protocol source
  * @NFT_CT_PROTO_DST: conntrack layer 4 protocol destination
  */
-enum nft_ct_keys {
+enum nft_ct_keys
+{
 	NFT_CT_STATE,
 	NFT_CT_DIRECTION,
 	NFT_CT_STATUS,
@@ -840,7 +883,8 @@ enum nft_ct_keys {
  * @NFTA_CT_DIRECTION: direction in case of directional keys (NLA_U8)
  * @NFTA_CT_SREG: source register (NLA_U32)
  */
-enum nft_ct_attributes {
+enum nft_ct_attributes
+{
 	NFTA_CT_UNSPEC,
 	NFTA_CT_DREG,
 	NFTA_CT_KEY,
@@ -850,12 +894,14 @@ enum nft_ct_attributes {
 };
 #define NFTA_CT_MAX		(__NFTA_CT_MAX - 1)
 
-enum nft_limit_type {
+enum nft_limit_type
+{
 	NFT_LIMIT_PKTS,
 	NFT_LIMIT_PKT_BYTES
 };
 
-enum nft_limit_flags {
+enum nft_limit_flags
+{
 	NFT_LIMIT_F_INV	= (1 << 0),
 };
 
@@ -868,7 +914,8 @@ enum nft_limit_flags {
  * @NFTA_LIMIT_TYPE: type of limit (NLA_U32: enum nft_limit_type)
  * @NFTA_LIMIT_FLAGS: flags (NLA_U32: enum nft_limit_flags)
  */
-enum nft_limit_attributes {
+enum nft_limit_attributes
+{
 	NFTA_LIMIT_UNSPEC,
 	NFTA_LIMIT_RATE,
 	NFTA_LIMIT_UNIT,
@@ -886,7 +933,8 @@ enum nft_limit_attributes {
  * @NFTA_COUNTER_BYTES: number of bytes (NLA_U64)
  * @NFTA_COUNTER_PACKETS: number of packets (NLA_U64)
  */
-enum nft_counter_attributes {
+enum nft_counter_attributes
+{
 	NFTA_COUNTER_UNSPEC,
 	NFTA_COUNTER_BYTES,
 	NFTA_COUNTER_PACKETS,
@@ -905,7 +953,8 @@ enum nft_counter_attributes {
  * @NFTA_LOG_LEVEL: log level (NLA_U32)
  * @NFTA_LOG_FLAGS: logging flags (NLA_U32)
  */
-enum nft_log_attributes {
+enum nft_log_attributes
+{
 	NFTA_LOG_UNSPEC,
 	NFTA_LOG_GROUP,
 	NFTA_LOG_PREFIX,
@@ -925,7 +974,8 @@ enum nft_log_attributes {
  * @NFTA_QUEUE_FLAGS: various flags (NLA_U16)
  * @NFTA_QUEUE_SREG_QNUM: source register of queue number (NLA_U32: nft_registers)
  */
-enum nft_queue_attributes {
+enum nft_queue_attributes
+{
 	NFTA_QUEUE_UNSPEC,
 	NFTA_QUEUE_NUM,
 	NFTA_QUEUE_TOTAL,
@@ -939,7 +989,8 @@ enum nft_queue_attributes {
 #define NFT_QUEUE_FLAG_CPU_FANOUT	0x02 /* use current CPU (no hashing) */
 #define NFT_QUEUE_FLAG_MASK		0x03
 
-enum nft_quota_flags {
+enum nft_quota_flags
+{
 	NFT_QUOTA_F_INV		= (1 << 0),
 };
 
@@ -949,7 +1000,8 @@ enum nft_quota_flags {
  * @NFTA_QUOTA_BYTES: quota in bytes (NLA_U16)
  * @NFTA_QUOTA_FLAGS: flags (NLA_U32)
  */
-enum nft_quota_attributes {
+enum nft_quota_attributes
+{
 	NFTA_QUOTA_UNSPEC,
 	NFTA_QUOTA_BYTES,
 	NFTA_QUOTA_FLAGS,
@@ -965,7 +1017,8 @@ enum nft_quota_attributes {
  * @NFT_REJECT_TCP_RST: reject using TCP RST
  * @NFT_REJECT_ICMPX_UNREACH: abstracted ICMP unreachable for bridge and inet
  */
-enum nft_reject_types {
+enum nft_reject_types
+{
 	NFT_REJECT_ICMP_UNREACH,
 	NFT_REJECT_TCP_RST,
 	NFT_REJECT_ICMPX_UNREACH,
@@ -981,7 +1034,8 @@ enum nft_reject_types {
  *
  * These codes are mapped to real ICMP and ICMPv6 codes.
  */
-enum nft_reject_inet_code {
+enum nft_reject_inet_code
+{
 	NFT_REJECT_ICMPX_NO_ROUTE	= 0,
 	NFT_REJECT_ICMPX_PORT_UNREACH,
 	NFT_REJECT_ICMPX_HOST_UNREACH,
@@ -996,7 +1050,8 @@ enum nft_reject_inet_code {
  * @NFTA_REJECT_TYPE: packet type to use (NLA_U32: nft_reject_types)
  * @NFTA_REJECT_ICMP_CODE: ICMP code to use (NLA_U8)
  */
-enum nft_reject_attributes {
+enum nft_reject_attributes
+{
 	NFTA_REJECT_UNSPEC,
 	NFTA_REJECT_TYPE,
 	NFTA_REJECT_ICMP_CODE,
@@ -1010,7 +1065,8 @@ enum nft_reject_attributes {
  * @NFT_NAT_SNAT: source NAT
  * @NFT_NAT_DNAT: destination NAT
  */
-enum nft_nat_types {
+enum nft_nat_types
+{
 	NFT_NAT_SNAT,
 	NFT_NAT_DNAT,
 };
@@ -1026,7 +1082,8 @@ enum nft_nat_types {
  * @NFTA_NAT_REG_PROTO_MAX: source register of proto range end (NLA_U32: nft_registers)
  * @NFTA_NAT_FLAGS: NAT flags (see NF_NAT_RANGE_* in linux/netfilter/nf_nat.h) (NLA_U32)
  */
-enum nft_nat_attributes {
+enum nft_nat_attributes
+{
 	NFTA_NAT_UNSPEC,
 	NFTA_NAT_TYPE,
 	NFTA_NAT_FAMILY,
@@ -1046,7 +1103,8 @@ enum nft_nat_attributes {
  * @NFTA_MASQ_REG_PROTO_MIN: source register of proto range start (NLA_U32: nft_registers)
  * @NFTA_MASQ_REG_PROTO_MAX: source register of proto range end (NLA_U32: nft_registers)
  */
-enum nft_masq_attributes {
+enum nft_masq_attributes
+{
 	NFTA_MASQ_UNSPEC,
 	NFTA_MASQ_FLAGS,
 	NFTA_MASQ_REG_PROTO_MIN,
@@ -1062,7 +1120,8 @@ enum nft_masq_attributes {
  * @NFTA_REDIR_REG_PROTO_MAX: source register of proto range end (NLA_U32: nft_registers)
  * @NFTA_REDIR_FLAGS: NAT flags (see NF_NAT_RANGE_* in linux/netfilter/nf_nat.h) (NLA_U32)
  */
-enum nft_redir_attributes {
+enum nft_redir_attributes
+{
 	NFTA_REDIR_UNSPEC,
 	NFTA_REDIR_REG_PROTO_MIN,
 	NFTA_REDIR_REG_PROTO_MAX,
@@ -1077,7 +1136,8 @@ enum nft_redir_attributes {
  * @NFTA_DUP_SREG_ADDR: source register of address (NLA_U32: nft_registers)
  * @NFTA_DUP_SREG_DEV: source register of output interface (NLA_U32: nft_register)
  */
-enum nft_dup_attributes {
+enum nft_dup_attributes
+{
 	NFTA_DUP_UNSPEC,
 	NFTA_DUP_SREG_ADDR,
 	NFTA_DUP_SREG_DEV,
@@ -1090,7 +1150,8 @@ enum nft_dup_attributes {
  *
  * @NFTA_FWD_SREG_DEV: source register of output interface (NLA_U32: nft_register)
  */
-enum nft_fwd_attributes {
+enum nft_fwd_attributes
+{
 	NFTA_FWD_UNSPEC,
 	NFTA_FWD_SREG_DEV,
 	__NFTA_FWD_MAX
@@ -1102,7 +1163,8 @@ enum nft_fwd_attributes {
  *
  * @NFTA_GEN_ID: Ruleset generation ID (NLA_U32)
  */
-enum nft_gen_attributes {
+enum nft_gen_attributes
+{
 	NFTA_GEN_UNSPEC,
 	NFTA_GEN_ID,
 	__NFTA_GEN_MAX
@@ -1129,7 +1191,8 @@ enum nft_gen_attributes {
  * @NFTA_TRACE_NFPROTO: nf protocol processed (NLA_U32)
  * @NFTA_TRACE_POLICY: policy that decided fate of packet (NLA_U32)
  */
-enum nft_trace_attributes {
+enum nft_trace_attributes
+{
 	NFTA_TRACE_UNSPEC,
 	NFTA_TRACE_TABLE,
 	NFTA_TRACE_CHAIN,
@@ -1152,7 +1215,8 @@ enum nft_trace_attributes {
 };
 #define NFTA_TRACE_MAX (__NFTA_TRACE_MAX - 1)
 
-enum nft_trace_types {
+enum nft_trace_types
+{
 	NFT_TRACETYPE_UNSPEC,
 	NFT_TRACETYPE_POLICY,
 	NFT_TRACETYPE_RETURN,
@@ -1169,7 +1233,8 @@ enum nft_trace_types {
  * @NFTA_NG_TYPE: operation type (NLA_U32)
  * @NFTA_NG_OFFSET: offset to be added to the counter (NLA_U32)
  */
-enum nft_ng_attributes {
+enum nft_ng_attributes
+{
 	NFTA_NG_UNSPEC,
 	NFTA_NG_DREG,
 	NFTA_NG_MODULUS,
@@ -1179,7 +1244,8 @@ enum nft_ng_attributes {
 };
 #define NFTA_NG_MAX	(__NFTA_NG_MAX - 1)
 
-enum nft_ng_types {
+enum nft_ng_types
+{
 	NFT_NG_INCREMENTAL,
 	NFT_NG_RANDOM,
 	__NFT_NG_MAX

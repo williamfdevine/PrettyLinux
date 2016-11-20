@@ -9,20 +9,20 @@
 
 DECLARE_EVENT_CLASS(workqueue_work,
 
-	TP_PROTO(struct work_struct *work),
+					TP_PROTO(struct work_struct *work),
 
-	TP_ARGS(work),
+					TP_ARGS(work),
 
-	TP_STRUCT__entry(
-		__field( void *,	work	)
-	),
+					TP_STRUCT__entry(
+						__field( void *,	work	)
+					),
 
-	TP_fast_assign(
-		__entry->work		= work;
-	),
+					TP_fast_assign(
+						__entry->work		= work;
+					),
 
-	TP_printk("work struct %p", __entry->work)
-);
+					TP_printk("work struct %p", __entry->work)
+				   );
 
 /**
  * workqueue_queue_work - called when a work gets queued
@@ -36,31 +36,31 @@ DECLARE_EVENT_CLASS(workqueue_work,
  */
 TRACE_EVENT(workqueue_queue_work,
 
-	TP_PROTO(unsigned int req_cpu, struct pool_workqueue *pwq,
-		 struct work_struct *work),
+			TP_PROTO(unsigned int req_cpu, struct pool_workqueue *pwq,
+					 struct work_struct *work),
 
-	TP_ARGS(req_cpu, pwq, work),
+			TP_ARGS(req_cpu, pwq, work),
 
-	TP_STRUCT__entry(
-		__field( void *,	work	)
-		__field( void *,	function)
-		__field( void *,	workqueue)
-		__field( unsigned int,	req_cpu	)
-		__field( unsigned int,	cpu	)
-	),
+			TP_STRUCT__entry(
+				__field( void *,	work	)
+				__field( void *,	function)
+				__field( void *,	workqueue)
+				__field( unsigned int,	req_cpu	)
+				__field( unsigned int,	cpu	)
+			),
 
-	TP_fast_assign(
-		__entry->work		= work;
-		__entry->function	= work->func;
-		__entry->workqueue	= pwq->wq;
-		__entry->req_cpu	= req_cpu;
-		__entry->cpu		= pwq->pool->cpu;
-	),
+			TP_fast_assign(
+				__entry->work		= work;
+				__entry->function	= work->func;
+				__entry->workqueue	= pwq->wq;
+				__entry->req_cpu	= req_cpu;
+				__entry->cpu		= pwq->pool->cpu;
+			),
 
-	TP_printk("work struct=%p function=%pf workqueue=%p req_cpu=%u cpu=%u",
-		  __entry->work, __entry->function, __entry->workqueue,
-		  __entry->req_cpu, __entry->cpu)
-);
+			TP_printk("work struct=%p function=%pf workqueue=%p req_cpu=%u cpu=%u",
+					  __entry->work, __entry->function, __entry->workqueue,
+					  __entry->req_cpu, __entry->cpu)
+		   );
 
 /**
  * workqueue_activate_work - called when a work gets activated
@@ -72,10 +72,10 @@ TRACE_EVENT(workqueue_queue_work,
  */
 DEFINE_EVENT(workqueue_work, workqueue_activate_work,
 
-	TP_PROTO(struct work_struct *work),
+			 TP_PROTO(struct work_struct *work),
 
-	TP_ARGS(work)
-);
+			 TP_ARGS(work)
+			);
 
 /**
  * workqueue_execute_start - called immediately before the workqueue callback
@@ -85,22 +85,22 @@ DEFINE_EVENT(workqueue_work, workqueue_activate_work,
  */
 TRACE_EVENT(workqueue_execute_start,
 
-	TP_PROTO(struct work_struct *work),
+			TP_PROTO(struct work_struct *work),
 
-	TP_ARGS(work),
+			TP_ARGS(work),
 
-	TP_STRUCT__entry(
-		__field( void *,	work	)
-		__field( void *,	function)
-	),
+			TP_STRUCT__entry(
+				__field( void *,	work	)
+				__field( void *,	function)
+			),
 
-	TP_fast_assign(
-		__entry->work		= work;
-		__entry->function	= work->func;
-	),
+			TP_fast_assign(
+				__entry->work		= work;
+				__entry->function	= work->func;
+			),
 
-	TP_printk("work struct %p: function %pf", __entry->work, __entry->function)
-);
+			TP_printk("work struct %p: function %pf", __entry->work, __entry->function)
+		   );
 
 /**
  * workqueue_execute_end - called immediately after the workqueue callback
@@ -110,10 +110,10 @@ TRACE_EVENT(workqueue_execute_start,
  */
 DEFINE_EVENT(workqueue_work, workqueue_execute_end,
 
-	TP_PROTO(struct work_struct *work),
+			 TP_PROTO(struct work_struct *work),
 
-	TP_ARGS(work)
-);
+			 TP_ARGS(work)
+			);
 
 #endif /*  _TRACE_WORKQUEUE_H */
 

@@ -26,10 +26,13 @@
  * This internal data structure is used for optimizing access to some of
  * the subfields within the atomic_t cnts.
  */
-struct __qrwlock {
-	union {
+struct __qrwlock
+{
+	union
+	{
 		atomic_t cnts;
-		struct {
+		struct
+		{
 #ifdef __LITTLE_ENDIAN
 			u8 wmode;	/* Writer mode   */
 			u8 rcnts[3];	/* Reader counts */
@@ -53,7 +56,8 @@ struct __qrwlock {
 static __always_inline void
 rspin_until_writer_unlock(struct qrwlock *lock, u32 cnts)
 {
-	while ((cnts & _QW_WMASK) == _QW_LOCKED) {
+	while ((cnts & _QW_WMASK) == _QW_LOCKED)
+	{
 		cpu_relax_lowlatency();
 		cnts = atomic_read_acquire(&lock->cnts);
 	}
@@ -69,7 +73,8 @@ void queued_read_lock_slowpath(struct qrwlock *lock, u32 cnts)
 	/*
 	 * Readers come here when they cannot get the lock without waiting
 	 */
-	if (unlikely(in_interrupt())) {
+	if (unlikely(in_interrupt()))
+	{
 		/*
 		 * Readers in interrupt context will get the lock immediately
 		 * if the writer is just waiting (not holding the lock yet).
@@ -81,6 +86,7 @@ void queued_read_lock_slowpath(struct qrwlock *lock, u32 cnts)
 		rspin_until_writer_unlock(lock, cnts);
 		return;
 	}
+
 	atomic_sub(_QR_BIAS, &lock->cnts);
 
 	/*
@@ -116,33 +122,43 @@ void queued_write_lock_slowpath(struct qrwlock *lock)
 
 	/* Try to acquire the lock directly if no reader is present */
 	if (!atomic_read(&lock->cnts) &&
-	    (atomic_cmpxchg_acquire(&lock->cnts, 0, _QW_LOCKED) == 0))
+		(atomic_cmpxchg_acquire(&lock->cnts, 0, _QW_LOCKED) == 0))
+	{
 		goto unlock;
+	}
 
 	/*
 	 * Set the waiting flag to notify readers that a writer is pending,
 	 * or wait for a previous writer to go away.
 	 */
-	for (;;) {
+	for (;;)
+	{
 		struct __qrwlock *l = (struct __qrwlock *)lock;
 
 		if (!READ_ONCE(l->wmode) &&
-		   (cmpxchg_relaxed(&l->wmode, 0, _QW_WAITING) == 0))
+			(cmpxchg_relaxed(&l->wmode, 0, _QW_WAITING) == 0))
+		{
 			break;
+		}
 
 		cpu_relax_lowlatency();
 	}
 
 	/* When no more readers, set the locked flag */
-	for (;;) {
+	for (;;)
+	{
 		cnts = atomic_read(&lock->cnts);
+
 		if ((cnts == _QW_WAITING) &&
-		    (atomic_cmpxchg_acquire(&lock->cnts, _QW_WAITING,
-					    _QW_LOCKED) == _QW_WAITING))
+			(atomic_cmpxchg_acquire(&lock->cnts, _QW_WAITING,
+									_QW_LOCKED) == _QW_WAITING))
+		{
 			break;
+		}
 
 		cpu_relax_lowlatency();
 	}
+
 unlock:
 	arch_spin_unlock(&lock->wait_lock);
 }

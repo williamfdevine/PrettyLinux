@@ -41,7 +41,8 @@
 /* The root directory. */
 static struct dentry *rootdir;
 
-struct b43legacy_debugfs_fops {
+struct b43legacy_debugfs_fops
+{
 	ssize_t (*read)(struct b43legacy_wldev *dev, char *buf, size_t bufsize);
 	int (*write)(struct b43legacy_wldev *dev, const char *buf, size_t count);
 	struct file_operations fops;
@@ -52,8 +53,8 @@ struct b43legacy_debugfs_fops {
 };
 
 static inline
-struct b43legacy_dfs_file * fops_to_dfs_file(struct b43legacy_wldev *dev,
-				       const struct b43legacy_debugfs_fops *dfops)
+struct b43legacy_dfs_file *fops_to_dfs_file(struct b43legacy_wldev *dev,
+		const struct b43legacy_debugfs_fops *dfops)
 {
 	void *p;
 
@@ -68,8 +69,8 @@ struct b43legacy_dfs_file * fops_to_dfs_file(struct b43legacy_wldev *dev,
 	do {							\
 		if (bufsize - count)				\
 			count += snprintf(buf + count,		\
-					  bufsize - count,	\
-					  fmt , ##x);		\
+							  bufsize - count,	\
+							  fmt , ##x);		\
 		else						\
 			printk(KERN_ERR "b43legacy: fappend overflow\n"); \
 	} while (0)
@@ -83,8 +84,8 @@ static ssize_t tsf_read_file(struct b43legacy_wldev *dev, char *buf, size_t bufs
 
 	b43legacy_tsf_read(dev, &tsf);
 	fappend("0x%08x%08x\n",
-		(unsigned int)((tsf & 0xFFFFFFFF00000000ULL) >> 32),
-		(unsigned int)(tsf & 0xFFFFFFFFULL));
+			(unsigned int)((tsf & 0xFFFFFFFF00000000ULL) >> 32),
+			(unsigned int)(tsf & 0xFFFFFFFFULL));
 
 	return count;
 }
@@ -95,7 +96,10 @@ static int tsf_write_file(struct b43legacy_wldev *dev, const char *buf, size_t c
 	u64 tsf;
 
 	if (sscanf(buf, "%llu", (unsigned long long *)(&tsf)) != 1)
+	{
 		return -EINVAL;
+	}
+
 	b43legacy_tsf_write(dev, tsf);
 
 	return 0;
@@ -107,9 +111,10 @@ static ssize_t ucode_regs_read_file(struct b43legacy_wldev *dev, char *buf, size
 	ssize_t count = 0;
 	int i;
 
-	for (i = 0; i < 64; i++) {
+	for (i = 0; i < 64; i++)
+	{
 		fappend("r%d = 0x%04x\n", i,
-			b43legacy_shm_read16(dev, B43legacy_SHM_WIRELESS, i));
+				b43legacy_shm_read16(dev, B43legacy_SHM_WIRELESS, i));
 	}
 
 	return count;
@@ -123,9 +128,13 @@ static ssize_t shm_read_file(struct b43legacy_wldev *dev, char *buf, size_t bufs
 	u16 tmp;
 	__le16 *le16buf = (__le16 *)buf;
 
-	for (i = 0; i < 0x1000; i++) {
+	for (i = 0; i < 0x1000; i++)
+	{
 		if (bufsize < sizeof(tmp))
+		{
 			break;
+		}
+
 		tmp = b43legacy_shm_read16(dev, B43legacy_SHM_SHARED, 2 * i);
 		le16buf[i] = cpu_to_le16(tmp);
 		count += sizeof(tmp);
@@ -144,38 +153,53 @@ static ssize_t txstat_read_file(struct b43legacy_wldev *dev, char *buf, size_t b
 	struct b43legacy_txstatus *stat;
 
 	spin_lock_irqsave(&log->lock, flags);
-	if (log->end < 0) {
+
+	if (log->end < 0)
+	{
 		fappend("Nothing transmitted, yet\n");
 		goto out_unlock;
 	}
+
 	fappend("b43legacy TX status reports:\n\n"
-		"index | cookie | seq | phy_stat | frame_count | "
-		"rts_count | supp_reason | pm_indicated | "
-		"intermediate | for_ampdu | acked\n" "---\n");
+			"index | cookie | seq | phy_stat | frame_count | "
+			"rts_count | supp_reason | pm_indicated | "
+			"intermediate | for_ampdu | acked\n" "---\n");
 	i = log->end + 1;
 	idx = 0;
-	while (1) {
+
+	while (1)
+	{
 		if (i == B43legacy_NR_LOGGED_TXSTATUS)
+		{
 			i = 0;
+		}
+
 		stat = &(log->log[i]);
-		if (stat->cookie) {
+
+		if (stat->cookie)
+		{
 			fappend("%03d | "
-				"0x%04X | 0x%04X | 0x%02X | "
-				"0x%X | 0x%X | "
-				"%u | %u | "
-				"%u | %u | %u\n",
-				idx,
-				stat->cookie, stat->seq, stat->phy_stat,
-				stat->frame_count, stat->rts_count,
-				stat->supp_reason, stat->pm_indicated,
-				stat->intermediate, stat->for_ampdu,
-				stat->acked);
+					"0x%04X | 0x%04X | 0x%02X | "
+					"0x%X | 0x%X | "
+					"%u | %u | "
+					"%u | %u | %u\n",
+					idx,
+					stat->cookie, stat->seq, stat->phy_stat,
+					stat->frame_count, stat->rts_count,
+					stat->supp_reason, stat->pm_indicated,
+					stat->intermediate, stat->for_ampdu,
+					stat->acked);
 			idx++;
 		}
+
 		if (i == log->end)
+		{
 			break;
+		}
+
 		i++;
 	}
+
 out_unlock:
 	spin_unlock_irqrestore(&log->lock, flags);
 
@@ -187,10 +211,14 @@ static int restart_write_file(struct b43legacy_wldev *dev, const char *buf, size
 {
 	int err = 0;
 
-	if (count > 0 && buf[0] == '1') {
+	if (count > 0 && buf[0] == '1')
+	{
 		b43legacy_controller_restart(dev, "manually restarted");
-	} else
+	}
+	else
+	{
 		err = -EINVAL;
+	}
 
 	return err;
 }
@@ -198,7 +226,7 @@ static int restart_write_file(struct b43legacy_wldev *dev, const char *buf, size
 #undef fappend
 
 static ssize_t b43legacy_debugfs_read(struct file *file, char __user *userbuf,
-				size_t count, loff_t *ppos)
+									  size_t count, loff_t *ppos)
 {
 	struct b43legacy_wldev *dev;
 	struct b43legacy_debugfs_fops *dfops;
@@ -210,55 +238,81 @@ static ssize_t b43legacy_debugfs_read(struct file *file, char __user *userbuf,
 	int err = 0;
 
 	if (!count)
+	{
 		return 0;
+	}
+
 	dev = file->private_data;
+
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	mutex_lock(&dev->wl->mutex);
-	if (b43legacy_status(dev) < B43legacy_STAT_INITIALIZED) {
+
+	if (b43legacy_status(dev) < B43legacy_STAT_INITIALIZED)
+	{
 		err = -ENODEV;
 		goto out_unlock;
 	}
 
 	dfops = container_of(debugfs_real_fops(file),
-			     struct b43legacy_debugfs_fops, fops);
-	if (!dfops->read) {
+						 struct b43legacy_debugfs_fops, fops);
+
+	if (!dfops->read)
+	{
 		err = -ENOSYS;
 		goto out_unlock;
 	}
+
 	dfile = fops_to_dfs_file(dev, dfops);
 
-	if (!dfile->buffer) {
+	if (!dfile->buffer)
+	{
 		buf = (char *)__get_free_pages(GFP_KERNEL, buforder);
-		if (!buf) {
+
+		if (!buf)
+		{
 			err = -ENOMEM;
 			goto out_unlock;
 		}
+
 		memset(buf, 0, bufsize);
-		if (dfops->take_irqlock) {
+
+		if (dfops->take_irqlock)
+		{
 			spin_lock_irq(&dev->wl->irq_lock);
 			ret = dfops->read(dev, buf, bufsize);
 			spin_unlock_irq(&dev->wl->irq_lock);
-		} else
+		}
+		else
+		{
 			ret = dfops->read(dev, buf, bufsize);
-		if (ret <= 0) {
+		}
+
+		if (ret <= 0)
+		{
 			free_pages((unsigned long)buf, buforder);
 			err = ret;
 			goto out_unlock;
 		}
+
 		dfile->data_len = ret;
 		dfile->buffer = buf;
 	}
 
 	ret = simple_read_from_buffer(userbuf, count, ppos,
-				      dfile->buffer,
-				      dfile->data_len);
-	if (*ppos >= dfile->data_len) {
+								  dfile->buffer,
+								  dfile->data_len);
+
+	if (*ppos >= dfile->data_len)
+	{
 		free_pages((unsigned long)dfile->buffer, buforder);
 		dfile->buffer = NULL;
 		dfile->data_len = 0;
 	}
+
 out_unlock:
 	mutex_unlock(&dev->wl->mutex);
 
@@ -266,8 +320,8 @@ out_unlock:
 }
 
 static ssize_t b43legacy_debugfs_write(struct file *file,
-				 const char __user *userbuf,
-				 size_t count, loff_t *ppos)
+									   const char __user *userbuf,
+									   size_t count, loff_t *ppos)
 {
 	struct b43legacy_wldev *dev;
 	struct b43legacy_debugfs_fops *dfops;
@@ -275,43 +329,68 @@ static ssize_t b43legacy_debugfs_write(struct file *file,
 	int err = 0;
 
 	if (!count)
+	{
 		return 0;
+	}
+
 	if (count > PAGE_SIZE)
+	{
 		return -E2BIG;
+	}
+
 	dev = file->private_data;
+
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	mutex_lock(&dev->wl->mutex);
-	if (b43legacy_status(dev) < B43legacy_STAT_INITIALIZED) {
+
+	if (b43legacy_status(dev) < B43legacy_STAT_INITIALIZED)
+	{
 		err = -ENODEV;
 		goto out_unlock;
 	}
 
 	dfops = container_of(debugfs_real_fops(file),
-			     struct b43legacy_debugfs_fops, fops);
-	if (!dfops->write) {
+						 struct b43legacy_debugfs_fops, fops);
+
+	if (!dfops->write)
+	{
 		err = -ENOSYS;
 		goto out_unlock;
 	}
 
 	buf = (char *)get_zeroed_page(GFP_KERNEL);
-	if (!buf) {
+
+	if (!buf)
+	{
 		err = -ENOMEM;
 		goto out_unlock;
 	}
-	if (copy_from_user(buf, userbuf, count)) {
+
+	if (copy_from_user(buf, userbuf, count))
+	{
 		err = -EFAULT;
 		goto out_freepage;
 	}
-	if (dfops->take_irqlock) {
+
+	if (dfops->take_irqlock)
+	{
 		spin_lock_irq(&dev->wl->irq_lock);
 		err = dfops->write(dev, buf, count);
 		spin_unlock_irq(&dev->wl->irq_lock);
-	} else
+	}
+	else
+	{
 		err = dfops->write(dev, buf, count);
+	}
+
 	if (err)
+	{
 		goto out_freepage;
+	}
 
 out_freepage:
 	free_page((unsigned long)buf);
@@ -325,16 +404,16 @@ out_unlock:
 #define B43legacy_DEBUGFS_FOPS(name, _read, _write, _take_irqlock)	\
 	static struct b43legacy_debugfs_fops fops_##name = {		\
 		.read	= _read,				\
-		.write	= _write,				\
-		.fops	= {					\
-			.open	= simple_open,				\
-			.read	= b43legacy_debugfs_read,		\
-			.write	= b43legacy_debugfs_write,		\
-			.llseek = generic_file_llseek,			\
-		},						\
-		.file_struct_offset = offsetof(struct b43legacy_dfsentry, \
-					       file_##name),	\
-		.take_irqlock	= _take_irqlock,		\
+				  .write	= _write,				\
+							.fops	= {					\
+														.open	= simple_open,				\
+														.read	= b43legacy_debugfs_read,		\
+														.write	= b43legacy_debugfs_write,		\
+														.llseek = generic_file_llseek,			\
+									},						\
+									  .file_struct_offset = offsetof(struct b43legacy_dfsentry, \
+											  file_##name),	\
+											  .take_irqlock	= _take_irqlock,		\
 	}
 
 B43legacy_DEBUGFS_FOPS(tsf, tsf_read_file, tsf_write_file, 1);
@@ -355,7 +434,9 @@ static void b43legacy_remove_dynamic_debug(struct b43legacy_wldev *dev)
 	int i;
 
 	for (i = 0; i < __B43legacy_NR_DYNDBG; i++)
+	{
 		debugfs_remove(e->dyn_debug_dentries[i]);
+	}
 }
 
 static void b43legacy_add_dynamic_debug(struct b43legacy_wldev *dev)
@@ -364,12 +445,12 @@ static void b43legacy_add_dynamic_debug(struct b43legacy_wldev *dev)
 	struct dentry *d;
 
 #define add_dyn_dbg(name, id, initstate) do {		\
-	e->dyn_debug[id] = (initstate);			\
-	d = debugfs_create_bool(name, 0600, e->subdir,	\
-				&(e->dyn_debug[id]));	\
-	if (!IS_ERR(d))					\
-		e->dyn_debug_dentries[id] = d;		\
-				} while (0)
+		e->dyn_debug[id] = (initstate);			\
+		d = debugfs_create_bool(name, 0600, e->subdir,	\
+								&(e->dyn_debug[id]));	\
+		if (!IS_ERR(d))					\
+			e->dyn_debug_dentries[id] = d;		\
+	} while (0)
 
 	add_dyn_dbg("debug_xmitpower", B43legacy_DBG_XMITPOWER, false);
 	add_dyn_dbg("debug_dmaoverflow", B43legacy_DBG_DMAOVERFLOW, false);
@@ -388,19 +469,25 @@ void b43legacy_debugfs_add_device(struct b43legacy_wldev *dev)
 
 	B43legacy_WARN_ON(!dev);
 	e = kzalloc(sizeof(*e), GFP_KERNEL);
-	if (!e) {
+
+	if (!e)
+	{
 		b43legacyerr(dev->wl, "debugfs: add device OOM\n");
 		return;
 	}
+
 	e->dev = dev;
 	log = &e->txstatlog;
 	log->log = kcalloc(B43legacy_NR_LOGGED_TXSTATUS,
-			   sizeof(struct b43legacy_txstatus), GFP_KERNEL);
-	if (!log->log) {
+					   sizeof(struct b43legacy_txstatus), GFP_KERNEL);
+
+	if (!log->log)
+	{
 		b43legacyerr(dev->wl, "debugfs: add device txstatus OOM\n");
 		kfree(e);
 		return;
 	}
+
 	log->end = -1;
 	spin_lock_init(&log->lock);
 
@@ -408,14 +495,20 @@ void b43legacy_debugfs_add_device(struct b43legacy_wldev *dev)
 
 	snprintf(devdir, sizeof(devdir), "%s", wiphy_name(dev->wl->hw->wiphy));
 	e->subdir = debugfs_create_dir(devdir, rootdir);
-	if (!e->subdir || IS_ERR(e->subdir)) {
-		if (e->subdir == ERR_PTR(-ENODEV)) {
+
+	if (!e->subdir || IS_ERR(e->subdir))
+	{
+		if (e->subdir == ERR_PTR(-ENODEV))
+		{
 			b43legacydbg(dev->wl, "DebugFS (CONFIG_DEBUG_FS) not "
-			       "enabled in kernel config\n");
-		} else {
-			b43legacyerr(dev->wl, "debugfs: cannot create %s directory\n",
-			       devdir);
+						 "enabled in kernel config\n");
 		}
+		else
+		{
+			b43legacyerr(dev->wl, "debugfs: cannot create %s directory\n",
+						 devdir);
+		}
+
 		dev->dfsentry = NULL;
 		kfree(log->log);
 		kfree(e);
@@ -426,8 +519,8 @@ void b43legacy_debugfs_add_device(struct b43legacy_wldev *dev)
 	do {							\
 		struct dentry *d;				\
 		d = debugfs_create_file(__stringify(name),	\
-					mode, e->subdir, dev,	\
-					&fops_##name.fops);	\
+								mode, e->subdir, dev,	\
+								&fops_##name.fops);	\
 		e->file_##name.dentry = NULL;			\
 		if (!IS_ERR(d))					\
 			e->file_##name.dentry = d;		\
@@ -450,10 +543,17 @@ void b43legacy_debugfs_remove_device(struct b43legacy_wldev *dev)
 	struct b43legacy_dfsentry *e;
 
 	if (!dev)
+	{
 		return;
+	}
+
 	e = dev->dfsentry;
+
 	if (!e)
+	{
 		return;
+	}
+
 	b43legacy_remove_dynamic_debug(dev);
 
 	debugfs_remove(e->file_tsf.dentry);
@@ -468,7 +568,7 @@ void b43legacy_debugfs_remove_device(struct b43legacy_wldev *dev)
 }
 
 void b43legacy_debugfs_log_txstat(struct b43legacy_wldev *dev,
-			    const struct b43legacy_txstatus *status)
+								  const struct b43legacy_txstatus *status)
 {
 	struct b43legacy_dfsentry *e = dev->dfsentry;
 	struct b43legacy_txstatus_log *log;
@@ -476,13 +576,20 @@ void b43legacy_debugfs_log_txstat(struct b43legacy_wldev *dev,
 	int i;
 
 	if (!e)
+	{
 		return;
+	}
+
 	log = &e->txstatlog;
 	B43legacy_WARN_ON(!irqs_disabled());
 	spin_lock(&log->lock);
 	i = log->end + 1;
+
 	if (i == B43legacy_NR_LOGGED_TXSTATUS)
+	{
 		i = 0;
+	}
+
 	log->end = i;
 	cur = &(log->log[i]);
 	memcpy(cur, status, sizeof(*cur));
@@ -492,8 +599,11 @@ void b43legacy_debugfs_log_txstat(struct b43legacy_wldev *dev,
 void b43legacy_debugfs_init(void)
 {
 	rootdir = debugfs_create_dir(KBUILD_MODNAME, NULL);
+
 	if (IS_ERR(rootdir))
+	{
 		rootdir = NULL;
+	}
 }
 
 void b43legacy_debugfs_exit(void)

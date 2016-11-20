@@ -103,15 +103,19 @@ static void rs5c313_write_data(unsigned char data)
 {
 	int i;
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		/* SDA:Write Data */
 		scsptr1_data = (scsptr1_data & ~SDA) |
-				((((0x80 >> i) & data) >> (7 - i)) << 2);
+					   ((((0x80 >> i) & data) >> (7 - i)) << 2);
 		__raw_writeb(scsptr1_data, SCSPTR1);
-		if (i == 0) {
+
+		if (i == 0)
+		{
 			scsptr1_data |= SDA_OEN;	/* SDA:output enable */
 			__raw_writeb(scsptr1_data, SCSPTR1);
 		}
+
 		ndelay(700);
 		scsptr1_data &= ~SCL;	/* SCL:L */
 		__raw_writeb(scsptr1_data, SCSPTR1);
@@ -129,7 +133,8 @@ static unsigned char rs5c313_read_data(void)
 	int i;
 	unsigned char data = 0;
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		ndelay(700);
 		/* SDA:Read Data */
 		data |= ((__raw_readb(SCSPTR1) & SDA) >> 2) << (7 - i);
@@ -139,6 +144,7 @@ static unsigned char rs5c313_read_data(void)
 		scsptr1_data |= SCL;	/* SCL:H */
 		__raw_writeb(scsptr1_data, SCSPTR1);
 	}
+
 	return data & 0x0F;
 }
 
@@ -216,19 +222,24 @@ static int rs5c313_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	int cnt;
 
 	cnt = 0;
-	while (1) {
+
+	while (1)
+	{
 		RS5C313_CEENABLE;	/* CE:H */
 
 		/* Initialize control reg. 24 hour */
 		rs5c313_write_cntreg(0x04);
 
 		if (!(rs5c313_read_cntreg() & RS5C313_CNTREG_ADJ_BSY))
+		{
 			break;
+		}
 
 		RS5C313_CEDISABLE;
 		ndelay(700);	/* CE:L */
 
-		if (cnt++ > 100) {
+		if (cnt++ > 100)
+		{
 			dev_err(dev, "%s: timeout error\n", __func__);
 			return -EIO;
 		}
@@ -259,7 +270,9 @@ static int rs5c313_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	tm->tm_year = bcd2bin(data);
 
 	if (tm->tm_year < 70)
+	{
 		tm->tm_year += 100;
+	}
 
 	data = rs5c313_read_reg(RS5C313_ADDR_WEEK);
 	tm->tm_wday = bcd2bin(data);
@@ -276,20 +289,26 @@ static int rs5c313_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	int cnt;
 
 	cnt = 0;
+
 	/* busy check. */
-	while (1) {
+	while (1)
+	{
 		RS5C313_CEENABLE;	/* CE:H */
 
 		/* Initiatlize control reg. 24 hour */
 		rs5c313_write_cntreg(0x04);
 
 		if (!(rs5c313_read_cntreg() & RS5C313_CNTREG_ADJ_BSY))
+		{
 			break;
+		}
+
 		RS5C313_MISCOP;
 		RS5C313_CEDISABLE;
 		ndelay(700);	/* CE:L */
 
-		if (cnt++ > 100) {
+		if (cnt++ > 100)
+		{
 			dev_err(dev, "%s: timeout error\n", __func__);
 			return -EIO;
 		}
@@ -334,16 +353,22 @@ static void rs5c313_check_xstp_bit(void)
 	int cnt;
 
 	RS5C313_CEENABLE;	/* CE:H */
-	if (rs5c313_read_cntreg() & RS5C313_CNTREG_WTEN_XSTP) {
+
+	if (rs5c313_read_cntreg() & RS5C313_CNTREG_WTEN_XSTP)
+	{
 		/* INT interval reg. OFF */
 		rs5c313_write_intintvreg(0x00);
 		/* Initialize control reg. 24 hour & adjust */
 		rs5c313_write_cntreg(0x07);
 
 		/* busy check. */
-		for (cnt = 0; cnt < 100; cnt++) {
+		for (cnt = 0; cnt < 100; cnt++)
+		{
 			if (!(rs5c313_read_cntreg() & RS5C313_CNTREG_ADJ_BSY))
+			{
 				break;
+			}
+
 			RS5C313_MISCOP;
 		}
 
@@ -355,11 +380,13 @@ static void rs5c313_check_xstp_bit(void)
 		rs5c313_rtc_set_time(NULL, &tm);
 		pr_err("invalid value, resetting to 1 Jan 2000\n");
 	}
+
 	RS5C313_CEDISABLE;
 	ndelay(700);		/* CE:L */
 }
 
-static const struct rtc_class_ops rs5c313_rtc_ops = {
+static const struct rtc_class_ops rs5c313_rtc_ops =
+{
 	.read_time = rs5c313_rtc_read_time,
 	.set_time = rs5c313_rtc_set_time,
 };
@@ -367,17 +394,20 @@ static const struct rtc_class_ops rs5c313_rtc_ops = {
 static int rs5c313_rtc_probe(struct platform_device *pdev)
 {
 	struct rtc_device *rtc = devm_rtc_device_register(&pdev->dev, "rs5c313",
-				&rs5c313_rtc_ops, THIS_MODULE);
+							 &rs5c313_rtc_ops, THIS_MODULE);
 
 	if (IS_ERR(rtc))
+	{
 		return PTR_ERR(rtc);
+	}
 
 	platform_set_drvdata(pdev, rtc);
 
 	return 0;
 }
 
-static struct platform_driver rs5c313_rtc_platform_driver = {
+static struct platform_driver rs5c313_rtc_platform_driver =
+{
 	.driver         = {
 		.name   = DRV_NAME,
 	},
@@ -389,8 +419,11 @@ static int __init rs5c313_rtc_init(void)
 	int err;
 
 	err = platform_driver_register(&rs5c313_rtc_platform_driver);
+
 	if (err)
+	{
 		return err;
+	}
 
 	rs5c313_init_port();
 	rs5c313_check_xstp_bit();

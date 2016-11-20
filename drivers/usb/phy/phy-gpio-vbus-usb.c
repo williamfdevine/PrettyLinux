@@ -31,7 +31,8 @@
  *
  * Needs to be loaded before the UDC driver that will use it.
  */
-struct gpio_vbus_data {
+struct gpio_vbus_data
+{
 	struct usb_phy		phy;
 	struct device          *dev;
 	struct regulator       *vbus_draw;
@@ -64,25 +65,43 @@ static void set_vbus_draw(struct gpio_vbus_data *gpio_vbus, unsigned mA)
 	int ret;
 
 	if (!vbus_draw)
+	{
 		return;
+	}
 
 	enabled = gpio_vbus->vbus_draw_enabled;
-	if (mA) {
+
+	if (mA)
+	{
 		regulator_set_current_limit(vbus_draw, 0, 1000 * mA);
-		if (!enabled) {
+
+		if (!enabled)
+		{
 			ret = regulator_enable(vbus_draw);
+
 			if (ret < 0)
+			{
 				return;
+			}
+
 			gpio_vbus->vbus_draw_enabled = 1;
 		}
-	} else {
-		if (enabled) {
+	}
+	else
+	{
+		if (enabled)
+		{
 			ret = regulator_disable(vbus_draw);
+
 			if (ret < 0)
+			{
 				return;
+			}
+
 			gpio_vbus->vbus_draw_enabled = 0;
 		}
 	}
+
 	gpio_vbus->mA = mA;
 }
 
@@ -91,8 +110,11 @@ static int is_vbus_powered(struct gpio_vbus_mach_info *pdata)
 	int vbus;
 
 	vbus = gpio_get_value(pdata->gpio_vbus);
+
 	if (pdata->gpio_vbus_inverted)
+	{
 		vbus = !vbus;
+	}
 
 	return vbus;
 }
@@ -105,11 +127,17 @@ static void gpio_vbus_work(struct work_struct *work)
 	int gpio, status, vbus;
 
 	if (!gpio_vbus->phy.otg->gadget)
+	{
 		return;
+	}
 
 	vbus = is_vbus_powered(pdata);
+
 	if ((vbus ^ gpio_vbus->vbus) == 0)
+	{
 		return;
+	}
+
 	gpio_vbus->vbus = vbus;
 
 	/* Peripheral controllers which manage the pullup themselves won't have
@@ -119,7 +147,8 @@ static void gpio_vbus_work(struct work_struct *work)
 	 */
 	gpio = pdata->gpio_pullup;
 
-	if (vbus) {
+	if (vbus)
+	{
 		status = USB_EVENT_VBUS;
 		gpio_vbus->phy.otg->state = OTG_STATE_B_PERIPHERAL;
 		gpio_vbus->phy.last_event = status;
@@ -130,15 +159,21 @@ static void gpio_vbus_work(struct work_struct *work)
 
 		/* optionally enable D+ pullup */
 		if (gpio_is_valid(gpio))
+		{
 			gpio_set_value(gpio, !pdata->gpio_pullup_inverted);
+		}
 
 		atomic_notifier_call_chain(&gpio_vbus->phy.notifier,
-					   status, gpio_vbus->phy.otg->gadget);
+								   status, gpio_vbus->phy.otg->gadget);
 		usb_phy_set_event(&gpio_vbus->phy, USB_EVENT_ENUMERATED);
-	} else {
+	}
+	else
+	{
 		/* optionally disable D+ pullup */
 		if (gpio_is_valid(gpio))
+		{
 			gpio_set_value(gpio, pdata->gpio_pullup_inverted);
+		}
 
 		set_vbus_draw(gpio_vbus, 0);
 
@@ -148,7 +183,7 @@ static void gpio_vbus_work(struct work_struct *work)
 		gpio_vbus->phy.last_event = status;
 
 		atomic_notifier_call_chain(&gpio_vbus->phy.notifier,
-					   status, gpio_vbus->phy.otg->gadget);
+								   status, gpio_vbus->phy.otg->gadget);
 		usb_phy_set_event(&gpio_vbus->phy, USB_EVENT_NONE);
 	}
 }
@@ -162,11 +197,13 @@ static irqreturn_t gpio_vbus_irq(int irq, void *data)
 	struct usb_otg *otg = gpio_vbus->phy.otg;
 
 	dev_dbg(&pdev->dev, "VBUS %s (gadget: %s)\n",
-		is_vbus_powered(pdata) ? "supplied" : "inactive",
-		otg->gadget ? otg->gadget->name : "none");
+			is_vbus_powered(pdata) ? "supplied" : "inactive",
+			otg->gadget ? otg->gadget->name : "none");
 
 	if (otg->gadget)
+	{
 		schedule_delayed_work(&gpio_vbus->work, msecs_to_jiffies(100));
+	}
 
 	return IRQ_HANDLED;
 }
@@ -175,7 +212,7 @@ static irqreturn_t gpio_vbus_irq(int irq, void *data)
 
 /* bind/unbind the peripheral controller */
 static int gpio_vbus_set_peripheral(struct usb_otg *otg,
-					struct usb_gadget *gadget)
+									struct usb_gadget *gadget)
 {
 	struct gpio_vbus_data *gpio_vbus;
 	struct gpio_vbus_mach_info *pdata;
@@ -187,13 +224,16 @@ static int gpio_vbus_set_peripheral(struct usb_otg *otg,
 	pdata = dev_get_platdata(gpio_vbus->dev);
 	gpio = pdata->gpio_pullup;
 
-	if (!gadget) {
+	if (!gadget)
+	{
 		dev_dbg(&pdev->dev, "unregistering gadget '%s'\n",
-			otg->gadget->name);
+				otg->gadget->name);
 
 		/* optionally disable D+ pullup */
 		if (gpio_is_valid(gpio))
+		{
 			gpio_set_value(gpio, pdata->gpio_pullup_inverted);
+		}
 
 		set_vbus_draw(gpio_vbus, 0);
 
@@ -221,7 +261,10 @@ static int gpio_vbus_set_power(struct usb_phy *phy, unsigned mA)
 	gpio_vbus = container_of(phy, struct gpio_vbus_data, phy);
 
 	if (phy->otg->state == OTG_STATE_B_PERIPHERAL)
+	{
 		set_vbus_draw(gpio_vbus, mA);
+	}
+
 	return 0;
 }
 
@@ -252,18 +295,27 @@ static int gpio_vbus_probe(struct platform_device *pdev)
 	unsigned long irqflags;
 
 	if (!pdata || !gpio_is_valid(pdata->gpio_vbus))
+	{
 		return -EINVAL;
+	}
+
 	gpio = pdata->gpio_vbus;
 
 	gpio_vbus = devm_kzalloc(&pdev->dev, sizeof(struct gpio_vbus_data),
-				 GFP_KERNEL);
+							 GFP_KERNEL);
+
 	if (!gpio_vbus)
+	{
 		return -ENOMEM;
+	}
 
 	gpio_vbus->phy.otg = devm_kzalloc(&pdev->dev, sizeof(struct usb_otg),
-					  GFP_KERNEL);
+									  GFP_KERNEL);
+
 	if (!gpio_vbus->phy.otg)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, gpio_vbus);
 	gpio_vbus->dev = &pdev->dev;
@@ -277,18 +329,25 @@ static int gpio_vbus_probe(struct platform_device *pdev)
 	gpio_vbus->phy.otg->set_peripheral = gpio_vbus_set_peripheral;
 
 	err = devm_gpio_request(&pdev->dev, gpio, "vbus_detect");
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "can't request vbus gpio %d, err: %d\n",
-			gpio, err);
+				gpio, err);
 		return err;
 	}
+
 	gpio_direction_input(gpio);
 
 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-	if (res) {
+
+	if (res)
+	{
 		irq = res->start;
 		irqflags = (res->flags & IRQF_TRIGGER_MASK) | IRQF_SHARED;
-	} else {
+	}
+	else
+	{
 		irq = gpio_to_irq(gpio);
 		irqflags = VBUS_IRQ_FLAGS;
 	}
@@ -297,39 +356,50 @@ static int gpio_vbus_probe(struct platform_device *pdev)
 
 	/* if data line pullup is in use, initialize it to "not pulling up" */
 	gpio = pdata->gpio_pullup;
-	if (gpio_is_valid(gpio)) {
+
+	if (gpio_is_valid(gpio))
+	{
 		err = devm_gpio_request(&pdev->dev, gpio, "udc_pullup");
-		if (err) {
+
+		if (err)
+		{
 			dev_err(&pdev->dev,
-				"can't request pullup gpio %d, err: %d\n",
-				gpio, err);
+					"can't request pullup gpio %d, err: %d\n",
+					gpio, err);
 			return err;
 		}
+
 		gpio_direction_output(gpio, pdata->gpio_pullup_inverted);
 	}
 
 	err = devm_request_irq(&pdev->dev, irq, gpio_vbus_irq, irqflags,
-			       "vbus_detect", pdev);
-	if (err) {
+						   "vbus_detect", pdev);
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "can't request irq %i, err: %d\n",
-			irq, err);
+				irq, err);
 		return err;
 	}
 
 	INIT_DELAYED_WORK(&gpio_vbus->work, gpio_vbus_work);
 
 	gpio_vbus->vbus_draw = devm_regulator_get(&pdev->dev, "vbus_draw");
-	if (IS_ERR(gpio_vbus->vbus_draw)) {
+
+	if (IS_ERR(gpio_vbus->vbus_draw))
+	{
 		dev_dbg(&pdev->dev, "can't get vbus_draw regulator, err: %ld\n",
-			PTR_ERR(gpio_vbus->vbus_draw));
+				PTR_ERR(gpio_vbus->vbus_draw));
 		gpio_vbus->vbus_draw = NULL;
 	}
 
 	/* only active when a gadget is registered */
 	err = usb_add_phy(&gpio_vbus->phy, USB_PHY_TYPE_USB2);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "can't register transceiver, err: %d\n",
-			err);
+				err);
 		return err;
 	}
 
@@ -356,7 +426,9 @@ static int gpio_vbus_pm_suspend(struct device *dev)
 	struct gpio_vbus_data *gpio_vbus = dev_get_drvdata(dev);
 
 	if (device_may_wakeup(dev))
+	{
 		enable_irq_wake(gpio_vbus->irq);
+	}
 
 	return 0;
 }
@@ -366,12 +438,15 @@ static int gpio_vbus_pm_resume(struct device *dev)
 	struct gpio_vbus_data *gpio_vbus = dev_get_drvdata(dev);
 
 	if (device_may_wakeup(dev))
+	{
 		disable_irq_wake(gpio_vbus->irq);
+	}
 
 	return 0;
 }
 
-static const struct dev_pm_ops gpio_vbus_dev_pm_ops = {
+static const struct dev_pm_ops gpio_vbus_dev_pm_ops =
+{
 	.suspend	= gpio_vbus_pm_suspend,
 	.resume		= gpio_vbus_pm_resume,
 };
@@ -379,7 +454,8 @@ static const struct dev_pm_ops gpio_vbus_dev_pm_ops = {
 
 MODULE_ALIAS("platform:gpio-vbus");
 
-static struct platform_driver gpio_vbus_driver = {
+static struct platform_driver gpio_vbus_driver =
+{
 	.driver = {
 		.name  = "gpio-vbus",
 #ifdef CONFIG_PM

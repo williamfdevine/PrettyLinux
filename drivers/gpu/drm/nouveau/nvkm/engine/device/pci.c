@@ -24,13 +24,15 @@
 #include <core/pci.h>
 #include "priv.h"
 
-struct nvkm_device_pci_device {
+struct nvkm_device_pci_device
+{
 	u16 device;
 	const char *name;
 	const struct nvkm_device_pci_vendor *vendor;
 };
 
-struct nvkm_device_pci_vendor {
+struct nvkm_device_pci_vendor
+{
 	u16 vendor;
 	u16 device;
 	const char *name;
@@ -38,21 +40,24 @@ struct nvkm_device_pci_vendor {
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0189[] = {
+	nvkm_device_pci_10de_0189[] =
+{
 	/* Apple iMac G4 NV18 */
 	{ 0x10de, 0x0010, NULL, { .tv_gpio = 4 } },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_01f0[] = {
+	nvkm_device_pci_10de_01f0[] =
+{
 	/* MSI nForce2 IGP */
 	{ 0x1462, 0x5710, NULL, { .tv_pin_mask = 0xc } },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0322[] = {
+	nvkm_device_pci_10de_0322[] =
+{
 	/* Zotac FX5200 */
 	{ 0x19da, 0x1035, NULL, { .tv_pin_mask = 0xc } },
 	{ 0x19da, 0x2035, NULL, { .tv_pin_mask = 0xc } },
@@ -60,7 +65,8 @@ nvkm_device_pci_10de_0322[] = {
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_05e7[] = {
+	nvkm_device_pci_10de_05e7[] =
+{
 	{ 0x10de, 0x0595, "Tesla T10 Processor" },
 	{ 0x10de, 0x068f, "Tesla T10 Processor" },
 	{ 0x10de, 0x0697, "Tesla M1060" },
@@ -70,63 +76,73 @@ nvkm_device_pci_10de_05e7[] = {
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0609[] = {
+	nvkm_device_pci_10de_0609[] =
+{
 	{ 0x106b, 0x00a7, "GeForce 8800 GS" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_062e[] = {
+	nvkm_device_pci_10de_062e[] =
+{
 	{ 0x106b, 0x0605, "GeForce GT 130" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0649[] = {
+	nvkm_device_pci_10de_0649[] =
+{
 	{ 0x1043, 0x202d, "GeForce GT 220M" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0652[] = {
+	nvkm_device_pci_10de_0652[] =
+{
 	{ 0x152d, 0x0850, "GeForce GT 240M LE" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0654[] = {
+	nvkm_device_pci_10de_0654[] =
+{
 	{ 0x1043, 0x14a2, "GeForce GT 320M" },
 	{ 0x1043, 0x14d2, "GeForce GT 320M" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0655[] = {
+	nvkm_device_pci_10de_0655[] =
+{
 	{ 0x106b, 0x0633, "GeForce GT 120" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0656[] = {
+	nvkm_device_pci_10de_0656[] =
+{
 	{ 0x106b, 0x0693, "GeForce GT 120" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_06d1[] = {
+	nvkm_device_pci_10de_06d1[] =
+{
 	{ 0x10de, 0x0771, "Tesla C2050" },
 	{ 0x10de, 0x0772, "Tesla C2070" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_06d2[] = {
+	nvkm_device_pci_10de_06d2[] =
+{
 	{ 0x10de, 0x088f, "Tesla X2070" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_06de[] = {
+	nvkm_device_pci_10de_06de[] =
+{
 	{ 0x10de, 0x0773, "Tesla S2050" },
 	{ 0x10de, 0x082f, "Tesla M2050" },
 	{ 0x10de, 0x0840, "Tesla X2070" },
@@ -139,75 +155,87 @@ nvkm_device_pci_10de_06de[] = {
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_06e8[] = {
+	nvkm_device_pci_10de_06e8[] =
+{
 	{ 0x103c, 0x360b, "GeForce 9200M GE" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_06f9[] = {
+	nvkm_device_pci_10de_06f9[] =
+{
 	{ 0x10de, 0x060d, "Quadro FX 370 Low Profile" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_06ff[] = {
+	nvkm_device_pci_10de_06ff[] =
+{
 	{ 0x10de, 0x0711, "HICx8 + Graphics" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0866[] = {
+	nvkm_device_pci_10de_0866[] =
+{
 	{ 0x106b, 0x00b1, "GeForce 9400M" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0872[] = {
+	nvkm_device_pci_10de_0872[] =
+{
 	{ 0x1043, 0x1c42, "GeForce G205M" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0873[] = {
+	nvkm_device_pci_10de_0873[] =
+{
 	{ 0x1043, 0x1c52, "GeForce G205M" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0a6e[] = {
+	nvkm_device_pci_10de_0a6e[] =
+{
 	{ 0x17aa, 0x3607, "Second Generation ION" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0a70[] = {
+	nvkm_device_pci_10de_0a70[] =
+{
 	{ 0x17aa, 0x3605, "Second Generation ION" },
 	{ 0x17aa, 0x3617, "Second Generation ION" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0a73[] = {
+	nvkm_device_pci_10de_0a73[] =
+{
 	{ 0x17aa, 0x3607, "Second Generation ION" },
 	{ 0x17aa, 0x3610, "Second Generation ION" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0a74[] = {
+	nvkm_device_pci_10de_0a74[] =
+{
 	{ 0x17aa, 0x903a, "GeForce G210" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0a75[] = {
+	nvkm_device_pci_10de_0a75[] =
+{
 	{ 0x17aa, 0x3605, "Second Generation ION" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0a7a[] = {
+	nvkm_device_pci_10de_0a7a[] =
+{
 	{ 0x1462, 0xaa51, "GeForce 405" },
 	{ 0x1462, 0xaa58, "GeForce 405" },
 	{ 0x1462, 0xac71, "GeForce 405" },
@@ -222,13 +250,15 @@ nvkm_device_pci_10de_0a7a[] = {
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0dd8[] = {
+	nvkm_device_pci_10de_0dd8[] =
+{
 	{ 0x10de, 0x0914, "Quadro 2000D" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0de9[] = {
+	nvkm_device_pci_10de_0de9[] =
+{
 	{ 0x1025, 0x0692, "GeForce GT 620M" },
 	{ 0x1025, 0x0725, "GeForce GT 620M" },
 	{ 0x1025, 0x0728, "GeForce GT 620M" },
@@ -242,7 +272,8 @@ nvkm_device_pci_10de_0de9[] = {
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0dea[] = {
+	nvkm_device_pci_10de_0dea[] =
+{
 	{ 0x17aa, 0x365a, "GeForce 615" },
 	{ 0x17aa, 0x365b, "GeForce 615" },
 	{ 0x17aa, 0x365e, "GeForce 615" },
@@ -252,28 +283,32 @@ nvkm_device_pci_10de_0dea[] = {
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0df4[] = {
+	nvkm_device_pci_10de_0df4[] =
+{
 	{ 0x152d, 0x0952, "GeForce GT 630M" },
 	{ 0x152d, 0x0953, "GeForce GT 630M" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0fd2[] = {
+	nvkm_device_pci_10de_0fd2[] =
+{
 	{ 0x1028, 0x0595, "GeForce GT 640M LE" },
 	{ 0x1028, 0x05b2, "GeForce GT 640M LE" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_0fe3[] = {
+	nvkm_device_pci_10de_0fe3[] =
+{
 	{ 0x103c, 0x2b16, "GeForce GT 745A" },
 	{ 0x17aa, 0x3675, "GeForce GT 745A" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_104b[] = {
+	nvkm_device_pci_10de_104b[] =
+{
 	{ 0x1043, 0x844c, "GeForce GT 625" },
 	{ 0x1043, 0x846b, "GeForce GT 625" },
 	{ 0x1462, 0xb590, "GeForce GT 625" },
@@ -283,7 +318,8 @@ nvkm_device_pci_10de_104b[] = {
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_1058[] = {
+	nvkm_device_pci_10de_1058[] =
+{
 	{ 0x103c, 0x2af1, "GeForce 610" },
 	{ 0x17aa, 0x3682, "GeForce 800A" },
 	{ 0x17aa, 0x3692, "GeForce 705A" },
@@ -296,14 +332,16 @@ nvkm_device_pci_10de_1058[] = {
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_105b[] = {
+	nvkm_device_pci_10de_105b[] =
+{
 	{ 0x103c, 0x2afb, "GeForce 705A" },
 	{ 0x17aa, 0x36a1, "GeForce 800A" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_1091[] = {
+	nvkm_device_pci_10de_1091[] =
+{
 	{ 0x10de, 0x088e, "Tesla X2090" },
 	{ 0x10de, 0x0891, "Tesla X2090" },
 	{ 0x10de, 0x0974, "Tesla X2090" },
@@ -312,13 +350,15 @@ nvkm_device_pci_10de_1091[] = {
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_1096[] = {
+	nvkm_device_pci_10de_1096[] =
+{
 	{ 0x10de, 0x0911, "Tesla C2050" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_1140[] = {
+	nvkm_device_pci_10de_1140[] =
+{
 	{ 0x1019, 0x999f, "GeForce GT 720M" },
 	{ 0x1025, 0x0600, "GeForce GT 620M" },
 	{ 0x1025, 0x0606, "GeForce GT 620M" },
@@ -664,31 +704,36 @@ nvkm_device_pci_10de_1140[] = {
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_1185[] = {
+	nvkm_device_pci_10de_1185[] =
+{
 	{ 0x10de, 0x106f, "GeForce GTX 760" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_1189[] = {
+	nvkm_device_pci_10de_1189[] =
+{
 	{ 0x10de, 0x1074, "GeForce GTX 760 Ti OEM" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_1199[] = {
+	nvkm_device_pci_10de_1199[] =
+{
 	{ 0x1458, 0xd001, "GeForce GTX 760" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_11e3[] = {
+	nvkm_device_pci_10de_11e3[] =
+{
 	{ 0x17aa, 0x3683, "GeForce GTX 760A" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_1247[] = {
+	nvkm_device_pci_10de_1247[] =
+{
 	{ 0x1043, 0x212a, "GeForce GT 635M" },
 	{ 0x1043, 0x212b, "GeForce GT 635M" },
 	{ 0x1043, 0x212c, "GeForce GT 635M" },
@@ -696,19 +741,22 @@ nvkm_device_pci_10de_1247[] = {
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_124d[] = {
+	nvkm_device_pci_10de_124d[] =
+{
 	{ 0x1462, 0x10cc, "GeForce GT 635M" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_1290[] = {
+	nvkm_device_pci_10de_1290[] =
+{
 	{ 0x103c, 0x2afa, "GeForce 730A" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_1292[] = {
+	nvkm_device_pci_10de_1292[] =
+{
 	{ 0x17aa, 0x3675, "GeForce GT 740A" },
 	{ 0x17aa, 0x367c, "GeForce GT 740A" },
 	{ 0x17aa, 0x3684, "GeForce GT 740A" },
@@ -716,7 +764,8 @@ nvkm_device_pci_10de_1292[] = {
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_1295[] = {
+	nvkm_device_pci_10de_1295[] =
+{
 	{ 0x103c, 0x2b0d, "GeForce 710A" },
 	{ 0x103c, 0x2b0f, "GeForce 710A" },
 	{ 0x103c, 0x2b20, "GeForce 810A" },
@@ -725,19 +774,22 @@ nvkm_device_pci_10de_1295[] = {
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_1299[] = {
+	nvkm_device_pci_10de_1299[] =
+{
 	{ 0x17aa, 0x369b, "GeForce 920A" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_1340[] = {
+	nvkm_device_pci_10de_1340[] =
+{
 	{ 0x103c, 0x2b2b, "GeForce 830A" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_1341[] = {
+	nvkm_device_pci_10de_1341[] =
+{
 	{ 0x17aa, 0x3697, "GeForce 840A" },
 	{ 0x17aa, 0x3699, "GeForce 840A" },
 	{ 0x17aa, 0x369c, "GeForce 840A" },
@@ -746,59 +798,68 @@ nvkm_device_pci_10de_1341[] = {
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_1346[] = {
+	nvkm_device_pci_10de_1346[] =
+{
 	{ 0x17aa, 0x30ba, "GeForce 930A" },
 	{ 0x17aa, 0x362c, "GeForce 930A" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_1347[] = {
+	nvkm_device_pci_10de_1347[] =
+{
 	{ 0x17aa, 0x36b9, "GeForce 940A" },
 	{ 0x17aa, 0x36ba, "GeForce 940A" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_137a[] = {
+	nvkm_device_pci_10de_137a[] =
+{
 	{ 0x17aa, 0x2225, "Quadro K620M" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_137d[] = {
+	nvkm_device_pci_10de_137d[] =
+{
 	{ 0x17aa, 0x3699, "GeForce 940A" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_1391[] = {
+	nvkm_device_pci_10de_1391[] =
+{
 	{ 0x17aa, 0x3697, "GeForce GTX 850A" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_1392[] = {
+	nvkm_device_pci_10de_1392[] =
+{
 	{ 0x1028, 0x066a, "GeForce GPU" },
 	{ 0x1043, 0x861e, "GeForce GTX 750 Ti" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_139a[] = {
+	nvkm_device_pci_10de_139a[] =
+{
 	{ 0x17aa, 0x36b9, "GeForce GTX 950A" },
 	{}
 };
 
 static const struct nvkm_device_pci_vendor
-nvkm_device_pci_10de_139b[] = {
+	nvkm_device_pci_10de_139b[] =
+{
 	{ 0x1028, 0x06a3, "GeForce GTX 860M" },
 	{ 0x19da, 0xc248, "GeForce GTX 750 Ti" },
 	{}
 };
 
 static const struct nvkm_device_pci_device
-nvkm_device_pci_10de[] = {
+	nvkm_device_pci_10de[] =
+{
 	{ 0x0020, "RIVA TNT" },
 	{ 0x0028, "RIVA TNT2/TNT2 Pro" },
 	{ 0x0029, "RIVA TNT2 Ultra" },
@@ -1578,7 +1639,9 @@ static void
 nvkm_device_pci_fini(struct nvkm_device *device, bool suspend)
 {
 	struct nvkm_device_pci *pdev = nvkm_device_pci(device);
-	if (suspend) {
+
+	if (suspend)
+	{
 		pci_disable_device(pdev->pdev);
 		pdev->suspend = true;
 	}
@@ -1588,13 +1651,20 @@ static int
 nvkm_device_pci_preinit(struct nvkm_device *device)
 {
 	struct nvkm_device_pci *pdev = nvkm_device_pci(device);
-	if (pdev->suspend) {
+
+	if (pdev->suspend)
+	{
 		int ret = pci_enable_device(pdev->pdev);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		pci_set_master(pdev->pdev);
 		pdev->suspend = false;
 	}
+
 	return 0;
 }
 
@@ -1607,7 +1677,8 @@ nvkm_device_pci_dtor(struct nvkm_device *device)
 }
 
 static const struct nvkm_device_func
-nvkm_device_pci_func = {
+	nvkm_device_pci_func =
+{
 	.pci = nvkm_device_pci,
 	.dtor = nvkm_device_pci_dtor,
 	.preinit = nvkm_device_pci_preinit,
@@ -1619,8 +1690,8 @@ nvkm_device_pci_func = {
 
 int
 nvkm_device_pci_new(struct pci_dev *pci_dev, const char *cfg, const char *dbg,
-		    bool detect, bool mmio, u64 subdev_mask,
-		    struct nvkm_device **pdevice)
+					bool detect, bool mmio, u64 subdev_mask,
+					struct nvkm_device **pdevice)
 {
 	const struct nvkm_device_quirk *quirk = NULL;
 	const struct nvkm_device_pci_device *pcid;
@@ -1630,49 +1701,66 @@ nvkm_device_pci_new(struct pci_dev *pci_dev, const char *cfg, const char *dbg,
 	int ret;
 
 	ret = pci_enable_device(pci_dev);
-	if (ret)
-		return ret;
 
-	switch (pci_dev->vendor) {
-	case 0x10de: pcid = nvkm_device_pci_10de; break;
-	default:
-		pcid = NULL;
-		break;
+	if (ret)
+	{
+		return ret;
 	}
 
-	while (pcid && pcid->device) {
-		if (pciv = pcid->vendor, pcid->device == pci_dev->device) {
-			while (pciv && pciv->vendor) {
+	switch (pci_dev->vendor)
+	{
+		case 0x10de: pcid = nvkm_device_pci_10de; break;
+
+		default:
+			pcid = NULL;
+			break;
+	}
+
+	while (pcid && pcid->device)
+	{
+		if (pciv = pcid->vendor, pcid->device == pci_dev->device)
+		{
+			while (pciv && pciv->vendor)
+			{
 				if (pciv->vendor == pci_dev->subsystem_vendor &&
-				    pciv->device == pci_dev->subsystem_device) {
+					pciv->device == pci_dev->subsystem_device)
+				{
 					quirk = &pciv->quirk;
 					name  =  pciv->name;
 					break;
 				}
+
 				pciv++;
 			}
+
 			if (!name)
+			{
 				name = pcid->name;
+			}
+
 			break;
 		}
+
 		pcid++;
 	}
 
-	if (!(pdev = kzalloc(sizeof(*pdev), GFP_KERNEL))) {
+	if (!(pdev = kzalloc(sizeof(*pdev), GFP_KERNEL)))
+	{
 		pci_disable_device(pci_dev);
 		return -ENOMEM;
 	}
+
 	*pdevice = &pdev->device;
 	pdev->pdev = pci_dev;
 
 	return nvkm_device_ctor(&nvkm_device_pci_func, quirk, &pci_dev->dev,
-				pci_is_pcie(pci_dev) ? NVKM_DEVICE_PCIE :
-				pci_find_capability(pci_dev, PCI_CAP_ID_AGP) ?
-				NVKM_DEVICE_AGP : NVKM_DEVICE_PCI,
-				(u64)pci_domain_nr(pci_dev->bus) << 32 |
-				     pci_dev->bus->number << 16 |
-				     PCI_SLOT(pci_dev->devfn) << 8 |
-				     PCI_FUNC(pci_dev->devfn), name,
-				cfg, dbg, detect, mmio, subdev_mask,
-				&pdev->device);
+							pci_is_pcie(pci_dev) ? NVKM_DEVICE_PCIE :
+							pci_find_capability(pci_dev, PCI_CAP_ID_AGP) ?
+							NVKM_DEVICE_AGP : NVKM_DEVICE_PCI,
+							(u64)pci_domain_nr(pci_dev->bus) << 32 |
+							pci_dev->bus->number << 16 |
+							PCI_SLOT(pci_dev->devfn) << 8 |
+							PCI_FUNC(pci_dev->devfn), name,
+							cfg, dbg, detect, mmio, subdev_mask,
+							&pdev->device);
 }

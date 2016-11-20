@@ -24,13 +24,13 @@
 #define CFI_BIG_ENDIAN 3
 
 #if !defined(CONFIG_MTD_CFI_ADV_OPTIONS) || defined(CONFIG_MTD_CFI_NOSWAP)
-#define CFI_DEFAULT_ENDIAN CFI_HOST_ENDIAN
+	#define CFI_DEFAULT_ENDIAN CFI_HOST_ENDIAN
 #elif defined(CONFIG_MTD_CFI_LE_BYTE_SWAP)
-#define CFI_DEFAULT_ENDIAN CFI_LITTLE_ENDIAN
+	#define CFI_DEFAULT_ENDIAN CFI_LITTLE_ENDIAN
 #elif defined(CONFIG_MTD_CFI_BE_BYTE_SWAP)
-#define CFI_DEFAULT_ENDIAN CFI_BIG_ENDIAN
+	#define CFI_DEFAULT_ENDIAN CFI_BIG_ENDIAN
 #else
-#error No CFI endianness defined
+	#error No CFI endianness defined
 #endif
 
 #define cfi_default(s) ((s)?:CFI_DEFAULT_ENDIAN)

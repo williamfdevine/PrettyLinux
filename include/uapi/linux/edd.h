@@ -68,7 +68,8 @@
 #define EDD_INFO_NO_MEDIA_PRESENT              (1 << 6)
 #define EDD_INFO_USE_INT13_FN50                (1 << 7)
 
-struct edd_device_params {
+struct edd_device_params
+{
 	__u16 length;
 	__u16 info_flags;
 	__u32 num_default_cylinders;
@@ -83,13 +84,16 @@ struct edd_device_params {
 	__u16 reserved3;
 	__u8 host_bus_type[4];
 	__u8 interface_type[8];
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__u16 base_address;
 			__u16 reserved1;
 			__u32 reserved2;
 		} __attribute__ ((packed)) isa;
-		struct {
+		struct
+		{
 			__u8 bus;
 			__u8 slot;
 			__u8 function;
@@ -97,28 +101,35 @@ struct edd_device_params {
 			__u32 reserved;
 		} __attribute__ ((packed)) pci;
 		/* pcix is same as pci */
-		struct {
+		struct
+		{
 			__u64 reserved;
 		} __attribute__ ((packed)) ibnd;
-		struct {
+		struct
+		{
 			__u64 reserved;
 		} __attribute__ ((packed)) xprs;
-		struct {
+		struct
+		{
 			__u64 reserved;
 		} __attribute__ ((packed)) htpt;
-		struct {
+		struct
+		{
 			__u64 reserved;
 		} __attribute__ ((packed)) unknown;
 	} interface_path;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__u8 device;
 			__u8 reserved1;
 			__u16 reserved2;
 			__u32 reserved3;
 			__u64 reserved4;
 		} __attribute__ ((packed)) ata;
-		struct {
+		struct
+		{
 			__u8 device;
 			__u8 lun;
 			__u8 reserved1;
@@ -126,41 +137,49 @@ struct edd_device_params {
 			__u32 reserved3;
 			__u64 reserved4;
 		} __attribute__ ((packed)) atapi;
-		struct {
+		struct
+		{
 			__u16 id;
 			__u64 lun;
 			__u16 reserved1;
 			__u32 reserved2;
 		} __attribute__ ((packed)) scsi;
-		struct {
+		struct
+		{
 			__u64 serial_number;
 			__u64 reserved;
 		} __attribute__ ((packed)) usb;
-		struct {
+		struct
+		{
 			__u64 eui;
 			__u64 reserved;
 		} __attribute__ ((packed)) i1394;
-		struct {
+		struct
+		{
 			__u64 wwid;
 			__u64 lun;
 		} __attribute__ ((packed)) fibre;
-		struct {
+		struct
+		{
 			__u64 identity_tag;
 			__u64 reserved;
 		} __attribute__ ((packed)) i2o;
-		struct {
+		struct
+		{
 			__u32 array_number;
 			__u32 reserved1;
 			__u64 reserved2;
 		} __attribute__ ((packed)) raid;
-		struct {
+		struct
+		{
 			__u8 device;
 			__u8 reserved1;
 			__u16 reserved2;
 			__u32 reserved3;
 			__u64 reserved4;
 		} __attribute__ ((packed)) sata;
-		struct {
+		struct
+		{
 			__u64 reserved1;
 			__u64 reserved2;
 		} __attribute__ ((packed)) unknown;
@@ -169,7 +188,8 @@ struct edd_device_params {
 	__u8 checksum;
 } __attribute__ ((packed));
 
-struct edd_info {
+struct edd_info
+{
 	__u8 device;
 	__u8 version;
 	__u16 interface_support;
@@ -179,7 +199,8 @@ struct edd_info {
 	struct edd_device_params params;
 } __attribute__ ((packed));
 
-struct edd {
+struct edd
+{
 	unsigned int mbr_signature[EDD_MBR_SIG_MAX];
 	struct edd_info edd_info[EDDMAXNR];
 	unsigned char mbr_signature_nr;

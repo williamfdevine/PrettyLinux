@@ -53,7 +53,8 @@ struct assoc_array_ptr;
  * The segments correspond to levels of the tree (the first segment is used at
  * level 0, the second at level 1, etc.).
  */
-struct assoc_array_node {
+struct assoc_array_node
+{
 	struct assoc_array_ptr	*back_pointer;
 	u8			parent_slot;
 	struct assoc_array_ptr	*slots[ASSOC_ARRAY_FAN_OUT];
@@ -64,7 +65,8 @@ struct assoc_array_node {
  * A shortcut through the index space out to where a collection of nodes/leaves
  * with the same IDs live.
  */
-struct assoc_array_shortcut {
+struct assoc_array_shortcut
+{
 	struct assoc_array_ptr	*back_pointer;
 	int			parent_slot;
 	int			skip_to_level;
@@ -75,7 +77,8 @@ struct assoc_array_shortcut {
 /*
  * Preallocation cache.
  */
-struct assoc_array_edit {
+struct assoc_array_edit
+{
 	struct rcu_head			rcu;
 	struct assoc_array		*array;
 	const struct assoc_array_ops	*ops;
@@ -90,11 +93,13 @@ struct assoc_array_edit {
 	struct assoc_array_ptr		*set_backpointers_to;
 	struct assoc_array_node		*adjust_count_on;
 	long				adjust_count_by;
-	struct {
+	struct
+	{
 		struct assoc_array_ptr	**ptr;
 		struct assoc_array_ptr	*to;
 	} set[2];
-	struct {
+	struct
+	{
 		u8			*p;
 		u8			to;
 	} set_parent_slot[1];
@@ -142,7 +147,7 @@ static inline
 unsigned long __assoc_array_ptr_to_meta(const struct assoc_array_ptr *x)
 {
 	return (unsigned long)x &
-		~(ASSOC_ARRAY_PTR_SUBTYPE_MASK | ASSOC_ARRAY_PTR_TYPE_MASK);
+		   ~(ASSOC_ARRAY_PTR_SUBTYPE_MASK | ASSOC_ARRAY_PTR_TYPE_MASK);
 }
 static inline
 struct assoc_array_node *assoc_array_ptr_to_node(const struct assoc_array_ptr *x)
@@ -169,13 +174,13 @@ static inline
 struct assoc_array_ptr *assoc_array_node_to_ptr(const struct assoc_array_node *p)
 {
 	return __assoc_array_x_to_ptr(
-		p, ASSOC_ARRAY_PTR_META_TYPE | ASSOC_ARRAY_PTR_NODE_SUBTYPE);
+			   p, ASSOC_ARRAY_PTR_META_TYPE | ASSOC_ARRAY_PTR_NODE_SUBTYPE);
 }
 static inline
 struct assoc_array_ptr *assoc_array_shortcut_to_ptr(const struct assoc_array_shortcut *p)
 {
 	return __assoc_array_x_to_ptr(
-		p, ASSOC_ARRAY_PTR_META_TYPE | ASSOC_ARRAY_PTR_SHORTCUT_SUBTYPE);
+			   p, ASSOC_ARRAY_PTR_META_TYPE | ASSOC_ARRAY_PTR_SHORTCUT_SUBTYPE);
 }
 
 #endif /* CONFIG_ASSOCIATIVE_ARRAY */

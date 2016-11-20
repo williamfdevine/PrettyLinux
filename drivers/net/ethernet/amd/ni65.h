@@ -86,7 +86,8 @@
 #define XMIT_UFLO 	0x4000	/* Underflow (late memory) */
 #define XMIT_BUFF 	0x8000	/* Buffering error (no ENP) */
 
-struct init_block {
+struct init_block
+{
 	unsigned short mode;
 	unsigned char eaddr[6];
 	unsigned char filter[8];
@@ -96,10 +97,13 @@ struct init_block {
 	u32 trp;		/* transmit ring pointer (align 8) */
 };
 
-struct rmd {			/* Receive Message Descriptor */
-	union {
+struct rmd  			/* Receive Message Descriptor */
+{
+	union
+	{
 		volatile u32 buffer;
-		struct {
+		struct
+		{
 			volatile unsigned char dummy[3];
 			volatile unsigned char status;
 		} s;
@@ -108,10 +112,13 @@ struct rmd {			/* Receive Message Descriptor */
 	volatile unsigned short mlen;
 };
 
-struct tmd {
-	union {
+struct tmd
+{
+	union
+	{
 		volatile u32 buffer;
-		struct {
+		struct
+		{
 			volatile unsigned char dummy[3];
 			volatile unsigned char status;
 		} s;

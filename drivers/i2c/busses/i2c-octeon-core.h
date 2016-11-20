@@ -89,7 +89,8 @@
 #define I2C_OCTEON_EVENT_WAIT 80 /* microseconds */
 
 /* Register offsets */
-struct octeon_i2c_reg_offset {
+struct octeon_i2c_reg_offset
+{
 	unsigned int sw_twsi;
 	unsigned int twsi_int;
 	unsigned int sw_twsi_ext;
@@ -99,7 +100,8 @@ struct octeon_i2c_reg_offset {
 #define TWSI_INT(x)	(x->roff.twsi_int)
 #define SW_TWSI_EXT(x)	(x->roff.sw_twsi_ext)
 
-struct octeon_i2c {
+struct octeon_i2c
+{
 	wait_queue_head_t queue;
 	struct i2c_adapter adap;
 	struct octeon_i2c_reg_offset roff;
@@ -147,7 +149,7 @@ static inline void octeon_i2c_reg_write(struct octeon_i2c *i2c, u64 eop_reg, u8 
 	__raw_writeq(SW_TWSI_V | eop_reg | data, i2c->twsi_base + SW_TWSI(i2c));
 
 	readq_poll_timeout(i2c->twsi_base + SW_TWSI(i2c), tmp, tmp & SW_TWSI_V,
-			   I2C_OCTEON_EVENT_WAIT, i2c->adap.timeout);
+					   I2C_OCTEON_EVENT_WAIT, i2c->adap.timeout);
 }
 
 #define octeon_i2c_ctl_write(i2c, val)					\
@@ -165,7 +167,7 @@ static inline void octeon_i2c_reg_write(struct octeon_i2c *i2c, u64 eop_reg, u8 
  * The I2C core registers are accessed indirectly via the SW_TWSI CSR.
  */
 static inline int octeon_i2c_reg_read(struct octeon_i2c *i2c, u64 eop_reg,
-				      int *error)
+									  int *error)
 {
 	u64 tmp;
 	int ret;
@@ -173,10 +175,14 @@ static inline int octeon_i2c_reg_read(struct octeon_i2c *i2c, u64 eop_reg,
 	__raw_writeq(SW_TWSI_V | eop_reg | SW_TWSI_R, i2c->twsi_base + SW_TWSI(i2c));
 
 	ret = readq_poll_timeout(i2c->twsi_base + SW_TWSI(i2c), tmp,
-				 tmp & SW_TWSI_V, I2C_OCTEON_EVENT_WAIT,
-				 i2c->adap.timeout);
+							 tmp & SW_TWSI_V, I2C_OCTEON_EVENT_WAIT,
+							 i2c->adap.timeout);
+
 	if (error)
+	{
 		*error = ret;
+	}
+
 	return tmp & 0xFF;
 }
 

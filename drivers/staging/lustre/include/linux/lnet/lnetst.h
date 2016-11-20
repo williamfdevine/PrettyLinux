@@ -68,14 +68,16 @@
 #define LSTIO_BATCH_QUERY	0xC27	/* query batch status */
 #define LSTIO_STAT_QUERY	0xC30	/* get stats */
 
-typedef struct {
+typedef struct
+{
 	lnet_nid_t	ses_nid;	/* nid of console node */
 	__u64		ses_stamp;	/* time stamp */
 } lst_sid_t;				/*** session id */
 
 extern lst_sid_t LST_INVALID_SID;
 
-typedef struct {
+typedef struct
+{
 	__u64	bat_id;		/* unique id in session */
 } lst_bid_t;			/*** batch id (group of tests) */
 
@@ -85,12 +87,14 @@ typedef struct {
 #define LST_NODE_DOWN		0x4	/* node is down */
 #define LST_NODE_UNKNOWN	0x8	/* node not in session */
 
-typedef struct {
+typedef struct
+{
 	lnet_process_id_t       nde_id;		/* id of node */
 	int			nde_state;	/* state of node */
 } lstcon_node_ent_t;		/*** node entry, for list_group command */
 
-typedef struct {
+typedef struct
+{
 	int	nle_nnode;	/* # of nodes */
 	int	nle_nactive;	/* # of active nodes */
 	int	nle_nbusy;	/* # of busy nodes */
@@ -98,33 +102,38 @@ typedef struct {
 	int	nle_nunknown;	/* # of unknown nodes */
 } lstcon_ndlist_ent_t;		/*** node_list entry, for list_batch command */
 
-typedef struct {
+typedef struct
+{
 	int	tse_type;       /* test type */
 	int	tse_loop;       /* loop count */
 	int	tse_concur;     /* concurrency of test */
 } lstcon_test_ent_t;		/*** test summary entry, for
 				 *** list_batch command */
 
-typedef struct {
+typedef struct
+{
 	int	bae_state;	/* batch status */
 	int	bae_timeout;	/* batch timeout */
 	int	bae_ntest;	/* # of tests in the batch */
 } lstcon_batch_ent_t;		/*** batch summary entry, for
 				 *** list_batch command */
 
-typedef struct {
+typedef struct
+{
 	lstcon_ndlist_ent_t     tbe_cli_nle;	/* client (group) node_list
 						 * entry */
 	lstcon_ndlist_ent_t     tbe_srv_nle;	/* server (group) node_list
 						 * entry */
-	union {
+	union
+	{
 		lstcon_test_ent_t  tbe_test;	/* test entry */
 		lstcon_batch_ent_t tbe_batch;	/* batch entry */
 	} u;
 } lstcon_test_batch_ent_t;	/*** test/batch verbose information entry,
 				 *** for list_batch command */
 
-typedef struct {
+typedef struct
+{
 	struct list_head	rpe_link;	/* link chain */
 	lnet_process_id_t	rpe_peer;	/* peer's id */
 	struct timeval		rpe_stamp;	/* time stamp of RPC */
@@ -137,7 +146,8 @@ typedef struct {
 	char			rpe_payload[0];	/* private reply payload */
 } lstcon_rpc_ent_t;
 
-typedef struct {
+typedef struct
+{
 	int	trs_rpc_stat[4];	/* RPCs stat (0: total
 						      1: failed
 						      2: finished
@@ -239,7 +249,8 @@ lstcon_statqry_stat_failure(lstcon_trans_stat_t *stat, int inc)
 }
 
 /* create a session */
-typedef struct {
+typedef struct
+{
 	int		 lstio_ses_key;		/* IN: local key */
 	int		 lstio_ses_timeout;	/* IN: session timeout */
 	int		 lstio_ses_force;	/* IN: force create ? */
@@ -251,7 +262,8 @@ typedef struct {
 } lstio_session_new_args_t;
 
 /* query current session */
-typedef struct {
+typedef struct
+{
 	lst_sid_t __user	*lstio_ses_idp;		/* OUT: session id */
 	int __user		*lstio_ses_keyp;	/* OUT: local key */
 	/** OUT: session features */
@@ -262,7 +274,8 @@ typedef struct {
 } lstio_session_info_args_t;
 
 /* delete a session */
-typedef struct {
+typedef struct
+{
 	int			lstio_ses_key;	/* IN: session key */
 } lstio_session_end_args_t;
 
@@ -272,7 +285,8 @@ typedef struct {
 #define LST_OPC_BATCHCLI	4
 #define LST_OPC_BATCHSRV	5
 
-typedef struct {
+typedef struct
+{
 	int			 lstio_dbg_key;		/* IN: session key */
 	int			 lstio_dbg_type;	/* IN: debug
 								session|batch|
@@ -293,13 +307,15 @@ typedef struct {
 								result buffer */
 } lstio_debug_args_t;
 
-typedef struct {
+typedef struct
+{
 	int		 lstio_grp_key;		/* IN: session key */
 	int		 lstio_grp_nmlen;	/* IN: name length */
 	char __user	*lstio_grp_namep;	/* IN: group name */
 } lstio_group_add_args_t;
 
-typedef struct {
+typedef struct
+{
 	int		 lstio_grp_key;		/* IN: session key */
 	int		 lstio_grp_nmlen;	/* IN: name length */
 	char __user	*lstio_grp_namep;	/* IN: group name */
@@ -310,7 +326,8 @@ typedef struct {
 					 * in the group */
 #define LST_GROUP_RMND		3	/* delete nodes from the group */
 
-typedef struct {
+typedef struct
+{
 	int			 lstio_grp_key;		/* IN: session key */
 	int			 lstio_grp_opc;		/* IN: OPC */
 	int			 lstio_grp_args;	/* IN: arguments */
@@ -322,7 +339,8 @@ typedef struct {
 								result buffer */
 } lstio_group_update_args_t;
 
-typedef struct {
+typedef struct
+{
 	int			 lstio_grp_key;		/* IN: session key */
 	int			 lstio_grp_nmlen;	/* IN: name length */
 	char __user		*lstio_grp_namep;	/* IN: group name */
@@ -334,14 +352,16 @@ typedef struct {
 								result buffer */
 } lstio_group_nodes_args_t;
 
-typedef struct {
+typedef struct
+{
 	int	 lstio_grp_key;		/* IN: session key */
 	int	 lstio_grp_idx;		/* IN: group idx */
 	int	 lstio_grp_nmlen;	/* IN: name len */
 	char __user *lstio_grp_namep;	/* OUT: name */
 } lstio_group_list_args_t;
 
-typedef struct {
+typedef struct
+{
 	int			 lstio_grp_key;		/* IN: session key */
 	int			 lstio_grp_nmlen;	/* IN: name len */
 	char __user		*lstio_grp_namep;	/* IN: name */
@@ -354,19 +374,22 @@ typedef struct {
 
 #define LST_DEFAULT_BATCH	"batch"			/* default batch name */
 
-typedef struct {
+typedef struct
+{
 	int	 lstio_bat_key;		/* IN: session key */
 	int	 lstio_bat_nmlen;	/* IN: name length */
 	char __user *lstio_bat_namep;	/* IN: batch name */
 } lstio_batch_add_args_t;
 
-typedef struct {
+typedef struct
+{
 	int	 lstio_bat_key;		/* IN: session key */
 	int	 lstio_bat_nmlen;	/* IN: name length */
 	char __user *lstio_bat_namep;	/* IN: batch name */
 } lstio_batch_del_args_t;
 
-typedef struct {
+typedef struct
+{
 	int			 lstio_bat_key;		/* IN: session key */
 	int			 lstio_bat_timeout;	/* IN: timeout for
 							       the batch */
@@ -376,7 +399,8 @@ typedef struct {
 								result buffer */
 } lstio_batch_run_args_t;
 
-typedef struct {
+typedef struct
+{
 	int			 lstio_bat_key;		/* IN: session key */
 	int			 lstio_bat_force;	/* IN: abort unfinished
 							       test RPC */
@@ -386,7 +410,8 @@ typedef struct {
 								result buffer */
 } lstio_batch_stop_args_t;
 
-typedef struct {
+typedef struct
+{
 	int			 lstio_bat_key;		/* IN: session key */
 	int			 lstio_bat_testidx;	/* IN: test index */
 	int			 lstio_bat_client;	/* IN: we testing
@@ -399,14 +424,16 @@ typedef struct {
 								result buffer */
 } lstio_batch_query_args_t;
 
-typedef struct {
+typedef struct
+{
 	int	 lstio_bat_key;		/* IN: session key */
 	int	 lstio_bat_idx;		/* IN: index */
 	int	 lstio_bat_nmlen;	/* IN: name length */
 	char __user *lstio_bat_namep;	/* IN: batch name */
 } lstio_batch_list_args_t;
 
-typedef struct {
+typedef struct
+{
 	int			 lstio_bat_key;		/* IN: session key */
 	int			 lstio_bat_nmlen;	/* IN: name length */
 	char __user		*lstio_bat_namep;	/* IN: name */
@@ -421,7 +448,8 @@ typedef struct {
 } lstio_batch_info_args_t;
 
 /* add stat in session */
-typedef struct {
+typedef struct
+{
 	int			 lstio_sta_key;		/* IN: session key */
 	int			 lstio_sta_timeout;	/* IN: timeout for
 							       stat request */
@@ -434,7 +462,8 @@ typedef struct {
 								result buffer */
 } lstio_stat_args_t;
 
-typedef enum {
+typedef enum
+{
 	LST_TEST_BULK	= 1,
 	LST_TEST_PING	= 2
 } lst_test_type_t;
@@ -442,7 +471,8 @@ typedef enum {
 /* create a test in a batch */
 #define LST_MAX_CONCUR	1024	/* Max concurrency of test */
 
-typedef struct {
+typedef struct
+{
 	int		  lstio_tes_key;	/* IN: session key */
 	int		  lstio_tes_bat_nmlen;	/* IN: batch name len */
 	char __user	 *lstio_tes_bat_name;	/* IN: batch name */
@@ -474,32 +504,37 @@ typedef struct {
 							result buffer */
 } lstio_test_args_t;
 
-typedef enum {
+typedef enum
+{
 	LST_BRW_READ	= 1,
 	LST_BRW_WRITE	= 2
 } lst_brw_type_t;
 
-typedef enum {
+typedef enum
+{
 	LST_BRW_CHECK_NONE	= 1,
 	LST_BRW_CHECK_SIMPLE	= 2,
 	LST_BRW_CHECK_FULL	= 3
 } lst_brw_flags_t;
 
-typedef struct {
+typedef struct
+{
 	int	blk_opc;	/* bulk operation code */
 	int	blk_size;       /* size (bytes) */
 	int	blk_time;       /* time of running the test*/
 	int	blk_flags;      /* reserved flags */
 } lst_test_bulk_param_t;
 
-typedef struct {
+typedef struct
+{
 	int	png_size;	/* size of ping message */
 	int	png_time;	/* time */
 	int	png_loop;	/* loop */
 	int	png_flags;	/* reserved flags */
 } lst_test_ping_param_t;
 
-typedef struct {
+typedef struct
+{
 	__u32 errors;
 	__u32 rpcs_sent;
 	__u32 rpcs_rcvd;
@@ -509,7 +544,8 @@ typedef struct {
 	__u64 bulk_put;
 } WIRE_ATTR srpc_counters_t;
 
-typedef struct {
+typedef struct
+{
 	/** milliseconds since current session started */
 	__u32 running_ms;
 	__u32 active_batches;

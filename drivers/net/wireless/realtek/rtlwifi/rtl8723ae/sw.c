@@ -112,38 +112,38 @@ int rtl8723e_init_sw_vars(struct ieee80211_hw *hw)
 	rtlpriv->rtlhal.macphymode = SINGLEMAC_SINGLEPHY;
 
 	rtlpci->receive_config = (RCR_APPFCS |
-				  RCR_APP_MIC |
-				  RCR_APP_ICV |
-				  RCR_APP_PHYST_RXFF |
-				  RCR_HTC_LOC_CTRL |
-				  RCR_AMF |
-				  RCR_ACF |
-				  RCR_ADF |
-				  RCR_AICV |
-				  RCR_AB |
-				  RCR_AM |
-				  RCR_APM |
-				  0);
+							  RCR_APP_MIC |
+							  RCR_APP_ICV |
+							  RCR_APP_PHYST_RXFF |
+							  RCR_HTC_LOC_CTRL |
+							  RCR_AMF |
+							  RCR_ACF |
+							  RCR_ADF |
+							  RCR_AICV |
+							  RCR_AB |
+							  RCR_AM |
+							  RCR_APM |
+							  0);
 
 	rtlpci->irq_mask[0] =
-	    (u32) (PHIMR_ROK |
-		   PHIMR_RDU |
-		   PHIMR_VODOK |
-		   PHIMR_VIDOK |
-		   PHIMR_BEDOK |
-		   PHIMR_BKDOK |
-		   PHIMR_MGNTDOK |
-		   PHIMR_HIGHDOK |
-		   PHIMR_C2HCMD |
-		   PHIMR_HISRE_IND |
-		   PHIMR_TSF_BIT32_TOGGLE |
-		   PHIMR_TXBCNOK |
-		   PHIMR_PSTIMEOUT |
-		   0);
+		(u32) (PHIMR_ROK |
+			   PHIMR_RDU |
+			   PHIMR_VODOK |
+			   PHIMR_VIDOK |
+			   PHIMR_BEDOK |
+			   PHIMR_BKDOK |
+			   PHIMR_MGNTDOK |
+			   PHIMR_HIGHDOK |
+			   PHIMR_C2HCMD |
+			   PHIMR_HISRE_IND |
+			   PHIMR_TSF_BIT32_TOGGLE |
+			   PHIMR_TXBCNOK |
+			   PHIMR_PSTIMEOUT |
+			   0);
 
 	rtlpci->irq_mask[1]	=
-		 (u32)(PHIMR_RXFOVW |
-				0);
+		(u32)(PHIMR_RXFOVW |
+			  0);
 
 	/* for debug level */
 	rtlpriv->dbg.global_debuglevel = rtlpriv->cfg->mod_params->debug;
@@ -156,40 +156,57 @@ int rtl8723e_init_sw_vars(struct ieee80211_hw *hw)
 		rtlpriv->cfg->mod_params->sw_crypto;
 	rtlpriv->cfg->mod_params->disable_watchdog =
 		rtlpriv->cfg->mod_params->disable_watchdog;
+
 	if (rtlpriv->cfg->mod_params->disable_watchdog)
+	{
 		pr_info("watchdog disabled\n");
+	}
+
 	rtlpriv->psc.reg_fwctrl_lps = 3;
 	rtlpriv->psc.reg_max_lps_awakeintvl = 5;
 	rtl8723e_init_aspm_vars(hw);
 
 	if (rtlpriv->psc.reg_fwctrl_lps == 1)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_MIN_MODE;
+	}
 	else if (rtlpriv->psc.reg_fwctrl_lps == 2)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_MAX_MODE;
+	}
 	else if (rtlpriv->psc.reg_fwctrl_lps == 3)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_DTIM_MODE;
+	}
 
 	/* for firmware buf */
 	rtlpriv->rtlhal.pfirmware = vzalloc(0x6000);
-	if (!rtlpriv->rtlhal.pfirmware) {
+
+	if (!rtlpriv->rtlhal.pfirmware)
+	{
 		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-			 "Can't alloc buffer for fw.\n");
+				 "Can't alloc buffer for fw.\n");
 		return 1;
 	}
 
 	if (IS_81xxC_VENDOR_UMC_B_CUT(rtlhal->version))
+	{
 		fw_name = "rtlwifi/rtl8723fw_B.bin";
+	}
 
 	rtlpriv->max_fw_size = 0x6000;
 	pr_info("Using firmware %s\n", fw_name);
 	err = request_firmware_nowait(THIS_MODULE, 1, fw_name,
-				      rtlpriv->io.dev, GFP_KERNEL, hw,
-				      rtl_fw_cb);
-	if (err) {
+								  rtlpriv->io.dev, GFP_KERNEL, hw,
+								  rtl_fw_cb);
+
+	if (err)
+	{
 		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-			 "Failed to request firmware!\n");
+				 "Failed to request firmware!\n");
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -197,7 +214,8 @@ void rtl8723e_deinit_sw_vars(struct ieee80211_hw *hw)
 {
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
 
-	if (rtlpriv->rtlhal.pfirmware) {
+	if (rtlpriv->rtlhal.pfirmware)
+	{
 		vfree(rtlpriv->rtlhal.pfirmware);
 		rtlpriv->rtlhal.pfirmware = NULL;
 	}
@@ -214,7 +232,8 @@ static bool is_fw_header(struct rtlwifi_firmware_header *hdr)
 	return (le16_to_cpu(hdr->signature) & 0xfff0) == 0x2300;
 }
 
-static struct rtl_hal_ops rtl8723e_hal_ops = {
+static struct rtl_hal_ops rtl8723e_hal_ops =
+{
 	.init_sw_vars = rtl8723e_init_sw_vars,
 	.deinit_sw_vars = rtl8723e_deinit_sw_vars,
 	.read_eeprom_info = rtl8723e_read_eeprom_info,
@@ -259,13 +278,14 @@ static struct rtl_hal_ops rtl8723e_hal_ops = {
 	.c2h_command_handle = rtl_8723e_c2h_command_handle,
 	.bt_wifi_media_status_notify = rtl_8723e_bt_wifi_media_status_notify,
 	.bt_coex_off_before_lps =
-		rtl8723e_dm_bt_turn_off_bt_coexist_before_enter_lps,
+	rtl8723e_dm_bt_turn_off_bt_coexist_before_enter_lps,
 	.get_btc_status = rtl8723e_get_btc_status,
 	.rx_command_packet = rtl8723e_rx_command_packet,
 	.is_fw_header = is_fw_header,
 };
 
-static struct rtl_mod_params rtl8723e_mod_params = {
+static struct rtl_mod_params rtl8723e_mod_params =
+{
 	.sw_crypto = false,
 	.inactiveps = true,
 	.swctrl_lps = false,
@@ -275,7 +295,8 @@ static struct rtl_mod_params rtl8723e_mod_params = {
 	.disable_watchdog = false,
 };
 
-static const struct rtl_hal_cfg rtl8723e_hal_cfg = {
+static const struct rtl_hal_cfg rtl8723e_hal_cfg =
+{
 	.bar_id = 2,
 	.write_readback = true,
 	.name = "rtl8723e_pci",
@@ -349,7 +370,7 @@ static const struct rtl_hal_cfg rtl8723e_hal_cfg = {
 	.maps[RTL_IMR_VODOK] = PHIMR_VODOK,
 	.maps[RTL_IMR_ROK] = PHIMR_ROK,
 	.maps[RTL_IBSS_INT_MASKS] =
-		(PHIMR_BCNDMAINT0 | PHIMR_TXBCNOK | PHIMR_TXBCNERR),
+	(PHIMR_BCNDMAINT0 | PHIMR_TXBCNOK | PHIMR_TXBCNERR),
 	.maps[RTL_IMR_C2HCMD] = PHIMR_C2HCMD,
 
 
@@ -370,7 +391,8 @@ static const struct rtl_hal_cfg rtl8723e_hal_cfg = {
 	.maps[RTL_RC_HT_RATEMCS15] = DESC92C_RATEMCS15,
 };
 
-static struct pci_device_id rtl8723e_pci_ids[] = {
+static struct pci_device_id rtl8723e_pci_ids[] =
+{
 	{RTL_PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8723, rtl8723e_hal_cfg)},
 	{},
 };
@@ -390,7 +412,7 @@ module_param_named(swlps, rtl8723e_mod_params.swctrl_lps, bool, 0444);
 module_param_named(fwlps, rtl8723e_mod_params.fwctrl_lps, bool, 0444);
 module_param_named(msi, rtl8723e_mod_params.msi_support, bool, 0444);
 module_param_named(disable_watchdog, rtl8723e_mod_params.disable_watchdog,
-		   bool, 0444);
+				   bool, 0444);
 MODULE_PARM_DESC(swenc, "Set to 1 for software crypto (default 0)\n");
 MODULE_PARM_DESC(ips, "Set to 0 to not use link power save (default 1)\n");
 MODULE_PARM_DESC(swlps, "Set to 1 to use SW control power save (default 0)\n");
@@ -401,7 +423,8 @@ MODULE_PARM_DESC(disable_watchdog, "Set to 1 to disable the watchdog (default 0)
 
 static SIMPLE_DEV_PM_OPS(rtlwifi_pm_ops, rtl_pci_suspend, rtl_pci_resume);
 
-static struct pci_driver rtl8723e_driver = {
+static struct pci_driver rtl8723e_driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = rtl8723e_pci_ids,
 	.probe = rtl_pci_probe,

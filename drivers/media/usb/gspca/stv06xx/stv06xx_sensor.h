@@ -40,7 +40,8 @@ extern const struct stv06xx_sensor stv06xx_sensor_hdcs1020;
 extern const struct stv06xx_sensor stv06xx_sensor_pb0100;
 extern const struct stv06xx_sensor stv06xx_sensor_st6422;
 
-struct stv06xx_sensor {
+struct stv06xx_sensor
+{
 	/* Defines the name of a sensor */
 	char name[32];
 
@@ -68,11 +69,11 @@ struct stv06xx_sensor {
 
 	/* Reads a sensor register */
 	int (*read_sensor)(struct sd *sd, const u8 address,
-	      u8 *i2c_data, const u8 len);
+					   u8 *i2c_data, const u8 len);
 
 	/* Writes to a sensor register */
 	int (*write_sensor)(struct sd *sd, const u8 address,
-	      u8 *i2c_data, const u8 len);
+						u8 *i2c_data, const u8 len);
 
 	/* Instructs the sensor to start streaming */
 	int (*start)(struct sd *sd);

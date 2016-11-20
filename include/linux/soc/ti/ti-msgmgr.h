@@ -27,7 +27,8 @@
  * parameters - each message may be 64, 128 bytes long depending
  * on SoC. Client is supposed to be aware of this.
  */
-struct ti_msgmgr_message {
+struct ti_msgmgr_message
+{
 	size_t len;
 	u8 *buf;
 };

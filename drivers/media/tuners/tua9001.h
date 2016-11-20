@@ -28,7 +28,8 @@
  * struct tua9001_platform_data - Platform data for the tua9001 driver
  * @dvb_frontend: DVB frontend.
  */
-struct tua9001_platform_data {
+struct tua9001_platform_data
+{
 	struct dvb_frontend *dvb_frontend;
 };
 

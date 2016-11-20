@@ -24,11 +24,13 @@
 
 static const char mx25_tcq_name[] = "mx25-tcq";
 
-enum mx25_tcq_mode {
+enum mx25_tcq_mode
+{
 	MX25_TS_4WIRE,
 };
 
-struct mx25_tcq_priv {
+struct mx25_tcq_priv
+{
 	struct regmap *regs;
 	struct regmap *core_regs;
 	struct input_dev *idev;
@@ -43,7 +45,8 @@ struct mx25_tcq_priv {
 	struct device *dev;
 };
 
-static struct regmap_config mx25_tcq_regconfig = {
+static struct regmap_config mx25_tcq_regconfig =
+{
 	.fast_io = true,
 	.max_register = 0x5c,
 	.reg_bits = 32,
@@ -51,7 +54,8 @@ static struct regmap_config mx25_tcq_regconfig = {
 	.reg_stride = 4,
 };
 
-static const struct of_device_id mx25_tcq_ids[] = {
+static const struct of_device_id mx25_tcq_ids[] =
+{
 	{ .compatible = "fsl,imx25-tcq", },
 	{ /* Sentinel */ }
 };
@@ -67,7 +71,8 @@ static const struct of_device_id mx25_tcq_ids[] = {
 
 #define MX25_TSC_REPEAT_WAIT 14
 
-enum mx25_adc_configurations {
+enum mx25_adc_configurations
+{
 	MX25_CFG_PRECHARGE = 0,
 	MX25_CFG_TOUCH_DETECT,
 	MX25_CFG_X_MEASUREMENT,
@@ -75,86 +80,86 @@ enum mx25_adc_configurations {
 };
 
 #define MX25_PRECHARGE_VALUE (\
-			MX25_ADCQ_CFG_YPLL_OFF | \
-			MX25_ADCQ_CFG_XNUR_OFF | \
-			MX25_ADCQ_CFG_XPUL_HIGH | \
-			MX25_ADCQ_CFG_REFP_INT | \
-			MX25_ADCQ_CFG_IN_XP | \
-			MX25_ADCQ_CFG_REFN_NGND2 | \
-			MX25_ADCQ_CFG_IGS)
+							  MX25_ADCQ_CFG_YPLL_OFF | \
+							  MX25_ADCQ_CFG_XNUR_OFF | \
+							  MX25_ADCQ_CFG_XPUL_HIGH | \
+							  MX25_ADCQ_CFG_REFP_INT | \
+							  MX25_ADCQ_CFG_IN_XP | \
+							  MX25_ADCQ_CFG_REFN_NGND2 | \
+							  MX25_ADCQ_CFG_IGS)
 
 #define MX25_TOUCH_DETECT_VALUE (\
-			MX25_ADCQ_CFG_YNLR | \
-			MX25_ADCQ_CFG_YPLL_OFF | \
-			MX25_ADCQ_CFG_XNUR_OFF | \
-			MX25_ADCQ_CFG_XPUL_OFF | \
-			MX25_ADCQ_CFG_REFP_INT | \
-			MX25_ADCQ_CFG_IN_XP | \
-			MX25_ADCQ_CFG_REFN_NGND2 | \
-			MX25_ADCQ_CFG_PENIACK)
+								 MX25_ADCQ_CFG_YNLR | \
+								 MX25_ADCQ_CFG_YPLL_OFF | \
+								 MX25_ADCQ_CFG_XNUR_OFF | \
+								 MX25_ADCQ_CFG_XPUL_OFF | \
+								 MX25_ADCQ_CFG_REFP_INT | \
+								 MX25_ADCQ_CFG_IN_XP | \
+								 MX25_ADCQ_CFG_REFN_NGND2 | \
+								 MX25_ADCQ_CFG_PENIACK)
 
 static void imx25_setup_queue_cfgs(struct mx25_tcq_priv *priv,
-				   unsigned int settling_cnt)
+								   unsigned int settling_cnt)
 {
 	u32 precharge_cfg =
-			MX25_PRECHARGE_VALUE |
-			MX25_ADCQ_CFG_SETTLING_TIME(settling_cnt);
+		MX25_PRECHARGE_VALUE |
+		MX25_ADCQ_CFG_SETTLING_TIME(settling_cnt);
 	u32 touch_detect_cfg =
-			MX25_TOUCH_DETECT_VALUE |
-			MX25_ADCQ_CFG_NOS(1) |
-			MX25_ADCQ_CFG_SETTLING_TIME(settling_cnt);
+		MX25_TOUCH_DETECT_VALUE |
+		MX25_ADCQ_CFG_NOS(1) |
+		MX25_ADCQ_CFG_SETTLING_TIME(settling_cnt);
 
 	regmap_write(priv->core_regs, MX25_TSC_TICR, precharge_cfg);
 
 	/* PRECHARGE */
 	regmap_write(priv->regs, MX25_ADCQ_CFG(MX25_CFG_PRECHARGE),
-		     precharge_cfg);
+				 precharge_cfg);
 
 	/* TOUCH_DETECT */
 	regmap_write(priv->regs, MX25_ADCQ_CFG(MX25_CFG_TOUCH_DETECT),
-		     touch_detect_cfg);
+				 touch_detect_cfg);
 
 	/* X Measurement */
 	regmap_write(priv->regs, MX25_ADCQ_CFG(MX25_CFG_X_MEASUREMENT),
-		     MX25_ADCQ_CFG_YPLL_OFF |
-		     MX25_ADCQ_CFG_XNUR_LOW |
-		     MX25_ADCQ_CFG_XPUL_HIGH |
-		     MX25_ADCQ_CFG_REFP_XP |
-		     MX25_ADCQ_CFG_IN_YP |
-		     MX25_ADCQ_CFG_REFN_XN |
-		     MX25_ADCQ_CFG_NOS(priv->sample_count) |
-		     MX25_ADCQ_CFG_SETTLING_TIME(settling_cnt));
+				 MX25_ADCQ_CFG_YPLL_OFF |
+				 MX25_ADCQ_CFG_XNUR_LOW |
+				 MX25_ADCQ_CFG_XPUL_HIGH |
+				 MX25_ADCQ_CFG_REFP_XP |
+				 MX25_ADCQ_CFG_IN_YP |
+				 MX25_ADCQ_CFG_REFN_XN |
+				 MX25_ADCQ_CFG_NOS(priv->sample_count) |
+				 MX25_ADCQ_CFG_SETTLING_TIME(settling_cnt));
 
 	/* Y Measurement */
 	regmap_write(priv->regs, MX25_ADCQ_CFG(MX25_CFG_Y_MEASUREMENT),
-		     MX25_ADCQ_CFG_YNLR |
-		     MX25_ADCQ_CFG_YPLL_HIGH |
-		     MX25_ADCQ_CFG_XNUR_OFF |
-		     MX25_ADCQ_CFG_XPUL_OFF |
-		     MX25_ADCQ_CFG_REFP_YP |
-		     MX25_ADCQ_CFG_IN_XP |
-		     MX25_ADCQ_CFG_REFN_YN |
-		     MX25_ADCQ_CFG_NOS(priv->sample_count) |
-		     MX25_ADCQ_CFG_SETTLING_TIME(settling_cnt));
+				 MX25_ADCQ_CFG_YNLR |
+				 MX25_ADCQ_CFG_YPLL_HIGH |
+				 MX25_ADCQ_CFG_XNUR_OFF |
+				 MX25_ADCQ_CFG_XPUL_OFF |
+				 MX25_ADCQ_CFG_REFP_YP |
+				 MX25_ADCQ_CFG_IN_XP |
+				 MX25_ADCQ_CFG_REFN_YN |
+				 MX25_ADCQ_CFG_NOS(priv->sample_count) |
+				 MX25_ADCQ_CFG_SETTLING_TIME(settling_cnt));
 
 	/* Enable the touch detection right now */
 	regmap_write(priv->core_regs, MX25_TSC_TICR, touch_detect_cfg |
-		     MX25_ADCQ_CFG_IGS);
+				 MX25_ADCQ_CFG_IGS);
 }
 
 static int imx25_setup_queue_4wire(struct mx25_tcq_priv *priv,
-				   unsigned settling_cnt, int *items)
+								   unsigned settling_cnt, int *items)
 {
 	imx25_setup_queue_cfgs(priv, settling_cnt);
 
 	/* Setup the conversion queue */
 	regmap_write(priv->regs, MX25_ADCQ_ITEM_7_0,
-		     MX25_ADCQ_ITEM(0, MX25_CFG_PRECHARGE) |
-		     MX25_ADCQ_ITEM(1, MX25_CFG_TOUCH_DETECT) |
-		     MX25_ADCQ_ITEM(2, MX25_CFG_X_MEASUREMENT) |
-		     MX25_ADCQ_ITEM(3, MX25_CFG_Y_MEASUREMENT) |
-		     MX25_ADCQ_ITEM(4, MX25_CFG_PRECHARGE) |
-		     MX25_ADCQ_ITEM(5, MX25_CFG_TOUCH_DETECT));
+				 MX25_ADCQ_ITEM(0, MX25_CFG_PRECHARGE) |
+				 MX25_ADCQ_ITEM(1, MX25_CFG_TOUCH_DETECT) |
+				 MX25_ADCQ_ITEM(2, MX25_CFG_X_MEASUREMENT) |
+				 MX25_ADCQ_ITEM(3, MX25_CFG_Y_MEASUREMENT) |
+				 MX25_ADCQ_ITEM(4, MX25_CFG_PRECHARGE) |
+				 MX25_ADCQ_ITEM(5, MX25_CFG_TOUCH_DETECT));
 
 	/*
 	 * We measure X/Y with 'sample_count' number of samples and execute a
@@ -169,7 +174,7 @@ static int imx25_setup_queue_4wire(struct mx25_tcq_priv *priv,
 static void mx25_tcq_disable_touch_irq(struct mx25_tcq_priv *priv)
 {
 	regmap_update_bits(priv->regs, MX25_ADCQ_CR, MX25_ADCQ_CR_PDMSK,
-			   MX25_ADCQ_CR_PDMSK);
+					   MX25_ADCQ_CR_PDMSK);
 }
 
 static void mx25_tcq_enable_touch_irq(struct mx25_tcq_priv *priv)
@@ -180,7 +185,7 @@ static void mx25_tcq_enable_touch_irq(struct mx25_tcq_priv *priv)
 static void mx25_tcq_disable_fifo_irq(struct mx25_tcq_priv *priv)
 {
 	regmap_update_bits(priv->regs, MX25_ADCQ_MR, MX25_ADCQ_MR_FDRY_IRQ,
-			   MX25_ADCQ_MR_FDRY_IRQ);
+					   MX25_ADCQ_MR_FDRY_IRQ);
 }
 
 static void mx25_tcq_enable_fifo_irq(struct mx25_tcq_priv *priv)
@@ -191,14 +196,14 @@ static void mx25_tcq_enable_fifo_irq(struct mx25_tcq_priv *priv)
 static void mx25_tcq_force_queue_start(struct mx25_tcq_priv *priv)
 {
 	regmap_update_bits(priv->regs, MX25_ADCQ_CR,
-			   MX25_ADCQ_CR_FQS,
-			   MX25_ADCQ_CR_FQS);
+					   MX25_ADCQ_CR_FQS,
+					   MX25_ADCQ_CR_FQS);
 }
 
 static void mx25_tcq_force_queue_stop(struct mx25_tcq_priv *priv)
 {
 	regmap_update_bits(priv->regs, MX25_ADCQ_CR,
-			   MX25_ADCQ_CR_FQS, 0);
+					   MX25_ADCQ_CR_FQS, 0);
 }
 
 static void mx25_tcq_fifo_reset(struct mx25_tcq_priv *priv)
@@ -207,7 +212,7 @@ static void mx25_tcq_fifo_reset(struct mx25_tcq_priv *priv)
 
 	regmap_read(priv->regs, MX25_ADCQ_CR, &tcqcr);
 	regmap_update_bits(priv->regs, MX25_ADCQ_CR, MX25_ADCQ_CR_FRST,
-			   MX25_ADCQ_CR_FRST);
+					   MX25_ADCQ_CR_FRST);
 	regmap_update_bits(priv->regs, MX25_ADCQ_CR, MX25_ADCQ_CR_FRST, 0);
 	regmap_write(priv->regs, MX25_ADCQ_CR, tcqcr);
 }
@@ -225,10 +230,10 @@ static void mx25_tcq_re_enable_touch_detection(struct mx25_tcq_priv *priv)
 
 	/* re-enable the detection right now */
 	regmap_write(priv->core_regs, MX25_TSC_TICR,
-		     MX25_TOUCH_DETECT_VALUE | MX25_ADCQ_CFG_IGS);
+				 MX25_TOUCH_DETECT_VALUE | MX25_ADCQ_CFG_IGS);
 
 	regmap_update_bits(priv->regs, MX25_ADCQ_SR, MX25_ADCQ_SR_PD,
-			   MX25_ADCQ_SR_PD);
+					   MX25_ADCQ_SR_PD);
 
 	/* enable the pen down event to be a source for the interrupt */
 	regmap_update_bits(priv->regs, MX25_ADCQ_MR, MX25_ADCQ_MR_PD_IRQ, 0);
@@ -238,8 +243,8 @@ static void mx25_tcq_re_enable_touch_detection(struct mx25_tcq_priv *priv)
 }
 
 static void mx25_tcq_create_event_for_4wire(struct mx25_tcq_priv *priv,
-					    u32 *sample_buf,
-					    unsigned int samples)
+		u32 *sample_buf,
+		unsigned int samples)
 {
 	unsigned int x_pos = 0;
 	unsigned int y_pos = 0;
@@ -247,37 +252,45 @@ static void mx25_tcq_create_event_for_4wire(struct mx25_tcq_priv *priv,
 	unsigned int touch_post = 0;
 	unsigned int i;
 
-	for (i = 0; i < samples; i++) {
+	for (i = 0; i < samples; i++)
+	{
 		unsigned int index = MX25_ADCQ_FIFO_ID(sample_buf[i]);
 		unsigned int val = MX25_ADCQ_FIFO_DATA(sample_buf[i]);
 
-		switch (index) {
-		case 1:
-			touch_pre = val;
-			break;
-		case 2:
-			x_pos = val;
-			break;
-		case 3:
-			y_pos = val;
-			break;
-		case 5:
-			touch_post = val;
-			break;
-		default:
-			dev_dbg(priv->dev, "Dropped samples because of invalid index %d\n",
-				index);
-			return;
+		switch (index)
+		{
+			case 1:
+				touch_pre = val;
+				break;
+
+			case 2:
+				x_pos = val;
+				break;
+
+			case 3:
+				y_pos = val;
+				break;
+
+			case 5:
+				touch_post = val;
+				break;
+
+			default:
+				dev_dbg(priv->dev, "Dropped samples because of invalid index %d\n",
+						index);
+				return;
 		}
 	}
 
-	if (samples != 0) {
+	if (samples != 0)
+	{
 		/*
 		 * only if both touch measures are below a threshold,
 		 * the position is valid
 		 */
 		if (touch_pre < priv->pen_threshold &&
-		    touch_post < priv->pen_threshold) {
+			touch_post < priv->pen_threshold)
+		{
 			/* valid samples, generate a report */
 			x_pos /= priv->sample_count;
 			y_pos /= priv->sample_count;
@@ -288,8 +301,10 @@ static void mx25_tcq_create_event_for_4wire(struct mx25_tcq_priv *priv,
 
 			/* get next sample */
 			mx25_tcq_enable_fifo_irq(priv);
-		} else if (touch_pre >= priv->pen_threshold &&
-			   touch_post >= priv->pen_threshold) {
+		}
+		else if (touch_pre >= priv->pen_threshold &&
+				 touch_post >= priv->pen_threshold)
+		{
 			/*
 			 * if both samples are invalid,
 			 * generate a release report
@@ -297,7 +312,9 @@ static void mx25_tcq_create_event_for_4wire(struct mx25_tcq_priv *priv,
 			input_report_key(priv->idev, BTN_TOUCH, 0);
 			input_sync(priv->idev);
 			mx25_tcq_re_enable_touch_detection(priv);
-		} else {
+		}
+		else
+		{
 			/*
 			 * if only one of both touch measurements are
 			 * below the threshold, still some bouncing
@@ -327,10 +344,14 @@ static irqreturn_t mx25_tcq_irq_thread(int irq, void *dev_id)
 	samples -= samples % priv->sample_count;
 
 	if (!samples)
+	{
 		return IRQ_HANDLED;
+	}
 
 	for (i = 0; i != samples; ++i)
+	{
 		regmap_read(priv->regs, MX25_ADCQ_FIFO, &sample_buf[i]);
+	}
 
 	mx25_tcq_create_event_for_4wire(priv, sample_buf, samples);
 
@@ -346,24 +367,28 @@ static irqreturn_t mx25_tcq_irq(int irq, void *dev_id)
 	regmap_read(priv->regs, MX25_ADCQ_SR, &stat);
 
 	if (stat & (MX25_ADCQ_SR_FRR | MX25_ADCQ_SR_FUR | MX25_ADCQ_SR_FOR))
+	{
 		mx25_tcq_re_enable_touch_detection(priv);
+	}
 
-	if (stat & MX25_ADCQ_SR_PD) {
+	if (stat & MX25_ADCQ_SR_PD)
+	{
 		mx25_tcq_disable_touch_irq(priv);
 		mx25_tcq_force_queue_start(priv);
 		mx25_tcq_enable_fifo_irq(priv);
 	}
 
-	if (stat & MX25_ADCQ_SR_FDRY) {
+	if (stat & MX25_ADCQ_SR_FDRY)
+	{
 		mx25_tcq_disable_fifo_irq(priv);
 		ret = IRQ_WAKE_THREAD;
 	}
 
 	regmap_update_bits(priv->regs, MX25_ADCQ_SR, MX25_ADCQ_SR_FRR |
-			   MX25_ADCQ_SR_FUR | MX25_ADCQ_SR_FOR |
-			   MX25_ADCQ_SR_PD,
-			   MX25_ADCQ_SR_FRR | MX25_ADCQ_SR_FUR |
-			   MX25_ADCQ_SR_FOR | MX25_ADCQ_SR_PD);
+					   MX25_ADCQ_SR_FUR | MX25_ADCQ_SR_FOR |
+					   MX25_ADCQ_SR_PD,
+					   MX25_ADCQ_SR_FRR | MX25_ADCQ_SR_FUR |
+					   MX25_ADCQ_SR_FOR | MX25_ADCQ_SR_PD);
 
 	return ret;
 }
@@ -388,53 +413,60 @@ static int mx25_tcq_init(struct mx25_tcq_priv *priv)
 
 	/* Reset */
 	regmap_write(priv->regs, MX25_ADCQ_CR,
-		     MX25_ADCQ_CR_QRST | MX25_ADCQ_CR_FRST);
+				 MX25_ADCQ_CR_QRST | MX25_ADCQ_CR_FRST);
 	regmap_update_bits(priv->regs, MX25_ADCQ_CR,
-			   MX25_ADCQ_CR_QRST | MX25_ADCQ_CR_FRST, 0);
+					   MX25_ADCQ_CR_QRST | MX25_ADCQ_CR_FRST, 0);
 
 	/* up to 128 * 8 ADC clocks are possible */
 	if (debounce_cnt > 127)
+	{
 		debounce_cnt = 127;
+	}
 
 	/* up to 255 * 8 ADC clocks are possible */
 	if (settling_cnt > 255)
+	{
 		settling_cnt = 255;
+	}
 
 	error = imx25_setup_queue_4wire(priv, settling_cnt, &itemct);
+
 	if (error)
+	{
 		return error;
+	}
 
 	regmap_update_bits(priv->regs, MX25_ADCQ_CR,
-			   MX25_ADCQ_CR_LITEMID_MASK | MX25_ADCQ_CR_WMRK_MASK,
-			   MX25_ADCQ_CR_LITEMID(itemct - 1) |
-			   MX25_ADCQ_CR_WMRK(priv->expected_samples - 1));
+					   MX25_ADCQ_CR_LITEMID_MASK | MX25_ADCQ_CR_WMRK_MASK,
+					   MX25_ADCQ_CR_LITEMID(itemct - 1) |
+					   MX25_ADCQ_CR_WMRK(priv->expected_samples - 1));
 
 	/* setup debounce count */
 	regmap_update_bits(priv->core_regs, MX25_TSC_TGCR,
-			   MX25_TGCR_PDBTIME_MASK,
-			   MX25_TGCR_PDBTIME(debounce_cnt));
+					   MX25_TGCR_PDBTIME_MASK,
+					   MX25_TGCR_PDBTIME(debounce_cnt));
 
 	/* enable debounce */
 	regmap_update_bits(priv->core_regs, MX25_TSC_TGCR, MX25_TGCR_PDBEN,
-			   MX25_TGCR_PDBEN);
+					   MX25_TGCR_PDBEN);
 	regmap_update_bits(priv->core_regs, MX25_TSC_TGCR, MX25_TGCR_PDEN,
-			   MX25_TGCR_PDEN);
+					   MX25_TGCR_PDEN);
 
 	/* enable the engine on demand */
 	regmap_update_bits(priv->regs, MX25_ADCQ_CR, MX25_ADCQ_CR_QSM_MASK,
-			   MX25_ADCQ_CR_QSM_FQS);
+					   MX25_ADCQ_CR_QSM_FQS);
 
 	/* Enable repeat and repeat wait */
 	regmap_update_bits(priv->regs, MX25_ADCQ_CR,
-			   MX25_ADCQ_CR_RPT | MX25_ADCQ_CR_RWAIT_MASK,
-			   MX25_ADCQ_CR_RPT |
-			   MX25_ADCQ_CR_RWAIT(MX25_TSC_REPEAT_WAIT));
+					   MX25_ADCQ_CR_RPT | MX25_ADCQ_CR_RWAIT_MASK,
+					   MX25_ADCQ_CR_RPT |
+					   MX25_ADCQ_CR_RWAIT(MX25_TSC_REPEAT_WAIT));
 
 	return 0;
 }
 
 static int mx25_tcq_parse_dt(struct platform_device *pdev,
-			     struct mx25_tcq_priv *priv)
+							 struct mx25_tcq_priv *priv)
 {
 	struct device_node *np = pdev->dev.of_node;
 	u32 wires;
@@ -447,14 +479,19 @@ static int mx25_tcq_parse_dt(struct platform_device *pdev,
 	priv->settling_time = 250000;
 
 	error = of_property_read_u32(np, "fsl,wires", &wires);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "Failed to find fsl,wires properties\n");
 		return error;
 	}
 
-	if (wires == 4) {
+	if (wires == 4)
+	{
 		priv->mode = MX25_TS_4WIRE;
-	} else {
+	}
+	else
+	{
 		dev_err(&pdev->dev, "%u-wire mode not supported\n", wires);
 		return -EINVAL;
 	}
@@ -474,13 +511,17 @@ static int mx25_tcq_open(struct input_dev *idev)
 	int error;
 
 	error = clk_prepare_enable(priv->clk);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(dev, "Failed to enable ipg clock\n");
 		return error;
 	}
 
 	error = mx25_tcq_init(priv);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(dev, "Failed to init tcq\n");
 		clk_disable_unprepare(priv->clk);
 		return error;
@@ -512,33 +553,49 @@ static int mx25_tcq_probe(struct platform_device *pdev)
 	int error;
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
+
 	priv->dev = dev;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mem = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(mem))
+	{
 		return PTR_ERR(mem);
+	}
 
 	error = mx25_tcq_parse_dt(pdev, priv);
+
 	if (error)
+	{
 		return error;
+	}
 
 	priv->regs = devm_regmap_init_mmio(dev, mem, &mx25_tcq_regconfig);
-	if (IS_ERR(priv->regs)) {
+
+	if (IS_ERR(priv->regs))
+	{
 		dev_err(dev, "Failed to initialize regmap\n");
 		return PTR_ERR(priv->regs);
 	}
 
 	priv->irq = platform_get_irq(pdev, 0);
-	if (priv->irq <= 0) {
+
+	if (priv->irq <= 0)
+	{
 		dev_err(dev, "Failed to get IRQ\n");
 		return priv->irq;
 	}
 
 	idev = devm_input_allocate_device(dev);
-	if (!idev) {
+
+	if (!idev)
+	{
 		dev_err(dev, "Failed to allocate input device\n");
 		return -ENOMEM;
 	}
@@ -556,25 +613,35 @@ static int mx25_tcq_probe(struct platform_device *pdev)
 	input_set_drvdata(idev, priv);
 
 	priv->core_regs = tsadc->regs;
+
 	if (!priv->core_regs)
+	{
 		return -EINVAL;
+	}
 
 	priv->clk = tsadc->clk;
+
 	if (!priv->clk)
+	{
 		return -EINVAL;
+	}
 
 	platform_set_drvdata(pdev, priv);
 
 	error = devm_request_threaded_irq(dev, priv->irq, mx25_tcq_irq,
-					  mx25_tcq_irq_thread, 0, pdev->name,
-					  priv);
-	if (error) {
+									  mx25_tcq_irq_thread, 0, pdev->name,
+									  priv);
+
+	if (error)
+	{
 		dev_err(dev, "Failed requesting IRQ\n");
 		return error;
 	}
 
 	error = input_register_device(idev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(dev, "Failed to register input device\n");
 		return error;
 	}
@@ -582,7 +649,8 @@ static int mx25_tcq_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver mx25_tcq_driver = {
+static struct platform_driver mx25_tcq_driver =
+{
 	.driver		= {
 		.name	= "mx25-tcq",
 		.of_match_table = mx25_tcq_ids,

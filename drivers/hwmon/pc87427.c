@@ -51,7 +51,8 @@ static struct platform_device *pdev;
  * device is using banked registers) and the register cache (needed to keep
  * the data in the registers and the cache in sync at any time).
  */
-struct pc87427_data {
+struct pc87427_data
+{
 	struct device *hwmon_dev;
 	struct mutex lock;
 	int address[2];
@@ -77,7 +78,8 @@ struct pc87427_data {
 	u8 temp_type[6];		/* register values */
 };
 
-struct pc87427_sio_data {
+struct pc87427_sio_data
+{
 	unsigned short address[2];
 	u8 has_fanin;
 	u8 has_fanout;
@@ -148,7 +150,7 @@ static inline int pc87427_read8(struct pc87427_data *data, u8 ldi, u8 reg)
 
 /* Must be called with data->lock held, except during init */
 static inline int pc87427_read8_bank(struct pc87427_data *data, u8 ldi,
-				     u8 bank, u8 reg)
+									 u8 bank, u8 reg)
 {
 	outb(bank, data->address[ldi] + PC87427_REG_BANK);
 	return inb(data->address[ldi] + reg);
@@ -156,7 +158,7 @@ static inline int pc87427_read8_bank(struct pc87427_data *data, u8 ldi,
 
 /* Must be called with data->lock held, except during init */
 static inline void pc87427_write8_bank(struct pc87427_data *data, u8 ldi,
-				       u8 bank, u8 reg, u8 value)
+									   u8 bank, u8 reg, u8 value)
 {
 	outb(bank, data->address[ldi] + PC87427_REG_BANK);
 	outb(value, data->address[ldi] + reg);
@@ -200,8 +202,12 @@ static void pc87427_readall_fan(struct pc87427_data *data, u8 nr)
 static inline unsigned long fan_from_reg(u16 reg)
 {
 	reg &= 0xfffc;
+
 	if (reg == 0x0000 || reg == 0xfffc)
+	{
 		return 0;
+	}
+
 	return 5400000UL / reg;
 }
 
@@ -209,9 +215,15 @@ static inline unsigned long fan_from_reg(u16 reg)
 static inline u16 fan_to_reg(unsigned long val)
 {
 	if (val < 83UL)
+	{
 		return 0xffff;
+	}
+
 	if (val >= 1350000UL)
+	{
 		return 0x0004;
+	}
+
 	return ((1350000UL + val / 2) / val) << 2;
 }
 
@@ -247,28 +259,35 @@ static void pc87427_readall_pwm(struct pc87427_data *data, u8 nr)
 
 static inline int pwm_enable_from_reg(u8 reg)
 {
-	switch (reg & PWM_ENABLE_MODE_MASK) {
-	case PWM_MODE_ON:
-		return 0;
-	case PWM_MODE_MANUAL:
-	case PWM_MODE_OFF:
-		return 1;
-	case PWM_MODE_AUTO:
-		return 2;
-	default:
-		return -EPROTO;
+	switch (reg & PWM_ENABLE_MODE_MASK)
+	{
+		case PWM_MODE_ON:
+			return 0;
+
+		case PWM_MODE_MANUAL:
+		case PWM_MODE_OFF:
+			return 1;
+
+		case PWM_MODE_AUTO:
+			return 2;
+
+		default:
+			return -EPROTO;
 	}
 }
 
 static inline u8 pwm_enable_to_reg(unsigned long val, u8 pwmval)
 {
-	switch (val) {
-	default:
-		return PWM_MODE_ON;
-	case 1:
-		return pwmval ? PWM_MODE_MANUAL : PWM_MODE_OFF;
-	case 2:
-		return PWM_MODE_AUTO;
+	switch (val)
+	{
+		default:
+			return PWM_MODE_ON;
+
+		case 1:
+			return pwmval ? PWM_MODE_MANUAL : PWM_MODE_OFF;
+
+		case 2:
+			return PWM_MODE_AUTO;
 	}
 }
 
@@ -317,14 +336,17 @@ static void pc87427_readall_temp(struct pc87427_data *data, u8 nr)
 
 static inline unsigned int temp_type_from_reg(u8 reg)
 {
-	switch (reg & TEMP_TYPE_MASK) {
-	case TEMP_TYPE_THERMISTOR:
-		return 4;
-	case TEMP_TYPE_REMOTE_DIODE:
-	case TEMP_TYPE_LOCAL_DIODE:
-		return 3;
-	default:
-		return 0;
+	switch (reg & TEMP_TYPE_MASK)
+	{
+		case TEMP_TYPE_THERMISTOR:
+			return 4;
+
+		case TEMP_TYPE_REMOTE_DIODE:
+		case TEMP_TYPE_LOCAL_DIODE:
+			return 3;
+
+		default:
+			return 0;
 	}
 }
 
@@ -352,28 +374,43 @@ static struct pc87427_data *pc87427_update_device(struct device *dev)
 	int i;
 
 	mutex_lock(&data->lock);
+
 	if (!time_after(jiffies, data->last_updated + HZ)
-	 && data->last_updated)
+		&& data->last_updated)
+	{
 		goto done;
+	}
 
 	/* Fans */
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		if (!(data->fan_enabled & (1 << i)))
+		{
 			continue;
+		}
+
 		pc87427_readall_fan(data, i);
 	}
 
 	/* PWM outputs */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		if (!(data->pwm_enabled & (1 << i)))
+		{
 			continue;
+		}
+
 		pc87427_readall_pwm(data, i);
 	}
 
 	/* Temperature channels */
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < 6; i++)
+	{
 		if (!(data->temp_enabled & (1 << i)))
+		{
 			continue;
+		}
+
 		pc87427_readall_temp(data, i);
 	}
 
@@ -385,7 +422,7 @@ done:
 }
 
 static ssize_t show_fan_input(struct device *dev, struct device_attribute
-			      *devattr, char *buf)
+							  *devattr, char *buf)
 {
 	struct pc87427_data *data = pc87427_update_device(dev);
 	int nr = to_sensor_dev_attr(devattr)->index;
@@ -394,7 +431,7 @@ static ssize_t show_fan_input(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_fan_min(struct device *dev, struct device_attribute
-			    *devattr, char *buf)
+							*devattr, char *buf)
 {
 	struct pc87427_data *data = pc87427_update_device(dev);
 	int nr = to_sensor_dev_attr(devattr)->index;
@@ -403,27 +440,27 @@ static ssize_t show_fan_min(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_fan_alarm(struct device *dev, struct device_attribute
-			      *devattr, char *buf)
+							  *devattr, char *buf)
 {
 	struct pc87427_data *data = pc87427_update_device(dev);
 	int nr = to_sensor_dev_attr(devattr)->index;
 
 	return sprintf(buf, "%d\n", !!(data->fan_status[nr]
-				       & FAN_STATUS_LOSPD));
+								   & FAN_STATUS_LOSPD));
 }
 
 static ssize_t show_fan_fault(struct device *dev, struct device_attribute
-			      *devattr, char *buf)
+							  *devattr, char *buf)
 {
 	struct pc87427_data *data = pc87427_update_device(dev);
 	int nr = to_sensor_dev_attr(devattr)->index;
 
 	return sprintf(buf, "%d\n", !!(data->fan_status[nr]
-				       & FAN_STATUS_STALL));
+								   & FAN_STATUS_STALL));
 }
 
 static ssize_t set_fan_min(struct device *dev, struct device_attribute
-			   *devattr, const char *buf, size_t count)
+						   *devattr, const char *buf, size_t count)
 {
 	struct pc87427_data *data = dev_get_drvdata(dev);
 	int nr = to_sensor_dev_attr(devattr)->index;
@@ -431,7 +468,9 @@ static ssize_t set_fan_min(struct device *dev, struct device_attribute
 	int iobase = data->address[LD_FAN];
 
 	if (kstrtoul(buf, 10, &val) < 0)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&data->lock);
 	outb(BANK_FM(nr), iobase + PC87427_REG_BANK);
@@ -459,21 +498,21 @@ static SENSOR_DEVICE_ATTR(fan7_input, S_IRUGO, show_fan_input, NULL, 6);
 static SENSOR_DEVICE_ATTR(fan8_input, S_IRUGO, show_fan_input, NULL, 7);
 
 static SENSOR_DEVICE_ATTR(fan1_min, S_IWUSR | S_IRUGO,
-			  show_fan_min, set_fan_min, 0);
+						  show_fan_min, set_fan_min, 0);
 static SENSOR_DEVICE_ATTR(fan2_min, S_IWUSR | S_IRUGO,
-			  show_fan_min, set_fan_min, 1);
+						  show_fan_min, set_fan_min, 1);
 static SENSOR_DEVICE_ATTR(fan3_min, S_IWUSR | S_IRUGO,
-			  show_fan_min, set_fan_min, 2);
+						  show_fan_min, set_fan_min, 2);
 static SENSOR_DEVICE_ATTR(fan4_min, S_IWUSR | S_IRUGO,
-			  show_fan_min, set_fan_min, 3);
+						  show_fan_min, set_fan_min, 3);
 static SENSOR_DEVICE_ATTR(fan5_min, S_IWUSR | S_IRUGO,
-			  show_fan_min, set_fan_min, 4);
+						  show_fan_min, set_fan_min, 4);
 static SENSOR_DEVICE_ATTR(fan6_min, S_IWUSR | S_IRUGO,
-			  show_fan_min, set_fan_min, 5);
+						  show_fan_min, set_fan_min, 5);
 static SENSOR_DEVICE_ATTR(fan7_min, S_IWUSR | S_IRUGO,
-			  show_fan_min, set_fan_min, 6);
+						  show_fan_min, set_fan_min, 6);
 static SENSOR_DEVICE_ATTR(fan8_min, S_IWUSR | S_IRUGO,
-			  show_fan_min, set_fan_min, 7);
+						  show_fan_min, set_fan_min, 7);
 
 static SENSOR_DEVICE_ATTR(fan1_alarm, S_IRUGO, show_fan_alarm, NULL, 0);
 static SENSOR_DEVICE_ATTR(fan2_alarm, S_IRUGO, show_fan_alarm, NULL, 1);
@@ -493,7 +532,8 @@ static SENSOR_DEVICE_ATTR(fan6_fault, S_IRUGO, show_fan_fault, NULL, 5);
 static SENSOR_DEVICE_ATTR(fan7_fault, S_IRUGO, show_fan_fault, NULL, 6);
 static SENSOR_DEVICE_ATTR(fan8_fault, S_IRUGO, show_fan_fault, NULL, 7);
 
-static struct attribute *pc87427_attributes_fan[8][5] = {
+static struct attribute *pc87427_attributes_fan[8][5] =
+{
 	{
 		&sensor_dev_attr_fan1_input.dev_attr.attr,
 		&sensor_dev_attr_fan1_min.dev_attr.attr,
@@ -545,7 +585,8 @@ static struct attribute *pc87427_attributes_fan[8][5] = {
 	}
 };
 
-static const struct attribute_group pc87427_group_fan[8] = {
+static const struct attribute_group pc87427_group_fan[8] =
+{
 	{ .attrs = pc87427_attributes_fan[0] },
 	{ .attrs = pc87427_attributes_fan[1] },
 	{ .attrs = pc87427_attributes_fan[2] },
@@ -569,30 +610,39 @@ static void update_pwm_enable(struct pc87427_data *data, int nr, u8 mode)
 }
 
 static ssize_t show_pwm_enable(struct device *dev, struct device_attribute
-			       *devattr, char *buf)
+							   *devattr, char *buf)
 {
 	struct pc87427_data *data = pc87427_update_device(dev);
 	int nr = to_sensor_dev_attr(devattr)->index;
 	int pwm_enable;
 
 	pwm_enable = pwm_enable_from_reg(data->pwm_enable[nr]);
+
 	if (pwm_enable < 0)
+	{
 		return pwm_enable;
+	}
+
 	return sprintf(buf, "%d\n", pwm_enable);
 }
 
 static ssize_t set_pwm_enable(struct device *dev, struct device_attribute
-			      *devattr, const char *buf, size_t count)
+							  *devattr, const char *buf, size_t count)
 {
 	struct pc87427_data *data = dev_get_drvdata(dev);
 	int nr = to_sensor_dev_attr(devattr)->index;
 	unsigned long val;
 
 	if (kstrtoul(buf, 10, &val) < 0 || val > 2)
+	{
 		return -EINVAL;
+	}
+
 	/* Can't go to automatic mode if it isn't configured */
 	if (val == 2 && !(data->pwm_auto_ok & (1 << nr)))
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&data->lock);
 	pc87427_readall_pwm(data, nr);
@@ -603,7 +653,7 @@ static ssize_t set_pwm_enable(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_pwm(struct device *dev, struct device_attribute
-			*devattr, char *buf)
+						*devattr, char *buf)
 {
 	struct pc87427_data *data = pc87427_update_device(dev);
 	int nr = to_sensor_dev_attr(devattr)->index;
@@ -612,7 +662,7 @@ static ssize_t show_pwm(struct device *dev, struct device_attribute
 }
 
 static ssize_t set_pwm(struct device *dev, struct device_attribute
-		       *devattr, const char *buf, size_t count)
+					   *devattr, const char *buf, size_t count)
 {
 	struct pc87427_data *data = dev_get_drvdata(dev);
 	int nr = to_sensor_dev_attr(devattr)->index;
@@ -621,57 +671,69 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute
 	u8 mode;
 
 	if (kstrtoul(buf, 10, &val) < 0 || val > 0xff)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&data->lock);
 	pc87427_readall_pwm(data, nr);
 	mode = data->pwm_enable[nr] & PWM_ENABLE_MODE_MASK;
-	if (mode != PWM_MODE_MANUAL && mode != PWM_MODE_OFF) {
+
+	if (mode != PWM_MODE_MANUAL && mode != PWM_MODE_OFF)
+	{
 		dev_notice(dev,
-			   "Can't set PWM%d duty cycle while not in manual mode\n",
-			   nr + 1);
+				   "Can't set PWM%d duty cycle while not in manual mode\n",
+				   nr + 1);
 		mutex_unlock(&data->lock);
 		return -EPERM;
 	}
 
 	/* We may have to change the mode */
-	if (mode == PWM_MODE_MANUAL && val == 0) {
+	if (mode == PWM_MODE_MANUAL && val == 0)
+	{
 		/* Transition from Manual to Off */
 		update_pwm_enable(data, nr, PWM_MODE_OFF);
 		mode = PWM_MODE_OFF;
 		dev_dbg(dev, "Switching PWM%d from %s to %s\n", nr + 1,
-			"manual", "off");
-	} else if (mode == PWM_MODE_OFF && val != 0) {
+				"manual", "off");
+	}
+	else if (mode == PWM_MODE_OFF && val != 0)
+	{
 		/* Transition from Off to Manual */
 		update_pwm_enable(data, nr, PWM_MODE_MANUAL);
 		mode = PWM_MODE_MANUAL;
 		dev_dbg(dev, "Switching PWM%d from %s to %s\n", nr + 1,
-			"off", "manual");
+				"off", "manual");
 	}
 
 	data->pwm[nr] = val;
+
 	if (mode == PWM_MODE_MANUAL)
+	{
 		outb(val, iobase + PC87427_REG_PWM_DUTY);
+	}
+
 	mutex_unlock(&data->lock);
 
 	return count;
 }
 
 static SENSOR_DEVICE_ATTR(pwm1_enable, S_IWUSR | S_IRUGO,
-			  show_pwm_enable, set_pwm_enable, 0);
+						  show_pwm_enable, set_pwm_enable, 0);
 static SENSOR_DEVICE_ATTR(pwm2_enable, S_IWUSR | S_IRUGO,
-			  show_pwm_enable, set_pwm_enable, 1);
+						  show_pwm_enable, set_pwm_enable, 1);
 static SENSOR_DEVICE_ATTR(pwm3_enable, S_IWUSR | S_IRUGO,
-			  show_pwm_enable, set_pwm_enable, 2);
+						  show_pwm_enable, set_pwm_enable, 2);
 static SENSOR_DEVICE_ATTR(pwm4_enable, S_IWUSR | S_IRUGO,
-			  show_pwm_enable, set_pwm_enable, 3);
+						  show_pwm_enable, set_pwm_enable, 3);
 
 static SENSOR_DEVICE_ATTR(pwm1, S_IWUSR | S_IRUGO, show_pwm, set_pwm, 0);
 static SENSOR_DEVICE_ATTR(pwm2, S_IWUSR | S_IRUGO, show_pwm, set_pwm, 1);
 static SENSOR_DEVICE_ATTR(pwm3, S_IWUSR | S_IRUGO, show_pwm, set_pwm, 2);
 static SENSOR_DEVICE_ATTR(pwm4, S_IWUSR | S_IRUGO, show_pwm, set_pwm, 3);
 
-static struct attribute *pc87427_attributes_pwm[4][3] = {
+static struct attribute *pc87427_attributes_pwm[4][3] =
+{
 	{
 		&sensor_dev_attr_pwm1_enable.dev_attr.attr,
 		&sensor_dev_attr_pwm1.dev_attr.attr,
@@ -691,7 +753,8 @@ static struct attribute *pc87427_attributes_pwm[4][3] = {
 	}
 };
 
-static const struct attribute_group pc87427_group_pwm[4] = {
+static const struct attribute_group pc87427_group_pwm[4] =
+{
 	{ .attrs = pc87427_attributes_pwm[0] },
 	{ .attrs = pc87427_attributes_pwm[1] },
 	{ .attrs = pc87427_attributes_pwm[2] },
@@ -699,7 +762,7 @@ static const struct attribute_group pc87427_group_pwm[4] = {
 };
 
 static ssize_t show_temp_input(struct device *dev, struct device_attribute
-			       *devattr, char *buf)
+							   *devattr, char *buf)
 {
 	struct pc87427_data *data = pc87427_update_device(dev);
 	int nr = to_sensor_dev_attr(devattr)->index;
@@ -708,7 +771,7 @@ static ssize_t show_temp_input(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_temp_min(struct device *dev, struct device_attribute
-			     *devattr, char *buf)
+							 *devattr, char *buf)
 {
 	struct pc87427_data *data = pc87427_update_device(dev);
 	int nr = to_sensor_dev_attr(devattr)->index;
@@ -717,7 +780,7 @@ static ssize_t show_temp_min(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_temp_max(struct device *dev, struct device_attribute
-			     *devattr, char *buf)
+							 *devattr, char *buf)
 {
 	struct pc87427_data *data = pc87427_update_device(dev);
 	int nr = to_sensor_dev_attr(devattr)->index;
@@ -726,7 +789,7 @@ static ssize_t show_temp_max(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_temp_crit(struct device *dev, struct device_attribute
-			      *devattr, char *buf)
+							  *devattr, char *buf)
 {
 	struct pc87427_data *data = pc87427_update_device(dev);
 	int nr = to_sensor_dev_attr(devattr)->index;
@@ -735,7 +798,7 @@ static ssize_t show_temp_crit(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_temp_type(struct device *dev, struct device_attribute
-			      *devattr, char *buf)
+							  *devattr, char *buf)
 {
 	struct pc87427_data *data = pc87427_update_device(dev);
 	int nr = to_sensor_dev_attr(devattr)->index;
@@ -744,43 +807,43 @@ static ssize_t show_temp_type(struct device *dev, struct device_attribute
 }
 
 static ssize_t show_temp_min_alarm(struct device *dev, struct device_attribute
-				   *devattr, char *buf)
+								   *devattr, char *buf)
 {
 	struct pc87427_data *data = pc87427_update_device(dev);
 	int nr = to_sensor_dev_attr(devattr)->index;
 
 	return sprintf(buf, "%d\n", !!(data->temp_status[nr]
-				       & TEMP_STATUS_LOWFLG));
+								   & TEMP_STATUS_LOWFLG));
 }
 
 static ssize_t show_temp_max_alarm(struct device *dev, struct device_attribute
-				   *devattr, char *buf)
+								   *devattr, char *buf)
 {
 	struct pc87427_data *data = pc87427_update_device(dev);
 	int nr = to_sensor_dev_attr(devattr)->index;
 
 	return sprintf(buf, "%d\n", !!(data->temp_status[nr]
-				       & TEMP_STATUS_HIGHFLG));
+								   & TEMP_STATUS_HIGHFLG));
 }
 
 static ssize_t show_temp_crit_alarm(struct device *dev, struct device_attribute
-				   *devattr, char *buf)
+									*devattr, char *buf)
 {
 	struct pc87427_data *data = pc87427_update_device(dev);
 	int nr = to_sensor_dev_attr(devattr)->index;
 
 	return sprintf(buf, "%d\n", !!(data->temp_status[nr]
-				       & TEMP_STATUS_CRITFLG));
+								   & TEMP_STATUS_CRITFLG));
 }
 
 static ssize_t show_temp_fault(struct device *dev, struct device_attribute
-			       *devattr, char *buf)
+							   *devattr, char *buf)
 {
 	struct pc87427_data *data = pc87427_update_device(dev);
 	int nr = to_sensor_dev_attr(devattr)->index;
 
 	return sprintf(buf, "%d\n", !!(data->temp_status[nr]
-				       & TEMP_STATUS_SENSERR));
+								   & TEMP_STATUS_SENSERR));
 }
 
 static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input, NULL, 0);
@@ -819,43 +882,43 @@ static SENSOR_DEVICE_ATTR(temp5_type, S_IRUGO, show_temp_type, NULL, 4);
 static SENSOR_DEVICE_ATTR(temp6_type, S_IRUGO, show_temp_type, NULL, 5);
 
 static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO,
-			  show_temp_min_alarm, NULL, 0);
+						  show_temp_min_alarm, NULL, 0);
 static SENSOR_DEVICE_ATTR(temp2_min_alarm, S_IRUGO,
-			  show_temp_min_alarm, NULL, 1);
+						  show_temp_min_alarm, NULL, 1);
 static SENSOR_DEVICE_ATTR(temp3_min_alarm, S_IRUGO,
-			  show_temp_min_alarm, NULL, 2);
+						  show_temp_min_alarm, NULL, 2);
 static SENSOR_DEVICE_ATTR(temp4_min_alarm, S_IRUGO,
-			  show_temp_min_alarm, NULL, 3);
+						  show_temp_min_alarm, NULL, 3);
 static SENSOR_DEVICE_ATTR(temp5_min_alarm, S_IRUGO,
-			  show_temp_min_alarm, NULL, 4);
+						  show_temp_min_alarm, NULL, 4);
 static SENSOR_DEVICE_ATTR(temp6_min_alarm, S_IRUGO,
-			  show_temp_min_alarm, NULL, 5);
+						  show_temp_min_alarm, NULL, 5);
 
 static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO,
-			  show_temp_max_alarm, NULL, 0);
+						  show_temp_max_alarm, NULL, 0);
 static SENSOR_DEVICE_ATTR(temp2_max_alarm, S_IRUGO,
-			  show_temp_max_alarm, NULL, 1);
+						  show_temp_max_alarm, NULL, 1);
 static SENSOR_DEVICE_ATTR(temp3_max_alarm, S_IRUGO,
-			  show_temp_max_alarm, NULL, 2);
+						  show_temp_max_alarm, NULL, 2);
 static SENSOR_DEVICE_ATTR(temp4_max_alarm, S_IRUGO,
-			  show_temp_max_alarm, NULL, 3);
+						  show_temp_max_alarm, NULL, 3);
 static SENSOR_DEVICE_ATTR(temp5_max_alarm, S_IRUGO,
-			  show_temp_max_alarm, NULL, 4);
+						  show_temp_max_alarm, NULL, 4);
 static SENSOR_DEVICE_ATTR(temp6_max_alarm, S_IRUGO,
-			  show_temp_max_alarm, NULL, 5);
+						  show_temp_max_alarm, NULL, 5);
 
 static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO,
-			  show_temp_crit_alarm, NULL, 0);
+						  show_temp_crit_alarm, NULL, 0);
 static SENSOR_DEVICE_ATTR(temp2_crit_alarm, S_IRUGO,
-			  show_temp_crit_alarm, NULL, 1);
+						  show_temp_crit_alarm, NULL, 1);
 static SENSOR_DEVICE_ATTR(temp3_crit_alarm, S_IRUGO,
-			  show_temp_crit_alarm, NULL, 2);
+						  show_temp_crit_alarm, NULL, 2);
 static SENSOR_DEVICE_ATTR(temp4_crit_alarm, S_IRUGO,
-			  show_temp_crit_alarm, NULL, 3);
+						  show_temp_crit_alarm, NULL, 3);
 static SENSOR_DEVICE_ATTR(temp5_crit_alarm, S_IRUGO,
-			  show_temp_crit_alarm, NULL, 4);
+						  show_temp_crit_alarm, NULL, 4);
 static SENSOR_DEVICE_ATTR(temp6_crit_alarm, S_IRUGO,
-			  show_temp_crit_alarm, NULL, 5);
+						  show_temp_crit_alarm, NULL, 5);
 
 static SENSOR_DEVICE_ATTR(temp1_fault, S_IRUGO, show_temp_fault, NULL, 0);
 static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_temp_fault, NULL, 1);
@@ -864,7 +927,8 @@ static SENSOR_DEVICE_ATTR(temp4_fault, S_IRUGO, show_temp_fault, NULL, 3);
 static SENSOR_DEVICE_ATTR(temp5_fault, S_IRUGO, show_temp_fault, NULL, 4);
 static SENSOR_DEVICE_ATTR(temp6_fault, S_IRUGO, show_temp_fault, NULL, 5);
 
-static struct attribute *pc87427_attributes_temp[6][10] = {
+static struct attribute *pc87427_attributes_temp[6][10] =
+{
 	{
 		&sensor_dev_attr_temp1_input.dev_attr.attr,
 		&sensor_dev_attr_temp1_min.dev_attr.attr,
@@ -934,7 +998,8 @@ static struct attribute *pc87427_attributes_temp[6][10] = {
 	}
 };
 
-static const struct attribute_group pc87427_group_temp[6] = {
+static const struct attribute_group pc87427_group_temp[6] =
+{
 	{ .attrs = pc87427_attributes_temp[0] },
 	{ .attrs = pc87427_attributes_temp[1] },
 	{ .attrs = pc87427_attributes_temp[2] },
@@ -944,7 +1009,7 @@ static const struct attribute_group pc87427_group_temp[6] = {
 };
 
 static ssize_t show_name(struct device *dev, struct device_attribute
-			 *devattr, char *buf)
+						 *devattr, char *buf)
 {
 	struct pc87427_data *data = dev_get_drvdata(dev);
 
@@ -958,26 +1023,32 @@ static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
  */
 
 static int pc87427_request_regions(struct platform_device *pdev,
-					     int count)
+								   int count)
 {
 	struct resource *res;
 	int i;
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		res = platform_get_resource(pdev, IORESOURCE_IO, i);
-		if (!res) {
+
+		if (!res)
+		{
 			dev_err(&pdev->dev, "Missing resource #%d\n", i);
 			return -ENOENT;
 		}
+
 		if (!devm_request_region(&pdev->dev, res->start,
-					 resource_size(res), DRVNAME)) {
+								 resource_size(res), DRVNAME))
+		{
 			dev_err(&pdev->dev,
-				"Failed to request region 0x%lx-0x%lx\n",
-				(unsigned long)res->start,
-				(unsigned long)res->end);
+					"Failed to request region 0x%lx-0x%lx\n",
+					(unsigned long)res->start,
+					(unsigned long)res->end);
 			return -EBUSY;
 		}
 	}
+
 	return 0;
 }
 
@@ -990,63 +1061,95 @@ static void pc87427_init_device(struct device *dev)
 
 	/* The FMC module should be ready */
 	reg = pc87427_read8(data, LD_FAN, PC87427_REG_BANK);
-	if (!(reg & 0x80))
-		dev_warn(dev, "%s module not ready!\n", "FMC");
 
-	/* Check which fans are enabled */
-	for (i = 0; i < 8; i++) {
-		if (!(sio_data->has_fanin & (1 << i)))	/* Not wired */
-			continue;
-		reg = pc87427_read8_bank(data, LD_FAN, BANK_FM(i),
-					 PC87427_REG_FAN_STATUS);
-		if (reg & FAN_STATUS_MONEN)
-			data->fan_enabled |= (1 << i);
+	if (!(reg & 0x80))
+	{
+		dev_warn(dev, "%s module not ready!\n", "FMC");
 	}
 
-	if (!data->fan_enabled) {
-		dev_dbg(dev, "Enabling monitoring of all fans\n");
-		for (i = 0; i < 8; i++) {
-			if (!(sio_data->has_fanin & (1 << i)))	/* Not wired */
-				continue;
-			pc87427_write8_bank(data, LD_FAN, BANK_FM(i),
-					    PC87427_REG_FAN_STATUS,
-					    FAN_STATUS_MONEN);
+	/* Check which fans are enabled */
+	for (i = 0; i < 8; i++)
+	{
+		if (!(sio_data->has_fanin & (1 << i)))	/* Not wired */
+		{
+			continue;
 		}
+
+		reg = pc87427_read8_bank(data, LD_FAN, BANK_FM(i),
+								 PC87427_REG_FAN_STATUS);
+
+		if (reg & FAN_STATUS_MONEN)
+		{
+			data->fan_enabled |= (1 << i);
+		}
+	}
+
+	if (!data->fan_enabled)
+	{
+		dev_dbg(dev, "Enabling monitoring of all fans\n");
+
+		for (i = 0; i < 8; i++)
+		{
+			if (!(sio_data->has_fanin & (1 << i)))	/* Not wired */
+			{
+				continue;
+			}
+
+			pc87427_write8_bank(data, LD_FAN, BANK_FM(i),
+								PC87427_REG_FAN_STATUS,
+								FAN_STATUS_MONEN);
+		}
+
 		data->fan_enabled = sio_data->has_fanin;
 	}
 
 	/* Check which PWM outputs are enabled */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		if (!(sio_data->has_fanout & (1 << i)))	/* Not wired */
+		{
 			continue;
+		}
+
 		reg = pc87427_read8_bank(data, LD_FAN, BANK_FC(i),
-					 PC87427_REG_PWM_ENABLE);
+								 PC87427_REG_PWM_ENABLE);
+
 		if (reg & PWM_ENABLE_CTLEN)
+		{
 			data->pwm_enabled |= (1 << i);
+		}
 
 		/*
 		 * We don't expose an interface to reconfigure the automatic
 		 * fan control mode, so only allow to return to this mode if
 		 * it was originally set.
 		 */
-		if ((reg & PWM_ENABLE_MODE_MASK) == PWM_MODE_AUTO) {
+		if ((reg & PWM_ENABLE_MODE_MASK) == PWM_MODE_AUTO)
+		{
 			dev_dbg(dev, "PWM%d is in automatic control mode\n",
-				i + 1);
+					i + 1);
 			data->pwm_auto_ok |= (1 << i);
 		}
 	}
 
 	/* The HMC module should be ready */
 	reg = pc87427_read8(data, LD_TEMP, PC87427_REG_BANK);
+
 	if (!(reg & 0x80))
+	{
 		dev_warn(dev, "%s module not ready!\n", "HMC");
+	}
 
 	/* Check which temperature channels are enabled */
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < 6; i++)
+	{
 		reg = pc87427_read8_bank(data, LD_TEMP, BANK_TM(i),
-					 PC87427_REG_TEMP_STATUS);
+								 PC87427_REG_TEMP_STATUS);
+
 		if (reg & TEMP_STATUS_CHANEN)
+		{
 			data->temp_enabled |= (1 << i);
+		}
 	}
 }
 
@@ -1056,19 +1159,34 @@ static void pc87427_remove_files(struct device *dev)
 	int i;
 
 	device_remove_file(dev, &dev_attr_name);
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		if (!(data->fan_enabled & (1 << i)))
+		{
 			continue;
+		}
+
 		sysfs_remove_group(&dev->kobj, &pc87427_group_fan[i]);
 	}
-	for (i = 0; i < 4; i++) {
+
+	for (i = 0; i < 4; i++)
+	{
 		if (!(data->pwm_enabled & (1 << i)))
+		{
 			continue;
+		}
+
 		sysfs_remove_group(&dev->kobj, &pc87427_group_pwm[i]);
 	}
-	for (i = 0; i < 6; i++) {
+
+	for (i = 0; i < 6; i++)
+	{
 		if (!(data->temp_enabled & (1 << i)))
+		{
 			continue;
+		}
+
 		sysfs_remove_group(&dev->kobj, &pc87427_group_temp[i]);
 	}
 }
@@ -1080,17 +1198,23 @@ static int pc87427_probe(struct platform_device *pdev)
 	int i, err, res_count;
 
 	data = devm_kzalloc(&pdev->dev, sizeof(struct pc87427_data),
-			    GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	data->address[0] = sio_data->address[0];
 	data->address[1] = sio_data->address[1];
 	res_count = (data->address[0] != 0) + (data->address[1] != 0);
 
 	err = pc87427_request_regions(pdev, res_count);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_init(&data->lock);
 	data->name = "pc87427";
@@ -1099,35 +1223,64 @@ static int pc87427_probe(struct platform_device *pdev)
 
 	/* Register sysfs hooks */
 	err = device_create_file(&pdev->dev, &dev_attr_name);
+
 	if (err)
+	{
 		return err;
-	for (i = 0; i < 8; i++) {
+	}
+
+	for (i = 0; i < 8; i++)
+	{
 		if (!(data->fan_enabled & (1 << i)))
+		{
 			continue;
+		}
+
 		err = sysfs_create_group(&pdev->dev.kobj,
-					 &pc87427_group_fan[i]);
+								 &pc87427_group_fan[i]);
+
 		if (err)
+		{
 			goto exit_remove_files;
+		}
 	}
-	for (i = 0; i < 4; i++) {
+
+	for (i = 0; i < 4; i++)
+	{
 		if (!(data->pwm_enabled & (1 << i)))
+		{
 			continue;
+		}
+
 		err = sysfs_create_group(&pdev->dev.kobj,
-					 &pc87427_group_pwm[i]);
+								 &pc87427_group_pwm[i]);
+
 		if (err)
+		{
 			goto exit_remove_files;
+		}
 	}
-	for (i = 0; i < 6; i++) {
+
+	for (i = 0; i < 6; i++)
+	{
 		if (!(data->temp_enabled & (1 << i)))
+		{
 			continue;
+		}
+
 		err = sysfs_create_group(&pdev->dev.kobj,
-					 &pc87427_group_temp[i]);
+								 &pc87427_group_temp[i]);
+
 		if (err)
+		{
 			goto exit_remove_files;
+		}
 	}
 
 	data->hwmon_dev = hwmon_device_register(&pdev->dev);
-	if (IS_ERR(data->hwmon_dev)) {
+
+	if (IS_ERR(data->hwmon_dev))
+	{
 		err = PTR_ERR(data->hwmon_dev);
 		dev_err(&pdev->dev, "Class registration failed (%d)\n", err);
 		goto exit_remove_files;
@@ -1151,7 +1304,8 @@ static int pc87427_remove(struct platform_device *pdev)
 }
 
 
-static struct platform_driver pc87427_driver = {
+static struct platform_driver pc87427_driver =
+{
 	.driver = {
 		.name	= DRVNAME,
 	},
@@ -1161,49 +1315,66 @@ static struct platform_driver pc87427_driver = {
 
 static int __init pc87427_device_add(const struct pc87427_sio_data *sio_data)
 {
-	struct resource res[2] = {
+	struct resource res[2] =
+	{
 		{ .flags	= IORESOURCE_IO },
 		{ .flags	= IORESOURCE_IO },
 	};
 	int err, i, res_count;
 
 	res_count = 0;
-	for (i = 0; i < 2; i++) {
+
+	for (i = 0; i < 2; i++)
+	{
 		if (!sio_data->address[i])
+		{
 			continue;
+		}
+
 		res[res_count].start = sio_data->address[i];
 		res[res_count].end = sio_data->address[i] + REGION_LENGTH - 1;
 		res[res_count].name = logdev_str[i];
 
 		err = acpi_check_resource_conflict(&res[res_count]);
+
 		if (err)
+		{
 			goto exit;
+		}
 
 		res_count++;
 	}
 
 	pdev = platform_device_alloc(DRVNAME, res[0].start);
-	if (!pdev) {
+
+	if (!pdev)
+	{
 		err = -ENOMEM;
 		pr_err("Device allocation failed\n");
 		goto exit;
 	}
 
 	err = platform_device_add_resources(pdev, res, res_count);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Device resource addition failed (%d)\n", err);
 		goto exit_device_put;
 	}
 
 	err = platform_device_add_data(pdev, sio_data,
-				       sizeof(struct pc87427_sio_data));
-	if (err) {
+								   sizeof(struct pc87427_sio_data));
+
+	if (err)
+	{
 		pr_err("Platform data allocation failed\n");
 		goto exit_device_put;
 	}
 
 	err = platform_device_add(pdev);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Device addition failed (%d)\n", err);
 		goto exit_device_put;
 	}
@@ -1224,42 +1395,53 @@ static int __init pc87427_find(int sioaddr, struct pc87427_sio_data *sio_data)
 
 	/* Identify device */
 	val = force_id ? force_id : superio_inb(sioaddr, SIOREG_DEVID);
-	if (val != 0xf2) {	/* PC87427 */
+
+	if (val != 0xf2)  	/* PC87427 */
+	{
 		err = -ENODEV;
 		goto exit;
 	}
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		sio_data->address[i] = 0;
 		/* Select logical device */
 		superio_outb(sioaddr, SIOREG_LDSEL, logdev[i]);
 
 		val = superio_inb(sioaddr, SIOREG_ACT);
-		if (!(val & 0x01)) {
+
+		if (!(val & 0x01))
+		{
 			pr_info("Logical device 0x%02x not activated\n",
-				logdev[i]);
+					logdev[i]);
 			continue;
 		}
 
 		val = superio_inb(sioaddr, SIOREG_MAP);
-		if (val & 0x01) {
+
+		if (val & 0x01)
+		{
 			pr_warn("Logical device 0x%02x is memory-mapped, can't use\n",
-				logdev[i]);
+					logdev[i]);
 			continue;
 		}
 
 		val = (superio_inb(sioaddr, SIOREG_IOBASE) << 8)
-		    | superio_inb(sioaddr, SIOREG_IOBASE + 1);
-		if (!val) {
+			  | superio_inb(sioaddr, SIOREG_IOBASE + 1);
+
+		if (!val)
+		{
 			pr_info("I/O base address not set for logical device 0x%02x\n",
-				logdev[i]);
+					logdev[i]);
 			continue;
 		}
+
 		sio_data->address[i] = val;
 	}
 
 	/* No point in loading the driver if everything is disabled */
-	if (!sio_data->address[0] && !sio_data->address[1]) {
+	if (!sio_data->address[0] && !sio_data->address[1])
+	{
 		err = -ENODEV;
 		goto exit;
 	}
@@ -1268,44 +1450,80 @@ static int __init pc87427_find(int sioaddr, struct pc87427_sio_data *sio_data)
 	sio_data->has_fanin = (1 << 2) | (1 << 3);	/* FANIN2, FANIN3 */
 
 	cfg = superio_inb(sioaddr, SIOREG_CF2);
+
 	if (!(cfg & (1 << 3)))
-		sio_data->has_fanin |= (1 << 0);	/* FANIN0 */
+	{
+		sio_data->has_fanin |= (1 << 0);    /* FANIN0 */
+	}
+
 	if (!(cfg & (1 << 2)))
-		sio_data->has_fanin |= (1 << 4);	/* FANIN4 */
+	{
+		sio_data->has_fanin |= (1 << 4);    /* FANIN4 */
+	}
 
 	cfg = superio_inb(sioaddr, SIOREG_CFD);
+
 	if (!(cfg & (1 << 0)))
-		sio_data->has_fanin |= (1 << 1);	/* FANIN1 */
+	{
+		sio_data->has_fanin |= (1 << 1);    /* FANIN1 */
+	}
 
 	cfg = superio_inb(sioaddr, SIOREG_CF4);
+
 	if (!(cfg & (1 << 0)))
-		sio_data->has_fanin |= (1 << 7);	/* FANIN7 */
+	{
+		sio_data->has_fanin |= (1 << 7);    /* FANIN7 */
+	}
+
 	cfg_b = superio_inb(sioaddr, SIOREG_CFB);
+
 	if (!(cfg & (1 << 1)) && (cfg_b & (1 << 3)))
-		sio_data->has_fanin |= (1 << 5);	/* FANIN5 */
+	{
+		sio_data->has_fanin |= (1 << 5);    /* FANIN5 */
+	}
+
 	cfg = superio_inb(sioaddr, SIOREG_CF3);
+
 	if ((cfg & (1 << 3)) && !(cfg_b & (1 << 5)))
-		sio_data->has_fanin |= (1 << 6);	/* FANIN6 */
+	{
+		sio_data->has_fanin |= (1 << 6);    /* FANIN6 */
+	}
 
 	/* Check which fan outputs are wired */
 	sio_data->has_fanout = (1 << 0);		/* FANOUT0 */
+
 	if (cfg_b & (1 << 0))
-		sio_data->has_fanout |= (1 << 3);	/* FANOUT3 */
+	{
+		sio_data->has_fanout |= (1 << 3);    /* FANOUT3 */
+	}
 
 	cfg = superio_inb(sioaddr, SIOREG_CFC);
-	if (!(cfg & (1 << 4))) {
+
+	if (!(cfg & (1 << 4)))
+	{
 		if (cfg_b & (1 << 1))
-			sio_data->has_fanout |= (1 << 1); /* FANOUT1 */
+		{
+			sio_data->has_fanout |= (1 << 1);    /* FANOUT1 */
+		}
+
 		if (cfg_b & (1 << 2))
-			sio_data->has_fanout |= (1 << 2); /* FANOUT2 */
+		{
+			sio_data->has_fanout |= (1 << 2);    /* FANOUT2 */
+		}
 	}
 
 	/* FANOUT1 and FANOUT2 can each be routed to 2 different pins */
 	cfg = superio_inb(sioaddr, SIOREG_CF5);
+
 	if (cfg & (1 << 6))
-		sio_data->has_fanout |= (1 << 1);	/* FANOUT1 */
+	{
+		sio_data->has_fanout |= (1 << 1);    /* FANOUT1 */
+	}
+
 	if (cfg & (1 << 5))
-		sio_data->has_fanout |= (1 << 2);	/* FANOUT2 */
+	{
+		sio_data->has_fanout |= (1 << 2);    /* FANOUT2 */
+	}
 
 exit:
 	superio_exit(sioaddr);
@@ -1318,17 +1536,25 @@ static int __init pc87427_init(void)
 	struct pc87427_sio_data sio_data;
 
 	if (pc87427_find(0x2e, &sio_data)
-	 && pc87427_find(0x4e, &sio_data))
+		&& pc87427_find(0x4e, &sio_data))
+	{
 		return -ENODEV;
+	}
 
 	err = platform_driver_register(&pc87427_driver);
+
 	if (err)
+	{
 		goto exit;
+	}
 
 	/* Sets global pdev as a side effect */
 	err = pc87427_device_add(&sio_data);
+
 	if (err)
+	{
 		goto exit_driver;
+	}
 
 	return 0;
 

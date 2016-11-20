@@ -37,14 +37,18 @@
 #define SECONDARY_EU(desc_hdr) ((be32_to_cpu(desc_hdr) >> 16) & 0xf)
 
 /* descriptor pointer entry */
-struct talitos_ptr {
-	union {
-		struct {		/* SEC2 format */
+struct talitos_ptr
+{
+	union
+	{
+		struct  		/* SEC2 format */
+		{
 			__be16 len;     /* length */
 			u8 j_extent;    /* jump to sg link table and/or extent*/
 			u8 eptr;        /* extended address */
 		};
-		struct {			/* SEC1 format */
+		struct  			/* SEC1 format */
+		{
 			__be16 res;
 			__be16 len1;	/* length */
 		};
@@ -55,9 +59,11 @@ struct talitos_ptr {
 static const struct talitos_ptr zero_entry;
 
 /* descriptor */
-struct talitos_desc {
+struct talitos_desc
+{
 	__be32 hdr;                     /* header high bits */
-	union {
+	union
+	{
 		__be32 hdr_lo;		/* header low bits */
 		__be32 hdr1;		/* header for SEC1 */
 	};
@@ -74,16 +80,18 @@ struct talitos_desc {
  * @callback: whom to call when descriptor processing is done
  * @context: caller context (optional)
  */
-struct talitos_request {
+struct talitos_request
+{
 	struct talitos_desc *desc;
 	dma_addr_t dma_desc;
 	void (*callback) (struct device *dev, struct talitos_desc *desc,
-			  void *context, int error);
+					  void *context, int error);
 	void *context;
 };
 
 /* per-channel fifo management */
-struct talitos_channel {
+struct talitos_channel
+{
 	void __iomem *reg;
 
 	/* request fifo */
@@ -103,7 +111,8 @@ struct talitos_channel {
 	int tail;
 };
 
-struct talitos_private {
+struct talitos_private
+{
 	struct device *dev;
 	struct platform_device *ofdev;
 	void __iomem *reg;
@@ -153,10 +162,10 @@ struct talitos_private {
 };
 
 extern int talitos_submit(struct device *dev, int ch, struct talitos_desc *desc,
-			  void (*callback)(struct device *dev,
-					   struct talitos_desc *desc,
-					   void *context, int error),
-			  void *context);
+						  void (*callback)(struct device *dev,
+								  struct talitos_desc *desc,
+								  void *context, int error),
+						  void *context);
 
 /* .features flag */
 #define TALITOS_FTR_SRC_LINK_TBL_LEN_INCLUDES_EXTENT 0x00000001
@@ -359,11 +368,11 @@ static inline bool has_ftr_sec1(struct talitos_private *priv)
 #define	DESC_HDR_MODE0_MDEUB_SHA384	cpu_to_be32(0x00000000)
 #define	DESC_HDR_MODE0_MDEUB_SHA512	cpu_to_be32(0x00200000)
 #define	DESC_HDR_MODE0_MDEU_MD5_HMAC	(DESC_HDR_MODE0_MDEU_MD5 | \
-					 DESC_HDR_MODE0_MDEU_HMAC)
+		DESC_HDR_MODE0_MDEU_HMAC)
 #define	DESC_HDR_MODE0_MDEU_SHA256_HMAC	(DESC_HDR_MODE0_MDEU_SHA256 | \
-					 DESC_HDR_MODE0_MDEU_HMAC)
+		DESC_HDR_MODE0_MDEU_HMAC)
 #define	DESC_HDR_MODE0_MDEU_SHA1_HMAC	(DESC_HDR_MODE0_MDEU_SHA1 | \
-					 DESC_HDR_MODE0_MDEU_HMAC)
+		DESC_HDR_MODE0_MDEU_HMAC)
 
 /* secondary execution unit select (SEL1) */
 #define	DESC_HDR_SEL1_MASK		cpu_to_be32(0x000f0000)
@@ -383,17 +392,17 @@ static inline bool has_ftr_sec1(struct talitos_private *priv)
 #define	DESC_HDR_MODE1_MDEUB_SHA384	cpu_to_be32(0x00000000)
 #define	DESC_HDR_MODE1_MDEUB_SHA512	cpu_to_be32(0x00000200)
 #define	DESC_HDR_MODE1_MDEU_MD5_HMAC	(DESC_HDR_MODE1_MDEU_MD5 | \
-					 DESC_HDR_MODE1_MDEU_HMAC)
+		DESC_HDR_MODE1_MDEU_HMAC)
 #define	DESC_HDR_MODE1_MDEU_SHA256_HMAC	(DESC_HDR_MODE1_MDEU_SHA256 | \
-					 DESC_HDR_MODE1_MDEU_HMAC)
+		DESC_HDR_MODE1_MDEU_HMAC)
 #define	DESC_HDR_MODE1_MDEU_SHA1_HMAC	(DESC_HDR_MODE1_MDEU_SHA1 | \
-					 DESC_HDR_MODE1_MDEU_HMAC)
+		DESC_HDR_MODE1_MDEU_HMAC)
 #define DESC_HDR_MODE1_MDEU_SHA224_HMAC	(DESC_HDR_MODE1_MDEU_SHA224 | \
-					 DESC_HDR_MODE1_MDEU_HMAC)
+		DESC_HDR_MODE1_MDEU_HMAC)
 #define DESC_HDR_MODE1_MDEUB_SHA384_HMAC	(DESC_HDR_MODE1_MDEUB_SHA384 | \
-						 DESC_HDR_MODE1_MDEU_HMAC)
+		DESC_HDR_MODE1_MDEU_HMAC)
 #define DESC_HDR_MODE1_MDEUB_SHA512_HMAC	(DESC_HDR_MODE1_MDEUB_SHA512 | \
-						 DESC_HDR_MODE1_MDEU_HMAC)
+		DESC_HDR_MODE1_MDEU_HMAC)
 
 /* direction of overall data flow (DIR) */
 #define	DESC_HDR_DIR_INBOUND		cpu_to_be32(0x00000002)

@@ -24,10 +24,12 @@
  * @planes: source crop rectangle, destination compose rectangle and z-order
  *	position for every input
  */
-struct vsp1_drm {
+struct vsp1_drm
+{
 	struct vsp1_pipeline pipe;
 	unsigned int num_inputs;
-	struct {
+	struct
+	{
 		bool enabled;
 		struct v4l2_rect crop;
 		struct v4l2_rect compose;

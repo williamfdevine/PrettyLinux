@@ -27,7 +27,7 @@ static void dec_ipc_namespaces(struct ucounts *ucounts)
 }
 
 static struct ipc_namespace *create_ipc_ns(struct user_namespace *user_ns,
-					   struct ipc_namespace *old_ns)
+		struct ipc_namespace *old_ns)
 {
 	struct ipc_namespace *ns;
 	struct ucounts *ucounts;
@@ -35,17 +35,27 @@ static struct ipc_namespace *create_ipc_ns(struct user_namespace *user_ns,
 
 	err = -ENOSPC;
 	ucounts = inc_ipc_namespaces(user_ns);
+
 	if (!ucounts)
+	{
 		goto fail;
+	}
 
 	err = -ENOMEM;
 	ns = kmalloc(sizeof(struct ipc_namespace), GFP_KERNEL);
+
 	if (ns == NULL)
+	{
 		goto fail_dec;
+	}
 
 	err = ns_alloc_inum(&ns->ns);
+
 	if (err)
+	{
 		goto fail_free;
+	}
+
 	ns->ns.ops = &ipcns_operations;
 
 	atomic_set(&ns->count, 1);
@@ -53,8 +63,11 @@ static struct ipc_namespace *create_ipc_ns(struct user_namespace *user_ns,
 	ns->ucounts = ucounts;
 
 	err = mq_init_ns(ns);
+
 	if (err)
+	{
 		goto fail_put;
+	}
 
 	sem_init_ns(ns);
 	msg_init_ns(ns);
@@ -74,10 +87,13 @@ fail:
 }
 
 struct ipc_namespace *copy_ipcs(unsigned long flags,
-	struct user_namespace *user_ns, struct ipc_namespace *ns)
+								struct user_namespace *user_ns, struct ipc_namespace *ns)
 {
 	if (!(flags & CLONE_NEWIPC))
+	{
 		return get_ipc_ns(ns);
+	}
+
 	return create_ipc_ns(user_ns, ns);
 }
 
@@ -90,7 +106,7 @@ struct ipc_namespace *copy_ipcs(unsigned long flags,
  * Called for each kind of ipc when an ipc_namespace exits.
  */
 void free_ipcs(struct ipc_namespace *ns, struct ipc_ids *ids,
-	       void (*free)(struct ipc_namespace *, struct kern_ipc_perm *))
+			   void (*free)(struct ipc_namespace *, struct kern_ipc_perm *))
 {
 	struct kern_ipc_perm *perm;
 	int next_id;
@@ -100,15 +116,21 @@ void free_ipcs(struct ipc_namespace *ns, struct ipc_ids *ids,
 
 	in_use = ids->in_use;
 
-	for (total = 0, next_id = 0; total < in_use; next_id++) {
+	for (total = 0, next_id = 0; total < in_use; next_id++)
+	{
 		perm = idr_find(&ids->ipcs_idr, next_id);
+
 		if (perm == NULL)
+		{
 			continue;
+		}
+
 		rcu_read_lock();
 		ipc_lock_object(perm);
 		free(ns, perm);
 		total++;
 	}
+
 	up_write(&ids->rwsem);
 }
 
@@ -142,7 +164,8 @@ static void free_ipc_ns(struct ipc_namespace *ns)
  */
 void put_ipc_ns(struct ipc_namespace *ns)
 {
-	if (atomic_dec_and_lock(&ns->count, &mq_lock)) {
+	if (atomic_dec_and_lock(&ns->count, &mq_lock))
+	{
 		mq_clear_sbinfo(ns);
 		spin_unlock(&mq_lock);
 		mq_put_mnt(ns);
@@ -162,8 +185,12 @@ static struct ns_common *ipcns_get(struct task_struct *task)
 
 	task_lock(task);
 	nsproxy = task->nsproxy;
+
 	if (nsproxy)
+	{
 		ns = get_ipc_ns(nsproxy->ipc_ns);
+	}
+
 	task_unlock(task);
 
 	return ns ? &ns->ns : NULL;
@@ -177,9 +204,12 @@ static void ipcns_put(struct ns_common *ns)
 static int ipcns_install(struct nsproxy *nsproxy, struct ns_common *new)
 {
 	struct ipc_namespace *ns = to_ipc_ns(new);
+
 	if (!ns_capable(ns->user_ns, CAP_SYS_ADMIN) ||
-	    !ns_capable(current_user_ns(), CAP_SYS_ADMIN))
+		!ns_capable(current_user_ns(), CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	/* Ditch state from the old ipc namespace */
 	exit_sem(current);
@@ -193,7 +223,8 @@ static struct user_namespace *ipcns_owner(struct ns_common *ns)
 	return to_ipc_ns(ns)->user_ns;
 }
 
-const struct proc_ns_operations ipcns_operations = {
+const struct proc_ns_operations ipcns_operations =
+{
 	.name		= "ipc",
 	.type		= CLONE_NEWIPC,
 	.get		= ipcns_get,

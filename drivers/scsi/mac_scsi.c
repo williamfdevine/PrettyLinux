@@ -29,13 +29,13 @@
 /* Definitions for the core NCR5380 driver. */
 
 #define NCR5380_implementation_fields   unsigned char *pdma_base; \
-                                        int pdma_residual
+	int pdma_residual
 
 #define NCR5380_read(reg)               macscsi_read(instance, reg)
 #define NCR5380_write(reg, value)       macscsi_write(instance, reg, value)
 
 #define NCR5380_dma_xfer_len(instance, cmd, phase) \
-        macscsi_dma_xfer_len(instance, cmd)
+	macscsi_dma_xfer_len(instance, cmd)
 #define NCR5380_dma_recv_setup          macscsi_pread
 #define NCR5380_dma_send_setup          macscsi_pwrite
 #define NCR5380_dma_residual(instance)  (hostdata->pdma_residual)
@@ -82,23 +82,43 @@ static int __init mac_scsi_setup(char *str)
 
 	(void)get_options(str, ARRAY_SIZE(ints), ints);
 
-	if (ints[0] < 1) {
+	if (ints[0] < 1)
+	{
 		pr_err("Usage: mac5380=<can_queue>[,<cmd_per_lun>[,<sg_tablesize>[,<hostid>[,<use_tags>[,<use_pdma>[,<toshiba_delay>]]]]]]\n");
 		return 0;
 	}
+
 	if (ints[0] >= 1)
+	{
 		setup_can_queue = ints[1];
+	}
+
 	if (ints[0] >= 2)
+	{
 		setup_cmd_per_lun = ints[2];
+	}
+
 	if (ints[0] >= 3)
+	{
 		setup_sg_tablesize = ints[3];
+	}
+
 	if (ints[0] >= 4)
+	{
 		setup_hostid = ints[4];
+	}
+
 	/* ints[5] (use_tagged_queuing) is ignored */
 	if (ints[0] >= 6)
+	{
 		setup_use_pdma = ints[6];
+	}
+
 	if (ints[0] >= 7)
+	{
 		setup_toshiba_delay = ints[7];
+	}
+
 	return 1;
 }
 
@@ -108,67 +128,67 @@ __setup("mac5380=", mac_scsi_setup);
 /* Pseudo DMA asm originally by Ove Edlund */
 
 #define CP_IO_TO_MEM(s,d,n)				\
-__asm__ __volatile__					\
-    ("    cmp.w  #4,%2\n"				\
-     "    bls    8f\n"					\
-     "    move.w %1,%%d0\n"				\
-     "    neg.b  %%d0\n"				\
-     "    and.w  #3,%%d0\n"				\
-     "    sub.w  %%d0,%2\n"				\
-     "    bra    2f\n"					\
-     " 1: move.b (%0),(%1)+\n"				\
-     " 2: dbf    %%d0,1b\n"				\
-     "    move.w %2,%%d0\n"				\
-     "    lsr.w  #5,%%d0\n"				\
-     "    bra    4f\n"					\
-     " 3: move.l (%0),(%1)+\n"				\
-     "31: move.l (%0),(%1)+\n"				\
-     "32: move.l (%0),(%1)+\n"				\
-     "33: move.l (%0),(%1)+\n"				\
-     "34: move.l (%0),(%1)+\n"				\
-     "35: move.l (%0),(%1)+\n"				\
-     "36: move.l (%0),(%1)+\n"				\
-     "37: move.l (%0),(%1)+\n"				\
-     " 4: dbf    %%d0,3b\n"				\
-     "    move.w %2,%%d0\n"				\
-     "    lsr.w  #2,%%d0\n"				\
-     "    and.w  #7,%%d0\n"				\
-     "    bra    6f\n"					\
-     " 5: move.l (%0),(%1)+\n"				\
-     " 6: dbf    %%d0,5b\n"				\
-     "    and.w  #3,%2\n"				\
-     "    bra    8f\n"					\
-     " 7: move.b (%0),(%1)+\n"				\
-     " 8: dbf    %2,7b\n"				\
-     "    moveq.l #0, %2\n"				\
-     " 9: \n"						\
-     ".section .fixup,\"ax\"\n"				\
-     "    .even\n"					\
-     "91: moveq.l #1, %2\n"				\
-     "    jra 9b\n"					\
-     "94: moveq.l #4, %2\n"				\
-     "    jra 9b\n"					\
-     ".previous\n"					\
-     ".section __ex_table,\"a\"\n"			\
-     "   .align 4\n"					\
-     "   .long  1b,91b\n"				\
-     "   .long  3b,94b\n"				\
-     "   .long 31b,94b\n"				\
-     "   .long 32b,94b\n"				\
-     "   .long 33b,94b\n"				\
-     "   .long 34b,94b\n"				\
-     "   .long 35b,94b\n"				\
-     "   .long 36b,94b\n"				\
-     "   .long 37b,94b\n"				\
-     "   .long  5b,94b\n"				\
-     "   .long  7b,91b\n"				\
-     ".previous"					\
-     : "=a"(s), "=a"(d), "=d"(n)			\
-     : "0"(s), "1"(d), "2"(n)				\
-     : "d0")
+	__asm__ __volatile__					\
+	("    cmp.w  #4,%2\n"				\
+	 "    bls    8f\n"					\
+	 "    move.w %1,%%d0\n"				\
+	 "    neg.b  %%d0\n"				\
+	 "    and.w  #3,%%d0\n"				\
+	 "    sub.w  %%d0,%2\n"				\
+	 "    bra    2f\n"					\
+	 " 1: move.b (%0),(%1)+\n"				\
+	 " 2: dbf    %%d0,1b\n"				\
+	 "    move.w %2,%%d0\n"				\
+	 "    lsr.w  #5,%%d0\n"				\
+	 "    bra    4f\n"					\
+	 " 3: move.l (%0),(%1)+\n"				\
+	 "31: move.l (%0),(%1)+\n"				\
+	 "32: move.l (%0),(%1)+\n"				\
+	 "33: move.l (%0),(%1)+\n"				\
+	 "34: move.l (%0),(%1)+\n"				\
+	 "35: move.l (%0),(%1)+\n"				\
+	 "36: move.l (%0),(%1)+\n"				\
+	 "37: move.l (%0),(%1)+\n"				\
+	 " 4: dbf    %%d0,3b\n"				\
+	 "    move.w %2,%%d0\n"				\
+	 "    lsr.w  #2,%%d0\n"				\
+	 "    and.w  #7,%%d0\n"				\
+	 "    bra    6f\n"					\
+	 " 5: move.l (%0),(%1)+\n"				\
+	 " 6: dbf    %%d0,5b\n"				\
+	 "    and.w  #3,%2\n"				\
+	 "    bra    8f\n"					\
+	 " 7: move.b (%0),(%1)+\n"				\
+	 " 8: dbf    %2,7b\n"				\
+	 "    moveq.l #0, %2\n"				\
+	 " 9: \n"						\
+	 ".section .fixup,\"ax\"\n"				\
+	 "    .even\n"					\
+	 "91: moveq.l #1, %2\n"				\
+	 "    jra 9b\n"					\
+	 "94: moveq.l #4, %2\n"				\
+	 "    jra 9b\n"					\
+	 ".previous\n"					\
+	 ".section __ex_table,\"a\"\n"			\
+	 "   .align 4\n"					\
+	 "   .long  1b,91b\n"				\
+	 "   .long  3b,94b\n"				\
+	 "   .long 31b,94b\n"				\
+	 "   .long 32b,94b\n"				\
+	 "   .long 33b,94b\n"				\
+	 "   .long 34b,94b\n"				\
+	 "   .long 35b,94b\n"				\
+	 "   .long 36b,94b\n"				\
+	 "   .long 37b,94b\n"				\
+	 "   .long  5b,94b\n"				\
+	 "   .long  7b,91b\n"				\
+	 ".previous"					\
+	 : "=a"(s), "=a"(d), "=d"(n)			\
+	 : "0"(s), "1"(d), "2"(n)				\
+	 : "d0")
 
 static int macscsi_pread(struct Scsi_Host *instance,
-                         unsigned char *dst, int len)
+						 unsigned char *dst, int len)
 {
 	struct NCR5380_hostdata *hostdata = shost_priv(instance);
 	unsigned char *s = hostdata->pdma_base + (INPUT_DATA_REG << 4);
@@ -177,8 +197,9 @@ static int macscsi_pread(struct Scsi_Host *instance,
 	int transferred;
 
 	while (!NCR5380_poll_politely(instance, BUS_AND_STATUS_REG,
-	                              BASR_DRQ | BASR_PHASE_MATCH,
-	                              BASR_DRQ | BASR_PHASE_MATCH, HZ / 64)) {
+								  BASR_DRQ | BASR_PHASE_MATCH,
+								  BASR_DRQ | BASR_PHASE_MATCH, HZ / 64))
+	{
 		CP_IO_TO_MEM(s, d, n);
 
 		transferred = d - dst - n;
@@ -186,92 +207,97 @@ static int macscsi_pread(struct Scsi_Host *instance,
 
 		/* No bus error. */
 		if (n == 0)
+		{
 			return 0;
+		}
 
 		/* Target changed phase early? */
 		if (NCR5380_poll_politely2(instance, STATUS_REG, SR_REQ, SR_REQ,
-		                           BUS_AND_STATUS_REG, BASR_ACK, BASR_ACK, HZ / 64) < 0)
+								   BUS_AND_STATUS_REG, BASR_ACK, BASR_ACK, HZ / 64) < 0)
 			scmd_printk(KERN_ERR, hostdata->connected,
-			            "%s: !REQ and !ACK\n", __func__);
+						"%s: !REQ and !ACK\n", __func__);
+
 		if (!(NCR5380_read(BUS_AND_STATUS_REG) & BASR_PHASE_MATCH))
+		{
 			return 0;
+		}
 
 		dsprintk(NDEBUG_PSEUDO_DMA, instance,
-		         "%s: bus error (%d/%d)\n", __func__, transferred, len);
+				 "%s: bus error (%d/%d)\n", __func__, transferred, len);
 		NCR5380_dprint(NDEBUG_PSEUDO_DMA, instance);
 		d = dst + transferred;
 		n = len - transferred;
 	}
 
 	scmd_printk(KERN_ERR, hostdata->connected,
-	            "%s: phase mismatch or !DRQ\n", __func__);
+				"%s: phase mismatch or !DRQ\n", __func__);
 	NCR5380_dprint(NDEBUG_PSEUDO_DMA, instance);
 	return -1;
 }
 
 
 #define CP_MEM_TO_IO(s,d,n)				\
-__asm__ __volatile__					\
-    ("    cmp.w  #4,%2\n"				\
-     "    bls    8f\n"					\
-     "    move.w %0,%%d0\n"				\
-     "    neg.b  %%d0\n"				\
-     "    and.w  #3,%%d0\n"				\
-     "    sub.w  %%d0,%2\n"				\
-     "    bra    2f\n"					\
-     " 1: move.b (%0)+,(%1)\n"				\
-     " 2: dbf    %%d0,1b\n"				\
-     "    move.w %2,%%d0\n"				\
-     "    lsr.w  #5,%%d0\n"				\
-     "    bra    4f\n"					\
-     " 3: move.l (%0)+,(%1)\n"				\
-     "31: move.l (%0)+,(%1)\n"				\
-     "32: move.l (%0)+,(%1)\n"				\
-     "33: move.l (%0)+,(%1)\n"				\
-     "34: move.l (%0)+,(%1)\n"				\
-     "35: move.l (%0)+,(%1)\n"				\
-     "36: move.l (%0)+,(%1)\n"				\
-     "37: move.l (%0)+,(%1)\n"				\
-     " 4: dbf    %%d0,3b\n"				\
-     "    move.w %2,%%d0\n"				\
-     "    lsr.w  #2,%%d0\n"				\
-     "    and.w  #7,%%d0\n"				\
-     "    bra    6f\n"					\
-     " 5: move.l (%0)+,(%1)\n"				\
-     " 6: dbf    %%d0,5b\n"				\
-     "    and.w  #3,%2\n"				\
-     "    bra    8f\n"					\
-     " 7: move.b (%0)+,(%1)\n"				\
-     " 8: dbf    %2,7b\n"				\
-     "    moveq.l #0, %2\n"				\
-     " 9: \n"						\
-     ".section .fixup,\"ax\"\n"				\
-     "    .even\n"					\
-     "91: moveq.l #1, %2\n"				\
-     "    jra 9b\n"					\
-     "94: moveq.l #4, %2\n"				\
-     "    jra 9b\n"					\
-     ".previous\n"					\
-     ".section __ex_table,\"a\"\n"			\
-     "   .align 4\n"					\
-     "   .long  1b,91b\n"				\
-     "   .long  3b,94b\n"				\
-     "   .long 31b,94b\n"				\
-     "   .long 32b,94b\n"				\
-     "   .long 33b,94b\n"				\
-     "   .long 34b,94b\n"				\
-     "   .long 35b,94b\n"				\
-     "   .long 36b,94b\n"				\
-     "   .long 37b,94b\n"				\
-     "   .long  5b,94b\n"				\
-     "   .long  7b,91b\n"				\
-     ".previous"					\
-     : "=a"(s), "=a"(d), "=d"(n)			\
-     : "0"(s), "1"(d), "2"(n)				\
-     : "d0")
+	__asm__ __volatile__					\
+	("    cmp.w  #4,%2\n"				\
+	 "    bls    8f\n"					\
+	 "    move.w %0,%%d0\n"				\
+	 "    neg.b  %%d0\n"				\
+	 "    and.w  #3,%%d0\n"				\
+	 "    sub.w  %%d0,%2\n"				\
+	 "    bra    2f\n"					\
+	 " 1: move.b (%0)+,(%1)\n"				\
+	 " 2: dbf    %%d0,1b\n"				\
+	 "    move.w %2,%%d0\n"				\
+	 "    lsr.w  #5,%%d0\n"				\
+	 "    bra    4f\n"					\
+	 " 3: move.l (%0)+,(%1)\n"				\
+	 "31: move.l (%0)+,(%1)\n"				\
+	 "32: move.l (%0)+,(%1)\n"				\
+	 "33: move.l (%0)+,(%1)\n"				\
+	 "34: move.l (%0)+,(%1)\n"				\
+	 "35: move.l (%0)+,(%1)\n"				\
+	 "36: move.l (%0)+,(%1)\n"				\
+	 "37: move.l (%0)+,(%1)\n"				\
+	 " 4: dbf    %%d0,3b\n"				\
+	 "    move.w %2,%%d0\n"				\
+	 "    lsr.w  #2,%%d0\n"				\
+	 "    and.w  #7,%%d0\n"				\
+	 "    bra    6f\n"					\
+	 " 5: move.l (%0)+,(%1)\n"				\
+	 " 6: dbf    %%d0,5b\n"				\
+	 "    and.w  #3,%2\n"				\
+	 "    bra    8f\n"					\
+	 " 7: move.b (%0)+,(%1)\n"				\
+	 " 8: dbf    %2,7b\n"				\
+	 "    moveq.l #0, %2\n"				\
+	 " 9: \n"						\
+	 ".section .fixup,\"ax\"\n"				\
+	 "    .even\n"					\
+	 "91: moveq.l #1, %2\n"				\
+	 "    jra 9b\n"					\
+	 "94: moveq.l #4, %2\n"				\
+	 "    jra 9b\n"					\
+	 ".previous\n"					\
+	 ".section __ex_table,\"a\"\n"			\
+	 "   .align 4\n"					\
+	 "   .long  1b,91b\n"				\
+	 "   .long  3b,94b\n"				\
+	 "   .long 31b,94b\n"				\
+	 "   .long 32b,94b\n"				\
+	 "   .long 33b,94b\n"				\
+	 "   .long 34b,94b\n"				\
+	 "   .long 35b,94b\n"				\
+	 "   .long 36b,94b\n"				\
+	 "   .long 37b,94b\n"				\
+	 "   .long  5b,94b\n"				\
+	 "   .long  7b,91b\n"				\
+	 ".previous"					\
+	 : "=a"(s), "=a"(d), "=d"(n)			\
+	 : "0"(s), "1"(d), "2"(n)				\
+	 : "d0")
 
 static int macscsi_pwrite(struct Scsi_Host *instance,
-                          unsigned char *src, int len)
+						  unsigned char *src, int len)
 {
 	struct NCR5380_hostdata *hostdata = shost_priv(instance);
 	unsigned char *s = src;
@@ -280,8 +306,9 @@ static int macscsi_pwrite(struct Scsi_Host *instance,
 	int transferred;
 
 	while (!NCR5380_poll_politely(instance, BUS_AND_STATUS_REG,
-	                              BASR_DRQ | BASR_PHASE_MATCH,
-	                              BASR_DRQ | BASR_PHASE_MATCH, HZ / 64)) {
+								  BASR_DRQ | BASR_PHASE_MATCH,
+								  BASR_DRQ | BASR_PHASE_MATCH, HZ / 64))
+	{
 		CP_MEM_TO_IO(s, d, n);
 
 		transferred = s - src - n;
@@ -289,44 +316,51 @@ static int macscsi_pwrite(struct Scsi_Host *instance,
 
 		/* Target changed phase early? */
 		if (NCR5380_poll_politely2(instance, STATUS_REG, SR_REQ, SR_REQ,
-		                           BUS_AND_STATUS_REG, BASR_ACK, BASR_ACK, HZ / 64) < 0)
+								   BUS_AND_STATUS_REG, BASR_ACK, BASR_ACK, HZ / 64) < 0)
 			scmd_printk(KERN_ERR, hostdata->connected,
-			            "%s: !REQ and !ACK\n", __func__);
+						"%s: !REQ and !ACK\n", __func__);
+
 		if (!(NCR5380_read(BUS_AND_STATUS_REG) & BASR_PHASE_MATCH))
+		{
 			return 0;
+		}
 
 		/* No bus error. */
-		if (n == 0) {
+		if (n == 0)
+		{
 			if (NCR5380_poll_politely(instance, TARGET_COMMAND_REG,
-			                          TCR_LAST_BYTE_SENT,
-			                          TCR_LAST_BYTE_SENT, HZ / 64) < 0)
+									  TCR_LAST_BYTE_SENT,
+									  TCR_LAST_BYTE_SENT, HZ / 64) < 0)
 				scmd_printk(KERN_ERR, hostdata->connected,
-				            "%s: Last Byte Sent timeout\n", __func__);
+							"%s: Last Byte Sent timeout\n", __func__);
+
 			return 0;
 		}
 
 		dsprintk(NDEBUG_PSEUDO_DMA, instance,
-		         "%s: bus error (%d/%d)\n", __func__, transferred, len);
+				 "%s: bus error (%d/%d)\n", __func__, transferred, len);
 		NCR5380_dprint(NDEBUG_PSEUDO_DMA, instance);
 		s = src + transferred;
 		n = len - transferred;
 	}
 
 	scmd_printk(KERN_ERR, hostdata->connected,
-	            "%s: phase mismatch or !DRQ\n", __func__);
+				"%s: phase mismatch or !DRQ\n", __func__);
 	NCR5380_dprint(NDEBUG_PSEUDO_DMA, instance);
 
 	return -1;
 }
 
 static int macscsi_dma_xfer_len(struct Scsi_Host *instance,
-                                struct scsi_cmnd *cmd)
+								struct scsi_cmnd *cmd)
 {
 	struct NCR5380_hostdata *hostdata = shost_priv(instance);
 
 	if (hostdata->flags & FLAG_NO_PSEUDO_DMA ||
-	    cmd->SCp.this_residual < 16)
+		cmd->SCp.this_residual < 16)
+	{
 		return 0;
+	}
 
 	return cmd->SCp.this_residual;
 }
@@ -336,7 +370,8 @@ static int macscsi_dma_xfer_len(struct Scsi_Host *instance,
 #define DRV_MODULE_NAME         "mac_scsi"
 #define PFX                     DRV_MODULE_NAME ": "
 
-static struct scsi_host_template mac_scsi_template = {
+static struct scsi_host_template mac_scsi_template =
+{
 	.module			= THIS_MODULE,
 	.proc_name		= DRV_MODULE_NAME,
 	.name			= "Macintosh NCR5380 SCSI",
@@ -361,64 +396,101 @@ static int __init mac_scsi_probe(struct platform_device *pdev)
 	struct resource *irq, *pio_mem, *pdma_mem = NULL;
 
 	pio_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!pio_mem)
+	{
 		return -ENODEV;
+	}
 
 	pdma_mem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 
 	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
 
 	if (!hwreg_present((unsigned char *)pio_mem->start +
-	                   (STATUS_REG << 4))) {
+					   (STATUS_REG << 4)))
+	{
 		pr_info(PFX "no device detected at %pap\n", &pio_mem->start);
 		return -ENODEV;
 	}
 
 	if (setup_can_queue > 0)
+	{
 		mac_scsi_template.can_queue = setup_can_queue;
+	}
+
 	if (setup_cmd_per_lun > 0)
+	{
 		mac_scsi_template.cmd_per_lun = setup_cmd_per_lun;
+	}
+
 	if (setup_sg_tablesize >= 0)
+	{
 		mac_scsi_template.sg_tablesize = setup_sg_tablesize;
+	}
+
 	if (setup_hostid >= 0)
+	{
 		mac_scsi_template.this_id = setup_hostid & 7;
+	}
 
 	instance = scsi_host_alloc(&mac_scsi_template,
-	                           sizeof(struct NCR5380_hostdata));
+							   sizeof(struct NCR5380_hostdata));
+
 	if (!instance)
+	{
 		return -ENOMEM;
+	}
 
 	instance->base = pio_mem->start;
-	if (irq)
-		instance->irq = irq->start;
-	else
-		instance->irq = NO_IRQ;
 
-	if (pdma_mem && setup_use_pdma) {
+	if (irq)
+	{
+		instance->irq = irq->start;
+	}
+	else
+	{
+		instance->irq = NO_IRQ;
+	}
+
+	if (pdma_mem && setup_use_pdma)
+	{
 		struct NCR5380_hostdata *hostdata = shost_priv(instance);
 
 		hostdata->pdma_base = (unsigned char *)pdma_mem->start;
-	} else
+	}
+	else
+	{
 		host_flags |= FLAG_NO_PSEUDO_DMA;
+	}
 
 	host_flags |= setup_toshiba_delay > 0 ? FLAG_TOSHIBA_DELAY : 0;
 
 	error = NCR5380_init(instance, host_flags | FLAG_LATE_DMA_SETUP);
-	if (error)
-		goto fail_init;
 
-	if (instance->irq != NO_IRQ) {
+	if (error)
+	{
+		goto fail_init;
+	}
+
+	if (instance->irq != NO_IRQ)
+	{
 		error = request_irq(instance->irq, macscsi_intr, IRQF_SHARED,
-		                    "NCR5380", instance);
+							"NCR5380", instance);
+
 		if (error)
+		{
 			goto fail_irq;
+		}
 	}
 
 	NCR5380_maybe_reset_bus(instance);
 
 	error = scsi_add_host(instance, NULL);
+
 	if (error)
+	{
 		goto fail_host;
+	}
 
 	platform_set_drvdata(pdev, instance);
 
@@ -426,8 +498,12 @@ static int __init mac_scsi_probe(struct platform_device *pdev)
 	return 0;
 
 fail_host:
+
 	if (instance->irq != NO_IRQ)
+	{
 		free_irq(instance->irq, instance);
+	}
+
 fail_irq:
 	NCR5380_exit(instance);
 fail_init:
@@ -440,14 +516,19 @@ static int __exit mac_scsi_remove(struct platform_device *pdev)
 	struct Scsi_Host *instance = platform_get_drvdata(pdev);
 
 	scsi_remove_host(instance);
+
 	if (instance->irq != NO_IRQ)
+	{
 		free_irq(instance->irq, instance);
+	}
+
 	NCR5380_exit(instance);
 	scsi_host_put(instance);
 	return 0;
 }
 
-static struct platform_driver mac_scsi_driver = {
+static struct platform_driver mac_scsi_driver =
+{
 	.remove = __exit_p(mac_scsi_remove),
 	.driver = {
 		.name	= DRV_MODULE_NAME,

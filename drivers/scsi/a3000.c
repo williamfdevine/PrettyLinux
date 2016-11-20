@@ -18,7 +18,8 @@
 #include "a3000.h"
 
 
-struct a3000_hostdata {
+struct a3000_hostdata
+{
 	struct WD33C93_hostdata wh;
 	struct a3000_scsiregs *regs;
 };
@@ -31,13 +32,18 @@ static irqreturn_t a3000_intr(int irq, void *data)
 	unsigned long flags;
 
 	if (!(status & ISTR_INT_P))
+	{
 		return IRQ_NONE;
-	if (status & ISTR_INTS) {
+	}
+
+	if (status & ISTR_INTS)
+	{
 		spin_lock_irqsave(instance->host_lock, flags);
 		wd33c93_intr(instance);
 		spin_unlock_irqrestore(instance->host_lock, flags);
 		return IRQ_HANDLED;
 	}
+
 	pr_warning("Non-serviced A3000 SCSI-interrupt? ISTR = %02x\n", status);
 	return IRQ_NONE;
 }
@@ -57,21 +63,24 @@ static int dma_setup(struct scsi_cmnd *cmd, int dir_in)
 	 * end of a physical memory chunk, then allocate a bounce
 	 * buffer
 	 */
-	if (addr & A3000_XFER_MASK) {
+	if (addr & A3000_XFER_MASK)
+	{
 		wh->dma_bounce_len = (cmd->SCp.this_residual + 511) & ~0x1ff;
 		wh->dma_bounce_buffer = kmalloc(wh->dma_bounce_len,
-						GFP_KERNEL);
+										GFP_KERNEL);
 
 		/* can't allocate memory; use PIO */
-		if (!wh->dma_bounce_buffer) {
+		if (!wh->dma_bounce_buffer)
+		{
 			wh->dma_bounce_len = 0;
 			return 1;
 		}
 
-		if (!dir_in) {
+		if (!dir_in)
+		{
 			/* copy to bounce buffer for a write */
 			memcpy(wh->dma_bounce_buffer, cmd->SCp.ptr,
-			       cmd->SCp.this_residual);
+				   cmd->SCp.this_residual);
 		}
 
 		addr = virt_to_bus(wh->dma_bounce_buffer);
@@ -79,7 +88,9 @@ static int dma_setup(struct scsi_cmnd *cmd, int dir_in)
 
 	/* setup dma direction */
 	if (!dir_in)
+	{
 		cntr |= CNTR_DDIR;
+	}
 
 	/* remember direction */
 	wh->dma_dir = dir_in;
@@ -89,10 +100,13 @@ static int dma_setup(struct scsi_cmnd *cmd, int dir_in)
 	/* setup DMA *physical* address */
 	regs->ACR = addr;
 
-	if (dir_in) {
+	if (dir_in)
+	{
 		/* invalidate any cache */
 		cache_clear(addr, cmd->SCp.this_residual);
-	} else {
+	}
+	else
+	{
 		/* push any dirty cache */
 		cache_push(addr, cmd->SCp.this_residual);
 	}
@@ -107,7 +121,7 @@ static int dma_setup(struct scsi_cmnd *cmd, int dir_in)
 }
 
 static void dma_stop(struct Scsi_Host *instance, struct scsi_cmnd *SCpnt,
-		     int status)
+					 int status)
 {
 	struct a3000_hostdata *hdata = shost_priv(instance);
 	struct WD33C93_hostdata *wh = &hdata->wh;
@@ -117,17 +131,24 @@ static void dma_stop(struct Scsi_Host *instance, struct scsi_cmnd *SCpnt,
 	unsigned short cntr = CNTR_PDMD;
 
 	if (!wh->dma_dir)
+	{
 		cntr |= CNTR_DDIR;
+	}
 
 	regs->CNTR = cntr;
 	mb();			/* make sure CNTR is updated before next IO */
 
 	/* flush if we were reading */
-	if (wh->dma_dir) {
+	if (wh->dma_dir)
+	{
 		regs->FLUSH = 1;
 		mb();		/* don't allow prefetch */
+
 		while (!(regs->ISTR & ISTR_FE_FLG))
+		{
 			barrier();
+		}
+
 		mb();		/* no IO until FLUSH is done */
 	}
 
@@ -146,15 +167,20 @@ static void dma_stop(struct Scsi_Host *instance, struct scsi_cmnd *SCpnt,
 	mb();			/* make sure CNTR is updated before next IO */
 
 	/* copy from a bounce buffer, if necessary */
-	if (status && wh->dma_bounce_buffer) {
-		if (SCpnt) {
+	if (status && wh->dma_bounce_buffer)
+	{
+		if (SCpnt)
+		{
 			if (wh->dma_dir && SCpnt)
 				memcpy(SCpnt->SCp.ptr, wh->dma_bounce_buffer,
-				       SCpnt->SCp.this_residual);
+					   SCpnt->SCp.this_residual);
+
 			kfree(wh->dma_bounce_buffer);
 			wh->dma_bounce_buffer = NULL;
 			wh->dma_bounce_len = 0;
-		} else {
+		}
+		else
+		{
 			kfree(wh->dma_bounce_buffer);
 			wh->dma_bounce_buffer = NULL;
 			wh->dma_bounce_len = 0;
@@ -178,7 +204,8 @@ static int a3000_bus_reset(struct scsi_cmnd *cmd)
 	return SUCCESS;
 }
 
-static struct scsi_host_template amiga_a3000_scsi_template = {
+static struct scsi_host_template amiga_a3000_scsi_template =
+{
 	.module			= THIS_MODULE,
 	.name			= "Amiga 3000 built-in SCSI",
 	.show_info		= wd33c93_show_info,
@@ -205,15 +232,22 @@ static int __init amiga_a3000_scsi_probe(struct platform_device *pdev)
 	struct a3000_hostdata *hdata;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		return -ENODEV;
+	}
 
 	if (!request_mem_region(res->start, resource_size(res), "wd33c93"))
+	{
 		return -EBUSY;
+	}
 
 	instance = scsi_host_alloc(&amiga_a3000_scsi_template,
-				   sizeof(struct a3000_hostdata));
-	if (!instance) {
+							   sizeof(struct a3000_hostdata));
+
+	if (!instance)
+	{
 		error = -ENOMEM;
 		goto fail_alloc;
 	}
@@ -234,15 +268,21 @@ static int __init amiga_a3000_scsi_probe(struct platform_device *pdev)
 
 	wd33c93_init(instance, wdregs, dma_setup, dma_stop, WD33C93_FS_12_15);
 	error = request_irq(IRQ_AMIGA_PORTS, a3000_intr, IRQF_SHARED,
-			    "A3000 SCSI", instance);
+						"A3000 SCSI", instance);
+
 	if (error)
+	{
 		goto fail_irq;
+	}
 
 	regs->CNTR = CNTR_PDMD | CNTR_INTEN;
 
 	error = scsi_add_host(instance, NULL);
+
 	if (error)
+	{
 		goto fail_host;
+	}
 
 	platform_set_drvdata(pdev, instance);
 
@@ -272,7 +312,8 @@ static int __exit amiga_a3000_scsi_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver amiga_a3000_scsi_driver = {
+static struct platform_driver amiga_a3000_scsi_driver =
+{
 	.remove = __exit_p(amiga_a3000_scsi_remove),
 	.driver   = {
 		.name	= "amiga-a3000-scsi",

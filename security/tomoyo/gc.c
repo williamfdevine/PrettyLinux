@@ -42,18 +42,26 @@ static bool tomoyo_struct_used_by_io_buffer(const struct list_head *element)
 	bool in_use = false;
 
 	spin_lock(&tomoyo_io_buffer_list_lock);
-	list_for_each_entry(head, &tomoyo_io_buffer_list, list) {
+	list_for_each_entry(head, &tomoyo_io_buffer_list, list)
+	{
 		head->users++;
 		spin_unlock(&tomoyo_io_buffer_list_lock);
 		mutex_lock(&head->io_sem);
+
 		if (head->r.domain == element || head->r.group == element ||
-		    head->r.acl == element || &head->w.domain->list == element)
+			head->r.acl == element || &head->w.domain->list == element)
+		{
 			in_use = true;
+		}
+
 		mutex_unlock(&head->io_sem);
 		spin_lock(&tomoyo_io_buffer_list_lock);
 		head->users--;
+
 		if (in_use)
+		{
 			break;
+		}
 	}
 	spin_unlock(&tomoyo_io_buffer_list_lock);
 	return in_use;
@@ -74,23 +82,34 @@ static bool tomoyo_name_used_by_io_buffer(const char *string)
 	bool in_use = false;
 
 	spin_lock(&tomoyo_io_buffer_list_lock);
-	list_for_each_entry(head, &tomoyo_io_buffer_list, list) {
+	list_for_each_entry(head, &tomoyo_io_buffer_list, list)
+	{
 		int i;
 		head->users++;
 		spin_unlock(&tomoyo_io_buffer_list_lock);
 		mutex_lock(&head->io_sem);
-		for (i = 0; i < TOMOYO_MAX_IO_READ_QUEUE; i++) {
+
+		for (i = 0; i < TOMOYO_MAX_IO_READ_QUEUE; i++)
+		{
 			const char *w = head->r.w[i];
+
 			if (w < string || w > string + size)
+			{
 				continue;
+			}
+
 			in_use = true;
 			break;
 		}
+
 		mutex_unlock(&head->io_sem);
 		spin_lock(&tomoyo_io_buffer_list_lock);
 		head->users--;
+
 		if (in_use)
+		{
 			break;
+		}
 	}
 	spin_unlock(&tomoyo_io_buffer_list_lock);
 	return in_use;
@@ -152,82 +171,92 @@ static void tomoyo_del_acl(struct list_head *element)
 	struct tomoyo_acl_info *acl =
 		container_of(element, typeof(*acl), list);
 	tomoyo_put_condition(acl->cond);
-	switch (acl->type) {
-	case TOMOYO_TYPE_PATH_ACL:
-		{
-			struct tomoyo_path_acl *entry
-				= container_of(acl, typeof(*entry), head);
-			tomoyo_put_name_union(&entry->name);
-		}
-		break;
-	case TOMOYO_TYPE_PATH2_ACL:
-		{
-			struct tomoyo_path2_acl *entry
-				= container_of(acl, typeof(*entry), head);
-			tomoyo_put_name_union(&entry->name1);
-			tomoyo_put_name_union(&entry->name2);
-		}
-		break;
-	case TOMOYO_TYPE_PATH_NUMBER_ACL:
-		{
-			struct tomoyo_path_number_acl *entry
-				= container_of(acl, typeof(*entry), head);
-			tomoyo_put_name_union(&entry->name);
-			tomoyo_put_number_union(&entry->number);
-		}
-		break;
-	case TOMOYO_TYPE_MKDEV_ACL:
-		{
-			struct tomoyo_mkdev_acl *entry
-				= container_of(acl, typeof(*entry), head);
-			tomoyo_put_name_union(&entry->name);
-			tomoyo_put_number_union(&entry->mode);
-			tomoyo_put_number_union(&entry->major);
-			tomoyo_put_number_union(&entry->minor);
-		}
-		break;
-	case TOMOYO_TYPE_MOUNT_ACL:
-		{
-			struct tomoyo_mount_acl *entry
-				= container_of(acl, typeof(*entry), head);
-			tomoyo_put_name_union(&entry->dev_name);
-			tomoyo_put_name_union(&entry->dir_name);
-			tomoyo_put_name_union(&entry->fs_type);
-			tomoyo_put_number_union(&entry->flags);
-		}
-		break;
-	case TOMOYO_TYPE_ENV_ACL:
-		{
-			struct tomoyo_env_acl *entry =
-				container_of(acl, typeof(*entry), head);
 
-			tomoyo_put_name(entry->env);
-		}
-		break;
-	case TOMOYO_TYPE_INET_ACL:
-		{
-			struct tomoyo_inet_acl *entry =
-				container_of(acl, typeof(*entry), head);
+	switch (acl->type)
+	{
+		case TOMOYO_TYPE_PATH_ACL:
+			{
+				struct tomoyo_path_acl *entry
+					= container_of(acl, typeof(*entry), head);
+				tomoyo_put_name_union(&entry->name);
+			}
+			break;
 
-			tomoyo_put_group(entry->address.group);
-			tomoyo_put_number_union(&entry->port);
-		}
-		break;
-	case TOMOYO_TYPE_UNIX_ACL:
-		{
-			struct tomoyo_unix_acl *entry =
-				container_of(acl, typeof(*entry), head);
+		case TOMOYO_TYPE_PATH2_ACL:
+			{
+				struct tomoyo_path2_acl *entry
+					= container_of(acl, typeof(*entry), head);
+				tomoyo_put_name_union(&entry->name1);
+				tomoyo_put_name_union(&entry->name2);
+			}
+			break;
 
-			tomoyo_put_name_union(&entry->name);
-		}
-		break;
-	case TOMOYO_TYPE_MANUAL_TASK_ACL:
-		{
-			struct tomoyo_task_acl *entry =
-				container_of(acl, typeof(*entry), head);
-			tomoyo_put_name(entry->domainname);
-		}
-		break;
+		case TOMOYO_TYPE_PATH_NUMBER_ACL:
+			{
+				struct tomoyo_path_number_acl *entry
+					= container_of(acl, typeof(*entry), head);
+				tomoyo_put_name_union(&entry->name);
+				tomoyo_put_number_union(&entry->number);
+			}
+			break;
+
+		case TOMOYO_TYPE_MKDEV_ACL:
+			{
+				struct tomoyo_mkdev_acl *entry
+					= container_of(acl, typeof(*entry), head);
+				tomoyo_put_name_union(&entry->name);
+				tomoyo_put_number_union(&entry->mode);
+				tomoyo_put_number_union(&entry->major);
+				tomoyo_put_number_union(&entry->minor);
+			}
+			break;
+
+		case TOMOYO_TYPE_MOUNT_ACL:
+			{
+				struct tomoyo_mount_acl *entry
+					= container_of(acl, typeof(*entry), head);
+				tomoyo_put_name_union(&entry->dev_name);
+				tomoyo_put_name_union(&entry->dir_name);
+				tomoyo_put_name_union(&entry->fs_type);
+				tomoyo_put_number_union(&entry->flags);
+			}
+			break;
+
+		case TOMOYO_TYPE_ENV_ACL:
+			{
+				struct tomoyo_env_acl *entry =
+					container_of(acl, typeof(*entry), head);
+
+				tomoyo_put_name(entry->env);
+			}
+			break;
+
+		case TOMOYO_TYPE_INET_ACL:
+			{
+				struct tomoyo_inet_acl *entry =
+					container_of(acl, typeof(*entry), head);
+
+				tomoyo_put_group(entry->address.group);
+				tomoyo_put_number_union(&entry->port);
+			}
+			break;
+
+		case TOMOYO_TYPE_UNIX_ACL:
+			{
+				struct tomoyo_unix_acl *entry =
+					container_of(acl, typeof(*entry), head);
+
+				tomoyo_put_name_union(&entry->name);
+			}
+			break;
+
+		case TOMOYO_TYPE_MANUAL_TASK_ACL:
+			{
+				struct tomoyo_task_acl *entry =
+					container_of(acl, typeof(*entry), head);
+				tomoyo_put_name(entry->domainname);
+			}
+			break;
 	}
 }
 
@@ -251,7 +280,8 @@ static inline void tomoyo_del_domain(struct list_head *element)
 	 * "struct tomoyo_io_buffer" nor "struct cred"->security, we can delete
 	 * elements without checking for is_deleted flag.
 	 */
-	list_for_each_entry_safe(acl, tmp, &domain->acl_info_list, list) {
+	list_for_each_entry_safe(acl, tmp, &domain->acl_info_list, list)
+	{
 		tomoyo_del_acl(&acl->list);
 		tomoyo_memory_free(acl);
 	}
@@ -268,7 +298,7 @@ static inline void tomoyo_del_domain(struct list_head *element)
 void tomoyo_del_condition(struct list_head *element)
 {
 	struct tomoyo_condition *cond = container_of(element, typeof(*cond),
-						     head.list);
+									head.list);
 	const u16 condc = cond->condc;
 	const u16 numbers_count = cond->numbers_count;
 	const u16 names_count = cond->names_count;
@@ -285,13 +315,24 @@ void tomoyo_del_condition(struct list_head *element)
 		= (const struct tomoyo_argv *) (names_p + names_count);
 	const struct tomoyo_envp *envp
 		= (const struct tomoyo_envp *) (argv + argc);
+
 	for (i = 0; i < numbers_count; i++)
+	{
 		tomoyo_put_number_union(numbers_p++);
+	}
+
 	for (i = 0; i < names_count; i++)
+	{
 		tomoyo_put_name_union(names_p++);
+	}
+
 	for (i = 0; i < argc; argv++, i++)
+	{
 		tomoyo_put_name(argv->value);
-	for (i = 0; i < envc; envp++, i++) {
+	}
+
+	for (i = 0; i < envc; envp++, i++)
+	{
 		tomoyo_put_name(envp->name);
 		tomoyo_put_name(envp->value);
 	}
@@ -372,7 +413,7 @@ static inline void tomoyo_del_number_group(struct list_head *element)
  * Caller holds tomoyo_policy_lock mutex.
  */
 static void tomoyo_try_to_gc(const enum tomoyo_policy_id type,
-			     struct list_head *element)
+							 struct list_head *element)
 {
 	/*
 	 * __list_del_entry() guarantees that the list element became no longer
@@ -383,6 +424,7 @@ static void tomoyo_try_to_gc(const enum tomoyo_policy_id type,
 	__list_del_entry(element);
 	mutex_unlock(&tomoyo_policy_lock);
 	synchronize_srcu(&tomoyo_ss);
+
 	/*
 	 * However, there are two users which may still be using the list
 	 * element. We need to defer until both users forget this element.
@@ -391,62 +433,90 @@ static void tomoyo_try_to_gc(const enum tomoyo_policy_id type,
 	 * and "struct tomoyo_io_buffer"->w.domain forget this element.
 	 */
 	if (tomoyo_struct_used_by_io_buffer(element))
+	{
 		goto reinject;
-	switch (type) {
-	case TOMOYO_ID_TRANSITION_CONTROL:
-		tomoyo_del_transition_control(element);
-		break;
-	case TOMOYO_ID_MANAGER:
-		tomoyo_del_manager(element);
-		break;
-	case TOMOYO_ID_AGGREGATOR:
-		tomoyo_del_aggregator(element);
-		break;
-	case TOMOYO_ID_GROUP:
-		tomoyo_del_group(element);
-		break;
-	case TOMOYO_ID_PATH_GROUP:
-		tomoyo_del_path_group(element);
-		break;
-	case TOMOYO_ID_ADDRESS_GROUP:
-		tomoyo_del_address_group(element);
-		break;
-	case TOMOYO_ID_NUMBER_GROUP:
-		tomoyo_del_number_group(element);
-		break;
-	case TOMOYO_ID_CONDITION:
-		tomoyo_del_condition(element);
-		break;
-	case TOMOYO_ID_NAME:
-		/*
-		 * Don't kfree() until all "struct tomoyo_io_buffer"->r.w[]
-		 * forget this element.
-		 */
-		if (tomoyo_name_used_by_io_buffer
-		    (container_of(element, typeof(struct tomoyo_name),
-				  head.list)->entry.name))
-			goto reinject;
-		tomoyo_del_name(element);
-		break;
-	case TOMOYO_ID_ACL:
-		tomoyo_del_acl(element);
-		break;
-	case TOMOYO_ID_DOMAIN:
-		/*
-		 * Don't kfree() until all "struct cred"->security forget this
-		 * element.
-		 */
-		if (atomic_read(&container_of
-				(element, typeof(struct tomoyo_domain_info),
-				 list)->users))
-			goto reinject;
-		break;
-	case TOMOYO_MAX_POLICY:
-		break;
 	}
+
+	switch (type)
+	{
+		case TOMOYO_ID_TRANSITION_CONTROL:
+			tomoyo_del_transition_control(element);
+			break;
+
+		case TOMOYO_ID_MANAGER:
+			tomoyo_del_manager(element);
+			break;
+
+		case TOMOYO_ID_AGGREGATOR:
+			tomoyo_del_aggregator(element);
+			break;
+
+		case TOMOYO_ID_GROUP:
+			tomoyo_del_group(element);
+			break;
+
+		case TOMOYO_ID_PATH_GROUP:
+			tomoyo_del_path_group(element);
+			break;
+
+		case TOMOYO_ID_ADDRESS_GROUP:
+			tomoyo_del_address_group(element);
+			break;
+
+		case TOMOYO_ID_NUMBER_GROUP:
+			tomoyo_del_number_group(element);
+			break;
+
+		case TOMOYO_ID_CONDITION:
+			tomoyo_del_condition(element);
+			break;
+
+		case TOMOYO_ID_NAME:
+
+			/*
+			 * Don't kfree() until all "struct tomoyo_io_buffer"->r.w[]
+			 * forget this element.
+			 */
+			if (tomoyo_name_used_by_io_buffer
+				(container_of(element, typeof(struct tomoyo_name),
+							  head.list)->entry.name))
+			{
+				goto reinject;
+			}
+
+			tomoyo_del_name(element);
+			break;
+
+		case TOMOYO_ID_ACL:
+			tomoyo_del_acl(element);
+			break;
+
+		case TOMOYO_ID_DOMAIN:
+
+			/*
+			 * Don't kfree() until all "struct cred"->security forget this
+			 * element.
+			 */
+			if (atomic_read(&container_of
+							(element, typeof(struct tomoyo_domain_info),
+							 list)->users))
+			{
+				goto reinject;
+			}
+
+			break;
+
+		case TOMOYO_MAX_POLICY:
+			break;
+	}
+
 	mutex_lock(&tomoyo_policy_lock);
+
 	if (type == TOMOYO_ID_DOMAIN)
+	{
 		tomoyo_del_domain(element);
+	}
+
 	tomoyo_memory_free(element);
 	return;
 reinject:
@@ -471,13 +541,17 @@ reinject:
  * Returns nothing.
  */
 static void tomoyo_collect_member(const enum tomoyo_policy_id id,
-				  struct list_head *member_list)
+								  struct list_head *member_list)
 {
 	struct tomoyo_acl_head *member;
 	struct tomoyo_acl_head *tmp;
-	list_for_each_entry_safe(member, tmp, member_list, list) {
+	list_for_each_entry_safe(member, tmp, member_list, list)
+	{
 		if (!member->is_deleted)
+		{
 			continue;
+		}
+
 		member->is_deleted = TOMOYO_GC_IN_PROGRESS;
 		tomoyo_try_to_gc(id, &member->list);
 	}
@@ -494,9 +568,13 @@ static void tomoyo_collect_acl(struct list_head *list)
 {
 	struct tomoyo_acl_info *acl;
 	struct tomoyo_acl_info *tmp;
-	list_for_each_entry_safe(acl, tmp, list, list) {
+	list_for_each_entry_safe(acl, tmp, list, list)
+	{
 		if (!acl->is_deleted)
+		{
 			continue;
+		}
+
 		acl->is_deleted = TOMOYO_GC_IN_PROGRESS;
 		tomoyo_try_to_gc(TOMOYO_ID_ACL, &acl->list);
 	}
@@ -517,69 +595,103 @@ static void tomoyo_collect_entry(void)
 		struct tomoyo_domain_info *domain;
 		struct tomoyo_domain_info *tmp;
 		list_for_each_entry_safe(domain, tmp, &tomoyo_domain_list,
-					 list) {
+								 list)
+		{
 			tomoyo_collect_acl(&domain->acl_info_list);
+
 			if (!domain->is_deleted || atomic_read(&domain->users))
+			{
 				continue;
+			}
+
 			tomoyo_try_to_gc(TOMOYO_ID_DOMAIN, &domain->list);
 		}
 	}
-	list_for_each_entry(ns, &tomoyo_namespace_list, namespace_list) {
+	list_for_each_entry(ns, &tomoyo_namespace_list, namespace_list)
+	{
 		for (id = 0; id < TOMOYO_MAX_POLICY; id++)
+		{
 			tomoyo_collect_member(id, &ns->policy_list[id]);
+		}
+
 		for (i = 0; i < TOMOYO_MAX_ACL_GROUPS; i++)
+		{
 			tomoyo_collect_acl(&ns->acl_group[i]);
+		}
 	}
 	{
 		struct tomoyo_shared_acl_head *ptr;
 		struct tomoyo_shared_acl_head *tmp;
 		list_for_each_entry_safe(ptr, tmp, &tomoyo_condition_list,
-					 list) {
+								 list)
+		{
 			if (atomic_read(&ptr->users) > 0)
+			{
 				continue;
+			}
+
 			atomic_set(&ptr->users, TOMOYO_GC_IN_PROGRESS);
 			tomoyo_try_to_gc(TOMOYO_ID_CONDITION, &ptr->list);
 		}
 	}
-	list_for_each_entry(ns, &tomoyo_namespace_list, namespace_list) {
-		for (i = 0; i < TOMOYO_MAX_GROUP; i++) {
+	list_for_each_entry(ns, &tomoyo_namespace_list, namespace_list)
+	{
+		for (i = 0; i < TOMOYO_MAX_GROUP; i++)
+		{
 			struct list_head *list = &ns->group_list[i];
 			struct tomoyo_group *group;
 			struct tomoyo_group *tmp;
-			switch (i) {
-			case 0:
-				id = TOMOYO_ID_PATH_GROUP;
-				break;
-			case 1:
-				id = TOMOYO_ID_NUMBER_GROUP;
-				break;
-			default:
-				id = TOMOYO_ID_ADDRESS_GROUP;
-				break;
+
+			switch (i)
+			{
+				case 0:
+					id = TOMOYO_ID_PATH_GROUP;
+					break;
+
+				case 1:
+					id = TOMOYO_ID_NUMBER_GROUP;
+					break;
+
+				default:
+					id = TOMOYO_ID_ADDRESS_GROUP;
+					break;
 			}
-			list_for_each_entry_safe(group, tmp, list, head.list) {
+
+			list_for_each_entry_safe(group, tmp, list, head.list)
+			{
 				tomoyo_collect_member(id, &group->member_list);
+
 				if (!list_empty(&group->member_list) ||
-				    atomic_read(&group->head.users) > 0)
+					atomic_read(&group->head.users) > 0)
+				{
 					continue;
+				}
+
 				atomic_set(&group->head.users,
-					   TOMOYO_GC_IN_PROGRESS);
+						   TOMOYO_GC_IN_PROGRESS);
 				tomoyo_try_to_gc(TOMOYO_ID_GROUP,
-						 &group->head.list);
+								 &group->head.list);
 			}
 		}
 	}
-	for (i = 0; i < TOMOYO_MAX_HASH; i++) {
+
+	for (i = 0; i < TOMOYO_MAX_HASH; i++)
+	{
 		struct list_head *list = &tomoyo_name_list[i];
 		struct tomoyo_shared_acl_head *ptr;
 		struct tomoyo_shared_acl_head *tmp;
-		list_for_each_entry_safe(ptr, tmp, list, list) {
+		list_for_each_entry_safe(ptr, tmp, list, list)
+		{
 			if (atomic_read(&ptr->users) > 0)
+			{
 				continue;
+			}
+
 			atomic_set(&ptr->users, TOMOYO_GC_IN_PROGRESS);
 			tomoyo_try_to_gc(TOMOYO_ID_NAME, &ptr->list);
 		}
 	}
+
 	mutex_unlock(&tomoyo_policy_lock);
 }
 
@@ -594,8 +706,12 @@ static int tomoyo_gc_thread(void *unused)
 {
 	/* Garbage collector thread is exclusive. */
 	static DEFINE_MUTEX(tomoyo_gc_mutex);
+
 	if (!mutex_trylock(&tomoyo_gc_mutex))
+	{
 		goto out;
+	}
+
 	tomoyo_collect_entry();
 	{
 		struct tomoyo_io_buffer *head;
@@ -603,9 +719,13 @@ static int tomoyo_gc_thread(void *unused)
 
 		spin_lock(&tomoyo_io_buffer_list_lock);
 		list_for_each_entry_safe(head, tmp, &tomoyo_io_buffer_list,
-					 list) {
+								 list)
+		{
 			if (head->users)
+			{
 				continue;
+			}
+
 			list_del(&head->list);
 			kfree(head->read_buf);
 			kfree(head->write_buf);
@@ -632,19 +752,29 @@ void tomoyo_notify_gc(struct tomoyo_io_buffer *head, const bool is_register)
 	bool is_write = false;
 
 	spin_lock(&tomoyo_io_buffer_list_lock);
-	if (is_register) {
+
+	if (is_register)
+	{
 		head->users = 1;
 		list_add(&head->list, &tomoyo_io_buffer_list);
-	} else {
+	}
+	else
+	{
 		is_write = head->write_buf != NULL;
-		if (!--head->users) {
+
+		if (!--head->users)
+		{
 			list_del(&head->list);
 			kfree(head->read_buf);
 			kfree(head->write_buf);
 			kfree(head);
 		}
 	}
+
 	spin_unlock(&tomoyo_io_buffer_list_lock);
+
 	if (is_write)
+	{
 		kthread_run(tomoyo_gc_thread, NULL, "GC for TOMOYO");
+	}
 }

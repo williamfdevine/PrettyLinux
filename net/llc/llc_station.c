@@ -30,9 +30,9 @@ static int llc_stat_ev_rx_null_dsap_xid_c(struct sk_buff *skb)
 	struct llc_pdu_un *pdu = llc_pdu_un_hdr(skb);
 
 	return LLC_PDU_IS_CMD(pdu) &&			/* command PDU */
-	       LLC_PDU_TYPE_IS_U(pdu) &&		/* U type PDU */
-	       LLC_U_PDU_CMD(pdu) == LLC_1_PDU_CMD_XID &&
-	       !pdu->dsap ? 0 : 1;			/* NULL DSAP value */
+		   LLC_PDU_TYPE_IS_U(pdu) &&		/* U type PDU */
+		   LLC_U_PDU_CMD(pdu) == LLC_1_PDU_CMD_XID &&
+		   !pdu->dsap ? 0 : 1;			/* NULL DSAP value */
 }
 
 static int llc_stat_ev_rx_null_dsap_test_c(struct sk_buff *skb)
@@ -40,9 +40,9 @@ static int llc_stat_ev_rx_null_dsap_test_c(struct sk_buff *skb)
 	struct llc_pdu_un *pdu = llc_pdu_un_hdr(skb);
 
 	return LLC_PDU_IS_CMD(pdu) &&			/* command PDU */
-	       LLC_PDU_TYPE_IS_U(pdu) &&		/* U type PDU */
-	       LLC_U_PDU_CMD(pdu) == LLC_1_PDU_CMD_TEST &&
-	       !pdu->dsap ? 0 : 1;			/* NULL DSAP */
+		   LLC_PDU_TYPE_IS_U(pdu) &&		/* U type PDU */
+		   LLC_U_PDU_CMD(pdu) == LLC_1_PDU_CMD_TEST &&
+		   !pdu->dsap ? 0 : 1;			/* NULL DSAP */
 }
 
 static int llc_station_ac_send_xid_r(struct sk_buff *skb)
@@ -50,18 +50,25 @@ static int llc_station_ac_send_xid_r(struct sk_buff *skb)
 	u8 mac_da[ETH_ALEN], dsap;
 	int rc = 1;
 	struct sk_buff *nskb = llc_alloc_frame(NULL, skb->dev, LLC_PDU_TYPE_U,
-					       sizeof(struct llc_xid_info));
+										   sizeof(struct llc_xid_info));
 
 	if (!nskb)
+	{
 		goto out;
+	}
+
 	rc = 0;
 	llc_pdu_decode_sa(skb, mac_da);
 	llc_pdu_decode_ssap(skb, &dsap);
 	llc_pdu_header_init(nskb, LLC_PDU_TYPE_U, 0, dsap, LLC_PDU_RSP);
 	llc_pdu_init_as_xid_rsp(nskb, LLC_XID_NULL_CLASS_2, 127);
 	rc = llc_mac_hdr_init(nskb, skb->dev->dev_addr, mac_da);
+
 	if (unlikely(rc))
+	{
 		goto free;
+	}
+
 	dev_queue_xmit(nskb);
 out:
 	return rc;
@@ -82,15 +89,22 @@ static int llc_station_ac_send_test_r(struct sk_buff *skb)
 	nskb = llc_alloc_frame(NULL, skb->dev, LLC_PDU_TYPE_U, data_size);
 
 	if (!nskb)
+	{
 		goto out;
+	}
+
 	rc = 0;
 	llc_pdu_decode_sa(skb, mac_da);
 	llc_pdu_decode_ssap(skb, &dsap);
 	llc_pdu_header_init(nskb, LLC_PDU_TYPE_U, 0, dsap, LLC_PDU_RSP);
 	llc_pdu_init_as_test_rsp(nskb, skb);
 	rc = llc_mac_hdr_init(nskb, skb->dev->dev_addr, mac_da);
+
 	if (unlikely(rc))
+	{
 		goto free;
+	}
+
 	dev_queue_xmit(nskb);
 out:
 	return rc;
@@ -108,9 +122,14 @@ free:
 static void llc_station_rcv(struct sk_buff *skb)
 {
 	if (llc_stat_ev_rx_null_dsap_xid_c(skb))
+	{
 		llc_station_ac_send_xid_r(skb);
+	}
 	else if (llc_stat_ev_rx_null_dsap_test_c(skb))
+	{
 		llc_station_ac_send_test_r(skb);
+	}
+
 	kfree_skb(skb);
 }
 

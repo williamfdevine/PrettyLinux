@@ -35,13 +35,22 @@ static bool irq_work_claim(struct irq_work *work)
 	 * flag value after cmpxchg() result.
 	 */
 	flags = work->flags & ~IRQ_WORK_PENDING;
-	for (;;) {
+
+	for (;;)
+	{
 		nflags = flags | IRQ_WORK_FLAGS;
 		oflags = cmpxchg(&work->flags, flags, nflags);
+
 		if (oflags == flags)
+		{
 			break;
+		}
+
 		if (oflags & IRQ_WORK_PENDING)
+		{
 			return false;
+		}
+
 		flags = oflags;
 		cpu_relax();
 	}
@@ -73,10 +82,14 @@ bool irq_work_queue_on(struct irq_work *work, int cpu)
 
 	/* Only queue if not already pending */
 	if (!irq_work_claim(work))
+	{
 		return false;
+	}
 
 	if (llist_add(&work->llnode, &per_cpu(raised_list, cpu)))
+	{
 		arch_send_call_function_single_ipi(cpu);
+	}
 
 	return true;
 }
@@ -88,19 +101,28 @@ bool irq_work_queue(struct irq_work *work)
 {
 	/* Only queue if not already pending */
 	if (!irq_work_claim(work))
+	{
 		return false;
+	}
 
 	/* Queue the entry and raise the IPI if needed. */
 	preempt_disable();
 
 	/* If the work is "lazy", handle it from next tick if any */
-	if (work->flags & IRQ_WORK_LAZY) {
+	if (work->flags & IRQ_WORK_LAZY)
+	{
 		if (llist_add(&work->llnode, this_cpu_ptr(&lazy_list)) &&
-		    tick_nohz_tick_stopped())
+			tick_nohz_tick_stopped())
+		{
 			arch_irq_work_raise();
-	} else {
+		}
+	}
+	else
+	{
 		if (llist_add(&work->llnode, this_cpu_ptr(&raised_list)))
+		{
 			arch_irq_work_raise();
+		}
 	}
 
 	preempt_enable();
@@ -118,7 +140,9 @@ bool irq_work_needs_cpu(void)
 
 	if (llist_empty(raised) || arch_irq_work_has_interrupt())
 		if (llist_empty(lazy))
+		{
 			return false;
+		}
 
 	/* All work should have been flushed before going offline */
 	WARN_ON_ONCE(cpu_is_offline(smp_processor_id()));
@@ -135,10 +159,14 @@ static void irq_work_run_list(struct llist_head *list)
 	BUG_ON(!irqs_disabled());
 
 	if (llist_empty(list))
+	{
 		return;
+	}
 
 	llnode = llist_del_all(list);
-	while (llnode != NULL) {
+
+	while (llnode != NULL)
+	{
 		work = llist_entry(llnode, struct irq_work, llnode);
 
 		llnode = llist_next(llnode);
@@ -178,7 +206,10 @@ void irq_work_tick(void)
 	struct llist_head *raised = this_cpu_ptr(&raised_list);
 
 	if (!llist_empty(raised) && !arch_irq_work_has_interrupt())
+	{
 		irq_work_run_list(raised);
+	}
+
 	irq_work_run_list(this_cpu_ptr(&lazy_list));
 }
 
@@ -191,6 +222,8 @@ void irq_work_sync(struct irq_work *work)
 	WARN_ON_ONCE(irqs_disabled());
 
 	while (work->flags & IRQ_WORK_BUSY)
+	{
 		cpu_relax();
+	}
 }
 EXPORT_SYMBOL_GPL(irq_work_sync);

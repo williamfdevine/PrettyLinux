@@ -83,7 +83,8 @@
 #define TEGRA20_AC97_FIFO_SCR_PB_3QRT_MT_EN		(1 << 9)
 #define TEGRA20_AC97_FIFO_SCR_PB_EMPTY_MT_EN		(1 << 8)
 
-struct tegra20_ac97 {
+struct tegra20_ac97
+{
 	struct clk *clk_ac97;
 	struct snd_dmaengine_dai_dma_data capture_dma_data;
 	struct snd_dmaengine_dai_dma_data playback_dma_data;

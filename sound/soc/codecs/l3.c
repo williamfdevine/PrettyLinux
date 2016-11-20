@@ -33,7 +33,8 @@ static void sendbyte(struct l3_pins *adap, unsigned int byte)
 {
 	int i;
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		adap->setclk(adap, 0);
 		udelay(adap->data_hold);
 		adap->setdat(adap, byte & 1);
@@ -50,16 +51,19 @@ static void sendbyte(struct l3_pins *adap, unsigned int byte)
  * transfer.
  */
 static void sendbytes(struct l3_pins *adap, const u8 *buf,
-		      int len)
+					  int len)
 {
 	int i;
 
-	for (i = 0; i < len; i++) {
-		if (i) {
+	for (i = 0; i < len; i++)
+	{
+		if (i)
+		{
 			udelay(adap->mode_hold);
 			adap->setmode(adap, 0);
 			udelay(adap->mode);
 		}
+
 		adap->setmode(adap, 1);
 		udelay(adap->mode_setup);
 		sendbyte(adap, buf[i]);
@@ -109,24 +113,38 @@ int l3_set_gpio_ops(struct device *dev, struct l3_pins *adap)
 	int ret;
 
 	if (!adap->use_gpios)
+	{
 		return -EINVAL;
+	}
 
 	ret = devm_gpio_request_one(dev, adap->gpio_data,
-				GPIOF_OUT_INIT_LOW, "l3_data");
+								GPIOF_OUT_INIT_LOW, "l3_data");
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	adap->setdat = l3_set_data;
 
 	ret = devm_gpio_request_one(dev, adap->gpio_clk,
-				GPIOF_OUT_INIT_LOW, "l3_clk");
+								GPIOF_OUT_INIT_LOW, "l3_clk");
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	adap->setclk = l3_set_clk;
 
 	ret = devm_gpio_request_one(dev, adap->gpio_mode,
-				GPIOF_OUT_INIT_LOW, "l3_mode");
+								GPIOF_OUT_INIT_LOW, "l3_mode");
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	adap->setmode = l3_set_mode;
 
 	return 0;

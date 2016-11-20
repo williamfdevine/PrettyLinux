@@ -77,7 +77,8 @@
 
 void ocrdma_eqd_set_task(struct work_struct *work);
 
-struct ocrdma_dev_attr {
+struct ocrdma_dev_attr
+{
 	u8 fw_ver[32];
 	u32 vendor_id;
 	u32 device_id;
@@ -117,18 +118,21 @@ struct ocrdma_dev_attr {
 	u8 udp_encap;
 };
 
-struct ocrdma_dma_mem {
+struct ocrdma_dma_mem
+{
 	void *va;
 	dma_addr_t pa;
 	u32 size;
 };
 
-struct ocrdma_pbl {
+struct ocrdma_pbl
+{
 	void *va;
 	dma_addr_t pa;
 };
 
-struct ocrdma_queue_info {
+struct ocrdma_queue_info
+{
 	void *va;
 	dma_addr_t dma;
 	u32 size;
@@ -139,13 +143,15 @@ struct ocrdma_queue_info {
 	bool created;
 };
 
-struct ocrdma_aic_obj {         /* Adaptive interrupt coalescing (AIC) info */
+struct ocrdma_aic_obj           /* Adaptive interrupt coalescing (AIC) info */
+{
 	u32 prev_eqd;
 	u64 eq_intr_cnt;
 	u64 prev_eq_intr_cnt;
 };
 
-struct ocrdma_eq {
+struct ocrdma_eq
+{
 	struct ocrdma_queue_info q;
 	u32 vector;
 	int cq_cnt;
@@ -154,13 +160,15 @@ struct ocrdma_eq {
 	struct ocrdma_aic_obj aic_obj;
 };
 
-struct ocrdma_mq {
+struct ocrdma_mq
+{
 	struct ocrdma_queue_info sq;
 	struct ocrdma_queue_info cq;
 	bool rearm_cq;
 };
 
-struct mqe_ctx {
+struct mqe_ctx
+{
 	struct mutex lock; /* for serializing mailbox commands on MQ */
 	wait_queue_head_t cmd_wait;
 	u32 tag;
@@ -170,7 +178,8 @@ struct mqe_ctx {
 	bool fw_error_state;
 };
 
-struct ocrdma_hw_mr {
+struct ocrdma_hw_mr
+{
 	u32 lkey;
 	u8 fr_mr;
 	u8 remote_atomic;
@@ -190,7 +199,8 @@ struct ocrdma_hw_mr {
 	u64 va;
 };
 
-struct ocrdma_mr {
+struct ocrdma_mr
+{
 	struct ib_mr ibmr;
 	struct ib_umem *umem;
 	struct ocrdma_hw_mr hwmr;
@@ -198,12 +208,14 @@ struct ocrdma_mr {
 	u32 npages;
 };
 
-struct ocrdma_stats {
+struct ocrdma_stats
+{
 	u8 type;
 	struct ocrdma_dev *dev;
 };
 
-struct ocrdma_pd_resource_mgr {
+struct ocrdma_pd_resource_mgr
+{
 	u32 pd_norm_start;
 	u16 pd_norm_count;
 	u16 pd_norm_thrsh;
@@ -218,7 +230,8 @@ struct ocrdma_pd_resource_mgr {
 	bool pd_prealloc_valid;
 };
 
-struct stats_mem {
+struct stats_mem
+{
 	struct ocrdma_mqe mqe;
 	void *va;
 	dma_addr_t pa;
@@ -226,18 +239,21 @@ struct stats_mem {
 	char *debugfs_mem;
 };
 
-struct phy_info {
+struct phy_info
+{
 	u16 auto_speeds_supported;
 	u16 fixed_speeds_supported;
 	u16 phy_type;
 	u16 interface_type;
 };
 
-enum ocrdma_flags {
+enum ocrdma_flags
+{
 	OCRDMA_FLAGS_LINK_STATUS_INIT = 0x01
 };
 
-struct ocrdma_dev {
+struct ocrdma_dev
+{
 	struct ib_device ibdev;
 	struct ocrdma_dev_attr attr;
 
@@ -262,7 +278,8 @@ struct ocrdma_dev {
 	struct ocrdma_cq *gsi_sqcq;
 	struct ocrdma_cq *gsi_rqcq;
 
-	struct {
+	struct
+	{
 		struct ocrdma_av *va;
 		dma_addr_t pa;
 		u32 size;
@@ -314,7 +331,8 @@ struct ocrdma_dev {
 	struct ocrdma_pd_resource_mgr *pd_mgr;
 };
 
-struct ocrdma_cq {
+struct ocrdma_cq
+{
 	struct ib_cq ibcq;
 	struct ocrdma_cqe *va;
 	u32 phase;
@@ -343,7 +361,8 @@ struct ocrdma_cq {
 	struct list_head sq_head, rq_head;
 };
 
-struct ocrdma_pd {
+struct ocrdma_pd
+{
 	struct ib_pd ibpd;
 	struct ocrdma_ucontext *uctx;
 	u32 id;
@@ -352,7 +371,8 @@ struct ocrdma_pd {
 	bool dpp_enabled;
 };
 
-struct ocrdma_ah {
+struct ocrdma_ah
+{
 	struct ib_ah ibah;
 	struct ocrdma_av *av;
 	u16 sgid_index;
@@ -360,7 +380,8 @@ struct ocrdma_ah {
 	u8 hdr_type;
 };
 
-struct ocrdma_qp_hwq_info {
+struct ocrdma_qp_hwq_info
+{
 	u8 *va;			/* virtual address */
 	u32 max_sges;
 	u32 head, tail;
@@ -372,7 +393,8 @@ struct ocrdma_qp_hwq_info {
 	dma_addr_t pa;
 };
 
-struct ocrdma_srq {
+struct ocrdma_srq
+{
 	struct ib_srq ibsrq;
 	u8 __iomem *db;
 	struct ocrdma_qp_hwq_info rq;
@@ -387,12 +409,14 @@ struct ocrdma_srq {
 	u32 id;
 };
 
-struct ocrdma_qp {
+struct ocrdma_qp
+{
 	struct ib_qp ibqp;
 
 	u8 __iomem *sq_db;
 	struct ocrdma_qp_hwq_info sq;
-	struct {
+	struct
+	{
 		uint64_t wrid;
 		uint16_t dpp_wqe_idx;
 		uint16_t dpp_wqe;
@@ -431,7 +455,8 @@ struct ocrdma_qp {
 	bool signaled;
 };
 
-struct ocrdma_ucontext {
+struct ocrdma_ucontext
+{
 	struct ib_ucontext ibucontext;
 
 	struct list_head mm_head;
@@ -439,15 +464,18 @@ struct ocrdma_ucontext {
 	struct ocrdma_pd *cntxt_pd;
 	int pd_in_use;
 
-	struct {
+	struct
+	{
 		u32 *va;
 		dma_addr_t pa;
 		u32 len;
 	} ah_tbl;
 };
 
-struct ocrdma_mm {
-	struct {
+struct ocrdma_mm
+{
+	struct
+	{
 		u64 phy_addr;
 		unsigned long len;
 	} key;
@@ -460,7 +488,7 @@ static inline struct ocrdma_dev *get_ocrdma_dev(struct ib_device *ibdev)
 }
 
 static inline struct ocrdma_ucontext *get_ocrdma_ucontext(struct ib_ucontext
-							  *ibucontext)
+		*ibucontext)
 {
 	return container_of(ibucontext, struct ocrdma_ucontext, ibucontext);
 }
@@ -505,50 +533,60 @@ static inline int is_cqe_valid(struct ocrdma_cq *cq, struct ocrdma_cqe *cqe)
 static inline int is_cqe_for_sq(struct ocrdma_cqe *cqe)
 {
 	return (le32_to_cpu(cqe->flags_status_srcqpn) &
-		OCRDMA_CQE_QTYPE) ? 0 : 1;
+			OCRDMA_CQE_QTYPE) ? 0 : 1;
 }
 
 static inline int is_cqe_invalidated(struct ocrdma_cqe *cqe)
 {
 	return (le32_to_cpu(cqe->flags_status_srcqpn) &
-		OCRDMA_CQE_INVALIDATE) ? 1 : 0;
+			OCRDMA_CQE_INVALIDATE) ? 1 : 0;
 }
 
 static inline int is_cqe_imm(struct ocrdma_cqe *cqe)
 {
 	return (le32_to_cpu(cqe->flags_status_srcqpn) &
-		OCRDMA_CQE_IMM) ? 1 : 0;
+			OCRDMA_CQE_IMM) ? 1 : 0;
 }
 
 static inline int is_cqe_wr_imm(struct ocrdma_cqe *cqe)
 {
 	return (le32_to_cpu(cqe->flags_status_srcqpn) &
-		OCRDMA_CQE_WRITE_IMM) ? 1 : 0;
+			OCRDMA_CQE_WRITE_IMM) ? 1 : 0;
 }
 
 static inline int ocrdma_resolve_dmac(struct ocrdma_dev *dev,
-		struct ib_ah_attr *ah_attr, u8 *mac_addr)
+									  struct ib_ah_attr *ah_attr, u8 *mac_addr)
 {
 	struct in6_addr in6;
 
 	memcpy(&in6, ah_attr->grh.dgid.raw, sizeof(in6));
+
 	if (rdma_is_multicast_addr(&in6))
+	{
 		rdma_get_mcast_mac(&in6, mac_addr);
+	}
 	else if (rdma_link_local_addr(&in6))
+	{
 		rdma_get_ll_mac(&in6, mac_addr);
+	}
 	else
+	{
 		memcpy(mac_addr, ah_attr->dmac, ETH_ALEN);
+	}
+
 	return 0;
 }
 
 static inline char *hca_name(struct ocrdma_dev *dev)
 {
-	switch (dev->nic_info.pdev->device) {
-	case OC_SKH_DEVICE_PF:
-	case OC_SKH_DEVICE_VF:
-		return OC_NAME_SH;
-	default:
-		return OC_NAME_UNKNOWN;
+	switch (dev->nic_info.pdev->device)
+	{
+		case OC_SKH_DEVICE_PF:
+		case OC_SKH_DEVICE_VF:
+			return OC_NAME_SH;
+
+		default:
+			return OC_NAME_UNKNOWN;
 	}
 }
 
@@ -557,9 +595,12 @@ static inline int ocrdma_get_eq_table_index(struct ocrdma_dev *dev,
 {
 	int indx;
 
-	for (indx = 0; indx < dev->eq_cnt; indx++) {
+	for (indx = 0; indx < dev->eq_cnt; indx++)
+	{
 		if (dev->eq_tbl[indx].q.id == eqid)
+		{
 			return indx;
+		}
 	}
 
 	return -EINVAL;
@@ -567,14 +608,15 @@ static inline int ocrdma_get_eq_table_index(struct ocrdma_dev *dev,
 
 static inline u8 ocrdma_get_asic_type(struct ocrdma_dev *dev)
 {
-	if (dev->nic_info.dev_family == 0xF && !dev->asic_id) {
+	if (dev->nic_info.dev_family == 0xF && !dev->asic_id)
+	{
 		pci_read_config_dword(
 			dev->nic_info.pdev,
 			OCRDMA_SLI_ASIC_ID_OFFSET, &dev->asic_id);
 	}
 
 	return (dev->asic_id & OCRDMA_SLI_ASIC_GEN_NUM_MASK) >>
-				OCRDMA_SLI_ASIC_GEN_NUM_SHIFT;
+		   OCRDMA_SLI_ASIC_GEN_NUM_SHIFT;
 }
 
 static inline u8 ocrdma_get_pfc_prio(u8 *pfc, u8 prio)
@@ -588,11 +630,12 @@ static inline u8 ocrdma_get_app_prio(u8 *app_prio, u8 prio)
 }
 
 static inline u8 ocrdma_is_enabled_and_synced(u32 state)
-{	/* May also be used to interpret TC-state, QCN-state
+{
+	/* May also be used to interpret TC-state, QCN-state
 	 * Appl-state and Logical-link-state in future.
 	 */
 	return (state & OCRDMA_STATE_FLAG_ENABLED) &&
-		(state & OCRDMA_STATE_FLAG_SYNC);
+		   (state & OCRDMA_STATE_FLAG_SYNC);
 }
 
 static inline u8 ocrdma_get_ae_link_state(u32 ae_state)
@@ -603,7 +646,7 @@ static inline u8 ocrdma_get_ae_link_state(u32 ae_state)
 static inline bool ocrdma_is_udp_encap_supported(struct ocrdma_dev *dev)
 {
 	return (dev->attr.udp_encap & OCRDMA_L3_TYPE_IPV4) ||
-	       (dev->attr.udp_encap & OCRDMA_L3_TYPE_IPV6);
+		   (dev->attr.udp_encap & OCRDMA_L3_TYPE_IPV6);
 }
 
 #endif

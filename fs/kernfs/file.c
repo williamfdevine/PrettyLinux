@@ -32,7 +32,8 @@
 static DEFINE_SPINLOCK(kernfs_open_node_lock);
 static DEFINE_MUTEX(kernfs_open_file_mutex);
 
-struct kernfs_open_node {
+struct kernfs_open_node
+{
 	atomic_t		refcnt;
 	atomic_t		event;
 	wait_queue_head_t	poll;
@@ -64,7 +65,10 @@ static struct kernfs_open_file *kernfs_of(struct file *file)
 static const struct kernfs_ops *kernfs_ops(struct kernfs_node *kn)
 {
 	if (kn->flags & KERNFS_LOCKDEP)
+	{
 		lockdep_assert_held(kn);
+	}
+
 	return kn->attr.ops;
 }
 
@@ -96,7 +100,10 @@ static void kernfs_seq_stop_active(struct seq_file *sf, void *v)
 	const struct kernfs_ops *ops = kernfs_ops(of->kn);
 
 	if (ops->seq_stop)
+	{
 		ops->seq_stop(sf, v);
+	}
+
 	kernfs_put_active(of->kn);
 }
 
@@ -110,17 +117,28 @@ static void *kernfs_seq_start(struct seq_file *sf, loff_t *ppos)
 	 * the ops aren't called concurrently for the same open file.
 	 */
 	mutex_lock(&of->mutex);
+
 	if (!kernfs_get_active(of->kn))
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
 	ops = kernfs_ops(of->kn);
-	if (ops->seq_start) {
+
+	if (ops->seq_start)
+	{
 		void *next = ops->seq_start(sf, ppos);
+
 		/* see the comment above kernfs_seq_stop_active() */
 		if (next == ERR_PTR(-ENODEV))
+		{
 			kernfs_seq_stop_active(sf, next);
+		}
+
 		return next;
-	} else {
+	}
+	else
+	{
 		/*
 		 * The same behavior and code as single_open().  Returns
 		 * !NULL if pos is at the beginning; otherwise, NULL.
@@ -134,13 +152,20 @@ static void *kernfs_seq_next(struct seq_file *sf, void *v, loff_t *ppos)
 	struct kernfs_open_file *of = sf->private;
 	const struct kernfs_ops *ops = kernfs_ops(of->kn);
 
-	if (ops->seq_next) {
+	if (ops->seq_next)
+	{
 		void *next = ops->seq_next(sf, v, ppos);
+
 		/* see the comment above kernfs_seq_stop_active() */
 		if (next == ERR_PTR(-ENODEV))
+		{
 			kernfs_seq_stop_active(sf, next);
+		}
+
 		return next;
-	} else {
+	}
+	else
+	{
 		/*
 		 * The same behavior and code as single_open(), always
 		 * terminate after the initial read.
@@ -155,7 +180,10 @@ static void kernfs_seq_stop(struct seq_file *sf, void *v)
 	struct kernfs_open_file *of = sf->private;
 
 	if (v != ERR_PTR(-ENODEV))
+	{
 		kernfs_seq_stop_active(sf, v);
+	}
+
 	mutex_unlock(&of->mutex);
 }
 
@@ -168,7 +196,8 @@ static int kernfs_seq_show(struct seq_file *sf, void *v)
 	return of->kn->attr.ops->seq_show(sf, v);
 }
 
-static const struct seq_operations kernfs_seq_ops = {
+static const struct seq_operations kernfs_seq_ops =
+{
 	.start = kernfs_seq_start,
 	.next = kernfs_seq_next,
 	.stop = kernfs_seq_stop,
@@ -182,27 +211,37 @@ static const struct seq_operations kernfs_seq_ops = {
  * bin files.
  */
 static ssize_t kernfs_file_direct_read(struct kernfs_open_file *of,
-				       char __user *user_buf, size_t count,
-				       loff_t *ppos)
+									   char __user *user_buf, size_t count,
+									   loff_t *ppos)
 {
 	ssize_t len = min_t(size_t, count, PAGE_SIZE);
 	const struct kernfs_ops *ops;
 	char *buf;
 
 	buf = of->prealloc_buf;
+
 	if (buf)
+	{
 		mutex_lock(&of->prealloc_mutex);
+	}
 	else
+	{
 		buf = kmalloc(len, GFP_KERNEL);
+	}
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * @of->mutex nests outside active ref and is used both to ensure that
 	 * the ops aren't called concurrently for the same open file.
 	 */
 	mutex_lock(&of->mutex);
-	if (!kernfs_get_active(of->kn)) {
+
+	if (!kernfs_get_active(of->kn))
+	{
 		len = -ENODEV;
 		mutex_unlock(&of->mutex);
 		goto out_free;
@@ -210,29 +249,43 @@ static ssize_t kernfs_file_direct_read(struct kernfs_open_file *of,
 
 	of->event = atomic_read(&of->kn->attr.open->event);
 	ops = kernfs_ops(of->kn);
+
 	if (ops->read)
+	{
 		len = ops->read(of, buf, len, *ppos);
+	}
 	else
+	{
 		len = -EINVAL;
+	}
 
 	kernfs_put_active(of->kn);
 	mutex_unlock(&of->mutex);
 
 	if (len < 0)
+	{
 		goto out_free;
+	}
 
-	if (copy_to_user(user_buf, buf, len)) {
+	if (copy_to_user(user_buf, buf, len))
+	{
 		len = -EFAULT;
 		goto out_free;
 	}
 
 	*ppos += len;
 
- out_free:
+out_free:
+
 	if (buf == of->prealloc_buf)
+	{
 		mutex_unlock(&of->prealloc_mutex);
+	}
 	else
+	{
 		kfree(buf);
+	}
+
 	return len;
 }
 
@@ -244,14 +297,18 @@ static ssize_t kernfs_file_direct_read(struct kernfs_open_file *of,
  * @ppos: starting offset
  */
 static ssize_t kernfs_fop_read(struct file *file, char __user *user_buf,
-			       size_t count, loff_t *ppos)
+							   size_t count, loff_t *ppos)
 {
 	struct kernfs_open_file *of = kernfs_of(file);
 
 	if (of->kn->flags & KERNFS_HAS_SEQ_SHOW)
+	{
 		return seq_read(file, user_buf, count, ppos);
+	}
 	else
+	{
 		return kernfs_file_direct_read(of, user_buf, count, ppos);
+	}
 }
 
 /**
@@ -271,33 +328,49 @@ static ssize_t kernfs_fop_read(struct file *file, char __user *user_buf,
  * back.
  */
 static ssize_t kernfs_fop_write(struct file *file, const char __user *user_buf,
-				size_t count, loff_t *ppos)
+								size_t count, loff_t *ppos)
 {
 	struct kernfs_open_file *of = kernfs_of(file);
 	const struct kernfs_ops *ops;
 	size_t len;
 	char *buf;
 
-	if (of->atomic_write_len) {
+	if (of->atomic_write_len)
+	{
 		len = count;
+
 		if (len > of->atomic_write_len)
+		{
 			return -E2BIG;
-	} else {
+		}
+	}
+	else
+	{
 		len = min_t(size_t, count, PAGE_SIZE);
 	}
 
 	buf = of->prealloc_buf;
-	if (buf)
-		mutex_lock(&of->prealloc_mutex);
-	else
-		buf = kmalloc(len + 1, GFP_KERNEL);
-	if (!buf)
-		return -ENOMEM;
 
-	if (copy_from_user(buf, user_buf, len)) {
+	if (buf)
+	{
+		mutex_lock(&of->prealloc_mutex);
+	}
+	else
+	{
+		buf = kmalloc(len + 1, GFP_KERNEL);
+	}
+
+	if (!buf)
+	{
+		return -ENOMEM;
+	}
+
+	if (copy_from_user(buf, user_buf, len))
+	{
 		len = -EFAULT;
 		goto out_free;
 	}
+
 	buf[len] = '\0';	/* guarantee string termination */
 
 	/*
@@ -305,29 +378,44 @@ static ssize_t kernfs_fop_write(struct file *file, const char __user *user_buf,
 	 * the ops aren't called concurrently for the same open file.
 	 */
 	mutex_lock(&of->mutex);
-	if (!kernfs_get_active(of->kn)) {
+
+	if (!kernfs_get_active(of->kn))
+	{
 		mutex_unlock(&of->mutex);
 		len = -ENODEV;
 		goto out_free;
 	}
 
 	ops = kernfs_ops(of->kn);
+
 	if (ops->write)
+	{
 		len = ops->write(of, buf, len, *ppos);
+	}
 	else
+	{
 		len = -EINVAL;
+	}
 
 	kernfs_put_active(of->kn);
 	mutex_unlock(&of->mutex);
 
 	if (len > 0)
+	{
 		*ppos += len;
+	}
 
 out_free:
+
 	if (buf == of->prealloc_buf)
+	{
 		mutex_unlock(&of->prealloc_mutex);
+	}
 	else
+	{
 		kfree(buf);
+	}
+
 	return len;
 }
 
@@ -337,13 +425,19 @@ static void kernfs_vma_open(struct vm_area_struct *vma)
 	struct kernfs_open_file *of = kernfs_of(file);
 
 	if (!of->vm_ops)
+	{
 		return;
+	}
 
 	if (!kernfs_get_active(of->kn))
+	{
 		return;
+	}
 
 	if (of->vm_ops->open)
+	{
 		of->vm_ops->open(vma);
+	}
 
 	kernfs_put_active(of->kn);
 }
@@ -355,58 +449,81 @@ static int kernfs_vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 	int ret;
 
 	if (!of->vm_ops)
+	{
 		return VM_FAULT_SIGBUS;
+	}
 
 	if (!kernfs_get_active(of->kn))
+	{
 		return VM_FAULT_SIGBUS;
+	}
 
 	ret = VM_FAULT_SIGBUS;
+
 	if (of->vm_ops->fault)
+	{
 		ret = of->vm_ops->fault(vma, vmf);
+	}
 
 	kernfs_put_active(of->kn);
 	return ret;
 }
 
 static int kernfs_vma_page_mkwrite(struct vm_area_struct *vma,
-				   struct vm_fault *vmf)
+								   struct vm_fault *vmf)
 {
 	struct file *file = vma->vm_file;
 	struct kernfs_open_file *of = kernfs_of(file);
 	int ret;
 
 	if (!of->vm_ops)
+	{
 		return VM_FAULT_SIGBUS;
+	}
 
 	if (!kernfs_get_active(of->kn))
+	{
 		return VM_FAULT_SIGBUS;
+	}
 
 	ret = 0;
+
 	if (of->vm_ops->page_mkwrite)
+	{
 		ret = of->vm_ops->page_mkwrite(vma, vmf);
+	}
 	else
+	{
 		file_update_time(file);
+	}
 
 	kernfs_put_active(of->kn);
 	return ret;
 }
 
 static int kernfs_vma_access(struct vm_area_struct *vma, unsigned long addr,
-			     void *buf, int len, int write)
+							 void *buf, int len, int write)
 {
 	struct file *file = vma->vm_file;
 	struct kernfs_open_file *of = kernfs_of(file);
 	int ret;
 
 	if (!of->vm_ops)
+	{
 		return -EINVAL;
+	}
 
 	if (!kernfs_get_active(of->kn))
+	{
 		return -EINVAL;
+	}
 
 	ret = -EINVAL;
+
 	if (of->vm_ops->access)
+	{
 		ret = of->vm_ops->access(vma, addr, buf, len, write);
+	}
 
 	kernfs_put_active(of->kn);
 	return ret;
@@ -414,42 +531,56 @@ static int kernfs_vma_access(struct vm_area_struct *vma, unsigned long addr,
 
 #ifdef CONFIG_NUMA
 static int kernfs_vma_set_policy(struct vm_area_struct *vma,
-				 struct mempolicy *new)
+								 struct mempolicy *new)
 {
 	struct file *file = vma->vm_file;
 	struct kernfs_open_file *of = kernfs_of(file);
 	int ret;
 
 	if (!of->vm_ops)
+	{
 		return 0;
+	}
 
 	if (!kernfs_get_active(of->kn))
+	{
 		return -EINVAL;
+	}
 
 	ret = 0;
+
 	if (of->vm_ops->set_policy)
+	{
 		ret = of->vm_ops->set_policy(vma, new);
+	}
 
 	kernfs_put_active(of->kn);
 	return ret;
 }
 
 static struct mempolicy *kernfs_vma_get_policy(struct vm_area_struct *vma,
-					       unsigned long addr)
+		unsigned long addr)
 {
 	struct file *file = vma->vm_file;
 	struct kernfs_open_file *of = kernfs_of(file);
 	struct mempolicy *pol;
 
 	if (!of->vm_ops)
+	{
 		return vma->vm_policy;
+	}
 
 	if (!kernfs_get_active(of->kn))
+	{
 		return vma->vm_policy;
+	}
 
 	pol = vma->vm_policy;
+
 	if (of->vm_ops->get_policy)
+	{
 		pol = of->vm_ops->get_policy(vma, addr);
+	}
 
 	kernfs_put_active(of->kn);
 	return pol;
@@ -457,7 +588,8 @@ static struct mempolicy *kernfs_vma_get_policy(struct vm_area_struct *vma,
 
 #endif
 
-static const struct vm_operations_struct kernfs_vm_ops = {
+static const struct vm_operations_struct kernfs_vm_ops =
+{
 	.open		= kernfs_vma_open,
 	.fault		= kernfs_vma_fault,
 	.page_mkwrite	= kernfs_vma_page_mkwrite,
@@ -482,18 +614,26 @@ static int kernfs_fop_mmap(struct file *file, struct vm_area_struct *vma)
 	 * comment in kernfs_file_open() for more details.
 	 */
 	if (!(of->kn->flags & KERNFS_HAS_MMAP))
+	{
 		return -ENODEV;
+	}
 
 	mutex_lock(&of->mutex);
 
 	rc = -ENODEV;
+
 	if (!kernfs_get_active(of->kn))
+	{
 		goto out_unlock;
+	}
 
 	ops = kernfs_ops(of->kn);
 	rc = ops->mmap(of, vma);
+
 	if (rc)
+	{
 		goto out_put;
+	}
 
 	/*
 	 * PowerPC's pci_mmap of legacy_mem uses shmem_zero_setup()
@@ -501,19 +641,27 @@ static int kernfs_fop_mmap(struct file *file, struct vm_area_struct *vma)
 	 * substitutes a new vm_file, and we don't then want bin_vm_ops.
 	 */
 	if (vma->vm_file != file)
+	{
 		goto out_put;
+	}
 
 	rc = -EINVAL;
+
 	if (of->mmapped && of->vm_ops != vma->vm_ops)
+	{
 		goto out_put;
+	}
 
 	/*
 	 * It is not possible to successfully wrap close.
 	 * So error if someone is trying to use close.
 	 */
 	rc = -EINVAL;
+
 	if (vma->vm_ops && vma->vm_ops->close)
+	{
 		goto out_put;
+	}
 
 	rc = 0;
 	of->mmapped = 1;
@@ -542,21 +690,24 @@ out_unlock:
  *	0 on success, -errno on failure.
  */
 static int kernfs_get_open_node(struct kernfs_node *kn,
-				struct kernfs_open_file *of)
+								struct kernfs_open_file *of)
 {
 	struct kernfs_open_node *on, *new_on = NULL;
 
- retry:
+retry:
 	mutex_lock(&kernfs_open_file_mutex);
 	spin_lock_irq(&kernfs_open_node_lock);
 
-	if (!kn->attr.open && new_on) {
+	if (!kn->attr.open && new_on)
+	{
 		kn->attr.open = new_on;
 		new_on = NULL;
 	}
 
 	on = kn->attr.open;
-	if (on) {
+
+	if (on)
+	{
 		atomic_inc(&on->refcnt);
 		list_add_tail(&of->list, &on->files);
 	}
@@ -564,15 +715,19 @@ static int kernfs_get_open_node(struct kernfs_node *kn,
 	spin_unlock_irq(&kernfs_open_node_lock);
 	mutex_unlock(&kernfs_open_file_mutex);
 
-	if (on) {
+	if (on)
+	{
 		kfree(new_on);
 		return 0;
 	}
 
 	/* not there, initialize a new one and retry */
 	new_on = kmalloc(sizeof(*new_on), GFP_KERNEL);
+
 	if (!new_on)
+	{
 		return -ENOMEM;
+	}
 
 	atomic_set(&new_on->refcnt, 0);
 	atomic_set(&new_on->event, 1);
@@ -593,7 +748,7 @@ static int kernfs_get_open_node(struct kernfs_node *kn,
  *	None.
  */
 static void kernfs_put_open_node(struct kernfs_node *kn,
-				 struct kernfs_open_file *of)
+								 struct kernfs_open_file *of)
 {
 	struct kernfs_open_node *on = kn->attr.open;
 	unsigned long flags;
@@ -602,12 +757,18 @@ static void kernfs_put_open_node(struct kernfs_node *kn,
 	spin_lock_irqsave(&kernfs_open_node_lock, flags);
 
 	if (of)
+	{
 		list_del(&of->list);
+	}
 
 	if (atomic_dec_and_test(&on->refcnt))
+	{
 		kn->attr.open = NULL;
+	}
 	else
+	{
 		on = NULL;
+	}
 
 	spin_unlock_irqrestore(&kernfs_open_node_lock, flags);
 	mutex_unlock(&kernfs_open_file_mutex);
@@ -625,7 +786,9 @@ static int kernfs_fop_open(struct inode *inode, struct file *file)
 	int error = -EACCES;
 
 	if (!kernfs_get_active(kn))
+	{
 		return -ENODEV;
+	}
 
 	ops = kernfs_ops(kn);
 
@@ -634,21 +797,29 @@ static int kernfs_fop_open(struct inode *inode, struct file *file)
 	has_mmap = ops->mmap;
 
 	/* see the flag definition for details */
-	if (root->flags & KERNFS_ROOT_EXTRA_OPEN_PERM_CHECK) {
+	if (root->flags & KERNFS_ROOT_EXTRA_OPEN_PERM_CHECK)
+	{
 		if ((file->f_mode & FMODE_WRITE) &&
-		    (!(inode->i_mode & S_IWUGO) || !has_write))
+			(!(inode->i_mode & S_IWUGO) || !has_write))
+		{
 			goto err_out;
+		}
 
 		if ((file->f_mode & FMODE_READ) &&
-		    (!(inode->i_mode & S_IRUGO) || !has_read))
+			(!(inode->i_mode & S_IRUGO) || !has_read))
+		{
 			goto err_out;
+		}
 	}
 
 	/* allocate a kernfs_open_file for the file */
 	error = -ENOMEM;
 	of = kzalloc(sizeof(struct kernfs_open_file), GFP_KERNEL);
+
 	if (!of)
+	{
 		goto err_out;
+	}
 
 	/*
 	 * The following is done to give a different lockdep key to
@@ -666,9 +837,13 @@ static int kernfs_fop_open(struct inode *inode, struct file *file)
 	 * look that way and give @of->mutex different static lockdep keys.
 	 */
 	if (has_mmap)
+	{
 		mutex_init(&of->mutex);
+	}
 	else
+	{
 		mutex_init(&of->mutex);
+	}
 
 	of->kn = kn;
 	of->file = file;
@@ -680,19 +855,28 @@ static int kernfs_fop_open(struct inode *inode, struct file *file)
 	of->atomic_write_len = ops->atomic_write_len;
 
 	error = -EINVAL;
+
 	/*
 	 * ->seq_show is incompatible with ->prealloc,
 	 * as seq_read does its own allocation.
 	 * ->read must be used instead.
 	 */
 	if (ops->prealloc && ops->seq_show)
+	{
 		goto err_free;
-	if (ops->prealloc) {
-		int len = of->atomic_write_len ?: PAGE_SIZE;
+	}
+
+	if (ops->prealloc)
+	{
+		int len = of->atomic_write_len ? : PAGE_SIZE;
 		of->prealloc_buf = kmalloc(len + 1, GFP_KERNEL);
 		error = -ENOMEM;
+
 		if (!of->prealloc_buf)
+		{
 			goto err_free;
+		}
+
 		mutex_init(&of->prealloc_mutex);
 	}
 
@@ -702,22 +886,34 @@ static int kernfs_fop_open(struct inode *inode, struct file *file)
 	 * and readable regular files are the vast majority anyway.
 	 */
 	if (ops->seq_show)
+	{
 		error = seq_open(file, &kernfs_seq_ops);
+	}
 	else
+	{
 		error = seq_open(file, NULL);
+	}
+
 	if (error)
+	{
 		goto err_free;
+	}
 
 	((struct seq_file *)file->private_data)->private = of;
 
 	/* seq_file clears PWRITE unconditionally, restore it if WRITE */
 	if (file->f_mode & FMODE_WRITE)
+	{
 		file->f_mode |= FMODE_PWRITE;
+	}
 
 	/* make sure we have open node struct */
 	error = kernfs_get_open_node(kn, of);
+
 	if (error)
+	{
 		goto err_close;
+	}
 
 	/* open succeeded, put active references */
 	kernfs_put_active(kn);
@@ -752,18 +948,28 @@ void kernfs_unmap_bin_file(struct kernfs_node *kn)
 	struct kernfs_open_file *of;
 
 	if (!(kn->flags & KERNFS_HAS_MMAP))
+	{
 		return;
+	}
 
 	spin_lock_irq(&kernfs_open_node_lock);
 	on = kn->attr.open;
+
 	if (on)
+	{
 		atomic_inc(&on->refcnt);
+	}
+
 	spin_unlock_irq(&kernfs_open_node_lock);
+
 	if (!on)
+	{
 		return;
+	}
 
 	mutex_lock(&kernfs_open_file_mutex);
-	list_for_each_entry(of, &on->files, list) {
+	list_for_each_entry(of, &on->files, list)
+	{
 		struct inode *inode = file_inode(of->file);
 		unmap_mapping_range(inode->i_mapping, 0, 0, 1);
 	}
@@ -793,19 +999,23 @@ static unsigned int kernfs_fop_poll(struct file *filp, poll_table *wait)
 	struct kernfs_open_node *on = kn->attr.open;
 
 	if (!kernfs_get_active(kn))
+	{
 		goto trigger;
+	}
 
 	poll_wait(filp, &on->poll, wait);
 
 	kernfs_put_active(kn);
 
 	if (of->event != atomic_read(&on->event))
+	{
 		goto trigger;
+	}
 
 	return DEFAULT_POLLMASK;
 
- trigger:
-	return DEFAULT_POLLMASK|POLLERR|POLLPRI;
+trigger:
+	return DEFAULT_POLLMASK | POLLERR | POLLPRI;
 }
 
 static void kernfs_notify_workfn(struct work_struct *work)
@@ -817,10 +1027,13 @@ repeat:
 	/* pop one off the notify_list */
 	spin_lock_irq(&kernfs_notify_lock);
 	kn = kernfs_notify_list;
-	if (kn == KERNFS_NOTIFY_EOL) {
+
+	if (kn == KERNFS_NOTIFY_EOL)
+	{
 		spin_unlock_irq(&kernfs_notify_lock);
 		return;
 	}
+
 	kernfs_notify_list = kn->attr.notify_next;
 	kn->attr.notify_next = NULL;
 	spin_unlock_irq(&kernfs_notify_lock);
@@ -829,7 +1042,9 @@ repeat:
 	spin_lock_irq(&kernfs_open_node_lock);
 
 	on = kn->attr.open;
-	if (on) {
+
+	if (on)
+	{
 		atomic_inc(&on->event);
 		wake_up_interruptible(&on->poll);
 	}
@@ -839,7 +1054,8 @@ repeat:
 	/* kick fsnotify */
 	mutex_lock(&kernfs_mutex);
 
-	list_for_each_entry(info, &kernfs_root(kn)->supers, node) {
+	list_for_each_entry(info, &kernfs_root(kn)->supers, node)
+	{
 		struct kernfs_node *parent;
 		struct inode *inode;
 
@@ -850,17 +1066,24 @@ repeat:
 		 * and generate the events manually.
 		 */
 		inode = ilookup(info->sb, kn->ino);
+
 		if (!inode)
+		{
 			continue;
+		}
 
 		parent = kernfs_get_parent(kn);
-		if (parent) {
+
+		if (parent)
+		{
 			struct inode *p_inode;
 
 			p_inode = ilookup(info->sb, parent->ino);
-			if (p_inode) {
+
+			if (p_inode)
+			{
 				fsnotify(p_inode, FS_MODIFY | FS_EVENT_ON_CHILD,
-					 inode, FSNOTIFY_EVENT_INODE, kn->name, 0);
+						 inode, FSNOTIFY_EVENT_INODE, kn->name, 0);
 				iput(p_inode);
 			}
 
@@ -868,7 +1091,7 @@ repeat:
 		}
 
 		fsnotify(inode, FS_MODIFY, inode, FSNOTIFY_EVENT_INODE,
-			 kn->name, 0);
+				 kn->name, 0);
 		iput(inode);
 	}
 
@@ -890,20 +1113,26 @@ void kernfs_notify(struct kernfs_node *kn)
 	unsigned long flags;
 
 	if (WARN_ON(kernfs_type(kn) != KERNFS_FILE))
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&kernfs_notify_lock, flags);
-	if (!kn->attr.notify_next) {
+
+	if (!kn->attr.notify_next)
+	{
 		kernfs_get(kn);
 		kn->attr.notify_next = kernfs_notify_list;
 		kernfs_notify_list = kn;
 		schedule_work(&kernfs_notify_work);
 	}
+
 	spin_unlock_irqrestore(&kernfs_notify_lock, flags);
 }
 EXPORT_SYMBOL_GPL(kernfs_notify);
 
-const struct file_operations kernfs_file_fops = {
+const struct file_operations kernfs_file_fops =
+{
 	.read		= kernfs_fop_read,
 	.write		= kernfs_fop_write,
 	.llseek		= generic_file_llseek,
@@ -928,11 +1157,11 @@ const struct file_operations kernfs_file_fops = {
  * Returns the created node on success, ERR_PTR() value on error.
  */
 struct kernfs_node *__kernfs_create_file(struct kernfs_node *parent,
-					 const char *name,
-					 umode_t mode, loff_t size,
-					 const struct kernfs_ops *ops,
-					 void *priv, const void *ns,
-					 struct lock_class_key *key)
+		const char *name,
+		umode_t mode, loff_t size,
+		const struct kernfs_ops *ops,
+		void *priv, const void *ns,
+		struct lock_class_key *key)
 {
 	struct kernfs_node *kn;
 	unsigned flags;
@@ -941,8 +1170,11 @@ struct kernfs_node *__kernfs_create_file(struct kernfs_node *parent,
 	flags = KERNFS_FILE;
 
 	kn = kernfs_new_node(parent, name, (mode & S_IALLUGO) | S_IFREG, flags);
+
 	if (!kn)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	kn->attr.ops = ops;
 	kn->attr.size = size;
@@ -950,10 +1182,13 @@ struct kernfs_node *__kernfs_create_file(struct kernfs_node *parent,
 	kn->priv = priv;
 
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
-	if (key) {
+
+	if (key)
+	{
 		lockdep_init_map(&kn->dep_map, "s_active", key, 0);
 		kn->flags |= KERNFS_LOCKDEP;
 	}
+
 #endif
 
 	/*
@@ -962,14 +1197,22 @@ struct kernfs_node *__kernfs_create_file(struct kernfs_node *parent,
 	 * ref.  Cache their existence in flags.
 	 */
 	if (ops->seq_show)
+	{
 		kn->flags |= KERNFS_HAS_SEQ_SHOW;
+	}
+
 	if (ops->mmap)
+	{
 		kn->flags |= KERNFS_HAS_MMAP;
+	}
 
 	rc = kernfs_add_one(kn);
-	if (rc) {
+
+	if (rc)
+	{
 		kernfs_put(kn);
 		return ERR_PTR(rc);
 	}
+
 	return kn;
 }

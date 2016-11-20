@@ -43,14 +43,16 @@ static void usbip_usage(void)
 	printf("usage: %s", usbip_usage_string);
 }
 
-struct command {
+struct command
+{
 	const char *name;
 	int (*fn)(int argc, char *argv[]);
 	const char *help;
 	void (*usage)(void);
 };
 
-static const struct command cmds[] = {
+static const struct command cmds[] =
+{
 	{
 		.name  = "help",
 		.fn    = usbip_help,
@@ -108,20 +110,27 @@ static int usbip_help(int argc, char *argv[])
 	int i;
 	int ret = 0;
 
-	if (argc > 1 && argv++) {
+	if (argc > 1 && argv++)
+	{
 		for (i = 0; cmds[i].name != NULL; i++)
-			if (!strcmp(cmds[i].name, argv[0]) && cmds[i].usage) {
+			if (!strcmp(cmds[i].name, argv[0]) && cmds[i].usage)
+			{
 				cmds[i].usage();
 				goto done;
 			}
+
 		ret = -1;
 	}
 
 	usbip_usage();
 	printf("\n");
+
 	for (cmd = cmds; cmd->name != NULL; cmd++)
 		if (cmd->help != NULL)
+		{
 			printf("  %-10s %s\n", cmd->name, cmd->help);
+		}
+
 	printf("\n");
 done:
 	return ret;
@@ -144,7 +153,8 @@ static int run_command(const struct command *cmd, int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-	static const struct option opts[] = {
+	static const struct option opts[] =
+	{
 		{ "debug",    no_argument,       NULL, 'd' },
 		{ "log",      no_argument,       NULL, 'l' },
 		{ "tcp-port", required_argument, NULL, 't' },
@@ -157,35 +167,47 @@ int main(int argc, char *argv[])
 
 	usbip_use_stderr = 1;
 	opterr = 0;
-	for (;;) {
+
+	for (;;)
+	{
 		opt = getopt_long(argc, argv, "+dlt:", opts, NULL);
 
 		if (opt == -1)
+		{
 			break;
+		}
 
-		switch (opt) {
-		case 'd':
-			usbip_use_debug = 1;
-			break;
-		case 'l':
-			usbip_use_syslog = 1;
-			openlog("", LOG_PID, LOG_USER);
-			break;
-		case 't':
-			usbip_setup_port_number(optarg);
-			break;
-		case '?':
-			printf("usbip: invalid option\n");
-		default:
-			usbip_usage();
-			goto out;
+		switch (opt)
+		{
+			case 'd':
+				usbip_use_debug = 1;
+				break;
+
+			case 'l':
+				usbip_use_syslog = 1;
+				openlog("", LOG_PID, LOG_USER);
+				break;
+
+			case 't':
+				usbip_setup_port_number(optarg);
+				break;
+
+			case '?':
+				printf("usbip: invalid option\n");
+
+			default:
+				usbip_usage();
+				goto out;
 		}
 	}
 
 	cmd = argv[optind];
-	if (cmd) {
+
+	if (cmd)
+	{
 		for (i = 0; cmds[i].name != NULL; i++)
-			if (!strcmp(cmds[i].name, cmd)) {
+			if (!strcmp(cmds[i].name, cmd))
+			{
 				argc -= optind;
 				argv += optind;
 				optind = 0;

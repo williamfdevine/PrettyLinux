@@ -36,14 +36,16 @@ extern struct cxlflash_global global;
 #define CHAN2PORT(_x)	((_x) + 1)
 #define PORT2CHAN(_x)	((_x) - 1)
 
-enum lun_mode {
+enum lun_mode
+{
 	MODE_NONE = 0,
 	MODE_VIRTUAL,
 	MODE_PHYSICAL
 };
 
 /* Global (entire driver, spans adapters) lun_info structure */
-struct glun_info {
+struct glun_info
+{
 	u64 max_lba;		/* from read cap(16) */
 	u32 blk_len;		/* from read cap(16) */
 	enum lun_mode mode;	/* NONE, VIRTUAL, PHYSICAL */
@@ -58,7 +60,8 @@ struct glun_info {
 };
 
 /* Local (per-adapter) lun_info structure */
-struct llun_info {
+struct llun_info
+{
 	u64 lun_id[CXLFLASH_NUM_FC_PORTS]; /* from REPORT_LUNS */
 	u32 lun_index;		/* Index in the LUN table */
 	u32 host_no;		/* host_no from Scsi_host */
@@ -72,13 +75,15 @@ struct llun_info {
 	struct list_head list;
 };
 
-struct lun_access {
+struct lun_access
+{
 	struct llun_info *lli;
 	struct scsi_device *sdev;
 	struct list_head list;
 };
 
-enum ctx_ctrl {
+enum ctx_ctrl
+{
 	CTX_CTRL_CLONE		= (1 << 1),
 	CTX_CTRL_ERR		= (1 << 2),
 	CTX_CTRL_ERR_FALLBACK	= (1 << 3),
@@ -89,7 +94,8 @@ enum ctx_ctrl {
 #define ENCODE_CTXID(_ctx, _id)	(((((u64)_ctx) & 0xFFFFFFFF0ULL) << 28) | _id)
 #define DECODE_CTXID(_val)	(_val & 0xFFFFFFFF)
 
-struct ctx_info {
+struct ctx_info
+{
 	struct sisl_ctrl_map __iomem *ctrl_map; /* initialized at startup */
 	struct sisl_rht_entry *rht_start; /* 1 page (req'd for alignment),
 					     alloc/free on attach/detach */
@@ -114,7 +120,8 @@ struct ctx_info {
 	struct list_head list; /* Link contexts in error recovery */
 };
 
-struct cxlflash_global {
+struct cxlflash_global
+{
 	struct mutex mutex;
 	struct list_head gluns;/* list of glun_info structs */
 	struct page *err_page; /* One page of all 0xF for error notification */
@@ -122,11 +129,11 @@ struct cxlflash_global {
 
 int cxlflash_vlun_resize(struct scsi_device *, struct dk_cxlflash_resize *);
 int _cxlflash_vlun_resize(struct scsi_device *, struct ctx_info *,
-			  struct dk_cxlflash_resize *);
+						  struct dk_cxlflash_resize *);
 
 int cxlflash_disk_release(struct scsi_device *, struct dk_cxlflash_release *);
 int _cxlflash_disk_release(struct scsi_device *, struct ctx_info *,
-			   struct dk_cxlflash_release *);
+						   struct dk_cxlflash_release *);
 
 int cxlflash_disk_clone(struct scsi_device *, struct dk_cxlflash_clone *);
 
@@ -139,7 +146,7 @@ struct ctx_info *get_context(struct cxlflash_cfg *, u64, void *, enum ctx_ctrl);
 void put_context(struct ctx_info *);
 
 struct sisl_rht_entry *get_rhte(struct ctx_info *, res_hndl_t,
-				struct llun_info *);
+								struct llun_info *);
 
 struct sisl_rht_entry *rhte_checkout(struct ctx_info *, struct llun_info *);
 void rhte_checkin(struct ctx_info *, struct sisl_rht_entry *);

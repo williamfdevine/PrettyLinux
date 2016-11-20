@@ -15,49 +15,51 @@
 #ifndef	_TARGETHW_
 #define _TARGETHW_
 
-	/*
-	 *  PCI Watermark definition
-	 */
+/*
+ *  PCI Watermark definition
+ */
 #ifdef	PCI
-#define	RX_WATERMARK	24
-#define TX_WATERMARK	24
-#define SK_ML_ID_1	0x20
-#define SK_ML_ID_2	0x30
+	#define	RX_WATERMARK	24
+	#define TX_WATERMARK	24
+	#define SK_ML_ID_1	0x20
+	#define SK_ML_ID_2	0x30
 #endif
 
 #include	"skfbi.h"
-#ifndef TAG_MODE	
-#include	"fplus.h"
+#ifndef TAG_MODE
+	#include	"fplus.h"
 #else
-#include	"fplustm.h"
+	#include	"fplustm.h"
 #endif
 
 #ifndef	HW_PTR
-#define HW_PTR  void __iomem *
+	#define HW_PTR  void __iomem *
 #endif
 
 #ifdef MULT_OEM
 #define	OI_STAT_LAST		0	/* end of OEM data base */
 #define	OI_STAT_PRESENT		1	/* entry present but not empty */
-#define	OI_STAT_VALID		2	/* holds valid ID, but is not active */ 
+#define	OI_STAT_VALID		2	/* holds valid ID, but is not active */
 #define	OI_STAT_ACTIVE		3	/* holds valid ID, entry is active */
-					/* active = adapter is supported */
+/* active = adapter is supported */
 
 /* Memory representation of IDs must match representation in adapter. */
-struct	s_oem_ids {
+struct	s_oem_ids
+{
 	u_char	oi_status ;		/* Stat: last, present, valid, active */
 	u_char	oi_mark[5] ;		/* "PID00" .. "PID07" ..	*/
 	u_char 	oi_id[4] ;		/* id bytes, representation as	*/
-					/* defined by hardware,		*/	
+	/* defined by hardware,		*/
 #ifdef PCI
 	u_char 	oi_sub_id[4] ;		/* sub id bytes, representation as */
-					/* defined by hardware,		*/
+	/* defined by hardware,		*/
 #endif
 } ;
 #endif	/* MULT_OEM */
 
 
-struct s_smt_hw {
+struct s_smt_hw
+{
 	/*
 	 * global
 	 */
@@ -80,7 +82,7 @@ struct s_smt_hw {
 	u_short	pci_handle ;		/* handle to access the BIOS func */
 	u_long	is_imask ;		/* int maske for the int source reg */
 	u_long	phys_mem_addr ;		/* physical memory address */
-	u_short	mc_dummy ;		/* work around for MC compiler bug */	
+	u_short	mc_dummy ;		/* work around for MC compiler bug */
 	/*
 	 * state of the hardware
 	 */

@@ -62,24 +62,28 @@
 #define SCIF_SEND_BLOCK		1
 #define SCIF_RECV_BLOCK		1
 
-enum {
+enum
+{
 	SCIF_PROT_READ = (1 << 0),
 	SCIF_PROT_WRITE = (1 << 1)
 };
 
-enum {
+enum
+{
 	SCIF_MAP_FIXED = 0x10,
 	SCIF_MAP_KERNEL	= 0x20,
 };
 
-enum {
+enum
+{
 	SCIF_FENCE_INIT_SELF = (1 << 0),
 	SCIF_FENCE_INIT_PEER = (1 << 1),
 	SCIF_SIGNAL_LOCAL = (1 << 4),
 	SCIF_SIGNAL_REMOTE = (1 << 5)
 };
 
-enum {
+enum
+{
 	SCIF_RMA_USECPU = (1 << 0),
 	SCIF_RMA_USECACHE = (1 << 1),
 	SCIF_RMA_SYNC = (1 << 2),
@@ -107,7 +111,8 @@ typedef struct scif_pinned_pages *scif_pinned_pages_t;
  *	between MIC and another device which is not a SCIF node e.g., an IB or
  *	ethernet NIC.
  */
-struct scif_range {
+struct scif_range
+{
 	void *cookie;
 	int nr_pages;
 	int prot_flags;
@@ -121,7 +126,8 @@ struct scif_range {
  * @events: requested events
  * @revents: returned events
  */
-struct scif_pollepd {
+struct scif_pollepd
+{
 	scif_epd_t epd;
 	short events;
 	short revents;
@@ -139,7 +145,8 @@ struct scif_pollepd {
  * @dev: underlying device
  * @dnode - The destination node which this device will communicate with.
  */
-struct scif_peer_dev {
+struct scif_peer_dev
+{
 	struct device dev;
 	u8 dnode;
 };
@@ -151,7 +158,8 @@ struct scif_peer_dev {
  * @remove - client method called when a peer device is unregistered
  * @si - subsys_interface used internally for implementing SCIF clients
  */
-struct scif_client {
+struct scif_client
+{
 	const char *name;
 	void (*probe)(struct scif_peer_dev *spdev);
 	void (*remove)(struct scif_peer_dev *spdev);
@@ -329,7 +337,7 @@ int scif_connect(scif_epd_t epd, struct scif_port_id *dst);
  * ENOENT - Secondary part of epd registration failed
  */
 int scif_accept(scif_epd_t epd, struct scif_port_id *peer, scif_epd_t
-		*newepd, int flags);
+				*newepd, int flags);
 
 /**
  * scif_close() - Close an endpoint
@@ -546,7 +554,7 @@ int scif_recv(scif_epd_t epd, void *msg, int len, int flags);
  * ENOTCONN -The endpoint is not connected
  */
 off_t scif_register(scif_epd_t epd, void *addr, size_t len, off_t offset,
-		    int prot_flags, int map_flags);
+					int prot_flags, int map_flags);
 
 /**
  * scif_unregister() - Mark a memory region for remote access.
@@ -670,7 +678,7 @@ int scif_unregister(scif_epd_t epd, off_t offset, size_t len);
  * is negative
  */
 int scif_readfrom(scif_epd_t epd, off_t loffset, size_t len, off_t
-		  roffset, int rma_flags);
+				  roffset, int rma_flags);
 
 /**
  * scif_writeto() - Copy to a remote address space
@@ -746,7 +754,7 @@ int scif_readfrom(scif_epd_t epd, off_t loffset, size_t len, off_t
  * is negative
  */
 int scif_writeto(scif_epd_t epd, off_t loffset, size_t len, off_t
-		 roffset, int rma_flags);
+				 roffset, int rma_flags);
 
 /**
  * scif_vreadfrom() - Copy from a remote address space
@@ -826,7 +834,7 @@ int scif_writeto(scif_epd_t epd, off_t loffset, size_t len, off_t
  * registered address space of epd
  */
 int scif_vreadfrom(scif_epd_t epd, void *addr, size_t len, off_t roffset,
-		   int rma_flags);
+				   int rma_flags);
 
 /**
  * scif_vwriteto() - Copy to a remote address space
@@ -906,7 +914,7 @@ int scif_vreadfrom(scif_epd_t epd, void *addr, size_t len, off_t roffset,
  * registered address space of epd
  */
 int scif_vwriteto(scif_epd_t epd, void *addr, size_t len, off_t roffset,
-		  int rma_flags);
+				  int rma_flags);
 
 /**
  * scif_fence_mark() - Mark previously issued RMAs
@@ -1019,7 +1027,7 @@ int scif_fence_wait(scif_epd_t epd, int mark);
  * for the registered address space, of the peer of epd
  */
 int scif_fence_signal(scif_epd_t epd, off_t loff, u64 lval, off_t roff,
-		      u64 rval, int flags);
+					  u64 rval, int flags);
 
 /**
  * scif_get_node_ids() - Return information about online nodes
@@ -1091,7 +1099,7 @@ int scif_get_node_ids(u16 *nodes, int len, u16 *self);
  * ENOMEM - Not enough space
  */
 int scif_pin_pages(void *addr, size_t len, int prot_flags, int map_flags,
-		   scif_pinned_pages_t *pinned_pages);
+				   scif_pinned_pages_t *pinned_pages);
 
 /**
  * scif_unpin_pages() - Unpin a set of pages
@@ -1179,8 +1187,8 @@ int scif_unpin_pages(scif_pinned_pages_t pinned_pages);
  * ENOTCONN - The endpoint is not connected
  */
 off_t scif_register_pinned_pages(scif_epd_t epd,
-				 scif_pinned_pages_t pinned_pages,
-				 off_t offset, int map_flags);
+								 scif_pinned_pages_t pinned_pages,
+								 off_t offset, int map_flags);
 
 /**
  * scif_get_pages() - Add references to remote registered pages
@@ -1225,7 +1233,7 @@ off_t scif_register_pinned_pages(scif_epd_t epd,
  * for the registered address space of the peer epd
  */
 int scif_get_pages(scif_epd_t epd, off_t offset, size_t len,
-		   struct scif_range **pages);
+				   struct scif_range **pages);
 
 /**
  * scif_put_pages() - Remove references from remote registered pages

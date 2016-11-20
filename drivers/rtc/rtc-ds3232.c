@@ -46,7 +46,8 @@
 #       define DS3232_REG_SR_A2F   0x02
 #       define DS3232_REG_SR_A1F   0x01
 
-struct ds3232 {
+struct ds3232
+{
 	struct device *dev;
 	struct regmap *regmap;
 	int irq;
@@ -62,19 +63,25 @@ static int ds3232_check_rtc_status(struct device *dev)
 	int control, stat;
 
 	ret = regmap_read(ds3232->regmap, DS3232_REG_SR, &stat);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (stat & DS3232_REG_SR_OSF)
 		dev_warn(dev,
-				"oscillator discontinuity flagged, "
-				"time unreliable\n");
+				 "oscillator discontinuity flagged, "
+				 "time unreliable\n");
 
 	stat &= ~(DS3232_REG_SR_OSF | DS3232_REG_SR_A1F | DS3232_REG_SR_A2F);
 
 	ret = regmap_write(ds3232->regmap, DS3232_REG_SR, stat);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* If the alarm is pending, clear it before requesting
 	 * the interrupt, so an interrupt event isn't reported
@@ -82,8 +89,11 @@ static int ds3232_check_rtc_status(struct device *dev)
 	 */
 
 	ret = regmap_read(ds3232->regmap, DS3232_REG_CR, &control);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	control &= ~(DS3232_REG_CR_A1IE | DS3232_REG_CR_A2IE);
 	control |= DS3232_REG_CR_INTCN;
@@ -101,8 +111,11 @@ static int ds3232_read_time(struct device *dev, struct rtc_time *time)
 	unsigned int century, add_century = 0;
 
 	ret = regmap_bulk_read(ds3232->regmap, DS3232_REG_SECONDS, buf, 7);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	second = buf[0];
 	minute = buf[1];
@@ -122,13 +135,21 @@ static int ds3232_read_time(struct device *dev, struct rtc_time *time)
 
 	time->tm_sec = bcd2bin(second);
 	time->tm_min = bcd2bin(minute);
-	if (twelve_hr) {
+
+	if (twelve_hr)
+	{
 		/* Convert to 24 hr */
 		if (am_pm)
+		{
 			time->tm_hour = bcd2bin(hour & 0x1F) + 12;
+		}
 		else
+		{
 			time->tm_hour = bcd2bin(hour & 0x1F);
-	} else {
+		}
+	}
+	else
+	{
 		time->tm_hour = bcd2bin(hour);
 	}
 
@@ -137,8 +158,11 @@ static int ds3232_read_time(struct device *dev, struct rtc_time *time)
 	time->tm_mday = bcd2bin(day);
 	/* linux tm_mon range:0~11, while month range is 1~12 in RTC chip */
 	time->tm_mon = bcd2bin(month & 0x7F) - 1;
+
 	if (century)
+	{
 		add_century = 100;
+	}
 
 	time->tm_year = bcd2bin(year) + add_century;
 
@@ -160,10 +184,14 @@ static int ds3232_set_time(struct device *dev, struct rtc_time *time)
 	buf[4] = bin2bcd(time->tm_mday); /* Date */
 	/* linux tm_mon range:0~11, while month range is 1~12 in RTC chip */
 	buf[5] = bin2bcd(time->tm_mon + 1);
-	if (time->tm_year >= 100) {
+
+	if (time->tm_year >= 100)
+	{
 		buf[5] |= 0x80;
 		buf[6] = bin2bcd(time->tm_year - 100);
-	} else {
+	}
+	else
+	{
 		buf[6] = bin2bcd(time->tm_year);
 	}
 
@@ -183,14 +211,25 @@ static int ds3232_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 	u8 buf[4];
 
 	ret = regmap_read(ds3232->regmap, DS3232_REG_SR, &stat);
+
 	if (ret)
+	{
 		goto out;
+	}
+
 	ret = regmap_read(ds3232->regmap, DS3232_REG_CR, &control);
+
 	if (ret)
+	{
 		goto out;
+	}
+
 	ret = regmap_bulk_read(ds3232->regmap, DS3232_REG_ALARM1, buf, 4);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	alarm->time.tm_sec = bcd2bin(buf[0] & 0x7F);
 	alarm->time.tm_min = bcd2bin(buf[1] & 0x7F);
@@ -217,7 +256,9 @@ static int ds3232_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 	u8 buf[4];
 
 	if (ds3232->irq <= 0)
+	{
 		return -EINVAL;
+	}
 
 	buf[0] = bin2bcd(alarm->time.tm_sec);
 	buf[1] = bin2bcd(alarm->time.tm_min);
@@ -226,30 +267,49 @@ static int ds3232_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 
 	/* clear alarm interrupt enable bit */
 	ret = regmap_read(ds3232->regmap, DS3232_REG_CR, &control);
+
 	if (ret)
+	{
 		goto out;
+	}
+
 	control &= ~(DS3232_REG_CR_A1IE | DS3232_REG_CR_A2IE);
 	ret = regmap_write(ds3232->regmap, DS3232_REG_CR, control);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* clear any pending alarm flag */
 	ret = regmap_read(ds3232->regmap, DS3232_REG_SR, &stat);
+
 	if (ret)
+	{
 		goto out;
+	}
+
 	stat &= ~(DS3232_REG_SR_A1F | DS3232_REG_SR_A2F);
 	ret = regmap_write(ds3232->regmap, DS3232_REG_SR, stat);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ret = regmap_bulk_write(ds3232->regmap, DS3232_REG_ALARM1, buf, 4);
-	if (ret)
-		goto out;
 
-	if (alarm->enabled) {
+	if (ret)
+	{
+		goto out;
+	}
+
+	if (alarm->enabled)
+	{
 		control |= DS3232_REG_CR_A1IE;
 		ret = regmap_write(ds3232->regmap, DS3232_REG_CR, control);
 	}
+
 out:
 	return ret;
 }
@@ -261,15 +321,23 @@ static int ds3232_update_alarm(struct device *dev, unsigned int enabled)
 	int ret;
 
 	ret = regmap_read(ds3232->regmap, DS3232_REG_CR, &control);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (enabled)
 		/* enable alarm1 interrupt */
+	{
 		control |= DS3232_REG_CR_A1IE;
+	}
 	else
 		/* disable alarm1 interrupt */
+	{
 		control &= ~(DS3232_REG_CR_A1IE);
+	}
+
 	ret = regmap_write(ds3232->regmap, DS3232_REG_CR, control);
 
 	return ret;
@@ -280,7 +348,9 @@ static int ds3232_alarm_irq_enable(struct device *dev, unsigned int enabled)
 	struct ds3232 *ds3232 = dev_get_drvdata(dev);
 
 	if (ds3232->irq <= 0)
+	{
 		return -EINVAL;
+	}
 
 	return ds3232_update_alarm(dev, enabled);
 }
@@ -296,33 +366,45 @@ static irqreturn_t ds3232_irq(int irq, void *dev_id)
 	mutex_lock(lock);
 
 	ret = regmap_read(ds3232->regmap, DS3232_REG_SR, &stat);
-	if (ret)
-		goto unlock;
 
-	if (stat & DS3232_REG_SR_A1F) {
+	if (ret)
+	{
+		goto unlock;
+	}
+
+	if (stat & DS3232_REG_SR_A1F)
+	{
 		ret = regmap_read(ds3232->regmap, DS3232_REG_CR, &control);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_warn(ds3232->dev,
-				 "Read Control Register error %d\n", ret);
-		} else {
+					 "Read Control Register error %d\n", ret);
+		}
+		else
+		{
 			/* disable alarm1 interrupt */
 			control &= ~(DS3232_REG_CR_A1IE);
 			ret = regmap_write(ds3232->regmap, DS3232_REG_CR,
-					   control);
-			if (ret) {
+							   control);
+
+			if (ret)
+			{
 				dev_warn(ds3232->dev,
-					 "Write Control Register error %d\n",
-					 ret);
+						 "Write Control Register error %d\n",
+						 ret);
 				goto unlock;
 			}
 
 			/* clear the alarm pend flag */
 			stat &= ~DS3232_REG_SR_A1F;
 			ret = regmap_write(ds3232->regmap, DS3232_REG_SR, stat);
-			if (ret) {
+
+			if (ret)
+			{
 				dev_warn(ds3232->dev,
-					 "Write Status Register error %d\n",
-					 ret);
+						 "Write Status Register error %d\n",
+						 ret);
 				goto unlock;
 			}
 
@@ -336,7 +418,8 @@ unlock:
 	return IRQ_HANDLED;
 }
 
-static const struct rtc_class_ops ds3232_rtc_ops = {
+static const struct rtc_class_ops ds3232_rtc_ops =
+{
 	.read_time = ds3232_read_time,
 	.set_time = ds3232_set_time,
 	.read_alarm = ds3232_read_alarm,
@@ -345,14 +428,17 @@ static const struct rtc_class_ops ds3232_rtc_ops = {
 };
 
 static int ds3232_probe(struct device *dev, struct regmap *regmap, int irq,
-			const char *name)
+						const char *name)
 {
 	struct ds3232 *ds3232;
 	int ret;
 
 	ds3232 = devm_kzalloc(dev, sizeof(*ds3232), GFP_KERNEL);
+
 	if (!ds3232)
+	{
 		return -ENOMEM;
+	}
 
 	ds3232->regmap = regmap;
 	ds3232->irq = irq;
@@ -360,24 +446,36 @@ static int ds3232_probe(struct device *dev, struct regmap *regmap, int irq,
 	dev_set_drvdata(dev, ds3232);
 
 	ret = ds3232_check_rtc_status(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ds3232->rtc = devm_rtc_device_register(dev, name, &ds3232_rtc_ops,
-						THIS_MODULE);
-	if (IS_ERR(ds3232->rtc))
-		return PTR_ERR(ds3232->rtc);
+										   THIS_MODULE);
 
-	if (ds3232->irq > 0) {
+	if (IS_ERR(ds3232->rtc))
+	{
+		return PTR_ERR(ds3232->rtc);
+	}
+
+	if (ds3232->irq > 0)
+	{
 		ret = devm_request_threaded_irq(dev, ds3232->irq, NULL,
-						ds3232_irq,
-						IRQF_SHARED | IRQF_ONESHOT,
-						name, dev);
-		if (ret) {
+										ds3232_irq,
+										IRQF_SHARED | IRQF_ONESHOT,
+										name, dev);
+
+		if (ret)
+		{
 			ds3232->irq = 0;
 			dev_err(dev, "unable to request IRQ\n");
-		} else
+		}
+		else
+		{
 			device_init_wakeup(dev, 1);
+		}
 	}
 
 	return 0;
@@ -388,9 +486,12 @@ static int ds3232_suspend(struct device *dev)
 {
 	struct ds3232 *ds3232 = dev_get_drvdata(dev);
 
-	if (device_may_wakeup(dev)) {
+	if (device_may_wakeup(dev))
+	{
 		if (enable_irq_wake(ds3232->irq))
+		{
 			dev_warn_once(dev, "Cannot set wakeup source\n");
+		}
 	}
 
 	return 0;
@@ -401,44 +502,52 @@ static int ds3232_resume(struct device *dev)
 	struct ds3232 *ds3232 = dev_get_drvdata(dev);
 
 	if (device_may_wakeup(dev))
+	{
 		disable_irq_wake(ds3232->irq);
+	}
 
 	return 0;
 }
 #endif
 
-static const struct dev_pm_ops ds3232_pm_ops = {
+static const struct dev_pm_ops ds3232_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(ds3232_suspend, ds3232_resume)
 };
 
 #if IS_ENABLED(CONFIG_I2C)
 
 static int ds3232_i2c_probe(struct i2c_client *client,
-			    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct regmap *regmap;
-	static const struct regmap_config config = {
+	static const struct regmap_config config =
+	{
 		.reg_bits = 8,
 		.val_bits = 8,
 	};
 
 	regmap = devm_regmap_init_i2c(client, &config);
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		dev_err(&client->dev, "%s: regmap allocation failed: %ld\n",
-			__func__, PTR_ERR(regmap));
+				__func__, PTR_ERR(regmap));
 		return PTR_ERR(regmap);
 	}
 
 	return ds3232_probe(&client->dev, regmap, client->irq, client->name);
 }
 
-static const struct i2c_device_id ds3232_id[] = {
+static const struct i2c_device_id ds3232_id[] =
+{
 	{ "ds3232", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, ds3232_id);
 
-static struct i2c_driver ds3232_driver = {
+static struct i2c_driver ds3232_driver =
+{
 	.driver = {
 		.name = "rtc-ds3232",
 		.pm	= &ds3232_pm_ops,
@@ -476,7 +585,8 @@ static int ds3234_probe(struct spi_device *spi)
 {
 	int res;
 	unsigned int tmp;
-	static const struct regmap_config config = {
+	static const struct regmap_config config =
+	{
 		.reg_bits = 8,
 		.val_bits = 8,
 		.write_flag_mask = 0x80,
@@ -484,9 +594,11 @@ static int ds3234_probe(struct spi_device *spi)
 	struct regmap *regmap;
 
 	regmap = devm_regmap_init_spi(spi, &config);
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		dev_err(&spi->dev, "%s: regmap allocation failed: %ld\n",
-			__func__, PTR_ERR(regmap));
+				__func__, PTR_ERR(regmap));
 		return PTR_ERR(regmap);
 	}
 
@@ -495,8 +607,11 @@ static int ds3234_probe(struct spi_device *spi)
 	spi_setup(spi);
 
 	res = regmap_read(regmap, DS3232_REG_SECONDS, &tmp);
+
 	if (res)
+	{
 		return res;
+	}
 
 	/* Control settings
 	 *
@@ -513,34 +628,57 @@ static int ds3234_probe(struct spi_device *spi)
 	 *     1	0	0	0	1	0	0	0
 	 */
 	res = regmap_read(regmap, DS3232_REG_CR, &tmp);
+
 	if (res)
+	{
 		return res;
+	}
+
 	res = regmap_write(regmap, DS3232_REG_CR, tmp & 0x1c);
+
 	if (res)
+	{
 		return res;
+	}
 
 	res = regmap_read(regmap, DS3232_REG_SR, &tmp);
+
 	if (res)
+	{
 		return res;
+	}
+
 	res = regmap_write(regmap, DS3232_REG_SR, tmp & 0x88);
+
 	if (res)
+	{
 		return res;
+	}
 
 	/* Print our settings */
 	res = regmap_read(regmap, DS3232_REG_CR, &tmp);
+
 	if (res)
+	{
 		return res;
+	}
+
 	dev_info(&spi->dev, "Control Reg: 0x%02x\n", tmp);
 
 	res = regmap_read(regmap, DS3232_REG_SR, &tmp);
+
 	if (res)
+	{
 		return res;
+	}
+
 	dev_info(&spi->dev, "Ctrl/Stat Reg: 0x%02x\n", tmp);
 
 	return ds3232_probe(&spi->dev, regmap, spi->irq, "ds3234");
 }
 
-static struct spi_driver ds3234_driver = {
+static struct spi_driver ds3234_driver =
+{
 	.driver = {
 		.name	 = "ds3234",
 	},
@@ -575,13 +713,17 @@ static int __init ds323x_init(void)
 	int ret;
 
 	ret = ds3232_register_driver();
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Failed to register ds3232 driver: %d\n", ret);
 		return ret;
 	}
 
 	ret = ds3234_register_driver();
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Failed to register ds3234 driver: %d\n", ret);
 		ds3232_unregister_driver();
 	}

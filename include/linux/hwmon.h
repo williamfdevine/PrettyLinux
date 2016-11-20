@@ -19,7 +19,8 @@
 struct device;
 struct attribute_group;
 
-enum hwmon_sensor_types {
+enum hwmon_sensor_types
+{
 	hwmon_chip,
 	hwmon_temp,
 	hwmon_in,
@@ -31,7 +32,8 @@ enum hwmon_sensor_types {
 	hwmon_pwm,
 };
 
-enum hwmon_chip_attributes {
+enum hwmon_chip_attributes
+{
 	hwmon_chip_temp_reset_history,
 	hwmon_chip_in_reset_history,
 	hwmon_chip_curr_reset_history,
@@ -49,7 +51,8 @@ enum hwmon_chip_attributes {
 #define HWMON_C_UPDATE_INTERVAL		BIT(hwmon_chip_update_interval)
 #define HWMON_C_ALARMS			BIT(hwmon_chip_alarms)
 
-enum hwmon_temp_attributes {
+enum hwmon_temp_attributes
+{
 	hwmon_temp_input = 0,
 	hwmon_temp_type,
 	hwmon_temp_lcrit,
@@ -99,7 +102,8 @@ enum hwmon_temp_attributes {
 #define HWMON_T_HIGHEST		BIT(hwmon_temp_highest)
 #define HWMON_T_RESET_HISTORY	BIT(hwmon_temp_reset_history)
 
-enum hwmon_in_attributes {
+enum hwmon_in_attributes
+{
 	hwmon_in_input,
 	hwmon_in_min,
 	hwmon_in_max,
@@ -133,7 +137,8 @@ enum hwmon_in_attributes {
 #define HWMON_I_LCRIT_ALARM	BIT(hwmon_in_lcrit_alarm)
 #define HWMON_I_CRIT_ALARM	BIT(hwmon_in_crit_alarm)
 
-enum hwmon_curr_attributes {
+enum hwmon_curr_attributes
+{
 	hwmon_curr_input,
 	hwmon_curr_min,
 	hwmon_curr_max,
@@ -167,7 +172,8 @@ enum hwmon_curr_attributes {
 #define HWMON_C_LCRIT_ALARM	BIT(hwmon_curr_lcrit_alarm)
 #define HWMON_C_CRIT_ALARM	BIT(hwmon_curr_crit_alarm)
 
-enum hwmon_power_attributes {
+enum hwmon_power_attributes
+{
 	hwmon_power_average,
 	hwmon_power_average_interval,
 	hwmon_power_average_interval_max,
@@ -219,7 +225,8 @@ enum hwmon_power_attributes {
 #define HWMON_P_MAX_ALARM		BIT(hwmon_power_max_alarm)
 #define HWMON_P_CRIT_ALARM		BIT(hwmon_power_crit_alarm)
 
-enum hwmon_energy_attributes {
+enum hwmon_energy_attributes
+{
 	hwmon_energy_input,
 	hwmon_energy_label,
 };
@@ -227,7 +234,8 @@ enum hwmon_energy_attributes {
 #define HWMON_E_INPUT			BIT(hwmon_energy_input)
 #define HWMON_E_LABEL			BIT(hwmon_energy_label)
 
-enum hwmon_humidity_attributes {
+enum hwmon_humidity_attributes
+{
 	hwmon_humidity_input,
 	hwmon_humidity_label,
 	hwmon_humidity_min,
@@ -247,7 +255,8 @@ enum hwmon_humidity_attributes {
 #define HWMON_H_ALARM			BIT(hwmon_humidity_alarm)
 #define HWMON_H_FAULT			BIT(hwmon_humidity_fault)
 
-enum hwmon_fan_attributes {
+enum hwmon_fan_attributes
+{
 	hwmon_fan_input,
 	hwmon_fan_label,
 	hwmon_fan_min,
@@ -273,7 +282,8 @@ enum hwmon_fan_attributes {
 #define HWMON_F_MAX_ALARM		BIT(hwmon_fan_max_alarm)
 #define HWMON_F_FAULT			BIT(hwmon_fan_fault)
 
-enum hwmon_pwm_attributes {
+enum hwmon_pwm_attributes
+{
 	hwmon_pwm_input,
 	hwmon_pwm_enable,
 	hwmon_pwm_mode,
@@ -319,13 +329,14 @@ enum hwmon_pwm_attributes {
  *		@val:	Value to write
  *		The function returns 0 on success or a negative error number.
  */
-struct hwmon_ops {
+struct hwmon_ops
+{
 	umode_t (*is_visible)(const void *drvdata, enum hwmon_sensor_types type,
-			      u32 attr, int channel);
+						  u32 attr, int channel);
 	int (*read)(struct device *dev, enum hwmon_sensor_types type,
-		    u32 attr, int channel, long *val);
+				u32 attr, int channel, long *val);
 	int (*write)(struct device *dev, enum hwmon_sensor_types type,
-		     u32 attr, int channel, long val);
+				 u32 attr, int channel, long val);
 };
 
 /**
@@ -334,7 +345,8 @@ struct hwmon_ops {
  * @config:	Pointer to NULL-terminated list of channel parameters.
  *		Use for per-channel attributes.
  */
-struct hwmon_channel_info {
+struct hwmon_channel_info
+{
 	enum hwmon_sensor_types type;
 	const u32 *config;
 };
@@ -344,7 +356,8 @@ struct hwmon_channel_info {
  * @ops:	Pointer to hwmon operations.
  * @info:	Null-terminated list of channel information.
  */
-struct hwmon_chip_info {
+struct hwmon_chip_info
+{
 	const struct hwmon_ops *ops;
 	const struct hwmon_channel_info **info;
 };
@@ -352,22 +365,22 @@ struct hwmon_chip_info {
 struct device *hwmon_device_register(struct device *dev);
 struct device *
 hwmon_device_register_with_groups(struct device *dev, const char *name,
-				  void *drvdata,
-				  const struct attribute_group **groups);
+								  void *drvdata,
+								  const struct attribute_group **groups);
 struct device *
 devm_hwmon_device_register_with_groups(struct device *dev, const char *name,
-				       void *drvdata,
-				       const struct attribute_group **groups);
+									   void *drvdata,
+									   const struct attribute_group **groups);
 struct device *
 hwmon_device_register_with_info(struct device *dev,
-				const char *name, void *drvdata,
-				const struct hwmon_chip_info *info,
-				const struct attribute_group **groups);
+								const char *name, void *drvdata,
+								const struct hwmon_chip_info *info,
+								const struct attribute_group **groups);
 struct device *
 devm_hwmon_device_register_with_info(struct device *dev,
-				     const char *name, void *drvdata,
-				     const struct hwmon_chip_info *info,
-				     const struct attribute_group **groups);
+									 const char *name, void *drvdata,
+									 const struct hwmon_chip_info *info,
+									 const struct attribute_group **groups);
 
 void hwmon_device_unregister(struct device *dev);
 void devm_hwmon_device_unregister(struct device *dev);

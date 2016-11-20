@@ -28,11 +28,11 @@
 
 void
 nv46_fb_tile_init(struct nvkm_fb *fb, int i, u32 addr, u32 size, u32 pitch,
-		  u32 flags, struct nvkm_fb_tile *tile)
+				  u32 flags, struct nvkm_fb_tile *tile)
 {
 	/* for performance, select alternate bank offset for zeta */
-	if (!(flags & 4)) tile->addr = (0 << 3);
-	else              tile->addr = (1 << 3);
+	if (!(flags & 4)) { tile->addr = (0 << 3); }
+	else { tile->addr = (1 << 3); }
 
 	tile->addr |= 0x00000001; /* mode = vram */
 	tile->addr |= addr;
@@ -41,7 +41,8 @@ nv46_fb_tile_init(struct nvkm_fb *fb, int i, u32 addr, u32 size, u32 pitch,
 }
 
 static const struct nvkm_fb_func
-nv46_fb = {
+	nv46_fb =
+{
 	.init = nv44_fb_init,
 	.tile.regions = 15,
 	.tile.init = nv46_fb_tile_init,

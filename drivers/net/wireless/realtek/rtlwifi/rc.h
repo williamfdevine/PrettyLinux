@@ -38,7 +38,8 @@
 #define AC_MODE_MCS8_RIX 8
 #define AC_MODE_MCS9_RIX 9
 
-struct rtl_rate_priv {
+struct rtl_rate_priv
+{
 	u8 ht_cap;
 };
 

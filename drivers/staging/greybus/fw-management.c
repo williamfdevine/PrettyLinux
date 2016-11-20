@@ -21,7 +21,8 @@
 
 #define FW_MGMT_TIMEOUT_MS		1000
 
-struct fw_mgmt {
+struct fw_mgmt
+{
 	struct device		*parent;
 	struct gb_connection	*connection;
 	struct kref		kref;
@@ -87,8 +88,10 @@ static struct fw_mgmt *get_fw_mgmt(struct cdev *cdev)
 
 	mutex_lock(&list_mutex);
 
-	list_for_each_entry(fw_mgmt, &fw_mgmt_list, node) {
-		if (&fw_mgmt->cdev == cdev) {
+	list_for_each_entry(fw_mgmt, &fw_mgmt_list, node)
+	{
+		if (&fw_mgmt->cdev == cdev)
+		{
 			kref_get(&fw_mgmt->kref);
 			goto unlock;
 		}
@@ -110,11 +113,13 @@ static int fw_mgmt_interface_fw_version_operation(struct fw_mgmt *fw_mgmt,
 	int ret;
 
 	ret = gb_operation_sync(connection,
-				GB_FW_MGMT_TYPE_INTERFACE_FW_VERSION, NULL, 0,
-				&response, sizeof(response));
-	if (ret) {
+							GB_FW_MGMT_TYPE_INTERFACE_FW_VERSION, NULL, 0,
+							&response, sizeof(response));
+
+	if (ret)
+	{
 		dev_err(fw_mgmt->parent,
-			"failed to get interface firmware version (%d)\n", ret);
+				"failed to get interface firmware version (%d)\n", ret);
 		return ret;
 	}
 
@@ -122,15 +127,16 @@ static int fw_mgmt_interface_fw_version_operation(struct fw_mgmt *fw_mgmt,
 	fw_info->minor = le16_to_cpu(response.minor);
 
 	strncpy(fw_info->firmware_tag, response.firmware_tag,
-		GB_FIRMWARE_TAG_MAX_SIZE);
+			GB_FIRMWARE_TAG_MAX_SIZE);
 
 	/*
 	 * The firmware-tag should be NULL terminated, otherwise throw error but
 	 * don't fail.
 	 */
-	if (fw_info->firmware_tag[GB_FIRMWARE_TAG_MAX_SIZE - 1] != '\0') {
+	if (fw_info->firmware_tag[GB_FIRMWARE_TAG_MAX_SIZE - 1] != '\0')
+	{
 		dev_err(fw_mgmt->parent,
-			"fw-version: firmware-tag is not NULL terminated\n");
+				"fw-version: firmware-tag is not NULL terminated\n");
 		fw_info->firmware_tag[GB_FIRMWARE_TAG_MAX_SIZE - 1] = '\0';
 	}
 
@@ -138,15 +144,16 @@ static int fw_mgmt_interface_fw_version_operation(struct fw_mgmt *fw_mgmt,
 }
 
 static int fw_mgmt_load_and_validate_operation(struct fw_mgmt *fw_mgmt,
-					       u8 load_method, const char *tag)
+		u8 load_method, const char *tag)
 {
 	struct gb_fw_mgmt_load_and_validate_fw_request request;
 	int ret;
 
 	if (load_method != GB_FW_LOAD_METHOD_UNIPRO &&
-	    load_method != GB_FW_LOAD_METHOD_INTERNAL) {
+		load_method != GB_FW_LOAD_METHOD_INTERNAL)
+	{
 		dev_err(fw_mgmt->parent,
-			"invalid load-method (%d)\n", load_method);
+				"invalid load-method (%d)\n", load_method);
 		return -EINVAL;
 	}
 
@@ -157,16 +164,19 @@ static int fw_mgmt_load_and_validate_operation(struct fw_mgmt *fw_mgmt,
 	 * The firmware-tag should be NULL terminated, otherwise throw error and
 	 * fail.
 	 */
-	if (request.firmware_tag[GB_FIRMWARE_TAG_MAX_SIZE - 1] != '\0') {
+	if (request.firmware_tag[GB_FIRMWARE_TAG_MAX_SIZE - 1] != '\0')
+	{
 		dev_err(fw_mgmt->parent, "load-and-validate: firmware-tag is not NULL terminated\n");
 		return -EINVAL;
 	}
 
 	/* Allocate ids from 1 to 255 (u8-max), 0 is an invalid id */
 	ret = ida_simple_get(&fw_mgmt->id_map, 1, 256, GFP_KERNEL);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(fw_mgmt->parent, "failed to allocate request id (%d)\n",
-			ret);
+				ret);
 		return ret;
 	}
 
@@ -175,15 +185,17 @@ static int fw_mgmt_load_and_validate_operation(struct fw_mgmt *fw_mgmt,
 	request.request_id = ret;
 
 	ret = gb_operation_sync(fw_mgmt->connection,
-				GB_FW_MGMT_TYPE_LOAD_AND_VALIDATE_FW, &request,
-				sizeof(request), NULL, 0);
-	if (ret) {
+							GB_FW_MGMT_TYPE_LOAD_AND_VALIDATE_FW, &request,
+							sizeof(request), NULL, 0);
+
+	if (ret)
+	{
 		ida_simple_remove(&fw_mgmt->id_map,
-				  fw_mgmt->intf_fw_request_id);
+						  fw_mgmt->intf_fw_request_id);
 		fw_mgmt->intf_fw_request_id = 0;
 		dev_err(fw_mgmt->parent,
-			"load and validate firmware request failed (%d)\n",
-			ret);
+				"load and validate firmware request failed (%d)\n",
+				ret);
 		return ret;
 	}
 
@@ -197,24 +209,27 @@ static int fw_mgmt_interface_fw_loaded_operation(struct gb_operation *op)
 	struct gb_fw_mgmt_loaded_fw_request *request;
 
 	/* No pending load and validate request ? */
-	if (!fw_mgmt->intf_fw_request_id) {
+	if (!fw_mgmt->intf_fw_request_id)
+	{
 		dev_err(fw_mgmt->parent,
-			"unexpected firmware loaded request received\n");
+				"unexpected firmware loaded request received\n");
 		return -ENODEV;
 	}
 
-	if (op->request->payload_size != sizeof(*request)) {
+	if (op->request->payload_size != sizeof(*request))
+	{
 		dev_err(fw_mgmt->parent, "illegal size of firmware loaded request (%zu != %zu)\n",
-			op->request->payload_size, sizeof(*request));
+				op->request->payload_size, sizeof(*request));
 		return -EINVAL;
 	}
 
 	request = op->request->payload;
 
 	/* Invalid request-id ? */
-	if (request->request_id != fw_mgmt->intf_fw_request_id) {
+	if (request->request_id != fw_mgmt->intf_fw_request_id)
+	{
 		dev_err(fw_mgmt->parent, "invalid request id for firmware loaded request (%02u != %02u)\n",
-			fw_mgmt->intf_fw_request_id, request->request_id);
+				fw_mgmt->intf_fw_request_id, request->request_id);
 		return -ENODEV;
 	}
 
@@ -226,14 +241,16 @@ static int fw_mgmt_interface_fw_loaded_operation(struct gb_operation *op)
 
 	if (fw_mgmt->intf_fw_status == GB_FW_LOAD_STATUS_FAILED)
 		dev_err(fw_mgmt->parent,
-			"failed to load interface firmware, status:%02x\n",
-			fw_mgmt->intf_fw_status);
+				"failed to load interface firmware, status:%02x\n",
+				fw_mgmt->intf_fw_status);
 	else if (fw_mgmt->intf_fw_status == GB_FW_LOAD_STATUS_VALIDATION_FAILED)
 		dev_err(fw_mgmt->parent,
-			"failed to validate interface firmware, status:%02x\n",
-			fw_mgmt->intf_fw_status);
+				"failed to validate interface firmware, status:%02x\n",
+				fw_mgmt->intf_fw_status);
 	else
+	{
 		fw_mgmt->intf_fw_loaded = true;
+	}
 
 	complete(&fw_mgmt->completion);
 
@@ -249,23 +266,26 @@ static int fw_mgmt_backend_fw_version_operation(struct fw_mgmt *fw_mgmt,
 	int ret;
 
 	strncpy(request.firmware_tag, fw_info->firmware_tag,
-		GB_FIRMWARE_TAG_MAX_SIZE);
+			GB_FIRMWARE_TAG_MAX_SIZE);
 
 	/*
 	 * The firmware-tag should be NULL terminated, otherwise throw error and
 	 * fail.
 	 */
-	if (request.firmware_tag[GB_FIRMWARE_TAG_MAX_SIZE - 1] != '\0') {
+	if (request.firmware_tag[GB_FIRMWARE_TAG_MAX_SIZE - 1] != '\0')
+	{
 		dev_err(fw_mgmt->parent, "backend-version: firmware-tag is not NULL terminated\n");
 		return -EINVAL;
 	}
 
 	ret = gb_operation_sync(connection,
-				GB_FW_MGMT_TYPE_BACKEND_FW_VERSION, &request,
-				sizeof(request), &response, sizeof(response));
-	if (ret) {
+							GB_FW_MGMT_TYPE_BACKEND_FW_VERSION, &request,
+							sizeof(request), &response, sizeof(response));
+
+	if (ret)
+	{
 		dev_err(fw_mgmt->parent, "failed to get version of %s backend firmware (%d)\n",
-			fw_info->firmware_tag, ret);
+				fw_info->firmware_tag, ret);
 		return ret;
 	}
 
@@ -275,29 +295,33 @@ static int fw_mgmt_backend_fw_version_operation(struct fw_mgmt *fw_mgmt,
 	fw_info->major = 0;
 	fw_info->minor = 0;
 
-	switch (fw_info->status) {
-	case GB_FW_BACKEND_VERSION_STATUS_SUCCESS:
-		fw_info->major = le16_to_cpu(response.major);
-		fw_info->minor = le16_to_cpu(response.minor);
-		break;
-	case GB_FW_BACKEND_VERSION_STATUS_NOT_AVAILABLE:
-	case GB_FW_BACKEND_VERSION_STATUS_RETRY:
-		break;
-	case GB_FW_BACKEND_VERSION_STATUS_NOT_SUPPORTED:
-		dev_err(fw_mgmt->parent,
-			"Firmware with tag %s is not supported by Interface\n",
-			fw_info->firmware_tag);
-		break;
-	default:
-		dev_err(fw_mgmt->parent, "Invalid status received: %u\n",
-			fw_info->status);
+	switch (fw_info->status)
+	{
+		case GB_FW_BACKEND_VERSION_STATUS_SUCCESS:
+			fw_info->major = le16_to_cpu(response.major);
+			fw_info->minor = le16_to_cpu(response.minor);
+			break;
+
+		case GB_FW_BACKEND_VERSION_STATUS_NOT_AVAILABLE:
+		case GB_FW_BACKEND_VERSION_STATUS_RETRY:
+			break;
+
+		case GB_FW_BACKEND_VERSION_STATUS_NOT_SUPPORTED:
+			dev_err(fw_mgmt->parent,
+					"Firmware with tag %s is not supported by Interface\n",
+					fw_info->firmware_tag);
+			break;
+
+		default:
+			dev_err(fw_mgmt->parent, "Invalid status received: %u\n",
+					fw_info->status);
 	}
 
 	return 0;
 }
 
 static int fw_mgmt_backend_fw_update_operation(struct fw_mgmt *fw_mgmt,
-					       char *tag)
+		char *tag)
 {
 	struct gb_fw_mgmt_backend_fw_update_request request;
 	int ret;
@@ -308,16 +332,19 @@ static int fw_mgmt_backend_fw_update_operation(struct fw_mgmt *fw_mgmt,
 	 * The firmware-tag should be NULL terminated, otherwise throw error and
 	 * fail.
 	 */
-	if (request.firmware_tag[GB_FIRMWARE_TAG_MAX_SIZE - 1] != '\0') {
+	if (request.firmware_tag[GB_FIRMWARE_TAG_MAX_SIZE - 1] != '\0')
+	{
 		dev_err(fw_mgmt->parent, "backend-update: firmware-tag is not NULL terminated\n");
 		return -EINVAL;
 	}
 
 	/* Allocate ids from 1 to 255 (u8-max), 0 is an invalid id */
 	ret = ida_simple_get(&fw_mgmt->id_map, 1, 256, GFP_KERNEL);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(fw_mgmt->parent, "failed to allocate request id (%d)\n",
-			ret);
+				ret);
 		return ret;
 	}
 
@@ -325,15 +352,17 @@ static int fw_mgmt_backend_fw_update_operation(struct fw_mgmt *fw_mgmt,
 	request.request_id = ret;
 
 	ret = gb_operation_sync(fw_mgmt->connection,
-				GB_FW_MGMT_TYPE_BACKEND_FW_UPDATE, &request,
-				sizeof(request), NULL, 0);
-	if (ret) {
+							GB_FW_MGMT_TYPE_BACKEND_FW_UPDATE, &request,
+							sizeof(request), NULL, 0);
+
+	if (ret)
+	{
 		ida_simple_remove(&fw_mgmt->id_map,
-				  fw_mgmt->backend_fw_request_id);
+						  fw_mgmt->backend_fw_request_id);
 		fw_mgmt->backend_fw_request_id = 0;
 		dev_err(fw_mgmt->parent,
-			"backend %s firmware update request failed (%d)\n", tag,
-			ret);
+				"backend %s firmware update request failed (%d)\n", tag,
+				ret);
 		return ret;
 	}
 
@@ -347,23 +376,26 @@ static int fw_mgmt_backend_fw_updated_operation(struct gb_operation *op)
 	struct gb_fw_mgmt_backend_fw_updated_request *request;
 
 	/* No pending load and validate request ? */
-	if (!fw_mgmt->backend_fw_request_id) {
+	if (!fw_mgmt->backend_fw_request_id)
+	{
 		dev_err(fw_mgmt->parent, "unexpected backend firmware updated request received\n");
 		return -ENODEV;
 	}
 
-	if (op->request->payload_size != sizeof(*request)) {
+	if (op->request->payload_size != sizeof(*request))
+	{
 		dev_err(fw_mgmt->parent, "illegal size of backend firmware updated request (%zu != %zu)\n",
-			op->request->payload_size, sizeof(*request));
+				op->request->payload_size, sizeof(*request));
 		return -EINVAL;
 	}
 
 	request = op->request->payload;
 
 	/* Invalid request-id ? */
-	if (request->request_id != fw_mgmt->backend_fw_request_id) {
+	if (request->request_id != fw_mgmt->backend_fw_request_id)
+	{
 		dev_err(fw_mgmt->parent, "invalid request id for backend firmware updated request (%02u != %02u)\n",
-			fw_mgmt->backend_fw_request_id, request->request_id);
+				fw_mgmt->backend_fw_request_id, request->request_id);
 		return -ENODEV;
 	}
 
@@ -372,10 +404,10 @@ static int fw_mgmt_backend_fw_updated_operation(struct gb_operation *op)
 	fw_mgmt->backend_fw_status = request->status;
 
 	if ((fw_mgmt->backend_fw_status != GB_FW_BACKEND_FW_STATUS_SUCCESS) &&
-	    (fw_mgmt->backend_fw_status != GB_FW_BACKEND_FW_STATUS_RETRY))
+		(fw_mgmt->backend_fw_status != GB_FW_BACKEND_FW_STATUS_RETRY))
 		dev_err(fw_mgmt->parent,
-			"failed to load backend firmware: %02x\n",
-			fw_mgmt->backend_fw_status);
+				"failed to load backend firmware: %02x\n",
+				fw_mgmt->backend_fw_status);
 
 	complete(&fw_mgmt->completion);
 
@@ -389,7 +421,8 @@ static int fw_mgmt_open(struct inode *inode, struct file *file)
 	struct fw_mgmt *fw_mgmt = get_fw_mgmt(inode->i_cdev);
 
 	/* fw_mgmt structure can't get freed until file descriptor is closed */
-	if (fw_mgmt) {
+	if (fw_mgmt)
+	{
 		file->private_data = fw_mgmt;
 		return 0;
 	}
@@ -406,7 +439,7 @@ static int fw_mgmt_release(struct inode *inode, struct file *file)
 }
 
 static int fw_mgmt_ioctl(struct fw_mgmt *fw_mgmt, unsigned int cmd,
-			 void __user *buf)
+						 void __user *buf)
 {
 	struct fw_mgmt_ioc_get_intf_version intf_fw_info;
 	struct fw_mgmt_ioc_get_backend_version backend_fw_info;
@@ -417,121 +450,164 @@ static int fw_mgmt_ioctl(struct fw_mgmt *fw_mgmt, unsigned int cmd,
 
 	/* Reject any operations after mode-switch has started */
 	if (fw_mgmt->mode_switch_started)
+	{
 		return -EBUSY;
+	}
 
-	switch (cmd) {
-	case FW_MGMT_IOC_GET_INTF_FW:
-		ret = fw_mgmt_interface_fw_version_operation(fw_mgmt,
-							     &intf_fw_info);
-		if (ret)
-			return ret;
+	switch (cmd)
+	{
+		case FW_MGMT_IOC_GET_INTF_FW:
+			ret = fw_mgmt_interface_fw_version_operation(fw_mgmt,
+					&intf_fw_info);
 
-		if (copy_to_user(buf, &intf_fw_info, sizeof(intf_fw_info)))
-			return -EFAULT;
+			if (ret)
+			{
+				return ret;
+			}
 
-		return 0;
-	case FW_MGMT_IOC_GET_BACKEND_FW:
-		if (copy_from_user(&backend_fw_info, buf,
-				   sizeof(backend_fw_info)))
-			return -EFAULT;
+			if (copy_to_user(buf, &intf_fw_info, sizeof(intf_fw_info)))
+			{
+				return -EFAULT;
+			}
 
-		ret = fw_mgmt_backend_fw_version_operation(fw_mgmt,
-							   &backend_fw_info);
-		if (ret)
-			return ret;
+			return 0;
 
-		if (copy_to_user(buf, &backend_fw_info,
-				 sizeof(backend_fw_info)))
-			return -EFAULT;
+		case FW_MGMT_IOC_GET_BACKEND_FW:
+			if (copy_from_user(&backend_fw_info, buf,
+							   sizeof(backend_fw_info)))
+			{
+				return -EFAULT;
+			}
 
-		return 0;
-	case FW_MGMT_IOC_INTF_LOAD_AND_VALIDATE:
-		if (copy_from_user(&intf_load, buf, sizeof(intf_load)))
-			return -EFAULT;
+			ret = fw_mgmt_backend_fw_version_operation(fw_mgmt,
+					&backend_fw_info);
 
-		ret = fw_mgmt_load_and_validate_operation(fw_mgmt,
-				intf_load.load_method, intf_load.firmware_tag);
-		if (ret)
-			return ret;
+			if (ret)
+			{
+				return ret;
+			}
 
-		if (!wait_for_completion_timeout(&fw_mgmt->completion,
-						 fw_mgmt->timeout_jiffies)) {
-			dev_err(fw_mgmt->parent, "timed out waiting for firmware load and validation to finish\n");
-			return -ETIMEDOUT;
-		}
+			if (copy_to_user(buf, &backend_fw_info,
+							 sizeof(backend_fw_info)))
+			{
+				return -EFAULT;
+			}
 
-		intf_load.status = fw_mgmt->intf_fw_status;
-		intf_load.major = fw_mgmt->intf_fw_major;
-		intf_load.minor = fw_mgmt->intf_fw_minor;
+			return 0;
 
-		if (copy_to_user(buf, &intf_load, sizeof(intf_load)))
-			return -EFAULT;
+		case FW_MGMT_IOC_INTF_LOAD_AND_VALIDATE:
+			if (copy_from_user(&intf_load, buf, sizeof(intf_load)))
+			{
+				return -EFAULT;
+			}
 
-		return 0;
-	case FW_MGMT_IOC_INTF_BACKEND_FW_UPDATE:
-		if (copy_from_user(&backend_update, buf,
-				   sizeof(backend_update)))
-			return -EFAULT;
+			ret = fw_mgmt_load_and_validate_operation(fw_mgmt,
+					intf_load.load_method, intf_load.firmware_tag);
 
-		ret = fw_mgmt_backend_fw_update_operation(fw_mgmt,
-				backend_update.firmware_tag);
-		if (ret)
-			return ret;
+			if (ret)
+			{
+				return ret;
+			}
 
-		if (!wait_for_completion_timeout(&fw_mgmt->completion,
-						 fw_mgmt->timeout_jiffies)) {
-			dev_err(fw_mgmt->parent, "timed out waiting for backend firmware update to finish\n");
-			return -ETIMEDOUT;
-		}
+			if (!wait_for_completion_timeout(&fw_mgmt->completion,
+											 fw_mgmt->timeout_jiffies))
+			{
+				dev_err(fw_mgmt->parent, "timed out waiting for firmware load and validation to finish\n");
+				return -ETIMEDOUT;
+			}
 
-		backend_update.status = fw_mgmt->backend_fw_status;
+			intf_load.status = fw_mgmt->intf_fw_status;
+			intf_load.major = fw_mgmt->intf_fw_major;
+			intf_load.minor = fw_mgmt->intf_fw_minor;
 
-		if (copy_to_user(buf, &backend_update, sizeof(backend_update)))
-			return -EFAULT;
+			if (copy_to_user(buf, &intf_load, sizeof(intf_load)))
+			{
+				return -EFAULT;
+			}
 
-		return 0;
-	case FW_MGMT_IOC_SET_TIMEOUT_MS:
-		if (get_user(timeout, (unsigned int __user *)buf))
-			return -EFAULT;
+			return 0;
 
-		if (!timeout) {
-			dev_err(fw_mgmt->parent, "timeout can't be zero\n");
-			return -EINVAL;
-		}
+		case FW_MGMT_IOC_INTF_BACKEND_FW_UPDATE:
+			if (copy_from_user(&backend_update, buf,
+							   sizeof(backend_update)))
+			{
+				return -EFAULT;
+			}
 
-		fw_mgmt->timeout_jiffies = msecs_to_jiffies(timeout);
+			ret = fw_mgmt_backend_fw_update_operation(fw_mgmt,
+					backend_update.firmware_tag);
 
-		return 0;
-	case FW_MGMT_IOC_MODE_SWITCH:
-		if (!fw_mgmt->intf_fw_loaded) {
-			dev_err(fw_mgmt->parent,
-				"Firmware not loaded for mode-switch\n");
-			return -EPERM;
-		}
+			if (ret)
+			{
+				return ret;
+			}
 
-		/*
-		 * Disallow new ioctls as the fw-core bundle driver is going to
-		 * get disconnected soon and the character device will get
-		 * removed.
-		 */
-		fw_mgmt->mode_switch_started = true;
+			if (!wait_for_completion_timeout(&fw_mgmt->completion,
+											 fw_mgmt->timeout_jiffies))
+			{
+				dev_err(fw_mgmt->parent, "timed out waiting for backend firmware update to finish\n");
+				return -ETIMEDOUT;
+			}
 
-		ret = gb_interface_request_mode_switch(fw_mgmt->connection->intf);
-		if (ret) {
-			dev_err(fw_mgmt->parent, "Mode-switch failed: %d\n",
-				ret);
-			fw_mgmt->mode_switch_started = false;
-			return ret;
-		}
+			backend_update.status = fw_mgmt->backend_fw_status;
 
-		return 0;
-	default:
-		return -ENOTTY;
+			if (copy_to_user(buf, &backend_update, sizeof(backend_update)))
+			{
+				return -EFAULT;
+			}
+
+			return 0;
+
+		case FW_MGMT_IOC_SET_TIMEOUT_MS:
+			if (get_user(timeout, (unsigned int __user *)buf))
+			{
+				return -EFAULT;
+			}
+
+			if (!timeout)
+			{
+				dev_err(fw_mgmt->parent, "timeout can't be zero\n");
+				return -EINVAL;
+			}
+
+			fw_mgmt->timeout_jiffies = msecs_to_jiffies(timeout);
+
+			return 0;
+
+		case FW_MGMT_IOC_MODE_SWITCH:
+			if (!fw_mgmt->intf_fw_loaded)
+			{
+				dev_err(fw_mgmt->parent,
+						"Firmware not loaded for mode-switch\n");
+				return -EPERM;
+			}
+
+			/*
+			 * Disallow new ioctls as the fw-core bundle driver is going to
+			 * get disconnected soon and the character device will get
+			 * removed.
+			 */
+			fw_mgmt->mode_switch_started = true;
+
+			ret = gb_interface_request_mode_switch(fw_mgmt->connection->intf);
+
+			if (ret)
+			{
+				dev_err(fw_mgmt->parent, "Mode-switch failed: %d\n",
+						ret);
+				fw_mgmt->mode_switch_started = false;
+				return ret;
+			}
+
+			return 0;
+
+		default:
+			return -ENOTTY;
 	}
 }
 
 static long fw_mgmt_ioctl_unlocked(struct file *file, unsigned int cmd,
-				   unsigned long arg)
+								   unsigned long arg)
 {
 	struct fw_mgmt *fw_mgmt = file->private_data;
 	struct gb_bundle *bundle = fw_mgmt->connection->bundle;
@@ -550,19 +626,25 @@ static long fw_mgmt_ioctl_unlocked(struct file *file, unsigned int cmd,
 	 * new operations.
 	 */
 	mutex_lock(&fw_mgmt->mutex);
-	if (!fw_mgmt->disabled) {
+
+	if (!fw_mgmt->disabled)
+	{
 		ret = gb_pm_runtime_get_sync(bundle);
-		if (!ret) {
+
+		if (!ret)
+		{
 			ret = fw_mgmt_ioctl(fw_mgmt, cmd, (void __user *)arg);
 			gb_pm_runtime_put_autosuspend(bundle);
 		}
 	}
+
 	mutex_unlock(&fw_mgmt->mutex);
 
 	return ret;
 }
 
-static const struct file_operations fw_mgmt_fops = {
+static const struct file_operations fw_mgmt_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= fw_mgmt_open,
 	.release	= fw_mgmt_release,
@@ -573,15 +655,18 @@ int gb_fw_mgmt_request_handler(struct gb_operation *op)
 {
 	u8 type = op->type;
 
-	switch (type) {
-	case GB_FW_MGMT_TYPE_LOADED_FW:
-		return fw_mgmt_interface_fw_loaded_operation(op);
-	case GB_FW_MGMT_TYPE_BACKEND_FW_UPDATED:
-		return fw_mgmt_backend_fw_updated_operation(op);
-	default:
-		dev_err(&op->connection->bundle->dev,
-			"unsupported request: %u\n", type);
-		return -EINVAL;
+	switch (type)
+	{
+		case GB_FW_MGMT_TYPE_LOADED_FW:
+			return fw_mgmt_interface_fw_loaded_operation(op);
+
+		case GB_FW_MGMT_TYPE_BACKEND_FW_UPDATED:
+			return fw_mgmt_backend_fw_updated_operation(op);
+
+		default:
+			dev_err(&op->connection->bundle->dev,
+					"unsupported request: %u\n", type);
+			return -EINVAL;
 	}
 }
 
@@ -591,11 +676,16 @@ int gb_fw_mgmt_connection_init(struct gb_connection *connection)
 	int ret, minor;
 
 	if (!connection)
+	{
 		return 0;
+	}
 
 	fw_mgmt = kzalloc(sizeof(*fw_mgmt), GFP_KERNEL);
+
 	if (!fw_mgmt)
+	{
 		return -ENOMEM;
+	}
 
 	fw_mgmt->parent = &connection->bundle->dev;
 	fw_mgmt->timeout_jiffies = msecs_to_jiffies(FW_MGMT_TIMEOUT_MS);
@@ -612,11 +702,16 @@ int gb_fw_mgmt_connection_init(struct gb_connection *connection)
 	mutex_unlock(&list_mutex);
 
 	ret = gb_connection_enable(connection);
+
 	if (ret)
+	{
 		goto err_list_del;
+	}
 
 	minor = ida_simple_get(&fw_mgmt_minors_map, 0, NUM_MINORS, GFP_KERNEL);
-	if (minor < 0) {
+
+	if (minor < 0)
+	{
 		ret = minor;
 		goto err_connection_disable;
 	}
@@ -626,14 +721,19 @@ int gb_fw_mgmt_connection_init(struct gb_connection *connection)
 	cdev_init(&fw_mgmt->cdev, &fw_mgmt_fops);
 
 	ret = cdev_add(&fw_mgmt->cdev, fw_mgmt->dev_num, 1);
+
 	if (ret)
+	{
 		goto err_remove_ida;
+	}
 
 	/* Add a soft link to the previously added char-dev within the bundle */
 	fw_mgmt->class_device = device_create(fw_mgmt_class, fw_mgmt->parent,
-					      fw_mgmt->dev_num, NULL,
-					      "gb-fw-mgmt-%d", minor);
-	if (IS_ERR(fw_mgmt->class_device)) {
+										  fw_mgmt->dev_num, NULL,
+										  "gb-fw-mgmt-%d", minor);
+
+	if (IS_ERR(fw_mgmt->class_device))
+	{
 		ret = PTR_ERR(fw_mgmt->class_device);
 		goto err_del_cdev;
 	}
@@ -661,7 +761,9 @@ void gb_fw_mgmt_connection_exit(struct gb_connection *connection)
 	struct fw_mgmt *fw_mgmt;
 
 	if (!connection)
+	{
 		return;
+	}
 
 	fw_mgmt = gb_connection_get_data(connection);
 
@@ -698,13 +800,19 @@ int fw_mgmt_init(void)
 	int ret;
 
 	fw_mgmt_class = class_create(THIS_MODULE, "gb_fw_mgmt");
+
 	if (IS_ERR(fw_mgmt_class))
+	{
 		return PTR_ERR(fw_mgmt_class);
+	}
 
 	ret = alloc_chrdev_region(&fw_mgmt_dev_num, 0, NUM_MINORS,
-				  "gb_fw_mgmt");
+							  "gb_fw_mgmt");
+
 	if (ret)
+	{
 		goto err_remove_class;
+	}
 
 	return 0;
 

@@ -37,7 +37,7 @@
  * Returns the current hardware read pointer
  */
 uint32_t uvd_v1_0_get_rptr(struct radeon_device *rdev,
-			   struct radeon_ring *ring)
+						   struct radeon_ring *ring)
 {
 	return RREG32(UVD_RBC_RB_RPTR);
 }
@@ -51,7 +51,7 @@ uint32_t uvd_v1_0_get_rptr(struct radeon_device *rdev,
  * Returns the current hardware write pointer
  */
 uint32_t uvd_v1_0_get_wptr(struct radeon_device *rdev,
-			   struct radeon_ring *ring)
+						   struct radeon_ring *ring)
 {
 	return RREG32(UVD_RBC_RB_WPTR);
 }
@@ -65,7 +65,7 @@ uint32_t uvd_v1_0_get_wptr(struct radeon_device *rdev,
  * Commits the write pointer to the hardware
  */
 void uvd_v1_0_set_wptr(struct radeon_device *rdev,
-		       struct radeon_ring *ring)
+					   struct radeon_ring *ring)
 {
 	WREG32(UVD_RBC_RB_WPTR, ring->wptr);
 }
@@ -79,7 +79,7 @@ void uvd_v1_0_set_wptr(struct radeon_device *rdev,
  * Write a fence and a trap command to the ring.
  */
 void uvd_v1_0_fence_emit(struct radeon_device *rdev,
-			 struct radeon_fence *fence)
+						 struct radeon_fence *fence)
 {
 	struct radeon_ring *ring = &rdev->ring[fence->ring];
 	uint64_t addr = rdev->fence_drv[fence->ring].gpu_addr;
@@ -114,8 +114,11 @@ int uvd_v1_0_resume(struct radeon_device *rdev)
 	int r;
 
 	r = radeon_uvd_resume(rdev);
+
 	if (r)
+	{
 		return r;
+	}
 
 	/* programm the VCPU memory controller bits 0-27 */
 	addr = (rdev->uvd.gpu_addr >> 3) + 16;
@@ -130,7 +133,7 @@ int uvd_v1_0_resume(struct radeon_device *rdev)
 
 	addr += size;
 	size = (RADEON_UVD_STACK_SIZE +
-	       (RADEON_UVD_SESSION_SIZE * rdev->uvd.max_handles)) >> 3;
+			(RADEON_UVD_SESSION_SIZE * rdev->uvd.max_handles)) >> 3;
 	WREG32(UVD_VCPU_CACHE_OFFSET2, addr);
 	WREG32(UVD_VCPU_CACHE_SIZE2, size);
 
@@ -142,7 +145,7 @@ int uvd_v1_0_resume(struct radeon_device *rdev)
 	addr = (rdev->uvd.gpu_addr >> 32) & 0xFF;
 	WREG32(UVD_LMI_EXT40_ADDR, addr | (0x9 << 16) | (0x1 << 31));
 
-	WREG32(UVD_FW_START, *((uint32_t*)rdev->uvd.cpu_addr));
+	WREG32(UVD_FW_START, *((uint32_t *)rdev->uvd.cpu_addr));
 
 	return 0;
 }
@@ -162,23 +165,34 @@ int uvd_v1_0_init(struct radeon_device *rdev)
 
 	/* raise clocks while booting up the VCPU */
 	if (rdev->family < CHIP_RV740)
+	{
 		radeon_set_uvd_clocks(rdev, 10000, 10000);
+	}
 	else
+	{
 		radeon_set_uvd_clocks(rdev, 53300, 40000);
+	}
 
 	r = uvd_v1_0_start(rdev);
+
 	if (r)
+	{
 		goto done;
+	}
 
 	ring->ready = true;
 	r = radeon_ring_test(rdev, R600_RING_TYPE_UVD_INDEX, ring);
-	if (r) {
+
+	if (r)
+	{
 		ring->ready = false;
 		goto done;
 	}
 
 	r = radeon_ring_lock(rdev, ring, 10);
-	if (r) {
+
+	if (r)
+	{
 		DRM_ERROR("radeon: ring failed to lock UVD ring (%d).\n", r);
 		goto done;
 	}
@@ -208,28 +222,30 @@ done:
 	/* lower clocks again */
 	radeon_set_uvd_clocks(rdev, 0, 0);
 
-	if (!r) {
-		switch (rdev->family) {
-		case CHIP_RV610:
-		case CHIP_RV630:
-		case CHIP_RV620:
-			/* 64byte granularity workaround */
-			WREG32(MC_CONFIG, 0);
-			WREG32(MC_CONFIG, 1 << 4);
-			WREG32(RS_DQ_RD_RET_CONF, 0x3f);
-			WREG32(MC_CONFIG, 0x1f);
+	if (!r)
+	{
+		switch (rdev->family)
+		{
+			case CHIP_RV610:
+			case CHIP_RV630:
+			case CHIP_RV620:
+				/* 64byte granularity workaround */
+				WREG32(MC_CONFIG, 0);
+				WREG32(MC_CONFIG, 1 << 4);
+				WREG32(RS_DQ_RD_RET_CONF, 0x3f);
+				WREG32(MC_CONFIG, 0x1f);
 
 			/* fall through */
-		case CHIP_RV670:
-		case CHIP_RV635:
+			case CHIP_RV670:
+			case CHIP_RV635:
 
-			/* write clean workaround */
-			WREG32_P(UVD_VCPU_CNTL, 0x10, ~0x10);
-			break;
+				/* write clean workaround */
+				WREG32_P(UVD_VCPU_CNTL, 0x10, ~0x10);
+				break;
 
-		default:
-			/* TODO: Do we need more? */
-			break;
+			default:
+				/* TODO: Do we need more? */
+				break;
 		}
 
 		DRM_INFO("UVD initialized successfully.\n");
@@ -283,8 +299,8 @@ int uvd_v1_0_start(struct radeon_device *rdev)
 
 	/* put LMI, VCPU, RBC etc... into reset */
 	WREG32(UVD_SOFT_RESET, LMI_SOFT_RESET | VCPU_SOFT_RESET |
-	       LBSI_SOFT_RESET | RBC_SOFT_RESET | CSM_SOFT_RESET |
-	       CXW_SOFT_RESET | TAP_SOFT_RESET | LMI_UMC_SOFT_RESET);
+		   LBSI_SOFT_RESET | RBC_SOFT_RESET | CSM_SOFT_RESET |
+		   CXW_SOFT_RESET | TAP_SOFT_RESET | LMI_UMC_SOFT_RESET);
 	mdelay(5);
 
 	/* take UVD block out of reset */
@@ -293,7 +309,7 @@ int uvd_v1_0_start(struct radeon_device *rdev)
 
 	/* initialize UVD memory controller */
 	WREG32(UVD_LMI_CTRL, 0x40 | (1 << 8) | (1 << 13) |
-			     (1 << 21) | (1 << 9) | (1 << 20));
+		   (1 << 21) | (1 << 9) | (1 << 20));
 
 #ifdef __BIG_ENDIAN
 	/* swap (8 in 32) RB and IB */
@@ -326,17 +342,28 @@ int uvd_v1_0_start(struct radeon_device *rdev)
 	WREG32(UVD_SOFT_RESET, 0);
 	mdelay(10);
 
-	for (i = 0; i < 10; ++i) {
+	for (i = 0; i < 10; ++i)
+	{
 		uint32_t status;
-		for (j = 0; j < 100; ++j) {
+
+		for (j = 0; j < 100; ++j)
+		{
 			status = RREG32(UVD_STATUS);
+
 			if (status & 2)
+			{
 				break;
+			}
+
 			mdelay(10);
 		}
+
 		r = 0;
+
 		if (status & 2)
+		{
 			break;
+		}
 
 		DRM_ERROR("UVD not responding, trying to reset the VCPU!!!\n");
 		WREG32_P(UVD_SOFT_RESET, VCPU_SOFT_RESET, ~VCPU_SOFT_RESET);
@@ -346,13 +373,14 @@ int uvd_v1_0_start(struct radeon_device *rdev)
 		r = -1;
 	}
 
-	if (r) {
+	if (r)
+	{
 		DRM_ERROR("UVD not responding, giving up!!!\n");
 		return r;
 	}
 
 	/* enable interupt */
-	WREG32_P(UVD_MASTINT_EN, 3<<1, ~(3 << 1));
+	WREG32_P(UVD_MASTINT_EN, 3 << 1, ~(3 << 1));
 
 	/* force RBC into idle state */
 	WREG32(UVD_RBC_RB_CNTL, 0x11010101);
@@ -362,7 +390,7 @@ int uvd_v1_0_start(struct radeon_device *rdev)
 
 	/* programm the 4GB memory segment for rptr and ring buffer */
 	WREG32(UVD_LMI_EXT40_ADDR, upper_32_bits(ring->gpu_addr) |
-				   (0x7 << 16) | (0x1 << 31));
+		   (0x7 << 16) | (0x1 << 31));
 
 	/* Initialize the ring buffer's read and write pointers */
 	WREG32(UVD_RBC_RB_RPTR, 0x0);
@@ -426,29 +454,42 @@ int uvd_v1_0_ring_test(struct radeon_device *rdev, struct radeon_ring *ring)
 
 	WREG32(UVD_CONTEXT_ID, 0xCAFEDEAD);
 	r = radeon_ring_lock(rdev, ring, 3);
-	if (r) {
+
+	if (r)
+	{
 		DRM_ERROR("radeon: cp failed to lock ring %d (%d).\n",
-			  ring->idx, r);
+				  ring->idx, r);
 		return r;
 	}
+
 	radeon_ring_write(ring, PACKET0(UVD_CONTEXT_ID, 0));
 	radeon_ring_write(ring, 0xDEADBEEF);
 	radeon_ring_unlock_commit(rdev, ring, false);
-	for (i = 0; i < rdev->usec_timeout; i++) {
+
+	for (i = 0; i < rdev->usec_timeout; i++)
+	{
 		tmp = RREG32(UVD_CONTEXT_ID);
+
 		if (tmp == 0xDEADBEEF)
+		{
 			break;
+		}
+
 		DRM_UDELAY(1);
 	}
 
-	if (i < rdev->usec_timeout) {
+	if (i < rdev->usec_timeout)
+	{
 		DRM_INFO("ring test on %d succeeded in %d usecs\n",
-			 ring->idx, i);
-	} else {
+				 ring->idx, i);
+	}
+	else
+	{
 		DRM_ERROR("radeon: ring %d test failed (0x%08X)\n",
-			  ring->idx, tmp);
+				  ring->idx, tmp);
 		r = -EINVAL;
 	}
+
 	return r;
 }
 
@@ -463,9 +504,9 @@ int uvd_v1_0_ring_test(struct radeon_device *rdev, struct radeon_ring *ring)
  * Emit a semaphore command (either wait or signal) to the UVD ring.
  */
 bool uvd_v1_0_semaphore_emit(struct radeon_device *rdev,
-			     struct radeon_ring *ring,
-			     struct radeon_semaphore *semaphore,
-			     bool emit_wait)
+							 struct radeon_ring *ring,
+							 struct radeon_semaphore *semaphore,
+							 bool emit_wait)
 {
 	/* disable semaphores for UVD V1 hardware */
 	return false;
@@ -503,36 +544,51 @@ int uvd_v1_0_ib_test(struct radeon_device *rdev, struct radeon_ring *ring)
 	int r;
 
 	if (rdev->family < CHIP_RV740)
+	{
 		r = radeon_set_uvd_clocks(rdev, 10000, 10000);
+	}
 	else
+	{
 		r = radeon_set_uvd_clocks(rdev, 53300, 40000);
-	if (r) {
+	}
+
+	if (r)
+	{
 		DRM_ERROR("radeon: failed to raise UVD clocks (%d).\n", r);
 		return r;
 	}
 
 	r = radeon_uvd_get_create_msg(rdev, ring->idx, 1, NULL);
-	if (r) {
+
+	if (r)
+	{
 		DRM_ERROR("radeon: failed to get create msg (%d).\n", r);
 		goto error;
 	}
 
 	r = radeon_uvd_get_destroy_msg(rdev, ring->idx, 1, &fence);
-	if (r) {
+
+	if (r)
+	{
 		DRM_ERROR("radeon: failed to get destroy ib (%d).\n", r);
 		goto error;
 	}
 
 	r = radeon_fence_wait_timeout(fence, false, usecs_to_jiffies(
-		RADEON_USEC_IB_TEST_TIMEOUT));
-	if (r < 0) {
+									  RADEON_USEC_IB_TEST_TIMEOUT));
+
+	if (r < 0)
+	{
 		DRM_ERROR("radeon: fence wait failed (%d).\n", r);
 		goto error;
-	} else if (r == 0) {
+	}
+	else if (r == 0)
+	{
 		DRM_ERROR("radeon: fence wait timed out.\n");
 		r = -ETIMEDOUT;
 		goto error;
 	}
+
 	r = 0;
 	DRM_INFO("ib test on ring %d succeeded\n",  ring->idx);
 error:

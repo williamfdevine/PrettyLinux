@@ -47,7 +47,7 @@ extern void amdgpu_pm_acpi_event_handler(struct amdgpu_device *adev);
  * Returns a pointer to the acpi output buffer.
  */
 static union acpi_object *amdgpu_atif_call(acpi_handle handle, int function,
-		struct acpi_buffer *params)
+			struct acpi_buffer *params)
 {
 	acpi_status status;
 	union acpi_object atif_arg_elements[2];
@@ -60,11 +60,14 @@ static union acpi_object *amdgpu_atif_call(acpi_handle handle, int function,
 	atif_arg_elements[0].type = ACPI_TYPE_INTEGER;
 	atif_arg_elements[0].integer.value = function;
 
-	if (params) {
+	if (params)
+	{
 		atif_arg_elements[1].type = ACPI_TYPE_BUFFER;
 		atif_arg_elements[1].buffer.length = params->length;
 		atif_arg_elements[1].buffer.pointer = params->pointer;
-	} else {
+	}
+	else
+	{
 		/* We need a second fake parameter */
 		atif_arg_elements[1].type = ACPI_TYPE_INTEGER;
 		atif_arg_elements[1].integer.value = 0;
@@ -73,9 +76,10 @@ static union acpi_object *amdgpu_atif_call(acpi_handle handle, int function,
 	status = acpi_evaluate_object(handle, "ATIF", &atif_arg, &buffer);
 
 	/* Fail only if calling the method fails and ATIF is supported */
-	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
+	{
 		DRM_DEBUG_DRIVER("failed to evaluate ATIF got %s\n",
-				 acpi_format_exception(status));
+						 acpi_format_exception(status));
 		kfree(buffer.pointer);
 		return NULL;
 	}
@@ -142,7 +146,7 @@ static void amdgpu_atif_parse_functions(struct amdgpu_atif_functions *f, u32 mas
  * returns 0 on success, error on failure.
  */
 static int amdgpu_atif_verify_interface(acpi_handle handle,
-		struct amdgpu_atif *atif)
+										struct amdgpu_atif *atif)
 {
 	union acpi_object *info;
 	struct atif_verify_interface output;
@@ -150,17 +154,23 @@ static int amdgpu_atif_verify_interface(acpi_handle handle,
 	int err = 0;
 
 	info = amdgpu_atif_call(handle, ATIF_FUNCTION_VERIFY_INTERFACE, NULL);
+
 	if (!info)
+	{
 		return -EIO;
+	}
 
 	memset(&output, 0, sizeof(output));
 
 	size = *(u16 *) info->buffer.pointer;
-	if (size < 12) {
+
+	if (size < 12)
+	{
 		DRM_INFO("ATIF buffer is too small: %zu\n", size);
 		err = -EINVAL;
 		goto out;
 	}
+
 	size = min(sizeof(output), size);
 
 	memcpy(&output, info->buffer.pointer, size);
@@ -197,13 +207,17 @@ static int amdgpu_atif_get_notification_params(acpi_handle handle,
 	int err = 0;
 
 	info = amdgpu_atif_call(handle, ATIF_FUNCTION_GET_SYSTEM_PARAMETERS, NULL);
-	if (!info) {
+
+	if (!info)
+	{
 		err = -EIO;
 		goto out;
 	}
 
 	size = *(u16 *) info->buffer.pointer;
-	if (size < 10) {
+
+	if (size < 10)
+	{
 		err = -EINVAL;
 		goto out;
 	}
@@ -213,28 +227,35 @@ static int amdgpu_atif_get_notification_params(acpi_handle handle,
 	memcpy(&params, info->buffer.pointer, size);
 
 	DRM_DEBUG_DRIVER("SYSTEM_PARAMS: mask = %#x, flags = %#x\n",
-			params.flags, params.valid_mask);
+					 params.flags, params.valid_mask);
 	params.flags = params.flags & params.valid_mask;
 
-	if ((params.flags & ATIF_NOTIFY_MASK) == ATIF_NOTIFY_NONE) {
+	if ((params.flags & ATIF_NOTIFY_MASK) == ATIF_NOTIFY_NONE)
+	{
 		n->enabled = false;
 		n->command_code = 0;
-	} else if ((params.flags & ATIF_NOTIFY_MASK) == ATIF_NOTIFY_81) {
+	}
+	else if ((params.flags & ATIF_NOTIFY_MASK) == ATIF_NOTIFY_81)
+	{
 		n->enabled = true;
 		n->command_code = 0x81;
-	} else {
-		if (size < 11) {
+	}
+	else
+	{
+		if (size < 11)
+		{
 			err = -EINVAL;
 			goto out;
 		}
+
 		n->enabled = true;
 		n->command_code = params.command_code;
 	}
 
 out:
 	DRM_DEBUG_DRIVER("Notification %s, command code = %#x\n",
-			(n->enabled ? "enabled" : "disabled"),
-			n->command_code);
+					 (n->enabled ? "enabled" : "disabled"),
+					 n->command_code);
 	kfree(info);
 	return err;
 }
@@ -258,14 +279,20 @@ static int amdgpu_atif_get_sbios_requests(acpi_handle handle,
 	int count = 0;
 
 	info = amdgpu_atif_call(handle, ATIF_FUNCTION_GET_SYSTEM_BIOS_REQUESTS, NULL);
+
 	if (!info)
+	{
 		return -EIO;
+	}
 
 	size = *(u16 *)info->buffer.pointer;
-	if (size < 0xd) {
+
+	if (size < 0xd)
+	{
 		count = -EINVAL;
 		goto out;
 	}
+
 	memset(req, 0, sizeof(*req));
 
 	size = min(sizeof(*req), size);
@@ -290,7 +317,7 @@ out:
  * Returns NOTIFY code
  */
 int amdgpu_atif_handler(struct amdgpu_device *adev,
-			struct acpi_bus_event *event)
+						struct acpi_bus_event *event)
 {
 	struct amdgpu_atif *atif = &adev->atif;
 	struct atif_sbios_requests req;
@@ -298,45 +325,56 @@ int amdgpu_atif_handler(struct amdgpu_device *adev,
 	int count;
 
 	DRM_DEBUG_DRIVER("event, device_class = %s, type = %#x\n",
-			event->device_class, event->type);
+					 event->device_class, event->type);
 
 	if (strcmp(event->device_class, ACPI_VIDEO_CLASS) != 0)
+	{
 		return NOTIFY_DONE;
+	}
 
 	if (!atif->notification_cfg.enabled ||
-	    event->type != atif->notification_cfg.command_code)
+		event->type != atif->notification_cfg.command_code)
 		/* Not our event */
+	{
 		return NOTIFY_DONE;
+	}
 
 	/* Check pending SBIOS requests */
 	handle = ACPI_HANDLE(&adev->pdev->dev);
 	count = amdgpu_atif_get_sbios_requests(handle, &req);
 
 	if (count <= 0)
+	{
 		return NOTIFY_DONE;
+	}
 
 	DRM_DEBUG_DRIVER("ATIF: %d pending SBIOS requests\n", count);
 
-	if (req.pending & ATIF_PANEL_BRIGHTNESS_CHANGE_REQUEST) {
+	if (req.pending & ATIF_PANEL_BRIGHTNESS_CHANGE_REQUEST)
+	{
 		struct amdgpu_encoder *enc = atif->encoder_for_bl;
 
-		if (enc) {
+		if (enc)
+		{
 			struct amdgpu_encoder_atom_dig *dig = enc->enc_priv;
 
 			DRM_DEBUG_DRIVER("Changing brightness to %d\n",
-					req.backlight_level);
+							 req.backlight_level);
 
 			amdgpu_display_backlight_set_level(adev, enc, req.backlight_level);
 
 #if defined(CONFIG_BACKLIGHT_CLASS_DEVICE) || defined(CONFIG_BACKLIGHT_CLASS_DEVICE_MODULE)
 			backlight_force_update(dig->bl_dev,
-					       BACKLIGHT_UPDATE_HOTKEY);
+								   BACKLIGHT_UPDATE_HOTKEY);
 #endif
 		}
 	}
-	if (req.pending & ATIF_DGPU_DISPLAY_EVENT) {
+
+	if (req.pending & ATIF_DGPU_DISPLAY_EVENT)
+	{
 		if ((adev->flags & AMD_IS_PX) &&
-		    amdgpu_atpx_dgpu_req_power_for_displays()) {
+			amdgpu_atpx_dgpu_req_power_for_displays())
+		{
 			pm_runtime_get_sync(adev->ddev->dev);
 			/* Just fire off a uevent and let userspace tell us what to do */
 			drm_helper_hpd_irq_event(adev->ddev);
@@ -344,6 +382,7 @@ int amdgpu_atif_handler(struct amdgpu_device *adev,
 			pm_runtime_put_autosuspend(adev->ddev->dev);
 		}
 	}
+
 	/* TODO: check other events */
 
 	/* We've handled the event, stop the notifier chain. The ACPI interface
@@ -367,7 +406,7 @@ int amdgpu_atif_handler(struct amdgpu_device *adev,
  * Returns a pointer to the acpi output buffer.
  */
 static union acpi_object *amdgpu_atcs_call(acpi_handle handle, int function,
-					   struct acpi_buffer *params)
+			struct acpi_buffer *params)
 {
 	acpi_status status;
 	union acpi_object atcs_arg_elements[2];
@@ -380,11 +419,14 @@ static union acpi_object *amdgpu_atcs_call(acpi_handle handle, int function,
 	atcs_arg_elements[0].type = ACPI_TYPE_INTEGER;
 	atcs_arg_elements[0].integer.value = function;
 
-	if (params) {
+	if (params)
+	{
 		atcs_arg_elements[1].type = ACPI_TYPE_BUFFER;
 		atcs_arg_elements[1].buffer.length = params->length;
 		atcs_arg_elements[1].buffer.pointer = params->pointer;
-	} else {
+	}
+	else
+	{
 		/* We need a second fake parameter */
 		atcs_arg_elements[1].type = ACPI_TYPE_INTEGER;
 		atcs_arg_elements[1].integer.value = 0;
@@ -393,9 +435,10 @@ static union acpi_object *amdgpu_atcs_call(acpi_handle handle, int function,
 	status = acpi_evaluate_object(handle, "ATCS", &atcs_arg, &buffer);
 
 	/* Fail only if calling the method fails and ATIF is supported */
-	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
+	{
 		DRM_DEBUG_DRIVER("failed to evaluate ATCS got %s\n",
-				 acpi_format_exception(status));
+						 acpi_format_exception(status));
 		kfree(buffer.pointer);
 		return NULL;
 	}
@@ -433,7 +476,7 @@ static void amdgpu_atcs_parse_functions(struct amdgpu_atcs_functions *f, u32 mas
  * returns 0 on success, error on failure.
  */
 static int amdgpu_atcs_verify_interface(acpi_handle handle,
-					struct amdgpu_atcs *atcs)
+										struct amdgpu_atcs *atcs)
 {
 	union acpi_object *info;
 	struct atcs_verify_interface output;
@@ -441,17 +484,23 @@ static int amdgpu_atcs_verify_interface(acpi_handle handle,
 	int err = 0;
 
 	info = amdgpu_atcs_call(handle, ATCS_FUNCTION_VERIFY_INTERFACE, NULL);
+
 	if (!info)
+	{
 		return -EIO;
+	}
 
 	memset(&output, 0, sizeof(output));
 
 	size = *(u16 *) info->buffer.pointer;
-	if (size < 8) {
+
+	if (size < 8)
+	{
 		DRM_INFO("ATCS buffer is too small: %zu\n", size);
 		err = -EINVAL;
 		goto out;
 	}
+
 	size = min(sizeof(output), size);
 
 	memcpy(&output, info->buffer.pointer, size);
@@ -480,7 +529,9 @@ bool amdgpu_acpi_is_pcie_performance_request_supported(struct amdgpu_device *ade
 	struct amdgpu_atcs *atcs = &adev->atcs;
 
 	if (atcs->functions.pcie_perf_req && atcs->functions.pcie_dev_rdy)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -502,15 +553,23 @@ int amdgpu_acpi_pcie_notify_device_ready(struct amdgpu_device *adev)
 
 	/* Get the device handle */
 	handle = ACPI_HANDLE(&adev->pdev->dev);
+
 	if (!handle)
+	{
 		return -EINVAL;
+	}
 
 	if (!atcs->functions.pcie_dev_rdy)
+	{
 		return -EINVAL;
+	}
 
 	info = amdgpu_atcs_call(handle, ATCS_FUNCTION_PCIE_DEVICE_READY_NOTIFICATION, NULL);
+
 	if (!info)
+	{
 		return -EIO;
+	}
 
 	kfree(info);
 
@@ -529,7 +588,7 @@ int amdgpu_acpi_pcie_notify_device_ready(struct amdgpu_device *adev)
  * returns 0 on success, error on failure.
  */
 int amdgpu_acpi_pcie_performance_request(struct amdgpu_device *adev,
-					 u8 perf_req, bool advertise)
+		u8 perf_req, bool advertise)
 {
 	acpi_handle handle;
 	union acpi_object *info;
@@ -542,53 +601,72 @@ int amdgpu_acpi_pcie_performance_request(struct amdgpu_device *adev,
 
 	/* Get the device handle */
 	handle = ACPI_HANDLE(&adev->pdev->dev);
+
 	if (!handle)
+	{
 		return -EINVAL;
+	}
 
 	if (!atcs->functions.pcie_perf_req)
+	{
 		return -EINVAL;
+	}
 
 	atcs_input.size = sizeof(struct atcs_pref_req_input);
 	/* client id (bit 2-0: func num, 7-3: dev num, 15-8: bus num) */
 	atcs_input.client_id = adev->pdev->devfn | (adev->pdev->bus->number << 8);
 	atcs_input.valid_flags_mask = ATCS_VALID_FLAGS_MASK;
 	atcs_input.flags = ATCS_WAIT_FOR_COMPLETION;
+
 	if (advertise)
+	{
 		atcs_input.flags |= ATCS_ADVERTISE_CAPS;
+	}
+
 	atcs_input.req_type = ATCS_PCIE_LINK_SPEED;
 	atcs_input.perf_req = perf_req;
 
 	params.length = sizeof(struct atcs_pref_req_input);
 	params.pointer = &atcs_input;
 
-	while (retry--) {
+	while (retry--)
+	{
 		info = amdgpu_atcs_call(handle, ATCS_FUNCTION_PCIE_PERFORMANCE_REQUEST, &params);
+
 		if (!info)
+		{
 			return -EIO;
+		}
 
 		memset(&atcs_output, 0, sizeof(atcs_output));
 
 		size = *(u16 *) info->buffer.pointer;
-		if (size < 3) {
+
+		if (size < 3)
+		{
 			DRM_INFO("ATCS buffer is too small: %zu\n", size);
 			kfree(info);
 			return -EINVAL;
 		}
+
 		size = min(sizeof(atcs_output), size);
 
 		memcpy(&atcs_output, info->buffer.pointer, size);
 
 		kfree(info);
 
-		switch (atcs_output.ret_val) {
-		case ATCS_REQUEST_REFUSED:
-		default:
-			return -EINVAL;
-		case ATCS_REQUEST_COMPLETE:
-			return 0;
-		case ATCS_REQUEST_IN_PROGRESS:
-			udelay(10);
-			break;
+		switch (atcs_output.ret_val)
+		{
+			case ATCS_REQUEST_REFUSED:
+			default:
+				return -EINVAL;
+
+			case ATCS_REQUEST_COMPLETE:
+				return 0;
+
+			case ATCS_REQUEST_IN_PROGRESS:
+				udelay(10);
+				break;
 		}
 	}
 
@@ -607,17 +685,22 @@ int amdgpu_acpi_pcie_performance_request(struct amdgpu_device *adev,
  * Returns NOTIFY code
  */
 static int amdgpu_acpi_event(struct notifier_block *nb,
-			     unsigned long val,
-			     void *data)
+							 unsigned long val,
+							 void *data)
 {
 	struct amdgpu_device *adev = container_of(nb, struct amdgpu_device, acpi_nb);
 	struct acpi_bus_event *entry = (struct acpi_bus_event *)data;
 
-	if (strcmp(entry->device_class, ACPI_AC_CLASS) == 0) {
+	if (strcmp(entry->device_class, ACPI_AC_CLASS) == 0)
+	{
 		if (power_supply_is_system_supplied() > 0)
+		{
 			DRM_DEBUG_DRIVER("pm: AC\n");
+		}
 		else
+		{
 			DRM_DEBUG_DRIVER("pm: DC\n");
+		}
 
 		amdgpu_pm_acpi_event_handler(adev);
 	}
@@ -647,34 +730,46 @@ int amdgpu_acpi_init(struct amdgpu_device *adev)
 	handle = ACPI_HANDLE(&adev->pdev->dev);
 
 	if (!adev->bios || !handle)
+	{
 		return 0;
+	}
 
 	/* Call the ATCS method */
 	ret = amdgpu_atcs_verify_interface(handle, atcs);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_DEBUG_DRIVER("Call to ATCS verify_interface failed: %d\n", ret);
 	}
 
 	/* Call the ATIF method */
 	ret = amdgpu_atif_verify_interface(handle, atif);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_DEBUG_DRIVER("Call to ATIF verify_interface failed: %d\n", ret);
 		goto out;
 	}
 
-	if (atif->notifications.brightness_change) {
+	if (atif->notifications.brightness_change)
+	{
 		struct drm_encoder *tmp;
 
 		/* Find the encoder controlling the brightness */
 		list_for_each_entry(tmp, &adev->ddev->mode_config.encoder_list,
-				head) {
+							head)
+		{
 			struct amdgpu_encoder *enc = to_amdgpu_encoder(tmp);
 
 			if ((enc->devices & (ATOM_DEVICE_LCD_SUPPORT)) &&
-			    enc->enc_priv) {
-				if (adev->is_atom_bios) {
+				enc->enc_priv)
+			{
+				if (adev->is_atom_bios)
+				{
 					struct amdgpu_encoder_atom_dig *dig = enc->enc_priv;
-					if (dig->bl_dev) {
+
+					if (dig->bl_dev)
+					{
 						atif->encoder_for_bl = enc;
 						break;
 					}
@@ -683,7 +778,8 @@ int amdgpu_acpi_init(struct amdgpu_device *adev)
 		}
 	}
 
-	if (atif->functions.sbios_requests && !atif->functions.system_params) {
+	if (atif->functions.sbios_requests && !atif->functions.system_params)
+	{
 		/* XXX check this workraround, if sbios request function is
 		 * present we have to see how it's configured in the system
 		 * params
@@ -691,12 +787,15 @@ int amdgpu_acpi_init(struct amdgpu_device *adev)
 		atif->functions.system_params = true;
 	}
 
-	if (atif->functions.system_params) {
+	if (atif->functions.system_params)
+	{
 		ret = amdgpu_atif_get_notification_params(handle,
 				&atif->notification_cfg);
-		if (ret) {
+
+		if (ret)
+		{
 			DRM_DEBUG_DRIVER("Call to GET_SYSTEM_PARAMS failed: %d\n",
-					ret);
+							 ret);
 			/* Disable notification */
 			atif->notification_cfg.enabled = false;
 		}

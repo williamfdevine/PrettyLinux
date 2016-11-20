@@ -28,7 +28,8 @@
  * ringBase:  where this ring lives (our virtual address)
  * lastWrite: the next entry we'll use
  */
-struct basic_ring {
+struct basic_ring
+{
 	u8 *ringBase;
 	u32 lastWrite;
 };
@@ -37,7 +38,8 @@ struct basic_ring {
  * lastRead:      where we're at in regard to cleaning up the ring
  * writeRegister: register to use for writing (different for Hi & Lo rings)
  */
-struct transmit_ring {
+struct transmit_ring
+{
 	u8 *ringBase;
 	u32 lastWrite;
 	u32 lastRead;
@@ -62,7 +64,8 @@ struct transmit_ring {
  * respReady:     entry the NIC has filled to in the response ring
  * rxHiReady:     entry the NIC has filled to in the Hi receive ring
  */
-struct typhoon_indexes {
+struct typhoon_indexes
+{
 	/* The first four are written by the host, and read by the NIC */
 	volatile __le32 rxHiCleared;
 	volatile __le32 rxLoCleared;
@@ -99,7 +102,8 @@ struct typhoon_indexes {
  * only do 32 bit addresses, so the *Hi for each of the above will always
  * be zero.
  */
-struct typhoon_interface {
+struct typhoon_interface
+{
 	__le32 ringIndex;
 	__le32 ringIndexHi;
 	__le32 txLoAddr;
@@ -148,7 +152,8 @@ struct typhoon_interface {
  * TYPHOON_DESC_VALID is not mentioned in their docs, but their Linux
  * driver uses it.
  */
-struct tx_desc {
+struct tx_desc
+{
 	u8  flags;
 #define TYPHOON_TYPE_MASK	0x07
 #define 	TYPHOON_FRAG_DESC	0x00
@@ -166,8 +171,10 @@ struct tx_desc {
 #define TYPHOON_DESC_VALID	0x80
 	u8  numDesc;
 	__le16 len;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__le32 addr;
 			__le32 addrHi;
 		} frag;
@@ -199,7 +206,8 @@ struct tx_desc {
  * bytesTx:	total number of bytes in this TSO request
  * status:	0 on completion
  */
-struct tcpopt_desc {
+struct tcpopt_desc
+{
 	u8  flags;
 	u8  numDesc;
 	__le16 mss_flags;
@@ -218,7 +226,8 @@ struct tcpopt_desc {
  * sa1, sa2:	Security Association IDs for this packet
  * reserved:	set to 0
  */
-struct ipsec_desc {
+struct ipsec_desc
+{
 	u8  flags;
 	u8  numDesc;
 	__le16 ipsecFlags;
@@ -241,7 +250,8 @@ struct ipsec_desc {
  * ipsecResults:  Results of IPSEC processing
  * vlanTag:       the 801.2q TCI from the packet
  */
-struct rx_desc {
+struct rx_desc
+{
 	u8  flags;
 	u8  numDesc;
 	__le16 frameLen;
@@ -296,7 +306,8 @@ struct rx_desc {
  * the virt* address is basically two 32 bit cookies, just passed back
  * from the NIC
  */
-struct rx_free {
+struct rx_free
+{
 	__le32 physAddr;
 	__le32 physAddrHi;
 	u32 virtAddr;
@@ -314,7 +325,8 @@ struct rx_free {
  * parm2:   use varies by command
  * parm3:   use varies by command
  */
-struct cmd_desc {
+struct cmd_desc
+{
 	u8  flags;
 	u8  numDesc;
 	__le16 cmd;
@@ -351,7 +363,8 @@ struct cmd_desc {
 
 /* The Typhoon response descriptor, see command descriptor for details
  */
-struct resp_desc {
+struct resp_desc
+{
 	u8  flags;
 	u8  numDesc;
 	__le16 cmd;
@@ -388,7 +401,8 @@ struct resp_desc {
 
 /* TYPHOON_CMD_READ_STATS response format
  */
-struct stats_resp {
+struct stats_resp
+{
 	u8  flags;
 	u8  numDesc;
 	__le16 cmd;
@@ -453,7 +467,8 @@ struct stats_resp {
 
 /* TYPHOON_CMD_CREATE_SA descriptor and settings
  */
-struct sa_descriptor {
+struct sa_descriptor
+{
 	u8  flags;
 	u8  numDesc;
 	u16 cmd;
@@ -512,7 +527,8 @@ struct sa_descriptor {
 
 /* These are used to load the firmware image on the NIC
  */
-struct typhoon_file_header {
+struct typhoon_file_header
+{
 	u8  tag[8];
 	__le32 version;
 	__le32 numSections;
@@ -520,7 +536,8 @@ struct typhoon_file_header {
 	__le32 hmacDigest[5];
 } __packed;
 
-struct typhoon_section_header {
+struct typhoon_section_header
+{
 	__le32 len;
 	u16 checksum;
 	u16 reserved;

@@ -21,38 +21,46 @@ static struct s5p_mfc_hw_ops *s5p_mfc_ops;
 
 void s5p_mfc_init_hw_ops(struct s5p_mfc_dev *dev)
 {
-	if (IS_MFCV6_PLUS(dev)) {
+	if (IS_MFCV6_PLUS(dev))
+	{
 		s5p_mfc_ops = s5p_mfc_init_hw_ops_v6();
 		dev->warn_start = S5P_FIMV_ERR_WARNINGS_START_V6;
-	} else {
+	}
+	else
+	{
 		s5p_mfc_ops = s5p_mfc_init_hw_ops_v5();
 		dev->warn_start = S5P_FIMV_ERR_WARNINGS_START;
 	}
+
 	dev->mfc_ops = s5p_mfc_ops;
 }
 
 void s5p_mfc_init_regs(struct s5p_mfc_dev *dev)
 {
 	if (IS_MFCV6_PLUS(dev))
+	{
 		dev->mfc_regs = s5p_mfc_init_regs_v6_plus(dev);
+	}
 }
 
 int s5p_mfc_alloc_priv_buf(struct device *dev, dma_addr_t base,
-					struct s5p_mfc_priv_buf *b)
+						   struct s5p_mfc_priv_buf *b)
 {
 	mfc_debug(3, "Allocating priv: %zu\n", b->size);
 
 	b->virt = dma_alloc_coherent(dev, b->size, &b->dma, GFP_KERNEL);
 
-	if (!b->virt) {
+	if (!b->virt)
+	{
 		mfc_err("Allocating private buffer failed\n");
 		return -ENOMEM;
 	}
 
-	if (b->dma < base) {
+	if (b->dma < base)
+	{
 		mfc_err("Invaling memory configuration!\n");
 		mfc_err("Allocated buffer (%pad) is lower than memory base address (%pad)\n",
-			&b->dma, &base);
+				&b->dma, &base);
 		dma_free_coherent(dev, b->size, b->virt, b->dma);
 		return -ENOMEM;
 	}
@@ -62,9 +70,10 @@ int s5p_mfc_alloc_priv_buf(struct device *dev, dma_addr_t base,
 }
 
 void s5p_mfc_release_priv_buf(struct device *dev,
-						struct s5p_mfc_priv_buf *b)
+							  struct s5p_mfc_priv_buf *b)
 {
-	if (b->virt) {
+	if (b->virt)
+	{
 		dma_free_coherent(dev, b->size, b->virt, b->dma);
 		b->virt = NULL;
 		b->dma = 0;

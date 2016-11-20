@@ -24,7 +24,8 @@ int main(int ac, char **argv)
 
 	snprintf(filename, sizeof(filename), "%s_kern.o", argv[0]);
 
-	if (load_bpf_file(filename)) {
+	if (load_bpf_file(filename))
+	{
 		printf("%s", bpf_log_buf);
 		return 1;
 	}
@@ -56,20 +57,20 @@ int main(int ac, char **argv)
 
 	ip = inet_ntoa(mapped_addr_in->sin_addr);
 	printf("Client connecting to: %s:%d\n",
-	       ip, ntohs(mapped_addr_in->sin_port));
+		   ip, ntohs(mapped_addr_in->sin_port));
 	assert(connect(clientfd, &mapped_addr, sizeof(mapped_addr)) == 0);
 
 	sockaddr_len = sizeof(tmp_addr);
 	ip = inet_ntoa(tmp_addr_in->sin_addr);
 	assert((serverconnfd = accept(serverfd, &tmp_addr, &sockaddr_len)) > 0);
 	printf("Server received connection from: %s:%d\n",
-	       ip, ntohs(tmp_addr_in->sin_port));
+		   ip, ntohs(tmp_addr_in->sin_port));
 
 	sockaddr_len = sizeof(tmp_addr);
 	assert(getpeername(clientfd, &tmp_addr, &sockaddr_len) == 0);
 	ip = inet_ntoa(tmp_addr_in->sin_addr);
 	printf("Client's peer address: %s:%d\n",
-	       ip, ntohs(tmp_addr_in->sin_port));
+		   ip, ntohs(tmp_addr_in->sin_port));
 
 	/* Is the server's getsockname = the socket getpeername */
 	assert(memcmp(&serv_addr, &tmp_addr, sizeof(struct sockaddr_in)) == 0);

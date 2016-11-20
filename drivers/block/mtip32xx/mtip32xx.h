@@ -44,7 +44,7 @@
 #define MTIP_IOCTL_CMD_TIMEOUT_MS    5000
 #define MTIP_INT_CMD_TIMEOUT_MS      5000
 #define MTIP_QUIESCE_IO_TIMEOUT_MS   (MTIP_NCQ_CMD_TIMEOUT_MS * \
-				     (MTIP_MAX_RETRIES + 1))
+									  (MTIP_MAX_RETRIES + 1))
 
 /* check for timeouts every 500ms */
 #define MTIP_TIMEOUT_CHECK_PERIOD	500
@@ -112,23 +112,24 @@
  */
 #define U32_PER_LONG	(sizeof(long) / sizeof(u32))
 #define SLOTBITS_IN_LONGS ((MTIP_MAX_SLOT_GROUPS + \
-					(U32_PER_LONG-1))/U32_PER_LONG)
+							(U32_PER_LONG-1))/U32_PER_LONG)
 
 /* BAR number used to access the HBA registers. */
 #define MTIP_ABAR		5
 
 #ifdef DEBUG
- #define dbg_printk(format, arg...)	\
+#define dbg_printk(format, arg...)	\
 	printk(pr_fmt(format), ##arg);
 #else
- #define dbg_printk(format, arg...)
+#define dbg_printk(format, arg...)
 #endif
 
 #define MTIP_DFS_MAX_BUF_SIZE 1024
 
 #define __force_bit2int (unsigned int __force)
 
-enum {
+enum
+{
 	/* below are bit numbers in 'flags' defined in mtip_port */
 	MTIP_PF_IC_ACTIVE_BIT       = 0, /* pio/ioctl */
 	MTIP_PF_EH_ACTIVE_BIT       = 1, /* error handling */
@@ -136,10 +137,10 @@ enum {
 	MTIP_PF_DM_ACTIVE_BIT       = 3, /* download microcde */
 	MTIP_PF_TO_ACTIVE_BIT       = 9, /* timeout handling */
 	MTIP_PF_PAUSE_IO      =	((1 << MTIP_PF_IC_ACTIVE_BIT) |
-				(1 << MTIP_PF_EH_ACTIVE_BIT) |
-				(1 << MTIP_PF_SE_ACTIVE_BIT) |
-				(1 << MTIP_PF_DM_ACTIVE_BIT) |
-				(1 << MTIP_PF_TO_ACTIVE_BIT)),
+							 (1 << MTIP_PF_EH_ACTIVE_BIT) |
+							 (1 << MTIP_PF_SE_ACTIVE_BIT) |
+							 (1 << MTIP_PF_DM_ACTIVE_BIT) |
+							 (1 << MTIP_PF_TO_ACTIVE_BIT)),
 
 	MTIP_PF_SVC_THD_ACTIVE_BIT  = 4,
 	MTIP_PF_ISSUE_CMDS_BIT      = 5,
@@ -147,10 +148,10 @@ enum {
 	MTIP_PF_SVC_THD_STOP_BIT    = 8,
 
 	MTIP_PF_SVC_THD_WORK	= ((1 << MTIP_PF_EH_ACTIVE_BIT) |
-				  (1 << MTIP_PF_ISSUE_CMDS_BIT) |
-				  (1 << MTIP_PF_REBUILD_BIT) |
-				  (1 << MTIP_PF_SVC_THD_STOP_BIT) |
-				  (1 << MTIP_PF_TO_ACTIVE_BIT)),
+							   (1 << MTIP_PF_ISSUE_CMDS_BIT) |
+							   (1 << MTIP_PF_REBUILD_BIT) |
+							   (1 << MTIP_PF_SVC_THD_STOP_BIT) |
+							   (1 << MTIP_PF_TO_ACTIVE_BIT)),
 
 	/* below are bit numbers in 'dd_flag' defined in driver_data */
 	MTIP_DDF_SEC_LOCK_BIT	    = 0,
@@ -164,14 +165,15 @@ enum {
 	MTIP_DDF_REMOVAL_BIT	    = 9,
 
 	MTIP_DDF_STOP_IO      = ((1 << MTIP_DDF_REMOVE_PENDING_BIT) |
-				(1 << MTIP_DDF_SEC_LOCK_BIT) |
-				(1 << MTIP_DDF_OVER_TEMP_BIT) |
-				(1 << MTIP_DDF_WRITE_PROTECT_BIT) |
-				(1 << MTIP_DDF_REBUILD_FAILED_BIT)),
+							 (1 << MTIP_DDF_SEC_LOCK_BIT) |
+							 (1 << MTIP_DDF_OVER_TEMP_BIT) |
+							 (1 << MTIP_DDF_WRITE_PROTECT_BIT) |
+							 (1 << MTIP_DDF_REBUILD_FAILED_BIT)),
 
 };
 
-struct smart_attr {
+struct smart_attr
+{
 	u8 attr_id;
 	u16 flags;
 	u8 cur;
@@ -180,7 +182,8 @@ struct smart_attr {
 	u8 res[3];
 } __packed;
 
-struct mtip_work {
+struct mtip_work
+{
 	struct work_struct work;
 	void *port;
 	int cpu_binding;
@@ -198,19 +201,22 @@ struct mtip_work {
 #define MTIP_MAX_TRIM_ENTRIES		8
 #define MTIP_MAX_TRIM_ENTRY_LEN		0xfff8
 
-struct mtip_trim_entry {
+struct mtip_trim_entry
+{
 	u32 lba;   /* starting lba of region */
 	u16 rsvd;  /* unused */
 	u16 range; /* # of 512b blocks to trim */
 } __packed;
 
-struct mtip_trim {
+struct mtip_trim
+{
 	/* Array of regions to trim */
 	struct mtip_trim_entry entry[MTIP_MAX_TRIM_ENTRIES];
 } __packed;
 
 /* Register Frame Information Structure (FIS), host to device. */
-struct host_to_dev_fis {
+struct host_to_dev_fis
+{
 	/*
 	 * FIS type.
 	 * - 27h Register FIS, host to device.
@@ -227,32 +233,39 @@ struct host_to_dev_fis {
 	unsigned char command;
 	unsigned char features;
 
-	union {
+	union
+	{
 		unsigned char lba_low;
 		unsigned char sector;
 	};
-	union {
+	union
+	{
 		unsigned char lba_mid;
 		unsigned char cyl_low;
 	};
-	union {
+	union
+	{
 		unsigned char lba_hi;
 		unsigned char cyl_hi;
 	};
-	union {
+	union
+	{
 		unsigned char device;
 		unsigned char head;
 	};
 
-	union {
+	union
+	{
 		unsigned char lba_low_ex;
 		unsigned char sector_ex;
 	};
-	union {
+	union
+	{
 		unsigned char lba_mid_ex;
 		unsigned char cyl_low_ex;
 	};
-	union {
+	union
+	{
 		unsigned char lba_hi_ex;
 		unsigned char cyl_hi_ex;
 	};
@@ -267,7 +280,8 @@ struct host_to_dev_fis {
 };
 
 /* Command header structure. */
-struct mtip_cmd_hdr {
+struct mtip_cmd_hdr
+{
 	/*
 	 * Command options.
 	 * - Bits 31:16 Number of PRD entries.
@@ -279,7 +293,8 @@ struct mtip_cmd_hdr {
 	 */
 	unsigned int opts;
 	/* This field is unsed when using NCQ. */
-	union {
+	union
+	{
 		unsigned int byte_count;
 		unsigned int status;
 	};
@@ -298,7 +313,8 @@ struct mtip_cmd_hdr {
 };
 
 /* Command scatter gather structure (PRD). */
-struct mtip_cmd_sg {
+struct mtip_cmd_sg
+{
 	/*
 	 * Low 32 bits of the data buffer address. For P320 this
 	 * address must be 8 byte aligned signified by bits 2:0 being
@@ -323,7 +339,8 @@ struct mtip_cmd_sg {
 struct mtip_port;
 
 /* Structure used to describe a command. */
-struct mtip_cmd {
+struct mtip_cmd
+{
 
 	struct mtip_cmd_hdr *command_header; /* ptr to command header entry */
 
@@ -339,9 +356,9 @@ struct mtip_cmd {
 	 * a command.
 	 */
 	void (*comp_func)(struct mtip_port *port,
-				int tag,
-				struct mtip_cmd *cmd,
-				int status);
+					  int tag,
+					  struct mtip_cmd *cmd,
+					  int status);
 
 	int scatter_ents; /* Number of scatter list entries used */
 
@@ -355,7 +372,8 @@ struct mtip_cmd {
 };
 
 /* Structure used to describe a port. */
-struct mtip_port {
+struct mtip_port
+{
 	/* Pointer back to the driver data for this port. */
 	struct driver_data *dd;
 	/*
@@ -455,7 +473,8 @@ struct mtip_port {
  *
  * One structure is allocated per probed device.
  */
-struct driver_data {
+struct driver_data
+{
 	void __iomem *mmio; /* Base address of the HBA registers. */
 
 	int major; /* Major device number. */

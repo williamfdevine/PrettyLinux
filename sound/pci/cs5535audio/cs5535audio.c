@@ -43,12 +43,13 @@ static char *ac97_quirk;
 module_param(ac97_quirk, charp, 0444);
 MODULE_PARM_DESC(ac97_quirk, "AC'97 board specific workarounds.");
 
-static const struct ac97_quirk ac97_quirks[] = {
+static const struct ac97_quirk ac97_quirks[] =
+{
 #if 0 /* Not yet confirmed if all 5536 boards are HP only */
 	{
-		.subvendor = PCI_VENDOR_ID_AMD, 
-		.subdevice = PCI_DEVICE_ID_AMD_CS5536_AUDIO, 
-		.name = "AMD RDK",     
+		.subvendor = PCI_VENDOR_ID_AMD,
+		.subdevice = PCI_DEVICE_ID_AMD_CS5536_AUDIO,
+		.name = "AMD RDK",
 		.type = AC97_TUNE_HP_ONLY
 	},
 #endif
@@ -66,7 +67,8 @@ MODULE_PARM_DESC(id, "ID string for " DRIVER_NAME);
 module_param_array(enable, bool, NULL, 0444);
 MODULE_PARM_DESC(enable, "Enable " DRIVER_NAME);
 
-static const struct pci_device_id snd_cs5535audio_ids[] = {
+static const struct pci_device_id snd_cs5535audio_ids[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_CS5535_AUDIO) },
 	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_AUDIO) },
 	{}
@@ -77,19 +79,27 @@ MODULE_DEVICE_TABLE(pci, snd_cs5535audio_ids);
 static void wait_till_cmd_acked(struct cs5535audio *cs5535au, unsigned long timeout)
 {
 	unsigned int tmp;
-	do {
+
+	do
+	{
 		tmp = cs_readl(cs5535au, ACC_CODEC_CNTL);
+
 		if (!(tmp & CMD_NEW))
+		{
 			break;
+		}
+
 		udelay(1);
-	} while (--timeout);
+	}
+	while (--timeout);
+
 	if (!timeout)
 		dev_err(cs5535au->card->dev,
-			"Failure writing to cs5535 codec\n");
+				"Failure writing to cs5535 codec\n");
 }
 
 static unsigned short snd_cs5535audio_codec_read(struct cs5535audio *cs5535au,
-						 unsigned short reg)
+		unsigned short reg)
 {
 	unsigned int regdata;
 	unsigned int timeout;
@@ -103,22 +113,30 @@ static unsigned short snd_cs5535audio_codec_read(struct cs5535audio *cs5535au,
 	wait_till_cmd_acked(cs5535au, 50);
 
 	timeout = 50;
-	do {
+
+	do
+	{
 		val = cs_readl(cs5535au, ACC_CODEC_STATUS);
+
 		if ((val & STS_NEW) && reg == (val >> 24))
+		{
 			break;
+		}
+
 		udelay(1);
-	} while (--timeout);
+	}
+	while (--timeout);
+
 	if (!timeout)
 		dev_err(cs5535au->card->dev,
-			"Failure reading codec reg 0x%x, Last value=0x%x\n",
-			reg, val);
+				"Failure reading codec reg 0x%x, Last value=0x%x\n",
+				reg, val);
 
 	return (unsigned short) val;
 }
 
 static void snd_cs5535audio_codec_write(struct cs5535audio *cs5535au,
-					unsigned short reg, unsigned short val)
+										unsigned short reg, unsigned short val)
 {
 	unsigned int regdata;
 
@@ -133,14 +151,14 @@ static void snd_cs5535audio_codec_write(struct cs5535audio *cs5535au,
 }
 
 static void snd_cs5535audio_ac97_codec_write(struct snd_ac97 *ac97,
-					     unsigned short reg, unsigned short val)
+		unsigned short reg, unsigned short val)
 {
 	struct cs5535audio *cs5535au = ac97->private_data;
 	snd_cs5535audio_codec_write(cs5535au, reg, val);
 }
 
 static unsigned short snd_cs5535audio_ac97_codec_read(struct snd_ac97 *ac97,
-						      unsigned short reg)
+		unsigned short reg)
 {
 	struct cs5535audio *cs5535au = ac97->private_data;
 	return snd_cs5535audio_codec_read(cs5535au, reg);
@@ -152,24 +170,28 @@ static int snd_cs5535audio_mixer(struct cs5535audio *cs5535au)
 	struct snd_ac97_bus *pbus;
 	struct snd_ac97_template ac97;
 	int err;
-	static struct snd_ac97_bus_ops ops = {
+	static struct snd_ac97_bus_ops ops =
+	{
 		.write = snd_cs5535audio_ac97_codec_write,
 		.read = snd_cs5535audio_ac97_codec_read,
 	};
 
 	if ((err = snd_ac97_bus(card, 0, &ops, NULL, &pbus)) < 0)
+	{
 		return err;
+	}
 
 	memset(&ac97, 0, sizeof(ac97));
 	ac97.scaps = AC97_SCAP_AUDIO | AC97_SCAP_SKIP_MODEM
-			| AC97_SCAP_POWER_SAVE;
+				 | AC97_SCAP_POWER_SAVE;
 	ac97.private_data = cs5535au;
 	ac97.pci = cs5535au->pci;
 
 	/* set any OLPC-specific scaps */
 	olpc_prequirks(card, &ac97);
 
-	if ((err = snd_ac97_mixer(pbus, &ac97, &cs5535au->ac97)) < 0) {
+	if ((err = snd_ac97_mixer(pbus, &ac97, &cs5535au->ac97)) < 0)
+	{
 		dev_err(card->dev, "mixer failed\n");
 		return err;
 	}
@@ -177,7 +199,9 @@ static int snd_cs5535audio_mixer(struct cs5535audio *cs5535au)
 	snd_ac97_tune_hardware(cs5535au->ac97, ac97_quirks, ac97_quirk);
 
 	err = olpc_quirks(card, cs5535au->ac97);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(card->dev, "olpc quirks failed\n");
 		return err;
 	}
@@ -191,14 +215,18 @@ static void process_bm0_irq(struct cs5535audio *cs5535au)
 	spin_lock(&cs5535au->reg_lock);
 	bm_stat = cs_readb(cs5535au, ACC_BM0_STATUS);
 	spin_unlock(&cs5535au->reg_lock);
-	if (bm_stat & EOP) {
+
+	if (bm_stat & EOP)
+	{
 		struct cs5535audio_dma *dma;
 		dma = cs5535au->playback_substream->runtime->private_data;
 		snd_pcm_period_elapsed(cs5535au->playback_substream);
-	} else {
+	}
+	else
+	{
 		dev_err(cs5535au->card->dev,
-			"unexpected bm0 irq src, bm_stat=%x\n",
-			bm_stat);
+				"unexpected bm0 irq src, bm_stat=%x\n",
+				bm_stat);
 	}
 }
 
@@ -208,7 +236,9 @@ static void process_bm1_irq(struct cs5535audio *cs5535au)
 	spin_lock(&cs5535au->reg_lock);
 	bm_stat = cs_readb(cs5535au, ACC_BM1_STATUS);
 	spin_unlock(&cs5535au->reg_lock);
-	if (bm_stat & EOP) {
+
+	if (bm_stat & EOP)
+	{
 		struct cs5535audio_dma *dma;
 		dma = cs5535au->capture_substream->runtime->private_data;
 		snd_pcm_period_elapsed(cs5535au->capture_substream);
@@ -222,35 +252,48 @@ static irqreturn_t snd_cs5535audio_interrupt(int irq, void *dev_id)
 	struct cs5535audio *cs5535au = dev_id;
 
 	if (cs5535au == NULL)
+	{
 		return IRQ_NONE;
+	}
 
 	acc_irq_stat = cs_readw(cs5535au, ACC_IRQ_STATUS);
 
 	if (!acc_irq_stat)
+	{
 		return IRQ_NONE;
-	for (count = 0; count < 4; count++) {
-		if (acc_irq_stat & (1 << count)) {
-			switch (count) {
-			case IRQ_STS:
-				cs_readl(cs5535au, ACC_GPIO_STATUS);
-				break;
-			case WU_IRQ_STS:
-				cs_readl(cs5535au, ACC_GPIO_STATUS);
-				break;
-			case BM0_IRQ_STS:
-				process_bm0_irq(cs5535au);
-				break;
-			case BM1_IRQ_STS:
-				process_bm1_irq(cs5535au);
-				break;
-			default:
-				dev_err(cs5535au->card->dev,
-					"Unexpected irq src: 0x%x\n",
-					acc_irq_stat);
-				break;
+	}
+
+	for (count = 0; count < 4; count++)
+	{
+		if (acc_irq_stat & (1 << count))
+		{
+			switch (count)
+			{
+				case IRQ_STS:
+					cs_readl(cs5535au, ACC_GPIO_STATUS);
+					break;
+
+				case WU_IRQ_STS:
+					cs_readl(cs5535au, ACC_GPIO_STATUS);
+					break;
+
+				case BM0_IRQ_STS:
+					process_bm0_irq(cs5535au);
+					break;
+
+				case BM1_IRQ_STS:
+					process_bm1_irq(cs5535au);
+					break;
+
+				default:
+					dev_err(cs5535au->card->dev,
+							"Unexpected irq src: 0x%x\n",
+							acc_irq_stat);
+					break;
 			}
 		}
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -260,7 +303,9 @@ static int snd_cs5535audio_free(struct cs5535audio *cs5535au)
 	pci_set_power_state(cs5535au->pci, PCI_D3hot);
 
 	if (cs5535au->irq >= 0)
+	{
 		free_irq(cs5535au->irq, cs5535au);
+	}
 
 	pci_release_regions(cs5535au->pci);
 	pci_disable_device(cs5535au->pci);
@@ -275,29 +320,36 @@ static int snd_cs5535audio_dev_free(struct snd_device *device)
 }
 
 static int snd_cs5535audio_create(struct snd_card *card,
-				  struct pci_dev *pci,
-				  struct cs5535audio **rcs5535au)
+								  struct pci_dev *pci,
+								  struct cs5535audio **rcs5535au)
 {
 	struct cs5535audio *cs5535au;
 
 	int err;
-	static struct snd_device_ops ops = {
+	static struct snd_device_ops ops =
+	{
 		.dev_free =	snd_cs5535audio_dev_free,
 	};
 
 	*rcs5535au = NULL;
+
 	if ((err = pci_enable_device(pci)) < 0)
+	{
 		return err;
+	}
 
 	if (dma_set_mask(&pci->dev, DMA_BIT_MASK(32)) < 0 ||
-	    dma_set_coherent_mask(&pci->dev, DMA_BIT_MASK(32)) < 0) {
+		dma_set_coherent_mask(&pci->dev, DMA_BIT_MASK(32)) < 0)
+	{
 		dev_warn(card->dev, "unable to get 32bit dma\n");
 		err = -ENXIO;
 		goto pcifail;
 	}
 
 	cs5535au = kzalloc(sizeof(*cs5535au), GFP_KERNEL);
-	if (cs5535au == NULL) {
+
+	if (cs5535au == NULL)
+	{
 		err = -ENOMEM;
 		goto pcifail;
 	}
@@ -307,7 +359,8 @@ static int snd_cs5535audio_create(struct snd_card *card,
 	cs5535au->pci = pci;
 	cs5535au->irq = -1;
 
-	if ((err = pci_request_regions(pci, "CS5535 Audio")) < 0) {
+	if ((err = pci_request_regions(pci, "CS5535 Audio")) < 0)
+	{
 		kfree(cs5535au);
 		goto pcifail;
 	}
@@ -315,7 +368,8 @@ static int snd_cs5535audio_create(struct snd_card *card,
 	cs5535au->port = pci_resource_start(pci, 0);
 
 	if (request_irq(pci->irq, snd_cs5535audio_interrupt,
-			IRQF_SHARED, KBUILD_MODNAME, cs5535au)) {
+					IRQF_SHARED, KBUILD_MODNAME, cs5535au))
+	{
 		dev_err(card->dev, "unable to grab IRQ %d\n", pci->irq);
 		err = -EBUSY;
 		goto sndfail;
@@ -325,8 +379,10 @@ static int snd_cs5535audio_create(struct snd_card *card,
 	pci_set_master(pci);
 
 	if ((err = snd_device_new(card, SNDRV_DEV_LOWLEVEL,
-				  cs5535au, &ops)) < 0)
+							  cs5535au, &ops)) < 0)
+	{
 		goto sndfail;
+	}
 
 	*rcs5535au = cs5535au;
 	return 0;
@@ -341,7 +397,7 @@ pcifail:
 }
 
 static int snd_cs5535audio_probe(struct pci_dev *pci,
-				 const struct pci_device_id *pci_id)
+								 const struct pci_device_id *pci_id)
 {
 	static int dev;
 	struct snd_card *card;
@@ -349,37 +405,52 @@ static int snd_cs5535audio_probe(struct pci_dev *pci,
 	int err;
 
 	if (dev >= SNDRV_CARDS)
+	{
 		return -ENODEV;
-	if (!enable[dev]) {
+	}
+
+	if (!enable[dev])
+	{
 		dev++;
 		return -ENOENT;
 	}
 
 	err = snd_card_new(&pci->dev, index[dev], id[dev], THIS_MODULE,
-			   0, &card);
+					   0, &card);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if ((err = snd_cs5535audio_create(card, pci, &cs5535au)) < 0)
+	{
 		goto probefail_out;
+	}
 
 	card->private_data = cs5535au;
 
 	if ((err = snd_cs5535audio_mixer(cs5535au)) < 0)
+	{
 		goto probefail_out;
+	}
 
 	if ((err = snd_cs5535audio_pcm(cs5535au)) < 0)
+	{
 		goto probefail_out;
+	}
 
 	strcpy(card->driver, DRIVER_NAME);
 
 	strcpy(card->shortname, "CS5535 Audio");
 	sprintf(card->longname, "%s %s at 0x%lx, irq %i",
-		card->shortname, card->driver,
-		cs5535au->port, cs5535au->irq);
+			card->shortname, card->driver,
+			cs5535au->port, cs5535au->irq);
 
 	if ((err = snd_card_register(card)) < 0)
+	{
 		goto probefail_out;
+	}
 
 	pci_set_drvdata(pci, card);
 	dev++;
@@ -396,7 +467,8 @@ static void snd_cs5535audio_remove(struct pci_dev *pci)
 	snd_card_free(pci_get_drvdata(pci));
 }
 
-static struct pci_driver cs5535audio_driver = {
+static struct pci_driver cs5535audio_driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = snd_cs5535audio_ids,
 	.probe = snd_cs5535audio_probe,

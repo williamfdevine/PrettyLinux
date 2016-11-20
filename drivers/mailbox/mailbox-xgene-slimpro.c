@@ -53,7 +53,8 @@
  * @irq:	Interrupt number of the channel
  * @rx_msg:	Received message storage
  */
-struct slimpro_mbox_chan {
+struct slimpro_mbox_chan
+{
 	struct device		*dev;
 	struct mbox_chan	*chan;
 	void __iomem		*reg;
@@ -72,7 +73,8 @@ struct slimpro_mbox_chan {
  * @chans:	Array of mailbox communication channels
  *
  */
-struct slimpro_mbox {
+struct slimpro_mbox
+{
 	struct mbox_controller		mb_ctrl;
 	struct slimpro_mbox_chan	mc[MBOX_CNT];
 	struct mbox_chan		chans[MBOX_CNT];
@@ -96,10 +98,12 @@ static int mb_chan_status_ack(struct slimpro_mbox_chan *mb_chan)
 {
 	u32 val = readl(mb_chan->reg + REG_DB_STAT);
 
-	if (val & MBOX_STATUS_ACK_MASK) {
+	if (val & MBOX_STATUS_ACK_MASK)
+	{
 		writel(MBOX_STATUS_ACK_MASK, mb_chan->reg + REG_DB_STAT);
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -107,11 +111,13 @@ static int mb_chan_status_avail(struct slimpro_mbox_chan *mb_chan)
 {
 	u32 val = readl(mb_chan->reg + REG_DB_STAT);
 
-	if (val & MBOX_STATUS_AVAIL_MASK) {
+	if (val & MBOX_STATUS_AVAIL_MASK)
+	{
 		mb_chan_recv_msg(mb_chan);
 		writel(MBOX_STATUS_AVAIL_MASK, mb_chan->reg + REG_DB_STAT);
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -120,10 +126,14 @@ static irqreturn_t slimpro_mbox_irq(int irq, void *id)
 	struct slimpro_mbox_chan *mb_chan = id;
 
 	if (mb_chan_status_ack(mb_chan))
+	{
 		mbox_chan_txdone(mb_chan->chan, 0);
+	}
 
 	if (mb_chan_status_avail(mb_chan))
+	{
 		mbox_chan_received_data(mb_chan->chan, mb_chan->rx_msg);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -143,16 +153,18 @@ static int slimpro_mbox_startup(struct mbox_chan *chan)
 	u32 val;
 
 	rc = devm_request_irq(mb_chan->dev, mb_chan->irq, slimpro_mbox_irq, 0,
-			      MBOX_CON_NAME, mb_chan);
-	if (unlikely(rc)) {
+						  MBOX_CON_NAME, mb_chan);
+
+	if (unlikely(rc))
+	{
 		dev_err(mb_chan->dev, "failed to register mailbox interrupt %d\n",
-			mb_chan->irq);
+				mb_chan->irq);
 		return rc;
 	}
 
 	/* Enable HW interrupt */
 	writel(MBOX_STATUS_ACK_MASK | MBOX_STATUS_AVAIL_MASK,
-	       mb_chan->reg + REG_DB_STAT);
+		   mb_chan->reg + REG_DB_STAT);
 	/* Unmask doorbell status interrupt */
 	val = readl(mb_chan->reg + REG_DB_STATMASK);
 	val &= ~(MBOX_STATUS_ACK_MASK | MBOX_STATUS_AVAIL_MASK);
@@ -174,7 +186,8 @@ static void slimpro_mbox_shutdown(struct mbox_chan *chan)
 	devm_free_irq(mb_chan->dev, mb_chan->irq, mb_chan);
 }
 
-static struct mbox_chan_ops slimpro_mbox_ops = {
+static struct mbox_chan_ops slimpro_mbox_ops =
+{
 	.send_data = slimpro_mbox_send_data,
 	.startup = slimpro_mbox_startup,
 	.shutdown = slimpro_mbox_shutdown,
@@ -189,24 +202,35 @@ static int slimpro_mbox_probe(struct platform_device *pdev)
 	int i;
 
 	ctx = devm_kzalloc(&pdev->dev, sizeof(struct slimpro_mbox), GFP_KERNEL);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, ctx);
 
 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mb_base = devm_ioremap(&pdev->dev, regs->start, resource_size(regs));
+
 	if (!mb_base)
+	{
 		return -ENOMEM;
+	}
 
 	/* Setup mailbox links */
-	for (i = 0; i < MBOX_CNT; i++) {
+	for (i = 0; i < MBOX_CNT; i++)
+	{
 		ctx->mc[i].irq = platform_get_irq(pdev, i);
-		if (ctx->mc[i].irq < 0) {
-			if (i == 0) {
+
+		if (ctx->mc[i].irq < 0)
+		{
+			if (i == 0)
+			{
 				dev_err(&pdev->dev, "no available IRQ\n");
 				return -EINVAL;
 			}
+
 			dev_info(&pdev->dev, "no IRQ for channel %d\n", i);
 			break;
 		}
@@ -225,9 +249,11 @@ static int slimpro_mbox_probe(struct platform_device *pdev)
 	ctx->mb_ctrl.num_chans = i;
 
 	rc = mbox_controller_register(&ctx->mb_ctrl);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&pdev->dev,
-			"APM X-Gene SLIMpro MailBox register failed:%d\n", rc);
+				"APM X-Gene SLIMpro MailBox register failed:%d\n", rc);
 		return rc;
 	}
 
@@ -243,21 +269,24 @@ static int slimpro_mbox_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id slimpro_of_match[] = {
+static const struct of_device_id slimpro_of_match[] =
+{
 	{.compatible = "apm,xgene-slimpro-mbox" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, slimpro_of_match);
 
 #ifdef CONFIG_ACPI
-static const struct acpi_device_id slimpro_acpi_ids[] = {
+static const struct acpi_device_id slimpro_acpi_ids[] =
+{
 	{"APMC0D01", 0},
 	{}
 };
 MODULE_DEVICE_TABLE(acpi, slimpro_acpi_ids);
 #endif
 
-static struct platform_driver slimpro_mbox_driver = {
+static struct platform_driver slimpro_mbox_driver =
+{
 	.probe	= slimpro_mbox_probe,
 	.remove = slimpro_mbox_remove,
 	.driver	= {

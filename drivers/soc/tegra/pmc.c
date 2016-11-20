@@ -69,8 +69,8 @@
 #define  PMC_SCRATCH0_MODE_BOOTLOADER	(1 << 30)
 #define  PMC_SCRATCH0_MODE_RCM		(1 << 1)
 #define  PMC_SCRATCH0_MODE_MASK		(PMC_SCRATCH0_MODE_RECOVERY | \
-					 PMC_SCRATCH0_MODE_BOOTLOADER | \
-					 PMC_SCRATCH0_MODE_RCM)
+									 PMC_SCRATCH0_MODE_BOOTLOADER | \
+									 PMC_SCRATCH0_MODE_RCM)
 
 #define PMC_CPUPWRGOOD_TIMER		0xc8
 #define PMC_CPUPWROFF_TIMER		0xcc
@@ -114,7 +114,8 @@
 
 #define GPU_RG_CNTRL			0x2d4
 
-struct tegra_powergate {
+struct tegra_powergate
+{
 	struct generic_pm_domain genpd;
 	struct tegra_pmc *pmc;
 	unsigned int id;
@@ -124,7 +125,8 @@ struct tegra_powergate {
 	unsigned int num_resets;
 };
 
-struct tegra_pmc_soc {
+struct tegra_pmc_soc
+{
 	unsigned int num_powergates;
 	const char *const *powergates;
 	unsigned int num_cpu_powergates;
@@ -157,7 +159,8 @@ struct tegra_pmc_soc {
  * @powergates_available: Bitmap of available power gates
  * @powergates_lock: mutex for power gate register access
  */
-struct tegra_pmc {
+struct tegra_pmc
+{
 	struct device *dev;
 	void __iomem *base;
 	struct clk *clk;
@@ -184,9 +187,10 @@ struct tegra_pmc {
 	struct mutex powergates_lock;
 };
 
-static struct tegra_pmc *pmc = &(struct tegra_pmc) {
+static struct tegra_pmc *pmc = &(struct tegra_pmc)
+{
 	.base = NULL,
-	.suspend_mode = TEGRA_SUSPEND_NONE,
+	 .suspend_mode = TEGRA_SUSPEND_NONE,
 };
 
 static inline struct tegra_powergate *
@@ -208,9 +212,13 @@ static void tegra_pmc_writel(u32 value, unsigned long offset)
 static inline bool tegra_powergate_state(int id)
 {
 	if (id == TEGRA_POWERGATE_3D && pmc->soc->has_gpu_clamps)
+	{
 		return (tegra_pmc_readl(GPU_RG_CNTRL) & 0x1) == 0;
+	}
 	else
+	{
 		return (tegra_pmc_readl(PWRGATE_STATUS) & BIT(id)) != 0;
+	}
 }
 
 static inline bool tegra_powergate_is_valid(int id)
@@ -228,14 +236,21 @@ static int tegra_powergate_lookup(struct tegra_pmc *pmc, const char *name)
 	unsigned int i;
 
 	if (!pmc || !pmc->soc || !name)
+	{
 		return -EINVAL;
+	}
 
-	for (i = 0; i < pmc->soc->num_powergates; i++) {
+	for (i = 0; i < pmc->soc->num_powergates; i++)
+	{
 		if (!tegra_powergate_is_valid(i))
+		{
 			continue;
+		}
 
 		if (!strcmp(name, pmc->soc->powergates[i]))
+		{
 			return i;
+		}
 	}
 
 	dev_err(pmc->dev, "powergate %s not found\n", name);
@@ -254,11 +269,14 @@ static int tegra_powergate_set(unsigned int id, bool new_state)
 	int err;
 
 	if (id == TEGRA_POWERGATE_3D && pmc->soc->has_gpu_clamps)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&pmc->powergates_lock);
 
-	if (tegra_powergate_state(id) == new_state) {
+	if (tegra_powergate_state(id) == new_state)
+	{
 		mutex_unlock(&pmc->powergates_lock);
 		return 0;
 	}
@@ -266,7 +284,7 @@ static int tegra_powergate_set(unsigned int id, bool new_state)
 	tegra_pmc_writel(PWRGATE_TOGGLE_START | id, PWRGATE_TOGGLE);
 
 	err = readx_poll_timeout(tegra_powergate_state, id, status,
-				 status == new_state, 10, 100000);
+							 status == new_state, 10, 100000);
 
 	mutex_unlock(&pmc->powergates_lock);
 
@@ -283,8 +301,10 @@ static int __tegra_powergate_remove_clamping(unsigned int id)
 	 * On Tegra124 and later, the clamps for the GPU are controlled by a
 	 * separate register (with different semantics).
 	 */
-	if (id == TEGRA_POWERGATE_3D) {
-		if (pmc->soc->has_gpu_clamps) {
+	if (id == TEGRA_POWERGATE_3D)
+	{
+		if (pmc->soc->has_gpu_clamps)
+		{
 			tegra_pmc_writel(0, GPU_RG_CNTRL);
 			goto out;
 		}
@@ -295,11 +315,17 @@ static int __tegra_powergate_remove_clamping(unsigned int id)
 	 * swapped relatively to the partition ids
 	 */
 	if (id == TEGRA_POWERGATE_VDEC)
+	{
 		mask = (1 << TEGRA_POWERGATE_PCIE);
+	}
 	else if (id == TEGRA_POWERGATE_PCIE)
+	{
 		mask = (1 << TEGRA_POWERGATE_VDEC);
+	}
 	else
+	{
 		mask = (1 << id);
+	}
 
 	tegra_pmc_writel(mask, REMOVE_CLAMPING);
 
@@ -314,7 +340,9 @@ static void tegra_powergate_disable_clocks(struct tegra_powergate *pg)
 	unsigned int i;
 
 	for (i = 0; i < pg->num_clks; i++)
+	{
 		clk_disable_unprepare(pg->clks[i]);
+	}
 }
 
 static int tegra_powergate_enable_clocks(struct tegra_powergate *pg)
@@ -322,17 +350,24 @@ static int tegra_powergate_enable_clocks(struct tegra_powergate *pg)
 	unsigned int i;
 	int err;
 
-	for (i = 0; i < pg->num_clks; i++) {
+	for (i = 0; i < pg->num_clks; i++)
+	{
 		err = clk_prepare_enable(pg->clks[i]);
+
 		if (err)
+		{
 			goto out;
+		}
 	}
 
 	return 0;
 
 out:
+
 	while (i--)
+	{
 		clk_disable_unprepare(pg->clks[i]);
+	}
 
 	return err;
 }
@@ -342,10 +377,14 @@ static int tegra_powergate_reset_assert(struct tegra_powergate *pg)
 	unsigned int i;
 	int err;
 
-	for (i = 0; i < pg->num_resets; i++) {
+	for (i = 0; i < pg->num_resets; i++)
+	{
 		err = reset_control_assert(pg->resets[i]);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	return 0;
@@ -356,52 +395,73 @@ static int tegra_powergate_reset_deassert(struct tegra_powergate *pg)
 	unsigned int i;
 	int err;
 
-	for (i = 0; i < pg->num_resets; i++) {
+	for (i = 0; i < pg->num_resets; i++)
+	{
 		err = reset_control_deassert(pg->resets[i]);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	return 0;
 }
 
 static int tegra_powergate_power_up(struct tegra_powergate *pg,
-				    bool disable_clocks)
+									bool disable_clocks)
 {
 	int err;
 
 	err = tegra_powergate_reset_assert(pg);
+
 	if (err)
+	{
 		return err;
+	}
 
 	usleep_range(10, 20);
 
 	err = tegra_powergate_set(pg->id, true);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	usleep_range(10, 20);
 
 	err = tegra_powergate_enable_clocks(pg);
+
 	if (err)
+	{
 		goto disable_clks;
+	}
 
 	usleep_range(10, 20);
 
 	err = __tegra_powergate_remove_clamping(pg->id);
+
 	if (err)
+	{
 		goto disable_clks;
+	}
 
 	usleep_range(10, 20);
 
 	err = tegra_powergate_reset_deassert(pg);
+
 	if (err)
+	{
 		goto powergate_off;
+	}
 
 	usleep_range(10, 20);
 
 	if (disable_clocks)
+	{
 		tegra_powergate_disable_clocks(pg);
+	}
 
 	return 0;
 
@@ -420,14 +480,20 @@ static int tegra_powergate_power_down(struct tegra_powergate *pg)
 	int err;
 
 	err = tegra_powergate_enable_clocks(pg);
+
 	if (err)
+	{
 		return err;
+	}
 
 	usleep_range(10, 20);
 
 	err = tegra_powergate_reset_assert(pg);
+
 	if (err)
+	{
 		goto disable_clks;
+	}
 
 	usleep_range(10, 20);
 
@@ -436,8 +502,11 @@ static int tegra_powergate_power_down(struct tegra_powergate *pg)
 	usleep_range(10, 20);
 
 	err = tegra_powergate_set(pg->id, false);
+
 	if (err)
+	{
 		goto assert_resets;
+	}
 
 	return 0;
 
@@ -460,9 +529,10 @@ static int tegra_genpd_power_on(struct generic_pm_domain *domain)
 	int err;
 
 	err = tegra_powergate_power_up(pg, true);
+
 	if (err)
 		dev_err(pmc->dev, "failed to turn on PM domain %s: %d\n",
-			pg->genpd.name, err);
+				pg->genpd.name, err);
 
 	return err;
 }
@@ -474,9 +544,10 @@ static int tegra_genpd_power_off(struct generic_pm_domain *domain)
 	int err;
 
 	err = tegra_powergate_power_down(pg);
+
 	if (err)
 		dev_err(pmc->dev, "failed to turn off PM domain %s: %d\n",
-			pg->genpd.name, err);
+				pg->genpd.name, err);
 
 	return err;
 }
@@ -488,7 +559,9 @@ static int tegra_genpd_power_off(struct generic_pm_domain *domain)
 int tegra_powergate_power_on(unsigned int id)
 {
 	if (!tegra_powergate_is_available(id))
+	{
 		return -EINVAL;
+	}
 
 	return tegra_powergate_set(id, true);
 }
@@ -500,7 +573,9 @@ int tegra_powergate_power_on(unsigned int id)
 int tegra_powergate_power_off(unsigned int id)
 {
 	if (!tegra_powergate_is_available(id))
+	{
 		return -EINVAL;
+	}
 
 	return tegra_powergate_set(id, false);
 }
@@ -515,7 +590,9 @@ int tegra_powergate_is_powered(unsigned int id)
 	int status;
 
 	if (!tegra_powergate_is_valid(id))
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&pmc->powergates_lock);
 	status = tegra_powergate_state(id);
@@ -531,7 +608,9 @@ int tegra_powergate_is_powered(unsigned int id)
 int tegra_powergate_remove_clamping(unsigned int id)
 {
 	if (!tegra_powergate_is_available(id))
+	{
 		return -EINVAL;
+	}
 
 	return __tegra_powergate_remove_clamping(id);
 }
@@ -546,13 +625,15 @@ EXPORT_SYMBOL(tegra_powergate_remove_clamping);
  * Must be called with clk disabled, and returns with clk enabled.
  */
 int tegra_powergate_sequence_power_up(unsigned int id, struct clk *clk,
-				      struct reset_control *rst)
+									  struct reset_control *rst)
 {
 	struct tegra_powergate pg;
 	int err;
 
 	if (!tegra_powergate_is_available(id))
+	{
 		return -EINVAL;
+	}
 
 	pg.id = id;
 	pg.clks = &clk;
@@ -561,8 +642,11 @@ int tegra_powergate_sequence_power_up(unsigned int id, struct clk *clk,
 	pg.num_resets = 1;
 
 	err = tegra_powergate_power_up(&pg, false);
+
 	if (err)
+	{
 		pr_err("failed to turn on partition %d: %d\n", id, err);
+	}
 
 	return err;
 }
@@ -579,7 +663,9 @@ EXPORT_SYMBOL(tegra_powergate_sequence_power_up);
 static int tegra_get_cpu_powergate_id(unsigned int cpuid)
 {
 	if (pmc->soc && cpuid < pmc->soc->num_cpu_powergates)
+	{
 		return pmc->soc->cpu_powergates[cpuid];
+	}
 
 	return -EINVAL;
 }
@@ -593,8 +679,11 @@ bool tegra_pmc_cpu_is_powered(unsigned int cpuid)
 	int id;
 
 	id = tegra_get_cpu_powergate_id(cpuid);
+
 	if (id < 0)
+	{
 		return false;
+	}
 
 	return tegra_powergate_is_powered(id);
 }
@@ -608,8 +697,11 @@ int tegra_pmc_cpu_power_on(unsigned int cpuid)
 	int id;
 
 	id = tegra_get_cpu_powergate_id(cpuid);
+
 	if (id < 0)
+	{
 		return id;
+	}
 
 	return tegra_powergate_set(id, true);
 }
@@ -623,15 +715,18 @@ int tegra_pmc_cpu_remove_clamping(unsigned int cpuid)
 	int id;
 
 	id = tegra_get_cpu_powergate_id(cpuid);
+
 	if (id < 0)
+	{
 		return id;
+	}
 
 	return tegra_powergate_remove_clamping(id);
 }
 #endif /* CONFIG_SMP */
 
 static int tegra_pmc_restart_notify(struct notifier_block *this,
-				    unsigned long action, void *data)
+									unsigned long action, void *data)
 {
 	const char *cmd = data;
 	u32 value;
@@ -639,15 +734,22 @@ static int tegra_pmc_restart_notify(struct notifier_block *this,
 	value = tegra_pmc_readl(PMC_SCRATCH0);
 	value &= ~PMC_SCRATCH0_MODE_MASK;
 
-	if (cmd) {
+	if (cmd)
+	{
 		if (strcmp(cmd, "recovery") == 0)
+		{
 			value |= PMC_SCRATCH0_MODE_RECOVERY;
+		}
 
 		if (strcmp(cmd, "bootloader") == 0)
+		{
 			value |= PMC_SCRATCH0_MODE_BOOTLOADER;
+		}
 
 		if (strcmp(cmd, "forced-recovery") == 0)
+		{
 			value |= PMC_SCRATCH0_MODE_RCM;
+		}
 	}
 
 	tegra_pmc_writel(value, PMC_SCRATCH0);
@@ -660,7 +762,8 @@ static int tegra_pmc_restart_notify(struct notifier_block *this,
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block tegra_pmc_restart_handler = {
+static struct notifier_block tegra_pmc_restart_handler =
+{
 	.notifier_call = tegra_pmc_restart_notify,
 	.priority = 128,
 };
@@ -673,13 +776,17 @@ static int powergate_show(struct seq_file *s, void *data)
 	seq_printf(s, " powergate powered\n");
 	seq_printf(s, "------------------\n");
 
-	for (i = 0; i < pmc->soc->num_powergates; i++) {
+	for (i = 0; i < pmc->soc->num_powergates; i++)
+	{
 		status = tegra_powergate_is_powered(i);
+
 		if (status < 0)
+		{
 			continue;
+		}
 
 		seq_printf(s, " %9s %7s\n", pmc->soc->powergates[i],
-			   status ? "yes" : "no");
+				   status ? "yes" : "no");
 	}
 
 	return 0;
@@ -690,7 +797,8 @@ static int powergate_open(struct inode *inode, struct file *file)
 	return single_open(file, powergate_show, inode->i_private);
 }
 
-static const struct file_operations powergate_fops = {
+static const struct file_operations powergate_fops =
+{
 	.open = powergate_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
@@ -700,31 +808,43 @@ static const struct file_operations powergate_fops = {
 static int tegra_powergate_debugfs_init(void)
 {
 	pmc->debugfs = debugfs_create_file("powergate", S_IRUGO, NULL, NULL,
-					   &powergate_fops);
+									   &powergate_fops);
+
 	if (!pmc->debugfs)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
 
 static int tegra_powergate_of_get_clks(struct tegra_powergate *pg,
-				       struct device_node *np)
+									   struct device_node *np)
 {
 	struct clk *clk;
 	unsigned int i, count;
 	int err;
 
 	count = of_count_phandle_with_args(np, "clocks", "#clock-cells");
+
 	if (count == 0)
+	{
 		return -ENODEV;
+	}
 
 	pg->clks = kcalloc(count, sizeof(clk), GFP_KERNEL);
-	if (!pg->clks)
-		return -ENOMEM;
 
-	for (i = 0; i < count; i++) {
+	if (!pg->clks)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < count; i++)
+	{
 		pg->clks[i] = of_clk_get(np, i);
-		if (IS_ERR(pg->clks[i])) {
+
+		if (IS_ERR(pg->clks[i]))
+		{
 			err = PTR_ERR(pg->clks[i]);
 			goto err;
 		}
@@ -735,8 +855,11 @@ static int tegra_powergate_of_get_clks(struct tegra_powergate *pg,
 	return 0;
 
 err:
+
 	while (i--)
+	{
 		clk_put(pg->clks[i]);
+	}
 
 	kfree(pg->clks);
 
@@ -744,33 +867,47 @@ err:
 }
 
 static int tegra_powergate_of_get_resets(struct tegra_powergate *pg,
-					 struct device_node *np, bool off)
+		struct device_node *np, bool off)
 {
 	struct reset_control *rst;
 	unsigned int i, count;
 	int err;
 
 	count = of_count_phandle_with_args(np, "resets", "#reset-cells");
+
 	if (count == 0)
+	{
 		return -ENODEV;
+	}
 
 	pg->resets = kcalloc(count, sizeof(rst), GFP_KERNEL);
-	if (!pg->resets)
-		return -ENOMEM;
 
-	for (i = 0; i < count; i++) {
+	if (!pg->resets)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < count; i++)
+	{
 		pg->resets[i] = of_reset_control_get_by_index(np, i);
-		if (IS_ERR(pg->resets[i])) {
+
+		if (IS_ERR(pg->resets[i]))
+		{
 			err = PTR_ERR(pg->resets[i]);
 			goto error;
 		}
 
 		if (off)
+		{
 			err = reset_control_assert(pg->resets[i]);
+		}
 		else
+		{
 			err = reset_control_deassert(pg->resets[i]);
+		}
 
-		if (err) {
+		if (err)
+		{
 			reset_control_put(pg->resets[i]);
 			goto error;
 		}
@@ -781,8 +918,11 @@ static int tegra_powergate_of_get_resets(struct tegra_powergate *pg,
 	return 0;
 
 error:
+
 	while (i--)
+	{
 		reset_control_put(pg->resets[i]);
+	}
 
 	kfree(pg->resets);
 
@@ -796,13 +936,18 @@ static void tegra_powergate_add(struct tegra_pmc *pmc, struct device_node *np)
 	bool off;
 
 	pg = kzalloc(sizeof(*pg), GFP_KERNEL);
+
 	if (!pg)
+	{
 		return;
+	}
 
 	id = tegra_powergate_lookup(pmc, np->name);
-	if (id < 0) {
+
+	if (id < 0)
+	{
 		dev_err(pmc->dev, "powergate lookup failed for %s: %d\n",
-			np->name, id);
+				np->name, id);
 		goto free_mem;
 	}
 
@@ -821,21 +966,27 @@ static void tegra_powergate_add(struct tegra_pmc *pmc, struct device_node *np)
 	off = !tegra_powergate_is_powered(pg->id);
 
 	err = tegra_powergate_of_get_clks(pg, np);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(pmc->dev, "failed to get clocks for %s: %d\n",
-			np->name, err);
+				np->name, err);
 		goto set_available;
 	}
 
 	err = tegra_powergate_of_get_resets(pg, np, off);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(pmc->dev, "failed to get resets for %s: %d\n",
-			np->name, err);
+				np->name, err);
 		goto remove_clks;
 	}
 
 	if (!IS_ENABLED(CONFIG_PM_GENERIC_DOMAINS))
+	{
 		goto power_on_cleanup;
+	}
 
 	/*
 	 * FIXME: If XHCI is enabled for Tegra, then power-up the XUSB
@@ -846,15 +997,19 @@ static void tegra_powergate_add(struct tegra_pmc *pmc, struct device_node *np)
 	 * to be unused.
 	 */
 	if (IS_ENABLED(CONFIG_USB_XHCI_TEGRA) &&
-	    (id == TEGRA_POWERGATE_XUSBA || id == TEGRA_POWERGATE_XUSBC))
+		(id == TEGRA_POWERGATE_XUSBA || id == TEGRA_POWERGATE_XUSBC))
+	{
 		goto power_on_cleanup;
+	}
 
 	pm_genpd_init(&pg->genpd, NULL, off);
 
 	err = of_genpd_add_provider_simple(np, &pg->genpd);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(pmc->dev, "failed to add genpd provider for %s: %d\n",
-			np->name, err);
+				np->name, err);
 		goto remove_resets;
 	}
 
@@ -863,18 +1018,27 @@ static void tegra_powergate_add(struct tegra_pmc *pmc, struct device_node *np)
 	return;
 
 power_on_cleanup:
+
 	if (off)
+	{
 		WARN_ON(tegra_powergate_power_up(pg, true));
+	}
 
 remove_resets:
+
 	while (pg->num_resets--)
+	{
 		reset_control_put(pg->resets[pg->num_resets]);
+	}
 
 	kfree(pg->resets);
 
 remove_clks:
+
 	while (pg->num_clks--)
+	{
 		clk_put(pg->clks[pg->num_clks]);
+	}
 
 	kfree(pg->clks);
 
@@ -886,7 +1050,7 @@ free_mem:
 }
 
 static void tegra_powergate_init(struct tegra_pmc *pmc,
-				 struct device_node *parent)
+								 struct device_node *parent)
 {
 	struct device_node *np, *child;
 	unsigned int i;
@@ -894,13 +1058,19 @@ static void tegra_powergate_init(struct tegra_pmc *pmc,
 	/* Create a bitmap of the available and valid partitions */
 	for (i = 0; i < pmc->soc->num_powergates; i++)
 		if (pmc->soc->powergates[i])
+		{
 			set_bit(i, pmc->powergates_available);
+		}
 
 	np = of_get_child_by_name(parent, "powergates");
-	if (!np)
-		return;
 
-	for_each_child_of_node(np, child) {
+	if (!np)
+	{
+		return;
+	}
+
+	for_each_child_of_node(np, child)
+	{
 		tegra_powergate_add(pmc, child);
 		of_node_put(child);
 	}
@@ -909,7 +1079,7 @@ static void tegra_powergate_init(struct tegra_pmc *pmc,
 }
 
 static int tegra_io_rail_prepare(unsigned int id, unsigned long *request,
-				 unsigned long *status, unsigned int *bit)
+								 unsigned long *status, unsigned int *bit)
 {
 	unsigned long rate, value;
 
@@ -920,12 +1090,17 @@ static int tegra_io_rail_prepare(unsigned int id, unsigned long *request,
 	 * 31 are control bits rather than IO rail selection bits.
 	 */
 	if (id > 63 || *bit == 30 || *bit == 31)
+	{
 		return -EINVAL;
+	}
 
-	if (id < 32) {
+	if (id < 32)
+	{
 		*status = IO_DPD_STATUS;
 		*request = IO_DPD_REQ;
-	} else {
+	}
+	else
+	{
 		*status = IO_DPD2_STATUS;
 		*request = IO_DPD2_REQ;
 	}
@@ -943,16 +1118,20 @@ static int tegra_io_rail_prepare(unsigned int id, unsigned long *request,
 }
 
 static int tegra_io_rail_poll(unsigned long offset, unsigned long mask,
-			      unsigned long val, unsigned long timeout)
+							  unsigned long val, unsigned long timeout)
 {
 	unsigned long value;
 
 	timeout = jiffies + msecs_to_jiffies(timeout);
 
-	while (time_after(timeout, jiffies)) {
+	while (time_after(timeout, jiffies))
+	{
 		value = tegra_pmc_readl(offset);
+
 		if ((value & mask) == val)
+		{
 			return 0;
+		}
 
 		usleep_range(250, 1000);
 	}
@@ -974,13 +1153,18 @@ int tegra_io_rail_power_on(unsigned int id)
 	mutex_lock(&pmc->powergates_lock);
 
 	err = tegra_io_rail_prepare(id, &request, &status, &bit);
+
 	if (err)
+	{
 		goto error;
+	}
 
 	tegra_pmc_writel(IO_DPD_REQ_CODE_OFF | BIT(bit), request);
 
 	err = tegra_io_rail_poll(status, BIT(bit), 0, 250);
-	if (err) {
+
+	if (err)
+	{
 		pr_info("tegra_io_rail_poll() failed: %d\n", err);
 		goto error;
 	}
@@ -1003,7 +1187,9 @@ int tegra_io_rail_power_off(unsigned int id)
 	mutex_lock(&pmc->powergates_lock);
 
 	err = tegra_io_rail_prepare(id, &request, &status, &bit);
-	if (err) {
+
+	if (err)
+	{
 		pr_info("tegra_io_rail_prepare() failed: %d\n", err);
 		goto error;
 	}
@@ -1011,8 +1197,11 @@ int tegra_io_rail_power_off(unsigned int id)
 	tegra_pmc_writel(IO_DPD_REQ_CODE_ON | BIT(bit), request);
 
 	err = tegra_io_rail_poll(status, BIT(bit), BIT(bit), 250);
+
 	if (err)
+	{
 		goto error;
+	}
 
 	tegra_io_rail_unprepare();
 
@@ -1032,7 +1221,9 @@ enum tegra_suspend_mode tegra_pmc_get_suspend_mode(void)
 void tegra_pmc_set_suspend_mode(enum tegra_suspend_mode mode)
 {
 	if (mode < TEGRA_SUSPEND_NONE || mode >= TEGRA_MAX_SUSPEND_MODE)
+	{
 		return;
+	}
 
 	pmc->suspend_mode = mode;
 }
@@ -1042,23 +1233,27 @@ void tegra_pmc_enter_suspend_mode(enum tegra_suspend_mode mode)
 	unsigned long long rate = 0;
 	u32 value;
 
-	switch (mode) {
-	case TEGRA_SUSPEND_LP1:
-		rate = 32768;
-		break;
+	switch (mode)
+	{
+		case TEGRA_SUSPEND_LP1:
+			rate = 32768;
+			break;
 
-	case TEGRA_SUSPEND_LP2:
-		rate = clk_get_rate(pmc->clk);
-		break;
+		case TEGRA_SUSPEND_LP2:
+			rate = clk_get_rate(pmc->clk);
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 	if (WARN_ON_ONCE(rate == 0))
+	{
 		rate = 100000000;
+	}
 
-	if (rate != pmc->rate) {
+	if (rate != pmc->rate)
+	{
 		u64 ticks;
 
 		ticks = pmc->cpu_good_time * rate + USEC_PER_SEC - 1;
@@ -1085,67 +1280,81 @@ static int tegra_pmc_parse_dt(struct tegra_pmc *pmc, struct device_node *np)
 {
 	u32 value, values[2];
 
-	if (of_property_read_u32(np, "nvidia,suspend-mode", &value)) {
-	} else {
-		switch (value) {
-		case 0:
-			pmc->suspend_mode = TEGRA_SUSPEND_LP0;
-			break;
+	if (of_property_read_u32(np, "nvidia,suspend-mode", &value))
+	{
+	}
+	else
+	{
+		switch (value)
+		{
+			case 0:
+				pmc->suspend_mode = TEGRA_SUSPEND_LP0;
+				break;
 
-		case 1:
-			pmc->suspend_mode = TEGRA_SUSPEND_LP1;
-			break;
+			case 1:
+				pmc->suspend_mode = TEGRA_SUSPEND_LP1;
+				break;
 
-		case 2:
-			pmc->suspend_mode = TEGRA_SUSPEND_LP2;
-			break;
+			case 2:
+				pmc->suspend_mode = TEGRA_SUSPEND_LP2;
+				break;
 
-		default:
-			pmc->suspend_mode = TEGRA_SUSPEND_NONE;
-			break;
+			default:
+				pmc->suspend_mode = TEGRA_SUSPEND_NONE;
+				break;
 		}
 	}
 
 	pmc->suspend_mode = tegra_pm_validate_suspend_mode(pmc->suspend_mode);
 
 	if (of_property_read_u32(np, "nvidia,cpu-pwr-good-time", &value))
+	{
 		pmc->suspend_mode = TEGRA_SUSPEND_NONE;
+	}
 
 	pmc->cpu_good_time = value;
 
 	if (of_property_read_u32(np, "nvidia,cpu-pwr-off-time", &value))
+	{
 		pmc->suspend_mode = TEGRA_SUSPEND_NONE;
+	}
 
 	pmc->cpu_off_time = value;
 
 	if (of_property_read_u32_array(np, "nvidia,core-pwr-good-time",
-				       values, ARRAY_SIZE(values)))
+								   values, ARRAY_SIZE(values)))
+	{
 		pmc->suspend_mode = TEGRA_SUSPEND_NONE;
+	}
 
 	pmc->core_osc_time = values[0];
 	pmc->core_pmu_time = values[1];
 
 	if (of_property_read_u32(np, "nvidia,core-pwr-off-time", &value))
+	{
 		pmc->suspend_mode = TEGRA_SUSPEND_NONE;
+	}
 
 	pmc->core_off_time = value;
 
 	pmc->corereq_high = of_property_read_bool(np,
-				"nvidia,core-power-req-active-high");
+						"nvidia,core-power-req-active-high");
 
 	pmc->sysclkreq_high = of_property_read_bool(np,
-				"nvidia,sys-clock-req-active-high");
+						  "nvidia,sys-clock-req-active-high");
 
 	pmc->combined_req = of_property_read_bool(np,
-				"nvidia,combined-power-req");
+						"nvidia,combined-power-req");
 
 	pmc->cpu_pwr_good_en = of_property_read_bool(np,
-				"nvidia,cpu-pwr-good-en");
+						   "nvidia,cpu-pwr-good-en");
 
 	if (of_property_read_u32_array(np, "nvidia,lp0-vec", values,
-				       ARRAY_SIZE(values)))
+								   ARRAY_SIZE(values)))
 		if (pmc->suspend_mode == TEGRA_SUSPEND_LP0)
+		{
 			pmc->suspend_mode = TEGRA_SUSPEND_LP1;
+		}
 
 	pmc->lp0_vec_phys = values[0];
 	pmc->lp0_vec_size = values[1];
@@ -1165,9 +1374,13 @@ static void tegra_pmc_init(struct tegra_pmc *pmc)
 	value = tegra_pmc_readl(PMC_CNTRL);
 
 	if (pmc->sysclkreq_high)
+	{
 		value &= ~PMC_CNTRL_SYSCLK_POLARITY;
+	}
 	else
+	{
 		value |= PMC_CNTRL_SYSCLK_POLARITY;
+	}
 
 	/* configure the output polarity while the request is tristated */
 	tegra_pmc_writel(value, PMC_CNTRL);
@@ -1187,43 +1400,53 @@ static void tegra_pmc_init_tsense_reset(struct tegra_pmc *pmc)
 	u32 value, checksum;
 
 	if (!pmc->soc->has_tsense_reset)
+	{
 		return;
+	}
 
 	np = of_find_node_by_name(pmc->dev->of_node, "i2c-thermtrip");
-	if (!np) {
+
+	if (!np)
+	{
 		dev_warn(dev, "i2c-thermtrip node not found, %s.\n", disabled);
 		return;
 	}
 
-	if (of_property_read_u32(np, "nvidia,i2c-controller-id", &ctrl_id)) {
+	if (of_property_read_u32(np, "nvidia,i2c-controller-id", &ctrl_id))
+	{
 		dev_err(dev, "I2C controller ID missing, %s.\n", disabled);
 		goto out;
 	}
 
-	if (of_property_read_u32(np, "nvidia,bus-addr", &pmu_addr)) {
+	if (of_property_read_u32(np, "nvidia,bus-addr", &pmu_addr))
+	{
 		dev_err(dev, "nvidia,bus-addr missing, %s.\n", disabled);
 		goto out;
 	}
 
-	if (of_property_read_u32(np, "nvidia,reg-addr", &reg_addr)) {
+	if (of_property_read_u32(np, "nvidia,reg-addr", &reg_addr))
+	{
 		dev_err(dev, "nvidia,reg-addr missing, %s.\n", disabled);
 		goto out;
 	}
 
-	if (of_property_read_u32(np, "nvidia,reg-data", &reg_data)) {
+	if (of_property_read_u32(np, "nvidia,reg-data", &reg_data))
+	{
 		dev_err(dev, "nvidia,reg-data missing, %s.\n", disabled);
 		goto out;
 	}
 
 	if (of_property_read_u32(np, "nvidia,pinmux-id", &pinmux))
+	{
 		pinmux = 0;
+	}
 
 	value = tegra_pmc_readl(PMC_SENSOR_CTRL);
 	value |= PMC_SENSOR_CTRL_SCRATCH_WRITE;
 	tegra_pmc_writel(value, PMC_SENSOR_CTRL);
 
 	value = (reg_data << PMC_SCRATCH54_DATA_SHIFT) |
-		(reg_addr << PMC_SCRATCH54_ADDR_SHIFT);
+			(reg_addr << PMC_SCRATCH54_ADDR_SHIFT);
 	tegra_pmc_writel(value, PMC_SCRATCH54);
 
 	value = PMC_SCRATCH55_RESET_TEGRA;
@@ -1236,7 +1459,7 @@ static void tegra_pmc_init_tsense_reset(struct tegra_pmc *pmc)
 	 * contain the checksum and are currently zero, so they are not added.
 	 */
 	checksum = reg_addr + reg_data + (value & 0xff) + ((value >> 8) & 0xff)
-		+ ((value >> 24) & 0xff);
+			   + ((value >> 24) & 0xff);
 	checksum &= 0xff;
 	checksum = 0x100 - checksum;
 
@@ -1266,20 +1489,30 @@ static int tegra_pmc_probe(struct platform_device *pdev)
 	 * are not valid then something went badly wrong!
 	 */
 	if (WARN_ON(!pmc->base || !pmc->soc))
+	{
 		return -ENODEV;
+	}
 
 	err = tegra_pmc_parse_dt(pmc, pdev->dev.of_node);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* take over the memory region from the early initialization */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	pmc->clk = devm_clk_get(&pdev->dev, "pclk");
-	if (IS_ERR(pmc->clk)) {
+
+	if (IS_ERR(pmc->clk))
+	{
 		err = PTR_ERR(pmc->clk);
 		dev_err(&pdev->dev, "failed to get pclk: %d\n", err);
 		return err;
@@ -1291,17 +1524,23 @@ static int tegra_pmc_probe(struct platform_device *pdev)
 
 	tegra_pmc_init_tsense_reset(pmc);
 
-	if (IS_ENABLED(CONFIG_DEBUG_FS)) {
+	if (IS_ENABLED(CONFIG_DEBUG_FS))
+	{
 		err = tegra_powergate_debugfs_init();
+
 		if (err < 0)
+		{
 			return err;
+		}
 	}
 
 	err = register_restart_handler(&tegra_pmc_restart_handler);
-	if (err) {
+
+	if (err)
+	{
 		debugfs_remove(pmc->debugfs);
 		dev_err(&pdev->dev, "unable to register restart handler, %d\n",
-			err);
+				err);
 		return err;
 	}
 
@@ -1332,7 +1571,8 @@ static SIMPLE_DEV_PM_OPS(tegra_pmc_pm_ops, tegra_pmc_suspend, tegra_pmc_resume);
 
 #endif
 
-static const char * const tegra20_powergates[] = {
+static const char *const tegra20_powergates[] =
+{
 	[TEGRA_POWERGATE_CPU] = "cpu",
 	[TEGRA_POWERGATE_3D] = "3d",
 	[TEGRA_POWERGATE_VENC] = "venc",
@@ -1342,7 +1582,8 @@ static const char * const tegra20_powergates[] = {
 	[TEGRA_POWERGATE_MPE] = "mpe",
 };
 
-static const struct tegra_pmc_soc tegra20_pmc_soc = {
+static const struct tegra_pmc_soc tegra20_pmc_soc =
+{
 	.num_powergates = ARRAY_SIZE(tegra20_powergates),
 	.powergates = tegra20_powergates,
 	.num_cpu_powergates = 0,
@@ -1351,7 +1592,8 @@ static const struct tegra_pmc_soc tegra20_pmc_soc = {
 	.has_gpu_clamps = false,
 };
 
-static const char * const tegra30_powergates[] = {
+static const char *const tegra30_powergates[] =
+{
 	[TEGRA_POWERGATE_CPU] = "cpu0",
 	[TEGRA_POWERGATE_3D] = "3d0",
 	[TEGRA_POWERGATE_VENC] = "venc",
@@ -1368,14 +1610,16 @@ static const char * const tegra30_powergates[] = {
 	[TEGRA_POWERGATE_3D1] = "3d1",
 };
 
-static const u8 tegra30_cpu_powergates[] = {
+static const u8 tegra30_cpu_powergates[] =
+{
 	TEGRA_POWERGATE_CPU,
 	TEGRA_POWERGATE_CPU1,
 	TEGRA_POWERGATE_CPU2,
 	TEGRA_POWERGATE_CPU3,
 };
 
-static const struct tegra_pmc_soc tegra30_pmc_soc = {
+static const struct tegra_pmc_soc tegra30_pmc_soc =
+{
 	.num_powergates = ARRAY_SIZE(tegra30_powergates),
 	.powergates = tegra30_powergates,
 	.num_cpu_powergates = ARRAY_SIZE(tegra30_cpu_powergates),
@@ -1384,7 +1628,8 @@ static const struct tegra_pmc_soc tegra30_pmc_soc = {
 	.has_gpu_clamps = false,
 };
 
-static const char * const tegra114_powergates[] = {
+static const char *const tegra114_powergates[] =
+{
 	[TEGRA_POWERGATE_CPU] = "crail",
 	[TEGRA_POWERGATE_3D] = "3d",
 	[TEGRA_POWERGATE_VENC] = "venc",
@@ -1405,14 +1650,16 @@ static const char * const tegra114_powergates[] = {
 	[TEGRA_POWERGATE_XUSBC] = "xusbc",
 };
 
-static const u8 tegra114_cpu_powergates[] = {
+static const u8 tegra114_cpu_powergates[] =
+{
 	TEGRA_POWERGATE_CPU0,
 	TEGRA_POWERGATE_CPU1,
 	TEGRA_POWERGATE_CPU2,
 	TEGRA_POWERGATE_CPU3,
 };
 
-static const struct tegra_pmc_soc tegra114_pmc_soc = {
+static const struct tegra_pmc_soc tegra114_pmc_soc =
+{
 	.num_powergates = ARRAY_SIZE(tegra114_powergates),
 	.powergates = tegra114_powergates,
 	.num_cpu_powergates = ARRAY_SIZE(tegra114_cpu_powergates),
@@ -1421,7 +1668,8 @@ static const struct tegra_pmc_soc tegra114_pmc_soc = {
 	.has_gpu_clamps = false,
 };
 
-static const char * const tegra124_powergates[] = {
+static const char *const tegra124_powergates[] =
+{
 	[TEGRA_POWERGATE_CPU] = "crail",
 	[TEGRA_POWERGATE_3D] = "3d",
 	[TEGRA_POWERGATE_VENC] = "venc",
@@ -1447,14 +1695,16 @@ static const char * const tegra124_powergates[] = {
 	[TEGRA_POWERGATE_IRAM] = "iram",
 };
 
-static const u8 tegra124_cpu_powergates[] = {
+static const u8 tegra124_cpu_powergates[] =
+{
 	TEGRA_POWERGATE_CPU0,
 	TEGRA_POWERGATE_CPU1,
 	TEGRA_POWERGATE_CPU2,
 	TEGRA_POWERGATE_CPU3,
 };
 
-static const struct tegra_pmc_soc tegra124_pmc_soc = {
+static const struct tegra_pmc_soc tegra124_pmc_soc =
+{
 	.num_powergates = ARRAY_SIZE(tegra124_powergates),
 	.powergates = tegra124_powergates,
 	.num_cpu_powergates = ARRAY_SIZE(tegra124_cpu_powergates),
@@ -1463,7 +1713,8 @@ static const struct tegra_pmc_soc tegra124_pmc_soc = {
 	.has_gpu_clamps = true,
 };
 
-static const char * const tegra210_powergates[] = {
+static const char *const tegra210_powergates[] =
+{
 	[TEGRA_POWERGATE_CPU] = "crail",
 	[TEGRA_POWERGATE_3D] = "3d",
 	[TEGRA_POWERGATE_VENC] = "venc",
@@ -1490,14 +1741,16 @@ static const char * const tegra210_powergates[] = {
 	[TEGRA_POWERGATE_VE2] = "ve2",
 };
 
-static const u8 tegra210_cpu_powergates[] = {
+static const u8 tegra210_cpu_powergates[] =
+{
 	TEGRA_POWERGATE_CPU0,
 	TEGRA_POWERGATE_CPU1,
 	TEGRA_POWERGATE_CPU2,
 	TEGRA_POWERGATE_CPU3,
 };
 
-static const struct tegra_pmc_soc tegra210_pmc_soc = {
+static const struct tegra_pmc_soc tegra210_pmc_soc =
+{
 	.num_powergates = ARRAY_SIZE(tegra210_powergates),
 	.powergates = tegra210_powergates,
 	.num_cpu_powergates = ARRAY_SIZE(tegra210_cpu_powergates),
@@ -1506,7 +1759,8 @@ static const struct tegra_pmc_soc tegra210_pmc_soc = {
 	.has_gpu_clamps = true,
 };
 
-static const struct of_device_id tegra_pmc_match[] = {
+static const struct of_device_id tegra_pmc_match[] =
+{
 	{ .compatible = "nvidia,tegra210-pmc", .data = &tegra210_pmc_soc },
 	{ .compatible = "nvidia,tegra132-pmc", .data = &tegra124_pmc_soc },
 	{ .compatible = "nvidia,tegra124-pmc", .data = &tegra124_pmc_soc },
@@ -1516,7 +1770,8 @@ static const struct of_device_id tegra_pmc_match[] = {
 	{ }
 };
 
-static struct platform_driver tegra_pmc_driver = {
+static struct platform_driver tegra_pmc_driver =
+{
 	.driver = {
 		.name = "tegra-pmc",
 		.suppress_bind_attrs = true,
@@ -1544,7 +1799,9 @@ static int __init tegra_pmc_early_init(void)
 	mutex_init(&pmc->powergates_lock);
 
 	np = of_find_matching_node_and_match(NULL, tegra_pmc_match, &match);
-	if (!np) {
+
+	if (!np)
+	{
 		/*
 		 * Fall back to legacy initialization for 32-bit ARM only. All
 		 * 64-bit ARM device tree files for Tegra are required to have
@@ -1555,7 +1812,8 @@ static int __init tegra_pmc_early_init(void)
 		 * SoC data can't be matched and therefore powergating is
 		 * disabled.
 		 */
-		if (IS_ENABLED(CONFIG_ARM) && soc_is_tegra()) {
+		if (IS_ENABLED(CONFIG_ARM) && soc_is_tegra())
+		{
 			pr_warn("DT node not found, powergating disabled\n");
 
 			regs.start = 0x7000e400;
@@ -1563,19 +1821,24 @@ static int __init tegra_pmc_early_init(void)
 			regs.flags = IORESOURCE_MEM;
 
 			pr_warn("Using memory region %pR\n", &regs);
-		} else {
+		}
+		else
+		{
 			/*
 			 * At this point we're not running on Tegra, so play
 			 * nice with multi-platform kernels.
 			 */
 			return 0;
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		 * Extract information from the device tree if we've found a
 		 * matching node.
 		 */
-		if (of_address_to_resource(np, 0, &regs) < 0) {
+		if (of_address_to_resource(np, 0, &regs) < 0)
+		{
 			pr_err("failed to get PMC registers\n");
 			of_node_put(np);
 			return -ENXIO;
@@ -1583,13 +1846,16 @@ static int __init tegra_pmc_early_init(void)
 	}
 
 	pmc->base = ioremap_nocache(regs.start, resource_size(&regs));
-	if (!pmc->base) {
+
+	if (!pmc->base)
+	{
 		pr_err("failed to map PMC registers\n");
 		of_node_put(np);
 		return -ENXIO;
 	}
 
-	if (np) {
+	if (np)
+	{
 		pmc->soc = match->data;
 
 		tegra_powergate_init(pmc, np);
@@ -1603,9 +1869,13 @@ static int __init tegra_pmc_early_init(void)
 		value = tegra_pmc_readl(PMC_CNTRL);
 
 		if (invert)
+		{
 			value |= PMC_CNTRL_INTR_POLARITY;
+		}
 		else
+		{
 			value &= ~PMC_CNTRL_INTR_POLARITY;
+		}
 
 		tegra_pmc_writel(value, PMC_CNTRL);
 

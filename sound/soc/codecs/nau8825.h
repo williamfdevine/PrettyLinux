@@ -409,7 +409,8 @@
 
 
 /* System Clock Source */
-enum {
+enum
+{
 	NAU8825_CLK_DIS = 0,
 	NAU8825_CLK_MCLK,
 	NAU8825_CLK_INTERNAL,
@@ -419,7 +420,8 @@ enum {
 };
 
 /* Cross talk detection state */
-enum {
+enum
+{
 	NAU8825_XTALK_PREPARE = 0,
 	NAU8825_XTALK_HPR_R2L,
 	NAU8825_XTALK_HPL_R2L,
@@ -427,7 +429,8 @@ enum {
 	NAU8825_XTALK_DONE,
 };
 
-struct nau8825 {
+struct nau8825
+{
 	struct device *dev;
 	struct regmap *regmap;
 	struct snd_soc_dapm_context *dapm;
@@ -462,7 +465,7 @@ struct nau8825 {
 };
 
 int nau8825_enable_jack_detect(struct snd_soc_codec *codec,
-				struct snd_soc_jack *jack);
+							   struct snd_soc_jack *jack);
 
 
 #endif  /* __NAU8825_H__ */

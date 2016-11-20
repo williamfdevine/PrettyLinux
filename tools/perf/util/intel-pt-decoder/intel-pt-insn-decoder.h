@@ -22,7 +22,8 @@
 #define INTEL_PT_INSN_DESC_MAX		32
 #define INTEL_PT_INSN_DBG_BUF_SZ	16
 
-enum intel_pt_insn_op {
+enum intel_pt_insn_op
+{
 	INTEL_PT_OP_OTHER,
 	INTEL_PT_OP_CALL,
 	INTEL_PT_OP_RET,
@@ -35,14 +36,16 @@ enum intel_pt_insn_op {
 	INTEL_PT_OP_SYSRET,
 };
 
-enum intel_pt_insn_branch {
+enum intel_pt_insn_branch
+{
 	INTEL_PT_BR_NO_BRANCH,
 	INTEL_PT_BR_INDIRECT,
 	INTEL_PT_BR_CONDITIONAL,
 	INTEL_PT_BR_UNCONDITIONAL,
 };
 
-struct intel_pt_insn {
+struct intel_pt_insn
+{
 	enum intel_pt_insn_op		op;
 	enum intel_pt_insn_branch	branch;
 	int				length;
@@ -51,12 +54,12 @@ struct intel_pt_insn {
 };
 
 int intel_pt_get_insn(const unsigned char *buf, size_t len, int x86_64,
-		      struct intel_pt_insn *intel_pt_insn);
+					  struct intel_pt_insn *intel_pt_insn);
 
 const char *intel_pt_insn_name(enum intel_pt_insn_op op);
 
 int intel_pt_insn_desc(const struct intel_pt_insn *intel_pt_insn, char *buf,
-		       size_t buf_len);
+					   size_t buf_len);
 
 size_t intel_pt_insn_max_size(void);
 

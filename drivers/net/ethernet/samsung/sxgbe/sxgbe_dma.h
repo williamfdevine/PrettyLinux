@@ -20,12 +20,13 @@ struct sxgbe_extra_stats;
 #define SXGBE_DMA_RXPBL_LSHIFT		16
 #define DEFAULT_DMA_PBL			8
 
-struct sxgbe_dma_ops {
+struct sxgbe_dma_ops
+{
 	/* DMA core initialization */
 	int (*init)(void __iomem *ioaddr, int fix_burst, int burst_map);
 	void (*cha_init)(void __iomem *ioaddr, int cha_num, int fix_burst,
-			 int pbl, dma_addr_t dma_tx, dma_addr_t dma_rx,
-			 int t_rzie, int r_rsize);
+					 int pbl, dma_addr_t dma_tx, dma_addr_t dma_rx,
+					 int t_rzie, int r_rsize);
 	void (*enable_dma_transmission)(void __iomem *ioaddr, int dma_cnum);
 	void (*enable_dma_irq)(void __iomem *ioaddr, int dma_cnum);
 	void (*disable_dma_irq)(void __iomem *ioaddr, int dma_cnum);
@@ -36,9 +37,9 @@ struct sxgbe_dma_ops {
 	void (*start_rx)(void __iomem *ioaddr, int rchannels);
 	void (*stop_rx)(void __iomem *ioaddr, int rchannels);
 	int (*tx_dma_int_status)(void __iomem *ioaddr, int channel_no,
-				 struct sxgbe_extra_stats *x);
+							 struct sxgbe_extra_stats *x);
 	int (*rx_dma_int_status)(void __iomem *ioaddr, int channel_no,
-				 struct sxgbe_extra_stats *x);
+							 struct sxgbe_extra_stats *x);
 	/* Program the HW RX Watchdog */
 	void (*rx_watchdog)(void __iomem *ioaddr, u32 riwt);
 	/* Enable TSO for each DMA channel */

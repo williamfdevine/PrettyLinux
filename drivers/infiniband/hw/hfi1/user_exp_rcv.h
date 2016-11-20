@@ -63,8 +63,8 @@
 	 EXP_TID_TID##field##_SHIFT)
 #define EXP_TID_CLEAR(tid, field) ({					\
 		(tid) &= ~(EXP_TID_TID##field##_MASK <<			\
-			   EXP_TID_TID##field##_SHIFT);			\
-		})
+				   EXP_TID_TID##field##_SHIFT);			\
+	})
 #define EXP_TID_RESET(tid, field, value) do {				\
 		EXP_TID_CLEAR(tid, field);				\
 		(tid) |= EXP_TID_SET(field, (value));			\

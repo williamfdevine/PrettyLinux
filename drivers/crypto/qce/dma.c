@@ -21,18 +21,25 @@ int qce_dma_request(struct device *dev, struct qce_dma_data *dma)
 	int ret;
 
 	dma->txchan = dma_request_slave_channel_reason(dev, "tx");
+
 	if (IS_ERR(dma->txchan))
+	{
 		return PTR_ERR(dma->txchan);
+	}
 
 	dma->rxchan = dma_request_slave_channel_reason(dev, "rx");
-	if (IS_ERR(dma->rxchan)) {
+
+	if (IS_ERR(dma->rxchan))
+	{
 		ret = PTR_ERR(dma->rxchan);
 		goto error_rx;
 	}
 
 	dma->result_buf = kmalloc(QCE_RESULT_BUF_SZ + QCE_IGNORE_BUF_SZ,
-				  GFP_KERNEL);
-	if (!dma->result_buf) {
+							  GFP_KERNEL);
+
+	if (!dma->result_buf)
+	{
 		ret = -ENOMEM;
 		goto error_nomem;
 	}
@@ -59,18 +66,25 @@ qce_sgtable_add(struct sg_table *sgt, struct scatterlist *new_sgl)
 {
 	struct scatterlist *sg = sgt->sgl, *sg_last = NULL;
 
-	while (sg) {
+	while (sg)
+	{
 		if (!sg_page(sg))
+		{
 			break;
+		}
+
 		sg = sg_next(sg);
 	}
 
 	if (!sg)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
-	while (new_sgl && sg) {
+	while (new_sgl && sg)
+	{
 		sg_set_page(sg, sg_page(new_sgl), new_sgl->length,
-			    new_sgl->offset);
+					new_sgl->offset);
 		sg_last = sg;
 		sg = sg_next(sg);
 		new_sgl = sg_next(new_sgl);
@@ -80,19 +94,24 @@ qce_sgtable_add(struct sg_table *sgt, struct scatterlist *new_sgl)
 }
 
 static int qce_dma_prep_sg(struct dma_chan *chan, struct scatterlist *sg,
-			   int nents, unsigned long flags,
-			   enum dma_transfer_direction dir,
-			   dma_async_tx_callback cb, void *cb_param)
+						   int nents, unsigned long flags,
+						   enum dma_transfer_direction dir,
+						   dma_async_tx_callback cb, void *cb_param)
 {
 	struct dma_async_tx_descriptor *desc;
 	dma_cookie_t cookie;
 
 	if (!sg || !nents)
+	{
 		return -EINVAL;
+	}
 
 	desc = dmaengine_prep_slave_sg(chan, sg, nents, dir, flags);
+
 	if (!desc)
+	{
 		return -EINVAL;
+	}
 
 	desc->callback = cb;
 	desc->callback_param = cb_param;
@@ -102,8 +121,8 @@ static int qce_dma_prep_sg(struct dma_chan *chan, struct scatterlist *sg,
 }
 
 int qce_dma_prep_sgs(struct qce_dma_data *dma, struct scatterlist *rx_sg,
-		     int rx_nents, struct scatterlist *tx_sg, int tx_nents,
-		     dma_async_tx_callback cb, void *cb_param)
+					 int rx_nents, struct scatterlist *tx_sg, int tx_nents,
+					 dma_async_tx_callback cb, void *cb_param)
 {
 	struct dma_chan *rxchan = dma->rxchan;
 	struct dma_chan *txchan = dma->txchan;
@@ -111,12 +130,15 @@ int qce_dma_prep_sgs(struct qce_dma_data *dma, struct scatterlist *rx_sg,
 	int ret;
 
 	ret = qce_dma_prep_sg(rxchan, rx_sg, rx_nents, flags, DMA_MEM_TO_DEV,
-			     NULL, NULL);
+						  NULL, NULL);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return qce_dma_prep_sg(txchan, tx_sg, tx_nents, flags, DMA_DEV_TO_MEM,
-			       cb, cb_param);
+						   cb, cb_param);
 }
 
 void qce_dma_issue_pending(struct qce_dma_data *dma)
@@ -130,5 +152,5 @@ int qce_dma_terminate_all(struct qce_dma_data *dma)
 	int ret;
 
 	ret = dmaengine_terminate_all(dma->rxchan);
-	return ret ?: dmaengine_terminate_all(dma->txchan);
+	return ret ? : dmaengine_terminate_all(dma->txchan);
 }

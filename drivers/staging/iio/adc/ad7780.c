@@ -31,13 +31,15 @@
 #define AD7780_PAT1	BIT(1)
 #define AD7780_PAT0	BIT(0)
 
-struct ad7780_chip_info {
+struct ad7780_chip_info
+{
 	struct iio_chan_spec	channel;
 	unsigned int		pattern_mask;
 	unsigned int		pattern;
 };
 
-struct ad7780_state {
+struct ad7780_state
+{
 	const struct ad7780_chip_info	*chip_info;
 	struct regulator		*reg;
 	struct gpio_desc		*powerdown_gpio;
@@ -47,7 +49,8 @@ struct ad7780_state {
 	struct ad_sigma_delta sd;
 };
 
-enum ad7780_supported_device_ids {
+enum ad7780_supported_device_ids
+{
 	ID_AD7170,
 	ID_AD7171,
 	ID_AD7780,
@@ -60,19 +63,21 @@ static struct ad7780_state *ad_sigma_delta_to_ad7780(struct ad_sigma_delta *sd)
 }
 
 static int ad7780_set_mode(struct ad_sigma_delta *sigma_delta,
-			   enum ad_sigma_delta_mode mode)
+						   enum ad_sigma_delta_mode mode)
 {
 	struct ad7780_state *st = ad_sigma_delta_to_ad7780(sigma_delta);
 	unsigned int val;
 
-	switch (mode) {
-	case AD_SD_MODE_SINGLE:
-	case AD_SD_MODE_CONTINUOUS:
-		val = 1;
-		break;
-	default:
-		val = 0;
-		break;
+	switch (mode)
+	{
+		case AD_SD_MODE_SINGLE:
+		case AD_SD_MODE_CONTINUOUS:
+			val = 1;
+			break;
+
+		default:
+			val = 0;
+			break;
 	}
 
 	gpiod_set_value(st->powerdown_gpio, val);
@@ -81,47 +86,57 @@ static int ad7780_set_mode(struct ad_sigma_delta *sigma_delta,
 }
 
 static int ad7780_read_raw(struct iio_dev *indio_dev,
-			   struct iio_chan_spec const *chan,
-			   int *val,
-			   int *val2,
-			   long m)
+						   struct iio_chan_spec const *chan,
+						   int *val,
+						   int *val2,
+						   long m)
 {
 	struct ad7780_state *st = iio_priv(indio_dev);
 
-	switch (m) {
-	case IIO_CHAN_INFO_RAW:
-		return ad_sigma_delta_single_conversion(indio_dev, chan, val);
-	case IIO_CHAN_INFO_SCALE:
-		*val = st->int_vref_mv * st->gain;
-		*val2 = chan->scan_type.realbits - 1;
-		return IIO_VAL_FRACTIONAL_LOG2;
-	case IIO_CHAN_INFO_OFFSET:
-		*val -= (1 << (chan->scan_type.realbits - 1));
-		return IIO_VAL_INT;
+	switch (m)
+	{
+		case IIO_CHAN_INFO_RAW:
+			return ad_sigma_delta_single_conversion(indio_dev, chan, val);
+
+		case IIO_CHAN_INFO_SCALE:
+			*val = st->int_vref_mv * st->gain;
+			*val2 = chan->scan_type.realbits - 1;
+			return IIO_VAL_FRACTIONAL_LOG2;
+
+		case IIO_CHAN_INFO_OFFSET:
+			*val -= (1 << (chan->scan_type.realbits - 1));
+			return IIO_VAL_INT;
 	}
 
 	return -EINVAL;
 }
 
 static int ad7780_postprocess_sample(struct ad_sigma_delta *sigma_delta,
-				     unsigned int raw_sample)
+									 unsigned int raw_sample)
 {
 	struct ad7780_state *st = ad_sigma_delta_to_ad7780(sigma_delta);
 	const struct ad7780_chip_info *chip_info = st->chip_info;
 
 	if ((raw_sample & AD7780_ERR) ||
-	    ((raw_sample & chip_info->pattern_mask) != chip_info->pattern))
+		((raw_sample & chip_info->pattern_mask) != chip_info->pattern))
+	{
 		return -EIO;
+	}
 
 	if (raw_sample & AD7780_GAIN)
+	{
 		st->gain = 1;
+	}
 	else
+	{
 		st->gain = 128;
+	}
 
 	return 0;
 }
 
-static const struct ad_sigma_delta_info ad7780_sigma_delta_info = {
+static const struct ad_sigma_delta_info ad7780_sigma_delta_info =
+{
 	.set_mode = ad7780_set_mode,
 	.postprocess_sample = ad7780_postprocess_sample,
 	.has_registers = false,
@@ -130,7 +145,8 @@ static const struct ad_sigma_delta_info ad7780_sigma_delta_info = {
 #define AD7780_CHANNEL(bits, wordsize) \
 	AD_SD_CHANNEL(1, 0, 0, bits, 32, wordsize - bits)
 
-static const struct ad7780_chip_info ad7780_chip_info_tbl[] = {
+static const struct ad7780_chip_info ad7780_chip_info_tbl[] =
+{
 	[ID_AD7170] = {
 		.channel = AD7780_CHANNEL(12, 24),
 		.pattern = 0x5,
@@ -153,7 +169,8 @@ static const struct ad7780_chip_info ad7780_chip_info_tbl[] = {
 	},
 };
 
-static const struct iio_info ad7780_info = {
+static const struct iio_info ad7780_info =
+{
 	.read_raw = &ad7780_read_raw,
 	.driver_module = THIS_MODULE,
 };
@@ -165,8 +182,11 @@ static int ad7780_probe(struct spi_device *spi)
 	int ret, voltage_uv = 0;
 
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*st));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	st = iio_priv(indio_dev);
 	st->gain = 1;
@@ -174,10 +194,15 @@ static int ad7780_probe(struct spi_device *spi)
 	ad_sd_init(&st->sd, indio_dev, spi, &ad7780_sigma_delta_info);
 
 	st->reg = devm_regulator_get(&spi->dev, "vcc");
-	if (!IS_ERR(st->reg)) {
+
+	if (!IS_ERR(st->reg))
+	{
 		ret = regulator_enable(st->reg);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		voltage_uv = regulator_get_voltage(st->reg);
 	}
@@ -186,9 +211,13 @@ static int ad7780_probe(struct spi_device *spi)
 		&ad7780_chip_info_tbl[spi_get_device_id(spi)->driver_data];
 
 	if (voltage_uv)
+	{
 		st->int_vref_mv = voltage_uv / 1000;
+	}
 	else
+	{
 		dev_warn(&spi->dev, "Reference voltage unspecified\n");
+	}
 
 	spi_set_drvdata(spi, indio_dev);
 
@@ -200,30 +229,41 @@ static int ad7780_probe(struct spi_device *spi)
 	indio_dev->info = &ad7780_info;
 
 	st->powerdown_gpio = devm_gpiod_get_optional(&spi->dev,
-						     "powerdown",
-						     GPIOD_OUT_LOW);
-	if (IS_ERR(st->powerdown_gpio)) {
+						 "powerdown",
+						 GPIOD_OUT_LOW);
+
+	if (IS_ERR(st->powerdown_gpio))
+	{
 		ret = PTR_ERR(st->powerdown_gpio);
 		dev_err(&spi->dev, "Failed to request powerdown GPIO: %d\n",
-			ret);
+				ret);
 		goto error_disable_reg;
 	}
 
 	ret = ad_sd_setup_buffer_and_trigger(indio_dev);
+
 	if (ret)
+	{
 		goto error_disable_reg;
+	}
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret)
+	{
 		goto error_cleanup_buffer_and_trigger;
+	}
 
 	return 0;
 
 error_cleanup_buffer_and_trigger:
 	ad_sd_cleanup_buffer_and_trigger(indio_dev);
 error_disable_reg:
+
 	if (!IS_ERR(st->reg))
+	{
 		regulator_disable(st->reg);
+	}
 
 	return ret;
 }
@@ -237,12 +277,15 @@ static int ad7780_remove(struct spi_device *spi)
 	ad_sd_cleanup_buffer_and_trigger(indio_dev);
 
 	if (!IS_ERR(st->reg))
+	{
 		regulator_disable(st->reg);
+	}
 
 	return 0;
 }
 
-static const struct spi_device_id ad7780_id[] = {
+static const struct spi_device_id ad7780_id[] =
+{
 	{"ad7170", ID_AD7170},
 	{"ad7171", ID_AD7171},
 	{"ad7780", ID_AD7780},
@@ -251,7 +294,8 @@ static const struct spi_device_id ad7780_id[] = {
 };
 MODULE_DEVICE_TABLE(spi, ad7780_id);
 
-static struct spi_driver ad7780_driver = {
+static struct spi_driver ad7780_driver =
+{
 	.driver = {
 		.name	= "ad7780",
 	},

@@ -24,7 +24,8 @@
 #define L2TP_HASH_SIZE_2	(1 << L2TP_HASH_BITS_2)
 
 /* Debug message categories for the DEBUG socket option */
-enum {
+enum
+{
 	L2TP_MSG_DEBUG		= (1 << 0),	/* verbose debug (if
 						 * compiled in) */
 	L2TP_MSG_CONTROL	= (1 << 1),	/* userspace - kernel
@@ -35,7 +36,8 @@ enum {
 
 struct sk_buff;
 
-struct l2tp_stats {
+struct l2tp_stats
+{
 	atomic_long_t		tx_packets;
 	atomic_long_t		tx_bytes;
 	atomic_long_t		tx_errors;
@@ -52,17 +54,18 @@ struct l2tp_tunnel;
 /* Describes a session. Contains information to determine incoming
  * packets and transmit outgoing ones.
  */
-struct l2tp_session_cfg {
+struct l2tp_session_cfg
+{
 	enum l2tp_pwtype	pw_type;
-	unsigned int		data_seq:2;	/* data sequencing level
+	unsigned int		data_seq: 2;	/* data sequencing level
 						 * 0 => none, 1 => IP only,
 						 * 2 => all
 						 */
-	unsigned int		recv_seq:1;	/* expect receive packets with
+	unsigned int		recv_seq: 1;	/* expect receive packets with
 						 * sequence numbers? */
-	unsigned int		send_seq:1;	/* send packets with sequence
+	unsigned int		send_seq: 1;	/* send packets with sequence
 						 * numbers? */
-	unsigned int		lns_mode:1;	/* behave as LNS? LAC enables
+	unsigned int		lns_mode: 1;	/* behave as LNS? LAC enables
 						 * sequence numbers under
 						 * control of LNS. */
 	int			debug;		/* bitmask of debug message
@@ -82,7 +85,8 @@ struct l2tp_session_cfg {
 	char			*ifname;
 };
 
-struct l2tp_session {
+struct l2tp_session
+{
 	int			magic;		/* should be
 						 * L2TP_SESSION_MAGIC */
 
@@ -112,15 +116,15 @@ struct l2tp_session {
 
 	char			name[32];	/* for logging */
 	char			ifname[IFNAMSIZ];
-	unsigned int		data_seq:2;	/* data sequencing level
+	unsigned int		data_seq: 2;	/* data sequencing level
 						 * 0 => none, 1 => IP only,
 						 * 2 => all
 						 */
-	unsigned int		recv_seq:1;	/* expect receive packets with
+	unsigned int		recv_seq: 1;	/* expect receive packets with
 						 * sequence numbers? */
-	unsigned int		send_seq:1;	/* send packets with sequence
+	unsigned int		send_seq: 1;	/* send packets with sequence
 						 * numbers? */
-	unsigned int		lns_mode:1;	/* behave as LNS? LAC enables
+	unsigned int		lns_mode: 1;	/* behave as LNS? LAC enables
 						 * sequence numbers under
 						 * control of LNS. */
 	int			debug;		/* bitmask of debug message
@@ -148,7 +152,8 @@ struct l2tp_session {
 /* Describes the tunnel. It contains info to track all the associated
  * sessions so incoming packets can be sorted out
  */
-struct l2tp_tunnel_cfg {
+struct l2tp_tunnel_cfg
+{
 	int			debug;		/* bitmask of debug message
 						 * categories */
 	enum l2tp_encap_type	encap;
@@ -162,18 +167,19 @@ struct l2tp_tunnel_cfg {
 #endif
 	u16			local_udp_port;
 	u16			peer_udp_port;
-	unsigned int		use_udp_checksums:1,
-				udp6_zero_tx_checksums:1,
-				udp6_zero_rx_checksums:1;
+	unsigned int		use_udp_checksums: 1,
+				   udp6_zero_tx_checksums: 1,
+				   udp6_zero_rx_checksums: 1;
 };
 
-struct l2tp_tunnel {
+struct l2tp_tunnel
+{
 	int			magic;		/* Should be L2TP_TUNNEL_MAGIC */
 	struct rcu_head rcu;
 	rwlock_t		hlist_lock;	/* protect session_hlist */
 	struct hlist_head	session_hlist[L2TP_HASH_SIZE];
-						/* hashed list of sessions,
-						 * hashed by id */
+	/* hashed list of sessions,
+	 * hashed by id */
 	u32			tunnel_id;
 	u32			peer_tunnel_id;
 	int			version;	/* 2=>L2TPv2, 3=>L2TPv3 */
@@ -205,8 +211,10 @@ struct l2tp_tunnel {
 	uint8_t			priv[0];	/* private data */
 };
 
-struct l2tp_nl_cmd_ops {
-	int (*session_create)(struct net *net, u32 tunnel_id, u32 session_id, u32 peer_session_id, struct l2tp_session_cfg *cfg);
+struct l2tp_nl_cmd_ops
+{
+	int (*session_create)(struct net *net, u32 tunnel_id, u32 session_id, u32 peer_session_id,
+						  struct l2tp_session_cfg *cfg);
 	int (*session_delete)(struct l2tp_session *session);
 };
 
@@ -225,11 +233,15 @@ static inline struct l2tp_tunnel *l2tp_sock_to_tunnel(struct sock *sk)
 	struct l2tp_tunnel *tunnel;
 
 	if (sk == NULL)
+	{
 		return NULL;
+	}
 
 	sock_hold(sk);
 	tunnel = (struct l2tp_tunnel *)(sk->sk_user_data);
-	if (tunnel == NULL) {
+
+	if (tunnel == NULL)
+	{
 		sock_put(sk);
 		goto out;
 	}
@@ -241,37 +253,37 @@ out:
 }
 
 struct l2tp_session *l2tp_session_find(struct net *net,
-				       struct l2tp_tunnel *tunnel,
-				       u32 session_id);
+									   struct l2tp_tunnel *tunnel,
+									   u32 session_id);
 struct l2tp_session *l2tp_session_find_nth(struct l2tp_tunnel *tunnel, int nth);
 struct l2tp_session *l2tp_session_find_by_ifname(struct net *net, char *ifname);
 struct l2tp_tunnel *l2tp_tunnel_find(struct net *net, u32 tunnel_id);
 struct l2tp_tunnel *l2tp_tunnel_find_nth(struct net *net, int nth);
 
 int l2tp_tunnel_create(struct net *net, int fd, int version, u32 tunnel_id,
-		       u32 peer_tunnel_id, struct l2tp_tunnel_cfg *cfg,
-		       struct l2tp_tunnel **tunnelp);
+					   u32 peer_tunnel_id, struct l2tp_tunnel_cfg *cfg,
+					   struct l2tp_tunnel **tunnelp);
 void l2tp_tunnel_closeall(struct l2tp_tunnel *tunnel);
 int l2tp_tunnel_delete(struct l2tp_tunnel *tunnel);
 struct l2tp_session *l2tp_session_create(int priv_size,
-					 struct l2tp_tunnel *tunnel,
-					 u32 session_id, u32 peer_session_id,
-					 struct l2tp_session_cfg *cfg);
+		struct l2tp_tunnel *tunnel,
+		u32 session_id, u32 peer_session_id,
+		struct l2tp_session_cfg *cfg);
 void __l2tp_session_unhash(struct l2tp_session *session);
 int l2tp_session_delete(struct l2tp_session *session);
 void l2tp_session_free(struct l2tp_session *session);
 void l2tp_recv_common(struct l2tp_session *session, struct sk_buff *skb,
-		      unsigned char *ptr, unsigned char *optr, u16 hdrflags,
-		      int length, int (*payload_hook)(struct sk_buff *skb));
+					  unsigned char *ptr, unsigned char *optr, u16 hdrflags,
+					  int length, int (*payload_hook)(struct sk_buff *skb));
 int l2tp_session_queue_purge(struct l2tp_session *session);
 int l2tp_udp_encap_recv(struct sock *sk, struct sk_buff *skb);
 void l2tp_session_set_header_len(struct l2tp_session *session, int version);
 
 int l2tp_xmit_skb(struct l2tp_session *session, struct sk_buff *skb,
-		  int hdr_len);
+				  int hdr_len);
 
 int l2tp_nl_register_ops(enum l2tp_pwtype pw_type,
-			 const struct l2tp_nl_cmd_ops *ops);
+						 const struct l2tp_nl_cmd_ops *ops);
 void l2tp_nl_unregister_ops(enum l2tp_pwtype pw_type);
 
 /* Session reference counts. Incremented when code obtains a reference
@@ -285,34 +297,36 @@ static inline void l2tp_session_inc_refcount_1(struct l2tp_session *session)
 static inline void l2tp_session_dec_refcount_1(struct l2tp_session *session)
 {
 	if (atomic_dec_and_test(&session->ref_count))
+	{
 		l2tp_session_free(session);
+	}
 }
 
 #ifdef L2TP_REFCNT_DEBUG
 #define l2tp_session_inc_refcount(_s)					\
-do {									\
-	pr_debug("l2tp_session_inc_refcount: %s:%d %s: cnt=%d\n",	\
-		 __func__, __LINE__, (_s)->name,			\
-		 atomic_read(&_s->ref_count));				\
-	l2tp_session_inc_refcount_1(_s);				\
-} while (0)
+	do {									\
+		pr_debug("l2tp_session_inc_refcount: %s:%d %s: cnt=%d\n",	\
+				 __func__, __LINE__, (_s)->name,			\
+				 atomic_read(&_s->ref_count));				\
+		l2tp_session_inc_refcount_1(_s);				\
+	} while (0)
 #define l2tp_session_dec_refcount(_s)					\
-do {									\
-	pr_debug("l2tp_session_dec_refcount: %s:%d %s: cnt=%d\n",	\
-		 __func__, __LINE__, (_s)->name,			\
-		 atomic_read(&_s->ref_count));				\
-	l2tp_session_dec_refcount_1(_s);				\
-} while (0)
+	do {									\
+		pr_debug("l2tp_session_dec_refcount: %s:%d %s: cnt=%d\n",	\
+				 __func__, __LINE__, (_s)->name,			\
+				 atomic_read(&_s->ref_count));				\
+		l2tp_session_dec_refcount_1(_s);				\
+	} while (0)
 #else
 #define l2tp_session_inc_refcount(s) l2tp_session_inc_refcount_1(s)
 #define l2tp_session_dec_refcount(s) l2tp_session_dec_refcount_1(s)
 #endif
 
 #define l2tp_printk(ptr, type, func, fmt, ...)				\
-do {									\
-	if (((ptr)->debug) & (type))					\
-		func(fmt, ##__VA_ARGS__);				\
-} while (0)
+	do {									\
+		if (((ptr)->debug) & (type))					\
+			func(fmt, ##__VA_ARGS__);				\
+	} while (0)
 
 #define l2tp_warn(ptr, type, fmt, ...)					\
 	l2tp_printk(ptr, type, pr_warn, fmt, ##__VA_ARGS__)

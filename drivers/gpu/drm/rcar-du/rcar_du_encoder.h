@@ -20,7 +20,8 @@ struct rcar_du_device;
 struct rcar_du_hdmienc;
 struct rcar_du_lvdsenc;
 
-enum rcar_du_encoder_type {
+enum rcar_du_encoder_type
+{
 	RCAR_DU_ENCODER_UNUSED = 0,
 	RCAR_DU_ENCODER_NONE,
 	RCAR_DU_ENCODER_VGA,
@@ -28,7 +29,8 @@ enum rcar_du_encoder_type {
 	RCAR_DU_ENCODER_HDMI,
 };
 
-struct rcar_du_encoder {
+struct rcar_du_encoder
+{
 	struct drm_encoder base;
 	enum rcar_du_output output;
 	struct rcar_du_hdmienc *hdmi;
@@ -40,7 +42,8 @@ struct rcar_du_encoder {
 
 #define rcar_encoder_to_drm_encoder(e)	(&(e)->base)
 
-struct rcar_du_connector {
+struct rcar_du_connector
+{
 	struct drm_connector connector;
 	struct rcar_du_encoder *encoder;
 };
@@ -49,9 +52,9 @@ struct rcar_du_connector {
 	container_of(c, struct rcar_du_connector, connector)
 
 int rcar_du_encoder_init(struct rcar_du_device *rcdu,
-			 enum rcar_du_encoder_type type,
-			 enum rcar_du_output output,
-			 struct device_node *enc_node,
-			 struct device_node *con_node);
+						 enum rcar_du_encoder_type type,
+						 enum rcar_du_output output,
+						 struct device_node *enc_node,
+						 struct device_node *con_node);
 
 #endif /* __RCAR_DU_ENCODER_H__ */

@@ -104,16 +104,19 @@ typedef __int64_t	xfs_sfiloff_t;	/* signed block number in a file */
  */
 #define MAXNAMELEN	256
 
-typedef enum {
+typedef enum
+{
 	XFS_LOOKUP_EQi, XFS_LOOKUP_LEi, XFS_LOOKUP_GEi
 } xfs_lookup_t;
 
-typedef enum {
+typedef enum
+{
 	XFS_BTNUM_BNOi, XFS_BTNUM_CNTi, XFS_BTNUM_RMAPi, XFS_BTNUM_BMAPi,
 	XFS_BTNUM_INOi, XFS_BTNUM_FINOi, XFS_BTNUM_REFCi, XFS_BTNUM_MAX
 } xfs_btnum_t;
 
-struct xfs_name {
+struct xfs_name
+{
 	const unsigned char	*name;
 	int			len;
 	int			type;

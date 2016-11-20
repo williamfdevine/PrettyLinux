@@ -55,10 +55,16 @@ void down(struct semaphore *sem)
 	unsigned long flags;
 
 	raw_spin_lock_irqsave(&sem->lock, flags);
+
 	if (likely(sem->count > 0))
+	{
 		sem->count--;
+	}
 	else
+	{
 		__down(sem);
+	}
+
 	raw_spin_unlock_irqrestore(&sem->lock, flags);
 }
 EXPORT_SYMBOL(down);
@@ -78,10 +84,16 @@ int down_interruptible(struct semaphore *sem)
 	int result = 0;
 
 	raw_spin_lock_irqsave(&sem->lock, flags);
+
 	if (likely(sem->count > 0))
+	{
 		sem->count--;
+	}
 	else
+	{
 		result = __down_interruptible(sem);
+	}
+
 	raw_spin_unlock_irqrestore(&sem->lock, flags);
 
 	return result;
@@ -104,10 +116,16 @@ int down_killable(struct semaphore *sem)
 	int result = 0;
 
 	raw_spin_lock_irqsave(&sem->lock, flags);
+
 	if (likely(sem->count > 0))
+	{
 		sem->count--;
+	}
 	else
+	{
 		result = __down_killable(sem);
+	}
+
 	raw_spin_unlock_irqrestore(&sem->lock, flags);
 
 	return result;
@@ -134,8 +152,12 @@ int down_trylock(struct semaphore *sem)
 
 	raw_spin_lock_irqsave(&sem->lock, flags);
 	count = sem->count - 1;
+
 	if (likely(count >= 0))
+	{
 		sem->count = count;
+	}
+
 	raw_spin_unlock_irqrestore(&sem->lock, flags);
 
 	return (count < 0);
@@ -158,10 +180,16 @@ int down_timeout(struct semaphore *sem, long timeout)
 	int result = 0;
 
 	raw_spin_lock_irqsave(&sem->lock, flags);
+
 	if (likely(sem->count > 0))
+	{
 		sem->count--;
+	}
 	else
+	{
 		result = __down_timeout(sem, timeout);
+	}
+
 	raw_spin_unlock_irqrestore(&sem->lock, flags);
 
 	return result;
@@ -180,17 +208,24 @@ void up(struct semaphore *sem)
 	unsigned long flags;
 
 	raw_spin_lock_irqsave(&sem->lock, flags);
+
 	if (likely(list_empty(&sem->wait_list)))
+	{
 		sem->count++;
+	}
 	else
+	{
 		__up(sem);
+	}
+
 	raw_spin_unlock_irqrestore(&sem->lock, flags);
 }
 EXPORT_SYMBOL(up);
 
 /* Functions for the contended case */
 
-struct semaphore_waiter {
+struct semaphore_waiter
+{
 	struct list_head list;
 	struct task_struct *task;
 	bool up;
@@ -202,7 +237,7 @@ struct semaphore_waiter {
  * 'timeout' parameter for the cases without timeouts.
  */
 static inline int __sched __down_common(struct semaphore *sem, long state,
-								long timeout)
+										long timeout)
 {
 	struct task_struct *task = current;
 	struct semaphore_waiter waiter;
@@ -211,24 +246,34 @@ static inline int __sched __down_common(struct semaphore *sem, long state,
 	waiter.task = task;
 	waiter.up = false;
 
-	for (;;) {
+	for (;;)
+	{
 		if (signal_pending_state(state, task))
+		{
 			goto interrupted;
+		}
+
 		if (unlikely(timeout <= 0))
+		{
 			goto timed_out;
+		}
+
 		__set_task_state(task, state);
 		raw_spin_unlock_irq(&sem->lock);
 		timeout = schedule_timeout(timeout);
 		raw_spin_lock_irq(&sem->lock);
+
 		if (waiter.up)
+		{
 			return 0;
+		}
 	}
 
- timed_out:
+timed_out:
 	list_del(&waiter.list);
 	return -ETIME;
 
- interrupted:
+interrupted:
 	list_del(&waiter.list);
 	return -EINTR;
 }
@@ -256,7 +301,7 @@ static noinline int __sched __down_timeout(struct semaphore *sem, long timeout)
 static noinline void __sched __up(struct semaphore *sem)
 {
 	struct semaphore_waiter *waiter = list_first_entry(&sem->wait_list,
-						struct semaphore_waiter, list);
+									  struct semaphore_waiter, list);
 	list_del(&waiter->list);
 	waiter->up = true;
 	wake_up_process(waiter->task);

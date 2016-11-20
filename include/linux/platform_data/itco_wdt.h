@@ -11,7 +11,8 @@
 #define ICH_RES_MEM_OFF		2
 #define ICH_RES_MEM_GCS_PMC	0
 
-struct itco_wdt_platform_data {
+struct itco_wdt_platform_data
+{
 	char name[32];
 	unsigned int version;
 };

@@ -41,10 +41,10 @@ struct slave;
 								 */
 
 #define BOND_TLB_REBALANCE_TICKS (BOND_TLB_REBALANCE_INTERVAL \
-				  * ALB_TIMER_TICKS_PER_SEC)
+								  * ALB_TIMER_TICKS_PER_SEC)
 
 #define BOND_ALB_LP_TICKS(bond) (BOND_ALB_LP_INTERVAL(bond) \
-			   * ALB_TIMER_TICKS_PER_SEC)
+								 * ALB_TIMER_TICKS_PER_SEC)
 
 #define TLB_HASH_TABLE_SIZE 256	/* The size of the clients hash table.
 				 * Note that this value MUST NOT be smaller
@@ -68,7 +68,8 @@ struct slave;
 #define RLB_PROMISC_TIMEOUT	(10*ALB_TIMER_TICKS_PER_SEC)
 
 
-struct tlb_client_info {
+struct tlb_client_info
+{
 	struct slave *tx_slave;	/* A pointer to slave used for transmiting
 				 * packets to a Client that the Hash function
 				 * gave this entry index.
@@ -107,7 +108,8 @@ struct tlb_client_info {
  * network. These are linked by the (src_next and src_prev members).
  * -------------------------------------------------------------------------
  */
-struct rlb_client_info {
+struct rlb_client_info
+{
 	__be32 ip_src;		/* the server IP address */
 	__be32 ip_dst;		/* the client IP address */
 	u8  mac_src[ETH_ALEN];	/* the server MAC address */
@@ -128,7 +130,8 @@ struct rlb_client_info {
 	unsigned short vlan_id;	/* VLAN tag associated with IP address */
 };
 
-struct tlb_slave_info {
+struct tlb_slave_info
+{
 	u32 head;	/* Index to the head of the bi-directional clients
 			 * hash table entries list. The entries in the list
 			 * are the entries that were assigned to use this
@@ -139,7 +142,8 @@ struct tlb_slave_info {
 			 */
 };
 
-struct alb_bond_info {
+struct alb_bond_info
+{
 	struct tlb_client_info	*tx_hashtbl; /* Dynamically allocated */
 	u32			unbalanced_load;
 	int			tx_rebalance_counter;

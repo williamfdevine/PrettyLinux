@@ -48,7 +48,8 @@
  *          will be set to all zero. This structure may be
  *          in the form of a circular buffer or bit array.
  */
-struct sctp_tsnmap {
+struct sctp_tsnmap
+{
 	/* This array counts the number of chunks with each TSN.
 	 * It points at one of the two buffers with which we will
 	 * ping-pong between.
@@ -91,13 +92,14 @@ struct sctp_tsnmap {
 	__be32 dup_tsns[SCTP_MAX_DUP_TSNS];
 };
 
-struct sctp_tsnmap_iter {
+struct sctp_tsnmap_iter
+{
 	__u32 start;
 };
 
 /* Initialize a block of memory as a tsnmap.  */
 struct sctp_tsnmap *sctp_tsnmap_init(struct sctp_tsnmap *, __u16 len,
-				     __u32 initial_tsn, gfp_t gfp);
+									 __u32 initial_tsn, gfp_t gfp);
 
 void sctp_tsnmap_free(struct sctp_tsnmap *map);
 
@@ -111,7 +113,7 @@ int sctp_tsnmap_check(const struct sctp_tsnmap *, __u32 tsn);
 
 /* Mark this TSN as seen.  */
 int sctp_tsnmap_mark(struct sctp_tsnmap *, __u32 tsn,
-		     struct sctp_transport *trans);
+					 struct sctp_transport *trans);
 
 /* Mark this TSN and all lower as seen. */
 void sctp_tsnmap_skip(struct sctp_tsnmap *map, __u32 tsn);
@@ -143,7 +145,7 @@ static inline __be32 *sctp_tsnmap_get_dups(struct sctp_tsnmap *map)
 
 /* How many gap ack blocks do we have recorded? */
 __u16 sctp_tsnmap_num_gabs(struct sctp_tsnmap *map,
-			   struct sctp_gap_ack_block *gabs);
+						   struct sctp_gap_ack_block *gabs);
 
 /* Refresh the count on pending data. */
 __u16 sctp_tsnmap_pending(struct sctp_tsnmap *map);
@@ -160,7 +162,9 @@ static inline int sctp_tsnmap_has_gap(const struct sctp_tsnmap *map)
 static inline void sctp_tsnmap_mark_dup(struct sctp_tsnmap *map, __u32 tsn)
 {
 	if (map->num_dup_tsns < SCTP_MAX_DUP_TSNS)
+	{
 		map->dup_tsns[map->num_dup_tsns++] = htonl(tsn);
+	}
 }
 
 /* Renege a TSN that was seen.  */

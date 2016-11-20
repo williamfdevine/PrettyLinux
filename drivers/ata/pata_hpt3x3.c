@@ -79,9 +79,13 @@ static void hpt3x3_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 	r2 &= ~(0x11 << dn);	/* Clear MWDMA and UDMA bits */
 
 	if (adev->dma_mode >= XFER_UDMA_0)
-		r2 |= (0x01 << dn);	/* Ultra mode */
+	{
+		r2 |= (0x01 << dn);    /* Ultra mode */
+	}
 	else
-		r2 |= (0x10 << dn);	/* MWDMA */
+	{
+		r2 |= (0x10 << dn);    /* MWDMA */
+	}
 
 	pci_write_config_dword(pdev, 0x44, r1);
 	pci_write_config_dword(pdev, 0x48, r2);
@@ -100,7 +104,7 @@ static void hpt3x3_freeze(struct ata_port *ap)
 	void __iomem *mmio = ap->ioaddr.bmdma_addr;
 
 	iowrite8(ioread8(mmio + ATA_DMA_CMD) & ~ ATA_DMA_START,
-			mmio + ATA_DMA_CMD);
+			 mmio + ATA_DMA_CMD);
 	ata_sff_dma_pause(ap);
 	ata_sff_freeze(ap);
 }
@@ -136,18 +140,20 @@ static int hpt3x3_atapi_dma(struct ata_queued_cmd *qc)
 
 #endif /* CONFIG_PATA_HPT3X3_DMA */
 
-static struct scsi_host_template hpt3x3_sht = {
+static struct scsi_host_template hpt3x3_sht =
+{
 	ATA_BMDMA_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations hpt3x3_port_ops = {
+static struct ata_port_operations hpt3x3_port_ops =
+{
 	.inherits	= &ata_bmdma_port_ops,
 	.cable_detect	= ata_cable_40wire,
 	.set_piomode	= hpt3x3_set_piomode,
 #if defined(CONFIG_PATA_HPT3X3_DMA)
 	.set_dmamode	= hpt3x3_set_dmamode,
 	.bmdma_setup	= hpt3x3_bmdma_setup,
-	.check_atapi_dma= hpt3x3_atapi_dma,
+	.check_atapi_dma = hpt3x3_atapi_dma,
 	.freeze		= hpt3x3_freeze,
 #endif
 
@@ -167,10 +173,15 @@ static void hpt3x3_init_chipset(struct pci_dev *dev)
 	pci_write_config_word(dev, 0x80, 0x00);
 	/* Check if it is a 343 or a 363. 363 has COMMAND_MEMORY set */
 	pci_read_config_word(dev, PCI_COMMAND, &cmd);
+
 	if (cmd & PCI_COMMAND_MEMORY)
+	{
 		pci_write_config_byte(dev, PCI_LATENCY_TIMER, 0xF0);
+	}
 	else
+	{
 		pci_write_config_byte(dev, PCI_LATENCY_TIMER, 0x20);
+	}
 }
 
 /**
@@ -184,7 +195,8 @@ static void hpt3x3_init_chipset(struct pci_dev *dev)
 
 static int hpt3x3_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 {
-	static const struct ata_port_info info = {
+	static const struct ata_port_info info =
+	{
 		.flags = ATA_FLAG_SLAVE_POSS,
 		.pio_mask = ATA_PIO4,
 #if defined(CONFIG_PATA_HPT3X3_DMA)
@@ -207,36 +219,58 @@ static int hpt3x3_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 	ata_print_version_once(&pdev->dev, DRV_VERSION);
 
 	host = ata_host_alloc_pinfo(&pdev->dev, ppi, 2);
+
 	if (!host)
+	{
 		return -ENOMEM;
+	}
+
 	/* acquire resources and fill host */
 	rc = pcim_enable_device(pdev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* Everything is relative to BAR4 if we set up this way */
 	rc = pcim_iomap_regions(pdev, 1 << 4, DRV_NAME);
+
 	if (rc == -EBUSY)
+	{
 		pcim_pin_device(pdev);
+	}
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	host->iomap = pcim_iomap_table(pdev);
 	rc = dma_set_mask(&pdev->dev, ATA_DMA_MASK);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	rc = dma_set_coherent_mask(&pdev->dev, ATA_DMA_MASK);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	base = host->iomap[4];	/* Bus mastering base */
 
-	for (i = 0; i < host->n_ports; i++) {
+	for (i = 0; i < host->n_ports; i++)
+	{
 		struct ata_port *ap = host->ports[i];
 		struct ata_ioports *ioaddr = &ap->ioaddr;
 
 		ioaddr->cmd_addr = base + offset_cmd[i];
 		ioaddr->altstatus_addr =
-		ioaddr->ctl_addr = base + offset_ctl[i];
+			ioaddr->ctl_addr = base + offset_ctl[i];
 		ioaddr->scr_addr = NULL;
 		ata_sff_std_ports(ioaddr);
 		ioaddr->bmdma_addr = base + 8 * i;
@@ -244,9 +278,10 @@ static int hpt3x3_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 		ata_port_pbar_desc(ap, 4, -1, "ioport");
 		ata_port_pbar_desc(ap, 4, offset_cmd[i], "cmd");
 	}
+
 	pci_set_master(pdev);
 	return ata_host_activate(host, pdev->irq, ata_bmdma_interrupt,
-				 IRQF_SHARED, &hpt3x3_sht);
+							 IRQF_SHARED, &hpt3x3_sht);
 }
 
 #ifdef CONFIG_PM_SLEEP
@@ -256,8 +291,11 @@ static int hpt3x3_reinit_one(struct pci_dev *dev)
 	int rc;
 
 	rc = ata_pci_device_do_resume(dev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	hpt3x3_init_chipset(dev);
 
@@ -266,13 +304,15 @@ static int hpt3x3_reinit_one(struct pci_dev *dev)
 }
 #endif
 
-static const struct pci_device_id hpt3x3[] = {
+static const struct pci_device_id hpt3x3[] =
+{
 	{ PCI_VDEVICE(TTI, PCI_DEVICE_ID_TTI_HPT343), },
 
 	{ },
 };
 
-static struct pci_driver hpt3x3_pci_driver = {
+static struct pci_driver hpt3x3_pci_driver =
+{
 	.name 		= DRV_NAME,
 	.id_table	= hpt3x3,
 	.probe 		= hpt3x3_init_one,

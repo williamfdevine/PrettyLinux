@@ -6,7 +6,8 @@
 
 /* platform data for the DS620 temperature sensor and thermostat */
 
-struct ds620_platform_data {
+struct ds620_platform_data
+{
 	/*
 	 *  Thermostat output pin PO mode:
 	 *  0 = always low (default)

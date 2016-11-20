@@ -83,7 +83,7 @@ static void auok1900_init(struct auok190xfb_par *par)
 }
 
 static void auok1900_update_region(struct auok190xfb_par *par, int mode,
-						u16 y1, u16 y2)
+								   u16 y1, u16 y2)
 {
 	struct device *dev = par->info->device;
 	unsigned char *buf = (unsigned char *)par->info->screen_base;
@@ -100,7 +100,7 @@ static void auok1900_update_region(struct auok190xfb_par *par, int mode,
 	y2 &= 0xfffe;
 
 	dev_dbg(dev, "update (x,y,w,h,mode)=(%d,%d,%d,%d,%d)\n",
-		1, y1+1, xres, y2-y1, mode);
+			1, y1 + 1, xres, y2 - y1, mode);
 
 	/* to FIX handle different partial update modes */
 	args[0] = mode | 1;
@@ -109,7 +109,7 @@ static void auok1900_update_region(struct auok190xfb_par *par, int mode,
 	args[3] = y2 - y1;
 	buf += y1 * line_length;
 	auok190x_send_cmdargs_pixels(par, AUOK1900_CMD_PARTIALDISP, 4, args,
-				     ((y2 - y1) * line_length)/2, (u16 *) buf);
+								 ((y2 - y1) * line_length) / 2, (u16 *) buf);
 	auok190x_send_command(par, AUOK190X_CMD_DATA_STOP);
 
 	par->update_cnt++;
@@ -121,20 +121,25 @@ static void auok1900_update_region(struct auok190xfb_par *par, int mode,
 }
 
 static void auok1900fb_dpy_update_pages(struct auok190xfb_par *par,
-						u16 y1, u16 y2)
+										u16 y1, u16 y2)
 {
 	int mode;
 
-	if (par->update_mode < 0) {
+	if (par->update_mode < 0)
+	{
 		mode = AUOK190X_UPDATE_MODE(1);
 		par->last_mode = -1;
-	} else {
+	}
+	else
+	{
 		mode = AUOK190X_UPDATE_MODE(par->update_mode);
 		par->last_mode = par->update_mode;
 	}
 
 	if (par->flash)
+	{
 		mode |= AUOK190X_UPDATE_NONFLASH;
+	}
 
 	auok1900_update_region(par, mode, y1, y2);
 }
@@ -143,16 +148,21 @@ static void auok1900fb_dpy_update(struct auok190xfb_par *par)
 {
 	int mode;
 
-	if (par->update_mode < 0) {
+	if (par->update_mode < 0)
+	{
 		mode = AUOK190X_UPDATE_MODE(0);
 		par->last_mode = -1;
-	} else {
+	}
+	else
+	{
 		mode = AUOK190X_UPDATE_MODE(par->update_mode);
 		par->last_mode = par->update_mode;
 	}
 
 	if (par->flash)
+	{
 		mode |= AUOK190X_UPDATE_NONFLASH;
+	}
 
 	auok1900_update_region(par, mode, 0, par->info->var.yres);
 	par->update_cnt = 0;
@@ -170,8 +180,11 @@ static int auok1900fb_probe(struct platform_device *pdev)
 
 	/* pick up board specific routines */
 	board = pdev->dev.platform_data;
+
 	if (!board)
+	{
 		return -EINVAL;
+	}
 
 	/* fill temporary init struct for common init */
 	init.id = "auo_k1900fb";
@@ -189,7 +202,8 @@ static int auok1900fb_remove(struct platform_device *pdev)
 	return auok190x_common_remove(pdev);
 }
 
-static struct platform_driver auok1900fb_driver = {
+static struct platform_driver auok1900fb_driver =
+{
 	.probe	= auok1900fb_probe,
 	.remove = auok1900fb_remove,
 	.driver	= {

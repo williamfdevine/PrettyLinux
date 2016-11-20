@@ -20,13 +20,15 @@
 
 #define PSR_FLUSH_TIMEOUT	msecs_to_jiffies(100)
 
-enum psr_state {
+enum psr_state
+{
 	PSR_FLUSH,
 	PSR_ENABLE,
 	PSR_DISABLE,
 };
 
-struct psr_drv {
+struct psr_drv
+{
 	struct list_head	list;
 	struct drm_encoder	*encoder;
 
@@ -46,9 +48,12 @@ static struct psr_drv *find_psr_by_crtc(struct drm_crtc *crtc)
 	unsigned long flags;
 
 	spin_lock_irqsave(&drm_drv->psr_list_lock, flags);
-	list_for_each_entry(psr, &drm_drv->psr_list, list) {
+	list_for_each_entry(psr, &drm_drv->psr_list, list)
+	{
 		if (psr->encoder->crtc == crtc)
+		{
 			goto out;
+		}
 	}
 	psr = ERR_PTR(-ENODEV);
 
@@ -69,10 +74,13 @@ static void psr_set_state_locked(struct psr_drv *psr, enum psr_state state)
 	 *   PSR_DISABLE < - - - - - - - - -
 	 */
 	if (state == psr->state || !psr->active)
+	{
 		return;
+	}
 
 	/* Already disabled in flush, change the state, but not the hardware */
-	if (state == PSR_DISABLE && psr->state == PSR_FLUSH) {
+	if (state == PSR_DISABLE && psr->state == PSR_FLUSH)
+	{
 		psr->state = state;
 		return;
 	}
@@ -80,15 +88,16 @@ static void psr_set_state_locked(struct psr_drv *psr, enum psr_state state)
 	psr->state = state;
 
 	/* Actually commit the state change to hardware */
-	switch (psr->state) {
-	case PSR_ENABLE:
-		psr->set(psr->encoder, true);
-		break;
+	switch (psr->state)
+	{
+		case PSR_ENABLE:
+			psr->set(psr->encoder, true);
+			break;
 
-	case PSR_DISABLE:
-	case PSR_FLUSH:
-		psr->set(psr->encoder, false);
-		break;
+		case PSR_DISABLE:
+		case PSR_FLUSH:
+			psr->set(psr->encoder, false);
+			break;
 	}
 }
 
@@ -108,8 +117,12 @@ static void psr_flush_handler(unsigned long data)
 
 	/* If the state has changed since we initiated the flush, do nothing */
 	spin_lock_irqsave(&psr->lock, flags);
+
 	if (psr->state == PSR_FLUSH)
+	{
 		psr_set_state_locked(psr, PSR_ENABLE);
+	}
+
 	spin_unlock_irqrestore(&psr->lock, flags);
 }
 
@@ -126,7 +139,9 @@ int rockchip_drm_psr_activate(struct drm_crtc *crtc)
 	unsigned long flags;
 
 	if (IS_ERR(psr))
+	{
 		return PTR_ERR(psr);
+	}
 
 	spin_lock_irqsave(&psr->lock, flags);
 	psr->active = true;
@@ -149,7 +164,9 @@ int rockchip_drm_psr_deactivate(struct drm_crtc *crtc)
 	unsigned long flags;
 
 	if (IS_ERR(psr))
+	{
 		return PTR_ERR(psr);
+	}
 
 	spin_lock_irqsave(&psr->lock, flags);
 	psr->active = false;
@@ -163,7 +180,7 @@ EXPORT_SYMBOL(rockchip_drm_psr_deactivate);
 static void rockchip_drm_do_flush(struct psr_drv *psr)
 {
 	mod_timer(&psr->flush_timer,
-		  round_jiffies_up(jiffies + PSR_FLUSH_TIMEOUT));
+			  round_jiffies_up(jiffies + PSR_FLUSH_TIMEOUT));
 	psr_set_state(psr, PSR_FLUSH);
 }
 
@@ -177,8 +194,11 @@ static void rockchip_drm_do_flush(struct psr_drv *psr)
 int rockchip_drm_psr_flush(struct drm_crtc *crtc)
 {
 	struct psr_drv *psr = find_psr_by_crtc(crtc);
+
 	if (IS_ERR(psr))
+	{
 		return PTR_ERR(psr);
+	}
 
 	rockchip_drm_do_flush(psr);
 	return 0;
@@ -205,7 +225,7 @@ void rockchip_drm_psr_flush_all(struct drm_device *dev)
 
 	spin_lock_irqsave(&drm_drv->psr_list_lock, flags);
 	list_for_each_entry(psr, &drm_drv->psr_list, list)
-		rockchip_drm_do_flush(psr);
+	rockchip_drm_do_flush(psr);
 	spin_unlock_irqrestore(&drm_drv->psr_list_lock, flags);
 }
 EXPORT_SYMBOL(rockchip_drm_psr_flush_all);
@@ -219,18 +239,23 @@ EXPORT_SYMBOL(rockchip_drm_psr_flush_all);
  * Zero on success, negative errno on failure.
  */
 int rockchip_drm_psr_register(struct drm_encoder *encoder,
-			void (*psr_set)(struct drm_encoder *, bool enable))
+							  void (*psr_set)(struct drm_encoder *, bool enable))
 {
 	struct rockchip_drm_private *drm_drv = encoder->dev->dev_private;
 	struct psr_drv *psr;
 	unsigned long flags;
 
 	if (!encoder || !psr_set)
+	{
 		return -EINVAL;
+	}
 
 	psr = kzalloc(sizeof(struct psr_drv), GFP_KERNEL);
+
 	if (!psr)
+	{
 		return -ENOMEM;
+	}
 
 	setup_timer(&psr->flush_timer, psr_flush_handler, (unsigned long)psr);
 	spin_lock_init(&psr->lock);
@@ -263,8 +288,10 @@ void rockchip_drm_psr_unregister(struct drm_encoder *encoder)
 	unsigned long flags;
 
 	spin_lock_irqsave(&drm_drv->psr_list_lock, flags);
-	list_for_each_entry_safe(psr, n, &drm_drv->psr_list, list) {
-		if (psr->encoder == encoder) {
+	list_for_each_entry_safe(psr, n, &drm_drv->psr_list, list)
+	{
+		if (psr->encoder == encoder)
+		{
 			del_timer(&psr->flush_timer);
 			list_del(&psr->list);
 			kfree(psr);

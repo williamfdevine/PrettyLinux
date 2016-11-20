@@ -16,7 +16,8 @@ void ui_progress__update(struct ui_progress *p, u64 adv)
 {
 	p->curr += adv;
 
-	if (p->curr >= p->next) {
+	if (p->curr >= p->next)
+	{
 		p->next += p->step;
 		ui_progress__ops->update(p);
 	}
@@ -34,5 +35,7 @@ void ui_progress__init(struct ui_progress *p, u64 total, const char *title)
 void ui_progress__finish(void)
 {
 	if (ui_progress__ops->finish)
+	{
 		ui_progress__ops->finish();
+	}
 }

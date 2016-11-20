@@ -44,16 +44,18 @@
 struct armada_thermal_data;
 
 /* Marvell EBU Thermal Sensor Dev Structure */
-struct armada_thermal_priv {
+struct armada_thermal_priv
+{
 	void __iomem *sensor;
 	void __iomem *control;
 	struct armada_thermal_data *data;
 };
 
-struct armada_thermal_data {
+struct armada_thermal_data
+{
 	/* Initialize the sensor */
 	void (*init_sensor)(struct platform_device *pdev,
-			    struct armada_thermal_priv *);
+						struct armada_thermal_priv *);
 
 	/* Test for a valid sensor value (optional) */
 	bool (*is_valid)(struct armada_thermal_priv *);
@@ -71,7 +73,7 @@ struct armada_thermal_data {
 };
 
 static void armadaxp_init_sensor(struct platform_device *pdev,
-				 struct armada_thermal_priv *priv)
+								 struct armada_thermal_priv *priv)
 {
 	unsigned long reg;
 
@@ -97,7 +99,7 @@ static void armadaxp_init_sensor(struct platform_device *pdev,
 }
 
 static void armada370_init_sensor(struct platform_device *pdev,
-				  struct armada_thermal_priv *priv)
+								  struct armada_thermal_priv *priv)
 {
 	unsigned long reg;
 
@@ -117,7 +119,7 @@ static void armada370_init_sensor(struct platform_device *pdev,
 }
 
 static void armada375_init_sensor(struct platform_device *pdev,
-				  struct armada_thermal_priv *priv)
+								  struct armada_thermal_priv *priv)
 {
 	unsigned long reg;
 
@@ -135,12 +137,13 @@ static void armada375_init_sensor(struct platform_device *pdev,
 }
 
 static void armada380_init_sensor(struct platform_device *pdev,
-				  struct armada_thermal_priv *priv)
+								  struct armada_thermal_priv *priv)
 {
 	unsigned long reg = readl_relaxed(priv->control);
 
 	/* Reset hardware once */
-	if (!(reg & A380_HW_RESET)) {
+	if (!(reg & A380_HW_RESET))
+	{
 		reg |= A380_HW_RESET;
 		writel(reg, priv->control);
 		mdelay(10);
@@ -155,16 +158,17 @@ static bool armada_is_valid(struct armada_thermal_priv *priv)
 }
 
 static int armada_get_temp(struct thermal_zone_device *thermal,
-			  int *temp)
+						   int *temp)
 {
 	struct armada_thermal_priv *priv = thermal->devdata;
 	unsigned long reg;
 	unsigned long m, b, div;
 
 	/* Valid check */
-	if (priv->data->is_valid && !priv->data->is_valid(priv)) {
+	if (priv->data->is_valid && !priv->data->is_valid(priv))
+	{
 		dev_err(&thermal->device,
-			"Temperature sensor reading not valid\n");
+				"Temperature sensor reading not valid\n");
 		return -EIO;
 	}
 
@@ -177,17 +181,24 @@ static int armada_get_temp(struct thermal_zone_device *thermal,
 	div = priv->data->coef_div;
 
 	if (priv->data->inverted)
+	{
 		*temp = ((m * reg) - b) / div;
+	}
 	else
+	{
 		*temp = (b - (m * reg)) / div;
+	}
+
 	return 0;
 }
 
-static struct thermal_zone_device_ops ops = {
+static struct thermal_zone_device_ops ops =
+{
 	.get_temp = armada_get_temp,
 };
 
-static const struct armada_thermal_data armadaxp_data = {
+static const struct armada_thermal_data armadaxp_data =
+{
 	.init_sensor = armadaxp_init_sensor,
 	.temp_shift = 10,
 	.temp_mask = 0x1ff,
@@ -196,7 +207,8 @@ static const struct armada_thermal_data armadaxp_data = {
 	.coef_div = 13825,
 };
 
-static const struct armada_thermal_data armada370_data = {
+static const struct armada_thermal_data armada370_data =
+{
 	.is_valid = armada_is_valid,
 	.init_sensor = armada370_init_sensor,
 	.is_valid_shift = 9,
@@ -207,7 +219,8 @@ static const struct armada_thermal_data armada370_data = {
 	.coef_div = 13825,
 };
 
-static const struct armada_thermal_data armada375_data = {
+static const struct armada_thermal_data armada375_data =
+{
 	.is_valid = armada_is_valid,
 	.init_sensor = armada375_init_sensor,
 	.is_valid_shift = 10,
@@ -218,7 +231,8 @@ static const struct armada_thermal_data armada375_data = {
 	.coef_div = 13616,
 };
 
-static const struct armada_thermal_data armada380_data = {
+static const struct armada_thermal_data armada380_data =
+{
 	.is_valid = armada_is_valid,
 	.init_sensor = armada380_init_sensor,
 	.is_valid_shift = 10,
@@ -230,7 +244,8 @@ static const struct armada_thermal_data armada380_data = {
 	.inverted = true,
 };
 
-static const struct of_device_id armada_thermal_id_table[] = {
+static const struct of_device_id armada_thermal_id_table[] =
+{
 	{
 		.compatible = "marvell,armadaxp-thermal",
 		.data       = &armadaxp_data,
@@ -261,31 +276,45 @@ static int armada_thermal_probe(struct platform_device *pdev)
 	struct resource *res;
 
 	match = of_match_device(armada_thermal_id_table, &pdev->dev);
+
 	if (!match)
+	{
 		return -ENODEV;
+	}
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->sensor = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(priv->sensor))
+	{
 		return PTR_ERR(priv->sensor);
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 	priv->control = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(priv->control))
+	{
 		return PTR_ERR(priv->control);
+	}
 
 	priv->data = (struct armada_thermal_data *)match->data;
 	priv->data->init_sensor(pdev, priv);
 
 	thermal = thermal_zone_device_register("armada_thermal", 0, 0,
-					       priv, &ops, NULL, 0, 0);
-	if (IS_ERR(thermal)) {
+										   priv, &ops, NULL, 0, 0);
+
+	if (IS_ERR(thermal))
+	{
 		dev_err(&pdev->dev,
-			"Failed to register thermal zone device\n");
+				"Failed to register thermal zone device\n");
 		return PTR_ERR(thermal);
 	}
 
@@ -304,7 +333,8 @@ static int armada_thermal_exit(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver armada_thermal_driver = {
+static struct platform_driver armada_thermal_driver =
+{
 	.probe = armada_thermal_probe,
 	.remove = armada_thermal_exit,
 	.driver = {

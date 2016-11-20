@@ -142,7 +142,8 @@
 #define ADP5520_GPIO_R1		(1 << 1)
 #define ADP5520_GPIO_R0		(1 << 0)
 
-struct adp5520_gpio_platform_data {
+struct adp5520_gpio_platform_data
+{
 	unsigned gpio_start;
 	u8 gpio_en_mask;
 	u8 gpio_pullup_mask;
@@ -166,12 +167,13 @@ struct adp5520_gpio_platform_data {
 #define ADP5520_KEY(row, col) (col + row * 4)
 #define ADP5520_KEYMAPSIZE	ADP5520_MAXKEYS
 
-struct adp5520_keys_platform_data {
+struct adp5520_keys_platform_data
+{
 	int rows_en_mask;		/* Number of rows */
 	int cols_en_mask;		/* Number of columns */
 	const unsigned short *keymap;	/* Pointer to keymap */
 	unsigned short keymapsize;	/* Keymap size */
-	unsigned repeat:1;		/* Enable key repeat */
+	unsigned repeat: 1;		/* Enable key repeat */
 };
 
 
@@ -193,7 +195,8 @@ struct adp5520_keys_platform_data {
 #define ADP5520_LED_ONT_800ms	2
 #define ADP5520_LED_ONT_1200ms	3
 
-struct adp5520_leds_platform_data {
+struct adp5520_leds_platform_data
+{
 	int num_leds;
 	struct led_info	*leds;
 	u8 fade_in;		/* Backlight Fade-In Timer */
@@ -236,22 +239,23 @@ struct adp5520_leds_platform_data {
 #define ADP5520_BL_AMBL_FILT_5120ms 	6
 #define ADP5520_BL_AMBL_FILT_10240ms 	7	/* 10.24 sec */
 
-	/*
-	 * Blacklight current 0..30mA
-	 */
+/*
+ * Blacklight current 0..30mA
+ */
 #define ADP5520_BL_CUR_mA(I)		((I * 127) / 30)
 
-	/*
-	 * L2 comparator current 0..1000uA
-	 */
+/*
+ * L2 comparator current 0..1000uA
+ */
 #define ADP5520_L2_COMP_CURR_uA(I)	((I * 255) / 1000)
 
-	/*
-	 * L3 comparator current 0..127uA
-	 */
+/*
+ * L3 comparator current 0..127uA
+ */
 #define ADP5520_L3_COMP_CURR_uA(I)	((I * 255) / 127)
 
-struct adp5520_backlight_platform_data {
+struct adp5520_backlight_platform_data
+{
 	u8 fade_in;		/* Backlight Fade-In Timer */
 	u8 fade_out;		/* Backlight Fade-Out Timer */
 	u8 fade_led_law;	/* fade-on/fade-off transfer characteristic */
@@ -274,7 +278,8 @@ struct adp5520_backlight_platform_data {
  * MFD chip platform data
  */
 
-struct adp5520_platform_data {
+struct adp5520_platform_data
+{
 	struct adp5520_keys_platform_data *keys;
 	struct adp5520_gpio_platform_data *gpio;
 	struct adp5520_leds_platform_data *leds;
@@ -291,9 +296,9 @@ extern int adp5520_clr_bits(struct device *dev, int reg, uint8_t bit_mask);
 extern int adp5520_set_bits(struct device *dev, int reg, uint8_t bit_mask);
 
 extern int adp5520_register_notifier(struct device *dev,
-		 struct notifier_block *nb, unsigned int events);
+									 struct notifier_block *nb, unsigned int events);
 
 extern int adp5520_unregister_notifier(struct device *dev,
-		struct notifier_block *nb, unsigned int events);
+									   struct notifier_block *nb, unsigned int events);
 
 #endif /* __LINUX_MFD_ADP5520_H */

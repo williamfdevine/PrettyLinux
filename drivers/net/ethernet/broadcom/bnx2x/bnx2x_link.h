@@ -71,12 +71,12 @@
 #define PWR_FLT_ERR_MSG_LEN			250
 
 #define XGXS_EXT_PHY_TYPE(ext_phy_config) \
-		((ext_phy_config) & PORT_HW_CFG_XGXS_EXT_PHY_TYPE_MASK)
+	((ext_phy_config) & PORT_HW_CFG_XGXS_EXT_PHY_TYPE_MASK)
 #define XGXS_EXT_PHY_ADDR(ext_phy_config) \
-		(((ext_phy_config) & PORT_HW_CFG_XGXS_EXT_PHY_ADDR_MASK) >> \
-		 PORT_HW_CFG_XGXS_EXT_PHY_ADDR_SHIFT)
+	(((ext_phy_config) & PORT_HW_CFG_XGXS_EXT_PHY_ADDR_MASK) >> \
+	 PORT_HW_CFG_XGXS_EXT_PHY_ADDR_SHIFT)
 #define SERDES_EXT_PHY_TYPE(ext_phy_config) \
-		((ext_phy_config) & PORT_HW_CFG_SERDES_EXT_PHY_TYPE_MASK)
+	((ext_phy_config) & PORT_HW_CFG_SERDES_EXT_PHY_TYPE_MASK)
 
 /* Single Media Direct board is the plain 577xx board with CX4/RJ45 jacks */
 #define SINGLE_MEDIA_DIRECT(params)	(params->num_phys == 1)
@@ -90,12 +90,12 @@
 #define FW_PARAM_MDIO_CTRL_MASK		0xFFFF0000
 #define FW_PARAM_MDIO_CTRL_OFFSET		16
 #define FW_PARAM_PHY_ADDR(fw_param) (fw_param & \
-					   FW_PARAM_PHY_ADDR_MASK)
+									 FW_PARAM_PHY_ADDR_MASK)
 #define FW_PARAM_PHY_TYPE(fw_param) (fw_param & \
-					   FW_PARAM_PHY_TYPE_MASK)
+									 FW_PARAM_PHY_TYPE_MASK)
 #define FW_PARAM_MDIO_CTRL(fw_param) ((fw_param & \
-					    FW_PARAM_MDIO_CTRL_MASK) >> \
-					    FW_PARAM_MDIO_CTRL_OFFSET)
+									   FW_PARAM_MDIO_CTRL_MASK) >> \
+									  FW_PARAM_MDIO_CTRL_OFFSET)
 #define FW_PARAM_SET(phy_addr, phy_type, mdio_access) \
 	(phy_addr | phy_type | mdio_access << FW_PARAM_MDIO_CTRL_OFFSET)
 
@@ -117,7 +117,7 @@
 /* Same configuration is shared between the XGXS and the first external phy */
 #define LINK_CONFIG_SIZE (MAX_PHYS - 1)
 #define LINK_CONFIG_IDX(_phy_idx) ((_phy_idx == INT_PHY) ? \
-					 0 : (_phy_idx - 1))
+								   0 : (_phy_idx - 1))
 /***********************************************************/
 /*                      bnx2x_phy struct                     */
 /*  Defines the required arguments and function per phy    */
@@ -127,26 +127,28 @@ struct link_params;
 struct bnx2x_phy;
 
 typedef u8 (*config_init_t)(struct bnx2x_phy *phy, struct link_params *params,
-			    struct link_vars *vars);
+							struct link_vars *vars);
 typedef u8 (*read_status_t)(struct bnx2x_phy *phy, struct link_params *params,
-			    struct link_vars *vars);
+							struct link_vars *vars);
 typedef void (*link_reset_t)(struct bnx2x_phy *phy,
-			     struct link_params *params);
+							 struct link_params *params);
 typedef void (*config_loopback_t)(struct bnx2x_phy *phy,
-				  struct link_params *params);
+								  struct link_params *params);
 typedef u8 (*format_fw_ver_t)(u32 raw, u8 *str, u16 *len);
 typedef void (*hw_reset_t)(struct bnx2x_phy *phy, struct link_params *params);
 typedef void (*set_link_led_t)(struct bnx2x_phy *phy,
-			       struct link_params *params, u8 mode);
+							   struct link_params *params, u8 mode);
 typedef void (*phy_specific_func_t)(struct bnx2x_phy *phy,
-				    struct link_params *params, u32 action);
-struct bnx2x_reg_set {
+									struct link_params *params, u32 action);
+struct bnx2x_reg_set
+{
 	u8  devad;
 	u16 reg;
 	u16 val;
 };
 
-struct bnx2x_phy {
+struct bnx2x_phy
+{
 	u32 type;
 
 	/* Loaded during init */
@@ -233,7 +235,8 @@ struct bnx2x_phy {
 };
 
 /* Inputs parameters to the CLC */
-struct link_params {
+struct link_params
+{
 
 	u8 port;
 
@@ -331,7 +334,8 @@ struct link_params {
 };
 
 /* Output parameters */
-struct link_vars {
+struct link_vars
+{
 	u8 phy_flags;
 #define PHY_XGXS_FLAG			(1<<0)
 #define PHY_SGMII_FLAG			(1<<1)
@@ -380,7 +384,7 @@ int bnx2x_phy_init(struct link_params *params, struct link_vars *vars);
    Before calling phy firmware upgrade, the reset_ext_phy should be set
    to 0 */
 int bnx2x_link_reset(struct link_params *params, struct link_vars *vars,
-		     u8 reset_ext_phy);
+					 u8 reset_ext_phy);
 int bnx2x_lfa_reset(struct link_params *params, struct link_vars *vars);
 /* bnx2x_link_update should be called upon link interrupt */
 int bnx2x_link_update(struct link_params *params, struct link_vars *vars);
@@ -390,25 +394,25 @@ int bnx2x_link_update(struct link_params *params, struct link_vars *vars);
   DEFAULT_PHY_DEV_ADDR as devad, and (_bank + (_addr & 0xf)) as
   the register */
 int bnx2x_phy_read(struct link_params *params, u8 phy_addr,
-		   u8 devad, u16 reg, u16 *ret_val);
+				   u8 devad, u16 reg, u16 *ret_val);
 
 int bnx2x_phy_write(struct link_params *params, u8 phy_addr,
-		    u8 devad, u16 reg, u16 val);
+					u8 devad, u16 reg, u16 val);
 
 /* Reads the link_status from the shmem,
    and update the link vars accordingly */
 void bnx2x_link_status_update(struct link_params *input,
-			    struct link_vars *output);
+							  struct link_vars *output);
 /* returns string representing the fw_version of the external phy */
 int bnx2x_get_ext_phy_fw_version(struct link_params *params, u8 *version,
-				 u16 len);
+								 u16 len);
 
 /* Set/Unset the led
    Basically, the CLC takes care of the led for the link, but in case one needs
    to set/unset the led unnaturally, set the "mode" to LED_MODE_OPER to
    blink the led, and LED_MODE_OFF to set the led off.*/
 int bnx2x_set_led(struct link_params *params,
-		  struct link_vars *vars, u8 mode, u32 speed);
+				  struct link_vars *vars, u8 mode, u32 speed);
 #define LED_MODE_OFF			0
 #define LED_MODE_ON			1
 #define LED_MODE_OPER			2
@@ -421,11 +425,11 @@ void bnx2x_handle_module_detect_int(struct link_params *params);
 /* Get the actual link status. In case it returns 0, link is up,
 	otherwise link is down*/
 int bnx2x_test_link(struct link_params *params, struct link_vars *vars,
-		    u8 is_serdes);
+					u8 is_serdes);
 
 /* One-time initialization for external phy after power up */
 int bnx2x_common_init_phy(struct bnx2x *bp, u32 shmem_base_path[],
-			  u32 shmem2_base_path[], u32 chip_id);
+						  u32 shmem2_base_path[], u32 chip_id);
 
 /* Reset the external PHY using GPIO */
 void bnx2x_ext_phy_hw_reset(struct bnx2x *bp, u8 port);
@@ -435,8 +439,8 @@ void bnx2x_sfx7101_sp_sw_reset(struct bnx2x *bp, struct bnx2x_phy *phy);
 
 /* Read "byte_cnt" bytes from address "addr" from the SFP+ EEPROM */
 int bnx2x_read_sfp_module_eeprom(struct bnx2x_phy *phy,
-				 struct link_params *params, u8 dev_addr,
-				 u16 addr, u16 byte_cnt, u8 *o_buf);
+								 struct link_params *params, u8 dev_addr,
+								 u16 addr, u16 byte_cnt, u8 *o_buf);
 
 void bnx2x_hw_reset_phy(struct link_params *params);
 
@@ -448,7 +452,7 @@ int bnx2x_phy_probe(struct link_params *params);
 
 /* Checks if fan failure detection is required on one of the phys on board */
 u8 bnx2x_fan_failure_det_req(struct bnx2x *bp, u32 shmem_base,
-			     u32 shmem2_base, u8 port);
+							 u32 shmem2_base, u8 port);
 
 /* Open / close the gate between the NIG and the BRB */
 void bnx2x_set_rx_filter(struct link_params *params, u8 en);
@@ -460,15 +464,16 @@ void bnx2x_set_rx_filter(struct link_params *params, u8 en);
 #define DCBX_E3B0_MAX_NUM_COS_PORT0	(6)
 #define DCBX_E3B0_MAX_NUM_COS_PORT1	(3)
 #define DCBX_E3B0_MAX_NUM_COS		( \
-			MAXVAL(DCBX_E3B0_MAX_NUM_COS_PORT0, \
-			    DCBX_E3B0_MAX_NUM_COS_PORT1))
+									  MAXVAL(DCBX_E3B0_MAX_NUM_COS_PORT0, \
+											  DCBX_E3B0_MAX_NUM_COS_PORT1))
 
 #define DCBX_MAX_NUM_COS			( \
-			MAXVAL(DCBX_E3B0_MAX_NUM_COS, \
-			    DCBX_E2E3_MAX_NUM_COS))
+									  MAXVAL(DCBX_E3B0_MAX_NUM_COS, \
+											  DCBX_E2E3_MAX_NUM_COS))
 
 /* PFC port configuration params */
-struct bnx2x_nig_brb_pfc_port_params {
+struct bnx2x_nig_brb_pfc_port_params
+{
 	/* NIG */
 	u32 pause_enable;
 	u32 llfc_out_en;
@@ -482,11 +487,13 @@ struct bnx2x_nig_brb_pfc_port_params {
 
 
 /* ETS port configuration params */
-struct bnx2x_ets_bw_params {
+struct bnx2x_ets_bw_params
+{
 	u8 bw;
 };
 
-struct bnx2x_ets_sp_params {
+struct bnx2x_ets_sp_params
+{
 	/**
 	 * valid values are 0 - 5. 0 is highest strict priority.
 	 * There can't be two COS's with the same pri.
@@ -494,20 +501,24 @@ struct bnx2x_ets_sp_params {
 	u8 pri;
 };
 
-enum bnx2x_cos_state {
+enum bnx2x_cos_state
+{
 	bnx2x_cos_state_strict = 0,
 	bnx2x_cos_state_bw = 1,
 };
 
-struct bnx2x_ets_cos_params {
+struct bnx2x_ets_cos_params
+{
 	enum bnx2x_cos_state state ;
-	union {
+	union
+	{
 		struct bnx2x_ets_bw_params bw_params;
 		struct bnx2x_ets_sp_params sp_params;
 	} params;
 };
 
-struct bnx2x_ets_params {
+struct bnx2x_ets_params
+{
 	u8 num_of_cos; /* Number of valid COS entries*/
 	struct bnx2x_ets_cos_params cos[DCBX_MAX_NUM_COS];
 };
@@ -516,17 +527,17 @@ struct bnx2x_ets_params {
  * when link is already up
  */
 int bnx2x_update_pfc(struct link_params *params,
-		      struct link_vars *vars,
-		      struct bnx2x_nig_brb_pfc_port_params *pfc_params);
+					 struct link_vars *vars,
+					 struct bnx2x_nig_brb_pfc_port_params *pfc_params);
 
 
 /* Used to configure the ETS to disable */
 int bnx2x_ets_disabled(struct link_params *params,
-		       struct link_vars *vars);
+					   struct link_vars *vars);
 
 /* Used to configure the ETS to BW limited */
 void bnx2x_ets_bw_limit(const struct link_params *params, const u32 cos0_bw,
-			const u32 cos1_bw);
+						const u32 cos1_bw);
 
 /* Used to configure the ETS to strict */
 int bnx2x_ets_strict(const struct link_params *params, const u8 strict_cos);
@@ -534,12 +545,12 @@ int bnx2x_ets_strict(const struct link_params *params, const u8 strict_cos);
 
 /*  Configure the COS to ETS according to BW and SP settings.*/
 int bnx2x_ets_e3b0_config(const struct link_params *params,
-			 const struct link_vars *vars,
-			 struct bnx2x_ets_params *ets_params);
+						  const struct link_vars *vars,
+						  struct bnx2x_ets_params *ets_params);
 
 void bnx2x_init_mod_abs_int(struct bnx2x *bp, struct link_vars *vars,
-			    u32 chip_id, u32 shmem_base, u32 shmem2_base,
-			    u8 port);
+							u32 chip_id, u32 shmem_base, u32 shmem2_base,
+							u8 port);
 
 void bnx2x_period_func(struct link_params *params, struct link_vars *vars);
 

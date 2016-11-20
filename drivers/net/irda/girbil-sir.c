@@ -10,12 +10,12 @@
  * Modified by:   Dag Brattli <dagb@cs.uit.no>
  *
  *     Copyright (c) 1999 Dag Brattli, All Rights Reserved.
- *     
+ *
  *     This program is free software; you can redistribute it and/or
  *     modify it under the terms of the GNU General Public License as
  *     published by the Free Software Foundation; either version 2 of
  *     the License, or (at your option) any later version.
- * 
+ *
  *     Neither Dag Brattli nor University of Tromsø admit liability nor
  *     provide warranty for any of this software. This material is
  *     provided "AS-IS" and at no charge.
@@ -62,7 +62,8 @@ static int girbil_change_speed(struct sir_dev *dev, unsigned speed);
 /* Control register 2 (0x5) */
 #define GIRBIL_LOAD    0x51 /* Load the new baud rate value */
 
-static struct dongle_driver girbil = {
+static struct dongle_driver girbil =
+{
 	.owner		= THIS_MODULE,
 	.driver_name	= "Greenwich GIrBIL",
 	.type		= IRDA_GIRBIL_DONGLE,
@@ -89,7 +90,7 @@ static int girbil_open(struct sir_dev *dev)
 	/* Power on dongle */
 	sirdev_set_dtr_rts(dev, TRUE, TRUE);
 
-	qos->baud_rate.bits &= IR_9600|IR_19200|IR_38400|IR_57600|IR_115200;
+	qos->baud_rate.bits &= IR_9600 | IR_19200 | IR_38400 | IR_57600 | IR_115200;
 	qos->min_turn_time.bits = 0x03;
 	irda_qos_bits_to_value(qos);
 
@@ -124,60 +125,70 @@ static int girbil_change_speed(struct sir_dev *dev, unsigned speed)
 
 	/* dongle alread reset - port and dongle at default speed */
 
-	switch(state) {
+	switch (state)
+	{
 
-	case SIRDEV_STATE_DONGLE_SPEED:
+		case SIRDEV_STATE_DONGLE_SPEED:
 
-		/* Set DTR and Clear RTS to enter command mode */
-		sirdev_set_dtr_rts(dev, FALSE, TRUE);
+			/* Set DTR and Clear RTS to enter command mode */
+			sirdev_set_dtr_rts(dev, FALSE, TRUE);
 
-		udelay(25);		/* better wait a little while */
+			udelay(25);		/* better wait a little while */
 
-		ret = 0;
-		switch (speed) {
+			ret = 0;
+
+			switch (speed)
+			{
+				default:
+					ret = -EINVAL;
+
+				/* fall through */
+				case 9600:
+					control[0] = GIRBIL_9600;
+					break;
+
+				case 19200:
+					control[0] = GIRBIL_19200;
+					break;
+
+				case 34800:
+					control[0] = GIRBIL_38400;
+					break;
+
+				case 57600:
+					control[0] = GIRBIL_57600;
+					break;
+
+				case 115200:
+					control[0] = GIRBIL_115200;
+					break;
+			}
+
+			control[1] = GIRBIL_LOAD;
+
+			/* Write control bytes */
+			sirdev_raw_write(dev, control, 2);
+
+			dev->speed = speed;
+
+			state = GIRBIL_STATE_WAIT_SPEED;
+			delay = 100;
+			break;
+
+		case GIRBIL_STATE_WAIT_SPEED:
+			/* Go back to normal mode */
+			sirdev_set_dtr_rts(dev, TRUE, TRUE);
+
+			udelay(25);		/* better wait a little while */
+			break;
+
 		default:
+			net_err_ratelimited("%s - undefined state %d\n",
+								__func__, state);
 			ret = -EINVAL;
-			/* fall through */
-		case 9600:
-			control[0] = GIRBIL_9600;
 			break;
-		case 19200:
-			control[0] = GIRBIL_19200;
-			break;
-		case 34800:
-			control[0] = GIRBIL_38400;
-			break;
-		case 57600:
-			control[0] = GIRBIL_57600;
-			break;
-		case 115200:
-			control[0] = GIRBIL_115200;
-			break;
-		}
-		control[1] = GIRBIL_LOAD;
-	
-		/* Write control bytes */
-		sirdev_raw_write(dev, control, 2);
-
-		dev->speed = speed;
-
-		state = GIRBIL_STATE_WAIT_SPEED;
-		delay = 100;
-		break;
-
-	case GIRBIL_STATE_WAIT_SPEED:
-		/* Go back to normal mode */
-		sirdev_set_dtr_rts(dev, TRUE, TRUE);
-
-		udelay(25);		/* better wait a little while */
-		break;
-
-	default:
-		net_err_ratelimited("%s - undefined state %d\n",
-				    __func__, state);
-		ret = -EINVAL;
-		break;
 	}
+
 	dev->fsm.substate = state;
 	return (delay > 0) ? delay : ret;
 }
@@ -204,41 +215,43 @@ static int girbil_reset(struct sir_dev *dev)
 	u8 control = GIRBIL_TXEN | GIRBIL_RXEN;
 	int ret = 0;
 
-	switch (state) {
-	case SIRDEV_STATE_DONGLE_RESET:
-		/* Reset dongle */
-		sirdev_set_dtr_rts(dev, TRUE, FALSE);
-		/* Sleep at least 5 ms */
-		delay = 20;
-		state = GIRBIL_STATE_WAIT1_RESET;
-		break;
+	switch (state)
+	{
+		case SIRDEV_STATE_DONGLE_RESET:
+			/* Reset dongle */
+			sirdev_set_dtr_rts(dev, TRUE, FALSE);
+			/* Sleep at least 5 ms */
+			delay = 20;
+			state = GIRBIL_STATE_WAIT1_RESET;
+			break;
 
-	case GIRBIL_STATE_WAIT1_RESET:
-		/* Set DTR and clear RTS to enter command mode */
-		sirdev_set_dtr_rts(dev, FALSE, TRUE);
-		delay = 20;
-		state = GIRBIL_STATE_WAIT2_RESET;
-		break;
+		case GIRBIL_STATE_WAIT1_RESET:
+			/* Set DTR and clear RTS to enter command mode */
+			sirdev_set_dtr_rts(dev, FALSE, TRUE);
+			delay = 20;
+			state = GIRBIL_STATE_WAIT2_RESET;
+			break;
 
-	case GIRBIL_STATE_WAIT2_RESET:
-		/* Write control byte */
-		sirdev_raw_write(dev, &control, 1);
-		delay = 20;
-		state = GIRBIL_STATE_WAIT3_RESET;
-		break;
+		case GIRBIL_STATE_WAIT2_RESET:
+			/* Write control byte */
+			sirdev_raw_write(dev, &control, 1);
+			delay = 20;
+			state = GIRBIL_STATE_WAIT3_RESET;
+			break;
 
-	case GIRBIL_STATE_WAIT3_RESET:
-		/* Go back to normal mode */
-		sirdev_set_dtr_rts(dev, TRUE, TRUE);
-		dev->speed = 9600;
-		break;
+		case GIRBIL_STATE_WAIT3_RESET:
+			/* Go back to normal mode */
+			sirdev_set_dtr_rts(dev, TRUE, TRUE);
+			dev->speed = 9600;
+			break;
 
-	default:
-		net_err_ratelimited("%s(), undefined state %d\n",
-				    __func__, state);
-		ret = -1;
-		break;
+		default:
+			net_err_ratelimited("%s(), undefined state %d\n",
+								__func__, state);
+			ret = -1;
+			break;
 	}
+
 	dev->fsm.substate = state;
 	return (delay > 0) ? delay : ret;
 }

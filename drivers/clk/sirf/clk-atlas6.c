@@ -18,7 +18,8 @@
 #include "atlas6.h"
 #include "clk-common.c"
 
-static struct clk_dmn clk_mmc01 = {
+static struct clk_dmn clk_mmc01 =
+{
 	.regofs = SIRFSOC_CLKC_MMC01_CFG,
 	.enable_bit = 59,
 	.hw = {
@@ -26,7 +27,8 @@ static struct clk_dmn clk_mmc01 = {
 	},
 };
 
-static struct clk_dmn clk_mmc23 = {
+static struct clk_dmn clk_mmc23 =
+{
 	.regofs = SIRFSOC_CLKC_MMC23_CFG,
 	.enable_bit = 60,
 	.hw = {
@@ -34,7 +36,8 @@ static struct clk_dmn clk_mmc23 = {
 	},
 };
 
-static struct clk_dmn clk_mmc45 = {
+static struct clk_dmn clk_mmc45 =
+{
 	.regofs = SIRFSOC_CLKC_MMC45_CFG,
 	.enable_bit = 61,
 	.hw = {
@@ -42,14 +45,16 @@ static struct clk_dmn clk_mmc45 = {
 	},
 };
 
-static struct clk_init_data clk_nand_init = {
+static struct clk_init_data clk_nand_init =
+{
 	.name = "nand",
 	.ops = &dmn_ops,
 	.parent_names = dmn_clk_parents,
 	.num_parents = ARRAY_SIZE(dmn_clk_parents),
 };
 
-static struct clk_dmn clk_nand = {
+static struct clk_dmn clk_nand =
+{
 	.regofs = SIRFSOC_CLKC_NAND_CFG,
 	.enable_bit = 34,
 	.hw = {
@@ -57,7 +62,8 @@ static struct clk_dmn clk_nand = {
 	},
 };
 
-enum atlas6_clk_index {
+enum atlas6_clk_index
+{
 	/* 0    1     2      3      4      5      6       7         8      9 */
 	rtc,    osc,   pll1,  pll2,  pll3,  mem,   sys,   security, dsp,   gps,
 	mf,     io,    cpu,   uart0, uart1, uart2, tsc,   i2c0,     i2c1,  spi0,
@@ -66,7 +72,8 @@ enum atlas6_clk_index {
 	usb0,  usb1,   cphif, maxclk,
 };
 
-static __initdata struct clk_hw *atlas6_clk_hw_array[maxclk] = {
+static __initdata struct clk_hw *atlas6_clk_hw_array[maxclk] =
+{
 	NULL, /* dummy */
 	NULL,
 	&clk_pll1.hw,
@@ -121,23 +128,32 @@ static void __init atlas6_clk_init(struct device_node *np)
 
 	rscnp = of_find_compatible_node(NULL, NULL, "sirf,prima2-rsc");
 	sirfsoc_rsc_vbase = of_iomap(rscnp, 0);
+
 	if (!sirfsoc_rsc_vbase)
+	{
 		panic("unable to map rsc registers\n");
+	}
+
 	of_node_put(rscnp);
 
 	sirfsoc_clk_vbase = of_iomap(np, 0);
+
 	if (!sirfsoc_clk_vbase)
+	{
 		panic("unable to map clkc registers\n");
+	}
 
 	/* These are always available (RTC and 26MHz OSC)*/
 	atlas6_clks[rtc] = clk_register_fixed_rate(NULL, "rtc", NULL, 0, 32768);
 	atlas6_clks[osc] = clk_register_fixed_rate(NULL, "osc", NULL, 0,
-						   26000000);
+					   26000000);
 
-	for (i = pll1; i < maxclk; i++) {
+	for (i = pll1; i < maxclk; i++)
+	{
 		atlas6_clks[i] = clk_register(NULL, atlas6_clk_hw_array[i]);
 		BUG_ON(!atlas6_clks[i]);
 	}
+
 	clk_register_clkdev(atlas6_clks[cpu], NULL, "cpu");
 	clk_register_clkdev(atlas6_clks[io],  NULL, "io");
 	clk_register_clkdev(atlas6_clks[mem],  NULL, "mem");

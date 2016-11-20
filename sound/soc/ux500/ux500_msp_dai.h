@@ -23,7 +23,7 @@
 #define UX500_NBR_OF_DAI	4
 
 #define UX500_I2S_RATES (SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_16000 |	\
-			SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000)
+						 SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000)
 
 #define UX500_I2S_FORMATS (SNDRV_PCM_FMTBIT_S16_LE)
 
@@ -44,11 +44,13 @@
 #define PLAYBACK_CONFIGURED		1
 #define CAPTURE_CONFIGURED		2
 
-enum ux500_msp_clock_id {
+enum ux500_msp_clock_id
+{
 	UX500_MSP_MASTER_CLOCK,
 };
 
-struct ux500_msp_i2s_drvdata {
+struct ux500_msp_i2s_drvdata
+{
 	struct ux500_msp *msp;
 	struct regulator *reg_vape;
 	unsigned int fmt;

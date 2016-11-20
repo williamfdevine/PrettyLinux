@@ -113,7 +113,8 @@
 #define VCO_CTRL30		AVPLL_CTRL(30)
 #define  VCO_DPLL_CH1_ENABLE	BIT(17)
 
-struct berlin2_avpll_vco {
+struct berlin2_avpll_vco
+{
 	struct clk_hw hw;
 	void __iomem *base;
 	u8 flags;
@@ -127,8 +128,11 @@ static int berlin2_avpll_vco_is_enabled(struct clk_hw *hw)
 	u32 reg;
 
 	reg = readl_relaxed(vco->base + VCO_CTRL0);
+
 	if (vco->flags & BERLIN2_AVPLL_BIT_QUIRK)
+	{
 		reg >>= 4;
+	}
 
 	return !!(reg & VCO_POWERUP);
 }
@@ -139,10 +143,16 @@ static int berlin2_avpll_vco_enable(struct clk_hw *hw)
 	u32 reg;
 
 	reg = readl_relaxed(vco->base + VCO_CTRL0);
+
 	if (vco->flags & BERLIN2_AVPLL_BIT_QUIRK)
+	{
 		reg |= VCO_POWERUP << 4;
+	}
 	else
+	{
 		reg |= VCO_POWERUP;
+	}
+
 	writel_relaxed(reg, vco->base + VCO_CTRL0);
 
 	return 0;
@@ -154,10 +164,16 @@ static void berlin2_avpll_vco_disable(struct clk_hw *hw)
 	u32 reg;
 
 	reg = readl_relaxed(vco->base + VCO_CTRL0);
+
 	if (vco->flags & BERLIN2_AVPLL_BIT_QUIRK)
+	{
 		reg &= ~(VCO_POWERUP << 4);
+	}
 	else
+	{
 		reg &= ~VCO_POWERUP;
+	}
+
 	writel_relaxed(reg, vco->base + VCO_CTRL0);
 }
 
@@ -181,7 +197,8 @@ berlin2_avpll_vco_recalc_rate(struct clk_hw *hw, unsigned long parent_rate)
 	return (unsigned long)freq;
 }
 
-static const struct clk_ops berlin2_avpll_vco_ops = {
+static const struct clk_ops berlin2_avpll_vco_ops =
+{
 	.is_enabled	= berlin2_avpll_vco_is_enabled,
 	.enable		= berlin2_avpll_vco_enable,
 	.disable	= berlin2_avpll_vco_disable,
@@ -189,15 +206,18 @@ static const struct clk_ops berlin2_avpll_vco_ops = {
 };
 
 int __init berlin2_avpll_vco_register(void __iomem *base,
-			       const char *name, const char *parent_name,
-			       u8 vco_flags, unsigned long flags)
+									  const char *name, const char *parent_name,
+									  u8 vco_flags, unsigned long flags)
 {
 	struct berlin2_avpll_vco *vco;
 	struct clk_init_data init;
 
 	vco = kzalloc(sizeof(*vco), GFP_KERNEL);
+
 	if (!vco)
+	{
 		return -ENOMEM;
+	}
 
 	vco->base = base;
 	vco->flags = vco_flags;
@@ -211,7 +231,8 @@ int __init berlin2_avpll_vco_register(void __iomem *base,
 	return clk_hw_register(NULL, &vco->hw);
 }
 
-struct berlin2_avpll_channel {
+struct berlin2_avpll_channel
+{
 	struct clk_hw hw;
 	void __iomem *base;
 	u8 flags;
@@ -226,7 +247,9 @@ static int berlin2_avpll_channel_is_enabled(struct clk_hw *hw)
 	u32 reg;
 
 	if (ch->index == 7)
+	{
 		return 1;
+	}
 
 	reg = readl_relaxed(ch->base + VCO_CTRL10);
 	reg &= VCO_POWERUP_CH1 << ch->index;
@@ -267,8 +290,11 @@ berlin2_avpll_channel_recalc_rate(struct clk_hw *hw, unsigned long parent_rate)
 	u64 freq = parent_rate;
 
 	reg = readl_relaxed(ch->base + VCO_CTRL30);
+
 	if ((reg & (VCO_DPLL_CH1_ENABLE << ch->index)) == 0)
+	{
 		goto skip_div;
+	}
 
 	/*
 	 * Fch = (Fref * sync2) /
@@ -276,9 +302,13 @@ berlin2_avpll_channel_recalc_rate(struct clk_hw *hw, unsigned long parent_rate)
 	 */
 
 	reg = readl_relaxed(ch->base + VCO_SYNC1n(ch->index));
+
 	/* BG2/BG2CDs SYNC1 reg on AVPLL_B channel 1 is shifted by 4 */
 	if (ch->flags & BERLIN2_AVPLL_BIT_QUIRK && ch->index == 0)
+	{
 		reg >>= 4;
+	}
+
 	divider = reg & VCO_SYNC1_MASK;
 
 	reg = readl_relaxed(ch->base + VCO_SYNC2n(ch->index));
@@ -286,7 +316,9 @@ berlin2_avpll_channel_recalc_rate(struct clk_hw *hw, unsigned long parent_rate)
 
 	/* Channel 8 has no dividers */
 	if (ch->index == 7)
+	{
 		goto skip_div;
+	}
 
 	/*
 	 * HDMI divider start at VCO_CTRL11, bit 7; MSB is enable, lower 2 bit
@@ -294,61 +326,87 @@ berlin2_avpll_channel_recalc_rate(struct clk_hw *hw, unsigned long parent_rate)
 	 */
 	reg = readl_relaxed(ch->base + VCO_CTRL11) >> 7;
 	reg = (reg >> (ch->index * 3));
+
 	if (reg & BIT(2))
+	{
 		divider *= div_hdmi[reg & 0x3];
+	}
 
 	/*
 	 * AV1 divider start at VCO_CTRL11, bit 28; MSB is enable, lower 2 bit
 	 * determine divider.
 	 */
-	if (ch->index == 0) {
+	if (ch->index == 0)
+	{
 		reg = readl_relaxed(ch->base + VCO_CTRL11);
 		reg >>= 28;
-	} else {
-		reg = readl_relaxed(ch->base + VCO_CTRL12);
-		reg >>= (ch->index-1) * 3;
 	}
+	else
+	{
+		reg = readl_relaxed(ch->base + VCO_CTRL12);
+		reg >>= (ch->index - 1) * 3;
+	}
+
 	if (reg & BIT(2))
+	{
 		divider *= div_av1[reg & 0x3];
+	}
 
 	/*
 	 * AV2 divider start at VCO_CTRL12, bit 18; each 7 bits wide,
 	 * zero is not a valid value.
 	 */
-	if (ch->index < 2) {
+	if (ch->index < 2)
+	{
 		reg = readl_relaxed(ch->base + VCO_CTRL12);
 		reg >>= 18 + (ch->index * 7);
-	} else if (ch->index < 7) {
+	}
+	else if (ch->index < 7)
+	{
 		reg = readl_relaxed(ch->base + VCO_CTRL13);
 		reg >>= (ch->index - 2) * 7;
-	} else {
+	}
+	else
+	{
 		reg = readl_relaxed(ch->base + VCO_CTRL14);
 	}
+
 	div_av2 = reg & 0x7f;
+
 	if (div_av2)
+	{
 		divider *= div_av2;
+	}
 
 	/*
 	 * AV3 divider start at VCO_CTRL14, bit 7; each 4 bits wide.
 	 * AV2/AV3 form a fractional divider, where only specfic values for AV3
 	 * are allowed. AV3 != 0 divides by AV2/2, AV3=0 is bypass.
 	 */
-	if (ch->index < 6) {
+	if (ch->index < 6)
+	{
 		reg = readl_relaxed(ch->base + VCO_CTRL14);
 		reg >>= 7 + (ch->index * 4);
-	} else {
+	}
+	else
+	{
 		reg = readl_relaxed(ch->base + VCO_CTRL15);
 	}
+
 	div_av3 = reg & 0xf;
+
 	if (div_av2 && div_av3)
+	{
 		freq *= 2;
+	}
 
 skip_div:
 	do_div(freq, divider);
 	return (unsigned long)freq;
 }
 
-static const struct clk_ops berlin2_avpll_channel_ops = {
+static const struct clk_ops berlin2_avpll_channel_ops =
+{
 	.is_enabled	= berlin2_avpll_channel_is_enabled,
 	.enable		= berlin2_avpll_channel_enable,
 	.disable	= berlin2_avpll_channel_disable,
@@ -365,21 +423,29 @@ static const struct clk_ops berlin2_avpll_channel_ops = {
 static const u8 quirk_index[] __initconst = { 0, 6, 5, 4, 3, 2, 1, 7 };
 
 int __init berlin2_avpll_channel_register(void __iomem *base,
-			   const char *name, u8 index, const char *parent_name,
-			   u8 ch_flags, unsigned long flags)
+		const char *name, u8 index, const char *parent_name,
+		u8 ch_flags, unsigned long flags)
 {
 	struct berlin2_avpll_channel *ch;
 	struct clk_init_data init;
 
 	ch = kzalloc(sizeof(*ch), GFP_KERNEL);
+
 	if (!ch)
+	{
 		return -ENOMEM;
+	}
 
 	ch->base = base;
+
 	if (ch_flags & BERLIN2_AVPLL_SCRAMBLE_QUIRK)
+	{
 		ch->index = quirk_index[index];
+	}
 	else
+	{
 		ch->index = index;
+	}
 
 	ch->flags = ch_flags;
 	ch->hw.init = &init;

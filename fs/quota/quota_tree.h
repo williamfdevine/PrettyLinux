@@ -12,7 +12,8 @@
  *  Structure of header of block with quota structures. It is padded to 16 bytes so
  *  there will be space for exactly 21 quota-entries in a block
  */
-struct qt_disk_dqdbheader {
+struct qt_disk_dqdbheader
+{
 	__le32 dqdh_next_free;	/* Number of next block with free entry */
 	__le32 dqdh_prev_free;	/* Number of previous block with free entry */
 	__le16 dqdh_entries;	/* Number of valid entries in block */

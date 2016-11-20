@@ -23,7 +23,8 @@
 
 #define ETHMAC_SPEED_100	BIT(1)
 
-struct meson_dwmac {
+struct meson_dwmac
+{
 	struct device	*dev;
 	void __iomem	*reg;
 };
@@ -35,13 +36,15 @@ static void meson6_dwmac_fix_mac_speed(void *priv, unsigned int speed)
 
 	val = readl(dwmac->reg);
 
-	switch (speed) {
-	case SPEED_10:
-		val &= ~ETHMAC_SPEED_100;
-		break;
-	case SPEED_100:
-		val |= ETHMAC_SPEED_100;
-		break;
+	switch (speed)
+	{
+		case SPEED_10:
+			val &= ~ETHMAC_SPEED_100;
+			break;
+
+		case SPEED_100:
+			val |= ETHMAC_SPEED_100;
+			break;
 	}
 
 	writel(val, dwmac->reg);
@@ -56,21 +59,33 @@ static int meson6_dwmac_probe(struct platform_device *pdev)
 	int ret;
 
 	ret = stmmac_get_platform_resources(pdev, &stmmac_res);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	plat_dat = stmmac_probe_config_dt(pdev, &stmmac_res.mac);
+
 	if (IS_ERR(plat_dat))
+	{
 		return PTR_ERR(plat_dat);
+	}
 
 	dwmac = devm_kzalloc(&pdev->dev, sizeof(*dwmac), GFP_KERNEL);
+
 	if (!dwmac)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 	dwmac->reg = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(dwmac->reg))
+	{
 		return PTR_ERR(dwmac->reg);
+	}
 
 	plat_dat->bsp_priv = dwmac;
 	plat_dat->fix_mac_speed = meson6_dwmac_fix_mac_speed;
@@ -78,13 +93,15 @@ static int meson6_dwmac_probe(struct platform_device *pdev)
 	return stmmac_dvr_probe(&pdev->dev, plat_dat, &stmmac_res);
 }
 
-static const struct of_device_id meson6_dwmac_match[] = {
+static const struct of_device_id meson6_dwmac_match[] =
+{
 	{ .compatible = "amlogic,meson6-dwmac" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, meson6_dwmac_match);
 
-static struct platform_driver meson6_dwmac_driver = {
+static struct platform_driver meson6_dwmac_driver =
+{
 	.probe  = meson6_dwmac_probe,
 	.remove = stmmac_pltfr_remove,
 	.driver = {

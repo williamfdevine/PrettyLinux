@@ -67,13 +67,17 @@ acpi_status acpi_db_hex_char_to_value(int hex_char, u8 *return_value)
 
 	/* Digit must be ascii [0-9a-fA-F] */
 
-	if (!isxdigit(hex_char)) {
+	if (!isxdigit(hex_char))
+	{
 		return (AE_BAD_HEX_CONSTANT);
 	}
 
-	if (hex_char <= 0x39) {
+	if (hex_char <= 0x39)
+	{
 		value = (u8)(hex_char - 0x30);
-	} else {
+	}
+	else
+	{
 		value = (u8)(toupper(hex_char) - 0x37);
 	}
 
@@ -104,14 +108,18 @@ static acpi_status acpi_db_hex_byte_to_binary(char *hex_byte, u8 *return_value)
 	/* High byte */
 
 	status = acpi_db_hex_char_to_value(hex_byte[0], &local0);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
 	/* Low byte */
 
 	status = acpi_db_hex_char_to_value(hex_byte[1], &local1);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
@@ -144,32 +152,41 @@ acpi_db_convert_to_buffer(char *string, union acpi_object *object)
 
 	/* Generate the final buffer length */
 
-	for (i = 0, length = 0; string[i];) {
+	for (i = 0, length = 0; string[i];)
+	{
 		i += 2;
 		length++;
 
-		while (string[i] && ((string[i] == ',') || (string[i] == ' '))) {
+		while (string[i] && ((string[i] == ',') || (string[i] == ' ')))
+		{
 			i++;
 		}
 	}
 
 	buffer = ACPI_ALLOCATE(length);
-	if (!buffer) {
+
+	if (!buffer)
+	{
 		return (AE_NO_MEMORY);
 	}
 
 	/* Convert the command line bytes to the buffer */
 
-	for (i = 0, j = 0; string[i];) {
+	for (i = 0, j = 0; string[i];)
+	{
 		status = acpi_db_hex_byte_to_binary(&string[i], &buffer[j]);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			ACPI_FREE(buffer);
 			return (status);
 		}
 
 		j++;
 		i += 2;
-		while (string[i] && ((string[i] == ',') || (string[i] == ' '))) {
+
+		while (string[i] && ((string[i] == ',') || (string[i] == ' ')))
+		{
 			i++;
 		}
 	}
@@ -204,20 +221,26 @@ acpi_status acpi_db_convert_to_package(char *string, union acpi_object *object)
 	acpi_status status;
 
 	elements =
-	    ACPI_ALLOCATE_ZEROED(DB_DEFAULT_PKG_ELEMENTS *
-				 sizeof(union acpi_object));
+		ACPI_ALLOCATE_ZEROED(DB_DEFAULT_PKG_ELEMENTS *
+							 sizeof(union acpi_object));
 
 	this = string;
-	for (i = 0; i < (DB_DEFAULT_PKG_ELEMENTS - 1); i++) {
+
+	for (i = 0; i < (DB_DEFAULT_PKG_ELEMENTS - 1); i++)
+	{
 		this = acpi_db_get_next_token(this, &next, &type);
-		if (!this) {
+
+		if (!this)
+		{
 			break;
 		}
 
 		/* Recursive call to convert each package element */
 
 		status = acpi_db_convert_to_object(type, this, &elements[i]);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			acpi_db_delete_objects(i + 1, elements);
 			ACPI_FREE(elements);
 			return (status);
@@ -252,36 +275,37 @@ acpi_status acpi_db_convert_to_package(char *string, union acpi_object *object)
 
 acpi_status
 acpi_db_convert_to_object(acpi_object_type type,
-			  char *string, union acpi_object *object)
+						  char *string, union acpi_object *object)
 {
 	acpi_status status = AE_OK;
 
-	switch (type) {
-	case ACPI_TYPE_STRING:
+	switch (type)
+	{
+		case ACPI_TYPE_STRING:
 
-		object->type = ACPI_TYPE_STRING;
-		object->string.pointer = string;
-		object->string.length = (u32)strlen(string);
-		break;
+			object->type = ACPI_TYPE_STRING;
+			object->string.pointer = string;
+			object->string.length = (u32)strlen(string);
+			break;
 
-	case ACPI_TYPE_BUFFER:
+		case ACPI_TYPE_BUFFER:
 
-		status = acpi_db_convert_to_buffer(string, object);
-		break;
+			status = acpi_db_convert_to_buffer(string, object);
+			break;
 
-	case ACPI_TYPE_PACKAGE:
+		case ACPI_TYPE_PACKAGE:
 
-		status = acpi_db_convert_to_package(string, object);
-		break;
+			status = acpi_db_convert_to_package(string, object);
+			break;
 
-	default:
+		default:
 
-		object->type = ACPI_TYPE_INTEGER;
-		status = acpi_ut_strtoul64(string,
-					   (acpi_gbl_integer_byte_width |
-					    ACPI_STRTOUL_BASE16),
-					   &object->integer.value);
-		break;
+			object->type = ACPI_TYPE_INTEGER;
+			status = acpi_ut_strtoul64(string,
+									   (acpi_gbl_integer_byte_width |
+										ACPI_STRTOUL_BASE16),
+									   &object->integer.value);
+			break;
 	}
 
 	return (status);
@@ -305,7 +329,9 @@ u8 *acpi_db_encode_pld_buffer(struct acpi_pld_info *pld_info)
 	u32 dword;
 
 	buffer = ACPI_ALLOCATE_ZEROED(ACPI_PLD_BUFFER_SIZE);
-	if (!buffer) {
+
+	if (!buffer)
+	{
 		return (NULL);
 	}
 
@@ -354,7 +380,8 @@ u8 *acpi_db_encode_pld_buffer(struct acpi_pld_info *pld_info)
 	ACPI_PLD_SET_ORDER(&dword, pld_info->order);
 	ACPI_MOVE_32_TO_32(&buffer[3], &dword);
 
-	if (pld_info->revision >= 2) {
+	if (pld_info->revision >= 2)
+	{
 
 		/* Fifth 32 bits */
 
@@ -390,47 +417,55 @@ void acpi_db_dump_pld_buffer(union acpi_object *obj_desc)
 
 	/* Object must be of type Package with at least one Buffer element */
 
-	if (obj_desc->type != ACPI_TYPE_PACKAGE) {
+	if (obj_desc->type != ACPI_TYPE_PACKAGE)
+	{
 		return;
 	}
 
 	buffer_desc = &obj_desc->package.elements[0];
-	if (buffer_desc->type != ACPI_TYPE_BUFFER) {
+
+	if (buffer_desc->type != ACPI_TYPE_BUFFER)
+	{
 		return;
 	}
 
 	/* Convert _PLD buffer to local _PLD struct */
 
 	status = acpi_decode_pld_buffer(buffer_desc->buffer.pointer,
-					buffer_desc->buffer.length, &pld_info);
-	if (ACPI_FAILURE(status)) {
+									buffer_desc->buffer.length, &pld_info);
+
+	if (ACPI_FAILURE(status))
+	{
 		return;
 	}
 
 	/* Encode local _PLD struct back to a _PLD buffer */
 
 	new_buffer = acpi_db_encode_pld_buffer(pld_info);
-	if (!new_buffer) {
+
+	if (!new_buffer)
+	{
 		goto exit;
 	}
 
 	/* The two bit-packed buffers should match */
 
 	if (memcmp(new_buffer, buffer_desc->buffer.pointer,
-		   buffer_desc->buffer.length)) {
+			   buffer_desc->buffer.length))
+	{
 		acpi_os_printf
-		    ("Converted _PLD buffer does not compare. New:\n");
+		("Converted _PLD buffer does not compare. New:\n");
 
 		acpi_ut_dump_buffer(new_buffer,
-				    buffer_desc->buffer.length, DB_BYTE_DISPLAY,
-				    0);
+							buffer_desc->buffer.length, DB_BYTE_DISPLAY,
+							0);
 	}
 
 	/* First 32-bit dword */
 
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_Revision", pld_info->revision);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_IgnoreColor",
-		       pld_info->ignore_color);
+				   pld_info->ignore_color);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_Red", pld_info->red);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_Green", pld_info->green);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_Blue", pld_info->blue);
@@ -443,43 +478,44 @@ void acpi_db_dump_pld_buffer(union acpi_object *obj_desc)
 	/* Third 32-bit dword */
 
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_UserVisible",
-		       pld_info->user_visible);
+				   pld_info->user_visible);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_Dock", pld_info->dock);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_Lid", pld_info->lid);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_Panel", pld_info->panel);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_VerticalPosition",
-		       pld_info->vertical_position);
+				   pld_info->vertical_position);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_HorizontalPosition",
-		       pld_info->horizontal_position);
+				   pld_info->horizontal_position);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_Shape", pld_info->shape);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_GroupOrientation",
-		       pld_info->group_orientation);
+				   pld_info->group_orientation);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_GroupToken",
-		       pld_info->group_token);
+				   pld_info->group_token);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_GroupPosition",
-		       pld_info->group_position);
+				   pld_info->group_position);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_Bay", pld_info->bay);
 
 	/* Fourth 32-bit dword */
 
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_Ejectable", pld_info->ejectable);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_EjectRequired",
-		       pld_info->ospm_eject_required);
+				   pld_info->ospm_eject_required);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_CabinetNumber",
-		       pld_info->cabinet_number);
+				   pld_info->cabinet_number);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_CardCageNumber",
-		       pld_info->card_cage_number);
+				   pld_info->card_cage_number);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_Reference", pld_info->reference);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_Rotation", pld_info->rotation);
 	acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_Order", pld_info->order);
 
 	/* Fifth 32-bit dword */
 
-	if (buffer_desc->buffer.length > 16) {
+	if (buffer_desc->buffer.length > 16)
+	{
 		acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_VerticalOffset",
-			       pld_info->vertical_offset);
+					   pld_info->vertical_offset);
 		acpi_os_printf(ACPI_PLD_OUTPUT, "PLD_HorizontalOffset",
-			       pld_info->horizontal_offset);
+					   pld_info->horizontal_offset);
 	}
 
 	ACPI_FREE(new_buffer);

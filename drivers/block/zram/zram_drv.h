@@ -59,7 +59,8 @@ static const size_t max_zpage_size = PAGE_SIZE / 4 * 3;
 #define ZRAM_FLAG_SHIFT 24
 
 /* Flags for zram pages (table[page_no].value) */
-enum zram_pageflags {
+enum zram_pageflags
+{
 	/* Page consists entirely of zeros */
 	ZRAM_ZERO = ZRAM_FLAG_SHIFT,
 	ZRAM_ACCESS,	/* page is now accessed */
@@ -70,12 +71,14 @@ enum zram_pageflags {
 /*-- Data structures */
 
 /* Allocated for each disk page */
-struct zram_table_entry {
+struct zram_table_entry
+{
 	unsigned long handle;
 	unsigned long value;
 };
 
-struct zram_stats {
+struct zram_stats
+{
 	atomic64_t compr_data_size;	/* compressed size of pages stored */
 	atomic64_t num_reads;	/* failed + successful */
 	atomic64_t num_writes;	/* --do-- */
@@ -89,12 +92,14 @@ struct zram_stats {
 	atomic64_t writestall;		/* no. of write slow paths */
 };
 
-struct zram_meta {
+struct zram_meta
+{
 	struct zram_table_entry *table;
 	struct zs_pool *mem_pool;
 };
 
-struct zram {
+struct zram
+{
 	struct zram_meta *meta;
 	struct zcomp *comp;
 	struct gendisk *disk;

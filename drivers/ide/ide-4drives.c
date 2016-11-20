@@ -14,17 +14,21 @@ MODULE_PARM_DESC(probe, "probe for generic IDE chipset with 4 drives/port");
 static void ide_4drives_init_dev(ide_drive_t *drive)
 {
 	if (drive->hwif->channel)
+	{
 		drive->select ^= 0x20;
+	}
 }
 
-static const struct ide_port_ops ide_4drives_port_ops = {
+static const struct ide_port_ops ide_4drives_port_ops =
+{
 	.init_dev		= ide_4drives_init_dev,
 };
 
-static const struct ide_port_info ide_4drives_port_info = {
+static const struct ide_port_info ide_4drives_port_info =
+{
 	.port_ops		= &ide_4drives_port_ops,
 	.host_flags		= IDE_HFLAG_SERIALIZE | IDE_HFLAG_NO_DMA |
-				  IDE_HFLAG_4DRIVES,
+	IDE_HFLAG_4DRIVES,
 	.chipset		= ide_4drives,
 };
 
@@ -34,17 +38,21 @@ static int __init ide_4drives_init(void)
 	struct ide_hw hw, *hws[] = { &hw, &hw };
 
 	if (probe_4drives == 0)
+	{
 		return -ENODEV;
+	}
 
-	if (!request_region(base, 8, DRV_NAME)) {
+	if (!request_region(base, 8, DRV_NAME))
+	{
 		printk(KERN_ERR "%s: I/O resource 0x%lX-0x%lX not free.\n",
-				DRV_NAME, base, base + 7);
+			   DRV_NAME, base, base + 7);
 		return -EBUSY;
 	}
 
-	if (!request_region(ctl, 1, DRV_NAME)) {
+	if (!request_region(ctl, 1, DRV_NAME))
+	{
 		printk(KERN_ERR "%s: I/O resource 0x%lX not free.\n",
-				DRV_NAME, ctl);
+			   DRV_NAME, ctl);
 		release_region(base, 8);
 		return -EBUSY;
 	}

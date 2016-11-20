@@ -54,11 +54,12 @@ ACPI_MODULE_NAME("nsrepair2")
  * be repaired on a per-name basis.
  */
 typedef
-acpi_status (*acpi_repair_function) (struct acpi_evaluate_info * info,
-				     union acpi_operand_object **
-				     return_object_ptr);
+acpi_status (*acpi_repair_function) (struct acpi_evaluate_info *info,
+									 union acpi_operand_object **
+									 return_object_ptr);
 
-typedef struct acpi_repair_info {
+typedef struct acpi_repair_info
+{
 	char name[ACPI_NAME_SIZE];
 	acpi_repair_function repair_function;
 
@@ -67,48 +68,48 @@ typedef struct acpi_repair_info {
 /* Local prototypes */
 
 static const struct acpi_repair_info *acpi_ns_match_complex_repair(struct
-								   acpi_namespace_node
-								   *node);
+		acpi_namespace_node
+		*node);
 
 static acpi_status
 acpi_ns_repair_ALR(struct acpi_evaluate_info *info,
-		   union acpi_operand_object **return_object_ptr);
+				   union acpi_operand_object **return_object_ptr);
 
 static acpi_status
 acpi_ns_repair_CID(struct acpi_evaluate_info *info,
-		   union acpi_operand_object **return_object_ptr);
+				   union acpi_operand_object **return_object_ptr);
 
 static acpi_status
 acpi_ns_repair_CST(struct acpi_evaluate_info *info,
-		   union acpi_operand_object **return_object_ptr);
+				   union acpi_operand_object **return_object_ptr);
 
 static acpi_status
 acpi_ns_repair_FDE(struct acpi_evaluate_info *info,
-		   union acpi_operand_object **return_object_ptr);
+				   union acpi_operand_object **return_object_ptr);
 
 static acpi_status
 acpi_ns_repair_HID(struct acpi_evaluate_info *info,
-		   union acpi_operand_object **return_object_ptr);
+				   union acpi_operand_object **return_object_ptr);
 
 static acpi_status
 acpi_ns_repair_PRT(struct acpi_evaluate_info *info,
-		   union acpi_operand_object **return_object_ptr);
+				   union acpi_operand_object **return_object_ptr);
 
 static acpi_status
 acpi_ns_repair_PSS(struct acpi_evaluate_info *info,
-		   union acpi_operand_object **return_object_ptr);
+				   union acpi_operand_object **return_object_ptr);
 
 static acpi_status
 acpi_ns_repair_TSS(struct acpi_evaluate_info *info,
-		   union acpi_operand_object **return_object_ptr);
+				   union acpi_operand_object **return_object_ptr);
 
 static acpi_status
 acpi_ns_check_sorted_list(struct acpi_evaluate_info *info,
-			  union acpi_operand_object *return_object,
-			  u32 start_index,
-			  u32 expected_count,
-			  u32 sort_index,
-			  u8 sort_direction, char *sort_key_name);
+						  union acpi_operand_object *return_object,
+						  u32 start_index,
+						  u32 expected_count,
+						  u32 sort_index,
+						  u8 sort_direction, char *sort_key_name);
 
 /* Values for sort_direction above */
 
@@ -120,7 +121,7 @@ acpi_ns_remove_element(union acpi_operand_object *obj_desc, u32 index);
 
 static void
 acpi_ns_sort_list(union acpi_operand_object **elements,
-		  u32 count, u32 index, u8 sort_direction);
+				  u32 count, u32 index, u8 sort_direction);
 
 /*
  * This table contains the names of the predefined methods for which we can
@@ -145,7 +146,8 @@ acpi_ns_sort_list(union acpi_operand_object **elements,
  * However, we can fix the case where a buffer is returned, by converting
  * it to a Package of integers.
  */
-static const struct acpi_repair_info acpi_ns_repairable_names[] = {
+static const struct acpi_repair_info acpi_ns_repairable_names[] =
+{
 	{"_ALR", acpi_ns_repair_ALR},
 	{"_CID", acpi_ns_repair_CID},
 	{"_CST", acpi_ns_repair_CST},
@@ -182,9 +184,9 @@ static const struct acpi_repair_info acpi_ns_repairable_names[] = {
 
 acpi_status
 acpi_ns_complex_repairs(struct acpi_evaluate_info *info,
-			struct acpi_namespace_node *node,
-			acpi_status validate_status,
-			union acpi_operand_object **return_object_ptr)
+						struct acpi_namespace_node *node,
+						acpi_status validate_status,
+						union acpi_operand_object **return_object_ptr)
 {
 	const struct acpi_repair_info *predefined;
 	acpi_status status;
@@ -192,7 +194,9 @@ acpi_ns_complex_repairs(struct acpi_evaluate_info *info,
 	/* Check if this name is in the list of repairable names */
 
 	predefined = acpi_ns_match_complex_repair(node);
-	if (!predefined) {
+
+	if (!predefined)
+	{
 		return (validate_status);
 	}
 
@@ -213,16 +217,19 @@ acpi_ns_complex_repairs(struct acpi_evaluate_info *info,
  *****************************************************************************/
 
 static const struct acpi_repair_info *acpi_ns_match_complex_repair(struct
-								   acpi_namespace_node
-								   *node)
+		acpi_namespace_node
+		*node)
 {
 	const struct acpi_repair_info *this_name;
 
 	/* Search info table for a repairable predefined method/object name */
 
 	this_name = acpi_ns_repairable_names;
-	while (this_name->repair_function) {
-		if (ACPI_COMPARE_NAME(node->name.ascii, this_name->name)) {
+
+	while (this_name->repair_function)
+	{
+		if (ACPI_COMPARE_NAME(node->name.ascii, this_name->name))
+		{
 			return (this_name);
 		}
 
@@ -249,14 +256,14 @@ static const struct acpi_repair_info *acpi_ns_match_complex_repair(struct
 
 static acpi_status
 acpi_ns_repair_ALR(struct acpi_evaluate_info *info,
-		   union acpi_operand_object **return_object_ptr)
+				   union acpi_operand_object **return_object_ptr)
 {
 	union acpi_operand_object *return_object = *return_object_ptr;
 	acpi_status status;
 
 	status = acpi_ns_check_sorted_list(info, return_object, 0, 2, 1,
-					   ACPI_SORT_ASCENDING,
-					   "AmbientIlluminance");
+									   ACPI_SORT_ASCENDING,
+									   "AmbientIlluminance");
 
 	return (status);
 }
@@ -280,7 +287,7 @@ acpi_ns_repair_ALR(struct acpi_evaluate_info *info,
 
 static acpi_status
 acpi_ns_repair_FDE(struct acpi_evaluate_info *info,
-		   union acpi_operand_object **return_object_ptr)
+				   union acpi_operand_object **return_object_ptr)
 {
 	union acpi_operand_object *return_object = *return_object_ptr;
 	union acpi_operand_object *buffer_object;
@@ -290,56 +297,62 @@ acpi_ns_repair_FDE(struct acpi_evaluate_info *info,
 
 	ACPI_FUNCTION_NAME(ns_repair_FDE);
 
-	switch (return_object->common.type) {
-	case ACPI_TYPE_BUFFER:
+	switch (return_object->common.type)
+	{
+		case ACPI_TYPE_BUFFER:
 
-		/* This is the expected type. Length should be (at least) 5 DWORDs */
+			/* This is the expected type. Length should be (at least) 5 DWORDs */
 
-		if (return_object->buffer.length >= ACPI_FDE_DWORD_BUFFER_SIZE) {
-			return (AE_OK);
-		}
+			if (return_object->buffer.length >= ACPI_FDE_DWORD_BUFFER_SIZE)
+			{
+				return (AE_OK);
+			}
 
-		/* We can only repair if we have exactly 5 BYTEs */
+			/* We can only repair if we have exactly 5 BYTEs */
 
-		if (return_object->buffer.length != ACPI_FDE_BYTE_BUFFER_SIZE) {
-			ACPI_WARN_PREDEFINED((AE_INFO,
-					      info->full_pathname,
-					      info->node_flags,
-					      "Incorrect return buffer length %u, expected %u",
-					      return_object->buffer.length,
-					      ACPI_FDE_DWORD_BUFFER_SIZE));
+			if (return_object->buffer.length != ACPI_FDE_BYTE_BUFFER_SIZE)
+			{
+				ACPI_WARN_PREDEFINED((AE_INFO,
+									  info->full_pathname,
+									  info->node_flags,
+									  "Incorrect return buffer length %u, expected %u",
+									  return_object->buffer.length,
+									  ACPI_FDE_DWORD_BUFFER_SIZE));
+
+				return (AE_AML_OPERAND_TYPE);
+			}
+
+			/* Create the new (larger) buffer object */
+
+			buffer_object =
+				acpi_ut_create_buffer_object(ACPI_FDE_DWORD_BUFFER_SIZE);
+
+			if (!buffer_object)
+			{
+				return (AE_NO_MEMORY);
+			}
+
+			/* Expand each byte to a DWORD */
+
+			byte_buffer = return_object->buffer.pointer;
+			dword_buffer = ACPI_CAST_PTR(u32,
+										 buffer_object->buffer.pointer);
+
+			for (i = 0; i < ACPI_FDE_FIELD_COUNT; i++)
+			{
+				*dword_buffer = (u32) * byte_buffer;
+				dword_buffer++;
+				byte_buffer++;
+			}
+
+			ACPI_DEBUG_PRINT((ACPI_DB_REPAIR,
+							  "%s Expanded Byte Buffer to expected DWord Buffer\n",
+							  info->full_pathname));
+			break;
+
+		default:
 
 			return (AE_AML_OPERAND_TYPE);
-		}
-
-		/* Create the new (larger) buffer object */
-
-		buffer_object =
-		    acpi_ut_create_buffer_object(ACPI_FDE_DWORD_BUFFER_SIZE);
-		if (!buffer_object) {
-			return (AE_NO_MEMORY);
-		}
-
-		/* Expand each byte to a DWORD */
-
-		byte_buffer = return_object->buffer.pointer;
-		dword_buffer = ACPI_CAST_PTR(u32,
-					     buffer_object->buffer.pointer);
-
-		for (i = 0; i < ACPI_FDE_FIELD_COUNT; i++) {
-			*dword_buffer = (u32) *byte_buffer;
-			dword_buffer++;
-			byte_buffer++;
-		}
-
-		ACPI_DEBUG_PRINT((ACPI_DB_REPAIR,
-				  "%s Expanded Byte Buffer to expected DWord Buffer\n",
-				  info->full_pathname));
-		break;
-
-	default:
-
-		return (AE_AML_OPERAND_TYPE);
 	}
 
 	/* Delete the original return object, return the new buffer object */
@@ -369,7 +382,7 @@ acpi_ns_repair_FDE(struct acpi_evaluate_info *info,
 
 static acpi_status
 acpi_ns_repair_CID(struct acpi_evaluate_info *info,
-		   union acpi_operand_object **return_object_ptr)
+				   union acpi_operand_object **return_object_ptr)
 {
 	acpi_status status;
 	union acpi_operand_object *return_object = *return_object_ptr;
@@ -380,37 +393,44 @@ acpi_ns_repair_CID(struct acpi_evaluate_info *info,
 
 	/* Check for _CID as a simple string */
 
-	if (return_object->common.type == ACPI_TYPE_STRING) {
+	if (return_object->common.type == ACPI_TYPE_STRING)
+	{
 		status = acpi_ns_repair_HID(info, return_object_ptr);
 		return (status);
 	}
 
 	/* Exit if not a Package */
 
-	if (return_object->common.type != ACPI_TYPE_PACKAGE) {
+	if (return_object->common.type != ACPI_TYPE_PACKAGE)
+	{
 		return (AE_OK);
 	}
 
 	/* Examine each element of the _CID package */
 
 	element_ptr = return_object->package.elements;
-	for (i = 0; i < return_object->package.count; i++) {
+
+	for (i = 0; i < return_object->package.count; i++)
+	{
 		original_element = *element_ptr;
 		original_ref_count = original_element->common.reference_count;
 
 		status = acpi_ns_repair_HID(info, element_ptr);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return (status);
 		}
 
 		/* Take care with reference counts */
 
-		if (original_element != *element_ptr) {
+		if (original_element != *element_ptr)
+		{
 
 			/* Element was replaced */
 
 			(*element_ptr)->common.reference_count =
-			    original_ref_count;
+				original_ref_count;
 
 			acpi_ut_remove_reference(original_element);
 		}
@@ -441,7 +461,7 @@ acpi_ns_repair_CID(struct acpi_evaluate_info *info,
 
 static acpi_status
 acpi_ns_repair_CST(struct acpi_evaluate_info *info,
-		   union acpi_operand_object **return_object_ptr)
+				   union acpi_operand_object **return_object_ptr)
 {
 	union acpi_operand_object *return_object = *return_object_ptr;
 	union acpi_operand_object **outer_elements;
@@ -458,35 +478,44 @@ acpi_ns_repair_CST(struct acpi_evaluate_info *info,
 	 */
 	outer_element_count = return_object->package.count - 1;
 	i = 0;
-	while (i < outer_element_count) {
+
+	while (i < outer_element_count)
+	{
 		outer_elements = &return_object->package.elements[i + 1];
 		removing = FALSE;
 
-		if ((*outer_elements)->package.count == 0) {
+		if ((*outer_elements)->package.count == 0)
+		{
 			ACPI_WARN_PREDEFINED((AE_INFO,
-					      info->full_pathname,
-					      info->node_flags,
-					      "SubPackage[%u] - removing entry due to zero count",
-					      i));
+								  info->full_pathname,
+								  info->node_flags,
+								  "SubPackage[%u] - removing entry due to zero count",
+								  i));
 			removing = TRUE;
 			goto remove_element;
 		}
 
 		obj_desc = (*outer_elements)->package.elements[1];	/* Index1 = Type */
-		if ((u32)obj_desc->integer.value == 0) {
+
+		if ((u32)obj_desc->integer.value == 0)
+		{
 			ACPI_WARN_PREDEFINED((AE_INFO,
-					      info->full_pathname,
-					      info->node_flags,
-					      "SubPackage[%u] - removing entry due to invalid Type(0)",
-					      i));
+								  info->full_pathname,
+								  info->node_flags,
+								  "SubPackage[%u] - removing entry due to invalid Type(0)",
+								  i));
 			removing = TRUE;
 		}
 
 remove_element:
-		if (removing) {
+
+		if (removing)
+		{
 			acpi_ns_remove_element(return_object, i + 1);
 			outer_element_count--;
-		} else {
+		}
+		else
+		{
 			i++;
 		}
 	}
@@ -501,8 +530,10 @@ remove_element:
 	 * C-state type, in ascending order.
 	 */
 	status = acpi_ns_check_sorted_list(info, return_object, 1, 4, 1,
-					   ACPI_SORT_ASCENDING, "C-State Type");
-	if (ACPI_FAILURE(status)) {
+									   ACPI_SORT_ASCENDING, "C-State Type");
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
@@ -526,7 +557,7 @@ remove_element:
 
 static acpi_status
 acpi_ns_repair_HID(struct acpi_evaluate_info *info,
-		   union acpi_operand_object **return_object_ptr)
+				   union acpi_operand_object **return_object_ptr)
 {
 	union acpi_operand_object *return_object = *return_object_ptr;
 	union acpi_operand_object *new_string;
@@ -537,14 +568,16 @@ acpi_ns_repair_HID(struct acpi_evaluate_info *info,
 
 	/* We only care about string _HID objects (not integers) */
 
-	if (return_object->common.type != ACPI_TYPE_STRING) {
+	if (return_object->common.type != ACPI_TYPE_STRING)
+	{
 		return (AE_OK);
 	}
 
-	if (return_object->string.length == 0) {
+	if (return_object->string.length == 0)
+	{
 		ACPI_WARN_PREDEFINED((AE_INFO,
-				      info->full_pathname, info->node_flags,
-				      "Invalid zero-length _HID or _CID string"));
+							  info->full_pathname, info->node_flags,
+							  "Invalid zero-length _HID or _CID string"));
 
 		/* Return AE_OK anyway, let driver handle it */
 
@@ -555,7 +588,9 @@ acpi_ns_repair_HID(struct acpi_evaluate_info *info,
 	/* It is simplest to always create a new string object */
 
 	new_string = acpi_ut_create_string_object(return_object->string.length);
-	if (!new_string) {
+
+	if (!new_string)
+	{
 		return (AE_NO_MEMORY);
 	}
 
@@ -566,13 +601,15 @@ acpi_ns_repair_HID(struct acpi_evaluate_info *info,
 	 * Examples: "*PNP0C03", "*ACPI0003"
 	 */
 	source = return_object->string.pointer;
-	if (*source == '*') {
+
+	if (*source == '*')
+	{
 		source++;
 		new_string->string.length--;
 
 		ACPI_DEBUG_PRINT((ACPI_DB_REPAIR,
-				  "%s: Removed invalid leading asterisk\n",
-				  info->full_pathname));
+						  "%s: Removed invalid leading asterisk\n",
+						  info->full_pathname));
 	}
 
 	/*
@@ -583,8 +620,9 @@ acpi_ns_repair_HID(struct acpi_evaluate_info *info,
 	 * "NNNN####" where N is an uppercase letter or decimal digit, and
 	 * # is a hex digit.
 	 */
-	for (dest = new_string->string.pointer; *source; dest++, source++) {
-		*dest = (char)toupper((int)*source);
+	for (dest = new_string->string.pointer; *source; dest++, source++)
+	{
+		*dest = (char)toupper((int) * source);
 	}
 
 	acpi_ut_remove_reference(return_object);
@@ -609,7 +647,7 @@ acpi_ns_repair_HID(struct acpi_evaluate_info *info,
 
 static acpi_status
 acpi_ns_repair_PRT(struct acpi_evaluate_info *info,
-		   union acpi_operand_object **return_object_ptr)
+				   union acpi_operand_object **return_object_ptr)
 {
 	union acpi_operand_object *package_object = *return_object_ptr;
 	union acpi_operand_object **top_object_list;
@@ -626,13 +664,15 @@ acpi_ns_repair_PRT(struct acpi_evaluate_info *info,
 
 	/* Examine each subpackage */
 
-	for (index = 0; index < element_count; index++, top_object_list++) {
+	for (index = 0; index < element_count; index++, top_object_list++)
+	{
 		sub_package = *top_object_list;
 		sub_object_list = sub_package->package.elements;
 
 		/* Check for minimum required element count */
 
-		if (sub_package->package.count < 4) {
+		if (sub_package->package.count < 4)
+		{
 			continue;
 		}
 
@@ -643,16 +683,18 @@ acpi_ns_repair_PRT(struct acpi_evaluate_info *info,
 		 * other ACPI implementations.
 		 */
 		obj_desc = sub_object_list[3];
-		if (!obj_desc || (obj_desc->common.type != ACPI_TYPE_INTEGER)) {
+
+		if (!obj_desc || (obj_desc->common.type != ACPI_TYPE_INTEGER))
+		{
 			sub_object_list[3] = sub_object_list[2];
 			sub_object_list[2] = obj_desc;
 			info->return_flags |= ACPI_OBJECT_REPAIRED;
 
 			ACPI_WARN_PREDEFINED((AE_INFO,
-					      info->full_pathname,
-					      info->node_flags,
-					      "PRT[%X]: Fixed reversed SourceName and SourceIndex",
-					      index));
+								  info->full_pathname,
+								  info->node_flags,
+								  "PRT[%X]: Fixed reversed SourceName and SourceIndex",
+								  index));
 		}
 	}
 
@@ -678,7 +720,7 @@ acpi_ns_repair_PRT(struct acpi_evaluate_info *info,
 
 static acpi_status
 acpi_ns_repair_PSS(struct acpi_evaluate_info *info,
-		   union acpi_operand_object **return_object_ptr)
+				   union acpi_operand_object **return_object_ptr)
 {
 	union acpi_operand_object *return_object = *return_object_ptr;
 	union acpi_operand_object **outer_elements;
@@ -696,9 +738,11 @@ acpi_ns_repair_PSS(struct acpi_evaluate_info *info,
 	 * should be proportional to the power.
 	 */
 	status = acpi_ns_check_sorted_list(info, return_object, 0, 6, 0,
-					   ACPI_SORT_DESCENDING,
-					   "CpuFrequency");
-	if (ACPI_FAILURE(status)) {
+									   ACPI_SORT_DESCENDING,
+									   "CpuFrequency");
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
@@ -710,16 +754,18 @@ acpi_ns_repair_PSS(struct acpi_evaluate_info *info,
 	outer_elements = return_object->package.elements;
 	outer_element_count = return_object->package.count;
 
-	for (i = 0; i < outer_element_count; i++) {
+	for (i = 0; i < outer_element_count; i++)
+	{
 		elements = (*outer_elements)->package.elements;
 		obj_desc = elements[1];	/* Index1 = power_dissipation */
 
-		if ((u32)obj_desc->integer.value > previous_value) {
+		if ((u32)obj_desc->integer.value > previous_value)
+		{
 			ACPI_WARN_PREDEFINED((AE_INFO,
-					      info->full_pathname,
-					      info->node_flags,
-					      "SubPackage[%u,%u] - suspicious power dissipation values",
-					      i - 1, i));
+								  info->full_pathname,
+								  info->node_flags,
+								  "SubPackage[%u,%u] - suspicious power dissipation values",
+								  i - 1, i));
 		}
 
 		previous_value = (u32) obj_desc->integer.value;
@@ -746,7 +792,7 @@ acpi_ns_repair_PSS(struct acpi_evaluate_info *info,
 
 static acpi_status
 acpi_ns_repair_TSS(struct acpi_evaluate_info *info,
-		   union acpi_operand_object **return_object_ptr)
+				   union acpi_operand_object **return_object_ptr)
 {
 	union acpi_operand_object *return_object = *return_object_ptr;
 	acpi_status status;
@@ -761,14 +807,16 @@ acpi_ns_repair_TSS(struct acpi_evaluate_info *info,
 	 * (May, 2011)
 	 */
 	status = acpi_ns_get_node(info->node, "^_PSS",
-				  ACPI_NS_NO_UPSEARCH, &node);
-	if (ACPI_SUCCESS(status)) {
+							  ACPI_NS_NO_UPSEARCH, &node);
+
+	if (ACPI_SUCCESS(status))
+	{
 		return (AE_OK);
 	}
 
 	status = acpi_ns_check_sorted_list(info, return_object, 0, 5, 1,
-					   ACPI_SORT_DESCENDING,
-					   "PowerDissipation");
+									   ACPI_SORT_DESCENDING,
+									   "PowerDissipation");
 
 	return (status);
 }
@@ -795,11 +843,11 @@ acpi_ns_repair_TSS(struct acpi_evaluate_info *info,
 
 static acpi_status
 acpi_ns_check_sorted_list(struct acpi_evaluate_info *info,
-			  union acpi_operand_object *return_object,
-			  u32 start_index,
-			  u32 expected_count,
-			  u32 sort_index,
-			  u8 sort_direction, char *sort_key_name)
+						  union acpi_operand_object *return_object,
+						  u32 start_index,
+						  u32 expected_count,
+						  u32 sort_index,
+						  u8 sort_direction, char *sort_key_name)
 {
 	u32 outer_element_count;
 	union acpi_operand_object **outer_elements;
@@ -812,7 +860,8 @@ acpi_ns_check_sorted_list(struct acpi_evaluate_info *info,
 
 	/* The top-level object must be a package */
 
-	if (return_object->common.type != ACPI_TYPE_PACKAGE) {
+	if (return_object->common.type != ACPI_TYPE_PACKAGE)
+	{
 		return (AE_AML_OPERAND_TYPE);
 	}
 
@@ -822,7 +871,9 @@ acpi_ns_check_sorted_list(struct acpi_evaluate_info *info,
 	 * to acpi_ns_remove_null_elements.
 	 */
 	outer_element_count = return_object->package.count;
-	if (!outer_element_count || start_index >= outer_element_count) {
+
+	if (!outer_element_count || start_index >= outer_element_count)
+	{
 		return (AE_AML_PACKAGE_LIMIT);
 	}
 
@@ -830,30 +881,36 @@ acpi_ns_check_sorted_list(struct acpi_evaluate_info *info,
 	outer_element_count -= start_index;
 
 	previous_value = 0;
-	if (sort_direction == ACPI_SORT_DESCENDING) {
+
+	if (sort_direction == ACPI_SORT_DESCENDING)
+	{
 		previous_value = ACPI_UINT32_MAX;
 	}
 
 	/* Examine each subpackage */
 
-	for (i = 0; i < outer_element_count; i++) {
+	for (i = 0; i < outer_element_count; i++)
+	{
 
 		/* Each element of the top-level package must also be a package */
 
-		if ((*outer_elements)->common.type != ACPI_TYPE_PACKAGE) {
+		if ((*outer_elements)->common.type != ACPI_TYPE_PACKAGE)
+		{
 			return (AE_AML_OPERAND_TYPE);
 		}
 
 		/* Each subpackage must have the minimum length */
 
-		if ((*outer_elements)->package.count < expected_count) {
+		if ((*outer_elements)->package.count < expected_count)
+		{
 			return (AE_AML_PACKAGE_LIMIT);
 		}
 
 		elements = (*outer_elements)->package.elements;
 		obj_desc = elements[sort_index];
 
-		if (obj_desc->common.type != ACPI_TYPE_INTEGER) {
+		if (obj_desc->common.type != ACPI_TYPE_INTEGER)
+		{
 			return (AE_AML_OPERAND_TYPE);
 		}
 
@@ -862,19 +919,20 @@ acpi_ns_check_sorted_list(struct acpi_evaluate_info *info,
 		 * discrepancy, sort the entire list.
 		 */
 		if (((sort_direction == ACPI_SORT_ASCENDING) &&
-		     (obj_desc->integer.value < previous_value)) ||
-		    ((sort_direction == ACPI_SORT_DESCENDING) &&
-		     (obj_desc->integer.value > previous_value))) {
+			 (obj_desc->integer.value < previous_value)) ||
+			((sort_direction == ACPI_SORT_DESCENDING) &&
+			 (obj_desc->integer.value > previous_value)))
+		{
 			acpi_ns_sort_list(&return_object->package.
-					  elements[start_index],
-					  outer_element_count, sort_index,
-					  sort_direction);
+							  elements[start_index],
+							  outer_element_count, sort_index,
+							  sort_direction);
 
 			info->return_flags |= ACPI_OBJECT_REPAIRED;
 
 			ACPI_DEBUG_PRINT((ACPI_DB_REPAIR,
-					  "%s: Repaired unsorted list - now sorted by %s\n",
-					  info->full_pathname, sort_key_name));
+							  "%s: Repaired unsorted list - now sorted by %s\n",
+							  info->full_pathname, sort_key_name));
 			return (AE_OK);
 		}
 
@@ -905,7 +963,7 @@ acpi_ns_check_sorted_list(struct acpi_evaluate_info *info,
 
 static void
 acpi_ns_sort_list(union acpi_operand_object **elements,
-		  u32 count, u32 index, u8 sort_direction)
+				  u32 count, u32 index, u8 sort_direction)
 {
 	union acpi_operand_object *obj_desc1;
 	union acpi_operand_object *obj_desc2;
@@ -915,17 +973,20 @@ acpi_ns_sort_list(union acpi_operand_object **elements,
 
 	/* Simple bubble sort */
 
-	for (i = 1; i < count; i++) {
-		for (j = (count - 1); j >= i; j--) {
+	for (i = 1; i < count; i++)
+	{
+		for (j = (count - 1); j >= i; j--)
+		{
 			obj_desc1 = elements[j - 1]->package.elements[index];
 			obj_desc2 = elements[j]->package.elements[index];
 
 			if (((sort_direction == ACPI_SORT_ASCENDING) &&
-			     (obj_desc1->integer.value >
-			      obj_desc2->integer.value))
-			    || ((sort_direction == ACPI_SORT_DESCENDING)
-				&& (obj_desc1->integer.value <
-				    obj_desc2->integer.value))) {
+				 (obj_desc1->integer.value >
+				  obj_desc2->integer.value))
+				|| ((sort_direction == ACPI_SORT_DESCENDING)
+					&& (obj_desc1->integer.value <
+						obj_desc2->integer.value)))
+			{
 				temp_obj = elements[j - 1];
 				elements[j - 1] = elements[j];
 				elements[j] = temp_obj;
@@ -966,11 +1027,15 @@ acpi_ns_remove_element(union acpi_operand_object *obj_desc, u32 index)
 
 	/* Examine all elements of the package object, remove matched index */
 
-	for (i = 0; i < count; i++) {
-		if (i == index) {
+	for (i = 0; i < count; i++)
+	{
+		if (i == index)
+		{
 			acpi_ut_remove_reference(*source);	/* Remove one ref for being in pkg */
 			acpi_ut_remove_reference(*source);
-		} else {
+		}
+		else
+		{
 			*dest = *source;
 			dest++;
 		}

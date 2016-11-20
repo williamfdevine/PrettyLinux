@@ -10,7 +10,8 @@
 #include "tests/tests.h"
 #include "tests/hists_common.h"
 
-struct sample {
+struct sample
+{
 	u32 cpu;
 	u32 pid;
 	u64 ip;
@@ -20,7 +21,8 @@ struct sample {
 };
 
 /* For the numbers, see hists_common.c */
-static struct sample fake_samples[] = {
+static struct sample fake_samples[] =
+{
 	/* perf [kernel] schedule() */
 	{ .cpu = 0, .pid = FAKE_PID_PERF1, .ip = FAKE_IP_KERNEL_SCHEDULE, },
 	/* perf [perf]   main() */
@@ -50,8 +52,10 @@ static int add_hist_entries(struct hists *hists, struct machine *machine)
 	struct perf_sample sample = { .period = 100, };
 	size_t i;
 
-	for (i = 0; i < ARRAY_SIZE(fake_samples); i++) {
-		struct hist_entry_iter iter = {
+	for (i = 0; i < ARRAY_SIZE(fake_samples); i++)
+	{
+		struct hist_entry_iter iter =
+		{
 			.evsel = evsel,
 			.sample = &sample,
 			.ops = &hist_iter_normal,
@@ -65,10 +69,13 @@ static int add_hist_entries(struct hists *hists, struct machine *machine)
 		sample.ip = fake_samples[i].ip;
 
 		if (machine__resolve(machine, &al, &sample) < 0)
+		{
 			goto out;
+		}
 
 		if (hist_entry_iter__add(&iter, &al, sysctl_perf_event_max_stack,
-					 NULL) < 0) {
+								 NULL) < 0)
+		{
 			addr_location__put(&al);
 			goto out;
 		}
@@ -93,13 +100,18 @@ static void del_hist_entries(struct hists *hists)
 	struct rb_node *node;
 
 	if (hists__has(hists, need_collapse))
+	{
 		root_in = &hists->entries_collapsed;
+	}
 	else
+	{
 		root_in = hists->entries_in;
+	}
 
 	root_out = &hists->entries;
 
-	while (!RB_EMPTY_ROOT(root_out)) {
+	while (!RB_EMPTY_ROOT(root_out))
+	{
 		node = rb_first(root_out);
 
 		he = rb_entry(node, struct hist_entry, rb_node);
@@ -147,13 +159,17 @@ static int test1(struct perf_evsel *evsel, struct machine *machine)
 	 *   10.00%     perf  perf           [.] cmd_record
 	 */
 	err = add_hist_entries(hists, machine);
+
 	if (err < 0)
+	{
 		goto out;
+	}
 
 	hists__collapse_resort(hists, NULL);
 	perf_evsel__output_resort(evsel, NULL);
 
-	if (verbose > 2) {
+	if (verbose > 2)
+	{
 		pr_info("[fields = %s, sort = %s]\n", field_order, sort_order);
 		print_hists_out(hists);
 	}
@@ -162,56 +178,56 @@ static int test1(struct perf_evsel *evsel, struct machine *machine)
 	node = rb_first(root);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "perf") &&
-			!strcmp(SYM(he), "main") && he->stat.period == 200);
+					!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "perf") &&
+					!strcmp(SYM(he), "main") && he->stat.period == 200);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(COMM(he), "bash") && !strcmp(DSO(he), "[kernel]") &&
-			!strcmp(SYM(he), "page_fault") && he->stat.period == 100);
+					!strcmp(COMM(he), "bash") && !strcmp(DSO(he), "[kernel]") &&
+					!strcmp(SYM(he), "page_fault") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(COMM(he), "bash") && !strcmp(DSO(he), "bash") &&
-			!strcmp(SYM(he), "main") && he->stat.period == 100);
+					!strcmp(COMM(he), "bash") && !strcmp(DSO(he), "bash") &&
+					!strcmp(SYM(he), "main") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(COMM(he), "bash") && !strcmp(DSO(he), "bash") &&
-			!strcmp(SYM(he), "xmalloc") && he->stat.period == 100);
+					!strcmp(COMM(he), "bash") && !strcmp(DSO(he), "bash") &&
+					!strcmp(SYM(he), "xmalloc") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "[kernel]") &&
-			!strcmp(SYM(he), "page_fault") && he->stat.period == 100);
+					!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "[kernel]") &&
+					!strcmp(SYM(he), "page_fault") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "[kernel]") &&
-			!strcmp(SYM(he), "schedule") && he->stat.period == 100);
+					!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "[kernel]") &&
+					!strcmp(SYM(he), "schedule") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "libc") &&
-			!strcmp(SYM(he), "free") && he->stat.period == 100);
+					!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "libc") &&
+					!strcmp(SYM(he), "free") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "libc") &&
-			!strcmp(SYM(he), "malloc") && he->stat.period == 100);
+					!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "libc") &&
+					!strcmp(SYM(he), "malloc") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "perf") &&
-			!strcmp(SYM(he), "cmd_record") && he->stat.period == 100);
+					!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "perf") &&
+					!strcmp(SYM(he), "cmd_record") && he->stat.period == 100);
 
 out:
 	del_hist_entries(hists);
@@ -247,13 +263,17 @@ static int test2(struct perf_evsel *evsel, struct machine *machine)
 	 *   10.00%    3  bash   :  300
 	 */
 	err = add_hist_entries(hists, machine);
+
 	if (err < 0)
+	{
 		goto out;
+	}
 
 	hists__collapse_resort(hists, NULL);
 	perf_evsel__output_resort(evsel, NULL);
 
-	if (verbose > 2) {
+	if (verbose > 2)
+	{
 		pr_info("[fields = %s, sort = %s]\n", field_order, sort_order);
 		print_hists_out(hists);
 	}
@@ -262,12 +282,12 @@ static int test2(struct perf_evsel *evsel, struct machine *machine)
 	node = rb_first(root);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			CPU(he) == 1 && PID(he) == 100 && he->stat.period == 300);
+					CPU(he) == 1 && PID(he) == 100 && he->stat.period == 300);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			CPU(he) == 0 && PID(he) == 100 && he->stat.period == 100);
+					CPU(he) == 0 && PID(he) == 100 && he->stat.period == 100);
 
 out:
 	del_hist_entries(hists);
@@ -301,13 +321,17 @@ static int test3(struct perf_evsel *evsel, struct machine *machine)
 	 *    perf    20.00%  libc
 	 */
 	err = add_hist_entries(hists, machine);
+
 	if (err < 0)
+	{
 		goto out;
+	}
 
 	hists__collapse_resort(hists, NULL);
 	perf_evsel__output_resort(evsel, NULL);
 
-	if (verbose > 2) {
+	if (verbose > 2)
+	{
 		pr_info("[fields = %s, sort = %s]\n", field_order, sort_order);
 		print_hists_out(hists);
 	}
@@ -316,32 +340,32 @@ static int test3(struct perf_evsel *evsel, struct machine *machine)
 	node = rb_first(root);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(COMM(he), "bash") && !strcmp(DSO(he), "bash") &&
-			he->stat.period == 200);
+					!strcmp(COMM(he), "bash") && !strcmp(DSO(he), "bash") &&
+					he->stat.period == 200);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(COMM(he), "bash") && !strcmp(DSO(he), "[kernel]") &&
-			he->stat.period == 100);
+					!strcmp(COMM(he), "bash") && !strcmp(DSO(he), "[kernel]") &&
+					he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "perf") &&
-			he->stat.period == 300);
+					!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "perf") &&
+					he->stat.period == 300);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "[kernel]") &&
-			he->stat.period == 200);
+					!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "[kernel]") &&
+					he->stat.period == 200);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "libc") &&
-			he->stat.period == 200);
+					!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "libc") &&
+					he->stat.period == 200);
 
 out:
 	del_hist_entries(hists);
@@ -379,13 +403,17 @@ static int test4(struct perf_evsel *evsel, struct machine *machine)
 	 *          bash  [.] xmalloc        bash    10.00%
 	 */
 	err = add_hist_entries(hists, machine);
+
 	if (err < 0)
+	{
 		goto out;
+	}
 
 	hists__collapse_resort(hists, NULL);
 	perf_evsel__output_resort(evsel, NULL);
 
-	if (verbose > 2) {
+	if (verbose > 2)
+	{
 		pr_info("[fields = %s, sort = %s]\n", field_order, sort_order);
 		print_hists_out(hists);
 	}
@@ -394,56 +422,56 @@ static int test4(struct perf_evsel *evsel, struct machine *machine)
 	node = rb_first(root);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(DSO(he), "perf") && !strcmp(SYM(he), "cmd_record") &&
-			!strcmp(COMM(he), "perf") && he->stat.period == 100);
+					!strcmp(DSO(he), "perf") && !strcmp(SYM(he), "cmd_record") &&
+					!strcmp(COMM(he), "perf") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(DSO(he), "libc") && !strcmp(SYM(he), "free") &&
-			!strcmp(COMM(he), "perf") && he->stat.period == 100);
+					!strcmp(DSO(he), "libc") && !strcmp(SYM(he), "free") &&
+					!strcmp(COMM(he), "perf") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(DSO(he), "bash") && !strcmp(SYM(he), "main") &&
-			!strcmp(COMM(he), "bash") && he->stat.period == 100);
+					!strcmp(DSO(he), "bash") && !strcmp(SYM(he), "main") &&
+					!strcmp(COMM(he), "bash") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(DSO(he), "perf") && !strcmp(SYM(he), "main") &&
-			!strcmp(COMM(he), "perf") && he->stat.period == 200);
+					!strcmp(DSO(he), "perf") && !strcmp(SYM(he), "main") &&
+					!strcmp(COMM(he), "perf") && he->stat.period == 200);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(DSO(he), "libc") && !strcmp(SYM(he), "malloc") &&
-			!strcmp(COMM(he), "perf") && he->stat.period == 100);
+					!strcmp(DSO(he), "libc") && !strcmp(SYM(he), "malloc") &&
+					!strcmp(COMM(he), "perf") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(DSO(he), "[kernel]") && !strcmp(SYM(he), "page_fault") &&
-			!strcmp(COMM(he), "bash") && he->stat.period == 100);
+					!strcmp(DSO(he), "[kernel]") && !strcmp(SYM(he), "page_fault") &&
+					!strcmp(COMM(he), "bash") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(DSO(he), "[kernel]") && !strcmp(SYM(he), "page_fault") &&
-			!strcmp(COMM(he), "perf") && he->stat.period == 100);
+					!strcmp(DSO(he), "[kernel]") && !strcmp(SYM(he), "page_fault") &&
+					!strcmp(COMM(he), "perf") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(DSO(he), "[kernel]") && !strcmp(SYM(he), "schedule") &&
-			!strcmp(COMM(he), "perf") && he->stat.period == 100);
+					!strcmp(DSO(he), "[kernel]") && !strcmp(SYM(he), "schedule") &&
+					!strcmp(COMM(he), "perf") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			!strcmp(DSO(he), "bash") && !strcmp(SYM(he), "xmalloc") &&
-			!strcmp(COMM(he), "bash") && he->stat.period == 100);
+					!strcmp(DSO(he), "bash") && !strcmp(SYM(he), "xmalloc") &&
+					!strcmp(COMM(he), "bash") && he->stat.period == 100);
 
 out:
 	del_hist_entries(hists);
@@ -482,13 +510,17 @@ static int test5(struct perf_evsel *evsel, struct machine *machine)
 	 *   2     perf:  200     perf           perf  [.] main
 	 */
 	err = add_hist_entries(hists, machine);
+
 	if (err < 0)
+	{
 		goto out;
+	}
 
 	hists__collapse_resort(hists, NULL);
 	perf_evsel__output_resort(evsel, NULL);
 
-	if (verbose > 2) {
+	if (verbose > 2)
+	{
 		pr_info("[fields = %s, sort = %s]\n", field_order, sort_order);
 		print_hists_out(hists);
 	}
@@ -498,72 +530,72 @@ static int test5(struct perf_evsel *evsel, struct machine *machine)
 	he = rb_entry(node, struct hist_entry, rb_node);
 
 	TEST_ASSERT_VAL("Invalid hist entry",
-			CPU(he) == 0 && PID(he) == 100 &&
-			!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "[kernel]") &&
-			!strcmp(SYM(he), "schedule") && he->stat.period == 100);
+					CPU(he) == 0 && PID(he) == 100 &&
+					!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "[kernel]") &&
+					!strcmp(SYM(he), "schedule") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			CPU(he) == 2 && PID(he) == 200 &&
-			!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "[kernel]") &&
-			!strcmp(SYM(he), "page_fault") && he->stat.period == 100);
+					CPU(he) == 2 && PID(he) == 200 &&
+					!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "[kernel]") &&
+					!strcmp(SYM(he), "page_fault") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			CPU(he) == 1 && PID(he) == 300 &&
-			!strcmp(COMM(he), "bash") && !strcmp(DSO(he), "[kernel]") &&
-			!strcmp(SYM(he), "page_fault") && he->stat.period == 100);
+					CPU(he) == 1 && PID(he) == 300 &&
+					!strcmp(COMM(he), "bash") && !strcmp(DSO(he), "[kernel]") &&
+					!strcmp(SYM(he), "page_fault") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			CPU(he) == 0 && PID(he) == 300 &&
-			!strcmp(COMM(he), "bash") && !strcmp(DSO(he), "bash") &&
-			!strcmp(SYM(he), "xmalloc") && he->stat.period == 100);
+					CPU(he) == 0 && PID(he) == 300 &&
+					!strcmp(COMM(he), "bash") && !strcmp(DSO(he), "bash") &&
+					!strcmp(SYM(he), "xmalloc") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			CPU(he) == 3 && PID(he) == 300 &&
-			!strcmp(COMM(he), "bash") && !strcmp(DSO(he), "bash") &&
-			!strcmp(SYM(he), "main") && he->stat.period == 100);
+					CPU(he) == 3 && PID(he) == 300 &&
+					!strcmp(COMM(he), "bash") && !strcmp(DSO(he), "bash") &&
+					!strcmp(SYM(he), "main") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			CPU(he) == 1 && PID(he) == 100 &&
-			!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "libc") &&
-			!strcmp(SYM(he), "malloc") && he->stat.period == 100);
+					CPU(he) == 1 && PID(he) == 100 &&
+					!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "libc") &&
+					!strcmp(SYM(he), "malloc") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			CPU(he) == 2 && PID(he) == 100 &&
-			!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "libc") &&
-			!strcmp(SYM(he), "free") && he->stat.period == 100);
+					CPU(he) == 2 && PID(he) == 100 &&
+					!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "libc") &&
+					!strcmp(SYM(he), "free") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			CPU(he) == 1 && PID(he) == 100 &&
-			!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "perf") &&
-			!strcmp(SYM(he), "cmd_record") && he->stat.period == 100);
+					CPU(he) == 1 && PID(he) == 100 &&
+					!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "perf") &&
+					!strcmp(SYM(he), "cmd_record") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			CPU(he) == 1 && PID(he) == 100 &&
-			!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "perf") &&
-			!strcmp(SYM(he), "main") && he->stat.period == 100);
+					CPU(he) == 1 && PID(he) == 100 &&
+					!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "perf") &&
+					!strcmp(SYM(he), "main") && he->stat.period == 100);
 
 	node = rb_next(node);
 	he = rb_entry(node, struct hist_entry, rb_node);
 	TEST_ASSERT_VAL("Invalid hist entry",
-			CPU(he) == 2 && PID(he) == 200 &&
-			!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "perf") &&
-			!strcmp(SYM(he), "main") && he->stat.period == 100);
+					CPU(he) == 2 && PID(he) == 200 &&
+					!strcmp(COMM(he), "perf") && !strcmp(DSO(he), "perf") &&
+					!strcmp(SYM(he), "main") && he->stat.period == 100);
 
 out:
 	del_hist_entries(hists);
@@ -579,7 +611,8 @@ int test__hists_output(int subtest __maybe_unused)
 	struct perf_evsel *evsel;
 	struct perf_evlist *evlist = perf_evlist__new();
 	size_t i;
-	test_fn_t testcases[] = {
+	test_fn_t testcases[] =
+	{
 		test1,
 		test2,
 		test3,
@@ -590,26 +623,39 @@ int test__hists_output(int subtest __maybe_unused)
 	TEST_ASSERT_VAL("No memory", evlist);
 
 	err = parse_events(evlist, "cpu-clock", NULL);
+
 	if (err)
+	{
 		goto out;
+	}
+
 	err = TEST_FAIL;
 
 	machines__init(&machines);
 
 	/* setup threads/dso/map/symbols also */
 	machine = setup_fake_machine(&machines);
+
 	if (!machine)
+	{
 		goto out;
+	}
 
 	if (verbose > 1)
+	{
 		machine__fprintf(machine, stderr);
+	}
 
 	evsel = perf_evlist__first(evlist);
 
-	for (i = 0; i < ARRAY_SIZE(testcases); i++) {
+	for (i = 0; i < ARRAY_SIZE(testcases); i++)
+	{
 		err = testcases[i](evsel, machine);
+
 		if (err < 0)
+		{
 			break;
+		}
 	}
 
 out:

@@ -250,14 +250,14 @@ struct vm_area_struct;
 #define GFP_NOIO	(__GFP_RECLAIM)
 #define GFP_NOFS	(__GFP_RECLAIM | __GFP_IO)
 #define GFP_TEMPORARY	(__GFP_RECLAIM | __GFP_IO | __GFP_FS | \
-			 __GFP_RECLAIMABLE)
+						 __GFP_RECLAIMABLE)
 #define GFP_USER	(__GFP_RECLAIM | __GFP_IO | __GFP_FS | __GFP_HARDWALL)
 #define GFP_DMA		__GFP_DMA
 #define GFP_DMA32	__GFP_DMA32
 #define GFP_HIGHUSER	(GFP_USER | __GFP_HIGHMEM)
 #define GFP_HIGHUSER_MOVABLE	(GFP_HIGHUSER | __GFP_MOVABLE)
 #define GFP_TRANSHUGE_LIGHT	((GFP_HIGHUSER_MOVABLE | __GFP_COMP | \
-			 __GFP_NOMEMALLOC | __GFP_NOWARN) & ~__GFP_RECLAIM)
+							  __GFP_NOMEMALLOC | __GFP_NOWARN) & ~__GFP_RECLAIM)
 #define GFP_TRANSHUGE	(GFP_TRANSHUGE_LIGHT | __GFP_DIRECT_RECLAIM)
 
 /* Convert GFP flags to their corresponding migrate type */
@@ -271,7 +271,9 @@ static inline int gfpflags_to_migratetype(const gfp_t gfp_flags)
 	BUILD_BUG_ON((___GFP_MOVABLE >> GFP_MOVABLE_SHIFT) != MIGRATE_MOVABLE);
 
 	if (unlikely(page_group_by_mobility_disabled))
+	{
 		return MIGRATE_UNMOVABLE;
+	}
 
 	/* Group based on mobility */
 	return (gfp_flags & GFP_MOVABLE_MASK) >> GFP_MOVABLE_SHIFT;
@@ -285,21 +287,21 @@ static inline bool gfpflags_allow_blocking(const gfp_t gfp_flags)
 }
 
 #ifdef CONFIG_HIGHMEM
-#define OPT_ZONE_HIGHMEM ZONE_HIGHMEM
+	#define OPT_ZONE_HIGHMEM ZONE_HIGHMEM
 #else
-#define OPT_ZONE_HIGHMEM ZONE_NORMAL
+	#define OPT_ZONE_HIGHMEM ZONE_NORMAL
 #endif
 
 #ifdef CONFIG_ZONE_DMA
-#define OPT_ZONE_DMA ZONE_DMA
+	#define OPT_ZONE_DMA ZONE_DMA
 #else
-#define OPT_ZONE_DMA ZONE_NORMAL
+	#define OPT_ZONE_DMA ZONE_NORMAL
 #endif
 
 #ifdef CONFIG_ZONE_DMA32
-#define OPT_ZONE_DMA32 ZONE_DMA32
+	#define OPT_ZONE_DMA32 ZONE_DMA32
 #else
-#define OPT_ZONE_DMA32 ZONE_NORMAL
+	#define OPT_ZONE_DMA32 ZONE_NORMAL
 #endif
 
 /*
@@ -336,26 +338,26 @@ static inline bool gfpflags_allow_blocking(const gfp_t gfp_flags)
  */
 
 #if defined(CONFIG_ZONE_DEVICE) && (MAX_NR_ZONES-1) <= 4
-/* ZONE_DEVICE is not a valid GFP zone specifier */
-#define GFP_ZONES_SHIFT 2
+	/* ZONE_DEVICE is not a valid GFP zone specifier */
+	#define GFP_ZONES_SHIFT 2
 #else
-#define GFP_ZONES_SHIFT ZONES_SHIFT
+	#define GFP_ZONES_SHIFT ZONES_SHIFT
 #endif
 
 #if 16 * GFP_ZONES_SHIFT > BITS_PER_LONG
-#error GFP_ZONES_SHIFT too large to create GFP_ZONE_TABLE integer
+	#error GFP_ZONES_SHIFT too large to create GFP_ZONE_TABLE integer
 #endif
 
 #define GFP_ZONE_TABLE ( \
-	(ZONE_NORMAL << 0 * GFP_ZONES_SHIFT)				       \
-	| (OPT_ZONE_DMA << ___GFP_DMA * GFP_ZONES_SHIFT)		       \
-	| (OPT_ZONE_HIGHMEM << ___GFP_HIGHMEM * GFP_ZONES_SHIFT)	       \
-	| (OPT_ZONE_DMA32 << ___GFP_DMA32 * GFP_ZONES_SHIFT)		       \
-	| (ZONE_NORMAL << ___GFP_MOVABLE * GFP_ZONES_SHIFT)		       \
-	| (OPT_ZONE_DMA << (___GFP_MOVABLE | ___GFP_DMA) * GFP_ZONES_SHIFT)    \
-	| (ZONE_MOVABLE << (___GFP_MOVABLE | ___GFP_HIGHMEM) * GFP_ZONES_SHIFT)\
-	| (OPT_ZONE_DMA32 << (___GFP_MOVABLE | ___GFP_DMA32) * GFP_ZONES_SHIFT)\
-)
+						 (ZONE_NORMAL << 0 * GFP_ZONES_SHIFT)				       \
+						 | (OPT_ZONE_DMA << ___GFP_DMA * GFP_ZONES_SHIFT)		       \
+						 | (OPT_ZONE_HIGHMEM << ___GFP_HIGHMEM * GFP_ZONES_SHIFT)	       \
+						 | (OPT_ZONE_DMA32 << ___GFP_DMA32 * GFP_ZONES_SHIFT)		       \
+						 | (ZONE_NORMAL << ___GFP_MOVABLE * GFP_ZONES_SHIFT)		       \
+						 | (OPT_ZONE_DMA << (___GFP_MOVABLE | ___GFP_DMA) * GFP_ZONES_SHIFT)    \
+						 | (ZONE_MOVABLE << (___GFP_MOVABLE | ___GFP_HIGHMEM) * GFP_ZONES_SHIFT)\
+						 | (OPT_ZONE_DMA32 << (___GFP_MOVABLE | ___GFP_DMA32) * GFP_ZONES_SHIFT)\
+					   )
 
 /*
  * GFP_ZONE_BAD is a bitmap for all combinations of __GFP_DMA, __GFP_DMA32
@@ -364,15 +366,15 @@ static inline bool gfpflags_allow_blocking(const gfp_t gfp_flags)
  * allowed.
  */
 #define GFP_ZONE_BAD ( \
-	1 << (___GFP_DMA | ___GFP_HIGHMEM)				      \
-	| 1 << (___GFP_DMA | ___GFP_DMA32)				      \
-	| 1 << (___GFP_DMA32 | ___GFP_HIGHMEM)				      \
-	| 1 << (___GFP_DMA | ___GFP_DMA32 | ___GFP_HIGHMEM)		      \
-	| 1 << (___GFP_MOVABLE | ___GFP_HIGHMEM | ___GFP_DMA)		      \
-	| 1 << (___GFP_MOVABLE | ___GFP_DMA32 | ___GFP_DMA)		      \
-	| 1 << (___GFP_MOVABLE | ___GFP_DMA32 | ___GFP_HIGHMEM)		      \
-	| 1 << (___GFP_MOVABLE | ___GFP_DMA32 | ___GFP_DMA | ___GFP_HIGHMEM)  \
-)
+					   1 << (___GFP_DMA | ___GFP_HIGHMEM)				      \
+					   | 1 << (___GFP_DMA | ___GFP_DMA32)				      \
+					   | 1 << (___GFP_DMA32 | ___GFP_HIGHMEM)				      \
+					   | 1 << (___GFP_DMA | ___GFP_DMA32 | ___GFP_HIGHMEM)		      \
+					   | 1 << (___GFP_MOVABLE | ___GFP_HIGHMEM | ___GFP_DMA)		      \
+					   | 1 << (___GFP_MOVABLE | ___GFP_DMA32 | ___GFP_DMA)		      \
+					   | 1 << (___GFP_MOVABLE | ___GFP_DMA32 | ___GFP_HIGHMEM)		      \
+					   | 1 << (___GFP_MOVABLE | ___GFP_DMA32 | ___GFP_DMA | ___GFP_HIGHMEM)  \
+					 )
 
 static inline enum zone_type gfp_zone(gfp_t flags)
 {
@@ -380,7 +382,7 @@ static inline enum zone_type gfp_zone(gfp_t flags)
 	int bit = (__force int) (flags & GFP_ZONEMASK);
 
 	z = (GFP_ZONE_TABLE >> (bit * GFP_ZONES_SHIFT)) &
-					 ((1 << GFP_ZONES_SHIFT) - 1);
+		((1 << GFP_ZONES_SHIFT) - 1);
 	VM_BUG_ON((GFP_ZONE_BAD >> bit) & 1);
 	return z;
 }
@@ -395,8 +397,12 @@ static inline enum zone_type gfp_zone(gfp_t flags)
 static inline int gfp_zonelist(gfp_t flags)
 {
 #ifdef CONFIG_NUMA
+
 	if (unlikely(flags & __GFP_THISNODE))
+	{
 		return ZONELIST_NOFALLBACK;
+	}
+
 #endif
 	return ZONELIST_FALLBACK;
 }
@@ -424,11 +430,11 @@ static inline void arch_alloc_page(struct page *page, int order) { }
 
 struct page *
 __alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
-		       struct zonelist *zonelist, nodemask_t *nodemask);
+					   struct zonelist *zonelist, nodemask_t *nodemask);
 
 static inline struct page *
 __alloc_pages(gfp_t gfp_mask, unsigned int order,
-		struct zonelist *zonelist)
+			  struct zonelist *zonelist)
 {
 	return __alloc_pages_nodemask(gfp_mask, order, zonelist, NULL);
 }
@@ -452,10 +458,12 @@ __alloc_pages_node(int nid, gfp_t gfp_mask, unsigned int order)
  * online.
  */
 static inline struct page *alloc_pages_node(int nid, gfp_t gfp_mask,
-						unsigned int order)
+		unsigned int order)
 {
 	if (nid == NUMA_NO_NODE)
+	{
 		nid = numa_mem_id();
+	}
 
 	return __alloc_pages_node(nid, gfp_mask, order);
 }
@@ -469,13 +477,13 @@ alloc_pages(gfp_t gfp_mask, unsigned int order)
 	return alloc_pages_current(gfp_mask, order);
 }
 extern struct page *alloc_pages_vma(gfp_t gfp_mask, int order,
-			struct vm_area_struct *vma, unsigned long addr,
-			int node, bool hugepage);
+									struct vm_area_struct *vma, unsigned long addr,
+									int node, bool hugepage);
 #define alloc_hugepage_vma(gfp_mask, vma, addr, order)	\
 	alloc_pages_vma(gfp_mask, order, vma, addr, numa_node_id(), true)
 #else
 #define alloc_pages(gfp_mask, order) \
-		alloc_pages_node(numa_node_id(), gfp_mask, order)
+	alloc_pages_node(numa_node_id(), gfp_mask, order)
 #define alloc_pages_vma(gfp_mask, order, vma, addr, node, false)\
 	alloc_pages(gfp_mask, order)
 #define alloc_hugepage_vma(gfp_mask, vma, addr, order)	\
@@ -492,13 +500,13 @@ extern unsigned long get_zeroed_page(gfp_t gfp_mask);
 
 void *alloc_pages_exact(size_t size, gfp_t gfp_mask);
 void free_pages_exact(void *virt, size_t size);
-void * __meminit alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask);
+void *__meminit alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask);
 
 #define __get_free_page(gfp_mask) \
-		__get_free_pages((gfp_mask), 0)
+	__get_free_pages((gfp_mask), 0)
 
 #define __get_dma_pages(gfp_mask, order) \
-		__get_free_pages((gfp_mask) | GFP_DMA, (order))
+	__get_free_pages((gfp_mask) | GFP_DMA, (order))
 
 extern void __free_pages(struct page *page, unsigned int order);
 extern void free_pages(unsigned long addr, unsigned int order);
@@ -507,7 +515,7 @@ extern void free_hot_cold_page_list(struct list_head *list, bool cold);
 
 struct page_frag_cache;
 extern void *__alloc_page_frag(struct page_frag_cache *nc,
-			       unsigned int fragsz, gfp_t gfp_mask);
+							   unsigned int fragsz, gfp_t gfp_mask);
 extern void __free_page_frag(void *addr);
 
 #define __free_page(page) __free_pages((page), 0)
@@ -547,13 +555,13 @@ static inline bool pm_suspended_storage(void)
 #if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
 /* The below functions must be run on a range from a single zone. */
 extern int alloc_contig_range(unsigned long start, unsigned long end,
-			      unsigned migratetype);
+							  unsigned migratetype);
 extern void free_contig_range(unsigned long pfn, unsigned nr_pages);
 #endif
 
 #ifdef CONFIG_CMA
-/* CMA stuff */
-extern void init_cma_reserved_pageblock(struct page *page);
+	/* CMA stuff */
+	extern void init_cma_reserved_pageblock(struct page *page);
 #endif
 
 #endif /* __LINUX_GFP_H */

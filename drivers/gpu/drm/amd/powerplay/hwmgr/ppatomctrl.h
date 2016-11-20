@@ -44,7 +44,8 @@
 /* New functions for Evergreen and beyond. */
 #define PP_ATOMCTRL_MAX_VOLTAGE_ENTRIES 32
 
-struct pp_atomctrl_clock_dividers {
+struct pp_atomctrl_clock_dividers
+{
 	uint32_t pll_post_divider;
 	uint32_t pll_feedback_divider;
 	uint32_t pll_ref_divider;
@@ -53,8 +54,10 @@ struct pp_atomctrl_clock_dividers {
 
 typedef struct pp_atomctrl_clock_dividers pp_atomctrl_clock_dividers;
 
-union pp_atomctrl_tcipll_fb_divider {
-	struct {
+union pp_atomctrl_tcipll_fb_divider
+{
+	struct
+	{
 		uint32_t ul_fb_div_frac : 14;
 		uint32_t ul_fb_div : 12;
 		uint32_t un_used : 6;
@@ -64,7 +67,8 @@ union pp_atomctrl_tcipll_fb_divider {
 
 typedef union pp_atomctrl_tcipll_fb_divider pp_atomctrl_tcipll_fb_divider;
 
-struct pp_atomctrl_clock_dividers_rv730 {
+struct pp_atomctrl_clock_dividers_rv730
+{
 	uint32_t pll_post_divider;
 	pp_atomctrl_tcipll_fb_divider mpll_feedback_divider;
 	uint32_t pll_ref_divider;
@@ -75,13 +79,15 @@ struct pp_atomctrl_clock_dividers_rv730 {
 typedef struct pp_atomctrl_clock_dividers_rv730 pp_atomctrl_clock_dividers_rv730;
 
 
-struct pp_atomctrl_clock_dividers_kong {
+struct pp_atomctrl_clock_dividers_kong
+{
 	uint32_t    pll_post_divider;
 	uint32_t    real_clock;
 };
 typedef struct pp_atomctrl_clock_dividers_kong pp_atomctrl_clock_dividers_kong;
 
-struct pp_atomctrl_clock_dividers_ci {
+struct pp_atomctrl_clock_dividers_ci
+{
 	uint32_t    pll_post_divider;               /* post divider value */
 	uint32_t    real_clock;
 	pp_atomctrl_tcipll_fb_divider   ul_fb_div;         /* Output Parameter: PLL FB divider */
@@ -91,7 +97,8 @@ struct pp_atomctrl_clock_dividers_ci {
 };
 typedef struct pp_atomctrl_clock_dividers_ci pp_atomctrl_clock_dividers_ci;
 
-struct pp_atomctrl_clock_dividers_vi {
+struct pp_atomctrl_clock_dividers_vi
+{
 	uint32_t    pll_post_divider;               /* post divider value */
 	uint32_t    real_clock;
 	pp_atomctrl_tcipll_fb_divider   ul_fb_div;         /*Output Parameter: PLL FB divider */
@@ -101,7 +108,8 @@ struct pp_atomctrl_clock_dividers_vi {
 };
 typedef struct pp_atomctrl_clock_dividers_vi pp_atomctrl_clock_dividers_vi;
 
-struct pp_atomctrl_clock_dividers_ai {
+struct pp_atomctrl_clock_dividers_ai
+{
 	u16 usSclk_fcw_frac;
 	u16  usSclk_fcw_int;
 	u8   ucSclkPostDiv;
@@ -118,8 +126,10 @@ struct pp_atomctrl_clock_dividers_ai {
 typedef struct pp_atomctrl_clock_dividers_ai pp_atomctrl_clock_dividers_ai;
 
 
-union pp_atomctrl_s_mpll_fb_divider {
-	struct {
+union pp_atomctrl_s_mpll_fb_divider
+{
+	struct
+	{
 		uint32_t cl_kf : 12;
 		uint32_t clk_frac : 12;
 		uint32_t un_used : 8;
@@ -128,13 +138,15 @@ union pp_atomctrl_s_mpll_fb_divider {
 };
 typedef union pp_atomctrl_s_mpll_fb_divider pp_atomctrl_s_mpll_fb_divider;
 
-enum pp_atomctrl_spread_spectrum_mode {
+enum pp_atomctrl_spread_spectrum_mode
+{
 	pp_atomctrl_spread_spectrum_mode_down = 0,
 	pp_atomctrl_spread_spectrum_mode_center
 };
 typedef enum pp_atomctrl_spread_spectrum_mode pp_atomctrl_spread_spectrum_mode;
 
-struct pp_atomctrl_memory_clock_param {
+struct pp_atomctrl_memory_clock_param
+{
 	pp_atomctrl_s_mpll_fb_divider mpll_fb_divider;
 	uint32_t mpll_post_divider;
 	uint32_t bw_ctrl;
@@ -146,7 +158,8 @@ struct pp_atomctrl_memory_clock_param {
 };
 typedef struct pp_atomctrl_memory_clock_param pp_atomctrl_memory_clock_param;
 
-struct pp_atomctrl_internal_ss_info {
+struct pp_atomctrl_internal_ss_info
+{
 	uint32_t speed_spectrum_percentage;                      /* in 1/100 percentage */
 	uint32_t speed_spectrum_rate;                            /* in KHz */
 	pp_atomctrl_spread_spectrum_mode speed_spectrum_mode;
@@ -154,26 +167,31 @@ struct pp_atomctrl_internal_ss_info {
 typedef struct pp_atomctrl_internal_ss_info pp_atomctrl_internal_ss_info;
 
 #ifndef NUMBER_OF_M3ARB_PARAMS
-#define NUMBER_OF_M3ARB_PARAMS 3
+	#define NUMBER_OF_M3ARB_PARAMS 3
 #endif
 
 #ifndef NUMBER_OF_M3ARB_PARAM_SETS
-#define NUMBER_OF_M3ARB_PARAM_SETS 10
+	#define NUMBER_OF_M3ARB_PARAM_SETS 10
 #endif
 
-struct pp_atomctrl_kong_system_info {
+struct pp_atomctrl_kong_system_info
+{
 	uint32_t			ul_bootup_uma_clock;          /* in 10kHz unit */
-	uint16_t			us_max_nb_voltage;            /* high NB voltage, calculated using current VDDNB (D24F2xDC) and VDDNB offset fuse; */
-	uint16_t			us_min_nb_voltage;            /* low NB voltage, calculated using current VDDNB (D24F2xDC) and VDDNB offset fuse; */
+	uint16_t
+	us_max_nb_voltage;            /* high NB voltage, calculated using current VDDNB (D24F2xDC) and VDDNB offset fuse; */
+	uint16_t
+	us_min_nb_voltage;            /* low NB voltage, calculated using current VDDNB (D24F2xDC) and VDDNB offset fuse; */
 	uint16_t			us_bootup_nb_voltage;         /* boot up NB voltage */
 	uint8_t			uc_htc_tmp_lmt;               /* bit [22:16] of D24F3x64 Hardware Thermal Control (HTC) Register, may not be needed, TBD */
 	uint8_t			uc_tj_offset;                /* bit [28:22] of D24F3xE4 Thermtrip Status Register,may not be needed, TBD */
 	/* 0: default 1: uvd 2: fs-3d */
-	uint32_t          ul_csr_m3_srb_cntl[NUMBER_OF_M3ARB_PARAM_SETS][NUMBER_OF_M3ARB_PARAMS];/* arrays with values for CSR M3 arbiter for default */
+	uint32_t
+	ul_csr_m3_srb_cntl[NUMBER_OF_M3ARB_PARAM_SETS][NUMBER_OF_M3ARB_PARAMS];/* arrays with values for CSR M3 arbiter for default */
 };
 typedef struct pp_atomctrl_kong_system_info pp_atomctrl_kong_system_info;
 
-struct pp_atomctrl_memory_info {
+struct pp_atomctrl_memory_info
+{
 	uint8_t memory_vendor;
 	uint8_t memory_type;
 };
@@ -181,7 +199,8 @@ typedef struct pp_atomctrl_memory_info pp_atomctrl_memory_info;
 
 #define MAX_AC_TIMING_ENTRIES 16
 
-struct pp_atomctrl_memory_clock_range_table {
+struct pp_atomctrl_memory_clock_range_table
+{
 	uint8_t   num_entries;
 	uint8_t   rsv[3];
 
@@ -189,14 +208,16 @@ struct pp_atomctrl_memory_clock_range_table {
 };
 typedef struct pp_atomctrl_memory_clock_range_table pp_atomctrl_memory_clock_range_table;
 
-struct pp_atomctrl_voltage_table_entry {
+struct pp_atomctrl_voltage_table_entry
+{
 	uint16_t value;
 	uint32_t smio_low;
 };
 
 typedef struct pp_atomctrl_voltage_table_entry pp_atomctrl_voltage_table_entry;
 
-struct pp_atomctrl_voltage_table {
+struct pp_atomctrl_voltage_table
+{
 	uint32_t count;
 	uint32_t mask_low;
 	uint32_t phase_delay;   /* Used for ATOM_GPIO_VOLTAGE_OBJECT_V3 and later */
@@ -208,13 +229,15 @@ typedef struct pp_atomctrl_voltage_table pp_atomctrl_voltage_table;
 #define VBIOS_MC_REGISTER_ARRAY_SIZE           32
 #define VBIOS_MAX_AC_TIMING_ENTRIES            20
 
-struct pp_atomctrl_mc_reg_entry {
+struct pp_atomctrl_mc_reg_entry
+{
 	uint32_t           mclk_max;
 	uint32_t mc_data[VBIOS_MC_REGISTER_ARRAY_SIZE];
 };
 typedef struct pp_atomctrl_mc_reg_entry pp_atomctrl_mc_reg_entry;
 
-struct pp_atomctrl_mc_register_address {
+struct pp_atomctrl_mc_register_address
+{
 	uint16_t s1;
 	uint8_t  uc_pre_reg_data;
 };
@@ -223,7 +246,8 @@ typedef struct pp_atomctrl_mc_register_address pp_atomctrl_mc_register_address;
 
 #define MAX_SCLK_RANGE 8
 
-struct pp_atom_ctrl_sclk_range_table_entry{
+struct pp_atom_ctrl_sclk_range_table_entry
+{
 	uint8_t  ucVco_setting;
 	uint8_t  ucPostdiv;
 	uint16_t usFcw_pcc;
@@ -232,11 +256,13 @@ struct pp_atom_ctrl_sclk_range_table_entry{
 };
 
 
-struct pp_atom_ctrl_sclk_range_table{
+struct pp_atom_ctrl_sclk_range_table
+{
 	struct pp_atom_ctrl_sclk_range_table_entry entry[MAX_SCLK_RANGE];
 };
 
-struct pp_atomctrl_mc_reg_table {
+struct pp_atomctrl_mc_reg_table
+{
 	uint8_t                         last;                    /* number of registers */
 	uint8_t                         num_entries;             /* number of AC timing entries */
 	pp_atomctrl_mc_reg_entry        mc_reg_table_entry[VBIOS_MAX_AC_TIMING_ENTRIES];
@@ -244,13 +270,15 @@ struct pp_atomctrl_mc_reg_table {
 };
 typedef struct pp_atomctrl_mc_reg_table pp_atomctrl_mc_reg_table;
 
-struct pp_atomctrl_gpio_pin_assignment {
+struct pp_atomctrl_gpio_pin_assignment
+{
 	uint16_t                   us_gpio_pin_aindex;
 	uint8_t                    uc_gpio_pin_bit_shift;
 };
 typedef struct pp_atomctrl_gpio_pin_assignment pp_atomctrl_gpio_pin_assignment;
 
-struct pp_atom_ctrl__avfs_parameters {
+struct pp_atom_ctrl__avfs_parameters
+{
 	uint32_t  ulAVFS_meanNsigma_Acontant0;
 	uint32_t  ulAVFS_meanNsigma_Acontant1;
 	uint32_t  ulAVFS_meanNsigma_Acontant2;
@@ -279,34 +307,45 @@ struct pp_atom_ctrl__avfs_parameters {
 	uint8_t  ucReserved;
 };
 
-extern bool atomctrl_get_pp_assign_pin(struct pp_hwmgr *hwmgr, const uint32_t pinId, pp_atomctrl_gpio_pin_assignment *gpio_pin_assignment);
-extern int atomctrl_get_voltage_evv_on_sclk(struct pp_hwmgr *hwmgr, uint8_t voltage_type, uint32_t sclk, uint16_t virtual_voltage_Id, uint16_t *voltage);
+extern bool atomctrl_get_pp_assign_pin(struct pp_hwmgr *hwmgr, const uint32_t pinId,
+									   pp_atomctrl_gpio_pin_assignment *gpio_pin_assignment);
+extern int atomctrl_get_voltage_evv_on_sclk(struct pp_hwmgr *hwmgr, uint8_t voltage_type, uint32_t sclk,
+		uint16_t virtual_voltage_Id, uint16_t *voltage);
 extern int atomctrl_get_voltage_evv(struct pp_hwmgr *hwmgr, uint16_t virtual_voltage_id, uint16_t *voltage);
 extern uint32_t atomctrl_get_mpll_reference_clock(struct pp_hwmgr *hwmgr);
-extern int atomctrl_get_memory_clock_spread_spectrum(struct pp_hwmgr *hwmgr, const uint32_t memory_clock, pp_atomctrl_internal_ss_info *ssInfo);
-extern int atomctrl_get_engine_clock_spread_spectrum(struct pp_hwmgr *hwmgr, const uint32_t engine_clock, pp_atomctrl_internal_ss_info *ssInfo);
-extern int atomctrl_initialize_mc_reg_table(struct pp_hwmgr *hwmgr, uint8_t module_index, pp_atomctrl_mc_reg_table *table);
+extern int atomctrl_get_memory_clock_spread_spectrum(struct pp_hwmgr *hwmgr, const uint32_t memory_clock,
+		pp_atomctrl_internal_ss_info *ssInfo);
+extern int atomctrl_get_engine_clock_spread_spectrum(struct pp_hwmgr *hwmgr, const uint32_t engine_clock,
+		pp_atomctrl_internal_ss_info *ssInfo);
+extern int atomctrl_initialize_mc_reg_table(struct pp_hwmgr *hwmgr, uint8_t module_index,
+		pp_atomctrl_mc_reg_table *table);
 extern int atomctrl_set_engine_dram_timings_rv770(struct pp_hwmgr *hwmgr, uint32_t engine_clock, uint32_t memory_clock);
 extern uint32_t atomctrl_get_reference_clock(struct pp_hwmgr *hwmgr);
-extern int atomctrl_get_memory_pll_dividers_si(struct pp_hwmgr *hwmgr, uint32_t clock_value, pp_atomctrl_memory_clock_param *mpll_param, bool strobe_mode);
-extern int atomctrl_get_engine_pll_dividers_vi(struct pp_hwmgr *hwmgr, uint32_t clock_value, pp_atomctrl_clock_dividers_vi *dividers);
-extern int atomctrl_get_dfs_pll_dividers_vi(struct pp_hwmgr *hwmgr, uint32_t clock_value, pp_atomctrl_clock_dividers_vi *dividers);
-extern bool atomctrl_is_voltage_controled_by_gpio_v3(struct pp_hwmgr *hwmgr, uint8_t voltage_type, uint8_t voltage_mode);
-extern int atomctrl_get_voltage_table_v3(struct pp_hwmgr *hwmgr, uint8_t voltage_type, uint8_t voltage_mode, pp_atomctrl_voltage_table *voltage_table);
+extern int atomctrl_get_memory_pll_dividers_si(struct pp_hwmgr *hwmgr, uint32_t clock_value,
+		pp_atomctrl_memory_clock_param *mpll_param, bool strobe_mode);
+extern int atomctrl_get_engine_pll_dividers_vi(struct pp_hwmgr *hwmgr, uint32_t clock_value,
+		pp_atomctrl_clock_dividers_vi *dividers);
+extern int atomctrl_get_dfs_pll_dividers_vi(struct pp_hwmgr *hwmgr, uint32_t clock_value,
+		pp_atomctrl_clock_dividers_vi *dividers);
+extern bool atomctrl_is_voltage_controled_by_gpio_v3(struct pp_hwmgr *hwmgr, uint8_t voltage_type,
+		uint8_t voltage_mode);
+extern int atomctrl_get_voltage_table_v3(struct pp_hwmgr *hwmgr, uint8_t voltage_type, uint8_t voltage_mode,
+		pp_atomctrl_voltage_table *voltage_table);
 extern int atomctrl_get_memory_pll_dividers_vi(struct pp_hwmgr *hwmgr,
 		uint32_t clock_value, pp_atomctrl_memory_clock_param *mpll_param);
 extern int atomctrl_get_engine_pll_dividers_kong(struct pp_hwmgr *hwmgr,
-						 uint32_t clock_value,
-						 pp_atomctrl_clock_dividers_kong *dividers);
+		uint32_t clock_value,
+		pp_atomctrl_clock_dividers_kong *dividers);
 extern int atomctrl_read_efuse(void *device, uint16_t start_index,
-		uint16_t end_index, uint32_t mask, uint32_t *efuse);
+							   uint16_t end_index, uint32_t mask, uint32_t *efuse);
 extern int atomctrl_calculate_voltage_evv_on_sclk(struct pp_hwmgr *hwmgr, uint8_t voltage_type,
 		uint32_t sclk, uint16_t virtual_voltage_Id, uint16_t *voltage, uint16_t dpm_level, bool debug);
-extern int atomctrl_get_engine_pll_dividers_ai(struct pp_hwmgr *hwmgr, uint32_t clock_value, pp_atomctrl_clock_dividers_ai *dividers);
+extern int atomctrl_get_engine_pll_dividers_ai(struct pp_hwmgr *hwmgr, uint32_t clock_value,
+		pp_atomctrl_clock_dividers_ai *dividers);
 extern int atomctrl_set_ac_timing_ai(struct pp_hwmgr *hwmgr, uint32_t memory_clock,
-								uint8_t level);
+									 uint8_t level);
 extern int atomctrl_get_voltage_evv_on_sclk_ai(struct pp_hwmgr *hwmgr, uint8_t voltage_type,
-				uint32_t sclk, uint16_t virtual_voltage_Id, uint32_t *voltage);
+		uint32_t sclk, uint16_t virtual_voltage_Id, uint32_t *voltage);
 extern int atomctrl_get_smc_sclk_range_table(struct pp_hwmgr *hwmgr, struct pp_atom_ctrl_sclk_range_table *table);
 
 extern int atomctrl_get_avfs_information(struct pp_hwmgr *hwmgr, struct pp_atom_ctrl__avfs_parameters *param);

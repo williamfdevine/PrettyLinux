@@ -4,19 +4,19 @@
 
 /* From include/linux/stat.h */
 #ifndef S_IRWXUGO
-#define S_IRWXUGO	(S_IRWXU|S_IRWXG|S_IRWXO)
+	#define S_IRWXUGO	(S_IRWXU|S_IRWXG|S_IRWXO)
 #endif
 #ifndef S_IALLUGO
-#define S_IALLUGO	(S_ISUID|S_ISGID|S_ISVTX|S_IRWXUGO)
+	#define S_IALLUGO	(S_ISUID|S_ISGID|S_ISVTX|S_IRWXUGO)
 #endif
 #ifndef S_IRUGO
-#define S_IRUGO         (S_IRUSR|S_IRGRP|S_IROTH)
+	#define S_IRUGO         (S_IRUSR|S_IRGRP|S_IROTH)
 #endif
 #ifndef S_IWUGO
-#define S_IWUGO         (S_IWUSR|S_IWGRP|S_IWOTH)
+	#define S_IWUGO         (S_IWUSR|S_IWGRP|S_IWOTH)
 #endif
 #ifndef S_IXUGO
-#define S_IXUGO         (S_IXUSR|S_IXGRP|S_IXOTH)
+	#define S_IXUGO         (S_IXUSR|S_IXGRP|S_IXOTH)
 #endif
 
 static size_t syscall_arg__scnprintf_mode_t(char *bf, size_t size, struct syscall_arg *arg)
@@ -60,7 +60,9 @@ static size_t syscall_arg__scnprintf_mode_t(char *bf, size_t size, struct syscal
 #undef P_MODE
 
 	if (mode)
+	{
 		printed += scnprintf(bf + printed, size - printed, "%s%#x", printed ? "|" : "", mode);
+	}
 
 	return printed;
 }

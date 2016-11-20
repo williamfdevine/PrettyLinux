@@ -20,7 +20,8 @@
  * vfs_inode is set only when the inode is created and never changes.
  * c_fid is set when the inode is created and should be considered immutable.
  */
-struct coda_inode_info {
+struct coda_inode_info
+{
 	struct CodaFid	   c_fid;	/* Coda identifier */
 	u_short	           c_flags;     /* flags (see below) */
 	unsigned int	   c_mapcount;  /* nr of times this inode is mapped */
@@ -35,7 +36,8 @@ struct coda_inode_info {
  * coda fs file private data
  */
 #define CODA_MAGIC 0xC0DAC0DA
-struct coda_file_info {
+struct coda_file_info
+{
 	int		   cfi_magic;	  /* magic number */
 	struct file	  *cfi_container; /* container file for this cnode */
 	unsigned int	   cfi_mapcount;  /* nr of times this file is mapped */

@@ -99,7 +99,8 @@
  * SECTION: Type Definitions
  ****************************************************************************/
 
-struct eckd_count {
+struct eckd_count
+{
 	__u16 cyl;
 	__u16 head;
 	__u8 record;
@@ -107,30 +108,35 @@ struct eckd_count {
 	__u16 dl;
 } __attribute__ ((packed));
 
-struct ch_t {
+struct ch_t
+{
 	__u16 cyl;
 	__u16 head;
 } __attribute__ ((packed));
 
-struct chs_t {
+struct chs_t
+{
 	__u16 cyl;
 	__u16 head;
 	__u32 sector;
 } __attribute__ ((packed));
 
-struct chr_t {
+struct chr_t
+{
 	__u16 cyl;
 	__u16 head;
 	__u8 record;
 } __attribute__ ((packed));
 
-struct geom_t {
+struct geom_t
+{
 	__u16 cyl;
 	__u16 head;
 	__u32 sector;
 } __attribute__ ((packed));
 
-struct eckd_home {
+struct eckd_home
+{
 	__u8 skip_control[14];
 	__u16 cell_number;
 	__u8 physical_addr[3];
@@ -141,20 +147,23 @@ struct eckd_home {
 	__u8 reserved2[2];
 } __attribute__ ((packed));
 
-struct DE_eckd_data {
-	struct {
-		unsigned char perm:2;	/* Permissions on this extent */
-		unsigned char reserved:1;
-		unsigned char seek:2;	/* Seek control */
-		unsigned char auth:2;	/* Access authorization */
-		unsigned char pci:1;	/* PCI Fetch mode */
+struct DE_eckd_data
+{
+	struct
+	{
+		unsigned char perm: 2;	/* Permissions on this extent */
+		unsigned char reserved: 1;
+		unsigned char seek: 2;	/* Seek control */
+		unsigned char auth: 2;	/* Access authorization */
+		unsigned char pci: 1;	/* PCI Fetch mode */
 	} __attribute__ ((packed)) mask;
-	struct {
-		unsigned char mode:2;	/* Architecture mode */
-		unsigned char ckd:1;	/* CKD Conversion */
-		unsigned char operation:3;	/* Operation mode */
-		unsigned char cfw:1;	/* Cache fast write */
-		unsigned char dfw:1;	/* DASD fast write */
+	struct
+	{
+		unsigned char mode: 2;	/* Architecture mode */
+		unsigned char ckd: 1;	/* CKD Conversion */
+		unsigned char operation: 3;	/* Operation mode */
+		unsigned char cfw: 1;	/* Cache fast write */
+		unsigned char dfw: 1;	/* DASD fast write */
 	} __attribute__ ((packed)) attributes;
 	__u16 blk_size;		/* Blocksize */
 	__u16 fast_write_id;
@@ -170,15 +179,18 @@ struct DE_eckd_data {
 	__u8 ep_reserved[4];   /* Extended Parameter Reserved	       */
 } __attribute__ ((packed));
 
-struct LO_eckd_data {
-	struct {
-		unsigned char orientation:2;
-		unsigned char operation:6;
+struct LO_eckd_data
+{
+	struct
+	{
+		unsigned char orientation: 2;
+		unsigned char operation: 6;
 	} __attribute__ ((packed)) operation;
-	struct {
-		unsigned char last_bytes_used:1;
-		unsigned char reserved:6;
-		unsigned char read_count_suffix:1;
+	struct
+	{
+		unsigned char last_bytes_used: 1;
+		unsigned char reserved: 6;
+		unsigned char read_count_suffix: 1;
 	} __attribute__ ((packed)) auxiliary;
 	__u8 unused;
 	__u8 count;
@@ -188,19 +200,22 @@ struct LO_eckd_data {
 	__u16 length;
 } __attribute__ ((packed));
 
-struct LRE_eckd_data {
-	struct {
-		unsigned char orientation:2;
-		unsigned char operation:6;
+struct LRE_eckd_data
+{
+	struct
+	{
+		unsigned char orientation: 2;
+		unsigned char operation: 6;
 	} __attribute__ ((packed)) operation;
-	struct {
-		unsigned char length_valid:1;
-		unsigned char length_scope:1;
-		unsigned char imbedded_ccw_valid:1;
-		unsigned char check_bytes:2;
-		unsigned char imbedded_count_valid:1;
-		unsigned char reserved:1;
-		unsigned char read_count_suffix:1;
+	struct
+	{
+		unsigned char length_valid: 1;
+		unsigned char length_scope: 1;
+		unsigned char imbedded_ccw_valid: 1;
+		unsigned char check_bytes: 2;
+		unsigned char imbedded_count_valid: 1;
+		unsigned char reserved: 1;
+		unsigned char read_count_suffix: 1;
 	} __attribute__ ((packed)) auxiliary;
 	__u8 imbedded_ccw;
 	__u8 count;
@@ -215,14 +230,16 @@ struct LRE_eckd_data {
 } __attribute__ ((packed));
 
 /* Prefix data for format 0x00 and 0x01 */
-struct PFX_eckd_data {
+struct PFX_eckd_data
+{
 	unsigned char format;
-	struct {
-		unsigned char define_extent:1;
-		unsigned char time_stamp:1;
-		unsigned char verify_base:1;
-		unsigned char hyper_pav:1;
-		unsigned char reserved:4;
+	struct
+	{
+		unsigned char define_extent: 1;
+		unsigned char time_stamp: 1;
+		unsigned char verify_base: 1;
+		unsigned char hyper_pav: 1;
+		unsigned char reserved: 4;
 	} __attribute__ ((packed)) validity;
 	__u8 base_address;
 	__u8 aux;
@@ -232,36 +249,39 @@ struct PFX_eckd_data {
 	struct LRE_eckd_data locate_record;
 } __attribute__ ((packed));
 
-struct dasd_eckd_characteristics {
+struct dasd_eckd_characteristics
+{
 	__u16 cu_type;
-	struct {
-		unsigned char support:2;
-		unsigned char async:1;
-		unsigned char reserved:1;
-		unsigned char cache_info:1;
-		unsigned char model:3;
+	struct
+	{
+		unsigned char support: 2;
+		unsigned char async: 1;
+		unsigned char reserved: 1;
+		unsigned char cache_info: 1;
+		unsigned char model: 3;
 	} __attribute__ ((packed)) cu_model;
 	__u16 dev_type;
 	__u8 dev_model;
-	struct {
-		unsigned char mult_burst:1;
-		unsigned char RT_in_LR:1;
-		unsigned char reserved1:1;
-		unsigned char RD_IN_LR:1;
-		unsigned char reserved2:4;
-		unsigned char reserved3:8;
-		unsigned char defect_wr:1;
-		unsigned char XRC_supported:1;
-		unsigned char reserved4:1;
-		unsigned char striping:1;
-		unsigned char reserved5:4;
-		unsigned char cfw:1;
-		unsigned char reserved6:2;
-		unsigned char cache:1;
-		unsigned char dual_copy:1;
-		unsigned char dfw:1;
-		unsigned char reset_alleg:1;
-		unsigned char sense_down:1;
+	struct
+	{
+		unsigned char mult_burst: 1;
+		unsigned char RT_in_LR: 1;
+		unsigned char reserved1: 1;
+		unsigned char RD_IN_LR: 1;
+		unsigned char reserved2: 4;
+		unsigned char reserved3: 8;
+		unsigned char defect_wr: 1;
+		unsigned char XRC_supported: 1;
+		unsigned char reserved4: 1;
+		unsigned char striping: 1;
+		unsigned char reserved5: 4;
+		unsigned char cfw: 1;
+		unsigned char reserved6: 2;
+		unsigned char cache: 1;
+		unsigned char dual_copy: 1;
+		unsigned char dfw: 1;
+		unsigned char reset_alleg: 1;
+		unsigned char sense_down: 1;
 	} __attribute__ ((packed)) facilities;
 	__u8 dev_class;
 	__u8 unit_type;
@@ -271,13 +291,16 @@ struct dasd_eckd_characteristics {
 	__u8 byte_per_track[3];
 	__u16 home_bytes;
 	__u8 formula;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__u8 f1;
 			__u16 f2;
 			__u16 f3;
 		} __attribute__ ((packed)) f_0x01;
-		struct {
+		struct
+		{
 			__u8 f1;
 			__u8 f2;
 			__u8 f3;
@@ -307,15 +330,17 @@ struct dasd_eckd_characteristics {
 } __attribute__ ((packed));
 
 /* elements of the configuration data */
-struct dasd_ned {
-	struct {
-		__u8 identifier:2;
-		__u8 token_id:1;
-		__u8 sno_valid:1;
-		__u8 subst_sno:1;
-		__u8 recNED:1;
-		__u8 emuNED:1;
-		__u8 reserved:1;
+struct dasd_ned
+{
+	struct
+	{
+		__u8 identifier: 2;
+		__u8 token_id: 1;
+		__u8 sno_valid: 1;
+		__u8 subst_sno: 1;
+		__u8 recNED: 1;
+		__u8 emuNED: 1;
+		__u8 reserved: 1;
 	} __attribute__ ((packed)) flags;
 	__u8 descriptor;
 	__u8 dev_class;
@@ -329,10 +354,12 @@ struct dasd_ned {
 	__u8 unit_addr;
 } __attribute__ ((packed));
 
-struct dasd_sneq {
-	struct {
-		__u8 identifier:2;
-		__u8 reserved:6;
+struct dasd_sneq
+{
+	struct
+	{
+		__u8 identifier: 2;
+		__u8 reserved: 6;
 	} __attribute__ ((packed)) flags;
 	__u8 res1;
 	__u16 format;
@@ -342,10 +369,12 @@ struct dasd_sneq {
 	__u8 res3[22];		/* byte 10-31 */
 } __attribute__ ((packed));
 
-struct vd_sneq {
-	struct {
-		__u8 identifier:2;
-		__u8 reserved:6;
+struct vd_sneq
+{
+	struct
+	{
+		__u8 identifier: 2;
+		__u8 reserved: 6;
 	} __attribute__ ((packed)) flags;
 	__u8 res1;
 	__u16 format;
@@ -354,27 +383,32 @@ struct vd_sneq {
 	__u8 res3[8];	/* byte 24-31 */
 } __attribute__ ((packed));
 
-struct dasd_gneq {
-	struct {
-		__u8 identifier:2;
-		__u8 reserved:6;
+struct dasd_gneq
+{
+	struct
+	{
+		__u8 identifier: 2;
+		__u8 reserved: 6;
 	} __attribute__ ((packed)) flags;
 	__u8 record_selector;
 	__u8 reserved[4];
-	struct {
-		__u8 value:2;
-		__u8 number:6;
+	struct
+	{
+		__u8 value: 2;
+		__u8 number: 6;
 	} __attribute__ ((packed)) timeout;
 	__u8 reserved3;
 	__u16 subsystemID;
 	__u8 reserved2[22];
 } __attribute__ ((packed));
 
-struct dasd_rssd_features {
+struct dasd_rssd_features
+{
 	char feature[256];
 } __attribute__((packed));
 
-struct dasd_rssd_messages {
+struct dasd_rssd_messages
+{
 	__u16 length;
 	__u8 format;
 	__u8 code;
@@ -383,7 +417,8 @@ struct dasd_rssd_messages {
 	char messages[4087];
 } __packed;
 
-struct dasd_cuir_message {
+struct dasd_cuir_message
+{
 	__u16 length;
 	__u8 format;
 	__u8 code;
@@ -394,7 +429,8 @@ struct dasd_cuir_message {
 	__u8 record_selector;
 } __packed;
 
-struct dasd_psf_cuir_response {
+struct dasd_psf_cuir_response
+{
 	__u8 order;
 	__u8 flags;
 	__u8 cc;
@@ -407,7 +443,8 @@ struct dasd_psf_cuir_response {
 	__u8 ssid;
 } __packed;
 
-struct dasd_ckd_path_group_entry {
+struct dasd_ckd_path_group_entry
+{
 	__u8 status_flags;
 	__u8 pgid[11];
 	__u8 sysplex_name[8];
@@ -416,14 +453,16 @@ struct dasd_ckd_path_group_entry {
 	__u8 reserved[4];
 } __packed;
 
-struct dasd_ckd_host_information {
+struct dasd_ckd_host_information
+{
 	__u8 access_flags;
 	__u8 entry_size;
 	__u16 entry_count;
 	__u8 entry[16390];
 } __packed;
 
-struct dasd_psf_query_host_access {
+struct dasd_psf_query_host_access
+{
 	__u8 access_flag;
 	__u8 version;
 	__u16 CKD_length;
@@ -435,7 +474,8 @@ struct dasd_psf_query_host_access {
 /*
  * Perform Subsystem Function - Prepare for Read Subsystem Data
  */
-struct dasd_psf_prssd_data {
+struct dasd_psf_prssd_data
+{
 	unsigned char order;
 	unsigned char flags;
 	unsigned char reserved1;
@@ -449,7 +489,8 @@ struct dasd_psf_prssd_data {
 /*
  * Perform Subsystem Function - Set Subsystem Characteristics
  */
-struct dasd_psf_ssc_data {
+struct dasd_psf_ssc_data
+{
 	unsigned char order;
 	unsigned char flags;
 	unsigned char cu_type[4];
@@ -461,8 +502,10 @@ struct dasd_psf_ssc_data {
 /*
  * some structures and definitions for alias handling
  */
-struct dasd_unit_address_configuration {
-	struct {
+struct dasd_unit_address_configuration
+{
+	struct
+	{
 		char ua_type;
 		char base_ua;
 	} unit[256];
@@ -478,29 +521,34 @@ struct dasd_unit_address_configuration {
 enum pavtype {NO_PAV, BASE_PAV, HYPER_PAV};
 
 
-struct alias_root {
+struct alias_root
+{
 	struct list_head serverlist;
 	spinlock_t lock;
 };
 
-struct alias_server {
+struct alias_server
+{
 	struct list_head server;
 	struct dasd_uid uid;
 	struct list_head lculist;
 };
 
-struct summary_unit_check_work_data {
+struct summary_unit_check_work_data
+{
 	char reason;
 	struct dasd_device *device;
 	struct work_struct worker;
 };
 
-struct read_uac_work_data {
+struct read_uac_work_data
+{
 	struct dasd_device *device;
 	struct delayed_work dwork;
 };
 
-struct alias_lcu {
+struct alias_lcu
+{
 	struct list_head lcu;
 	struct dasd_uid uid;
 	enum pavtype pav;
@@ -516,7 +564,8 @@ struct alias_lcu {
 	struct completion lcu_setup;
 };
 
-struct alias_pav_group {
+struct alias_pav_group
+{
 	struct list_head group;
 	struct dasd_uid uid;
 	struct alias_lcu *lcu;
@@ -525,13 +574,15 @@ struct alias_pav_group {
 	struct dasd_device *next;
 };
 
-struct dasd_conf_data {
+struct dasd_conf_data
+{
 	struct dasd_ned neds[5];
 	u8 reserved[64];
 	struct dasd_gneq gneq;
 } __packed;
 
-struct dasd_eckd_private {
+struct dasd_eckd_private
+{
 	struct dasd_eckd_characteristics rdc_data;
 	u8 *conf_data;
 	int conf_len;

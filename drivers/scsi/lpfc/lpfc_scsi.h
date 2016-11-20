@@ -25,11 +25,11 @@ struct lpfc_hba;
 
 #define list_remove_head(list, entry, type, member)		\
 	do {							\
-	entry = NULL;						\
-	if (!list_empty(list)) {				\
-		entry = list_entry((list)->next, type, member);	\
-		list_del_init(&entry->member);			\
-	}							\
+		entry = NULL;						\
+		if (!list_empty(list)) {				\
+			entry = list_entry((list)->next, type, member);	\
+			list_del_init(&entry->member);			\
+		}							\
 	} while(0)
 
 #define list_get_first(list, type, member)			\
@@ -37,17 +37,20 @@ struct lpfc_hba;
 	list_entry((list)->next, type, member)
 
 /* per-port data that is allocated in the FC transport for us */
-struct lpfc_rport_data {
+struct lpfc_rport_data
+{
 	struct lpfc_nodelist *pnode;	/* Pointer to the node structure. */
 };
 
-struct lpfc_device_id {
+struct lpfc_device_id
+{
 	struct lpfc_name vport_wwpn;
 	struct lpfc_name target_wwpn;
 	uint64_t lun;
 };
 
-struct lpfc_device_data {
+struct lpfc_device_data
+{
 	struct list_head listentry;
 	struct lpfc_rport_data *rport_data;
 	struct lpfc_device_id device_id;
@@ -56,7 +59,8 @@ struct lpfc_device_data {
 	bool available;
 };
 
-struct fcp_rsp {
+struct fcp_rsp
+{
 	uint32_t rspRsvd1;	/* FC Word 0, byte 0:3 */
 	uint32_t rspRsvd2;	/* FC Word 1, byte 0:3 */
 
@@ -97,7 +101,8 @@ struct fcp_rsp {
 #define SNSCOD_BADCMD 0x20	/* sense code is byte 13 ([12]) */
 };
 
-struct fcp_cmnd {
+struct fcp_cmnd
+{
 	struct scsi_lun  fcp_lun;
 
 	uint8_t fcpCntl0;	/* FCP_CNTL byte 0 (reserved) */
@@ -124,11 +129,13 @@ struct fcp_cmnd {
 
 };
 
-struct lpfc_scsicmd_bkt {
+struct lpfc_scsicmd_bkt
+{
 	uint32_t cmd_count;
 };
 
-struct lpfc_scsi_buf {
+struct lpfc_scsi_buf
+{
 	struct list_head list;
 	struct scsi_cmnd *pCmd;
 	struct lpfc_rport_data *rdata;
@@ -187,4 +194,4 @@ struct lpfc_scsi_buf {
 #define NOT_OAS_ENABLED_LUN		NO_MORE_OAS_LUN
 
 int lpfc_sli4_scmd_to_wqidx_distr(struct lpfc_hba *phba,
-				  struct lpfc_scsi_buf *lpfc_cmd);
+								  struct lpfc_scsi_buf *lpfc_cmd);

@@ -43,8 +43,8 @@
 static int timeout = SBC7240_TIMEOUT;	/* in seconds */
 module_param(timeout, int, 0);
 MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds. (1<=timeout<="
-		 __MODULE_STRING(SBC7240_MAX_TIMEOUT) ", default="
-		 __MODULE_STRING(SBC7240_TIMEOUT) ")");
+				 __MODULE_STRING(SBC7240_MAX_TIMEOUT) ", default="
+				 __MODULE_STRING(SBC7240_TIMEOUT) ")");
 
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
@@ -62,7 +62,8 @@ static unsigned long wdt_status;
 static void wdt_disable(void)
 {
 	/* disable the watchdog */
-	if (test_and_clear_bit(SBC7240_ENABLED_STATUS_BIT, &wdt_status)) {
+	if (test_and_clear_bit(SBC7240_ENABLED_STATUS_BIT, &wdt_status))
+	{
 		inb_p(SBC7240_DISABLE_PORT);
 		pr_info("Watchdog timer is now disabled\n");
 	}
@@ -71,7 +72,8 @@ static void wdt_disable(void)
 static void wdt_enable(void)
 {
 	/* enable the watchdog */
-	if (!test_and_set_bit(SBC7240_ENABLED_STATUS_BIT, &wdt_status)) {
+	if (!test_and_set_bit(SBC7240_ENABLED_STATUS_BIT, &wdt_status))
+	{
 		inb_p(SBC7240_ENABLE_PORT);
 		pr_info("Watchdog timer is now enabled\n");
 	}
@@ -79,10 +81,12 @@ static void wdt_enable(void)
 
 static int wdt_set_timeout(int t)
 {
-	if (t < 1 || t > SBC7240_MAX_TIMEOUT) {
+	if (t < 1 || t > SBC7240_MAX_TIMEOUT)
+	{
 		pr_err("timeout value must be 1<=x<=%d\n", SBC7240_MAX_TIMEOUT);
 		return -1;
 	}
+
 	/* set the timeout */
 	outb_p((unsigned)t, SBC7240_SET_TIMEOUT_PORT);
 	timeout = t;
@@ -94,30 +98,39 @@ static int wdt_set_timeout(int t)
 static inline void wdt_keepalive(void)
 {
 	if (test_bit(SBC7240_ENABLED_STATUS_BIT, &wdt_status))
+	{
 		inb_p(SBC7240_ENABLE_PORT);
+	}
 }
 
 /*
  * /dev/watchdog handling
  */
 static ssize_t fop_write(struct file *file, const char __user *buf,
-			 size_t count, loff_t *ppos)
+						 size_t count, loff_t *ppos)
 {
 	size_t i;
 	char c;
 
-	if (count) {
-		if (!nowayout) {
+	if (count)
+	{
+		if (!nowayout)
+		{
 			clear_bit(SBC7240_EXPECT_CLOSE_STATUS_BIT,
-				&wdt_status);
+					  &wdt_status);
 
 			/* is there a magic char ? */
-			for (i = 0; i != count; i++) {
+			for (i = 0; i != count; i++)
+			{
 				if (get_user(c, buf + i))
+				{
 					return -EFAULT;
-				if (c == SBC7240_MAGIC_CHAR) {
+				}
+
+				if (c == SBC7240_MAGIC_CHAR)
+				{
 					set_bit(SBC7240_EXPECT_CLOSE_STATUS_BIT,
-						&wdt_status);
+							&wdt_status);
 					break;
 				}
 			}
@@ -132,7 +145,9 @@ static ssize_t fop_write(struct file *file, const char __user *buf,
 static int fop_open(struct inode *inode, struct file *file)
 {
 	if (test_and_set_bit(SBC7240_OPEN_STATUS_BIT, &wdt_status))
+	{
 		return -EBUSY;
+	}
 
 	wdt_enable();
 
@@ -142,9 +157,12 @@ static int fop_open(struct inode *inode, struct file *file)
 static int fop_close(struct inode *inode, struct file *file)
 {
 	if (test_and_clear_bit(SBC7240_EXPECT_CLOSE_STATUS_BIT, &wdt_status)
-	    || !nowayout) {
+		|| !nowayout)
+	{
 		wdt_disable();
-	} else {
+	}
+	else
+	{
 		pr_crit("Unexpected close, not stopping watchdog!\n");
 		wdt_keepalive();
 	}
@@ -153,10 +171,11 @@ static int fop_close(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static const struct watchdog_info ident = {
-	.options = WDIOF_KEEPALIVEPING|
-		   WDIOF_SETTIMEOUT|
-		   WDIOF_MAGICCLOSE,
+static const struct watchdog_info ident =
+{
+	.options = WDIOF_KEEPALIVEPING |
+	WDIOF_SETTIMEOUT |
+	WDIOF_MAGICCLOSE,
 	.firmware_version = 1,
 	.identity = "SBC7240",
 };
@@ -164,56 +183,72 @@ static const struct watchdog_info ident = {
 
 static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		return copy_to_user((void __user *)arg, &ident, sizeof(ident))
-						 ? -EFAULT : 0;
-	case WDIOC_GETSTATUS:
-	case WDIOC_GETBOOTSTATUS:
-		return put_user(0, (int __user *)arg);
-	case WDIOC_SETOPTIONS:
+	switch (cmd)
 	{
-		int options;
-		int retval = -EINVAL;
+		case WDIOC_GETSUPPORT:
+			return copy_to_user((void __user *)arg, &ident, sizeof(ident))
+				   ? -EFAULT : 0;
 
-		if (get_user(options, (int __user *)arg))
-			return -EFAULT;
+		case WDIOC_GETSTATUS:
+		case WDIOC_GETBOOTSTATUS:
+			return put_user(0, (int __user *)arg);
 
-		if (options & WDIOS_DISABLECARD) {
-			wdt_disable();
-			retval = 0;
-		}
+		case WDIOC_SETOPTIONS:
+			{
+				int options;
+				int retval = -EINVAL;
 
-		if (options & WDIOS_ENABLECARD) {
-			wdt_enable();
-			retval = 0;
-		}
+				if (get_user(options, (int __user *)arg))
+				{
+					return -EFAULT;
+				}
 
-		return retval;
-	}
-	case WDIOC_KEEPALIVE:
-		wdt_keepalive();
-		return 0;
-	case WDIOC_SETTIMEOUT:
-	{
-		int new_timeout;
+				if (options & WDIOS_DISABLECARD)
+				{
+					wdt_disable();
+					retval = 0;
+				}
 
-		if (get_user(new_timeout, (int __user *)arg))
-			return -EFAULT;
+				if (options & WDIOS_ENABLECARD)
+				{
+					wdt_enable();
+					retval = 0;
+				}
 
-		if (wdt_set_timeout(new_timeout))
-			return -EINVAL;
+				return retval;
+			}
 
-		/* Fall through */
-	}
-	case WDIOC_GETTIMEOUT:
-		return put_user(timeout, (int __user *)arg);
-	default:
-		return -ENOTTY;
+		case WDIOC_KEEPALIVE:
+			wdt_keepalive();
+			return 0;
+
+		case WDIOC_SETTIMEOUT:
+			{
+				int new_timeout;
+
+				if (get_user(new_timeout, (int __user *)arg))
+				{
+					return -EFAULT;
+				}
+
+				if (wdt_set_timeout(new_timeout))
+				{
+					return -EINVAL;
+				}
+
+				/* Fall through */
+			}
+
+		case WDIOC_GETTIMEOUT:
+			return put_user(timeout, (int __user *)arg);
+
+		default:
+			return -ENOTTY;
 	}
 }
 
-static const struct file_operations wdt_fops = {
+static const struct file_operations wdt_fops =
+{
 	.owner = THIS_MODULE,
 	.llseek = no_llseek,
 	.write = fop_write,
@@ -222,7 +257,8 @@ static const struct file_operations wdt_fops = {
 	.unlocked_ioctl = fop_ioctl,
 };
 
-static struct miscdevice wdt_miscdev = {
+static struct miscdevice wdt_miscdev =
+{
 	.minor = WATCHDOG_MINOR,
 	.name = "watchdog",
 	.fops = &wdt_fops,
@@ -233,14 +269,18 @@ static struct miscdevice wdt_miscdev = {
  */
 
 static int wdt_notify_sys(struct notifier_block *this, unsigned long code,
-			  void *unused)
+						  void *unused)
 {
 	if (code == SYS_DOWN || code == SYS_HALT)
+	{
 		wdt_disable();
+	}
+
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block wdt_notifier = {
+static struct notifier_block wdt_notifier =
+{
 	.notifier_call = wdt_notify_sys,
 };
 
@@ -257,9 +297,10 @@ static int __init sbc7240_wdt_init(void)
 {
 	int rc = -EBUSY;
 
-	if (!request_region(SBC7240_ENABLE_PORT, 1, "SBC7240 WDT")) {
+	if (!request_region(SBC7240_ENABLE_PORT, 1, "SBC7240 WDT"))
+	{
 		pr_err("I/O address 0x%04x already in use\n",
-		       SBC7240_ENABLE_PORT);
+			   SBC7240_ENABLE_PORT);
 		rc = -EIO;
 		goto err_out;
 	}
@@ -268,29 +309,35 @@ static int __init sbc7240_wdt_init(void)
 	 * is already claimed by the system timer, so we
 	 * can't request_region() it ...*/
 
-	if (timeout < 1 || timeout > SBC7240_MAX_TIMEOUT) {
+	if (timeout < 1 || timeout > SBC7240_MAX_TIMEOUT)
+	{
 		timeout = SBC7240_TIMEOUT;
 		pr_info("timeout value must be 1<=x<=%d, using %d\n",
-			SBC7240_MAX_TIMEOUT, timeout);
+				SBC7240_MAX_TIMEOUT, timeout);
 	}
+
 	wdt_set_timeout(timeout);
 	wdt_disable();
 
 	rc = register_reboot_notifier(&wdt_notifier);
-	if (rc) {
+
+	if (rc)
+	{
 		pr_err("cannot register reboot notifier (err=%d)\n", rc);
 		goto err_out_region;
 	}
 
 	rc = misc_register(&wdt_miscdev);
-	if (rc) {
+
+	if (rc)
+	{
 		pr_err("cannot register miscdev on minor=%d (err=%d)\n",
-		       wdt_miscdev.minor, rc);
+			   wdt_miscdev.minor, rc);
 		goto err_out_reboot_notifier;
 	}
 
 	pr_info("Watchdog driver for SBC7240 initialised (nowayout=%d)\n",
-		nowayout);
+			nowayout);
 
 	return 0;
 
@@ -307,5 +354,5 @@ module_exit(sbc7240_wdt_unload);
 
 MODULE_AUTHOR("Gilles Gigan");
 MODULE_DESCRIPTION("Watchdog device driver for single board"
-		   " computers EPIC Nano 7240 from iEi");
+				   " computers EPIC Nano 7240 from iEi");
 MODULE_LICENSE("GPL");

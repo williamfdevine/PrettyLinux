@@ -27,7 +27,8 @@ MODULE_AUTHOR("Kristoffer Ericson <kristoffer.ericson@gmail.com>");
 MODULE_DESCRIPTION("HP Jornada 710/720/728 touchscreen driver");
 MODULE_LICENSE("GPL v2");
 
-struct jornada_ts {
+struct jornada_ts
+{
 	struct input_dev *dev;
 	struct gpio_desc *gpio;
 	int x_data[4];		/* X sample values */
@@ -72,14 +73,18 @@ static irqreturn_t jornada720_ts_interrupt(int irq, void *dev_id)
 	int x, y;
 
 	/* If gpio is high then report pen up */
-	if (gpiod_get_value(jornada_ts->gpio)) {
+	if (gpiod_get_value(jornada_ts->gpio))
+	{
 		input_report_key(input, BTN_TOUCH, 0);
 		input_sync(input);
-	} else {
+	}
+	else
+	{
 		jornada_ssp_start();
 
 		/* proper reply to request is always TXDUMMY */
-		if (jornada_ssp_inout(GETTOUCHSAMPLES) == TXDUMMY) {
+		if (jornada_ssp_inout(GETTOUCHSAMPLES) == TXDUMMY)
+		{
 			jornada720_ts_collect_data(jornada_ts);
 
 			x = jornada720_ts_average(jornada_ts->x_data);
@@ -104,22 +109,34 @@ static int jornada720_ts_probe(struct platform_device *pdev)
 	int error, irq;
 
 	jornada_ts = devm_kzalloc(&pdev->dev, sizeof(*jornada_ts), GFP_KERNEL);
+
 	if (!jornada_ts)
+	{
 		return -ENOMEM;
+	}
 
 	input_dev = devm_input_allocate_device(&pdev->dev);
+
 	if (!input_dev)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, jornada_ts);
 
 	jornada_ts->gpio = devm_gpiod_get(&pdev->dev, "penup", GPIOD_IN);
+
 	if (IS_ERR(jornada_ts->gpio))
+	{
 		return PTR_ERR(jornada_ts->gpio);
+	}
 
 	irq = gpiod_to_irq(jornada_ts->gpio);
+
 	if (irq <= 0)
+	{
 		return irq < 0 ? irq : -EINVAL;
+	}
 
 	jornada_ts->dev = input_dev;
 
@@ -134,16 +151,21 @@ static int jornada720_ts_probe(struct platform_device *pdev)
 	input_set_abs_params(input_dev, ABS_Y, 180, 3700, 0, 0);
 
 	error = devm_request_irq(&pdev->dev, irq, jornada720_ts_interrupt,
-				 IRQF_TRIGGER_RISING,
-				 "HP7XX Touchscreen driver", pdev);
-	if (error) {
+							 IRQF_TRIGGER_RISING,
+							 "HP7XX Touchscreen driver", pdev);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "HP7XX TS : Unable to acquire irq!\n");
 		return error;
 	}
 
 	error = input_register_device(jornada_ts->dev);
+
 	if (error)
+	{
 		return error;
+	}
 
 	return 0;
 }
@@ -151,7 +173,8 @@ static int jornada720_ts_probe(struct platform_device *pdev)
 /* work with hotplug and coldplug */
 MODULE_ALIAS("platform:jornada_ts");
 
-static struct platform_driver jornada720_ts_driver = {
+static struct platform_driver jornada720_ts_driver =
+{
 	.probe		= jornada720_ts_probe,
 	.driver		= {
 		.name	= "jornada_ts",

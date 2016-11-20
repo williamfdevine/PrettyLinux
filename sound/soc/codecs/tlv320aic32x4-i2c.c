@@ -27,7 +27,7 @@
 #include "tlv320aic32x4.h"
 
 static int aic32x4_i2c_probe(struct i2c_client *i2c,
-			     const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	struct regmap *regmap;
 	struct regmap_config config;
@@ -45,19 +45,22 @@ static int aic32x4_i2c_remove(struct i2c_client *i2c)
 	return aic32x4_remove(&i2c->dev);
 }
 
-static const struct i2c_device_id aic32x4_i2c_id[] = {
+static const struct i2c_device_id aic32x4_i2c_id[] =
+{
 	{ "tlv320aic32x4", 0 },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(i2c, aic32x4_i2c_id);
 
-static const struct of_device_id aic32x4_of_id[] = {
+static const struct of_device_id aic32x4_of_id[] =
+{
 	{ .compatible = "ti,tlv320aic32x4", },
 	{ /* senitel */ }
 };
 MODULE_DEVICE_TABLE(of, aic32x4_of_id);
 
-static struct i2c_driver aic32x4_i2c_driver = {
+static struct i2c_driver aic32x4_i2c_driver =
+{
 	.driver = {
 		.name = "tlv320aic32x4",
 		.of_match_table = aic32x4_of_id,

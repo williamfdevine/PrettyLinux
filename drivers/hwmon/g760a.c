@@ -24,7 +24,8 @@
 #include <linux/mutex.h>
 #include <linux/sysfs.h>
 
-enum g760a_regs {
+enum g760a_regs
+{
 	G760A_REG_SET_CNT = 0x00,
 	G760A_REG_ACT_CNT = 0x01,
 	G760A_REG_FAN_STA = 0x02
@@ -36,7 +37,8 @@ enum g760a_regs {
 /* register data is read (and cached) at most once per second */
 #define G760A_UPDATE_INTERVAL (HZ)
 
-struct g760a_data {
+struct g760a_data
+{
 	struct i2c_client *client;
 	struct mutex update_lock;
 
@@ -45,7 +47,7 @@ struct g760a_data {
 	u16 fan_div; /* default P=2 */
 
 	/* g760a register cache */
-	unsigned int valid:1;
+	unsigned int valid: 1;
 	unsigned long last_updated; /* In jiffies */
 
 	u8 set_cnt; /* PWM (period) count number; 0xff stops fan */
@@ -64,7 +66,7 @@ struct g760a_data {
 
 static inline unsigned int rpm_from_cnt(u8 val, u32 clk, u16 div)
 {
-	return ((val == 0x00) ? 0 : ((clk*30)/(val*div)));
+	return ((val == 0x00) ? 0 : ((clk * 30) / (val * div)));
 }
 
 /* read/write wrappers */
@@ -74,7 +76,7 @@ static int g760a_read_value(struct i2c_client *client, enum g760a_regs reg)
 }
 
 static int g760a_write_value(struct i2c_client *client, enum g760a_regs reg,
-			     u16 value)
+							 u16 value)
 {
 	return i2c_smbus_write_byte_data(client, reg, value);
 }
@@ -91,7 +93,8 @@ static struct g760a_data *g760a_update_client(struct device *dev)
 	mutex_lock(&data->update_lock);
 
 	if (time_after(jiffies, data->last_updated + G760A_UPDATE_INTERVAL)
-	    || !data->valid) {
+		|| !data->valid)
+	{
 		dev_dbg(&client->dev, "Starting g760a update\n");
 
 		data->set_cnt = g760a_read_value(client, G760A_REG_SET_CNT);
@@ -108,21 +111,25 @@ static struct g760a_data *g760a_update_client(struct device *dev)
 }
 
 static ssize_t show_fan(struct device *dev, struct device_attribute *da,
-			char *buf)
+						char *buf)
 {
 	struct g760a_data *data = g760a_update_client(dev);
 	unsigned int rpm = 0;
 
 	mutex_lock(&data->update_lock);
+
 	if (!(data->fan_sta & G760A_REG_FAN_STA_RPM_LOW))
+	{
 		rpm = rpm_from_cnt(data->act_cnt, data->clk, data->fan_div);
+	}
+
 	mutex_unlock(&data->update_lock);
 
 	return sprintf(buf, "%d\n", rpm);
 }
 
 static ssize_t show_fan_alarm(struct device *dev, struct device_attribute *da,
-			      char *buf)
+							  char *buf)
 {
 	struct g760a_data *data = g760a_update_client(dev);
 
@@ -132,7 +139,7 @@ static ssize_t show_fan_alarm(struct device *dev, struct device_attribute *da,
 }
 
 static ssize_t get_pwm(struct device *dev, struct device_attribute *da,
-		       char *buf)
+					   char *buf)
 {
 	struct g760a_data *data = g760a_update_client(dev);
 
@@ -140,14 +147,16 @@ static ssize_t get_pwm(struct device *dev, struct device_attribute *da,
 }
 
 static ssize_t set_pwm(struct device *dev, struct device_attribute *da,
-		       const char *buf, size_t count)
+					   const char *buf, size_t count)
 {
 	struct g760a_data *data = g760a_update_client(dev);
 	struct i2c_client *client = data->client;
 	unsigned long val;
 
 	if (kstrtoul(buf, 10, &val))
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->set_cnt = PWM_TO_CNT(clamp_val(val, 0, 255));
@@ -161,7 +170,8 @@ static DEVICE_ATTR(pwm1, S_IWUSR | S_IRUGO, get_pwm, set_pwm);
 static DEVICE_ATTR(fan1_input, S_IRUGO, show_fan, NULL);
 static DEVICE_ATTR(fan1_alarm, S_IRUGO, show_fan_alarm, NULL);
 
-static struct attribute *g760a_attrs[] = {
+static struct attribute *g760a_attrs[] =
+{
 	&dev_attr_pwm1.attr,
 	&dev_attr_fan1_input.attr,
 	&dev_attr_fan1_alarm.attr,
@@ -175,18 +185,23 @@ ATTRIBUTE_GROUPS(g760a);
  */
 
 static int g760a_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+					   const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
 	struct g760a_data *data;
 	struct device *hwmon_dev;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -EIO;
+	}
 
 	data = devm_kzalloc(dev, sizeof(struct g760a_data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	data->client = client;
 	mutex_init(&data->update_lock);
@@ -196,18 +211,20 @@ static int g760a_probe(struct i2c_client *client,
 	data->clk = G760A_DEFAULT_CLK;
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-							   data,
-							   g760a_groups);
+				data,
+				g760a_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
-static const struct i2c_device_id g760a_id[] = {
+static const struct i2c_device_id g760a_id[] =
+{
 	{ "g760a", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, g760a_id);
 
-static struct i2c_driver g760a_driver = {
+static struct i2c_driver g760a_driver =
+{
 	.driver = {
 		.name	= "g760a",
 	},

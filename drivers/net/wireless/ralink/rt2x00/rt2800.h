@@ -1880,18 +1880,21 @@
 #define SHARED_KEY_MODE_ENTRY(__idx) \
 	(SHARED_KEY_MODE_BASE + ((__idx) * sizeof(u32)))
 
-struct mac_wcid_entry {
+struct mac_wcid_entry
+{
 	u8 mac[6];
 	u8 reserved[2];
 } __packed;
 
-struct hw_key_entry {
+struct hw_key_entry
+{
 	u8 key[16];
 	u8 tx_mic[8];
 	u8 rx_mic[8];
 } __packed;
 
-struct mac_iveiv_entry {
+struct mac_iveiv_entry
+{
 	u8 iv[8];
 } __packed;
 
@@ -2023,7 +2026,7 @@ struct mac_iveiv_entry {
 
 #define HW_BEACON_BASE(__index) \
 	(((__index) < 4) ? (HW_BEACON_BASE0 + (__index * 0x0200)) : \
-	  (((__index) < 6) ? (HW_BEACON_BASE4 + ((__index - 4) * 0x0200)) : \
+	 (((__index) < 6) ? (HW_BEACON_BASE4 + ((__index - 4) * 0x0200)) : \
 	  (HW_BEACON_BASE6 - ((__index - 6) * 0x0200))))
 
 #define BEACON_BASE_TO_OFFSET(_base)	(((_base) - 0x4000) / 64)
@@ -2379,7 +2382,8 @@ struct mac_iveiv_entry {
  * The wordsize of the EEPROM is 16 bits.
  */
 
-enum rt2800_eeprom_word {
+enum rt2800_eeprom_word
+{
 	EEPROM_CHIP_ID = 0,
 	EEPROM_VERSION,
 	EEPROM_MAC_ADDR_0,
@@ -2972,7 +2976,8 @@ enum rt2800_eeprom_word {
 /*
  * RT2800 driver data structure
  */
-struct rt2800_drv_data {
+struct rt2800_drv_data
+{
 	u8 calibration_bw20;
 	u8 calibration_bw40;
 	u8 bbp25;

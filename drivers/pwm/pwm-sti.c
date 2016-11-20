@@ -43,7 +43,8 @@
 #define CPT_DC_MAX		0xff
 
 /* Regfield IDs */
-enum {
+enum
+{
 	/* Bits in PWM_CTRL*/
 	PWMCLK_PRESCALE_LOW,
 	PWMCLK_PRESCALE_HIGH,
@@ -63,21 +64,24 @@ enum {
  * Each capture input can be programmed to detect rising-edge, falling-edge,
  * either edge or neither egde.
  */
-enum sti_cpt_edge {
+enum sti_cpt_edge
+{
 	CPT_EDGE_DISABLED,
 	CPT_EDGE_RISING,
 	CPT_EDGE_FALLING,
 	CPT_EDGE_BOTH,
 };
 
-struct sti_cpt_ddata {
+struct sti_cpt_ddata
+{
 	u32 snapshot[3];
 	unsigned int index;
 	struct mutex lock;
 	wait_queue_head_t wait;
 };
 
-struct sti_pwm_compat_data {
+struct sti_pwm_compat_data
+{
 	const struct reg_field *reg_fields;
 	unsigned int pwm_num_devs;
 	unsigned int cpt_num_devs;
@@ -85,7 +89,8 @@ struct sti_pwm_compat_data {
 	unsigned int max_prescale;
 };
 
-struct sti_pwm_chip {
+struct sti_pwm_chip
+{
 	struct device *dev;
 	struct clk *pwm_clk;
 	struct clk *cpt_clk;
@@ -105,7 +110,8 @@ struct sti_pwm_chip {
 	void __iomem *mmio;
 };
 
-static const struct reg_field sti_pwm_regfields[MAX_REGFIELDS] = {
+static const struct reg_field sti_pwm_regfields[MAX_REGFIELDS] =
+{
 	[PWMCLK_PRESCALE_LOW] = REG_FIELD(STI_PWM_CTRL, 0, 3),
 	[PWMCLK_PRESCALE_HIGH] = REG_FIELD(STI_PWM_CTRL, 11, 14),
 	[CPTCLK_PRESCALE] = REG_FIELD(STI_PWM_CTRL, 4, 8),
@@ -124,7 +130,7 @@ static inline struct sti_pwm_chip *to_sti_pwmchip(struct pwm_chip *chip)
  * Calculate the prescaler value corresponding to the period.
  */
 static int sti_pwm_get_prescale(struct sti_pwm_chip *pc, unsigned long period,
-				unsigned int *prescale)
+								unsigned int *prescale)
 {
 	struct sti_pwm_compat_data *cdata = pc->cdata;
 	unsigned long clk_rate;
@@ -132,7 +138,9 @@ static int sti_pwm_get_prescale(struct sti_pwm_chip *pc, unsigned long period,
 	unsigned int ps;
 
 	clk_rate = clk_get_rate(pc->pwm_clk);
-	if (!clk_rate) {
+
+	if (!clk_rate)
+	{
 		dev_err(pc->dev, "failed to get clock rate\n");
 		return -EINVAL;
 	}
@@ -144,11 +152,16 @@ static int sti_pwm_get_prescale(struct sti_pwm_chip *pc, unsigned long period,
 	value *= cdata->max_pwm_cnt + 1;
 
 	if (period % value)
+	{
 		return -EINVAL;
+	}
 
 	ps  = period / value - 1;
+
 	if (ps > cdata->max_prescale)
+	{
 		return -EINVAL;
+	}
 
 	*prescale = ps;
 
@@ -165,7 +178,7 @@ static int sti_pwm_get_prescale(struct sti_pwm_chip *pc, unsigned long period,
  * period will be applied only if it matches one of these 256 values.
  */
 static int sti_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
-			  int duty_ns, int period_ns)
+						  int duty_ns, int period_ns)
 {
 	struct sti_pwm_chip *pc = to_sti_pwmchip(chip);
 	struct sti_pwm_compat_data *cdata = pc->cdata;
@@ -176,8 +189,11 @@ static int sti_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	int ret;
 
 	ncfg = hweight_long(pc->configured);
+
 	if (ncfg)
+	{
 		period_same = (period_ns == pwm_get_period(cur));
+	}
 
 	/*
 	 * Allow configuration changes if one of the following conditions
@@ -192,34 +208,51 @@ static int sti_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	 *    requestis the same as the current period.
 	 */
 	if (!ncfg ||
-	    ((ncfg == 1) && (pwm->hwpwm == cur->hwpwm)) ||
-	    ((ncfg == 1) && (pwm->hwpwm != cur->hwpwm) && period_same) ||
-	    ((ncfg > 1) && period_same)) {
+		((ncfg == 1) && (pwm->hwpwm == cur->hwpwm)) ||
+		((ncfg == 1) && (pwm->hwpwm != cur->hwpwm) && period_same) ||
+		((ncfg > 1) && period_same))
+	{
 		/* Enable clock before writing to PWM registers. */
 		ret = clk_enable(pc->pwm_clk);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		ret = clk_enable(pc->cpt_clk);
-		if (ret)
-			return ret;
 
-		if (!period_same) {
+		if (ret)
+		{
+			return ret;
+		}
+
+		if (!period_same)
+		{
 			ret = sti_pwm_get_prescale(pc, period_ns, &prescale);
+
 			if (ret)
+			{
 				goto clk_dis;
+			}
 
 			value = prescale & PWM_PRESCALE_LOW_MASK;
 
 			ret = regmap_field_write(pc->prescale_low, value);
+
 			if (ret)
+			{
 				goto clk_dis;
+			}
 
 			value = (prescale & PWM_PRESCALE_HIGH_MASK) >> 4;
 
 			ret = regmap_field_write(pc->prescale_high, value);
+
 			if (ret)
+			{
 				goto clk_dis;
+			}
 		}
 
 		/*
@@ -231,8 +264,11 @@ static int sti_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 		value = cdata->max_pwm_cnt * duty_ns / period_ns;
 
 		ret = regmap_write(pc->regmap, PWM_OUT_VAL(pwm->hwpwm), value);
+
 		if (ret)
+		{
 			goto clk_dis;
+		}
 
 		ret = regmap_field_write(pc->pwm_cpt_int_en, 0);
 
@@ -240,8 +276,10 @@ static int sti_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 		pc->cur = pwm;
 
 		dev_dbg(dev, "prescale:%u, period:%i, duty:%i, value:%u\n",
-			prescale, period_ns, duty_ns, value);
-	} else {
+				prescale, period_ns, duty_ns, value);
+	}
+	else
+	{
 		return -EINVAL;
 	}
 
@@ -263,19 +301,28 @@ static int sti_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 	 */
 	mutex_lock(&pc->sti_pwm_lock);
 
-	if (!pc->en_count) {
+	if (!pc->en_count)
+	{
 		ret = clk_enable(pc->pwm_clk);
+
 		if (ret)
+		{
 			goto out;
+		}
 
 		ret = clk_enable(pc->cpt_clk);
+
 		if (ret)
+		{
 			goto out;
+		}
 
 		ret = regmap_field_write(pc->pwm_out_en, 1);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "failed to enable PWM device %u: %d\n",
-				pwm->hwpwm, ret);
+					pwm->hwpwm, ret);
 			goto out;
 		}
 	}
@@ -293,7 +340,8 @@ static void sti_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 
 	mutex_lock(&pc->sti_pwm_lock);
 
-	if (--pc->en_count) {
+	if (--pc->en_count)
+	{
 		mutex_unlock(&pc->sti_pwm_lock);
 		return;
 	}
@@ -314,7 +362,7 @@ static void sti_pwm_free(struct pwm_chip *chip, struct pwm_device *pwm)
 }
 
 static int sti_pwm_capture(struct pwm_chip *chip, struct pwm_device *pwm,
-			   struct pwm_capture *result, unsigned long timeout)
+						   struct pwm_capture *result, unsigned long timeout)
 {
 	struct sti_pwm_chip *pc = to_sti_pwmchip(chip);
 	struct sti_pwm_compat_data *cdata = pc->cdata;
@@ -324,7 +372,8 @@ static int sti_pwm_capture(struct pwm_chip *chip, struct pwm_device *pwm,
 	unsigned long long high, low;
 	int ret;
 
-	if (pwm->hwpwm >= cdata->cpt_num_devs) {
+	if (pwm->hwpwm >= cdata->cpt_num_devs)
+	{
 		dev_err(dev, "device %u is not valid\n", pwm->hwpwm);
 		return -EINVAL;
 	}
@@ -338,53 +387,58 @@ static int sti_pwm_capture(struct pwm_chip *chip, struct pwm_device *pwm,
 
 	/* Enable capture */
 	ret = regmap_field_write(pc->pwm_cpt_en, 1);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to enable PWM capture %u: %d\n",
-			pwm->hwpwm, ret);
+				pwm->hwpwm, ret);
 		goto out;
 	}
 
 	ret = wait_event_interruptible_timeout(ddata->wait, ddata->index > 1,
-					       msecs_to_jiffies(timeout));
+										   msecs_to_jiffies(timeout));
 
 	regmap_write(pc->regmap, PWM_CPT_EDGE(pwm->hwpwm), CPT_EDGE_DISABLED);
 
 	if (ret == -ERESTARTSYS)
+	{
 		goto out;
+	}
 
-	switch (ddata->index) {
-	case 0:
-	case 1:
-		/*
-		 * Getting here could mean:
-		 *  - input signal is constant of less than 1 Hz
-		 *  - there is no input signal at all
-		 *
-		 * In such case the frequency is rounded down to 0
-		 */
-		result->period = 0;
-		result->duty_cycle = 0;
+	switch (ddata->index)
+	{
+		case 0:
+		case 1:
+			/*
+			 * Getting here could mean:
+			 *  - input signal is constant of less than 1 Hz
+			 *  - there is no input signal at all
+			 *
+			 * In such case the frequency is rounded down to 0
+			 */
+			result->period = 0;
+			result->duty_cycle = 0;
 
-		break;
+			break;
 
-	case 2:
-		/* We have everying we need */
-		high = ddata->snapshot[1] - ddata->snapshot[0];
-		low = ddata->snapshot[2] - ddata->snapshot[1];
+		case 2:
+			/* We have everying we need */
+			high = ddata->snapshot[1] - ddata->snapshot[0];
+			low = ddata->snapshot[2] - ddata->snapshot[1];
 
-		effective_ticks = clk_get_rate(pc->cpt_clk);
+			effective_ticks = clk_get_rate(pc->cpt_clk);
 
-		result->period = (high + low) * NSEC_PER_SEC;
-		result->period /= effective_ticks;
+			result->period = (high + low) * NSEC_PER_SEC;
+			result->period /= effective_ticks;
 
-		result->duty_cycle = high * NSEC_PER_SEC;
-		result->duty_cycle /= effective_ticks;
+			result->duty_cycle = high * NSEC_PER_SEC;
+			result->duty_cycle /= effective_ticks;
 
-		break;
+			break;
 
-	default:
-		dev_err(dev, "internal error\n");
-		break;
+		default:
+			dev_err(dev, "internal error\n");
+			break;
 	}
 
 out:
@@ -395,7 +449,8 @@ out:
 	return ret;
 }
 
-static const struct pwm_ops sti_pwm_ops = {
+static const struct pwm_ops sti_pwm_ops =
+{
 	.capture = sti_pwm_capture,
 	.config = sti_pwm_config,
 	.enable = sti_pwm_enable,
@@ -415,10 +470,14 @@ static irqreturn_t sti_pwm_interrupt(int irq, void *data)
 	int ret = IRQ_NONE;
 
 	ret = regmap_field_read(pc->pwm_cpt_int_stat, &cpt_int_stat);
-	if (ret)
-		return ret;
 
-	while (cpt_int_stat) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	while (cpt_int_stat)
+	{
 		devicenum = ffs(cpt_int_stat) - 1;
 
 		ddata = pwm_get_chip_data(&pc->chip.pwms[devicenum]);
@@ -440,28 +499,29 @@ static irqreturn_t sti_pwm_interrupt(int irq, void *data)
 		 */
 
 		regmap_read(pc->regmap,
-			    PWM_CPT_VAL(devicenum),
-			    &ddata->snapshot[ddata->index]);
+					PWM_CPT_VAL(devicenum),
+					&ddata->snapshot[ddata->index]);
 
-		switch (ddata->index) {
-		case 0:
-		case 1:
-			regmap_read(pc->regmap, PWM_CPT_EDGE(devicenum), &reg);
-			reg ^= PWM_CPT_EDGE_MASK;
-			regmap_write(pc->regmap, PWM_CPT_EDGE(devicenum), reg);
+		switch (ddata->index)
+		{
+			case 0:
+			case 1:
+				regmap_read(pc->regmap, PWM_CPT_EDGE(devicenum), &reg);
+				reg ^= PWM_CPT_EDGE_MASK;
+				regmap_write(pc->regmap, PWM_CPT_EDGE(devicenum), reg);
 
-			ddata->index++;
-			break;
+				ddata->index++;
+				break;
 
-		case 2:
-			regmap_write(pc->regmap,
-				     PWM_CPT_EDGE(devicenum),
-				     CPT_EDGE_DISABLED);
-			wake_up(&ddata->wait);
-			break;
+			case 2:
+				regmap_write(pc->regmap,
+							 PWM_CPT_EDGE(devicenum),
+							 CPT_EDGE_DISABLED);
+				wake_up(&ddata->wait);
+				break;
 
-		default:
-			dev_err(dev, "Internal error\n");
+			default:
+				dev_err(dev, "Internal error\n");
 		}
 
 		cpt_int_stat &= ~BIT_MASK(devicenum);
@@ -485,14 +545,21 @@ static int sti_pwm_probe_dt(struct sti_pwm_chip *pc)
 	int ret;
 
 	ret = of_property_read_u32(np, "st,pwm-num-chan", &num_devs);
+
 	if (!ret)
+	{
 		cdata->pwm_num_devs = num_devs;
+	}
 
 	ret = of_property_read_u32(np, "st,capture-num-chan", &num_devs);
-	if (!ret)
-		cdata->cpt_num_devs = num_devs;
 
-	if (!cdata->pwm_num_devs && !cdata->cpt_num_devs) {
+	if (!ret)
+	{
+		cdata->cpt_num_devs = num_devs;
+	}
+
+	if (!cdata->pwm_num_devs && !cdata->cpt_num_devs)
+	{
 		dev_err(dev, "No channels configured\n");
 		return -EINVAL;
 	}
@@ -500,40 +567,59 @@ static int sti_pwm_probe_dt(struct sti_pwm_chip *pc)
 	reg_fields = cdata->reg_fields;
 
 	pc->prescale_low = devm_regmap_field_alloc(dev, pc->regmap,
-					reg_fields[PWMCLK_PRESCALE_LOW]);
+					   reg_fields[PWMCLK_PRESCALE_LOW]);
+
 	if (IS_ERR(pc->prescale_low))
+	{
 		return PTR_ERR(pc->prescale_low);
+	}
 
 	pc->prescale_high = devm_regmap_field_alloc(dev, pc->regmap,
-					reg_fields[PWMCLK_PRESCALE_HIGH]);
+						reg_fields[PWMCLK_PRESCALE_HIGH]);
+
 	if (IS_ERR(pc->prescale_high))
+	{
 		return PTR_ERR(pc->prescale_high);
+	}
 
 
 	pc->pwm_out_en = devm_regmap_field_alloc(dev, pc->regmap,
-						 reg_fields[PWM_OUT_EN]);
+					 reg_fields[PWM_OUT_EN]);
+
 	if (IS_ERR(pc->pwm_out_en))
+	{
 		return PTR_ERR(pc->pwm_out_en);
+	}
 
 	pc->pwm_cpt_en = devm_regmap_field_alloc(dev, pc->regmap,
-						 reg_fields[PWM_CPT_EN]);
+					 reg_fields[PWM_CPT_EN]);
+
 	if (IS_ERR(pc->pwm_cpt_en))
+	{
 		return PTR_ERR(pc->pwm_cpt_en);
+	}
 
 	pc->pwm_cpt_int_en = devm_regmap_field_alloc(dev, pc->regmap,
-						reg_fields[PWM_CPT_INT_EN]);
+						 reg_fields[PWM_CPT_INT_EN]);
+
 	if (IS_ERR(pc->pwm_cpt_int_en))
+	{
 		return PTR_ERR(pc->pwm_cpt_int_en);
+	}
 
 	pc->pwm_cpt_int_stat = devm_regmap_field_alloc(dev, pc->regmap,
-						reg_fields[PWM_CPT_INT_STAT]);
+						   reg_fields[PWM_CPT_INT_STAT]);
+
 	if (PTR_ERR_OR_ZERO(pc->pwm_cpt_int_stat))
+	{
 		return PTR_ERR(pc->pwm_cpt_int_stat);
+	}
 
 	return 0;
 }
 
-static const struct regmap_config sti_pwm_regmap_config = {
+static const struct regmap_config sti_pwm_regmap_config =
+{
 	.reg_bits = 32,
 	.val_bits = 32,
 	.reg_stride = 4,
@@ -549,33 +635,49 @@ static int sti_pwm_probe(struct platform_device *pdev)
 	int irq, ret;
 
 	pc = devm_kzalloc(dev, sizeof(*pc), GFP_KERNEL);
+
 	if (!pc)
+	{
 		return -ENOMEM;
+	}
 
 	cdata = devm_kzalloc(dev, sizeof(*cdata), GFP_KERNEL);
+
 	if (!cdata)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 
 	pc->mmio = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(pc->mmio))
+	{
 		return PTR_ERR(pc->mmio);
+	}
 
 	pc->regmap = devm_regmap_init_mmio(dev, pc->mmio,
-					   &sti_pwm_regmap_config);
+									   &sti_pwm_regmap_config);
+
 	if (IS_ERR(pc->regmap))
+	{
 		return PTR_ERR(pc->regmap);
+	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "Failed to obtain IRQ\n");
 		return irq;
 	}
 
 	ret = devm_request_irq(&pdev->dev, irq, sti_pwm_interrupt, 0,
-			       pdev->name, pc);
-	if (ret < 0) {
+						   pdev->name, pc);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to request IRQ\n");
 		return ret;
 	}
@@ -596,36 +698,52 @@ static int sti_pwm_probe(struct platform_device *pdev)
 	mutex_init(&pc->sti_pwm_lock);
 
 	ret = sti_pwm_probe_dt(pc);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (!cdata->pwm_num_devs)
+	{
 		goto skip_pwm;
+	}
 
 	pc->pwm_clk = of_clk_get_by_name(dev->of_node, "pwm");
-	if (IS_ERR(pc->pwm_clk)) {
+
+	if (IS_ERR(pc->pwm_clk))
+	{
 		dev_err(dev, "failed to get PWM clock\n");
 		return PTR_ERR(pc->pwm_clk);
 	}
 
 	ret = clk_prepare(pc->pwm_clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to prepare clock\n");
 		return ret;
 	}
 
 skip_pwm:
+
 	if (!cdata->cpt_num_devs)
+	{
 		goto skip_cpt;
+	}
 
 	pc->cpt_clk = of_clk_get_by_name(dev->of_node, "capture");
-	if (IS_ERR(pc->cpt_clk)) {
+
+	if (IS_ERR(pc->cpt_clk))
+	{
 		dev_err(dev, "failed to get PWM capture clock\n");
 		return PTR_ERR(pc->cpt_clk);
 	}
 
 	ret = clk_prepare(pc->cpt_clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to prepare clock\n");
 		return ret;
 	}
@@ -638,18 +756,24 @@ skip_cpt:
 	pc->chip.can_sleep = true;
 
 	ret = pwmchip_add(&pc->chip);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		clk_unprepare(pc->pwm_clk);
 		clk_unprepare(pc->cpt_clk);
 		return ret;
 	}
 
-	for (i = 0; i < cdata->cpt_num_devs; i++) {
+	for (i = 0; i < cdata->cpt_num_devs; i++)
+	{
 		struct sti_cpt_ddata *ddata;
 
 		ddata = devm_kzalloc(dev, sizeof(*ddata), GFP_KERNEL);
+
 		if (!ddata)
+		{
 			return -ENOMEM;
+		}
 
 		init_waitqueue_head(&ddata->wait);
 		mutex_init(&ddata->lock);
@@ -668,7 +792,9 @@ static int sti_pwm_remove(struct platform_device *pdev)
 	unsigned int i;
 
 	for (i = 0; i < pc->cdata->pwm_num_devs; i++)
+	{
 		pwm_disable(&pc->chip.pwms[i]);
+	}
 
 	clk_unprepare(pc->pwm_clk);
 	clk_unprepare(pc->cpt_clk);
@@ -676,13 +802,15 @@ static int sti_pwm_remove(struct platform_device *pdev)
 	return pwmchip_remove(&pc->chip);
 }
 
-static const struct of_device_id sti_pwm_of_match[] = {
+static const struct of_device_id sti_pwm_of_match[] =
+{
 	{ .compatible = "st,sti-pwm", },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, sti_pwm_of_match);
 
-static struct platform_driver sti_pwm_driver = {
+static struct platform_driver sti_pwm_driver =
+{
 	.driver = {
 		.name = "sti-pwm",
 		.of_match_table = sti_pwm_of_match,

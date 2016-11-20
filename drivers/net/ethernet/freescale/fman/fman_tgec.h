@@ -45,9 +45,9 @@ int tgec_init(struct fman_mac *tgec);
 int tgec_free(struct fman_mac *tgec);
 int tgec_accept_rx_pause_frames(struct fman_mac *tgec, bool en);
 int tgec_set_tx_pause_frames(struct fman_mac *tgec, u8 priority,
-			     u16 pause_time, u16 thresh_time);
+							 u16 pause_time, u16 thresh_time);
 int tgec_set_exception(struct fman_mac *tgec,
-		       enum fman_mac_exceptions exception, bool enable);
+					   enum fman_mac_exceptions exception, bool enable);
 int tgec_add_hash_mac_address(struct fman_mac *tgec, enet_addr_t *eth_addr);
 int tgec_del_hash_mac_address(struct fman_mac *tgec, enet_addr_t *eth_addr);
 int tgec_get_version(struct fman_mac *tgec, u32 *mac_version);

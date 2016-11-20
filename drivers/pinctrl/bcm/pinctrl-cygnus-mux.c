@@ -31,7 +31,7 @@
 #define CYGNUS_NUM_IOMUX_REGS     8
 #define CYGNUS_NUM_MUX_PER_REG    8
 #define CYGNUS_NUM_IOMUX          (CYGNUS_NUM_IOMUX_REGS * \
-				   CYGNUS_NUM_MUX_PER_REG)
+								   CYGNUS_NUM_MUX_PER_REG)
 
 /*
  * Cygnus IOMUX register description
@@ -40,7 +40,8 @@
  * @shift: bit shift for mux configuration of a group
  * @alt: alternate function to set to
  */
-struct cygnus_mux {
+struct cygnus_mux
+{
 	unsigned int offset;
 	unsigned int shift;
 	unsigned int alt;
@@ -53,7 +54,8 @@ struct cygnus_mux {
  * @is_configured: flag to indicate whether a mux setting has already been
  * configured
  */
-struct cygnus_mux_log {
+struct cygnus_mux_log
+{
 	struct cygnus_mux mux;
 	bool is_configured;
 };
@@ -66,7 +68,8 @@ struct cygnus_mux_log {
  * @num_pins: total number of pins used by this group
  * @mux: Cygnus group based IOMUX configuration
  */
-struct cygnus_pin_group {
+struct cygnus_pin_group
+{
 	const char *name;
 	const unsigned *pins;
 	unsigned num_pins;
@@ -80,9 +83,10 @@ struct cygnus_pin_group {
  * @groups: array of groups that can be supported by this function
  * @num_groups: total number of groups that can be supported by this function
  */
-struct cygnus_pin_function {
+struct cygnus_pin_function
+{
 	const char *name;
-	const char * const *groups;
+	const char *const *groups;
 	unsigned num_groups;
 };
 
@@ -100,7 +104,8 @@ struct cygnus_pin_function {
  * @mux_log: pointer to the array of mux logs
  * @lock: lock to protect register access
  */
-struct cygnus_pinctrl {
+struct cygnus_pinctrl
+{
 	struct pinctrl_dev *pctl;
 	struct device *dev;
 	void __iomem *base0;
@@ -124,7 +129,8 @@ struct cygnus_pinctrl {
  * @offset: register offset for GPIO mux override of a pin
  * @shift: bit shift for GPIO mux override of a pin
  */
-struct cygnus_gpio_mux {
+struct cygnus_gpio_mux
+{
 	int is_supported;
 	unsigned int offset;
 	unsigned int shift;
@@ -137,27 +143,29 @@ struct cygnus_gpio_mux {
  * @name: pin name
  * @gpio_mux: GPIO override related information
  */
-struct cygnus_pin {
+struct cygnus_pin
+{
 	unsigned pin;
 	char *name;
 	struct cygnus_gpio_mux gpio_mux;
 };
 
 #define CYGNUS_PIN_DESC(p, n, i, o, s)	\
-{					\
-	.pin = p,			\
-	.name = n,			\
-	.gpio_mux = {			\
-		.is_supported = i,	\
-		.offset = o,		\
-		.shift = s,		\
-	},				\
-}
+	{					\
+		.pin = p,			\
+			   .name = n,			\
+					   .gpio_mux = {			\
+											   .is_supported = i,	\
+											   .offset = o,		\
+											   .shift = s,		\
+								   },				\
+	}
 
 /*
  * List of pins in Cygnus
  */
-static struct cygnus_pin cygnus_pins[] = {
+static struct cygnus_pin cygnus_pins[] =
+{
 	CYGNUS_PIN_DESC(0, "ext_device_reset_n", 0, 0, 0),
 	CYGNUS_PIN_DESC(1, "chip_mode0", 0, 0, 0),
 	CYGNUS_PIN_DESC(2, "chip_mode1", 0, 0, 0),
@@ -409,11 +417,13 @@ static const unsigned uart4_pins[] = { 10, 11 };
 static const unsigned sw_led2_0_pins[] = { 10, 11 };
 
 static const unsigned lcd_pins[] = { 126, 127, 128, 129, 130, 131, 132, 133,
-	134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147,
-	148, 149, 150, 151, 152, 153, 154, 155 };
+									 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147,
+									 148, 149, 150, 151, 152, 153, 154, 155
+								   };
 static const unsigned sram_0_pins[] = { 126, 127, 128, 129, 130, 131, 132, 133,
-	134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147,
-	148, 149, 150, 151, 152, 153, 154, 155 };
+										134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147,
+										148, 149, 150, 151, 152, 153, 154, 155
+									  };
 static const unsigned spi5_pins[] = { 141, 142, 143, 144 };
 
 static const unsigned uart0_pins[] = { 70, 71, 72, 73 };
@@ -429,7 +439,8 @@ static const unsigned uart3_pins[] = { 82, 83 };
 static const unsigned qspi_0_pins[] = { 104, 105, 106, 107 };
 
 static const unsigned nand_pins[] = { 110, 111, 112, 113, 114, 115, 116, 117,
-	118, 119, 120, 121, 122, 123, 124, 125 };
+									  118, 119, 120, 121, 122, 123, 124, 125
+									};
 
 static const unsigned sdio0_cd_pins[] = { 103 };
 
@@ -456,9 +467,11 @@ static const unsigned sw_led1_pins[] = { 156, 157, 158, 159 };
 static const unsigned cam_0_pins[] = { 169, 170, 171, 169, 170 };
 
 static const unsigned cam_1_pins[] = { 161, 162, 163, 164, 165, 166, 167,
-	168 };
+									   168
+									 };
 static const unsigned sram_1_pins[] = { 161, 162, 163, 164, 165, 166, 167,
-	168 };
+										168
+									  };
 
 static const unsigned qspi_1_pins[] = { 108, 109 };
 
@@ -478,21 +491,22 @@ static const unsigned gpio2_3p3_pins[] = { 178 };
 static const unsigned usb2_oc_pins[] = { 178 };
 
 #define CYGNUS_PIN_GROUP(group_name, off, sh, al)	\
-{							\
-	.name = __stringify(group_name) "_grp",		\
-	.pins = group_name ## _pins,			\
-	.num_pins = ARRAY_SIZE(group_name ## _pins),	\
-	.mux = {					\
-		.offset = off,				\
-		.shift = sh,				\
-		.alt = al,				\
-	}						\
-}
+	{							\
+		.name = __stringify(group_name) "_grp",		\
+				.pins = group_name ## _pins,			\
+						.num_pins = ARRAY_SIZE(group_name ## _pins),	\
+									.mux = {					\
+																.offset = off,				\
+																.shift = sh,				\
+																.alt = al,				\
+										   }						\
+	}
 
 /*
  * List of Cygnus pin groups
  */
-static const struct cygnus_pin_group cygnus_pin_groups[] = {
+static const struct cygnus_pin_group cygnus_pin_groups[] =
+{
 	CYGNUS_PIN_GROUP(i2s2_0, 0x0, 0, 2),
 	CYGNUS_PIN_GROUP(i2s2_1, 0x0, 4, 2),
 	CYGNUS_PIN_GROUP(i2s2_2, 0x0, 8, 2),
@@ -584,75 +598,86 @@ static const struct cygnus_pin_group cygnus_pin_groups[] = {
 /*
  * List of groups supported by functions
  */
-static const char * const i2s0_grps[] = { "i2s0_0_grp", "i2s0_1_grp" };
-static const char * const i2s1_grps[] = { "i2s1_0_grp", "i2s1_1_grp" };
-static const char * const i2s2_grps[] = { "i2s2_0_grp", "i2s2_1_grp",
-	"i2s2_2_grp", "i2s2_3_grp", "i2s2_4_grp" };
-static const char * const spdif_grps[] = { "spdif_grp" };
-static const char * const pwm0_grps[] = { "pwm0_grp" };
-static const char * const pwm1_grps[] = { "pwm1_grp" };
-static const char * const pwm2_grps[] = { "pwm2_grp" };
-static const char * const pwm3_grps[] = { "pwm3_grp" };
-static const char * const pwm4_grps[] = { "pwm4_grp" };
-static const char * const pwm5_grps[] = { "pwm5_grp" };
-static const char * const key_grps[] = { "key0_grp", "key1_grp", "key2_grp",
-	"key3_grp", "key4_grp", "key5_grp", "key6_grp", "key7_grp", "key8_grp",
-	"key9_grp", "key10_grp", "key11_grp", "key12_grp", "key13_grp",
-	"key14_grp", "key15_grp" };
-static const char * const audio_dte_grps[] = { "audio_dte0_grp",
-	"audio_dte1_grp", "audio_dte2_grp", "audio_dte3_grp" };
-static const char * const smart_card0_grps[] = { "smart_card0_grp",
-	"smart_card0_fcb_grp" };
-static const char * const smart_card1_grps[] = { "smart_card1_grp",
-	"smart_card1_fcb_grp" };
-static const char * const spi0_grps[] = { "spi0_grp" };
-static const char * const spi1_grps[] = { "spi1_grp" };
-static const char * const spi2_grps[] = { "spi2_grp" };
-static const char * const spi3_grps[] = { "spi3_grp" };
-static const char * const spi4_grps[] = { "spi4_0_grp", "spi4_1_grp" };
-static const char * const spi5_grps[] = { "spi5_grp" };
+static const char *const i2s0_grps[] = { "i2s0_0_grp", "i2s0_1_grp" };
+static const char *const i2s1_grps[] = { "i2s1_0_grp", "i2s1_1_grp" };
+static const char *const i2s2_grps[] = { "i2s2_0_grp", "i2s2_1_grp",
+										 "i2s2_2_grp", "i2s2_3_grp", "i2s2_4_grp"
+									   };
+static const char *const spdif_grps[] = { "spdif_grp" };
+static const char *const pwm0_grps[] = { "pwm0_grp" };
+static const char *const pwm1_grps[] = { "pwm1_grp" };
+static const char *const pwm2_grps[] = { "pwm2_grp" };
+static const char *const pwm3_grps[] = { "pwm3_grp" };
+static const char *const pwm4_grps[] = { "pwm4_grp" };
+static const char *const pwm5_grps[] = { "pwm5_grp" };
+static const char *const key_grps[] = { "key0_grp", "key1_grp", "key2_grp",
+										"key3_grp", "key4_grp", "key5_grp", "key6_grp", "key7_grp", "key8_grp",
+										"key9_grp", "key10_grp", "key11_grp", "key12_grp", "key13_grp",
+										"key14_grp", "key15_grp"
+									  };
+static const char *const audio_dte_grps[] = { "audio_dte0_grp",
+											  "audio_dte1_grp", "audio_dte2_grp", "audio_dte3_grp"
+											};
+static const char *const smart_card0_grps[] = { "smart_card0_grp",
+												"smart_card0_fcb_grp"
+											  };
+static const char *const smart_card1_grps[] = { "smart_card1_grp",
+												"smart_card1_fcb_grp"
+											  };
+static const char *const spi0_grps[] = { "spi0_grp" };
+static const char *const spi1_grps[] = { "spi1_grp" };
+static const char *const spi2_grps[] = { "spi2_grp" };
+static const char *const spi3_grps[] = { "spi3_grp" };
+static const char *const spi4_grps[] = { "spi4_0_grp", "spi4_1_grp" };
+static const char *const spi5_grps[] = { "spi5_grp" };
 
-static const char * const sw_led0_grps[] = { "sw_led0_0_grp",
-	"sw_led0_1_grp" };
-static const char * const sw_led1_grps[] = { "sw_led1_grp" };
-static const char * const sw_led2_grps[] = { "sw_led2_0_grp",
-	"sw_led2_1_grp" };
-static const char * const d1w_grps[] = { "d1w_grp" };
-static const char * const lcd_grps[] = { "lcd_grp" };
-static const char * const sram_grps[] = { "sram_0_grp", "sram_1_grp" };
+static const char *const sw_led0_grps[] = { "sw_led0_0_grp",
+											"sw_led0_1_grp"
+										  };
+static const char *const sw_led1_grps[] = { "sw_led1_grp" };
+static const char *const sw_led2_grps[] = { "sw_led2_0_grp",
+											"sw_led2_1_grp"
+										  };
+static const char *const d1w_grps[] = { "d1w_grp" };
+static const char *const lcd_grps[] = { "lcd_grp" };
+static const char *const sram_grps[] = { "sram_0_grp", "sram_1_grp" };
 
-static const char * const uart0_grps[] = { "uart0_grp" };
-static const char * const uart1_grps[] = { "uart1_grp", "uart1_dte_grp" };
-static const char * const uart2_grps[] = { "uart2_grp" };
-static const char * const uart3_grps[] = { "uart3_grp" };
-static const char * const uart4_grps[] = { "uart4_grp" };
-static const char * const qspi_grps[] = { "qspi_0_grp", "qspi_1_grp" };
-static const char * const nand_grps[] = { "nand_grp" };
-static const char * const sdio0_grps[] = { "sdio0_grp", "sdio0_cd_grp",
-	"sdio0_mmc_grp" };
-static const char * const sdio1_grps[] = { "sdio1_data_0_grp",
-	"sdio1_data_1_grp", "sdio1_cd_grp", "sdio1_led_grp", "sdio1_mmc_grp" };
-static const char * const can0_grps[] = { "can0_grp" };
-static const char * const can1_grps[] = { "can1_grp" };
-static const char * const cam_grps[] = { "cam_led_grp", "cam_0_grp",
-	"cam_1_grp" };
-static const char * const bsc1_grps[] = { "bsc1_grp" };
-static const char * const pcie_clkreq_grps[] = { "pcie_clkreq_grp" };
-static const char * const usb0_oc_grps[] = { "usb0_oc_grp" };
-static const char * const usb1_oc_grps[] = { "usb1_oc_grp" };
-static const char * const usb2_oc_grps[] = { "usb2_oc_grp" };
+static const char *const uart0_grps[] = { "uart0_grp" };
+static const char *const uart1_grps[] = { "uart1_grp", "uart1_dte_grp" };
+static const char *const uart2_grps[] = { "uart2_grp" };
+static const char *const uart3_grps[] = { "uart3_grp" };
+static const char *const uart4_grps[] = { "uart4_grp" };
+static const char *const qspi_grps[] = { "qspi_0_grp", "qspi_1_grp" };
+static const char *const nand_grps[] = { "nand_grp" };
+static const char *const sdio0_grps[] = { "sdio0_grp", "sdio0_cd_grp",
+										  "sdio0_mmc_grp"
+										};
+static const char *const sdio1_grps[] = { "sdio1_data_0_grp",
+										  "sdio1_data_1_grp", "sdio1_cd_grp", "sdio1_led_grp", "sdio1_mmc_grp"
+										};
+static const char *const can0_grps[] = { "can0_grp" };
+static const char *const can1_grps[] = { "can1_grp" };
+static const char *const cam_grps[] = { "cam_led_grp", "cam_0_grp",
+										"cam_1_grp"
+									  };
+static const char *const bsc1_grps[] = { "bsc1_grp" };
+static const char *const pcie_clkreq_grps[] = { "pcie_clkreq_grp" };
+static const char *const usb0_oc_grps[] = { "usb0_oc_grp" };
+static const char *const usb1_oc_grps[] = { "usb1_oc_grp" };
+static const char *const usb2_oc_grps[] = { "usb2_oc_grp" };
 
 #define CYGNUS_PIN_FUNCTION(func)				\
-{								\
-	.name = #func,						\
-	.groups = func ## _grps,				\
-	.num_groups = ARRAY_SIZE(func ## _grps),		\
-}
+	{								\
+		.name = #func,						\
+				.groups = func ## _grps,				\
+						  .num_groups = ARRAY_SIZE(func ## _grps),		\
+	}
 
 /*
  * List of supported functions in Cygnus
  */
-static const struct cygnus_pin_function cygnus_pin_functions[] = {
+static const struct cygnus_pin_function cygnus_pin_functions[] =
+{
 	CYGNUS_PIN_FUNCTION(i2s0),
 	CYGNUS_PIN_FUNCTION(i2s1),
 	CYGNUS_PIN_FUNCTION(i2s2),
@@ -706,7 +731,7 @@ static int cygnus_get_groups_count(struct pinctrl_dev *pctrl_dev)
 }
 
 static const char *cygnus_get_group_name(struct pinctrl_dev *pctrl_dev,
-					 unsigned selector)
+		unsigned selector)
 {
 	struct cygnus_pinctrl *pinctrl = pinctrl_dev_get_drvdata(pctrl_dev);
 
@@ -714,8 +739,8 @@ static const char *cygnus_get_group_name(struct pinctrl_dev *pctrl_dev,
 }
 
 static int cygnus_get_group_pins(struct pinctrl_dev *pctrl_dev,
-				 unsigned selector, const unsigned **pins,
-				 unsigned *num_pins)
+								 unsigned selector, const unsigned **pins,
+								 unsigned *num_pins)
 {
 	struct cygnus_pinctrl *pinctrl = pinctrl_dev_get_drvdata(pctrl_dev);
 
@@ -726,12 +751,13 @@ static int cygnus_get_group_pins(struct pinctrl_dev *pctrl_dev,
 }
 
 static void cygnus_pin_dbg_show(struct pinctrl_dev *pctrl_dev,
-				struct seq_file *s, unsigned offset)
+								struct seq_file *s, unsigned offset)
 {
 	seq_printf(s, " %s", dev_name(pctrl_dev->dev));
 }
 
-static const struct pinctrl_ops cygnus_pinctrl_ops = {
+static const struct pinctrl_ops cygnus_pinctrl_ops =
+{
 	.get_groups_count = cygnus_get_groups_count,
 	.get_group_name = cygnus_get_group_name,
 	.get_group_pins = cygnus_get_group_pins,
@@ -748,7 +774,7 @@ static int cygnus_get_functions_count(struct pinctrl_dev *pctrl_dev)
 }
 
 static const char *cygnus_get_function_name(struct pinctrl_dev *pctrl_dev,
-					    unsigned selector)
+		unsigned selector)
 {
 	struct cygnus_pinctrl *pinctrl = pinctrl_dev_get_drvdata(pctrl_dev);
 
@@ -756,9 +782,9 @@ static const char *cygnus_get_function_name(struct pinctrl_dev *pctrl_dev,
 }
 
 static int cygnus_get_function_groups(struct pinctrl_dev *pctrl_dev,
-				      unsigned selector,
-				      const char * const **groups,
-				      unsigned * const num_groups)
+									  unsigned selector,
+									  const char *const **groups,
+									  unsigned *const num_groups)
 {
 	struct cygnus_pinctrl *pinctrl = pinctrl_dev_get_drvdata(pctrl_dev);
 
@@ -769,37 +795,45 @@ static int cygnus_get_function_groups(struct pinctrl_dev *pctrl_dev,
 }
 
 static int cygnus_pinmux_set(struct cygnus_pinctrl *pinctrl,
-			     const struct cygnus_pin_function *func,
-			     const struct cygnus_pin_group *grp,
-			     struct cygnus_mux_log *mux_log)
+							 const struct cygnus_pin_function *func,
+							 const struct cygnus_pin_group *grp,
+							 struct cygnus_mux_log *mux_log)
 {
 	const struct cygnus_mux *mux = &grp->mux;
 	int i;
 	u32 val, mask = 0x7;
 	unsigned long flags;
 
-	for (i = 0; i < CYGNUS_NUM_IOMUX; i++) {
+	for (i = 0; i < CYGNUS_NUM_IOMUX; i++)
+	{
 		if (mux->offset != mux_log[i].mux.offset ||
-		    mux->shift != mux_log[i].mux.shift)
+			mux->shift != mux_log[i].mux.shift)
+		{
 			continue;
+		}
 
 		/* match found if we reach here */
 
 		/* if this is a new configuration, just do it! */
 		if (!mux_log[i].is_configured)
+		{
 			break;
+		}
 
 		/*
 		 * IOMUX has been configured previously and one is trying to
 		 * configure it to a different function
 		 */
-		if (mux_log[i].mux.alt != mux->alt) {
+		if (mux_log[i].mux.alt != mux->alt)
+		{
 			dev_err(pinctrl->dev,
-				"double configuration error detected!\n");
+					"double configuration error detected!\n");
 			dev_err(pinctrl->dev, "func:%s grp:%s\n",
-				func->name, grp->name);
+					func->name, grp->name);
 			return -EINVAL;
-		} else {
+		}
+		else
+		{
 			/*
 			 * One tries to configure it to the same function.
 			 * Just quit and don't bother
@@ -824,25 +858,25 @@ static int cygnus_pinmux_set(struct cygnus_pinctrl *pinctrl,
 }
 
 static int cygnus_pinmux_set_mux(struct pinctrl_dev *pctrl_dev,
-				 unsigned func_select, unsigned grp_select)
+								 unsigned func_select, unsigned grp_select)
 {
 	struct cygnus_pinctrl *pinctrl = pinctrl_dev_get_drvdata(pctrl_dev);
 	const struct cygnus_pin_function *func =
-		&pinctrl->functions[func_select];
+			&pinctrl->functions[func_select];
 	const struct cygnus_pin_group *grp = &pinctrl->groups[grp_select];
 
 	dev_dbg(pctrl_dev->dev, "func:%u name:%s grp:%u name:%s\n",
-		func_select, func->name, grp_select, grp->name);
+			func_select, func->name, grp_select, grp->name);
 
 	dev_dbg(pctrl_dev->dev, "offset:0x%08x shift:%u alt:%u\n",
-		grp->mux.offset, grp->mux.shift, grp->mux.alt);
+			grp->mux.offset, grp->mux.shift, grp->mux.alt);
 
 	return cygnus_pinmux_set(pinctrl, func, grp, pinctrl->mux_log);
 }
 
 static int cygnus_gpio_request_enable(struct pinctrl_dev *pctrl_dev,
-				      struct pinctrl_gpio_range *range,
-				      unsigned pin)
+									  struct pinctrl_gpio_range *range,
+									  unsigned pin)
 {
 	struct cygnus_pinctrl *pinctrl = pinctrl_dev_get_drvdata(pctrl_dev);
 	const struct cygnus_gpio_mux *mux = pctrl_dev->desc->pins[pin].drv_data;
@@ -851,7 +885,9 @@ static int cygnus_gpio_request_enable(struct pinctrl_dev *pctrl_dev,
 
 	/* not all pins support GPIO pinmux override */
 	if (!mux->is_supported)
+	{
 		return -ENOTSUPP;
+	}
 
 	spin_lock_irqsave(&pinctrl->lock, flags);
 
@@ -862,15 +898,15 @@ static int cygnus_gpio_request_enable(struct pinctrl_dev *pctrl_dev,
 	spin_unlock_irqrestore(&pinctrl->lock, flags);
 
 	dev_dbg(pctrl_dev->dev,
-		"gpio request enable pin=%u offset=0x%x shift=%u\n",
-		pin, mux->offset, mux->shift);
+			"gpio request enable pin=%u offset=0x%x shift=%u\n",
+			pin, mux->offset, mux->shift);
 
 	return 0;
 }
 
 static void cygnus_gpio_disable_free(struct pinctrl_dev *pctrl_dev,
-				     struct pinctrl_gpio_range *range,
-				     unsigned pin)
+									 struct pinctrl_gpio_range *range,
+									 unsigned pin)
 {
 	struct cygnus_pinctrl *pinctrl = pinctrl_dev_get_drvdata(pctrl_dev);
 	struct cygnus_gpio_mux *mux = pctrl_dev->desc->pins[pin].drv_data;
@@ -878,7 +914,9 @@ static void cygnus_gpio_disable_free(struct pinctrl_dev *pctrl_dev,
 	unsigned long flags;
 
 	if (!mux->is_supported)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&pinctrl->lock, flags);
 
@@ -889,11 +927,12 @@ static void cygnus_gpio_disable_free(struct pinctrl_dev *pctrl_dev,
 	spin_unlock_irqrestore(&pinctrl->lock, flags);
 
 	dev_err(pctrl_dev->dev,
-		"gpio disable free pin=%u offset=0x%x shift=%u\n",
-		pin, mux->offset, mux->shift);
+			"gpio disable free pin=%u offset=0x%x shift=%u\n",
+			pin, mux->offset, mux->shift);
 }
 
-static const struct pinmux_ops cygnus_pinmux_ops = {
+static const struct pinmux_ops cygnus_pinmux_ops =
+{
 	.get_functions_count = cygnus_get_functions_count,
 	.get_function_name = cygnus_get_function_name,
 	.get_function_groups = cygnus_get_function_groups,
@@ -902,7 +941,8 @@ static const struct pinmux_ops cygnus_pinmux_ops = {
 	.gpio_disable_free = cygnus_gpio_disable_free,
 };
 
-static struct pinctrl_desc cygnus_pinctrl_desc = {
+static struct pinctrl_desc cygnus_pinctrl_desc =
+{
 	.name = "cygnus-pinmux",
 	.pctlops = &cygnus_pinctrl_ops,
 	.pmxops = &cygnus_pinmux_ops,
@@ -914,16 +954,22 @@ static int cygnus_mux_log_init(struct cygnus_pinctrl *pinctrl)
 	unsigned int i, j;
 
 	pinctrl->mux_log = devm_kcalloc(pinctrl->dev, CYGNUS_NUM_IOMUX,
-					sizeof(struct cygnus_mux_log),
-					GFP_KERNEL);
+									sizeof(struct cygnus_mux_log),
+									GFP_KERNEL);
+
 	if (!pinctrl->mux_log)
+	{
 		return -ENOMEM;
+	}
 
 	log = pinctrl->mux_log;
-	for (i = 0; i < CYGNUS_NUM_IOMUX_REGS; i++) {
-		for (j = 0; j < CYGNUS_NUM_MUX_PER_REG; j++) {
+
+	for (i = 0; i < CYGNUS_NUM_IOMUX_REGS; i++)
+	{
+		for (j = 0; j < CYGNUS_NUM_MUX_PER_REG; j++)
+		{
 			log = &pinctrl->mux_log[i * CYGNUS_NUM_MUX_PER_REG
-				+ j];
+									+ j];
 			log->mux.offset = i * 4;
 			log->mux.shift = j * 4;
 			log->mux.alt = 0;
@@ -943,8 +989,11 @@ static int cygnus_pinmux_probe(struct platform_device *pdev)
 	unsigned num_pins = ARRAY_SIZE(cygnus_pins);
 
 	pinctrl = devm_kzalloc(&pdev->dev, sizeof(*pinctrl), GFP_KERNEL);
+
 	if (!pinctrl)
+	{
 		return -ENOMEM;
+	}
 
 	pinctrl->dev = &pdev->dev;
 	platform_set_drvdata(pdev, pinctrl);
@@ -952,29 +1001,39 @@ static int cygnus_pinmux_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	pinctrl->base0 = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(pinctrl->base0)) {
+
+	if (IS_ERR(pinctrl->base0))
+	{
 		dev_err(&pdev->dev, "unable to map I/O space\n");
 		return PTR_ERR(pinctrl->base0);
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 	pinctrl->base1 = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(pinctrl->base1)) {
+
+	if (IS_ERR(pinctrl->base1))
+	{
 		dev_err(&pdev->dev, "unable to map I/O space\n");
 		return PTR_ERR(pinctrl->base1);
 	}
 
 	ret = cygnus_mux_log_init(pinctrl);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to initialize IOMUX log\n");
 		return ret;
 	}
 
 	pins = devm_kcalloc(&pdev->dev, num_pins, sizeof(*pins), GFP_KERNEL);
-	if (!pins)
-		return -ENOMEM;
 
-	for (i = 0; i < num_pins; i++) {
+	if (!pins)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < num_pins; i++)
+	{
 		pins[i].number = cygnus_pins[i].pin;
 		pins[i].name = cygnus_pins[i].name;
 		pins[i].drv_data = &cygnus_pins[i].gpio_mux;
@@ -988,8 +1047,10 @@ static int cygnus_pinmux_probe(struct platform_device *pdev)
 	cygnus_pinctrl_desc.npins = num_pins;
 
 	pinctrl->pctl = devm_pinctrl_register(&pdev->dev, &cygnus_pinctrl_desc,
-			pinctrl);
-	if (IS_ERR(pinctrl->pctl)) {
+										  pinctrl);
+
+	if (IS_ERR(pinctrl->pctl))
+	{
 		dev_err(&pdev->dev, "unable to register Cygnus IOMUX pinctrl\n");
 		return PTR_ERR(pinctrl->pctl);
 	}
@@ -997,12 +1058,14 @@ static int cygnus_pinmux_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id cygnus_pinmux_of_match[] = {
+static const struct of_device_id cygnus_pinmux_of_match[] =
+{
 	{ .compatible = "brcm,cygnus-pinmux" },
 	{ }
 };
 
-static struct platform_driver cygnus_pinmux_driver = {
+static struct platform_driver cygnus_pinmux_driver =
+{
 	.driver = {
 		.name = "cygnus-pinmux",
 		.of_match_table = cygnus_pinmux_of_match,

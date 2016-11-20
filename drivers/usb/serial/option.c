@@ -45,7 +45,7 @@
 
 /* Function prototypes */
 static int  option_probe(struct usb_serial *serial,
-			const struct usb_device_id *id);
+						 const struct usb_device_id *id);
 static int option_attach(struct usb_serial *serial);
 static void option_release(struct usb_serial *serial);
 static void option_instat_callback(struct urb *urb);
@@ -531,135 +531,165 @@ static void option_instat_callback(struct urb *urb);
 #define WETELECOM_PRODUCT_6802			0x6802
 #define WETELECOM_PRODUCT_WMD300		0x6803
 
-struct option_blacklist_info {
+struct option_blacklist_info
+{
 	/* bitmask of interface numbers blacklisted for send_setup */
 	const unsigned long sendsetup;
 	/* bitmask of interface numbers that are reserved */
 	const unsigned long reserved;
 };
 
-static const struct option_blacklist_info four_g_w14_blacklist = {
+static const struct option_blacklist_info four_g_w14_blacklist =
+{
 	.sendsetup = BIT(0) | BIT(1),
 };
 
-static const struct option_blacklist_info four_g_w100_blacklist = {
+static const struct option_blacklist_info four_g_w100_blacklist =
+{
 	.sendsetup = BIT(1) | BIT(2),
 	.reserved = BIT(3),
 };
 
-static const struct option_blacklist_info alcatel_x200_blacklist = {
+static const struct option_blacklist_info alcatel_x200_blacklist =
+{
 	.sendsetup = BIT(0) | BIT(1),
 	.reserved = BIT(4),
 };
 
-static const struct option_blacklist_info zte_0037_blacklist = {
+static const struct option_blacklist_info zte_0037_blacklist =
+{
 	.sendsetup = BIT(0) | BIT(1),
 };
 
-static const struct option_blacklist_info zte_k3765_z_blacklist = {
+static const struct option_blacklist_info zte_k3765_z_blacklist =
+{
 	.sendsetup = BIT(0) | BIT(1) | BIT(2),
 	.reserved = BIT(4),
 };
 
-static const struct option_blacklist_info zte_ad3812_z_blacklist = {
+static const struct option_blacklist_info zte_ad3812_z_blacklist =
+{
 	.sendsetup = BIT(0) | BIT(1) | BIT(2),
 };
 
-static const struct option_blacklist_info zte_mc2718_z_blacklist = {
+static const struct option_blacklist_info zte_mc2718_z_blacklist =
+{
 	.sendsetup = BIT(1) | BIT(2) | BIT(3) | BIT(4),
 };
 
-static const struct option_blacklist_info zte_mc2716_z_blacklist = {
+static const struct option_blacklist_info zte_mc2716_z_blacklist =
+{
 	.sendsetup = BIT(1) | BIT(2) | BIT(3),
 };
 
-static const struct option_blacklist_info zte_me3620_mbim_blacklist = {
+static const struct option_blacklist_info zte_me3620_mbim_blacklist =
+{
 	.reserved = BIT(2) | BIT(3) | BIT(4),
 };
 
-static const struct option_blacklist_info zte_me3620_xl_blacklist = {
+static const struct option_blacklist_info zte_me3620_xl_blacklist =
+{
 	.reserved = BIT(3) | BIT(4) | BIT(5),
 };
 
-static const struct option_blacklist_info zte_zm8620_x_blacklist = {
+static const struct option_blacklist_info zte_zm8620_x_blacklist =
+{
 	.reserved = BIT(3) | BIT(4) | BIT(5),
 };
 
-static const struct option_blacklist_info huawei_cdc12_blacklist = {
+static const struct option_blacklist_info huawei_cdc12_blacklist =
+{
 	.reserved = BIT(1) | BIT(2),
 };
 
-static const struct option_blacklist_info net_intf0_blacklist = {
+static const struct option_blacklist_info net_intf0_blacklist =
+{
 	.reserved = BIT(0),
 };
 
-static const struct option_blacklist_info net_intf1_blacklist = {
+static const struct option_blacklist_info net_intf1_blacklist =
+{
 	.reserved = BIT(1),
 };
 
-static const struct option_blacklist_info net_intf2_blacklist = {
+static const struct option_blacklist_info net_intf2_blacklist =
+{
 	.reserved = BIT(2),
 };
 
-static const struct option_blacklist_info net_intf3_blacklist = {
+static const struct option_blacklist_info net_intf3_blacklist =
+{
 	.reserved = BIT(3),
 };
 
-static const struct option_blacklist_info net_intf4_blacklist = {
+static const struct option_blacklist_info net_intf4_blacklist =
+{
 	.reserved = BIT(4),
 };
 
-static const struct option_blacklist_info net_intf5_blacklist = {
+static const struct option_blacklist_info net_intf5_blacklist =
+{
 	.reserved = BIT(5),
 };
 
-static const struct option_blacklist_info net_intf6_blacklist = {
+static const struct option_blacklist_info net_intf6_blacklist =
+{
 	.reserved = BIT(6),
 };
 
-static const struct option_blacklist_info zte_mf626_blacklist = {
+static const struct option_blacklist_info zte_mf626_blacklist =
+{
 	.sendsetup = BIT(0) | BIT(1),
 	.reserved = BIT(4),
 };
 
-static const struct option_blacklist_info zte_1255_blacklist = {
+static const struct option_blacklist_info zte_1255_blacklist =
+{
 	.reserved = BIT(3) | BIT(4),
 };
 
-static const struct option_blacklist_info simcom_sim7100e_blacklist = {
+static const struct option_blacklist_info simcom_sim7100e_blacklist =
+{
 	.reserved = BIT(5) | BIT(6),
 };
 
-static const struct option_blacklist_info telit_le910_blacklist = {
+static const struct option_blacklist_info telit_le910_blacklist =
+{
 	.sendsetup = BIT(0),
 	.reserved = BIT(1) | BIT(2),
 };
 
-static const struct option_blacklist_info telit_le920_blacklist = {
+static const struct option_blacklist_info telit_le920_blacklist =
+{
 	.sendsetup = BIT(0),
 	.reserved = BIT(1) | BIT(5),
 };
 
-static const struct option_blacklist_info telit_le920a4_blacklist_1 = {
+static const struct option_blacklist_info telit_le920a4_blacklist_1 =
+{
 	.sendsetup = BIT(0),
 	.reserved = BIT(1),
 };
 
-static const struct option_blacklist_info telit_le922_blacklist_usbcfg0 = {
+static const struct option_blacklist_info telit_le922_blacklist_usbcfg0 =
+{
 	.sendsetup = BIT(2),
 	.reserved = BIT(0) | BIT(1) | BIT(3),
 };
 
-static const struct option_blacklist_info telit_le922_blacklist_usbcfg3 = {
+static const struct option_blacklist_info telit_le922_blacklist_usbcfg3 =
+{
 	.sendsetup = BIT(0),
 	.reserved = BIT(1) | BIT(2) | BIT(3),
 };
 
-static const struct option_blacklist_info cinterion_rmnet2_blacklist = {
+static const struct option_blacklist_info cinterion_rmnet2_blacklist =
+{
 	.reserved = BIT(4) | BIT(5),
 };
 
-static const struct usb_device_id option_ids[] = {
+static const struct usb_device_id option_ids[] =
+{
 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_COLT) },
 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA) },
 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA_LIGHT) },
@@ -690,27 +720,43 @@ static const struct usb_device_id option_ids[] = {
 	{ USB_DEVICE(QUANTA_VENDOR_ID, QUANTA_PRODUCT_GLX) },
 	{ USB_DEVICE(QUANTA_VENDOR_ID, QUANTA_PRODUCT_GKE) },
 	{ USB_DEVICE(QUANTA_VENDOR_ID, QUANTA_PRODUCT_GLE) },
-	{ USB_DEVICE(QUANTA_VENDOR_ID, 0xea42),
-		.driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE(QUANTA_VENDOR_ID, 0xea42),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, 0x1c05, USB_CLASS_COMM, 0x02, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, 0x1c1f, USB_CLASS_COMM, 0x02, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, 0x1c23, USB_CLASS_COMM, 0x02, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E173, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t) &net_intf1_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E173S6, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t) &net_intf1_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E1750, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t) &net_intf2_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E173, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf1_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E173S6, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf1_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E1750, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf2_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, 0x1441, USB_CLASS_COMM, 0x02, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, 0x1442, USB_CLASS_COMM, 0x02, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K4505, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t) &huawei_cdc12_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K3765, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t) &huawei_cdc12_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, 0x14ac, 0xff, 0xff, 0xff),	/* Huawei E1820 */
-		.driver_info = (kernel_ulong_t) &net_intf1_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K4605, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t) &huawei_cdc12_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K4505, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &huawei_cdc12_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K3765, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &huawei_cdc12_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, 0x14ac, 0xff, 0xff, 0xff),	/* Huawei E1820 */
+		.driver_info = (kernel_ulong_t) &net_intf1_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K4605, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &huawei_cdc12_blacklist
+	},
 	{ USB_VENDOR_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, 0xff, 0xff, 0xff) },
 	{ USB_VENDOR_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, 0xff, 0x01, 0x01) },
 	{ USB_VENDOR_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, 0xff, 0x01, 0x02) },
@@ -1154,85 +1200,143 @@ static const struct usb_device_id option_ids[] = {
 	{ USB_DEVICE(KYOCERA_VENDOR_ID, KYOCERA_PRODUCT_KPC650) },
 	{ USB_DEVICE(KYOCERA_VENDOR_ID, KYOCERA_PRODUCT_KPC680) },
 	{ USB_DEVICE(QUALCOMM_VENDOR_ID, 0x6000)}, /* ZTE AC8700 */
-	{ USB_DEVICE_AND_INTERFACE_INFO(QUALCOMM_VENDOR_ID, 0x6001, 0xff, 0xff, 0xff), /* 4G LTE usb-modem U901 */
-	  .driver_info = (kernel_ulong_t)&net_intf3_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(QUALCOMM_VENDOR_ID, 0x6001, 0xff, 0xff, 0xff), /* 4G LTE usb-modem U901 */
+		.driver_info = (kernel_ulong_t) &net_intf3_blacklist
+	},
 	{ USB_DEVICE(QUALCOMM_VENDOR_ID, 0x6613)}, /* Onda H600/ZTE MF330 */
 	{ USB_DEVICE(QUALCOMM_VENDOR_ID, 0x0023)}, /* ONYX 3G device */
 	{ USB_DEVICE(QUALCOMM_VENDOR_ID, 0x9000)}, /* SIMCom SIM5218 */
-	{ USB_DEVICE(QUALCOMM_VENDOR_ID, 0x9003), /* Quectel UC20 */
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE(QUALCOMM_VENDOR_ID, 0x9003), /* Quectel UC20 */
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_6001) },
 	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CMU_300) },
-	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_6003),
-	  .driver_info = (kernel_ulong_t)&net_intf0_blacklist },
+	{
+		USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_6003),
+		.driver_info = (kernel_ulong_t) &net_intf0_blacklist
+	},
 	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_6004) },
 	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_6005) },
 	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CGU_628A) },
-	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CHE_628S),
-	  .driver_info = (kernel_ulong_t)&net_intf0_blacklist },
-	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CMU_301),
-	  .driver_info = (kernel_ulong_t)&net_intf0_blacklist },
-	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CHU_628),
-	  .driver_info = (kernel_ulong_t)&net_intf0_blacklist },
+	{
+		USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CHE_628S),
+		.driver_info = (kernel_ulong_t) &net_intf0_blacklist
+	},
+	{
+		USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CMU_301),
+		.driver_info = (kernel_ulong_t) &net_intf0_blacklist
+	},
+	{
+		USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CHU_628),
+		.driver_info = (kernel_ulong_t) &net_intf0_blacklist
+	},
 	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CHU_628S) },
 	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CDU_680) },
 	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CDU_685A) },
-	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CHU_720S),
-	  .driver_info = (kernel_ulong_t)&net_intf0_blacklist },
-	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_7002),
-	  .driver_info = (kernel_ulong_t)&net_intf0_blacklist },
-	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CHU_629K),
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
-	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_7004),
-	  .driver_info = (kernel_ulong_t)&net_intf3_blacklist },
+	{
+		USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CHU_720S),
+		.driver_info = (kernel_ulong_t) &net_intf0_blacklist
+	},
+	{
+		USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_7002),
+		.driver_info = (kernel_ulong_t) &net_intf0_blacklist
+	},
+	{
+		USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CHU_629K),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
+	{
+		USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_7004),
+		.driver_info = (kernel_ulong_t) &net_intf3_blacklist
+	},
 	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_7005) },
-	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CGU_629),
-	  .driver_info = (kernel_ulong_t)&net_intf5_blacklist },
-	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CHU_629S),
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
-	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CHU_720I),
-	  .driver_info = (kernel_ulong_t)&net_intf0_blacklist },
-	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_7212),
-	  .driver_info = (kernel_ulong_t)&net_intf0_blacklist },
-	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_7213),
-	  .driver_info = (kernel_ulong_t)&net_intf0_blacklist },
-	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_7251),
-	  .driver_info = (kernel_ulong_t)&net_intf1_blacklist },
-	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_7252),
-	  .driver_info = (kernel_ulong_t)&net_intf1_blacklist },
-	{ USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_7253),
-	  .driver_info = (kernel_ulong_t)&net_intf1_blacklist },
+	{
+		USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CGU_629),
+		.driver_info = (kernel_ulong_t) &net_intf5_blacklist
+	},
+	{
+		USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CHU_629S),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
+	{
+		USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_CHU_720I),
+		.driver_info = (kernel_ulong_t) &net_intf0_blacklist
+	},
+	{
+		USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_7212),
+		.driver_info = (kernel_ulong_t) &net_intf0_blacklist
+	},
+	{
+		USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_7213),
+		.driver_info = (kernel_ulong_t) &net_intf0_blacklist
+	},
+	{
+		USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_7251),
+		.driver_info = (kernel_ulong_t) &net_intf1_blacklist
+	},
+	{
+		USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_7252),
+		.driver_info = (kernel_ulong_t) &net_intf1_blacklist
+	},
+	{
+		USB_DEVICE(CMOTECH_VENDOR_ID, CMOTECH_PRODUCT_7253),
+		.driver_info = (kernel_ulong_t) &net_intf1_blacklist
+	},
 	{ USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_UC864E) },
 	{ USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_UC864G) },
 	{ USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_CC864_DUAL) },
 	{ USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_CC864_SINGLE) },
 	{ USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_DE910_DUAL) },
 	{ USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_UE910_V2) },
-	{ USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_LE922_USBCFG0),
-		.driver_info = (kernel_ulong_t)&telit_le922_blacklist_usbcfg0 },
-	{ USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_LE922_USBCFG3),
-		.driver_info = (kernel_ulong_t)&telit_le922_blacklist_usbcfg3 },
-	{ USB_DEVICE_INTERFACE_CLASS(TELIT_VENDOR_ID, TELIT_PRODUCT_LE922_USBCFG5, 0xff),
-		.driver_info = (kernel_ulong_t)&telit_le922_blacklist_usbcfg0 },
-	{ USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_LE910),
-		.driver_info = (kernel_ulong_t)&telit_le910_blacklist },
-	{ USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_LE910_USBCFG4),
-		.driver_info = (kernel_ulong_t)&telit_le922_blacklist_usbcfg3 },
-	{ USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_LE920),
-		.driver_info = (kernel_ulong_t)&telit_le920_blacklist },
+	{
+		USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_LE922_USBCFG0),
+		.driver_info = (kernel_ulong_t) &telit_le922_blacklist_usbcfg0
+	},
+	{
+		USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_LE922_USBCFG3),
+		.driver_info = (kernel_ulong_t) &telit_le922_blacklist_usbcfg3
+	},
+	{
+		USB_DEVICE_INTERFACE_CLASS(TELIT_VENDOR_ID, TELIT_PRODUCT_LE922_USBCFG5, 0xff),
+		.driver_info = (kernel_ulong_t) &telit_le922_blacklist_usbcfg0
+	},
+	{
+		USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_LE910),
+		.driver_info = (kernel_ulong_t) &telit_le910_blacklist
+	},
+	{
+		USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_LE910_USBCFG4),
+		.driver_info = (kernel_ulong_t) &telit_le922_blacklist_usbcfg3
+	},
+	{
+		USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_LE920),
+		.driver_info = (kernel_ulong_t) &telit_le920_blacklist
+	},
 	{ USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_LE920A4_1207) },
-	{ USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_LE920A4_1208),
-		.driver_info = (kernel_ulong_t)&telit_le920a4_blacklist_1 },
-	{ USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_LE920A4_1211),
-		.driver_info = (kernel_ulong_t)&telit_le922_blacklist_usbcfg3 },
-	{ USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_LE920A4_1212),
-		.driver_info = (kernel_ulong_t)&telit_le920a4_blacklist_1 },
+	{
+		USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_LE920A4_1208),
+		.driver_info = (kernel_ulong_t) &telit_le920a4_blacklist_1
+	},
+	{
+		USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_LE920A4_1211),
+		.driver_info = (kernel_ulong_t) &telit_le922_blacklist_usbcfg3
+	},
+	{
+		USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_LE920A4_1212),
+		.driver_info = (kernel_ulong_t) &telit_le920a4_blacklist_1
+	},
 	{ USB_DEVICE_INTERFACE_CLASS(TELIT_VENDOR_ID, TELIT_PRODUCT_LE920A4_1213, 0xff) },
-	{ USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_LE920A4_1214),
-		.driver_info = (kernel_ulong_t)&telit_le922_blacklist_usbcfg3 },
+	{
+		USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_LE920A4_1214),
+		.driver_info = (kernel_ulong_t) &telit_le922_blacklist_usbcfg3
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_MF622, 0xff, 0xff, 0xff) }, /* ZTE WCDMA products */
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0002, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf1_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0002, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf1_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0003, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0004, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0005, 0xff, 0xff, 0xff) },
@@ -1247,59 +1351,85 @@ static const struct usb_device_id option_ids[] = {
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x000f, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0010, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0011, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0012, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf1_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0012, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf1_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0013, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_MF628, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0016, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0017, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf3_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0017, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf3_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0018, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0019, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf3_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0019, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf3_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0020, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0021, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0021, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0022, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0023, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0024, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0025, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf1_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0025, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf1_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0028, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0029, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0030, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_MF626, 0xff,
-	  0xff, 0xff), .driver_info = (kernel_ulong_t)&zte_mf626_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_MF626, 0xff,
+		0xff, 0xff), .driver_info = (kernel_ulong_t) &zte_mf626_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0032, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0033, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0034, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0037, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&zte_0037_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0037, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &zte_0037_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0038, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0039, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0040, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0042, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0042, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0043, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0044, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0048, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0049, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf5_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0049, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf5_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0050, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0051, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0052, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0052, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0054, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0055, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf1_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0055, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf1_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0056, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0057, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0058, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0058, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0061, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0062, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0063, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0063, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0064, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0065, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0066, 0xff, 0xff, 0xff) },
@@ -1323,27 +1453,43 @@ static const struct usb_device_id option_ids[] = {
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0095, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0096, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0097, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0104, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0104, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0105, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0106, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0108, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0113, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf5_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0113, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf5_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0117, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0118, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf5_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0121, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf5_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0118, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf5_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0121, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf5_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0122, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0123, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf4_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0124, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf5_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0125, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf6_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0126, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf5_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0123, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0124, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf5_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0125, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf6_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0126, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf5_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0128, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0135, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0136, 0xff, 0xff, 0xff) },
@@ -1358,51 +1504,79 @@ static const struct usb_device_id option_ids[] = {
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0153, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0155, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0156, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0157, 0xff, 0xff, 0xff),
-	  .driver_info = (kernel_ulong_t)&net_intf5_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0158, 0xff, 0xff, 0xff),
-	  .driver_info = (kernel_ulong_t)&net_intf3_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0157, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf5_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0158, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf3_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0159, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0161, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0162, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0164, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0165, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0167, 0xff, 0xff, 0xff),
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0167, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0189, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0191, 0xff, 0xff, 0xff), /* ZTE EuFi890 */
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0191, 0xff, 0xff, 0xff), /* ZTE EuFi890 */
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0196, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0197, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0199, 0xff, 0xff, 0xff), /* ZTE MF820S */
-	  .driver_info = (kernel_ulong_t)&net_intf1_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0199, 0xff, 0xff, 0xff), /* ZTE MF820S */
+		.driver_info = (kernel_ulong_t) &net_intf1_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0200, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0201, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0254, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0257, 0xff, 0xff, 0xff), /* ZTE MF821 */
-	  .driver_info = (kernel_ulong_t)&net_intf3_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0265, 0xff, 0xff, 0xff), /* ONDA MT8205 */
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0284, 0xff, 0xff, 0xff), /* ZTE MF880 */
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0257, 0xff, 0xff, 0xff), /* ZTE MF821 */
+		.driver_info = (kernel_ulong_t) &net_intf3_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0265, 0xff, 0xff, 0xff), /* ONDA MT8205 */
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0284, 0xff, 0xff, 0xff), /* ZTE MF880 */
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0317, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0326, 0xff, 0xff, 0xff),
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0326, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0330, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0395, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0412, 0xff, 0xff, 0xff), /* Telewell TW-LTE 4G */
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0412, 0xff, 0xff, 0xff), /* Telewell TW-LTE 4G */
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0414, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0417, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1008, 0xff, 0xff, 0xff),
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1010, 0xff, 0xff, 0xff),
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1012, 0xff, 0xff, 0xff),
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1008, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1010, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1012, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1018, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1021, 0xff, 0xff, 0xff),
-	  .driver_info = (kernel_ulong_t)&net_intf2_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1021, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf2_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1057, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1058, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1059, 0xff, 0xff, 0xff) },
@@ -1518,24 +1692,36 @@ static const struct usb_device_id option_ids[] = {
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1169, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1170, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1244, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1245, 0xff, 0xff, 0xff),
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1245, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1246, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1247, 0xff, 0xff, 0xff),
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1247, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1248, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1249, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1250, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1251, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1252, 0xff, 0xff, 0xff),
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1252, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1253, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1254, 0xff, 0xff, 0xff),
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1255, 0xff, 0xff, 0xff),
-	  .driver_info = (kernel_ulong_t)&zte_1255_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1256, 0xff, 0xff, 0xff),
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1254, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1255, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &zte_1255_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1256, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1257, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1258, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1259, 0xff, 0xff, 0xff) },
@@ -1549,8 +1735,10 @@ static const struct usb_device_id option_ids[] = {
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1267, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1268, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1269, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1270, 0xff, 0xff, 0xff),
-	  .driver_info = (kernel_ulong_t)&net_intf5_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1270, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf5_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1271, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1272, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1273, 0xff, 0xff, 0xff) },
@@ -1585,18 +1773,30 @@ static const struct usb_device_id option_ids[] = {
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1302, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1303, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1333, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1401, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf2_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1402, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf2_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1424, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf2_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1425, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf2_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1426, 0xff, 0xff, 0xff),  /* ZTE MF91 */
-		.driver_info = (kernel_ulong_t)&net_intf2_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1428, 0xff, 0xff, 0xff),  /* Telewell TW-LTE 4G v2 */
-		.driver_info = (kernel_ulong_t)&net_intf2_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1401, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf2_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1402, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf2_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1424, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf2_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1425, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf2_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1426, 0xff, 0xff, 0xff),  /* ZTE MF91 */
+		.driver_info = (kernel_ulong_t) &net_intf2_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1428, 0xff, 0xff, 0xff),  /* Telewell TW-LTE 4G v2 */
+		.driver_info = (kernel_ulong_t) &net_intf2_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1533, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1534, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1535, 0xff, 0xff, 0xff) },
@@ -1614,8 +1814,10 @@ static const struct usb_device_id option_ids[] = {
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1596, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1598, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x1600, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x2002, 0xff,
-	  0xff, 0xff), .driver_info = (kernel_ulong_t)&zte_k3765_z_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x2002, 0xff,
+		0xff, 0xff), .driver_info = (kernel_ulong_t) &zte_k3765_z_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x2003, 0xff, 0xff, 0xff) },
 
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0014, 0xff, 0xff, 0xff) }, /* ZTE CDMA products */
@@ -1625,21 +1827,33 @@ static const struct usb_device_id option_ids[] = {
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0070, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0073, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0094, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0130, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf1_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0133, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf3_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0141, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf5_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0130, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf1_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0133, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf3_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0141, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf5_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0147, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0152, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0168, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0168, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0170, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0176, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf3_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0178, 0xff, 0xff, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf3_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0176, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf3_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0178, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf3_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0xff42, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0xff43, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0xff44, 0xff, 0xff, 0xff) },
@@ -1790,20 +2004,34 @@ static const struct usb_device_id option_ids[] = {
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_CDMA_TECH, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_AC2726, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_AC8710T, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_MC2718, 0xff, 0xff, 0xff),
-	 .driver_info = (kernel_ulong_t)&zte_mc2718_z_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_AD3812, 0xff, 0xff, 0xff),
-	 .driver_info = (kernel_ulong_t)&zte_ad3812_z_blacklist },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_MC2716, 0xff, 0xff, 0xff),
-	 .driver_info = (kernel_ulong_t)&zte_mc2716_z_blacklist },
-	{ USB_DEVICE(ZTE_VENDOR_ID, ZTE_PRODUCT_ME3620_L),
-	 .driver_info = (kernel_ulong_t)&zte_me3620_xl_blacklist },
-	{ USB_DEVICE(ZTE_VENDOR_ID, ZTE_PRODUCT_ME3620_MBIM),
-	 .driver_info = (kernel_ulong_t)&zte_me3620_mbim_blacklist },
-	{ USB_DEVICE(ZTE_VENDOR_ID, ZTE_PRODUCT_ME3620_X),
-	 .driver_info = (kernel_ulong_t)&zte_me3620_xl_blacklist },
-	{ USB_DEVICE(ZTE_VENDOR_ID, ZTE_PRODUCT_ZM8620_X),
-	 .driver_info = (kernel_ulong_t)&zte_zm8620_x_blacklist },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_MC2718, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &zte_mc2718_z_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_AD3812, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &zte_ad3812_z_blacklist
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_MC2716, 0xff, 0xff, 0xff),
+		.driver_info = (kernel_ulong_t) &zte_mc2716_z_blacklist
+	},
+	{
+		USB_DEVICE(ZTE_VENDOR_ID, ZTE_PRODUCT_ME3620_L),
+		.driver_info = (kernel_ulong_t) &zte_me3620_xl_blacklist
+	},
+	{
+		USB_DEVICE(ZTE_VENDOR_ID, ZTE_PRODUCT_ME3620_MBIM),
+		.driver_info = (kernel_ulong_t) &zte_me3620_mbim_blacklist
+	},
+	{
+		USB_DEVICE(ZTE_VENDOR_ID, ZTE_PRODUCT_ME3620_X),
+		.driver_info = (kernel_ulong_t) &zte_me3620_xl_blacklist
+	},
+	{
+		USB_DEVICE(ZTE_VENDOR_ID, ZTE_PRODUCT_ZM8620_X),
+		.driver_info = (kernel_ulong_t) &zte_zm8620_x_blacklist
+	},
 	{ USB_VENDOR_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0xff, 0x02, 0x01) },
 	{ USB_VENDOR_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0xff, 0x02, 0x05) },
 	{ USB_VENDOR_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0xff, 0x86, 0x10) },
@@ -1822,30 +2050,47 @@ static const struct usb_device_id option_ids[] = {
 	{ USB_DEVICE(ALINK_VENDOR_ID, 0x9000) },
 	{ USB_DEVICE(ALINK_VENDOR_ID, ALINK_PRODUCT_PH300) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ALINK_VENDOR_ID, ALINK_PRODUCT_3GU, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE(ALINK_VENDOR_ID, SIMCOM_PRODUCT_SIM7100E),
-	  .driver_info = (kernel_ulong_t)&simcom_sim7100e_blacklist },
-	{ USB_DEVICE(ALCATEL_VENDOR_ID, ALCATEL_PRODUCT_X060S_X200),
-	  .driver_info = (kernel_ulong_t)&alcatel_x200_blacklist
+	{
+		USB_DEVICE(ALINK_VENDOR_ID, SIMCOM_PRODUCT_SIM7100E),
+		.driver_info = (kernel_ulong_t) &simcom_sim7100e_blacklist
 	},
-	{ USB_DEVICE(ALCATEL_VENDOR_ID, ALCATEL_PRODUCT_X220_X500D),
-	  .driver_info = (kernel_ulong_t)&net_intf6_blacklist },
-	{ USB_DEVICE(ALCATEL_VENDOR_ID, 0x0052),
-	  .driver_info = (kernel_ulong_t)&net_intf6_blacklist },
-	{ USB_DEVICE(ALCATEL_VENDOR_ID, 0x00b6),
-	  .driver_info = (kernel_ulong_t)&net_intf3_blacklist },
-	{ USB_DEVICE(ALCATEL_VENDOR_ID, 0x00b7),
-	  .driver_info = (kernel_ulong_t)&net_intf5_blacklist },
-	{ USB_DEVICE(ALCATEL_VENDOR_ID, ALCATEL_PRODUCT_L100V),
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
-	{ USB_DEVICE(ALCATEL_VENDOR_ID, ALCATEL_PRODUCT_L800MA),
-	  .driver_info = (kernel_ulong_t)&net_intf2_blacklist },
+	{
+		USB_DEVICE(ALCATEL_VENDOR_ID, ALCATEL_PRODUCT_X060S_X200),
+		.driver_info = (kernel_ulong_t) &alcatel_x200_blacklist
+	},
+	{
+		USB_DEVICE(ALCATEL_VENDOR_ID, ALCATEL_PRODUCT_X220_X500D),
+		.driver_info = (kernel_ulong_t) &net_intf6_blacklist
+	},
+	{
+		USB_DEVICE(ALCATEL_VENDOR_ID, 0x0052),
+		.driver_info = (kernel_ulong_t) &net_intf6_blacklist
+	},
+	{
+		USB_DEVICE(ALCATEL_VENDOR_ID, 0x00b6),
+		.driver_info = (kernel_ulong_t) &net_intf3_blacklist
+	},
+	{
+		USB_DEVICE(ALCATEL_VENDOR_ID, 0x00b7),
+		.driver_info = (kernel_ulong_t) &net_intf5_blacklist
+	},
+	{
+		USB_DEVICE(ALCATEL_VENDOR_ID, ALCATEL_PRODUCT_L100V),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
+	{
+		USB_DEVICE(ALCATEL_VENDOR_ID, ALCATEL_PRODUCT_L800MA),
+		.driver_info = (kernel_ulong_t) &net_intf2_blacklist
+	},
 	{ USB_DEVICE(AIRPLUS_VENDOR_ID, AIRPLUS_PRODUCT_MCD650) },
 	{ USB_DEVICE(TLAYTECH_VENDOR_ID, TLAYTECH_PRODUCT_TEU800) },
-	{ USB_DEVICE(LONGCHEER_VENDOR_ID, FOUR_G_SYSTEMS_PRODUCT_W14),
-  	  .driver_info = (kernel_ulong_t)&four_g_w14_blacklist
-  	},
-	{ USB_DEVICE(LONGCHEER_VENDOR_ID, FOUR_G_SYSTEMS_PRODUCT_W100),
-	  .driver_info = (kernel_ulong_t)&four_g_w100_blacklist
+	{
+		USB_DEVICE(LONGCHEER_VENDOR_ID, FOUR_G_SYSTEMS_PRODUCT_W14),
+		.driver_info = (kernel_ulong_t) &four_g_w14_blacklist
+	},
+	{
+		USB_DEVICE(LONGCHEER_VENDOR_ID, FOUR_G_SYSTEMS_PRODUCT_W100),
+		.driver_info = (kernel_ulong_t) &four_g_w100_blacklist
 	},
 	{ USB_DEVICE_INTERFACE_CLASS(LONGCHEER_VENDOR_ID, SPEEDUP_PRODUCT_SU9800, 0xff) },
 	{ USB_DEVICE(LONGCHEER_VENDOR_ID, ZOOM_PRODUCT_4597) },
@@ -1872,15 +2117,23 @@ static const struct usb_device_id option_ids[] = {
 	/* Cinterion */
 	{ USB_DEVICE(CINTERION_VENDOR_ID, CINTERION_PRODUCT_EU3_E) },
 	{ USB_DEVICE(CINTERION_VENDOR_ID, CINTERION_PRODUCT_EU3_P) },
-	{ USB_DEVICE(CINTERION_VENDOR_ID, CINTERION_PRODUCT_PH8),
-		.driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE(CINTERION_VENDOR_ID, CINTERION_PRODUCT_PH8),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_INTERFACE_CLASS(CINTERION_VENDOR_ID, CINTERION_PRODUCT_AHXX, 0xff) },
-	{ USB_DEVICE(CINTERION_VENDOR_ID, CINTERION_PRODUCT_PLXX),
-		.driver_info = (kernel_ulong_t)&net_intf4_blacklist },
-	{ USB_DEVICE_INTERFACE_CLASS(CINTERION_VENDOR_ID, CINTERION_PRODUCT_PH8_2RMNET, 0xff),
-		.driver_info = (kernel_ulong_t)&cinterion_rmnet2_blacklist },
-	{ USB_DEVICE_INTERFACE_CLASS(CINTERION_VENDOR_ID, CINTERION_PRODUCT_PH8_AUDIO, 0xff),
-		.driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE(CINTERION_VENDOR_ID, CINTERION_PRODUCT_PLXX),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
+	{
+		USB_DEVICE_INTERFACE_CLASS(CINTERION_VENDOR_ID, CINTERION_PRODUCT_PH8_2RMNET, 0xff),
+		.driver_info = (kernel_ulong_t) &cinterion_rmnet2_blacklist
+	},
+	{
+		USB_DEVICE_INTERFACE_CLASS(CINTERION_VENDOR_ID, CINTERION_PRODUCT_PH8_AUDIO, 0xff),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_INTERFACE_CLASS(CINTERION_VENDOR_ID, CINTERION_PRODUCT_AHXX_2RMNET, 0xff) },
 	{ USB_DEVICE_INTERFACE_CLASS(CINTERION_VENDOR_ID, CINTERION_PRODUCT_AHXX_AUDIO, 0xff) },
 	{ USB_DEVICE(CINTERION_VENDOR_ID, CINTERION_PRODUCT_HC28_MDM) },
@@ -1889,21 +2142,35 @@ static const struct usb_device_id option_ids[] = {
 	{ USB_DEVICE(SIEMENS_VENDOR_ID, CINTERION_PRODUCT_HC25_MDMNET) },
 	{ USB_DEVICE(SIEMENS_VENDOR_ID, CINTERION_PRODUCT_HC28_MDM) }, /* HC28 enumerates with Siemens or Cinterion VID depending on FW revision */
 	{ USB_DEVICE(SIEMENS_VENDOR_ID, CINTERION_PRODUCT_HC28_MDMNET) },
-	{ USB_DEVICE(OLIVETTI_VENDOR_ID, OLIVETTI_PRODUCT_OLICARD100),
-		.driver_info = (kernel_ulong_t)&net_intf4_blacklist },
-	{ USB_DEVICE(OLIVETTI_VENDOR_ID, OLIVETTI_PRODUCT_OLICARD120),
-		.driver_info = (kernel_ulong_t)&net_intf4_blacklist },
-	{ USB_DEVICE(OLIVETTI_VENDOR_ID, OLIVETTI_PRODUCT_OLICARD140),
-		.driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE(OLIVETTI_VENDOR_ID, OLIVETTI_PRODUCT_OLICARD100),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
+	{
+		USB_DEVICE(OLIVETTI_VENDOR_ID, OLIVETTI_PRODUCT_OLICARD120),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
+	{
+		USB_DEVICE(OLIVETTI_VENDOR_ID, OLIVETTI_PRODUCT_OLICARD140),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE(OLIVETTI_VENDOR_ID, OLIVETTI_PRODUCT_OLICARD145) },
-	{ USB_DEVICE(OLIVETTI_VENDOR_ID, OLIVETTI_PRODUCT_OLICARD155),
-		.driver_info = (kernel_ulong_t)&net_intf6_blacklist },
-	{ USB_DEVICE(OLIVETTI_VENDOR_ID, OLIVETTI_PRODUCT_OLICARD200),
-		.driver_info = (kernel_ulong_t)&net_intf6_blacklist },
-	{ USB_DEVICE(OLIVETTI_VENDOR_ID, OLIVETTI_PRODUCT_OLICARD160),
-		.driver_info = (kernel_ulong_t)&net_intf6_blacklist },
-	{ USB_DEVICE(OLIVETTI_VENDOR_ID, OLIVETTI_PRODUCT_OLICARD500),
-		.driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE(OLIVETTI_VENDOR_ID, OLIVETTI_PRODUCT_OLICARD155),
+		.driver_info = (kernel_ulong_t) &net_intf6_blacklist
+	},
+	{
+		USB_DEVICE(OLIVETTI_VENDOR_ID, OLIVETTI_PRODUCT_OLICARD200),
+		.driver_info = (kernel_ulong_t) &net_intf6_blacklist
+	},
+	{
+		USB_DEVICE(OLIVETTI_VENDOR_ID, OLIVETTI_PRODUCT_OLICARD160),
+		.driver_info = (kernel_ulong_t) &net_intf6_blacklist
+	},
+	{
+		USB_DEVICE(OLIVETTI_VENDOR_ID, OLIVETTI_PRODUCT_OLICARD500),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE(CELOT_VENDOR_ID, CELOT_PRODUCT_CT680M) }, /* CT-650 CDMA 450 1xEVDO modem */
 	{ USB_DEVICE_AND_INTERFACE_INFO(SAMSUNG_VENDOR_ID, SAMSUNG_PRODUCT_GT_B3730, USB_CLASS_CDC_DATA, 0x00, 0x00) }, /* Samsung GT-B3730 LTE USB modem.*/
 	{ USB_DEVICE(YUGA_VENDOR_ID, YUGA_PRODUCT_CEM600) },
@@ -1978,10 +2245,14 @@ static const struct usb_device_id option_ids[] = {
 	{ USB_DEVICE(CELLIENT_VENDOR_ID, CELLIENT_PRODUCT_MEN200) },
 	{ USB_DEVICE(PETATEL_VENDOR_ID, PETATEL_PRODUCT_NP10T_600A) },
 	{ USB_DEVICE(PETATEL_VENDOR_ID, PETATEL_PRODUCT_NP10T_600E) },
-	{ USB_DEVICE(TPLINK_VENDOR_ID, TPLINK_PRODUCT_MA180),
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
-	{ USB_DEVICE(TPLINK_VENDOR_ID, 0x9000),					/* TP-Link MA260 */
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE(TPLINK_VENDOR_ID, TPLINK_PRODUCT_MA180),
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
+	{
+		USB_DEVICE(TPLINK_VENDOR_ID, 0x9000),					/* TP-Link MA260 */
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE(CHANGHONG_VENDOR_ID, CHANGHONG_PRODUCT_CH690) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(0x2001, 0x7d01, 0xff, 0x02, 0x01) },	/* D-Link DWM-156 (variant) */
 	{ USB_DEVICE_AND_INTERFACE_INFO(0x2001, 0x7d01, 0xff, 0x00, 0x00) },	/* D-Link DWM-156 (variant) */
@@ -1989,8 +2260,10 @@ static const struct usb_device_id option_ids[] = {
 	{ USB_DEVICE_AND_INTERFACE_INFO(0x2001, 0x7d02, 0xff, 0x00, 0x00) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(0x2001, 0x7d03, 0xff, 0x02, 0x01) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(0x2001, 0x7d03, 0xff, 0x00, 0x00) },
-	{ USB_DEVICE_INTERFACE_CLASS(0x2001, 0x7e19, 0xff),			/* D-Link DWM-221 B1 */
-	  .driver_info = (kernel_ulong_t)&net_intf4_blacklist },
+	{
+		USB_DEVICE_INTERFACE_CLASS(0x2001, 0x7e19, 0xff),			/* D-Link DWM-221 B1 */
+		.driver_info = (kernel_ulong_t) &net_intf4_blacklist
+	},
 	{ USB_DEVICE_AND_INTERFACE_INFO(0x07d1, 0x3e01, 0xff, 0xff, 0xff) }, /* D-Link DWM-152/C1 */
 	{ USB_DEVICE_AND_INTERFACE_INFO(0x07d1, 0x3e02, 0xff, 0xff, 0xff) }, /* D-Link DWM-156/C1 */
 	{ USB_DEVICE_AND_INTERFACE_INFO(0x07d1, 0x7e11, 0xff, 0xff, 0xff) }, /* D-Link DWM-156/A3 */
@@ -2008,7 +2281,8 @@ MODULE_DEVICE_TABLE(usb, option_ids);
  * recognizes separately, thus num_port=1.
  */
 
-static struct usb_serial_driver option_1port_device = {
+static struct usb_serial_driver option_1port_device =
+{
 	.driver = {
 		.owner =	THIS_MODULE,
 		.name =		"option1",
@@ -2037,23 +2311,26 @@ static struct usb_serial_driver option_1port_device = {
 #endif
 };
 
-static struct usb_serial_driver * const serial_drivers[] = {
+static struct usb_serial_driver *const serial_drivers[] =
+{
 	&option_1port_device, NULL
 };
 
 module_usb_serial_driver(serial_drivers, option_ids);
 
 static int option_probe(struct usb_serial *serial,
-			const struct usb_device_id *id)
+						const struct usb_device_id *id)
 {
 	struct usb_interface_descriptor *iface_desc =
-				&serial->interface->cur_altsetting->desc;
+			&serial->interface->cur_altsetting->desc;
 	struct usb_device_descriptor *dev_desc = &serial->dev->descriptor;
 	const struct option_blacklist_info *blacklist;
 
 	/* Never bind to the CD-Rom emulation interface	*/
 	if (iface_desc->bInterfaceClass == 0x08)
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * Don't bind reserved interfaces (like network ones) which often have
@@ -2061,17 +2338,23 @@ static int option_probe(struct usb_serial *serial,
 	 * the Windows driver .INF files for reserved interface numbers.
 	 */
 	blacklist = (void *)id->driver_info;
+
 	if (blacklist && test_bit(iface_desc->bInterfaceNumber,
-						&blacklist->reserved))
+							  &blacklist->reserved))
+	{
 		return -ENODEV;
+	}
+
 	/*
 	 * Don't bind network interface on Samsung GT-B3730, it is handled by
 	 * a separate module.
 	 */
 	if (dev_desc->idVendor == cpu_to_le16(SAMSUNG_VENDOR_ID) &&
-	    dev_desc->idProduct == cpu_to_le16(SAMSUNG_PRODUCT_GT_B3730) &&
-	    iface_desc->bInterfaceClass != USB_CLASS_CDC_DATA)
+		dev_desc->idProduct == cpu_to_le16(SAMSUNG_PRODUCT_GT_B3730) &&
+		iface_desc->bInterfaceClass != USB_CLASS_CDC_DATA)
+	{
 		return -ENODEV;
+	}
 
 	/* Store the blacklist info so we can use it during attach. */
 	usb_set_serial_data(serial, (void *)blacklist);
@@ -2086,8 +2369,11 @@ static int option_attach(struct usb_serial *serial)
 	struct usb_wwan_intf_private *data;
 
 	data = kzalloc(sizeof(struct usb_wwan_intf_private), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	/* Retrieve blacklist info stored at probe. */
 	blacklist = usb_get_serial_data(serial);
@@ -2095,9 +2381,11 @@ static int option_attach(struct usb_serial *serial)
 	iface_desc = &serial->interface->cur_altsetting->desc;
 
 	if (!blacklist || !test_bit(iface_desc->bInterfaceNumber,
-						&blacklist->sendsetup)) {
+								&blacklist->sendsetup))
+	{
 		data->use_send_setup = 1;
 	}
+
 	spin_lock_init(&data->susp_lock);
 
 	usb_set_serial_data(serial, data);
@@ -2119,24 +2407,28 @@ static void option_instat_callback(struct urb *urb)
 	struct usb_serial_port *port = urb->context;
 	struct device *dev = &port->dev;
 	struct usb_wwan_port_private *portdata =
-					usb_get_serial_port_data(port);
+		usb_get_serial_port_data(port);
 
 	dev_dbg(dev, "%s: urb %p port %p has data %p\n", __func__, urb, port, portdata);
 
-	if (status == 0) {
+	if (status == 0)
+	{
 		struct usb_ctrlrequest *req_pkt =
-				(struct usb_ctrlrequest *)urb->transfer_buffer;
+			(struct usb_ctrlrequest *)urb->transfer_buffer;
 
-		if (!req_pkt) {
+		if (!req_pkt)
+		{
 			dev_dbg(dev, "%s: NULL req_pkt\n", __func__);
 			return;
 		}
+
 		if ((req_pkt->bRequestType == 0xA1) &&
-				(req_pkt->bRequest == 0x20)) {
+			(req_pkt->bRequest == 0x20))
+		{
 			int old_dcd_state;
 			unsigned char signals = *((unsigned char *)
-					urb->transfer_buffer +
-					sizeof(struct usb_ctrlrequest));
+									  urb->transfer_buffer +
+									  sizeof(struct usb_ctrlrequest));
 
 			dev_dbg(dev, "%s: signal x%x\n", __func__, signals);
 
@@ -2147,23 +2439,34 @@ static void option_instat_callback(struct urb *urb)
 			portdata->ri_state = ((signals & 0x08) ? 1 : 0);
 
 			if (old_dcd_state && !portdata->dcd_state)
+			{
 				tty_port_tty_hangup(&port->port, true);
-		} else {
-			dev_dbg(dev, "%s: type %x req %x\n", __func__,
-				req_pkt->bRequestType, req_pkt->bRequest);
+			}
 		}
-	} else if (status == -ENOENT || status == -ESHUTDOWN) {
+		else
+		{
+			dev_dbg(dev, "%s: type %x req %x\n", __func__,
+					req_pkt->bRequestType, req_pkt->bRequest);
+		}
+	}
+	else if (status == -ENOENT || status == -ESHUTDOWN)
+	{
 		dev_dbg(dev, "%s: urb stopped: %d\n", __func__, status);
-	} else
+	}
+	else
+	{
 		dev_dbg(dev, "%s: error %d\n", __func__, status);
+	}
 
 	/* Resubmit urb so we continue receiving IRQ data */
-	if (status != -ESHUTDOWN && status != -ENOENT) {
+	if (status != -ESHUTDOWN && status != -ENOENT)
+	{
 		usb_mark_last_busy(port->serial->dev);
 		err = usb_submit_urb(urb, GFP_ATOMIC);
+
 		if (err)
 			dev_dbg(dev, "%s: resubmit intr urb failed. (%d)\n",
-				__func__, err);
+					__func__, err);
 	}
 }
 

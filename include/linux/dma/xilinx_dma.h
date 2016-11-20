@@ -28,7 +28,8 @@
  * @reset: Reset Channel
  * @ext_fsync: External Frame Sync source
  */
-struct xilinx_vdma_config {
+struct xilinx_vdma_config
+{
 	int frm_dly;
 	int gen_lock;
 	int master;
@@ -49,13 +50,14 @@ struct xilinx_vdma_config {
  * XDMA_TYPE_VDMA: Axi vdma ip.
  *
  */
-enum xdma_ip_type {
+enum xdma_ip_type
+{
 	XDMA_TYPE_AXIDMA = 0,
 	XDMA_TYPE_CDMA,
 	XDMA_TYPE_VDMA,
 };
 
 int xilinx_vdma_channel_set_config(struct dma_chan *dchan,
-					struct xilinx_vdma_config *cfg);
+								   struct xilinx_vdma_config *cfg);
 
 #endif

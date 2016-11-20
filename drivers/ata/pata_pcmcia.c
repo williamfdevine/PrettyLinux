@@ -59,18 +59,23 @@ static int pcmcia_set_mode(struct ata_link *link, struct ata_device **r_failed_d
 	struct ata_device *slave = &link->device[1];
 
 	if (!ata_dev_enabled(master) || !ata_dev_enabled(slave))
+	{
 		return ata_do_set_mode(link, r_failed_dev);
+	}
 
 	if (memcmp(master->id + ATA_ID_FW_REV,  slave->id + ATA_ID_FW_REV,
-			   ATA_ID_FW_REV_LEN + ATA_ID_PROD_LEN) == 0) {
+			   ATA_ID_FW_REV_LEN + ATA_ID_PROD_LEN) == 0)
+	{
 		/* Suspicious match, but could be two cards from
 		   the same vendor - check serial */
 		if (memcmp(master->id + ATA_ID_SERNO, slave->id + ATA_ID_SERNO,
-			   ATA_ID_SERNO_LEN) == 0 && master->id[ATA_ID_SERNO] >> 8) {
+				   ATA_ID_SERNO_LEN) == 0 && master->id[ATA_ID_SERNO] >> 8)
+		{
 			ata_dev_warn(slave, "is a ghost device, ignoring\n");
 			ata_dev_disable(slave);
 		}
 	}
+
 	return ata_do_set_mode(link, r_failed_dev);
 }
 
@@ -83,7 +88,7 @@ static int pcmcia_set_mode(struct ata_link *link, struct ata_device **r_failed_d
  */
 
 static int pcmcia_set_mode_8bit(struct ata_link *link,
-				struct ata_device **r_failed_dev)
+								struct ata_device **r_failed_dev)
 {
 	return 0;
 }
@@ -102,14 +107,18 @@ static int pcmcia_set_mode_8bit(struct ata_link *link,
  */
 
 static unsigned int ata_data_xfer_8bit(struct ata_device *dev,
-				unsigned char *buf, unsigned int buflen, int rw)
+									   unsigned char *buf, unsigned int buflen, int rw)
 {
 	struct ata_port *ap = dev->link->ap;
 
 	if (rw == READ)
+	{
 		ioread8_rep(ap->ioaddr.data_addr, buf, buflen);
+	}
 	else
+	{
 		iowrite8_rep(ap->ioaddr.data_addr, buf, buflen);
+	}
 
 	return buflen;
 }
@@ -131,32 +140,41 @@ static void pcmcia_8bit_drain_fifo(struct ata_queued_cmd *qc)
 
 	/* We only need to flush incoming data when a command was running */
 	if (qc == NULL || qc->dma_dir == DMA_TO_DEVICE)
+	{
 		return;
+	}
 
 	ap = qc->ap;
 
 	/* Drain up to 64K of data before we give up this recovery method */
 	for (count = 0; (ap->ops->sff_check_status(ap) & ATA_DRQ)
-							&& count++ < 65536;)
+		 && count++ < 65536;)
+	{
 		ioread8(ap->ioaddr.data_addr);
+	}
 
 	if (count)
+	{
 		ata_port_warn(ap, "drained %d bytes to clear DRQ\n", count);
+	}
 
 }
 
-static struct scsi_host_template pcmcia_sht = {
+static struct scsi_host_template pcmcia_sht =
+{
 	ATA_PIO_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations pcmcia_port_ops = {
+static struct ata_port_operations pcmcia_port_ops =
+{
 	.inherits	= &ata_sff_port_ops,
 	.sff_data_xfer	= ata_sff_data_xfer_noirq,
 	.cable_detect	= ata_cable_40wire,
 	.set_mode	= pcmcia_set_mode,
 };
 
-static struct ata_port_operations pcmcia_8bit_port_ops = {
+static struct ata_port_operations pcmcia_8bit_port_ops =
+{
 	.inherits	= &ata_sff_port_ops,
 	.sff_data_xfer	= ata_data_xfer_8bit,
 	.cable_detect	= ata_cable_40wire,
@@ -170,19 +188,26 @@ static int pcmcia_check_one_config(struct pcmcia_device *pdev, void *priv_data)
 	int *is_kme = priv_data;
 
 	if ((pdev->resource[0]->flags & IO_DATA_PATH_WIDTH)
-	    != IO_DATA_PATH_WIDTH_8) {
+		!= IO_DATA_PATH_WIDTH_8)
+	{
 		pdev->resource[0]->flags &= ~IO_DATA_PATH_WIDTH;
 		pdev->resource[0]->flags |= IO_DATA_PATH_WIDTH_AUTO;
 	}
+
 	pdev->resource[1]->flags &= ~IO_DATA_PATH_WIDTH;
 	pdev->resource[1]->flags |= IO_DATA_PATH_WIDTH_8;
 
-	if (pdev->resource[1]->end) {
+	if (pdev->resource[1]->end)
+	{
 		pdev->resource[0]->end = 8;
 		pdev->resource[1]->end = (*is_kme) ? 2 : 1;
-	} else {
+	}
+	else
+	{
 		if (pdev->resource[0]->end < 16)
+		{
 			return -ENODEV;
+		}
 	}
 
 	return pcmcia_request_io(pdev);
@@ -208,61 +233,91 @@ static int pcmcia_init_one(struct pcmcia_device *pdev)
 
 	/* Set up attributes in order to probe card and get resources */
 	pdev->config_flags |= CONF_ENABLE_IRQ | CONF_AUTO_SET_IO |
-		CONF_AUTO_SET_VPP | CONF_AUTO_CHECK_VCC;
+						  CONF_AUTO_SET_VPP | CONF_AUTO_CHECK_VCC;
 
 	/* See if we have a manufacturer identifier. Use it to set is_kme for
 	   vendor quirks */
 	is_kme = ((pdev->manf_id == MANFID_KME) &&
-		  ((pdev->card_id == PRODID_KME_KXLC005_A) ||
-		   (pdev->card_id == PRODID_KME_KXLC005_B)));
+			  ((pdev->card_id == PRODID_KME_KXLC005_A) ||
+			   (pdev->card_id == PRODID_KME_KXLC005_B)));
 
-	if (pcmcia_loop_config(pdev, pcmcia_check_one_config, &is_kme)) {
+	if (pcmcia_loop_config(pdev, pcmcia_check_one_config, &is_kme))
+	{
 		pdev->config_flags &= ~CONF_AUTO_CHECK_VCC;
+
 		if (pcmcia_loop_config(pdev, pcmcia_check_one_config, &is_kme))
-			goto failed; /* No suitable config found */
+		{
+			goto failed;    /* No suitable config found */
+		}
 	}
+
 	io_base = pdev->resource[0]->start;
+
 	if (pdev->resource[1]->end)
+	{
 		ctl_base = pdev->resource[1]->start;
+	}
 	else
+	{
 		ctl_base = pdev->resource[0]->start + 0x0e;
+	}
 
 	if (!pdev->irq)
+	{
 		goto failed;
+	}
 
 	ret = pcmcia_enable_device(pdev);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	/* iomap */
 	ret = -ENOMEM;
 	io_addr = devm_ioport_map(&pdev->dev, io_base, 8);
 	ctl_addr = devm_ioport_map(&pdev->dev, ctl_base, 1);
+
 	if (!io_addr || !ctl_addr)
+	{
 		goto failed;
+	}
 
 	/* Success. Disable the IRQ nIEN line, do quirks */
 	iowrite8(0x02, ctl_addr);
+
 	if (is_kme)
+	{
 		iowrite8(0x81, ctl_addr + 0x01);
+	}
 
 	/* FIXME: Could be more ports at base + 0x10 but we only deal with
 	   one right now */
 	if (resource_size(pdev->resource[0]) >= 0x20)
+	{
 		n_ports = 2;
+	}
 
 	if (pdev->manf_id == 0x0097 && pdev->card_id == 0x1620)
+	{
 		ops = &pcmcia_8bit_port_ops;
+	}
+
 	/*
 	 *	Having done the PCMCIA plumbing the ATA side is relatively
 	 *	sane.
 	 */
 	ret = -ENOMEM;
 	host = ata_host_alloc(&pdev->dev, n_ports);
-	if (!host)
-		goto failed;
 
-	for (p = 0; p < n_ports; p++) {
+	if (!host)
+	{
+		goto failed;
+	}
+
+	for (p = 0; p < n_ports; p++)
+	{
 		ap = host->ports[p];
 
 		ap->ops = ops;
@@ -278,9 +333,12 @@ static int pcmcia_init_one(struct pcmcia_device *pdev)
 
 	/* activate */
 	ret = ata_host_activate(host, pdev->irq, ata_sff_interrupt,
-				IRQF_SHARED, &pcmcia_sht);
+							IRQF_SHARED, &pcmcia_sht);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	pdev->priv = host;
 	return 0;
@@ -303,12 +361,15 @@ static void pcmcia_remove_one(struct pcmcia_device *pdev)
 	struct ata_host *host = pdev->priv;
 
 	if (host)
+	{
 		ata_host_detach(host);
+	}
 
 	pcmcia_disable_device(pdev);
 }
 
-static const struct pcmcia_device_id pcmcia_devices[] = {
+static const struct pcmcia_device_id pcmcia_devices[] =
+{
 	PCMCIA_DEVICE_FUNC_ID(4),
 	PCMCIA_DEVICE_MANF_CARD(0x0000, 0x0000),	/* Corsair */
 	PCMCIA_DEVICE_MANF_CARD(0x0007, 0x0000),	/* Hitachi */
@@ -379,7 +440,8 @@ static const struct pcmcia_device_id pcmcia_devices[] = {
 
 MODULE_DEVICE_TABLE(pcmcia, pcmcia_devices);
 
-static struct pcmcia_driver pcmcia_driver = {
+static struct pcmcia_driver pcmcia_driver =
+{
 	.owner		= THIS_MODULE,
 	.name		= DRV_NAME,
 	.id_table	= pcmcia_devices,

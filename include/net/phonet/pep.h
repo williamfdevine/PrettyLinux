@@ -23,7 +23,8 @@
 #ifndef NET_PHONET_PEP_H
 #define NET_PHONET_PEP_H
 
-struct pep_sock {
+struct pep_sock
+{
 	struct pn_sock		pn_sk;
 
 	/* XXX: union-ify listening vs connected stuff ? */
@@ -54,11 +55,13 @@ static inline struct pep_sock *pep_sk(struct sock *sk)
 extern const struct proto_ops phonet_stream_ops;
 
 /* Pipe protocol definitions */
-struct pnpipehdr {
+struct pnpipehdr
+{
 	u8			utid; /* transaction ID */
 	u8			message_id;
 	u8			pipe_handle;
-	union {
+	union
+	{
 		u8		state_after_connect;	/* connect request */
 		u8		state_after_reset;	/* reset request */
 		u8		error_code;		/* any response */
@@ -75,7 +78,8 @@ static inline struct pnpipehdr *pnp_hdr(struct sk_buff *skb)
 
 #define MAX_PNPIPE_HEADER (MAX_PHONET_HEADER + 4)
 
-enum {
+enum
+{
 	PNS_PIPE_CREATE_REQ = 0x00,
 	PNS_PIPE_CREATE_RESP,
 	PNS_PIPE_REMOVE_REQ,
@@ -109,13 +113,15 @@ enum {
 #define PN_PEP_TYPE_COMMON	0x00
 
 /* Phonet pipe status indication */
-enum {
+enum
+{
 	PN_PEP_IND_FLOW_CONTROL,
 	PN_PEP_IND_ID_MCFC_GRANT_CREDITS,
 };
 
 /* Phonet pipe error codes */
-enum {
+enum
+{
 	PN_PIPE_NO_ERROR,
 	PN_PIPE_ERR_INVALID_PARAM,
 	PN_PIPE_ERR_INVALID_HANDLE,
@@ -131,13 +137,15 @@ enum {
 };
 
 /* Phonet pipe states */
-enum {
+enum
+{
 	PN_PIPE_DISABLE,
 	PN_PIPE_ENABLE,
 };
 
 /* Phonet pipe sub-block types */
-enum {
+enum
+{
 	PN_PIPE_SB_CREATE_REQ_PEP_SUB_TYPE,
 	PN_PIPE_SB_CONNECT_REQ_PEP_SUB_TYPE,
 	PN_PIPE_SB_REDIRECT_REQ_PEP_SUB_TYPE,
@@ -148,7 +156,8 @@ enum {
 };
 
 /* Phonet pipe flow control models */
-enum {
+enum
+{
 	PN_NO_FLOW_CONTROL,
 	PN_LEGACY_FLOW_CONTROL,
 	PN_ONE_CREDIT_FLOW_CONTROL,
@@ -159,7 +168,8 @@ enum {
 #define pn_flow_safe(fc) ((fc) >> 1)
 
 /* Phonet pipe flow control states */
-enum {
+enum
+{
 	PEP_IND_EMPTY,
 	PEP_IND_BUSY,
 	PEP_IND_READY,

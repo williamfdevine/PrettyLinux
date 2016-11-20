@@ -36,7 +36,8 @@
 #define I40IW_STATUS_H
 
 /* Error Codes */
-enum i40iw_status_code {
+enum i40iw_status_code
+{
 	I40IW_SUCCESS = 0,
 	I40IW_ERR_NVM = -1,
 	I40IW_ERR_NVM_CHECKSUM = -2,

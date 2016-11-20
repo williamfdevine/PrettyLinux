@@ -89,7 +89,7 @@
 #define A10_ECCCTRL1_CNT_RST       0x010
 #define A10_ECCCTRL1_AWB_CNT_RST   0x100
 #define A10_ECC_CNT_RESET_MASK     (A10_ECCCTRL1_CNT_RST | \
-				    A10_ECCCTRL1_AWB_CNT_RST)
+									A10_ECCCTRL1_AWB_CNT_RST)
 
 /* SDRAM Controller Address Width Register */
 #define CV_DRAMADDRW               0xFFC2502C
@@ -131,7 +131,7 @@
 #define A10_ERRINTEN_SERRINTEN     0x01
 #define A10_ERRINTEN_DERRINTEN     0x02
 #define A10_ECC_IRQ_EN_MASK        (A10_ERRINTEN_SERRINTEN | \
-				    A10_ERRINTEN_DERRINTEN)
+									A10_ERRINTEN_DERRINTEN)
 
 /* SDRAM Interrupt Mode Register */
 #define A10_INTMODE_OFST           0x1C
@@ -164,7 +164,8 @@
 #define A10_INTMASK_CLR_OFST       0x10
 #define A10_DDR0_IRQ_MASK          BIT(17)
 
-struct altr_sdram_prv_data {
+struct altr_sdram_prv_data
+{
 	int ecc_ctrl_offset;
 	int ecc_ctl_en_mask;
 	int ecc_cecnt_offset;
@@ -188,7 +189,8 @@ struct altr_sdram_prv_data {
 };
 
 /* Altera SDRAM Memory Controller data */
-struct altr_sdram_mc_data {
+struct altr_sdram_mc_data
+{
 	struct regmap *mc_vbase;
 	int sb_irq;
 	int db_irq;
@@ -241,11 +243,11 @@ struct altr_sdram_mc_data {
 #define ALTR_A10_ECC_SERRPENA           BIT(0)
 #define ALTR_A10_ECC_DERRPENA           BIT(8)
 #define ALTR_A10_ECC_ERRPENA_MASK       (ALTR_A10_ECC_SERRPENA | \
-					 ALTR_A10_ECC_DERRPENA)
+		ALTR_A10_ECC_DERRPENA)
 #define ALTR_A10_ECC_SERRPENB           BIT(16)
 #define ALTR_A10_ECC_DERRPENB           BIT(24)
 #define ALTR_A10_ECC_ERRPENB_MASK       (ALTR_A10_ECC_SERRPENB | \
-					 ALTR_A10_ECC_DERRPENB)
+		ALTR_A10_ECC_DERRPENB)
 
 #define ALTR_A10_ECC_INTTEST_OFST       0x24
 #define ALTR_A10_ECC_TSERRA             BIT(0)
@@ -298,12 +300,13 @@ struct altr_sdram_mc_data {
 
 struct altr_edac_device_dev;
 
-struct edac_device_prv_data {
+struct edac_device_prv_data
+{
 	int (*setup)(struct altr_edac_device_dev *device);
 	int ce_clear_mask;
 	int ue_clear_mask;
 	int irq_status_mask;
-	void * (*alloc_mem)(size_t size, void **other);
+	void *(*alloc_mem)(size_t size, void **other);
 	void (*free_mem)(void *p, size_t size, void *other);
 	int ecc_enable_mask;
 	int ecc_en_ofst;
@@ -316,7 +319,8 @@ struct edac_device_prv_data {
 	bool panic;
 };
 
-struct altr_edac_device_dev {
+struct altr_edac_device_dev
+{
 	struct list_head next;
 	void __iomem *base;
 	int sb_irq;
@@ -330,7 +334,8 @@ struct altr_edac_device_dev {
 	int edac_idx;
 };
 
-struct altr_arria10_edac {
+struct altr_arria10_edac
+{
 	struct device		*dev;
 	struct regmap		*ecc_mgr_map;
 	int sb_irq;

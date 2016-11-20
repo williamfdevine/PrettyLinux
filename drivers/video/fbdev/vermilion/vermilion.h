@@ -188,7 +188,8 @@
 #define VML_MDVO_PAD_ENABLE          0x00000004
 #define VML_MDVO_PULLDOWN_ENABLE     0x00000001
 
-struct vml_par {
+struct vml_par
+{
 	struct pci_dev *vdc;
 	u64 vdc_mem_base;
 	u64 vdc_mem_size;
@@ -202,14 +203,16 @@ struct vml_par {
 	atomic_t refcount;
 };
 
-struct vram_area {
+struct vram_area
+{
 	unsigned long logical;
 	unsigned long phys;
 	unsigned long size;
 	unsigned order;
 };
 
-struct vml_info {
+struct vml_info
+{
 	struct fb_info info;
 	struct vml_par *par;
 	struct list_head head;
@@ -230,22 +233,23 @@ struct vml_info {
  * Subsystem
  */
 
-struct vml_sys {
+struct vml_sys
+{
 	char *name;
 
 	/*
 	 * Save / Restore;
 	 */
 
-	int (*save) (struct vml_sys * sys);
-	int (*restore) (struct vml_sys * sys);
+	int (*save) (struct vml_sys *sys);
+	int (*restore) (struct vml_sys *sys);
 
 	/*
 	 * PLL programming;
 	 */
 
-	int (*set_clock) (struct vml_sys * sys, int clock);
-	int (*nearest_clock) (const struct vml_sys * sys, int clock);
+	int (*set_clock) (struct vml_sys *sys, int clock);
+	int (*nearest_clock) (const struct vml_sys *sys, int clock);
 };
 
 extern int vmlfb_register_subsys(struct vml_sys *sys);

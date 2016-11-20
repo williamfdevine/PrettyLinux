@@ -48,9 +48,9 @@
 #define H2C_8821AE_WOWLAN_LENGTH			3
 #define H2C_8821AE_KEEP_ALIVE_CTRL_LENGTH	3
 #if (USE_OLD_WOWLAN_DEBUG_FW == 0)
-#define H2C_8821AE_REMOTE_WAKE_CTRL_LEN	1
+	#define H2C_8821AE_REMOTE_WAKE_CTRL_LEN	1
 #else
-#define H2C_8821AE_REMOTE_WAKE_CTRL_LEN	3
+	#define H2C_8821AE_REMOTE_WAKE_CTRL_LEN	3
 #endif
 #define H2C_8821AE_AOAC_GLOBAL_INFO_LEN	2
 #define H2C_8821AE_AOAC_RSVDPAGE_LOC_LEN	7
@@ -81,9 +81,9 @@
 #define	FW_PS_ACK		BIT(6)
 #define	FW_PS_TOGGLE		BIT(7)
 
- /* 8821AE RPWM value*/
- /* BIT[0] = 1: 32k, 0: 40M*/
- /* 32k*/
+/* 8821AE RPWM value*/
+/* BIT[0] = 1: 32k, 0: 40M*/
+/* 32k*/
 #define	FW_PS_CLOCK_OFF		BIT(0)
 /*40M*/
 #define	FW_PS_CLOCK_ON		0
@@ -105,13 +105,13 @@
 #define	FW_PS_STATE_S2		(FW_PS_RF_OFF)
 #define	FW_PS_STATE_S3		(FW_PS_ALL_ON)
 #define	FW_PS_STATE_S4		((FW_PS_ST_ACTIVE) | (FW_PS_ALL_ON))
- /* ((FW_PS_RF_ON) | (FW_PS_REGISTER_ACTIVE))*/
+/* ((FW_PS_RF_ON) | (FW_PS_REGISTER_ACTIVE))*/
 #define	FW_PS_STATE_ALL_ON_8821AE	(FW_PS_CLOCK_ON)
- /* (FW_PS_RF_ON)*/
+/* (FW_PS_RF_ON)*/
 #define	FW_PS_STATE_RF_ON_8821AE	(FW_PS_CLOCK_ON)
- /* 0x0*/
+/* 0x0*/
 #define	FW_PS_STATE_RF_OFF_8821AE	(FW_PS_CLOCK_ON)
- /* (FW_PS_STATE_RF_OFF)*/
+/* (FW_PS_STATE_RF_OFF)*/
 #define	FW_PS_STATE_RF_OFF_LOW_PWR_8821AE	(FW_PS_CLOCK_OFF)
 
 #define	FW_PS_STATE_ALL_ON_92C	(FW_PS_STATE_S4)
@@ -132,12 +132,13 @@
 #define	FW_CLR_PS_STATE(x)	((x) = ((x) & (0xF0)))
 
 #define	IS_IN_LOW_POWER_STATE_8821AE(__state)		\
-			(FW_PS_STATE(__state) == FW_PS_CLOCK_OFF)
+	(FW_PS_STATE(__state) == FW_PS_CLOCK_OFF)
 
 #define	FW_PWR_STATE_ACTIVE	((FW_PS_RF_ON) | (FW_PS_REGISTER_ACTIVE))
 #define	FW_PWR_STATE_RF_OFF	0
 
-enum rtl8812_c2h_evt {
+enum rtl8812_c2h_evt
+{
 	C2H_8812_DBG = 0,
 	C2H_8812_LB = 1,
 	C2H_8812_TXBF = 2,
@@ -151,7 +152,8 @@ enum rtl8812_c2h_evt {
 	MAX_8812_C2HEVENT
 };
 
-enum rtl8821a_h2c_cmd {
+enum rtl8821a_h2c_cmd
+{
 	H2C_8821AE_RSVDPAGE = 0,
 	H2C_8821AE_MSRRPT = 1,
 	H2C_8821AE_SCAN = 2,
@@ -303,30 +305,30 @@ enum rtl8821a_h2c_cmd {
 int rtl8821ae_download_fw(struct ieee80211_hw *hw, bool buse_wake_on_wlan_fw);
 #if (USE_SPECIFIC_FW_TO_SUPPORT_WOWLAN == 1)
 void rtl8821ae_set_fw_related_for_wowlan(struct ieee80211_hw *hw,
-					 bool used_wowlan_fw);
+		bool used_wowlan_fw);
 
 #endif
 void rtl8821ae_fill_h2c_cmd(struct ieee80211_hw *hw, u8 element_id,
-			    u32 cmd_len, u8 *cmdbuffer);
+							u32 cmd_len, u8 *cmdbuffer);
 void rtl8821ae_firmware_selfreset(struct ieee80211_hw *hw);
 void rtl8821ae_set_fw_pwrmode_cmd(struct ieee80211_hw *hw, u8 mode);
 void rtl8821ae_set_fw_media_status_rpt_cmd(struct ieee80211_hw *hw,
-					   u8 mstatus);
+		u8 mstatus);
 void rtl8821ae_set_fw_ap_off_load_cmd(struct ieee80211_hw *hw,
-				      u8 ap_offload_enable);
+									  u8 ap_offload_enable);
 void rtl8821ae_set_fw_rsvdpagepkt(struct ieee80211_hw *hw,
-				  bool b_dl_finished, bool dl_whole_packet);
+								  bool b_dl_finished, bool dl_whole_packet);
 void rtl8812ae_set_fw_rsvdpagepkt(struct ieee80211_hw *hw,
-				  bool b_dl_finished, bool dl_whole_packet);
+								  bool b_dl_finished, bool dl_whole_packet);
 void rtl8821ae_set_p2p_ps_offload_cmd(struct ieee80211_hw *hw,
-				      u8 p2p_ps_state);
+									  u8 p2p_ps_state);
 void rtl8821ae_set_fw_wowlan_mode(struct ieee80211_hw *hw, bool func_en);
 void rtl8821ae_set_fw_remote_wake_ctrl_cmd(struct ieee80211_hw *hw,
-					   u8 enable);
+		u8 enable);
 void rtl8821ae_set_fw_keep_alive_cmd(struct ieee80211_hw *hw, bool func_en);
 void rtl8821ae_set_fw_disconnect_decision_ctrl_cmd(struct ieee80211_hw *hw,
-						   bool enabled);
+		bool enabled);
 void rtl8821ae_set_fw_global_info_cmd(struct ieee80211_hw *hw);
 void rtl8821ae_c2h_packet_handler(struct ieee80211_hw *hw,
-				  u8 *buffer, u8 length);
+								  u8 *buffer, u8 length);
 #endif

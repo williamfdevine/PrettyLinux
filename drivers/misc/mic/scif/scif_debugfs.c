@@ -29,18 +29,21 @@ static int scif_dev_test(struct seq_file *s, void *unused)
 	int node;
 
 	seq_printf(s, "Total Nodes %d Self Node Id %d Maxid %d\n",
-		   scif_info.total, scif_info.nodeid,
-		   scif_info.maxid);
+			   scif_info.total, scif_info.nodeid,
+			   scif_info.maxid);
 
 	if (!scif_dev)
+	{
 		return 0;
+	}
 
 	seq_printf(s, "%-16s\t%-16s\n", "node_id", "state");
 
 	for (node = 0; node <= scif_info.maxid; node++)
 		seq_printf(s, "%-16d\t%-16s\n", scif_dev[node].node,
-			   _scifdev_alive(&scif_dev[node]) ?
-			   "Running" : "Offline");
+				   _scifdev_alive(&scif_dev[node]) ?
+				   "Running" : "Offline");
+
 	return 0;
 }
 
@@ -54,7 +57,8 @@ static int scif_dev_test_release(struct inode *inode, struct file *file)
 	return single_release(inode, file);
 }
 
-static const struct file_operations scif_dev_ops = {
+static const struct file_operations scif_dev_ops =
+{
 	.owner   = THIS_MODULE,
 	.open    = scif_dev_test_open,
 	.read    = seq_read,
@@ -69,27 +73,27 @@ static void scif_display_window(struct scif_window *window, struct seq_file *s)
 	scif_pinned_pages_t pin = window->pinned_pages;
 
 	seq_printf(s, "window %p type %d temp %d offset 0x%llx ",
-		   window, window->type, window->temp, window->offset);
+			   window, window->type, window->temp, window->offset);
 	seq_printf(s, "nr_pages 0x%llx nr_contig_chunks 0x%x prot %d ",
-		   window->nr_pages, window->nr_contig_chunks, window->prot);
+			   window->nr_pages, window->nr_contig_chunks, window->prot);
 	seq_printf(s, "ref_count %d magic 0x%llx peer_window 0x%llx ",
-		   window->ref_count, window->magic, window->peer_window);
+			   window->ref_count, window->magic, window->peer_window);
 	seq_printf(s, "unreg_state 0x%x va_for_temp 0x%lx\n",
-		   window->unreg_state, window->va_for_temp);
+			   window->unreg_state, window->va_for_temp);
 
 	for (j = 0; j < window->nr_contig_chunks; j++)
 		seq_printf(s, "page[%d] dma_addr 0x%llx num_pages 0x%llx\n", j,
-			   window->dma_addr[j], window->num_pages[j]);
+				   window->dma_addr[j], window->num_pages[j]);
 
 	if (window->type == SCIF_WINDOW_SELF && pin)
 		for (j = 0; j < window->nr_pages; j++)
 			seq_printf(s, "page[%d] = pinned_pages %p address %p\n",
-				   j, pin->pages[j],
-				   page_address(pin->pages[j]));
+					   j, pin->pages[j],
+					   page_address(pin->pages[j]));
 
 	if (window->st)
 		for_each_sg(window->st->sgl, sg, window->st->nents, j)
-			seq_printf(s, "sg[%d] dma addr 0x%llx length 0x%x\n",
+		seq_printf(s, "sg[%d] dma addr 0x%llx length 0x%x\n",
 				   j, sg_dma_address(sg), sg_dma_len(sg));
 }
 
@@ -98,7 +102,8 @@ static void scif_display_all_windows(struct list_head *head, struct seq_file *s)
 	struct list_head *item;
 	struct scif_window *window;
 
-	list_for_each(item, head) {
+	list_for_each(item, head)
+	{
 		window = list_entry(item, struct scif_window, list);
 		scif_display_window(window, s);
 	}
@@ -110,7 +115,8 @@ static int scif_rma_test(struct seq_file *s, void *unused)
 	struct list_head *pos;
 
 	mutex_lock(&scif_info.connlock);
-	list_for_each(pos, &scif_info.connected) {
+	list_for_each(pos, &scif_info.connected)
+	{
 		ep = list_entry(pos, struct scif_endpt, list);
 		seq_printf(s, "ep %p self windows\n", ep);
 		mutex_lock(&ep->rma_info.rma_lock);
@@ -133,7 +139,8 @@ static int scif_rma_test_release(struct inode *inode, struct file *file)
 	return single_release(inode, file);
 }
 
-static const struct file_operations scif_rma_ops = {
+static const struct file_operations scif_rma_ops =
+{
 	.owner   = THIS_MODULE,
 	.open    = scif_rma_test_open,
 	.read    = seq_read,
@@ -144,9 +151,11 @@ static const struct file_operations scif_rma_ops = {
 void __init scif_init_debugfs(void)
 {
 	scif_dbg = debugfs_create_dir(KBUILD_MODNAME, NULL);
-	if (!scif_dbg) {
+
+	if (!scif_dbg)
+	{
 		dev_err(scif_info.mdev.this_device,
-			"can't create debugfs dir scif\n");
+				"can't create debugfs dir scif\n");
 		return;
 	}
 

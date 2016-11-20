@@ -54,59 +54,69 @@ static void nw_en_write(void)
 static map_word dc21285_read8(struct map_info *map, unsigned long ofs)
 {
 	map_word val;
-	val.x[0] = *(uint8_t*)(map->virt + ofs);
+	val.x[0] = *(uint8_t *)(map->virt + ofs);
 	return val;
 }
 
 static map_word dc21285_read16(struct map_info *map, unsigned long ofs)
 {
 	map_word val;
-	val.x[0] = *(uint16_t*)(map->virt + ofs);
+	val.x[0] = *(uint16_t *)(map->virt + ofs);
 	return val;
 }
 
 static map_word dc21285_read32(struct map_info *map, unsigned long ofs)
 {
 	map_word val;
-	val.x[0] = *(uint32_t*)(map->virt + ofs);
+	val.x[0] = *(uint32_t *)(map->virt + ofs);
 	return val;
 }
 
 static void dc21285_copy_from(struct map_info *map, void *to, unsigned long from, ssize_t len)
 {
-	memcpy(to, (void*)(map->virt + from), len);
+	memcpy(to, (void *)(map->virt + from), len);
 }
 
 static void dc21285_write8(struct map_info *map, const map_word d, unsigned long adr)
 {
 	if (machine_is_netwinder())
+	{
 		nw_en_write();
+	}
+
 	*CSR_ROMWRITEREG = adr & 3;
 	adr &= ~3;
-	*(uint8_t*)(map->virt + adr) = d.x[0];
+	*(uint8_t *)(map->virt + adr) = d.x[0];
 }
 
 static void dc21285_write16(struct map_info *map, const map_word d, unsigned long adr)
 {
 	if (machine_is_netwinder())
+	{
 		nw_en_write();
+	}
+
 	*CSR_ROMWRITEREG = adr & 3;
 	adr &= ~3;
-	*(uint16_t*)(map->virt + adr) = d.x[0];
+	*(uint16_t *)(map->virt + adr) = d.x[0];
 }
 
 static void dc21285_write32(struct map_info *map, const map_word d, unsigned long adr)
 {
 	if (machine_is_netwinder())
+	{
 		nw_en_write();
-	*(uint32_t*)(map->virt + adr) = d.x[0];
+	}
+
+	*(uint32_t *)(map->virt + adr) = d.x[0];
 }
 
 static void dc21285_copy_to_32(struct map_info *map, unsigned long to, const void *from, ssize_t len)
 {
-	while (len > 0) {
+	while (len > 0)
+	{
 		map_word d;
-		d.x[0] = *((uint32_t*)from);
+		d.x[0] = *((uint32_t *)from);
 		dc21285_write32(map, d, to);
 		from += 4;
 		to += 4;
@@ -116,9 +126,10 @@ static void dc21285_copy_to_32(struct map_info *map, unsigned long to, const voi
 
 static void dc21285_copy_to_16(struct map_info *map, unsigned long to, const void *from, ssize_t len)
 {
-	while (len > 0) {
+	while (len > 0)
+	{
 		map_word d;
-		d.x[0] = *((uint16_t*)from);
+		d.x[0] = *((uint16_t *)from);
 		dc21285_write16(map, d, to);
 		from += 2;
 		to += 2;
@@ -129,66 +140,78 @@ static void dc21285_copy_to_16(struct map_info *map, unsigned long to, const voi
 static void dc21285_copy_to_8(struct map_info *map, unsigned long to, const void *from, ssize_t len)
 {
 	map_word d;
-	d.x[0] = *((uint8_t*)from);
+	d.x[0] = *((uint8_t *)from);
 	dc21285_write8(map, d, to);
 	from++;
 	to++;
 	len--;
 }
 
-static struct map_info dc21285_map = {
+static struct map_info dc21285_map =
+{
 	.name = "DC21285 flash",
 	.phys = NO_XIP,
-	.size = 16*1024*1024,
+	.size = 16 * 1024 * 1024,
 	.copy_from = dc21285_copy_from,
 };
 
 /* Partition stuff */
-static const char * const probes[] = { "RedBoot", "cmdlinepart", NULL };
+static const char *const probes[] = { "RedBoot", "cmdlinepart", NULL };
 
 static int __init init_dc21285(void)
 {
 	/* Determine bankwidth */
-	switch (*CSR_SA110_CNTL & (3<<14)) {
+	switch (*CSR_SA110_CNTL & (3 << 14))
+	{
 		case SA110_CNTL_ROMWIDTH_8:
 			dc21285_map.bankwidth = 1;
 			dc21285_map.read = dc21285_read8;
 			dc21285_map.write = dc21285_write8;
 			dc21285_map.copy_to = dc21285_copy_to_8;
 			break;
+
 		case SA110_CNTL_ROMWIDTH_16:
 			dc21285_map.bankwidth = 2;
 			dc21285_map.read = dc21285_read16;
 			dc21285_map.write = dc21285_write16;
 			dc21285_map.copy_to = dc21285_copy_to_16;
 			break;
+
 		case SA110_CNTL_ROMWIDTH_32:
 			dc21285_map.bankwidth = 4;
 			dc21285_map.read = dc21285_read32;
 			dc21285_map.write = dc21285_write32;
 			dc21285_map.copy_to = dc21285_copy_to_32;
 			break;
+
 		default:
 			printk (KERN_ERR "DC21285 flash: undefined bankwidth\n");
 			return -ENXIO;
 	}
+
 	printk (KERN_NOTICE "DC21285 flash support (%d-bit bankwidth)\n",
-		dc21285_map.bankwidth*8);
+			dc21285_map.bankwidth * 8);
 
 	/* Let's map the flash area */
-	dc21285_map.virt = ioremap(DC21285_FLASH, 16*1024*1024);
-	if (!dc21285_map.virt) {
+	dc21285_map.virt = ioremap(DC21285_FLASH, 16 * 1024 * 1024);
+
+	if (!dc21285_map.virt)
+	{
 		printk("Failed to ioremap\n");
 		return -EIO;
 	}
 
-	if (machine_is_ebsa285()) {
+	if (machine_is_ebsa285())
+	{
 		dc21285_mtd = do_map_probe("cfi_probe", &dc21285_map);
-	} else {
+	}
+	else
+	{
 		dc21285_mtd = do_map_probe("jedec_probe", &dc21285_map);
 	}
 
-	if (!dc21285_mtd) {
+	if (!dc21285_mtd)
+	{
 		iounmap(dc21285_map.virt);
 		return -ENXIO;
 	}
@@ -197,7 +220,8 @@ static int __init init_dc21285(void)
 
 	mtd_device_parse_register(dc21285_mtd, probes, NULL, NULL, 0);
 
-	if(machine_is_ebsa285()) {
+	if (machine_is_ebsa285())
+	{
 		/*
 		 * Flash timing is determined with bits 19-16 of the
 		 * CSR_SA110_CNTL.  The value is the number of wait cycles, or

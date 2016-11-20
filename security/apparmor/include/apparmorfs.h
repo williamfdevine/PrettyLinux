@@ -15,7 +15,8 @@
 #ifndef __AA_APPARMORFS_H
 #define __AA_APPARMORFS_H
 
-enum aa_fs_type {
+enum aa_fs_type
+{
 	AA_FS_TYPE_BOOLEAN,
 	AA_FS_TYPE_STRING,
 	AA_FS_TYPE_U64,
@@ -25,12 +26,14 @@ enum aa_fs_type {
 
 struct aa_fs_entry;
 
-struct aa_fs_entry {
+struct aa_fs_entry
+{
 	const char *name;
 	struct dentry *dentry;
 	umode_t mode;
 	enum aa_fs_type v_type;
-	union {
+	union
+	{
 		bool boolean;
 		char *string;
 		unsigned long u64;
@@ -43,19 +46,19 @@ extern const struct file_operations aa_fs_seq_file_ops;
 
 #define AA_FS_FILE_BOOLEAN(_name, _value) \
 	{ .name = (_name), .mode = 0444, \
-	  .v_type = AA_FS_TYPE_BOOLEAN, .v.boolean = (_value), \
-	  .file_ops = &aa_fs_seq_file_ops }
+							   .v_type = AA_FS_TYPE_BOOLEAN, .v.boolean = (_value), \
+										 .file_ops = &aa_fs_seq_file_ops }
 #define AA_FS_FILE_STRING(_name, _value) \
 	{ .name = (_name), .mode = 0444, \
-	  .v_type = AA_FS_TYPE_STRING, .v.string = (_value), \
-	  .file_ops = &aa_fs_seq_file_ops }
+							   .v_type = AA_FS_TYPE_STRING, .v.string = (_value), \
+										 .file_ops = &aa_fs_seq_file_ops }
 #define AA_FS_FILE_U64(_name, _value) \
 	{ .name = (_name), .mode = 0444, \
-	  .v_type = AA_FS_TYPE_U64, .v.u64 = (_value), \
-	  .file_ops = &aa_fs_seq_file_ops }
+							   .v_type = AA_FS_TYPE_U64, .v.u64 = (_value), \
+										 .file_ops = &aa_fs_seq_file_ops }
 #define AA_FS_FILE_FOPS(_name, _mode, _fops) \
 	{ .name = (_name), .v_type = AA_FS_TYPE_FOPS, \
-	  .mode = (_mode), .file_ops = (_fops) }
+								 .mode = (_mode), .file_ops = (_fops) }
 #define AA_FS_DIR(_name, _value) \
 	{ .name = (_name), .v_type = AA_FS_TYPE_DIR, .v.files = (_value) }
 
@@ -64,7 +67,8 @@ extern void __init aa_destroy_aafs(void);
 struct aa_profile;
 struct aa_namespace;
 
-enum aafs_ns_type {
+enum aafs_ns_type
+{
 	AAFS_NS_DIR,
 	AAFS_NS_PROFS,
 	AAFS_NS_NS,
@@ -76,7 +80,8 @@ enum aafs_ns_type {
 	AAFS_NS_SIZEOF,
 };
 
-enum aafs_prof_type {
+enum aafs_prof_type
+{
 	AAFS_PROF_DIR,
 	AAFS_PROF_PROFS,
 	AAFS_PROF_NAME,
@@ -95,10 +100,10 @@ enum aafs_prof_type {
 
 void __aa_fs_profile_rmdir(struct aa_profile *profile);
 void __aa_fs_profile_migrate_dents(struct aa_profile *old,
-				   struct aa_profile *new);
+								   struct aa_profile *new);
 int __aa_fs_profile_mkdir(struct aa_profile *profile, struct dentry *parent);
 void __aa_fs_namespace_rmdir(struct aa_namespace *ns);
 int __aa_fs_namespace_mkdir(struct aa_namespace *ns, struct dentry *parent,
-			    const char *name);
+							const char *name);
 
 #endif /* __AA_APPARMORFS_H */

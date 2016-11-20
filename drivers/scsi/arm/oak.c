@@ -41,59 +41,68 @@
 #define DATA	((128 + 8) << 2)
 
 static inline int oakscsi_pwrite(struct Scsi_Host *instance,
-                                 unsigned char *addr, int len)
+								 unsigned char *addr, int len)
 {
-  void __iomem *base = priv(instance)->base;
+	void __iomem *base = priv(instance)->base;
 
-printk("writing %p len %d\n",addr, len);
+	printk("writing %p len %d\n", addr, len);
 
-  while(1)
-  {
-    int status;
-    while (((status = readw(base + STAT)) & 0x100)==0);
-  }
-  return 0;
+	while (1)
+	{
+		int status;
+
+		while (((status = readw(base + STAT)) & 0x100) == 0);
+	}
+
+	return 0;
 }
 
 static inline int oakscsi_pread(struct Scsi_Host *instance,
-                                unsigned char *addr, int len)
+								unsigned char *addr, int len)
 {
-  void __iomem *base = priv(instance)->base;
-printk("reading %p len %d\n", addr, len);
-  while(len > 0)
-  {
-    unsigned int status, timeout;
-    unsigned long b;
-    
-    timeout = 0x01FFFFFF;
-    
-    while (((status = readw(base + STAT)) & 0x100)==0)
-    {
-      timeout--;
-      if(status & 0x200 || !timeout)
-      {
-        printk("status = %08X\n", status);
-        return -1;
-      }
-    }
+	void __iomem *base = priv(instance)->base;
+	printk("reading %p len %d\n", addr, len);
 
-    if(len >= 128)
-    {
-      readsw(base + DATA, addr, 128);
-      addr += 128;
-      len -= 128;
-    }
-    else
-    {
-      b = (unsigned long) readw(base + DATA);
-      *addr ++ = b;
-      len -= 1;
-      if(len)
-        *addr ++ = b>>8;
-      len -= 1;
-    }
-  }
-  return 0;
+	while (len > 0)
+	{
+		unsigned int status, timeout;
+		unsigned long b;
+
+		timeout = 0x01FFFFFF;
+
+		while (((status = readw(base + STAT)) & 0x100) == 0)
+		{
+			timeout--;
+
+			if (status & 0x200 || !timeout)
+			{
+				printk("status = %08X\n", status);
+				return -1;
+			}
+		}
+
+		if (len >= 128)
+		{
+			readsw(base + DATA, addr, 128);
+			addr += 128;
+			len -= 128;
+		}
+		else
+		{
+			b = (unsigned long) readw(base + DATA);
+			*addr ++ = b;
+			len -= 1;
+
+			if (len)
+			{
+				*addr ++ = b >> 8;
+			}
+
+			len -= 1;
+		}
+	}
+
+	return 0;
 }
 
 #undef STAT
@@ -101,7 +110,8 @@ printk("reading %p len %d\n", addr, len);
 
 #include "../NCR5380.c"
 
-static struct scsi_host_template oakscsi_template = {
+static struct scsi_host_template oakscsi_template =
+{
 	.module			= THIS_MODULE,
 	.name			= "Oak 16-bit SCSI",
 	.info			= oakscsi_info,
@@ -124,18 +134,25 @@ static int oakscsi_probe(struct expansion_card *ec, const struct ecard_id *id)
 	int ret = -ENOMEM;
 
 	ret = ecard_request_resources(ec);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	host = scsi_host_alloc(&oakscsi_template, sizeof(struct NCR5380_hostdata));
-	if (!host) {
+
+	if (!host)
+	{
 		ret = -ENOMEM;
 		goto release;
 	}
 
 	priv(host)->base = ioremap(ecard_resource_start(ec, ECARD_RES_MEMC),
-				   ecard_resource_len(ec, ECARD_RES_MEMC));
-	if (!priv(host)->base) {
+							   ecard_resource_len(ec, ECARD_RES_MEMC));
+
+	if (!priv(host)->base)
+	{
 		ret = -ENOMEM;
 		goto unreg;
 	}
@@ -144,27 +161,33 @@ static int oakscsi_probe(struct expansion_card *ec, const struct ecard_id *id)
 	host->n_io_port = 255;
 
 	ret = NCR5380_init(host, FLAG_DMA_FIXUP | FLAG_LATE_DMA_SETUP);
+
 	if (ret)
+	{
 		goto out_unmap;
+	}
 
 	NCR5380_maybe_reset_bus(host);
 
 	ret = scsi_add_host(host, &ec->dev);
+
 	if (ret)
+	{
 		goto out_exit;
+	}
 
 	scsi_scan_host(host);
 	goto out;
 
- out_exit:
+out_exit:
 	NCR5380_exit(host);
- out_unmap:
+out_unmap:
 	iounmap(priv(host)->base);
- unreg:
+unreg:
 	scsi_host_put(host);
- release:
+release:
 	ecard_release_resources(ec);
- out:
+out:
 	return ret;
 }
 
@@ -181,12 +204,14 @@ static void oakscsi_remove(struct expansion_card *ec)
 	ecard_release_resources(ec);
 }
 
-static const struct ecard_id oakscsi_cids[] = {
+static const struct ecard_id oakscsi_cids[] =
+{
 	{ MANU_OAK, PROD_OAK_SCSI },
 	{ 0xffff, 0xffff }
 };
 
-static struct ecard_driver oakscsi_driver = {
+static struct ecard_driver oakscsi_driver =
+{
 	.probe		= oakscsi_probe,
 	.remove		= oakscsi_remove,
 	.id_table	= oakscsi_cids,

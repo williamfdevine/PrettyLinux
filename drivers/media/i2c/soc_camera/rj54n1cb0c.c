@@ -110,7 +110,8 @@
 /* I2C addresses: 0x50, 0x51, 0x60, 0x61 */
 
 /* RJ54N1CB0C has only one fixed colorspace per pixelcode */
-struct rj54n1_datafmt {
+struct rj54n1_datafmt
+{
 	u32	code;
 	enum v4l2_colorspace		colorspace;
 };
@@ -121,14 +122,18 @@ static const struct rj54n1_datafmt *rj54n1_find_datafmt(
 	int n)
 {
 	int i;
+
 	for (i = 0; i < n; i++)
 		if (fmt[i].code == code)
+		{
 			return fmt + i;
+		}
 
 	return NULL;
 }
 
-static const struct rj54n1_datafmt rj54n1_colour_fmts[] = {
+static const struct rj54n1_datafmt rj54n1_colour_fmts[] =
+{
 	{MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_JPEG},
 	{MEDIA_BUS_FMT_YVYU8_2X8, V4L2_COLORSPACE_JPEG},
 	{MEDIA_BUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB},
@@ -140,7 +145,8 @@ static const struct rj54n1_datafmt rj54n1_colour_fmts[] = {
 	{MEDIA_BUS_FMT_SBGGR10_1X10, V4L2_COLORSPACE_SRGB},
 };
 
-struct rj54n1_clock_div {
+struct rj54n1_clock_div
+{
 	u8 ratio_tg;	/* can be 0 or an odd number */
 	u8 ratio_t;
 	u8 ratio_r;
@@ -148,7 +154,8 @@ struct rj54n1_clock_div {
 	u8 ratio_o;
 };
 
-struct rj54n1 {
+struct rj54n1
+{
 	struct v4l2_subdev subdev;
 	struct v4l2_ctrl_handler hdl;
 	struct v4l2_clk *clk;
@@ -164,12 +171,14 @@ struct rj54n1 {
 	u8 bank;
 };
 
-struct rj54n1_reg_val {
+struct rj54n1_reg_val
+{
 	u16 reg;
 	u8 val;
 };
 
-static const struct rj54n1_reg_val bank_4[] = {
+static const struct rj54n1_reg_val bank_4[] =
+{
 	{0x417, 0},
 	{0x42c, 0},
 	{0x42d, 0xf0},
@@ -190,7 +199,8 @@ static const struct rj54n1_reg_val bank_4[] = {
 	{0x4fe, 2},
 };
 
-static const struct rj54n1_reg_val bank_5[] = {
+static const struct rj54n1_reg_val bank_5[] =
+{
 	{0x514, 0},
 	{0x516, 0},
 	{0x518, 0},
@@ -211,7 +221,8 @@ static const struct rj54n1_reg_val bank_5[] = {
 	{0x5fe, 2},
 };
 
-static const struct rj54n1_reg_val bank_7[] = {
+static const struct rj54n1_reg_val bank_7[] =
+{
 	{0x70a, 0},
 	{0x714, 0xff},
 	{0x715, 0xff},
@@ -219,7 +230,8 @@ static const struct rj54n1_reg_val bank_7[] = {
 	{0x7FE, 2},
 };
 
-static const struct rj54n1_reg_val bank_8[] = {
+static const struct rj54n1_reg_val bank_8[] =
+{
 	{0x800, 0x00},
 	{0x801, 0x01},
 	{0x802, 0x61},
@@ -407,12 +419,14 @@ static const struct rj54n1_reg_val bank_8[] = {
 	{0x8FE, 2},
 };
 
-static const struct rj54n1_reg_val bank_10[] = {
+static const struct rj54n1_reg_val bank_10[] =
+{
 	{0x10bf, 0x69}
 };
 
 /* Clock dividers - these are default register values, divider = register + 1 */
-static const struct rj54n1_clock_div clk_div = {
+static const struct rj54n1_clock_div clk_div =
+{
 	.ratio_tg	= 3 /* default: 5 */,
 	.ratio_t	= 4 /* default: 1 */,
 	.ratio_r	= 4 /* default: 0 */,
@@ -431,54 +445,75 @@ static int reg_read(struct i2c_client *client, const u16 reg)
 	int ret;
 
 	/* set bank */
-	if (rj54n1->bank != reg >> 8) {
+	if (rj54n1->bank != reg >> 8)
+	{
 		dev_dbg(&client->dev, "[0x%x] = 0x%x\n", 0xff, reg >> 8);
 		ret = i2c_smbus_write_byte_data(client, 0xff, reg >> 8);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		rj54n1->bank = reg >> 8;
 	}
+
 	return i2c_smbus_read_byte_data(client, reg & 0xff);
 }
 
 static int reg_write(struct i2c_client *client, const u16 reg,
-		     const u8 data)
+					 const u8 data)
 {
 	struct rj54n1 *rj54n1 = to_rj54n1(client);
 	int ret;
 
 	/* set bank */
-	if (rj54n1->bank != reg >> 8) {
+	if (rj54n1->bank != reg >> 8)
+	{
 		dev_dbg(&client->dev, "[0x%x] = 0x%x\n", 0xff, reg >> 8);
 		ret = i2c_smbus_write_byte_data(client, 0xff, reg >> 8);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		rj54n1->bank = reg >> 8;
 	}
+
 	dev_dbg(&client->dev, "[0x%x] = 0x%x\n", reg & 0xff, data);
 	return i2c_smbus_write_byte_data(client, reg & 0xff, data);
 }
 
 static int reg_set(struct i2c_client *client, const u16 reg,
-		   const u8 data, const u8 mask)
+				   const u8 data, const u8 mask)
 {
 	int ret;
 
 	ret = reg_read(client, reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return reg_write(client, reg, (ret & ~mask) | (data & mask));
 }
 
 static int reg_write_multiple(struct i2c_client *client,
-			      const struct rj54n1_reg_val *rv, const int n)
+							  const struct rj54n1_reg_val *rv, const int n)
 {
 	int i, ret;
 
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		ret = reg_write(client, rv->reg, rv->val);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		rv++;
 	}
 
@@ -486,11 +521,13 @@ static int reg_write_multiple(struct i2c_client *client,
 }
 
 static int rj54n1_enum_mbus_code(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_mbus_code_enum *code)
+								 struct v4l2_subdev_pad_config *cfg,
+								 struct v4l2_subdev_mbus_code_enum *code)
 {
 	if (code->pad || code->index >= ARRAY_SIZE(rj54n1_colour_fmts))
+	{
 		return -EINVAL;
+	}
 
 	code->code = rj54n1_colour_fmts[code->index].code;
 	return 0;
@@ -505,19 +542,24 @@ static int rj54n1_s_stream(struct v4l2_subdev *sd, int enable)
 }
 
 static int rj54n1_set_rect(struct i2c_client *client,
-			   u16 reg_x, u16 reg_y, u16 reg_xy,
-			   u32 width, u32 height)
+						   u16 reg_x, u16 reg_y, u16 reg_xy,
+						   u32 width, u32 height)
 {
 	int ret;
 
 	ret = reg_write(client, reg_xy,
-			((width >> 4) & 0x70) |
-			((height >> 8) & 7));
+					((width >> 4) & 0x70) |
+					((height >> 8) & 7));
 
 	if (!ret)
+	{
 		ret = reg_write(client, reg_x, width & 0xff);
+	}
+
 	if (!ret)
+	{
 		ret = reg_write(client, reg_y, height & 0xff);
+	}
 
 	return ret;
 }
@@ -530,17 +572,21 @@ static int rj54n1_commit(struct i2c_client *client)
 {
 	int ret = reg_write(client, RJ54N1_INIT_START, 1);
 	msleep(10);
+
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_INIT_START, 0);
+	}
+
 	return ret;
 }
 
 static int rj54n1_sensor_scale(struct v4l2_subdev *sd, s32 *in_w, s32 *in_h,
-			       s32 *out_w, s32 *out_h);
+							   s32 *out_w, s32 *out_h);
 
 static int rj54n1_set_selection(struct v4l2_subdev *sd,
-				struct v4l2_subdev_pad_config *cfg,
-				struct v4l2_subdev_selection *sel)
+								struct v4l2_subdev_pad_config *cfg,
+								struct v4l2_subdev_selection *sel)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct rj54n1 *rj54n1 = to_rj54n1(client);
@@ -550,25 +596,30 @@ static int rj54n1_set_selection(struct v4l2_subdev *sd,
 	int ret;
 
 	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE ||
-	    sel->target != V4L2_SEL_TGT_CROP)
+		sel->target != V4L2_SEL_TGT_CROP)
+	{
 		return -EINVAL;
+	}
 
 	/* arbitrary minimum width and height, edges unimportant */
 	soc_camera_limit_side(&dummy, &input_w,
-		     RJ54N1_COLUMN_SKIP, 8, RJ54N1_MAX_WIDTH);
+						  RJ54N1_COLUMN_SKIP, 8, RJ54N1_MAX_WIDTH);
 
 	soc_camera_limit_side(&dummy, &input_h,
-		     RJ54N1_ROW_SKIP, 8, RJ54N1_MAX_HEIGHT);
+						  RJ54N1_ROW_SKIP, 8, RJ54N1_MAX_HEIGHT);
 
 	output_w = (input_w * 1024 + rj54n1->resize / 2) / rj54n1->resize;
 	output_h = (input_h * 1024 + rj54n1->resize / 2) / rj54n1->resize;
 
 	dev_dbg(&client->dev, "Scaling for %dx%d : %u = %dx%d\n",
-		input_w, input_h, rj54n1->resize, output_w, output_h);
+			input_w, input_h, rj54n1->resize, output_w, output_h);
 
 	ret = rj54n1_sensor_scale(sd, &input_w, &input_h, &output_w, &output_h);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	rj54n1->width		= output_w;
 	rj54n1->height		= output_h;
@@ -580,41 +631,48 @@ static int rj54n1_set_selection(struct v4l2_subdev *sd,
 }
 
 static int rj54n1_get_selection(struct v4l2_subdev *sd,
-				struct v4l2_subdev_pad_config *cfg,
-				struct v4l2_subdev_selection *sel)
+								struct v4l2_subdev_pad_config *cfg,
+								struct v4l2_subdev_selection *sel)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct rj54n1 *rj54n1 = to_rj54n1(client);
 
 	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+	{
 		return -EINVAL;
+	}
 
-	switch (sel->target) {
-	case V4L2_SEL_TGT_CROP_BOUNDS:
-	case V4L2_SEL_TGT_CROP_DEFAULT:
-		sel->r.left = RJ54N1_COLUMN_SKIP;
-		sel->r.top = RJ54N1_ROW_SKIP;
-		sel->r.width = RJ54N1_MAX_WIDTH;
-		sel->r.height = RJ54N1_MAX_HEIGHT;
-		return 0;
-	case V4L2_SEL_TGT_CROP:
-		sel->r = rj54n1->rect;
-		return 0;
-	default:
-		return -EINVAL;
+	switch (sel->target)
+	{
+		case V4L2_SEL_TGT_CROP_BOUNDS:
+		case V4L2_SEL_TGT_CROP_DEFAULT:
+			sel->r.left = RJ54N1_COLUMN_SKIP;
+			sel->r.top = RJ54N1_ROW_SKIP;
+			sel->r.width = RJ54N1_MAX_WIDTH;
+			sel->r.height = RJ54N1_MAX_HEIGHT;
+			return 0;
+
+		case V4L2_SEL_TGT_CROP:
+			sel->r = rj54n1->rect;
+			return 0;
+
+		default:
+			return -EINVAL;
 	}
 }
 
 static int rj54n1_get_fmt(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_format *format)
+						  struct v4l2_subdev_pad_config *cfg,
+						  struct v4l2_subdev_format *format)
 {
 	struct v4l2_mbus_framefmt *mf = &format->format;
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct rj54n1 *rj54n1 = to_rj54n1(client);
 
 	if (format->pad)
+	{
 		return -EINVAL;
+	}
 
 	mf->code	= rj54n1->fmt->code;
 	mf->colorspace	= rj54n1->fmt->colorspace;
@@ -631,12 +689,12 @@ static int rj54n1_get_fmt(struct v4l2_subdev *sd,
  * coefficient on success. Note: we only use the "Fixed Scaling" on this camera.
  */
 static int rj54n1_sensor_scale(struct v4l2_subdev *sd, s32 *in_w, s32 *in_h,
-			       s32 *out_w, s32 *out_h)
+							   s32 *out_w, s32 *out_h)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct rj54n1 *rj54n1 = to_rj54n1(client);
 	unsigned int skip, resize, input_w = *in_w, input_h = *in_h,
-		output_w = *out_w, output_h = *out_h;
+							   output_w = *out_w, output_h = *out_h;
 	u16 inc_sel, wb_bit8, wb_left, wb_right, wb_top, wb_bottom;
 	unsigned int peak, peak_50, peak_60;
 	int ret;
@@ -647,87 +705,112 @@ static int rj54n1_sensor_scale(struct v4l2_subdev *sd, s32 *in_w, s32 *in_h,
 	 * case we have to either reduce the input window to equal or below
 	 * 512x384 or the output window to equal or below 1/2 of the input.
 	 */
-	if (output_w > max(512U, input_w / 2)) {
-		if (2 * output_w > RJ54N1_MAX_WIDTH) {
+	if (output_w > max(512U, input_w / 2))
+	{
+		if (2 * output_w > RJ54N1_MAX_WIDTH)
+		{
 			input_w = RJ54N1_MAX_WIDTH;
 			output_w = RJ54N1_MAX_WIDTH / 2;
-		} else {
+		}
+		else
+		{
 			input_w = output_w * 2;
 		}
 
 		dev_dbg(&client->dev, "Adjusted output width: in %u, out %u\n",
-			input_w, output_w);
+				input_w, output_w);
 	}
 
-	if (output_h > max(384U, input_h / 2)) {
-		if (2 * output_h > RJ54N1_MAX_HEIGHT) {
+	if (output_h > max(384U, input_h / 2))
+	{
+		if (2 * output_h > RJ54N1_MAX_HEIGHT)
+		{
 			input_h = RJ54N1_MAX_HEIGHT;
 			output_h = RJ54N1_MAX_HEIGHT / 2;
-		} else {
+		}
+		else
+		{
 			input_h = output_h * 2;
 		}
 
 		dev_dbg(&client->dev, "Adjusted output height: in %u, out %u\n",
-			input_h, output_h);
+				input_h, output_h);
 	}
 
 	/* Idea: use the read mode for snapshots, handle separate geometries */
 	ret = rj54n1_set_rect(client, RJ54N1_X_OUTPUT_SIZE_S_L,
-			      RJ54N1_Y_OUTPUT_SIZE_S_L,
-			      RJ54N1_XY_OUTPUT_SIZE_S_H, output_w, output_h);
+						  RJ54N1_Y_OUTPUT_SIZE_S_L,
+						  RJ54N1_XY_OUTPUT_SIZE_S_H, output_w, output_h);
+
 	if (!ret)
 		ret = rj54n1_set_rect(client, RJ54N1_X_OUTPUT_SIZE_P_L,
-			      RJ54N1_Y_OUTPUT_SIZE_P_L,
-			      RJ54N1_XY_OUTPUT_SIZE_P_H, output_w, output_h);
+							  RJ54N1_Y_OUTPUT_SIZE_P_L,
+							  RJ54N1_XY_OUTPUT_SIZE_P_H, output_w, output_h);
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 
-	if (output_w > input_w && output_h > input_h) {
+	if (output_w > input_w && output_h > input_h)
+	{
 		input_w = output_w;
 		input_h = output_h;
 
 		resize = 1024;
-	} else {
+	}
+	else
+	{
 		unsigned int resize_x, resize_y;
 		resize_x = (input_w * 1024 + output_w / 2) / output_w;
 		resize_y = (input_h * 1024 + output_h / 2) / output_h;
 
 		/* We want max(resize_x, resize_y), check if it still fits */
 		if (resize_x > resize_y &&
-		    (output_h * resize_x + 512) / 1024 > RJ54N1_MAX_HEIGHT)
+			(output_h * resize_x + 512) / 1024 > RJ54N1_MAX_HEIGHT)
 			resize = (RJ54N1_MAX_HEIGHT * 1024 + output_h / 2) /
-				output_h;
+					 output_h;
 		else if (resize_y > resize_x &&
-			 (output_w * resize_y + 512) / 1024 > RJ54N1_MAX_WIDTH)
+				 (output_w * resize_y + 512) / 1024 > RJ54N1_MAX_WIDTH)
 			resize = (RJ54N1_MAX_WIDTH * 1024 + output_w / 2) /
-				output_w;
+					 output_w;
 		else
+		{
 			resize = max(resize_x, resize_y);
+		}
 
 		/* Prohibited value ranges */
-		switch (resize) {
-		case 2040 ... 2047:
-			resize = 2039;
-			break;
-		case 4080 ... 4095:
-			resize = 4079;
-			break;
-		case 8160 ... 8191:
-			resize = 8159;
-			break;
-		case 16320 ... 16384:
-			resize = 16319;
+		switch (resize)
+		{
+			case 2040 ... 2047:
+				resize = 2039;
+				break;
+
+			case 4080 ... 4095:
+				resize = 4079;
+				break;
+
+			case 8160 ... 8191:
+				resize = 8159;
+				break;
+
+			case 16320 ... 16384:
+				resize = 16319;
 		}
 	}
 
 	/* Set scaling */
 	ret = reg_write(client, RJ54N1_RESIZE_HOLD_L, resize & 0xff);
+
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_RESIZE_HOLD_H, resize >> 8);
+	}
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/*
 	 * Configure a skipping bitmask. The sensor will select a skipping value
@@ -746,65 +829,101 @@ static int rj54n1_sensor_scale(struct v4l2_subdev *sd, s32 *in_w, s32 *in_h,
 	inc_sel = 1 << skip;
 
 	if (inc_sel <= 2)
+	{
 		inc_sel = 0xc;
+	}
 	else if (resize & 1023 && skip < 15)
+	{
 		inc_sel |= 1 << (skip + 1);
+	}
 
 	ret = reg_write(client, RJ54N1_INC_USE_SEL_L, inc_sel & 0xfc);
-	if (!ret)
-		ret = reg_write(client, RJ54N1_INC_USE_SEL_H, inc_sel >> 8);
 
-	if (!rj54n1->auto_wb) {
+	if (!ret)
+	{
+		ret = reg_write(client, RJ54N1_INC_USE_SEL_H, inc_sel >> 8);
+	}
+
+	if (!rj54n1->auto_wb)
+	{
 		/* Auto white balance window */
 		wb_left	  = output_w / 16;
 		wb_right  = (3 * output_w / 4 - 3) / 4;
 		wb_top	  = output_h / 16;
 		wb_bottom = (3 * output_h / 4 - 3) / 4;
 		wb_bit8	  = ((wb_left >> 2) & 0x40) | ((wb_top >> 4) & 0x10) |
-			((wb_right >> 6) & 4) | ((wb_bottom >> 8) & 1);
+					((wb_right >> 6) & 4) | ((wb_bottom >> 8) & 1);
 
 		if (!ret)
+		{
 			ret = reg_write(client, RJ54N1_BIT8_WB, wb_bit8);
+		}
+
 		if (!ret)
+		{
 			ret = reg_write(client, RJ54N1_HCAPS_WB, wb_left);
+		}
+
 		if (!ret)
+		{
 			ret = reg_write(client, RJ54N1_VCAPS_WB, wb_top);
+		}
+
 		if (!ret)
+		{
 			ret = reg_write(client, RJ54N1_HCAPE_WB, wb_right);
+		}
+
 		if (!ret)
+		{
 			ret = reg_write(client, RJ54N1_VCAPE_WB, wb_bottom);
+		}
 	}
 
 	/* Antiflicker */
 	peak = 12 * RJ54N1_MAX_WIDTH * (1 << 14) * resize / rj54n1->tgclk_mhz /
-		10000;
+		   10000;
 	peak_50 = peak / 6;
 	peak_60 = peak / 5;
 
 	if (!ret)
 		ret = reg_write(client, RJ54N1_PEAK_H,
-				((peak_50 >> 4) & 0xf0) | (peak_60 >> 8));
+						((peak_50 >> 4) & 0xf0) | (peak_60 >> 8));
+
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_PEAK_50, peak_50);
+	}
+
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_PEAK_60, peak_60);
+	}
+
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_PEAK_DIFF, peak / 150);
+	}
 
 	/* Start resizing */
 	if (!ret)
 		ret = reg_write(client, RJ54N1_RESIZE_CONTROL,
-				RESIZE_HOLD_SEL | RESIZE_GO | 1);
+						RESIZE_HOLD_SEL | RESIZE_GO | 1);
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Constant taken from manufacturer's example */
 	msleep(230);
 
 	ret = reg_write(client, RJ54N1_RESIZE_CONTROL, RESIZE_HOLD_SEL | 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	*in_w = (output_w * resize + 512) / 1024;
 	*in_h = (output_h * resize + 512) / 1024;
@@ -812,7 +931,7 @@ static int rj54n1_sensor_scale(struct v4l2_subdev *sd, s32 *in_w, s32 *in_h,
 	*out_h = output_h;
 
 	dev_dbg(&client->dev, "Scaled for %dx%d : %u = %ux%u, skip %u\n",
-		*in_w, *in_h, resize, output_w, output_h, skip);
+			*in_w, *in_h, resize, output_w, output_h, skip);
 
 	return resize;
 }
@@ -824,70 +943,98 @@ static int rj54n1_set_clock(struct i2c_client *client)
 
 	/* Enable external clock */
 	ret = reg_write(client, RJ54N1_RESET_STANDBY, E_EXCLK | SOFT_STDBY);
+
 	/* Leave stand-by. Note: use this when implementing suspend / resume */
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_RESET_STANDBY, E_EXCLK);
+	}
 
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_PLL_L, PLL_L);
+	}
+
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_PLL_N, PLL_N);
+	}
 
 	/* TGCLK dividers */
 	if (!ret)
 		ret = reg_write(client, RJ54N1_RATIO_TG,
-				rj54n1->clk_div.ratio_tg);
+						rj54n1->clk_div.ratio_tg);
+
 	if (!ret)
 		ret = reg_write(client, RJ54N1_RATIO_T,
-				rj54n1->clk_div.ratio_t);
+						rj54n1->clk_div.ratio_t);
+
 	if (!ret)
 		ret = reg_write(client, RJ54N1_RATIO_R,
-				rj54n1->clk_div.ratio_r);
+						rj54n1->clk_div.ratio_r);
 
 	/* Enable TGCLK & RAMP */
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_RAMP_TGCLK_EN, 3);
+	}
 
 	/* Disable clock output */
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_OCLK_DSP, 0);
+	}
 
 	/* Set divisors */
 	if (!ret)
 		ret = reg_write(client, RJ54N1_RATIO_OP,
-				rj54n1->clk_div.ratio_op);
+						rj54n1->clk_div.ratio_op);
+
 	if (!ret)
 		ret = reg_write(client, RJ54N1_RATIO_O,
-				rj54n1->clk_div.ratio_o);
+						rj54n1->clk_div.ratio_o);
 
 	/* Enable OCLK */
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_OCLK_SEL_EN, 1);
+	}
 
 	/* Use PLL for Timing Generator, write 2 to reserved bits */
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_TG_BYPASS, 2);
+	}
 
 	/* Take sensor out of reset */
 	if (!ret)
 		ret = reg_write(client, RJ54N1_RESET_STANDBY,
-				E_EXCLK | SEN_RSTX);
+						E_EXCLK | SEN_RSTX);
+
 	/* Enable PLL */
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_PLL_EN, 1);
+	}
 
 	/* Wait for PLL to stabilise */
 	msleep(10);
 
 	/* Enable clock to frequency divider */
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_CLK_RST, 1);
+	}
 
 	if (!ret)
+	{
 		ret = reg_read(client, RJ54N1_CLK_RST);
-	if (ret != 1) {
+	}
+
+	if (ret != 1)
+	{
 		dev_err(&client->dev,
-			"Resetting RJ54N1CB0C clock failed: %d!\n", ret);
+				"Resetting RJ54N1CB0C clock failed: %d!\n", ret);
 		return -EIO;
 	}
 
@@ -896,7 +1043,9 @@ static int rj54n1_set_clock(struct i2c_client *client)
 
 	/* Enable OCLK */
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_OCLK_SEL_EN, 1);
+	}
 
 	return ret;
 }
@@ -907,64 +1056,94 @@ static int rj54n1_reg_init(struct i2c_client *client)
 	int ret = rj54n1_set_clock(client);
 
 	if (!ret)
+	{
 		ret = reg_write_multiple(client, bank_7, ARRAY_SIZE(bank_7));
+	}
+
 	if (!ret)
+	{
 		ret = reg_write_multiple(client, bank_10, ARRAY_SIZE(bank_10));
+	}
 
 	/* Set binning divisors */
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_SCALE_1_2_LEV, 3 | (7 << 4));
+	}
+
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_SCALE_4_LEV, 0xf);
+	}
 
 	/* Switch to fixed resize mode */
 	if (!ret)
 		ret = reg_write(client, RJ54N1_RESIZE_CONTROL,
-				RESIZE_HOLD_SEL | 1);
+						RESIZE_HOLD_SEL | 1);
 
 	/* Set gain */
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_Y_GAIN, 0x84);
+	}
 
 	/*
 	 * Mirror the image back: default is upside down and left-to-right...
 	 * Set manual preview / still shot switching
 	 */
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_MIRROR_STILL_MODE, 0x27);
+	}
 
 	if (!ret)
+	{
 		ret = reg_write_multiple(client, bank_4, ARRAY_SIZE(bank_4));
+	}
 
 	/* Auto exposure area */
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_EXPOSURE_CONTROL, 0x80);
+	}
+
 	/* Check current auto WB config */
 	if (!ret)
+	{
 		ret = reg_read(client, RJ54N1_WB_SEL_WEIGHT_I);
-	if (ret >= 0) {
+	}
+
+	if (ret >= 0)
+	{
 		rj54n1->auto_wb = ret & 0x80;
 		ret = reg_write_multiple(client, bank_5, ARRAY_SIZE(bank_5));
 	}
+
 	if (!ret)
+	{
 		ret = reg_write_multiple(client, bank_8, ARRAY_SIZE(bank_8));
+	}
 
 	if (!ret)
 		ret = reg_write(client, RJ54N1_RESET_STANDBY,
-				E_EXCLK | DSP_RSTX | SEN_RSTX);
+						E_EXCLK | DSP_RSTX | SEN_RSTX);
 
 	/* Commit init */
 	if (!ret)
+	{
 		ret = rj54n1_commit(client);
+	}
 
 	/* Take DSP, TG, sensor out of reset */
 	if (!ret)
 		ret = reg_write(client, RJ54N1_RESET_STANDBY,
-				E_EXCLK | DSP_RSTX | TG_RSTX | SEN_RSTX);
+						E_EXCLK | DSP_RSTX | TG_RSTX | SEN_RSTX);
 
 	/* Start register update? Same register as 0x?FE in many bank_* sets */
 	if (!ret)
+	{
 		ret = reg_write(client, RJ54N1_FWFLG, 2);
+	}
 
 	/* Constant taken from manufacturer's example */
 	msleep(700);
@@ -973,8 +1152,8 @@ static int rj54n1_reg_init(struct i2c_client *client)
 }
 
 static int rj54n1_set_fmt(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_format *format)
+						  struct v4l2_subdev_pad_config *cfg,
+						  struct v4l2_subdev_format *format)
 {
 	struct v4l2_mbus_framefmt *mf = &format->format;
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
@@ -983,21 +1162,25 @@ static int rj54n1_set_fmt(struct v4l2_subdev *sd,
 	int output_w, output_h, max_w, max_h,
 		input_w = rj54n1->rect.width, input_h = rj54n1->rect.height;
 	int align = mf->code == MEDIA_BUS_FMT_SBGGR10_1X10 ||
-		mf->code == MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE ||
-		mf->code == MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_BE ||
-		mf->code == MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE ||
-		mf->code == MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_LE;
+				mf->code == MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE ||
+				mf->code == MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_BE ||
+				mf->code == MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE ||
+				mf->code == MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_LE;
 	int ret;
 
 	if (format->pad)
+	{
 		return -EINVAL;
+	}
 
 	dev_dbg(&client->dev, "%s: code = %d, width = %u, height = %u\n",
-		__func__, mf->code, mf->width, mf->height);
+			__func__, mf->code, mf->width, mf->height);
 
 	fmt = rj54n1_find_datafmt(mf->code, rj54n1_colour_fmts,
-				  ARRAY_SIZE(rj54n1_colour_fmts));
-	if (!fmt) {
+							  ARRAY_SIZE(rj54n1_colour_fmts));
+
+	if (!fmt)
+	{
 		fmt = rj54n1->fmt;
 		mf->code = fmt->code;
 	}
@@ -1006,9 +1189,10 @@ static int rj54n1_set_fmt(struct v4l2_subdev *sd,
 	mf->colorspace	= fmt->colorspace;
 
 	v4l_bound_align_image(&mf->width, 112, RJ54N1_MAX_WIDTH, align,
-			      &mf->height, 84, RJ54N1_MAX_HEIGHT, align, 0);
+						  &mf->height, 84, RJ54N1_MAX_HEIGHT, align, 0);
 
-	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
+	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
+	{
 		cfg->try_fmt = *mf;
 		return 0;
 	}
@@ -1018,97 +1202,170 @@ static int rj54n1_set_fmt(struct v4l2_subdev *sd,
 	 * with proper PM, when a suitable API is available.
 	 */
 	ret = reg_read(client, RJ54N1_RESET_STANDBY);
-	if (ret < 0)
-		return ret;
 
-	if (!(ret & E_EXCLK)) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (!(ret & E_EXCLK))
+	{
 		ret = rj54n1_reg_init(client);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	/* RA_SEL_UL is only relevant for raw modes, ignored otherwise. */
-	switch (mf->code) {
-	case MEDIA_BUS_FMT_YUYV8_2X8:
-		ret = reg_write(client, RJ54N1_OUT_SEL, 0);
-		if (!ret)
-			ret = reg_set(client, RJ54N1_BYTE_SWAP, 8, 8);
-		break;
-	case MEDIA_BUS_FMT_YVYU8_2X8:
-		ret = reg_write(client, RJ54N1_OUT_SEL, 0);
-		if (!ret)
-			ret = reg_set(client, RJ54N1_BYTE_SWAP, 0, 8);
-		break;
-	case MEDIA_BUS_FMT_RGB565_2X8_LE:
-		ret = reg_write(client, RJ54N1_OUT_SEL, 0x11);
-		if (!ret)
-			ret = reg_set(client, RJ54N1_BYTE_SWAP, 8, 8);
-		break;
-	case MEDIA_BUS_FMT_RGB565_2X8_BE:
-		ret = reg_write(client, RJ54N1_OUT_SEL, 0x11);
-		if (!ret)
-			ret = reg_set(client, RJ54N1_BYTE_SWAP, 0, 8);
-		break;
-	case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_LE:
-		ret = reg_write(client, RJ54N1_OUT_SEL, 4);
-		if (!ret)
-			ret = reg_set(client, RJ54N1_BYTE_SWAP, 8, 8);
-		if (!ret)
-			ret = reg_write(client, RJ54N1_RA_SEL_UL, 0);
-		break;
-	case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE:
-		ret = reg_write(client, RJ54N1_OUT_SEL, 4);
-		if (!ret)
-			ret = reg_set(client, RJ54N1_BYTE_SWAP, 8, 8);
-		if (!ret)
-			ret = reg_write(client, RJ54N1_RA_SEL_UL, 8);
-		break;
-	case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_BE:
-		ret = reg_write(client, RJ54N1_OUT_SEL, 4);
-		if (!ret)
-			ret = reg_set(client, RJ54N1_BYTE_SWAP, 0, 8);
-		if (!ret)
-			ret = reg_write(client, RJ54N1_RA_SEL_UL, 0);
-		break;
-	case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE:
-		ret = reg_write(client, RJ54N1_OUT_SEL, 4);
-		if (!ret)
-			ret = reg_set(client, RJ54N1_BYTE_SWAP, 0, 8);
-		if (!ret)
-			ret = reg_write(client, RJ54N1_RA_SEL_UL, 8);
-		break;
-	case MEDIA_BUS_FMT_SBGGR10_1X10:
-		ret = reg_write(client, RJ54N1_OUT_SEL, 5);
-		break;
-	default:
-		ret = -EINVAL;
+	switch (mf->code)
+	{
+		case MEDIA_BUS_FMT_YUYV8_2X8:
+			ret = reg_write(client, RJ54N1_OUT_SEL, 0);
+
+			if (!ret)
+			{
+				ret = reg_set(client, RJ54N1_BYTE_SWAP, 8, 8);
+			}
+
+			break;
+
+		case MEDIA_BUS_FMT_YVYU8_2X8:
+			ret = reg_write(client, RJ54N1_OUT_SEL, 0);
+
+			if (!ret)
+			{
+				ret = reg_set(client, RJ54N1_BYTE_SWAP, 0, 8);
+			}
+
+			break;
+
+		case MEDIA_BUS_FMT_RGB565_2X8_LE:
+			ret = reg_write(client, RJ54N1_OUT_SEL, 0x11);
+
+			if (!ret)
+			{
+				ret = reg_set(client, RJ54N1_BYTE_SWAP, 8, 8);
+			}
+
+			break;
+
+		case MEDIA_BUS_FMT_RGB565_2X8_BE:
+			ret = reg_write(client, RJ54N1_OUT_SEL, 0x11);
+
+			if (!ret)
+			{
+				ret = reg_set(client, RJ54N1_BYTE_SWAP, 0, 8);
+			}
+
+			break;
+
+		case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_LE:
+			ret = reg_write(client, RJ54N1_OUT_SEL, 4);
+
+			if (!ret)
+			{
+				ret = reg_set(client, RJ54N1_BYTE_SWAP, 8, 8);
+			}
+
+			if (!ret)
+			{
+				ret = reg_write(client, RJ54N1_RA_SEL_UL, 0);
+			}
+
+			break;
+
+		case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE:
+			ret = reg_write(client, RJ54N1_OUT_SEL, 4);
+
+			if (!ret)
+			{
+				ret = reg_set(client, RJ54N1_BYTE_SWAP, 8, 8);
+			}
+
+			if (!ret)
+			{
+				ret = reg_write(client, RJ54N1_RA_SEL_UL, 8);
+			}
+
+			break;
+
+		case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_BE:
+			ret = reg_write(client, RJ54N1_OUT_SEL, 4);
+
+			if (!ret)
+			{
+				ret = reg_set(client, RJ54N1_BYTE_SWAP, 0, 8);
+			}
+
+			if (!ret)
+			{
+				ret = reg_write(client, RJ54N1_RA_SEL_UL, 0);
+			}
+
+			break;
+
+		case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE:
+			ret = reg_write(client, RJ54N1_OUT_SEL, 4);
+
+			if (!ret)
+			{
+				ret = reg_set(client, RJ54N1_BYTE_SWAP, 0, 8);
+			}
+
+			if (!ret)
+			{
+				ret = reg_write(client, RJ54N1_RA_SEL_UL, 8);
+			}
+
+			break;
+
+		case MEDIA_BUS_FMT_SBGGR10_1X10:
+			ret = reg_write(client, RJ54N1_OUT_SEL, 5);
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	/* Special case: a raw mode with 10 bits of data per clock tick */
 	if (!ret)
 		ret = reg_set(client, RJ54N1_OCLK_SEL_EN,
-			      (mf->code == MEDIA_BUS_FMT_SBGGR10_1X10) << 1, 2);
+					  (mf->code == MEDIA_BUS_FMT_SBGGR10_1X10) << 1, 2);
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Supported scales 1:1 >= scale > 1:16 */
 	max_w = mf->width * (16 * 1024 - 1) / 1024;
+
 	if (input_w > max_w)
+	{
 		input_w = max_w;
+	}
+
 	max_h = mf->height * (16 * 1024 - 1) / 1024;
+
 	if (input_h > max_h)
+	{
 		input_h = max_h;
+	}
 
 	output_w = mf->width;
 	output_h = mf->height;
 
 	ret = rj54n1_sensor_scale(sd, &input_w, &input_h, &output_w, &output_h);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	fmt = rj54n1_find_datafmt(mf->code, rj54n1_colour_fmts,
-				  ARRAY_SIZE(rj54n1_colour_fmts));
+							  ARRAY_SIZE(rj54n1_colour_fmts));
 
 	rj54n1->fmt		= fmt;
 	rj54n1->resize		= ret;
@@ -1127,34 +1384,42 @@ static int rj54n1_set_fmt(struct v4l2_subdev *sd,
 
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 static int rj54n1_g_register(struct v4l2_subdev *sd,
-			     struct v4l2_dbg_register *reg)
+							 struct v4l2_dbg_register *reg)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 
 	if (reg->reg < 0x400 || reg->reg > 0x1fff)
 		/* Registers > 0x0800 are only available from Sharp support */
+	{
 		return -EINVAL;
+	}
 
 	reg->size = 1;
 	reg->val = reg_read(client, reg->reg);
 
 	if (reg->val > 0xff)
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
 
 static int rj54n1_s_register(struct v4l2_subdev *sd,
-			     const struct v4l2_dbg_register *reg)
+							 const struct v4l2_dbg_register *reg)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 
 	if (reg->reg < 0x400 || reg->reg > 0x1fff)
 		/* Registers >= 0x0800 are only available from Sharp support */
+	{
 		return -EINVAL;
+	}
 
 	if (reg_write(client, reg->reg, reg->val) < 0)
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
@@ -1176,44 +1441,73 @@ static int rj54n1_s_ctrl(struct v4l2_ctrl *ctrl)
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	int data;
 
-	switch (ctrl->id) {
-	case V4L2_CID_VFLIP:
-		if (ctrl->val)
-			data = reg_set(client, RJ54N1_MIRROR_STILL_MODE, 0, 1);
-		else
-			data = reg_set(client, RJ54N1_MIRROR_STILL_MODE, 1, 1);
-		if (data < 0)
-			return -EIO;
-		return 0;
-	case V4L2_CID_HFLIP:
-		if (ctrl->val)
-			data = reg_set(client, RJ54N1_MIRROR_STILL_MODE, 0, 2);
-		else
-			data = reg_set(client, RJ54N1_MIRROR_STILL_MODE, 2, 2);
-		if (data < 0)
-			return -EIO;
-		return 0;
-	case V4L2_CID_GAIN:
-		if (reg_write(client, RJ54N1_Y_GAIN, ctrl->val * 2) < 0)
-			return -EIO;
-		return 0;
-	case V4L2_CID_AUTO_WHITE_BALANCE:
-		/* Auto WB area - whole image */
-		if (reg_set(client, RJ54N1_WB_SEL_WEIGHT_I, ctrl->val << 7,
-			    0x80) < 0)
-			return -EIO;
-		rj54n1->auto_wb = ctrl->val;
-		return 0;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_VFLIP:
+			if (ctrl->val)
+			{
+				data = reg_set(client, RJ54N1_MIRROR_STILL_MODE, 0, 1);
+			}
+			else
+			{
+				data = reg_set(client, RJ54N1_MIRROR_STILL_MODE, 1, 1);
+			}
+
+			if (data < 0)
+			{
+				return -EIO;
+			}
+
+			return 0;
+
+		case V4L2_CID_HFLIP:
+			if (ctrl->val)
+			{
+				data = reg_set(client, RJ54N1_MIRROR_STILL_MODE, 0, 2);
+			}
+			else
+			{
+				data = reg_set(client, RJ54N1_MIRROR_STILL_MODE, 2, 2);
+			}
+
+			if (data < 0)
+			{
+				return -EIO;
+			}
+
+			return 0;
+
+		case V4L2_CID_GAIN:
+			if (reg_write(client, RJ54N1_Y_GAIN, ctrl->val * 2) < 0)
+			{
+				return -EIO;
+			}
+
+			return 0;
+
+		case V4L2_CID_AUTO_WHITE_BALANCE:
+
+			/* Auto WB area - whole image */
+			if (reg_set(client, RJ54N1_WB_SEL_WEIGHT_I, ctrl->val << 7,
+						0x80) < 0)
+			{
+				return -EIO;
+			}
+
+			rj54n1->auto_wb = ctrl->val;
+			return 0;
 	}
 
 	return -EINVAL;
 }
 
-static const struct v4l2_ctrl_ops rj54n1_ctrl_ops = {
+static const struct v4l2_ctrl_ops rj54n1_ctrl_ops =
+{
 	.s_ctrl = rj54n1_s_ctrl,
 };
 
-static struct v4l2_subdev_core_ops rj54n1_subdev_core_ops = {
+static struct v4l2_subdev_core_ops rj54n1_subdev_core_ops =
+{
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 	.g_register	= rj54n1_g_register,
 	.s_register	= rj54n1_s_register,
@@ -1222,7 +1516,7 @@ static struct v4l2_subdev_core_ops rj54n1_subdev_core_ops = {
 };
 
 static int rj54n1_g_mbus_config(struct v4l2_subdev *sd,
-				struct v4l2_mbus_config *cfg)
+								struct v4l2_mbus_config *cfg)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
@@ -1238,26 +1532,32 @@ static int rj54n1_g_mbus_config(struct v4l2_subdev *sd,
 }
 
 static int rj54n1_s_mbus_config(struct v4l2_subdev *sd,
-				const struct v4l2_mbus_config *cfg)
+								const struct v4l2_mbus_config *cfg)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
 
 	/* Figures 2.5-1 to 2.5-3 - default falling pixclk edge */
 	if (soc_camera_apply_board_flags(ssdd, cfg) &
-	    V4L2_MBUS_PCLK_SAMPLE_RISING)
+		V4L2_MBUS_PCLK_SAMPLE_RISING)
+	{
 		return reg_write(client, RJ54N1_OUT_SIGPO, 1 << 4);
+	}
 	else
+	{
 		return reg_write(client, RJ54N1_OUT_SIGPO, 0);
+	}
 }
 
-static struct v4l2_subdev_video_ops rj54n1_subdev_video_ops = {
+static struct v4l2_subdev_video_ops rj54n1_subdev_video_ops =
+{
 	.s_stream	= rj54n1_s_stream,
 	.g_mbus_config	= rj54n1_g_mbus_config,
 	.s_mbus_config	= rj54n1_s_mbus_config,
 };
 
-static const struct v4l2_subdev_pad_ops rj54n1_subdev_pad_ops = {
+static const struct v4l2_subdev_pad_ops rj54n1_subdev_pad_ops =
+{
 	.enum_mbus_code = rj54n1_enum_mbus_code,
 	.get_selection	= rj54n1_get_selection,
 	.set_selection	= rj54n1_set_selection,
@@ -1265,7 +1565,8 @@ static const struct v4l2_subdev_pad_ops rj54n1_subdev_pad_ops = {
 	.set_fmt	= rj54n1_set_fmt,
 };
 
-static struct v4l2_subdev_ops rj54n1_subdev_ops = {
+static struct v4l2_subdev_ops rj54n1_subdev_ops =
+{
 	.core	= &rj54n1_subdev_core_ops,
 	.video	= &rj54n1_subdev_video_ops,
 	.pad	= &rj54n1_subdev_pad_ops,
@@ -1276,34 +1577,41 @@ static struct v4l2_subdev_ops rj54n1_subdev_ops = {
  * this wasn't our capture interface, so, we wait for the right one
  */
 static int rj54n1_video_probe(struct i2c_client *client,
-			      struct rj54n1_pdata *priv)
+							  struct rj54n1_pdata *priv)
 {
 	struct rj54n1 *rj54n1 = to_rj54n1(client);
 	int data1, data2;
 	int ret;
 
 	ret = rj54n1_s_power(&rj54n1->subdev, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Read out the chip version register */
 	data1 = reg_read(client, RJ54N1_DEV_CODE);
 	data2 = reg_read(client, RJ54N1_DEV_CODE2);
 
-	if (data1 != 0x51 || data2 != 0x10) {
+	if (data1 != 0x51 || data2 != 0x10)
+	{
 		ret = -ENODEV;
 		dev_info(&client->dev, "No RJ54N1CB0C found, read 0x%x:0x%x\n",
-			 data1, data2);
+				 data1, data2);
 		goto done;
 	}
 
 	/* Configure IOCTL polarity from the platform data: 0 or 1 << 7. */
 	ret = reg_write(client, RJ54N1_IOC, priv->ioctl_high << 7);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	dev_info(&client->dev, "Detected a RJ54N1CB0C chip ID 0x%x:0x%x\n",
-		 data1, data2);
+			 data1, data2);
 
 	ret = v4l2_ctrl_handler_setup(&rj54n1->hdl);
 
@@ -1313,7 +1621,7 @@ done:
 }
 
 static int rj54n1_probe(struct i2c_client *client,
-			const struct i2c_device_id *did)
+						const struct i2c_device_id *did)
 {
 	struct rj54n1 *rj54n1;
 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
@@ -1321,36 +1629,44 @@ static int rj54n1_probe(struct i2c_client *client,
 	struct rj54n1_pdata *rj54n1_priv;
 	int ret;
 
-	if (!ssdd || !ssdd->drv_priv) {
+	if (!ssdd || !ssdd->drv_priv)
+	{
 		dev_err(&client->dev, "RJ54N1CB0C: missing platform data!\n");
 		return -EINVAL;
 	}
 
 	rj54n1_priv = ssdd->drv_priv;
 
-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		dev_warn(&adapter->dev,
-			 "I2C-Adapter doesn't support I2C_FUNC_SMBUS_BYTE\n");
+				 "I2C-Adapter doesn't support I2C_FUNC_SMBUS_BYTE\n");
 		return -EIO;
 	}
 
 	rj54n1 = devm_kzalloc(&client->dev, sizeof(struct rj54n1), GFP_KERNEL);
+
 	if (!rj54n1)
+	{
 		return -ENOMEM;
+	}
 
 	v4l2_i2c_subdev_init(&rj54n1->subdev, client, &rj54n1_subdev_ops);
 	v4l2_ctrl_handler_init(&rj54n1->hdl, 4);
 	v4l2_ctrl_new_std(&rj54n1->hdl, &rj54n1_ctrl_ops,
-			V4L2_CID_VFLIP, 0, 1, 1, 0);
+					  V4L2_CID_VFLIP, 0, 1, 1, 0);
 	v4l2_ctrl_new_std(&rj54n1->hdl, &rj54n1_ctrl_ops,
-			V4L2_CID_HFLIP, 0, 1, 1, 0);
+					  V4L2_CID_HFLIP, 0, 1, 1, 0);
 	v4l2_ctrl_new_std(&rj54n1->hdl, &rj54n1_ctrl_ops,
-			V4L2_CID_GAIN, 0, 127, 1, 66);
+					  V4L2_CID_GAIN, 0, 127, 1, 66);
 	v4l2_ctrl_new_std(&rj54n1->hdl, &rj54n1_ctrl_ops,
-			V4L2_CID_AUTO_WHITE_BALANCE, 0, 1, 1, 1);
+					  V4L2_CID_AUTO_WHITE_BALANCE, 0, 1, 1, 1);
 	rj54n1->subdev.ctrl_handler = &rj54n1->hdl;
+
 	if (rj54n1->hdl.error)
+	{
 		return rj54n1->hdl.error;
+	}
 
 	rj54n1->clk_div		= clk_div;
 	rj54n1->rect.left	= RJ54N1_COLUMN_SKIP;
@@ -1362,16 +1678,20 @@ static int rj54n1_probe(struct i2c_client *client,
 	rj54n1->fmt		= &rj54n1_colour_fmts[0];
 	rj54n1->resize		= 1024;
 	rj54n1->tgclk_mhz	= (rj54n1_priv->mclk_freq / PLL_L * PLL_N) /
-		(clk_div.ratio_tg + 1) / (clk_div.ratio_t + 1);
+						  (clk_div.ratio_tg + 1) / (clk_div.ratio_t + 1);
 
 	rj54n1->clk = v4l2_clk_get(&client->dev, "mclk");
-	if (IS_ERR(rj54n1->clk)) {
+
+	if (IS_ERR(rj54n1->clk))
+	{
 		ret = PTR_ERR(rj54n1->clk);
 		goto eclkget;
 	}
 
 	ret = rj54n1_video_probe(client, rj54n1_priv);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		v4l2_clk_put(rj54n1->clk);
 eclkget:
 		v4l2_ctrl_handler_free(&rj54n1->hdl);
@@ -1387,20 +1707,26 @@ static int rj54n1_remove(struct i2c_client *client)
 
 	v4l2_clk_put(rj54n1->clk);
 	v4l2_device_unregister_subdev(&rj54n1->subdev);
+
 	if (ssdd->free_bus)
+	{
 		ssdd->free_bus(ssdd);
+	}
+
 	v4l2_ctrl_handler_free(&rj54n1->hdl);
 
 	return 0;
 }
 
-static const struct i2c_device_id rj54n1_id[] = {
+static const struct i2c_device_id rj54n1_id[] =
+{
 	{ "rj54n1cb0c", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, rj54n1_id);
 
-static struct i2c_driver rj54n1_i2c_driver = {
+static struct i2c_driver rj54n1_i2c_driver =
+{
 	.driver = {
 		.name = "rj54n1cb0c",
 	},

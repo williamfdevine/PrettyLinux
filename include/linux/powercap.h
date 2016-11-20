@@ -49,7 +49,8 @@ struct powercap_zone_constraint;
  * This structure defines control type callbacks to be implemented by client
  * drivers
  */
-struct powercap_control_type_ops {
+struct powercap_control_type_ops
+{
 	int (*set_enable) (struct powercap_control_type *, bool mode);
 	int (*get_enable) (struct powercap_control_type *, bool *mode);
 	int (*release) (struct powercap_control_type *);
@@ -74,7 +75,8 @@ struct powercap_control_type_ops {
  * zones, which use same method to control power. E.g. RAPL, RAPL-PCI etc.
  * All fields are private and should not be used by client drivers.
  */
-struct powercap_control_type {
+struct powercap_control_type
+{
 	struct device dev;
 	struct idr idr;
 	int nr_zones;
@@ -107,7 +109,8 @@ struct powercap_control_type {
  * the least one type (either power or energy) is mandatory. Client drivers
  * should handle mutual exclusion, if required in callbacks.
  */
-struct powercap_zone_ops {
+struct powercap_zone_ops
+{
 	int (*get_max_energy_range_uj) (struct powercap_zone *, u64 *);
 	int (*get_energy_uj) (struct powercap_zone *, u64 *);
 	int (*reset_energy_uj) (struct powercap_zone *);
@@ -146,7 +149,8 @@ struct powercap_zone_ops {
  * This defines a power zone instance. The fields of this structure are
  * private, and should not be used by client drivers.
  */
-struct powercap_zone {
+struct powercap_zone
+{
 	int id;
 	char *name;
 	void *control_type_inst;
@@ -185,7 +189,8 @@ struct powercap_zone {
  *  get_name
  *  Client drivers should handle mutual exclusion, if required in callbacks.
  */
-struct powercap_zone_constraint_ops {
+struct powercap_zone_constraint_ops
+{
 	int (*set_power_limit_uw) (struct powercap_zone *, int, u64);
 	int (*get_power_limit_uw) (struct powercap_zone *, int, u64 *);
 	int (*set_time_window_us) (struct powercap_zone *, int, u64);
@@ -205,7 +210,8 @@ struct powercap_zone_constraint_ops {
  *
  * This defines a constraint instance.
  */
-struct powercap_zone_constraint {
+struct powercap_zone_constraint
+{
 	int id;
 	struct powercap_zone *power_zone;
 	const struct powercap_zone_constraint_ops *ops;
@@ -223,10 +229,12 @@ struct powercap_zone_constraint {
 * Allows client drivers to associate some private data to zone instance.
 */
 static inline void powercap_set_zone_data(struct powercap_zone *power_zone,
-						void *pdata)
+		void *pdata)
 {
 	if (power_zone)
+	{
 		power_zone->private_data = pdata;
+	}
 }
 
 /**
@@ -239,7 +247,10 @@ static inline void powercap_set_zone_data(struct powercap_zone *power_zone,
 static inline void *powercap_get_zone_data(struct powercap_zone *power_zone)
 {
 	if (power_zone)
+	{
 		return power_zone->private_data;
+	}
+
 	return NULL;
 }
 
@@ -263,9 +274,9 @@ static inline void *powercap_get_zone_data(struct powercap_zone *power_zone)
 * A pointer to the control_type instance is returned on success.
 */
 struct powercap_control_type *powercap_register_control_type(
-				struct powercap_control_type *control_type,
-				const char *name,
-				const struct powercap_control_type_ops *ops);
+	struct powercap_control_type *control_type,
+	const char *name,
+	const struct powercap_control_type_ops *ops);
 
 /**
 * powercap_unregister_control_type() - Unregister a control_type from framework
@@ -303,13 +314,13 @@ int powercap_unregister_control_type(struct powercap_control_type *instance);
 * Returns pointer to the power_zone on success.
 */
 struct powercap_zone *powercap_register_zone(
-			struct powercap_zone *power_zone,
-			struct powercap_control_type *control_type,
-			const char *name,
-			struct powercap_zone *parent,
-			const struct powercap_zone_ops *ops,
-			int nr_constraints,
-			const struct powercap_zone_constraint_ops *const_ops);
+	struct powercap_zone *power_zone,
+	struct powercap_control_type *control_type,
+	const char *name,
+	struct powercap_zone *parent,
+	const struct powercap_zone_ops *ops,
+	int nr_constraints,
+	const struct powercap_zone_constraint_ops *const_ops);
 
 /**
 * powercap_unregister_zone() - Unregister a zone device
@@ -320,6 +331,6 @@ struct powercap_zone *powercap_register_zone(
 * make sure that children for this zone are unregistered first.
 */
 int powercap_unregister_zone(struct powercap_control_type *control_type,
-				struct powercap_zone *power_zone);
+							 struct powercap_zone *power_zone);
 
 #endif

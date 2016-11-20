@@ -25,22 +25,30 @@
 #ifdef CONFIG_WCN36XX_DEBUGFS
 
 static ssize_t read_file_bool_bmps(struct file *file, char __user *user_buf,
-				   size_t count, loff_t *ppos)
+								   size_t count, loff_t *ppos)
 {
 	struct wcn36xx *wcn = file->private_data;
 	struct wcn36xx_vif *vif_priv = NULL;
 	struct ieee80211_vif *vif = NULL;
 	char buf[3];
 
-	list_for_each_entry(vif_priv, &wcn->vif_list, list) {
-			vif = wcn36xx_priv_to_vif(vif_priv);
-			if (NL80211_IFTYPE_STATION == vif->type) {
-				if (vif_priv->pw_state == WCN36XX_BMPS)
-					buf[0] = '1';
-				else
-					buf[0] = '0';
-				break;
+	list_for_each_entry(vif_priv, &wcn->vif_list, list)
+	{
+		vif = wcn36xx_priv_to_vif(vif_priv);
+
+		if (NL80211_IFTYPE_STATION == vif->type)
+		{
+			if (vif_priv->pw_state == WCN36XX_BMPS)
+			{
+				buf[0] = '1';
 			}
+			else
+			{
+				buf[0] = '0';
+			}
+
+			break;
+		}
 	}
 	buf[1] = '\n';
 	buf[2] = 0x00;
@@ -49,8 +57,8 @@ static ssize_t read_file_bool_bmps(struct file *file, char __user *user_buf,
 }
 
 static ssize_t write_file_bool_bmps(struct file *file,
-				    const char __user *user_buf,
-				    size_t count, loff_t *ppos)
+									const char __user *user_buf,
+									size_t count, loff_t *ppos)
 {
 	struct wcn36xx *wcn = file->private_data;
 	struct wcn36xx_vif *vif_priv = NULL;
@@ -59,45 +67,58 @@ static ssize_t write_file_bool_bmps(struct file *file,
 	char buf[32];
 	int buf_size;
 
-	buf_size = min(count, (sizeof(buf)-1));
-	if (copy_from_user(buf, user_buf, buf_size))
-		return -EFAULT;
+	buf_size = min(count, (sizeof(buf) - 1));
 
-	switch (buf[0]) {
-	case 'y':
-	case 'Y':
-	case '1':
-		list_for_each_entry(vif_priv, &wcn->vif_list, list) {
-			vif = wcn36xx_priv_to_vif(vif_priv);
-			if (NL80211_IFTYPE_STATION == vif->type) {
-				wcn36xx_enable_keep_alive_null_packet(wcn, vif);
-				wcn36xx_pmc_enter_bmps_state(wcn, vif);
+	if (copy_from_user(buf, user_buf, buf_size))
+	{
+		return -EFAULT;
+	}
+
+	switch (buf[0])
+	{
+		case 'y':
+		case 'Y':
+		case '1':
+			list_for_each_entry(vif_priv, &wcn->vif_list, list)
+			{
+				vif = wcn36xx_priv_to_vif(vif_priv);
+
+				if (NL80211_IFTYPE_STATION == vif->type)
+				{
+					wcn36xx_enable_keep_alive_null_packet(wcn, vif);
+					wcn36xx_pmc_enter_bmps_state(wcn, vif);
+				}
 			}
-		}
-		break;
-	case 'n':
-	case 'N':
-	case '0':
-		list_for_each_entry(vif_priv, &wcn->vif_list, list) {
-			vif = wcn36xx_priv_to_vif(vif_priv);
-			if (NL80211_IFTYPE_STATION == vif->type)
-				wcn36xx_pmc_exit_bmps_state(wcn, vif);
-		}
-		break;
+			break;
+
+		case 'n':
+		case 'N':
+		case '0':
+			list_for_each_entry(vif_priv, &wcn->vif_list, list)
+			{
+				vif = wcn36xx_priv_to_vif(vif_priv);
+
+				if (NL80211_IFTYPE_STATION == vif->type)
+				{
+					wcn36xx_pmc_exit_bmps_state(wcn, vif);
+				}
+			}
+			break;
 	}
 
 	return count;
 }
 
-static const struct file_operations fops_wcn36xx_bmps = {
+static const struct file_operations fops_wcn36xx_bmps =
+{
 	.open = simple_open,
 	.read  =       read_file_bool_bmps,
 	.write =       write_file_bool_bmps,
 };
 
 static ssize_t write_file_dump(struct file *file,
-				    const char __user *user_buf,
-				    size_t count, loff_t *ppos)
+							   const char __user *user_buf,
+							   size_t count, loff_t *ppos)
 {
 	struct wcn36xx *wcn = file->private_data;
 	char buf[255], *tmp;
@@ -109,29 +130,39 @@ static ssize_t write_file_dump(struct file *file,
 	memset(arg, 0, sizeof(arg));
 
 	buf_size = min(count, (sizeof(buf) - 1));
+
 	if (copy_from_user(buf, user_buf, buf_size))
+	{
 		return -EFAULT;
+	}
 
 	tmp = buf;
 
-	for (i = 0; i < WCN36xx_MAX_DUMP_ARGS; i++) {
+	for (i = 0; i < WCN36xx_MAX_DUMP_ARGS; i++)
+	{
 		char *begin;
 		begin = strsep(&tmp, " ");
+
 		if (begin == NULL)
+		{
 			break;
+		}
 
 		if (kstrtou32(begin, 0, &arg[i]) != 0)
+		{
 			break;
+		}
 	}
 
 	wcn36xx_info("DUMP args is %d %d %d %d %d\n", arg[0], arg[1], arg[2],
-		     arg[3], arg[4]);
+				 arg[3], arg[4]);
 	wcn36xx_smd_dump_cmd_req(wcn, arg[0], arg[1], arg[2], arg[3], arg[4]);
 
 	return count;
 }
 
-static const struct file_operations fops_wcn36xx_dump = {
+static const struct file_operations fops_wcn36xx_dump =
+{
 	.open = simple_open,
 	.write =       write_file_dump,
 };
@@ -140,8 +171,8 @@ static const struct file_operations fops_wcn36xx_dump = {
 	do {							\
 		struct dentry *d;				\
 		d = debugfs_create_file(__stringify(name),	\
-					mode, dfs->rootdir,	\
-					priv_data, fop);	\
+								mode, dfs->rootdir,	\
+								priv_data, fop);	\
 		dfs->file_##name.dentry = d;			\
 		if (IS_ERR(d)) {				\
 			wcn36xx_warn("Create the debugfs entry failed");\
@@ -155,14 +186,16 @@ void wcn36xx_debugfs_init(struct wcn36xx *wcn)
 	struct wcn36xx_dfs_entry *dfs = &wcn->dfs;
 
 	dfs->rootdir = debugfs_create_dir(KBUILD_MODNAME,
-					  wcn->hw->wiphy->debugfsdir);
-	if (IS_ERR(dfs->rootdir)) {
+									  wcn->hw->wiphy->debugfsdir);
+
+	if (IS_ERR(dfs->rootdir))
+	{
 		wcn36xx_warn("Create the debugfs failed\n");
 		dfs->rootdir = NULL;
 	}
 
 	ADD_FILE(bmps_switcher, S_IRUSR | S_IWUSR,
-		 &fops_wcn36xx_bmps, wcn);
+			 &fops_wcn36xx_bmps, wcn);
 	ADD_FILE(dump, S_IWUSR, &fops_wcn36xx_dump, wcn);
 }
 

@@ -1758,14 +1758,16 @@
 #define RT5659_NG2_DIS				(0x0 << 15)
 
 /* System Clock Source */
-enum {
+enum
+{
 	RT5659_SCLK_S_MCLK,
 	RT5659_SCLK_S_PLL1,
 	RT5659_SCLK_S_RCCLK,
 };
 
 /* PLL1 Source */
-enum {
+enum
+{
 	RT5659_PLL1_S_MCLK,
 	RT5659_PLL1_S_BCLK1,
 	RT5659_PLL1_S_BCLK2,
@@ -1773,7 +1775,8 @@ enum {
 	RT5659_PLL1_S_BCLK4,
 };
 
-enum {
+enum
+{
 	RT5659_AIF1,
 	RT5659_AIF2,
 	RT5659_AIF3,
@@ -1781,14 +1784,16 @@ enum {
 	RT5659_AIFS,
 };
 
-struct rt5659_pll_code {
+struct rt5659_pll_code
+{
 	bool m_bp;
 	int m_code;
 	int n_code;
 	int k_code;
 };
 
-struct rt5659_priv {
+struct rt5659_priv
+{
 	struct snd_soc_codec *codec;
 	struct rt5659_platform_data pdata;
 	struct regmap *regmap;
@@ -1814,6 +1819,6 @@ struct rt5659_priv {
 };
 
 int rt5659_set_jack_detect(struct snd_soc_codec *codec,
-	struct snd_soc_jack *hs_jack);
+						   struct snd_soc_jack *hs_jack);
 
 #endif /* __RT5659_H__ */

@@ -69,9 +69,9 @@ enum i40iw_status_code;
  */
 #define I40IW_INVALIDATE_PF_HMC_PD(hw, sd_idx, pd_idx)                  \
 	i40iw_wr32((hw), I40E_PFHMC_PDINV,                                    \
-		(((sd_idx) << I40E_PFHMC_PDINV_PMSDIDX_SHIFT) |             \
-		(0x1 << I40E_PFHMC_PDINV_PMSDPARTSEL_SHIFT) | \
-		((pd_idx) << I40E_PFHMC_PDINV_PMPDIDX_SHIFT)))
+			   (((sd_idx) << I40E_PFHMC_PDINV_PMSDIDX_SHIFT) |             \
+				(0x1 << I40E_PFHMC_PDINV_PMSDPARTSEL_SHIFT) | \
+				((pd_idx) << I40E_PFHMC_PDINV_PMPDIDX_SHIFT)))
 
 /**
  * I40IW_INVALIDATE_VF_HMC_PD - Invalidates the pd cache in the hardware
@@ -82,37 +82,42 @@ enum i40iw_status_code;
  */
 #define I40IW_INVALIDATE_VF_HMC_PD(hw, sd_idx, pd_idx, hmc_fn_id)        \
 	i40iw_wr32(hw, I40E_GLHMC_VFPDINV(hmc_fn_id - I40IW_FIRST_VF_FPM_ID),  \
-	     ((sd_idx << I40E_PFHMC_PDINV_PMSDIDX_SHIFT) |              \
-	      (pd_idx << I40E_PFHMC_PDINV_PMPDIDX_SHIFT)))
+			   ((sd_idx << I40E_PFHMC_PDINV_PMSDIDX_SHIFT) |              \
+				(pd_idx << I40E_PFHMC_PDINV_PMPDIDX_SHIFT)))
 
-struct i40iw_hmc_obj_info {
+struct i40iw_hmc_obj_info
+{
 	u64 base;
 	u32 max_cnt;
 	u32 cnt;
 	u64 size;
 };
 
-enum i40iw_sd_entry_type {
+enum i40iw_sd_entry_type
+{
 	I40IW_SD_TYPE_INVALID = 0,
 	I40IW_SD_TYPE_PAGED = 1,
 	I40IW_SD_TYPE_DIRECT = 2
 };
 
-struct i40iw_hmc_bp {
+struct i40iw_hmc_bp
+{
 	enum i40iw_sd_entry_type entry_type;
 	struct i40iw_dma_mem addr;
 	u32 sd_pd_index;
 	u32 ref_cnt;
 };
 
-struct i40iw_hmc_pd_entry {
+struct i40iw_hmc_pd_entry
+{
 	struct i40iw_hmc_bp bp;
 	u32 sd_index;
 	bool rsrc_pg;
 	bool valid;
 };
 
-struct i40iw_hmc_pd_table {
+struct i40iw_hmc_pd_table
+{
 	struct i40iw_dma_mem pd_page_addr;
 	struct i40iw_hmc_pd_entry *pd_entry;
 	struct i40iw_virt_mem pd_entry_virt_mem;
@@ -120,24 +125,28 @@ struct i40iw_hmc_pd_table {
 	u32 sd_index;
 };
 
-struct i40iw_hmc_sd_entry {
+struct i40iw_hmc_sd_entry
+{
 	enum i40iw_sd_entry_type entry_type;
 	bool valid;
 
-	union {
+	union
+	{
 		struct i40iw_hmc_pd_table pd_table;
 		struct i40iw_hmc_bp bp;
 	} u;
 };
 
-struct i40iw_hmc_sd_table {
+struct i40iw_hmc_sd_table
+{
 	struct i40iw_virt_mem addr;
 	u32 sd_cnt;
 	u32 ref_cnt;
 	struct i40iw_hmc_sd_entry *sd_entry;
 };
 
-struct i40iw_hmc_info {
+struct i40iw_hmc_info
+{
 	u32 signature;
 	u8 hmc_fn_id;
 	u16 first_sd_index;
@@ -148,28 +157,32 @@ struct i40iw_hmc_info {
 	u16 sd_indexes[I40IW_HMC_MAX_SD_COUNT];
 };
 
-struct update_sd_entry {
+struct update_sd_entry
+{
 	u64 cmd;
 	u64 data;
 };
 
-struct i40iw_update_sds_info {
+struct i40iw_update_sds_info
+{
 	u32 cnt;
 	u8 hmc_fn_id;
 	struct update_sd_entry entry[I40IW_MAX_SD_ENTRIES];
 };
 
 struct i40iw_ccq_cqe_info;
-struct i40iw_hmc_fcn_info {
+struct i40iw_hmc_fcn_info
+{
 	void (*callback_fcn)(struct i40iw_sc_dev *, void *,
-			     struct i40iw_ccq_cqe_info *);
+						 struct i40iw_ccq_cqe_info *);
 	void *cqp_callback_param;
 	u32 vf_id;
 	u16 iw_vf_idx;
 	bool free_fcn;
 };
 
-enum i40iw_hmc_rsrc_type {
+enum i40iw_hmc_rsrc_type
+{
 	I40IW_HMC_IW_QP = 0,
 	I40IW_HMC_IW_CQ = 1,
 	I40IW_HMC_IW_SRQ = 2,
@@ -188,7 +201,8 @@ enum i40iw_hmc_rsrc_type {
 	I40IW_HMC_IW_MAX = 15,
 };
 
-struct i40iw_hmc_create_obj_info {
+struct i40iw_hmc_create_obj_info
+{
 	struct i40iw_hmc_info *hmc_info;
 	struct i40iw_virt_mem add_sd_virt_mem;
 	u32 rsrc_type;
@@ -199,7 +213,8 @@ struct i40iw_hmc_create_obj_info {
 	bool is_pf;
 };
 
-struct i40iw_hmc_del_obj_info {
+struct i40iw_hmc_del_obj_info
+{
 	struct i40iw_hmc_info *hmc_info;
 	struct i40iw_virt_mem del_sd_virt_mem;
 	u32 rsrc_type;
@@ -210,28 +225,28 @@ struct i40iw_hmc_del_obj_info {
 };
 
 enum i40iw_status_code i40iw_copy_dma_mem(struct i40iw_hw *hw, void *dest_buf,
-					  struct i40iw_dma_mem *src_mem, u64 src_offset, u64 size);
+		struct i40iw_dma_mem *src_mem, u64 src_offset, u64 size);
 enum i40iw_status_code i40iw_sc_create_hmc_obj(struct i40iw_sc_dev *dev,
-					       struct i40iw_hmc_create_obj_info *info);
+		struct i40iw_hmc_create_obj_info *info);
 enum i40iw_status_code i40iw_sc_del_hmc_obj(struct i40iw_sc_dev *dev,
-					    struct i40iw_hmc_del_obj_info *info,
-					    bool reset);
+		struct i40iw_hmc_del_obj_info *info,
+		bool reset);
 enum i40iw_status_code i40iw_hmc_sd_one(struct i40iw_sc_dev *dev, u8 hmc_fn_id,
-					u64 pa, u32 sd_idx, enum i40iw_sd_entry_type type,
-					bool setsd);
+										u64 pa, u32 sd_idx, enum i40iw_sd_entry_type type,
+										bool setsd);
 enum i40iw_status_code i40iw_update_sds_noccq(struct i40iw_sc_dev *dev,
-					      struct i40iw_update_sds_info *info);
+		struct i40iw_update_sds_info *info);
 struct i40iw_vfdev *i40iw_vfdev_from_fpm(struct i40iw_sc_dev *dev, u8 hmc_fn_id);
 struct i40iw_hmc_info *i40iw_vf_hmcinfo_from_fpm(struct i40iw_sc_dev *dev,
-						 u8 hmc_fn_id);
+		u8 hmc_fn_id);
 enum i40iw_status_code i40iw_add_sd_table_entry(struct i40iw_hw *hw,
-						struct i40iw_hmc_info *hmc_info, u32 sd_index,
-						enum i40iw_sd_entry_type type, u64 direct_mode_sz);
+		struct i40iw_hmc_info *hmc_info, u32 sd_index,
+		enum i40iw_sd_entry_type type, u64 direct_mode_sz);
 enum i40iw_status_code i40iw_add_pd_table_entry(struct i40iw_hw *hw,
-						struct i40iw_hmc_info *hmc_info, u32 pd_index,
-						struct i40iw_dma_mem *rsrc_pg);
+		struct i40iw_hmc_info *hmc_info, u32 pd_index,
+		struct i40iw_dma_mem *rsrc_pg);
 enum i40iw_status_code i40iw_remove_pd_bp(struct i40iw_hw *hw,
-					  struct i40iw_hmc_info *hmc_info, u32 idx, bool is_pf);
+		struct i40iw_hmc_info *hmc_info, u32 idx, bool is_pf);
 enum i40iw_status_code i40iw_prep_remove_sd_bp(struct i40iw_hmc_info *hmc_info, u32 idx);
 enum i40iw_status_code i40iw_prep_remove_pd_page(struct i40iw_hmc_info *hmc_info, u32 idx);
 

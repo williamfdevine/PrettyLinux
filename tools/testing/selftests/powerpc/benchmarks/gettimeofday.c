@@ -16,7 +16,8 @@ static int test_gettimeofday(void)
 
 	gettimeofday(&tv_start, NULL);
 
-	for(i = 0; i < 100000000; i++) {
+	for (i = 0; i < 100000000; i++)
+	{
 		gettimeofday(&tv_end, NULL);
 	}
 

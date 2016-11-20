@@ -46,7 +46,7 @@ static inline void atomic_set(atomic_t *v, int i)
 static inline void atomic_inc(atomic_t *v)
 {
 	asm volatile(LOCK_PREFIX "incl %0"
-		     : "+m" (v->counter));
+				 : "+m" (v->counter));
 }
 
 /**

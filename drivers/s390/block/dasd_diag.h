@@ -25,7 +25,8 @@
 
 #define DASD_DIAG_FLAGA_FORMAT_64BIT	0x80
 
-struct dasd_diag_characteristics {
+struct dasd_diag_characteristics
+{
 	u16 dev_nr;
 	u16 rdc_len;
 	u8 vdev_class;
@@ -43,7 +44,8 @@ struct dasd_diag_characteristics {
 typedef u64 blocknum_t;
 typedef s64 sblocknum_t;
 
-struct dasd_diag_bio {
+struct dasd_diag_bio
+{
 	u8 type;
 	u8 status;
 	u8 spare1[2];
@@ -52,7 +54,8 @@ struct dasd_diag_bio {
 	void *buffer;
 } __attribute__ ((packed, aligned(8)));
 
-struct dasd_diag_init_io {
+struct dasd_diag_init_io
+{
 	u16 dev_nr;
 	u8 flaga;
 	u8 spare1[21];
@@ -64,7 +67,8 @@ struct dasd_diag_init_io {
 	u8  spare3[8];
 } __attribute__ ((packed, aligned(8)));
 
-struct dasd_diag_rw_io {
+struct dasd_diag_rw_io
+{
 	u16 dev_nr;
 	u8  flaga;
 	u8  spare1[21];

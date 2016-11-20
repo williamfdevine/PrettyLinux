@@ -8,14 +8,15 @@
  */
 #define MIN_NR_CONSOLES 1       /* must be at least 1 */
 #define MAX_NR_CONSOLES	63	/* serial lines start at 64 */
-		/* Note: the ioctl VT_GETSTATE does not work for
-		   consoles 16 and higher (since it returns a short) */
+/* Note: the ioctl VT_GETSTATE does not work for
+   consoles 16 and higher (since it returns a short) */
 
 /* 0x56 is 'V', to avoid collision with termios and kd */
 
 #define VT_OPENQRY	0x5600	/* find available vt */
 
-struct vt_mode {
+struct vt_mode
+{
 	char mode;		/* vt mode */
 	char waitv;		/* if set, hang on writes if not active */
 	short relsig;		/* signal to raise on release req */
@@ -28,7 +29,8 @@ struct vt_mode {
 #define		VT_PROCESS	0x01	/* process controls switching */
 #define		VT_ACKACQ	0x02	/* acknowledge switch */
 
-struct vt_stat {
+struct vt_stat
+{
 	unsigned short v_active;	/* active vt */
 	unsigned short v_signal;	/* signal to send */
 	unsigned short v_state;		/* vt bitmask */
@@ -42,14 +44,16 @@ struct vt_stat {
 #define VT_WAITACTIVE	0x5607	/* wait for vt active */
 #define VT_DISALLOCATE	0x5608  /* free memory associated to vt */
 
-struct vt_sizes {
+struct vt_sizes
+{
 	unsigned short v_rows;		/* number of rows */
 	unsigned short v_cols;		/* number of columns */
 	unsigned short v_scrollsize;	/* number of lines of scrollback */
 };
 #define VT_RESIZE	0x5609	/* set kernel's idea of screensize */
 
-struct vt_consize {
+struct vt_consize
+{
 	unsigned short v_rows;	/* number of rows */
 	unsigned short v_cols;	/* number of columns */
 	unsigned short v_vlin;	/* number of pixel rows on screen */
@@ -62,7 +66,8 @@ struct vt_consize {
 #define VT_UNLOCKSWITCH 0x560C  /* allow vt switching */
 #define VT_GETHIFONTMASK 0x560D  /* return hi font mask */
 
-struct vt_event {
+struct vt_event
+{
 	unsigned int event;
 #define VT_EVENT_SWITCH		0x0001	/* Console switch */
 #define VT_EVENT_BLANK		0x0002	/* Screen blank */
@@ -76,7 +81,8 @@ struct vt_event {
 
 #define VT_WAITEVENT	0x560E	/* Wait for an event */
 
-struct vt_setactivate {
+struct vt_setactivate
+{
 	unsigned int console;
 	struct vt_mode mode;
 };

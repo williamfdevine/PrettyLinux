@@ -116,7 +116,7 @@ extern const char *const hfi1_qsfp_devtech[16];
 #define QSFP_TECH_1490 9
 
 #define QSFP_OUI(oui) (((unsigned)oui[0] << 16) | ((unsigned)oui[1] << 8) | \
-			oui[2])
+					   oui[2])
 #define QSFP_OUI_AMPHENOL 0x415048
 #define QSFP_OUI_FINISAR  0x009065
 #define QSFP_OUI_GORE     0x002177
@@ -208,7 +208,8 @@ extern const char *const hfi1_qsfp_devtech[16];
  * and let the qsfp_lock arbitrate access to common resources.
  *
  */
-struct qsfp_data {
+struct qsfp_data
+{
 	/* Helps to find our way */
 	struct hfi1_pportdata *ppd;
 	struct work_struct qsfp_work;
@@ -223,24 +224,24 @@ struct qsfp_data {
 };
 
 int refresh_qsfp_cache(struct hfi1_pportdata *ppd,
-		       struct qsfp_data *cp);
+					   struct qsfp_data *cp);
 int get_qsfp_power_class(u8 power_byte);
 int qsfp_mod_present(struct hfi1_pportdata *ppd);
 int get_cable_info(struct hfi1_devdata *dd, u32 port_num, u32 addr,
-		   u32 len, u8 *data);
+				   u32 len, u8 *data);
 
 int i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
-	      int offset, void *bp, int len);
+			  int offset, void *bp, int len);
 int i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
-	     int offset, void *bp, int len);
+			 int offset, void *bp, int len);
 int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
-	       int len);
+			   int len);
 int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
-	      int len);
+			  int len);
 int one_qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
-		   int len);
+				   int len);
 int one_qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
-		  int len);
+				  int len);
 struct hfi1_asic_data;
 int set_up_i2c(struct hfi1_devdata *dd, struct hfi1_asic_data *ad);
 void clean_up_i2c(struct hfi1_devdata *dd, struct hfi1_asic_data *ad);

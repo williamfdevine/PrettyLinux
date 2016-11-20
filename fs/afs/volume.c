@@ -51,12 +51,14 @@ struct afs_volume *afs_volume_lookup(struct afs_mount_params *params)
 	int ret, loop;
 
 	_enter("{%*.*s,%d}",
-	       params->volnamesz, params->volnamesz, params->volname, params->rwpath);
+		   params->volnamesz, params->volnamesz, params->volname, params->rwpath);
 
 	/* lookup the volume location record */
 	vlocation = afs_vlocation_lookup(params->cell, params->key,
-					 params->volname, params->volnamesz);
-	if (IS_ERR(vlocation)) {
+									 params->volname, params->volnamesz);
+
+	if (IS_ERR(vlocation))
+	{
 		ret = PTR_ERR(vlocation);
 		vlocation = NULL;
 		goto error;
@@ -64,28 +66,44 @@ struct afs_volume *afs_volume_lookup(struct afs_mount_params *params)
 
 	/* make the final decision on the type we want */
 	ret = -ENOMEDIUM;
+
 	if (params->force && !(vlocation->vldb.vidmask & (1 << params->type)))
+	{
 		goto error;
+	}
 
 	srvtmask = 0;
-	for (loop = 0; loop < vlocation->vldb.nservers; loop++)
-		srvtmask |= vlocation->vldb.srvtmask[loop];
 
-	if (params->force) {
+	for (loop = 0; loop < vlocation->vldb.nservers; loop++)
+	{
+		srvtmask |= vlocation->vldb.srvtmask[loop];
+	}
+
+	if (params->force)
+	{
 		if (!(srvtmask & (1 << params->type)))
+		{
 			goto error;
-	} else if (srvtmask & AFS_VOL_VTM_RO) {
+		}
+	}
+	else if (srvtmask & AFS_VOL_VTM_RO)
+	{
 		params->type = AFSVL_ROVOL;
-	} else if (srvtmask & AFS_VOL_VTM_RW) {
+	}
+	else if (srvtmask & AFS_VOL_VTM_RW)
+	{
 		params->type = AFSVL_RWVOL;
-	} else {
+	}
+	else
+	{
 		goto error;
 	}
 
 	down_write(&params->cell->vl_sem);
 
 	/* is the volume already active? */
-	if (vlocation->vols[params->type]) {
+	if (vlocation->vols[params->type])
+	{
 		/* yes - re-use it */
 		volume = vlocation->vols[params->type];
 		afs_get_volume(volume);
@@ -97,8 +115,11 @@ struct afs_volume *afs_volume_lookup(struct afs_mount_params *params)
 
 	ret = -ENOMEM;
 	volume = kzalloc(sizeof(struct afs_volume), GFP_KERNEL);
+
 	if (!volume)
+	{
 		goto error_up;
+	}
 
 	atomic_set(&volume->usage, 1);
 	volume->type		= params->type;
@@ -107,17 +128,24 @@ struct afs_volume *afs_volume_lookup(struct afs_mount_params *params)
 	volume->vid		= vlocation->vldb.vid[params->type];
 
 	ret = bdi_setup_and_register(&volume->bdi, "afs");
+
 	if (ret)
+	{
 		goto error_bdi;
+	}
 
 	init_rwsem(&volume->server_sem);
 
 	/* look up all the applicable server records */
-	for (loop = 0; loop < 8; loop++) {
-		if (vlocation->vldb.srvtmask[loop] & (1 << volume->type)) {
+	for (loop = 0; loop < 8; loop++)
+	{
+		if (vlocation->vldb.srvtmask[loop] & (1 << volume->type))
+		{
 			server = afs_lookup_server(
-			       volume->cell, &vlocation->vldb.servers[loop]);
-			if (IS_ERR(server)) {
+						 volume->cell, &vlocation->vldb.servers[loop]);
+
+			if (IS_ERR(server))
+			{
 				ret = PTR_ERR(server);
 				goto error_discard;
 			}
@@ -130,8 +158,8 @@ struct afs_volume *afs_volume_lookup(struct afs_mount_params *params)
 	/* attach the cache and volume location */
 #ifdef CONFIG_AFS_FSCACHE
 	volume->cache = fscache_acquire_cookie(vlocation->cache,
-					       &afs_volume_cache_index_def,
-					       volume, true);
+										   &afs_volume_cache_index_def,
+										   volume, true);
 #endif
 	afs_get_vlocation(vlocation);
 	volume->vlocation = vlocation;
@@ -140,7 +168,7 @@ struct afs_volume *afs_volume_lookup(struct afs_mount_params *params)
 
 success:
 	_debug("kAFS selected %s volume %08x",
-	       afs_voltypes[volume->type], volume->vid);
+		   afs_voltypes[volume->type], volume->vid);
 	up_write(&params->cell->vl_sem);
 	afs_put_vlocation(vlocation);
 	_leave(" = %p", volume);
@@ -160,7 +188,9 @@ error_bdi:
 	up_write(&params->cell->vl_sem);
 
 	for (loop = volume->nservers - 1; loop >= 0; loop--)
+	{
 		afs_put_server(volume->servers[loop]);
+	}
 
 	kfree(volume);
 	goto error;
@@ -175,7 +205,9 @@ void afs_put_volume(struct afs_volume *volume)
 	int loop;
 
 	if (!volume)
+	{
 		return;
+	}
 
 	_enter("%p", volume);
 
@@ -187,7 +219,8 @@ void afs_put_volume(struct afs_volume *volume)
 	 * atomic */
 	down_write(&vlocation->cell->vl_sem);
 
-	if (likely(!atomic_dec_and_test(&volume->usage))) {
+	if (likely(!atomic_dec_and_test(&volume->usage)))
+	{
 		up_write(&vlocation->cell->vl_sem);
 		_leave("");
 		return;
@@ -204,7 +237,9 @@ void afs_put_volume(struct afs_volume *volume)
 	afs_put_vlocation(vlocation);
 
 	for (loop = volume->nservers - 1; loop >= 0; loop--)
+	{
 		afs_put_server(volume->servers[loop]);
+	}
 
 	bdi_destroy(&volume->bdi);
 	kfree(volume);
@@ -225,7 +260,8 @@ struct afs_server *afs_volume_pick_fileserver(struct afs_vnode *vnode)
 	_enter("%s", volume->vlocation->vldb.name);
 
 	/* stick with the server we're already using if we can */
-	if (vnode->server && vnode->server->fs_state == 0) {
+	if (vnode->server && vnode->server->fs_state == 0)
+	{
 		afs_get_server(vnode->server);
 		_leave(" = %p [current]", vnode->server);
 		return vnode->server;
@@ -234,7 +270,8 @@ struct afs_server *afs_volume_pick_fileserver(struct afs_vnode *vnode)
 	down_read(&volume->server_sem);
 
 	/* handle the no-server case */
-	if (volume->nservers == 0) {
+	if (volume->nservers == 0)
+	{
 		ret = volume->rjservers ? -ENOMEDIUM : -ESTALE;
 		up_read(&volume->server_sem);
 		_leave(" = %d [no servers]", ret);
@@ -244,47 +281,62 @@ struct afs_server *afs_volume_pick_fileserver(struct afs_vnode *vnode)
 	/* basically, just search the list for the first live server and use
 	 * that */
 	ret = 0;
-	for (loop = 0; loop < volume->nservers; loop++) {
+
+	for (loop = 0; loop < volume->nservers; loop++)
+	{
 		server = volume->servers[loop];
 		state = server->fs_state;
 
 		_debug("consider %d [%d]", loop, state);
 
-		switch (state) {
+		switch (state)
+		{
 			/* found an apparently healthy server */
-		case 0:
-			afs_get_server(server);
-			up_read(&volume->server_sem);
-			_leave(" = %p (picked %08x)",
-			       server, ntohl(server->addr.s_addr));
-			return server;
+			case 0:
+				afs_get_server(server);
+				up_read(&volume->server_sem);
+				_leave(" = %p (picked %08x)",
+					   server, ntohl(server->addr.s_addr));
+				return server;
 
-		case -ENETUNREACH:
-			if (ret == 0)
-				ret = state;
-			break;
+			case -ENETUNREACH:
+				if (ret == 0)
+				{
+					ret = state;
+				}
 
-		case -EHOSTUNREACH:
-			if (ret == 0 ||
-			    ret == -ENETUNREACH)
-				ret = state;
-			break;
+				break;
 
-		case -ECONNREFUSED:
-			if (ret == 0 ||
-			    ret == -ENETUNREACH ||
-			    ret == -EHOSTUNREACH)
-				ret = state;
-			break;
+			case -EHOSTUNREACH:
+				if (ret == 0 ||
+					ret == -ENETUNREACH)
+				{
+					ret = state;
+				}
 
-		default:
-		case -EREMOTEIO:
-			if (ret == 0 ||
-			    ret == -ENETUNREACH ||
-			    ret == -EHOSTUNREACH ||
-			    ret == -ECONNREFUSED)
-				ret = state;
-			break;
+				break;
+
+			case -ECONNREFUSED:
+				if (ret == 0 ||
+					ret == -ENETUNREACH ||
+					ret == -EHOSTUNREACH)
+				{
+					ret = state;
+				}
+
+				break;
+
+			default:
+			case -EREMOTEIO:
+				if (ret == 0 ||
+					ret == -ENETUNREACH ||
+					ret == -EHOSTUNREACH ||
+					ret == -ECONNREFUSED)
+				{
+					ret = state;
+				}
+
+				break;
 		}
 	}
 
@@ -304,91 +356,100 @@ struct afs_server *afs_volume_pick_fileserver(struct afs_vnode *vnode)
  * - the caller must release the server struct if result was 0
  */
 int afs_volume_release_fileserver(struct afs_vnode *vnode,
-				  struct afs_server *server,
-				  int result)
+								  struct afs_server *server,
+								  int result)
 {
 	struct afs_volume *volume = vnode->volume;
 	unsigned loop;
 
 	_enter("%s,%08x,%d",
-	       volume->vlocation->vldb.name, ntohl(server->addr.s_addr),
-	       result);
+		   volume->vlocation->vldb.name, ntohl(server->addr.s_addr),
+		   result);
 
-	switch (result) {
+	switch (result)
+	{
 		/* success */
-	case 0:
-		server->fs_act_jif = jiffies;
-		server->fs_state = 0;
-		_leave("");
-		return 1;
+		case 0:
+			server->fs_act_jif = jiffies;
+			server->fs_state = 0;
+			_leave("");
+			return 1;
 
 		/* the fileserver denied all knowledge of the volume */
-	case -ENOMEDIUM:
-		server->fs_act_jif = jiffies;
-		down_write(&volume->server_sem);
+		case -ENOMEDIUM:
+			server->fs_act_jif = jiffies;
+			down_write(&volume->server_sem);
 
-		/* firstly, find where the server is in the active list (if it
-		 * is) */
-		for (loop = 0; loop < volume->nservers; loop++)
-			if (volume->servers[loop] == server)
-				goto present;
+			/* firstly, find where the server is in the active list (if it
+			 * is) */
+			for (loop = 0; loop < volume->nservers; loop++)
+				if (volume->servers[loop] == server)
+				{
+					goto present;
+				}
 
-		/* no longer there - may have been discarded by another op */
-		goto try_next_server_upw;
-
-	present:
-		volume->nservers--;
-		memmove(&volume->servers[loop],
-			&volume->servers[loop + 1],
-			sizeof(volume->servers[loop]) *
-			(volume->nservers - loop));
-		volume->servers[volume->nservers] = NULL;
-		afs_put_server(server);
-		volume->rjservers++;
-
-		if (volume->nservers > 0)
-			/* another server might acknowledge its existence */
+			/* no longer there - may have been discarded by another op */
 			goto try_next_server_upw;
 
-		/* handle the case where all the fileservers have rejected the
-		 * volume
-		 * - TODO: try asking the fileservers for volume information
-		 * - TODO: contact the VL server again to see if the volume is
-		 *         no longer registered
-		 */
-		up_write(&volume->server_sem);
-		afs_put_server(server);
-		_leave(" [completely rejected]");
-		return 1;
+present:
+			volume->nservers--;
+			memmove(&volume->servers[loop],
+					&volume->servers[loop + 1],
+					sizeof(volume->servers[loop]) *
+					(volume->nservers - loop));
+			volume->servers[volume->nservers] = NULL;
+			afs_put_server(server);
+			volume->rjservers++;
+
+			if (volume->nservers > 0)
+				/* another server might acknowledge its existence */
+			{
+				goto try_next_server_upw;
+			}
+
+			/* handle the case where all the fileservers have rejected the
+			 * volume
+			 * - TODO: try asking the fileservers for volume information
+			 * - TODO: contact the VL server again to see if the volume is
+			 *         no longer registered
+			 */
+			up_write(&volume->server_sem);
+			afs_put_server(server);
+			_leave(" [completely rejected]");
+			return 1;
 
 		/* problem reaching the server */
-	case -ENETUNREACH:
-	case -EHOSTUNREACH:
-	case -ECONNREFUSED:
-	case -ETIME:
-	case -ETIMEDOUT:
-	case -EREMOTEIO:
-		/* mark the server as dead
-		 * TODO: vary dead timeout depending on error
-		 */
-		spin_lock(&server->fs_lock);
-		if (!server->fs_state) {
-			server->fs_dead_jif = jiffies + HZ * 10;
-			server->fs_state = result;
-			printk("kAFS: SERVER DEAD state=%d\n", result);
-		}
-		spin_unlock(&server->fs_lock);
-		goto try_next_server;
+		case -ENETUNREACH:
+		case -EHOSTUNREACH:
+		case -ECONNREFUSED:
+		case -ETIME:
+		case -ETIMEDOUT:
+		case -EREMOTEIO:
+			/* mark the server as dead
+			 * TODO: vary dead timeout depending on error
+			 */
+			spin_lock(&server->fs_lock);
+
+			if (!server->fs_state)
+			{
+				server->fs_dead_jif = jiffies + HZ * 10;
+				server->fs_state = result;
+				printk("kAFS: SERVER DEAD state=%d\n", result);
+			}
+
+			spin_unlock(&server->fs_lock);
+			goto try_next_server;
 
 		/* miscellaneous error */
-	default:
-		server->fs_act_jif = jiffies;
-	case -ENOMEM:
-	case -ENONET:
-		/* tell the caller to accept the result */
-		afs_put_server(server);
-		_leave(" [local failure]");
-		return 1;
+		default:
+			server->fs_act_jif = jiffies;
+
+		case -ENOMEM:
+		case -ENONET:
+			/* tell the caller to accept the result */
+			afs_put_server(server);
+			_leave(" [local failure]");
+			return 1;
 	}
 
 	/* tell the caller to loop around and try the next server */

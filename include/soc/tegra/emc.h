@@ -12,8 +12,8 @@
 struct tegra_emc;
 
 int tegra_emc_prepare_timing_change(struct tegra_emc *emc,
-				    unsigned long rate);
+									unsigned long rate);
 void tegra_emc_complete_timing_change(struct tegra_emc *emc,
-				      unsigned long rate);
+									  unsigned long rate);
 
 #endif /* __SOC_TEGRA_EMC_H__ */

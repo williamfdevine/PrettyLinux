@@ -10,7 +10,8 @@
 #ifndef __GBE_H__
 #define __GBE_H__
 
-struct sgi_gbe {
+struct sgi_gbe
+{
 	volatile uint32_t ctrlstat;	/* general control */
 	volatile uint32_t dotclock;	/* dot clock PLL control */
 	volatile uint32_t i2c;		/* crt I2C control */
@@ -19,7 +20,7 @@ struct sgi_gbe {
 	volatile uint32_t id;		/* device id/chip revision */
 	volatile uint32_t config;       /* power on configuration [1] */
 	volatile uint32_t bist;         /* internal bist status [1] */
-	uint32_t _pad0[0x010000/4 - 8];
+	uint32_t _pad0[0x010000 / 4 - 8];
 	volatile uint32_t vt_xy;	/* current dot coords */
 	volatile uint32_t vt_xymax;	/* maximum dot coords */
 	volatile uint32_t vt_vsync;	/* vsync on/off */
@@ -40,35 +41,35 @@ struct sgi_gbe {
 	volatile uint32_t did_start_xy;	/* eol/f did/xy reset val */
 	volatile uint32_t crs_start_xy;	/* eol/f crs/xy reset val */
 	volatile uint32_t vc_start_xy;	/* eol/f vc/xy reset val */
-	uint32_t _pad1[0xffb0/4];
+	uint32_t _pad1[0xffb0 / 4];
 	volatile uint32_t ovr_width_tile;/*overlay plane ctrl 0 */
 	volatile uint32_t ovr_inhwctrl;	/* overlay plane ctrl 1 */
 	volatile uint32_t ovr_control;	/* overlay plane ctrl 1 */
-	uint32_t _pad2[0xfff4/4];
+	uint32_t _pad2[0xfff4 / 4];
 	volatile uint32_t frm_size_tile;/* normal plane ctrl 0 */
 	volatile uint32_t frm_size_pixel;/*normal plane ctrl 1 */
 	volatile uint32_t frm_inhwctrl;	/* normal plane ctrl 2 */
 	volatile uint32_t frm_control;	/* normal plane ctrl 3 */
-	uint32_t _pad3[0xfff0/4];
+	uint32_t _pad3[0xfff0 / 4];
 	volatile uint32_t did_inhwctrl;	/* DID control */
 	volatile uint32_t did_control;	/* DID shadow */
-	uint32_t _pad4[0x7ff8/4];
+	uint32_t _pad4[0x7ff8 / 4];
 	volatile uint32_t mode_regs[32];/* WID table */
-	uint32_t _pad5[0x7f80/4];
+	uint32_t _pad5[0x7f80 / 4];
 	volatile uint32_t cmap[6144];	/* color map */
-	uint32_t _pad6[0x2000/4];
+	uint32_t _pad6[0x2000 / 4];
 	volatile uint32_t cm_fifo;	/* color map fifo status */
-	uint32_t _pad7[0x7ffc/4];
+	uint32_t _pad7[0x7ffc / 4];
 	volatile uint32_t gmap[256];	/* gamma map */
-	uint32_t _pad8[0x7c00/4];
+	uint32_t _pad8[0x7c00 / 4];
 	volatile uint32_t gmap10[1024];	/* gamma map */
-	uint32_t _pad9[0x7000/4];
+	uint32_t _pad9[0x7000 / 4];
 	volatile uint32_t crs_pos;	/* cusror control 0 */
 	volatile uint32_t crs_ctl;	/* cusror control 1 */
 	volatile uint32_t crs_cmap[3];	/* crs cmap */
-	uint32_t _pad10[0x7fec/4];
+	uint32_t _pad10[0x7fec / 4];
 	volatile uint32_t crs_glyph[64];/* crs glyph */
-	uint32_t _pad11[0x7f00/4];
+	uint32_t _pad11[0x7f00 / 4];
 	volatile uint32_t vc_0;	/* video capture crtl 0 */
 	volatile uint32_t vc_1;	/* video capture crtl 1 */
 	volatile uint32_t vc_2;	/* video capture crtl 2 */
@@ -284,7 +285,8 @@ struct sgi_gbe {
  * Video Timing Data Structure
  */
 
-struct gbe_timing_info {
+struct gbe_timing_info
+{
 	int flags;
 	short width;		/* Monitor resolution */
 	short height;

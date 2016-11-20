@@ -66,12 +66,14 @@
 #define MAX_OUTPUT_FRAC			1600000000UL
 
 /* Fractional PLL operating modes */
-enum pll_mode {
+enum pll_mode
+{
 	PLL_MODE_FRAC,
 	PLL_MODE_INT,
 };
 
-struct pistachio_clk_pll {
+struct pistachio_clk_pll
+{
 	struct clk_hw hw;
 	void __iomem *base;
 	struct pistachio_pll_rate_table *rates;
@@ -91,7 +93,9 @@ static inline void pll_writel(struct pistachio_clk_pll *pll, u32 val, u32 reg)
 static inline void pll_lock(struct pistachio_clk_pll *pll)
 {
 	while (!(pll_readl(pll, PLL_STATUS) & PLL_STATUS_LOCK))
+	{
 		cpu_relax();
+	}
 }
 
 static inline u64 do_div_round_closest(u64 dividend, u64 divisor)
@@ -120,38 +124,49 @@ static inline void pll_frac_set_mode(struct clk_hw *hw, enum pll_mode mode)
 	u32 val;
 
 	val = pll_readl(pll, PLL_CTRL3);
+
 	if (mode == PLL_MODE_INT)
+	{
 		val |= PLL_FRAC_CTRL3_DSMPD | PLL_FRAC_CTRL3_DACPD;
+	}
 	else
+	{
 		val &= ~(PLL_FRAC_CTRL3_DSMPD | PLL_FRAC_CTRL3_DACPD);
+	}
 
 	pll_writel(pll, val, PLL_CTRL3);
 }
 
 static struct pistachio_pll_rate_table *
 pll_get_params(struct pistachio_clk_pll *pll, unsigned long fref,
-	       unsigned long fout)
+			   unsigned long fout)
 {
 	unsigned int i;
 
-	for (i = 0; i < pll->nr_rates; i++) {
+	for (i = 0; i < pll->nr_rates; i++)
+	{
 		if (pll->rates[i].fref == fref && pll->rates[i].fout == fout)
+		{
 			return &pll->rates[i];
+		}
 	}
 
 	return NULL;
 }
 
 static long pll_round_rate(struct clk_hw *hw, unsigned long rate,
-			   unsigned long *parent_rate)
+						   unsigned long *parent_rate)
 {
 	struct pistachio_clk_pll *pll = to_pistachio_pll(hw);
 	unsigned int i;
 
-	for (i = 0; i < pll->nr_rates; i++) {
+	for (i = 0; i < pll->nr_rates; i++)
+	{
 		if (i > 0 && pll->rates[i].fref == *parent_rate &&
-		    pll->rates[i].fout <= rate)
+			pll->rates[i].fout <= rate)
+		{
 			return pll->rates[i - 1].fout;
+		}
 	}
 
 	return pll->rates[0].fout;
@@ -164,7 +179,7 @@ static int pll_gf40lp_frac_enable(struct clk_hw *hw)
 
 	val = pll_readl(pll, PLL_CTRL3);
 	val &= ~(PLL_FRAC_CTRL3_PD | PLL_FRAC_CTRL3_FOUTPOSTDIVPD |
-		 PLL_FRAC_CTRL3_FOUT4PHASEPD | PLL_FRAC_CTRL3_FOUTVCOPD);
+			 PLL_FRAC_CTRL3_FOUT4PHASEPD | PLL_FRAC_CTRL3_FOUTVCOPD);
 	pll_writel(pll, val, PLL_CTRL3);
 
 	val = pll_readl(pll, PLL_CTRL4);
@@ -194,7 +209,7 @@ static int pll_gf40lp_frac_is_enabled(struct clk_hw *hw)
 }
 
 static int pll_gf40lp_frac_set_rate(struct clk_hw *hw, unsigned long rate,
-				    unsigned long parent_rate)
+									unsigned long parent_rate)
 {
 	struct pistachio_clk_pll *pll = to_pistachio_pll(hw);
 	struct pistachio_pll_rate_table *params;
@@ -203,11 +218,16 @@ static int pll_gf40lp_frac_set_rate(struct clk_hw *hw, unsigned long rate,
 	const char *name = clk_hw_get_name(hw);
 
 	if (rate < MIN_OUTPUT_FRAC || rate > MAX_OUTPUT_FRAC)
+	{
 		return -EINVAL;
+	}
 
 	params = pll_get_params(pll, parent_rate, rate);
+
 	if (!params || !params->refdiv)
+	{
 		return -EINVAL;
+	}
 
 	/* calculate vco */
 	vco = params->fref;
@@ -216,61 +236,74 @@ static int pll_gf40lp_frac_set_rate(struct clk_hw *hw, unsigned long rate,
 
 	if (vco < MIN_VCO_FRAC_FRAC || vco > MAX_VCO_FRAC_FRAC)
 		pr_warn("%s: VCO %llu is out of range %lu..%lu\n", name, vco,
-			MIN_VCO_FRAC_FRAC, MAX_VCO_FRAC_FRAC);
+				MIN_VCO_FRAC_FRAC, MAX_VCO_FRAC_FRAC);
 
 	val = div64_u64(params->fref, params->refdiv);
+
 	if (val < MIN_PFD)
 		pr_warn("%s: PFD %llu is too low (min %lu)\n",
-			name, val, MIN_PFD);
+				name, val, MIN_PFD);
+
 	if (val > vco / 16)
 		pr_warn("%s: PFD %llu is too high (max %llu)\n",
-			name, val, vco / 16);
+				name, val, vco / 16);
 
 	val = pll_readl(pll, PLL_CTRL1);
 	val &= ~((PLL_CTRL1_REFDIV_MASK << PLL_CTRL1_REFDIV_SHIFT) |
-		 (PLL_CTRL1_FBDIV_MASK << PLL_CTRL1_FBDIV_SHIFT));
+			 (PLL_CTRL1_FBDIV_MASK << PLL_CTRL1_FBDIV_SHIFT));
 	val |= (params->refdiv << PLL_CTRL1_REFDIV_SHIFT) |
-		(params->fbdiv << PLL_CTRL1_FBDIV_SHIFT);
+		   (params->fbdiv << PLL_CTRL1_FBDIV_SHIFT);
 	pll_writel(pll, val, PLL_CTRL1);
 
 	val = pll_readl(pll, PLL_CTRL2);
 
 	old_postdiv1 = (val >> PLL_FRAC_CTRL2_POSTDIV1_SHIFT) &
-		       PLL_FRAC_CTRL2_POSTDIV1_MASK;
+				   PLL_FRAC_CTRL2_POSTDIV1_MASK;
 	old_postdiv2 = (val >> PLL_FRAC_CTRL2_POSTDIV2_SHIFT) &
-		       PLL_FRAC_CTRL2_POSTDIV2_MASK;
+				   PLL_FRAC_CTRL2_POSTDIV2_MASK;
+
 	if (enabled &&
-	    (params->postdiv1 != old_postdiv1 ||
-	     params->postdiv2 != old_postdiv2))
+		(params->postdiv1 != old_postdiv1 ||
+		 params->postdiv2 != old_postdiv2))
+	{
 		pr_warn("%s: changing postdiv while PLL is enabled\n", name);
+	}
 
 	if (params->postdiv2 > params->postdiv1)
+	{
 		pr_warn("%s: postdiv2 should not exceed postdiv1\n", name);
+	}
 
 	val &= ~((PLL_FRAC_CTRL2_FRAC_MASK << PLL_FRAC_CTRL2_FRAC_SHIFT) |
-		 (PLL_FRAC_CTRL2_POSTDIV1_MASK <<
-		  PLL_FRAC_CTRL2_POSTDIV1_SHIFT) |
-		 (PLL_FRAC_CTRL2_POSTDIV2_MASK <<
-		  PLL_FRAC_CTRL2_POSTDIV2_SHIFT));
+			 (PLL_FRAC_CTRL2_POSTDIV1_MASK <<
+			  PLL_FRAC_CTRL2_POSTDIV1_SHIFT) |
+			 (PLL_FRAC_CTRL2_POSTDIV2_MASK <<
+			  PLL_FRAC_CTRL2_POSTDIV2_SHIFT));
 	val |= (params->frac << PLL_FRAC_CTRL2_FRAC_SHIFT) |
-		(params->postdiv1 << PLL_FRAC_CTRL2_POSTDIV1_SHIFT) |
-		(params->postdiv2 << PLL_FRAC_CTRL2_POSTDIV2_SHIFT);
+		   (params->postdiv1 << PLL_FRAC_CTRL2_POSTDIV1_SHIFT) |
+		   (params->postdiv2 << PLL_FRAC_CTRL2_POSTDIV2_SHIFT);
 	pll_writel(pll, val, PLL_CTRL2);
 
 	/* set operating mode */
 	if (params->frac)
+	{
 		pll_frac_set_mode(hw, PLL_MODE_FRAC);
+	}
 	else
+	{
 		pll_frac_set_mode(hw, PLL_MODE_INT);
+	}
 
 	if (enabled)
+	{
 		pll_lock(pll);
+	}
 
 	return 0;
 }
 
 static unsigned long pll_gf40lp_frac_recalc_rate(struct clk_hw *hw,
-						 unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct pistachio_clk_pll *pll = to_pistachio_pll(hw);
 	u64 val, prediv, fbdiv, frac, postdiv1, postdiv2, rate;
@@ -281,24 +314,30 @@ static unsigned long pll_gf40lp_frac_recalc_rate(struct clk_hw *hw,
 
 	val = pll_readl(pll, PLL_CTRL2);
 	postdiv1 = (val >> PLL_FRAC_CTRL2_POSTDIV1_SHIFT) &
-		PLL_FRAC_CTRL2_POSTDIV1_MASK;
+			   PLL_FRAC_CTRL2_POSTDIV1_MASK;
 	postdiv2 = (val >> PLL_FRAC_CTRL2_POSTDIV2_SHIFT) &
-		PLL_FRAC_CTRL2_POSTDIV2_MASK;
+			   PLL_FRAC_CTRL2_POSTDIV2_MASK;
 	frac = (val >> PLL_FRAC_CTRL2_FRAC_SHIFT) & PLL_FRAC_CTRL2_FRAC_MASK;
 
 	/* get operating mode (int/frac) and calculate rate accordingly */
 	rate = parent_rate;
+
 	if (pll_frac_get_mode(hw) == PLL_MODE_FRAC)
+	{
 		rate *= (fbdiv << 24) + frac;
+	}
 	else
+	{
 		rate *= (fbdiv << 24);
+	}
 
 	rate = do_div_round_closest(rate, (prediv * postdiv1 * postdiv2) << 24);
 
 	return rate;
 }
 
-static struct clk_ops pll_gf40lp_frac_ops = {
+static struct clk_ops pll_gf40lp_frac_ops =
+{
 	.enable = pll_gf40lp_frac_enable,
 	.disable = pll_gf40lp_frac_disable,
 	.is_enabled = pll_gf40lp_frac_is_enabled,
@@ -307,7 +346,8 @@ static struct clk_ops pll_gf40lp_frac_ops = {
 	.set_rate = pll_gf40lp_frac_set_rate,
 };
 
-static struct clk_ops pll_gf40lp_frac_fixed_ops = {
+static struct clk_ops pll_gf40lp_frac_fixed_ops =
+{
 	.enable = pll_gf40lp_frac_enable,
 	.disable = pll_gf40lp_frac_disable,
 	.is_enabled = pll_gf40lp_frac_is_enabled,
@@ -321,7 +361,7 @@ static int pll_gf40lp_laint_enable(struct clk_hw *hw)
 
 	val = pll_readl(pll, PLL_CTRL1);
 	val &= ~(PLL_INT_CTRL1_PD |
-		 PLL_INT_CTRL1_FOUTPOSTDIVPD | PLL_INT_CTRL1_FOUTVCOPD);
+			 PLL_INT_CTRL1_FOUTPOSTDIVPD | PLL_INT_CTRL1_FOUTVCOPD);
 	pll_writel(pll, val, PLL_CTRL1);
 
 	val = pll_readl(pll, PLL_CTRL2);
@@ -351,7 +391,7 @@ static int pll_gf40lp_laint_is_enabled(struct clk_hw *hw)
 }
 
 static int pll_gf40lp_laint_set_rate(struct clk_hw *hw, unsigned long rate,
-				     unsigned long parent_rate)
+									 unsigned long parent_rate)
 {
 	struct pistachio_clk_pll *pll = to_pistachio_pll(hw);
 	struct pistachio_pll_rate_table *params;
@@ -360,57 +400,72 @@ static int pll_gf40lp_laint_set_rate(struct clk_hw *hw, unsigned long rate,
 	const char *name = clk_hw_get_name(hw);
 
 	if (rate < MIN_OUTPUT_LA || rate > MAX_OUTPUT_LA)
+	{
 		return -EINVAL;
+	}
 
 	params = pll_get_params(pll, parent_rate, rate);
+
 	if (!params || !params->refdiv)
+	{
 		return -EINVAL;
+	}
 
 	vco = div_u64(params->fref * params->fbdiv, params->refdiv);
+
 	if (vco < MIN_VCO_LA || vco > MAX_VCO_LA)
 		pr_warn("%s: VCO %u is out of range %lu..%lu\n", name, vco,
-			MIN_VCO_LA, MAX_VCO_LA);
+				MIN_VCO_LA, MAX_VCO_LA);
 
 	val = div_u64(params->fref, params->refdiv);
+
 	if (val < MIN_PFD)
 		pr_warn("%s: PFD %u is too low (min %lu)\n",
-			name, val, MIN_PFD);
+				name, val, MIN_PFD);
+
 	if (val > vco / 16)
 		pr_warn("%s: PFD %u is too high (max %u)\n",
-			name, val, vco / 16);
+				name, val, vco / 16);
 
 	val = pll_readl(pll, PLL_CTRL1);
 
 	old_postdiv1 = (val >> PLL_INT_CTRL1_POSTDIV1_SHIFT) &
-		       PLL_INT_CTRL1_POSTDIV1_MASK;
+				   PLL_INT_CTRL1_POSTDIV1_MASK;
 	old_postdiv2 = (val >> PLL_INT_CTRL1_POSTDIV2_SHIFT) &
-		       PLL_INT_CTRL1_POSTDIV2_MASK;
+				   PLL_INT_CTRL1_POSTDIV2_MASK;
+
 	if (enabled &&
-	    (params->postdiv1 != old_postdiv1 ||
-	     params->postdiv2 != old_postdiv2))
+		(params->postdiv1 != old_postdiv1 ||
+		 params->postdiv2 != old_postdiv2))
+	{
 		pr_warn("%s: changing postdiv while PLL is enabled\n", name);
+	}
 
 	if (params->postdiv2 > params->postdiv1)
+	{
 		pr_warn("%s: postdiv2 should not exceed postdiv1\n", name);
+	}
 
 	val &= ~((PLL_CTRL1_REFDIV_MASK << PLL_CTRL1_REFDIV_SHIFT) |
-		 (PLL_CTRL1_FBDIV_MASK << PLL_CTRL1_FBDIV_SHIFT) |
-		 (PLL_INT_CTRL1_POSTDIV1_MASK << PLL_INT_CTRL1_POSTDIV1_SHIFT) |
-		 (PLL_INT_CTRL1_POSTDIV2_MASK << PLL_INT_CTRL1_POSTDIV2_SHIFT));
+			 (PLL_CTRL1_FBDIV_MASK << PLL_CTRL1_FBDIV_SHIFT) |
+			 (PLL_INT_CTRL1_POSTDIV1_MASK << PLL_INT_CTRL1_POSTDIV1_SHIFT) |
+			 (PLL_INT_CTRL1_POSTDIV2_MASK << PLL_INT_CTRL1_POSTDIV2_SHIFT));
 	val |= (params->refdiv << PLL_CTRL1_REFDIV_SHIFT) |
-		(params->fbdiv << PLL_CTRL1_FBDIV_SHIFT) |
-		(params->postdiv1 << PLL_INT_CTRL1_POSTDIV1_SHIFT) |
-		(params->postdiv2 << PLL_INT_CTRL1_POSTDIV2_SHIFT);
+		   (params->fbdiv << PLL_CTRL1_FBDIV_SHIFT) |
+		   (params->postdiv1 << PLL_INT_CTRL1_POSTDIV1_SHIFT) |
+		   (params->postdiv2 << PLL_INT_CTRL1_POSTDIV2_SHIFT);
 	pll_writel(pll, val, PLL_CTRL1);
 
 	if (enabled)
+	{
 		pll_lock(pll);
+	}
 
 	return 0;
 }
 
 static unsigned long pll_gf40lp_laint_recalc_rate(struct clk_hw *hw,
-						  unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct pistachio_clk_pll *pll = to_pistachio_pll(hw);
 	u32 val, prediv, fbdiv, postdiv1, postdiv2;
@@ -420,9 +475,9 @@ static unsigned long pll_gf40lp_laint_recalc_rate(struct clk_hw *hw,
 	prediv = (val >> PLL_CTRL1_REFDIV_SHIFT) & PLL_CTRL1_REFDIV_MASK;
 	fbdiv = (val >> PLL_CTRL1_FBDIV_SHIFT) & PLL_CTRL1_FBDIV_MASK;
 	postdiv1 = (val >> PLL_INT_CTRL1_POSTDIV1_SHIFT) &
-		PLL_INT_CTRL1_POSTDIV1_MASK;
+			   PLL_INT_CTRL1_POSTDIV1_MASK;
 	postdiv2 = (val >> PLL_INT_CTRL1_POSTDIV2_SHIFT) &
-		PLL_INT_CTRL1_POSTDIV2_MASK;
+			   PLL_INT_CTRL1_POSTDIV2_MASK;
 
 	rate *= fbdiv;
 	rate = do_div_round_closest(rate, prediv * postdiv1 * postdiv2);
@@ -430,7 +485,8 @@ static unsigned long pll_gf40lp_laint_recalc_rate(struct clk_hw *hw,
 	return rate;
 }
 
-static struct clk_ops pll_gf40lp_laint_ops = {
+static struct clk_ops pll_gf40lp_laint_ops =
+{
 	.enable = pll_gf40lp_laint_enable,
 	.disable = pll_gf40lp_laint_disable,
 	.is_enabled = pll_gf40lp_laint_is_enabled,
@@ -439,7 +495,8 @@ static struct clk_ops pll_gf40lp_laint_ops = {
 	.set_rate = pll_gf40lp_laint_set_rate,
 };
 
-static struct clk_ops pll_gf40lp_laint_fixed_ops = {
+static struct clk_ops pll_gf40lp_laint_fixed_ops =
+{
 	.enable = pll_gf40lp_laint_enable,
 	.disable = pll_gf40lp_laint_disable,
 	.is_enabled = pll_gf40lp_laint_is_enabled,
@@ -447,41 +504,57 @@ static struct clk_ops pll_gf40lp_laint_fixed_ops = {
 };
 
 static struct clk *pll_register(const char *name, const char *parent_name,
-				unsigned long flags, void __iomem *base,
-				enum pistachio_pll_type type,
-				struct pistachio_pll_rate_table *rates,
-				unsigned int nr_rates)
+								unsigned long flags, void __iomem *base,
+								enum pistachio_pll_type type,
+								struct pistachio_pll_rate_table *rates,
+								unsigned int nr_rates)
 {
 	struct pistachio_clk_pll *pll;
 	struct clk_init_data init;
 	struct clk *clk;
 
 	pll = kzalloc(sizeof(*pll), GFP_KERNEL);
+
 	if (!pll)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.flags = flags | CLK_GET_RATE_NOCACHE;
 	init.parent_names = &parent_name;
 	init.num_parents = 1;
 
-	switch (type) {
-	case PLL_GF40LP_FRAC:
-		if (rates)
-			init.ops = &pll_gf40lp_frac_ops;
-		else
-			init.ops = &pll_gf40lp_frac_fixed_ops;
-		break;
-	case PLL_GF40LP_LAINT:
-		if (rates)
-			init.ops = &pll_gf40lp_laint_ops;
-		else
-			init.ops = &pll_gf40lp_laint_fixed_ops;
-		break;
-	default:
-		pr_err("Unrecognized PLL type %u\n", type);
-		kfree(pll);
-		return ERR_PTR(-EINVAL);
+	switch (type)
+	{
+		case PLL_GF40LP_FRAC:
+			if (rates)
+			{
+				init.ops = &pll_gf40lp_frac_ops;
+			}
+			else
+			{
+				init.ops = &pll_gf40lp_frac_fixed_ops;
+			}
+
+			break;
+
+		case PLL_GF40LP_LAINT:
+			if (rates)
+			{
+				init.ops = &pll_gf40lp_laint_ops;
+			}
+			else
+			{
+				init.ops = &pll_gf40lp_laint_fixed_ops;
+			}
+
+			break;
+
+		default:
+			pr_err("Unrecognized PLL type %u\n", type);
+			kfree(pll);
+			return ERR_PTR(-EINVAL);
 	}
 
 	pll->hw.init = &init;
@@ -490,24 +563,28 @@ static struct clk *pll_register(const char *name, const char *parent_name,
 	pll->nr_rates = nr_rates;
 
 	clk = clk_register(NULL, &pll->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(pll);
+	}
 
 	return clk;
 }
 
 void pistachio_clk_register_pll(struct pistachio_clk_provider *p,
-				struct pistachio_pll *pll,
-				unsigned int num)
+								struct pistachio_pll *pll,
+								unsigned int num)
 {
 	struct clk *clk;
 	unsigned int i;
 
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num; i++)
+	{
 		clk = pll_register(pll[i].name, pll[i].parent,
-				   0, p->base + pll[i].reg_base,
-				   pll[i].type, pll[i].rates,
-				   pll[i].nr_rates);
+						   0, p->base + pll[i].reg_base,
+						   pll[i].type, pll[i].rates,
+						   pll[i].nr_rates);
 		p->clk_data.clks[pll[i].id] = clk;
 	}
 }

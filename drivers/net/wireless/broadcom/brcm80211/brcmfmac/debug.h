@@ -70,10 +70,10 @@ void __brcmf_err(const char *func, const char *fmt, ...);
 __printf(3, 4)
 void __brcmf_dbg(u32 level, const char *func, const char *fmt, ...);
 #define brcmf_dbg(level, fmt, ...)				\
-do {								\
-	__brcmf_dbg(BRCMF_##level##_VAL, __func__,		\
-		    fmt, ##__VA_ARGS__);			\
-} while (0)
+	do {								\
+		__brcmf_dbg(BRCMF_##level##_VAL, __func__,		\
+					fmt, ##__VA_ARGS__);			\
+	} while (0)
 #define BRCMF_DATA_ON()		(brcmf_msg_level & BRCMF_DATA_VAL)
 #define BRCMF_CTL_ON()		(brcmf_msg_level & BRCMF_CTL_VAL)
 #define BRCMF_HDRS_ON()		(brcmf_msg_level & BRCMF_HDRS_VAL)
@@ -99,11 +99,11 @@ do {								\
 #endif /* defined(DEBUG) || defined(CONFIG_BRCM_TRACING) */
 
 #define brcmf_dbg_hex_dump(test, data, len, fmt, ...)			\
-do {									\
-	trace_brcmf_hexdump((void *)data, len);				\
-	if (test)							\
-		brcmu_dbg_hex_dump(data, len, fmt, ##__VA_ARGS__);	\
-} while (0)
+	do {									\
+		trace_brcmf_hexdump((void *)data, len);				\
+		if (test)							\
+			brcmu_dbg_hex_dump(data, len, fmt, ##__VA_ARGS__);	\
+	} while (0)
 
 extern int brcmf_msg_level;
 
@@ -115,7 +115,7 @@ int brcmf_debug_attach(struct brcmf_pub *drvr);
 void brcmf_debug_detach(struct brcmf_pub *drvr);
 struct dentry *brcmf_debugfs_get_devdir(struct brcmf_pub *drvr);
 int brcmf_debugfs_add_entry(struct brcmf_pub *drvr, const char *fn,
-			    int (*read_fn)(struct seq_file *seq, void *data));
+							int (*read_fn)(struct seq_file *seq, void *data));
 #else
 static inline void brcmf_debugfs_init(void)
 {
@@ -132,7 +132,7 @@ static inline void brcmf_debug_detach(struct brcmf_pub *drvr)
 }
 static inline
 int brcmf_debugfs_add_entry(struct brcmf_pub *drvr, const char *fn,
-			    int (*read_fn)(struct seq_file *seq, void *data))
+							int (*read_fn)(struct seq_file *seq, void *data))
 {
 	return 0;
 }

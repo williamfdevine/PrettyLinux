@@ -11,7 +11,8 @@
 #define __TLV320AIC3x_H__
 
 /* GPIO API */
-enum {
+enum
+{
 	AIC3X_GPIO1_FUNC_DISABLED		= 0,
 	AIC3X_GPIO1_FUNC_AUDIO_WORDCLK_ADC	= 1,
 	AIC3X_GPIO1_FUNC_CLOCK_MUX		= 2,
@@ -30,7 +31,8 @@ enum {
 	AIC3X_GPIO1_FUNC_ALL_IRQ		= 16
 };
 
-enum {
+enum
+{
 	AIC3X_GPIO2_FUNC_DISABLED		= 0,
 	AIC3X_GPIO2_FUNC_HEADSET_DETECT_IRQ	= 2,
 	AIC3X_GPIO2_FUNC_INPUT			= 3,
@@ -46,18 +48,21 @@ enum {
 	AIC3X_GPIO2_FUNC_BUTTON_PRESS_IRQ	= 15
 };
 
-enum aic3x_micbias_voltage {
+enum aic3x_micbias_voltage
+{
 	AIC3X_MICBIAS_OFF = 0,
 	AIC3X_MICBIAS_2_0V = 1,
 	AIC3X_MICBIAS_2_5V = 2,
 	AIC3X_MICBIAS_AVDDV = 3,
 };
 
-struct aic3x_setup_data {
+struct aic3x_setup_data
+{
 	unsigned int gpio_func[2];
 };
 
-struct aic3x_pdata {
+struct aic3x_pdata
+{
 	int gpio_reset; /* < 0 if not used */
 	struct aic3x_setup_data *setup;
 

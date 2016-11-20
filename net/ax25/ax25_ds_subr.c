@@ -65,44 +65,60 @@ void ax25_ds_enquiry_response(ax25_cb *ax25)
 
 	ax25_std_enquiry_response(ax25);
 
-	if (!(ax25->condition & AX25_COND_PEER_RX_BUSY)) {
+	if (!(ax25->condition & AX25_COND_PEER_RX_BUSY))
+	{
 		ax25_requeue_frames(ax25);
 		ax25_kick(ax25);
 	}
 
 	if (ax25->state == AX25_STATE_1 || ax25->state == AX25_STATE_2 || skb_peek(&ax25->ack_queue) != NULL)
+	{
 		ax25_ds_t1_timeout(ax25);
+	}
 	else
+	{
 		ax25->n2count = 0;
+	}
 
 	ax25_start_t3timer(ax25);
 	ax25_ds_set_timer(ax25->ax25_dev);
 
 	spin_lock(&ax25_list_lock);
-	ax25_for_each(ax25o, &ax25_list) {
+	ax25_for_each(ax25o, &ax25_list)
+	{
 		if (ax25o == ax25)
+		{
 			continue;
+		}
 
 		if (ax25o->ax25_dev != ax25->ax25_dev)
+		{
 			continue;
+		}
 
-		if (ax25o->state == AX25_STATE_1 || ax25o->state == AX25_STATE_2) {
+		if (ax25o->state == AX25_STATE_1 || ax25o->state == AX25_STATE_2)
+		{
 			ax25_ds_t1_timeout(ax25o);
 			continue;
 		}
 
-		if (!(ax25o->condition & AX25_COND_PEER_RX_BUSY) && ax25o->state == AX25_STATE_3) {
+		if (!(ax25o->condition & AX25_COND_PEER_RX_BUSY) && ax25o->state == AX25_STATE_3)
+		{
 			ax25_requeue_frames(ax25o);
 			ax25_kick(ax25o);
 		}
 
 		if (ax25o->state == AX25_STATE_1 || ax25o->state == AX25_STATE_2 || skb_peek(&ax25o->ack_queue) != NULL)
+		{
 			ax25_ds_t1_timeout(ax25o);
+		}
 
 		/* do not start T3 for listening sockets (tnx DD8NE) */
 
 		if (ax25o->state != AX25_STATE_0)
+		{
 			ax25_start_t3timer(ax25o);
+		}
 	}
 	spin_unlock(&ax25_list_lock);
 }
@@ -130,10 +146,14 @@ static void ax25_kiss_cmd(ax25_dev *ax25_dev, unsigned char cmd, unsigned char p
 	unsigned char *p;
 
 	if (ax25_dev->dev == NULL)
+	{
 		return;
+	}
 
 	if ((skb = alloc_skb(2, GFP_ATOMIC)) == NULL)
+	{
 		return;
+	}
 
 	skb_reset_network_header(skb);
 	p = skb_put(skb, 2);
@@ -161,10 +181,13 @@ static int ax25_check_dama_slave(ax25_dev *ax25_dev)
 
 	spin_lock(&ax25_list_lock);
 	ax25_for_each(ax25, &ax25_list)
-		if (ax25->ax25_dev == ax25_dev && (ax25->condition & AX25_COND_DAMA_MODE) && ax25->state > AX25_STATE_1) {
-			res = 1;
-			break;
-		}
+
+	if (ax25->ax25_dev == ax25_dev && (ax25->condition & AX25_COND_DAMA_MODE) && ax25->state > AX25_STATE_1)
+	{
+		res = 1;
+		break;
+	}
+
 	spin_unlock(&ax25_list_lock);
 
 	return res;
@@ -173,10 +196,14 @@ static int ax25_check_dama_slave(ax25_dev *ax25_dev)
 static void ax25_dev_dama_on(ax25_dev *ax25_dev)
 {
 	if (ax25_dev == NULL)
+	{
 		return;
+	}
 
 	if (ax25_dev->dama.slave == 0)
+	{
 		ax25_kiss_cmd(ax25_dev, 5, 1);
+	}
 
 	ax25_dev->dama.slave = 1;
 	ax25_ds_set_timer(ax25_dev);
@@ -185,9 +212,12 @@ static void ax25_dev_dama_on(ax25_dev *ax25_dev)
 void ax25_dev_dama_off(ax25_dev *ax25_dev)
 {
 	if (ax25_dev == NULL)
+	{
 		return;
+	}
 
-	if (ax25_dev->dama.slave && !ax25_check_dama_slave(ax25_dev)) {
+	if (ax25_dev->dama.slave && !ax25_check_dama_slave(ax25_dev))
+	{
 		ax25_kiss_cmd(ax25_dev, 5, 0);
 		ax25_dev->dama.slave = 0;
 		ax25_ds_del_timer(ax25_dev);

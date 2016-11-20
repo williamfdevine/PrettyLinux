@@ -68,7 +68,7 @@ static void nuc900fb_set_lcdaddr(struct fb_info *info)
  *	calculate divider for lcd div
  */
 static unsigned int nuc900fb_calc_pixclk(struct nuc900fb_info *fbi,
-					 unsigned long pixclk)
+		unsigned long pixclk)
 {
 	unsigned long clk = fbi->clk_rate;
 	unsigned long long div;
@@ -88,13 +88,13 @@ static unsigned int nuc900fb_calc_pixclk(struct nuc900fb_info *fbi,
  *	Check the video params of 'var'.
  */
 static int nuc900fb_check_var(struct fb_var_screeninfo *var,
-			       struct fb_info *info)
+							  struct fb_info *info)
 {
 	struct nuc900fb_info *fbi = info->par;
 	struct nuc900fb_mach_info *mach_info = dev_get_platdata(fbi->dev);
 	struct nuc900fb_display *display = NULL;
 	struct nuc900fb_display *default_display = mach_info->displays +
-						   mach_info->default_display;
+				mach_info->default_display;
 	int i;
 
 	dev_dbg(fbi->dev, "check_var(var=%p, info=%p)\n", var, info);
@@ -102,21 +102,25 @@ static int nuc900fb_check_var(struct fb_var_screeninfo *var,
 	/* validate x/y resolution */
 	/* choose default mode if possible */
 	if (var->xres == default_display->xres &&
-	    var->yres == default_display->yres &&
-	    var->bits_per_pixel == default_display->bpp)
+		var->yres == default_display->yres &&
+		var->bits_per_pixel == default_display->bpp)
+	{
 		display = default_display;
+	}
 	else
 		for (i = 0; i < mach_info->num_displays; i++)
 			if (var->xres == mach_info->displays[i].xres &&
-			    var->yres == mach_info->displays[i].yres &&
-			    var->bits_per_pixel == mach_info->displays[i].bpp) {
+				var->yres == mach_info->displays[i].yres &&
+				var->bits_per_pixel == mach_info->displays[i].bpp)
+			{
 				display = mach_info->displays + i;
 				break;
 			}
 
-	if (display == NULL) {
+	if (display == NULL)
+	{
 		printk(KERN_ERR "wrong resolution or depth %dx%d at %d bit per pixel\n",
-			var->xres, var->yres, var->bits_per_pixel);
+			   var->xres, var->yres, var->bits_per_pixel);
 		return -EINVAL;
 	}
 
@@ -144,49 +148,54 @@ static int nuc900fb_check_var(struct fb_var_screeninfo *var,
 	fbi->regs.lcd_va_scale = display->scale;
 
 	/* set R/G/B possions */
-	switch (var->bits_per_pixel) {
-	case 1:
-	case 2:
-	case 4:
-	case 8:
-	default:
-		var->red.offset 	= 0;
-		var->red.length 	= var->bits_per_pixel;
-		var->green 		= var->red;
-		var->blue		= var->red;
-		break;
-	case 12:
-		var->red.length		= 4;
-		var->green.length	= 4;
-		var->blue.length	= 4;
-		var->red.offset		= 8;
-		var->green.offset	= 4;
-		var->blue.offset	= 0;
-		break;
-	case 16:
-		var->red.length		= 5;
-		var->green.length	= 6;
-		var->blue.length	= 5;
-		var->red.offset		= 11;
-		var->green.offset	= 5;
-		var->blue.offset	= 0;
-		break;
-	case 18:
-		var->red.length		= 6;
-		var->green.length	= 6;
-		var->blue.length	= 6;
-		var->red.offset		= 12;
-		var->green.offset	= 6;
-		var->blue.offset	= 0;
-		break;
-	case 32:
-		var->red.length		= 8;
-		var->green.length	= 8;
-		var->blue.length	= 8;
-		var->red.offset		= 16;
-		var->green.offset	= 8;
-		var->blue.offset	= 0;
-		break;
+	switch (var->bits_per_pixel)
+	{
+		case 1:
+		case 2:
+		case 4:
+		case 8:
+		default:
+			var->red.offset 	= 0;
+			var->red.length 	= var->bits_per_pixel;
+			var->green 		= var->red;
+			var->blue		= var->red;
+			break;
+
+		case 12:
+			var->red.length		= 4;
+			var->green.length	= 4;
+			var->blue.length	= 4;
+			var->red.offset		= 8;
+			var->green.offset	= 4;
+			var->blue.offset	= 0;
+			break;
+
+		case 16:
+			var->red.length		= 5;
+			var->green.length	= 6;
+			var->blue.length	= 5;
+			var->red.offset		= 11;
+			var->green.offset	= 5;
+			var->blue.offset	= 0;
+			break;
+
+		case 18:
+			var->red.length		= 6;
+			var->green.length	= 6;
+			var->blue.length	= 6;
+			var->red.offset		= 12;
+			var->green.offset	= 6;
+			var->blue.offset	= 0;
+			break;
+
+		case 32:
+			var->red.length		= 8;
+			var->green.length	= 8;
+			var->blue.length	= 8;
+			var->red.offset		= 16;
+			var->green.offset	= 8;
+			var->blue.offset	= 0;
+			break;
 	}
 
 	return 0;
@@ -196,7 +205,7 @@ static int nuc900fb_check_var(struct fb_var_screeninfo *var,
  *	Calculate lcd register values from var setting & save into hw
  */
 static void nuc900fb_calculate_lcd_regs(const struct fb_info *info,
-					struct nuc900fb_hw *regs)
+										struct nuc900fb_hw *regs)
 {
 	const struct fb_var_screeninfo *var = &info->var;
 	int vtt = var->height + var->upper_margin + var->lower_margin;
@@ -205,15 +214,15 @@ static void nuc900fb_calculate_lcd_regs(const struct fb_info *info,
 	int vsync = var->height + var->lower_margin;
 
 	regs->lcd_crtc_size = LCM_CRTC_SIZE_VTTVAL(vtt) |
-			      LCM_CRTC_SIZE_HTTVAL(htt);
+						  LCM_CRTC_SIZE_HTTVAL(htt);
 	regs->lcd_crtc_dend = LCM_CRTC_DEND_VDENDVAL(var->height) |
-			      LCM_CRTC_DEND_HDENDVAL(var->width);
+						  LCM_CRTC_DEND_HDENDVAL(var->width);
 	regs->lcd_crtc_hr = LCM_CRTC_HR_EVAL(var->width + 5) |
-			    LCM_CRTC_HR_SVAL(var->width + 1);
+						LCM_CRTC_HR_SVAL(var->width + 1);
 	regs->lcd_crtc_hsync = LCM_CRTC_HSYNC_EVAL(hsync + var->hsync_len) |
-			       LCM_CRTC_HSYNC_SVAL(hsync);
+						   LCM_CRTC_HSYNC_SVAL(hsync);
 	regs->lcd_crtc_vr = LCM_CRTC_VR_EVAL(vsync + var->vsync_len) |
-			    LCM_CRTC_VR_SVAL(vsync);
+						LCM_CRTC_VR_SVAL(vsync);
 
 }
 
@@ -229,8 +238,11 @@ static void nuc900fb_activate_var(struct fb_info *info)
 	int clkdiv;
 
 	clkdiv = nuc900fb_calc_pixclk(fbi, var->pixclock) - 1;
+
 	if (clkdiv < 0)
+	{
 		clkdiv = 0;
+	}
 
 	nuc900fb_calculate_lcd_regs(info, &fbi->regs);
 
@@ -266,20 +278,23 @@ static int nuc900fb_set_par(struct fb_info *info)
 {
 	struct fb_var_screeninfo *var = &info->var;
 
-	switch (var->bits_per_pixel) {
-	case 32:
-	case 24:
-	case 18:
-	case 16:
-	case 12:
-		info->fix.visual = FB_VISUAL_TRUECOLOR;
-		break;
-	case 1:
-		info->fix.visual = FB_VISUAL_MONO01;
-		break;
-	default:
-		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
-		break;
+	switch (var->bits_per_pixel)
+	{
+		case 32:
+		case 24:
+		case 18:
+		case 16:
+		case 12:
+			info->fix.visual = FB_VISUAL_TRUECOLOR;
+			break;
+
+		case 1:
+			info->fix.visual = FB_VISUAL_MONO01;
+			break;
+
+		default:
+			info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
+			break;
 	}
 
 	info->fix.line_length = (var->xres_virtual * var->bits_per_pixel) / 8;
@@ -290,7 +305,7 @@ static int nuc900fb_set_par(struct fb_info *info)
 }
 
 static inline unsigned int chan_to_field(unsigned int chan,
-					 struct fb_bitfield *bf)
+		struct fb_bitfield *bf)
 {
 	chan &= 0xffff;
 	chan >>= 16 - bf->length;
@@ -298,27 +313,32 @@ static inline unsigned int chan_to_field(unsigned int chan,
 }
 
 static int nuc900fb_setcolreg(unsigned regno,
-			       unsigned red, unsigned green, unsigned blue,
-			       unsigned transp, struct fb_info *info)
+							  unsigned red, unsigned green, unsigned blue,
+							  unsigned transp, struct fb_info *info)
 {
 	unsigned int val;
 
-	switch (info->fix.visual) {
-	case FB_VISUAL_TRUECOLOR:
-		/* true-colour, use pseuo-palette */
-		if (regno < 16) {
-			u32 *pal = info->pseudo_palette;
+	switch (info->fix.visual)
+	{
+		case FB_VISUAL_TRUECOLOR:
 
-			val  = chan_to_field(red, &info->var.red);
-			val |= chan_to_field(green, &info->var.green);
-			val |= chan_to_field(blue, &info->var.blue);
-			pal[regno] = val;
-		}
-		break;
+			/* true-colour, use pseuo-palette */
+			if (regno < 16)
+			{
+				u32 *pal = info->pseudo_palette;
 
-	default:
-		return 1;   /* unknown type */
+				val  = chan_to_field(red, &info->var.red);
+				val |= chan_to_field(green, &info->var.green);
+				val |= chan_to_field(blue, &info->var.blue);
+				pal[regno] = val;
+			}
+
+			break;
+
+		default:
+			return 1;   /* unknown type */
 	}
+
 	return 0;
 }
 
@@ -332,7 +352,8 @@ static int nuc900fb_blank(int blank_mode, struct fb_info *info)
 	return 0;
 }
 
-static struct fb_ops nuc900fb_ops = {
+static struct fb_ops nuc900fb_ops =
+{
 	.owner			= THIS_MODULE,
 	.fb_check_var		= nuc900fb_check_var,
 	.fb_set_par		= nuc900fb_set_par,
@@ -345,7 +366,7 @@ static struct fb_ops nuc900fb_ops = {
 
 
 static inline void modify_gpio(void __iomem *reg,
-			       unsigned long set, unsigned long mask)
+							   unsigned long set, unsigned long mask)
 {
 	unsigned long tmp;
 	tmp = readl(reg) & ~mask;
@@ -364,19 +385,19 @@ static int nuc900fb_init_registers(struct fb_info *info)
 	/*reset the display engine*/
 	writel(0, regs + REG_LCM_DCCS);
 	writel(readl(regs + REG_LCM_DCCS) | LCM_DCCS_ENG_RST,
-	       regs + REG_LCM_DCCS);
+		   regs + REG_LCM_DCCS);
 	ndelay(100);
 	writel(readl(regs + REG_LCM_DCCS) & (~LCM_DCCS_ENG_RST),
-	       regs + REG_LCM_DCCS);
+		   regs + REG_LCM_DCCS);
 	ndelay(100);
 
 	writel(0, regs + REG_LCM_DEV_CTRL);
 
 	/* config gpio output */
 	modify_gpio(W90X900_VA_GPIO + 0x54, mach_info->gpio_dir,
-		    mach_info->gpio_dir_mask);
+				mach_info->gpio_dir_mask);
 	modify_gpio(W90X900_VA_GPIO + 0x58, mach_info->gpio_data,
-		    mach_info->gpio_data_mask);
+				mach_info->gpio_data_mask);
 
 	return 0;
 }
@@ -394,13 +415,15 @@ static int nuc900fb_map_video_memory(struct fb_info *info)
 	unsigned long map_size = PAGE_ALIGN(info->fix.smem_len);
 
 	dev_dbg(fbi->dev, "nuc900fb_map_video_memory(fbi=%p) map_size %lu\n",
-		fbi, map_size);
+			fbi, map_size);
 
 	info->screen_base = dma_alloc_wc(fbi->dev, map_size, &map_dma,
-					 GFP_KERNEL);
+									 GFP_KERNEL);
 
 	if (!info->screen_base)
+	{
 		return -ENOMEM;
+	}
 
 	memset(info->screen_base, 0x00, map_size);
 	info->fix.smem_start = map_dma;
@@ -412,7 +435,7 @@ static inline void nuc900fb_unmap_video_memory(struct fb_info *info)
 {
 	struct nuc900fb_info *fbi = info->par;
 	dma_free_wc(fbi->dev, PAGE_ALIGN(info->fix.smem_len),
-		    info->screen_base, info->fix.smem_start);
+				info->screen_base, info->fix.smem_start);
 }
 
 static irqreturn_t nuc900fb_irqhandler(int irq, void *dev_id)
@@ -422,24 +445,30 @@ static irqreturn_t nuc900fb_irqhandler(int irq, void *dev_id)
 	void __iomem *irq_base = fbi->irq_base;
 	unsigned long lcdirq = readl(regs + REG_LCM_INT_CS);
 
-	if (lcdirq & LCM_INT_CS_DISP_F_STATUS) {
-		writel(readl(irq_base) | 1<<30, irq_base);
+	if (lcdirq & LCM_INT_CS_DISP_F_STATUS)
+	{
+		writel(readl(irq_base) | 1 << 30, irq_base);
 
 		/* wait VA_EN low */
 		if ((readl(regs + REG_LCM_DCCS) &
-		    LCM_DCCS_SINGLE) == LCM_DCCS_SINGLE)
+			 LCM_DCCS_SINGLE) == LCM_DCCS_SINGLE)
 			while ((readl(regs + REG_LCM_DCCS) &
-			       LCM_DCCS_VA_EN) == LCM_DCCS_VA_EN)
+					LCM_DCCS_VA_EN) == LCM_DCCS_VA_EN)
 				;
+
 		/* display_out-enable */
 		writel(readl(regs + REG_LCM_DCCS) | LCM_DCCS_DISP_OUT_EN,
-			regs + REG_LCM_DCCS);
+			   regs + REG_LCM_DCCS);
 		/* va-enable*/
 		writel(readl(regs + REG_LCM_DCCS) | LCM_DCCS_VA_EN,
-			regs + REG_LCM_DCCS);
-	} else if (lcdirq & LCM_INT_CS_UNDERRUN_INT) {
+			   regs + REG_LCM_DCCS);
+	}
+	else if (lcdirq & LCM_INT_CS_UNDERRUN_INT)
+	{
 		writel(readl(irq_base) | LCM_INT_CS_UNDERRUN_INT, irq_base);
-	} else if (lcdirq & LCM_INT_CS_BUS_ERROR_INT) {
+	}
+	else if (lcdirq & LCM_INT_CS_BUS_ERROR_INT)
+	{
 		writel(readl(irq_base) | LCM_INT_CS_BUS_ERROR_INT, irq_base);
 	}
 
@@ -449,7 +478,7 @@ static irqreturn_t nuc900fb_irqhandler(int irq, void *dev_id)
 #ifdef CONFIG_CPU_FREQ
 
 static int nuc900fb_cpufreq_transition(struct notifier_block *nb,
-				       unsigned long val, void *data)
+									   unsigned long val, void *data)
 {
 	struct nuc900fb_info *info;
 	struct fb_info *fbinfo;
@@ -460,7 +489,8 @@ static int nuc900fb_cpufreq_transition(struct notifier_block *nb,
 	delta_f = info->clk_rate - clk_get_rate(info->clk);
 
 	if ((val == CPUFREQ_POSTCHANGE && delta_f > 0) ||
-	   (val == CPUFREQ_PRECHANGE && delta_f < 0)) {
+		(val == CPUFREQ_PRECHANGE && delta_f < 0))
+	{
 		info->clk_rate = clk_get_rate(info->clk);
 		nuc900fb_activate_var(fbinfo);
 	}
@@ -472,17 +502,17 @@ static inline int nuc900fb_cpufreq_register(struct nuc900fb_info *fbi)
 {
 	fbi->freq_transition.notifier_call = nuc900fb_cpufreq_transition;
 	return cpufreq_register_notifier(&fbi->freq_transition,
-				  CPUFREQ_TRANSITION_NOTIFIER);
+									 CPUFREQ_TRANSITION_NOTIFIER);
 }
 
 static inline void nuc900fb_cpufreq_deregister(struct nuc900fb_info *fbi)
 {
 	cpufreq_unregister_notifier(&fbi->freq_transition,
-				    CPUFREQ_TRANSITION_NOTIFIER);
+								CPUFREQ_TRANSITION_NOTIFIER);
 }
 #else
 static inline int nuc900fb_cpufreq_transition(struct notifier_block *nb,
-				       unsigned long val, void *data)
+		unsigned long val, void *data)
 {
 	return 0;
 }
@@ -513,16 +543,19 @@ static int nuc900fb_probe(struct platform_device *pdev)
 
 	dev_dbg(&pdev->dev, "devinit\n");
 	mach_info = dev_get_platdata(&pdev->dev);
-	if (mach_info == NULL) {
+
+	if (mach_info == NULL)
+	{
 		dev_err(&pdev->dev,
-			"no platform data for lcd, cannot attach\n");
+				"no platform data for lcd, cannot attach\n");
 		return -EINVAL;
 	}
 
-	if (mach_info->default_display > mach_info->num_displays) {
+	if (mach_info->default_display > mach_info->num_displays)
+	{
 		dev_err(&pdev->dev,
-			"default display No. is %d but only %d displays \n",
-			mach_info->default_display, mach_info->num_displays);
+				"default display No. is %d but only %d displays \n",
+				mach_info->default_display, mach_info->num_displays);
 		return -EINVAL;
 	}
 
@@ -530,14 +563,19 @@ static int nuc900fb_probe(struct platform_device *pdev)
 	display = mach_info->displays + mach_info->default_display;
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "no irq for device\n");
 		return -ENOENT;
 	}
 
 	fbinfo = framebuffer_alloc(sizeof(struct nuc900fb_info), &pdev->dev);
+
 	if (!fbinfo)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, fbinfo);
 
@@ -552,14 +590,18 @@ static int nuc900fb_probe(struct platform_device *pdev)
 
 	size = resource_size(res);
 	fbi->mem = request_mem_region(res->start, size, pdev->name);
-	if (fbi->mem == NULL) {
+
+	if (fbi->mem == NULL)
+	{
 		dev_err(&pdev->dev, "failed to alloc memory region\n");
 		ret = -ENOENT;
 		goto free_fb;
 	}
 
 	fbi->io = ioremap(res->start, size);
-	if (fbi->io == NULL) {
+
+	if (fbi->io == NULL)
+	{
 		dev_err(&pdev->dev, "ioremap() of lcd registers failed\n");
 		ret = -ENXIO;
 		goto release_mem_region;
@@ -588,15 +630,19 @@ static int nuc900fb_probe(struct platform_device *pdev)
 	fbinfo->pseudo_palette		= &fbi->pseudo_pal;
 
 	ret = request_irq(irq, nuc900fb_irqhandler, 0, pdev->name, fbi);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "cannot register irq handler %d -err %d\n",
-			irq, ret);
+				irq, ret);
 		ret = -EBUSY;
 		goto release_regs;
 	}
 
 	fbi->clk = clk_get(&pdev->dev, NULL);
-	if (IS_ERR(fbi->clk)) {
+
+	if (IS_ERR(fbi->clk))
+	{
 		printk(KERN_ERR "nuc900-lcd:failed to get lcd clock source\n");
 		ret = PTR_ERR(fbi->clk);
 		goto release_irq;
@@ -608,18 +654,24 @@ static int nuc900fb_probe(struct platform_device *pdev)
 	fbi->clk_rate = clk_get_rate(fbi->clk);
 
 	/* calutate the video buffer size */
-	for (i = 0; i < mach_info->num_displays; i++) {
+	for (i = 0; i < mach_info->num_displays; i++)
+	{
 		unsigned long smem_len = mach_info->displays[i].xres;
 		smem_len *= mach_info->displays[i].yres;
 		smem_len *= mach_info->displays[i].bpp;
 		smem_len >>= 3;
+
 		if (fbinfo->fix.smem_len < smem_len)
+		{
 			fbinfo->fix.smem_len = smem_len;
+		}
 	}
 
 	/* Initialize Video Memory */
 	ret = nuc900fb_map_video_memory(fbinfo);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "Failed to allocate video RAM: %x\n", ret);
 		goto release_clock;
 	}
@@ -635,15 +687,19 @@ static int nuc900fb_probe(struct platform_device *pdev)
 	nuc900fb_check_var(&fbinfo->var, fbinfo);
 
 	ret = nuc900fb_cpufreq_register(fbi);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to register cpufreq\n");
 		goto free_video_memory;
 	}
 
 	ret = register_framebuffer(fbinfo);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "failed to register framebuffer device: %d\n",
-			ret);
+			   ret);
 		goto free_cpufreq;
 	}
 
@@ -678,7 +734,7 @@ static void nuc900fb_stop_lcd(struct fb_info *info)
 	void __iomem *regs = fbi->io;
 
 	writel((~LCM_DCCS_DISP_INT_EN) | (~LCM_DCCS_VA_EN) | (~LCM_DCCS_OSD_EN),
-		regs + REG_LCM_DCCS);
+		   regs + REG_LCM_DCCS);
 }
 
 /*
@@ -748,7 +804,8 @@ static int nuc900fb_resume(struct platform_device *dev)
 #define nuc900fb_resume  NULL
 #endif
 
-static struct platform_driver nuc900fb_driver = {
+static struct platform_driver nuc900fb_driver =
+{
 	.probe		= nuc900fb_probe,
 	.remove		= nuc900fb_remove,
 	.suspend	= nuc900fb_suspend,

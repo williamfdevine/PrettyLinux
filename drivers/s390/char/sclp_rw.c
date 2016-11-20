@@ -26,13 +26,14 @@
 #define MAX_SCCB_ROOM (PAGE_SIZE - sizeof(struct sclp_buffer))
 
 static void sclp_rw_pm_event(struct sclp_register *reg,
-			     enum sclp_pm_event sclp_pm_event)
+							 enum sclp_pm_event sclp_pm_event)
 {
 	sclp_console_pm_event(sclp_pm_event);
 }
 
 /* Event type structure for write message and write priority message */
-static struct sclp_register sclp_rw_event = {
+static struct sclp_register sclp_rw_event =
+{
 	.send_mask = EVTYP_MSG_MASK,
 	.pm_event_fn = sclp_rw_pm_event,
 };
@@ -100,8 +101,11 @@ sclp_initialize_mto(struct sclp_buffer *buffer, int max_len)
 
 	/* check if current buffer sccb can contain the mto */
 	sccb = buffer->sccb;
+
 	if ((MAX_SCCB_ROOM - sccb->length) < msg_size)
+	{
 		return -ENOMEM;
+	}
 
 	msg = (struct msg_buf *)((addr_t) sccb + sccb->length);
 	memset(msg, 0, sizeof(struct msg_buf));
@@ -201,104 +205,168 @@ sclp_write(struct sclp_buffer *buffer, const unsigned char *msg, int count)
 	 * previous \t and decreases the current position by one column.
 	 * This is in order to a slim and quick implementation.
 	 */
-	for (i_msg = 0; i_msg < count; i_msg++) {
-		switch (msg[i_msg]) {
-		case '\n':	/* new line, line feed (ASCII)	*/
-			/* check if new mto needs to be created */
-			if (buffer->current_line == NULL) {
-				rc = sclp_initialize_mto(buffer, 0);
-				if (rc)
-					return i_msg;
-			}
-			sclp_finalize_mto(buffer);
-			break;
-		case '\a':	/* bell, one for several times	*/
-			/* set SCLP sound alarm bit in General Object */
-			if (buffer->current_line == NULL) {
-				rc = sclp_initialize_mto(buffer,
-							 buffer->columns);
-				if (rc)
-					return i_msg;
-			}
-			buffer->current_msg->mdb.go.general_msg_flags |=
-				GNRLMSGFLGS_SNDALRM;
-			break;
-		case '\t':	/* horizontal tabulator	 */
-			/* check if new mto needs to be created */
-			if (buffer->current_line == NULL) {
-				rc = sclp_initialize_mto(buffer,
-							 buffer->columns);
-				if (rc)
-					return i_msg;
-			}
-			/* "go to (next htab-boundary + 1, same line)" */
-			do {
-				if (buffer->current_length >= buffer->columns)
-					break;
-				/* ok, add a blank */
-				*buffer->current_line++ = 0x40;
-				buffer->current_length++;
-			} while (buffer->current_length % buffer->htab);
-			break;
-		case '\f':	/* form feed  */
-		case '\v':	/* vertical tabulator  */
-			/* "go to (actual column, actual line + 1)" */
-			/* = new line, leading spaces */
-			if (buffer->current_line != NULL) {
-				spaces = buffer->current_length;
+	for (i_msg = 0; i_msg < count; i_msg++)
+	{
+		switch (msg[i_msg])
+		{
+			case '\n':	/* new line, line feed (ASCII)	*/
+
+				/* check if new mto needs to be created */
+				if (buffer->current_line == NULL)
+				{
+					rc = sclp_initialize_mto(buffer, 0);
+
+					if (rc)
+					{
+						return i_msg;
+					}
+				}
+
 				sclp_finalize_mto(buffer);
-				rc = sclp_initialize_mto(buffer,
-							 buffer->columns);
-				if (rc)
-					return i_msg;
-				memset(buffer->current_line, 0x40, spaces);
-				buffer->current_line += spaces;
-				buffer->current_length = spaces;
-			} else {
-				/* one an empty line this is the same as \n */
-				rc = sclp_initialize_mto(buffer,
-							 buffer->columns);
-				if (rc)
-					return i_msg;
-				sclp_finalize_mto(buffer);
-			}
-			break;
-		case '\b':	/* backspace  */
-			/* "go to (actual column - 1, actual line)" */
-			/* decrement counter indicating position, */
-			/* do not remove last character */
-			if (buffer->current_line != NULL &&
-			    buffer->current_length > 0) {
-				buffer->current_length--;
-				buffer->current_line--;
-			}
-			break;
-		case 0x00:	/* end of string  */
-			/* transfer current line to SCCB */
-			if (buffer->current_line != NULL)
-				sclp_finalize_mto(buffer);
-			/* skip the rest of the message including the 0 byte */
-			i_msg = count - 1;
-			break;
-		default:	/* no escape character	*/
-			/* do not output unprintable characters */
-			if (!isprint(msg[i_msg]))
 				break;
-			/* check if new mto needs to be created */
-			if (buffer->current_line == NULL) {
-				rc = sclp_initialize_mto(buffer,
-							 buffer->columns);
-				if (rc)
-					return i_msg;
-			}
-			*buffer->current_line++ = sclp_ascebc(msg[i_msg]);
-			buffer->current_length++;
-			break;
+
+			case '\a':	/* bell, one for several times	*/
+
+				/* set SCLP sound alarm bit in General Object */
+				if (buffer->current_line == NULL)
+				{
+					rc = sclp_initialize_mto(buffer,
+											 buffer->columns);
+
+					if (rc)
+					{
+						return i_msg;
+					}
+				}
+
+				buffer->current_msg->mdb.go.general_msg_flags |=
+					GNRLMSGFLGS_SNDALRM;
+				break;
+
+			case '\t':	/* horizontal tabulator	 */
+
+				/* check if new mto needs to be created */
+				if (buffer->current_line == NULL)
+				{
+					rc = sclp_initialize_mto(buffer,
+											 buffer->columns);
+
+					if (rc)
+					{
+						return i_msg;
+					}
+				}
+
+				/* "go to (next htab-boundary + 1, same line)" */
+				do
+				{
+					if (buffer->current_length >= buffer->columns)
+					{
+						break;
+					}
+
+					/* ok, add a blank */
+					*buffer->current_line++ = 0x40;
+					buffer->current_length++;
+				}
+				while (buffer->current_length % buffer->htab);
+
+				break;
+
+			case '\f':	/* form feed  */
+			case '\v':	/* vertical tabulator  */
+
+				/* "go to (actual column, actual line + 1)" */
+				/* = new line, leading spaces */
+				if (buffer->current_line != NULL)
+				{
+					spaces = buffer->current_length;
+					sclp_finalize_mto(buffer);
+					rc = sclp_initialize_mto(buffer,
+											 buffer->columns);
+
+					if (rc)
+					{
+						return i_msg;
+					}
+
+					memset(buffer->current_line, 0x40, spaces);
+					buffer->current_line += spaces;
+					buffer->current_length = spaces;
+				}
+				else
+				{
+					/* one an empty line this is the same as \n */
+					rc = sclp_initialize_mto(buffer,
+											 buffer->columns);
+
+					if (rc)
+					{
+						return i_msg;
+					}
+
+					sclp_finalize_mto(buffer);
+				}
+
+				break;
+
+			case '\b':	/* backspace  */
+
+				/* "go to (actual column - 1, actual line)" */
+				/* decrement counter indicating position, */
+				/* do not remove last character */
+				if (buffer->current_line != NULL &&
+					buffer->current_length > 0)
+				{
+					buffer->current_length--;
+					buffer->current_line--;
+				}
+
+				break;
+
+			case 0x00:	/* end of string  */
+
+				/* transfer current line to SCCB */
+				if (buffer->current_line != NULL)
+				{
+					sclp_finalize_mto(buffer);
+				}
+
+				/* skip the rest of the message including the 0 byte */
+				i_msg = count - 1;
+				break;
+
+			default:	/* no escape character	*/
+
+				/* do not output unprintable characters */
+				if (!isprint(msg[i_msg]))
+				{
+					break;
+				}
+
+				/* check if new mto needs to be created */
+				if (buffer->current_line == NULL)
+				{
+					rc = sclp_initialize_mto(buffer,
+											 buffer->columns);
+
+					if (rc)
+					{
+						return i_msg;
+					}
+				}
+
+				*buffer->current_line++ = sclp_ascebc(msg[i_msg]);
+				buffer->current_length++;
+				break;
 		}
+
 		/* check if current mto is full */
 		if (buffer->current_line != NULL &&
-		    buffer->current_length >= buffer->columns)
+			buffer->current_length >= buffer->columns)
+		{
 			sclp_finalize_mto(buffer);
+		}
 	}
 
 	/* return number of processed characters */
@@ -316,8 +384,12 @@ sclp_buffer_space(struct sclp_buffer *buffer)
 
 	sccb = buffer->sccb;
 	count = MAX_SCCB_ROOM - sccb->length;
+
 	if (buffer->current_line != NULL)
+	{
 		count -= sizeof(struct msg_buf) + buffer->current_length;
+	}
+
 	return count;
 }
 
@@ -330,8 +402,12 @@ sclp_chars_in_buffer(struct sclp_buffer *buffer)
 	int count;
 
 	count = buffer->char_sum;
+
 	if (buffer->current_line != NULL)
+	{
 		count += buffer->current_length;
+	}
+
 	return count;
 }
 
@@ -342,9 +418,12 @@ void
 sclp_set_columns(struct sclp_buffer *buffer, unsigned short columns)
 {
 	buffer->columns = columns;
+
 	if (buffer->current_line != NULL &&
-	    buffer->current_length > buffer->columns)
+		buffer->current_length > buffer->columns)
+	{
 		sclp_finalize_mto(buffer);
+	}
 }
 
 void
@@ -363,11 +442,17 @@ sclp_rw_init(void)
 	int rc;
 
 	if (init_done)
+	{
 		return 0;
+	}
 
 	rc = sclp_register(&sclp_rw_event);
+
 	if (rc == 0)
+	{
 		init_done = 1;
+	}
+
 	return rc;
 }
 
@@ -387,57 +472,88 @@ sclp_writedata_callback(struct sclp_req *request, void *data)
 	buffer = (struct sclp_buffer *) data;
 	sccb = buffer->sccb;
 
-	if (request->status == SCLP_REQ_FAILED) {
+	if (request->status == SCLP_REQ_FAILED)
+	{
 		if (buffer->callback != NULL)
+		{
 			buffer->callback(buffer, -EIO);
+		}
+
 		return;
 	}
-	/* check SCLP response code and choose suitable action	*/
-	switch (sccb->response_code) {
-	case 0x0020 :
-		/* Normal completion, buffer processed, message(s) sent */
-		rc = 0;
-		break;
 
-	case 0x0340: /* Contained SCLP equipment check */
-		if (++buffer->retry_count > SCLP_BUFFER_MAX_RETRY) {
-			rc = -EIO;
+	/* check SCLP response code and choose suitable action	*/
+	switch (sccb->response_code)
+	{
+		case 0x0020 :
+			/* Normal completion, buffer processed, message(s) sent */
+			rc = 0;
 			break;
-		}
-		/* remove processed buffers and requeue rest */
-		if (sclp_remove_processed((struct sccb_header *) sccb) > 0) {
-			/* not all buffers were processed */
+
+		case 0x0340: /* Contained SCLP equipment check */
+			if (++buffer->retry_count > SCLP_BUFFER_MAX_RETRY)
+			{
+				rc = -EIO;
+				break;
+			}
+
+			/* remove processed buffers and requeue rest */
+			if (sclp_remove_processed((struct sccb_header *) sccb) > 0)
+			{
+				/* not all buffers were processed */
+				sccb->response_code = 0x0000;
+				buffer->request.status = SCLP_REQ_FILLED;
+				rc = sclp_add_request(request);
+
+				if (rc == 0)
+				{
+					return;
+				}
+			}
+			else
+			{
+				rc = 0;
+			}
+
+			break;
+
+		case 0x0040: /* SCLP equipment check */
+		case 0x05f0: /* Target resource in improper state */
+			if (++buffer->retry_count > SCLP_BUFFER_MAX_RETRY)
+			{
+				rc = -EIO;
+				break;
+			}
+
+			/* retry request */
 			sccb->response_code = 0x0000;
 			buffer->request.status = SCLP_REQ_FILLED;
 			rc = sclp_add_request(request);
-			if (rc == 0)
-				return;
-		} else
-			rc = 0;
-		break;
 
-	case 0x0040: /* SCLP equipment check */
-	case 0x05f0: /* Target resource in improper state */
-		if (++buffer->retry_count > SCLP_BUFFER_MAX_RETRY) {
-			rc = -EIO;
+			if (rc == 0)
+			{
+				return;
+			}
+
 			break;
-		}
-		/* retry request */
-		sccb->response_code = 0x0000;
-		buffer->request.status = SCLP_REQ_FILLED;
-		rc = sclp_add_request(request);
-		if (rc == 0)
-			return;
-		break;
-	default:
-		if (sccb->response_code == 0x71f0)
-			rc = -ENOMEM;
-		else
-			rc = -EINVAL;
-		break;
+
+		default:
+			if (sccb->response_code == 0x71f0)
+			{
+				rc = -ENOMEM;
+			}
+			else
+			{
+				rc = -EINVAL;
+			}
+
+			break;
 	}
+
 	if (buffer->callback != NULL)
+	{
 		buffer->callback(buffer, rc);
+	}
 }
 
 /*
@@ -447,15 +563,19 @@ sclp_writedata_callback(struct sclp_req *request, void *data)
  */
 int
 sclp_emit_buffer(struct sclp_buffer *buffer,
-		 void (*callback)(struct sclp_buffer *, int))
+				 void (*callback)(struct sclp_buffer *, int))
 {
 	/* add current line if there is one */
 	if (buffer->current_line != NULL)
+	{
 		sclp_finalize_mto(buffer);
+	}
 
 	/* Are there messages in the output buffer ? */
 	if (buffer->messages == 0)
+	{
 		return -EIO;
+	}
 
 	buffer->request.command = SCLP_CMDW_WRITE_EVENT_DATA;
 	buffer->request.status = SCLP_REQ_FILLED;

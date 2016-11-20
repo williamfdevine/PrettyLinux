@@ -19,7 +19,8 @@
 #define __TPM_IBMVTPM_H__
 
 /* vTPM Message Format 1 */
-struct ibmvtpm_crq {
+struct ibmvtpm_crq
+{
 	u8 valid;
 	u8 msg;
 	__be16 len;
@@ -27,13 +28,15 @@ struct ibmvtpm_crq {
 	__be64 reserved;
 } __attribute__((packed, aligned(8)));
 
-struct ibmvtpm_crq_queue {
+struct ibmvtpm_crq_queue
+{
 	struct ibmvtpm_crq *crq_addr;
 	u32 index;
 	u32 num_entry;
 };
 
-struct ibmvtpm_dev {
+struct ibmvtpm_dev
+{
 	struct device *dev;
 	struct vio_dev *vdev;
 	struct ibmvtpm_crq_queue crq_queue;

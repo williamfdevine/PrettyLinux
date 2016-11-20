@@ -15,7 +15,8 @@
 
 /* Matt Jesson <dvb@jesson.eclipse.co.uk */
 
-static struct rc_map_table avermedia_dvbt[] = {
+static struct rc_map_table avermedia_dvbt[] =
+{
 	{ 0x28, KEY_0 },		/* '0' / 'enter' */
 	{ 0x22, KEY_1 },		/* '1' */
 	{ 0x12, KEY_2 },		/* '2' / 'up arrow' */
@@ -53,7 +54,8 @@ static struct rc_map_table avermedia_dvbt[] = {
 	{ 0x3e, KEY_VOLUMEUP },		/* 'volume +' */
 };
 
-static struct rc_map_list avermedia_dvbt_map = {
+static struct rc_map_list avermedia_dvbt_map =
+{
 	.map = {
 		.scan    = avermedia_dvbt,
 		.size    = ARRAY_SIZE(avermedia_dvbt),

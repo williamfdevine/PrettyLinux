@@ -112,7 +112,8 @@
 #include "jfs_debug.h"
 
 /* dtree split parameter */
-struct dtsplit {
+struct dtsplit
+{
 	struct metapage *mp;
 	s16 index;
 	s16 nslot;
@@ -125,20 +126,20 @@ struct dtsplit {
 
 /* get page buffer for specified block address */
 #define DT_GETPAGE(IP, BN, MP, SIZE, P, RC)				\
-do {									\
-	BT_GETPAGE(IP, BN, MP, dtpage_t, SIZE, P, RC, i_dtroot);	\
-	if (!(RC)) {							\
-		if (((P)->header.nextindex >				\
-		     (((BN) == 0) ? DTROOTMAXSLOT : (P)->header.maxslot)) || \
-		    ((BN) && ((P)->header.maxslot > DTPAGEMAXSLOT))) {	\
-			BT_PUTPAGE(MP);					\
-			jfs_error((IP)->i_sb,				\
-				  "DT_GETPAGE: dtree page corrupt\n");	\
-			MP = NULL;					\
-			RC = -EIO;					\
-		}							\
-	}								\
-} while (0)
+	do {									\
+		BT_GETPAGE(IP, BN, MP, dtpage_t, SIZE, P, RC, i_dtroot);	\
+		if (!(RC)) {							\
+			if (((P)->header.nextindex >				\
+				 (((BN) == 0) ? DTROOTMAXSLOT : (P)->header.maxslot)) || \
+				((BN) && ((P)->header.maxslot > DTPAGEMAXSLOT))) {	\
+				BT_PUTPAGE(MP);					\
+				jfs_error((IP)->i_sb,				\
+						  "DT_GETPAGE: dtree page corrupt\n");	\
+				MP = NULL;					\
+				RC = -EIO;					\
+			}							\
+		}								\
+	} while (0)
 
 /* for consistency */
 #define DT_PUTPAGE(MP) BT_PUTPAGE(MP)
@@ -150,50 +151,50 @@ do {									\
  * forward references
  */
 static int dtSplitUp(tid_t tid, struct inode *ip,
-		     struct dtsplit * split, struct btstack * btstack);
+					 struct dtsplit *split, struct btstack *btstack);
 
-static int dtSplitPage(tid_t tid, struct inode *ip, struct dtsplit * split,
-		       struct metapage ** rmpp, dtpage_t ** rpp, pxd_t * rxdp);
+static int dtSplitPage(tid_t tid, struct inode *ip, struct dtsplit *split,
+					   struct metapage **rmpp, dtpage_t **rpp, pxd_t *rxdp);
 
 static int dtExtendPage(tid_t tid, struct inode *ip,
-			struct dtsplit * split, struct btstack * btstack);
+						struct dtsplit *split, struct btstack *btstack);
 
 static int dtSplitRoot(tid_t tid, struct inode *ip,
-		       struct dtsplit * split, struct metapage ** rmpp);
+					   struct dtsplit *split, struct metapage **rmpp);
 
-static int dtDeleteUp(tid_t tid, struct inode *ip, struct metapage * fmp,
-		      dtpage_t * fp, struct btstack * btstack);
+static int dtDeleteUp(tid_t tid, struct inode *ip, struct metapage *fmp,
+					  dtpage_t *fp, struct btstack *btstack);
 
-static int dtRelink(tid_t tid, struct inode *ip, dtpage_t * p);
+static int dtRelink(tid_t tid, struct inode *ip, dtpage_t *p);
 
-static int dtReadFirst(struct inode *ip, struct btstack * btstack);
+static int dtReadFirst(struct inode *ip, struct btstack *btstack);
 
 static int dtReadNext(struct inode *ip,
-		      loff_t * offset, struct btstack * btstack);
+					  loff_t *offset, struct btstack *btstack);
 
-static int dtCompare(struct component_name * key, dtpage_t * p, int si);
+static int dtCompare(struct component_name *key, dtpage_t *p, int si);
 
-static int ciCompare(struct component_name * key, dtpage_t * p, int si,
-		     int flag);
+static int ciCompare(struct component_name *key, dtpage_t *p, int si,
+					 int flag);
 
-static void dtGetKey(dtpage_t * p, int i, struct component_name * key,
-		     int flag);
+static void dtGetKey(dtpage_t *p, int i, struct component_name *key,
+					 int flag);
 
-static int ciGetLeafPrefixKey(dtpage_t * lp, int li, dtpage_t * rp,
-			      int ri, struct component_name * key, int flag);
+static int ciGetLeafPrefixKey(dtpage_t *lp, int li, dtpage_t *rp,
+							  int ri, struct component_name *key, int flag);
 
-static void dtInsertEntry(dtpage_t * p, int index, struct component_name * key,
-			  ddata_t * data, struct dt_lock **);
+static void dtInsertEntry(dtpage_t *p, int index, struct component_name *key,
+						  ddata_t *data, struct dt_lock **);
 
-static void dtMoveEntry(dtpage_t * sp, int si, dtpage_t * dp,
-			struct dt_lock ** sdtlock, struct dt_lock ** ddtlock,
-			int do_index);
+static void dtMoveEntry(dtpage_t *sp, int si, dtpage_t *dp,
+						struct dt_lock **sdtlock, struct dt_lock **ddtlock,
+						int do_index);
 
-static void dtDeleteEntry(dtpage_t * p, int fi, struct dt_lock ** dtlock);
+static void dtDeleteEntry(dtpage_t *p, int fi, struct dt_lock **dtlock);
 
-static void dtTruncateEntry(dtpage_t * p, int ti, struct dt_lock ** dtlock);
+static void dtTruncateEntry(dtpage_t *p, int ti, struct dt_lock **dtlock);
 
-static void dtLinelockFreelist(dtpage_t * p, int m, struct dt_lock ** dtlock);
+static void dtLinelockFreelist(dtpage_t *p, int m, struct dt_lock **dtlock);
 
 #define ciToUpper(c)	UniStrupr((c)->name)
 
@@ -213,8 +214,11 @@ static struct metapage *read_index_page(struct inode *inode, s64 blkno)
 	s32 xlen;
 
 	rc = xtLookup(inode, blkno, 1, &xflag, &xaddr, &xlen, 1);
+
 	if (rc || (xaddr == 0))
+	{
 		return NULL;
+	}
 
 	return read_metapage(inode, xaddr, PSIZE, 1);
 }
@@ -232,8 +236,11 @@ static struct metapage *get_index_page(struct inode *inode, s64 blkno)
 	s32 xlen;
 
 	rc = xtLookup(inode, blkno, 1, &xflag, &xaddr, &xlen, 1);
+
 	if (rc || (xaddr == 0))
+	{
 		return NULL;
+	}
 
 	return get_metapage(inode, xaddr, PSIZE, 1);
 }
@@ -247,7 +254,7 @@ static struct metapage *get_index_page(struct inode *inode, s64 blkno)
  *	mp must be released by caller.
  */
 static struct dir_table_slot *find_index(struct inode *ip, u32 index,
-					 struct metapage ** mp, s64 *lblock)
+		struct metapage **mp, s64 *lblock)
 {
 	struct jfs_inode_info *jfs_ip = JFS_IP(ip);
 	s64 blkno;
@@ -256,53 +263,66 @@ static struct dir_table_slot *find_index(struct inode *ip, u32 index,
 	struct dir_table_slot *slot;
 	static int maxWarnings = 10;
 
-	if (index < 2) {
-		if (maxWarnings) {
+	if (index < 2)
+	{
+		if (maxWarnings)
+		{
 			jfs_warn("find_entry called with index = %d", index);
 			maxWarnings--;
 		}
+
 		return NULL;
 	}
 
-	if (index >= jfs_ip->next_index) {
+	if (index >= jfs_ip->next_index)
+	{
 		jfs_warn("find_entry called with index >= next_index");
 		return NULL;
 	}
 
-	if (jfs_dirtable_inline(ip)) {
+	if (jfs_dirtable_inline(ip))
+	{
 		/*
 		 * Inline directory table
 		 */
 		*mp = NULL;
 		slot = &jfs_ip->i_dirtable[index - 2];
-	} else {
+	}
+	else
+	{
 		offset = (index - 2) * sizeof(struct dir_table_slot);
 		page_offset = offset & (PSIZE - 1);
 		blkno = ((offset + 1) >> L2PSIZE) <<
-		    JFS_SBI(ip->i_sb)->l2nbperpage;
+				JFS_SBI(ip->i_sb)->l2nbperpage;
 
-		if (*mp && (*lblock != blkno)) {
+		if (*mp && (*lblock != blkno))
+		{
 			release_metapage(*mp);
 			*mp = NULL;
 		}
-		if (!(*mp)) {
+
+		if (!(*mp))
+		{
 			*lblock = blkno;
 			*mp = read_index_page(ip, blkno);
 		}
-		if (!(*mp)) {
+
+		if (!(*mp))
+		{
 			jfs_err("free_index: error reading directory table");
 			return NULL;
 		}
 
 		slot =
-		    (struct dir_table_slot *) ((char *) (*mp)->data +
-					       page_offset);
+			(struct dir_table_slot *) ((char *) (*mp)->data +
+									   page_offset);
 	}
+
 	return slot;
 }
 
-static inline void lock_index(tid_t tid, struct inode *ip, struct metapage * mp,
-			      u32 index)
+static inline void lock_index(tid_t tid, struct inode *ip, struct metapage *mp,
+							  u32 index)
 {
 	struct tlock *tlck;
 	struct linelock *llck;
@@ -312,7 +332,10 @@ static inline void lock_index(tid_t tid, struct inode *ip, struct metapage * mp,
 	llck = (struct linelock *) tlck->lock;
 
 	if (llck->index >= llck->maxcnt)
+	{
 		llck = txLinelock(llck);
+	}
+
 	lv = &llck->lv[llck->index];
 
 	/*
@@ -349,15 +372,17 @@ static u32 add_index(tid_t tid, struct inode *ip, s64 bn, int slot)
 
 	ASSERT(DO_INDEX(ip));
 
-	if (jfs_ip->next_index < 2) {
+	if (jfs_ip->next_index < 2)
+	{
 		jfs_warn("add_index: next_index = %d.  Resetting!",
-			   jfs_ip->next_index);
+				 jfs_ip->next_index);
 		jfs_ip->next_index = 2;
 	}
 
 	index = jfs_ip->next_index++;
 
-	if (index <= MAX_INLINE_DIRTABLE_ENTRY) {
+	if (index <= MAX_INLINE_DIRTABLE_ENTRY)
+	{
 		/*
 		 * i_size reflects size of index table, or 8 bytes per entry.
 		 */
@@ -366,7 +391,7 @@ static u32 add_index(tid_t tid, struct inode *ip, s64 bn, int slot)
 		/*
 		 * dir table fits inline within inode
 		 */
-		dirtab_slot = &jfs_ip->i_dirtable[index-2];
+		dirtab_slot = &jfs_ip->i_dirtable[index - 2];
 		dirtab_slot->flag = DIR_INDEX_VALID;
 		dirtab_slot->slot = slot;
 		DTSaddress(dirtab_slot, bn);
@@ -375,7 +400,9 @@ static u32 add_index(tid_t tid, struct inode *ip, s64 bn, int slot)
 
 		return index;
 	}
-	if (index == (MAX_INLINE_DIRTABLE_ENTRY + 1)) {
+
+	if (index == (MAX_INLINE_DIRTABLE_ENTRY + 1))
+	{
 		struct dir_table_slot temp_table[12];
 
 		/*
@@ -383,8 +410,12 @@ static u32 add_index(tid_t tid, struct inode *ip, s64 bn, int slot)
 		 * page and begin to build the xtree
 		 */
 		if (dquot_alloc_block(ip, sbi->nbperpage))
+		{
 			goto clean_up;
-		if (dbAlloc(ip, 0, sbi->nbperpage, &xaddr)) {
+		}
+
+		if (dbAlloc(ip, 0, sbi->nbperpage, &xaddr))
+		{
 			dquot_free_block(ip, sbi->nbperpage);
 			goto clean_up;
 		}
@@ -403,25 +434,30 @@ static u32 add_index(tid_t tid, struct inode *ip, s64 bn, int slot)
 		/*
 		 * Add the first block to the xtree
 		 */
-		if (xtInsert(tid, ip, 0, 0, sbi->nbperpage, &xaddr, 0)) {
+		if (xtInsert(tid, ip, 0, 0, sbi->nbperpage, &xaddr, 0))
+		{
 			/* This really shouldn't fail */
 			jfs_warn("add_index: xtInsert failed!");
 			memcpy(&jfs_ip->i_dirtable, temp_table,
-			       sizeof (temp_table));
+				   sizeof (temp_table));
 			dbFree(ip, xaddr, sbi->nbperpage);
 			dquot_free_block(ip, sbi->nbperpage);
 			goto clean_up;
 		}
+
 		ip->i_size = PSIZE;
 
 		mp = get_index_page(ip, 0);
-		if (!mp) {
+
+		if (!mp)
+		{
 			jfs_err("add_index: get_metapage failed!");
 			xtTruncate(tid, ip, 0, COMMIT_PWMAP);
 			memcpy(&jfs_ip->i_dirtable, temp_table,
-			       sizeof (temp_table));
+				   sizeof (temp_table));
 			goto clean_up;
 		}
+
 		tlck = txLock(tid, ip, mp, tlckDATA);
 		llck = (struct linelock *) & tlck->lock;
 		ASSERT(llck->index == 0);
@@ -445,25 +481,38 @@ static u32 add_index(tid_t tid, struct inode *ip, s64 bn, int slot)
 	offset = (index - 2) * sizeof(struct dir_table_slot);
 	page_offset = offset & (PSIZE - 1);
 	blkno = ((offset + 1) >> L2PSIZE) << sbi->l2nbperpage;
-	if (page_offset == 0) {
+
+	if (page_offset == 0)
+	{
 		/*
 		 * This will be the beginning of a new page
 		 */
 		xaddr = 0;
-		if (xtInsert(tid, ip, 0, blkno, sbi->nbperpage, &xaddr, 0)) {
+
+		if (xtInsert(tid, ip, 0, blkno, sbi->nbperpage, &xaddr, 0))
+		{
 			jfs_warn("add_index: xtInsert failed!");
 			goto clean_up;
 		}
+
 		ip->i_size += PSIZE;
 
 		if ((mp = get_index_page(ip, blkno)))
-			memset(mp->data, 0, PSIZE);	/* Just looks better */
+		{
+			memset(mp->data, 0, PSIZE);    /* Just looks better */
+		}
 		else
+		{
 			xtTruncate(tid, ip, offset, COMMIT_PWMAP);
-	} else
+		}
+	}
+	else
+	{
 		mp = read_index_page(ip, blkno);
+	}
 
-	if (!mp) {
+	if (!mp)
+	{
 		jfs_err("add_index: get/read_metapage failed!");
 		goto clean_up;
 	}
@@ -471,7 +520,7 @@ static u32 add_index(tid_t tid, struct inode *ip, s64 bn, int slot)
 	lock_index(tid, ip, mp, index);
 
 	dirtab_slot =
-	    (struct dir_table_slot *) ((char *) mp->data + page_offset);
+		(struct dir_table_slot *) ((char *) mp->data + page_offset);
 	dirtab_slot->flag = DIR_INDEX_VALID;
 	dirtab_slot->slot = slot;
 	DTSaddress(dirtab_slot, bn);
@@ -481,7 +530,7 @@ static u32 add_index(tid_t tid, struct inode *ip, s64 bn, int slot)
 
 	return index;
 
-      clean_up:
+clean_up:
 
 	jfs_ip->next_index--;
 
@@ -502,18 +551,24 @@ static void free_index(tid_t tid, struct inode *ip, u32 index, u32 next)
 	dirtab_slot = find_index(ip, index, &mp, &lblock);
 
 	if (!dirtab_slot)
+	{
 		return;
+	}
 
 	dirtab_slot->flag = DIR_INDEX_FREE;
 	dirtab_slot->slot = dirtab_slot->addr1 = 0;
 	dirtab_slot->addr2 = cpu_to_le32(next);
 
-	if (mp) {
+	if (mp)
+	{
 		lock_index(tid, ip, mp, index);
 		mark_metapage_dirty(mp);
 		release_metapage(mp);
-	} else
+	}
+	else
+	{
 		set_cflag(COMMIT_Dirtable, ip);
+	}
 }
 
 /*
@@ -522,23 +577,29 @@ static void free_index(tid_t tid, struct inode *ip, u32 index, u32 next)
  *	Changes an entry in the directory index table
  */
 static void modify_index(tid_t tid, struct inode *ip, u32 index, s64 bn,
-			 int slot, struct metapage ** mp, s64 *lblock)
+						 int slot, struct metapage **mp, s64 *lblock)
 {
 	struct dir_table_slot *dirtab_slot;
 
 	dirtab_slot = find_index(ip, index, mp, lblock);
 
 	if (!dirtab_slot)
+	{
 		return;
+	}
 
 	DTSaddress(dirtab_slot, bn);
 	dirtab_slot->slot = slot;
 
-	if (*mp) {
+	if (*mp)
+	{
 		lock_index(tid, ip, *mp, index);
 		mark_metapage_dirty(*mp);
-	} else
+	}
+	else
+	{
 		set_cflag(COMMIT_Dirtable, ip);
+	}
 }
 
 /*
@@ -547,21 +608,25 @@ static void modify_index(tid_t tid, struct inode *ip, u32 index, s64 bn,
  *	reads a directory table slot
  */
 static int read_index(struct inode *ip, u32 index,
-		     struct dir_table_slot * dirtab_slot)
+					  struct dir_table_slot *dirtab_slot)
 {
 	s64 lblock;
 	struct metapage *mp = NULL;
 	struct dir_table_slot *slot;
 
 	slot = find_index(ip, index, &mp, &lblock);
-	if (!slot) {
+
+	if (!slot)
+	{
 		return -EIO;
 	}
 
 	memcpy(dirtab_slot, slot, sizeof(struct dir_table_slot));
 
 	if (mp)
+	{
 		release_metapage(mp);
+	}
 
 	return 0;
 }
@@ -577,8 +642,8 @@ static int read_index(struct inode *ip, u32 index,
  * return: 0 - search result on stack, leaf page pinned;
  *	   errno - I/O error
  */
-int dtSearch(struct inode *ip, struct component_name * key, ino_t * data,
-	     struct btstack * btstack, int flag)
+int dtSearch(struct inode *ip, struct component_name *key, ino_t *data,
+			 struct btstack *btstack, int flag)
 {
 	int rc = 0;
 	int cmp = 1;		/* init for empty page */
@@ -595,7 +660,9 @@ int dtSearch(struct inode *ip, struct component_name * key, ino_t * data,
 	struct super_block *sb = ip->i_sb;
 
 	ciKey.name = kmalloc((JFS_NAME_MAX + 1) * sizeof(wchar_t), GFP_NOFS);
-	if (!ciKey.name) {
+
+	if (!ciKey.name)
+	{
 		rc = -ENOMEM;
 		goto dtSearch_Exit2;
 	}
@@ -606,9 +673,11 @@ int dtSearch(struct inode *ip, struct component_name * key, ino_t * data,
 	ciKey.namlen = key->namlen;
 
 	/* only uppercase if case-insensitive support is on */
-	if ((JFS_SBI(sb)->mntflag & JFS_OS2) == JFS_OS2) {
+	if ((JFS_SBI(sb)->mntflag & JFS_OS2) == JFS_OS2)
+	{
 		ciToUpper(&ciKey);
 	}
+
 	BT_CLR(btstack);	/* reset stack */
 
 	/* init level count for max pages to split */
@@ -630,11 +699,15 @@ int dtSearch(struct inode *ip, struct component_name * key, ino_t * data,
 	 *
 	 * by convention, root bn = 0.
 	 */
-	for (bn = 0;;) {
+	for (bn = 0;;)
+	{
 		/* get/pin the page to search */
 		DT_GETPAGE(ip, bn, mp, psize, p, rc);
+
 		if (rc)
+		{
 			goto dtSearch_Exit1;
+		}
 
 		/* get sorted entry table of the page */
 		stbl = DT_GETSTBL(p);
@@ -642,36 +715,44 @@ int dtSearch(struct inode *ip, struct component_name * key, ino_t * data,
 		/*
 		 * binary search with search key K on the current page.
 		 */
-		for (base = 0, lim = p->header.nextindex; lim; lim >>= 1) {
+		for (base = 0, lim = p->header.nextindex; lim; lim >>= 1)
+		{
 			index = base + (lim >> 1);
 
-			if (p->header.flag & BT_LEAF) {
+			if (p->header.flag & BT_LEAF)
+			{
 				/* uppercase leaf name to compare */
 				cmp =
-				    ciCompare(&ciKey, p, stbl[index],
-					      JFS_SBI(sb)->mntflag);
-			} else {
+					ciCompare(&ciKey, p, stbl[index],
+							  JFS_SBI(sb)->mntflag);
+			}
+			else
+			{
 				/* router key is in uppercase */
 
 				cmp = dtCompare(&ciKey, p, stbl[index]);
 
 
 			}
-			if (cmp == 0) {
+
+			if (cmp == 0)
+			{
 				/*
 				 *	search hit
 				 */
 				/* search hit - leaf page:
 				 * return the entry found
 				 */
-				if (p->header.flag & BT_LEAF) {
+				if (p->header.flag & BT_LEAF)
+				{
 					inumber = le32_to_cpu(
-			((struct ldtentry *) & p->slot[stbl[index]])->inumber);
+								  ((struct ldtentry *) & p->slot[stbl[index]])->inumber);
 
 					/*
 					 * search for JFS_LOOKUP
 					 */
-					if (flag == JFS_LOOKUP) {
+					if (flag == JFS_LOOKUP)
+					{
 						*data = inumber;
 						rc = 0;
 						goto out;
@@ -680,7 +761,8 @@ int dtSearch(struct inode *ip, struct component_name * key, ino_t * data,
 					/*
 					 * search for JFS_CREATE
 					 */
-					if (flag == JFS_CREATE) {
+					if (flag == JFS_CREATE)
+					{
 						*data = inumber;
 						rc = -EEXIST;
 						goto out;
@@ -690,8 +772,9 @@ int dtSearch(struct inode *ip, struct component_name * key, ino_t * data,
 					 * search for JFS_REMOVE or JFS_RENAME
 					 */
 					if ((flag == JFS_REMOVE ||
-					     flag == JFS_RENAME) &&
-					    *data != inumber) {
+						 flag == JFS_RENAME) &&
+						*data != inumber)
+					{
 						rc = -ESTALE;
 						goto out;
 					}
@@ -716,7 +799,8 @@ int dtSearch(struct inode *ip, struct component_name * key, ino_t * data,
 				goto getChild;
 			}
 
-			if (cmp > 0) {
+			if (cmp > 0)
+			{
 				base = index + 1;
 				--lim;
 			}
@@ -734,12 +818,14 @@ int dtSearch(struct inode *ip, struct component_name * key, ino_t * data,
 		 * return location of entry (base) where new entry with
 		 * search key K is to be inserted.
 		 */
-		if (p->header.flag & BT_LEAF) {
+		if (p->header.flag & BT_LEAF)
+		{
 			/*
 			 * search for JFS_LOOKUP, JFS_REMOVE, or JFS_RENAME
 			 */
 			if (flag == JFS_LOOKUP || flag == JFS_REMOVE ||
-			    flag == JFS_RENAME) {
+				flag == JFS_RENAME)
+			{
 				rc = -ENOENT;
 				goto out;
 			}
@@ -770,9 +856,11 @@ int dtSearch(struct inode *ip, struct component_name * key, ino_t * data,
 		/*
 		 * go down to child page
 		 */
-	      getChild:
+getChild:
+
 		/* update max. number of pages to split */
-		if (BT_STACK_FULL(btstack)) {
+		if (BT_STACK_FULL(btstack))
+		{
 			/* Something's corrupted, mark filesystem dirty so
 			 * chkdsk will fix it.
 			 */
@@ -781,6 +869,7 @@ int dtSearch(struct inode *ip, struct component_name * key, ino_t * data,
 			rc = -EIO;
 			goto out;
 		}
+
 		btstack->nsplit++;
 
 		/* push (bn, index) of the parent page/entry */
@@ -795,14 +884,14 @@ int dtSearch(struct inode *ip, struct component_name * key, ino_t * data,
 		DT_PUTPAGE(mp);
 	}
 
-      out:
+out:
 	DT_PUTPAGE(mp);
 
-      dtSearch_Exit1:
+dtSearch_Exit1:
 
 	kfree(ciKey.name);
 
-      dtSearch_Exit2:
+dtSearch_Exit2:
 
 	return rc;
 }
@@ -819,7 +908,7 @@ int dtSearch(struct inode *ip, struct component_name * key, ino_t * data,
  *	   errno - failure;
  */
 int dtInsert(tid_t tid, struct inode *ip,
-	 struct component_name * name, ino_t * fsn, struct btstack * btstack)
+			 struct component_name *name, ino_t *fsn, struct btstack *btstack)
 {
 	int rc = 0;
 	struct metapage *mp;	/* meta-page buffer */
@@ -845,18 +934,24 @@ int dtInsert(tid_t tid, struct inode *ip,
 	/*
 	 *	insert entry for new key
 	 */
-	if (DO_INDEX(ip)) {
-		if (JFS_IP(ip)->next_index == DIREND) {
+	if (DO_INDEX(ip))
+	{
+		if (JFS_IP(ip)->next_index == DIREND)
+		{
 			DT_PUTPAGE(mp);
 			return -EMLINK;
 		}
+
 		n = NDTLEAF(name->namlen);
 		data.leaf.tid = tid;
 		data.leaf.ip = ip;
-	} else {
+	}
+	else
+	{
 		n = NDTLEAF_LEGACY(name->namlen);
 		data.leaf.ip = NULL;	/* signifies legacy directory format */
 	}
+
 	data.leaf.ino = *fsn;
 
 	/*
@@ -866,7 +961,8 @@ int dtInsert(tid_t tid, struct inode *ip,
 	 *
 	 * dtSplitUp() will insert the entry and unpin the leaf page.
 	 */
-	if (n > p->header.freecnt) {
+	if (n > p->header.freecnt)
+	{
 		split.mp = mp;
 		split.index = index;
 		split.nslot = n;
@@ -898,14 +994,18 @@ int dtInsert(tid_t tid, struct inode *ip,
 	dtInsertEntry(p, index, name, &data, &dtlck);
 
 	/* linelock stbl of non-root leaf page */
-	if (!(p->header.flag & BT_ROOT)) {
+	if (!(p->header.flag & BT_ROOT))
+	{
 		if (dtlck->index >= dtlck->maxcnt)
+		{
 			dtlck = (struct dt_lock *) txLinelock(dtlck);
+		}
+
 		lv = & dtlck->lv[dtlck->index];
 		n = index >> L2DTSLOTSIZE;
 		lv->offset = p->header.stblindex + n;
 		lv->length =
-		    ((p->header.nextindex - 1) >> L2DTSLOTSIZE) - n + 1;
+			((p->header.nextindex - 1) >> L2DTSLOTSIZE) - n + 1;
 		dtlck->index++;
 	}
 
@@ -928,7 +1028,7 @@ int dtInsert(tid_t tid, struct inode *ip,
  *	leaf page unpinned;
  */
 static int dtSplitUp(tid_t tid,
-	  struct inode *ip, struct dtsplit * split, struct btstack * btstack)
+					 struct inode *ip, struct dtsplit *split, struct btstack *btstack)
 {
 	struct jfs_sb_info *sbi = JFS_SBI(ip->i_sb);
 	int rc = 0;
@@ -958,7 +1058,9 @@ static int dtSplitUp(tid_t tid,
 	sp = DT_PAGE(ip, smp);
 
 	key.name = kmalloc((JFS_NAME_MAX + 2) * sizeof(wchar_t), GFP_NOFS);
-	if (!key.name) {
+
+	if (!key.name)
+	{
 		DT_PUTPAGE(smp);
 		rc = -ENOMEM;
 		goto dtSplitUp_Exit;
@@ -973,7 +1075,8 @@ static int dtSplitUp(tid_t tid,
 	/*
 	 *	split root leaf page:
 	 */
-	if (sp->header.flag & BT_ROOT) {
+	if (sp->header.flag & BT_ROOT)
+	{
 		/*
 		 * allocate a single extent child page
 		 */
@@ -981,9 +1084,14 @@ static int dtSplitUp(tid_t tid,
 		n = sbi->bsize >> L2DTSLOTSIZE;
 		n -= (n + 31) >> L2DTSLOTSIZE;	/* stbl size */
 		n -= DTROOTMAXSLOT - sp->header.freecnt; /* header + entries */
+
 		if (n <= split->nslot)
+		{
 			xlen++;
-		if ((rc = dbAlloc(ip, 0, (s64) xlen, &xaddr))) {
+		}
+
+		if ((rc = dbAlloc(ip, 0, (s64) xlen, &xaddr)))
+		{
 			DT_PUTPAGE(smp);
 			goto freeKeyName;
 		}
@@ -997,14 +1105,20 @@ static int dtSplitUp(tid_t tid,
 		rc = dtSplitRoot(tid, ip, split, &rmp);
 
 		if (rc)
+		{
 			dbFree(ip, xaddr, xlen);
+		}
 		else
+		{
 			DT_PUTPAGE(rmp);
+		}
 
 		DT_PUTPAGE(smp);
 
 		if (!DO_INDEX(ip))
+		{
 			ip->i_size = xlen << sbi->l2bsize;
+		}
 
 		goto freeKeyName;
 	}
@@ -1018,24 +1132,37 @@ static int dtSplitUp(tid_t tid,
 	pxd = &sp->header.self;
 	xlen = lengthPXD(pxd);
 	xsize = xlen << sbi->l2bsize;
-	if (xsize < PSIZE) {
+
+	if (xsize < PSIZE)
+	{
 		xaddr = addressPXD(pxd);
 		n = xsize >> L2DTSLOTSIZE;
 		n -= (n + 31) >> L2DTSLOTSIZE;	/* stbl size */
+
 		if ((n + sp->header.freecnt) <= split->nslot)
+		{
 			n = xlen + (xlen << 1);
+		}
 		else
+		{
 			n = xlen;
+		}
 
 		/* Allocate blocks to quota. */
 		rc = dquot_alloc_block(ip, n);
+
 		if (rc)
+		{
 			goto extendOut;
+		}
+
 		quota_allocation += n;
 
 		if ((rc = dbReAlloc(sbi->ipbmap, xaddr, (s64) xlen,
-				    (s64) n, &nxaddr)))
+							(s64) n, &nxaddr)))
+		{
 			goto extendOut;
+		}
 
 		pxdlist.maxnpxd = 1;
 		pxdlist.npxd = 0;
@@ -1043,23 +1170,32 @@ static int dtSplitUp(tid_t tid,
 		PXDaddress(pxd, nxaddr);
 		PXDlength(pxd, xlen + n);
 		split->pxdlist = &pxdlist;
-		if ((rc = dtExtendPage(tid, ip, split, btstack))) {
+
+		if ((rc = dtExtendPage(tid, ip, split, btstack)))
+		{
 			nxaddr = addressPXD(pxd);
-			if (xaddr != nxaddr) {
+
+			if (xaddr != nxaddr)
+			{
 				/* free relocated extent */
 				xlen = lengthPXD(pxd);
 				dbFree(ip, nxaddr, (s64) xlen);
-			} else {
+			}
+			else
+			{
 				/* free extended delta */
 				xlen = lengthPXD(pxd) - n;
 				xaddr = addressPXD(pxd) + xlen;
 				dbFree(ip, xaddr, (s64) n);
 			}
-		} else if (!DO_INDEX(ip))
+		}
+		else if (!DO_INDEX(ip))
+		{
 			ip->i_size = lengthPXD(pxd) << sbi->l2bsize;
+		}
 
 
-	      extendOut:
+extendOut:
 		DT_PUTPAGE(smp);
 		goto freeKeyName;
 	}
@@ -1078,8 +1214,11 @@ static int dtSplitUp(tid_t tid,
 	n = btstack->nsplit;
 	pxdlist.maxnpxd = pxdlist.npxd = 0;
 	xlen = sbi->nbperpage;
-	for (pxd = pxdlist.pxd; n > 0; n--, pxd++) {
-		if ((rc = dbAlloc(ip, 0, (s64) xlen, &xaddr)) == 0) {
+
+	for (pxd = pxdlist.pxd; n > 0; n--, pxd++)
+	{
+		if ((rc = dbAlloc(ip, 0, (s64) xlen, &xaddr)) == 0)
+		{
 			PXDaddress(pxd, xaddr);
 			PXDlength(pxd, xlen);
 			pxdlist.maxnpxd++;
@@ -1093,7 +1232,9 @@ static int dtSplitUp(tid_t tid,
 	}
 
 	split->pxdlist = &pxdlist;
-	if ((rc = dtSplitPage(tid, ip, split, &rmp, &rp, &rpxd))) {
+
+	if ((rc = dtSplitPage(tid, ip, split, &rmp, &rp, &rpxd)))
+	{
 		DT_PUTPAGE(smp);
 
 		/* undo allocation */
@@ -1101,7 +1242,9 @@ static int dtSplitUp(tid_t tid,
 	}
 
 	if (!DO_INDEX(ip))
+	{
 		ip->i_size += PSIZE;
+	}
 
 	/*
 	 * propagate up the router entry for the leaf page just split
@@ -1124,7 +1267,8 @@ static int dtSplitUp(tid_t tid,
 	 * keep the child pages pinned while working on the parent.
 	 * make sure that all pins are released at exit.
 	 */
-	while ((parent = BT_POP(btstack)) != NULL) {
+	while ((parent = BT_POP(btstack)) != NULL)
+	{
 		/* parent page specified by stack frame <parent> */
 
 		/* keep current child pages (<lp>, <rp>) pinned */
@@ -1136,7 +1280,9 @@ static int dtSplitUp(tid_t tid,
 		 */
 		/* get the parent page <sp> */
 		DT_GETPAGE(ip, parent->bn, smp, PSIZE, sp, rc);
-		if (rc) {
+
+		if (rc)
+		{
 			DT_PUTPAGE(lmp);
 			DT_PUTPAGE(rmp);
 			goto splitOut;
@@ -1173,49 +1319,58 @@ static int dtSplitUp(tid_t tid,
 		 * internal key at any level of the tree, or search may fail
 		 * (e.g., ?)
 		 */
-		switch (rp->header.flag & BT_TYPE) {
-		case BT_LEAF:
-			/*
-			 * compute the length of prefix for suffix compression
-			 * between last entry of left page and first entry
-			 * of right page
-			 */
-			if ((sp->header.flag & BT_ROOT && skip > 1) ||
-			    sp->header.prev != 0 || skip > 1) {
-				/* compute uppercase router prefix key */
-				rc = ciGetLeafPrefixKey(lp,
-							lp->header.nextindex-1,
-							rp, 0, &key,
-							sbi->mntflag);
-				if (rc) {
-					DT_PUTPAGE(lmp);
-					DT_PUTPAGE(rmp);
-					DT_PUTPAGE(smp);
-					goto splitOut;
+		switch (rp->header.flag & BT_TYPE)
+		{
+			case BT_LEAF:
+
+				/*
+				 * compute the length of prefix for suffix compression
+				 * between last entry of left page and first entry
+				 * of right page
+				 */
+				if ((sp->header.flag & BT_ROOT && skip > 1) ||
+					sp->header.prev != 0 || skip > 1)
+				{
+					/* compute uppercase router prefix key */
+					rc = ciGetLeafPrefixKey(lp,
+											lp->header.nextindex - 1,
+											rp, 0, &key,
+											sbi->mntflag);
+
+					if (rc)
+					{
+						DT_PUTPAGE(lmp);
+						DT_PUTPAGE(rmp);
+						DT_PUTPAGE(smp);
+						goto splitOut;
+					}
 				}
-			} else {
-				/* next to leftmost entry of
-				   lowest internal level */
+				else
+				{
+					/* next to leftmost entry of
+					   lowest internal level */
 
-				/* compute uppercase router key */
+					/* compute uppercase router key */
+					dtGetKey(rp, 0, &key, sbi->mntflag);
+					key.name[key.namlen] = 0;
+
+					if ((sbi->mntflag & JFS_OS2) == JFS_OS2)
+					{
+						ciToUpper(&key);
+					}
+				}
+
+				n = NDTINTERNAL(key.namlen);
+				break;
+
+			case BT_INTERNAL:
 				dtGetKey(rp, 0, &key, sbi->mntflag);
-				key.name[key.namlen] = 0;
+				n = NDTINTERNAL(key.namlen);
+				break;
 
-				if ((sbi->mntflag & JFS_OS2) == JFS_OS2)
-					ciToUpper(&key);
-			}
-
-			n = NDTINTERNAL(key.namlen);
-			break;
-
-		case BT_INTERNAL:
-			dtGetKey(rp, 0, &key, sbi->mntflag);
-			n = NDTINTERNAL(key.namlen);
-			break;
-
-		default:
-			jfs_err("dtSplitUp(): UFO!");
-			break;
+			default:
+				jfs_err("dtSplitUp(): UFO!");
+				break;
 		}
 
 		/* unpin left child page */
@@ -1229,7 +1384,8 @@ static int dtSplitUp(tid_t tid,
 		/*
 		 * parent page is full - split the parent page
 		 */
-		if (n > sp->header.freecnt) {
+		if (n > sp->header.freecnt)
+		{
 			/* init for parent page split */
 			split->mp = smp;
 			split->index = skip;	/* index at insert */
@@ -1245,9 +1401,11 @@ static int dtSplitUp(tid_t tid,
 			 * return <rp> pinned and its block number <rbn>.
 			 */
 			rc = (sp->header.flag & BT_ROOT) ?
-			    dtSplitRoot(tid, ip, split, &rmp) :
-			    dtSplitPage(tid, ip, split, &rmp, &rp, &rpxd);
-			if (rc) {
+				 dtSplitRoot(tid, ip, split, &rmp) :
+				 dtSplitPage(tid, ip, split, &rmp, &rp, &rpxd);
+
+			if (rc)
+			{
 				DT_PUTPAGE(smp);
 				goto splitOut;
 			}
@@ -1257,7 +1415,8 @@ static int dtSplitUp(tid_t tid,
 		/*
 		 * parent page is not full - insert router entry in parent page
 		 */
-		else {
+		else
+		{
 			BT_MARK_DIRTY(smp, ip);
 			/*
 			 * acquire a transaction lock on the parent page
@@ -1273,13 +1432,14 @@ static int dtSplitUp(tid_t tid,
 			dtlck->index++;
 
 			/* linelock stbl of non-root parent page */
-			if (!(sp->header.flag & BT_ROOT)) {
+			if (!(sp->header.flag & BT_ROOT))
+			{
 				lv++;
 				n = skip >> L2DTSLOTSIZE;
 				lv->offset = sp->header.stblindex + n;
 				lv->length =
-				    ((sp->header.nextindex -
-				      1) >> L2DTSLOTSIZE) - n + 1;
+					((sp->header.nextindex -
+					  1) >> L2DTSLOTSIZE) - n + 1;
 				dtlck->index++;
 			}
 
@@ -1297,20 +1457,25 @@ static int dtSplitUp(tid_t tid,
 	/*
 	 * free remaining extents allocated for split
 	 */
-      splitOut:
+splitOut:
 	n = pxdlist.npxd;
 	pxd = &pxdlist.pxd[n];
-	for (; n < pxdlist.maxnpxd; n++, pxd++)
-		dbFree(ip, addressPXD(pxd), (s64) lengthPXD(pxd));
 
-      freeKeyName:
+	for (; n < pxdlist.maxnpxd; n++, pxd++)
+	{
+		dbFree(ip, addressPXD(pxd), (s64) lengthPXD(pxd));
+	}
+
+freeKeyName:
 	kfree(key.name);
 
 	/* Rollback quota allocation */
 	if (rc && quota_allocation)
+	{
 		dquot_free_block(ip, quota_allocation);
+	}
 
-      dtSplitUp_Exit:
+dtSplitUp_Exit:
 
 	return rc;
 }
@@ -1327,8 +1492,8 @@ static int dtSplitUp(tid_t tid,
  *	   errno - failure;
  *	return split and new page pinned;
  */
-static int dtSplitPage(tid_t tid, struct inode *ip, struct dtsplit * split,
-	    struct metapage ** rmpp, dtpage_t ** rpp, pxd_t * rpxdp)
+static int dtSplitPage(tid_t tid, struct inode *ip, struct dtsplit *split,
+					   struct metapage **rmpp, dtpage_t **rpp, pxd_t *rpxdp)
 {
 	int rc = 0;
 	struct metapage *smp;
@@ -1365,12 +1530,17 @@ static int dtSplitPage(tid_t tid, struct inode *ip, struct dtsplit * split,
 	pxdlist->npxd++;
 	rbn = addressPXD(pxd);
 	rmp = get_metapage(ip, rbn, PSIZE, 1);
+
 	if (rmp == NULL)
+	{
 		return -EIO;
+	}
 
 	/* Allocate blocks to quota. */
 	rc = dquot_alloc_block(ip, lengthPXD(pxd));
-	if (rc) {
+
+	if (rc)
+	{
 		release_metapage(rmp);
 		return rc;
 	}
@@ -1443,7 +1613,8 @@ static int dtSplitPage(tid_t tid, struct inode *ip, struct dtsplit * split,
 	 * reverse sorted data, that is, split the tree left,
 	 * but it's not. Be my guest.)
 	 */
-	if (nextbn == 0 && split->index == sp->header.nextindex) {
+	if (nextbn == 0 && split->index == sp->header.nextindex)
+	{
 		/* linelock header + stbl (first slot) of new page */
 		rlv = & rdtlck->lv[rdtlck->index];
 		rlv->offset = 0;
@@ -1454,8 +1625,12 @@ static int dtSplitPage(tid_t tid, struct inode *ip, struct dtsplit * split,
 		 * initialize freelist of new right page
 		 */
 		f = &rp->slot[fsi];
+
 		for (fsi++; fsi < rp->header.maxslot; f++, fsi++)
+		{
 			f->next = fsi;
+		}
+
 		f->next = -1;
 
 		/* insert entry at the first entry of the new right page */
@@ -1471,9 +1646,12 @@ static int dtSplitPage(tid_t tid, struct inode *ip, struct dtsplit * split,
 	/*
 	 * update prev pointer of previous right sibling page;
 	 */
-	if (nextbn != 0) {
+	if (nextbn != 0)
+	{
 		DT_GETPAGE(ip, nextbn, mp, PSIZE, p, rc);
-		if (rc) {
+
+		if (rc)
+		{
 			discard_metapage(rmp);
 			return rc;
 		}
@@ -1484,7 +1662,7 @@ static int dtSplitPage(tid_t tid, struct inode *ip, struct dtsplit * split,
 		 */
 		tlck = txLock(tid, ip, mp, tlckDTREE | tlckRELINK);
 		jfs_info("dtSplitPage: tlck = 0x%p, ip = 0x%p, mp=0x%p",
-			tlck, ip, mp);
+				 tlck, ip, mp);
 		dtlck = (struct dt_lock *) & tlck->lock;
 
 		/* linelock header of previous right sibling page */
@@ -1513,37 +1691,51 @@ static int dtSplitPage(tid_t tid, struct inode *ip, struct dtsplit * split,
 	 */
 	stbl = (u8 *) & sp->slot[sp->header.stblindex];
 	nextindex = sp->header.nextindex;
-	for (nxt = off = 0; nxt < nextindex; ++off) {
+
+	for (nxt = off = 0; nxt < nextindex; ++off)
+	{
 		if (off == skip)
 			/* check for fill factor with new entry size */
+		{
 			n = split->nslot;
-		else {
+		}
+		else
+		{
 			si = stbl[nxt];
-			switch (sp->header.flag & BT_TYPE) {
-			case BT_LEAF:
-				ldtentry = (struct ldtentry *) & sp->slot[si];
-				if (DO_INDEX(ip))
-					n = NDTLEAF(ldtentry->namlen);
-				else
-					n = NDTLEAF_LEGACY(ldtentry->
-							   namlen);
-				break;
 
-			case BT_INTERNAL:
-				idtentry = (struct idtentry *) & sp->slot[si];
-				n = NDTINTERNAL(idtentry->namlen);
-				break;
+			switch (sp->header.flag & BT_TYPE)
+			{
+				case BT_LEAF:
+					ldtentry = (struct ldtentry *) & sp->slot[si];
 
-			default:
-				break;
+					if (DO_INDEX(ip))
+					{
+						n = NDTLEAF(ldtentry->namlen);
+					}
+					else
+						n = NDTLEAF_LEGACY(ldtentry->
+										   namlen);
+
+					break;
+
+				case BT_INTERNAL:
+					idtentry = (struct idtentry *) & sp->slot[si];
+					n = NDTINTERNAL(idtentry->namlen);
+					break;
+
+				default:
+					break;
 			}
 
 			++nxt;	/* advance to next entry to move in sp */
 		}
 
 		left += n;
+
 		if (left >= half)
+		{
 			break;
+		}
 	}
 
 	/* <nxt> poins to the 1st entry to move */
@@ -1571,48 +1763,63 @@ static int dtSplitPage(tid_t tid, struct inode *ip, struct dtsplit * split,
 	 */
 	fsi = rp->header.freelist;
 	f = &rp->slot[fsi];
+
 	for (fsi++; fsi < rp->header.maxslot; f++, fsi++)
+	{
 		f->next = fsi;
+	}
+
 	f->next = -1;
 
 	/*
 	 * Update directory index table for entries now in right page
 	 */
-	if ((rp->header.flag & BT_LEAF) && DO_INDEX(ip)) {
+	if ((rp->header.flag & BT_LEAF) && DO_INDEX(ip))
+	{
 		s64 lblock;
 
 		mp = NULL;
 		stbl = DT_GETSTBL(rp);
-		for (n = 0; n < rp->header.nextindex; n++) {
+
+		for (n = 0; n < rp->header.nextindex; n++)
+		{
 			ldtentry = (struct ldtentry *) & rp->slot[stbl[n]];
 			modify_index(tid, ip, le32_to_cpu(ldtentry->index),
-				     rbn, n, &mp, &lblock);
+						 rbn, n, &mp, &lblock);
 		}
+
 		if (mp)
+		{
 			release_metapage(mp);
+		}
 	}
 
 	/*
 	 * the skipped index was on the left page,
 	 */
-	if (skip <= off) {
+	if (skip <= off)
+	{
 		/* insert the new entry in the split page */
 		dtInsertEntry(sp, skip, split->key, split->data, &sdtlck);
 
 		/* linelock stbl of split page */
 		if (sdtlck->index >= sdtlck->maxcnt)
+		{
 			sdtlck = (struct dt_lock *) txLinelock(sdtlck);
+		}
+
 		slv = & sdtlck->lv[sdtlck->index];
 		n = skip >> L2DTSLOTSIZE;
 		slv->offset = sp->header.stblindex + n;
 		slv->length =
-		    ((sp->header.nextindex - 1) >> L2DTSLOTSIZE) - n + 1;
+			((sp->header.nextindex - 1) >> L2DTSLOTSIZE) - n + 1;
 		sdtlck->index++;
 	}
 	/*
 	 * the skipped index was on the right page,
 	 */
-	else {
+	else
+	{
 		/* adjust the skip index to reflect the new position */
 		skip -= nxt;
 
@@ -1620,7 +1827,7 @@ static int dtSplitPage(tid_t tid, struct inode *ip, struct dtsplit * split,
 		dtInsertEntry(rp, skip, split->key, split->data, &rdtlck);
 	}
 
-      out:
+out:
 	*rmpp = rmp;
 	*rpxdp = *pxd;
 
@@ -1640,7 +1847,7 @@ static int dtSplitPage(tid_t tid, struct inode *ip, struct dtsplit * split,
  *	return extended page pinned;
  */
 static int dtExtendPage(tid_t tid,
-	     struct inode *ip, struct dtsplit * split, struct btstack * btstack)
+						struct inode *ip, struct dtsplit *split, struct btstack *btstack)
 {
 	struct super_block *sb = ip->i_sb;
 	int rc;
@@ -1671,8 +1878,11 @@ static int dtExtendPage(tid_t tid,
 	/* get parent/root page */
 	parent = BT_POP(btstack);
 	DT_GETPAGE(ip, parent->bn, pmp, PSIZE, pp, rc);
+
 	if (rc)
+	{
 		return (rc);
+	}
 
 	/*
 	 *	extend the extent
@@ -1684,12 +1894,15 @@ static int dtExtendPage(tid_t tid,
 	xaddr = addressPXD(pxd);
 	tpxd = &sp->header.self;
 	txaddr = addressPXD(tpxd);
+
 	/* in-place extension */
-	if (xaddr == txaddr) {
+	if (xaddr == txaddr)
+	{
 		type = tlckEXTEND;
 	}
 	/* relocation */
-	else {
+	else
+	{
 		type = tlckNEW;
 
 		/* save moved extent descriptor for later free */
@@ -1702,20 +1915,26 @@ static int dtExtendPage(tid_t tid,
 		/*
 		 * Update directory index table to reflect new page address
 		 */
-		if (DO_INDEX(ip)) {
+		if (DO_INDEX(ip))
+		{
 			s64 lblock;
 
 			mp = NULL;
 			stbl = DT_GETSTBL(sp);
-			for (n = 0; n < sp->header.nextindex; n++) {
+
+			for (n = 0; n < sp->header.nextindex; n++)
+			{
 				ldtentry =
-				    (struct ldtentry *) & sp->slot[stbl[n]];
+					(struct ldtentry *) & sp->slot[stbl[n]];
 				modify_index(tid, ip,
-					     le32_to_cpu(ldtentry->index),
-					     xaddr, n, &mp, &lblock);
+							 le32_to_cpu(ldtentry->index),
+							 xaddr, n, &mp, &lblock);
 			}
+
 			if (mp)
+			{
 				release_metapage(mp);
+			}
 		}
 	}
 
@@ -1747,12 +1966,13 @@ static int dtExtendPage(tid_t tid,
 	n = xsize >> L2DTSLOTSIZE;
 	newstblsize = (n + 31) >> L2DTSLOTSIZE;
 	memcpy(&sp->slot[newstblindex], &sp->slot[oldstblindex],
-	       sp->header.nextindex);
+		   sp->header.nextindex);
 
 	/*
 	 * in-line extension: linelock old area of extended page
 	 */
-	if (type == tlckEXTEND) {
+	if (type == tlckEXTEND)
+	{
 		/* linelock header */
 		lv->offset = 0;
 		lv->length = 1;
@@ -1766,7 +1986,8 @@ static int dtExtendPage(tid_t tid,
 	/*
 	 * relocation: linelock whole relocated area
 	 */
-	else {
+	else
+	{
 		lv->offset = 0;
 		lv->length = sp->header.maxslot + newstblsize;
 	}
@@ -1783,10 +2004,13 @@ static int dtExtendPage(tid_t tid,
 	fsi = oldstblindex;
 	f = &sp->slot[fsi];
 	last = sp->header.freelist;
-	for (n = 0; n < oldstblsize; n++, fsi++, f++) {
+
+	for (n = 0; n < oldstblsize; n++, fsi++, f++)
+	{
 		f->next = last;
 		last = fsi;
 	}
+
 	sp->header.freelist = last;
 	sp->header.freecnt += oldstblsize;
 
@@ -1796,19 +2020,29 @@ static int dtExtendPage(tid_t tid,
 	/* init free region of newly extended area */
 	fsi = n = newstblindex + newstblsize;
 	f = &sp->slot[fsi];
+
 	for (fsi++; fsi < sp->header.maxslot; f++, fsi++)
+	{
 		f->next = fsi;
+	}
+
 	f->next = -1;
 
 	/* append new free region at tail of old freelist */
 	fsi = sp->header.freelist;
+
 	if (fsi == -1)
+	{
 		sp->header.freelist = n;
-	else {
-		do {
+	}
+	else
+	{
+		do
+		{
 			f = &sp->slot[fsi];
 			fsi = f->next;
-		} while (fsi != -1);
+		}
+		while (fsi != -1);
 
 		f->next = n;
 	}
@@ -1821,13 +2055,18 @@ static int dtExtendPage(tid_t tid,
 	dtInsertEntry(sp, split->index, split->key, split->data, &dtlck);
 
 	BT_MARK_DIRTY(pmp, ip);
+
 	/*
 	 * linelock any freeslots residing in old extent
 	 */
-	if (type == tlckEXTEND) {
+	if (type == tlckEXTEND)
+	{
 		n = sp->header.maxslot >> 2;
+
 		if (sp->header.freelist < n)
+		{
 			dtLinelockFreelist(sp, n, &dtlck);
+		}
 	}
 
 	/*
@@ -1873,7 +2112,7 @@ static int dtExtendPage(tid_t tid,
  *	return new page pinned;
  */
 static int dtSplitRoot(tid_t tid,
-	    struct inode *ip, struct dtsplit * split, struct metapage ** rmpp)
+					   struct inode *ip, struct dtsplit *split, struct metapage **rmpp)
 {
 	struct super_block *sb = ip->i_sb;
 	struct metapage *smp;
@@ -1912,14 +2151,19 @@ static int dtSplitRoot(tid_t tid,
 	xlen = lengthPXD(pxd);
 	xsize = xlen << JFS_SBI(sb)->l2bsize;
 	rmp = get_metapage(ip, rbn, xsize, 1);
+
 	if (!rmp)
+	{
 		return -EIO;
+	}
 
 	rp = rmp->data;
 
 	/* Allocate blocks to quota. */
 	rc = dquot_alloc_block(ip, lengthPXD(pxd));
-	if (rc) {
+
+	if (rc)
+	{
 		release_metapage(rmp);
 		return rc;
 	}
@@ -1932,7 +2176,7 @@ static int dtSplitRoot(tid_t tid,
 	dtlck = (struct dt_lock *) & tlck->lock;
 
 	rp->header.flag =
-	    (sp->header.flag & BT_LEAF) ? BT_LEAF : BT_INTERNAL;
+		(sp->header.flag & BT_LEAF) ? BT_LEAF : BT_INTERNAL;
 	rp->header.self = *pxd;
 
 	/* initialize sibling pointers */
@@ -1968,21 +2212,31 @@ static int dtSplitRoot(tid_t tid,
 	/* init free region of newly extended area */
 	fsi = n = DTROOTMAXSLOT + stblsize;
 	f = &rp->slot[fsi];
+
 	for (fsi++; fsi < rp->header.maxslot; f++, fsi++)
+	{
 		f->next = fsi;
+	}
+
 	f->next = -1;
 
 	/* append new free region at tail of old freelist */
 	fsi = sp->header.freelist;
+
 	if (fsi == -1)
+	{
 		rp->header.freelist = n;
-	else {
+	}
+	else
+	{
 		rp->header.freelist = fsi;
 
-		do {
+		do
+		{
 			f = &rp->slot[fsi];
 			fsi = f->next;
-		} while (fsi != -1);
+		}
+		while (fsi != -1);
 
 		f->next = n;
 	}
@@ -1992,20 +2246,27 @@ static int dtSplitRoot(tid_t tid,
 	/*
 	 * Update directory index table for entries now in right page
 	 */
-	if ((rp->header.flag & BT_LEAF) && DO_INDEX(ip)) {
+	if ((rp->header.flag & BT_LEAF) && DO_INDEX(ip))
+	{
 		s64 lblock;
 		struct metapage *mp = NULL;
 		struct ldtentry *ldtentry;
 
 		stbl = DT_GETSTBL(rp);
-		for (n = 0; n < rp->header.nextindex; n++) {
+
+		for (n = 0; n < rp->header.nextindex; n++)
+		{
 			ldtentry = (struct ldtentry *) & rp->slot[stbl[n]];
 			modify_index(tid, ip, le32_to_cpu(ldtentry->index),
-				     rbn, n, &mp, &lblock);
+						 rbn, n, &mp, &lblock);
 		}
+
 		if (mp)
+		{
 			release_metapage(mp);
+		}
 	}
+
 	/*
 	 * insert the new entry into the new right/child page
 	 * (skip index in the new right page will not change)
@@ -2036,7 +2297,8 @@ static int dtSplitRoot(tid_t tid,
 	dtlck->index++;
 
 	/* update page header of root */
-	if (sp->header.flag & BT_LEAF) {
+	if (sp->header.flag & BT_LEAF)
+	{
 		sp->header.flag &= ~BT_LEAF;
 		sp->header.flag |= BT_INTERNAL;
 	}
@@ -2058,7 +2320,10 @@ static int dtSplitRoot(tid_t tid,
 
 	/* init free region of remaining area */
 	for (fsi++; fsi < DTROOTMAXSLOT; f++, fsi++)
+	{
 		f->next = fsi;
+	}
+
 	f->next = -1;
 
 	sp->header.freelist = DTENTRYSTART + 1;
@@ -2080,7 +2345,7 @@ static int dtSplitRoot(tid_t tid,
  * return:
  */
 int dtDelete(tid_t tid,
-	 struct inode *ip, struct component_name * key, ino_t * ino, int flag)
+			 struct inode *ip, struct component_name *key, ino_t *ino, int flag)
 {
 	int rc = 0;
 	s64 bn;
@@ -2104,7 +2369,9 @@ int dtDelete(tid_t tid,
 	 * dtSearch() returns (leaf page pinned, index at which to delete).
 	 */
 	if ((rc = dtSearch(ip, key, ino, &btstack, flag)))
+	{
 		return rc;
+	}
 
 	/* retrieve search result */
 	DT_GETSEARCH(ip, btstack.top, bn, mp, p, index);
@@ -2114,44 +2381,59 @@ int dtDelete(tid_t tid,
 	 * directory index table in order to resume a readdir from this
 	 * entry.
 	 */
-	if (DO_INDEX(ip)) {
+	if (DO_INDEX(ip))
+	{
 		stbl = DT_GETSTBL(p);
 		ldtentry = (struct ldtentry *) & p->slot[stbl[index]];
 		table_index = le32_to_cpu(ldtentry->index);
-		if (index == (p->header.nextindex - 1)) {
+
+		if (index == (p->header.nextindex - 1))
+		{
 			/*
 			 * Last entry in this leaf page
 			 */
 			if ((p->header.flag & BT_ROOT)
-			    || (p->header.next == 0))
+				|| (p->header.next == 0))
+			{
 				next_index = -1;
-			else {
+			}
+			else
+			{
 				/* Read next leaf page */
 				DT_GETPAGE(ip, le64_to_cpu(p->header.next),
-					   nmp, PSIZE, np, rc);
+						   nmp, PSIZE, np, rc);
+
 				if (rc)
+				{
 					next_index = -1;
-				else {
+				}
+				else
+				{
 					stbl = DT_GETSTBL(np);
 					ldtentry =
-					    (struct ldtentry *) & np->
-					    slot[stbl[0]];
+						(struct ldtentry *) & np->
+						slot[stbl[0]];
 					next_index =
-					    le32_to_cpu(ldtentry->index);
+						le32_to_cpu(ldtentry->index);
 					DT_PUTPAGE(nmp);
 				}
 			}
-		} else {
+		}
+		else
+		{
 			ldtentry =
-			    (struct ldtentry *) & p->slot[stbl[index + 1]];
+				(struct ldtentry *) & p->slot[stbl[index + 1]];
 			next_index = le32_to_cpu(ldtentry->index);
 		}
+
 		free_index(tid, ip, table_index, next_index);
 	}
+
 	/*
 	 * the leaf page becomes empty, delete the page
 	 */
-	if (p->header.nextindex == 1) {
+	if (p->header.nextindex == 1)
+	{
 		/* delete empty page */
 		rc = dtDeleteUp(tid, ip, mp, p, &btstack);
 	}
@@ -2160,7 +2442,8 @@ int dtDelete(tid_t tid,
 	 *
 	 * delete the entry from the leaf page.
 	 */
-	else {
+	else
+	{
 		BT_MARK_DIRTY(mp, ip);
 		/*
 		 * acquire a transaction lock on the leaf page
@@ -2176,22 +2459,29 @@ int dtDelete(tid_t tid,
 
 		/* linelock header */
 		if (dtlck->index >= dtlck->maxcnt)
+		{
 			dtlck = (struct dt_lock *) txLinelock(dtlck);
+		}
+
 		lv = & dtlck->lv[dtlck->index];
 		lv->offset = 0;
 		lv->length = 1;
 		dtlck->index++;
 
 		/* linelock stbl of non-root leaf page */
-		if (!(p->header.flag & BT_ROOT)) {
+		if (!(p->header.flag & BT_ROOT))
+		{
 			if (dtlck->index >= dtlck->maxcnt)
+			{
 				dtlck = (struct dt_lock *) txLinelock(dtlck);
+			}
+
 			lv = & dtlck->lv[dtlck->index];
 			i = index >> L2DTSLOTSIZE;
 			lv->offset = p->header.stblindex + i;
 			lv->length =
-			    ((p->header.nextindex - 1) >> L2DTSLOTSIZE) -
-			    i + 1;
+				((p->header.nextindex - 1) >> L2DTSLOTSIZE) -
+				i + 1;
 			dtlck->index++;
 		}
 
@@ -2201,20 +2491,26 @@ int dtDelete(tid_t tid,
 		/*
 		 * Update directory index table for entries moved in stbl
 		 */
-		if (DO_INDEX(ip) && index < p->header.nextindex) {
+		if (DO_INDEX(ip) && index < p->header.nextindex)
+		{
 			s64 lblock;
 
 			imp = NULL;
 			stbl = DT_GETSTBL(p);
-			for (i = index; i < p->header.nextindex; i++) {
+
+			for (i = index; i < p->header.nextindex; i++)
+			{
 				ldtentry =
-				    (struct ldtentry *) & p->slot[stbl[i]];
+					(struct ldtentry *) & p->slot[stbl[i]];
 				modify_index(tid, ip,
-					     le32_to_cpu(ldtentry->index),
-					     bn, i, &imp, &lblock);
+							 le32_to_cpu(ldtentry->index),
+							 bn, i, &imp, &lblock);
 			}
+
 			if (imp)
+			{
 				release_metapage(imp);
+			}
 		}
 
 		DT_PUTPAGE(mp);
@@ -2235,7 +2531,7 @@ int dtDelete(tid_t tid,
  * return:
  */
 static int dtDeleteUp(tid_t tid, struct inode *ip,
-	   struct metapage * fmp, dtpage_t * fp, struct btstack * btstack)
+					  struct metapage *fmp, dtpage_t *fp, struct btstack *btstack)
 {
 	int rc = 0;
 	struct metapage *mp;
@@ -2252,7 +2548,8 @@ static int dtDeleteUp(tid_t tid, struct inode *ip,
 	/*
 	 *	keep the root leaf page which has become empty
 	 */
-	if (BT_IS_ROOT(fmp)) {
+	if (BT_IS_ROOT(fmp))
+	{
 		/*
 		 * reset the root
 		 *
@@ -2282,7 +2579,8 @@ static int dtDeleteUp(tid_t tid, struct inode *ip,
 	pxdlock->index = 1;
 
 	/* update sibling pointers */
-	if ((rc = dtRelink(tid, ip, fp))) {
+	if ((rc = dtRelink(tid, ip, fp)))
+	{
 		BT_PUTPAGE(fmp);
 		return rc;
 	}
@@ -2303,11 +2601,15 @@ static int dtDeleteUp(tid_t tid, struct inode *ip,
 	 * stop if the root page is reached (which is never deleted) or
 	 * if the entry deletion does not empty the page.
 	 */
-	while ((parent = BT_POP(btstack)) != NULL) {
+	while ((parent = BT_POP(btstack)) != NULL)
+	{
 		/* pin the parent page <sp> */
 		DT_GETPAGE(ip, parent->bn, mp, PSIZE, p, rc);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		/*
 		 * free the extent of the child page deleted
@@ -2324,11 +2626,13 @@ static int dtDeleteUp(tid_t tid, struct inode *ip,
 		 *
 		 * free the parent page which has become empty.
 		 */
-		if (nextindex == 1) {
+		if (nextindex == 1)
+		{
 			/*
 			 * keep the root internal page which has become empty
 			 */
-			if (p->header.flag & BT_ROOT) {
+			if (p->header.flag & BT_ROOT)
+			{
 				/*
 				 * reset the root
 				 *
@@ -2343,22 +2647,24 @@ static int dtDeleteUp(tid_t tid, struct inode *ip,
 			/*
 			 * free the parent page
 			 */
-			else {
+			else
+			{
 				/*
 				 * acquire a transaction lock on the page
 				 *
 				 * write FREEXTENT|NOREDOPAGE log record
 				 */
 				tlck =
-				    txMaplock(tid, ip,
-					      tlckDTREE | tlckFREE);
+					txMaplock(tid, ip,
+							  tlckDTREE | tlckFREE);
 				pxdlock = (struct pxd_lock *) & tlck->lock;
 				pxdlock->flag = mlckFREEPXD;
 				pxdlock->pxd = p->header.self;
 				pxdlock->index = 1;
 
 				/* update sibling pointers */
-				if ((rc = dtRelink(tid, ip, p))) {
+				if ((rc = dtRelink(tid, ip, p)))
+				{
 					DT_PUTPAGE(mp);
 					return rc;
 				}
@@ -2392,25 +2698,33 @@ static int dtDeleteUp(tid_t tid, struct inode *ip,
 
 		/* linelock header */
 		if (dtlck->index >= dtlck->maxcnt)
+		{
 			dtlck = (struct dt_lock *) txLinelock(dtlck);
+		}
+
 		lv = & dtlck->lv[dtlck->index];
 		lv->offset = 0;
 		lv->length = 1;
 		dtlck->index++;
 
 		/* linelock stbl of non-root leaf page */
-		if (!(p->header.flag & BT_ROOT)) {
+		if (!(p->header.flag & BT_ROOT))
+		{
 			if (dtlck->index < dtlck->maxcnt)
+			{
 				lv++;
-			else {
+			}
+			else
+			{
 				dtlck = (struct dt_lock *) txLinelock(dtlck);
 				lv = & dtlck->lv[0];
 			}
+
 			i = index >> L2DTSLOTSIZE;
 			lv->offset = p->header.stblindex + i;
 			lv->length =
-			    ((p->header.nextindex - 1) >> L2DTSLOTSIZE) -
-			    i + 1;
+				((p->header.nextindex - 1) >> L2DTSLOTSIZE) -
+				i + 1;
 			dtlck->index++;
 		}
 
@@ -2419,8 +2733,10 @@ static int dtDeleteUp(tid_t tid, struct inode *ip,
 
 		/* reset key of new leftmost entry of level (for consistency) */
 		if (index == 0 &&
-		    ((p->header.flag & BT_ROOT) || p->header.prev == 0))
+			((p->header.flag & BT_ROOT) || p->header.prev == 0))
+		{
 			dtTruncateEntry(p, 0, &dtlck);
+		}
 
 		/* unpin the parent page */
 		DT_PUTPAGE(mp);
@@ -2430,7 +2746,9 @@ static int dtDeleteUp(tid_t tid, struct inode *ip,
 	}
 
 	if (!DO_INDEX(ip))
+	{
 		ip->i_size -= PSIZE;
+	}
 
 	return 0;
 }
@@ -2442,12 +2760,12 @@ static int dtDeleteUp(tid_t tid, struct inode *ip,
  * FUNCTION:	relocate dtpage (internal or leaf) of directory;
  *		This function is mainly used by defragfs utility.
  */
-int dtRelocate(tid_t tid, struct inode *ip, s64 lmxaddr, pxd_t * opxd,
-	       s64 nxaddr)
+int dtRelocate(tid_t tid, struct inode *ip, s64 lmxaddr, pxd_t *opxd,
+			   s64 nxaddr)
 {
 	int rc = 0;
 	struct metapage *mp, *pmp, *lmp, *rmp;
-	dtpage_t *p, *pp, *rp = 0, *lp= 0;
+	dtpage_t *p, *pp, *rp = 0, *lp = 0;
 	s64 bn;
 	int index;
 	struct btstack btstack;
@@ -2464,16 +2782,19 @@ int dtRelocate(tid_t tid, struct inode *ip, s64 lmxaddr, pxd_t * opxd,
 	xlen = lengthPXD(opxd);
 
 	jfs_info("dtRelocate: lmxaddr:%Ld xaddr:%Ld:%Ld xlen:%d",
-		   (long long)lmxaddr, (long long)oxaddr, (long long)nxaddr,
-		   xlen);
+			 (long long)lmxaddr, (long long)oxaddr, (long long)nxaddr,
+			 xlen);
 
 	/*
 	 *	1. get the internal parent dtpage covering
 	 *	router entry for the tartget page to be relocated;
 	 */
 	rc = dtSearchNode(ip, lmxaddr, opxd, &btstack);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* retrieve search result */
 	DT_GETSEARCH(ip, btstack.top, bn, pmp, pp, index);
@@ -2484,7 +2805,9 @@ int dtRelocate(tid_t tid, struct inode *ip, s64 lmxaddr, pxd_t * opxd,
 	 */
 	/* read in the target page from src extent */
 	DT_GETPAGE(ip, oxaddr, mp, PSIZE, p, rc);
-	if (rc) {
+
+	if (rc)
+	{
 		/* release the pinned parent page */
 		DT_PUTPAGE(pmp);
 		return rc;
@@ -2494,10 +2817,14 @@ int dtRelocate(tid_t tid, struct inode *ip, s64 lmxaddr, pxd_t * opxd,
 	 * read in sibling pages if any to update sibling pointers;
 	 */
 	rmp = NULL;
-	if (p->header.next) {
+
+	if (p->header.next)
+	{
 		nextbn = le64_to_cpu(p->header.next);
 		DT_GETPAGE(ip, nextbn, rmp, PSIZE, rp, rc);
-		if (rc) {
+
+		if (rc)
+		{
 			DT_PUTPAGE(mp);
 			DT_PUTPAGE(pmp);
 			return (rc);
@@ -2505,14 +2832,22 @@ int dtRelocate(tid_t tid, struct inode *ip, s64 lmxaddr, pxd_t * opxd,
 	}
 
 	lmp = NULL;
-	if (p->header.prev) {
+
+	if (p->header.prev)
+	{
 		prevbn = le64_to_cpu(p->header.prev);
 		DT_GETPAGE(ip, prevbn, lmp, PSIZE, lp, rc);
-		if (rc) {
+
+		if (rc)
+		{
 			DT_PUTPAGE(mp);
 			DT_PUTPAGE(pmp);
+
 			if (rmp)
+			{
 				DT_PUTPAGE(rmp);
+			}
+
 			return (rc);
 		}
 	}
@@ -2522,7 +2857,8 @@ int dtRelocate(tid_t tid, struct inode *ip, s64 lmxaddr, pxd_t * opxd,
 	/*
 	 * update sibling pointers of sibling dtpages if any;
 	 */
-	if (lmp) {
+	if (lmp)
+	{
 		tlck = txLock(tid, ip, lmp, tlckDTREE | tlckRELINK);
 		dtlck = (struct dt_lock *) & tlck->lock;
 		/* linelock header */
@@ -2536,7 +2872,8 @@ int dtRelocate(tid_t tid, struct inode *ip, s64 lmxaddr, pxd_t * opxd,
 		DT_PUTPAGE(lmp);
 	}
 
-	if (rmp) {
+	if (rmp)
+	{
 		tlck = txLock(tid, ip, rmp, tlckDTREE | tlckRELINK);
 		dtlck = (struct dt_lock *) & tlck->lock;
 		/* linelock header */
@@ -2639,8 +2976,8 @@ int dtRelocate(tid_t tid, struct inode *ip, s64 lmxaddr, pxd_t * opxd,
  *		lmxaddr give the address of the left most page of the
  *		dtree level, in which the required dtpage resides.
  */
-static int dtSearchNode(struct inode *ip, s64 lmxaddr, pxd_t * kpxd,
-			struct btstack * btstack)
+static int dtSearchNode(struct inode *ip, s64 lmxaddr, pxd_t *kpxd,
+						struct btstack *btstack)
 {
 	int rc = 0;
 	s64 bn;
@@ -2659,25 +2996,36 @@ static int dtSearchNode(struct inode *ip, s64 lmxaddr, pxd_t * kpxd,
 	 *
 	 *  by convention, root bn = 0.
 	 */
-	for (bn = 0;;) {
+	for (bn = 0;;)
+	{
 		/* get/pin the page to search */
 		DT_GETPAGE(ip, bn, mp, psize, p, rc);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		/* does the xaddr of leftmost page of the levevl
 		 * matches levevl search key ?
 		 */
-		if (p->header.flag & BT_ROOT) {
+		if (p->header.flag & BT_ROOT)
+		{
 			if (lmxaddr == 0)
+			{
 				break;
-		} else if (addressPXD(&p->header.self) == lmxaddr)
+			}
+		}
+		else if (addressPXD(&p->header.self) == lmxaddr)
+		{
 			break;
+		}
 
 		/*
 		 * descend down to leftmost child page
 		 */
-		if (p->header.flag & BT_LEAF) {
+		if (p->header.flag & BT_LEAF)
+		{
 			DT_PUTPAGE(mp);
 			return -ESTALE;
 		}
@@ -2696,14 +3044,17 @@ static int dtSearchNode(struct inode *ip, s64 lmxaddr, pxd_t * kpxd,
 	/*
 	 *	search each page at the current levevl
 	 */
-      loop:
+loop:
 	stbl = DT_GETSTBL(p);
-	for (i = 0; i < p->header.nextindex; i++) {
+
+	for (i = 0; i < p->header.nextindex; i++)
+	{
 		pxd = (pxd_t *) & p->slot[stbl[i]];
 
 		/* found the specified router entry */
 		if (addressPXD(pxd) == addressPXD(kpxd) &&
-		    lengthPXD(pxd) == lengthPXD(kpxd)) {
+			lengthPXD(pxd) == lengthPXD(kpxd))
+		{
 			btsp = btstack->top;
 			btsp->bn = bn;
 			btsp->index = i;
@@ -2715,8 +3066,11 @@ static int dtSearchNode(struct inode *ip, s64 lmxaddr, pxd_t * kpxd,
 
 	/* get the right sibling page if any */
 	if (p->header.next)
+	{
 		bn = le64_to_cpu(p->header.next);
-	else {
+	}
+	else
+	{
 		DT_PUTPAGE(mp);
 		return -ESTALE;
 	}
@@ -2726,8 +3080,11 @@ static int dtSearchNode(struct inode *ip, s64 lmxaddr, pxd_t * kpxd,
 
 	/* get the right sibling page */
 	DT_GETPAGE(ip, bn, mp, PSIZE, p, rc);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	goto loop;
 }
@@ -2744,7 +3101,7 @@ static int dtSearchNode(struct inode *ip, s64 lmxaddr, pxd_t * kpxd,
  *
  * return:
  */
-static int dtRelink(tid_t tid, struct inode *ip, dtpage_t * p)
+static int dtRelink(tid_t tid, struct inode *ip, dtpage_t *p)
 {
 	int rc;
 	struct metapage *mp;
@@ -2757,10 +3114,14 @@ static int dtRelink(tid_t tid, struct inode *ip, dtpage_t * p)
 	prevbn = le64_to_cpu(p->header.prev);
 
 	/* update prev pointer of the next page */
-	if (nextbn != 0) {
+	if (nextbn != 0)
+	{
 		DT_GETPAGE(ip, nextbn, mp, PSIZE, p, rc);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		BT_MARK_DIRTY(mp, ip);
 		/*
@@ -2770,12 +3131,15 @@ static int dtRelink(tid_t tid, struct inode *ip, dtpage_t * p)
 		 */
 		tlck = txLock(tid, ip, mp, tlckDTREE | tlckRELINK);
 		jfs_info("dtRelink nextbn: tlck = 0x%p, ip = 0x%p, mp=0x%p",
-			tlck, ip, mp);
+				 tlck, ip, mp);
 		dtlck = (struct dt_lock *) & tlck->lock;
 
 		/* linelock header */
 		if (dtlck->index >= dtlck->maxcnt)
+		{
 			dtlck = (struct dt_lock *) txLinelock(dtlck);
+		}
+
 		lv = & dtlck->lv[dtlck->index];
 		lv->offset = 0;
 		lv->length = 1;
@@ -2786,10 +3150,14 @@ static int dtRelink(tid_t tid, struct inode *ip, dtpage_t * p)
 	}
 
 	/* update next pointer of the previous page */
-	if (prevbn != 0) {
+	if (prevbn != 0)
+	{
 		DT_GETPAGE(ip, prevbn, mp, PSIZE, p, rc);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		BT_MARK_DIRTY(mp, ip);
 		/*
@@ -2799,12 +3167,15 @@ static int dtRelink(tid_t tid, struct inode *ip, dtpage_t * p)
 		 */
 		tlck = txLock(tid, ip, mp, tlckDTREE | tlckRELINK);
 		jfs_info("dtRelink prevbn: tlck = 0x%p, ip = 0x%p, mp=0x%p",
-			tlck, ip, mp);
+				 tlck, ip, mp);
 		dtlck = (struct dt_lock *) & tlck->lock;
 
 		/* linelock header */
 		if (dtlck->index >= dtlck->maxcnt)
+		{
 			dtlck = (struct dt_lock *) txLinelock(dtlck);
+		}
+
 		lv = & dtlck->lv[dtlck->index];
 		lv->offset = 0;
 		lv->length = 1;
@@ -2838,8 +3209,10 @@ void dtInitRoot(tid_t tid, struct inode *ip, u32 idotdot)
 	 * If this was previously an non-empty directory, we need to remove
 	 * the old directory table.
 	 */
-	if (DO_INDEX(ip)) {
-		if (!jfs_dirtable_inline(ip)) {
+	if (DO_INDEX(ip))
+	{
+		if (!jfs_dirtable_inline(ip))
+		{
 			struct tblock *tblk = tid_to_tblock(tid);
 			/*
 			 * We're playing games with the tid's xflag.  If
@@ -2861,12 +3234,18 @@ void dtInitRoot(tid_t tid, struct inode *ip, u32 idotdot)
 			set_cflag(COMMIT_Stale, ip);
 
 			tblk->xflag = xflag_save;
-		} else
+		}
+		else
+		{
 			ip->i_size = 1;
+		}
 
 		jfs_ip->next_index = 2;
-	} else
+	}
+	else
+	{
 		ip->i_size = IDATASIZE;
+	}
 
 	/*
 	 * acquire a transaction lock on the root
@@ -2874,7 +3253,7 @@ void dtInitRoot(tid_t tid, struct inode *ip, u32 idotdot)
 	 * action: directory initialization;
 	 */
 	tlck = txLock(tid, ip, (struct metapage *) & jfs_ip->bxflag,
-		      tlckDTREE | tlckENTRY | tlckBTROOT);
+				  tlckDTREE | tlckENTRY | tlckBTROOT);
 	dtlck = (struct dt_lock *) & tlck->lock;
 
 	/* linelock root */
@@ -2896,7 +3275,10 @@ void dtInitRoot(tid_t tid, struct inode *ip, u32 idotdot)
 
 	/* init data area of root */
 	for (fsi++; fsi < DTROOTMAXSLOT; f++, fsi++)
+	{
 		f->next = fsi;
+	}
+
 	f->next = -1;
 
 	p->header.freelist = 1;
@@ -2933,28 +3315,41 @@ static void add_missing_indices(struct inode *inode, s64 bn)
 
 	DT_GETPAGE(inode, bn, mp, PSIZE, p, rc);
 
-	if (rc) {
+	if (rc)
+	{
 		printk(KERN_ERR "DT_GETPAGE failed!\n");
 		goto end;
 	}
+
 	BT_MARK_DIRTY(mp, inode);
 
 	ASSERT(p->header.flag & BT_LEAF);
 
 	tlck = txLock(tid, inode, mp, tlckDTREE | tlckENTRY);
+
 	if (BT_IS_ROOT(mp))
+	{
 		tlck->type |= tlckBTROOT;
+	}
 
 	dtlck = (struct dt_lock *) &tlck->lock;
 
 	stbl = DT_GETSTBL(p);
-	for (i = 0; i < p->header.nextindex; i++) {
+
+	for (i = 0; i < p->header.nextindex; i++)
+	{
 		d = (struct ldtentry *) &p->slot[stbl[i]];
 		index = le32_to_cpu(d->index);
-		if ((index < 2) || (index >= JFS_IP(inode)->next_index)) {
+
+		if ((index < 2) || (index >= JFS_IP(inode)->next_index))
+		{
 			d->index = cpu_to_le32(add_index(tid, inode, bn, i));
+
 			if (dtlck->index >= dtlck->maxcnt)
+			{
 				dtlck = (struct dt_lock *) txLinelock(dtlck);
+			}
+
 			lv = &dtlck->lv[dtlck->index];
 			lv->offset = stbl[i];
 			lv->length = 1;
@@ -2972,7 +3367,8 @@ end:
  * Buffer to hold directory entry info while traversing a dtree page
  * before being fed to the filldir function
  */
-struct jfs_dirent {
+struct jfs_dirent
+{
 	loff_t position;
 	int ino;
 	u16 name_len;
@@ -2985,10 +3381,10 @@ struct jfs_dirent {
 static inline struct jfs_dirent *next_jfs_dirent(struct jfs_dirent *dirent)
 {
 	return (struct jfs_dirent *)
-		((char *)dirent +
-		 ((sizeof (struct jfs_dirent) + dirent->name_len + 1 +
-		   sizeof (loff_t) - 1) &
-		  ~(sizeof (loff_t) - 1)));
+		   ((char *)dirent +
+			((sizeof (struct jfs_dirent) + dirent->name_len + 1 +
+			  sizeof (loff_t) - 1) &
+			 ~(sizeof (loff_t) - 1)));
 }
 
 /*
@@ -3008,7 +3404,8 @@ int jfs_readdir(struct file *file, struct dir_context *ctx)
 	struct nls_table *codepage = JFS_SBI(ip->i_sb)->nls_tab;
 	int rc = 0;
 	loff_t dtpos;	/* legacy OS/2 style position */
-	struct dtoffset {
+	struct dtoffset
+	{
 		s16 pn;
 		s16 index;
 		s32 unused;
@@ -3034,9 +3431,12 @@ int jfs_readdir(struct file *file, struct dir_context *ctx)
 	static int unique_pos = 2;	/* If we can't fix broken index */
 
 	if (ctx->pos == DIREND)
+	{
 		return 0;
+	}
 
-	if (DO_INDEX(ip)) {
+	if (DO_INDEX(ip))
+	{
 		/*
 		 * persistent index is stored in directory entries.
 		 * Special cases:	 0 = .
@@ -3053,79 +3453,113 @@ int jfs_readdir(struct file *file, struct dir_context *ctx)
 		 * internally.
 		 */
 		if (dir_index)
+		{
 			dir_index--;
+		}
 
-		if (dir_index > 1) {
+		if (dir_index > 1)
+		{
 			struct dir_table_slot dirtab_slot;
 
 			if (dtEmpty(ip) ||
-			    (dir_index >= JFS_IP(ip)->next_index)) {
+				(dir_index >= JFS_IP(ip)->next_index))
+			{
 				/* Stale position.  Directory has shrunk */
 				ctx->pos = DIREND;
 				return 0;
 			}
-		      repeat:
+
+repeat:
 			rc = read_index(ip, dir_index, &dirtab_slot);
-			if (rc) {
+
+			if (rc)
+			{
 				ctx->pos = DIREND;
 				return rc;
 			}
-			if (dirtab_slot.flag == DIR_INDEX_FREE) {
-				if (loop_count++ > JFS_IP(ip)->next_index) {
+
+			if (dirtab_slot.flag == DIR_INDEX_FREE)
+			{
+				if (loop_count++ > JFS_IP(ip)->next_index)
+				{
 					jfs_err("jfs_readdir detected infinite loop!");
 					ctx->pos = DIREND;
 					return 0;
 				}
+
 				dir_index = le32_to_cpu(dirtab_slot.addr2);
-				if (dir_index == -1) {
+
+				if (dir_index == -1)
+				{
 					ctx->pos = DIREND;
 					return 0;
 				}
+
 				goto repeat;
 			}
+
 			bn = addressDTS(&dirtab_slot);
 			index = dirtab_slot.slot;
 			DT_GETPAGE(ip, bn, mp, PSIZE, p, rc);
-			if (rc) {
+
+			if (rc)
+			{
 				ctx->pos = DIREND;
 				return 0;
 			}
-			if (p->header.flag & BT_INTERNAL) {
+
+			if (p->header.flag & BT_INTERNAL)
+			{
 				jfs_err("jfs_readdir: bad index table");
 				DT_PUTPAGE(mp);
 				ctx->pos = DIREND;
 				return 0;
 			}
-		} else {
-			if (dir_index == 0) {
+		}
+		else
+		{
+			if (dir_index == 0)
+			{
 				/*
 				 * self "."
 				 */
 				ctx->pos = 1;
+
 				if (!dir_emit(ctx, ".", 1, ip->i_ino, DT_DIR))
+				{
 					return 0;
+				}
 			}
+
 			/*
 			 * parent ".."
 			 */
 			ctx->pos = 2;
+
 			if (!dir_emit(ctx, "..", 2, PARENT(ip), DT_DIR))
+			{
 				return 0;
+			}
 
 			/*
 			 * Find first entry of left-most leaf
 			 */
-			if (dtEmpty(ip)) {
+			if (dtEmpty(ip))
+			{
 				ctx->pos = DIREND;
 				return 0;
 			}
 
 			if ((rc = dtReadFirst(ip, &btstack)))
+			{
 				return rc;
+			}
 
 			DT_GETSEARCH(ip, btstack.top, bn, mp, p, index);
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		 * Legacy filesystem - OS/2 & Linux JFS < 0.3.6
 		 *
@@ -3135,69 +3569,91 @@ int jfs_readdir(struct file *file, struct dir_context *ctx)
 		 * pn = index = -1:	No more entries
 		 */
 		dtpos = ctx->pos;
-		if (dtpos < 2) {
+
+		if (dtpos < 2)
+		{
 			/* build "." entry */
 			ctx->pos = 1;
+
 			if (!dir_emit(ctx, ".", 1, ip->i_ino, DT_DIR))
+			{
 				return 0;
+			}
+
 			dtoffset->index = 2;
 			ctx->pos = dtpos;
 		}
 
-		if (dtoffset->pn == 0) {
-			if (dtoffset->index == 2) {
+		if (dtoffset->pn == 0)
+		{
+			if (dtoffset->index == 2)
+			{
 				/* build ".." entry */
 				if (!dir_emit(ctx, "..", 2, PARENT(ip), DT_DIR))
+				{
 					return 0;
-			} else {
+				}
+			}
+			else
+			{
 				jfs_err("jfs_readdir called with invalid offset!");
 			}
+
 			dtoffset->pn = 1;
 			dtoffset->index = 0;
 			ctx->pos = dtpos;
 		}
 
-		if (dtEmpty(ip)) {
+		if (dtEmpty(ip))
+		{
 			ctx->pos = DIREND;
 			return 0;
 		}
 
-		if ((rc = dtReadNext(ip, &ctx->pos, &btstack))) {
+		if ((rc = dtReadNext(ip, &ctx->pos, &btstack)))
+		{
 			jfs_err("jfs_readdir: unexpected rc = %d from dtReadNext",
-				rc);
+					rc);
 			ctx->pos = DIREND;
 			return 0;
 		}
+
 		/* get start leaf page and index */
 		DT_GETSEARCH(ip, btstack.top, bn, mp, p, index);
 
 		/* offset beyond directory eof ? */
-		if (bn < 0) {
+		if (bn < 0)
+		{
 			ctx->pos = DIREND;
 			return 0;
 		}
 	}
 
 	dirent_buf = __get_free_page(GFP_KERNEL);
-	if (dirent_buf == 0) {
+
+	if (dirent_buf == 0)
+	{
 		DT_PUTPAGE(mp);
 		jfs_warn("jfs_readdir: __get_free_page failed!");
 		ctx->pos = DIREND;
 		return -ENOMEM;
 	}
 
-	while (1) {
+	while (1)
+	{
 		jfs_dirent = (struct jfs_dirent *) dirent_buf;
 		jfs_dirents = 0;
 		overflow = fix_page = 0;
 
 		stbl = DT_GETSTBL(p);
 
-		for (i = index; i < p->header.nextindex; i++) {
+		for (i = index; i < p->header.nextindex; i++)
+		{
 			d = (struct ldtentry *) & p->slot[stbl[i]];
 
 			if (((long) jfs_dirent + d->namlen + 1) >
-			    (dirent_buf + PAGE_SIZE)) {
+				(dirent_buf + PAGE_SIZE))
+			{
 				/* DBCS codepages could overrun dirent_buf */
 				index = i;
 				overflow = 1;
@@ -3208,9 +3664,11 @@ int jfs_readdir(struct file *file, struct dir_context *ctx)
 			name_ptr = jfs_dirent->name;
 			jfs_dirent->ino = le32_to_cpu(d->inumber);
 
-			if (do_index) {
+			if (do_index)
+			{
 				len = min(d_namleft, DTLHDRDATALEN);
 				jfs_dirent->position = le32_to_cpu(d->index);
+
 				/*
 				 * d->index should always be valid, but it
 				 * isn't.  fsck.jfs doesn't create the
@@ -3219,9 +3677,11 @@ int jfs_readdir(struct file *file, struct dir_context *ctx)
 				 * we can try to fix it.
 				 */
 				if ((jfs_dirent->position < 2) ||
-				    (jfs_dirent->position >=
-				     JFS_IP(ip)->next_index)) {
-					if (!page_fixed && !isReadOnly(ip)) {
+					(jfs_dirent->position >=
+					 JFS_IP(ip)->next_index))
+				{
+					if (!page_fixed && !isReadOnly(ip))
+					{
 						fix_page = 1;
 						/*
 						 * setting overflow and setting
@@ -3233,42 +3693,51 @@ int jfs_readdir(struct file *file, struct dir_context *ctx)
 						index = i;
 						break;
 					}
+
 					jfs_dirent->position = unique_pos++;
 				}
+
 				/*
 				 * We add 1 to the index because we may
 				 * use a value of 2 internally, and NFSv4
 				 * doesn't like that.
 				 */
 				jfs_dirent->position++;
-			} else {
+			}
+			else
+			{
 				jfs_dirent->position = dtpos;
 				len = min(d_namleft, DTLHDRDATALEN_LEGACY);
 			}
 
 			/* copy the name of head/only segment */
 			outlen = jfs_strfromUCS_le(name_ptr, d->name, len,
-						   codepage);
+									   codepage);
 			jfs_dirent->name_len = outlen;
 
 			/* copy name in the additional segment(s) */
 			next = d->next;
-			while (next >= 0) {
+
+			while (next >= 0)
+			{
 				t = (struct dtslot *) & p->slot[next];
 				name_ptr += outlen;
 				d_namleft -= len;
+
 				/* Sanity Check */
-				if (d_namleft == 0) {
+				if (d_namleft == 0)
+				{
 					jfs_error(ip->i_sb,
-						  "JFS:Dtree error: ino = %ld, bn=%lld, index = %d\n",
-						  (long)ip->i_ino,
-						  (long long)bn,
-						  i);
+							  "JFS:Dtree error: ino = %ld, bn=%lld, index = %d\n",
+							  (long)ip->i_ino,
+							  (long long)bn,
+							  i);
 					goto skip_one;
 				}
+
 				len = min(d_namleft, DTSLOTDATALEN);
 				outlen = jfs_strfromUCS_le(name_ptr, t->name,
-							   len, codepage);
+										   len, codepage);
 				jfs_dirent->name_len += outlen;
 
 				next = t->next;
@@ -3277,23 +3746,33 @@ int jfs_readdir(struct file *file, struct dir_context *ctx)
 			jfs_dirents++;
 			jfs_dirent = next_jfs_dirent(jfs_dirent);
 skip_one:
+
 			if (!do_index)
+			{
 				dtoffset->index++;
+			}
 		}
 
-		if (!overflow) {
+		if (!overflow)
+		{
 			/* Point to next leaf page */
 			if (p->header.flag & BT_ROOT)
+			{
 				bn = 0;
-			else {
+			}
+			else
+			{
 				bn = le64_to_cpu(p->header.next);
 				index = 0;
+
 				/* update offset (pn:index) for new page */
-				if (!do_index) {
+				if (!do_index)
+				{
 					dtoffset->pn++;
 					dtoffset->index = 0;
 				}
 			}
+
 			page_fixed = 0;
 		}
 
@@ -3301,33 +3780,43 @@ skip_one:
 		DT_PUTPAGE(mp);
 
 		jfs_dirent = (struct jfs_dirent *) dirent_buf;
-		while (jfs_dirents--) {
+
+		while (jfs_dirents--)
+		{
 			ctx->pos = jfs_dirent->position;
+
 			if (!dir_emit(ctx, jfs_dirent->name,
-				    jfs_dirent->name_len,
-				    jfs_dirent->ino, DT_UNKNOWN))
+						  jfs_dirent->name_len,
+						  jfs_dirent->ino, DT_UNKNOWN))
+			{
 				goto out;
+			}
+
 			jfs_dirent = next_jfs_dirent(jfs_dirent);
 		}
 
-		if (fix_page) {
+		if (fix_page)
+		{
 			add_missing_indices(ip, bn);
 			page_fixed = 1;
 		}
 
-		if (!overflow && (bn == 0)) {
+		if (!overflow && (bn == 0))
+		{
 			ctx->pos = DIREND;
 			break;
 		}
 
 		DT_GETPAGE(ip, bn, mp, PSIZE, p, rc);
-		if (rc) {
+
+		if (rc)
+		{
 			free_page(dirent_buf);
 			return rc;
 		}
 	}
 
-      out:
+out:
 	free_page(dirent_buf);
 
 	return rc;
@@ -3339,7 +3828,7 @@ skip_one:
  *
  * function: get the leftmost page of the directory
  */
-static int dtReadFirst(struct inode *ip, struct btstack * btstack)
+static int dtReadFirst(struct inode *ip, struct btstack *btstack)
 {
 	int rc = 0;
 	s64 bn;
@@ -3357,15 +3846,20 @@ static int dtReadFirst(struct inode *ip, struct btstack * btstack)
 	 *
 	 * by convention, root bn = 0.
 	 */
-	for (bn = 0;;) {
+	for (bn = 0;;)
+	{
 		DT_GETPAGE(ip, bn, mp, psize, p, rc);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		/*
 		 * leftmost leaf page
 		 */
-		if (p->header.flag & BT_LEAF) {
+		if (p->header.flag & BT_LEAF)
+		{
 			/* return leftmost entry */
 			btsp = btstack->top;
 			btsp->bn = bn;
@@ -3378,12 +3872,14 @@ static int dtReadFirst(struct inode *ip, struct btstack * btstack)
 		/*
 		 * descend down to leftmost child page
 		 */
-		if (BT_STACK_FULL(btstack)) {
+		if (BT_STACK_FULL(btstack))
+		{
 			DT_PUTPAGE(mp);
 			jfs_error(ip->i_sb, "btstack overrun\n");
 			BT_STACK_DUMP(btstack);
 			return -EIO;
 		}
+
 		/* push (bn, index) of the parent page/entry */
 		BT_PUSH(btstack, bn, 0);
 
@@ -3411,11 +3907,12 @@ static int dtReadFirst(struct inode *ip, struct btstack * btstack)
  * note: if index > nextindex of the target leaf page,
  * start with 1st entry of next leaf page;
  */
-static int dtReadNext(struct inode *ip, loff_t * offset,
-		      struct btstack * btstack)
+static int dtReadNext(struct inode *ip, loff_t *offset,
+					  struct btstack *btstack)
 {
 	int rc = 0;
-	struct dtoffset {
+	struct dtoffset
+	{
 		s16 pn;
 		s16 index;
 		s32 unused;
@@ -3433,7 +3930,9 @@ static int dtReadNext(struct inode *ip, loff_t * offset,
 	 * get leftmost leaf page pinned
 	 */
 	if ((rc = dtReadFirst(ip, btstack)))
+	{
 		return rc;
+	}
 
 	/* get leaf page */
 	DT_GETSEARCH(ip, btstack->top, bn, mp, p, index);
@@ -3443,12 +3942,16 @@ static int dtReadNext(struct inode *ip, loff_t * offset,
 	index = dtoffset->index;
 
 	/* start at leftmost page ? */
-	if (pn == 0) {
+	if (pn == 0)
+	{
 		/* offset beyond eof ? */
 		if (index < p->header.nextindex)
+		{
 			goto out;
+		}
 
-		if (p->header.flag & BT_ROOT) {
+		if (p->header.flag & BT_ROOT)
+		{
 			bn = -1;
 			goto out;
 		}
@@ -3460,24 +3963,28 @@ static int dtReadNext(struct inode *ip, loff_t * offset,
 	}
 
 	/* start at non-leftmost page: scan parent pages for large pn */
-	if (p->header.flag & BT_ROOT) {
+	if (p->header.flag & BT_ROOT)
+	{
 		bn = -1;
 		goto out;
 	}
 
 	/* start after next leaf page ? */
 	if (pn > 1)
+	{
 		goto b;
+	}
 
 	/* get leaf page pn = 1 */
-      a:
+a:
 	bn = le64_to_cpu(p->header.next);
 
 	/* unpin leaf page */
 	DT_PUTPAGE(mp);
 
 	/* offset beyond eof ? */
-	if (bn == 0) {
+	if (bn == 0)
+	{
 		bn = -1;
 		goto out;
 	}
@@ -3487,7 +3994,7 @@ static int dtReadNext(struct inode *ip, loff_t * offset,
 	/*
 	 * scan last internal page level to get target leaf page
 	 */
-      b:
+b:
 	/* unpin leftmost leaf page */
 	DT_PUTPAGE(mp);
 
@@ -3496,11 +4003,15 @@ static int dtReadNext(struct inode *ip, loff_t * offset,
 	parent = btsp - 1;
 	bn = parent->bn;
 	DT_GETPAGE(ip, bn, mp, PSIZE, p, rc);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* scan parent pages at last internal page level */
-	while (pn >= p->header.nextindex) {
+	while (pn >= p->header.nextindex)
+	{
 		pn -= p->header.nextindex;
 
 		/* get next parent page address */
@@ -3510,15 +4021,19 @@ static int dtReadNext(struct inode *ip, loff_t * offset,
 		DT_PUTPAGE(mp);
 
 		/* offset beyond eof ? */
-		if (bn == 0) {
+		if (bn == 0)
+		{
 			bn = -1;
 			goto out;
 		}
 
 		/* get next parent page */
 		DT_GETPAGE(ip, bn, mp, PSIZE, p, rc);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		/* update parent page stack frame */
 		parent->bn = bn;
@@ -3535,38 +4050,46 @@ static int dtReadNext(struct inode *ip, loff_t * offset,
 	/*
 	 * get target leaf page
 	 */
-      c:
+c:
 	DT_GETPAGE(ip, bn, mp, PSIZE, p, rc);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/*
 	 * leaf page has been completed:
 	 * start with 1st entry of next leaf page
 	 */
-	if (index >= p->header.nextindex) {
+	if (index >= p->header.nextindex)
+	{
 		bn = le64_to_cpu(p->header.next);
 
 		/* unpin leaf page */
 		DT_PUTPAGE(mp);
 
 		/* offset beyond eof ? */
-		if (bn == 0) {
+		if (bn == 0)
+		{
 			bn = -1;
 			goto out;
 		}
 
 		/* get next leaf page */
 		DT_GETPAGE(ip, bn, mp, PSIZE, p, rc);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		/* start with 1st entry of next leaf page */
 		dtoffset->pn++;
 		dtoffset->index = 0;
 	}
 
-      out:
+out:
 	/* return target leaf page pinned */
 	btsp = btstack->top;
 	btsp->bn = bn;
@@ -3587,10 +4110,11 @@ static int dtReadNext(struct inode *ip, loff_t * offset,
  *	= 0 if k is = record
  *	> 0 if k is > record
  */
-static int dtCompare(struct component_name * key,	/* search key */
-		     dtpage_t * p,	/* directory page */
-		     int si)
-{				/* entry slot index */
+static int dtCompare(struct component_name *key,	/* search key */
+					 dtpage_t *p,	/* directory page */
+					 int si)
+{
+	/* entry slot index */
 	wchar_t *kname;
 	__le16 *name;
 	int klen, namlen, len, rc;
@@ -3624,22 +4148,30 @@ static int dtCompare(struct component_name * key,	/* search key */
 
 	/* compare with head/only segment */
 	len = min(klen, len);
+
 	if ((rc = UniStrncmp_le(kname, name, len)))
+	{
 		return rc;
+	}
 
 	klen -= len;
 	namlen -= len;
 
 	/* compare with additional segment(s) */
 	kname += len;
-	while (klen > 0 && namlen > 0) {
+
+	while (klen > 0 && namlen > 0)
+	{
 		/* compare with next name segment */
 		t = (struct dtslot *) & p->slot[si];
 		len = min(namlen, DTSLOTDATALEN);
 		len = min(klen, len);
 		name = t->name;
+
 		if ((rc = UniStrncmp_le(kname, name, len)))
+		{
 			return rc;
+		}
 
 		klen -= len;
 		namlen -= len;
@@ -3663,10 +4195,10 @@ static int dtCompare(struct component_name * key,	/* search key */
  *	= 0 if k is = record
  *	> 0 if k is > record
  */
-static int ciCompare(struct component_name * key,	/* search key */
-		     dtpage_t * p,	/* directory page */
-		     int si,	/* entry slot index */
-		     int flag)
+static int ciCompare(struct component_name *key,	/* search key */
+					 dtpage_t *p,	/* directory page */
+					 int si,	/* entry slot index */
+					 int flag)
 {
 	wchar_t *kname, x;
 	__le16 *name;
@@ -3698,20 +4230,27 @@ static int ciCompare(struct component_name * key,	/* search key */
 	/*
 	 * leaf page entry
 	 */
-	if (p->header.flag & BT_LEAF) {
+	if (p->header.flag & BT_LEAF)
+	{
 		lh = (struct ldtentry *) & p->slot[si];
 		si = lh->next;
 		name = lh->name;
 		namlen = lh->namlen;
+
 		if (flag & JFS_DIR_INDEX)
+		{
 			len = min(namlen, DTLHDRDATALEN);
+		}
 		else
+		{
 			len = min(namlen, DTLHDRDATALEN_LEGACY);
+		}
 	}
 	/*
 	 * internal page entry
 	 */
-	else {
+	else
+	{
 		ih = (struct idtentry *) & p->slot[si];
 		si = ih->next;
 		name = ih->name;
@@ -3721,35 +4260,53 @@ static int ciCompare(struct component_name * key,	/* search key */
 
 	/* compare with head/only segment */
 	len = min(klen, len);
-	for (i = 0; i < len; i++, kname++, name++) {
+
+	for (i = 0; i < len; i++, kname++, name++)
+	{
 		/* only uppercase if case-insensitive support is on */
 		if ((flag & JFS_OS2) == JFS_OS2)
+		{
 			x = UniToupper(le16_to_cpu(*name));
+		}
 		else
+		{
 			x = le16_to_cpu(*name);
+		}
+
 		if ((rc = *kname - x))
+		{
 			return rc;
+		}
 	}
 
 	klen -= len;
 	namlen -= len;
 
 	/* compare with additional segment(s) */
-	while (klen > 0 && namlen > 0) {
+	while (klen > 0 && namlen > 0)
+	{
 		/* compare with next name segment */
 		t = (struct dtslot *) & p->slot[si];
 		len = min(namlen, DTSLOTDATALEN);
 		len = min(klen, len);
 		name = t->name;
-		for (i = 0; i < len; i++, kname++, name++) {
+
+		for (i = 0; i < len; i++, kname++, name++)
+		{
 			/* only uppercase if case-insensitive support is on */
 			if ((flag & JFS_OS2) == JFS_OS2)
+			{
 				x = UniToupper(le16_to_cpu(*name));
+			}
 			else
+			{
 				x = le16_to_cpu(*name);
+			}
 
 			if ((rc = *kname - x))
+			{
 				return rc;
+			}
 		}
 
 		klen -= len;
@@ -3771,8 +4328,8 @@ static int ciCompare(struct component_name * key,	/* search key */
  * return: non-zero on error
  *
  */
-static int ciGetLeafPrefixKey(dtpage_t * lp, int li, dtpage_t * rp,
-			       int ri, struct component_name * key, int flag)
+static int ciGetLeafPrefixKey(dtpage_t *lp, int li, dtpage_t *rp,
+							  int ri, struct component_name *key, int flag)
 {
 	int klen, namlen;
 	wchar_t *pl, *pr, *kname;
@@ -3780,13 +4337,18 @@ static int ciGetLeafPrefixKey(dtpage_t * lp, int li, dtpage_t * rp,
 	struct component_name rkey;
 
 	lkey.name = kmalloc((JFS_NAME_MAX + 1) * sizeof(wchar_t),
-					GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (lkey.name == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	rkey.name = kmalloc((JFS_NAME_MAX + 1) * sizeof(wchar_t),
-					GFP_KERNEL);
-	if (rkey.name == NULL) {
+						GFP_KERNEL);
+
+	if (rkey.name == NULL)
+	{
 		kfree(lkey.name);
 		return -ENOMEM;
 	}
@@ -3796,34 +4358,46 @@ static int ciGetLeafPrefixKey(dtpage_t * lp, int li, dtpage_t * rp,
 	lkey.name[lkey.namlen] = 0;
 
 	if ((flag & JFS_OS2) == JFS_OS2)
+	{
 		ciToUpper(&lkey);
+	}
 
 	dtGetKey(rp, ri, &rkey, flag);
 	rkey.name[rkey.namlen] = 0;
 
 
 	if ((flag & JFS_OS2) == JFS_OS2)
+	{
 		ciToUpper(&rkey);
+	}
 
 	/* compute prefix */
 	klen = 0;
 	kname = key->name;
 	namlen = min(lkey.namlen, rkey.namlen);
+
 	for (pl = lkey.name, pr = rkey.name;
-	     namlen; pl++, pr++, namlen--, klen++, kname++) {
+		 namlen; pl++, pr++, namlen--, klen++, kname++)
+	{
 		*kname = *pr;
-		if (*pl != *pr) {
+
+		if (*pl != *pr)
+		{
 			key->namlen = klen + 1;
 			goto free_names;
 		}
 	}
 
 	/* l->namlen <= r->namlen since l <= r */
-	if (lkey.namlen < rkey.namlen) {
+	if (lkey.namlen < rkey.namlen)
+	{
 		*kname = *pr;
 		key->namlen = klen + 1;
-	} else			/* l->namelen == r->namelen */
+	}
+	else			/* l->namelen == r->namelen */
+	{
 		key->namlen = klen;
+	}
 
 free_names:
 	kfree(lkey.name);
@@ -3838,8 +4412,8 @@ free_names:
  *
  * function: get key of the entry
  */
-static void dtGetKey(dtpage_t * p, int i,	/* entry index */
-		     struct component_name * key, int flag)
+static void dtGetKey(dtpage_t *p, int i,	/* entry index */
+					 struct component_name *key, int flag)
 {
 	int si;
 	s8 *stbl;
@@ -3853,16 +4427,25 @@ static void dtGetKey(dtpage_t * p, int i,	/* entry index */
 	/* get entry */
 	stbl = DT_GETSTBL(p);
 	si = stbl[i];
-	if (p->header.flag & BT_LEAF) {
+
+	if (p->header.flag & BT_LEAF)
+	{
 		lh = (struct ldtentry *) & p->slot[si];
 		si = lh->next;
 		namlen = lh->namlen;
 		name = lh->name;
+
 		if (flag & JFS_DIR_INDEX)
+		{
 			len = min(namlen, DTLHDRDATALEN);
+		}
 		else
+		{
 			len = min(namlen, DTLHDRDATALEN_LEGACY);
-	} else {
+		}
+	}
+	else
+	{
 		ih = (struct idtentry *) & p->slot[si];
 		si = ih->next;
 		namlen = ih->namlen;
@@ -3881,7 +4464,8 @@ static void dtGetKey(dtpage_t * p, int i,	/* entry index */
 	/*
 	 * move additional segment(s)
 	 */
-	while (si >= 0) {
+	while (si >= 0)
+	{
 		/* get next segment */
 		t = &p->slot[si];
 		kname += len;
@@ -3902,8 +4486,8 @@ static void dtGetKey(dtpage_t * p, int i,	/* entry index */
  *
  * return: entry slot index
  */
-static void dtInsertEntry(dtpage_t * p, int index, struct component_name * key,
-			  ddata_t * data, struct dt_lock ** dtlock)
+static void dtInsertEntry(dtpage_t *p, int index, struct component_name *key,
+						  ddata_t *data, struct dt_lock **dtlock)
 {
 	struct dtslot *h, *t;
 	struct ldtentry *lh = NULL;
@@ -3930,28 +4514,42 @@ static void dtInsertEntry(dtpage_t * p, int index, struct component_name * key,
 
 	/* open new linelock */
 	if (dtlck->index >= dtlck->maxcnt)
+	{
 		dtlck = (struct dt_lock *) txLinelock(dtlck);
+	}
 
 	lv = & dtlck->lv[dtlck->index];
 	lv->offset = hsi;
 
 	/* write head/only segment */
-	if (p->header.flag & BT_LEAF) {
+	if (p->header.flag & BT_LEAF)
+	{
 		lh = (struct ldtentry *) h;
 		lh->next = h->next;
 		lh->inumber = cpu_to_le32(data->leaf.ino);
 		lh->namlen = klen;
 		name = lh->name;
-		if (data->leaf.ip) {
+
+		if (data->leaf.ip)
+		{
 			len = min(klen, DTLHDRDATALEN);
+
 			if (!(p->header.flag & BT_ROOT))
+			{
 				bn = addressPXD(&p->header.self);
+			}
+
 			lh->index = cpu_to_le32(add_index(data->leaf.tid,
-							  data->leaf.ip,
-							  bn, index));
-		} else
+											  data->leaf.ip,
+											  bn, index));
+		}
+		else
+		{
 			len = min(klen, DTLHDRDATALEN_LEGACY);
-	} else {
+		}
+	}
+	else
+	{
 		ih = (struct idtentry *) h;
 		ih->next = h->next;
 		xd = (pxd_t *) ih;
@@ -3969,7 +4567,9 @@ static void dtInsertEntry(dtpage_t * p, int index, struct component_name * key,
 	/* write additional segment(s) */
 	t = h;
 	klen -= len;
-	while (klen) {
+
+	while (klen)
+	{
 		/* get free slot */
 		fsi = p->header.freelist;
 		t = &p->slot[fsi];
@@ -3977,15 +4577,19 @@ static void dtInsertEntry(dtpage_t * p, int index, struct component_name * key,
 		--p->header.freecnt;
 
 		/* is next slot contiguous ? */
-		if (fsi != xsi + 1) {
+		if (fsi != xsi + 1)
+		{
 			/* close current linelock */
 			lv->length = n;
 			dtlck->index++;
 
 			/* open new linelock */
 			if (dtlck->index < dtlck->maxcnt)
+			{
 				lv++;
-			else {
+			}
+			else
+			{
 				dtlck = (struct dt_lock *) txLinelock(dtlck);
 				lv = & dtlck->lv[0];
 			}
@@ -4010,23 +4614,34 @@ static void dtInsertEntry(dtpage_t * p, int index, struct component_name * key,
 	*dtlock = dtlck;
 
 	/* terminate last/only segment */
-	if (h == t) {
+	if (h == t)
+	{
 		/* single segment entry */
 		if (p->header.flag & BT_LEAF)
+		{
 			lh->next = -1;
+		}
 		else
+		{
 			ih->next = -1;
-	} else
+		}
+	}
+	else
 		/* multi-segment entry */
+	{
 		t->next = -1;
+	}
 
 	/* if insert into middle, shift right succeeding entries in stbl */
 	stbl = DT_GETSTBL(p);
 	nextindex = p->header.nextindex;
-	if (index < nextindex) {
+
+	if (index < nextindex)
+	{
 		memmove(stbl + index + 1, stbl + index, nextindex - index);
 
-		if ((p->header.flag & BT_LEAF) && data->leaf.ip) {
+		if ((p->header.flag & BT_LEAF) && data->leaf.ip)
+		{
 			s64 lblock;
 
 			/*
@@ -4034,14 +4649,19 @@ static void dtInsertEntry(dtpage_t * p, int index, struct component_name * key,
 			 * in the stbl
 			 */
 			mp = NULL;
-			for (n = index + 1; n <= nextindex; n++) {
+
+			for (n = index + 1; n <= nextindex; n++)
+			{
 				lh = (struct ldtentry *) & (p->slot[stbl[n]]);
 				modify_index(data->leaf.tid, data->leaf.ip,
-					     le32_to_cpu(lh->index), bn, n,
-					     &mp, &lblock);
+							 le32_to_cpu(lh->index), bn, n,
+							 &mp, &lblock);
 			}
+
 			if (mp)
+			{
 				release_metapage(mp);
+			}
 		}
 	}
 
@@ -4060,9 +4680,9 @@ static void dtInsertEntry(dtpage_t * p, int index, struct component_name * key,
  *	nextindex of dst page and freelist/freecnt of both pages
  *	are updated.
  */
-static void dtMoveEntry(dtpage_t * sp, int si, dtpage_t * dp,
-			struct dt_lock ** sdtlock, struct dt_lock ** ddtlock,
-			int do_index)
+static void dtMoveEntry(dtpage_t *sp, int si, dtpage_t *dp,
+						struct dt_lock **sdtlock, struct dt_lock **ddtlock,
+						int do_index)
 {
 	int ssi, next;		/* src slot index */
 	int di;			/* dst entry index */
@@ -4096,20 +4716,26 @@ static void dtMoveEntry(dtpage_t * sp, int si, dtpage_t * dp,
 	 * move entries
 	 */
 	ns = nd = 0;
-	for (di = 0; si < sp->header.nextindex; si++, di++) {
+
+	for (di = 0; si < sp->header.nextindex; si++, di++)
+	{
 		ssi = sstbl[si];
 		dstbl[di] = dsi;
 
 		/* is next slot contiguous ? */
-		if (ssi != xssi + 1) {
+		if (ssi != xssi + 1)
+		{
 			/* close current linelock */
 			slv->length = ns;
 			sdtlck->index++;
 
 			/* open new linelock */
 			if (sdtlck->index < sdtlck->maxcnt)
+			{
 				slv++;
-			else {
+			}
+			else
+			{
 				sdtlck = (struct dt_lock *) txLinelock(sdtlck);
 				slv = & sdtlck->lv[0];
 			}
@@ -4126,17 +4752,23 @@ static void dtMoveEntry(dtpage_t * sp, int si, dtpage_t * dp,
 
 		/* get src slot and move */
 		s = &sp->slot[ssi];
-		if (sp->header.flag & BT_LEAF) {
+
+		if (sp->header.flag & BT_LEAF)
+		{
 			/* get source entry */
 			slh = (struct ldtentry *) s;
 			dlh = (struct ldtentry *) h;
 			snamlen = slh->namlen;
 
-			if (do_index) {
+			if (do_index)
+			{
 				len = min(snamlen, DTLHDRDATALEN);
 				dlh->index = slh->index; /* little-endian */
-			} else
+			}
+			else
+			{
 				len = min(snamlen, DTLHDRDATALEN_LEGACY);
+			}
 
 			memcpy(dlh, slh, 6 + len * 2);
 
@@ -4145,7 +4777,9 @@ static void dtMoveEntry(dtpage_t * sp, int si, dtpage_t * dp,
 			/* update dst head/only segment next field */
 			dsi++;
 			dlh->next = dsi;
-		} else {
+		}
+		else
+		{
 			sih = (struct idtentry *) s;
 			snamlen = sih->namlen;
 
@@ -4171,20 +4805,26 @@ static void dtMoveEntry(dtpage_t * sp, int si, dtpage_t * dp,
 		 * move additional segment(s) of the entry
 		 */
 		snamlen -= len;
-		while ((ssi = next) >= 0) {
+
+		while ((ssi = next) >= 0)
+		{
 			/* is next slot contiguous ? */
-			if (ssi != xssi + 1) {
+			if (ssi != xssi + 1)
+			{
 				/* close current linelock */
 				slv->length = ns;
 				sdtlck->index++;
 
 				/* open new linelock */
 				if (sdtlck->index < sdtlck->maxcnt)
+				{
 					slv++;
-				else {
+				}
+				else
+				{
 					sdtlck =
-					    (struct dt_lock *)
-					    txLinelock(sdtlck);
+						(struct dt_lock *)
+						txLinelock(sdtlck);
 					slv = & sdtlck->lv[0];
 				}
 
@@ -4218,15 +4858,23 @@ static void dtMoveEntry(dtpage_t * sp, int si, dtpage_t * dp,
 		}		/* end while */
 
 		/* terminate dst last/only segment */
-		if (h == d) {
+		if (h == d)
+		{
 			/* single segment entry */
 			if (dp->header.flag & BT_LEAF)
+			{
 				dlh->next = -1;
+			}
 			else
+			{
 				dih->next = -1;
-		} else
+			}
+		}
+		else
 			/* multi-segment entry */
+		{
 			d->next = -1;
+		}
 	}			/* end for */
 
 	/* close current linelock */
@@ -4261,7 +4909,7 @@ static void dtMoveEntry(dtpage_t * sp, int si, dtpage_t * dp,
  * the entry logged to avoid applying previous updates
  * to the same slots)
  */
-static void dtDeleteEntry(dtpage_t * p, int fi, struct dt_lock ** dtlock)
+static void dtDeleteEntry(dtpage_t *p, int fi, struct dt_lock **dtlock)
 {
 	int fsi;		/* free entry slot index */
 	s8 *stbl;
@@ -4277,17 +4925,26 @@ static void dtDeleteEntry(dtpage_t * p, int fi, struct dt_lock ** dtlock)
 
 	/* open new linelock */
 	if (dtlck->index >= dtlck->maxcnt)
+	{
 		dtlck = (struct dt_lock *) txLinelock(dtlck);
+	}
+
 	lv = & dtlck->lv[dtlck->index];
 
 	lv->offset = fsi;
 
 	/* get the head/only segment */
 	t = &p->slot[fsi];
+
 	if (p->header.flag & BT_LEAF)
+	{
 		si = ((struct ldtentry *) t)->next;
+	}
 	else
+	{
 		si = ((struct idtentry *) t)->next;
+	}
+
 	t->next = si;
 	t->cnt = 1;
 
@@ -4295,17 +4952,22 @@ static void dtDeleteEntry(dtpage_t * p, int fi, struct dt_lock ** dtlock)
 	xsi = fsi;
 
 	/* find the last/only segment */
-	while (si >= 0) {
+	while (si >= 0)
+	{
 		/* is next slot contiguous ? */
-		if (si != xsi + 1) {
+		if (si != xsi + 1)
+		{
 			/* close current linelock */
 			lv->length = n;
 			dtlck->index++;
 
 			/* open new linelock */
 			if (dtlck->index < dtlck->maxcnt)
+			{
 				lv++;
-			else {
+			}
+			else
+			{
 				dtlck = (struct dt_lock *) txLinelock(dtlck);
 				lv = & dtlck->lv[0];
 			}
@@ -4338,8 +5000,11 @@ static void dtDeleteEntry(dtpage_t * p, int fi, struct dt_lock ** dtlock)
 	 * shift left the succedding entries in the stbl
 	 */
 	si = p->header.nextindex;
+
 	if (fi < si - 1)
+	{
 		memmove(&stbl[fi], &stbl[fi + 1], si - fi - 1);
+	}
 
 	p->header.nextindex--;
 }
@@ -4356,7 +5021,7 @@ static void dtDeleteEntry(dtpage_t * p, int fi, struct dt_lock ** dtlock)
  * the entry logged to avoid applying previous updates
  * to the same slots)
  */
-static void dtTruncateEntry(dtpage_t * p, int ti, struct dt_lock ** dtlock)
+static void dtTruncateEntry(dtpage_t *p, int ti, struct dt_lock **dtlock)
 {
 	int tsi;		/* truncate entry slot index */
 	s8 *stbl;
@@ -4372,7 +5037,10 @@ static void dtTruncateEntry(dtpage_t * p, int ti, struct dt_lock ** dtlock)
 
 	/* open new linelock */
 	if (dtlck->index >= dtlck->maxcnt)
+	{
 		dtlck = (struct dt_lock *) txLinelock(dtlck);
+	}
+
 	lv = & dtlck->lv[dtlck->index];
 
 	lv->offset = tsi;
@@ -4390,17 +5058,22 @@ static void dtTruncateEntry(dtpage_t * p, int ti, struct dt_lock ** dtlock)
 	xsi = tsi;
 
 	/* find the last/only segment */
-	while (si >= 0) {
+	while (si >= 0)
+	{
 		/* is next slot contiguous ? */
-		if (si != xsi + 1) {
+		if (si != xsi + 1)
+		{
 			/* close current linelock */
 			lv->length = n;
 			dtlck->index++;
 
 			/* open new linelock */
 			if (dtlck->index < dtlck->maxcnt)
+			{
 				lv++;
-			else {
+			}
+			else
+			{
 				dtlck = (struct dt_lock *) txLinelock(dtlck);
 				lv = & dtlck->lv[0];
 			}
@@ -4426,7 +5099,10 @@ static void dtTruncateEntry(dtpage_t * p, int ti, struct dt_lock ** dtlock)
 
 	/* update freelist */
 	if (freecnt == 0)
+	{
 		return;
+	}
+
 	t->next = p->header.freelist;
 	p->header.freelist = fsi;
 	p->header.freecnt += freecnt;
@@ -4436,9 +5112,9 @@ static void dtTruncateEntry(dtpage_t * p, int ti, struct dt_lock ** dtlock)
 /*
  *	dtLinelockFreelist()
  */
-static void dtLinelockFreelist(dtpage_t * p,	/* directory page */
-			       int m,	/* max slot index */
-			       struct dt_lock ** dtlock)
+static void dtLinelockFreelist(dtpage_t *p,	/* directory page */
+							   int m,	/* max slot index */
+							   struct dt_lock **dtlock)
 {
 	int fsi;		/* free entry slot index */
 	struct dtslot *t;
@@ -4452,7 +5128,10 @@ static void dtLinelockFreelist(dtpage_t * p,	/* directory page */
 
 	/* open new linelock */
 	if (dtlck->index >= dtlck->maxcnt)
+	{
 		dtlck = (struct dt_lock *) txLinelock(dtlck);
+	}
+
 	lv = & dtlck->lv[dtlck->index];
 
 	lv->offset = fsi;
@@ -4464,17 +5143,22 @@ static void dtLinelockFreelist(dtpage_t * p,	/* directory page */
 	si = t->next;
 
 	/* find the last/only segment */
-	while (si < m && si >= 0) {
+	while (si < m && si >= 0)
+	{
 		/* is next slot contiguous ? */
-		if (si != xsi + 1) {
+		if (si != xsi + 1)
+		{
 			/* close current linelock */
 			lv->length = n;
 			dtlck->index++;
 
 			/* open new linelock */
 			if (dtlck->index < dtlck->maxcnt)
+			{
 				lv++;
-			else {
+			}
+			else
+			{
 				dtlck = (struct dt_lock *) txLinelock(dtlck);
 				lv = & dtlck->lv[0];
 			}
@@ -4517,7 +5201,7 @@ static void dtLinelockFreelist(dtpage_t * p,	/* directory page */
  *	0	- If successfully modified entry
  */
 int dtModify(tid_t tid, struct inode *ip,
-	 struct component_name * key, ino_t * orig_ino, ino_t new_ino, int flag)
+			 struct component_name *key, ino_t *orig_ino, ino_t new_ino, int flag)
 {
 	int rc;
 	s64 bn;
@@ -4538,7 +5222,9 @@ int dtModify(tid_t tid, struct inode *ip,
 	 * dtSearch() returns (leaf page pinned, index at which to modify).
 	 */
 	if ((rc = dtSearch(ip, key, orig_ino, &btstack, flag)))
+	{
 		return rc;
+	}
 
 	/* retrieve search result */
 	DT_GETSEARCH(ip, btstack.top, bn, mp, p, index);

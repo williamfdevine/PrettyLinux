@@ -27,7 +27,8 @@ struct fq_tin;
  *	found in @queue.qlen
  * @deficit: used for DRR++
  */
-struct fq_flow {
+struct fq_flow
+{
 	struct fq_tin *tin;
 	struct list_head flowchain;
 	struct list_head backlogchain;
@@ -45,7 +46,8 @@ struct fq_flow {
  * @new_flows: linked list of fq_flow
  * @old_flows: linked list of fq_flow
  */
-struct fq_tin {
+struct fq_tin
+{
 	struct list_head new_flows;
 	struct list_head old_flows;
 	u32 backlog_bytes;
@@ -65,7 +67,8 @@ struct fq_tin {
  * @limit: max number of packets that can be queued across all flows
  * @backlog: number of packets queued across all flows
  */
-struct fq {
+struct fq
+{
 	struct fq_flow *flows;
 	struct list_head backlogs;
 	spinlock_t lock;
@@ -82,17 +85,17 @@ struct fq {
 };
 
 typedef struct sk_buff *fq_tin_dequeue_t(struct fq *,
-					 struct fq_tin *,
-					 struct fq_flow *flow);
+		struct fq_tin *,
+		struct fq_flow *flow);
 
 typedef void fq_skb_free_t(struct fq *,
-			   struct fq_tin *,
-			   struct fq_flow *,
-			   struct sk_buff *);
+						   struct fq_tin *,
+						   struct fq_flow *,
+						   struct sk_buff *);
 
 typedef struct fq_flow *fq_flow_get_default_t(struct fq *,
-					      struct fq_tin *,
-					      int idx,
-					      struct sk_buff *);
+		struct fq_tin *,
+		int idx,
+		struct sk_buff *);
 
 #endif

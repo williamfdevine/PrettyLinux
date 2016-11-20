@@ -50,7 +50,8 @@
 typedef unsigned int pending_ring_idx_t;
 #define INVALID_PENDING_RING_IDX (~0U)
 
-struct pending_tx_info {
+struct pending_tx_info
+{
 	struct xen_netif_tx_request req; /* tx request */
 	unsigned int extra_count;
 	/* Callback data for released SKBs. The callback is always
@@ -69,7 +70,8 @@ struct pending_tx_info {
 #define XEN_NETIF_TX_RING_SIZE __CONST_RING_SIZE(xen_netif_tx, XEN_PAGE_SIZE)
 #define XEN_NETIF_RX_RING_SIZE __CONST_RING_SIZE(xen_netif_rx, XEN_PAGE_SIZE)
 
-struct xenvif_rx_meta {
+struct xenvif_rx_meta
+{
 	int id;
 	int size;
 	int gso_type;
@@ -108,7 +110,8 @@ struct xenvif_rx_meta {
 
 struct xenvif;
 
-struct xenvif_stats {
+struct xenvif_stats
+{
 	/* Stats fields to be updated per-queue.
 	 * A subset of struct net_device_stats that contains only the
 	 * fields that are updated in netback.c for each queue.
@@ -128,14 +131,16 @@ struct xenvif_stats {
 
 #define COPY_BATCH_SIZE 64
 
-struct xenvif_copy_state {
+struct xenvif_copy_state
+{
 	struct gnttab_copy op[COPY_BATCH_SIZE];
 	RING_IDX idx[COPY_BATCH_SIZE];
 	unsigned int num;
 	struct sk_buff_head *completed;
 };
 
-struct xenvif_queue { /* Per-queue data for xenvif */
+struct xenvif_queue   /* Per-queue data for xenvif */
+{
 	unsigned int id; /* Queue ID, 0-based */
 	char name[QUEUE_NAME_SIZE]; /* DEVNAME-qN */
 	struct xenvif *vif; /* Parent VIF */
@@ -204,12 +209,14 @@ struct xenvif_queue { /* Per-queue data for xenvif */
 	struct xenvif_stats stats;
 };
 
-enum state_bit_shift {
+enum state_bit_shift
+{
 	/* This bit marks that the vif is connected */
 	VIF_STATUS_CONNECTED,
 };
 
-struct xenvif_mcast_addr {
+struct xenvif_mcast_addr
+{
 	struct list_head entry;
 	struct rcu_head rcu;
 	u8 addr[6];
@@ -221,7 +228,8 @@ struct xenvif_mcast_addr {
 #define XEN_NETBK_MAX_HASH_MAPPING_SIZE 128
 #define XEN_NETBK_HASH_TAG_SIZE 40
 
-struct xenvif_hash_cache_entry {
+struct xenvif_hash_cache_entry
+{
 	struct list_head link;
 	struct rcu_head rcu;
 	u8 tag[XEN_NETBK_HASH_TAG_SIZE];
@@ -230,14 +238,16 @@ struct xenvif_hash_cache_entry {
 	int seq;
 };
 
-struct xenvif_hash_cache {
+struct xenvif_hash_cache
+{
 	spinlock_t lock;
 	struct list_head list;
 	unsigned int count;
 	atomic_t seq;
 };
 
-struct xenvif_hash {
+struct xenvif_hash
+{
 	unsigned int alg;
 	u32 flags;
 	u8 key[XEN_NETBK_MAX_HASH_KEY_SIZE];
@@ -246,7 +256,8 @@ struct xenvif_hash {
 	struct xenvif_hash_cache cache;
 };
 
-struct xenvif {
+struct xenvif
+{
 	/* Unique identifier for this interface. */
 	domid_t          domid;
 	unsigned int     handle;
@@ -258,10 +269,10 @@ struct xenvif {
 	/* Frontend feature information. */
 	int gso_mask;
 
-	u8 can_sg:1;
-	u8 ip_csum:1;
-	u8 ipv6_csum:1;
-	u8 multicast_control:1;
+	u8 can_sg: 1;
+	u8 ip_csum: 1;
+	u8 ipv6_csum: 1;
+	u8 multicast_control: 1;
 
 	/* Is this interface disabled? True when backend discovers
 	 * frontend is rogue.
@@ -294,7 +305,8 @@ struct xenvif {
 	struct net_device *dev;
 };
 
-struct xenvif_rx_cb {
+struct xenvif_rx_cb
+{
 	unsigned long expires;
 	int meta_slots_used;
 };
@@ -309,20 +321,20 @@ static inline struct xenbus_device *xenvif_to_xenbus_device(struct xenvif *vif)
 void xenvif_tx_credit_callback(unsigned long data);
 
 struct xenvif *xenvif_alloc(struct device *parent,
-			    domid_t domid,
-			    unsigned int handle);
+							domid_t domid,
+							unsigned int handle);
 
 int xenvif_init_queue(struct xenvif_queue *queue);
 void xenvif_deinit_queue(struct xenvif_queue *queue);
 
 int xenvif_connect_data(struct xenvif_queue *queue,
-			unsigned long tx_ring_ref,
-			unsigned long rx_ring_ref,
-			unsigned int tx_evtchn,
-			unsigned int rx_evtchn);
+						unsigned long tx_ring_ref,
+						unsigned long rx_ring_ref,
+						unsigned int tx_evtchn,
+						unsigned int rx_evtchn);
 void xenvif_disconnect_data(struct xenvif *vif);
 int xenvif_connect_ctrl(struct xenvif *vif, grant_ref_t ring_ref,
-			unsigned int evtchn);
+						unsigned int evtchn);
 void xenvif_disconnect_ctrl(struct xenvif *vif);
 void xenvif_free(struct xenvif *vif);
 
@@ -337,8 +349,8 @@ void xenvif_wake_queue(struct xenvif_queue *queue);
 /* (Un)Map communication rings. */
 void xenvif_unmap_frontend_data_rings(struct xenvif_queue *queue);
 int xenvif_map_frontend_data_rings(struct xenvif_queue *queue,
-				   grant_ref_t tx_ring_ref,
-				   grant_ref_t rx_ring_ref);
+								   grant_ref_t tx_ring_ref,
+								   grant_ref_t rx_ring_ref);
 
 /* Check for SKBs from frontend and schedule backend processing */
 void xenvif_napi_schedule_or_enable_events(struct xenvif_queue *queue);
@@ -369,7 +381,7 @@ void xenvif_idx_unmap(struct xenvif_queue *queue, u16 pending_idx);
 static inline pending_ring_idx_t nr_pending_reqs(struct xenvif_queue *queue)
 {
 	return MAX_PENDING_REQS -
-		queue->pending_prod + queue->pending_cons;
+		   queue->pending_prod + queue->pending_cons;
 }
 
 irqreturn_t xenvif_interrupt(int irq, void *dev_id);
@@ -382,11 +394,11 @@ extern unsigned int xenvif_max_queues;
 extern unsigned int xenvif_hash_cache_size;
 
 #ifdef CONFIG_DEBUG_FS
-extern struct dentry *xen_netback_dbg_root;
+	extern struct dentry *xen_netback_dbg_root;
 #endif
 
 void xenvif_skb_zerocopy_prepare(struct xenvif_queue *queue,
-				 struct sk_buff *skb);
+								 struct sk_buff *skb);
 void xenvif_skb_zerocopy_complete(struct xenvif_queue *queue);
 
 /* Multicast control */
@@ -403,12 +415,12 @@ u32 xenvif_set_hash_flags(struct xenvif *vif, u32 flags);
 u32 xenvif_set_hash_key(struct xenvif *vif, u32 gref, u32 len);
 u32 xenvif_set_hash_mapping_size(struct xenvif *vif, u32 size);
 u32 xenvif_set_hash_mapping(struct xenvif *vif, u32 gref, u32 len,
-			    u32 off);
+							u32 off);
 
 void xenvif_set_skb_hash(struct xenvif *vif, struct sk_buff *skb);
 
 #ifdef CONFIG_DEBUG_FS
-void xenvif_dump_hash_info(struct xenvif *vif, struct seq_file *m);
+	void xenvif_dump_hash_info(struct xenvif *vif, struct seq_file *m);
 #endif
 
 #endif /* __XEN_NETBACK__COMMON_H__ */

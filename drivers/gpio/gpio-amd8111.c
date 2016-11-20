@@ -61,13 +61,15 @@
  * register a pci_driver, because someone else might one day
  * want to register another driver on the same PCI id.
  */
-static const struct pci_device_id pci_tbl[] = {
+static const struct pci_device_id pci_tbl[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_8111_SMBUS), 0 },
 	{ 0, },	/* terminate list */
 };
 MODULE_DEVICE_TABLE(pci, pci_tbl);
 
-struct amd_gpio {
+struct amd_gpio
+{
 	struct gpio_chip	chip;
 	u32			pmbase;
 	void __iomem		*pm;
@@ -81,7 +83,7 @@ static int amd_gpio_request(struct gpio_chip *chip, unsigned offset)
 	struct amd_gpio *agp = gpiochip_get_data(chip);
 
 	agp->orig[offset] = ioread8(agp->pm + AMD_REG_GPIO(offset)) &
-		(AMD_GPIO_DEBOUNCE | AMD_GPIO_MODE_MASK | AMD_GPIO_X_MASK);
+						(AMD_GPIO_DEBOUNCE | AMD_GPIO_MODE_MASK | AMD_GPIO_X_MASK);
 
 	dev_dbg(&agp->pdev->dev, "Requested gpio %d, data %x\n", offset, agp->orig[offset]);
 
@@ -158,7 +160,8 @@ static int amd_gpio_dirin(struct gpio_chip *chip, unsigned offset)
 	return 0;
 }
 
-static struct amd_gpio gp = {
+static struct amd_gpio gp =
+{
 	.chip = {
 		.label		= "AMD GPIO",
 		.owner		= THIS_MODULE,
@@ -189,35 +192,52 @@ static int __init amd_gpio_init(void)
 	 * main driver that binds to the pci_device is an smbus
 	 * driver and have to find & bind to the device this way.
 	 */
-	for_each_pci_dev(pdev) {
+	for_each_pci_dev(pdev)
+	{
 		ent = pci_match_id(pci_tbl, pdev);
+
 		if (ent)
+		{
 			goto found;
+		}
 	}
 	/* Device not found. */
 	goto out;
 
 found:
 	err = pci_read_config_dword(pdev, 0x58, &gp.pmbase);
+
 	if (err)
+	{
 		goto out;
+	}
+
 	err = -EIO;
 	gp.pmbase &= 0x0000FF00;
+
 	if (gp.pmbase == 0)
+	{
 		goto out;
+	}
+
 	if (!devm_request_region(&pdev->dev, gp.pmbase + PMBASE_OFFSET,
-		PMBASE_SIZE, "AMD GPIO")) {
+							 PMBASE_SIZE, "AMD GPIO"))
+	{
 		dev_err(&pdev->dev, "AMD GPIO region 0x%x already in use!\n",
-			gp.pmbase + PMBASE_OFFSET);
+				gp.pmbase + PMBASE_OFFSET);
 		err = -EBUSY;
 		goto out;
 	}
+
 	gp.pm = ioport_map(gp.pmbase + PMBASE_OFFSET, PMBASE_SIZE);
-	if (!gp.pm) {
+
+	if (!gp.pm)
+	{
 		dev_err(&pdev->dev, "Couldn't map io port into io memory\n");
 		err = -ENOMEM;
 		goto out;
 	}
+
 	gp.pdev = pdev;
 	gp.chip.parent = &pdev->dev;
 
@@ -225,12 +245,15 @@ found:
 
 	printk(KERN_INFO "AMD-8111 GPIO detected\n");
 	err = gpiochip_add_data(&gp.chip, &gp);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR "GPIO registering failed (%d)\n",
-		       err);
+			   err);
 		ioport_unmap(gp.pm);
 		goto out;
 	}
+
 out:
 	return err;
 }

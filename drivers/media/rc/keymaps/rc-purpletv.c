@@ -13,7 +13,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table purpletv[] = {
+static struct rc_map_table purpletv[] =
+{
 	{ 0x03, KEY_POWER },
 	{ 0x6f, KEY_MUTE },
 	{ 0x10, KEY_BACKSPACE },	/* Recall */
@@ -56,7 +57,8 @@ static struct rc_map_table purpletv[] = {
 
 };
 
-static struct rc_map_list purpletv_map = {
+static struct rc_map_list purpletv_map =
+{
 	.map = {
 		.scan    = purpletv,
 		.size    = ARRAY_SIZE(purpletv),

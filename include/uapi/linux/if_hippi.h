@@ -18,7 +18,7 @@
  *		as published by the Free Software Foundation; either version
  *		2 of the License, or (at your option) any later version.
  */
- 
+
 #ifndef _LINUX_IF_HIPPI_H
 #define _LINUX_IF_HIPPI_H
 
@@ -34,7 +34,7 @@
 #define HIPPI_ZLEN	0		/* Min. bytes in frame without FCS */
 #define HIPPI_DATA_LEN	65280		/* Max. bytes in payload	   */
 #define HIPPI_FRAME_LEN	(HIPPI_DATA_LEN + HIPPI_HLEN)
-					/* Max. bytes in frame without FCS */
+/* Max. bytes in frame without FCS */
 
 /*
  * Define LLC and SNAP constants.
@@ -48,10 +48,11 @@
  */
 
 /*
- *	HIPPI statistics collection data. 
+ *	HIPPI statistics collection data.
  */
- 
-struct hipnet_statistics {
+
+struct hipnet_statistics
+{
 	int	rx_packets;		/* total packets received	*/
 	int	tx_packets;		/* total packets transmitted	*/
 	int	rx_errors;		/* bad packets received		*/
@@ -76,26 +77,27 @@ struct hipnet_statistics {
 };
 
 
-struct hippi_fp_hdr {
+struct hippi_fp_hdr
+{
 #if 0
 	__u8		ulp;				/* must contain 4 */
 #if defined (__BIG_ENDIAN_BITFIELD)
-	__u8		d1_data_present:1;		/* must be 1 */
-	__u8		start_d2_burst_boundary:1;	/* must be zero */
-	__u8		reserved:6;			/* must be zero */
+	__u8		d1_data_present: 1;		/* must be 1 */
+	__u8		start_d2_burst_boundary: 1;	/* must be zero */
+	__u8		reserved: 6;			/* must be zero */
 #if 0
-	__u16		reserved1:5;
-	__u16		d1_area_size:8;			/* must be 3 */
-	__u16		d2_offset:3;			/* must be zero */
+	__u16		reserved1: 5;
+	__u16		d1_area_size: 8;			/* must be 3 */
+	__u16		d2_offset: 3;			/* must be zero */
 #endif
 #elif defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8		reserved:6;			/* must be zero */
-	__u8	 	start_d2_burst_boundary:1;	/* must be zero */
-	__u8		d1_data_present:1;		/* must be 1 */
+	__u8		reserved: 6;			/* must be zero */
+	__u8	 	start_d2_burst_boundary: 1;	/* must be zero */
+	__u8		d1_data_present: 1;		/* must be 1 */
 #if 0
-	__u16		d2_offset:3;			/* must be zero */
-	__u16		d1_area_size:8;			/* must be 3 */
-	__u16		reserved1:5;			/* must be zero */
+	__u16		d2_offset: 3;			/* must be zero */
+	__u16		d1_area_size: 8;			/* must be 3 */
+	__u16		reserved1: 5;			/* must be zero */
 #endif
 #else
 #error	"Please fix <asm/byteorder.h>"
@@ -106,23 +108,24 @@ struct hippi_fp_hdr {
 	__be32		d2_size;
 } __attribute__((packed));
 
-struct hippi_le_hdr {
+struct hippi_le_hdr
+{
 #if defined (__BIG_ENDIAN_BITFIELD)
-	__u8		fc:3;
-	__u8		double_wide:1;
-	__u8		message_type:4;
+	__u8		fc: 3;
+	__u8		double_wide: 1;
+	__u8		message_type: 4;
 #elif defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8		message_type:4;
-	__u8		double_wide:1;
-	__u8		fc:3;
+	__u8		message_type: 4;
+	__u8		double_wide: 1;
+	__u8		fc: 3;
 #endif
 	__u8		dest_switch_addr[3];
 #if defined (__BIG_ENDIAN_BITFIELD)
-	__u8		dest_addr_type:4,
-			src_addr_type:4;
+	__u8		dest_addr_type: 4,
+				src_addr_type: 4;
 #elif defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8		src_addr_type:4,
-			dest_addr_type:4;
+	__u8		src_addr_type: 4,
+				dest_addr_type: 4;
 #endif
 	__u8		src_switch_addr[3];
 	__u16		reserved;
@@ -136,7 +139,8 @@ struct hippi_le_hdr {
  * Looks like the dsap and ssap fields have been swapped by mistake in
  * RFC 2067 "IP over HIPPI".
  */
-struct hippi_snap_hdr {
+struct hippi_snap_hdr
+{
 	__u8	dsap;			/* always 0xAA */
 	__u8	ssap;			/* always 0xAA */
 	__u8	ctrl;			/* always 0x03 */
@@ -144,7 +148,8 @@ struct hippi_snap_hdr {
 	__be16	ethertype;		/* packet type ID field */
 } __attribute__((packed));
 
-struct hippi_hdr {
+struct hippi_hdr
+{
 	struct hippi_fp_hdr	fp;
 	struct hippi_le_hdr	le;
 	struct hippi_snap_hdr	snap;

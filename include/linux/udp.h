@@ -39,7 +39,8 @@ static inline u32 udp_hashfn(const struct net *net, u32 num, u32 mask)
 	return (num + net_hash_mix(net)) & mask;
 }
 
-struct udp_sock {
+struct udp_sock
+{
 	/* inet_sock has to be the first member */
 	struct inet_sock inet;
 #define udp_port_hash		inet.sk.__sk_common.skc_u16hashes[0]
@@ -48,8 +49,8 @@ struct udp_sock {
 	int		 pending;	/* Any pending frames ? */
 	unsigned int	 corkflag;	/* Cork is required */
 	__u8		 encap_type;	/* Is this an Encapsulation socket? */
-	unsigned char	 no_check6_tx:1,/* Send zero UDP6 checksums on TX? */
-			 no_check6_rx:1;/* Allow zero UDP6 checksums on RX? */
+	unsigned char	 no_check6_tx: 1, /* Send zero UDP6 checksums on TX? */
+			   no_check6_rx: 1; /* Allow zero UDP6 checksums on RX? */
 	/*
 	 * Following member retains the information to create a UDP header
 	 * when the socket is uncorked.
@@ -60,7 +61,7 @@ struct udp_sock {
 	 */
 	__u16		 pcslen;
 	__u16		 pcrlen;
-/* indicator bits used by pcflag: */
+	/* indicator bits used by pcflag: */
 #define UDPLITE_BIT      0x1  		/* set by udplite proto init function */
 #define UDPLITE_SEND_CC  0x2  		/* set via udplite setsockopt         */
 #define UDPLITE_RECV_CC  0x4		/* set via udplite setsocktopt        */
@@ -73,12 +74,12 @@ struct udp_sock {
 	void (*encap_destroy)(struct sock *sk);
 
 	/* GRO functions for UDP socket */
-	struct sk_buff **	(*gro_receive)(struct sock *sk,
-					       struct sk_buff **head,
-					       struct sk_buff *skb);
+	struct sk_buff 	**(*gro_receive)(struct sock *sk,
+									 struct sk_buff **head,
+									 struct sk_buff *skb);
 	int			(*gro_complete)(struct sock *sk,
-						struct sk_buff *skb,
-						int nhoff);
+								struct sk_buff *skb,
+								int nhoff);
 };
 
 static inline struct udp_sock *udp_sk(const struct sock *sk)

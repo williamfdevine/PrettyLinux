@@ -1,5 +1,5 @@
 /* parport_sunbpp.c: Parallel-port routines for SBUS
- * 
+ *
  * Author: Derrick J. Brashear <shadow@dementia.org>
  *
  * based on work by:
@@ -15,7 +15,7 @@
  *          Tom Dyas
  *
  * Updated to new SBUS device framework: David S. Miller <davem@davemloft.net>
- * 
+ *
  */
 
 #include <linux/string.h>
@@ -42,9 +42,9 @@
 
 #undef __SUNBPP_DEBUG
 #ifdef __SUNBPP_DEBUG
-#define dprintk(x) printk x
+	#define dprintk(x) printk x
 #else
-#define dprintk(x)
+	#define dprintk(x)
 #endif
 
 static void parport_sunbpp_disable_irq(struct parport *p)
@@ -90,15 +90,29 @@ static unsigned char status_sunbpp_to_pc(struct parport *p)
 	unsigned char value_ir = sbus_readb(&regs->p_ir);
 
 	if (!(value_ir & P_IR_ERR))
+	{
 		bits |= PARPORT_STATUS_ERROR;
+	}
+
 	if (!(value_ir & P_IR_SLCT))
+	{
 		bits |= PARPORT_STATUS_SELECT;
+	}
+
 	if (!(value_ir & P_IR_PE))
+	{
 		bits |= PARPORT_STATUS_PAPEROUT;
+	}
+
 	if (value_tcr & P_TCR_ACK)
+	{
 		bits |= PARPORT_STATUS_ACK;
+	}
+
 	if (!(value_tcr & P_TCR_BUSY))
+	{
 		bits |= PARPORT_STATUS_BUSY;
+	}
 
 	dprintk((KERN_DEBUG "tcr 0x%x ir 0x%x\n", value_tcr, value_ir));
 	dprintk((KERN_DEBUG "read status 0x%x\n", bits));
@@ -113,13 +127,24 @@ static unsigned char control_sunbpp_to_pc(struct parport *p)
 	unsigned char value_or = sbus_readb(&regs->p_or);
 
 	if (!(value_tcr & P_TCR_DS))
+	{
 		bits |= PARPORT_CONTROL_STROBE;
+	}
+
 	if (!(value_or & P_OR_AFXN))
+	{
 		bits |= PARPORT_CONTROL_AUTOFD;
+	}
+
 	if (!(value_or & P_OR_INIT))
+	{
 		bits |= PARPORT_CONTROL_INIT;
+	}
+
 	if (value_or & P_OR_SLCT_IN)
+	{
 		bits |= PARPORT_CONTROL_SELECT;
+	}
 
 	dprintk((KERN_DEBUG "tcr 0x%x or 0x%x\n", value_tcr, value_or));
 	dprintk((KERN_DEBUG "read control 0x%x\n", bits));
@@ -132,40 +157,60 @@ static unsigned char parport_sunbpp_read_control(struct parport *p)
 }
 
 static unsigned char parport_sunbpp_frob_control(struct parport *p,
-						 unsigned char mask,
-						 unsigned char val)
+		unsigned char mask,
+		unsigned char val)
 {
 	struct bpp_regs __iomem *regs = (struct bpp_regs __iomem *)p->base;
 	unsigned char value_tcr = sbus_readb(&regs->p_tcr);
 	unsigned char value_or = sbus_readb(&regs->p_or);
 
 	dprintk((KERN_DEBUG "frob1: tcr 0x%x or 0x%x\n",
-		 value_tcr, value_or));
-	if (mask & PARPORT_CONTROL_STROBE) {
-		if (val & PARPORT_CONTROL_STROBE) {
+			 value_tcr, value_or));
+
+	if (mask & PARPORT_CONTROL_STROBE)
+	{
+		if (val & PARPORT_CONTROL_STROBE)
+		{
 			value_tcr &= ~P_TCR_DS;
-		} else {
+		}
+		else
+		{
 			value_tcr |= P_TCR_DS;
 		}
 	}
-	if (mask & PARPORT_CONTROL_AUTOFD) {
-		if (val & PARPORT_CONTROL_AUTOFD) {
+
+	if (mask & PARPORT_CONTROL_AUTOFD)
+	{
+		if (val & PARPORT_CONTROL_AUTOFD)
+		{
 			value_or &= ~P_OR_AFXN;
-		} else {
+		}
+		else
+		{
 			value_or |= P_OR_AFXN;
 		}
 	}
-	if (mask & PARPORT_CONTROL_INIT) {
-		if (val & PARPORT_CONTROL_INIT) {
+
+	if (mask & PARPORT_CONTROL_INIT)
+	{
+		if (val & PARPORT_CONTROL_INIT)
+		{
 			value_or &= ~P_OR_INIT;
-		} else {
+		}
+		else
+		{
 			value_or |= P_OR_INIT;
 		}
 	}
-	if (mask & PARPORT_CONTROL_SELECT) {
-		if (val & PARPORT_CONTROL_SELECT) {
+
+	if (mask & PARPORT_CONTROL_SELECT)
+	{
+		if (val & PARPORT_CONTROL_SELECT)
+		{
 			value_or |= P_OR_SLCT_IN;
-		} else {
+		}
+		else
+		{
 			value_or &= ~P_OR_SLCT_IN;
 		}
 	}
@@ -173,16 +218,16 @@ static unsigned char parport_sunbpp_frob_control(struct parport *p,
 	sbus_writeb(value_or, &regs->p_or);
 	sbus_writeb(value_tcr, &regs->p_tcr);
 	dprintk((KERN_DEBUG "frob2: tcr 0x%x or 0x%x\n",
-		 value_tcr, value_or));
+			 value_tcr, value_or));
 	return parport_sunbpp_read_control(p);
 }
 
 static void parport_sunbpp_write_control(struct parport *p, unsigned char d)
 {
 	const unsigned char wm = (PARPORT_CONTROL_STROBE |
-				  PARPORT_CONTROL_AUTOFD |
-				  PARPORT_CONTROL_INIT |
-				  PARPORT_CONTROL_SELECT);
+							  PARPORT_CONTROL_AUTOFD |
+							  PARPORT_CONTROL_INIT |
+							  PARPORT_CONTROL_SELECT);
 
 	parport_sunbpp_frob_control (p, wm, d & wm);
 }
@@ -228,7 +273,7 @@ static void parport_sunbpp_restore_state(struct parport *p, struct parport_state
 	parport_sunbpp_write_control(p, s->u.pc.ctr);
 }
 
-static struct parport_operations parport_sunbpp_ops = 
+static struct parport_operations parport_sunbpp_ops =
 {
 	.write_data	= parport_sunbpp_write_data,
 	.read_data	= parport_sunbpp_read_data,
@@ -276,28 +321,38 @@ static int bpp_probe(struct platform_device *op)
 
 	irq = op->archdata.irqs[0];
 	base = of_ioremap(&op->resource[0], 0,
-			  resource_size(&op->resource[0]),
-			  "sunbpp");
+					  resource_size(&op->resource[0]),
+					  "sunbpp");
+
 	if (!base)
+	{
 		return -ENODEV;
+	}
 
 	size = resource_size(&op->resource[0]);
 	dma = PARPORT_DMA_NONE;
 
 	ops = kmemdup(&parport_sunbpp_ops, sizeof(struct parport_operations),
-		      GFP_KERNEL);
-        if (!ops)
+				  GFP_KERNEL);
+
+	if (!ops)
+	{
 		goto out_unmap;
+	}
 
 	dprintk(("register_port\n"));
+
 	if (!(p = parport_register_port((unsigned long)base, irq, dma, ops)))
+	{
 		goto out_free_ops;
+	}
 
 	p->size = size;
 	p->dev = &op->dev;
 
 	if ((err = request_irq(p->irq, parport_irq_handler,
-			       IRQF_SHARED, p->name, p)) != 0) {
+						   IRQF_SHARED, p->name, p)) != 0)
+	{
 		goto out_put_port;
 	}
 
@@ -336,7 +391,8 @@ static int bpp_remove(struct platform_device *op)
 
 	parport_remove_port(p);
 
-	if (p->irq != PARPORT_IRQ_NONE) {
+	if (p->irq != PARPORT_IRQ_NONE)
+	{
 		parport_sunbpp_disable_irq(p);
 		free_irq(p->irq, p);
 	}
@@ -350,7 +406,8 @@ static int bpp_remove(struct platform_device *op)
 	return 0;
 }
 
-static const struct of_device_id bpp_match[] = {
+static const struct of_device_id bpp_match[] =
+{
 	{
 		.name = "SUNW,bpp",
 	},
@@ -359,7 +416,8 @@ static const struct of_device_id bpp_match[] = {
 
 MODULE_DEVICE_TABLE(of, bpp_match);
 
-static struct platform_driver bpp_sbus_driver = {
+static struct platform_driver bpp_sbus_driver =
+{
 	.driver = {
 		.name = "bpp",
 		.of_match_table = bpp_match,

@@ -35,11 +35,14 @@ static int jornada_lcd_get_contrast(struct lcd_device *ld)
 	int ret;
 
 	if (jornada_lcd_get_power(ld) != FB_BLANK_UNBLANK)
+	{
 		return 0;
+	}
 
 	jornada_ssp_start();
 
-	if (jornada_ssp_byte(GETCONTRAST) == TXDUMMY) {
+	if (jornada_ssp_byte(GETCONTRAST) == TXDUMMY)
+	{
 		ret = jornada_ssp_byte(TXDUMMY);
 		goto success;
 	}
@@ -59,10 +62,13 @@ static int jornada_lcd_set_contrast(struct lcd_device *ld, int value)
 	jornada_ssp_start();
 
 	/* start by sending our set contrast cmd to mcu */
-	if (jornada_ssp_byte(SETCONTRAST) == TXDUMMY) {
+	if (jornada_ssp_byte(SETCONTRAST) == TXDUMMY)
+	{
 		/* if successful push the new value */
 		if (jornada_ssp_byte(value) == TXDUMMY)
+		{
 			goto success;
+		}
 	}
 
 	dev_err(&ld->dev, "failed to set contrast\n");
@@ -75,17 +81,21 @@ success:
 
 static int jornada_lcd_set_power(struct lcd_device *ld, int power)
 {
-	if (power != FB_BLANK_UNBLANK) {
+	if (power != FB_BLANK_UNBLANK)
+	{
 		PPSR &= ~PPC_LDD2;
 		PPDR |= PPC_LDD2;
-	} else {
+	}
+	else
+	{
 		PPSR |= PPC_LDD2;
 	}
 
 	return 0;
 }
 
-static struct lcd_ops jornada_lcd_props = {
+static struct lcd_ops jornada_lcd_props =
+{
 	.get_contrast = jornada_lcd_get_contrast,
 	.set_contrast = jornada_lcd_set_contrast,
 	.get_power = jornada_lcd_get_power,
@@ -98,9 +108,10 @@ static int jornada_lcd_probe(struct platform_device *pdev)
 	int ret;
 
 	lcd_device = devm_lcd_device_register(&pdev->dev, S1D_DEVICENAME,
-					&pdev->dev, NULL, &jornada_lcd_props);
+										  &pdev->dev, NULL, &jornada_lcd_props);
 
-	if (IS_ERR(lcd_device)) {
+	if (IS_ERR(lcd_device))
+	{
 		ret = PTR_ERR(lcd_device);
 		dev_err(&pdev->dev, "failed to register device\n");
 		return ret;
@@ -117,7 +128,8 @@ static int jornada_lcd_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver jornada_lcd_driver = {
+static struct platform_driver jornada_lcd_driver =
+{
 	.probe	= jornada_lcd_probe,
 	.driver	= {
 		.name	= "jornada_lcd",

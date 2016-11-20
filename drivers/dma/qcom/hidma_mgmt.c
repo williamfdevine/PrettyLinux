@@ -55,52 +55,61 @@ int hidma_mgmt_setup(struct hidma_mgmt_dev *mgmtdev)
 	u32 val;
 
 	if (!is_power_of_2(mgmtdev->max_write_request) ||
-	    (mgmtdev->max_write_request < 128) ||
-	    (mgmtdev->max_write_request > 1024)) {
+		(mgmtdev->max_write_request < 128) ||
+		(mgmtdev->max_write_request > 1024))
+	{
 		dev_err(&mgmtdev->pdev->dev, "invalid write request %d\n",
-			mgmtdev->max_write_request);
+				mgmtdev->max_write_request);
 		return -EINVAL;
 	}
 
 	if (!is_power_of_2(mgmtdev->max_read_request) ||
-	    (mgmtdev->max_read_request < 128) ||
-	    (mgmtdev->max_read_request > 1024)) {
+		(mgmtdev->max_read_request < 128) ||
+		(mgmtdev->max_read_request > 1024))
+	{
 		dev_err(&mgmtdev->pdev->dev, "invalid read request %d\n",
-			mgmtdev->max_read_request);
+				mgmtdev->max_read_request);
 		return -EINVAL;
 	}
 
-	if (mgmtdev->max_wr_xactions > HIDMA_MAX_WR_XACTIONS_MASK) {
+	if (mgmtdev->max_wr_xactions > HIDMA_MAX_WR_XACTIONS_MASK)
+	{
 		dev_err(&mgmtdev->pdev->dev,
-			"max_wr_xactions cannot be bigger than %ld\n",
-			HIDMA_MAX_WR_XACTIONS_MASK);
+				"max_wr_xactions cannot be bigger than %ld\n",
+				HIDMA_MAX_WR_XACTIONS_MASK);
 		return -EINVAL;
 	}
 
-	if (mgmtdev->max_rd_xactions > HIDMA_MAX_RD_XACTIONS_MASK) {
+	if (mgmtdev->max_rd_xactions > HIDMA_MAX_RD_XACTIONS_MASK)
+	{
 		dev_err(&mgmtdev->pdev->dev,
-			"max_rd_xactions cannot be bigger than %ld\n",
-			HIDMA_MAX_RD_XACTIONS_MASK);
+				"max_rd_xactions cannot be bigger than %ld\n",
+				HIDMA_MAX_RD_XACTIONS_MASK);
 		return -EINVAL;
 	}
 
-	for (i = 0; i < mgmtdev->dma_channels; i++) {
-		if (mgmtdev->priority[i] > 1) {
+	for (i = 0; i < mgmtdev->dma_channels; i++)
+	{
+		if (mgmtdev->priority[i] > 1)
+		{
 			dev_err(&mgmtdev->pdev->dev,
-				"priority can be 0 or 1\n");
+					"priority can be 0 or 1\n");
 			return -EINVAL;
 		}
 
-		if (mgmtdev->weight[i] > HIDMA_MAX_CHANNEL_WEIGHT) {
+		if (mgmtdev->weight[i] > HIDMA_MAX_CHANNEL_WEIGHT)
+		{
 			dev_err(&mgmtdev->pdev->dev,
-				"max value of weight can be %d.\n",
-				HIDMA_MAX_CHANNEL_WEIGHT);
+					"max value of weight can be %d.\n",
+					HIDMA_MAX_CHANNEL_WEIGHT);
 			return -EINVAL;
 		}
 
 		/* weight needs to be at least one */
 		if (mgmtdev->weight[i] == 0)
+		{
 			mgmtdev->weight[i] = 1;
+		}
 	}
 
 	pm_runtime_get_sync(&mgmtdev->pdev->dev);
@@ -119,11 +128,12 @@ int hidma_mgmt_setup(struct hidma_mgmt_dev *mgmtdev)
 	writel(val, mgmtdev->virtaddr + HIDMA_MAX_XACTIONS_OFFSET);
 
 	mgmtdev->hw_version =
-	    readl(mgmtdev->virtaddr + HIDMA_HW_VERSION_OFFSET);
+		readl(mgmtdev->virtaddr + HIDMA_HW_VERSION_OFFSET);
 	mgmtdev->hw_version_major = (mgmtdev->hw_version >> 28) & 0xF;
 	mgmtdev->hw_version_minor = (mgmtdev->hw_version >> 16) & 0xF;
 
-	for (i = 0; i < mgmtdev->dma_channels; i++) {
+	for (i = 0; i < mgmtdev->dma_channels; i++)
+	{
 		u32 weight = mgmtdev->weight[i];
 		u32 priority = mgmtdev->priority[i];
 
@@ -163,20 +173,26 @@ static int hidma_mgmt_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	virtaddr = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(virtaddr)) {
+
+	if (IS_ERR(virtaddr))
+	{
 		rc = -ENOMEM;
 		goto out;
 	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "irq resources not found\n");
 		rc = irq;
 		goto out;
 	}
 
 	mgmtdev = devm_kzalloc(&pdev->dev, sizeof(*mgmtdev), GFP_KERNEL);
-	if (!mgmtdev) {
+
+	if (!mgmtdev)
+	{
 		rc = -ENOMEM;
 		goto out;
 	}
@@ -186,67 +202,85 @@ static int hidma_mgmt_probe(struct platform_device *pdev)
 	mgmtdev->virtaddr = virtaddr;
 
 	rc = device_property_read_u32(&pdev->dev, "dma-channels",
-				      &mgmtdev->dma_channels);
-	if (rc) {
+								  &mgmtdev->dma_channels);
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "number of channels missing\n");
 		goto out;
 	}
 
 	rc = device_property_read_u32(&pdev->dev,
-				      "channel-reset-timeout-cycles",
-				      &mgmtdev->chreset_timeout_cycles);
-	if (rc) {
+								  "channel-reset-timeout-cycles",
+								  &mgmtdev->chreset_timeout_cycles);
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "channel reset timeout missing\n");
 		goto out;
 	}
 
 	rc = device_property_read_u32(&pdev->dev, "max-write-burst-bytes",
-				      &mgmtdev->max_write_request);
-	if (rc) {
+								  &mgmtdev->max_write_request);
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "max-write-burst-bytes missing\n");
 		goto out;
 	}
 
 	rc = device_property_read_u32(&pdev->dev, "max-read-burst-bytes",
-				      &mgmtdev->max_read_request);
-	if (rc) {
+								  &mgmtdev->max_read_request);
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "max-read-burst-bytes missing\n");
 		goto out;
 	}
 
 	rc = device_property_read_u32(&pdev->dev, "max-write-transactions",
-				      &mgmtdev->max_wr_xactions);
-	if (rc) {
+								  &mgmtdev->max_wr_xactions);
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "max-write-transactions missing\n");
 		goto out;
 	}
 
 	rc = device_property_read_u32(&pdev->dev, "max-read-transactions",
-				      &mgmtdev->max_rd_xactions);
-	if (rc) {
+								  &mgmtdev->max_rd_xactions);
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "max-read-transactions missing\n");
 		goto out;
 	}
 
 	mgmtdev->priority = devm_kcalloc(&pdev->dev,
-					 mgmtdev->dma_channels,
-					 sizeof(*mgmtdev->priority),
-					 GFP_KERNEL);
-	if (!mgmtdev->priority) {
+									 mgmtdev->dma_channels,
+									 sizeof(*mgmtdev->priority),
+									 GFP_KERNEL);
+
+	if (!mgmtdev->priority)
+	{
 		rc = -ENOMEM;
 		goto out;
 	}
 
 	mgmtdev->weight = devm_kcalloc(&pdev->dev,
-				       mgmtdev->dma_channels,
-				       sizeof(*mgmtdev->weight), GFP_KERNEL);
-	if (!mgmtdev->weight) {
+								   mgmtdev->dma_channels,
+								   sizeof(*mgmtdev->weight), GFP_KERNEL);
+
+	if (!mgmtdev->weight)
+	{
 		rc = -ENOMEM;
 		goto out;
 	}
 
 	rc = hidma_mgmt_setup(mgmtdev);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "setup failed\n");
 		goto out;
 	}
@@ -257,15 +291,17 @@ static int hidma_mgmt_probe(struct platform_device *pdev)
 	writel(val, mgmtdev->virtaddr + HIDMA_CFG_OFFSET);
 
 	rc = hidma_mgmt_init_sys(mgmtdev);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "sysfs setup failed\n");
 		goto out;
 	}
 
 	dev_info(&pdev->dev,
-		 "HW rev: %d.%d @ %pa with %d physical channels\n",
-		 mgmtdev->hw_version_major, mgmtdev->hw_version_minor,
-		 &res->start, mgmtdev->dma_channels);
+			 "HW rev: %d.%d @ %pa with %d physical channels\n",
+			 mgmtdev->hw_version_major, mgmtdev->hw_version_minor,
+			 &res->start, mgmtdev->dma_channels);
 
 	platform_set_drvdata(pdev, mgmtdev);
 	pm_runtime_mark_last_busy(&pdev->dev);
@@ -278,24 +314,27 @@ out:
 }
 
 #if IS_ENABLED(CONFIG_ACPI)
-static const struct acpi_device_id hidma_mgmt_acpi_ids[] = {
+static const struct acpi_device_id hidma_mgmt_acpi_ids[] =
+{
 	{"QCOM8060"},
 	{},
 };
 #endif
 
-static const struct of_device_id hidma_mgmt_match[] = {
+static const struct of_device_id hidma_mgmt_match[] =
+{
 	{.compatible = "qcom,hidma-mgmt-1.0",},
 	{},
 };
 MODULE_DEVICE_TABLE(of, hidma_mgmt_match);
 
-static struct platform_driver hidma_mgmt_driver = {
+static struct platform_driver hidma_mgmt_driver =
+{
 	.probe = hidma_mgmt_probe,
 	.driver = {
-		   .name = "hidma-mgmt",
-		   .of_match_table = hidma_mgmt_match,
-		   .acpi_match_table = ACPI_PTR(hidma_mgmt_acpi_ids),
+		.name = "hidma-mgmt",
+		.of_match_table = hidma_mgmt_match,
+		.acpi_match_table = ACPI_PTR(hidma_mgmt_acpi_ids),
 	},
 };
 
@@ -313,23 +352,28 @@ static int __init hidma_mgmt_of_populate_channels(struct device_node *np)
 	int ret = 0, size, i, num;
 	u64 addr, addr_size;
 
-	for_each_available_child_of_node(np, child) {
+	for_each_available_child_of_node(np, child)
+	{
 		struct resource *res_iter;
 		struct platform_device *new_pdev;
 
 		cell = of_get_property(child, "reg", &size);
-		if (!cell) {
+
+		if (!cell)
+		{
 			ret = -EINVAL;
 			goto out;
 		}
 
 		size /= sizeof(*cell);
 		num = size /
-			(of_n_addr_cells(child) + of_n_size_cells(child)) + 1;
+			  (of_n_addr_cells(child) + of_n_size_cells(child)) + 1;
 
 		/* allocate a resource array */
 		res = kcalloc(num, sizeof(*res), GFP_KERNEL);
-		if (!res) {
+
+		if (!res)
+		{
 			ret = -ENOMEM;
 			goto out;
 		}
@@ -337,13 +381,15 @@ static int __init hidma_mgmt_of_populate_channels(struct device_node *np)
 		/* read each reg value */
 		i = 0;
 		res_iter = res;
-		while (i < size) {
+
+		while (i < size)
+		{
 			addr = of_read_number(&cell[i],
-					      of_n_addr_cells(child));
+								  of_n_addr_cells(child));
 			i += of_n_addr_cells(child);
 
 			addr_size = of_read_number(&cell[i],
-						   of_n_size_cells(child));
+									   of_n_size_cells(child));
 			i += of_n_size_cells(child);
 
 			res_iter->start = addr;
@@ -353,8 +399,11 @@ static int __init hidma_mgmt_of_populate_channels(struct device_node *np)
 		}
 
 		ret = of_irq_parse_one(child, 0, &out_irq);
+
 		if (ret)
+		{
 			goto out;
+		}
 
 		res_iter->start = irq_create_of_mapping(&out_irq);
 		res_iter->name = "hidma event irq";
@@ -371,10 +420,13 @@ static int __init hidma_mgmt_of_populate_channels(struct device_node *np)
 		pdevinfo.size_data = 0;
 		pdevinfo.dma_mask = DMA_BIT_MASK(64);
 		new_pdev = platform_device_register_full(&pdevinfo);
-		if (IS_ERR(new_pdev)) {
+
+		if (IS_ERR(new_pdev))
+		{
 			ret = PTR_ERR(new_pdev);
 			goto out;
 		}
+
 		of_dma_configure(&new_pdev->dev, child);
 
 		kfree(res);
@@ -392,7 +444,8 @@ static int __init hidma_mgmt_init(void)
 #if defined(CONFIG_OF) && defined(CONFIG_OF_IRQ)
 	struct device_node *child;
 
-	for_each_matching_node(child, hidma_mgmt_match) {
+	for_each_matching_node(child, hidma_mgmt_match)
+	{
 		/* device tree based firmware here */
 		hidma_mgmt_of_populate_channels(child);
 		of_node_put(child);

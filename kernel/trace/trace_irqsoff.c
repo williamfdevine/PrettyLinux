@@ -23,7 +23,8 @@ static DEFINE_PER_CPU(int, tracing_cpu);
 
 static DEFINE_RAW_SPINLOCK(max_trace_lock);
 
-enum {
+enum
+{
 	TRACER_IRQS_OFF		= (1 << 1),
 	TRACER_PREEMPT_OFF	= (1 << 2),
 };
@@ -50,7 +51,7 @@ static inline int
 irq_trace(void)
 {
 	return ((trace_type & TRACER_IRQS_OFF) &&
-		irqs_disabled());
+			irqs_disabled());
 }
 #else
 # define irq_trace() (0)
@@ -92,8 +93,8 @@ static __cacheline_aligned_in_smp	unsigned long max_sequence;
  *  dependent on the function tracer.
  */
 static int func_prolog_dec(struct trace_array *tr,
-			   struct trace_array_cpu **data,
-			   unsigned long *flags)
+						   struct trace_array_cpu **data,
+						   unsigned long *flags)
 {
 	long disabled;
 	int cpu;
@@ -105,23 +106,31 @@ static int func_prolog_dec(struct trace_array *tr,
 	 * test will fail.
 	 */
 	cpu = raw_smp_processor_id();
+
 	if (likely(!per_cpu(tracing_cpu, cpu)))
+	{
 		return 0;
+	}
 
 	local_save_flags(*flags);
+
 	/*
 	 * Slight chance to get a false positive on tracing_cpu,
 	 * although I'm starting to think there isn't a chance.
 	 * Leave this for now just to be paranoid.
 	 */
 	if (!irqs_disabled_flags(*flags) && !preempt_count())
+	{
 		return 0;
+	}
 
 	*data = per_cpu_ptr(tr->trace_buffer.data, cpu);
 	disabled = atomic_inc_return(&(*data)->disabled);
 
 	if (likely(disabled == 1))
+	{
 		return 1;
+	}
 
 	atomic_dec(&(*data)->disabled);
 
@@ -133,14 +142,16 @@ static int func_prolog_dec(struct trace_array *tr,
  */
 static void
 irqsoff_tracer_call(unsigned long ip, unsigned long parent_ip,
-		    struct ftrace_ops *op, struct pt_regs *pt_regs)
+					struct ftrace_ops *op, struct pt_regs *pt_regs)
 {
 	struct trace_array *tr = irqsoff_trace;
 	struct trace_array_cpu *data;
 	unsigned long flags;
 
 	if (!func_prolog_dec(tr, &data, &flags))
+	{
 		return;
+	}
 
 	trace_function(tr, ip, parent_ip, flags, preempt_count());
 
@@ -154,12 +165,14 @@ static int irqsoff_display_graph(struct trace_array *tr, int set)
 	int cpu;
 
 	if (!(is_graph(tr) ^ set))
+	{
 		return 0;
+	}
 
 	stop_irqsoff_tracer(irqsoff_trace, !set);
 
 	for_each_possible_cpu(cpu)
-		per_cpu(tracing_cpu, cpu) = 0;
+	per_cpu(tracing_cpu, cpu) = 0;
 
 	tr->max_latency = 0;
 	tracing_reset_online_cpus(&irqsoff_trace->trace_buffer);
@@ -176,7 +189,9 @@ static int irqsoff_graph_entry(struct ftrace_graph_ent *trace)
 	int pc;
 
 	if (!func_prolog_dec(tr, &data, &flags))
+	{
 		return 0;
+	}
 
 	pc = preempt_count();
 	ret = __trace_graph_entry(tr, trace, flags, pc);
@@ -193,7 +208,9 @@ static void irqsoff_graph_return(struct ftrace_graph_ret *trace)
 	int pc;
 
 	if (!func_prolog_dec(tr, &data, &flags))
+	{
 		return;
+	}
 
 	pc = preempt_count();
 	__trace_graph_return(tr, trace, flags, pc);
@@ -203,20 +220,24 @@ static void irqsoff_graph_return(struct ftrace_graph_ret *trace)
 static void irqsoff_trace_open(struct trace_iterator *iter)
 {
 	if (is_graph(iter->tr))
+	{
 		graph_trace_open(iter);
+	}
 
 }
 
 static void irqsoff_trace_close(struct trace_iterator *iter)
 {
 	if (iter->private)
+	{
 		graph_trace_close(iter);
+	}
 }
 
 #define GRAPH_TRACER_FLAGS (TRACE_GRAPH_PRINT_CPU | \
-			    TRACE_GRAPH_PRINT_PROC | \
-			    TRACE_GRAPH_PRINT_ABS_TIME | \
-			    TRACE_GRAPH_PRINT_DURATION)
+							TRACE_GRAPH_PRINT_PROC | \
+							TRACE_GRAPH_PRINT_ABS_TIME | \
+							TRACE_GRAPH_PRINT_DURATION)
 
 static enum print_line_t irqsoff_print_line(struct trace_iterator *iter)
 {
@@ -225,7 +246,9 @@ static enum print_line_t irqsoff_print_line(struct trace_iterator *iter)
 	 * otherwise go with the TRACE_FN event handler
 	 */
 	if (is_graph(iter->tr))
+	{
 		return print_graph_function_flags(iter, GRAPH_TRACER_FLAGS);
+	}
 
 	return TRACE_TYPE_UNHANDLED;
 }
@@ -235,20 +258,28 @@ static void irqsoff_print_header(struct seq_file *s)
 	struct trace_array *tr = irqsoff_trace;
 
 	if (is_graph(tr))
+	{
 		print_graph_headers_flags(s, GRAPH_TRACER_FLAGS);
+	}
 	else
+	{
 		trace_default_header(s);
+	}
 }
 
 static void
 __trace_function(struct trace_array *tr,
-		 unsigned long ip, unsigned long parent_ip,
-		 unsigned long flags, int pc)
+				 unsigned long ip, unsigned long parent_ip,
+				 unsigned long flags, int pc)
 {
 	if (is_graph(tr))
+	{
 		trace_graph_function(tr, ip, parent_ip, flags, pc);
+	}
 	else
+	{
 		trace_function(tr, ip, parent_ip, flags, pc);
+	}
 }
 
 #else
@@ -288,21 +319,29 @@ static void irqsoff_print_header(struct seq_file *s)
  */
 static bool report_latency(struct trace_array *tr, cycle_t delta)
 {
-	if (tracing_thresh) {
+	if (tracing_thresh)
+	{
 		if (delta < tracing_thresh)
+		{
 			return false;
-	} else {
-		if (delta <= tr->max_latency)
-			return false;
+		}
 	}
+	else
+	{
+		if (delta <= tr->max_latency)
+		{
+			return false;
+		}
+	}
+
 	return true;
 }
 
 static void
 check_critical_timing(struct trace_array *tr,
-		      struct trace_array_cpu *data,
-		      unsigned long parent_ip,
-		      int cpu)
+					  struct trace_array_cpu *data,
+					  unsigned long parent_ip,
+					  int cpu)
 {
 	cycle_t T0, T1, delta;
 	unsigned long flags;
@@ -310,31 +349,38 @@ check_critical_timing(struct trace_array *tr,
 
 	T0 = data->preempt_timestamp;
 	T1 = ftrace_now(cpu);
-	delta = T1-T0;
+	delta = T1 - T0;
 
 	local_save_flags(flags);
 
 	pc = preempt_count();
 
 	if (!report_latency(tr, delta))
+	{
 		goto out;
+	}
 
 	raw_spin_lock_irqsave(&max_trace_lock, flags);
 
 	/* check if we are still the max latency */
 	if (!report_latency(tr, delta))
+	{
 		goto out_unlock;
+	}
 
 	__trace_function(tr, CALLER_ADDR0, parent_ip, flags, pc);
 	/* Skip 5 functions to get to the irq/preempt enable function */
 	__trace_stack(tr, flags, 5, pc);
 
 	if (data->critical_sequence != max_sequence)
+	{
 		goto out_unlock;
+	}
 
 	data->critical_end = parent_ip;
 
-	if (likely(!is_tracing_stopped())) {
+	if (likely(!is_tracing_stopped()))
+	{
 		tr->max_latency = delta;
 		update_max_tr_single(tr, current, cpu);
 	}
@@ -359,17 +405,23 @@ start_critical_timing(unsigned long ip, unsigned long parent_ip)
 	unsigned long flags;
 
 	if (!tracer_enabled || !tracing_is_enabled())
+	{
 		return;
+	}
 
 	cpu = raw_smp_processor_id();
 
 	if (per_cpu(tracing_cpu, cpu))
+	{
 		return;
+	}
 
 	data = per_cpu_ptr(tr->trace_buffer.data, cpu);
 
 	if (unlikely(!data) || atomic_read(&data->disabled))
+	{
 		return;
+	}
 
 	atomic_inc(&data->disabled);
 
@@ -395,20 +447,29 @@ stop_critical_timing(unsigned long ip, unsigned long parent_ip)
 	unsigned long flags;
 
 	cpu = raw_smp_processor_id();
+
 	/* Always clear the tracing cpu on stopping the trace */
 	if (unlikely(per_cpu(tracing_cpu, cpu)))
+	{
 		per_cpu(tracing_cpu, cpu) = 0;
+	}
 	else
+	{
 		return;
+	}
 
 	if (!tracer_enabled || !tracing_is_enabled())
+	{
 		return;
+	}
 
 	data = per_cpu_ptr(tr->trace_buffer.data, cpu);
 
 	if (unlikely(!data) ||
-	    !data->critical_start || atomic_read(&data->disabled))
+		!data->critical_start || atomic_read(&data->disabled))
+	{
 		return;
+	}
 
 	atomic_inc(&data->disabled);
 
@@ -423,14 +484,18 @@ stop_critical_timing(unsigned long ip, unsigned long parent_ip)
 void start_critical_timings(void)
 {
 	if (preempt_trace() || irq_trace())
+	{
 		start_critical_timing(CALLER_ADDR0, CALLER_ADDR1);
+	}
 }
 EXPORT_SYMBOL_GPL(start_critical_timings);
 
 void stop_critical_timings(void)
 {
 	if (preempt_trace() || irq_trace())
+	{
 		stop_critical_timing(CALLER_ADDR0, CALLER_ADDR1);
+	}
 }
 EXPORT_SYMBOL_GPL(stop_critical_timings);
 
@@ -439,13 +504,17 @@ EXPORT_SYMBOL_GPL(stop_critical_timings);
 void time_hardirqs_on(unsigned long a0, unsigned long a1)
 {
 	if (!preempt_trace() && irq_trace())
+	{
 		stop_critical_timing(a0, a1);
+	}
 }
 
 void time_hardirqs_off(unsigned long a0, unsigned long a1)
 {
 	if (!preempt_trace() && irq_trace())
+	{
 		start_critical_timing(a0, a1);
+	}
 }
 
 #else /* !CONFIG_PROVE_LOCKING */
@@ -472,28 +541,36 @@ inline void print_irqtrace_events(struct task_struct *curr)
 void trace_hardirqs_on(void)
 {
 	if (!preempt_trace() && irq_trace())
+	{
 		stop_critical_timing(CALLER_ADDR0, CALLER_ADDR1);
+	}
 }
 EXPORT_SYMBOL(trace_hardirqs_on);
 
 void trace_hardirqs_off(void)
 {
 	if (!preempt_trace() && irq_trace())
+	{
 		start_critical_timing(CALLER_ADDR0, CALLER_ADDR1);
+	}
 }
 EXPORT_SYMBOL(trace_hardirqs_off);
 
 __visible void trace_hardirqs_on_caller(unsigned long caller_addr)
 {
 	if (!preempt_trace() && irq_trace())
+	{
 		stop_critical_timing(CALLER_ADDR0, caller_addr);
+	}
 }
 EXPORT_SYMBOL(trace_hardirqs_on_caller);
 
 __visible void trace_hardirqs_off_caller(unsigned long caller_addr)
 {
 	if (!preempt_trace() && irq_trace())
+	{
 		start_critical_timing(CALLER_ADDR0, caller_addr);
+	}
 }
 EXPORT_SYMBOL(trace_hardirqs_off_caller);
 
@@ -504,13 +581,17 @@ EXPORT_SYMBOL(trace_hardirqs_off_caller);
 void trace_preempt_on(unsigned long a0, unsigned long a1)
 {
 	if (preempt_trace() && !irq_trace())
+	{
 		stop_critical_timing(a0, a1);
+	}
 }
 
 void trace_preempt_off(unsigned long a0, unsigned long a1)
 {
 	if (preempt_trace() && !irq_trace())
+	{
 		start_critical_timing(a0, a1);
+	}
 }
 #endif /* CONFIG_PREEMPT_TRACER */
 
@@ -523,16 +604,22 @@ static int register_irqsoff_function(struct trace_array *tr, int graph, int set)
 
 	/* 'set' is set if TRACE_ITER_FUNCTION is about to be set */
 	if (function_enabled || (!set && !(tr->trace_flags & TRACE_ITER_FUNCTION)))
+	{
 		return 0;
+	}
 
 	if (graph)
 		ret = register_ftrace_graph(&irqsoff_graph_return,
-					    &irqsoff_graph_entry);
+									&irqsoff_graph_entry);
 	else
+	{
 		ret = register_ftrace_function(tr->ops);
+	}
 
 	if (!ret)
+	{
 		function_enabled = true;
+	}
 
 	return ret;
 }
@@ -540,12 +627,18 @@ static int register_irqsoff_function(struct trace_array *tr, int graph, int set)
 static void unregister_irqsoff_function(struct trace_array *tr, int graph)
 {
 	if (!function_enabled)
+	{
 		return;
+	}
 
 	if (graph)
+	{
 		unregister_ftrace_graph();
+	}
 	else
+	{
 		unregister_ftrace_function(tr->ops);
+	}
 
 	function_enabled = false;
 }
@@ -553,12 +646,19 @@ static void unregister_irqsoff_function(struct trace_array *tr, int graph)
 static int irqsoff_function_set(struct trace_array *tr, u32 mask, int set)
 {
 	if (!(mask & TRACE_ITER_FUNCTION))
+	{
 		return 0;
+	}
 
 	if (set)
+	{
 		register_irqsoff_function(tr, is_graph(tr), 1);
+	}
 	else
+	{
 		unregister_irqsoff_function(tr, is_graph(tr));
+	}
+
 	return 1;
 }
 #else
@@ -578,11 +678,17 @@ static int irqsoff_flag_changed(struct trace_array *tr, u32 mask, int set)
 	struct tracer *tracer = tr->current_trace;
 
 	if (irqsoff_function_set(tr, mask, set))
+	{
 		return 0;
+	}
 
 #ifdef CONFIG_FUNCTION_GRAPH_TRACER
+
 	if (mask & TRACE_ITER_DISPLAY_GRAPH)
+	{
 		return irqsoff_display_graph(tr, set);
+	}
+
 #endif
 
 	return trace_keep_overwrite(tracer, mask, set);
@@ -595,9 +701,13 @@ static int start_irqsoff_tracer(struct trace_array *tr, int graph)
 	ret = register_irqsoff_function(tr, graph, 0);
 
 	if (!ret && tracing_is_enabled())
+	{
 		tracer_enabled = 1;
+	}
 	else
+	{
 		tracer_enabled = 0;
+	}
 
 	return ret;
 }
@@ -614,7 +724,9 @@ static bool irqsoff_busy;
 static int __irqsoff_tracer_init(struct trace_array *tr)
 {
 	if (irqsoff_busy)
+	{
 		return -EBUSY;
+	}
 
 	save_flags = tr->trace_flags;
 
@@ -631,8 +743,10 @@ static int __irqsoff_tracer_init(struct trace_array *tr)
 
 	/* Only toplevel instance supports graph tracing */
 	if (start_irqsoff_tracer(tr, (tr->flags & TRACE_ARRAY_FL_GLOBAL &&
-				      is_graph(tr))))
+								  is_graph(tr))))
+	{
 		printk(KERN_ERR "failed to start irqsoff tracer\n");
+	}
 
 	irqsoff_busy = true;
 	return 0;

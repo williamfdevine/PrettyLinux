@@ -51,7 +51,8 @@ ACPI_MODULE_NAME("dbhistry")
 #define HI_NO_HISTORY       0
 #define HI_RECORD_HISTORY   1
 #define HISTORY_SIZE        40
-typedef struct history_info {
+typedef struct history_info
+{
 	char *command;
 	u32 cmd_num;
 
@@ -83,51 +84,64 @@ void acpi_db_add_to_history(char *command_line)
 	/* Put command into the next available slot */
 
 	cmd_len = (u16)strlen(command_line);
-	if (!cmd_len) {
+
+	if (!cmd_len)
+	{
 		return;
 	}
 
 	if (acpi_gbl_history_buffer[acpi_gbl_next_history_index].command !=
-	    NULL) {
+		NULL)
+	{
 		buffer_len =
-		    (u16)
-		    strlen(acpi_gbl_history_buffer[acpi_gbl_next_history_index].
-			   command);
+			(u16)
+			strlen(acpi_gbl_history_buffer[acpi_gbl_next_history_index].
+				   command);
 
-		if (cmd_len > buffer_len) {
+		if (cmd_len > buffer_len)
+		{
 			acpi_os_free(acpi_gbl_history_buffer
-				     [acpi_gbl_next_history_index].command);
+						 [acpi_gbl_next_history_index].command);
 			acpi_gbl_history_buffer[acpi_gbl_next_history_index].
-			    command = acpi_os_allocate(cmd_len + 1);
+			command = acpi_os_allocate(cmd_len + 1);
 		}
-	} else {
+	}
+	else
+	{
 		acpi_gbl_history_buffer[acpi_gbl_next_history_index].command =
-		    acpi_os_allocate(cmd_len + 1);
+			acpi_os_allocate(cmd_len + 1);
 	}
 
 	strcpy(acpi_gbl_history_buffer[acpi_gbl_next_history_index].command,
-	       command_line);
+		   command_line);
 
 	acpi_gbl_history_buffer[acpi_gbl_next_history_index].cmd_num =
-	    acpi_gbl_next_cmd_num;
+		acpi_gbl_next_cmd_num;
 
 	/* Adjust indexes */
 
 	if ((acpi_gbl_num_history == HISTORY_SIZE) &&
-	    (acpi_gbl_next_history_index == acpi_gbl_lo_history)) {
+		(acpi_gbl_next_history_index == acpi_gbl_lo_history))
+	{
 		acpi_gbl_lo_history++;
-		if (acpi_gbl_lo_history >= HISTORY_SIZE) {
+
+		if (acpi_gbl_lo_history >= HISTORY_SIZE)
+		{
 			acpi_gbl_lo_history = 0;
 		}
 	}
 
 	acpi_gbl_next_history_index++;
-	if (acpi_gbl_next_history_index >= HISTORY_SIZE) {
+
+	if (acpi_gbl_next_history_index >= HISTORY_SIZE)
+	{
 		acpi_gbl_next_history_index = 0;
 	}
 
 	acpi_gbl_next_cmd_num++;
-	if (acpi_gbl_num_history < HISTORY_SIZE) {
+
+	if (acpi_gbl_num_history < HISTORY_SIZE)
+	{
 		acpi_gbl_num_history++;
 	}
 }
@@ -153,17 +167,21 @@ void acpi_db_display_history(void)
 
 	/* Dump entire history buffer */
 
-	for (i = 0; i < acpi_gbl_num_history; i++) {
-		if (acpi_gbl_history_buffer[history_index].command) {
+	for (i = 0; i < acpi_gbl_num_history; i++)
+	{
+		if (acpi_gbl_history_buffer[history_index].command)
+		{
 			acpi_os_printf("%3ld %s\n",
-				       acpi_gbl_history_buffer[history_index].
-				       cmd_num,
-				       acpi_gbl_history_buffer[history_index].
-				       command);
+						   acpi_gbl_history_buffer[history_index].
+						   cmd_num,
+						   acpi_gbl_history_buffer[history_index].
+						   command);
 		}
 
 		history_index++;
-		if (history_index >= HISTORY_SIZE) {
+
+		if (history_index >= HISTORY_SIZE)
+		{
 			history_index = 0;
 		}
 	}
@@ -186,11 +204,13 @@ char *acpi_db_get_from_history(char *command_num_arg)
 {
 	u32 cmd_num;
 
-	if (command_num_arg == NULL) {
+	if (command_num_arg == NULL)
+	{
 		cmd_num = acpi_gbl_next_cmd_num - 1;
 	}
 
-	else {
+	else
+	{
 		cmd_num = strtoul(command_num_arg, NULL, 0);
 	}
 
@@ -218,8 +238,11 @@ char *acpi_db_get_history_by_index(u32 cmd_num)
 	/* Search history buffer */
 
 	history_index = acpi_gbl_lo_history;
-	for (i = 0; i < acpi_gbl_num_history; i++) {
-		if (acpi_gbl_history_buffer[history_index].cmd_num == cmd_num) {
+
+	for (i = 0; i < acpi_gbl_num_history; i++)
+	{
+		if (acpi_gbl_history_buffer[history_index].cmd_num == cmd_num)
+		{
 
 			/* Found the command, return it */
 
@@ -229,7 +252,9 @@ char *acpi_db_get_history_by_index(u32 cmd_num)
 		/* History buffer is circular */
 
 		history_index++;
-		if (history_index >= HISTORY_SIZE) {
+
+		if (history_index >= HISTORY_SIZE)
+		{
 			history_index = 0;
 		}
 	}

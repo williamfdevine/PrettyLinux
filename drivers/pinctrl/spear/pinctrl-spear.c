@@ -29,21 +29,26 @@
 #define DRIVER_NAME "spear-pinmux"
 
 static void muxregs_endisable(struct spear_pmx *pmx,
-		struct spear_muxreg *muxregs, u8 count, bool enable)
+							  struct spear_muxreg *muxregs, u8 count, bool enable)
 {
 	struct spear_muxreg *muxreg;
 	u32 val, temp, j;
 
-	for (j = 0; j < count; j++) {
+	for (j = 0; j < count; j++)
+	{
 		muxreg = &muxregs[j];
 
 		val = pmx_readl(pmx, muxreg->reg);
 		val &= ~muxreg->mask;
 
 		if (enable)
+		{
 			temp = muxreg->val;
+		}
 		else
+		{
 			temp = ~muxreg->val;
+		}
 
 		val |= muxreg->mask & temp;
 		pmx_writel(pmx, val, muxreg->reg);
@@ -57,17 +62,23 @@ static int set_mode(struct spear_pmx *pmx, int mode)
 	u32 val;
 
 	if (!pmx->machdata->pmx_modes || !pmx->machdata->npmx_modes)
+	{
 		return -EINVAL;
+	}
 
-	for (i = 0; i < pmx->machdata->npmx_modes; i++) {
-		if (pmx->machdata->pmx_modes[i]->mode == (1 << mode)) {
+	for (i = 0; i < pmx->machdata->npmx_modes; i++)
+	{
+		if (pmx->machdata->pmx_modes[i]->mode == (1 << mode))
+		{
 			pmx_mode = pmx->machdata->pmx_modes[i];
 			break;
 		}
 	}
 
 	if (!pmx_mode)
+	{
 		return -EINVAL;
+	}
 
 	val = pmx_readl(pmx, pmx_mode->reg);
 	val &= ~pmx_mode->mask;
@@ -76,20 +87,22 @@ static int set_mode(struct spear_pmx *pmx, int mode)
 
 	pmx->machdata->mode = pmx_mode->mode;
 	dev_info(pmx->dev, "Configured Mode: %s with id: %x\n\n",
-			pmx_mode->name ? pmx_mode->name : "no_name",
-			pmx_mode->reg);
+			 pmx_mode->name ? pmx_mode->name : "no_name",
+			 pmx_mode->reg);
 
 	return 0;
 }
 
 void pmx_init_gpio_pingroup_addr(struct spear_gpio_pingroup *gpio_pingroup,
-				 unsigned count, u16 reg)
+								 unsigned count, u16 reg)
 {
 	int i, j;
 
 	for (i = 0; i < count; i++)
 		for (j = 0; j < gpio_pingroup[i].nmuxregs; j++)
+		{
 			gpio_pingroup[i].muxregs[j].reg = reg;
+		}
 }
 
 void pmx_init_addr(struct spear_pinctrl_machdata *machdata, u16 reg)
@@ -98,15 +111,19 @@ void pmx_init_addr(struct spear_pinctrl_machdata *machdata, u16 reg)
 	struct spear_modemux *modemux;
 	int i, j, group;
 
-	for (group = 0; group < machdata->ngroups; group++) {
+	for (group = 0; group < machdata->ngroups; group++)
+	{
 		pgroup = machdata->groups[group];
 
-		for (i = 0; i < pgroup->nmodemuxs; i++) {
+		for (i = 0; i < pgroup->nmodemuxs; i++)
+		{
 			modemux = &pgroup->modemuxs[i];
 
 			for (j = 0; j < modemux->nmuxregs; j++)
 				if (modemux->muxregs[j].reg == 0xFFFF)
+				{
 					modemux->muxregs[j].reg = reg;
+				}
 		}
 	}
 }
@@ -127,7 +144,7 @@ static const char *spear_pinctrl_get_group_name(struct pinctrl_dev *pctldev,
 }
 
 static int spear_pinctrl_get_group_pins(struct pinctrl_dev *pctldev,
-		unsigned group, const unsigned **pins, unsigned *num_pins)
+										unsigned group, const unsigned **pins, unsigned *num_pins)
 {
 	struct spear_pmx *pmx = pinctrl_dev_get_drvdata(pctldev);
 
@@ -138,15 +155,15 @@ static int spear_pinctrl_get_group_pins(struct pinctrl_dev *pctldev,
 }
 
 static void spear_pinctrl_pin_dbg_show(struct pinctrl_dev *pctldev,
-		struct seq_file *s, unsigned offset)
+									   struct seq_file *s, unsigned offset)
 {
 	seq_printf(s, " " DRIVER_NAME);
 }
 
 static int spear_pinctrl_dt_node_to_map(struct pinctrl_dev *pctldev,
-					struct device_node *np_config,
-					struct pinctrl_map **map,
-					unsigned *num_maps)
+										struct device_node *np_config,
+										struct pinctrl_map **map,
+										unsigned *num_maps)
 {
 	struct spear_pmx *pmx = pinctrl_dev_get_drvdata(pctldev);
 	struct device_node *np;
@@ -155,30 +172,43 @@ static int spear_pinctrl_dt_node_to_map(struct pinctrl_dev *pctldev,
 	int ret, index = 0, count = 0;
 
 	/* calculate number of maps required */
-	for_each_child_of_node(np_config, np) {
+	for_each_child_of_node(np_config, np)
+	{
 		ret = of_property_read_string(np, "st,function", &function);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		ret = of_property_count_strings(np, "st,pins");
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		count += ret;
 	}
 
-	if (!count) {
+	if (!count)
+	{
 		dev_err(pmx->dev, "No child nodes passed via DT\n");
 		return -ENODEV;
 	}
 
 	*map = kzalloc(sizeof(**map) * count, GFP_KERNEL);
-	if (!*map)
-		return -ENOMEM;
 
-	for_each_child_of_node(np_config, np) {
+	if (!*map)
+	{
+		return -ENOMEM;
+	}
+
+	for_each_child_of_node(np_config, np)
+	{
 		of_property_read_string(np, "st,function", &function);
-		of_property_for_each_string(np, "st,pins", prop, group) {
+		of_property_for_each_string(np, "st,pins", prop, group)
+		{
 			(*map)[index].type = PIN_MAP_TYPE_MUX_GROUP;
 			(*map)[index].data.mux.group = group;
 			(*map)[index].data.mux.function = function;
@@ -192,13 +222,14 @@ static int spear_pinctrl_dt_node_to_map(struct pinctrl_dev *pctldev,
 }
 
 static void spear_pinctrl_dt_free_map(struct pinctrl_dev *pctldev,
-				      struct pinctrl_map *map,
-				      unsigned num_maps)
+									  struct pinctrl_map *map,
+									  unsigned num_maps)
 {
 	kfree(map);
 }
 
-static const struct pinctrl_ops spear_pinctrl_ops = {
+static const struct pinctrl_ops spear_pinctrl_ops =
+{
 	.get_groups_count = spear_pinctrl_get_groups_cnt,
 	.get_group_name = spear_pinctrl_get_group_name,
 	.get_group_pins = spear_pinctrl_get_group_pins,
@@ -224,7 +255,7 @@ static const char *spear_pinctrl_get_func_name(struct pinctrl_dev *pctldev,
 
 static int spear_pinctrl_get_func_groups(struct pinctrl_dev *pctldev,
 		unsigned function, const char *const **groups,
-		unsigned * const ngroups)
+		unsigned *const ngroups)
 {
 	struct spear_pmx *pmx = pinctrl_dev_get_drvdata(pctldev);
 
@@ -235,7 +266,7 @@ static int spear_pinctrl_get_func_groups(struct pinctrl_dev *pctldev,
 }
 
 static int spear_pinctrl_endisable(struct pinctrl_dev *pctldev,
-		unsigned function, unsigned group, bool enable)
+								   unsigned function, unsigned group, bool enable)
 {
 	struct spear_pmx *pmx = pinctrl_dev_get_drvdata(pctldev);
 	const struct spear_pingroup *pgroup;
@@ -245,21 +276,26 @@ static int spear_pinctrl_endisable(struct pinctrl_dev *pctldev,
 
 	pgroup = pmx->machdata->groups[group];
 
-	for (i = 0; i < pgroup->nmodemuxs; i++) {
+	for (i = 0; i < pgroup->nmodemuxs; i++)
+	{
 		modemux = &pgroup->modemuxs[i];
 
 		/* SoC have any modes */
-		if (pmx->machdata->modes_supported) {
+		if (pmx->machdata->modes_supported)
+		{
 			if (!(pmx->machdata->mode & modemux->modes))
+			{
 				continue;
+			}
 		}
 
 		found = true;
 		muxregs_endisable(pmx, modemux->muxregs, modemux->nmuxregs,
-				enable);
+						  enable);
 	}
 
-	if (!found) {
+	if (!found)
+	{
 		dev_err(pmx->dev, "pinmux group: %s not supported\n",
 				pgroup->name);
 		return -ENODEV;
@@ -269,7 +305,7 @@ static int spear_pinctrl_endisable(struct pinctrl_dev *pctldev,
 }
 
 static int spear_pinctrl_set_mux(struct pinctrl_dev *pctldev, unsigned function,
-		unsigned group)
+								 unsigned group)
 {
 	return spear_pinctrl_endisable(pctldev, function, group, true);
 }
@@ -282,14 +318,20 @@ static struct spear_gpio_pingroup *get_gpio_pingroup(struct spear_pmx *pmx,
 	int i, j;
 
 	if (!pmx->machdata->gpio_pingroups)
+	{
 		return NULL;
+	}
 
-	for (i = 0; i < pmx->machdata->ngpio_pingroups; i++) {
+	for (i = 0; i < pmx->machdata->ngpio_pingroups; i++)
+	{
 		gpio_pingroup = &pmx->machdata->gpio_pingroups[i];
 
-		for (j = 0; j < gpio_pingroup->npins; j++) {
+		for (j = 0; j < gpio_pingroup->npins; j++)
+		{
 			if (gpio_pingroup->pins[j] == pin)
+			{
 				return gpio_pingroup;
+			}
 		}
 	}
 
@@ -297,7 +339,7 @@ static struct spear_gpio_pingroup *get_gpio_pingroup(struct spear_pmx *pmx,
 }
 
 static int gpio_request_endisable(struct pinctrl_dev *pctldev,
-		struct pinctrl_gpio_range *range, unsigned offset, bool enable)
+								  struct pinctrl_gpio_range *range, unsigned offset, bool enable)
 {
 	struct spear_pmx *pmx = pinctrl_dev_get_drvdata(pctldev);
 	struct spear_pinctrl_machdata *machdata = pmx->machdata;
@@ -308,33 +350,37 @@ static int gpio_request_endisable(struct pinctrl_dev *pctldev,
 	 * rather than a single pin.
 	 */
 	gpio_pingroup = get_gpio_pingroup(pmx, offset);
+
 	if (gpio_pingroup)
 		muxregs_endisable(pmx, gpio_pingroup->muxregs,
-				gpio_pingroup->nmuxregs, enable);
+						  gpio_pingroup->nmuxregs, enable);
 
 	/*
 	 * SoC may need some extra configurations, or configurations for single
 	 * pin
 	 */
 	if (machdata->gpio_request_endisable)
+	{
 		machdata->gpio_request_endisable(pmx, offset, enable);
+	}
 
 	return 0;
 }
 
 static int gpio_request_enable(struct pinctrl_dev *pctldev,
-		struct pinctrl_gpio_range *range, unsigned offset)
+							   struct pinctrl_gpio_range *range, unsigned offset)
 {
 	return gpio_request_endisable(pctldev, range, offset, true);
 }
 
 static void gpio_disable_free(struct pinctrl_dev *pctldev,
-		struct pinctrl_gpio_range *range, unsigned offset)
+							  struct pinctrl_gpio_range *range, unsigned offset)
 {
 	gpio_request_endisable(pctldev, range, offset, false);
 }
 
-static const struct pinmux_ops spear_pinmux_ops = {
+static const struct pinmux_ops spear_pinmux_ops =
+{
 	.get_functions_count = spear_pinctrl_get_funcs_count,
 	.get_function_name = spear_pinctrl_get_func_name,
 	.get_function_groups = spear_pinctrl_get_func_groups,
@@ -343,7 +389,8 @@ static const struct pinmux_ops spear_pinmux_ops = {
 	.gpio_disable_free = gpio_disable_free,
 };
 
-static struct pinctrl_desc spear_pinctrl_desc = {
+static struct pinctrl_desc spear_pinctrl_desc =
+{
 	.name = DRIVER_NAME,
 	.pctlops = &spear_pinctrl_ops,
 	.pmxops = &spear_pinmux_ops,
@@ -351,39 +398,49 @@ static struct pinctrl_desc spear_pinctrl_desc = {
 };
 
 int spear_pinctrl_probe(struct platform_device *pdev,
-			struct spear_pinctrl_machdata *machdata)
+						struct spear_pinctrl_machdata *machdata)
 {
 	struct device_node *np = pdev->dev.of_node;
 	struct resource *res;
 	struct spear_pmx *pmx;
 
 	if (!machdata)
+	{
 		return -ENODEV;
+	}
 
 	pmx = devm_kzalloc(&pdev->dev, sizeof(*pmx), GFP_KERNEL);
-	if (!pmx) {
+
+	if (!pmx)
+	{
 		dev_err(&pdev->dev, "Can't alloc spear_pmx\n");
 		return -ENOMEM;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	pmx->vbase = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(pmx->vbase))
+	{
 		return PTR_ERR(pmx->vbase);
+	}
 
 	pmx->dev = &pdev->dev;
 	pmx->machdata = machdata;
 
 	/* configure mode, if supported by SoC */
-	if (machdata->modes_supported) {
+	if (machdata->modes_supported)
+	{
 		int mode = 0;
 
-		if (of_property_read_u32(np, "st,pinmux-mode", &mode)) {
+		if (of_property_read_u32(np, "st,pinmux-mode", &mode))
+		{
 			dev_err(&pdev->dev, "OF: pinmux mode not passed\n");
 			return -EINVAL;
 		}
 
-		if (set_mode(pmx, mode)) {
+		if (set_mode(pmx, mode))
+		{
 			dev_err(&pdev->dev, "OF: Couldn't configure mode: %x\n",
 					mode);
 			return -EINVAL;
@@ -396,7 +453,9 @@ int spear_pinctrl_probe(struct platform_device *pdev,
 	spear_pinctrl_desc.npins = machdata->npins;
 
 	pmx->pctl = devm_pinctrl_register(&pdev->dev, &spear_pinctrl_desc, pmx);
-	if (IS_ERR(pmx->pctl)) {
+
+	if (IS_ERR(pmx->pctl))
+	{
 		dev_err(&pdev->dev, "Couldn't register pinctrl driver\n");
 		return PTR_ERR(pmx->pctl);
 	}

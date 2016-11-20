@@ -33,7 +33,8 @@
 
 /* 32 bits addressing */
 
-struct dma32diag {	/* diag access */
+struct dma32diag  	/* diag access */
+{
 	u32 fifoaddr;	/* diag address */
 	u32 fifodatalow;	/* low 32bits of data */
 	u32 fifodatahigh;	/* high 32bits of data */
@@ -43,7 +44,8 @@ struct dma32diag {	/* diag access */
 /* 64 bits addressing */
 
 /* dma registers per channel(xmt or rcv) */
-struct dma64regs {
+struct dma64regs
+{
 	u32 control;	/* enable, et al */
 	u32 ptr;	/* last descriptor posted to chip */
 	u32 addrlow;	/* desc ring base address low 32-bits (8K aligned) */
@@ -53,7 +55,8 @@ struct dma64regs {
 };
 
 /* range param for dma_getnexttxp() and dma_txreclaim */
-enum txd_range {
+enum txd_range
+{
 	DMA_RANGE_ALL = 1,
 	DMA_RANGE_TRANSMITTED,
 	DMA_RANGE_TRANSFERED
@@ -63,7 +66,8 @@ enum txd_range {
  * Exported data structure (read-only)
  */
 /* export structure */
-struct dma_pub {
+struct dma_pub
+{
 	uint txavail;		/* # free tx descriptors */
 	uint dmactrlflags;	/* dma control flags */
 
@@ -75,10 +79,10 @@ struct dma_pub {
 };
 
 extern struct dma_pub *dma_attach(char *name, struct brcms_c_info *wlc,
-				  uint txregbase, uint rxregbase,
-				  uint ntxd, uint nrxd,
-				  uint rxbufsize, int rxextheadroom,
-				  uint nrxpost, uint rxoffset);
+								  uint txregbase, uint rxregbase,
+								  uint ntxd, uint nrxd,
+								  uint rxbufsize, int rxextheadroom,
+								  uint nrxpost, uint rxoffset);
 
 void dma_rxinit(struct dma_pub *pub);
 int dma_rx(struct dma_pub *pub, struct sk_buff_head *skb_list);
@@ -87,7 +91,7 @@ bool dma_rxreset(struct dma_pub *pub);
 bool dma_txreset(struct dma_pub *pub);
 void dma_txinit(struct dma_pub *pub);
 int dma_txfast(struct brcms_c_info *wlc, struct dma_pub *pub,
-	       struct sk_buff *p0);
+			   struct sk_buff *p0);
 void dma_txflush(struct dma_pub *pub);
 int dma_txpending(struct dma_pub *pub);
 void dma_kick_tx(struct dma_pub *pub);
@@ -102,7 +106,7 @@ struct sk_buff *dma_getnexttxp(struct dma_pub *pub, enum txd_range range);
 void dma_counterreset(struct dma_pub *pub);
 
 void dma_walk_packets(struct dma_pub *dmah, void (*callback_fnc)
-		      (void *pkt, void *arg_a), void *arg_a);
+					  (void *pkt, void *arg_a), void *arg_a);
 
 /*
  * DMA(Bug) on bcm47xx chips seems to declare that the packet is ready, but
@@ -113,12 +117,17 @@ void dma_walk_packets(struct dma_pub *dmah, void (*callback_fnc)
 static inline void dma_spin_for_len(uint len, struct sk_buff *head)
 {
 #if defined(CONFIG_BCM47XX)
-	if (!len) {
+
+	if (!len)
+	{
 		while (!(len = *(u16 *) KSEG1ADDR(head->data)))
+		{
 			udelay(1);
+		}
 
 		*(u16 *) (head->data) = cpu_to_le16((u16) len);
 	}
+
 #endif				/* defined(CONFIG_BCM47XX) */
 }
 

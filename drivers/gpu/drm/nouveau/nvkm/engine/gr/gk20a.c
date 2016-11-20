@@ -34,7 +34,7 @@ struct gk20a_fw_av
 
 int
 gk20a_gr_av_to_init(struct gf100_gr *gr, const char *fw_name,
-		    struct gf100_gr_pack **ppack)
+					struct gf100_gr_pack **ppack)
 {
 	struct gf100_gr_fuc fuc;
 	struct gf100_gr_init *init;
@@ -44,12 +44,17 @@ gk20a_gr_av_to_init(struct gf100_gr *gr, const char *fw_name,
 	int i;
 
 	ret = gf100_gr_ctor_fw(gr, fw_name, &fuc);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	nent = (fuc.size / sizeof(struct gk20a_fw_av));
 	pack = vzalloc((sizeof(*pack) * 2) + (sizeof(*init) * (nent + 1)));
-	if (!pack) {
+
+	if (!pack)
+	{
 		ret = -ENOMEM;
 		goto end;
 	}
@@ -57,7 +62,8 @@ gk20a_gr_av_to_init(struct gf100_gr *gr, const char *fw_name,
 	init = (void *)(pack + 2);
 	pack[0].init = init;
 
-	for (i = 0; i < nent; i++) {
+	for (i = 0; i < nent; i++)
+	{
 		struct gf100_gr_init *ent = &init[i];
 		struct gk20a_fw_av *av = &((struct gk20a_fw_av *)fuc.data)[i];
 
@@ -83,7 +89,7 @@ struct gk20a_fw_aiv
 
 int
 gk20a_gr_aiv_to_init(struct gf100_gr *gr, const char *fw_name,
-		     struct gf100_gr_pack **ppack)
+					 struct gf100_gr_pack **ppack)
 {
 	struct gf100_gr_fuc fuc;
 	struct gf100_gr_init *init;
@@ -93,12 +99,17 @@ gk20a_gr_aiv_to_init(struct gf100_gr *gr, const char *fw_name,
 	int i;
 
 	ret = gf100_gr_ctor_fw(gr, fw_name, &fuc);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	nent = (fuc.size / sizeof(struct gk20a_fw_aiv));
 	pack = vzalloc((sizeof(*pack) * 2) + (sizeof(*init) * (nent + 1)));
-	if (!pack) {
+
+	if (!pack)
+	{
 		ret = -ENOMEM;
 		goto end;
 	}
@@ -106,7 +117,8 @@ gk20a_gr_aiv_to_init(struct gf100_gr *gr, const char *fw_name,
 	init = (void *)(pack + 2);
 	pack[0].init = init;
 
-	for (i = 0; i < nent; i++) {
+	for (i = 0; i < nent; i++)
+	{
 		struct gf100_gr_init *ent = &init[i];
 		struct gk20a_fw_aiv *av = &((struct gk20a_fw_aiv *)fuc.data)[i];
 
@@ -125,7 +137,7 @@ end:
 
 int
 gk20a_gr_av_to_method(struct gf100_gr *gr, const char *fw_name,
-		      struct gf100_gr_pack **ppack)
+					  struct gf100_gr_pack **ppack)
 {
 	struct gf100_gr_fuc fuc;
 	struct gf100_gr_init *init;
@@ -138,31 +150,40 @@ gk20a_gr_av_to_method(struct gf100_gr *gr, const char *fw_name,
 	int i;
 
 	ret = gf100_gr_ctor_fw(gr, fw_name, &fuc);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	nent = (fuc.size / sizeof(struct gk20a_fw_av));
 
 	pack = vzalloc((sizeof(*pack) * max_classes) +
-		       (sizeof(*init) * (nent + 1)));
-	if (!pack) {
+				   (sizeof(*init) * (nent + 1)));
+
+	if (!pack)
+	{
 		ret = -ENOMEM;
 		goto end;
 	}
 
 	init = (void *)(pack + max_classes);
 
-	for (i = 0; i < nent; i++) {
+	for (i = 0; i < nent; i++)
+	{
 		struct gf100_gr_init *ent = &init[i];
 		struct gk20a_fw_av *av = &((struct gk20a_fw_av *)fuc.data)[i];
 		u32 class = av->addr & 0xffff;
 		u32 addr = (av->addr & 0xffff0000) >> 14;
 
-		if (prevclass != class) {
+		if (prevclass != class)
+		{
 			pack[classidx].init = ent;
 			pack[classidx].type = class;
 			prevclass = class;
-			if (++classidx >= max_classes) {
+
+			if (++classidx >= max_classes)
+			{
 				vfree(pack);
 				ret = -ENOSPC;
 				goto end;
@@ -189,20 +210,22 @@ gk20a_gr_wait_mem_scrubbing(struct gf100_gr *gr)
 	struct nvkm_device *device = subdev->device;
 
 	if (nvkm_msec(device, 2000,
-		if (!(nvkm_rd32(device, 0x40910c) & 0x00000006))
-			break;
-	) < 0) {
-		nvkm_error(subdev, "FECS mem scrubbing timeout\n");
-		return -ETIMEDOUT;
-	}
+				  if (!(nvkm_rd32(device, 0x40910c) & 0x00000006))
+					  break;
+					 ) < 0)
+		{
+			nvkm_error(subdev, "FECS mem scrubbing timeout\n");
+			return -ETIMEDOUT;
+		}
 
 	if (nvkm_msec(device, 2000,
-		if (!(nvkm_rd32(device, 0x41a10c) & 0x00000006))
-			break;
-	) < 0) {
-		nvkm_error(subdev, "GPCCS mem scrubbing timeout\n");
-		return -ETIMEDOUT;
-	}
+				  if (!(nvkm_rd32(device, 0x41a10c) & 0x00000006))
+					  break;
+					 ) < 0)
+		{
+			nvkm_error(subdev, "GPCCS mem scrubbing timeout\n");
+			return -ETIMEDOUT;
+		}
 
 	return 0;
 }
@@ -231,16 +254,24 @@ gk20a_gr_init(struct gf100_gr *gr)
 	gf100_gr_mmio(gr, gr->fuc_sw_nonctx);
 
 	ret = gk20a_gr_wait_mem_scrubbing(gr);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = gf100_gr_wait_idle(gr);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* MMU debug buffer */
 	if (gr->func->init_gpc_mmu)
+	{
 		gr->func->init_gpc_mmu(gr);
+	}
 
 	/* Set the PE as stream master */
 	nvkm_mask(device, 0x503018, 0x1, 0x1);
@@ -248,10 +279,15 @@ gk20a_gr_init(struct gf100_gr *gr)
 	/* Zcull init */
 	memset(data, 0x00, sizeof(data));
 	memcpy(tpcnr, gr->tpc_nr, sizeof(gr->tpc_nr));
-	for (i = 0, gpc = -1; i < gr->tpc_total; i++) {
-		do {
+
+	for (i = 0, gpc = -1; i < gr->tpc_total; i++)
+	{
+		do
+		{
 			gpc = (gpc + 1) % gr->gpc_nr;
-		} while (!tpcnr[gpc]);
+		}
+		while (!tpcnr[gpc]);
+
 		tpc = gr->tpc_nr[gpc] - tpcnr[gpc]--;
 
 		data[i / 8] |= tpc << ((i % 8) * 4);
@@ -262,11 +298,12 @@ gk20a_gr_init(struct gf100_gr *gr)
 	nvkm_wr32(device, GPC_BCAST(0x0988), data[2]);
 	nvkm_wr32(device, GPC_BCAST(0x098c), data[3]);
 
-	for (gpc = 0; gpc < gr->gpc_nr; gpc++) {
+	for (gpc = 0; gpc < gr->gpc_nr; gpc++)
+	{
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x0914),
-			  gr->screen_tile_row_offset << 8 | gr->tpc_nr[gpc]);
+				  gr->screen_tile_row_offset << 8 | gr->tpc_nr[gpc]);
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x0910), 0x00040000 |
-			  gr->tpc_total);
+				  gr->tpc_total);
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x0918), magicgpc918);
 	}
 
@@ -289,7 +326,9 @@ gk20a_gr_init(struct gf100_gr *gr)
 	nvkm_wr32(device, 0x404600, 0xc0000000);
 
 	if (gr->func->set_hww_esr_report_mask)
+	{
 		gr->func->set_hww_esr_report_mask(gr);
+	}
 
 	/* Enable TPC exceptions per GPC */
 	nvkm_wr32(device, 0x419d0c, 0x2);
@@ -309,7 +348,8 @@ gk20a_gr_init(struct gf100_gr *gr)
 }
 
 static const struct gf100_gr_func
-gk20a_gr = {
+	gk20a_gr =
+{
 	.init = gk20a_gr_init,
 	.init_rop_active_fbps = gk104_gr_init_rop_active_fbps,
 	.set_hww_esr_report_mask = gk20a_gr_set_hww_esr_report_mask,
@@ -332,34 +372,54 @@ gk20a_gr_new(struct nvkm_device *device, int index, struct nvkm_gr **pgr)
 	int ret;
 
 	if (!(gr = kzalloc(sizeof(*gr), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pgr = &gr->base;
 
 	ret = gf100_gr_ctor(&gk20a_gr, device, index, gr);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (gf100_gr_ctor_fw(gr, "fecs_inst", &gr->fuc409c) ||
-	    gf100_gr_ctor_fw(gr, "fecs_data", &gr->fuc409d) ||
-	    gf100_gr_ctor_fw(gr, "gpccs_inst", &gr->fuc41ac) ||
-	    gf100_gr_ctor_fw(gr, "gpccs_data", &gr->fuc41ad))
+		gf100_gr_ctor_fw(gr, "fecs_data", &gr->fuc409d) ||
+		gf100_gr_ctor_fw(gr, "gpccs_inst", &gr->fuc41ac) ||
+		gf100_gr_ctor_fw(gr, "gpccs_data", &gr->fuc41ad))
+	{
 		return -ENODEV;
+	}
 
 	ret = gk20a_gr_av_to_init(gr, "sw_nonctx", &gr->fuc_sw_nonctx);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = gk20a_gr_aiv_to_init(gr, "sw_ctx", &gr->fuc_sw_ctx);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = gk20a_gr_av_to_init(gr, "sw_bundle_init", &gr->fuc_bundle);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = gk20a_gr_av_to_method(gr, "sw_method_init", &gr->fuc_method);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return 0;
 }

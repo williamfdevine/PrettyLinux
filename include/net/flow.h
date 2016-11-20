@@ -20,11 +20,13 @@
 
 #define LOOPBACK_IFINDEX	1
 
-struct flowi_tunnel {
+struct flowi_tunnel
+{
 	__be64			tun_id;
 };
 
-struct flowi_common {
+struct flowi_common
+{
 	int	flowic_oif;
 	int	flowic_iif;
 	__u32	flowic_mark;
@@ -39,18 +41,22 @@ struct flowi_common {
 	struct flowi_tunnel flowic_tun_key;
 };
 
-union flowi_uli {
-	struct {
+union flowi_uli
+{
+	struct
+	{
 		__be16	dport;
 		__be16	sport;
 	} ports;
 
-	struct {
+	struct
+	{
 		__u8	type;
 		__u8	code;
 	} icmpt;
 
-	struct {
+	struct
+	{
 		__le16	dport;
 		__le16	sport;
 	} dnports;
@@ -58,12 +64,14 @@ union flowi_uli {
 	__be32		spi;
 	__be32		gre_key;
 
-	struct {
+	struct
+	{
 		__u8	type;
 	} mht;
 };
 
-struct flowi4 {
+struct flowi4
+{
 	struct flowi_common	__fl_common;
 #define flowi4_oif		__fl_common.flowic_oif
 #define flowi4_iif		__fl_common.flowic_iif
@@ -87,13 +95,13 @@ struct flowi4 {
 #define fl4_ipsec_spi		uli.spi
 #define fl4_mh_type		uli.mht.type
 #define fl4_gre_key		uli.gre_key
-} __attribute__((__aligned__(BITS_PER_LONG/8)));
+} __attribute__((__aligned__(BITS_PER_LONG / 8)));
 
 static inline void flowi4_init_output(struct flowi4 *fl4, int oif,
-				      __u32 mark, __u8 tos, __u8 scope,
-				      __u8 proto, __u8 flags,
-				      __be32 daddr, __be32 saddr,
-				      __be16 dport, __be16 sport)
+									  __u32 mark, __u8 tos, __u8 scope,
+									  __u8 proto, __u8 flags,
+									  __be32 daddr, __be32 saddr,
+									  __be16 dport, __be16 sport)
 {
 	fl4->flowi4_oif = oif;
 	fl4->flowi4_iif = LOOPBACK_IFINDEX;
@@ -112,16 +120,17 @@ static inline void flowi4_init_output(struct flowi4 *fl4, int oif,
 
 /* Reset some input parameters after previous lookup */
 static inline void flowi4_update_output(struct flowi4 *fl4, int oif, __u8 tos,
-					__be32 daddr, __be32 saddr)
+										__be32 daddr, __be32 saddr)
 {
 	fl4->flowi4_oif = oif;
 	fl4->flowi4_tos = tos;
 	fl4->daddr = daddr;
 	fl4->saddr = saddr;
 }
-				      
 
-struct flowi6 {
+
+struct flowi6
+{
 	struct flowi_common	__fl_common;
 #define flowi6_oif		__fl_common.flowic_oif
 #define flowi6_iif		__fl_common.flowic_iif
@@ -143,9 +152,10 @@ struct flowi6 {
 #define fl6_ipsec_spi		uli.spi
 #define fl6_mh_type		uli.mht.type
 #define fl6_gre_key		uli.gre_key
-} __attribute__((__aligned__(BITS_PER_LONG/8)));
+} __attribute__((__aligned__(BITS_PER_LONG / 8)));
 
-struct flowidn {
+struct flowidn
+{
 	struct flowi_common	__fl_common;
 #define flowidn_oif		__fl_common.flowic_oif
 #define flowidn_iif		__fl_common.flowic_iif
@@ -158,10 +168,12 @@ struct flowidn {
 	union flowi_uli		uli;
 #define fld_sport		uli.ports.sport
 #define fld_dport		uli.ports.dport
-} __attribute__((__aligned__(BITS_PER_LONG/8)));
+} __attribute__((__aligned__(BITS_PER_LONG / 8)));
 
-struct flowi {
-	union {
+struct flowi
+{
+	union
+	{
 		struct flowi_common	__fl_common;
 		struct flowi4		ip4;
 		struct flowi6		ip6;
@@ -176,7 +188,7 @@ struct flowi {
 #define flowi_flags	u.__fl_common.flowic_flags
 #define flowi_secid	u.__fl_common.flowic_secid
 #define flowi_tun_key	u.__fl_common.flowic_tun_key
-} __attribute__((__aligned__(BITS_PER_LONG/8)));
+} __attribute__((__aligned__(BITS_PER_LONG / 8)));
 
 static inline struct flowi *flowi4_to_flowi(struct flowi4 *fl4)
 {
@@ -197,17 +209,21 @@ typedef unsigned long flow_compare_t;
 
 static inline size_t flow_key_size(u16 family)
 {
-	switch (family) {
-	case AF_INET:
-		BUILD_BUG_ON(sizeof(struct flowi4) % sizeof(flow_compare_t));
-		return sizeof(struct flowi4) / sizeof(flow_compare_t);
-	case AF_INET6:
-		BUILD_BUG_ON(sizeof(struct flowi6) % sizeof(flow_compare_t));
-		return sizeof(struct flowi6) / sizeof(flow_compare_t);
-	case AF_DECnet:
-		BUILD_BUG_ON(sizeof(struct flowidn) % sizeof(flow_compare_t));
-		return sizeof(struct flowidn) / sizeof(flow_compare_t);
+	switch (family)
+	{
+		case AF_INET:
+			BUILD_BUG_ON(sizeof(struct flowi4) % sizeof(flow_compare_t));
+			return sizeof(struct flowi4) / sizeof(flow_compare_t);
+
+		case AF_INET6:
+			BUILD_BUG_ON(sizeof(struct flowi6) % sizeof(flow_compare_t));
+			return sizeof(struct flowi6) / sizeof(flow_compare_t);
+
+		case AF_DECnet:
+			BUILD_BUG_ON(sizeof(struct flowidn) % sizeof(flow_compare_t));
+			return sizeof(struct flowidn) / sizeof(flow_compare_t);
 	}
+
 	return 0;
 }
 
@@ -219,24 +235,26 @@ struct net;
 struct sock;
 struct flow_cache_ops;
 
-struct flow_cache_object {
+struct flow_cache_object
+{
 	const struct flow_cache_ops *ops;
 };
 
-struct flow_cache_ops {
+struct flow_cache_ops
+{
 	struct flow_cache_object *(*get)(struct flow_cache_object *);
 	int (*check)(struct flow_cache_object *);
 	void (*delete)(struct flow_cache_object *);
 };
 
 typedef struct flow_cache_object *(*flow_resolve_t)(
-		struct net *net, const struct flowi *key, u16 family,
-		u8 dir, struct flow_cache_object *oldobj, void *ctx);
+	struct net *net, const struct flowi *key, u16 family,
+	u8 dir, struct flow_cache_object *oldobj, void *ctx);
 
 struct flow_cache_object *flow_cache_lookup(struct net *net,
-					    const struct flowi *key, u16 family,
-					    u8 dir, flow_resolve_t resolver,
-					    void *ctx);
+		const struct flowi *key, u16 family,
+		u8 dir, flow_resolve_t resolver,
+		void *ctx);
 int flow_cache_init(struct net *net);
 void flow_cache_fini(struct net *net);
 

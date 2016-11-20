@@ -77,7 +77,8 @@
 #define BCMA_GMAC_CMN_UDF_0_D7_D4	0x394
 #define BCMA_GMAC_CMN_UDF_0_D11_D8	0x394
 
-struct bcma_drv_gmac_cmn {
+struct bcma_drv_gmac_cmn
+{
 	struct bcma_device *core;
 
 	/* Drivers accessing BCMA_GMAC_CMN_PHY_ACCESS and

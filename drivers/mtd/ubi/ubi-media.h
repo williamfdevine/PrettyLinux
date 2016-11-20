@@ -52,7 +52,8 @@
  * @UBI_VID_DYNAMIC: dynamic volume
  * @UBI_VID_STATIC: static volume
  */
-enum {
+enum
+{
 	UBI_VID_DYNAMIC = 1,
 	UBI_VID_STATIC  = 2
 };
@@ -90,7 +91,8 @@ enum {
  * eraseblock handling, and then re-sizes the volume, not vice-versa. This
  * means that the pool of reserved physical eraseblocks will always be present.
  */
-enum {
+enum
+{
 	UBI_VTBL_AUTORESIZE_FLG = 0x01,
 };
 
@@ -105,7 +107,8 @@ enum {
  *                       sub-system to move them
  * @UBI_COMPAT_REJECT: reject this UBI image
  */
-enum {
+enum
+{
 	UBI_COMPAT_DELETE   = 1,
 	UBI_COMPAT_RO       = 2,
 	UBI_COMPAT_PRESERVE = 4,
@@ -154,7 +157,8 @@ enum {
  * an image is flashed over an existing image, then, if the flashing does not
  * complete, UBI will detect the error when attaching the media.
  */
-struct ubi_ec_hdr {
+struct ubi_ec_hdr
+{
 	__be32  magic;
 	__u8    version;
 	__u8    padding1[3];
@@ -275,7 +279,8 @@ struct ubi_ec_hdr {
  * eraseblocks of this volume. This is very handy when one uses block-oriented
  * software (say, cramfs) on top of the UBI volume.
  */
-struct ubi_vid_hdr {
+struct ubi_vid_hdr
+{
 	__be32  magic;
 	__u8    version;
 	__u8    vol_type;
@@ -362,14 +367,15 @@ struct ubi_vid_hdr {
  *
  * Empty records contain all zeroes and the CRC checksum of those zeroes.
  */
-struct ubi_vtbl_record {
+struct ubi_vtbl_record
+{
 	__be32  reserved_pebs;
 	__be32  alignment;
 	__be32  data_pad;
 	__u8    vol_type;
 	__u8    upd_marker;
 	__be16  name_len;
-	__u8    name[UBI_VOL_NAME_MAX+1];
+	__u8    name[UBI_VOL_NAME_MAX + 1];
 	__u8    flags;
 	__u8    padding[23];
 	__be32  crc;
@@ -414,7 +420,8 @@ struct ubi_vtbl_record {
  * @sqnum: highest sequence number value at the time while taking the fastmap
  *
  */
-struct ubi_fm_sb {
+struct ubi_fm_sb
+{
 	__be32 magic;
 	__u8 version;
 	__u8 padding1[3];
@@ -436,7 +443,8 @@ struct ubi_fm_sb {
  * @erase_peb_count: number of bad PEBs which have to be erased
  * @vol_count: number of UBI volumes known by this fastmap
  */
-struct ubi_fm_hdr {
+struct ubi_fm_hdr
+{
 	__be32 magic;
 	__be32 free_peb_count;
 	__be32 used_peb_count;
@@ -456,7 +464,8 @@ struct ubi_fm_hdr {
  * @max_size: maximal pool size
  * @pebs: an array containing the location of all PEBs in this pool
  */
-struct ubi_fm_scan_pool {
+struct ubi_fm_scan_pool
+{
 	__be32 magic;
 	__be16 size;
 	__be16 max_size;
@@ -471,7 +480,8 @@ struct ubi_fm_scan_pool {
  * @pnum: PEB number
  * @ec: ec of this PEB
  */
-struct ubi_fm_ec {
+struct ubi_fm_ec
+{
 	__be32 pnum;
 	__be32 ec;
 } __packed;
@@ -486,7 +496,8 @@ struct ubi_fm_ec {
  * @used_ebs: number of used LEBs within this volume
  * @last_eb_bytes: number of bytes used in the last LEB
  */
-struct ubi_fm_volhdr {
+struct ubi_fm_volhdr
+{
 	__be32 magic;
 	__be32 vol_id;
 	__u8 vol_type;
@@ -505,7 +516,8 @@ struct ubi_fm_volhdr {
  * @reserved_pebs: number of table entries
  * @pnum: PEB number of LEB (LEB is the index)
  */
-struct ubi_fm_eba {
+struct ubi_fm_eba
+{
 	__be32 magic;
 	__be32 reserved_pebs;
 	__be32 pnum[0];

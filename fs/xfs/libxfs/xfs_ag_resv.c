@@ -91,27 +91,30 @@ xfs_ag_resv_critical(
 	xfs_extlen_t			avail;
 	xfs_extlen_t			orig;
 
-	switch (type) {
-	case XFS_AG_RESV_METADATA:
-		avail = pag->pagf_freeblks - pag->pag_agfl_resv.ar_reserved;
-		orig = pag->pag_meta_resv.ar_asked;
-		break;
-	case XFS_AG_RESV_AGFL:
-		avail = pag->pagf_freeblks + pag->pagf_flcount -
-			pag->pag_meta_resv.ar_reserved;
-		orig = pag->pag_agfl_resv.ar_asked;
-		break;
-	default:
-		ASSERT(0);
-		return false;
+	switch (type)
+	{
+		case XFS_AG_RESV_METADATA:
+			avail = pag->pagf_freeblks - pag->pag_agfl_resv.ar_reserved;
+			orig = pag->pag_meta_resv.ar_asked;
+			break;
+
+		case XFS_AG_RESV_AGFL:
+			avail = pag->pagf_freeblks + pag->pagf_flcount -
+					pag->pag_meta_resv.ar_reserved;
+			orig = pag->pag_agfl_resv.ar_asked;
+			break;
+
+		default:
+			ASSERT(0);
+			return false;
 	}
 
 	trace_xfs_ag_resv_critical(pag, type, avail);
 
 	/* Critically low if less than 10% or max btree height remains. */
 	return XFS_TEST_ERROR(avail < orig / 10 || avail < XFS_BTREE_MAXLEVELS,
-			pag->pag_mount, XFS_ERRTAG_AG_RESV_CRITICAL,
-			XFS_RANDOM_AG_RESV_CRITICAL);
+						  pag->pag_mount, XFS_ERRTAG_AG_RESV_CRITICAL,
+						  XFS_RANDOM_AG_RESV_CRITICAL);
 }
 
 /*
@@ -126,16 +129,20 @@ xfs_ag_resv_needed(
 	xfs_extlen_t			len;
 
 	len = pag->pag_meta_resv.ar_reserved + pag->pag_agfl_resv.ar_reserved;
-	switch (type) {
-	case XFS_AG_RESV_METADATA:
-	case XFS_AG_RESV_AGFL:
-		len -= xfs_perag_resv(pag, type)->ar_reserved;
-		break;
-	case XFS_AG_RESV_NONE:
-		/* empty */
-		break;
-	default:
-		ASSERT(0);
+
+	switch (type)
+	{
+		case XFS_AG_RESV_METADATA:
+		case XFS_AG_RESV_AGFL:
+			len -= xfs_perag_resv(pag, type)->ar_reserved;
+			break;
+
+		case XFS_AG_RESV_NONE:
+			/* empty */
+			break;
+
+		default:
+			ASSERT(0);
 	}
 
 	trace_xfs_ag_resv_needed(pag, type, len);
@@ -157,21 +164,28 @@ __xfs_ag_resv_free(
 
 	resv = xfs_perag_resv(pag, type);
 	pag->pag_mount->m_ag_max_usable += resv->ar_asked;
+
 	/*
 	 * AGFL blocks are always considered "free", so whatever
 	 * was reserved at mount time must be given back at umount.
 	 */
 	if (type == XFS_AG_RESV_AGFL)
+	{
 		oldresv = resv->ar_orig_reserved;
+	}
 	else
+	{
 		oldresv = resv->ar_reserved;
+	}
+
 	error = xfs_mod_fdblocks(pag->pag_mount, oldresv, true);
 	resv->ar_reserved = 0;
 	resv->ar_asked = 0;
 
 	if (error)
 		trace_xfs_ag_resv_free_error(pag->pag_mount, pag->pag_agno,
-				error, _RET_IP_);
+									 error, _RET_IP_);
+
 	return error;
 }
 
@@ -185,8 +199,12 @@ xfs_ag_resv_free(
 
 	error = __xfs_ag_resv_free(pag, XFS_AG_RESV_AGFL);
 	err2 = __xfs_ag_resv_free(pag, XFS_AG_RESV_METADATA);
+
 	if (err2 && !error)
+	{
 		error = err2;
+	}
+
 	return error;
 }
 
@@ -202,8 +220,12 @@ __xfs_ag_resv_init(
 	int				error;
 
 	resv = xfs_perag_resv(pag, type);
+
 	if (used > ask)
+	{
 		ask = used;
+	}
+
 	resv->ar_asked = ask;
 	resv->ar_reserved = resv->ar_orig_reserved = ask - used;
 	mp->m_ag_max_usable -= ask;
@@ -211,9 +233,10 @@ __xfs_ag_resv_init(
 	trace_xfs_ag_resv_init(pag, type, ask);
 
 	error = xfs_mod_fdblocks(mp, -(int64_t)resv->ar_reserved, true);
+
 	if (error)
 		trace_xfs_ag_resv_init_error(pag->pag_mount, pag->pag_agno,
-				error, _RET_IP_);
+									 error, _RET_IP_);
 
 	return error;
 }
@@ -228,32 +251,46 @@ xfs_ag_resv_init(
 	int				error = 0;
 
 	/* Create the metadata reservation. */
-	if (pag->pag_meta_resv.ar_asked == 0) {
+	if (pag->pag_meta_resv.ar_asked == 0)
+	{
 		ask = used = 0;
 
 		error = xfs_refcountbt_calc_reserves(pag->pag_mount,
-				pag->pag_agno, &ask, &used);
+											 pag->pag_agno, &ask, &used);
+
 		if (error)
+		{
 			goto out;
+		}
 
 		error = __xfs_ag_resv_init(pag, XFS_AG_RESV_METADATA,
-				ask, used);
+								   ask, used);
+
 		if (error)
+		{
 			goto out;
+		}
 	}
 
 	/* Create the AGFL metadata reservation */
-	if (pag->pag_agfl_resv.ar_asked == 0) {
+	if (pag->pag_agfl_resv.ar_asked == 0)
+	{
 		ask = used = 0;
 
 		error = xfs_rmapbt_calc_reserves(pag->pag_mount, pag->pag_agno,
-				&ask, &used);
+										 &ask, &used);
+
 		if (error)
+		{
 			goto out;
+		}
 
 		error = __xfs_ag_resv_init(pag, XFS_AG_RESV_AGFL, ask, used);
+
 		if (error)
+		{
 			goto out;
+		}
 	}
 
 out:
@@ -273,31 +310,39 @@ xfs_ag_resv_alloc_extent(
 
 	trace_xfs_ag_resv_alloc_extent(pag, type, args->len);
 
-	switch (type) {
-	case XFS_AG_RESV_METADATA:
-	case XFS_AG_RESV_AGFL:
-		resv = xfs_perag_resv(pag, type);
-		break;
-	default:
-		ASSERT(0);
+	switch (type)
+	{
+		case XFS_AG_RESV_METADATA:
+		case XFS_AG_RESV_AGFL:
+			resv = xfs_perag_resv(pag, type);
+			break;
+
+		default:
+			ASSERT(0);
+
 		/* fall through */
-	case XFS_AG_RESV_NONE:
-		field = args->wasdel ? XFS_TRANS_SB_RES_FDBLOCKS :
-				       XFS_TRANS_SB_FDBLOCKS;
-		xfs_trans_mod_sb(args->tp, field, -(int64_t)args->len);
-		return;
+		case XFS_AG_RESV_NONE:
+			field = args->wasdel ? XFS_TRANS_SB_RES_FDBLOCKS :
+					XFS_TRANS_SB_FDBLOCKS;
+			xfs_trans_mod_sb(args->tp, field, -(int64_t)args->len);
+			return;
 	}
 
 	len = min_t(xfs_extlen_t, args->len, resv->ar_reserved);
 	resv->ar_reserved -= len;
+
 	if (type == XFS_AG_RESV_AGFL)
+	{
 		return;
+	}
+
 	/* Allocations of reserved blocks only need on-disk sb updates... */
 	xfs_trans_mod_sb(args->tp, XFS_TRANS_SB_RES_FDBLOCKS, -(int64_t)len);
+
 	/* ...but non-reserved blocks need in-core and on-disk updates. */
 	if (args->len > len)
 		xfs_trans_mod_sb(args->tp, XFS_TRANS_SB_FDBLOCKS,
-				-((int64_t)args->len - len));
+						 -((int64_t)args->len - len));
 }
 
 /* Free a block to the reservation. */
@@ -313,26 +358,36 @@ xfs_ag_resv_free_extent(
 
 	trace_xfs_ag_resv_free_extent(pag, type, len);
 
-	switch (type) {
-	case XFS_AG_RESV_METADATA:
-	case XFS_AG_RESV_AGFL:
-		resv = xfs_perag_resv(pag, type);
-		break;
-	default:
-		ASSERT(0);
+	switch (type)
+	{
+		case XFS_AG_RESV_METADATA:
+		case XFS_AG_RESV_AGFL:
+			resv = xfs_perag_resv(pag, type);
+			break;
+
+		default:
+			ASSERT(0);
+
 		/* fall through */
-	case XFS_AG_RESV_NONE:
-		xfs_trans_mod_sb(tp, XFS_TRANS_SB_FDBLOCKS, (int64_t)len);
-		return;
+		case XFS_AG_RESV_NONE:
+			xfs_trans_mod_sb(tp, XFS_TRANS_SB_FDBLOCKS, (int64_t)len);
+			return;
 	}
 
 	leftover = min_t(xfs_extlen_t, len, resv->ar_asked - resv->ar_reserved);
 	resv->ar_reserved += leftover;
+
 	if (type == XFS_AG_RESV_AGFL)
+	{
 		return;
+	}
+
 	/* Freeing into the reserved pool only requires on-disk update... */
 	xfs_trans_mod_sb(tp, XFS_TRANS_SB_RES_FDBLOCKS, len);
+
 	/* ...but freeing beyond that requires in-core and on-disk update. */
 	if (len > leftover)
+	{
 		xfs_trans_mod_sb(tp, XFS_TRANS_SB_FDBLOCKS, len - leftover);
+	}
 }

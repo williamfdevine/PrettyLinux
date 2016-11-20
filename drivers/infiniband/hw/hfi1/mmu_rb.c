@@ -52,7 +52,8 @@
 #include "mmu_rb.h"
 #include "trace.h"
 
-struct mmu_rb_handler {
+struct mmu_rb_handler
+{
 	struct mmu_notifier mn;
 	struct rb_root root;
 	void *ops_arg;
@@ -68,26 +69,27 @@ struct mmu_rb_handler {
 static unsigned long mmu_node_start(struct mmu_rb_node *);
 static unsigned long mmu_node_last(struct mmu_rb_node *);
 static inline void mmu_notifier_page(struct mmu_notifier *, struct mm_struct *,
-				     unsigned long);
+									 unsigned long);
 static inline void mmu_notifier_range_start(struct mmu_notifier *,
-					    struct mm_struct *,
-					    unsigned long, unsigned long);
+		struct mm_struct *,
+		unsigned long, unsigned long);
 static void mmu_notifier_mem_invalidate(struct mmu_notifier *,
-					struct mm_struct *,
-					unsigned long, unsigned long);
+										struct mm_struct *,
+										unsigned long, unsigned long);
 static struct mmu_rb_node *__mmu_rb_search(struct mmu_rb_handler *,
-					   unsigned long, unsigned long);
+		unsigned long, unsigned long);
 static void do_remove(struct mmu_rb_handler *handler,
-		      struct list_head *del_list);
+					  struct list_head *del_list);
 static void handle_remove(struct work_struct *work);
 
-static struct mmu_notifier_ops mn_opts = {
+static struct mmu_notifier_ops mn_opts =
+{
 	.invalidate_page = mmu_notifier_page,
 	.invalidate_range_start = mmu_notifier_range_start,
 };
 
 INTERVAL_TREE_DEFINE(struct mmu_rb_node, node, unsigned long, __last,
-		     mmu_node_start, mmu_node_last, static, __mmu_int_rb);
+					 mmu_node_start, mmu_node_last, static, __mmu_int_rb);
 
 static unsigned long mmu_node_start(struct mmu_rb_node *node)
 {
@@ -100,16 +102,19 @@ static unsigned long mmu_node_last(struct mmu_rb_node *node)
 }
 
 int hfi1_mmu_rb_register(void *ops_arg, struct mm_struct *mm,
-			 struct mmu_rb_ops *ops,
-			 struct workqueue_struct *wq,
-			 struct mmu_rb_handler **handler)
+						 struct mmu_rb_ops *ops,
+						 struct workqueue_struct *wq,
+						 struct mmu_rb_handler **handler)
 {
 	struct mmu_rb_handler *handlr;
 	int ret;
 
 	handlr = kmalloc(sizeof(*handlr), GFP_KERNEL);
+
 	if (!handlr)
+	{
 		return -ENOMEM;
+	}
 
 	handlr->root = RB_ROOT;
 	handlr->ops = ops;
@@ -124,7 +129,9 @@ int hfi1_mmu_rb_register(void *ops_arg, struct mm_struct *mm,
 	handlr->wq = wq;
 
 	ret = mmu_notifier_register(&handlr->mn, handlr->mm);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(handlr);
 		return ret;
 	}
@@ -152,12 +159,15 @@ void hfi1_mmu_rb_unregister(struct mmu_rb_handler *handler)
 	INIT_LIST_HEAD(&del_list);
 
 	spin_lock_irqsave(&handler->lock, flags);
-	while ((node = rb_first(&handler->root))) {
+
+	while ((node = rb_first(&handler->root)))
+	{
 		rbnode = rb_entry(node, struct mmu_rb_node, node);
 		rb_erase(node, &handler->root);
 		/* move from LRU list to delete list */
 		list_move(&rbnode->list, &del_list);
 	}
+
 	spin_unlock_irqrestore(&handler->lock, flags);
 
 	do_remove(handler, &del_list);
@@ -166,7 +176,7 @@ void hfi1_mmu_rb_unregister(struct mmu_rb_handler *handler)
 }
 
 int hfi1_mmu_rb_insert(struct mmu_rb_handler *handler,
-		       struct mmu_rb_node *mnode)
+					   struct mmu_rb_node *mnode)
 {
 	struct mmu_rb_node *node;
 	unsigned long flags;
@@ -174,20 +184,26 @@ int hfi1_mmu_rb_insert(struct mmu_rb_handler *handler,
 
 	spin_lock_irqsave(&handler->lock, flags);
 	hfi1_cdbg(MMU, "Inserting node addr 0x%llx, len %u", mnode->addr,
-		  mnode->len);
+			  mnode->len);
 	node = __mmu_rb_search(handler, mnode->addr, mnode->len);
-	if (node) {
+
+	if (node)
+	{
 		ret = -EINVAL;
 		goto unlock;
 	}
+
 	__mmu_int_rb_insert(mnode, &handler->root);
 	list_add(&mnode->list, &handler->lru_list);
 
 	ret = handler->ops->insert(handler->ops_arg, mnode);
-	if (ret) {
+
+	if (ret)
+	{
 		__mmu_int_rb_remove(mnode, &handler->root);
 		list_del(&mnode->list); /* remove from LRU list */
 	}
+
 unlock:
 	spin_unlock_irqrestore(&handler->lock, flags);
 	return ret;
@@ -195,40 +211,51 @@ unlock:
 
 /* Caller must hold handler lock */
 static struct mmu_rb_node *__mmu_rb_search(struct mmu_rb_handler *handler,
-					   unsigned long addr,
-					   unsigned long len)
+		unsigned long addr,
+		unsigned long len)
 {
 	struct mmu_rb_node *node = NULL;
 
 	hfi1_cdbg(MMU, "Searching for addr 0x%llx, len %u", addr, len);
-	if (!handler->ops->filter) {
+
+	if (!handler->ops->filter)
+	{
 		node = __mmu_int_rb_iter_first(&handler->root, addr,
-					       (addr + len) - 1);
-	} else {
+									   (addr + len) - 1);
+	}
+	else
+	{
 		for (node = __mmu_int_rb_iter_first(&handler->root, addr,
-						    (addr + len) - 1);
-		     node;
-		     node = __mmu_int_rb_iter_next(node, addr,
-						   (addr + len) - 1)) {
+											(addr + len) - 1);
+			 node;
+			 node = __mmu_int_rb_iter_next(node, addr,
+										   (addr + len) - 1))
+		{
 			if (handler->ops->filter(node, addr, len))
+			{
 				return node;
+			}
 		}
 	}
+
 	return node;
 }
 
 struct mmu_rb_node *hfi1_mmu_rb_extract(struct mmu_rb_handler *handler,
-					unsigned long addr, unsigned long len)
+										unsigned long addr, unsigned long len)
 {
 	struct mmu_rb_node *node;
 	unsigned long flags;
 
 	spin_lock_irqsave(&handler->lock, flags);
 	node = __mmu_rb_search(handler, addr, len);
-	if (node) {
+
+	if (node)
+	{
 		__mmu_int_rb_remove(node, &handler->root);
 		list_del(&node->list); /* remove from LRU list */
 	}
+
 	spin_unlock_irqrestore(&handler->lock, flags);
 
 	return node;
@@ -245,19 +272,25 @@ void hfi1_mmu_rb_evict(struct mmu_rb_handler *handler, void *evict_arg)
 
 	spin_lock_irqsave(&handler->lock, flags);
 	list_for_each_entry_safe_reverse(rbnode, ptr, &handler->lru_list,
-					 list) {
+									 list)
+	{
 		if (handler->ops->evict(handler->ops_arg, rbnode, evict_arg,
-					&stop)) {
+								&stop))
+		{
 			__mmu_int_rb_remove(rbnode, &handler->root);
 			/* move from LRU list to delete list */
 			list_move(&rbnode->list, &del_list);
 		}
+
 		if (stop)
+		{
 			break;
+		}
 	}
 	spin_unlock_irqrestore(&handler->lock, flags);
 
-	while (!list_empty(&del_list)) {
+	while (!list_empty(&del_list))
+	{
 		rbnode = list_first_entry(&del_list, struct mmu_rb_node, list);
 		list_del(&rbnode->list);
 		handler->ops->remove(handler->ops_arg, rbnode);
@@ -270,13 +303,13 @@ void hfi1_mmu_rb_evict(struct mmu_rb_handler *handler, void *evict_arg)
  * 'node'.
  */
 void hfi1_mmu_rb_remove(struct mmu_rb_handler *handler,
-			struct mmu_rb_node *node)
+						struct mmu_rb_node *node)
 {
 	unsigned long flags;
 
 	/* Validity of handler and node pointers has been checked by caller. */
 	hfi1_cdbg(MMU, "Removing node addr 0x%llx, len %u", node->addr,
-		  node->len);
+			  node->len);
 	spin_lock_irqsave(&handler->lock, flags);
 	__mmu_int_rb_remove(node, &handler->root);
 	list_del(&node->list); /* remove from LRU list */
@@ -286,22 +319,22 @@ void hfi1_mmu_rb_remove(struct mmu_rb_handler *handler,
 }
 
 static inline void mmu_notifier_page(struct mmu_notifier *mn,
-				     struct mm_struct *mm, unsigned long addr)
+									 struct mm_struct *mm, unsigned long addr)
 {
 	mmu_notifier_mem_invalidate(mn, mm, addr, addr + PAGE_SIZE);
 }
 
 static inline void mmu_notifier_range_start(struct mmu_notifier *mn,
-					    struct mm_struct *mm,
-					    unsigned long start,
-					    unsigned long end)
+		struct mm_struct *mm,
+		unsigned long start,
+		unsigned long end)
 {
 	mmu_notifier_mem_invalidate(mn, mm, start, end);
 }
 
 static void mmu_notifier_mem_invalidate(struct mmu_notifier *mn,
-					struct mm_struct *mm,
-					unsigned long start, unsigned long end)
+										struct mm_struct *mm,
+										unsigned long start, unsigned long end)
 {
 	struct mmu_rb_handler *handler =
 		container_of(mn, struct mmu_rb_handler, mn);
@@ -311,23 +344,30 @@ static void mmu_notifier_mem_invalidate(struct mmu_notifier *mn,
 	bool added = false;
 
 	spin_lock_irqsave(&handler->lock, flags);
+
 	for (node = __mmu_int_rb_iter_first(root, start, end - 1);
-	     node; node = ptr) {
+		 node; node = ptr)
+	{
 		/* Guard against node removal. */
 		ptr = __mmu_int_rb_iter_next(node, start, end - 1);
 		hfi1_cdbg(MMU, "Invalidating node addr 0x%llx, len %u",
-			  node->addr, node->len);
-		if (handler->ops->invalidate(handler->ops_arg, node)) {
+				  node->addr, node->len);
+
+		if (handler->ops->invalidate(handler->ops_arg, node))
+		{
 			__mmu_int_rb_remove(node, root);
 			/* move from LRU list to delete list */
 			list_move(&node->list, &handler->del_list);
 			added = true;
 		}
 	}
+
 	spin_unlock_irqrestore(&handler->lock, flags);
 
 	if (added)
+	{
 		queue_work(handler->wq, &handler->del_work);
+	}
 }
 
 /*
@@ -336,11 +376,12 @@ static void mmu_notifier_mem_invalidate(struct mmu_notifier *mn,
  * The caller should not be holding the handler lock.
  */
 static void do_remove(struct mmu_rb_handler *handler,
-		      struct list_head *del_list)
+					  struct list_head *del_list)
 {
 	struct mmu_rb_node *node;
 
-	while (!list_empty(del_list)) {
+	while (!list_empty(del_list))
+	{
 		node = list_first_entry(del_list, struct mmu_rb_node, list);
 		list_del(&node->list);
 		handler->ops->remove(handler->ops_arg, node);
@@ -355,8 +396,8 @@ static void do_remove(struct mmu_rb_handler *handler,
 static void handle_remove(struct work_struct *work)
 {
 	struct mmu_rb_handler *handler = container_of(work,
-						struct mmu_rb_handler,
-						del_work);
+									 struct mmu_rb_handler,
+									 del_work);
 	struct list_head del_list;
 	unsigned long flags;
 

@@ -8,8 +8,8 @@
 #include "util.h"
 
 #define mfspr(rn)       ({unsigned long rval; \
-			 asm volatile("mfspr %0," __stringify(rn) \
-				      : "=r" (rval)); rval; })
+		asm volatile("mfspr %0," __stringify(rn) \
+					 : "=r" (rval)); rval; })
 
 #define SPRN_PVR        0x11F	/* Processor Version Register */
 #define PVR_VER(pvr)    (((pvr) >>  16) & 0xFFFF) /* Version field */
@@ -26,10 +26,12 @@ get_cpuid(char *buffer, size_t sz)
 	nb = scnprintf(buffer, sz, "%lu,%lu$", PVR_VER(pvr), PVR_REV(pvr));
 
 	/* look for end marker to ensure the entire data fit */
-	if (strchr(buffer, '$')) {
-		buffer[nb-1] = '\0';
+	if (strchr(buffer, '$'))
+	{
+		buffer[nb - 1] = '\0';
 		return 0;
 	}
+
 	return -1;
 }
 
@@ -39,7 +41,9 @@ get_cpuid_str(void)
 	char *bufp;
 
 	if (asprintf(&bufp, "%.8lx", mfspr(SPRN_PVR)) < 0)
+	{
 		bufp = NULL;
+	}
 
 	return bufp;
 }

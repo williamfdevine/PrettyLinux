@@ -106,12 +106,13 @@ static inline dma_addr_t s5p_mfc_mem_cookie(void *a, void *b)
 
 #define mfc_read(dev, offset)		readl(dev->regs_base + (offset))
 #define mfc_write(dev, data, offset)	writel((data), dev->regs_base + \
-								(offset))
+		(offset))
 
 /**
  * enum s5p_mfc_fmt_type - type of the pixelformat
  */
-enum s5p_mfc_fmt_type {
+enum s5p_mfc_fmt_type
+{
 	MFC_FMT_DEC,
 	MFC_FMT_ENC,
 	MFC_FMT_RAW,
@@ -120,7 +121,8 @@ enum s5p_mfc_fmt_type {
 /**
  * enum s5p_mfc_inst_type - The type of an MFC instance.
  */
-enum s5p_mfc_inst_type {
+enum s5p_mfc_inst_type
+{
 	MFCINST_INVALID,
 	MFCINST_DECODER,
 	MFCINST_ENCODER,
@@ -129,7 +131,8 @@ enum s5p_mfc_inst_type {
 /**
  * enum s5p_mfc_inst_state - The state of an MFC instance.
  */
-enum s5p_mfc_inst_state {
+enum s5p_mfc_inst_state
+{
 	MFCINST_FREE = 0,
 	MFCINST_INIT = 100,
 	MFCINST_GOT_INST,
@@ -151,7 +154,8 @@ enum s5p_mfc_inst_state {
 /**
  * enum s5p_mfc_queue_state - The state of buffer queue.
  */
-enum s5p_mfc_queue_state {
+enum s5p_mfc_queue_state
+{
 	QUEUE_FREE,
 	QUEUE_BUFS_REQUESTED,
 	QUEUE_BUFS_QUERIED,
@@ -161,13 +165,15 @@ enum s5p_mfc_queue_state {
 /**
  * enum s5p_mfc_decode_arg - type of frame decoding
  */
-enum s5p_mfc_decode_arg {
+enum s5p_mfc_decode_arg
+{
 	MFC_DEC_FRAME,
 	MFC_DEC_LAST_FRAME,
 	MFC_DEC_RES_CHANGE,
 };
 
-enum s5p_mfc_fw_ver {
+enum s5p_mfc_fw_ver
+{
 	MFC_FW_V1,
 	MFC_FW_V2,
 };
@@ -180,11 +186,14 @@ struct s5p_mfc_ctx;
 /**
  * struct s5p_mfc_buf - MFC buffer
  */
-struct s5p_mfc_buf {
+struct s5p_mfc_buf
+{
 	struct vb2_v4l2_buffer *b;
 	struct list_head list;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			size_t luma;
 			size_t chroma;
 		} raw;
@@ -196,21 +205,24 @@ struct s5p_mfc_buf {
 /**
  * struct s5p_mfc_pm - power management data structure
  */
-struct s5p_mfc_pm {
+struct s5p_mfc_pm
+{
 	struct clk	*clock;
 	struct clk	*clock_gate;
 	atomic_t	power;
 	struct device	*device;
 };
 
-struct s5p_mfc_buf_size_v5 {
+struct s5p_mfc_buf_size_v5
+{
 	unsigned int h264_ctx;
 	unsigned int non_h264_ctx;
 	unsigned int dsc;
 	unsigned int shm;
 };
 
-struct s5p_mfc_buf_size_v6 {
+struct s5p_mfc_buf_size_v6
+{
 	unsigned int dev_ctx;
 	unsigned int h264_dec_ctx;
 	unsigned int other_dec_ctx;
@@ -218,17 +230,20 @@ struct s5p_mfc_buf_size_v6 {
 	unsigned int other_enc_ctx;
 };
 
-struct s5p_mfc_buf_size {
+struct s5p_mfc_buf_size
+{
 	unsigned int fw;
 	unsigned int cpb;
 	void *priv;
 };
 
-struct s5p_mfc_buf_align {
+struct s5p_mfc_buf_align
+{
 	unsigned int base;
 };
 
-struct s5p_mfc_variant {
+struct s5p_mfc_variant
+{
 	unsigned int version;
 	unsigned int port_num;
 	u32 version_bit;
@@ -245,7 +260,8 @@ struct s5p_mfc_variant {
  * @dma:		DMA address, only valid when kernel DMA API used
  * @size:		size of the buffer
  */
-struct s5p_mfc_priv_buf {
+struct s5p_mfc_priv_buf
+{
 	unsigned long	ofs;
 	void		*virt;
 	dma_addr_t	dma;
@@ -297,7 +313,8 @@ struct s5p_mfc_priv_buf {
  * risc_on:		flag indicates RISC is on or off
  *
  */
-struct s5p_mfc_dev {
+struct s5p_mfc_dev
+{
 	struct v4l2_device	v4l2_dev;
 	struct video_device	*vfd_dec;
 	struct video_device	*vfd_enc;
@@ -345,7 +362,8 @@ struct s5p_mfc_dev {
 /**
  * struct s5p_mfc_h264_enc_params - encoding parameters for h264
  */
-struct s5p_mfc_h264_enc_params {
+struct s5p_mfc_h264_enc_params
+{
 	enum v4l2_mpeg_video_h264_profile profile;
 	enum v4l2_mpeg_video_h264_loop_filter_mode loop_filter_mode;
 	s8 loop_filter_alpha;
@@ -394,7 +412,8 @@ struct s5p_mfc_h264_enc_params {
 /**
  * struct s5p_mfc_mpeg4_enc_params - encoding parameters for h263 and mpeg4
  */
-struct s5p_mfc_mpeg4_enc_params {
+struct s5p_mfc_mpeg4_enc_params
+{
 	/* MPEG4 Only */
 	enum v4l2_mpeg_video_mpeg4_profile profile;
 	int quarter_pixel;
@@ -413,7 +432,8 @@ struct s5p_mfc_mpeg4_enc_params {
 /**
  * struct s5p_mfc_vp8_enc_params - encoding parameters for vp8
  */
-struct s5p_mfc_vp8_enc_params {
+struct s5p_mfc_vp8_enc_params
+{
 	u8 imd_4x4;
 	enum v4l2_vp8_num_partitions num_partitions;
 	enum v4l2_vp8_num_ref_frames num_ref;
@@ -433,7 +453,8 @@ struct s5p_mfc_vp8_enc_params {
 /**
  * struct s5p_mfc_enc_params - general encoding parameters
  */
-struct s5p_mfc_enc_params {
+struct s5p_mfc_enc_params
+{
 	u16 width;
 	u16 height;
 	u32 mv_h_range;
@@ -463,7 +484,8 @@ struct s5p_mfc_enc_params {
 	u32 rc_framerate_num;
 	u32 rc_framerate_denom;
 
-	struct {
+	struct
+	{
 		struct s5p_mfc_h264_enc_params h264;
 		struct s5p_mfc_mpeg4_enc_params mpeg4;
 		struct s5p_mfc_vp8_enc_params vp8;
@@ -474,7 +496,8 @@ struct s5p_mfc_enc_params {
 /**
  * struct s5p_mfc_codec_ops - codec ops, used by encoding
  */
-struct s5p_mfc_codec_ops {
+struct s5p_mfc_codec_ops
+{
 	/* initialization routines */
 	int (*pre_seq_start) (struct s5p_mfc_ctx *ctx);
 	int (*post_seq_start) (struct s5p_mfc_ctx *ctx);
@@ -485,7 +508,7 @@ struct s5p_mfc_codec_ops {
 
 #define call_cop(c, op, args...)				\
 	(((c)->c_ops->op) ?					\
-		((c)->c_ops->op(args)) : 0)
+	 ((c)->c_ops->op(args)) : 0)
 
 /**
  * struct s5p_mfc_ctx - This struct contains the instance context
@@ -562,7 +585,8 @@ struct s5p_mfc_codec_ops {
  *			v4l2 control framework
  * @ctrl_handler:	handler for v4l2 framework
  */
-struct s5p_mfc_ctx {
+struct s5p_mfc_ctx
+{
 	struct s5p_mfc_dev *dev;
 	struct v4l2_fh fh;
 
@@ -650,7 +674,8 @@ struct s5p_mfc_ctx {
 	unsigned int ref_queue_cnt;
 
 	enum v4l2_mpeg_video_multi_slice_mode slice_mode;
-	union {
+	union
+	{
 		unsigned int mb;
 		unsigned int bits;
 	} slice_size;
@@ -667,7 +692,8 @@ struct s5p_mfc_ctx {
  * struct s5p_mfc_fmt -	structure used to store information about pixelformats
  *			used by the MFC
  */
-struct s5p_mfc_fmt {
+struct s5p_mfc_fmt
+{
 	char *name;
 	u32 fourcc;
 	u32 codec_mode;
@@ -680,7 +706,8 @@ struct s5p_mfc_fmt {
  * struct mfc_control -	structure used to store information about MFC controls
  *			it is used to initialize the control framework.
  */
-struct mfc_control {
+struct mfc_control
+{
 	__u32			id;
 	enum v4l2_ctrl_type	type;
 	__u8			name[32];  /* Whatever */
@@ -710,7 +737,7 @@ int s5p_mfc_get_new_ctx(struct s5p_mfc_dev *dev);
 void s5p_mfc_cleanup_queue(struct list_head *lh, struct vb2_queue *vq);
 
 #define HAS_PORTNUM(dev)	(dev ? (dev->variant ? \
-				(dev->variant->port_num ? 1 : 0) : 0) : 0)
+									(dev->variant->port_num ? 1 : 0) : 0) : 0)
 #define IS_TWOPORT(dev)		(dev->variant->port_num == 2 ? 1 : 0)
 #define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
 #define IS_MFCV7_PLUS(dev)	(dev->variant->version >= 0x70 ? 1 : 0)

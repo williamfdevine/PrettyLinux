@@ -72,6 +72,7 @@ static void hfi1_setsda(void *data, int state)
 
 	target_oe = i2c_oe_csr(bus->num);
 	reg = read_csr(dd, target_oe);
+
 	/*
 	 * The OE bit value is inverted and connected to the pin.  When
 	 * OE is 0 the pin is left to be pulled up, when the OE is 1
@@ -79,9 +80,14 @@ static void hfi1_setsda(void *data, int state)
 	 * collector" convention.
 	 */
 	if (state)
+	{
 		reg &= ~QSFP_HFI0_I2CDAT;
+	}
 	else
+	{
 		reg |= QSFP_HFI0_I2CDAT;
+	}
+
 	write_csr(dd, target_oe, reg);
 	/* do a read to force the write into the chip */
 	(void)read_csr(dd, target_oe);
@@ -96,6 +102,7 @@ static void hfi1_setscl(void *data, int state)
 
 	target_oe = i2c_oe_csr(bus->num);
 	reg = read_csr(dd, target_oe);
+
 	/*
 	 * The OE bit value is inverted and connected to the pin.  When
 	 * OE is 0 the pin is left to be pulled up, when the OE is 1
@@ -103,9 +110,14 @@ static void hfi1_setscl(void *data, int state)
 	 * collector" convention.
 	 */
 	if (state)
+	{
 		reg &= ~QSFP_HFI0_I2CCLK;
+	}
 	else
+	{
 		reg |= QSFP_HFI0_I2CCLK;
+	}
+
 	write_csr(dd, target_oe, reg);
 	/* do a read to force the write into the chip */
 	(void)read_csr(dd, target_oe);
@@ -144,14 +156,17 @@ static int hfi1_getscl(void *data)
  * Returns NULL on failure.
  */
 static struct hfi1_i2c_bus *init_i2c_bus(struct hfi1_devdata *dd,
-					 struct hfi1_asic_data *ad, int num)
+		struct hfi1_asic_data *ad, int num)
 {
 	struct hfi1_i2c_bus *bus;
 	int ret;
 
 	bus = kzalloc(sizeof(*bus), GFP_KERNEL);
+
 	if (!bus)
+	{
 		return NULL;
+	}
 
 	bus->controlling_dd = dd;
 	bus->num = num;	/* our bus number */
@@ -168,12 +183,14 @@ static struct hfi1_i2c_bus *init_i2c_bus(struct hfi1_devdata *dd,
 	bus->adapter.algo_data = &bus->algo;
 	bus->adapter.dev.parent = &dd->pcidev->dev;
 	snprintf(bus->adapter.name, sizeof(bus->adapter.name),
-		 "hfi1_i2c%d", num);
+			 "hfi1_i2c%d", num);
 
 	ret = i2c_bit_add_bus(&bus->adapter);
-	if (ret) {
+
+	if (ret)
+	{
 		dd_dev_info(dd, "%s: unable to add i2c bus %d, err %d\n",
-			    __func__, num, ret);
+					__func__, num, ret);
 		kfree(bus);
 		return NULL;
 	}
@@ -189,14 +206,19 @@ int set_up_i2c(struct hfi1_devdata *dd, struct hfi1_asic_data *ad)
 {
 	ad->i2c_bus0 = init_i2c_bus(dd, ad, 0);
 	ad->i2c_bus1 = init_i2c_bus(dd, ad, 1);
+
 	if (!ad->i2c_bus0 || !ad->i2c_bus1)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 };
 
 static void clean_i2c_bus(struct hfi1_i2c_bus *bus)
 {
-	if (bus) {
+	if (bus)
+	{
 		i2c_del_adapter(&bus->adapter);
 		kfree(bus);
 	}
@@ -211,98 +233,112 @@ void clean_up_i2c(struct hfi1_devdata *dd, struct hfi1_asic_data *ad)
 }
 
 static int i2c_bus_write(struct hfi1_devdata *dd, struct hfi1_i2c_bus *i2c,
-			 u8 slave_addr, int offset, int offset_size,
-			 u8 *data, u16 len)
+						 u8 slave_addr, int offset, int offset_size,
+						 u8 *data, u16 len)
 {
 	int ret;
 	int num_msgs;
 	u8 offset_bytes[2];
 	struct i2c_msg msgs[2];
 
-	switch (offset_size) {
-	case 0:
-		num_msgs = 1;
-		msgs[0].addr = slave_addr;
-		msgs[0].flags = 0;
-		msgs[0].len = len;
-		msgs[0].buf = data;
-		break;
-	case 2:
-		offset_bytes[1] = (offset >> 8) & 0xff;
+	switch (offset_size)
+	{
+		case 0:
+			num_msgs = 1;
+			msgs[0].addr = slave_addr;
+			msgs[0].flags = 0;
+			msgs[0].len = len;
+			msgs[0].buf = data;
+			break;
+
+		case 2:
+			offset_bytes[1] = (offset >> 8) & 0xff;
+
 		/* fall through */
-	case 1:
-		num_msgs = 2;
-		offset_bytes[0] = offset & 0xff;
+		case 1:
+			num_msgs = 2;
+			offset_bytes[0] = offset & 0xff;
 
-		msgs[0].addr = slave_addr;
-		msgs[0].flags = 0;
-		msgs[0].len = offset_size;
-		msgs[0].buf = offset_bytes;
+			msgs[0].addr = slave_addr;
+			msgs[0].flags = 0;
+			msgs[0].len = offset_size;
+			msgs[0].buf = offset_bytes;
 
-		msgs[1].addr = slave_addr;
-		msgs[1].flags = I2C_M_NOSTART,
-		msgs[1].len = len;
-		msgs[1].buf = data;
-		break;
-	default:
-		return -EINVAL;
+			msgs[1].addr = slave_addr;
+			msgs[1].flags = I2C_M_NOSTART,
+					msgs[1].len = len;
+			msgs[1].buf = data;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	i2c->controlling_dd = dd;
 	ret = i2c_transfer(&i2c->adapter, msgs, num_msgs);
-	if (ret != num_msgs) {
+
+	if (ret != num_msgs)
+	{
 		dd_dev_err(dd, "%s: bus %d, i2c slave 0x%x, offset 0x%x, len 0x%x; write failed, ret %d\n",
-			   __func__, i2c->num, slave_addr, offset, len, ret);
+				   __func__, i2c->num, slave_addr, offset, len, ret);
 		return ret < 0 ? ret : -EIO;
 	}
+
 	return 0;
 }
 
 static int i2c_bus_read(struct hfi1_devdata *dd, struct hfi1_i2c_bus *bus,
-			u8 slave_addr, int offset, int offset_size,
-			u8 *data, u16 len)
+						u8 slave_addr, int offset, int offset_size,
+						u8 *data, u16 len)
 {
 	int ret;
 	int num_msgs;
 	u8 offset_bytes[2];
 	struct i2c_msg msgs[2];
 
-	switch (offset_size) {
-	case 0:
-		num_msgs = 1;
-		msgs[0].addr = slave_addr;
-		msgs[0].flags = I2C_M_RD;
-		msgs[0].len = len;
-		msgs[0].buf = data;
-		break;
-	case 2:
-		offset_bytes[1] = (offset >> 8) & 0xff;
+	switch (offset_size)
+	{
+		case 0:
+			num_msgs = 1;
+			msgs[0].addr = slave_addr;
+			msgs[0].flags = I2C_M_RD;
+			msgs[0].len = len;
+			msgs[0].buf = data;
+			break;
+
+		case 2:
+			offset_bytes[1] = (offset >> 8) & 0xff;
+
 		/* fall through */
-	case 1:
-		num_msgs = 2;
-		offset_bytes[0] = offset & 0xff;
+		case 1:
+			num_msgs = 2;
+			offset_bytes[0] = offset & 0xff;
 
-		msgs[0].addr = slave_addr;
-		msgs[0].flags = 0;
-		msgs[0].len = offset_size;
-		msgs[0].buf = offset_bytes;
+			msgs[0].addr = slave_addr;
+			msgs[0].flags = 0;
+			msgs[0].len = offset_size;
+			msgs[0].buf = offset_bytes;
 
-		msgs[1].addr = slave_addr;
-		msgs[1].flags = I2C_M_RD,
-		msgs[1].len = len;
-		msgs[1].buf = data;
-		break;
-	default:
-		return -EINVAL;
+			msgs[1].addr = slave_addr;
+			msgs[1].flags = I2C_M_RD,
+					msgs[1].len = len;
+			msgs[1].buf = data;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	bus->controlling_dd = dd;
 	ret = i2c_transfer(&bus->adapter, msgs, num_msgs);
-	if (ret != num_msgs) {
+
+	if (ret != num_msgs)
+	{
 		dd_dev_err(dd, "%s: bus %d, i2c slave 0x%x, offset 0x%x, len 0x%x; read failed, ret %d\n",
-			   __func__, bus->num, slave_addr, offset, len, ret);
+				   __func__, bus->num, slave_addr, offset, len, ret);
 		return ret < 0 ? ret : -EIO;
 	}
+
 	return 0;
 }
 
@@ -312,7 +348,7 @@ static int i2c_bus_read(struct hfi1_devdata *dd, struct hfi1_i2c_bus *bus,
  * Return 0 on success, -errno on error.
  */
 static int __i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
-		       int offset, void *bp, int len)
+					   int offset, void *bp, int len)
 {
 	struct hfi1_devdata *dd = ppd->dd;
 	struct hfi1_i2c_bus *bus;
@@ -331,16 +367,21 @@ static int __i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
  * Return number of bytes written, or -errno.
  */
 int i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
-	      void *bp, int len)
+			  void *bp, int len)
 {
 	int ret;
 
 	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
+	{
 		return -EACCES;
+	}
 
 	ret = __i2c_write(ppd, target, i2c_addr, offset, bp, len);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return len;
 }
@@ -351,7 +392,7 @@ int i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
  * Return 0 on success, -errno on error.
  */
 static int __i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
-		      int offset, void *bp, int len)
+					  int offset, void *bp, int len)
 {
 	struct hfi1_devdata *dd = ppd->dd;
 	struct hfi1_i2c_bus *bus;
@@ -370,16 +411,21 @@ static int __i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
  * Return number of bytes read, or -errno.
  */
 int i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
-	     void *bp, int len)
+			 void *bp, int len)
 {
 	int ret;
 
 	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
+	{
 		return -EACCES;
+	}
 
 	ret = __i2c_read(ppd, target, i2c_addr, offset, bp, len);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return len;
 }
@@ -393,7 +439,7 @@ int i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
  * Return number of bytes written or -errno.
  */
 int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
-	       int len)
+			   int len)
 {
 	int count = 0;
 	int offset;
@@ -402,9 +448,12 @@ int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
 	u8 page;
 
 	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
+	{
 		return -EACCES;
+	}
 
-	while (count < len) {
+	while (count < len)
+	{
 		/*
 		 * Set the qsfp page based on a zero-based address
 		 * and a page size of QSFP_PAGESIZE bytes.
@@ -412,35 +461,46 @@ int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
 		page = (u8)(addr / QSFP_PAGESIZE);
 
 		ret = __i2c_write(ppd, target, QSFP_DEV | QSFP_OFFSET_SIZE,
-				  QSFP_PAGE_SELECT_BYTE_OFFS, &page, 1);
+						  QSFP_PAGE_SELECT_BYTE_OFFS, &page, 1);
 		/* QSFPs require a 5-10msec delay after write operations */
 		mdelay(5);
-		if (ret) {
+
+		if (ret)
+		{
 			hfi1_dev_porterr(ppd->dd, ppd->port,
-					 "QSFP chain %d can't write QSFP_PAGE_SELECT_BYTE: %d\n",
-					 target, ret);
+							 "QSFP chain %d can't write QSFP_PAGE_SELECT_BYTE: %d\n",
+							 target, ret);
 			break;
 		}
 
 		offset = addr % QSFP_PAGESIZE;
 		nwrite = len - count;
+
 		/* truncate write to boundary if crossing boundary */
 		if (((addr % QSFP_RW_BOUNDARY) + nwrite) > QSFP_RW_BOUNDARY)
+		{
 			nwrite = QSFP_RW_BOUNDARY - (addr % QSFP_RW_BOUNDARY);
+		}
 
 		ret = __i2c_write(ppd, target, QSFP_DEV | QSFP_OFFSET_SIZE,
-				  offset, bp + count, nwrite);
+						  offset, bp + count, nwrite);
 		/* QSFPs require a 5-10msec delay after write operations */
 		mdelay(5);
+
 		if (ret)	/* stop on error */
+		{
 			break;
+		}
 
 		count += nwrite;
 		addr += nwrite;
 	}
 
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return count;
 }
 
@@ -449,15 +509,19 @@ int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
  * write, then release the resource.
  */
 int one_qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
-		   int len)
+				   int len)
 {
 	struct hfi1_devdata *dd = ppd->dd;
 	u32 resource = qsfp_resource(dd);
 	int ret;
 
 	ret = acquire_chip_resource(dd, resource, QSFP_WAIT);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = qsfp_write(ppd, target, addr, bp, len);
 	release_chip_resource(dd, resource);
 
@@ -473,7 +537,7 @@ int one_qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
  * Return the number of bytes read or -errno.
  */
 int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
-	      int len)
+			  int len)
 {
 	int count = 0;
 	int offset;
@@ -482,42 +546,56 @@ int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
 	u8 page;
 
 	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
+	{
 		return -EACCES;
+	}
 
-	while (count < len) {
+	while (count < len)
+	{
 		/*
 		 * Set the qsfp page based on a zero-based address
 		 * and a page size of QSFP_PAGESIZE bytes.
 		 */
 		page = (u8)(addr / QSFP_PAGESIZE);
 		ret = __i2c_write(ppd, target, QSFP_DEV | QSFP_OFFSET_SIZE,
-				  QSFP_PAGE_SELECT_BYTE_OFFS, &page, 1);
+						  QSFP_PAGE_SELECT_BYTE_OFFS, &page, 1);
 		/* QSFPs require a 5-10msec delay after write operations */
 		mdelay(5);
-		if (ret) {
+
+		if (ret)
+		{
 			hfi1_dev_porterr(ppd->dd, ppd->port,
-					 "QSFP chain %d can't write QSFP_PAGE_SELECT_BYTE: %d\n",
-					 target, ret);
+							 "QSFP chain %d can't write QSFP_PAGE_SELECT_BYTE: %d\n",
+							 target, ret);
 			break;
 		}
 
 		offset = addr % QSFP_PAGESIZE;
 		nread = len - count;
+
 		/* truncate read to boundary if crossing boundary */
 		if (((addr % QSFP_RW_BOUNDARY) + nread) > QSFP_RW_BOUNDARY)
+		{
 			nread = QSFP_RW_BOUNDARY - (addr % QSFP_RW_BOUNDARY);
+		}
 
 		ret = __i2c_read(ppd, target, QSFP_DEV | QSFP_OFFSET_SIZE,
-				 offset, bp + count, nread);
+						 offset, bp + count, nread);
+
 		if (ret)	/* stop on error */
+		{
 			break;
+		}
 
 		count += nread;
 		addr += nread;
 	}
 
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return count;
 }
 
@@ -526,15 +604,19 @@ int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
  * read, then release the resource.
  */
 int one_qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
-		  int len)
+				  int len)
 {
 	struct hfi1_devdata *dd = ppd->dd;
 	u32 resource = qsfp_resource(dd);
 	int ret;
 
 	ret = acquire_chip_resource(dd, resource, QSFP_WAIT);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = qsfp_read(ppd, target, addr, bp, len);
 	release_chip_resource(dd, resource);
 
@@ -566,67 +648,98 @@ int refresh_qsfp_cache(struct hfi1_pportdata *ppd, struct qsfp_data *cp)
 	ppd->qsfp_info.cache_valid = 0;
 	spin_unlock_irqrestore(&ppd->qsfp_info.qsfp_lock, flags);
 
-	if (!qsfp_mod_present(ppd)) {
+	if (!qsfp_mod_present(ppd))
+	{
 		ret = -ENODEV;
 		goto bail;
 	}
 
 	ret = qsfp_read(ppd, target, 0, cache, QSFP_PAGESIZE);
-	if (ret != QSFP_PAGESIZE) {
+
+	if (ret != QSFP_PAGESIZE)
+	{
 		dd_dev_info(ppd->dd,
-			    "%s: Page 0 read failed, expected %d, got %d\n",
-			    __func__, QSFP_PAGESIZE, ret);
+					"%s: Page 0 read failed, expected %d, got %d\n",
+					__func__, QSFP_PAGESIZE, ret);
 		goto bail;
 	}
 
 	/* Is paging enabled? */
-	if (!(cache[2] & 4)) {
+	if (!(cache[2] & 4))
+	{
 		/* Paging enabled, page 03 required */
-		if ((cache[195] & 0xC0) == 0xC0) {
+		if ((cache[195] & 0xC0) == 0xC0)
+		{
 			/* all */
 			ret = qsfp_read(ppd, target, 384, cache + 256, 128);
-			if (ret <= 0 || ret != 128) {
+
+			if (ret <= 0 || ret != 128)
+			{
 				dd_dev_info(ppd->dd, "%s failed\n", __func__);
 				goto bail;
 			}
+
 			ret = qsfp_read(ppd, target, 640, cache + 384, 128);
-			if (ret <= 0 || ret != 128) {
+
+			if (ret <= 0 || ret != 128)
+			{
 				dd_dev_info(ppd->dd, "%s failed\n", __func__);
 				goto bail;
 			}
+
 			ret = qsfp_read(ppd, target, 896, cache + 512, 128);
-			if (ret <= 0 || ret != 128) {
+
+			if (ret <= 0 || ret != 128)
+			{
 				dd_dev_info(ppd->dd, "%s failed\n", __func__);
 				goto bail;
 			}
-		} else if ((cache[195] & 0x80) == 0x80) {
+		}
+		else if ((cache[195] & 0x80) == 0x80)
+		{
 			/* only page 2 and 3 */
 			ret = qsfp_read(ppd, target, 640, cache + 384, 128);
-			if (ret <= 0 || ret != 128) {
+
+			if (ret <= 0 || ret != 128)
+			{
 				dd_dev_info(ppd->dd, "%s failed\n", __func__);
 				goto bail;
 			}
+
 			ret = qsfp_read(ppd, target, 896, cache + 512, 128);
-			if (ret <= 0 || ret != 128) {
+
+			if (ret <= 0 || ret != 128)
+			{
 				dd_dev_info(ppd->dd, "%s failed\n", __func__);
 				goto bail;
 			}
-		} else if ((cache[195] & 0x40) == 0x40) {
+		}
+		else if ((cache[195] & 0x40) == 0x40)
+		{
 			/* only page 1 and 3 */
 			ret = qsfp_read(ppd, target, 384, cache + 256, 128);
-			if (ret <= 0 || ret != 128) {
+
+			if (ret <= 0 || ret != 128)
+			{
 				dd_dev_info(ppd->dd, "%s failed\n", __func__);
 				goto bail;
 			}
+
 			ret = qsfp_read(ppd, target, 896, cache + 512, 128);
-			if (ret <= 0 || ret != 128) {
+
+			if (ret <= 0 || ret != 128)
+			{
 				dd_dev_info(ppd->dd, "%s failed\n", __func__);
 				goto bail;
 			}
-		} else {
+		}
+		else
+		{
 			/* only page 3 */
 			ret = qsfp_read(ppd, target, 896, cache + 512, 128);
-			if (ret <= 0 || ret != 128) {
+
+			if (ret <= 0 || ret != 128)
+			{
 				dd_dev_info(ppd->dd, "%s failed\n", __func__);
 				goto bail;
 			}
@@ -645,7 +758,8 @@ bail:
 	return ret;
 }
 
-const char * const hfi1_qsfp_devtech[16] = {
+const char *const hfi1_qsfp_devtech[16] =
+{
 	"850nm VCSEL", "1310nm VCSEL", "1550nm VCSEL", "1310nm FP",
 	"1310nm DFB", "1550nm DFB", "1310nm EML", "1550nm EML",
 	"Cu Misc", "1490nm DFB", "Cu NoEq", "Cu Eq",
@@ -668,7 +782,10 @@ int get_qsfp_power_class(u8 power_byte)
 {
 	if (QSFP_HIGH_PWR(power_byte) == QSFP_HIGH_PWR_UNUSED)
 		/* power classes count from 1, their bit encodings from 0 */
+	{
 		return (QSFP_PWR(power_byte) + 1);
+	}
+
 	/*
 	 * 00 in the high power classes stands for unused, bringing
 	 * balance to the off-by-1 offset above, we add 4 here to
@@ -703,36 +820,42 @@ int qsfp_mod_present(struct hfi1_pportdata *ppd)
  * particular range of bytes in the data buffer set to 0.
  */
 int get_cable_info(struct hfi1_devdata *dd, u32 port_num, u32 addr, u32 len,
-		   u8 *data)
+				   u8 *data)
 {
 	struct hfi1_pportdata *ppd;
 	u32 excess_len = len;
 	int ret = 0, offset = 0;
 
-	if (port_num > dd->num_pports || port_num < 1) {
+	if (port_num > dd->num_pports || port_num < 1)
+	{
 		dd_dev_info(dd, "%s: Invalid port number %d\n",
-			    __func__, port_num);
+					__func__, port_num);
 		ret = -EINVAL;
 		goto set_zeroes;
 	}
 
 	ppd = dd->pport + (port_num - 1);
-	if (!qsfp_mod_present(ppd)) {
+
+	if (!qsfp_mod_present(ppd))
+	{
 		ret = -ENODEV;
 		goto set_zeroes;
 	}
 
-	if (!ppd->qsfp_info.cache_valid) {
+	if (!ppd->qsfp_info.cache_valid)
+	{
 		ret = -EINVAL;
 		goto set_zeroes;
 	}
 
-	if (addr >= (QSFP_MAX_NUM_PAGES * 128)) {
+	if (addr >= (QSFP_MAX_NUM_PAGES * 128))
+	{
 		ret = -ERANGE;
 		goto set_zeroes;
 	}
 
-	if ((addr + len) > (QSFP_MAX_NUM_PAGES * 128)) {
+	if ((addr + len) > (QSFP_MAX_NUM_PAGES * 128))
+	{
 		excess_len = (addr + len) - (QSFP_MAX_NUM_PAGES * 128);
 		memcpy(data, &ppd->qsfp_info.cache[addr], (len - excess_len));
 		data += (len - excess_len);
@@ -742,27 +865,47 @@ int get_cable_info(struct hfi1_devdata *dd, u32 port_num, u32 addr, u32 len,
 	memcpy(data, &ppd->qsfp_info.cache[addr], len);
 
 	if (addr <= QSFP_MONITOR_VAL_END &&
-	    (addr + len) >= QSFP_MONITOR_VAL_START) {
+		(addr + len) >= QSFP_MONITOR_VAL_START)
+	{
 		/* Overlap with the dynamic channel monitor range */
-		if (addr < QSFP_MONITOR_VAL_START) {
+		if (addr < QSFP_MONITOR_VAL_START)
+		{
 			if (addr + len <= QSFP_MONITOR_VAL_END)
+			{
 				len = addr + len - QSFP_MONITOR_VAL_START;
+			}
 			else
+			{
 				len = QSFP_MONITOR_RANGE;
+			}
+
 			offset = QSFP_MONITOR_VAL_START - addr;
 			addr = QSFP_MONITOR_VAL_START;
-		} else if (addr == QSFP_MONITOR_VAL_START) {
-			offset = 0;
-			if (addr + len > QSFP_MONITOR_VAL_END)
-				len = QSFP_MONITOR_RANGE;
-		} else {
-			offset = 0;
-			if (addr + len > QSFP_MONITOR_VAL_END)
-				len = QSFP_MONITOR_VAL_END - addr + 1;
 		}
+		else if (addr == QSFP_MONITOR_VAL_START)
+		{
+			offset = 0;
+
+			if (addr + len > QSFP_MONITOR_VAL_END)
+			{
+				len = QSFP_MONITOR_RANGE;
+			}
+		}
+		else
+		{
+			offset = 0;
+
+			if (addr + len > QSFP_MONITOR_VAL_END)
+			{
+				len = QSFP_MONITOR_VAL_END - addr + 1;
+			}
+		}
+
 		/* Refresh the values of the dynamic monitors from the cable */
 		ret = one_qsfp_read(ppd, dd->hfi1_id, addr, data + offset, len);
-		if (ret != len) {
+
+		if (ret != len)
+		{
 			ret = -EAGAIN;
 			goto set_zeroes;
 		}
@@ -776,14 +919,14 @@ set_zeroes:
 }
 
 static const char *pwr_codes[8] = {"N/AW",
-				  "1.5W",
-				  "2.0W",
-				  "2.5W",
-				  "3.5W",
-				  "4.0W",
-				  "4.5W",
-				  "5.0W"
-				 };
+								   "1.5W",
+								   "2.0W",
+								   "2.5W",
+								   "3.5W",
+								   "4.0W",
+								   "4.5W",
+								   "5.0W"
+								  };
 
 int qsfp_dump(struct hfi1_pportdata *ppd, char *buf, int len)
 {
@@ -800,57 +943,63 @@ int qsfp_dump(struct hfi1_pportdata *ppd, char *buf, int len)
 	lenstr[0] = ' ';
 	lenstr[1] = '\0';
 
-	if (ppd->qsfp_info.cache_valid) {
+	if (ppd->qsfp_info.cache_valid)
+	{
 		if (QSFP_IS_CU(cache[QSFP_MOD_TECH_OFFS]))
 			snprintf(lenstr, sizeof(lenstr), "%dM ",
-				 cache[QSFP_MOD_LEN_OFFS]);
+					 cache[QSFP_MOD_LEN_OFFS]);
 
 		power_byte = cache[QSFP_MOD_PWR_OFFS];
 		sofar += scnprintf(buf + sofar, len - sofar, "PWR:%.3sW\n",
-				pwr_codes[get_qsfp_power_class(power_byte)]);
+						   pwr_codes[get_qsfp_power_class(power_byte)]);
 
 		sofar += scnprintf(buf + sofar, len - sofar, "TECH:%s%s\n",
-				lenstr,
-			hfi1_qsfp_devtech[(cache[QSFP_MOD_TECH_OFFS]) >> 4]);
+						   lenstr,
+						   hfi1_qsfp_devtech[(cache[QSFP_MOD_TECH_OFFS]) >> 4]);
 
 		sofar += scnprintf(buf + sofar, len - sofar, "Vendor:%.*s\n",
-				   QSFP_VEND_LEN, &cache[QSFP_VEND_OFFS]);
+						   QSFP_VEND_LEN, &cache[QSFP_VEND_OFFS]);
 
 		sofar += scnprintf(buf + sofar, len - sofar, "OUI:%06X\n",
-				   QSFP_OUI(vendor_oui));
+						   QSFP_OUI(vendor_oui));
 
 		sofar += scnprintf(buf + sofar, len - sofar, "Part#:%.*s\n",
-				   QSFP_PN_LEN, &cache[QSFP_PN_OFFS]);
+						   QSFP_PN_LEN, &cache[QSFP_PN_OFFS]);
 
 		sofar += scnprintf(buf + sofar, len - sofar, "Rev:%.*s\n",
-				   QSFP_REV_LEN, &cache[QSFP_REV_OFFS]);
+						   QSFP_REV_LEN, &cache[QSFP_REV_OFFS]);
 
 		if (QSFP_IS_CU(cache[QSFP_MOD_TECH_OFFS]))
 			sofar += scnprintf(buf + sofar, len - sofar,
-				"Atten:%d, %d\n",
-				QSFP_ATTEN_SDR(atten),
-				QSFP_ATTEN_DDR(atten));
+							   "Atten:%d, %d\n",
+							   QSFP_ATTEN_SDR(atten),
+							   QSFP_ATTEN_DDR(atten));
 
 		sofar += scnprintf(buf + sofar, len - sofar, "Serial:%.*s\n",
-				   QSFP_SN_LEN, &cache[QSFP_SN_OFFS]);
+						   QSFP_SN_LEN, &cache[QSFP_SN_OFFS]);
 
 		sofar += scnprintf(buf + sofar, len - sofar, "Date:%.*s\n",
-				   QSFP_DATE_LEN, &cache[QSFP_DATE_OFFS]);
+						   QSFP_DATE_LEN, &cache[QSFP_DATE_OFFS]);
 
 		sofar += scnprintf(buf + sofar, len - sofar, "Lot:%.*s\n",
-				   QSFP_LOT_LEN, &cache[QSFP_LOT_OFFS]);
+						   QSFP_LOT_LEN, &cache[QSFP_LOT_OFFS]);
 
-		while (bidx < QSFP_DEFAULT_HDR_CNT) {
+		while (bidx < QSFP_DEFAULT_HDR_CNT)
+		{
 			int iidx;
 
 			memcpy(bin_buff, &cache[bidx], QSFP_DUMP_CHUNK);
-			for (iidx = 0; iidx < QSFP_DUMP_CHUNK; ++iidx) {
+
+			for (iidx = 0; iidx < QSFP_DUMP_CHUNK; ++iidx)
+			{
 				sofar += scnprintf(buf + sofar, len - sofar,
-					" %02X", bin_buff[iidx]);
+								   " %02X", bin_buff[iidx]);
 			}
+
 			sofar += scnprintf(buf + sofar, len - sofar, "\n");
 			bidx += QSFP_DUMP_CHUNK;
 		}
 	}
+
 	return sofar;
 }

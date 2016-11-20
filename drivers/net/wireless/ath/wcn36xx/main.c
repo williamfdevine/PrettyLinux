@@ -28,22 +28,23 @@ module_param_named(debug_mask, wcn36xx_dbg_mask, uint, 0644);
 MODULE_PARM_DESC(debug_mask, "Debugging mask");
 
 #define CHAN2G(_freq, _idx) { \
-	.band = NL80211_BAND_2GHZ, \
-	.center_freq = (_freq), \
-	.hw_value = (_idx), \
-	.max_power = 25, \
-}
+		.band = NL80211_BAND_2GHZ, \
+				.center_freq = (_freq), \
+							   .hw_value = (_idx), \
+										   .max_power = 25, \
+	}
 
 #define CHAN5G(_freq, _idx) { \
-	.band = NL80211_BAND_5GHZ, \
-	.center_freq = (_freq), \
-	.hw_value = (_idx), \
-	.max_power = 25, \
-}
+		.band = NL80211_BAND_5GHZ, \
+				.center_freq = (_freq), \
+							   .hw_value = (_idx), \
+										   .max_power = 25, \
+	}
 
 /* The wcn firmware expects channel values to matching
  * their mnemonic values. So use these for .hw_value. */
-static struct ieee80211_channel wcn_2ghz_channels[] = {
+static struct ieee80211_channel wcn_2ghz_channels[] =
+{
 	CHAN2G(2412, 1), /* Channel 1 */
 	CHAN2G(2417, 2), /* Channel 2 */
 	CHAN2G(2422, 3), /* Channel 3 */
@@ -61,7 +62,8 @@ static struct ieee80211_channel wcn_2ghz_channels[] = {
 
 };
 
-static struct ieee80211_channel wcn_5ghz_channels[] = {
+static struct ieee80211_channel wcn_5ghz_channels[] =
+{
 	CHAN5G(5180, 36),
 	CHAN5G(5200, 40),
 	CHAN5G(5220, 44),
@@ -88,13 +90,14 @@ static struct ieee80211_channel wcn_5ghz_channels[] = {
 };
 
 #define RATE(_bitrate, _hw_rate, _flags) { \
-	.bitrate        = (_bitrate),                   \
-	.flags          = (_flags),                     \
-	.hw_value       = (_hw_rate),                   \
-	.hw_value_short = (_hw_rate)  \
-}
+		.bitrate        = (_bitrate),                   \
+						  .flags          = (_flags),                     \
+											.hw_value       = (_hw_rate),                   \
+													.hw_value_short = (_hw_rate)  \
+	}
 
-static struct ieee80211_rate wcn_2ghz_rates[] = {
+static struct ieee80211_rate wcn_2ghz_rates[] =
+{
 	RATE(10, HW_RATE_INDEX_1MBPS, 0),
 	RATE(20, HW_RATE_INDEX_2MBPS, IEEE80211_RATE_SHORT_PREAMBLE),
 	RATE(55, HW_RATE_INDEX_5_5MBPS, IEEE80211_RATE_SHORT_PREAMBLE),
@@ -109,7 +112,8 @@ static struct ieee80211_rate wcn_2ghz_rates[] = {
 	RATE(540, HW_RATE_INDEX_54MBPS, 0)
 };
 
-static struct ieee80211_rate wcn_5ghz_rates[] = {
+static struct ieee80211_rate wcn_5ghz_rates[] =
+{
 	RATE(60, HW_RATE_INDEX_6MBPS, 0),
 	RATE(90, HW_RATE_INDEX_9MBPS, 0),
 	RATE(120, HW_RATE_INDEX_12MBPS, 0),
@@ -120,16 +124,17 @@ static struct ieee80211_rate wcn_5ghz_rates[] = {
 	RATE(540, HW_RATE_INDEX_54MBPS, 0)
 };
 
-static struct ieee80211_supported_band wcn_band_2ghz = {
+static struct ieee80211_supported_band wcn_band_2ghz =
+{
 	.channels	= wcn_2ghz_channels,
 	.n_channels	= ARRAY_SIZE(wcn_2ghz_channels),
 	.bitrates	= wcn_2ghz_rates,
 	.n_bitrates	= ARRAY_SIZE(wcn_2ghz_rates),
 	.ht_cap		= {
 		.cap =	IEEE80211_HT_CAP_GRN_FLD |
-			IEEE80211_HT_CAP_SGI_20 |
-			IEEE80211_HT_CAP_DSSSCCK40 |
-			IEEE80211_HT_CAP_LSIG_TXOP_PROT,
+		IEEE80211_HT_CAP_SGI_20 |
+		IEEE80211_HT_CAP_DSSSCCK40 |
+		IEEE80211_HT_CAP_LSIG_TXOP_PROT,
 		.ht_supported = true,
 		.ampdu_factor = IEEE80211_HT_MAX_AMPDU_64K,
 		.ampdu_density = IEEE80211_HT_MPDU_DENSITY_16,
@@ -141,18 +146,19 @@ static struct ieee80211_supported_band wcn_band_2ghz = {
 	}
 };
 
-static struct ieee80211_supported_band wcn_band_5ghz = {
+static struct ieee80211_supported_band wcn_band_5ghz =
+{
 	.channels	= wcn_5ghz_channels,
 	.n_channels	= ARRAY_SIZE(wcn_5ghz_channels),
 	.bitrates	= wcn_5ghz_rates,
 	.n_bitrates	= ARRAY_SIZE(wcn_5ghz_rates),
 	.ht_cap		= {
 		.cap =	IEEE80211_HT_CAP_GRN_FLD |
-			IEEE80211_HT_CAP_SGI_20 |
-			IEEE80211_HT_CAP_DSSSCCK40 |
-			IEEE80211_HT_CAP_LSIG_TXOP_PROT |
-			IEEE80211_HT_CAP_SGI_40 |
-			IEEE80211_HT_CAP_SUP_WIDTH_20_40,
+		IEEE80211_HT_CAP_SGI_20 |
+		IEEE80211_HT_CAP_DSSSCCK40 |
+		IEEE80211_HT_CAP_LSIG_TXOP_PROT |
+		IEEE80211_HT_CAP_SGI_40 |
+		IEEE80211_HT_CAP_SUP_WIDTH_20_40,
 		.ht_supported = true,
 		.ampdu_factor = IEEE80211_HT_MAX_AMPDU_64K,
 		.ampdu_density = IEEE80211_HT_MPDU_DENSITY_16,
@@ -166,21 +172,23 @@ static struct ieee80211_supported_band wcn_band_5ghz = {
 
 #ifdef CONFIG_PM
 
-static const struct wiphy_wowlan_support wowlan_support = {
+static const struct wiphy_wowlan_support wowlan_support =
+{
 	.flags = WIPHY_WOWLAN_ANY
 };
 
 #endif
 
 static inline u8 get_sta_index(struct ieee80211_vif *vif,
-			       struct wcn36xx_sta *sta_priv)
+							   struct wcn36xx_sta *sta_priv)
 {
 	return NL80211_IFTYPE_STATION == vif->type ?
-	       sta_priv->bss_sta_index :
-	       sta_priv->sta_index;
+		   sta_priv->bss_sta_index :
+		   sta_priv->sta_index;
 }
 
-static const char * const wcn36xx_caps_names[] = {
+static const char *const wcn36xx_caps_names[] =
+{
 	"MCC",				/* 0 */
 	"P2P",				/* 1 */
 	"DOT11AC",			/* 2 */
@@ -247,7 +255,10 @@ static const char * const wcn36xx_caps_names[] = {
 static const char *wcn36xx_get_cap_name(enum place_holder_in_cap_bitmap x)
 {
 	if (x >= ARRAY_SIZE(wcn36xx_caps_names))
+	{
 		return "UNKNOWN";
+	}
+
 	return wcn36xx_caps_names[x];
 }
 
@@ -255,9 +266,12 @@ static void wcn36xx_feat_caps_info(struct wcn36xx *wcn)
 {
 	int i;
 
-	for (i = 0; i < MAX_FEATURE_SUPPORTED; i++) {
+	for (i = 0; i < MAX_FEATURE_SUPPORTED; i++)
+	{
 		if (get_feat_caps(wcn->fw_feat_caps, i))
+		{
 			wcn36xx_info("FW Cap %s\n", wcn36xx_get_cap_name(i));
+		}
 	}
 }
 
@@ -270,54 +284,74 @@ static int wcn36xx_start(struct ieee80211_hw *hw)
 
 	/* SMD initialization */
 	ret = wcn36xx_smd_open(wcn);
-	if (ret) {
+
+	if (ret)
+	{
 		wcn36xx_err("Failed to open smd channel: %d\n", ret);
 		goto out_err;
 	}
 
 	/* Allocate memory pools for Mgmt BD headers and Data BD headers */
 	ret = wcn36xx_dxe_allocate_mem_pools(wcn);
-	if (ret) {
+
+	if (ret)
+	{
 		wcn36xx_err("Failed to alloc DXE mempool: %d\n", ret);
 		goto out_smd_close;
 	}
 
 	ret = wcn36xx_dxe_alloc_ctl_blks(wcn);
-	if (ret) {
+
+	if (ret)
+	{
 		wcn36xx_err("Failed to alloc DXE ctl blocks: %d\n", ret);
 		goto out_free_dxe_pool;
 	}
 
 	wcn->hal_buf = kmalloc(WCN36XX_HAL_BUF_SIZE, GFP_KERNEL);
-	if (!wcn->hal_buf) {
+
+	if (!wcn->hal_buf)
+	{
 		wcn36xx_err("Failed to allocate smd buf\n");
 		ret = -ENOMEM;
 		goto out_free_dxe_ctl;
 	}
 
 	ret = wcn36xx_smd_load_nv(wcn);
-	if (ret) {
+
+	if (ret)
+	{
 		wcn36xx_err("Failed to push NV to chip\n");
 		goto out_free_smd_buf;
 	}
 
 	ret = wcn36xx_smd_start(wcn);
-	if (ret) {
+
+	if (ret)
+	{
 		wcn36xx_err("Failed to start chip\n");
 		goto out_free_smd_buf;
 	}
 
-	if (!wcn36xx_is_fw_version(wcn, 1, 2, 2, 24)) {
+	if (!wcn36xx_is_fw_version(wcn, 1, 2, 2, 24))
+	{
 		ret = wcn36xx_smd_feature_caps_exchange(wcn);
+
 		if (ret)
+		{
 			wcn36xx_warn("Exchange feature caps failed\n");
+		}
 		else
+		{
 			wcn36xx_feat_caps_info(wcn);
+		}
 	}
 
 	/* DMA channel initialization */
 	ret = wcn36xx_dxe_init(wcn);
-	if (ret) {
+
+	if (ret)
+	{
 		wcn36xx_err("DXE init failed\n");
 		goto out_smd_stop;
 	}
@@ -368,11 +402,13 @@ static int wcn36xx_config(struct ieee80211_hw *hw, u32 changed)
 
 	wcn36xx_dbg(WCN36XX_DBG_MAC, "mac config changed 0x%08x\n", changed);
 
-	if (changed & IEEE80211_CONF_CHANGE_CHANNEL) {
+	if (changed & IEEE80211_CONF_CHANGE_CHANNEL)
+	{
 		int ch = WCN36XX_HW_CHANNEL(wcn);
 		wcn36xx_dbg(WCN36XX_DBG_MAC, "wcn36xx_config channel switch=%d\n",
-			    ch);
-		list_for_each_entry(tmp, &wcn->vif_list, list) {
+					ch);
+		list_for_each_entry(tmp, &wcn->vif_list, list)
+		{
 			vif = wcn36xx_priv_to_vif(tmp);
 			wcn36xx_smd_switch_channel(wcn, vif, ch);
 		}
@@ -382,8 +418,8 @@ static int wcn36xx_config(struct ieee80211_hw *hw, u32 changed)
 }
 
 static void wcn36xx_configure_filter(struct ieee80211_hw *hw,
-				     unsigned int changed,
-				     unsigned int *total, u64 multicast)
+									 unsigned int changed,
+									 unsigned int *total, u64 multicast)
 {
 	struct wcn36xx_hal_rcv_flt_mc_addr_list_type *fp;
 	struct wcn36xx *wcn = hw->priv;
@@ -395,38 +431,48 @@ static void wcn36xx_configure_filter(struct ieee80211_hw *hw,
 	*total &= FIF_ALLMULTI;
 
 	fp = (void *)(unsigned long)multicast;
-	list_for_each_entry(tmp, &wcn->vif_list, list) {
+	list_for_each_entry(tmp, &wcn->vif_list, list)
+	{
 		vif = wcn36xx_priv_to_vif(tmp);
 
 		/* FW handles MC filtering only when connected as STA */
 		if (*total & FIF_ALLMULTI)
+		{
 			wcn36xx_smd_set_mc_list(wcn, vif, NULL);
+		}
 		else if (NL80211_IFTYPE_STATION == vif->type && tmp->sta_assoc)
+		{
 			wcn36xx_smd_set_mc_list(wcn, vif, fp);
+		}
 	}
 	kfree(fp);
 }
 
 static u64 wcn36xx_prepare_multicast(struct ieee80211_hw *hw,
-				     struct netdev_hw_addr_list *mc_list)
+									 struct netdev_hw_addr_list *mc_list)
 {
 	struct wcn36xx_hal_rcv_flt_mc_addr_list_type *fp;
 	struct netdev_hw_addr *ha;
 
 	wcn36xx_dbg(WCN36XX_DBG_MAC, "mac prepare multicast list\n");
 	fp = kzalloc(sizeof(*fp), GFP_ATOMIC);
-	if (!fp) {
+
+	if (!fp)
+	{
 		wcn36xx_err("Out of memory setting filters.\n");
 		return 0;
 	}
 
 	fp->mc_addr_count = 0;
+
 	/* update multicast filtering parameters */
 	if (netdev_hw_addr_list_count(mc_list) <=
-	    WCN36XX_HAL_MAX_NUM_MULTICAST_ADDRESS) {
-		netdev_hw_addr_list_for_each(ha, mc_list) {
+		WCN36XX_HAL_MAX_NUM_MULTICAST_ADDRESS)
+	{
+		netdev_hw_addr_list_for_each(ha, mc_list)
+		{
 			memcpy(fp->mc_addr[fp->mc_addr_count],
-					ha->addr, ETH_ALEN);
+				   ha->addr, ETH_ALEN);
 			fp->mc_addr_count++;
 		}
 	}
@@ -435,23 +481,27 @@ static u64 wcn36xx_prepare_multicast(struct ieee80211_hw *hw,
 }
 
 static void wcn36xx_tx(struct ieee80211_hw *hw,
-		       struct ieee80211_tx_control *control,
-		       struct sk_buff *skb)
+					   struct ieee80211_tx_control *control,
+					   struct sk_buff *skb)
 {
 	struct wcn36xx *wcn = hw->priv;
 	struct wcn36xx_sta *sta_priv = NULL;
 
 	if (control->sta)
+	{
 		sta_priv = wcn36xx_sta_to_priv(control->sta);
+	}
 
 	if (wcn36xx_start_tx(wcn, sta_priv, skb))
+	{
 		ieee80211_free_txskb(wcn->hw, skb);
+	}
 }
 
 static int wcn36xx_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
-			   struct ieee80211_vif *vif,
-			   struct ieee80211_sta *sta,
-			   struct ieee80211_key_conf *key_conf)
+						   struct ieee80211_vif *vif,
+						   struct ieee80211_sta *sta,
+						   struct ieee80211_key_conf *key_conf)
 {
 	struct wcn36xx *wcn = hw->priv;
 	struct wcn36xx_vif *vif_priv = wcn36xx_vif_to_priv(vif);
@@ -461,103 +511,126 @@ static int wcn36xx_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
 
 	wcn36xx_dbg(WCN36XX_DBG_MAC, "mac80211 set key\n");
 	wcn36xx_dbg(WCN36XX_DBG_MAC, "Key: cmd=0x%x algo:0x%x, id:%d, len:%d flags 0x%x\n",
-		    cmd, key_conf->cipher, key_conf->keyidx,
-		    key_conf->keylen, key_conf->flags);
+				cmd, key_conf->cipher, key_conf->keyidx,
+				key_conf->keylen, key_conf->flags);
 	wcn36xx_dbg_dump(WCN36XX_DBG_MAC, "KEY: ",
-			 key_conf->key,
-			 key_conf->keylen);
+					 key_conf->key,
+					 key_conf->keylen);
 
-	switch (key_conf->cipher) {
-	case WLAN_CIPHER_SUITE_WEP40:
-		vif_priv->encrypt_type = WCN36XX_HAL_ED_WEP40;
-		break;
-	case WLAN_CIPHER_SUITE_WEP104:
-		vif_priv->encrypt_type = WCN36XX_HAL_ED_WEP40;
-		break;
-	case WLAN_CIPHER_SUITE_CCMP:
-		vif_priv->encrypt_type = WCN36XX_HAL_ED_CCMP;
-		break;
-	case WLAN_CIPHER_SUITE_TKIP:
-		vif_priv->encrypt_type = WCN36XX_HAL_ED_TKIP;
-		break;
-	default:
-		wcn36xx_err("Unsupported key type 0x%x\n",
-			      key_conf->cipher);
-		ret = -EOPNOTSUPP;
-		goto out;
+	switch (key_conf->cipher)
+	{
+		case WLAN_CIPHER_SUITE_WEP40:
+			vif_priv->encrypt_type = WCN36XX_HAL_ED_WEP40;
+			break;
+
+		case WLAN_CIPHER_SUITE_WEP104:
+			vif_priv->encrypt_type = WCN36XX_HAL_ED_WEP40;
+			break;
+
+		case WLAN_CIPHER_SUITE_CCMP:
+			vif_priv->encrypt_type = WCN36XX_HAL_ED_CCMP;
+			break;
+
+		case WLAN_CIPHER_SUITE_TKIP:
+			vif_priv->encrypt_type = WCN36XX_HAL_ED_TKIP;
+			break;
+
+		default:
+			wcn36xx_err("Unsupported key type 0x%x\n",
+						key_conf->cipher);
+			ret = -EOPNOTSUPP;
+			goto out;
 	}
 
-	switch (cmd) {
-	case SET_KEY:
-		if (WCN36XX_HAL_ED_TKIP == vif_priv->encrypt_type) {
-			/*
-			 * Supplicant is sending key in the wrong order:
-			 * Temporal Key (16 b) - TX MIC (8 b) - RX MIC (8 b)
-			 * but HW expects it to be in the order as described in
-			 * IEEE 802.11 spec (see chapter 11.7) like this:
-			 * Temporal Key (16 b) - RX MIC (8 b) - TX MIC (8 b)
-			 */
-			memcpy(key, key_conf->key, 16);
-			memcpy(key + 16, key_conf->key + 24, 8);
-			memcpy(key + 24, key_conf->key + 16, 8);
-		} else {
-			memcpy(key, key_conf->key, key_conf->keylen);
-		}
-
-		if (IEEE80211_KEY_FLAG_PAIRWISE & key_conf->flags) {
-			sta_priv->is_data_encrypted = true;
-			/* Reconfigure bss with encrypt_type */
-			if (NL80211_IFTYPE_STATION == vif->type)
-				wcn36xx_smd_config_bss(wcn,
-						       vif,
-						       sta,
-						       sta->addr,
-						       true);
-
-			wcn36xx_smd_set_stakey(wcn,
-				vif_priv->encrypt_type,
-				key_conf->keyidx,
-				key_conf->keylen,
-				key,
-				get_sta_index(vif, sta_priv));
-		} else {
-			wcn36xx_smd_set_bsskey(wcn,
-				vif_priv->encrypt_type,
-				key_conf->keyidx,
-				key_conf->keylen,
-				key);
-			if ((WLAN_CIPHER_SUITE_WEP40 == key_conf->cipher) ||
-			    (WLAN_CIPHER_SUITE_WEP104 == key_conf->cipher)) {
-				sta_priv->is_data_encrypted = true;
-				wcn36xx_smd_set_stakey(wcn,
-					vif_priv->encrypt_type,
-					key_conf->keyidx,
-					key_conf->keylen,
-					key,
-					get_sta_index(vif, sta_priv));
+	switch (cmd)
+	{
+		case SET_KEY:
+			if (WCN36XX_HAL_ED_TKIP == vif_priv->encrypt_type)
+			{
+				/*
+				 * Supplicant is sending key in the wrong order:
+				 * Temporal Key (16 b) - TX MIC (8 b) - RX MIC (8 b)
+				 * but HW expects it to be in the order as described in
+				 * IEEE 802.11 spec (see chapter 11.7) like this:
+				 * Temporal Key (16 b) - RX MIC (8 b) - TX MIC (8 b)
+				 */
+				memcpy(key, key_conf->key, 16);
+				memcpy(key + 16, key_conf->key + 24, 8);
+				memcpy(key + 24, key_conf->key + 16, 8);
 			}
-		}
-		break;
-	case DISABLE_KEY:
-		if (!(IEEE80211_KEY_FLAG_PAIRWISE & key_conf->flags)) {
-			vif_priv->encrypt_type = WCN36XX_HAL_ED_NONE;
-			wcn36xx_smd_remove_bsskey(wcn,
-				vif_priv->encrypt_type,
-				key_conf->keyidx);
-		} else {
-			sta_priv->is_data_encrypted = false;
-			/* do not remove key if disassociated */
-			if (sta_priv->aid)
-				wcn36xx_smd_remove_stakey(wcn,
-					vif_priv->encrypt_type,
-					key_conf->keyidx,
-					get_sta_index(vif, sta_priv));
-		}
-		break;
-	default:
-		wcn36xx_err("Unsupported key cmd 0x%x\n", cmd);
-		ret = -EOPNOTSUPP;
-		goto out;
+			else
+			{
+				memcpy(key, key_conf->key, key_conf->keylen);
+			}
+
+			if (IEEE80211_KEY_FLAG_PAIRWISE & key_conf->flags)
+			{
+				sta_priv->is_data_encrypted = true;
+
+				/* Reconfigure bss with encrypt_type */
+				if (NL80211_IFTYPE_STATION == vif->type)
+					wcn36xx_smd_config_bss(wcn,
+										   vif,
+										   sta,
+										   sta->addr,
+										   true);
+
+				wcn36xx_smd_set_stakey(wcn,
+									   vif_priv->encrypt_type,
+									   key_conf->keyidx,
+									   key_conf->keylen,
+									   key,
+									   get_sta_index(vif, sta_priv));
+			}
+			else
+			{
+				wcn36xx_smd_set_bsskey(wcn,
+									   vif_priv->encrypt_type,
+									   key_conf->keyidx,
+									   key_conf->keylen,
+									   key);
+
+				if ((WLAN_CIPHER_SUITE_WEP40 == key_conf->cipher) ||
+					(WLAN_CIPHER_SUITE_WEP104 == key_conf->cipher))
+				{
+					sta_priv->is_data_encrypted = true;
+					wcn36xx_smd_set_stakey(wcn,
+										   vif_priv->encrypt_type,
+										   key_conf->keyidx,
+										   key_conf->keylen,
+										   key,
+										   get_sta_index(vif, sta_priv));
+				}
+			}
+
+			break;
+
+		case DISABLE_KEY:
+			if (!(IEEE80211_KEY_FLAG_PAIRWISE & key_conf->flags))
+			{
+				vif_priv->encrypt_type = WCN36XX_HAL_ED_NONE;
+				wcn36xx_smd_remove_bsskey(wcn,
+										  vif_priv->encrypt_type,
+										  key_conf->keyidx);
+			}
+			else
+			{
+				sta_priv->is_data_encrypted = false;
+
+				/* do not remove key if disassociated */
+				if (sta_priv->aid)
+					wcn36xx_smd_remove_stakey(wcn,
+											  vif_priv->encrypt_type,
+											  key_conf->keyidx,
+											  get_sta_index(vif, sta_priv));
+			}
+
+			break;
+
+		default:
+			wcn36xx_err("Unsupported key cmd 0x%x\n", cmd);
+			ret = -EOPNOTSUPP;
+			goto out;
 	}
 
 out:
@@ -565,8 +638,8 @@ out:
 }
 
 static void wcn36xx_sw_scan_start(struct ieee80211_hw *hw,
-				  struct ieee80211_vif *vif,
-				  const u8 *mac_addr)
+								  struct ieee80211_vif *vif,
+								  const u8 *mac_addr)
 {
 	struct wcn36xx *wcn = hw->priv;
 
@@ -575,7 +648,7 @@ static void wcn36xx_sw_scan_start(struct ieee80211_hw *hw,
 }
 
 static void wcn36xx_sw_scan_complete(struct ieee80211_hw *hw,
-				     struct ieee80211_vif *vif)
+									 struct ieee80211_vif *vif)
 {
 	struct wcn36xx *wcn = hw->priv;
 
@@ -584,7 +657,7 @@ static void wcn36xx_sw_scan_complete(struct ieee80211_hw *hw,
 }
 
 static void wcn36xx_update_allowed_rates(struct ieee80211_sta *sta,
-					 enum nl80211_band band)
+		enum nl80211_band band)
 {
 	int i, size;
 	u16 *rates_table;
@@ -592,14 +665,18 @@ static void wcn36xx_update_allowed_rates(struct ieee80211_sta *sta,
 	u32 rates = sta->supp_rates[band];
 
 	memset(&sta_priv->supported_rates, 0,
-		sizeof(sta_priv->supported_rates));
+		   sizeof(sta_priv->supported_rates));
 	sta_priv->supported_rates.op_rate_mode = STA_11n;
 
 	size = ARRAY_SIZE(sta_priv->supported_rates.dsss_rates);
 	rates_table = sta_priv->supported_rates.dsss_rates;
-	if (band == NL80211_BAND_2GHZ) {
-		for (i = 0; i < size; i++) {
-			if (rates & 0x01) {
+
+	if (band == NL80211_BAND_2GHZ)
+	{
+		for (i = 0; i < size; i++)
+		{
+			if (rates & 0x01)
+			{
 				rates_table[i] = wcn_2ghz_rates[i].hw_value;
 				rates = rates >> 1;
 			}
@@ -608,24 +685,29 @@ static void wcn36xx_update_allowed_rates(struct ieee80211_sta *sta,
 
 	size = ARRAY_SIZE(sta_priv->supported_rates.ofdm_rates);
 	rates_table = sta_priv->supported_rates.ofdm_rates;
-	for (i = 0; i < size; i++) {
-		if (rates & 0x01) {
+
+	for (i = 0; i < size; i++)
+	{
+		if (rates & 0x01)
+		{
 			rates_table[i] = wcn_5ghz_rates[i].hw_value;
 			rates = rates >> 1;
 		}
 	}
 
-	if (sta->ht_cap.ht_supported) {
+	if (sta->ht_cap.ht_supported)
+	{
 		BUILD_BUG_ON(sizeof(sta->ht_cap.mcs.rx_mask) >
-			sizeof(sta_priv->supported_rates.supported_mcs_set));
+					 sizeof(sta_priv->supported_rates.supported_mcs_set));
 		memcpy(sta_priv->supported_rates.supported_mcs_set,
-		       sta->ht_cap.mcs.rx_mask,
-		       sizeof(sta->ht_cap.mcs.rx_mask));
+			   sta->ht_cap.mcs.rx_mask,
+			   sizeof(sta->ht_cap.mcs.rx_mask));
 	}
 }
 void wcn36xx_set_default_rates(struct wcn36xx_hal_supported_rates *rates)
 {
-	u16 ofdm_rates[WCN36XX_HAL_NUM_OFDM_RATES] = {
+	u16 ofdm_rates[WCN36XX_HAL_NUM_OFDM_RATES] =
+	{
 		HW_RATE_INDEX_6MBPS,
 		HW_RATE_INDEX_9MBPS,
 		HW_RATE_INDEX_12MBPS,
@@ -635,7 +717,8 @@ void wcn36xx_set_default_rates(struct wcn36xx_hal_supported_rates *rates)
 		HW_RATE_INDEX_48MBPS,
 		HW_RATE_INDEX_54MBPS
 	};
-	u16 dsss_rates[WCN36XX_HAL_NUM_DSSS_RATES] = {
+	u16 dsss_rates[WCN36XX_HAL_NUM_DSSS_RATES] =
+	{
 		HW_RATE_INDEX_1MBPS,
 		HW_RATE_INDEX_2MBPS,
 		HW_RATE_INDEX_5_5MBPS,
@@ -644,15 +727,15 @@ void wcn36xx_set_default_rates(struct wcn36xx_hal_supported_rates *rates)
 
 	rates->op_rate_mode = STA_11n;
 	memcpy(rates->dsss_rates, dsss_rates,
-		sizeof(*dsss_rates) * WCN36XX_HAL_NUM_DSSS_RATES);
+		   sizeof(*dsss_rates) * WCN36XX_HAL_NUM_DSSS_RATES);
 	memcpy(rates->ofdm_rates, ofdm_rates,
-		sizeof(*ofdm_rates) * WCN36XX_HAL_NUM_OFDM_RATES);
+		   sizeof(*ofdm_rates) * WCN36XX_HAL_NUM_OFDM_RATES);
 	rates->supported_mcs_set[0] = 0xFF;
 }
 static void wcn36xx_bss_info_changed(struct ieee80211_hw *hw,
-				     struct ieee80211_vif *vif,
-				     struct ieee80211_bss_conf *bss_conf,
-				     u32 changed)
+									 struct ieee80211_vif *vif,
+									 struct ieee80211_bss_conf *bss_conf,
+									 u32 changed)
 {
 	struct wcn36xx *wcn = hw->priv;
 	struct sk_buff *skb = NULL;
@@ -661,88 +744,105 @@ static void wcn36xx_bss_info_changed(struct ieee80211_hw *hw,
 	struct wcn36xx_vif *vif_priv = wcn36xx_vif_to_priv(vif);
 
 	wcn36xx_dbg(WCN36XX_DBG_MAC, "mac bss info changed vif %p changed 0x%08x\n",
-		    vif, changed);
+				vif, changed);
 
-	if (changed & BSS_CHANGED_BEACON_INFO) {
+	if (changed & BSS_CHANGED_BEACON_INFO)
+	{
 		wcn36xx_dbg(WCN36XX_DBG_MAC,
-			    "mac bss changed dtim period %d\n",
-			    bss_conf->dtim_period);
+					"mac bss changed dtim period %d\n",
+					bss_conf->dtim_period);
 
 		vif_priv->dtim_period = bss_conf->dtim_period;
 	}
 
-	if (changed & BSS_CHANGED_PS) {
+	if (changed & BSS_CHANGED_PS)
+	{
 		wcn36xx_dbg(WCN36XX_DBG_MAC,
-			    "mac bss PS set %d\n",
-			    bss_conf->ps);
-		if (bss_conf->ps) {
+					"mac bss PS set %d\n",
+					bss_conf->ps);
+
+		if (bss_conf->ps)
+		{
 			wcn36xx_pmc_enter_bmps_state(wcn, vif);
-		} else {
+		}
+		else
+		{
 			wcn36xx_pmc_exit_bmps_state(wcn, vif);
 		}
 	}
 
-	if (changed & BSS_CHANGED_BSSID) {
+	if (changed & BSS_CHANGED_BSSID)
+	{
 		wcn36xx_dbg(WCN36XX_DBG_MAC, "mac bss changed_bssid %pM\n",
-			    bss_conf->bssid);
+					bss_conf->bssid);
 
-		if (!is_zero_ether_addr(bss_conf->bssid)) {
+		if (!is_zero_ether_addr(bss_conf->bssid))
+		{
 			vif_priv->is_joining = true;
 			vif_priv->bss_index = WCN36XX_HAL_BSS_INVALID_IDX;
 			wcn36xx_smd_join(wcn, bss_conf->bssid,
-					 vif->addr, WCN36XX_HW_CHANNEL(wcn));
+							 vif->addr, WCN36XX_HW_CHANNEL(wcn));
 			wcn36xx_smd_config_bss(wcn, vif, NULL,
-					       bss_conf->bssid, false);
-		} else {
+								   bss_conf->bssid, false);
+		}
+		else
+		{
 			vif_priv->is_joining = false;
 			wcn36xx_smd_delete_bss(wcn, vif);
 			vif_priv->encrypt_type = WCN36XX_HAL_ED_NONE;
 		}
 	}
 
-	if (changed & BSS_CHANGED_SSID) {
+	if (changed & BSS_CHANGED_SSID)
+	{
 		wcn36xx_dbg(WCN36XX_DBG_MAC,
-			    "mac bss changed ssid\n");
+					"mac bss changed ssid\n");
 		wcn36xx_dbg_dump(WCN36XX_DBG_MAC, "ssid ",
-				 bss_conf->ssid, bss_conf->ssid_len);
+						 bss_conf->ssid, bss_conf->ssid_len);
 
 		vif_priv->ssid.length = bss_conf->ssid_len;
 		memcpy(&vif_priv->ssid.ssid,
-		       bss_conf->ssid,
-		       bss_conf->ssid_len);
+			   bss_conf->ssid,
+			   bss_conf->ssid_len);
 	}
 
-	if (changed & BSS_CHANGED_ASSOC) {
+	if (changed & BSS_CHANGED_ASSOC)
+	{
 		vif_priv->is_joining = false;
-		if (bss_conf->assoc) {
+
+		if (bss_conf->assoc)
+		{
 			struct ieee80211_sta *sta;
 			struct wcn36xx_sta *sta_priv;
 
 			wcn36xx_dbg(WCN36XX_DBG_MAC,
-				    "mac assoc bss %pM vif %pM AID=%d\n",
-				     bss_conf->bssid,
-				     vif->addr,
-				     bss_conf->aid);
+						"mac assoc bss %pM vif %pM AID=%d\n",
+						bss_conf->bssid,
+						vif->addr,
+						bss_conf->aid);
 
 			vif_priv->sta_assoc = true;
 			rcu_read_lock();
 			sta = ieee80211_find_sta(vif, bss_conf->bssid);
-			if (!sta) {
+
+			if (!sta)
+			{
 				wcn36xx_err("sta %pM is not found\n",
-					      bss_conf->bssid);
+							bss_conf->bssid);
 				rcu_read_unlock();
 				goto out;
 			}
+
 			sta_priv = wcn36xx_sta_to_priv(sta);
 
 			wcn36xx_update_allowed_rates(sta, WCN36XX_BAND(wcn));
 
 			wcn36xx_smd_set_link_st(wcn, bss_conf->bssid,
-				vif->addr,
-				WCN36XX_HAL_LINK_POSTASSOC_STATE);
+									vif->addr,
+									WCN36XX_HAL_LINK_POSTASSOC_STATE);
 			wcn36xx_smd_config_bss(wcn, vif, sta,
-					       bss_conf->bssid,
-					       true);
+								   bss_conf->bssid,
+								   true);
 			sta_priv->aid = bss_conf->aid;
 			/*
 			 * config_sta must be called from  because this is the
@@ -750,24 +850,29 @@ static void wcn36xx_bss_info_changed(struct ieee80211_hw *hw,
 			 */
 			wcn36xx_smd_config_sta(wcn, vif, sta);
 			rcu_read_unlock();
-		} else {
+		}
+		else
+		{
 			wcn36xx_dbg(WCN36XX_DBG_MAC,
-				    "disassociated bss %pM vif %pM AID=%d\n",
-				    bss_conf->bssid,
-				    vif->addr,
-				    bss_conf->aid);
-			vif_priv->sta_assoc = false;
-			wcn36xx_smd_set_link_st(wcn,
+						"disassociated bss %pM vif %pM AID=%d\n",
 						bss_conf->bssid,
 						vif->addr,
-						WCN36XX_HAL_LINK_IDLE_STATE);
+						bss_conf->aid);
+			vif_priv->sta_assoc = false;
+			wcn36xx_smd_set_link_st(wcn,
+									bss_conf->bssid,
+									vif->addr,
+									WCN36XX_HAL_LINK_IDLE_STATE);
 		}
 	}
 
-	if (changed & BSS_CHANGED_AP_PROBE_RESP) {
+	if (changed & BSS_CHANGED_AP_PROBE_RESP)
+	{
 		wcn36xx_dbg(WCN36XX_DBG_MAC, "mac bss changed ap probe resp\n");
 		skb = ieee80211_proberesp_get(hw, vif);
-		if (!skb) {
+
+		if (!skb)
+		{
 			wcn36xx_err("failed to alloc probereq skb\n");
 			goto out;
 		}
@@ -777,39 +882,51 @@ static void wcn36xx_bss_info_changed(struct ieee80211_hw *hw,
 	}
 
 	if (changed & BSS_CHANGED_BEACON_ENABLED ||
-	    changed & BSS_CHANGED_BEACON) {
+		changed & BSS_CHANGED_BEACON)
+	{
 		wcn36xx_dbg(WCN36XX_DBG_MAC,
-			    "mac bss changed beacon enabled %d\n",
-			    bss_conf->enable_beacon);
+					"mac bss changed beacon enabled %d\n",
+					bss_conf->enable_beacon);
 
-		if (bss_conf->enable_beacon) {
+		if (bss_conf->enable_beacon)
+		{
 			vif_priv->dtim_period = bss_conf->dtim_period;
 			vif_priv->bss_index = WCN36XX_HAL_BSS_INVALID_IDX;
 			wcn36xx_smd_config_bss(wcn, vif, NULL,
-					       vif->addr, false);
+								   vif->addr, false);
 			skb = ieee80211_beacon_get_tim(hw, vif, &tim_off,
-						       &tim_len);
-			if (!skb) {
+										   &tim_len);
+
+			if (!skb)
+			{
 				wcn36xx_err("failed to alloc beacon skb\n");
 				goto out;
 			}
+
 			wcn36xx_smd_send_beacon(wcn, vif, skb, tim_off, 0);
 			dev_kfree_skb(skb);
 
 			if (vif->type == NL80211_IFTYPE_ADHOC ||
-			    vif->type == NL80211_IFTYPE_MESH_POINT)
+				vif->type == NL80211_IFTYPE_MESH_POINT)
+			{
 				link_state = WCN36XX_HAL_LINK_IBSS_STATE;
+			}
 			else
+			{
 				link_state = WCN36XX_HAL_LINK_AP_STATE;
+			}
 
 			wcn36xx_smd_set_link_st(wcn, vif->addr, vif->addr,
-						link_state);
-		} else {
+									link_state);
+		}
+		else
+		{
 			wcn36xx_smd_delete_bss(wcn, vif);
 			wcn36xx_smd_set_link_st(wcn, vif->addr, vif->addr,
-						WCN36XX_HAL_LINK_IDLE_STATE);
+									WCN36XX_HAL_LINK_IDLE_STATE);
 		}
 	}
+
 out:
 	return;
 }
@@ -825,7 +942,7 @@ static int wcn36xx_set_rts_threshold(struct ieee80211_hw *hw, u32 value)
 }
 
 static void wcn36xx_remove_interface(struct ieee80211_hw *hw,
-				     struct ieee80211_vif *vif)
+									 struct ieee80211_vif *vif)
 {
 	struct wcn36xx *wcn = hw->priv;
 	struct wcn36xx_vif *vif_priv = wcn36xx_vif_to_priv(vif);
@@ -836,20 +953,21 @@ static void wcn36xx_remove_interface(struct ieee80211_hw *hw,
 }
 
 static int wcn36xx_add_interface(struct ieee80211_hw *hw,
-				 struct ieee80211_vif *vif)
+								 struct ieee80211_vif *vif)
 {
 	struct wcn36xx *wcn = hw->priv;
 	struct wcn36xx_vif *vif_priv = wcn36xx_vif_to_priv(vif);
 
 	wcn36xx_dbg(WCN36XX_DBG_MAC, "mac add interface vif %p type %d\n",
-		    vif, vif->type);
+				vif, vif->type);
 
 	if (!(NL80211_IFTYPE_STATION == vif->type ||
-	      NL80211_IFTYPE_AP == vif->type ||
-	      NL80211_IFTYPE_ADHOC == vif->type ||
-	      NL80211_IFTYPE_MESH_POINT == vif->type)) {
+		  NL80211_IFTYPE_AP == vif->type ||
+		  NL80211_IFTYPE_ADHOC == vif->type ||
+		  NL80211_IFTYPE_MESH_POINT == vif->type))
+	{
 		wcn36xx_warn("Unsupported interface type requested: %d\n",
-			     vif->type);
+					 vif->type);
 		return -EOPNOTSUPP;
 	}
 
@@ -860,37 +978,40 @@ static int wcn36xx_add_interface(struct ieee80211_hw *hw,
 }
 
 static int wcn36xx_sta_add(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-			   struct ieee80211_sta *sta)
+						   struct ieee80211_sta *sta)
 {
 	struct wcn36xx *wcn = hw->priv;
 	struct wcn36xx_vif *vif_priv = wcn36xx_vif_to_priv(vif);
 	struct wcn36xx_sta *sta_priv = wcn36xx_sta_to_priv(sta);
 	wcn36xx_dbg(WCN36XX_DBG_MAC, "mac sta add vif %p sta %pM\n",
-		    vif, sta->addr);
+				vif, sta->addr);
 
 	spin_lock_init(&sta_priv->ampdu_lock);
 	sta_priv->vif = vif_priv;
+
 	/*
 	 * For STA mode HW will be configured on BSS_CHANGED_ASSOC because
 	 * at this stage AID is not available yet.
 	 */
-	if (NL80211_IFTYPE_STATION != vif->type) {
+	if (NL80211_IFTYPE_STATION != vif->type)
+	{
 		wcn36xx_update_allowed_rates(sta, WCN36XX_BAND(wcn));
 		sta_priv->aid = sta->aid;
 		wcn36xx_smd_config_sta(wcn, vif, sta);
 	}
+
 	return 0;
 }
 
 static int wcn36xx_sta_remove(struct ieee80211_hw *hw,
-			      struct ieee80211_vif *vif,
-			      struct ieee80211_sta *sta)
+							  struct ieee80211_vif *vif,
+							  struct ieee80211_sta *sta)
 {
 	struct wcn36xx *wcn = hw->priv;
 	struct wcn36xx_sta *sta_priv = wcn36xx_sta_to_priv(sta);
 
 	wcn36xx_dbg(WCN36XX_DBG_MAC, "mac sta remove vif %p sta %pM index %d\n",
-		    vif, sta->addr, sta_priv->sta_index);
+				vif, sta->addr, sta_priv->sta_index);
 
 	wcn36xx_smd_delete_sta(wcn, sta_priv->sta_index);
 	sta_priv->vif = NULL;
@@ -924,8 +1045,8 @@ static int wcn36xx_resume(struct ieee80211_hw *hw)
 #endif
 
 static int wcn36xx_ampdu_action(struct ieee80211_hw *hw,
-		    struct ieee80211_vif *vif,
-		    struct ieee80211_ampdu_params *params)
+								struct ieee80211_vif *vif,
+								struct ieee80211_ampdu_params *params)
 {
 	struct wcn36xx *wcn = hw->priv;
 	struct wcn36xx_sta *sta_priv = wcn36xx_sta_to_priv(params->sta);
@@ -935,51 +1056,58 @@ static int wcn36xx_ampdu_action(struct ieee80211_hw *hw,
 	u16 *ssn = &params->ssn;
 
 	wcn36xx_dbg(WCN36XX_DBG_MAC, "mac ampdu action action %d tid %d\n",
-		    action, tid);
+				action, tid);
 
-	switch (action) {
-	case IEEE80211_AMPDU_RX_START:
-		sta_priv->tid = tid;
-		wcn36xx_smd_add_ba_session(wcn, sta, tid, ssn, 0,
-			get_sta_index(vif, sta_priv));
-		wcn36xx_smd_add_ba(wcn);
-		wcn36xx_smd_trigger_ba(wcn, get_sta_index(vif, sta_priv));
-		break;
-	case IEEE80211_AMPDU_RX_STOP:
-		wcn36xx_smd_del_ba(wcn, tid, get_sta_index(vif, sta_priv));
-		break;
-	case IEEE80211_AMPDU_TX_START:
-		spin_lock_bh(&sta_priv->ampdu_lock);
-		sta_priv->ampdu_state[tid] = WCN36XX_AMPDU_START;
-		spin_unlock_bh(&sta_priv->ampdu_lock);
+	switch (action)
+	{
+		case IEEE80211_AMPDU_RX_START:
+			sta_priv->tid = tid;
+			wcn36xx_smd_add_ba_session(wcn, sta, tid, ssn, 0,
+									   get_sta_index(vif, sta_priv));
+			wcn36xx_smd_add_ba(wcn);
+			wcn36xx_smd_trigger_ba(wcn, get_sta_index(vif, sta_priv));
+			break;
 
-		ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
-		break;
-	case IEEE80211_AMPDU_TX_OPERATIONAL:
-		spin_lock_bh(&sta_priv->ampdu_lock);
-		sta_priv->ampdu_state[tid] = WCN36XX_AMPDU_OPERATIONAL;
-		spin_unlock_bh(&sta_priv->ampdu_lock);
+		case IEEE80211_AMPDU_RX_STOP:
+			wcn36xx_smd_del_ba(wcn, tid, get_sta_index(vif, sta_priv));
+			break;
 
-		wcn36xx_smd_add_ba_session(wcn, sta, tid, ssn, 1,
-			get_sta_index(vif, sta_priv));
-		break;
-	case IEEE80211_AMPDU_TX_STOP_FLUSH:
-	case IEEE80211_AMPDU_TX_STOP_FLUSH_CONT:
-	case IEEE80211_AMPDU_TX_STOP_CONT:
-		spin_lock_bh(&sta_priv->ampdu_lock);
-		sta_priv->ampdu_state[tid] = WCN36XX_AMPDU_NONE;
-		spin_unlock_bh(&sta_priv->ampdu_lock);
+		case IEEE80211_AMPDU_TX_START:
+			spin_lock_bh(&sta_priv->ampdu_lock);
+			sta_priv->ampdu_state[tid] = WCN36XX_AMPDU_START;
+			spin_unlock_bh(&sta_priv->ampdu_lock);
 
-		ieee80211_stop_tx_ba_cb_irqsafe(vif, sta->addr, tid);
-		break;
-	default:
-		wcn36xx_err("Unknown AMPDU action\n");
+			ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
+			break;
+
+		case IEEE80211_AMPDU_TX_OPERATIONAL:
+			spin_lock_bh(&sta_priv->ampdu_lock);
+			sta_priv->ampdu_state[tid] = WCN36XX_AMPDU_OPERATIONAL;
+			spin_unlock_bh(&sta_priv->ampdu_lock);
+
+			wcn36xx_smd_add_ba_session(wcn, sta, tid, ssn, 1,
+									   get_sta_index(vif, sta_priv));
+			break;
+
+		case IEEE80211_AMPDU_TX_STOP_FLUSH:
+		case IEEE80211_AMPDU_TX_STOP_FLUSH_CONT:
+		case IEEE80211_AMPDU_TX_STOP_CONT:
+			spin_lock_bh(&sta_priv->ampdu_lock);
+			sta_priv->ampdu_state[tid] = WCN36XX_AMPDU_NONE;
+			spin_unlock_bh(&sta_priv->ampdu_lock);
+
+			ieee80211_stop_tx_ba_cb_irqsafe(vif, sta->addr, tid);
+			break;
+
+		default:
+			wcn36xx_err("Unknown AMPDU action\n");
 	}
 
 	return 0;
 }
 
-static const struct ieee80211_ops wcn36xx_ops = {
+static const struct ieee80211_ops wcn36xx_ops =
+{
 	.start			= wcn36xx_start,
 	.stop			= wcn36xx_stop,
 	.add_interface		= wcn36xx_add_interface,
@@ -1006,7 +1134,8 @@ static int wcn36xx_init_ieee80211(struct wcn36xx *wcn)
 {
 	int ret = 0;
 
-	static const u32 cipher_suites[] = {
+	static const u32 cipher_suites[] =
+	{
 		WLAN_CIPHER_SUITE_WEP40,
 		WLAN_CIPHER_SUITE_WEP104,
 		WLAN_CIPHER_SUITE_TKIP,
@@ -1021,9 +1150,9 @@ static int wcn36xx_init_ieee80211(struct wcn36xx *wcn)
 	ieee80211_hw_set(wcn->hw, HAS_RATE_CONTROL);
 
 	wcn->hw->wiphy->interface_modes = BIT(NL80211_IFTYPE_STATION) |
-		BIT(NL80211_IFTYPE_AP) |
-		BIT(NL80211_IFTYPE_ADHOC) |
-		BIT(NL80211_IFTYPE_MESH_POINT);
+									  BIT(NL80211_IFTYPE_AP) |
+									  BIT(NL80211_IFTYPE_ADHOC) |
+									  BIT(NL80211_IFTYPE_MESH_POINT);
 
 	wcn->hw->wiphy->bands[NL80211_BAND_2GHZ] = &wcn_band_2ghz;
 	wcn->hw->wiphy->bands[NL80211_BAND_5GHZ] = &wcn_band_5ghz;
@@ -1050,7 +1179,7 @@ static int wcn36xx_init_ieee80211(struct wcn36xx *wcn)
 }
 
 static int wcn36xx_platform_get_resources(struct wcn36xx *wcn,
-					  struct platform_device *pdev)
+		struct platform_device *pdev)
 {
 	struct device_node *mmio_node;
 	struct resource *res;
@@ -1059,24 +1188,32 @@ static int wcn36xx_platform_get_resources(struct wcn36xx *wcn,
 
 	/* Set TX IRQ */
 	res = platform_get_resource_byname(pdev, IORESOURCE_IRQ,
-					   "wcnss_wlantx_irq");
-	if (!res) {
+									   "wcnss_wlantx_irq");
+
+	if (!res)
+	{
 		wcn36xx_err("failed to get tx_irq\n");
 		return -ENOENT;
 	}
+
 	wcn->tx_irq = res->start;
 
 	/* Set RX IRQ */
 	res = platform_get_resource_byname(pdev, IORESOURCE_IRQ,
-					   "wcnss_wlanrx_irq");
-	if (!res) {
+									   "wcnss_wlanrx_irq");
+
+	if (!res)
+	{
 		wcn36xx_err("failed to get rx_irq\n");
 		return -ENOENT;
 	}
+
 	wcn->rx_irq = res->start;
 
 	mmio_node = of_parse_phandle(pdev->dev.parent->of_node, "qcom,mmio", 0);
-	if (!mmio_node) {
+
+	if (!mmio_node)
+	{
 		wcn36xx_err("failed to acquire qcom,mmio reference\n");
 		return -EINVAL;
 	}
@@ -1086,7 +1223,9 @@ static int wcn36xx_platform_get_resources(struct wcn36xx *wcn,
 	/* Map the CCU memory */
 	index = of_property_match_string(mmio_node, "reg-names", "ccu");
 	wcn->ccu_base = of_iomap(mmio_node, index);
-	if (!wcn->ccu_base) {
+
+	if (!wcn->ccu_base)
+	{
 		wcn36xx_err("failed to map ccu memory\n");
 		ret = -ENOMEM;
 		goto put_mmio_node;
@@ -1095,7 +1234,9 @@ static int wcn36xx_platform_get_resources(struct wcn36xx *wcn,
 	/* Map the DXE memory */
 	index = of_property_match_string(mmio_node, "reg-names", "dxe");
 	wcn->dxe_base = of_iomap(mmio_node, index);
-	if (!wcn->dxe_base) {
+
+	if (!wcn->dxe_base)
+	{
 		wcn36xx_err("failed to map dxe memory\n");
 		ret = -ENOMEM;
 		goto unmap_ccu;
@@ -1121,11 +1262,14 @@ static int wcn36xx_probe(struct platform_device *pdev)
 	wcn36xx_dbg(WCN36XX_DBG_MAC, "platform probe\n");
 
 	hw = ieee80211_alloc_hw(sizeof(struct wcn36xx), &wcn36xx_ops);
-	if (!hw) {
+
+	if (!hw)
+	{
 		wcn36xx_err("failed to alloc hw\n");
 		ret = -ENOMEM;
 		goto out_err;
 	}
+
 	platform_set_drvdata(pdev, hw);
 	wcn = hw->priv;
 	wcn->hw = hw;
@@ -1134,19 +1278,26 @@ static int wcn36xx_probe(struct platform_device *pdev)
 
 	mutex_init(&wcn->hal_mutex);
 
-	if (!wcn->ctrl_ops->get_hw_mac(addr)) {
+	if (!wcn->ctrl_ops->get_hw_mac(addr))
+	{
 		wcn36xx_info("mac address: %pM\n", addr);
 		SET_IEEE80211_PERM_ADDR(wcn->hw, addr);
 	}
 
 	ret = wcn36xx_platform_get_resources(wcn, pdev);
+
 	if (ret)
+	{
 		goto out_wq;
+	}
 
 	wcn36xx_init_ieee80211(wcn);
 	ret = ieee80211_register_hw(wcn->hw);
+
 	if (ret)
+	{
 		goto out_unmap;
+	}
 
 	return 0;
 
@@ -1174,7 +1325,8 @@ static int wcn36xx_remove(struct platform_device *pdev)
 
 	return 0;
 }
-static const struct platform_device_id wcn36xx_platform_id_table[] = {
+static const struct platform_device_id wcn36xx_platform_id_table[] =
+{
 	{
 		.name = "wcn36xx",
 		.driver_data = 0
@@ -1183,7 +1335,8 @@ static const struct platform_device_id wcn36xx_platform_id_table[] = {
 };
 MODULE_DEVICE_TABLE(platform, wcn36xx_platform_id_table);
 
-static struct platform_driver wcn36xx_driver = {
+static struct platform_driver wcn36xx_driver =
+{
 	.probe      = wcn36xx_probe,
 	.remove     = wcn36xx_remove,
 	.driver         = {

@@ -1,15 +1,15 @@
 /*
    md_u.h : user <=> kernel API between Linux raidtools and RAID drivers
           Copyright (C) 1998 Ingo Molnar
-	  
+
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
-   
+
    You should have received a copy of the GNU General Public License
    (for example /usr/src/linux/COPYING); if not, write to the Free
-   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  
+   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
 #ifndef _UAPI_MD_U_H
@@ -67,13 +67,15 @@
 /* 63 partitions with the alternate major number (mdp) */
 #define MdpMinorShift 6
 
-typedef struct mdu_version_s {
+typedef struct mdu_version_s
+{
 	int major;
 	int minor;
 	int patchlevel;
 } mdu_version_t;
 
-typedef struct mdu_array_info_s {
+typedef struct mdu_array_info_s
+{
 	/*
 	 * Generic constant information
 	 */
@@ -117,7 +119,8 @@ typedef struct mdu_array_info_s {
  */
 #define	LEVEL_NONE		(-1000000)
 
-typedef struct mdu_disk_info_s {
+typedef struct mdu_disk_info_s
+{
 	/*
 	 * configuration/status of one particular disk
 	 */
@@ -129,7 +132,8 @@ typedef struct mdu_disk_info_s {
 
 } mdu_disk_info_t;
 
-typedef struct mdu_start_info_s {
+typedef struct mdu_start_info_s
+{
 	/*
 	 * configuration/status of one particular disk
 	 */

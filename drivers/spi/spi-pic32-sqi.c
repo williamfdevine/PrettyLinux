@@ -102,7 +102,8 @@
 #define PESQI_BDP_START		BIT(2) /* start BD processor */
 
 /* PESQI controller buffer descriptor */
-struct buf_desc {
+struct buf_desc
+{
 	u32 bd_ctrl;	/* control */
 	u32 bd_status;	/* reserved */
 	u32 bd_addr;	/* DMA buffer addr */
@@ -132,7 +133,8 @@ struct buf_desc {
  * @bd_dma:	DMA address of PESQI controller buffer descriptor
  * @xfer_len:	transfer length
  */
-struct ring_desc {
+struct ring_desc
+{
 	struct list_head list;
 	struct buf_desc *bd;
 	dma_addr_t bd_dma;
@@ -143,7 +145,8 @@ struct ring_desc {
 #define PESQI_BD_BUF_LEN_MAX	256
 #define PESQI_BD_COUNT		256 /* max 64KB data per spi message */
 
-struct pic32_sqi {
+struct pic32_sqi
+{
 	void __iomem		*regs;
 	struct clk		*sys_clk;
 	struct clk		*base_clk; /* drives spi clock */
@@ -186,7 +189,7 @@ static int pic32_sqi_set_clk_rate(struct pic32_sqi *sqi, u32 sck)
 
 	/* wait for stability */
 	return readl_poll_timeout(sqi->regs + PESQI_CLK_CTRL_REG, val,
-				  val & PESQI_CLK_STABLE, 1, 5000);
+							  val & PESQI_CLK_STABLE, 1, 5000);
 }
 
 static inline void pic32_sqi_enable_int(struct pic32_sqi *sqi)
@@ -214,24 +217,34 @@ static irqreturn_t pic32_sqi_isr(int irq, void *dev_id)
 
 	/* check spurious interrupt */
 	if (!status)
+	{
 		return IRQ_NONE;
+	}
 
-	if (status & PESQI_DMAERR) {
+	if (status & PESQI_DMAERR)
+	{
 		enable = 0;
 		goto irq_done;
 	}
 
 	if (status & PESQI_TXTHR)
+	{
 		enable &= ~(PESQI_TXTHR | PESQI_TXFULL | PESQI_TXEMPTY);
+	}
 
 	if (status & PESQI_RXTHR)
+	{
 		enable &= ~(PESQI_RXTHR | PESQI_RXFULL | PESQI_RXEMPTY);
+	}
 
 	if (status & PESQI_BDDONE)
+	{
 		enable &= ~PESQI_BDDONE;
+	}
 
 	/* packet processing completed */
-	if (status & PESQI_PKTCOMP) {
+	if (status & PESQI_PKTCOMP)
+	{
 		/* mask all interrupts */
 		enable = 0;
 		/* complete trasaction */
@@ -250,7 +263,9 @@ static struct ring_desc *ring_desc_get(struct pic32_sqi *sqi)
 	struct ring_desc *rdesc;
 
 	if (list_empty(&sqi->bd_list_free))
+	{
 		return NULL;
+	}
 
 	rdesc = list_first_entry(&sqi->bd_list_free, struct ring_desc, list);
 	list_move_tail(&rdesc->list, &sqi->bd_list_used);
@@ -263,8 +278,8 @@ static void ring_desc_put(struct pic32_sqi *sqi, struct ring_desc *rdesc)
 }
 
 static int pic32_sqi_one_transfer(struct pic32_sqi *sqi,
-				  struct spi_message *mesg,
-				  struct spi_transfer *xfer)
+								  struct spi_message *mesg,
+								  struct spi_transfer *xfer)
 {
 	struct spi_device *spi = mesg->spi;
 	struct scatterlist *sg, *sgl;
@@ -278,34 +293,47 @@ static int pic32_sqi_one_transfer(struct pic32_sqi *sqi,
 	bd_ctrl = spi->chip_select << BD_DEVSEL_SHIFT;
 
 	/* half-duplex: select transfer buffer, direction and lane */
-	if (xfer->rx_buf) {
+	if (xfer->rx_buf)
+	{
 		bd_ctrl |= BD_DATA_RECV;
 		nbits = xfer->rx_nbits;
 		sgl = xfer->rx_sg.sgl;
 		nents = xfer->rx_sg.nents;
-	} else {
+	}
+	else
+	{
 		nbits = xfer->tx_nbits;
 		sgl = xfer->tx_sg.sgl;
 		nents = xfer->tx_sg.nents;
 	}
 
 	if (nbits & SPI_NBITS_QUAD)
+	{
 		bd_ctrl |= BD_QUAD;
+	}
 	else if (nbits & SPI_NBITS_DUAL)
+	{
 		bd_ctrl |= BD_DUAL;
+	}
 
 	/* LSB first */
 	if (spi->mode & SPI_LSB_FIRST)
+	{
 		bd_ctrl |= BD_LSBF;
+	}
 
 	/* ownership to hardware */
 	bd_ctrl |= BD_EN;
 
-	for_each_sg(sgl, sg, nents, i) {
+	for_each_sg(sgl, sg, nents, i)
+	{
 		/* get ring descriptor */
 		rdesc = ring_desc_get(sqi);
+
 		if (!rdesc)
+		{
 			break;
+		}
 
 		bd = rdesc->bd;
 
@@ -337,15 +365,15 @@ static int pic32_sqi_prepare_hardware(struct spi_master *master)
 }
 
 static bool pic32_sqi_can_dma(struct spi_master *master,
-			      struct spi_device *spi,
-			      struct spi_transfer *x)
+							  struct spi_device *spi,
+							  struct spi_transfer *x)
 {
 	/* Do DMA irrespective of transfer size */
 	return true;
 }
 
 static int pic32_sqi_one_message(struct spi_master *master,
-				 struct spi_message *msg)
+								 struct spi_message *msg)
 {
 	struct spi_device *spi = msg->spi;
 	struct ring_desc *rdesc, *next;
@@ -364,36 +392,54 @@ static int pic32_sqi_one_message(struct spi_master *master,
 	 * and "delay_usecs". But spi_device specific speed and mode change
 	 * can be handled at best during spi chip-select switch.
 	 */
-	if (sqi->cur_spi != spi) {
+	if (sqi->cur_spi != spi)
+	{
 		/* set spi speed */
-		if (sqi->cur_speed != spi->max_speed_hz) {
+		if (sqi->cur_speed != spi->max_speed_hz)
+		{
 			sqi->cur_speed = spi->max_speed_hz;
 			ret = pic32_sqi_set_clk_rate(sqi, spi->max_speed_hz);
+
 			if (ret)
+			{
 				dev_warn(&spi->dev, "set_clk, %d\n", ret);
+			}
 		}
 
 		/* set spi mode */
 		mode = spi->mode & (SPI_MODE_3 | SPI_LSB_FIRST);
-		if (sqi->cur_mode != mode) {
+
+		if (sqi->cur_mode != mode)
+		{
 			val = readl(sqi->regs + PESQI_CONF_REG);
 			val &= ~(PESQI_CPOL | PESQI_CPHA | PESQI_LSBF);
+
 			if (mode & SPI_CPOL)
+			{
 				val |= PESQI_CPOL;
+			}
+
 			if (mode & SPI_LSB_FIRST)
+			{
 				val |= PESQI_LSBF;
+			}
+
 			val |= PESQI_CPHA;
 			writel(val, sqi->regs + PESQI_CONF_REG);
 
 			sqi->cur_mode = mode;
 		}
+
 		sqi->cur_spi = spi;
 	}
 
 	/* prepare hardware desc-list(BD) for transfer(s) */
-	list_for_each_entry(xfer, &msg->transfers, transfer_list) {
+	list_for_each_entry(xfer, &msg->transfers, transfer_list)
+	{
 		ret = pic32_sqi_one_transfer(sqi, msg, xfer);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(&spi->dev, "xfer %p err\n", xfer);
 			goto xfer_out;
 		}
@@ -404,7 +450,7 @@ static int pic32_sqi_one_message(struct spi_master *master,
 	 */
 	rdesc = list_last_entry(&sqi->bd_list_used, struct ring_desc, list);
 	rdesc->bd->bd_ctrl |= BD_LAST | BD_CS_DEASSERT |
-			      BD_LIFM | BD_PKT_INT_EN;
+						  BD_LIFM | BD_PKT_INT_EN;
 
 	/* set base address BD list for DMA engine */
 	rdesc = list_first_entry(&sqi->bd_list_used, struct ring_desc, list);
@@ -419,11 +465,15 @@ static int pic32_sqi_one_message(struct spi_master *master,
 
 	/* wait for xfer completion */
 	timeout = wait_for_completion_timeout(&sqi->xfer_done, 5 * HZ);
-	if (timeout == 0) {
+
+	if (timeout == 0)
+	{
 		dev_err(&sqi->master->dev, "wait timedout/interrupted\n");
 		ret = -ETIMEDOUT;
 		msg->status = ret;
-	} else {
+	}
+	else
+	{
 		/* success */
 		msg->status = 0;
 		ret = 0;
@@ -436,7 +486,8 @@ static int pic32_sqi_one_message(struct spi_master *master,
 
 xfer_out:
 	list_for_each_entry_safe_reverse(rdesc, next,
-					 &sqi->bd_list_used, list) {
+									 &sqi->bd_list_used, list)
+	{
 		/* Update total byte transferred */
 		msg->actual_length += rdesc->xfer_len;
 		/* release ring descr */
@@ -467,19 +518,23 @@ static int ring_desc_ring_alloc(struct pic32_sqi *sqi)
 
 	/* allocate coherent DMAable memory for hardware buffer descriptors. */
 	sqi->bd = dma_zalloc_coherent(&sqi->master->dev,
-				      sizeof(*bd) * PESQI_BD_COUNT,
-				      &sqi->bd_dma, GFP_DMA32);
-	if (!sqi->bd) {
+								  sizeof(*bd) * PESQI_BD_COUNT,
+								  &sqi->bd_dma, GFP_DMA32);
+
+	if (!sqi->bd)
+	{
 		dev_err(&sqi->master->dev, "failed allocating dma buffer\n");
 		return -ENOMEM;
 	}
 
 	/* allocate software ring descriptors */
 	sqi->ring = kcalloc(PESQI_BD_COUNT, sizeof(*rdesc), GFP_KERNEL);
-	if (!sqi->ring) {
+
+	if (!sqi->ring)
+	{
 		dma_free_coherent(&sqi->master->dev,
-				  sizeof(*bd) * PESQI_BD_COUNT,
-				  sqi->bd, sqi->bd_dma);
+						  sizeof(*bd) * PESQI_BD_COUNT,
+						  sqi->bd, sqi->bd_dma);
 		return -ENOMEM;
 	}
 
@@ -489,7 +544,8 @@ static int ring_desc_ring_alloc(struct pic32_sqi *sqi)
 	INIT_LIST_HEAD(&sqi->bd_list_used);
 
 	/* initialize ring-desc */
-	for (i = 0, rdesc = sqi->ring; i < PESQI_BD_COUNT; i++, rdesc++) {
+	for (i = 0, rdesc = sqi->ring; i < PESQI_BD_COUNT; i++, rdesc++)
+	{
 		INIT_LIST_HEAD(&rdesc->list);
 		rdesc->bd = &bd[i];
 		rdesc->bd_dma = sqi->bd_dma + (void *)&bd[i] - (void *)bd;
@@ -498,7 +554,10 @@ static int ring_desc_ring_alloc(struct pic32_sqi *sqi)
 
 	/* Prepare BD: chain to next BD(s) */
 	for (i = 0, rdesc = sqi->ring; i < PESQI_BD_COUNT - 1; i++)
+	{
 		bd[i].bd_nextp = rdesc[i + 1].bd_dma;
+	}
+
 	bd[PESQI_BD_COUNT - 1].bd_nextp = 0;
 
 	return 0;
@@ -507,8 +566,8 @@ static int ring_desc_ring_alloc(struct pic32_sqi *sqi)
 static void ring_desc_ring_free(struct pic32_sqi *sqi)
 {
 	dma_free_coherent(&sqi->master->dev,
-			  sizeof(struct buf_desc) * PESQI_BD_COUNT,
-			  sqi->bd, sqi->bd_dma);
+					  sizeof(struct buf_desc) * PESQI_BD_COUNT,
+					  sqi->bd, sqi->bd_dma);
 	kfree(sqi->ring);
 }
 
@@ -528,7 +587,7 @@ static void pic32_sqi_hw_init(struct pic32_sqi *sqi)
 
 	/* wait until clear */
 	readl_poll_timeout_atomic(sqi->regs + PESQI_CONF_REG, val,
-				  !(val & PESQI_SOFT_RESET), 1, 5000);
+							  !(val & PESQI_SOFT_RESET), 1, 5000);
 
 	/* disable all interrupts */
 	pic32_sqi_disable_int(sqi);
@@ -582,22 +641,29 @@ static int pic32_sqi_probe(struct platform_device *pdev)
 	int ret;
 
 	master = spi_alloc_master(&pdev->dev, sizeof(*sqi));
+
 	if (!master)
+	{
 		return -ENOMEM;
+	}
 
 	sqi = spi_master_get_devdata(master);
 	sqi->master = master;
 
 	reg = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	sqi->regs = devm_ioremap_resource(&pdev->dev, reg);
-	if (IS_ERR(sqi->regs)) {
+
+	if (IS_ERR(sqi->regs))
+	{
 		ret = PTR_ERR(sqi->regs);
 		goto err_free_master;
 	}
 
 	/* irq */
 	sqi->irq = platform_get_irq(pdev, 0);
-	if (sqi->irq < 0) {
+
+	if (sqi->irq < 0)
+	{
 		dev_err(&pdev->dev, "no irq found\n");
 		ret = sqi->irq;
 		goto err_free_master;
@@ -605,27 +671,35 @@ static int pic32_sqi_probe(struct platform_device *pdev)
 
 	/* clocks */
 	sqi->sys_clk = devm_clk_get(&pdev->dev, "reg_ck");
-	if (IS_ERR(sqi->sys_clk)) {
+
+	if (IS_ERR(sqi->sys_clk))
+	{
 		ret = PTR_ERR(sqi->sys_clk);
 		dev_err(&pdev->dev, "no sys_clk ?\n");
 		goto err_free_master;
 	}
 
 	sqi->base_clk = devm_clk_get(&pdev->dev, "spi_ck");
-	if (IS_ERR(sqi->base_clk)) {
+
+	if (IS_ERR(sqi->base_clk))
+	{
 		ret = PTR_ERR(sqi->base_clk);
 		dev_err(&pdev->dev, "no base clk ?\n");
 		goto err_free_master;
 	}
 
 	ret = clk_prepare_enable(sqi->sys_clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "sys clk enable failed\n");
 		goto err_free_master;
 	}
 
 	ret = clk_prepare_enable(sqi->base_clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "base clk enable failed\n");
 		clk_disable_unprepare(sqi->sys_clk);
 		goto err_free_master;
@@ -638,15 +712,19 @@ static int pic32_sqi_probe(struct platform_device *pdev)
 
 	/* allocate buffers & descriptors */
 	ret = ring_desc_ring_alloc(sqi);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "ring alloc failed\n");
 		goto err_disable_clk;
 	}
 
 	/* install irq handlers */
 	ret = request_irq(sqi->irq, pic32_sqi_isr, 0,
-			  dev_name(&pdev->dev), sqi);
-	if (ret < 0) {
+					  dev_name(&pdev->dev), sqi);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "request_irq(%d), failed\n", sqi->irq);
 		goto err_free_ring;
 	}
@@ -658,7 +736,7 @@ static int pic32_sqi_probe(struct platform_device *pdev)
 	master->max_dma_len	= PESQI_BD_BUF_LEN_MAX;
 	master->dev.of_node	= of_node_get(pdev->dev.of_node);
 	master->mode_bits	= SPI_MODE_3 | SPI_MODE_0 | SPI_TX_DUAL |
-				  SPI_RX_DUAL | SPI_TX_QUAD | SPI_RX_QUAD;
+						  SPI_RX_DUAL | SPI_TX_QUAD | SPI_RX_QUAD;
 	master->flags		= SPI_MASTER_HALF_DUPLEX;
 	master->can_dma		= pic32_sqi_can_dma;
 	master->bits_per_word_mask	= SPI_BPW_RANGE_MASK(8, 32);
@@ -667,7 +745,9 @@ static int pic32_sqi_probe(struct platform_device *pdev)
 	master->unprepare_transfer_hardware	= pic32_sqi_unprepare_hardware;
 
 	ret = devm_spi_register_master(&pdev->dev, master);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&master->dev, "failed registering spi master\n");
 		free_irq(sqi->irq, sqi);
 		goto err_free_ring;
@@ -704,13 +784,15 @@ static int pic32_sqi_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id pic32_sqi_of_ids[] = {
+static const struct of_device_id pic32_sqi_of_ids[] =
+{
 	{.compatible = "microchip,pic32mzda-sqi",},
 	{},
 };
 MODULE_DEVICE_TABLE(of, pic32_sqi_of_ids);
 
-static struct platform_driver pic32_sqi_driver = {
+static struct platform_driver pic32_sqi_driver =
+{
 	.driver = {
 		.name = "sqi-pic32",
 		.of_match_table = of_match_ptr(pic32_sqi_of_ids),

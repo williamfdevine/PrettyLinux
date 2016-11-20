@@ -44,7 +44,8 @@
  *  @accl_offset:	Controls the accelerometer calibration offset.
  *  @gyro_offset:	Controls the gyroscope calibration offset.
  */
-struct inv_mpu6050_reg_map {
+struct inv_mpu6050_reg_map
+{
 	u8 sample_rate_div;
 	u8 lpf;
 	u8 user_ctrl;
@@ -65,7 +66,8 @@ struct inv_mpu6050_reg_map {
 };
 
 /*device enum */
-enum inv_devices {
+enum inv_devices
+{
 	INV_MPU6050,
 	INV_MPU6500,
 	INV_MPU6000,
@@ -84,13 +86,14 @@ enum inv_devices {
  *  @gyro_fifo_enable:	enable gyro data output
  *  @fifo_rate:		FIFO update rate.
  */
-struct inv_mpu6050_chip_config {
-	unsigned int fsr:2;
-	unsigned int lpf:3;
-	unsigned int accl_fs:2;
-	unsigned int enable:1;
-	unsigned int accl_fifo_enable:1;
-	unsigned int gyro_fifo_enable:1;
+struct inv_mpu6050_chip_config
+{
+	unsigned int fsr: 2;
+	unsigned int lpf: 3;
+	unsigned int accl_fs: 2;
+	unsigned int enable: 1;
+	unsigned int accl_fifo_enable: 1;
+	unsigned int gyro_fifo_enable: 1;
 	u16 fifo_rate;
 };
 
@@ -101,7 +104,8 @@ struct inv_mpu6050_chip_config {
  *  @reg:   register map of the chip.
  *  @config:    configuration of the chip.
  */
-struct inv_mpu6050_hw {
+struct inv_mpu6050_hw
+{
 	u8 whoami;
 	u8 *name;
 	const struct inv_mpu6050_reg_map *reg;
@@ -123,7 +127,8 @@ struct inv_mpu6050_hw {
  *  @map		regmap pointer.
  *  @irq		interrupt number.
  */
-struct inv_mpu6050_state {
+struct inv_mpu6050_state
+{
 #define TIMESTAMP_FIFO_SIZE 16
 	struct iio_trigger  *trig;
 	struct inv_mpu6050_chip_config chip_config;
@@ -229,7 +234,8 @@ struct inv_mpu6050_state {
 #define INV_ICM20608_WHOAMI_VALUE		0xAF
 
 /* scan element definition */
-enum inv_mpu6050_scan {
+enum inv_mpu6050_scan
+{
 	INV_MPU6050_SCAN_ACCL_X,
 	INV_MPU6050_SCAN_ACCL_Y,
 	INV_MPU6050_SCAN_ACCL_Z,
@@ -239,7 +245,8 @@ enum inv_mpu6050_scan {
 	INV_MPU6050_SCAN_TIMESTAMP,
 };
 
-enum inv_mpu6050_filter_e {
+enum inv_mpu6050_filter_e
+{
 	INV_MPU6050_FILTER_256HZ_NOLPF2 = 0,
 	INV_MPU6050_FILTER_188HZ,
 	INV_MPU6050_FILTER_98HZ,
@@ -252,12 +259,14 @@ enum inv_mpu6050_filter_e {
 };
 
 /* IIO attribute address */
-enum INV_MPU6050_IIO_ATTR_ADDR {
+enum INV_MPU6050_IIO_ATTR_ADDR
+{
 	ATTR_GYRO_MATRIX,
 	ATTR_ACCL_MATRIX,
 };
 
-enum inv_mpu6050_accl_fs_e {
+enum inv_mpu6050_accl_fs_e
+{
 	INV_MPU6050_FS_02G = 0,
 	INV_MPU6050_FS_04G,
 	INV_MPU6050_FS_08G,
@@ -265,7 +274,8 @@ enum inv_mpu6050_accl_fs_e {
 	NUM_ACCL_FSR
 };
 
-enum inv_mpu6050_fsr_e {
+enum inv_mpu6050_fsr_e
+{
 	INV_MPU6050_FSR_250DPS = 0,
 	INV_MPU6050_FSR_500DPS,
 	INV_MPU6050_FSR_1000DPS,
@@ -273,7 +283,8 @@ enum inv_mpu6050_fsr_e {
 	NUM_MPU6050_FSR
 };
 
-enum inv_mpu6050_clock_sel_e {
+enum inv_mpu6050_clock_sel_e
+{
 	INV_CLK_INTERNAL = 0,
 	INV_CLK_PLL,
 	NUM_CLK
@@ -290,7 +301,7 @@ int inv_mpu6050_set_power_itg(struct inv_mpu6050_state *st, bool power_on);
 int inv_mpu_acpi_create_mux_client(struct i2c_client *client);
 void inv_mpu_acpi_delete_mux_client(struct i2c_client *client);
 int inv_mpu_core_probe(struct regmap *regmap, int irq, const char *name,
-		int (*inv_mpu_bus_setup)(struct iio_dev *), int chip_type);
+					   int (*inv_mpu_bus_setup)(struct iio_dev *), int chip_type);
 int inv_mpu_core_remove(struct device *dev);
 int inv_mpu6050_set_power_itg(struct inv_mpu6050_state *st, bool power_on);
 extern const struct dev_pm_ops inv_mpu_pmops;

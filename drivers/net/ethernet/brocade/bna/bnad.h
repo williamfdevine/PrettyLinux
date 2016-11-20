@@ -52,7 +52,8 @@
  * determines the NAPI / LRO behavior CCB
  * There is 1:1 corres. between ccb & ctrl
  */
-struct bnad_rx_ctrl {
+struct bnad_rx_ctrl
+{
 	struct bna_ccb *ccb;
 	struct bnad *bnad;
 	unsigned long  flags;
@@ -114,23 +115,27 @@ struct bnad_rx_ctrl {
  */
 
 /* enums */
-enum bnad_intr_source {
+enum bnad_intr_source
+{
 	BNAD_INTR_TX		= 1,
 	BNAD_INTR_RX		= 2
 };
 
-enum bnad_link_state {
+enum bnad_link_state
+{
 	BNAD_LS_DOWN		= 0,
 	BNAD_LS_UP		= 1
 };
 
-struct bnad_iocmd_comp {
+struct bnad_iocmd_comp
+{
 	struct bnad		*bnad;
 	struct completion	comp;
 	int			comp_status;
 };
 
-struct bnad_completion {
+struct bnad_completion
+{
 	struct completion	ioc_comp;
 	struct completion	ucast_comp;
 	struct completion	mcast_comp;
@@ -151,7 +156,8 @@ struct bnad_completion {
 };
 
 /* Tx Rx Control Stats */
-struct bnad_drv_stats {
+struct bnad_drv_stats
+{
 	u64		netif_queue_stop;
 	u64		netif_queue_wakeup;
 	u64		netif_queue_stopped;
@@ -194,28 +200,33 @@ struct bnad_drv_stats {
 };
 
 /* Complete driver stats */
-struct bnad_stats {
+struct bnad_stats
+{
 	struct bnad_drv_stats drv_stats;
 	struct bna_stats *bna_stats;
 };
 
 /* Tx / Rx Resources */
-struct bnad_tx_res_info {
+struct bnad_tx_res_info
+{
 	struct bna_res_info res_info[BNA_TX_RES_T_MAX];
 };
 
-struct bnad_rx_res_info {
+struct bnad_rx_res_info
+{
 	struct bna_res_info res_info[BNA_RX_RES_T_MAX];
 };
 
-struct bnad_tx_info {
+struct bnad_tx_info
+{
 	struct bna_tx *tx; /* 1:1 between tx_info & tx */
 	struct bna_tcb *tcb[BNAD_MAX_TXQ_PER_TX];
 	u32 tx_id;
 	struct delayed_work tx_cleanup_work;
 } ____cacheline_aligned;
 
-struct bnad_rx_info {
+struct bnad_rx_info
+{
 	struct bna_rx *rx; /* 1:1 between rx_info & rx */
 
 	struct bnad_rx_ctrl rx_ctrl[BNAD_MAX_RXP_PER_RX];
@@ -223,30 +234,35 @@ struct bnad_rx_info {
 	struct work_struct rx_cleanup_work;
 } ____cacheline_aligned;
 
-struct bnad_tx_vector {
+struct bnad_tx_vector
+{
 	DEFINE_DMA_UNMAP_ADDR(dma_addr);
 	DEFINE_DMA_UNMAP_LEN(dma_len);
 };
 
-struct bnad_tx_unmap {
+struct bnad_tx_unmap
+{
 	struct sk_buff		*skb;
 	u32			nvecs;
 	struct bnad_tx_vector	vectors[BFI_TX_MAX_VECTORS_PER_WI];
 };
 
-struct bnad_rx_vector {
+struct bnad_rx_vector
+{
 	DEFINE_DMA_UNMAP_ADDR(dma_addr);
 	u32			len;
 };
 
-struct bnad_rx_unmap {
+struct bnad_rx_unmap
+{
 	struct page		*page;
 	struct sk_buff		*skb;
 	struct bnad_rx_vector	vector;
 	u32			page_offset;
 };
 
-enum bnad_rxbuf_type {
+enum bnad_rxbuf_type
+{
 	BNAD_RXBUF_NONE		= 0,
 	BNAD_RXBUF_SK_BUFF	= 1,
 	BNAD_RXBUF_PAGE		= 2,
@@ -256,7 +272,8 @@ enum bnad_rxbuf_type {
 #define BNAD_RXBUF_IS_SK_BUFF(_type)	((_type) == BNAD_RXBUF_SK_BUFF)
 #define BNAD_RXBUF_IS_MULTI_BUFF(_type)	((_type) == BNAD_RXBUF_MULTI_BUFF)
 
-struct bnad_rx_unmap_q {
+struct bnad_rx_unmap_q
+{
 	int			reuse_pi;
 	int			alloc_order;
 	u32			map_size;
@@ -285,7 +302,8 @@ struct bnad_rx_unmap_q {
 #define BNAD_RF_STATS_TIMER_RUNNING	5
 #define BNAD_RF_TX_PRIO_SET		6
 
-struct bnad {
+struct bnad
+{
 	struct net_device	*netdev;
 	u32			id;
 
@@ -366,7 +384,8 @@ struct bnad {
 	struct dentry *port_debugfs_root;
 };
 
-struct bnad_drvinfo {
+struct bnad_drvinfo
+{
 	struct bfa_ioc_attr  ioc_attr;
 	struct bfa_cee_attr  cee_attr;
 	struct bfa_flash_attr flash_attr;
@@ -406,9 +425,9 @@ void bnad_dim_timer_start(struct bnad *bnad);
 
 /* Statistics */
 void bnad_netdev_qstats_fill(struct bnad *bnad,
-			     struct rtnl_link_stats64 *stats);
+							 struct rtnl_link_stats64 *stats);
 void bnad_netdev_hwstats_fill(struct bnad *bnad,
-			      struct rtnl_link_stats64 *stats);
+							  struct rtnl_link_stats64 *stats);
 
 /* Debugfs */
 void bnad_debugfs_init(struct bnad *bnad);
@@ -417,17 +436,17 @@ void bnad_debugfs_uninit(struct bnad *bnad);
 /* MACROS */
 /* To set & get the stats counters */
 #define BNAD_UPDATE_CTR(_bnad, _ctr)				\
-				(((_bnad)->stats.drv_stats._ctr)++)
+	(((_bnad)->stats.drv_stats._ctr)++)
 
 #define BNAD_GET_CTR(_bnad, _ctr) ((_bnad)->stats.drv_stats._ctr)
 
 #define bnad_enable_rx_irq_unsafe(_ccb)			\
-{							\
-	if (likely(test_bit(BNAD_RXQ_STARTED, &(_ccb)->rcb[0]->flags))) {\
-		bna_ib_coalescing_timer_set((_ccb)->i_dbell,	\
-			(_ccb)->rx_coalescing_timeo);		\
-		bna_ib_ack((_ccb)->i_dbell, 0);			\
-	}							\
-}
+	{							\
+		if (likely(test_bit(BNAD_RXQ_STARTED, &(_ccb)->rcb[0]->flags))) {\
+			bna_ib_coalescing_timer_set((_ccb)->i_dbell,	\
+										(_ccb)->rx_coalescing_timeo);		\
+			bna_ib_ack((_ccb)->i_dbell, 0);			\
+		}							\
+	}
 
 #endif /* __BNAD_H__ */

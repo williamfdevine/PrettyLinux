@@ -40,19 +40,28 @@ int hns_roce_bitmap_alloc(struct hns_roce_bitmap *bitmap, unsigned long *obj)
 
 	spin_lock(&bitmap->lock);
 	*obj = find_next_zero_bit(bitmap->table, bitmap->max, bitmap->last);
-	if (*obj >= bitmap->max) {
+
+	if (*obj >= bitmap->max)
+	{
 		bitmap->top = (bitmap->top + bitmap->max + bitmap->reserved_top)
-			       & bitmap->mask;
+					  & bitmap->mask;
 		*obj = find_first_zero_bit(bitmap->table, bitmap->max);
 	}
 
-	if (*obj < bitmap->max) {
+	if (*obj < bitmap->max)
+	{
 		set_bit(*obj, bitmap->table);
 		bitmap->last = (*obj + 1);
+
 		if (bitmap->last == bitmap->max)
+		{
 			bitmap->last = 0;
+		}
+
 		*obj |= bitmap->top;
-	} else {
+	}
+	else
+	{
 		ret = -1;
 	}
 
@@ -67,36 +76,50 @@ void hns_roce_bitmap_free(struct hns_roce_bitmap *bitmap, unsigned long obj)
 }
 
 int hns_roce_bitmap_alloc_range(struct hns_roce_bitmap *bitmap, int cnt,
-				int align, unsigned long *obj)
+								int align, unsigned long *obj)
 {
 	int ret = 0;
 	int i;
 
 	if (likely(cnt == 1 && align == 1))
+	{
 		return hns_roce_bitmap_alloc(bitmap, obj);
+	}
 
 	spin_lock(&bitmap->lock);
 
 	*obj = bitmap_find_next_zero_area(bitmap->table, bitmap->max,
-					  bitmap->last, cnt, align - 1);
-	if (*obj >= bitmap->max) {
+									  bitmap->last, cnt, align - 1);
+
+	if (*obj >= bitmap->max)
+	{
 		bitmap->top = (bitmap->top + bitmap->max + bitmap->reserved_top)
-			       & bitmap->mask;
+					  & bitmap->mask;
 		*obj = bitmap_find_next_zero_area(bitmap->table, bitmap->max, 0,
-						  cnt, align - 1);
+										  cnt, align - 1);
 	}
 
-	if (*obj < bitmap->max) {
+	if (*obj < bitmap->max)
+	{
 		for (i = 0; i < cnt; i++)
+		{
 			set_bit(*obj + i, bitmap->table);
-
-		if (*obj == bitmap->last) {
-			bitmap->last = (*obj + cnt);
-			if (bitmap->last >= bitmap->max)
-				bitmap->last = 0;
 		}
+
+		if (*obj == bitmap->last)
+		{
+			bitmap->last = (*obj + cnt);
+
+			if (bitmap->last >= bitmap->max)
+			{
+				bitmap->last = 0;
+			}
+		}
+
 		*obj |= bitmap->top;
-	} else {
+	}
+	else
+	{
 		ret = -1;
 	}
 
@@ -106,29 +129,34 @@ int hns_roce_bitmap_alloc_range(struct hns_roce_bitmap *bitmap, int cnt,
 }
 
 void hns_roce_bitmap_free_range(struct hns_roce_bitmap *bitmap,
-				unsigned long obj, int cnt)
+								unsigned long obj, int cnt)
 {
 	int i;
 
 	obj &= bitmap->max + bitmap->reserved_top - 1;
 
 	spin_lock(&bitmap->lock);
+
 	for (i = 0; i < cnt; i++)
+	{
 		clear_bit(obj + i, bitmap->table);
+	}
 
 	bitmap->last = min(bitmap->last, obj);
 	bitmap->top = (bitmap->top + bitmap->max + bitmap->reserved_top)
-		       & bitmap->mask;
+				  & bitmap->mask;
 	spin_unlock(&bitmap->lock);
 }
 
 int hns_roce_bitmap_init(struct hns_roce_bitmap *bitmap, u32 num, u32 mask,
-			 u32 reserved_bot, u32 reserved_top)
+						 u32 reserved_bot, u32 reserved_top)
 {
 	u32 i;
 
 	if (num != roundup_pow_of_two(num))
+	{
 		return -EINVAL;
+	}
 
 	bitmap->last = 0;
 	bitmap->top = 0;
@@ -137,12 +165,17 @@ int hns_roce_bitmap_init(struct hns_roce_bitmap *bitmap, u32 num, u32 mask,
 	bitmap->reserved_top = reserved_top;
 	spin_lock_init(&bitmap->lock);
 	bitmap->table = kcalloc(BITS_TO_LONGS(bitmap->max), sizeof(long),
-				GFP_KERNEL);
+							GFP_KERNEL);
+
 	if (!bitmap->table)
+	{
 		return -ENOMEM;
+	}
 
 	for (i = 0; i < reserved_bot; ++i)
+	{
 		set_bit(i, bitmap->table);
+	}
 
 	return 0;
 }
@@ -153,29 +186,35 @@ void hns_roce_bitmap_cleanup(struct hns_roce_bitmap *bitmap)
 }
 
 void hns_roce_buf_free(struct hns_roce_dev *hr_dev, u32 size,
-		       struct hns_roce_buf *buf)
+					   struct hns_roce_buf *buf)
 {
 	int i;
 	struct device *dev = &hr_dev->pdev->dev;
 	u32 bits_per_long = BITS_PER_LONG;
 
-	if (buf->nbufs == 1) {
+	if (buf->nbufs == 1)
+	{
 		dma_free_coherent(dev, size, buf->direct.buf, buf->direct.map);
-	} else {
+	}
+	else
+	{
 		if (bits_per_long == 64)
+		{
 			vunmap(buf->direct.buf);
+		}
 
 		for (i = 0; i < buf->nbufs; ++i)
 			if (buf->page_list[i].buf)
 				dma_free_coherent(&hr_dev->pdev->dev, PAGE_SIZE,
-						  buf->page_list[i].buf,
-						  buf->page_list[i].map);
+								  buf->page_list[i].buf,
+								  buf->page_list[i].map);
+
 		kfree(buf->page_list);
 	}
 }
 
 int hns_roce_buf_alloc(struct hns_roce_dev *hr_dev, u32 size, u32 max_direct,
-		       struct hns_roce_buf *buf)
+					   struct hns_roce_buf *buf)
 {
 	int i = 0;
 	dma_addr_t t;
@@ -184,59 +223,81 @@ int hns_roce_buf_alloc(struct hns_roce_dev *hr_dev, u32 size, u32 max_direct,
 	u32 bits_per_long = BITS_PER_LONG;
 
 	/* SQ/RQ buf lease than one page, SQ + RQ = 8K */
-	if (size <= max_direct) {
+	if (size <= max_direct)
+	{
 		buf->nbufs = 1;
 		/* Npages calculated by page_size */
 		buf->npages = 1 << get_order(size);
 		buf->page_shift = PAGE_SHIFT;
 		/* MTT PA must be recorded in 4k alignment, t is 4k aligned */
 		buf->direct.buf = dma_alloc_coherent(dev, size, &t, GFP_KERNEL);
+
 		if (!buf->direct.buf)
+		{
 			return -ENOMEM;
+		}
 
 		buf->direct.map = t;
 
-		while (t & ((1 << buf->page_shift) - 1)) {
+		while (t & ((1 << buf->page_shift) - 1))
+		{
 			--buf->page_shift;
 			buf->npages *= 2;
 		}
 
 		memset(buf->direct.buf, 0, size);
-	} else {
+	}
+	else
+	{
 		buf->nbufs = (size + PAGE_SIZE - 1) / PAGE_SIZE;
 		buf->npages = buf->nbufs;
 		buf->page_shift = PAGE_SHIFT;
 		buf->page_list = kcalloc(buf->nbufs, sizeof(*buf->page_list),
-					 GFP_KERNEL);
+								 GFP_KERNEL);
 
 		if (!buf->page_list)
+		{
 			return -ENOMEM;
+		}
 
-		for (i = 0; i < buf->nbufs; ++i) {
+		for (i = 0; i < buf->nbufs; ++i)
+		{
 			buf->page_list[i].buf = dma_alloc_coherent(dev,
-								  PAGE_SIZE, &t,
-								  GFP_KERNEL);
+									PAGE_SIZE, &t,
+									GFP_KERNEL);
 
 			if (!buf->page_list[i].buf)
+			{
 				goto err_free;
+			}
 
 			buf->page_list[i].map = t;
 			memset(buf->page_list[i].buf, 0, PAGE_SIZE);
 		}
-		if (bits_per_long == 64) {
+
+		if (bits_per_long == 64)
+		{
 			pages = kmalloc_array(buf->nbufs, sizeof(*pages),
-					      GFP_KERNEL);
+								  GFP_KERNEL);
+
 			if (!pages)
+			{
 				goto err_free;
+			}
 
 			for (i = 0; i < buf->nbufs; ++i)
+			{
 				pages[i] = virt_to_page(buf->page_list[i].buf);
+			}
 
 			buf->direct.buf = vmap(pages, buf->nbufs, VM_MAP,
-					       PAGE_KERNEL);
+								   PAGE_KERNEL);
 			kfree(pages);
+
 			if (!buf->direct.buf)
+			{
 				goto err_free;
+			}
 		}
 	}
 

@@ -97,7 +97,8 @@
 #define IVTV_ADAPTEC_IR_ADDR		0x6b
 
 /* This array should match the IVTV_HW_ defines */
-static const u8 hw_addrs[] = {
+static const u8 hw_addrs[] =
+{
 	IVTV_CX25840_I2C_ADDR,
 	IVTV_SAA7115_I2C_ADDR,
 	IVTV_SAA7127_I2C_ADDR,
@@ -123,7 +124,8 @@ static const u8 hw_addrs[] = {
 };
 
 /* This array should match the IVTV_HW_ defines */
-static const char * const hw_devicenames[] = {
+static const char *const hw_devicenames[] =
+{
 	"cx25840",
 	"saa7115",
 	"saa7127_auto",	/* saa7127 or saa7129 */
@@ -149,27 +151,31 @@ static const char * const hw_devicenames[] = {
 };
 
 static int get_key_adaptec(struct IR_i2c *ir, enum rc_type *protocol,
-			   u32 *scancode, u8 *toggle)
+						   u32 *scancode, u8 *toggle)
 {
 	unsigned char keybuf[4];
 
 	keybuf[0] = 0x00;
 	i2c_master_send(ir->c, keybuf, 1);
+
 	/* poll IR chip */
-	if (i2c_master_recv(ir->c, keybuf, sizeof(keybuf)) != sizeof(keybuf)) {
+	if (i2c_master_recv(ir->c, keybuf, sizeof(keybuf)) != sizeof(keybuf))
+	{
 		return 0;
 	}
 
 	/* key pressed ? */
 	if (keybuf[2] == 0xff)
+	{
 		return 0;
+	}
 
 	/* remove repeat bit */
 	keybuf[2] &= 0x7f;
 	keybuf[3] |= 0x80;
 
 	*protocol = RC_TYPE_UNKNOWN;
-	*scancode = keybuf[3] | keybuf[2] << 8 | keybuf[1] << 16 |keybuf[0] << 24;
+	*scancode = keybuf[3] | keybuf[2] << 8 | keybuf[1] << 16 | keybuf[0] << 24;
 	*toggle = 0;
 	return 1;
 }
@@ -182,50 +188,60 @@ static int ivtv_i2c_new_ir(struct ivtv *itv, u32 hw, const char *type, u8 addr)
 	unsigned short addr_list[2] = { addr, I2C_CLIENT_END };
 
 	/* Only allow one IR transmitter to be registered per board */
-	if (hw & IVTV_HW_IR_TX_ANY) {
+	if (hw & IVTV_HW_IR_TX_ANY)
+	{
 		if (itv->hw_flags & IVTV_HW_IR_TX_ANY)
+		{
 			return -1;
+		}
+
 		memset(&info, 0, sizeof(struct i2c_board_info));
 		strlcpy(info.type, type, I2C_NAME_SIZE);
 		return i2c_new_probed_device(adap, &info, addr_list, NULL)
-							   == NULL ? -1 : 0;
+			   == NULL ? -1 : 0;
 	}
 
 	/* Only allow one IR receiver to be registered per board */
 	if (itv->hw_flags & IVTV_HW_IR_RX_ANY)
+	{
 		return -1;
+	}
 
 	/* Our default information for ir-kbd-i2c.c to use */
-	switch (hw) {
-	case IVTV_HW_I2C_IR_RX_AVER:
-		init_data->ir_codes = RC_MAP_AVERMEDIA_CARDBUS;
-		init_data->internal_get_key_func =
-					IR_KBD_GET_KEY_AVERMEDIA_CARDBUS;
-		init_data->type = RC_BIT_OTHER;
-		init_data->name = "AVerMedia AVerTV card";
-		break;
-	case IVTV_HW_I2C_IR_RX_HAUP_EXT:
-	case IVTV_HW_I2C_IR_RX_HAUP_INT:
-		init_data->ir_codes = RC_MAP_HAUPPAUGE;
-		init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP;
-		init_data->type = RC_BIT_RC5;
-		init_data->name = itv->card_name;
-		break;
-	case IVTV_HW_Z8F0811_IR_RX_HAUP:
-		/* Default to grey remote */
-		init_data->ir_codes = RC_MAP_HAUPPAUGE;
-		init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
-		init_data->type = RC_BIT_RC5 | RC_BIT_RC6_MCE |
-							RC_BIT_RC6_6A_32;
-		init_data->name = itv->card_name;
-		break;
-	case IVTV_HW_I2C_IR_RX_ADAPTEC:
-		init_data->get_key = get_key_adaptec;
-		init_data->name = itv->card_name;
-		/* FIXME: The protocol and RC_MAP needs to be corrected */
-		init_data->ir_codes = RC_MAP_EMPTY;
-		init_data->type = RC_BIT_UNKNOWN;
-		break;
+	switch (hw)
+	{
+		case IVTV_HW_I2C_IR_RX_AVER:
+			init_data->ir_codes = RC_MAP_AVERMEDIA_CARDBUS;
+			init_data->internal_get_key_func =
+				IR_KBD_GET_KEY_AVERMEDIA_CARDBUS;
+			init_data->type = RC_BIT_OTHER;
+			init_data->name = "AVerMedia AVerTV card";
+			break;
+
+		case IVTV_HW_I2C_IR_RX_HAUP_EXT:
+		case IVTV_HW_I2C_IR_RX_HAUP_INT:
+			init_data->ir_codes = RC_MAP_HAUPPAUGE;
+			init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP;
+			init_data->type = RC_BIT_RC5;
+			init_data->name = itv->card_name;
+			break;
+
+		case IVTV_HW_Z8F0811_IR_RX_HAUP:
+			/* Default to grey remote */
+			init_data->ir_codes = RC_MAP_HAUPPAUGE;
+			init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
+			init_data->type = RC_BIT_RC5 | RC_BIT_RC6_MCE |
+							  RC_BIT_RC6_6A_32;
+			init_data->name = itv->card_name;
+			break;
+
+		case IVTV_HW_I2C_IR_RX_ADAPTEC:
+			init_data->get_key = get_key_adaptec;
+			init_data->name = itv->card_name;
+			/* FIXME: The protocol and RC_MAP needs to be corrected */
+			init_data->ir_codes = RC_MAP_EMPTY;
+			init_data->type = RC_BIT_UNKNOWN;
+			break;
 	}
 
 	memset(&info, 0, sizeof(struct i2c_board_info));
@@ -233,7 +249,7 @@ static int ivtv_i2c_new_ir(struct ivtv *itv, u32 hw, const char *type, u8 addr)
 	strlcpy(info.type, type, I2C_NAME_SIZE);
 
 	return i2c_new_probed_device(adap, &info, addr_list, NULL) == NULL ?
-	       -1 : 0;
+		   -1 : 0;
 }
 
 /* Instantiate the IR receiver device using probing -- undesirable */
@@ -251,7 +267,8 @@ struct i2c_client *ivtv_i2c_new_ir_legacy(struct ivtv *itv)
 	 * allocations, so this function must be called after all other i2c
 	 * devices we care about are registered.
 	 */
-	const unsigned short addr_list[] = {
+	const unsigned short addr_list[] =
+	{
 		0x1a,	/* Hauppauge IR external - collides with WM8739 */
 		0x18,	/* Hauppauge IR internal */
 		I2C_CLIENT_END
@@ -269,37 +286,58 @@ int ivtv_i2c_register(struct ivtv *itv, unsigned idx)
 	const char *type = hw_devicenames[idx];
 	u32 hw = 1 << idx;
 
-	if (hw == IVTV_HW_TUNER) {
+	if (hw == IVTV_HW_TUNER)
+	{
 		/* special tuner handling */
 		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev, adap, type, 0,
-				itv->card_i2c->radio);
+								 itv->card_i2c->radio);
+
 		if (sd)
+		{
 			sd->grp_id = 1 << idx;
+		}
+
 		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev, adap, type, 0,
-				itv->card_i2c->demod);
+								 itv->card_i2c->demod);
+
 		if (sd)
+		{
 			sd->grp_id = 1 << idx;
+		}
+
 		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev, adap, type, 0,
-				itv->card_i2c->tv);
+								 itv->card_i2c->tv);
+
 		if (sd)
+		{
 			sd->grp_id = 1 << idx;
+		}
+
 		return sd ? 0 : -1;
 	}
 
 	if (hw & IVTV_HW_IR_ANY)
+	{
 		return ivtv_i2c_new_ir(itv, hw, type, hw_addrs[idx]);
+	}
 
 	/* Is it not an I2C device or one we do not wish to register? */
 	if (!hw_addrs[idx])
+	{
 		return -1;
+	}
 
 	/* It's an I2C device other than an analog tuner or IR chip */
-	if (hw == IVTV_HW_UPD64031A || hw == IVTV_HW_UPD6408X) {
+	if (hw == IVTV_HW_UPD64031A || hw == IVTV_HW_UPD6408X)
+	{
 		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev,
-				adap, type, 0, I2C_ADDRS(hw_addrs[idx]));
-	} else if (hw == IVTV_HW_CX25840) {
+								 adap, type, 0, I2C_ADDRS(hw_addrs[idx]));
+	}
+	else if (hw == IVTV_HW_CX25840)
+	{
 		struct cx25840_platform_data pdata;
-		struct i2c_board_info cx25840_info = {
+		struct i2c_board_info cx25840_info =
+		{
 			.type = "cx25840",
 			.addr = hw_addrs[idx],
 			.platform_data = &pdata,
@@ -307,13 +345,19 @@ int ivtv_i2c_register(struct ivtv *itv, unsigned idx)
 
 		pdata.pvr150_workaround = itv->pvr150_workaround;
 		sd = v4l2_i2c_new_subdev_board(&itv->v4l2_dev, adap,
-				&cx25840_info, NULL);
-	} else {
-		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev,
-				adap, type, hw_addrs[idx], NULL);
+									   &cx25840_info, NULL);
 	}
+	else
+	{
+		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev,
+								 adap, type, hw_addrs[idx], NULL);
+	}
+
 	if (sd)
+	{
 		sd->grp_id = 1 << idx;
+	}
+
 	return sd ? 0 : -1;
 }
 
@@ -323,8 +367,10 @@ struct v4l2_subdev *ivtv_find_hw(struct ivtv *itv, u32 hw)
 	struct v4l2_subdev *sd;
 
 	spin_lock(&itv->v4l2_dev.lock);
-	v4l2_device_for_each_subdev(sd, &itv->v4l2_dev) {
-		if (sd->grp_id == hw) {
+	v4l2_device_for_each_subdev(sd, &itv->v4l2_dev)
+	{
+		if (sd->grp_id == hw)
+		{
 			result = sd;
 			break;
 		}
@@ -367,7 +413,9 @@ static void ivtv_scldelay(struct ivtv *itv)
 	int i;
 
 	for (i = 0; i < 5; ++i)
+	{
 		ivtv_getscl(itv);
+	}
 }
 
 /* Wait for the serial clock line to become set to a specific value */
@@ -376,10 +424,15 @@ static int ivtv_waitscl(struct ivtv *itv, int val)
 	int i;
 
 	ivtv_scldelay(itv);
-	for (i = 0; i < 1000; ++i) {
+
+	for (i = 0; i < 1000; ++i)
+	{
 		if (ivtv_getscl(itv) == val)
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 
@@ -389,10 +442,15 @@ static int ivtv_waitsda(struct ivtv *itv, int val)
 	int i;
 
 	ivtv_scldelay(itv);
-	for (i = 0; i < 1000; ++i) {
+
+	for (i = 0; i < 1000; ++i)
+	{
 		if (ivtv_getsda(itv) == val)
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 
@@ -401,26 +459,36 @@ static int ivtv_ack(struct ivtv *itv)
 {
 	int ret = 0;
 
-	if (ivtv_getscl(itv) == 1) {
+	if (ivtv_getscl(itv) == 1)
+	{
 		IVTV_DEBUG_HI_I2C("SCL was high starting an ack\n");
 		ivtv_setscl(itv, 0);
-		if (!ivtv_waitscl(itv, 0)) {
+
+		if (!ivtv_waitscl(itv, 0))
+		{
 			IVTV_DEBUG_I2C("Could not set SCL low starting an ack\n");
 			return -EREMOTEIO;
 		}
 	}
+
 	ivtv_setsda(itv, 1);
 	ivtv_scldelay(itv);
 	ivtv_setscl(itv, 1);
-	if (!ivtv_waitsda(itv, 0)) {
+
+	if (!ivtv_waitsda(itv, 0))
+	{
 		IVTV_DEBUG_I2C("Slave did not ack\n");
 		ret = -EREMOTEIO;
 	}
+
 	ivtv_setscl(itv, 0);
-	if (!ivtv_waitscl(itv, 0)) {
+
+	if (!ivtv_waitscl(itv, 0))
+	{
 		IVTV_DEBUG_I2C("Failed to set SCL low after ACK\n");
 		ret = -EREMOTEIO;
 	}
+
 	return ret;
 }
 
@@ -429,30 +497,44 @@ static int ivtv_sendbyte(struct ivtv *itv, unsigned char byte)
 {
 	int i, bit;
 
-	IVTV_DEBUG_HI_I2C("write %x\n",byte);
-	for (i = 0; i < 8; ++i, byte<<=1) {
+	IVTV_DEBUG_HI_I2C("write %x\n", byte);
+
+	for (i = 0; i < 8; ++i, byte <<= 1)
+	{
 		ivtv_setscl(itv, 0);
-		if (!ivtv_waitscl(itv, 0)) {
+
+		if (!ivtv_waitscl(itv, 0))
+		{
 			IVTV_DEBUG_I2C("Error setting SCL low\n");
 			return -EREMOTEIO;
 		}
-		bit = (byte>>7)&1;
+
+		bit = (byte >> 7) & 1;
 		ivtv_setsda(itv, bit);
-		if (!ivtv_waitsda(itv, bit)) {
+
+		if (!ivtv_waitsda(itv, bit))
+		{
 			IVTV_DEBUG_I2C("Error setting SDA\n");
 			return -EREMOTEIO;
 		}
+
 		ivtv_setscl(itv, 1);
-		if (!ivtv_waitscl(itv, 1)) {
+
+		if (!ivtv_waitscl(itv, 1))
+		{
 			IVTV_DEBUG_I2C("Slave not ready for bit\n");
 			return -EREMOTEIO;
 		}
 	}
+
 	ivtv_setscl(itv, 0);
-	if (!ivtv_waitscl(itv, 0)) {
+
+	if (!ivtv_waitscl(itv, 0))
+	{
 		IVTV_DEBUG_I2C("Error setting SCL low\n");
 		return -EREMOTEIO;
 	}
+
 	return ivtv_ack(itv);
 }
 
@@ -466,16 +548,22 @@ static int ivtv_readbyte(struct ivtv *itv, unsigned char *byte, int nack)
 
 	ivtv_setsda(itv, 1);
 	ivtv_scldelay(itv);
-	for (i = 0; i < 8; ++i) {
+
+	for (i = 0; i < 8; ++i)
+	{
 		ivtv_setscl(itv, 0);
 		ivtv_scldelay(itv);
 		ivtv_setscl(itv, 1);
-		if (!ivtv_waitscl(itv, 1)) {
+
+		if (!ivtv_waitscl(itv, 1))
+		{
 			IVTV_DEBUG_I2C("Error setting SCL high\n");
 			return -EREMOTEIO;
 		}
-		*byte = ((*byte)<<1)|ivtv_getsda(itv);
+
+		*byte = ((*byte) << 1) | ivtv_getsda(itv);
 	}
+
 	ivtv_setscl(itv, 0);
 	ivtv_scldelay(itv);
 	ivtv_setsda(itv, nack);
@@ -484,7 +572,7 @@ static int ivtv_readbyte(struct ivtv *itv, unsigned char *byte, int nack)
 	ivtv_scldelay(itv);
 	ivtv_setscl(itv, 0);
 	ivtv_scldelay(itv);
-	IVTV_DEBUG_HI_I2C("read %x\n",*byte);
+	IVTV_DEBUG_HI_I2C("read %x\n", *byte);
 	return 0;
 }
 
@@ -495,21 +583,30 @@ static int ivtv_start(struct ivtv *itv)
 	int sda;
 
 	sda = ivtv_getsda(itv);
-	if (sda != 1) {
+
+	if (sda != 1)
+	{
 		IVTV_DEBUG_HI_I2C("SDA was low at start\n");
 		ivtv_setsda(itv, 1);
-		if (!ivtv_waitsda(itv, 1)) {
+
+		if (!ivtv_waitsda(itv, 1))
+		{
 			IVTV_DEBUG_I2C("SDA stuck low\n");
 			return -EREMOTEIO;
 		}
 	}
-	if (ivtv_getscl(itv) != 1) {
+
+	if (ivtv_getscl(itv) != 1)
+	{
 		ivtv_setscl(itv, 1);
-		if (!ivtv_waitscl(itv, 1)) {
+
+		if (!ivtv_waitscl(itv, 1))
+		{
 			IVTV_DEBUG_I2C("SCL stuck low at start\n");
 			return -EREMOTEIO;
 		}
 	}
+
 	ivtv_setsda(itv, 0);
 	ivtv_scldelay(itv);
 	return 0;
@@ -520,34 +617,47 @@ static int ivtv_stop(struct ivtv *itv)
 {
 	int i;
 
-	if (ivtv_getscl(itv) != 0) {
+	if (ivtv_getscl(itv) != 0)
+	{
 		IVTV_DEBUG_HI_I2C("SCL not low when stopping\n");
 		ivtv_setscl(itv, 0);
-		if (!ivtv_waitscl(itv, 0)) {
+
+		if (!ivtv_waitscl(itv, 0))
+		{
 			IVTV_DEBUG_I2C("SCL could not be set low\n");
 		}
 	}
+
 	ivtv_setsda(itv, 0);
 	ivtv_scldelay(itv);
 	ivtv_setscl(itv, 1);
-	if (!ivtv_waitscl(itv, 1)) {
+
+	if (!ivtv_waitscl(itv, 1))
+	{
 		IVTV_DEBUG_I2C("SCL could not be set high\n");
 		return -EREMOTEIO;
 	}
+
 	ivtv_scldelay(itv);
 	ivtv_setsda(itv, 1);
-	if (!ivtv_waitsda(itv, 1)) {
+
+	if (!ivtv_waitsda(itv, 1))
+	{
 		IVTV_DEBUG_I2C("resetting I2C\n");
-		for (i = 0; i < 16; ++i) {
+
+		for (i = 0; i < 16; ++i)
+		{
 			ivtv_setscl(itv, 0);
 			ivtv_scldelay(itv);
 			ivtv_setscl(itv, 1);
 			ivtv_scldelay(itv);
 			ivtv_setsda(itv, 1);
 		}
+
 		ivtv_waitsda(itv, 1);
 		return -EREMOTEIO;
 	}
+
 	return 0;
 }
 
@@ -558,20 +668,31 @@ static int ivtv_write(struct ivtv *itv, unsigned char addr, unsigned char *data,
 	int retry, ret = -EREMOTEIO;
 	u32 i;
 
-	for (retry = 0; ret != 0 && retry < 8; ++retry) {
+	for (retry = 0; ret != 0 && retry < 8; ++retry)
+	{
 		ret = ivtv_start(itv);
 
-		if (ret == 0) {
-			ret = ivtv_sendbyte(itv, addr<<1);
+		if (ret == 0)
+		{
+			ret = ivtv_sendbyte(itv, addr << 1);
+
 			for (i = 0; ret == 0 && i < len; ++i)
+			{
 				ret = ivtv_sendbyte(itv, data[i]);
+			}
 		}
-		if (ret != 0 || do_stop) {
+
+		if (ret != 0 || do_stop)
+		{
 			ivtv_stop(itv);
 		}
 	}
+
 	if (ret)
+	{
 		IVTV_DEBUG_I2C("i2c write to %x failed\n", addr);
+	}
+
 	return ret;
 }
 
@@ -581,17 +702,28 @@ static int ivtv_read(struct ivtv *itv, unsigned char addr, unsigned char *data, 
 	int retry, ret = -EREMOTEIO;
 	u32 i;
 
-	for (retry = 0; ret != 0 && retry < 8; ++retry) {
+	for (retry = 0; ret != 0 && retry < 8; ++retry)
+	{
 		ret = ivtv_start(itv);
+
 		if (ret == 0)
+		{
 			ret = ivtv_sendbyte(itv, (addr << 1) | 1);
-		for (i = 0; ret == 0 && i < len; ++i) {
+		}
+
+		for (i = 0; ret == 0 && i < len; ++i)
+		{
 			ret = ivtv_readbyte(itv, &data[i], i == len - 1);
 		}
+
 		ivtv_stop(itv);
 	}
+
 	if (ret)
+	{
 		IVTV_DEBUG_I2C("i2c read from %x failed\n", addr);
+	}
+
 	return ret;
 }
 
@@ -606,16 +738,22 @@ static int ivtv_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg *msgs, int num
 	int i;
 
 	mutex_lock(&itv->i2c_bus_lock);
-	for (i = retval = 0; retval == 0 && i < num; i++) {
+
+	for (i = retval = 0; retval == 0 && i < num; i++)
+	{
 		if (msgs[i].flags & I2C_M_RD)
+		{
 			retval = ivtv_read(itv, msgs[i].addr, msgs[i].buf, msgs[i].len);
-		else {
+		}
+		else
+		{
 			/* if followed by a read, don't stop */
 			int stop = !(i + 1 < num && msgs[i + 1].flags == I2C_M_RD);
 
 			retval = ivtv_write(itv, msgs[i].addr, msgs[i].buf, msgs[i].len, stop);
 		}
 	}
+
 	mutex_unlock(&itv->i2c_bus_lock);
 	return retval ? retval : num;
 }
@@ -626,13 +764,15 @@ static u32 ivtv_functionality(struct i2c_adapter *adap)
 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
 }
 
-static const struct i2c_algorithm ivtv_algo = {
+static const struct i2c_algorithm ivtv_algo =
+{
 	.master_xfer   = ivtv_xfer,
 	.functionality = ivtv_functionality,
 };
 
 /* template for our-bit banger */
-static struct i2c_adapter ivtv_i2c_adap_hw_template = {
+static struct i2c_adapter ivtv_i2c_adap_hw_template =
+{
 	.name = "ivtv i2c driver",
 	.algo = &ivtv_algo,
 	.algo_data = NULL,			/* filled from template */
@@ -644,9 +784,13 @@ static void ivtv_setscl_old(void *data, int state)
 	struct ivtv *itv = (struct ivtv *)data;
 
 	if (state)
+	{
 		itv->i2c_state |= 0x01;
+	}
 	else
+	{
 		itv->i2c_state &= ~0x01;
+	}
 
 	/* write them out */
 	/* write bits are inverted */
@@ -658,9 +802,13 @@ static void ivtv_setsda_old(void *data, int state)
 	struct ivtv *itv = (struct ivtv *)data;
 
 	if (state)
+	{
 		itv->i2c_state |= 0x01;
+	}
 	else
+	{
 		itv->i2c_state &= ~0x01;
+	}
 
 	/* write them out */
 	/* write bits are inverted */
@@ -682,7 +830,8 @@ static int ivtv_getsda_old(void *data)
 }
 
 /* template for i2c-bit-algo */
-static struct i2c_adapter ivtv_i2c_adap_template = {
+static struct i2c_adapter ivtv_i2c_adap_template =
+{
 	.name = "ivtv i2c driver",
 	.algo = NULL,                   /* set by i2c-algo-bit */
 	.algo_data = NULL,              /* filled from template */
@@ -691,7 +840,8 @@ static struct i2c_adapter ivtv_i2c_adap_template = {
 
 #define IVTV_ALGO_BIT_TIMEOUT	(2)	/* seconds */
 
-static const struct i2c_algo_bit_data ivtv_i2c_algo_template = {
+static const struct i2c_algo_bit_data ivtv_i2c_algo_template =
+{
 	.setsda		= ivtv_setsda_old,
 	.setscl		= ivtv_setscl_old,
 	.getsda		= ivtv_getsda_old,
@@ -700,7 +850,8 @@ static const struct i2c_algo_bit_data ivtv_i2c_algo_template = {
 	.timeout	= IVTV_ALGO_BIT_TIMEOUT * HZ,         /* jiffies */
 };
 
-static struct i2c_client ivtv_i2c_client_template = {
+static struct i2c_client ivtv_i2c_client_template =
+{
 	.name = "ivtv internal",
 };
 
@@ -714,22 +865,28 @@ int init_ivtv_i2c(struct ivtv *itv)
 	/* Sanity checks for the I2C hardware arrays. They must be the
 	 * same size.
 	 */
-	if (ARRAY_SIZE(hw_devicenames) != ARRAY_SIZE(hw_addrs)) {
+	if (ARRAY_SIZE(hw_devicenames) != ARRAY_SIZE(hw_addrs))
+	{
 		IVTV_ERR("Mismatched I2C hardware arrays\n");
 		return -ENODEV;
 	}
-	if (itv->options.newi2c > 0) {
+
+	if (itv->options.newi2c > 0)
+	{
 		itv->i2c_adap = ivtv_i2c_adap_hw_template;
-	} else {
+	}
+	else
+	{
 		itv->i2c_adap = ivtv_i2c_adap_template;
 		itv->i2c_algo = ivtv_i2c_algo_template;
 	}
+
 	itv->i2c_algo.udelay = itv->options.i2c_clock_period / 2;
 	itv->i2c_algo.data = itv;
 	itv->i2c_adap.algo_data = &itv->i2c_algo;
 
 	sprintf(itv->i2c_adap.name + strlen(itv->i2c_adap.name), " #%d",
-		itv->instance);
+			itv->instance);
 	i2c_set_adapdata(&itv->i2c_adap, &itv->v4l2_dev);
 
 	itv->i2c_client = ivtv_i2c_client_template;
@@ -741,9 +898,13 @@ int init_ivtv_i2c(struct ivtv *itv)
 	ivtv_setsda(itv, 1);
 
 	if (itv->options.newi2c > 0)
+	{
 		retval = i2c_add_adapter(&itv->i2c_adap);
+	}
 	else
+	{
 		retval = i2c_bit_add_bus(&itv->i2c_adap);
+	}
 
 	return retval;
 }

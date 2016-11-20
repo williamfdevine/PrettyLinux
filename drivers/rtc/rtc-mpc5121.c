@@ -21,7 +21,8 @@
 #include <linux/io.h>
 #include <linux/slab.h>
 
-struct mpc5121_rtc_regs {
+struct mpc5121_rtc_regs
+{
 	u8 set_time;		/* RTC + 0x00 */
 	u8 hour_set;		/* RTC + 0x01 */
 	u8 minute_set;		/* RTC + 0x02 */
@@ -76,7 +77,8 @@ struct mpc5121_rtc_regs {
 	u32 keep_alive;		/* RTC + 0x28 */
 };
 
-struct mpc5121_rtc_data {
+struct mpc5121_rtc_data
+{
 	unsigned irq;
 	unsigned irq_periodic;
 	struct mpc5121_rtc_regs __iomem *regs;
@@ -90,7 +92,7 @@ struct mpc5121_rtc_data {
  * This is just so alarm will work.
  */
 static void mpc5121_rtc_update_smh(struct mpc5121_rtc_regs __iomem *regs,
-				   struct rtc_time *tm)
+								   struct rtc_time *tm)
 {
 	out_8(&regs->second_set, tm->tm_sec);
 	out_8(&regs->minute_set, tm->tm_min);
@@ -137,8 +139,11 @@ static int mpc5121_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	 * between it and linux time to the target_time register.
 	 */
 	ret = rtc_tm_to_time(tm, &now);
+
 	if (ret == 0)
+	{
 		out_be32(&regs->target_time, now - in_be32(&regs->actual_time));
+	}
 
 	/*
 	 * update second minute hour registers
@@ -161,9 +166,11 @@ static int mpc5200_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	/* 12 hour format? */
 	if (in_8(&regs->hour) & 0x20)
 		tm->tm_hour = (in_8(&regs->hour) >> 1) +
-			(in_8(&regs->hour) & 1 ? 12 : 0);
+					  (in_8(&regs->hour) & 1 ? 12 : 0);
 	else
+	{
 		tm->tm_hour = in_8(&regs->hour);
+	}
 
 	tmp = in_8(&regs->wday_mday);
 	tm->tm_mday = tmp & 0x1f;
@@ -218,14 +225,20 @@ static int mpc5121_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 	/*
 	 * the alarm has no seconds so deal with it
 	 */
-	if (alarm->time.tm_sec) {
+	if (alarm->time.tm_sec)
+	{
 		alarm->time.tm_sec = 0;
 		alarm->time.tm_min++;
-		if (alarm->time.tm_min >= 60) {
+
+		if (alarm->time.tm_min >= 60)
+		{
 			alarm->time.tm_min = 0;
 			alarm->time.tm_hour++;
+
 			if (alarm->time.tm_hour >= 24)
+			{
 				alarm->time.tm_hour = 0;
+			}
 		}
 	}
 
@@ -247,7 +260,8 @@ static irqreturn_t mpc5121_rtc_handler(int irq, void *dev)
 	struct mpc5121_rtc_data *rtc = dev_get_drvdata((struct device *)dev);
 	struct mpc5121_rtc_regs __iomem *regs = rtc->regs;
 
-	if (in_8(&regs->int_alm)) {
+	if (in_8(&regs->int_alm))
+	{
 		/* acknowledge and clear status */
 		out_8(&regs->int_alm, 1);
 		out_8(&regs->alm_status, 1);
@@ -264,7 +278,8 @@ static irqreturn_t mpc5121_rtc_handler_upd(int irq, void *dev)
 	struct mpc5121_rtc_data *rtc = dev_get_drvdata((struct device *)dev);
 	struct mpc5121_rtc_regs __iomem *regs = rtc->regs;
 
-	if (in_8(&regs->int_sec) && (in_8(&regs->int_enable) & 0x1)) {
+	if (in_8(&regs->int_sec) && (in_8(&regs->int_enable) & 0x1))
+	{
 		/* acknowledge */
 		out_8(&regs->int_sec, 1);
 
@@ -276,16 +291,20 @@ static irqreturn_t mpc5121_rtc_handler_upd(int irq, void *dev)
 }
 
 static int mpc5121_rtc_alarm_irq_enable(struct device *dev,
-					unsigned int enabled)
+										unsigned int enabled)
 {
 	struct mpc5121_rtc_data *rtc = dev_get_drvdata(dev);
 	struct mpc5121_rtc_regs __iomem *regs = rtc->regs;
 	int val;
 
 	if (enabled)
+	{
 		val = 1;
+	}
 	else
+	{
 		val = 0;
+	}
 
 	out_8(&regs->alm_enable, val);
 	rtc->wkalarm.enabled = val;
@@ -293,7 +312,8 @@ static int mpc5121_rtc_alarm_irq_enable(struct device *dev,
 	return 0;
 }
 
-static const struct rtc_class_ops mpc5121_rtc_ops = {
+static const struct rtc_class_ops mpc5121_rtc_ops =
+{
 	.read_time = mpc5121_rtc_read_time,
 	.set_time = mpc5121_rtc_set_time,
 	.read_alarm = mpc5121_rtc_read_alarm,
@@ -301,7 +321,8 @@ static const struct rtc_class_ops mpc5121_rtc_ops = {
 	.alarm_irq_enable = mpc5121_rtc_alarm_irq_enable,
 };
 
-static const struct rtc_class_ops mpc5200_rtc_ops = {
+static const struct rtc_class_ops mpc5200_rtc_ops =
+{
 	.read_time = mpc5200_rtc_read_time,
 	.set_time = mpc5200_rtc_set_time,
 	.read_alarm = mpc5121_rtc_read_alarm,
@@ -315,11 +336,16 @@ static int mpc5121_rtc_probe(struct platform_device *op)
 	int err = 0;
 
 	rtc = devm_kzalloc(&op->dev, sizeof(*rtc), GFP_KERNEL);
+
 	if (!rtc)
+	{
 		return -ENOMEM;
+	}
 
 	rtc->regs = of_iomap(op->dev.of_node, 0);
-	if (!rtc->regs) {
+
+	if (!rtc->regs)
+	{
 		dev_err(&op->dev, "%s: couldn't map io space\n", __func__);
 		return -ENOSYS;
 	}
@@ -330,42 +356,53 @@ static int mpc5121_rtc_probe(struct platform_device *op)
 
 	rtc->irq = irq_of_parse_and_map(op->dev.of_node, 1);
 	err = request_irq(rtc->irq, mpc5121_rtc_handler, 0,
-						"mpc5121-rtc", &op->dev);
-	if (err) {
+					  "mpc5121-rtc", &op->dev);
+
+	if (err)
+	{
 		dev_err(&op->dev, "%s: could not request irq: %i\n",
-							__func__, rtc->irq);
+				__func__, rtc->irq);
 		goto out_dispose;
 	}
 
 	rtc->irq_periodic = irq_of_parse_and_map(op->dev.of_node, 0);
 	err = request_irq(rtc->irq_periodic, mpc5121_rtc_handler_upd,
-				0, "mpc5121-rtc_upd", &op->dev);
-	if (err) {
+					  0, "mpc5121-rtc_upd", &op->dev);
+
+	if (err)
+	{
 		dev_err(&op->dev, "%s: could not request irq: %i\n",
-						__func__, rtc->irq_periodic);
+				__func__, rtc->irq_periodic);
 		goto out_dispose2;
 	}
 
-	if (of_device_is_compatible(op->dev.of_node, "fsl,mpc5121-rtc")) {
+	if (of_device_is_compatible(op->dev.of_node, "fsl,mpc5121-rtc"))
+	{
 		u32 ka;
 		ka = in_be32(&rtc->regs->keep_alive);
-		if (ka & 0x02) {
+
+		if (ka & 0x02)
+		{
 			dev_warn(&op->dev,
-				"mpc5121-rtc: Battery or oscillator failure!\n");
+					 "mpc5121-rtc: Battery or oscillator failure!\n");
 			out_be32(&rtc->regs->keep_alive, ka);
 		}
 
 		rtc->rtc = devm_rtc_device_register(&op->dev, "mpc5121-rtc",
-						&mpc5121_rtc_ops, THIS_MODULE);
-	} else {
+											&mpc5121_rtc_ops, THIS_MODULE);
+	}
+	else
+	{
 		rtc->rtc = devm_rtc_device_register(&op->dev, "mpc5200-rtc",
-						&mpc5200_rtc_ops, THIS_MODULE);
+											&mpc5200_rtc_ops, THIS_MODULE);
 	}
 
-	if (IS_ERR(rtc->rtc)) {
+	if (IS_ERR(rtc->rtc))
+	{
 		err = PTR_ERR(rtc->rtc);
 		goto out_free_irq;
 	}
+
 	rtc->rtc->uie_unsupported = 1;
 
 	return 0;
@@ -401,7 +438,8 @@ static int mpc5121_rtc_remove(struct platform_device *op)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id mpc5121_rtc_match[] = {
+static const struct of_device_id mpc5121_rtc_match[] =
+{
 	{ .compatible = "fsl,mpc5121-rtc", },
 	{ .compatible = "fsl,mpc5200-rtc", },
 	{},
@@ -409,7 +447,8 @@ static const struct of_device_id mpc5121_rtc_match[] = {
 MODULE_DEVICE_TABLE(of, mpc5121_rtc_match);
 #endif
 
-static struct platform_driver mpc5121_rtc_driver = {
+static struct platform_driver mpc5121_rtc_driver =
+{
 	.driver = {
 		.name = "mpc5121-rtc",
 		.of_match_table = of_match_ptr(mpc5121_rtc_match),

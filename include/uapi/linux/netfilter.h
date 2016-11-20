@@ -34,16 +34,17 @@
 
 /* only for userspace compatibility */
 #ifndef __KERNEL__
-/* Generic cache responses from hook functions.
-   <= 0x2000 is used for protocol-flags. */
-#define NFC_UNKNOWN 0x4000
-#define NFC_ALTERED 0x8000
+	/* Generic cache responses from hook functions.
+	<= 0x2000 is used for protocol-flags. */
+	#define NFC_UNKNOWN 0x4000
+	#define NFC_ALTERED 0x8000
 
-/* NF_VERDICT_BITS should be 8 now, but userspace might break if this changes */
-#define NF_VERDICT_BITS 16
+	/* NF_VERDICT_BITS should be 8 now, but userspace might break if this changes */
+	#define NF_VERDICT_BITS 16
 #endif
 
-enum nf_inet_hooks {
+enum nf_inet_hooks
+{
 	NF_INET_PRE_ROUTING,
 	NF_INET_LOCAL_IN,
 	NF_INET_FORWARD,
@@ -52,12 +53,14 @@ enum nf_inet_hooks {
 	NF_INET_NUMHOOKS
 };
 
-enum nf_dev_hooks {
+enum nf_dev_hooks
+{
 	NF_NETDEV_INGRESS,
 	NF_NETDEV_NUMHOOKS
 };
 
-enum {
+enum
+{
 	NFPROTO_UNSPEC =  0,
 	NFPROTO_INET   =  1,
 	NFPROTO_IPV4   =  2,
@@ -69,7 +72,8 @@ enum {
 	NFPROTO_NUMPROTO,
 };
 
-union nf_inet_addr {
+union nf_inet_addr
+{
 	__u32		all[4];
 	__be32		ip;
 	__be32		ip6[4];

@@ -12,26 +12,28 @@
 
 struct seq_operations;
 
-struct seq_file {
-	char *buf;
-	size_t size;
-	size_t from;
-	size_t count;
-	size_t pad_until;
-	loff_t index;
-	loff_t read_pos;
-	u64 version;
-	struct mutex lock;
-	const struct seq_operations *op;
-	int poll_event;
-	const struct file *file;
-	void *private;
+struct seq_file
+{
+		char *buf;
+		size_t size;
+		size_t from;
+		size_t count;
+		size_t pad_until;
+		loff_t index;
+		loff_t read_pos;
+		u64 version;
+		struct mutex lock;
+		const struct seq_operations *op;
+		int poll_event;
+		const struct file *file;
+		void *private;
 };
 
-struct seq_operations {
-	void * (*start) (struct seq_file *m, loff_t *pos);
+struct seq_operations
+{
+	void *(*start) (struct seq_file *m, loff_t *pos);
 	void (*stop) (struct seq_file *m, void *v);
-	void * (*next) (struct seq_file *m, void *v, loff_t *pos);
+	void *(*next) (struct seq_file *m, void *v, loff_t *pos);
 	int (*show) (struct seq_file *m, void *v);
 };
 
@@ -63,10 +65,15 @@ static inline bool seq_has_overflowed(struct seq_file *m)
 static inline size_t seq_get_buf(struct seq_file *m, char **bufp)
 {
 	BUG_ON(m->count > m->size);
+
 	if (m->count < m->size)
+	{
 		*bufp = m->buf + m->count;
+	}
 	else
+	{
 		*bufp = NULL;
+	}
 
 	return m->size - m->count;
 }
@@ -82,9 +89,12 @@ static inline size_t seq_get_buf(struct seq_file *m, char **bufp)
  */
 static inline void seq_commit(struct seq_file *m, int num)
 {
-	if (num < 0) {
+	if (num < 0)
+	{
 		m->count = m->size;
-	} else {
+	}
+	else
+	{
 		BUG_ON(m->count + num > m->size);
 		m->count += num;
 	}
@@ -118,19 +128,19 @@ void seq_printf(struct seq_file *m, const char *fmt, ...);
 void seq_putc(struct seq_file *m, char c);
 void seq_puts(struct seq_file *m, const char *s);
 void seq_put_decimal_ull(struct seq_file *m, const char *delimiter,
-			 unsigned long long num);
+						 unsigned long long num);
 void seq_put_decimal_ll(struct seq_file *m, const char *delimiter, long long num);
 void seq_escape(struct seq_file *m, const char *s, const char *esc);
 
 void seq_hex_dump(struct seq_file *m, const char *prefix_str, int prefix_type,
-		  int rowsize, int groupsize, const void *buf, size_t len,
-		  bool ascii);
+				  int rowsize, int groupsize, const void *buf, size_t len,
+				  bool ascii);
 
 int seq_path(struct seq_file *, const struct path *, const char *);
 int seq_file_path(struct seq_file *, struct file *, const char *);
 int seq_dentry(struct seq_file *, struct dentry *, const char *);
 int seq_path_root(struct seq_file *m, const struct path *path,
-		  const struct path *root, const char *esc);
+				  const struct path *root, const char *esc);
 
 int single_open(struct file *, int (*)(struct seq_file *, void *), void *);
 int single_open_size(struct file *, int (*)(struct seq_file *, void *), void *, size_t);
@@ -156,11 +166,13 @@ static inline struct user_namespace *seq_user_ns(struct seq_file *seq)
  * @value: the mount option name's value, can be NULL
  */
 static inline void seq_show_option(struct seq_file *m, const char *name,
-				   const char *value)
+								   const char *value)
 {
 	seq_putc(m, ',');
 	seq_escape(m, name, ",= \t\n\\");
-	if (value) {
+
+	if (value)
+	{
 		seq_putc(m, '=');
 		seq_escape(m, value, ", \t\n\\");
 	}
@@ -178,11 +190,11 @@ static inline void seq_show_option(struct seq_file *m, const char *name,
  * stack buffer.
  */
 #define seq_show_option_n(m, name, value, length) {	\
-	char val_buf[length + 1];			\
-	strncpy(val_buf, value, length);		\
-	val_buf[length] = '\0';				\
-	seq_show_option(m, name, val_buf);		\
-}
+		char val_buf[length + 1];			\
+		strncpy(val_buf, value, length);		\
+		val_buf[length] = '\0';				\
+		seq_show_option(m, name, val_buf);		\
+	}
 
 #define SEQ_START_TOKEN ((void *)1)
 /*
@@ -190,30 +202,30 @@ static inline void seq_show_option(struct seq_file *m, const char *name,
  */
 
 extern struct list_head *seq_list_start(struct list_head *head,
-		loff_t pos);
+										loff_t pos);
 extern struct list_head *seq_list_start_head(struct list_head *head,
 		loff_t pos);
 extern struct list_head *seq_list_next(void *v, struct list_head *head,
-		loff_t *ppos);
+									   loff_t *ppos);
 
 /*
  * Helpers for iteration over hlist_head-s in seq_files
  */
 
 extern struct hlist_node *seq_hlist_start(struct hlist_head *head,
-					  loff_t pos);
+		loff_t pos);
 extern struct hlist_node *seq_hlist_start_head(struct hlist_head *head,
-					       loff_t pos);
+		loff_t pos);
 extern struct hlist_node *seq_hlist_next(void *v, struct hlist_head *head,
-					 loff_t *ppos);
+		loff_t *ppos);
 
 extern struct hlist_node *seq_hlist_start_rcu(struct hlist_head *head,
-					      loff_t pos);
+		loff_t pos);
 extern struct hlist_node *seq_hlist_start_head_rcu(struct hlist_head *head,
-						   loff_t pos);
+		loff_t pos);
 extern struct hlist_node *seq_hlist_next_rcu(void *v,
-						   struct hlist_head *head,
-						   loff_t *ppos);
+		struct hlist_head *head,
+		loff_t *ppos);
 
 /* Helpers for iterating over per-cpu hlist_head-s in seq_files */
 extern struct hlist_node *seq_hlist_start_percpu(struct hlist_head __percpu *head, int *cpu, loff_t pos);

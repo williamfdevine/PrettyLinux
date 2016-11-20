@@ -75,7 +75,8 @@
 	pr_err("stk1160: " fmt, ## args)
 
 /* Buffer for one video frame */
-struct stk1160_buffer {
+struct stk1160_buffer
+{
 	/* common v4l buffer stuff -- must be first */
 	struct vb2_v4l2_buffer vb;
 	struct list_head list;
@@ -92,7 +93,8 @@ struct stk1160_buffer {
 	unsigned int pos;		/* current pos inside buffer */
 };
 
-struct stk1160_isoc_ctl {
+struct stk1160_isoc_ctl
+{
 	/* max packet size of isoc transaction */
 	int max_pkt_size;
 
@@ -109,13 +111,15 @@ struct stk1160_isoc_ctl {
 	struct stk1160_buffer *buf;
 };
 
-struct stk1160_fmt {
+struct stk1160_fmt
+{
 	char  *name;
 	u32   fourcc;          /* v4l2 format id */
 	int   depth;
 };
 
-struct stk1160 {
+struct stk1160
+{
 	struct v4l2_device v4l2_dev;
 	struct video_device vdev;
 	struct v4l2_ctrl_handler ctrl_handler;
@@ -166,7 +170,8 @@ struct stk1160 {
 	struct snd_card *snd_card;
 };
 
-struct regval {
+struct regval
+{
 	u16 reg;
 	u16 val;
 };
@@ -191,9 +196,9 @@ int stk1160_i2c_unregister(struct stk1160 *dev);
 int stk1160_read_reg(struct stk1160 *dev, u16 reg, u8 *value);
 int stk1160_write_reg(struct stk1160 *dev, u16 reg, u16 value);
 int stk1160_write_regs_req(struct stk1160 *dev, u8 req, u16 reg,
-		char *buf, int len);
+						   char *buf, int len);
 int stk1160_read_reg_req_len(struct stk1160 *dev, u8 req, u16 reg,
-		char *buf, int len);
+							 char *buf, int len);
 void stk1160_select_input(struct stk1160 *dev);
 
 /* Provided by stk1160-ac97.c */

@@ -25,13 +25,14 @@ static char *dev_info = "hostap_pci";
 
 MODULE_AUTHOR("Jouni Malinen");
 MODULE_DESCRIPTION("Support for Intersil Prism2.5-based 802.11 wireless LAN "
-		   "PCI cards.");
+				   "PCI cards.");
 MODULE_SUPPORTED_DEVICE("Intersil Prism2.5-based WLAN PCI cards");
 MODULE_LICENSE("GPL");
 
 
 /* struct local_info::hw_priv */
-struct hostap_pci_priv {
+struct hostap_pci_priv
+{
 	void __iomem *mem_start;
 };
 
@@ -39,7 +40,8 @@ struct hostap_pci_priv {
 /* FIX: do we need mb/wmb/rmb with memory operations? */
 
 
-static const struct pci_device_id prism2_pci_id_table[] = {
+static const struct pci_device_id prism2_pci_id_table[] =
+{
 	/* Intersil Prism3 ISL3872 11Mb/s WLAN Controller */
 	{ 0x1260, 0x3872, PCI_ANY_ID, PCI_ANY_ID },
 	/* Intersil Prism2.5 ISL3874 11Mb/s WLAN Controller */
@@ -180,7 +182,7 @@ static inline u16 hfa384x_inw(struct net_device *dev, int a)
 
 
 static int hfa384x_from_bap(struct net_device *dev, u16 bap, void *buf,
-			    int len)
+							int len)
 {
 	u16 d_off;
 	__le16 *pos;
@@ -189,10 +191,14 @@ static int hfa384x_from_bap(struct net_device *dev, u16 bap, void *buf,
 	pos = (__le16 *) buf;
 
 	for ( ; len > 1; len -= 2)
+	{
 		*pos++ = HFA384X_INW_DATA(d_off);
+	}
 
 	if (len & 1)
+	{
 		*((char *) pos) = HFA384X_INB(d_off);
+	}
 
 	return 0;
 }
@@ -207,10 +213,14 @@ static int hfa384x_to_bap(struct net_device *dev, u16 bap, void *buf, int len)
 	pos = (__le16 *) buf;
 
 	for ( ; len > 1; len -= 2)
+	{
 		HFA384X_OUTW_DATA(*pos++, d_off);
+	}
 
 	if (len & 1)
+	{
 		HFA384X_OUTB(*((char *) pos), d_off);
+	}
 
 	return 0;
 }
@@ -233,7 +243,7 @@ static void prism2_pci_cor_sreset(local_info_t *local)
 	 * to work fine with shorter delays.
 	 *
 	 * Longer delays can be configured by uncommenting following line: */
-/* #define PRISM2_PCI_USE_LONG_DELAYS */
+	/* #define PRISM2_PCI_USE_LONG_DELAYS */
 
 #ifdef PRISM2_PCI_USE_LONG_DELAYS
 	int i;
@@ -246,8 +256,11 @@ static void prism2_pci_cor_sreset(local_info_t *local)
 
 	/* Wait for f/w to complete initialization (CMD:BUSY == 0) */
 	i = 2000000 / 10;
+
 	while ((HFA384X_INW(HFA384X_CMD_OFF) & HFA384X_CMD_BUSY) && --i)
+	{
 		udelay(10);
+	}
 
 #else /* PRISM2_PCI_USE_LONG_DELAYS */
 
@@ -258,7 +271,8 @@ static void prism2_pci_cor_sreset(local_info_t *local)
 
 #endif /* PRISM2_PCI_USE_LONG_DELAYS */
 
-	if (HFA384X_INW(HFA384X_CMD_OFF) & HFA384X_CMD_BUSY) {
+	if (HFA384X_INW(HFA384X_CMD_OFF) & HFA384X_CMD_BUSY)
+	{
 		printk(KERN_DEBUG "%s: COR sreset timeout\n", dev->name);
 	}
 }
@@ -287,7 +301,7 @@ static struct prism2_helper_functions prism2_pci_funcs =
 
 
 static int prism2_pci_probe(struct pci_dev *pdev,
-			    const struct pci_device_id *id)
+							const struct pci_device_id *id)
 {
 	unsigned long phymem;
 	void __iomem *mem = NULL;
@@ -299,36 +313,48 @@ static int prism2_pci_probe(struct pci_dev *pdev,
 	struct hostap_pci_priv *hw_priv;
 
 	hw_priv = kzalloc(sizeof(*hw_priv), GFP_KERNEL);
+
 	if (hw_priv == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	if (pci_enable_device(pdev))
+	{
 		goto err_out_free;
+	}
 
 	phymem = pci_resource_start(pdev, 0);
 
-	if (!request_mem_region(phymem, pci_resource_len(pdev, 0), "Prism2")) {
+	if (!request_mem_region(phymem, pci_resource_len(pdev, 0), "Prism2"))
+	{
 		printk(KERN_ERR "prism2: Cannot reserve PCI memory region\n");
 		goto err_out_disable;
 	}
 
 	mem = pci_ioremap_bar(pdev, 0);
-	if (mem == NULL) {
+
+	if (mem == NULL)
+	{
 		printk(KERN_ERR "prism2: Cannot remap PCI memory region\n") ;
 		goto fail;
 	}
 
 	dev = prism2_init_local_data(&prism2_pci_funcs, cards_found,
-				     &pdev->dev);
+								 &pdev->dev);
+
 	if (dev == NULL)
+	{
 		goto fail;
+	}
+
 	iface = netdev_priv(dev);
 	local = iface->local;
 	local->hw_priv = hw_priv;
 	cards_found++;
 
-        dev->irq = pdev->irq;
-        hw_priv->mem_start = mem;
+	dev->irq = pdev->irq;
+	hw_priv->mem_start = mem;
 	dev->base_addr = (unsigned long) mem;
 
 	prism2_pci_cor_sreset(local);
@@ -336,37 +362,47 @@ static int prism2_pci_probe(struct pci_dev *pdev,
 	pci_set_drvdata(pdev, dev);
 
 	if (request_irq(dev->irq, prism2_interrupt, IRQF_SHARED, dev->name,
-			dev)) {
+					dev))
+	{
 		printk(KERN_WARNING "%s: request_irq failed\n", dev->name);
 		goto fail;
-	} else
+	}
+	else
+	{
 		irq_registered = 1;
+	}
 
-	if (!local->pri_only && prism2_hw_config(dev, 1)) {
+	if (!local->pri_only && prism2_hw_config(dev, 1))
+	{
 		printk(KERN_DEBUG "%s: hardware initialization failed\n",
-		       dev_info);
+			   dev_info);
 		goto fail;
 	}
 
 	printk(KERN_INFO "%s: Intersil Prism2.5 PCI: "
-	       "mem=0x%lx, irq=%d\n", dev->name, phymem, dev->irq);
+		   "mem=0x%lx, irq=%d\n", dev->name, phymem, dev->irq);
 
 	return hostap_hw_ready(dev);
 
- fail:
+fail:
+
 	if (irq_registered && dev)
+	{
 		free_irq(dev->irq, dev);
+	}
 
 	if (mem)
+	{
 		iounmap(mem);
+	}
 
 	release_mem_region(phymem, pci_resource_len(pdev, 0));
 
- err_out_disable:
+err_out_disable:
 	pci_disable_device(pdev);
 	prism2_free_local_data(dev);
 
- err_out_free:
+err_out_free:
 	kfree(hw_priv);
 
 	return -ENODEV;
@@ -389,7 +425,9 @@ static void prism2_pci_remove(struct pci_dev *pdev)
 	hfa384x_disable_interrupts(dev);
 
 	if (dev->irq)
+	{
 		free_irq(dev->irq, dev);
+	}
 
 	mem_start = hw_priv->mem_start;
 	prism2_free_local_data(dev);
@@ -398,7 +436,7 @@ static void prism2_pci_remove(struct pci_dev *pdev)
 	iounmap(mem_start);
 
 	release_mem_region(pci_resource_start(pdev, 0),
-			   pci_resource_len(pdev, 0));
+					   pci_resource_len(pdev, 0));
 	pci_disable_device(pdev);
 }
 
@@ -408,10 +446,12 @@ static int prism2_pci_suspend(struct pci_dev *pdev, pm_message_t state)
 {
 	struct net_device *dev = pci_get_drvdata(pdev);
 
-	if (netif_running(dev)) {
+	if (netif_running(dev))
+	{
 		netif_stop_queue(dev);
 		netif_device_detach(dev);
 	}
+
 	prism2_suspend(dev);
 	pci_save_state(pdev);
 	pci_disable_device(pdev);
@@ -426,14 +466,19 @@ static int prism2_pci_resume(struct pci_dev *pdev)
 	int err;
 
 	err = pci_enable_device(pdev);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR "%s: pci_enable_device failed on resume\n",
-		       dev->name);
+			   dev->name);
 		return err;
 	}
+
 	pci_restore_state(pdev);
 	prism2_hw_config(dev, 0);
-	if (netif_running(dev)) {
+
+	if (netif_running(dev))
+	{
 		netif_device_attach(dev);
 		netif_start_queue(dev);
 	}
@@ -445,7 +490,8 @@ static int prism2_pci_resume(struct pci_dev *pdev)
 
 MODULE_DEVICE_TABLE(pci, prism2_pci_id_table);
 
-static struct pci_driver prism2_pci_driver = {
+static struct pci_driver prism2_pci_driver =
+{
 	.name		= "hostap_pci",
 	.id_table	= prism2_pci_id_table,
 	.probe		= prism2_pci_probe,

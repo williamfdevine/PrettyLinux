@@ -19,21 +19,24 @@
 #include <linux/extcon.h>
 #include <linux/alarmtimer.h>
 
-enum data_source {
+enum data_source
+{
 	CM_BATTERY_PRESENT,
 	CM_NO_BATTERY,
 	CM_FUEL_GAUGE,
 	CM_CHARGER_STAT,
 };
 
-enum polling_modes {
+enum polling_modes
+{
 	CM_POLL_DISABLE = 0,
 	CM_POLL_ALWAYS,
 	CM_POLL_EXTERNAL_POWER_ONLY,
 	CM_POLL_CHARGING_ONLY,
 };
 
-enum cm_event_types {
+enum cm_event_types
+{
 	CM_EVENT_UNKNOWN = 0,
 	CM_EVENT_BATT_FULL,
 	CM_EVENT_BATT_IN,
@@ -61,7 +64,8 @@ enum cm_event_types {
  * @charger: the instance of struct charger_regulator.
  * @cm: the Charger Manager representing the battery.
  */
-struct charger_cable {
+struct charger_cable
+{
 	const char *extcon_name;
 	const char *name;
 
@@ -104,7 +108,8 @@ struct charger_cable {
  * @attr_externally_control: "externally_control" sysfs entry
  * @attrs: Arrays pointing to attr_name/state/externally_control for attr_g
  */
-struct charger_regulator {
+struct charger_regulator
+{
 	/* The name of regulator for charging */
 	const char *regulator_name;
 	struct regulator *consumer;
@@ -168,7 +173,8 @@ struct charger_regulator {
  *	after full-batt. If discharging duration exceed 'discharging
  *	max_duration_ms', cm start charging.
  */
-struct charger_desc {
+struct charger_desc
+{
 	const char *psy_name;
 
 	enum polling_modes polling_mode;
@@ -226,7 +232,8 @@ struct charger_desc {
  * @charging_start_time: saved start time of enabling charging
  * @charging_end_time: saved end time of disabling charging
  */
-struct charger_manager {
+struct charger_manager
+{
 	struct list_head entry;
 	struct device *dev;
 	struct charger_desc *desc;
@@ -251,9 +258,9 @@ struct charger_manager {
 
 #ifdef CONFIG_CHARGER_MANAGER
 extern void cm_notify_event(struct power_supply *psy,
-				enum cm_event_types type, char *msg);
+							enum cm_event_types type, char *msg);
 #else
 static inline void cm_notify_event(struct power_supply *psy,
-				enum cm_event_types type, char *msg) { }
+								   enum cm_event_types type, char *msg) { }
 #endif
 #endif /* _CHARGER_MANAGER_H */

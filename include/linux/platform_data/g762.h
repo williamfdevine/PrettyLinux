@@ -27,7 +27,8 @@
  * overloading those installed during boot (e.g. by u-boot).
  */
 
-struct g762_platform_data {
+struct g762_platform_data
+{
 	u32 fan_startv;
 	u32 fan_gear_mode;
 	u32 pwm_polarity;

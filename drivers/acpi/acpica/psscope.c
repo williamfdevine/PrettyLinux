@@ -60,7 +60,7 @@ ACPI_MODULE_NAME("psscope")
  *
  ******************************************************************************/
 union acpi_parse_object *acpi_ps_get_parent_scope(struct acpi_parse_state
-						  *parser_state)
+			*parser_state)
 {
 
 	return (parser_state->scope->parse_scope.op);
@@ -80,12 +80,12 @@ union acpi_parse_object *acpi_ps_get_parent_scope(struct acpi_parse_state
  *
  ******************************************************************************/
 
-u8 acpi_ps_has_completed_scope(struct acpi_parse_state * parser_state)
+u8 acpi_ps_has_completed_scope(struct acpi_parse_state *parser_state)
 {
 
 	return ((u8)
-		((parser_state->aml >= parser_state->scope->parse_scope.arg_end
-		  || !parser_state->scope->parse_scope.arg_count)));
+			((parser_state->aml >= parser_state->scope->parse_scope.arg_end
+			  || !parser_state->scope->parse_scope.arg_count)));
 }
 
 /*******************************************************************************
@@ -102,15 +102,17 @@ u8 acpi_ps_has_completed_scope(struct acpi_parse_state * parser_state)
  ******************************************************************************/
 
 acpi_status
-acpi_ps_init_scope(struct acpi_parse_state * parser_state,
-		   union acpi_parse_object * root_op)
+acpi_ps_init_scope(struct acpi_parse_state *parser_state,
+				   union acpi_parse_object *root_op)
 {
 	union acpi_generic_state *scope;
 
 	ACPI_FUNCTION_TRACE_PTR(ps_init_scope, root_op);
 
 	scope = acpi_ut_create_generic_state();
-	if (!scope) {
+
+	if (!scope)
+	{
 		return_ACPI_STATUS(AE_NO_MEMORY);
 	}
 
@@ -143,15 +145,17 @@ acpi_ps_init_scope(struct acpi_parse_state * parser_state,
 
 acpi_status
 acpi_ps_push_scope(struct acpi_parse_state *parser_state,
-		   union acpi_parse_object *op,
-		   u32 remaining_args, u32 arg_count)
+				   union acpi_parse_object *op,
+				   u32 remaining_args, u32 arg_count)
 {
 	union acpi_generic_state *scope;
 
 	ACPI_FUNCTION_TRACE_PTR(ps_push_scope, op);
 
 	scope = acpi_ut_create_generic_state();
-	if (!scope) {
+
+	if (!scope)
+	{
 		return_ACPI_STATUS(AE_NO_MEMORY);
 	}
 
@@ -165,12 +169,15 @@ acpi_ps_push_scope(struct acpi_parse_state *parser_state,
 
 	acpi_ut_push_generic_state(&parser_state->scope, scope);
 
-	if (arg_count == ACPI_VAR_ARGS) {
+	if (arg_count == ACPI_VAR_ARGS)
+	{
 
 		/* Multiple arguments */
 
 		scope->parse_scope.arg_end = parser_state->pkg_end;
-	} else {
+	}
+	else
+	{
 		/* Single argument */
 
 		scope->parse_scope.arg_end = ACPI_TO_POINTER(ACPI_MAX_PTR);
@@ -197,7 +204,7 @@ acpi_ps_push_scope(struct acpi_parse_state *parser_state,
 
 void
 acpi_ps_pop_scope(struct acpi_parse_state *parser_state,
-		  union acpi_parse_object **op, u32 * arg_list, u32 * arg_count)
+				  union acpi_parse_object **op, u32 *arg_list, u32 *arg_count)
 {
 	union acpi_generic_state *scope = parser_state->scope;
 
@@ -205,7 +212,8 @@ acpi_ps_pop_scope(struct acpi_parse_state *parser_state,
 
 	/* Only pop the scope if there is in fact a next scope */
 
-	if (scope->common.next) {
+	if (scope->common.next)
+	{
 		scope = acpi_ut_pop_generic_state(&parser_state->scope);
 
 		/* Return to parsing previous op */
@@ -218,7 +226,9 @@ acpi_ps_pop_scope(struct acpi_parse_state *parser_state,
 		/* All done with this scope state structure */
 
 		acpi_ut_delete_generic_state(scope);
-	} else {
+	}
+	else
+	{
 		/* Empty parse stack, prepare to fetch next opcode */
 
 		*op = NULL;
@@ -227,7 +237,7 @@ acpi_ps_pop_scope(struct acpi_parse_state *parser_state,
 	}
 
 	ACPI_DEBUG_PRINT((ACPI_DB_PARSE,
-			  "Popped Op %p Args %X\n", *op, *arg_count));
+					  "Popped Op %p Args %X\n", *op, *arg_count));
 	return_VOID;
 }
 
@@ -250,13 +260,15 @@ void acpi_ps_cleanup_scope(struct acpi_parse_state *parser_state)
 
 	ACPI_FUNCTION_TRACE_PTR(ps_cleanup_scope, parser_state);
 
-	if (!parser_state) {
+	if (!parser_state)
+	{
 		return_VOID;
 	}
 
 	/* Delete anything on the scope stack */
 
-	while (parser_state->scope) {
+	while (parser_state->scope)
+	{
 		scope = acpi_ut_pop_generic_state(&parser_state->scope);
 		acpi_ut_delete_generic_state(scope);
 	}

@@ -28,7 +28,7 @@
 /**********************************************************************/
 /* internal functions */
 static void send_ll_cmd(struct st_data_s *st_data,
-	unsigned char cmd)
+						unsigned char cmd)
 {
 
 	pr_debug("%s: writing %x", __func__, cmd);
@@ -42,10 +42,11 @@ static void ll_device_want_to_sleep(struct st_data_s *st_data)
 	struct ti_st_plat_data	*pdata;
 
 	pr_debug("%s", __func__);
+
 	/* sanity check */
 	if (st_data->ll_state != ST_LL_AWAKE)
 		pr_err("ERR hcill: ST_LL_GO_TO_SLEEP_IND"
-			  "in state %ld", st_data->ll_state);
+			   "in state %ld", st_data->ll_state);
 
 	send_ll_cmd(st_data, LL_SLEEP_ACK);
 	/* update state */
@@ -54,8 +55,11 @@ static void ll_device_want_to_sleep(struct st_data_s *st_data)
 	/* communicate to platform about chip asleep */
 	kim_data = st_data->kim_data;
 	pdata = kim_data->kim_pdev->dev.platform_data;
+
 	if (pdata->chip_asleep)
+	{
 		pdata->chip_asleep(NULL);
+	}
 }
 
 static void ll_device_want_to_wakeup(struct st_data_s *st_data)
@@ -64,31 +68,39 @@ static void ll_device_want_to_wakeup(struct st_data_s *st_data)
 	struct ti_st_plat_data	*pdata;
 
 	/* diff actions in diff states */
-	switch (st_data->ll_state) {
-	case ST_LL_ASLEEP:
-		send_ll_cmd(st_data, LL_WAKE_UP_ACK);	/* send wake_ack */
-		break;
-	case ST_LL_ASLEEP_TO_AWAKE:
-		/* duplicate wake_ind */
-		pr_err("duplicate wake_ind while waiting for Wake ack");
-		break;
-	case ST_LL_AWAKE:
-		/* duplicate wake_ind */
-		pr_err("duplicate wake_ind already AWAKE");
-		break;
-	case ST_LL_AWAKE_TO_ASLEEP:
-		/* duplicate wake_ind */
-		pr_err("duplicate wake_ind");
-		break;
+	switch (st_data->ll_state)
+	{
+		case ST_LL_ASLEEP:
+			send_ll_cmd(st_data, LL_WAKE_UP_ACK);	/* send wake_ack */
+			break;
+
+		case ST_LL_ASLEEP_TO_AWAKE:
+			/* duplicate wake_ind */
+			pr_err("duplicate wake_ind while waiting for Wake ack");
+			break;
+
+		case ST_LL_AWAKE:
+			/* duplicate wake_ind */
+			pr_err("duplicate wake_ind already AWAKE");
+			break;
+
+		case ST_LL_AWAKE_TO_ASLEEP:
+			/* duplicate wake_ind */
+			pr_err("duplicate wake_ind");
+			break;
 	}
+
 	/* update state */
 	st_data->ll_state = ST_LL_AWAKE;
 
 	/* communicate to platform about chip wakeup */
 	kim_data = st_data->kim_data;
 	pdata = kim_data->kim_pdev->dev.platform_data;
+
 	if (pdata->chip_awake)
+	{
 		pdata->chip_awake(NULL);
+	}
 }
 
 /**********************************************************************/
@@ -111,10 +123,13 @@ void st_ll_disable(struct st_data_s *ll)
 /* called when ST Core wants to update the state */
 void st_ll_wakeup(struct st_data_s *ll)
 {
-	if (likely(ll->ll_state != ST_LL_AWAKE)) {
+	if (likely(ll->ll_state != ST_LL_AWAKE))
+	{
 		send_ll_cmd(ll, LL_WAKE_UP_IND);	/* WAKE_IND */
 		ll->ll_state = ST_LL_ASLEEP_TO_AWAKE;
-	} else {
+	}
+	else
+	{
 		/* don't send the duplicate wake_indication */
 		pr_err(" Chip already AWAKE ");
 	}
@@ -129,28 +144,34 @@ unsigned long st_ll_getstate(struct st_data_s *ll)
 
 /* called from ST Core, when a PM related packet arrives */
 unsigned long st_ll_sleep_state(struct st_data_s *st_data,
-	unsigned char cmd)
+								unsigned char cmd)
 {
-	switch (cmd) {
-	case LL_SLEEP_IND:	/* sleep ind */
-		pr_debug("sleep indication recvd");
-		ll_device_want_to_sleep(st_data);
-		break;
-	case LL_SLEEP_ACK:	/* sleep ack */
-		pr_err("sleep ack rcvd: host shouldn't");
-		break;
-	case LL_WAKE_UP_IND:	/* wake ind */
-		pr_debug("wake indication recvd");
-		ll_device_want_to_wakeup(st_data);
-		break;
-	case LL_WAKE_UP_ACK:	/* wake ack */
-		pr_debug("wake ack rcvd");
-		st_data->ll_state = ST_LL_AWAKE;
-		break;
-	default:
-		pr_err(" unknown input/state ");
-		return -EINVAL;
+	switch (cmd)
+	{
+		case LL_SLEEP_IND:	/* sleep ind */
+			pr_debug("sleep indication recvd");
+			ll_device_want_to_sleep(st_data);
+			break;
+
+		case LL_SLEEP_ACK:	/* sleep ack */
+			pr_err("sleep ack rcvd: host shouldn't");
+			break;
+
+		case LL_WAKE_UP_IND:	/* wake ind */
+			pr_debug("wake indication recvd");
+			ll_device_want_to_wakeup(st_data);
+			break;
+
+		case LL_WAKE_UP_ACK:	/* wake ack */
+			pr_debug("wake ack rcvd");
+			st_data->ll_state = ST_LL_AWAKE;
+			break;
+
+		default:
+			pr_err(" unknown input/state ");
+			return -EINVAL;
 	}
+
 	return 0;
 }
 

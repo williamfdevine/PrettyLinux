@@ -42,8 +42,11 @@ static inline void
 readfifo(unsigned int ale, unsigned long adr, u_char off, u_char *data, int size)
 {
 	int i;
+
 	for (i = 0; i < size; i++)
+	{
 		*data++ = readreg(ale, adr, off);
+	}
 }
 
 
@@ -64,7 +67,9 @@ writefifo(unsigned int ale, unsigned long adr, u_char off, u_char *data, int siz
 	int i;
 
 	for (i = 0; i < size; i++)
+	{
 		writereg(ale, adr, off, *data++);
+	}
 }
 
 
@@ -111,14 +116,14 @@ WriteJADE(struct IsdnCardState *cs, int jade, u_char offset, u_char value)
  */
 
 #define READJADE(cs, nr, reg) readreg(cs->hw.ax.jade_ale,		\
-				      cs->hw.ax.jade_adr, reg + (nr == -1 ? 0 : (nr ? 0xC0 : 0x80)))
+									  cs->hw.ax.jade_adr, reg + (nr == -1 ? 0 : (nr ? 0xC0 : 0x80)))
 #define WRITEJADE(cs, nr, reg, data) writereg(cs->hw.ax.jade_ale,	\
-					      cs->hw.ax.jade_adr, reg + (nr == -1 ? 0 : (nr ? 0xC0 : 0x80)), data)
+		cs->hw.ax.jade_adr, reg + (nr == -1 ? 0 : (nr ? 0xC0 : 0x80)), data)
 
 #define READJADEFIFO(cs, nr, ptr, cnt) readfifo(cs->hw.ax.jade_ale,	\
-						cs->hw.ax.jade_adr, (nr == -1 ? 0 : (nr ? 0xC0 : 0x80)), ptr, cnt)
+		cs->hw.ax.jade_adr, (nr == -1 ? 0 : (nr ? 0xC0 : 0x80)), ptr, cnt)
 #define WRITEJADEFIFO(cs, nr, ptr, cnt) writefifo(cs->hw.ax.jade_ale,	\
-						  cs->hw.ax.jade_adr, (nr == -1 ? 0 : (nr ? 0xC0 : 0x80)), ptr, cnt)
+		cs->hw.ax.jade_adr, (nr == -1 ? 0 : (nr ? 0xC0 : 0x80)), ptr, cnt)
 
 #include "jade_irq.c"
 
@@ -134,31 +139,43 @@ bkm_interrupt(int intno, void *dev_id)
 	pI20_Regs = (I20_REGISTER_FILE *) (cs->hw.ax.base);
 
 	/* ISDN interrupt pending? */
-	if (pI20_Regs->i20IntStatus & intISDN) {
+	if (pI20_Regs->i20IntStatus & intISDN)
+	{
 		/* Reset the ISDN interrupt     */
 		pI20_Regs->i20IntStatus = intISDN;
 		/* Disable ISDN interrupt */
 		pI20_Regs->i20IntCtrl &= ~intISDN;
 		/* Channel A first */
 		val = readreg(cs->hw.ax.jade_ale, cs->hw.ax.jade_adr, jade_HDLC_ISR + 0x80);
-		if (val) {
+
+		if (val)
+		{
 			jade_int_main(cs, val, 0);
 		}
+
 		/* Channel B  */
 		val = readreg(cs->hw.ax.jade_ale, cs->hw.ax.jade_adr, jade_HDLC_ISR + 0xC0);
-		if (val) {
+
+		if (val)
+		{
 			jade_int_main(cs, val, 1);
 		}
+
 		/* D-Channel */
 		val = readreg(cs->hw.ax.isac_ale, cs->hw.ax.isac_adr, ISAC_ISTA);
-		if (val) {
+
+		if (val)
+		{
 			isac_interrupt(cs, val);
 		}
+
 		/* Reenable ISDN interrupt */
 		pI20_Regs->i20IntCtrl |= intISDN;
 		spin_unlock_irqrestore(&cs->lock, flags);
 		return IRQ_HANDLED;
-	} else {
+	}
+	else
+	{
 		spin_unlock_irqrestore(&cs->lock, flags);
 		return IRQ_NONE;
 	}
@@ -167,7 +184,8 @@ bkm_interrupt(int intno, void *dev_id)
 static void
 release_io_bkm(struct IsdnCardState *cs)
 {
-	if (cs->hw.ax.base) {
+	if (cs->hw.ax.base)
+	{
 		iounmap((void *) cs->hw.ax.base);
 		cs->hw.ax.base = 0;
 	}
@@ -176,20 +194,27 @@ release_io_bkm(struct IsdnCardState *cs)
 static void
 enable_bkm_int(struct IsdnCardState *cs, unsigned bEnable)
 {
-	if (cs->typ == ISDN_CTYPE_BKM_A4T) {
+	if (cs->typ == ISDN_CTYPE_BKM_A4T)
+	{
 		I20_REGISTER_FILE *pI20_Regs = (I20_REGISTER_FILE *) (cs->hw.ax.base);
+
 		if (bEnable)
+		{
 			pI20_Regs->i20IntCtrl |= (intISDN | intPCI);
+		}
 		else
 			/* CAUTION: This disables the video capture driver too */
+		{
 			pI20_Regs->i20IntCtrl &= ~(intISDN | intPCI);
+		}
 	}
 }
 
 static void
 reset_bkm(struct IsdnCardState *cs)
 {
-	if (cs->typ == ISDN_CTYPE_BKM_A4T) {
+	if (cs->typ == ISDN_CTYPE_BKM_A4T)
+	{
 		I20_REGISTER_FILE *pI20_Regs = (I20_REGISTER_FILE *) (cs->hw.ax.base);
 		/* Issue the I20 soft reset     */
 		pI20_Regs->i20SysControl = 0xFF;	/* all in */
@@ -201,17 +226,17 @@ reset_bkm(struct IsdnCardState *cs)
 		pI20_Regs->i20SysControl = sysRESET | sysCFG;
 		/* Issue ISDN reset     */
 		pI20_Regs->i20GuestControl = guestWAIT_CFG |
-			g_A4T_JADE_RES |
-			g_A4T_ISAR_RES |
-			g_A4T_ISAC_RES |
-			g_A4T_JADE_BOOTR |
-			g_A4T_ISAR_BOOTR;
+									 g_A4T_JADE_RES |
+									 g_A4T_ISAR_RES |
+									 g_A4T_ISAC_RES |
+									 g_A4T_JADE_BOOTR |
+									 g_A4T_ISAR_BOOTR;
 		mdelay(10);
 
 		/* Remove RESET state from ISDN */
 		pI20_Regs->i20GuestControl &= ~(g_A4T_ISAC_RES |
-						g_A4T_JADE_RES |
-						g_A4T_ISAR_RES);
+										g_A4T_JADE_RES |
+										g_A4T_ISAR_RES);
 		mdelay(10);
 	}
 }
@@ -221,49 +246,59 @@ BKM_card_msg(struct IsdnCardState *cs, int mt, void *arg)
 {
 	u_long flags;
 
-	switch (mt) {
-	case CARD_RESET:
-		/* Disable ints */
-		spin_lock_irqsave(&cs->lock, flags);
-		enable_bkm_int(cs, 0);
-		reset_bkm(cs);
-		spin_unlock_irqrestore(&cs->lock, flags);
-		return (0);
-	case CARD_RELEASE:
-		/* Sanity */
-		spin_lock_irqsave(&cs->lock, flags);
-		enable_bkm_int(cs, 0);
-		reset_bkm(cs);
-		spin_unlock_irqrestore(&cs->lock, flags);
-		release_io_bkm(cs);
-		return (0);
-	case CARD_INIT:
-		spin_lock_irqsave(&cs->lock, flags);
-		clear_pending_isac_ints(cs);
-		clear_pending_jade_ints(cs);
-		initisac(cs);
-		initjade(cs);
-		/* Enable ints */
-		enable_bkm_int(cs, 1);
-		spin_unlock_irqrestore(&cs->lock, flags);
-		return (0);
-	case CARD_TEST:
-		return (0);
+	switch (mt)
+	{
+		case CARD_RESET:
+			/* Disable ints */
+			spin_lock_irqsave(&cs->lock, flags);
+			enable_bkm_int(cs, 0);
+			reset_bkm(cs);
+			spin_unlock_irqrestore(&cs->lock, flags);
+			return (0);
+
+		case CARD_RELEASE:
+			/* Sanity */
+			spin_lock_irqsave(&cs->lock, flags);
+			enable_bkm_int(cs, 0);
+			reset_bkm(cs);
+			spin_unlock_irqrestore(&cs->lock, flags);
+			release_io_bkm(cs);
+			return (0);
+
+		case CARD_INIT:
+			spin_lock_irqsave(&cs->lock, flags);
+			clear_pending_isac_ints(cs);
+			clear_pending_jade_ints(cs);
+			initisac(cs);
+			initjade(cs);
+			/* Enable ints */
+			enable_bkm_int(cs, 1);
+			spin_unlock_irqrestore(&cs->lock, flags);
+			return (0);
+
+		case CARD_TEST:
+			return (0);
 	}
+
 	return (0);
 }
 
 static int a4t_pci_probe(struct pci_dev *dev_a4t, struct IsdnCardState *cs,
-			 u_int *found, u_int *pci_memaddr)
+						 u_int *found, u_int *pci_memaddr)
 {
 	u16 sub_sys;
 	u16 sub_vendor;
 
 	sub_vendor = dev_a4t->subsystem_vendor;
 	sub_sys = dev_a4t->subsystem_device;
-	if ((sub_sys == PCI_DEVICE_ID_BERKOM_A4T) && (sub_vendor == PCI_VENDOR_ID_BERKOM)) {
+
+	if ((sub_sys == PCI_DEVICE_ID_BERKOM_A4T) && (sub_vendor == PCI_VENDOR_ID_BERKOM))
+	{
 		if (pci_enable_device(dev_a4t))
-			return (0);	/* end loop & function */
+		{
+			return (0);    /* end loop & function */
+		}
+
 		*found = 1;
 		*pci_memaddr = pci_resource_start(dev_a4t, 0);
 		cs->irq = dev_a4t->irq;
@@ -274,33 +309,38 @@ static int a4t_pci_probe(struct pci_dev *dev_a4t, struct IsdnCardState *cs,
 }
 
 static int a4t_cs_init(struct IsdnCard *card, struct IsdnCardState *cs,
-		       u_int pci_memaddr)
+					   u_int pci_memaddr)
 {
 	I20_REGISTER_FILE *pI20_Regs;
 
-	if (!cs->irq) {		/* IRQ range check ?? */
+	if (!cs->irq)  		/* IRQ range check ?? */
+	{
 		printk(KERN_WARNING "HiSax: Telekom A4T: No IRQ\n");
 		return (0);
 	}
+
 	cs->hw.ax.base = (long) ioremap(pci_memaddr, 4096);
 	/* Check suspecious address */
 	pI20_Regs = (I20_REGISTER_FILE *) (cs->hw.ax.base);
-	if ((pI20_Regs->i20IntStatus & 0x8EFFFFFF) != 0) {
+
+	if ((pI20_Regs->i20IntStatus & 0x8EFFFFFF) != 0)
+	{
 		printk(KERN_WARNING "HiSax: Telekom A4T address "
-		       "%lx-%lx suspicious\n",
-		       cs->hw.ax.base, cs->hw.ax.base + 4096);
+			   "%lx-%lx suspicious\n",
+			   cs->hw.ax.base, cs->hw.ax.base + 4096);
 		iounmap((void *) cs->hw.ax.base);
 		cs->hw.ax.base = 0;
 		return (0);
 	}
+
 	cs->hw.ax.isac_adr = cs->hw.ax.base + PO_OFFSET;
 	cs->hw.ax.jade_adr = cs->hw.ax.base + PO_OFFSET;
 	cs->hw.ax.isac_ale = GCS_1;
 	cs->hw.ax.jade_ale = GCS_3;
 
 	printk(KERN_INFO "HiSax: Telekom A4T: Card configured at "
-	       "0x%lX IRQ %d\n",
-	       cs->hw.ax.base, cs->irq);
+		   "0x%lX IRQ %d\n",
+		   cs->hw.ax.base, cs->irq);
 
 	setup_isac(cs);
 	cs->readisac = &ReadISAC;
@@ -331,26 +371,42 @@ int setup_bkm_a4t(struct IsdnCard *card)
 
 	strcpy(tmp, bkm_a4t_revision);
 	printk(KERN_INFO "HiSax: T-Berkom driver Rev. %s\n", HiSax_getrev(tmp));
-	if (cs->typ == ISDN_CTYPE_BKM_A4T) {
+
+	if (cs->typ == ISDN_CTYPE_BKM_A4T)
+	{
 		cs->subtyp = BKM_A4T;
-	} else
+	}
+	else
+	{
 		return (0);
+	}
 
 	while ((dev_a4t = hisax_find_pci_device(PCI_VENDOR_ID_ZORAN,
-						PCI_DEVICE_ID_ZORAN_36120, dev_a4t))) {
+											PCI_DEVICE_ID_ZORAN_36120, dev_a4t)))
+	{
 		ret = a4t_pci_probe(dev_a4t, cs, &found, &pci_memaddr);
+
 		if (!ret)
+		{
 			return (0);
+		}
+
 		if (ret > 0)
+		{
 			break;
+		}
 	}
-	if (!found) {
+
+	if (!found)
+	{
 		printk(KERN_WARNING "HiSax: Telekom A4T: Card not found\n");
 		return (0);
 	}
-	if (!pci_memaddr) {
+
+	if (!pci_memaddr)
+	{
 		printk(KERN_WARNING "HiSax: Telekom A4T: "
-		       "No Memory base address\n");
+			   "No Memory base address\n");
 		return (0);
 	}
 

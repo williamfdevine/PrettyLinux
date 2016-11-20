@@ -27,21 +27,24 @@
 #define COMP2					2
 
 /* Comparator 1 voltage selection table in millivolts */
-static const u16 COMP_VSEL_TABLE[] = {
+static const u16 COMP_VSEL_TABLE[] =
+{
 	0, 2500, 2500, 2500, 2500, 2550, 2600, 2650,
 	2700, 2750, 2800, 2850, 2900, 2950, 3000, 3050,
 	3100, 3150, 3200, 3250, 3300, 3350, 3400, 3450,
 	3500,
 };
 
-struct comparator {
+struct comparator
+{
 	const char *name;
 	int reg;
 	int uV_max;
 	const u16 *vsel_table;
 };
 
-static struct comparator tps_comparators[] = {
+static struct comparator tps_comparators[] =
+{
 	{
 		.name = "COMP1",
 		.reg = TPS65911_VMBCH,
@@ -64,18 +67,28 @@ static int comp_threshold_set(struct tps65910 *tps65910, int id, int voltage)
 	u8 index = 0, val;
 
 	if (id == COMP)
+	{
 		return 0;
+	}
 
-	while (curr_voltage < tps_comp.uV_max) {
+	while (curr_voltage < tps_comp.uV_max)
+	{
 		curr_voltage = tps_comp.vsel_table[index];
+
 		if (curr_voltage >= voltage)
+		{
 			break;
+		}
 		else if (curr_voltage < voltage)
+		{
 			index ++;
+		}
 	}
 
 	if (curr_voltage > tps_comp.uV_max)
+	{
 		return -EINVAL;
+	}
 
 	val = index << 1;
 	ret = tps65910->write(tps65910, tps_comp.reg, 1, &val);
@@ -90,29 +103,40 @@ static int comp_threshold_get(struct tps65910 *tps65910, int id)
 	u8 val;
 
 	if (id == COMP)
+	{
 		return 0;
+	}
 
 	ret = tps65910->read(tps65910, tps_comp.reg, 1, &val);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	val >>= 1;
 	return tps_comp.vsel_table[val];
 }
 
 static ssize_t comp_threshold_show(struct device *dev,
-				struct device_attribute *attr, char *buf)
+								   struct device_attribute *attr, char *buf)
 {
 	struct tps65910 *tps65910 = dev_get_drvdata(dev->parent);
 	struct attribute comp_attr = attr->attr;
 	int id, uVolt;
 
 	if (!strcmp(comp_attr.name, "comp1_threshold"))
+	{
 		id = COMP1;
+	}
 	else if (!strcmp(comp_attr.name, "comp2_threshold"))
+	{
 		id = COMP2;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	uVolt = comp_threshold_get(tps65910, id);
 
@@ -129,25 +153,35 @@ static int tps65911_comparator_probe(struct platform_device *pdev)
 	int ret;
 
 	ret = comp_threshold_set(tps65910, COMP1,  pdata->vmbch_threshold);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "cannot set COMP1 threshold\n");
 		return ret;
 	}
 
 	ret = comp_threshold_set(tps65910, COMP2, pdata->vmbch2_threshold);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "cannot set COMP2 threshold\n");
 		return ret;
 	}
 
 	/* Create sysfs entry */
 	ret = device_create_file(&pdev->dev, &dev_attr_comp1_threshold);
+
 	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed to add COMP1 sysfs file\n");
+	}
 
 	ret = device_create_file(&pdev->dev, &dev_attr_comp2_threshold);
+
 	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed to add COMP2 sysfs file\n");
+	}
 
 	return ret;
 }
@@ -163,7 +197,8 @@ static int tps65911_comparator_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver tps65911_comparator_driver = {
+static struct platform_driver tps65911_comparator_driver =
+{
 	.driver = {
 		.name = "tps65911-comparator",
 	},

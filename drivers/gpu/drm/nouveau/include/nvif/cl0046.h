@@ -4,7 +4,8 @@
 #define NV04_DISP_NTFY_VBLANK                                              0x00
 #define NV04_DISP_NTFY_CONN                                                0x01
 
-struct nv04_disp_mthd_v0 {
+struct nv04_disp_mthd_v0
+{
 	__u8  version;
 #define NV04_DISP_SCANOUTPOS                                               0x00
 	__u8  method;
@@ -12,7 +13,8 @@ struct nv04_disp_mthd_v0 {
 	__u8  pad03[5];
 };
 
-struct nv04_disp_scanoutpos_v0 {
+struct nv04_disp_scanoutpos_v0
+{
 	__u8  version;
 	__u8  pad01[7];
 	__s64 time[2];

@@ -17,7 +17,8 @@
 #ifndef _NFCMRVL_PTF_H_
 #define _NFCMRVL_PTF_H_
 
-struct nfcmrvl_platform_data {
+struct nfcmrvl_platform_data
+{
 	/*
 	 * Generic
 	 */

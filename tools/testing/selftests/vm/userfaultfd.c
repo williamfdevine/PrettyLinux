@@ -91,18 +91,22 @@ pthread_attr_t attr;
  */
 #define area_count(___area, ___nr)					\
 	((volatile unsigned long long *) ((unsigned long)		\
-				 ((___area) + (___nr)*page_size +	\
-				  sizeof(pthread_mutex_t) +		\
-				  sizeof(unsigned long long) - 1) &	\
-				 ~(unsigned long)(sizeof(unsigned long long) \
-						  -  1)))
+									  ((___area) + (___nr)*page_size +	\
+									   sizeof(pthread_mutex_t) +		\
+									   sizeof(unsigned long long) - 1) &	\
+									  ~(unsigned long)(sizeof(unsigned long long) \
+											  -  1)))
 
 static int my_bcmp(char *str1, char *str2, size_t n)
 {
 	unsigned long i;
+
 	for (i = 0; i < n; i++)
 		if (str1[i] != str2[i])
+		{
 			return 1;
+		}
+
 	return 0;
 }
 
@@ -117,43 +121,73 @@ static void *locking_thread(void *arg)
 	unsigned int seed;
 	time_t start;
 
-	if (bounces & BOUNCE_RANDOM) {
+	if (bounces & BOUNCE_RANDOM)
+	{
 		seed = (unsigned int) time(NULL) - bounces;
+
 		if (!(bounces & BOUNCE_RACINGFAULTS))
+		{
 			seed += cpu;
+		}
+
 		bzero(&rand, sizeof(rand));
 		bzero(&randstate, sizeof(randstate));
+
 		if (initstate_r(seed, randstate, sizeof(randstate), &rand))
+		{
 			fprintf(stderr, "srandom_r error\n"), exit(1);
-	} else {
+		}
+	}
+	else
+	{
 		page_nr = -bounces;
+
 		if (!(bounces & BOUNCE_RACINGFAULTS))
+		{
 			page_nr += cpu * nr_pages_per_cpu;
+		}
 	}
 
-	while (!finished) {
-		if (bounces & BOUNCE_RANDOM) {
+	while (!finished)
+	{
+		if (bounces & BOUNCE_RANDOM)
+		{
 			if (random_r(&rand, &rand_nr))
+			{
 				fprintf(stderr, "random_r 1 error\n"), exit(1);
-			page_nr = rand_nr;
-			if (sizeof(page_nr) > sizeof(rand_nr)) {
-				if (random_r(&rand, &rand_nr))
-					fprintf(stderr, "random_r 2 error\n"), exit(1);
-				page_nr |= (((unsigned long) rand_nr) << 16) <<
-					   16;
 			}
-		} else
+
+			page_nr = rand_nr;
+
+			if (sizeof(page_nr) > sizeof(rand_nr))
+			{
+				if (random_r(&rand, &rand_nr))
+				{
+					fprintf(stderr, "random_r 2 error\n"), exit(1);
+				}
+
+				page_nr |= (((unsigned long) rand_nr) << 16) <<
+						   16;
+			}
+		}
+		else
+		{
 			page_nr += 1;
+		}
+
 		page_nr %= nr_pages;
 
 		start = time(NULL);
-		if (bounces & BOUNCE_VERIFY) {
+
+		if (bounces & BOUNCE_VERIFY)
+		{
 			count = *area_count(area_dst, page_nr);
+
 			if (!count)
 				fprintf(stderr,
-					"page_nr %lu wrong count %Lu %Lu\n",
-					page_nr, count,
-					count_verify[page_nr]), exit(1);
+						"page_nr %lu wrong count %Lu %Lu\n",
+						page_nr, count,
+						count_verify[page_nr]), exit(1);
 
 
 			/*
@@ -164,54 +198,70 @@ static void *locking_thread(void *arg)
 			 * different).
 			 */
 #if 1
+
 			if (!my_bcmp(area_dst + page_nr * page_size, zeropage,
-				     page_size))
+						 page_size))
 				fprintf(stderr,
-					"my_bcmp page_nr %lu wrong count %Lu %Lu\n",
-					page_nr, count,
-					count_verify[page_nr]), exit(1);
+						"my_bcmp page_nr %lu wrong count %Lu %Lu\n",
+						page_nr, count,
+						count_verify[page_nr]), exit(1);
+
 #else
 			unsigned long loops;
 
 			loops = 0;
+
 			/* uncomment the below line to test with mutex */
 			/* pthread_mutex_lock(area_mutex(area_dst, page_nr)); */
 			while (!bcmp(area_dst + page_nr * page_size, zeropage,
-				     page_size)) {
+						 page_size))
+			{
 				loops += 1;
+
 				if (loops > 10)
+				{
 					break;
+				}
 			}
+
 			/* uncomment below line to test with mutex */
 			/* pthread_mutex_unlock(area_mutex(area_dst, page_nr)); */
-			if (loops) {
+			if (loops)
+			{
 				fprintf(stderr,
-					"page_nr %lu all zero thread %lu %p %lu\n",
-					page_nr, cpu, area_dst + page_nr * page_size,
-					loops);
+						"page_nr %lu all zero thread %lu %p %lu\n",
+						page_nr, cpu, area_dst + page_nr * page_size,
+						loops);
+
 				if (loops > 10)
+				{
 					exit(1);
+				}
 			}
+
 #endif
 		}
 
 		pthread_mutex_lock(area_mutex(area_dst, page_nr));
 		count = *area_count(area_dst, page_nr);
-		if (count != count_verify[page_nr]) {
+
+		if (count != count_verify[page_nr])
+		{
 			fprintf(stderr,
-				"page_nr %lu memory corruption %Lu %Lu\n",
-				page_nr, count,
-				count_verify[page_nr]), exit(1);
+					"page_nr %lu memory corruption %Lu %Lu\n",
+					page_nr, count,
+					count_verify[page_nr]), exit(1);
 		}
+
 		count++;
 		*area_count(area_dst, page_nr) = count_verify[page_nr] = count;
 		pthread_mutex_unlock(area_mutex(area_dst, page_nr));
 
 		if (time(NULL) - start > 1)
 			fprintf(stderr,
-				"userfault too slow %ld "
-				"possible false positive with overcommit\n",
-				time(NULL) - start);
+					"userfault too slow %ld "
+					"possible false positive with overcommit\n",
+					time(NULL) - start);
 	}
 
 	return NULL;
@@ -223,22 +273,31 @@ static int copy_page(unsigned long offset)
 
 	if (offset >= nr_pages * page_size)
 		fprintf(stderr, "unexpected offset %lu\n",
-			offset), exit(1);
+				offset), exit(1);
+
 	uffdio_copy.dst = (unsigned long) area_dst + offset;
 	uffdio_copy.src = (unsigned long) area_src + offset;
 	uffdio_copy.len = page_size;
 	uffdio_copy.mode = 0;
 	uffdio_copy.copy = 0;
-	if (ioctl(uffd, UFFDIO_COPY, &uffdio_copy)) {
+
+	if (ioctl(uffd, UFFDIO_COPY, &uffdio_copy))
+	{
 		/* real retval in ufdio_copy.copy */
 		if (uffdio_copy.copy != -EEXIST)
 			fprintf(stderr, "UFFDIO_COPY error %Ld\n",
-				uffdio_copy.copy), exit(1);
-	} else if (uffdio_copy.copy != page_size) {
+					uffdio_copy.copy), exit(1);
+	}
+	else if (uffdio_copy.copy != page_size)
+	{
 		fprintf(stderr, "UFFDIO_COPY unexpected copy %Ld\n",
-			uffdio_copy.copy), exit(1);
-	} else
+				uffdio_copy.copy), exit(1);
+	}
+	else
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -254,41 +313,67 @@ static void *uffd_poll_thread(void *arg)
 
 	pollfd[0].fd = uffd;
 	pollfd[0].events = POLLIN;
-	pollfd[1].fd = pipefd[cpu*2];
+	pollfd[1].fd = pipefd[cpu * 2];
 	pollfd[1].events = POLLIN;
 
-	for (;;) {
+	for (;;)
+	{
 		ret = poll(pollfd, 2, -1);
+
 		if (!ret)
+		{
 			fprintf(stderr, "poll error %d\n", ret), exit(1);
+		}
+
 		if (ret < 0)
+		{
 			perror("poll"), exit(1);
-		if (pollfd[1].revents & POLLIN) {
+		}
+
+		if (pollfd[1].revents & POLLIN)
+		{
 			if (read(pollfd[1].fd, &tmp_chr, 1) != 1)
 				fprintf(stderr, "read pipefd error\n"),
-					exit(1);
+						exit(1);
+
 			break;
 		}
+
 		if (!(pollfd[0].revents & POLLIN))
 			fprintf(stderr, "pollfd[0].revents %d\n",
-				pollfd[0].revents), exit(1);
+					pollfd[0].revents), exit(1);
+
 		ret = read(uffd, &msg, sizeof(msg));
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			if (errno == EAGAIN)
+			{
 				continue;
+			}
+
 			perror("nonblocking read error"), exit(1);
 		}
+
 		if (msg.event != UFFD_EVENT_PAGEFAULT)
 			fprintf(stderr, "unexpected msg event %u\n",
-				msg.event), exit(1);
+					msg.event), exit(1);
+
 		if (msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE)
+		{
 			fprintf(stderr, "unexpected write fault\n"), exit(1);
+		}
+
 		offset = (char *)(unsigned long)msg.arg.pagefault.address -
-			 area_dst;
-		offset &= ~(page_size-1);
+				 area_dst;
+		offset &= ~(page_size - 1);
+
 		if (copy_page(offset))
+		{
 			userfaults++;
+		}
 	}
+
 	return (void *)userfaults;
 }
 
@@ -307,26 +392,42 @@ static void *uffd_read_thread(void *arg)
 	pthread_mutex_unlock(&uffd_read_mutex);
 	/* from here cancellation is ok */
 
-	for (;;) {
+	for (;;)
+	{
 		ret = read(uffd, &msg, sizeof(msg));
-		if (ret != sizeof(msg)) {
+
+		if (ret != sizeof(msg))
+		{
 			if (ret < 0)
+			{
 				perror("blocking read error"), exit(1);
+			}
 			else
+			{
 				fprintf(stderr, "short read\n"), exit(1);
+			}
 		}
+
 		if (msg.event != UFFD_EVENT_PAGEFAULT)
 			fprintf(stderr, "unexpected msg event %u\n",
-				msg.event), exit(1);
+					msg.event), exit(1);
+
 		if (bounces & BOUNCE_VERIFY &&
-		    msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE)
+			msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE)
+		{
 			fprintf(stderr, "unexpected write fault\n"), exit(1);
+		}
+
 		offset = (char *)(unsigned long)msg.arg.pagefault.address -
-			 area_dst;
-		offset &= ~(page_size-1);
+				 area_dst;
+		offset &= ~(page_size - 1);
+
 		if (copy_page(offset))
+		{
 			(*this_cpu_userfaults)++;
+		}
 	}
+
 	return (void *)NULL;
 }
 
@@ -336,9 +437,11 @@ static void *background_thread(void *arg)
 	unsigned long page_nr;
 
 	for (page_nr = cpu * nr_pages_per_cpu;
-	     page_nr < (cpu+1) * nr_pages_per_cpu;
-	     page_nr++)
+		 page_nr < (cpu + 1) * nr_pages_per_cpu;
+		 page_nr++)
+	{
 		copy_page(page_nr * page_size);
+	}
 
 	return NULL;
 }
@@ -352,28 +455,47 @@ static int stress(unsigned long *userfaults)
 	void **_userfaults = (void **) userfaults;
 
 	finished = 0;
-	for (cpu = 0; cpu < nr_cpus; cpu++) {
+
+	for (cpu = 0; cpu < nr_cpus; cpu++)
+	{
 		if (pthread_create(&locking_threads[cpu], &attr,
-				   locking_thread, (void *)cpu))
+						   locking_thread, (void *)cpu))
+		{
 			return 1;
-		if (bounces & BOUNCE_POLL) {
+		}
+
+		if (bounces & BOUNCE_POLL)
+		{
 			if (pthread_create(&uffd_threads[cpu], &attr,
-					   uffd_poll_thread, (void *)cpu))
+							   uffd_poll_thread, (void *)cpu))
+			{
 				return 1;
-		} else {
+			}
+		}
+		else
+		{
 			if (pthread_create(&uffd_threads[cpu], &attr,
-					   uffd_read_thread,
-					   &_userfaults[cpu]))
+							   uffd_read_thread,
+							   &_userfaults[cpu]))
+			{
 				return 1;
+			}
+
 			pthread_mutex_lock(&uffd_read_mutex);
 		}
+
 		if (pthread_create(&background_threads[cpu], &attr,
-				   background_thread, (void *)cpu))
+						   background_thread, (void *)cpu))
+		{
 			return 1;
+		}
 	}
+
 	for (cpu = 0; cpu < nr_cpus; cpu++)
 		if (pthread_join(background_threads[cpu], NULL))
+		{
 			return 1;
+		}
 
 	/*
 	 * Be strict and immediately zap area_src, the whole area has
@@ -384,32 +506,50 @@ static int stress(unsigned long *userfaults)
 	 * UFFDIO_COPY without writing zero pages into area_dst
 	 * because the background threads already completed).
 	 */
-	if (madvise(area_src, nr_pages * page_size, MADV_DONTNEED)) {
+	if (madvise(area_src, nr_pages * page_size, MADV_DONTNEED))
+	{
 		perror("madvise");
 		return 1;
 	}
 
-	for (cpu = 0; cpu < nr_cpus; cpu++) {
+	for (cpu = 0; cpu < nr_cpus; cpu++)
+	{
 		char c;
-		if (bounces & BOUNCE_POLL) {
-			if (write(pipefd[cpu*2+1], &c, 1) != 1) {
+
+		if (bounces & BOUNCE_POLL)
+		{
+			if (write(pipefd[cpu * 2 + 1], &c, 1) != 1)
+			{
 				fprintf(stderr, "pipefd write error\n");
 				return 1;
 			}
+
 			if (pthread_join(uffd_threads[cpu], &_userfaults[cpu]))
+			{
 				return 1;
-		} else {
+			}
+		}
+		else
+		{
 			if (pthread_cancel(uffd_threads[cpu]))
+			{
 				return 1;
+			}
+
 			if (pthread_join(uffd_threads[cpu], NULL))
+			{
 				return 1;
+			}
 		}
 	}
 
 	finished = 1;
+
 	for (cpu = 0; cpu < nr_cpus; cpu++)
 		if (pthread_join(locking_threads[cpu], NULL))
+		{
 			return 1;
+		}
 
 	return 0;
 }
@@ -425,45 +565,60 @@ static int userfaultfd_stress(void)
 	int uffd_flags, err;
 	unsigned long userfaults[nr_cpus];
 
-	if (posix_memalign(&area, page_size, nr_pages * page_size)) {
+	if (posix_memalign(&area, page_size, nr_pages * page_size))
+	{
 		fprintf(stderr, "out of memory\n");
 		return 1;
 	}
+
 	area_src = area;
-	if (posix_memalign(&area, page_size, nr_pages * page_size)) {
+
+	if (posix_memalign(&area, page_size, nr_pages * page_size))
+	{
 		fprintf(stderr, "out of memory\n");
 		return 1;
 	}
+
 	area_dst = area;
 
 	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK);
-	if (uffd < 0) {
+
+	if (uffd < 0)
+	{
 		fprintf(stderr,
-			"userfaultfd syscall not available in this kernel\n");
+				"userfaultfd syscall not available in this kernel\n");
 		return 1;
 	}
+
 	uffd_flags = fcntl(uffd, F_GETFD, NULL);
 
 	uffdio_api.api = UFFD_API;
 	uffdio_api.features = 0;
-	if (ioctl(uffd, UFFDIO_API, &uffdio_api)) {
+
+	if (ioctl(uffd, UFFDIO_API, &uffdio_api))
+	{
 		fprintf(stderr, "UFFDIO_API\n");
 		return 1;
 	}
-	if (uffdio_api.api != UFFD_API) {
+
+	if (uffdio_api.api != UFFD_API)
+	{
 		fprintf(stderr, "UFFDIO_API error %Lu\n", uffdio_api.api);
 		return 1;
 	}
 
 	count_verify = malloc(nr_pages * sizeof(unsigned long long));
-	if (!count_verify) {
+
+	if (!count_verify)
+	{
 		perror("count_verify");
 		return 1;
 	}
 
-	for (nr = 0; nr < nr_pages; nr++) {
+	for (nr = 0; nr < nr_pages; nr++)
+	{
 		*area_mutex(area_src, nr) = (pthread_mutex_t)
-			PTHREAD_MUTEX_INITIALIZER;
+									PTHREAD_MUTEX_INITIALIZER;
 		count_verify[nr] = *area_count(area_src, nr) = 1;
 		/*
 		 * In the transition between 255 to 256, powerpc will
@@ -476,65 +631,96 @@ static int userfaultfd_stress(void)
 	}
 
 	pipefd = malloc(sizeof(int) * nr_cpus * 2);
-	if (!pipefd) {
+
+	if (!pipefd)
+	{
 		perror("pipefd");
 		return 1;
 	}
-	for (cpu = 0; cpu < nr_cpus; cpu++) {
-		if (pipe2(&pipefd[cpu*2], O_CLOEXEC | O_NONBLOCK)) {
+
+	for (cpu = 0; cpu < nr_cpus; cpu++)
+	{
+		if (pipe2(&pipefd[cpu * 2], O_CLOEXEC | O_NONBLOCK))
+		{
 			perror("pipe");
 			return 1;
 		}
 	}
 
-	if (posix_memalign(&area, page_size, page_size)) {
+	if (posix_memalign(&area, page_size, page_size))
+	{
 		fprintf(stderr, "out of memory\n");
 		return 1;
 	}
+
 	zeropage = area;
 	bzero(zeropage, page_size);
 
 	pthread_mutex_lock(&uffd_read_mutex);
 
 	pthread_attr_init(&attr);
-	pthread_attr_setstacksize(&attr, 16*1024*1024);
+	pthread_attr_setstacksize(&attr, 16 * 1024 * 1024);
 
 	err = 0;
-	while (bounces--) {
+
+	while (bounces--)
+	{
 		unsigned long expected_ioctls;
 
 		printf("bounces: %d, mode:", bounces);
+
 		if (bounces & BOUNCE_RANDOM)
+		{
 			printf(" rnd");
+		}
+
 		if (bounces & BOUNCE_RACINGFAULTS)
+		{
 			printf(" racing");
+		}
+
 		if (bounces & BOUNCE_VERIFY)
+		{
 			printf(" ver");
+		}
+
 		if (bounces & BOUNCE_POLL)
+		{
 			printf(" poll");
+		}
+
 		printf(", ");
 		fflush(stdout);
 
 		if (bounces & BOUNCE_POLL)
+		{
 			fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
+		}
 		else
+		{
 			fcntl(uffd, F_SETFL, uffd_flags & ~O_NONBLOCK);
+		}
 
 		/* register */
 		uffdio_register.range.start = (unsigned long) area_dst;
 		uffdio_register.range.len = nr_pages * page_size;
 		uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
-		if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register)) {
+
+		if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
+		{
 			fprintf(stderr, "register failure\n");
 			return 1;
 		}
+
 		expected_ioctls = (1 << _UFFDIO_WAKE) |
-				  (1 << _UFFDIO_COPY) |
-				  (1 << _UFFDIO_ZEROPAGE);
+						  (1 << _UFFDIO_COPY) |
+						  (1 << _UFFDIO_ZEROPAGE);
+
 		if ((uffdio_register.ioctls & expected_ioctls) !=
-		    expected_ioctls) {
+			expected_ioctls)
+		{
 			fprintf(stderr,
-				"unexpected missing ioctl for anon memory\n");
+					"unexpected missing ioctl for anon memory\n");
 			return 1;
 		}
 
@@ -562,30 +748,37 @@ static int userfaultfd_stress(void)
 		 * MADV_DONTNEED only after the UFFDIO_REGISTER, so it's
 		 * required to MADV_DONTNEED here.
 		 */
-		if (madvise(area_dst, nr_pages * page_size, MADV_DONTNEED)) {
+		if (madvise(area_dst, nr_pages * page_size, MADV_DONTNEED))
+		{
 			perror("madvise 2");
 			return 1;
 		}
 
 		/* bounce pass */
 		if (stress(userfaults))
+		{
 			return 1;
+		}
 
 		/* unregister */
-		if (ioctl(uffd, UFFDIO_UNREGISTER, &uffdio_register.range)) {
+		if (ioctl(uffd, UFFDIO_UNREGISTER, &uffdio_register.range))
+		{
 			fprintf(stderr, "register failure\n");
 			return 1;
 		}
 
 		/* verification */
-		if (bounces & BOUNCE_VERIFY) {
-			for (nr = 0; nr < nr_pages; nr++) {
-				if (*area_count(area_dst, nr) != count_verify[nr]) {
+		if (bounces & BOUNCE_VERIFY)
+		{
+			for (nr = 0; nr < nr_pages; nr++)
+			{
+				if (*area_count(area_dst, nr) != count_verify[nr])
+				{
 					fprintf(stderr,
-						"error area_count %Lu %Lu %lu\n",
-						*area_count(area_src, nr),
-						count_verify[nr],
-						nr);
+							"error area_count %Lu %Lu %lu\n",
+							*area_count(area_src, nr),
+							count_verify[nr],
+							nr);
 					err = 1;
 					bounces = 0;
 				}
@@ -598,8 +791,12 @@ static int userfaultfd_stress(void)
 		area_dst = tmp_area;
 
 		printf("userfaults:");
+
 		for (cpu = 0; cpu < nr_cpus; cpu++)
+		{
 			printf(" %lu", userfaults[cpu]);
+		}
+
 		printf("\n");
 	}
 
@@ -609,26 +806,39 @@ static int userfaultfd_stress(void)
 int main(int argc, char **argv)
 {
 	if (argc < 3)
+	{
 		fprintf(stderr, "Usage: <MiB> <bounces>\n"), exit(1);
+	}
+
 	nr_cpus = sysconf(_SC_NPROCESSORS_ONLN);
 	page_size = sysconf(_SC_PAGE_SIZE);
+
 	if ((unsigned long) area_count(NULL, 0) + sizeof(unsigned long long) * 2
-	    > page_size)
+		> page_size)
+	{
 		fprintf(stderr, "Impossible to run this test\n"), exit(2);
-	nr_pages_per_cpu = atol(argv[1]) * 1024*1024 / page_size /
-		nr_cpus;
-	if (!nr_pages_per_cpu) {
+	}
+
+	nr_pages_per_cpu = atol(argv[1]) * 1024 * 1024 / page_size /
+					   nr_cpus;
+
+	if (!nr_pages_per_cpu)
+	{
 		fprintf(stderr, "invalid MiB\n");
 		fprintf(stderr, "Usage: <MiB> <bounces>\n"), exit(1);
 	}
+
 	bounces = atoi(argv[2]);
-	if (bounces <= 0) {
+
+	if (bounces <= 0)
+	{
 		fprintf(stderr, "invalid bounces\n");
 		fprintf(stderr, "Usage: <MiB> <bounces>\n"), exit(1);
 	}
+
 	nr_pages = nr_pages_per_cpu * nr_cpus;
 	printf("nr_pages: %lu, nr_pages_per_cpu: %lu\n",
-	       nr_pages, nr_pages_per_cpu);
+		   nr_pages, nr_pages_per_cpu);
 	return userfaultfd_stress();
 }
 

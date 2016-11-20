@@ -55,24 +55,31 @@ static int vx_mic_level_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_v
 	unsigned int val = ucontrol->value.integer.value[0];
 
 	if (val > MIC_LEVEL_MAX)
+	{
 		return -EINVAL;
+	}
+
 	mutex_lock(&_chip->mixer_mutex);
-	if (chip->mic_level != ucontrol->value.integer.value[0]) {
+
+	if (chip->mic_level != ucontrol->value.integer.value[0])
+	{
 		vx_set_mic_level(_chip, ucontrol->value.integer.value[0]);
 		chip->mic_level = ucontrol->value.integer.value[0];
 		mutex_unlock(&_chip->mixer_mutex);
 		return 1;
 	}
+
 	mutex_unlock(&_chip->mixer_mutex);
 	return 0;
 }
 
 static const DECLARE_TLV_DB_SCALE(db_scale_mic, -21, 3, 0);
 
-static struct snd_kcontrol_new vx_control_mic_level = {
+static struct snd_kcontrol_new vx_control_mic_level =
+{
 	.iface =	SNDRV_CTL_ELEM_IFACE_MIXER,
 	.access =	(SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			 SNDRV_CTL_ELEM_ACCESS_TLV_READ),
+	SNDRV_CTL_ELEM_ACCESS_TLV_READ),
 	.name =		"Mic Capture Volume",
 	.info =		vx_mic_level_info,
 	.get =		vx_mic_level_get,
@@ -99,17 +106,21 @@ static int vx_mic_boost_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_v
 	struct snd_vxpocket *chip = (struct snd_vxpocket *)_chip;
 	int val = !!ucontrol->value.integer.value[0];
 	mutex_lock(&_chip->mixer_mutex);
-	if (chip->mic_level != val) {
+
+	if (chip->mic_level != val)
+	{
 		vx_set_mic_boost(_chip, val);
 		chip->mic_level = val;
 		mutex_unlock(&_chip->mixer_mutex);
 		return 1;
 	}
+
 	mutex_unlock(&_chip->mixer_mutex);
 	return 0;
 }
 
-static struct snd_kcontrol_new vx_control_mic_boost = {
+static struct snd_kcontrol_new vx_control_mic_boost =
+{
 	.iface =	SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name =		"Mic Boost",
 	.info =		vx_mic_boost_info,
@@ -125,25 +136,36 @@ int vxp_add_mic_controls(struct vx_core *_chip)
 
 	/* mute input levels */
 	chip->mic_level = 0;
-	switch (_chip->type) {
-	case VX_TYPE_VXPOCKET:
-		vx_set_mic_level(_chip, 0);
-		break;
-	case VX_TYPE_VXP440:
-		vx_set_mic_boost(_chip, 0);
-		break;
+
+	switch (_chip->type)
+	{
+		case VX_TYPE_VXPOCKET:
+			vx_set_mic_level(_chip, 0);
+			break;
+
+		case VX_TYPE_VXP440:
+			vx_set_mic_boost(_chip, 0);
+			break;
 	}
 
 	/* mic level */
-	switch (_chip->type) {
-	case VX_TYPE_VXPOCKET:
-		if ((err = snd_ctl_add(_chip->card, snd_ctl_new1(&vx_control_mic_level, chip))) < 0)
-			return err;
-		break;
-	case VX_TYPE_VXP440:
-		if ((err = snd_ctl_add(_chip->card, snd_ctl_new1(&vx_control_mic_boost, chip))) < 0)
-			return err;
-		break;
+	switch (_chip->type)
+	{
+		case VX_TYPE_VXPOCKET:
+			if ((err = snd_ctl_add(_chip->card, snd_ctl_new1(&vx_control_mic_level, chip))) < 0)
+			{
+				return err;
+			}
+
+			break;
+
+		case VX_TYPE_VXP440:
+			if ((err = snd_ctl_add(_chip->card, snd_ctl_new1(&vx_control_mic_boost, chip))) < 0)
+			{
+				return err;
+			}
+
+			break;
 	}
 
 	return 0;

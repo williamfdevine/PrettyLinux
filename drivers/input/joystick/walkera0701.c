@@ -40,7 +40,7 @@ MODULE_LICENSE("GPL");
 static unsigned int walkera0701_pp_no;
 module_param_named(port, walkera0701_pp_no, int, 0);
 MODULE_PARM_DESC(port,
-		 "Parallel port adapter for Walkera WK-0701 TX (default is 0)");
+				 "Parallel port adapter for Walkera WK-0701 TX (default is 0)");
 
 /*
  * For now, only one device is supported, if somebody need more devices, code
@@ -48,7 +48,8 @@ MODULE_PARM_DESC(port,
  * set up by walkera0701_connect (release of device by walkera0701_disconnect)
  */
 
-struct walkera_dev {
+struct walkera_dev
+{
 	unsigned char buf[25];
 	u64 irq_time, irq_lasttime;
 	int counter;
@@ -70,22 +71,38 @@ static inline void walkera0701_parse_frame(struct walkera_dev *w)
 	int magic, magic_bit;
 	int crc1, crc2;
 
-	for (crc1 = crc2 = i = 0; i < 10; i++) {
+	for (crc1 = crc2 = i = 0; i < 10; i++)
+	{
 		crc1 += w->buf[i] & 7;
 		crc2 += (w->buf[i] & 8) >> 3;
 	}
+
 	if ((w->buf[10] & 7) != (crc1 & 7))
+	{
 		return;
+	}
+
 	if (((w->buf[10] & 8) >> 3) != (((crc1 >> 3) + crc2) & 1))
+	{
 		return;
-	for (crc1 = crc2 = 0, i = 11; i < 23; i++) {
+	}
+
+	for (crc1 = crc2 = 0, i = 11; i < 23; i++)
+	{
 		crc1 += w->buf[i] & 7;
 		crc2 += (w->buf[i] & 8) >> 3;
 	}
+
 	if ((w->buf[23] & 7) != (crc1 & 7))
+	{
 		return;
+	}
+
 	if (((w->buf[23] & 8) >> 3) != (((crc1 >> 3) + crc2) & 1))
+	{
 		return;
+	}
+
 	val1 = ((w->buf[0] & 7) * 256 + w->buf[1] * 16 + w->buf[2]) >> 2;
 	val1 *= ((w->buf[0] >> 2) & 2) - 1;	/* sign */
 	val2 = (w->buf[2] & 1) << 8 | (w->buf[3] << 4) | w->buf[4];
@@ -106,8 +123,8 @@ static inline void walkera0701_parse_frame(struct walkera_dev *w)
 	magic = (w->buf[21] << 4) | w->buf[22];
 	magic_bit = (w->buf[24] & 8) >> 3;
 	pr_debug("%4d %4d %4d %4d  %4d %4d %4d %4d (magic %2x %d)\n",
-		 val1, val2, val3, val4, val5, val6, val7, val8,
-		 magic, magic_bit);
+			 val1, val2, val3, val4, val5, val6, val7, val8,
+			 magic, magic_bit);
 
 	input_report_abs(w->input_dev, ABS_X, val2);
 	input_report_abs(w->input_dev, ABS_Y, val1);
@@ -134,42 +151,61 @@ static void walkera0701_irq_handler(void *handler_data)
 	w->irq_lasttime = w->irq_time;
 
 	/* cancel timer, if in handler or active do resync */
-	if (unlikely(0 != hrtimer_try_to_cancel(&w->timer))) {
+	if (unlikely(0 != hrtimer_try_to_cancel(&w->timer)))
+	{
 		w->counter = NO_SYNC;
 		return;
 	}
 
-	if (w->counter < NO_SYNC) {
-		if (w->ack) {
+	if (w->counter < NO_SYNC)
+	{
+		if (w->ack)
+		{
 			pulse_time -= BIN1_PULSE;
 			w->buf[w->counter] = 8;
-		} else {
+		}
+		else
+		{
 			pulse_time -= BIN0_PULSE;
 			w->buf[w->counter] = 0;
 		}
-		if (w->counter == 24) {	/* full frame */
+
+		if (w->counter == 24)  	/* full frame */
+		{
 			walkera0701_parse_frame(w);
 			w->counter = NO_SYNC;
+
 			if (abs(pulse_time - SYNC_PULSE) < RESERVE)	/* new frame sync */
+			{
 				w->counter = 0;
-		} else {
+			}
+		}
+		else
+		{
 			if ((pulse_time > (ANALOG_MIN_PULSE - RESERVE)
-			     && (pulse_time < (ANALOG_MAX_PULSE + RESERVE)))) {
+				 && (pulse_time < (ANALOG_MAX_PULSE + RESERVE))))
+			{
 				pulse_time -= (ANALOG_MIN_PULSE - RESERVE);
 				pulse_time = (u32) pulse_time / ANALOG_DELTA;	/* overtiping is safe, pulsetime < s32.. */
 				w->buf[w->counter++] |= (pulse_time & 7);
-			} else
+			}
+			else
+			{
 				w->counter = NO_SYNC;
+			}
 		}
-	} else if (abs(pulse_time - SYNC_PULSE - BIN0_PULSE) <
-				RESERVE + BIN1_PULSE - BIN0_PULSE)	/* frame sync .. */
+	}
+	else if (abs(pulse_time - SYNC_PULSE - BIN0_PULSE) <
+			 RESERVE + BIN1_PULSE - BIN0_PULSE)	/* frame sync .. */
+	{
 		w->counter = 0;
+	}
 
 	hrtimer_start(&w->timer, ktime_set(0, BIN_SAMPLE), HRTIMER_MODE_REL);
 }
 
 static enum hrtimer_restart timer_handler(struct hrtimer
-					  *handle)
+		*handle)
 {
 	struct walkera_dev *w;
 
@@ -184,7 +220,9 @@ static int walkera0701_open(struct input_dev *dev)
 	struct walkera_dev *w = input_get_drvdata(dev);
 
 	if (parport_claim(w->pardevice))
+	{
 		return -EBUSY;
+	}
 
 	parport_enable_irq(w->parport);
 	return 0;
@@ -205,14 +243,16 @@ static void walkera0701_attach(struct parport *pp)
 	struct pardev_cb walkera0701_parport_cb;
 	struct walkera_dev *w = &w_dev;
 
-	if (pp->number != walkera0701_pp_no) {
+	if (pp->number != walkera0701_pp_no)
+	{
 		pr_debug("Not using parport%d.\n", pp->number);
 		return;
 	}
 
-	if (pp->irq == -1) {
+	if (pp->irq == -1)
+	{
 		pr_err("parport %d does not have interrupt assigned\n",
-			pp->number);
+			   pp->number);
 		return;
 	}
 
@@ -224,14 +264,16 @@ static void walkera0701_attach(struct parport *pp)
 	walkera0701_parport_cb.private = w;
 
 	w->pardevice = parport_register_dev_model(pp, "walkera0701",
-						  &walkera0701_parport_cb, 0);
+				   &walkera0701_parport_cb, 0);
 
-	if (!w->pardevice) {
+	if (!w->pardevice)
+	{
 		pr_err("failed to register parport device\n");
 		return;
 	}
 
-	if (parport_negotiate(w->pardevice->port, IEEE1284_MODE_COMPAT)) {
+	if (parport_negotiate(w->pardevice->port, IEEE1284_MODE_COMPAT))
+	{
 		pr_err("failed to negotiate parport mode\n");
 		goto err_unregister_device;
 	}
@@ -240,7 +282,9 @@ static void walkera0701_attach(struct parport *pp)
 	w->timer.function = timer_handler;
 
 	w->input_dev = input_allocate_device();
-	if (!w->input_dev) {
+
+	if (!w->input_dev)
+	{
 		pr_err("failed to allocate input device\n");
 		goto err_unregister_device;
 	}
@@ -268,7 +312,8 @@ static void walkera0701_attach(struct parport *pp)
 	input_set_abs_params(w->input_dev, ABS_RUDDER, -512, 512, 0, 0);
 	input_set_abs_params(w->input_dev, ABS_MISC, -512, 512, 0, 0);
 
-	if (input_register_device(w->input_dev)) {
+	if (input_register_device(w->input_dev))
+	{
 		pr_err("failed to register input device\n");
 		goto err_free_input_dev;
 	}
@@ -286,14 +331,17 @@ static void walkera0701_detach(struct parport *port)
 	struct walkera_dev *w = &w_dev;
 
 	if (!w->pardevice || w->parport->number != port->number)
+	{
 		return;
+	}
 
 	input_unregister_device(w->input_dev);
 	parport_unregister_device(w->pardevice);
 	w->parport = NULL;
 }
 
-static struct parport_driver walkera0701_parport_driver = {
+static struct parport_driver walkera0701_parport_driver =
+{
 	.name = "walkera0701",
 	.match_port = walkera0701_attach,
 	.detach = walkera0701_detach,

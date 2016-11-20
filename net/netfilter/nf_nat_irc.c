@@ -27,11 +27,11 @@ MODULE_LICENSE("GPL");
 MODULE_ALIAS("ip_nat_irc");
 
 static unsigned int help(struct sk_buff *skb,
-			 enum ip_conntrack_info ctinfo,
-			 unsigned int protoff,
-			 unsigned int matchoff,
-			 unsigned int matchlen,
-			 struct nf_conntrack_expect *exp)
+						 enum ip_conntrack_info ctinfo,
+						 unsigned int protoff,
+						 unsigned int matchoff,
+						 unsigned int matchlen,
+						 struct nf_conntrack_expect *exp)
 {
 	char buffer[sizeof("4294967296 65635")];
 	struct nf_conn *ct = exp->master;
@@ -47,20 +47,26 @@ static unsigned int help(struct sk_buff *skb,
 	exp->expectfn = nf_nat_follow_master;
 
 	/* Try to get same port: if not, try to change it. */
-	for (port = ntohs(exp->saved_proto.tcp.port); port != 0; port++) {
+	for (port = ntohs(exp->saved_proto.tcp.port); port != 0; port++)
+	{
 		int ret;
 
 		exp->tuple.dst.u.tcp.port = htons(port);
 		ret = nf_ct_expect_related(exp);
+
 		if (ret == 0)
+		{
 			break;
-		else if (ret != -EBUSY) {
+		}
+		else if (ret != -EBUSY)
+		{
 			port = 0;
 			break;
 		}
 	}
 
-	if (port == 0) {
+	if (port == 0)
+	{
 		nf_ct_helper_log(skb, ct, "all ports in use");
 		return NF_DROP;
 	}
@@ -81,11 +87,13 @@ static unsigned int help(struct sk_buff *skb,
 	/* AAA = "us", ie. where server normally talks to. */
 	snprintf(buffer, sizeof(buffer), "%u %u", ntohl(newaddr.ip), port);
 	pr_debug("nf_nat_irc: inserting '%s' == %pI4, port %u\n",
-		 buffer, &newaddr.ip, port);
+			 buffer, &newaddr.ip, port);
 
 	ret = nf_nat_mangle_tcp_packet(skb, ct, ctinfo, protoff, matchoff,
-				       matchlen, buffer, strlen(buffer));
-	if (ret != NF_ACCEPT) {
+								   matchlen, buffer, strlen(buffer));
+
+	if (ret != NF_ACCEPT)
+	{
 		nf_ct_helper_log(skb, ct, "cannot mangle packet");
 		nf_ct_unexpect_related(exp);
 	}
@@ -110,7 +118,7 @@ static int __init nf_nat_irc_init(void)
 static int warn_set(const char *val, struct kernel_param *kp)
 {
 	printk(KERN_INFO KBUILD_MODNAME
-	       ": kernel >= 2.6.10 only uses 'ports' for conntrack modules\n");
+		   ": kernel >= 2.6.10 only uses 'ports' for conntrack modules\n");
 	return 0;
 }
 module_param_call(ports, warn_set, NULL, NULL, 0);

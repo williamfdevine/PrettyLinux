@@ -32,7 +32,8 @@
 #define TIMER_RELOAD		0x8
 #define TIMER_INT		0xc
 
-struct clockevent_mps2 {
+struct clockevent_mps2
+{
 	void __iomem *reg;
 	u32 clock_count_per_tick;
 	struct clock_event_device clkevt;
@@ -87,7 +88,8 @@ static irqreturn_t mps2_timer_interrupt(int irq, void *dev_id)
 	struct clockevent_mps2 *ce = dev_id;
 	u32 status = readl_relaxed(ce->reg + TIMER_INT);
 
-	if (!status) {
+	if (!status)
+	{
 		pr_warn("spurious interrupt\n");
 		return IRQ_NONE;
 	}
@@ -109,16 +111,22 @@ static int __init mps2_clockevent_init(struct device_node *np)
 	const char *name = "mps2-clkevt";
 
 	ret = of_property_read_u32(np, "clock-frequency", &rate);
-	if (ret) {
+
+	if (ret)
+	{
 		clk = of_clk_get(np, 0);
-		if (IS_ERR(clk)) {
+
+		if (IS_ERR(clk))
+		{
 			ret = PTR_ERR(clk);
 			pr_err("failed to get clock for clockevent: %d\n", ret);
 			goto out;
 		}
 
 		ret = clk_prepare_enable(clk);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_err("failed to enable clock for clockevent: %d\n", ret);
 			goto out_clk_put;
 		}
@@ -127,21 +135,27 @@ static int __init mps2_clockevent_init(struct device_node *np)
 	}
 
 	base = of_iomap(np, 0);
-	if (!base) {
+
+	if (!base)
+	{
 		ret = -EADDRNOTAVAIL;
 		pr_err("failed to map register for clockevent: %d\n", ret);
 		goto out_clk_disable;
 	}
 
 	irq = irq_of_parse_and_map(np, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		ret = -ENOENT;
 		pr_err("failed to get irq for clockevent: %d\n", ret);
 		goto out_iounmap;
 	}
 
 	ce = kzalloc(sizeof(*ce), GFP_KERNEL);
-	if (!ce) {
+
+	if (!ce)
+	{
 		ret = -ENOMEM;
 		goto out_iounmap;
 	}
@@ -154,15 +168,17 @@ static int __init mps2_clockevent_init(struct device_node *np)
 	ce->clkevt.features = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT;
 	ce->clkevt.cpumask = cpu_possible_mask;
 	ce->clkevt.set_state_shutdown	= mps2_timer_shutdown,
-	ce->clkevt.set_state_periodic	= mps2_timer_set_periodic,
-	ce->clkevt.set_state_oneshot	= mps2_timer_shutdown,
-	ce->clkevt.set_next_event	= mps2_timer_set_next_event;
+				 ce->clkevt.set_state_periodic	= mps2_timer_set_periodic,
+							  ce->clkevt.set_state_oneshot	= mps2_timer_shutdown,
+											ce->clkevt.set_next_event	= mps2_timer_set_next_event;
 
 	/* Ensure timer is disabled */
 	writel_relaxed(0, base + TIMER_CTRL);
 
 	ret = request_irq(irq, mps2_timer_interrupt, IRQF_TIMER, name, ce);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("failed to request irq for clockevent: %d\n", ret);
 		goto out_kfree;
 	}
@@ -193,16 +209,22 @@ static int __init mps2_clocksource_init(struct device_node *np)
 	const char *name = "mps2-clksrc";
 
 	ret = of_property_read_u32(np, "clock-frequency", &rate);
-	if (ret) {
+
+	if (ret)
+	{
 		clk = of_clk_get(np, 0);
-		if (IS_ERR(clk)) {
+
+		if (IS_ERR(clk))
+		{
 			ret = PTR_ERR(clk);
 			pr_err("failed to get clock for clocksource: %d\n", ret);
 			goto out;
 		}
 
 		ret = clk_prepare_enable(clk);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_err("failed to enable clock for clocksource: %d\n", ret);
 			goto out_clk_put;
 		}
@@ -211,7 +233,9 @@ static int __init mps2_clocksource_init(struct device_node *np)
 	}
 
 	base = of_iomap(np, 0);
-	if (!base) {
+
+	if (!base)
+	{
 		ret = -EADDRNOTAVAIL;
 		pr_err("failed to map register for clocksource: %d\n", ret);
 		goto out_clk_disable;
@@ -227,9 +251,11 @@ static int __init mps2_clocksource_init(struct device_node *np)
 	writel_relaxed(TIMER_CTRL_ENABLE, base + TIMER_CTRL);
 
 	ret = clocksource_mmio_init(base + TIMER_VALUE, name,
-				    rate, 200, 32,
-				    clocksource_mmio_readl_down);
-	if (ret) {
+								rate, 200, 32,
+								clocksource_mmio_readl_down);
+
+	if (ret)
+	{
 		pr_err("failed to init clocksource: %d\n", ret);
 		goto out_iounmap;
 	}
@@ -255,17 +281,23 @@ static int __init mps2_timer_init(struct device_node *np)
 	static int has_clocksource, has_clockevent;
 	int ret;
 
-	if (!has_clocksource) {
+	if (!has_clocksource)
+	{
 		ret = mps2_clocksource_init(np);
-		if (!ret) {
+
+		if (!ret)
+		{
 			has_clocksource = 1;
 			return 0;
 		}
 	}
 
-	if (!has_clockevent) {
+	if (!has_clockevent)
+	{
 		ret = mps2_clockevent_init(np);
-		if (!ret) {
+
+		if (!ret)
+		{
 			has_clockevent = 1;
 			return 0;
 		}

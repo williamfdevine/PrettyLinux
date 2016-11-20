@@ -39,7 +39,8 @@
 #define MAX_TIMER	3
 #define DEFAULT_TIMER	3
 
-struct bcm2835_timer {
+struct bcm2835_timer
+{
 	void __iomem *control;
 	void __iomem *compare;
 	int match_mask;
@@ -55,12 +56,12 @@ static u64 notrace bcm2835_sched_read(void)
 }
 
 static int bcm2835_time_set_next_event(unsigned long event,
-	struct clock_event_device *evt_dev)
+									   struct clock_event_device *evt_dev)
 {
 	struct bcm2835_timer *timer = container_of(evt_dev,
-		struct bcm2835_timer, evt);
+								  struct bcm2835_timer, evt);
 	writel_relaxed(readl_relaxed(system_clock) + event,
-		timer->compare);
+				   timer->compare);
 	return 0;
 }
 
@@ -68,14 +69,22 @@ static irqreturn_t bcm2835_time_interrupt(int irq, void *dev_id)
 {
 	struct bcm2835_timer *timer = dev_id;
 	void (*event_handler)(struct clock_event_device *);
-	if (readl_relaxed(timer->control) & timer->match_mask) {
+
+	if (readl_relaxed(timer->control) & timer->match_mask)
+	{
 		writel_relaxed(timer->match_mask, timer->control);
 
 		event_handler = ACCESS_ONCE(timer->evt.event_handler);
+
 		if (event_handler)
+		{
 			event_handler(&timer->evt);
+		}
+
 		return IRQ_HANDLED;
-	} else {
+	}
+	else
+	{
 		return IRQ_NONE;
 	}
 }
@@ -88,13 +97,17 @@ static int __init bcm2835_timer_init(struct device_node *node)
 	struct bcm2835_timer *timer;
 
 	base = of_iomap(node, 0);
-	if (!base) {
+
+	if (!base)
+	{
 		pr_err("Can't remap registers");
 		return -ENXIO;
 	}
 
 	ret = of_property_read_u32(node, "clock-frequency", &freq);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Can't read clock-frequency");
 		return ret;
 	}
@@ -103,16 +116,20 @@ static int __init bcm2835_timer_init(struct device_node *node)
 	sched_clock_register(bcm2835_sched_read, 32, freq);
 
 	clocksource_mmio_init(base + REG_COUNTER_LO, node->name,
-		freq, 300, 32, clocksource_mmio_readl_up);
+						  freq, 300, 32, clocksource_mmio_readl_up);
 
 	irq = irq_of_parse_and_map(node, DEFAULT_TIMER);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		pr_err("Can't parse IRQ");
 		return -EINVAL;
 	}
 
 	timer = kzalloc(sizeof(*timer), GFP_KERNEL);
-	if (!timer) {
+
+	if (!timer)
+	{
 		pr_err("Can't allocate timer struct\n");
 		return -ENOMEM;
 	}
@@ -131,7 +148,9 @@ static int __init bcm2835_timer_init(struct device_node *node)
 	timer->act.handler = bcm2835_time_interrupt;
 
 	ret = setup_irq(irq, &timer->act);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Can't set up timer IRQ\n");
 		return ret;
 	}
@@ -143,4 +162,4 @@ static int __init bcm2835_timer_init(struct device_node *node)
 	return 0;
 }
 CLOCKSOURCE_OF_DECLARE(bcm2835, "brcm,bcm2835-system-timer",
-			bcm2835_timer_init);
+					   bcm2835_timer_init);

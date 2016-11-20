@@ -112,7 +112,8 @@
 #define TEMP_ENABLE(x)		((x) << 16)
 #define TEMP_PERIOD(x)		((x) << 0)  /* t = x * 256 * 16 / clkin */
 
-struct sun4i_ts_data {
+struct sun4i_ts_data
+{
 	struct device *dev;
 	struct input_dev *input;
 	void __iomem *base;
@@ -127,11 +128,14 @@ static void sun4i_ts_irq_handle_input(struct sun4i_ts_data *ts, u32 reg_val)
 {
 	u32 x, y;
 
-	if (reg_val & FIFO_DATA_PENDING) {
+	if (reg_val & FIFO_DATA_PENDING)
+	{
 		x = readl(ts->base + TP_DATA);
 		y = readl(ts->base + TP_DATA);
+
 		/* The 1st location reported after an up event is unreliable */
-		if (!ts->ignore_fifo_data) {
+		if (!ts->ignore_fifo_data)
+		{
 			input_report_abs(ts->input, ABS_X, x);
 			input_report_abs(ts->input, ABS_Y, y);
 			/*
@@ -141,12 +145,15 @@ static void sun4i_ts_irq_handle_input(struct sun4i_ts_data *ts, u32 reg_val)
 			 */
 			input_report_key(ts->input, BTN_TOUCH, 1);
 			input_sync(ts->input);
-		} else {
+		}
+		else
+		{
 			ts->ignore_fifo_data = false;
 		}
 	}
 
-	if (reg_val & TP_UP_PENDING) {
+	if (reg_val & TP_UP_PENDING)
+	{
 		ts->ignore_fifo_data = true;
 		input_report_key(ts->input, BTN_TOUCH, 0);
 		input_sync(ts->input);
@@ -161,10 +168,14 @@ static irqreturn_t sun4i_ts_irq(int irq, void *dev_id)
 	reg_val  = readl(ts->base + TP_INT_FIFOS);
 
 	if (reg_val & TEMP_DATA_PENDING)
+	{
 		ts->temp_data = readl(ts->base + TEMP_DATA);
+	}
 
 	if (ts->input)
+	{
 		sun4i_ts_irq_handle_input(ts, reg_val);
+	}
 
 	writel(reg_val, ts->base + TP_INT_FIFOS);
 
@@ -177,7 +188,7 @@ static int sun4i_ts_open(struct input_dev *dev)
 
 	/* Flush, set trig level to 1, enable temp, data and up irqs */
 	writel(TEMP_IRQ_EN(1) | DATA_IRQ_EN(1) | FIFO_TRIG(1) | FIFO_FLUSH(1) |
-		TP_UP_IRQ_EN(1), ts->base + TP_INT_FIFOC);
+		   TP_UP_IRQ_EN(1), ts->base + TP_INT_FIFOC);
 
 	return 0;
 }
@@ -194,7 +205,9 @@ static int sun4i_get_temp(const struct sun4i_ts_data *ts, int *temp)
 {
 	/* No temp_data until the first irq */
 	if (ts->temp_data == -1)
+	{
 		return -EAGAIN;
+	}
 
 	*temp = ts->temp_data * ts->temp_step - ts->temp_offset;
 
@@ -206,26 +219,30 @@ static int sun4i_get_tz_temp(void *data, int *temp)
 	return sun4i_get_temp(data, temp);
 }
 
-static struct thermal_zone_of_device_ops sun4i_ts_tz_ops = {
+static struct thermal_zone_of_device_ops sun4i_ts_tz_ops =
+{
 	.get_temp = sun4i_get_tz_temp,
 };
 
 static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
-			 char *buf)
+						 char *buf)
 {
 	struct sun4i_ts_data *ts = dev_get_drvdata(dev);
 	int temp;
 	int error;
 
 	error = sun4i_get_temp(ts, &temp);
+
 	if (error)
+	{
 		return error;
+	}
 
 	return sprintf(buf, "%d\n", temp);
 }
 
 static ssize_t show_temp_label(struct device *dev,
-			      struct device_attribute *devattr, char *buf)
+							   struct device_attribute *devattr, char *buf)
 {
 	return sprintf(buf, "SoC temperature\n");
 }
@@ -233,7 +250,8 @@ static ssize_t show_temp_label(struct device *dev,
 static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL);
 static DEVICE_ATTR(temp1_label, S_IRUGO, show_temp_label, NULL);
 
-static struct attribute *sun4i_ts_attrs[] = {
+static struct attribute *sun4i_ts_attrs[] =
+{
 	&dev_attr_temp1_input.attr,
 	&dev_attr_temp1_label.attr,
 	NULL
@@ -253,17 +271,24 @@ static int sun4i_ts_probe(struct platform_device *pdev)
 	u32 filter_type = 1;
 
 	ts = devm_kzalloc(dev, sizeof(struct sun4i_ts_data), GFP_KERNEL);
+
 	if (!ts)
+	{
 		return -ENOMEM;
+	}
 
 	ts->dev = dev;
 	ts->ignore_fifo_data = true;
 	ts->temp_data = -1;
-	if (of_device_is_compatible(np, "allwinner,sun6i-a31-ts")) {
+
+	if (of_device_is_compatible(np, "allwinner,sun6i-a31-ts"))
+	{
 		/* Allwinner SDK has temperature (C) = (value / 6) - 271 */
 		ts->temp_offset = 271000;
 		ts->temp_step = 167;
-	} else if (of_device_is_compatible(np, "allwinner,sun4i-a10-ts")) {
+	}
+	else if (of_device_is_compatible(np, "allwinner,sun4i-a10-ts"))
+	{
 		/*
 		 * The A10 temperature sensor has quite a wide spread, these
 		 * parameters are based on the averaging of the calibration
@@ -272,7 +297,9 @@ static int sun4i_ts_probe(struct platform_device *pdev)
 		 */
 		ts->temp_offset = 257000;
 		ts->temp_step = 133;
-	} else {
+	}
+	else
+	{
 		/*
 		 * The user manuals do not contain the formula for calculating
 		 * the temperature. The formula used here is from the AXP209,
@@ -289,10 +316,15 @@ static int sun4i_ts_probe(struct platform_device *pdev)
 	}
 
 	ts_attached = of_property_read_bool(np, "allwinner,ts-attached");
-	if (ts_attached) {
+
+	if (ts_attached)
+	{
 		ts->input = devm_input_allocate_device(dev);
+
 		if (!ts->input)
+		{
 			return -ENOMEM;
+		}
 
 		ts->input->name = pdev->name;
 		ts->input->phys = "sun4i_ts/input0";
@@ -310,30 +342,36 @@ static int sun4i_ts_probe(struct platform_device *pdev)
 	}
 
 	ts->base = devm_ioremap_resource(dev,
-			      platform_get_resource(pdev, IORESOURCE_MEM, 0));
+									 platform_get_resource(pdev, IORESOURCE_MEM, 0));
+
 	if (IS_ERR(ts->base))
+	{
 		return PTR_ERR(ts->base);
+	}
 
 	ts->irq = platform_get_irq(pdev, 0);
 	error = devm_request_irq(dev, ts->irq, sun4i_ts_irq, 0, "sun4i-ts", ts);
+
 	if (error)
+	{
 		return error;
+	}
 
 	/*
 	 * Select HOSC clk, clkin = clk / 6, adc samplefreq = clkin / 8192,
 	 * t_acq = clkin / (16 * 64)
 	 */
 	writel(ADC_CLK_SEL(0) | ADC_CLK_DIV(2) | FS_DIV(7) | T_ACQ(63),
-	       ts->base + TP_CTRL0);
+		   ts->base + TP_CTRL0);
 
 	/*
 	 * tp_sensitive_adjust is an optional property
 	 * tp_mode = 0 : only x and y coordinates, as we don't use dual touch
 	 */
 	of_property_read_u32(np, "allwinner,tp-sensitive-adjust",
-			     &tp_sensitive_adjust);
+						 &tp_sensitive_adjust);
 	writel(TP_SENSITIVE_ADJUST(tp_sensitive_adjust) | TP_MODE_SELECT(0),
-	       ts->base + TP_CTRL2);
+		   ts->base + TP_CTRL2);
 
 	/*
 	 * Enable median and averaging filter, optional property for
@@ -350,10 +388,16 @@ static int sun4i_ts_probe(struct platform_device *pdev)
 	 * finally enable tp mode.
 	 */
 	reg = STYLUS_UP_DEBOUN(5) | STYLUS_UP_DEBOUN_EN(1);
+
 	if (of_device_is_compatible(np, "allwinner,sun6i-a31-ts"))
+	{
 		reg |= SUN6I_TP_MODE_EN(1);
+	}
 	else
+	{
 		reg |= TP_MODE_EN(1);
+	}
+
 	writel(reg, ts->base + TP_CTRL1);
 
 	/*
@@ -361,17 +405,23 @@ static int sun4i_ts_probe(struct platform_device *pdev)
 	 * thermal zone sensors, such as this one.
 	 */
 	hwmon = devm_hwmon_device_register_with_groups(ts->dev, "sun4i_ts",
-						       ts, sun4i_ts_groups);
+			ts, sun4i_ts_groups);
+
 	if (IS_ERR(hwmon))
+	{
 		return PTR_ERR(hwmon);
+	}
 
 	devm_thermal_zone_of_sensor_register(ts->dev, 0, ts, &sun4i_ts_tz_ops);
 
 	writel(TEMP_IRQ_EN(1), ts->base + TP_INT_FIFOC);
 
-	if (ts_attached) {
+	if (ts_attached)
+	{
 		error = input_register_device(ts->input);
-		if (error) {
+
+		if (error)
+		{
 			writel(0, ts->base + TP_INT_FIFOC);
 			return error;
 		}
@@ -387,7 +437,9 @@ static int sun4i_ts_remove(struct platform_device *pdev)
 
 	/* Explicit unregister to avoid open/close changing the imask later */
 	if (ts->input)
+	{
 		input_unregister_device(ts->input);
+	}
 
 	/* Deactivate all IRQs */
 	writel(0, ts->base + TP_INT_FIFOC);
@@ -395,7 +447,8 @@ static int sun4i_ts_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id sun4i_ts_of_match[] = {
+static const struct of_device_id sun4i_ts_of_match[] =
+{
 	{ .compatible = "allwinner,sun4i-a10-ts", },
 	{ .compatible = "allwinner,sun5i-a13-ts", },
 	{ .compatible = "allwinner,sun6i-a31-ts", },
@@ -403,7 +456,8 @@ static const struct of_device_id sun4i_ts_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, sun4i_ts_of_match);
 
-static struct platform_driver sun4i_ts_driver = {
+static struct platform_driver sun4i_ts_driver =
+{
 	.driver = {
 		.name	= "sun4i-ts",
 		.of_match_table = of_match_ptr(sun4i_ts_of_match),

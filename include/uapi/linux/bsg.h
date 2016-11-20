@@ -18,7 +18,8 @@
 #define BSG_FLAG_Q_AT_TAIL 0x10 /* default is Q_AT_HEAD */
 #define BSG_FLAG_Q_AT_HEAD 0x20
 
-struct sg_io_v4 {
+struct sg_io_v4
+{
 	__s32 guard;		/* [i] 'Q' to differentiate from v3 */
 	__u32 protocol;		/* [i] 0 -> SCSI , .... */
 	__u32 subprotocol;	/* [i] 0 -> SCSI command, 1 -> SCSI task
@@ -33,7 +34,7 @@ struct sg_io_v4 {
 	__u32 max_response_len;	/* [i] in bytes */
 	__u64 response;		/* [i], [*o] {SCSI: (auto)sense data} */
 
-        /* "dout_": data out (to device); "din_": data in (from device) */
+	/* "dout_": data out (to device); "din_": data in (from device) */
 	__u32 dout_iovec_count;	/* [i] 0 -> "flat" dout transfer else
 				   dout_xfer points to array of iovec */
 	__u32 dout_xfer_len;	/* [i] bytes to be transferred to device */

@@ -19,7 +19,8 @@
 #include <linux/mtd/nand.h>
 #include <linux/mtd/blktrans.h>
 
-struct ssfdcr_record {
+struct ssfdcr_record
+{
 	struct mtd_blktrans_dev mbd;
 	int usecount;
 	unsigned char heads;
@@ -54,7 +55,8 @@ SumSector	2,000	4,000	8,000	16,000	32,000	64,000	128,000	256,000
 SectorSize	512	512	512	512	512	512	512	512
 **/
 
-typedef struct {
+typedef struct
+{
 	unsigned long size;
 	unsigned short cyl;
 	unsigned char head;
@@ -62,7 +64,8 @@ typedef struct {
 } chs_entry_t;
 
 /* Must be ordered by size */
-static const chs_entry_t chs_table[] = {
+static const chs_entry_t chs_table[] =
+{
 	{ MiB(  1), 125,  4,  4 },
 	{ MiB(  2), 125,  4,  8 },
 	{ MiB(  4), 250,  4,  8 },
@@ -75,22 +78,35 @@ static const chs_entry_t chs_table[] = {
 };
 
 static int get_chs(unsigned long size, unsigned short *cyl, unsigned char *head,
-			unsigned char *sec)
+				   unsigned char *sec)
 {
 	int k;
 	int found = 0;
 
 	k = 0;
-	while (chs_table[k].size > 0 && size > chs_table[k].size)
-		k++;
 
-	if (chs_table[k].size > 0) {
+	while (chs_table[k].size > 0 && size > chs_table[k].size)
+	{
+		k++;
+	}
+
+	if (chs_table[k].size > 0)
+	{
 		if (cyl)
+		{
 			*cyl = chs_table[k].cyl;
+		}
+
 		if (head)
+		{
 			*head = chs_table[k].head;
+		}
+
 		if (sec)
+		{
 			*sec = chs_table[k].sec;
+		}
+
 		found = 1;
 	}
 
@@ -98,7 +114,8 @@ static int get_chs(unsigned long size, unsigned short *cyl, unsigned char *head,
 }
 
 /* These bytes are the signature for the CIS/IDI sector */
-static const uint8_t cis_numbers[] = {
+static const uint8_t cis_numbers[] =
+{
 	0x01, 0x03, 0xD9, 0x01, 0xFF, 0x18, 0x02, 0xDF, 0x01, 0x20
 };
 
@@ -113,52 +130,66 @@ static int get_valid_cis_sector(struct mtd_info *mtd)
 	cis_sector = -1;
 
 	sect_buf = kmalloc(SECTOR_SIZE, GFP_KERNEL);
+
 	if (!sect_buf)
+	{
 		goto out;
+	}
 
 	/*
 	 * Look for CIS/IDI sector on the first GOOD block (give up after 4 bad
 	 * blocks). If the first good block doesn't contain CIS number the flash
 	 * is not SSFDC formatted
 	 */
-	for (k = 0, offset = 0; k < 4; k++, offset += mtd->erasesize) {
-		if (mtd_block_isbad(mtd, offset)) {
+	for (k = 0, offset = 0; k < 4; k++, offset += mtd->erasesize)
+	{
+		if (mtd_block_isbad(mtd, offset))
+		{
 			ret = mtd_read(mtd, offset, SECTOR_SIZE, &retlen,
-				       sect_buf);
+						   sect_buf);
 
 			/* CIS pattern match on the sector buffer */
-			if (ret < 0 || retlen != SECTOR_SIZE) {
+			if (ret < 0 || retlen != SECTOR_SIZE)
+			{
 				printk(KERN_WARNING
-					"SSFDC_RO:can't read CIS/IDI sector\n");
-			} else if (!memcmp(sect_buf, cis_numbers,
-					sizeof(cis_numbers))) {
+					   "SSFDC_RO:can't read CIS/IDI sector\n");
+			}
+			else if (!memcmp(sect_buf, cis_numbers,
+							 sizeof(cis_numbers)))
+			{
 				/* Found */
 				cis_sector = (int)(offset >> SECTOR_SHIFT);
-			} else {
-				pr_debug("SSFDC_RO: CIS/IDI sector not found"
-					" on %s (mtd%d)\n", mtd->name,
-					mtd->index);
 			}
+			else
+			{
+				pr_debug("SSFDC_RO: CIS/IDI sector not found"
+						 " on %s (mtd%d)\n", mtd->name,
+						 mtd->index);
+			}
+
 			break;
 		}
 	}
 
 	kfree(sect_buf);
- out:
+out:
 	return cis_sector;
 }
 
 /* Read physical sector (wrapper to MTD_READ) */
 static int read_physical_sector(struct mtd_info *mtd, uint8_t *sect_buf,
-				int sect_no)
+								int sect_no)
 {
 	int ret;
 	size_t retlen;
 	loff_t offset = (loff_t)sect_no << SECTOR_SHIFT;
 
 	ret = mtd_read(mtd, offset, SECTOR_SIZE, &retlen, sect_buf);
+
 	if (ret < 0 || retlen != SECTOR_SIZE)
+	{
 		return -1;
+	}
 
 	return 0;
 }
@@ -176,8 +207,11 @@ static int read_raw_oob(struct mtd_info *mtd, loff_t offs, uint8_t *buf)
 	ops.datbuf = NULL;
 
 	ret = mtd_read_oob(mtd, offs, &ops);
+
 	if (ret < 0 || ops.oobretlen != OOB_SIZE)
+	{
 		return -1;
+	}
 
 	return 0;
 }
@@ -185,14 +219,17 @@ static int read_raw_oob(struct mtd_info *mtd, loff_t offs, uint8_t *buf)
 /* Parity calculator on a word of n bit size */
 static int get_parity(int number, int size)
 {
- 	int k;
+	int k;
 	int parity;
 
 	parity = 1;
-	for (k = 0; k < size; k++) {
+
+	for (k = 0; k < size; k++)
+	{
 		parity += (number >> k);
 		parity &= 1;
 	}
+
 	return parity;
 }
 
@@ -209,21 +246,26 @@ static int get_logical_address(uint8_t *oob_buf)
 	 * Valid address has fixed pattern on most significant bits and
 	 * parity check
 	 */
-	for (j = 0; j < ARRAY_SIZE(offset); j++) {
+	for (j = 0; j < ARRAY_SIZE(offset); j++)
+	{
 		block_address = ((int)oob_buf[offset[j]] << 8) |
-			oob_buf[offset[j]+1];
+						oob_buf[offset[j] + 1];
 
 		/* Check for the signature bits in the address field (MSBits) */
-		if ((block_address & ~0x7FF) == 0x1000) {
+		if ((block_address & ~0x7FF) == 0x1000)
+		{
 			parity = block_address & 0x01;
 			block_address &= 0x7FF;
 			block_address >>= 1;
 
-			if (get_parity(block_address, 10) != parity) {
+			if (get_parity(block_address, 10) != parity)
+			{
 				pr_debug("SSFDC_RO: logical address field%d"
-					"parity error(0x%04X)\n", j+1,
-					block_address);
-			} else {
+						 "parity error(0x%04X)\n", j + 1,
+						 block_address);
+			}
+			else
+			{
 				ok = 1;
 				break;
 			}
@@ -231,10 +273,12 @@ static int get_logical_address(uint8_t *oob_buf)
 	}
 
 	if (!ok)
+	{
 		block_address = -2;
+	}
 
 	pr_debug("SSFDC_RO: get_logical_address() %d\n",
-		block_address);
+			 block_address);
 
 	return block_address;
 }
@@ -248,27 +292,35 @@ static int build_logical_block_map(struct ssfdcr_record *ssfdc)
 	struct mtd_info *mtd = ssfdc->mbd.mtd;
 
 	pr_debug("SSFDC_RO: build_block_map() nblks=%d (%luK)\n",
-	      ssfdc->map_len,
-	      (unsigned long)ssfdc->map_len * ssfdc->erase_size / 1024);
+			 ssfdc->map_len,
+			 (unsigned long)ssfdc->map_len * ssfdc->erase_size / 1024);
 
 	/* Scan every physical block, skip CIS block */
 	for (phys_block = ssfdc->cis_block + 1; phys_block < ssfdc->map_len;
-			phys_block++) {
+		 phys_block++)
+	{
 		offset = (unsigned long)phys_block * ssfdc->erase_size;
+
 		if (mtd_block_isbad(mtd, offset))
-			continue;	/* skip bad blocks */
+		{
+			continue;    /* skip bad blocks */
+		}
 
 		ret = read_raw_oob(mtd, offset, oob_buf);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			pr_debug("SSFDC_RO: mtd read_oob() failed at %lu\n",
-				offset);
+					 offset);
 			return -1;
 		}
+
 		block_address = get_logical_address(oob_buf);
 
 		/* Skip invalid addresses */
 		if (block_address >= 0 &&
-				block_address < MAX_LOGIC_BLK_PER_ZONE) {
+			block_address < MAX_LOGIC_BLK_PER_ZONE)
+		{
 			int zone_index;
 
 			zone_index = phys_block / MAX_PHYS_BLK_PER_ZONE;
@@ -277,10 +329,11 @@ static int build_logical_block_map(struct ssfdcr_record *ssfdc)
 				(unsigned short)phys_block;
 
 			pr_debug("SSFDC_RO: build_block_map() phys_block=%d,"
-				"logic_block_addr=%d, zone=%d\n",
-				phys_block, block_address, zone_index);
+					 "logic_block_addr=%d, zone=%d\n",
+					 phys_block, block_address, zone_index);
 		}
 	}
+
 	return 0;
 }
 
@@ -291,17 +344,25 @@ static void ssfdcr_add_mtd(struct mtd_blktrans_ops *tr, struct mtd_info *mtd)
 
 	/* Check for small page NAND flash */
 	if (!mtd_type_is_nand(mtd) || mtd->oobsize != OOB_SIZE ||
-	    mtd->size > UINT_MAX)
+		mtd->size > UINT_MAX)
+	{
 		return;
+	}
 
 	/* Check for SSDFC format by reading CIS/IDI sector */
 	cis_sector = get_valid_cis_sector(mtd);
+
 	if (cis_sector == -1)
+	{
 		return;
+	}
 
 	ssfdc = kzalloc(sizeof(struct ssfdcr_record), GFP_KERNEL);
+
 	if (!ssfdc)
+	{
 		return;
+	}
 
 	ssfdc->mbd.mtd = mtd;
 	ssfdc->mbd.devnum = -1;
@@ -313,47 +374,55 @@ static void ssfdcr_add_mtd(struct mtd_blktrans_ops *tr, struct mtd_info *mtd)
 	ssfdc->map_len = (u32)mtd->size / mtd->erasesize;
 
 	pr_debug("SSFDC_RO: cis_block=%d,erase_size=%d,map_len=%d,n_zones=%d\n",
-		ssfdc->cis_block, ssfdc->erase_size, ssfdc->map_len,
-		DIV_ROUND_UP(ssfdc->map_len, MAX_PHYS_BLK_PER_ZONE));
+			 ssfdc->cis_block, ssfdc->erase_size, ssfdc->map_len,
+			 DIV_ROUND_UP(ssfdc->map_len, MAX_PHYS_BLK_PER_ZONE));
 
 	/* Set geometry */
 	ssfdc->heads = 16;
 	ssfdc->sectors = 32;
 	get_chs(mtd->size, NULL, &ssfdc->heads, &ssfdc->sectors);
 	ssfdc->cylinders = (unsigned short)(((u32)mtd->size >> SECTOR_SHIFT) /
-			((long)ssfdc->sectors * (long)ssfdc->heads));
+										((long)ssfdc->sectors * (long)ssfdc->heads));
 
 	pr_debug("SSFDC_RO: using C:%d H:%d S:%d == %ld sects\n",
-		ssfdc->cylinders, ssfdc->heads , ssfdc->sectors,
-		(long)ssfdc->cylinders * (long)ssfdc->heads *
-		(long)ssfdc->sectors);
+			 ssfdc->cylinders, ssfdc->heads , ssfdc->sectors,
+			 (long)ssfdc->cylinders * (long)ssfdc->heads *
+			 (long)ssfdc->sectors);
 
 	ssfdc->mbd.size = (long)ssfdc->heads * (long)ssfdc->cylinders *
-				(long)ssfdc->sectors;
+					  (long)ssfdc->sectors;
 
 	/* Allocate logical block map */
 	ssfdc->logic_block_map = kmalloc(sizeof(ssfdc->logic_block_map[0]) *
-					 ssfdc->map_len, GFP_KERNEL);
+									 ssfdc->map_len, GFP_KERNEL);
+
 	if (!ssfdc->logic_block_map)
+	{
 		goto out_err;
+	}
+
 	memset(ssfdc->logic_block_map, 0xff, sizeof(ssfdc->logic_block_map[0]) *
-		ssfdc->map_len);
+		   ssfdc->map_len);
 
 	/* Build logical block map */
 	if (build_logical_block_map(ssfdc) < 0)
+	{
 		goto out_err;
+	}
 
 	/* Register device + partitions */
 	if (add_mtd_blktrans_dev(&ssfdc->mbd))
+	{
 		goto out_err;
+	}
 
 	printk(KERN_INFO "SSFDC_RO: Found ssfdc%c on mtd%d (%s)\n",
-		ssfdc->mbd.devnum + 'a', mtd->index, mtd->name);
+		   ssfdc->mbd.devnum + 'a', mtd->index, mtd->name);
 	return;
 
 out_err:
 	kfree(ssfdc->logic_block_map);
-        kfree(ssfdc);
+	kfree(ssfdc);
 }
 
 static void ssfdcr_remove_dev(struct mtd_blktrans_dev *dev)
@@ -367,7 +436,7 @@ static void ssfdcr_remove_dev(struct mtd_blktrans_dev *dev)
 }
 
 static int ssfdcr_readsect(struct mtd_blktrans_dev *dev,
-				unsigned long logic_sect_no, char *buf)
+						   unsigned long logic_sect_no, char *buf)
 {
 	struct ssfdcr_record *ssfdc = (struct ssfdcr_record *)dev;
 	int sectors_per_block, offset, block_address;
@@ -377,28 +446,33 @@ static int ssfdcr_readsect(struct mtd_blktrans_dev *dev,
 	block_address = (int)(logic_sect_no / sectors_per_block);
 
 	pr_debug("SSFDC_RO: ssfdcr_readsect(%lu) sec_per_blk=%d, ofst=%d,"
-		" block_addr=%d\n", logic_sect_no, sectors_per_block, offset,
-		block_address);
+			 " block_addr=%d\n", logic_sect_no, sectors_per_block, offset,
+			 block_address);
 
 	BUG_ON(block_address >= ssfdc->map_len);
 
 	block_address = ssfdc->logic_block_map[block_address];
 
 	pr_debug("SSFDC_RO: ssfdcr_readsect() phys_block_addr=%d\n",
-		block_address);
+			 block_address);
 
-	if (block_address < 0xffff) {
+	if (block_address < 0xffff)
+	{
 		unsigned long sect_no;
 
 		sect_no = (unsigned long)block_address * sectors_per_block +
-				offset;
+				  offset;
 
 		pr_debug("SSFDC_RO: ssfdcr_readsect() phys_sect_no=%lu\n",
-			sect_no);
+				 sect_no);
 
 		if (read_physical_sector(ssfdc->mbd.mtd, buf, sect_no) < 0)
+		{
 			return -EIO;
-	} else {
+		}
+	}
+	else
+	{
 		memset(buf, 0xff, SECTOR_SIZE);
 	}
 
@@ -410,7 +484,7 @@ static int ssfdcr_getgeo(struct mtd_blktrans_dev *dev,  struct hd_geometry *geo)
 	struct ssfdcr_record *ssfdc = (struct ssfdcr_record *)dev;
 
 	pr_debug("SSFDC_RO: ssfdcr_getgeo() C=%d, H=%d, S=%d\n",
-			ssfdc->cylinders, ssfdc->heads, ssfdc->sectors);
+			 ssfdc->cylinders, ssfdc->heads, ssfdc->sectors);
 
 	geo->heads = ssfdc->heads;
 	geo->sectors = ssfdc->sectors;
@@ -425,7 +499,8 @@ static int ssfdcr_getgeo(struct mtd_blktrans_dev *dev,  struct hd_geometry *geo)
  *
  ****************************************************************************/
 
-static struct mtd_blktrans_ops ssfdcr_tr = {
+static struct mtd_blktrans_ops ssfdcr_tr =
+{
 	.name		= "ssfdc",
 	.major		= SSFDCR_MAJOR,
 	.part_bits	= SSFDCR_PARTN_BITS,

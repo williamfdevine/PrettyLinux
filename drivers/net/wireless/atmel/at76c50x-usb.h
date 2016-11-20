@@ -23,7 +23,8 @@
 #define _AT76_USB_H
 
 /* Board types */
-enum board_type {
+enum board_type
+{
 	BOARD_503_ISL3861 = 1,
 	BOARD_503_ISL3863 = 2,
 	BOARD_503 = 3,
@@ -89,7 +90,8 @@ enum board_type {
 #define AT76_PM_ON		2
 #define AT76_PM_SMART		3
 
-struct hwcfg_r505 {
+struct hwcfg_r505
+{
 	u8 cr39_values[14];
 	u8 reserved1[14];
 	u8 bb_cr[14];
@@ -101,7 +103,8 @@ struct hwcfg_r505 {
 	u8 reserved3[3];
 } __packed;
 
-struct hwcfg_rfmd {
+struct hwcfg_rfmd
+{
 	u8 cr20_values[14];
 	u8 cr21_values[14];
 	u8 bb_cr[14];
@@ -113,7 +116,8 @@ struct hwcfg_rfmd {
 	u8 reserved1[3];
 } __packed;
 
-struct hwcfg_intersil {
+struct hwcfg_intersil
+{
 	u8 mac_addr[ETH_ALEN];
 	u8 cr31_values[14];
 	u8 cr58_values[14];
@@ -122,7 +126,8 @@ struct hwcfg_intersil {
 	u8 reserved[1];
 } __packed;
 
-union at76_hwcfg {
+union at76_hwcfg
+{
 	struct hwcfg_intersil i;
 	struct hwcfg_rfmd r3;
 	struct hwcfg_r505 r5;
@@ -132,7 +137,8 @@ union at76_hwcfg {
 #define WEP_LARGE_KEY_LEN	(104 / 8)
 #define WEP_KEYS		(4)
 
-struct at76_card_config {
+struct at76_card_config
+{
 	u8 exclude_unencrypted;
 	u8 promiscuous_mode;
 	u8 short_retry_limit;
@@ -151,7 +157,8 @@ struct at76_card_config {
 	__le16 beacon_period;
 } __packed;
 
-struct at76_command {
+struct at76_command
+{
 	u8 cmd;
 	u8 reserved;
 	__le16 size;
@@ -161,7 +168,8 @@ struct at76_command {
 /* Length of Atmel-specific Rx header before 802.11 frame */
 #define AT76_RX_HDRLEN offsetof(struct at76_rx_buffer, packet)
 
-struct at76_rx_buffer {
+struct at76_rx_buffer
+{
 	__le16 wlength;
 	u8 rx_rate;
 	u8 newbss;
@@ -176,7 +184,8 @@ struct at76_rx_buffer {
 /* Length of Atmel-specific Tx header before 802.11 frame */
 #define AT76_TX_HDRLEN offsetof(struct at76_tx_buffer, packet)
 
-struct at76_tx_buffer {
+struct at76_tx_buffer
+{
 	__le16 wlength;
 	u8 tx_rate;
 	u8 padding;
@@ -188,7 +197,8 @@ struct at76_tx_buffer {
 #define SCAN_TYPE_ACTIVE	0
 #define SCAN_TYPE_PASSIVE	1
 
-struct at76_req_scan {
+struct at76_req_scan
+{
 	u8 bssid[ETH_ALEN];
 	u8 essid[32];
 	u8 scan_type;
@@ -200,7 +210,8 @@ struct at76_req_scan {
 	u8 international_scan;
 } __packed;
 
-struct at76_req_ibss {
+struct at76_req_ibss
+{
 	u8 bssid[ETH_ALEN];
 	u8 essid[32];
 	u8 bss_type;
@@ -209,7 +220,8 @@ struct at76_req_ibss {
 	u8 reserved[3];
 } __packed;
 
-struct at76_req_join {
+struct at76_req_join
+{
 	u8 bssid[ETH_ALEN];
 	u8 essid[32];
 	u8 bss_type;
@@ -219,7 +231,8 @@ struct at76_req_join {
 	u8 reserved;
 } __packed;
 
-struct mib_local {
+struct mib_local
+{
 	u16 reserved0;
 	u8 beacon_enable;
 	u8 txautorate_fallback;
@@ -231,14 +244,16 @@ struct mib_local {
 	u16 reserved3;
 } __packed;
 
-struct mib_mac_addr {
+struct mib_mac_addr
+{
 	u8 mac_addr[ETH_ALEN];
 	u8 res[2];		/* ??? */
 	u8 group_addr[4][ETH_ALEN];
 	u8 group_addr_status[4];
 } __packed;
 
-struct mib_mac {
+struct mib_mac
+{
 	__le32 max_tx_msdu_lifetime;
 	__le32 max_rx_lifetime;
 	__le16 frag_threshold;
@@ -259,7 +274,8 @@ struct mib_mac {
 	u8 reserved2;
 } __packed;
 
-struct mib_mac_mgmt {
+struct mib_mac_mgmt
+{
 	__le16 beacon_period;
 	__le16 CFP_max_duration;
 	__le16 medium_occupancy_limit;
@@ -282,7 +298,8 @@ struct mib_mac_mgmt {
 	u8 reserved[3];
 } __packed;
 
-struct mib_mac_wep {
+struct mib_mac_wep
+{
 	u8 privacy_invoked;	/* 0 disable encr., 1 enable encr */
 	u8 wep_default_key_id;
 	u8 wep_key_mapping_len;
@@ -293,7 +310,8 @@ struct mib_mac_wep {
 	u8 encryption_level;	/* 1 for 40bit, 2 for 104bit encryption */
 } __packed;
 
-struct mib_phy {
+struct mib_phy
+{
 	__le32 ed_threshold;
 
 	__le16 slot_time;
@@ -310,24 +328,28 @@ struct mib_phy {
 	u8 current_reg_domain;
 } __packed;
 
-struct mib_fw_version {
+struct mib_fw_version
+{
 	u8 major;
 	u8 minor;
 	u8 patch;
 	u8 build;
 } __packed;
 
-struct mib_mdomain {
+struct mib_mdomain
+{
 	u8 tx_powerlevel[14];
 	u8 channel_list[14];	/* 0 for invalid channels */
 } __packed;
 
-struct set_mib_buffer {
+struct set_mib_buffer
+{
 	u8 type;
 	u8 size;
 	u8 index;
 	u8 reserved;
-	union {
+	union
+	{
 		u8 byte;
 		__le16 word;
 		u8 addr[ETH_ALEN];
@@ -335,7 +357,8 @@ struct set_mib_buffer {
 	} data;
 } __packed;
 
-struct at76_fw_header {
+struct at76_fw_header
+{
 	__le32 crc;		/* CRC32 of the whole image */
 	__le32 board_type;	/* firmware compatibility code */
 	u8 build;		/* firmware build number */
@@ -350,14 +373,16 @@ struct at76_fw_header {
 } __packed;
 
 /* a description of a regulatory domain and the allowed channels */
-struct reg_domain {
+struct reg_domain
+{
 	u16 code;
 	char const *name;
 	u32 channel_map;	/* if bit N is set, channel (N+1) is allowed */
 };
 
 /* Data for one loaded firmware file */
-struct fwentry {
+struct fwentry
+{
 	const char *const fwname;
 	const struct firmware *fw;
 	int extfw_size;
@@ -370,7 +395,8 @@ struct fwentry {
 	int loaded;		/* Loaded and parsed successfully */
 };
 
-struct at76_priv {
+struct at76_priv
+{
 	struct usb_device *udev;	/* USB device pointer */
 
 	struct sk_buff *rx_skb;	/* skbuff for receiving data */
@@ -437,8 +463,8 @@ struct at76_priv {
 	enum board_type board_type;
 	struct mib_fw_version fw_version;
 
-	unsigned int device_unplugged:1;
-	unsigned int netdev_registered:1;
+	unsigned int device_unplugged: 1;
+	unsigned int netdev_registered: 1;
 	struct set_mib_buffer mib_buf;	/* global buffer for set_mib calls */
 
 	int beacon_period;	/* period of mgmt beacons, Kus */

@@ -6,7 +6,8 @@
  *
  * Use this if you want the driver to drive the reset pin.
  */
-struct st1232_pdata {
+struct st1232_pdata
+{
 	int reset_gpio;
 };
 

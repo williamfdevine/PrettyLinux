@@ -24,7 +24,7 @@
 #include "kfd_kernel_queue.h"
 
 static bool initialize_cik(struct kernel_queue *kq, struct kfd_dev *dev,
-			enum kfd_queue_type type, unsigned int queue_size);
+						   enum kfd_queue_type type, unsigned int queue_size);
 static void uninitialize_cik(struct kernel_queue *kq);
 
 void kernel_queue_init_cik(struct kernel_queue_ops *ops)
@@ -34,7 +34,7 @@ void kernel_queue_init_cik(struct kernel_queue_ops *ops)
 }
 
 static bool initialize_cik(struct kernel_queue *kq, struct kfd_dev *dev,
-			enum kfd_queue_type type, unsigned int queue_size)
+						   enum kfd_queue_type type, unsigned int queue_size)
 {
 	return true;
 }

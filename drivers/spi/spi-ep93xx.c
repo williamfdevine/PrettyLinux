@@ -88,7 +88,8 @@
  * @zeropage: dummy page used as RX buffer when only TX buffer is passed in by
  *            the client
  */
-struct ep93xx_spi {
+struct ep93xx_spi
+{
 	const struct platform_device	*pdev;
 	struct clk			*clk;
 	void __iomem			*regs_base;
@@ -112,7 +113,8 @@ struct ep93xx_spi {
  * @spi: back pointer to the SPI device
  * @ops: private chip operations
  */
-struct ep93xx_spi_chip {
+struct ep93xx_spi_chip
+{
 	const struct spi_device		*spi;
 	struct ep93xx_spi_chip_ops	*ops;
 };
@@ -121,7 +123,7 @@ struct ep93xx_spi_chip {
 #define bits_per_word_to_dss(bpw)	((bpw) - 1)
 
 static void ep93xx_spi_write_u8(const struct ep93xx_spi *espi,
-				u16 reg, u8 value)
+								u16 reg, u8 value)
 {
 	writeb(value, espi->regs_base + reg);
 }
@@ -132,7 +134,7 @@ static u8 ep93xx_spi_read_u8(const struct ep93xx_spi *spi, u16 reg)
 }
 
 static void ep93xx_spi_write_u16(const struct ep93xx_spi *espi,
-				 u16 reg, u16 value)
+								 u16 reg, u16 value)
 {
 	writew(value, espi->regs_base + reg);
 }
@@ -148,8 +150,11 @@ static int ep93xx_spi_enable(const struct ep93xx_spi *espi)
 	int err;
 
 	err = clk_enable(espi->clk);
+
 	if (err)
+	{
 		return err;
+	}
 
 	regval = ep93xx_spi_read_u8(espi, SSPCR1);
 	regval |= SSPCR1_SSE;
@@ -195,7 +200,7 @@ static void ep93xx_spi_disable_interrupts(const struct ep93xx_spi *espi)
  * @div_scr: pointer to return the scr divider
  */
 static int ep93xx_spi_calc_divisors(const struct ep93xx_spi *espi,
-				    u32 rate, u8 *div_cpsr, u8 *div_scr)
+									u32 rate, u8 *div_cpsr, u8 *div_scr)
 {
 	struct spi_master *master = platform_get_drvdata(espi->pdev);
 	unsigned long spi_clk_rate = clk_get_rate(espi->clk);
@@ -216,9 +221,12 @@ static int ep93xx_spi_calc_divisors(const struct ep93xx_spi *espi,
 	 * cpsr must be even number and starts from 2, scr can be any number
 	 * between 0 and 255.
 	 */
-	for (cpsr = 2; cpsr <= 254; cpsr += 2) {
-		for (scr = 0; scr <= 255; scr++) {
-			if ((spi_clk_rate / (cpsr * (scr + 1))) <= rate) {
+	for (cpsr = 2; cpsr <= 254; cpsr += 2)
+	{
+		for (scr = 0; scr <= 255; scr++)
+		{
+			if ((spi_clk_rate / (cpsr * (scr + 1))) <= rate)
+			{
 				*div_scr = (u8)scr;
 				*div_cpsr = (u8)cpsr;
 				return 0;
@@ -235,7 +243,9 @@ static void ep93xx_spi_cs_control(struct spi_device *spi, bool control)
 	int value = (spi->mode & SPI_CS_HIGH) ? control : !control;
 
 	if (chip->ops && chip->ops->cs_control)
+	{
 		chip->ops->cs_control(spi, value);
+	}
 }
 
 /**
@@ -253,21 +263,28 @@ static int ep93xx_spi_setup(struct spi_device *spi)
 	struct ep93xx_spi_chip *chip;
 
 	chip = spi_get_ctldata(spi);
-	if (!chip) {
+
+	if (!chip)
+	{
 		dev_dbg(&espi->pdev->dev, "initial setup for %s\n",
-			spi->modalias);
+				spi->modalias);
 
 		chip = kzalloc(sizeof(*chip), GFP_KERNEL);
+
 		if (!chip)
+		{
 			return -ENOMEM;
+		}
 
 		chip->spi = spi;
 		chip->ops = spi->controller_data;
 
-		if (chip->ops && chip->ops->setup) {
+		if (chip->ops && chip->ops->setup)
+		{
 			int ret = chip->ops->setup(spi);
 
-			if (ret) {
+			if (ret)
+			{
 				kfree(chip);
 				return ret;
 			}
@@ -292,9 +309,14 @@ static void ep93xx_spi_cleanup(struct spi_device *spi)
 	struct ep93xx_spi_chip *chip;
 
 	chip = spi_get_ctldata(spi);
-	if (chip) {
+
+	if (chip)
+	{
 		if (chip->ops && chip->ops->cleanup)
+		{
 			chip->ops->cleanup(spi);
+		}
+
 		spi_set_ctldata(spi, NULL);
 		kfree(chip);
 	}
@@ -308,8 +330,8 @@ static void ep93xx_spi_cleanup(struct spi_device *spi)
  * @bits_per_word: transfer bits_per_word
  */
 static int ep93xx_spi_chip_setup(const struct ep93xx_spi *espi,
-				 const struct ep93xx_spi_chip *chip,
-				 u32 speed_hz, u8 bits_per_word)
+								 const struct ep93xx_spi_chip *chip,
+								 u32 speed_hz, u8 bits_per_word)
 {
 	u8 dss = bits_per_word_to_dss(bits_per_word);
 	u8 div_cpsr = 0;
@@ -318,15 +340,18 @@ static int ep93xx_spi_chip_setup(const struct ep93xx_spi *espi,
 	int err;
 
 	err = ep93xx_spi_calc_divisors(espi, speed_hz, &div_cpsr, &div_scr);
+
 	if (err)
+	{
 		return err;
+	}
 
 	cr0 = div_scr << SSPCR0_SCR_SHIFT;
-	cr0 |= (chip->spi->mode & (SPI_CPHA|SPI_CPOL)) << SSPCR0_MODE_SHIFT;
+	cr0 |= (chip->spi->mode & (SPI_CPHA | SPI_CPOL)) << SSPCR0_MODE_SHIFT;
 	cr0 |= dss;
 
 	dev_dbg(&espi->pdev->dev, "setup: mode %d, cpsr %d, scr %d, dss %d\n",
-		chip->spi->mode, div_cpsr, div_scr, dss);
+			chip->spi->mode, div_cpsr, div_scr, dss);
 	dev_dbg(&espi->pdev->dev, "setup: cr0 %#x\n", cr0);
 
 	ep93xx_spi_write_u8(espi, SSPCPSR, div_cpsr);
@@ -337,18 +362,27 @@ static int ep93xx_spi_chip_setup(const struct ep93xx_spi *espi,
 
 static void ep93xx_do_write(struct ep93xx_spi *espi, struct spi_transfer *t)
 {
-	if (t->bits_per_word > 8) {
+	if (t->bits_per_word > 8)
+	{
 		u16 tx_val = 0;
 
 		if (t->tx_buf)
+		{
 			tx_val = ((u16 *)t->tx_buf)[espi->tx];
+		}
+
 		ep93xx_spi_write_u16(espi, SSPDR, tx_val);
 		espi->tx += sizeof(tx_val);
-	} else {
+	}
+	else
+	{
 		u8 tx_val = 0;
 
 		if (t->tx_buf)
+		{
 			tx_val = ((u8 *)t->tx_buf)[espi->tx];
+		}
+
 		ep93xx_spi_write_u8(espi, SSPDR, tx_val);
 		espi->tx += sizeof(tx_val);
 	}
@@ -356,19 +390,30 @@ static void ep93xx_do_write(struct ep93xx_spi *espi, struct spi_transfer *t)
 
 static void ep93xx_do_read(struct ep93xx_spi *espi, struct spi_transfer *t)
 {
-	if (t->bits_per_word > 8) {
+	if (t->bits_per_word > 8)
+	{
 		u16 rx_val;
 
 		rx_val = ep93xx_spi_read_u16(espi, SSPDR);
+
 		if (t->rx_buf)
+		{
 			((u16 *)t->rx_buf)[espi->rx] = rx_val;
+		}
+
 		espi->rx += sizeof(rx_val);
-	} else {
+	}
+	else
+	{
 		u8 rx_val;
 
 		rx_val = ep93xx_spi_read_u8(espi, SSPDR);
+
 		if (t->rx_buf)
+		{
 			((u8 *)t->rx_buf)[espi->rx] = rx_val;
+		}
+
 		espi->rx += sizeof(rx_val);
 	}
 }
@@ -390,19 +435,23 @@ static int ep93xx_spi_read_write(struct ep93xx_spi *espi)
 	struct spi_transfer *t = msg->state;
 
 	/* read as long as RX FIFO has frames in it */
-	while ((ep93xx_spi_read_u8(espi, SSPSR) & SSPSR_RNE)) {
+	while ((ep93xx_spi_read_u8(espi, SSPSR) & SSPSR_RNE))
+	{
 		ep93xx_do_read(espi, t);
 		espi->fifo_level--;
 	}
 
 	/* write as long as TX FIFO has room */
-	while (espi->fifo_level < SPI_FIFO_SIZE && espi->tx < t->len) {
+	while (espi->fifo_level < SPI_FIFO_SIZE && espi->tx < t->len)
+	{
 		ep93xx_do_write(espi, t);
 		espi->fifo_level++;
 	}
 
 	if (espi->rx == t->len)
+	{
 		return 0;
+	}
 
 	return -EINPROGRESS;
 }
@@ -413,7 +462,8 @@ static void ep93xx_spi_pio_transfer(struct ep93xx_spi *espi)
 	 * Now everything is set up for the current transfer. We prime the TX
 	 * FIFO, enable interrupts, and wait for the transfer to complete.
 	 */
-	if (ep93xx_spi_read_write(espi)) {
+	if (ep93xx_spi_read_write(espi))
+	{
 		ep93xx_spi_enable_interrupts(espi);
 		wait_for_completion(&espi->wait);
 	}
@@ -443,21 +493,28 @@ ep93xx_spi_dma_prepare(struct ep93xx_spi *espi, enum dma_transfer_direction dir)
 	int i, ret, nents;
 
 	if (t->bits_per_word > 8)
+	{
 		buswidth = DMA_SLAVE_BUSWIDTH_2_BYTES;
+	}
 	else
+	{
 		buswidth = DMA_SLAVE_BUSWIDTH_1_BYTE;
+	}
 
 	memset(&conf, 0, sizeof(conf));
 	conf.direction = dir;
 
-	if (dir == DMA_DEV_TO_MEM) {
+	if (dir == DMA_DEV_TO_MEM)
+	{
 		chan = espi->dma_rx;
 		buf = t->rx_buf;
 		sgt = &espi->rx_sgt;
 
 		conf.src_addr = espi->sspdr_phys;
 		conf.src_addr_width = buswidth;
-	} else {
+	}
+	else
+	{
 		chan = espi->dma_tx;
 		buf = t->tx_buf;
 		sgt = &espi->tx_sgt;
@@ -467,8 +524,11 @@ ep93xx_spi_dma_prepare(struct ep93xx_spi *espi, enum dma_transfer_direction dir)
 	}
 
 	ret = dmaengine_slave_config(chan, &conf);
+
 	if (ret)
+	{
 		return ERR_PTR(ret);
+	}
 
 	/*
 	 * We need to split the transfer into PAGE_SIZE'd chunks. This is
@@ -481,44 +541,60 @@ ep93xx_spi_dma_prepare(struct ep93xx_spi *espi, enum dma_transfer_direction dir)
 	 */
 
 	nents = DIV_ROUND_UP(len, PAGE_SIZE);
-	if (nents != sgt->nents) {
+
+	if (nents != sgt->nents)
+	{
 		sg_free_table(sgt);
 
 		ret = sg_alloc_table(sgt, nents, GFP_KERNEL);
+
 		if (ret)
+		{
 			return ERR_PTR(ret);
+		}
 	}
 
 	pbuf = buf;
-	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
+	for_each_sg(sgt->sgl, sg, sgt->nents, i)
+	{
 		size_t bytes = min_t(size_t, len, PAGE_SIZE);
 
-		if (buf) {
+		if (buf)
+		{
 			sg_set_page(sg, virt_to_page(pbuf), bytes,
-				    offset_in_page(pbuf));
-		} else {
+						offset_in_page(pbuf));
+		}
+		else
+		{
 			sg_set_page(sg, virt_to_page(espi->zeropage),
-				    bytes, 0);
+						bytes, 0);
 		}
 
 		pbuf += bytes;
 		len -= bytes;
 	}
 
-	if (WARN_ON(len)) {
+	if (WARN_ON(len))
+	{
 		dev_warn(&espi->pdev->dev, "len = %zu expected 0!\n", len);
 		return ERR_PTR(-EINVAL);
 	}
 
 	nents = dma_map_sg(chan->device->dev, sgt->sgl, sgt->nents, dir);
+
 	if (!nents)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	txd = dmaengine_prep_slave_sg(chan, sgt->sgl, nents, dir, DMA_CTRL_ACK);
-	if (!txd) {
+
+	if (!txd)
+	{
 		dma_unmap_sg(chan->device->dev, sgt->sgl, sgt->nents, dir);
 		return ERR_PTR(-ENOMEM);
 	}
+
 	return txd;
 }
 
@@ -531,15 +607,18 @@ ep93xx_spi_dma_prepare(struct ep93xx_spi *espi, enum dma_transfer_direction dir)
  * unmapped.
  */
 static void ep93xx_spi_dma_finish(struct ep93xx_spi *espi,
-				  enum dma_transfer_direction dir)
+								  enum dma_transfer_direction dir)
 {
 	struct dma_chan *chan;
 	struct sg_table *sgt;
 
-	if (dir == DMA_DEV_TO_MEM) {
+	if (dir == DMA_DEV_TO_MEM)
+	{
 		chan = espi->dma_rx;
 		sgt = &espi->rx_sgt;
-	} else {
+	}
+	else
+	{
 		chan = espi->dma_tx;
 		sgt = &espi->tx_sgt;
 	}
@@ -558,14 +637,18 @@ static void ep93xx_spi_dma_transfer(struct ep93xx_spi *espi)
 	struct dma_async_tx_descriptor *rxd, *txd;
 
 	rxd = ep93xx_spi_dma_prepare(espi, DMA_DEV_TO_MEM);
-	if (IS_ERR(rxd)) {
+
+	if (IS_ERR(rxd))
+	{
 		dev_err(&espi->pdev->dev, "DMA RX failed: %ld\n", PTR_ERR(rxd));
 		msg->status = PTR_ERR(rxd);
 		return;
 	}
 
 	txd = ep93xx_spi_dma_prepare(espi, DMA_MEM_TO_DEV);
-	if (IS_ERR(txd)) {
+
+	if (IS_ERR(txd))
+	{
 		ep93xx_spi_dma_finish(espi, DMA_DEV_TO_MEM);
 		dev_err(&espi->pdev->dev, "DMA TX failed: %ld\n", PTR_ERR(txd));
 		msg->status = PTR_ERR(txd);
@@ -600,8 +683,8 @@ static void ep93xx_spi_dma_transfer(struct ep93xx_spi *espi)
  * transfer was successfully processed or not.
  */
 static void ep93xx_spi_process_transfer(struct ep93xx_spi *espi,
-					struct spi_message *msg,
-					struct spi_transfer *t)
+										struct spi_message *msg,
+										struct spi_transfer *t)
 {
 	struct ep93xx_spi_chip *chip = spi_get_ctldata(msg->spi);
 	int err;
@@ -609,9 +692,11 @@ static void ep93xx_spi_process_transfer(struct ep93xx_spi *espi,
 	msg->state = t;
 
 	err = ep93xx_spi_chip_setup(espi, chip, t->speed_hz, t->bits_per_word);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&espi->pdev->dev,
-			"failed to setup chip for transfer\n");
+				"failed to setup chip for transfer\n");
 		msg->status = err;
 		return;
 	}
@@ -625,16 +710,22 @@ static void ep93xx_spi_process_transfer(struct ep93xx_spi *espi,
 	 * So in these cases we will be using PIO and don't bother for DMA.
 	 */
 	if (espi->dma_rx && t->len > SPI_FIFO_SIZE)
+	{
 		ep93xx_spi_dma_transfer(espi);
+	}
 	else
+	{
 		ep93xx_spi_pio_transfer(espi);
+	}
 
 	/*
 	 * In case of error during transmit, we bail out from processing
 	 * the message.
 	 */
 	if (msg->status)
+	{
 		return;
+	}
 
 	msg->actual_length += t->len;
 
@@ -642,12 +733,16 @@ static void ep93xx_spi_process_transfer(struct ep93xx_spi *espi,
 	 * After this transfer is finished, perform any possible
 	 * post-transfer actions requested by the protocol driver.
 	 */
-	if (t->delay_usecs) {
+	if (t->delay_usecs)
+	{
 		set_current_state(TASK_UNINTERRUPTIBLE);
 		schedule_timeout(usecs_to_jiffies(t->delay_usecs));
 	}
-	if (t->cs_change) {
-		if (!list_is_last(&t->transfer_list, &msg->transfers)) {
+
+	if (t->cs_change)
+	{
+		if (!list_is_last(&t->transfer_list, &msg->transfers))
+		{
 			/*
 			 * In case protocol driver is asking us to drop the
 			 * chipselect briefly, we let the scheduler to handle
@@ -673,7 +768,7 @@ static void ep93xx_spi_process_transfer(struct ep93xx_spi *espi,
  * failure.
  */
 static void ep93xx_spi_process_message(struct ep93xx_spi *espi,
-				       struct spi_message *msg)
+									   struct spi_message *msg)
 {
 	unsigned long timeout;
 	struct spi_transfer *t;
@@ -683,7 +778,9 @@ static void ep93xx_spi_process_message(struct ep93xx_spi *espi,
 	 * Enable the SPI controller and its clock.
 	 */
 	err = ep93xx_spi_enable(espi);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&espi->pdev->dev, "failed to enable SPI controller\n");
 		msg->status = err;
 		return;
@@ -693,13 +790,17 @@ static void ep93xx_spi_process_message(struct ep93xx_spi *espi,
 	 * Just to be sure: flush any data from RX FIFO.
 	 */
 	timeout = jiffies + msecs_to_jiffies(SPI_TIMEOUT);
-	while (ep93xx_spi_read_u16(espi, SSPSR) & SSPSR_RNE) {
-		if (time_after(jiffies, timeout)) {
+
+	while (ep93xx_spi_read_u16(espi, SSPSR) & SSPSR_RNE)
+	{
+		if (time_after(jiffies, timeout))
+		{
 			dev_warn(&espi->pdev->dev,
-				 "timeout while flushing RX FIFO\n");
+					 "timeout while flushing RX FIFO\n");
 			msg->status = -ETIMEDOUT;
 			return;
 		}
+
 		ep93xx_spi_read_u16(espi, SSPDR);
 	}
 
@@ -714,10 +815,14 @@ static void ep93xx_spi_process_message(struct ep93xx_spi *espi,
 	 */
 	ep93xx_spi_cs_control(msg->spi, true);
 
-	list_for_each_entry(t, &msg->transfers, transfer_list) {
+	list_for_each_entry(t, &msg->transfers, transfer_list)
+	{
 		ep93xx_spi_process_transfer(espi, msg, t);
+
 		if (msg->status)
+		{
 			break;
+		}
 	}
 
 	/*
@@ -729,7 +834,7 @@ static void ep93xx_spi_process_message(struct ep93xx_spi *espi,
 }
 
 static int ep93xx_spi_transfer_one_message(struct spi_master *master,
-					   struct spi_message *msg)
+		struct spi_message *msg)
 {
 	struct ep93xx_spi *espi = spi_master_get_devdata(master);
 
@@ -755,18 +860,22 @@ static irqreturn_t ep93xx_spi_interrupt(int irq, void *dev_id)
 	 * If we got ROR (receive overrun) interrupt we know that something is
 	 * wrong. Just abort the message.
 	 */
-	if (unlikely(irq_status & SSPIIR_RORIS)) {
+	if (unlikely(irq_status & SSPIIR_RORIS))
+	{
 		/* clear the overrun interrupt */
 		ep93xx_spi_write_u8(espi, SSPICR, 0);
 		dev_warn(&espi->pdev->dev,
-			 "receive overrun, aborting the message\n");
+				 "receive overrun, aborting the message\n");
 		espi->current_msg->status = -EIO;
-	} else {
+	}
+	else
+	{
 		/*
 		 * Interrupt is either RX (RIS) or TX (TIS). For both cases we
 		 * simply execute next data transfer.
 		 */
-		if (ep93xx_spi_read_write(espi)) {
+		if (ep93xx_spi_read_write(espi))
+		{
 			/*
 			 * In normal case, there still is some processing left
 			 * for current transfer. Let's wait for the next
@@ -789,7 +898,9 @@ static irqreturn_t ep93xx_spi_interrupt(int irq, void *dev_id)
 static bool ep93xx_spi_dma_filter(struct dma_chan *chan, void *filter_param)
 {
 	if (ep93xx_dma_chan_is_m2p(chan))
+	{
 		return false;
+	}
 
 	chan->private = filter_param;
 	return true;
@@ -801,8 +912,11 @@ static int ep93xx_spi_setup_dma(struct ep93xx_spi *espi)
 	int ret;
 
 	espi->zeropage = (void *)get_zeroed_page(GFP_KERNEL);
+
 	if (!espi->zeropage)
+	{
 		return -ENOMEM;
+	}
 
 	dma_cap_zero(mask);
 	dma_cap_set(DMA_SLAVE, mask);
@@ -812,8 +926,10 @@ static int ep93xx_spi_setup_dma(struct ep93xx_spi *espi)
 	espi->dma_rx_data.name = "ep93xx-spi-rx";
 
 	espi->dma_rx = dma_request_channel(mask, ep93xx_spi_dma_filter,
-					   &espi->dma_rx_data);
-	if (!espi->dma_rx) {
+									   &espi->dma_rx_data);
+
+	if (!espi->dma_rx)
+	{
 		ret = -ENODEV;
 		goto fail_free_page;
 	}
@@ -823,8 +939,10 @@ static int ep93xx_spi_setup_dma(struct ep93xx_spi *espi)
 	espi->dma_tx_data.name = "ep93xx-spi-tx";
 
 	espi->dma_tx = dma_request_channel(mask, ep93xx_spi_dma_filter,
-					   &espi->dma_tx_data);
-	if (!espi->dma_tx) {
+									   &espi->dma_tx_data);
+
+	if (!espi->dma_tx)
+	{
 		ret = -ENODEV;
 		goto fail_release_rx;
 	}
@@ -842,17 +960,22 @@ fail_free_page:
 
 static void ep93xx_spi_release_dma(struct ep93xx_spi *espi)
 {
-	if (espi->dma_rx) {
+	if (espi->dma_rx)
+	{
 		dma_release_channel(espi->dma_rx);
 		sg_free_table(&espi->rx_sgt);
 	}
-	if (espi->dma_tx) {
+
+	if (espi->dma_tx)
+	{
 		dma_release_channel(espi->dma_tx);
 		sg_free_table(&espi->tx_sgt);
 	}
 
 	if (espi->zeropage)
+	{
 		free_page((unsigned long)espi->zeropage);
+	}
 }
 
 static int ep93xx_spi_probe(struct platform_device *pdev)
@@ -867,20 +990,27 @@ static int ep93xx_spi_probe(struct platform_device *pdev)
 	info = dev_get_platdata(&pdev->dev);
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "failed to get irq resources\n");
 		return -EBUSY;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "unable to get iomem resource\n");
 		return -ENODEV;
 	}
 
 	master = spi_alloc_master(&pdev->dev, sizeof(*espi));
+
 	if (!master)
+	{
 		return -ENOMEM;
+	}
 
 	master->setup = ep93xx_spi_setup;
 	master->transfer_one_message = ep93xx_spi_transfer_one_message;
@@ -895,7 +1025,9 @@ static int ep93xx_spi_probe(struct platform_device *pdev)
 	espi = spi_master_get_devdata(master);
 
 	espi->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(espi->clk)) {
+
+	if (IS_ERR(espi->clk))
+	{
 		dev_err(&pdev->dev, "unable to get spi clock\n");
 		error = PTR_ERR(espi->clk);
 		goto fail_release_master;
@@ -914,32 +1046,40 @@ static int ep93xx_spi_probe(struct platform_device *pdev)
 	espi->sspdr_phys = res->start + SSPDR;
 
 	espi->regs_base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(espi->regs_base)) {
+
+	if (IS_ERR(espi->regs_base))
+	{
 		error = PTR_ERR(espi->regs_base);
 		goto fail_release_master;
 	}
 
 	error = devm_request_irq(&pdev->dev, irq, ep93xx_spi_interrupt,
-				0, "ep93xx-spi", espi);
-	if (error) {
+							 0, "ep93xx-spi", espi);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "failed to request irq\n");
 		goto fail_release_master;
 	}
 
 	if (info->use_dma && ep93xx_spi_setup_dma(espi))
+	{
 		dev_warn(&pdev->dev, "DMA setup failed. Falling back to PIO\n");
+	}
 
 	/* make sure that the hardware is disabled */
 	ep93xx_spi_write_u8(espi, SSPCR1, 0);
 
 	error = devm_spi_register_master(&pdev->dev, master);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "failed to register SPI master\n");
 		goto fail_free_dma;
 	}
 
 	dev_info(&pdev->dev, "EP93xx SPI Controller at 0x%08lx irq %d\n",
-		 (unsigned long)res->start, irq);
+			 (unsigned long)res->start, irq);
 
 	return 0;
 
@@ -961,7 +1101,8 @@ static int ep93xx_spi_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ep93xx_spi_driver = {
+static struct platform_driver ep93xx_spi_driver =
+{
 	.driver		= {
 		.name	= "ep93xx-spi",
 	},

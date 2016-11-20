@@ -38,7 +38,7 @@
 #define DRIVER_MINOR 0
 
 static void mtk_atomic_schedule(struct mtk_drm_private *private,
-				struct drm_atomic_state *state)
+								struct drm_atomic_state *state)
 {
 	private->commit.state = state;
 	schedule_work(&private->commit.work);
@@ -51,11 +51,11 @@ static void mtk_atomic_wait_for_fences(struct drm_atomic_state *state)
 	int i;
 
 	for_each_plane_in_state(state, plane, plane_state, i)
-		mtk_fb_wait(plane->state->fb);
+	mtk_fb_wait(plane->state->fb);
 }
 
 static void mtk_atomic_complete(struct mtk_drm_private *private,
-				struct drm_atomic_state *state)
+								struct drm_atomic_state *state)
 {
 	struct drm_device *drm = private->drm;
 
@@ -78,7 +78,7 @@ static void mtk_atomic_complete(struct mtk_drm_private *private,
 	drm_atomic_helper_commit_modeset_disables(drm, state);
 	drm_atomic_helper_commit_modeset_enables(drm, state);
 	drm_atomic_helper_commit_planes(drm, state,
-					DRM_PLANE_COMMIT_ACTIVE_ONLY);
+									DRM_PLANE_COMMIT_ACTIVE_ONLY);
 
 	drm_atomic_helper_wait_for_vblanks(drm, state);
 
@@ -89,21 +89,24 @@ static void mtk_atomic_complete(struct mtk_drm_private *private,
 static void mtk_atomic_work(struct work_struct *work)
 {
 	struct mtk_drm_private *private = container_of(work,
-			struct mtk_drm_private, commit.work);
+									  struct mtk_drm_private, commit.work);
 
 	mtk_atomic_complete(private, private->commit.state);
 }
 
 static int mtk_atomic_commit(struct drm_device *drm,
-			     struct drm_atomic_state *state,
-			     bool async)
+							 struct drm_atomic_state *state,
+							 bool async)
 {
 	struct mtk_drm_private *private = drm->dev_private;
 	int ret;
 
 	ret = drm_atomic_helper_prepare_planes(drm, state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mutex_lock(&private->commit.lock);
 	flush_work(&private->commit.work);
@@ -111,22 +114,28 @@ static int mtk_atomic_commit(struct drm_device *drm,
 	drm_atomic_helper_swap_state(state, true);
 
 	if (async)
+	{
 		mtk_atomic_schedule(private, state);
+	}
 	else
+	{
 		mtk_atomic_complete(private, state);
+	}
 
 	mutex_unlock(&private->commit.lock);
 
 	return 0;
 }
 
-static const struct drm_mode_config_funcs mtk_drm_mode_config_funcs = {
+static const struct drm_mode_config_funcs mtk_drm_mode_config_funcs =
+{
 	.fb_create = mtk_drm_mode_fb_create,
 	.atomic_check = drm_atomic_helper_check,
 	.atomic_commit = mtk_atomic_commit,
 };
 
-static const enum mtk_ddp_comp_id mtk_ddp_main[] = {
+static const enum mtk_ddp_comp_id mtk_ddp_main[] =
+{
 	DDP_COMPONENT_OVL0,
 	DDP_COMPONENT_COLOR0,
 	DDP_COMPONENT_AAL,
@@ -137,7 +146,8 @@ static const enum mtk_ddp_comp_id mtk_ddp_main[] = {
 	DDP_COMPONENT_PWM0,
 };
 
-static const enum mtk_ddp_comp_id mtk_ddp_ext[] = {
+static const enum mtk_ddp_comp_id mtk_ddp_ext[] =
+{
 	DDP_COMPONENT_OVL1,
 	DDP_COMPONENT_COLOR1,
 	DDP_COMPONENT_GAMMA,
@@ -153,15 +163,20 @@ static int mtk_drm_kms_init(struct drm_device *drm)
 	int ret;
 
 	if (!iommu_present(&platform_bus_type))
+	{
 		return -EPROBE_DEFER;
+	}
 
 	pdev = of_find_device_by_node(private->mutex_node);
-	if (!pdev) {
+
+	if (!pdev)
+	{
 		dev_err(drm->dev, "Waiting for disp-mutex device %s\n",
-			private->mutex_node->full_name);
+				private->mutex_node->full_name);
 		of_node_put(private->mutex_node);
 		return -EPROBE_DEFER;
 	}
+
 	private->mutex_dev = &pdev->dev;
 
 	drm_mode_config_init(drm);
@@ -179,8 +194,11 @@ static int mtk_drm_kms_init(struct drm_device *drm)
 	drm->mode_config.funcs = &mtk_drm_mode_config_funcs;
 
 	ret = component_bind_all(drm->dev, drm);
+
 	if (ret)
+	{
 		goto err_config_cleanup;
+	}
 
 	/*
 	 * We currently support two fixed data streams, each optional,
@@ -188,18 +206,27 @@ static int mtk_drm_kms_init(struct drm_device *drm)
 	 * OVL0 -> COLOR0 -> AAL -> OD -> RDMA0 -> UFOE -> DSI0 ...
 	 */
 	ret = mtk_drm_crtc_create(drm, mtk_ddp_main, ARRAY_SIZE(mtk_ddp_main));
+
 	if (ret < 0)
+	{
 		goto err_component_unbind;
+	}
+
 	/* ... and OVL1 -> COLOR1 -> GAMMA -> RDMA1 -> DPI0. */
 	ret = mtk_drm_crtc_create(drm, mtk_ddp_ext, ARRAY_SIZE(mtk_ddp_ext));
+
 	if (ret < 0)
+	{
 		goto err_component_unbind;
+	}
 
 	/* Use OVL device for all DMA memory allocations */
-	np = private->comp_node[mtk_ddp_main[0]] ?:
-	     private->comp_node[mtk_ddp_ext[0]];
+	np = private->comp_node[mtk_ddp_main[0]] ? :
+		 private->comp_node[mtk_ddp_ext[0]];
 	pdev = of_find_device_by_node(np);
-	if (!pdev) {
+
+	if (!pdev)
+	{
 		ret = -ENODEV;
 		dev_err(drm->dev, "Need at least one OVL device\n");
 		goto err_component_unbind;
@@ -214,8 +241,11 @@ static int mtk_drm_kms_init(struct drm_device *drm)
 	 */
 	drm->irq_enabled = true;
 	ret = drm_vblank_init(drm, MAX_CRTC);
+
 	if (ret < 0)
+	{
 		goto err_component_unbind;
+	}
 
 	drm_kms_helper_poll_init(drm);
 	drm_mode_config_reset(drm);
@@ -239,7 +269,8 @@ static void mtk_drm_kms_deinit(struct drm_device *drm)
 	drm_mode_config_cleanup(drm);
 }
 
-static const struct file_operations mtk_drm_fops = {
+static const struct file_operations mtk_drm_fops =
+{
 	.owner = THIS_MODULE,
 	.open = drm_open,
 	.release = drm_release,
@@ -252,9 +283,10 @@ static const struct file_operations mtk_drm_fops = {
 #endif
 };
 
-static struct drm_driver mtk_drm_driver = {
+static struct drm_driver mtk_drm_driver =
+{
 	.driver_features = DRIVER_MODESET | DRIVER_GEM | DRIVER_PRIME |
-			   DRIVER_ATOMIC,
+	DRIVER_ATOMIC,
 
 	.get_vblank_counter = drm_vblank_count,
 	.enable_vblank = mtk_drm_crtc_enable_vblank,
@@ -294,19 +326,28 @@ static int mtk_drm_bind(struct device *dev)
 	int ret;
 
 	drm = drm_dev_alloc(&mtk_drm_driver, dev);
+
 	if (IS_ERR(drm))
+	{
 		return PTR_ERR(drm);
+	}
 
 	drm->dev_private = private;
 	private->drm = drm;
 
 	ret = mtk_drm_kms_init(drm);
+
 	if (ret < 0)
+	{
 		goto err_free;
+	}
 
 	ret = drm_dev_register(drm, 0);
+
 	if (ret < 0)
+	{
 		goto err_deinit;
+	}
 
 	return 0;
 
@@ -325,12 +366,14 @@ static void mtk_drm_unbind(struct device *dev)
 	private->drm = NULL;
 }
 
-static const struct component_master_ops mtk_drm_ops = {
+static const struct component_master_ops mtk_drm_ops =
+{
 	.bind		= mtk_drm_bind,
 	.unbind		= mtk_drm_unbind,
 };
 
-static const struct of_device_id mtk_ddp_comp_dt_ids[] = {
+static const struct of_device_id mtk_ddp_comp_dt_ids[] =
+{
 	{ .compatible = "mediatek,mt8173-disp-ovl",   .data = (void *)MTK_DISP_OVL },
 	{ .compatible = "mediatek,mt8173-disp-rdma",  .data = (void *)MTK_DISP_RDMA },
 	{ .compatible = "mediatek,mt8173-disp-wdma",  .data = (void *)MTK_DISP_WDMA },
@@ -357,48 +400,61 @@ static int mtk_drm_probe(struct platform_device *pdev)
 	int i;
 
 	private = devm_kzalloc(dev, sizeof(*private), GFP_KERNEL);
+
 	if (!private)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&private->commit.lock);
 	INIT_WORK(&private->commit.work, mtk_atomic_work);
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	private->config_regs = devm_ioremap_resource(dev, mem);
-	if (IS_ERR(private->config_regs)) {
+
+	if (IS_ERR(private->config_regs))
+	{
 		ret = PTR_ERR(private->config_regs);
 		dev_err(dev, "Failed to ioremap mmsys-config resource: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
 	/* Iterate over sibling DISP function blocks */
-	for_each_child_of_node(dev->of_node->parent, node) {
+	for_each_child_of_node(dev->of_node->parent, node)
+	{
 		const struct of_device_id *of_id;
 		enum mtk_ddp_comp_type comp_type;
 		int comp_id;
 
 		of_id = of_match_node(mtk_ddp_comp_dt_ids, node);
-		if (!of_id)
-			continue;
 
-		if (!of_device_is_available(node)) {
+		if (!of_id)
+		{
+			continue;
+		}
+
+		if (!of_device_is_available(node))
+		{
 			dev_dbg(dev, "Skipping disabled component %s\n",
-				node->full_name);
+					node->full_name);
 			continue;
 		}
 
 		comp_type = (enum mtk_ddp_comp_type)of_id->data;
 
-		if (comp_type == MTK_DISP_MUTEX) {
+		if (comp_type == MTK_DISP_MUTEX)
+		{
 			private->mutex_node = of_node_get(node);
 			continue;
 		}
 
 		comp_id = mtk_ddp_comp_get_id(node, comp_type);
-		if (comp_id < 0) {
+
+		if (comp_id < 0)
+		{
 			dev_warn(dev, "Skipping unknown component %s\n",
-				 node->full_name);
+					 node->full_name);
 			continue;
 		}
 
@@ -410,30 +466,39 @@ static int mtk_drm_probe(struct platform_device *pdev)
 		 * DDP component structure. The others are initialized here.
 		 */
 		if (comp_type == MTK_DISP_OVL ||
-		    comp_type == MTK_DISP_RDMA ||
-		    comp_type == MTK_DSI ||
-		    comp_type == MTK_DPI) {
+			comp_type == MTK_DISP_RDMA ||
+			comp_type == MTK_DSI ||
+			comp_type == MTK_DPI)
+		{
 			dev_info(dev, "Adding component match for %s\n",
-				 node->full_name);
+					 node->full_name);
 			component_match_add(dev, &match, compare_of, node);
-		} else {
+		}
+		else
+		{
 			struct mtk_ddp_comp *comp;
 
 			comp = devm_kzalloc(dev, sizeof(*comp), GFP_KERNEL);
-			if (!comp) {
+
+			if (!comp)
+			{
 				ret = -ENOMEM;
 				goto err_node;
 			}
 
 			ret = mtk_ddp_comp_init(dev, node, comp, comp_id, NULL);
+
 			if (ret)
+			{
 				goto err_node;
+			}
 
 			private->ddp_comp[comp_id] = comp;
 		}
 	}
 
-	if (!private->mutex_node) {
+	if (!private->mutex_node)
+	{
 		dev_err(dev, "Failed to find disp-mutex node\n");
 		ret = -ENODEV;
 		goto err_node;
@@ -444,8 +509,11 @@ static int mtk_drm_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, private);
 
 	ret = component_master_add_with_match(dev, &mtk_drm_ops, match);
+
 	if (ret)
+	{
 		goto err_pm;
+	}
 
 	return 0;
 
@@ -453,8 +521,12 @@ err_pm:
 	pm_runtime_disable(dev);
 err_node:
 	of_node_put(private->mutex_node);
+
 	for (i = 0; i < DDP_COMPONENT_ID_MAX; i++)
+	{
 		of_node_put(private->comp_node[i]);
+	}
+
 	return ret;
 }
 
@@ -471,8 +543,11 @@ static int mtk_drm_remove(struct platform_device *pdev)
 	component_master_del(&pdev->dev, &mtk_drm_ops);
 	pm_runtime_disable(&pdev->dev);
 	of_node_put(private->mutex_node);
+
 	for (i = 0; i < DDP_COMPONENT_ID_MAX; i++)
+	{
 		of_node_put(private->comp_node[i]);
+	}
 
 	return 0;
 }
@@ -486,7 +561,9 @@ static int mtk_drm_sys_suspend(struct device *dev)
 	drm_kms_helper_poll_disable(drm);
 
 	private->suspend_state = drm_atomic_helper_suspend(drm);
-	if (IS_ERR(private->suspend_state)) {
+
+	if (IS_ERR(private->suspend_state))
+	{
 		drm_kms_helper_poll_enable(drm);
 		return PTR_ERR(private->suspend_state);
 	}
@@ -509,14 +586,16 @@ static int mtk_drm_sys_resume(struct device *dev)
 #endif
 
 static SIMPLE_DEV_PM_OPS(mtk_drm_pm_ops, mtk_drm_sys_suspend,
-			 mtk_drm_sys_resume);
+						 mtk_drm_sys_resume);
 
-static const struct of_device_id mtk_drm_of_ids[] = {
+static const struct of_device_id mtk_drm_of_ids[] =
+{
 	{ .compatible = "mediatek,mt8173-mmsys", },
 	{ }
 };
 
-static struct platform_driver mtk_drm_platform_driver = {
+static struct platform_driver mtk_drm_platform_driver =
+{
 	.probe	= mtk_drm_probe,
 	.remove	= mtk_drm_remove,
 	.driver	= {
@@ -526,7 +605,8 @@ static struct platform_driver mtk_drm_platform_driver = {
 	},
 };
 
-static struct platform_driver * const mtk_drm_drivers[] = {
+static struct platform_driver *const mtk_drm_drivers[] =
+{
 	&mtk_ddp_driver,
 	&mtk_disp_ovl_driver,
 	&mtk_disp_rdma_driver,
@@ -541,11 +621,14 @@ static int __init mtk_drm_init(void)
 	int ret;
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(mtk_drm_drivers); i++) {
+	for (i = 0; i < ARRAY_SIZE(mtk_drm_drivers); i++)
+	{
 		ret = platform_driver_register(mtk_drm_drivers[i]);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			pr_err("Failed to register %s driver: %d\n",
-			       mtk_drm_drivers[i]->driver.name, ret);
+				   mtk_drm_drivers[i]->driver.name, ret);
 			goto err;
 		}
 	}
@@ -553,8 +636,11 @@ static int __init mtk_drm_init(void)
 	return 0;
 
 err:
+
 	while (--i >= 0)
+	{
 		platform_driver_unregister(mtk_drm_drivers[i]);
+	}
 
 	return ret;
 }
@@ -564,7 +650,9 @@ static void __exit mtk_drm_exit(void)
 	int i;
 
 	for (i = ARRAY_SIZE(mtk_drm_drivers) - 1; i >= 0; i--)
+	{
 		platform_driver_unregister(mtk_drm_drivers[i]);
+	}
 }
 
 module_init(mtk_drm_init);

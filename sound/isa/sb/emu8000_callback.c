@@ -27,7 +27,7 @@
  * prototypes
  */
 static struct snd_emux_voice *get_voice(struct snd_emux *emu,
-					struct snd_emux_port *port);
+										struct snd_emux_port *port);
 static int start_voice(struct snd_emux_voice *vp);
 static void trigger_voice(struct snd_emux_voice *vp);
 static void release_voice(struct snd_emux_voice *vp);
@@ -35,12 +35,12 @@ static void update_voice(struct snd_emux_voice *vp, int update);
 static void reset_voice(struct snd_emux *emu, int ch);
 static void terminate_voice(struct snd_emux_voice *vp);
 static void sysex(struct snd_emux *emu, char *buf, int len, int parsed,
-		  struct snd_midi_channel_set *chset);
+				  struct snd_midi_channel_set *chset);
 #ifdef CONFIG_SND_SEQUENCER_OSS
-static int oss_ioctl(struct snd_emux *emu, int cmd, int p1, int p2);
+	static int oss_ioctl(struct snd_emux *emu, int cmd, int p1, int p2);
 #endif
 static int load_fx(struct snd_emux *emu, int type, int mode,
-		   const void __user *buf, long len);
+				   const void __user *buf, long len);
 
 static void set_pitch(struct snd_emu8000 *hw, struct snd_emux_voice *vp);
 static void set_volume(struct snd_emu8000 *hw, struct snd_emux_voice *vp);
@@ -62,7 +62,8 @@ static void snd_emu8000_tweak_voice(struct snd_emu8000 *emu, int ch);
 /*
  * set up operators
  */
-static struct snd_emux_operators emu8000_ops = {
+static struct snd_emux_operators emu8000_ops =
+{
 	.owner =	THIS_MODULE,
 	.get_voice =	get_voice,
 	.prepare =	start_voice,
@@ -111,7 +112,7 @@ release_voice(struct snd_emux_voice *vp)
 static void
 terminate_voice(struct snd_emux_voice *vp)
 {
-	struct snd_emu8000 *hw; 
+	struct snd_emu8000 *hw;
 
 	hw = vp->hw;
 	EMU8000_DCYSUSV_WRITE(hw, vp->ch, 0x807F);
@@ -126,21 +127,42 @@ update_voice(struct snd_emux_voice *vp, int update)
 	struct snd_emu8000 *hw;
 
 	hw = vp->hw;
+
 	if (update & SNDRV_EMUX_UPDATE_VOLUME)
+	{
 		set_volume(hw, vp);
+	}
+
 	if (update & SNDRV_EMUX_UPDATE_PITCH)
+	{
 		set_pitch(hw, vp);
+	}
+
 	if ((update & SNDRV_EMUX_UPDATE_PAN) &&
-	    vp->port->ctrls[EMUX_MD_REALTIME_PAN])
+		vp->port->ctrls[EMUX_MD_REALTIME_PAN])
+	{
 		set_pan(hw, vp);
+	}
+
 	if (update & SNDRV_EMUX_UPDATE_FMMOD)
+	{
 		set_fmmod(hw, vp);
+	}
+
 	if (update & SNDRV_EMUX_UPDATE_TREMFREQ)
+	{
 		set_tremfreq(hw, vp);
+	}
+
 	if (update & SNDRV_EMUX_UPDATE_FM2FRQ2)
+	{
 		set_fm2frq2(hw, vp);
+	}
+
 	if (update & SNDRV_EMUX_UPDATE_Q)
+	{
 		set_filterQ(hw, vp);
+	}
 }
 
 
@@ -161,12 +183,14 @@ get_voice(struct snd_emux *emu, struct snd_emux_port *port)
 	struct snd_emu8000 *hw;
 
 	/* what we are looking for, in order of preference */
-	enum {
-		OFF=0, RELEASED, PLAYING, END
+	enum
+	{
+		OFF = 0, RELEASED, PLAYING, END
 	};
 
 	/* Keeps track of what we are finding */
-	struct best {
+	struct best
+	{
 		unsigned int  time;
 		int voice;
 	} best[END];
@@ -174,7 +198,8 @@ get_voice(struct snd_emux *emu, struct snd_emux_port *port)
 
 	hw = emu->hw;
 
-	for (i = 0; i < END; i++) {
+	for (i = 0; i < END; i++)
+	{
 		best[i].time = (unsigned int)(-1); /* XXX MAX_?INT really */
 		best[i].voice = -1;
 	}
@@ -182,42 +207,60 @@ get_voice(struct snd_emux *emu, struct snd_emux_port *port)
 	/*
 	 * Go through them all and get a best one to use.
 	 */
-	for (i = 0; i < emu->max_voices; i++) {
+	for (i = 0; i < emu->max_voices; i++)
+	{
 		int state, val;
 
 		vp = &emu->voices[i];
 		state = vp->state;
 
 		if (state == SNDRV_EMUX_ST_OFF)
+		{
 			bp = best + OFF;
+		}
 		else if (state == SNDRV_EMUX_ST_RELEASED ||
-			 state == SNDRV_EMUX_ST_PENDING) {
+				 state == SNDRV_EMUX_ST_PENDING)
+		{
 			bp = best + RELEASED;
 			val = (EMU8000_CVCF_READ(hw, vp->ch) >> 16) & 0xffff;
+
 			if (! val)
+			{
 				bp = best + OFF;
+			}
 		}
 		else if (state & SNDRV_EMUX_ST_ON)
+		{
 			bp = best + PLAYING;
+		}
 		else
+		{
 			continue;
+		}
 
 		/* check if sample is finished playing (non-looping only) */
 		if (state != SNDRV_EMUX_ST_OFF &&
-		    (vp->reg.sample_mode & SNDRV_SFNT_SAMPLE_SINGLESHOT)) {
+			(vp->reg.sample_mode & SNDRV_SFNT_SAMPLE_SINGLESHOT))
+		{
 			val = EMU8000_CCCA_READ(hw, vp->ch) & 0xffffff;
+
 			if (val >= vp->reg.loopstart)
+			{
 				bp = best + OFF;
+			}
 		}
 
-		if (vp->time < bp->time) {
+		if (vp->time < bp->time)
+		{
 			bp->time = vp->time;
 			bp->voice = i;
 		}
 	}
 
-	for (i = 0; i < END; i++) {
-		if (best[i].voice >= 0) {
+	for (i = 0; i < END; i++)
+	{
+		if (best[i].voice >= 0)
+		{
 			vp = &emu->voices[best[i].voice];
 			vp->ch = best[i].voice;
 			return vp;
@@ -286,13 +329,13 @@ start_voice(struct snd_emux_voice *vp)
 	temp = vp->reg.parm.chorus;
 	temp += (int)chan->control[MIDI_CTL_E3_CHORUS_DEPTH] * 9 / 10;
 	LIMITMAX(temp, 255);
-	temp = (temp <<24) | (unsigned int)addr;
+	temp = (temp << 24) | (unsigned int)addr;
 	EMU8000_CSL_WRITE(hw, ch, temp);
 
 	/* Q & current address (Q 4bit value, MSB) */
 	addr = vp->reg.start - 1;
 	temp = vp->reg.parm.filterQ;
-	temp = (temp<<28) | (unsigned int)addr;
+	temp = (temp << 28) | (unsigned int)addr;
 	EMU8000_CCCA_WRITE(hw, ch, temp);
 
 	/* clear unknown registers */
@@ -373,7 +416,7 @@ set_pan(struct snd_emu8000 *hw, struct snd_emux_voice *vp)
 {
 	unsigned int temp;
 
-	temp = ((unsigned int)vp->apan<<24) | ((unsigned int)vp->reg.loopstart - 1);
+	temp = ((unsigned int)vp->apan << 24) | ((unsigned int)vp->reg.loopstart - 1);
 	EMU8000_PSST_WRITE(hw, vp->ch, temp);
 }
 
@@ -387,12 +430,12 @@ set_fmmod(struct snd_emu8000 *hw, struct snd_emux_voice *vp)
 	unsigned char cutoff;
 	int modulation;
 
-	pitch = (char)(vp->reg.parm.fmmod>>8);
+	pitch = (char)(vp->reg.parm.fmmod >> 8);
 	cutoff = (vp->reg.parm.fmmod & 0xff);
 	modulation = vp->chan->gm_modulation + vp->chan->midi_pressure;
 	pitch += (MOD_SENSE * modulation) / 1200;
 	LIMITVALUE(pitch, -128, 127);
-	fmmod = ((unsigned char)pitch<<8) | cutoff;
+	fmmod = ((unsigned char)pitch << 8) | cutoff;
 	EMU8000_FMMOD_WRITE(hw, vp->ch, fmmod);
 }
 
@@ -412,12 +455,12 @@ set_fm2frq2(struct snd_emu8000 *hw, struct snd_emux_voice *vp)
 	unsigned char freq;
 	int modulation;
 
-	pitch = (char)(vp->reg.parm.fm2frq2>>8);
+	pitch = (char)(vp->reg.parm.fm2frq2 >> 8);
 	freq = vp->reg.parm.fm2frq2 & 0xff;
 	modulation = vp->chan->gm_modulation + vp->chan->midi_pressure;
 	pitch += (MOD_SENSE * modulation) / 1200;
 	LIMITVALUE(pitch, -128, 127);
-	fm2frq2 = ((unsigned char)pitch<<8) | freq;
+	fm2frq2 = ((unsigned char)pitch << 8) | freq;
 	EMU8000_FM2FRQ2_WRITE(hw, vp->ch, fm2frq2);
 }
 
@@ -463,16 +506,17 @@ sysex(struct snd_emux *emu, char *buf, int len, int parsed, struct snd_midi_chan
 
 	hw = emu->hw;
 
-	switch (parsed) {
-	case SNDRV_MIDI_SYSEX_GS_CHORUS_MODE:
-		hw->chorus_mode = chset->gs_chorus_mode;
-		snd_emu8000_update_chorus_mode(hw);
-		break;
+	switch (parsed)
+	{
+		case SNDRV_MIDI_SYSEX_GS_CHORUS_MODE:
+			hw->chorus_mode = chset->gs_chorus_mode;
+			snd_emu8000_update_chorus_mode(hw);
+			break;
 
-	case SNDRV_MIDI_SYSEX_GS_REVERB_MODE:
-		hw->reverb_mode = chset->gs_reverb_mode;
-		snd_emu8000_update_reverb_mode(hw);
-		break;
+		case SNDRV_MIDI_SYSEX_GS_REVERB_MODE:
+			hw->reverb_mode = chset->gs_reverb_mode;
+			snd_emu8000_update_reverb_mode(hw);
+			break;
 	}
 }
 
@@ -488,27 +532,29 @@ oss_ioctl(struct snd_emux *emu, int cmd, int p1, int p2)
 
 	hw = emu->hw;
 
-	switch (cmd) {
-	case _EMUX_OSS_REVERB_MODE:
-		hw->reverb_mode = p1;
-		snd_emu8000_update_reverb_mode(hw);
-		break;
+	switch (cmd)
+	{
+		case _EMUX_OSS_REVERB_MODE:
+			hw->reverb_mode = p1;
+			snd_emu8000_update_reverb_mode(hw);
+			break;
 
-	case _EMUX_OSS_CHORUS_MODE:
-		hw->chorus_mode = p1;
-		snd_emu8000_update_chorus_mode(hw);
-		break;
+		case _EMUX_OSS_CHORUS_MODE:
+			hw->chorus_mode = p1;
+			snd_emu8000_update_chorus_mode(hw);
+			break;
 
-	case _EMUX_OSS_INITIALIZE_CHIP:
-		/* snd_emu8000_init(hw); */ /*ignored*/
-		break;
+		case _EMUX_OSS_INITIALIZE_CHIP:
+			/* snd_emu8000_init(hw); */ /*ignored*/
+			break;
 
-	case _EMUX_OSS_EQUALIZER:
-		hw->bass_level = p1;
-		hw->treble_level = p2;
-		snd_emu8000_update_equalizer(hw);
-		break;
+		case _EMUX_OSS_EQUALIZER:
+			hw->bass_level = p1;
+			hw->treble_level = p2;
+			snd_emu8000_update_equalizer(hw);
+			break;
 	}
+
 	return 0;
 }
 #endif
@@ -536,12 +582,15 @@ load_fx(struct snd_emux *emu, int type, int mode, const void __user *buf, long l
 	buf += 16;
 	len -= 16;
 
-	switch (type) {
-	case SNDRV_EMU8000_LOAD_CHORUS_FX:
-		return snd_emu8000_load_chorus_fx(hw, mode, buf, len);
-	case SNDRV_EMU8000_LOAD_REVERB_FX:
-		return snd_emu8000_load_reverb_fx(hw, mode, buf, len);
+	switch (type)
+	{
+		case SNDRV_EMU8000_LOAD_CHORUS_FX:
+			return snd_emu8000_load_chorus_fx(hw, mode, buf, len);
+
+		case SNDRV_EMU8000_LOAD_REVERB_FX:
+			return snd_emu8000_load_reverb_fx(hw, mode, buf, len);
 	}
+
 	return -EINVAL;
 }
 

@@ -12,7 +12,8 @@
 
 #include "timesync.h"
 
-enum arche_platform_state {
+enum arche_platform_state
+{
 	ARCHE_PLATFORM_STATE_OFF,
 	ARCHE_PLATFORM_STATE_ACTIVE,
 	ARCHE_PLATFORM_STATE_STANDBY,
@@ -21,10 +22,10 @@ enum arche_platform_state {
 };
 
 int arche_platform_change_state(enum arche_platform_state state,
-				struct gb_timesync_svc *pdata);
+								struct gb_timesync_svc *pdata);
 
 extern int (*arche_platform_change_state_cb)(enum arche_platform_state state,
-					     struct gb_timesync_svc *pdata);
+		struct gb_timesync_svc *pdata);
 int __init arche_apb_init(void);
 void __exit arche_apb_exit(void);
 

@@ -42,11 +42,11 @@
 #include "internal.h"
 
 #ifdef CONFIG_NUMA
-#define NUMA(x)		(x)
-#define DO_NUMA(x)	do { (x); } while (0)
+	#define NUMA(x)		(x)
+	#define DO_NUMA(x)	do { (x); } while (0)
 #else
-#define NUMA(x)		(0)
-#define DO_NUMA(x)	do { } while (0)
+	#define NUMA(x)		(0)
+	#define DO_NUMA(x)	do { } while (0)
 #endif
 
 /*
@@ -99,7 +99,8 @@
  * @rmap_list: head for this mm_slot's singly-linked list of rmap_items
  * @mm: the mm that this information is valid for
  */
-struct mm_slot {
+struct mm_slot
+{
 	struct hlist_node link;
 	struct list_head mm_list;
 	struct rmap_item *rmap_list;
@@ -115,7 +116,8 @@ struct mm_slot {
  *
  * There is only the one ksm_scan instance of this cursor structure.
  */
-struct ksm_scan {
+struct ksm_scan
+{
 	struct mm_slot *mm_slot;
 	unsigned long address;
 	struct rmap_item **rmap_list;
@@ -131,10 +133,13 @@ struct ksm_scan {
  * @kpfn: page frame number of this ksm page (perhaps temporarily on wrong nid)
  * @nid: NUMA node id of stable tree in which linked (may not match kpfn)
  */
-struct stable_node {
-	union {
+struct stable_node
+{
+	union
+	{
 		struct rb_node node;	/* when node of stable tree */
-		struct {		/* when listed for migration */
+		struct  		/* when listed for migration */
+		{
 			struct list_head *head;
 			struct list_head list;
 		};
@@ -158,9 +163,11 @@ struct stable_node {
  * @head: pointer to stable_node heading this list in the stable tree
  * @hlist: link into hlist of rmap_items hanging off that stable_node
  */
-struct rmap_item {
+struct rmap_item
+{
 	struct rmap_item *rmap_list;
-	union {
+	union
+	{
 		struct anon_vma *anon_vma;	/* when stable */
 #ifdef CONFIG_NUMA
 		int nid;		/* when node of unstable tree */
@@ -169,9 +176,11 @@ struct rmap_item {
 	struct mm_struct *mm;
 	unsigned long address;		/* + low bits used for flags below */
 	unsigned int oldchecksum;	/* when unstable */
-	union {
+	union
+	{
 		struct rb_node node;	/* when node of unstable tree */
-		struct {		/* when listed from stable tree */
+		struct  		/* when listed from stable tree */
+		{
 			struct stable_node *head;
 			struct hlist_node hlist;
 		};
@@ -194,10 +203,12 @@ static LIST_HEAD(migrate_nodes);
 #define MM_SLOTS_HASH_BITS 10
 static DEFINE_HASHTABLE(mm_slots_hash, MM_SLOTS_HASH_BITS);
 
-static struct mm_slot ksm_mm_head = {
+static struct mm_slot ksm_mm_head =
+{
 	.mm_list = LIST_HEAD_INIT(ksm_mm_head.mm_list),
 };
-static struct ksm_scan ksm_scan = {
+static struct ksm_scan ksm_scan =
+{
 	.mm_slot = &ksm_mm_head,
 };
 
@@ -224,12 +235,12 @@ static unsigned int ksm_thread_pages_to_scan = 100;
 static unsigned int ksm_thread_sleep_millisecs = 20;
 
 #ifdef CONFIG_NUMA
-/* Zeroed when merging across nodes is not allowed */
-static unsigned int ksm_merge_across_nodes = 1;
-static int ksm_nr_node_ids = 1;
+	/* Zeroed when merging across nodes is not allowed */
+	static unsigned int ksm_merge_across_nodes = 1;
+	static int ksm_nr_node_ids = 1;
 #else
-#define ksm_merge_across_nodes	1U
-#define ksm_nr_node_ids		1
+	#define ksm_merge_across_nodes	1U
+	#define ksm_nr_node_ids		1
 #endif
 
 #define KSM_RUN_STOP	0
@@ -250,16 +261,25 @@ static DEFINE_SPINLOCK(ksm_mmlist_lock);
 static int __init ksm_slab_init(void)
 {
 	rmap_item_cache = KSM_KMEM_CACHE(rmap_item, 0);
+
 	if (!rmap_item_cache)
+	{
 		goto out;
+	}
 
 	stable_node_cache = KSM_KMEM_CACHE(stable_node, 0);
+
 	if (!stable_node_cache)
+	{
 		goto out_free1;
+	}
 
 	mm_slot_cache = KSM_KMEM_CACHE(mm_slot, 0);
+
 	if (!mm_slot_cache)
+	{
 		goto out_free2;
+	}
 
 	return 0;
 
@@ -284,9 +304,13 @@ static inline struct rmap_item *alloc_rmap_item(void)
 	struct rmap_item *rmap_item;
 
 	rmap_item = kmem_cache_zalloc(rmap_item_cache, GFP_KERNEL |
-						__GFP_NORETRY | __GFP_NOWARN);
+								  __GFP_NORETRY | __GFP_NOWARN);
+
 	if (rmap_item)
+	{
 		ksm_rmap_items++;
+	}
+
 	return rmap_item;
 }
 
@@ -315,7 +339,10 @@ static inline void free_stable_node(struct stable_node *stable_node)
 static inline struct mm_slot *alloc_mm_slot(void)
 {
 	if (!mm_slot_cache)	/* initialization failed */
+	{
 		return NULL;
+	}
+
 	return kmem_cache_zalloc(mm_slot_cache, GFP_KERNEL);
 }
 
@@ -329,14 +356,17 @@ static struct mm_slot *get_mm_slot(struct mm_struct *mm)
 	struct mm_slot *slot;
 
 	hash_for_each_possible(mm_slots_hash, slot, link, (unsigned long)mm)
-		if (slot->mm == mm)
-			return slot;
+
+	if (slot->mm == mm)
+	{
+		return slot;
+	}
 
 	return NULL;
 }
 
 static void insert_to_mm_slots_hash(struct mm_struct *mm,
-				    struct mm_slot *mm_slot)
+									struct mm_slot *mm_slot)
 {
 	mm_slot->mm = mm;
 	hash_add(mm_slots_hash, &mm_slot->link, (unsigned long)mm);
@@ -375,19 +405,29 @@ static int break_ksm(struct vm_area_struct *vma, unsigned long addr)
 	struct page *page;
 	int ret = 0;
 
-	do {
+	do
+	{
 		cond_resched();
 		page = follow_page(vma, addr,
-				FOLL_GET | FOLL_MIGRATION | FOLL_REMOTE);
+						   FOLL_GET | FOLL_MIGRATION | FOLL_REMOTE);
+
 		if (IS_ERR_OR_NULL(page))
+		{
 			break;
+		}
+
 		if (PageKsm(page))
 			ret = handle_mm_fault(vma, addr,
-					FAULT_FLAG_WRITE | FAULT_FLAG_REMOTE);
+								  FAULT_FLAG_WRITE | FAULT_FLAG_REMOTE);
 		else
+		{
 			ret = VM_FAULT_WRITE;
+		}
+
 		put_page(page);
-	} while (!(ret & (VM_FAULT_WRITE | VM_FAULT_SIGBUS | VM_FAULT_SIGSEGV | VM_FAULT_OOM)));
+	}
+	while (!(ret & (VM_FAULT_WRITE | VM_FAULT_SIGBUS | VM_FAULT_SIGSEGV | VM_FAULT_OOM)));
+
 	/*
 	 * We must loop because handle_mm_fault() may back out if there's
 	 * any difficulty e.g. if pte accessed bit gets updated concurrently.
@@ -423,13 +463,24 @@ static struct vm_area_struct *find_mergeable_vma(struct mm_struct *mm,
 		unsigned long addr)
 {
 	struct vm_area_struct *vma;
+
 	if (ksm_test_exit(mm))
+	{
 		return NULL;
+	}
+
 	vma = find_vma(mm, addr);
+
 	if (!vma || vma->vm_start > addr)
+	{
 		return NULL;
+	}
+
 	if (!(vma->vm_flags & VM_MERGEABLE) || !vma->anon_vma)
+	{
 		return NULL;
+	}
+
 	return vma;
 }
 
@@ -447,8 +498,12 @@ static void break_cow(struct rmap_item *rmap_item)
 
 	down_read(&mm->mmap_sem);
 	vma = find_mergeable_vma(mm, addr);
+
 	if (vma)
+	{
 		break_ksm(vma, addr);
+	}
+
 	up_read(&mm->mmap_sem);
 }
 
@@ -461,20 +516,31 @@ static struct page *get_mergeable_page(struct rmap_item *rmap_item)
 
 	down_read(&mm->mmap_sem);
 	vma = find_mergeable_vma(mm, addr);
+
 	if (!vma)
+	{
 		goto out;
+	}
 
 	page = follow_page(vma, addr, FOLL_GET);
+
 	if (IS_ERR_OR_NULL(page))
+	{
 		goto out;
-	if (PageAnon(page)) {
+	}
+
+	if (PageAnon(page))
+	{
 		flush_anon_page(vma, page, addr);
 		flush_dcache_page(page);
-	} else {
+	}
+	else
+	{
 		put_page(page);
 out:
 		page = NULL;
 	}
+
 	up_read(&mm->mmap_sem);
 	return page;
 }
@@ -494,21 +560,30 @@ static void remove_node_from_stable_tree(struct stable_node *stable_node)
 {
 	struct rmap_item *rmap_item;
 
-	hlist_for_each_entry(rmap_item, &stable_node->hlist, hlist) {
+	hlist_for_each_entry(rmap_item, &stable_node->hlist, hlist)
+	{
 		if (rmap_item->hlist.next)
+		{
 			ksm_pages_sharing--;
+		}
 		else
+		{
 			ksm_pages_shared--;
+		}
+
 		put_anon_vma(rmap_item->anon_vma);
 		rmap_item->address &= PAGE_MASK;
 		cond_resched();
 	}
 
 	if (stable_node->head == &migrate_nodes)
+	{
 		list_del(&stable_node->list);
+	}
 	else
 		rb_erase(&stable_node->node,
-			 root_stable_tree + NUMA(stable_node->nid));
+				 root_stable_tree + NUMA(stable_node->nid));
+
 	free_stable_node(stable_node);
 }
 
@@ -538,7 +613,7 @@ static struct page *get_ksm_page(struct stable_node *stable_node, bool lock_it)
 	unsigned long kpfn;
 
 	expected_mapping = (void *)((unsigned long)stable_node |
-					PAGE_MAPPING_KSM);
+								PAGE_MAPPING_KSM);
 again:
 	kpfn = READ_ONCE(stable_node->kpfn);
 	page = pfn_to_page(kpfn);
@@ -549,8 +624,11 @@ again:
 	 * but on Alpha we need to be more careful.
 	 */
 	smp_read_barrier_depends();
+
 	if (READ_ONCE(page->mapping) != expected_mapping)
+	{
 		goto stale;
+	}
 
 	/*
 	 * We cannot do anything with the page while its refcount is 0.
@@ -561,7 +639,8 @@ again:
 	 * but if page is swapcache in migrate_page_move_mapping(), it might
 	 * still be our page, in which case it's essential to keep the node.
 	 */
-	while (!get_page_unless_zero(page)) {
+	while (!get_page_unless_zero(page))
+	{
 		/*
 		 * Another check for page->mapping != expected_mapping would
 		 * work here too.  We have chosen the !PageSwapCache test to
@@ -571,23 +650,31 @@ again:
 		 * page->mapping reset to NULL later, in free_pages_prepare().
 		 */
 		if (!PageSwapCache(page))
+		{
 			goto stale;
+		}
+
 		cpu_relax();
 	}
 
-	if (READ_ONCE(page->mapping) != expected_mapping) {
+	if (READ_ONCE(page->mapping) != expected_mapping)
+	{
 		put_page(page);
 		goto stale;
 	}
 
-	if (lock_it) {
+	if (lock_it)
+	{
 		lock_page(page);
-		if (READ_ONCE(page->mapping) != expected_mapping) {
+
+		if (READ_ONCE(page->mapping) != expected_mapping)
+		{
 			unlock_page(page);
 			put_page(page);
 			goto stale;
 		}
 	}
+
 	return page;
 
 stale:
@@ -598,8 +685,12 @@ stale:
 	 * before checking whether node->kpfn has been changed.
 	 */
 	smp_rmb();
+
 	if (READ_ONCE(stable_node->kpfn) != kpfn)
+	{
 		goto again;
+	}
+
 	remove_node_from_stable_tree(stable_node);
 	return NULL;
 }
@@ -610,28 +701,38 @@ stale:
  */
 static void remove_rmap_item_from_tree(struct rmap_item *rmap_item)
 {
-	if (rmap_item->address & STABLE_FLAG) {
+	if (rmap_item->address & STABLE_FLAG)
+	{
 		struct stable_node *stable_node;
 		struct page *page;
 
 		stable_node = rmap_item->head;
 		page = get_ksm_page(stable_node, true);
+
 		if (!page)
+		{
 			goto out;
+		}
 
 		hlist_del(&rmap_item->hlist);
 		unlock_page(page);
 		put_page(page);
 
 		if (!hlist_empty(&stable_node->hlist))
+		{
 			ksm_pages_sharing--;
+		}
 		else
+		{
 			ksm_pages_shared--;
+		}
 
 		put_anon_vma(rmap_item->anon_vma);
 		rmap_item->address &= PAGE_MASK;
 
-	} else if (rmap_item->address & UNSTABLE_FLAG) {
+	}
+	else if (rmap_item->address & UNSTABLE_FLAG)
+	{
 		unsigned char age;
 		/*
 		 * Usually ksmd can and must skip the rb_erase, because
@@ -642,20 +743,24 @@ static void remove_rmap_item_from_tree(struct rmap_item *rmap_item)
 		 */
 		age = (unsigned char)(ksm_scan.seqnr - rmap_item->address);
 		BUG_ON(age > 1);
+
 		if (!age)
 			rb_erase(&rmap_item->node,
-				 root_unstable_tree + NUMA(rmap_item->nid));
+					 root_unstable_tree + NUMA(rmap_item->nid));
+
 		ksm_pages_unshared--;
 		rmap_item->address &= PAGE_MASK;
 	}
+
 out:
 	cond_resched();		/* we're called from many long loops */
 }
 
 static void remove_trailing_rmap_items(struct mm_slot *mm_slot,
-				       struct rmap_item **rmap_list)
+									   struct rmap_item **rmap_list)
 {
-	while (*rmap_list) {
+	while (*rmap_list)
+	{
 		struct rmap_item *rmap_item = *rmap_list;
 		*rmap_list = rmap_item->rmap_list;
 		remove_rmap_item_from_tree(rmap_item);
@@ -677,19 +782,28 @@ static void remove_trailing_rmap_items(struct mm_slot *mm_slot,
  * in cmp_and_merge_page on one of the rmap_items we would be removing.
  */
 static int unmerge_ksm_pages(struct vm_area_struct *vma,
-			     unsigned long start, unsigned long end)
+							 unsigned long start, unsigned long end)
 {
 	unsigned long addr;
 	int err = 0;
 
-	for (addr = start; addr < end && !err; addr += PAGE_SIZE) {
+	for (addr = start; addr < end && !err; addr += PAGE_SIZE)
+	{
 		if (ksm_test_exit(vma->vm_mm))
+		{
 			break;
+		}
+
 		if (signal_pending(current))
+		{
 			err = -ERESTARTSYS;
+		}
 		else
+		{
 			err = break_ksm(vma, addr);
+		}
 	}
+
 	return err;
 }
 
@@ -703,20 +817,25 @@ static int remove_stable_node(struct stable_node *stable_node)
 	int err;
 
 	page = get_ksm_page(stable_node, true);
-	if (!page) {
+
+	if (!page)
+	{
 		/*
 		 * get_ksm_page did remove_node_from_stable_tree itself.
 		 */
 		return 0;
 	}
 
-	if (WARN_ON_ONCE(page_mapped(page))) {
+	if (WARN_ON_ONCE(page_mapped(page)))
+	{
 		/*
 		 * This should not happen: but if it does, just refuse to let
 		 * merge_across_nodes be switched - there is no need to panic.
 		 */
 		err = -EBUSY;
-	} else {
+	}
+	else
+	{
 		/*
 		 * The stable node did not yet appear stale to get_ksm_page(),
 		 * since that allows for an unmapped ksm page to be recognized
@@ -741,20 +860,30 @@ static int remove_all_stable_nodes(void)
 	int nid;
 	int err = 0;
 
-	for (nid = 0; nid < ksm_nr_node_ids; nid++) {
-		while (root_stable_tree[nid].rb_node) {
+	for (nid = 0; nid < ksm_nr_node_ids; nid++)
+	{
+		while (root_stable_tree[nid].rb_node)
+		{
 			stable_node = rb_entry(root_stable_tree[nid].rb_node,
-						struct stable_node, node);
-			if (remove_stable_node(stable_node)) {
+								   struct stable_node, node);
+
+			if (remove_stable_node(stable_node))
+			{
 				err = -EBUSY;
 				break;	/* proceed to next nid */
 			}
+
 			cond_resched();
 		}
 	}
-	list_for_each_entry_safe(stable_node, next, &migrate_nodes, list) {
+
+	list_for_each_entry_safe(stable_node, next, &migrate_nodes, list)
+	{
 		if (remove_stable_node(stable_node))
+		{
 			err = -EBUSY;
+		}
+
 		cond_resched();
 	}
 	return err;
@@ -769,22 +898,34 @@ static int unmerge_and_remove_all_rmap_items(void)
 
 	spin_lock(&ksm_mmlist_lock);
 	ksm_scan.mm_slot = list_entry(ksm_mm_head.mm_list.next,
-						struct mm_slot, mm_list);
+								  struct mm_slot, mm_list);
 	spin_unlock(&ksm_mmlist_lock);
 
 	for (mm_slot = ksm_scan.mm_slot;
-			mm_slot != &ksm_mm_head; mm_slot = ksm_scan.mm_slot) {
+		 mm_slot != &ksm_mm_head; mm_slot = ksm_scan.mm_slot)
+	{
 		mm = mm_slot->mm;
 		down_read(&mm->mmap_sem);
-		for (vma = mm->mmap; vma; vma = vma->vm_next) {
+
+		for (vma = mm->mmap; vma; vma = vma->vm_next)
+		{
 			if (ksm_test_exit(mm))
+			{
 				break;
+			}
+
 			if (!(vma->vm_flags & VM_MERGEABLE) || !vma->anon_vma)
+			{
 				continue;
+			}
+
 			err = unmerge_ksm_pages(vma,
-						vma->vm_start, vma->vm_end);
+									vma->vm_start, vma->vm_end);
+
 			if (err)
+			{
 				goto error;
+			}
 		}
 
 		remove_trailing_rmap_items(mm_slot, &mm_slot->rmap_list);
@@ -792,8 +933,10 @@ static int unmerge_and_remove_all_rmap_items(void)
 
 		spin_lock(&ksm_mmlist_lock);
 		ksm_scan.mm_slot = list_entry(mm_slot->mm_list.next,
-						struct mm_slot, mm_list);
-		if (ksm_test_exit(mm)) {
+									  struct mm_slot, mm_list);
+
+		if (ksm_test_exit(mm))
+		{
 			hash_del(&mm_slot->link);
 			list_del(&mm_slot->mm_list);
 			spin_unlock(&ksm_mmlist_lock);
@@ -801,8 +944,11 @@ static int unmerge_and_remove_all_rmap_items(void)
 			free_mm_slot(mm_slot);
 			clear_bit(MMF_VM_MERGEABLE, &mm->flags);
 			mmdrop(mm);
-		} else
+		}
+		else
+		{
 			spin_unlock(&ksm_mmlist_lock);
+		}
 	}
 
 	/* Clean up stable nodes, but don't worry if some are still busy */
@@ -847,7 +993,7 @@ static inline int pages_identical(struct page *page1, struct page *page2)
 }
 
 static int write_protect_page(struct vm_area_struct *vma, struct page *page,
-			      pte_t *orig_pte)
+							  pte_t *orig_pte)
 {
 	struct mm_struct *mm = vma->vm_mm;
 	unsigned long addr;
@@ -859,8 +1005,11 @@ static int write_protect_page(struct vm_area_struct *vma, struct page *page,
 	unsigned long mmun_end;		/* For mmu_notifiers */
 
 	addr = page_address_in_vma(page, vma);
+
 	if (addr == -EFAULT)
+	{
 		goto out;
+	}
 
 	BUG_ON(PageTransCompound(page));
 
@@ -869,10 +1018,14 @@ static int write_protect_page(struct vm_area_struct *vma, struct page *page,
 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
 
 	ptep = page_check_address(page, mm, addr, &ptl, 0);
-	if (!ptep)
-		goto out_mn;
 
-	if (pte_write(*ptep) || pte_dirty(*ptep)) {
+	if (!ptep)
+	{
+		goto out_mn;
+	}
+
+	if (pte_write(*ptep) || pte_dirty(*ptep))
+	{
 		pte_t entry;
 
 		swapped = PageSwapCache(page);
@@ -887,19 +1040,26 @@ static int write_protect_page(struct vm_area_struct *vma, struct page *page,
 		 * or in the middle of the check.
 		 */
 		entry = ptep_clear_flush_notify(vma, addr, ptep);
+
 		/*
 		 * Check that no O_DIRECT or similar I/O is in progress on the
 		 * page
 		 */
-		if (page_mapcount(page) + 1 + swapped != page_count(page)) {
+		if (page_mapcount(page) + 1 + swapped != page_count(page))
+		{
 			set_pte_at(mm, addr, ptep, entry);
 			goto out_unlock;
 		}
+
 		if (pte_dirty(entry))
+		{
 			set_page_dirty(page);
+		}
+
 		entry = pte_mkclean(pte_wrprotect(entry));
 		set_pte_at_notify(mm, addr, ptep, entry);
 	}
+
 	*orig_pte = *ptep;
 	err = 0;
 
@@ -921,7 +1081,7 @@ out:
  * Returns 0 on success, -EFAULT on failure.
  */
 static int replace_page(struct vm_area_struct *vma, struct page *page,
-			struct page *kpage, pte_t orig_pte)
+						struct page *kpage, pte_t orig_pte)
 {
 	struct mm_struct *mm = vma->vm_mm;
 	pmd_t *pmd;
@@ -933,19 +1093,27 @@ static int replace_page(struct vm_area_struct *vma, struct page *page,
 	unsigned long mmun_end;		/* For mmu_notifiers */
 
 	addr = page_address_in_vma(page, vma);
+
 	if (addr == -EFAULT)
+	{
 		goto out;
+	}
 
 	pmd = mm_find_pmd(mm, addr);
+
 	if (!pmd)
+	{
 		goto out;
+	}
 
 	mmun_start = addr;
 	mmun_end   = addr + PAGE_SIZE;
 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
 
 	ptep = pte_offset_map_lock(mm, pmd, addr, &ptl);
-	if (!pte_same(*ptep, orig_pte)) {
+
+	if (!pte_same(*ptep, orig_pte))
+	{
 		pte_unmap_unlock(ptep, ptl);
 		goto out_mn;
 	}
@@ -958,8 +1126,12 @@ static int replace_page(struct vm_area_struct *vma, struct page *page,
 	set_pte_at_notify(mm, addr, ptep, mk_pte(kpage, vma->vm_page_prot));
 
 	page_remove_rmap(page, false);
+
 	if (!page_mapped(page))
+	{
 		try_to_free_swap(page);
+	}
+
 	put_page(page);
 
 	pte_unmap_unlock(ptep, ptl);
@@ -980,16 +1152,20 @@ out:
  * This function returns 0 if the pages were merged, -EFAULT otherwise.
  */
 static int try_to_merge_one_page(struct vm_area_struct *vma,
-				 struct page *page, struct page *kpage)
+								 struct page *page, struct page *kpage)
 {
 	pte_t orig_pte = __pte(0);
 	int err = -EFAULT;
 
 	if (page == kpage)			/* ksm page forked */
+	{
 		return 0;
+	}
 
 	if (!PageAnon(page))
+	{
 		goto out;
+	}
 
 	/*
 	 * We need the page lock to read a stable PageSwapCache in
@@ -999,12 +1175,18 @@ static int try_to_merge_one_page(struct vm_area_struct *vma,
 	 * then come back to this page when it is unlocked.
 	 */
 	if (!trylock_page(page))
+	{
 		goto out;
+	}
 
-	if (PageTransCompound(page)) {
+	if (PageTransCompound(page))
+	{
 		err = split_huge_page(page);
+
 		if (err)
+		{
 			goto out_unlock;
+		}
 	}
 
 	/*
@@ -1013,8 +1195,10 @@ static int try_to_merge_one_page(struct vm_area_struct *vma,
 	 * ptes are necessarily already write-protected.  But in either
 	 * case, we need to lock and check page_count is not raised.
 	 */
-	if (write_protect_page(vma, page, &orig_pte) == 0) {
-		if (!kpage) {
+	if (write_protect_page(vma, page, &orig_pte) == 0)
+	{
+		if (!kpage)
+		{
 			/*
 			 * While we hold page lock, upgrade page from
 			 * PageAnon+anon_vma to PageKsm+NULL stable_node:
@@ -1022,20 +1206,30 @@ static int try_to_merge_one_page(struct vm_area_struct *vma,
 			 */
 			set_page_stable_node(page, NULL);
 			mark_page_accessed(page);
+
 			/*
 			 * Page reclaim just frees a clean page with no dirty
 			 * ptes: make sure that the ksm page would be swapped.
 			 */
 			if (!PageDirty(page))
+			{
 				SetPageDirty(page);
+			}
+
 			err = 0;
-		} else if (pages_identical(page, kpage))
+		}
+		else if (pages_identical(page, kpage))
+		{
 			err = replace_page(vma, page, kpage, orig_pte);
+		}
 	}
 
-	if ((vma->vm_flags & VM_LOCKED) && kpage && !err) {
+	if ((vma->vm_flags & VM_LOCKED) && kpage && !err)
+	{
 		munlock_vma_page(page);
-		if (!PageMlocked(kpage)) {
+
+		if (!PageMlocked(kpage))
+		{
 			unlock_page(page);
 			lock_page(kpage);
 			mlock_vma_page(kpage);
@@ -1056,7 +1250,7 @@ out:
  * This function returns 0 if the pages were merged, -EFAULT otherwise.
  */
 static int try_to_merge_with_ksm_page(struct rmap_item *rmap_item,
-				      struct page *page, struct page *kpage)
+									  struct page *page, struct page *kpage)
 {
 	struct mm_struct *mm = rmap_item->mm;
 	struct vm_area_struct *vma;
@@ -1064,12 +1258,18 @@ static int try_to_merge_with_ksm_page(struct rmap_item *rmap_item,
 
 	down_read(&mm->mmap_sem);
 	vma = find_mergeable_vma(mm, rmap_item->address);
+
 	if (!vma)
+	{
 		goto out;
+	}
 
 	err = try_to_merge_one_page(vma, page, kpage);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	/* Unstable nid is in union with stable anon_vma: remove first */
 	remove_rmap_item_from_tree(rmap_item);
@@ -1093,23 +1293,29 @@ out:
  * is already a ksm page, try_to_merge_with_ksm_page should be used.
  */
 static struct page *try_to_merge_two_pages(struct rmap_item *rmap_item,
-					   struct page *page,
-					   struct rmap_item *tree_rmap_item,
-					   struct page *tree_page)
+		struct page *page,
+		struct rmap_item *tree_rmap_item,
+		struct page *tree_page)
 {
 	int err;
 
 	err = try_to_merge_with_ksm_page(rmap_item, page, NULL);
-	if (!err) {
+
+	if (!err)
+	{
 		err = try_to_merge_with_ksm_page(tree_rmap_item,
-							tree_page, page);
+										 tree_page, page);
+
 		/*
 		 * If that fails, we have a ksm page with only one pte
 		 * pointing to it: so break it.
 		 */
 		if (err)
+		{
 			break_cow(rmap_item);
+		}
 	}
+
 	return err ? NULL : page;
 }
 
@@ -1132,7 +1338,9 @@ static struct page *stable_tree_search(struct page *page)
 	struct stable_node *page_node;
 
 	page_node = page_stable_node(page);
-	if (page_node && page_node->head != &migrate_nodes) {
+
+	if (page_node && page_node->head != &migrate_nodes)
+	{
 		/* ksm page forked */
 		get_page(page);
 		return page;
@@ -1144,14 +1352,17 @@ again:
 	new = &root->rb_node;
 	parent = NULL;
 
-	while (*new) {
+	while (*new)
+	{
 		struct page *tree_page;
 		int ret;
 
 		cond_resched();
 		stable_node = rb_entry(*new, struct stable_node, node);
 		tree_page = get_ksm_page(stable_node, false);
-		if (!tree_page) {
+
+		if (!tree_page)
+		{
 			/*
 			 * If we walked over a stale stable_node,
 			 * get_ksm_page() will call rb_erase() and it
@@ -1168,11 +1379,17 @@ again:
 		put_page(tree_page);
 
 		parent = *new;
+
 		if (ret < 0)
+		{
 			new = &parent->rb_left;
+		}
 		else if (ret > 0)
+		{
 			new = &parent->rb_right;
-		else {
+		}
+		else
+		{
 			/*
 			 * Lock and unlock the stable_node's page (which
 			 * might already have been migrated) so that page
@@ -1181,27 +1398,38 @@ again:
 			 * than kpage, but that involves more changes.
 			 */
 			tree_page = get_ksm_page(stable_node, true);
-			if (tree_page) {
+
+			if (tree_page)
+			{
 				unlock_page(tree_page);
+
 				if (get_kpfn_nid(stable_node->kpfn) !=
-						NUMA(stable_node->nid)) {
+					NUMA(stable_node->nid))
+				{
 					put_page(tree_page);
 					goto replace;
 				}
+
 				return tree_page;
 			}
+
 			/*
 			 * There is now a place for page_node, but the tree may
 			 * have been rebalanced, so re-evaluate parent and new.
 			 */
 			if (page_node)
+			{
 				goto again;
+			}
+
 			return NULL;
 		}
 	}
 
 	if (!page_node)
+	{
 		return NULL;
+	}
 
 	list_del(&page_node->list);
 	DO_NUMA(page_node->nid = nid);
@@ -1211,15 +1439,20 @@ again:
 	return page;
 
 replace:
-	if (page_node) {
+
+	if (page_node)
+	{
 		list_del(&page_node->list);
 		DO_NUMA(page_node->nid = nid);
 		rb_replace_node(&stable_node->node, &page_node->node, root);
 		get_page(page);
-	} else {
+	}
+	else
+	{
 		rb_erase(&stable_node->node, root);
 		page = NULL;
 	}
+
 	stable_node->head = &migrate_nodes;
 	list_add(&stable_node->list, stable_node->head);
 	return page;
@@ -1248,14 +1481,17 @@ again:
 	parent = NULL;
 	new = &root->rb_node;
 
-	while (*new) {
+	while (*new)
+	{
 		struct page *tree_page;
 		int ret;
 
 		cond_resched();
 		stable_node = rb_entry(*new, struct stable_node, node);
 		tree_page = get_ksm_page(stable_node, false);
-		if (!tree_page) {
+
+		if (!tree_page)
+		{
 			/*
 			 * If we walked over a stale stable_node,
 			 * get_ksm_page() will call rb_erase() and it
@@ -1272,11 +1508,17 @@ again:
 		put_page(tree_page);
 
 		parent = *new;
+
 		if (ret < 0)
+		{
 			new = &parent->rb_left;
+		}
 		else if (ret > 0)
+		{
 			new = &parent->rb_right;
-		else {
+		}
+		else
+		{
 			/*
 			 * It is not a bug that stable_tree_search() didn't
 			 * find this node: because at that time our page was
@@ -1287,8 +1529,11 @@ again:
 	}
 
 	stable_node = alloc_stable_node();
+
 	if (!stable_node)
+	{
 		return NULL;
+	}
 
 	INIT_HLIST_HEAD(&stable_node->hlist);
 	stable_node->kpfn = kpfn;
@@ -1316,8 +1561,8 @@ again:
  */
 static
 struct rmap_item *unstable_tree_search_insert(struct rmap_item *rmap_item,
-					      struct page *page,
-					      struct page **tree_pagep)
+		struct page *page,
+		struct page **tree_pagep)
 {
 	struct rb_node **new;
 	struct rb_root *root;
@@ -1328,7 +1573,8 @@ struct rmap_item *unstable_tree_search_insert(struct rmap_item *rmap_item,
 	root = root_unstable_tree + nid;
 	new = &root->rb_node;
 
-	while (*new) {
+	while (*new)
+	{
 		struct rmap_item *tree_rmap_item;
 		struct page *tree_page;
 		int ret;
@@ -1336,13 +1582,17 @@ struct rmap_item *unstable_tree_search_insert(struct rmap_item *rmap_item,
 		cond_resched();
 		tree_rmap_item = rb_entry(*new, struct rmap_item, node);
 		tree_page = get_mergeable_page(tree_rmap_item);
+
 		if (!tree_page)
+		{
 			return NULL;
+		}
 
 		/*
 		 * Don't substitute a ksm page for a forked page.
 		 */
-		if (page == tree_page) {
+		if (page == tree_page)
+		{
 			put_page(tree_page);
 			return NULL;
 		}
@@ -1350,14 +1600,20 @@ struct rmap_item *unstable_tree_search_insert(struct rmap_item *rmap_item,
 		ret = memcmp_pages(page, tree_page);
 
 		parent = *new;
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			put_page(tree_page);
 			new = &parent->rb_left;
-		} else if (ret > 0) {
+		}
+		else if (ret > 0)
+		{
 			put_page(tree_page);
 			new = &parent->rb_right;
-		} else if (!ksm_merge_across_nodes &&
-			   page_to_nid(tree_page) != nid) {
+		}
+		else if (!ksm_merge_across_nodes &&
+				 page_to_nid(tree_page) != nid)
+		{
 			/*
 			 * If tree_page has been migrated to another NUMA node,
 			 * it will be flushed out and put in the right unstable
@@ -1365,7 +1621,9 @@ struct rmap_item *unstable_tree_search_insert(struct rmap_item *rmap_item,
 			 */
 			put_page(tree_page);
 			return NULL;
-		} else {
+		}
+		else
+		{
 			*tree_pagep = tree_page;
 			return tree_rmap_item;
 		}
@@ -1387,16 +1645,20 @@ struct rmap_item *unstable_tree_search_insert(struct rmap_item *rmap_item,
  * the same ksm page.
  */
 static void stable_tree_append(struct rmap_item *rmap_item,
-			       struct stable_node *stable_node)
+							   struct stable_node *stable_node)
 {
 	rmap_item->head = stable_node;
 	rmap_item->address |= STABLE_FLAG;
 	hlist_add_head(&rmap_item->hlist, &stable_node->hlist);
 
 	if (rmap_item->hlist.next)
+	{
 		ksm_pages_sharing++;
+	}
 	else
+	{
 		ksm_pages_shared++;
+	}
 }
 
 /*
@@ -1418,31 +1680,42 @@ static void cmp_and_merge_page(struct page *page, struct rmap_item *rmap_item)
 	int err;
 
 	stable_node = page_stable_node(page);
-	if (stable_node) {
+
+	if (stable_node)
+	{
 		if (stable_node->head != &migrate_nodes &&
-		    get_kpfn_nid(stable_node->kpfn) != NUMA(stable_node->nid)) {
+			get_kpfn_nid(stable_node->kpfn) != NUMA(stable_node->nid))
+		{
 			rb_erase(&stable_node->node,
-				 root_stable_tree + NUMA(stable_node->nid));
+					 root_stable_tree + NUMA(stable_node->nid));
 			stable_node->head = &migrate_nodes;
 			list_add(&stable_node->list, stable_node->head);
 		}
+
 		if (stable_node->head != &migrate_nodes &&
-		    rmap_item->head == stable_node)
+			rmap_item->head == stable_node)
+		{
 			return;
+		}
 	}
 
 	/* We first start with searching the page inside the stable tree */
 	kpage = stable_tree_search(page);
-	if (kpage == page && rmap_item->head == stable_node) {
+
+	if (kpage == page && rmap_item->head == stable_node)
+	{
 		put_page(kpage);
 		return;
 	}
 
 	remove_rmap_item_from_tree(rmap_item);
 
-	if (kpage) {
+	if (kpage)
+	{
 		err = try_to_merge_with_ksm_page(rmap_item, page, kpage);
-		if (!err) {
+
+		if (!err)
+		{
 			/*
 			 * The page was successfully merged:
 			 * add its rmap_item to the stable tree.
@@ -1451,6 +1724,7 @@ static void cmp_and_merge_page(struct page *page, struct rmap_item *rmap_item)
 			stable_tree_append(rmap_item, page_stable_node(kpage));
 			unlock_page(kpage);
 		}
+
 		put_page(kpage);
 		return;
 	}
@@ -1462,28 +1736,37 @@ static void cmp_and_merge_page(struct page *page, struct rmap_item *rmap_item)
 	 * to waste our time searching for something identical to it there.
 	 */
 	checksum = calc_checksum(page);
-	if (rmap_item->oldchecksum != checksum) {
+
+	if (rmap_item->oldchecksum != checksum)
+	{
 		rmap_item->oldchecksum = checksum;
 		return;
 	}
 
 	tree_rmap_item =
 		unstable_tree_search_insert(rmap_item, page, &tree_page);
-	if (tree_rmap_item) {
+
+	if (tree_rmap_item)
+	{
 		kpage = try_to_merge_two_pages(rmap_item, page,
-						tree_rmap_item, tree_page);
+									   tree_rmap_item, tree_page);
 		put_page(tree_page);
-		if (kpage) {
+
+		if (kpage)
+		{
 			/*
 			 * The pages were successfully merged: insert new
 			 * node in the stable tree and add both rmap_items.
 			 */
 			lock_page(kpage);
 			stable_node = stable_tree_insert(kpage);
-			if (stable_node) {
+
+			if (stable_node)
+			{
 				stable_tree_append(tree_rmap_item, stable_node);
 				stable_tree_append(rmap_item, stable_node);
 			}
+
 			unlock_page(kpage);
 
 			/*
@@ -1492,7 +1775,8 @@ static void cmp_and_merge_page(struct page *page, struct rmap_item *rmap_item)
 			 * to a ksm page left outside the stable tree,
 			 * in which case we need to break_cow on both.
 			 */
-			if (!stable_node) {
+			if (!stable_node)
+			{
 				break_cow(tree_rmap_item);
 				break_cow(rmap_item);
 			}
@@ -1501,30 +1785,41 @@ static void cmp_and_merge_page(struct page *page, struct rmap_item *rmap_item)
 }
 
 static struct rmap_item *get_next_rmap_item(struct mm_slot *mm_slot,
-					    struct rmap_item **rmap_list,
-					    unsigned long addr)
+		struct rmap_item **rmap_list,
+		unsigned long addr)
 {
 	struct rmap_item *rmap_item;
 
-	while (*rmap_list) {
+	while (*rmap_list)
+	{
 		rmap_item = *rmap_list;
+
 		if ((rmap_item->address & PAGE_MASK) == addr)
+		{
 			return rmap_item;
+		}
+
 		if (rmap_item->address > addr)
+		{
 			break;
+		}
+
 		*rmap_list = rmap_item->rmap_list;
 		remove_rmap_item_from_tree(rmap_item);
 		free_rmap_item(rmap_item);
 	}
 
 	rmap_item = alloc_rmap_item();
-	if (rmap_item) {
+
+	if (rmap_item)
+	{
 		/* It has already been zeroed */
 		rmap_item->mm = mm_slot->mm;
 		rmap_item->address = addr;
 		rmap_item->rmap_list = *rmap_list;
 		*rmap_list = rmap_item;
 	}
+
 	return rmap_item;
 }
 
@@ -1537,10 +1832,14 @@ static struct rmap_item *scan_get_next_rmap_item(struct page **page)
 	int nid;
 
 	if (list_empty(&ksm_mm_head.mm_list))
+	{
 		return NULL;
+	}
 
 	slot = ksm_scan.mm_slot;
-	if (slot == &ksm_mm_head) {
+
+	if (slot == &ksm_mm_head)
+	{
 		/*
 		 * A number of pages can hang around indefinitely on per-cpu
 		 * pagevecs, raised page count preventing write_protect_page
@@ -1559,32 +1858,44 @@ static struct rmap_item *scan_get_next_rmap_item(struct page **page)
 		 * those moved out to the migrate_nodes list can accumulate:
 		 * so prune them once before each full scan.
 		 */
-		if (!ksm_merge_across_nodes) {
+		if (!ksm_merge_across_nodes)
+		{
 			struct stable_node *stable_node, *next;
 			struct page *page;
 
 			list_for_each_entry_safe(stable_node, next,
-						 &migrate_nodes, list) {
+									 &migrate_nodes, list)
+			{
 				page = get_ksm_page(stable_node, false);
+
 				if (page)
+				{
 					put_page(page);
+				}
+
 				cond_resched();
 			}
 		}
 
 		for (nid = 0; nid < ksm_nr_node_ids; nid++)
+		{
 			root_unstable_tree[nid] = RB_ROOT;
+		}
 
 		spin_lock(&ksm_mmlist_lock);
 		slot = list_entry(slot->mm_list.next, struct mm_slot, mm_list);
 		ksm_scan.mm_slot = slot;
 		spin_unlock(&ksm_mmlist_lock);
+
 		/*
 		 * Although we tested list_empty() above, a racing __ksm_exit
 		 * of the last mm on the list may have removed it since then.
 		 */
 		if (slot == &ksm_mm_head)
+		{
 			return NULL;
+		}
+
 next_mm:
 		ksm_scan.address = 0;
 		ksm_scan.rmap_list = &slot->rmap_list;
@@ -1592,52 +1903,83 @@ next_mm:
 
 	mm = slot->mm;
 	down_read(&mm->mmap_sem);
+
 	if (ksm_test_exit(mm))
+	{
 		vma = NULL;
+	}
 	else
+	{
 		vma = find_vma(mm, ksm_scan.address);
+	}
 
-	for (; vma; vma = vma->vm_next) {
+	for (; vma; vma = vma->vm_next)
+	{
 		if (!(vma->vm_flags & VM_MERGEABLE))
+		{
 			continue;
-		if (ksm_scan.address < vma->vm_start)
-			ksm_scan.address = vma->vm_start;
-		if (!vma->anon_vma)
-			ksm_scan.address = vma->vm_end;
+		}
 
-		while (ksm_scan.address < vma->vm_end) {
+		if (ksm_scan.address < vma->vm_start)
+		{
+			ksm_scan.address = vma->vm_start;
+		}
+
+		if (!vma->anon_vma)
+		{
+			ksm_scan.address = vma->vm_end;
+		}
+
+		while (ksm_scan.address < vma->vm_end)
+		{
 			if (ksm_test_exit(mm))
+			{
 				break;
+			}
+
 			*page = follow_page(vma, ksm_scan.address, FOLL_GET);
-			if (IS_ERR_OR_NULL(*page)) {
+
+			if (IS_ERR_OR_NULL(*page))
+			{
 				ksm_scan.address += PAGE_SIZE;
 				cond_resched();
 				continue;
 			}
-			if (PageAnon(*page)) {
+
+			if (PageAnon(*page))
+			{
 				flush_anon_page(vma, *page, ksm_scan.address);
 				flush_dcache_page(*page);
 				rmap_item = get_next_rmap_item(slot,
-					ksm_scan.rmap_list, ksm_scan.address);
-				if (rmap_item) {
+											   ksm_scan.rmap_list, ksm_scan.address);
+
+				if (rmap_item)
+				{
 					ksm_scan.rmap_list =
-							&rmap_item->rmap_list;
+						&rmap_item->rmap_list;
 					ksm_scan.address += PAGE_SIZE;
-				} else
+				}
+				else
+				{
 					put_page(*page);
+				}
+
 				up_read(&mm->mmap_sem);
 				return rmap_item;
 			}
+
 			put_page(*page);
 			ksm_scan.address += PAGE_SIZE;
 			cond_resched();
 		}
 	}
 
-	if (ksm_test_exit(mm)) {
+	if (ksm_test_exit(mm))
+	{
 		ksm_scan.address = 0;
 		ksm_scan.rmap_list = &slot->rmap_list;
 	}
+
 	/*
 	 * Nuke all the rmap_items that are above this current rmap:
 	 * because there were no VM_MERGEABLE vmas with such addresses.
@@ -1646,8 +1988,10 @@ next_mm:
 
 	spin_lock(&ksm_mmlist_lock);
 	ksm_scan.mm_slot = list_entry(slot->mm_list.next,
-						struct mm_slot, mm_list);
-	if (ksm_scan.address == 0) {
+								  struct mm_slot, mm_list);
+
+	if (ksm_scan.address == 0)
+	{
 		/*
 		 * We've completed a full scan of all vmas, holding mmap_sem
 		 * throughout, and found no VM_MERGEABLE: so do the same as
@@ -1665,7 +2009,9 @@ next_mm:
 		clear_bit(MMF_VM_MERGEABLE, &mm->flags);
 		up_read(&mm->mmap_sem);
 		mmdrop(mm);
-	} else {
+	}
+	else
+	{
 		up_read(&mm->mmap_sem);
 		/*
 		 * up_read(&mm->mmap_sem) first because after
@@ -1679,8 +2025,11 @@ next_mm:
 
 	/* Repeat until we've completed scanning the whole list */
 	slot = ksm_scan.mm_slot;
+
 	if (slot != &ksm_mm_head)
+	{
 		goto next_mm;
+	}
 
 	ksm_scan.seqnr++;
 	return NULL;
@@ -1695,11 +2044,16 @@ static void ksm_do_scan(unsigned int scan_npages)
 	struct rmap_item *rmap_item;
 	struct page *uninitialized_var(page);
 
-	while (scan_npages-- && likely(!freezing(current))) {
+	while (scan_npages-- && likely(!freezing(current)))
+	{
 		cond_resched();
 		rmap_item = scan_get_next_rmap_item(&page);
+
 		if (!rmap_item)
+		{
 			return;
+		}
+
 		cmp_and_merge_page(page, rmap_item);
 		put_page(page);
 	}
@@ -1715,68 +2069,95 @@ static int ksm_scan_thread(void *nothing)
 	set_freezable();
 	set_user_nice(current, 5);
 
-	while (!kthread_should_stop()) {
+	while (!kthread_should_stop())
+	{
 		mutex_lock(&ksm_thread_mutex);
 		wait_while_offlining();
+
 		if (ksmd_should_run())
+		{
 			ksm_do_scan(ksm_thread_pages_to_scan);
+		}
+
 		mutex_unlock(&ksm_thread_mutex);
 
 		try_to_freeze();
 
-		if (ksmd_should_run()) {
+		if (ksmd_should_run())
+		{
 			schedule_timeout_interruptible(
 				msecs_to_jiffies(ksm_thread_sleep_millisecs));
-		} else {
+		}
+		else
+		{
 			wait_event_freezable(ksm_thread_wait,
-				ksmd_should_run() || kthread_should_stop());
+								 ksmd_should_run() || kthread_should_stop());
 		}
 	}
+
 	return 0;
 }
 
 int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
-		unsigned long end, int advice, unsigned long *vm_flags)
+				unsigned long end, int advice, unsigned long *vm_flags)
 {
 	struct mm_struct *mm = vma->vm_mm;
 	int err;
 
-	switch (advice) {
-	case MADV_MERGEABLE:
-		/*
-		 * Be somewhat over-protective for now!
-		 */
-		if (*vm_flags & (VM_MERGEABLE | VM_SHARED  | VM_MAYSHARE   |
-				 VM_PFNMAP    | VM_IO      | VM_DONTEXPAND |
-				 VM_HUGETLB | VM_MIXEDMAP))
-			return 0;		/* just ignore the advice */
+	switch (advice)
+	{
+		case MADV_MERGEABLE:
+
+			/*
+			 * Be somewhat over-protective for now!
+			 */
+			if (*vm_flags & (VM_MERGEABLE | VM_SHARED  | VM_MAYSHARE   |
+							 VM_PFNMAP    | VM_IO      | VM_DONTEXPAND |
+							 VM_HUGETLB | VM_MIXEDMAP))
+			{
+				return 0;    /* just ignore the advice */
+			}
 
 #ifdef VM_SAO
-		if (*vm_flags & VM_SAO)
-			return 0;
+
+			if (*vm_flags & VM_SAO)
+			{
+				return 0;
+			}
+
 #endif
 
-		if (!test_bit(MMF_VM_MERGEABLE, &mm->flags)) {
-			err = __ksm_enter(mm);
-			if (err)
-				return err;
-		}
+			if (!test_bit(MMF_VM_MERGEABLE, &mm->flags))
+			{
+				err = __ksm_enter(mm);
 
-		*vm_flags |= VM_MERGEABLE;
-		break;
+				if (err)
+				{
+					return err;
+				}
+			}
 
-	case MADV_UNMERGEABLE:
-		if (!(*vm_flags & VM_MERGEABLE))
-			return 0;		/* just ignore the advice */
+			*vm_flags |= VM_MERGEABLE;
+			break;
 
-		if (vma->anon_vma) {
-			err = unmerge_ksm_pages(vma, start, end);
-			if (err)
-				return err;
-		}
+		case MADV_UNMERGEABLE:
+			if (!(*vm_flags & VM_MERGEABLE))
+			{
+				return 0;    /* just ignore the advice */
+			}
 
-		*vm_flags &= ~VM_MERGEABLE;
-		break;
+			if (vma->anon_vma)
+			{
+				err = unmerge_ksm_pages(vma, start, end);
+
+				if (err)
+				{
+					return err;
+				}
+			}
+
+			*vm_flags &= ~VM_MERGEABLE;
+			break;
 	}
 
 	return 0;
@@ -1788,14 +2169,18 @@ int __ksm_enter(struct mm_struct *mm)
 	int needs_wakeup;
 
 	mm_slot = alloc_mm_slot();
+
 	if (!mm_slot)
+	{
 		return -ENOMEM;
+	}
 
 	/* Check ksm_run too?  Would need tighter locking */
 	needs_wakeup = list_empty(&ksm_mm_head.mm_list);
 
 	spin_lock(&ksm_mmlist_lock);
 	insert_to_mm_slots_hash(mm, mm_slot);
+
 	/*
 	 * When KSM_RUN_MERGE (or KSM_RUN_STOP),
 	 * insert just behind the scanning cursor, to let the area settle
@@ -1807,16 +2192,23 @@ int __ksm_enter(struct mm_struct *mm)
 	 * missed: then we might as well insert at the end of the list.
 	 */
 	if (ksm_run & KSM_RUN_UNMERGE)
+	{
 		list_add_tail(&mm_slot->mm_list, &ksm_mm_head.mm_list);
+	}
 	else
+	{
 		list_add_tail(&mm_slot->mm_list, &ksm_scan.mm_slot->mm_list);
+	}
+
 	spin_unlock(&ksm_mmlist_lock);
 
 	set_bit(MMF_VM_MERGEABLE, &mm->flags);
 	atomic_inc(&mm->mm_count);
 
 	if (needs_wakeup)
+	{
 		wake_up_interruptible(&ksm_thread_wait);
+	}
 
 	return 0;
 }
@@ -1837,49 +2229,70 @@ void __ksm_exit(struct mm_struct *mm)
 
 	spin_lock(&ksm_mmlist_lock);
 	mm_slot = get_mm_slot(mm);
-	if (mm_slot && ksm_scan.mm_slot != mm_slot) {
-		if (!mm_slot->rmap_list) {
+
+	if (mm_slot && ksm_scan.mm_slot != mm_slot)
+	{
+		if (!mm_slot->rmap_list)
+		{
 			hash_del(&mm_slot->link);
 			list_del(&mm_slot->mm_list);
 			easy_to_free = 1;
-		} else {
+		}
+		else
+		{
 			list_move(&mm_slot->mm_list,
-				  &ksm_scan.mm_slot->mm_list);
+					  &ksm_scan.mm_slot->mm_list);
 		}
 	}
+
 	spin_unlock(&ksm_mmlist_lock);
 
-	if (easy_to_free) {
+	if (easy_to_free)
+	{
 		free_mm_slot(mm_slot);
 		clear_bit(MMF_VM_MERGEABLE, &mm->flags);
 		mmdrop(mm);
-	} else if (mm_slot) {
+	}
+	else if (mm_slot)
+	{
 		down_write(&mm->mmap_sem);
 		up_write(&mm->mmap_sem);
 	}
 }
 
 struct page *ksm_might_need_to_copy(struct page *page,
-			struct vm_area_struct *vma, unsigned long address)
+									struct vm_area_struct *vma, unsigned long address)
 {
 	struct anon_vma *anon_vma = page_anon_vma(page);
 	struct page *new_page;
 
-	if (PageKsm(page)) {
+	if (PageKsm(page))
+	{
 		if (page_stable_node(page) &&
-		    !(ksm_run & KSM_RUN_UNMERGE))
-			return page;	/* no need to copy it */
-	} else if (!anon_vma) {
+			!(ksm_run & KSM_RUN_UNMERGE))
+		{
+			return page;    /* no need to copy it */
+		}
+	}
+	else if (!anon_vma)
+	{
 		return page;		/* no need to copy it */
-	} else if (anon_vma->root == vma->anon_vma->root &&
-		 page->index == linear_page_index(vma, address)) {
+	}
+	else if (anon_vma->root == vma->anon_vma->root &&
+			 page->index == linear_page_index(vma, address))
+	{
 		return page;		/* still no need to copy it */
 	}
+
 	if (!PageUptodate(page))
-		return page;		/* let do_swap_page report the error */
+	{
+		return page;    /* let do_swap_page report the error */
+	}
 
 	new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
-	if (new_page) {
+
+	if (new_page)
+	{
 		copy_user_highpage(new_page, page, address, vma);
 
 		SetPageDirty(new_page);
@@ -1906,10 +2319,15 @@ int rmap_walk_ksm(struct page *page, struct rmap_walk_control *rwc)
 	VM_BUG_ON_PAGE(!PageLocked(page), page);
 
 	stable_node = page_stable_node(page);
+
 	if (!stable_node)
+	{
 		return ret;
+	}
+
 again:
-	hlist_for_each_entry(rmap_item, &stable_node->hlist, hlist) {
+	hlist_for_each_entry(rmap_item, &stable_node->hlist, hlist)
+	{
 		struct anon_vma *anon_vma = rmap_item->anon_vma;
 		struct anon_vma_chain *vmac;
 		struct vm_area_struct *vma;
@@ -1917,12 +2335,17 @@ again:
 		cond_resched();
 		anon_vma_lock_read(anon_vma);
 		anon_vma_interval_tree_foreach(vmac, &anon_vma->rb_root,
-					       0, ULONG_MAX) {
+									   0, ULONG_MAX)
+		{
 			cond_resched();
 			vma = vmac->vma;
+
 			if (rmap_item->address < vma->vm_start ||
-			    rmap_item->address >= vma->vm_end)
+				rmap_item->address >= vma->vm_end)
+			{
 				continue;
+			}
+
 			/*
 			 * Initially we examine only the vma which covers this
 			 * rmap_item; but later, if there is still work to do,
@@ -1930,26 +2353,38 @@ again:
 			 * were forked from the original since ksmd passed.
 			 */
 			if ((rmap_item->mm == vma->vm_mm) == search_new_forks)
+			{
 				continue;
+			}
 
 			if (rwc->invalid_vma && rwc->invalid_vma(vma, rwc->arg))
+			{
 				continue;
+			}
 
 			ret = rwc->rmap_one(page, vma,
-					rmap_item->address, rwc->arg);
-			if (ret != SWAP_AGAIN) {
+								rmap_item->address, rwc->arg);
+
+			if (ret != SWAP_AGAIN)
+			{
 				anon_vma_unlock_read(anon_vma);
 				goto out;
 			}
-			if (rwc->done && rwc->done(page)) {
+
+			if (rwc->done && rwc->done(page))
+			{
 				anon_vma_unlock_read(anon_vma);
 				goto out;
 			}
 		}
 		anon_vma_unlock_read(anon_vma);
 	}
+
 	if (!search_new_forks++)
+	{
 		goto again;
+	}
+
 out:
 	return ret;
 }
@@ -1964,7 +2399,9 @@ void ksm_migrate_page(struct page *newpage, struct page *oldpage)
 	VM_BUG_ON_PAGE(newpage->mapping != oldpage->mapping, newpage);
 
 	stable_node = page_stable_node(newpage);
-	if (stable_node) {
+
+	if (stable_node)
+	{
 		VM_BUG_ON_PAGE(stable_node->kpfn != page_to_pfn(oldpage), oldpage);
 		stable_node->kpfn = page_to_pfn(newpage);
 		/*
@@ -1982,86 +2419,104 @@ void ksm_migrate_page(struct page *newpage, struct page *oldpage)
 #ifdef CONFIG_MEMORY_HOTREMOVE
 static void wait_while_offlining(void)
 {
-	while (ksm_run & KSM_RUN_OFFLINE) {
+	while (ksm_run & KSM_RUN_OFFLINE)
+	{
 		mutex_unlock(&ksm_thread_mutex);
 		wait_on_bit(&ksm_run, ilog2(KSM_RUN_OFFLINE),
-			    TASK_UNINTERRUPTIBLE);
+					TASK_UNINTERRUPTIBLE);
 		mutex_lock(&ksm_thread_mutex);
 	}
 }
 
 static void ksm_check_stable_tree(unsigned long start_pfn,
-				  unsigned long end_pfn)
+								  unsigned long end_pfn)
 {
 	struct stable_node *stable_node, *next;
 	struct rb_node *node;
 	int nid;
 
-	for (nid = 0; nid < ksm_nr_node_ids; nid++) {
+	for (nid = 0; nid < ksm_nr_node_ids; nid++)
+	{
 		node = rb_first(root_stable_tree + nid);
-		while (node) {
+
+		while (node)
+		{
 			stable_node = rb_entry(node, struct stable_node, node);
+
 			if (stable_node->kpfn >= start_pfn &&
-			    stable_node->kpfn < end_pfn) {
+				stable_node->kpfn < end_pfn)
+			{
 				/*
 				 * Don't get_ksm_page, page has already gone:
 				 * which is why we keep kpfn instead of page*
 				 */
 				remove_node_from_stable_tree(stable_node);
 				node = rb_first(root_stable_tree + nid);
-			} else
+			}
+			else
+			{
 				node = rb_next(node);
+			}
+
 			cond_resched();
 		}
 	}
-	list_for_each_entry_safe(stable_node, next, &migrate_nodes, list) {
+
+	list_for_each_entry_safe(stable_node, next, &migrate_nodes, list)
+	{
 		if (stable_node->kpfn >= start_pfn &&
-		    stable_node->kpfn < end_pfn)
+			stable_node->kpfn < end_pfn)
+		{
 			remove_node_from_stable_tree(stable_node);
+		}
+
 		cond_resched();
 	}
 }
 
 static int ksm_memory_callback(struct notifier_block *self,
-			       unsigned long action, void *arg)
+							   unsigned long action, void *arg)
 {
 	struct memory_notify *mn = arg;
 
-	switch (action) {
-	case MEM_GOING_OFFLINE:
-		/*
-		 * Prevent ksm_do_scan(), unmerge_and_remove_all_rmap_items()
-		 * and remove_all_stable_nodes() while memory is going offline:
-		 * it is unsafe for them to touch the stable tree at this time.
-		 * But unmerge_ksm_pages(), rmap lookups and other entry points
-		 * which do not need the ksm_thread_mutex are all safe.
-		 */
-		mutex_lock(&ksm_thread_mutex);
-		ksm_run |= KSM_RUN_OFFLINE;
-		mutex_unlock(&ksm_thread_mutex);
-		break;
+	switch (action)
+	{
+		case MEM_GOING_OFFLINE:
+			/*
+			 * Prevent ksm_do_scan(), unmerge_and_remove_all_rmap_items()
+			 * and remove_all_stable_nodes() while memory is going offline:
+			 * it is unsafe for them to touch the stable tree at this time.
+			 * But unmerge_ksm_pages(), rmap lookups and other entry points
+			 * which do not need the ksm_thread_mutex are all safe.
+			 */
+			mutex_lock(&ksm_thread_mutex);
+			ksm_run |= KSM_RUN_OFFLINE;
+			mutex_unlock(&ksm_thread_mutex);
+			break;
 
-	case MEM_OFFLINE:
-		/*
-		 * Most of the work is done by page migration; but there might
-		 * be a few stable_nodes left over, still pointing to struct
-		 * pages which have been offlined: prune those from the tree,
-		 * otherwise get_ksm_page() might later try to access a
-		 * non-existent struct page.
-		 */
-		ksm_check_stable_tree(mn->start_pfn,
-				      mn->start_pfn + mn->nr_pages);
+		case MEM_OFFLINE:
+			/*
+			 * Most of the work is done by page migration; but there might
+			 * be a few stable_nodes left over, still pointing to struct
+			 * pages which have been offlined: prune those from the tree,
+			 * otherwise get_ksm_page() might later try to access a
+			 * non-existent struct page.
+			 */
+			ksm_check_stable_tree(mn->start_pfn,
+								  mn->start_pfn + mn->nr_pages);
+
 		/* fallthrough */
 
-	case MEM_CANCEL_OFFLINE:
-		mutex_lock(&ksm_thread_mutex);
-		ksm_run &= ~KSM_RUN_OFFLINE;
-		mutex_unlock(&ksm_thread_mutex);
+		case MEM_CANCEL_OFFLINE:
+			mutex_lock(&ksm_thread_mutex);
+			ksm_run &= ~KSM_RUN_OFFLINE;
+			mutex_unlock(&ksm_thread_mutex);
 
-		smp_mb();	/* wake_up_bit advises this */
-		wake_up_bit(&ksm_run, ilog2(KSM_RUN_OFFLINE));
-		break;
+			smp_mb();	/* wake_up_bit advises this */
+			wake_up_bit(&ksm_run, ilog2(KSM_RUN_OFFLINE));
+			break;
 	}
+
 	return NOTIFY_OK;
 }
 #else
@@ -2079,24 +2534,27 @@ static void wait_while_offlining(void)
 	static struct kobj_attribute _name##_attr = __ATTR_RO(_name)
 #define KSM_ATTR(_name) \
 	static struct kobj_attribute _name##_attr = \
-		__ATTR(_name, 0644, _name##_show, _name##_store)
+			__ATTR(_name, 0644, _name##_show, _name##_store)
 
 static ssize_t sleep_millisecs_show(struct kobject *kobj,
-				    struct kobj_attribute *attr, char *buf)
+									struct kobj_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%u\n", ksm_thread_sleep_millisecs);
 }
 
 static ssize_t sleep_millisecs_store(struct kobject *kobj,
-				     struct kobj_attribute *attr,
-				     const char *buf, size_t count)
+									 struct kobj_attribute *attr,
+									 const char *buf, size_t count)
 {
 	unsigned long msecs;
 	int err;
 
 	err = kstrtoul(buf, 10, &msecs);
+
 	if (err || msecs > UINT_MAX)
+	{
 		return -EINVAL;
+	}
 
 	ksm_thread_sleep_millisecs = msecs;
 
@@ -2105,21 +2563,24 @@ static ssize_t sleep_millisecs_store(struct kobject *kobj,
 KSM_ATTR(sleep_millisecs);
 
 static ssize_t pages_to_scan_show(struct kobject *kobj,
-				  struct kobj_attribute *attr, char *buf)
+								  struct kobj_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%u\n", ksm_thread_pages_to_scan);
 }
 
 static ssize_t pages_to_scan_store(struct kobject *kobj,
-				   struct kobj_attribute *attr,
-				   const char *buf, size_t count)
+								   struct kobj_attribute *attr,
+								   const char *buf, size_t count)
 {
 	int err;
 	unsigned long nr_pages;
 
 	err = kstrtoul(buf, 10, &nr_pages);
+
 	if (err || nr_pages > UINT_MAX)
+	{
 		return -EINVAL;
+	}
 
 	ksm_thread_pages_to_scan = nr_pages;
 
@@ -2128,22 +2589,28 @@ static ssize_t pages_to_scan_store(struct kobject *kobj,
 KSM_ATTR(pages_to_scan);
 
 static ssize_t run_show(struct kobject *kobj, struct kobj_attribute *attr,
-			char *buf)
+						char *buf)
 {
 	return sprintf(buf, "%lu\n", ksm_run);
 }
 
 static ssize_t run_store(struct kobject *kobj, struct kobj_attribute *attr,
-			 const char *buf, size_t count)
+						 const char *buf, size_t count)
 {
 	int err;
 	unsigned long flags;
 
 	err = kstrtoul(buf, 10, &flags);
+
 	if (err || flags > UINT_MAX)
+	{
 		return -EINVAL;
+	}
+
 	if (flags > KSM_RUN_UNMERGE)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * KSM_RUN_MERGE sets ksmd running, and 0 stops it running.
@@ -2154,22 +2621,31 @@ static ssize_t run_store(struct kobject *kobj, struct kobj_attribute *attr,
 
 	mutex_lock(&ksm_thread_mutex);
 	wait_while_offlining();
-	if (ksm_run != flags) {
+
+	if (ksm_run != flags)
+	{
 		ksm_run = flags;
-		if (flags & KSM_RUN_UNMERGE) {
+
+		if (flags & KSM_RUN_UNMERGE)
+		{
 			set_current_oom_origin();
 			err = unmerge_and_remove_all_rmap_items();
 			clear_current_oom_origin();
-			if (err) {
+
+			if (err)
+			{
 				ksm_run = KSM_RUN_STOP;
 				count = err;
 			}
 		}
 	}
+
 	mutex_unlock(&ksm_thread_mutex);
 
 	if (flags & KSM_RUN_MERGE)
+	{
 		wake_up_interruptible(&ksm_thread_wait);
+	}
 
 	return count;
 }
@@ -2177,30 +2653,41 @@ KSM_ATTR(run);
 
 #ifdef CONFIG_NUMA
 static ssize_t merge_across_nodes_show(struct kobject *kobj,
-				struct kobj_attribute *attr, char *buf)
+									   struct kobj_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%u\n", ksm_merge_across_nodes);
 }
 
 static ssize_t merge_across_nodes_store(struct kobject *kobj,
-				   struct kobj_attribute *attr,
-				   const char *buf, size_t count)
+										struct kobj_attribute *attr,
+										const char *buf, size_t count)
 {
 	int err;
 	unsigned long knob;
 
 	err = kstrtoul(buf, 10, &knob);
+
 	if (err)
+	{
 		return err;
+	}
+
 	if (knob > 1)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&ksm_thread_mutex);
 	wait_while_offlining();
-	if (ksm_merge_across_nodes != knob) {
+
+	if (ksm_merge_across_nodes != knob)
+	{
 		if (ksm_pages_shared || remove_all_stable_nodes())
+		{
 			err = -EBUSY;
-		else if (root_stable_tree == one_stable_tree) {
+		}
+		else if (root_stable_tree == one_stable_tree)
+		{
 			struct rb_root *buf;
 			/*
 			 * This is the first time that we switch away from the
@@ -2210,22 +2697,29 @@ static ssize_t merge_across_nodes_store(struct kobject *kobj,
 			 * MAXSMP NODES_SHIFT 10 will use 16kB.
 			 */
 			buf = kcalloc(nr_node_ids + nr_node_ids, sizeof(*buf),
-				      GFP_KERNEL);
+						  GFP_KERNEL);
+
 			/* Let us assume that RB_ROOT is NULL is zero */
 			if (!buf)
+			{
 				err = -ENOMEM;
-			else {
+			}
+			else
+			{
 				root_stable_tree = buf;
 				root_unstable_tree = buf + nr_node_ids;
 				/* Stable tree is empty but not the unstable */
 				root_unstable_tree[0] = one_unstable_tree[0];
 			}
 		}
-		if (!err) {
+
+		if (!err)
+		{
 			ksm_merge_across_nodes = knob;
 			ksm_nr_node_ids = knob ? 1 : nr_node_ids;
 		}
 	}
+
 	mutex_unlock(&ksm_thread_mutex);
 
 	return err ? err : count;
@@ -2234,51 +2728,56 @@ KSM_ATTR(merge_across_nodes);
 #endif
 
 static ssize_t pages_shared_show(struct kobject *kobj,
-				 struct kobj_attribute *attr, char *buf)
+								 struct kobj_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%lu\n", ksm_pages_shared);
 }
 KSM_ATTR_RO(pages_shared);
 
 static ssize_t pages_sharing_show(struct kobject *kobj,
-				  struct kobj_attribute *attr, char *buf)
+								  struct kobj_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%lu\n", ksm_pages_sharing);
 }
 KSM_ATTR_RO(pages_sharing);
 
 static ssize_t pages_unshared_show(struct kobject *kobj,
-				   struct kobj_attribute *attr, char *buf)
+								   struct kobj_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%lu\n", ksm_pages_unshared);
 }
 KSM_ATTR_RO(pages_unshared);
 
 static ssize_t pages_volatile_show(struct kobject *kobj,
-				   struct kobj_attribute *attr, char *buf)
+								   struct kobj_attribute *attr, char *buf)
 {
 	long ksm_pages_volatile;
 
 	ksm_pages_volatile = ksm_rmap_items - ksm_pages_shared
-				- ksm_pages_sharing - ksm_pages_unshared;
+						 - ksm_pages_sharing - ksm_pages_unshared;
+
 	/*
 	 * It was not worth any locking to calculate that statistic,
 	 * but it might therefore sometimes be negative: conceal that.
 	 */
 	if (ksm_pages_volatile < 0)
+	{
 		ksm_pages_volatile = 0;
+	}
+
 	return sprintf(buf, "%ld\n", ksm_pages_volatile);
 }
 KSM_ATTR_RO(pages_volatile);
 
 static ssize_t full_scans_show(struct kobject *kobj,
-			       struct kobj_attribute *attr, char *buf)
+							   struct kobj_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%lu\n", ksm_scan.seqnr);
 }
 KSM_ATTR_RO(full_scans);
 
-static struct attribute *ksm_attrs[] = {
+static struct attribute *ksm_attrs[] =
+{
 	&sleep_millisecs_attr.attr,
 	&pages_to_scan_attr.attr,
 	&run_attr.attr,
@@ -2293,7 +2792,8 @@ static struct attribute *ksm_attrs[] = {
 	NULL,
 };
 
-static struct attribute_group ksm_attr_group = {
+static struct attribute_group ksm_attr_group =
+{
 	.attrs = ksm_attrs,
 	.name = "ksm",
 };
@@ -2305,11 +2805,16 @@ static int __init ksm_init(void)
 	int err;
 
 	err = ksm_slab_init();
+
 	if (err)
+	{
 		goto out;
+	}
 
 	ksm_thread = kthread_run(ksm_scan_thread, NULL, "ksmd");
-	if (IS_ERR(ksm_thread)) {
+
+	if (IS_ERR(ksm_thread))
+	{
 		pr_err("ksm: creating kthread failed\n");
 		err = PTR_ERR(ksm_thread);
 		goto out_free;
@@ -2317,11 +2822,14 @@ static int __init ksm_init(void)
 
 #ifdef CONFIG_SYSFS
 	err = sysfs_create_group(mm_kobj, &ksm_attr_group);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("ksm: register sysfs failed\n");
 		kthread_stop(ksm_thread);
 		goto out_free;
 	}
+
 #else
 	ksm_run = KSM_RUN_MERGE;	/* no way for user to start it */
 

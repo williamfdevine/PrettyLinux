@@ -29,7 +29,8 @@
 #define ORINOCO_MAX_KEY_SIZE	14
 #define ORINOCO_MAX_KEYS	4
 
-struct orinoco_key {
+struct orinoco_key
+{
 	__le16 len;	/* always stored as little-endian */
 	char data[ORINOCO_MAX_KEY_SIZE];
 } __packed;
@@ -37,19 +38,22 @@ struct orinoco_key {
 #define TKIP_KEYLEN	16
 #define MIC_KEYLEN	8
 
-struct orinoco_tkip_key {
+struct orinoco_tkip_key
+{
 	u8 tkip[TKIP_KEYLEN];
 	u8 tx_mic[MIC_KEYLEN];
 	u8 rx_mic[MIC_KEYLEN];
 };
 
-enum orinoco_alg {
+enum orinoco_alg
+{
 	ORINOCO_ALG_NONE,
 	ORINOCO_ALG_WEP,
 	ORINOCO_ALG_TKIP
 };
 
-enum fwtype {
+enum fwtype
+{
 	FIRMWARE_TYPE_AGERE,
 	FIRMWARE_TYPE_INTERSIL,
 	FIRMWARE_TYPE_SYMBOL
@@ -57,7 +61,8 @@ enum fwtype {
 
 struct firmware;
 
-struct orinoco_private {
+struct orinoco_private
+{
 	void *card;	/* Pointer to card dependent structure */
 	struct device *dev;
 	int (*hard_reset)(struct orinoco_private *);
@@ -98,22 +103,22 @@ struct orinoco_private {
 	u16 channel_mask;
 
 	/* Boolean capabilities */
-	unsigned int has_ibss:1;
-	unsigned int has_port3:1;
-	unsigned int has_wep:1;
-	unsigned int has_big_wep:1;
-	unsigned int has_mwo:1;
-	unsigned int has_pm:1;
-	unsigned int has_preamble:1;
-	unsigned int has_sensitivity:1;
-	unsigned int has_hostscan:1;
-	unsigned int has_alt_txcntl:1;
-	unsigned int has_ext_scan:1;
-	unsigned int has_wpa:1;
-	unsigned int do_fw_download:1;
-	unsigned int broken_disableport:1;
-	unsigned int broken_monitor:1;
-	unsigned int prefer_port3:1;
+	unsigned int has_ibss: 1;
+	unsigned int has_port3: 1;
+	unsigned int has_wep: 1;
+	unsigned int has_big_wep: 1;
+	unsigned int has_mwo: 1;
+	unsigned int has_pm: 1;
+	unsigned int has_preamble: 1;
+	unsigned int has_sensitivity: 1;
+	unsigned int has_hostscan: 1;
+	unsigned int has_alt_txcntl: 1;
+	unsigned int has_ext_scan: 1;
+	unsigned int has_wpa: 1;
+	unsigned int do_fw_download: 1;
+	unsigned int broken_disableport: 1;
+	unsigned int broken_monitor: 1;
+	unsigned int prefer_port3: 1;
 
 	/* Configuration paramaters */
 	enum nl80211_iftype iw_mode;
@@ -155,9 +160,9 @@ struct orinoco_private {
 	struct crypto_ahash *rx_tfm_mic;
 	struct crypto_ahash *tx_tfm_mic;
 
-	unsigned int wpa_enabled:1;
-	unsigned int tkip_cm_active:1;
-	unsigned int key_mgmt:3;
+	unsigned int wpa_enabled: 1;
+	unsigned int tkip_cm_active: 1;
+	unsigned int key_mgmt: 3;
 
 #if defined(CONFIG_HERMES_CACHE_FW_ON_INIT) || defined(CONFIG_PM_SLEEP)
 	/* Cached in memory firmware to use during ->resume. */
@@ -171,9 +176,9 @@ struct orinoco_private {
 #ifdef ORINOCO_DEBUG
 extern int orinoco_debug;
 #define DEBUG(n, args...) do { \
-	if (orinoco_debug > (n)) \
-		printk(KERN_DEBUG args); \
-} while (0)
+		if (orinoco_debug > (n)) \
+			printk(KERN_DEBUG args); \
+	} while (0)
 #else
 #define DEBUG(n, args...) do { } while (0)
 #endif	/* ORINOCO_DEBUG */
@@ -183,12 +188,12 @@ extern int orinoco_debug;
 /********************************************************************/
 
 struct orinoco_private *alloc_orinocodev(int sizeof_card, struct device *device,
-					 int (*hard_reset)(struct orinoco_private *),
-					 int (*stop_fw)(struct orinoco_private *, int));
+		int (*hard_reset)(struct orinoco_private *),
+		int (*stop_fw)(struct orinoco_private *, int));
 void free_orinocodev(struct orinoco_private *priv);
 int orinoco_init(struct orinoco_private *priv);
 int orinoco_if_add(struct orinoco_private *priv, unsigned long base_addr,
-		   unsigned int irq, const struct net_device_ops *ops);
+				   unsigned int irq, const struct net_device_ops *ops);
 void orinoco_if_del(struct orinoco_private *priv);
 int orinoco_up(struct orinoco_private *priv);
 void orinoco_down(struct orinoco_private *priv);
@@ -198,10 +203,10 @@ void __orinoco_ev_info(struct net_device *dev, struct hermes *hw);
 void __orinoco_ev_rx(struct net_device *dev, struct hermes *hw);
 
 int orinoco_process_xmit_skb(struct sk_buff *skb,
-			     struct net_device *dev,
-			     struct orinoco_private *priv,
-			     int *tx_control,
-			     u8 *mic);
+							 struct net_device *dev,
+							 struct orinoco_private *priv,
+							 int *tx_control,
+							 u8 *mic);
 
 /* Common ndo functions exported for reuse by orinoco_usb */
 int orinoco_open(struct net_device *dev);
@@ -216,20 +221,23 @@ void orinoco_tx_timeout(struct net_device *dev);
 /********************************************************************/
 
 static inline int orinoco_lock(struct orinoco_private *priv,
-			       unsigned long *flags)
+							   unsigned long *flags)
 {
 	priv->hw.ops->lock_irqsave(&priv->lock, flags);
-	if (priv->hw_unavailable) {
+
+	if (priv->hw_unavailable)
+	{
 		DEBUG(1, "orinoco_lock() called with hw_unavailable (dev=%p)\n",
-		       priv->ndev);
+			  priv->ndev);
 		priv->hw.ops->unlock_irqrestore(&priv->lock, flags);
 		return -EBUSY;
 	}
+
 	return 0;
 }
 
 static inline void orinoco_unlock(struct orinoco_private *priv,
-				  unsigned long *flags)
+								  unsigned long *flags)
 {
 	priv->hw.ops->unlock_irqrestore(&priv->lock, flags);
 }

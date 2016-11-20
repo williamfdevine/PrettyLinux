@@ -61,17 +61,20 @@ irqreturn_t rproc_vq_interrupt(struct rproc *rproc, int notifyid)
 	dev_dbg(&rproc->dev, "vq index %d is interrupted\n", notifyid);
 
 	rvring = idr_find(&rproc->notifyids, notifyid);
+
 	if (!rvring || !rvring->vq)
+	{
 		return IRQ_NONE;
+	}
 
 	return vring_interrupt(0, rvring->vq);
 }
 EXPORT_SYMBOL(rproc_vq_interrupt);
 
 static struct virtqueue *rp_find_vq(struct virtio_device *vdev,
-				    unsigned int id,
-				    void (*callback)(struct virtqueue *vq),
-				    const char *name)
+									unsigned int id,
+									void (*callback)(struct virtqueue *vq),
+									const char *name)
 {
 	struct rproc_vdev *rvdev = vdev_to_rvdev(vdev);
 	struct rproc *rproc = vdev_to_rproc(vdev);
@@ -83,14 +86,21 @@ static struct virtqueue *rp_find_vq(struct virtio_device *vdev,
 
 	/* we're temporarily limited to two virtqueues per rvdev */
 	if (id >= ARRAY_SIZE(rvdev->vring))
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	if (!name)
+	{
 		return NULL;
+	}
 
 	ret = rproc_alloc_vring(rvdev, id);
+
 	if (ret)
+	{
 		return ERR_PTR(ret);
+	}
 
 	rvring = &rvdev->vring[id];
 	addr = rvring->va;
@@ -101,15 +111,17 @@ static struct virtqueue *rp_find_vq(struct virtio_device *vdev,
 	memset(addr, 0, size);
 
 	dev_dbg(dev, "vring%d: va %p qsz %d notifyid %d\n",
-		id, addr, len, rvring->notifyid);
+			id, addr, len, rvring->notifyid);
 
 	/*
 	 * Create the new vq, and tell virtio we're not interested in
 	 * the 'weak' smp barriers, since we're talking with a real device.
 	 */
 	vq = vring_new_virtqueue(id, len, rvring->align, vdev, false, addr,
-				 rproc_virtio_notify, callback, name);
-	if (!vq) {
+							 rproc_virtio_notify, callback, name);
+
+	if (!vq)
+	{
 		dev_err(dev, "vring_new_virtqueue %s failed\n", name);
 		rproc_free_vring(rvring);
 		return ERR_PTR(-ENOMEM);
@@ -126,7 +138,8 @@ static void __rproc_virtio_del_vqs(struct virtio_device *vdev)
 	struct virtqueue *vq, *n;
 	struct rproc_vring *rvring;
 
-	list_for_each_entry_safe(vq, n, &vdev->vqs, list) {
+	list_for_each_entry_safe(vq, n, &vdev->vqs, list)
+	{
 		rvring = vq->priv;
 		rvring->vq = NULL;
 		vring_del_virtqueue(vq);
@@ -140,15 +153,18 @@ static void rproc_virtio_del_vqs(struct virtio_device *vdev)
 }
 
 static int rproc_virtio_find_vqs(struct virtio_device *vdev, unsigned int nvqs,
-				 struct virtqueue *vqs[],
-				 vq_callback_t *callbacks[],
-				 const char * const names[])
+								 struct virtqueue *vqs[],
+								 vq_callback_t *callbacks[],
+								 const char *const names[])
 {
 	int i, ret;
 
-	for (i = 0; i < nvqs; ++i) {
+	for (i = 0; i < nvqs; ++i)
+	{
 		vqs[i] = rp_find_vq(vdev, i, callbacks[i], names[i]);
-		if (IS_ERR(vqs[i])) {
+
+		if (IS_ERR(vqs[i]))
+		{
 			ret = PTR_ERR(vqs[i]);
 			goto error;
 		}
@@ -227,7 +243,7 @@ static int rproc_virtio_finalize_features(struct virtio_device *vdev)
 }
 
 static void rproc_virtio_get(struct virtio_device *vdev, unsigned int offset,
-			     void *buf, unsigned int len)
+							 void *buf, unsigned int len)
 {
 	struct rproc_vdev *rvdev = vdev_to_rvdev(vdev);
 	struct fw_rsc_vdev *rsc;
@@ -236,7 +252,8 @@ static void rproc_virtio_get(struct virtio_device *vdev, unsigned int offset,
 	rsc = (void *)rvdev->rproc->table_ptr + rvdev->rsc_offset;
 	cfg = &rsc->vring[rsc->num_of_vrings];
 
-	if (offset + len > rsc->config_len || offset + len < len) {
+	if (offset + len > rsc->config_len || offset + len < len)
+	{
 		dev_err(&vdev->dev, "rproc_virtio_get: access out of bounds\n");
 		return;
 	}
@@ -245,7 +262,7 @@ static void rproc_virtio_get(struct virtio_device *vdev, unsigned int offset,
 }
 
 static void rproc_virtio_set(struct virtio_device *vdev, unsigned int offset,
-			     const void *buf, unsigned int len)
+							 const void *buf, unsigned int len)
 {
 	struct rproc_vdev *rvdev = vdev_to_rvdev(vdev);
 	struct fw_rsc_vdev *rsc;
@@ -254,7 +271,8 @@ static void rproc_virtio_set(struct virtio_device *vdev, unsigned int offset,
 	rsc = (void *)rvdev->rproc->table_ptr + rvdev->rsc_offset;
 	cfg = &rsc->vring[rsc->num_of_vrings];
 
-	if (offset + len > rsc->config_len || offset + len < len) {
+	if (offset + len > rsc->config_len || offset + len < len)
+	{
 		dev_err(&vdev->dev, "rproc_virtio_set: access out of bounds\n");
 		return;
 	}
@@ -262,7 +280,8 @@ static void rproc_virtio_set(struct virtio_device *vdev, unsigned int offset,
 	memcpy(cfg + offset, buf, len);
 }
 
-static const struct virtio_config_ops rproc_virtio_config_ops = {
+static const struct virtio_config_ops rproc_virtio_config_ops =
+{
 	.get_features	= rproc_virtio_get_features,
 	.finalize_features = rproc_virtio_finalize_features,
 	.find_vqs	= rproc_virtio_find_vqs,
@@ -311,8 +330,8 @@ int rproc_add_virtio_dev(struct rproc_vdev *rvdev, int id)
 	int ret;
 
 	vdev->id.device	= id,
-	vdev->config = &rproc_virtio_config_ops,
-	vdev->dev.parent = dev;
+			 vdev->config = &rproc_virtio_config_ops,
+				   vdev->dev.parent = dev;
 	vdev->dev.release = rproc_vdev_release;
 
 	/*
@@ -326,7 +345,9 @@ int rproc_add_virtio_dev(struct rproc_vdev *rvdev, int id)
 	get_device(&rproc->dev);
 
 	ret = register_virtio_device(vdev);
-	if (ret) {
+
+	if (ret)
+	{
 		put_device(&rproc->dev);
 		dev_err(dev, "failed to register vdev: %d\n", ret);
 		goto out;

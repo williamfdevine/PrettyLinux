@@ -1,9 +1,9 @@
 /*
  * Qlogic FAS408 ISA card driver
  *
- * Copyright 1994, Tom Zerucha.   
+ * Copyright 1994, Tom Zerucha.
  * tz@execpc.com
- * 
+ *
  * Redistributable under terms of the GNU General Public License
  *
  * For the avoidance of doubt the "preferred form" of this code is one which
@@ -44,12 +44,12 @@
 static char qlogicfas_name[] = "qlogicfas";
 
 /*
- *	Look for qlogic card and init if found 
+ *	Look for qlogic card and init if found
  */
- 
+
 static struct Scsi_Host *__qlogicfas_detect(struct scsi_host_template *host,
-								int qbase,
-								int qlirq)
+		int qbase,
+		int qlirq)
 {
 	int qltyp;		/* type of chip */
 	int qinitid;
@@ -66,40 +66,55 @@ static struct Scsi_Host *__qlogicfas_detect(struct scsi_host_template *host,
 	 */
 
 	if (!qbase || qlirq == -1)
-		goto err;
-
-	if (!request_region(qbase, 0x10, qlogicfas_name)) {
-		printk(KERN_INFO "%s: address %#x is busy\n", qlogicfas_name,
-							      qbase);
+	{
 		goto err;
 	}
 
-	if (!qlogicfas408_detect(qbase, INT_TYPE)) {
+	if (!request_region(qbase, 0x10, qlogicfas_name))
+	{
+		printk(KERN_INFO "%s: address %#x is busy\n", qlogicfas_name,
+			   qbase);
+		goto err;
+	}
+
+	if (!qlogicfas408_detect(qbase, INT_TYPE))
+	{
 		printk(KERN_WARNING "%s: probe failed for %#x\n",
-								qlogicfas_name,
-								qbase);
+			   qlogicfas_name,
+			   qbase);
 		goto err_release_mem;
 	}
 
 	printk(KERN_INFO "%s: Using preset base address of %03x,"
-			 " IRQ %d\n", qlogicfas_name, qbase, qlirq);
+		   " IRQ %d\n", qlogicfas_name, qbase, qlirq);
 
 	qltyp = qlogicfas408_get_chip_type(qbase, INT_TYPE);
 	qinitid = host->this_id;
+
 	if (qinitid < 0)
-		qinitid = 7;	/* if no ID, use 7 */
+	{
+		qinitid = 7;    /* if no ID, use 7 */
+	}
 
 	qlogicfas408_setup(qbase, qinitid, INT_TYPE);
 
 	hreg = scsi_host_alloc(host, sizeof(struct qlogicfas408_priv));
+
 	if (!hreg)
+	{
 		goto err_release_mem;
+	}
+
 	priv = get_priv_by_host(hreg);
 	hreg->io_port = qbase;
 	hreg->n_io_port = 16;
 	hreg->dma_channel = -1;
+
 	if (qlirq != -1)
+	{
 		hreg->irq = qlirq;
+	}
+
 	priv->qbase = qbase;
 	priv->qlirq = qlirq;
 	priv->qinitid = qinitid;
@@ -107,15 +122,19 @@ static struct Scsi_Host *__qlogicfas_detect(struct scsi_host_template *host,
 	priv->int_type = INT_TYPE;
 
 	sprintf(priv->qinfo,
-		"Qlogicfas Driver version 0.46, chip %02X at %03X, IRQ %d, TPdma:%d",
-		qltyp, qbase, qlirq, QL_TURBO_PDMA);
+			"Qlogicfas Driver version 0.46, chip %02X at %03X, IRQ %d, TPdma:%d",
+			qltyp, qbase, qlirq, QL_TURBO_PDMA);
 	host->name = qlogicfas_name;
 
 	if (request_irq(qlirq, qlogicfas408_ihandl, 0, qlogicfas_name, hreg))
+	{
 		goto free_scsi_host;
+	}
 
 	if (scsi_add_host(hreg, NULL))
+	{
 		goto free_interrupt;
+	}
 
 	scsi_scan_host(hreg);
 
@@ -136,7 +155,7 @@ err:
 #define MAX_QLOGICFAS	8
 static struct qlogicfas408_priv *cards;
 static int iobase[MAX_QLOGICFAS];
-static int irq[MAX_QLOGICFAS] = { [0 ... MAX_QLOGICFAS-1] = -1 };
+static int irq[MAX_QLOGICFAS] = { [0 ... MAX_QLOGICFAS - 1] = -1 };
 module_param_array(iobase, int, NULL, 0);
 module_param_array(irq, int, NULL, 0);
 MODULE_PARM_DESC(iobase, "I/O address");
@@ -148,12 +167,16 @@ static int qlogicfas_detect(struct scsi_host_template *sht)
 	struct qlogicfas408_priv *priv;
 	int num;
 
-	for (num = 0; num < MAX_QLOGICFAS; num++) {
+	for (num = 0; num < MAX_QLOGICFAS; num++)
+	{
 		shost = __qlogicfas_detect(sht, iobase[num], irq[num]);
-		if (shost == NULL) {
+
+		if (shost == NULL)
+		{
 			/* no more devices */
 			break;
 		}
+
 		priv = get_priv_by_host(shost);
 		priv->next = cards;
 		cards = priv;
@@ -167,12 +190,18 @@ static int qlogicfas_release(struct Scsi_Host *shost)
 	struct qlogicfas408_priv *priv = get_priv_by_host(shost);
 
 	scsi_remove_host(shost);
-	if (shost->irq) {
-		qlogicfas408_disable_ints(priv);	
+
+	if (shost->irq)
+	{
+		qlogicfas408_disable_ints(priv);
 		free_irq(shost->irq, shost);
 	}
+
 	if (shost->io_port && shost->n_io_port)
+	{
 		release_region(shost->io_port, shost->n_io_port);
+	}
+
 	scsi_host_put(shost);
 
 	return 0;
@@ -181,7 +210,8 @@ static int qlogicfas_release(struct Scsi_Host *shost)
 /*
  *	The driver template is also needed for PCMCIA
  */
-static struct scsi_host_template qlogicfas_driver_template = {
+static struct scsi_host_template qlogicfas_driver_template =
+{
 	.module			= THIS_MODULE,
 	.name			= qlogicfas_name,
 	.proc_name		= qlogicfas_name,
@@ -198,11 +228,12 @@ static struct scsi_host_template qlogicfas_driver_template = {
 
 static __init int qlogicfas_init(void)
 {
-	if (!qlogicfas_detect(&qlogicfas_driver_template)) {
+	if (!qlogicfas_detect(&qlogicfas_driver_template))
+	{
 		/* no cards found */
 		printk(KERN_INFO "%s: no cards were found, please specify "
-				 "I/O address and IRQ using iobase= and irq= "
-				 "options", qlogicfas_name);
+			   "I/O address and IRQ using iobase= and irq= "
+			   "options", qlogicfas_name);
 		return -ENODEV;
 	}
 
@@ -214,7 +245,9 @@ static __exit void qlogicfas_exit(void)
 	struct qlogicfas408_priv *priv;
 
 	for (priv = cards; priv != NULL; priv = priv->next)
+	{
 		qlogicfas_release(priv->shost);
+	}
 }
 
 MODULE_AUTHOR("Tom Zerucha, Michael Griffith");

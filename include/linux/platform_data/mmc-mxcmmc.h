@@ -8,7 +8,8 @@ struct device;
 /* board specific SDHC data, optional.
  * If not present, a writable card with 3,3V is assumed.
  */
-struct imxmmc_platform_data {
+struct imxmmc_platform_data
+{
 	/* Return values for the get_ro callback should be:
 	 *   0 for a read/write card
 	 *   1 for a read-only card

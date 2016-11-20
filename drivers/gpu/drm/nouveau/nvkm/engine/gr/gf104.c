@@ -31,7 +31,8 @@
  ******************************************************************************/
 
 const struct gf100_gr_init
-gf104_gr_init_ds_0[] = {
+	gf104_gr_init_ds_0[] =
+{
 	{ 0x405844,   1, 0x04, 0x00ffffff },
 	{ 0x405850,   1, 0x04, 0x00000000 },
 	{ 0x405900,   1, 0x04, 0x00002834 },
@@ -40,7 +41,8 @@ gf104_gr_init_ds_0[] = {
 };
 
 const struct gf100_gr_init
-gf104_gr_init_tex_0[] = {
+	gf104_gr_init_tex_0[] =
+{
 	{ 0x419ab0,   1, 0x04, 0x00000000 },
 	{ 0x419ac8,   1, 0x04, 0x00000000 },
 	{ 0x419ab8,   1, 0x04, 0x000000e7 },
@@ -49,7 +51,8 @@ gf104_gr_init_tex_0[] = {
 };
 
 static const struct gf100_gr_init
-gf104_gr_init_pe_0[] = {
+	gf104_gr_init_pe_0[] =
+{
 	{ 0x41980c,   3, 0x04, 0x00000000 },
 	{ 0x419844,   1, 0x04, 0x00000000 },
 	{ 0x41984c,   1, 0x04, 0x00005bc5 },
@@ -59,7 +62,8 @@ gf104_gr_init_pe_0[] = {
 };
 
 const struct gf100_gr_init
-gf104_gr_init_sm_0[] = {
+	gf104_gr_init_sm_0[] =
+{
 	{ 0x419e00,   1, 0x04, 0x00000000 },
 	{ 0x419ea0,   1, 0x04, 0x00000000 },
 	{ 0x419ea4,   1, 0x04, 0x00000100 },
@@ -78,7 +82,8 @@ gf104_gr_init_sm_0[] = {
 };
 
 static const struct gf100_gr_pack
-gf104_gr_pack_mmio[] = {
+	gf104_gr_pack_mmio[] =
+{
 	{ gf100_gr_init_main_0 },
 	{ gf100_gr_init_fe_0 },
 	{ gf100_gr_init_pri_0 },
@@ -113,7 +118,8 @@ gf104_gr_pack_mmio[] = {
  ******************************************************************************/
 
 static const struct gf100_gr_func
-gf104_gr = {
+	gf104_gr =
+{
 	.init = gf100_gr_init,
 	.mmio = gf104_gr_pack_mmio,
 	.fecs.ucode = &gf100_gr_fecs_ucode,

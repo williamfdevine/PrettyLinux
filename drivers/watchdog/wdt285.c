@@ -74,24 +74,31 @@ static int watchdog_open(struct inode *inode, struct file *file)
 	int ret;
 
 	if (*CSR_SA110_CNTL & (1 << 13))
+	{
 		return -EBUSY;
+	}
 
 	if (test_and_set_bit(1, &timer_alive))
+	{
 		return -EBUSY;
+	}
 
 	reload = soft_margin * (mem_fclk_21285 / 256);
 
 	*CSR_TIMER4_CLR = 0;
 	watchdog_ping();
 	*CSR_TIMER4_CNTL = TIMER_CNTL_ENABLE | TIMER_CNTL_AUTORELOAD
-		| TIMER_CNTL_DIV256;
+					   | TIMER_CNTL_DIV256;
 
 #ifdef ONLY_TESTING
 	ret = request_irq(IRQ_TIMER4, watchdog_fire, 0, "watchdog", NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		*CSR_TIMER4_CNTL = 0;
 		clear_bit(1, &timer_alive);
 	}
+
 #else
 	/*
 	 * Setting this bit is irreversible; once enabled, there is
@@ -120,68 +127,83 @@ static int watchdog_release(struct inode *inode, struct file *file)
 }
 
 static ssize_t watchdog_write(struct file *file, const char __user *data,
-			      size_t len, loff_t *ppos)
+							  size_t len, loff_t *ppos)
 {
 	/*
 	 *	Refresh the timer.
 	 */
 	if (len)
+	{
 		watchdog_ping();
+	}
 
 	return len;
 }
 
-static const struct watchdog_info ident = {
+static const struct watchdog_info ident =
+{
 	.options	= WDIOF_SETTIMEOUT,
 	.identity	= "Footbridge Watchdog",
 };
 
 static long watchdog_ioctl(struct file *file, unsigned int cmd,
-			   unsigned long arg)
+						   unsigned long arg)
 {
 	int __user *int_arg = (int __user *)arg;
 	int new_margin, ret = -ENOTTY;
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		ret = 0;
-		if (copy_to_user((void __user *)arg, &ident, sizeof(ident)))
-			ret = -EFAULT;
-		break;
+	switch (cmd)
+	{
+		case WDIOC_GETSUPPORT:
+			ret = 0;
 
-	case WDIOC_GETSTATUS:
-	case WDIOC_GETBOOTSTATUS:
-		ret = put_user(0, int_arg);
-		break;
+			if (copy_to_user((void __user *)arg, &ident, sizeof(ident)))
+			{
+				ret = -EFAULT;
+			}
 
-	case WDIOC_KEEPALIVE:
-		watchdog_ping();
-		ret = 0;
-		break;
-
-	case WDIOC_SETTIMEOUT:
-		ret = get_user(new_margin, int_arg);
-		if (ret)
 			break;
 
-		/* Arbitrary, can't find the card's limits */
-		if (new_margin < 0 || new_margin > 60) {
-			ret = -EINVAL;
+		case WDIOC_GETSTATUS:
+		case WDIOC_GETBOOTSTATUS:
+			ret = put_user(0, int_arg);
 			break;
-		}
 
-		soft_margin = new_margin;
-		reload = soft_margin * (mem_fclk_21285 / 256);
-		watchdog_ping();
+		case WDIOC_KEEPALIVE:
+			watchdog_ping();
+			ret = 0;
+			break;
+
+		case WDIOC_SETTIMEOUT:
+			ret = get_user(new_margin, int_arg);
+
+			if (ret)
+			{
+				break;
+			}
+
+			/* Arbitrary, can't find the card's limits */
+			if (new_margin < 0 || new_margin > 60)
+			{
+				ret = -EINVAL;
+				break;
+			}
+
+			soft_margin = new_margin;
+			reload = soft_margin * (mem_fclk_21285 / 256);
+			watchdog_ping();
+
 		/* Fall */
-	case WDIOC_GETTIMEOUT:
-		ret = put_user(soft_margin, int_arg);
-		break;
+		case WDIOC_GETTIMEOUT:
+			ret = put_user(soft_margin, int_arg);
+			break;
 	}
+
 	return ret;
 }
 
-static const struct file_operations watchdog_fops = {
+static const struct file_operations watchdog_fops =
+{
 	.owner		= THIS_MODULE,
 	.llseek		= no_llseek,
 	.write		= watchdog_write,
@@ -190,7 +212,8 @@ static const struct file_operations watchdog_fops = {
 	.release	= watchdog_release,
 };
 
-static struct miscdevice watchdog_miscdev = {
+static struct miscdevice watchdog_miscdev =
+{
 	.minor		= WATCHDOG_MINOR,
 	.name		= "watchdog",
 	.fops		= &watchdog_fops,
@@ -201,17 +224,25 @@ static int __init footbridge_watchdog_init(void)
 	int retval;
 
 	if (machine_is_netwinder())
+	{
 		return -ENODEV;
+	}
 
 	retval = misc_register(&watchdog_miscdev);
+
 	if (retval < 0)
+	{
 		return retval;
+	}
 
 	pr_info("Footbridge Watchdog Timer: 0.01, timer margin: %d sec\n",
-		soft_margin);
+			soft_margin);
 
 	if (machine_is_cats())
+	{
 		pr_warn("Warning: Watchdog reset may not work on this machine\n");
+	}
+
 	return 0;
 }
 

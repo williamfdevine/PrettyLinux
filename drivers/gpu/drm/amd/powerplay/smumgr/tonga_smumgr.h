@@ -28,12 +28,14 @@
 
 #include "smu7_smumgr.h"
 
-struct tonga_mc_reg_entry {
+struct tonga_mc_reg_entry
+{
 	uint32_t mclk_max;
 	uint32_t mc_data[SMU72_DISCRETE_MC_REGISTER_ARRAY_SIZE];
 };
 
-struct tonga_mc_reg_table {
+struct tonga_mc_reg_table
+{
 	uint8_t   last;               /* number of registers*/
 	uint8_t   num_entries;        /* number of entries in mc_reg_table_entry used*/
 	uint16_t  validflag;          /* indicate the corresponding register is valid or not. 1: valid, 0: invalid. bit0->address[0], bit1->address[1], etc.*/
@@ -42,7 +44,8 @@ struct tonga_mc_reg_table {
 };
 
 
-struct tonga_smumgr {
+struct tonga_smumgr
+{
 
 	struct smu7_smumgr                   smu7_data;
 	struct SMU72_Discrete_DpmTable       smc_state_table;

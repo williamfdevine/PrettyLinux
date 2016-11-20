@@ -34,7 +34,8 @@
 #define CHT_PLAT_CLK_3_HZ	19200000
 #define CHT_CODEC_DAI	"HiFi"
 
-struct cht_mc_private {
+struct cht_mc_private
+{
 	struct snd_soc_jack jack;
 	bool ts3a227e_present;
 };
@@ -43,22 +44,27 @@ static inline struct snd_soc_dai *cht_get_codec_dai(struct snd_soc_card *card)
 {
 	struct snd_soc_pcm_runtime *rtd;
 
-	list_for_each_entry(rtd, &card->rtd_list, list) {
+	list_for_each_entry(rtd, &card->rtd_list, list)
+	{
 		if (!strncmp(rtd->codec_dai->name, CHT_CODEC_DAI,
-			     strlen(CHT_CODEC_DAI)))
+					 strlen(CHT_CODEC_DAI)))
+		{
 			return rtd->codec_dai;
+		}
 	}
 	return NULL;
 }
 
-static const struct snd_soc_dapm_widget cht_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget cht_dapm_widgets[] =
+{
 	SND_SOC_DAPM_HP("Headphone", NULL),
 	SND_SOC_DAPM_MIC("Headset Mic", NULL),
 	SND_SOC_DAPM_MIC("Int Mic", NULL),
 	SND_SOC_DAPM_SPK("Ext Spk", NULL),
 };
 
-static const struct snd_soc_dapm_route cht_audio_map[] = {
+static const struct snd_soc_dapm_route cht_audio_map[] =
+{
 	{"IN34", NULL, "Headset Mic"},
 	{"Headset Mic", NULL, "MICBIAS"},
 	{"DMICL", NULL, "Int Mic"},
@@ -74,7 +80,8 @@ static const struct snd_soc_dapm_route cht_audio_map[] = {
 	{"ssp2 Rx", NULL, "HiFi Capture"},
 };
 
-static const struct snd_kcontrol_new cht_mc_controls[] = {
+static const struct snd_kcontrol_new cht_mc_controls[] =
+{
 	SOC_DAPM_PIN_SWITCH("Headphone"),
 	SOC_DAPM_PIN_SWITCH("Headset Mic"),
 	SOC_DAPM_PIN_SWITCH("Int Mic"),
@@ -82,15 +89,17 @@ static const struct snd_kcontrol_new cht_mc_controls[] = {
 };
 
 static int cht_aif1_hw_params(struct snd_pcm_substream *substream,
-			     struct snd_pcm_hw_params *params)
+							  struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
 	int ret;
 
 	ret = snd_soc_dai_set_sysclk(codec_dai, M98090_REG_SYSTEM_CLOCK,
-				     CHT_PLAT_CLK_3_HZ, SND_SOC_CLOCK_IN);
-	if (ret < 0) {
+								 CHT_PLAT_CLK_3_HZ, SND_SOC_CLOCK_IN);
+
+	if (ret < 0)
+	{
 		dev_err(rtd->dev, "can't set codec sysclk: %d\n", ret);
 		return ret;
 	}
@@ -99,16 +108,19 @@ static int cht_aif1_hw_params(struct snd_pcm_substream *substream,
 }
 
 static int cht_ti_jack_event(struct notifier_block *nb,
-		unsigned long event, void *data)
+							 unsigned long event, void *data)
 {
 	struct snd_soc_jack *jack = (struct snd_soc_jack *)data;
 	struct snd_soc_dapm_context *dapm = &jack->card->dapm;
 
-	if (event & SND_JACK_MICROPHONE) {
+	if (event & SND_JACK_MICROPHONE)
+	{
 		snd_soc_dapm_force_enable_pin(dapm, "SHDN");
 		snd_soc_dapm_force_enable_pin(dapm, "MICBIAS");
 		snd_soc_dapm_sync(dapm);
-	} else {
+	}
+	else
+	{
 		snd_soc_dapm_disable_pin(dapm, "MICBIAS");
 		snd_soc_dapm_disable_pin(dapm, "SHDN");
 		snd_soc_dapm_sync(dapm);
@@ -117,7 +129,8 @@ static int cht_ti_jack_event(struct notifier_block *nb,
 	return 0;
 }
 
-static struct notifier_block cht_jack_nb = {
+static struct notifier_block cht_jack_nb =
+{
 	.notifier_call = cht_ti_jack_event,
 };
 
@@ -140,43 +153,52 @@ static int cht_codec_init(struct snd_soc_pcm_runtime *runtime)
 					SND_JACK_BTN_0 | SND_JACK_BTN_1 |
 					SND_JACK_BTN_2 | SND_JACK_BTN_3;
 	else
+	{
 		jack_type = SND_JACK_HEADPHONE | SND_JACK_MICROPHONE;
+	}
 
 	ret = snd_soc_card_jack_new(runtime->card, "Headset Jack",
-					jack_type, jack, NULL, 0);
+								jack_type, jack, NULL, 0);
 
-	if (ret) {
+	if (ret)
+	{
 		dev_err(runtime->dev, "Headset Jack creation failed %d\n", ret);
 		return ret;
 	}
 
 	if (ctx->ts3a227e_present)
+	{
 		snd_soc_jack_notifier_register(jack, &cht_jack_nb);
+	}
 
 	return ret;
 }
 
 static int cht_codec_fixup(struct snd_soc_pcm_runtime *rtd,
-			    struct snd_pcm_hw_params *params)
+						   struct snd_pcm_hw_params *params)
 {
 	struct snd_interval *rate = hw_param_interval(params,
-			SNDRV_PCM_HW_PARAM_RATE);
+								SNDRV_PCM_HW_PARAM_RATE);
 	struct snd_interval *channels = hw_param_interval(params,
-						SNDRV_PCM_HW_PARAM_CHANNELS);
+									SNDRV_PCM_HW_PARAM_CHANNELS);
 	int ret = 0;
 	unsigned int fmt = 0;
 
 	ret = snd_soc_dai_set_tdm_slot(rtd->cpu_dai, 0x3, 0x3, 2, 16);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(rtd->dev, "can't set cpu_dai slot fmt: %d\n", ret);
 		return ret;
 	}
 
 	fmt = SND_SOC_DAIFMT_LEFT_J | SND_SOC_DAIFMT_NB_NF
-				| SND_SOC_DAIFMT_CBS_CFS;
+		  | SND_SOC_DAIFMT_CBS_CFS;
 
 	ret = snd_soc_dai_set_fmt(rtd->cpu_dai, fmt);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(rtd->dev, "can't set cpu_dai set fmt: %d\n", ret);
 		return ret;
 	}
@@ -193,7 +215,7 @@ static int cht_codec_fixup(struct snd_soc_pcm_runtime *rtd,
 static int cht_aif1_startup(struct snd_pcm_substream *substream)
 {
 	return snd_pcm_hw_constraint_single(substream->runtime,
-			SNDRV_PCM_HW_PARAM_RATE, 48000);
+										SNDRV_PCM_HW_PARAM_RATE, 48000);
 }
 
 static int cht_max98090_headset_init(struct snd_soc_component *component)
@@ -204,21 +226,25 @@ static int cht_max98090_headset_init(struct snd_soc_component *component)
 	return ts3a227e_enable_jack_detect(component, &ctx->jack);
 }
 
-static struct snd_soc_ops cht_aif1_ops = {
+static struct snd_soc_ops cht_aif1_ops =
+{
 	.startup = cht_aif1_startup,
 };
 
-static struct snd_soc_ops cht_be_ssp2_ops = {
+static struct snd_soc_ops cht_be_ssp2_ops =
+{
 	.hw_params = cht_aif1_hw_params,
 };
 
-static struct snd_soc_aux_dev cht_max98090_headset_dev = {
+static struct snd_soc_aux_dev cht_max98090_headset_dev =
+{
 	.name = "Headset Chip",
 	.init = cht_max98090_headset_init,
 	.codec_name = "i2c-104C227E:00",
 };
 
-static struct snd_soc_dai_link cht_dailink[] = {
+static struct snd_soc_dai_link cht_dailink[] =
+{
 	[MERR_DPCM_AUDIO] = {
 		.name = "Audio Port",
 		.stream_name = "Audio",
@@ -262,7 +288,7 @@ static struct snd_soc_dai_link cht_dailink[] = {
 		.codec_dai_name = "HiFi",
 		.codec_name = "i2c-193C9890:00",
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF
-					| SND_SOC_DAIFMT_CBS_CFS,
+		| SND_SOC_DAIFMT_CBS_CFS,
 		.init = cht_codec_init,
 		.be_hw_params_fixup = cht_codec_fixup,
 		.dpcm_playback = 1,
@@ -272,7 +298,8 @@ static struct snd_soc_dai_link cht_dailink[] = {
 };
 
 /* SoC card */
-static struct snd_soc_card snd_soc_card_cht = {
+static struct snd_soc_card snd_soc_card_cht =
+{
 	.name = "chtmax98090",
 	.owner = THIS_MODULE,
 	.dai_link = cht_dailink,
@@ -293,11 +320,16 @@ static int snd_cht_mc_probe(struct platform_device *pdev)
 	struct cht_mc_private *drv;
 
 	drv = devm_kzalloc(&pdev->dev, sizeof(*drv), GFP_ATOMIC);
+
 	if (!drv)
+	{
 		return -ENOMEM;
+	}
 
 	drv->ts3a227e_present = acpi_dev_found("104C227E");
-	if (!drv->ts3a227e_present) {
+
+	if (!drv->ts3a227e_present)
+	{
 		/* no need probe TI jack detection chip */
 		snd_soc_card_cht.aux_dev = NULL;
 		snd_soc_card_cht.num_aux_devs = 0;
@@ -307,16 +339,20 @@ static int snd_cht_mc_probe(struct platform_device *pdev)
 	snd_soc_card_cht.dev = &pdev->dev;
 	snd_soc_card_set_drvdata(&snd_soc_card_cht, drv);
 	ret_val = devm_snd_soc_register_card(&pdev->dev, &snd_soc_card_cht);
-	if (ret_val) {
+
+	if (ret_val)
+	{
 		dev_err(&pdev->dev,
-			"snd_soc_register_card failed %d\n", ret_val);
+				"snd_soc_register_card failed %d\n", ret_val);
 		return ret_val;
 	}
+
 	platform_set_drvdata(pdev, &snd_soc_card_cht);
 	return ret_val;
 }
 
-static struct platform_driver snd_cht_mc_driver = {
+static struct platform_driver snd_cht_mc_driver =
+{
 	.driver = {
 		.name = "cht-bsw-max98090",
 	},

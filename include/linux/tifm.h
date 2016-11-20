@@ -19,14 +19,16 @@
 #include <linux/workqueue.h>
 
 /* Host registers (relative to pci base address): */
-enum {
+enum
+{
 	FM_SET_INTERRUPT_ENABLE   = 0x008,
 	FM_CLEAR_INTERRUPT_ENABLE = 0x00c,
 	FM_INTERRUPT_STATUS       = 0x014
 };
 
 /* Socket registers (relative to socket base address): */
-enum {
+enum
+{
 	SOCK_CONTROL                   = 0x004,
 	SOCK_PRESENT_STATE             = 0x008,
 	SOCK_DMA_ADDRESS               = 0x00c,
@@ -83,12 +85,14 @@ enum {
 #define TIFM_TYPE_MS 2
 #define TIFM_TYPE_SD 3
 
-struct tifm_device_id {
+struct tifm_device_id
+{
 	unsigned char type;
 };
 
 struct tifm_driver;
-struct tifm_dev {
+struct tifm_dev
+{
 	char __iomem  *addr;
 	spinlock_t    lock;
 	unsigned char type;
@@ -100,18 +104,20 @@ struct tifm_dev {
 	struct device dev;
 };
 
-struct tifm_driver {
+struct tifm_driver
+{
 	struct tifm_device_id *id_table;
 	int                   (*probe)(struct tifm_dev *dev);
 	void                  (*remove)(struct tifm_dev *dev);
 	int                   (*suspend)(struct tifm_dev *dev,
-					 pm_message_t state);
+									 pm_message_t state);
 	int                   (*resume)(struct tifm_dev *dev);
 
 	struct device_driver  driver;
 };
 
-struct tifm_adapter {
+struct tifm_adapter
+{
 	char __iomem        *addr;
 	spinlock_t          lock;
 	unsigned int        irq_status;
@@ -124,31 +130,31 @@ struct tifm_adapter {
 	struct device	    dev;
 
 	void                (*eject)(struct tifm_adapter *fm,
-				     struct tifm_dev *sock);
+								 struct tifm_dev *sock);
 	int                 (*has_ms_pif)(struct tifm_adapter *fm,
-					  struct tifm_dev *sock);
+									  struct tifm_dev *sock);
 
 	struct tifm_dev     *sockets[0];
 };
 
 struct tifm_adapter *tifm_alloc_adapter(unsigned int num_sockets,
-					struct device *dev);
+										struct device *dev);
 int tifm_add_adapter(struct tifm_adapter *fm);
 void tifm_remove_adapter(struct tifm_adapter *fm);
 void tifm_free_adapter(struct tifm_adapter *fm);
 
 void tifm_free_device(struct device *dev);
 struct tifm_dev *tifm_alloc_device(struct tifm_adapter *fm, unsigned int id,
-				   unsigned char type);
+								   unsigned char type);
 
 int tifm_register_driver(struct tifm_driver *drv);
 void tifm_unregister_driver(struct tifm_driver *drv);
 void tifm_eject(struct tifm_dev *sock);
 int tifm_has_ms_pif(struct tifm_dev *sock);
 int tifm_map_sg(struct tifm_dev *sock, struct scatterlist *sg, int nents,
-		int direction);
+				int direction);
 void tifm_unmap_sg(struct tifm_dev *sock, struct scatterlist *sg, int nents,
-		   int direction);
+				   int direction);
 void tifm_queue_work(struct work_struct *work);
 
 static inline void *tifm_get_drvdata(struct tifm_dev *dev)

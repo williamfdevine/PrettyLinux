@@ -36,23 +36,27 @@ nv41_timer_init(struct nvkm_timer *tmr)
 	d = 1000000 / 32;
 	n = f;
 
-	while (n < (d * 2)) {
+	while (n < (d * 2))
+	{
 		n += (n / m);
 		m++;
 	}
 
 	/* reduce ratio to acceptable values */
-	while (((n % 5) == 0) && ((d % 5) == 0)) {
+	while (((n % 5) == 0) && ((d % 5) == 0))
+	{
 		n /= 5;
 		d /= 5;
 	}
 
-	while (((n % 2) == 0) && ((d % 2) == 0)) {
+	while (((n % 2) == 0) && ((d % 2) == 0))
+	{
 		n /= 2;
 		d /= 2;
 	}
 
-	while (n > 0xffff || d > 0xffff) {
+	while (n > 0xffff || d > 0xffff)
+	{
 		n >>= 1;
 		d >>= 1;
 	}
@@ -69,7 +73,8 @@ nv41_timer_init(struct nvkm_timer *tmr)
 }
 
 static const struct nvkm_timer_func
-nv41_timer = {
+	nv41_timer =
+{
 	.init = nv41_timer_init,
 	.intr = nv04_timer_intr,
 	.read = nv04_timer_read,

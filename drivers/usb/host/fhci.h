@@ -93,10 +93,10 @@
 #define USB_TD_TX_ER_UNDERUN	0x00100000 /* transmit underrun */
 
 #define USB_TD_ERROR (USB_TD_RX_ER_NONOCT | USB_TD_RX_ER_BITSTUFF | \
-		USB_TD_RX_ER_CRC | USB_TD_RX_ER_OVERUN | USB_TD_RX_ER_PID | \
-		USB_TD_RX_DATA_UNDERUN | USB_TD_RX_DATA_OVERUN | \
-		USB_TD_TX_ER_NAK | USB_TD_TX_ER_STALL | \
-		USB_TD_TX_ER_TIMEOUT | USB_TD_TX_ER_UNDERUN)
+					  USB_TD_RX_ER_CRC | USB_TD_RX_ER_OVERUN | USB_TD_RX_ER_PID | \
+					  USB_TD_RX_DATA_UNDERUN | USB_TD_RX_DATA_OVERUN | \
+					  USB_TD_TX_ER_NAK | USB_TD_TX_ER_STALL | \
+					  USB_TD_TX_ER_TIMEOUT | USB_TD_TX_ER_UNDERUN)
 
 /* Transfer Descriptor toggle field */
 #define USB_TD_TOGGLE_DATA0	0
@@ -175,7 +175,8 @@
 #define USB_E_RXB_MASK		0x0001
 
 /* Freescale USB HOST */
-struct fhci_pram {
+struct fhci_pram
+{
 	__be16 ep_ptr[4];	/* Endpoint porter reg */
 	__be32 rx_state;	/* Rx internal state */
 	__be32 rx_ptr;		/* Rx internal data pointer */
@@ -191,7 +192,8 @@ struct fhci_pram {
 };
 
 /* Freescale USB Endpoint*/
-struct fhci_ep_pram {
+struct fhci_ep_pram
+{
 	__be16 rx_base;		/* Rx BD base address */
 	__be16 tx_base;		/* Tx BD base address */
 	u8 rx_func_code;	/* Rx function code */
@@ -208,7 +210,8 @@ struct fhci_ep_pram {
 	__be16 reserved;
 };
 
-struct fhci_controller_list {
+struct fhci_controller_list
+{
 	struct list_head ctrl_list;	/* control endpoints */
 	struct list_head bulk_list;	/* bulk endpoints */
 	struct list_head iso_list;	/* isochronous endpoints */
@@ -216,14 +219,16 @@ struct fhci_controller_list {
 	struct list_head done_list;	/* done transfers */
 };
 
-struct virtual_root_hub {
+struct virtual_root_hub
+{
 	int dev_num;	/* USB address of the root hub */
 	u32 feature;	/* indicates what feature has been set */
 	struct usb_hub_status hub;
 	struct usb_port_status port;
 };
 
-enum fhci_gpios {
+enum fhci_gpios
+{
 	GPIO_USBOE = 0,
 	GPIO_USBTP,
 	GPIO_USBTN,
@@ -235,14 +240,16 @@ enum fhci_gpios {
 	NUM_GPIOS,
 };
 
-enum fhci_pins {
+enum fhci_pins
+{
 	PIN_USBOE = 0,
 	PIN_USBTP,
 	PIN_USBTN,
 	NUM_PINS,
 };
 
-struct fhci_hcd {
+struct fhci_hcd
+{
 	enum qe_clock fullspeed_clk;
 	enum qe_clock lowspeed_clk;
 	struct qe_pin *pins[NUM_PINS];
@@ -278,27 +285,31 @@ struct fhci_hcd {
 #define MAX_PERIODIC_FRAME_USAGE 90
 
 /* transaction type */
-enum fhci_ta_type {
+enum fhci_ta_type
+{
 	FHCI_TA_IN = 0,	/* input transaction */
 	FHCI_TA_OUT,	/* output transaction */
 	FHCI_TA_SETUP,	/* setup transaction */
 };
 
 /* transfer mode */
-enum fhci_tf_mode {
+enum fhci_tf_mode
+{
 	FHCI_TF_CTRL = 0,
 	FHCI_TF_ISO,
 	FHCI_TF_BULK,
 	FHCI_TF_INTR,
 };
 
-enum fhci_speed {
+enum fhci_speed
+{
 	FHCI_FULL_SPEED,
 	FHCI_LOW_SPEED,
 };
 
 /* endpoint state */
-enum fhci_ed_state {
+enum fhci_ed_state
+{
 	FHCI_ED_NEW = 0, /* pipe is new */
 	FHCI_ED_OPER,    /* pipe is operating */
 	FHCI_ED_URB_DEL, /* pipe is in hold because urb is being deleted */
@@ -306,7 +317,8 @@ enum fhci_ed_state {
 	FHCI_ED_HALTED,  /* pipe is halted */
 };
 
-enum fhci_port_status {
+enum fhci_port_status
+{
 	FHCI_PORT_POWER_OFF = 0,
 	FHCI_PORT_DISABLED,
 	FHCI_PORT_DISCONNECTING,
@@ -315,7 +327,8 @@ enum fhci_port_status {
 	FHCI_PORT_LOW,		/* low speed connected */
 };
 
-enum fhci_mem_alloc {
+enum fhci_mem_alloc
+{
 	MEM_CACHABLE_SYS = 0x00000001,	/* primary DDR,cachable */
 	MEM_NOCACHE_SYS = 0x00000004,	/* primary DDR,non-cachable */
 	MEM_SECONDARY = 0x00000002,	/* either secondary DDR or SDRAM */
@@ -326,7 +339,8 @@ enum fhci_mem_alloc {
 #define DEFAULT_RING_LEN	8
 #define DEFAULT_DATA_MEM	MEM_CACHABLE_SYS
 
-struct ed {
+struct ed
+{
 	u8 dev_addr;		/* device address */
 	u8 ep_addr;		/* endpoint address */
 	enum fhci_tf_mode mode;	/* USB transfer mode */
@@ -342,7 +356,8 @@ struct ed {
 	struct td *td_head;	/* a pointer to the current TD handled */
 };
 
-struct td {
+struct td
+{
 	void *data;		 /* a pointer to the data buffer */
 	unsigned int len;	 /* length of the data to be submitted */
 	unsigned int actual_len; /* actual bytes transferred on this td */
@@ -364,7 +379,8 @@ struct td {
 	struct list_head frame_lh;
 };
 
-struct packet {
+struct packet
+{
 	u8 *data;	/* packet data */
 	u32 len;	/* packet length */
 	u32 status;	/* status of the packet - equivalent to the status
@@ -388,7 +404,8 @@ struct packet {
 
 #define EP_ZERO	0
 
-struct urb_priv {
+struct urb_priv
+{
 	int num_of_tds;
 	int tds_cnt;
 	int state;
@@ -398,7 +415,8 @@ struct urb_priv {
 	struct timer_list time_out;
 };
 
-struct endpoint {
+struct endpoint
+{
 	/* Pointer to ep parameter RAM */
 	struct fhci_ep_pram __iomem *ep_pram_ptr;
 
@@ -420,7 +438,8 @@ struct endpoint {
 #define FRAME_END_TRANSMISSION		0x03
 #define FRAME_IS_PREPARED		0x04
 
-struct fhci_time_frame {
+struct fhci_time_frame
+{
 	u16 frame_num;	 /* frame number */
 	u16 total_bytes; /* total bytes submitted within this frame */
 	u8 frame_status; /* flag that indicates to stop fill this frame */
@@ -428,7 +447,8 @@ struct fhci_time_frame {
 };
 
 /* internal driver structure*/
-struct fhci_usb {
+struct fhci_usb
+{
 	u16 saved_msk;		 /* saving of the USB mask register */
 	struct endpoint *ep0;	 /* pointer for endpoint0 structure */
 	int intr_nesting_cnt;	 /* interrupt nesting counter */
@@ -455,15 +475,15 @@ static inline u16 get_frame_num(struct fhci_hcd *fhci)
 }
 
 #define fhci_dbg(fhci, fmt, args...) \
-		dev_dbg(fhci_to_hcd(fhci)->self.controller, fmt, ##args)
+	dev_dbg(fhci_to_hcd(fhci)->self.controller, fmt, ##args)
 #define fhci_vdbg(fhci, fmt, args...) \
-		dev_vdbg(fhci_to_hcd(fhci)->self.controller, fmt, ##args)
+	dev_vdbg(fhci_to_hcd(fhci)->self.controller, fmt, ##args)
 #define fhci_err(fhci, fmt, args...) \
-		dev_err(fhci_to_hcd(fhci)->self.controller, fmt, ##args)
+	dev_err(fhci_to_hcd(fhci)->self.controller, fmt, ##args)
 #define fhci_info(fhci, fmt, args...) \
-		dev_info(fhci_to_hcd(fhci)->self.controller, fmt, ##args)
+	dev_info(fhci_to_hcd(fhci)->self.controller, fmt, ##args)
 #define fhci_warn(fhci, fmt, args...) \
-		dev_warn(fhci_to_hcd(fhci)->self.controller, fmt, ##args)
+	dev_warn(fhci_to_hcd(fhci)->self.controller, fmt, ##args)
 
 static inline struct fhci_hcd *hcd_to_fhci(struct usb_hcd *hcd)
 {
@@ -502,8 +522,11 @@ static inline void *cq_get(struct kfifo *kfifo)
 	void *p;
 
 	sz = kfifo_out(kfifo, (void *)&p, sizeof(p));
+
 	if (sz != sizeof(p))
+	{
 		return NULL;
+	}
 
 	return p;
 }
@@ -521,37 +544,37 @@ void fhci_recycle_empty_td(struct fhci_hcd *fhci, struct td *td);
 void fhci_recycle_empty_ed(struct fhci_hcd *fhci, struct ed *ed);
 struct ed *fhci_get_empty_ed(struct fhci_hcd *fhci);
 struct td *fhci_td_fill(struct fhci_hcd *fhci, struct urb *urb,
-			struct urb_priv *urb_priv, struct ed *ed, u16 index,
-			enum fhci_ta_type type, int toggle, u8 *data, u32 len,
-			u16 interval, u16 start_frame, bool ioc);
+						struct urb_priv *urb_priv, struct ed *ed, u16 index,
+						enum fhci_ta_type type, int toggle, u8 *data, u32 len,
+						u16 interval, u16 start_frame, bool ioc);
 void fhci_add_tds_to_ed(struct ed *ed, struct td **td_list, int number);
 
 /* fhci-hub.c */
 void fhci_config_transceiver(struct fhci_hcd *fhci,
-			enum fhci_port_status status);
+							 enum fhci_port_status status);
 void fhci_port_disable(struct fhci_hcd *fhci);
 void fhci_port_enable(void *lld);
 void fhci_io_port_generate_reset(struct fhci_hcd *fhci);
 void fhci_port_reset(void *lld);
 int fhci_hub_status_data(struct usb_hcd *hcd, char *buf);
 int fhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
-		     u16 wIndex, char *buf, u16 wLength);
+					 u16 wIndex, char *buf, u16 wLength);
 
 /* fhci-tds.c */
 void fhci_flush_bds(struct fhci_usb *usb);
 void fhci_flush_actual_frame(struct fhci_usb *usb);
 u32 fhci_host_transaction(struct fhci_usb *usb, struct packet *pkt,
-			  enum fhci_ta_type trans_type, u8 dest_addr,
-			  u8 dest_ep, enum fhci_tf_mode trans_mode,
-			  enum fhci_speed dest_speed, u8 data_toggle);
+						  enum fhci_ta_type trans_type, u8 dest_addr,
+						  u8 dest_ep, enum fhci_tf_mode trans_mode,
+						  enum fhci_speed dest_speed, u8 data_toggle);
 void fhci_host_transmit_actual_frame(struct fhci_usb *usb);
 void fhci_tx_conf_interrupt(struct fhci_usb *usb);
 void fhci_push_dummy_bd(struct endpoint *ep);
 u32 fhci_create_ep(struct fhci_usb *usb, enum fhci_mem_alloc data_mem,
-		   u32 ring_len);
+				   u32 ring_len);
 void fhci_init_ep_registers(struct fhci_usb *usb,
-			    struct endpoint *ep,
-			    enum fhci_mem_alloc data_mem);
+							struct endpoint *ep,
+							enum fhci_mem_alloc data_mem);
 void fhci_ep0_free(struct fhci_usb *usb);
 
 /* fhci-sched.c */

@@ -15,7 +15,8 @@
 #include "state.h"
 #include "netns.h"
 
-struct nfsd_fault_inject_op {
+struct nfsd_fault_inject_op
+{
 	char *file;
 	u64 (*get)(void);
 	u64 (*set_val)(u64);
@@ -25,7 +26,7 @@ struct nfsd_fault_inject_op {
 static struct dentry *debug_dir;
 
 static ssize_t fault_inject_read(struct file *file, char __user *buf,
-				 size_t len, loff_t *ppos)
+								 size_t len, loff_t *ppos)
 {
 	static u64 val;
 	char read_buf[25];
@@ -34,14 +35,17 @@ static ssize_t fault_inject_read(struct file *file, char __user *buf,
 	struct nfsd_fault_inject_op *op = file_inode(file)->i_private;
 
 	if (!pos)
+	{
 		val = op->get();
+	}
+
 	size = scnprintf(read_buf, sizeof(read_buf), "%llu\n", val);
 
 	return simple_read_from_buffer(buf, len, ppos, read_buf, size);
 }
 
 static ssize_t fault_inject_write(struct file *file, const char __user *buf,
-				  size_t len, loff_t *ppos)
+								  size_t len, loff_t *ppos)
 {
 	char write_buf[INET6_ADDRSTRLEN];
 	size_t size = min(sizeof(write_buf) - 1, len);
@@ -52,36 +56,52 @@ static ssize_t fault_inject_write(struct file *file, const char __user *buf,
 	char *nl;
 
 	if (copy_from_user(write_buf, buf, size))
+	{
 		return -EFAULT;
+	}
+
 	write_buf[size] = '\0';
 
 	/* Deal with any embedded newlines in the string */
 	nl = strchr(write_buf, '\n');
-	if (nl) {
+
+	if (nl)
+	{
 		size = nl - write_buf;
 		*nl = '\0';
 	}
 
 	size = rpc_pton(net, write_buf, size, (struct sockaddr *)&sa, sizeof(sa));
-	if (size > 0) {
+
+	if (size > 0)
+	{
 		val = op->set_clnt(&sa, size);
+
 		if (val)
 			pr_info("NFSD [%s]: Client %s had %llu state object(s)\n",
-				op->file, write_buf, val);
-	} else {
+					op->file, write_buf, val);
+	}
+	else
+	{
 		val = simple_strtoll(write_buf, NULL, 0);
+
 		if (val == 0)
+		{
 			pr_info("NFSD Fault Injection: %s (all)", op->file);
+		}
 		else
 			pr_info("NFSD Fault Injection: %s (n = %llu)",
-				op->file, val);
+					op->file, val);
+
 		val = op->set_val(val);
 		pr_info("NFSD: %s: found %llu", op->file, val);
 	}
+
 	return len; /* on success, claim we got the whole input */
 }
 
-static const struct file_operations fops_nfsd = {
+static const struct file_operations fops_nfsd =
+{
 	.owner   = THIS_MODULE,
 	.read    = fault_inject_read,
 	.write   = fault_inject_write,
@@ -92,7 +112,8 @@ void nfsd_fault_inject_cleanup(void)
 	debugfs_remove_recursive(debug_dir);
 }
 
-static struct nfsd_fault_inject_op inject_ops[] = {
+static struct nfsd_fault_inject_op inject_ops[] =
+{
 	{
 		.file     = "forget_clients",
 		.get	  = nfsd_inject_print_clients,
@@ -134,14 +155,22 @@ int nfsd_fault_inject_init(void)
 	umode_t mode = S_IFREG | S_IRUSR | S_IWUSR;
 
 	debug_dir = debugfs_create_dir("nfsd", NULL);
-	if (!debug_dir)
-		goto fail;
 
-	for (i = 0; i < NUM_INJECT_OPS; i++) {
-		op = &inject_ops[i];
-		if (!debugfs_create_file(op->file, mode, debug_dir, op, &fops_nfsd))
-			goto fail;
+	if (!debug_dir)
+	{
+		goto fail;
 	}
+
+	for (i = 0; i < NUM_INJECT_OPS; i++)
+	{
+		op = &inject_ops[i];
+
+		if (!debugfs_create_file(op->file, mode, debug_dir, op, &fops_nfsd))
+		{
+			goto fail;
+		}
+	}
+
 	return 0;
 
 fail:

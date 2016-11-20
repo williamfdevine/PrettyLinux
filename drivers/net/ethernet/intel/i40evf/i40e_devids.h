@@ -49,7 +49,7 @@
 #define I40E_DEV_ID_X722_VF_HV		0x37D9
 
 #define i40e_is_40G_device(d)		((d) == I40E_DEV_ID_QSFP_A  || \
-					 (d) == I40E_DEV_ID_QSFP_B  || \
-					 (d) == I40E_DEV_ID_QSFP_C)
+									 (d) == I40E_DEV_ID_QSFP_B  || \
+									 (d) == I40E_DEV_ID_QSFP_C)
 
 #endif /* _I40E_DEVIDS_H_ */

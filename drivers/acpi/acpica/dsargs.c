@@ -55,8 +55,8 @@ ACPI_MODULE_NAME("dsargs")
 /* Local prototypes */
 static acpi_status
 acpi_ds_execute_arguments(struct acpi_namespace_node *node,
-			  struct acpi_namespace_node *scope_node,
-			  u32 aml_length, u8 *aml_start);
+						  struct acpi_namespace_node *scope_node,
+						  u32 aml_length, u8 *aml_start);
 
 /*******************************************************************************
  *
@@ -75,8 +75,8 @@ acpi_ds_execute_arguments(struct acpi_namespace_node *node,
 
 static acpi_status
 acpi_ds_execute_arguments(struct acpi_namespace_node *node,
-			  struct acpi_namespace_node *scope_node,
-			  u32 aml_length, u8 *aml_start)
+						  struct acpi_namespace_node *scope_node,
+						  u32 aml_length, u8 *aml_start)
 {
 	acpi_status status;
 	union acpi_parse_object *op;
@@ -87,7 +87,9 @@ acpi_ds_execute_arguments(struct acpi_namespace_node *node,
 	/* Allocate a new parser op to be the root of the parsed tree */
 
 	op = acpi_ps_alloc_op(AML_INT_EVAL_SUBTREE_OP, aml_start);
-	if (!op) {
+
+	if (!op)
+	{
 		return_ACPI_STATUS(AE_NO_MEMORY);
 	}
 
@@ -98,14 +100,18 @@ acpi_ds_execute_arguments(struct acpi_namespace_node *node,
 	/* Create and initialize a new parser state */
 
 	walk_state = acpi_ds_create_walk_state(0, NULL, NULL, NULL);
-	if (!walk_state) {
+
+	if (!walk_state)
+	{
 		status = AE_NO_MEMORY;
 		goto cleanup;
 	}
 
 	status = acpi_ds_init_aml_walk(walk_state, op, NULL, aml_start,
-				       aml_length, NULL, ACPI_IMODE_LOAD_PASS1);
-	if (ACPI_FAILURE(status)) {
+								   aml_length, NULL, ACPI_IMODE_LOAD_PASS1);
+
+	if (ACPI_FAILURE(status))
+	{
 		acpi_ds_delete_walk_state(walk_state);
 		goto cleanup;
 	}
@@ -118,7 +124,9 @@ acpi_ds_execute_arguments(struct acpi_namespace_node *node,
 	/* Pass1: Parse the entire declaration */
 
 	status = acpi_ps_parse_aml(walk_state);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		goto cleanup;
 	}
 
@@ -130,7 +138,9 @@ acpi_ds_execute_arguments(struct acpi_namespace_node *node,
 	/* Evaluate the deferred arguments */
 
 	op = acpi_ps_alloc_op(AML_INT_EVAL_SUBTREE_OP, aml_start);
-	if (!op) {
+
+	if (!op)
+	{
 		return_ACPI_STATUS(AE_NO_MEMORY);
 	}
 
@@ -139,7 +149,9 @@ acpi_ds_execute_arguments(struct acpi_namespace_node *node,
 	/* Create and initialize a new parser state */
 
 	walk_state = acpi_ds_create_walk_state(0, NULL, NULL, NULL);
-	if (!walk_state) {
+
+	if (!walk_state)
+	{
 		status = AE_NO_MEMORY;
 		goto cleanup;
 	}
@@ -147,8 +159,10 @@ acpi_ds_execute_arguments(struct acpi_namespace_node *node,
 	/* Execute the opcode and arguments */
 
 	status = acpi_ds_init_aml_walk(walk_state, op, NULL, aml_start,
-				       aml_length, NULL, ACPI_IMODE_EXECUTE);
-	if (ACPI_FAILURE(status)) {
+								   aml_length, NULL, ACPI_IMODE_EXECUTE);
+
+	if (ACPI_FAILURE(status))
+	{
 		acpi_ds_delete_walk_state(walk_state);
 		goto cleanup;
 	}
@@ -185,7 +199,8 @@ acpi_ds_get_buffer_field_arguments(union acpi_operand_object *obj_desc)
 
 	ACPI_FUNCTION_TRACE_PTR(ds_get_buffer_field_arguments, obj_desc);
 
-	if (obj_desc->common.flags & AOPOBJ_DATA_VALID) {
+	if (obj_desc->common.flags & AOPOBJ_DATA_VALID)
+	{
 		return_ACPI_STATUS(AE_OK);
 	}
 
@@ -195,16 +210,16 @@ acpi_ds_get_buffer_field_arguments(union acpi_operand_object *obj_desc)
 	node = obj_desc->buffer_field.node;
 
 	ACPI_DEBUG_EXEC(acpi_ut_display_init_pathname
-			(ACPI_TYPE_BUFFER_FIELD, node, NULL));
+					(ACPI_TYPE_BUFFER_FIELD, node, NULL));
 
 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "[%4.4s] BufferField Arg Init\n",
-			  acpi_ut_get_node_name(node)));
+					  acpi_ut_get_node_name(node)));
 
 	/* Execute the AML code for the term_arg arguments */
 
 	status = acpi_ds_execute_arguments(node, node->parent,
-					   extra_desc->extra.aml_length,
-					   extra_desc->extra.aml_start);
+									   extra_desc->extra.aml_length,
+									   extra_desc->extra.aml_start);
 	return_ACPI_STATUS(status);
 }
 
@@ -230,7 +245,8 @@ acpi_ds_get_bank_field_arguments(union acpi_operand_object *obj_desc)
 
 	ACPI_FUNCTION_TRACE_PTR(ds_get_bank_field_arguments, obj_desc);
 
-	if (obj_desc->common.flags & AOPOBJ_DATA_VALID) {
+	if (obj_desc->common.flags & AOPOBJ_DATA_VALID)
+	{
 		return_ACPI_STATUS(AE_OK);
 	}
 
@@ -240,23 +256,25 @@ acpi_ds_get_bank_field_arguments(union acpi_operand_object *obj_desc)
 	node = obj_desc->bank_field.node;
 
 	ACPI_DEBUG_EXEC(acpi_ut_display_init_pathname
-			(ACPI_TYPE_LOCAL_BANK_FIELD, node, NULL));
+					(ACPI_TYPE_LOCAL_BANK_FIELD, node, NULL));
 
 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "[%4.4s] BankField Arg Init\n",
-			  acpi_ut_get_node_name(node)));
+					  acpi_ut_get_node_name(node)));
 
 	/* Execute the AML code for the term_arg arguments */
 
 	status = acpi_ds_execute_arguments(node, node->parent,
-					   extra_desc->extra.aml_length,
-					   extra_desc->extra.aml_start);
-	if (ACPI_FAILURE(status)) {
+									   extra_desc->extra.aml_length,
+									   extra_desc->extra.aml_start);
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
 	status = acpi_ut_add_address_range(obj_desc->region.space_id,
-					   obj_desc->region.address,
-					   obj_desc->region.length, node);
+									   obj_desc->region.address,
+									   obj_desc->region.length, node);
 	return_ACPI_STATUS(status);
 }
 
@@ -280,17 +298,20 @@ acpi_status acpi_ds_get_buffer_arguments(union acpi_operand_object *obj_desc)
 
 	ACPI_FUNCTION_TRACE_PTR(ds_get_buffer_arguments, obj_desc);
 
-	if (obj_desc->common.flags & AOPOBJ_DATA_VALID) {
+	if (obj_desc->common.flags & AOPOBJ_DATA_VALID)
+	{
 		return_ACPI_STATUS(AE_OK);
 	}
 
 	/* Get the Buffer node */
 
 	node = obj_desc->buffer.node;
-	if (!node) {
+
+	if (!node)
+	{
 		ACPI_ERROR((AE_INFO,
-			    "No pointer back to namespace node in buffer object %p",
-			    obj_desc));
+					"No pointer back to namespace node in buffer object %p",
+					obj_desc));
 		return_ACPI_STATUS(AE_AML_INTERNAL);
 	}
 
@@ -299,8 +320,8 @@ acpi_status acpi_ds_get_buffer_arguments(union acpi_operand_object *obj_desc)
 	/* Execute the AML code for the term_arg arguments */
 
 	status = acpi_ds_execute_arguments(node, node,
-					   obj_desc->buffer.aml_length,
-					   obj_desc->buffer.aml_start);
+									   obj_desc->buffer.aml_length,
+									   obj_desc->buffer.aml_start);
 	return_ACPI_STATUS(status);
 }
 
@@ -324,17 +345,20 @@ acpi_status acpi_ds_get_package_arguments(union acpi_operand_object *obj_desc)
 
 	ACPI_FUNCTION_TRACE_PTR(ds_get_package_arguments, obj_desc);
 
-	if (obj_desc->common.flags & AOPOBJ_DATA_VALID) {
+	if (obj_desc->common.flags & AOPOBJ_DATA_VALID)
+	{
 		return_ACPI_STATUS(AE_OK);
 	}
 
 	/* Get the Package node */
 
 	node = obj_desc->package.node;
-	if (!node) {
+
+	if (!node)
+	{
 		ACPI_ERROR((AE_INFO,
-			    "No pointer back to namespace node in package %p",
-			    obj_desc));
+					"No pointer back to namespace node in package %p",
+					obj_desc));
 		return_ACPI_STATUS(AE_AML_INTERNAL);
 	}
 
@@ -343,8 +367,8 @@ acpi_status acpi_ds_get_package_arguments(union acpi_operand_object *obj_desc)
 	/* Execute the AML code for the term_arg arguments */
 
 	status = acpi_ds_execute_arguments(node, node,
-					   obj_desc->package.aml_length,
-					   obj_desc->package.aml_start);
+									   obj_desc->package.aml_length,
+									   obj_desc->package.aml_start);
 	return_ACPI_STATUS(status);
 }
 
@@ -369,12 +393,15 @@ acpi_status acpi_ds_get_region_arguments(union acpi_operand_object *obj_desc)
 
 	ACPI_FUNCTION_TRACE_PTR(ds_get_region_arguments, obj_desc);
 
-	if (obj_desc->region.flags & AOPOBJ_DATA_VALID) {
+	if (obj_desc->region.flags & AOPOBJ_DATA_VALID)
+	{
 		return_ACPI_STATUS(AE_OK);
 	}
 
 	extra_desc = acpi_ns_get_secondary_object(obj_desc);
-	if (!extra_desc) {
+
+	if (!extra_desc)
+	{
 		return_ACPI_STATUS(AE_NOT_EXIST);
 	}
 
@@ -383,24 +410,26 @@ acpi_status acpi_ds_get_region_arguments(union acpi_operand_object *obj_desc)
 	node = obj_desc->region.node;
 
 	ACPI_DEBUG_EXEC(acpi_ut_display_init_pathname
-			(ACPI_TYPE_REGION, node, NULL));
+					(ACPI_TYPE_REGION, node, NULL));
 
 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
-			  "[%4.4s] OpRegion Arg Init at AML %p\n",
-			  acpi_ut_get_node_name(node),
-			  extra_desc->extra.aml_start));
+					  "[%4.4s] OpRegion Arg Init at AML %p\n",
+					  acpi_ut_get_node_name(node),
+					  extra_desc->extra.aml_start));
 
 	/* Execute the argument AML */
 
 	status = acpi_ds_execute_arguments(node, extra_desc->extra.scope_node,
-					   extra_desc->extra.aml_length,
-					   extra_desc->extra.aml_start);
-	if (ACPI_FAILURE(status)) {
+									   extra_desc->extra.aml_length,
+									   extra_desc->extra.aml_start);
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
 	status = acpi_ut_add_address_range(obj_desc->region.space_id,
-					   obj_desc->region.address,
-					   obj_desc->region.length, node);
+									   obj_desc->region.address,
+									   obj_desc->region.length, node);
 	return_ACPI_STATUS(status);
 }

@@ -42,12 +42,14 @@
  * corrected by giving a default H-FLIP and V-FLIP in the sensor readout.
  * FIXME: rotation also changes the bayer pattern.
  */
-enum smiapp_module_board_orient {
+enum smiapp_module_board_orient
+{
 	SMIAPP_MODULE_BOARD_ORIENT_0 = 0,
 	SMIAPP_MODULE_BOARD_ORIENT_180,
 };
 
-struct smiapp_flash_strobe_parms {
+struct smiapp_flash_strobe_parms
+{
 	u8 mode;
 	u32 strobe_width_high_us;
 	u16 strobe_delay;
@@ -55,7 +57,8 @@ struct smiapp_flash_strobe_parms {
 	u8 trigger;
 };
 
-struct smiapp_hwconfig {
+struct smiapp_hwconfig
+{
 	/*
 	 * Change the cci address if i2c_addr_alt is set.
 	 * Both default and alternate cci addr need to be present

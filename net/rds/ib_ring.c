@@ -101,9 +101,10 @@ u32 rds_ib_ring_alloc(struct rds_ib_work_ring *ring, u32 val, u32 *pos)
 	avail = ring->w_nr - __rds_ib_ring_used(ring);
 
 	rdsdebug("ring %p val %u next %u free %u\n", ring, val,
-		 ring->w_alloc_ptr, avail);
+			 ring->w_alloc_ptr, avail);
 
-	if (val && avail) {
+	if (val && avail)
+	{
 		ret = min(val, avail);
 		*pos = ring->w_alloc_ptr;
 
@@ -120,8 +121,10 @@ void rds_ib_ring_free(struct rds_ib_work_ring *ring, u32 val)
 	atomic_add(val, &ring->w_free_ctr);
 
 	if (__rds_ib_ring_empty(ring) &&
-	    waitqueue_active(&rds_ib_ring_empty_wait))
+		waitqueue_active(&rds_ib_ring_empty_wait))
+	{
 		wake_up(&rds_ib_ring_empty_wait);
+	}
 }
 
 void rds_ib_ring_unalloc(struct rds_ib_work_ring *ring, u32 val)
@@ -158,11 +161,15 @@ u32 rds_ib_ring_completed(struct rds_ib_work_ring *ring, u32 wr_id, u32 oldest)
 	u32 ret;
 
 	if (oldest <= (unsigned long long)wr_id)
+	{
 		ret = (unsigned long long)wr_id - oldest + 1;
+	}
 	else
+	{
 		ret = ring->w_nr - oldest + (unsigned long long)wr_id + 1;
+	}
 
 	rdsdebug("ring %p ret %u wr_id %u oldest %u\n", ring, ret,
-		 wr_id, oldest);
+			 wr_id, oldest);
 	return ret;
 }

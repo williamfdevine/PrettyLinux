@@ -102,6 +102,6 @@
 #define MCPDM_DNOFST_RX2(x)		((x & 0x1f) << 9)
 
 void omap_mcpdm_configure_dn_offsets(struct snd_soc_pcm_runtime *rtd,
-				    u8 rx1, u8 rx2);
+									 u8 rx1, u8 rx2);
 
 #endif	/* End of __OMAP_MCPDM_H__ */

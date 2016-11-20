@@ -10,8 +10,11 @@ static int am335x_child_probe(struct platform_device *pdev)
 	pm_runtime_enable(&pdev->dev);
 
 	ret = of_platform_populate(pdev->dev.of_node, NULL, NULL, &pdev->dev);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	return 0;
 err:
@@ -19,13 +22,15 @@ err:
 	return ret;
 }
 
-static const struct of_device_id am335x_child_of_match[] = {
+static const struct of_device_id am335x_child_of_match[] =
+{
 	{ .compatible = "ti,am33xx-usb" },
 	{  },
 };
 MODULE_DEVICE_TABLE(of, am335x_child_of_match);
 
-static struct platform_driver am335x_child_driver = {
+static struct platform_driver am335x_child_driver =
+{
 	.probe		= am335x_child_probe,
 	.driver         = {
 		.name   = "am335x-usb-childs",

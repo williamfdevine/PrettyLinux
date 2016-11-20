@@ -40,15 +40,20 @@ static int c4iw_init_qid_table(struct c4iw_rdev *rdev)
 	u32 i;
 
 	if (c4iw_id_table_alloc(&rdev->resource.qid_table,
-				rdev->lldi.vr->qp.start,
-				rdev->lldi.vr->qp.size,
-				rdev->lldi.vr->qp.size, 0))
+							rdev->lldi.vr->qp.start,
+							rdev->lldi.vr->qp.size,
+							rdev->lldi.vr->qp.size, 0))
+	{
 		return -ENOMEM;
+	}
 
 	for (i = rdev->lldi.vr->qp.start;
-		i < rdev->lldi.vr->qp.start + rdev->lldi.vr->qp.size; i++)
+		 i < rdev->lldi.vr->qp.start + rdev->lldi.vr->qp.size; i++)
 		if (!(i & rdev->qpmask))
+		{
 			c4iw_id_free(&rdev->resource.qid_table, i);
+		}
+
 	return 0;
 }
 
@@ -57,22 +62,34 @@ int c4iw_init_resource(struct c4iw_rdev *rdev, u32 nr_tpt, u32 nr_pdid)
 {
 	int err = 0;
 	err = c4iw_id_table_alloc(&rdev->resource.tpt_table, 0, nr_tpt, 1,
-					C4IW_ID_TABLE_F_RANDOM);
+							  C4IW_ID_TABLE_F_RANDOM);
+
 	if (err)
+	{
 		goto tpt_err;
+	}
+
 	err = c4iw_init_qid_table(rdev);
+
 	if (err)
+	{
 		goto qid_err;
+	}
+
 	err = c4iw_id_table_alloc(&rdev->resource.pdid_table, 0,
-					nr_pdid, 1, 0);
+							  nr_pdid, 1, 0);
+
 	if (err)
+	{
 		goto pdid_err;
+	}
+
 	return 0;
- pdid_err:
+pdid_err:
 	c4iw_id_table_free(&rdev->resource.qid_table);
- qid_err:
+qid_err:
 	c4iw_id_table_free(&rdev->resource.tpt_table);
- tpt_err:
+tpt_err:
 	return -ENOMEM;
 }
 
@@ -83,8 +100,12 @@ u32 c4iw_get_resource(struct c4iw_id_table *id_table)
 {
 	u32 entry;
 	entry = c4iw_id_alloc(id_table);
+
 	if (entry == (u32)(-1))
+	{
 		return 0;
+	}
+
 	return entry;
 }
 
@@ -101,23 +122,37 @@ u32 c4iw_get_cqid(struct c4iw_rdev *rdev, struct c4iw_dev_ucontext *uctx)
 	int i;
 
 	mutex_lock(&uctx->lock);
-	if (!list_empty(&uctx->cqids)) {
+
+	if (!list_empty(&uctx->cqids))
+	{
 		entry = list_entry(uctx->cqids.next, struct c4iw_qid_list,
-				   entry);
+						   entry);
 		list_del(&entry->entry);
 		qid = entry->qid;
 		kfree(entry);
-	} else {
+	}
+	else
+	{
 		qid = c4iw_get_resource(&rdev->resource.qid_table);
+
 		if (!qid)
+		{
 			goto out;
+		}
+
 		mutex_lock(&rdev->stats.lock);
 		rdev->stats.qid.cur += rdev->qpmask + 1;
 		mutex_unlock(&rdev->stats.lock);
-		for (i = qid+1; i & rdev->qpmask; i++) {
-			entry = kmalloc(sizeof *entry, GFP_KERNEL);
+
+		for (i = qid + 1; i & rdev->qpmask; i++)
+		{
+			entry = kmalloc(sizeof * entry, GFP_KERNEL);
+
 			if (!entry)
+			{
 				goto out;
+			}
+
 			entry->qid = i;
 			list_add_tail(&entry->entry, &uctx->cqids);
 		}
@@ -126,37 +161,56 @@ u32 c4iw_get_cqid(struct c4iw_rdev *rdev, struct c4iw_dev_ucontext *uctx)
 		 * now put the same ids on the qp list since they all
 		 * map to the same db/gts page.
 		 */
-		entry = kmalloc(sizeof *entry, GFP_KERNEL);
+		entry = kmalloc(sizeof * entry, GFP_KERNEL);
+
 		if (!entry)
+		{
 			goto out;
+		}
+
 		entry->qid = qid;
 		list_add_tail(&entry->entry, &uctx->qpids);
-		for (i = qid+1; i & rdev->qpmask; i++) {
-			entry = kmalloc(sizeof *entry, GFP_KERNEL);
+
+		for (i = qid + 1; i & rdev->qpmask; i++)
+		{
+			entry = kmalloc(sizeof * entry, GFP_KERNEL);
+
 			if (!entry)
+			{
 				goto out;
+			}
+
 			entry->qid = i;
 			list_add_tail(&entry->entry, &uctx->qpids);
 		}
 	}
+
 out:
 	mutex_unlock(&uctx->lock);
 	PDBG("%s qid 0x%x\n", __func__, qid);
 	mutex_lock(&rdev->stats.lock);
+
 	if (rdev->stats.qid.cur > rdev->stats.qid.max)
+	{
 		rdev->stats.qid.max = rdev->stats.qid.cur;
+	}
+
 	mutex_unlock(&rdev->stats.lock);
 	return qid;
 }
 
 void c4iw_put_cqid(struct c4iw_rdev *rdev, u32 qid,
-		   struct c4iw_dev_ucontext *uctx)
+				   struct c4iw_dev_ucontext *uctx)
 {
 	struct c4iw_qid_list *entry;
 
-	entry = kmalloc(sizeof *entry, GFP_KERNEL);
+	entry = kmalloc(sizeof * entry, GFP_KERNEL);
+
 	if (!entry)
+	{
 		return;
+	}
+
 	PDBG("%s qid 0x%x\n", __func__, qid);
 	entry->qid = qid;
 	mutex_lock(&uctx->lock);
@@ -171,27 +225,40 @@ u32 c4iw_get_qpid(struct c4iw_rdev *rdev, struct c4iw_dev_ucontext *uctx)
 	int i;
 
 	mutex_lock(&uctx->lock);
-	if (!list_empty(&uctx->qpids)) {
+
+	if (!list_empty(&uctx->qpids))
+	{
 		entry = list_entry(uctx->qpids.next, struct c4iw_qid_list,
-				   entry);
+						   entry);
 		list_del(&entry->entry);
 		qid = entry->qid;
 		kfree(entry);
-	} else {
+	}
+	else
+	{
 		qid = c4iw_get_resource(&rdev->resource.qid_table);
-		if (!qid) {
+
+		if (!qid)
+		{
 			mutex_lock(&rdev->stats.lock);
 			rdev->stats.qid.fail++;
 			mutex_unlock(&rdev->stats.lock);
 			goto out;
 		}
+
 		mutex_lock(&rdev->stats.lock);
 		rdev->stats.qid.cur += rdev->qpmask + 1;
 		mutex_unlock(&rdev->stats.lock);
-		for (i = qid+1; i & rdev->qpmask; i++) {
-			entry = kmalloc(sizeof *entry, GFP_KERNEL);
+
+		for (i = qid + 1; i & rdev->qpmask; i++)
+		{
+			entry = kmalloc(sizeof * entry, GFP_KERNEL);
+
 			if (!entry)
+			{
 				goto out;
+			}
+
 			entry->qid = i;
 			list_add_tail(&entry->entry, &uctx->qpids);
 		}
@@ -200,37 +267,56 @@ u32 c4iw_get_qpid(struct c4iw_rdev *rdev, struct c4iw_dev_ucontext *uctx)
 		 * now put the same ids on the cq list since they all
 		 * map to the same db/gts page.
 		 */
-		entry = kmalloc(sizeof *entry, GFP_KERNEL);
+		entry = kmalloc(sizeof * entry, GFP_KERNEL);
+
 		if (!entry)
+		{
 			goto out;
+		}
+
 		entry->qid = qid;
 		list_add_tail(&entry->entry, &uctx->cqids);
-		for (i = qid; i & rdev->qpmask; i++) {
-			entry = kmalloc(sizeof *entry, GFP_KERNEL);
+
+		for (i = qid; i & rdev->qpmask; i++)
+		{
+			entry = kmalloc(sizeof * entry, GFP_KERNEL);
+
 			if (!entry)
+			{
 				goto out;
+			}
+
 			entry->qid = i;
 			list_add_tail(&entry->entry, &uctx->cqids);
 		}
 	}
+
 out:
 	mutex_unlock(&uctx->lock);
 	PDBG("%s qid 0x%x\n", __func__, qid);
 	mutex_lock(&rdev->stats.lock);
+
 	if (rdev->stats.qid.cur > rdev->stats.qid.max)
+	{
 		rdev->stats.qid.max = rdev->stats.qid.cur;
+	}
+
 	mutex_unlock(&rdev->stats.lock);
 	return qid;
 }
 
 void c4iw_put_qpid(struct c4iw_rdev *rdev, u32 qid,
-		   struct c4iw_dev_ucontext *uctx)
+				   struct c4iw_dev_ucontext *uctx)
 {
 	struct c4iw_qid_list *entry;
 
-	entry = kmalloc(sizeof *entry, GFP_KERNEL);
+	entry = kmalloc(sizeof * entry, GFP_KERNEL);
+
 	if (!entry)
+	{
 		return;
+	}
+
 	PDBG("%s qid 0x%x\n", __func__, qid);
 	entry->qid = qid;
 	mutex_lock(&uctx->lock);
@@ -256,12 +342,21 @@ u32 c4iw_pblpool_alloc(struct c4iw_rdev *rdev, int size)
 	unsigned long addr = gen_pool_alloc(rdev->pbl_pool, size);
 	PDBG("%s addr 0x%x size %d\n", __func__, (u32)addr, size);
 	mutex_lock(&rdev->stats.lock);
-	if (addr) {
+
+	if (addr)
+	{
 		rdev->stats.pbl.cur += roundup(size, 1 << MIN_PBL_SHIFT);
+
 		if (rdev->stats.pbl.cur > rdev->stats.pbl.max)
+		{
 			rdev->stats.pbl.max = rdev->stats.pbl.cur;
-	} else
+		}
+	}
+	else
+	{
 		rdev->stats.pbl.fail++;
+	}
+
 	mutex_unlock(&rdev->stats.lock);
 	return (u32)addr;
 }
@@ -280,29 +375,40 @@ int c4iw_pblpool_create(struct c4iw_rdev *rdev)
 	unsigned pbl_start, pbl_chunk, pbl_top;
 
 	rdev->pbl_pool = gen_pool_create(MIN_PBL_SHIFT, -1);
+
 	if (!rdev->pbl_pool)
+	{
 		return -ENOMEM;
+	}
 
 	pbl_start = rdev->lldi.vr->pbl.start;
 	pbl_chunk = rdev->lldi.vr->pbl.size;
 	pbl_top = pbl_start + pbl_chunk;
 
-	while (pbl_start < pbl_top) {
+	while (pbl_start < pbl_top)
+	{
 		pbl_chunk = min(pbl_top - pbl_start + 1, pbl_chunk);
-		if (gen_pool_add(rdev->pbl_pool, pbl_start, pbl_chunk, -1)) {
+
+		if (gen_pool_add(rdev->pbl_pool, pbl_start, pbl_chunk, -1))
+		{
 			PDBG("%s failed to add PBL chunk (%x/%x)\n",
-			     __func__, pbl_start, pbl_chunk);
-			if (pbl_chunk <= 1024 << MIN_PBL_SHIFT) {
+				 __func__, pbl_start, pbl_chunk);
+
+			if (pbl_chunk <= 1024 << MIN_PBL_SHIFT)
+			{
 				printk(KERN_WARNING MOD
-				       "Failed to add all PBL chunks (%x/%x)\n",
-				       pbl_start,
-				       pbl_top - pbl_start);
+					   "Failed to add all PBL chunks (%x/%x)\n",
+					   pbl_start,
+					   pbl_top - pbl_start);
 				return 0;
 			}
+
 			pbl_chunk >>= 1;
-		} else {
+		}
+		else
+		{
 			PDBG("%s added PBL chunk (%x/%x)\n",
-			     __func__, pbl_start, pbl_chunk);
+				 __func__, pbl_start, pbl_chunk);
 			pbl_start += pbl_chunk;
 		}
 	}
@@ -325,16 +431,27 @@ u32 c4iw_rqtpool_alloc(struct c4iw_rdev *rdev, int size)
 {
 	unsigned long addr = gen_pool_alloc(rdev->rqt_pool, size << 6);
 	PDBG("%s addr 0x%x size %d\n", __func__, (u32)addr, size << 6);
+
 	if (!addr)
 		pr_warn_ratelimited(MOD "%s: Out of RQT memory\n",
-				    pci_name(rdev->lldi.pdev));
+							pci_name(rdev->lldi.pdev));
+
 	mutex_lock(&rdev->stats.lock);
-	if (addr) {
+
+	if (addr)
+	{
 		rdev->stats.rqt.cur += roundup(size << 6, 1 << MIN_RQT_SHIFT);
+
 		if (rdev->stats.rqt.cur > rdev->stats.rqt.max)
+		{
 			rdev->stats.rqt.max = rdev->stats.rqt.cur;
-	} else
+		}
+	}
+	else
+	{
 		rdev->stats.rqt.fail++;
+	}
+
 	mutex_unlock(&rdev->stats.lock);
 	return (u32)addr;
 }
@@ -353,31 +470,43 @@ int c4iw_rqtpool_create(struct c4iw_rdev *rdev)
 	unsigned rqt_start, rqt_chunk, rqt_top;
 
 	rdev->rqt_pool = gen_pool_create(MIN_RQT_SHIFT, -1);
+
 	if (!rdev->rqt_pool)
+	{
 		return -ENOMEM;
+	}
 
 	rqt_start = rdev->lldi.vr->rq.start;
 	rqt_chunk = rdev->lldi.vr->rq.size;
 	rqt_top = rqt_start + rqt_chunk;
 
-	while (rqt_start < rqt_top) {
+	while (rqt_start < rqt_top)
+	{
 		rqt_chunk = min(rqt_top - rqt_start + 1, rqt_chunk);
-		if (gen_pool_add(rdev->rqt_pool, rqt_start, rqt_chunk, -1)) {
+
+		if (gen_pool_add(rdev->rqt_pool, rqt_start, rqt_chunk, -1))
+		{
 			PDBG("%s failed to add RQT chunk (%x/%x)\n",
-			     __func__, rqt_start, rqt_chunk);
-			if (rqt_chunk <= 1024 << MIN_RQT_SHIFT) {
+				 __func__, rqt_start, rqt_chunk);
+
+			if (rqt_chunk <= 1024 << MIN_RQT_SHIFT)
+			{
 				printk(KERN_WARNING MOD
-				       "Failed to add all RQT chunks (%x/%x)\n",
-				       rqt_start, rqt_top - rqt_start);
+					   "Failed to add all RQT chunks (%x/%x)\n",
+					   rqt_start, rqt_top - rqt_start);
 				return 0;
 			}
+
 			rqt_chunk >>= 1;
-		} else {
+		}
+		else
+		{
 			PDBG("%s added RQT chunk (%x/%x)\n",
-			     __func__, rqt_start, rqt_chunk);
+				 __func__, rqt_start, rqt_chunk);
 			rqt_start += rqt_chunk;
 		}
 	}
+
 	return 0;
 }
 
@@ -395,13 +524,20 @@ u32 c4iw_ocqp_pool_alloc(struct c4iw_rdev *rdev, int size)
 {
 	unsigned long addr = gen_pool_alloc(rdev->ocqp_pool, size);
 	PDBG("%s addr 0x%x size %d\n", __func__, (u32)addr, size);
-	if (addr) {
+
+	if (addr)
+	{
 		mutex_lock(&rdev->stats.lock);
 		rdev->stats.ocqp.cur += roundup(size, 1 << MIN_OCQP_SHIFT);
+
 		if (rdev->stats.ocqp.cur > rdev->stats.ocqp.max)
+		{
 			rdev->stats.ocqp.max = rdev->stats.ocqp.cur;
+		}
+
 		mutex_unlock(&rdev->stats.lock);
 	}
+
 	return (u32)addr;
 }
 
@@ -419,31 +555,43 @@ int c4iw_ocqp_pool_create(struct c4iw_rdev *rdev)
 	unsigned start, chunk, top;
 
 	rdev->ocqp_pool = gen_pool_create(MIN_OCQP_SHIFT, -1);
+
 	if (!rdev->ocqp_pool)
+	{
 		return -ENOMEM;
+	}
 
 	start = rdev->lldi.vr->ocq.start;
 	chunk = rdev->lldi.vr->ocq.size;
 	top = start + chunk;
 
-	while (start < top) {
+	while (start < top)
+	{
 		chunk = min(top - start + 1, chunk);
-		if (gen_pool_add(rdev->ocqp_pool, start, chunk, -1)) {
+
+		if (gen_pool_add(rdev->ocqp_pool, start, chunk, -1))
+		{
 			PDBG("%s failed to add OCQP chunk (%x/%x)\n",
-			     __func__, start, chunk);
-			if (chunk <= 1024 << MIN_OCQP_SHIFT) {
+				 __func__, start, chunk);
+
+			if (chunk <= 1024 << MIN_OCQP_SHIFT)
+			{
 				printk(KERN_WARNING MOD
-				       "Failed to add all OCQP chunks (%x/%x)\n",
-				       start, top - start);
+					   "Failed to add all OCQP chunks (%x/%x)\n",
+					   start, top - start);
 				return 0;
 			}
+
 			chunk >>= 1;
-		} else {
+		}
+		else
+		{
 			PDBG("%s added OCQP chunk (%x/%x)\n",
-			     __func__, start, chunk);
+				 __func__, start, chunk);
 			start += chunk;
 		}
 	}
+
 	return 0;
 }
 

@@ -34,7 +34,8 @@
  * @check_on_resume:	Boolean describing whether to check the state of gpio
  *			while resuming from sleep.
  */
-struct gpio_extcon_pdata {
+struct gpio_extcon_pdata
+{
 	unsigned int extcon_id;
 	unsigned gpio;
 	bool gpio_active_low;

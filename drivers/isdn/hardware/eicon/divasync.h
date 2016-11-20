@@ -72,7 +72,8 @@
   in this case only features that do find place in the buffer
   are indicated to caller
 */
-typedef struct _diva_xdi_get_extended_xdi_features {
+typedef struct _diva_xdi_get_extended_xdi_features
+{
 	dword buffer_length_in_bytes;
 	byte  *features;
 } diva_xdi_get_extended_xdi_features_t;
@@ -90,7 +91,8 @@ typedef struct _diva_xdi_get_extended_xdi_features {
 #define DIVA_XDI_EXTENDED_FEATURES_MAX_SZ    1
 /******************************************************************************/
 #define IDI_SYNC_REQ_XDI_GET_ADAPTER_SDRAM_BAR   0x93
-typedef struct _diva_xdi_get_adapter_sdram_bar {
+typedef struct _diva_xdi_get_adapter_sdram_bar
+{
 	dword bar;
 } diva_xdi_get_adapter_sdram_bar_t;
 /******************************************************************************/
@@ -98,7 +100,8 @@ typedef struct _diva_xdi_get_adapter_sdram_bar {
 /*
   CAPI Parameters will be written in the caller's buffer
 */
-typedef struct _diva_xdi_get_capi_parameters {
+typedef struct _diva_xdi_get_capi_parameters
+{
 	dword structure_length;
 	byte flag_dynamic_l1_down;
 	byte group_optimization_enabled;
@@ -112,7 +115,8 @@ typedef struct _diva_xdi_get_capi_parameters {
   'controller' is zero for Master adapter (and adapter that supports
   only one interface)
 */
-typedef struct _diva_xdi_get_logical_adapter_number {
+typedef struct _diva_xdi_get_logical_adapter_number
+{
 	dword logical_adapter_number;
 	dword controller;
 	dword total_controllers;
@@ -123,7 +127,8 @@ typedef struct _diva_xdi_get_logical_adapter_number {
 #define IDI_SYNC_REQ_DMA_DESCRIPTOR_OPERATION 0x97
 #define IDI_SYNC_REQ_DMA_DESCRIPTOR_ALLOC     0x01
 #define IDI_SYNC_REQ_DMA_DESCRIPTOR_FREE      0x02
-typedef struct _diva_xdi_dma_descriptor_operation {
+typedef struct _diva_xdi_dma_descriptor_operation
+{
 	int operation;
 	int descriptor_number;
 	void *descriptor_address;
@@ -136,22 +141,27 @@ typedef struct _diva_xdi_dma_descriptor_operation {
 #define IDI_SYNC_REQ_DIDD_REMOVE_ADAPTER            0x04
 #define IDI_SYNC_REQ_DIDD_READ_ADAPTER_ARRAY        0x05
 #define IDI_SYNC_REQ_DIDD_GET_CFG_LIB_IFC           0x10
-typedef struct _diva_didd_adapter_notify {
+typedef struct _diva_didd_adapter_notify
+{
 	dword handle; /* Notification handle */
 	void *callback;
 	void *context;
 } diva_didd_adapter_notify_t;
-typedef struct _diva_didd_add_adapter {
+typedef struct _diva_didd_add_adapter
+{
 	void *descriptor;
 } diva_didd_add_adapter_t;
-typedef struct _diva_didd_remove_adapter {
+typedef struct _diva_didd_remove_adapter
+{
 	IDI_CALL p_request;
 } diva_didd_remove_adapter_t;
-typedef struct _diva_didd_read_adapter_array {
+typedef struct _diva_didd_read_adapter_array
+{
 	void *buffer;
 	dword length;
 } diva_didd_read_adapter_array_t;
-typedef struct _diva_didd_get_cfg_lib_ifc {
+typedef struct _diva_didd_get_cfg_lib_ifc
+{
 	void *ifc;
 } diva_didd_get_cfg_lib_ifc_t;
 /******************************************************************************/
@@ -162,39 +172,41 @@ typedef struct _diva_didd_get_cfg_lib_ifc {
 #define DIVA_ISTREAM_COMPLETE_NOTIFY   0
 #define DIVA_ISTREAM_COMPLETE_READ     1
 #define DIVA_ISTREAM_COMPLETE_WRITE    2
-typedef struct _diva_xdi_stream_interface {
+typedef struct _diva_xdi_stream_interface
+{
 	unsigned char  Id;                 /* filled by XDI client */
 	unsigned char provided_service;    /* filled by XDI        */
 	unsigned char requested_service;   /* filled by XDI Client */
 	void *xdi_context;    /* filled by XDI */
 	void *client_context;   /* filled by XDI client */
 	int (*write)(void *context,
-		     int Id,
-		     void *data,
-		     int length,
-		     int final,
-		     byte usr1,
-		     byte usr2);
+				 int Id,
+				 void *data,
+				 int length,
+				 int final,
+				 byte usr1,
+				 byte usr2);
 	int (*read)(void *context,
-		    int Id,
-		    void *data,
-		    int max_length,
-		    int *final,
-		    byte *usr1,
-		    byte *usr2);
+				int Id,
+				void *data,
+				int max_length,
+				int *final,
+				byte *usr1,
+				byte *usr2);
 	int (*complete)(void *client_context,
-			int Id,
-			int what,
-			void *data,
-			int length,
-			int *final);
+					int Id,
+					int what,
+					void *data,
+					int length,
+					int *final);
 } diva_xdi_stream_interface_t;
 /******************************************************************************/
 /*
  * IDI_SYNC_REQ_SERIAL_HOOK - special interface for the DIVA Mobile card
  */
 typedef struct
-{ unsigned char LineState;         /* Modem line state (STATUS_R) */
+{
+	unsigned char LineState;         /* Modem line state (STATUS_R) */
 #define SERIAL_GSM_CELL 0x01   /* GSM or CELL cable attached  */
 	unsigned char CardState;          /* PCMCIA card state (0 = down) */
 	unsigned char IsdnState;          /* ISDN layer 1 state (0 = down)*/
@@ -205,7 +217,8 @@ typedef int (*SERIAL_INT_CB)(void *Context);
 typedef int (*SERIAL_DPC_CB)(void *Context);
 typedef unsigned char (*SERIAL_I_SYNC)(void *Context);
 typedef struct
-{ /* 'Req' and 'Rc' must be at the same place as in the ENTITY struct */
+{
+	/* 'Req' and 'Rc' must be at the same place as in the ENTITY struct */
 	unsigned char Req;             /* request (must be always 0) */
 	unsigned char Rc;              /* return code (is the request) */
 	unsigned char Function;           /* private function code  */
@@ -233,7 +246,8 @@ typedef struct
  * IDI_SYNC_REQ_RECONFIGURE - reconfiguration of IDI from WMP
  */
 typedef struct
-{ /* 'Req' and 'Rc' must be at the same place as in the ENTITY struct */
+{
+	/* 'Req' and 'Rc' must be at the same place as in the ENTITY struct */
 	unsigned char Req;             /* request (must be always 0) */
 	unsigned char Rc;              /* return code (is the request) */
 #define DRIVER_STATUS_BOOT  0xA1
@@ -273,16 +287,20 @@ typedef struct
 #define SET_NUMBERLEN  0x80000000
 	unsigned long Flag;  /* |31-Type-16|15-Mask-0| */
 	unsigned long NumberLen; /* reconfiguration: union is empty */
-	union {
-		struct {    /* possible reconfiguration, but ... ; SET_BOARD */
+	union
+	{
+		struct      /* possible reconfiguration, but ... ; SET_BOARD */
+		{
 			unsigned long SerialNumber;
 			char     *pCardname; /* di_defs.h: BOARD_NAME_LENGTH */
 		} board;
-		struct {      /* reset: need resources */
+		struct        /* reset: need resources */
+		{
 			void *pRawResources;
 			void *pXlatResources;
 		} res;
-		struct { /* reconfiguration: wizProto == PROTTYPE_RBSCAS */
+		struct   /* reconfiguration: wizProto == PROTTYPE_RBSCAS */
+		{
 #define GLARE_RESOLVE_MASK 0x00000001
 #define DID_MASK   0x00000002
 #define BEARER_CAP_MASK  0x0000000c
@@ -293,14 +311,16 @@ typedef struct
 			unsigned short DigitTimeout;
 			unsigned short AnswerDelay;
 		} rbs;
-		struct { /* reconfiguration: wizProto == PROTTYPE_QSIG */
+		struct   /* reconfiguration: wizProto == PROTTYPE_QSIG */
+		{
 #define CALL_REF_LENGTH1_MASK 0x00000001
 #define BRI_CHANNEL_ID_MASK  0x00000002
 #define SET_CALL_REF_LENGTH  0x00010000
 #define SET_BRI_CHANNEL_ID  0x00020000
 			unsigned long Flag;  /* |31-Type-16|15-VALUE-0| */
 		} qsig;
-		struct { /* reconfiguration: NumberLen != 0 */
+		struct   /* reconfiguration: NumberLen != 0 */
+		{
 #define SET_SPID1   0x00010000
 #define SET_NUMBER1   0x00020000
 #define SET_SUBADDRESS1  0x00040000
@@ -312,15 +332,16 @@ typedef struct
 			unsigned char *pBuffer; /* number value */
 		} isdnNo;
 	}
-		parms
-		;
+	parms
+	;
 } isdnProps;
 /*
  * IDI_SYNC_REQ_PORTDRV_HOOK - signal plug/unplug (Award Cardware only)
  */
 typedef void (*PORTDRV_HOOK_CB)(void *Context, int Plug);
 typedef struct
-{ /* 'Req' and 'Rc' must be at the same place as in the ENTITY struct */
+{
+	/* 'Req' and 'Rc' must be at the same place as in the ENTITY struct */
 	unsigned char Req;             /* request (must be always 0) */
 	unsigned char Rc;              /* return code (is the request) */
 	unsigned char Function;           /* private function code  */
@@ -334,7 +355,8 @@ typedef struct
 #define SLI_UNINSTALL   (0xA2)
 typedef int (*SLIENTRYPOINT)(void *p3SignalAPI, void *pContext);
 typedef struct
-{   /* 'Req' and 'Rc' must be at the same place as in the ENTITY struct */
+{
+	/* 'Req' and 'Rc' must be at the same place as in the ENTITY struct */
 	unsigned char   Req;                /* request (must be always 0)   */
 	unsigned char   Rc;                 /* return code (is the request) */
 	unsigned char   Function;           /* private function code        */
@@ -360,52 +382,62 @@ typedef void (*USB_XMIT_NOTIFY)(void *Ipac, unsigned char PipeIndex);
  * they are not defined for all operating environments
  */
 typedef union
-{ ENTITY Entity;
+{
+	ENTITY Entity;
 	struct
-	{ /* 'Req' and 'Rc' are at the same place as in the ENTITY struct */
+	{
+		/* 'Req' and 'Rc' are at the same place as in the ENTITY struct */
 		unsigned char   Req; /* request (must be always 0) */
 		unsigned char   Rc;  /* return code (is the request) */
 	}   Request;
 	struct
-	{ unsigned char   Req; /* request (must be always 0) */
+	{
+		unsigned char   Req; /* request (must be always 0) */
 		unsigned char   Rc;  /* return code (0x01)   */
 		unsigned char   name[BOARD_NAME_LENGTH];
 	}   GetName;
 	struct
-	{ unsigned char   Req; /* request (must be always 0) */
+	{
+		unsigned char   Req; /* request (must be always 0) */
 		unsigned char   Rc;  /* return code (0x02)   */
 		unsigned long   serial; /* serial number    */
 	}   GetSerial;
 	struct
-	{ unsigned char   Req; /* request (must be always 0) */
+	{
+		unsigned char   Req; /* request (must be always 0) */
 		unsigned char   Rc;  /* return code (0x02)   */
 		unsigned long   lineIdx;/* line, 0 if card has only one */
 	}   GetLineIdx;
 	struct
-	{ unsigned char  Req;     /* request (must be always 0) */
+	{
+		unsigned char  Req;     /* request (must be always 0) */
 		unsigned char  Rc;      /* return code (0x02)   */
 		unsigned long  cardtype;/* card type        */
 	}   GetCardType;
 	struct
-	{ unsigned short command;/* command = 0x0300 */
+	{
+		unsigned short command;/* command = 0x0300 */
 		unsigned short dummy; /* not used */
 		IDI_CALL       callback;/* routine to call back */
 		ENTITY      *contxt; /* ptr to entity to use */
 	}   PostCall;
 	struct
-	{ unsigned char  Req;  /* request (must be always 0) */
+	{
+		unsigned char  Req;  /* request (must be always 0) */
 		unsigned char  Rc;   /* return code (0x04)   */
 		unsigned char  pcm[1]; /* buffer (a pc_maint struct) */
 	}   GetXlog;
 	struct
-	{ unsigned char  Req;  /* request (must be always 0) */
+	{
+		unsigned char  Req;  /* request (must be always 0) */
 		unsigned char  Rc;   /* return code (0x05)   */
 		unsigned short features;/* feature defines see below */
 	}   GetFeatures;
 	SERIAL_HOOK  SerialHook;
-/* Added for DIVA USB */
+	/* Added for DIVA USB */
 	struct
-	{ unsigned char   Req;
+	{
+		unsigned char   Req;
 		unsigned char   Rc;
 		USB_SEND_REQ    UsbSendRequest; /* function in Diva Usb WDM driver in usb_os.c, */
 		/* called from usb_drv.c to send a message to our device */
@@ -419,9 +451,10 @@ typedef union
 		ENTITY          *contxt;     /* ptr to entity to use */
 		void **ipac_ptr;    /* pointer to struct IPAC in VxD */
 	} Usb_Msg_old;
-/* message used by WDM and VXD to pass pointers of function and IPAC* */
+	/* message used by WDM and VXD to pass pointers of function and IPAC* */
 	struct
-	{ unsigned char Req;
+	{
+		unsigned char Req;
 		unsigned char Rc;
 		USB_SEND_REQ    pUsbSendRequest;/* function in Diva Usb WDM driver in usb_os.c, */
 		/* called from usb_drv.c to send a message to our device */
@@ -434,52 +467,63 @@ typedef union
 	} Usb_Msg;
 	PORTDRV_HOOK PortdrvHook;
 	SLIENTRYPOINT_REQ   sliEntryPointReq;
-	struct {
+	struct
+	{
 		unsigned char Req;
 		unsigned char Rc;
 		diva_xdi_stream_interface_t info;
 	} xdi_stream_info;
-	struct {
+	struct
+	{
 		unsigned char Req;
 		unsigned char Rc;
 		diva_xdi_get_extended_xdi_features_t info;
 	} xdi_extended_features;
-	struct {
+	struct
+	{
 		unsigned char Req;
 		unsigned char Rc;
 		diva_xdi_get_adapter_sdram_bar_t info;
 	} xdi_sdram_bar;
-	struct {
+	struct
+	{
 		unsigned char Req;
 		unsigned char Rc;
 		diva_xdi_get_capi_parameters_t info;
 	} xdi_capi_prms;
-	struct {
+	struct
+	{
 		ENTITY           e;
 		diva_didd_adapter_notify_t info;
 	} didd_notify;
-	struct {
+	struct
+	{
 		ENTITY           e;
 		diva_didd_add_adapter_t   info;
 	} didd_add_adapter;
-	struct {
+	struct
+	{
 		ENTITY           e;
 		diva_didd_remove_adapter_t info;
 	} didd_remove_adapter;
-	struct {
+	struct
+	{
 		ENTITY             e;
 		diva_didd_read_adapter_array_t info;
 	} didd_read_adapter_array;
-	struct {
+	struct
+	{
 		ENTITY             e;
 		diva_didd_get_cfg_lib_ifc_t     info;
 	} didd_get_cfg_lib_ifc;
-	struct {
+	struct
+	{
 		unsigned char Req;
 		unsigned char Rc;
 		diva_xdi_get_logical_adapter_number_s_t info;
 	} xdi_logical_adapter_number;
-	struct {
+	struct
+	{
 		unsigned char Req;
 		unsigned char Rc;
 		diva_xdi_dma_descriptor_operation_t info;

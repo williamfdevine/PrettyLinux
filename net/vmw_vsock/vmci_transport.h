@@ -37,7 +37,8 @@
 
 #define vmci_trans(_vsk) ((struct vmci_transport *)((_vsk)->trans))
 
-enum vmci_transport_packet_type {
+enum vmci_transport_packet_type
+{
 	VMCI_TRANSPORT_PACKET_TYPE_INVALID = 0,
 	VMCI_TRANSPORT_PACKET_TYPE_REQUEST,
 	VMCI_TRANSPORT_PACKET_TYPE_NEGOTIATE,
@@ -54,7 +55,8 @@ enum vmci_transport_packet_type {
 	VMCI_TRANSPORT_PACKET_TYPE_MAX
 };
 
-struct vmci_transport_waiting_info {
+struct vmci_transport_waiting_info
+{
 	u64 generation;
 	u64 offset;
 };
@@ -65,7 +67,8 @@ struct vmci_transport_waiting_info {
  * while data is written and read directly from queue pairs with no packet
  * format.
  */
-struct vmci_transport_packet {
+struct vmci_transport_packet
+{
 	struct vmci_datagram dg;
 	u8 version;
 	u8 type;
@@ -73,7 +76,8 @@ struct vmci_transport_packet {
 	u32 src_port;
 	u32 dst_port;
 	u32 _reserved2;
-	union {
+	union
+	{
 		u64 size;
 		u64 mode;
 		struct vmci_handle handle;
@@ -81,7 +85,8 @@ struct vmci_transport_packet {
 	} u;
 };
 
-struct vmci_transport_notify_pkt {
+struct vmci_transport_notify_pkt
+{
 	u64 write_notify_window;
 	u64 write_notify_min_window;
 	bool peer_waiting_read;
@@ -95,20 +100,23 @@ struct vmci_transport_notify_pkt {
 	u64 consume_q_generation;
 };
 
-struct vmci_transport_notify_pkt_q_state {
+struct vmci_transport_notify_pkt_q_state
+{
 	u64 write_notify_window;
 	u64 write_notify_min_window;
 	bool peer_waiting_write;
 	bool peer_waiting_write_detected;
 };
 
-union vmci_transport_notify {
+union vmci_transport_notify
+{
 	struct vmci_transport_notify_pkt pkt;
 	struct vmci_transport_notify_pkt_q_state pkt_q_state;
 };
 
 /* Our transport-specific data. */
-struct vmci_transport {
+struct vmci_transport
+{
 	/* For DGRAMs. */
 	struct vmci_handle dg_handle;
 	/* For STREAMs. */
@@ -131,14 +139,14 @@ int vmci_transport_register(void);
 void vmci_transport_unregister(void);
 
 int vmci_transport_send_wrote_bh(struct sockaddr_vm *dst,
-				 struct sockaddr_vm *src);
+								 struct sockaddr_vm *src);
 int vmci_transport_send_read_bh(struct sockaddr_vm *dst,
-				struct sockaddr_vm *src);
+								struct sockaddr_vm *src);
 int vmci_transport_send_wrote(struct sock *sk);
 int vmci_transport_send_read(struct sock *sk);
 int vmci_transport_send_waiting_write(struct sock *sk,
-				      struct vmci_transport_waiting_info *wait);
+									  struct vmci_transport_waiting_info *wait);
 int vmci_transport_send_waiting_read(struct sock *sk,
-				     struct vmci_transport_waiting_info *wait);
+									 struct vmci_transport_waiting_info *wait);
 
 #endif

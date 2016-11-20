@@ -23,7 +23,7 @@
 
 /* NB: unlike smb/cifs packets, the RFC1002 structures are big endian */
 
-	/* RFC 1002 session packet types */
+/* RFC 1002 session packet types */
 #define RFC1002_SESSION_MESSAGE 0x00
 #define RFC1002_SESSION_REQUEST  0x81
 #define RFC1002_POSITIVE_SESSION_RESPONSE 0x82
@@ -31,15 +31,18 @@
 #define RFC1002_RETARGET_SESSION_RESPONSE 0x84
 #define RFC1002_SESSION_KEEP_ALIVE 0x85
 
-	/* RFC 1002 flags (only one defined */
+/* RFC 1002 flags (only one defined */
 #define RFC1002_LENGTH_EXTEND 0x80 /* high order bit of length (ie +64K) */
 
-struct rfc1002_session_packet {
+struct rfc1002_session_packet
+{
 	__u8	type;
 	__u8	flags;
 	__u16	length;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__u8 called_len;
 			__u8 called_name[32];
 			__u8 scope1; /* null */
@@ -47,7 +50,8 @@ struct rfc1002_session_packet {
 			__u8 calling_name[32];
 			__u8 scope2; /* null */
 		} __attribute__((packed)) session_req;
-		struct {
+		struct
+		{
 			__u32 retarget_ip_addr;
 			__u16 port;
 		} __attribute__((packed)) retarget_resp;

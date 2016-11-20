@@ -9,7 +9,8 @@
 #ifndef IIO_FREQUENCY_AD9523_H_
 #define IIO_FREQUENCY_AD9523_H_
 
-enum outp_drv_mode {
+enum outp_drv_mode
+{
 	TRISTATE,
 	LVPECL_8mA,
 	LVDS_4mA,
@@ -27,7 +28,8 @@ enum outp_drv_mode {
 	CMOS_CONF9
 };
 
-enum ref_sel_mode {
+enum ref_sel_mode
+{
 	NONEREVERTIVE_STAY_ON_REFB,
 	REVERT_TO_REFA,
 	SELECT_REFA,
@@ -51,12 +53,13 @@ enum ref_sel_mode {
  * @extended_name: Optional descriptive channel name.
  */
 
-struct ad9523_channel_spec {
+struct ad9523_channel_spec
+{
 	unsigned		channel_num;
 	bool			divider_output_invert_en;
 	bool			sync_ignore_en;
 	bool			low_power_mode_en;
-				 /* CH0..CH3 VCXO, CH4..CH9 VCO2 */
+	/* CH0..CH3 VCXO, CH4..CH9 VCO2 */
 	bool			use_alt_clock_src;
 	bool			output_dis;
 	enum outp_drv_mode	driver_mode;
@@ -65,7 +68,8 @@ struct ad9523_channel_spec {
 	char			extended_name[16];
 };
 
-enum pll1_rzero_resistor {
+enum pll1_rzero_resistor
+{
 	RZERO_883_OHM,
 	RZERO_677_OHM,
 	RZERO_341_OHM,
@@ -74,14 +78,16 @@ enum pll1_rzero_resistor {
 	RZERO_USE_EXT_RES = 8,
 };
 
-enum rpole2_resistor {
+enum rpole2_resistor
+{
 	RPOLE2_900_OHM,
 	RPOLE2_450_OHM,
 	RPOLE2_300_OHM,
 	RPOLE2_225_OHM,
 };
 
-enum rzero_resistor {
+enum rzero_resistor
+{
 	RZERO_3250_OHM,
 	RZERO_2750_OHM,
 	RZERO_2250_OHM,
@@ -92,7 +98,8 @@ enum rzero_resistor {
 	RZERO_1850_OHM,
 };
 
-enum cpole1_capacitor {
+enum cpole1_capacitor
+{
 	CPOLE1_0_PF,
 	CPOLE1_8_PF,
 	CPOLE1_16_PF,
@@ -140,7 +147,8 @@ enum cpole1_capacitor {
  * @name: Optional alternative iio device name.
  */
 
-struct ad9523_platform_data {
+struct ad9523_platform_data
+{
 	unsigned long vcxo_freq;
 
 	/* Differential/ Single-Ended Input Configuration */

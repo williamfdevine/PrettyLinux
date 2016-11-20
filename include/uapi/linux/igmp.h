@@ -27,7 +27,8 @@
  *	Header in on cable format
  */
 
-struct igmphdr {
+struct igmphdr
+{
 	__u8 type;
 	__u8 code;		/* For newer IGMP */
 	__sum16 csum;
@@ -42,7 +43,8 @@ struct igmphdr {
 #define IGMPV3_ALLOW_NEW_SOURCES	5
 #define IGMPV3_BLOCK_OLD_SOURCES	6
 
-struct igmpv3_grec {
+struct igmpv3_grec
+{
 	__u8	grec_type;
 	__u8	grec_auxwords;
 	__be16	grec_nsrcs;
@@ -50,7 +52,8 @@ struct igmpv3_grec {
 	__be32	grec_src[0];
 };
 
-struct igmpv3_report {
+struct igmpv3_report
+{
 	__u8 type;
 	__u8 resv1;
 	__be16 csum;
@@ -59,19 +62,20 @@ struct igmpv3_report {
 	struct igmpv3_grec grec[0];
 };
 
-struct igmpv3_query {
+struct igmpv3_query
+{
 	__u8 type;
 	__u8 code;
 	__be16 csum;
 	__be32 group;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8 qrv:3,
-	     suppress:1,
-	     resv:4;
+	__u8 qrv: 3,
+		 suppress: 1,
+		 resv: 4;
 #elif defined(__BIG_ENDIAN_BITFIELD)
-	__u8 resv:4,
-	     suppress:1,
-	     qrv:3;
+	__u8 resv: 4,
+		 suppress: 1,
+		 qrv: 3;
 #else
 #error "Please fix <asm/byteorder.h>"
 #endif
@@ -106,14 +110,14 @@ struct igmpv3_query {
 #define IGMP_MINLEN			8
 
 #define IGMP_MAX_HOST_REPORT_DELAY	10	/* max delay for response to */
-						/* query (in seconds)	*/
+/* query (in seconds)	*/
 
 #define IGMP_TIMER_SCALE		10	/* denotes that the igmphdr->timer field */
-						/* specifies time in 10th of seconds	 */
+/* specifies time in 10th of seconds	 */
 
 #define IGMP_AGE_THRESHOLD		400	/* If this host don't hear any IGMP V1	*/
-						/* message in this period of time,	*/
-						/* revert to IGMP v2 router.		*/
+/* message in this period of time,	*/
+/* revert to IGMP v2 router.		*/
 
 #define IGMP_ALL_HOSTS		htonl(0xE0000001L)
 #define IGMP_ALL_ROUTER 	htonl(0xE0000002L)

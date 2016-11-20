@@ -44,24 +44,32 @@ static s32 fm10k_reset_hw_pf(struct fm10k_hw *hw)
 	/* We assume here Tx and Rx queue 0 are owned by the PF */
 
 	/* Shut off VF access to their queues forcing them to queue 0 */
-	for (i = 0; i < FM10K_TQMAP_TABLE_SIZE; i++) {
+	for (i = 0; i < FM10K_TQMAP_TABLE_SIZE; i++)
+	{
 		fm10k_write_reg(hw, FM10K_TQMAP(i), 0);
 		fm10k_write_reg(hw, FM10K_RQMAP(i), 0);
 	}
 
 	/* shut down all rings */
 	err = fm10k_disable_queues_generic(hw, FM10K_MAX_QUEUES);
-	if (err == FM10K_ERR_REQUESTS_PENDING) {
+
+	if (err == FM10K_ERR_REQUESTS_PENDING)
+	{
 		hw->mac.reset_while_pending++;
 		goto force_reset;
-	} else if (err) {
+	}
+	else if (err)
+	{
 		return err;
 	}
 
 	/* Verify that DMA is no longer active */
 	reg = fm10k_read_reg(hw, FM10K_DMA_CTRL);
+
 	if (reg & (FM10K_DMA_CTRL_TX_ACTIVE | FM10K_DMA_CTRL_RX_ACTIVE))
+	{
 		return FM10K_ERR_DMA_PENDING;
+	}
 
 force_reset:
 	/* Inititate data path reset */
@@ -78,8 +86,11 @@ force_reset:
 
 	/* Verify we made it out of reset */
 	reg = fm10k_read_reg(hw, FM10K_IP);
+
 	if (!(reg & FM10K_IP_NOTINRESET))
+	{
 		return FM10K_ERR_RESET_FAILED;
+	}
 
 	return 0;
 }
@@ -110,11 +121,13 @@ static s32 fm10k_init_hw_pf(struct fm10k_hw *hw)
 	/* Establish default VSI as valid */
 	fm10k_write_reg(hw, FM10K_DGLORTDEC(fm10k_dglort_default), 0);
 	fm10k_write_reg(hw, FM10K_DGLORTMAP(fm10k_dglort_default),
-			FM10K_DGLORTMAP_ANY);
+					FM10K_DGLORTMAP_ANY);
 
 	/* Invalidate all other GLORT entries */
 	for (i = 1; i < FM10K_DGLORT_COUNT; i++)
+	{
 		fm10k_write_reg(hw, FM10K_DGLORTMAP(i), FM10K_DGLORTMAP_NONE);
+	}
 
 	/* reset ITR2(0) to point to itself */
 	fm10k_write_reg(hw, FM10K_ITR2(0), 0);
@@ -124,56 +137,63 @@ static s32 fm10k_init_hw_pf(struct fm10k_hw *hw)
 
 	/* loop through all PF ITR2 registers pointing them to the previous */
 	for (i = 1; i < FM10K_ITR_REG_COUNT_PF; i++)
+	{
 		fm10k_write_reg(hw, FM10K_ITR2(i), i - 1);
+	}
 
 	/* Enable interrupt moderator if not already enabled */
 	fm10k_write_reg(hw, FM10K_INT_CTRL, FM10K_INT_CTRL_ENABLEMODERATOR);
 
 	/* compute the default txqctl configuration */
 	txqctl = FM10K_TXQCTL_PF | FM10K_TXQCTL_UNLIMITED_BW |
-		 (hw->mac.default_vid << FM10K_TXQCTL_VID_SHIFT);
+			 (hw->mac.default_vid << FM10K_TXQCTL_VID_SHIFT);
 
-	for (i = 0; i < FM10K_MAX_QUEUES; i++) {
+	for (i = 0; i < FM10K_MAX_QUEUES; i++)
+	{
 		/* configure rings for 256 Queue / 32 Descriptor cache mode */
 		fm10k_write_reg(hw, FM10K_TQDLOC(i),
-				(i * FM10K_TQDLOC_BASE_32_DESC) |
-				FM10K_TQDLOC_SIZE_32_DESC);
+						(i * FM10K_TQDLOC_BASE_32_DESC) |
+						FM10K_TQDLOC_SIZE_32_DESC);
 		fm10k_write_reg(hw, FM10K_TXQCTL(i), txqctl);
 
 		/* configure rings to provide TPH processing hints */
 		fm10k_write_reg(hw, FM10K_TPH_TXCTRL(i),
-				FM10K_TPH_TXCTRL_DESC_TPHEN |
-				FM10K_TPH_TXCTRL_DESC_RROEN |
-				FM10K_TPH_TXCTRL_DESC_WROEN |
-				FM10K_TPH_TXCTRL_DATA_RROEN);
+						FM10K_TPH_TXCTRL_DESC_TPHEN |
+						FM10K_TPH_TXCTRL_DESC_RROEN |
+						FM10K_TPH_TXCTRL_DESC_WROEN |
+						FM10K_TPH_TXCTRL_DATA_RROEN);
 		fm10k_write_reg(hw, FM10K_TPH_RXCTRL(i),
-				FM10K_TPH_RXCTRL_DESC_TPHEN |
-				FM10K_TPH_RXCTRL_DESC_RROEN |
-				FM10K_TPH_RXCTRL_DATA_WROEN |
-				FM10K_TPH_RXCTRL_HDR_WROEN);
+						FM10K_TPH_RXCTRL_DESC_TPHEN |
+						FM10K_TPH_RXCTRL_DESC_RROEN |
+						FM10K_TPH_RXCTRL_DATA_WROEN |
+						FM10K_TPH_RXCTRL_HDR_WROEN);
 	}
 
 	/* set max hold interval to align with 1.024 usec in all modes and
 	 * store ITR scale
 	 */
-	switch (hw->bus.speed) {
-	case fm10k_bus_speed_2500:
-		dma_ctrl = FM10K_DMA_CTRL_MAX_HOLD_1US_GEN1;
-		hw->mac.itr_scale = FM10K_TDLEN_ITR_SCALE_GEN1;
-		break;
-	case fm10k_bus_speed_5000:
-		dma_ctrl = FM10K_DMA_CTRL_MAX_HOLD_1US_GEN2;
-		hw->mac.itr_scale = FM10K_TDLEN_ITR_SCALE_GEN2;
-		break;
-	case fm10k_bus_speed_8000:
-		dma_ctrl = FM10K_DMA_CTRL_MAX_HOLD_1US_GEN3;
-		hw->mac.itr_scale = FM10K_TDLEN_ITR_SCALE_GEN3;
-		break;
-	default:
-		dma_ctrl = 0;
-		/* just in case, assume Gen3 ITR scale */
-		hw->mac.itr_scale = FM10K_TDLEN_ITR_SCALE_GEN3;
-		break;
+	switch (hw->bus.speed)
+	{
+		case fm10k_bus_speed_2500:
+			dma_ctrl = FM10K_DMA_CTRL_MAX_HOLD_1US_GEN1;
+			hw->mac.itr_scale = FM10K_TDLEN_ITR_SCALE_GEN1;
+			break;
+
+		case fm10k_bus_speed_5000:
+			dma_ctrl = FM10K_DMA_CTRL_MAX_HOLD_1US_GEN2;
+			hw->mac.itr_scale = FM10K_TDLEN_ITR_SCALE_GEN2;
+			break;
+
+		case fm10k_bus_speed_8000:
+			dma_ctrl = FM10K_DMA_CTRL_MAX_HOLD_1US_GEN3;
+			hw->mac.itr_scale = FM10K_TDLEN_ITR_SCALE_GEN3;
+			break;
+
+		default:
+			dma_ctrl = 0;
+			/* just in case, assume Gen3 ITR scale */
+			hw->mac.itr_scale = FM10K_TDLEN_ITR_SCALE_GEN3;
+			break;
 	}
 
 	/* Configure TSO flags */
@@ -186,8 +206,8 @@ static s32 fm10k_init_hw_pf(struct fm10k_hw *hw)
 	 * Set Maximum number of Rx queues to 256 / 32 Descriptor
 	 */
 	dma_ctrl |= FM10K_DMA_CTRL_TX_ENABLE | FM10K_DMA_CTRL_RX_ENABLE |
-		    FM10K_DMA_CTRL_RX_DESC_SIZE | FM10K_DMA_CTRL_MINMSS_64 |
-		    FM10K_DMA_CTRL_32_DESC;
+				FM10K_DMA_CTRL_RX_DESC_SIZE | FM10K_DMA_CTRL_MINMSS_64 |
+				FM10K_DMA_CTRL_32_DESC;
 
 	fm10k_write_reg(hw, FM10K_DMA_CTRL, dma_ctrl);
 
@@ -218,7 +238,9 @@ static s32 fm10k_update_vlan_pf(struct fm10k_hw *hw, u32 vid, u8 vsi, bool set)
 
 	/* verify the VSI index is valid */
 	if (vsi > FM10K_VLAN_TABLE_VSI_MAX)
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	/* VLAN multi-bit write:
 	 * The multi-bit write has several parts to it.
@@ -238,12 +260,15 @@ static s32 fm10k_update_vlan_pf(struct fm10k_hw *hw, u32 vid, u8 vsi, bool set)
 
 	/* verify the reserved 0 fields are 0 */
 	if (len >= FM10K_VLAN_TABLE_VID_MAX || vid >= FM10K_VLAN_TABLE_VID_MAX)
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	/* Loop through the table updating all required VLANs */
 	for (reg = FM10K_VLAN_TABLE(vsi, vid / 32), bit = vid % 32;
-	     len < FM10K_VLAN_TABLE_VID_MAX;
-	     len -= 32 - bit, reg++, bit = 0) {
+		 len < FM10K_VLAN_TABLE_VID_MAX;
+		 len -= 32 - bit, reg++, bit = 0)
+	{
 		/* record the initial state of the register */
 		vlan_table = fm10k_read_reg(hw, reg);
 
@@ -252,8 +277,11 @@ static s32 fm10k_update_vlan_pf(struct fm10k_hw *hw, u32 vid, u8 vsi, bool set)
 
 		/* make necessary modifications to the register */
 		mask &= set ? ~vlan_table : vlan_table;
+
 		if (mask)
+		{
 			fm10k_write_reg(hw, reg, vlan_table ^ mask);
+		}
 	}
 
 	return 0;
@@ -274,7 +302,9 @@ static s32 fm10k_read_mac_addr_pf(struct fm10k_hw *hw)
 
 	/* last byte should be all 1's */
 	if ((~serial_num) << 24)
+	{
 		return  FM10K_ERR_INVALID_MAC_ADDR;
+	}
 
 	perm_addr[0] = (u8)(serial_num >> 24);
 	perm_addr[1] = (u8)(serial_num >> 16);
@@ -284,7 +314,9 @@ static s32 fm10k_read_mac_addr_pf(struct fm10k_hw *hw)
 
 	/* first byte should be all 1's */
 	if ((~serial_num) >> 24)
+	{
 		return  FM10K_ERR_INVALID_MAC_ADDR;
+	}
 
 	perm_addr[3] = (u8)(serial_num >> 16);
 	perm_addr[4] = (u8)(serial_num >> 8);
@@ -323,7 +355,7 @@ bool fm10k_glort_valid_pf(struct fm10k_hw *hw, u16 glort)
  *  that the given logical port add/remove the given L2 MAC/VLAN address.
  **/
 static s32 fm10k_update_xc_addr_pf(struct fm10k_hw *hw, u16 glort,
-				   const u8 *mac, u16 vid, bool add, u8 flags)
+								   const u8 *mac, u16 vid, bool add, u8 flags)
 {
 	struct fm10k_mbx_info *mbx = &hw->mbx;
 	struct fm10k_mac_update mac_update;
@@ -334,15 +366,17 @@ static s32 fm10k_update_xc_addr_pf(struct fm10k_hw *hw, u16 glort,
 
 	/* if glort or VLAN are not valid return error */
 	if (!fm10k_glort_valid_pf(hw, glort) || vid >= FM10K_VLAN_TABLE_VID_MAX)
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	/* record fields */
 	mac_update.mac_lower = cpu_to_le32(((u32)mac[2] << 24) |
-						 ((u32)mac[3] << 16) |
-						 ((u32)mac[4] << 8) |
-						 ((u32)mac[5]));
+									   ((u32)mac[3] << 16) |
+									   ((u32)mac[4] << 8) |
+									   ((u32)mac[5]));
 	mac_update.mac_upper = cpu_to_le16(((u16)mac[0] << 8) |
-					   ((u16)mac[1]));
+									   ((u16)mac[1]));
 	mac_update.vlan = cpu_to_le16(vid);
 	mac_update.glort = cpu_to_le16(glort);
 	mac_update.action = add ? 0 : 1;
@@ -351,7 +385,7 @@ static s32 fm10k_update_xc_addr_pf(struct fm10k_hw *hw, u16 glort,
 	/* populate mac_update fields */
 	fm10k_tlv_msg_init(msg, FM10K_PF_MSG_ID_UPDATE_MAC_FWD_RULE);
 	fm10k_tlv_attr_put_le_struct(msg, FM10K_PF_ATTR_ID_MAC_UPDATE,
-				     &mac_update, sizeof(mac_update));
+								 &mac_update, sizeof(mac_update));
 
 	/* load onto outgoing mailbox */
 	return mbx->ops.enqueue_tx(hw, mbx, msg);
@@ -370,11 +404,13 @@ static s32 fm10k_update_xc_addr_pf(struct fm10k_hw *hw, u16 glort,
  *  the PF.
  **/
 static s32 fm10k_update_uc_addr_pf(struct fm10k_hw *hw, u16 glort,
-				   const u8 *mac, u16 vid, bool add, u8 flags)
+								   const u8 *mac, u16 vid, bool add, u8 flags)
 {
 	/* verify MAC address is valid */
 	if (!is_valid_ether_addr(mac))
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	return fm10k_update_xc_addr_pf(hw, glort, mac, vid, add, flags);
 }
@@ -391,11 +427,13 @@ static s32 fm10k_update_uc_addr_pf(struct fm10k_hw *hw, u16 glort,
  *  the PF.
  **/
 static s32 fm10k_update_mc_addr_pf(struct fm10k_hw *hw, u16 glort,
-				   const u8 *mac, u16 vid, bool add)
+								   const u8 *mac, u16 vid, bool add)
 {
 	/* verify multicast address is valid */
 	if (!is_multicast_ether_addr(mac))
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	return fm10k_update_xc_addr_pf(hw, glort, mac, vid, add, 0);
 }
@@ -416,11 +454,15 @@ static s32 fm10k_update_xcast_mode_pf(struct fm10k_hw *hw, u16 glort, u8 mode)
 	u32 msg[3], xcast_mode;
 
 	if (mode > FM10K_XCAST_MODE_NONE)
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	/* if glort is not valid return error */
 	if (!fm10k_glort_valid_pf(hw, glort))
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	/* write xcast mode as a single u32 value,
 	 * lower 16 bits: glort
@@ -452,9 +494,12 @@ static void fm10k_update_int_moderator_pf(struct fm10k_hw *hw)
 	fm10k_write_reg(hw, FM10K_INT_CTRL, 0);
 
 	/* loop through PF from last to first looking enabled vectors */
-	for (i = FM10K_ITR_REG_COUNT_PF - 1; i; i--) {
+	for (i = FM10K_ITR_REG_COUNT_PF - 1; i; i--)
+	{
 		if (!fm10k_read_reg(hw, FM10K_MSIX_VECTOR_MASK(i)))
+		{
 			break;
+		}
 	}
 
 	/* always reset VFITR2[0] to point to last enabled PF vector */
@@ -462,7 +507,9 @@ static void fm10k_update_int_moderator_pf(struct fm10k_hw *hw)
 
 	/* reset ITR2[0] to point to last enabled PF vector */
 	if (!hw->iov.num_vfs)
+	{
 		fm10k_write_reg(hw, FM10K_ITR2(0), i);
+	}
 
 	/* Enable interrupt moderator */
 	fm10k_write_reg(hw, FM10K_INT_CTRL, FM10K_INT_CTRL_ENABLEMODERATOR);
@@ -478,29 +525,35 @@ static void fm10k_update_int_moderator_pf(struct fm10k_hw *hw)
  *  This function is used to add/remove a logical port from the switch.
  **/
 static s32 fm10k_update_lport_state_pf(struct fm10k_hw *hw, u16 glort,
-				       u16 count, bool enable)
+									   u16 count, bool enable)
 {
 	struct fm10k_mbx_info *mbx = &hw->mbx;
 	u32 msg[3], lport_msg;
 
 	/* do nothing if we are being asked to create or destroy 0 ports */
 	if (!count)
+	{
 		return 0;
+	}
 
 	/* if glort is not valid return error */
 	if (!fm10k_glort_valid_pf(hw, glort))
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	/* reset multicast mode if deleting lport */
 	if (!enable)
+	{
 		fm10k_update_xcast_mode_pf(hw, glort, FM10K_XCAST_MODE_NONE);
+	}
 
 	/* construct the lport message from the 2 pieces of data we have */
 	lport_msg = ((u32)count << 16) | glort;
 
 	/* generate lport create/delete message */
 	fm10k_tlv_msg_init(msg, enable ? FM10K_PF_MSG_ID_LPORT_CREATE :
-					 FM10K_PF_MSG_ID_LPORT_DELETE);
+					   FM10K_PF_MSG_ID_LPORT_DELETE);
 	fm10k_tlv_attr_put_u32(msg, FM10K_PF_ATTR_ID_PORT, lport_msg);
 
 	/* load onto outgoing mailbox */
@@ -517,7 +570,7 @@ static s32 fm10k_update_lport_state_pf(struct fm10k_hw *hw, u16 glort,
  *  to which it has been assigned.
  **/
 static s32 fm10k_configure_dglort_map_pf(struct fm10k_hw *hw,
-					 struct fm10k_dglort_cfg *dglort)
+		struct fm10k_dglort_cfg *dglort)
 {
 	u16 glort, queue_count, vsi_count, pc_count;
 	u16 vsi, queue, pc, q_idx;
@@ -525,13 +578,17 @@ static s32 fm10k_configure_dglort_map_pf(struct fm10k_hw *hw,
 
 	/* verify the dglort pointer */
 	if (!dglort)
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	/* verify the dglort values */
 	if ((dglort->idx > 7) || (dglort->rss_l > 7) || (dglort->pc_l > 3) ||
-	    (dglort->vsi_l > 6) || (dglort->vsi_b > 64) ||
-	    (dglort->queue_l > 8) || (dglort->queue_b >= 256))
+		(dglort->vsi_l > 6) || (dglort->vsi_b > 64) ||
+		(dglort->queue_l > 8) || (dglort->queue_b >= 256))
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	/* determine count of VSIs and queues */
 	queue_count = BIT(dglort->rss_l + dglort->pc_l);
@@ -540,10 +597,14 @@ static s32 fm10k_configure_dglort_map_pf(struct fm10k_hw *hw,
 	q_idx = dglort->queue_b;
 
 	/* configure SGLORT for queues */
-	for (vsi = 0; vsi < vsi_count; vsi++, glort++) {
-		for (queue = 0; queue < queue_count; queue++, q_idx++) {
+	for (vsi = 0; vsi < vsi_count; vsi++, glort++)
+	{
+		for (queue = 0; queue < queue_count; queue++, q_idx++)
+		{
 			if (q_idx >= FM10K_MAX_QUEUES)
+			{
 				break;
+			}
 
 			fm10k_write_reg(hw, FM10K_TX_SGLORT(q_idx), glort);
 			fm10k_write_reg(hw, FM10K_RX_SGLORT(q_idx), glort);
@@ -555,11 +616,16 @@ static s32 fm10k_configure_dglort_map_pf(struct fm10k_hw *hw,
 	pc_count = BIT(dglort->pc_l);
 
 	/* configure PC for Tx queues */
-	for (pc = 0; pc < pc_count; pc++) {
+	for (pc = 0; pc < pc_count; pc++)
+	{
 		q_idx = pc + dglort->queue_b;
-		for (queue = 0; queue < queue_count; queue++) {
+
+		for (queue = 0; queue < queue_count; queue++)
+		{
 			if (q_idx >= FM10K_MAX_QUEUES)
+			{
 				break;
+			}
 
 			txqctl = fm10k_read_reg(hw, FM10K_TXQCTL(q_idx));
 			txqctl &= ~FM10K_TXQCTL_PC_MASK;
@@ -572,17 +638,20 @@ static s32 fm10k_configure_dglort_map_pf(struct fm10k_hw *hw,
 
 	/* configure DGLORTDEC */
 	dglortdec = ((u32)(dglort->rss_l) << FM10K_DGLORTDEC_RSSLENGTH_SHIFT) |
-		    ((u32)(dglort->queue_b) << FM10K_DGLORTDEC_QBASE_SHIFT) |
-		    ((u32)(dglort->pc_l) << FM10K_DGLORTDEC_PCLENGTH_SHIFT) |
-		    ((u32)(dglort->vsi_b) << FM10K_DGLORTDEC_VSIBASE_SHIFT) |
-		    ((u32)(dglort->vsi_l) << FM10K_DGLORTDEC_VSILENGTH_SHIFT) |
-		    ((u32)(dglort->queue_l));
+				((u32)(dglort->queue_b) << FM10K_DGLORTDEC_QBASE_SHIFT) |
+				((u32)(dglort->pc_l) << FM10K_DGLORTDEC_PCLENGTH_SHIFT) |
+				((u32)(dglort->vsi_b) << FM10K_DGLORTDEC_VSIBASE_SHIFT) |
+				((u32)(dglort->vsi_l) << FM10K_DGLORTDEC_VSILENGTH_SHIFT) |
+				((u32)(dglort->queue_l));
+
 	if (dglort->inner_rss)
+	{
 		dglortdec |=  FM10K_DGLORTDEC_INNERRSS_ENABLE;
+	}
 
 	/* configure DGLORTMAP */
 	dglortmap = (dglort->idx == fm10k_dglort_default) ?
-			FM10K_DGLORTMAP_ANY : FM10K_DGLORTMAP_ZERO;
+				FM10K_DGLORTMAP_ANY : FM10K_DGLORTMAP_ZERO;
 	dglortmap <<= dglort->vsi_l + dglort->queue_l + dglort->shared_l;
 	dglortmap |= dglort->glort;
 
@@ -598,7 +667,7 @@ u16 fm10k_queues_per_pool(struct fm10k_hw *hw)
 	u16 num_pools = hw->iov.num_pools;
 
 	return (num_pools > 32) ? 2 : (num_pools > 16) ? 4 : (num_pools > 8) ?
-	       8 : FM10K_MAX_QUEUES_POOL;
+		   8 : FM10K_MAX_QUEUES_POOL;
 }
 
 u16 fm10k_vf_queue_index(struct fm10k_hw *hw, u16 vf_idx)
@@ -616,7 +685,7 @@ static u16 fm10k_vectors_per_pool(struct fm10k_hw *hw)
 	u16 num_pools = hw->iov.num_pools;
 
 	return (num_pools > 32) ? 8 : (num_pools > 16) ? 16 :
-	       FM10K_MAX_VECTORS_POOL;
+		   FM10K_MAX_VECTORS_POOL;
 }
 
 static u16 fm10k_vf_vector_index(struct fm10k_hw *hw, u16 vf_idx)
@@ -638,7 +707,7 @@ static u16 fm10k_vf_vector_index(struct fm10k_hw *hw, u16 vf_idx)
  *  the PF for SR-IOV and VMDq
  **/
 static s32 fm10k_iov_assign_resources_pf(struct fm10k_hw *hw, u16 num_vfs,
-					 u16 num_pools)
+		u16 num_pools)
 {
 	u16 qmap_stride, qpp, vpp, vf_q_idx, vf_q_idx0, qmap_idx;
 	u32 vid = hw->mac.default_vid << FM10K_TXQCTL_VID_SHIFT;
@@ -646,11 +715,15 @@ static s32 fm10k_iov_assign_resources_pf(struct fm10k_hw *hw, u16 num_vfs,
 
 	/* hardware only supports up to 64 pools */
 	if (num_pools > 64)
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	/* the number of VFs cannot exceed the number of pools */
 	if ((num_vfs > num_pools) || (num_vfs > hw->iov.total_vfs))
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	/* record number of virtualization entities */
 	hw->iov.num_vfs = num_vfs;
@@ -666,60 +739,71 @@ static s32 fm10k_iov_assign_resources_pf(struct fm10k_hw *hw, u16 num_vfs,
 	qmap_idx = 0;
 
 	/* establish TCs with -1 credits and no quanta to prevent transmit */
-	for (i = 0; i < num_vfs; i++) {
+	for (i = 0; i < num_vfs; i++)
+	{
 		fm10k_write_reg(hw, FM10K_TC_MAXCREDIT(i), 0);
 		fm10k_write_reg(hw, FM10K_TC_RATE(i), 0);
 		fm10k_write_reg(hw, FM10K_TC_CREDIT(i),
-				FM10K_TC_CREDIT_CREDIT_MASK);
+						FM10K_TC_CREDIT_CREDIT_MASK);
 	}
 
 	/* zero out all mbmem registers */
 	for (i = FM10K_VFMBMEM_LEN * num_vfs; i--;)
+	{
 		fm10k_write_reg(hw, FM10K_MBMEM(i), 0);
+	}
 
 	/* clear event notification of VF FLR */
 	fm10k_write_reg(hw, FM10K_PFVFLREC(0), ~0);
 	fm10k_write_reg(hw, FM10K_PFVFLREC(1), ~0);
 
 	/* loop through unallocated rings assigning them back to PF */
-	for (i = FM10K_MAX_QUEUES_PF; i < vf_q_idx; i++) {
+	for (i = FM10K_MAX_QUEUES_PF; i < vf_q_idx; i++)
+	{
 		fm10k_write_reg(hw, FM10K_TXDCTL(i), 0);
 		fm10k_write_reg(hw, FM10K_TXQCTL(i), FM10K_TXQCTL_PF |
-				FM10K_TXQCTL_UNLIMITED_BW | vid);
+						FM10K_TXQCTL_UNLIMITED_BW | vid);
 		fm10k_write_reg(hw, FM10K_RXQCTL(i), FM10K_RXQCTL_PF);
 	}
 
 	/* PF should have already updated VFITR2[0] */
 
 	/* update all ITR registers to flow to VFITR2[0] */
-	for (i = FM10K_ITR_REG_COUNT_PF + 1; i < FM10K_ITR_REG_COUNT; i++) {
+	for (i = FM10K_ITR_REG_COUNT_PF + 1; i < FM10K_ITR_REG_COUNT; i++)
+	{
 		if (!(i & (vpp - 1)))
+		{
 			fm10k_write_reg(hw, FM10K_ITR2(i), i - vpp);
+		}
 		else
+		{
 			fm10k_write_reg(hw, FM10K_ITR2(i), i - 1);
+		}
 	}
 
 	/* update PF ITR2[0] to reference the last vector */
 	fm10k_write_reg(hw, FM10K_ITR2(0),
-			fm10k_vf_vector_index(hw, num_vfs - 1));
+					fm10k_vf_vector_index(hw, num_vfs - 1));
 
 	/* loop through rings populating rings and TCs */
-	for (i = 0; i < num_vfs; i++) {
+	for (i = 0; i < num_vfs; i++)
+	{
 		/* record index for VF queue 0 for use in end of loop */
 		vf_q_idx0 = vf_q_idx;
 
-		for (j = 0; j < qpp; j++, qmap_idx++, vf_q_idx++) {
+		for (j = 0; j < qpp; j++, qmap_idx++, vf_q_idx++)
+		{
 			/* assign VF and locked TC to queues */
 			fm10k_write_reg(hw, FM10K_TXDCTL(vf_q_idx), 0);
 			fm10k_write_reg(hw, FM10K_TXQCTL(vf_q_idx),
-					(i << FM10K_TXQCTL_TC_SHIFT) | i |
-					FM10K_TXQCTL_VF | vid);
+							(i << FM10K_TXQCTL_TC_SHIFT) | i |
+							FM10K_TXQCTL_VF | vid);
 			fm10k_write_reg(hw, FM10K_RXDCTL(vf_q_idx),
-					FM10K_RXDCTL_WRITE_BACK_MIN_DELAY |
-					FM10K_RXDCTL_DROP_ON_EMPTY);
+							FM10K_RXDCTL_WRITE_BACK_MIN_DELAY |
+							FM10K_RXDCTL_DROP_ON_EMPTY);
 			fm10k_write_reg(hw, FM10K_RXQCTL(vf_q_idx),
-					(i << FM10K_RXQCTL_VF_SHIFT) |
-					FM10K_RXQCTL_VF);
+							(i << FM10K_RXQCTL_VF_SHIFT) |
+							FM10K_RXQCTL_VF);
 
 			/* map queue pair to VF */
 			fm10k_write_reg(hw, FM10K_TQMAP(qmap_idx), vf_q_idx);
@@ -727,14 +811,16 @@ static s32 fm10k_iov_assign_resources_pf(struct fm10k_hw *hw, u16 num_vfs,
 		}
 
 		/* repeat the first ring for all of the remaining VF rings */
-		for (; j < qmap_stride; j++, qmap_idx++) {
+		for (; j < qmap_stride; j++, qmap_idx++)
+		{
 			fm10k_write_reg(hw, FM10K_TQMAP(qmap_idx), vf_q_idx0);
 			fm10k_write_reg(hw, FM10K_RQMAP(qmap_idx), vf_q_idx0);
 		}
 	}
 
 	/* loop through remaining indexes assigning all to queue 0 */
-	while (qmap_idx < FM10K_TQMAP_TABLE_SIZE) {
+	while (qmap_idx < FM10K_TQMAP_TABLE_SIZE)
+	{
 		fm10k_write_reg(hw, FM10K_TQMAP(qmap_idx), 0);
 		fm10k_write_reg(hw, FM10K_RQMAP(qmap_idx), 0);
 		qmap_idx++;
@@ -760,23 +846,31 @@ static s32 fm10k_iov_configure_tc_pf(struct fm10k_hw *hw, u16 vf_idx, int rate)
 
 	/* verify vf is in range */
 	if (vf_idx >= hw->iov.num_vfs)
+	{
 		return FM10K_ERR_PARAM;
-
-	/* set interval to align with 4.096 usec in all modes */
-	switch (hw->bus.speed) {
-	case fm10k_bus_speed_2500:
-		interval = FM10K_TC_RATE_INTERVAL_4US_GEN1;
-		break;
-	case fm10k_bus_speed_5000:
-		interval = FM10K_TC_RATE_INTERVAL_4US_GEN2;
-		break;
-	default:
-		break;
 	}
 
-	if (rate) {
+	/* set interval to align with 4.096 usec in all modes */
+	switch (hw->bus.speed)
+	{
+		case fm10k_bus_speed_2500:
+			interval = FM10K_TC_RATE_INTERVAL_4US_GEN1;
+			break;
+
+		case fm10k_bus_speed_5000:
+			interval = FM10K_TC_RATE_INTERVAL_4US_GEN2;
+			break;
+
+		default:
+			break;
+	}
+
+	if (rate)
+	{
 		if (rate > FM10K_VF_TC_MAX || rate < FM10K_VF_TC_MIN)
+		{
 			return FM10K_ERR_PARAM;
+		}
 
 		/* The quanta is measured in Bytes per 4.096 or 8.192 usec
 		 * The rate is provided in Mbits per second
@@ -791,9 +885,13 @@ static s32 fm10k_iov_configure_tc_pf(struct fm10k_hw *hw, u16 vf_idx, int rate)
 		 * the number of credits and interval for rates less than 4Gb/s
 		 */
 		if (rate < 4000)
+		{
 			interval <<= 1;
+		}
 		else
+		{
 			tc_rate >>= 1;
+		}
 	}
 
 	/* update rate limiter with new values */
@@ -818,23 +916,32 @@ static s32 fm10k_iov_assign_int_moderator_pf(struct fm10k_hw *hw, u16 vf_idx)
 
 	/* verify vf is in range */
 	if (vf_idx >= hw->iov.num_vfs)
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	/* determine vector offset and count */
 	vf_v_idx = fm10k_vf_vector_index(hw, vf_idx);
 	vf_v_limit = vf_v_idx + fm10k_vectors_per_pool(hw);
 
 	/* search for first vector that is not masked */
-	for (i = vf_v_limit - 1; i > vf_v_idx; i--) {
+	for (i = vf_v_limit - 1; i > vf_v_idx; i--)
+	{
 		if (!fm10k_read_reg(hw, FM10K_MSIX_VECTOR_MASK(i)))
+		{
 			break;
+		}
 	}
 
 	/* reset linked list so it now includes our active vectors */
 	if (vf_idx == (hw->iov.num_vfs - 1))
+	{
 		fm10k_write_reg(hw, FM10K_ITR2(0), i);
+	}
 	else
+	{
 		fm10k_write_reg(hw, FM10K_ITR2(vf_v_limit), i);
+	}
 
 	return 0;
 }
@@ -847,7 +954,7 @@ static s32 fm10k_iov_assign_int_moderator_pf(struct fm10k_hw *hw, u16 vf_idx)
  *  Assign a MAC address and default VLAN to a VF and notify it of the update
  **/
 static s32 fm10k_iov_assign_default_mac_vlan_pf(struct fm10k_hw *hw,
-						struct fm10k_vf_info *vf_info)
+		struct fm10k_vf_info *vf_info)
 {
 	u16 qmap_stride, queues_per_pool, vf_q_idx, timeout, qmap_idx, i;
 	u32 msg[4], txdctl, txqctl, tdbal = 0, tdbah = 0;
@@ -856,7 +963,9 @@ static s32 fm10k_iov_assign_default_mac_vlan_pf(struct fm10k_hw *hw,
 
 	/* verify vf is in range */
 	if (!vf_info || vf_info->vf_idx >= hw->iov.num_vfs)
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	/* determine qmap offsets and counts */
 	qmap_stride = (hw->iov.num_vfs > 8) ? 32 : 256;
@@ -873,32 +982,43 @@ static s32 fm10k_iov_assign_default_mac_vlan_pf(struct fm10k_hw *hw,
 	 * the VF to correctly report errors to userspace rqeuests.
 	 */
 	if (vf_info->pf_vid)
+	{
 		vf_vid = vf_info->pf_vid | FM10K_VLAN_OVERRIDE;
+	}
 	else
+	{
 		vf_vid = vf_info->sw_vid;
+	}
 
 	/* generate MAC_ADDR request */
 	fm10k_tlv_msg_init(msg, FM10K_VF_MSG_ID_MAC_VLAN);
 	fm10k_tlv_attr_put_mac_vlan(msg, FM10K_MAC_VLAN_MSG_DEFAULT_MAC,
-				    vf_info->mac, vf_vid);
+								vf_info->mac, vf_vid);
 
 	/* Configure Queue control register with new VLAN ID. The TXQCTL
 	 * register is RO from the VF, so the PF must do this even in the
 	 * case of notifying the VF of a new VID via the mailbox.
 	 */
 	txqctl = ((u32)vf_vid << FM10K_TXQCTL_VID_SHIFT) &
-		 FM10K_TXQCTL_VID_MASK;
+			 FM10K_TXQCTL_VID_MASK;
 	txqctl |= (vf_idx << FM10K_TXQCTL_TC_SHIFT) |
-		  FM10K_TXQCTL_VF | vf_idx;
+			  FM10K_TXQCTL_VF | vf_idx;
 
 	for (i = 0; i < queues_per_pool; i++)
+	{
 		fm10k_write_reg(hw, FM10K_TXQCTL(vf_q_idx + i), txqctl);
+	}
 
 	/* try loading a message onto outgoing mailbox first */
-	if (vf_info->mbx.ops.enqueue_tx) {
+	if (vf_info->mbx.ops.enqueue_tx)
+	{
 		err = vf_info->mbx.ops.enqueue_tx(hw, &vf_info->mbx, msg);
+
 		if (err != FM10K_MBX_ERR_NO_MBX)
+		{
 			return err;
+		}
+
 		err = 0;
 	}
 
@@ -914,9 +1034,12 @@ static s32 fm10k_iov_assign_default_mac_vlan_pf(struct fm10k_hw *hw,
 
 	/* verify ring has disabled before modifying base address registers */
 	txdctl = fm10k_read_reg(hw, FM10K_TXDCTL(vf_q_idx));
-	for (timeout = 0; txdctl & FM10K_TXDCTL_ENABLE; timeout++) {
+
+	for (timeout = 0; txdctl & FM10K_TXDCTL_ENABLE; timeout++)
+	{
 		/* limit ourselves to a 1ms timeout */
-		if (timeout == 10) {
+		if (timeout == 10)
+		{
 			err = FM10K_ERR_DMA_PENDING;
 			goto err_out;
 		}
@@ -926,15 +1049,16 @@ static s32 fm10k_iov_assign_default_mac_vlan_pf(struct fm10k_hw *hw,
 	}
 
 	/* Update base address registers to contain MAC address */
-	if (is_valid_ether_addr(vf_info->mac)) {
+	if (is_valid_ether_addr(vf_info->mac))
+	{
 		tdbal = (((u32)vf_info->mac[3]) << 24) |
-			(((u32)vf_info->mac[4]) << 16) |
-			(((u32)vf_info->mac[5]) << 8);
+				(((u32)vf_info->mac[4]) << 16) |
+				(((u32)vf_info->mac[5]) << 8);
 
 		tdbah = (((u32)0xFF)	        << 24) |
-			(((u32)vf_info->mac[0]) << 16) |
-			(((u32)vf_info->mac[1]) << 8) |
-			((u32)vf_info->mac[2]);
+				(((u32)vf_info->mac[0]) << 16) |
+				(((u32)vf_info->mac[1]) << 8) |
+				((u32)vf_info->mac[2]);
 	}
 
 	/* Record the base address into queue 0 */
@@ -946,7 +1070,7 @@ static s32 fm10k_iov_assign_default_mac_vlan_pf(struct fm10k_hw *hw,
 	 * FM10K_TDLEN_ITR_SCALE_SHIFT for more details.
 	 */
 	fm10k_write_reg(hw, FM10K_TDLEN(vf_q_idx), hw->mac.itr_scale <<
-						   FM10K_TDLEN_ITR_SCALE_SHIFT);
+					FM10K_TDLEN_ITR_SCALE_SHIFT);
 
 err_out:
 	/* restore the queue back to VF ownership */
@@ -962,7 +1086,7 @@ err_out:
  *  Reassign the interrupts and queues to a VF following an FLR
  **/
 static s32 fm10k_iov_reset_resources_pf(struct fm10k_hw *hw,
-					struct fm10k_vf_info *vf_info)
+										struct fm10k_vf_info *vf_info)
 {
 	u16 qmap_stride, queues_per_pool, vf_q_idx, qmap_idx;
 	u32 tdbal = 0, tdbah = 0, txqctl, rxqctl;
@@ -972,15 +1096,20 @@ static s32 fm10k_iov_reset_resources_pf(struct fm10k_hw *hw,
 
 	/* verify vf is in range */
 	if (vf_idx >= hw->iov.num_vfs)
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	/* clear event notification of VF FLR */
 	fm10k_write_reg(hw, FM10K_PFVFLREC(vf_idx / 32), BIT(vf_idx % 32));
 
 	/* force timeout and then disconnect the mailbox */
 	vf_info->mbx.timeout = 0;
+
 	if (vf_info->mbx.ops.disconnect)
+	{
 		vf_info->mbx.ops.disconnect(hw, &vf_info->mbx);
+	}
 
 	/* determine vector offset and count */
 	vf_v_idx = fm10k_vf_vector_index(hw, vf_idx);
@@ -992,7 +1121,8 @@ static s32 fm10k_iov_reset_resources_pf(struct fm10k_hw *hw,
 	qmap_idx = qmap_stride * vf_idx;
 
 	/* make all the queues inaccessible to the VF */
-	for (i = qmap_idx; i < (qmap_idx + qmap_stride); i++) {
+	for (i = qmap_idx; i < (qmap_idx + qmap_stride); i++)
+	{
 		fm10k_write_reg(hw, FM10K_TQMAP(i), 0);
 		fm10k_write_reg(hw, FM10K_RQMAP(i), 0);
 	}
@@ -1002,23 +1132,28 @@ static s32 fm10k_iov_reset_resources_pf(struct fm10k_hw *hw,
 
 	/* determine correct default VLAN ID */
 	if (vf_info->pf_vid)
+	{
 		vf_vid = vf_info->pf_vid;
+	}
 	else
+	{
 		vf_vid = vf_info->sw_vid;
+	}
 
 	/* configure Queue control register */
 	txqctl = ((u32)vf_vid << FM10K_TXQCTL_VID_SHIFT) |
-		 (vf_idx << FM10K_TXQCTL_TC_SHIFT) |
-		 FM10K_TXQCTL_VF | vf_idx;
+			 (vf_idx << FM10K_TXQCTL_TC_SHIFT) |
+			 FM10K_TXQCTL_VF | vf_idx;
 	rxqctl = (vf_idx << FM10K_RXQCTL_VF_SHIFT) | FM10K_RXQCTL_VF;
 
 	/* stop further DMA and reset queue ownership back to VF */
-	for (i = vf_q_idx; i < (queues_per_pool + vf_q_idx); i++) {
+	for (i = vf_q_idx; i < (queues_per_pool + vf_q_idx); i++)
+	{
 		fm10k_write_reg(hw, FM10K_TXDCTL(i), 0);
 		fm10k_write_reg(hw, FM10K_TXQCTL(i), txqctl);
 		fm10k_write_reg(hw, FM10K_RXDCTL(i),
-				FM10K_RXDCTL_WRITE_BACK_MIN_DELAY |
-				FM10K_RXDCTL_DROP_ON_EMPTY);
+						FM10K_RXDCTL_WRITE_BACK_MIN_DELAY |
+						FM10K_RXDCTL_DROP_ON_EMPTY);
 		fm10k_write_reg(hw, FM10K_RXQCTL(i), rxqctl);
 	}
 
@@ -1026,62 +1161,87 @@ static s32 fm10k_iov_reset_resources_pf(struct fm10k_hw *hw,
 	fm10k_write_reg(hw, FM10K_TC_MAXCREDIT(vf_idx), 0);
 	fm10k_write_reg(hw, FM10K_TC_RATE(vf_idx), 0);
 	fm10k_write_reg(hw, FM10K_TC_CREDIT(vf_idx),
-			FM10K_TC_CREDIT_CREDIT_MASK);
+					FM10K_TC_CREDIT_CREDIT_MASK);
 
 	/* update our first entry in the table based on previous VF */
 	if (!vf_idx)
+	{
 		hw->mac.ops.update_int_moderator(hw);
+	}
 	else
+	{
 		hw->iov.ops.assign_int_moderator(hw, vf_idx - 1);
+	}
 
 	/* reset linked list so it now includes our active vectors */
 	if (vf_idx == (hw->iov.num_vfs - 1))
+	{
 		fm10k_write_reg(hw, FM10K_ITR2(0), vf_v_idx);
+	}
 	else
+	{
 		fm10k_write_reg(hw, FM10K_ITR2(vf_v_limit), vf_v_idx);
+	}
 
 	/* link remaining vectors so that next points to previous */
 	for (vf_v_idx++; vf_v_idx < vf_v_limit; vf_v_idx++)
+	{
 		fm10k_write_reg(hw, FM10K_ITR2(vf_v_idx), vf_v_idx - 1);
+	}
 
 	/* zero out MBMEM, VLAN_TABLE, RETA, RSSRK, and MRQC registers */
 	for (i = FM10K_VFMBMEM_LEN; i--;)
+	{
 		fm10k_write_reg(hw, FM10K_MBMEM_VF(vf_idx, i), 0);
+	}
+
 	for (i = FM10K_VLAN_TABLE_SIZE; i--;)
+	{
 		fm10k_write_reg(hw, FM10K_VLAN_TABLE(vf_info->vsi, i), 0);
+	}
+
 	for (i = FM10K_RETA_SIZE; i--;)
+	{
 		fm10k_write_reg(hw, FM10K_RETA(vf_info->vsi, i), 0);
+	}
+
 	for (i = FM10K_RSSRK_SIZE; i--;)
+	{
 		fm10k_write_reg(hw, FM10K_RSSRK(vf_info->vsi, i), 0);
+	}
+
 	fm10k_write_reg(hw, FM10K_MRQC(vf_info->vsi), 0);
 
 	/* Update base address registers to contain MAC address */
-	if (is_valid_ether_addr(vf_info->mac)) {
+	if (is_valid_ether_addr(vf_info->mac))
+	{
 		tdbal = (((u32)vf_info->mac[3]) << 24) |
-			(((u32)vf_info->mac[4]) << 16) |
-			(((u32)vf_info->mac[5]) << 8);
+				(((u32)vf_info->mac[4]) << 16) |
+				(((u32)vf_info->mac[5]) << 8);
 		tdbah = (((u32)0xFF)	   << 24) |
-			(((u32)vf_info->mac[0]) << 16) |
-			(((u32)vf_info->mac[1]) << 8) |
-			((u32)vf_info->mac[2]);
+				(((u32)vf_info->mac[0]) << 16) |
+				(((u32)vf_info->mac[1]) << 8) |
+				((u32)vf_info->mac[2]);
 	}
 
 	/* map queue pairs back to VF from last to first */
-	for (i = queues_per_pool; i--;) {
+	for (i = queues_per_pool; i--;)
+	{
 		fm10k_write_reg(hw, FM10K_TDBAL(vf_q_idx + i), tdbal);
 		fm10k_write_reg(hw, FM10K_TDBAH(vf_q_idx + i), tdbah);
 		/* See definition of FM10K_TDLEN_ITR_SCALE_SHIFT for an
 		 * explanation of how TDLEN is used.
 		 */
 		fm10k_write_reg(hw, FM10K_TDLEN(vf_q_idx + i),
-				hw->mac.itr_scale <<
-				FM10K_TDLEN_ITR_SCALE_SHIFT);
+						hw->mac.itr_scale <<
+						FM10K_TDLEN_ITR_SCALE_SHIFT);
 		fm10k_write_reg(hw, FM10K_TQMAP(qmap_idx + i), vf_q_idx + i);
 		fm10k_write_reg(hw, FM10K_RQMAP(qmap_idx + i), vf_q_idx + i);
 	}
 
 	/* repeat the first ring for all the remaining VF rings */
-	for (i = queues_per_pool; i < qmap_stride; i++) {
+	for (i = queues_per_pool; i < qmap_stride; i++)
+	{
 		fm10k_write_reg(hw, FM10K_TQMAP(qmap_idx + i), vf_q_idx);
 		fm10k_write_reg(hw, FM10K_RQMAP(qmap_idx + i), vf_q_idx);
 	}
@@ -1100,14 +1260,16 @@ static s32 fm10k_iov_reset_resources_pf(struct fm10k_hw *hw,
  *  setting the flags so that it can enable an Rx mode.
  **/
 static s32 fm10k_iov_set_lport_pf(struct fm10k_hw *hw,
-				  struct fm10k_vf_info *vf_info,
-				  u16 lport_idx, u8 flags)
+								  struct fm10k_vf_info *vf_info,
+								  u16 lport_idx, u8 flags)
 {
 	u16 glort = (hw->mac.dglort_map + lport_idx) & FM10K_DGLORTMAP_NONE;
 
 	/* if glort is not valid return error */
 	if (!fm10k_glort_valid_pf(hw, glort))
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	vf_info->vf_flags = flags | FM10K_VF_FLAG_NONE_CAPABLE;
 	vf_info->glort = glort;
@@ -1124,12 +1286,13 @@ static s32 fm10k_iov_set_lport_pf(struct fm10k_hw *hw,
  *  setting the flags so that it cannot enable any Rx mode.
  **/
 static void fm10k_iov_reset_lport_pf(struct fm10k_hw *hw,
-				     struct fm10k_vf_info *vf_info)
+									 struct fm10k_vf_info *vf_info)
 {
 	u32 msg[1];
 
 	/* need to disable the port if it is already enabled */
-	if (FM10K_VF_FLAG_ENABLED(vf_info)) {
+	if (FM10K_VF_FLAG_ENABLED(vf_info))
+	{
 		/* notify switch that this port has been disabled */
 		fm10k_update_lport_state_pf(hw, vf_info->glort, 1, false);
 
@@ -1152,8 +1315,8 @@ static void fm10k_iov_reset_lport_pf(struct fm10k_hw *hw,
  *  This function collects queue stats for VFs.
  **/
 static void fm10k_iov_update_stats_pf(struct fm10k_hw *hw,
-				      struct fm10k_hw_stats_q *q,
-				      u16 vf_idx)
+									  struct fm10k_hw_stats_q *q,
+									  u16 vf_idx)
 {
 	u32 idx, qpp;
 
@@ -1174,7 +1337,7 @@ static void fm10k_iov_update_stats_pf(struct fm10k_hw *hw,
  *  hand off the message from the VF to the underlying shared code.
  **/
 s32 fm10k_iov_msg_msix_pf(struct fm10k_hw *hw, u32 **results,
-			  struct fm10k_mbx_info *mbx)
+						  struct fm10k_mbx_info *mbx)
 {
 	struct fm10k_vf_info *vf_info = (struct fm10k_vf_info *)mbx;
 	u8 vf_idx = vf_info->vf_idx;
@@ -1193,11 +1356,17 @@ s32 fm10k_iov_msg_msix_pf(struct fm10k_hw *hw, u32 **results,
 static s32 fm10k_iov_select_vid(struct fm10k_vf_info *vf_info, u16 vid)
 {
 	if (!vid)
+	{
 		return vf_info->pf_vid ? vf_info->pf_vid : vf_info->sw_vid;
+	}
 	else if (vf_info->pf_vid && vid != vf_info->pf_vid)
+	{
 		return FM10K_ERR_PARAM;
+	}
 	else
+	{
 		return vid;
+	}
 }
 
 /**
@@ -1211,7 +1380,7 @@ static s32 fm10k_iov_select_vid(struct fm10k_vf_info *vf_info, u16 vid)
  *  hand off the message from the VF to the underlying shared code.
  **/
 s32 fm10k_iov_msg_mac_vlan_pf(struct fm10k_hw *hw, u32 **results,
-			      struct fm10k_mbx_info *mbx)
+							  struct fm10k_mbx_info *mbx)
 {
 	struct fm10k_vf_info *vf_info = (struct fm10k_vf_info *)mbx;
 	u8 mac[ETH_ALEN];
@@ -1223,15 +1392,21 @@ s32 fm10k_iov_msg_mac_vlan_pf(struct fm10k_hw *hw, u32 **results,
 
 	/* we shouldn't be updating rules on a disabled interface */
 	if (!FM10K_VF_FLAG_ENABLED(vf_info))
+	{
 		err = FM10K_ERR_PARAM;
+	}
 
-	if (!err && !!results[FM10K_MAC_VLAN_MSG_VLAN]) {
+	if (!err && !!results[FM10K_MAC_VLAN_MSG_VLAN])
+	{
 		result = results[FM10K_MAC_VLAN_MSG_VLAN];
 
 		/* record VLAN id requested */
 		err = fm10k_tlv_attr_get_u32(result, &vid);
+
 		if (err)
+		{
 			return err;
+		}
 
 		set = !(vid & FM10K_VLAN_CLEAR);
 		vid &= ~FM10K_VLAN_CLEAR;
@@ -1246,16 +1421,24 @@ s32 fm10k_iov_msg_mac_vlan_pf(struct fm10k_hw *hw, u32 **results,
 		 * SW vid when assigned.
 		 */
 
-		if (vid >> 16) {
+		if (vid >> 16)
+		{
 			/* prevent multi-bit requests when PF has
 			 * administratively set the VLAN for this VF
 			 */
 			if (vf_info->pf_vid)
+			{
 				return FM10K_ERR_PARAM;
-		} else {
+			}
+		}
+		else
+		{
 			err = fm10k_iov_select_vid(vf_info, (u16)vid);
+
 			if (err < 0)
+			{
 				return err;
+			}
 
 			vid = err;
 		}
@@ -1264,57 +1447,75 @@ s32 fm10k_iov_msg_mac_vlan_pf(struct fm10k_hw *hw, u32 **results,
 		err = hw->mac.ops.update_vlan(hw, vid, vf_info->vsi, set);
 	}
 
-	if (!err && !!results[FM10K_MAC_VLAN_MSG_MAC]) {
+	if (!err && !!results[FM10K_MAC_VLAN_MSG_MAC])
+	{
 		result = results[FM10K_MAC_VLAN_MSG_MAC];
 
 		/* record unicast MAC address requested */
 		err = fm10k_tlv_attr_get_mac_vlan(result, mac, &vlan);
+
 		if (err)
+		{
 			return err;
+		}
 
 		/* block attempts to set MAC for a locked device */
 		if (is_valid_ether_addr(vf_info->mac) &&
-		    !ether_addr_equal(mac, vf_info->mac))
+			!ether_addr_equal(mac, vf_info->mac))
+		{
 			return FM10K_ERR_PARAM;
+		}
 
 		set = !(vlan & FM10K_VLAN_CLEAR);
 		vlan &= ~FM10K_VLAN_CLEAR;
 
 		err = fm10k_iov_select_vid(vf_info, vlan);
+
 		if (err < 0)
+		{
 			return err;
+		}
 
 		vlan = (u16)err;
 
 		/* notify switch of request for new unicast address */
 		err = hw->mac.ops.update_uc_addr(hw, vf_info->glort,
-						 mac, vlan, set, 0);
+										 mac, vlan, set, 0);
 	}
 
-	if (!err && !!results[FM10K_MAC_VLAN_MSG_MULTICAST]) {
+	if (!err && !!results[FM10K_MAC_VLAN_MSG_MULTICAST])
+	{
 		result = results[FM10K_MAC_VLAN_MSG_MULTICAST];
 
 		/* record multicast MAC address requested */
 		err = fm10k_tlv_attr_get_mac_vlan(result, mac, &vlan);
+
 		if (err)
+		{
 			return err;
+		}
 
 		/* verify that the VF is allowed to request multicast */
 		if (!(vf_info->vf_flags & FM10K_VF_FLAG_MULTI_ENABLED))
+		{
 			return FM10K_ERR_PARAM;
+		}
 
 		set = !(vlan & FM10K_VLAN_CLEAR);
 		vlan &= ~FM10K_VLAN_CLEAR;
 
 		err = fm10k_iov_select_vid(vf_info, vlan);
+
 		if (err < 0)
+		{
 			return err;
+		}
 
 		vlan = (u16)err;
 
 		/* notify switch of request for new multicast address */
 		err = hw->mac.ops.update_mc_addr(hw, vf_info->glort,
-						 mac, vlan, set);
+										 mac, vlan, set);
 	}
 
 	return err;
@@ -1329,30 +1530,43 @@ s32 fm10k_iov_msg_mac_vlan_pf(struct fm10k_hw *hw, u32 **results,
  *  mode.  If not modes match it will request we disable the port
  **/
 static u8 fm10k_iov_supported_xcast_mode_pf(struct fm10k_vf_info *vf_info,
-					    u8 mode)
+		u8 mode)
 {
 	u8 vf_flags = vf_info->vf_flags;
 
 	/* match up mode to capabilities as best as possible */
-	switch (mode) {
-	case FM10K_XCAST_MODE_PROMISC:
-		if (vf_flags & FM10K_VF_FLAG_PROMISC_CAPABLE)
-			return FM10K_XCAST_MODE_PROMISC;
+	switch (mode)
+	{
+		case FM10K_XCAST_MODE_PROMISC:
+			if (vf_flags & FM10K_VF_FLAG_PROMISC_CAPABLE)
+			{
+				return FM10K_XCAST_MODE_PROMISC;
+			}
+
 		/* fallthough */
-	case FM10K_XCAST_MODE_ALLMULTI:
-		if (vf_flags & FM10K_VF_FLAG_ALLMULTI_CAPABLE)
-			return FM10K_XCAST_MODE_ALLMULTI;
+		case FM10K_XCAST_MODE_ALLMULTI:
+			if (vf_flags & FM10K_VF_FLAG_ALLMULTI_CAPABLE)
+			{
+				return FM10K_XCAST_MODE_ALLMULTI;
+			}
+
 		/* fallthough */
-	case FM10K_XCAST_MODE_MULTI:
-		if (vf_flags & FM10K_VF_FLAG_MULTI_CAPABLE)
-			return FM10K_XCAST_MODE_MULTI;
+		case FM10K_XCAST_MODE_MULTI:
+			if (vf_flags & FM10K_VF_FLAG_MULTI_CAPABLE)
+			{
+				return FM10K_XCAST_MODE_MULTI;
+			}
+
 		/* fallthough */
-	case FM10K_XCAST_MODE_NONE:
-		if (vf_flags & FM10K_VF_FLAG_NONE_CAPABLE)
-			return FM10K_XCAST_MODE_NONE;
+		case FM10K_XCAST_MODE_NONE:
+			if (vf_flags & FM10K_VF_FLAG_NONE_CAPABLE)
+			{
+				return FM10K_XCAST_MODE_NONE;
+			}
+
 		/* fallthough */
-	default:
-		break;
+		default:
+			break;
 	}
 
 	/* disable interface as it should not be able to request any */
@@ -1370,7 +1584,7 @@ static u8 fm10k_iov_supported_xcast_mode_pf(struct fm10k_vf_info *vf_info,
  *  the port.
  **/
 s32 fm10k_iov_msg_lport_state_pf(struct fm10k_hw *hw, u32 **results,
-				 struct fm10k_mbx_info *mbx)
+								 struct fm10k_mbx_info *mbx)
 {
 	struct fm10k_vf_info *vf_info = (struct fm10k_vf_info *)mbx;
 	u32 *result;
@@ -1380,30 +1594,40 @@ s32 fm10k_iov_msg_lport_state_pf(struct fm10k_hw *hw, u32 **results,
 
 	/* verify VF is allowed to enable even minimal mode */
 	if (!(vf_info->vf_flags & FM10K_VF_FLAG_NONE_CAPABLE))
+	{
 		return FM10K_ERR_PARAM;
+	}
 
-	if (!!results[FM10K_LPORT_STATE_MSG_XCAST_MODE]) {
+	if (!!results[FM10K_LPORT_STATE_MSG_XCAST_MODE])
+	{
 		result = results[FM10K_LPORT_STATE_MSG_XCAST_MODE];
 
 		/* XCAST mode update requested */
 		err = fm10k_tlv_attr_get_u8(result, &mode);
+
 		if (err)
+		{
 			return FM10K_ERR_PARAM;
+		}
 
 		/* prep for possible demotion depending on capabilities */
 		mode = fm10k_iov_supported_xcast_mode_pf(vf_info, mode);
 
 		/* if mode is not currently enabled, enable it */
 		if (!(FM10K_VF_FLAG_ENABLED(vf_info) & BIT(mode)))
+		{
 			fm10k_update_xcast_mode_pf(hw, vf_info->glort, mode);
+		}
 
 		/* swap mode back to a bit flag */
 		mode = FM10K_VF_FLAG_SET_MODE(mode);
-	} else if (!results[FM10K_LPORT_STATE_MSG_DISABLE]) {
+	}
+	else if (!results[FM10K_LPORT_STATE_MSG_DISABLE])
+	{
 		/* need to disable the port if it is already enabled */
 		if (FM10K_VF_FLAG_ENABLED(vf_info))
 			err = fm10k_update_lport_state_pf(hw, vf_info->glort,
-							  1, false);
+											  1, false);
 
 		/* we need to clear VF_FLAG_ENABLED flags in order to ensure
 		 * that we actually re-enable the LPORT state below. Note that
@@ -1411,7 +1635,9 @@ s32 fm10k_iov_msg_lport_state_pf(struct fm10k_hw *hw, u32 **results,
 		 * flags are already cleared.
 		 */
 		if (!err)
+		{
 			vf_info->vf_flags = FM10K_VF_FLAG_CAPABLE(vf_info);
+		}
 
 		/* when enabling the port we should reset the rate limiters */
 		hw->iov.ops.configure_tc(hw, vf_info->vf_idx, vf_info->rate);
@@ -1428,12 +1654,15 @@ s32 fm10k_iov_msg_lport_state_pf(struct fm10k_hw *hw, u32 **results,
 	/* if enable state toggled note the update */
 	if (!err && (!FM10K_VF_FLAG_ENABLED(vf_info) != !mode))
 		err = fm10k_update_lport_state_pf(hw, vf_info->glort, 1,
-						  !!mode);
+										  !!mode);
 
 	/* if state change succeeded, then update our stored state */
 	mode |= FM10K_VF_FLAG_CAPABLE(vf_info);
+
 	if (!err)
+	{
 		vf_info->vf_flags = mode;
+	}
 
 	return err;
 }
@@ -1447,7 +1676,7 @@ s32 fm10k_iov_msg_lport_state_pf(struct fm10k_hw *hw, u32 **results,
  *  statistics.
  **/
 static void fm10k_update_hw_stats_pf(struct fm10k_hw *hw,
-				     struct fm10k_hw_stats *stats)
+									 struct fm10k_hw_stats *stats)
 {
 	u32 timeout, ur, ca, um, xec, vlan_drop, loopback_drop, nodesc_drop;
 	u32 id, id_prev;
@@ -1456,34 +1685,37 @@ static void fm10k_update_hw_stats_pf(struct fm10k_hw *hw,
 	id = fm10k_read_reg(hw, FM10K_TXQCTL(0));
 
 	/* Read Global Statistics */
-	do {
+	do
+	{
 		timeout = fm10k_read_hw_stats_32b(hw, FM10K_STATS_TIMEOUT,
-						  &stats->timeout);
+										  &stats->timeout);
 		ur = fm10k_read_hw_stats_32b(hw, FM10K_STATS_UR, &stats->ur);
 		ca = fm10k_read_hw_stats_32b(hw, FM10K_STATS_CA, &stats->ca);
 		um = fm10k_read_hw_stats_32b(hw, FM10K_STATS_UM, &stats->um);
 		xec = fm10k_read_hw_stats_32b(hw, FM10K_STATS_XEC, &stats->xec);
 		vlan_drop = fm10k_read_hw_stats_32b(hw, FM10K_STATS_VLAN_DROP,
-						    &stats->vlan_drop);
+											&stats->vlan_drop);
 		loopback_drop =
 			fm10k_read_hw_stats_32b(hw,
-						FM10K_STATS_LOOPBACK_DROP,
-						&stats->loopback_drop);
+									FM10K_STATS_LOOPBACK_DROP,
+									&stats->loopback_drop);
 		nodesc_drop = fm10k_read_hw_stats_32b(hw,
-						      FM10K_STATS_NODESC_DROP,
-						      &stats->nodesc_drop);
+											  FM10K_STATS_NODESC_DROP,
+											  &stats->nodesc_drop);
 
 		/* if value has not changed then we have consistent data */
 		id_prev = id;
 		id = fm10k_read_reg(hw, FM10K_TXQCTL(0));
-	} while ((id ^ id_prev) & FM10K_TXQCTL_ID_MASK);
+	}
+	while ((id ^ id_prev) & FM10K_TXQCTL_ID_MASK);
 
 	/* drop non-ID bits and set VALID ID bit */
 	id &= FM10K_TXQCTL_ID_MASK;
 	id |= FM10K_STAT_VALID;
 
 	/* Update Global Statistics */
-	if (stats->stats_idx == id) {
+	if (stats->stats_idx == id)
+	{
 		stats->timeout.count += timeout;
 		stats->ur.count += ur;
 		stats->ca.count += ca;
@@ -1518,7 +1750,7 @@ static void fm10k_update_hw_stats_pf(struct fm10k_hw *hw,
  *  statistics.
  **/
 static void fm10k_rebind_hw_stats_pf(struct fm10k_hw *hw,
-				     struct fm10k_hw_stats *stats)
+									 struct fm10k_hw_stats *stats)
 {
 	/* Unbind Global Statistics */
 	fm10k_unbind_hw_stats_32b(&stats->timeout);
@@ -1565,24 +1797,29 @@ static void fm10k_set_dma_mask_pf(struct fm10k_hw *hw, u64 dma_mask)
  *  Returns ERR_PARAM if invalid register is specified or no error is present.
  **/
 static s32 fm10k_get_fault_pf(struct fm10k_hw *hw, int type,
-			      struct fm10k_fault *fault)
+							  struct fm10k_fault *fault)
 {
 	u32 func;
 
 	/* verify the fault register is in range and is aligned */
-	switch (type) {
-	case FM10K_PCA_FAULT:
-	case FM10K_THI_FAULT:
-	case FM10K_FUM_FAULT:
-		break;
-	default:
-		return FM10K_ERR_PARAM;
+	switch (type)
+	{
+		case FM10K_PCA_FAULT:
+		case FM10K_THI_FAULT:
+		case FM10K_FUM_FAULT:
+			break;
+
+		default:
+			return FM10K_ERR_PARAM;
 	}
 
 	/* only service faults that are valid */
 	func = fm10k_read_reg(hw, type + FM10K_FAULT_FUNC);
+
 	if (!(func & FM10K_FAULT_FUNC_VALID))
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	/* read remaining fields */
 	fault->address = fm10k_read_reg(hw, type + FM10K_FAULT_ADDR_HI);
@@ -1595,10 +1832,12 @@ static s32 fm10k_get_fault_pf(struct fm10k_hw *hw, int type,
 
 	/* Record which function triggered the error */
 	if (func & FM10K_FAULT_FUNC_PF)
+	{
 		fault->func = 0;
+	}
 	else
 		fault->func = 1 + ((func & FM10K_FAULT_FUNC_VF_MASK) >>
-				   FM10K_FAULT_FUNC_VF_SHIFT);
+						   FM10K_FAULT_FUNC_VF_SHIFT);
 
 	/* record fault type */
 	fault->type = func & FM10K_FAULT_FUNC_TYPE_MASK;
@@ -1638,17 +1877,21 @@ static s32 fm10k_get_host_state_pf(struct fm10k_hw *hw, bool *switch_ready)
 
 	/* verify the switch is ready for interaction */
 	dma_ctrl2 = fm10k_read_reg(hw, FM10K_DMA_CTRL2);
+
 	if (!(dma_ctrl2 & FM10K_DMA_CTRL2_SWITCH_READY))
+	{
 		return 0;
+	}
 
 	/* retrieve generic host state info */
 	return fm10k_get_host_state_generic(hw, switch_ready);
 }
 
 /* This structure defines the attibutes to be parsed below */
-const struct fm10k_tlv_attr fm10k_lport_map_msg_attr[] = {
+const struct fm10k_tlv_attr fm10k_lport_map_msg_attr[] =
+{
 	FM10K_TLV_ATTR_LE_STRUCT(FM10K_PF_ATTR_ID_ERR,
-				 sizeof(struct fm10k_swapi_error)),
+	sizeof(struct fm10k_swapi_error)),
 	FM10K_TLV_ATTR_U32(FM10K_PF_ATTR_ID_LPORT_MAP),
 	FM10K_TLV_ATTR_LAST
 };
@@ -1663,16 +1906,19 @@ const struct fm10k_tlv_attr fm10k_lport_map_msg_attr[] = {
  *  switch API.
  **/
 s32 fm10k_msg_lport_map_pf(struct fm10k_hw *hw, u32 **results,
-			   struct fm10k_mbx_info *mbx)
+						   struct fm10k_mbx_info *mbx)
 {
 	u16 glort, mask;
 	u32 dglort_map;
 	s32 err;
 
 	err = fm10k_tlv_attr_get_u32(results[FM10K_PF_ATTR_ID_LPORT_MAP],
-				     &dglort_map);
+								 &dglort_map);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* extract values out of the header */
 	glort = FM10K_MSG_HDR_FIELD_GET(dglort_map, LPORT_MAP_GLORT);
@@ -1680,11 +1926,15 @@ s32 fm10k_msg_lport_map_pf(struct fm10k_hw *hw, u32 **results,
 
 	/* verify mask is set and none of the masked bits in glort are set */
 	if (!mask || (glort & ~mask))
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	/* verify the mask is contiguous, and that it is 1's followed by 0's */
 	if (((~(mask - 1) & mask) + mask) & FM10K_DGLORTMAP_NONE)
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	/* record the glort, mask, and port count */
 	hw->mac.dglort_map = dglort_map;
@@ -1692,7 +1942,8 @@ s32 fm10k_msg_lport_map_pf(struct fm10k_hw *hw, u32 **results,
 	return 0;
 }
 
-const struct fm10k_tlv_attr fm10k_update_pvid_msg_attr[] = {
+const struct fm10k_tlv_attr fm10k_update_pvid_msg_attr[] =
+{
 	FM10K_TLV_ATTR_U32(FM10K_PF_ATTR_ID_UPDATE_PVID),
 	FM10K_TLV_ATTR_LAST
 };
@@ -1706,16 +1957,19 @@ const struct fm10k_tlv_attr fm10k_update_pvid_msg_attr[] = {
  *  This handler configures the default VLAN for the PF
  **/
 static s32 fm10k_msg_update_pvid_pf(struct fm10k_hw *hw, u32 **results,
-				    struct fm10k_mbx_info *mbx)
+									struct fm10k_mbx_info *mbx)
 {
 	u16 glort, pvid;
 	u32 pvid_update;
 	s32 err;
 
 	err = fm10k_tlv_attr_get_u32(results[FM10K_PF_ATTR_ID_UPDATE_PVID],
-				     &pvid_update);
+								 &pvid_update);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* extract values from the pvid update */
 	glort = FM10K_MSG_HDR_FIELD_GET(pvid_update, UPDATE_PVID_GLORT);
@@ -1723,11 +1977,15 @@ static s32 fm10k_msg_update_pvid_pf(struct fm10k_hw *hw, u32 **results,
 
 	/* if glort is not valid return error */
 	if (!fm10k_glort_valid_pf(hw, glort))
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	/* verify VLAN ID is valid */
 	if (pvid >= FM10K_VLAN_TABLE_VID_MAX)
+	{
 		return FM10K_ERR_PARAM;
+	}
 
 	/* record the port VLAN ID value */
 	hw->mac.default_vid = pvid;
@@ -1744,16 +2002,17 @@ static s32 fm10k_msg_update_pvid_pf(struct fm10k_hw *hw, u32 **results,
  *  the hw struct.
  **/
 static void fm10k_record_global_table_data(struct fm10k_global_table_data *from,
-					   struct fm10k_swapi_table_info *to)
+		struct fm10k_swapi_table_info *to)
 {
 	/* convert from le32 struct to CPU byte ordered values */
 	to->used = le32_to_cpu(from->used);
 	to->avail = le32_to_cpu(from->avail);
 }
 
-const struct fm10k_tlv_attr fm10k_err_msg_attr[] = {
+const struct fm10k_tlv_attr fm10k_err_msg_attr[] =
+{
 	FM10K_TLV_ATTR_LE_STRUCT(FM10K_PF_ATTR_ID_ERR,
-				 sizeof(struct fm10k_swapi_error)),
+	sizeof(struct fm10k_swapi_error)),
 	FM10K_TLV_ATTR_LAST
 };
 
@@ -1767,16 +2026,19 @@ const struct fm10k_tlv_attr fm10k_err_msg_attr[] = {
  *  messages that the PF has sent.
  **/
 s32 fm10k_msg_err_pf(struct fm10k_hw *hw, u32 **results,
-		     struct fm10k_mbx_info *mbx)
+					 struct fm10k_mbx_info *mbx)
 {
 	struct fm10k_swapi_error err_msg;
 	s32 err;
 
 	/* extract structure from message */
 	err = fm10k_tlv_attr_get_le_struct(results[FM10K_PF_ATTR_ID_ERR],
-					   &err_msg, sizeof(err_msg));
+									   &err_msg, sizeof(err_msg));
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* record table status */
 	fm10k_record_global_table_data(&err_msg.mac, &hw->swapi.mac);
@@ -1789,7 +2051,8 @@ s32 fm10k_msg_err_pf(struct fm10k_hw *hw, u32 **results,
 	return 0;
 }
 
-static const struct fm10k_msg_data fm10k_msg_data_pf[] = {
+static const struct fm10k_msg_data fm10k_msg_data_pf[] =
+{
 	FM10K_PF_MSG_ERR_HANDLER(XCAST_MODES, fm10k_msg_err_pf),
 	FM10K_PF_MSG_ERR_HANDLER(UPDATE_MAC_FWD_RULE, fm10k_msg_err_pf),
 	FM10K_PF_MSG_LPORT_MAP_HANDLER(fm10k_msg_lport_map_pf),
@@ -1799,7 +2062,8 @@ static const struct fm10k_msg_data fm10k_msg_data_pf[] = {
 	FM10K_TLV_MSG_ERROR_HANDLER(fm10k_tlv_msg_error),
 };
 
-static const struct fm10k_mac_ops mac_ops_pf = {
+static const struct fm10k_mac_ops mac_ops_pf =
+{
 	.get_bus_info		= fm10k_get_bus_info_generic,
 	.reset_hw		= fm10k_reset_hw_pf,
 	.init_hw		= fm10k_init_hw_pf,
@@ -1821,7 +2085,8 @@ static const struct fm10k_mac_ops mac_ops_pf = {
 	.request_lport_map	= fm10k_request_lport_map_pf,
 };
 
-static const struct fm10k_iov_ops iov_ops_pf = {
+static const struct fm10k_iov_ops iov_ops_pf =
+{
 	.assign_resources		= fm10k_iov_assign_resources_pf,
 	.configure_tc			= fm10k_iov_configure_tc_pf,
 	.assign_int_moderator		= fm10k_iov_assign_int_moderator_pf,
@@ -1839,7 +2104,8 @@ static s32 fm10k_get_invariants_pf(struct fm10k_hw *hw)
 	return fm10k_sm_mbx_init(hw, &hw->mbx, fm10k_msg_data_pf);
 }
 
-const struct fm10k_info fm10k_pf_info = {
+const struct fm10k_info fm10k_pf_info =
+{
 	.mac		= fm10k_mac_pf,
 	.get_invariants	= fm10k_get_invariants_pf,
 	.mac_ops	= &mac_ops_pf,

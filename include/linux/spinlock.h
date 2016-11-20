@@ -64,14 +64,14 @@
 #define LOCK_SECTION_NAME ".text..lock."KBUILD_BASENAME
 
 #define LOCK_SECTION_START(extra)               \
-        ".subsection 1\n\t"                     \
-        extra                                   \
-        ".ifndef " LOCK_SECTION_NAME "\n\t"     \
-        LOCK_SECTION_NAME ":\n\t"               \
-        ".endif\n"
+	".subsection 1\n\t"                     \
+	extra                                   \
+	".ifndef " LOCK_SECTION_NAME "\n\t"     \
+	LOCK_SECTION_NAME ":\n\t"               \
+	".endif\n"
 
 #define LOCK_SECTION_END                        \
-        ".previous\n\t"
+	".previous\n\t"
 
 #define __lockfunc __attribute__((section(".spinlock.text")))
 
@@ -84,20 +84,20 @@
  * Pull the arch_spin*() functions/declarations (UP-nondebug doesn't need them):
  */
 #ifdef CONFIG_SMP
-# include <asm/spinlock.h>
+	#include <asm/spinlock.h>
 #else
-# include <linux/spinlock_up.h>
+	#include <linux/spinlock_up.h>
 #endif
 
 #ifdef CONFIG_DEBUG_SPINLOCK
-  extern void __raw_spin_lock_init(raw_spinlock_t *lock, const char *name,
-				   struct lock_class_key *key);
+extern void __raw_spin_lock_init(raw_spinlock_t *lock, const char *name,
+								 struct lock_class_key *key);
 # define raw_spin_lock_init(lock)				\
-do {								\
-	static struct lock_class_key __key;			\
-								\
-	__raw_spin_lock_init((lock), #lock, &__key);		\
-} while (0)
+	do {								\
+		static struct lock_class_key __key;			\
+		\
+		__raw_spin_lock_init((lock), #lock, &__key);		\
+	} while (0)
 
 #else
 # define raw_spin_lock_init(lock)				\
@@ -107,14 +107,14 @@ do {								\
 #define raw_spin_is_locked(lock)	arch_spin_is_locked(&(lock)->raw_lock)
 
 #ifdef CONFIG_GENERIC_LOCKBREAK
-#define raw_spin_is_contended(lock) ((lock)->break_lock)
+	#define raw_spin_is_contended(lock) ((lock)->break_lock)
 #else
 
-#ifdef arch_spin_is_contended
-#define raw_spin_is_contended(lock)	arch_spin_is_contended(&(lock)->raw_lock)
-#else
-#define raw_spin_is_contended(lock)	(((void)(lock), 0))
-#endif /*arch_spin_is_contended*/
+	#ifdef arch_spin_is_contended
+		#define raw_spin_is_contended(lock)	arch_spin_is_contended(&(lock)->raw_lock)
+	#else
+		#define raw_spin_is_contended(lock)	(((void)(lock), 0))
+	#endif /*arch_spin_is_contended*/
 #endif
 
 /*
@@ -127,7 +127,7 @@ do {								\
  * serialize it with another STORE done by spin_lock().
  */
 #ifndef smp_mb__before_spinlock
-#define smp_mb__before_spinlock()	smp_wmb()
+	#define smp_mb__before_spinlock()	smp_wmb()
 #endif
 
 /**
@@ -137,10 +137,10 @@ do {								\
 #define raw_spin_unlock_wait(lock)	arch_spin_unlock_wait(&(lock)->raw_lock)
 
 #ifdef CONFIG_DEBUG_SPINLOCK
- extern void do_raw_spin_lock(raw_spinlock_t *lock) __acquires(lock);
+extern void do_raw_spin_lock(raw_spinlock_t *lock) __acquires(lock);
 #define do_raw_spin_lock_flags(lock, flags) do_raw_spin_lock(lock)
- extern int do_raw_spin_trylock(raw_spinlock_t *lock);
- extern void do_raw_spin_unlock(raw_spinlock_t *lock) __releases(lock);
+extern int do_raw_spin_trylock(raw_spinlock_t *lock);
+extern void do_raw_spin_unlock(raw_spinlock_t *lock) __releases(lock);
 #else
 static inline void do_raw_spin_lock(raw_spinlock_t *lock) __acquires(lock)
 {
@@ -184,10 +184,10 @@ static inline void do_raw_spin_unlock(raw_spinlock_t *lock) __releases(lock)
 	_raw_spin_lock_bh_nested(lock, subclass)
 
 # define raw_spin_lock_nest_lock(lock, nest_lock)			\
-	 do {								\
-		 typecheck(struct lockdep_map *, &(nest_lock)->dep_map);\
-		 _raw_spin_lock_nest_lock(lock, &(nest_lock)->dep_map);	\
-	 } while (0)
+	do {								\
+		typecheck(struct lockdep_map *, &(nest_lock)->dep_map);\
+		_raw_spin_lock_nest_lock(lock, &(nest_lock)->dep_map);	\
+	} while (0)
 #else
 /*
  * Always evaluate the 'subclass' argument to avoid that the compiler
@@ -251,18 +251,18 @@ static inline void do_raw_spin_unlock(raw_spinlock_t *lock) __releases(lock)
 	__cond_lock(lock, _raw_spin_trylock_bh(lock))
 
 #define raw_spin_trylock_irq(lock) \
-({ \
-	local_irq_disable(); \
-	raw_spin_trylock(lock) ? \
-	1 : ({ local_irq_enable(); 0;  }); \
-})
+	({ \
+		local_irq_disable(); \
+		raw_spin_trylock(lock) ? \
+		1 : ({ local_irq_enable(); 0;  }); \
+	})
 
 #define raw_spin_trylock_irqsave(lock, flags) \
-({ \
-	local_irq_save(flags); \
-	raw_spin_trylock(lock) ? \
-	1 : ({ local_irq_restore(flags); 0; }); \
-})
+	({ \
+		local_irq_save(flags); \
+		raw_spin_trylock(lock) ? \
+		1 : ({ local_irq_restore(flags); 0; }); \
+	})
 
 /**
  * raw_spin_can_lock - would raw_spin_trylock() succeed?
@@ -277,9 +277,9 @@ static inline void do_raw_spin_unlock(raw_spinlock_t *lock) __releases(lock)
  * Pull the _spin_*()/_read_*()/_write_*() functions/declarations:
  */
 #if defined(CONFIG_SMP) || defined(CONFIG_DEBUG_SPINLOCK)
-# include <linux/spinlock_api_smp.h>
+	#include <linux/spinlock_api_smp.h>
 #else
-# include <linux/spinlock_api_up.h>
+	#include <linux/spinlock_api_up.h>
 #endif
 
 /*
@@ -292,10 +292,10 @@ static __always_inline raw_spinlock_t *spinlock_check(spinlock_t *lock)
 }
 
 #define spin_lock_init(_lock)				\
-do {							\
-	spinlock_check(_lock);				\
-	raw_spin_lock_init(&(_lock)->rlock);		\
-} while (0)
+	do {							\
+		spinlock_check(_lock);				\
+		raw_spin_lock_init(&(_lock)->rlock);		\
+	} while (0)
 
 static __always_inline void spin_lock(spinlock_t *lock)
 {
@@ -313,19 +313,19 @@ static __always_inline int spin_trylock(spinlock_t *lock)
 }
 
 #define spin_lock_nested(lock, subclass)			\
-do {								\
-	raw_spin_lock_nested(spinlock_check(lock), subclass);	\
-} while (0)
+	do {								\
+		raw_spin_lock_nested(spinlock_check(lock), subclass);	\
+	} while (0)
 
 #define spin_lock_bh_nested(lock, subclass)			\
-do {								\
-	raw_spin_lock_bh_nested(spinlock_check(lock), subclass);\
-} while (0)
+	do {								\
+		raw_spin_lock_bh_nested(spinlock_check(lock), subclass);\
+	} while (0)
 
 #define spin_lock_nest_lock(lock, nest_lock)				\
-do {									\
-	raw_spin_lock_nest_lock(spinlock_check(lock), nest_lock);	\
-} while (0)
+	do {									\
+		raw_spin_lock_nest_lock(spinlock_check(lock), nest_lock);	\
+	} while (0)
 
 static __always_inline void spin_lock_irq(spinlock_t *lock)
 {
@@ -333,14 +333,14 @@ static __always_inline void spin_lock_irq(spinlock_t *lock)
 }
 
 #define spin_lock_irqsave(lock, flags)				\
-do {								\
-	raw_spin_lock_irqsave(spinlock_check(lock), flags);	\
-} while (0)
+	do {								\
+		raw_spin_lock_irqsave(spinlock_check(lock), flags);	\
+	} while (0)
 
 #define spin_lock_irqsave_nested(lock, flags, subclass)			\
-do {									\
-	raw_spin_lock_irqsave_nested(spinlock_check(lock), flags, subclass); \
-} while (0)
+	do {									\
+		raw_spin_lock_irqsave_nested(spinlock_check(lock), flags, subclass); \
+	} while (0)
 
 static __always_inline void spin_unlock(spinlock_t *lock)
 {
@@ -373,9 +373,9 @@ static __always_inline int spin_trylock_irq(spinlock_t *lock)
 }
 
 #define spin_trylock_irqsave(lock, flags)			\
-({								\
-	raw_spin_trylock_irqsave(spinlock_check(lock), flags); \
-})
+	({								\
+		raw_spin_trylock_irqsave(spinlock_check(lock), flags); \
+	})
 
 static __always_inline void spin_unlock_wait(spinlock_t *lock)
 {
@@ -414,6 +414,6 @@ static __always_inline int spin_can_lock(spinlock_t *lock)
  */
 extern int _atomic_dec_and_lock(atomic_t *atomic, spinlock_t *lock);
 #define atomic_dec_and_lock(atomic, lock) \
-		__cond_lock(lock, _atomic_dec_and_lock(atomic, lock))
+	__cond_lock(lock, _atomic_dec_and_lock(atomic, lock))
 
 #endif /* __LINUX_SPINLOCK_H */

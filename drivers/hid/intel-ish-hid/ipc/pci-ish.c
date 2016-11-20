@@ -30,7 +30,8 @@
 #include "ishtp-dev.h"
 #include "hw-ish.h"
 
-static const struct pci_device_id ish_pci_tbl[] = {
+static const struct pci_device_id ish_pci_tbl[] =
+{
 	{PCI_DEVICE(PCI_VENDOR_ID_INTEL, CHV_DEVICE_ID)},
 	{PCI_DEVICE(PCI_VENDOR_ID_INTEL, BXT_Ax_DEVICE_ID)},
 	{PCI_DEVICE(PCI_VENDOR_ID_INTEL, BXT_Bx_DEVICE_ID)},
@@ -49,7 +50,8 @@ MODULE_DEVICE_TABLE(pci, ish_pci_tbl);
  */
 static void ish_event_tracer(struct ishtp_device *dev, char *format, ...)
 {
-	if (trace_ishtp_dump_enabled()) {
+	if (trace_ishtp_dump_enabled())
+	{
 		va_list args;
 		char tmp_buf[100];
 
@@ -77,14 +79,18 @@ static int ish_init(struct ishtp_device *dev)
 
 	/* Set the state of ISH HW to start */
 	ret = ish_hw_start(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev->devc, "ISH: hw start failed.\n");
 		return ret;
 	}
 
 	/* Start the inter process communication to ISH processor */
 	ret = ishtp_start(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev->devc, "ISHTP: Protocol init failed.\n");
 		return ret;
 	}
@@ -109,7 +115,9 @@ static int ish_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	/* enable pci dev */
 	ret = pci_enable_device(pdev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "ISH: Failed to enable PCI device\n");
 		return ret;
 	}
@@ -119,23 +127,30 @@ static int ish_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	/* pci request regions for ISH driver */
 	ret = pci_request_regions(pdev, KBUILD_MODNAME);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "ISH: Failed to get PCI regions\n");
 		goto disable_device;
 	}
 
 	/* allocates and initializes the ISH dev structure */
 	dev = ish_dev_init(pdev);
-	if (!dev) {
+
+	if (!dev)
+	{
 		ret = -ENOMEM;
 		goto release_regions;
 	}
+
 	hw = to_ish_hw(dev);
 	dev->print_log = ish_event_tracer;
 
 	/* mapping IO device memory */
 	hw->mem_addr = pci_iomap(pdev, 0, 0);
-	if (!hw->mem_addr) {
+
+	if (!hw->mem_addr)
+	{
 		dev_err(&pdev->dev, "ISH: mapping I/O range failure\n");
 		ret = -ENOMEM;
 		goto free_device;
@@ -147,10 +162,12 @@ static int ish_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	/* request and enable interrupt */
 	ret = request_irq(pdev->irq, ish_irq_handler, IRQF_SHARED,
-			  KBUILD_MODNAME, dev);
-	if (ret) {
+					  KBUILD_MODNAME, dev);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "ISH: request IRQ failure (%d)\n",
-			pdev->irq);
+				pdev->irq);
 		goto free_device;
 	}
 
@@ -160,8 +177,11 @@ static int ish_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	init_waitqueue_head(&dev->resume_wait);
 
 	ret = ish_init(dev);
+
 	if (ret)
+	{
 		goto free_irq;
+	}
 
 	return 0;
 
@@ -225,8 +245,8 @@ static void ish_resume_handler(struct work_struct *work)
 	/* 50 ms to get resume response */
 	if (dev->resume_flag)
 		ret = wait_event_interruptible_timeout(dev->resume_wait,
-						       !dev->resume_flag,
-						       msecs_to_jiffies(50));
+											   !dev->resume_flag,
+											   msecs_to_jiffies(50));
 
 	/*
 	 * If no resume response. This platform  is not S0ix compatible
@@ -234,7 +254,9 @@ static void ish_resume_handler(struct work_struct *work)
 	 * need to go through init sequence again
 	 */
 	if (dev->resume_flag)
+	{
 		ish_init(dev);
+	}
 }
 
 /**
@@ -251,12 +273,15 @@ static int ish_suspend(struct device *device)
 	struct ishtp_device *dev = pci_get_drvdata(pdev);
 
 	enable_irq_wake(pdev->irq);
+
 	/*
 	 * If previous suspend hasn't been asnwered then ISH is likely dead,
 	 * don't attempt nested notification
 	 */
 	if (dev->suspend_flag)
+	{
 		return	0;
+	}
 
 	dev->resume_flag = 0;
 	dev->suspend_flag = 1;
@@ -265,8 +290,8 @@ static int ish_suspend(struct device *device)
 	/* 25 ms should be enough for live ISH to flush all IPC buf */
 	if (dev->suspend_flag)
 		wait_event_interruptible_timeout(dev->suspend_wait,
-						 !dev->suspend_flag,
-						  msecs_to_jiffies(25));
+										 !dev->suspend_flag,
+										 msecs_to_jiffies(25));
 
 	return 0;
 }
@@ -294,7 +319,8 @@ static int ish_resume(struct device *device)
 	return 0;
 }
 
-static const struct dev_pm_ops ish_pm_ops = {
+static const struct dev_pm_ops ish_pm_ops =
+{
 	.suspend = ish_suspend,
 	.resume = ish_resume,
 };
@@ -303,7 +329,8 @@ static const struct dev_pm_ops ish_pm_ops = {
 #define ISHTP_ISH_PM_OPS	NULL
 #endif /* CONFIG_PM */
 
-static struct pci_driver ish_driver = {
+static struct pci_driver ish_driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = ish_pci_tbl,
 	.probe = ish_probe,

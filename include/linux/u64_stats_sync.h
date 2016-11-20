@@ -61,7 +61,8 @@
  */
 #include <linux/seqlock.h>
 
-struct u64_stats_sync {
+struct u64_stats_sync
+{
 #if BITS_PER_LONG==32 && defined(CONFIG_SMP)
 	seqcount_t	seq;
 #endif
@@ -121,7 +122,7 @@ static inline unsigned int u64_stats_fetch_begin(const struct u64_stats_sync *sy
 }
 
 static inline bool __u64_stats_fetch_retry(const struct u64_stats_sync *syncp,
-					 unsigned int start)
+		unsigned int start)
 {
 #if BITS_PER_LONG==32 && defined(CONFIG_SMP)
 	return read_seqcount_retry(&syncp->seq, start);
@@ -131,7 +132,7 @@ static inline bool __u64_stats_fetch_retry(const struct u64_stats_sync *syncp,
 }
 
 static inline bool u64_stats_fetch_retry(const struct u64_stats_sync *syncp,
-					 unsigned int start)
+		unsigned int start)
 {
 #if BITS_PER_LONG==32 && !defined(CONFIG_SMP)
 	preempt_enable();
@@ -154,7 +155,7 @@ static inline unsigned int u64_stats_fetch_begin_irq(const struct u64_stats_sync
 }
 
 static inline bool u64_stats_fetch_retry_irq(const struct u64_stats_sync *syncp,
-					     unsigned int start)
+		unsigned int start)
 {
 #if BITS_PER_LONG==32 && !defined(CONFIG_SMP)
 	local_irq_enable();

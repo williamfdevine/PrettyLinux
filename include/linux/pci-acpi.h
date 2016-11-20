@@ -17,7 +17,7 @@ static inline acpi_status pci_acpi_remove_bus_pm_notifier(struct acpi_device *de
 	return acpi_remove_pm_notifier(dev);
 }
 extern acpi_status pci_acpi_add_pm_notifier(struct acpi_device *dev,
-					     struct pci_dev *pci_dev);
+		struct pci_dev *pci_dev);
 static inline acpi_status pci_acpi_remove_pm_notifier(struct acpi_device *dev)
 {
 	return acpi_remove_pm_notifier(dev);
@@ -32,7 +32,9 @@ static inline acpi_handle acpi_find_root_bridge_handle(struct pci_dev *pdev)
 
 	/* Find a PCI root bus */
 	while (!pci_is_root_bus(pbus))
+	{
 		pbus = pbus->parent;
+	}
 
 	return ACPI_HANDLE(pbus->bridge);
 }
@@ -42,11 +44,16 @@ static inline acpi_handle acpi_pci_get_bridge_handle(struct pci_bus *pbus)
 	struct device *dev;
 
 	if (pci_is_root_bus(pbus))
+	{
 		dev = pbus->bridge;
-	else {
+	}
+	else
+	{
 		/* If pbus is a virtual bus, there is no bridge to it */
 		if (!pbus->self)
+		{
 			return NULL;
+		}
 
 		dev = &pbus->self->dev;
 	}
@@ -57,7 +64,8 @@ static inline acpi_handle acpi_pci_get_bridge_handle(struct pci_bus *pbus)
 struct acpi_pci_root;
 struct acpi_pci_root_ops;
 
-struct acpi_pci_root_info {
+struct acpi_pci_root_info
+{
 	struct acpi_pci_root		*root;
 	struct acpi_device		*bridge;
 	struct acpi_pci_root_ops	*ops;
@@ -65,7 +73,8 @@ struct acpi_pci_root_info {
 	char				name[16];
 };
 
-struct acpi_pci_root_ops {
+struct acpi_pci_root_ops
+{
 	struct pci_ops *pci_ops;
 	int (*init_info)(struct acpi_pci_root_info *info);
 	void (*release_info)(struct acpi_pci_root_info *info);
@@ -74,9 +83,9 @@ struct acpi_pci_root_ops {
 
 extern int acpi_pci_probe_root_resources(struct acpi_pci_root_info *info);
 extern struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
-					    struct acpi_pci_root_ops *ops,
-					    struct acpi_pci_root_info *info,
-					    void *sd);
+		struct acpi_pci_root_ops *ops,
+		struct acpi_pci_root_info *info,
+		void *sd);
 
 void acpi_pci_add_bus(struct pci_bus *bus);
 void acpi_pci_remove_bus(struct pci_bus *bus);

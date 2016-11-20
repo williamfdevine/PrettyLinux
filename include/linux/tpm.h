@@ -33,11 +33,13 @@ struct tpm_chip;
 struct trusted_key_payload;
 struct trusted_key_options;
 
-enum TPM_OPS_FLAGS {
+enum TPM_OPS_FLAGS
+{
 	TPM_OPS_AUTO_STARTUP = BIT(0),
 };
 
-struct tpm_class_ops {
+struct tpm_class_ops
+{
 	unsigned int flags;
 	const u8 req_complete_mask;
 	const u8 req_complete_val;
@@ -47,7 +49,7 @@ struct tpm_class_ops {
 	void (*cancel) (struct tpm_chip *chip);
 	u8 (*status) (struct tpm_chip *chip);
 	bool (*update_timeouts)(struct tpm_chip *chip,
-				unsigned long *timeout_cap);
+							unsigned long *timeout_cap);
 
 };
 
@@ -59,38 +61,42 @@ extern int tpm_pcr_extend(u32 chip_num, int pcr_idx, const u8 *hash);
 extern int tpm_send(u32 chip_num, void *cmd, size_t buflen);
 extern int tpm_get_random(u32 chip_num, u8 *data, size_t max);
 extern int tpm_seal_trusted(u32 chip_num,
-			    struct trusted_key_payload *payload,
-			    struct trusted_key_options *options);
+							struct trusted_key_payload *payload,
+							struct trusted_key_options *options);
 extern int tpm_unseal_trusted(u32 chip_num,
-			      struct trusted_key_payload *payload,
-			      struct trusted_key_options *options);
+							  struct trusted_key_payload *payload,
+							  struct trusted_key_options *options);
 #else
 static inline int tpm_is_tpm2(u32 chip_num)
 {
 	return -ENODEV;
 }
-static inline int tpm_pcr_read(u32 chip_num, int pcr_idx, u8 *res_buf) {
+static inline int tpm_pcr_read(u32 chip_num, int pcr_idx, u8 *res_buf)
+{
 	return -ENODEV;
 }
-static inline int tpm_pcr_extend(u32 chip_num, int pcr_idx, const u8 *hash) {
+static inline int tpm_pcr_extend(u32 chip_num, int pcr_idx, const u8 *hash)
+{
 	return -ENODEV;
 }
-static inline int tpm_send(u32 chip_num, void *cmd, size_t buflen) {
+static inline int tpm_send(u32 chip_num, void *cmd, size_t buflen)
+{
 	return -ENODEV;
 }
-static inline int tpm_get_random(u32 chip_num, u8 *data, size_t max) {
+static inline int tpm_get_random(u32 chip_num, u8 *data, size_t max)
+{
 	return -ENODEV;
 }
 
 static inline int tpm_seal_trusted(u32 chip_num,
-				   struct trusted_key_payload *payload,
-				   struct trusted_key_options *options)
+								   struct trusted_key_payload *payload,
+								   struct trusted_key_options *options)
 {
 	return -ENODEV;
 }
 static inline int tpm_unseal_trusted(u32 chip_num,
-				     struct trusted_key_payload *payload,
-				     struct trusted_key_options *options)
+									 struct trusted_key_payload *payload,
+									 struct trusted_key_options *options)
 {
 	return -ENODEV;
 }

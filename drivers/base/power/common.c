@@ -29,14 +29,20 @@ int dev_pm_get_subsys_data(struct device *dev)
 	struct pm_subsys_data *psd;
 
 	psd = kzalloc(sizeof(*psd), GFP_KERNEL);
+
 	if (!psd)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_irq(&dev->power.lock);
 
-	if (dev->power.subsys_data) {
+	if (dev->power.subsys_data)
+	{
 		dev->power.subsys_data->refcount++;
-	} else {
+	}
+	else
+	{
 		spin_lock_init(&psd->lock);
 		psd->refcount = 1;
 		dev->power.subsys_data = psd;
@@ -67,15 +73,22 @@ void dev_pm_put_subsys_data(struct device *dev)
 	spin_lock_irq(&dev->power.lock);
 
 	psd = dev_to_psd(dev);
+
 	if (!psd)
+	{
 		goto out;
+	}
 
 	if (--psd->refcount == 0)
+	{
 		dev->power.subsys_data = NULL;
+	}
 	else
+	{
 		psd = NULL;
+	}
 
- out:
+out:
 	spin_unlock_irq(&dev->power.lock);
 	kfree(psd);
 }
@@ -105,8 +118,11 @@ int dev_pm_domain_attach(struct device *dev, bool power_on)
 	int ret;
 
 	ret = acpi_dev_pm_attach(dev, power_on);
+
 	if (ret)
+	{
 		ret = genpd_dev_pm_attach(dev);
+	}
 
 	return ret;
 }
@@ -127,7 +143,9 @@ EXPORT_SYMBOL_GPL(dev_pm_domain_attach);
 void dev_pm_domain_detach(struct device *dev, bool power_off)
 {
 	if (dev->pm_domain && dev->pm_domain->detach)
+	{
 		dev->pm_domain->detach(dev, power_off);
+	}
 }
 EXPORT_SYMBOL_GPL(dev_pm_domain_detach);
 
@@ -144,10 +162,12 @@ EXPORT_SYMBOL_GPL(dev_pm_domain_detach);
 void dev_pm_domain_set(struct device *dev, struct dev_pm_domain *pd)
 {
 	if (dev->pm_domain == pd)
+	{
 		return;
+	}
 
 	WARN(pd && device_is_bound(dev),
-	     "PM domains can only be changed for unbound devices\n");
+		 "PM domains can only be changed for unbound devices\n");
 	dev->pm_domain = pd;
 	device_pm_check_callbacks(dev);
 }

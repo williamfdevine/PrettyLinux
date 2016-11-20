@@ -18,7 +18,8 @@
 #include <linux/time.h>
 #include <linux/uidgid.h>
 
-struct kstat {
+struct kstat
+{
 	u64		ino;
 	dev_t		dev;
 	umode_t		mode;

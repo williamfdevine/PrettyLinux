@@ -1,4 +1,4 @@
-/* 
+/*
  * linux/mtio.h header file for Linux. Written by H. Bergman
  *
  * Modified for special ioctls provided by zftape in September 1997
@@ -16,7 +16,8 @@
  */
 
 /* structure for MTIOCTOP - mag tape op command */
-struct	mtop {
+struct	mtop
+{
 	short	mt_op;		/* operations defined below */
 	int	mt_count;	/* how many of them */
 };
@@ -51,7 +52,7 @@ struct	mtop {
 #define MTSEEK	22	/* seek to block (Tandberg, etc.) */
 #define MTTELL	23	/* tell block (Tandberg, etc.) */
 #define MTSETDRVBUFFER 24 /* set the drive buffering according to SCSI-2 */
-			/* ordinary buffered operation with code 1 */
+/* ordinary buffered operation with code 1 */
 #define MTFSS	25	/* space forward over setmarks */
 #define MTBSS	26	/* space backward over setmarks */
 #define MTWSM	27	/* write setmarks */
@@ -67,7 +68,8 @@ struct	mtop {
 
 /* structure for MTIOCGET - mag tape get status command */
 
-struct	mtget {
+struct	mtget
+{
 	long	mt_type;	/* type of magtape device */
 	long	mt_resid;	/* residual count: (not sure)
 				 *	number of bytes ignored, or
@@ -119,7 +121,8 @@ struct	mtget {
 
 /* structure for MTIOCPOS - mag tape get position command */
 
-struct	mtpos {
+struct	mtpos
+{
 	long 	mt_blkno;	/* current block number */
 };
 

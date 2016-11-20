@@ -2,10 +2,13 @@
 #include <linux/types.h>
 #include "r819xU_firmware_img.h"
 
-u32 Rtl8192UsbPHY_REGArray[] = {
-	0x0, };
+u32 Rtl8192UsbPHY_REGArray[] =
+{
+	0x0,
+};
 
-u32 Rtl8192UsbPHY_REG_1T2RArray[] = {
+u32 Rtl8192UsbPHY_REG_1T2RArray[] =
+{
 	0x800, 0x00000000,
 	0x804, 0x00000001,
 	0x808, 0x0000fc00,
@@ -156,7 +159,8 @@ u32 Rtl8192UsbPHY_REG_1T2RArray[] = {
 	0xe1c, 0x12121416,
 };
 
-u32 Rtl8192UsbRadioA_Array[] = {
+u32 Rtl8192UsbRadioA_Array[] =
+{
 	0x019, 0x00000003,
 	0x000, 0x000000bf,
 	0x001, 0x00000ee0,
@@ -282,7 +286,8 @@ u32 Rtl8192UsbRadioA_Array[] = {
 	0x007, 0x00000700,
 };
 
-u32 Rtl8192UsbRadioB_Array[] = {
+u32 Rtl8192UsbRadioB_Array[] =
+{
 	0x019, 0x00000003,
 	0x000, 0x000000bf,
 	0x001, 0x000006e0,
@@ -324,13 +329,18 @@ u32 Rtl8192UsbRadioB_Array[] = {
 	0x007, 0x00000700,
 };
 
-u32 Rtl8192UsbRadioC_Array[] = {
-	0x0, };
+u32 Rtl8192UsbRadioC_Array[] =
+{
+	0x0,
+};
 
-u32 Rtl8192UsbRadioD_Array[] = {
-	0x0, };
+u32 Rtl8192UsbRadioD_Array[] =
+{
+	0x0,
+};
 
-u32 Rtl8192UsbMACPHY_Array[] = {
+u32 Rtl8192UsbMACPHY_Array[] =
+{
 	0x03c, 0xffff0000, 0x00000f0f,
 	0x340, 0xffffffff, 0x161a1a1a,
 	0x344, 0xffffffff, 0x12121416,
@@ -339,7 +349,8 @@ u32 Rtl8192UsbMACPHY_Array[] = {
 	0x318, 0x00000fff, 0x00000100,
 };
 
-u32 Rtl8192UsbMACPHY_Array_PG[] = {
+u32 Rtl8192UsbMACPHY_Array_PG[] =
+{
 	0x03c, 0xffff0000, 0x00000f0f,
 	0xe00, 0xffffffff, 0x06090909,
 	0xe04, 0xffffffff, 0x00030306,
@@ -352,7 +363,8 @@ u32 Rtl8192UsbMACPHY_Array_PG[] = {
 	0x318, 0x00000fff, 0x00000800,
 };
 
-u32 Rtl8192UsbAGCTAB_Array[] = {
+u32 Rtl8192UsbAGCTAB_Array[] =
+{
 	0xc78, 0x7d000001,
 	0xc78, 0x7d010001,
 	0xc78, 0x7d020001,

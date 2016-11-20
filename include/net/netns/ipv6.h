@@ -10,7 +10,8 @@
 
 struct ctl_table_header;
 
-struct netns_sysctl_ipv6 {
+struct netns_sysctl_ipv6
+{
 #ifdef CONFIG_SYSCTL
 	struct ctl_table_header *hdr;
 	struct ctl_table_header *route_hdr;
@@ -38,7 +39,8 @@ struct netns_sysctl_ipv6 {
 	int flowlabel_state_ranges;
 };
 
-struct netns_ipv6 {
+struct netns_ipv6
+{
 	struct netns_sysctl_ipv6 sysctl;
 	struct ipv6_devconf	*devconf_all;
 	struct ipv6_devconf	*devconf_dflt;
@@ -88,7 +90,8 @@ struct netns_ipv6 {
 };
 
 #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
-struct netns_nf_frag {
+struct netns_nf_frag
+{
 	struct netns_sysctl_ipv6 sysctl;
 	struct netns_frags	frags;
 };

@@ -83,8 +83,9 @@
 #define D_SUBMODULE netdev
 #include "debug-levels.h"
 
-enum {
-/* netdev interface */
+enum
+{
+	/* netdev interface */
 	/* 20 secs? yep, this is the maximum timeout that the device
 	 * might take to get out of IDLE / negotiate it with the base
 	 * station. We add 1sec for good measure. */
@@ -107,13 +108,19 @@ int i2400m_open(struct net_device *net_dev)
 	d_fnstart(3, dev, "(net_dev %p [i2400m %p])\n", net_dev, i2400m);
 	/* Make sure we wait until init is complete... */
 	mutex_lock(&i2400m->init_mutex);
+
 	if (i2400m->updown)
+	{
 		result = 0;
+	}
 	else
+	{
 		result = -EBUSY;
+	}
+
 	mutex_unlock(&i2400m->init_mutex);
 	d_fnend(3, dev, "(net_dev %p [i2400m %p]) = %d\n",
-		net_dev, i2400m, result);
+			net_dev, i2400m, result);
 	return result;
 }
 
@@ -166,35 +173,53 @@ void i2400m_wake_tx_work(struct work_struct *ws)
 
 	d_fnstart(3, dev, "(ws %p i2400m %p skb %p)\n", ws, i2400m, skb);
 	result = -EINVAL;
-	if (skb == NULL) {
+
+	if (skb == NULL)
+	{
 		dev_err(dev, "WAKE&TX: skb disappeared!\n");
 		goto out_put;
 	}
+
 	/* If we have, somehow, lost the connection after this was
 	 * queued, don't do anything; this might be the device got
 	 * reset or just disconnected. */
 	if (unlikely(!netif_carrier_ok(net_dev)))
+	{
 		goto out_kfree;
+	}
+
 	result = i2400m_cmd_exit_idle(i2400m);
+
 	if (result == -EILSEQ)
+	{
 		result = 0;
-	if (result < 0) {
+	}
+
+	if (result < 0)
+	{
 		dev_err(dev, "WAKE&TX: device didn't get out of idle: "
-			"%d - resetting\n", result);
+				"%d - resetting\n", result);
 		i2400m_reset(i2400m, I2400M_RT_BUS);
 		goto error;
 	}
+
 	result = wait_event_timeout(i2400m->state_wq,
-				    i2400m->state != I2400M_SS_IDLE,
-				    net_dev->watchdog_timeo - HZ/2);
+								i2400m->state != I2400M_SS_IDLE,
+								net_dev->watchdog_timeo - HZ / 2);
+
 	if (result == 0)
+	{
 		result = -ETIMEDOUT;
-	if (result < 0) {
+	}
+
+	if (result < 0)
+	{
 		dev_err(dev, "WAKE&TX: error waiting for device to exit IDLE: "
-			"%d - resetting\n", result);
+				"%d - resetting\n", result);
 		i2400m_reset(i2400m, I2400M_RT_BUS);
 		goto error;
 	}
+
 	msleep(20);	/* device still needs some time or it drops it */
 	result = i2400m_tx(i2400m, skb->data, skb->len, I2400M_PT_DATA);
 error:
@@ -204,7 +229,7 @@ out_kfree:
 out_put:
 	i2400m_put(i2400m);
 	d_fnend(3, dev, "(ws %p i2400m %p skb %p) = void [%d]\n",
-		ws, i2400m, skb, result);
+			ws, i2400m, skb, result);
 }
 
 
@@ -251,7 +276,8 @@ void i2400m_net_wake_stop(struct i2400m *i2400m)
 	i2400m->wake_tx_skb = NULL;
 	spin_unlock_irqrestore(&i2400m->tx_lock, flags);
 
-	if (wake_tx_skb) {
+	if (wake_tx_skb)
+	{
 		i2400m_put(i2400m);
 		kfree_skb(wake_tx_skb);
 	}
@@ -273,25 +299,30 @@ void i2400m_net_wake_stop(struct i2400m *i2400m)
  */
 static
 int i2400m_net_wake_tx(struct i2400m *i2400m, struct net_device *net_dev,
-		       struct sk_buff *skb)
+					   struct sk_buff *skb)
 {
 	int result;
 	struct device *dev = i2400m_dev(i2400m);
 	unsigned long flags;
 
 	d_fnstart(3, dev, "(skb %p net_dev %p)\n", skb, net_dev);
-	if (net_ratelimit()) {
+
+	if (net_ratelimit())
+	{
 		d_printf(3, dev, "WAKE&NETTX: "
-			 "skb %p sending %d bytes to radio\n",
-			 skb, skb->len);
+				 "skb %p sending %d bytes to radio\n",
+				 skb, skb->len);
 		d_dump(4, dev, skb->data, skb->len);
 	}
+
 	/* We hold a ref count for i2400m and skb, so when
 	 * stopping() the device, we need to cancel that work
 	 * and if pending, release those resources. */
 	result = 0;
 	spin_lock_irqsave(&i2400m->tx_lock, flags);
-	if (!i2400m->wake_tx_skb) {
+
+	if (!i2400m->wake_tx_skb)
+	{
 		netif_stop_queue(net_dev);
 		i2400m_get(i2400m);
 		i2400m->wake_tx_skb = skb_get(skb);	/* transfer ref count */
@@ -299,18 +330,23 @@ int i2400m_net_wake_tx(struct i2400m *i2400m, struct net_device *net_dev,
 		result = schedule_work(&i2400m->wake_tx_ws);
 		WARN_ON(result == 0);
 	}
+
 	spin_unlock_irqrestore(&i2400m->tx_lock, flags);
-	if (result == 0) {
+
+	if (result == 0)
+	{
 		/* Yes, this happens even if we stopped the
 		 * queue -- blame the queue disciplines that
 		 * queue without looking -- I guess there is a reason
 		 * for that. */
 		if (net_ratelimit())
 			d_printf(1, dev, "NETTX: device exiting idle, "
-				 "dropping skb %p, queue running %d\n",
-				 skb, netif_queue_stopped(net_dev));
+					 "dropping skb %p, queue running %d\n",
+					 skb, netif_queue_stopped(net_dev));
+
 		result = -EBUSY;
 	}
+
 	d_fnend(3, dev, "(skb %p net_dev %p) = %d\n", skb, net_dev, result);
 	return result;
 }
@@ -326,22 +362,22 @@ int i2400m_net_wake_tx(struct i2400m *i2400m, struct net_device *net_dev,
  */
 static
 int i2400m_net_tx(struct i2400m *i2400m, struct net_device *net_dev,
-		  struct sk_buff *skb)
+				  struct sk_buff *skb)
 {
 	int result;
 	struct device *dev = i2400m_dev(i2400m);
 
 	d_fnstart(3, dev, "(i2400m %p net_dev %p skb %p)\n",
-		  i2400m, net_dev, skb);
+			  i2400m, net_dev, skb);
 	/* FIXME: check eth hdr, only IPv4 is routed by the device as of now */
 	netif_trans_update(net_dev);
 	i2400m_tx_prep_header(skb);
 	d_printf(3, dev, "NETTX: skb %p sending %d bytes to radio\n",
-		 skb, skb->len);
+			 skb, skb->len);
 	d_dump(4, dev, skb->data, skb->len);
 	result = i2400m_tx(i2400m, skb->data, skb->len, I2400M_PT_DATA);
 	d_fnend(3, dev, "(i2400m %p net_dev %p skb %p) = %d\n",
-		i2400m, net_dev, skb, result);
+			i2400m, net_dev, skb, result);
 	return result;
 }
 
@@ -366,7 +402,7 @@ int i2400m_net_tx(struct i2400m *i2400m, struct net_device *net_dev,
  */
 static
 netdev_tx_t i2400m_hard_start_xmit(struct sk_buff *skb,
-					 struct net_device *net_dev)
+								   struct net_device *net_dev)
 {
 	struct i2400m *i2400m = net_dev_to_i2400m(net_dev);
 	struct device *dev = i2400m_dev(i2400m);
@@ -375,19 +411,30 @@ netdev_tx_t i2400m_hard_start_xmit(struct sk_buff *skb,
 	d_fnstart(3, dev, "(skb %p net_dev %p)\n", skb, net_dev);
 
 	if (skb_cow_head(skb, 0))
+	{
 		goto drop;
+	}
 
 	if (i2400m->state == I2400M_SS_IDLE)
+	{
 		result = i2400m_net_wake_tx(i2400m, net_dev, skb);
+	}
 	else
+	{
 		result = i2400m_net_tx(i2400m, net_dev, skb);
-	if (result <  0) {
+	}
+
+	if (result <  0)
+	{
 drop:
 		net_dev->stats.tx_dropped++;
-	} else {
+	}
+	else
+	{
 		net_dev->stats.tx_packets++;
 		net_dev->stats.tx_bytes += skb->len;
 	}
+
 	dev_kfree_skb(skb);
 	d_fnend(3, dev, "(skb %p net_dev %p) = %d\n", skb, net_dev, result);
 	return NETDEV_TX_OK;
@@ -401,14 +448,18 @@ int i2400m_change_mtu(struct net_device *net_dev, int new_mtu)
 	struct i2400m *i2400m = net_dev_to_i2400m(net_dev);
 	struct device *dev = i2400m_dev(i2400m);
 
-	if (new_mtu >= I2400M_MAX_MTU) {
+	if (new_mtu >= I2400M_MAX_MTU)
+	{
 		dev_err(dev, "Cannot change MTU to %d (max is %d)\n",
-			new_mtu, I2400M_MAX_MTU);
+				new_mtu, I2400M_MAX_MTU);
 		result = -EINVAL;
-	} else {
+	}
+	else
+	{
 		net_dev->mtu = new_mtu;
 		result = 0;
 	}
+
 	return result;
 }
 
@@ -436,14 +487,14 @@ void i2400m_tx_timeout(struct net_device *net_dev)
  */
 static
 void i2400m_rx_fake_eth_header(struct net_device *net_dev,
-			       void *_eth_hdr, __be16 protocol)
+							   void *_eth_hdr, __be16 protocol)
 {
 	struct i2400m *i2400m = net_dev_to_i2400m(net_dev);
 	struct ethhdr *eth_hdr = _eth_hdr;
 
 	memcpy(eth_hdr->h_dest, net_dev->dev_addr, sizeof(eth_hdr->h_dest));
 	memcpy(eth_hdr->h_source, i2400m->src_mac_addr,
-	       sizeof(eth_hdr->h_source));
+		   sizeof(eth_hdr->h_source));
 	eth_hdr->h_proto = protocol;
 }
 
@@ -485,45 +536,53 @@ void i2400m_rx_fake_eth_header(struct net_device *net_dev,
  * correctly.
  */
 void i2400m_net_rx(struct i2400m *i2400m, struct sk_buff *skb_rx,
-		   unsigned i, const void *buf, int buf_len)
+				   unsigned i, const void *buf, int buf_len)
 {
 	struct net_device *net_dev = i2400m->wimax_dev.net_dev;
 	struct device *dev = i2400m_dev(i2400m);
 	struct sk_buff *skb;
 
 	d_fnstart(2, dev, "(i2400m %p buf %p buf_len %d)\n",
-		  i2400m, buf, buf_len);
-	if (i) {
+			  i2400m, buf, buf_len);
+
+	if (i)
+	{
 		skb = skb_get(skb_rx);
 		d_printf(2, dev, "RX: reusing first payload skb %p\n", skb);
 		skb_pull(skb, buf - (void *) skb->data);
 		skb_trim(skb, (void *) skb_end_pointer(skb) - buf);
-	} else {
+	}
+	else
+	{
 		/* Yes, this is bad -- a lot of overhead -- see
 		 * comments at the top of the file */
 		skb = __netdev_alloc_skb(net_dev, buf_len, GFP_KERNEL);
-		if (skb == NULL) {
+
+		if (skb == NULL)
+		{
 			dev_err(dev, "NETRX: no memory to realloc skb\n");
 			net_dev->stats.rx_dropped++;
 			goto error_skb_realloc;
 		}
+
 		memcpy(skb_put(skb, buf_len), buf, buf_len);
 	}
+
 	i2400m_rx_fake_eth_header(i2400m->wimax_dev.net_dev,
-				  skb->data - ETH_HLEN,
-				  cpu_to_be16(ETH_P_IP));
+							  skb->data - ETH_HLEN,
+							  cpu_to_be16(ETH_P_IP));
 	skb_set_mac_header(skb, -ETH_HLEN);
 	skb->dev = i2400m->wimax_dev.net_dev;
 	skb->protocol = htons(ETH_P_IP);
 	net_dev->stats.rx_packets++;
 	net_dev->stats.rx_bytes += buf_len;
 	d_printf(3, dev, "NETRX: receiving %d bytes to network stack\n",
-		buf_len);
+			 buf_len);
 	d_dump(4, dev, buf, buf_len);
 	netif_rx_ni(skb);	/* see notes in function header */
 error_skb_realloc:
 	d_fnend(2, dev, "(i2400m %p buf %p buf_len %d) = void\n",
-		i2400m, buf, buf_len);
+			i2400m, buf, buf_len);
 }
 
 
@@ -550,42 +609,47 @@ error_skb_realloc:
  * with netif_receive_skb() hits this softlock. FIXME.
  */
 void i2400m_net_erx(struct i2400m *i2400m, struct sk_buff *skb,
-		    enum i2400m_cs cs)
+					enum i2400m_cs cs)
 {
 	struct net_device *net_dev = i2400m->wimax_dev.net_dev;
 	struct device *dev = i2400m_dev(i2400m);
 	int protocol;
 
 	d_fnstart(2, dev, "(i2400m %p skb %p [%u] cs %d)\n",
-		  i2400m, skb, skb->len, cs);
-	switch(cs) {
-	case I2400M_CS_IPV4_0:
-	case I2400M_CS_IPV4:
-		protocol = ETH_P_IP;
-		i2400m_rx_fake_eth_header(i2400m->wimax_dev.net_dev,
-					  skb->data - ETH_HLEN,
-					  cpu_to_be16(ETH_P_IP));
-		skb_set_mac_header(skb, -ETH_HLEN);
-		skb->dev = i2400m->wimax_dev.net_dev;
-		skb->protocol = htons(ETH_P_IP);
-		net_dev->stats.rx_packets++;
-		net_dev->stats.rx_bytes += skb->len;
-		break;
-	default:
-		dev_err(dev, "ERX: BUG? CS type %u unsupported\n", cs);
-		goto error;
+			  i2400m, skb, skb->len, cs);
+
+	switch (cs)
+	{
+		case I2400M_CS_IPV4_0:
+		case I2400M_CS_IPV4:
+			protocol = ETH_P_IP;
+			i2400m_rx_fake_eth_header(i2400m->wimax_dev.net_dev,
+									  skb->data - ETH_HLEN,
+									  cpu_to_be16(ETH_P_IP));
+			skb_set_mac_header(skb, -ETH_HLEN);
+			skb->dev = i2400m->wimax_dev.net_dev;
+			skb->protocol = htons(ETH_P_IP);
+			net_dev->stats.rx_packets++;
+			net_dev->stats.rx_bytes += skb->len;
+			break;
+
+		default:
+			dev_err(dev, "ERX: BUG? CS type %u unsupported\n", cs);
+			goto error;
 
 	}
+
 	d_printf(3, dev, "ERX: receiving %d bytes to the network stack\n",
-		 skb->len);
+			 skb->len);
 	d_dump(4, dev, skb->data, skb->len);
 	netif_rx_ni(skb);	/* see notes in function header */
 error:
 	d_fnend(2, dev, "(i2400m %p skb %p [%u] cs %d) = void\n",
-		i2400m, skb, skb->len, cs);
+			i2400m, skb, skb->len, cs);
 }
 
-static const struct net_device_ops i2400m_netdev_ops = {
+static const struct net_device_ops i2400m_netdev_ops =
+{
 	.ndo_open = i2400m_open,
 	.ndo_stop = i2400m_stop,
 	.ndo_start_xmit = i2400m_hard_start_xmit,
@@ -594,19 +658,21 @@ static const struct net_device_ops i2400m_netdev_ops = {
 };
 
 static void i2400m_get_drvinfo(struct net_device *net_dev,
-			       struct ethtool_drvinfo *info)
+							   struct ethtool_drvinfo *info)
 {
 	struct i2400m *i2400m = net_dev_to_i2400m(net_dev);
 
 	strlcpy(info->driver, KBUILD_MODNAME, sizeof(info->driver));
 	strlcpy(info->fw_version, i2400m->fw_name ? : "",
-		sizeof(info->fw_version));
+			sizeof(info->fw_version));
+
 	if (net_dev->dev.parent)
 		strlcpy(info->bus_info, dev_name(net_dev->dev.parent),
-			sizeof(info->bus_info));
+				sizeof(info->bus_info));
 }
 
-static const struct ethtool_ops i2400m_ethtool_ops = {
+static const struct ethtool_ops i2400m_ethtool_ops =
+{
 	.get_drvinfo = i2400m_get_drvinfo,
 	.get_link = ethtool_op_get_link,
 };
@@ -623,7 +689,7 @@ void i2400m_netdev_setup(struct net_device *net_dev)
 	net_dev->mtu = I2400M_MAX_MTU;
 	net_dev->tx_queue_len = I2400M_TX_QLEN;
 	net_dev->features =
-		  NETIF_F_VLAN_CHALLENGED
+		NETIF_F_VLAN_CHALLENGED
 		| NETIF_F_HIGHDMA;
 	net_dev->flags =
 		IFF_NOARP		/* i2400m is apure IP device */

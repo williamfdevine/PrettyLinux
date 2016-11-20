@@ -22,21 +22,24 @@
 #include <linux/io.h>
 #include <linux/usb/otg.h>
 
-struct usb_dpll_params {
+struct usb_dpll_params
+{
 	u16	m;
 	u8	n;
-	u8	freq:3;
+	u8	freq: 3;
 	u8	sd;
 	u32	mf;
 };
 
-enum omap_usb_phy_type {
+enum omap_usb_phy_type
+{
 	TYPE_USB2,    /* USB2_PHY, power down in CONTROL_DEV_CONF */
 	TYPE_DRA7USB2, /* USB2 PHY, power and power_aux e.g. DRA7 */
 	TYPE_AM437USB2, /* USB2 PHY, power e.g. AM437x */
 };
 
-struct omap_usb {
+struct omap_usb
+{
 	struct usb_phy		phy;
 	struct phy_companion	*comparator;
 	void __iomem		*pll_ctrl_base;
@@ -54,7 +57,8 @@ struct omap_usb {
 	u32			power_off;
 };
 
-struct usb_phy_data {
+struct usb_phy_data
+{
 	const char *label;
 	u8 flags;
 	u32 mask;
@@ -92,7 +96,7 @@ static inline u32 omap_usb_readl(void __iomem *addr, unsigned offset)
 }
 
 static inline void omap_usb_writel(void __iomem *addr, unsigned offset,
-	u32 data)
+								   u32 data)
 {
 	__raw_writel(data, addr + offset);
 }

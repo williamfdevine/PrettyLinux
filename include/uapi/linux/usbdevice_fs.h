@@ -36,41 +36,47 @@
 
 /* usbdevfs ioctl codes */
 
-struct usbdevfs_ctrltransfer {
+struct usbdevfs_ctrltransfer
+{
 	__u8 bRequestType;
 	__u8 bRequest;
 	__u16 wValue;
 	__u16 wIndex;
 	__u16 wLength;
 	__u32 timeout;  /* in milliseconds */
- 	void __user *data;
+	void __user *data;
 };
 
-struct usbdevfs_bulktransfer {
+struct usbdevfs_bulktransfer
+{
 	unsigned int ep;
 	unsigned int len;
 	unsigned int timeout; /* in milliseconds */
 	void __user *data;
 };
 
-struct usbdevfs_setinterface {
+struct usbdevfs_setinterface
+{
 	unsigned int interface;
 	unsigned int altsetting;
 };
 
-struct usbdevfs_disconnectsignal {
+struct usbdevfs_disconnectsignal
+{
 	unsigned int signr;
 	void __user *context;
 };
 
 #define USBDEVFS_MAXDRIVERNAME 255
 
-struct usbdevfs_getdriver {
+struct usbdevfs_getdriver
+{
 	unsigned int interface;
 	char driver[USBDEVFS_MAXDRIVERNAME + 1];
 };
 
-struct usbdevfs_connectinfo {
+struct usbdevfs_connectinfo
+{
 	unsigned int devnum;
 	unsigned char slow;
 };
@@ -87,13 +93,15 @@ struct usbdevfs_connectinfo {
 #define USBDEVFS_URB_TYPE_CONTROL	   2
 #define USBDEVFS_URB_TYPE_BULK		   3
 
-struct usbdevfs_iso_packet_desc {
+struct usbdevfs_iso_packet_desc
+{
 	unsigned int length;
 	unsigned int actual_length;
 	unsigned int status;
 };
 
-struct usbdevfs_urb {
+struct usbdevfs_urb
+{
 	unsigned char type;
 	unsigned char endpoint;
 	int status;
@@ -102,7 +110,8 @@ struct usbdevfs_urb {
 	int buffer_length;
 	int actual_length;
 	int start_frame;
-	union {
+	union
+	{
 		int number_of_packets;	/* Only used for isoc urbs */
 		unsigned int stream_id;	/* Only used with bulk streams */
 	};
@@ -114,7 +123,8 @@ struct usbdevfs_urb {
 };
 
 /* ioctls for talking directly to drivers */
-struct usbdevfs_ioctl {
+struct usbdevfs_ioctl
+{
 	int	ifno;		/* interface 0..N ; negative numbers reserved */
 	int	ioctl_code;	/* MUST encode size + direction of data so the
 				 * macros in <asm/ioctl.h> give correct values */
@@ -123,7 +133,8 @@ struct usbdevfs_ioctl {
 
 /* You can do most things with hubs just through control messages,
  * except find out what device connects to what port. */
-struct usbdevfs_hub_portinfo {
+struct usbdevfs_hub_portinfo
+{
 	char nports;		/* number of downstream ports in this hub */
 	char port [127];	/* e.g. port 3 connects to device 27 */
 };
@@ -144,13 +155,15 @@ struct usbdevfs_hub_portinfo {
 /* disconnect-and-claim except when the driver matches the driver field */
 #define USBDEVFS_DISCONNECT_CLAIM_EXCEPT_DRIVER	0x02
 
-struct usbdevfs_disconnect_claim {
+struct usbdevfs_disconnect_claim
+{
 	unsigned int interface;
 	unsigned int flags;
 	char driver[USBDEVFS_MAXDRIVERNAME + 1];
 };
 
-struct usbdevfs_streams {
+struct usbdevfs_streams
+{
 	unsigned int num_streams; /* Not used by USBDEVFS_FREE_STREAMS */
 	unsigned int num_eps;
 	unsigned char eps[0];

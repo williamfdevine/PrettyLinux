@@ -24,7 +24,8 @@
 #include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 
-struct via_i2c_stuff {
+struct via_i2c_stuff
+{
 	u16 i2c_port;			/* GPIO or I2C port */
 	u16 is_active;			/* Being used as I2C? */
 	struct i2c_adapter adapter;

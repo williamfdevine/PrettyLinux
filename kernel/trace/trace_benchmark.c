@@ -44,7 +44,9 @@ static void trace_do_benchmark(void)
 
 	/* Only run if the tracepoint is actually active */
 	if (!trace_benchmark_event_enabled() || !tracing_is_on())
+	{
 		return;
+	}
 
 	local_irq_disable();
 	start = trace_clock_local();
@@ -60,29 +62,36 @@ static void trace_do_benchmark(void)
 	 * The first read is cold cached, keep it separate from the
 	 * other calculations.
 	 */
-	if (bm_cnt == 1) {
+	if (bm_cnt == 1)
+	{
 		bm_first = delta;
 		scnprintf(bm_str, BENCHMARK_EVENT_STRLEN,
-			  "first=%llu [COLD CACHED]", bm_first);
+				  "first=%llu [COLD CACHED]", bm_first);
 		return;
 	}
 
 	bm_last = delta;
 
 	if (delta > bm_max)
+	{
 		bm_max = delta;
+	}
+
 	if (!bm_min || delta < bm_min)
+	{
 		bm_min = delta;
+	}
 
 	/*
 	 * When bm_cnt is greater than UINT_MAX, it breaks the statistics
 	 * accounting. Freeze the statistics when that happens.
 	 * We should have enough data for the avg and stddev anyway.
 	 */
-	if (bm_cnt > UINT_MAX) {
+	if (bm_cnt > UINT_MAX)
+	{
 		scnprintf(bm_str, BENCHMARK_EVENT_STRLEN,
-		    "last=%llu first=%llu max=%llu min=%llu ** avg=%u std=%d std^2=%lld",
-			  bm_last, bm_first, bm_max, bm_min, bm_avg, bm_std, bm_stddev);
+				  "last=%llu first=%llu max=%llu min=%llu ** avg=%u std=%d std^2=%lld",
+				  bm_last, bm_first, bm_max, bm_min, bm_avg, bm_std, bm_stddev);
 		return;
 	}
 
@@ -90,7 +99,8 @@ static void trace_do_benchmark(void)
 	bm_totalsq += delta * delta;
 
 
-	if (bm_cnt > 1) {
+	if (bm_cnt > 1)
+	{
 		/*
 		 * Apply Welford's method to calculate standard deviation:
 		 * s^2 = 1 / (n * (n-1)) * (n * \Sum (x_i)^2 - (\Sum x_i)^2)
@@ -98,14 +108,18 @@ static void trace_do_benchmark(void)
 		stddev = (u64)bm_cnt * bm_totalsq - bm_total * bm_total;
 		do_div(stddev, (u32)bm_cnt);
 		do_div(stddev, (u32)bm_cnt - 1);
-	} else
+	}
+	else
+	{
 		stddev = 0;
+	}
 
 	delta = bm_total;
 	do_div(delta, bm_cnt);
 	avg = delta;
 
-	if (stddev > 0) {
+	if (stddev > 0)
+	{
 		int i = 0;
 		/*
 		 * stddev is the square of standard deviation but
@@ -119,22 +133,29 @@ static void trace_do_benchmark(void)
 		 * root of.
 		 */
 		seed = avg;
-		do {
+
+		do
+		{
 			last_seed = seed;
 			seed = stddev;
+
 			if (!last_seed)
+			{
 				break;
+			}
+
 			do_div(seed, last_seed);
 			seed += last_seed;
 			do_div(seed, 2);
-		} while (i++ < 10 && last_seed != seed);
+		}
+		while (i++ < 10 && last_seed != seed);
 
 		std = seed;
 	}
 
 	scnprintf(bm_str, BENCHMARK_EVENT_STRLEN,
-		  "last=%llu first=%llu max=%llu min=%llu avg=%u std=%d std^2=%lld",
-		  bm_last, bm_first, bm_max, bm_min, avg, std, stddev);
+			  "last=%llu first=%llu max=%llu min=%llu avg=%u std=%d std^2=%lld",
+			  bm_last, bm_first, bm_max, bm_min, avg, std, stddev);
 
 	bm_std = std;
 	bm_avg = avg;
@@ -146,7 +167,8 @@ static int benchmark_event_kthread(void *arg)
 	/* sleep a bit to make sure the tracepoint gets activated */
 	msleep(100);
 
-	while (!kthread_should_stop()) {
+	while (!kthread_should_stop())
+	{
 
 		trace_do_benchmark();
 
@@ -167,7 +189,7 @@ static int benchmark_event_kthread(void *arg)
 void trace_benchmark_reg(void)
 {
 	bm_event_thread = kthread_run(benchmark_event_kthread,
-				      NULL, "event_benchmark");
+								  NULL, "event_benchmark");
 	WARN_ON(!bm_event_thread);
 }
 
@@ -179,7 +201,9 @@ void trace_benchmark_reg(void)
 void trace_benchmark_unreg(void)
 {
 	if (!bm_event_thread)
+	{
 		return;
+	}
 
 	kthread_stop(bm_event_thread);
 

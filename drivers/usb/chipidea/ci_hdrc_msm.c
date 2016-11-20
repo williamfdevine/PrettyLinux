@@ -21,33 +21,37 @@ static void ci_hdrc_msm_notify_event(struct ci_hdrc *ci, unsigned event)
 {
 	struct device *dev = ci->gadget.dev.parent;
 
-	switch (event) {
-	case CI_HDRC_CONTROLLER_RESET_EVENT:
-		dev_dbg(dev, "CI_HDRC_CONTROLLER_RESET_EVENT received\n");
-		writel(0, USB_AHBBURST);
-		/* use AHB transactor, allow posted data writes */
-		writel(0x8, USB_AHBMODE);
-		usb_phy_init(ci->usb_phy);
-		break;
-	case CI_HDRC_CONTROLLER_STOPPED_EVENT:
-		dev_dbg(dev, "CI_HDRC_CONTROLLER_STOPPED_EVENT received\n");
-		/*
-		 * Put the phy in non-driving mode. Otherwise host
-		 * may not detect soft-disconnection.
-		 */
-		usb_phy_notify_disconnect(ci->usb_phy, USB_SPEED_UNKNOWN);
-		break;
-	default:
-		dev_dbg(dev, "unknown ci_hdrc event\n");
-		break;
+	switch (event)
+	{
+		case CI_HDRC_CONTROLLER_RESET_EVENT:
+			dev_dbg(dev, "CI_HDRC_CONTROLLER_RESET_EVENT received\n");
+			writel(0, USB_AHBBURST);
+			/* use AHB transactor, allow posted data writes */
+			writel(0x8, USB_AHBMODE);
+			usb_phy_init(ci->usb_phy);
+			break;
+
+		case CI_HDRC_CONTROLLER_STOPPED_EVENT:
+			dev_dbg(dev, "CI_HDRC_CONTROLLER_STOPPED_EVENT received\n");
+			/*
+			 * Put the phy in non-driving mode. Otherwise host
+			 * may not detect soft-disconnection.
+			 */
+			usb_phy_notify_disconnect(ci->usb_phy, USB_SPEED_UNKNOWN);
+			break;
+
+		default:
+			dev_dbg(dev, "unknown ci_hdrc event\n");
+			break;
 	}
 }
 
-static struct ci_hdrc_platform_data ci_hdrc_msm_platdata = {
+static struct ci_hdrc_platform_data ci_hdrc_msm_platdata =
+{
 	.name			= "ci_hdrc_msm",
 	.capoffset		= DEF_CAPOFFSET,
 	.flags			= CI_HDRC_REGS_SHARED |
-				  CI_HDRC_DISABLE_STREAMING,
+	CI_HDRC_DISABLE_STREAMING,
 
 	.notify_event		= ci_hdrc_msm_notify_event,
 };
@@ -65,15 +69,20 @@ static int ci_hdrc_msm_probe(struct platform_device *pdev)
 	 * management.
 	 */
 	phy = devm_usb_get_phy_by_phandle(&pdev->dev, "usb-phy", 0);
+
 	if (IS_ERR(phy))
+	{
 		return PTR_ERR(phy);
+	}
 
 	ci_hdrc_msm_platdata.usb_phy = phy;
 
 	plat_ci = ci_hdrc_add_device(&pdev->dev,
-				pdev->resource, pdev->num_resources,
-				&ci_hdrc_msm_platdata);
-	if (IS_ERR(plat_ci)) {
+								 pdev->resource, pdev->num_resources,
+								 &ci_hdrc_msm_platdata);
+
+	if (IS_ERR(plat_ci))
+	{
 		dev_err(&pdev->dev, "ci_hdrc_add_device failed!\n");
 		return PTR_ERR(plat_ci);
 	}
@@ -96,13 +105,15 @@ static int ci_hdrc_msm_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id msm_ci_dt_match[] = {
+static const struct of_device_id msm_ci_dt_match[] =
+{
 	{ .compatible = "qcom,ci-hdrc", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, msm_ci_dt_match);
 
-static struct platform_driver ci_hdrc_msm_driver = {
+static struct platform_driver ci_hdrc_msm_driver =
+{
 	.probe = ci_hdrc_msm_probe,
 	.remove = ci_hdrc_msm_remove,
 	.driver = {

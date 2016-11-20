@@ -92,10 +92,10 @@
 
 /* Chaining modes*/
 #ifndef CONFIG_ARCH_OMAP1
-#define OMAP_DMA_STATIC_CHAIN		0x1
-#define OMAP_DMA_DYNAMIC_CHAIN		0x2
-#define OMAP_DMA_CHAIN_ACTIVE		0x1
-#define OMAP_DMA_CHAIN_INACTIVE		0x0
+	#define OMAP_DMA_STATIC_CHAIN		0x1
+	#define OMAP_DMA_DYNAMIC_CHAIN		0x2
+	#define OMAP_DMA_CHAIN_ACTIVE		0x1
+	#define OMAP_DMA_CHAIN_INACTIVE		0x0
 #endif
 
 #define DMA_CH_PRIO_HIGH		0x1
@@ -137,67 +137,74 @@
 #define DMA_HAS_CONSTANT_FILL_CAPS	(0x1 << 19)
 #define DMA_HAS_DESCRIPTOR_CAPS		(0x3 << 20)
 
-enum omap_reg_offsets {
+enum omap_reg_offsets
+{
 
-GCR,		GSCR,		GRST1,		HW_ID,
-PCH2_ID,	PCH0_ID,	PCH1_ID,	PCHG_ID,
-PCHD_ID,	CAPS_0,		CAPS_1,		CAPS_2,
-CAPS_3,		CAPS_4,		PCH2_SR,	PCH0_SR,
-PCH1_SR,	PCHD_SR,	REVISION,	IRQSTATUS_L0,
-IRQSTATUS_L1,	IRQSTATUS_L2,	IRQSTATUS_L3,	IRQENABLE_L0,
-IRQENABLE_L1,	IRQENABLE_L2,	IRQENABLE_L3,	SYSSTATUS,
-OCP_SYSCONFIG,
+	GCR,		GSCR,		GRST1,		HW_ID,
+	PCH2_ID,	PCH0_ID,	PCH1_ID,	PCHG_ID,
+	PCHD_ID,	CAPS_0,		CAPS_1,		CAPS_2,
+	CAPS_3,		CAPS_4,		PCH2_SR,	PCH0_SR,
+	PCH1_SR,	PCHD_SR,	REVISION,	IRQSTATUS_L0,
+	IRQSTATUS_L1,	IRQSTATUS_L2,	IRQSTATUS_L3,	IRQENABLE_L0,
+	IRQENABLE_L1,	IRQENABLE_L2,	IRQENABLE_L3,	SYSSTATUS,
+	OCP_SYSCONFIG,
 
-/* omap1+ specific */
-CPC, CCR2, LCH_CTRL,
+	/* omap1+ specific */
+	CPC, CCR2, LCH_CTRL,
 
-/* Common registers for all omap's */
-CSDP,		CCR,		CICR,		CSR,
-CEN,		CFN,		CSFI,		CSEI,
-CSAC,		CDAC,		CDEI,
-CDFI,		CLNK_CTRL,
+	/* Common registers for all omap's */
+	CSDP,		CCR,		CICR,		CSR,
+	CEN,		CFN,		CSFI,		CSEI,
+	CSAC,		CDAC,		CDEI,
+	CDFI,		CLNK_CTRL,
 
-/* Channel specific registers */
-CSSA,		CDSA,		COLOR,
-CCEN,		CCFN,
+	/* Channel specific registers */
+	CSSA,		CDSA,		COLOR,
+	CCEN,		CCFN,
 
-/* omap3630 and omap4 specific */
-CDP,		CNDP,		CCDN,
+	/* omap3630 and omap4 specific */
+	CDP,		CNDP,		CCDN,
 
 };
 
-enum omap_dma_burst_mode {
+enum omap_dma_burst_mode
+{
 	OMAP_DMA_DATA_BURST_DIS = 0,
 	OMAP_DMA_DATA_BURST_4,
 	OMAP_DMA_DATA_BURST_8,
 	OMAP_DMA_DATA_BURST_16,
 };
 
-enum end_type {
+enum end_type
+{
 	OMAP_DMA_LITTLE_ENDIAN = 0,
 	OMAP_DMA_BIG_ENDIAN
 };
 
-enum omap_dma_color_mode {
+enum omap_dma_color_mode
+{
 	OMAP_DMA_COLOR_DIS = 0,
 	OMAP_DMA_CONSTANT_FILL,
 	OMAP_DMA_TRANSPARENT_COPY
 };
 
-enum omap_dma_write_mode {
+enum omap_dma_write_mode
+{
 	OMAP_DMA_WRITE_NON_POSTED = 0,
 	OMAP_DMA_WRITE_POSTED,
 	OMAP_DMA_WRITE_LAST_NON_POSTED
 };
 
-enum omap_dma_channel_mode {
+enum omap_dma_channel_mode
+{
 	OMAP_DMA_LCH_2D = 0,
 	OMAP_DMA_LCH_G,
 	OMAP_DMA_LCH_P,
 	OMAP_DMA_LCH_PD
 };
 
-struct omap_dma_channel_params {
+struct omap_dma_channel_params
+{
 	int data_type;		/* data type 8,16,32 */
 	int elem_count;		/* number of elements in a frame */
 	int frame_count;	/* number of frames in a element */
@@ -231,7 +238,8 @@ struct omap_dma_channel_params {
 #endif
 };
 
-struct omap_dma_lch {
+struct omap_dma_lch
+{
 	int next_lch;
 	int dev_id;
 	u16 saved_csr;
@@ -248,20 +256,23 @@ struct omap_dma_lch {
 	int status;
 };
 
-struct omap_dma_dev_attr {
+struct omap_dma_dev_attr
+{
 	u32 dev_caps;
 	u16 lch_count;
 	u16 chan_count;
 };
 
-enum {
+enum
+{
 	OMAP_DMA_REG_NONE,
 	OMAP_DMA_REG_16BIT,
 	OMAP_DMA_REG_2X16BIT,
 	OMAP_DMA_REG_32BIT,
 };
 
-struct omap_dma_reg {
+struct omap_dma_reg
+{
 	u16	offset;
 	u8	stride;
 	u8	type;
@@ -271,7 +282,8 @@ struct omap_dma_reg {
 struct dma_slave_map;
 
 /* System DMA platform data structure */
-struct omap_system_dma_plat_info {
+struct omap_system_dma_plat_info
+{
 	const struct omap_dma_reg *reg_map;
 	unsigned channel_stride;
 	struct omap_dma_dev_attr *dma_attr;
@@ -287,9 +299,9 @@ struct omap_system_dma_plat_info {
 };
 
 #ifdef CONFIG_ARCH_OMAP2PLUS
-#define dma_omap2plus()	1
+	#define dma_omap2plus()	1
 #else
-#define dma_omap2plus()	0
+	#define dma_omap2plus()	0
 #endif
 #define dma_omap1()	(!dma_omap2plus())
 #define __dma_omap15xx(d) (dma_omap1() && (d)->dev_caps & ENABLE_1510_MODE)
@@ -302,48 +314,48 @@ extern struct omap_system_dma_plat_info *omap_get_plat_info(void);
 
 extern void omap_set_dma_priority(int lch, int dst_port, int priority);
 extern int omap_request_dma(int dev_id, const char *dev_name,
-			void (*callback)(int lch, u16 ch_status, void *data),
-			void *data, int *dma_ch);
+							void (*callback)(int lch, u16 ch_status, void *data),
+							void *data, int *dma_ch);
 extern void omap_enable_dma_irq(int ch, u16 irq_bits);
 extern void omap_disable_dma_irq(int ch, u16 irq_bits);
 extern void omap_free_dma(int ch);
 extern void omap_start_dma(int lch);
 extern void omap_stop_dma(int lch);
 extern void omap_set_dma_transfer_params(int lch, int data_type,
-					 int elem_count, int frame_count,
-					 int sync_mode,
-					 int dma_trigger, int src_or_dst_synch);
+		int elem_count, int frame_count,
+		int sync_mode,
+		int dma_trigger, int src_or_dst_synch);
 extern void omap_set_dma_write_mode(int lch, enum omap_dma_write_mode mode);
 extern void omap_set_dma_channel_mode(int lch, enum omap_dma_channel_mode mode);
 
 extern void omap_set_dma_src_params(int lch, int src_port, int src_amode,
-				    unsigned long src_start,
-				    int src_ei, int src_fi);
+									unsigned long src_start,
+									int src_ei, int src_fi);
 extern void omap_set_dma_src_data_pack(int lch, int enable);
 extern void omap_set_dma_src_burst_mode(int lch,
-					enum omap_dma_burst_mode burst_mode);
+										enum omap_dma_burst_mode burst_mode);
 
 extern void omap_set_dma_dest_params(int lch, int dest_port, int dest_amode,
-				     unsigned long dest_start,
-				     int dst_ei, int dst_fi);
+									 unsigned long dest_start,
+									 int dst_ei, int dst_fi);
 extern void omap_set_dma_dest_data_pack(int lch, int enable);
 extern void omap_set_dma_dest_burst_mode(int lch,
-					 enum omap_dma_burst_mode burst_mode);
+		enum omap_dma_burst_mode burst_mode);
 
 extern void omap_set_dma_params(int lch,
-				struct omap_dma_channel_params *params);
+								struct omap_dma_channel_params *params);
 
 extern void omap_dma_link_lch(int lch_head, int lch_queue);
 
 extern int omap_set_dma_callback(int lch,
-			void (*callback)(int lch, u16 ch_status, void *data),
-			void *data);
+								 void (*callback)(int lch, u16 ch_status, void *data),
+								 void *data);
 extern dma_addr_t omap_get_dma_src_pos(int lch);
 extern dma_addr_t omap_get_dma_dst_pos(int lch);
 extern int omap_get_dma_active_status(int lch);
 extern int omap_dma_running(void);
 extern void omap_dma_set_global_params(int arb_rate, int max_fifo_depth,
-				       int tparams);
+									   int tparams);
 void omap_dma_global_context_save(void);
 void omap_dma_global_context_restore(void);
 
@@ -364,8 +376,8 @@ static inline struct omap_system_dma_plat_info *omap_get_plat_info(void)
 }
 
 static inline int omap_request_dma(int dev_id, const char *dev_name,
-			void (*callback)(int lch, u16 ch_status, void *data),
-			void *data, int *dma_ch)
+								   void (*callback)(int lch, u16 ch_status, void *data),
+								   void *data, int *dma_ch)
 {
 	return -ENODEV;
 }

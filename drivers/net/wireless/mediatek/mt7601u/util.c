@@ -27,11 +27,16 @@ int mt76_insert_hdr_pad(struct sk_buff *skb)
 	int ret;
 
 	if (len % 4 == 0)
+	{
 		return 0;
+	}
 
 	ret = skb_cow(skb, 2);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	skb_push(skb, 2);
 	memmove(skb->data, skb->data + 2, len);

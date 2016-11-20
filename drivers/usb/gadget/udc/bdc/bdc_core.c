@@ -35,18 +35,24 @@
 static int poll_oip(struct bdc *bdc, int usec)
 {
 	u32 status;
+
 	/* Poll till STS!= OIP */
-	while (usec) {
+	while (usec)
+	{
 		status = bdc_readl(bdc->regs, BDC_BDCSC);
-		if (BDC_CSTS(status) != BDC_OIP) {
+
+		if (BDC_CSTS(status) != BDC_OIP)
+		{
 			dev_dbg(bdc->dev,
-				"poll_oip complete status=%d",
-				BDC_CSTS(status));
+					"poll_oip complete status=%d",
+					BDC_CSTS(status));
 			return 0;
 		}
+
 		udelay(10);
 		usec -= 10;
 	}
+
 	dev_err(bdc->dev, "Err: operation timedout BDCSC: 0x%08x\n", status);
 
 	return -ETIMEDOUT;
@@ -60,18 +66,24 @@ int bdc_stop(struct bdc *bdc)
 
 	dev_dbg(bdc->dev, "%s ()\n\n", __func__);
 	temp = bdc_readl(bdc->regs, BDC_BDCSC);
+
 	/* Check if BDC is already halted */
-	if (BDC_CSTS(temp) == BDC_HLT) {
+	if (BDC_CSTS(temp) == BDC_HLT)
+	{
 		dev_vdbg(bdc->dev, "BDC already halted\n");
 		return 0;
 	}
+
 	temp &= ~BDC_COP_MASK;
-	temp |= BDC_COS|BDC_COP_STP;
+	temp |= BDC_COS | BDC_COP_STP;
 	bdc_writel(bdc->regs, BDC_BDCSC, temp);
 
 	ret = poll_oip(bdc, BDC_COP_TIMEOUT);
+
 	if (ret)
+	{
 		dev_err(bdc->dev, "bdc stop operation failed");
+	}
 
 	return ret;
 }
@@ -85,16 +97,22 @@ int bdc_reset(struct bdc *bdc)
 	dev_dbg(bdc->dev, "%s ()\n", __func__);
 	/* First halt the controller */
 	ret = bdc_stop(bdc);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	temp = bdc_readl(bdc->regs, BDC_BDCSC);
 	temp &= ~BDC_COP_MASK;
-	temp |= BDC_COS|BDC_COP_RST;
+	temp |= BDC_COS | BDC_COP_RST;
 	bdc_writel(bdc->regs, BDC_BDCSC, temp);
 	ret = poll_oip(bdc, BDC_COP_TIMEOUT);
+
 	if (ret)
+	{
 		dev_err(bdc->dev, "bdc reset operation failed");
+	}
 
 	return ret;
 }
@@ -107,24 +125,32 @@ int bdc_run(struct bdc *bdc)
 
 	dev_dbg(bdc->dev, "%s ()\n", __func__);
 	temp = bdc_readl(bdc->regs, BDC_BDCSC);
+
 	/* if BDC is already in running state then do not do anything */
-	if (BDC_CSTS(temp) == BDC_NOR) {
+	if (BDC_CSTS(temp) == BDC_NOR)
+	{
 		dev_warn(bdc->dev, "bdc is already in running state\n");
 		return 0;
 	}
+
 	temp &= ~BDC_COP_MASK;
 	temp |= BDC_COP_RUN;
 	temp |= BDC_COS;
 	bdc_writel(bdc->regs, BDC_BDCSC, temp);
 	ret = poll_oip(bdc, BDC_COP_TIMEOUT);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(bdc->dev, "bdc run operation failed:%d", ret);
 		return ret;
 	}
+
 	temp = bdc_readl(bdc->regs, BDC_BDCSC);
-	if (BDC_CSTS(temp) != BDC_NOR) {
+
+	if (BDC_CSTS(temp) != BDC_NOR)
+	{
 		dev_err(bdc->dev, "bdc not in normal mode after RUN op :%d\n",
-								BDC_CSTS(temp));
+				BDC_CSTS(temp));
 		return -ESHUTDOWN;
 	}
 
@@ -168,18 +194,23 @@ static int scratchpad_setup(struct bdc *bdc)
 
 	sp_buff_size = BDC_SPB(bdc_readl(bdc->regs, BDC_BDCCFG0));
 	dev_dbg(bdc->dev, "%s() sp_buff_size=%d\n", __func__, sp_buff_size);
-	if (!sp_buff_size) {
+
+	if (!sp_buff_size)
+	{
 		dev_dbg(bdc->dev, "Scratchpad buffer not needed\n");
 		return 0;
 	}
+
 	/* Refer to BDC spec, Table 4 for description of SPB */
 	sp_buff_size = 1 << (sp_buff_size + 5);
 	dev_dbg(bdc->dev, "Allocating %d bytes for scratchpad\n", sp_buff_size);
 	bdc->scratchpad.buff  =  dma_zalloc_coherent(bdc->dev, sp_buff_size,
-					&bdc->scratchpad.sp_dma, GFP_KERNEL);
+							 &bdc->scratchpad.sp_dma, GFP_KERNEL);
 
 	if (!bdc->scratchpad.buff)
+	{
 		goto fail;
+	}
 
 	bdc->sp_buff_size = sp_buff_size;
 	bdc->scratchpad.size = sp_buff_size;
@@ -206,12 +237,15 @@ static int setup_srr(struct bdc *bdc, int interrupter)
 	bdc->srr.dqp_index = 0;
 	/* allocate the status report descriptors */
 	bdc->srr.sr_bds = dma_zalloc_coherent(
-					bdc->dev,
-					NUM_SR_ENTRIES * sizeof(struct bdc_bd),
-					&bdc->srr.dma_addr,
-					GFP_KERNEL);
+						  bdc->dev,
+						  NUM_SR_ENTRIES * sizeof(struct bdc_bd),
+						  &bdc->srr.dma_addr,
+						  GFP_KERNEL);
+
 	if (!bdc->srr.sr_bds)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -243,7 +277,7 @@ static void bdc_mem_init(struct bdc *bdc, bool reinit)
 	size = fls(NUM_SR_ENTRIES) - 2;
 	temp |= size;
 	dev_dbg(bdc->dev, "SRRBAL[0]=%08x NUM_SR_ENTRIES:%d size:%d\n",
-						temp, NUM_SR_ENTRIES, size);
+			temp, NUM_SR_ENTRIES, size);
 
 	low32 = lower_32_bits(temp);
 	upp32 = upper_32_bits(bdc->srr.dma_addr);
@@ -285,7 +319,8 @@ static void bdc_mem_init(struct bdc *bdc, bool reinit)
 	 * In some error cases, driver has to reset the entire BDC controller
 	 * in that case reinit is passed as 1
 	 */
-	if (reinit) {
+	if (reinit)
+	{
 		/* Enable interrupts */
 		temp = bdc_readl(bdc->regs, BDC_BDCSC);
 		temp |= BDC_GIE;
@@ -294,8 +329,10 @@ static void bdc_mem_init(struct bdc *bdc, bool reinit)
 		memset(bdc->scratchpad.buff, 0, bdc->sp_buff_size);
 		/* Initialize SRR to 0 */
 		memset(bdc->srr.sr_bds, 0,
-					NUM_SR_ENTRIES * sizeof(struct bdc_bd));
-	} else {
+			   NUM_SR_ENTRIES * sizeof(struct bdc_bd));
+	}
+	else
+	{
 		/* One time initiaization only */
 		/* Enable status report function pointers */
 		bdc->sr_handler[0] = bdc_sr_xsf;
@@ -312,16 +349,17 @@ static void bdc_mem_init(struct bdc *bdc, bool reinit)
 static void bdc_mem_free(struct bdc *bdc)
 {
 	dev_dbg(bdc->dev, "%s\n", __func__);
+
 	/* Free SRR */
 	if (bdc->srr.sr_bds)
 		dma_free_coherent(bdc->dev,
-					NUM_SR_ENTRIES * sizeof(struct bdc_bd),
-					bdc->srr.sr_bds, bdc->srr.dma_addr);
+						  NUM_SR_ENTRIES * sizeof(struct bdc_bd),
+						  bdc->srr.sr_bds, bdc->srr.dma_addr);
 
 	/* Free scratchpad */
 	if (bdc->scratchpad.buff)
 		dma_free_coherent(bdc->dev, bdc->sp_buff_size,
-				bdc->scratchpad.buff, bdc->scratchpad.sp_dma);
+						  bdc->scratchpad.buff, bdc->scratchpad.sp_dma);
 
 	/* Destroy the dma pools */
 	dma_pool_destroy(bdc->bd_table_pool);
@@ -345,12 +383,18 @@ int bdc_reinit(struct bdc *bdc)
 
 	dev_dbg(bdc->dev, "%s\n", __func__);
 	ret = bdc_stop(bdc);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ret = bdc_reset(bdc);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* the reinit flag is 1 */
 	bdc_mem_init(bdc, true);
@@ -368,8 +412,8 @@ static int bdc_mem_alloc(struct bdc *bdc)
 	unsigned int num_ieps, num_oeps;
 
 	dev_dbg(bdc->dev,
-		"%s() NUM_BDS_PER_TABLE:%d\n", __func__,
-		NUM_BDS_PER_TABLE);
+			"%s() NUM_BDS_PER_TABLE:%d\n", __func__,
+			NUM_BDS_PER_TABLE);
 	page_size = BDC_PGS(bdc_readl(bdc->regs, BDC_BDCCFG0));
 	/* page size is 2^pgs KB */
 	page_size = 1 << page_size;
@@ -379,14 +423,18 @@ static int bdc_mem_alloc(struct bdc *bdc)
 
 	/* Create a pool of bd tables */
 	bdc->bd_table_pool =
-	    dma_pool_create("BDC BD tables", bdc->dev, NUM_BDS_PER_TABLE * 16,
-								16, page_size);
+		dma_pool_create("BDC BD tables", bdc->dev, NUM_BDS_PER_TABLE * 16,
+						16, page_size);
 
 	if (!bdc->bd_table_pool)
+	{
 		goto fail;
+	}
 
 	if (scratchpad_setup(bdc))
+	{
 		goto fail;
+	}
 
 	/* read from regs */
 	num_ieps = NUM_NCS(bdc_readl(bdc->regs, BDC_FSCNIC));
@@ -394,17 +442,23 @@ static int bdc_mem_alloc(struct bdc *bdc)
 	/* +2: 1 for ep0 and the other is rsvd i.e. bdc_ep[0] is rsvd */
 	bdc->num_eps = num_ieps + num_oeps + 2;
 	dev_dbg(bdc->dev,
-		"ieps:%d eops:%d num_eps:%d\n",
-		num_ieps, num_oeps, bdc->num_eps);
+			"ieps:%d eops:%d num_eps:%d\n",
+			num_ieps, num_oeps, bdc->num_eps);
 	/* allocate array of ep pointers */
 	bdc->bdc_ep_array = kcalloc(bdc->num_eps, sizeof(struct bdc_ep *),
 								GFP_KERNEL);
+
 	if (!bdc->bdc_ep_array)
+	{
 		goto fail;
+	}
 
 	dev_dbg(bdc->dev, "Allocating sr report0\n");
+
 	if (setup_srr(bdc, 0))
+	{
 		goto fail;
+	}
 
 	return 0;
 fail:
@@ -428,15 +482,21 @@ static int bdc_hw_init(struct bdc *bdc)
 
 	dev_dbg(bdc->dev, "%s ()\n", __func__);
 	ret = bdc_reset(bdc);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(bdc->dev, "err resetting bdc abort bdc init%d\n", ret);
 		return ret;
 	}
+
 	ret = bdc_mem_alloc(bdc);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(bdc->dev, "Mem alloc failed, aborting\n");
 		return -ENOMEM;
 	}
+
 	bdc_mem_init(bdc, 0);
 	bdc_dbg_regs(bdc);
 	dev_dbg(bdc->dev, "HW Init done\n");
@@ -455,20 +515,29 @@ static int bdc_probe(struct platform_device *pdev)
 
 	dev_dbg(dev, "%s()\n", __func__);
 	bdc = devm_kzalloc(dev, sizeof(*bdc), GFP_KERNEL);
+
 	if (!bdc)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	bdc->regs = devm_ioremap_resource(dev, res);
-	if (IS_ERR(bdc->regs)) {
+
+	if (IS_ERR(bdc->regs))
+	{
 		dev_err(dev, "ioremap error\n");
 		return -ENOMEM;
 	}
+
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(dev, "platform_get_irq failed:%d\n", irq);
 		return irq;
 	}
+
 	spin_lock_init(&bdc->lock);
 	platform_set_drvdata(pdev, bdc);
 	bdc->irq = irq;
@@ -476,27 +545,41 @@ static int bdc_probe(struct platform_device *pdev)
 	dev_dbg(bdc->dev, "bdc->regs: %p irq=%d\n", bdc->regs, bdc->irq);
 
 	temp = bdc_readl(bdc->regs, BDC_BDCSC);
+
 	if ((temp & BDC_P64) &&
-			!dma_set_mask_and_coherent(dev, DMA_BIT_MASK(64))) {
+		!dma_set_mask_and_coherent(dev, DMA_BIT_MASK(64)))
+	{
 		dev_dbg(bdc->dev, "Using 64-bit address\n");
-	} else {
+	}
+	else
+	{
 		ret = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(bdc->dev, "No suitable DMA config available, abort\n");
 			return -ENOTSUPP;
 		}
+
 		dev_dbg(bdc->dev, "Using 32-bit address\n");
 	}
+
 	ret = bdc_hw_init(bdc);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(bdc->dev, "BDC init failure:%d\n", ret);
 		return ret;
 	}
+
 	ret = bdc_udc_init(bdc);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(bdc->dev, "BDC Gadget init failure:%d\n", ret);
 		goto cleanup;
 	}
+
 	return 0;
 
 cleanup:
@@ -517,7 +600,8 @@ static int bdc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver bdc_driver = {
+static struct platform_driver bdc_driver =
+{
 	.driver		= {
 		.name	= BRCM_BDC_NAME,
 	},

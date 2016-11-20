@@ -10,7 +10,8 @@
 #define _BF5XX_AC97_H
 
 /* Frame format in memory, only support stereo currently */
-struct ac97_frame {
+struct ac97_frame
+{
 	u16 ac97_tag;		/* slot 0 */
 	u16 ac97_addr;		/* slot 1 */
 	u16 ac97_data;		/* slot 2 */
@@ -49,9 +50,9 @@ struct ac97_frame {
 #define TAG_PCM_LFE		0x0040
 
 void bf5xx_pcm_to_ac97(struct ac97_frame *dst, const __u16 *src, \
-		size_t count, unsigned int chan_mask);
+					   size_t count, unsigned int chan_mask);
 
 void bf5xx_ac97_to_pcm(const struct ac97_frame *src, __u16 *dst, \
-		size_t count);
+					   size_t count);
 
 #endif

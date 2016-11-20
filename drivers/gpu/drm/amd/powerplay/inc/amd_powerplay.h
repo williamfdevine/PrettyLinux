@@ -29,7 +29,8 @@
 #include "amd_shared.h"
 #include "cgs_common.h"
 
-enum amd_pp_sensors {
+enum amd_pp_sensors
+{
 	AMDGPU_PP_SENSOR_GFX_SCLK = 0,
 	AMDGPU_PP_SENSOR_VDDNB,
 	AMDGPU_PP_SENSOR_VDDGFX,
@@ -43,7 +44,8 @@ enum amd_pp_sensors {
 	AMDGPU_PP_SENSOR_UVD_POWER,
 };
 
-enum amd_pp_event {
+enum amd_pp_event
+{
 	AMD_PP_EVENT_INITIALIZE = 0,
 	AMD_PP_EVENT_UNINITIALIZE,
 	AMD_PP_EVENT_POWER_SOURCE_CHANGE,
@@ -133,20 +135,23 @@ enum amd_pp_event {
 	AMD_PP_EVENT_MAX
 };
 
-enum amd_dpm_forced_level {
+enum amd_dpm_forced_level
+{
 	AMD_DPM_FORCED_LEVEL_AUTO = 0,
 	AMD_DPM_FORCED_LEVEL_LOW = 1,
 	AMD_DPM_FORCED_LEVEL_HIGH = 2,
 	AMD_DPM_FORCED_LEVEL_MANUAL = 3,
 };
 
-struct amd_pp_init {
+struct amd_pp_init
+{
 	struct cgs_device *device;
 	uint32_t chip_family;
 	uint32_t chip_id;
 };
 
-enum amd_pp_display_config_type{
+enum amd_pp_display_config_type
+{
 	AMD_PP_DisplayConfigType_None = 0,
 	AMD_PP_DisplayConfigType_DP54 ,
 	AMD_PP_DisplayConfigType_DP432 ,
@@ -189,7 +194,8 @@ struct single_display_configuration
 
 #define MAX_NUM_DISPLAY 32
 
-struct amd_pp_display_configuration {
+struct amd_pp_display_configuration
+{
 	bool nb_pstate_switch_disable;/* controls NB PState switch */
 	bool cpu_cc6_disable; /* controls CPU CState switch ( on or off) */
 	bool cpu_pstate_disable;
@@ -227,13 +233,15 @@ struct amd_pp_display_configuration {
 	uint32_t dce_tolerable_mclk_in_active_latency;
 };
 
-struct amd_pp_simple_clock_info {
+struct amd_pp_simple_clock_info
+{
 	uint32_t	engine_max_clock;
 	uint32_t	memory_max_clock;
 	uint32_t	level;
 };
 
-enum PP_DAL_POWERLEVEL {
+enum PP_DAL_POWERLEVEL
+{
 	PP_DAL_POWERLEVEL_INVALID = 0,
 	PP_DAL_POWERLEVEL_ULTRALOW,
 	PP_DAL_POWERLEVEL_LOW,
@@ -244,13 +252,14 @@ enum PP_DAL_POWERLEVEL {
 	PP_DAL_POWERLEVEL_1 = PP_DAL_POWERLEVEL_LOW,
 	PP_DAL_POWERLEVEL_2 = PP_DAL_POWERLEVEL_NOMINAL,
 	PP_DAL_POWERLEVEL_3 = PP_DAL_POWERLEVEL_PERFORMANCE,
-	PP_DAL_POWERLEVEL_4 = PP_DAL_POWERLEVEL_3+1,
-	PP_DAL_POWERLEVEL_5 = PP_DAL_POWERLEVEL_4+1,
-	PP_DAL_POWERLEVEL_6 = PP_DAL_POWERLEVEL_5+1,
-	PP_DAL_POWERLEVEL_7 = PP_DAL_POWERLEVEL_6+1,
+	PP_DAL_POWERLEVEL_4 = PP_DAL_POWERLEVEL_3 + 1,
+	PP_DAL_POWERLEVEL_5 = PP_DAL_POWERLEVEL_4 + 1,
+	PP_DAL_POWERLEVEL_6 = PP_DAL_POWERLEVEL_5 + 1,
+	PP_DAL_POWERLEVEL_7 = PP_DAL_POWERLEVEL_6 + 1,
 };
 
-struct amd_pp_clock_info {
+struct amd_pp_clock_info
+{
 	uint32_t min_engine_clock;
 	uint32_t max_engine_clock;
 	uint32_t min_memory_clock;
@@ -262,7 +271,8 @@ struct amd_pp_clock_info {
 	enum PP_DAL_POWERLEVEL max_clocks_state;
 };
 
-enum amd_pp_clock_type {
+enum amd_pp_clock_type
+{
 	amd_pp_disp_clock = 1,
 	amd_pp_sys_clock,
 	amd_pp_mem_clock
@@ -270,27 +280,31 @@ enum amd_pp_clock_type {
 
 #define MAX_NUM_CLOCKS 16
 
-struct amd_pp_clocks {
+struct amd_pp_clocks
+{
 	uint32_t count;
 	uint32_t clock[MAX_NUM_CLOCKS];
 	uint32_t latency[MAX_NUM_CLOCKS];
 };
 
 
-enum {
+enum
+{
 	PP_GROUP_UNKNOWN = 0,
 	PP_GROUP_GFX = 1,
 	PP_GROUP_SYS,
 	PP_GROUP_MAX
 };
 
-enum pp_clock_type {
+enum pp_clock_type
+{
 	PP_SCLK,
 	PP_MCLK,
 	PP_PCIE,
 };
 
-struct pp_states_info {
+struct pp_states_info
+{
 	uint32_t nums;
 	uint32_t states[16];
 };
@@ -328,11 +342,12 @@ struct pp_states_info {
 #define PP_STATE_SUPPORT_SD     0x80
 
 #define PP_CG_MSG_ID(group, block, support, state) (group << PP_GROUP_SHIFT |\
-								block << PP_BLOCK_SHIFT |\
-								support << PP_STATE_SUPPORT_SHIFT |\
-								state << PP_STATE_SHIFT)
+		block << PP_BLOCK_SHIFT |\
+		support << PP_STATE_SUPPORT_SHIFT |\
+		state << PP_STATE_SHIFT)
 
-struct amd_powerplay_funcs {
+struct amd_powerplay_funcs
+{
 	int (*get_temperature)(void *handle);
 	int (*load_firmware)(void *handle);
 	int (*wait_for_fw_loading_complete)(void *handle);
@@ -344,7 +359,7 @@ struct amd_powerplay_funcs {
 	int (*powergate_vce)(void *handle, bool gate);
 	int (*powergate_uvd)(void *handle, bool gate);
 	int (*dispatch_tasks)(void *handle, enum amd_pp_event event_id,
-				   void *input, void *output);
+						  void *input, void *output);
 	int (*set_fan_control_mode)(void *handle, uint32_t mode);
 	int (*get_fan_control_mode)(void *handle);
 	int (*set_fan_speed_percent)(void *handle, uint32_t percent);
@@ -361,14 +376,15 @@ struct amd_powerplay_funcs {
 	int (*read_sensor)(void *handle, int idx, int32_t *value);
 };
 
-struct amd_powerplay {
+struct amd_powerplay
+{
 	void *pp_handle;
 	const struct amd_ip_funcs *ip_funcs;
 	const struct amd_powerplay_funcs *pp_funcs;
 };
 
 int amd_powerplay_init(struct amd_pp_init *pp_init,
-		       struct amd_powerplay *amd_pp);
+					   struct amd_powerplay *amd_pp);
 
 int amd_powerplay_fini(void *handle);
 
@@ -381,11 +397,11 @@ int amd_powerplay_get_display_power_level(void *handle,
 		struct amd_pp_simple_clock_info *output);
 
 int amd_powerplay_get_current_clocks(void *handle,
-		struct amd_pp_clock_info *output);
+									 struct amd_pp_clock_info *output);
 
 int amd_powerplay_get_clock_by_type(void *handle,
-		enum amd_pp_clock_type type,
-		struct amd_pp_clocks *clocks);
+									enum amd_pp_clock_type type,
+									struct amd_pp_clocks *clocks);
 
 int amd_powerplay_get_display_mode_validation_clocks(void *handle,
 		struct amd_pp_simple_clock_info *output);

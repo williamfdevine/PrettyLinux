@@ -28,27 +28,37 @@ struct page *emergency_read_begin(struct address_space *mapping, pgoff_t index)
 	int err;
 
 	page = read_cache_page(mapping, index, filler, NULL);
+
 	if (page)
+	{
 		return page;
+	}
 
 	/* No more pages available, switch to emergency page */
 	printk(KERN_INFO"Logfs: Using emergency page\n");
 	mutex_lock(&emergency_mutex);
 	err = filler(NULL, emergency_page);
-	if (err) {
+
+	if (err)
+	{
 		mutex_unlock(&emergency_mutex);
 		printk(KERN_EMERG"Logfs: Error reading emergency page\n");
 		return ERR_PTR(err);
 	}
+
 	return emergency_page;
 }
 
 void emergency_read_end(struct page *page)
 {
 	if (page == emergency_page)
+	{
 		mutex_unlock(&emergency_mutex);
+	}
 	else
+	{
 		put_page(page);
+	}
 }
 
 static void dump_segfile(struct super_block *sb)
@@ -57,25 +67,33 @@ static void dump_segfile(struct super_block *sb)
 	struct logfs_segment_entry se;
 	u32 segno;
 
-	for (segno = 0; segno < super->s_no_segs; segno++) {
+	for (segno = 0; segno < super->s_no_segs; segno++)
+	{
 		logfs_get_segment_entry(sb, segno, &se);
 		printk("%3x: %6x %8x", segno, be32_to_cpu(se.ec_level),
-				be32_to_cpu(se.valid));
-		if (++segno < super->s_no_segs) {
+			   be32_to_cpu(se.valid));
+
+		if (++segno < super->s_no_segs)
+		{
 			logfs_get_segment_entry(sb, segno, &se);
 			printk(" %6x %8x", be32_to_cpu(se.ec_level),
-					be32_to_cpu(se.valid));
+				   be32_to_cpu(se.valid));
 		}
-		if (++segno < super->s_no_segs) {
+
+		if (++segno < super->s_no_segs)
+		{
 			logfs_get_segment_entry(sb, segno, &se);
 			printk(" %6x %8x", be32_to_cpu(se.ec_level),
-					be32_to_cpu(se.valid));
+				   be32_to_cpu(se.valid));
 		}
-		if (++segno < super->s_no_segs) {
+
+		if (++segno < super->s_no_segs)
+		{
 			logfs_get_segment_entry(sb, segno, &se);
 			printk(" %6x %8x", be32_to_cpu(se.ec_level),
-					be32_to_cpu(se.valid));
+				   be32_to_cpu(se.valid));
 		}
+
 		printk("\n");
 	}
 }
@@ -118,12 +136,20 @@ static int logfs_sb_set(struct super_block *sb, void *_super)
 	sb->s_mtd = super->s_mtd;
 	sb->s_bdev = super->s_bdev;
 #ifdef CONFIG_BLOCK
+
 	if (sb->s_bdev)
+	{
 		sb->s_bdi = &bdev_get_queue(sb->s_bdev)->backing_dev_info;
+	}
+
 #endif
 #ifdef CONFIG_MTD
+
 	if (sb->s_mtd)
+	{
 		sb->s_bdi = sb->s_mtd->backing_dev_info;
+	}
+
 #endif
 	return 0;
 }
@@ -134,14 +160,20 @@ static int logfs_sb_test(struct super_block *sb, void *_super)
 	struct mtd_info *mtd = super->s_mtd;
 
 	if (mtd && sb->s_mtd == mtd)
+	{
 		return 1;
+	}
+
 	if (super->s_bdev && sb->s_bdev == super->s_bdev)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
 static void set_segment_header(struct logfs_segment_header *sh, u8 type,
-		u8 level, u32 segno, u32 ec)
+							   u8 level, u32 segno, u32 ec)
 {
 	sh->pad = 0;
 	sh->type = type;
@@ -153,7 +185,7 @@ static void set_segment_header(struct logfs_segment_header *sh, u8 type,
 }
 
 static void logfs_write_ds(struct super_block *sb, struct logfs_disk_super *ds,
-		u32 segno, u32 ec)
+						   u32 segno, u32 ec)
 {
 	struct logfs_super *super = logfs_super(sb);
 	struct logfs_segment_header *sh = &ds->ds_sh;
@@ -172,20 +204,20 @@ static void logfs_write_ds(struct super_block *sb, struct logfs_disk_super *ds,
 	ds->ds_segment_size	= cpu_to_be32(super->s_segsize);
 	ds->ds_bad_seg_reserve	= cpu_to_be32(super->s_bad_seg_reserve);
 	ds->ds_feature_incompat	= cpu_to_be64(super->s_feature_incompat);
-	ds->ds_feature_ro_compat= cpu_to_be64(super->s_feature_ro_compat);
+	ds->ds_feature_ro_compat = cpu_to_be64(super->s_feature_ro_compat);
 	ds->ds_feature_compat	= cpu_to_be64(super->s_feature_compat);
 	ds->ds_feature_flags	= cpu_to_be64(super->s_feature_flags);
 	ds->ds_root_reserve	= cpu_to_be64(super->s_root_reserve);
 	ds->ds_speed_reserve	= cpu_to_be64(super->s_speed_reserve);
 	journal_for_each(i)
-		ds->ds_journal_seg[i] = cpu_to_be32(super->s_journal_seg[i]);
+	ds->ds_journal_seg[i] = cpu_to_be32(super->s_journal_seg[i]);
 	ds->ds_magic		= cpu_to_be64(LOGFS_MAGIC);
 	ds->ds_crc = logfs_crc32(ds, sizeof(*ds),
-			LOGFS_SEGMENT_HEADERSIZE + 12);
+							 LOGFS_SEGMENT_HEADERSIZE + 12);
 }
 
 static int write_one_sb(struct super_block *sb,
-		struct page *(*find_sb)(struct super_block *sb, u64 *ofs))
+						struct page * (*find_sb)(struct super_block *sb, u64 *ofs))
 {
 	struct logfs_super *super = logfs_super(sb);
 	struct logfs_disk_super *ds;
@@ -196,8 +228,12 @@ static int write_one_sb(struct super_block *sb,
 	int err;
 
 	page = find_sb(sb, &ofs);
+
 	if (!page)
+	{
 		return -EIO;
+	}
+
 	ds = page_address(page);
 	segno = seg_no(sb, ofs);
 	logfs_get_segment_entry(sb, segno, &se);
@@ -217,13 +253,20 @@ int logfs_write_sb(struct super_block *sb)
 
 	/* First superblock */
 	err = write_one_sb(sb, super->s_devops->find_first_sb);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Last superblock */
 	err = write_one_sb(sb, super->s_devops->find_last_sb);
+
 	if (err)
+	{
 		return err;
+	}
+
 	return 0;
 }
 
@@ -247,27 +290,41 @@ static int logfs_recover_sb(struct super_block *sb)
 
 	/* read first superblock */
 	err = wbuf_read(sb, super->s_sb_ofs[0], sizeof(*ds0), ds0);
+
 	if (err)
+	{
 		return err;
+	}
+
 	/* read last superblock */
 	err = wbuf_read(sb, super->s_sb_ofs[1], sizeof(*ds1), ds1);
+
 	if (err)
+	{
 		return err;
+	}
+
 	valid0 = logfs_check_ds(ds0) == 0;
 	valid1 = logfs_check_ds(ds1) == 0;
 
-	if (!valid0 && valid1) {
+	if (!valid0 && valid1)
+	{
 		printk(KERN_INFO"First superblock is invalid - fixing.\n");
 		return write_one_sb(sb, super->s_devops->find_first_sb);
 	}
-	if (valid0 && !valid1) {
+
+	if (valid0 && !valid1)
+	{
 		printk(KERN_INFO"Last superblock is invalid - fixing.\n");
 		return write_one_sb(sb, super->s_devops->find_last_sb);
 	}
-	if (valid0 && valid1 && ds_cmp(ds0, ds1)) {
+
+	if (valid0 && valid1 && ds_cmp(ds0, ds1))
+	{
 		printk(KERN_INFO"Superblocks don't match - fixing.\n");
 		return logfs_write_sb(sb);
 	}
+
 	/* If neither is valid now, something's wrong.  Didn't we properly
 	 * check them before?!? */
 	BUG_ON(!valid0 && !valid1);
@@ -279,18 +336,27 @@ static int logfs_make_writeable(struct super_block *sb)
 	int err;
 
 	err = logfs_open_segfile(sb);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Repair any broken superblock copies */
 	err = logfs_recover_sb(sb);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Check areas for trailing unaccounted data */
 	err = logfs_check_areas(sb);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Do one GC pass before any data gets dirtied */
 	logfs_gc_pass(sb);
@@ -298,8 +364,11 @@ static int logfs_make_writeable(struct super_block *sb)
 	/* after all initializations are done, replay the journal
 	 * for rw-mounts, if necessary */
 	err = logfs_replay_journal(sb);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -312,22 +381,34 @@ static int logfs_get_sb_final(struct super_block *sb)
 
 	/* root dir */
 	rootdir = logfs_iget(sb, LOGFS_INO_ROOT);
+
 	if (IS_ERR(rootdir))
+	{
 		goto fail;
+	}
 
 	sb->s_root = d_make_root(rootdir);
+
 	if (!sb->s_root)
+	{
 		goto fail;
+	}
 
 	/* at that point we know that ->put_super() will be called */
 	super->s_erase_page = alloc_pages(GFP_KERNEL, 0);
+
 	if (!super->s_erase_page)
+	{
 		return -ENOMEM;
+	}
+
 	memset(page_address(super->s_erase_page), 0xFF, PAGE_SIZE);
 
 	/* FIXME: check for read-only mounts */
 	err = logfs_make_writeable(sb);
-	if (err) {
+
+	if (err)
+	{
 		__free_page(super->s_erase_page);
 		return err;
 	}
@@ -347,12 +428,21 @@ int logfs_check_ds(struct logfs_disk_super *ds)
 	struct logfs_segment_header *sh = &ds->ds_sh;
 
 	if (ds->ds_magic != cpu_to_be64(LOGFS_MAGIC))
+	{
 		return -EINVAL;
+	}
+
 	if (sh->crc != logfs_crc32(sh, LOGFS_SEGMENT_HEADERSIZE, 4))
+	{
 		return -EINVAL;
+	}
+
 	if (ds->ds_crc != logfs_crc32(ds, sizeof(*ds),
-				LOGFS_SEGMENT_HEADERSIZE + 12))
+								  LOGFS_SEGMENT_HEADERSIZE + 12))
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
@@ -362,21 +452,29 @@ static struct page *find_super_block(struct super_block *sb)
 	struct page *first, *last;
 
 	first = super->s_devops->find_first_sb(sb, &super->s_sb_ofs[0]);
+
 	if (!first || IS_ERR(first))
+	{
 		return NULL;
+	}
+
 	last = super->s_devops->find_last_sb(sb, &super->s_sb_ofs[1]);
-	if (!last || IS_ERR(last)) {
+
+	if (!last || IS_ERR(last))
+	{
 		put_page(first);
 		return NULL;
 	}
 
-	if (!logfs_check_ds(page_address(first))) {
+	if (!logfs_check_ds(page_address(first)))
+	{
 		put_page(last);
 		return first;
 	}
 
 	/* First one didn't work, try the second superblock */
-	if (!logfs_check_ds(page_address(last))) {
+	if (!logfs_check_ds(page_address(last)))
+	{
 		put_page(first);
 		return last;
 	}
@@ -395,8 +493,11 @@ static int __logfs_read_sb(struct super_block *sb)
 	int i;
 
 	page = find_super_block(sb);
+
 	if (!page)
+	{
 		return -EINVAL;
+	}
 
 	ds = page_address(page);
 	super->s_size = be64_to_cpu(ds->ds_filesystem_size);
@@ -418,13 +519,13 @@ static int __logfs_read_sb(struct super_block *sb)
 	super->s_feature_flags = be64_to_cpu(ds->ds_feature_flags);
 
 	journal_for_each(i)
-		super->s_journal_seg[i] = be32_to_cpu(ds->ds_journal_seg[i]);
+	super->s_journal_seg[i] = be32_to_cpu(ds->ds_journal_seg[i]);
 
 	super->s_ifile_levels = ds->ds_ifile_levels;
 	super->s_iblock_levels = ds->ds_iblock_levels;
 	super->s_data_levels = ds->ds_data_levels;
 	super->s_total_levels = super->s_ifile_levels + super->s_iblock_levels
-		+ super->s_data_levels;
+							+ super->s_data_levels;
 	put_page(page);
 	return 0;
 }
@@ -435,43 +536,69 @@ static int logfs_read_sb(struct super_block *sb, int read_only)
 	int ret;
 
 	super->s_btree_pool = mempool_create(32, btree_alloc, btree_free, NULL);
+
 	if (!super->s_btree_pool)
+	{
 		return -ENOMEM;
+	}
 
 	btree_init_mempool64(&super->s_shadow_tree.new, super->s_btree_pool);
 	btree_init_mempool64(&super->s_shadow_tree.old, super->s_btree_pool);
 	btree_init_mempool32(&super->s_shadow_tree.segment_map,
-			super->s_btree_pool);
+						 super->s_btree_pool);
 
 	ret = logfs_init_mapping(sb);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = __logfs_read_sb(sb);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (super->s_feature_incompat & ~LOGFS_FEATURES_INCOMPAT)
+	{
 		return -EIO;
+	}
+
 	if ((super->s_feature_ro_compat & ~LOGFS_FEATURES_RO_COMPAT) &&
-			!read_only)
+		!read_only)
+	{
 		return -EIO;
+	}
 
 	ret = logfs_init_rw(sb);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = logfs_init_areas(sb);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = logfs_init_gc(sb);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = logfs_init_journal(sb);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -500,8 +627,12 @@ static void logfs_kill_sb(struct super_block *sb)
 	logfs_cleanup_journal(sb);
 	logfs_cleanup_areas(sb);
 	logfs_cleanup_rw(sb);
+
 	if (super->s_erase_page)
+	{
 		__free_page(super->s_erase_page);
+	}
+
 	super->s_devops->put_device(super);
 	logfs_mempool_destroy(super->s_btree_pool);
 	logfs_mempool_destroy(super->s_alias_pool);
@@ -520,13 +651,16 @@ static struct dentry *logfs_get_sb_device(struct logfs_super *super,
 
 	err = -EINVAL;
 	sb = sget(type, logfs_sb_test, logfs_sb_set, flags | MS_NOATIME, super);
-	if (IS_ERR(sb)) {
+
+	if (IS_ERR(sb))
+	{
 		super->s_devops->put_device(super);
 		kfree(super);
 		return ERR_CAST(sb);
 	}
 
-	if (sb->s_root) {
+	if (sb->s_root)
+	{
 		/* Device is already in use */
 		super->s_devops->put_device(super);
 		kfree(super);
@@ -544,15 +678,21 @@ static struct dentry *logfs_get_sb_device(struct logfs_super *super,
 	sb->s_op	= &logfs_super_operations;
 
 	err = logfs_read_sb(sb, sb->s_flags & MS_RDONLY);
+
 	if (err)
+	{
 		goto err1;
+	}
 
 	sb->s_flags |= MS_ACTIVE;
 	err = logfs_get_sb_final(sb);
-	if (err) {
+
+	if (err)
+	{
 		deactivate_locked_super(sb);
 		return ERR_PTR(err);
 	}
+
 	return dget(sb->s_root);
 
 err1:
@@ -565,34 +705,48 @@ err1:
 }
 
 static struct dentry *logfs_mount(struct file_system_type *type, int flags,
-		const char *devname, void *data)
+								  const char *devname, void *data)
 {
 	ulong mtdnr;
 	struct logfs_super *super;
 	int err;
 
 	super = kzalloc(sizeof(*super), GFP_KERNEL);
+
 	if (!super)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	mutex_init(&super->s_dirop_mutex);
 	mutex_init(&super->s_object_alias_mutex);
 	INIT_LIST_HEAD(&super->s_freeing_list);
 
 	if (!devname)
+	{
 		err = logfs_get_sb_bdev(super, type, devname);
+	}
 	else if (strncmp(devname, "mtd", 3))
+	{
 		err = logfs_get_sb_bdev(super, type, devname);
-	else {
+	}
+	else
+	{
 		char *garbage;
-		mtdnr = simple_strtoul(devname+3, &garbage, 0);
+		mtdnr = simple_strtoul(devname + 3, &garbage, 0);
+
 		if (*garbage)
+		{
 			err = -EINVAL;
+		}
 		else
+		{
 			err = logfs_get_sb_mtd(super, mtdnr);
+		}
 	}
 
-	if (err) {
+	if (err)
+	{
 		kfree(super);
 		return ERR_PTR(err);
 	}
@@ -600,7 +754,8 @@ static struct dentry *logfs_mount(struct file_system_type *type, int flags,
 	return logfs_get_sb_device(super, type, flags);
 }
 
-static struct file_system_type logfs_fs_type = {
+static struct file_system_type logfs_fs_type =
+{
 	.owner		= THIS_MODULE,
 	.name		= "logfs",
 	.mount		= logfs_mount,
@@ -615,20 +770,33 @@ static int __init logfs_init(void)
 	int ret;
 
 	emergency_page = alloc_pages(GFP_KERNEL, 0);
+
 	if (!emergency_page)
+	{
 		return -ENOMEM;
+	}
 
 	ret = logfs_compr_init();
+
 	if (ret)
+	{
 		goto out1;
+	}
 
 	ret = logfs_init_inode_cache();
+
 	if (ret)
+	{
 		goto out2;
+	}
 
 	ret = register_filesystem(&logfs_fs_type);
+
 	if (!ret)
+	{
 		return 0;
+	}
+
 	logfs_destroy_inode_cache();
 out2:
 	logfs_compr_exit();

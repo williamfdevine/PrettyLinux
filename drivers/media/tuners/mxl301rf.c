@@ -31,7 +31,8 @@
 #include <linux/kernel.h>
 #include "mxl301rf.h"
 
-struct mxl301rf_state {
+struct mxl301rf_state
+{
 	struct mxl301rf_config cfg;
 	struct i2c_client *i2c;
 };
@@ -46,8 +47,12 @@ static int raw_write(struct mxl301rf_state *state, const u8 *buf, int len)
 	int ret;
 
 	ret = i2c_master_send(state->i2c, buf, len);
+
 	if (ret >= 0 && ret < len)
+	{
 		ret = -EIO;
+	}
+
 	return (ret == len) ? 0 : ret;
 }
 
@@ -64,10 +69,17 @@ static int reg_read(struct mxl301rf_state *state, u8 reg, u8 *val)
 	int ret;
 
 	ret = raw_write(state, wbuf, sizeof(wbuf));
+
 	if (ret == 0)
+	{
 		ret = i2c_master_recv(state->i2c, val, 1);
+	}
+
 	if (ret >= 0 && ret < 1)
+	{
 		ret = -EIO;
+	}
+
 	return (ret == 1) ? 0 : ret;
 }
 
@@ -90,19 +102,35 @@ static int mxl301rf_get_rf_strength(struct dvb_frontend *fe, u16 *out)
 
 	state = fe->tuner_priv;
 	ret = reg_write(state, 0x14, 0x01);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	usleep_range(1000, 2000);
 
 	ret = reg_read(state, 0x18, &rf_in1);
+
 	if (ret == 0)
+	{
 		ret = reg_read(state, 0x19, &rf_in2);
+	}
+
 	if (ret == 0)
+	{
 		ret = reg_read(state, 0xd6, &rf_off1);
+	}
+
 	if (ret == 0)
+	{
 		ret = reg_read(state, 0xd7, &rf_off2);
+	}
+
 	if (ret != 0)
+	{
 		return ret;
+	}
 
 	rf_in = (rf_in2 & 0x07) << 8 | rf_in1;
 	rf_off = (rf_off2 & 0x0f) << 5 | (rf_off1 >> 3);
@@ -116,14 +144,16 @@ static int mxl301rf_get_rf_strength(struct dvb_frontend *fe, u16 *out)
 }
 
 /* spur shift parameters */
-struct shf {
+struct shf
+{
 	u32	freq;		/* Channel center frequency */
 	u32	ofst_th;	/* Offset frequency threshold */
 	u8	shf_val;	/* Spur shift value */
 	u8	shf_dir;	/* Spur shift direction */
 };
 
-static const struct shf shf_tab[] = {
+static const struct shf shf_tab[] =
+{
 	{  64500, 500, 0x92, 0x07 },
 	{ 191500, 300, 0xe2, 0x07 },
 	{ 205500, 500, 0x2c, 0x04 },
@@ -143,12 +173,14 @@ static const struct shf shf_tab[] = {
 	{ 153143, 500, 0x01, 0x07 }
 };
 
-struct reg_val {
+struct reg_val
+{
 	u8 reg;
 	u8 val;
 } __attribute__ ((__packed__));
 
-static const struct reg_val set_idac[] = {
+static const struct reg_val set_idac[] =
+{
 	{ 0x0d, 0x00 },
 	{ 0x0c, 0x67 },
 	{ 0x6f, 0x89 },
@@ -161,7 +193,8 @@ static const struct reg_val set_idac[] = {
 
 static int mxl301rf_set_params(struct dvb_frontend *fe)
 {
-	struct reg_val tune0[] = {
+	struct reg_val tune0[] =
+	{
 		{ 0x13, 0x00 },		/* abort tuning */
 		{ 0x3b, 0xc0 },
 		{ 0x3b, 0x80 },
@@ -171,7 +204,8 @@ static int mxl301rf_set_params(struct dvb_frontend *fe)
 		{ 0x62, 0xa0 }		/* spur shift direction (placeholder) */
 	};
 
-	struct reg_val tune1[] = {
+	struct reg_val tune1[] =
+	{
 		{ 0x11, 0x40 },		/* RF frequency L (placeholder) */
 		{ 0x12, 0x0e },		/* RF frequency H (placeholder) */
 		{ 0x13, 0x01 }		/* start tune */
@@ -187,55 +221,83 @@ static int mxl301rf_set_params(struct dvb_frontend *fe)
 	freq = fe->dtv_property_cache.frequency;
 
 	/* spur shift function (for analog) */
-	for (i = 0; i < ARRAY_SIZE(shf_tab); i++) {
+	for (i = 0; i < ARRAY_SIZE(shf_tab); i++)
+	{
 		if (freq >= (shf_tab[i].freq - shf_tab[i].ofst_th) * 1000 &&
-		    freq <= (shf_tab[i].freq + shf_tab[i].ofst_th) * 1000) {
+			freq <= (shf_tab[i].freq + shf_tab[i].ofst_th) * 1000)
+		{
 			tune0[5].val = shf_tab[i].shf_val;
 			tune0[6].val = 0xa0 | shf_tab[i].shf_dir;
 			break;
 		}
 	}
+
 	ret = raw_write(state, (u8 *) tune0, sizeof(tune0));
+
 	if (ret < 0)
+	{
 		goto failed;
+	}
+
 	usleep_range(3000, 4000);
 
 	/* convert freq to 10.6 fixed point float [MHz] */
 	f = freq / 1000000;
 	tmp = freq % 1000000;
 	div = 1000000;
-	for (i = 0; i < 6; i++) {
+
+	for (i = 0; i < 6; i++)
+	{
 		f <<= 1;
 		div >>= 1;
-		if (tmp > div) {
+
+		if (tmp > div)
+		{
 			tmp -= div;
 			f |= 1;
 		}
 	}
+
 	if (tmp > 7812)
+	{
 		f++;
+	}
+
 	tune1[0].val = f & 0xff;
 	tune1[1].val = f >> 8;
 	ret = raw_write(state, (u8 *) tune1, sizeof(tune1));
+
 	if (ret < 0)
+	{
 		goto failed;
+	}
+
 	msleep(31);
 
 	ret = reg_write(state, 0x1a, 0x0d);
+
 	if (ret < 0)
+	{
 		goto failed;
+	}
+
 	ret = raw_write(state, (u8 *) set_idac, sizeof(set_idac));
+
 	if (ret < 0)
+	{
 		goto failed;
+	}
+
 	return 0;
 
 failed:
 	dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
-		__func__, fe->dvb->num, fe->id);
+			 __func__, fe->dvb->num, fe->id);
 	return ret;
 }
 
-static const struct reg_val standby_data[] = {
+static const struct reg_val standby_data[] =
+{
 	{ 0x01, 0x00 },
 	{ 0x13, 0x00 }
 };
@@ -247,9 +309,11 @@ static int mxl301rf_sleep(struct dvb_frontend *fe)
 
 	state = fe->tuner_priv;
 	ret = raw_write(state, (u8 *)standby_data, sizeof(standby_data));
+
 	if (ret < 0)
 		dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
-			__func__, fe->dvb->num, fe->id);
+				 __func__, fe->dvb->num, fe->id);
+
 	return ret;
 }
 
@@ -266,17 +330,21 @@ static int mxl301rf_init(struct dvb_frontend *fe)
 	state = fe->tuner_priv;
 
 	ret = reg_write(state, 0x01, 0x01);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_warn(&state->i2c->dev, "(%s) failed. [adap%d-fe%d]\n",
-			 __func__, fe->dvb->num, fe->id);
+				 __func__, fe->dvb->num, fe->id);
 		return ret;
 	}
+
 	return 0;
 }
 
 /* I2C driver functions */
 
-static const struct dvb_tuner_ops mxl301rf_ops = {
+static const struct dvb_tuner_ops mxl301rf_ops =
+{
 	.info = {
 		.name = "MaxLinear MxL301RF",
 
@@ -293,15 +361,18 @@ static const struct dvb_tuner_ops mxl301rf_ops = {
 
 
 static int mxl301rf_probe(struct i2c_client *client,
-			  const struct i2c_device_id *id)
+						  const struct i2c_device_id *id)
 {
 	struct mxl301rf_state *state;
 	struct mxl301rf_config *cfg;
 	struct dvb_frontend *fe;
 
 	state = kzalloc(sizeof(*state), GFP_KERNEL);
+
 	if (!state)
+	{
 		return -ENOMEM;
+	}
 
 	state->i2c = client;
 	cfg = client->dev.platform_data;
@@ -327,13 +398,15 @@ static int mxl301rf_remove(struct i2c_client *client)
 }
 
 
-static const struct i2c_device_id mxl301rf_id[] = {
+static const struct i2c_device_id mxl301rf_id[] =
+{
 	{"mxl301rf", 0},
 	{}
 };
 MODULE_DEVICE_TABLE(i2c, mxl301rf_id);
 
-static struct i2c_driver mxl301rf_driver = {
+static struct i2c_driver mxl301rf_driver =
+{
 	.driver = {
 		.name	= "mxl301rf",
 	},

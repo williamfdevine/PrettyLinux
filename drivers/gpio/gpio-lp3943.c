@@ -19,7 +19,8 @@
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 
-enum lp3943_gpios {
+enum lp3943_gpios
+{
 	LP3943_GPIO1,
 	LP3943_GPIO2,
 	LP3943_GPIO3,
@@ -39,7 +40,8 @@ enum lp3943_gpios {
 	LP3943_MAX_GPIO,
 };
 
-struct lp3943_gpio {
+struct lp3943_gpio
+{
 	struct gpio_chip chip;
 	struct lp3943 *lp3943;
 	u16 input_mask;		/* 1 = GPIO is input direction, 0 = output */
@@ -52,7 +54,9 @@ static int lp3943_gpio_request(struct gpio_chip *chip, unsigned offset)
 
 	/* Return an error if the pin is already assigned */
 	if (test_and_set_bit(offset, &lp3943->pin_used))
+	{
 		return -EBUSY;
+	}
 
 	return 0;
 }
@@ -66,13 +70,13 @@ static void lp3943_gpio_free(struct gpio_chip *chip, unsigned offset)
 }
 
 static int lp3943_gpio_set_mode(struct lp3943_gpio *lp3943_gpio, u8 offset,
-				u8 val)
+								u8 val)
 {
 	struct lp3943 *lp3943 = lp3943_gpio->lp3943;
 	const struct lp3943_reg_cfg *mux = lp3943->mux_cfg;
 
 	return lp3943_update_bits(lp3943, mux[offset].reg, mux[offset].mask,
-				  val << mux[offset].shift);
+							  val << mux[offset].shift);
 }
 
 static int lp3943_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
@@ -85,32 +89,38 @@ static int lp3943_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
 }
 
 static int lp3943_get_gpio_in_status(struct lp3943_gpio *lp3943_gpio,
-				     struct gpio_chip *chip, unsigned offset)
+									 struct gpio_chip *chip, unsigned offset)
 {
 	u8 addr, read;
 	int err;
 
-	switch (offset) {
-	case LP3943_GPIO1 ... LP3943_GPIO8:
-		addr = LP3943_REG_GPIO_A;
-		break;
-	case LP3943_GPIO9 ... LP3943_GPIO16:
-		addr = LP3943_REG_GPIO_B;
-		offset = offset - 8;
-		break;
-	default:
-		return -EINVAL;
+	switch (offset)
+	{
+		case LP3943_GPIO1 ... LP3943_GPIO8:
+			addr = LP3943_REG_GPIO_A;
+			break;
+
+		case LP3943_GPIO9 ... LP3943_GPIO16:
+			addr = LP3943_REG_GPIO_B;
+			offset = offset - 8;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	err = lp3943_read_byte(lp3943_gpio->lp3943, addr, &read);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return !!(read & BIT(offset));
 }
 
 static int lp3943_get_gpio_out_status(struct lp3943_gpio *lp3943_gpio,
-				      struct gpio_chip *chip, unsigned offset)
+									  struct gpio_chip *chip, unsigned offset)
 {
 	struct lp3943 *lp3943 = lp3943_gpio->lp3943;
 	const struct lp3943_reg_cfg *mux = lp3943->mux_cfg;
@@ -118,17 +128,26 @@ static int lp3943_get_gpio_out_status(struct lp3943_gpio *lp3943_gpio,
 	int err;
 
 	err = lp3943_read_byte(lp3943, mux[offset].reg, &read);
+
 	if (err)
+	{
 		return err;
+	}
 
 	read = (read & mux[offset].mask) >> mux[offset].shift;
 
 	if (read == LP3943_GPIO_OUT_HIGH)
+	{
 		return 1;
+	}
 	else if (read == LP3943_GPIO_OUT_LOW)
+	{
 		return 0;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 }
 
 static int lp3943_gpio_get(struct gpio_chip *chip, unsigned offset)
@@ -145,9 +164,13 @@ static int lp3943_gpio_get(struct gpio_chip *chip, unsigned offset)
 	 */
 
 	if (lp3943_gpio->input_mask & BIT(offset))
+	{
 		return lp3943_get_gpio_in_status(lp3943_gpio, chip, offset);
+	}
 	else
+	{
 		return lp3943_get_gpio_out_status(lp3943_gpio, chip, offset);
+	}
 }
 
 static void lp3943_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
@@ -156,15 +179,19 @@ static void lp3943_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 	u8 data;
 
 	if (value)
+	{
 		data = LP3943_GPIO_OUT_HIGH;
+	}
 	else
+	{
 		data = LP3943_GPIO_OUT_LOW;
+	}
 
 	lp3943_gpio_set_mode(lp3943_gpio, offset, data);
 }
 
 static int lp3943_gpio_direction_output(struct gpio_chip *chip, unsigned offset,
-					int value)
+										int value)
 {
 	struct lp3943_gpio *lp3943_gpio = gpiochip_get_data(chip);
 
@@ -174,7 +201,8 @@ static int lp3943_gpio_direction_output(struct gpio_chip *chip, unsigned offset,
 	return 0;
 }
 
-static const struct gpio_chip lp3943_gpio_chip = {
+static const struct gpio_chip lp3943_gpio_chip =
+{
 	.label			= "lp3943",
 	.owner			= THIS_MODULE,
 	.request		= lp3943_gpio_request,
@@ -194,9 +222,12 @@ static int lp3943_gpio_probe(struct platform_device *pdev)
 	struct lp3943_gpio *lp3943_gpio;
 
 	lp3943_gpio = devm_kzalloc(&pdev->dev, sizeof(*lp3943_gpio),
-				GFP_KERNEL);
+							   GFP_KERNEL);
+
 	if (!lp3943_gpio)
+	{
 		return -ENOMEM;
+	}
 
 	lp3943_gpio->lp3943 = lp3943;
 	lp3943_gpio->chip = lp3943_gpio_chip;
@@ -205,16 +236,18 @@ static int lp3943_gpio_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, lp3943_gpio);
 
 	return devm_gpiochip_add_data(&pdev->dev, &lp3943_gpio->chip,
-				      lp3943_gpio);
+								  lp3943_gpio);
 }
 
-static const struct of_device_id lp3943_gpio_of_match[] = {
+static const struct of_device_id lp3943_gpio_of_match[] =
+{
 	{ .compatible = "ti,lp3943-gpio", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, lp3943_gpio_of_match);
 
-static struct platform_driver lp3943_gpio_driver = {
+static struct platform_driver lp3943_gpio_driver =
+{
 	.probe = lp3943_gpio_probe,
 	.driver = {
 		.name = "lp3943-gpio",

@@ -22,11 +22,12 @@ struct mii_phy_def
 	u32				phy_id_mask;	/* Significant bits */
 	u32				features;	/* Ethtool SUPPORTED_* defines */
 	int				magic_aneg;	/* Autoneg does all speed test for us */
-	const char*			name;
-	const struct mii_phy_ops*	ops;
+	const char			*name;
+	const struct mii_phy_ops	*ops;
 };
 
-enum {
+enum
+{
 	BCM54XX_COPPER,
 	BCM54XX_FIBER,
 	BCM54XX_GBIC,
@@ -37,7 +38,7 @@ enum {
 /* An instance of a PHY, partially borrowed from mii_if_info */
 struct mii_phy
 {
-	struct mii_phy_def*	def;
+	struct mii_phy_def	*def;
 	u32			advertising;
 	int			mii_id;
 

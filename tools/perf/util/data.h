@@ -3,12 +3,14 @@
 
 #include <stdbool.h>
 
-enum perf_data_mode {
+enum perf_data_mode
+{
 	PERF_DATA_MODE_WRITE,
 	PERF_DATA_MODE_READ,
 };
 
-struct perf_data_file {
+struct perf_data_file
+{
 	const char		*path;
 	int			 fd;
 	bool			 is_pipe;
@@ -45,7 +47,7 @@ static inline unsigned long perf_data_file__size(struct perf_data_file *file)
 int perf_data_file__open(struct perf_data_file *file);
 void perf_data_file__close(struct perf_data_file *file);
 ssize_t perf_data_file__write(struct perf_data_file *file,
-			      void *buf, size_t size);
+							  void *buf, size_t size);
 /*
  * If at_exit is set, only rename current perf.data to
  * perf.data.<postfix>, continue write on original file.
@@ -54,6 +56,6 @@ ssize_t perf_data_file__write(struct perf_data_file *file,
  * Return value is fd of new output.
  */
 int perf_data_file__switch(struct perf_data_file *file,
-			   const char *postfix,
-			   size_t pos, bool at_exit);
+						   const char *postfix,
+						   size_t pos, bool at_exit);
 #endif /* __PERF_DATA_H */

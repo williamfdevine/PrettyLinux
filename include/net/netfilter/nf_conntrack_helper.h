@@ -15,14 +15,16 @@
 
 struct module;
 
-enum nf_ct_helper_flags {
+enum nf_ct_helper_flags
+{
 	NF_CT_HELPER_F_USERSPACE	= (1 << 0),
 	NF_CT_HELPER_F_CONFIGURED	= (1 << 1),
 };
 
 #define NF_CT_HELPER_NAME_LEN	16
 
-struct nf_conntrack_helper {
+struct nf_conntrack_helper
+{
 	struct hlist_node hnode;	/* Internal use. */
 
 	char name[NF_CT_HELPER_NAME_LEN]; /* name of the module */
@@ -36,11 +38,11 @@ struct nf_conntrack_helper {
 	struct nf_conntrack_tuple tuple;
 
 	/* Function to call when data passes; return verdict, or -1 to
-           invalidate. */
+	       invalidate. */
 	int (*help)(struct sk_buff *skb,
-		    unsigned int protoff,
-		    struct nf_conn *ct,
-		    enum ip_conntrack_info conntrackinfo);
+				unsigned int protoff,
+				struct nf_conn *ct,
+				enum ip_conntrack_info conntrackinfo);
 
 	void (*destroy)(struct nf_conn *ct);
 
@@ -53,36 +55,36 @@ struct nf_conntrack_helper {
 };
 
 struct nf_conntrack_helper *__nf_conntrack_helper_find(const char *name,
-						       u16 l3num, u8 protonum);
+		u16 l3num, u8 protonum);
 
 struct nf_conntrack_helper *nf_conntrack_helper_try_module_get(const char *name,
-							       u16 l3num,
-							       u8 protonum);
+		u16 l3num,
+		u8 protonum);
 void nf_ct_helper_init(struct nf_conntrack_helper *helper,
-		       u16 l3num, u16 protonum, const char *name,
-		       u16 default_port, u16 spec_port, u32 id,
-		       const struct nf_conntrack_expect_policy *exp_pol,
-		       u32 expect_class_max, u32 data_len,
-		       int (*help)(struct sk_buff *skb, unsigned int protoff,
-				   struct nf_conn *ct,
-				   enum ip_conntrack_info ctinfo),
-		       int (*from_nlattr)(struct nlattr *attr,
-					  struct nf_conn *ct),
-		       struct module *module);
+					   u16 l3num, u16 protonum, const char *name,
+					   u16 default_port, u16 spec_port, u32 id,
+					   const struct nf_conntrack_expect_policy *exp_pol,
+					   u32 expect_class_max, u32 data_len,
+					   int (*help)(struct sk_buff *skb, unsigned int protoff,
+								   struct nf_conn *ct,
+								   enum ip_conntrack_info ctinfo),
+					   int (*from_nlattr)(struct nlattr *attr,
+							   struct nf_conn *ct),
+					   struct module *module);
 
 int nf_conntrack_helper_register(struct nf_conntrack_helper *);
 void nf_conntrack_helper_unregister(struct nf_conntrack_helper *);
 
 int nf_conntrack_helpers_register(struct nf_conntrack_helper *, unsigned int);
 void nf_conntrack_helpers_unregister(struct nf_conntrack_helper *,
-				     unsigned int);
+									 unsigned int);
 
 struct nf_conn_help *nf_ct_helper_ext_add(struct nf_conn *ct,
-					  struct nf_conntrack_helper *helper,
-					  gfp_t gfp);
+		struct nf_conntrack_helper *helper,
+		gfp_t gfp);
 
 int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
-			      gfp_t flags);
+							  gfp_t flags);
 
 void nf_ct_helper_destroy(struct nf_conn *ct);
 
@@ -107,19 +109,20 @@ int nf_conntrack_helper_init(void);
 void nf_conntrack_helper_fini(void);
 
 int nf_conntrack_broadcast_help(struct sk_buff *skb, unsigned int protoff,
-				struct nf_conn *ct,
-				enum ip_conntrack_info ctinfo,
-				unsigned int timeout);
+								struct nf_conn *ct,
+								enum ip_conntrack_info ctinfo,
+								unsigned int timeout);
 
-struct nf_ct_helper_expectfn {
+struct nf_ct_helper_expectfn
+{
 	struct list_head head;
 	const char *name;
 	void (*expectfn)(struct nf_conn *ct, struct nf_conntrack_expect *exp);
 };
 
-__printf(3,4)
+__printf(3, 4)
 void nf_ct_helper_log(struct sk_buff *skb, const struct nf_conn *ct,
-		      const char *fmt, ...);
+					  const char *fmt, ...);
 
 void nf_ct_helper_expectfn_register(struct nf_ct_helper_expectfn *n);
 void nf_ct_helper_expectfn_unregister(struct nf_ct_helper_expectfn *n);

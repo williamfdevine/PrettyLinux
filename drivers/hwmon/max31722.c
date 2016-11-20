@@ -25,7 +25,8 @@
 #define MAX31722_RESOLUTION_12BIT			0x06
 #define MAX31722_WRITE_MASK				0x80
 
-struct max31722_data {
+struct max31722_data
+{
 	struct device *hwmon_dev;
 	struct spi_device *spi_device;
 	u8 mode;
@@ -35,39 +36,48 @@ static int max31722_set_mode(struct max31722_data *data, u8 mode)
 {
 	int ret;
 	struct spi_device *spi = data->spi_device;
-	u8 buf[2] = {
+	u8 buf[2] =
+	{
 		MAX31722_REG_CFG | MAX31722_WRITE_MASK,
 		(data->mode & MAX31722_MODE_MASK) | mode
 	};
 
 	ret = spi_write(spi, &buf, sizeof(buf));
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&spi->dev, "failed to set sensor mode.\n");
 		return ret;
 	}
+
 	data->mode = (data->mode & MAX31722_MODE_MASK) | mode;
 
 	return 0;
 }
 
 static ssize_t max31722_show_temp(struct device *dev,
-				  struct device_attribute *attr,
-				  char *buf)
+								  struct device_attribute *attr,
+								  char *buf)
 {
 	ssize_t ret;
 	struct max31722_data *data = dev_get_drvdata(dev);
 
 	ret = spi_w8r16(data->spi_device, MAX31722_REG_TEMP_LSB);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	/* Keep 12 bits and multiply by the scale of 62.5 millidegrees/bit. */
 	return sprintf(buf, "%d\n", (s16)le16_to_cpu(ret) * 125 / 32);
 }
 
 static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO,
-			  max31722_show_temp, NULL, 0);
+						  max31722_show_temp, NULL, 0);
 
-static struct attribute *max31722_attrs[] = {
+static struct attribute *max31722_attrs[] =
+{
 	&sensor_dev_attr_temp1_input.dev_attr.attr,
 	NULL,
 };
@@ -80,8 +90,11 @@ static int max31722_probe(struct spi_device *spi)
 	struct max31722_data *data;
 
 	data = devm_kzalloc(&spi->dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	spi_set_drvdata(spi, data);
 	data->spi_device = spi;
@@ -91,14 +104,19 @@ static int max31722_probe(struct spi_device *spi)
 	 */
 	data->mode = MAX31722_MODE_CONTINUOUS | MAX31722_RESOLUTION_12BIT;
 	ret = max31722_set_mode(data, MAX31722_MODE_CONTINUOUS);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	data->hwmon_dev = hwmon_device_register_with_groups(&spi->dev,
-							    spi->modalias,
-							    data,
-							    max31722_groups);
-	if (IS_ERR(data->hwmon_dev)) {
+					  spi->modalias,
+					  data,
+					  max31722_groups);
+
+	if (IS_ERR(data->hwmon_dev))
+	{
 		max31722_set_mode(data, MAX31722_MODE_STANDBY);
 		return PTR_ERR(data->hwmon_dev);
 	}
@@ -133,13 +151,15 @@ static int __maybe_unused max31722_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(max31722_pm_ops, max31722_suspend, max31722_resume);
 
-static const struct spi_device_id max31722_spi_id[] = {
+static const struct spi_device_id max31722_spi_id[] =
+{
 	{"max31722", 0},
 	{"max31723", 0},
 	{}
 };
 
-static const struct acpi_device_id __maybe_unused max31722_acpi_id[] = {
+static const struct acpi_device_id __maybe_unused max31722_acpi_id[] =
+{
 	{"MAX31722", 0},
 	{"MAX31723", 0},
 	{}
@@ -147,7 +167,8 @@ static const struct acpi_device_id __maybe_unused max31722_acpi_id[] = {
 
 MODULE_DEVICE_TABLE(spi, max31722_spi_id);
 
-static struct spi_driver max31722_driver = {
+static struct spi_driver max31722_driver =
+{
 	.driver = {
 		.name = "max31722",
 		.pm = &max31722_pm_ops,

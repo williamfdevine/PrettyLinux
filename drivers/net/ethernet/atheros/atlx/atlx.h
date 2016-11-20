@@ -485,7 +485,8 @@
 /* For checksumming, the sum of all words in the EEPROM should equal 0xBABA */
 #define EEPROM_SUM			0xBABA
 
-struct atlx_spi_flash_dev {
+struct atlx_spi_flash_dev
+{
 	const char *manu_name;	/* manufacturer id */
 	/* op-code */
 	u8 cmd_wrsr;

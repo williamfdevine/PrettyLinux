@@ -35,7 +35,8 @@
 
 static int efar_pre_reset(struct ata_link *link, unsigned long deadline)
 {
-	static const struct pci_bits efar_enable_bits[] = {
+	static const struct pci_bits efar_enable_bits[] =
+	{
 		{ 0x41U, 1U, 0x80UL, 0x80UL },	/* port 0 */
 		{ 0x43U, 1U, 0x80UL, 0x80UL },	/* port 1 */
 	};
@@ -43,7 +44,9 @@ static int efar_pre_reset(struct ata_link *link, unsigned long deadline)
 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
 
 	if (!pci_test_config_bits(pdev, &efar_enable_bits[ap->port_no]))
+	{
 		return -ENOENT;
+	}
 
 	return ata_sff_prereset(link, deadline);
 }
@@ -62,8 +65,12 @@ static int efar_cable_detect(struct ata_port *ap)
 	u8 tmp;
 
 	pci_read_config_byte(pdev, 0x47, &tmp);
+
 	if (tmp & (2 >> ap->port_no))
+	{
 		return ATA_CBL_PATA40;
+	}
+
 	return ATA_CBL_PATA80;
 }
 
@@ -97,30 +104,42 @@ static void efar_set_piomode (struct ata_port *ap, struct ata_device *adev)
 
 	static const	 /* ISP  RTC */
 	u8 timings[][2]	= { { 0, 0 },
-			    { 0, 0 },
-			    { 1, 0 },
-			    { 2, 1 },
-			    { 2, 3 }, };
+		{ 0, 0 },
+		{ 1, 0 },
+		{ 2, 1 },
+		{ 2, 3 },
+	};
 
 	if (pio > 1)
-		control |= 1;	/* TIME */
+	{
+		control |= 1;    /* TIME */
+	}
+
 	if (ata_pio_need_iordy(adev))	/* PIO 3/4 require IORDY */
-		control |= 2;	/* IE */
+	{
+		control |= 2;    /* IE */
+	}
+
 	/* Intel specifies that the prefetch/posting is for disk only */
 	if (adev->class == ATA_DEV_ATA)
-		control |= 4;	/* PPE */
+	{
+		control |= 4;    /* PPE */
+	}
 
 	spin_lock_irqsave(&efar_lock, flags);
 
 	pci_read_config_word(dev, master_port, &master_data);
 
 	/* Set PPE, IE, and TIME as appropriate */
-	if (adev->devno == 0) {
+	if (adev->devno == 0)
+	{
 		master_data &= 0xCCF0;
 		master_data |= control;
 		master_data |= (timings[pio][0] << 12) |
-			(timings[pio][1] << 8);
-	} else {
+					   (timings[pio][1] << 8);
+	}
+	else
+	{
 		int shift = 4 * ap->port_no;
 		u8 slave_data;
 
@@ -166,17 +185,19 @@ static void efar_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 
 	static const	 /* ISP  RTC */
 	u8 timings[][2]	= { { 0, 0 },
-			    { 0, 0 },
-			    { 1, 0 },
-			    { 2, 1 },
-			    { 2, 3 }, };
+		{ 0, 0 },
+		{ 1, 0 },
+		{ 2, 1 },
+		{ 2, 3 },
+	};
 
 	spin_lock_irqsave(&efar_lock, flags);
 
 	pci_read_config_word(dev, master_port, &master_data);
 	pci_read_config_byte(dev, 0x48, &udma_enable);
 
-	if (speed >= XFER_UDMA_0) {
+	if (speed >= XFER_UDMA_0)
+	{
 		unsigned int udma	= adev->dma_mode - XFER_UDMA_0;
 		u16 udma_timing;
 
@@ -187,7 +208,9 @@ static void efar_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 		udma_timing &= ~(7 << (4 * devid));
 		udma_timing |= udma << (4 * devid);
 		pci_write_config_word(dev, 0x4A, udma_timing);
-	} else {
+	}
+	else
+	{
 		/*
 		 * MWDMA is driven by the PIO timings. We must also enable
 		 * IORDY unconditionally along with TIME1. PPE has already
@@ -196,7 +219,8 @@ static void efar_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 		unsigned int mwdma	= adev->dma_mode - XFER_MW_DMA_0;
 		unsigned int control;
 		u8 slave_data;
-		const unsigned int needed_pio[3] = {
+		const unsigned int needed_pio[3] =
+		{
 			XFER_PIO_0, XFER_PIO_3, XFER_PIO_4
 		};
 		int pio = needed_pio[mwdma] - XFER_PIO_0;
@@ -208,9 +232,12 @@ static void efar_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 
 		if (adev->pio_mode < needed_pio[mwdma])
 			/* Enable DMA timing only */
-			control |= 8;	/* PIO cycles in PIO0 */
+		{
+			control |= 8;    /* PIO cycles in PIO0 */
+		}
 
-		if (adev->devno) {	/* Slave */
+		if (adev->devno)  	/* Slave */
+		{
 			master_data &= 0xFF4F;  /* Mask out IORDY|TIME1|DMAONLY */
 			master_data |= control << 4;
 			pci_read_config_byte(dev, 0x44, &slave_data);
@@ -218,7 +245,9 @@ static void efar_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 			/* Load the matching timing */
 			slave_data |= ((timings[pio][0] << 2) | timings[pio][1]) << (ap->port_no ? 4 : 0);
 			pci_write_config_byte(dev, 0x44, slave_data);
-		} else { 	/* Master */
+		}
+		else   	/* Master */
+		{
 			master_data &= 0xCCF4;	/* Mask out IORDY|TIME1|DMAONLY
 						   and master timing bits */
 			master_data |= control;
@@ -226,18 +255,22 @@ static void efar_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 				(timings[pio][0] << 12) |
 				(timings[pio][1] << 8);
 		}
+
 		udma_enable &= ~(1 << devid);
 		pci_write_config_word(dev, master_port, master_data);
 	}
+
 	pci_write_config_byte(dev, 0x48, udma_enable);
 	spin_unlock_irqrestore(&efar_lock, flags);
 }
 
-static struct scsi_host_template efar_sht = {
+static struct scsi_host_template efar_sht =
+{
 	ATA_BMDMA_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations efar_ops = {
+static struct ata_port_operations efar_ops =
+{
 	.inherits		= &ata_bmdma_port_ops,
 	.cable_detect		= efar_cable_detect,
 	.set_piomode		= efar_set_piomode,
@@ -262,7 +295,8 @@ static struct ata_port_operations efar_ops = {
 
 static int efar_init_one (struct pci_dev *pdev, const struct pci_device_id *ent)
 {
-	static const struct ata_port_info info = {
+	static const struct ata_port_info info =
+	{
 		.flags		= ATA_FLAG_SLAVE_POSS,
 		.pio_mask	= ATA_PIO4,
 		.mwdma_mask	= ATA_MWDMA12_ONLY,
@@ -274,16 +308,18 @@ static int efar_init_one (struct pci_dev *pdev, const struct pci_device_id *ent)
 	ata_print_version_once(&pdev->dev, DRV_VERSION);
 
 	return ata_pci_bmdma_init_one(pdev, ppi, &efar_sht, NULL,
-				      ATA_HOST_PARALLEL_SCAN);
+								  ATA_HOST_PARALLEL_SCAN);
 }
 
-static const struct pci_device_id efar_pci_tbl[] = {
+static const struct pci_device_id efar_pci_tbl[] =
+{
 	{ PCI_VDEVICE(EFAR, 0x9130), },
 
 	{ }	/* terminate list */
 };
 
-static struct pci_driver efar_pci_driver = {
+static struct pci_driver efar_pci_driver =
+{
 	.name			= DRV_NAME,
 	.id_table		= efar_pci_tbl,
 	.probe			= efar_init_one,

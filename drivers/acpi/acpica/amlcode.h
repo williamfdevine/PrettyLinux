@@ -408,7 +408,8 @@
 
 /* Comparison operation codes for match_op operator */
 
-typedef enum {
+typedef enum
+{
 	MATCH_MTR = 0,
 	MATCH_MEQ = 1,
 	MATCH_MLE = 2,
@@ -438,7 +439,8 @@ typedef enum {
 
 /* 1) Field Access Types */
 
-typedef enum {
+typedef enum
+{
 	AML_FIELD_ACCESS_ANY = 0x00,
 	AML_FIELD_ACCESS_BYTE = 0x01,
 	AML_FIELD_ACCESS_WORD = 0x02,
@@ -449,14 +451,16 @@ typedef enum {
 
 /* 2) Field Lock Rules */
 
-typedef enum {
+typedef enum
+{
 	AML_FIELD_LOCK_NEVER = 0x00,
 	AML_FIELD_LOCK_ALWAYS = 0x10
 } AML_LOCK_RULE;
 
 /* 3) Field Update Rules */
 
-typedef enum {
+typedef enum
+{
 	AML_FIELD_UPDATE_PRESERVE = 0x00,
 	AML_FIELD_UPDATE_WRITE_AS_ONES = 0x20,
 	AML_FIELD_UPDATE_WRITE_AS_ZEROS = 0x40
@@ -467,7 +471,8 @@ typedef enum {
  * This byte is extracted from the AML via the
  * access_as keyword
  */
-typedef enum {
+typedef enum
+{
 	AML_FIELD_ATTRIB_QUICK = 0x02,
 	AML_FIELD_ATTRIB_SEND_RCV = 0x04,
 	AML_FIELD_ATTRIB_BYTE = 0x06,

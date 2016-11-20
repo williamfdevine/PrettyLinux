@@ -62,14 +62,19 @@ static void irda_task_timer_expired(void *data);
 int __init irda_device_init( void)
 {
 	dongles = hashbin_new(HB_NOLOCK);
-	if (dongles == NULL) {
+
+	if (dongles == NULL)
+	{
 		net_warn_ratelimited("IrDA: Can't allocate dongles hashbin!\n");
 		return -ENOMEM;
 	}
+
 	spin_lock_init(&dongles->hb_spinlock);
 
 	tasks = hashbin_new(HB_LOCK);
-	if (tasks == NULL) {
+
+	if (tasks == NULL)
+	{
 		net_warn_ratelimited("IrDA: Can't allocate tasks hashbin!\n");
 		hashbin_delete(dongles, NULL);
 		return -ENOMEM;
@@ -85,7 +90,7 @@ static void leftover_dongle(void *arg)
 {
 	struct dongle_reg *reg = arg;
 	net_warn_ratelimited("IrDA: Dongle type %x not unregistered\n",
-			     reg->type);
+						 reg->type);
 }
 
 void irda_device_cleanup(void)
@@ -117,16 +122,27 @@ void irda_device_set_media_busy(struct net_device *dev, int status)
 	 * us directly. Make sure we protect ourselves.
 	 * Jean II */
 	if (!self || self->magic != LAP_MAGIC)
+	{
 		return;
+	}
 
-	if (status) {
+	if (status)
+	{
 		self->media_busy = TRUE;
+
 		if (status == SMALL)
+		{
 			irlap_start_mbusy_timer(self, SMALLBUSY_TIMEOUT);
+		}
 		else
+		{
 			irlap_start_mbusy_timer(self, MEDIABUSY_TIMEOUT);
+		}
+
 		pr_debug("Media busy!\n");
-	} else {
+	}
+	else
+	{
 		self->media_busy = FALSE;
 		irlap_stop_mbusy_timer(self);
 	}
@@ -145,16 +161,20 @@ int irda_device_is_receiving(struct net_device *dev)
 	struct if_irda_req req;
 	int ret;
 
-	if (!dev->netdev_ops->ndo_do_ioctl) {
+	if (!dev->netdev_ops->ndo_do_ioctl)
+	{
 		net_err_ratelimited("%s: do_ioctl not impl. by device driver\n",
-				    __func__);
+							__func__);
 		return -1;
 	}
 
 	ret = (dev->netdev_ops->ndo_do_ioctl)(dev, (struct ifreq *) &req,
-					      SIOCGRECEIVING);
+										  SIOCGRECEIVING);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return req.ifr_receiving;
 }
@@ -192,34 +212,44 @@ static int irda_task_kick(struct irda_task *task)
 	IRDA_ASSERT(task->magic == IRDA_TASK_MAGIC, return -1;);
 
 	/* Execute task until it's finished, or askes for a timeout */
-	do {
+	do
+	{
 		timeout = task->function(task);
-		if (count++ > 100) {
+
+		if (count++ > 100)
+		{
 			net_err_ratelimited("%s: error in task handler!\n",
-					    __func__);
+								__func__);
 			irda_task_delete(task);
 			return TRUE;
 		}
-	} while ((timeout == 0) && (task->state != IRDA_TASK_DONE));
+	}
+	while ((timeout == 0) && (task->state != IRDA_TASK_DONE));
 
-	if (timeout < 0) {
+	if (timeout < 0)
+	{
 		net_err_ratelimited("%s: Error executing task!\n", __func__);
 		irda_task_delete(task);
 		return TRUE;
 	}
 
 	/* Check if we are finished */
-	if (task->state == IRDA_TASK_DONE) {
+	if (task->state == IRDA_TASK_DONE)
+	{
 		del_timer(&task->timer);
 
 		/* Do post processing */
 		if (task->finished)
+		{
 			task->finished(task);
+		}
 
 		/* Notify parent */
-		if (task->parent) {
+		if (task->parent)
+		{
 			/* Check if parent is waiting for us to complete */
-			if (task->parent->state == IRDA_TASK_CHILD_WAIT) {
+			if (task->parent->state == IRDA_TASK_CHILD_WAIT)
+			{
 				task->parent->state = IRDA_TASK_CHILD_DONE;
 
 				/* Stop timer now that we are here */
@@ -229,14 +259,19 @@ static int irda_task_kick(struct irda_task *task)
 				irda_task_kick(task->parent);
 			}
 		}
+
 		irda_task_delete(task);
-	} else if (timeout > 0) {
+	}
+	else if (timeout > 0)
+	{
 		irda_start_timer(&task->timer, timeout, (void *) task,
-				 irda_task_timer_expired);
+						 irda_task_timer_expired);
 		finished = FALSE;
-	} else {
+	}
+	else
+	{
 		pr_debug("%s(), not finished, and no timeout!\n",
-			 __func__);
+				 __func__);
 		finished = FALSE;
 	}
 
@@ -286,7 +321,7 @@ static void irda_device_setup(struct net_device *dev)
 struct net_device *alloc_irdadev(int sizeof_priv)
 {
 	return alloc_netdev(sizeof_priv, "irda%d", NET_NAME_UNKNOWN,
-			    irda_device_setup);
+						irda_device_setup);
 }
 EXPORT_SYMBOL(alloc_irdadev);
 

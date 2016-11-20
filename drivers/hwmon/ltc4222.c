@@ -61,53 +61,65 @@ static int ltc4222_get_value(struct device *dev, u8 reg)
 	int ret;
 
 	ret = regmap_bulk_read(regmap, reg, buf, 2);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	val = ((buf[0] << 8) + buf[1]) >> 6;
 
-	switch (reg) {
-	case LTC4222_ADIN1:
-	case LTC4222_ADIN2:
-		/* 1.25 mV resolution. Convert to mV. */
-		val = DIV_ROUND_CLOSEST(val * 5, 4);
-		break;
-	case LTC4222_SOURCE1:
-	case LTC4222_SOURCE2:
-		/* 31.25 mV resolution. Convert to mV. */
-		val = DIV_ROUND_CLOSEST(val * 125, 4);
-		break;
-	case LTC4222_SENSE1:
-	case LTC4222_SENSE2:
-		/*
-		 * 62.5 uV resolution. Convert to current as measured with
-		 * an 1 mOhm sense resistor, in mA. If a different sense
-		 * resistor is installed, calculate the actual current by
-		 * dividing the reported current by the sense resistor value
-		 * in mOhm.
-		 */
-		val = DIV_ROUND_CLOSEST(val * 125, 2);
-		break;
-	default:
-		return -EINVAL;
+	switch (reg)
+	{
+		case LTC4222_ADIN1:
+		case LTC4222_ADIN2:
+			/* 1.25 mV resolution. Convert to mV. */
+			val = DIV_ROUND_CLOSEST(val * 5, 4);
+			break;
+
+		case LTC4222_SOURCE1:
+		case LTC4222_SOURCE2:
+			/* 31.25 mV resolution. Convert to mV. */
+			val = DIV_ROUND_CLOSEST(val * 125, 4);
+			break;
+
+		case LTC4222_SENSE1:
+		case LTC4222_SENSE2:
+			/*
+			 * 62.5 uV resolution. Convert to current as measured with
+			 * an 1 mOhm sense resistor, in mA. If a different sense
+			 * resistor is installed, calculate the actual current by
+			 * dividing the reported current by the sense resistor value
+			 * in mOhm.
+			 */
+			val = DIV_ROUND_CLOSEST(val * 125, 2);
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	return val;
 }
 
 static ssize_t ltc4222_show_value(struct device *dev,
-				  struct device_attribute *da, char *buf)
+								  struct device_attribute *da, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
 	int value;
 
 	value = ltc4222_get_value(dev, attr->index);
+
 	if (value < 0)
+	{
 		return value;
+	}
+
 	return snprintf(buf, PAGE_SIZE, "%d\n", value);
 }
 
 static ssize_t ltc4222_show_bool(struct device *dev,
-				 struct device_attribute *da, char *buf)
+								 struct device_attribute *da, char *buf)
 {
 	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(da);
 	struct regmap *regmap = dev_get_drvdata(dev);
@@ -115,24 +127,31 @@ static ssize_t ltc4222_show_bool(struct device *dev,
 	int ret;
 
 	ret = regmap_read(regmap, attr->nr, &fault);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	fault &= attr->index;
+
 	if (fault)		/* Clear reported faults in chip register */
+	{
 		regmap_update_bits(regmap, attr->nr, attr->index, 0);
+	}
 
 	return snprintf(buf, PAGE_SIZE, "%d\n", !!fault);
 }
 
 /* Voltages */
 static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, ltc4222_show_value, NULL,
-			  LTC4222_SOURCE1);
+						  LTC4222_SOURCE1);
 static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, ltc4222_show_value, NULL,
-			  LTC4222_ADIN1);
+						  LTC4222_ADIN1);
 static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, ltc4222_show_value, NULL,
-			  LTC4222_SOURCE2);
+						  LTC4222_SOURCE2);
 static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, ltc4222_show_value, NULL,
-			  LTC4222_ADIN2);
+						  LTC4222_ADIN2);
 
 /*
  * Voltage alarms
@@ -140,32 +159,33 @@ static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, ltc4222_show_value, NULL,
  * faults are associated with the output voltage.
  */
 static SENSOR_DEVICE_ATTR_2(in1_min_alarm, S_IRUGO, ltc4222_show_bool, NULL,
-			    LTC4222_FAULT1, FAULT_UV);
+							LTC4222_FAULT1, FAULT_UV);
 static SENSOR_DEVICE_ATTR_2(in1_max_alarm, S_IRUGO, ltc4222_show_bool, NULL,
-			    LTC4222_FAULT1, FAULT_OV);
+							LTC4222_FAULT1, FAULT_OV);
 static SENSOR_DEVICE_ATTR_2(in2_alarm, S_IRUGO, ltc4222_show_bool, NULL,
-			    LTC4222_FAULT1, FAULT_POWER_BAD | FAULT_FET_BAD);
+							LTC4222_FAULT1, FAULT_POWER_BAD | FAULT_FET_BAD);
 
 static SENSOR_DEVICE_ATTR_2(in3_min_alarm, S_IRUGO, ltc4222_show_bool, NULL,
-			    LTC4222_FAULT2, FAULT_UV);
+							LTC4222_FAULT2, FAULT_UV);
 static SENSOR_DEVICE_ATTR_2(in3_max_alarm, S_IRUGO, ltc4222_show_bool, NULL,
-			    LTC4222_FAULT2, FAULT_OV);
+							LTC4222_FAULT2, FAULT_OV);
 static SENSOR_DEVICE_ATTR_2(in4_alarm, S_IRUGO, ltc4222_show_bool, NULL,
-			    LTC4222_FAULT2, FAULT_POWER_BAD | FAULT_FET_BAD);
+							LTC4222_FAULT2, FAULT_POWER_BAD | FAULT_FET_BAD);
 
 /* Current (via sense resistor) */
 static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO, ltc4222_show_value, NULL,
-			  LTC4222_SENSE1);
+						  LTC4222_SENSE1);
 static SENSOR_DEVICE_ATTR(curr2_input, S_IRUGO, ltc4222_show_value, NULL,
-			  LTC4222_SENSE2);
+						  LTC4222_SENSE2);
 
 /* Overcurrent alarm */
 static SENSOR_DEVICE_ATTR_2(curr1_max_alarm, S_IRUGO, ltc4222_show_bool, NULL,
-			    LTC4222_FAULT1, FAULT_OC);
+							LTC4222_FAULT1, FAULT_OC);
 static SENSOR_DEVICE_ATTR_2(curr2_max_alarm, S_IRUGO, ltc4222_show_bool, NULL,
-			    LTC4222_FAULT2, FAULT_OC);
+							LTC4222_FAULT2, FAULT_OC);
 
-static struct attribute *ltc4222_attrs[] = {
+static struct attribute *ltc4222_attrs[] =
+{
 	&sensor_dev_attr_in1_input.dev_attr.attr,
 	&sensor_dev_attr_in1_min_alarm.dev_attr.attr,
 	&sensor_dev_attr_in1_max_alarm.dev_attr.attr,
@@ -186,21 +206,24 @@ static struct attribute *ltc4222_attrs[] = {
 };
 ATTRIBUTE_GROUPS(ltc4222);
 
-static const struct regmap_config ltc4222_regmap_config = {
+static const struct regmap_config ltc4222_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 	.max_register = LTC4222_ADC_CONTROL,
 };
 
 static int ltc4222_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
 	struct device *hwmon_dev;
 	struct regmap *regmap;
 
 	regmap = devm_regmap_init_i2c(client, &ltc4222_regmap_config);
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		dev_err(dev, "failed to allocate register map\n");
 		return PTR_ERR(regmap);
 	}
@@ -210,22 +233,24 @@ static int ltc4222_probe(struct i2c_client *client,
 	regmap_write(regmap, LTC4222_FAULT2, 0x00);
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-							   regmap,
-							   ltc4222_groups);
+				regmap,
+				ltc4222_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
-static const struct i2c_device_id ltc4222_id[] = {
+static const struct i2c_device_id ltc4222_id[] =
+{
 	{"ltc4222", 0},
 	{ }
 };
 
 MODULE_DEVICE_TABLE(i2c, ltc4222_id);
 
-static struct i2c_driver ltc4222_driver = {
+static struct i2c_driver ltc4222_driver =
+{
 	.driver = {
-		   .name = "ltc4222",
-		   },
+		.name = "ltc4222",
+	},
 	.probe = ltc4222_probe,
 	.id_table = ltc4222_id,
 };

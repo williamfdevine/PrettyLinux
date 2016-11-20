@@ -23,7 +23,7 @@
 
 #define	AR9170_PHY_REG_BASE			(0x1bc000 + 0x9800)
 #define	AR9170_PHY_REG(_n)			(AR9170_PHY_REG_BASE + \
-						 ((_n) << 2))
+									 ((_n) << 2))
 
 #define	AR9170_PHY_REG_TEST			(AR9170_PHY_REG_BASE + 0x0000)
 #define		AR9170_PHY_TEST_AGC_CLR			0x10000000
@@ -183,7 +183,7 @@
 #define		AR9170_PHY_RX_DELAY_DELAY		0x00003fff
 
 #define	AR9170_PHY_REG_TIMING_CTRL4(_i)		(AR9170_PHY_REG_BASE + \
-						(0x0120 + ((_i) << 12)))
+		(0x0120 + ((_i) << 12)))
 #define		AR9170_PHY_TIMING_CTRL4_IQCORR_Q_Q_COFF		0x01f
 #define		AR9170_PHY_TIMING_CTRL4_IQCORR_Q_Q_COFF_S	0
 #define		AR9170_PHY_TIMING_CTRL4_IQCORR_Q_I_COFF		0x7e0
@@ -306,7 +306,7 @@
 
 #define	AR9170_PHY_REG_RX_CHAINMASK		(AR9170_PHY_REG_BASE + 0x01a4)
 #define	AR9170_PHY_REG_NEW_ADC_DC_GAIN_CORR(_i)	(AR9170_PHY_REG_BASE + \
-						 0x01b4 + ((_i) << 12))
+		0x01b4 + ((_i) << 12))
 #define		AR9170_PHY_NEW_ADC_GAIN_CORR_ENABLE		0x40000000
 #define		AR9170_PHY_NEW_ADC_DC_OFFSET_CORR_ENABLE	0x80000000
 
@@ -379,13 +379,13 @@
 
 
 #define	AR9170_PHY_REG_CAL_MEAS_0(_i)		(AR9170_PHY_REG_BASE + \
-						 0x0410 + ((_i) << 12))
+		0x0410 + ((_i) << 12))
 #define	AR9170_PHY_REG_CAL_MEAS_1(_i)		(AR9170_PHY_REG_BASE + \
-						 0x0414 \ + ((_i) << 12))
+		0x0414 \ + ((_i) << 12))
 #define	AR9170_PHY_REG_CAL_MEAS_2(_i)		(AR9170_PHY_REG_BASE + \
-						 0x0418 + ((_i) << 12))
+		0x0418 + ((_i) << 12))
 #define	AR9170_PHY_REG_CAL_MEAS_3(_i)		(AR9170_PHY_REG_BASE + \
-						 0x041c + ((_i) << 12))
+		0x041c + ((_i) << 12))
 
 #define	AR9170_PHY_REG_CURRENT_RSSI		(AR9170_PHY_REG_BASE + 0x041c)
 

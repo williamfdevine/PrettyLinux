@@ -21,7 +21,8 @@
 #define IEEE802154_MCAST_COORD_NAME "coordinator"
 #define IEEE802154_MCAST_BEACON_NAME "beacon"
 
-enum {
+enum
+{
 	__IEEE802154_ATTR_INVALID,
 
 	IEEE802154_ATTR_DEV_NAME,
@@ -105,7 +106,8 @@ extern const struct nla_policy ieee802154_policy[];
 /* REQ should be responded with CONF
  * and INDIC with RESP
  */
-enum {
+enum
+{
 	__IEEE802154_COMMAND_INVALID,
 
 	IEEE802154_ASSOCIATE_REQ,
@@ -168,7 +170,8 @@ enum {
 
 #define IEEE802154_CMD_MAX (__IEEE802154_CMD_MAX - 1)
 
-enum {
+enum
+{
 	__IEEE802154_DEV_INVALID = -1,
 
 	IEEE802154_DEV_WPAN,

@@ -66,7 +66,7 @@
 
 /* Unit Attentions ASCQ's as defined for the MSA2012sa */
 
-	/* These ASCQ's defined for ASC = POWER_OR_RESET */
+/* These ASCQ's defined for ASC = POWER_OR_RESET */
 #define POWER_ON_RESET			0x00
 #define POWER_ON_REBOOT			0x01
 #define SCSI_BUS_RESET			0x02
@@ -75,7 +75,7 @@
 #define TRANSCEIVER_SE			0x05
 #define TRANSCEIVER_LVD			0x06
 
-	/* These ASCQ's defined for ASC = STATE_CHANGED */
+/* These ASCQ's defined for ASC = STATE_CHANGED */
 #define RESERVATION_PREEMPTED		0x03
 #define ASYM_ACCESS_CHANGED		0x06
 #define LUN_CAPACITY_CHANGED		0x09
@@ -178,12 +178,14 @@
 #define HPSA_LV_PENDING_ENCRYPTION			0x19
 #define HPSA_LV_PENDING_ENCRYPTION_REKEYING		0x1A
 
-struct vals32 {
+struct vals32
+{
 	u32   lower;
 	u32   upper;
 };
 
-union u64bit {
+union u64bit
+{
 	struct vals32 val32;
 	u64 val;
 };
@@ -193,13 +195,14 @@ union u64bit {
 #define HPSA_MAX_PHYS_LUN 1024
 #define MAX_EXT_TARGETS 32
 #define HPSA_MAX_DEVICES (HPSA_MAX_PHYS_LUN + HPSA_MAX_LUN + \
-	MAX_EXT_TARGETS + 1) /* + 1 is for the controller itself */
+						  MAX_EXT_TARGETS + 1) /* + 1 is for the controller itself */
 
 /* SCSI-3 Commands */
 #pragma pack(1)
 
 #define HPSA_INQUIRY 0x12
-struct InquiryData {
+struct InquiryData
+{
 	u8 data_byte[36];
 };
 
@@ -211,7 +214,8 @@ struct InquiryData {
 
 #define RAID_MAP_MAX_ENTRIES   256
 
-struct raid_map_disk_data {
+struct raid_map_disk_data
+{
 	u32   ioaccel_handle;         /**< Handle to access this disk via the
 					*  I/O accelerator */
 	u8    xor_mult[2];            /**< XOR multipliers for this position,
@@ -219,7 +223,8 @@ struct raid_map_disk_data {
 	u8    reserved[2];
 };
 
-struct raid_map_data {
+struct raid_map_data
+{
 	__le32   structure_size;	/* Size of entire structure in bytes */
 	__le32   volume_blk_size;	/* bytes / block in the volume */
 	__le64   volume_blk_cnt;	/* logical blocks on the volume */
@@ -245,20 +250,22 @@ struct raid_map_data {
 	struct raid_map_disk_data data[RAID_MAP_MAX_ENTRIES];
 };
 
-struct ReportLUNdata {
+struct ReportLUNdata
+{
 	u8 LUNListLength[4];
 	u8 extended_response_flag;
 	u8 reserved[3];
 	u8 LUN[HPSA_MAX_LUN][8];
 };
 
-struct ext_report_lun_entry {
+struct ext_report_lun_entry
+{
 	u8 lunid[8];
 #define MASKED_DEVICE(x) ((x)[3] & 0xC0)
 #define GET_BMIC_BUS(lunid) ((lunid)[7] & 0x3F)
 #define GET_BMIC_LEVEL_TWO_TARGET(lunid) ((lunid)[6])
 #define GET_BMIC_DRIVE_NUMBER(lunid) (((GET_BMIC_BUS((lunid)) - 1) << 8) + \
-			GET_BMIC_LEVEL_TWO_TARGET((lunid)))
+									  GET_BMIC_LEVEL_TWO_TARGET((lunid)))
 	u8 wwid[8];
 	u8 device_type;
 	u8 device_flags;
@@ -267,14 +274,16 @@ struct ext_report_lun_entry {
 	u32 ioaccel_handle; /* ioaccel1 only uses lower 16 bits */
 };
 
-struct ReportExtendedLUNdata {
+struct ReportExtendedLUNdata
+{
 	u8 LUNListLength[4];
 	u8 extended_response_flag;
 	u8 reserved[3];
 	struct ext_report_lun_entry LUN[HPSA_MAX_PHYS_LUN];
 };
 
-struct SenseSubsystem_info {
+struct SenseSubsystem_info
+{
 	u8 reserved[36];
 	u8 portname[8];
 	u8 reserved1[1108];
@@ -296,47 +305,55 @@ struct SenseSubsystem_info {
 #define BMIC_SENSE_STORAGE_BOX_PARAMS 0x65
 
 /* Command List Structure */
-union SCSI3Addr {
-	struct {
+union SCSI3Addr
+{
+	struct
+	{
 		u8 Dev;
-		u8 Bus:6;
-		u8 Mode:2;        /* b00 */
+		u8 Bus: 6;
+		u8 Mode: 2;       /* b00 */
 	} PeripDev;
-	struct {
+	struct
+	{
 		u8 DevLSB;
-		u8 DevMSB:6;
-		u8 Mode:2;        /* b01 */
+		u8 DevMSB: 6;
+		u8 Mode: 2;       /* b01 */
 	} LogDev;
-	struct {
-		u8 Dev:5;
-		u8 Bus:3;
-		u8 Targ:6;
-		u8 Mode:2;        /* b10 */
+	struct
+	{
+		u8 Dev: 5;
+		u8 Bus: 3;
+		u8 Targ: 6;
+		u8 Mode: 2;       /* b10 */
 	} LogUnit;
 };
 
-struct PhysDevAddr {
-	u32             TargetId:24;
-	u32             Bus:6;
-	u32             Mode:2;
+struct PhysDevAddr
+{
+	u32             TargetId: 24;
+	u32             Bus: 6;
+	u32             Mode: 2;
 	/* 2 level target device addr */
 	union SCSI3Addr  Target[2];
 };
 
-struct LogDevAddr {
-	u32            VolId:30;
-	u32            Mode:2;
+struct LogDevAddr
+{
+	u32            VolId: 30;
+	u32            Mode: 2;
 	u8             reserved[4];
 };
 
-union LUNAddr {
+union LUNAddr
+{
 	u8               LunAddrBytes[8];
 	union SCSI3Addr    SCSI3Lun[4];
 	struct PhysDevAddr PhysDev;
 	struct LogDevAddr  LogDev;
 };
 
-struct CommandListHeader {
+struct CommandListHeader
+{
 	u8              ReplyQueue;
 	u8              SGList;
 	__le16          SGTotal;
@@ -344,7 +361,8 @@ struct CommandListHeader {
 	union LUNAddr     LUN;
 };
 
-struct RequestBlock {
+struct RequestBlock
+{
 	u8   CDBLen;
 	/*
 	 * type_attr_dir:
@@ -354,8 +372,8 @@ struct RequestBlock {
 	 */
 	u8	type_attr_dir;
 #define TYPE_ATTR_DIR(t, a, d) ((((d) & 0x03) << 6) |\
-				(((a) & 0x07) << 3) |\
-				((t) & 0x07))
+								(((a) & 0x07) << 3) |\
+								((t) & 0x07))
 #define GET_TYPE(tad) ((tad) & 0x07)
 #define GET_ATTR(tad) (((tad) >> 3) & 0x07)
 #define GET_DIR(tad) (((tad) >> 6) & 0x03)
@@ -363,31 +381,37 @@ struct RequestBlock {
 	u8   CDB[16];
 };
 
-struct ErrDescriptor {
+struct ErrDescriptor
+{
 	__le64 Addr;
 	__le32 Len;
 };
 
-struct SGDescriptor {
+struct SGDescriptor
+{
 	__le64 Addr;
 	__le32 Len;
 	__le32 Ext;
 };
 
-union MoreErrInfo {
-	struct {
+union MoreErrInfo
+{
+	struct
+	{
 		u8  Reserved[3];
 		u8  Type;
 		u32 ErrorInfo;
 	} Common_Info;
-	struct {
+	struct
+	{
 		u8  Reserved[2];
 		u8  offense_size; /* size of offending entry */
 		u8  offense_num;  /* byte # of offense 0-base */
 		u32 offense_value;
 	} Invalid_Cmd;
 };
-struct ErrorInfo {
+struct ErrorInfo
+{
 	u8               ScsiStatus;
 	u8               SenseLen;
 	u16              CommandStatus;
@@ -418,7 +442,8 @@ struct ctlr_info; /* defined in hpsa.h */
  */
 
 #define COMMANDLIST_ALIGNMENT 128
-struct CommandList {
+struct CommandList
+{
 	struct CommandListHeader Header;
 	struct RequestBlock      Request;
 	struct ErrDescriptor     ErrDesc;
@@ -458,7 +483,8 @@ struct CommandList {
  * Note that this structure must be 128-byte aligned in size.
  */
 #define IOACCEL1_COMMANDLIST_ALIGNMENT 128
-struct io_accel1_cmd {
+struct io_accel1_cmd
+{
 	__le16 dev_handle;		/* 0x00 - 0x01 */
 	u8  reserved1;			/* 0x02 */
 	u8  function;			/* 0x03 */
@@ -508,7 +534,8 @@ struct io_accel1_cmd {
 
 #define IOACCEL1_BUSADDR_CMDTYPE        0x00000060
 
-struct ioaccel2_sg_element {
+struct ioaccel2_sg_element
+{
 	__le64 address;
 	__le32 length;
 	u8 reserved[3];
@@ -519,7 +546,8 @@ struct ioaccel2_sg_element {
 /*
  * SCSI Response Format structure for IO Accelerator Mode 2
  */
-struct io_accel2_scsi_response {
+struct io_accel2_scsi_response
+{
 	u8 IU_type;
 #define IOACCEL2_IU_TYPE_SRF			0x60
 	u8 reserved1[3];
@@ -561,14 +589,15 @@ struct io_accel2_scsi_response {
  * Note that this structure must be 128-byte aligned in size.
  */
 #define IOACCEL2_COMMANDLIST_ALIGNMENT 128
-struct io_accel2_cmd {
+struct io_accel2_cmd
+{
 	u8  IU_type;			/* IU Type */
 	u8  direction;			/* direction, memtype, and encryption */
 #define IOACCEL2_DIRECTION_MASK		0x03 /* bits 0,1: direction  */
 #define IOACCEL2_DIRECTION_MEMTYPE_MASK	0x04 /* bit 2: memtype source/dest */
-					     /*     0b=PCIe, 1b=DDR */
+	/*     0b=PCIe, 1b=DDR */
 #define IOACCEL2_DIRECTION_ENCRYPT_MASK	0x08 /* bit 3: encryption flag */
-					     /*     0=off, 1=on */
+	/*     0=off, 1=on */
 	u8  reply_queue;		/* Reply Queue ID */
 	u8  reserved1;			/* Reserved */
 	__le32 scsi_nexus;		/* Device Handle */
@@ -602,7 +631,8 @@ struct io_accel2_cmd {
 /*
  * SCSI Task Management Request format for Accelerator Mode 2
  */
-struct hpsa_tmf_struct {
+struct hpsa_tmf_struct
+{
 	u8 iu_type;		/* Information Unit Type */
 	u8 reply_queue;		/* Reply Queue ID */
 	u8 tmf;			/* Task Management Function */
@@ -616,7 +646,8 @@ struct hpsa_tmf_struct {
 } __aligned(IOACCEL2_COMMANDLIST_ALIGNMENT);
 
 /* Configuration Table Structure */
-struct HostWrite {
+struct HostWrite
+{
 	__le32		TransportRequest;
 	__le32		command_pool_addr_hi;
 	__le32		CoalIntDelay;
@@ -630,7 +661,8 @@ struct HostWrite {
 
 #define DRIVER_SUPPORT_UA_ENABLE        0x00000001
 
-struct CfgTable {
+struct CfgTable
+{
 	u8		Signature[4];
 	__le32		SpecValence;
 	__le32		TransportSupport;
@@ -673,7 +705,8 @@ struct CfgTable {
 };
 
 #define NUM_BLOCKFETCH_ENTRIES 8
-struct TransTable_struct {
+struct TransTable_struct
+{
 	__le32		BlockFetch[NUM_BLOCKFETCH_ENTRIES];
 	__le32		RepQSize;
 	__le32		RepQCount;
@@ -683,14 +716,16 @@ struct TransTable_struct {
 	struct vals32  RepQAddr[MAX_REPLY_QUEUES];
 };
 
-struct hpsa_pci_info {
+struct hpsa_pci_info
+{
 	unsigned char	bus;
 	unsigned char	dev_fn;
 	unsigned short	domain;
 	u32		board_id;
 };
 
-struct bmic_identify_controller {
+struct bmic_identify_controller
+{
 	u8	configured_logical_drive_count;	/* offset 0 */
 	u8	pad1[153];
 	__le16	extended_logical_unit_count;	/* offset 154 */
@@ -700,7 +735,8 @@ struct bmic_identify_controller {
 };
 
 
-struct bmic_identify_physical_device {
+struct bmic_identify_physical_device
+{
 	u8    scsi_bus;          /* SCSI Bus number on controller */
 	u8    scsi_id;           /* SCSI ID on this bus */
 	__le16 block_size;	     /* sector size in bytes */
@@ -832,7 +868,8 @@ struct bmic_identify_physical_device {
 	u8     padding[112];
 };
 
-struct bmic_sense_subsystem_info {
+struct bmic_sense_subsystem_info
+{
 	u8	primary_slot_number;
 	u8	reserved[3];
 	u8	chasis_serial_number[32];
@@ -845,7 +882,8 @@ struct bmic_sense_subsystem_info {
 	u8	pad[332];
 };
 
-struct bmic_sense_storage_box_params {
+struct bmic_sense_storage_box_params
+{
 	u8	reserved[36];
 	u8	inquiry_valid;
 	u8	reserved_1[68];

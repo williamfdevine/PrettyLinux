@@ -6,9 +6,15 @@ extern int devcgroup_inode_mknod(int mode, dev_t dev);
 static inline int devcgroup_inode_permission(struct inode *inode, int mask)
 {
 	if (likely(!inode->i_rdev))
+	{
 		return 0;
+	}
+
 	if (!S_ISBLK(inode->i_mode) && !S_ISCHR(inode->i_mode))
+	{
 		return 0;
+	}
+
 	return __devcgroup_inode_permission(inode, mask);
 }
 #else

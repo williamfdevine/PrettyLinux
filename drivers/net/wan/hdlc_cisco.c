@@ -32,25 +32,28 @@
 #define CISCO_KEEPALIVE_REQ	2	/* Cisco keepalive request */
 
 
-struct hdlc_header {
+struct hdlc_header
+{
 	u8 address;
 	u8 control;
 	__be16 protocol;
-}__packed;
+} __packed;
 
 
-struct cisco_packet {
+struct cisco_packet
+{
 	__be32 type;		/* code */
 	__be32 par1;
 	__be32 par2;
 	__be16 rel;		/* reliability */
 	__be32 time;
-}__packed;
+} __packed;
 #define	CISCO_PACKET_LEN	18
 #define	CISCO_BIG_PACKET_LEN	20
 
 
-struct cisco_state {
+struct cisco_state
+{
 	cisco_proto settings;
 
 	struct timer_list timer;
@@ -65,15 +68,15 @@ struct cisco_state {
 static int cisco_ioctl(struct net_device *dev, struct ifreq *ifr);
 
 
-static inline struct cisco_state* state(hdlc_device *hdlc)
+static inline struct cisco_state *state(hdlc_device *hdlc)
 {
 	return (struct cisco_state *)hdlc->state;
 }
 
 
 static int cisco_hard_header(struct sk_buff *skb, struct net_device *dev,
-			     u16 type, const void *daddr, const void *saddr,
-			     unsigned int len)
+							 u16 type, const void *daddr, const void *saddr,
+							 unsigned int len)
 {
 	struct hdlc_header *data;
 #ifdef DEBUG_HARD_HEADER
@@ -81,11 +84,17 @@ static int cisco_hard_header(struct sk_buff *skb, struct net_device *dev,
 #endif
 
 	skb_push(skb, sizeof(struct hdlc_header));
-	data = (struct hdlc_header*)skb->data;
+	data = (struct hdlc_header *)skb->data;
+
 	if (type == CISCO_KEEPALIVE)
+	{
 		data->address = CISCO_MULTICAST;
+	}
 	else
+	{
 		data->address = CISCO_UNICAST;
+	}
+
 	data->control = 0;
 	data->protocol = htons(type);
 
@@ -95,20 +104,23 @@ static int cisco_hard_header(struct sk_buff *skb, struct net_device *dev,
 
 
 static void cisco_keepalive_send(struct net_device *dev, u32 type,
-				 __be32 par1, __be32 par2)
+								 __be32 par1, __be32 par2)
 {
 	struct sk_buff *skb;
 	struct cisco_packet *data;
 
 	skb = dev_alloc_skb(sizeof(struct hdlc_header) +
-			    sizeof(struct cisco_packet));
-	if (!skb) {
+						sizeof(struct cisco_packet));
+
+	if (!skb)
+	{
 		netdev_warn(dev, "Memory squeeze on cisco_keepalive_send()\n");
 		return;
 	}
+
 	skb_reserve(skb, 4);
 	cisco_hard_header(skb, dev, CISCO_KEEPALIVE, NULL, NULL, 0);
-	data = (struct cisco_packet*)(skb->data + 4);
+	data = (struct cisco_packet *)(skb->data + 4);
 
 	data->type = htonl(type);
 	data->par1 = par1;
@@ -129,23 +141,29 @@ static void cisco_keepalive_send(struct net_device *dev, u32 type,
 
 static __be16 cisco_type_trans(struct sk_buff *skb, struct net_device *dev)
 {
-	struct hdlc_header *data = (struct hdlc_header*)skb->data;
+	struct hdlc_header *data = (struct hdlc_header *)skb->data;
 
 	if (skb->len < sizeof(struct hdlc_header))
+	{
 		return cpu_to_be16(ETH_P_HDLC);
+	}
 
 	if (data->address != CISCO_MULTICAST &&
-	    data->address != CISCO_UNICAST)
+		data->address != CISCO_UNICAST)
+	{
 		return cpu_to_be16(ETH_P_HDLC);
+	}
 
-	switch (data->protocol) {
-	case cpu_to_be16(ETH_P_IP):
-	case cpu_to_be16(ETH_P_IPX):
-	case cpu_to_be16(ETH_P_IPV6):
-		skb_pull(skb, sizeof(struct hdlc_header));
-		return data->protocol;
-	default:
-		return cpu_to_be16(ETH_P_HDLC);
+	switch (data->protocol)
+	{
+		case cpu_to_be16(ETH_P_IP):
+		case cpu_to_be16(ETH_P_IPX):
+		case cpu_to_be16(ETH_P_IPV6):
+			skb_pull(skb, sizeof(struct hdlc_header));
+			return data->protocol;
+
+		default:
+			return cpu_to_be16(ETH_P_HDLC);
 	}
 }
 
@@ -155,94 +173,111 @@ static int cisco_rx(struct sk_buff *skb)
 	struct net_device *dev = skb->dev;
 	hdlc_device *hdlc = dev_to_hdlc(dev);
 	struct cisco_state *st = state(hdlc);
-	struct hdlc_header *data = (struct hdlc_header*)skb->data;
+	struct hdlc_header *data = (struct hdlc_header *)skb->data;
 	struct cisco_packet *cisco_data;
 	struct in_device *in_dev;
 	__be32 addr, mask;
 	u32 ack;
 
 	if (skb->len < sizeof(struct hdlc_header))
+	{
 		goto rx_error;
+	}
 
 	if (data->address != CISCO_MULTICAST &&
-	    data->address != CISCO_UNICAST)
+		data->address != CISCO_UNICAST)
+	{
 		goto rx_error;
+	}
 
-	switch (ntohs(data->protocol)) {
-	case CISCO_SYS_INFO:
-		/* Packet is not needed, drop it. */
-		dev_kfree_skb_any(skb);
-		return NET_RX_SUCCESS;
+	switch (ntohs(data->protocol))
+	{
+		case CISCO_SYS_INFO:
+			/* Packet is not needed, drop it. */
+			dev_kfree_skb_any(skb);
+			return NET_RX_SUCCESS;
 
-	case CISCO_KEEPALIVE:
-		if ((skb->len != sizeof(struct hdlc_header) +
-		     CISCO_PACKET_LEN) &&
-		    (skb->len != sizeof(struct hdlc_header) +
-		     CISCO_BIG_PACKET_LEN)) {
-			netdev_info(dev, "Invalid length of Cisco control packet (%d bytes)\n",
-				    skb->len);
-			goto rx_error;
-		}
+		case CISCO_KEEPALIVE:
+			if ((skb->len != sizeof(struct hdlc_header) +
+				 CISCO_PACKET_LEN) &&
+				(skb->len != sizeof(struct hdlc_header) +
+				 CISCO_BIG_PACKET_LEN))
+			{
+				netdev_info(dev, "Invalid length of Cisco control packet (%d bytes)\n",
+							skb->len);
+				goto rx_error;
+			}
 
-		cisco_data = (struct cisco_packet*)(skb->data + sizeof
-						    (struct hdlc_header));
+			cisco_data = (struct cisco_packet *)(skb->data + sizeof
+												 (struct hdlc_header));
 
-		switch (ntohl (cisco_data->type)) {
-		case CISCO_ADDR_REQ: /* Stolen from syncppp.c :-) */
-			rcu_read_lock();
-			in_dev = __in_dev_get_rcu(dev);
-			addr = 0;
-			mask = ~cpu_to_be32(0); /* is the mask correct? */
+			switch (ntohl (cisco_data->type))
+			{
+				case CISCO_ADDR_REQ: /* Stolen from syncppp.c :-) */
+					rcu_read_lock();
+					in_dev = __in_dev_get_rcu(dev);
+					addr = 0;
+					mask = ~cpu_to_be32(0); /* is the mask correct? */
 
-			if (in_dev != NULL) {
-				struct in_ifaddr **ifap = &in_dev->ifa_list;
+					if (in_dev != NULL)
+					{
+						struct in_ifaddr **ifap = &in_dev->ifa_list;
 
-				while (*ifap != NULL) {
-					if (strcmp(dev->name,
-						   (*ifap)->ifa_label) == 0) {
-						addr = (*ifap)->ifa_local;
-						mask = (*ifap)->ifa_mask;
-						break;
+						while (*ifap != NULL)
+						{
+							if (strcmp(dev->name,
+									   (*ifap)->ifa_label) == 0)
+							{
+								addr = (*ifap)->ifa_local;
+								mask = (*ifap)->ifa_mask;
+								break;
+							}
+
+							ifap = &(*ifap)->ifa_next;
+						}
+
+						cisco_keepalive_send(dev, CISCO_ADDR_REPLY,
+											 addr, mask);
 					}
-					ifap = &(*ifap)->ifa_next;
-				}
 
-				cisco_keepalive_send(dev, CISCO_ADDR_REPLY,
-						     addr, mask);
-			}
-			rcu_read_unlock();
-			dev_kfree_skb_any(skb);
-			return NET_RX_SUCCESS;
+					rcu_read_unlock();
+					dev_kfree_skb_any(skb);
+					return NET_RX_SUCCESS;
 
-		case CISCO_ADDR_REPLY:
-			netdev_info(dev, "Unexpected Cisco IP address reply\n");
-			goto rx_error;
+				case CISCO_ADDR_REPLY:
+					netdev_info(dev, "Unexpected Cisco IP address reply\n");
+					goto rx_error;
 
-		case CISCO_KEEPALIVE_REQ:
-			spin_lock(&st->lock);
-			st->rxseq = ntohl(cisco_data->par1);
-			ack = ntohl(cisco_data->par2);
-			if (ack && (ack == st->txseq ||
-				    /* our current REQ may be in transit */
-				    ack == st->txseq - 1)) {
-				st->last_poll = jiffies;
-				if (!st->up) {
-					u32 sec, min, hrs, days;
-					sec = ntohl(cisco_data->time) / 1000;
-					min = sec / 60; sec -= min * 60;
-					hrs = min / 60; min -= hrs * 60;
-					days = hrs / 24; hrs -= days * 24;
-					netdev_info(dev, "Link up (peer uptime %ud%uh%um%us)\n",
-						    days, hrs, min, sec);
-					netif_dormant_off(dev);
-					st->up = 1;
-				}
-			}
-			spin_unlock(&st->lock);
+				case CISCO_KEEPALIVE_REQ:
+					spin_lock(&st->lock);
+					st->rxseq = ntohl(cisco_data->par1);
+					ack = ntohl(cisco_data->par2);
 
-			dev_kfree_skb_any(skb);
-			return NET_RX_SUCCESS;
-		} /* switch (keepalive type) */
+					if (ack && (ack == st->txseq ||
+								/* our current REQ may be in transit */
+								ack == st->txseq - 1))
+					{
+						st->last_poll = jiffies;
+
+						if (!st->up)
+						{
+							u32 sec, min, hrs, days;
+							sec = ntohl(cisco_data->time) / 1000;
+							min = sec / 60; sec -= min * 60;
+							hrs = min / 60; min -= hrs * 60;
+							days = hrs / 24; hrs -= days * 24;
+							netdev_info(dev, "Link up (peer uptime %ud%uh%um%us)\n",
+										days, hrs, min, sec);
+							netif_dormant_off(dev);
+							st->up = 1;
+						}
+					}
+
+					spin_unlock(&st->lock);
+
+					dev_kfree_skb_any(skb);
+					return NET_RX_SUCCESS;
+			} /* switch (keepalive type) */
 	} /* switch (protocol) */
 
 	netdev_info(dev, "Unsupported protocol %x\n", ntohs(data->protocol));
@@ -264,15 +299,17 @@ static void cisco_timer(unsigned long arg)
 	struct cisco_state *st = state(hdlc);
 
 	spin_lock(&st->lock);
+
 	if (st->up &&
-	    time_after(jiffies, st->last_poll + st->settings.timeout * HZ)) {
+		time_after(jiffies, st->last_poll + st->settings.timeout * HZ))
+	{
 		st->up = 0;
 		netdev_info(dev, "Link down\n");
 		netif_dormant_on(dev);
 	}
 
 	cisco_keepalive_send(dev, CISCO_KEEPALIVE_REQ, htonl(++st->txseq),
-			     htonl(st->rxseq));
+						 htonl(st->rxseq));
 	spin_unlock(&st->lock);
 
 	st->timer.expires = jiffies + st->settings.interval * HZ;
@@ -317,7 +354,8 @@ static void cisco_stop(struct net_device *dev)
 }
 
 
-static struct hdlc_proto proto = {
+static struct hdlc_proto proto =
+{
 	.start		= cisco_start,
 	.stop		= cisco_stop,
 	.type_trans	= cisco_type_trans,
@@ -326,7 +364,8 @@ static struct hdlc_proto proto = {
 	.module		= THIS_MODULE,
 };
 
-static const struct header_ops cisco_header_ops = {
+static const struct header_ops cisco_header_ops =
+{
 	.create = cisco_hard_header,
 };
 
@@ -338,49 +377,73 @@ static int cisco_ioctl(struct net_device *dev, struct ifreq *ifr)
 	hdlc_device *hdlc = dev_to_hdlc(dev);
 	int result;
 
-	switch (ifr->ifr_settings.type) {
-	case IF_GET_PROTO:
-		if (dev_to_hdlc(dev)->proto != &proto)
-			return -EINVAL;
-		ifr->ifr_settings.type = IF_PROTO_CISCO;
-		if (ifr->ifr_settings.size < size) {
-			ifr->ifr_settings.size = size; /* data size wanted */
-			return -ENOBUFS;
-		}
-		if (copy_to_user(cisco_s, &state(hdlc)->settings, size))
-			return -EFAULT;
-		return 0;
+	switch (ifr->ifr_settings.type)
+	{
+		case IF_GET_PROTO:
+			if (dev_to_hdlc(dev)->proto != &proto)
+			{
+				return -EINVAL;
+			}
 
-	case IF_PROTO_CISCO:
-		if (!capable(CAP_NET_ADMIN))
-			return -EPERM;
+			ifr->ifr_settings.type = IF_PROTO_CISCO;
 
-		if (dev->flags & IFF_UP)
-			return -EBUSY;
+			if (ifr->ifr_settings.size < size)
+			{
+				ifr->ifr_settings.size = size; /* data size wanted */
+				return -ENOBUFS;
+			}
 
-		if (copy_from_user(&new_settings, cisco_s, size))
-			return -EFAULT;
+			if (copy_to_user(cisco_s, &state(hdlc)->settings, size))
+			{
+				return -EFAULT;
+			}
 
-		if (new_settings.interval < 1 ||
-		    new_settings.timeout < 2)
-			return -EINVAL;
+			return 0;
 
-		result = hdlc->attach(dev, ENCODING_NRZ,PARITY_CRC16_PR1_CCITT);
-		if (result)
-			return result;
+		case IF_PROTO_CISCO:
+			if (!capable(CAP_NET_ADMIN))
+			{
+				return -EPERM;
+			}
 
-		result = attach_hdlc_protocol(dev, &proto,
-					      sizeof(struct cisco_state));
-		if (result)
-			return result;
+			if (dev->flags & IFF_UP)
+			{
+				return -EBUSY;
+			}
 
-		memcpy(&state(hdlc)->settings, &new_settings, size);
-		spin_lock_init(&state(hdlc)->lock);
-		dev->header_ops = &cisco_header_ops;
-		dev->type = ARPHRD_CISCO;
-		call_netdevice_notifiers(NETDEV_POST_TYPE_CHANGE, dev);
-		netif_dormant_on(dev);
-		return 0;
+			if (copy_from_user(&new_settings, cisco_s, size))
+			{
+				return -EFAULT;
+			}
+
+			if (new_settings.interval < 1 ||
+				new_settings.timeout < 2)
+			{
+				return -EINVAL;
+			}
+
+			result = hdlc->attach(dev, ENCODING_NRZ, PARITY_CRC16_PR1_CCITT);
+
+			if (result)
+			{
+				return result;
+			}
+
+			result = attach_hdlc_protocol(dev, &proto,
+										  sizeof(struct cisco_state));
+
+			if (result)
+			{
+				return result;
+			}
+
+			memcpy(&state(hdlc)->settings, &new_settings, size);
+			spin_lock_init(&state(hdlc)->lock);
+			dev->header_ops = &cisco_header_ops;
+			dev->type = ARPHRD_CISCO;
+			call_netdevice_notifiers(NETDEV_POST_TYPE_CHANGE, dev);
+			netif_dormant_on(dev);
+			return 0;
 	}
 
 	return -EINVAL;

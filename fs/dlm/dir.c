@@ -37,8 +37,11 @@ int dlm_hash2nodeid(struct dlm_ls *ls, uint32_t hash)
 	uint32_t node;
 
 	if (ls->ls_num_nodes == 1)
+	{
 		return dlm_our_nodeid();
-	else {
+	}
+	else
+	{
 		node = (hash >> 16) % ls->ls_total_weight;
 		return ls->ls_node_array[node];
 	}
@@ -54,7 +57,8 @@ void dlm_recover_dir_nodeid(struct dlm_ls *ls)
 	struct dlm_rsb *r;
 
 	down_read(&ls->ls_root_sem);
-	list_for_each_entry(r, &ls->ls_root_list, res_root_list) {
+	list_for_each_entry(r, &ls->ls_root_list, res_root_list)
+	{
 		r->res_dir_nodeid = dlm_hash2nodeid(ls, r->res_hash);
 	}
 	up_read(&ls->ls_root_sem);
@@ -71,29 +75,44 @@ int dlm_recover_directory(struct dlm_ls *ls)
 	log_rinfo(ls, "dlm_recover_directory");
 
 	if (dlm_no_directory(ls))
+	{
 		goto out_status;
+	}
 
 	last_name = kmalloc(DLM_RESNAME_MAXLEN, GFP_NOFS);
-	if (!last_name)
-		goto out;
 
-	list_for_each_entry(memb, &ls->ls_nodes, list) {
+	if (!last_name)
+	{
+		goto out;
+	}
+
+	list_for_each_entry(memb, &ls->ls_nodes, list)
+	{
 		if (memb->nodeid == dlm_our_nodeid())
+		{
 			continue;
+		}
 
 		memset(last_name, 0, DLM_RESNAME_MAXLEN);
 		last_len = 0;
 
-		for (;;) {
+		for (;;)
+		{
 			int left;
 			error = dlm_recovery_stopped(ls);
+
 			if (error)
+			{
 				goto out_free;
+			}
 
 			error = dlm_rcom_names(ls, memb->nodeid,
-					       last_name, last_len);
+								   last_name, last_len);
+
 			if (error)
+			{
 				goto out_free;
+			}
 
 			cond_resched();
 
@@ -105,12 +124,16 @@ int dlm_recover_directory(struct dlm_ls *ls)
 			left = ls->ls_recover_buf->rc_header.h_length;
 			left -= sizeof(struct dlm_rcom);
 
-			for (;;) {
+			for (;;)
+			{
 				__be16 v;
 
 				error = -EINVAL;
+
 				if (left < sizeof(__be16))
+				{
 					goto out_free;
+				}
 
 				memcpy(&v, b, sizeof(__be16));
 				namelen = be16_to_cpu(v);
@@ -122,23 +145,34 @@ int dlm_recover_directory(struct dlm_ls *ls)
 				   buffer */
 
 				if (namelen == 0xFFFF)
+				{
 					goto done;
+				}
+
 				if (!namelen)
+				{
 					break;
+				}
 
 				if (namelen > left)
+				{
 					goto out_free;
+				}
 
 				if (namelen > DLM_RESNAME_MAXLEN)
+				{
 					goto out_free;
+				}
 
 				error = dlm_master_lookup(ls, memb->nodeid,
-							  b, namelen,
-							  DLM_LU_RECOVER_DIR,
-							  &nodeid, &result);
-				if (error) {
+										  b, namelen,
+										  DLM_LU_RECOVER_DIR,
+										  &nodeid, &result);
+
+				if (error)
+				{
 					log_error(ls, "recover_dir lookup %d",
-						  error);
+							  error);
 					goto out_free;
 				}
 
@@ -148,29 +182,32 @@ int dlm_recover_directory(struct dlm_ls *ls)
 				 * This should not happen. */
 
 				if (result == DLM_LU_MATCH &&
-				    nodeid != memb->nodeid) {
+					nodeid != memb->nodeid)
+				{
 					count_bad++;
 					log_error(ls, "recover_dir lookup %d "
-						  "nodeid %d memb %d bad %u",
-						  result, nodeid, memb->nodeid,
-						  count_bad);
+							  "nodeid %d memb %d bad %u",
+							  result, nodeid, memb->nodeid,
+							  count_bad);
 					print_hex_dump_bytes("dlm_recover_dir ",
-							     DUMP_PREFIX_NONE,
-							     b, namelen);
+										 DUMP_PREFIX_NONE,
+										 b, namelen);
 				}
 
 				/* The name was found in rsbtbl, and the
 				 * master nodeid matches memb->nodeid. */
 
 				if (result == DLM_LU_MATCH &&
-				    nodeid == memb->nodeid) {
+					nodeid == memb->nodeid)
+				{
 					count_match++;
 				}
 
 				/* The name was not found in rsbtbl and was
 				 * added with memb->nodeid as the master. */
 
-				if (result == DLM_LU_ADD) {
+				if (result == DLM_LU_ADD)
+				{
 					count_add++;
 				}
 
@@ -181,19 +218,20 @@ int dlm_recover_directory(struct dlm_ls *ls)
 				count++;
 			}
 		}
-	 done:
+
+done:
 		;
 	}
 
- out_status:
+out_status:
 	error = 0;
 	dlm_set_recover_status(ls, DLM_RS_DIR);
 
 	log_rinfo(ls, "dlm_recover_directory %u in %u new",
-		  count, count_add);
- out_free:
+			  count, count_add);
+out_free:
 	kfree(last_name);
- out:
+out:
 	return error;
 }
 
@@ -208,20 +246,26 @@ static struct dlm_rsb *find_rsb_root(struct dlm_ls *ls, char *name, int len)
 
 	spin_lock(&ls->ls_rsbtbl[bucket].lock);
 	rv = dlm_search_rsb_tree(&ls->ls_rsbtbl[bucket].keep, name, len, &r);
+
 	if (rv)
 		rv = dlm_search_rsb_tree(&ls->ls_rsbtbl[bucket].toss,
-					 name, len, &r);
+								 name, len, &r);
+
 	spin_unlock(&ls->ls_rsbtbl[bucket].lock);
 
 	if (!rv)
+	{
 		return r;
+	}
 
 	down_read(&ls->ls_root_sem);
-	list_for_each_entry(r, &ls->ls_root_list, res_root_list) {
-		if (len == r->res_length && !memcmp(name, r->res_name, len)) {
+	list_for_each_entry(r, &ls->ls_root_list, res_root_list)
+	{
+		if (len == r->res_length && !memcmp(name, r->res_name, len))
+		{
 			up_read(&ls->ls_root_sem);
 			log_debug(ls, "find_rsb_root revert to root_list %s",
-				  r->res_name);
+					  r->res_name);
 			return r;
 		}
 	}
@@ -234,7 +278,7 @@ static struct dlm_rsb *find_rsb_root(struct dlm_ls *ls, char *name, int len)
    node.  inbuf is the rsb name last sent, inlen is the name's length */
 
 void dlm_copy_master_names(struct dlm_ls *ls, char *inbuf, int inlen,
- 			   char *outbuf, int outlen, int nodeid)
+						   char *outbuf, int outlen, int nodeid)
 {
 	struct list_head *list;
 	struct dlm_rsb *r;
@@ -243,27 +287,40 @@ void dlm_copy_master_names(struct dlm_ls *ls, char *inbuf, int inlen,
 
 	down_read(&ls->ls_root_sem);
 
-	if (inlen > 1) {
+	if (inlen > 1)
+	{
 		r = find_rsb_root(ls, inbuf, inlen);
-		if (!r) {
+
+		if (!r)
+		{
 			inbuf[inlen - 1] = '\0';
 			log_error(ls, "copy_master_names from %d start %d %s",
-				  nodeid, inlen, inbuf);
+					  nodeid, inlen, inbuf);
 			goto out;
 		}
+
 		list = r->res_root_list.next;
-	} else {
+	}
+	else
+	{
 		list = ls->ls_root_list.next;
 	}
 
-	for (offset = 0; list != &ls->ls_root_list; list = list->next) {
+	for (offset = 0; list != &ls->ls_root_list; list = list->next)
+	{
 		r = list_entry(list, struct dlm_rsb, res_root_list);
+
 		if (r->res_nodeid)
+		{
 			continue;
+		}
 
 		dir_nodeid = dlm_dir_nodeid(r);
+
 		if (dir_nodeid != nodeid)
+		{
 			continue;
+		}
 
 		/*
 		 * The block ends when we can't fit the following in the
@@ -273,7 +330,8 @@ void dlm_copy_master_names(struct dlm_ls *ls, char *inbuf, int inlen,
 		 * end-of-block record 0x0000 (uint16_t)
 		 */
 
-		if (offset + sizeof(uint16_t)*2 + r->res_length > outlen) {
+		if (offset + sizeof(uint16_t) * 2 + r->res_length > outlen)
+		{
 			/* Write end-of-block record */
 			be_namelen = cpu_to_be16(0);
 			memcpy(outbuf + offset, &be_namelen, sizeof(__be16));
@@ -296,13 +354,15 @@ void dlm_copy_master_names(struct dlm_ls *ls, char *inbuf, int inlen,
 	 */
 
 	if ((list == &ls->ls_root_list) &&
-	    (offset + sizeof(uint16_t) <= outlen)) {
+		(offset + sizeof(uint16_t) <= outlen))
+	{
 		be_namelen = cpu_to_be16(0xFFFF);
 		memcpy(outbuf + offset, &be_namelen, sizeof(__be16));
 		offset += sizeof(__be16);
 		ls->ls_recover_dir_sent_msg++;
 	}
- out:
+
+out:
 	up_read(&ls->ls_root_sem);
 }
 

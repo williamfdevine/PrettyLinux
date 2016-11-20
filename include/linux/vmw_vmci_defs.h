@@ -55,7 +55,8 @@
 #define VMCI_IMR_NOTIFICATION  0x2
 
 /* Interrupt type. */
-enum {
+enum
+{
 	VMCI_INTR_TYPE_INTX = 0,
 	VMCI_INTR_TYPE_MSI = 1,
 	VMCI_INTR_TYPE_MSIX = 2,
@@ -68,7 +69,8 @@ enum {
  * Supported interrupt vectors.  There is one for each ICR value above,
  * but here they indicate the position in the vector array/message ID.
  */
-enum {
+enum
+{
 	VMCI_INTR_DATAGRAM = 0,
 	VMCI_INTR_NOTIFICATION = 1,
 };
@@ -95,7 +97,8 @@ enum {
  *
  * VMCI reserved hypervisor datagram resource IDs.
  */
-enum {
+enum
+{
 	VMCI_RESOURCES_QUERY = 0,
 	VMCI_GET_CONTEXT_ID = 1,
 	VMCI_SET_NOTIFY_BITMAP = 2,
@@ -132,7 +135,8 @@ enum {
  * The vmci_handle structure is used to track resources used within
  * vmw_vmci.
  */
-struct vmci_handle {
+struct vmci_handle
+{
 	u32 context;
 	u32 resource;
 };
@@ -141,13 +145,14 @@ struct vmci_handle {
 	(struct vmci_handle){ .context = _cid, .resource = _rid }
 
 static inline bool vmci_handle_is_equal(struct vmci_handle h1,
-					struct vmci_handle h2)
+										struct vmci_handle h2)
 {
 	return h1.context == h2.context && h1.resource == h2.resource;
 }
 
 #define VMCI_INVALID_ID ~0
-static const struct vmci_handle VMCI_INVALID_HANDLE = {
+static const struct vmci_handle VMCI_INVALID_HANDLE =
+{
 	.context = VMCI_INVALID_ID,
 	.resource = VMCI_INVALID_ID
 };
@@ -163,7 +168,8 @@ static inline bool vmci_handle_is_invalid(struct vmci_handle h)
  */
 #define VMCI_ANON_SRC_CONTEXT_ID   VMCI_INVALID_ID
 #define VMCI_ANON_SRC_RESOURCE_ID  VMCI_INVALID_ID
-static const struct vmci_handle VMCI_ANON_SRC_HANDLE = {
+static const struct vmci_handle VMCI_ANON_SRC_HANDLE =
+{
 	.context = VMCI_ANON_SRC_CONTEXT_ID,
 	.resource = VMCI_ANON_SRC_RESOURCE_ID
 };
@@ -189,7 +195,7 @@ static const struct vmci_handle VMCI_ANON_SRC_HANDLE = {
 #define VMCI_HOST_CONTEXT_ID  2
 
 #define VMCI_CONTEXT_IS_VM(_cid) (VMCI_INVALID_ID != (_cid) &&		\
-				  (_cid) > VMCI_HOST_CONTEXT_ID)
+								  (_cid) > VMCI_HOST_CONTEXT_ID)
 
 /*
  * The VMCI_CONTEXT_RESOURCE_ID is used together with vmci_make_handle to make
@@ -200,7 +206,8 @@ static const struct vmci_handle VMCI_ANON_SRC_HANDLE = {
 /*
  * VMCI error codes.
  */
-enum {
+enum
+{
 	VMCI_SUCCESS_QUEUEPAIR_ATTACH	= 5,
 	VMCI_SUCCESS_QUEUEPAIR_CREATE	= 4,
 	VMCI_SUCCESS_LAST_DETACH	= 3,
@@ -258,7 +265,8 @@ enum {
 };
 
 /* VMCI reserved events. */
-enum {
+enum
+{
 	/* Only applicable to guest endpoints */
 	VMCI_EVENT_CTX_ID_UPDATE  = 0,
 
@@ -296,10 +304,10 @@ enum {
  * endpoints.
  */
 #define VMCI_EVENT_VALID_VMX(_event) ((_event) == VMCI_EVENT_MEM_ACCESS_ON || \
-				      (_event) == VMCI_EVENT_MEM_ACCESS_OFF)
+									  (_event) == VMCI_EVENT_MEM_ACCESS_OFF)
 
 #define VMCI_EVENT_VALID(_event) ((_event) < VMCI_EVENT_MAX &&		\
-				  !VMCI_EVENT_VALID_VMX(_event))
+								  !VMCI_EVENT_VALID_VMX(_event))
 
 /* Reserved guest datagram resource ids. */
 #define VMCI_EVENT_HANDLER 0
@@ -309,12 +317,13 @@ enum {
  * process/endpoint. An entity with the restricted flag is only
  * allowed to interact with the hypervisor and trusted entities.
  */
-enum {
+enum
+{
 	VMCI_NO_PRIVILEGE_FLAGS = 0,
 	VMCI_PRIVILEGE_FLAG_RESTRICTED = 1,
 	VMCI_PRIVILEGE_FLAG_TRUSTED = 2,
 	VMCI_PRIVILEGE_ALL_FLAGS = (VMCI_PRIVILEGE_FLAG_RESTRICTED |
-				    VMCI_PRIVILEGE_FLAG_TRUSTED),
+								VMCI_PRIVILEGE_FLAG_TRUSTED),
 	VMCI_DEFAULT_PROC_PRIVILEGE_FLAGS = VMCI_NO_PRIVILEGE_FLAGS,
 	VMCI_LEAST_PRIVILEGE_FLAGS = VMCI_PRIVILEGE_FLAG_RESTRICTED,
 	VMCI_MAX_PRIVILEGE_FLAGS = VMCI_PRIVILEGE_FLAG_TRUSTED,
@@ -440,7 +449,8 @@ enum {
  * If produce_q_header->producer_tail == consume_q_header->consumer_head
  * then the produce_q is empty.
  */
-struct vmci_queue_header {
+struct vmci_queue_header
+{
 	/* All fields are 64bit and aligned. */
 	struct vmci_handle handle;	/* Identifier. */
 	atomic64_t producer_tail;	/* Offset in this queue. */
@@ -457,7 +467,8 @@ struct vmci_queue_header {
  * the necessary source and destination information to properly route
  * the information along with the size of the package.
  */
-struct vmci_datagram {
+struct vmci_datagram
+{
 	struct vmci_handle dst;
 	struct vmci_handle src;
 	u64 payload_size;
@@ -479,22 +490,24 @@ struct vmci_datagram {
  */
 #define VMCI_MAX_DG_SIZE (17 * 4096)
 #define VMCI_MAX_DG_PAYLOAD_SIZE (VMCI_MAX_DG_SIZE - \
-				  sizeof(struct vmci_datagram))
+								  sizeof(struct vmci_datagram))
 #define VMCI_DG_PAYLOAD(_dg) (void *)((char *)(_dg) +			\
-				      sizeof(struct vmci_datagram))
+									  sizeof(struct vmci_datagram))
 #define VMCI_DG_HEADERSIZE sizeof(struct vmci_datagram)
 #define VMCI_DG_SIZE(_dg) (VMCI_DG_HEADERSIZE + (size_t)(_dg)->payload_size)
 #define VMCI_DG_SIZE_ALIGNED(_dg) ((VMCI_DG_SIZE(_dg) + 7) & (~((size_t) 0x7)))
 #define VMCI_MAX_DATAGRAM_QUEUE_SIZE (VMCI_MAX_DG_SIZE * 2)
 
-struct vmci_event_payload_qp {
+struct vmci_event_payload_qp
+{
 	struct vmci_handle handle;  /* queue_pair handle. */
 	u32 peer_id;		    /* Context id of attaching/detaching VM. */
 	u32 _pad;
 };
 
 /* Flags for VMCI queue_pair API. */
-enum {
+enum
+{
 	/* Fail alloc if QP not created by peer. */
 	VMCI_QPFLAG_ATTACH_ONLY = 1 << 0,
 
@@ -509,7 +522,7 @@ enum {
 
 	/* Update the following flag when adding new flags. */
 	VMCI_QP_ALL_FLAGS = (VMCI_QPFLAG_ATTACH_ONLY | VMCI_QPFLAG_LOCAL |
-			     VMCI_QPFLAG_NONBLOCK | VMCI_QPFLAG_PINNED),
+						 VMCI_QPFLAG_NONBLOCK | VMCI_QPFLAG_PINNED),
 
 	/* Convenience flags */
 	VMCI_QP_ASYMM = (VMCI_QPFLAG_NONBLOCK | VMCI_QPFLAG_PINNED),
@@ -534,14 +547,15 @@ enum {
 #define VMCI_MAX_DATAGRAM_AND_EVENT_QUEUE_SIZE				\
 	(VMCI_MAX_DATAGRAM_QUEUE_SIZE +					\
 	 1024 * (sizeof(struct vmci_datagram) +				\
-		 sizeof(struct vmci_event_data_max)))
+			 sizeof(struct vmci_event_data_max)))
 
 /*
  * Struct used for querying, via VMCI_RESOURCES_QUERY, the availability of
  * hypervisor resources.  Struct size is 16 bytes. All fields in struct are
  * aligned to their natural alignment.
  */
-struct vmci_resource_query_hdr {
+struct vmci_resource_query_hdr
+{
 	struct vmci_datagram hdr;
 	u32 num_resources;
 	u32 _padding;
@@ -551,7 +565,8 @@ struct vmci_resource_query_hdr {
  * Convenience struct for negotiating vectors. Must match layout of
  * VMCIResourceQueryHdr minus the struct vmci_datagram header.
  */
-struct vmci_resource_query_msg {
+struct vmci_resource_query_msg
+{
 	u32 num_resources;
 	u32 _padding;
 	u32 resources[1];
@@ -574,7 +589,8 @@ struct vmci_resource_query_msg {
  * Struct used for setting the notification bitmap.  All fields in
  * struct are aligned to their natural alignment.
  */
-struct vmci_notify_bm_set_msg {
+struct vmci_notify_bm_set_msg
+{
 	struct vmci_datagram hdr;
 	u32 bitmap_ppn;
 	u32 _pad;
@@ -585,7 +601,8 @@ struct vmci_notify_bm_set_msg {
  * notify bitmap. All fields in struct are aligned to their natural
  * alignment.
  */
-struct vmci_doorbell_link_msg {
+struct vmci_doorbell_link_msg
+{
 	struct vmci_datagram hdr;
 	struct vmci_handle handle;
 	u64 notify_idx;
@@ -596,7 +613,8 @@ struct vmci_doorbell_link_msg {
  * notify bitmap. All fields in struct are aligned to their natural
  * alignment.
  */
-struct vmci_doorbell_unlink_msg {
+struct vmci_doorbell_unlink_msg
+{
 	struct vmci_datagram hdr;
 	struct vmci_handle handle;
 };
@@ -605,7 +623,8 @@ struct vmci_doorbell_unlink_msg {
  * Struct used for generating a notification on a doorbell handle. All
  * fields in struct are aligned to their natural alignment.
  */
-struct vmci_doorbell_notify_msg {
+struct vmci_doorbell_notify_msg
+{
 	struct vmci_datagram hdr;
 	struct vmci_handle handle;
 };
@@ -614,7 +633,8 @@ struct vmci_doorbell_notify_msg {
  * This struct is used to contain data for events.  Size of this struct is a
  * multiple of 8 bytes, and all fields are aligned to their natural alignment.
  */
-struct vmci_event_data {
+struct vmci_event_data
+{
 	u32 event;		/* 4 bytes. */
 	u32 _pad;
 	/* Event payload is put here. */
@@ -625,12 +645,14 @@ struct vmci_event_data {
  * be a multiple of 8 bytes, and fields must be aligned to their natural
  * alignment.
  */
-struct vmci_event_payld_ctx {
+struct vmci_event_payld_ctx
+{
 	u32 context_id;	/* 4 bytes. */
 	u32 _pad;
 };
 
-struct vmci_event_payld_qp {
+struct vmci_event_payld_qp
+{
 	struct vmci_handle handle;  /* queue_pair handle. */
 	u32 peer_id;	    /* Context id of attaching/detaching VM. */
 	u32 _pad;
@@ -642,9 +664,11 @@ struct vmci_event_payld_qp {
  * payload type above, add it to the following struct too (inside the
  * union).
  */
-struct vmci_event_data_max {
+struct vmci_event_data_max
+{
 	struct vmci_event_data event_data;
-	union {
+	union
+	{
 		struct vmci_event_payld_ctx context_payload;
 		struct vmci_event_payld_qp qp_payload;
 	} ev_data_payload;
@@ -655,7 +679,8 @@ struct vmci_event_data_max {
  * VMCI_EVENT_HANDLER messages.  Struct size is 32 bytes.  All fields
  * in struct are aligned to their natural alignment.
  */
-struct vmci_event_msg {
+struct vmci_event_msg
+{
 	struct vmci_datagram hdr;
 
 	/* Has event type and payload. */
@@ -665,13 +690,15 @@ struct vmci_event_msg {
 };
 
 /* Event with context payload. */
-struct vmci_event_ctx {
+struct vmci_event_ctx
+{
 	struct vmci_event_msg msg;
 	struct vmci_event_payld_ctx payload;
 };
 
 /* Event with QP payload. */
-struct vmci_event_qp {
+struct vmci_event_qp
+{
 	struct vmci_event_msg msg;
 	struct vmci_event_payld_qp payload;
 };
@@ -680,7 +707,8 @@ struct vmci_event_qp {
  * Structs used for queue_pair alloc and detach messages.  We align fields of
  * these structs to 64bit boundaries.
  */
-struct vmci_qp_alloc_msg {
+struct vmci_qp_alloc_msg
+{
 	struct vmci_datagram hdr;
 	struct vmci_handle handle;
 	u32 peer;
@@ -692,7 +720,8 @@ struct vmci_qp_alloc_msg {
 	/* List of PPNs placed here. */
 };
 
-struct vmci_qp_detach_msg {
+struct vmci_qp_detach_msg
+{
 	struct vmci_datagram hdr;
 	struct vmci_handle handle;
 };
@@ -712,11 +741,11 @@ struct vmci_qp;
 
 /* Callback needed for correctly waiting on events. */
 typedef int (*vmci_datagram_recv_cb) (void *client_data,
-				      struct vmci_datagram *msg);
+									  struct vmci_datagram *msg);
 
 /* VMCI Event API. */
 typedef void (*vmci_event_cb) (u32 sub_id, const struct vmci_event_data *ed,
-			       void *client_data);
+							   void *client_data);
 
 /*
  * We use the following inline function to access the payload data
@@ -759,7 +788,7 @@ static inline u64 vmci_q_read_pointer(atomic64_t *var)
  * locked cmpxchg8b adds unnecessary overhead.
  */
 static inline void vmci_q_set_pointer(atomic64_t *var,
-				      u64 new_val)
+									  u64 new_val)
 {
 #if defined(CONFIG_X86_32)
 	return atomic_set((atomic_t *)var, (u32)new_val);
@@ -773,13 +802,15 @@ static inline void vmci_q_set_pointer(atomic64_t *var,
  * value of the pointer around the max size of the queue.
  */
 static inline void vmci_qp_add_pointer(atomic64_t *var,
-				       size_t add,
-				       u64 size)
+									   size_t add,
+									   u64 size)
 {
 	u64 new_val = vmci_q_read_pointer(var);
 
 	if (new_val >= size - add)
+	{
 		new_val -= size;
+	}
 
 	new_val += add;
 
@@ -812,8 +843,8 @@ vmci_q_header_consumer_head(const struct vmci_queue_header *q_header)
  */
 static inline void
 vmci_q_header_add_producer_tail(struct vmci_queue_header *q_header,
-				size_t add,
-				u64 queue_size)
+								size_t add,
+								u64 queue_size)
 {
 	vmci_qp_add_pointer(&q_header->producer_tail, add, queue_size);
 }
@@ -824,8 +855,8 @@ vmci_q_header_add_producer_tail(struct vmci_queue_header *q_header,
  */
 static inline void
 vmci_q_header_add_consumer_head(struct vmci_queue_header *q_header,
-				size_t add,
-				u64 queue_size)
+								size_t add,
+								u64 queue_size)
 {
 	vmci_qp_add_pointer(&q_header->consumer_head, add, queue_size);
 }
@@ -836,19 +867,23 @@ vmci_q_header_add_consumer_head(struct vmci_queue_header *q_header,
  */
 static inline void
 vmci_q_header_get_pointers(const struct vmci_queue_header *produce_q_header,
-			   const struct vmci_queue_header *consume_q_header,
-			   u64 *producer_tail,
-			   u64 *consumer_head)
+						   const struct vmci_queue_header *consume_q_header,
+						   u64 *producer_tail,
+						   u64 *consumer_head)
 {
 	if (producer_tail)
+	{
 		*producer_tail = vmci_q_header_producer_tail(produce_q_header);
+	}
 
 	if (consumer_head)
+	{
 		*consumer_head = vmci_q_header_consumer_head(consume_q_header);
+	}
 }
 
 static inline void vmci_q_header_init(struct vmci_queue_header *q_header,
-				      const struct vmci_handle handle)
+									  const struct vmci_handle handle)
 {
 	q_header->handle = handle;
 	atomic64_set(&q_header->producer_tail, 0);
@@ -861,8 +896,8 @@ static inline void vmci_q_header_init(struct vmci_queue_header *q_header,
  */
 static s64
 vmci_q_header_free_space(const struct vmci_queue_header *produce_q_header,
-			 const struct vmci_queue_header *consume_q_header,
-			 const u64 produce_q_size)
+						 const struct vmci_queue_header *consume_q_header,
+						 const u64 produce_q_size)
 {
 	u64 tail;
 	u64 head;
@@ -872,7 +907,9 @@ vmci_q_header_free_space(const struct vmci_queue_header *produce_q_header,
 	head = vmci_q_header_consumer_head(consume_q_header);
 
 	if (tail >= produce_q_size || head >= produce_q_size)
+	{
 		return VMCI_ERROR_INVALID_SIZE;
+	}
 
 	/*
 	 * Deduct 1 to avoid tail becoming equal to head which causes
@@ -880,9 +917,13 @@ vmci_q_header_free_space(const struct vmci_queue_header *produce_q_header,
 	 * queue is empty.
 	 */
 	if (tail >= head)
+	{
 		free_space = produce_q_size - (tail - head) - 1;
+	}
 	else
+	{
 		free_space = head - tail - 1;
+	}
 
 	return free_space;
 }
@@ -898,15 +939,18 @@ vmci_q_header_free_space(const struct vmci_queue_header *produce_q_header,
  */
 static inline s64
 vmci_q_header_buf_ready(const struct vmci_queue_header *consume_q_header,
-			const struct vmci_queue_header *produce_q_header,
-			const u64 consume_q_size)
+						const struct vmci_queue_header *produce_q_header,
+						const u64 consume_q_size)
 {
 	s64 free_space;
 
 	free_space = vmci_q_header_free_space(consume_q_header,
-					      produce_q_header, consume_q_size);
+										  produce_q_header, consume_q_size);
+
 	if (free_space < VMCI_SUCCESS)
+	{
 		return free_space;
+	}
 
 	return consume_q_size - free_space - 1;
 }

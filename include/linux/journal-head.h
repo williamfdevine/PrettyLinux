@@ -16,7 +16,8 @@ typedef struct transaction_s	transaction_t;	/* Compound transaction type */
 
 struct buffer_head;
 
-struct journal_head {
+struct journal_head
+{
 	/*
 	 * Points back to our buffer_head. [jbd_lock_bh_journal_head()]
 	 */

@@ -42,7 +42,7 @@
  */
 #define IEEE802154_MAX_HEADER_LEN	(2 + 1 + 20 + 14)
 #define IEEE802154_MIN_HEADER_LEN	(IEEE802154_ACK_PSDU_LEN - \
-					 IEEE802154_FCS_LEN)
+									 IEEE802154_FCS_LEN)
 
 #define IEEE802154_PAN_ID_BROADCAST	0xffff
 #define IEEE802154_ADDR_SHORT_BROADCAST	0xffff
@@ -68,8 +68,8 @@
 #define IEEE802154_FC_TYPE_MASK		((1 << 3) - 1)
 #define IEEE802154_FC_TYPE(x)		((x & IEEE802154_FC_TYPE_MASK) >> IEEE802154_FC_TYPE_SHIFT)
 #define IEEE802154_FC_SET_TYPE(v, x)	do {	\
-	v = (((v) & ~IEEE802154_FC_TYPE_MASK) | \
-	    (((x) << IEEE802154_FC_TYPE_SHIFT) & IEEE802154_FC_TYPE_MASK)); \
+		v = (((v) & ~IEEE802154_FC_TYPE_MASK) | \
+			 (((x) << IEEE802154_FC_TYPE_SHIFT) & IEEE802154_FC_TYPE_MASK)); \
 	} while (0)
 
 #define IEEE802154_FC_SECEN_SHIFT	3
@@ -135,7 +135,8 @@
 /*
  * The return values of MAC operations
  */
-enum {
+enum
+{
 	/*
 	 * The requested operation was completed successfully.
 	 * For a transmission request, this value indicates
@@ -242,7 +243,7 @@ enum {
 static inline int ieee802154_is_data(__le16 fc)
 {
 	return (fc & cpu_to_le16(IEEE802154_FCTL_FTYPE)) ==
-		cpu_to_le16(IEEE802154_FTYPE_DATA);
+		   cpu_to_le16(IEEE802154_FTYPE_DATA);
 }
 
 /**
@@ -303,7 +304,7 @@ static inline __le16 ieee802154_saddr_mode(__le16 fc)
 static inline bool ieee802154_is_valid_psdu_len(u8 len)
 {
 	return (len == IEEE802154_ACK_PSDU_LEN ||
-		(len >= IEEE802154_MIN_PSDU_LEN && len <= IEEE802154_MTU));
+			(len >= IEEE802154_MIN_PSDU_LEN && len <= IEEE802154_MTU));
 }
 
 /**
@@ -316,7 +317,7 @@ static inline bool ieee802154_is_valid_extended_unicast_addr(__le64 addr)
 	 * address bit is set.
 	 */
 	return ((addr != cpu_to_le64(0x0000000000000000ULL)) &&
-		!(addr & cpu_to_le64(0x0100000000000000ULL)));
+			!(addr & cpu_to_le64(0x0100000000000000ULL)));
 }
 
 /**
@@ -344,7 +345,7 @@ static inline bool ieee802154_is_unspec_short_addr(__le16 addr)
 static inline bool ieee802154_is_valid_src_short_addr(__le16 addr)
 {
 	return !(ieee802154_is_broadcast_short_addr(addr) ||
-		 ieee802154_is_unspec_short_addr(addr));
+			 ieee802154_is_unspec_short_addr(addr));
 }
 
 /**

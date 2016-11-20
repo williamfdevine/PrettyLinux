@@ -44,7 +44,8 @@ static inline bool uac2_control_is_writeable(u32 bmControls, u8 control)
 }
 
 /* 4.7.2 Class-Specific AC Interface Descriptor */
-struct uac2_ac_header_descriptor {
+struct uac2_ac_header_descriptor
+{
 	__u8  bLength;			/* 9 */
 	__u8  bDescriptorType;		/* USB_DT_CS_INTERFACE */
 	__u8  bDescriptorSubtype;	/* UAC_MS_HEADER */
@@ -55,7 +56,8 @@ struct uac2_ac_header_descriptor {
 } __packed;
 
 /* 2.3.1.6 Type I Format Type Descriptor (Frmts20 final.pdf)*/
-struct uac2_format_type_i_descriptor {
+struct uac2_format_type_i_descriptor
+{
 	__u8  bLength;			/* in bytes: 6 */
 	__u8  bDescriptorType;		/* USB_DT_CS_INTERFACE */
 	__u8  bDescriptorSubtype;	/* FORMAT_TYPE */
@@ -66,7 +68,8 @@ struct uac2_format_type_i_descriptor {
 
 /* 4.7.2.1 Clock Source Descriptor */
 
-struct uac_clock_source_descriptor {
+struct uac_clock_source_descriptor
+{
 	__u8 bLength;
 	__u8 bDescriptorType;
 	__u8 bDescriptorSubtype;
@@ -86,7 +89,8 @@ struct uac_clock_source_descriptor {
 
 /* 4.7.2.2 Clock Source Descriptor */
 
-struct uac_clock_selector_descriptor {
+struct uac_clock_selector_descriptor
+{
 	__u8 bLength;
 	__u8 bDescriptorType;
 	__u8 bDescriptorSubtype;
@@ -98,7 +102,8 @@ struct uac_clock_selector_descriptor {
 
 /* 4.7.2.3 Clock Multiplier Descriptor */
 
-struct uac_clock_multiplier_descriptor {
+struct uac_clock_multiplier_descriptor
+{
 	__u8 bLength;
 	__u8 bDescriptorType;
 	__u8 bDescriptorSubtype;
@@ -110,7 +115,8 @@ struct uac_clock_multiplier_descriptor {
 
 /* 4.7.2.4 Input terminal descriptor */
 
-struct uac2_input_terminal_descriptor {
+struct uac2_input_terminal_descriptor
+{
 	__u8 bLength;
 	__u8 bDescriptorType;
 	__u8 bDescriptorSubtype;
@@ -127,7 +133,8 @@ struct uac2_input_terminal_descriptor {
 
 /* 4.7.2.5 Output terminal descriptor */
 
-struct uac2_output_terminal_descriptor {
+struct uac2_output_terminal_descriptor
+{
 	__u8 bLength;
 	__u8 bDescriptorType;
 	__u8 bDescriptorSubtype;
@@ -144,7 +151,8 @@ struct uac2_output_terminal_descriptor {
 
 /* 4.7.2.8 Feature Unit Descriptor */
 
-struct uac2_feature_unit_descriptor {
+struct uac2_feature_unit_descriptor
+{
 	__u8 bLength;
 	__u8 bDescriptorType;
 	__u8 bDescriptorSubtype;
@@ -157,7 +165,8 @@ struct uac2_feature_unit_descriptor {
 
 /* 4.9.2 Class-Specific AS Interface Descriptor */
 
-struct uac2_as_header_descriptor {
+struct uac2_as_header_descriptor
+{
 	__u8 bLength;
 	__u8 bDescriptorType;
 	__u8 bDescriptorSubtype;
@@ -174,7 +183,8 @@ struct uac2_as_header_descriptor {
 
 /* 4.10.1.2 Class-Specific AS Isochronous Audio Data Endpoint Descriptor */
 
-struct uac2_iso_endpoint_descriptor {
+struct uac2_iso_endpoint_descriptor
+{
 	__u8  bLength;			/* in bytes: 8 */
 	__u8  bDescriptorType;		/* USB_DT_CS_ENDPOINT */
 	__u8  bDescriptorSubtype;	/* EP_GENERAL */
@@ -193,7 +203,8 @@ struct uac2_iso_endpoint_descriptor {
 #define UAC2_INTERRUPT_DATA_MSG_VENDOR	(1 << 0)
 #define UAC2_INTERRUPT_DATA_MSG_EP	(1 << 1)
 
-struct uac2_interrupt_data_msg {
+struct uac2_interrupt_data_msg
+{
 	__u8 bInfo;
 	__u8 bAttribute;
 	__le16 wValue;

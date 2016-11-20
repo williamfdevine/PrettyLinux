@@ -31,7 +31,8 @@
  * @ch_2: Bias value for channel two.
  * @ch_3: Bias value for channel three.
  */
-struct ths7303_platform_data {
+struct ths7303_platform_data
+{
 	u8 ch_1;
 	u8 ch_2;
 	u8 ch_3;

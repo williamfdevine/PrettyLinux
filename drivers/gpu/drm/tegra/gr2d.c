@@ -12,7 +12,8 @@
 #include "gem.h"
 #include "gr2d.h"
 
-struct gr2d {
+struct gr2d
+{
 	struct tegra_drm_client client;
 	struct host1x_channel *channel;
 	struct clk *clk;
@@ -33,11 +34,16 @@ static int gr2d_init(struct host1x_client *client)
 	struct gr2d *gr2d = to_gr2d(drm);
 
 	gr2d->channel = host1x_channel_request(client->dev);
+
 	if (!gr2d->channel)
+	{
 		return -ENOMEM;
+	}
 
 	client->syncpts[0] = host1x_syncpt_request(client->dev, flags);
-	if (!client->syncpts[0]) {
+
+	if (!client->syncpts[0])
+	{
 		host1x_channel_free(gr2d->channel);
 		return -ENOMEM;
 	}
@@ -53,8 +59,11 @@ static int gr2d_exit(struct host1x_client *client)
 	int err;
 
 	err = tegra_drm_unregister_client(dev->dev_private, drm);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	host1x_syncpt_free(client->syncpts[0]);
 	host1x_channel_free(gr2d->channel);
@@ -62,19 +71,23 @@ static int gr2d_exit(struct host1x_client *client)
 	return 0;
 }
 
-static const struct host1x_client_ops gr2d_client_ops = {
+static const struct host1x_client_ops gr2d_client_ops =
+{
 	.init = gr2d_init,
 	.exit = gr2d_exit,
 };
 
 static int gr2d_open_channel(struct tegra_drm_client *client,
-			     struct tegra_drm_context *context)
+							 struct tegra_drm_context *context)
 {
 	struct gr2d *gr2d = to_gr2d(client);
 
 	context->channel = host1x_channel_get(gr2d->channel);
+
 	if (!context->channel)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -88,42 +101,52 @@ static int gr2d_is_addr_reg(struct device *dev, u32 class, u32 offset)
 {
 	struct gr2d *gr2d = dev_get_drvdata(dev);
 
-	switch (class) {
-	case HOST1X_CLASS_HOST1X:
-		if (offset == 0x2b)
-			return 1;
+	switch (class)
+	{
+		case HOST1X_CLASS_HOST1X:
+			if (offset == 0x2b)
+			{
+				return 1;
+			}
 
-		break;
-
-	case HOST1X_CLASS_GR2D:
-	case HOST1X_CLASS_GR2D_SB:
-		if (offset >= GR2D_NUM_REGS)
 			break;
 
-		if (test_bit(offset, gr2d->addr_regs))
-			return 1;
+		case HOST1X_CLASS_GR2D:
+		case HOST1X_CLASS_GR2D_SB:
+			if (offset >= GR2D_NUM_REGS)
+			{
+				break;
+			}
 
-		break;
+			if (test_bit(offset, gr2d->addr_regs))
+			{
+				return 1;
+			}
+
+			break;
 	}
 
 	return 0;
 }
 
-static const struct tegra_drm_client_ops gr2d_ops = {
+static const struct tegra_drm_client_ops gr2d_ops =
+{
 	.open_channel = gr2d_open_channel,
 	.close_channel = gr2d_close_channel,
 	.is_addr_reg = gr2d_is_addr_reg,
 	.submit = tegra_drm_submit,
 };
 
-static const struct of_device_id gr2d_match[] = {
+static const struct of_device_id gr2d_match[] =
+{
 	{ .compatible = "nvidia,tegra30-gr2d" },
 	{ .compatible = "nvidia,tegra20-gr2d" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, gr2d_match);
 
-static const u32 gr2d_addr_regs[] = {
+static const u32 gr2d_addr_regs[] =
+{
 	GR2D_UA_BASE_ADDR,
 	GR2D_VA_BASE_ADDR,
 	GR2D_PAT_BASE_ADDR,
@@ -148,21 +171,31 @@ static int gr2d_probe(struct platform_device *pdev)
 	int err;
 
 	gr2d = devm_kzalloc(dev, sizeof(*gr2d), GFP_KERNEL);
+
 	if (!gr2d)
+	{
 		return -ENOMEM;
+	}
 
 	syncpts = devm_kzalloc(dev, sizeof(*syncpts), GFP_KERNEL);
+
 	if (!syncpts)
+	{
 		return -ENOMEM;
+	}
 
 	gr2d->clk = devm_clk_get(dev, NULL);
-	if (IS_ERR(gr2d->clk)) {
+
+	if (IS_ERR(gr2d->clk))
+	{
 		dev_err(dev, "cannot get clock\n");
 		return PTR_ERR(gr2d->clk);
 	}
 
 	err = clk_prepare_enable(gr2d->clk);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "cannot turn on clock\n");
 		return err;
 	}
@@ -178,7 +211,9 @@ static int gr2d_probe(struct platform_device *pdev)
 	gr2d->client.ops = &gr2d_ops;
 
 	err = host1x_client_register(&gr2d->client.base);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(dev, "failed to register host1x client: %d\n", err);
 		clk_disable_unprepare(gr2d->clk);
 		return err;
@@ -186,7 +221,9 @@ static int gr2d_probe(struct platform_device *pdev)
 
 	/* initialize address register map */
 	for (i = 0; i < ARRAY_SIZE(gr2d_addr_regs); i++)
+	{
 		set_bit(gr2d_addr_regs[i], gr2d->addr_regs);
+	}
 
 	platform_set_drvdata(pdev, gr2d);
 
@@ -199,9 +236,11 @@ static int gr2d_remove(struct platform_device *pdev)
 	int err;
 
 	err = host1x_client_unregister(&gr2d->client.base);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(&pdev->dev, "failed to unregister host1x client: %d\n",
-			err);
+				err);
 		return err;
 	}
 
@@ -210,7 +249,8 @@ static int gr2d_remove(struct platform_device *pdev)
 	return 0;
 }
 
-struct platform_driver tegra_gr2d_driver = {
+struct platform_driver tegra_gr2d_driver =
+{
 	.driver = {
 		.name = "tegra-gr2d",
 		.of_match_table = gr2d_match,

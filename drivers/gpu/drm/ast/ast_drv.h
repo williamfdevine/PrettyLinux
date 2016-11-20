@@ -56,7 +56,8 @@
 #define PCI_CHIP_AST1180 0x1180
 
 
-enum ast_chip {
+enum ast_chip
+{
 	AST2000,
 	AST2100,
 	AST1100,
@@ -67,7 +68,8 @@ enum ast_chip {
 	AST1180,
 };
 
-enum ast_tx_chip {
+enum ast_tx_chip
+{
 	AST_TX_NONE,
 	AST_TX_SIL164,
 	AST_TX_ITE66121,
@@ -83,7 +85,8 @@ enum ast_tx_chip {
 
 struct ast_fbdev;
 
-struct ast_private {
+struct ast_private
+{
 	struct drm_device *dev;
 
 	void __iomem *regs;
@@ -100,7 +103,8 @@ struct ast_private {
 
 	int fb_mtrr;
 
-	struct {
+	struct
+	{
 		struct drm_global_reference mem_global_ref;
 		struct ttm_bo_global_ref bo_global_ref;
 		struct ttm_bo_device bdev;
@@ -140,30 +144,30 @@ struct ast_gem_object;
 #define AST_IO_MM_OFFSET		(0x380)
 
 #define __ast_read(x) \
-static inline u##x ast_read##x(struct ast_private *ast, u32 reg) { \
-u##x val = 0;\
-val = ioread##x(ast->regs + reg); \
-return val;\
-}
+	static inline u##x ast_read##x(struct ast_private *ast, u32 reg) { \
+		u##x val = 0;\
+		val = ioread##x(ast->regs + reg); \
+		return val;\
+	}
 
 __ast_read(8);
 __ast_read(16);
 __ast_read(32)
 
 #define __ast_io_read(x) \
-static inline u##x ast_io_read##x(struct ast_private *ast, u32 reg) { \
-u##x val = 0;\
-val = ioread##x(ast->ioregs + reg); \
-return val;\
-}
+	static inline u##x ast_io_read##x(struct ast_private *ast, u32 reg) { \
+		u##x val = 0;\
+		val = ioread##x(ast->ioregs + reg); \
+		return val;\
+	}
 
 __ast_io_read(8);
 __ast_io_read(16);
 __ast_io_read(32);
 
 #define __ast_write(x) \
-static inline void ast_write##x(struct ast_private *ast, u32 reg, u##x val) {\
-	iowrite##x(val, ast->regs + reg);\
+	static inline void ast_write##x(struct ast_private *ast, u32 reg, u##x val) {\
+		iowrite##x(val, ast->regs + reg);\
 	}
 
 __ast_write(8);
@@ -171,8 +175,8 @@ __ast_write(16);
 __ast_write(32);
 
 #define __ast_io_write(x) \
-static inline void ast_io_write##x(struct ast_private *ast, u32 reg, u##x val) {\
-	iowrite##x(val, ast->ioregs + reg);\
+	static inline void ast_io_write##x(struct ast_private *ast, u32 reg, u##x val) {\
+		iowrite##x(val, ast->ioregs + reg);\
 	}
 
 __ast_io_write(8);
@@ -180,19 +184,19 @@ __ast_io_write(16);
 #undef __ast_io_write
 
 static inline void ast_set_index_reg(struct ast_private *ast,
-				     uint32_t base, uint8_t index,
-				     uint8_t val)
+									 uint32_t base, uint8_t index,
+									 uint8_t val)
 {
 	ast_io_write16(ast, base, ((u16)val << 8) | index);
 }
 
 void ast_set_index_reg_mask(struct ast_private *ast,
-			    uint32_t base, uint8_t index,
-			    uint8_t mask, uint8_t val);
+							uint32_t base, uint8_t index,
+							uint8_t mask, uint8_t val);
 uint8_t ast_get_index_reg(struct ast_private *ast,
-			  uint32_t base, uint8_t index);
+						  uint32_t base, uint8_t index);
 uint8_t ast_get_index_reg_mask(struct ast_private *ast,
-			       uint32_t base, uint8_t index, uint8_t mask);
+							   uint32_t base, uint8_t index, uint8_t mask);
 
 static inline void ast_open_key(struct ast_private *ast)
 {
@@ -224,18 +228,21 @@ static inline void ast_open_key(struct ast_private *ast)
 #define AST_HWC_SIGNATURE_HOTSPOTY  0x18
 
 
-struct ast_i2c_chan {
+struct ast_i2c_chan
+{
 	struct i2c_adapter adapter;
 	struct drm_device *dev;
 	struct i2c_algo_bit_data bit;
 };
 
-struct ast_connector {
+struct ast_connector
+{
 	struct drm_connector base;
 	struct ast_i2c_chan *i2c;
 };
 
-struct ast_crtc {
+struct ast_crtc
+{
 	struct drm_crtc base;
 	u8 lut_r[256], lut_g[256], lut_b[256];
 	struct drm_gem_object *cursor_bo;
@@ -244,16 +251,19 @@ struct ast_crtc {
 	u8 offset_x, offset_y;
 };
 
-struct ast_encoder {
+struct ast_encoder
+{
 	struct drm_encoder base;
 };
 
-struct ast_framebuffer {
+struct ast_framebuffer
+{
 	struct drm_framebuffer base;
 	struct drm_gem_object *obj;
 };
 
-struct ast_fbdev {
+struct ast_fbdev
+{
 	struct drm_fb_helper helper;
 	struct ast_framebuffer afb;
 	void *sysram;
@@ -268,7 +278,8 @@ struct ast_fbdev {
 #define to_ast_encoder(x) container_of(x, struct ast_encoder, base)
 #define to_ast_framebuffer(x) container_of(x, struct ast_framebuffer, base)
 
-struct ast_vbios_stdtable {
+struct ast_vbios_stdtable
+{
 	u8 misc;
 	u8 seq[4];
 	u8 crtc[25];
@@ -276,7 +287,8 @@ struct ast_vbios_stdtable {
 	u8 gr[9];
 };
 
-struct ast_vbios_enhtable {
+struct ast_vbios_enhtable
+{
 	u32 ht;
 	u32 hde;
 	u32 hfp;
@@ -292,13 +304,15 @@ struct ast_vbios_enhtable {
 	u32 mode_id;
 };
 
-struct ast_vbios_dclk_info {
+struct ast_vbios_dclk_info
+{
 	u8 param1;
 	u8 param2;
 	u8 param3;
 };
 
-struct ast_vbios_mode_info {
+struct ast_vbios_mode_info
+{
 	struct ast_vbios_stdtable *std_table;
 	struct ast_vbios_enhtable *enh_table;
 };
@@ -307,16 +321,17 @@ extern int ast_mode_init(struct drm_device *dev);
 extern void ast_mode_fini(struct drm_device *dev);
 
 int ast_framebuffer_init(struct drm_device *dev,
-			 struct ast_framebuffer *ast_fb,
-			 const struct drm_mode_fb_cmd2 *mode_cmd,
-			 struct drm_gem_object *obj);
+						 struct ast_framebuffer *ast_fb,
+						 const struct drm_mode_fb_cmd2 *mode_cmd,
+						 struct drm_gem_object *obj);
 
 int ast_fbdev_init(struct drm_device *dev);
 void ast_fbdev_fini(struct drm_device *dev);
 void ast_fbdev_set_suspend(struct drm_device *dev, int state);
 void ast_fbdev_set_base(struct ast_private *ast, unsigned long gpu_addr);
 
-struct ast_bo {
+struct ast_bo
+{
 	struct ttm_buffer_object bo;
 	struct ttm_placement placement;
 	struct ttm_bo_kmap_obj kmap;
@@ -339,14 +354,14 @@ ast_bo(struct ttm_buffer_object *bo)
 #define AST_MM_ALIGN_MASK ((1 << AST_MM_ALIGN_SHIFT) - 1)
 
 extern int ast_dumb_create(struct drm_file *file,
-			   struct drm_device *dev,
-			   struct drm_mode_create_dumb *args);
+						   struct drm_device *dev,
+						   struct drm_mode_create_dumb *args);
 
 extern void ast_gem_free_object(struct drm_gem_object *obj);
 extern int ast_dumb_mmap_offset(struct drm_file *file,
-				struct drm_device *dev,
-				uint32_t handle,
-				uint64_t *offset);
+								struct drm_device *dev,
+								uint32_t handle,
+								uint64_t *offset);
 
 #define DRM_FILE_PAGE_OFFSET (0x100000000ULL >> PAGE_SHIFT)
 
@@ -354,11 +369,11 @@ int ast_mm_init(struct ast_private *ast);
 void ast_mm_fini(struct ast_private *ast);
 
 int ast_bo_create(struct drm_device *dev, int size, int align,
-		  uint32_t flags, struct ast_bo **pastbo);
+				  uint32_t flags, struct ast_bo **pastbo);
 
 int ast_gem_create(struct drm_device *dev,
-		   u32 size, bool iskernel,
-		   struct drm_gem_object **obj);
+				   u32 size, bool iskernel,
+				   struct drm_gem_object **obj);
 
 int ast_bo_pin(struct ast_bo *bo, u32 pl_flag, u64 *gpu_addr);
 int ast_bo_unpin(struct ast_bo *bo);
@@ -368,11 +383,17 @@ static inline int ast_bo_reserve(struct ast_bo *bo, bool no_wait)
 	int ret;
 
 	ret = ttm_bo_reserve(&bo->bo, true, no_wait, NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		if (ret != -ERESTARTSYS && ret != -EBUSY)
+		{
 			DRM_ERROR("reserve failed %p\n", bo);
+		}
+
 		return ret;
 	}
+
 	return 0;
 }
 

@@ -31,7 +31,8 @@
  * @unmasked:		Record of unmasked IRQs
  * @levels_altered:	Record of altered level bits
  */
-struct meta_intc_priv {
+struct meta_intc_priv
+{
 	unsigned int		nr_banks;
 	struct irq_domain	*domain;
 
@@ -77,7 +78,7 @@ static unsigned int meta_intc_bank(irq_hw_number_t hw)
 static void __iomem *meta_intc_stat_addr(irq_hw_number_t hw)
 {
 	return (void __iomem *)(HWSTATEXT +
-				HWSTAT_STRIDE * meta_intc_bank(hw));
+							HWSTAT_STRIDE * meta_intc_bank(hw));
 }
 
 /**
@@ -90,7 +91,7 @@ static void __iomem *meta_intc_stat_addr(irq_hw_number_t hw)
 static void __iomem *meta_intc_level_addr(irq_hw_number_t hw)
 {
 	return (void __iomem *)(HWLEVELEXT +
-				HWSTAT_STRIDE * meta_intc_bank(hw));
+							HWSTAT_STRIDE * meta_intc_bank(hw));
 }
 
 /**
@@ -103,7 +104,7 @@ static void __iomem *meta_intc_level_addr(irq_hw_number_t hw)
 static void __iomem *meta_intc_mask_addr(irq_hw_number_t hw)
 {
 	return (void __iomem *)(HWMASKEXT +
-				HWSTAT_STRIDE * meta_intc_bank(hw));
+							HWSTAT_STRIDE * meta_intc_bank(hw));
 }
 
 /**
@@ -116,8 +117,8 @@ static void __iomem *meta_intc_mask_addr(irq_hw_number_t hw)
 static inline void __iomem *meta_intc_vec_addr(irq_hw_number_t hw)
 {
 	return (void __iomem *)(HWVEC0EXT +
-				HWVEC_BLK_STRIDE * meta_intc_bank(hw) +
-				HWVECnEXT_STRIDE * meta_intc_offset(hw));
+							HWVEC_BLK_STRIDE * meta_intc_bank(hw) +
+							HWVECnEXT_STRIDE * meta_intc_offset(hw));
 }
 
 /**
@@ -135,7 +136,9 @@ static unsigned int meta_intc_startup_irq(struct irq_data *data)
 
 	/* Perform any necessary acking. */
 	if (data->chip->irq_ack)
+	{
 		data->chip->irq_ack(data);
+	}
 
 	/* Wire up this interrupt to the core with HWVECxEXT. */
 	metag_out32(TBI_TRIG_VEC(TBID_SIGNUM_TR2(thread)), vec_addr);
@@ -183,7 +186,9 @@ static void meta_intc_ack_irq(struct irq_data *data)
 	 * NOTE - this only works for edge triggered interrupts.
 	 */
 	if (metag_in32(stat_addr) & bit)
+	{
 		metag_out32(bit, stat_addr);
+	}
 }
 
 /**
@@ -353,10 +358,14 @@ static void meta_intc_unmask_edge_irq_nomask(struct irq_data *data)
 	 * thinking it hasn't fired. Therefore we need to keep trying to
 	 * retrigger until the bit is set.
 	 */
-	if (metag_in32(stat_addr) & bit) {
+	if (metag_in32(stat_addr) & bit)
+	{
 		metag_out32(bit, stat_addr);
+
 		while (!(metag_in32(stat_addr) & bit))
+		{
 			metag_out32(bit, stat_addr);
+		}
 	}
 }
 
@@ -386,7 +395,9 @@ static void meta_intc_unmask_level_irq_nomask(struct irq_data *data)
 	/* Re-trigger interrupt */
 	/* Writing a 1 triggers interrupt */
 	if (metag_in32(stat_addr) & bit)
+	{
 		metag_out32(bit, stat_addr);
+	}
 }
 
 /**
@@ -413,18 +424,24 @@ static int meta_intc_irq_set_type(struct irq_data *data, unsigned int flow_type)
 	/* update the chip/handler */
 	if (flow_type & IRQ_TYPE_LEVEL_MASK)
 		irq_set_chip_handler_name_locked(data, &meta_intc_level_chip,
-						 handle_level_irq, NULL);
+										 handle_level_irq, NULL);
 	else
 		irq_set_chip_handler_name_locked(data, &meta_intc_edge_chip,
-						 handle_edge_irq, NULL);
+										 handle_edge_irq, NULL);
 
 	/* and clear/set the bit in HWLEVELEXT */
 	__global_lock2(flags);
 	level = metag_in32(level_addr);
+
 	if (flow_type & IRQ_TYPE_LEVEL_MASK)
+	{
 		level |= bit;
+	}
 	else
+	{
 		level &= ~bit;
+	}
+
 	metag_out32(level, level_addr);
 #ifdef CONFIG_METAG_SUSPEND_MEM
 	priv->levels_altered[meta_intc_bank(hw)] |= bit;
@@ -455,13 +472,16 @@ static void meta_intc_irq_demux(struct irq_desc *desc)
 	/*
 	 * Locate which interrupt has caused our handler to run.
 	 */
-	for (bank = 0; bank < priv->nr_banks; ++bank) {
+	for (bank = 0; bank < priv->nr_banks; ++bank)
+	{
 		/* Which interrupts are currently pending in this bank? */
 recalculate:
 		status = metag_in32(stat_addr) & priv->unmasked[bank];
 
-		for (hw = bank*32; status; status >>= 1, ++hw) {
-			if (status & 0x1) {
+		for (hw = bank * 32; status; status >>= 1, ++hw)
+		{
+			if (status & 0x1)
+			{
 				/*
 				 * Map the hardware IRQ number to a virtual
 				 * Linux IRQ number.
@@ -485,6 +505,7 @@ recalculate:
 				goto recalculate;
 			}
 		}
+
 		stat_addr += HWSTAT_STRIDE;
 	}
 }
@@ -500,7 +521,7 @@ recalculate:
  * that that cpu tends to be the one who handles it.
  */
 static int meta_intc_set_affinity(struct irq_data *data,
-				  const struct cpumask *cpumask, bool force)
+								  const struct cpumask *cpumask, bool force)
 {
 	irq_hw_number_t hw = data->hwirq;
 	void __iomem *vec_addr = meta_intc_vec_addr(hw);
@@ -526,14 +547,15 @@ static int meta_intc_set_affinity(struct irq_data *data,
 
 #ifdef CONFIG_PM_SLEEP
 #define META_INTC_CHIP_FLAGS	(IRQCHIP_MASK_ON_SUSPEND \
-				| IRQCHIP_SKIP_SET_WAKE)
+								 | IRQCHIP_SKIP_SET_WAKE)
 #else
 #define META_INTC_CHIP_FLAGS	0
 #endif
 
 /* public edge/level irq chips which SoCs can override */
 
-struct irq_chip meta_intc_edge_chip = {
+struct irq_chip meta_intc_edge_chip =
+{
 	.irq_startup		= meta_intc_startup_irq,
 	.irq_shutdown		= meta_intc_shutdown_irq,
 	.irq_ack		= meta_intc_ack_irq,
@@ -544,7 +566,8 @@ struct irq_chip meta_intc_edge_chip = {
 	.flags			= META_INTC_CHIP_FLAGS,
 };
 
-struct irq_chip meta_intc_level_chip = {
+struct irq_chip meta_intc_level_chip =
+{
 	.irq_startup		= meta_intc_startup_irq,
 	.irq_shutdown		= meta_intc_shutdown_irq,
 	.irq_set_type		= meta_intc_irq_set_type,
@@ -566,7 +589,7 @@ struct irq_chip meta_intc_level_chip = {
  * set (or set to a default at init time).
  */
 static int meta_intc_map(struct irq_domain *d, unsigned int irq,
-			 irq_hw_number_t hw)
+						 irq_hw_number_t hw)
 {
 	unsigned int bit = 1 << meta_intc_offset(hw);
 	void __iomem *level_addr = meta_intc_level_addr(hw);
@@ -574,14 +597,16 @@ static int meta_intc_map(struct irq_domain *d, unsigned int irq,
 	/* Go by the current sense in the HWLEVELEXT register */
 	if (metag_in32(level_addr) & bit)
 		irq_set_chip_and_handler(irq, &meta_intc_level_chip,
-					 handle_level_irq);
+								 handle_level_irq);
 	else
 		irq_set_chip_and_handler(irq, &meta_intc_edge_chip,
-					 handle_edge_irq);
+								 handle_edge_irq);
+
 	return 0;
 }
 
-static const struct irq_domain_ops meta_intc_domain_ops = {
+static const struct irq_domain_ops meta_intc_domain_ops =
+{
 	.map = meta_intc_map,
 	.xlate = irq_domain_xlate_twocell,
 };
@@ -597,10 +622,11 @@ static const struct irq_domain_ops meta_intc_domain_ops = {
  *
  * This structure stores the IRQ state across suspend.
  */
-struct meta_intc_context {
+struct meta_intc_context
+{
 	u32 levels[4];
 	u32 masks[4];
-	u8 vectors[4*32];
+	u8 vectors[4 * 32];
 
 	u8 txvecint[4][4];
 };
@@ -626,22 +652,31 @@ static int meta_intc_suspend(void)
 	u32 mask, bit;
 
 	context = kzalloc(sizeof(*context), GFP_ATOMIC);
+
 	if (!context)
+	{
 		return -ENOMEM;
+	}
 
 	hw = 0;
 	level_addr = meta_intc_level_addr(0);
 	mask_addr = meta_intc_mask_addr(0);
-	for (bank = 0; bank < priv->nr_banks; ++bank) {
+
+	for (bank = 0; bank < priv->nr_banks; ++bank)
+	{
 		vec_addr = meta_intc_vec_addr(hw);
 
 		/* create mask of interrupts in use */
 		mask = 0;
-		for (bit = 1; bit; bit <<= 1) {
+
+		for (bit = 1; bit; bit <<= 1)
+		{
 			i = irq_linear_revmap(priv->domain, hw);
+
 			/* save mapped irqs which are enabled or have actions */
 			if (i && (!irqd_irq_disabled(irq_get_irq_data(i)) ||
-				  irq_has_action(i))) {
+					  irq_has_action(i)))
+			{
 				mask |= bit;
 
 				/* save trigger vector */
@@ -654,10 +689,15 @@ static int meta_intc_suspend(void)
 
 		/* save level state if any IRQ levels altered */
 		if (priv->levels_altered[bank])
+		{
 			context->levels[bank] = metag_in32(level_addr);
+		}
+
 		/* save mask state if any IRQs in use */
 		if (mask)
+		{
 			context->masks[bank] = metag_in32(mask_addr);
+		}
 
 		level_addr += HWSTAT_STRIDE;
 		mask_addr += HWSTAT_STRIDE;
@@ -665,11 +705,13 @@ static int meta_intc_suspend(void)
 
 	/* save trigger matrixing */
 	__global_lock2(flags);
+
 	for (i = 0; i < 4; ++i)
 		for (j = 0; j < 4; ++j)
 			context->txvecint[i][j] = metag_in32(T0VECINT_BHALT +
-							     TnVECINT_STRIDE*i +
-							     8*j);
+												 TnVECINT_STRIDE * i +
+												 8 * j);
+
 	__global_unlock2(flags);
 
 	meta_intc_context = context;
@@ -697,16 +739,22 @@ static void meta_intc_resume(void)
 	hw = 0;
 	level_addr = meta_intc_level_addr(0);
 	mask_addr = meta_intc_mask_addr(0);
-	for (bank = 0; bank < priv->nr_banks; ++bank) {
+
+	for (bank = 0; bank < priv->nr_banks; ++bank)
+	{
 		vec_addr = meta_intc_vec_addr(hw);
 
 		/* create mask of interrupts in use */
 		mask = 0;
-		for (bit = 1; bit; bit <<= 1) {
+
+		for (bit = 1; bit; bit <<= 1)
+		{
 			i = irq_linear_revmap(priv->domain, hw);
+
 			/* restore mapped irqs, enabled or with actions */
 			if (i && (!irqd_irq_disabled(irq_get_irq_data(i)) ||
-				  irq_has_action(i))) {
+					  irq_has_action(i)))
+			{
 				mask |= bit;
 
 				/* restore trigger vector */
@@ -717,7 +765,8 @@ static void meta_intc_resume(void)
 			vec_addr += HWVECnEXT_STRIDE;
 		}
 
-		if (mask) {
+		if (mask)
+		{
 			/* restore mask state */
 			__global_lock2(flags);
 			tmp = metag_in32(mask_addr);
@@ -727,7 +776,9 @@ static void meta_intc_resume(void)
 		}
 
 		mask = priv->levels_altered[bank];
-		if (mask) {
+
+		if (mask)
+		{
 			/* restore level state */
 			__global_lock2(flags);
 			tmp = metag_in32(level_addr);
@@ -742,20 +793,25 @@ static void meta_intc_resume(void)
 
 	/* restore trigger matrixing */
 	__global_lock2(flags);
-	for (i = 0; i < 4; ++i) {
-		for (j = 0; j < 4; ++j) {
+
+	for (i = 0; i < 4; ++i)
+	{
+		for (j = 0; j < 4; ++j)
+		{
 			metag_out32(context->txvecint[i][j],
-				    T0VECINT_BHALT +
-				    TnVECINT_STRIDE*i +
-				    8*j);
+						T0VECINT_BHALT +
+						TnVECINT_STRIDE * i +
+						8 * j);
 		}
 	}
+
 	__global_unlock2(flags);
 
 	kfree(context);
 }
 
-static struct syscore_ops meta_intc_syscore_ops = {
+static struct syscore_ops meta_intc_syscore_ops =
+{
 	.suspend = meta_intc_suspend,
 	.resume = meta_intc_resume,
 };
@@ -817,50 +873,64 @@ int __init init_external_IRQ(void)
 	bool no_masks = false;
 
 	node = of_find_compatible_node(NULL, NULL, "img,meta-intc");
+
 	if (!node)
+	{
 		return -ENOENT;
+	}
 
 	/* Get number of banks */
 	ret = of_property_read_u32(node, "num-banks", &val);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("meta-intc: No num-banks property found\n");
 		return ret;
 	}
-	if (val < 1 || val > 4) {
+
+	if (val < 1 || val > 4)
+	{
 		pr_err("meta-intc: num-banks (%u) out of range\n", val);
 		return -EINVAL;
 	}
+
 	priv->nr_banks = val;
 
 	/* Are any mask registers present? */
 	if (of_get_property(node, "no-mask", NULL))
+	{
 		no_masks = true;
+	}
 
 	/* No HWMASKEXT registers present? */
 	if (no_masks)
+	{
 		meta_intc_no_mask();
+	}
 
 	/* Set up an IRQ domain */
 	/*
 	 * This is a legacy IRQ domain for now until all the platform setup code
 	 * has been converted to devicetree.
 	 */
-	priv->domain = irq_domain_add_linear(node, priv->nr_banks*32,
-					     &meta_intc_domain_ops, priv);
-	if (unlikely(!priv->domain)) {
+	priv->domain = irq_domain_add_linear(node, priv->nr_banks * 32,
+										 &meta_intc_domain_ops, priv);
+
+	if (unlikely(!priv->domain))
+	{
 		pr_err("meta-intc: cannot add IRQ domain\n");
 		return -ENOMEM;
 	}
 
 	/* Setup TR2 for all cpus. */
 	for_each_possible_cpu(cpu)
-		meta_intc_init_cpu(priv, cpu);
+	meta_intc_init_cpu(priv, cpu);
 
 	/* Set up system suspend/resume callbacks */
 	meta_intc_init_syscore_ops(priv);
 
 	pr_info("meta-intc: External IRQ controller initialised (%u IRQs)\n",
-		priv->nr_banks*32);
+			priv->nr_banks * 32);
 
 	return 0;
 }

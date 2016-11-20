@@ -26,14 +26,16 @@
 #ifndef VMW_SO_H
 #define VMW_SO_H
 
-enum vmw_view_type {
+enum vmw_view_type
+{
 	vmw_view_sr,
 	vmw_view_rt,
 	vmw_view_ds,
 	vmw_view_max,
 };
 
-enum vmw_so_type {
+enum vmw_so_type
+{
 	vmw_so_el,
 	vmw_so_bs,
 	vmw_so_ds,
@@ -57,7 +59,8 @@ enum vmw_so_type {
  * assumption is invalid, and we detect that at compile time in the
  * vmw_so_build_asserts() function.
  */
-union vmw_view_destroy {
+union vmw_view_destroy
+{
 	struct SVGA3dCmdDXDestroyRenderTargetView rtv;
 	struct SVGA3dCmdDXDestroyShaderResourceView srv;
 	struct SVGA3dCmdDXDestroyDepthStencilView dsv;
@@ -88,7 +91,9 @@ static inline enum vmw_view_type vmw_view_cmd_to_type(u32 id)
 	u32 tmp = (id - SVGA_3D_CMD_DX_DEFINE_SHADERRESOURCE_VIEW) / 2;
 
 	if (tmp > (u32)vmw_view_max)
+	{
 		return vmw_view_max;
+	}
 
 	return (enum vmw_view_type) tmp;
 }
@@ -106,55 +111,63 @@ static inline enum vmw_view_type vmw_view_cmd_to_type(u32 id)
  */
 static inline enum vmw_so_type vmw_so_cmd_to_type(u32 id)
 {
-	switch (id) {
-	case SVGA_3D_CMD_DX_DEFINE_ELEMENTLAYOUT:
-	case SVGA_3D_CMD_DX_DESTROY_ELEMENTLAYOUT:
-		return vmw_so_el;
-	case SVGA_3D_CMD_DX_DEFINE_BLEND_STATE:
-	case SVGA_3D_CMD_DX_DESTROY_BLEND_STATE:
-		return vmw_so_bs;
-	case SVGA_3D_CMD_DX_DEFINE_DEPTHSTENCIL_STATE:
-	case SVGA_3D_CMD_DX_DESTROY_DEPTHSTENCIL_STATE:
-		return vmw_so_ds;
-	case SVGA_3D_CMD_DX_DEFINE_RASTERIZER_STATE:
-	case SVGA_3D_CMD_DX_DESTROY_RASTERIZER_STATE:
-		return vmw_so_rs;
-	case SVGA_3D_CMD_DX_DEFINE_SAMPLER_STATE:
-	case SVGA_3D_CMD_DX_DESTROY_SAMPLER_STATE:
-		return vmw_so_ss;
-	case SVGA_3D_CMD_DX_DEFINE_STREAMOUTPUT:
-	case SVGA_3D_CMD_DX_DESTROY_STREAMOUTPUT:
-		return vmw_so_so;
-	default:
-		break;
+	switch (id)
+	{
+		case SVGA_3D_CMD_DX_DEFINE_ELEMENTLAYOUT:
+				case SVGA_3D_CMD_DX_DESTROY_ELEMENTLAYOUT:
+						return vmw_so_el;
+
+			case SVGA_3D_CMD_DX_DEFINE_BLEND_STATE:
+			case SVGA_3D_CMD_DX_DESTROY_BLEND_STATE:
+				return vmw_so_bs;
+
+			case SVGA_3D_CMD_DX_DEFINE_DEPTHSTENCIL_STATE:
+			case SVGA_3D_CMD_DX_DESTROY_DEPTHSTENCIL_STATE:
+				return vmw_so_ds;
+
+			case SVGA_3D_CMD_DX_DEFINE_RASTERIZER_STATE:
+			case SVGA_3D_CMD_DX_DESTROY_RASTERIZER_STATE:
+				return vmw_so_rs;
+
+			case SVGA_3D_CMD_DX_DEFINE_SAMPLER_STATE:
+			case SVGA_3D_CMD_DX_DESTROY_SAMPLER_STATE:
+				return vmw_so_ss;
+
+			case SVGA_3D_CMD_DX_DEFINE_STREAMOUTPUT:
+			case SVGA_3D_CMD_DX_DESTROY_STREAMOUTPUT:
+				return vmw_so_so;
+
+			default:
+				break;
+		}
+
+		return vmw_so_max;
 	}
-	return vmw_so_max;
-}
 
-/*
- * View management - vmwgfx_so.c
- */
-extern int vmw_view_add(struct vmw_cmdbuf_res_manager *man,
-			struct vmw_resource *ctx,
-			struct vmw_resource *srf,
+	/*
+	 * View management - vmwgfx_so.c
+	 */
+	extern int vmw_view_add(struct vmw_cmdbuf_res_manager *man,
+							struct vmw_resource *ctx,
+							struct vmw_resource *srf,
+							enum vmw_view_type view_type,
+							u32 user_key,
+							const void *cmd,
+							size_t cmd_size,
+							struct list_head *list);
+
+	extern int vmw_view_remove(struct vmw_cmdbuf_res_manager *man,
+							   u32 user_key, enum vmw_view_type view_type,
+							   struct list_head *list,
+							   struct vmw_resource **res_p);
+
+	extern void vmw_view_surface_list_destroy(struct vmw_private *dev_priv,
+			struct list_head *view_list);
+	extern void vmw_view_cotable_list_destroy(struct vmw_private *dev_priv,
+			struct list_head *list,
+			bool readback);
+	extern struct vmw_resource *vmw_view_srf(struct vmw_resource *res);
+	extern struct vmw_resource *vmw_view_lookup(struct vmw_cmdbuf_res_manager *man,
 			enum vmw_view_type view_type,
-			u32 user_key,
-			const void *cmd,
-			size_t cmd_size,
-			struct list_head *list);
-
-extern int vmw_view_remove(struct vmw_cmdbuf_res_manager *man,
-			   u32 user_key, enum vmw_view_type view_type,
-			   struct list_head *list,
-			   struct vmw_resource **res_p);
-
-extern void vmw_view_surface_list_destroy(struct vmw_private *dev_priv,
-					  struct list_head *view_list);
-extern void vmw_view_cotable_list_destroy(struct vmw_private *dev_priv,
-					  struct list_head *list,
-					  bool readback);
-extern struct vmw_resource *vmw_view_srf(struct vmw_resource *res);
-extern struct vmw_resource *vmw_view_lookup(struct vmw_cmdbuf_res_manager *man,
-					    enum vmw_view_type view_type,
-					    u32 user_key);
+			u32 user_key);
 #endif

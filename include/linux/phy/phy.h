@@ -22,7 +22,8 @@
 
 struct phy;
 
-enum phy_mode {
+enum phy_mode
+{
 	PHY_MODE_INVALID,
 	PHY_MODE_USB_HOST,
 	PHY_MODE_USB_DEVICE,
@@ -39,7 +40,8 @@ enum phy_mode {
  * @reset: resetting the phy
  * @owner: the module owner containing the ops
  */
-struct phy_ops {
+struct phy_ops
+{
 	int	(*init)(struct phy *phy);
 	int	(*exit)(struct phy *phy);
 	int	(*power_on)(struct phy *phy);
@@ -53,7 +55,8 @@ struct phy_ops {
  * struct phy_attrs - represents phy attributes
  * @bus_width: Data path width implemented by PHY
  */
-struct phy_attrs {
+struct phy_attrs
+{
 	u32			bus_width;
 };
 
@@ -68,7 +71,8 @@ struct phy_attrs {
  * @power_count: used to protect when the PHY is used by multiple consumers
  * @phy_attrs: used to specify PHY specific attributes
  */
-struct phy {
+struct phy
+{
 	struct device		dev;
 	int			id;
 	const struct phy_ops	*ops;
@@ -86,16 +90,18 @@ struct phy {
  * @of_xlate: function pointer to obtain phy instance from phy pointer
  * @list: to maintain a linked list of PHY providers
  */
-struct phy_provider {
+struct phy_provider
+{
 	struct device		*dev;
 	struct device_node	*children;
 	struct module		*owner;
 	struct list_head	list;
-	struct phy * (*of_xlate)(struct device *dev,
-		struct of_phandle_args *args);
+	struct phy *(*of_xlate)(struct device *dev,
+							struct of_phandle_args *args);
 };
 
-struct phy_lookup {
+struct phy_lookup
+{
 	struct list_head node;
 	const char *dev_id;
 	const char *con_id;
@@ -152,59 +158,71 @@ struct phy *phy_optional_get(struct device *dev, const char *string);
 struct phy *devm_phy_get(struct device *dev, const char *string);
 struct phy *devm_phy_optional_get(struct device *dev, const char *string);
 struct phy *devm_of_phy_get(struct device *dev, struct device_node *np,
-			    const char *con_id);
+							const char *con_id);
 struct phy *devm_of_phy_get_by_index(struct device *dev, struct device_node *np,
-				     int index);
+									 int index);
 void phy_put(struct phy *phy);
 void devm_phy_put(struct device *dev, struct phy *phy);
 struct phy *of_phy_get(struct device_node *np, const char *con_id);
 struct phy *of_phy_simple_xlate(struct device *dev,
-	struct of_phandle_args *args);
+								struct of_phandle_args *args);
 struct phy *phy_create(struct device *dev, struct device_node *node,
-		       const struct phy_ops *ops);
+					   const struct phy_ops *ops);
 struct phy *devm_phy_create(struct device *dev, struct device_node *node,
-			    const struct phy_ops *ops);
+							const struct phy_ops *ops);
 void phy_destroy(struct phy *phy);
 void devm_phy_destroy(struct device *dev, struct phy *phy);
 struct phy_provider *__of_phy_provider_register(struct device *dev,
-	struct device_node *children, struct module *owner,
-	struct phy * (*of_xlate)(struct device *dev,
-				 struct of_phandle_args *args));
+		struct device_node *children, struct module *owner,
+		struct phy * (*of_xlate)(struct device *dev,
+								 struct of_phandle_args *args));
 struct phy_provider *__devm_of_phy_provider_register(struct device *dev,
-	struct device_node *children, struct module *owner,
-	struct phy * (*of_xlate)(struct device *dev,
-				 struct of_phandle_args *args));
+		struct device_node *children, struct module *owner,
+		struct phy * (*of_xlate)(struct device *dev,
+								 struct of_phandle_args *args));
 void of_phy_provider_unregister(struct phy_provider *phy_provider);
 void devm_of_phy_provider_unregister(struct device *dev,
-	struct phy_provider *phy_provider);
+									 struct phy_provider *phy_provider);
 int phy_create_lookup(struct phy *phy, const char *con_id, const char *dev_id);
 void phy_remove_lookup(struct phy *phy, const char *con_id, const char *dev_id);
 #else
 static inline int phy_pm_runtime_get(struct phy *phy)
 {
 	if (!phy)
+	{
 		return 0;
+	}
+
 	return -ENOSYS;
 }
 
 static inline int phy_pm_runtime_get_sync(struct phy *phy)
 {
 	if (!phy)
+	{
 		return 0;
+	}
+
 	return -ENOSYS;
 }
 
 static inline int phy_pm_runtime_put(struct phy *phy)
 {
 	if (!phy)
+	{
 		return 0;
+	}
+
 	return -ENOSYS;
 }
 
 static inline int phy_pm_runtime_put_sync(struct phy *phy)
 {
 	if (!phy)
+	{
 		return 0;
+	}
+
 	return -ENOSYS;
 }
 
@@ -221,42 +239,60 @@ static inline void phy_pm_runtime_forbid(struct phy *phy)
 static inline int phy_init(struct phy *phy)
 {
 	if (!phy)
+	{
 		return 0;
+	}
+
 	return -ENOSYS;
 }
 
 static inline int phy_exit(struct phy *phy)
 {
 	if (!phy)
+	{
 		return 0;
+	}
+
 	return -ENOSYS;
 }
 
 static inline int phy_power_on(struct phy *phy)
 {
 	if (!phy)
+	{
 		return 0;
+	}
+
 	return -ENOSYS;
 }
 
 static inline int phy_power_off(struct phy *phy)
 {
 	if (!phy)
+	{
 		return 0;
+	}
+
 	return -ENOSYS;
 }
 
 static inline int phy_set_mode(struct phy *phy, enum phy_mode mode)
 {
 	if (!phy)
+	{
 		return 0;
+	}
+
 	return -ENOSYS;
 }
 
 static inline int phy_reset(struct phy *phy)
 {
 	if (!phy)
+	{
 		return 0;
+	}
+
 	return -ENOSYS;
 }
 
@@ -276,7 +312,7 @@ static inline struct phy *phy_get(struct device *dev, const char *string)
 }
 
 static inline struct phy *phy_optional_get(struct device *dev,
-					   const char *string)
+		const char *string)
 {
 	return ERR_PTR(-ENOSYS);
 }
@@ -287,21 +323,21 @@ static inline struct phy *devm_phy_get(struct device *dev, const char *string)
 }
 
 static inline struct phy *devm_phy_optional_get(struct device *dev,
-						const char *string)
+		const char *string)
 {
 	return ERR_PTR(-ENOSYS);
 }
 
 static inline struct phy *devm_of_phy_get(struct device *dev,
-					  struct device_node *np,
-					  const char *con_id)
+		struct device_node *np,
+		const char *con_id)
 {
 	return ERR_PTR(-ENOSYS);
 }
 
 static inline struct phy *devm_of_phy_get_by_index(struct device *dev,
-						   struct device_node *np,
-						   int index)
+		struct device_node *np,
+		int index)
 {
 	return ERR_PTR(-ENOSYS);
 }
@@ -320,21 +356,21 @@ static inline struct phy *of_phy_get(struct device_node *np, const char *con_id)
 }
 
 static inline struct phy *of_phy_simple_xlate(struct device *dev,
-	struct of_phandle_args *args)
+		struct of_phandle_args *args)
 {
 	return ERR_PTR(-ENOSYS);
 }
 
 static inline struct phy *phy_create(struct device *dev,
-				     struct device_node *node,
-				     const struct phy_ops *ops)
+									 struct device_node *node,
+									 const struct phy_ops *ops)
 {
 	return ERR_PTR(-ENOSYS);
 }
 
 static inline struct phy *devm_phy_create(struct device *dev,
-					  struct device_node *node,
-					  const struct phy_ops *ops)
+		struct device_node *node,
+		const struct phy_ops *ops)
 {
 	return ERR_PTR(-ENOSYS);
 }
@@ -350,15 +386,15 @@ static inline void devm_phy_destroy(struct device *dev, struct phy *phy)
 static inline struct phy_provider *__of_phy_provider_register(
 	struct device *dev, struct device_node *children, struct module *owner,
 	struct phy * (*of_xlate)(struct device *dev,
-				 struct of_phandle_args *args))
+							 struct of_phandle_args *args))
 {
 	return ERR_PTR(-ENOSYS);
 }
 
 static inline struct phy_provider *__devm_of_phy_provider_register(struct device
-	*dev, struct device_node *children, struct module *owner,
-	struct phy * (*of_xlate)(struct device *dev,
-				 struct of_phandle_args *args))
+		*dev, struct device_node *children, struct module *owner,
+		struct phy * (*of_xlate)(struct device *dev,
+								 struct of_phandle_args *args))
 {
 	return ERR_PTR(-ENOSYS);
 }
@@ -368,7 +404,7 @@ static inline void of_phy_provider_unregister(struct phy_provider *phy_provider)
 }
 
 static inline void devm_of_phy_provider_unregister(struct device *dev,
-	struct phy_provider *phy_provider)
+		struct phy_provider *phy_provider)
 {
 }
 static inline int
@@ -377,7 +413,7 @@ phy_create_lookup(struct phy *phy, const char *con_id, const char *dev_id)
 	return 0;
 }
 static inline void phy_remove_lookup(struct phy *phy, const char *con_id,
-				     const char *dev_id) { }
+									 const char *dev_id) { }
 #endif
 
 #endif /* __DRIVERS_PHY_H */

@@ -9,7 +9,8 @@
 #define VGA_REGSET_END_VAL	0xFF
 #define VGA_REGSET_END		{VGA_REGSET_END_VAL, 0, 0}
 
-struct vga_regset {
+struct vga_regset
+{
 	u8 regnum;
 	u8 lowbit;
 	u8 highbit;
@@ -20,7 +21,8 @@ struct vga_regset {
 #define SVGA_FORMAT_END_VAL	0xFFFF
 #define SVGA_FORMAT_END		{SVGA_FORMAT_END_VAL, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 0, 0, 0, 0, 0, 0}
 
-struct svga_fb_format {
+struct svga_fb_format
+{
 	/* var part */
 	u32 bits_per_pixel;
 	struct fb_bitfield red;
@@ -36,7 +38,8 @@ struct svga_fb_format {
 	u32 xresstep;
 };
 
-struct svga_timing_regs {
+struct svga_timing_regs
+{
 	const struct vga_regset *h_total_regs;
 	const struct vga_regset *h_display_regs;
 	const struct vga_regset *h_blank_start_regs;
@@ -52,7 +55,8 @@ struct svga_timing_regs {
 	const struct vga_regset *v_sync_end_regs;
 };
 
-struct svga_pll {
+struct svga_pll
+{
 	u16 m_min;
 	u16 m_max;
 	u16 n_min;
@@ -112,11 +116,12 @@ void svga_tileblit(struct fb_info *info, struct fb_tileblit *blit);
 void svga_tilecursor(void __iomem *regbase, struct fb_info *info, struct fb_tilecursor *cursor);
 int svga_get_tilemax(struct fb_info *info);
 void svga_get_caps(struct fb_info *info, struct fb_blit_caps *caps,
-		   struct fb_var_screeninfo *var);
+				   struct fb_var_screeninfo *var);
 
 int svga_compute_pll(const struct svga_pll *pll, u32 f_wanted, u16 *m, u16 *n, u16 *r, int node);
 int svga_check_timings(const struct svga_timing_regs *tm, struct fb_var_screeninfo *var, int node);
-void svga_set_timings(void __iomem *regbase, const struct svga_timing_regs *tm, struct fb_var_screeninfo *var, u32 hmul, u32 hdiv, u32 vmul, u32 vdiv, u32 hborder, int node);
+void svga_set_timings(void __iomem *regbase, const struct svga_timing_regs *tm, struct fb_var_screeninfo *var, u32 hmul,
+					  u32 hdiv, u32 vmul, u32 vdiv, u32 hborder, int node);
 
 int svga_match_format(const struct svga_fb_format *frm, struct fb_var_screeninfo *var, struct fb_fix_screeninfo *fix);
 

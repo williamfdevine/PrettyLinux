@@ -15,19 +15,22 @@
 #define BFNAMESIZE	16		/* max 16 chars in boot file name */
 #define VDNAMESIZE	8
 
-struct volume_directory {
+struct volume_directory
+{
 	char	vd_name[VDNAMESIZE];	/* name */
 	__be32	vd_lbn;			/* logical block number */
 	__be32	vd_nbytes;		/* file length in bytes */
 };
 
-struct partition_table {	/* one per logical partition */
+struct partition_table  	/* one per logical partition */
+{
 	__be32	pt_nblks;	/* # of logical blks in partition */
 	__be32	pt_firstlbn;	/* first lbn of partition */
 	__be32	pt_type;	/* use of partition */
 };
 
-struct volume_header {
+struct volume_header
+{
 	__be32	vh_magic;			/* identifies volume header */
 	__be16	vh_rootpt;			/* root partition number */
 	__be16	vh_swappt;			/* swap partition number */
@@ -44,7 +47,8 @@ struct volume_header {
 #define SGI_EFS		0x07
 #define IS_EFS(x)	(((x) == SGI_EFS) || ((x) == SGI_SYSV))
 
-struct pt_types {
+struct pt_types
+{
 	int	pt_type;
 	char	*pt_name;
 };

@@ -402,7 +402,8 @@
  */
 #define DM_ULOG_REQUEST_VERSION 3
 
-struct dm_ulog_request {
+struct dm_ulog_request
+{
 	/*
 	 * The local unique identifier (luid) and the universally unique
 	 * identifier (uuid) are used to tie a request to a specific

@@ -28,7 +28,8 @@
 #include <linux/mmc/sdio_ids.h>
 #include "rsi_main.h"
 
-enum sdio_interrupt_type {
+enum sdio_interrupt_type
+{
 	BUFFER_FULL         = 0x0,
 	BUFFER_AVAILABLE    = 0x2,
 	FIRMWARE_ASSERT_IND = 0x3,
@@ -64,12 +65,12 @@ enum sdio_interrupt_type {
 #define RSI_GET_SDIO_INTERRUPT_TYPE(_I, TYPE)      \
 	{					   \
 		TYPE =                             \
-		(_I & (1 << PKT_BUFF_AVAILABLE)) ? \
-		BUFFER_AVAILABLE :		   \
-		(_I & (1 << MSDU_PKT_PENDING)) ?   \
-		MSDU_PACKET_PENDING :              \
-		(_I & (1 << FW_ASSERT_IND)) ?      \
-		FIRMWARE_ASSERT_IND : UNKNOWN_INT; \
+										   (_I & (1 << PKT_BUFF_AVAILABLE)) ? \
+										   BUFFER_AVAILABLE :		   \
+										   (_I & (1 << MSDU_PKT_PENDING)) ?   \
+										   MSDU_PACKET_PENDING :              \
+										   (_I & (1 << FW_ASSERT_IND)) ?      \
+										   FIRMWARE_ASSERT_IND : UNKNOWN_INT; \
 	}
 
 /* common registers in SDIO function1 */
@@ -86,7 +87,8 @@ enum sdio_interrupt_type {
 #define TA_BASE_ADDR                 0x2200
 #define MISC_CFG_BASE_ADDR           0x4105
 
-struct receive_info {
+struct receive_info
+{
 	bool buffer_full;
 	bool semi_buffer_full;
 	bool mgmt_buffer_full;
@@ -101,7 +103,8 @@ struct receive_info {
 	u32 buf_available_counter;
 };
 
-struct rsi_91x_sdiodev {
+struct rsi_91x_sdiodev
+{
 	struct sdio_func *pfunction;
 	struct task_struct *in_sdio_litefi_irq;
 	struct receive_info rx_info;
@@ -120,9 +123,9 @@ int rsi_sdio_device_init(struct rsi_common *common);
 int rsi_sdio_read_register(struct rsi_hw *adapter, u32 addr, u8 *data);
 int rsi_sdio_host_intf_read_pkt(struct rsi_hw *adapter, u8 *pkt, u32 length);
 int rsi_sdio_write_register(struct rsi_hw *adapter, u8 function,
-			    u32 addr, u8 *data);
+							u32 addr, u8 *data);
 int rsi_sdio_write_register_multiple(struct rsi_hw *adapter, u32 addr,
-				     u8 *data, u32 count);
+									 u8 *data, u32 count);
 void rsi_sdio_ack_intr(struct rsi_hw *adapter, u8 int_bit);
 int rsi_sdio_determine_event_timeout(struct rsi_hw *adapter);
 int rsi_sdio_read_buffer_status_register(struct rsi_hw *adapter, u8 q_num);

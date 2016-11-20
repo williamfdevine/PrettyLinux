@@ -25,7 +25,7 @@
 #include "vudc.h"
 
 static inline void setup_base_pdu(struct usbip_header_basic *base,
-				  __u32 command, __u32 seqnum)
+								  __u32 command, __u32 seqnum)
 {
 	base->command	= command;
 	base->seqnum	= seqnum;
@@ -41,7 +41,7 @@ static void setup_ret_submit_pdu(struct usbip_header *rpdu, struct urbp *urb_p)
 }
 
 static void setup_ret_unlink_pdu(struct usbip_header *rpdu,
-				 struct v_unlink *unlink)
+								 struct v_unlink *unlink)
 {
 	setup_base_pdu(&rpdu->base, USBIP_RET_UNLINK, unlink->seqnum);
 	rpdu->u.ret_unlink.status = unlink->status;
@@ -70,13 +70,20 @@ static int v_send_ret_unlink(struct vudc *udc, struct v_unlink *unlink)
 	txsize += sizeof(pdu_header);
 
 	ret = kernel_sendmsg(udc->ud.tcp_socket, &msg, iov,
-			     1, txsize);
-	if (ret != txsize) {
+						 1, txsize);
+
+	if (ret != txsize)
+	{
 		usbip_event_add(&udc->ud, VUDC_EVENT_ERROR_TCP);
+
 		if (ret >= 0)
+		{
 			return -EPIPE;
+		}
+
 		return ret;
 	}
+
 	kfree(unlink);
 
 	return txsize;
@@ -98,22 +105,29 @@ static int v_send_ret_submit(struct vudc *udc, struct urbp *urb_p)
 	memset(&msg, 0, sizeof(msg));
 
 	if (urb_p->type == USB_ENDPOINT_XFER_ISOC)
+	{
 		iovnum = 2 + urb->number_of_packets;
+	}
 	else
+	{
 		iovnum = 2;
+	}
 
 	iov = kcalloc(iovnum, sizeof(*iov), GFP_KERNEL);
-	if (!iov) {
+
+	if (!iov)
+	{
 		usbip_event_add(&udc->ud, VUDC_EVENT_ERROR_MALLOC);
 		ret = -ENOMEM;
 		goto out;
 	}
+
 	iovnum = 0;
 
 	/* 1. setup usbip_header */
 	setup_ret_submit_pdu(&pdu_header, urb_p);
 	usbip_dbg_stub_tx("setup txdata seqnum: %d urb: %p\n",
-			  pdu_header.base.seqnum, urb);
+					  pdu_header.base.seqnum, urb);
 	usbip_header_correct_endian(&pdu_header, 1);
 
 	iov[iovnum].iov_base = &pdu_header;
@@ -123,41 +137,50 @@ static int v_send_ret_submit(struct vudc *udc, struct urbp *urb_p)
 
 	/* 2. setup transfer buffer */
 	if (urb_p->type != USB_ENDPOINT_XFER_ISOC &&
-	    usb_pipein(urb->pipe) && urb->actual_length > 0) {
+		usb_pipein(urb->pipe) && urb->actual_length > 0)
+	{
 		iov[iovnum].iov_base = urb->transfer_buffer;
 		iov[iovnum].iov_len  = urb->actual_length;
 		iovnum++;
 		txsize += urb->actual_length;
-	} else if (urb_p->type == USB_ENDPOINT_XFER_ISOC &&
-		usb_pipein(urb->pipe)) {
+	}
+	else if (urb_p->type == USB_ENDPOINT_XFER_ISOC &&
+			 usb_pipein(urb->pipe))
+	{
 		/* FIXME - copypasted from stub_tx, refactor */
 		int i;
 
-		for (i = 0; i < urb->number_of_packets; i++) {
+		for (i = 0; i < urb->number_of_packets; i++)
+		{
 			iov[iovnum].iov_base = urb->transfer_buffer +
-				urb->iso_frame_desc[i].offset;
+								   urb->iso_frame_desc[i].offset;
 			iov[iovnum].iov_len =
 				urb->iso_frame_desc[i].actual_length;
 			iovnum++;
 			txsize += urb->iso_frame_desc[i].actual_length;
 		}
 
-		if (txsize != sizeof(pdu_header) + urb->actual_length) {
+		if (txsize != sizeof(pdu_header) + urb->actual_length)
+		{
 			usbip_event_add(&udc->ud, VUDC_EVENT_ERROR_TCP);
 			ret = -EPIPE;
 			goto out;
 		}
 	}
+
 	/* else - no buffer to send */
 
 	/* 3. setup iso_packet_descriptor */
-	if (urb_p->type == USB_ENDPOINT_XFER_ISOC) {
+	if (urb_p->type == USB_ENDPOINT_XFER_ISOC)
+	{
 		ssize_t len = 0;
 
 		iso_buffer = usbip_alloc_iso_desc_pdu(urb, &len);
-		if (!iso_buffer) {
+
+		if (!iso_buffer)
+		{
 			usbip_event_add(&udc->ud,
-					VUDC_EVENT_ERROR_MALLOC);
+							VUDC_EVENT_ERROR_MALLOC);
 			ret = -ENOMEM;
 			goto out;
 		}
@@ -169,11 +192,17 @@ static int v_send_ret_submit(struct vudc *udc, struct urbp *urb_p)
 	}
 
 	ret = kernel_sendmsg(udc->ud.tcp_socket, &msg,
-						iov,  iovnum, txsize);
-	if (ret != txsize) {
+						 iov,  iovnum, txsize);
+
+	if (ret != txsize)
+	{
 		usbip_event_add(&udc->ud, VUDC_EVENT_ERROR_TCP);
+
 		if (ret >= 0)
+		{
 			ret = -EPIPE;
+		}
+
 		goto out;
 	}
 
@@ -181,8 +210,12 @@ out:
 	kfree(iov);
 	kfree(iso_buffer);
 	free_urbp_and_urb(urb_p);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return txsize;
 }
 
@@ -194,24 +227,31 @@ static int v_send_ret(struct vudc *udc)
 	int ret = 0;
 
 	spin_lock_irqsave(&udc->lock_tx, flags);
-	while (!list_empty(&udc->tx_queue)) {
+
+	while (!list_empty(&udc->tx_queue))
+	{
 		txi = list_first_entry(&udc->tx_queue, struct tx_item,
-				       tx_entry);
+							   tx_entry);
 		list_del(&txi->tx_entry);
 		spin_unlock_irqrestore(&udc->lock_tx, flags);
 
-		switch (txi->type) {
-		case TX_SUBMIT:
-			ret = v_send_ret_submit(udc, txi->s);
-			break;
-		case TX_UNLINK:
-			ret = v_send_ret_unlink(udc, txi->u);
-			break;
+		switch (txi->type)
+		{
+			case TX_SUBMIT:
+				ret = v_send_ret_submit(udc, txi->s);
+				break;
+
+			case TX_UNLINK:
+				ret = v_send_ret_unlink(udc, txi->u);
+				break;
 		}
+
 		kfree(txi);
 
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		total_size += ret;
 
@@ -229,17 +269,24 @@ int v_tx_loop(void *data)
 	struct vudc *udc = container_of(ud, struct vudc, ud);
 	int ret;
 
-	while (!kthread_should_stop()) {
+	while (!kthread_should_stop())
+	{
 		if (usbip_event_happened(&udc->ud))
+		{
 			break;
+		}
+
 		ret = v_send_ret(udc);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			pr_warn("v_tx exit with error %d", ret);
 			break;
 		}
+
 		wait_event_interruptible(udc->tx_waitq,
-					 (!list_empty(&udc->tx_queue) ||
-					 kthread_should_stop()));
+								 (!list_empty(&udc->tx_queue) ||
+								  kthread_should_stop()));
 	}
 
 	return 0;
@@ -252,12 +299,17 @@ void v_enqueue_ret_unlink(struct vudc *udc, __u32 seqnum, __u32 status)
 	struct v_unlink *unlink;
 
 	txi = kzalloc(sizeof(*txi), GFP_ATOMIC);
-	if (!txi) {
+
+	if (!txi)
+	{
 		usbip_event_add(&udc->ud, VDEV_EVENT_ERROR_MALLOC);
 		return;
 	}
+
 	unlink = kzalloc(sizeof(*unlink), GFP_ATOMIC);
-	if (!unlink) {
+
+	if (!unlink)
+	{
 		kfree(txi);
 		usbip_event_add(&udc->ud, VDEV_EVENT_ERROR_MALLOC);
 		return;
@@ -277,7 +329,9 @@ void v_enqueue_ret_submit(struct vudc *udc, struct urbp *urb_p)
 	struct tx_item *txi;
 
 	txi = kzalloc(sizeof(*txi), GFP_ATOMIC);
-	if (!txi) {
+
+	if (!txi)
+	{
 		usbip_event_add(&udc->ud, VDEV_EVENT_ERROR_MALLOC);
 		return;
 	}

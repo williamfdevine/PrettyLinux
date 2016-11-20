@@ -4,7 +4,7 @@
 #include <linux/types.h>
 
 #ifndef NUM_MSI_ALLOC_SCRATCHPAD_REGS
-# define NUM_MSI_ALLOC_SCRATCHPAD_REGS	2
+	#define NUM_MSI_ALLOC_SCRATCHPAD_REGS	2
 #endif
 
 struct msi_desc;
@@ -18,10 +18,12 @@ struct msi_desc;
  * Architectures can provide their own implementation by not including
  * asm-generic/msi.h into their arch specific header file.
  */
-typedef struct msi_alloc_info {
+typedef struct msi_alloc_info
+{
 	struct msi_desc			*desc;
 	irq_hw_number_t			hwirq;
-	union {
+	union
+	{
 		unsigned long		ul;
 		void			*ptr;
 	} scratchpad[NUM_MSI_ALLOC_SCRATCHPAD_REGS];

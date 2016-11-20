@@ -81,7 +81,8 @@ MODULE_FIRMWARE("ea/mona_2_asic.fw");
 #define FW_MONA_361_1_ASIC96	6
 #define FW_MONA_2_ASIC		7
 
-static const struct firmware card_fw[] = {
+static const struct firmware card_fw[] =
+{
 	{0, "loader_dsp.fw"},
 	{0, "mona_301_dsp.fw"},
 	{0, "mona_361_dsp.fw"},
@@ -92,7 +93,8 @@ static const struct firmware card_fw[] = {
 	{0, "mona_2_asic.fw"}
 };
 
-static const struct pci_device_id snd_echo_ids[] = {
+static const struct pci_device_id snd_echo_ids[] =
+{
 	{0x1057, 0x1801, 0xECC0, 0x0070, 0, 0, 0},	/* DSP 56301 Mona rev.0 */
 	{0x1057, 0x1801, 0xECC0, 0x0071, 0, 0, 0},	/* DSP 56301 Mona rev.1 */
 	{0x1057, 0x1801, 0xECC0, 0x0072, 0, 0, 0},	/* DSP 56301 Mona rev.2 */
@@ -102,21 +104,22 @@ static const struct pci_device_id snd_echo_ids[] = {
 	{0,}
 };
 
-static struct snd_pcm_hardware pcm_hardware_skel = {
+static struct snd_pcm_hardware pcm_hardware_skel =
+{
 	.info = SNDRV_PCM_INFO_MMAP |
-		SNDRV_PCM_INFO_INTERLEAVED |
-		SNDRV_PCM_INFO_BLOCK_TRANSFER |
-		SNDRV_PCM_INFO_MMAP_VALID |
-		SNDRV_PCM_INFO_PAUSE |
-		SNDRV_PCM_INFO_SYNC_START,
+	SNDRV_PCM_INFO_INTERLEAVED |
+	SNDRV_PCM_INFO_BLOCK_TRANSFER |
+	SNDRV_PCM_INFO_MMAP_VALID |
+	SNDRV_PCM_INFO_PAUSE |
+	SNDRV_PCM_INFO_SYNC_START,
 	.formats =	SNDRV_PCM_FMTBIT_U8 |
-			SNDRV_PCM_FMTBIT_S16_LE |
-			SNDRV_PCM_FMTBIT_S24_3LE |
-			SNDRV_PCM_FMTBIT_S32_LE |
-			SNDRV_PCM_FMTBIT_S32_BE,
+	SNDRV_PCM_FMTBIT_S16_LE |
+	SNDRV_PCM_FMTBIT_S24_3LE |
+	SNDRV_PCM_FMTBIT_S32_LE |
+	SNDRV_PCM_FMTBIT_S32_BE,
 	.rates = 	SNDRV_PCM_RATE_8000_48000 |
-			SNDRV_PCM_RATE_88200 |
-			SNDRV_PCM_RATE_96000,
+	SNDRV_PCM_RATE_88200 |
+	SNDRV_PCM_RATE_96000,
 	.rate_min = 8000,
 	.rate_max = 96000,
 	.channels_min = 1,

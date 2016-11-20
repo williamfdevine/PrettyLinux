@@ -62,14 +62,19 @@ static void eem_linkcmd(struct usbnet *dev, struct sk_buff *skb)
 	int			status;
 
 	urb = usb_alloc_urb(0, GFP_ATOMIC);
+
 	if (!urb)
+	{
 		goto fail;
+	}
 
 	usb_fill_bulk_urb(urb, dev->udev, dev->out,
-			skb->data, skb->len, eem_linkcmd_complete, skb);
+					  skb->data, skb->len, eem_linkcmd_complete, skb);
 
 	status = usb_submit_urb(urb, GFP_ATOMIC);
-	if (status) {
+
+	if (status)
+	{
 		usb_free_urb(urb);
 fail:
 		dev_kfree_skb(skb);
@@ -83,7 +88,9 @@ static int eem_bind(struct usbnet *dev, struct usb_interface *intf)
 	int status = 0;
 
 	status = usbnet_get_endpoints(dev, intf);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		usb_set_intfdata(intf, NULL);
 		usb_driver_release_interface(driver_of(intf), intf);
 		return status;
@@ -102,7 +109,7 @@ static int eem_bind(struct usbnet *dev, struct usb_interface *intf)
  * (a "bundle"), but for TX we don't try to do that.
  */
 static struct sk_buff *eem_tx_fixup(struct usbnet *dev, struct sk_buff *skb,
-				       gfp_t flags)
+									gfp_t flags)
 {
 	struct sk_buff	*skb2 = NULL;
 	u16		len = skb->len;
@@ -116,30 +123,39 @@ static struct sk_buff *eem_tx_fixup(struct usbnet *dev, struct sk_buff *skb,
 	 * all the relevant hardware and software.
 	 */
 	if (!((len + EEM_HEAD + ETH_FCS_LEN) % dev->maxpacket))
+	{
 		padlen += 2;
+	}
 
-	if (!skb_cloned(skb)) {
+	if (!skb_cloned(skb))
+	{
 		int	headroom = skb_headroom(skb);
 		int	tailroom = skb_tailroom(skb);
 
 		if ((tailroom >= ETH_FCS_LEN + padlen) &&
-		    (headroom >= EEM_HEAD))
+			(headroom >= EEM_HEAD))
+		{
 			goto done;
+		}
 
 		if ((headroom + tailroom)
-				> (EEM_HEAD + ETH_FCS_LEN + padlen)) {
+			> (EEM_HEAD + ETH_FCS_LEN + padlen))
+		{
 			skb->data = memmove(skb->head +
-					EEM_HEAD,
-					skb->data,
-					skb->len);
+								EEM_HEAD,
+								skb->data,
+								skb->len);
 			skb_set_tail_pointer(skb, len);
 			goto done;
 		}
 	}
 
 	skb2 = skb_copy_expand(skb, EEM_HEAD, ETH_FCS_LEN + padlen, flags);
+
 	if (!skb2)
+	{
 		return NULL;
+	}
 
 	dev_kfree_skb_any(skb);
 	skb = skb2;
@@ -161,7 +177,9 @@ done:
 
 	/* Bundle a zero length EEM packet if needed */
 	if (padlen)
+	{
 		put_unaligned_le16(0, skb_put(skb, 2));
+	}
 
 	return skb;
 }
@@ -179,14 +197,17 @@ static int eem_rx_fixup(struct usbnet *dev, struct sk_buff *skb)
 	 * all payloads (the last or only message was a command, or a
 	 * zero length EEM packet) that is not accounted as an rx_error.
 	 */
-	do {
+	do
+	{
 		struct sk_buff	*skb2 = NULL;
 		u16		header;
 		u16		len = 0;
 
 		/* incomplete EEM header? */
 		if (skb->len < EEM_HEAD)
+		{
 			return 0;
+		}
 
 		/*
 		 * EEM packet header format:
@@ -202,7 +223,8 @@ static int eem_rx_fixup(struct usbnet *dev, struct sk_buff *skb)
 		 *	bmType = 0	: EEM data payload
 		 *	bmType = 1	: EEM (link) command
 		 */
-		if (header & BIT(15)) {
+		if (header & BIT(15))
+		{
 			u16	bmEEMCmd;
 
 			/*
@@ -212,68 +234,82 @@ static int eem_rx_fixup(struct usbnet *dev, struct sk_buff *skb)
 			 * b14:		bmReserved (must be 0)
 			 * b15:		1 (EEM command)
 			 */
-			if (header & BIT(14)) {
+			if (header & BIT(14))
+			{
 				netdev_dbg(dev->net, "reserved command %04x\n",
-					   header);
+						   header);
 				continue;
 			}
 
 			bmEEMCmd = (header >> 11) & 0x7;
-			switch (bmEEMCmd) {
 
-			/* Responding to echo requests is mandatory. */
-			case 0:		/* Echo command */
-				len = header & 0x7FF;
+			switch (bmEEMCmd)
+			{
 
-				/* bogus command? */
-				if (skb->len < len)
-					return 0;
+				/* Responding to echo requests is mandatory. */
+				case 0:		/* Echo command */
+					len = header & 0x7FF;
 
-				skb2 = skb_clone(skb, GFP_ATOMIC);
-				if (unlikely(!skb2))
-					goto next;
-				skb_trim(skb2, len);
-				put_unaligned_le16(BIT(15) | (1 << 11) | len,
-						skb_push(skb2, 2));
-				eem_linkcmd(dev, skb2);
-				break;
+					/* bogus command? */
+					if (skb->len < len)
+					{
+						return 0;
+					}
 
-			/*
-			 * Host may choose to ignore hints.
-			 *  - suspend: peripheral ready to suspend
-			 *  - response: suggest N millisec polling
-			 *  - response complete: suggest N sec polling
-			 *
-			 * Suspend is reported and maybe heeded.
-			 */
-			case 2:		/* Suspend hint */
-				usbnet_device_suggests_idle(dev);
-				continue;
-			case 3:		/* Response hint */
-			case 4:		/* Response complete hint */
-				continue;
+					skb2 = skb_clone(skb, GFP_ATOMIC);
 
-			/*
-			 * Hosts should never receive host-to-peripheral
-			 * or reserved command codes; or responses to an
-			 * echo command we didn't send.
-			 */
-			case 1:		/* Echo response */
-			case 5:		/* Tickle */
-			default:	/* reserved */
-				netdev_warn(dev->net,
-					    "unexpected link command %d\n",
-					    bmEEMCmd);
-				continue;
+					if (unlikely(!skb2))
+					{
+						goto next;
+					}
+
+					skb_trim(skb2, len);
+					put_unaligned_le16(BIT(15) | (1 << 11) | len,
+									   skb_push(skb2, 2));
+					eem_linkcmd(dev, skb2);
+					break;
+
+				/*
+				 * Host may choose to ignore hints.
+				 *  - suspend: peripheral ready to suspend
+				 *  - response: suggest N millisec polling
+				 *  - response complete: suggest N sec polling
+				 *
+				 * Suspend is reported and maybe heeded.
+				 */
+				case 2:		/* Suspend hint */
+					usbnet_device_suggests_idle(dev);
+					continue;
+
+				case 3:		/* Response hint */
+				case 4:		/* Response complete hint */
+					continue;
+
+				/*
+				 * Hosts should never receive host-to-peripheral
+				 * or reserved command codes; or responses to an
+				 * echo command we didn't send.
+				 */
+				case 1:		/* Echo response */
+				case 5:		/* Tickle */
+				default:	/* reserved */
+					netdev_warn(dev->net,
+								"unexpected link command %d\n",
+								bmEEMCmd);
+					continue;
 			}
 
-		} else {
+		}
+		else
+		{
 			u32	crc, crc2;
 			int	is_last;
 
 			/* zero length EEM packet? */
 			if (header == 0)
+			{
 				continue;
+			}
 
 			/*
 			 * EEM data packet header :
@@ -285,11 +321,15 @@ static int eem_rx_fixup(struct usbnet *dev, struct sk_buff *skb)
 
 			/* bogus EEM payload? */
 			if (skb->len < len)
+			{
 				return 0;
+			}
 
 			/* bogus ethernet frame? */
 			if (len < (ETH_HLEN + ETH_FCS_LEN))
+			{
 				goto next;
+			}
 
 			/*
 			 * Treat the last payload differently: framework
@@ -299,12 +339,19 @@ static int eem_rx_fixup(struct usbnet *dev, struct sk_buff *skb)
 			 * for further processing.
 			 */
 			is_last = (len == skb->len);
+
 			if (is_last)
+			{
 				skb2 = skb;
-			else {
+			}
+			else
+			{
 				skb2 = skb_clone(skb, GFP_ATOMIC);
+
 				if (unlikely(!skb2))
+				{
 					return 0;
+				}
 			}
 
 			/*
@@ -313,36 +360,48 @@ static int eem_rx_fixup(struct usbnet *dev, struct sk_buff *skb)
 			 *	bmCRC = 1	: CRC is calculated
 			 *	bmCRC = 0	: CRC = 0xDEADBEEF
 			 */
-			if (header & BIT(14)) {
+			if (header & BIT(14))
+			{
 				crc = get_unaligned_le32(skb2->data
-						+ len - ETH_FCS_LEN);
+										 + len - ETH_FCS_LEN);
 				crc2 = ~crc32_le(~0, skb2->data, skb2->len
-						- ETH_FCS_LEN);
-			} else {
+								 - ETH_FCS_LEN);
+			}
+			else
+			{
 				crc = get_unaligned_be32(skb2->data
-						+ len - ETH_FCS_LEN);
+										 + len - ETH_FCS_LEN);
 				crc2 = 0xdeadbeef;
 			}
+
 			skb_trim(skb2, len - ETH_FCS_LEN);
 
 			if (is_last)
+			{
 				return crc == crc2;
+			}
 
-			if (unlikely(crc != crc2)) {
+			if (unlikely(crc != crc2))
+			{
 				dev->net->stats.rx_errors++;
 				dev_kfree_skb_any(skb2);
-			} else
+			}
+			else
+			{
 				usbnet_skb_return(dev, skb2);
+			}
 		}
 
 next:
 		skb_pull(skb, len);
-	} while (skb->len);
+	}
+	while (skb->len);
 
 	return 1;
 }
 
-static const struct driver_info eem_info = {
+static const struct driver_info eem_info =
+{
 	.description =	"CDC EEM Device",
 	.flags =	FLAG_ETHER | FLAG_POINTTOPOINT,
 	.bind =		eem_bind,
@@ -352,19 +411,21 @@ static const struct driver_info eem_info = {
 
 /*-------------------------------------------------------------------------*/
 
-static const struct usb_device_id products[] = {
+static const struct usb_device_id products[] =
 {
-	USB_INTERFACE_INFO(USB_CLASS_COMM, USB_CDC_SUBCLASS_EEM,
-			USB_CDC_PROTO_EEM),
-	.driver_info = (unsigned long) &eem_info,
-},
-{
-	/* EMPTY == end of list */
-},
+	{
+		USB_INTERFACE_INFO(USB_CLASS_COMM, USB_CDC_SUBCLASS_EEM,
+		USB_CDC_PROTO_EEM),
+		.driver_info = (unsigned long) &eem_info,
+	},
+	{
+		/* EMPTY == end of list */
+	},
 };
 MODULE_DEVICE_TABLE(usb, products);
 
-static struct usb_driver eem_driver = {
+static struct usb_driver eem_driver =
+{
 	.name =		"cdc_eem",
 	.id_table =	products,
 	.probe =	usbnet_probe,

@@ -88,11 +88,12 @@ All 16-bit fields are sent in little-endian (Intel) format.
 // Interrupt pipe
 //
 
-struct int_status_pkt {
+struct int_status_pkt
+{
 	__u16 RxBytesAvail;			// Additional bytes available to
-						// be read from Bulk IN pipe
+	// be read from Bulk IN pipe
 	__u16 TxCredits[MAX_RS232_PORTS];	// Additional space available in
-						// given port's TxBuffer
+	// given port's TxBuffer
 };
 
 
@@ -195,24 +196,24 @@ struct int_status_pkt {
 //
 
 #define MAKE_CMD_WRITE_REG(ppBuf, pLen, Port, Reg, Val)			\
-do {									\
-	(*(ppBuf))[0] = IOSP_BUILD_CMD_HDR1((Port),			\
-					    IOSP_WRITE_UART_REG(Reg));	\
-	(*(ppBuf))[1] = (Val);						\
-									\
-	*ppBuf += 2;							\
-	*pLen  += 2;							\
-} while (0)
+	do {									\
+		(*(ppBuf))[0] = IOSP_BUILD_CMD_HDR1((Port),			\
+											IOSP_WRITE_UART_REG(Reg));	\
+		(*(ppBuf))[1] = (Val);						\
+		\
+		*ppBuf += 2;							\
+		*pLen  += 2;							\
+	} while (0)
 
 #define MAKE_CMD_EXT_CMD(ppBuf, pLen, Port, ExtCmd, Param)		\
-do {									\
-	(*(ppBuf))[0] = IOSP_BUILD_CMD_HDR1((Port), IOSP_EXT_CMD);	\
-	(*(ppBuf))[1] = (ExtCmd);					\
-	(*(ppBuf))[2] = (Param);					\
-									\
-	*ppBuf += 3;							\
-	*pLen  += 3;							\
-} while (0)
+	do {									\
+		(*(ppBuf))[0] = IOSP_BUILD_CMD_HDR1((Port), IOSP_EXT_CMD);	\
+		(*(ppBuf))[1] = (ExtCmd);					\
+		(*(ppBuf))[2] = (Param);					\
+		\
+		*ppBuf += 3;							\
+		*pLen  += 3;							\
+	} while (0)
 
 
 

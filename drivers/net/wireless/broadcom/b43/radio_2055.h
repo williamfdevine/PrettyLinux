@@ -210,7 +210,8 @@
 #define B2055_C2_B0NB_RSSIVCM		0xDE /* Core 2 B0 narrow-band RSSI VCM */
 #define B2055_C2_GENSPARE2		0xE2 /* Core 2 GEN spare 2 */
 
-struct b43_nphy_channeltab_entry_rev2 {
+struct b43_nphy_channeltab_entry_rev2
+{
 	/* The channel number */
 	u8 channel;
 	/* The channel frequency in MHz */
@@ -249,7 +250,7 @@ struct b43_nphy_channeltab_entry_rev2 {
  * table is uploaded. If "ignore_uploadflag" is true, we upload any value
  * and ignore the "UPLOAD" flag. */
 void b2055_upload_inittab(struct b43_wldev *dev,
-			  bool ghz5, bool ignore_uploadflag);
+						  bool ghz5, bool ignore_uploadflag);
 
 /* Get the NPHY Channel Switch Table entry for a channel.
  * Returns NULL on failure to find an entry. */

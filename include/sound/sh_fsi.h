@@ -21,13 +21,15 @@
 #define SH_FSI_ENABLE_STREAM_MODE	(1 << 1) /* for 16bit data */
 #define SH_FSI_CLK_CPG			(1 << 2) /* FSIxCK + FSI-DIV */
 
-struct sh_fsi_port_info {
+struct sh_fsi_port_info
+{
 	unsigned long flags;
 	int tx_id;
 	int rx_id;
 };
 
-struct sh_fsi_platform_info {
+struct sh_fsi_platform_info
+{
 	struct sh_fsi_port_info port_a;
 	struct sh_fsi_port_info port_b;
 };

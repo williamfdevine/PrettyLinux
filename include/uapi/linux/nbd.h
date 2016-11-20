@@ -29,7 +29,8 @@
 #define NBD_SET_TIMEOUT _IO( 0xab, 9 )
 #define NBD_SET_FLAGS   _IO( 0xab, 10)
 
-enum {
+enum
+{
 	NBD_CMD_READ = 0,
 	NBD_CMD_WRITE = 1,
 	NBD_CMD_DISC = 2,
@@ -56,7 +57,8 @@ enum {
  * This is the packet used for communication between client and
  * server. All data are in network byte order.
  */
-struct nbd_request {
+struct nbd_request
+{
 	__be32 magic;
 	__be32 type;	/* == READ || == WRITE 	*/
 	char handle[8];
@@ -68,7 +70,8 @@ struct nbd_request {
  * This is the reply packet that nbd-server sends back to the client after
  * it has completed an I/O request (or an error occurs).
  */
-struct nbd_reply {
+struct nbd_reply
+{
 	__be32 magic;
 	__be32 error;		/* 0 = ok, else error	*/
 	char handle[8];		/* handle you got from request	*/

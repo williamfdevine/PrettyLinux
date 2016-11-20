@@ -81,19 +81,25 @@ static struct vmpressure *vmpressure_parent(struct vmpressure *vmpr)
 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
 
 	memcg = parent_mem_cgroup(memcg);
+
 	if (!memcg)
+	{
 		return NULL;
+	}
+
 	return memcg_to_vmpressure(memcg);
 }
 
-enum vmpressure_levels {
+enum vmpressure_levels
+{
 	VMPRESSURE_LOW = 0,
 	VMPRESSURE_MEDIUM,
 	VMPRESSURE_CRITICAL,
 	VMPRESSURE_NUM_LEVELS,
 };
 
-static const char * const vmpressure_str_levels[] = {
+static const char *const vmpressure_str_levels[] =
+{
 	[VMPRESSURE_LOW] = "low",
 	[VMPRESSURE_MEDIUM] = "medium",
 	[VMPRESSURE_CRITICAL] = "critical",
@@ -102,14 +108,19 @@ static const char * const vmpressure_str_levels[] = {
 static enum vmpressure_levels vmpressure_level(unsigned long pressure)
 {
 	if (pressure >= vmpressure_level_critical)
+	{
 		return VMPRESSURE_CRITICAL;
+	}
 	else if (pressure >= vmpressure_level_med)
+	{
 		return VMPRESSURE_MEDIUM;
+	}
+
 	return VMPRESSURE_LOW;
 }
 
 static enum vmpressure_levels vmpressure_calc_level(unsigned long scanned,
-						    unsigned long reclaimed)
+		unsigned long reclaimed)
 {
 	unsigned long scale = scanned + reclaimed;
 	unsigned long pressure;
@@ -125,27 +136,30 @@ static enum vmpressure_levels vmpressure_calc_level(unsigned long scanned,
 	pressure = pressure * 100 / scale;
 
 	pr_debug("%s: %3lu  (s: %lu  r: %lu)\n", __func__, pressure,
-		 scanned, reclaimed);
+			 scanned, reclaimed);
 
 	return vmpressure_level(pressure);
 }
 
-struct vmpressure_event {
+struct vmpressure_event
+{
 	struct eventfd_ctx *efd;
 	enum vmpressure_levels level;
 	struct list_head node;
 };
 
 static bool vmpressure_event(struct vmpressure *vmpr,
-			     enum vmpressure_levels level)
+							 enum vmpressure_levels level)
 {
 	struct vmpressure_event *ev;
 	bool signalled = false;
 
 	mutex_lock(&vmpr->events_lock);
 
-	list_for_each_entry(ev, &vmpr->events, node) {
-		if (level >= ev->level) {
+	list_for_each_entry(ev, &vmpr->events, node)
+	{
+		if (level >= ev->level)
+		{
 			eventfd_signal(ev->efd, 1);
 			signalled = true;
 		}
@@ -173,7 +187,9 @@ static void vmpressure_work_fn(struct work_struct *work)
 	 * vmpr->reclaimed is in sync.
 	 */
 	scanned = vmpr->tree_scanned;
-	if (!scanned) {
+
+	if (!scanned)
+	{
 		spin_unlock(&vmpr->sr_lock);
 		return;
 	}
@@ -185,14 +201,19 @@ static void vmpressure_work_fn(struct work_struct *work)
 
 	level = vmpressure_calc_level(scanned, reclaimed);
 
-	do {
+	do
+	{
 		if (vmpressure_event(vmpr, level))
+		{
 			break;
+		}
+
 		/*
 		 * If not handled, propagate the event upward into the
 		 * hierarchy.
 		 */
-	} while ((vmpr = vmpressure_parent(vmpr)));
+	}
+	while ((vmpr = vmpressure_parent(vmpr)));
 }
 
 /**
@@ -217,7 +238,7 @@ static void vmpressure_work_fn(struct work_struct *work)
  * This function does not return any value.
  */
 void vmpressure(gfp_t gfp, struct mem_cgroup *memcg, bool tree,
-		unsigned long scanned, unsigned long reclaimed)
+				unsigned long scanned, unsigned long reclaimed)
 {
 	struct vmpressure *vmpr = memcg_to_vmpressure(memcg);
 
@@ -233,7 +254,9 @@ void vmpressure(gfp_t gfp, struct mem_cgroup *memcg, bool tree,
 	 * we account it too.
 	 */
 	if (!(gfp & (__GFP_HIGHMEM | __GFP_MOVABLE | __GFP_IO | __GFP_FS)))
+	{
 		return;
+	}
 
 	/*
 	 * If we got here with no pages scanned, then that is an indicator
@@ -244,37 +267,51 @@ void vmpressure(gfp_t gfp, struct mem_cgroup *memcg, bool tree,
 	 * through vmpressure_prio(). But so far, keep calm.
 	 */
 	if (!scanned)
+	{
 		return;
+	}
 
-	if (tree) {
+	if (tree)
+	{
 		spin_lock(&vmpr->sr_lock);
 		scanned = vmpr->tree_scanned += scanned;
 		vmpr->tree_reclaimed += reclaimed;
 		spin_unlock(&vmpr->sr_lock);
 
 		if (scanned < vmpressure_win)
+		{
 			return;
+		}
+
 		schedule_work(&vmpr->work);
-	} else {
+	}
+	else
+	{
 		enum vmpressure_levels level;
 
 		/* For now, no users for root-level efficiency */
 		if (!memcg || memcg == root_mem_cgroup)
+		{
 			return;
+		}
 
 		spin_lock(&vmpr->sr_lock);
 		scanned = vmpr->scanned += scanned;
 		reclaimed = vmpr->reclaimed += reclaimed;
-		if (scanned < vmpressure_win) {
+
+		if (scanned < vmpressure_win)
+		{
 			spin_unlock(&vmpr->sr_lock);
 			return;
 		}
+
 		vmpr->scanned = vmpr->reclaimed = 0;
 		spin_unlock(&vmpr->sr_lock);
 
 		level = vmpressure_calc_level(scanned, reclaimed);
 
-		if (level > VMPRESSURE_LOW) {
+		if (level > VMPRESSURE_LOW)
+		{
 			/*
 			 * Let the socket buffer allocator know that
 			 * we are having trouble reclaiming LRU pages.
@@ -306,7 +343,9 @@ void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg, int prio)
 	 * see comment for vmpressure_level_critical_prio variable above.
 	 */
 	if (prio > vmpressure_level_critical_prio)
+	{
 		return;
+	}
 
 	/*
 	 * OK, the prio is below the threshold, updating vmpressure
@@ -333,23 +372,31 @@ void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg, int prio)
  * To be used as memcg event method.
  */
 int vmpressure_register_event(struct mem_cgroup *memcg,
-			      struct eventfd_ctx *eventfd, const char *args)
+							  struct eventfd_ctx *eventfd, const char *args)
 {
 	struct vmpressure *vmpr = memcg_to_vmpressure(memcg);
 	struct vmpressure_event *ev;
 	int level;
 
-	for (level = 0; level < VMPRESSURE_NUM_LEVELS; level++) {
+	for (level = 0; level < VMPRESSURE_NUM_LEVELS; level++)
+	{
 		if (!strcmp(vmpressure_str_levels[level], args))
+		{
 			break;
+		}
 	}
 
 	if (level >= VMPRESSURE_NUM_LEVELS)
+	{
 		return -EINVAL;
+	}
 
 	ev = kzalloc(sizeof(*ev), GFP_KERNEL);
+
 	if (!ev)
+	{
 		return -ENOMEM;
+	}
 
 	ev->efd = eventfd;
 	ev->level = level;
@@ -373,15 +420,19 @@ int vmpressure_register_event(struct mem_cgroup *memcg,
  * To be used as memcg event method.
  */
 void vmpressure_unregister_event(struct mem_cgroup *memcg,
-				 struct eventfd_ctx *eventfd)
+								 struct eventfd_ctx *eventfd)
 {
 	struct vmpressure *vmpr = memcg_to_vmpressure(memcg);
 	struct vmpressure_event *ev;
 
 	mutex_lock(&vmpr->events_lock);
-	list_for_each_entry(ev, &vmpr->events, node) {
+	list_for_each_entry(ev, &vmpr->events, node)
+	{
 		if (ev->efd != eventfd)
+		{
 			continue;
+		}
+
 		list_del(&ev->node);
 		kfree(ev);
 		break;

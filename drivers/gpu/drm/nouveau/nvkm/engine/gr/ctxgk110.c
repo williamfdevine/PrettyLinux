@@ -28,7 +28,8 @@
  ******************************************************************************/
 
 static const struct gf100_gr_init
-gk110_grctx_init_icmd_0[] = {
+	gk110_grctx_init_icmd_0[] =
+{
 	{ 0x001000,   1, 0x01, 0x00000004 },
 	{ 0x000039,   3, 0x01, 0x00000000 },
 	{ 0x0000a9,   1, 0x01, 0x0000ffff },
@@ -279,13 +280,15 @@ gk110_grctx_init_icmd_0[] = {
 };
 
 const struct gf100_gr_pack
-gk110_grctx_pack_icmd[] = {
+	gk110_grctx_pack_icmd[] =
+{
 	{ gk110_grctx_init_icmd_0 },
 	{}
 };
 
 static const struct gf100_gr_init
-gk110_grctx_init_a197_0[] = {
+	gk110_grctx_init_a197_0[] =
+{
 	{ 0x000800,   8, 0x40, 0x00000000 },
 	{ 0x000804,   8, 0x40, 0x00000000 },
 	{ 0x000808,   8, 0x40, 0x00000400 },
@@ -587,14 +590,16 @@ gk110_grctx_init_a197_0[] = {
 };
 
 const struct gf100_gr_pack
-gk110_grctx_pack_mthd[] = {
+	gk110_grctx_pack_mthd[] =
+{
 	{ gk110_grctx_init_a197_0, 0xa197 },
 	{ gf100_grctx_init_902d_0, 0x902d },
 	{}
 };
 
 static const struct gf100_gr_init
-gk110_grctx_init_fe_0[] = {
+	gk110_grctx_init_fe_0[] =
+{
 	{ 0x404004,   8, 0x04, 0x00000000 },
 	{ 0x404024,   1, 0x04, 0x0000e000 },
 	{ 0x404028,   8, 0x04, 0x00000000 },
@@ -620,7 +625,8 @@ gk110_grctx_init_fe_0[] = {
 };
 
 const struct gf100_gr_init
-gk110_grctx_init_pri_0[] = {
+	gk110_grctx_init_pri_0[] =
+{
 	{ 0x404404,  12, 0x04, 0x00000000 },
 	{ 0x404438,   1, 0x04, 0x00000000 },
 	{ 0x404460,   2, 0x04, 0x00000000 },
@@ -632,7 +638,8 @@ gk110_grctx_init_pri_0[] = {
 };
 
 const struct gf100_gr_init
-gk110_grctx_init_cwd_0[] = {
+	gk110_grctx_init_cwd_0[] =
+{
 	{ 0x405b00,   1, 0x04, 0x00000000 },
 	{ 0x405b10,   1, 0x04, 0x00001000 },
 	{ 0x405b20,   1, 0x04, 0x04000000 },
@@ -640,7 +647,8 @@ gk110_grctx_init_cwd_0[] = {
 };
 
 static const struct gf100_gr_init
-gk110_grctx_init_pd_0[] = {
+	gk110_grctx_init_pd_0[] =
+{
 	{ 0x406020,   1, 0x04, 0x034103c1 },
 	{ 0x406028,   4, 0x04, 0x00000001 },
 	{ 0x4064a8,   1, 0x04, 0x00000000 },
@@ -655,7 +663,8 @@ gk110_grctx_init_pd_0[] = {
 };
 
 static const struct gf100_gr_init
-gk110_grctx_init_be_0[] = {
+	gk110_grctx_init_be_0[] =
+{
 	{ 0x408800,   1, 0x04, 0x12802a3c },
 	{ 0x408804,   1, 0x04, 0x00000040 },
 	{ 0x408808,   1, 0x04, 0x1003e005 },
@@ -668,7 +677,8 @@ gk110_grctx_init_be_0[] = {
 };
 
 const struct gf100_gr_pack
-gk110_grctx_pack_hub[] = {
+	gk110_grctx_pack_hub[] =
+{
 	{ gf100_grctx_init_main_0 },
 	{ gk110_grctx_init_fe_0 },
 	{ gk110_grctx_init_pri_0 },
@@ -683,7 +693,8 @@ gk110_grctx_pack_hub[] = {
 };
 
 static const struct gf100_gr_init
-gk110_grctx_init_setup_0[] = {
+	gk110_grctx_init_setup_0[] =
+{
 	{ 0x418800,   1, 0x04, 0x7006860a },
 	{ 0x418808,   1, 0x04, 0x00000000 },
 	{ 0x41880c,   1, 0x04, 0x00000030 },
@@ -698,13 +709,15 @@ gk110_grctx_init_setup_0[] = {
 };
 
 const struct gf100_gr_init
-gk110_grctx_init_gpc_unk_2[] = {
+	gk110_grctx_init_gpc_unk_2[] =
+{
 	{ 0x418d24,   1, 0x04, 0x00000000 },
 	{}
 };
 
 const struct gf100_gr_pack
-gk110_grctx_pack_gpc[] = {
+	gk110_grctx_pack_gpc[] =
+{
 	{ gf100_grctx_init_gpc_unk_0 },
 	{ gf119_grctx_init_prop_0 },
 	{ gf119_grctx_init_gpc_unk_1 },
@@ -718,7 +731,8 @@ gk110_grctx_pack_gpc[] = {
 };
 
 const struct gf100_gr_init
-gk110_grctx_init_tex_0[] = {
+	gk110_grctx_init_tex_0[] =
+{
 	{ 0x419a00,   1, 0x04, 0x000000f0 },
 	{ 0x419a04,   1, 0x04, 0x00000001 },
 	{ 0x419a08,   1, 0x04, 0x00000021 },
@@ -733,7 +747,8 @@ gk110_grctx_init_tex_0[] = {
 };
 
 const struct gf100_gr_init
-gk110_grctx_init_mpc_0[] = {
+	gk110_grctx_init_mpc_0[] =
+{
 	{ 0x419c00,   1, 0x04, 0x0000001a },
 	{ 0x419c04,   1, 0x04, 0x80000006 },
 	{ 0x419c08,   1, 0x04, 0x00000002 },
@@ -744,14 +759,16 @@ gk110_grctx_init_mpc_0[] = {
 };
 
 const struct gf100_gr_init
-gk110_grctx_init_l1c_0[] = {
+	gk110_grctx_init_l1c_0[] =
+{
 	{ 0x419ce8,   1, 0x04, 0x00000000 },
 	{ 0x419cf4,   1, 0x04, 0x00000203 },
 	{}
 };
 
 static const struct gf100_gr_init
-gk110_grctx_init_sm_0[] = {
+	gk110_grctx_init_sm_0[] =
+{
 	{ 0x419e04,   1, 0x04, 0x00000000 },
 	{ 0x419e08,   1, 0x04, 0x0000001d },
 	{ 0x419e0c,   1, 0x04, 0x00000000 },
@@ -779,7 +796,8 @@ gk110_grctx_init_sm_0[] = {
 };
 
 static const struct gf100_gr_pack
-gk110_grctx_pack_tpc[] = {
+	gk110_grctx_pack_tpc[] =
+{
 	{ gf117_grctx_init_pe_0 },
 	{ gk110_grctx_init_tex_0 },
 	{ gk110_grctx_init_mpc_0 },
@@ -789,7 +807,8 @@ gk110_grctx_pack_tpc[] = {
 };
 
 static const struct gf100_gr_init
-gk110_grctx_init_cbm_0[] = {
+	gk110_grctx_init_cbm_0[] =
+{
 	{ 0x41bec0,   1, 0x04, 0x10000000 },
 	{ 0x41bec4,   1, 0x04, 0x00037f7f },
 	{ 0x41bee4,   1, 0x04, 0x00000000 },
@@ -797,7 +816,8 @@ gk110_grctx_init_cbm_0[] = {
 };
 
 const struct gf100_gr_pack
-gk110_grctx_pack_ppc[] = {
+	gk110_grctx_pack_ppc[] =
+{
 	{ gk104_grctx_init_pes_0 },
 	{ gk110_grctx_init_cbm_0 },
 	{ gf117_grctx_init_wwdx_0 },
@@ -809,7 +829,8 @@ gk110_grctx_pack_ppc[] = {
  ******************************************************************************/
 
 const struct gf100_grctx_func
-gk110_grctx = {
+	gk110_grctx =
+{
 	.main  = gk104_grctx_generate_main,
 	.unkn  = gk104_grctx_generate_unkn,
 	.hub   = gk110_grctx_pack_hub,

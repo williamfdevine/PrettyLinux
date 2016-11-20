@@ -34,7 +34,8 @@
 #define PXA_CAMERA_HSP		0x200
 #define PXA_CAMERA_VSP		0x400
 
-struct pxacamera_platform_data {
+struct pxacamera_platform_data
+{
 	unsigned long flags;
 	unsigned long mclk_10khz;
 	int sensor_i2c_adapter_id;

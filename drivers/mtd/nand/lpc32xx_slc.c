@@ -146,10 +146,12 @@
  * Note: For large and huge page devices, the default layouts are used
  */
 static int lpc32xx_ooblayout_ecc(struct mtd_info *mtd, int section,
-				 struct mtd_oob_region *oobregion)
+								 struct mtd_oob_region *oobregion)
 {
 	if (section)
+	{
 		return -ERANGE;
+	}
 
 	oobregion->length = 6;
 	oobregion->offset = 10;
@@ -158,15 +160,20 @@ static int lpc32xx_ooblayout_ecc(struct mtd_info *mtd, int section,
 }
 
 static int lpc32xx_ooblayout_free(struct mtd_info *mtd, int section,
-				  struct mtd_oob_region *oobregion)
+								  struct mtd_oob_region *oobregion)
 {
 	if (section > 1)
+	{
 		return -ERANGE;
+	}
 
-	if (!section) {
+	if (!section)
+	{
 		oobregion->offset = 0;
 		oobregion->length = 4;
-	} else {
+	}
+	else
+	{
 		oobregion->offset = 6;
 		oobregion->length = 4;
 	}
@@ -174,7 +181,8 @@ static int lpc32xx_ooblayout_free(struct mtd_info *mtd, int section,
 	return 0;
 }
 
-static const struct mtd_ooblayout_ops lpc32xx_ooblayout_ops = {
+static const struct mtd_ooblayout_ops lpc32xx_ooblayout_ops =
+{
 	.ecc = lpc32xx_ooblayout_ecc,
 	.free = lpc32xx_ooblayout_free,
 };
@@ -186,9 +194,10 @@ static u8 mirror_pattern[] = {'1', 't', 'b', 'B' };
  * Small page FLASH BBT descriptors, marker at offset 0, version at offset 6
  * Note: Large page devices used the default layout
  */
-static struct nand_bbt_descr bbt_smallpage_main_descr = {
+static struct nand_bbt_descr bbt_smallpage_main_descr =
+{
 	.options = NAND_BBT_LASTBLOCK | NAND_BBT_CREATE | NAND_BBT_WRITE
-		| NAND_BBT_2BIT | NAND_BBT_VERSION | NAND_BBT_PERCHIP,
+	| NAND_BBT_2BIT | NAND_BBT_VERSION | NAND_BBT_PERCHIP,
 	.offs =	0,
 	.len = 4,
 	.veroffs = 6,
@@ -196,9 +205,10 @@ static struct nand_bbt_descr bbt_smallpage_main_descr = {
 	.pattern = bbt_pattern
 };
 
-static struct nand_bbt_descr bbt_smallpage_mirror_descr = {
+static struct nand_bbt_descr bbt_smallpage_mirror_descr =
+{
 	.options = NAND_BBT_LASTBLOCK | NAND_BBT_CREATE | NAND_BBT_WRITE
-		| NAND_BBT_2BIT | NAND_BBT_VERSION | NAND_BBT_PERCHIP,
+	| NAND_BBT_2BIT | NAND_BBT_VERSION | NAND_BBT_PERCHIP,
 	.offs =	0,
 	.len = 4,
 	.veroffs = 6,
@@ -209,7 +219,8 @@ static struct nand_bbt_descr bbt_smallpage_mirror_descr = {
 /*
  * NAND platform configuration structure
  */
-struct lpc32xx_nand_cfg_slc {
+struct lpc32xx_nand_cfg_slc
+{
 	uint32_t wdr_clks;
 	uint32_t wwidth;
 	uint32_t whold;
@@ -223,7 +234,8 @@ struct lpc32xx_nand_cfg_slc {
 	unsigned num_parts;
 };
 
-struct lpc32xx_nand_host {
+struct lpc32xx_nand_host
+{
 	struct nand_chip	nand_chip;
 	struct lpc32xx_slc_platform_data *pdata;
 	struct clk		*clk;
@@ -256,22 +268,25 @@ static void lpc32xx_nand_setup(struct lpc32xx_nand_host *host)
 	writel(0, SLC_CFG(host->io_base));
 	writel(0, SLC_IEN(host->io_base));
 	writel((SLCSTAT_INT_TC | SLCSTAT_INT_RDY_EN),
-		SLC_ICR(host->io_base));
+		   SLC_ICR(host->io_base));
 
 	/* Get base clock for SLC block */
 	clkrate = clk_get_rate(host->clk);
+
 	if (clkrate == 0)
+	{
 		clkrate = LPC32XX_DEF_BUS_RATE;
+	}
 
 	/* Compute clock setup values */
 	tmp = SLCTAC_WDR(host->ncfg->wdr_clks) |
-		SLCTAC_WWIDTH(clkrate, host->ncfg->wwidth) |
-		SLCTAC_WHOLD(clkrate, host->ncfg->whold) |
-		SLCTAC_WSETUP(clkrate, host->ncfg->wsetup) |
-		SLCTAC_RDR(host->ncfg->rdr_clks) |
-		SLCTAC_RWIDTH(clkrate, host->ncfg->rwidth) |
-		SLCTAC_RHOLD(clkrate, host->ncfg->rhold) |
-		SLCTAC_RSETUP(clkrate, host->ncfg->rsetup);
+		  SLCTAC_WWIDTH(clkrate, host->ncfg->wwidth) |
+		  SLCTAC_WHOLD(clkrate, host->ncfg->whold) |
+		  SLCTAC_WSETUP(clkrate, host->ncfg->wsetup) |
+		  SLCTAC_RDR(host->ncfg->rdr_clks) |
+		  SLCTAC_RWIDTH(clkrate, host->ncfg->rwidth) |
+		  SLCTAC_RHOLD(clkrate, host->ncfg->rhold) |
+		  SLCTAC_RSETUP(clkrate, host->ncfg->rsetup);
 	writel(tmp, SLC_TAC(host->io_base));
 }
 
@@ -279,7 +294,7 @@ static void lpc32xx_nand_setup(struct lpc32xx_nand_host *host)
  * Hardware specific access to control lines
  */
 static void lpc32xx_nand_cmd_ctrl(struct mtd_info *mtd, int cmd,
-	unsigned int ctrl)
+								  unsigned int ctrl)
 {
 	uint32_t tmp;
 	struct nand_chip *chip = mtd_to_nand(mtd);
@@ -287,17 +302,28 @@ static void lpc32xx_nand_cmd_ctrl(struct mtd_info *mtd, int cmd,
 
 	/* Does CE state need to be changed? */
 	tmp = readl(SLC_CFG(host->io_base));
+
 	if (ctrl & NAND_NCE)
+	{
 		tmp |= SLCCFG_CE_LOW;
+	}
 	else
+	{
 		tmp &= ~SLCCFG_CE_LOW;
+	}
+
 	writel(tmp, SLC_CFG(host->io_base));
 
-	if (cmd != NAND_CMD_NONE) {
+	if (cmd != NAND_CMD_NONE)
+	{
 		if (ctrl & NAND_CLE)
+		{
 			writel(cmd, SLC_CMD(host->io_base));
+		}
 		else
+		{
 			writel(cmd, SLC_ADDR(host->io_base));
+		}
 	}
 }
 
@@ -311,7 +337,9 @@ static int lpc32xx_nand_device_ready(struct mtd_info *mtd)
 	int rdy = 0;
 
 	if ((readl(SLC_STAT(host->io_base)) & SLCSTAT_NAND_READY) != 0)
+	{
 		rdy = 1;
+	}
 
 	return rdy;
 }
@@ -322,7 +350,9 @@ static int lpc32xx_nand_device_ready(struct mtd_info *mtd)
 static void lpc32xx_wp_enable(struct lpc32xx_nand_host *host)
 {
 	if (gpio_is_valid(host->ncfg->wp_gpio))
+	{
 		gpio_set_value(host->ncfg->wp_gpio, 0);
+	}
 }
 
 /*
@@ -331,7 +361,9 @@ static void lpc32xx_wp_enable(struct lpc32xx_nand_host *host)
 static void lpc32xx_wp_disable(struct lpc32xx_nand_host *host)
 {
 	if (gpio_is_valid(host->ncfg->wp_gpio))
+	{
 		gpio_set_value(host->ncfg->wp_gpio, 1);
+	}
 }
 
 /*
@@ -346,8 +378,8 @@ static void lpc32xx_nand_ecc_enable(struct mtd_info *mtd, int mode)
  * Calculates the ECC for the data
  */
 static int lpc32xx_nand_ecc_calculate(struct mtd_info *mtd,
-				      const unsigned char *buf,
-				      unsigned char *code)
+									  const unsigned char *buf,
+									  unsigned char *code)
 {
 	/*
 	 * ECC is calculated automatically in hardware during syndrome read
@@ -377,7 +409,9 @@ static void lpc32xx_nand_read_buf(struct mtd_info *mtd, u_char *buf, int len)
 
 	/* Direct device read with no ECC */
 	while (len-- > 0)
+	{
 		*buf++ = (uint8_t)readl(SLC_DATA(host->io_base));
+	}
 }
 
 /*
@@ -390,14 +424,16 @@ static void lpc32xx_nand_write_buf(struct mtd_info *mtd, const uint8_t *buf, int
 
 	/* Direct device write with no ECC */
 	while (len-- > 0)
+	{
 		writel((uint32_t)*buf++, SLC_DATA(host->io_base));
+	}
 }
 
 /*
  * Read the OOB data from the device without ECC using FIFO method
  */
 static int lpc32xx_nand_read_oob_syndrome(struct mtd_info *mtd,
-					  struct nand_chip *chip, int page)
+		struct nand_chip *chip, int page)
 {
 	chip->cmdfunc(mtd, NAND_CMD_READOOB, 0, page);
 	chip->read_buf(mtd, chip->oob_poi, mtd->oobsize);
@@ -409,7 +445,7 @@ static int lpc32xx_nand_read_oob_syndrome(struct mtd_info *mtd,
  * Write the OOB data to the device without ECC using FIFO method
  */
 static int lpc32xx_nand_write_oob_syndrome(struct mtd_info *mtd,
-	struct nand_chip *chip, int page)
+		struct nand_chip *chip, int page)
 {
 	int status;
 
@@ -431,7 +467,8 @@ static void lpc32xx_slc_ecc_copy(uint8_t *spare, const uint32_t *ecc, int count)
 {
 	int i;
 
-	for (i = 0; i < (count * 3); i += 3) {
+	for (i = 0; i < (count * 3); i += 3)
+	{
 		uint32_t ce = ecc[i / 3];
 		ce = ~(ce << 2) & 0xFFFFFF;
 		spare[i + 2] = (uint8_t)(ce & 0xFF);
@@ -448,7 +485,7 @@ static void lpc32xx_dma_complete_func(void *completion)
 }
 
 static int lpc32xx_xmit_dma(struct mtd_info *mtd, dma_addr_t dma,
-			    void *mem, int len, enum dma_transfer_direction dir)
+							void *mem, int len, enum dma_transfer_direction dir)
 {
 	struct nand_chip *chip = mtd_to_nand(mtd);
 	struct lpc32xx_nand_host *host = nand_get_controller_data(chip);
@@ -465,7 +502,9 @@ static int lpc32xx_xmit_dma(struct mtd_info *mtd, dma_addr_t dma,
 	host->dma_slave_config.dst_maxburst = 4;
 	/* DMA controller does flow control: */
 	host->dma_slave_config.device_fc = false;
-	if (dmaengine_slave_config(host->dma_chan, &host->dma_slave_config)) {
+
+	if (dmaengine_slave_config(host->dma_chan, &host->dma_slave_config))
+	{
 		dev_err(mtd->dev.parent, "Failed to setup DMA slave\n");
 		return -ENXIO;
 	}
@@ -473,14 +512,19 @@ static int lpc32xx_xmit_dma(struct mtd_info *mtd, dma_addr_t dma,
 	sg_init_one(&host->sgl, mem, len);
 
 	res = dma_map_sg(host->dma_chan->device->dev, &host->sgl, 1,
-			 DMA_BIDIRECTIONAL);
-	if (res != 1) {
+					 DMA_BIDIRECTIONAL);
+
+	if (res != 1)
+	{
 		dev_err(mtd->dev.parent, "Failed to map sg list\n");
 		return -ENXIO;
 	}
+
 	desc = dmaengine_prep_slave_sg(host->dma_chan, &host->sgl, 1, dir,
-				       flags);
-	if (!desc) {
+								   flags);
+
+	if (!desc)
+	{
 		dev_err(mtd->dev.parent, "Failed to prepare slave sg\n");
 		goto out1;
 	}
@@ -495,12 +539,12 @@ static int lpc32xx_xmit_dma(struct mtd_info *mtd, dma_addr_t dma,
 	wait_for_completion_timeout(&host->comp, msecs_to_jiffies(1000));
 
 	dma_unmap_sg(host->dma_chan->device->dev, &host->sgl, 1,
-		     DMA_BIDIRECTIONAL);
+				 DMA_BIDIRECTIONAL);
 
 	return 0;
 out1:
 	dma_unmap_sg(host->dma_chan->device->dev, &host->sgl, 1,
-		     DMA_BIDIRECTIONAL);
+				 DMA_BIDIRECTIONAL);
 	return -ENXIO;
 }
 
@@ -508,7 +552,7 @@ out1:
  * DMA read/write transfers with ECC support
  */
 static int lpc32xx_xfer(struct mtd_info *mtd, uint8_t *buf, int eccsubpages,
-			int read)
+						int read)
 {
 	struct nand_chip *chip = mtd_to_nand(mtd);
 	struct lpc32xx_nand_host *host = nand_get_controller_data(chip);
@@ -520,25 +564,34 @@ static int lpc32xx_xfer(struct mtd_info *mtd, uint8_t *buf, int eccsubpages,
 	uint8_t *dma_buf;
 	bool dma_mapped;
 
-	if ((void *)buf <= high_memory) {
+	if ((void *)buf <= high_memory)
+	{
 		dma_buf = buf;
 		dma_mapped = true;
-	} else {
+	}
+	else
+	{
 		dma_buf = host->data_buf;
 		dma_mapped = false;
+
 		if (!read)
+		{
 			memcpy(host->data_buf, buf, mtd->writesize);
+		}
 	}
 
-	if (read) {
+	if (read)
+	{
 		writel(readl(SLC_CFG(host->io_base)) |
-		       SLCCFG_DMA_DIR | SLCCFG_ECC_EN | SLCCFG_DMA_ECC |
-		       SLCCFG_DMA_BURST, SLC_CFG(host->io_base));
-	} else {
+			   SLCCFG_DMA_DIR | SLCCFG_ECC_EN | SLCCFG_DMA_ECC |
+			   SLCCFG_DMA_BURST, SLC_CFG(host->io_base));
+	}
+	else
+	{
 		writel((readl(SLC_CFG(host->io_base)) |
-			SLCCFG_ECC_EN | SLCCFG_DMA_ECC | SLCCFG_DMA_BURST) &
-		       ~SLCCFG_DMA_DIR,
-			SLC_CFG(host->io_base));
+				SLCCFG_ECC_EN | SLCCFG_DMA_ECC | SLCCFG_DMA_BURST) &
+			   ~SLCCFG_DMA_DIR,
+			   SLC_CFG(host->io_base));
 	}
 
 	/* Clear initial ECC */
@@ -549,25 +602,38 @@ static int lpc32xx_xfer(struct mtd_info *mtd, uint8_t *buf, int eccsubpages,
 
 	/* Start transfer in the NAND controller */
 	writel(readl(SLC_CTRL(host->io_base)) | SLCCTRL_DMA_START,
-	       SLC_CTRL(host->io_base));
+		   SLC_CTRL(host->io_base));
 
-	for (i = 0; i < chip->ecc.steps; i++) {
+	for (i = 0; i < chip->ecc.steps; i++)
+	{
 		/* Data */
 		res = lpc32xx_xmit_dma(mtd, SLC_DMA_DATA(host->io_base_dma),
-				       dma_buf + i * chip->ecc.size,
-				       mtd->writesize / chip->ecc.steps, dir);
+							   dma_buf + i * chip->ecc.size,
+							   mtd->writesize / chip->ecc.steps, dir);
+
 		if (res)
+		{
 			return res;
+		}
 
 		/* Always _read_ ECC */
 		if (i == chip->ecc.steps - 1)
+		{
 			break;
+		}
+
 		if (!read) /* ECC availability delayed on write */
+		{
 			udelay(10);
+		}
+
 		res = lpc32xx_xmit_dma(mtd, SLC_ECC(host->io_base_dma),
-				       &host->ecc_buf[i], 4, DMA_DEV_TO_MEM);
+							   &host->ecc_buf[i], 4, DMA_DEV_TO_MEM);
+
 		if (res)
+		{
 			return res;
+		}
 	}
 
 	/*
@@ -577,13 +643,19 @@ static int lpc32xx_xfer(struct mtd_info *mtd, uint8_t *buf, int eccsubpages,
 	 * appears to be always true, according to tests. Keeping the check for
 	 * safety reasons for now.
 	 */
-	if (readl(SLC_STAT(host->io_base)) & SLCSTAT_DMA_FIFO) {
+	if (readl(SLC_STAT(host->io_base)) & SLCSTAT_DMA_FIFO)
+	{
 		dev_warn(mtd->dev.parent, "FIFO not empty!\n");
 		timeout = jiffies + msecs_to_jiffies(LPC32XX_DMA_TIMEOUT);
+
 		while ((readl(SLC_STAT(host->io_base)) & SLCSTAT_DMA_FIFO) &&
-		       time_before(jiffies, timeout))
+			   time_before(jiffies, timeout))
+		{
 			cpu_relax();
-		if (!time_before(jiffies, timeout)) {
+		}
+
+		if (!time_before(jiffies, timeout))
+		{
 			dev_err(mtd->dev.parent, "FIFO held data too long\n");
 			status = -EIO;
 		}
@@ -591,7 +663,10 @@ static int lpc32xx_xfer(struct mtd_info *mtd, uint8_t *buf, int eccsubpages,
 
 	/* Read last calculated ECC value */
 	if (!read)
+	{
 		udelay(10);
+	}
+
 	host->ecc_buf[chip->ecc.steps - 1] =
 		readl(SLC_ECC(host->io_base));
 
@@ -599,7 +674,8 @@ static int lpc32xx_xfer(struct mtd_info *mtd, uint8_t *buf, int eccsubpages,
 	dmaengine_terminate_all(host->dma_chan);
 
 	if (readl(SLC_STAT(host->io_base)) & SLCSTAT_DMA_FIFO ||
-	    readl(SLC_TC(host->io_base))) {
+		readl(SLC_TC(host->io_base)))
+	{
 		/* Something is left in the FIFO, something is wrong */
 		dev_err(mtd->dev.parent, "DMA FIFO failure\n");
 		status = -EIO;
@@ -607,13 +683,15 @@ static int lpc32xx_xfer(struct mtd_info *mtd, uint8_t *buf, int eccsubpages,
 
 	/* Stop DMA & HW ECC */
 	writel(readl(SLC_CTRL(host->io_base)) & ~SLCCTRL_DMA_START,
-	       SLC_CTRL(host->io_base));
+		   SLC_CTRL(host->io_base));
 	writel(readl(SLC_CFG(host->io_base)) &
-	       ~(SLCCFG_DMA_DIR | SLCCFG_ECC_EN | SLCCFG_DMA_ECC |
-		 SLCCFG_DMA_BURST), SLC_CFG(host->io_base));
+		   ~(SLCCFG_DMA_DIR | SLCCFG_ECC_EN | SLCCFG_DMA_ECC |
+			 SLCCFG_DMA_BURST), SLC_CFG(host->io_base));
 
 	if (!dma_mapped && read)
+	{
 		memcpy(buf, host->data_buf, mtd->writesize);
+	}
 
 	return status;
 }
@@ -623,8 +701,8 @@ static int lpc32xx_xfer(struct mtd_info *mtd, uint8_t *buf, int eccsubpages,
  * data, disable ECC for the OOB data
  */
 static int lpc32xx_nand_read_page_syndrome(struct mtd_info *mtd,
-					   struct nand_chip *chip, uint8_t *buf,
-					   int oob_required, int page)
+		struct nand_chip *chip, uint8_t *buf,
+		int oob_required, int page)
 {
 	struct lpc32xx_nand_host *host = nand_get_controller_data(chip);
 	struct mtd_oob_region oobregion = { };
@@ -645,18 +723,27 @@ static int lpc32xx_nand_read_page_syndrome(struct mtd_info *mtd,
 
 	/* Pointer to ECC data retrieved from NAND spare area */
 	error = mtd_ooblayout_ecc(mtd, 0, &oobregion);
+
 	if (error)
+	{
 		return error;
+	}
 
 	oobecc = chip->oob_poi + oobregion.offset;
 
-	for (i = 0; i < chip->ecc.steps; i++) {
+	for (i = 0; i < chip->ecc.steps; i++)
+	{
 		stat = chip->ecc.correct(mtd, buf, oobecc,
-					 &tmpecc[i * chip->ecc.bytes]);
+								 &tmpecc[i * chip->ecc.bytes]);
+
 		if (stat < 0)
+		{
 			mtd->ecc_stats.failed++;
+		}
 		else
+		{
 			mtd->ecc_stats.corrected += stat;
+		}
 
 		buf += chip->ecc.size;
 		oobecc += chip->ecc.bytes;
@@ -670,9 +757,9 @@ static int lpc32xx_nand_read_page_syndrome(struct mtd_info *mtd,
  * data or OOB data
  */
 static int lpc32xx_nand_read_page_raw_syndrome(struct mtd_info *mtd,
-					       struct nand_chip *chip,
-					       uint8_t *buf, int oob_required,
-					       int page)
+		struct nand_chip *chip,
+		uint8_t *buf, int oob_required,
+		int page)
 {
 	/* Issue read command */
 	chip->cmdfunc(mtd, NAND_CMD_READ0, 0, page);
@@ -689,9 +776,9 @@ static int lpc32xx_nand_read_page_raw_syndrome(struct mtd_info *mtd,
  * disable ECC for the OOB data
  */
 static int lpc32xx_nand_write_page_syndrome(struct mtd_info *mtd,
-					    struct nand_chip *chip,
-					    const uint8_t *buf,
-					    int oob_required, int page)
+		struct nand_chip *chip,
+		const uint8_t *buf,
+		int oob_required, int page)
 {
 	struct lpc32xx_nand_host *host = nand_get_controller_data(chip);
 	struct mtd_oob_region oobregion = { };
@@ -700,16 +787,22 @@ static int lpc32xx_nand_write_page_syndrome(struct mtd_info *mtd,
 
 	/* Write data, calculate ECC on outbound data */
 	error = lpc32xx_xfer(mtd, (uint8_t *)buf, chip->ecc.steps, 0);
+
 	if (error)
+	{
 		return error;
+	}
 
 	/*
 	 * The calculated ECC needs some manual work done to it before
 	 * committing it to NAND. Process the calculated ECC and place
 	 * the resultant values directly into the OOB buffer. */
 	error = mtd_ooblayout_ecc(mtd, 0, &oobregion);
+
 	if (error)
+	{
 		return error;
+	}
 
 	pb = chip->oob_poi + oobregion.offset;
 	lpc32xx_slc_ecc_copy(pb, (uint32_t *)host->ecc_buf, chip->ecc.steps);
@@ -724,9 +817,9 @@ static int lpc32xx_nand_write_page_syndrome(struct mtd_info *mtd,
  * data or OOB data
  */
 static int lpc32xx_nand_write_page_raw_syndrome(struct mtd_info *mtd,
-						struct nand_chip *chip,
-						const uint8_t *buf,
-						int oob_required, int page)
+		struct nand_chip *chip,
+		const uint8_t *buf,
+		int oob_required, int page)
 {
 	/* Raw writes can just use the FIFO interface */
 	chip->write_buf(mtd, buf, chip->ecc.size * chip->ecc.steps);
@@ -739,7 +832,8 @@ static int lpc32xx_nand_dma_setup(struct lpc32xx_nand_host *host)
 	struct mtd_info *mtd = nand_to_mtd(&host->nand_chip);
 	dma_cap_mask_t mask;
 
-	if (!host->pdata || !host->pdata->dma_filter) {
+	if (!host->pdata || !host->pdata->dma_filter)
+	{
 		dev_err(mtd->dev.parent, "no DMA platform data\n");
 		return -ENOENT;
 	}
@@ -747,8 +841,10 @@ static int lpc32xx_nand_dma_setup(struct lpc32xx_nand_host *host)
 	dma_cap_zero(mask);
 	dma_cap_set(DMA_SLAVE, mask);
 	host->dma_chan = dma_request_channel(mask, host->pdata->dma_filter,
-					     "nand-slc");
-	if (!host->dma_chan) {
+										 "nand-slc");
+
+	if (!host->dma_chan)
+	{
 		dev_err(mtd->dev.parent, "Failed to request DMA channel\n");
 		return -EBUSY;
 	}
@@ -762,8 +858,11 @@ static struct lpc32xx_nand_cfg_slc *lpc32xx_parse_dt(struct device *dev)
 	struct device_node *np = dev->of_node;
 
 	ncfg = devm_kzalloc(dev, sizeof(*ncfg), GFP_KERNEL);
+
 	if (!ncfg)
+	{
 		return NULL;
+	}
 
 	of_property_read_u32(np, "nxp,wdr-clks", &ncfg->wdr_clks);
 	of_property_read_u32(np, "nxp,wwidth", &ncfg->wwidth);
@@ -775,8 +874,9 @@ static struct lpc32xx_nand_cfg_slc *lpc32xx_parse_dt(struct device *dev)
 	of_property_read_u32(np, "nxp,rsetup", &ncfg->rsetup);
 
 	if (!ncfg->wdr_clks || !ncfg->wwidth || !ncfg->whold ||
-	    !ncfg->wsetup || !ncfg->rdr_clks || !ncfg->rwidth ||
-	    !ncfg->rhold || !ncfg->rsetup) {
+		!ncfg->wsetup || !ncfg->rdr_clks || !ncfg->rwidth ||
+		!ncfg->rhold || !ncfg->rsetup)
+	{
 		dev_err(dev, "chip parameters not specified correctly\n");
 		return NULL;
 	}
@@ -798,35 +898,54 @@ static int lpc32xx_nand_probe(struct platform_device *pdev)
 	int res;
 
 	rc = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (rc == NULL) {
+
+	if (rc == NULL)
+	{
 		dev_err(&pdev->dev, "No memory resource found for device\n");
 		return -EBUSY;
 	}
 
 	/* Allocate memory for the device structure (and zero it) */
 	host = devm_kzalloc(&pdev->dev, sizeof(*host), GFP_KERNEL);
+
 	if (!host)
+	{
 		return -ENOMEM;
+	}
+
 	host->io_base_dma = rc->start;
 
 	host->io_base = devm_ioremap_resource(&pdev->dev, rc);
+
 	if (IS_ERR(host->io_base))
+	{
 		return PTR_ERR(host->io_base);
+	}
 
 	if (pdev->dev.of_node)
+	{
 		host->ncfg = lpc32xx_parse_dt(&pdev->dev);
-	if (!host->ncfg) {
+	}
+
+	if (!host->ncfg)
+	{
 		dev_err(&pdev->dev,
-			"Missing or bad NAND config from device tree\n");
+				"Missing or bad NAND config from device tree\n");
 		return -ENOENT;
 	}
+
 	if (host->ncfg->wp_gpio == -EPROBE_DEFER)
+	{
 		return -EPROBE_DEFER;
+	}
+
 	if (gpio_is_valid(host->ncfg->wp_gpio) && devm_gpio_request(&pdev->dev,
-			host->ncfg->wp_gpio, "NAND WP")) {
+			host->ncfg->wp_gpio, "NAND WP"))
+	{
 		dev_err(&pdev->dev, "GPIO not available\n");
 		return -EBUSY;
 	}
+
 	lpc32xx_wp_disable(host);
 
 	host->pdata = dev_get_platdata(&pdev->dev);
@@ -840,11 +959,14 @@ static int lpc32xx_nand_probe(struct platform_device *pdev)
 
 	/* Get NAND clock */
 	host->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(host->clk)) {
+
+	if (IS_ERR(host->clk))
+	{
 		dev_err(&pdev->dev, "Clock failure\n");
 		res = -ENOENT;
 		goto err_exit1;
 	}
+
 	clk_prepare_enable(host->clk);
 
 	/* Set NAND IO addresses and command/ready functions */
@@ -881,20 +1003,25 @@ static int lpc32xx_nand_probe(struct platform_device *pdev)
 	 */
 	host->dma_buf_len = LPC32XX_DMA_DATA_SIZE + LPC32XX_ECC_SAVE_SIZE;
 	host->data_buf = devm_kzalloc(&pdev->dev, host->dma_buf_len,
-				      GFP_KERNEL);
-	if (host->data_buf == NULL) {
+								  GFP_KERNEL);
+
+	if (host->data_buf == NULL)
+	{
 		res = -ENOMEM;
 		goto err_exit2;
 	}
 
 	res = lpc32xx_nand_dma_setup(host);
-	if (res) {
+
+	if (res)
+	{
 		res = -EIO;
 		goto err_exit2;
 	}
 
 	/* Find NAND device */
-	if (nand_scan_ident(mtd, 1, NULL)) {
+	if (nand_scan_ident(mtd, 1, NULL))
+	{
 		res = -ENXIO;
 		goto err_exit3;
 	}
@@ -908,7 +1035,9 @@ static int lpc32xx_nand_probe(struct platform_device *pdev)
 	 * custom BBT marker layout.
 	 */
 	if (mtd->writesize <= 512)
+	{
 		mtd_set_ooblayout(mtd, &lpc32xx_ooblayout_ops);
+	}
 
 	/* These sizes remain the same regardless of page size */
 	chip->ecc.size = 256;
@@ -921,7 +1050,8 @@ static int lpc32xx_nand_probe(struct platform_device *pdev)
 	 * FLASH use the standard layout.
 	 */
 	if ((chip->bbt_options & NAND_BBT_USE_FLASH) &&
-	    mtd->writesize <= 512) {
+		mtd->writesize <= 512)
+	{
 		chip->bbt_td = &bbt_smallpage_main_descr;
 		chip->bbt_md = &bbt_smallpage_mirror_descr;
 	}
@@ -929,16 +1059,20 @@ static int lpc32xx_nand_probe(struct platform_device *pdev)
 	/*
 	 * Fills out all the uninitialized function pointers with the defaults
 	 */
-	if (nand_scan_tail(mtd)) {
+	if (nand_scan_tail(mtd))
+	{
 		res = -ENXIO;
 		goto err_exit3;
 	}
 
 	mtd->name = "nxp_lpc3220_slc";
 	res = mtd_device_register(mtd, host->ncfg->parts,
-				  host->ncfg->num_parts);
+							  host->ncfg->num_parts);
+
 	if (!res)
+	{
 		return res;
+	}
 
 	nand_release(mtd);
 
@@ -1016,13 +1150,15 @@ static int lpc32xx_nand_suspend(struct platform_device *pdev, pm_message_t pm)
 #define lpc32xx_nand_suspend NULL
 #endif
 
-static const struct of_device_id lpc32xx_nand_match[] = {
+static const struct of_device_id lpc32xx_nand_match[] =
+{
 	{ .compatible = "nxp,lpc3220-slc" },
 	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(of, lpc32xx_nand_match);
 
-static struct platform_driver lpc32xx_nand_driver = {
+static struct platform_driver lpc32xx_nand_driver =
+{
 	.probe		= lpc32xx_nand_probe,
 	.remove		= lpc32xx_nand_remove,
 	.resume		= lpc32xx_nand_resume,

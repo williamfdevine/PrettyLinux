@@ -17,17 +17,17 @@
  */
 
 extern unsigned long vidc_fill_1x8_u(unsigned long ibuf, unsigned long iend,
-				     unsigned long obuf, int mask);
+									 unsigned long obuf, int mask);
 extern unsigned long vidc_fill_2x8_u(unsigned long ibuf, unsigned long iend,
-				     unsigned long obuf, int mask);
+									 unsigned long obuf, int mask);
 extern unsigned long vidc_fill_1x8_s(unsigned long ibuf, unsigned long iend,
-				     unsigned long obuf, int mask);
+									 unsigned long obuf, int mask);
 extern unsigned long vidc_fill_2x8_s(unsigned long ibuf, unsigned long iend,
-				     unsigned long obuf, int mask);
+									 unsigned long obuf, int mask);
 extern unsigned long vidc_fill_1x16_s(unsigned long ibuf, unsigned long iend,
-				      unsigned long obuf, int mask);
+									  unsigned long obuf, int mask);
 extern unsigned long vidc_fill_2x16_s(unsigned long ibuf, unsigned long iend,
-				      unsigned long obuf, int mask);
+									  unsigned long obuf, int mask);
 
 /*
  * DMA Interrupt handler
@@ -40,7 +40,7 @@ extern irqreturn_t vidc_sound_dma_irq(int irqnr, void *ref);
  */
 
 extern unsigned long (*vidc_filler) (unsigned long ibuf, unsigned long iend,
-				     unsigned long obuf, int mask);
+									 unsigned long obuf, int mask);
 
 /*
  * Virtual DMA buffer exhausted

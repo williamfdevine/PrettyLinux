@@ -75,25 +75,25 @@ static int heartbeat = WD_TIMO;
 static int wd_heartbeat;
 module_param(heartbeat, int, 0);
 MODULE_PARM_DESC(heartbeat,
-		"Watchdog heartbeat in seconds. (0<heartbeat<65536, default="
-				__MODULE_STRING(WD_TIMO) ")");
+				 "Watchdog heartbeat in seconds. (0<heartbeat<65536, default="
+				 __MODULE_STRING(WD_TIMO) ")");
 
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-		"Watchdog cannot be stopped once started (default="
-				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 /* Support for the Fan Tachometer on the PCI-WDT501 */
 static int tachometer;
 module_param(tachometer, int, 0);
 MODULE_PARM_DESC(tachometer,
-		"PCI-WDT501 Fan Tachometer support (0=disable, default=0)");
+				 "PCI-WDT501 Fan Tachometer support (0=disable, default=0)");
 
 static int type = 500;
 module_param(type, int, 0);
 MODULE_PARM_DESC(type,
-		"PCI-WDT501 Card type (500 or 501 , default=500)");
+				 "PCI-WDT501 Card type (500 or 501 , default=500)");
 
 /*
  *	Programming support
@@ -221,7 +221,9 @@ static int wdtpci_set_heartbeat(int t)
 {
 	/* Arbitrary, can't find the card's limits */
 	if (t < 1 || t > 65535)
+	{
 		return -EINVAL;
+	}
 
 	heartbeat = t;
 	wd_heartbeat = t * 100;
@@ -249,22 +251,43 @@ static int wdtpci_get_status(int *status)
 	spin_unlock_irqrestore(&wdtpci_lock, flags);
 
 	*status = 0;
+
 	if (new_status & WDC_SR_ISOI0)
+	{
 		*status |= WDIOF_EXTERN1;
+	}
+
 	if (new_status & WDC_SR_ISII1)
+	{
 		*status |= WDIOF_EXTERN2;
-	if (type == 501) {
+	}
+
+	if (type == 501)
+	{
 		if (!(new_status & WDC_SR_TGOOD))
+		{
 			*status |= WDIOF_OVERHEAT;
+		}
+
 		if (!(new_status & WDC_SR_PSUOVER))
+		{
 			*status |= WDIOF_POWEROVER;
+		}
+
 		if (!(new_status & WDC_SR_PSUUNDR))
+		{
 			*status |= WDIOF_POWERUNDER;
-		if (tachometer) {
+		}
+
+		if (tachometer)
+		{
 			if (!(new_status & WDC_SR_FANGOOD))
+			{
 				*status |= WDIOF_FANFAULT;
+			}
 		}
 	}
+
 	return 0;
 }
 
@@ -312,21 +335,35 @@ static irqreturn_t wdtpci_interrupt(int irq, void *dev_id)
 
 	pr_crit("status %d\n", status);
 
-	if (type == 501) {
-		if (!(status & WDC_SR_TGOOD)) {
+	if (type == 501)
+	{
+		if (!(status & WDC_SR_TGOOD))
+		{
 			pr_crit("Overheat alarm (%d)\n", inb(WDT_RT));
 			udelay(8);
 		}
+
 		if (!(status & WDC_SR_PSUOVER))
+		{
 			pr_crit("PSU over voltage\n");
+		}
+
 		if (!(status & WDC_SR_PSUUNDR))
+		{
 			pr_crit("PSU under voltage\n");
-		if (tachometer) {
+		}
+
+		if (tachometer)
+		{
 			if (!(status & WDC_SR_FANGOOD))
+			{
 				pr_crit("Possible fan fault\n");
+			}
 		}
 	}
-	if (!(status & WDC_SR_WCCR)) {
+
+	if (!(status & WDC_SR_WCCR))
+	{
 #ifdef SOFTWARE_REBOOT
 #ifdef ONLY_TESTING
 		pr_crit("Would Reboot\n");
@@ -338,6 +375,7 @@ static irqreturn_t wdtpci_interrupt(int irq, void *dev_id)
 		pr_crit("Reset in 5ms\n");
 #endif
 	}
+
 	spin_unlock(&wdtpci_lock);
 	return IRQ_HANDLED;
 }
@@ -355,25 +393,36 @@ static irqreturn_t wdtpci_interrupt(int irq, void *dev_id)
  */
 
 static ssize_t wdtpci_write(struct file *file, const char __user *buf,
-						size_t count, loff_t *ppos)
+							size_t count, loff_t *ppos)
 {
-	if (count) {
-		if (!nowayout) {
+	if (count)
+	{
+		if (!nowayout)
+		{
 			size_t i;
 
 			/* In case it was set long ago */
 			expect_close = 0;
 
-			for (i = 0; i != count; i++) {
+			for (i = 0; i != count; i++)
+			{
 				char c;
+
 				if (get_user(c, buf + i))
+				{
 					return -EFAULT;
+				}
+
 				if (c == 'V')
+				{
 					expect_close = 42;
+				}
 			}
 		}
+
 		wdtpci_ping();
 	}
+
 	return count;
 }
 
@@ -389,52 +438,71 @@ static ssize_t wdtpci_write(struct file *file, const char __user *buf,
  */
 
 static long wdtpci_ioctl(struct file *file, unsigned int cmd,
-							unsigned long arg)
+						 unsigned long arg)
 {
 	void __user *argp = (void __user *)arg;
 	int __user *p = argp;
 	int new_heartbeat;
 	int status;
 
-	struct watchdog_info ident = {
-		.options =		WDIOF_SETTIMEOUT|
-					WDIOF_MAGICCLOSE|
-					WDIOF_KEEPALIVEPING,
+	struct watchdog_info ident =
+	{
+		.options =		WDIOF_SETTIMEOUT |
+		WDIOF_MAGICCLOSE |
+		WDIOF_KEEPALIVEPING,
 		.firmware_version =	1,
 		.identity =		"PCI-WDT500/501",
 	};
 
 	/* Add options according to the card we have */
-	ident.options |= (WDIOF_EXTERN1|WDIOF_EXTERN2);
-	if (type == 501) {
-		ident.options |= (WDIOF_OVERHEAT|WDIOF_POWERUNDER|
-							WDIOF_POWEROVER);
+	ident.options |= (WDIOF_EXTERN1 | WDIOF_EXTERN2);
+
+	if (type == 501)
+	{
+		ident.options |= (WDIOF_OVERHEAT | WDIOF_POWERUNDER |
+						  WDIOF_POWEROVER);
+
 		if (tachometer)
+		{
 			ident.options |= WDIOF_FANFAULT;
+		}
 	}
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
-	case WDIOC_GETSTATUS:
-		wdtpci_get_status(&status);
-		return put_user(status, p);
-	case WDIOC_GETBOOTSTATUS:
-		return put_user(0, p);
-	case WDIOC_KEEPALIVE:
-		wdtpci_ping();
-		return 0;
-	case WDIOC_SETTIMEOUT:
-		if (get_user(new_heartbeat, p))
-			return -EFAULT;
-		if (wdtpci_set_heartbeat(new_heartbeat))
-			return -EINVAL;
-		wdtpci_ping();
+	switch (cmd)
+	{
+		case WDIOC_GETSUPPORT:
+			return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
+
+		case WDIOC_GETSTATUS:
+			wdtpci_get_status(&status);
+			return put_user(status, p);
+
+		case WDIOC_GETBOOTSTATUS:
+			return put_user(0, p);
+
+		case WDIOC_KEEPALIVE:
+			wdtpci_ping();
+			return 0;
+
+		case WDIOC_SETTIMEOUT:
+			if (get_user(new_heartbeat, p))
+			{
+				return -EFAULT;
+			}
+
+			if (wdtpci_set_heartbeat(new_heartbeat))
+			{
+				return -EINVAL;
+			}
+
+			wdtpci_ping();
+
 		/* Fall */
-	case WDIOC_GETTIMEOUT:
-		return put_user(heartbeat, p);
-	default:
-		return -ENOTTY;
+		case WDIOC_GETTIMEOUT:
+			return put_user(heartbeat, p);
+
+		default:
+			return -ENOTTY;
 	}
 }
 
@@ -453,10 +521,15 @@ static long wdtpci_ioctl(struct file *file, unsigned int cmd,
 static int wdtpci_open(struct inode *inode, struct file *file)
 {
 	if (test_and_set_bit(0, &open_lock))
+	{
 		return -EBUSY;
+	}
 
 	if (nowayout)
+	{
 		__module_get(THIS_MODULE);
+	}
+
 	/*
 	 *	Activate
 	 */
@@ -478,12 +551,16 @@ static int wdtpci_open(struct inode *inode, struct file *file)
 
 static int wdtpci_release(struct inode *inode, struct file *file)
 {
-	if (expect_close == 42) {
+	if (expect_close == 42)
+	{
 		wdtpci_stop();
-	} else {
+	}
+	else
+	{
 		pr_crit("Unexpected close, not stopping timer!\n");
 		wdtpci_ping();
 	}
+
 	expect_close = 0;
 	clear_bit(0, &open_lock);
 	return 0;
@@ -501,15 +578,19 @@ static int wdtpci_release(struct inode *inode, struct file *file)
  */
 
 static ssize_t wdtpci_temp_read(struct file *file, char __user *buf,
-						size_t count, loff_t *ptr)
+								size_t count, loff_t *ptr)
 {
 	int temperature;
 
 	if (wdtpci_get_temperature(&temperature))
+	{
 		return -EFAULT;
+	}
 
 	if (copy_to_user(buf, &temperature, 1))
+	{
 		return -EFAULT;
+	}
 
 	return 1;
 }
@@ -553,10 +634,13 @@ static int wdtpci_temp_release(struct inode *inode, struct file *file)
  */
 
 static int wdtpci_notify_sys(struct notifier_block *this, unsigned long code,
-							void *unused)
+							 void *unused)
 {
 	if (code == SYS_DOWN || code == SYS_HALT)
+	{
 		wdtpci_stop();
+	}
+
 	return NOTIFY_DONE;
 }
 
@@ -565,7 +649,8 @@ static int wdtpci_notify_sys(struct notifier_block *this, unsigned long code,
  */
 
 
-static const struct file_operations wdtpci_fops = {
+static const struct file_operations wdtpci_fops =
+{
 	.owner		= THIS_MODULE,
 	.llseek		= no_llseek,
 	.write		= wdtpci_write,
@@ -574,13 +659,15 @@ static const struct file_operations wdtpci_fops = {
 	.release	= wdtpci_release,
 };
 
-static struct miscdevice wdtpci_miscdev = {
+static struct miscdevice wdtpci_miscdev =
+{
 	.minor	= WATCHDOG_MINOR,
 	.name	= "watchdog",
 	.fops	= &wdtpci_fops,
 };
 
-static const struct file_operations wdtpci_temp_fops = {
+static const struct file_operations wdtpci_temp_fops =
+{
 	.owner		= THIS_MODULE,
 	.llseek		= no_llseek,
 	.read		= wdtpci_temp_read,
@@ -588,7 +675,8 @@ static const struct file_operations wdtpci_temp_fops = {
 	.release	= wdtpci_temp_release,
 };
 
-static struct miscdevice temp_miscdev = {
+static struct miscdevice temp_miscdev =
+{
 	.minor	= TEMP_MINOR,
 	.name	= "temperature",
 	.fops	= &wdtpci_temp_fops,
@@ -599,41 +687,48 @@ static struct miscdevice temp_miscdev = {
  *	turn the timebomb registers off.
  */
 
-static struct notifier_block wdtpci_notifier = {
+static struct notifier_block wdtpci_notifier =
+{
 	.notifier_call = wdtpci_notify_sys,
 };
 
 
 static int wdtpci_init_one(struct pci_dev *dev,
-					const struct pci_device_id *ent)
+						   const struct pci_device_id *ent)
 {
 	int ret = -EIO;
 
 	dev_count++;
-	if (dev_count > 1) {
+
+	if (dev_count > 1)
+	{
 		pr_err("This driver only supports one device\n");
 		return -ENODEV;
 	}
 
-	if (type != 500 && type != 501) {
+	if (type != 500 && type != 501)
+	{
 		pr_err("unknown card type '%d'\n", type);
 		return -ENODEV;
 	}
 
-	if (pci_enable_device(dev)) {
+	if (pci_enable_device(dev))
+	{
 		pr_err("Not possible to enable PCI Device\n");
 		return -ENODEV;
 	}
 
-	if (pci_resource_start(dev, 2) == 0x0000) {
+	if (pci_resource_start(dev, 2) == 0x0000)
+	{
 		pr_err("No I/O-Address for card detected\n");
 		ret = -ENODEV;
 		goto out_pci;
 	}
 
-	if (pci_request_region(dev, 2, "wdt_pci")) {
+	if (pci_request_region(dev, 2, "wdt_pci"))
+	{
 		pr_err("I/O address 0x%llx already in use\n",
-		       (unsigned long long)pci_resource_start(dev, 2));
+			   (unsigned long long)pci_resource_start(dev, 2));
 		goto out_pci;
 	}
 
@@ -641,57 +736,71 @@ static int wdtpci_init_one(struct pci_dev *dev,
 	io = pci_resource_start(dev, 2);
 
 	if (request_irq(irq, wdtpci_interrupt, IRQF_SHARED,
-			 "wdt_pci", &wdtpci_miscdev)) {
+					"wdt_pci", &wdtpci_miscdev))
+	{
 		pr_err("IRQ %d is not free\n", irq);
 		goto out_reg;
 	}
 
 	pr_info("PCI-WDT500/501 (PCI-WDG-CSM) driver 0.10 at 0x%llx (Interrupt %d)\n",
-		(unsigned long long)io, irq);
+			(unsigned long long)io, irq);
 
 	/* Check that the heartbeat value is within its range;
 	   if not reset to the default */
-	if (wdtpci_set_heartbeat(heartbeat)) {
+	if (wdtpci_set_heartbeat(heartbeat))
+	{
 		wdtpci_set_heartbeat(WD_TIMO);
 		pr_info("heartbeat value must be 0 < heartbeat < 65536, using %d\n",
-			WD_TIMO);
+				WD_TIMO);
 	}
 
 	ret = register_reboot_notifier(&wdtpci_notifier);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("cannot register reboot notifier (err=%d)\n", ret);
 		goto out_irq;
 	}
 
-	if (type == 501) {
+	if (type == 501)
+	{
 		ret = misc_register(&temp_miscdev);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_err("cannot register miscdev on minor=%d (err=%d)\n",
-			       TEMP_MINOR, ret);
+				   TEMP_MINOR, ret);
 			goto out_rbt;
 		}
 	}
 
 	ret = misc_register(&wdtpci_miscdev);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("cannot register miscdev on minor=%d (err=%d)\n",
-		       WATCHDOG_MINOR, ret);
+			   WATCHDOG_MINOR, ret);
 		goto out_misc;
 	}
 
 	pr_info("initialized. heartbeat=%d sec (nowayout=%d)\n",
-		heartbeat, nowayout);
+			heartbeat, nowayout);
+
 	if (type == 501)
 		pr_info("Fan Tachometer is %s\n",
-			tachometer ? "Enabled" : "Disabled");
+				tachometer ? "Enabled" : "Disabled");
 
 	ret = 0;
 out:
 	return ret;
 
 out_misc:
+
 	if (type == 501)
+	{
 		misc_deregister(&temp_miscdev);
+	}
+
 out_rbt:
 	unregister_reboot_notifier(&wdtpci_notifier);
 out_irq:
@@ -709,8 +818,12 @@ static void wdtpci_remove_one(struct pci_dev *pdev)
 	/* here we assume only one device will ever have
 	 * been picked up and registered by probe function */
 	misc_deregister(&wdtpci_miscdev);
+
 	if (type == 501)
+	{
 		misc_deregister(&temp_miscdev);
+	}
+
 	unregister_reboot_notifier(&wdtpci_notifier);
 	free_irq(irq, &wdtpci_miscdev);
 	pci_release_region(pdev, 2);
@@ -719,7 +832,8 @@ static void wdtpci_remove_one(struct pci_dev *pdev)
 }
 
 
-static const struct pci_device_id wdtpci_pci_tbl[] = {
+static const struct pci_device_id wdtpci_pci_tbl[] =
+{
 	{
 		.vendor	   = PCI_VENDOR_ID_ACCESSIO,
 		.device	   = PCI_DEVICE_ID_ACCESSIO_WDG_CSM,
@@ -731,7 +845,8 @@ static const struct pci_device_id wdtpci_pci_tbl[] = {
 MODULE_DEVICE_TABLE(pci, wdtpci_pci_tbl);
 
 
-static struct pci_driver wdtpci_driver = {
+static struct pci_driver wdtpci_driver =
+{
 	.name		= "wdt_pci",
 	.id_table	= wdtpci_pci_tbl,
 	.probe		= wdtpci_init_one,

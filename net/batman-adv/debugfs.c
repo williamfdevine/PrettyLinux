@@ -74,7 +74,7 @@ static int batadv_originators_open(struct inode *inode, struct file *file)
  * Return: 0 on success or negative error number in case of failure
  */
 static int batadv_originators_hardif_open(struct inode *inode,
-					  struct file *file)
+		struct file *file)
 {
 	struct net_device *net_dev = (struct net_device *)inode->i_private;
 
@@ -101,16 +101,16 @@ static int batadv_bla_claim_table_open(struct inode *inode, struct file *file)
 	struct net_device *net_dev = (struct net_device *)inode->i_private;
 
 	return single_open(file, batadv_bla_claim_table_seq_print_text,
-			   net_dev);
+					   net_dev);
 }
 
 static int batadv_bla_backbone_table_open(struct inode *inode,
-					  struct file *file)
+		struct file *file)
 {
 	struct net_device *net_dev = (struct net_device *)inode->i_private;
 
 	return single_open(file, batadv_bla_backbone_table_seq_print_text,
-			   net_dev);
+					   net_dev);
 }
 
 #endif
@@ -138,7 +138,8 @@ static int batadv_transtable_local_open(struct inode *inode, struct file *file)
 	return single_open(file, batadv_tt_local_seq_print_text, net_dev);
 }
 
-struct batadv_debuginfo {
+struct batadv_debuginfo
+{
 	struct attribute attr;
 	const struct file_operations fops;
 };
@@ -169,26 +170,27 @@ static int batadv_mcast_flags_open(struct inode *inode, struct file *file)
 #endif
 
 #define BATADV_DEBUGINFO(_name, _mode, _open)		\
-struct batadv_debuginfo batadv_debuginfo_##_name = {	\
-	.attr = {					\
-		.name = __stringify(_name),		\
-		.mode = _mode,				\
-	},						\
-	.fops = {					\
-		.owner = THIS_MODULE,			\
-		.open = _open,				\
-		.read	= seq_read,			\
-		.llseek = seq_lseek,			\
-		.release = single_release,		\
-	},						\
-}
+	struct batadv_debuginfo batadv_debuginfo_##_name = {	\
+		.attr = {					\
+									.name = __stringify(_name),		\
+									.mode = _mode,				\
+				},						\
+				.fops = {					\
+											.owner = THIS_MODULE,			\
+											.open = _open,				\
+											.read	= seq_read,			\
+											.llseek = seq_lseek,			\
+											.release = single_release,		\
+						},						\
+	}
 
 /* the following attributes are general and therefore they will be directly
  * placed in the BATADV_DEBUGFS_SUBDIR subdirectory of debugfs
  */
 static BATADV_DEBUGINFO(routing_algos, S_IRUGO, batadv_algorithms_open);
 
-static struct batadv_debuginfo *batadv_general_debuginfos[] = {
+static struct batadv_debuginfo *batadv_general_debuginfos[] =
+{
 	&batadv_debuginfo_routing_algos,
 	NULL,
 };
@@ -198,25 +200,26 @@ static BATADV_DEBUGINFO(neighbors, S_IRUGO, neighbors_open);
 static BATADV_DEBUGINFO(originators, S_IRUGO, batadv_originators_open);
 static BATADV_DEBUGINFO(gateways, S_IRUGO, batadv_gateways_open);
 static BATADV_DEBUGINFO(transtable_global, S_IRUGO,
-			batadv_transtable_global_open);
+						batadv_transtable_global_open);
 #ifdef CONFIG_BATMAN_ADV_BLA
 static BATADV_DEBUGINFO(bla_claim_table, S_IRUGO, batadv_bla_claim_table_open);
 static BATADV_DEBUGINFO(bla_backbone_table, S_IRUGO,
-			batadv_bla_backbone_table_open);
+						batadv_bla_backbone_table_open);
 #endif
 #ifdef CONFIG_BATMAN_ADV_DAT
-static BATADV_DEBUGINFO(dat_cache, S_IRUGO, batadv_dat_cache_open);
+	static BATADV_DEBUGINFO(dat_cache, S_IRUGO, batadv_dat_cache_open);
 #endif
 static BATADV_DEBUGINFO(transtable_local, S_IRUGO,
-			batadv_transtable_local_open);
+						batadv_transtable_local_open);
 #ifdef CONFIG_BATMAN_ADV_NC
-static BATADV_DEBUGINFO(nc_nodes, S_IRUGO, batadv_nc_nodes_open);
+	static BATADV_DEBUGINFO(nc_nodes, S_IRUGO, batadv_nc_nodes_open);
 #endif
 #ifdef CONFIG_BATMAN_ADV_MCAST
-static BATADV_DEBUGINFO(mcast_flags, S_IRUGO, batadv_mcast_flags_open);
+	static BATADV_DEBUGINFO(mcast_flags, S_IRUGO, batadv_mcast_flags_open);
 #endif
 
-static struct batadv_debuginfo *batadv_mesh_debuginfos[] = {
+static struct batadv_debuginfo *batadv_mesh_debuginfos[] =
+{
 	&batadv_debuginfo_neighbors,
 	&batadv_debuginfo_originators,
 	&batadv_debuginfo_gateways,
@@ -239,24 +242,25 @@ static struct batadv_debuginfo *batadv_mesh_debuginfos[] = {
 };
 
 #define BATADV_HARDIF_DEBUGINFO(_name, _mode, _open)		\
-struct batadv_debuginfo batadv_hardif_debuginfo_##_name = {	\
-	.attr = {						\
-		.name = __stringify(_name),			\
-		.mode = _mode,					\
-	},							\
-	.fops = {						\
-		.owner = THIS_MODULE,				\
-		.open = _open,					\
-		.read	= seq_read,				\
-		.llseek = seq_lseek,				\
-		.release = single_release,			\
-	},							\
-}
+	struct batadv_debuginfo batadv_hardif_debuginfo_##_name = {	\
+		.attr = {						\
+										.name = __stringify(_name),			\
+										.mode = _mode,					\
+				},							\
+				.fops = {						\
+												.owner = THIS_MODULE,				\
+												.open = _open,					\
+												.read	= seq_read,				\
+												.llseek = seq_lseek,				\
+												.release = single_release,			\
+						},							\
+	}
 
 static BATADV_HARDIF_DEBUGINFO(originators, S_IRUGO,
-			       batadv_originators_hardif_open);
+							   batadv_originators_hardif_open);
 
-static struct batadv_debuginfo *batadv_hardif_debuginfos[] = {
+static struct batadv_debuginfo *batadv_hardif_debuginfos[] =
+{
 	&batadv_hardif_debuginfo_originators,
 	NULL,
 };
@@ -267,20 +271,28 @@ void batadv_debugfs_init(void)
 	struct dentry *file;
 
 	batadv_debugfs = debugfs_create_dir(BATADV_DEBUGFS_SUBDIR, NULL);
+
 	if (batadv_debugfs == ERR_PTR(-ENODEV))
+	{
 		batadv_debugfs = NULL;
+	}
 
 	if (!batadv_debugfs)
+	{
 		goto err;
+	}
 
-	for (bat_debug = batadv_general_debuginfos; *bat_debug; ++bat_debug) {
+	for (bat_debug = batadv_general_debuginfos; *bat_debug; ++bat_debug)
+	{
 		file = debugfs_create_file(((*bat_debug)->attr).name,
-					   S_IFREG | ((*bat_debug)->attr).mode,
-					   batadv_debugfs, NULL,
-					   &(*bat_debug)->fops);
-		if (!file) {
+								   S_IFREG | ((*bat_debug)->attr).mode,
+								   batadv_debugfs, NULL,
+								   &(*bat_debug)->fops);
+
+		if (!file)
+		{
 			pr_err("Can't add general debugfs file: %s\n",
-			       ((*bat_debug)->attr).name);
+				   ((*bat_debug)->attr).name);
 			goto err;
 		}
 	}
@@ -311,24 +323,35 @@ int batadv_debugfs_add_hardif(struct batadv_hard_iface *hard_iface)
 	struct dentry *file;
 
 	if (!batadv_debugfs)
+	{
 		goto out;
+	}
 
 	if (net != &init_net)
+	{
 		return 0;
+	}
 
 	hard_iface->debug_dir = debugfs_create_dir(hard_iface->net_dev->name,
-						   batadv_debugfs);
-	if (!hard_iface->debug_dir)
-		goto out;
+							batadv_debugfs);
 
-	for (bat_debug = batadv_hardif_debuginfos; *bat_debug; ++bat_debug) {
+	if (!hard_iface->debug_dir)
+	{
+		goto out;
+	}
+
+	for (bat_debug = batadv_hardif_debuginfos; *bat_debug; ++bat_debug)
+	{
 		file = debugfs_create_file(((*bat_debug)->attr).name,
-					   S_IFREG | ((*bat_debug)->attr).mode,
-					   hard_iface->debug_dir,
-					   hard_iface->net_dev,
-					   &(*bat_debug)->fops);
+								   S_IFREG | ((*bat_debug)->attr).mode,
+								   hard_iface->debug_dir,
+								   hard_iface->net_dev,
+								   &(*bat_debug)->fops);
+
 		if (!file)
+		{
 			goto rem_attr;
+		}
 	}
 
 	return 0;
@@ -349,9 +372,12 @@ void batadv_debugfs_del_hardif(struct batadv_hard_iface *hard_iface)
 	struct net *net = dev_net(hard_iface->net_dev);
 
 	if (net != &init_net)
+	{
 		return;
+	}
 
-	if (batadv_debugfs) {
+	if (batadv_debugfs)
+	{
 		debugfs_remove_recursive(hard_iface->debug_dir);
 		hard_iface->debug_dir = NULL;
 	}
@@ -365,35 +391,51 @@ int batadv_debugfs_add_meshif(struct net_device *dev)
 	struct dentry *file;
 
 	if (!batadv_debugfs)
+	{
 		goto out;
+	}
 
 	if (net != &init_net)
+	{
 		return 0;
+	}
 
 	bat_priv->debug_dir = debugfs_create_dir(dev->name, batadv_debugfs);
+
 	if (!bat_priv->debug_dir)
+	{
 		goto out;
+	}
 
 	if (batadv_socket_setup(bat_priv) < 0)
+	{
 		goto rem_attr;
+	}
 
 	if (batadv_debug_log_setup(bat_priv) < 0)
+	{
 		goto rem_attr;
+	}
 
-	for (bat_debug = batadv_mesh_debuginfos; *bat_debug; ++bat_debug) {
+	for (bat_debug = batadv_mesh_debuginfos; *bat_debug; ++bat_debug)
+	{
 		file = debugfs_create_file(((*bat_debug)->attr).name,
-					   S_IFREG | ((*bat_debug)->attr).mode,
-					   bat_priv->debug_dir,
-					   dev, &(*bat_debug)->fops);
-		if (!file) {
+								   S_IFREG | ((*bat_debug)->attr).mode,
+								   bat_priv->debug_dir,
+								   dev, &(*bat_debug)->fops);
+
+		if (!file)
+		{
 			batadv_err(dev, "Can't add debugfs file: %s/%s\n",
-				   dev->name, ((*bat_debug)->attr).name);
+					   dev->name, ((*bat_debug)->attr).name);
 			goto rem_attr;
 		}
 	}
 
 	if (batadv_nc_init_debugfs(bat_priv) < 0)
+	{
 		goto rem_attr;
+	}
 
 	return 0;
 rem_attr:
@@ -409,11 +451,14 @@ void batadv_debugfs_del_meshif(struct net_device *dev)
 	struct net *net = dev_net(dev);
 
 	if (net != &init_net)
+	{
 		return;
+	}
 
 	batadv_debug_log_cleanup(bat_priv);
 
-	if (batadv_debugfs) {
+	if (batadv_debugfs)
+	{
 		debugfs_remove_recursive(bat_priv->debug_dir);
 		bat_priv->debug_dir = NULL;
 	}

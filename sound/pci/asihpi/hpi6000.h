@@ -33,7 +33,8 @@ Shared between hpi6000.c and DSP code
  * The DSP should make sure that dwControlCacheSizeInBytes is initialized to 0
  * during boot to make it in-active.
  */
-struct hpi_hif_6000 {
+struct hpi_hif_6000
+{
 	u32 host_cmd;
 	u32 dsp_ack;
 	u32 address;
@@ -49,13 +50,13 @@ struct hpi_hif_6000 {
 };
 
 #define HPI_HIF_PACK_ADAPTER_INFO(adapter, version_major, version_minor) \
-		((adapter << 16) | (version_major << 8) | version_minor)
+	((adapter << 16) | (version_major << 8) | version_minor)
 #define HPI_HIF_ADAPTER_INFO_EXTRACT_ADAPTER(adapterinfo) \
-		((adapterinfo >> 16) & 0xffff)
+	((adapterinfo >> 16) & 0xffff)
 #define HPI_HIF_ADAPTER_INFO_EXTRACT_HWVERSION_MAJOR(adapterinfo) \
-		((adapterinfo >> 8) & 0xff)
+	((adapterinfo >> 8) & 0xff)
 #define HPI_HIF_ADAPTER_INFO_EXTRACT_HWVERSION_MINOR(adapterinfo) \
-		(adapterinfo & 0xff)
+	(adapterinfo & 0xff)
 
 /* Command/status exchanged between host and DSP */
 #define HPI_HIF_IDLE            0

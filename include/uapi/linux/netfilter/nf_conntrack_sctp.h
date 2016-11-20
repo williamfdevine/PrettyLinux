@@ -4,7 +4,8 @@
 
 #include <linux/netfilter/nf_conntrack_tuple_common.h>
 
-enum sctp_conntrack {
+enum sctp_conntrack
+{
 	SCTP_CONNTRACK_NONE,
 	SCTP_CONNTRACK_CLOSED,
 	SCTP_CONNTRACK_COOKIE_WAIT,

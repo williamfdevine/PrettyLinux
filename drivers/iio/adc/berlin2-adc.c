@@ -69,7 +69,8 @@
 #define  BERLIN2_SM_TSEN_CTRL_TRIM(x)		((x) << 22)
 #define  BERLIN2_SM_TSEN_CTRL_TRIM_MASK		GENMASK(25, 22)
 
-struct berlin2_adc_priv {
+struct berlin2_adc_priv
+{
 	struct regmap		*regmap;
 	struct mutex		lock;
 	wait_queue_head_t	wq;
@@ -80,13 +81,14 @@ struct berlin2_adc_priv {
 #define BERLIN2_ADC_CHANNEL(n, t)					\
 	{								\
 		.channel		= n,				\
-		.datasheet_name		= "channel"#n,			\
-		.type			= t,				\
-		.indexed		= 1,				\
-		.info_mask_separate	= BIT(IIO_CHAN_INFO_RAW),	\
+						  .datasheet_name		= "channel"#n,			\
+												.type			= t,				\
+														.indexed		= 1,				\
+																.info_mask_separate	= BIT(IIO_CHAN_INFO_RAW),	\
 	}
 
-static const struct iio_chan_spec berlin2_adc_channels[] = {
+static const struct iio_chan_spec berlin2_adc_channels[] =
+{
 	BERLIN2_ADC_CHANNEL(0, IIO_VOLTAGE),	/* external input */
 	BERLIN2_ADC_CHANNEL(1, IIO_VOLTAGE),	/* external input */
 	BERLIN2_ADC_CHANNEL(2, IIO_VOLTAGE),	/* external input */
@@ -113,32 +115,36 @@ static int berlin2_adc_read(struct iio_dev *indio_dev, int channel)
 
 	/* Enable the interrupts */
 	regmap_write(priv->regmap, BERLIN2_SM_ADC_STATUS,
-		     BERLIN2_SM_ADC_STATUS_INT_EN(channel));
+				 BERLIN2_SM_ADC_STATUS_INT_EN(channel));
 
 	/* Configure the ADC */
 	regmap_update_bits(priv->regmap, BERLIN2_SM_CTRL,
-			   BERLIN2_SM_CTRL_ADC_RESET |
-			   BERLIN2_SM_CTRL_ADC_SEL_MASK |
-			   BERLIN2_SM_CTRL_ADC_START,
-			   BERLIN2_SM_CTRL_ADC_SEL(channel) |
-			   BERLIN2_SM_CTRL_ADC_START);
+					   BERLIN2_SM_CTRL_ADC_RESET |
+					   BERLIN2_SM_CTRL_ADC_SEL_MASK |
+					   BERLIN2_SM_CTRL_ADC_START,
+					   BERLIN2_SM_CTRL_ADC_SEL(channel) |
+					   BERLIN2_SM_CTRL_ADC_START);
 
 	ret = wait_event_interruptible_timeout(priv->wq, priv->data_available,
-					       msecs_to_jiffies(1000));
+										   msecs_to_jiffies(1000));
 
 	/* Disable the interrupts */
 	regmap_update_bits(priv->regmap, BERLIN2_SM_ADC_STATUS,
-			   BERLIN2_SM_ADC_STATUS_INT_EN(channel), 0);
+					   BERLIN2_SM_ADC_STATUS_INT_EN(channel), 0);
 
 	if (ret == 0)
+	{
 		ret = -ETIMEDOUT;
-	if (ret < 0) {
+	}
+
+	if (ret < 0)
+	{
 		mutex_unlock(&priv->lock);
 		return ret;
 	}
 
 	regmap_update_bits(priv->regmap, BERLIN2_SM_CTRL,
-			   BERLIN2_SM_CTRL_ADC_START, 0);
+					   BERLIN2_SM_CTRL_ADC_START, 0);
 
 	data = priv->data;
 	priv->data_available = false;
@@ -157,39 +163,43 @@ static int berlin2_adc_tsen_read(struct iio_dev *indio_dev)
 
 	/* Enable interrupts */
 	regmap_write(priv->regmap, BERLIN2_SM_TSEN_STATUS,
-		     BERLIN2_SM_TSEN_STATUS_INT_EN);
+				 BERLIN2_SM_TSEN_STATUS_INT_EN);
 
 	/* Configure the ADC */
 	regmap_update_bits(priv->regmap, BERLIN2_SM_CTRL,
-			   BERLIN2_SM_CTRL_TSEN_RESET |
-			   BERLIN2_SM_CTRL_ADC_ROTATE,
-			   BERLIN2_SM_CTRL_ADC_ROTATE);
+					   BERLIN2_SM_CTRL_TSEN_RESET |
+					   BERLIN2_SM_CTRL_ADC_ROTATE,
+					   BERLIN2_SM_CTRL_ADC_ROTATE);
 
 	/* Configure the temperature sensor */
 	regmap_update_bits(priv->regmap, BERLIN2_SM_TSEN_CTRL,
-			   BERLIN2_SM_TSEN_CTRL_TRIM_MASK |
-			   BERLIN2_SM_TSEN_CTRL_SETTLING_MASK |
-			   BERLIN2_SM_TSEN_CTRL_START,
-			   BERLIN2_SM_TSEN_CTRL_TRIM(3) |
-			   BERLIN2_SM_TSEN_CTRL_SETTLING_12 |
-			   BERLIN2_SM_TSEN_CTRL_START);
+					   BERLIN2_SM_TSEN_CTRL_TRIM_MASK |
+					   BERLIN2_SM_TSEN_CTRL_SETTLING_MASK |
+					   BERLIN2_SM_TSEN_CTRL_START,
+					   BERLIN2_SM_TSEN_CTRL_TRIM(3) |
+					   BERLIN2_SM_TSEN_CTRL_SETTLING_12 |
+					   BERLIN2_SM_TSEN_CTRL_START);
 
 	ret = wait_event_interruptible_timeout(priv->wq, priv->data_available,
-					       msecs_to_jiffies(1000));
+										   msecs_to_jiffies(1000));
 
 	/* Disable interrupts */
 	regmap_update_bits(priv->regmap, BERLIN2_SM_TSEN_STATUS,
-			   BERLIN2_SM_TSEN_STATUS_INT_EN, 0);
+					   BERLIN2_SM_TSEN_STATUS_INT_EN, 0);
 
 	if (ret == 0)
+	{
 		ret = -ETIMEDOUT;
-	if (ret < 0) {
+	}
+
+	if (ret < 0)
+	{
 		mutex_unlock(&priv->lock);
 		return ret;
 	}
 
 	regmap_update_bits(priv->regmap, BERLIN2_SM_TSEN_CTRL,
-			   BERLIN2_SM_TSEN_CTRL_START, 0);
+					   BERLIN2_SM_TSEN_CTRL_START, 0);
 
 	data = priv->data;
 	priv->data_available = false;
@@ -200,37 +210,52 @@ static int berlin2_adc_tsen_read(struct iio_dev *indio_dev)
 }
 
 static int berlin2_adc_read_raw(struct iio_dev *indio_dev,
-				struct iio_chan_spec const *chan, int *val,
-				int *val2, long mask)
+								struct iio_chan_spec const *chan, int *val,
+								int *val2, long mask)
 {
 	int temp;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		if (chan->type != IIO_VOLTAGE)
-			return -EINVAL;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			if (chan->type != IIO_VOLTAGE)
+			{
+				return -EINVAL;
+			}
 
-		*val = berlin2_adc_read(indio_dev, chan->channel);
-		if (*val < 0)
-			return *val;
+			*val = berlin2_adc_read(indio_dev, chan->channel);
 
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_PROCESSED:
-		if (chan->type != IIO_TEMP)
-			return -EINVAL;
+			if (*val < 0)
+			{
+				return *val;
+			}
 
-		temp = berlin2_adc_tsen_read(indio_dev);
-		if (temp < 0)
-			return temp;
+			return IIO_VAL_INT;
 
-		if (temp > 2047)
-			temp -= 4096;
+		case IIO_CHAN_INFO_PROCESSED:
+			if (chan->type != IIO_TEMP)
+			{
+				return -EINVAL;
+			}
 
-		/* Convert to milli Celsius */
-		*val = ((temp * 100000) / 264 - 270000);
-		return IIO_VAL_INT;
-	default:
-		break;
+			temp = berlin2_adc_tsen_read(indio_dev);
+
+			if (temp < 0)
+			{
+				return temp;
+			}
+
+			if (temp > 2047)
+			{
+				temp -= 4096;
+			}
+
+			/* Convert to milli Celsius */
+			*val = ((temp * 100000) / 264 - 270000);
+			return IIO_VAL_INT;
+
+		default:
+			break;
 	}
 
 	return -EINVAL;
@@ -242,7 +267,9 @@ static irqreturn_t berlin2_adc_irq(int irq, void *private)
 	unsigned val;
 
 	regmap_read(priv->regmap, BERLIN2_SM_ADC_STATUS, &val);
-	if (val & BERLIN2_SM_ADC_STATUS_DATA_RDY_MASK) {
+
+	if (val & BERLIN2_SM_ADC_STATUS_DATA_RDY_MASK)
+	{
 		regmap_read(priv->regmap, BERLIN2_SM_ADC_DATA, &priv->data);
 		priv->data &= BERLIN2_SM_ADC_MASK;
 
@@ -262,7 +289,9 @@ static irqreturn_t berlin2_adc_tsen_irq(int irq, void *private)
 	unsigned val;
 
 	regmap_read(priv->regmap, BERLIN2_SM_TSEN_STATUS, &val);
-	if (val & BERLIN2_SM_TSEN_STATUS_DATA_RDY) {
+
+	if (val & BERLIN2_SM_TSEN_STATUS_DATA_RDY)
+	{
 		regmap_read(priv->regmap, BERLIN2_SM_TSEN_DATA, &priv->data);
 		priv->data &= BERLIN2_SM_TSEN_MASK;
 
@@ -276,7 +305,8 @@ static irqreturn_t berlin2_adc_tsen_irq(int irq, void *private)
 	return IRQ_HANDLED;
 }
 
-static const struct iio_info berlin2_adc_info = {
+static const struct iio_info berlin2_adc_info =
+{
 	.driver_module	= THIS_MODULE,
 	.read_raw	= berlin2_adc_read_raw,
 };
@@ -290,34 +320,52 @@ static int berlin2_adc_probe(struct platform_device *pdev)
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&pdev->dev, sizeof(*priv));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	priv = iio_priv(indio_dev);
 	platform_set_drvdata(pdev, indio_dev);
 
 	priv->regmap = syscon_node_to_regmap(parent_np);
 	of_node_put(parent_np);
+
 	if (IS_ERR(priv->regmap))
+	{
 		return PTR_ERR(priv->regmap);
+	}
 
 	irq = platform_get_irq_byname(pdev, "adc");
+
 	if (irq < 0)
+	{
 		return irq;
+	}
 
 	tsen_irq = platform_get_irq_byname(pdev, "tsen");
+
 	if (tsen_irq < 0)
+	{
 		return tsen_irq;
+	}
 
 	ret = devm_request_irq(&pdev->dev, irq, berlin2_adc_irq, 0,
-			       pdev->dev.driver->name, indio_dev);
+						   pdev->dev.driver->name, indio_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = devm_request_irq(&pdev->dev, tsen_irq, berlin2_adc_tsen_irq,
-			       0, pdev->dev.driver->name, indio_dev);
+						   0, pdev->dev.driver->name, indio_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	init_waitqueue_head(&priv->wq);
 	mutex_init(&priv->lock);
@@ -332,14 +380,16 @@ static int berlin2_adc_probe(struct platform_device *pdev)
 
 	/* Power up the ADC */
 	regmap_update_bits(priv->regmap, BERLIN2_SM_CTRL,
-			   BERLIN2_SM_CTRL_ADC_POWER,
-			   BERLIN2_SM_CTRL_ADC_POWER);
+					   BERLIN2_SM_CTRL_ADC_POWER,
+					   BERLIN2_SM_CTRL_ADC_POWER);
 
 	ret = iio_device_register(indio_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		/* Power down the ADC */
 		regmap_update_bits(priv->regmap, BERLIN2_SM_CTRL,
-				   BERLIN2_SM_CTRL_ADC_POWER, 0);
+						   BERLIN2_SM_CTRL_ADC_POWER, 0);
 		return ret;
 	}
 
@@ -355,18 +405,20 @@ static int berlin2_adc_remove(struct platform_device *pdev)
 
 	/* Power down the ADC */
 	regmap_update_bits(priv->regmap, BERLIN2_SM_CTRL,
-			   BERLIN2_SM_CTRL_ADC_POWER, 0);
+					   BERLIN2_SM_CTRL_ADC_POWER, 0);
 
 	return 0;
 }
 
-static const struct of_device_id berlin2_adc_match[] = {
+static const struct of_device_id berlin2_adc_match[] =
+{
 	{ .compatible = "marvell,berlin2-adc", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, berlin2_adc_match);
 
-static struct platform_driver berlin2_adc_driver = {
+static struct platform_driver berlin2_adc_driver =
+{
 	.driver	= {
 		.name		= "berlin2-adc",
 		.of_match_table	= berlin2_adc_match,

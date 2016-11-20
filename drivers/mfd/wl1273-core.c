@@ -26,7 +26,8 @@
 
 #define DRIVER_DESC "WL1273 FM Radio Core"
 
-static const struct i2c_device_id wl1273_driver_id_table[] = {
+static const struct i2c_device_id wl1273_driver_id_table[] =
+{
 	{ WL1273_FM_DRIVER_NAME, 0 },
 	{ }
 };
@@ -39,7 +40,9 @@ static int wl1273_fm_read_reg(struct wl1273_core *core, u8 reg, u16 *value)
 	int r;
 
 	r = i2c_smbus_read_i2c_block_data(client, reg, sizeof(b), b);
-	if (r != 2) {
+
+	if (r != 2)
+	{
 		dev_err(&client->dev, "%s: Read: %d fails.\n", __func__, reg);
 		return -EREMOTEIO;
 	}
@@ -56,7 +59,9 @@ static int wl1273_fm_write_cmd(struct wl1273_core *core, u8 cmd, u16 param)
 	int r;
 
 	r = i2c_smbus_write_i2c_block_data(client, cmd, sizeof(buf), buf);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(&client->dev, "%s: Cmd: %d fails.\n", __func__, cmd);
 		return r;
 	}
@@ -76,7 +81,9 @@ static int wl1273_fm_write_data(struct wl1273_core *core, u8 *data, u16 len)
 	msg.len = len;
 
 	r = i2c_transfer(client->adapter, &msg, 1);
-	if (r != 1) {
+
+	if (r != 1)
+	{
 		dev_err(&client->dev, "%s: write error.\n", __func__);
 		return -EREMOTEIO;
 	}
@@ -96,50 +103,80 @@ static int wl1273_fm_set_audio(struct wl1273_core *core, unsigned int new_mode)
 	int r = 0;
 
 	if (core->mode == WL1273_MODE_OFF ||
-	    core->mode == WL1273_MODE_SUSPENDED)
+		core->mode == WL1273_MODE_SUSPENDED)
+	{
 		return -EPERM;
+	}
 
-	if (core->mode == WL1273_MODE_RX && new_mode == WL1273_AUDIO_DIGITAL) {
+	if (core->mode == WL1273_MODE_RX && new_mode == WL1273_AUDIO_DIGITAL)
+	{
 		r = wl1273_fm_write_cmd(core, WL1273_PCM_MODE_SET,
-					WL1273_PCM_DEF_MODE);
+								WL1273_PCM_DEF_MODE);
+
 		if (r)
+		{
 			goto out;
+		}
 
 		r = wl1273_fm_write_cmd(core, WL1273_I2S_MODE_CONFIG_SET,
-					core->i2s_mode);
+								core->i2s_mode);
+
 		if (r)
+		{
 			goto out;
+		}
 
 		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_ENABLE,
-					WL1273_AUDIO_ENABLE_I2S);
-		if (r)
-			goto out;
+								WL1273_AUDIO_ENABLE_I2S);
 
-	} else if (core->mode == WL1273_MODE_RX &&
-		   new_mode == WL1273_AUDIO_ANALOG) {
+		if (r)
+		{
+			goto out;
+		}
+
+	}
+	else if (core->mode == WL1273_MODE_RX &&
+			 new_mode == WL1273_AUDIO_ANALOG)
+	{
 		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_ENABLE,
-					WL1273_AUDIO_ENABLE_ANALOG);
-		if (r)
-			goto out;
+								WL1273_AUDIO_ENABLE_ANALOG);
 
-	} else if (core->mode == WL1273_MODE_TX &&
-		   new_mode == WL1273_AUDIO_DIGITAL) {
+		if (r)
+		{
+			goto out;
+		}
+
+	}
+	else if (core->mode == WL1273_MODE_TX &&
+			 new_mode == WL1273_AUDIO_DIGITAL)
+	{
 		r = wl1273_fm_write_cmd(core, WL1273_I2S_MODE_CONFIG_SET,
-					core->i2s_mode);
+								core->i2s_mode);
+
 		if (r)
+		{
 			goto out;
+		}
 
 		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_IO_SET,
-					WL1273_AUDIO_IO_SET_I2S);
-		if (r)
-			goto out;
+								WL1273_AUDIO_IO_SET_I2S);
 
-	} else if (core->mode == WL1273_MODE_TX &&
-		   new_mode == WL1273_AUDIO_ANALOG) {
-		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_IO_SET,
-					WL1273_AUDIO_IO_SET_ANALOG);
 		if (r)
+		{
 			goto out;
+		}
+
+	}
+	else if (core->mode == WL1273_MODE_TX &&
+			 new_mode == WL1273_AUDIO_ANALOG)
+	{
+		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_IO_SET,
+								WL1273_AUDIO_IO_SET_ANALOG);
+
+		if (r)
+		{
+			goto out;
+		}
 	}
 
 	core->audio_mode = new_mode;
@@ -157,21 +194,28 @@ static int wl1273_fm_set_volume(struct wl1273_core *core, unsigned int volume)
 	int r;
 
 	if (volume > WL1273_MAX_VOLUME)
+	{
 		return -EINVAL;
+	}
 
 	if (core->volume == volume)
+	{
 		return 0;
+	}
 
 	r = wl1273_fm_write_cmd(core, WL1273_VOLUME_SET, volume);
+
 	if (r)
+	{
 		return r;
+	}
 
 	core->volume = volume;
 	return 0;
 }
 
 static int wl1273_core_probe(struct i2c_client *client,
-				       const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	struct wl1273_fm_platform_data *pdata = dev_get_platdata(&client->dev);
 	struct wl1273_core *core;
@@ -181,19 +225,24 @@ static int wl1273_core_probe(struct i2c_client *client,
 
 	dev_dbg(&client->dev, "%s\n", __func__);
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		dev_err(&client->dev, "No platform data.\n");
 		return -EINVAL;
 	}
 
-	if (!(pdata->children & WL1273_RADIO_CHILD)) {
+	if (!(pdata->children & WL1273_RADIO_CHILD))
+	{
 		dev_err(&client->dev, "Cannot function without radio child.\n");
 		return -EINVAL;
 	}
 
 	core = devm_kzalloc(&client->dev, sizeof(*core), GFP_KERNEL);
+
 	if (!core)
+	{
 		return -ENOMEM;
+	}
 
 	core->pdata = pdata;
 	core->client = client;
@@ -215,7 +264,8 @@ static int wl1273_core_probe(struct i2c_client *client,
 	core->set_audio = wl1273_fm_set_audio;
 	core->set_volume = wl1273_fm_set_volume;
 
-	if (pdata->children & WL1273_CODEC_CHILD) {
+	if (pdata->children & WL1273_CODEC_CHILD)
+	{
 		cell = &core->cells[children];
 
 		dev_dbg(&client->dev, "%s: Have codec.\n", __func__);
@@ -226,12 +276,15 @@ static int wl1273_core_probe(struct i2c_client *client,
 	}
 
 	dev_dbg(&client->dev, "%s: number of children: %d.\n",
-		__func__, children);
+			__func__, children);
 
 	r = devm_mfd_add_devices(&client->dev, -1, core->cells,
-				 children, NULL, 0, NULL);
+							 children, NULL, 0, NULL);
+
 	if (r)
+	{
 		goto err;
+	}
 
 	return 0;
 
@@ -243,7 +296,8 @@ err:
 	return r;
 }
 
-static struct i2c_driver wl1273_core_driver = {
+static struct i2c_driver wl1273_core_driver =
+{
 	.driver = {
 		.name = WL1273_FM_DRIVER_NAME,
 	},
@@ -256,9 +310,11 @@ static int __init wl1273_core_init(void)
 	int r;
 
 	r = i2c_add_driver(&wl1273_core_driver);
-	if (r) {
+
+	if (r)
+	{
 		pr_err(WL1273_FM_DRIVER_NAME
-		       ": driver registration failed\n");
+			   ": driver registration failed\n");
 		return r;
 	}
 

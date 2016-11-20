@@ -89,73 +89,97 @@ void r420_pipes_init(struct radeon_device *rdev)
 
 	/* GA_ENHANCE workaround TCL deadlock issue */
 	WREG32(R300_GA_ENHANCE, R300_GA_DEADLOCK_CNTL | R300_GA_FASTSYNC_CNTL |
-	       (1 << 2) | (1 << 3));
+		   (1 << 2) | (1 << 3));
+
 	/* add idle wait as per freedesktop.org bug 24041 */
-	if (r100_gui_wait_for_idle(rdev)) {
+	if (r100_gui_wait_for_idle(rdev))
+	{
 		printk(KERN_WARNING "Failed to wait GUI idle while "
-		       "programming pipes. Bad things might happen.\n");
+			   "programming pipes. Bad things might happen.\n");
 	}
+
 	/* get max number of pipes */
 	gb_pipe_select = RREG32(R400_GB_PIPE_SELECT);
 	num_pipes = ((gb_pipe_select >> 12) & 3) + 1;
 
 	/* SE chips have 1 pipe */
 	if ((rdev->pdev->device == 0x5e4c) ||
-	    (rdev->pdev->device == 0x5e4f))
+		(rdev->pdev->device == 0x5e4f))
+	{
 		num_pipes = 1;
+	}
 
 	rdev->num_gb_pipes = num_pipes;
 	tmp = 0;
-	switch (num_pipes) {
-	default:
-		/* force to 1 pipe */
-		num_pipes = 1;
-	case 1:
-		tmp = (0 << 1);
-		break;
-	case 2:
-		tmp = (3 << 1);
-		break;
-	case 3:
-		tmp = (6 << 1);
-		break;
-	case 4:
-		tmp = (7 << 1);
-		break;
+
+	switch (num_pipes)
+	{
+		default:
+			/* force to 1 pipe */
+			num_pipes = 1;
+
+		case 1:
+			tmp = (0 << 1);
+			break;
+
+		case 2:
+			tmp = (3 << 1);
+			break;
+
+		case 3:
+			tmp = (6 << 1);
+			break;
+
+		case 4:
+			tmp = (7 << 1);
+			break;
 	}
+
 	WREG32(R500_SU_REG_DEST, (1 << num_pipes) - 1);
 	/* Sub pixel 1/12 so we can have 4K rendering according to doc */
 	tmp |= R300_TILE_SIZE_16 | R300_ENABLE_TILING;
 	WREG32(R300_GB_TILE_CONFIG, tmp);
-	if (r100_gui_wait_for_idle(rdev)) {
+
+	if (r100_gui_wait_for_idle(rdev))
+	{
 		printk(KERN_WARNING "Failed to wait GUI idle while "
-		       "programming pipes. Bad things might happen.\n");
+			   "programming pipes. Bad things might happen.\n");
 	}
 
 	tmp = RREG32(R300_DST_PIPE_CONFIG);
 	WREG32(R300_DST_PIPE_CONFIG, tmp | R300_PIPE_AUTO_CONFIG);
 
 	WREG32(R300_RB2D_DSTCACHE_MODE,
-	       RREG32(R300_RB2D_DSTCACHE_MODE) |
-	       R300_DC_AUTOFLUSH_ENABLE |
-	       R300_DC_DC_DISABLE_IGNORE_PE);
+		   RREG32(R300_RB2D_DSTCACHE_MODE) |
+		   R300_DC_AUTOFLUSH_ENABLE |
+		   R300_DC_DC_DISABLE_IGNORE_PE);
 
-	if (r100_gui_wait_for_idle(rdev)) {
+	if (r100_gui_wait_for_idle(rdev))
+	{
 		printk(KERN_WARNING "Failed to wait GUI idle while "
-		       "programming pipes. Bad things might happen.\n");
+			   "programming pipes. Bad things might happen.\n");
 	}
 
-	if (rdev->family == CHIP_RV530) {
+	if (rdev->family == CHIP_RV530)
+	{
 		tmp = RREG32(RV530_GB_PIPE_SELECT2);
+
 		if ((tmp & 3) == 3)
+		{
 			rdev->num_z_pipes = 2;
+		}
 		else
+		{
 			rdev->num_z_pipes = 1;
-	} else
+		}
+	}
+	else
+	{
 		rdev->num_z_pipes = 1;
+	}
 
 	DRM_INFO("radeon: %d quad pipes, %d z pipes initialized.\n",
-		 rdev->num_gb_pipes, rdev->num_z_pipes);
+			 rdev->num_gb_pipes, rdev->num_z_pipes);
 }
 
 u32 r420_mc_rreg(struct radeon_device *rdev, u32 reg)
@@ -176,17 +200,20 @@ void r420_mc_wreg(struct radeon_device *rdev, u32 reg, u32 v)
 
 	spin_lock_irqsave(&rdev->mc_idx_lock, flags);
 	WREG32(R_0001F8_MC_IND_INDEX, S_0001F8_MC_IND_ADDR(reg) |
-		S_0001F8_MC_IND_WR_EN(1));
+		   S_0001F8_MC_IND_WR_EN(1));
 	WREG32(R_0001FC_MC_IND_DATA, v);
 	spin_unlock_irqrestore(&rdev->mc_idx_lock, flags);
 }
 
 static void r420_debugfs(struct radeon_device *rdev)
 {
-	if (r100_debugfs_rbbm_init(rdev)) {
+	if (r100_debugfs_rbbm_init(rdev))
+	{
 		DRM_ERROR("Failed to register debugfs file for RBBM !\n");
 	}
-	if (r420_debugfs_pipes_info_init(rdev)) {
+
+	if (r420_debugfs_pipes_info_init(rdev))
+	{
 		DRM_ERROR("Failed to register debugfs file for pipes !\n");
 	}
 }
@@ -196,11 +223,18 @@ static void r420_clock_resume(struct radeon_device *rdev)
 	u32 sclk_cntl;
 
 	if (radeon_dynclks != -1 && radeon_dynclks)
+	{
 		radeon_atom_set_clock_gating(rdev, 1);
+	}
+
 	sclk_cntl = RREG32_PLL(R_00000D_SCLK_CNTL);
 	sclk_cntl |= S_00000D_FORCE_CP(1) | S_00000D_FORCE_VIP(1);
+
 	if (rdev->family == CHIP_R420)
+	{
 		sclk_cntl |= S_00000D_FORCE_PX(1) | S_00000D_FORCE_TX(1);
+	}
+
 	WREG32_PLL(R_00000D_SCLK_CNTL, sclk_cntl);
 }
 
@@ -246,50 +280,75 @@ static int r420_startup(struct radeon_device *rdev)
 	r300_mc_program(rdev);
 	/* Resume clock */
 	r420_clock_resume(rdev);
+
 	/* Initialize GART (initialize after TTM so we can allocate
 	 * memory through TTM but finalize after TTM) */
-	if (rdev->flags & RADEON_IS_PCIE) {
+	if (rdev->flags & RADEON_IS_PCIE)
+	{
 		r = rv370_pcie_gart_enable(rdev);
+
 		if (r)
+		{
 			return r;
+		}
 	}
-	if (rdev->flags & RADEON_IS_PCI) {
+
+	if (rdev->flags & RADEON_IS_PCI)
+	{
 		r = r100_pci_gart_enable(rdev);
+
 		if (r)
+		{
 			return r;
+		}
 	}
+
 	r420_pipes_init(rdev);
 
 	/* allocate wb buffer */
 	r = radeon_wb_init(rdev);
+
 	if (r)
+	{
 		return r;
+	}
 
 	r = radeon_fence_driver_start_ring(rdev, RADEON_RING_TYPE_GFX_INDEX);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(rdev->dev, "failed initializing CP fences (%d).\n", r);
 		return r;
 	}
 
 	/* Enable IRQ */
-	if (!rdev->irq.installed) {
+	if (!rdev->irq.installed)
+	{
 		r = radeon_irq_kms_init(rdev);
+
 		if (r)
+		{
 			return r;
+		}
 	}
 
 	r100_irq_set(rdev);
 	rdev->config.r300.hdp_cntl = RREG32(RADEON_HOST_PATH_CNTL);
 	/* 1M ring buffer */
 	r = r100_cp_init(rdev, 1024 * 1024);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(rdev->dev, "failed initializing CP (%d).\n", r);
 		return r;
 	}
+
 	r420_cp_errata_init(rdev);
 
 	r = radeon_ib_pool_init(rdev);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(rdev->dev, "IB initialization failed (%d).\n", r);
 		return r;
 	}
@@ -303,23 +362,36 @@ int r420_resume(struct radeon_device *rdev)
 
 	/* Make sur GART are not working */
 	if (rdev->flags & RADEON_IS_PCIE)
+	{
 		rv370_pcie_gart_disable(rdev);
+	}
+
 	if (rdev->flags & RADEON_IS_PCI)
+	{
 		r100_pci_gart_disable(rdev);
+	}
+
 	/* Resume clock before doing reset */
 	r420_clock_resume(rdev);
+
 	/* Reset gpu before posting otherwise ATOM will enter infinite loop */
-	if (radeon_asic_reset(rdev)) {
+	if (radeon_asic_reset(rdev))
+	{
 		dev_warn(rdev->dev, "GPU reset failed ! (0xE40=0x%08X, 0x7C0=0x%08X)\n",
-			RREG32(R_000E40_RBBM_STATUS),
-			RREG32(R_0007C0_CP_STAT));
+				 RREG32(R_000E40_RBBM_STATUS),
+				 RREG32(R_0007C0_CP_STAT));
 	}
+
 	/* check if cards are posted or not */
-	if (rdev->is_atom_bios) {
+	if (rdev->is_atom_bios)
+	{
 		atom_asic_init(rdev->mode_info.atom_context);
-	} else {
+	}
+	else
+	{
 		radeon_combios_asic_init(rdev->ddev);
 	}
+
 	/* Resume clock after posting */
 	r420_clock_resume(rdev);
 	/* Initialize surface registers */
@@ -327,9 +399,12 @@ int r420_resume(struct radeon_device *rdev)
 
 	rdev->accel_working = true;
 	r = r420_startup(rdev);
-	if (r) {
+
+	if (r)
+	{
 		rdev->accel_working = false;
 	}
+
 	return r;
 }
 
@@ -340,10 +415,17 @@ int r420_suspend(struct radeon_device *rdev)
 	r100_cp_disable(rdev);
 	radeon_wb_disable(rdev);
 	r100_irq_disable(rdev);
+
 	if (rdev->flags & RADEON_IS_PCIE)
+	{
 		rv370_pcie_gart_disable(rdev);
+	}
+
 	if (rdev->flags & RADEON_IS_PCI)
+	{
 		r100_pci_gart_disable(rdev);
+	}
+
 	return 0;
 }
 
@@ -354,19 +436,31 @@ void r420_fini(struct radeon_device *rdev)
 	radeon_wb_fini(rdev);
 	radeon_ib_pool_fini(rdev);
 	radeon_gem_fini(rdev);
+
 	if (rdev->flags & RADEON_IS_PCIE)
+	{
 		rv370_pcie_gart_fini(rdev);
+	}
+
 	if (rdev->flags & RADEON_IS_PCI)
+	{
 		r100_pci_gart_fini(rdev);
+	}
+
 	radeon_agp_fini(rdev);
 	radeon_irq_kms_fini(rdev);
 	radeon_fence_driver_fini(rdev);
 	radeon_bo_fini(rdev);
-	if (rdev->is_atom_bios) {
+
+	if (rdev->is_atom_bios)
+	{
 		radeon_atombios_fini(rdev);
-	} else {
+	}
+	else
+	{
 		radeon_combios_fini(rdev);
 	}
+
 	kfree(rdev->bios);
 	rdev->bios = NULL;
 }
@@ -382,68 +476,108 @@ int r420_init(struct radeon_device *rdev)
 	/* TODO: disable VGA need to use VGA request */
 	/* restore some register to sane defaults */
 	r100_restore_sanity(rdev);
+
 	/* BIOS*/
-	if (!radeon_get_bios(rdev)) {
+	if (!radeon_get_bios(rdev))
+	{
 		if (ASIC_IS_AVIVO(rdev))
+		{
 			return -EINVAL;
+		}
 	}
-	if (rdev->is_atom_bios) {
+
+	if (rdev->is_atom_bios)
+	{
 		r = radeon_atombios_init(rdev);
-		if (r) {
+
+		if (r)
+		{
 			return r;
 		}
-	} else {
+	}
+	else
+	{
 		r = radeon_combios_init(rdev);
-		if (r) {
+
+		if (r)
+		{
 			return r;
 		}
 	}
+
 	/* Reset gpu before posting otherwise ATOM will enter infinite loop */
-	if (radeon_asic_reset(rdev)) {
+	if (radeon_asic_reset(rdev))
+	{
 		dev_warn(rdev->dev,
-			"GPU reset failed ! (0xE40=0x%08X, 0x7C0=0x%08X)\n",
-			RREG32(R_000E40_RBBM_STATUS),
-			RREG32(R_0007C0_CP_STAT));
+				 "GPU reset failed ! (0xE40=0x%08X, 0x7C0=0x%08X)\n",
+				 RREG32(R_000E40_RBBM_STATUS),
+				 RREG32(R_0007C0_CP_STAT));
 	}
+
 	/* check if cards are posted or not */
 	if (radeon_boot_test_post_card(rdev) == false)
+	{
 		return -EINVAL;
+	}
 
 	/* Initialize clocks */
 	radeon_get_clock_info(rdev->ddev);
+
 	/* initialize AGP */
-	if (rdev->flags & RADEON_IS_AGP) {
+	if (rdev->flags & RADEON_IS_AGP)
+	{
 		r = radeon_agp_init(rdev);
-		if (r) {
+
+		if (r)
+		{
 			radeon_agp_disable(rdev);
 		}
 	}
+
 	/* initialize memory controller */
 	r300_mc_init(rdev);
 	r420_debugfs(rdev);
 	/* Fence driver */
 	r = radeon_fence_driver_init(rdev);
-	if (r) {
+
+	if (r)
+	{
 		return r;
 	}
+
 	/* Memory manager */
 	r = radeon_bo_init(rdev);
-	if (r) {
+
+	if (r)
+	{
 		return r;
 	}
-	if (rdev->family == CHIP_R420)
-		r100_enable_bm(rdev);
 
-	if (rdev->flags & RADEON_IS_PCIE) {
+	if (rdev->family == CHIP_R420)
+	{
+		r100_enable_bm(rdev);
+	}
+
+	if (rdev->flags & RADEON_IS_PCIE)
+	{
 		r = rv370_pcie_gart_init(rdev);
+
 		if (r)
+		{
 			return r;
+		}
 	}
-	if (rdev->flags & RADEON_IS_PCI) {
+
+	if (rdev->flags & RADEON_IS_PCI)
+	{
 		r = r100_pci_gart_init(rdev);
+
 		if (r)
+		{
 			return r;
+		}
 	}
+
 	r420_set_reg_safe(rdev);
 
 	/* Initialize power management */
@@ -451,20 +585,30 @@ int r420_init(struct radeon_device *rdev)
 
 	rdev->accel_working = true;
 	r = r420_startup(rdev);
-	if (r) {
+
+	if (r)
+	{
 		/* Somethings want wront with the accel init stop accel */
 		dev_err(rdev->dev, "Disabling GPU acceleration\n");
 		r100_cp_fini(rdev);
 		radeon_wb_fini(rdev);
 		radeon_ib_pool_fini(rdev);
 		radeon_irq_kms_fini(rdev);
+
 		if (rdev->flags & RADEON_IS_PCIE)
+		{
 			rv370_pcie_gart_fini(rdev);
+		}
+
 		if (rdev->flags & RADEON_IS_PCI)
+		{
 			r100_pci_gart_fini(rdev);
+		}
+
 		radeon_agp_fini(rdev);
 		rdev->accel_working = false;
 	}
+
 	return 0;
 }
 
@@ -488,7 +632,8 @@ static int r420_debugfs_pipes_info(struct seq_file *m, void *data)
 	return 0;
 }
 
-static struct drm_info_list r420_pipes_info_list[] = {
+static struct drm_info_list r420_pipes_info_list[] =
+{
 	{"r420_pipes_info", r420_debugfs_pipes_info, 0, NULL},
 };
 #endif

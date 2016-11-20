@@ -32,10 +32,13 @@ static struct kmem_cache *sched_fence_slab;
 int amd_sched_fence_slab_init(void)
 {
 	sched_fence_slab = kmem_cache_create(
-		"amd_sched_fence", sizeof(struct amd_sched_fence), 0,
-		SLAB_HWCACHE_ALIGN, NULL);
+						   "amd_sched_fence", sizeof(struct amd_sched_fence), 0,
+						   SLAB_HWCACHE_ALIGN, NULL);
+
 	if (!sched_fence_slab)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -47,14 +50,17 @@ void amd_sched_fence_slab_fini(void)
 }
 
 struct amd_sched_fence *amd_sched_fence_create(struct amd_sched_entity *entity,
-					       void *owner)
+		void *owner)
 {
 	struct amd_sched_fence *fence = NULL;
 	unsigned seq;
 
 	fence = kmem_cache_zalloc(sched_fence_slab, GFP_KERNEL);
+
 	if (fence == NULL)
+	{
 		return NULL;
+	}
 
 	fence->owner = owner;
 	fence->sched = entity->sched;
@@ -62,9 +68,9 @@ struct amd_sched_fence *amd_sched_fence_create(struct amd_sched_entity *entity,
 
 	seq = atomic_inc_return(&entity->fence_seq);
 	fence_init(&fence->scheduled, &amd_sched_fence_ops_scheduled,
-		   &fence->lock, entity->fence_context, seq);
+			   &fence->lock, entity->fence_context, seq);
 	fence_init(&fence->finished, &amd_sched_fence_ops_finished,
-		   &fence->lock, entity->fence_context + 1, seq);
+			   &fence->lock, entity->fence_context + 1, seq);
 
 	return fence;
 }
@@ -74,9 +80,13 @@ void amd_sched_fence_scheduled(struct amd_sched_fence *fence)
 	int ret = fence_signal(&fence->scheduled);
 
 	if (!ret)
+	{
 		FENCE_TRACE(&fence->scheduled, "signaled from irq context\n");
+	}
 	else
+	{
 		FENCE_TRACE(&fence->scheduled, "was already signaled\n");
+	}
 }
 
 void amd_sched_fence_finished(struct amd_sched_fence *fence)
@@ -84,9 +94,13 @@ void amd_sched_fence_finished(struct amd_sched_fence *fence)
 	int ret = fence_signal(&fence->finished);
 
 	if (!ret)
+	{
 		FENCE_TRACE(&fence->finished, "signaled from irq context\n");
+	}
 	else
+	{
 		FENCE_TRACE(&fence->finished, "was already signaled\n");
+	}
 }
 
 static const char *amd_sched_fence_get_driver_name(struct fence *fence)
@@ -150,7 +164,8 @@ static void amd_sched_fence_release_finished(struct fence *f)
 	fence_put(&fence->scheduled);
 }
 
-const struct fence_ops amd_sched_fence_ops_scheduled = {
+const struct fence_ops amd_sched_fence_ops_scheduled =
+{
 	.get_driver_name = amd_sched_fence_get_driver_name,
 	.get_timeline_name = amd_sched_fence_get_timeline_name,
 	.enable_signaling = amd_sched_fence_enable_signaling,
@@ -159,7 +174,8 @@ const struct fence_ops amd_sched_fence_ops_scheduled = {
 	.release = amd_sched_fence_release_scheduled,
 };
 
-const struct fence_ops amd_sched_fence_ops_finished = {
+const struct fence_ops amd_sched_fence_ops_finished =
+{
 	.get_driver_name = amd_sched_fence_get_driver_name,
 	.get_timeline_name = amd_sched_fence_get_timeline_name,
 	.enable_signaling = amd_sched_fence_enable_signaling,

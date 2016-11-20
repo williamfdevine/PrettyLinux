@@ -48,7 +48,8 @@
  *     http://www.renesas.com/products/mpumcu/h8s/h8s2100/h8s2113/index.jsp
  */
 
-struct apple_gmux_data {
+struct apple_gmux_data
+{
 	unsigned long iostart;
 	unsigned long iolen;
 	bool indexed;
@@ -109,7 +110,7 @@ static u8 gmux_pio_read8(struct apple_gmux_data *gmux_data, int port)
 }
 
 static void gmux_pio_write8(struct apple_gmux_data *gmux_data, int port,
-			       u8 val)
+							u8 val)
 {
 	outb(val, gmux_data->iostart + port);
 }
@@ -120,12 +121,13 @@ static u32 gmux_pio_read32(struct apple_gmux_data *gmux_data, int port)
 }
 
 static void gmux_pio_write32(struct apple_gmux_data *gmux_data, int port,
-			     u32 val)
+							 u32 val)
 {
 	int i;
 	u8 tmpval;
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		tmpval = (val >> (i * 8)) & 0xff;
 		outb(tmpval, gmux_data->iostart + port + i);
 	}
@@ -136,7 +138,8 @@ static int gmux_index_wait_ready(struct apple_gmux_data *gmux_data)
 	int i = 200;
 	u8 gwr = inb(gmux_data->iostart + GMUX_PORT_WRITE);
 
-	while (i && (gwr & 0x01)) {
+	while (i && (gwr & 0x01))
+	{
 		inb(gmux_data->iostart + GMUX_PORT_READ);
 		gwr = inb(gmux_data->iostart + GMUX_PORT_WRITE);
 		udelay(100);
@@ -151,14 +154,17 @@ static int gmux_index_wait_complete(struct apple_gmux_data *gmux_data)
 	int i = 200;
 	u8 gwr = inb(gmux_data->iostart + GMUX_PORT_WRITE);
 
-	while (i && !(gwr & 0x01)) {
+	while (i && !(gwr & 0x01))
+	{
 		gwr = inb(gmux_data->iostart + GMUX_PORT_WRITE);
 		udelay(100);
 		i--;
 	}
 
 	if (gwr & 0x01)
+	{
 		inb(gmux_data->iostart + GMUX_PORT_READ);
+	}
 
 	return !!i;
 }
@@ -178,7 +184,7 @@ static u8 gmux_index_read8(struct apple_gmux_data *gmux_data, int port)
 }
 
 static void gmux_index_write8(struct apple_gmux_data *gmux_data, int port,
-			      u8 val)
+							  u8 val)
 {
 	mutex_lock(&gmux_data->index_lock);
 	outb(val, gmux_data->iostart + GMUX_PORT_VALUE);
@@ -203,14 +209,15 @@ static u32 gmux_index_read32(struct apple_gmux_data *gmux_data, int port)
 }
 
 static void gmux_index_write32(struct apple_gmux_data *gmux_data, int port,
-			       u32 val)
+							   u32 val)
 {
 	int i;
 	u8 tmpval;
 
 	mutex_lock(&gmux_data->index_lock);
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		tmpval = (val >> (i * 8)) & 0xff;
 		outb(tmpval, gmux_data->iostart + GMUX_PORT_VALUE + i);
 	}
@@ -224,34 +231,50 @@ static void gmux_index_write32(struct apple_gmux_data *gmux_data, int port,
 static u8 gmux_read8(struct apple_gmux_data *gmux_data, int port)
 {
 	if (gmux_data->indexed)
+	{
 		return gmux_index_read8(gmux_data, port);
+	}
 	else
+	{
 		return gmux_pio_read8(gmux_data, port);
+	}
 }
 
 static void gmux_write8(struct apple_gmux_data *gmux_data, int port, u8 val)
 {
 	if (gmux_data->indexed)
+	{
 		gmux_index_write8(gmux_data, port, val);
+	}
 	else
+	{
 		gmux_pio_write8(gmux_data, port, val);
+	}
 }
 
 static u32 gmux_read32(struct apple_gmux_data *gmux_data, int port)
 {
 	if (gmux_data->indexed)
+	{
 		return gmux_index_read32(gmux_data, port);
+	}
 	else
+	{
 		return gmux_pio_read32(gmux_data, port);
+	}
 }
 
 static void gmux_write32(struct apple_gmux_data *gmux_data, int port,
-			     u32 val)
+						 u32 val)
 {
 	if (gmux_data->indexed)
+	{
 		gmux_index_write32(gmux_data, port, val);
+	}
 	else
+	{
 		gmux_pio_write32(gmux_data, port, val);
+	}
 }
 
 static bool gmux_is_indexed(struct apple_gmux_data *gmux_data)
@@ -263,10 +286,12 @@ static bool gmux_is_indexed(struct apple_gmux_data *gmux_data)
 	outb(0x00, gmux_data->iostart + 0xce);
 
 	val = inb(gmux_data->iostart + 0xcc) |
-		(inb(gmux_data->iostart + 0xcd) << 8);
+		  (inb(gmux_data->iostart + 0xcd) << 8);
 
 	if (val == 0x55aa)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -289,7 +314,7 @@ static int gmux_get_brightness(struct backlight_device *bd)
 {
 	struct apple_gmux_data *gmux_data = bl_get_data(bd);
 	return gmux_read32(gmux_data, GMUX_PORT_BRIGHTNESS) &
-	       GMUX_BRIGHTNESS_MASK;
+		   GMUX_BRIGHTNESS_MASK;
 }
 
 static int gmux_update_status(struct backlight_device *bd)
@@ -298,14 +323,17 @@ static int gmux_update_status(struct backlight_device *bd)
 	u32 brightness = bd->props.brightness;
 
 	if (bd->props.state & BL_CORE_SUSPENDED)
+	{
 		return 0;
+	}
 
 	gmux_write32(gmux_data, GMUX_PORT_BRIGHTNESS, brightness);
 
 	return 0;
 }
 
-static const struct backlight_ops gmux_bl_ops = {
+static const struct backlight_ops gmux_bl_ops =
+{
 	.options = BL_CORE_SUSPENDRESUME,
 	.get_brightness = gmux_get_brightness,
 	.update_status = gmux_update_status,
@@ -377,37 +405,61 @@ static const struct backlight_ops gmux_bl_ops = {
 static void gmux_read_switch_state(struct apple_gmux_data *gmux_data)
 {
 	if (gmux_read8(gmux_data, GMUX_PORT_SWITCH_DDC) == 1)
+	{
 		gmux_data->switch_state_ddc = VGA_SWITCHEROO_IGD;
+	}
 	else
+	{
 		gmux_data->switch_state_ddc = VGA_SWITCHEROO_DIS;
+	}
 
 	if (gmux_read8(gmux_data, GMUX_PORT_SWITCH_DISPLAY) == 2)
+	{
 		gmux_data->switch_state_display = VGA_SWITCHEROO_IGD;
+	}
 	else
+	{
 		gmux_data->switch_state_display = VGA_SWITCHEROO_DIS;
+	}
 
 	if (gmux_read8(gmux_data, GMUX_PORT_SWITCH_EXTERNAL) == 2)
+	{
 		gmux_data->switch_state_external = VGA_SWITCHEROO_IGD;
+	}
 	else
+	{
 		gmux_data->switch_state_external = VGA_SWITCHEROO_DIS;
+	}
 }
 
 static void gmux_write_switch_state(struct apple_gmux_data *gmux_data)
 {
 	if (gmux_data->switch_state_ddc == VGA_SWITCHEROO_IGD)
+	{
 		gmux_write8(gmux_data, GMUX_PORT_SWITCH_DDC, 1);
+	}
 	else
+	{
 		gmux_write8(gmux_data, GMUX_PORT_SWITCH_DDC, 2);
+	}
 
 	if (gmux_data->switch_state_display == VGA_SWITCHEROO_IGD)
+	{
 		gmux_write8(gmux_data, GMUX_PORT_SWITCH_DISPLAY, 2);
+	}
 	else
+	{
 		gmux_write8(gmux_data, GMUX_PORT_SWITCH_DISPLAY, 3);
+	}
 
 	if (gmux_data->switch_state_external == VGA_SWITCHEROO_IGD)
+	{
 		gmux_write8(gmux_data, GMUX_PORT_SWITCH_EXTERNAL, 2);
+	}
 	else
+	{
 		gmux_write8(gmux_data, GMUX_PORT_SWITCH_EXTERNAL, 3);
+	}
 }
 
 static int gmux_switchto(enum vga_switcheroo_client_id id)
@@ -427,15 +479,21 @@ static int gmux_switch_ddc(enum vga_switcheroo_client_id id)
 		apple_gmux_data->switch_state_ddc;
 
 	if (id == old_ddc_owner)
+	{
 		return id;
+	}
 
 	pr_debug("Switching DDC from %d to %d\n", old_ddc_owner, id);
 	apple_gmux_data->switch_state_ddc = id;
 
 	if (id == VGA_SWITCHEROO_IGD)
+	{
 		gmux_write8(apple_gmux_data, GMUX_PORT_SWITCH_DDC, 1);
+	}
 	else
+	{
 		gmux_write8(apple_gmux_data, GMUX_PORT_SWITCH_DDC, 2);
+	}
 
 	return old_ddc_owner;
 }
@@ -449,15 +507,18 @@ static int gmux_switch_ddc(enum vga_switcheroo_client_id id)
  */
 
 static int gmux_set_discrete_state(struct apple_gmux_data *gmux_data,
-				   enum vga_switcheroo_state state)
+								   enum vga_switcheroo_state state)
 {
 	reinit_completion(&gmux_data->powerchange_done);
 
-	if (state == VGA_SWITCHEROO_ON) {
+	if (state == VGA_SWITCHEROO_ON)
+	{
 		gmux_write8(gmux_data, GMUX_PORT_DISCRETE_POWER, 1);
 		gmux_write8(gmux_data, GMUX_PORT_DISCRETE_POWER, 3);
 		pr_debug("Discrete card powered up\n");
-	} else {
+	}
+	else
+	{
 		gmux_write8(gmux_data, GMUX_PORT_DISCRETE_POWER, 1);
 		gmux_write8(gmux_data, GMUX_PORT_DISCRETE_POWER, 0);
 		pr_debug("Discrete card powered down\n");
@@ -466,18 +527,22 @@ static int gmux_set_discrete_state(struct apple_gmux_data *gmux_data,
 	gmux_data->power_state = state;
 
 	if (gmux_data->gpe >= 0 &&
-	    !wait_for_completion_interruptible_timeout(&gmux_data->powerchange_done,
-						       msecs_to_jiffies(200)))
+		!wait_for_completion_interruptible_timeout(&gmux_data->powerchange_done,
+				msecs_to_jiffies(200)))
+	{
 		pr_warn("Timeout waiting for gmux switch to complete\n");
+	}
 
 	return 0;
 }
 
 static int gmux_set_power_state(enum vga_switcheroo_client_id id,
-				enum vga_switcheroo_state state)
+								enum vga_switcheroo_state state)
 {
 	if (id == VGA_SWITCHEROO_IGD)
+	{
 		return 0;
+	}
 
 	return gmux_set_discrete_state(apple_gmux_data, state);
 }
@@ -489,21 +554,29 @@ static int gmux_get_client_id(struct pci_dev *pdev)
 	 * integrated graphics. Hardcode that the 9400M is integrated.
 	 */
 	if (pdev->vendor == PCI_VENDOR_ID_INTEL)
+	{
 		return VGA_SWITCHEROO_IGD;
+	}
 	else if (pdev->vendor == PCI_VENDOR_ID_NVIDIA &&
-		 pdev->device == 0x0863)
+			 pdev->device == 0x0863)
+	{
 		return VGA_SWITCHEROO_IGD;
+	}
 	else
+	{
 		return VGA_SWITCHEROO_DIS;
+	}
 }
 
-static const struct vga_switcheroo_handler gmux_handler_indexed = {
+static const struct vga_switcheroo_handler gmux_handler_indexed =
+{
 	.switchto = gmux_switchto,
 	.power_state = gmux_set_power_state,
 	.get_client_id = gmux_get_client_id,
 };
 
-static const struct vga_switcheroo_handler gmux_handler_classic = {
+static const struct vga_switcheroo_handler gmux_handler_classic =
+{
 	.switchto = gmux_switchto,
 	.switch_ddc = gmux_switch_ddc,
 	.power_state = gmux_set_power_state,
@@ -523,13 +596,13 @@ static const struct vga_switcheroo_handler gmux_handler_classic = {
 static inline void gmux_disable_interrupts(struct apple_gmux_data *gmux_data)
 {
 	gmux_write8(gmux_data, GMUX_PORT_INTERRUPT_ENABLE,
-		    GMUX_INTERRUPT_DISABLE);
+				GMUX_INTERRUPT_DISABLE);
 }
 
 static inline void gmux_enable_interrupts(struct apple_gmux_data *gmux_data)
 {
 	gmux_write8(gmux_data, GMUX_PORT_INTERRUPT_ENABLE,
-		    GMUX_INTERRUPT_ENABLE);
+				GMUX_INTERRUPT_ENABLE);
 }
 
 static inline u8 gmux_interrupt_get_status(struct apple_gmux_data *gmux_data)
@@ -560,7 +633,9 @@ static void gmux_notify_handler(acpi_handle device, u32 value, void *context)
 	gmux_enable_interrupts(gmux_data);
 
 	if (status & GMUX_INTERRUPT_STATUS_POWER)
+	{
 		complete(&gmux_data->powerchange_done);
+	}
 }
 
 static int gmux_suspend(struct device *dev)
@@ -579,8 +654,12 @@ static int gmux_resume(struct device *dev)
 
 	gmux_enable_interrupts(gmux_data);
 	gmux_write_switch_state(gmux_data);
+
 	if (gmux_data->power_state == VGA_SWITCHEROO_OFF)
+	{
 		gmux_set_discrete_state(gmux_data, gmux_data->power_state);
+	}
+
 	return 0;
 }
 
@@ -588,12 +667,16 @@ static struct pci_dev *gmux_get_io_pdev(void)
 {
 	struct pci_dev *pdev = NULL;
 
-	while ((pdev = pci_get_class(PCI_CLASS_DISPLAY_VGA << 8, pdev))) {
+	while ((pdev = pci_get_class(PCI_CLASS_DISPLAY_VGA << 8, pdev)))
+	{
 		u16 cmd;
 
 		pci_read_config_word(pdev, PCI_COMMAND, &cmd);
+
 		if (!(cmd & PCI_COMMAND_IO))
+		{
 			continue;
+		}
 
 		return pdev;
 	}
@@ -614,15 +697,23 @@ static int gmux_probe(struct pnp_dev *pnp, const struct pnp_device_id *id)
 	struct pci_dev *pdev = NULL;
 
 	if (apple_gmux_data)
+	{
 		return -EBUSY;
+	}
 
 	gmux_data = kzalloc(sizeof(*gmux_data), GFP_KERNEL);
+
 	if (!gmux_data)
+	{
 		return -ENOMEM;
+	}
+
 	pnp_set_drvdata(pnp, gmux_data);
 
 	res = pnp_get_resource(pnp, IORESOURCE_IO, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		pr_err("Failed to find gmux I/O resource\n");
 		goto err_free;
 	}
@@ -630,14 +721,16 @@ static int gmux_probe(struct pnp_dev *pnp, const struct pnp_device_id *id)
 	gmux_data->iostart = res->start;
 	gmux_data->iolen = res->end - res->start;
 
-	if (gmux_data->iolen < GMUX_MIN_IO_LEN) {
+	if (gmux_data->iolen < GMUX_MIN_IO_LEN)
+	{
 		pr_err("gmux I/O region too small (%lu < %u)\n",
-		       gmux_data->iolen, GMUX_MIN_IO_LEN);
+			   gmux_data->iolen, GMUX_MIN_IO_LEN);
 		goto err_free;
 	}
 
 	if (!request_region(gmux_data->iostart, gmux_data->iolen,
-			    "Apple gmux")) {
+						"Apple gmux"))
+	{
 		pr_err("gmux I/O already in use\n");
 		goto err_free;
 	}
@@ -651,24 +744,30 @@ static int gmux_probe(struct pnp_dev *pnp, const struct pnp_device_id *id)
 	ver_major = gmux_read8(gmux_data, GMUX_PORT_VERSION_MAJOR);
 	ver_minor = gmux_read8(gmux_data, GMUX_PORT_VERSION_MINOR);
 	ver_release = gmux_read8(gmux_data, GMUX_PORT_VERSION_RELEASE);
-	if (ver_major == 0xff && ver_minor == 0xff && ver_release == 0xff) {
-		if (gmux_is_indexed(gmux_data)) {
+
+	if (ver_major == 0xff && ver_minor == 0xff && ver_release == 0xff)
+	{
+		if (gmux_is_indexed(gmux_data))
+		{
 			u32 version;
 			mutex_init(&gmux_data->index_lock);
 			gmux_data->indexed = true;
 			version = gmux_read32(gmux_data,
-				GMUX_PORT_VERSION_MAJOR);
+								  GMUX_PORT_VERSION_MAJOR);
 			ver_major = (version >> 24) & 0xff;
 			ver_minor = (version >> 16) & 0xff;
 			ver_release = (version >> 8) & 0xff;
-		} else {
+		}
+		else
+		{
 			pr_info("gmux device not present or IO disabled\n");
 			ret = -ENODEV;
 			goto err_release;
 		}
 	}
+
 	pr_info("Found gmux version %d.%d.%d [%s]\n", ver_major, ver_minor,
-		ver_release, (gmux_data->indexed ? "indexed" : "classic"));
+			ver_release, (gmux_data->indexed ? "indexed" : "classic"));
 
 	/*
 	 * Apple systems with gmux are EFI based and normally don't use
@@ -677,14 +776,20 @@ static int gmux_probe(struct pnp_dev *pnp, const struct pnp_device_id *id)
 	 * Lock IO+MEM to GPU with active IO to prevent switch.
 	 */
 	pdev = gmux_get_io_pdev();
+
 	if (pdev && vga_tryget(pdev,
-			       VGA_RSRC_NORMAL_IO | VGA_RSRC_NORMAL_MEM)) {
+						   VGA_RSRC_NORMAL_IO | VGA_RSRC_NORMAL_MEM))
+	{
 		pr_err("IO+MEM vgaarb-locking for PCI:%s failed\n",
-			pci_name(pdev));
+			   pci_name(pdev));
 		ret = -EBUSY;
 		goto err_release;
-	} else if (pdev)
+	}
+	else if (pdev)
+	{
 		pr_info("locked IO for PCI:%s\n", pci_name(pdev));
+	}
+
 	gmux_data->pdev = pdev;
 
 	memset(&props, 0, sizeof(props));
@@ -698,11 +803,15 @@ static int gmux_probe(struct pnp_dev *pnp, const struct pnp_device_id *id)
 	 * reports something higher so that it can be fixed.
 	 */
 	if (WARN_ON(props.max_brightness > GMUX_MAX_BRIGHTNESS))
+	{
 		props.max_brightness = GMUX_MAX_BRIGHTNESS;
+	}
 
 	bdev = backlight_device_register("gmux_backlight", &pnp->dev,
-					 gmux_data, &gmux_bl_ops, &props);
-	if (IS_ERR(bdev)) {
+									 gmux_data, &gmux_bl_ops, &props);
+
+	if (IS_ERR(bdev))
+	{
 		ret = PTR_ERR(bdev);
 		goto err_release;
 	}
@@ -723,34 +832,44 @@ static int gmux_probe(struct pnp_dev *pnp, const struct pnp_device_id *id)
 	gmux_data->power_state = VGA_SWITCHEROO_ON;
 
 	gmux_data->dhandle = ACPI_HANDLE(&pnp->dev);
-	if (!gmux_data->dhandle) {
+
+	if (!gmux_data->dhandle)
+	{
 		pr_err("Cannot find acpi handle for pnp device %s\n",
-		       dev_name(&pnp->dev));
+			   dev_name(&pnp->dev));
 		ret = -ENODEV;
 		goto err_notify;
 	}
 
 	status = acpi_evaluate_integer(gmux_data->dhandle, "GMGP", NULL, &gpe);
-	if (ACPI_SUCCESS(status)) {
+
+	if (ACPI_SUCCESS(status))
+	{
 		gmux_data->gpe = (int)gpe;
 
 		status = acpi_install_notify_handler(gmux_data->dhandle,
-						     ACPI_DEVICE_NOTIFY,
-						     &gmux_notify_handler, pnp);
-		if (ACPI_FAILURE(status)) {
+											 ACPI_DEVICE_NOTIFY,
+											 &gmux_notify_handler, pnp);
+
+		if (ACPI_FAILURE(status))
+		{
 			pr_err("Install notify handler failed: %s\n",
-			       acpi_format_exception(status));
+				   acpi_format_exception(status));
 			ret = -ENODEV;
 			goto err_notify;
 		}
 
 		status = acpi_enable_gpe(NULL, gmux_data->gpe);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			pr_err("Cannot enable gpe: %s\n",
-			       acpi_format_exception(status));
+				   acpi_format_exception(status));
 			goto err_enable_gpe;
 		}
-	} else {
+	}
+	else
+	{
 		pr_warn("No GPE found for gmux\n");
 		gmux_data->gpe = -1;
 	}
@@ -769,11 +888,13 @@ static int gmux_probe(struct pnp_dev *pnp, const struct pnp_device_id *id)
 	 */
 	if (gmux_data->indexed)
 		ret = vga_switcheroo_register_handler(&gmux_handler_indexed,
-					      VGA_SWITCHEROO_NEEDS_EDP_CONFIG);
+											  VGA_SWITCHEROO_NEEDS_EDP_CONFIG);
 	else
 		ret = vga_switcheroo_register_handler(&gmux_handler_classic,
-					      VGA_SWITCHEROO_CAN_SWITCH_DDC);
-	if (ret) {
+											  VGA_SWITCHEROO_CAN_SWITCH_DDC);
+
+	if (ret)
+	{
 		pr_err("Failed to register vga_switcheroo handler\n");
 		goto err_register_handler;
 	}
@@ -783,19 +904,27 @@ static int gmux_probe(struct pnp_dev *pnp, const struct pnp_device_id *id)
 err_register_handler:
 	gmux_disable_interrupts(gmux_data);
 	apple_gmux_data = NULL;
+
 	if (gmux_data->gpe >= 0)
+	{
 		acpi_disable_gpe(NULL, gmux_data->gpe);
+	}
+
 err_enable_gpe:
+
 	if (gmux_data->gpe >= 0)
 		acpi_remove_notify_handler(gmux_data->dhandle,
-					   ACPI_DEVICE_NOTIFY,
-					   &gmux_notify_handler);
+								   ACPI_DEVICE_NOTIFY,
+								   &gmux_notify_handler);
+
 err_notify:
 	backlight_device_unregister(bdev);
 err_release:
+
 	if (gmux_data->pdev)
 		vga_put(gmux_data->pdev,
-			VGA_RSRC_NORMAL_IO | VGA_RSRC_NORMAL_MEM);
+				VGA_RSRC_NORMAL_IO | VGA_RSRC_NORMAL_MEM);
+
 	pci_dev_put(pdev);
 	release_region(gmux_data->iostart, gmux_data->iolen);
 err_free:
@@ -809,18 +938,22 @@ static void gmux_remove(struct pnp_dev *pnp)
 
 	vga_switcheroo_unregister_handler();
 	gmux_disable_interrupts(gmux_data);
-	if (gmux_data->gpe >= 0) {
+
+	if (gmux_data->gpe >= 0)
+	{
 		acpi_disable_gpe(NULL, gmux_data->gpe);
 		acpi_remove_notify_handler(gmux_data->dhandle,
-					   ACPI_DEVICE_NOTIFY,
-					   &gmux_notify_handler);
+								   ACPI_DEVICE_NOTIFY,
+								   &gmux_notify_handler);
 	}
 
-	if (gmux_data->pdev) {
+	if (gmux_data->pdev)
+	{
 		vga_put(gmux_data->pdev,
-			VGA_RSRC_NORMAL_IO | VGA_RSRC_NORMAL_MEM);
+				VGA_RSRC_NORMAL_IO | VGA_RSRC_NORMAL_MEM);
 		pci_dev_put(gmux_data->pdev);
 	}
+
 	backlight_device_unregister(gmux_data->bdev);
 
 	release_region(gmux_data->iostart, gmux_data->iolen);
@@ -831,23 +964,26 @@ static void gmux_remove(struct pnp_dev *pnp)
 	apple_bl_register();
 }
 
-static const struct pnp_device_id gmux_device_ids[] = {
+static const struct pnp_device_id gmux_device_ids[] =
+{
 	{GMUX_ACPI_HID, 0},
 	{"", 0}
 };
 
-static const struct dev_pm_ops gmux_dev_pm_ops = {
+static const struct dev_pm_ops gmux_dev_pm_ops =
+{
 	.suspend = gmux_suspend,
 	.resume = gmux_resume,
 };
 
-static struct pnp_driver gmux_pnp_driver = {
+static struct pnp_driver gmux_pnp_driver =
+{
 	.name		= "apple-gmux",
 	.probe		= gmux_probe,
 	.remove		= gmux_remove,
 	.id_table	= gmux_device_ids,
 	.driver		= {
-			.pm = &gmux_dev_pm_ops,
+		.pm = &gmux_dev_pm_ops,
 	},
 };
 

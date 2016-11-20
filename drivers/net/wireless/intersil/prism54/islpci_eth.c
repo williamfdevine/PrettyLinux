@@ -36,37 +36,40 @@
 ******************************************************************************/
 void
 islpci_eth_cleanup_transmit(islpci_private *priv,
-			    isl38xx_control_block *control_block)
+							isl38xx_control_block *control_block)
 {
 	struct sk_buff *skb;
 	u32 index;
 
 	/* compare the control block read pointer with the free pointer */
 	while (priv->free_data_tx !=
-	       le32_to_cpu(control_block->
-			   device_curr_frag[ISL38XX_CB_TX_DATA_LQ])) {
+		   le32_to_cpu(control_block->
+					   device_curr_frag[ISL38XX_CB_TX_DATA_LQ]))
+	{
 		/* read the index of the first fragment to be freed */
 		index = priv->free_data_tx % ISL38XX_CB_TX_QSIZE;
 
 		/* check for holes in the arrays caused by multi fragment frames
 		 * searching for the last fragment of a frame */
-		if (priv->pci_map_tx_address[index]) {
+		if (priv->pci_map_tx_address[index])
+		{
 			/* entry is the last fragment of a frame
 			 * free the skb structure and unmap pci memory */
 			skb = priv->data_low_tx[index];
 
 #if VERBOSE > SHOW_ERROR_MESSAGES
 			DEBUG(SHOW_TRACING,
-			      "cleanup skb %p skb->data %p skb->len %u truesize %u\n ",
-			      skb, skb->data, skb->len, skb->truesize);
+				  "cleanup skb %p skb->data %p skb->len %u truesize %u\n ",
+				  skb, skb->data, skb->len, skb->truesize);
 #endif
 
 			pci_unmap_single(priv->pdev,
-					 priv->pci_map_tx_address[index],
-					 skb->len, PCI_DMA_TODEVICE);
+							 priv->pci_map_tx_address[index],
+							 skb->len, PCI_DMA_TODEVICE);
 			dev_kfree_skb_irq(skb);
 			skb = NULL;
 		}
+
 		/* increment the free data low queue pointer */
 		priv->free_data_tx++;
 	}
@@ -97,37 +100,44 @@ islpci_eth_transmit(struct sk_buff *skb, struct net_device *ndev)
 
 	/* check whether the destination queue has enough fragments for the frame */
 	curr_frag = le32_to_cpu(cb->driver_curr_frag[ISL38XX_CB_TX_DATA_LQ]);
-	if (unlikely(curr_frag - priv->free_data_tx >= ISL38XX_CB_TX_QSIZE)) {
+
+	if (unlikely(curr_frag - priv->free_data_tx >= ISL38XX_CB_TX_QSIZE))
+	{
 		printk(KERN_ERR "%s: transmit device queue full when awake\n",
-		       ndev->name);
+			   ndev->name);
 		netif_stop_queue(ndev);
 
 		/* trigger the device */
 		isl38xx_w32_flush(priv->device_base, ISL38XX_DEV_INT_UPDATE,
-				  ISL38XX_DEV_INT_REG);
+						  ISL38XX_DEV_INT_REG);
 		udelay(ISL38XX_WRITEIO_DELAY);
 		goto drop_free;
 	}
+
 	/* Check alignment and WDS frame formatting. The start of the packet should
 	 * be aligned on a 4-byte boundary. If WDS is enabled add another 6 bytes
 	 * and add WDS address information */
-	if (likely(((long) skb->data & 0x03) | init_wds)) {
+	if (likely(((long) skb->data & 0x03) | init_wds))
+	{
 		/* get the number of bytes to add and re-align */
 		offset = (4 - (long) skb->data) & 0x03;
 		offset += init_wds ? 6 : 0;
 
 		/* check whether the current skb can be used  */
-		if (!skb_cloned(skb) && (skb_tailroom(skb) >= offset)) {
+		if (!skb_cloned(skb) && (skb_tailroom(skb) >= offset))
+		{
 			unsigned char *src = skb->data;
 
 #if VERBOSE > SHOW_ERROR_MESSAGES
 			DEBUG(SHOW_TRACING, "skb offset %i wds %i\n", offset,
-			      init_wds);
+				  init_wds);
 #endif
 
 			/* align the buffer on 4-byte boundary */
 			skb_reserve(skb, (4 - (long) skb->data) & 0x03);
-			if (init_wds) {
+
+			if (init_wds)
+			{
 				/* wds requires an additional address field of 6 bytes */
 				skb_put(skb, 6);
 #ifdef ISLPCI_ETH_DEBUG
@@ -135,44 +145,56 @@ islpci_eth_transmit(struct sk_buff *skb, struct net_device *ndev)
 #endif
 				memmove(skb->data + 6, src, skb->len);
 				skb_copy_to_linear_data(skb, wds_mac, 6);
-			} else {
+			}
+			else
+			{
 				memmove(skb->data, src, skb->len);
 			}
 
 #if VERBOSE > SHOW_ERROR_MESSAGES
 			DEBUG(SHOW_TRACING, "memmove %p %p %i\n", skb->data,
-			      src, skb->len);
+				  src, skb->len);
 #endif
-		} else {
+		}
+		else
+		{
 			newskb =
-			    dev_alloc_skb(init_wds ? skb->len + 6 : skb->len);
-			if (unlikely(newskb == NULL)) {
+				dev_alloc_skb(init_wds ? skb->len + 6 : skb->len);
+
+			if (unlikely(newskb == NULL))
+			{
 				printk(KERN_ERR "%s: Cannot allocate skb\n",
-				       ndev->name);
+					   ndev->name);
 				goto drop_free;
 			}
+
 			newskb_offset = (4 - (long) newskb->data) & 0x03;
 
 			/* Check if newskb->data is aligned */
 			if (newskb_offset)
+			{
 				skb_reserve(newskb, newskb_offset);
+			}
 
 			skb_put(newskb, init_wds ? skb->len + 6 : skb->len);
-			if (init_wds) {
+
+			if (init_wds)
+			{
 				skb_copy_from_linear_data(skb,
-							  newskb->data + 6,
-							  skb->len);
+										  newskb->data + 6,
+										  skb->len);
 				skb_copy_to_linear_data(newskb, wds_mac, 6);
 #ifdef ISLPCI_ETH_DEBUG
 				printk("islpci_eth_transmit:wds_mac\n");
 #endif
-			} else
+			}
+			else
 				skb_copy_from_linear_data(skb, newskb->data,
-							  skb->len);
+										  skb->len);
 
 #if VERBOSE > SHOW_ERROR_MESSAGES
 			DEBUG(SHOW_TRACING, "memcpy %p %p %i wds %i\n",
-			      newskb->data, skb->data, skb->len, init_wds);
+				  newskb->data, skb->data, skb->len, init_wds);
 #endif
 
 			newskb->dev = skb->dev;
@@ -180,6 +202,7 @@ islpci_eth_transmit(struct sk_buff *skb, struct net_device *ndev)
 			skb = newskb;
 		}
 	}
+
 	/* display the buffer contents for debugging */
 #if VERBOSE > SHOW_ERROR_MESSAGES
 	DEBUG(SHOW_BUFFER_CONTENTS, "\ntx %p ", skb->data);
@@ -188,13 +211,16 @@ islpci_eth_transmit(struct sk_buff *skb, struct net_device *ndev)
 
 	/* map the skb buffer to pci memory for DMA operation */
 	pci_map_address = pci_map_single(priv->pdev,
-					 (void *) skb->data, skb->len,
-					 PCI_DMA_TODEVICE);
-	if (pci_dma_mapping_error(priv->pdev, pci_map_address)) {
+									 (void *) skb->data, skb->len,
+									 PCI_DMA_TODEVICE);
+
+	if (pci_dma_mapping_error(priv->pdev, pci_map_address))
+	{
 		printk(KERN_WARNING "%s: cannot map buffer to PCI\n",
-		       ndev->name);
+			   ndev->name);
 		goto drop_free;
 	}
+
 	/* Place the fragment in the control block structure. */
 	index = curr_frag % ISL38XX_CB_TX_QSIZE;
 	fragment = &cb->tx_data_low[index];
@@ -215,7 +241,8 @@ islpci_eth_transmit(struct sk_buff *skb, struct net_device *ndev)
 	cb->driver_curr_frag[ISL38XX_CB_TX_DATA_LQ] = cpu_to_le32(curr_frag);
 
 	if (curr_frag - priv->free_data_tx + ISL38XX_MIN_QTHRESHOLD
-	    > ISL38XX_CB_TX_QSIZE) {
+		> ISL38XX_CB_TX_QSIZE)
+	{
 		/* stop sends from upper layers */
 		netif_stop_queue(ndev);
 
@@ -234,7 +261,7 @@ islpci_eth_transmit(struct sk_buff *skb, struct net_device *ndev)
 
 	return NETDEV_TX_OK;
 
-      drop_free:
+drop_free:
 	ndev->stats.tx_dropped++;
 	spin_unlock_irqrestore(&priv->slock, flags);
 	dev_kfree_skb(skb);
@@ -251,8 +278,12 @@ islpci_monitor_rx(islpci_private *priv, struct sk_buff **skb)
 
 	if (hdr->flags & 0x01)
 		/* This one is bad. Drop it ! */
+	{
 		return -1;
-	if (priv->ndev->type == ARPHRD_IEEE80211_PRISM) {
+	}
+
+	if (priv->ndev->type == ARPHRD_IEEE80211_PRISM)
+	{
 		struct avs_80211_1_header *avs;
 		/* extract the relevant data from the header */
 		u32 clock = le32_to_cpu(hdr->clock);
@@ -262,24 +293,31 @@ islpci_monitor_rx(islpci_private *priv, struct sk_buff **skb)
 
 		skb_pull(*skb, sizeof (struct rfmon_header));
 
-		if (skb_headroom(*skb) < sizeof (struct avs_80211_1_header)) {
+		if (skb_headroom(*skb) < sizeof (struct avs_80211_1_header))
+		{
 			struct sk_buff *newskb = skb_copy_expand(*skb,
-								 sizeof (struct
-									 avs_80211_1_header),
-								 0, GFP_ATOMIC);
-			if (newskb) {
+									 sizeof (struct
+											 avs_80211_1_header),
+									 0, GFP_ATOMIC);
+
+			if (newskb)
+			{
 				dev_kfree_skb_irq(*skb);
 				*skb = newskb;
-			} else
+			}
+			else
+			{
 				return -1;
+			}
+
 			/* This behavior is not very subtile... */
 		}
 
 		/* make room for the new header and fill it. */
 		avs =
-		    (struct avs_80211_1_header *) skb_push(*skb,
-							   sizeof (struct
-								   avs_80211_1_header));
+			(struct avs_80211_1_header *) skb_push(*skb,
+					sizeof (struct
+							avs_80211_1_header));
 
 		avs->version = cpu_to_be32(P80211CAPTURE_VERSION);
 		avs->length = cpu_to_be32(sizeof (struct avs_80211_1_header));
@@ -295,8 +333,11 @@ islpci_monitor_rx(islpci_private *priv, struct sk_buff **skb)
 		avs->ssi_noise = cpu_to_be32(priv->local_iwstatistics.qual.noise);	/*better than 'undefined', I assume */
 		avs->preamble = cpu_to_be32(0);	/*unknown */
 		avs->encoding = cpu_to_be32(0);	/*unknown */
-	} else
+	}
+	else
+	{
 		skb_pull(*skb, sizeof (struct rfmon_header));
+	}
 
 	(*skb)->protocol = htons(ETH_P_802_2);
 	skb_reset_mac_header(*skb);
@@ -326,28 +367,31 @@ islpci_eth_receive(islpci_private *priv)
 	size = le16_to_cpu(control_block->rx_data_low[index].size);
 	skb = priv->data_low_rx[index];
 	offset = ((unsigned long)
-		  le32_to_cpu(control_block->rx_data_low[index].address) -
-		  (unsigned long) skb->data) & 3;
+			  le32_to_cpu(control_block->rx_data_low[index].address) -
+			  (unsigned long) skb->data) & 3;
 
 #if VERBOSE > SHOW_ERROR_MESSAGES
 	DEBUG(SHOW_TRACING,
-	      "frq->addr %x skb->data %p skb->len %u offset %u truesize %u\n ",
-	      control_block->rx_data_low[priv->free_data_rx].address, skb->data,
-	      skb->len, offset, skb->truesize);
+		  "frq->addr %x skb->data %p skb->len %u offset %u truesize %u\n ",
+		  control_block->rx_data_low[priv->free_data_rx].address, skb->data,
+		  skb->len, offset, skb->truesize);
 #endif
 
 	/* delete the streaming DMA mapping before processing the skb */
 	pci_unmap_single(priv->pdev,
-			 priv->pci_map_rx_address[index],
-			 MAX_FRAGMENT_SIZE_RX + 2, PCI_DMA_FROMDEVICE);
+					 priv->pci_map_rx_address[index],
+					 MAX_FRAGMENT_SIZE_RX + 2, PCI_DMA_FROMDEVICE);
 
 	/* update the skb structure and align the buffer */
 	skb_put(skb, size);
-	if (offset) {
+
+	if (offset)
+	{
 		/* shift the buffer allocation offset bytes to get the right frame */
 		skb_pull(skb, 2);
 		skb_put(skb, 2);
 	}
+
 #if VERBOSE > SHOW_ERROR_MESSAGES
 	/* display the buffer contents for debugging */
 	DEBUG(SHOW_BUFFER_CONTENTS, "\nrx %p ", skb->data);
@@ -356,12 +400,14 @@ islpci_eth_receive(islpci_private *priv)
 
 	/* check whether WDS is enabled and whether the data frame is a WDS frame */
 
-	if (init_wds) {
+	if (init_wds)
+	{
 		/* WDS enabled, check for the wds address on the first 6 bytes of the buffer */
 		src = skb->data + 6;
 		memmove(skb->data, src, skb->len - 6);
 		skb_trim(skb, skb->len - 6);
 	}
+
 #if VERBOSE > SHOW_ERROR_MESSAGES
 	DEBUG(SHOW_TRACING, "Fragment size %i in skb at %p\n", size, skb);
 	DEBUG(SHOW_TRACING, "Skb data at %p, length %i\n", skb->data, skb->len);
@@ -370,18 +416,23 @@ islpci_eth_receive(islpci_private *priv)
 	DEBUG(SHOW_BUFFER_CONTENTS, "\nrx %p ", skb->data);
 	display_buffer((char *) skb->data, skb->len);
 #endif
+
 	/* take care of monitor mode and spy monitoring. */
-	if (unlikely(priv->iw_mode == IW_MODE_MONITOR)) {
+	if (unlikely(priv->iw_mode == IW_MODE_MONITOR))
+	{
 		skb->dev = ndev;
 		discard = islpci_monitor_rx(priv, &skb);
-	} else {
-		if (unlikely(skb->data[2 * ETH_ALEN] == 0)) {
+	}
+	else
+	{
+		if (unlikely(skb->data[2 * ETH_ALEN] == 0))
+		{
 			/* The packet has a rx_annex. Read it for spy monitoring, Then
 			 * remove it, while keeping the 2 leading MAC addr.
 			 */
 			struct iw_quality wstats;
 			struct rx_annex_header *annex =
-			    (struct rx_annex_header *) skb->data;
+				(struct rx_annex_header *) skb->data;
 			wstats.level = annex->rfmon.rssi;
 			/* The noise value can be a bit outdated if nobody's
 			 * reading wireless stats... */
@@ -392,13 +443,15 @@ islpci_eth_receive(islpci_private *priv)
 			wireless_spy_update(ndev, annex->addr2, &wstats);
 
 			skb_copy_from_linear_data(skb,
-						  (skb->data +
-						   sizeof(struct rfmon_header)),
-						  2 * ETH_ALEN);
+									  (skb->data +
+									   sizeof(struct rfmon_header)),
+									  2 * ETH_ALEN);
 			skb_pull(skb, sizeof (struct rfmon_header));
 		}
+
 		skb->protocol = eth_type_trans(skb, ndev);
 	}
+
 	skb->ip_summed = CHECKSUM_NONE;
 	ndev->stats.rx_packets++;
 	ndev->stats.rx_bytes += size;
@@ -406,32 +459,41 @@ islpci_eth_receive(islpci_private *priv)
 	/* deliver the skb to the network layer */
 #ifdef ISLPCI_ETH_DEBUG
 	printk
-	    ("islpci_eth_receive:netif_rx %2.2X %2.2X %2.2X %2.2X %2.2X %2.2X\n",
-	     skb->data[0], skb->data[1], skb->data[2], skb->data[3],
-	     skb->data[4], skb->data[5]);
+	("islpci_eth_receive:netif_rx %2.2X %2.2X %2.2X %2.2X %2.2X %2.2X\n",
+	 skb->data[0], skb->data[1], skb->data[2], skb->data[3],
+	 skb->data[4], skb->data[5]);
 #endif
-	if (unlikely(discard)) {
+
+	if (unlikely(discard))
+	{
 		dev_kfree_skb_irq(skb);
 		skb = NULL;
-	} else
+	}
+	else
+	{
 		netif_rx(skb);
+	}
 
 	/* increment the read index for the rx data low queue */
 	priv->free_data_rx++;
 
 	/* add one or more sk_buff structures */
 	while (index =
-	       le32_to_cpu(control_block->
-			   driver_curr_frag[ISL38XX_CB_RX_DATA_LQ]),
-	       index - priv->free_data_rx < ISL38XX_CB_RX_QSIZE) {
+			   le32_to_cpu(control_block->
+						   driver_curr_frag[ISL38XX_CB_RX_DATA_LQ]),
+		   index - priv->free_data_rx < ISL38XX_CB_RX_QSIZE)
+	{
 		/* allocate an sk_buff for received data frames storage
 		 * include any required allignment operations */
 		skb = dev_alloc_skb(MAX_FRAGMENT_SIZE_RX + 2);
-		if (unlikely(skb == NULL)) {
+
+		if (unlikely(skb == NULL))
+		{
 			/* error allocating an sk_buff structure elements */
 			DEBUG(SHOW_ERROR_MESSAGES, "Error allocating skb\n");
 			break;
 		}
+
 		skb_reserve(skb, (4 - (long) skb->data) & 0x03);
 		/* store the new skb structure pointer */
 		index = index % ISL38XX_CB_RX_QSIZE;
@@ -439,26 +501,29 @@ islpci_eth_receive(islpci_private *priv)
 
 #if VERBOSE > SHOW_ERROR_MESSAGES
 		DEBUG(SHOW_TRACING,
-		      "new alloc skb %p skb->data %p skb->len %u index %u truesize %u\n ",
-		      skb, skb->data, skb->len, index, skb->truesize);
+			  "new alloc skb %p skb->data %p skb->len %u index %u truesize %u\n ",
+			  skb, skb->data, skb->len, index, skb->truesize);
 #endif
 
 		/* set the streaming DMA mapping for proper PCI bus operation */
 		priv->pci_map_rx_address[index] =
-		    pci_map_single(priv->pdev, (void *) skb->data,
-				   MAX_FRAGMENT_SIZE_RX + 2,
-				   PCI_DMA_FROMDEVICE);
+			pci_map_single(priv->pdev, (void *) skb->data,
+						   MAX_FRAGMENT_SIZE_RX + 2,
+						   PCI_DMA_FROMDEVICE);
+
 		if (pci_dma_mapping_error(priv->pdev,
-					  priv->pci_map_rx_address[index])) {
+								  priv->pci_map_rx_address[index]))
+		{
 			/* error mapping the buffer to device accessible memory address */
 			DEBUG(SHOW_ERROR_MESSAGES,
-			      "Error mapping DMA address\n");
+				  "Error mapping DMA address\n");
 
 			/* free the skbuf structure before aborting */
 			dev_kfree_skb_irq(skb);
 			skb = NULL;
 			break;
 		}
+
 		/* update the fragment address */
 		control_block->rx_data_low[index].address =
 			cpu_to_le32((u32)priv->pci_map_rx_address[index]);
@@ -466,7 +531,7 @@ islpci_eth_receive(islpci_private *priv)
 
 		/* increment the driver read pointer */
 		le32_add_cpu(&control_block->
-			     driver_curr_frag[ISL38XX_CB_RX_DATA_LQ], 1);
+					 driver_curr_frag[ISL38XX_CB_RX_DATA_LQ], 1);
 	}
 
 	/* trigger the device */
@@ -494,14 +559,17 @@ islpci_eth_tx_timeout(struct net_device *ndev)
 	/* increment the transmit error counter */
 	ndev->stats.tx_errors++;
 
-	if (!priv->reset_task_pending) {
+	if (!priv->reset_task_pending)
+	{
 		printk(KERN_WARNING
-			"%s: tx_timeout, scheduling reset", ndev->name);
+			   "%s: tx_timeout, scheduling reset", ndev->name);
 		netif_stop_queue(ndev);
 		priv->reset_task_pending = 1;
 		schedule_work(&priv->reset_task);
-	} else {
+	}
+	else
+	{
 		printk(KERN_WARNING
-			"%s: tx_timeout, waiting for reset", ndev->name);
+			   "%s: tx_timeout, waiting for reset", ndev->name);
 	}
 }

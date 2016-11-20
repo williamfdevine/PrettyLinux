@@ -2,13 +2,14 @@
 #define __BCM47XXNFLASH_H
 
 #ifndef pr_fmt
-#define pr_fmt(fmt)		KBUILD_MODNAME ": " fmt
+	#define pr_fmt(fmt)		KBUILD_MODNAME ": " fmt
 #endif
 
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/nand.h>
 
-struct bcm47xxnflash {
+struct bcm47xxnflash
+{
 	struct bcma_drv_cc *cc;
 
 	struct nand_chip nand_chip;

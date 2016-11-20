@@ -44,13 +44,15 @@ DEFINE_SPINLOCK(cmxgcr_lock);
 EXPORT_SYMBOL(cmxgcr_lock);
 
 /* QE snum state */
-enum qe_snum_state {
+enum qe_snum_state
+{
 	QE_SNUM_STATE_USED,
 	QE_SNUM_STATE_FREE
 };
 
 /* QE snum */
-struct qe_snum {
+struct qe_snum
+{
 	u8 num;
 	enum qe_snum_state state;
 };
@@ -73,18 +75,29 @@ phys_addr_t get_qe_base(void)
 	struct resource res;
 
 	if (qebase != -1)
+	{
 		return qebase;
+	}
 
 	qe = of_find_compatible_node(NULL, NULL, "fsl,qe");
-	if (!qe) {
+
+	if (!qe)
+	{
 		qe = of_find_node_by_type(NULL, "qe");
+
 		if (!qe)
+		{
 			return qebase;
+		}
 	}
 
 	ret = of_address_to_resource(qe, 0, &res);
+
 	if (!ret)
+	{
 		qebase = res.start;
+	}
+
 	of_node_put(qe);
 
 	return qebase;
@@ -95,18 +108,22 @@ EXPORT_SYMBOL(get_qe_base);
 void qe_reset(void)
 {
 	if (qe_immr == NULL)
+	{
 		qe_immr = ioremap(get_qe_base(), QE_IMMAP_SIZE);
+	}
 
 	qe_snums_init();
 
 	qe_issue_cmd(QE_RESET, QE_CR_SUBBLOCK_INVALID,
-		     QE_CR_PROTOCOL_UNSPECIFIED, 0);
+				 QE_CR_PROTOCOL_UNSPECIFIED, 0);
 
 	/* Reclaim the MURAM memory for our use. */
 	qe_muram_init();
 
 	if (qe_sdma_init())
+	{
 		panic("sdma init failed!");
+	}
 }
 
 int qe_issue_cmd(u32 cmd, u32 device, u8 mcn_protocol, u32 cmd_input)
@@ -116,33 +133,46 @@ int qe_issue_cmd(u32 cmd, u32 device, u8 mcn_protocol, u32 cmd_input)
 	u32 ret;
 
 	spin_lock_irqsave(&qe_lock, flags);
-	if (cmd == QE_RESET) {
+
+	if (cmd == QE_RESET)
+	{
 		out_be32(&qe_immr->cp.cecr, (u32) (cmd | QE_CR_FLG));
-	} else {
-		if (cmd == QE_ASSIGN_PAGE) {
+	}
+	else
+	{
+		if (cmd == QE_ASSIGN_PAGE)
+		{
 			/* Here device is the SNUM, not sub-block */
 			dev_shift = QE_CR_SNUM_SHIFT;
-		} else if (cmd == QE_ASSIGN_RISC) {
+		}
+		else if (cmd == QE_ASSIGN_RISC)
+		{
 			/* Here device is the SNUM, and mcnProtocol is
 			 * e_QeCmdRiscAssignment value */
 			dev_shift = QE_CR_SNUM_SHIFT;
 			mcn_shift = QE_CR_MCN_RISC_ASSIGN_SHIFT;
-		} else {
+		}
+		else
+		{
 			if (device == QE_CR_SUBBLOCK_USB)
+			{
 				mcn_shift = QE_CR_MCN_USB_SHIFT;
+			}
 			else
+			{
 				mcn_shift = QE_CR_MCN_NORMAL_SHIFT;
+			}
 		}
 
 		out_be32(&qe_immr->cp.cecdr, cmd_input);
 		out_be32(&qe_immr->cp.cecr,
-			 (cmd | QE_CR_FLG | ((u32) device << dev_shift) | (u32)
-			  mcn_protocol << mcn_shift));
+				 (cmd | QE_CR_FLG | ((u32) device << dev_shift) | (u32)
+				  mcn_protocol << mcn_shift));
 	}
 
 	/* wait for the QE_CR_FLG to clear */
 	ret = spin_event_timeout((in_be32(&qe_immr->cp.cecr) & QE_CR_FLG) == 0,
-			   100, 0);
+							 100, 0);
 	/* On timeout (e.g. failure), the expression will be false (ret == 0),
 	   otherwise it will be true (ret == 1). */
 	spin_unlock_irqrestore(&qe_lock, flags);
@@ -170,18 +200,28 @@ unsigned int qe_get_brg_clk(void)
 	const u32 *prop;
 
 	if (brg_clk)
+	{
 		return brg_clk;
+	}
 
 	qe = of_find_compatible_node(NULL, NULL, "fsl,qe");
-	if (!qe) {
+
+	if (!qe)
+	{
 		qe = of_find_node_by_type(NULL, "qe");
+
 		if (!qe)
+		{
 			return brg_clk;
+		}
 	}
 
 	prop = of_get_property(qe, "brg-frequency", &size);
+
 	if (prop && size == sizeof(*prop))
+	{
 		brg_clk = *prop;
+	}
 
 	of_node_put(qe);
 
@@ -203,11 +243,14 @@ int qe_setbrg(enum qe_clock brg, unsigned int rate, unsigned int multiplier)
 	u32 div16 = 0;
 
 	if ((brg < QE_BRG1) || (brg > QE_BRG16))
+	{
 		return -EINVAL;
+	}
 
 	divisor = qe_get_brg_clk() / (rate * multiplier);
 
-	if (divisor > QE_BRGC_DIVISOR_MAX + 1) {
+	if (divisor > QE_BRGC_DIVISOR_MAX + 1)
+	{
 		div16 = QE_BRGC_DIV16;
 		divisor /= 16;
 	}
@@ -216,10 +259,12 @@ int qe_setbrg(enum qe_clock brg, unsigned int rate, unsigned int multiplier)
 	   that the BRG divisor must be even if you're not using divide-by-16
 	   mode. */
 	if (!div16 && (divisor & 1) && (divisor > 3))
+	{
 		divisor++;
+	}
 
 	tempval = ((divisor - 1) << QE_BRGC_DIVISOR_SHIFT) |
-		QE_BRGC_ENABLE | div16;
+			  QE_BRGC_ENABLE | div16;
 
 	out_be32(&qe_immr->brg.brgc[brg - QE_BRG1], tempval);
 
@@ -237,28 +282,46 @@ enum qe_clock qe_clock_source(const char *source)
 	unsigned int i;
 
 	if (strcasecmp(source, "none") == 0)
+	{
 		return QE_CLK_NONE;
-
-	if (strcmp(source, "tsync_pin") == 0)
-		return QE_TSYNC_PIN;
-
-	if (strcmp(source, "rsync_pin") == 0)
-		return QE_RSYNC_PIN;
-
-	if (strncasecmp(source, "brg", 3) == 0) {
-		i = simple_strtoul(source + 3, NULL, 10);
-		if ((i >= 1) && (i <= 16))
-			return (QE_BRG1 - 1) + i;
-		else
-			return QE_CLK_DUMMY;
 	}
 
-	if (strncasecmp(source, "clk", 3) == 0) {
+	if (strcmp(source, "tsync_pin") == 0)
+	{
+		return QE_TSYNC_PIN;
+	}
+
+	if (strcmp(source, "rsync_pin") == 0)
+	{
+		return QE_RSYNC_PIN;
+	}
+
+	if (strncasecmp(source, "brg", 3) == 0)
+	{
 		i = simple_strtoul(source + 3, NULL, 10);
-		if ((i >= 1) && (i <= 24))
-			return (QE_CLK1 - 1) + i;
+
+		if ((i >= 1) && (i <= 16))
+		{
+			return (QE_BRG1 - 1) + i;
+		}
 		else
+		{
 			return QE_CLK_DUMMY;
+		}
+	}
+
+	if (strncasecmp(source, "clk", 3) == 0)
+	{
+		i = simple_strtoul(source + 3, NULL, 10);
+
+		if ((i >= 1) && (i <= 24))
+		{
+			return (QE_CLK1 - 1) + i;
+		}
+		else
+		{
+			return QE_CLK_DUMMY;
+		}
 	}
 
 	return QE_CLK_DUMMY;
@@ -271,7 +334,8 @@ EXPORT_SYMBOL(qe_clock_source);
 static void qe_snums_init(void)
 {
 	int i;
-	static const u8 snum_init_76[] = {
+	static const u8 snum_init_76[] =
+	{
 		0x04, 0x05, 0x0C, 0x0D, 0x14, 0x15, 0x1C, 0x1D,
 		0x24, 0x25, 0x2C, 0x2D, 0x34, 0x35, 0x88, 0x89,
 		0x98, 0x99, 0xA8, 0xA9, 0xB8, 0xB9, 0xC8, 0xC9,
@@ -283,7 +347,8 @@ static void qe_snums_init(void)
 		0xD4, 0xD5, 0xDC, 0xDD, 0xE4, 0xE5, 0xEC, 0xED,
 		0xF4, 0xF5, 0xFC, 0xFD,
 	};
-	static const u8 snum_init_46[] = {
+	static const u8 snum_init_46[] =
+	{
 		0x04, 0x05, 0x0C, 0x0D, 0x14, 0x15, 0x1C, 0x1D,
 		0x24, 0x25, 0x2C, 0x2D, 0x34, 0x35, 0x88, 0x89,
 		0x98, 0x99, 0xA8, 0xA9, 0xB8, 0xB9, 0xC8, 0xC9,
@@ -296,11 +361,16 @@ static void qe_snums_init(void)
 	qe_num_of_snum = qe_get_num_of_snums();
 
 	if (qe_num_of_snum == 76)
+	{
 		snum_init = snum_init_76;
+	}
 	else
+	{
 		snum_init = snum_init_46;
+	}
 
-	for (i = 0; i < qe_num_of_snum; i++) {
+	for (i = 0; i < qe_num_of_snum; i++)
+	{
 		snums[i].num = snum_init[i];
 		snums[i].state = QE_SNUM_STATE_FREE;
 	}
@@ -313,13 +383,17 @@ int qe_get_snum(void)
 	int i;
 
 	spin_lock_irqsave(&qe_lock, flags);
-	for (i = 0; i < qe_num_of_snum; i++) {
-		if (snums[i].state == QE_SNUM_STATE_FREE) {
+
+	for (i = 0; i < qe_num_of_snum; i++)
+	{
+		if (snums[i].state == QE_SNUM_STATE_FREE)
+		{
 			snums[i].state = QE_SNUM_STATE_USED;
 			snum = snums[i].num;
 			break;
 		}
 	}
+
 	spin_unlock_irqrestore(&qe_lock, flags);
 
 	return snum;
@@ -330,8 +404,10 @@ void qe_put_snum(u8 snum)
 {
 	int i;
 
-	for (i = 0; i < qe_num_of_snum; i++) {
-		if (snums[i].num == snum) {
+	for (i = 0; i < qe_num_of_snum; i++)
+	{
+		if (snums[i].num == snum)
+		{
 			snums[i].state = QE_SNUM_STATE_FREE;
 			break;
 		}
@@ -342,22 +418,28 @@ EXPORT_SYMBOL(qe_put_snum);
 static int qe_sdma_init(void)
 {
 	struct sdma __iomem *sdma = &qe_immr->sdma;
-	static unsigned long sdma_buf_offset = (unsigned long)-ENOMEM;
+	static unsigned long sdma_buf_offset = (unsigned long) - ENOMEM;
 
 	if (!sdma)
+	{
 		return -ENODEV;
+	}
 
 	/* allocate 2 internal temporary buffers (512 bytes size each) for
 	 * the SDMA */
-	if (IS_ERR_VALUE(sdma_buf_offset)) {
+	if (IS_ERR_VALUE(sdma_buf_offset))
+	{
 		sdma_buf_offset = qe_muram_alloc(512 * 2, 4096);
+
 		if (IS_ERR_VALUE(sdma_buf_offset))
+		{
 			return -ENOMEM;
+		}
 	}
 
 	out_be32(&sdma->sdebcr, (u32) sdma_buf_offset & QE_SDEBCR_BA_MASK);
- 	out_be32(&sdma->sdmr, (QE_SDMR_GLB_1_MSK |
- 					(0x1 << QE_SDMR_CEN_SHIFT)));
+	out_be32(&sdma->sdmr, (QE_SDMR_GLB_1_MSK |
+						   (0x1 << QE_SDMR_CEN_SHIFT)));
 
 	return 0;
 }
@@ -381,26 +463,28 @@ static int qe_firmware_uploaded;
  * the actual uploading of the microcode.
  */
 static void qe_upload_microcode(const void *base,
-	const struct qe_microcode *ucode)
+								const struct qe_microcode *ucode)
 {
 	const __be32 *code = base + be32_to_cpu(ucode->code_offset);
 	unsigned int i;
 
 	if (ucode->major || ucode->minor || ucode->revision)
 		printk(KERN_INFO "qe-firmware: "
-			"uploading microcode '%s' version %u.%u.%u\n",
-			ucode->id, ucode->major, ucode->minor, ucode->revision);
+			   "uploading microcode '%s' version %u.%u.%u\n",
+			   ucode->id, ucode->major, ucode->minor, ucode->revision);
 	else
 		printk(KERN_INFO "qe-firmware: "
-			"uploading microcode '%s'\n", ucode->id);
+			   "uploading microcode '%s'\n", ucode->id);
 
 	/* Use auto-increment */
 	out_be32(&qe_immr->iram.iadd, be32_to_cpu(ucode->iram_offset) |
-		QE_IRAM_IADD_AIE | QE_IRAM_IADD_BADDR);
+			 QE_IRAM_IADD_AIE | QE_IRAM_IADD_BADDR);
 
 	for (i = 0; i < be32_to_cpu(ucode->count); i++)
+	{
 		out_be32(&qe_immr->iram.idata, be32_to_cpu(code[i]));
-	
+	}
+
 	/* Set I-RAM Ready Register */
 	out_be32(&qe_immr->iram.iready, be32_to_cpu(QE_IRAM_READY));
 }
@@ -431,7 +515,8 @@ int qe_upload_firmware(const struct qe_firmware *firmware)
 	size_t length;
 	const struct qe_header *hdr;
 
-	if (!firmware) {
+	if (!firmware)
+	{
 		printk(KERN_ERR "qe-firmware: invalid pointer\n");
 		return -EINVAL;
 	}
@@ -441,19 +526,22 @@ int qe_upload_firmware(const struct qe_firmware *firmware)
 
 	/* Check the magic */
 	if ((hdr->magic[0] != 'Q') || (hdr->magic[1] != 'E') ||
-	    (hdr->magic[2] != 'F')) {
+		(hdr->magic[2] != 'F'))
+	{
 		printk(KERN_ERR "qe-firmware: not a microcode\n");
 		return -EPERM;
 	}
 
 	/* Check the version */
-	if (hdr->version != 1) {
+	if (hdr->version != 1)
+	{
 		printk(KERN_ERR "qe-firmware: unsupported version\n");
 		return -EPERM;
 	}
 
 	/* Validate some of the fields */
-	if ((firmware->count < 1) || (firmware->count > MAX_QE_RISC)) {
+	if ((firmware->count < 1) || (firmware->count > MAX_QE_RISC))
+	{
 		printk(KERN_ERR "qe-firmware: invalid data\n");
 		return -EINVAL;
 	}
@@ -468,17 +556,20 @@ int qe_upload_firmware(const struct qe_firmware *firmware)
 		 * zero, so it's okay to add those.
 		 */
 		calc_size += sizeof(__be32) *
-			be32_to_cpu(firmware->microcode[i].count);
+					 be32_to_cpu(firmware->microcode[i].count);
 
 	/* Validate the length */
-	if (length != calc_size + sizeof(__be32)) {
+	if (length != calc_size + sizeof(__be32))
+	{
 		printk(KERN_ERR "qe-firmware: invalid length\n");
 		return -EPERM;
 	}
 
 	/* Validate the CRC */
 	crc = be32_to_cpu(*(__be32 *)((void *)firmware + calc_size));
-	if (crc != crc32(0, firmware, calc_size)) {
+
+	if (crc != crc32(0, firmware, calc_size))
+	{
 		printk(KERN_ERR "qe-firmware: firmware CRC is invalid\n");
 		return -EIO;
 	}
@@ -487,16 +578,18 @@ int qe_upload_firmware(const struct qe_firmware *firmware)
 	 * If the microcode calls for it, split the I-RAM.
 	 */
 	if (!firmware->split)
+	{
 		setbits16(&qe_immr->cp.cercr, QE_CP_CERCR_CIR);
+	}
 
 	if (firmware->soc.model)
 		printk(KERN_INFO
-			"qe-firmware: firmware '%s' for %u V%u.%u\n",
-			firmware->id, be16_to_cpu(firmware->soc.model),
-			firmware->soc.major, firmware->soc.minor);
+			   "qe-firmware: firmware '%s' for %u V%u.%u\n",
+			   firmware->id, be16_to_cpu(firmware->soc.model),
+			   firmware->soc.major, firmware->soc.minor);
 	else
 		printk(KERN_INFO "qe-firmware: firmware '%s'\n",
-			firmware->id);
+			   firmware->id);
 
 	/*
 	 * The QE only supports one microcode per RISC, so clear out all the
@@ -506,22 +599,28 @@ int qe_upload_firmware(const struct qe_firmware *firmware)
 	strlcpy(qe_firmware_info.id, firmware->id, sizeof(qe_firmware_info.id));
 	qe_firmware_info.extended_modes = firmware->extended_modes;
 	memcpy(qe_firmware_info.vtraps, firmware->vtraps,
-		sizeof(firmware->vtraps));
+		   sizeof(firmware->vtraps));
 
 	/* Loop through each microcode. */
-	for (i = 0; i < firmware->count; i++) {
+	for (i = 0; i < firmware->count; i++)
+	{
 		const struct qe_microcode *ucode = &firmware->microcode[i];
 
 		/* Upload a microcode if it's present */
 		if (ucode->code_offset)
+		{
 			qe_upload_microcode(firmware, ucode);
+		}
 
 		/* Program the traps for this processor */
-		for (j = 0; j < 16; j++) {
+		for (j = 0; j < 16; j++)
+		{
 			u32 trap = be32_to_cpu(ucode->traps[j]);
 
 			if (trap)
+			{
 				out_be32(&qe_immr->rsp[i].tibcr[j], trap);
+			}
 		}
 
 		/* Enable traps */
@@ -554,10 +653,14 @@ struct qe_firmware_info *qe_get_firmware_info(void)
 	 * yet, then check the device tree for information.
 	 */
 	if (qe_firmware_uploaded)
+	{
 		return &qe_firmware_info;
+	}
 
 	if (initialized)
+	{
 		return NULL;
+	}
 
 	initialized = 1;
 
@@ -566,45 +669,62 @@ struct qe_firmware_info *qe_get_firmware_info(void)
 	 * node, but we still need to support older device trees.
 	*/
 	qe = of_find_compatible_node(NULL, NULL, "fsl,qe");
-	if (!qe) {
+
+	if (!qe)
+	{
 		qe = of_find_node_by_type(NULL, "qe");
+
 		if (!qe)
+		{
 			return NULL;
+		}
 	}
 
 	/* Find the 'firmware' child node */
-	for_each_child_of_node(qe, fw) {
+	for_each_child_of_node(qe, fw)
+	{
 		if (strcmp(fw->name, "firmware") == 0)
+		{
 			break;
+		}
 	}
 
 	of_node_put(qe);
 
 	/* Did we find the 'firmware' node? */
 	if (!fw)
+	{
 		return NULL;
+	}
 
 	qe_firmware_uploaded = 1;
 
 	/* Copy the data into qe_firmware_info*/
 	sprop = of_get_property(fw, "id", NULL);
+
 	if (sprop)
 		strlcpy(qe_firmware_info.id, sprop,
-			sizeof(qe_firmware_info.id));
+				sizeof(qe_firmware_info.id));
 
 	prop = of_find_property(fw, "extended-modes", NULL);
-	if (prop && (prop->length == sizeof(u64))) {
+
+	if (prop && (prop->length == sizeof(u64)))
+	{
 		const u64 *iprop = prop->value;
 
 		qe_firmware_info.extended_modes = *iprop;
 	}
 
 	prop = of_find_property(fw, "virtual-traps", NULL);
-	if (prop && (prop->length == 32)) {
+
+	if (prop && (prop->length == 32))
+	{
 		const u32 *iprop = prop->value;
 
 		for (i = 0; i < ARRAY_SIZE(qe_firmware_info.vtraps); i++)
+		{
 			qe_firmware_info.vtraps[i] = iprop[i];
+		}
 	}
 
 	of_node_put(fw);
@@ -621,19 +741,27 @@ unsigned int qe_get_num_of_risc(void)
 	const u32 *prop;
 
 	qe = of_find_compatible_node(NULL, NULL, "fsl,qe");
-	if (!qe) {
+
+	if (!qe)
+	{
 		/* Older devices trees did not have an "fsl,qe"
 		 * compatible property, so we need to look for
 		 * the QE node by name.
 		 */
 		qe = of_find_node_by_type(NULL, "qe");
+
 		if (!qe)
+		{
 			return num_of_risc;
+		}
 	}
 
 	prop = of_get_property(qe, "fsl,qe-num-riscs", &size);
+
 	if (prop && size == sizeof(*prop))
+	{
 		num_of_risc = *prop;
+	}
 
 	of_node_put(qe);
 
@@ -650,20 +778,29 @@ unsigned int qe_get_num_of_snums(void)
 
 	num_of_snums = 28; /* The default number of snum for threads is 28 */
 	qe = of_find_compatible_node(NULL, NULL, "fsl,qe");
-	if (!qe) {
+
+	if (!qe)
+	{
 		/* Older devices trees did not have an "fsl,qe"
 		 * compatible property, so we need to look for
 		 * the QE node by name.
 		 */
 		qe = of_find_node_by_type(NULL, "qe");
+
 		if (!qe)
+		{
 			return num_of_snums;
+		}
 	}
 
 	prop = of_get_property(qe, "fsl,qe-num-snums", &size);
-	if (prop && size == sizeof(*prop)) {
+
+	if (prop && size == sizeof(*prop))
+	{
 		num_of_snums = *prop;
-		if ((num_of_snums < 28) || (num_of_snums > QE_NUM_OF_SNUM)) {
+
+		if ((num_of_snums < 28) || (num_of_snums > QE_NUM_OF_SNUM))
+		{
 			/* No QE ever has fewer than 28 SNUMs */
 			pr_err("QE: number of snum is invalid\n");
 			of_node_put(qe);
@@ -682,8 +819,12 @@ static int __init qe_init(void)
 	struct device_node *np;
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,qe");
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
+
 	qe_reset();
 	of_node_put(np);
 	return 0;
@@ -694,7 +835,10 @@ subsys_initcall(qe_init);
 static int qe_resume(struct platform_device *ofdev)
 {
 	if (!qe_alive_during_sleep())
+	{
 		qe_reset();
+	}
+
 	return 0;
 }
 
@@ -703,12 +847,14 @@ static int qe_probe(struct platform_device *ofdev)
 	return 0;
 }
 
-static const struct of_device_id qe_ids[] = {
+static const struct of_device_id qe_ids[] =
+{
 	{ .compatible = "fsl,qe", },
 	{ },
 };
 
-static struct platform_driver qe_driver = {
+static struct platform_driver qe_driver =
+{
 	.driver = {
 		.name = "fsl-qe",
 		.of_match_table = qe_ids,

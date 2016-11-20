@@ -24,43 +24,69 @@ static struct proc_dir_entry *proc_tty_driver;
  * This is the handler for /proc/tty/drivers
  */
 static void show_tty_range(struct seq_file *m, struct tty_driver *p,
-	dev_t from, int num)
+						   dev_t from, int num)
 {
 	seq_printf(m, "%-20s ", p->driver_name ? p->driver_name : "unknown");
 	seq_printf(m, "/dev/%-8s ", p->name);
-	if (p->num > 1) {
+
+	if (p->num > 1)
+	{
 		seq_printf(m, "%3d %d-%d ", MAJOR(from), MINOR(from),
-			MINOR(from) + num - 1);
-	} else {
+				   MINOR(from) + num - 1);
+	}
+	else
+	{
 		seq_printf(m, "%3d %7d ", MAJOR(from), MINOR(from));
 	}
-	switch (p->type) {
-	case TTY_DRIVER_TYPE_SYSTEM:
-		seq_puts(m, "system");
-		if (p->subtype == SYSTEM_TYPE_TTY)
-			seq_puts(m, ":/dev/tty");
-		else if (p->subtype == SYSTEM_TYPE_SYSCONS)
-			seq_puts(m, ":console");
-		else if (p->subtype == SYSTEM_TYPE_CONSOLE)
-			seq_puts(m, ":vtmaster");
-		break;
-	case TTY_DRIVER_TYPE_CONSOLE:
-		seq_puts(m, "console");
-		break;
-	case TTY_DRIVER_TYPE_SERIAL:
-		seq_puts(m, "serial");
-		break;
-	case TTY_DRIVER_TYPE_PTY:
-		if (p->subtype == PTY_TYPE_MASTER)
-			seq_puts(m, "pty:master");
-		else if (p->subtype == PTY_TYPE_SLAVE)
-			seq_puts(m, "pty:slave");
-		else
-			seq_puts(m, "pty");
-		break;
-	default:
-		seq_printf(m, "type:%d.%d", p->type, p->subtype);
+
+	switch (p->type)
+	{
+		case TTY_DRIVER_TYPE_SYSTEM:
+			seq_puts(m, "system");
+
+			if (p->subtype == SYSTEM_TYPE_TTY)
+			{
+				seq_puts(m, ":/dev/tty");
+			}
+			else if (p->subtype == SYSTEM_TYPE_SYSCONS)
+			{
+				seq_puts(m, ":console");
+			}
+			else if (p->subtype == SYSTEM_TYPE_CONSOLE)
+			{
+				seq_puts(m, ":vtmaster");
+			}
+
+			break;
+
+		case TTY_DRIVER_TYPE_CONSOLE:
+			seq_puts(m, "console");
+			break;
+
+		case TTY_DRIVER_TYPE_SERIAL:
+			seq_puts(m, "serial");
+			break;
+
+		case TTY_DRIVER_TYPE_PTY:
+			if (p->subtype == PTY_TYPE_MASTER)
+			{
+				seq_puts(m, "pty:master");
+			}
+			else if (p->subtype == PTY_TYPE_SLAVE)
+			{
+				seq_puts(m, "pty:slave");
+			}
+			else
+			{
+				seq_puts(m, "pty");
+			}
+
+			break;
+
+		default:
+			seq_printf(m, "type:%d.%d", p->type, p->subtype);
 	}
+
 	seq_putc(m, '\n');
 }
 
@@ -70,7 +96,8 @@ static int show_tty_driver(struct seq_file *m, void *v)
 	dev_t from = MKDEV(p->major, p->minor_start);
 	dev_t to = from + p->num;
 
-	if (&p->tty_drivers == tty_drivers.next) {
+	if (&p->tty_drivers == tty_drivers.next)
+	{
 		/* pseudo-drivers first */
 		seq_printf(m, "%-20s /dev/%-8s ", "/dev/tty", "tty");
 		seq_printf(m, "%3d %7d ", TTYAUX_MAJOR, 0);
@@ -90,13 +117,18 @@ static int show_tty_driver(struct seq_file *m, void *v)
 #endif
 	}
 
-	while (MAJOR(from) < MAJOR(to)) {
-		dev_t next = MKDEV(MAJOR(from)+1, 0);
+	while (MAJOR(from) < MAJOR(to))
+	{
+		dev_t next = MKDEV(MAJOR(from) + 1, 0);
 		show_tty_range(m, p, from, next - from);
 		from = next;
 	}
+
 	if (from != to)
+	{
 		show_tty_range(m, p, from, to - from);
+	}
+
 	return 0;
 }
 
@@ -117,7 +149,8 @@ static void t_stop(struct seq_file *m, void *v)
 	mutex_unlock(&tty_mutex);
 }
 
-static const struct seq_operations tty_drivers_op = {
+static const struct seq_operations tty_drivers_op =
+{
 	.start	= t_start,
 	.next	= t_next,
 	.stop	= t_stop,
@@ -129,7 +162,8 @@ static int tty_drivers_open(struct inode *inode, struct file *file)
 	return seq_open(file, &tty_drivers_op);
 }
 
-static const struct file_operations proc_tty_drivers_operations = {
+static const struct file_operations proc_tty_drivers_operations =
+{
 	.open		= tty_drivers_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -143,13 +177,15 @@ static const struct file_operations proc_tty_drivers_operations = {
 void proc_tty_register_driver(struct tty_driver *driver)
 {
 	struct proc_dir_entry *ent;
-		
+
 	if (!driver->driver_name || driver->proc_entry ||
-	    !driver->ops->proc_fops)
+		!driver->ops->proc_fops)
+	{
 		return;
+	}
 
 	ent = proc_create_data(driver->driver_name, 0, proc_tty_driver,
-			       driver->ops->proc_fops, driver);
+						   driver->ops->proc_fops, driver);
 	driver->proc_entry = ent;
 }
 
@@ -161,11 +197,14 @@ void proc_tty_unregister_driver(struct tty_driver *driver)
 	struct proc_dir_entry *ent;
 
 	ent = driver->proc_entry;
+
 	if (!ent)
+	{
 		return;
-		
+	}
+
 	remove_proc_entry(driver->driver_name, proc_tty_driver);
-	
+
 	driver->proc_entry = NULL;
 }
 
@@ -175,7 +214,10 @@ void proc_tty_unregister_driver(struct tty_driver *driver)
 void __init proc_tty_init(void)
 {
 	if (!proc_mkdir("tty", NULL))
+	{
 		return;
+	}
+
 	proc_mkdir("tty/ldisc", NULL);	/* Preserved: it's userspace visible */
 	/*
 	 * /proc/tty/driver/serial reveals the exact character counts for
@@ -183,7 +225,7 @@ void __init proc_tty_init(void)
 	 * password lengths and inter-keystroke timings during password
 	 * entry.
 	 */
-	proc_tty_driver = proc_mkdir_mode("tty/driver", S_IRUSR|S_IXUSR, NULL);
+	proc_tty_driver = proc_mkdir_mode("tty/driver", S_IRUSR | S_IXUSR, NULL);
 	proc_create("tty/ldiscs", 0, NULL, &tty_ldiscs_proc_fops);
 	proc_create("tty/drivers", 0, NULL, &proc_tty_drivers_operations);
 }

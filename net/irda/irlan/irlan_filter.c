@@ -41,7 +41,7 @@ void irlan_filter_request(struct irlan_cb *self, struct sk_buff *skb)
 	IRDA_ASSERT(self->magic == IRLAN_MAGIC, return;);
 
 	if ((self->provider.filter_type == IRLAN_DIRECTED) &&
-	    (self->provider.filter_operation == DYNAMIC))
+		(self->provider.filter_operation == DYNAMIC))
 	{
 		pr_debug("Giving peer a dynamic Ethernet address\n");
 		self->provider.mac_address[0] = 0x40;
@@ -50,15 +50,18 @@ void irlan_filter_request(struct irlan_cb *self, struct sk_buff *skb)
 		self->provider.mac_address[3] = 0x00;
 
 		/* Use arbitration value to generate MAC address */
-		if (self->provider.access_type == ACCESS_PEER) {
+		if (self->provider.access_type == ACCESS_PEER)
+		{
 			self->provider.mac_address[4] =
 				self->provider.send_arb_val & 0xff;
 			self->provider.mac_address[5] =
 				(self->provider.send_arb_val >> 8) & 0xff;
-		} else {
+		}
+		else
+		{
 			/* Just generate something for now */
-			get_random_bytes(self->provider.mac_address+4, 1);
-			get_random_bytes(self->provider.mac_address+5, 1);
+			get_random_bytes(self->provider.mac_address + 4, 1);
+			get_random_bytes(self->provider.mac_address + 5, 1);
 		}
 
 		skb->data[0] = 0x00; /* Success */
@@ -66,20 +69,21 @@ void irlan_filter_request(struct irlan_cb *self, struct sk_buff *skb)
 		irlan_insert_string_param(skb, "FILTER_MODE", "NONE");
 		irlan_insert_short_param(skb, "MAX_ENTRY", 0x0001);
 		irlan_insert_array_param(skb, "FILTER_ENTRY",
-					 self->provider.mac_address, 6);
+								 self->provider.mac_address, 6);
 		return;
 	}
 
 	if ((self->provider.filter_type == IRLAN_DIRECTED) &&
-	    (self->provider.filter_mode == FILTER))
+		(self->provider.filter_mode == FILTER))
 	{
 		pr_debug("Directed filter on\n");
 		skb->data[0] = 0x00; /* Success */
 		skb->data[1] = 0x00;
 		return;
 	}
+
 	if ((self->provider.filter_type == IRLAN_DIRECTED) &&
-	    (self->provider.filter_mode == NONE))
+		(self->provider.filter_mode == NONE))
 	{
 		pr_debug("Directed filter off\n");
 		skb->data[0] = 0x00; /* Success */
@@ -88,39 +92,43 @@ void irlan_filter_request(struct irlan_cb *self, struct sk_buff *skb)
 	}
 
 	if ((self->provider.filter_type == IRLAN_BROADCAST) &&
-	    (self->provider.filter_mode == FILTER))
+		(self->provider.filter_mode == FILTER))
 	{
 		pr_debug("Broadcast filter on\n");
 		skb->data[0] = 0x00; /* Success */
 		skb->data[1] = 0x00;
 		return;
 	}
+
 	if ((self->provider.filter_type == IRLAN_BROADCAST) &&
-	    (self->provider.filter_mode == NONE))
+		(self->provider.filter_mode == NONE))
 	{
 		pr_debug("Broadcast filter off\n");
 		skb->data[0] = 0x00; /* Success */
 		skb->data[1] = 0x00;
 		return;
 	}
+
 	if ((self->provider.filter_type == IRLAN_MULTICAST) &&
-	    (self->provider.filter_mode == FILTER))
+		(self->provider.filter_mode == FILTER))
 	{
 		pr_debug("Multicast filter on\n");
 		skb->data[0] = 0x00; /* Success */
 		skb->data[1] = 0x00;
 		return;
 	}
+
 	if ((self->provider.filter_type == IRLAN_MULTICAST) &&
-	    (self->provider.filter_mode == NONE))
+		(self->provider.filter_mode == NONE))
 	{
 		pr_debug("Multicast filter off\n");
 		skb->data[0] = 0x00; /* Success */
 		skb->data[1] = 0x00;
 		return;
 	}
+
 	if ((self->provider.filter_type == IRLAN_MULTICAST) &&
-	    (self->provider.filter_operation == GET))
+		(self->provider.filter_operation == GET))
 	{
 		pr_debug("Multicast filter get\n");
 		skb->data[0] = 0x00; /* Success? */
@@ -129,6 +137,7 @@ void irlan_filter_request(struct irlan_cb *self, struct sk_buff *skb)
 		irlan_insert_short_param(skb, "MAX_ENTRY", 16);
 		return;
 	}
+
 	skb->data[0] = 0x00; /* Command not supported */
 	skb->data[1] = 0x00;
 
@@ -151,7 +160,8 @@ void irlan_check_command_param(struct irlan_cb *self, char *param, char *value)
 	/*
 	 *  This is experimental!! DB.
 	 */
-	 if (strcmp(param, "MODE") == 0) {
+	if (strcmp(param, "MODE") == 0)
+	{
 		self->use_udata = TRUE;
 		return;
 	}
@@ -159,46 +169,64 @@ void irlan_check_command_param(struct irlan_cb *self, char *param, char *value)
 	/*
 	 *  FILTER_TYPE
 	 */
-	if (strcmp(param, "FILTER_TYPE") == 0) {
-		if (strcmp(value, "DIRECTED") == 0) {
+	if (strcmp(param, "FILTER_TYPE") == 0)
+	{
+		if (strcmp(value, "DIRECTED") == 0)
+		{
 			self->provider.filter_type = IRLAN_DIRECTED;
 			return;
 		}
-		if (strcmp(value, "MULTICAST") == 0) {
+
+		if (strcmp(value, "MULTICAST") == 0)
+		{
 			self->provider.filter_type = IRLAN_MULTICAST;
 			return;
 		}
-		if (strcmp(value, "BROADCAST") == 0) {
+
+		if (strcmp(value, "BROADCAST") == 0)
+		{
 			self->provider.filter_type = IRLAN_BROADCAST;
 			return;
 		}
 	}
+
 	/*
 	 *  FILTER_MODE
 	 */
-	if (strcmp(param, "FILTER_MODE") == 0) {
-		if (strcmp(value, "ALL") == 0) {
+	if (strcmp(param, "FILTER_MODE") == 0)
+	{
+		if (strcmp(value, "ALL") == 0)
+		{
 			self->provider.filter_mode = ALL;
 			return;
 		}
-		if (strcmp(value, "FILTER") == 0) {
+
+		if (strcmp(value, "FILTER") == 0)
+		{
 			self->provider.filter_mode = FILTER;
 			return;
 		}
-		if (strcmp(value, "NONE") == 0) {
+
+		if (strcmp(value, "NONE") == 0)
+		{
 			self->provider.filter_mode = FILTER;
 			return;
 		}
 	}
+
 	/*
 	 *  FILTER_OPERATION
 	 */
-	if (strcmp(param, "FILTER_OPERATION") == 0) {
-		if (strcmp(value, "DYNAMIC") == 0) {
+	if (strcmp(param, "FILTER_OPERATION") == 0)
+	{
+		if (strcmp(value, "DYNAMIC") == 0)
+		{
 			self->provider.filter_operation = DYNAMIC;
 			return;
 		}
-		if (strcmp(value, "GET") == 0) {
+
+		if (strcmp(value, "GET") == 0)
+		{
 			self->provider.filter_operation = GET;
 			return;
 		}
@@ -216,10 +244,12 @@ void irlan_check_command_param(struct irlan_cb *self, char *param, char *value)
 
 void irlan_print_filter(struct seq_file *seq, int filter_type)
 {
-	static struct {
+	static struct
+	{
 		int mask;
 		const char *str;
-	} filter_mask2str[] = {
+	} filter_mask2str[] =
+	{
 		MASK2STR(IRLAN_DIRECTED,	"DIRECTED"),
 		MASK2STR(IRLAN_FUNCTIONAL,	"FUNCTIONAL"),
 		MASK2STR(IRLAN_GROUP,		"GROUP"),
@@ -230,10 +260,14 @@ void irlan_print_filter(struct seq_file *seq, int filter_type)
 		MASK2STR(0,			NULL)
 	}, *p;
 
-	for (p = filter_mask2str; p->str; p++) {
+	for (p = filter_mask2str; p->str; p++)
+	{
 		if (filter_type & p->mask)
+		{
 			seq_printf(seq, "%s ", p->str);
+		}
 	}
+
 	seq_putc(seq, '\n');
 }
 #undef MASK2STR

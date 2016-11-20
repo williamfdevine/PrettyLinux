@@ -56,13 +56,15 @@ extern "C" {
 #define SAREA_DRAWABLE_CLAIMED_ENTRY    0x80000000
 
 /** SAREA drawable */
-struct drm_sarea_drawable {
+struct drm_sarea_drawable
+{
 	unsigned int stamp;
 	unsigned int flags;
 };
 
 /** SAREA frame */
-struct drm_sarea_frame {
+struct drm_sarea_frame
+{
 	unsigned int x;
 	unsigned int y;
 	unsigned int width;
@@ -71,10 +73,11 @@ struct drm_sarea_frame {
 };
 
 /** SAREA */
-struct drm_sarea {
-    /** first thing is always the DRM locking structure */
+struct drm_sarea
+{
+	/** first thing is always the DRM locking structure */
 	struct drm_hw_lock lock;
-    /** \todo Use readers/writer lock for drm_sarea::drawable_lock */
+	/** \todo Use readers/writer lock for drm_sarea::drawable_lock */
 	struct drm_hw_lock drawable_lock;
 	struct drm_sarea_drawable drawableTable[SAREA_MAX_DRAWABLES];	/**< drawables */
 	struct drm_sarea_frame frame;	/**< frame */

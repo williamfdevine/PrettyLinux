@@ -26,21 +26,24 @@
 #include <linux/mfd/pcf50633/core.h>
 #include <linux/mfd/pcf50633/adc.h>
 
-struct pcf50633_adc_request {
+struct pcf50633_adc_request
+{
 	int mux;
 	int avg;
 	void (*callback)(struct pcf50633 *, void *, int);
 	void *callback_param;
 };
 
-struct pcf50633_adc_sync_request {
+struct pcf50633_adc_sync_request
+{
 	int result;
 	struct completion completion;
 };
 
 #define PCF50633_MAX_ADC_FIFO_DEPTH 8
 
-struct pcf50633_adc {
+struct pcf50633_adc
+{
 	struct pcf50633 *pcf;
 
 	/* Private stuff */
@@ -65,7 +68,7 @@ static void adc_setup(struct pcf50633 *pcf, int channel, int avg)
 
 	/* start ADC conversion on selected channel */
 	pcf50633_reg_write(pcf, PCF50633_REG_ADCC1, channel | avg |
-		    PCF50633_ADCC1_ADCSTART | PCF50633_ADCC1_RES_10BIT);
+					   PCF50633_ADCC1_ADCSTART | PCF50633_ADCC1_RES_10BIT);
 }
 
 static void trigger_next_adc_job_if_any(struct pcf50633 *pcf)
@@ -76,7 +79,9 @@ static void trigger_next_adc_job_if_any(struct pcf50633 *pcf)
 	head = adc->queue_head;
 
 	if (!adc->queue[head])
+	{
 		return;
+	}
 
 	adc_setup(pcf, adc->queue[head]->mux, adc->queue[head]->avg);
 }
@@ -92,15 +97,20 @@ adc_enqueue_request(struct pcf50633 *pcf, struct pcf50633_adc_request *req)
 	head = adc->queue_head;
 	tail = adc->queue_tail;
 
-	if (adc->queue[tail]) {
+	if (adc->queue[tail])
+	{
 		mutex_unlock(&adc->queue_mutex);
 		dev_err(pcf->dev, "ADC queue is full, dropping request\n");
 		return -EBUSY;
 	}
 
 	adc->queue[tail] = req;
+
 	if (head == tail)
+	{
 		trigger_next_adc_job_if_any(pcf);
+	}
+
 	adc->queue_tail = (tail + 1) & (PCF50633_MAX_ADC_FIFO_DEPTH - 1);
 
 	mutex_unlock(&adc->queue_mutex);
@@ -109,7 +119,7 @@ adc_enqueue_request(struct pcf50633 *pcf, struct pcf50633_adc_request *req)
 }
 
 static void pcf50633_adc_sync_read_callback(struct pcf50633 *pcf, void *param,
-	int result)
+		int result)
 {
 	struct pcf50633_adc_sync_request *req = param;
 
@@ -125,9 +135,12 @@ int pcf50633_adc_sync_read(struct pcf50633 *pcf, int mux, int avg)
 	init_completion(&req.completion);
 
 	ret = pcf50633_adc_async_read(pcf, mux, avg,
-		pcf50633_adc_sync_read_callback, &req);
+								  pcf50633_adc_sync_read_callback, &req);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	wait_for_completion(&req.completion);
 
@@ -136,15 +149,18 @@ int pcf50633_adc_sync_read(struct pcf50633 *pcf, int mux, int avg)
 EXPORT_SYMBOL_GPL(pcf50633_adc_sync_read);
 
 int pcf50633_adc_async_read(struct pcf50633 *pcf, int mux, int avg,
-			     void (*callback)(struct pcf50633 *, void *, int),
-			     void *callback_param)
+							void (*callback)(struct pcf50633 *, void *, int),
+							void *callback_param)
 {
 	struct pcf50633_adc_request *req;
 
 	/* req is freed when the result is ready, in interrupt handler */
 	req = kmalloc(sizeof(*req), GFP_KERNEL);
+
 	if (!req)
+	{
 		return -ENOMEM;
+	}
 
 	req->mux = mux;
 	req->avg = avg;
@@ -180,14 +196,17 @@ static void pcf50633_adc_irq(int irq, void *data)
 	head = adc->queue_head;
 
 	req = adc->queue[head];
-	if (WARN_ON(!req)) {
+
+	if (WARN_ON(!req))
+	{
 		dev_err(pcf->dev, "pcf50633-adc irq: ADC queue empty!\n");
 		mutex_unlock(&adc->queue_mutex);
 		return;
 	}
+
 	adc->queue[head] = NULL;
 	adc->queue_head = (head + 1) &
-				      (PCF50633_MAX_ADC_FIFO_DEPTH - 1);
+					  (PCF50633_MAX_ADC_FIFO_DEPTH - 1);
 
 	res = adc_result(pcf);
 	trigger_next_adc_job_if_any(pcf);
@@ -203,14 +222,17 @@ static int pcf50633_adc_probe(struct platform_device *pdev)
 	struct pcf50633_adc *adc;
 
 	adc = devm_kzalloc(&pdev->dev, sizeof(*adc), GFP_KERNEL);
+
 	if (!adc)
+	{
 		return -ENOMEM;
+	}
 
 	adc->pcf = dev_to_pcf50633(pdev->dev.parent);
 	platform_set_drvdata(pdev, adc);
 
 	pcf50633_register_irq(adc->pcf, PCF50633_IRQ_ADCRDY,
-					pcf50633_adc_irq, adc);
+						  pcf50633_adc_irq, adc);
 
 	mutex_init(&adc->queue_mutex);
 
@@ -229,17 +251,20 @@ static int pcf50633_adc_remove(struct platform_device *pdev)
 
 	if (WARN_ON(adc->queue[head]))
 		dev_err(adc->pcf->dev,
-			"adc driver removed with request pending\n");
+				"adc driver removed with request pending\n");
 
 	for (i = 0; i < PCF50633_MAX_ADC_FIFO_DEPTH; i++)
+	{
 		kfree(adc->queue[i]);
+	}
 
 	mutex_unlock(&adc->queue_mutex);
 
 	return 0;
 }
 
-static struct platform_driver pcf50633_adc_driver = {
+static struct platform_driver pcf50633_adc_driver =
+{
 	.driver = {
 		.name = "pcf50633-adc",
 	},

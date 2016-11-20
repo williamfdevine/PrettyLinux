@@ -25,11 +25,11 @@
  * delay slot to avoid the problem case.
  */
 #define membar_safe(type) \
-do {	__asm__ __volatile__("ba,pt	%%xcc, 1f\n\t" \
-			     " membar	" type "\n" \
-			     "1:\n" \
-			     : : : "memory"); \
-} while (0)
+	do {	__asm__ __volatile__("ba,pt	%%xcc, 1f\n\t" \
+									 " membar	" type "\n" \
+									 "1:\n" \
+									 : : : "memory"); \
+	} while (0)
 
 /* The kernel always executes in TSO memory model these days,
  * and furthermore most sparc64 chips implement more stringent

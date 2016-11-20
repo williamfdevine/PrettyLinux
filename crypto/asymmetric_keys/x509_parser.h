@@ -13,7 +13,8 @@
 #include <crypto/public_key.h>
 #include <keys/asymmetric-type.h>
 
-struct x509_certificate {
+struct x509_certificate
+{
 	struct x509_certificate *next;
 	struct x509_certificate *signer;	/* Certificate that signed this one */
 	struct public_key *pub;			/* Public key details */
@@ -50,8 +51,8 @@ struct x509_certificate {
 extern void x509_free_certificate(struct x509_certificate *cert);
 extern struct x509_certificate *x509_cert_parse(const void *data, size_t datalen);
 extern int x509_decode_time(time64_t *_t,  size_t hdrlen,
-			    unsigned char tag,
-			    const unsigned char *value, size_t vlen);
+							unsigned char tag,
+							const unsigned char *value, size_t vlen);
 
 /*
  * x509_public_key.c

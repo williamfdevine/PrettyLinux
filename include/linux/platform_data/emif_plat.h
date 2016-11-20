@@ -55,7 +55,8 @@
  *		chip-select or whether it's a single one for both
  * @manufacturer: Manufacturer name string
  */
-struct ddr_device_info {
+struct ddr_device_info
+{
 	u32	type;
 	u32	density;
 	u32	io_width;
@@ -84,7 +85,8 @@ struct ddr_device_info {
  *		temperature(in milliseconds). When temperature is high
  *		polling is done 4 times as frequently.
  */
-struct emif_custom_configs {
+struct emif_custom_configs
+{
 	u32 mask;
 	u32 lpmode;
 	u32 lpmode_timeout_performance;
@@ -114,7 +116,8 @@ struct emif_custom_configs {
  *			documentation for 'struct emif_custom_configs' for
  *			more details
  */
-struct emif_platform_data {
+struct emif_platform_data
+{
 	u32 hw_caps;
 	struct ddr_device_info *device_info;
 	const struct lpddr2_timings *timings;

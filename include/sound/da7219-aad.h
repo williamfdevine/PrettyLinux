@@ -14,13 +14,15 @@
 #ifndef __DA7219_AAD_PDATA_H
 #define __DA7219_AAD_PDATA_H
 
-enum da7219_aad_micbias_pulse_lvl {
+enum da7219_aad_micbias_pulse_lvl
+{
 	DA7219_AAD_MICBIAS_PULSE_LVL_OFF = 0,
 	DA7219_AAD_MICBIAS_PULSE_LVL_2_8V = 6,
 	DA7219_AAD_MICBIAS_PULSE_LVL_2_9V,
 };
 
-enum da7219_aad_btn_cfg {
+enum da7219_aad_btn_cfg
+{
 	DA7219_AAD_BTN_CFG_2MS = 1,
 	DA7219_AAD_BTN_CFG_5MS,
 	DA7219_AAD_BTN_CFG_10MS,
@@ -30,14 +32,16 @@ enum da7219_aad_btn_cfg {
 	DA7219_AAD_BTN_CFG_500MS,
 };
 
-enum da7219_aad_mic_det_thr {
+enum da7219_aad_mic_det_thr
+{
 	DA7219_AAD_MIC_DET_THR_200_OHMS = 0,
 	DA7219_AAD_MIC_DET_THR_500_OHMS,
 	DA7219_AAD_MIC_DET_THR_750_OHMS,
 	DA7219_AAD_MIC_DET_THR_1000_OHMS,
 };
 
-enum da7219_aad_jack_ins_deb {
+enum da7219_aad_jack_ins_deb
+{
 	DA7219_AAD_JACK_INS_DEB_5MS = 0,
 	DA7219_AAD_JACK_INS_DEB_10MS,
 	DA7219_AAD_JACK_INS_DEB_20MS,
@@ -48,35 +52,40 @@ enum da7219_aad_jack_ins_deb {
 	DA7219_AAD_JACK_INS_DEB_1S,
 };
 
-enum da7219_aad_jack_det_rate {
+enum da7219_aad_jack_det_rate
+{
 	DA7219_AAD_JACK_DET_RATE_32_64MS = 0,
 	DA7219_AAD_JACK_DET_RATE_64_128MS,
 	DA7219_AAD_JACK_DET_RATE_128_256MS,
 	DA7219_AAD_JACK_DET_RATE_256_512MS,
 };
 
-enum da7219_aad_jack_rem_deb {
+enum da7219_aad_jack_rem_deb
+{
 	DA7219_AAD_JACK_REM_DEB_1MS = 0,
 	DA7219_AAD_JACK_REM_DEB_5MS,
 	DA7219_AAD_JACK_REM_DEB_10MS,
 	DA7219_AAD_JACK_REM_DEB_20MS,
 };
 
-enum da7219_aad_btn_avg {
+enum da7219_aad_btn_avg
+{
 	DA7219_AAD_BTN_AVG_1 = 0,
 	DA7219_AAD_BTN_AVG_2,
 	DA7219_AAD_BTN_AVG_4,
 	DA7219_AAD_BTN_AVG_8,
 };
 
-enum da7219_aad_adc_1bit_rpt {
+enum da7219_aad_adc_1bit_rpt
+{
 	DA7219_AAD_ADC_1BIT_RPT_1 = 0,
 	DA7219_AAD_ADC_1BIT_RPT_2,
 	DA7219_AAD_ADC_1BIT_RPT_4,
 	DA7219_AAD_ADC_1BIT_RPT_8,
 };
 
-struct da7219_aad_pdata {
+struct da7219_aad_pdata
+{
 	int irq;
 
 	enum da7219_aad_micbias_pulse_lvl micbias_pulse_lvl;

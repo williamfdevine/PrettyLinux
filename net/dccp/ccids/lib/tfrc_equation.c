@@ -88,7 +88,8 @@
   Where the columns overlap, the second (finer-grained) is given preference,
   i.e. the first column is used only for p >= 0.05.
  */
-static const u32 tfrc_calc_x_lookup[TFRC_CALC_X_ARRSIZE][2] = {
+static const u32 tfrc_calc_x_lookup[TFRC_CALC_X_ARRSIZE][2] =
+{
 	{     37172,   8172 },
 	{     53499,  11567 },
 	{     66664,  14180 },
@@ -596,13 +597,22 @@ static inline u32 tfrc_binsearch(u32 fval, u8 small)
 {
 	u32 try, low = 0, high = TFRC_CALC_X_ARRSIZE - 1;
 
-	while (low < high) {
+	while (low < high)
+	{
 		try = (low + high) / 2;
+
 		if (fval <= tfrc_calc_x_lookup[try][small])
+		{
+
 			high = try;
+		}
 		else
+		{
+
 			low  = try + 1;
+		}
 	}
+
 	return high;
 }
 
@@ -623,23 +633,32 @@ u32 tfrc_calc_x(u16 s, u32 R, u32 p)
 	/* check against invalid parameters and divide-by-zero   */
 	BUG_ON(p >  1000000);		/* p must not exceed 100%   */
 	BUG_ON(p == 0);			/* f(0) = 0, divide by zero */
-	if (R == 0) {			/* possible  divide by zero */
+
+	if (R == 0)  			/* possible  divide by zero */
+	{
 		DCCP_CRIT("WARNING: RTT is 0, returning maximum X_calc.");
 		return ~0U;
 	}
 
-	if (p <= TFRC_CALC_X_SPLIT)		{     /* 0.0000 < p <= 0.05   */
-		if (p < TFRC_SMALLEST_P) {	      /* 0.0000 < p <  0.0001 */
+	if (p <= TFRC_CALC_X_SPLIT)		      /* 0.0000 < p <= 0.05   */
+	{
+		if (p < TFRC_SMALLEST_P)  	      /* 0.0000 < p <  0.0001 */
+		{
 			DCCP_WARN("Value of p (%d) below resolution. "
-				  "Substituting %d\n", p, TFRC_SMALLEST_P);
+					  "Substituting %d\n", p, TFRC_SMALLEST_P);
 			index = 0;
-		} else				      /* 0.0001 <= p <= 0.05  */
-			index =  p/TFRC_SMALLEST_P - 1;
+		}
+		else				        /* 0.0001 <= p <= 0.05  */
+		{
+			index =  p / TFRC_SMALLEST_P - 1;
+		}
 
 		f = tfrc_calc_x_lookup[index][1];
 
-	} else {				      /* 0.05   <  p <= 1.00  */
-		index = p/(1000000/TFRC_CALC_X_ARRSIZE) - 1;
+	}
+	else  				        /* 0.05   <  p <= 1.00  */
+	{
+		index = p / (1000000 / TFRC_CALC_X_ARRSIZE) - 1;
 
 		f = tfrc_calc_x_lookup[index][0];
 	}
@@ -668,19 +687,25 @@ u32 tfrc_calc_x_reverse_lookup(u32 fvalue)
 	int index;
 
 	if (fvalue == 0)	/* f(p) = 0  whenever  p = 0 */
+	{
 		return 0;
+	}
 
 	/* Error cases. */
-	if (fvalue < tfrc_calc_x_lookup[0][1]) {
+	if (fvalue < tfrc_calc_x_lookup[0][1])
+	{
 		DCCP_WARN("fvalue %u smaller than resolution\n", fvalue);
 		return TFRC_SMALLEST_P;
 	}
-	if (fvalue > tfrc_calc_x_lookup[TFRC_CALC_X_ARRSIZE - 1][0]) {
+
+	if (fvalue > tfrc_calc_x_lookup[TFRC_CALC_X_ARRSIZE - 1][0])
+	{
 		DCCP_WARN("fvalue %u exceeds bounds!\n", fvalue);
 		return 1000000;
 	}
 
-	if (fvalue <= tfrc_calc_x_lookup[TFRC_CALC_X_ARRSIZE - 1][1]) {
+	if (fvalue <= tfrc_calc_x_lookup[TFRC_CALC_X_ARRSIZE - 1][1])
+	{
 		index = tfrc_binsearch(fvalue, 1);
 		return (index + 1) * TFRC_CALC_X_SPLIT / TFRC_CALC_X_ARRSIZE;
 	}
@@ -698,8 +723,14 @@ u32 tfrc_calc_x_reverse_lookup(u32 fvalue)
 u32 tfrc_invert_loss_event_rate(u32 loss_event_rate)
 {
 	if (loss_event_rate == UINT_MAX)		/* see RFC 4342, 8.5 */
+	{
 		return 0;
+	}
+
 	if (unlikely(loss_event_rate == 0))		/* map 1/0 into 100% */
+	{
 		return 1000000;
+	}
+
 	return max_t(u32, scaled_div(1, loss_event_rate), TFRC_SMALLEST_P);
 }

@@ -32,62 +32,111 @@
  * Find sensor groups and status registers on each page.
  */
 static void pmbus_find_sensor_groups(struct i2c_client *client,
-				     struct pmbus_driver_info *info)
+									 struct pmbus_driver_info *info)
 {
 	int page;
 
 	/* Sensors detected on page 0 only */
 	if (pmbus_check_word_register(client, 0, PMBUS_READ_VIN))
+	{
 		info->func[0] |= PMBUS_HAVE_VIN;
+	}
+
 	if (pmbus_check_word_register(client, 0, PMBUS_READ_VCAP))
+	{
 		info->func[0] |= PMBUS_HAVE_VCAP;
+	}
+
 	if (pmbus_check_word_register(client, 0, PMBUS_READ_IIN))
+	{
 		info->func[0] |= PMBUS_HAVE_IIN;
+	}
+
 	if (pmbus_check_word_register(client, 0, PMBUS_READ_PIN))
+	{
 		info->func[0] |= PMBUS_HAVE_PIN;
+	}
+
 	if (info->func[0]
-	    && pmbus_check_byte_register(client, 0, PMBUS_STATUS_INPUT))
+		&& pmbus_check_byte_register(client, 0, PMBUS_STATUS_INPUT))
+	{
 		info->func[0] |= PMBUS_HAVE_STATUS_INPUT;
+	}
+
 	if (pmbus_check_byte_register(client, 0, PMBUS_FAN_CONFIG_12) &&
-	    pmbus_check_word_register(client, 0, PMBUS_READ_FAN_SPEED_1)) {
+		pmbus_check_word_register(client, 0, PMBUS_READ_FAN_SPEED_1))
+	{
 		info->func[0] |= PMBUS_HAVE_FAN12;
+
 		if (pmbus_check_byte_register(client, 0, PMBUS_STATUS_FAN_12))
+		{
 			info->func[0] |= PMBUS_HAVE_STATUS_FAN12;
+		}
 	}
+
 	if (pmbus_check_byte_register(client, 0, PMBUS_FAN_CONFIG_34) &&
-	    pmbus_check_word_register(client, 0, PMBUS_READ_FAN_SPEED_3)) {
+		pmbus_check_word_register(client, 0, PMBUS_READ_FAN_SPEED_3))
+	{
 		info->func[0] |= PMBUS_HAVE_FAN34;
+
 		if (pmbus_check_byte_register(client, 0, PMBUS_STATUS_FAN_34))
+		{
 			info->func[0] |= PMBUS_HAVE_STATUS_FAN34;
+		}
 	}
+
 	if (pmbus_check_word_register(client, 0, PMBUS_READ_TEMPERATURE_1))
+	{
 		info->func[0] |= PMBUS_HAVE_TEMP;
+	}
+
 	if (pmbus_check_word_register(client, 0, PMBUS_READ_TEMPERATURE_2))
+	{
 		info->func[0] |= PMBUS_HAVE_TEMP2;
+	}
+
 	if (pmbus_check_word_register(client, 0, PMBUS_READ_TEMPERATURE_3))
+	{
 		info->func[0] |= PMBUS_HAVE_TEMP3;
+	}
+
 	if (info->func[0] & (PMBUS_HAVE_TEMP | PMBUS_HAVE_TEMP2
-			     | PMBUS_HAVE_TEMP3)
-	    && pmbus_check_byte_register(client, 0,
-					 PMBUS_STATUS_TEMPERATURE))
-			info->func[0] |= PMBUS_HAVE_STATUS_TEMP;
+						 | PMBUS_HAVE_TEMP3)
+		&& pmbus_check_byte_register(client, 0,
+									 PMBUS_STATUS_TEMPERATURE))
+	{
+		info->func[0] |= PMBUS_HAVE_STATUS_TEMP;
+	}
 
 	/* Sensors detected on all pages */
-	for (page = 0; page < info->pages; page++) {
-		if (pmbus_check_word_register(client, page, PMBUS_READ_VOUT)) {
+	for (page = 0; page < info->pages; page++)
+	{
+		if (pmbus_check_word_register(client, page, PMBUS_READ_VOUT))
+		{
 			info->func[page] |= PMBUS_HAVE_VOUT;
+
 			if (pmbus_check_byte_register(client, page,
-						      PMBUS_STATUS_VOUT))
+										  PMBUS_STATUS_VOUT))
+			{
 				info->func[page] |= PMBUS_HAVE_STATUS_VOUT;
+			}
 		}
-		if (pmbus_check_word_register(client, page, PMBUS_READ_IOUT)) {
+
+		if (pmbus_check_word_register(client, page, PMBUS_READ_IOUT))
+		{
 			info->func[page] |= PMBUS_HAVE_IOUT;
+
 			if (pmbus_check_byte_register(client, 0,
-						      PMBUS_STATUS_IOUT))
+										  PMBUS_STATUS_IOUT))
+			{
 				info->func[page] |= PMBUS_HAVE_STATUS_IOUT;
+			}
 		}
+
 		if (pmbus_check_word_register(client, page, PMBUS_READ_POUT))
+		{
 			info->func[page] |= PMBUS_HAVE_POUT;
+		}
 	}
 }
 
@@ -95,49 +144,64 @@ static void pmbus_find_sensor_groups(struct i2c_client *client,
  * Identify chip parameters.
  */
 static int pmbus_identify(struct i2c_client *client,
-			  struct pmbus_driver_info *info)
+						  struct pmbus_driver_info *info)
 {
 	int ret = 0;
 
-	if (!info->pages) {
+	if (!info->pages)
+	{
 		/*
 		 * Check if the PAGE command is supported. If it is,
 		 * keep setting the page number until it fails or until the
 		 * maximum number of pages has been reached. Assume that
 		 * this is the number of pages supported by the chip.
 		 */
-		if (pmbus_check_byte_register(client, 0, PMBUS_PAGE)) {
+		if (pmbus_check_byte_register(client, 0, PMBUS_PAGE))
+		{
 			int page;
 
-			for (page = 1; page < PMBUS_PAGES; page++) {
+			for (page = 1; page < PMBUS_PAGES; page++)
+			{
 				if (pmbus_set_page(client, page) < 0)
+				{
 					break;
+				}
 			}
+
 			pmbus_set_page(client, 0);
 			info->pages = page;
-		} else {
+		}
+		else
+		{
 			info->pages = 1;
 		}
 	}
 
-	if (pmbus_check_byte_register(client, 0, PMBUS_VOUT_MODE)) {
+	if (pmbus_check_byte_register(client, 0, PMBUS_VOUT_MODE))
+	{
 		int vout_mode;
 
 		vout_mode = pmbus_read_byte_data(client, 0, PMBUS_VOUT_MODE);
-		if (vout_mode >= 0 && vout_mode != 0xff) {
-			switch (vout_mode >> 5) {
-			case 0:
-				break;
-			case 1:
-				info->format[PSC_VOLTAGE_OUT] = vid;
-				info->vrm_version = vr11;
-				break;
-			case 2:
-				info->format[PSC_VOLTAGE_OUT] = direct;
-				break;
-			default:
-				ret = -ENODEV;
-				goto abort;
+
+		if (vout_mode >= 0 && vout_mode != 0xff)
+		{
+			switch (vout_mode >> 5)
+			{
+				case 0:
+					break;
+
+				case 1:
+					info->format[PSC_VOLTAGE_OUT] = vid;
+					info->vrm_version = vr11;
+					break;
+
+				case 2:
+					info->format[PSC_VOLTAGE_OUT] = direct;
+					break;
+
+				default:
+					ret = -ENODEV;
+					goto abort;
 			}
 		}
 	}
@@ -153,7 +217,8 @@ static int pmbus_identify(struct i2c_client *client,
 	 * without testing it. Until then, abort if a chip configured for direct
 	 * mode was detected.
 	 */
-	if (info->format[PSC_VOLTAGE_OUT] == direct) {
+	if (info->format[PSC_VOLTAGE_OUT] == direct)
+	{
 		ret = -ENODEV;
 		goto abort;
 	}
@@ -165,22 +230,29 @@ abort:
 }
 
 static int pmbus_probe(struct i2c_client *client,
-		       const struct i2c_device_id *id)
+					   const struct i2c_device_id *id)
 {
 	struct pmbus_driver_info *info;
 	struct pmbus_platform_data *pdata = NULL;
 	struct device *dev = &client->dev;
 
 	info = devm_kzalloc(dev, sizeof(struct pmbus_driver_info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	if (!strcmp(id->name, "dps460") || !strcmp(id->name, "dps800") ||
-	    !strcmp(id->name, "sgd009")) {
+		!strcmp(id->name, "sgd009"))
+	{
 		pdata = devm_kzalloc(dev, sizeof(struct pmbus_platform_data),
-				     GFP_KERNEL);
+							 GFP_KERNEL);
+
 		if (!pdata)
+		{
 			return -ENOMEM;
+		}
 
 		pdata->flags = PMBUS_SKIP_STATUS_CHECK;
 	}
@@ -195,7 +267,8 @@ static int pmbus_probe(struct i2c_client *client,
 /*
  * Use driver_data to set the number of pages supported by the chip.
  */
-static const struct i2c_device_id pmbus_id[] = {
+static const struct i2c_device_id pmbus_id[] =
+{
 	{"adp4000", 1},
 	{"bmr453", 1},
 	{"bmr454", 1},
@@ -221,10 +294,11 @@ static const struct i2c_device_id pmbus_id[] = {
 MODULE_DEVICE_TABLE(i2c, pmbus_id);
 
 /* This is the driver that will be inserted */
-static struct i2c_driver pmbus_driver = {
+static struct i2c_driver pmbus_driver =
+{
 	.driver = {
-		   .name = "pmbus",
-		   },
+		.name = "pmbus",
+	},
 	.probe = pmbus_probe,
 	.remove = pmbus_do_remove,
 	.id_table = pmbus_id,

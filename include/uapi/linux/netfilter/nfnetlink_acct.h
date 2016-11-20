@@ -2,10 +2,11 @@
 #define _UAPI_NFNL_ACCT_H_
 
 #ifndef NFACCT_NAME_MAX
-#define NFACCT_NAME_MAX		32
+	#define NFACCT_NAME_MAX		32
 #endif
 
-enum nfnl_acct_msg_types {
+enum nfnl_acct_msg_types
+{
 	NFNL_MSG_ACCT_NEW,
 	NFNL_MSG_ACCT_GET,
 	NFNL_MSG_ACCT_GET_CTRZERO,
@@ -14,13 +15,15 @@ enum nfnl_acct_msg_types {
 	NFNL_MSG_ACCT_MAX
 };
 
-enum nfnl_acct_flags {
+enum nfnl_acct_flags
+{
 	NFACCT_F_QUOTA_PKTS	= (1 << 0),
 	NFACCT_F_QUOTA_BYTES	= (1 << 1),
 	NFACCT_F_OVERQUOTA	= (1 << 2), /* can't be set from userspace */
 };
 
-enum nfnl_acct_type {
+enum nfnl_acct_type
+{
 	NFACCT_UNSPEC,
 	NFACCT_NAME,
 	NFACCT_PKTS,
@@ -34,7 +37,8 @@ enum nfnl_acct_type {
 };
 #define NFACCT_MAX (__NFACCT_MAX - 1)
 
-enum nfnl_attr_filter_type {
+enum nfnl_attr_filter_type
+{
 	NFACCT_FILTER_UNSPEC,
 	NFACCT_FILTER_MASK,
 	NFACCT_FILTER_VALUE,

@@ -18,7 +18,8 @@
 struct device;
 struct ad5592r_state;
 
-enum ad5592r_registers {
+enum ad5592r_registers
+{
 	AD5592R_REG_NOOP		= 0x0,
 	AD5592R_REG_DAC_READBACK	= 0x1,
 	AD5592R_REG_ADC_SEQ		= 0x2,
@@ -40,7 +41,8 @@ enum ad5592r_registers {
 #define AD5592R_REG_CTRL_ADC_RANGE	BIT(5)
 #define AD5592R_REG_CTRL_DAC_RANGE	BIT(4)
 
-struct ad5592r_rw_ops {
+struct ad5592r_rw_ops
+{
 	int (*write_dac)(struct ad5592r_state *st, unsigned chan, u16 value);
 	int (*read_adc)(struct ad5592r_state *st, unsigned chan, u16 *value);
 	int (*reg_write)(struct ad5592r_state *st, u8 reg, u16 value);
@@ -48,7 +50,8 @@ struct ad5592r_rw_ops {
 	int (*gpio_read)(struct ad5592r_state *st, u8 *value);
 };
 
-struct ad5592r_state {
+struct ad5592r_state
+{
 	struct device *dev;
 	struct regulator *reg;
 	struct gpio_chip gpiochip;
@@ -70,7 +73,7 @@ struct ad5592r_state {
 };
 
 int ad5592r_probe(struct device *dev, const char *name,
-		const struct ad5592r_rw_ops *ops);
+				  const struct ad5592r_rw_ops *ops);
 int ad5592r_remove(struct device *dev);
 
 #endif /* __DRIVERS_IIO_DAC_AD5592R_BASE_H__ */

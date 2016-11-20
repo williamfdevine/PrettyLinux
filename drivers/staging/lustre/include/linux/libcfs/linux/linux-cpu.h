@@ -34,7 +34,7 @@
 #define __LIBCFS_LINUX_CPU_H__
 
 #ifndef __LIBCFS_LIBCFS_H__
-#error Do not #include this file directly. #include <linux/libcfs/libcfs.h> instead
+	#error Do not #include this file directly. #include <linux/libcfs/libcfs.h> instead
 #endif
 
 #include <linux/cpu.h>
@@ -46,7 +46,8 @@
 #define HAVE_LIBCFS_CPT
 
 /** virtual processing unit */
-struct cfs_cpu_partition {
+struct cfs_cpu_partition
+{
 	/* CPUs mask for this partition */
 	cpumask_t			*cpt_cpumask;
 	/* nodes mask for this partition */
@@ -56,7 +57,8 @@ struct cfs_cpu_partition {
 };
 
 /** descriptor for CPU partitions */
-struct cfs_cpt_table {
+struct cfs_cpt_table
+{
 	/* version, reserved for hotplug */
 	unsigned			ctb_version;
 	/* spread rotor for NUMA allocator */

@@ -75,15 +75,16 @@
 
 #define WL1251_TX_ALIGN_TO 4
 #define WL1251_TX_ALIGN(len) (((len) + WL1251_TX_ALIGN_TO - 1) & \
-			     ~(WL1251_TX_ALIGN_TO - 1))
+							  ~(WL1251_TX_ALIGN_TO - 1))
 #define WL1251_TKIP_IV_SPACE 4
 
-struct tx_control {
+struct tx_control
+{
 	/* Rate Policy (class) index */
-	unsigned rate_policy:3;
+	unsigned rate_policy: 3;
 
 	/* When set, no ack policy is expected */
-	unsigned ack_policy:1;
+	unsigned ack_policy: 1;
 
 	/*
 	 * Packet type:
@@ -92,25 +93,26 @@ struct tx_control {
 	 * 2 -> IP
 	 * 3 -> raw codec
 	 */
-	unsigned packet_type:2;
+	unsigned packet_type: 2;
 
 	/* If set, this is a QoS-Null or QoS-Data frame */
-	unsigned qos:1;
+	unsigned qos: 1;
 
 	/*
 	 * If set, the target triggers the tx complete INT
 	 * upon frame sending completion.
 	 */
-	unsigned tx_complete:1;
+	unsigned tx_complete: 1;
 
 	/* 2 bytes padding before packet header */
-	unsigned xfer_pad:1;
+	unsigned xfer_pad: 1;
 
-	unsigned reserved:7;
+	unsigned reserved: 7;
 } __packed;
 
 
-struct tx_double_buffer_desc {
+struct tx_double_buffer_desc
+{
 	/* Length of payload, including headers. */
 	__le16 length;
 
@@ -156,7 +158,8 @@ struct tx_double_buffer_desc {
 	u8 reserved;
 } __packed;
 
-enum {
+enum
+{
 	TX_SUCCESS              = 0,
 	TX_DMA_ERROR            = BIT(7),
 	TX_DISABLED             = BIT(6),
@@ -167,7 +170,8 @@ enum {
 	TX_UNAVAILABLE_PRIORITY = BIT(1),
 };
 
-struct tx_result {
+struct tx_result
+{
 	/*
 	 * Ownership synchronization between the host and
 	 * the firmware. If done_1 and done_2 are cleared,
@@ -210,17 +214,22 @@ struct tx_result {
 
 static inline int wl1251_tx_get_queue(int queue)
 {
-	switch (queue) {
-	case 0:
-		return QOS_AC_VO;
-	case 1:
-		return QOS_AC_VI;
-	case 2:
-		return QOS_AC_BE;
-	case 3:
-		return QOS_AC_BK;
-	default:
-		return QOS_AC_BE;
+	switch (queue)
+	{
+		case 0:
+			return QOS_AC_VO;
+
+		case 1:
+			return QOS_AC_VI;
+
+		case 2:
+			return QOS_AC_BE;
+
+		case 3:
+			return QOS_AC_BK;
+
+		default:
+			return QOS_AC_BE;
 	}
 }
 

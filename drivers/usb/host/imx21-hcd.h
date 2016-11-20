@@ -25,7 +25,7 @@
 #define __LINUX_IMX21_HCD_H__
 
 #ifdef CONFIG_DYNAMIC_DEBUG
-#define DEBUG
+	#define DEBUG
 #endif
 
 #include <linux/platform_data/usb-mx2.h>
@@ -283,11 +283,12 @@
 #define IMX_FMT_BULK   0x2
 #define IMX_FMT_INT    0x3
 
-static char fmt_urb_to_etd[4] = {
-/*PIPE_ISOCHRONOUS*/ IMX_FMT_ISO,
-/*PIPE_INTERRUPT*/ IMX_FMT_INT,
-/*PIPE_CONTROL*/ IMX_FMT_CTRL,
-/*PIPE_BULK*/ IMX_FMT_BULK
+static char fmt_urb_to_etd[4] =
+{
+	/*PIPE_ISOCHRONOUS*/ IMX_FMT_ISO,
+	/*PIPE_INTERRUPT*/ IMX_FMT_INT,
+	/*PIPE_CONTROL*/ IMX_FMT_CTRL,
+	/*PIPE_BULK*/ IMX_FMT_BULK
 };
 
 /* condition (error) CC codes and mapping (OHCI like) */
@@ -307,7 +308,8 @@ static char fmt_urb_to_etd[4] = {
 #define	TD_SCHEDULEOVERRUN	0x0E
 #define TD_NOTACCESSED		0x0F
 
-static const int cc_to_error[16] = {
+static const int cc_to_error[16] =
+{
 	/* No  Error  */ 0,
 	/* CRC Error  */ -EILSEQ,
 	/* Bit Stuff  */ -EPROTO,
@@ -327,7 +329,8 @@ static const int cc_to_error[16] = {
 };
 
 /* HCD data associated with a usb core URB */
-struct urb_priv {
+struct urb_priv
+{
 	struct urb *urb;
 	struct usb_host_endpoint *ep;
 	int active;
@@ -338,7 +341,8 @@ struct urb_priv {
 };
 
 /* HCD data associated with a usb core endpoint */
-struct ep_priv {
+struct ep_priv
+{
 	struct usb_host_endpoint *ep;
 	struct list_head td_list;
 	struct list_head queue;
@@ -347,7 +351,8 @@ struct ep_priv {
 };
 
 /* isoc packet */
-struct td {
+struct td
+{
 	struct list_head list;
 	struct urb *urb;
 	struct usb_host_endpoint *ep;
@@ -359,7 +364,8 @@ struct td {
 };
 
 /* HCD data associated with a hardware ETD */
-struct etd_priv {
+struct etd_priv
+{
 	struct usb_host_endpoint *ep;
 	struct urb *urb;
 	struct td *td;
@@ -382,7 +388,8 @@ struct etd_priv {
 };
 
 /* Hardware data memory info */
-struct imx21_dmem_area {
+struct imx21_dmem_area
+{
 	struct usb_host_endpoint *ep;
 	unsigned int offset;
 	unsigned int size;
@@ -390,12 +397,14 @@ struct imx21_dmem_area {
 };
 
 #ifdef DEBUG
-struct debug_usage_stats {
+struct debug_usage_stats
+{
 	unsigned int value;
 	unsigned int maximum;
 };
 
-struct debug_stats {
+struct debug_stats
+{
 	unsigned long submitted;
 	unsigned long completed_ok;
 	unsigned long completed_failed;
@@ -404,7 +413,8 @@ struct debug_stats {
 	unsigned long queue_dmem;
 };
 
-struct debug_isoc_trace {
+struct debug_isoc_trace
+{
 	int schedule_frame;
 	int submit_frame;
 	int request_len;
@@ -416,7 +426,8 @@ struct debug_isoc_trace {
 #endif
 
 /* HCD data structure */
-struct imx21 {
+struct imx21
+{
 	spinlock_t lock;
 	struct device *dev;
 	struct usb_hcd *hcd;

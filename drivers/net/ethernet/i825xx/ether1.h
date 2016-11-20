@@ -16,7 +16,7 @@
 #ifdef __ETHER1_C
 /* use 0 for production, 1 for verification, >2 for debug */
 #ifndef NET_DEBUG
-#define NET_DEBUG 0
+	#define NET_DEBUG 0
 #endif
 
 #define priv(dev)	((struct ether1_priv *)netdev_priv(dev))
@@ -36,7 +36,8 @@
 /* HW address */
 #define IDPROM_ADDRESS	(priv(dev)->base + 0x0024)
 
-struct ether1_priv {
+struct ether1_priv
+{
 	void __iomem *base;
 	unsigned int tx_link;
 	unsigned int tx_head;
@@ -51,7 +52,8 @@ struct ether1_priv {
 
 #define I82586_NULL (-1)
 
-typedef struct { /* tdr */
+typedef struct   /* tdr */
+{
 	unsigned short tdr_status;
 	unsigned short tdr_command;
 	unsigned short tdr_link;
@@ -63,14 +65,16 @@ typedef struct { /* tdr */
 #define TDR_LNKOK	(1 << 15)
 } tdr_t;
 
-typedef struct { /* transmit */
+typedef struct   /* transmit */
+{
 	unsigned short tx_status;
 	unsigned short tx_command;
 	unsigned short tx_link;
 	unsigned short tx_tbdoffset;
 } tx_t;
 
-typedef struct { /* tbd */
+typedef struct   /* tbd */
+{
 	unsigned short tbd_opts;
 #define TBD_CNT		(0x3fff)
 #define TBD_EOL		(1 << 15)
@@ -79,7 +83,8 @@ typedef struct { /* tbd */
 	unsigned short tbd_bufh;
 } tbd_t;
 
-typedef struct { /* rfd */
+typedef struct   /* rfd */
+{
 	unsigned short rfd_status;
 #define RFD_NOEOF	(1 << 6)
 #define RFD_FRAMESHORT	(1 << 7)
@@ -100,7 +105,8 @@ typedef struct { /* rfd */
 	unsigned short rfd_len;
 } rfd_t;
 
-typedef struct { /* rbd */
+typedef struct   /* rbd */
+{
 	unsigned short rbd_status;
 #define RBD_ACNT	(0x3fff)
 #define RBD_ACNTVALID	(1 << 14)
@@ -111,13 +117,15 @@ typedef struct { /* rbd */
 	unsigned short rbd_len;
 } rbd_t;
 
-typedef struct { /* nop */
+typedef struct   /* nop */
+{
 	unsigned short nop_status;
 	unsigned short nop_command;
 	unsigned short nop_link;
 } nop_t;
 
-typedef struct { /* set multicast */
+typedef struct   /* set multicast */
+{
 	unsigned short mc_status;
 	unsigned short mc_command;
 	unsigned short mc_link;
@@ -125,14 +133,16 @@ typedef struct { /* set multicast */
 	unsigned char  mc_addrs[1][6];
 } mc_t;
 
-typedef struct { /* set address */
+typedef struct   /* set address */
+{
 	unsigned short sa_status;
 	unsigned short sa_command;
 	unsigned short sa_link;
 	unsigned char  sa_addr[6];
 } sa_t;
 
-typedef struct { /* config command */
+typedef struct   /* config command */
+{
 	unsigned short cfg_status;
 	unsigned short cfg_command;
 	unsigned short cfg_link;
@@ -176,7 +186,8 @@ typedef struct { /* config command */
 	unsigned short cfg_minfrmlen;
 } cfg_t;
 
-typedef struct { /* scb */
+typedef struct   /* scb */
+{
 	unsigned short scb_status;	/* status of 82586			*/
 #define SCB_STRXMASK		(7 << 4)	/* Receive unit status		*/
 #define SCB_STRXIDLE		(0 << 4)	/* Idle				*/
@@ -212,15 +223,17 @@ typedef struct { /* scb */
 	unsigned short scb_ovn_errors;	/* Frames lost due to slow bus		*/
 } scb_t;
 
-typedef struct { /* iscp */
+typedef struct   /* iscp */
+{
 	unsigned short iscp_busy;	/* set by CPU before CA			*/
 	unsigned short iscp_offset;	/* offset of SCB			*/
 	unsigned short iscp_basel;	/* base of SCB				*/
 	unsigned short iscp_baseh;
 } iscp_t;
 
-    /* this address must be 0xfff6 */
-typedef struct { /* scp */
+/* this address must be 0xfff6 */
+typedef struct   /* scp */
+{
 	unsigned short scp_sysbus;	/* bus size */
 #define SCP_SY_16BBUS	0x00
 #define SCP_SY_8BBUS	0x01

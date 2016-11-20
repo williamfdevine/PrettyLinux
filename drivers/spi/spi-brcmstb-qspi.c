@@ -20,7 +20,8 @@
 #include <linux/of.h>
 #include "spi-bcm-qspi.h"
 
-static const struct of_device_id brcmstb_qspi_of_match[] = {
+static const struct of_device_id brcmstb_qspi_of_match[] =
+{
 	{ .compatible = "brcm,spi-brcmstb-qspi" },
 	{ .compatible = "brcm,spi-brcmstb-mspi" },
 	{},
@@ -37,7 +38,8 @@ static int brcmstb_qspi_remove(struct platform_device *pdev)
 	return bcm_qspi_remove(pdev);
 }
 
-static struct platform_driver brcmstb_qspi_driver = {
+static struct platform_driver brcmstb_qspi_driver =
+{
 	.probe			= brcmstb_qspi_probe,
 	.remove			= brcmstb_qspi_remove,
 	.driver = {

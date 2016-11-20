@@ -23,10 +23,12 @@
 
 #ifdef CONFIG_DEBUG_FS
 #define REGDEF(reg) { reg, #reg }
-static const struct {
+static const struct
+{
 	uint32_t reg;
 	const char *name;
-} vc4_reg_defs[] = {
+} vc4_reg_defs[] =
+{
 	REGDEF(V3D_IDENT0),
 	REGDEF(V3D_IDENT1),
 	REGDEF(V3D_IDENT2),
@@ -114,10 +116,11 @@ int vc4_v3d_debugfs_regs(struct seq_file *m, void *unused)
 	struct vc4_dev *vc4 = to_vc4_dev(dev);
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(vc4_reg_defs); i++) {
+	for (i = 0; i < ARRAY_SIZE(vc4_reg_defs); i++)
+	{
 		seq_printf(m, "%s (0x%04x): 0x%08x\n",
-			   vc4_reg_defs[i].name, vc4_reg_defs[i].reg,
-			   V3D_READ(vc4_reg_defs[i].reg));
+				   vc4_reg_defs[i].name, vc4_reg_defs[i].reg,
+				   V3D_READ(vc4_reg_defs[i].reg));
 	}
 
 	return 0;
@@ -134,12 +137,12 @@ int vc4_v3d_debugfs_ident(struct seq_file *m, void *unused)
 	uint32_t qups = VC4_GET_FIELD(ident1, V3D_IDENT1_QUPS);
 
 	seq_printf(m, "Revision:   %d\n",
-		   VC4_GET_FIELD(ident1, V3D_IDENT1_REV));
+			   VC4_GET_FIELD(ident1, V3D_IDENT1_REV));
 	seq_printf(m, "Slices:     %d\n", nslc);
 	seq_printf(m, "TMUs:       %d\n", nslc * tups);
 	seq_printf(m, "QPUs:       %d\n", nslc * qups);
 	seq_printf(m, "Semaphores: %d\n",
-		   VC4_GET_FIELD(ident1, V3D_IDENT1_NSEM));
+			   VC4_GET_FIELD(ident1, V3D_IDENT1_NSEM));
 
 	return 0;
 }
@@ -188,23 +191,30 @@ static int vc4_v3d_bind(struct device *dev, struct device *master, void *data)
 	int ret;
 
 	v3d = devm_kzalloc(&pdev->dev, sizeof(*v3d), GFP_KERNEL);
+
 	if (!v3d)
+	{
 		return -ENOMEM;
+	}
 
 	dev_set_drvdata(dev, v3d);
 
 	v3d->pdev = pdev;
 
 	v3d->regs = vc4_ioremap_regs(pdev, 0);
+
 	if (IS_ERR(v3d->regs))
+	{
 		return PTR_ERR(v3d->regs);
+	}
 
 	vc4->v3d = v3d;
 	v3d->vc4 = vc4;
 
-	if (V3D_READ(V3D_IDENT0) != V3D_EXPECTED_IDENT0) {
+	if (V3D_READ(V3D_IDENT0) != V3D_EXPECTED_IDENT0)
+	{
 		DRM_ERROR("V3D_IDENT0 read 0x%08x instead of 0x%08x\n",
-			  V3D_READ(V3D_IDENT0), V3D_EXPECTED_IDENT0);
+				  V3D_READ(V3D_IDENT0), V3D_EXPECTED_IDENT0);
 		return -EINVAL;
 	}
 
@@ -217,7 +227,9 @@ static int vc4_v3d_bind(struct device *dev, struct device *master, void *data)
 	vc4_v3d_init_hw(drm);
 
 	ret = drm_irq_install(drm, platform_get_irq(pdev, 0));
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("Failed to install IRQ handler\n");
 		return ret;
 	}
@@ -228,7 +240,7 @@ static int vc4_v3d_bind(struct device *dev, struct device *master, void *data)
 }
 
 static void vc4_v3d_unbind(struct device *dev, struct device *master,
-			   void *data)
+						   void *data)
 {
 	struct drm_device *drm = dev_get_drvdata(master);
 	struct vc4_dev *vc4 = to_vc4_dev(drm);
@@ -247,11 +259,13 @@ static void vc4_v3d_unbind(struct device *dev, struct device *master,
 	vc4->v3d = NULL;
 }
 
-static const struct dev_pm_ops vc4_v3d_pm_ops = {
+static const struct dev_pm_ops vc4_v3d_pm_ops =
+{
 	SET_RUNTIME_PM_OPS(vc4_v3d_runtime_suspend, vc4_v3d_runtime_resume, NULL)
 };
 
-static const struct component_ops vc4_v3d_ops = {
+static const struct component_ops vc4_v3d_ops =
+{
 	.bind   = vc4_v3d_bind,
 	.unbind = vc4_v3d_unbind,
 };
@@ -267,13 +281,15 @@ static int vc4_v3d_dev_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id vc4_v3d_dt_match[] = {
+static const struct of_device_id vc4_v3d_dt_match[] =
+{
 	{ .compatible = "brcm,bcm2835-v3d" },
 	{ .compatible = "brcm,vc4-v3d" },
 	{}
 };
 
-struct platform_driver vc4_v3d_driver = {
+struct platform_driver vc4_v3d_driver =
+{
 	.probe = vc4_v3d_dev_probe,
 	.remove = vc4_v3d_dev_remove,
 	.driver = {

@@ -51,7 +51,8 @@ MODULE_LICENSE("GPL");
 #define DRIVER_NAME	"riowd"
 #define PFX		DRIVER_NAME ": "
 
-struct riowd {
+struct riowd
+{
 	void __iomem		*regs;
 	spinlock_t		lock;
 };
@@ -87,7 +88,8 @@ static int riowd_release(struct inode *inode, struct file *filp)
 
 static long riowd_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
-	static const struct watchdog_info info = {
+	static const struct watchdog_info info =
+	{
 		.options		= WDIOF_SETTIMEOUT,
 		.firmware_version	= 1,
 		.identity		= DRIVER_NAME,
@@ -97,60 +99,83 @@ static long riowd_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	unsigned int options;
 	int new_margin;
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		if (copy_to_user(argp, &info, sizeof(info)))
-			return -EFAULT;
-		break;
+	switch (cmd)
+	{
+		case WDIOC_GETSUPPORT:
+			if (copy_to_user(argp, &info, sizeof(info)))
+			{
+				return -EFAULT;
+			}
 
-	case WDIOC_GETSTATUS:
-	case WDIOC_GETBOOTSTATUS:
-		if (put_user(0, (int __user *)argp))
-			return -EFAULT;
-		break;
+			break;
 
-	case WDIOC_KEEPALIVE:
-		riowd_writereg(p, riowd_timeout, WDTO_INDEX);
-		break;
+		case WDIOC_GETSTATUS:
+		case WDIOC_GETBOOTSTATUS:
+			if (put_user(0, (int __user *)argp))
+			{
+				return -EFAULT;
+			}
 
-	case WDIOC_SETOPTIONS:
-		if (copy_from_user(&options, argp, sizeof(options)))
-			return -EFAULT;
+			break;
 
-		if (options & WDIOS_DISABLECARD)
-			riowd_writereg(p, 0, WDTO_INDEX);
-		else if (options & WDIOS_ENABLECARD)
+		case WDIOC_KEEPALIVE:
 			riowd_writereg(p, riowd_timeout, WDTO_INDEX);
-		else
-			return -EINVAL;
+			break;
 
-		break;
+		case WDIOC_SETOPTIONS:
+			if (copy_from_user(&options, argp, sizeof(options)))
+			{
+				return -EFAULT;
+			}
 
-	case WDIOC_SETTIMEOUT:
-		if (get_user(new_margin, (int __user *)argp))
-			return -EFAULT;
-		if ((new_margin < 60) || (new_margin > (255 * 60)))
-			return -EINVAL;
-		riowd_timeout = (new_margin + 59) / 60;
-		riowd_writereg(p, riowd_timeout, WDTO_INDEX);
+			if (options & WDIOS_DISABLECARD)
+			{
+				riowd_writereg(p, 0, WDTO_INDEX);
+			}
+			else if (options & WDIOS_ENABLECARD)
+			{
+				riowd_writereg(p, riowd_timeout, WDTO_INDEX);
+			}
+			else
+			{
+				return -EINVAL;
+			}
+
+			break;
+
+		case WDIOC_SETTIMEOUT:
+			if (get_user(new_margin, (int __user *)argp))
+			{
+				return -EFAULT;
+			}
+
+			if ((new_margin < 60) || (new_margin > (255 * 60)))
+			{
+				return -EINVAL;
+			}
+
+			riowd_timeout = (new_margin + 59) / 60;
+			riowd_writereg(p, riowd_timeout, WDTO_INDEX);
+
 		/* Fall */
 
-	case WDIOC_GETTIMEOUT:
-		return put_user(riowd_timeout * 60, (int __user *)argp);
+		case WDIOC_GETTIMEOUT:
+			return put_user(riowd_timeout * 60, (int __user *)argp);
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	};
 
 	return 0;
 }
 
 static ssize_t riowd_write(struct file *file, const char __user *buf,
-						size_t count, loff_t *ppos)
+						   size_t count, loff_t *ppos)
 {
 	struct riowd *p = riowd_device;
 
-	if (count) {
+	if (count)
+	{
 		riowd_writereg(p, riowd_timeout, WDTO_INDEX);
 		return 1;
 	}
@@ -158,7 +183,8 @@ static ssize_t riowd_write(struct file *file, const char __user *buf,
 	return 0;
 }
 
-static const struct file_operations riowd_fops = {
+static const struct file_operations riowd_fops =
+{
 	.owner =		THIS_MODULE,
 	.llseek =		no_llseek,
 	.unlocked_ioctl =	riowd_ioctl,
@@ -167,7 +193,8 @@ static const struct file_operations riowd_fops = {
 	.release =		riowd_release,
 };
 
-static struct miscdevice riowd_miscdev = {
+static struct miscdevice riowd_miscdev =
+{
 	.minor	= WATCHDOG_MINOR,
 	.name	= "watchdog",
 	.fops	= &riowd_fops
@@ -179,31 +206,41 @@ static int riowd_probe(struct platform_device *op)
 	int err = -EINVAL;
 
 	if (riowd_device)
+	{
 		goto out;
+	}
 
 	err = -ENOMEM;
 	p = devm_kzalloc(&op->dev, sizeof(*p), GFP_KERNEL);
+
 	if (!p)
+	{
 		goto out;
+	}
 
 	spin_lock_init(&p->lock);
 
 	p->regs = of_ioremap(&op->resource[0], 0, 2, DRIVER_NAME);
-	if (!p->regs) {
+
+	if (!p->regs)
+	{
 		pr_err("Cannot map registers\n");
 		goto out;
 	}
+
 	/* Make miscdev useable right away */
 	riowd_device = p;
 
 	err = misc_register(&riowd_miscdev);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Cannot register watchdog misc device\n");
 		goto out_iounmap;
 	}
 
 	pr_info("Hardware watchdog [%i minutes], regs at %p\n",
-		riowd_timeout, p->regs);
+			riowd_timeout, p->regs);
 
 	platform_set_drvdata(op, p);
 	return 0;
@@ -226,7 +263,8 @@ static int riowd_remove(struct platform_device *op)
 	return 0;
 }
 
-static const struct of_device_id riowd_match[] = {
+static const struct of_device_id riowd_match[] =
+{
 	{
 		.name = "pmc",
 	},
@@ -234,7 +272,8 @@ static const struct of_device_id riowd_match[] = {
 };
 MODULE_DEVICE_TABLE(of, riowd_match);
 
-static struct platform_driver riowd_driver = {
+static struct platform_driver riowd_driver =
+{
 	.driver = {
 		.name = DRIVER_NAME,
 		.of_match_table = riowd_match,

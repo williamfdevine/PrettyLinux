@@ -30,7 +30,8 @@
 #define nfc_info(dev, fmt, ...) dev_info((dev), "NFC: " fmt, ##__VA_ARGS__)
 #define nfc_err(dev, fmt, ...) dev_err((dev), "NFC: " fmt, ##__VA_ARGS__)
 
-struct nfc_phy_ops {
+struct nfc_phy_ops
+{
 	int (*write)(void *dev_id, struct sk_buff *skb);
 	int (*enable)(void *dev_id);
 	void (*disable)(void *dev_id);
@@ -50,28 +51,29 @@ struct nfc_dev;
  * of the operating field, err is -EIO.
  */
 typedef void (*data_exchange_cb_t)(void *context, struct sk_buff *skb,
-								int err);
+								   int err);
 
 typedef void (*se_io_cb_t)(void *context, u8 *apdu, size_t apdu_len, int err);
 
 struct nfc_target;
 
-struct nfc_ops {
+struct nfc_ops
+{
 	int (*dev_up)(struct nfc_dev *dev);
 	int (*dev_down)(struct nfc_dev *dev);
 	int (*start_poll)(struct nfc_dev *dev,
-			  u32 im_protocols, u32 tm_protocols);
+					  u32 im_protocols, u32 tm_protocols);
 	void (*stop_poll)(struct nfc_dev *dev);
 	int (*dep_link_up)(struct nfc_dev *dev, struct nfc_target *target,
-			   u8 comm_mode, u8 *gb, size_t gb_len);
+					   u8 comm_mode, u8 *gb, size_t gb_len);
 	int (*dep_link_down)(struct nfc_dev *dev);
 	int (*activate_target)(struct nfc_dev *dev, struct nfc_target *target,
-			       u32 protocol);
+						   u32 protocol);
 	void (*deactivate_target)(struct nfc_dev *dev,
-				  struct nfc_target *target, u8 mode);
+							  struct nfc_target *target, u8 mode);
 	int (*im_transceive)(struct nfc_dev *dev, struct nfc_target *target,
-			     struct sk_buff *skb, data_exchange_cb_t cb,
-			     void *cb_context);
+						 struct sk_buff *skb, data_exchange_cb_t cb,
+						 void *cb_context);
 	int (*tm_send)(struct nfc_dev *dev, struct sk_buff *skb);
 	int (*check_presence)(struct nfc_dev *dev, struct nfc_target *target);
 	int (*fw_download)(struct nfc_dev *dev, const char *firmware_name);
@@ -81,8 +83,8 @@ struct nfc_ops {
 	int (*enable_se)(struct nfc_dev *dev, u32 se_idx);
 	int (*disable_se)(struct nfc_dev *dev, u32 se_idx);
 	int (*se_io) (struct nfc_dev *dev, u32 se_idx,
-		      u8 *apdu, size_t apdu_length,
-		      se_io_cb_t cb, void *cb_context);
+				  u8 *apdu, size_t apdu_length,
+				  se_io_cb_t cb, void *cb_context);
 };
 
 #define NFC_TARGET_IDX_ANY -1
@@ -98,7 +100,8 @@ struct nfc_ops {
  *	as described by the NFC Forum digital specification (i.e. the platform
  *	configuration one) while %sens_res least significant byte is byte 1.
  */
-struct nfc_target {
+struct nfc_target
+{
 	u32 idx;
 	u32 supported_protocols;
 	u16 sens_res;
@@ -128,7 +131,8 @@ struct nfc_target {
  * @state: The secure element state, either enabled or disabled.
  *
  */
-struct nfc_se {
+struct nfc_se
+{
 	struct list_head list;
 	u32 idx;
 	u16 type;
@@ -153,25 +157,29 @@ struct nfc_se {
 
 #define NFC_EVT_TRANSACTION_AID_TAG	0x81
 #define NFC_EVT_TRANSACTION_PARAMS_TAG	0x82
-struct nfc_evt_transaction {
+struct nfc_evt_transaction
+{
 	u32 aid_len;
 	u8 aid[NFC_MAX_AID_LENGTH];
 	u8 params_len;
 	u8 params[0];
 } __packed;
 
-struct nfc_genl_data {
+struct nfc_genl_data
+{
 	u32 poll_req_portid;
 	struct mutex genl_data_mutex;
 };
 
-struct nfc_vendor_cmd {
+struct nfc_vendor_cmd
+{
 	__u32 vendor_id;
 	__u32 subcmd;
 	int (*doit)(struct nfc_dev *dev, void *data, size_t data_len);
 };
 
-struct nfc_dev {
+struct nfc_dev
+{
 	int idx;
 	u32 target_next_idx;
 	struct nfc_target *targets;
@@ -210,9 +218,9 @@ struct nfc_dev {
 extern struct class nfc_class;
 
 struct nfc_dev *nfc_allocate_device(struct nfc_ops *ops,
-				    u32 supported_protocols,
-				    int tx_headroom,
-				    int tx_tailroom);
+									u32 supported_protocols,
+									int tx_headroom,
+									int tx_tailroom);
 
 /**
  * nfc_free_device - free nfc device
@@ -235,7 +243,7 @@ void nfc_unregister_device(struct nfc_dev *dev);
  * @dev: The parent device
  */
 static inline void nfc_set_parent_dev(struct nfc_dev *nfc_dev,
-				      struct device *dev)
+									  struct device *dev)
 {
 	nfc_dev->dev.parent = dev;
 }
@@ -272,47 +280,49 @@ static inline const char *nfc_device_name(struct nfc_dev *dev)
 }
 
 struct sk_buff *nfc_alloc_send_skb(struct nfc_dev *dev, struct sock *sk,
-				   unsigned int flags, unsigned int size,
-				   unsigned int *err);
+								   unsigned int flags, unsigned int size,
+								   unsigned int *err);
 struct sk_buff *nfc_alloc_recv_skb(unsigned int size, gfp_t gfp);
 
 int nfc_set_remote_general_bytes(struct nfc_dev *dev,
-				 u8 *gt, u8 gt_len);
+								 u8 *gt, u8 gt_len);
 u8 *nfc_get_local_general_bytes(struct nfc_dev *dev, size_t *gb_len);
 
 int nfc_fw_download_done(struct nfc_dev *dev, const char *firmware_name,
-			 u32 result);
+						 u32 result);
 
 int nfc_targets_found(struct nfc_dev *dev,
-		      struct nfc_target *targets, int ntargets);
+					  struct nfc_target *targets, int ntargets);
 int nfc_target_lost(struct nfc_dev *dev, u32 target_idx);
 
 int nfc_dep_link_is_up(struct nfc_dev *dev, u32 target_idx,
-		       u8 comm_mode, u8 rf_mode);
+					   u8 comm_mode, u8 rf_mode);
 
 int nfc_tm_activated(struct nfc_dev *dev, u32 protocol, u8 comm_mode,
-		     u8 *gb, size_t gb_len);
+					 u8 *gb, size_t gb_len);
 int nfc_tm_deactivated(struct nfc_dev *dev);
 int nfc_tm_data_received(struct nfc_dev *dev, struct sk_buff *skb);
 
 void nfc_driver_failure(struct nfc_dev *dev, int err);
 
 int nfc_se_transaction(struct nfc_dev *dev, u8 se_idx,
-		       struct nfc_evt_transaction *evt_transaction);
+					   struct nfc_evt_transaction *evt_transaction);
 int nfc_se_connectivity(struct nfc_dev *dev, u8 se_idx);
 int nfc_add_se(struct nfc_dev *dev, u32 se_idx, u16 type);
 int nfc_remove_se(struct nfc_dev *dev, u32 se_idx);
 struct nfc_se *nfc_find_se(struct nfc_dev *dev, u32 se_idx);
 
 void nfc_send_to_raw_sock(struct nfc_dev *dev, struct sk_buff *skb,
-			  u8 payload_type, u8 direction);
+						  u8 payload_type, u8 direction);
 
 static inline int nfc_set_vendor_cmds(struct nfc_dev *dev,
-				      struct nfc_vendor_cmd *cmds,
-				      int n_cmds)
+									  struct nfc_vendor_cmd *cmds,
+									  int n_cmds)
 {
 	if (dev->vendor_cmds || dev->n_vendor_cmds)
+	{
 		return -EINVAL;
+	}
 
 	dev->vendor_cmds = cmds;
 	dev->n_vendor_cmds = n_cmds;
@@ -321,9 +331,9 @@ static inline int nfc_set_vendor_cmds(struct nfc_dev *dev,
 }
 
 struct sk_buff *__nfc_alloc_vendor_cmd_reply_skb(struct nfc_dev *dev,
-						 enum nfc_attrs attr,
-						 u32 oui, u32 subcmd,
-						 int approxlen);
+		enum nfc_attrs attr,
+		u32 oui, u32 subcmd,
+		int approxlen);
 int nfc_vendor_cmd_reply(struct sk_buff *skb);
 
 /**
@@ -352,12 +362,12 @@ int nfc_vendor_cmd_reply(struct sk_buff *skb);
  */
 static inline struct sk_buff *
 nfc_vendor_cmd_alloc_reply_skb(struct nfc_dev *dev,
-				u32 oui, u32 subcmd, int approxlen)
+							   u32 oui, u32 subcmd, int approxlen)
 {
 	return __nfc_alloc_vendor_cmd_reply_skb(dev,
-						NFC_ATTR_VENDOR_DATA,
-						oui,
-						subcmd, approxlen);
+											NFC_ATTR_VENDOR_DATA,
+											oui,
+											subcmd, approxlen);
 }
 
 #endif /* __NET_NFC_H */

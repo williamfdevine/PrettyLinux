@@ -12,23 +12,26 @@
 #ifndef MSGQUEUE_H
 #define MSGQUEUE_H
 
-struct message {
-    char msg[8];
-    int length;
-    int fifo;
+struct message
+{
+	char msg[8];
+	int length;
+	int fifo;
 };
 
-struct msgqueue_entry {
-    struct message msg;
-    struct msgqueue_entry *next;
+struct msgqueue_entry
+{
+	struct message msg;
+	struct msgqueue_entry *next;
 };
 
 #define NR_MESSAGES 4
 
-typedef struct {
-    struct msgqueue_entry *qe;
-    struct msgqueue_entry *free;
-    struct msgqueue_entry entries[NR_MESSAGES];
+typedef struct
+{
+	struct msgqueue_entry *qe;
+	struct msgqueue_entry *free;
+	struct msgqueue_entry entries[NR_MESSAGES];
 } MsgQueue_t;
 
 /*

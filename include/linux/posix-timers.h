@@ -18,7 +18,8 @@ static inline cputime_t expires_to_cputime(unsigned long long expires)
 	return (__force cputime_t)expires;
 }
 
-struct cpu_timer_list {
+struct cpu_timer_list
+{
 	struct list_head entry;
 	unsigned long long expires, incr;
 	struct task_struct *task;
@@ -59,7 +60,8 @@ struct cpu_timer_list {
 #define CLOCKID_TO_FD(clk)	((unsigned int) ~((clk) >> 3))
 
 /* POSIX.1b interval timer structure. */
-struct k_itimer {
+struct k_itimer
+{
 	struct list_head list;		/* free/ allocate list */
 	struct hlist_node t_hash;
 	spinlock_t it_lock;
@@ -71,24 +73,29 @@ struct k_itimer {
 #define REQUEUE_PENDING 1
 	int it_sigev_notify;		/* notify word of sigevent struct */
 	struct signal_struct *it_signal;
-	union {
+	union
+	{
 		struct pid *it_pid;	/* pid of process to send signal to */
 		struct task_struct *it_process;	/* for clock_nanosleep */
 	};
 	struct sigqueue *sigq;		/* signal queue entry. */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			struct hrtimer timer;
 			ktime_t interval;
 		} real;
 		struct cpu_timer_list cpu;
-		struct {
+		struct
+		{
 			unsigned int clock;
 			unsigned int node;
 			unsigned long incr;
 			unsigned long expires;
 		} mmtimer;
-		struct {
+		struct
+		{
 			struct alarm alarmtimer;
 			ktime_t interval;
 		} alarm;
@@ -96,23 +103,24 @@ struct k_itimer {
 	} it;
 };
 
-struct k_clock {
+struct k_clock
+{
 	int (*clock_getres) (const clockid_t which_clock, struct timespec *tp);
 	int (*clock_set) (const clockid_t which_clock,
-			  const struct timespec *tp);
-	int (*clock_get) (const clockid_t which_clock, struct timespec * tp);
+					  const struct timespec *tp);
+	int (*clock_get) (const clockid_t which_clock, struct timespec *tp);
 	int (*clock_adj) (const clockid_t which_clock, struct timex *tx);
 	int (*timer_create) (struct k_itimer *timer);
 	int (*nsleep) (const clockid_t which_clock, int flags,
-		       struct timespec *, struct timespec __user *);
+				   struct timespec *, struct timespec __user *);
 	long (*nsleep_restart) (struct restart_block *restart_block);
-	int (*timer_set) (struct k_itimer * timr, int flags,
-			  struct itimerspec * new_setting,
-			  struct itimerspec * old_setting);
-	int (*timer_del) (struct k_itimer * timr);
+	int (*timer_set) (struct k_itimer *timr, int flags,
+					  struct itimerspec *new_setting,
+					  struct itimerspec *old_setting);
+	int (*timer_del) (struct k_itimer *timr);
 #define TIMER_RETRY 1
-	void (*timer_get) (struct k_itimer * timr,
-			   struct itimerspec * cur_setting);
+	void (*timer_get) (struct k_itimer *timr,
+					   struct itimerspec *cur_setting);
 };
 
 extern struct k_clock clock_posix_cpu;
@@ -129,7 +137,7 @@ void run_posix_cpu_timers(struct task_struct *task);
 void posix_cpu_timers_exit(struct task_struct *task);
 void posix_cpu_timers_exit_group(struct task_struct *task);
 void set_process_cpu_timer(struct task_struct *task, unsigned int clock_idx,
-			   cputime_t *newval, cputime_t *oldval);
+						   cputime_t *newval, cputime_t *oldval);
 
 long clock_nanosleep_restart(struct restart_block *restart_block);
 

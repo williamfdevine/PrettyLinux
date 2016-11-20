@@ -27,7 +27,8 @@
 #include <nvif/class.h>
 
 static const struct nv50_disp_root_func
-g84_disp_root = {
+	g84_disp_root =
+{
 	.init = nv50_disp_root_init,
 	.fini = nv50_disp_root_fini,
 	.dmac = {
@@ -43,14 +44,15 @@ g84_disp_root = {
 
 static int
 g84_disp_root_new(struct nvkm_disp *disp, const struct nvkm_oclass *oclass,
-		  void *data, u32 size, struct nvkm_object **pobject)
+				  void *data, u32 size, struct nvkm_object **pobject)
 {
 	return nv50_disp_root_new_(&g84_disp_root, disp, oclass,
-				   data, size, pobject);
+							   data, size, pobject);
 }
 
 const struct nvkm_disp_oclass
-g84_disp_root_oclass = {
+	g84_disp_root_oclass =
+{
 	.base.oclass = G82_DISP,
 	.base.minver = -1,
 	.base.maxver = -1,

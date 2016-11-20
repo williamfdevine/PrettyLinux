@@ -35,42 +35,58 @@ static struct key *request_asymmetric_key(struct key *keyring, uint32_t keyid)
 	pr_debug("key search: \"%s\"\n", name);
 
 	key = get_ima_blacklist_keyring();
-	if (key) {
+
+	if (key)
+	{
 		key_ref_t kref;
 
 		kref = keyring_search(make_key_ref(key, 1),
-				     &key_type_asymmetric, name);
-		if (!IS_ERR(kref)) {
+							  &key_type_asymmetric, name);
+
+		if (!IS_ERR(kref))
+		{
 			pr_err("Key '%s' is in ima_blacklist_keyring\n", name);
 			return ERR_PTR(-EKEYREJECTED);
 		}
 	}
 
-	if (keyring) {
+	if (keyring)
+	{
 		/* search in specific keyring */
 		key_ref_t kref;
 
 		kref = keyring_search(make_key_ref(keyring, 1),
-				      &key_type_asymmetric, name);
+							  &key_type_asymmetric, name);
+
 		if (IS_ERR(kref))
+		{
 			key = ERR_CAST(kref);
+		}
 		else
+		{
 			key = key_ref_to_ptr(kref);
-	} else {
+		}
+	}
+	else
+	{
 		key = request_key(&key_type_asymmetric, name, NULL);
 	}
 
-	if (IS_ERR(key)) {
+	if (IS_ERR(key))
+	{
 		pr_err_ratelimited("Request for unknown key '%s' err %ld\n",
-				   name, PTR_ERR(key));
-		switch (PTR_ERR(key)) {
+						   name, PTR_ERR(key));
+
+		switch (PTR_ERR(key))
+		{
 			/* Hide some search errors */
-		case -EACCES:
-		case -ENOTDIR:
-		case -EAGAIN:
-			return ERR_PTR(-ENOKEY);
-		default:
-			return key;
+			case -EACCES:
+			case -ENOTDIR:
+			case -EAGAIN:
+				return ERR_PTR(-ENOKEY);
+
+			default:
+				return key;
 		}
 	}
 
@@ -80,7 +96,7 @@ static struct key *request_asymmetric_key(struct key *keyring, uint32_t keyid)
 }
 
 int asymmetric_verify(struct key *keyring, const char *sig,
-		      int siglen, const char *data, int datalen)
+					  int siglen, const char *data, int datalen)
 {
 	struct public_key_signature pks;
 	struct signature_v2_hdr *hdr = (struct signature_v2_hdr *)sig;
@@ -88,19 +104,28 @@ int asymmetric_verify(struct key *keyring, const char *sig,
 	int ret = -ENOMEM;
 
 	if (siglen <= sizeof(*hdr))
+	{
 		return -EBADMSG;
+	}
 
 	siglen -= sizeof(*hdr);
 
 	if (siglen != __be16_to_cpu(hdr->sig_size))
+	{
 		return -EBADMSG;
+	}
 
 	if (hdr->hash_algo >= HASH_ALGO__LAST)
+	{
 		return -ENOPKG;
+	}
 
 	key = request_asymmetric_key(keyring, __be32_to_cpu(hdr->keyid));
+
 	if (IS_ERR(key))
+	{
 		return PTR_ERR(key);
+	}
 
 	memset(&pks, 0, sizeof(pks));
 

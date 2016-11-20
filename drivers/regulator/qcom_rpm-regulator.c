@@ -25,13 +25,15 @@
 
 #define MAX_REQUEST_LEN 2
 
-struct request_member {
+struct request_member
+{
 	int		word;
 	unsigned int	mask;
 	int		shift;
 };
 
-struct rpm_reg_parts {
+struct rpm_reg_parts
+{
 	struct request_member mV;		/* used if voltage is in mV */
 	struct request_member uV;		/* used if voltage is in uV */
 	struct request_member ip;		/* peak current in mA */
@@ -52,7 +54,8 @@ struct rpm_reg_parts {
 #define FORCE_MODE_IS_2_BITS(reg) \
 	(((reg)->parts->fm.mask >> (reg)->parts->fm.shift) == 3)
 
-struct qcom_rpm_reg {
+struct qcom_rpm_reg
+{
 	struct qcom_rpm *rpm;
 
 	struct mutex lock;
@@ -70,7 +73,8 @@ struct qcom_rpm_reg {
 	bool supports_force_mode_bypass;
 };
 
-static const struct rpm_reg_parts rpm8660_ldo_parts = {
+static const struct rpm_reg_parts rpm8660_ldo_parts =
+{
 	.request_len    = 2,
 	.mV             = { 0, 0x00000FFF,  0 },
 	.ip             = { 0, 0x00FFF000, 12 },
@@ -81,7 +85,8 @@ static const struct rpm_reg_parts rpm8660_ldo_parts = {
 	.ia             = { 1, 0x00001FFE,  1 },
 };
 
-static const struct rpm_reg_parts rpm8660_smps_parts = {
+static const struct rpm_reg_parts rpm8660_smps_parts =
+{
 	.request_len    = 2,
 	.mV             = { 0, 0x00000FFF,  0 },
 	.ip             = { 0, 0x00FFF000, 12 },
@@ -94,7 +99,8 @@ static const struct rpm_reg_parts rpm8660_smps_parts = {
 	.freq_clk_src   = { 1, 0x00600000, 21 },
 };
 
-static const struct rpm_reg_parts rpm8660_switch_parts = {
+static const struct rpm_reg_parts rpm8660_switch_parts =
+{
 	.request_len    = 1,
 	.enable_state   = { 0, 0x00000001,  0 },
 	.pd             = { 0, 0x00000002,  1 },
@@ -103,7 +109,8 @@ static const struct rpm_reg_parts rpm8660_switch_parts = {
 	.hpm            = { 0, 0x00000300,  8 },
 };
 
-static const struct rpm_reg_parts rpm8660_ncp_parts = {
+static const struct rpm_reg_parts rpm8660_ncp_parts =
+{
 	.request_len    = 1,
 	.mV             = { 0, 0x00000FFF,  0 },
 	.enable_state   = { 0, 0x00001000, 12 },
@@ -111,7 +118,8 @@ static const struct rpm_reg_parts rpm8660_ncp_parts = {
 	.freq           = { 0, 0x003FC000, 14 },
 };
 
-static const struct rpm_reg_parts rpm8960_ldo_parts = {
+static const struct rpm_reg_parts rpm8960_ldo_parts =
+{
 	.request_len    = 2,
 	.uV             = { 0, 0x007FFFFF,  0 },
 	.pd             = { 0, 0x00800000, 23 },
@@ -122,7 +130,8 @@ static const struct rpm_reg_parts rpm8960_ldo_parts = {
 	.fm             = { 1, 0x00700000, 20 },
 };
 
-static const struct rpm_reg_parts rpm8960_smps_parts = {
+static const struct rpm_reg_parts rpm8960_smps_parts =
+{
 	.request_len    = 2,
 	.uV             = { 0, 0x007FFFFF,  0 },
 	.pd             = { 0, 0x00800000, 23 },
@@ -136,7 +145,8 @@ static const struct rpm_reg_parts rpm8960_smps_parts = {
 	.freq_clk_src   = { 1, 0x60000000, 29 },
 };
 
-static const struct rpm_reg_parts rpm8960_switch_parts = {
+static const struct rpm_reg_parts rpm8960_switch_parts =
+{
 	.request_len    = 1,
 	.enable_state   = { 0, 0x00000001,  0 },
 	.pd             = { 0, 0x00000002,  1 },
@@ -145,7 +155,8 @@ static const struct rpm_reg_parts rpm8960_switch_parts = {
 	.hpm            = { 0, 0x00000C00, 10 },
 };
 
-static const struct rpm_reg_parts rpm8960_ncp_parts = {
+static const struct rpm_reg_parts rpm8960_ncp_parts =
+{
 	.request_len    = 1,
 	.uV             = { 0, 0x007FFFFF,  0 },
 	.enable_state   = { 0, 0x00800000, 23 },
@@ -156,63 +167,72 @@ static const struct rpm_reg_parts rpm8960_ncp_parts = {
 /*
  * Physically available PMIC regulator voltage ranges
  */
-static const struct regulator_linear_range pldo_ranges[] = {
+static const struct regulator_linear_range pldo_ranges[] =
+{
 	REGULATOR_LINEAR_RANGE( 750000,   0,  59, 12500),
 	REGULATOR_LINEAR_RANGE(1500000,  60, 123, 25000),
 	REGULATOR_LINEAR_RANGE(3100000, 124, 160, 50000),
 };
 
-static const struct regulator_linear_range nldo_ranges[] = {
+static const struct regulator_linear_range nldo_ranges[] =
+{
 	REGULATOR_LINEAR_RANGE( 750000,   0,  63, 12500),
 };
 
-static const struct regulator_linear_range nldo1200_ranges[] = {
+static const struct regulator_linear_range nldo1200_ranges[] =
+{
 	REGULATOR_LINEAR_RANGE( 375000,   0,  59,  6250),
 	REGULATOR_LINEAR_RANGE( 750000,  60, 123, 12500),
 };
 
-static const struct regulator_linear_range smps_ranges[] = {
+static const struct regulator_linear_range smps_ranges[] =
+{
 	REGULATOR_LINEAR_RANGE( 375000,   0,  29, 12500),
 	REGULATOR_LINEAR_RANGE( 750000,  30,  89, 12500),
 	REGULATOR_LINEAR_RANGE(1500000,  90, 153, 25000),
 };
 
-static const struct regulator_linear_range ftsmps_ranges[] = {
+static const struct regulator_linear_range ftsmps_ranges[] =
+{
 	REGULATOR_LINEAR_RANGE( 350000,   0,   6, 50000),
 	REGULATOR_LINEAR_RANGE( 700000,   7,  63, 12500),
 	REGULATOR_LINEAR_RANGE(1500000,  64, 100, 50000),
 };
 
-static const struct regulator_linear_range smb208_ranges[] = {
+static const struct regulator_linear_range smb208_ranges[] =
+{
 	REGULATOR_LINEAR_RANGE( 375000,   0,  29, 12500),
 	REGULATOR_LINEAR_RANGE( 750000,  30,  89, 12500),
 	REGULATOR_LINEAR_RANGE(1500000,  90, 153, 25000),
 	REGULATOR_LINEAR_RANGE(3100000, 154, 234, 25000),
 };
 
-static const struct regulator_linear_range ncp_ranges[] = {
+static const struct regulator_linear_range ncp_ranges[] =
+{
 	REGULATOR_LINEAR_RANGE(1500000,   0,  31, 50000),
 };
 
 static int rpm_reg_write(struct qcom_rpm_reg *vreg,
-			 const struct request_member *req,
-			 const int value)
+						 const struct request_member *req,
+						 const int value)
 {
 	if (WARN_ON((value << req->shift) & ~req->mask))
+	{
 		return -EINVAL;
+	}
 
 	vreg->val[req->word] &= ~req->mask;
 	vreg->val[req->word] |= value << req->shift;
 
 	return qcom_rpm_write(vreg->rpm,
-			      QCOM_RPM_ACTIVE_STATE,
-			      vreg->resource,
-			      vreg->val,
-			      vreg->parts->request_len);
+						  QCOM_RPM_ACTIVE_STATE,
+						  vreg->resource,
+						  vreg->val,
+						  vreg->parts->request_len);
 }
 
 static int rpm_reg_set_mV_sel(struct regulator_dev *rdev,
-			      unsigned selector)
+							  unsigned selector)
 {
 	struct qcom_rpm_reg *vreg = rdev_get_drvdata(rdev);
 	const struct rpm_reg_parts *parts = vreg->parts;
@@ -221,25 +241,36 @@ static int rpm_reg_set_mV_sel(struct regulator_dev *rdev,
 	int uV;
 
 	if (req->mask == 0)
+	{
 		return -EINVAL;
+	}
 
 	uV = regulator_list_voltage_linear_range(rdev, selector);
+
 	if (uV < 0)
+	{
 		return uV;
+	}
 
 	mutex_lock(&vreg->lock);
+
 	if (vreg->is_enabled)
+	{
 		ret = rpm_reg_write(vreg, req, uV / 1000);
+	}
 
 	if (!ret)
+	{
 		vreg->uV = uV;
+	}
+
 	mutex_unlock(&vreg->lock);
 
 	return ret;
 }
 
 static int rpm_reg_set_uV_sel(struct regulator_dev *rdev,
-			      unsigned selector)
+							  unsigned selector)
 {
 	struct qcom_rpm_reg *vreg = rdev_get_drvdata(rdev);
 	const struct rpm_reg_parts *parts = vreg->parts;
@@ -248,18 +279,29 @@ static int rpm_reg_set_uV_sel(struct regulator_dev *rdev,
 	int uV;
 
 	if (req->mask == 0)
+	{
 		return -EINVAL;
+	}
 
 	uV = regulator_list_voltage_linear_range(rdev, selector);
+
 	if (uV < 0)
+	{
 		return uV;
+	}
 
 	mutex_lock(&vreg->lock);
+
 	if (vreg->is_enabled)
+	{
 		ret = rpm_reg_write(vreg, req, uV);
+	}
 
 	if (!ret)
+	{
 		vreg->uV = uV;
+	}
+
 	mutex_unlock(&vreg->lock);
 
 	return ret;
@@ -280,12 +322,18 @@ static int rpm_reg_mV_enable(struct regulator_dev *rdev)
 	int ret;
 
 	if (req->mask == 0)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&vreg->lock);
 	ret = rpm_reg_write(vreg, req, vreg->uV / 1000);
+
 	if (!ret)
+	{
 		vreg->is_enabled = 1;
+	}
+
 	mutex_unlock(&vreg->lock);
 
 	return ret;
@@ -299,12 +347,18 @@ static int rpm_reg_uV_enable(struct regulator_dev *rdev)
 	int ret;
 
 	if (req->mask == 0)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&vreg->lock);
 	ret = rpm_reg_write(vreg, req, vreg->uV);
+
 	if (!ret)
+	{
 		vreg->is_enabled = 1;
+	}
+
 	mutex_unlock(&vreg->lock);
 
 	return ret;
@@ -318,12 +372,18 @@ static int rpm_reg_switch_enable(struct regulator_dev *rdev)
 	int ret;
 
 	if (req->mask == 0)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&vreg->lock);
 	ret = rpm_reg_write(vreg, req, 1);
+
 	if (!ret)
+	{
 		vreg->is_enabled = 1;
+	}
+
 	mutex_unlock(&vreg->lock);
 
 	return ret;
@@ -337,12 +397,18 @@ static int rpm_reg_mV_disable(struct regulator_dev *rdev)
 	int ret;
 
 	if (req->mask == 0)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&vreg->lock);
 	ret = rpm_reg_write(vreg, req, 0);
+
 	if (!ret)
+	{
 		vreg->is_enabled = 0;
+	}
+
 	mutex_unlock(&vreg->lock);
 
 	return ret;
@@ -356,12 +422,18 @@ static int rpm_reg_uV_disable(struct regulator_dev *rdev)
 	int ret;
 
 	if (req->mask == 0)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&vreg->lock);
 	ret = rpm_reg_write(vreg, req, 0);
+
 	if (!ret)
+	{
 		vreg->is_enabled = 0;
+	}
+
 	mutex_unlock(&vreg->lock);
 
 	return ret;
@@ -375,12 +447,18 @@ static int rpm_reg_switch_disable(struct regulator_dev *rdev)
 	int ret;
 
 	if (req->mask == 0)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&vreg->lock);
 	ret = rpm_reg_write(vreg, req, 0);
+
 	if (!ret)
+	{
 		vreg->is_enabled = 0;
+	}
+
 	mutex_unlock(&vreg->lock);
 
 	return ret;
@@ -403,10 +481,14 @@ static int rpm_reg_set_load(struct regulator_dev *rdev, int load_uA)
 	int ret;
 
 	if (req->mask == 0)
+	{
 		return -EINVAL;
+	}
 
 	if (load_mA > max_mA)
+	{
 		load_mA = max_mA;
+	}
 
 	mutex_lock(&vreg->lock);
 	ret = rpm_reg_write(vreg, req, load_mA);
@@ -415,7 +497,8 @@ static int rpm_reg_set_load(struct regulator_dev *rdev, int load_uA)
 	return ret;
 }
 
-static struct regulator_ops uV_ops = {
+static struct regulator_ops uV_ops =
+{
 	.list_voltage = regulator_list_voltage_linear_range,
 
 	.set_voltage_sel = rpm_reg_set_uV_sel,
@@ -428,7 +511,8 @@ static struct regulator_ops uV_ops = {
 	.set_load = rpm_reg_set_load,
 };
 
-static struct regulator_ops mV_ops = {
+static struct regulator_ops mV_ops =
+{
 	.list_voltage = regulator_list_voltage_linear_range,
 
 	.set_voltage_sel = rpm_reg_set_mV_sel,
@@ -441,7 +525,8 @@ static struct regulator_ops mV_ops = {
 	.set_load = rpm_reg_set_load,
 };
 
-static struct regulator_ops switch_ops = {
+static struct regulator_ops switch_ops =
+{
 	.enable = rpm_reg_switch_enable,
 	.disable = rpm_reg_switch_disable,
 	.is_enabled = rpm_reg_is_enabled,
@@ -450,7 +535,8 @@ static struct regulator_ops switch_ops = {
 /*
  * PM8018 regulators
  */
-static const struct qcom_rpm_reg pm8018_pldo = {
+static const struct qcom_rpm_reg pm8018_pldo =
+{
 	.desc.linear_ranges = pldo_ranges,
 	.desc.n_linear_ranges = ARRAY_SIZE(pldo_ranges),
 	.desc.n_voltages = 161,
@@ -460,7 +546,8 @@ static const struct qcom_rpm_reg pm8018_pldo = {
 	.supports_force_mode_bypass = false,
 };
 
-static const struct qcom_rpm_reg pm8018_nldo = {
+static const struct qcom_rpm_reg pm8018_nldo =
+{
 	.desc.linear_ranges = nldo_ranges,
 	.desc.n_linear_ranges = ARRAY_SIZE(nldo_ranges),
 	.desc.n_voltages = 64,
@@ -470,7 +557,8 @@ static const struct qcom_rpm_reg pm8018_nldo = {
 	.supports_force_mode_bypass = false,
 };
 
-static const struct qcom_rpm_reg pm8018_smps = {
+static const struct qcom_rpm_reg pm8018_smps =
+{
 	.desc.linear_ranges = smps_ranges,
 	.desc.n_linear_ranges = ARRAY_SIZE(smps_ranges),
 	.desc.n_voltages = 154,
@@ -480,7 +568,8 @@ static const struct qcom_rpm_reg pm8018_smps = {
 	.supports_force_mode_bypass = false,
 };
 
-static const struct qcom_rpm_reg pm8018_switch = {
+static const struct qcom_rpm_reg pm8018_switch =
+{
 	.desc.ops = &switch_ops,
 	.parts = &rpm8960_switch_parts,
 };
@@ -488,7 +577,8 @@ static const struct qcom_rpm_reg pm8018_switch = {
 /*
  * PM8058 regulators
  */
-static const struct qcom_rpm_reg pm8058_pldo = {
+static const struct qcom_rpm_reg pm8058_pldo =
+{
 	.desc.linear_ranges = pldo_ranges,
 	.desc.n_linear_ranges = ARRAY_SIZE(pldo_ranges),
 	.desc.n_voltages = 161,
@@ -498,7 +588,8 @@ static const struct qcom_rpm_reg pm8058_pldo = {
 	.supports_force_mode_bypass = false,
 };
 
-static const struct qcom_rpm_reg pm8058_nldo = {
+static const struct qcom_rpm_reg pm8058_nldo =
+{
 	.desc.linear_ranges = nldo_ranges,
 	.desc.n_linear_ranges = ARRAY_SIZE(nldo_ranges),
 	.desc.n_voltages = 64,
@@ -508,7 +599,8 @@ static const struct qcom_rpm_reg pm8058_nldo = {
 	.supports_force_mode_bypass = false,
 };
 
-static const struct qcom_rpm_reg pm8058_smps = {
+static const struct qcom_rpm_reg pm8058_smps =
+{
 	.desc.linear_ranges = smps_ranges,
 	.desc.n_linear_ranges = ARRAY_SIZE(smps_ranges),
 	.desc.n_voltages = 154,
@@ -518,7 +610,8 @@ static const struct qcom_rpm_reg pm8058_smps = {
 	.supports_force_mode_bypass = false,
 };
 
-static const struct qcom_rpm_reg pm8058_ncp = {
+static const struct qcom_rpm_reg pm8058_ncp =
+{
 	.desc.linear_ranges = ncp_ranges,
 	.desc.n_linear_ranges = ARRAY_SIZE(ncp_ranges),
 	.desc.n_voltages = 32,
@@ -526,7 +619,8 @@ static const struct qcom_rpm_reg pm8058_ncp = {
 	.parts = &rpm8660_ncp_parts,
 };
 
-static const struct qcom_rpm_reg pm8058_switch = {
+static const struct qcom_rpm_reg pm8058_switch =
+{
 	.desc.ops = &switch_ops,
 	.parts = &rpm8660_switch_parts,
 };
@@ -534,7 +628,8 @@ static const struct qcom_rpm_reg pm8058_switch = {
 /*
  * PM8901 regulators
  */
-static const struct qcom_rpm_reg pm8901_pldo = {
+static const struct qcom_rpm_reg pm8901_pldo =
+{
 	.desc.linear_ranges = pldo_ranges,
 	.desc.n_linear_ranges = ARRAY_SIZE(pldo_ranges),
 	.desc.n_voltages = 161,
@@ -544,7 +639,8 @@ static const struct qcom_rpm_reg pm8901_pldo = {
 	.supports_force_mode_bypass = true,
 };
 
-static const struct qcom_rpm_reg pm8901_nldo = {
+static const struct qcom_rpm_reg pm8901_nldo =
+{
 	.desc.linear_ranges = nldo_ranges,
 	.desc.n_linear_ranges = ARRAY_SIZE(nldo_ranges),
 	.desc.n_voltages = 64,
@@ -554,7 +650,8 @@ static const struct qcom_rpm_reg pm8901_nldo = {
 	.supports_force_mode_bypass = true,
 };
 
-static const struct qcom_rpm_reg pm8901_ftsmps = {
+static const struct qcom_rpm_reg pm8901_ftsmps =
+{
 	.desc.linear_ranges = ftsmps_ranges,
 	.desc.n_linear_ranges = ARRAY_SIZE(ftsmps_ranges),
 	.desc.n_voltages = 101,
@@ -564,7 +661,8 @@ static const struct qcom_rpm_reg pm8901_ftsmps = {
 	.supports_force_mode_bypass = false,
 };
 
-static const struct qcom_rpm_reg pm8901_switch = {
+static const struct qcom_rpm_reg pm8901_switch =
+{
 	.desc.ops = &switch_ops,
 	.parts = &rpm8660_switch_parts,
 };
@@ -572,7 +670,8 @@ static const struct qcom_rpm_reg pm8901_switch = {
 /*
  * PM8921 regulators
  */
-static const struct qcom_rpm_reg pm8921_pldo = {
+static const struct qcom_rpm_reg pm8921_pldo =
+{
 	.desc.linear_ranges = pldo_ranges,
 	.desc.n_linear_ranges = ARRAY_SIZE(pldo_ranges),
 	.desc.n_voltages = 161,
@@ -582,7 +681,8 @@ static const struct qcom_rpm_reg pm8921_pldo = {
 	.supports_force_mode_bypass = true,
 };
 
-static const struct qcom_rpm_reg pm8921_nldo = {
+static const struct qcom_rpm_reg pm8921_nldo =
+{
 	.desc.linear_ranges = nldo_ranges,
 	.desc.n_linear_ranges = ARRAY_SIZE(nldo_ranges),
 	.desc.n_voltages = 64,
@@ -592,7 +692,8 @@ static const struct qcom_rpm_reg pm8921_nldo = {
 	.supports_force_mode_bypass = true,
 };
 
-static const struct qcom_rpm_reg pm8921_nldo1200 = {
+static const struct qcom_rpm_reg pm8921_nldo1200 =
+{
 	.desc.linear_ranges = nldo1200_ranges,
 	.desc.n_linear_ranges = ARRAY_SIZE(nldo1200_ranges),
 	.desc.n_voltages = 124,
@@ -602,7 +703,8 @@ static const struct qcom_rpm_reg pm8921_nldo1200 = {
 	.supports_force_mode_bypass = true,
 };
 
-static const struct qcom_rpm_reg pm8921_smps = {
+static const struct qcom_rpm_reg pm8921_smps =
+{
 	.desc.linear_ranges = smps_ranges,
 	.desc.n_linear_ranges = ARRAY_SIZE(smps_ranges),
 	.desc.n_voltages = 154,
@@ -612,7 +714,8 @@ static const struct qcom_rpm_reg pm8921_smps = {
 	.supports_force_mode_bypass = false,
 };
 
-static const struct qcom_rpm_reg pm8921_ftsmps = {
+static const struct qcom_rpm_reg pm8921_ftsmps =
+{
 	.desc.linear_ranges = ftsmps_ranges,
 	.desc.n_linear_ranges = ARRAY_SIZE(ftsmps_ranges),
 	.desc.n_voltages = 101,
@@ -622,7 +725,8 @@ static const struct qcom_rpm_reg pm8921_ftsmps = {
 	.supports_force_mode_bypass = false,
 };
 
-static const struct qcom_rpm_reg pm8921_ncp = {
+static const struct qcom_rpm_reg pm8921_ncp =
+{
 	.desc.linear_ranges = ncp_ranges,
 	.desc.n_linear_ranges = ARRAY_SIZE(ncp_ranges),
 	.desc.n_voltages = 32,
@@ -630,12 +734,14 @@ static const struct qcom_rpm_reg pm8921_ncp = {
 	.parts = &rpm8960_ncp_parts,
 };
 
-static const struct qcom_rpm_reg pm8921_switch = {
+static const struct qcom_rpm_reg pm8921_switch =
+{
 	.desc.ops = &switch_ops,
 	.parts = &rpm8960_switch_parts,
 };
 
-static const struct qcom_rpm_reg smb208_smps = {
+static const struct qcom_rpm_reg smb208_smps =
+{
 	.desc.linear_ranges = smb208_ranges,
 	.desc.n_linear_ranges = ARRAY_SIZE(smb208_ranges),
 	.desc.n_voltages = 235,
@@ -646,11 +752,13 @@ static const struct qcom_rpm_reg smb208_smps = {
 };
 
 static int rpm_reg_set(struct qcom_rpm_reg *vreg,
-		       const struct request_member *req,
-		       const int value)
+					   const struct request_member *req,
+					   const int value)
 {
 	if (req->mask == 0 || (value << req->shift) & ~req->mask)
+	{
 		return -EINVAL;
+	}
 
 	vreg->val[req->word] &= ~req->mask;
 	vreg->val[req->word] |= value << req->shift;
@@ -659,10 +767,11 @@ static int rpm_reg_set(struct qcom_rpm_reg *vreg,
 }
 
 static int rpm_reg_of_parse_freq(struct device *dev,
-				 struct device_node *node,
-				 struct qcom_rpm_reg *vreg)
+								 struct device_node *node,
+								 struct qcom_rpm_reg *vreg)
 {
-	static const int freq_table[] = {
+	static const int freq_table[] =
+	{
 		19200000, 9600000, 6400000, 4800000, 3840000, 3200000, 2740000,
 		2400000, 2130000, 1920000, 1750000, 1600000, 1480000, 1370000,
 		1280000, 1200000,
@@ -675,13 +784,17 @@ static int rpm_reg_of_parse_freq(struct device *dev,
 
 	key = "qcom,switch-mode-frequency";
 	ret = of_property_read_u32(node, key, &freq);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "regulator requires %s property\n", key);
 		return -EINVAL;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(freq_table); i++) {
-		if (freq == freq_table[i]) {
+	for (i = 0; i < ARRAY_SIZE(freq_table); i++)
+	{
+		if (freq == freq_table[i])
+		{
 			rpm_reg_set(vreg, &vreg->parts->freq, i + 1);
 			return 0;
 		}
@@ -692,8 +805,8 @@ static int rpm_reg_of_parse_freq(struct device *dev,
 }
 
 static int rpm_reg_of_parse(struct device_node *node,
-			    const struct regulator_desc *desc,
-			    struct regulator_config *config)
+							const struct regulator_desc *desc,
+							struct regulator_config *config)
 {
 	struct qcom_rpm_reg *vreg = config->driver_data;
 	struct device *dev = config->dev;
@@ -704,39 +817,55 @@ static int rpm_reg_of_parse(struct device_node *node,
 	int ret;
 
 	key = "bias-pull-down";
-	if (of_property_read_bool(node, key)) {
+
+	if (of_property_read_bool(node, key))
+	{
 		ret = rpm_reg_set(vreg, &vreg->parts->pd, 1);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "%s is invalid", key);
 			return ret;
 		}
 	}
 
-	if (vreg->parts->freq.mask) {
+	if (vreg->parts->freq.mask)
+	{
 		ret = rpm_reg_of_parse_freq(dev, node, vreg);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
-	if (vreg->parts->pm.mask) {
+	if (vreg->parts->pm.mask)
+	{
 		key = "qcom,power-mode-hysteretic";
 		pwm = !of_property_read_bool(node, key);
 
 		ret = rpm_reg_set(vreg, &vreg->parts->pm, pwm);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "failed to set power mode\n");
 			return ret;
 		}
 	}
 
-	if (vreg->parts->fm.mask) {
+	if (vreg->parts->fm.mask)
+	{
 		force_mode = -1;
 
 		key = "qcom,force-mode";
 		ret = of_property_read_u32(node, key, &val);
-		if (ret == -EINVAL) {
+
+		if (ret == -EINVAL)
+		{
 			val = QCOM_RPM_FORCE_MODE_NONE;
-		} else if (ret < 0) {
+		}
+		else if (ret < 0)
+		{
 			dev_err(dev, "failed to read %s\n", key);
 			return ret;
 		}
@@ -748,36 +877,55 @@ static int rpm_reg_of_parse(struct device_node *node,
 		 * otherwise:
 		 * NONE, LPM, AUTO, HPM, BYPASS
 		 */
-		switch (val) {
-		case QCOM_RPM_FORCE_MODE_NONE:
-			force_mode = 0;
-			break;
-		case QCOM_RPM_FORCE_MODE_LPM:
-			force_mode = 1;
-			break;
-		case QCOM_RPM_FORCE_MODE_HPM:
-			if (FORCE_MODE_IS_2_BITS(vreg))
-				force_mode = 2;
-			else
-				force_mode = 3;
-			break;
-		case QCOM_RPM_FORCE_MODE_AUTO:
-			if (vreg->supports_force_mode_auto)
-				force_mode = 2;
-			break;
-		case QCOM_RPM_FORCE_MODE_BYPASS:
-			if (vreg->supports_force_mode_bypass)
-				force_mode = 4;
-			break;
+		switch (val)
+		{
+			case QCOM_RPM_FORCE_MODE_NONE:
+				force_mode = 0;
+				break;
+
+			case QCOM_RPM_FORCE_MODE_LPM:
+				force_mode = 1;
+				break;
+
+			case QCOM_RPM_FORCE_MODE_HPM:
+				if (FORCE_MODE_IS_2_BITS(vreg))
+				{
+					force_mode = 2;
+				}
+				else
+				{
+					force_mode = 3;
+				}
+
+				break;
+
+			case QCOM_RPM_FORCE_MODE_AUTO:
+				if (vreg->supports_force_mode_auto)
+				{
+					force_mode = 2;
+				}
+
+				break;
+
+			case QCOM_RPM_FORCE_MODE_BYPASS:
+				if (vreg->supports_force_mode_bypass)
+				{
+					force_mode = 4;
+				}
+
+				break;
 		}
 
-		if (force_mode == -1) {
+		if (force_mode == -1)
+		{
 			dev_err(dev, "invalid force mode\n");
 			return -EINVAL;
 		}
 
 		ret = rpm_reg_set(vreg, &vreg->parts->fm, force_mode);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "failed to set force mode\n");
 			return ret;
 		}
@@ -786,14 +934,16 @@ static int rpm_reg_of_parse(struct device_node *node,
 	return 0;
 }
 
-struct rpm_regulator_data {
+struct rpm_regulator_data
+{
 	const char *name;
 	int resource;
 	const struct qcom_rpm_reg *template;
 	const char *supply;
 };
 
-static const struct rpm_regulator_data rpm_pm8018_regulators[] = {
+static const struct rpm_regulator_data rpm_pm8018_regulators[] =
+{
 	{ "s1",  QCOM_RPM_PM8018_SMPS1, &pm8018_smps, "vdd_s1" },
 	{ "s2",  QCOM_RPM_PM8018_SMPS2, &pm8018_smps, "vdd_s2" },
 	{ "s3",  QCOM_RPM_PM8018_SMPS3, &pm8018_smps, "vdd_s3" },
@@ -807,8 +957,10 @@ static const struct rpm_regulator_data rpm_pm8018_regulators[] = {
 	{ "l6",  QCOM_RPM_PM8018_LDO6,  &pm8018_pldo, "vdd_l7" },
 	{ "l7",  QCOM_RPM_PM8018_LDO7,  &pm8018_pldo, "vdd_l7" },
 	{ "l8",  QCOM_RPM_PM8018_LDO8,  &pm8018_nldo, "vdd_l8" },
-	{ "l9",  QCOM_RPM_PM8018_LDO9,  &pm8921_nldo1200,
-						      "vdd_l9_l10_l11_l12" },
+	{
+		"l9",  QCOM_RPM_PM8018_LDO9,  &pm8921_nldo1200,
+		"vdd_l9_l10_l11_l12"
+	},
 	{ "l10", QCOM_RPM_PM8018_LDO10, &pm8018_nldo, "vdd_l9_l10_l11_l12" },
 	{ "l11", QCOM_RPM_PM8018_LDO11, &pm8018_nldo, "vdd_l9_l10_l11_l12" },
 	{ "l12", QCOM_RPM_PM8018_LDO12, &pm8018_nldo, "vdd_l9_l10_l11_l12" },
@@ -819,7 +971,8 @@ static const struct rpm_regulator_data rpm_pm8018_regulators[] = {
 	{ }
 };
 
-static const struct rpm_regulator_data rpm_pm8058_regulators[] = {
+static const struct rpm_regulator_data rpm_pm8058_regulators[] =
+{
 	{ "l0",   QCOM_RPM_PM8058_LDO0,   &pm8058_nldo, "vdd_l0_l1_lvs"	},
 	{ "l1",   QCOM_RPM_PM8058_LDO1,   &pm8058_nldo, "vdd_l0_l1_lvs" },
 	{ "l2",   QCOM_RPM_PM8058_LDO2,   &pm8058_pldo, "vdd_l2_l11_l12" },
@@ -860,7 +1013,8 @@ static const struct rpm_regulator_data rpm_pm8058_regulators[] = {
 	{ }
 };
 
-static const struct rpm_regulator_data rpm_pm8901_regulators[] = {
+static const struct rpm_regulator_data rpm_pm8901_regulators[] =
+{
 	{ "l0",   QCOM_RPM_PM8901_LDO0, &pm8901_nldo, "vdd_l0" },
 	{ "l1",   QCOM_RPM_PM8901_LDO1, &pm8901_pldo, "vdd_l1" },
 	{ "l2",   QCOM_RPM_PM8901_LDO2, &pm8901_pldo, "vdd_l2" },
@@ -884,7 +1038,8 @@ static const struct rpm_regulator_data rpm_pm8901_regulators[] = {
 	{ }
 };
 
-static const struct rpm_regulator_data rpm_pm8921_regulators[] = {
+static const struct rpm_regulator_data rpm_pm8921_regulators[] =
+{
 	{ "s1",  QCOM_RPM_PM8921_SMPS1, &pm8921_smps, "vdd_s1" },
 	{ "s2",  QCOM_RPM_PM8921_SMPS2, &pm8921_smps, "vdd_s2" },
 	{ "s3",  QCOM_RPM_PM8921_SMPS3, &pm8921_smps },
@@ -933,9 +1088,12 @@ static const struct rpm_regulator_data rpm_pm8921_regulators[] = {
 	{ }
 };
 
-static const struct of_device_id rpm_of_match[] = {
-	{ .compatible = "qcom,rpm-pm8018-regulators",
-		.data = &rpm_pm8018_regulators },
+static const struct of_device_id rpm_of_match[] =
+{
+	{
+		.compatible = "qcom,rpm-pm8018-regulators",
+		.data = &rpm_pm8018_regulators
+	},
 	{ .compatible = "qcom,rpm-pm8058-regulators", .data = &rpm_pm8058_regulators },
 	{ .compatible = "qcom,rpm-pm8901-regulators", .data = &rpm_pm8901_regulators },
 	{ .compatible = "qcom,rpm-pm8921-regulators", .data = &rpm_pm8921_regulators },
@@ -953,16 +1111,23 @@ static int rpm_reg_probe(struct platform_device *pdev)
 	struct qcom_rpm *rpm;
 
 	rpm = dev_get_drvdata(pdev->dev.parent);
-	if (!rpm) {
+
+	if (!rpm)
+	{
 		dev_err(&pdev->dev, "unable to retrieve handle to rpm\n");
 		return -ENODEV;
 	}
 
 	match = of_match_device(rpm_of_match, &pdev->dev);
-	for (reg = match->data; reg->name; reg++) {
+
+	for (reg = match->data; reg->name; reg++)
+	{
 		vreg = devm_kmalloc(&pdev->dev, sizeof(*vreg), GFP_KERNEL);
+
 		if (!vreg)
+		{
 			return -ENOMEM;
+		}
 
 		memcpy(vreg, reg->template, sizeof(*vreg));
 		mutex_init(&vreg->lock);
@@ -982,7 +1147,9 @@ static int rpm_reg_probe(struct platform_device *pdev)
 		config.dev = &pdev->dev;
 		config.driver_data = vreg;
 		rdev = devm_regulator_register(&pdev->dev, &vreg->desc, &config);
-		if (IS_ERR(rdev)) {
+
+		if (IS_ERR(rdev))
+		{
 			dev_err(&pdev->dev, "failed to register %s\n", reg->name);
 			return PTR_ERR(rdev);
 		}
@@ -991,7 +1158,8 @@ static int rpm_reg_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver rpm_reg_driver = {
+static struct platform_driver rpm_reg_driver =
+{
 	.probe          = rpm_reg_probe,
 	.driver  = {
 		.name  = "qcom_rpm_reg",

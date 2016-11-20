@@ -17,7 +17,8 @@ bool tomoyo_policy_loaded;
  * Mapping table from "enum tomoyo_mac_index" to
  * "enum tomoyo_mac_category_index".
  */
-const u8 tomoyo_index2category[TOMOYO_MAX_MAC_INDEX] = {
+const u8 tomoyo_index2category[TOMOYO_MAX_MAC_INDEX] =
+{
 	/* CONFIG::file group */
 	[TOMOYO_MAC_FILE_EXECUTE]    = TOMOYO_MAC_CATEGORY_FILE,
 	[TOMOYO_MAC_FILE_OPEN]       = TOMOYO_MAC_CATEGORY_FILE,
@@ -89,7 +90,8 @@ const u8 tomoyo_index2category[TOMOYO_MAX_MAC_INDEX] = {
  */
 void tomoyo_convert_time(time_t time, struct tomoyo_time *stamp)
 {
-	static const u16 tomoyo_eom[2][12] = {
+	static const u16 tomoyo_eom[2][12] =
+	{
 		{ 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 },
 		{ 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 }
 	};
@@ -102,17 +104,29 @@ void tomoyo_convert_time(time_t time, struct tomoyo_time *stamp)
 	time /= 60;
 	stamp->hour = time % 24;
 	time /= 24;
-	for (y = 1970; ; y++) {
+
+	for (y = 1970; ; y++)
+	{
 		const unsigned short days = (y & 3) ? 365 : 366;
+
 		if (time < days)
+		{
 			break;
+		}
+
 		time -= days;
 	}
+
 	r = (y & 3) == 0;
+
 	for (m = 0; m < 11 && time >= tomoyo_eom[r][m]; m++)
 		;
+
 	if (m)
+	{
 		time -= tomoyo_eom[r][m - 1];
+	}
+
 	stamp->year = y;
 	stamp->month = ++m;
 	stamp->day = ++time;
@@ -131,8 +145,12 @@ void tomoyo_convert_time(time_t time, struct tomoyo_time *stamp)
 bool tomoyo_permstr(const char *string, const char *keyword)
 {
 	const char *cp = strstr(string, keyword);
+
 	if (cp)
+	{
 		return cp == string || *(cp - 1) == '/';
+	}
+
 	return false;
 }
 
@@ -150,10 +168,16 @@ char *tomoyo_read_token(struct tomoyo_acl_param *param)
 {
 	char *pos = param->data;
 	char *del = strchr(pos, ' ');
+
 	if (del)
+	{
 		*del++ = '\0';
+	}
 	else
+	{
 		del = pos + strlen(pos);
+	}
+
 	param->data = del;
 	return pos;
 }
@@ -170,16 +194,26 @@ const struct tomoyo_path_info *tomoyo_get_domainname
 {
 	char *start = param->data;
 	char *pos = start;
-	while (*pos) {
+
+	while (*pos)
+	{
 		if (*pos++ != ' ' || *pos++ == '/')
+		{
 			continue;
+		}
+
 		pos -= 2;
 		*pos++ = '\0';
 		break;
 	}
+
 	param->data = pos;
+
 	if (tomoyo_correct_domain(start))
+	{
 		return tomoyo_get_name(start);
+	}
+
 	return NULL;
 }
 
@@ -199,27 +233,42 @@ u8 tomoyo_parse_ulong(unsigned long *result, char **str)
 	const char *cp = *str;
 	char *ep;
 	int base = 10;
-	if (*cp == '0') {
+
+	if (*cp == '0')
+	{
 		char c = *(cp + 1);
-		if (c == 'x' || c == 'X') {
+
+		if (c == 'x' || c == 'X')
+		{
 			base = 16;
 			cp += 2;
-		} else if (c >= '0' && c <= '7') {
+		}
+		else if (c >= '0' && c <= '7')
+		{
 			base = 8;
 			cp++;
 		}
 	}
+
 	*result = simple_strtoul(cp, &ep, base);
+
 	if (cp == ep)
+	{
 		return TOMOYO_VALUE_TYPE_INVALID;
+	}
+
 	*str = ep;
-	switch (base) {
-	case 16:
-		return TOMOYO_VALUE_TYPE_HEXADECIMAL;
-	case 8:
-		return TOMOYO_VALUE_TYPE_OCTAL;
-	default:
-		return TOMOYO_VALUE_TYPE_DECIMAL;
+
+	switch (base)
+	{
+		case 16:
+			return TOMOYO_VALUE_TYPE_HEXADECIMAL;
+
+		case 8:
+			return TOMOYO_VALUE_TYPE_OCTAL;
+
+		default:
+			return TOMOYO_VALUE_TYPE_DECIMAL;
 	}
 }
 
@@ -234,16 +283,24 @@ u8 tomoyo_parse_ulong(unsigned long *result, char **str)
  * Returns nothing.
  */
 void tomoyo_print_ulong(char *buffer, const int buffer_len,
-			const unsigned long value, const u8 type)
+						const unsigned long value, const u8 type)
 {
 	if (type == TOMOYO_VALUE_TYPE_DECIMAL)
+	{
 		snprintf(buffer, buffer_len, "%lu", value);
+	}
 	else if (type == TOMOYO_VALUE_TYPE_OCTAL)
+	{
 		snprintf(buffer, buffer_len, "0%lo", value);
+	}
 	else if (type == TOMOYO_VALUE_TYPE_HEXADECIMAL)
+	{
 		snprintf(buffer, buffer_len, "0x%lX", value);
+	}
 	else
+	{
 		snprintf(buffer, buffer_len, "type(%u)", type);
+	}
 }
 
 /**
@@ -255,17 +312,24 @@ void tomoyo_print_ulong(char *buffer, const int buffer_len,
  * Returns true on success, false otherwise.
  */
 bool tomoyo_parse_name_union(struct tomoyo_acl_param *param,
-			     struct tomoyo_name_union *ptr)
+							 struct tomoyo_name_union *ptr)
 {
 	char *filename;
-	if (param->data[0] == '@') {
+
+	if (param->data[0] == '@')
+	{
 		param->data++;
 		ptr->group = tomoyo_get_group(param, TOMOYO_PATH_GROUP);
 		return ptr->group != NULL;
 	}
+
 	filename = tomoyo_read_token(param);
+
 	if (!tomoyo_correct_word(filename))
+	{
 		return false;
+	}
+
 	ptr->filename = tomoyo_get_name(filename);
 	return ptr->filename != NULL;
 }
@@ -279,33 +343,50 @@ bool tomoyo_parse_name_union(struct tomoyo_acl_param *param,
  * Returns true on success, false otherwise.
  */
 bool tomoyo_parse_number_union(struct tomoyo_acl_param *param,
-			       struct tomoyo_number_union *ptr)
+							   struct tomoyo_number_union *ptr)
 {
 	char *data;
 	u8 type;
 	unsigned long v;
 	memset(ptr, 0, sizeof(*ptr));
-	if (param->data[0] == '@') {
+
+	if (param->data[0] == '@')
+	{
 		param->data++;
 		ptr->group = tomoyo_get_group(param, TOMOYO_NUMBER_GROUP);
 		return ptr->group != NULL;
 	}
+
 	data = tomoyo_read_token(param);
 	type = tomoyo_parse_ulong(&v, &data);
+
 	if (type == TOMOYO_VALUE_TYPE_INVALID)
+	{
 		return false;
+	}
+
 	ptr->values[0] = v;
 	ptr->value_type[0] = type;
-	if (!*data) {
+
+	if (!*data)
+	{
 		ptr->values[1] = v;
 		ptr->value_type[1] = type;
 		return true;
 	}
+
 	if (*data++ != '-')
+	{
 		return false;
+	}
+
 	type = tomoyo_parse_ulong(&v, &data);
+
 	if (type == TOMOYO_VALUE_TYPE_INVALID || *data || ptr->values[0] > v)
+	{
 		return false;
+	}
+
 	ptr->values[1] = v;
 	ptr->value_type[1] = type;
 	return true;
@@ -324,8 +405,8 @@ bool tomoyo_parse_number_union(struct tomoyo_acl_param *param,
 static inline bool tomoyo_byte_range(const char *str)
 {
 	return *str >= '0' && *str++ <= '3' &&
-		*str >= '0' && *str++ <= '7' &&
-		*str >= '0' && *str <= '7';
+		   *str >= '0' && *str++ <= '7' &&
+		   *str >= '0' && *str <= '7';
 }
 
 /**
@@ -395,7 +476,10 @@ bool tomoyo_str_starts(char **src, const char *find)
 	char *tmp = *src;
 
 	if (strncmp(tmp, find, len))
+	{
 		return false;
+	}
+
 	tmp += len;
 	*src = tmp;
 	return true;
@@ -418,16 +502,30 @@ void tomoyo_normalize_line(unsigned char *buffer)
 	bool first = true;
 
 	while (tomoyo_invalid(*sp))
+	{
 		sp++;
-	while (*sp) {
-		if (!first)
-			*dp++ = ' ';
-		first = false;
-		while (tomoyo_valid(*sp))
-			*dp++ = *sp++;
-		while (tomoyo_invalid(*sp))
-			sp++;
 	}
+
+	while (*sp)
+	{
+		if (!first)
+		{
+			*dp++ = ' ';
+		}
+
+		first = false;
+
+		while (tomoyo_valid(*sp))
+		{
+			*dp++ = *sp++;
+		}
+
+		while (tomoyo_invalid(*sp))
+		{
+			sp++;
+		}
+	}
+
 	*dp = '\0';
 }
 
@@ -447,65 +545,109 @@ static bool tomoyo_correct_word2(const char *string, size_t len)
 	unsigned char c;
 	unsigned char d;
 	unsigned char e;
+
 	if (!len)
+	{
 		goto out;
-	while (len--) {
+	}
+
+	while (len--)
+	{
 		c = *string++;
-		if (c == '\\') {
+
+		if (c == '\\')
+		{
 			if (!len--)
+			{
 				goto out;
-			c = *string++;
-			switch (c) {
-			case '\\':  /* "\\" */
-				continue;
-			case '$':   /* "\$" */
-			case '+':   /* "\+" */
-			case '?':   /* "\?" */
-			case '*':   /* "\*" */
-			case '@':   /* "\@" */
-			case 'x':   /* "\x" */
-			case 'X':   /* "\X" */
-			case 'a':   /* "\a" */
-			case 'A':   /* "\A" */
-			case '-':   /* "\-" */
-				continue;
-			case '{':   /* "/\{" */
-				if (string - 3 < start || *(string - 3) != '/')
-					break;
-				in_repetition = true;
-				continue;
-			case '}':   /* "\}/" */
-				if (*string != '/')
-					break;
-				if (!in_repetition)
-					break;
-				in_repetition = false;
-				continue;
-			case '0':   /* "\ooo" */
-			case '1':
-			case '2':
-			case '3':
-				if (!len-- || !len--)
-					break;
-				d = *string++;
-				e = *string++;
-				if (d < '0' || d > '7' || e < '0' || e > '7')
-					break;
-				c = tomoyo_make_byte(c, d, e);
-				if (c <= ' ' || c >= 127)
-					continue;
 			}
+
+			c = *string++;
+
+			switch (c)
+			{
+				case '\\':  /* "\\" */
+					continue;
+
+				case '$':   /* "\$" */
+				case '+':   /* "\+" */
+				case '?':   /* "\?" */
+				case '*':   /* "\*" */
+				case '@':   /* "\@" */
+				case 'x':   /* "\x" */
+				case 'X':   /* "\X" */
+				case 'a':   /* "\a" */
+				case 'A':   /* "\A" */
+				case '-':   /* "\-" */
+					continue;
+
+				case '{':   /* "/\{" */
+					if (string - 3 < start || *(string - 3) != '/')
+					{
+						break;
+					}
+
+					in_repetition = true;
+					continue;
+
+				case '}':   /* "\}/" */
+					if (*string != '/')
+					{
+						break;
+					}
+
+					if (!in_repetition)
+					{
+						break;
+					}
+
+					in_repetition = false;
+					continue;
+
+				case '0':   /* "\ooo" */
+				case '1':
+				case '2':
+				case '3':
+					if (!len-- || !len--)
+					{
+						break;
+					}
+
+					d = *string++;
+					e = *string++;
+
+					if (d < '0' || d > '7' || e < '0' || e > '7')
+					{
+						break;
+					}
+
+					c = tomoyo_make_byte(c, d, e);
+
+					if (c <= ' ' || c >= 127)
+					{
+						continue;
+					}
+			}
+
 			goto out;
-		} else if (in_repetition && c == '/') {
+		}
+		else if (in_repetition && c == '/')
+		{
 			goto out;
-		} else if (c <= ' ' || c >= 127) {
+		}
+		else if (c <= ' ' || c >= 127)
+		{
 			goto out;
 		}
 	}
+
 	if (in_repetition)
+	{
 		goto out;
+	}
+
 	return true;
- out:
+out:
 	return false;
 }
 
@@ -545,19 +687,35 @@ bool tomoyo_correct_path(const char *filename)
 bool tomoyo_correct_domain(const unsigned char *domainname)
 {
 	if (!domainname || !tomoyo_domain_def(domainname))
+	{
 		return false;
+	}
+
 	domainname = strchr(domainname, ' ');
+
 	if (!domainname++)
+	{
 		return true;
-	while (1) {
+	}
+
+	while (1)
+	{
 		const unsigned char *cp = strchr(domainname, ' ');
+
 		if (!cp)
+		{
 			break;
+		}
+
 		if (*domainname != '/' ||
-		    !tomoyo_correct_word2(domainname, cp - domainname))
+			!tomoyo_correct_word2(domainname, cp - domainname))
+		{
 			return false;
+		}
+
 		domainname = cp + 1;
 	}
+
 	return tomoyo_correct_path(domainname);
 }
 
@@ -572,16 +730,29 @@ bool tomoyo_domain_def(const unsigned char *buffer)
 {
 	const unsigned char *cp;
 	int len;
+
 	if (*buffer != '<')
+	{
 		return false;
+	}
+
 	cp = strchr(buffer, ' ');
+
 	if (!cp)
+	{
 		len = strlen(buffer);
+	}
 	else
+	{
 		len = cp - buffer;
+	}
+
 	if (buffer[len - 1] != '>' ||
-	    !tomoyo_correct_word2(buffer + 1, len - 2))
+		!tomoyo_correct_word2(buffer + 1, len - 2))
+	{
 		return false;
+	}
+
 	return true;
 }
 
@@ -601,10 +772,13 @@ struct tomoyo_domain_info *tomoyo_find_domain(const char *domainname)
 
 	name.name = domainname;
 	tomoyo_fill_path_info(&name);
-	list_for_each_entry_rcu(domain, &tomoyo_domain_list, list) {
+	list_for_each_entry_rcu(domain, &tomoyo_domain_list, list)
+	{
 		if (!domain->is_deleted &&
-		    !tomoyo_pathcmp(&name, domain->domainname))
+			!tomoyo_pathcmp(&name, domain->domainname))
+		{
 			return domain;
+		}
 	}
 	return NULL;
 }
@@ -622,32 +796,51 @@ static int tomoyo_const_part_length(const char *filename)
 	int len = 0;
 
 	if (!filename)
+	{
 		return 0;
-	while ((c = *filename++) != '\0') {
-		if (c != '\\') {
+	}
+
+	while ((c = *filename++) != '\0')
+	{
+		if (c != '\\')
+		{
 			len++;
 			continue;
 		}
+
 		c = *filename++;
-		switch (c) {
-		case '\\':  /* "\\" */
-			len += 2;
-			continue;
-		case '0':   /* "\ooo" */
-		case '1':
-		case '2':
-		case '3':
-			c = *filename++;
-			if (c < '0' || c > '7')
-				break;
-			c = *filename++;
-			if (c < '0' || c > '7')
-				break;
-			len += 4;
-			continue;
+
+		switch (c)
+		{
+			case '\\':  /* "\\" */
+				len += 2;
+				continue;
+
+			case '0':   /* "\ooo" */
+			case '1':
+			case '2':
+			case '3':
+				c = *filename++;
+
+				if (c < '0' || c > '7')
+				{
+					break;
+				}
+
+				c = *filename++;
+
+				if (c < '0' || c > '7')
+				{
+					break;
+				}
+
+				len += 4;
+				continue;
 		}
+
 		break;
 	}
+
 	return len;
 }
 
@@ -680,110 +873,194 @@ void tomoyo_fill_path_info(struct tomoyo_path_info *ptr)
  * Returns true if @filename matches @pattern, false otherwise.
  */
 static bool tomoyo_file_matches_pattern2(const char *filename,
-					 const char *filename_end,
-					 const char *pattern,
-					 const char *pattern_end)
+		const char *filename_end,
+		const char *pattern,
+		const char *pattern_end)
 {
-	while (filename < filename_end && pattern < pattern_end) {
+	while (filename < filename_end && pattern < pattern_end)
+	{
 		char c;
-		if (*pattern != '\\') {
+
+		if (*pattern != '\\')
+		{
 			if (*filename++ != *pattern++)
+			{
 				return false;
+			}
+
 			continue;
 		}
+
 		c = *filename;
 		pattern++;
-		switch (*pattern) {
-			int i;
-			int j;
-		case '?':
-			if (c == '/') {
-				return false;
-			} else if (c == '\\') {
-				if (filename[1] == '\\')
-					filename++;
-				else if (tomoyo_byte_range(filename + 1))
-					filename += 3;
-				else
+
+		switch (*pattern)
+		{
+				int i;
+				int j;
+
+			case '?':
+				if (c == '/')
+				{
 					return false;
-			}
-			break;
-		case '\\':
-			if (c != '\\')
-				return false;
-			if (*++filename != '\\')
-				return false;
-			break;
-		case '+':
-			if (!isdigit(c))
-				return false;
-			break;
-		case 'x':
-			if (!isxdigit(c))
-				return false;
-			break;
-		case 'a':
-			if (!tomoyo_alphabet_char(c))
-				return false;
-			break;
-		case '0':
-		case '1':
-		case '2':
-		case '3':
-			if (c == '\\' && tomoyo_byte_range(filename + 1)
-			    && strncmp(filename + 1, pattern, 3) == 0) {
-				filename += 3;
-				pattern += 2;
+				}
+				else if (c == '\\')
+				{
+					if (filename[1] == '\\')
+					{
+						filename++;
+					}
+					else if (tomoyo_byte_range(filename + 1))
+					{
+						filename += 3;
+					}
+					else
+					{
+						return false;
+					}
+				}
+
 				break;
-			}
-			return false; /* Not matched. */
-		case '*':
-		case '@':
-			for (i = 0; i <= filename_end - filename; i++) {
-				if (tomoyo_file_matches_pattern2(
-						    filename + i, filename_end,
-						    pattern + 1, pattern_end))
-					return true;
-				c = filename[i];
-				if (c == '.' && *pattern == '@')
-					break;
+
+			case '\\':
 				if (c != '\\')
-					continue;
-				if (filename[i + 1] == '\\')
-					i++;
-				else if (tomoyo_byte_range(filename + i + 1))
-					i += 3;
-				else
-					break; /* Bad pattern. */
-			}
-			return false; /* Not matched. */
-		default:
-			j = 0;
-			c = *pattern;
-			if (c == '$') {
-				while (isdigit(filename[j]))
-					j++;
-			} else if (c == 'X') {
-				while (isxdigit(filename[j]))
-					j++;
-			} else if (c == 'A') {
-				while (tomoyo_alphabet_char(filename[j]))
-					j++;
-			}
-			for (i = 1; i <= j; i++) {
-				if (tomoyo_file_matches_pattern2(
-						    filename + i, filename_end,
-						    pattern + 1, pattern_end))
-					return true;
-			}
-			return false; /* Not matched or bad pattern. */
+				{
+					return false;
+				}
+
+				if (*++filename != '\\')
+				{
+					return false;
+				}
+
+				break;
+
+			case '+':
+				if (!isdigit(c))
+				{
+					return false;
+				}
+
+				break;
+
+			case 'x':
+				if (!isxdigit(c))
+				{
+					return false;
+				}
+
+				break;
+
+			case 'a':
+				if (!tomoyo_alphabet_char(c))
+				{
+					return false;
+				}
+
+				break;
+
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+				if (c == '\\' && tomoyo_byte_range(filename + 1)
+					&& strncmp(filename + 1, pattern, 3) == 0)
+				{
+					filename += 3;
+					pattern += 2;
+					break;
+				}
+
+				return false; /* Not matched. */
+
+			case '*':
+			case '@':
+				for (i = 0; i <= filename_end - filename; i++)
+				{
+					if (tomoyo_file_matches_pattern2(
+							filename + i, filename_end,
+							pattern + 1, pattern_end))
+					{
+						return true;
+					}
+
+					c = filename[i];
+
+					if (c == '.' && *pattern == '@')
+					{
+						break;
+					}
+
+					if (c != '\\')
+					{
+						continue;
+					}
+
+					if (filename[i + 1] == '\\')
+					{
+						i++;
+					}
+					else if (tomoyo_byte_range(filename + i + 1))
+					{
+						i += 3;
+					}
+					else
+					{
+						break;    /* Bad pattern. */
+					}
+				}
+
+				return false; /* Not matched. */
+
+			default:
+				j = 0;
+				c = *pattern;
+
+				if (c == '$')
+				{
+					while (isdigit(filename[j]))
+					{
+						j++;
+					}
+				}
+				else if (c == 'X')
+				{
+					while (isxdigit(filename[j]))
+					{
+						j++;
+					}
+				}
+				else if (c == 'A')
+				{
+					while (tomoyo_alphabet_char(filename[j]))
+					{
+						j++;
+					}
+				}
+
+				for (i = 1; i <= j; i++)
+				{
+					if (tomoyo_file_matches_pattern2(
+							filename + i, filename_end,
+							pattern + 1, pattern_end))
+					{
+						return true;
+					}
+				}
+
+				return false; /* Not matched or bad pattern. */
 		}
+
 		filename++;
 		pattern++;
 	}
+
 	while (*pattern == '\\' &&
-	       (*(pattern + 1) == '*' || *(pattern + 1) == '@'))
+		   (*(pattern + 1) == '*' || *(pattern + 1) == '@'))
+	{
 		pattern += 2;
+	}
+
 	return filename == filename_end && pattern == pattern_end;
 }
 
@@ -798,31 +1075,43 @@ static bool tomoyo_file_matches_pattern2(const char *filename,
  * Returns true if @filename matches @pattern, false otherwise.
  */
 static bool tomoyo_file_matches_pattern(const char *filename,
-					const char *filename_end,
-					const char *pattern,
-					const char *pattern_end)
+										const char *filename_end,
+										const char *pattern,
+										const char *pattern_end)
 {
 	const char *pattern_start = pattern;
 	bool first = true;
 	bool result;
 
-	while (pattern < pattern_end - 1) {
+	while (pattern < pattern_end - 1)
+	{
 		/* Split at "\-" pattern. */
 		if (*pattern++ != '\\' || *pattern++ != '-')
+		{
 			continue;
+		}
+
 		result = tomoyo_file_matches_pattern2(filename,
-						      filename_end,
-						      pattern_start,
-						      pattern - 2);
+											  filename_end,
+											  pattern_start,
+											  pattern - 2);
+
 		if (first)
+		{
 			result = !result;
+		}
+
 		if (result)
+		{
 			return false;
+		}
+
 		first = false;
 		pattern_start = pattern;
 	}
+
 	result = tomoyo_file_matches_pattern2(filename, filename_end,
-					      pattern_start, pattern_end);
+										  pattern_start, pattern_end);
 	return first ? result : !result;
 }
 
@@ -839,31 +1128,58 @@ static bool tomoyo_path_matches_pattern2(const char *f, const char *p)
 	const char *f_delimiter;
 	const char *p_delimiter;
 
-	while (*f && *p) {
+	while (*f && *p)
+	{
 		f_delimiter = strchr(f, '/');
+
 		if (!f_delimiter)
+		{
 			f_delimiter = f + strlen(f);
+		}
+
 		p_delimiter = strchr(p, '/');
+
 		if (!p_delimiter)
+		{
 			p_delimiter = p + strlen(p);
+		}
+
 		if (*p == '\\' && *(p + 1) == '{')
+		{
 			goto recursive;
+		}
+
 		if (!tomoyo_file_matches_pattern(f, f_delimiter, p,
-						 p_delimiter))
+										 p_delimiter))
+		{
 			return false;
+		}
+
 		f = f_delimiter;
+
 		if (*f)
+		{
 			f++;
+		}
+
 		p = p_delimiter;
+
 		if (*p)
+		{
 			p++;
+		}
 	}
+
 	/* Ignore trailing "\*" and "\@" in @pattern. */
 	while (*p == '\\' &&
-	       (*(p + 1) == '*' || *(p + 1) == '@'))
+		   (*(p + 1) == '*' || *(p + 1) == '@'))
+	{
 		p += 2;
+	}
+
 	return !*f && !*p;
- recursive:
+recursive:
+
 	/*
 	 * The "\{" pattern is permitted only after '/' character.
 	 * This guarantees that below "*(p - 1)" is safe.
@@ -871,23 +1187,40 @@ static bool tomoyo_path_matches_pattern2(const char *f, const char *p)
 	 * so that "\{" + "\}" pair will not break the "\-" operator.
 	 */
 	if (*(p - 1) != '/' || p_delimiter <= p + 3 || *p_delimiter != '/' ||
-	    *(p_delimiter - 1) != '}' || *(p_delimiter - 2) != '\\')
-		return false; /* Bad pattern. */
-	do {
+		*(p_delimiter - 1) != '}' || *(p_delimiter - 2) != '\\')
+	{
+		return false;    /* Bad pattern. */
+	}
+
+	do
+	{
 		/* Compare current component with pattern. */
 		if (!tomoyo_file_matches_pattern(f, f_delimiter, p + 2,
-						 p_delimiter - 2))
+										 p_delimiter - 2))
+		{
 			break;
+		}
+
 		/* Proceed to next component. */
 		f = f_delimiter;
+
 		if (!*f)
+		{
 			break;
+		}
+
 		f++;
+
 		/* Continue comparison. */
 		if (tomoyo_path_matches_pattern2(f, p_delimiter + 1))
+		{
 			return true;
+		}
+
 		f_delimiter = strchr(f, '/');
-	} while (f_delimiter);
+	}
+	while (f_delimiter);
+
 	return false; /* Not matched. */
 }
 
@@ -918,7 +1251,7 @@ static bool tomoyo_path_matches_pattern2(const char *f, const char *p)
  *               /dir/dir/dir/ ).
  */
 bool tomoyo_path_matches_pattern(const struct tomoyo_path_info *filename,
-				 const struct tomoyo_path_info *pattern)
+								 const struct tomoyo_path_info *pattern)
 {
 	const char *f = filename->name;
 	const char *p = pattern->name;
@@ -926,13 +1259,22 @@ bool tomoyo_path_matches_pattern(const struct tomoyo_path_info *filename,
 
 	/* If @pattern doesn't contain pattern, I can use strcmp(). */
 	if (!pattern->is_patterned)
+	{
 		return !tomoyo_pathcmp(filename, pattern);
+	}
+
 	/* Don't compare directory and non-directory. */
 	if (filename->is_dir != pattern->is_dir)
+	{
 		return false;
+	}
+
 	/* Compare the initial length without patterns. */
 	if (strncmp(f, p, len))
+	{
 		return false;
+	}
+
 	f += len;
 	p += len;
 	return tomoyo_path_matches_pattern2(f, p);
@@ -953,10 +1295,16 @@ const char *tomoyo_get_exe(void)
 	struct mm_struct *mm = current->mm;
 
 	if (!mm)
+	{
 		return NULL;
+	}
+
 	exe_file = get_mm_exe_file(mm);
+
 	if (!exe_file)
+	{
 		return NULL;
+	}
 
 	cp = tomoyo_realpath_from_path(&exe_file->f_path);
 	fput(exe_file);
@@ -973,20 +1321,28 @@ const char *tomoyo_get_exe(void)
  * Returns mode.
  */
 int tomoyo_get_mode(const struct tomoyo_policy_namespace *ns, const u8 profile,
-		    const u8 index)
+					const u8 index)
 {
 	u8 mode;
 	struct tomoyo_profile *p;
 
 	if (!tomoyo_policy_loaded)
+	{
 		return TOMOYO_CONFIG_DISABLED;
+	}
+
 	p = tomoyo_profile(ns, profile);
 	mode = p->config[index];
+
 	if (mode == TOMOYO_CONFIG_USE_DEFAULT)
 		mode = p->config[tomoyo_index2category[index]
-				 + TOMOYO_MAX_MAC_INDEX];
+						 + TOMOYO_MAX_MAC_INDEX];
+
 	if (mode == TOMOYO_CONFIG_USE_DEFAULT)
+	{
 		mode = p->default_config;
+	}
+
 	return mode & 3;
 }
 
@@ -1000,12 +1356,16 @@ int tomoyo_get_mode(const struct tomoyo_policy_namespace *ns, const u8 profile,
  * Returns mode.
  */
 int tomoyo_init_request_info(struct tomoyo_request_info *r,
-			     struct tomoyo_domain_info *domain, const u8 index)
+							 struct tomoyo_domain_info *domain, const u8 index)
 {
 	u8 profile;
 	memset(r, 0, sizeof(*r));
+
 	if (!domain)
+	{
 		domain = tomoyo_domain();
+	}
+
 	r->domain = domain;
 	profile = domain->profile;
 	r->profile = profile;
@@ -1030,59 +1390,87 @@ bool tomoyo_domain_quota_is_ok(struct tomoyo_request_info *r)
 	struct tomoyo_acl_info *ptr;
 
 	if (r->mode != TOMOYO_CONFIG_LEARNING)
+	{
 		return false;
+	}
+
 	if (!domain)
+	{
 		return true;
-	list_for_each_entry_rcu(ptr, &domain->acl_info_list, list) {
+	}
+
+	list_for_each_entry_rcu(ptr, &domain->acl_info_list, list)
+	{
 		u16 perm;
 		u8 i;
+
 		if (ptr->is_deleted)
+		{
 			continue;
-		switch (ptr->type) {
-		case TOMOYO_TYPE_PATH_ACL:
-			perm = container_of(ptr, struct tomoyo_path_acl, head)
-				->perm;
-			break;
-		case TOMOYO_TYPE_PATH2_ACL:
-			perm = container_of(ptr, struct tomoyo_path2_acl, head)
-				->perm;
-			break;
-		case TOMOYO_TYPE_PATH_NUMBER_ACL:
-			perm = container_of(ptr, struct tomoyo_path_number_acl,
-					    head)->perm;
-			break;
-		case TOMOYO_TYPE_MKDEV_ACL:
-			perm = container_of(ptr, struct tomoyo_mkdev_acl,
-					    head)->perm;
-			break;
-		case TOMOYO_TYPE_INET_ACL:
-			perm = container_of(ptr, struct tomoyo_inet_acl,
-					    head)->perm;
-			break;
-		case TOMOYO_TYPE_UNIX_ACL:
-			perm = container_of(ptr, struct tomoyo_unix_acl,
-					    head)->perm;
-			break;
-		case TOMOYO_TYPE_MANUAL_TASK_ACL:
-			perm = 0;
-			break;
-		default:
-			perm = 1;
 		}
+
+		switch (ptr->type)
+		{
+			case TOMOYO_TYPE_PATH_ACL:
+				perm = container_of(ptr, struct tomoyo_path_acl, head)
+					   ->perm;
+				break;
+
+			case TOMOYO_TYPE_PATH2_ACL:
+				perm = container_of(ptr, struct tomoyo_path2_acl, head)
+					   ->perm;
+				break;
+
+			case TOMOYO_TYPE_PATH_NUMBER_ACL:
+				perm = container_of(ptr, struct tomoyo_path_number_acl,
+									head)->perm;
+				break;
+
+			case TOMOYO_TYPE_MKDEV_ACL:
+				perm = container_of(ptr, struct tomoyo_mkdev_acl,
+									head)->perm;
+				break;
+
+			case TOMOYO_TYPE_INET_ACL:
+				perm = container_of(ptr, struct tomoyo_inet_acl,
+									head)->perm;
+				break;
+
+			case TOMOYO_TYPE_UNIX_ACL:
+				perm = container_of(ptr, struct tomoyo_unix_acl,
+									head)->perm;
+				break;
+
+			case TOMOYO_TYPE_MANUAL_TASK_ACL:
+				perm = 0;
+				break;
+
+			default:
+				perm = 1;
+		}
+
 		for (i = 0; i < 16; i++)
 			if (perm & (1 << i))
+			{
 				count++;
+			}
 	}
+
 	if (count < tomoyo_profile(domain->ns, domain->profile)->
-	    pref[TOMOYO_PREF_MAX_LEARNING_ENTRY])
+		pref[TOMOYO_PREF_MAX_LEARNING_ENTRY])
+	{
 		return true;
-	if (!domain->flags[TOMOYO_DIF_QUOTA_WARNED]) {
+	}
+
+	if (!domain->flags[TOMOYO_DIF_QUOTA_WARNED])
+	{
 		domain->flags[TOMOYO_DIF_QUOTA_WARNED] = true;
 		/* r->granted = false; */
 		tomoyo_write_log(r, "%s", tomoyo_dif[TOMOYO_DIF_QUOTA_WARNED]);
 		printk(KERN_WARNING "WARNING: "
-		       "Domain '%s' has too many ACLs to hold. "
-		       "Stopped learning mode.\n", domain->domainname->name);
+			   "Domain '%s' has too many ACLs to hold. "
+			   "Stopped learning mode.\n", domain->domainname->name);
 	}
+
 	return false;
 }

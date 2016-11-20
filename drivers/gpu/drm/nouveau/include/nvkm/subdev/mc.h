@@ -2,7 +2,8 @@
 #define __NVKM_MC_H__
 #include <core/subdev.h>
 
-struct nvkm_mc {
+struct nvkm_mc
+{
 	const struct nvkm_mc_func *func;
 	struct nvkm_subdev subdev;
 };

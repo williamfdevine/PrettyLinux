@@ -37,7 +37,8 @@
 
 #include "das08.h"
 
-static const struct das08_board_struct das08_pci_boards[] = {
+static const struct das08_board_struct das08_pci_boards[] =
+{
 	{
 		.name		= "pci-das08",
 		.ai_nbits	= 12,
@@ -51,28 +52,36 @@ static const struct das08_board_struct das08_pci_boards[] = {
 };
 
 static int das08_pci_auto_attach(struct comedi_device *dev,
-				 unsigned long context_unused)
+								 unsigned long context_unused)
 {
 	struct pci_dev *pdev = comedi_to_pci_dev(dev);
 	struct das08_private_struct *devpriv;
 	int ret;
 
 	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
+
 	if (!devpriv)
+	{
 		return -ENOMEM;
+	}
 
 	/* The das08 driver needs the board_ptr */
 	dev->board_ptr = &das08_pci_boards[0];
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	dev->iobase = pci_resource_start(pdev, 2);
 
 	return das08_common_attach(dev, dev->iobase);
 }
 
-static struct comedi_driver das08_pci_comedi_driver = {
+static struct comedi_driver das08_pci_comedi_driver =
+{
 	.driver_name	= "pci-das08",
 	.module		= THIS_MODULE,
 	.auto_attach	= das08_pci_auto_attach,
@@ -80,19 +89,21 @@ static struct comedi_driver das08_pci_comedi_driver = {
 };
 
 static int das08_pci_probe(struct pci_dev *dev,
-			   const struct pci_device_id *id)
+						   const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &das08_pci_comedi_driver,
-				      id->driver_data);
+								  id->driver_data);
 }
 
-static const struct pci_device_id das08_pci_table[] = {
+static const struct pci_device_id das08_pci_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_CB, 0x0029) },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, das08_pci_table);
 
-static struct pci_driver das08_pci_driver = {
+static struct pci_driver das08_pci_driver =
+{
 	.name		= "pci-das08",
 	.id_table	= das08_pci_table,
 	.probe		= das08_pci_probe,

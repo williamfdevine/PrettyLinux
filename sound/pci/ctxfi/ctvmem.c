@@ -36,22 +36,32 @@ get_vm_block(struct ct_vm *vm, unsigned int size, struct ct_atc *atc)
 	struct list_head *pos;
 
 	size = CT_PAGE_ALIGN(size);
-	if (size > vm->size) {
+
+	if (size > vm->size)
+	{
 		dev_err(atc->card->dev,
-			"Fail! No sufficient device virtual memory space available!\n");
+				"Fail! No sufficient device virtual memory space available!\n");
 		return NULL;
 	}
 
 	mutex_lock(&vm->lock);
-	list_for_each(pos, &vm->unused) {
+	list_for_each(pos, &vm->unused)
+	{
 		entry = list_entry(pos, struct ct_vm_block, list);
-		if (entry->size >= size)
-			break; /* found a block that is big enough */
-	}
-	if (pos == &vm->unused)
-		goto out;
 
-	if (entry->size == size) {
+		if (entry->size >= size)
+		{
+			break;    /* found a block that is big enough */
+		}
+	}
+
+	if (pos == &vm->unused)
+	{
+		goto out;
+	}
+
+	if (entry->size == size)
+	{
 		/* Move the vm node from unused list to used list directly */
 		list_move(&entry->list, &vm->used);
 		vm->size -= size;
@@ -60,8 +70,11 @@ get_vm_block(struct ct_vm *vm, unsigned int size, struct ct_atc *atc)
 	}
 
 	block = kzalloc(sizeof(*block), GFP_KERNEL);
+
 	if (!block)
+	{
 		goto out;
+	}
 
 	block->addr = entry->addr;
 	block->size = size;
@@ -70,7 +83,7 @@ get_vm_block(struct ct_vm *vm, unsigned int size, struct ct_atc *atc)
 	entry->size -= size;
 	vm->size -= size;
 
- out:
+out:
 	mutex_unlock(&vm->lock);
 	return block;
 }
@@ -86,20 +99,31 @@ static void put_vm_block(struct ct_vm *vm, struct ct_vm_block *block)
 	list_del(&block->list);
 	vm->size += block->size;
 
-	list_for_each(pos, &vm->unused) {
+	list_for_each(pos, &vm->unused)
+	{
 		entry = list_entry(pos, struct ct_vm_block, list);
+
 		if (entry->addr >= (block->addr + block->size))
-			break; /* found a position */
+		{
+			break;    /* found a position */
+		}
 	}
-	if (pos == &vm->unused) {
+
+	if (pos == &vm->unused)
+	{
 		list_add_tail(&block->list, &vm->unused);
 		entry = block;
-	} else {
-		if ((block->addr + block->size) == entry->addr) {
+	}
+	else
+	{
+		if ((block->addr + block->size) == entry->addr)
+		{
 			entry->addr = block->addr;
 			entry->size += block->size;
 			kfree(block);
-		} else {
+		}
+		else
+		{
 			__list_add(&block->list, pos->prev, pos);
 			entry = block;
 		}
@@ -107,11 +131,16 @@ static void put_vm_block(struct ct_vm *vm, struct ct_vm_block *block)
 
 	pos = &entry->list;
 	pre = pos->prev;
-	while (pre != &vm->unused) {
+
+	while (pre != &vm->unused)
+	{
 		entry = list_entry(pos, struct ct_vm_block, list);
 		pre_ent = list_entry(pre, struct ct_vm_block, list);
+
 		if ((pre_ent->addr + pre_ent->size) > entry->addr)
+		{
 			break;
+		}
 
 		pre_ent->size += entry->size;
 		list_del(pos);
@@ -119,6 +148,7 @@ static void put_vm_block(struct ct_vm *vm, struct ct_vm_block *block)
 		pos = pre;
 		pre = pos->prev;
 	}
+
 	mutex_unlock(&vm->lock);
 }
 
@@ -133,16 +163,20 @@ ct_vm_map(struct ct_vm *vm, struct snd_pcm_substream *substream, int size)
 	struct ct_atc *atc = snd_pcm_substream_chip(substream);
 
 	block = get_vm_block(vm, size, atc);
-	if (block == NULL) {
+
+	if (block == NULL)
+	{
 		dev_err(atc->card->dev,
-			"No virtual memory block that is big enough to allocate!\n");
+				"No virtual memory block that is big enough to allocate!\n");
 		return NULL;
 	}
 
 	ptp = (unsigned long *)vm->ptp[0].area;
 	pte_start = (block->addr >> CT_PAGE_SHIFT);
 	pages = block->size >> CT_PAGE_SHIFT;
-	for (i = 0; i < pages; i++) {
+
+	for (i = 0; i < pages; i++)
+	{
 		unsigned long addr;
 		addr = snd_pcm_sgbuf_get_addr(substream, i << CT_PAGE_SHIFT);
 		ptp[pte_start + i] = addr;
@@ -178,24 +212,34 @@ int ct_vm_create(struct ct_vm **rvm, struct pci_dev *pci)
 	*rvm = NULL;
 
 	vm = kzalloc(sizeof(*vm), GFP_KERNEL);
+
 	if (!vm)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&vm->lock);
 
 	/* Allocate page table pages */
-	for (i = 0; i < CT_PTP_NUM; i++) {
+	for (i = 0; i < CT_PTP_NUM; i++)
+	{
 		err = snd_dma_alloc_pages(SNDRV_DMA_TYPE_DEV,
-					  snd_dma_pci_data(pci),
-					  PAGE_SIZE, &vm->ptp[i]);
+								  snd_dma_pci_data(pci),
+								  PAGE_SIZE, &vm->ptp[i]);
+
 		if (err < 0)
+		{
 			break;
+		}
 	}
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		/* no page table pages are allocated */
 		ct_vm_destroy(vm);
 		return -ENOMEM;
 	}
+
 	vm->size = CT_ADDRS_PER_PAGE * i;
 	vm->map = ct_vm_map;
 	vm->unmap = ct_vm_unmap;
@@ -203,7 +247,9 @@ int ct_vm_create(struct ct_vm **rvm, struct pci_dev *pci)
 	INIT_LIST_HEAD(&vm->unused);
 	INIT_LIST_HEAD(&vm->used);
 	block = kzalloc(sizeof(*block), GFP_KERNEL);
-	if (NULL != block) {
+
+	if (NULL != block)
+	{
 		block->addr = 0;
 		block->size = vm->size;
 		list_add(&block->list, &vm->unused);
@@ -222,13 +268,16 @@ void ct_vm_destroy(struct ct_vm *vm)
 	struct ct_vm_block *entry;
 
 	/* free used and unused list nodes */
-	while (!list_empty(&vm->used)) {
+	while (!list_empty(&vm->used))
+	{
 		pos = vm->used.next;
 		list_del(pos);
 		entry = list_entry(pos, struct ct_vm_block, list);
 		kfree(entry);
 	}
-	while (!list_empty(&vm->unused)) {
+
+	while (!list_empty(&vm->unused))
+	{
 		pos = vm->unused.next;
 		list_del(pos);
 		entry = list_entry(pos, struct ct_vm_block, list);
@@ -237,7 +286,9 @@ void ct_vm_destroy(struct ct_vm *vm)
 
 	/* free allocated page table pages */
 	for (i = 0; i < CT_PTP_NUM; i++)
+	{
 		snd_dma_free_pages(&vm->ptp[i]);
+	}
 
 	vm->size = 0;
 

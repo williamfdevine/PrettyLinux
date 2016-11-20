@@ -51,7 +51,8 @@ static int mgc_ir_state_seq_show(struct seq_file *m, void *v)
 
 LPROC_SEQ_FOPS_RO(mgc_ir_state);
 
-static struct lprocfs_vars lprocfs_mgc_obd_vars[] = {
+static struct lprocfs_vars lprocfs_mgc_obd_vars[] =
+{
 	{ "ping",	     &mgc_ping_fops,      NULL, 0222 },
 	{ "connect_flags",   &mgc_connect_flags_fops, NULL, 0 },
 	{ "mgs_server_uuid", &mgc_server_uuid_fops,   NULL, 0 },

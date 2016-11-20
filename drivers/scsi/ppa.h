@@ -1,6 +1,6 @@
-/*  Driver for the PPA3 parallel port SCSI HBA embedded in 
+/*  Driver for the PPA3 parallel port SCSI HBA embedded in
  * the Iomega ZIP drive
- * 
+ *
  * (c) 1996     Grant R. Guenther  grant@torque.net
  *              David Campbell
  *
@@ -12,7 +12,7 @@
 
 #define   PPA_VERSION   "2.07 (for Linux 2.4.x)"
 
-/* 
+/*
  * this driver has been hacked by Matteo Frigo (athena@theory.lcs.mit.edu)
  * to support EPP and scatter-gather.                        [0.26-athena]
  *
@@ -68,7 +68,7 @@
  *  for short periods of time.
  * Add udelay() to ppa_select()
  *  by Peter Cherriman <pjc@ecs.soton.ac.uk> and
- *     Oleg Makarenko <omakarenko@cyberplat.ru>         
+ *     Oleg Makarenko <omakarenko@cyberplat.ru>
  *                                                      [2.07]
  */
 /* ------ END OF USER CONFIGURABLE PARAMETERS ----- */
@@ -89,7 +89,7 @@
 /* batteries not included :-) */
 
 /*
- * modes in which the driver can operate 
+ * modes in which the driver can operate
  */
 #define   PPA_AUTODETECT        0	/* Autodetect mode                */
 #define   PPA_NIBBLE            1	/* work in standard 4 bit mode    */
@@ -101,17 +101,18 @@
 
 static char *PPA_MODE_STRING[] =
 {
-    "Autodetect",
-    "SPP",
-    "PS/2",
-    "EPP 8 bit",
-    "EPP 16 bit",
+	"Autodetect",
+	"SPP",
+	"PS/2",
+	"EPP 8 bit",
+	"EPP 16 bit",
 #ifdef CONFIG_SCSI_IZIP_EPP16
-    "EPP 16 bit",
+	"EPP 16 bit",
 #else
-    "EPP 32 bit",
+	"EPP 32 bit",
 #endif
-    "Unknown"};
+	"Unknown"
+};
 
 /* other options */
 #define PPA_BURST_SIZE	512	/* data burst size */
@@ -130,7 +131,7 @@ static char *PPA_MODE_STRING[] =
 #define r_ctr(x)        (unsigned char)inb((x)+2)
 #define r_epp(x)        (unsigned char)inb((x)+4)
 #define r_fifo(x)       (unsigned char)inb((x)) /* x must be base_hi */
-					/* On PCI is base+0x400 != base_hi */
+/* On PCI is base+0x400 != base_hi */
 #define r_ecr(x)        (unsigned char)inb((x)+0x2) /* x must be base_hi */
 
 #define w_dtr(x,y)      outb(y, (x))
@@ -140,9 +141,9 @@ static char *PPA_MODE_STRING[] =
 #define w_ecr(x,y)      outb(y, (x)+0x2)/* x must be base_hi */
 
 #ifdef CONFIG_SCSI_IZIP_SLOW_CTR
-#define w_ctr(x,y)      outb_p(y, (x)+2)
+	#define w_ctr(x,y)      outb_p(y, (x)+2)
 #else
-#define w_ctr(x,y)      outb(y, (x)+2)
+	#define w_ctr(x,y)      outb(y, (x)+2)
 #endif
 
 static int ppa_engine(ppa_struct *, struct scsi_cmnd *);

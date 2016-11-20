@@ -82,17 +82,22 @@
  * where setup length is the timing expressed in cycles.
  */
 static inline u32 at91sam9_smc_setup_ns_to_cycles(unsigned int clk_rate,
-						  u32 timing_ns)
+		u32 timing_ns)
 {
 	u32 clk_period = DIV_ROUND_UP(NSEC_PER_SEC, clk_rate);
 	u32 coded_cycles = 0;
 	u32 cycles;
 
 	cycles = DIV_ROUND_UP(timing_ns, clk_period);
-	if (cycles / 32) {
+
+	if (cycles / 32)
+	{
 		coded_cycles |= 1 << 5;
+
 		if (cycles < 128)
+		{
 			cycles = 0;
+		}
 	}
 
 	coded_cycles |= cycles % 32;
@@ -112,17 +117,22 @@ static inline u32 at91sam9_smc_setup_ns_to_cycles(unsigned int clk_rate,
  * where pulse length is the timing expressed in cycles.
  */
 static inline u32 at91sam9_smc_pulse_ns_to_cycles(unsigned int clk_rate,
-						  u32 timing_ns)
+		u32 timing_ns)
 {
 	u32 clk_period = DIV_ROUND_UP(NSEC_PER_SEC, clk_rate);
 	u32 coded_cycles = 0;
 	u32 cycles;
 
 	cycles = DIV_ROUND_UP(timing_ns, clk_period);
-	if (cycles / 64) {
+
+	if (cycles / 64)
+	{
 		coded_cycles |= 1 << 6;
+
 		if (cycles < 256)
+		{
 			cycles = 0;
+		}
 	}
 
 	coded_cycles |= cycles % 64;
@@ -142,22 +152,27 @@ static inline u32 at91sam9_smc_pulse_ns_to_cycles(unsigned int clk_rate,
  * where cycle length is the timing expressed in cycles.
  */
 static inline u32 at91sam9_smc_cycle_ns_to_cycles(unsigned int clk_rate,
-						  u32 timing_ns)
+		u32 timing_ns)
 {
 	u32 clk_period = DIV_ROUND_UP(NSEC_PER_SEC, clk_rate);
 	u32 coded_cycles = 0;
 	u32 cycles;
 
 	cycles = DIV_ROUND_UP(timing_ns, clk_period);
-	if (cycles / 128) {
+
+	if (cycles / 128)
+	{
 		coded_cycles = cycles / 256;
 		cycles %= 256;
-		if (cycles >= 128) {
+
+		if (cycles >= 128)
+		{
 			coded_cycles++;
 			cycles = 0;
 		}
 
-		if (coded_cycles > 0x3) {
+		if (coded_cycles > 0x3)
+		{
 			coded_cycles = 0x3;
 			cycles = 0x7f;
 		}

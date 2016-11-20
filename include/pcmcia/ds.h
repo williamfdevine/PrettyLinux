@@ -17,7 +17,7 @@
 #define _LINUX_DS_H
 
 #ifdef __KERNEL__
-#include <linux/mod_devicetable.h>
+	#include <linux/mod_devicetable.h>
 #endif
 
 #include <pcmcia/device_id.h>
@@ -41,12 +41,14 @@ struct net_device;
 /* dynamic device IDs for PCMCIA device drivers. See
  * Documentation/pcmcia/driver.txt for details.
 */
-struct pcmcia_dynids {
+struct pcmcia_dynids
+{
 	struct mutex		lock;
 	struct list_head	list;
 };
 
-struct pcmcia_driver {
+struct pcmcia_driver
+{
 	const char		*name;
 
 	int (*probe)		(struct pcmcia_device *dev);
@@ -75,10 +77,11 @@ void pcmcia_unregister_driver(struct pcmcia_driver *driver);
  */
 #define module_pcmcia_driver(__pcmcia_driver) \
 	module_driver(__pcmcia_driver, pcmcia_register_driver, \
-			pcmcia_unregister_driver)
+				  pcmcia_unregister_driver)
 
 /* for struct resource * array embedded in struct pcmcia_device */
-enum {
+enum
+{
 	PCMCIA_IOPORT_0,
 	PCMCIA_IOPORT_1,
 	PCMCIA_IOMEM_0,
@@ -88,7 +91,8 @@ enum {
 	PCMCIA_NUM_RESOURCES,
 };
 
-struct pcmcia_device {
+struct pcmcia_device
+{
 	/* the socket and the device_no [for multifunction devices]
 	   uniquely define a pcmcia_device */
 	struct pcmcia_socket	*socket;
@@ -117,25 +121,25 @@ struct pcmcia_device {
 	unsigned int		io_lines;	/* number of I/O lines */
 
 	/* Is the device suspended? */
-	u16			suspended:1;
+	u16			suspended: 1;
 
 	/* Flags whether io, irq, win configurations were
 	 * requested, and whether the configuration is "locked" */
-	u16			_irq:1;
-	u16			_io:1;
-	u16			_win:4;
-	u16			_locked:1;
+	u16			_irq: 1;
+	u16			_io: 1;
+	u16			_win: 4;
+	u16			_locked: 1;
 
 	/* Flag whether a "fuzzy" func_id based match is
 	 * allowed. */
-	u16			allow_func_id_match:1;
+	u16			allow_func_id_match: 1;
 
 	/* information about this device */
-	u16			has_manf_id:1;
-	u16			has_card_id:1;
-	u16			has_func_id:1;
+	u16			has_manf_id: 1;
+	u16			has_card_id: 1;
+	u16			has_func_id: 1;
 
-	u16			reserved:4;
+	u16			reserved: 4;
 
 	u8			func_id;
 	u16			manf_id;
@@ -170,18 +174,18 @@ struct pcmcia_device {
 /* get the very first CIS entry of type @code. Note that buf is pointer
  * to u8 *buf; and that you need to kfree(buf) afterwards. */
 size_t pcmcia_get_tuple(struct pcmcia_device *p_dev, cisdata_t code,
-			u8 **buf);
+						u8 **buf);
 
 /* loop over CIS entries */
 int pcmcia_loop_tuple(struct pcmcia_device *p_dev, cisdata_t code,
-		      int (*loop_tuple) (struct pcmcia_device *p_dev,
-					 tuple_t *tuple,
-					 void *priv_data),
-		      void *priv_data);
+					  int (*loop_tuple) (struct pcmcia_device *p_dev,
+							  tuple_t *tuple,
+							  void *priv_data),
+					  void *priv_data);
 
 /* get the MAC address from CISTPL_FUNCE */
 int pcmcia_get_mac_from_cis(struct pcmcia_device *p_dev,
-			    struct net_device *dev);
+							struct net_device *dev);
 
 
 /* parse a tuple_t */
@@ -189,9 +193,9 @@ int pcmcia_parse_tuple(tuple_t *tuple, cisparse_t *parse);
 
 /* loop CIS entries for valid configuration */
 int pcmcia_loop_config(struct pcmcia_device *p_dev,
-		       int	(*conf_check)	(struct pcmcia_device *p_dev,
-						 void *priv_data),
-		       void *priv_data);
+					   int	(*conf_check)	(struct pcmcia_device *p_dev,
+							   void *priv_data),
+					   void *priv_data);
 
 /* is the device still there? */
 struct pcmcia_device *pcmcia_dev_present(struct pcmcia_device *p_dev);
@@ -208,24 +212,24 @@ int pcmcia_request_io(struct pcmcia_device *p_dev);
 
 int __must_check
 __pcmcia_request_exclusive_irq(struct pcmcia_device *p_dev,
-				irq_handler_t handler);
+							   irq_handler_t handler);
 static inline __must_check __deprecated int
 pcmcia_request_exclusive_irq(struct pcmcia_device *p_dev,
-				irq_handler_t handler)
+							 irq_handler_t handler)
 {
 	return __pcmcia_request_exclusive_irq(p_dev, handler);
 }
 
 int __must_check pcmcia_request_irq(struct pcmcia_device *p_dev,
-				irq_handler_t handler);
+									irq_handler_t handler);
 
 int pcmcia_enable_device(struct pcmcia_device *p_dev);
 
 int pcmcia_request_window(struct pcmcia_device *p_dev, struct resource *res,
-			unsigned int speed);
+						  unsigned int speed);
 int pcmcia_release_window(struct pcmcia_device *p_dev, struct resource *res);
 int pcmcia_map_mem_page(struct pcmcia_device *p_dev, struct resource *res,
-			unsigned int offset);
+						unsigned int offset);
 
 int pcmcia_fixup_vpp(struct pcmcia_device *p_dev, unsigned char new_vpp);
 int pcmcia_fixup_iowidth(struct pcmcia_device *p_dev);

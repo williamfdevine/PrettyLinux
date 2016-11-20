@@ -25,7 +25,8 @@ MODULE_LICENSE("GPL");
 #define PS2MULT_SESSION_START		0x55
 #define PS2MULT_SESSION_END		0x56
 
-struct ps2mult_port {
+struct ps2mult_port
+{
 	struct serio *serio;
 	unsigned char sel;
 	bool registered;
@@ -35,7 +36,8 @@ struct ps2mult_port {
 #define PS2MULT_KBD_PORT	0
 #define PS2MULT_MOUSE_PORT	1
 
-struct ps2mult {
+struct ps2mult
+{
 	struct serio *mx_serio;
 	struct ps2mult_port ports[PS2MULT_NUM_PORTS];
 
@@ -46,13 +48,15 @@ struct ps2mult {
 };
 
 /* First MUST come PS2MULT_NUM_PORTS selectors */
-static const unsigned char ps2mult_controls[] = {
+static const unsigned char ps2mult_controls[] =
+{
 	PS2MULT_KB_SELECTOR, PS2MULT_MS_SELECTOR,
 	PS2MULT_ESCAPE, PS2MULT_BSYNC,
 	PS2MULT_SESSION_START, PS2MULT_SESSION_END,
 };
 
-static const struct serio_device_id ps2mult_serio_ids[] = {
+static const struct serio_device_id ps2mult_serio_ids[] =
+{
 	{
 		.type	= SERIO_RS232,
 		.proto	= SERIO_PS2MULT,
@@ -84,15 +88,19 @@ static int ps2mult_serio_write(struct serio *serio, unsigned char data)
 	spin_lock_irqsave(&psm->lock, flags);
 
 	if (psm->out_port != port)
+	{
 		ps2mult_select_port(psm, port);
+	}
 
 	need_escape = memchr(ps2mult_controls, data, sizeof(ps2mult_controls));
 
 	dev_dbg(&serio->dev,
-		"write: %s%02x\n", need_escape ? "ESC " : "", data);
+			"write: %s%02x\n", need_escape ? "ESC " : "", data);
 
 	if (need_escape)
+	{
 		serio_write(mx_port, PS2MULT_ESCAPE);
+	}
 
 	serio_write(mx_port, data);
 
@@ -131,12 +139,15 @@ static int ps2mult_create_port(struct ps2mult *psm, int i)
 	struct serio *serio;
 
 	serio = kzalloc(sizeof(struct serio), GFP_KERNEL);
+
 	if (!serio)
+	{
 		return -ENOMEM;
+	}
 
 	strlcpy(serio->name, "TQC PS/2 Multiplexer", sizeof(serio->name));
 	snprintf(serio->phys, sizeof(serio->phys),
-		 "%s/port%d", mx_serio->phys, i);
+			 "%s/port%d", mx_serio->phys, i);
 	serio->id.type = SERIO_8042;
 	serio->write = ps2mult_serio_write;
 	serio->start = ps2mult_serio_start;
@@ -170,32 +181,45 @@ static int ps2mult_connect(struct serio *serio, struct serio_driver *drv)
 	int error;
 
 	if (!serio->write)
+	{
 		return -EINVAL;
+	}
 
 	psm = kzalloc(sizeof(*psm), GFP_KERNEL);
+
 	if (!psm)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&psm->lock);
 	psm->mx_serio = serio;
 
-	for (i = 0; i < PS2MULT_NUM_PORTS; i++) {
+	for (i = 0; i < PS2MULT_NUM_PORTS; i++)
+	{
 		psm->ports[i].sel = ps2mult_controls[i];
 		error = ps2mult_create_port(psm, i);
+
 		if (error)
+		{
 			goto err_out;
+		}
 	}
 
 	psm->in_port = psm->out_port = &psm->ports[PS2MULT_KBD_PORT];
 
 	serio_set_drvdata(serio, psm);
 	error = serio_open(serio, drv);
+
 	if (error)
+	{
 		goto err_out;
+	}
 
 	ps2mult_reset(psm);
 
-	for (i = 0; i <  PS2MULT_NUM_PORTS; i++) {
+	for (i = 0; i <  PS2MULT_NUM_PORTS; i++)
+	{
 		struct serio *s = psm->ports[i].serio;
 
 		dev_info(&serio->dev, "%s port at %s\n", s->name, serio->phys);
@@ -205,8 +229,12 @@ static int ps2mult_connect(struct serio *serio, struct serio_driver *drv)
 	return 0;
 
 err_out:
+
 	while (--i >= 0)
+	{
 		kfree(psm->ports[i].serio);
+	}
+
 	kfree(psm);
 	return error;
 }
@@ -233,7 +261,7 @@ static int ps2mult_reconnect(struct serio *serio)
 }
 
 static irqreturn_t ps2mult_interrupt(struct serio *serio,
-				     unsigned char data, unsigned int dfl)
+									 unsigned char data, unsigned int dfl)
 {
 	struct ps2mult *psm = serio_get_drvdata(serio);
 	struct ps2mult_port *in_port;
@@ -243,56 +271,67 @@ static irqreturn_t ps2mult_interrupt(struct serio *serio,
 
 	spin_lock_irqsave(&psm->lock, flags);
 
-	if (psm->escape) {
+	if (psm->escape)
+	{
 		psm->escape = false;
 		in_port = psm->in_port;
+
 		if (in_port->registered)
+		{
 			serio_interrupt(in_port->serio, data, dfl);
+		}
+
 		goto out;
 	}
 
-	switch (data) {
-	case PS2MULT_ESCAPE:
-		dev_dbg(&serio->dev, "ESCAPE\n");
-		psm->escape = true;
-		break;
+	switch (data)
+	{
+		case PS2MULT_ESCAPE:
+			dev_dbg(&serio->dev, "ESCAPE\n");
+			psm->escape = true;
+			break;
 
-	case PS2MULT_BSYNC:
-		dev_dbg(&serio->dev, "BSYNC\n");
-		psm->in_port = psm->out_port;
-		break;
+		case PS2MULT_BSYNC:
+			dev_dbg(&serio->dev, "BSYNC\n");
+			psm->in_port = psm->out_port;
+			break;
 
-	case PS2MULT_SESSION_START:
-		dev_dbg(&serio->dev, "SS\n");
-		break;
+		case PS2MULT_SESSION_START:
+			dev_dbg(&serio->dev, "SS\n");
+			break;
 
-	case PS2MULT_SESSION_END:
-		dev_dbg(&serio->dev, "SE\n");
-		break;
+		case PS2MULT_SESSION_END:
+			dev_dbg(&serio->dev, "SE\n");
+			break;
 
-	case PS2MULT_KB_SELECTOR:
-		dev_dbg(&serio->dev, "KB\n");
-		psm->in_port = &psm->ports[PS2MULT_KBD_PORT];
-		break;
+		case PS2MULT_KB_SELECTOR:
+			dev_dbg(&serio->dev, "KB\n");
+			psm->in_port = &psm->ports[PS2MULT_KBD_PORT];
+			break;
 
-	case PS2MULT_MS_SELECTOR:
-		dev_dbg(&serio->dev, "MS\n");
-		psm->in_port = &psm->ports[PS2MULT_MOUSE_PORT];
-		break;
+		case PS2MULT_MS_SELECTOR:
+			dev_dbg(&serio->dev, "MS\n");
+			psm->in_port = &psm->ports[PS2MULT_MOUSE_PORT];
+			break;
 
-	default:
-		in_port = psm->in_port;
-		if (in_port->registered)
-			serio_interrupt(in_port->serio, data, dfl);
-		break;
+		default:
+			in_port = psm->in_port;
+
+			if (in_port->registered)
+			{
+				serio_interrupt(in_port->serio, data, dfl);
+			}
+
+			break;
 	}
 
- out:
+out:
 	spin_unlock_irqrestore(&psm->lock, flags);
 	return IRQ_HANDLED;
 }
 
-static struct serio_driver ps2mult_drv = {
+static struct serio_driver ps2mult_drv =
+{
 	.driver		= {
 		.name	= "ps2mult",
 	},

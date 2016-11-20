@@ -117,7 +117,8 @@
  * @queue: usb device request queue
  * @ep: pointer to xusb_endpoint structure
  */
-struct xusb_req {
+struct xusb_req
+{
 	struct usb_request usb_req;
 	struct list_head queue;
 	struct xusb_ep *ep;
@@ -142,7 +143,8 @@ struct xusb_req {
  * @is_in: endpoint direction (IN or OUT)
  * @is_iso: endpoint type(isochronous or non isochronous)
  */
-struct xusb_ep {
+struct xusb_ep
+{
 	struct usb_ep ep_usb;
 	struct list_head queue;
 	struct xusb_udc *udc;
@@ -179,7 +181,8 @@ struct xusb_ep {
  * @read_fn: function pointer to read device registers
  * @write_fn: function pointer to write to device registers
  */
-struct xusb_udc {
+struct xusb_udc
+{
 	struct usb_gadget gadget;
 	struct xusb_ep ep[8];
 	struct usb_gadget_driver *driver;
@@ -200,13 +203,15 @@ struct xusb_udc {
 
 /* Endpoint buffer start addresses in the core */
 static u32 rambase[8] = { 0x22, 0x1000, 0x1100, 0x1200, 0x1300, 0x1400, 0x1500,
-			  0x1600 };
+						  0x1600
+						};
 
 static const char driver_name[] = "xilinx-udc";
 static const char ep0name[] = "ep0";
 
 /* Control endpoint configuration.*/
-static const struct usb_endpoint_descriptor config_bulk_out_desc = {
+static const struct usb_endpoint_descriptor config_bulk_out_desc =
+{
 	.bLength		= USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType	= USB_DT_ENDPOINT,
 	.bEndpointAddress	= USB_DIR_OUT,
@@ -265,8 +270,8 @@ static void xudc_wrstatus(struct xusb_udc *udc)
 	struct xusb_ep *ep0 = &udc->ep[XUSB_EP_NUMBER_ZERO];
 	u32 epcfgreg;
 
-	epcfgreg = udc->read_fn(udc->addr + ep0->offset)|
-				XUSB_EP_CFG_DATA_TOGGLE_MASK;
+	epcfgreg = udc->read_fn(udc->addr + ep0->offset) |
+			   XUSB_EP_CFG_DATA_TOGGLE_MASK;
 	udc->write_fn(udc->addr, ep0->offset, epcfgreg);
 	udc->write_fn(udc->addr, ep0->offset + XUSB_EP_BUF0COUNT_OFFSET, 0);
 	udc->write_fn(udc->addr, XUSB_BUFFREADY_OFFSET, 1);
@@ -289,20 +294,22 @@ static void xudc_epconfig(struct xusb_ep *ep, struct xusb_udc *udc)
 	 * EP buffer location.
 	 */
 	epcfgreg = ((ep->is_in << 29) | (ep->is_iso << 28) |
-		   (ep->ep_usb.maxpacket << 15) | (ep->rambase));
+				(ep->ep_usb.maxpacket << 15) | (ep->rambase));
 	udc->write_fn(udc->addr, ep->offset, epcfgreg);
 
 	/* Set the Buffer count and the Buffer ready bits.*/
 	udc->write_fn(udc->addr, ep->offset + XUSB_EP_BUF0COUNT_OFFSET,
-		      ep->buffer0count);
+				  ep->buffer0count);
 	udc->write_fn(udc->addr, ep->offset + XUSB_EP_BUF1COUNT_OFFSET,
-		      ep->buffer1count);
+				  ep->buffer1count);
+
 	if (ep->buffer0ready)
 		udc->write_fn(udc->addr, XUSB_BUFFREADY_OFFSET,
-			      1 << ep->epnumber);
+					  1 << ep->epnumber);
+
 	if (ep->buffer1ready)
 		udc->write_fn(udc->addr, XUSB_BUFFREADY_OFFSET,
-			      1 << (ep->epnumber + XUSB_STATUS_EP_BUFF2_SHIFT));
+					  1 << (ep->epnumber + XUSB_STATUS_EP_BUFF2_SHIFT));
 }
 
 /**
@@ -318,7 +325,7 @@ static void xudc_epconfig(struct xusb_ep *ep, struct xusb_udc *udc)
  * destination and lenth registers.
  */
 static int xudc_start_dma(struct xusb_ep *ep, dma_addr_t src,
-			  dma_addr_t dst, u32 length)
+						  dma_addr_t dst, u32 length)
 {
 	struct xusb_udc *udc = ep->udc;
 	int rc = 0;
@@ -339,25 +346,34 @@ static int xudc_start_dma(struct xusb_ep *ep, dma_addr_t src,
 	 * check whether the DMA transaction was
 	 * successful.
 	 */
-	do {
+	do
+	{
 		reg = udc->read_fn(udc->addr + XUSB_DMA_STATUS_OFFSET);
+
 		if (!(reg &  XUSB_DMA_DMASR_BUSY))
+		{
 			break;
+		}
 
 		/*
 		 * We can't sleep here, because it's also called from
 		 * interrupt context.
 		 */
 		timeout--;
-		if (!timeout) {
+
+		if (!timeout)
+		{
 			dev_err(udc->dev, "DMA timeout\n");
 			return -ETIMEDOUT;
 		}
+
 		udelay(1);
-	} while (1);
+	}
+	while (1);
 
 	if ((udc->read_fn(udc->addr + XUSB_DMA_STATUS_OFFSET) &
-			  XUSB_DMA_DMASR_ERROR) == XUSB_DMA_DMASR_ERROR){
+		 XUSB_DMA_DMASR_ERROR) == XUSB_DMA_DMASR_ERROR)
+	{
 		dev_err(udc->dev, "DMA Error\n");
 		rc = -EINVAL;
 	}
@@ -378,7 +394,7 @@ static int xudc_start_dma(struct xusb_ep *ep, dma_addr_t src,
  * This function sends data using DMA.
  */
 static int xudc_dma_send(struct xusb_ep *ep, struct xusb_req *req,
-			 u8 *buffer, u32 length)
+						 u8 *buffer, u32 length)
 {
 	u32 *eprambase;
 	dma_addr_t src;
@@ -386,32 +402,39 @@ static int xudc_dma_send(struct xusb_ep *ep, struct xusb_req *req,
 	struct xusb_udc *udc = ep->udc;
 
 	src = req->usb_req.dma + req->usb_req.actual;
+
 	if (req->usb_req.length)
 		dma_sync_single_for_device(udc->dev, src,
-					   length, DMA_TO_DEVICE);
-	if (!ep->curbufnum && !ep->buffer0ready) {
+								   length, DMA_TO_DEVICE);
+
+	if (!ep->curbufnum && !ep->buffer0ready)
+	{
 		/* Get the Buffer address and copy the transmit data.*/
 		eprambase = (u32 __force *)(udc->addr + ep->rambase);
 		dst = virt_to_phys(eprambase);
 		udc->write_fn(udc->addr, ep->offset +
-			      XUSB_EP_BUF0COUNT_OFFSET, length);
+					  XUSB_EP_BUF0COUNT_OFFSET, length);
 		udc->write_fn(udc->addr, XUSB_DMA_CONTROL_OFFSET,
-			      XUSB_DMA_BRR_CTRL | (1 << ep->epnumber));
+					  XUSB_DMA_BRR_CTRL | (1 << ep->epnumber));
 		ep->buffer0ready = 1;
 		ep->curbufnum = 1;
-	} else if (ep->curbufnum && !ep->buffer1ready) {
+	}
+	else if (ep->curbufnum && !ep->buffer1ready)
+	{
 		/* Get the Buffer address and copy the transmit data.*/
 		eprambase = (u32 __force *)(udc->addr + ep->rambase +
-			     ep->ep_usb.maxpacket);
+									ep->ep_usb.maxpacket);
 		dst = virt_to_phys(eprambase);
 		udc->write_fn(udc->addr, ep->offset +
-			      XUSB_EP_BUF1COUNT_OFFSET, length);
+					  XUSB_EP_BUF1COUNT_OFFSET, length);
 		udc->write_fn(udc->addr, XUSB_DMA_CONTROL_OFFSET,
-			      XUSB_DMA_BRR_CTRL | (1 << (ep->epnumber +
-			      XUSB_STATUS_EP_BUFF2_SHIFT)));
+					  XUSB_DMA_BRR_CTRL | (1 << (ep->epnumber +
+										   XUSB_STATUS_EP_BUFF2_SHIFT)));
 		ep->buffer1ready = 1;
 		ep->curbufnum = 0;
-	} else {
+	}
+	else
+	{
 		/* None of ping pong buffers are ready currently .*/
 		return -EAGAIN;
 	}
@@ -432,7 +455,7 @@ static int xudc_dma_send(struct xusb_ep *ep, struct xusb_req *req,
  * This function receives data using DMA.
  */
 static int xudc_dma_receive(struct xusb_ep *ep, struct xusb_req *req,
-			    u8 *buffer, u32 length)
+							u8 *buffer, u32 length)
 {
 	u32 *eprambase;
 	dma_addr_t src;
@@ -440,27 +463,33 @@ static int xudc_dma_receive(struct xusb_ep *ep, struct xusb_req *req,
 	struct xusb_udc *udc = ep->udc;
 
 	dst = req->usb_req.dma + req->usb_req.actual;
-	if (!ep->curbufnum && !ep->buffer0ready) {
+
+	if (!ep->curbufnum && !ep->buffer0ready)
+	{
 		/* Get the Buffer address and copy the transmit data */
 		eprambase = (u32 __force *)(udc->addr + ep->rambase);
 		src = virt_to_phys(eprambase);
 		udc->write_fn(udc->addr, XUSB_DMA_CONTROL_OFFSET,
-			      XUSB_DMA_BRR_CTRL | XUSB_DMA_READ_FROM_DPRAM |
-			      (1 << ep->epnumber));
+					  XUSB_DMA_BRR_CTRL | XUSB_DMA_READ_FROM_DPRAM |
+					  (1 << ep->epnumber));
 		ep->buffer0ready = 1;
 		ep->curbufnum = 1;
-	} else if (ep->curbufnum && !ep->buffer1ready) {
+	}
+	else if (ep->curbufnum && !ep->buffer1ready)
+	{
 		/* Get the Buffer address and copy the transmit data */
 		eprambase = (u32 __force *)(udc->addr +
-			     ep->rambase + ep->ep_usb.maxpacket);
+									ep->rambase + ep->ep_usb.maxpacket);
 		src = virt_to_phys(eprambase);
 		udc->write_fn(udc->addr, XUSB_DMA_CONTROL_OFFSET,
-			      XUSB_DMA_BRR_CTRL | XUSB_DMA_READ_FROM_DPRAM |
-			      (1 << (ep->epnumber +
-			      XUSB_STATUS_EP_BUFF2_SHIFT)));
+					  XUSB_DMA_BRR_CTRL | XUSB_DMA_READ_FROM_DPRAM |
+					  (1 << (ep->epnumber +
+							 XUSB_STATUS_EP_BUFF2_SHIFT)));
 		ep->buffer1ready = 1;
 		ep->curbufnum = 0;
-	} else {
+	}
+	else
+	{
 		/* None of the ping-pong buffers are ready currently */
 		return -EAGAIN;
 	}
@@ -481,7 +510,7 @@ static int xudc_dma_receive(struct xusb_ep *ep, struct xusb_req *req,
  * and enables the buffer for transmission/reception.
  */
 static int xudc_eptxrx(struct xusb_ep *ep, struct xusb_req *req,
-		       u8 *bufferptr, u32 bufferlen)
+					   u8 *bufferptr, u32 bufferlen)
 {
 	u32 *eprambase;
 	u32 bytestosend;
@@ -489,53 +518,77 @@ static int xudc_eptxrx(struct xusb_ep *ep, struct xusb_req *req,
 	struct xusb_udc *udc = ep->udc;
 
 	bytestosend = bufferlen;
-	if (udc->dma_enabled) {
+
+	if (udc->dma_enabled)
+	{
 		if (ep->is_in)
+		{
 			rc = xudc_dma_send(ep, req, bufferptr, bufferlen);
+		}
 		else
+		{
 			rc = xudc_dma_receive(ep, req, bufferptr, bufferlen);
+		}
+
 		return rc;
 	}
+
 	/* Put the transmit buffer into the correct ping-pong buffer.*/
-	if (!ep->curbufnum && !ep->buffer0ready) {
+	if (!ep->curbufnum && !ep->buffer0ready)
+	{
 		/* Get the Buffer address and copy the transmit data.*/
 		eprambase = (u32 __force *)(udc->addr + ep->rambase);
-		if (ep->is_in) {
+
+		if (ep->is_in)
+		{
 			memcpy(eprambase, bufferptr, bytestosend);
 			udc->write_fn(udc->addr, ep->offset +
-				      XUSB_EP_BUF0COUNT_OFFSET, bufferlen);
-		} else {
+						  XUSB_EP_BUF0COUNT_OFFSET, bufferlen);
+		}
+		else
+		{
 			memcpy(bufferptr, eprambase, bytestosend);
 		}
+
 		/*
 		 * Enable the buffer for transmission.
 		 */
 		udc->write_fn(udc->addr, XUSB_BUFFREADY_OFFSET,
-			      1 << ep->epnumber);
+					  1 << ep->epnumber);
 		ep->buffer0ready = 1;
 		ep->curbufnum = 1;
-	} else if (ep->curbufnum && !ep->buffer1ready) {
+	}
+	else if (ep->curbufnum && !ep->buffer1ready)
+	{
 		/* Get the Buffer address and copy the transmit data.*/
 		eprambase = (u32 __force *)(udc->addr + ep->rambase +
-			     ep->ep_usb.maxpacket);
-		if (ep->is_in) {
+									ep->ep_usb.maxpacket);
+
+		if (ep->is_in)
+		{
 			memcpy(eprambase, bufferptr, bytestosend);
 			udc->write_fn(udc->addr, ep->offset +
-				      XUSB_EP_BUF1COUNT_OFFSET, bufferlen);
-		} else {
+						  XUSB_EP_BUF1COUNT_OFFSET, bufferlen);
+		}
+		else
+		{
 			memcpy(bufferptr, eprambase, bytestosend);
 		}
+
 		/*
 		 * Enable the buffer for transmission.
 		 */
 		udc->write_fn(udc->addr, XUSB_BUFFREADY_OFFSET,
-			      1 << (ep->epnumber + XUSB_STATUS_EP_BUFF2_SHIFT));
+					  1 << (ep->epnumber + XUSB_STATUS_EP_BUFF2_SHIFT));
 		ep->buffer1ready = 1;
 		ep->curbufnum = 0;
-	} else {
+	}
+	else
+	{
 		/* None of the ping-pong buffers are ready currently */
 		return -EAGAIN;
 	}
+
 	return rc;
 }
 
@@ -555,19 +608,25 @@ static void xudc_done(struct xusb_ep *ep, struct xusb_req *req, int status)
 	list_del_init(&req->queue);
 
 	if (req->usb_req.status == -EINPROGRESS)
+	{
 		req->usb_req.status = status;
+	}
 	else
+	{
 		status = req->usb_req.status;
+	}
 
 	if (status && status != -ESHUTDOWN)
 		dev_dbg(udc->dev, "%s done %p, status %d\n",
-			ep->ep_usb.name, req, status);
+				ep->ep_usb.name, req, status);
+
 	/* unmap request if DMA is present*/
 	if (udc->dma_enabled && ep->epnumber && req->usb_req.length)
 		usb_gadget_unmap_request(&udc->gadget, &req->usb_req,
-					 ep->is_in);
+								 ep->is_in);
 
-	if (req->usb_req.complete) {
+	if (req->usb_req.complete)
+	{
 		spin_unlock(&udc->lock);
 		req->usb_req.complete(&ep->ep_usb, &req->usb_req);
 		spin_lock(&udc->lock);
@@ -593,27 +652,37 @@ static int xudc_read_fifo(struct xusb_ep *ep, struct xusb_req *req)
 	int retval = -EAGAIN;
 	struct xusb_udc *udc = ep->udc;
 
-	if (ep->buffer0ready && ep->buffer1ready) {
+	if (ep->buffer0ready && ep->buffer1ready)
+	{
 		dev_dbg(udc->dev, "Packet NOT ready!\n");
 		return retval;
 	}
+
 top:
+
 	if (ep->curbufnum)
+	{
 		bufoffset = XUSB_EP_BUF1COUNT_OFFSET;
+	}
 	else
+	{
 		bufoffset = XUSB_EP_BUF0COUNT_OFFSET;
+	}
 
 	count = udc->read_fn(udc->addr + ep->offset + bufoffset);
 
 	if (!ep->buffer0ready && !ep->buffer1ready)
+	{
 		two_pkts = 1;
+	}
 
 	buf = req->usb_req.buf + req->usb_req.actual;
 	prefetchw(buf);
 	bufferspace = req->usb_req.length - req->usb_req.actual;
 	is_short = count < ep->ep_usb.maxpacket;
 
-	if (unlikely(!bufferspace)) {
+	if (unlikely(!bufferspace))
+	{
 		/*
 		 * This happens when the driver's buffer
 		 * is smaller than what the host sent.
@@ -621,44 +690,55 @@ top:
 		 */
 		if (req->usb_req.status != -EOVERFLOW)
 			dev_dbg(udc->dev, "%s overflow %d\n",
-				ep->ep_usb.name, count);
+					ep->ep_usb.name, count);
+
 		req->usb_req.status = -EOVERFLOW;
 		xudc_done(ep, req, -EOVERFLOW);
 		return 0;
 	}
 
 	ret = xudc_eptxrx(ep, req, buf, count);
-	switch (ret) {
-	case 0:
-		req->usb_req.actual += min(count, bufferspace);
-		dev_dbg(udc->dev, "read %s, %d bytes%s req %p %d/%d\n",
-			ep->ep_usb.name, count, is_short ? "/S" : "", req,
-			req->usb_req.actual, req->usb_req.length);
-		bufferspace -= count;
-		/* Completion */
-		if ((req->usb_req.actual == req->usb_req.length) || is_short) {
-			if (udc->dma_enabled && req->usb_req.length)
-				dma_sync_single_for_cpu(udc->dev,
-							req->usb_req.dma,
-							req->usb_req.actual,
-							DMA_FROM_DEVICE);
-			xudc_done(ep, req, 0);
-			return 0;
-		}
-		if (two_pkts) {
-			two_pkts = 0;
-			goto top;
-		}
-		break;
-	case -EAGAIN:
-		dev_dbg(udc->dev, "receive busy\n");
-		break;
-	case -EINVAL:
-	case -ETIMEDOUT:
-		/* DMA error, dequeue the request */
-		xudc_done(ep, req, -ECONNRESET);
-		retval = 0;
-		break;
+
+	switch (ret)
+	{
+		case 0:
+			req->usb_req.actual += min(count, bufferspace);
+			dev_dbg(udc->dev, "read %s, %d bytes%s req %p %d/%d\n",
+					ep->ep_usb.name, count, is_short ? "/S" : "", req,
+					req->usb_req.actual, req->usb_req.length);
+			bufferspace -= count;
+
+			/* Completion */
+			if ((req->usb_req.actual == req->usb_req.length) || is_short)
+			{
+				if (udc->dma_enabled && req->usb_req.length)
+					dma_sync_single_for_cpu(udc->dev,
+											req->usb_req.dma,
+											req->usb_req.actual,
+											DMA_FROM_DEVICE);
+
+				xudc_done(ep, req, 0);
+				return 0;
+			}
+
+			if (two_pkts)
+			{
+				two_pkts = 0;
+				goto top;
+			}
+
+			break;
+
+		case -EAGAIN:
+			dev_dbg(udc->dev, "receive busy\n");
+			break;
+
+		case -EINVAL:
+		case -ETIMEDOUT:
+			/* DMA error, dequeue the request */
+			xudc_done(ep, req, -ECONNRESET);
+			retval = 0;
+			break;
 	}
 
 	return retval;
@@ -690,37 +770,53 @@ static int xudc_write_fifo(struct xusb_ep *ep, struct xusb_req *req)
 	length = min(length, max);
 
 	ret = xudc_eptxrx(ep, req, buf, length);
-	switch (ret) {
-	case 0:
-		req->usb_req.actual += length;
-		if (unlikely(length != max)) {
-			is_last = is_short = 1;
-		} else {
-			if (likely(req->usb_req.length !=
-				   req->usb_req.actual) || req->usb_req.zero)
-				is_last = 0;
+
+	switch (ret)
+	{
+		case 0:
+			req->usb_req.actual += length;
+
+			if (unlikely(length != max))
+			{
+				is_last = is_short = 1;
+			}
 			else
-				is_last = 1;
-		}
-		dev_dbg(udc->dev, "%s: wrote %s %d bytes%s%s %d left %p\n",
-			__func__, ep->ep_usb.name, length, is_last ? "/L" : "",
-			is_short ? "/S" : "",
-			req->usb_req.length - req->usb_req.actual, req);
-		/* completion */
-		if (is_last) {
-			xudc_done(ep, req, 0);
+			{
+				if (likely(req->usb_req.length !=
+						   req->usb_req.actual) || req->usb_req.zero)
+				{
+					is_last = 0;
+				}
+				else
+				{
+					is_last = 1;
+				}
+			}
+
+			dev_dbg(udc->dev, "%s: wrote %s %d bytes%s%s %d left %p\n",
+					__func__, ep->ep_usb.name, length, is_last ? "/L" : "",
+					is_short ? "/S" : "",
+					req->usb_req.length - req->usb_req.actual, req);
+
+			/* completion */
+			if (is_last)
+			{
+				xudc_done(ep, req, 0);
+				retval = 0;
+			}
+
+			break;
+
+		case -EAGAIN:
+			dev_dbg(udc->dev, "Send busy\n");
+			break;
+
+		case -EINVAL:
+		case -ETIMEDOUT:
+			/* DMA error, dequeue the request */
+			xudc_done(ep, req, -ECONNRESET);
 			retval = 0;
-		}
-		break;
-	case -EAGAIN:
-		dev_dbg(udc->dev, "Send busy\n");
-		break;
-	case -EINVAL:
-	case -ETIMEDOUT:
-		/* DMA error, dequeue the request */
-		xudc_done(ep, req, -ECONNRESET);
-		retval = 0;
-		break;
+			break;
 	}
 
 	return retval;
@@ -735,7 +831,8 @@ static void xudc_nuke(struct xusb_ep *ep, int status)
 {
 	struct xusb_req *req;
 
-	while (!list_empty(&ep->queue)) {
+	while (!list_empty(&ep->queue))
+	{
 		req = list_first_entry(&ep->queue, struct xusb_req, queue);
 		xudc_done(ep, req, status);
 	}
@@ -755,35 +852,44 @@ static int xudc_ep_set_halt(struct usb_ep *_ep, int value)
 	unsigned long flags;
 	u32 epcfgreg;
 
-	if (!_ep || (!ep->desc && ep->epnumber)) {
+	if (!_ep || (!ep->desc && ep->epnumber))
+	{
 		pr_debug("%s: bad ep or descriptor\n", __func__);
 		return -EINVAL;
 	}
+
 	udc = ep->udc;
 
-	if (ep->is_in && (!list_empty(&ep->queue)) && value) {
+	if (ep->is_in && (!list_empty(&ep->queue)) && value)
+	{
 		dev_dbg(udc->dev, "requests pending can't halt\n");
 		return -EAGAIN;
 	}
 
-	if (ep->buffer0ready || ep->buffer1ready) {
+	if (ep->buffer0ready || ep->buffer1ready)
+	{
 		dev_dbg(udc->dev, "HW buffers busy can't halt\n");
 		return -EAGAIN;
 	}
 
 	spin_lock_irqsave(&udc->lock, flags);
 
-	if (value) {
+	if (value)
+	{
 		/* Stall the device.*/
 		epcfgreg = udc->read_fn(udc->addr + ep->offset);
 		epcfgreg |= XUSB_EP_CFG_STALL_MASK;
 		udc->write_fn(udc->addr, ep->offset, epcfgreg);
-	} else {
+	}
+	else
+	{
 		/* Unstall the device.*/
 		epcfgreg = udc->read_fn(udc->addr + ep->offset);
 		epcfgreg &= ~XUSB_EP_CFG_STALL_MASK;
 		udc->write_fn(udc->addr, ep->offset, epcfgreg);
-		if (ep->epnumber) {
+
+		if (ep->epnumber)
+		{
 			/* Reset the toggle bit.*/
 			epcfgreg = udc->read_fn(ep->udc->addr + ep->offset);
 			epcfgreg &= ~XUSB_EP_CFG_DATA_TOGGLE_MASK;
@@ -803,7 +909,7 @@ static int xudc_ep_set_halt(struct usb_ep *_ep, int value)
  * Return: 0 for success and error value on failure
  */
 static int __xudc_ep_enable(struct xusb_ep *ep,
-			    const struct usb_endpoint_descriptor *desc)
+							const struct usb_endpoint_descriptor *desc)
 {
 	struct xusb_udc *udc = ep->udc;
 	u32 tmp;
@@ -819,33 +925,43 @@ static int __xudc_ep_enable(struct xusb_ep *ep,
 	tmp = desc->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK;
 	ep->ep_usb.maxpacket = maxpacket = le16_to_cpu(desc->wMaxPacketSize);
 
-	switch (tmp) {
-	case USB_ENDPOINT_XFER_CONTROL:
-		dev_dbg(udc->dev, "only one control endpoint\n");
-		/* NON- ISO */
-		ep->is_iso = 0;
-		return -EINVAL;
-	case USB_ENDPOINT_XFER_INT:
-		/* NON- ISO */
-		ep->is_iso = 0;
-		if (maxpacket > 64) {
-			dev_dbg(udc->dev, "bogus maxpacket %d\n", maxpacket);
+	switch (tmp)
+	{
+		case USB_ENDPOINT_XFER_CONTROL:
+			dev_dbg(udc->dev, "only one control endpoint\n");
+			/* NON- ISO */
+			ep->is_iso = 0;
 			return -EINVAL;
-		}
-		break;
-	case USB_ENDPOINT_XFER_BULK:
-		/* NON- ISO */
-		ep->is_iso = 0;
-		if (!(is_power_of_2(maxpacket) && maxpacket >= 8 &&
-				maxpacket <= 512)) {
-			dev_dbg(udc->dev, "bogus maxpacket %d\n", maxpacket);
-			return -EINVAL;
-		}
-		break;
-	case USB_ENDPOINT_XFER_ISOC:
-		/* ISO */
-		ep->is_iso = 1;
-		break;
+
+		case USB_ENDPOINT_XFER_INT:
+			/* NON- ISO */
+			ep->is_iso = 0;
+
+			if (maxpacket > 64)
+			{
+				dev_dbg(udc->dev, "bogus maxpacket %d\n", maxpacket);
+				return -EINVAL;
+			}
+
+			break;
+
+		case USB_ENDPOINT_XFER_BULK:
+			/* NON- ISO */
+			ep->is_iso = 0;
+
+			if (!(is_power_of_2(maxpacket) && maxpacket >= 8 &&
+				  maxpacket <= 512))
+			{
+				dev_dbg(udc->dev, "bogus maxpacket %d\n", maxpacket);
+				return -EINVAL;
+			}
+
+			break;
+
+		case USB_ENDPOINT_XFER_ISOC:
+			/* ISO */
+			ep->is_iso = 1;
+			break;
 	}
 
 	ep->buffer0ready = 0;
@@ -855,14 +971,17 @@ static int __xudc_ep_enable(struct xusb_ep *ep,
 	xudc_epconfig(ep, udc);
 
 	dev_dbg(udc->dev, "Enable Endpoint %d max pkt is %d\n",
-		ep->epnumber, maxpacket);
+			ep->epnumber, maxpacket);
 
 	/* Enable the End point.*/
 	epcfg = udc->read_fn(udc->addr + ep->offset);
 	epcfg |= XUSB_EP_CFG_VALID_MASK;
 	udc->write_fn(udc->addr, ep->offset, epcfg);
+
 	if (ep->epnumber)
+	{
 		ep->rambase <<= 2;
+	}
 
 	/* Enable buffer completion interrupts for endpoint */
 	ier = udc->read_fn(udc->addr + XUSB_IER_OFFSET);
@@ -870,13 +989,14 @@ static int __xudc_ep_enable(struct xusb_ep *ep,
 	udc->write_fn(udc->addr, XUSB_IER_OFFSET, ier);
 
 	/* for OUT endpoint set buffers ready to receive */
-	if (ep->epnumber && !ep->is_in) {
+	if (ep->epnumber && !ep->is_in)
+	{
 		udc->write_fn(udc->addr, XUSB_BUFFREADY_OFFSET,
-			      1 << ep->epnumber);
+					  1 << ep->epnumber);
 		ep->buffer0ready = 1;
 		udc->write_fn(udc->addr, XUSB_BUFFREADY_OFFSET,
-			     (1 << (ep->epnumber +
-			      XUSB_STATUS_EP_BUFF2_SHIFT)));
+					  (1 << (ep->epnumber +
+							 XUSB_STATUS_EP_BUFF2_SHIFT)));
 		ep->buffer1ready = 1;
 	}
 
@@ -891,14 +1011,15 @@ static int __xudc_ep_enable(struct xusb_ep *ep,
  * Return: 0 for success and error value on failure
  */
 static int xudc_ep_enable(struct usb_ep *_ep,
-			  const struct usb_endpoint_descriptor *desc)
+						  const struct usb_endpoint_descriptor *desc)
 {
 	struct xusb_ep *ep;
 	struct xusb_udc *udc;
 	unsigned long flags;
 	int ret;
 
-	if (!_ep || !desc || desc->bDescriptorType != USB_DT_ENDPOINT) {
+	if (!_ep || !desc || desc->bDescriptorType != USB_DT_ENDPOINT)
+	{
 		pr_debug("%s: bad ep or descriptor\n", __func__);
 		return -EINVAL;
 	}
@@ -906,7 +1027,8 @@ static int xudc_ep_enable(struct usb_ep *_ep,
 	ep = to_xusb_ep(_ep);
 	udc = ep->udc;
 
-	if (!udc->driver || udc->gadget.speed == USB_SPEED_UNKNOWN) {
+	if (!udc->driver || udc->gadget.speed == USB_SPEED_UNKNOWN)
+	{
 		dev_dbg(udc->dev, "bogus device state\n");
 		return -ESHUTDOWN;
 	}
@@ -931,7 +1053,8 @@ static int xudc_ep_disable(struct usb_ep *_ep)
 	u32 epcfg;
 	struct xusb_udc *udc;
 
-	if (!_ep) {
+	if (!_ep)
+	{
 		pr_debug("%s: invalid ep\n", __func__);
 		return -EINVAL;
 	}
@@ -965,7 +1088,7 @@ static int xudc_ep_disable(struct usb_ep *_ep)
  * Return: pointer to request structure on success and a NULL on failure.
  */
 static struct usb_request *xudc_ep_alloc_request(struct usb_ep *_ep,
-						 gfp_t gfp_flags)
+		gfp_t gfp_flags)
 {
 	struct xusb_ep *ep = to_xusb_ep(_ep);
 	struct xusb_udc *udc;
@@ -973,8 +1096,11 @@ static struct usb_request *xudc_ep_alloc_request(struct usb_ep *_ep,
 
 	udc = ep->udc;
 	req = kzalloc(sizeof(*req), gfp_flags);
+
 	if (!req)
+	{
 		return NULL;
+	}
 
 	req->ep = ep;
 	INIT_LIST_HEAD(&req->queue);
@@ -1006,11 +1132,14 @@ static int __xudc_ep0_queue(struct xusb_ep *ep0, struct xusb_req *req)
 	u32 length;
 	u8 *corebuf;
 
-	if (!udc->driver || udc->gadget.speed == USB_SPEED_UNKNOWN) {
+	if (!udc->driver || udc->gadget.speed == USB_SPEED_UNKNOWN)
+	{
 		dev_dbg(udc->dev, "%s, bogus device state\n", __func__);
 		return -EINVAL;
 	}
-	if (!list_empty(&ep0->queue)) {
+
+	if (!list_empty(&ep0->queue))
+	{
 		dev_dbg(udc->dev, "%s:ep0 busy\n", __func__);
 		return -EBUSY;
 	}
@@ -1020,22 +1149,28 @@ static int __xudc_ep0_queue(struct xusb_ep *ep0, struct xusb_req *req)
 
 	list_add_tail(&req->queue, &ep0->queue);
 
-	if (udc->setup.bRequestType & USB_DIR_IN) {
+	if (udc->setup.bRequestType & USB_DIR_IN)
+	{
 		prefetch(req->usb_req.buf);
 		length = req->usb_req.length;
 		corebuf = (void __force *) ((ep0->rambase << 2) +
-			   udc->addr);
+									udc->addr);
 		length = req->usb_req.actual = min_t(u32, length,
-						     EP0_MAX_PACKET);
+											 EP0_MAX_PACKET);
 		memcpy(corebuf, req->usb_req.buf, length);
 		udc->write_fn(udc->addr, XUSB_EP_BUF0COUNT_OFFSET, length);
 		udc->write_fn(udc->addr, XUSB_BUFFREADY_OFFSET, 1);
-	} else {
-		if (udc->setup.wLength) {
+	}
+	else
+	{
+		if (udc->setup.wLength)
+		{
 			/* Enable EP0 buffer to receive data */
 			udc->write_fn(udc->addr, XUSB_EP_BUF0COUNT_OFFSET, 0);
 			udc->write_fn(udc->addr, XUSB_BUFFREADY_OFFSET, 1);
-		} else {
+		}
+		else
+		{
 			xudc_wrstatus(udc);
 		}
 	}
@@ -1052,7 +1187,7 @@ static int __xudc_ep0_queue(struct xusb_ep *ep0, struct xusb_req *req)
  * Return: 0 for success and error value on failure
  */
 static int xudc_ep0_queue(struct usb_ep *_ep, struct usb_request *_req,
-			  gfp_t gfp_flags)
+						  gfp_t gfp_flags)
 {
 	struct xusb_req *req	= to_xusb_req(_req);
 	struct xusb_ep	*ep0	= to_xusb_ep(_ep);
@@ -1076,7 +1211,7 @@ static int xudc_ep0_queue(struct usb_ep *_ep, struct usb_request *_req,
  * Return: 0 for success and error value on failure
  */
 static int xudc_ep_queue(struct usb_ep *_ep, struct usb_request *_req,
-			 gfp_t gfp_flags)
+						 gfp_t gfp_flags)
 {
 	struct xusb_req *req = to_xusb_req(_req);
 	struct xusb_ep	*ep  = to_xusb_ep(_ep);
@@ -1084,13 +1219,15 @@ static int xudc_ep_queue(struct usb_ep *_ep, struct usb_request *_req,
 	int  ret;
 	unsigned long flags;
 
-	if (!ep->desc) {
+	if (!ep->desc)
+	{
 		dev_dbg(udc->dev, "%s:queing request to disabled %s\n",
-			__func__, ep->name);
+				__func__, ep->name);
 		return -ESHUTDOWN;
 	}
 
-	if (!udc->driver || udc->gadget.speed == USB_SPEED_UNKNOWN) {
+	if (!udc->driver || udc->gadget.speed == USB_SPEED_UNKNOWN)
+	{
 		dev_dbg(udc->dev, "%s, bogus device state\n", __func__);
 		return -EINVAL;
 	}
@@ -1100,31 +1237,46 @@ static int xudc_ep_queue(struct usb_ep *_ep, struct usb_request *_req,
 	_req->status = -EINPROGRESS;
 	_req->actual = 0;
 
-	if (udc->dma_enabled) {
+	if (udc->dma_enabled)
+	{
 		ret = usb_gadget_map_request(&udc->gadget, &req->usb_req,
-					     ep->is_in);
-		if (ret) {
+									 ep->is_in);
+
+		if (ret)
+		{
 			dev_dbg(udc->dev, "gadget_map failed ep%d\n",
-				ep->epnumber);
+					ep->epnumber);
 			spin_unlock_irqrestore(&udc->lock, flags);
 			return -EAGAIN;
 		}
 	}
 
-	if (list_empty(&ep->queue)) {
-		if (ep->is_in) {
+	if (list_empty(&ep->queue))
+	{
+		if (ep->is_in)
+		{
 			dev_dbg(udc->dev, "xudc_write_fifo from ep_queue\n");
+
 			if (!xudc_write_fifo(ep, req))
+			{
 				req = NULL;
-		} else {
+			}
+		}
+		else
+		{
 			dev_dbg(udc->dev, "xudc_read_fifo from ep_queue\n");
+
 			if (!xudc_read_fifo(ep, req))
+			{
 				req = NULL;
+			}
 		}
 	}
 
 	if (req != NULL)
+	{
 		list_add_tail(&req->queue, &ep->queue);
+	}
 
 	spin_unlock_irqrestore(&udc->lock, flags);
 	return 0;
@@ -1146,14 +1298,20 @@ static int xudc_ep_dequeue(struct usb_ep *_ep, struct usb_request *_req)
 
 	spin_lock_irqsave(&udc->lock, flags);
 	/* Make sure it's actually queued on this endpoint */
-	list_for_each_entry(req, &ep->queue, queue) {
+	list_for_each_entry(req, &ep->queue, queue)
+	{
 		if (&req->usb_req == _req)
+		{
 			break;
+		}
 	}
-	if (&req->usb_req != _req) {
+
+	if (&req->usb_req != _req)
+	{
 		spin_unlock_irqrestore(&ep->udc->lock, flags);
 		return -EINVAL;
 	}
+
 	xudc_done(ep, req, -ECONNRESET);
 	spin_unlock_irqrestore(&udc->lock, flags);
 
@@ -1170,7 +1328,7 @@ static int xudc_ep_dequeue(struct usb_ep *_ep, struct usb_request *_req)
  * endpoint 0 enable should not be called by gadget layer.
  */
 static int xudc_ep0_enable(struct usb_ep *ep,
-			   const struct usb_endpoint_descriptor *desc)
+						   const struct usb_endpoint_descriptor *desc)
 {
 	return -EINVAL;
 }
@@ -1188,7 +1346,8 @@ static int xudc_ep0_disable(struct usb_ep *ep)
 	return -EINVAL;
 }
 
-static const struct usb_ep_ops xusb_ep0_ops = {
+static const struct usb_ep_ops xusb_ep0_ops =
+{
 	.enable		= xudc_ep0_enable,
 	.disable	= xudc_ep0_disable,
 	.alloc_request	= xudc_ep_alloc_request,
@@ -1198,7 +1357,8 @@ static const struct usb_ep_ops xusb_ep0_ops = {
 	.set_halt	= xudc_ep_set_halt,
 };
 
-static const struct usb_ep_ops xusb_ep_ops = {
+static const struct usb_ep_ops xusb_ep_ops =
+{
 	.enable		= xudc_ep_enable,
 	.disable	= xudc_ep_disable,
 	.alloc_request	= xudc_ep_alloc_request,
@@ -1220,7 +1380,9 @@ static int xudc_get_frame(struct usb_gadget *gadget)
 	int frame;
 
 	if (!gadget)
+	{
 		return -ENODEV;
+	}
 
 	udc = to_udc(gadget);
 	frame = udc->read_fn(udc->addr + XUSB_FRAMENUM_OFFSET);
@@ -1244,7 +1406,9 @@ static int xudc_wakeup(struct usb_gadget *gadget)
 
 	/* Remote wake up not enabled by host */
 	if (!udc->remote_wkp)
+	{
 		goto done;
+	}
 
 	crtlreg = udc->read_fn(udc->addr + XUSB_CONTROL_OFFSET);
 	crtlreg |= XUSB_CONTROL_USB_RMTWAKE_MASK;
@@ -1282,10 +1446,15 @@ static int xudc_pullup(struct usb_gadget *gadget, int is_on)
 	spin_lock_irqsave(&udc->lock, flags);
 
 	crtlreg = udc->read_fn(udc->addr + XUSB_CONTROL_OFFSET);
+
 	if (is_on)
+	{
 		crtlreg |= XUSB_CONTROL_USB_READY_MASK;
+	}
 	else
+	{
 		crtlreg &= ~XUSB_CONTROL_USB_READY_MASK;
+	}
 
 	udc->write_fn(udc->addr, XUSB_CONTROL_OFFSET, crtlreg);
 
@@ -1304,14 +1473,16 @@ static void xudc_eps_init(struct xusb_udc *udc)
 
 	INIT_LIST_HEAD(&udc->gadget.ep_list);
 
-	for (ep_number = 0; ep_number < XUSB_MAX_ENDPOINTS; ep_number++) {
+	for (ep_number = 0; ep_number < XUSB_MAX_ENDPOINTS; ep_number++)
+	{
 		struct xusb_ep *ep = &udc->ep[ep_number];
 
-		if (ep_number) {
+		if (ep_number)
+		{
 			list_add_tail(&ep->ep_usb.ep_list,
-				      &udc->gadget.ep_list);
+						  &udc->gadget.ep_list);
 			usb_ep_set_maxpacket_limit(&ep->ep_usb,
-						  (unsigned short) ~0);
+									   (unsigned short) ~0);
 			snprintf(ep->name, EPNAME_SIZE, "ep%d", ep_number);
 			ep->ep_usb.name = ep->name;
 			ep->ep_usb.ops = &xusb_ep_ops;
@@ -1319,7 +1490,9 @@ static void xudc_eps_init(struct xusb_udc *udc)
 			ep->ep_usb.caps.type_iso = true;
 			ep->ep_usb.caps.type_bulk = true;
 			ep->ep_usb.caps.type_int = true;
-		} else {
+		}
+		else
+		{
 			ep->ep_usb.name = ep0name;
 			usb_ep_set_maxpacket_limit(&ep->ep_usb, EP0_MAX_PACKET);
 			ep->ep_usb.ops = &xusb_ep0_ops;
@@ -1357,7 +1530,8 @@ static void xudc_stop_activity(struct xusb_udc *udc)
 	int i;
 	struct xusb_ep *ep;
 
-	for (i = 0; i < XUSB_MAX_ENDPOINTS; i++) {
+	for (i = 0; i < XUSB_MAX_ENDPOINTS; i++)
+	{
 		ep = &udc->ep[i];
 		xudc_nuke(ep, -ESHUTDOWN);
 	}
@@ -1371,7 +1545,7 @@ static void xudc_stop_activity(struct xusb_udc *udc)
  * Return: zero on success and error on failure
  */
 static int xudc_start(struct usb_gadget *gadget,
-		      struct usb_gadget_driver *driver)
+					  struct usb_gadget_driver *driver)
 {
 	struct xusb_udc *udc	= to_udc(gadget);
 	struct xusb_ep *ep0	= &udc->ep[XUSB_EP_NUMBER_ZERO];
@@ -1381,9 +1555,10 @@ static int xudc_start(struct usb_gadget *gadget,
 
 	spin_lock_irqsave(&udc->lock, flags);
 
-	if (udc->driver) {
+	if (udc->driver)
+	{
 		dev_err(udc->dev, "%s is already bound to %s\n",
-			udc->gadget.name, udc->driver->driver.name);
+				udc->gadget.name, udc->driver->driver.name);
 		ret = -EBUSY;
 		goto err;
 	}
@@ -1431,7 +1606,8 @@ static int xudc_stop(struct usb_gadget *gadget)
 	return 0;
 }
 
-static const struct usb_gadget_ops xusb_udc_ops = {
+static const struct usb_gadget_ops xusb_udc_ops =
+{
 	.get_frame	= xudc_get_frame,
 	.wakeup		= xudc_wakeup,
 	.pullup		= xudc_pullup,
@@ -1449,12 +1625,15 @@ static void xudc_clear_stall_all_ep(struct xusb_udc *udc)
 	u32 epcfgreg;
 	int i;
 
-	for (i = 0; i < XUSB_MAX_ENDPOINTS; i++) {
+	for (i = 0; i < XUSB_MAX_ENDPOINTS; i++)
+	{
 		ep = &udc->ep[i];
 		epcfgreg = udc->read_fn(udc->addr + ep->offset);
 		epcfgreg &= ~XUSB_EP_CFG_STALL_MASK;
 		udc->write_fn(udc->addr, ep->offset, epcfgreg);
-		if (ep->epnumber) {
+
+		if (ep->epnumber)
+		{
 			/* Reset the toggle bit.*/
 			epcfgreg = udc->read_fn(udc->addr + ep->offset);
 			epcfgreg &= ~XUSB_EP_CFG_DATA_TOGGLE_MASK;
@@ -1474,14 +1653,19 @@ static void xudc_startup_handler(struct xusb_udc *udc, u32 intrstatus)
 {
 	u32 intrreg;
 
-	if (intrstatus & XUSB_STATUS_RESET_MASK) {
+	if (intrstatus & XUSB_STATUS_RESET_MASK)
+	{
 
 		dev_dbg(udc->dev, "Reset\n");
 
 		if (intrstatus & XUSB_STATUS_HIGH_SPEED_MASK)
+		{
 			udc->gadget.speed = USB_SPEED_HIGH;
+		}
 		else
+		{
 			udc->gadget.speed = USB_SPEED_FULL;
+		}
 
 		xudc_stop_activity(udc);
 		xudc_clear_stall_all_ep(udc);
@@ -1494,60 +1678,69 @@ static void xudc_startup_handler(struct xusb_udc *udc, u32 intrstatus)
 		/* Enable the suspend, resume and disconnect */
 		intrreg = udc->read_fn(udc->addr + XUSB_IER_OFFSET);
 		intrreg |= XUSB_STATUS_SUSPEND_MASK | XUSB_STATUS_RESUME_MASK |
-			   XUSB_STATUS_DISCONNECT_MASK;
+				   XUSB_STATUS_DISCONNECT_MASK;
 		udc->write_fn(udc->addr, XUSB_IER_OFFSET, intrreg);
 	}
-	if (intrstatus & XUSB_STATUS_SUSPEND_MASK) {
+
+	if (intrstatus & XUSB_STATUS_SUSPEND_MASK)
+	{
 
 		dev_dbg(udc->dev, "Suspend\n");
 
 		/* Enable the reset, resume and disconnect */
 		intrreg = udc->read_fn(udc->addr + XUSB_IER_OFFSET);
 		intrreg |= XUSB_STATUS_RESET_MASK | XUSB_STATUS_RESUME_MASK |
-			   XUSB_STATUS_DISCONNECT_MASK;
+				   XUSB_STATUS_DISCONNECT_MASK;
 		udc->write_fn(udc->addr, XUSB_IER_OFFSET, intrreg);
 
 		udc->usb_state = USB_STATE_SUSPENDED;
 
-		if (udc->driver->suspend) {
+		if (udc->driver->suspend)
+		{
 			spin_unlock(&udc->lock);
 			udc->driver->suspend(&udc->gadget);
 			spin_lock(&udc->lock);
 		}
 	}
-	if (intrstatus & XUSB_STATUS_RESUME_MASK) {
+
+	if (intrstatus & XUSB_STATUS_RESUME_MASK)
+	{
 		bool condition = (udc->usb_state != USB_STATE_SUSPENDED);
 
 		dev_WARN_ONCE(udc->dev, condition,
-				"Resume IRQ while not suspended\n");
+					  "Resume IRQ while not suspended\n");
 
 		dev_dbg(udc->dev, "Resume\n");
 
 		/* Enable the reset, suspend and disconnect */
 		intrreg = udc->read_fn(udc->addr + XUSB_IER_OFFSET);
 		intrreg |= XUSB_STATUS_RESET_MASK | XUSB_STATUS_SUSPEND_MASK |
-			   XUSB_STATUS_DISCONNECT_MASK;
+				   XUSB_STATUS_DISCONNECT_MASK;
 		udc->write_fn(udc->addr, XUSB_IER_OFFSET, intrreg);
 
 		udc->usb_state = 0;
 
-		if (udc->driver->resume) {
+		if (udc->driver->resume)
+		{
 			spin_unlock(&udc->lock);
 			udc->driver->resume(&udc->gadget);
 			spin_lock(&udc->lock);
 		}
 	}
-	if (intrstatus & XUSB_STATUS_DISCONNECT_MASK) {
+
+	if (intrstatus & XUSB_STATUS_DISCONNECT_MASK)
+	{
 
 		dev_dbg(udc->dev, "Disconnect\n");
 
 		/* Enable the reset, resume and suspend */
 		intrreg = udc->read_fn(udc->addr + XUSB_IER_OFFSET);
 		intrreg |= XUSB_STATUS_RESET_MASK | XUSB_STATUS_RESUME_MASK |
-			   XUSB_STATUS_SUSPEND_MASK;
+				   XUSB_STATUS_SUSPEND_MASK;
 		udc->write_fn(udc->addr, XUSB_IER_OFFSET, intrreg);
 
-		if (udc->driver && udc->driver->disconnect) {
+		if (udc->driver && udc->driver->disconnect)
+		{
 			spin_unlock(&udc->lock);
 			udc->driver->disconnect(&udc->gadget);
 			spin_lock(&udc->lock);
@@ -1585,8 +1778,11 @@ static void xudc_setaddress(struct xusb_udc *udc)
 
 	req->usb_req.length = 0;
 	ret = __xudc_ep0_queue(ep0, req);
+
 	if (ret == 0)
+	{
 		return;
+	}
 
 	dev_err(udc->dev, "Can't respond to SET ADDRESS request\n");
 	xudc_ep0_stall(udc);
@@ -1609,39 +1805,63 @@ static void xudc_getstatus(struct xusb_udc *udc)
 	u32 halt;
 	int ret;
 
-	switch (udc->setup.bRequestType & USB_RECIP_MASK) {
-	case USB_RECIP_DEVICE:
-		/* Get device status */
-		status = 1 << USB_DEVICE_SELF_POWERED;
-		if (udc->remote_wkp)
-			status |= (1 << USB_DEVICE_REMOTE_WAKEUP);
-		break;
-	case USB_RECIP_INTERFACE:
-		break;
-	case USB_RECIP_ENDPOINT:
-		epnum = udc->setup.wIndex & USB_ENDPOINT_NUMBER_MASK;
-		target_ep = &udc->ep[epnum];
-		epcfgreg = udc->read_fn(udc->addr + target_ep->offset);
-		halt = epcfgreg & XUSB_EP_CFG_STALL_MASK;
-		if (udc->setup.wIndex & USB_DIR_IN) {
-			if (!target_ep->is_in)
-				goto stall;
-		} else {
-			if (target_ep->is_in)
-				goto stall;
-		}
-		if (halt)
-			status = 1 << USB_ENDPOINT_HALT;
-		break;
-	default:
-		goto stall;
+	switch (udc->setup.bRequestType & USB_RECIP_MASK)
+	{
+		case USB_RECIP_DEVICE:
+			/* Get device status */
+			status = 1 << USB_DEVICE_SELF_POWERED;
+
+			if (udc->remote_wkp)
+			{
+				status |= (1 << USB_DEVICE_REMOTE_WAKEUP);
+			}
+
+			break;
+
+		case USB_RECIP_INTERFACE:
+			break;
+
+		case USB_RECIP_ENDPOINT:
+			epnum = udc->setup.wIndex & USB_ENDPOINT_NUMBER_MASK;
+			target_ep = &udc->ep[epnum];
+			epcfgreg = udc->read_fn(udc->addr + target_ep->offset);
+			halt = epcfgreg & XUSB_EP_CFG_STALL_MASK;
+
+			if (udc->setup.wIndex & USB_DIR_IN)
+			{
+				if (!target_ep->is_in)
+				{
+					goto stall;
+				}
+			}
+			else
+			{
+				if (target_ep->is_in)
+				{
+					goto stall;
+				}
+			}
+
+			if (halt)
+			{
+				status = 1 << USB_ENDPOINT_HALT;
+			}
+
+			break;
+
+		default:
+			goto stall;
 	}
 
 	req->usb_req.length = 2;
 	*(u16 *)req->usb_req.buf = cpu_to_le16(status);
 	ret = __xudc_ep0_queue(ep0, req);
+
 	if (ret == 0)
+	{
 		return;
+	}
+
 stall:
 	dev_err(udc->dev, "Can't respond to getstatus request\n");
 	xudc_ep0_stall(udc);
@@ -1664,70 +1884,96 @@ static void xudc_set_clear_feature(struct xusb_udc *udc)
 	int flag = (udc->setup.bRequest == USB_REQ_SET_FEATURE ? 1 : 0);
 	int ret;
 
-	switch (udc->setup.bRequestType) {
-	case USB_RECIP_DEVICE:
-		switch (udc->setup.wValue) {
-		case USB_DEVICE_TEST_MODE:
-			/*
-			 * The Test Mode will be executed
-			 * after the status phase.
-			 */
-			break;
-		case USB_DEVICE_REMOTE_WAKEUP:
-			if (flag)
-				udc->remote_wkp = 1;
-			else
-				udc->remote_wkp = 0;
-			break;
-		default:
-			xudc_ep0_stall(udc);
-			break;
-		}
-		break;
-	case USB_RECIP_ENDPOINT:
-		if (!udc->setup.wValue) {
-			endpoint = udc->setup.wIndex & USB_ENDPOINT_NUMBER_MASK;
-			target_ep = &udc->ep[endpoint];
-			outinbit = udc->setup.wIndex & USB_ENDPOINT_DIR_MASK;
-			outinbit = outinbit >> 7;
+	switch (udc->setup.bRequestType)
+	{
+		case USB_RECIP_DEVICE:
+			switch (udc->setup.wValue)
+			{
+				case USB_DEVICE_TEST_MODE:
+					/*
+					 * The Test Mode will be executed
+					 * after the status phase.
+					 */
+					break;
 
-			/* Make sure direction matches.*/
-			if (outinbit != target_ep->is_in) {
-				xudc_ep0_stall(udc);
-				return;
+				case USB_DEVICE_REMOTE_WAKEUP:
+					if (flag)
+					{
+						udc->remote_wkp = 1;
+					}
+					else
+					{
+						udc->remote_wkp = 0;
+					}
+
+					break;
+
+				default:
+					xudc_ep0_stall(udc);
+					break;
 			}
-			epcfgreg = udc->read_fn(udc->addr + target_ep->offset);
-			if (!endpoint) {
-				/* Clear the stall.*/
-				epcfgreg &= ~XUSB_EP_CFG_STALL_MASK;
-				udc->write_fn(udc->addr,
-					      target_ep->offset, epcfgreg);
-			} else {
-				if (flag) {
-					epcfgreg |= XUSB_EP_CFG_STALL_MASK;
+
+			break;
+
+		case USB_RECIP_ENDPOINT:
+			if (!udc->setup.wValue)
+			{
+				endpoint = udc->setup.wIndex & USB_ENDPOINT_NUMBER_MASK;
+				target_ep = &udc->ep[endpoint];
+				outinbit = udc->setup.wIndex & USB_ENDPOINT_DIR_MASK;
+				outinbit = outinbit >> 7;
+
+				/* Make sure direction matches.*/
+				if (outinbit != target_ep->is_in)
+				{
+					xudc_ep0_stall(udc);
+					return;
+				}
+
+				epcfgreg = udc->read_fn(udc->addr + target_ep->offset);
+
+				if (!endpoint)
+				{
+					/* Clear the stall.*/
+					epcfgreg &= ~XUSB_EP_CFG_STALL_MASK;
 					udc->write_fn(udc->addr,
-						      target_ep->offset,
-						      epcfgreg);
-				} else {
-					/* Unstall the endpoint.*/
-					epcfgreg &= ~(XUSB_EP_CFG_STALL_MASK |
-						XUSB_EP_CFG_DATA_TOGGLE_MASK);
-					udc->write_fn(udc->addr,
-						      target_ep->offset,
-						      epcfgreg);
+								  target_ep->offset, epcfgreg);
+				}
+				else
+				{
+					if (flag)
+					{
+						epcfgreg |= XUSB_EP_CFG_STALL_MASK;
+						udc->write_fn(udc->addr,
+									  target_ep->offset,
+									  epcfgreg);
+					}
+					else
+					{
+						/* Unstall the endpoint.*/
+						epcfgreg &= ~(XUSB_EP_CFG_STALL_MASK |
+									  XUSB_EP_CFG_DATA_TOGGLE_MASK);
+						udc->write_fn(udc->addr,
+									  target_ep->offset,
+									  epcfgreg);
+					}
 				}
 			}
-		}
-		break;
-	default:
-		xudc_ep0_stall(udc);
-		return;
+
+			break;
+
+		default:
+			xudc_ep0_stall(udc);
+			return;
 	}
 
 	req->usb_req.length = 0;
 	ret = __xudc_ep0_queue(ep0, req);
+
 	if (ret == 0)
+	{
 		return;
+	}
 
 	dev_err(udc->dev, "Can't respond to SET/CLEAR FEATURE\n");
 	xudc_ep0_stall(udc);
@@ -1757,47 +2003,70 @@ static void xudc_handle_setup(struct xusb_udc *udc)
 	/* Clear previous requests */
 	xudc_nuke(ep0, -ECONNRESET);
 
-	if (udc->setup.bRequestType & USB_DIR_IN) {
+	if (udc->setup.bRequestType & USB_DIR_IN)
+	{
 		/* Execute the get command.*/
 		udc->setupseqrx = STATUS_PHASE;
 		udc->setupseqtx = DATA_PHASE;
-	} else {
+	}
+	else
+	{
 		/* Execute the put command.*/
 		udc->setupseqrx = DATA_PHASE;
 		udc->setupseqtx = STATUS_PHASE;
 	}
 
-	switch (udc->setup.bRequest) {
-	case USB_REQ_GET_STATUS:
-		/* Data+Status phase form udc */
-		if ((udc->setup.bRequestType &
-				(USB_DIR_IN | USB_TYPE_MASK)) !=
+	switch (udc->setup.bRequest)
+	{
+		case USB_REQ_GET_STATUS:
+
+			/* Data+Status phase form udc */
+			if ((udc->setup.bRequestType &
+				 (USB_DIR_IN | USB_TYPE_MASK)) !=
 				(USB_DIR_IN | USB_TYPE_STANDARD))
-			break;
-		xudc_getstatus(udc);
-		return;
-	case USB_REQ_SET_ADDRESS:
-		/* Status phase from udc */
-		if (udc->setup.bRequestType != (USB_DIR_OUT |
-				USB_TYPE_STANDARD | USB_RECIP_DEVICE))
-			break;
-		xudc_setaddress(udc);
-		return;
-	case USB_REQ_CLEAR_FEATURE:
-	case USB_REQ_SET_FEATURE:
-		/* Requests with no data phase, status phase from udc */
-		if ((udc->setup.bRequestType & USB_TYPE_MASK)
+			{
+				break;
+			}
+
+			xudc_getstatus(udc);
+			return;
+
+		case USB_REQ_SET_ADDRESS:
+
+			/* Status phase from udc */
+			if (udc->setup.bRequestType != (USB_DIR_OUT |
+											USB_TYPE_STANDARD | USB_RECIP_DEVICE))
+			{
+				break;
+			}
+
+			xudc_setaddress(udc);
+			return;
+
+		case USB_REQ_CLEAR_FEATURE:
+		case USB_REQ_SET_FEATURE:
+
+			/* Requests with no data phase, status phase from udc */
+			if ((udc->setup.bRequestType & USB_TYPE_MASK)
 				!= USB_TYPE_STANDARD)
+			{
+				break;
+			}
+
+			xudc_set_clear_feature(udc);
+			return;
+
+		default:
 			break;
-		xudc_set_clear_feature(udc);
-		return;
-	default:
-		break;
 	}
 
 	spin_unlock(&udc->lock);
+
 	if (udc->driver->setup(&udc->gadget, &setup) < 0)
+	{
 		xudc_ep0_stall(udc);
+	}
+
 	spin_lock(&udc->lock);
 }
 
@@ -1815,38 +2084,45 @@ static void xudc_ep0_out(struct xusb_udc *udc)
 
 	req = list_first_entry(&ep0->queue, struct xusb_req, queue);
 
-	switch (udc->setupseqrx) {
-	case STATUS_PHASE:
-		/*
-		 * This resets both state machines for the next
-		 * Setup packet.
-		 */
-		udc->setupseqrx = SETUP_PHASE;
-		udc->setupseqtx = SETUP_PHASE;
-		req->usb_req.actual = req->usb_req.length;
-		xudc_done(ep0, req, 0);
-		break;
-	case DATA_PHASE:
-		bytes_to_rx = udc->read_fn(udc->addr +
-					   XUSB_EP_BUF0COUNT_OFFSET);
-		/* Copy the data to be received from the DPRAM. */
-		ep0rambase = (u8 __force *) (udc->addr +
-			     (ep0->rambase << 2));
-		buffer = req->usb_req.buf + req->usb_req.actual;
-		req->usb_req.actual = req->usb_req.actual + bytes_to_rx;
-		memcpy(buffer, ep0rambase, bytes_to_rx);
+	switch (udc->setupseqrx)
+	{
+		case STATUS_PHASE:
+			/*
+			 * This resets both state machines for the next
+			 * Setup packet.
+			 */
+			udc->setupseqrx = SETUP_PHASE;
+			udc->setupseqtx = SETUP_PHASE;
+			req->usb_req.actual = req->usb_req.length;
+			xudc_done(ep0, req, 0);
+			break;
 
-		if (req->usb_req.length == req->usb_req.actual) {
-			/* Data transfer completed get ready for Status stage */
-			xudc_wrstatus(udc);
-		} else {
-			/* Enable EP0 buffer to receive data */
-			udc->write_fn(udc->addr, XUSB_EP_BUF0COUNT_OFFSET, 0);
-			udc->write_fn(udc->addr, XUSB_BUFFREADY_OFFSET, 1);
-		}
-		break;
-	default:
-		break;
+		case DATA_PHASE:
+			bytes_to_rx = udc->read_fn(udc->addr +
+									   XUSB_EP_BUF0COUNT_OFFSET);
+			/* Copy the data to be received from the DPRAM. */
+			ep0rambase = (u8 __force *) (udc->addr +
+										 (ep0->rambase << 2));
+			buffer = req->usb_req.buf + req->usb_req.actual;
+			req->usb_req.actual = req->usb_req.actual + bytes_to_rx;
+			memcpy(buffer, ep0rambase, bytes_to_rx);
+
+			if (req->usb_req.length == req->usb_req.actual)
+			{
+				/* Data transfer completed get ready for Status stage */
+				xudc_wrstatus(udc);
+			}
+			else
+			{
+				/* Enable EP0 buffer to receive data */
+				udc->write_fn(udc->addr, XUSB_EP_BUF0COUNT_OFFSET, 0);
+				udc->write_fn(udc->addr, XUSB_BUFFREADY_OFFSET, 1);
+			}
+
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -1869,54 +2145,66 @@ static void xudc_ep0_in(struct xusb_udc *udc)
 	req = list_first_entry(&ep0->queue, struct xusb_req, queue);
 	bytes_to_tx = req->usb_req.length - req->usb_req.actual;
 
-	switch (udc->setupseqtx) {
-	case STATUS_PHASE:
-		switch (udc->setup.bRequest) {
-		case USB_REQ_SET_ADDRESS:
-			/* Set the address of the device.*/
-			udc->write_fn(udc->addr, XUSB_ADDRESS_OFFSET,
-				      udc->setup.wValue);
-			break;
-		case USB_REQ_SET_FEATURE:
-			if (udc->setup.bRequestType ==
-					USB_RECIP_DEVICE) {
-				if (udc->setup.wValue ==
-						USB_DEVICE_TEST_MODE)
-					udc->write_fn(udc->addr,
-						      XUSB_TESTMODE_OFFSET,
-						      test_mode);
+	switch (udc->setupseqtx)
+	{
+		case STATUS_PHASE:
+			switch (udc->setup.bRequest)
+			{
+				case USB_REQ_SET_ADDRESS:
+					/* Set the address of the device.*/
+					udc->write_fn(udc->addr, XUSB_ADDRESS_OFFSET,
+								  udc->setup.wValue);
+					break;
+
+				case USB_REQ_SET_FEATURE:
+					if (udc->setup.bRequestType ==
+						USB_RECIP_DEVICE)
+					{
+						if (udc->setup.wValue ==
+							USB_DEVICE_TEST_MODE)
+							udc->write_fn(udc->addr,
+										  XUSB_TESTMODE_OFFSET,
+										  test_mode);
+					}
+
+					break;
 			}
+
+			req->usb_req.actual = req->usb_req.length;
+			xudc_done(ep0, req, 0);
 			break;
-		}
-		req->usb_req.actual = req->usb_req.length;
-		xudc_done(ep0, req, 0);
-		break;
-	case DATA_PHASE:
-		if (!bytes_to_tx) {
-			/*
-			 * We're done with data transfer, next
-			 * will be zero length OUT with data toggle of
-			 * 1. Setup data_toggle.
-			 */
-			epcfgreg = udc->read_fn(udc->addr + ep0->offset);
-			epcfgreg |= XUSB_EP_CFG_DATA_TOGGLE_MASK;
-			udc->write_fn(udc->addr, ep0->offset, epcfgreg);
-			udc->setupseqtx = STATUS_PHASE;
-		} else {
-			length = count = min_t(u32, bytes_to_tx,
-					       EP0_MAX_PACKET);
-			/* Copy the data to be transmitted into the DPRAM. */
-			ep0rambase = (u8 __force *) (udc->addr +
-				     (ep0->rambase << 2));
-			buffer = req->usb_req.buf + req->usb_req.actual;
-			req->usb_req.actual = req->usb_req.actual + length;
-			memcpy(ep0rambase, buffer, length);
-		}
-		udc->write_fn(udc->addr, XUSB_EP_BUF0COUNT_OFFSET, count);
-		udc->write_fn(udc->addr, XUSB_BUFFREADY_OFFSET, 1);
-		break;
-	default:
-		break;
+
+		case DATA_PHASE:
+			if (!bytes_to_tx)
+			{
+				/*
+				 * We're done with data transfer, next
+				 * will be zero length OUT with data toggle of
+				 * 1. Setup data_toggle.
+				 */
+				epcfgreg = udc->read_fn(udc->addr + ep0->offset);
+				epcfgreg |= XUSB_EP_CFG_DATA_TOGGLE_MASK;
+				udc->write_fn(udc->addr, ep0->offset, epcfgreg);
+				udc->setupseqtx = STATUS_PHASE;
+			}
+			else
+			{
+				length = count = min_t(u32, bytes_to_tx,
+									   EP0_MAX_PACKET);
+				/* Copy the data to be transmitted into the DPRAM. */
+				ep0rambase = (u8 __force *) (udc->addr +
+											 (ep0->rambase << 2));
+				buffer = req->usb_req.buf + req->usb_req.actual;
+				req->usb_req.actual = req->usb_req.actual + length;
+				memcpy(ep0rambase, buffer, length);
+			}
+
+			udc->write_fn(udc->addr, XUSB_EP_BUF0COUNT_OFFSET, count);
+			udc->write_fn(udc->addr, XUSB_BUFFREADY_OFFSET, 1);
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -1930,13 +2218,20 @@ static void xudc_ep0_in(struct xusb_udc *udc)
 static void xudc_ctrl_ep_handler(struct xusb_udc *udc, u32 intrstatus)
 {
 
-	if (intrstatus & XUSB_STATUS_SETUP_PACKET_MASK) {
+	if (intrstatus & XUSB_STATUS_SETUP_PACKET_MASK)
+	{
 		xudc_handle_setup(udc);
-	} else {
+	}
+	else
+	{
 		if (intrstatus & XUSB_STATUS_FIFO_BUFF_RDY_MASK)
+		{
 			xudc_ep0_out(udc);
+		}
 		else if (intrstatus & XUSB_STATUS_FIFO_BUFF_FREE_MASK)
+		{
 			xudc_ep0_in(udc);
+		}
 	}
 }
 
@@ -1950,28 +2245,40 @@ static void xudc_ctrl_ep_handler(struct xusb_udc *udc, u32 intrstatus)
  * Processes the buffer completion interrupts.
  */
 static void xudc_nonctrl_ep_handler(struct xusb_udc *udc, u8 epnum,
-				    u32 intrstatus)
+									u32 intrstatus)
 {
 
 	struct xusb_req *req;
 	struct xusb_ep *ep;
 
 	ep = &udc->ep[epnum];
+
 	/* Process the End point interrupts.*/
 	if (intrstatus & (XUSB_STATUS_EP0_BUFF1_COMP_MASK << epnum))
+	{
 		ep->buffer0ready = 0;
+	}
+
 	if (intrstatus & (XUSB_STATUS_EP0_BUFF2_COMP_MASK << epnum))
+	{
 		ep->buffer1ready = 0;
+	}
 
 	if (list_empty(&ep->queue))
+	{
 		return;
+	}
 
 	req = list_first_entry(&ep->queue, struct xusb_req, queue);
 
 	if (ep->is_in)
+	{
 		xudc_write_fifo(ep, req);
+	}
 	else
+	{
 		xudc_read_fifo(ep, req);
+	}
 }
 
 /**
@@ -2004,7 +2311,8 @@ static irqreturn_t xudc_irq(int irq, void *_udc)
 	intrstatus = udc->read_fn(udc->addr + XUSB_STATUS_OFFSET);
 
 	/* Call the handler for the event interrupt.*/
-	if (intrstatus & XUSB_STATUS_INTR_EVENT_MASK) {
+	if (intrstatus & XUSB_STATUS_INTR_EVENT_MASK)
+	{
 		/*
 		 * Check if there is any action to be done for :
 		 * - USB Reset received {XUSB_STATUS_RESET_MASK}
@@ -2016,24 +2324,30 @@ static irqreturn_t xudc_irq(int irq, void *_udc)
 	}
 
 	/* Check the buffer completion interrupts */
-	if (intrstatus & XUSB_STATUS_INTR_BUFF_COMP_ALL_MASK) {
+	if (intrstatus & XUSB_STATUS_INTR_BUFF_COMP_ALL_MASK)
+	{
 		/* Enable Reset, Suspend, Resume and Disconnect  */
 		ier = udc->read_fn(udc->addr + XUSB_IER_OFFSET);
 		ier |= XUSB_STATUS_INTR_EVENT_MASK;
 		udc->write_fn(udc->addr, XUSB_IER_OFFSET, ier);
 
 		if (intrstatus & XUSB_STATUS_EP0_BUFF1_COMP_MASK)
+		{
 			xudc_ctrl_ep_handler(udc, intrstatus);
+		}
 
-		for (index = 1; index < 8; index++) {
+		for (index = 1; index < 8; index++)
+		{
 			bufintr = ((intrstatus &
-				  (XUSB_STATUS_EP1_BUFF1_COMP_MASK <<
-				  (index - 1))) || (intrstatus &
-				  (XUSB_STATUS_EP1_BUFF2_COMP_MASK <<
-				  (index - 1))));
-			if (bufintr) {
+						(XUSB_STATUS_EP1_BUFF1_COMP_MASK <<
+						 (index - 1))) || (intrstatus &
+										   (XUSB_STATUS_EP1_BUFF2_COMP_MASK <<
+											(index - 1))));
+
+			if (bufintr)
+			{
 				xudc_nonctrl_ep_handler(udc, index,
-							intrstatus);
+										intrstatus);
 			}
 		}
 	}
@@ -2059,35 +2373,52 @@ static int xudc_probe(struct platform_device *pdev)
 	u8 *buff;
 
 	udc = devm_kzalloc(&pdev->dev, sizeof(*udc), GFP_KERNEL);
+
 	if (!udc)
+	{
 		return -ENOMEM;
+	}
 
 	/* Create a dummy request for GET_STATUS, SET_ADDRESS */
 	udc->req = devm_kzalloc(&pdev->dev, sizeof(struct xusb_req),
-				GFP_KERNEL);
+							GFP_KERNEL);
+
 	if (!udc->req)
+	{
 		return -ENOMEM;
+	}
 
 	buff = devm_kzalloc(&pdev->dev, STATUSBUFF_SIZE, GFP_KERNEL);
+
 	if (!buff)
+	{
 		return -ENOMEM;
+	}
 
 	udc->req->usb_req.buf = buff;
 
 	/* Map the registers */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	udc->addr = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(udc->addr))
+	{
 		return PTR_ERR(udc->addr);
+	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "unable to get irq\n");
 		return irq;
 	}
+
 	ret = devm_request_irq(&pdev->dev, irq, xudc_irq, 0,
-			       dev_name(&pdev->dev), udc);
-	if (ret < 0) {
+						   dev_name(&pdev->dev), udc);
+
+	if (ret < 0)
+	{
 		dev_dbg(&pdev->dev, "unable to request irq %d", irq);
 		goto fail;
 	}
@@ -2107,11 +2438,14 @@ static int xudc_probe(struct platform_device *pdev)
 	udc->write_fn = xudc_write32_be;
 	udc->read_fn = xudc_read32_be;
 	udc->write_fn(udc->addr, XUSB_TESTMODE_OFFSET, TEST_J);
+
 	if ((udc->read_fn(udc->addr + XUSB_TESTMODE_OFFSET))
-			!= TEST_J) {
+		!= TEST_J)
+	{
 		udc->write_fn = xudc_write32;
 		udc->read_fn = xudc_read32;
 	}
+
 	udc->write_fn(udc->addr, XUSB_TESTMODE_OFFSET, 0);
 
 	xudc_eps_init(udc);
@@ -2120,24 +2454,27 @@ static int xudc_probe(struct platform_device *pdev)
 	udc->write_fn(udc->addr, XUSB_ADDRESS_OFFSET, 0);
 
 	ret = usb_add_gadget_udc(&pdev->dev, &udc->gadget);
+
 	if (ret)
+	{
 		goto fail;
+	}
 
 	udc->dev = &udc->gadget.dev;
 
 	/* Enable the interrupts.*/
 	ier = XUSB_STATUS_GLOBAL_INTR_MASK | XUSB_STATUS_INTR_EVENT_MASK |
-	      XUSB_STATUS_FIFO_BUFF_RDY_MASK | XUSB_STATUS_FIFO_BUFF_FREE_MASK |
-	      XUSB_STATUS_SETUP_PACKET_MASK |
-	      XUSB_STATUS_INTR_BUFF_COMP_ALL_MASK;
+		  XUSB_STATUS_FIFO_BUFF_RDY_MASK | XUSB_STATUS_FIFO_BUFF_FREE_MASK |
+		  XUSB_STATUS_SETUP_PACKET_MASK |
+		  XUSB_STATUS_INTR_BUFF_COMP_ALL_MASK;
 
 	udc->write_fn(udc->addr, XUSB_IER_OFFSET, ier);
 
 	platform_set_drvdata(pdev, udc);
 
 	dev_vdbg(&pdev->dev, "%s at 0x%08X mapped to %p %s\n",
-		 driver_name, (u32)res->start, udc->addr,
-		 udc->dma_enabled ? "with DMA" : "without DMA");
+			 driver_name, (u32)res->start, udc->addr,
+			 udc->dma_enabled ? "with DMA" : "without DMA");
 
 	return 0;
 fail:
@@ -2161,13 +2498,15 @@ static int xudc_remove(struct platform_device *pdev)
 }
 
 /* Match table for of_platform binding */
-static const struct of_device_id usb_of_match[] = {
+static const struct of_device_id usb_of_match[] =
+{
 	{ .compatible = "xlnx,usb2-device-4.00.a", },
 	{ /* end of list */ },
 };
 MODULE_DEVICE_TABLE(of, usb_of_match);
 
-static struct platform_driver xudc_driver = {
+static struct platform_driver xudc_driver =
+{
 	.driver = {
 		.name = driver_name,
 		.of_match_table = usb_of_match,

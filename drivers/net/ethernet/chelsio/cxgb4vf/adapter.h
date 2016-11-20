@@ -52,10 +52,11 @@
 /*
  * Constants of the implementation.
  */
-enum {
+enum
+{
 	MAX_NPORTS	= 1,		/* max # of "ports" */
 	MAX_PORT_QSETS	= 8,		/* max # of Queue Sets / "port" */
-	MAX_ETH_QSETS	= MAX_NPORTS*MAX_PORT_QSETS,
+	MAX_ETH_QSETS	= MAX_NPORTS * MAX_PORT_QSETS,
 
 	/*
 	 * MSI-X interrupt index usage.
@@ -73,9 +74,9 @@ enum {
 	 * a Free List and an Ethernet TX list.
 	 */
 	INGQ_EXTRAS	= 2,		/* firmware event queue and */
-					/*   forwarded interrupts */
-	MAX_INGQ	= MAX_ETH_QSETS+INGQ_EXTRAS,
-	MAX_EGRQ	= MAX_ETH_QSETS*2,
+	/*   forwarded interrupts */
+	MAX_INGQ	= MAX_ETH_QSETS + INGQ_EXTRAS,
+	MAX_EGRQ	= MAX_ETH_QSETS * 2,
 };
 
 /*
@@ -90,7 +91,8 @@ struct sge_rspq;
  * but the use of the "port" nomanclature makes it easier to go back and forth
  * between the PF and VF drivers ...
  */
-struct port_info {
+struct port_info
+{
 	struct adapter *adapter;	/* our adapter */
 	u16 viid;			/* virtual interface ID */
 	s16 xact_addr_filt;		/* index of our MAC address filter */
@@ -121,7 +123,8 @@ struct port_info {
  * SGE free-list queue state.
  */
 struct rx_sw_desc;
-struct sge_fl {
+struct sge_fl
+{
 	unsigned int avail;		/* # of available RX buffers */
 	unsigned int pend_cred;		/* new buffers since last FL DB ring */
 	unsigned int cidx;		/* consumer index */
@@ -148,7 +151,8 @@ struct sge_fl {
 /*
  * An ingress packet gather list.
  */
-struct pkt_gl {
+struct pkt_gl
+{
 	struct page_frag frags[MAX_SKB_FRAGS];
 	void *va;			/* virtual address of first byte */
 	unsigned int nfrags;		/* # of fragments */
@@ -156,12 +160,13 @@ struct pkt_gl {
 };
 
 typedef int (*rspq_handler_t)(struct sge_rspq *, const __be64 *,
-			      const struct pkt_gl *);
+							  const struct pkt_gl *);
 
 /*
  * State for an SGE Response Queue.
  */
-struct sge_rspq {
+struct sge_rspq
+{
 	struct napi_struct napi;	/* NAPI scheduling control */
 	const __be64 *cur_desc;		/* current descriptor in queue */
 	unsigned int cidx;		/* consumer index */
@@ -195,7 +200,8 @@ struct sge_rspq {
 /*
  * Ethernet queue statistics
  */
-struct sge_eth_stats {
+struct sge_eth_stats
+{
 	unsigned long pkts;		/* # of ethernet packets */
 	unsigned long lro_pkts;		/* # of LRO super packets */
 	unsigned long lro_merged;	/* # of wire packets merged by LRO */
@@ -207,7 +213,8 @@ struct sge_eth_stats {
 /*
  * State for an Ethernet Receive Queue.
  */
-struct sge_eth_rxq {
+struct sge_eth_rxq
+{
 	struct sge_rspq rspq;		/* Response Queue */
 	struct sge_fl fl;		/* Free List */
 	struct sge_eth_stats stats;	/* receive statistics */
@@ -220,15 +227,17 @@ struct sge_eth_rxq {
  * "Software Descriptor" array but we don't know anything about it here other
  * than its type name.
  */
-struct tx_desc {
+struct tx_desc
+{
 	/*
 	 * Egress Queues are measured in units of SGE_EQ_IDXSIZE by the
 	 * hardware: Sizes, Producer and Consumer indices, etc.
 	 */
-	__be64 flit[SGE_EQ_IDXSIZE/sizeof(__be64)];
+	__be64 flit[SGE_EQ_IDXSIZE / sizeof(__be64)];
 };
 struct tx_sw_desc;
-struct sge_txq {
+struct sge_txq
+{
 	unsigned int in_use;		/* # of in-use TX descriptors */
 	unsigned int size;		/* # of descriptors */
 	unsigned int cidx;		/* SW consumer index */
@@ -254,7 +263,8 @@ struct sge_txq {
 /*
  * State for an Ethernet Transmit Queue.
  */
-struct sge_eth_txq {
+struct sge_eth_txq
+{
 	struct sge_txq q;		/* SGE TX Queue */
 	struct netdev_queue *txq;	/* associated netdev TX queue */
 	unsigned long tso;		/* # of TSO requests */
@@ -266,7 +276,8 @@ struct sge_eth_txq {
 /*
  * The complete set of Scatter/Gather Engine resources.
  */
-struct sge {
+struct sge
+{
 	/*
 	 * Our "Queue Sets" ...
 	 */
@@ -348,19 +359,22 @@ struct sge {
 #define for_each_ethrxq(sge, iter) \
 	for (iter = 0; iter < (sge)->ethqsets; iter++)
 
-struct hash_mac_addr {
+struct hash_mac_addr
+{
 	struct list_head list;
 	u8 addr[ETH_ALEN];
 };
 
-struct mbox_list {
+struct mbox_list
+{
 	struct list_head list;
 };
 
 /*
  * Per-"adapter" (Virtual Function) information.
  */
-struct adapter {
+struct adapter
+{
 	/* PCI resources */
 	void __iomem *regs;
 	void __iomem *bar2;
@@ -374,7 +388,8 @@ struct adapter {
 	struct adapter_params params;
 
 	/* queue and interrupt resources */
-	struct {
+	struct
+	{
 		unsigned short vec;
 		char desc[22];
 	} msix_info[MSIX_ENTRIES];
@@ -403,7 +418,8 @@ struct adapter {
 	struct list_head mac_hlist;
 };
 
-enum { /* adapter flags */
+enum   /* adapter flags */
+{
 	FULL_INIT_DONE     = (1UL << 0),
 	USING_MSI          = (1UL << 1),
 	USING_MSIX         = (1UL << 2),
@@ -474,7 +490,7 @@ static inline u64 t4_read_reg64(struct adapter *adapter, u32 reg_addr)
  * Write a 64-bit value into the given HW register.
  */
 static inline void t4_write_reg64(struct adapter *adapter, u32 reg_addr,
-				  u64 val)
+								  u64 val)
 {
 	writeq(val, adapter->regs + reg_addr);
 }
@@ -501,7 +517,7 @@ static inline const char *port_name(struct adapter *adapter, int pidx)
  * code when it retrieves a port's Ethernet address from EEPROM.
  */
 static inline void t4_os_set_hw_addr(struct adapter *adapter, int pidx,
-				     u8 hw_addr[])
+									 u8 hw_addr[])
 {
 	memcpy(adapter->port[pidx]->dev_addr, hw_addr, ETH_ALEN);
 }
@@ -551,16 +567,16 @@ void t4vf_os_portmod_changed(struct adapter *, int);
  * SGE function prototype declarations.
  */
 int t4vf_sge_alloc_rxq(struct adapter *, struct sge_rspq *, bool,
-		       struct net_device *, int,
-		       struct sge_fl *, rspq_handler_t);
+					   struct net_device *, int,
+					   struct sge_fl *, rspq_handler_t);
 int t4vf_sge_alloc_eth_txq(struct adapter *, struct sge_eth_txq *,
-			   struct net_device *, struct netdev_queue *,
-			   unsigned int);
+						   struct net_device *, struct netdev_queue *,
+						   unsigned int);
 void t4vf_free_sge_resources(struct adapter *);
 
 int t4vf_eth_xmit(struct sk_buff *, struct net_device *);
 int t4vf_ethrx_handler(struct sge_rspq *, const __be64 *,
-		       const struct pkt_gl *);
+					   const struct pkt_gl *);
 
 irq_handler_t t4vf_intr_handler(struct adapter *);
 irqreturn_t t4vf_sge_intr_msix(int, void *);

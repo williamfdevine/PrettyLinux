@@ -1,24 +1,24 @@
-  /*
-     Driver for Philips tda8262/tda8263 DVBS Silicon tuners
+/*
+   Driver for Philips tda8262/tda8263 DVBS Silicon tuners
 
-     (c) 2006 Andrew de Quincey
+   (c) 2006 Andrew de Quincey
 
-     This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-     the Free Software Foundation; either version 2 of the License, or
-     (at your option) any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
 
-     This program is distributed in the hope that it will be useful,
-     but WITHOUT ANY WARRANTY; without even the implied warranty of
-     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 
-     GNU General Public License for more details.
+   GNU General Public License for more details.
 
-     You should have received a copy of the GNU General Public License
-     along with this program; if not, write to the Free Software
-     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-  */
+*/
 
 #include <linux/slab.h>
 #include <linux/module.h>
@@ -33,11 +33,12 @@ static int debug;
 		if (debug) printk(KERN_DEBUG "tda826x: " args); \
 	} while (0)
 
-struct tda826x_priv {
+struct tda826x_priv
+{
 	/* i2c details */
 	int i2c_address;
 	struct i2c_adapter *i2c;
-	u8 has_loopthrough:1;
+	u8 has_loopthrough: 1;
 	u32 frequency;
 };
 
@@ -58,15 +59,24 @@ static int tda826x_sleep(struct dvb_frontend *fe)
 	dprintk("%s:\n", __func__);
 
 	if (!priv->has_loopthrough)
+	{
 		buf[1] = 0xad;
+	}
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
-	if ((ret = i2c_transfer (priv->i2c, &msg, 1)) != 1) {
+	}
+
+	if ((ret = i2c_transfer (priv->i2c, &msg, 1)) != 1)
+	{
 		dprintk("%s: i2c error\n", __func__);
 	}
+
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	return (ret == 1) ? 0 : ret;
 }
@@ -84,22 +94,31 @@ static int tda826x_set_params(struct dvb_frontend *fe)
 
 	dprintk("%s:\n", __func__);
 
-	div = (p->frequency + (1000-1)) / 1000;
+	div = (p->frequency + (1000 - 1)) / 1000;
 
 	/* BW = ((1 + RO) * SR/2 + 5) * 1.3      [SR in MSPS, BW in MHz] */
 	/* with R0 = 0.35 and some transformations: */
 	ksyms = p->symbol_rate / 1000;
 	bandwidth = (878 * ksyms + 6500000) / 1000000 + 1;
+
 	if (bandwidth < 5)
+	{
 		bandwidth = 5;
+	}
 	else if (bandwidth > 36)
+	{
 		bandwidth = 36;
+	}
 
 	buf[0] = 0x00; // subaddress
 	buf[1] = 0x09; // powerdown RSSI + the magic value 1
+
 	if (!priv->has_loopthrough)
-		buf[1] |= 0x20; // power down loopthrough if not needed
-	buf[2] = (1<<5) | 0x0b; // 1Mhz + 0.45 VCO
+	{
+		buf[1] |= 0x20;    // power down loopthrough if not needed
+	}
+
+	buf[2] = (1 << 5) | 0x0b; // 1Mhz + 0.45 VCO
 	buf[3] = div >> 7;
 	buf[4] = div << 1;
 	buf[5] = ((bandwidth - 5) << 3) | 7; /* baseband cut-off */
@@ -110,12 +129,19 @@ static int tda826x_set_params(struct dvb_frontend *fe)
 	buf[10] = 0xd4; // recommended value 13 for BBIAS + unknown bit set on
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
-	if ((ret = i2c_transfer (priv->i2c, &msg, 1)) != 1) {
+	}
+
+	if ((ret = i2c_transfer (priv->i2c, &msg, 1)) != 1)
+	{
 		dprintk("%s: i2c error\n", __func__);
 	}
+
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	priv->frequency = div * 1000;
 
@@ -129,7 +155,8 @@ static int tda826x_get_frequency(struct dvb_frontend *fe, u32 *frequency)
 	return 0;
 }
 
-static const struct dvb_tuner_ops tda826x_tuner_ops = {
+static const struct dvb_tuner_ops tda826x_tuner_ops =
+{
 	.info = {
 		.name = "Philips TDA826X",
 		.frequency_min = 950000,
@@ -145,7 +172,8 @@ struct dvb_frontend *tda826x_attach(struct dvb_frontend *fe, int addr, struct i2
 {
 	struct tda826x_priv *priv = NULL;
 	u8 b1 [] = { 0, 0 };
-	struct i2c_msg msg[2] = {
+	struct i2c_msg msg[2] =
+	{
 		{ .addr = addr, .flags = 0,        .buf = NULL, .len = 0 },
 		{ .addr = addr, .flags = I2C_M_RD, .buf = b1, .len = 2 }
 	};
@@ -154,19 +182,33 @@ struct dvb_frontend *tda826x_attach(struct dvb_frontend *fe, int addr, struct i2
 	dprintk("%s:\n", __func__);
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
+
 	ret = i2c_transfer (i2c, msg, 2);
+
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	if (ret != 2)
+	{
 		return NULL;
+	}
+
 	if (!(b1[1] & 0x80))
+	{
 		return NULL;
+	}
 
 	priv = kzalloc(sizeof(struct tda826x_priv), GFP_KERNEL);
+
 	if (priv == NULL)
+	{
 		return NULL;
+	}
 
 	priv->i2c_address = addr;
 	priv->i2c = i2c;

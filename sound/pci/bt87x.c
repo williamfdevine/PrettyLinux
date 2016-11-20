@@ -38,7 +38,7 @@ MODULE_AUTHOR("Clemens Ladisch <clemens@ladisch.de>");
 MODULE_DESCRIPTION("Brooktree Bt87x audio driver");
 MODULE_LICENSE("GPL");
 MODULE_SUPPORTED_DEVICE("{{Brooktree,Bt878},"
-		"{Brooktree,Bt879}}");
+						"{Brooktree,Bt879}}");
 
 static int index[SNDRV_CARDS] = {[0 ... (SNDRV_CARDS - 1)] = -2}; /* Exclude the first card */
 static char *id[SNDRV_CARDS] = SNDRV_DEFAULT_STR;	/* ID for this card */
@@ -133,21 +133,22 @@ MODULE_PARM_DESC(load_all, "Allow to load the non-whitelisted cards");
 
 #define ANALOG_CLOCK 1792000
 #ifdef CONFIG_SND_BT87X_OVERCLOCK
-#define CLOCK_DIV_MIN 1
+	#define CLOCK_DIV_MIN 1
 #else
-#define CLOCK_DIV_MIN 4
+	#define CLOCK_DIV_MIN 4
 #endif
 #define CLOCK_DIV_MAX 15
 
 #define ERROR_INTERRUPTS (INT_FBUS | INT_FTRGT | INT_PPERR | \
-			  INT_RIPERR | INT_PABORT | INT_OCERR)
+						  INT_RIPERR | INT_PABORT | INT_OCERR)
 #define MY_INTERRUPTS (INT_RISCI | ERROR_INTERRUPTS)
 
 /* SYNC, one WRITE per line, one extra WRITE per page boundary, SYNC, JUMP */
 #define MAX_RISC_SIZE ((1 + 255 + (PAGE_ALIGN(255 * 4092) / PAGE_SIZE - 1) + 1 + 1) * 8)
 
 /* Cards with configuration information */
-enum snd_bt87x_boardid {
+enum snd_bt87x_boardid
+{
 	SND_BT87X_BOARD_UNKNOWN,
 	SND_BT87X_BOARD_GENERIC,	/* both an & dig interfaces, 32kHz */
 	SND_BT87X_BOARD_ANALOG,		/* board with no external A/D */
@@ -157,14 +158,16 @@ enum snd_bt87x_boardid {
 };
 
 /* Card configuration */
-struct snd_bt87x_board {
+struct snd_bt87x_board
+{
 	int dig_rate;		/* Digital input sampling rate */
 	u32 digital_fmt;	/* Register settings for digital input */
-	unsigned no_analog:1;	/* No analog input */
-	unsigned no_digital:1;	/* No digital input */
+	unsigned no_analog: 1;	/* No analog input */
+	unsigned no_digital: 1;	/* No digital input */
 };
 
-static struct snd_bt87x_board snd_bt87x_boards[] = {
+static struct snd_bt87x_board snd_bt87x_boards[] =
+{
 	[SND_BT87X_BOARD_UNKNOWN] = {
 		.dig_rate = 32000, /* just a guess */
 	},
@@ -188,7 +191,8 @@ static struct snd_bt87x_board snd_bt87x_boards[] = {
 	},
 };
 
-struct snd_bt87x {
+struct snd_bt87x
+{
 	struct snd_card *card;
 	struct pci_dev *pci;
 	struct snd_bt87x_board board;
@@ -225,47 +229,67 @@ static inline void snd_bt87x_writel(struct snd_bt87x *chip, u32 reg, u32 value)
 }
 
 static int snd_bt87x_create_risc(struct snd_bt87x *chip, struct snd_pcm_substream *substream,
-			       	 unsigned int periods, unsigned int period_bytes)
+								 unsigned int periods, unsigned int period_bytes)
 {
 	unsigned int i, offset;
 	u32 *risc;
 
-	if (chip->dma_risc.area == NULL) {
+	if (chip->dma_risc.area == NULL)
+	{
 		if (snd_dma_alloc_pages(SNDRV_DMA_TYPE_DEV, snd_dma_pci_data(chip->pci),
-					PAGE_ALIGN(MAX_RISC_SIZE), &chip->dma_risc) < 0)
+								PAGE_ALIGN(MAX_RISC_SIZE), &chip->dma_risc) < 0)
+		{
 			return -ENOMEM;
+		}
 	}
+
 	risc = (u32 *)chip->dma_risc.area;
 	offset = 0;
 	*risc++ = cpu_to_le32(RISC_SYNC | RISC_SYNC_FM1);
 	*risc++ = cpu_to_le32(0);
-	for (i = 0; i < periods; ++i) {
+
+	for (i = 0; i < periods; ++i)
+	{
 		u32 rest;
 
 		rest = period_bytes;
-		do {
+
+		do
+		{
 			u32 cmd, len;
 			unsigned int addr;
 
 			len = PAGE_SIZE - (offset % PAGE_SIZE);
+
 			if (len > rest)
+			{
 				len = rest;
+			}
+
 			cmd = RISC_WRITE | len;
-			if (rest == period_bytes) {
+
+			if (rest == period_bytes)
+			{
 				u32 block = i * 16 / periods;
 				cmd |= RISC_SOL;
 				cmd |= block << RISC_SET_STATUS_SHIFT;
 				cmd |= (~block & 0xf) << RISC_RESET_STATUS_SHIFT;
 			}
+
 			if (len == rest)
+			{
 				cmd |= RISC_EOL | RISC_IRQ;
+			}
+
 			*risc++ = cpu_to_le32(cmd);
 			addr = snd_pcm_sgbuf_get_addr(substream, offset);
 			*risc++ = cpu_to_le32(addr);
 			offset += len;
 			rest -= len;
-		} while (rest > 0);
+		}
+		while (rest > 0);
 	}
+
 	*risc++ = cpu_to_le32(RISC_SYNC | RISC_SYNC_VRO);
 	*risc++ = cpu_to_le32(0);
 	*risc++ = cpu_to_le32(RISC_JUMP);
@@ -277,7 +301,8 @@ static int snd_bt87x_create_risc(struct snd_bt87x *chip, struct snd_pcm_substrea
 
 static void snd_bt87x_free_risc(struct snd_bt87x *chip)
 {
-	if (chip->dma_risc.area) {
+	if (chip->dma_risc.area)
+	{
 		snd_dma_free_pages(&chip->dma_risc);
 		chip->dma_risc.area = NULL;
 	}
@@ -289,27 +314,31 @@ static void snd_bt87x_pci_error(struct snd_bt87x *chip, unsigned int status)
 
 	pci_read_config_word(chip->pci, PCI_STATUS, &pci_status);
 	pci_status &= PCI_STATUS_PARITY | PCI_STATUS_SIG_TARGET_ABORT |
-		PCI_STATUS_REC_TARGET_ABORT | PCI_STATUS_REC_MASTER_ABORT |
-		PCI_STATUS_SIG_SYSTEM_ERROR | PCI_STATUS_DETECTED_PARITY;
+				  PCI_STATUS_REC_TARGET_ABORT | PCI_STATUS_REC_MASTER_ABORT |
+				  PCI_STATUS_SIG_SYSTEM_ERROR | PCI_STATUS_DETECTED_PARITY;
 	pci_write_config_word(chip->pci, PCI_STATUS, pci_status);
+
 	if (pci_status != PCI_STATUS_DETECTED_PARITY)
 		dev_err(chip->card->dev,
-			"Aieee - PCI error! status %#08x, PCI status %#04x\n",
-			   status & ERROR_INTERRUPTS, pci_status);
-	else {
+				"Aieee - PCI error! status %#08x, PCI status %#04x\n",
+				status & ERROR_INTERRUPTS, pci_status);
+	else
+	{
 		dev_err(chip->card->dev,
-			"Aieee - PCI parity error detected!\n");
+				"Aieee - PCI parity error detected!\n");
 		/* error 'handling' similar to aic7xxx_pci.c: */
 		chip->pci_parity_errors++;
-		if (chip->pci_parity_errors > 20) {
+
+		if (chip->pci_parity_errors > 20)
+		{
 			dev_err(chip->card->dev,
-				"Too many PCI parity errors observed.\n");
+					"Too many PCI parity errors observed.\n");
 			dev_err(chip->card->dev,
-				"Some device on this bus is generating bad parity.\n");
+					"Some device on this bus is generating bad parity.\n");
 			dev_err(chip->card->dev,
-				"This is an error *observed by*, not *generated by*, this card.\n");
+					"This is an error *observed by*, not *generated by*, this card.\n");
 			dev_err(chip->card->dev,
-				"PCI parity error checking has been disabled.\n");
+					"PCI parity error checking has been disabled.\n");
 			chip->interrupt_mask &= ~(INT_PPERR | INT_RIPERR);
 			snd_bt87x_writel(chip, REG_INT_MASK, chip->interrupt_mask);
 		}
@@ -323,21 +352,32 @@ static irqreturn_t snd_bt87x_interrupt(int irq, void *dev_id)
 
 	status = snd_bt87x_readl(chip, REG_INT_STAT);
 	irq_status = status & chip->interrupt_mask;
+
 	if (!irq_status)
+	{
 		return IRQ_NONE;
+	}
+
 	snd_bt87x_writel(chip, REG_INT_STAT, irq_status);
 
-	if (irq_status & ERROR_INTERRUPTS) {
+	if (irq_status & ERROR_INTERRUPTS)
+	{
 		if (irq_status & (INT_FBUS | INT_FTRGT))
 			dev_warn(chip->card->dev,
-				 "FIFO overrun, status %#08x\n", status);
+					 "FIFO overrun, status %#08x\n", status);
+
 		if (irq_status & INT_OCERR)
 			dev_err(chip->card->dev,
-				"internal RISC error, status %#08x\n", status);
+					"internal RISC error, status %#08x\n", status);
+
 		if (irq_status & (INT_PPERR | INT_RIPERR | INT_PABORT))
+		{
 			snd_bt87x_pci_error(chip, irq_status);
+		}
 	}
-	if ((irq_status & INT_RISCI) && (chip->reg_control & CTL_ACAP_EN)) {
+
+	if ((irq_status & INT_RISCI) && (chip->reg_control & CTL_ACAP_EN))
+	{
 		int current_block, irq_block;
 
 		/* assume that exactly one line has been recorded */
@@ -345,20 +385,25 @@ static irqreturn_t snd_bt87x_interrupt(int irq, void *dev_id)
 		/* but check if some interrupts have been skipped */
 		current_block = chip->current_line * 16 / chip->lines;
 		irq_block = status >> INT_RISCS_SHIFT;
+
 		if (current_block != irq_block)
+		{
 			chip->current_line = (irq_block * chip->lines + 15) / 16;
+		}
 
 		snd_pcm_period_elapsed(chip->substream);
 	}
+
 	return IRQ_HANDLED;
 }
 
-static struct snd_pcm_hardware snd_bt87x_digital_hw = {
+static struct snd_pcm_hardware snd_bt87x_digital_hw =
+{
 	.info = SNDRV_PCM_INFO_MMAP |
-		SNDRV_PCM_INFO_INTERLEAVED |
-		SNDRV_PCM_INFO_BLOCK_TRANSFER |
-		SNDRV_PCM_INFO_MMAP_VALID |
-		SNDRV_PCM_INFO_BATCH,
+	SNDRV_PCM_INFO_INTERLEAVED |
+	SNDRV_PCM_INFO_BLOCK_TRANSFER |
+	SNDRV_PCM_INFO_MMAP_VALID |
+	SNDRV_PCM_INFO_BATCH,
 	.formats = SNDRV_PCM_FMTBIT_S16_LE,
 	.rates = 0, /* set at runtime */
 	.channels_min = 2,
@@ -370,12 +415,13 @@ static struct snd_pcm_hardware snd_bt87x_digital_hw = {
 	.periods_max = 255,
 };
 
-static struct snd_pcm_hardware snd_bt87x_analog_hw = {
+static struct snd_pcm_hardware snd_bt87x_analog_hw =
+{
 	.info = SNDRV_PCM_INFO_MMAP |
-		SNDRV_PCM_INFO_INTERLEAVED |
-		SNDRV_PCM_INFO_BLOCK_TRANSFER |
-		SNDRV_PCM_INFO_MMAP_VALID |
-		SNDRV_PCM_INFO_BATCH,
+	SNDRV_PCM_INFO_INTERLEAVED |
+	SNDRV_PCM_INFO_BLOCK_TRANSFER |
+	SNDRV_PCM_INFO_MMAP_VALID |
+	SNDRV_PCM_INFO_BATCH,
 	.formats = SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S8,
 	.rates = SNDRV_PCM_RATE_KNOT,
 	.rate_min = ANALOG_CLOCK / CLOCK_DIV_MAX,
@@ -401,13 +447,15 @@ static int snd_bt87x_set_digital_hw(struct snd_bt87x *chip, struct snd_pcm_runti
 
 static int snd_bt87x_set_analog_hw(struct snd_bt87x *chip, struct snd_pcm_runtime *runtime)
 {
-	static struct snd_ratnum analog_clock = {
+	static struct snd_ratnum analog_clock =
+	{
 		.num = ANALOG_CLOCK,
 		.den_min = CLOCK_DIV_MIN,
 		.den_max = CLOCK_DIV_MAX,
 		.den_step = 1
 	};
-	static struct snd_pcm_hw_constraint_ratnums constraint_rates = {
+	static struct snd_pcm_hw_constraint_ratnums constraint_rates =
+	{
 		.nrats = 1,
 		.rats = &analog_clock
 	};
@@ -415,7 +463,7 @@ static int snd_bt87x_set_analog_hw(struct snd_bt87x *chip, struct snd_pcm_runtim
 	chip->reg_control &= ~(CTL_DA_IOM_DA | CTL_A_PWRDN);
 	runtime->hw = snd_bt87x_analog_hw;
 	return snd_pcm_hw_constraint_ratnums(runtime, 0, SNDRV_PCM_HW_PARAM_RATE,
-					     &constraint_rates);
+										 &constraint_rates);
 }
 
 static int snd_bt87x_pcm_open(struct snd_pcm_substream *substream)
@@ -425,18 +473,30 @@ static int snd_bt87x_pcm_open(struct snd_pcm_substream *substream)
 	int err;
 
 	if (test_and_set_bit(0, &chip->opened))
+	{
 		return -EBUSY;
+	}
 
 	if (substream->pcm->device == DEVICE_DIGITAL)
+	{
 		err = snd_bt87x_set_digital_hw(chip, runtime);
+	}
 	else
+	{
 		err = snd_bt87x_set_analog_hw(chip, runtime);
+	}
+
 	if (err < 0)
+	{
 		goto _error;
+	}
 
 	err = snd_pcm_hw_constraint_integer(runtime, SNDRV_PCM_HW_PARAM_PERIODS);
+
 	if (err < 0)
+	{
 		goto _error;
+	}
 
 	chip->substream = substream;
 	return 0;
@@ -463,18 +523,22 @@ static int snd_bt87x_close(struct snd_pcm_substream *substream)
 }
 
 static int snd_bt87x_hw_params(struct snd_pcm_substream *substream,
-			       struct snd_pcm_hw_params *hw_params)
+							   struct snd_pcm_hw_params *hw_params)
 {
 	struct snd_bt87x *chip = snd_pcm_substream_chip(substream);
 	int err;
 
 	err = snd_pcm_lib_malloc_pages(substream,
-				       params_buffer_bytes(hw_params));
+								   params_buffer_bytes(hw_params));
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	return snd_bt87x_create_risc(chip, substream,
-				     params_periods(hw_params),
-				     params_period_bytes(hw_params));
+								 params_periods(hw_params),
+								 params_period_bytes(hw_params));
 }
 
 static int snd_bt87x_hw_free(struct snd_pcm_substream *substream)
@@ -496,8 +560,12 @@ static int snd_bt87x_prepare(struct snd_pcm_substream *substream)
 	chip->reg_control &= ~(CTL_DA_SDR_MASK | CTL_DA_SBR);
 	decimation = (ANALOG_CLOCK + runtime->rate / 4) / runtime->rate;
 	chip->reg_control |= decimation << CTL_DA_SDR_SHIFT;
+
 	if (runtime->format == SNDRV_PCM_FORMAT_S8)
+	{
 		chip->reg_control |= CTL_DA_SBR;
+	}
+
 	snd_bt87x_writel(chip, REG_GPIO_DMA_CTL, chip->reg_control);
 	spin_unlock_irq(&chip->reg_lock);
 	return 0;
@@ -510,7 +578,7 @@ static int snd_bt87x_start(struct snd_bt87x *chip)
 	chip->reg_control |= CTL_FIFO_ENABLE | CTL_RISC_ENABLE | CTL_ACAP_EN;
 	snd_bt87x_writel(chip, REG_RISC_STRT_ADD, chip->dma_risc.addr);
 	snd_bt87x_writel(chip, REG_PACKET_LEN,
-			 chip->line_bytes | (chip->lines << 16));
+					 chip->line_bytes | (chip->lines << 16));
 	snd_bt87x_writel(chip, REG_INT_MASK, chip->interrupt_mask);
 	snd_bt87x_writel(chip, REG_GPIO_DMA_CTL, chip->reg_control);
 	spin_unlock(&chip->reg_lock);
@@ -532,13 +600,16 @@ static int snd_bt87x_trigger(struct snd_pcm_substream *substream, int cmd)
 {
 	struct snd_bt87x *chip = snd_pcm_substream_chip(substream);
 
-	switch (cmd) {
-	case SNDRV_PCM_TRIGGER_START:
-		return snd_bt87x_start(chip);
-	case SNDRV_PCM_TRIGGER_STOP:
-		return snd_bt87x_stop(chip);
-	default:
-		return -EINVAL;
+	switch (cmd)
+	{
+		case SNDRV_PCM_TRIGGER_START:
+			return snd_bt87x_start(chip);
+
+		case SNDRV_PCM_TRIGGER_STOP:
+			return snd_bt87x_stop(chip);
+
+		default:
+			return -EINVAL;
 	}
 }
 
@@ -550,7 +621,8 @@ static snd_pcm_uframes_t snd_bt87x_pointer(struct snd_pcm_substream *substream)
 	return (snd_pcm_uframes_t)bytes_to_frames(runtime, chip->current_line * chip->line_bytes);
 }
 
-static const struct snd_pcm_ops snd_bt87x_pcm_ops = {
+static const struct snd_pcm_ops snd_bt87x_pcm_ops =
+{
 	.open = snd_bt87x_pcm_open,
 	.close = snd_bt87x_close,
 	.ioctl = snd_pcm_lib_ioctl,
@@ -563,7 +635,7 @@ static const struct snd_pcm_ops snd_bt87x_pcm_ops = {
 };
 
 static int snd_bt87x_capture_volume_info(struct snd_kcontrol *kcontrol,
-					 struct snd_ctl_elem_info *info)
+		struct snd_ctl_elem_info *info)
 {
 	info->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	info->count = 1;
@@ -573,7 +645,7 @@ static int snd_bt87x_capture_volume_info(struct snd_kcontrol *kcontrol,
 }
 
 static int snd_bt87x_capture_volume_get(struct snd_kcontrol *kcontrol,
-					struct snd_ctl_elem_value *value)
+										struct snd_ctl_elem_value *value)
 {
 	struct snd_bt87x *chip = snd_kcontrol_chip(kcontrol);
 
@@ -582,7 +654,7 @@ static int snd_bt87x_capture_volume_get(struct snd_kcontrol *kcontrol,
 }
 
 static int snd_bt87x_capture_volume_put(struct snd_kcontrol *kcontrol,
-					struct snd_ctl_elem_value *value)
+										struct snd_ctl_elem_value *value)
 {
 	struct snd_bt87x *chip = snd_kcontrol_chip(kcontrol);
 	u32 old_control;
@@ -591,14 +663,15 @@ static int snd_bt87x_capture_volume_put(struct snd_kcontrol *kcontrol,
 	spin_lock_irq(&chip->reg_lock);
 	old_control = chip->reg_control;
 	chip->reg_control = (chip->reg_control & ~CTL_A_GAIN_MASK)
-		| (value->value.integer.value[0] << CTL_A_GAIN_SHIFT);
+						| (value->value.integer.value[0] << CTL_A_GAIN_SHIFT);
 	snd_bt87x_writel(chip, REG_GPIO_DMA_CTL, chip->reg_control);
 	changed = old_control != chip->reg_control;
 	spin_unlock_irq(&chip->reg_lock);
 	return changed;
 }
 
-static struct snd_kcontrol_new snd_bt87x_capture_volume = {
+static struct snd_kcontrol_new snd_bt87x_capture_volume =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name = "Capture Volume",
 	.info = snd_bt87x_capture_volume_info,
@@ -609,7 +682,7 @@ static struct snd_kcontrol_new snd_bt87x_capture_volume = {
 #define snd_bt87x_capture_boost_info	snd_ctl_boolean_mono_info
 
 static int snd_bt87x_capture_boost_get(struct snd_kcontrol *kcontrol,
-				       struct snd_ctl_elem_value *value)
+									   struct snd_ctl_elem_value *value)
 {
 	struct snd_bt87x *chip = snd_kcontrol_chip(kcontrol);
 
@@ -618,7 +691,7 @@ static int snd_bt87x_capture_boost_get(struct snd_kcontrol *kcontrol,
 }
 
 static int snd_bt87x_capture_boost_put(struct snd_kcontrol *kcontrol,
-				       struct snd_ctl_elem_value *value)
+									   struct snd_ctl_elem_value *value)
 {
 	struct snd_bt87x *chip = snd_kcontrol_chip(kcontrol);
 	u32 old_control;
@@ -627,14 +700,15 @@ static int snd_bt87x_capture_boost_put(struct snd_kcontrol *kcontrol,
 	spin_lock_irq(&chip->reg_lock);
 	old_control = chip->reg_control;
 	chip->reg_control = (chip->reg_control & ~CTL_A_G2X)
-		| (value->value.integer.value[0] ? CTL_A_G2X : 0);
+						| (value->value.integer.value[0] ? CTL_A_G2X : 0);
 	snd_bt87x_writel(chip, REG_GPIO_DMA_CTL, chip->reg_control);
 	changed = chip->reg_control != old_control;
 	spin_unlock_irq(&chip->reg_lock);
 	return changed;
 }
 
-static struct snd_kcontrol_new snd_bt87x_capture_boost = {
+static struct snd_kcontrol_new snd_bt87x_capture_boost =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name = "Capture Boost",
 	.info = snd_bt87x_capture_boost_info,
@@ -643,7 +717,7 @@ static struct snd_kcontrol_new snd_bt87x_capture_boost = {
 };
 
 static int snd_bt87x_capture_source_info(struct snd_kcontrol *kcontrol,
-					 struct snd_ctl_elem_info *info)
+		struct snd_ctl_elem_info *info)
 {
 	static const char *const texts[3] = {"TV Tuner", "FM", "Mic/Line"};
 
@@ -651,7 +725,7 @@ static int snd_bt87x_capture_source_info(struct snd_kcontrol *kcontrol,
 }
 
 static int snd_bt87x_capture_source_get(struct snd_kcontrol *kcontrol,
-					struct snd_ctl_elem_value *value)
+										struct snd_ctl_elem_value *value)
 {
 	struct snd_bt87x *chip = snd_kcontrol_chip(kcontrol);
 
@@ -660,7 +734,7 @@ static int snd_bt87x_capture_source_get(struct snd_kcontrol *kcontrol,
 }
 
 static int snd_bt87x_capture_source_put(struct snd_kcontrol *kcontrol,
-					struct snd_ctl_elem_value *value)
+										struct snd_ctl_elem_value *value)
 {
 	struct snd_bt87x *chip = snd_kcontrol_chip(kcontrol);
 	u32 old_control;
@@ -669,14 +743,15 @@ static int snd_bt87x_capture_source_put(struct snd_kcontrol *kcontrol,
 	spin_lock_irq(&chip->reg_lock);
 	old_control = chip->reg_control;
 	chip->reg_control = (chip->reg_control & ~CTL_A_SEL_MASK)
-		| (value->value.enumerated.item[0] << CTL_A_SEL_SHIFT);
+						| (value->value.enumerated.item[0] << CTL_A_SEL_SHIFT);
 	snd_bt87x_writel(chip, REG_GPIO_DMA_CTL, chip->reg_control);
 	changed = chip->reg_control != old_control;
 	spin_unlock_irq(&chip->reg_lock);
 	return changed;
 }
 
-static struct snd_kcontrol_new snd_bt87x_capture_source = {
+static struct snd_kcontrol_new snd_bt87x_capture_source =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name = "Capture Source",
 	.info = snd_bt87x_capture_source_info,
@@ -687,9 +762,15 @@ static struct snd_kcontrol_new snd_bt87x_capture_source = {
 static int snd_bt87x_free(struct snd_bt87x *chip)
 {
 	if (chip->mmio)
+	{
 		snd_bt87x_stop(chip);
+	}
+
 	if (chip->irq >= 0)
+	{
 		free_irq(chip->irq, chip);
+	}
+
 	iounmap(chip->mmio);
 	pci_release_regions(chip->pci);
 	pci_disable_device(chip->pci);
@@ -709,76 +790,97 @@ static int snd_bt87x_pcm(struct snd_bt87x *chip, int device, char *name)
 	struct snd_pcm *pcm;
 
 	err = snd_pcm_new(chip->card, name, device, 0, 1, &pcm);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	pcm->private_data = chip;
 	strcpy(pcm->name, name);
 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_CAPTURE, &snd_bt87x_pcm_ops);
 	return snd_pcm_lib_preallocate_pages_for_all(pcm,
-						     SNDRV_DMA_TYPE_DEV_SG,
-						     snd_dma_pci_data(chip->pci),
-							128 * 1024,
-							ALIGN(255 * 4092, 1024));
+			SNDRV_DMA_TYPE_DEV_SG,
+			snd_dma_pci_data(chip->pci),
+			128 * 1024,
+			ALIGN(255 * 4092, 1024));
 }
 
 static int snd_bt87x_create(struct snd_card *card,
-			    struct pci_dev *pci,
-			    struct snd_bt87x **rchip)
+							struct pci_dev *pci,
+							struct snd_bt87x **rchip)
 {
 	struct snd_bt87x *chip;
 	int err;
-	static struct snd_device_ops ops = {
+	static struct snd_device_ops ops =
+	{
 		.dev_free = snd_bt87x_dev_free
 	};
 
 	*rchip = NULL;
 
 	err = pci_enable_device(pci);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
-	if (!chip) {
+
+	if (!chip)
+	{
 		pci_disable_device(pci);
 		return -ENOMEM;
 	}
+
 	chip->card = card;
 	chip->pci = pci;
 	chip->irq = -1;
 	spin_lock_init(&chip->reg_lock);
 
-	if ((err = pci_request_regions(pci, "Bt87x audio")) < 0) {
+	if ((err = pci_request_regions(pci, "Bt87x audio")) < 0)
+	{
 		kfree(chip);
 		pci_disable_device(pci);
 		return err;
 	}
+
 	chip->mmio = pci_ioremap_bar(pci, 0);
-	if (!chip->mmio) {
+
+	if (!chip->mmio)
+	{
 		dev_err(card->dev, "cannot remap io memory\n");
 		err = -ENOMEM;
 		goto fail;
 	}
 
 	chip->reg_control = CTL_A_PWRDN | CTL_DA_ES2 |
-			    CTL_PKTP_16 | (15 << CTL_DA_SDR_SHIFT);
+						CTL_PKTP_16 | (15 << CTL_DA_SDR_SHIFT);
 	chip->interrupt_mask = MY_INTERRUPTS;
 	snd_bt87x_writel(chip, REG_GPIO_DMA_CTL, chip->reg_control);
 	snd_bt87x_writel(chip, REG_INT_MASK, 0);
 	snd_bt87x_writel(chip, REG_INT_STAT, MY_INTERRUPTS);
 
 	err = request_irq(pci->irq, snd_bt87x_interrupt, IRQF_SHARED,
-			  KBUILD_MODNAME, chip);
-	if (err < 0) {
+					  KBUILD_MODNAME, chip);
+
+	if (err < 0)
+	{
 		dev_err(card->dev, "cannot grab irq %d\n", pci->irq);
 		goto fail;
 	}
+
 	chip->irq = pci->irq;
 	pci_set_master(pci);
 	synchronize_irq(chip->irq);
 
 	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+
 	if (err < 0)
+	{
 		goto fail;
+	}
 
 	*rchip = chip;
 	return 0;
@@ -790,12 +892,13 @@ fail:
 
 #define BT_DEVICE(chip, subvend, subdev, id) \
 	{ .vendor = PCI_VENDOR_ID_BROOKTREE, \
-	  .device = chip, \
-	  .subvendor = subvend, .subdevice = subdev, \
-	  .driver_data = SND_BT87X_BOARD_ ## id }
+				.device = chip, \
+						  .subvendor = subvend, .subdevice = subdev, \
+									   .driver_data = SND_BT87X_BOARD_ ## id }
 /* driver_data is the card id for that device */
 
-static const struct pci_device_id snd_bt87x_ids[] = {
+static const struct pci_device_id snd_bt87x_ids[] =
+{
 	/* Hauppauge WinTV series */
 	BT_DEVICE(PCI_DEVICE_ID_BROOKTREE_878, 0x0070, 0x13eb, GENERIC),
 	/* Hauppauge WinTV series */
@@ -826,9 +929,11 @@ MODULE_DEVICE_TABLE(pci, snd_bt87x_ids);
 
 /* cards known not to have audio
  * (DVB cards use the audio function to transfer MPEG data) */
-static struct {
+static struct
+{
 	unsigned short subvendor, subdevice;
-} blacklist[] = {
+} blacklist[] =
+{
 	{0x0071, 0x0101}, /* Nebula Electronics DigiTV */
 	{0x11bd, 0x001c}, /* Pinnacle PCTV Sat */
 	{0x11bd, 0x0026}, /* Pinnacle PCTV SAT CI */
@@ -851,28 +956,32 @@ static int snd_bt87x_detect_card(struct pci_dev *pci)
 	const struct pci_device_id *supported;
 
 	supported = pci_match_id(snd_bt87x_ids, pci);
+
 	if (supported && supported->driver_data > 0)
+	{
 		return supported->driver_data;
+	}
 
 	for (i = 0; i < ARRAY_SIZE(blacklist); ++i)
 		if (blacklist[i].subvendor == pci->subsystem_vendor &&
-		    blacklist[i].subdevice == pci->subsystem_device) {
+			blacklist[i].subdevice == pci->subsystem_device)
+		{
 			dev_dbg(&pci->dev,
-				"card %#04x-%#04x:%#04x has no audio\n",
-				    pci->device, pci->subsystem_vendor, pci->subsystem_device);
+					"card %#04x-%#04x:%#04x has no audio\n",
+					pci->device, pci->subsystem_vendor, pci->subsystem_device);
 			return -EBUSY;
 		}
 
 	dev_info(&pci->dev, "unknown card %#04x-%#04x:%#04x\n",
-		   pci->device, pci->subsystem_vendor, pci->subsystem_device);
+			 pci->device, pci->subsystem_vendor, pci->subsystem_device);
 	dev_info(&pci->dev, "please mail id, board name, and, "
-		   "if it works, the correct digital_rate option to "
-		   "<alsa-devel@alsa-project.org>\n");
+			 "if it works, the correct digital_rate option to "
+			 "<alsa-devel@alsa-project.org>\n");
 	return SND_BT87X_BOARD_UNKNOWN;
 }
 
 static int snd_bt87x_probe(struct pci_dev *pci,
-			   const struct pci_device_id *pci_id)
+						   const struct pci_device_id *pci_id)
 {
 	static int dev;
 	struct snd_card *card;
@@ -880,74 +989,119 @@ static int snd_bt87x_probe(struct pci_dev *pci,
 	int err;
 	enum snd_bt87x_boardid boardid;
 
-	if (!pci_id->driver_data) {
+	if (!pci_id->driver_data)
+	{
 		err = snd_bt87x_detect_card(pci);
+
 		if (err < 0)
+		{
 			return -ENODEV;
+		}
+
 		boardid = err;
-	} else
+	}
+	else
+	{
 		boardid = pci_id->driver_data;
+	}
 
 	if (dev >= SNDRV_CARDS)
+	{
 		return -ENODEV;
-	if (!enable[dev]) {
+	}
+
+	if (!enable[dev])
+	{
 		++dev;
 		return -ENOENT;
 	}
 
 	err = snd_card_new(&pci->dev, index[dev], id[dev], THIS_MODULE,
-			   0, &card);
+					   0, &card);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = snd_bt87x_create(card, pci, &chip);
+
 	if (err < 0)
+	{
 		goto _error;
+	}
 
 	memcpy(&chip->board, &snd_bt87x_boards[boardid], sizeof(chip->board));
 
-	if (!chip->board.no_digital) {
+	if (!chip->board.no_digital)
+	{
 		if (digital_rate[dev] > 0)
+		{
 			chip->board.dig_rate = digital_rate[dev];
+		}
 
 		chip->reg_control |= chip->board.digital_fmt;
 
 		err = snd_bt87x_pcm(chip, DEVICE_DIGITAL, "Bt87x Digital");
+
 		if (err < 0)
+		{
 			goto _error;
+		}
 	}
-	if (!chip->board.no_analog) {
+
+	if (!chip->board.no_analog)
+	{
 		err = snd_bt87x_pcm(chip, DEVICE_ANALOG, "Bt87x Analog");
+
 		if (err < 0)
+		{
 			goto _error;
+		}
+
 		err = snd_ctl_add(card, snd_ctl_new1(
-				  &snd_bt87x_capture_volume, chip));
+							  &snd_bt87x_capture_volume, chip));
+
 		if (err < 0)
+		{
 			goto _error;
+		}
+
 		err = snd_ctl_add(card, snd_ctl_new1(
-				  &snd_bt87x_capture_boost, chip));
+							  &snd_bt87x_capture_boost, chip));
+
 		if (err < 0)
+		{
 			goto _error;
+		}
+
 		err = snd_ctl_add(card, snd_ctl_new1(
-				  &snd_bt87x_capture_source, chip));
+							  &snd_bt87x_capture_source, chip));
+
 		if (err < 0)
+		{
 			goto _error;
+		}
 	}
+
 	dev_info(card->dev, "bt87x%d: Using board %d, %sanalog, %sdigital "
-		   "(rate %d Hz)\n", dev, boardid,
-		   chip->board.no_analog ? "no " : "",
-		   chip->board.no_digital ? "no " : "", chip->board.dig_rate);
+			 "(rate %d Hz)\n", dev, boardid,
+			 chip->board.no_analog ? "no " : "",
+			 chip->board.no_digital ? "no " : "", chip->board.dig_rate);
 
 	strcpy(card->driver, "Bt87x");
 	sprintf(card->shortname, "Brooktree Bt%x", pci->device);
 	sprintf(card->longname, "%s at %#llx, irq %i",
-		card->shortname, (unsigned long long)pci_resource_start(pci, 0),
-		chip->irq);
+			card->shortname, (unsigned long long)pci_resource_start(pci, 0),
+			chip->irq);
 	strcpy(card->mixername, "Bt87x");
 
 	err = snd_card_register(card);
+
 	if (err < 0)
+	{
 		goto _error;
+	}
 
 	pci_set_drvdata(pci, card);
 	++dev;
@@ -965,13 +1119,15 @@ static void snd_bt87x_remove(struct pci_dev *pci)
 
 /* default entries for all Bt87x cards - it's not exported */
 /* driver_data is set to 0 to call detection */
-static const struct pci_device_id snd_bt87x_default_ids[] = {
+static const struct pci_device_id snd_bt87x_default_ids[] =
+{
 	BT_DEVICE(PCI_DEVICE_ID_BROOKTREE_878, PCI_ANY_ID, PCI_ANY_ID, UNKNOWN),
 	BT_DEVICE(PCI_DEVICE_ID_BROOKTREE_879, PCI_ANY_ID, PCI_ANY_ID, UNKNOWN),
 	{ }
 };
 
-static struct pci_driver driver = {
+static struct pci_driver driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = snd_bt87x_ids,
 	.probe = snd_bt87x_probe,
@@ -981,7 +1137,10 @@ static struct pci_driver driver = {
 static int __init alsa_card_bt87x_init(void)
 {
 	if (load_all)
+	{
 		driver.id_table = snd_bt87x_default_ids;
+	}
+
 	return pci_register_driver(&driver);
 }
 

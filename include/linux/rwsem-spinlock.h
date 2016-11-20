@@ -9,7 +9,7 @@
 #define _LINUX_RWSEM_SPINLOCK_H
 
 #ifndef _LINUX_RWSEM_H
-#error "please don't include linux/rwsem-spinlock.h directly, use linux/rwsem.h instead"
+	#error "please don't include linux/rwsem-spinlock.h directly, use linux/rwsem.h instead"
 #endif
 
 #ifdef __KERNEL__
@@ -20,7 +20,8 @@
  * - if count is -1 then there is one active writer
  * - if wait_list is not empty, then there are processes waiting for the semaphore
  */
-struct rw_semaphore {
+struct rw_semaphore
+{
 	__s32			count;
 	raw_spinlock_t		wait_lock;
 	struct list_head	wait_list;

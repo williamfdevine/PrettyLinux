@@ -77,8 +77,11 @@ static struct rvt_mcast_qp *rvt_mcast_qp_alloc(struct rvt_qp *qp)
 	struct rvt_mcast_qp *mqp;
 
 	mqp = kmalloc(sizeof(*mqp), GFP_KERNEL);
+
 	if (!mqp)
+	{
 		goto bail;
+	}
 
 	mqp->qp = qp;
 	atomic_inc(&qp->refcount);
@@ -93,7 +96,9 @@ static void rvt_mcast_qp_free(struct rvt_mcast_qp *mqp)
 
 	/* Notify hfi1_destroy_qp() if it is waiting. */
 	if (atomic_dec_and_test(&qp->refcount))
+	{
 		wake_up(&qp->wait);
+	}
 
 	kfree(mqp);
 }
@@ -109,8 +114,11 @@ static struct rvt_mcast *rvt_mcast_alloc(union ib_gid *mgid)
 	struct rvt_mcast *mcast;
 
 	mcast = kzalloc(sizeof(*mcast), GFP_KERNEL);
+
 	if (!mcast)
+	{
 		goto bail;
+	}
 
 	mcast->mgid = *mgid;
 	INIT_LIST_HEAD(&mcast->qp_list);
@@ -126,7 +134,7 @@ static void rvt_mcast_free(struct rvt_mcast *mcast)
 	struct rvt_mcast_qp *p, *tmp;
 
 	list_for_each_entry_safe(p, tmp, &mcast->qp_list, list)
-		rvt_mcast_qp_free(p);
+	rvt_mcast_qp_free(p);
 
 	kfree(mcast);
 }
@@ -148,24 +156,33 @@ struct rvt_mcast *rvt_mcast_find(struct rvt_ibport *ibp, union ib_gid *mgid)
 
 	spin_lock_irqsave(&ibp->lock, flags);
 	n = ibp->mcast_tree.rb_node;
-	while (n) {
+
+	while (n)
+	{
 		int ret;
 		struct rvt_mcast *mcast;
 
 		mcast = rb_entry(n, struct rvt_mcast, rb_node);
 
 		ret = memcmp(mgid->raw, mcast->mgid.raw,
-			     sizeof(union ib_gid));
-		if (ret < 0) {
+					 sizeof(union ib_gid));
+
+		if (ret < 0)
+		{
 			n = n->rb_left;
-		} else if (ret > 0) {
+		}
+		else if (ret > 0)
+		{
 			n = n->rb_right;
-		} else {
+		}
+		else
+		{
 			atomic_inc(&mcast->refcount);
 			found = mcast;
 			break;
 		}
 	}
+
 	spin_unlock_irqrestore(&ibp->lock, flags);
 	return found;
 }
@@ -181,7 +198,7 @@ EXPORT_SYMBOL(rvt_mcast_find);
  * attached and neither structure was added.
  */
 static int rvt_mcast_add(struct rvt_dev_info *rdi, struct rvt_ibport *ibp,
-			 struct rvt_mcast *mcast, struct rvt_mcast_qp *mqp)
+						 struct rvt_mcast *mcast, struct rvt_mcast_qp *mqp)
 {
 	struct rb_node **n = &ibp->mcast_tree.rb_node;
 	struct rb_node *pn = NULL;
@@ -189,7 +206,8 @@ static int rvt_mcast_add(struct rvt_dev_info *rdi, struct rvt_ibport *ibp,
 
 	spin_lock_irq(&ibp->lock);
 
-	while (*n) {
+	while (*n)
+	{
 		struct rvt_mcast *tmcast;
 		struct rvt_mcast_qp *p;
 
@@ -197,25 +215,33 @@ static int rvt_mcast_add(struct rvt_dev_info *rdi, struct rvt_ibport *ibp,
 		tmcast = rb_entry(pn, struct rvt_mcast, rb_node);
 
 		ret = memcmp(mcast->mgid.raw, tmcast->mgid.raw,
-			     sizeof(union ib_gid));
-		if (ret < 0) {
+					 sizeof(union ib_gid));
+
+		if (ret < 0)
+		{
 			n = &pn->rb_left;
 			continue;
 		}
-		if (ret > 0) {
+
+		if (ret > 0)
+		{
 			n = &pn->rb_right;
 			continue;
 		}
 
 		/* Search the QP list to see if this is already there. */
-		list_for_each_entry_rcu(p, &tmcast->qp_list, list) {
-			if (p->qp == mqp->qp) {
+		list_for_each_entry_rcu(p, &tmcast->qp_list, list)
+		{
+			if (p->qp == mqp->qp)
+			{
 				ret = ESRCH;
 				goto bail;
 			}
 		}
+
 		if (tmcast->n_attached ==
-		    rdi->dparms.props.max_mcast_qp_attach) {
+			rdi->dparms.props.max_mcast_qp_attach)
+		{
 			ret = ENOMEM;
 			goto bail;
 		}
@@ -228,7 +254,9 @@ static int rvt_mcast_add(struct rvt_dev_info *rdi, struct rvt_ibport *ibp,
 	}
 
 	spin_lock(&rdi->n_mcast_grps_lock);
-	if (rdi->n_mcast_grps_allocated == rdi->dparms.props.max_mcast_grp) {
+
+	if (rdi->n_mcast_grps_allocated == rdi->dparms.props.max_mcast_grp)
+	{
 		spin_unlock(&rdi->n_mcast_grps_lock);
 		ret = ENOMEM;
 		goto bail;
@@ -271,34 +299,46 @@ int rvt_attach_mcast(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
 	int ret = -ENOMEM;
 
 	if (ibqp->qp_num <= 1 || qp->state == IB_QPS_RESET)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Allocate data structures since its better to do this outside of
 	 * spin locks and it will most likely be needed.
 	 */
 	mcast = rvt_mcast_alloc(gid);
+
 	if (!mcast)
+	{
 		return -ENOMEM;
+	}
 
 	mqp = rvt_mcast_qp_alloc(qp);
-	if (!mqp)
-		goto bail_mcast;
 
-	switch (rvt_mcast_add(rdi, ibp, mcast, mqp)) {
-	case ESRCH:
-		/* Neither was used: OK to attach the same QP twice. */
-		ret = 0;
-		goto bail_mqp;
-	case EEXIST: /* The mcast wasn't used */
-		ret = 0;
+	if (!mqp)
+	{
 		goto bail_mcast;
-	case ENOMEM:
-		/* Exceeded the maximum number of mcast groups. */
-		ret = -ENOMEM;
-		goto bail_mqp;
-	default:
-		break;
+	}
+
+	switch (rvt_mcast_add(rdi, ibp, mcast, mqp))
+	{
+		case ESRCH:
+			/* Neither was used: OK to attach the same QP twice. */
+			ret = 0;
+			goto bail_mqp;
+
+		case EEXIST: /* The mcast wasn't used */
+			ret = 0;
+			goto bail_mcast;
+
+		case ENOMEM:
+			/* Exceeded the maximum number of mcast groups. */
+			ret = -ENOMEM;
+			goto bail_mqp;
+
+		default:
+			break;
 	}
 
 	return 0;
@@ -332,33 +372,49 @@ int rvt_detach_mcast(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
 	int ret = 0;
 
 	if (ibqp->qp_num <= 1 || qp->state == IB_QPS_RESET)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irq(&ibp->lock);
 
 	/* Find the GID in the mcast table. */
 	n = ibp->mcast_tree.rb_node;
-	while (1) {
-		if (!n) {
+
+	while (1)
+	{
+		if (!n)
+		{
 			spin_unlock_irq(&ibp->lock);
 			return -EINVAL;
 		}
 
 		mcast = rb_entry(n, struct rvt_mcast, rb_node);
 		ret = memcmp(gid->raw, mcast->mgid.raw,
-			     sizeof(union ib_gid));
+					 sizeof(union ib_gid));
+
 		if (ret < 0)
+		{
 			n = n->rb_left;
+		}
 		else if (ret > 0)
+		{
 			n = n->rb_right;
+		}
 		else
+		{
 			break;
+		}
 	}
 
 	/* Search the QP list. */
-	list_for_each_entry_safe(p, tmp, &mcast->qp_list, list) {
+	list_for_each_entry_safe(p, tmp, &mcast->qp_list, list)
+	{
 		if (p->qp != qp)
+		{
 			continue;
+		}
+
 		/*
 		 * We found it, so remove it, but don't poison the forward
 		 * link until we are sure there are no list walkers.
@@ -368,17 +424,22 @@ int rvt_detach_mcast(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
 		delp = p;
 
 		/* If this was the last attached QP, remove the GID too. */
-		if (list_empty(&mcast->qp_list)) {
+		if (list_empty(&mcast->qp_list))
+		{
 			rb_erase(&mcast->rb_node, &ibp->mcast_tree);
 			last = 1;
 		}
+
 		break;
 	}
 
 	spin_unlock_irq(&ibp->lock);
+
 	/* QP not attached */
 	if (!delp)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Wait for any list walkers to finish before freeing the
@@ -387,7 +448,8 @@ int rvt_detach_mcast(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
 	wait_event(mcast->wait, atomic_read(&mcast->refcount) <= 1);
 	rvt_mcast_qp_free(delp);
 
-	if (last) {
+	if (last)
+	{
 		atomic_dec(&mcast->refcount);
 		wait_event(mcast->wait, !atomic_read(&mcast->refcount));
 		rvt_mcast_free(mcast);
@@ -412,6 +474,9 @@ int rvt_mcast_tree_empty(struct rvt_dev_info *rdi)
 
 	for (i = 0; i < rdi->dparms.nports; i++)
 		if (rdi->ports[i]->mcast_tree.rb_node)
+		{
 			in_use++;
+		}
+
 	return in_use;
 }

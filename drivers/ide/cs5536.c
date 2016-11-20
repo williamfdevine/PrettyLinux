@@ -39,7 +39,8 @@
 
 #define DRV_NAME	"cs5536"
 
-enum {
+enum
+{
 	MSR_IDE_CFG		= 0x51300010,
 	PCI_IDE_CFG		= 0x40,
 
@@ -69,7 +70,8 @@ static int use_msr;
 
 static int cs5536_read(struct pci_dev *pdev, int reg, u32 *val)
 {
-	if (unlikely(use_msr)) {
+	if (unlikely(use_msr))
+	{
 		u32 dummy;
 
 		rdmsr(MSR_IDE_CFG + reg, *val, dummy);
@@ -81,7 +83,8 @@ static int cs5536_read(struct pci_dev *pdev, int reg, u32 *val)
 
 static int cs5536_write(struct pci_dev *pdev, int reg, int val)
 {
-	if (unlikely(use_msr)) {
+	if (unlikely(use_msr))
+	{
 		wrmsr(MSR_IDE_CFG + reg, val, 0);
 		return 0;
 	}
@@ -118,9 +121,13 @@ static u8 cs5536_cable_detect(ide_hwif_t *hwif)
 	cs5536_read(pdev, CFG, &cfg);
 
 	if (cfg & IDE_CFG_CABLE)
+	{
 		return ATA_CBL_PATA80;
+	}
 	else
+	{
 		return ATA_CBL_PATA40;
+	}
 }
 
 /**
@@ -131,15 +138,18 @@ static u8 cs5536_cable_detect(ide_hwif_t *hwif)
 
 static void cs5536_set_pio_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 {
-	static const u8 drv_timings[5] = {
+	static const u8 drv_timings[5] =
+	{
 		0x98, 0x55, 0x32, 0x21, 0x20,
 	};
 
-	static const u8 addr_timings[5] = {
+	static const u8 addr_timings[5] =
+	{
 		0x2, 0x1, 0x0, 0x0, 0x0,
 	};
 
-	static const u8 cmd_timings[5] = {
+	static const u8 cmd_timings[5] =
+	{
 		0x99, 0x92, 0x90, 0x22, 0x20,
 	};
 
@@ -152,7 +162,9 @@ static void cs5536_set_pio_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 	u8 cmd_pio = pio;
 
 	if (pair)
+	{
 		cmd_pio = min_t(u8, pio, pair->pio_mode - XFER_PIO_0);
+	}
 
 	timings &= (IDE_DRV_MASK << 8);
 	timings |= drv_timings[pio];
@@ -179,11 +191,13 @@ static void cs5536_set_pio_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 
 static void cs5536_set_dma_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 {
-	static const u8 udma_timings[6] = {
+	static const u8 udma_timings[6] =
+	{
 		0xc2, 0xc1, 0xc0, 0xc4, 0xc5, 0xc6,
 	};
 
-	static const u8 mwdma_timings[3] = {
+	static const u8 mwdma_timings[3] =
+	{
 		0x67, 0x21, 0x20,
 	};
 
@@ -195,10 +209,13 @@ static void cs5536_set_dma_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 
 	cs5536_read(pdev, ETC, &etc);
 
-	if (mode >= XFER_UDMA_0) {
+	if (mode >= XFER_UDMA_0)
+	{
 		etc &= ~(IDE_DRV_MASK << dshift);
 		etc |= udma_timings[mode - XFER_UDMA_0] << dshift;
-	} else { /* MWDMA */
+	}
+	else     /* MWDMA */
+	{
 		etc &= ~(IDE_ETC_UDMA_MASK << dshift);
 		timings &= IDE_DRV_MASK;
 		timings |= mwdma_timings[mode - XFER_MW_DMA_0] << 8;
@@ -213,8 +230,10 @@ static void cs5536_dma_start(ide_drive_t *drive)
 	unsigned long timings = (unsigned long)ide_get_drivedata(drive);
 
 	if (drive->current_speed < XFER_UDMA_0 &&
-	    (timings >> 8) != (timings & IDE_DRV_MASK))
+		(timings >> 8) != (timings & IDE_DRV_MASK))
+	{
 		cs5536_program_dtc(drive, timings >> 8);
+	}
 
 	ide_dma_start(drive);
 }
@@ -225,19 +244,23 @@ static int cs5536_dma_end(ide_drive_t *drive)
 	unsigned long timings = (unsigned long)ide_get_drivedata(drive);
 
 	if (drive->current_speed < XFER_UDMA_0 &&
-	    (timings >> 8) != (timings & IDE_DRV_MASK))
+		(timings >> 8) != (timings & IDE_DRV_MASK))
+	{
 		cs5536_program_dtc(drive, timings & IDE_DRV_MASK);
+	}
 
 	return ret;
 }
 
-static const struct ide_port_ops cs5536_port_ops = {
+static const struct ide_port_ops cs5536_port_ops =
+{
 	.set_pio_mode		= cs5536_set_pio_mode,
 	.set_dma_mode		= cs5536_set_dma_mode,
 	.cable_detect		= cs5536_cable_detect,
 };
 
-static const struct ide_dma_ops cs5536_dma_ops = {
+static const struct ide_dma_ops cs5536_dma_ops =
+{
 	.dma_host_set		= ide_dma_host_set,
 	.dma_setup		= ide_dma_setup,
 	.dma_start		= cs5536_dma_start,
@@ -248,7 +271,8 @@ static const struct ide_dma_ops cs5536_dma_ops = {
 	.dma_sff_read_status	= ide_dma_sff_read_status,
 };
 
-static const struct ide_port_info cs5536_info = {
+static const struct ide_port_info cs5536_info =
+{
 	.name		= DRV_NAME,
 	.port_ops	= &cs5536_port_ops,
 	.dma_ops	= &cs5536_dma_ops,
@@ -269,11 +293,14 @@ static int cs5536_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 	u32 cfg;
 
 	if (use_msr)
+	{
 		printk(KERN_INFO DRV_NAME ": Using MSR regs instead of PCI\n");
+	}
 
 	cs5536_read(dev, CFG, &cfg);
 
-	if ((cfg & IDE_CFG_CHANEN) == 0) {
+	if ((cfg & IDE_CFG_CHANEN) == 0)
+	{
 		printk(KERN_ERR DRV_NAME ": disabled by BIOS\n");
 		return -ENODEV;
 	}
@@ -281,12 +308,14 @@ static int cs5536_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 	return ide_pci_init_one(dev, &cs5536_info, NULL);
 }
 
-static const struct pci_device_id cs5536_pci_tbl[] = {
+static const struct pci_device_id cs5536_pci_tbl[] =
+{
 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_CS5536_IDE), },
 	{ },
 };
 
-static struct pci_driver cs5536_pci_driver = {
+static struct pci_driver cs5536_pci_driver =
+{
 	.name		= DRV_NAME,
 	.id_table	= cs5536_pci_tbl,
 	.probe		= cs5536_init_one,

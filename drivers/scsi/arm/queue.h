@@ -10,7 +10,8 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-typedef struct {
+typedef struct
+{
 	struct list_head head;
 	struct list_head free;
 	spinlock_t queue_lock;
@@ -47,7 +48,7 @@ extern struct scsi_cmnd *queue_remove (Queue_t *queue);
  * Returns : struct scsi_cmnd if successful (and a reference), or NULL if no command available
  */
 extern struct scsi_cmnd *queue_remove_exclude(Queue_t *queue,
-					      unsigned long *exclude);
+		unsigned long *exclude);
 
 #define queue_add_cmd_ordered(queue,SCpnt) \
 	__queue_add(queue,SCpnt,(SCpnt)->cmnd[0] == REQUEST_SENSE)
@@ -73,7 +74,7 @@ extern int __queue_add(Queue_t *queue, struct scsi_cmnd *SCpnt, int head);
  * Returns : struct scsi_cmnd if successful, or NULL if no command satisfies requirements
  */
 extern struct scsi_cmnd *queue_remove_tgtluntag(Queue_t *queue, int target,
-						int lun, int tag);
+		int lun, int tag);
 
 /*
  * Function: queue_remove_all_target(queue, target)

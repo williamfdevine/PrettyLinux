@@ -45,12 +45,15 @@ static irqreturn_t mfld_pb_isr(int irq, void *dev_id)
 	ret = intel_msic_reg_read(INTEL_MSIC_PBSTATUS, &pbstat);
 	dev_dbg(input->dev.parent, "PB_INT status= %d\n", pbstat);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		dev_err(input->dev.parent, "Read error %d while reading"
-			       " MSIC_PB_STATUS\n", ret);
-	} else {
+				" MSIC_PB_STATUS\n", ret);
+	}
+	else
+	{
 		input_event(input, EV_KEY, KEY_POWER,
-			       !(pbstat & MSIC_PB_LEVEL));
+					!(pbstat & MSIC_PB_LEVEL));
 		input_sync(input);
 	}
 
@@ -64,11 +67,16 @@ static int mfld_pb_probe(struct platform_device *pdev)
 	int error;
 
 	if (irq < 0)
+	{
 		return -EINVAL;
+	}
 
 	input = input_allocate_device();
+
 	if (!input)
+	{
 		return -ENOMEM;
+	}
 
 	input->name = pdev->name;
 	input->phys = "power-button/input0";
@@ -78,8 +86,10 @@ static int mfld_pb_probe(struct platform_device *pdev)
 	input_set_capability(input, EV_KEY, KEY_POWER);
 
 	error = request_threaded_irq(irq, NULL, mfld_pb_isr, 0,
-				     DRIVER_NAME, input);
-	if (error) {
+								 DRIVER_NAME, input);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "Unable to request irq %d for mfld power"
 				"button\n", irq);
 		goto err_free_input;
@@ -89,7 +99,9 @@ static int mfld_pb_probe(struct platform_device *pdev)
 	dev_pm_set_wake_irq(&pdev->dev, irq);
 
 	error = input_register_device(input);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "Unable to register input dev, error "
 				"%d\n", error);
 		goto err_free_irq;
@@ -108,7 +120,9 @@ static int mfld_pb_probe(struct platform_device *pdev)
 	 * about it.
 	 */
 	error = intel_msic_reg_update(INTEL_MSIC_IRQLVL1MSK, 0, MSIC_PWRBTNM);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "Unable to clear power button interrupt, "
 				"error: %d\n", error);
 		goto err_free_irq;
@@ -136,7 +150,8 @@ static int mfld_pb_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver mfld_pb_driver = {
+static struct platform_driver mfld_pb_driver =
+{
 	.driver = {
 		.name = DRIVER_NAME,
 	},

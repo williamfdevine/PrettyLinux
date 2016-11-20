@@ -17,7 +17,8 @@ struct task_struct;
 #define LT_SAVECOUNT		32
 #define LT_BACKTRACEDEPTH	12
 
-struct latency_record {
+struct latency_record
+{
 	unsigned long	backtrace[LT_BACKTRACEDEPTH];
 	unsigned int	count;
 	unsigned long	time;
@@ -32,13 +33,15 @@ static inline void
 account_scheduler_latency(struct task_struct *task, int usecs, int inter)
 {
 	if (unlikely(latencytop_enabled))
+	{
 		__account_scheduler_latency(task, usecs, inter);
+	}
 }
 
 void clear_all_latency_tracing(struct task_struct *p);
 
 extern int sysctl_latencytop(struct ctl_table *table, int write,
-			void __user *buffer, size_t *lenp, loff_t *ppos);
+							 void __user *buffer, size_t *lenp, loff_t *ppos);
 
 #else
 

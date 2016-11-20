@@ -29,7 +29,8 @@
 
 static DEFINE_SPINLOCK(irq_controller_lock);
 
-struct combiner_chip_data {
+struct combiner_chip_data
+{
 	unsigned int hwirq_offset;
 	unsigned int irq_mask;
 	void __iomem *base;
@@ -80,36 +81,47 @@ static void combiner_handle_cascade_irq(struct irq_desc *desc)
 	status &= chip_data->irq_mask;
 
 	if (status == 0)
+	{
 		goto out;
+	}
 
 	combiner_irq = chip_data->hwirq_offset + __ffs(status);
 	cascade_irq = irq_find_mapping(combiner_irq_domain, combiner_irq);
 
 	if (unlikely(!cascade_irq))
+	{
 		handle_bad_irq(desc);
+	}
 	else
+	{
 		generic_handle_irq(cascade_irq);
+	}
 
- out:
+out:
 	chained_irq_exit(chip, desc);
 }
 
 #ifdef CONFIG_SMP
 static int combiner_set_affinity(struct irq_data *d,
-				 const struct cpumask *mask_val, bool force)
+								 const struct cpumask *mask_val, bool force)
 {
 	struct combiner_chip_data *chip_data = irq_data_get_irq_chip_data(d);
 	struct irq_chip *chip = irq_get_chip(chip_data->parent_irq);
 	struct irq_data *data = irq_get_irq_data(chip_data->parent_irq);
 
 	if (chip && chip->irq_set_affinity)
+	{
 		return chip->irq_set_affinity(data, mask_val, force);
+	}
 	else
+	{
 		return -EINVAL;
+	}
 }
 #endif
 
-static struct irq_chip combiner_chip = {
+static struct irq_chip combiner_chip =
+{
 	.name			= "COMBINER",
 	.irq_mask		= combiner_mask_irq,
 	.irq_unmask		= combiner_unmask_irq,
@@ -119,15 +131,15 @@ static struct irq_chip combiner_chip = {
 };
 
 static void __init combiner_cascade_irq(struct combiner_chip_data *combiner_data,
-					unsigned int irq)
+										unsigned int irq)
 {
 	irq_set_chained_handler_and_data(irq, combiner_handle_cascade_irq,
-					 combiner_data);
+									 combiner_data);
 }
 
 static void __init combiner_init_one(struct combiner_chip_data *combiner_data,
-				     unsigned int combiner_nr,
-				     void __iomem *base, unsigned int irq)
+									 unsigned int combiner_nr,
+									 void __iomem *base, unsigned int irq)
 {
 	combiner_data->base = base;
 	combiner_data->hwirq_offset = (combiner_nr & ~3) * IRQ_IN_COMBINER;
@@ -139,16 +151,20 @@ static void __init combiner_init_one(struct combiner_chip_data *combiner_data,
 }
 
 static int combiner_irq_domain_xlate(struct irq_domain *d,
-				     struct device_node *controller,
-				     const u32 *intspec, unsigned int intsize,
-				     unsigned long *out_hwirq,
-				     unsigned int *out_type)
+									 struct device_node *controller,
+									 const u32 *intspec, unsigned int intsize,
+									 unsigned long *out_hwirq,
+									 unsigned int *out_type)
 {
 	if (irq_domain_get_of_node(d) != controller)
+	{
 		return -EINVAL;
+	}
 
 	if (intsize < 2)
+	{
 		return -EINVAL;
+	}
 
 	*out_hwirq = intspec[0] * IRQ_IN_COMBINER + intspec[1];
 	*out_type = 0;
@@ -157,7 +173,7 @@ static int combiner_irq_domain_xlate(struct irq_domain *d,
 }
 
 static int combiner_irq_domain_map(struct irq_domain *d, unsigned int irq,
-				   irq_hw_number_t hw)
+								   irq_hw_number_t hw)
 {
 	struct combiner_chip_data *combiner_data = d->host_data;
 
@@ -168,13 +184,14 @@ static int combiner_irq_domain_map(struct irq_domain *d, unsigned int irq,
 	return 0;
 }
 
-static const struct irq_domain_ops combiner_irq_domain_ops = {
+static const struct irq_domain_ops combiner_irq_domain_ops =
+{
 	.xlate	= combiner_irq_domain_xlate,
 	.map	= combiner_irq_domain_map,
 };
 
 static void __init combiner_init(void __iomem *combiner_base,
-				 struct device_node *np)
+								 struct device_node *np)
 {
 	int i, irq;
 	unsigned int nr_irq;
@@ -182,23 +199,28 @@ static void __init combiner_init(void __iomem *combiner_base,
 	nr_irq = max_nr * IRQ_IN_COMBINER;
 
 	combiner_data = kcalloc(max_nr, sizeof (*combiner_data), GFP_KERNEL);
-	if (!combiner_data) {
+
+	if (!combiner_data)
+	{
 		pr_warn("%s: could not allocate combiner data\n", __func__);
 		return;
 	}
 
 	combiner_irq_domain = irq_domain_add_linear(np, nr_irq,
-				&combiner_irq_domain_ops, combiner_data);
-	if (WARN_ON(!combiner_irq_domain)) {
+						  &combiner_irq_domain_ops, combiner_data);
+
+	if (WARN_ON(!combiner_irq_domain))
+	{
 		pr_warn("%s: irq domain init failed\n", __func__);
 		return;
 	}
 
-	for (i = 0; i < max_nr; i++) {
+	for (i = 0; i < max_nr; i++)
+	{
 		irq = irq_of_parse_and_map(np, i);
 
 		combiner_init_one(&combiner_data[i], i,
-				  combiner_base + (i >> 2) * 0x10, irq);
+						  combiner_base + (i >> 2) * 0x10, irq);
 		combiner_cascade_irq(&combiner_data[i], irq);
 	}
 }
@@ -234,11 +256,12 @@ static void combiner_resume(void)
 {
 	int i;
 
-	for (i = 0; i < max_nr; i++) {
+	for (i = 0; i < max_nr; i++)
+	{
 		writel_relaxed(combiner_data[i].irq_mask,
-			     combiner_data[i].base + COMBINER_ENABLE_CLEAR);
+					   combiner_data[i].base + COMBINER_ENABLE_CLEAR);
 		writel_relaxed(combiner_data[i].pm_save,
-			     combiner_data[i].base + COMBINER_ENABLE_SET);
+					   combiner_data[i].base + COMBINER_ENABLE_SET);
 	}
 }
 
@@ -247,26 +270,30 @@ static void combiner_resume(void)
 #define combiner_resume		NULL
 #endif
 
-static struct syscore_ops combiner_syscore_ops = {
+static struct syscore_ops combiner_syscore_ops =
+{
 	.suspend	= combiner_suspend,
 	.resume		= combiner_resume,
 };
 
 static int __init combiner_of_init(struct device_node *np,
-				   struct device_node *parent)
+								   struct device_node *parent)
 {
 	void __iomem *combiner_base;
 
 	combiner_base = of_iomap(np, 0);
-	if (!combiner_base) {
+
+	if (!combiner_base)
+	{
 		pr_err("%s: failed to map combiner registers\n", __func__);
 		return -ENXIO;
 	}
 
-	if (of_property_read_u32(np, "samsung,combiner-nr", &max_nr)) {
+	if (of_property_read_u32(np, "samsung,combiner-nr", &max_nr))
+	{
 		pr_info("%s: number of combiners not specified, "
-			"setting default as %d.\n",
-			__func__, max_nr);
+				"setting default as %d.\n",
+				__func__, max_nr);
 	}
 
 	combiner_init(combiner_base, np);
@@ -276,4 +303,4 @@ static int __init combiner_of_init(struct device_node *np,
 	return 0;
 }
 IRQCHIP_DECLARE(exynos4210_combiner, "samsung,exynos4210-combiner",
-		combiner_of_init);
+				combiner_of_init);

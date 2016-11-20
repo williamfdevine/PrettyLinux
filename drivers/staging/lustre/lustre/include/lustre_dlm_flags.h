@@ -359,24 +359,24 @@
 
 /** l_flags bits marked as "ast" bits */
 #define LDLM_FL_AST_MASK		(LDLM_FL_FLOCK_DEADLOCK		|\
-					 LDLM_FL_AST_DISCARD_DATA)
+								 LDLM_FL_AST_DISCARD_DATA)
 
 /** l_flags bits marked as "blocked" bits */
 #define LDLM_FL_BLOCKED_MASK		(LDLM_FL_BLOCK_GRANTED		|\
-					 LDLM_FL_BLOCK_CONV		|\
-					 LDLM_FL_BLOCK_WAIT)
+									 LDLM_FL_BLOCK_CONV		|\
+									 LDLM_FL_BLOCK_WAIT)
 
 /** l_flags bits marked as "gone" bits */
 #define LDLM_FL_GONE_MASK		(LDLM_FL_DESTROYED		|\
-					 LDLM_FL_FAILED)
+								 LDLM_FL_FAILED)
 
 /** l_flags bits marked as "inherit" bits */
 /* Flags inherited from wire on enqueue/reply between client/server. */
 /* NO_TIMEOUT flag to force ldlm_lock_match() to wait with no timeout. */
 /* TEST_LOCK flag to not let TEST lock to be granted. */
 #define LDLM_FL_INHERIT_MASK		(LDLM_FL_CANCEL_ON_BLOCK	|\
-					 LDLM_FL_NO_TIMEOUT		|\
-					 LDLM_FL_TEST_LOCK)
+									 LDLM_FL_NO_TIMEOUT		|\
+									 LDLM_FL_TEST_LOCK)
 
 /** test for ldlm_lock flag bit set */
 #define LDLM_TEST_FLAG(_l, _b)        (((_l)->l_flags & (_b)) != 0)

@@ -49,14 +49,16 @@
 #define MPTSAS_H_INCLUDED
 /*{-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
-struct mptsas_target_reset_event {
+struct mptsas_target_reset_event
+{
 	struct list_head 	list;
 	EVENT_DATA_SAS_DEVICE_STATUS_CHANGE sas_event_data;
 	u8	target_reset_issued;
 	unsigned long	 time_count;
 };
 
-enum mptsas_hotplug_action {
+enum mptsas_hotplug_action
+{
 	MPTSAS_ADD_DEVICE,
 	MPTSAS_DEL_DEVICE,
 	MPTSAS_ADD_RAID,
@@ -69,12 +71,14 @@ enum mptsas_hotplug_action {
 	MPTSAS_IGNORE_EVENT,
 };
 
-struct mptsas_mapping{
+struct mptsas_mapping
+{
 	u8			id;
 	u8			channel;
 };
 
-struct mptsas_device_info {
+struct mptsas_device_info
+{
 	struct list_head 	list;
 	struct mptsas_mapping	os;	/* operating system mapping*/
 	struct mptsas_mapping	fw;	/* firmware mapping */
@@ -91,7 +95,8 @@ struct mptsas_device_info {
 	u8			is_cached;
 };
 
-struct mptsas_hotplug_event {
+struct mptsas_hotplug_event
+{
 	MPT_ADAPTER		*ioc;
 	enum mptsas_hotplug_action event_type;
 	u64			sas_address;
@@ -104,7 +109,8 @@ struct mptsas_hotplug_event {
 	struct scsi_device	*sdev;
 };
 
-struct fw_event_work {
+struct fw_event_work
+{
 	struct list_head 	list;
 	struct delayed_work	 work;
 	MPT_ADAPTER	*ioc;
@@ -113,7 +119,8 @@ struct fw_event_work {
 	char			event_data[0] __aligned(4);
 };
 
-struct mptsas_discovery_event {
+struct mptsas_discovery_event
+{
 	struct work_struct	work;
 	MPT_ADAPTER		*ioc;
 };
@@ -126,7 +133,8 @@ struct mptsas_discovery_event {
  * structure to collect it and process it for the SAS transport class.
  */
 
-struct mptsas_devinfo {
+struct mptsas_devinfo
+{
 	u16	handle;		/* unique id to address this device */
 	u16	handle_parent;	/* unique id to address parent device */
 	u16	handle_enclosure; /* enclosure identifier of the enclosure */
@@ -146,7 +154,8 @@ struct mptsas_devinfo {
 /*
  * Specific details on ports, wide/narrow
  */
-struct mptsas_portinfo_details{
+struct mptsas_portinfo_details
+{
 	u16	num_phys;	/* number of phys belong to this port */
 	u64	phy_bitmask; 	/* TODO, extend support for 255 phys */
 	struct sas_rphy *rphy;	/* transport layer rphy object */
@@ -155,7 +164,8 @@ struct mptsas_portinfo_details{
 	struct mptsas_portinfo *port_info;
 };
 
-struct mptsas_phyinfo {
+struct mptsas_phyinfo
+{
 	u16	handle;			/* unique id to address this */
 	u8	phy_id; 		/* phy index */
 	u8	port_id; 		/* firmware port identifier */
@@ -167,16 +177,18 @@ struct mptsas_phyinfo {
 	struct mptsas_devinfo attached;	/* point to attached device info */
 	struct sas_phy *phy;		/* transport layer phy object */
 	struct mptsas_portinfo *portinfo;
-	struct mptsas_portinfo_details * port_details;
+	struct mptsas_portinfo_details *port_details;
 };
 
-struct mptsas_portinfo {
+struct mptsas_portinfo
+{
 	struct list_head list;
 	u16		num_phys;	/* number of phys */
 	struct mptsas_phyinfo *phy_info;
 };
 
-struct mptsas_enclosure {
+struct mptsas_enclosure
+{
 	u64	enclosure_logical_id;	/* The WWN for the enclosure */
 	u16	enclosure_handle;	/* unique id to address this */
 	u16	flags;			/* details enclosure management */

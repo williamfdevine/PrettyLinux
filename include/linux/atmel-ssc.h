@@ -5,12 +5,14 @@
 #include <linux/list.h>
 #include <linux/io.h>
 
-struct atmel_ssc_platform_data {
+struct atmel_ssc_platform_data
+{
 	int			use_dma;
 	int			has_fslen_ext;
 };
 
-struct ssc_device {
+struct ssc_device
+{
 	struct list_head	list;
 	dma_addr_t		phybase;
 	void __iomem		*regs;
@@ -22,7 +24,7 @@ struct ssc_device {
 	bool			clk_from_rk_pin;
 };
 
-struct ssc_device * __must_check ssc_request(unsigned int ssc_num);
+struct ssc_device *__must_check ssc_request(unsigned int ssc_num);
 void ssc_free(struct ssc_device *ssc);
 
 /* SSC register offsets */
@@ -324,7 +326,7 @@ void ssc_free(struct ssc_device *ssc);
 	 & ((1 << SSC_##name##_SIZE) - 1))
 #define SSC_BFINS(name, value, old)			\
 	(((old) & ~(((1 << SSC_##name##_SIZE) - 1)	\
-	<< SSC_##name##_OFFSET)) | SSC_BF(name, value))
+				<< SSC_##name##_OFFSET)) | SSC_BF(name, value))
 
 /* Register access macros */
 #define ssc_readl(base, reg)		__raw_readl(base + SSC_##reg)

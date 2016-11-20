@@ -41,7 +41,8 @@
 
 #include "hci_uart.h"
 
-struct ath_struct {
+struct ath_struct
+{
 	struct hci_uart *hu;
 	unsigned int cur_sleep;
 
@@ -55,7 +56,9 @@ static int ath_wakeup_ar3k(struct tty_struct *tty)
 	int status = tty->driver->ops->tiocmget(tty);
 
 	if (status & TIOCM_CTS)
+	{
 		return status;
+	}
 
 	/* Clear RTS first */
 	tty->driver->ops->tiocmget(tty);
@@ -84,10 +87,14 @@ static void ath_hci_uart_work(struct work_struct *work)
 	tty = hu->tty;
 
 	/* verify and wake up controller */
-	if (ath->cur_sleep) {
+	if (ath->cur_sleep)
+	{
 		status = ath_wakeup_ar3k(tty);
+
 		if (!(status & TIOCM_CTS))
+		{
 			return;
+		}
 	}
 
 	/* Ready to send Data */
@@ -102,8 +109,11 @@ static int ath_open(struct hci_uart *hu)
 	BT_DBG("hu %p", hu);
 
 	ath = kzalloc(sizeof(*ath), GFP_KERNEL);
+
 	if (!ath)
+	{
 		return -ENOMEM;
+	}
 
 	skb_queue_head_init(&ath->txq);
 
@@ -157,12 +167,15 @@ static int ath_set_bdaddr(struct hci_dev *hdev, const bdaddr_t *bdaddr)
 	memcpy(buf + 4, bdaddr, sizeof(bdaddr_t));
 
 	skb = __hci_cmd_sync(hdev, 0xfc0b, sizeof(buf), buf, HCI_INIT_TIMEOUT);
-	if (IS_ERR(skb)) {
+
+	if (IS_ERR(skb))
+	{
 		err = PTR_ERR(skb);
 		BT_ERR("%s: Change address command failed (%d)",
-		       hdev->name, err);
+			   hdev->name, err);
 		return err;
 	}
+
 	kfree_skb(skb);
 
 	return 0;
@@ -177,7 +190,8 @@ static int ath_setup(struct hci_uart *hu)
 	return 0;
 }
 
-static const struct h4_recv_pkt ath_recv_pkts[] = {
+static const struct h4_recv_pkt ath_recv_pkts[] =
+{
 	{ H4_RECV_ACL,   .recv = hci_recv_frame },
 	{ H4_RECV_SCO,   .recv = hci_recv_frame },
 	{ H4_RECV_EVENT, .recv = hci_recv_frame },
@@ -188,8 +202,10 @@ static int ath_recv(struct hci_uart *hu, const void *data, int count)
 	struct ath_struct *ath = hu->priv;
 
 	ath->rx_skb = h4_recv_buf(hu->hdev, ath->rx_skb, data, count,
-				  ath_recv_pkts, ARRAY_SIZE(ath_recv_pkts));
-	if (IS_ERR(ath->rx_skb)) {
+							  ath_recv_pkts, ARRAY_SIZE(ath_recv_pkts));
+
+	if (IS_ERR(ath->rx_skb))
+	{
 		int err = PTR_ERR(ath->rx_skb);
 		BT_ERR("%s: Frame reassembly failed (%d)", hu->hdev->name, err);
 		ath->rx_skb = NULL;
@@ -205,7 +221,8 @@ static int ath_enqueue(struct hci_uart *hu, struct sk_buff *skb)
 {
 	struct ath_struct *ath = hu->priv;
 
-	if (hci_skb_pkt_type(skb) == HCI_SCODATA_PKT) {
+	if (hci_skb_pkt_type(skb) == HCI_SCODATA_PKT)
+	{
 		kfree_skb(skb);
 		return 0;
 	}
@@ -213,11 +230,14 @@ static int ath_enqueue(struct hci_uart *hu, struct sk_buff *skb)
 	/* Update power management enable flag with parameters of
 	 * HCI sleep enable vendor specific HCI command.
 	 */
-	if (hci_skb_pkt_type(skb) == HCI_COMMAND_PKT) {
+	if (hci_skb_pkt_type(skb) == HCI_COMMAND_PKT)
+	{
 		struct hci_command_hdr *hdr = (void *)skb->data;
 
 		if (__le16_to_cpu(hdr->opcode) == HCI_OP_ATH_SLEEP)
+		{
 			ath->cur_sleep = skb->data[HCI_COMMAND_HDR_SIZE];
+		}
 	}
 
 	BT_DBG("hu %p skb %p", hu, skb);
@@ -240,7 +260,8 @@ static struct sk_buff *ath_dequeue(struct hci_uart *hu)
 	return skb_dequeue(&ath->txq);
 }
 
-static const struct hci_uart_proto athp = {
+static const struct hci_uart_proto athp =
+{
 	.id		= HCI_UART_ATH3K,
 	.name		= "ATH3K",
 	.manufacturer	= 69,

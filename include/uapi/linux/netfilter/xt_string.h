@@ -6,23 +6,28 @@
 #define XT_STRING_MAX_PATTERN_SIZE 128
 #define XT_STRING_MAX_ALGO_NAME_SIZE 16
 
-enum {
+enum
+{
 	XT_STRING_FLAG_INVERT		= 0x01,
 	XT_STRING_FLAG_IGNORECASE	= 0x02
 };
 
-struct xt_string_info {
+struct xt_string_info
+{
 	__u16 from_offset;
 	__u16 to_offset;
 	char	  algo[XT_STRING_MAX_ALGO_NAME_SIZE];
 	char 	  pattern[XT_STRING_MAX_PATTERN_SIZE];
 	__u8  patlen;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__u8  invert;
 		} v0;
 
-		struct {
+		struct
+		{
 			__u8  flags;
 		} v1;
 	} u;

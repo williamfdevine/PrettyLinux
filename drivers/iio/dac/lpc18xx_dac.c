@@ -33,74 +33,81 @@
 #define LPC18XX_DAC_CTRL		0x004
 #define  LPC18XX_DAC_CTRL_DMA_ENA	BIT(3)
 
-struct lpc18xx_dac {
+struct lpc18xx_dac
+{
 	struct regulator *vref;
 	void __iomem *base;
 	struct mutex lock;
 	struct clk *clk;
 };
 
-static const struct iio_chan_spec lpc18xx_dac_iio_channels[] = {
+static const struct iio_chan_spec lpc18xx_dac_iio_channels[] =
+{
 	{
 		.type = IIO_VOLTAGE,
 		.output = 1,
 		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |
-				      BIT(IIO_CHAN_INFO_SCALE),
+		BIT(IIO_CHAN_INFO_SCALE),
 	},
 };
 
 static int lpc18xx_dac_read_raw(struct iio_dev *indio_dev,
-				struct iio_chan_spec const *chan,
-				int *val, int *val2, long mask)
+								struct iio_chan_spec const *chan,
+								int *val, int *val2, long mask)
 {
 	struct lpc18xx_dac *dac = iio_priv(indio_dev);
 	u32 reg;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		reg = readl(dac->base + LPC18XX_DAC_CR);
-		*val = reg >> LPC18XX_DAC_CR_VALUE_SHIFT;
-		*val &= LPC18XX_DAC_CR_VALUE_MASK;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			reg = readl(dac->base + LPC18XX_DAC_CR);
+			*val = reg >> LPC18XX_DAC_CR_VALUE_SHIFT;
+			*val &= LPC18XX_DAC_CR_VALUE_MASK;
 
-		return IIO_VAL_INT;
+			return IIO_VAL_INT;
 
-	case IIO_CHAN_INFO_SCALE:
-		*val = regulator_get_voltage(dac->vref) / 1000;
-		*val2 = 10;
+		case IIO_CHAN_INFO_SCALE:
+			*val = regulator_get_voltage(dac->vref) / 1000;
+			*val2 = 10;
 
-		return IIO_VAL_FRACTIONAL_LOG2;
+			return IIO_VAL_FRACTIONAL_LOG2;
 	}
 
 	return -EINVAL;
 }
 
 static int lpc18xx_dac_write_raw(struct iio_dev *indio_dev,
-				 struct iio_chan_spec const *chan,
-				 int val, int val2, long mask)
+								 struct iio_chan_spec const *chan,
+								 int val, int val2, long mask)
 {
 	struct lpc18xx_dac *dac = iio_priv(indio_dev);
 	u32 reg;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		if (val < 0 || val > LPC18XX_DAC_CR_VALUE_MASK)
-			return -EINVAL;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			if (val < 0 || val > LPC18XX_DAC_CR_VALUE_MASK)
+			{
+				return -EINVAL;
+			}
 
-		reg = LPC18XX_DAC_CR_BIAS;
-		reg |= val << LPC18XX_DAC_CR_VALUE_SHIFT;
+			reg = LPC18XX_DAC_CR_BIAS;
+			reg |= val << LPC18XX_DAC_CR_VALUE_SHIFT;
 
-		mutex_lock(&dac->lock);
-		writel(reg, dac->base + LPC18XX_DAC_CR);
-		writel(LPC18XX_DAC_CTRL_DMA_ENA, dac->base + LPC18XX_DAC_CTRL);
-		mutex_unlock(&dac->lock);
+			mutex_lock(&dac->lock);
+			writel(reg, dac->base + LPC18XX_DAC_CR);
+			writel(LPC18XX_DAC_CTRL_DMA_ENA, dac->base + LPC18XX_DAC_CTRL);
+			mutex_unlock(&dac->lock);
 
-		return 0;
+			return 0;
 	}
 
 	return -EINVAL;
 }
 
-static const struct iio_info lpc18xx_dac_info = {
+static const struct iio_info lpc18xx_dac_info =
+{
 	.read_raw = lpc18xx_dac_read_raw,
 	.write_raw = lpc18xx_dac_write_raw,
 	.driver_module = THIS_MODULE,
@@ -114,8 +121,11 @@ static int lpc18xx_dac_probe(struct platform_device *pdev)
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&pdev->dev, sizeof(*dac));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, indio_dev);
 	dac = iio_priv(indio_dev);
@@ -123,17 +133,24 @@ static int lpc18xx_dac_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	dac->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(dac->base))
+	{
 		return PTR_ERR(dac->base);
+	}
 
 	dac->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(dac->clk)) {
+
+	if (IS_ERR(dac->clk))
+	{
 		dev_err(&pdev->dev, "error getting clock\n");
 		return PTR_ERR(dac->clk);
 	}
 
 	dac->vref = devm_regulator_get(&pdev->dev, "vref");
-	if (IS_ERR(dac->vref)) {
+
+	if (IS_ERR(dac->vref))
+	{
 		dev_err(&pdev->dev, "error getting regulator\n");
 		return PTR_ERR(dac->vref);
 	}
@@ -146,13 +163,17 @@ static int lpc18xx_dac_probe(struct platform_device *pdev)
 	indio_dev->num_channels = ARRAY_SIZE(lpc18xx_dac_iio_channels);
 
 	ret = regulator_enable(dac->vref);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to enable regulator\n");
 		return ret;
 	}
 
 	ret = clk_prepare_enable(dac->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to enable clock\n");
 		goto dis_reg;
 	}
@@ -161,7 +182,9 @@ static int lpc18xx_dac_probe(struct platform_device *pdev)
 	writel(0, dac->base + LPC18XX_DAC_CR);
 
 	ret = iio_device_register(indio_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to register device\n");
 		goto dis_clk;
 	}
@@ -189,13 +212,15 @@ static int lpc18xx_dac_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id lpc18xx_dac_match[] = {
+static const struct of_device_id lpc18xx_dac_match[] =
+{
 	{ .compatible = "nxp,lpc1850-dac" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, lpc18xx_dac_match);
 
-static struct platform_driver lpc18xx_dac_driver = {
+static struct platform_driver lpc18xx_dac_driver =
+{
 	.probe	= lpc18xx_dac_probe,
 	.remove	= lpc18xx_dac_remove,
 	.driver	= {

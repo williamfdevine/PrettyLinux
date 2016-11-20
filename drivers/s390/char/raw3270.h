@@ -80,7 +80,8 @@
 #define RAW3270_MAXDEVS		255	/* Max number of 3270 devices */
 
 /* For TUBGETMOD and TUBSETMOD. Should include. */
-struct raw3270_iocb {
+struct raw3270_iocb
+{
 	short model;
 	short line_cnt;
 	short col_cnt;
@@ -94,7 +95,8 @@ struct raw3270_view;
 extern struct class *class3270;
 
 /* 3270 CCW request */
-struct raw3270_request {
+struct raw3270_request
+{
 	struct list_head list;		/* list head for request queueing. */
 	struct raw3270_view *view;	/* view of this request */
 	struct ccw1 ccw;		/* single ccw. */
@@ -128,11 +130,12 @@ void raw3270_buffer_address(struct raw3270 *, char *, unsigned short);
 /*
  * Functions of a 3270 view.
  */
-struct raw3270_fn {
+struct raw3270_fn
+{
 	int  (*activate)(struct raw3270_view *);
 	void (*deactivate)(struct raw3270_view *);
 	void (*intv)(struct raw3270_view *,
-		     struct raw3270_request *, struct irb *);
+				 struct raw3270_request *, struct irb *);
 	void (*release)(struct raw3270_view *);
 	void (*free)(struct raw3270_view *);
 	void (*resize)(struct raw3270_view *, int, int, int);
@@ -146,7 +149,8 @@ struct raw3270_fn {
  *     ...
  *   };
  */
-struct raw3270_view {
+struct raw3270_view
+{
 	struct list_head list;
 	spinlock_t lock;
 	atomic_t ref_count;
@@ -182,14 +186,17 @@ static inline void
 raw3270_put_view(struct raw3270_view *view)
 {
 	if (atomic_dec_return(&view->ref_count) == 0)
+	{
 		wake_up(&raw3270_wait_queue);
+	}
 }
 
 struct raw3270 *raw3270_setup_console(void);
 void raw3270_wait_cons_dev(struct raw3270 *);
 
 /* Notifier for device addition/removal */
-struct raw3270_notifier {
+struct raw3270_notifier
+{
 	struct list_head list;
 	void (*create)(int minor);
 	void (*destroy)(int minor);
@@ -200,7 +207,7 @@ void raw3270_unregister_notifier(struct raw3270_notifier *);
 void raw3270_pm_unfreeze(struct raw3270_view *);
 
 /*
- * Little memory allocator for string objects. 
+ * Little memory allocator for string objects.
  */
 struct string
 {
@@ -218,17 +225,26 @@ alloc_string(struct list_head *free_list, unsigned long len)
 	unsigned long size;
 
 	size = (len + 7L) & -8L;
-	list_for_each_entry(cs, free_list, list) {
+	list_for_each_entry(cs, free_list, list)
+	{
 		if (cs->size < size)
+		{
 			continue;
-		if (cs->size > size + sizeof(struct string)) {
+		}
+
+		if (cs->size > size + sizeof(struct string))
+		{
 			char *endaddr = (char *) (cs + 1) + cs->size;
 			tmp = (struct string *) (endaddr - size) - 1;
 			tmp->size = size;
 			cs->size -= size + sizeof(struct string);
 			cs = tmp;
-		} else
+		}
+		else
+		{
 			list_del(&cs->list);
+		}
+
 		cs->len = len;
 		INIT_LIST_HEAD(&cs->list);
 		INIT_LIST_HEAD(&cs->update);
@@ -245,27 +261,40 @@ free_string(struct list_head *free_list, struct string *cs)
 
 	/* Find out the left neighbour in free memory list. */
 	left = free_list;
-	list_for_each(p, free_list) {
+	list_for_each(p, free_list)
+	{
 		if (list_entry(p, struct string, list) > cs)
+		{
 			break;
+		}
+
 		left = p;
 	}
+
 	/* Try to merge with right neighbour = next element from left. */
-	if (left->next != free_list) {
+	if (left->next != free_list)
+	{
 		tmp = list_entry(left->next, struct string, list);
-		if ((char *) (cs + 1) + cs->size == (char *) tmp) {
+
+		if ((char *) (cs + 1) + cs->size == (char *) tmp)
+		{
 			list_del(&tmp->list);
 			cs->size += tmp->size + sizeof(struct string);
 		}
 	}
+
 	/* Try to merge with left neighbour. */
-	if (left != free_list) {
+	if (left != free_list)
+	{
 		tmp = list_entry(left, struct string, list);
-		if ((char *) (tmp + 1) + tmp->size == (char *) cs) {
+
+		if ((char *) (tmp + 1) + tmp->size == (char *) cs)
+		{
 			tmp->size += cs->size + sizeof(struct string);
 			return tmp->size;
 		}
 	}
+
 	__list_add(&cs->list, left, left->next);
 	return cs->size;
 }

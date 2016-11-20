@@ -37,14 +37,16 @@
 #define CONF_PBE		(1 << 7)
 #define CONF_PCE		(1 << 4)
 
-struct ttl_control_regs {
+struct ttl_control_regs
+{
 	__be16 portc;
 	__be16 portb;
 	__be16 porta;
 	__be16 control;
 };
 
-struct ttl_module {
+struct ttl_module
+{
 	struct gpio_chip gpio;
 
 	/* base address of registers */
@@ -63,12 +65,17 @@ static int ttl_get_value(struct gpio_chip *gpio, unsigned offset)
 	u8 *shadow;
 	int ret;
 
-	if (offset < 8) {
+	if (offset < 8)
+	{
 		shadow = &mod->porta_shadow;
-	} else if (offset < 16) {
+	}
+	else if (offset < 16)
+	{
 		shadow = &mod->portb_shadow;
 		offset -= 8;
-	} else {
+	}
+	else
+	{
 		shadow = &mod->portc_shadow;
 		offset -= 16;
 	}
@@ -85,24 +92,34 @@ static void ttl_set_value(struct gpio_chip *gpio, unsigned offset, int value)
 	void __iomem *port;
 	u8 *shadow;
 
-	if (offset < 8) {
+	if (offset < 8)
+	{
 		port = &mod->regs->porta;
 		shadow = &mod->porta_shadow;
-	} else if (offset < 16) {
+	}
+	else if (offset < 16)
+	{
 		port = &mod->regs->portb;
 		shadow = &mod->portb_shadow;
 		offset -= 8;
-	} else {
+	}
+	else
+	{
 		port = &mod->regs->portc;
 		shadow = &mod->portc_shadow;
 		offset -= 16;
 	}
 
 	spin_lock(&mod->lock);
+
 	if (value)
+	{
 		*shadow |= (1 << offset);
+	}
 	else
+	{
 		*shadow &= ~(1 << offset);
+	}
 
 	iowrite16be(*shadow, port);
 	spin_unlock(&mod->lock);
@@ -150,14 +167,19 @@ static int ttl_probe(struct platform_device *pdev)
 	int ret;
 
 	pdata = dev_get_platdata(&pdev->dev);
-	if (!pdata) {
+
+	if (!pdata)
+	{
 		dev_err(dev, "no platform data\n");
 		return -ENXIO;
 	}
 
 	mod = devm_kzalloc(dev, sizeof(*mod), GFP_KERNEL);
+
 	if (!mod)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, mod);
 	spin_lock_init(&mod->lock);
@@ -165,8 +187,11 @@ static int ttl_probe(struct platform_device *pdev)
 	/* get access to the MODULbus registers for this module */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mod->regs = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(mod->regs))
+	{
 		return PTR_ERR(mod->regs);
+	}
 
 	ttl_setup_device(mod);
 
@@ -183,7 +208,9 @@ static int ttl_probe(struct platform_device *pdev)
 	gpio->ngpio = 20;
 
 	ret = devm_gpiochip_add_data(dev, gpio, NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "unable to add GPIO chip\n");
 		return ret;
 	}
@@ -191,7 +218,8 @@ static int ttl_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ttl_driver = {
+static struct platform_driver ttl_driver =
+{
 	.driver		= {
 		.name	= DRV_NAME,
 	},

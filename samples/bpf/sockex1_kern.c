@@ -4,7 +4,8 @@
 #include <uapi/linux/ip.h>
 #include "bpf_helpers.h"
 
-struct bpf_map_def SEC("maps") my_map = {
+struct bpf_map_def SEC("maps") my_map =
+{
 	.type = BPF_MAP_TYPE_ARRAY,
 	.key_size = sizeof(u32),
 	.value_size = sizeof(long),
@@ -18,11 +19,16 @@ int bpf_prog1(struct __sk_buff *skb)
 	long *value;
 
 	if (skb->pkt_type != PACKET_OUTGOING)
+	{
 		return 0;
+	}
 
 	value = bpf_map_lookup_elem(&my_map, &index);
+
 	if (value)
+	{
 		__sync_fetch_and_add(value, skb->len);
+	}
 
 	return 0;
 }

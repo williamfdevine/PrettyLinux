@@ -4,7 +4,8 @@
 #include <core/engine.h>
 struct nvkm_fifo_chan;
 
-struct nvkm_falcon {
+struct nvkm_falcon
+{
 	const struct nvkm_falcon_func *func;
 	struct nvkm_engine engine;
 
@@ -15,13 +16,15 @@ struct nvkm_falcon {
 	struct nvkm_memory *core;
 	bool external;
 
-	struct {
+	struct
+	{
 		u32 limit;
 		u32 *data;
 		u32  size;
 	} code;
 
-	struct {
+	struct
+	{
 		u32 limit;
 		u32 *data;
 		u32  size;
@@ -29,14 +32,17 @@ struct nvkm_falcon {
 };
 
 int nvkm_falcon_new_(const struct nvkm_falcon_func *, struct nvkm_device *,
-		     int index, bool enable, u32 addr, struct nvkm_engine **);
+					 int index, bool enable, u32 addr, struct nvkm_engine **);
 
-struct nvkm_falcon_func {
-	struct {
+struct nvkm_falcon_func
+{
+	struct
+	{
 		u32 *data;
 		u32  size;
 	} code;
-	struct {
+	struct
+	{
 		u32 *data;
 		u32  size;
 	} data;

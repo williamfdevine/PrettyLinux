@@ -18,7 +18,8 @@ __attribute__((destructor)) static void liblockdep_exit(void)
 
 struct task_struct *__curr(void)
 {
-	if (current_obj.pid == 0) {
+	if (current_obj.pid == 0)
+	{
 		/* Makes lockdep output pretty */
 		prctl(PR_GET_NAME, current_obj.comm);
 		current_obj.pid = syscall(__NR_gettid);

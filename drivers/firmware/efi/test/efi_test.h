@@ -10,7 +10,8 @@
 
 #include <linux/efi.h>
 
-struct efi_getvariable {
+struct efi_getvariable
+{
 	efi_char16_t	*variable_name;
 	efi_guid_t	*vendor_guid;
 	u32		*attributes;
@@ -19,7 +20,8 @@ struct efi_getvariable {
 	efi_status_t	*status;
 } __packed;
 
-struct efi_setvariable {
+struct efi_setvariable
+{
 	efi_char16_t	*variable_name;
 	efi_guid_t	*vendor_guid;
 	u32		attributes;
@@ -28,14 +30,16 @@ struct efi_setvariable {
 	efi_status_t	*status;
 } __packed;
 
-struct efi_getnextvariablename {
+struct efi_getnextvariablename
+{
 	unsigned long	*variable_name_size;
 	efi_char16_t	*variable_name;
 	efi_guid_t	*vendor_guid;
 	efi_status_t	*status;
 } __packed;
 
-struct efi_queryvariableinfo {
+struct efi_queryvariableinfo
+{
 	u32		attributes;
 	u64		*maximum_variable_storage_size;
 	u64		*remaining_variable_storage_size;
@@ -43,36 +47,42 @@ struct efi_queryvariableinfo {
 	efi_status_t	*status;
 } __packed;
 
-struct efi_gettime {
+struct efi_gettime
+{
 	efi_time_t	*time;
 	efi_time_cap_t	*capabilities;
 	efi_status_t	*status;
 } __packed;
 
-struct efi_settime {
+struct efi_settime
+{
 	efi_time_t	*time;
 	efi_status_t	*status;
 } __packed;
 
-struct efi_getwakeuptime {
+struct efi_getwakeuptime
+{
 	efi_bool_t	*enabled;
 	efi_bool_t	*pending;
 	efi_time_t	*time;
 	efi_status_t	*status;
 } __packed;
 
-struct efi_setwakeuptime {
+struct efi_setwakeuptime
+{
 	efi_bool_t	enabled;
 	efi_time_t	*time;
 	efi_status_t	*status;
 } __packed;
 
-struct efi_getnexthighmonotoniccount {
+struct efi_getnexthighmonotoniccount
+{
 	u32		*high_count;
 	efi_status_t	*status;
 } __packed;
 
-struct efi_querycapsulecapabilities {
+struct efi_querycapsulecapabilities
+{
 	efi_capsule_header_t	**capsule_header_array;
 	unsigned long		capsule_count;
 	u64			*maximum_capsule_size;

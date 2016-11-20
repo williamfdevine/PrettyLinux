@@ -19,12 +19,12 @@
 static u32 STG_PIXEL_BUS_WIDTH = 128;	/* 128 bit bus width      */
 static u32 REF_CLOCK = 14318;
 
-int InitialiseRamdac(volatile STG4000REG __iomem * pSTGReg,
-		     u32 displayDepth,
-		     u32 displayWidth,
-		     u32 displayHeight,
-		     s32 HSyncPolarity,
-		     s32 VSyncPolarity, u32 * pixelClock)
+int InitialiseRamdac(volatile STG4000REG __iomem *pSTGReg,
+					 u32 displayDepth,
+					 u32 displayWidth,
+					 u32 displayHeight,
+					 s32 HSyncPolarity,
+					 s32 VSyncPolarity, u32 *pixelClock)
 {
 	u32 tmp = 0;
 	u32 F = 0, R = 0, P = 0;
@@ -34,7 +34,8 @@ int InitialiseRamdac(volatile STG4000REG __iomem * pSTGReg,
 	/* Make sure DAC is in Reset */
 	tmp = STG_READ_REG(SoftwareReset);
 
-	if (tmp & 0x1) {
+	if (tmp & 0x1)
+	{
 		CLEAR_BIT(1);
 		STG_WRITE_REG(SoftwareReset, tmp);
 	}
@@ -46,22 +47,25 @@ int InitialiseRamdac(volatile STG4000REG __iomem * pSTGReg,
 	/* Set LUT not used from 16bpp to 32 bpp ??? */
 	CLEAR_BITS_FRM_TO(8, 9);
 
-	switch (displayDepth) {
-	case 16:
-		{
-			physicalPixelDepth = 16;
-			tmp |= _16BPP;
-			break;
-		}
-	case 32:
-		{
-			/* Set for 32 bits per pixel */
-			physicalPixelDepth = 32;
-			tmp |= _32BPP;
-			break;
-		}
-	default:
-		return -EINVAL;
+	switch (displayDepth)
+	{
+		case 16:
+			{
+				physicalPixelDepth = 16;
+				tmp |= _16BPP;
+				break;
+			}
+
+		case 32:
+			{
+				/* Set for 32 bits per pixel */
+				physicalPixelDepth = 32;
+				tmp |= _32BPP;
+				break;
+			}
+
+		default:
+			return -EINVAL;
 	}
 
 	STG_WRITE_REG(DACPixelFormat, tmp);
@@ -77,9 +81,9 @@ int InitialiseRamdac(volatile STG4000REG __iomem * pSTGReg,
 	CLEAR_BITS_FRM_TO(0, 10);
 	CLEAR_BITS_FRM_TO(12, 31);
 	tmp |=
-	    ((((displayHeight - 1) << 12) | (((displayWidth / ulPdiv) -
-					      1) << 23))
-	     | (stride / ulPdiv));
+		((((displayHeight - 1) << 12) | (((displayWidth / ulPdiv) -
+										  1) << 23))
+		 | (stride / ulPdiv));
 	STG_WRITE_REG(DACPrimSize, tmp);
 
 
@@ -144,7 +148,7 @@ int InitialiseRamdac(volatile STG4000REG __iomem * pSTGReg,
 }
 
 /* Ramdac control, turning output to the screen on and off */
-void DisableRamdacOutput(volatile STG4000REG __iomem * pSTGReg)
+void DisableRamdacOutput(volatile STG4000REG __iomem *pSTGReg)
 {
 	u32 tmp;
 
@@ -153,7 +157,7 @@ void DisableRamdacOutput(volatile STG4000REG __iomem * pSTGReg)
 	STG_WRITE_REG(DACStreamCtrl, tmp);
 }
 
-void EnableRamdacOutput(volatile STG4000REG __iomem * pSTGReg)
+void EnableRamdacOutput(volatile STG4000REG __iomem *pSTGReg)
 {
 	u32 tmp;
 

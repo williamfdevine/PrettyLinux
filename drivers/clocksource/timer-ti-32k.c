@@ -54,7 +54,8 @@
 #define OMAP2_32KSYNCNT_CR_OFF_LOW	0x10
 #define OMAP2_32KSYNCNT_CR_OFF_HIGH	0x30
 
-struct ti_32k {
+struct ti_32k
+{
 	void __iomem		*base;
 	void __iomem		*counter;
 	struct clocksource	cs;
@@ -72,14 +73,15 @@ static cycle_t notrace ti_32k_read_cycles(struct clocksource *cs)
 	return (cycle_t)readl_relaxed(ti->counter);
 }
 
-static struct ti_32k ti_32k_timer = {
+static struct ti_32k ti_32k_timer =
+{
 	.cs = {
 		.name		= "32k_counter",
 		.rating		= 250,
 		.read		= ti_32k_read_cycles,
 		.mask		= CLOCKSOURCE_MASK(32),
 		.flags		= CLOCK_SOURCE_IS_CONTINUOUS |
-				CLOCK_SOURCE_SUSPEND_NONSTOP,
+		CLOCK_SOURCE_SUSPEND_NONSTOP,
 	},
 };
 
@@ -93,7 +95,9 @@ static int __init ti_32k_timer_init(struct device_node *np)
 	int ret;
 
 	ti_32k_timer.base = of_iomap(np, 0);
-	if (!ti_32k_timer.base) {
+
+	if (!ti_32k_timer.base)
+	{
 		pr_err("Can't ioremap 32k timer base\n");
 		return -ENXIO;
 	}
@@ -108,13 +112,19 @@ static int __init ti_32k_timer_init(struct device_node *np)
 	 * the version.
 	 */
 	if (readl_relaxed(ti_32k_timer.base + OMAP2_32KSYNCNT_REV_OFF) &
-			OMAP2_32KSYNCNT_REV_SCHEME)
+		OMAP2_32KSYNCNT_REV_SCHEME)
+	{
 		ti_32k_timer.counter += OMAP2_32KSYNCNT_CR_OFF_HIGH;
+	}
 	else
+	{
 		ti_32k_timer.counter += OMAP2_32KSYNCNT_CR_OFF_LOW;
+	}
 
 	ret = clocksource_register_hz(&ti_32k_timer.cs, 32768);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("32k_counter: can't register clocksource\n");
 		return ret;
 	}
@@ -125,4 +135,4 @@ static int __init ti_32k_timer_init(struct device_node *np)
 	return 0;
 }
 CLOCKSOURCE_OF_DECLARE(ti_32k_timer, "ti,omap-counter32k",
-		ti_32k_timer_init);
+					   ti_32k_timer_init);

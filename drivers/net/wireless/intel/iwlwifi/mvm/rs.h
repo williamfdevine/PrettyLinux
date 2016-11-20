@@ -35,7 +35,8 @@
 #include "fw-api.h"
 #include "iwl-trans.h"
 
-struct iwl_rs_rate_info {
+struct iwl_rs_rate_info
+{
 	u8 plcp;	  /* uCode API:  IWL_RATE_6M_PLCP, etc. */
 	u8 plcp_ht_siso;  /* uCode API:  IWL_RATE_SISO_6M_PLCP, etc. */
 	u8 plcp_ht_mimo2; /* uCode API:  IWL_RATE_MIMO2_6M_PLCP, etc. */
@@ -47,14 +48,16 @@ struct iwl_rs_rate_info {
 
 #define IWL_RATE_60M_PLCP 3
 
-enum {
+enum
+{
 	IWL_RATE_INVM_INDEX = IWL_RATE_COUNT,
 	IWL_RATE_INVALID = IWL_RATE_COUNT,
 };
 
 #define LINK_QUAL_MAX_RETRY_NUM 16
 
-enum {
+enum
+{
 	IWL_RATE_6M_INDEX_TABLE = 0,
 	IWL_RATE_9M_INDEX_TABLE,
 	IWL_RATE_12M_INDEX_TABLE,
@@ -87,7 +90,8 @@ enum {
 
 
 /* uCode API values for HT/VHT bit rates */
-enum {
+enum
+{
 	IWL_RATE_HT_SISO_MCS_0_PLCP = 0,
 	IWL_RATE_HT_SISO_MCS_1_PLCP = 1,
 	IWL_RATE_HT_SISO_MCS_2_PLCP = 2,
@@ -152,7 +156,8 @@ enum {
 #define IWL_AGG_TPT_THREHOLD	0
 #define IWL_AGG_ALL_TID		0xff
 
-enum iwl_table_type {
+enum iwl_table_type
+{
 	LQ_NONE,
 	LQ_LEGACY_G,	/* legacy types */
 	LQ_LEGACY_A,
@@ -163,7 +168,8 @@ enum iwl_table_type {
 	LQ_MAX,
 };
 
-struct rs_rate {
+struct rs_rate
+{
 	int index;
 	enum iwl_table_type type;
 	u8 ant;
@@ -176,7 +182,7 @@ struct rs_rate {
 
 
 #define is_type_legacy(type) (((type) == LQ_LEGACY_G) || \
-			      ((type) == LQ_LEGACY_A))
+							  ((type) == LQ_LEGACY_A))
 #define is_type_ht_siso(type) ((type) == LQ_HT_SISO)
 #define is_type_ht_mimo2(type) ((type) == LQ_HT_MIMO2)
 #define is_type_vht_siso(type) ((type) == LQ_VHT_SISO)
@@ -209,7 +215,8 @@ struct rs_rate {
 
 #define IWL_MAX_MCS_DISPLAY_SIZE	12
 
-struct iwl_rate_mcs_info {
+struct iwl_rate_mcs_info
+{
 	char	mbps[IWL_MAX_MCS_DISPLAY_SIZE];
 	char	mcs[IWL_MAX_MCS_DISPLAY_SIZE];
 };
@@ -217,7 +224,8 @@ struct iwl_rate_mcs_info {
 /**
  * struct iwl_rate_scale_data -- tx success history for one rate
  */
-struct iwl_rate_scale_data {
+struct iwl_rate_scale_data
+{
 	u64 data;		/* bitmap of successful frames */
 	s32 success_counter;	/* number of frames successful */
 	s32 success_ratio;	/* per-cent * 128  */
@@ -228,7 +236,8 @@ struct iwl_rate_scale_data {
 /* Possible Tx columns
  * Tx Column = a combo of legacy/siso/mimo x antenna x SGI
  */
-enum rs_column {
+enum rs_column
+{
 	RS_COLUMN_LEGACY_ANT_A = 0,
 	RS_COLUMN_LEGACY_ANT_B,
 	RS_COLUMN_SISO_ANT_A,
@@ -243,7 +252,8 @@ enum rs_column {
 	RS_COLUMN_INVALID,
 };
 
-enum rs_ss_force_opt {
+enum rs_ss_force_opt
+{
 	RS_SS_FORCE_NONE = 0,
 	RS_SS_FORCE_STBC,
 	RS_SS_FORCE_BFER,
@@ -251,7 +261,8 @@ enum rs_ss_force_opt {
 };
 
 /* Packet stats per rate */
-struct rs_rate_stats {
+struct rs_rate_stats
+{
 	u64 success;
 	u64 total;
 };
@@ -262,7 +273,8 @@ struct rs_rate_stats {
  * There are two of these in struct iwl_lq_sta,
  * one for "active", and one for "search".
  */
-struct iwl_scale_tbl_info {
+struct iwl_scale_tbl_info
+{
 	struct rs_rate rate;
 	enum rs_column column;
 	const u16 *expected_tpt;	/* throughput metrics; expected_tpt_G, etc. */
@@ -271,7 +283,8 @@ struct iwl_scale_tbl_info {
 	struct iwl_rate_scale_data tpc_win[TPC_MAX_REDUCTION + 1];
 };
 
-enum {
+enum
+{
 	RS_STATE_SEARCH_CYCLE_STARTED,
 	RS_STATE_SEARCH_CYCLE_ENDED,
 	RS_STATE_STAY_IN_COLUMN,
@@ -282,7 +295,8 @@ enum {
  *
  * Pointer to this gets passed back and forth between driver and mac80211.
  */
-struct iwl_lq_sta {
+struct iwl_lq_sta
+{
 	u8 active_tbl;		/* index of active table, range 0-1 */
 	u8 rs_state;            /* RS_STATE_* */
 	u8 search_better_tbl;	/* 1: currently trying alternate mode */
@@ -341,7 +355,8 @@ struct iwl_lq_sta {
 	int tpc_reduce;
 
 	/* persistent fields - initialized only once - keep last! */
-	struct lq_sta_pers {
+	struct lq_sta_pers
+	{
 #ifdef CONFIG_MAC80211_DEBUGFS
 		u32 dbg_fixed_rate;
 		u8 dbg_fixed_txp_reduction;
@@ -359,11 +374,11 @@ struct iwl_lq_sta {
 
 /* Initialize station's rate scaling information after adding station */
 void iwl_mvm_rs_rate_init(struct iwl_mvm *mvm, struct ieee80211_sta *sta,
-			  enum nl80211_band band, bool init);
+						  enum nl80211_band band, bool init);
 
 /* Notify RS about Tx status */
 void iwl_mvm_rs_tx_status(struct iwl_mvm *mvm, struct ieee80211_sta *sta,
-			  int tid, struct ieee80211_tx_info *info, bool ndp);
+						  int tid, struct ieee80211_tx_info *info, bool ndp);
 
 /**
  * iwl_rate_control_register - Register the rate control algorithm callbacks
@@ -388,6 +403,6 @@ void iwl_mvm_rate_control_unregister(void);
 struct iwl_mvm_sta;
 
 int iwl_mvm_tx_protection(struct iwl_mvm *mvm, struct iwl_mvm_sta *mvmsta,
-			  bool enable);
+						  bool enable);
 
 #endif /* __rs__ */

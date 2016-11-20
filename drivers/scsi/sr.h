@@ -1,11 +1,11 @@
 /*
  *      sr.h by David Giller
  *      CD-ROM disk driver header file
- *      
+ *
  *      adapted from:
- *      sd.h Copyright (C) 1992 Drew Eckhardt 
+ *      sd.h Copyright (C) 1992 Drew Eckhardt
  *      SCSI disk driver header file by
- *              Drew Eckhardt 
+ *              Drew Eckhardt
  *
  *      <drew@colorado.edu>
  *
@@ -30,24 +30,25 @@ struct scsi_device;
 #define IOCTL_TIMEOUT 30*HZ
 
 
-typedef struct scsi_cd {
+typedef struct scsi_cd
+{
 	struct scsi_driver *driver;
 	unsigned capacity;	/* size in blocks                       */
 	struct scsi_device *device;
 	unsigned int vendor;	/* vendor code, see sr_vendor.c         */
 	unsigned long ms_offset;	/* for reading multisession-CD's        */
 	unsigned writeable : 1;
-	unsigned use:1;		/* is this device still supportable     */
-	unsigned xa_flag:1;	/* CD has XA sectors ? */
-	unsigned readcd_known:1;	/* drive supports READ_CD (0xbe) */
-	unsigned readcd_cdda:1;	/* reading audio data using READ_CD */
-	unsigned media_present:1;	/* media is present */
+	unsigned use: 1;		/* is this device still supportable     */
+	unsigned xa_flag: 1;	/* CD has XA sectors ? */
+	unsigned readcd_known: 1;	/* drive supports READ_CD (0xbe) */
+	unsigned readcd_cdda: 1;	/* reading audio data using READ_CD */
+	unsigned media_present: 1;	/* media is present */
 
 	/* GET_EVENT spurious event handling, blk layer guarantees exclusion */
 	int tur_mismatch;		/* nr of get_event TUR mismatches */
-	bool tur_changed:1;		/* changed according to TUR */
-	bool get_event_changed:1;	/* changed according to GET_EVENT */
-	bool ignore_get_event:1;	/* GET_EVENT is unreliable, use TUR */
+	bool tur_changed: 1;		/* changed according to TUR */
+	bool get_event_changed: 1;	/* changed according to GET_EVENT */
+	bool ignore_get_event: 1;	/* GET_EVENT is unreliable, use TUR */
 
 	struct cdrom_device_info cdi;
 	/* We hold gendisk and scsi_device references on probe and use

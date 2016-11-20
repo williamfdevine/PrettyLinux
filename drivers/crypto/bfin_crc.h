@@ -10,37 +10,40 @@
 #define __BFIN_CRC_H__
 
 /* Function driver which use hardware crc must initialize the structure */
-struct crc_info {
+struct crc_info
+{
 	/* Input data address */
 	unsigned char *in_addr;
 	/* Output data address */
 	unsigned char *out_addr;
 	/* Input or output bytes */
 	unsigned long datasize;
-	union {
-	/* CRC to compare with that of input buffer */
-	unsigned long crc_compare;
-	/* Value to compare with input data */
-	unsigned long val_verify;
-	/* Value to fill */
-	unsigned long val_fill;
+	union
+	{
+		/* CRC to compare with that of input buffer */
+		unsigned long crc_compare;
+		/* Value to compare with input data */
+		unsigned long val_verify;
+		/* Value to fill */
+		unsigned long val_fill;
 	};
 	/* Value to program the 32b CRC Polynomial */
 	unsigned long crc_poly;
-	union {
-	/* CRC calculated from the input data */
-	unsigned long crc_result;
-	/* First failed position to verify input data */
-	unsigned long pos_verify;
+	union
+	{
+		/* CRC calculated from the input data */
+		unsigned long crc_result;
+		/* First failed position to verify input data */
+		unsigned long pos_verify;
 	};
 	/* CRC mirror flags */
-	unsigned int bitmirr:1;
-	unsigned int bytmirr:1;
-	unsigned int w16swp:1;
-	unsigned int fdsel:1;
-	unsigned int rsltmirr:1;
-	unsigned int polymirr:1;
-	unsigned int cmpmirr:1;
+	unsigned int bitmirr: 1;
+	unsigned int bytmirr: 1;
+	unsigned int w16swp: 1;
+	unsigned int fdsel: 1;
+	unsigned int rsltmirr: 1;
+	unsigned int polymirr: 1;
+	unsigned int cmpmirr: 1;
 };
 
 /* Userspace interface */
@@ -57,7 +60,8 @@ struct crc_info {
 #include <linux/spinlock.h>
 #include <linux/miscdevice.h>
 
-struct crc_register {
+struct crc_register
+{
 	u32 control;
 	u32 datacnt;
 	u32 datacntrld;

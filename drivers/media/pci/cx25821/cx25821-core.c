@@ -41,7 +41,8 @@ static unsigned int card[] = {[0 ... (CX25821_MAXBOARDS - 1)] = UNSET };
 module_param_array(card, int, NULL, 0444);
 MODULE_PARM_DESC(card, "card type");
 
-const struct sram_channel cx25821_sram_channels[] = {
+const struct sram_channel cx25821_sram_channels[] =
+{
 	[SRAM_CH00] = {
 		.i = SRAM_CH00,
 		.name = "VID A",
@@ -312,7 +313,8 @@ EXPORT_SYMBOL(cx25821_sram_channels);
 
 static int cx25821_risc_decode(u32 risc)
 {
-	static const char * const instr[16] = {
+	static const char *const instr[16] =
+	{
 		[RISC_SYNC >> 28] = "sync",
 		[RISC_WRITE >> 28] = "write",
 		[RISC_WRITEC >> 28] = "writec",
@@ -324,7 +326,8 @@ static int cx25821_risc_decode(u32 risc)
 		[RISC_WRITECM >> 28] = "writecm",
 		[RISC_WRITECR >> 28] = "writecr",
 	};
-	static const int incr[16] = {
+	static const int incr[16] =
+	{
 		[RISC_WRITE >> 28] = 3,
 		[RISC_JUMP >> 28] = 3,
 		[RISC_SKIP >> 28] = 1,
@@ -333,7 +336,8 @@ static int cx25821_risc_decode(u32 risc)
 		[RISC_WRITECM >> 28] = 3,
 		[RISC_WRITECR >> 28] = 4,
 	};
-	static const char * const bits[] = {
+	static const char *const bits[] =
+	{
 		"12", "13", "14", "resync",
 		"cnt0", "cnt1", "18", "19",
 		"20", "21", "22", "23",
@@ -342,11 +346,16 @@ static int cx25821_risc_decode(u32 risc)
 	int i;
 
 	pr_cont("0x%08x [ %s",
-		risc, instr[risc >> 28] ? instr[risc >> 28] : "INVALID");
-	for (i = ARRAY_SIZE(bits) - 1; i >= 0; i--) {
+			risc, instr[risc >> 28] ? instr[risc >> 28] : "INVALID");
+
+	for (i = ARRAY_SIZE(bits) - 1; i >= 0; i--)
+	{
 		if (risc & (1 << (i + 12)))
+		{
 			pr_cont(" %s", bits[i]);
+		}
 	}
+
 	pr_cont(" count=%d ]\n", risc & 0xfff);
 	return incr[risc >> 28] ? incr[risc >> 28] : 1;
 }
@@ -436,13 +445,14 @@ static void cx25821_registers_init(struct cx25821_dev *dev)
 }
 
 int cx25821_sram_channel_setup(struct cx25821_dev *dev,
-			       const struct sram_channel *ch,
-			       unsigned int bpl, u32 risc)
+							   const struct sram_channel *ch,
+							   unsigned int bpl, u32 risc)
 {
 	unsigned int i, lines;
 	u32 cdt;
 
-	if (ch->cmds_start == 0) {
+	if (ch->cmds_start == 0)
+	{
 		cx_write(ch->ptr1_reg, 0);
 		cx_write(ch->ptr2_reg, 0);
 		cx_write(ch->cnt2_reg, 0);
@@ -455,7 +465,9 @@ int cx25821_sram_channel_setup(struct cx25821_dev *dev,
 	lines = ch->fifo_size / bpl;
 
 	if (lines > 4)
+	{
 		lines = 4;
+	}
 
 	BUG_ON(lines < 2);
 
@@ -464,7 +476,8 @@ int cx25821_sram_channel_setup(struct cx25821_dev *dev,
 	cx_write(8 + 8, 0);
 
 	/* write CDT */
-	for (i = 0; i < lines; i++) {
+	for (i = 0; i < lines; i++)
+	{
 		cx_write(cdt + 16 * i, ch->fifo_start + bpl * i);
 		cx_write(cdt + 16 * i + 4, 0);
 		cx_write(cdt + 16 * i + 8, 0);
@@ -473,13 +486,19 @@ int cx25821_sram_channel_setup(struct cx25821_dev *dev,
 
 	/* init the first cdt buffer */
 	for (i = 0; i < 128; i++)
+	{
 		cx_write(ch->fifo_start + 4 * i, i);
+	}
 
 	/* write CMDS */
 	if (ch->jumponly)
+	{
 		cx_write(ch->cmds_start + 0, 8);
+	}
 	else
+	{
 		cx_write(ch->cmds_start + 0, risc);
+	}
 
 	cx_write(ch->cmds_start + 4, 0);	/* 64 bits 63-32 */
 	cx_write(ch->cmds_start + 8, cdt);
@@ -487,12 +506,18 @@ int cx25821_sram_channel_setup(struct cx25821_dev *dev,
 	cx_write(ch->cmds_start + 16, ch->ctrl_start);
 
 	if (ch->jumponly)
+	{
 		cx_write(ch->cmds_start + 20, 0x80000000 | (64 >> 2));
+	}
 	else
+	{
 		cx_write(ch->cmds_start + 20, 64 >> 2);
+	}
 
 	for (i = 24; i < 80; i += 4)
+	{
 		cx_write(ch->cmds_start + i, 0);
+	}
 
 	/* fill registers */
 	cx_write(ch->ptr1_reg, ch->fifo_start);
@@ -504,13 +529,14 @@ int cx25821_sram_channel_setup(struct cx25821_dev *dev,
 }
 
 int cx25821_sram_channel_setup_audio(struct cx25821_dev *dev,
-				     const struct sram_channel *ch,
-				     unsigned int bpl, u32 risc)
+									 const struct sram_channel *ch,
+									 unsigned int bpl, u32 risc)
 {
 	unsigned int i, lines;
 	u32 cdt;
 
-	if (ch->cmds_start == 0) {
+	if (ch->cmds_start == 0)
+	{
 		cx_write(ch->ptr1_reg, 0);
 		cx_write(ch->ptr2_reg, 0);
 		cx_write(ch->cnt2_reg, 0);
@@ -523,7 +549,9 @@ int cx25821_sram_channel_setup_audio(struct cx25821_dev *dev,
 	lines = ch->fifo_size / bpl;
 
 	if (lines > 3)
-		lines = 3;	/* for AUDIO */
+	{
+		lines = 3;    /* for AUDIO */
+	}
 
 	BUG_ON(lines < 2);
 
@@ -532,7 +560,8 @@ int cx25821_sram_channel_setup_audio(struct cx25821_dev *dev,
 	cx_write(8 + 8, 0);
 
 	/* write CDT */
-	for (i = 0; i < lines; i++) {
+	for (i = 0; i < lines; i++)
+	{
 		cx_write(cdt + 16 * i, ch->fifo_start + bpl * i);
 		cx_write(cdt + 16 * i + 4, 0);
 		cx_write(cdt + 16 * i + 8, 0);
@@ -541,9 +570,13 @@ int cx25821_sram_channel_setup_audio(struct cx25821_dev *dev,
 
 	/* write CMDS */
 	if (ch->jumponly)
+	{
 		cx_write(ch->cmds_start + 0, 8);
+	}
 	else
+	{
 		cx_write(ch->cmds_start + 0, risc);
+	}
 
 	cx_write(ch->cmds_start + 4, 0);	/* 64 bits 63-32 */
 	cx_write(ch->cmds_start + 8, cdt);
@@ -552,13 +585,19 @@ int cx25821_sram_channel_setup_audio(struct cx25821_dev *dev,
 
 	/* IQ size */
 	if (ch->jumponly)
+	{
 		cx_write(ch->cmds_start + 20, 0x80000000 | (64 >> 2));
+	}
 	else
+	{
 		cx_write(ch->cmds_start + 20, 64 >> 2);
+	}
 
 	/* zero out */
 	for (i = 24; i < 80; i += 4)
+	{
 		cx_write(ch->cmds_start + i, 0);
+	}
 
 	/* fill registers */
 	cx_write(ch->ptr1_reg, ch->fifo_start);
@@ -572,7 +611,8 @@ EXPORT_SYMBOL(cx25821_sram_channel_setup_audio);
 
 void cx25821_sram_channel_dump(struct cx25821_dev *dev, const struct sram_channel *ch)
 {
-	static char *name[] = {
+	static char *name[] =
+	{
 		"init risc lo",
 		"init risc hi",
 		"cdt base",
@@ -592,49 +632,56 @@ void cx25821_sram_channel_dump(struct cx25821_dev *dev, const struct sram_channe
 	unsigned int i, j, n;
 
 	pr_warn("%s: %s - dma channel status dump\n", dev->name, ch->name);
+
 	for (i = 0; i < ARRAY_SIZE(name); i++)
 		pr_warn("cmds + 0x%2x:   %-15s: 0x%08x\n",
-			i * 4, name[i], cx_read(ch->cmds_start + 4 * i));
+				i * 4, name[i], cx_read(ch->cmds_start + 4 * i));
 
 	j = i * 4;
-	for (i = 0; i < 4;) {
+
+	for (i = 0; i < 4;)
+	{
 		risc = cx_read(ch->cmds_start + 4 * (i + 14));
 		pr_warn("cmds + 0x%2x:   risc%d: ", j + i * 4, i);
 		i += cx25821_risc_decode(risc);
 	}
 
-	for (i = 0; i < (64 >> 2); i += n) {
+	for (i = 0; i < (64 >> 2); i += n)
+	{
 		risc = cx_read(ch->ctrl_start + 4 * i);
 		/* No consideration for bits 63-32 */
 
 		pr_warn("ctrl + 0x%2x (0x%08x): iq %x: ",
-			i * 4, ch->ctrl_start + 4 * i, i);
+				i * 4, ch->ctrl_start + 4 * i, i);
 		n = cx25821_risc_decode(risc);
-		for (j = 1; j < n; j++) {
+
+		for (j = 1; j < n; j++)
+		{
 			risc = cx_read(ch->ctrl_start + 4 * (i + j));
 			pr_warn("ctrl + 0x%2x :   iq %x: 0x%08x [ arg #%d ]\n",
-				4 * (i + j), i + j, risc, j);
+					4 * (i + j), i + j, risc, j);
 		}
 	}
 
 	pr_warn("        :   fifo: 0x%08x -> 0x%x\n",
-		ch->fifo_start, ch->fifo_start + ch->fifo_size);
+			ch->fifo_start, ch->fifo_start + ch->fifo_size);
 	pr_warn("        :   ctrl: 0x%08x -> 0x%x\n",
-		ch->ctrl_start, ch->ctrl_start + 6 * 16);
+			ch->ctrl_start, ch->ctrl_start + 6 * 16);
 	pr_warn("        :   ptr1_reg: 0x%08x\n",
-		cx_read(ch->ptr1_reg));
+			cx_read(ch->ptr1_reg));
 	pr_warn("        :   ptr2_reg: 0x%08x\n",
-		cx_read(ch->ptr2_reg));
+			cx_read(ch->ptr2_reg));
 	pr_warn("        :   cnt1_reg: 0x%08x\n",
-		cx_read(ch->cnt1_reg));
+			cx_read(ch->cnt1_reg));
 	pr_warn("        :   cnt2_reg: 0x%08x\n",
-		cx_read(ch->cnt2_reg));
+			cx_read(ch->cnt2_reg));
 }
 
 void cx25821_sram_channel_dump_audio(struct cx25821_dev *dev,
-				     const struct sram_channel *ch)
+									 const struct sram_channel *ch)
 {
-	static const char * const name[] = {
+	static const char *const name[] =
+	{
 		"init risc lo",
 		"init risc hi",
 		"cdt base",
@@ -655,49 +702,54 @@ void cx25821_sram_channel_dump_audio(struct cx25821_dev *dev,
 	unsigned int i, j, n;
 
 	pr_info("\n%s: %s - dma Audio channel status dump\n",
-		dev->name, ch->name);
+			dev->name, ch->name);
 
 	for (i = 0; i < ARRAY_SIZE(name); i++)
 		pr_info("%s: cmds + 0x%2x:   %-15s: 0x%08x\n",
-			dev->name, i * 4, name[i],
-			cx_read(ch->cmds_start + 4 * i));
+				dev->name, i * 4, name[i],
+				cx_read(ch->cmds_start + 4 * i));
 
 	j = i * 4;
-	for (i = 0; i < 4;) {
+
+	for (i = 0; i < 4;)
+	{
 		risc = cx_read(ch->cmds_start + 4 * (i + 14));
 		pr_warn("cmds + 0x%2x:   risc%d: ", j + i * 4, i);
 		i += cx25821_risc_decode(risc);
 	}
 
-	for (i = 0; i < (64 >> 2); i += n) {
+	for (i = 0; i < (64 >> 2); i += n)
+	{
 		risc = cx_read(ch->ctrl_start + 4 * i);
 		/* No consideration for bits 63-32 */
 
 		pr_warn("ctrl + 0x%2x (0x%08x): iq %x: ",
-			i * 4, ch->ctrl_start + 4 * i, i);
+				i * 4, ch->ctrl_start + 4 * i, i);
 		n = cx25821_risc_decode(risc);
 
-		for (j = 1; j < n; j++) {
+		for (j = 1; j < n; j++)
+		{
 			risc = cx_read(ch->ctrl_start + 4 * (i + j));
 			pr_warn("ctrl + 0x%2x :   iq %x: 0x%08x [ arg #%d ]\n",
-				4 * (i + j), i + j, risc, j);
+					4 * (i + j), i + j, risc, j);
 		}
 	}
 
 	pr_warn("        :   fifo: 0x%08x -> 0x%x\n",
-		ch->fifo_start, ch->fifo_start + ch->fifo_size);
+			ch->fifo_start, ch->fifo_start + ch->fifo_size);
 	pr_warn("        :   ctrl: 0x%08x -> 0x%x\n",
-		ch->ctrl_start, ch->ctrl_start + 6 * 16);
+			ch->ctrl_start, ch->ctrl_start + 6 * 16);
 	pr_warn("        :   ptr1_reg: 0x%08x\n",
-		cx_read(ch->ptr1_reg));
+			cx_read(ch->ptr1_reg));
 	pr_warn("        :   ptr2_reg: 0x%08x\n",
-		cx_read(ch->ptr2_reg));
+			cx_read(ch->ptr2_reg));
 	pr_warn("        :   cnt1_reg: 0x%08x\n",
-		cx_read(ch->cnt1_reg));
+			cx_read(ch->cnt1_reg));
 	pr_warn("        :   cnt2_reg: 0x%08x\n",
-		cx_read(ch->cnt2_reg));
+			cx_read(ch->cnt2_reg));
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		risc = cx_read(ch->cmds_start + 56 + (i * 4));
 		pr_warn("instruction %d = 0x%x\n", i, risc);
 	}
@@ -705,10 +757,13 @@ void cx25821_sram_channel_dump_audio(struct cx25821_dev *dev,
 	/* read data from the first cdt buffer */
 	risc = cx_read(AUD_A_CDT);
 	pr_warn("\nread cdt loc=0x%x\n", risc);
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		n = cx_read(risc + i * 4);
 		pr_cont("0x%x ", n);
 	}
+
 	pr_cont("\n\n");
 
 	value = cx_read(CLK_RST);
@@ -747,13 +802,15 @@ static void cx25821_shutdown(struct cx25821_dev *dev)
 	cx_write(DEV_CNTRL2, 0);
 
 	/* Disable Video A/B activity */
-	for (i = 0; i < VID_CHANNEL_NUM; i++) {
+	for (i = 0; i < VID_CHANNEL_NUM; i++)
+	{
 		cx_write(dev->channels[i].sram_channels->dma_ctl, 0);
 		cx_write(dev->channels[i].sram_channels->int_msk, 0);
 	}
 
 	for (i = VID_UPSTREAM_SRAM_CHANNEL_I;
-		i <= VID_UPSTREAM_SRAM_CHANNEL_J; i++) {
+		 i <= VID_UPSTREAM_SRAM_CHANNEL_J; i++)
+	{
 		cx_write(dev->channels[i].sram_channels->dma_ctl, 0);
 		cx_write(dev->channels[i].sram_channels->int_msk, 0);
 	}
@@ -770,17 +827,19 @@ static void cx25821_shutdown(struct cx25821_dev *dev)
 }
 
 void cx25821_set_pixel_format(struct cx25821_dev *dev, int channel_select,
-			      u32 format)
+							  u32 format)
 {
-	if (channel_select <= 7 && channel_select >= 0) {
+	if (channel_select <= 7 && channel_select >= 0)
+	{
 		cx_write(dev->channels[channel_select].sram_channels->pix_frmt,
-				format);
+				 format);
 	}
+
 	dev->channels[channel_select].pixel_formats = format;
 }
 
 static void cx25821_set_vip_mode(struct cx25821_dev *dev,
-				 const struct sram_channel *ch)
+								 const struct sram_channel *ch)
 {
 	cx_write(ch->pix_frmt, PIXEL_FRMT_422);
 	cx_write(ch->vip_ctl, PIXEL_ENGINE_VIP1);
@@ -796,7 +855,9 @@ static void cx25821_initialize(struct cx25821_dev *dev)
 	cx_write(PCI_INT_STAT, 0xffffffff);
 
 	for (i = 0; i < VID_CHANNEL_NUM; i++)
+	{
 		cx_write(dev->channels[i].sram_channels->int_stat, 0xffffffff);
+	}
 
 	cx_write(AUD_A_INT_STAT, 0xffffffff);
 	cx_write(AUD_B_INT_STAT, 0xffffffff);
@@ -809,23 +870,25 @@ static void cx25821_initialize(struct cx25821_dev *dev)
 	cx25821_registers_init(dev);	/* init Pecos registers */
 	mdelay(100);
 
-	for (i = 0; i < VID_CHANNEL_NUM; i++) {
+	for (i = 0; i < VID_CHANNEL_NUM; i++)
+	{
 		cx25821_set_vip_mode(dev, dev->channels[i].sram_channels);
 		cx25821_sram_channel_setup(dev, dev->channels[i].sram_channels,
-						1440, 0);
+								   1440, 0);
 		dev->channels[i].pixel_formats = PIXEL_FRMT_422;
 		dev->channels[i].use_cif_resolution = 0;
 	}
 
 	/* Probably only affect Downstream */
 	for (i = VID_UPSTREAM_SRAM_CHANNEL_I;
-		i <= VID_UPSTREAM_SRAM_CHANNEL_J; i++) {
+		 i <= VID_UPSTREAM_SRAM_CHANNEL_J; i++)
+	{
 		dev->channels[i].pixel_formats = PIXEL_FRMT_422;
 		cx25821_set_vip_mode(dev, dev->channels[i].sram_channels);
 	}
 
 	cx25821_sram_channel_setup_audio(dev,
-			dev->channels[SRAM_CH08].sram_channels, 128, 0);
+									 dev->channels[SRAM_CH08].sram_channels, 128, 0);
 
 	cx25821_gpio_init(dev);
 }
@@ -833,11 +896,13 @@ static void cx25821_initialize(struct cx25821_dev *dev)
 static int cx25821_get_resources(struct cx25821_dev *dev)
 {
 	if (request_mem_region(pci_resource_start(dev->pci, 0),
-				pci_resource_len(dev->pci, 0), dev->name))
+						   pci_resource_len(dev->pci, 0), dev->name))
+	{
 		return 0;
+	}
 
 	pr_err("%s: can't get MMIO memory @ 0x%llx\n",
-		dev->name, (unsigned long long)pci_resource_start(dev->pci, 0));
+		   dev->name, (unsigned long long)pci_resource_start(dev->pci, 0));
 
 	return -EBUSY;
 }
@@ -852,10 +917,13 @@ static void cx25821_dev_checkrevision(struct cx25821_dev *dev)
 static void cx25821_iounmap(struct cx25821_dev *dev)
 {
 	if (dev == NULL)
+	{
 		return;
+	}
 
 	/* Releasing IO memory */
-	if (dev->lmmio != NULL) {
+	if (dev->lmmio != NULL)
+	{
 		iounmap(dev->lmmio);
 		dev->lmmio = NULL;
 	}
@@ -871,23 +939,29 @@ static int cx25821_dev_setup(struct cx25821_dev *dev)
 	dev->nr = ++cx25821_devcount;
 	sprintf(dev->name, "cx25821[%d]", dev->nr);
 
-	if (dev->pci->device != 0x8210) {
+	if (dev->pci->device != 0x8210)
+	{
 		pr_info("%s(): Exiting. Incorrect Hardware device = 0x%02x\n",
-			__func__, dev->pci->device);
+				__func__, dev->pci->device);
 		return -ENODEV;
 	}
+
 	pr_info("Athena Hardware device = 0x%02x\n", dev->pci->device);
 
 	/* Apply a sensible clock frequency for the PCIe bridge */
 	dev->clk_freq = 28000000;
-	for (i = 0; i < MAX_VID_CHANNEL_NUM; i++) {
+
+	for (i = 0; i < MAX_VID_CHANNEL_NUM; i++)
+	{
 		dev->channels[i].dev = dev;
 		dev->channels[i].id = i;
 		dev->channels[i].sram_channels = &cx25821_sram_channels[i];
 	}
 
 	if (dev->nr > 1)
+	{
 		CX25821_INFO("dev->nr > 1!");
+	}
 
 	/* board config */
 	dev->board = 1;		/* card[dev->nr]; */
@@ -907,10 +981,11 @@ static int cx25821_dev_setup(struct cx25821_dev *dev)
 	dev->i2c_bus[0].reg_wdata = I2C1_WDATA;
 	dev->i2c_bus[0].i2c_period = (0x07 << 24);	/* 1.95MHz */
 
-	if (cx25821_get_resources(dev) < 0) {
+	if (cx25821_get_resources(dev) < 0)
+	{
 		pr_err("%s: No more PCIe resources for subsystem: %04x:%04x\n",
-		       dev->name, dev->pci->subsystem_vendor,
-		       dev->pci->subsystem_device);
+			   dev->name, dev->pci->subsystem_vendor,
+			   dev->pci->subsystem_device);
 
 		cx25821_devcount--;
 		return -EBUSY;
@@ -919,14 +994,16 @@ static int cx25821_dev_setup(struct cx25821_dev *dev)
 	/* PCIe stuff */
 	dev->base_io_addr = pci_resource_start(dev->pci, 0);
 
-	if (!dev->base_io_addr) {
+	if (!dev->base_io_addr)
+	{
 		CX25821_ERR("No PCI Memory resources, exiting!\n");
 		return -ENODEV;
 	}
 
 	dev->lmmio = ioremap(dev->base_io_addr, pci_resource_len(dev->pci, 0));
 
-	if (!dev->lmmio) {
+	if (!dev->lmmio)
+	{
 		CX25821_ERR("ioremap failed, maybe increasing __VMALLOC_RESERVE in page.h\n");
 		cx25821_iounmap(dev);
 		return -ENOMEM;
@@ -935,20 +1012,22 @@ static int cx25821_dev_setup(struct cx25821_dev *dev)
 	dev->bmmio = (u8 __iomem *) dev->lmmio;
 
 	pr_info("%s: subsystem: %04x:%04x, board: %s [card=%d,%s]\n",
-		dev->name, dev->pci->subsystem_vendor,
-		dev->pci->subsystem_device, cx25821_boards[dev->board].name,
-		dev->board, card[dev->nr] == dev->board ?
-		"insmod option" : "autodetected");
+			dev->name, dev->pci->subsystem_vendor,
+			dev->pci->subsystem_device, cx25821_boards[dev->board].name,
+			dev->board, card[dev->nr] == dev->board ?
+			"insmod option" : "autodetected");
 
 	/* init hardware */
 	cx25821_initialize(dev);
 
 	cx25821_i2c_register(&dev->i2c_bus[0]);
-/*  cx25821_i2c_register(&dev->i2c_bus[1]);
- *  cx25821_i2c_register(&dev->i2c_bus[2]); */
+	/*  cx25821_i2c_register(&dev->i2c_bus[1]);
+	 *  cx25821_i2c_register(&dev->i2c_bus[2]); */
 
 	if (medusa_video_init(dev) < 0)
+	{
 		CX25821_ERR("%s(): Failed to initialize medusa!\n", __func__);
+	}
 
 	cx25821_video_register(dev);
 
@@ -961,13 +1040,19 @@ void cx25821_dev_unregister(struct cx25821_dev *dev)
 	int i;
 
 	if (!dev->base_io_addr)
+	{
 		return;
+	}
 
 	release_mem_region(dev->base_io_addr, pci_resource_len(dev->pci, 0));
 
-	for (i = 0; i < MAX_VID_CAP_CHANNEL_NUM - 1; i++) {
+	for (i = 0; i < MAX_VID_CAP_CHANNEL_NUM - 1; i++)
+	{
 		if (i == SRAM_CH08) /* audio channel */
+		{
 			continue;
+		}
+
 		/*
 		 * TODO: enable when video output is properly
 		 * supported.
@@ -983,35 +1068,45 @@ void cx25821_dev_unregister(struct cx25821_dev *dev)
 EXPORT_SYMBOL(cx25821_dev_unregister);
 
 int cx25821_riscmem_alloc(struct pci_dev *pci,
-		       struct cx25821_riscmem *risc,
-		       unsigned int size)
+						  struct cx25821_riscmem *risc,
+						  unsigned int size)
 {
 	__le32 *cpu;
 	dma_addr_t dma = 0;
 
 	if (NULL != risc->cpu && risc->size < size)
+	{
 		pci_free_consistent(pci, risc->size, risc->cpu, risc->dma);
-	if (NULL == risc->cpu) {
+	}
+
+	if (NULL == risc->cpu)
+	{
 		cpu = pci_zalloc_consistent(pci, size, &dma);
+
 		if (NULL == cpu)
+		{
 			return -ENOMEM;
+		}
+
 		risc->cpu  = cpu;
 		risc->dma  = dma;
 		risc->size = size;
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL(cx25821_riscmem_alloc);
 
-static __le32 *cx25821_risc_field(__le32 * rp, struct scatterlist *sglist,
-				  unsigned int offset, u32 sync_line,
-				  unsigned int bpl, unsigned int padding,
-				  unsigned int lines, bool jump)
+static __le32 *cx25821_risc_field(__le32 *rp, struct scatterlist *sglist,
+								  unsigned int offset, u32 sync_line,
+								  unsigned int bpl, unsigned int padding,
+								  unsigned int lines, bool jump)
 {
 	struct scatterlist *sg;
 	unsigned int line, todo;
 
-	if (jump) {
+	if (jump)
+	{
 		*(rp++) = cpu_to_le32(RISC_JUMP);
 		*(rp++) = cpu_to_le32(0);
 		*(rp++) = cpu_to_le32(0); /* bits 63-32 */
@@ -1019,40 +1114,52 @@ static __le32 *cx25821_risc_field(__le32 * rp, struct scatterlist *sglist,
 
 	/* sync instruction */
 	if (sync_line != NO_SYNC_LINE)
+	{
 		*(rp++) = cpu_to_le32(RISC_RESYNC | sync_line);
+	}
 
 	/* scan lines */
 	sg = sglist;
-	for (line = 0; line < lines; line++) {
-		while (offset && offset >= sg_dma_len(sg)) {
+
+	for (line = 0; line < lines; line++)
+	{
+		while (offset && offset >= sg_dma_len(sg))
+		{
 			offset -= sg_dma_len(sg);
 			sg = sg_next(sg);
 		}
-		if (bpl <= sg_dma_len(sg) - offset) {
+
+		if (bpl <= sg_dma_len(sg) - offset)
+		{
 			/* fits into current chunk */
 			*(rp++) = cpu_to_le32(RISC_WRITE | RISC_SOL | RISC_EOL |
-					bpl);
+								  bpl);
 			*(rp++) = cpu_to_le32(sg_dma_address(sg) + offset);
 			*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
 			offset += bpl;
-		} else {
+		}
+		else
+		{
 			/* scanline needs to be split */
 			todo = bpl;
 			*(rp++) = cpu_to_le32(RISC_WRITE | RISC_SOL |
-					(sg_dma_len(sg) - offset));
+								  (sg_dma_len(sg) - offset));
 			*(rp++) = cpu_to_le32(sg_dma_address(sg) + offset);
 			*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
 			todo -= (sg_dma_len(sg) - offset);
 			offset = 0;
 			sg = sg_next(sg);
-			while (todo > sg_dma_len(sg)) {
+
+			while (todo > sg_dma_len(sg))
+			{
 				*(rp++) = cpu_to_le32(RISC_WRITE |
-						sg_dma_len(sg));
+									  sg_dma_len(sg));
 				*(rp++) = cpu_to_le32(sg_dma_address(sg));
 				*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
 				todo -= sg_dma_len(sg);
 				sg = sg_next(sg);
 			}
+
 			*(rp++) = cpu_to_le32(RISC_WRITE | RISC_EOL | todo);
 			*(rp++) = cpu_to_le32(sg_dma_address(sg));
 			*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
@@ -1066,9 +1173,9 @@ static __le32 *cx25821_risc_field(__le32 * rp, struct scatterlist *sglist,
 }
 
 int cx25821_risc_buffer(struct pci_dev *pci, struct cx25821_riscmem *risc,
-			struct scatterlist *sglist, unsigned int top_offset,
-			unsigned int bottom_offset, unsigned int bpl,
-			unsigned int padding, unsigned int lines)
+						struct scatterlist *sglist, unsigned int top_offset,
+						unsigned int bottom_offset, unsigned int bpl,
+						unsigned int padding, unsigned int lines)
 {
 	u32 instructions;
 	u32 fields;
@@ -1076,10 +1183,16 @@ int cx25821_risc_buffer(struct pci_dev *pci, struct cx25821_riscmem *risc,
 	int rc;
 
 	fields = 0;
+
 	if (UNSET != top_offset)
+	{
 		fields++;
+	}
+
 	if (UNSET != bottom_offset)
+	{
 		fields++;
+	}
 
 	/* estimate risc mem: worst case is one write per page border +
 	   one write per scan line + syncs + jump (all 3 dwords).  Padding
@@ -1087,24 +1200,28 @@ int cx25821_risc_buffer(struct pci_dev *pci, struct cx25821_riscmem *risc,
 	   region may be smaller than PAGE_SIZE */
 	/* write and jump need and extra dword */
 	instructions = fields * (1 + ((bpl + padding) * lines) / PAGE_SIZE +
-			lines);
+							 lines);
 	instructions += 5;
 	rc = cx25821_riscmem_alloc(pci, risc, instructions * 12);
 
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	/* write risc instructions */
 	rp = risc->cpu;
 
-	if (UNSET != top_offset) {
+	if (UNSET != top_offset)
+	{
 		rp = cx25821_risc_field(rp, sglist, top_offset, 0, bpl, padding,
-					lines, true);
+								lines, true);
 	}
 
-	if (UNSET != bottom_offset) {
+	if (UNSET != bottom_offset)
+	{
 		rp = cx25821_risc_field(rp, sglist, bottom_offset, 0x200, bpl,
-					padding, lines, UNSET == top_offset);
+								padding, lines, UNSET == top_offset);
 	}
 
 	/* save pointer to jmp instruction address */
@@ -1114,61 +1231,77 @@ int cx25821_risc_buffer(struct pci_dev *pci, struct cx25821_riscmem *risc,
 	return 0;
 }
 
-static __le32 *cx25821_risc_field_audio(__le32 * rp, struct scatterlist *sglist,
-					unsigned int offset, u32 sync_line,
-					unsigned int bpl, unsigned int padding,
-					unsigned int lines, unsigned int lpi)
+static __le32 *cx25821_risc_field_audio(__le32 *rp, struct scatterlist *sglist,
+										unsigned int offset, u32 sync_line,
+										unsigned int bpl, unsigned int padding,
+										unsigned int lines, unsigned int lpi)
 {
 	struct scatterlist *sg;
 	unsigned int line, todo, sol;
 
 	/* sync instruction */
 	if (sync_line != NO_SYNC_LINE)
+	{
 		*(rp++) = cpu_to_le32(RISC_RESYNC | sync_line);
+	}
 
 	/* scan lines */
 	sg = sglist;
-	for (line = 0; line < lines; line++) {
-		while (offset && offset >= sg_dma_len(sg)) {
+
+	for (line = 0; line < lines; line++)
+	{
+		while (offset && offset >= sg_dma_len(sg))
+		{
 			offset -= sg_dma_len(sg);
 			sg = sg_next(sg);
 		}
 
 		if (lpi && line > 0 && !(line % lpi))
+		{
 			sol = RISC_SOL | RISC_IRQ1 | RISC_CNT_INC;
+		}
 		else
+		{
 			sol = RISC_SOL;
+		}
 
-		if (bpl <= sg_dma_len(sg) - offset) {
+		if (bpl <= sg_dma_len(sg) - offset)
+		{
 			/* fits into current chunk */
 			*(rp++) = cpu_to_le32(RISC_WRITE | sol | RISC_EOL |
-					bpl);
+								  bpl);
 			*(rp++) = cpu_to_le32(sg_dma_address(sg) + offset);
 			*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
 			offset += bpl;
-		} else {
+		}
+		else
+		{
 			/* scanline needs to be split */
 			todo = bpl;
 			*(rp++) = cpu_to_le32(RISC_WRITE | sol |
-					(sg_dma_len(sg) - offset));
+								  (sg_dma_len(sg) - offset));
 			*(rp++) = cpu_to_le32(sg_dma_address(sg) + offset);
 			*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
 			todo -= (sg_dma_len(sg) - offset);
 			offset = 0;
 			sg = sg_next(sg);
-			while (todo > sg_dma_len(sg)) {
+
+			while (todo > sg_dma_len(sg))
+			{
 				*(rp++) = cpu_to_le32(RISC_WRITE |
-						sg_dma_len(sg));
+									  sg_dma_len(sg));
 				*(rp++) = cpu_to_le32(sg_dma_address(sg));
 				*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
 				todo -= sg_dma_len(sg);
 				sg = sg_next(sg);
 			}
+
 			*(rp++) = cpu_to_le32(RISC_WRITE | RISC_EOL | todo);
 			*(rp++) = cpu_to_le32(sg_dma_address(sg));
 			*(rp++) = cpu_to_le32(0);	/* bits 63-32 */
 			offset += todo;
 		}
+
 		offset += padding;
 	}
 
@@ -1176,10 +1309,10 @@ static __le32 *cx25821_risc_field_audio(__le32 * rp, struct scatterlist *sglist,
 }
 
 int cx25821_risc_databuffer_audio(struct pci_dev *pci,
-				  struct cx25821_riscmem *risc,
-				  struct scatterlist *sglist,
-				  unsigned int bpl,
-				  unsigned int lines, unsigned int lpi)
+								  struct cx25821_riscmem *risc,
+								  struct scatterlist *sglist,
+								  unsigned int bpl,
+								  unsigned int lines, unsigned int lpi)
 {
 	u32 instructions;
 	__le32 *rp;
@@ -1194,13 +1327,16 @@ int cx25821_risc_databuffer_audio(struct pci_dev *pci,
 	instructions += 1;
 
 	rc = cx25821_riscmem_alloc(pci, risc, instructions * 12);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	/* write risc instructions */
 	rp = risc->cpu;
 	rp = cx25821_risc_field_audio(rp, sglist, 0, NO_SYNC_LINE, bpl, 0,
-				      lines, lpi);
+								  lines, lpi);
 
 	/* save pointer to jmp instruction address */
 	risc->jmp = rp;
@@ -1212,10 +1348,14 @@ EXPORT_SYMBOL(cx25821_risc_databuffer_audio);
 void cx25821_free_buffer(struct cx25821_dev *dev, struct cx25821_buffer *buf)
 {
 	BUG_ON(in_interrupt());
+
 	if (WARN_ON(buf->risc.size == 0))
+	{
 		return;
+	}
+
 	pci_free_consistent(dev->pci,
-			buf->risc.size, buf->risc.cpu, buf->risc.dma);
+						buf->risc.size, buf->risc.cpu, buf->risc.dma);
 	memset(&buf->risc, 0, sizeof(buf->risc));
 }
 
@@ -1230,16 +1370,20 @@ static irqreturn_t cx25821_irq(int irq, void *dev_id)
 	pci_status = cx_read(PCI_INT_STAT);
 
 	if (pci_status == 0)
+	{
 		goto out;
+	}
 
-	for (i = 0; i < VID_CHANNEL_NUM; i++) {
-		if (pci_status & mask[i]) {
+	for (i = 0; i < VID_CHANNEL_NUM; i++)
+	{
+		if (pci_status & mask[i])
+		{
 			vid_status = cx_read(dev->channels[i].
-				sram_channels->int_stat);
+								 sram_channels->int_stat);
 
 			if (vid_status)
 				handled += cx25821_video_irq(dev, i,
-						vid_status);
+											 vid_status);
 
 			cx_write(PCI_INT_STAT, mask[i]);
 		}
@@ -1250,23 +1394,36 @@ out:
 }
 
 void cx25821_print_irqbits(char *name, char *tag, char **strings,
-			   int len, u32 bits, u32 mask)
+						   int len, u32 bits, u32 mask)
 {
 	unsigned int i;
 
 	printk(KERN_DEBUG pr_fmt("%s: %s [0x%x]"), name, tag, bits);
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		if (!(bits & (1 << i)))
+		{
 			continue;
+		}
+
 		if (strings[i])
+		{
 			pr_cont(" %s", strings[i]);
+		}
 		else
+		{
 			pr_cont(" %d", i);
+		}
+
 		if (!(mask & (1 << i)))
+		{
 			continue;
+		}
+
 		pr_cont("*");
 	}
+
 	pr_cont("\n");
 }
 EXPORT_SYMBOL(cx25821_print_irqbits);
@@ -1279,22 +1436,30 @@ struct cx25821_dev *cx25821_dev_get(struct pci_dev *pci)
 EXPORT_SYMBOL(cx25821_dev_get);
 
 static int cx25821_initdev(struct pci_dev *pci_dev,
-			   const struct pci_device_id *pci_id)
+						   const struct pci_device_id *pci_id)
 {
 	struct cx25821_dev *dev;
 	int err = 0;
 
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+
 	if (NULL == dev)
+	{
 		return -ENOMEM;
+	}
 
 	err = v4l2_device_register(&pci_dev->dev, &dev->v4l2_dev);
+
 	if (err < 0)
+	{
 		goto fail_free;
+	}
 
 	/* pci init */
 	dev->pci = pci_dev;
-	if (pci_enable_device(pci_dev)) {
+
+	if (pci_enable_device(pci_dev))
+	{
 		err = -EIO;
 
 		pr_info("pci enable failed!\n");
@@ -1303,28 +1468,34 @@ static int cx25821_initdev(struct pci_dev *pci_dev,
 	}
 
 	err = cx25821_dev_setup(dev);
+
 	if (err)
+	{
 		goto fail_unregister_pci;
+	}
 
 	/* print pci info */
 	pci_read_config_byte(pci_dev, PCI_CLASS_REVISION, &dev->pci_rev);
 	pci_read_config_byte(pci_dev, PCI_LATENCY_TIMER, &dev->pci_lat);
 	pr_info("%s/0: found at %s, rev: %d, irq: %d, latency: %d, mmio: 0x%llx\n",
-		dev->name, pci_name(pci_dev), dev->pci_rev, pci_dev->irq,
-		dev->pci_lat, (unsigned long long)dev->base_io_addr);
+			dev->name, pci_name(pci_dev), dev->pci_rev, pci_dev->irq,
+			dev->pci_lat, (unsigned long long)dev->base_io_addr);
 
 	pci_set_master(pci_dev);
 	err = pci_set_dma_mask(pci_dev, 0xffffffff);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
 		err = -EIO;
 		goto fail_irq;
 	}
 
 	err = request_irq(pci_dev->irq, cx25821_irq,
-			IRQF_SHARED, dev->name, dev);
+					  IRQF_SHARED, dev->name, dev);
 
-	if (err < 0) {
+	if (err < 0)
+	{
 		pr_err("%s: can't get IRQ %d\n", dev->name, pci_dev->irq);
 		goto fail_irq;
 	}
@@ -1355,14 +1526,17 @@ static void cx25821_finidev(struct pci_dev *pci_dev)
 
 	/* unregister stuff */
 	if (pci_dev->irq)
+	{
 		free_irq(pci_dev->irq, dev);
+	}
 
 	cx25821_dev_unregister(dev);
 	v4l2_device_unregister(v4l2_dev);
 	kfree(dev);
 }
 
-static const struct pci_device_id cx25821_pci_tbl[] = {
+static const struct pci_device_id cx25821_pci_tbl[] =
+{
 	{
 		/* CX25821 Athena */
 		.vendor = 0x14f1,
@@ -1382,7 +1556,8 @@ static const struct pci_device_id cx25821_pci_tbl[] = {
 
 MODULE_DEVICE_TABLE(pci, cx25821_pci_tbl);
 
-static struct pci_driver cx25821_pci_driver = {
+static struct pci_driver cx25821_pci_driver =
+{
 	.name = "cx25821",
 	.id_table = cx25821_pci_tbl,
 	.probe = cx25821_initdev,
@@ -1395,9 +1570,9 @@ static struct pci_driver cx25821_pci_driver = {
 static int __init cx25821_init(void)
 {
 	pr_info("driver version %d.%d.%d loaded\n",
-		(CX25821_VERSION_CODE >> 16) & 0xff,
-		(CX25821_VERSION_CODE >> 8) & 0xff,
-		CX25821_VERSION_CODE & 0xff);
+			(CX25821_VERSION_CODE >> 16) & 0xff,
+			(CX25821_VERSION_CODE >> 8) & 0xff,
+			CX25821_VERSION_CODE & 0xff);
 	return pci_register_driver(&cx25821_pci_driver);
 }
 

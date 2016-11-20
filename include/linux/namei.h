@@ -50,7 +50,7 @@ extern int path_pts(struct path *path);
 extern int user_path_at_empty(int, const char __user *, unsigned, struct path *, int *empty);
 
 static inline int user_path_at(int dfd, const char __user *name, unsigned flags,
-		 struct path *path)
+							   struct path *path)
 {
 	return user_path_at_empty(dfd, name, flags, path, NULL);
 }
@@ -68,7 +68,7 @@ static inline int user_lpath(const char __user *name, struct path *path)
 static inline int user_path_dir(const char __user *name, struct path *path)
 {
 	return user_path_at_empty(AT_FDCWD, name,
-				  LOOKUP_FOLLOW | LOOKUP_DIRECTORY, path, NULL);
+							  LOOKUP_FOLLOW | LOOKUP_DIRECTORY, path, NULL);
 }
 
 extern int kern_path(const char *, unsigned, struct path *);

@@ -20,7 +20,7 @@
 #include <asm/pgtable.h>
 
 static int mincore_hugetlb(pte_t *pte, unsigned long hmask, unsigned long addr,
-			unsigned long end, struct mm_walk *walk)
+						   unsigned long end, struct mm_walk *walk)
 {
 #ifdef CONFIG_HUGETLB_PAGE
 	unsigned char present;
@@ -31,8 +31,12 @@ static int mincore_hugetlb(pte_t *pte, unsigned long hmask, unsigned long addr,
 	 * swapped out, but theoretically it needs to be checked.
 	 */
 	present = pte && !huge_pte_none(huge_ptep_get(pte));
+
 	for (; addr != end; vec++, addr += PAGE_SIZE)
+	{
 		*vec = present;
+	}
+
 	walk->private = vec;
 #else
 	BUG();
@@ -58,23 +62,33 @@ static unsigned char mincore_page(struct address_space *mapping, pgoff_t pgoff)
 	 * tmpfs's .fault). So swapped out tmpfs mappings are tested here.
 	 */
 #ifdef CONFIG_SWAP
-	if (shmem_mapping(mapping)) {
+
+	if (shmem_mapping(mapping))
+	{
 		page = find_get_entry(mapping, pgoff);
+
 		/*
 		 * shmem/tmpfs may return swap: account for swapcache
 		 * page too.
 		 */
-		if (radix_tree_exceptional_entry(page)) {
+		if (radix_tree_exceptional_entry(page))
+		{
 			swp_entry_t swp = radix_to_swp_entry(page);
 			page = find_get_page(swap_address_space(swp),
-					     swp_offset(swp));
+								 swp_offset(swp));
 		}
-	} else
+	}
+	else
+	{
 		page = find_get_page(mapping, pgoff);
+	}
+
 #else
 	page = find_get_page(mapping, pgoff);
 #endif
-	if (page) {
+
+	if (page)
+	{
 		present = PageUptodate(page);
 		put_page(page);
 	}
@@ -83,34 +97,43 @@ static unsigned char mincore_page(struct address_space *mapping, pgoff_t pgoff)
 }
 
 static int __mincore_unmapped_range(unsigned long addr, unsigned long end,
-				struct vm_area_struct *vma, unsigned char *vec)
+									struct vm_area_struct *vma, unsigned char *vec)
 {
 	unsigned long nr = (end - addr) >> PAGE_SHIFT;
 	int i;
 
-	if (vma->vm_file) {
+	if (vma->vm_file)
+	{
 		pgoff_t pgoff;
 
 		pgoff = linear_page_index(vma, addr);
+
 		for (i = 0; i < nr; i++, pgoff++)
+		{
 			vec[i] = mincore_page(vma->vm_file->f_mapping, pgoff);
-	} else {
-		for (i = 0; i < nr; i++)
-			vec[i] = 0;
+		}
 	}
+	else
+	{
+		for (i = 0; i < nr; i++)
+		{
+			vec[i] = 0;
+		}
+	}
+
 	return nr;
 }
 
 static int mincore_unmapped_range(unsigned long addr, unsigned long end,
-				   struct mm_walk *walk)
+								  struct mm_walk *walk)
 {
 	walk->private += __mincore_unmapped_range(addr, end,
-						  walk->vma, walk->private);
+					 walk->vma, walk->private);
 	return 0;
 }
 
 static int mincore_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
-			struct mm_walk *walk)
+							 struct mm_walk *walk)
 {
 	spinlock_t *ptl;
 	struct vm_area_struct *vma = walk->vma;
@@ -119,47 +142,60 @@ static int mincore_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
 	int nr = (end - addr) >> PAGE_SHIFT;
 
 	ptl = pmd_trans_huge_lock(pmd, vma);
-	if (ptl) {
+
+	if (ptl)
+	{
 		memset(vec, 1, nr);
 		spin_unlock(ptl);
 		goto out;
 	}
 
-	if (pmd_trans_unstable(pmd)) {
+	if (pmd_trans_unstable(pmd))
+	{
 		__mincore_unmapped_range(addr, end, vma, vec);
 		goto out;
 	}
 
 	ptep = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
-	for (; addr != end; ptep++, addr += PAGE_SIZE) {
+
+	for (; addr != end; ptep++, addr += PAGE_SIZE)
+	{
 		pte_t pte = *ptep;
 
 		if (pte_none(pte))
 			__mincore_unmapped_range(addr, addr + PAGE_SIZE,
-						 vma, vec);
+									 vma, vec);
 		else if (pte_present(pte))
+		{
 			*vec = 1;
-		else { /* pte is a swap entry */
+		}
+		else   /* pte is a swap entry */
+		{
 			swp_entry_t entry = pte_to_swp_entry(pte);
 
-			if (non_swap_entry(entry)) {
+			if (non_swap_entry(entry))
+			{
 				/*
 				 * migration or hwpoison entries are always
 				 * uptodate
 				 */
 				*vec = 1;
-			} else {
+			}
+			else
+			{
 #ifdef CONFIG_SWAP
 				*vec = mincore_page(swap_address_space(entry),
-						    swp_offset(entry));
+									swp_offset(entry));
 #else
 				WARN_ON(1);
 				*vec = 1;
 #endif
 			}
 		}
+
 		vec++;
 	}
+
 	pte_unmap_unlock(ptep - 1, ptl);
 out:
 	walk->private += nr;
@@ -177,7 +213,8 @@ static long do_mincore(unsigned long addr, unsigned long pages, unsigned char *v
 	struct vm_area_struct *vma;
 	unsigned long end;
 	int err;
-	struct mm_walk mincore_walk = {
+	struct mm_walk mincore_walk =
+	{
 		.pmd_entry = mincore_pte_range,
 		.pte_hole = mincore_unmapped_range,
 		.hugetlb_entry = mincore_hugetlb,
@@ -185,13 +222,21 @@ static long do_mincore(unsigned long addr, unsigned long pages, unsigned char *v
 	};
 
 	vma = find_vma(current->mm, addr);
+
 	if (!vma || addr < vma->vm_start)
+	{
 		return -ENOMEM;
+	}
+
 	mincore_walk.mm = vma->vm_mm;
 	end = min(vma->vm_end, addr + (pages << PAGE_SHIFT));
 	err = walk_page_range(addr, end, &mincore_walk);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	return (end - addr) >> PAGE_SHIFT;
 }
 
@@ -220,7 +265,7 @@ static long do_mincore(unsigned long addr, unsigned long pages, unsigned char *v
  *  -EAGAIN - A kernel resource was temporarily unavailable.
  */
 SYSCALL_DEFINE3(mincore, unsigned long, start, size_t, len,
-		unsigned char __user *, vec)
+				unsigned char __user *, vec)
 {
 	long retval;
 	unsigned long pages;
@@ -228,25 +273,36 @@ SYSCALL_DEFINE3(mincore, unsigned long, start, size_t, len,
 
 	/* Check the start address: needs to be page-aligned.. */
 	if (start & ~PAGE_MASK)
+	{
 		return -EINVAL;
+	}
 
 	/* ..and we need to be passed a valid user-space range */
 	if (!access_ok(VERIFY_READ, (void __user *) start, len))
+	{
 		return -ENOMEM;
+	}
 
 	/* This also avoids any overflows on PAGE_ALIGN */
 	pages = len >> PAGE_SHIFT;
 	pages += (offset_in_page(len)) != 0;
 
 	if (!access_ok(VERIFY_WRITE, vec, pages))
+	{
 		return -EFAULT;
+	}
 
 	tmp = (void *) __get_free_page(GFP_USER);
+
 	if (!tmp)
+	{
 		return -EAGAIN;
+	}
 
 	retval = 0;
-	while (pages) {
+
+	while (pages)
+	{
 		/*
 		 * Do at most PAGE_SIZE entries per iteration, due to
 		 * the temporary buffer size.
@@ -256,16 +312,22 @@ SYSCALL_DEFINE3(mincore, unsigned long, start, size_t, len,
 		up_read(&current->mm->mmap_sem);
 
 		if (retval <= 0)
+		{
 			break;
-		if (copy_to_user(vec, tmp, retval)) {
+		}
+
+		if (copy_to_user(vec, tmp, retval))
+		{
 			retval = -EFAULT;
 			break;
 		}
+
 		pages -= retval;
 		vec += retval;
 		start += retval << PAGE_SHIFT;
 		retval = 0;
 	}
+
 	free_page((unsigned long) tmp);
 	return retval;
 }

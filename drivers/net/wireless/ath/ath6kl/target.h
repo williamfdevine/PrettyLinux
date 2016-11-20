@@ -156,7 +156,8 @@
  *
  * More items may be added at the end.
  */
-struct host_interest {
+struct host_interest
+{
 	/*
 	 * Pointer to application-defined area, if any.
 	 * Set by Target application during startup.
@@ -335,11 +336,12 @@ struct host_interest {
 
 #define TARG_VTOP(target_type, vaddr) \
 	(((target_type) == TARGET_TYPE_AR6003) ? AR6003_VTOP(vaddr) : \
-	(((target_type) == TARGET_TYPE_AR6004) ? AR6004_VTOP(vaddr) : 0))
+	 (((target_type) == TARGET_TYPE_AR6004) ? AR6004_VTOP(vaddr) : 0))
 
 #define ATH6KL_FWLOG_PAYLOAD_SIZE		1500
 
-struct ath6kl_dbglog_buf {
+struct ath6kl_dbglog_buf
+{
 	__le32 next;
 	__le32 buffer_addr;
 	__le32 bufsize;
@@ -348,7 +350,8 @@ struct ath6kl_dbglog_buf {
 	__le32 free;
 } __packed;
 
-struct ath6kl_dbglog_hdr {
+struct ath6kl_dbglog_hdr
+{
 	__le32 dbuf_addr;
 	__le32 dropped;
 } __packed;

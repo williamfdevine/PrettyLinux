@@ -5,7 +5,8 @@
 #define NVIF_CONTROL_PSTATE_ATTR                                           0x01
 #define NVIF_CONTROL_PSTATE_USER                                           0x02
 
-struct nvif_control_pstate_info_v0 {
+struct nvif_control_pstate_info_v0
+{
 	__u8  version;
 	__u8  count; /* out: number of power states */
 #define NVIF_CONTROL_PSTATE_INFO_V0_USTATE_DISABLE                         (-1)
@@ -19,7 +20,8 @@ struct nvif_control_pstate_info_v0 {
 	__u8  pad06[2];
 };
 
-struct nvif_control_pstate_attr_v0 {
+struct nvif_control_pstate_attr_v0
+{
 	__u8  version;
 #define NVIF_CONTROL_PSTATE_ATTR_V0_STATE_CURRENT                          (-1)
 	__s8  state; /*  in: index of pstate to query
@@ -35,7 +37,8 @@ struct nvif_control_pstate_attr_v0 {
 	char  unit[16];
 };
 
-struct nvif_control_pstate_user_v0 {
+struct nvif_control_pstate_user_v0
+{
 	__u8  version;
 #define NVIF_CONTROL_PSTATE_USER_V0_STATE_UNKNOWN                          (-1)
 #define NVIF_CONTROL_PSTATE_USER_V0_STATE_PERFMON                          (-2)

@@ -36,7 +36,8 @@ xfs_stats_clear_proc_handler(
 
 	ret = proc_dointvec_minmax(ctl, write, buffer, lenp, ppos);
 
-	if (!ret && write && *valp) {
+	if (!ret && write && *valp)
+	{
 		xfs_stats_clearall(xfsstats.xs_stats);
 		xfs_stats_clear = 0;
 	}
@@ -55,17 +56,21 @@ xfs_panic_mask_proc_handler(
 	int		ret, *valp = ctl->data;
 
 	ret = proc_dointvec_minmax(ctl, write, buffer, lenp, ppos);
-	if (!ret && write) {
+
+	if (!ret && write)
+	{
 		xfs_panic_mask = *valp;
 #ifdef DEBUG
 		xfs_panic_mask |= (XFS_PTAG_SHUTDOWN_CORRUPT | XFS_PTAG_LOGRES);
 #endif
 	}
+
 	return ret;
 }
 #endif /* CONFIG_PROC_FS */
 
-static struct ctl_table xfs_table[] = {
+static struct ctl_table xfs_table[] =
+{
 	{
 		.procname	= "irix_sgid_inherit",
 		.data		= &xfs_params.sgid_inherit.val,
@@ -209,7 +214,8 @@ static struct ctl_table xfs_table[] = {
 	{}
 };
 
-static struct ctl_table xfs_dir_table[] = {
+static struct ctl_table xfs_dir_table[] =
+{
 	{
 		.procname	= "xfs",
 		.mode		= 0555,
@@ -218,7 +224,8 @@ static struct ctl_table xfs_dir_table[] = {
 	{}
 };
 
-static struct ctl_table xfs_root_table[] = {
+static struct ctl_table xfs_root_table[] =
+{
 	{
 		.procname	= "fs",
 		.mode		= 0555,
@@ -231,8 +238,12 @@ int
 xfs_sysctl_register(void)
 {
 	xfs_table_header = register_sysctl_table(xfs_root_table);
+
 	if (!xfs_table_header)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 

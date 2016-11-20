@@ -27,7 +27,8 @@
 
 #define PCF50633_GPOCFG_GPOSEL_MASK	0x07
 
-enum pcf50633_reg_gpocfg {
+enum pcf50633_reg_gpocfg
+{
 	PCF50633_GPOCFG_GPOSEL_0	= 0x00,
 	PCF50633_GPOCFG_GPOSEL_LED_NFET	= 0x01,
 	PCF50633_GPOCFG_GPOSEL_SYSxOK	= 0x02,
@@ -46,7 +47,7 @@ int pcf50633_gpio_invert_set(struct pcf50633 *, int gpio, int invert);
 int pcf50633_gpio_invert_get(struct pcf50633 *pcf, int gpio);
 
 int pcf50633_gpio_power_supply_set(struct pcf50633 *,
-					int gpio, int regulator, int on);
+								   int gpio, int regulator, int on);
 #endif /* __LINUX_MFD_PCF50633_GPIO_H */
 
 

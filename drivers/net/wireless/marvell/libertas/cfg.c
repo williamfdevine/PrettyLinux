@@ -23,15 +23,16 @@
 
 
 #define CHAN2G(_channel, _freq, _flags) {        \
-	.band             = NL80211_BAND_2GHZ, \
-	.center_freq      = (_freq),             \
-	.hw_value         = (_channel),          \
-	.flags            = (_flags),            \
-	.max_antenna_gain = 0,                   \
-	.max_power        = 30,                  \
-}
+		.band             = NL80211_BAND_2GHZ, \
+							.center_freq      = (_freq),             \
+												.hw_value         = (_channel),          \
+														.flags            = (_flags),            \
+																.max_antenna_gain = 0,                   \
+																		.max_power        = 30,                  \
+	}
 
-static struct ieee80211_channel lbs_2ghz_channels[] = {
+static struct ieee80211_channel lbs_2ghz_channels[] =
+{
 	CHAN2G(1,  2412, 0),
 	CHAN2G(2,  2417, 0),
 	CHAN2G(3,  2422, 0),
@@ -49,14 +50,15 @@ static struct ieee80211_channel lbs_2ghz_channels[] = {
 };
 
 #define RATETAB_ENT(_rate, _hw_value, _flags) { \
-	.bitrate  = (_rate),                    \
-	.hw_value = (_hw_value),                \
-	.flags    = (_flags),                   \
-}
+		.bitrate  = (_rate),                    \
+					.hw_value = (_hw_value),                \
+								.flags    = (_flags),                   \
+	}
 
 
 /* Table 6 in section 3.2.1.1 */
-static struct ieee80211_rate lbs_rates[] = {
+static struct ieee80211_rate lbs_rates[] =
+{
 	RATETAB_ENT(10,  0,  0),
 	RATETAB_ENT(20,  1,  0),
 	RATETAB_ENT(55,  2,  0),
@@ -71,7 +73,8 @@ static struct ieee80211_rate lbs_rates[] = {
 	RATETAB_ENT(540, 12, 0),
 };
 
-static struct ieee80211_supported_band lbs_band_2ghz = {
+static struct ieee80211_supported_band lbs_band_2ghz =
+{
 	.channels = lbs_2ghz_channels,
 	.n_channels = ARRAY_SIZE(lbs_2ghz_channels),
 	.bitrates = lbs_rates,
@@ -79,7 +82,8 @@ static struct ieee80211_supported_band lbs_band_2ghz = {
 };
 
 
-static const u32 cipher_suites[] = {
+static const u32 cipher_suites[] =
+{
 	WLAN_CIPHER_SUITE_WEP40,
 	WLAN_CIPHER_SUITE_WEP104,
 	WLAN_CIPHER_SUITE_TKIP,
@@ -107,21 +111,26 @@ static int lbs_auth_to_authtype(enum nl80211_auth_type auth_type)
 {
 	int ret = -ENOTSUPP;
 
-	switch (auth_type) {
-	case NL80211_AUTHTYPE_OPEN_SYSTEM:
-	case NL80211_AUTHTYPE_SHARED_KEY:
-		ret = auth_type;
-		break;
-	case NL80211_AUTHTYPE_AUTOMATIC:
-		ret = NL80211_AUTHTYPE_OPEN_SYSTEM;
-		break;
-	case NL80211_AUTHTYPE_NETWORK_EAP:
-		ret = 0x80;
-		break;
-	default:
-		/* silence compiler */
-		break;
+	switch (auth_type)
+	{
+		case NL80211_AUTHTYPE_OPEN_SYSTEM:
+		case NL80211_AUTHTYPE_SHARED_KEY:
+			ret = auth_type;
+			break;
+
+		case NL80211_AUTHTYPE_AUTOMATIC:
+			ret = NL80211_AUTHTYPE_OPEN_SYSTEM;
+			break;
+
+		case NL80211_AUTHTYPE_NETWORK_EAP:
+			ret = 0x80;
+			break;
+
+		default:
+			/* silence compiler */
+			break;
 	}
+
 	return ret;
 }
 
@@ -134,13 +143,19 @@ static int lbs_add_rates(u8 *rates)
 {
 	size_t i;
 
-	for (i = 0; i < ARRAY_SIZE(lbs_rates); i++) {
+	for (i = 0; i < ARRAY_SIZE(lbs_rates); i++)
+	{
 		u8 rate = lbs_rates[i].bitrate / 5;
+
 		if (rate == 0x02 || rate == 0x04 ||
-		    rate == 0x0b || rate == 0x16)
+			rate == 0x0b || rate == 0x16)
+		{
 			rate |= 0x80;
+		}
+
 		rates[i] = rate;
 	}
+
 	return ARRAY_SIZE(lbs_rates);
 }
 
@@ -187,10 +202,10 @@ static int lbs_add_ssid_tlv(u8 *tlv, const u8 *ssid, int ssid_len)
 	 + (LBS_SCAN_BEFORE_NAP * sizeof(struct chanscanparamset)))
 
 static int lbs_add_channel_list_tlv(struct lbs_private *priv, u8 *tlv,
-				    int last_channel, int active_scan)
+									int last_channel, int active_scan)
 {
 	int chanscanparamsize = sizeof(struct chanscanparamset) *
-		(last_channel - priv->scan_channel);
+							(last_channel - priv->scan_channel);
 
 	struct mrvl_ie_header *header = (void *) tlv;
 
@@ -215,21 +230,28 @@ static int lbs_add_channel_list_tlv(struct lbs_private *priv, u8 *tlv,
 		     last_channel); */
 	memset(tlv, 0, chanscanparamsize);
 
-	while (priv->scan_channel < last_channel) {
+	while (priv->scan_channel < last_channel)
+	{
 		struct chanscanparamset *param = (void *) tlv;
 
 		param->radiotype = CMD_SCAN_RADIO_TYPE_BG;
 		param->channumber =
 			priv->scan_req->channels[priv->scan_channel]->hw_value;
-		if (active_scan) {
+
+		if (active_scan)
+		{
 			param->maxscantime = cpu_to_le16(LBS_DWELL_ACTIVE);
-		} else {
+		}
+		else
+		{
 			param->chanscanmode.passivescan = 1;
 			param->maxscantime = cpu_to_le16(LBS_DWELL_PASSIVE);
 		}
+
 		tlv += sizeof(struct chanscanparamset);
 		priv->scan_channel++;
 	}
+
 	return sizeof(struct mrvl_ie_header) + chanscanparamsize;
 }
 
@@ -277,15 +299,20 @@ add_ie_rates(u8 *tlv, const u8 *ie, int *nrates)
 
 	lbs_deb_hex(LBS_DEB_ASSOC, "AP IE Rates", (u8 *) ie, ap_max);
 
-	for (hw = 0; hw < ARRAY_SIZE(lbs_rates); hw++) {
+	for (hw = 0; hw < ARRAY_SIZE(lbs_rates); hw++)
+	{
 		hw_rate = lbs_rates[hw].bitrate / 5;
-		for (ap = 0; ap < ap_max; ap++) {
-			if (hw_rate == (ie[ap] & 0x7f)) {
+
+		for (ap = 0; ap < ap_max; ap++)
+		{
+			if (hw_rate == (ie[ap] & 0x7f))
+			{
 				*tlv++ = ie[ap];
 				*nrates = *nrates + 1;
 			}
 		}
 	}
+
 	return tlv;
 }
 
@@ -311,13 +338,18 @@ static int lbs_add_common_rates_tlv(u8 *tlv, struct cfg80211_bss *bss)
 	tlv += sizeof(rate_tlv->header);
 
 	/* Add basic rates */
-	if (rates_eid) {
+	if (rates_eid)
+	{
 		tlv = add_ie_rates(tlv, rates_eid, &n);
 
 		/* Add extended rates, if any */
 		if (ext_rates_eid)
+		{
 			tlv = add_ie_rates(tlv, ext_rates_eid, &n);
-	} else {
+		}
+	}
+	else
+	{
 		lbs_deb_assoc("assoc: bss had no basic rate IE\n");
 		/* Fallback: add basic 802.11b rates */
 		*tlv++ = 0x82;
@@ -326,6 +358,7 @@ static int lbs_add_common_rates_tlv(u8 *tlv, struct cfg80211_bss *bss)
 		*tlv++ = 0x96;
 		n = 4;
 	}
+
 	rcu_read_unlock();
 
 	rate_tlv->header.len = cpu_to_le16(n);
@@ -351,7 +384,7 @@ static int lbs_add_auth_type_tlv(u8 *tlv, enum nl80211_auth_type auth_type)
 	 * 01     auth type
 	 */
 	auth->header.type = cpu_to_le16(TLV_TYPE_AUTH_TYPE);
-	auth->header.len = cpu_to_le16(sizeof(*auth)-sizeof(auth->header));
+	auth->header.len = cpu_to_le16(sizeof(*auth) - sizeof(auth->header));
 	auth->auth = cpu_to_le16(lbs_auth_to_authtype(auth_type));
 	return sizeof(*auth);
 }
@@ -373,7 +406,7 @@ static int lbs_add_channel_tlv(u8 *tlv, u8 channel)
 	 * 06     channel
 	 */
 	ds->header.type = cpu_to_le16(TLV_TYPE_PHY_DS);
-	ds->header.len = cpu_to_le16(sizeof(*ds)-sizeof(ds->header));
+	ds->header.len = cpu_to_le16(sizeof(*ds) - sizeof(ds->header));
 	ds->channel = channel;
 	return sizeof(*ds);
 }
@@ -398,7 +431,7 @@ static int lbs_add_cf_param_tlv(u8 *tlv)
 	 * 00 00  cfpdurationremaining
 	 */
 	cf->header.type = cpu_to_le16(TLV_TYPE_CF);
-	cf->header.len = cpu_to_le16(sizeof(*cf)-sizeof(cf->header));
+	cf->header.len = cpu_to_le16(sizeof(*cf) - sizeof(cf->header));
 	return sizeof(*cf);
 }
 
@@ -427,8 +460,12 @@ static int lbs_add_wpa_tlv(u8 *tlv, const u8 *ie, u8 ie_len)
 	*tlv++ = 0;
 	tlv_len = *tlv++ = *ie++;
 	*tlv++ = 0;
+
 	while (tlv_len--)
+	{
 		*tlv++ = *ie++;
+	}
+
 	/* the TLV is two bytes larger than the IE */
 	return ie_len + 2;
 }
@@ -438,41 +475,45 @@ static int lbs_add_wpa_tlv(u8 *tlv, const u8 *ie, u8 ie_len)
  */
 
 static int lbs_cfg_set_monitor_channel(struct wiphy *wiphy,
-				       struct cfg80211_chan_def *chandef)
+									   struct cfg80211_chan_def *chandef)
 {
 	struct lbs_private *priv = wiphy_priv(wiphy);
 	int ret = -ENOTSUPP;
 
 	lbs_deb_enter_args(LBS_DEB_CFG80211, "freq %d, type %d",
-			   chandef->chan->center_freq,
-			   cfg80211_get_chandef_type(chandef));
+					   chandef->chan->center_freq,
+					   cfg80211_get_chandef_type(chandef));
 
 	if (cfg80211_get_chandef_type(chandef) != NL80211_CHAN_NO_HT)
+	{
 		goto out;
+	}
 
 	ret = lbs_set_channel(priv, chandef->chan->hw_value);
 
- out:
+out:
 	lbs_deb_leave_args(LBS_DEB_CFG80211, "ret %d", ret);
 	return ret;
 }
 
 static int lbs_cfg_set_mesh_channel(struct wiphy *wiphy,
-				    struct net_device *netdev,
-				    struct ieee80211_channel *channel)
+									struct net_device *netdev,
+									struct ieee80211_channel *channel)
 {
 	struct lbs_private *priv = wiphy_priv(wiphy);
 	int ret = -ENOTSUPP;
 
 	lbs_deb_enter_args(LBS_DEB_CFG80211, "iface %s freq %d",
-			   netdev_name(netdev), channel->center_freq);
+					   netdev_name(netdev), channel->center_freq);
 
 	if (netdev != priv->mesh_dev)
+	{
 		goto out;
+	}
 
 	ret = lbs_mesh_set_channel(priv, channel->hw_value);
 
- out:
+out:
 	lbs_deb_leave_args(LBS_DEB_CFG80211, "ret %d", ret);
 	return ret;
 }
@@ -501,7 +542,7 @@ static int lbs_cfg_set_mesh_channel(struct wiphy *wiphy,
 	((-(int)rssi + 3)*100)
 
 static int lbs_ret_scan(struct lbs_private *priv, unsigned long dummy,
-	struct cmd_header *resp)
+						struct cmd_header *resp)
 {
 	struct cfg80211_bss *bss;
 	struct cmd_ds_802_11_scan_rsp *scanresp = (void *)resp;
@@ -517,9 +558,10 @@ static int lbs_ret_scan(struct lbs_private *priv, unsigned long dummy,
 	bsssize = get_unaligned_le16(&scanresp->bssdescriptsize);
 
 	lbs_deb_scan("scan response: %d BSSs (%d bytes); resp size %d bytes\n",
-			scanresp->nr_sets, bsssize, le16_to_cpu(resp->size));
+				 scanresp->nr_sets, bsssize, le16_to_cpu(resp->size));
 
-	if (scanresp->nr_sets == 0) {
+	if (scanresp->nr_sets == 0)
+	{
 		ret = 0;
 		goto done;
 	}
@@ -552,7 +594,7 @@ static int lbs_ret_scan(struct lbs_private *priv, unsigned long dummy,
 	pos = scanresp->bssdesc_and_tlvbuffer;
 
 	lbs_deb_hex(LBS_DEB_SCAN, "SCAN_RSP", scanresp->bssdesc_and_tlvbuffer,
-			scanresp->bssdescriptsize);
+				scanresp->bssdescriptsize);
 
 	tsfdesc = pos + bsssize;
 	tsfsize = 4 + 8 * scanresp->nr_sets;
@@ -561,7 +603,9 @@ static int lbs_ret_scan(struct lbs_private *priv, unsigned long dummy,
 	/* Validity check: we expect a Marvell-Local TLV */
 	i = get_unaligned_le16(tsfdesc);
 	tsfdesc += 2;
-	if (i != TLV_TYPE_TSFTIMESTAMP) {
+
+	if (i != TLV_TYPE_TSFTIMESTAMP)
+	{
 		lbs_deb_scan("scan response: invalid TSF Timestamp %d\n", i);
 		goto done;
 	}
@@ -572,14 +616,17 @@ static int lbs_ret_scan(struct lbs_private *priv, unsigned long dummy,
 	 */
 	i = get_unaligned_le16(tsfdesc);
 	tsfdesc += 2;
-	if (i / 8 != scanresp->nr_sets) {
+
+	if (i / 8 != scanresp->nr_sets)
+	{
 		lbs_deb_scan("scan response: invalid number of TSF timestamp "
-			     "sets (expected %d got %d)\n", scanresp->nr_sets,
-			     i / 8);
+					 "sets (expected %d got %d)\n", scanresp->nr_sets,
+					 i / 8);
 		goto done;
 	}
 
-	for (i = 0; i < scanresp->nr_sets; i++) {
+	for (i = 0; i < scanresp->nr_sets; i++)
+	{
 		const u8 *bssid;
 		const u8 *ie;
 		int left;
@@ -615,56 +662,71 @@ static int lbs_ret_scan(struct lbs_private *priv, unsigned long dummy,
 		 * interval, capabilities
 		 */
 		ielen = left = len - (6 + 1 + 8 + 2 + 2);
-		while (left >= 2) {
+
+		while (left >= 2)
+		{
 			u8 id, elen;
 			id = *pos++;
 			elen = *pos++;
 			left -= 2;
-			if (elen > left) {
+
+			if (elen > left)
+			{
 				lbs_deb_scan("scan response: invalid IE fmt\n");
 				goto done;
 			}
 
 			if (id == WLAN_EID_DS_PARAMS)
+			{
 				chan_no = *pos;
-			if (id == WLAN_EID_SSID) {
+			}
+
+			if (id == WLAN_EID_SSID)
+			{
 				ssid = pos;
 				ssid_len = elen;
 			}
+
 			left -= elen;
 			pos += elen;
 		}
 
 		/* No channel, no luck */
-		if (chan_no != -1) {
+		if (chan_no != -1)
+		{
 			struct wiphy *wiphy = priv->wdev->wiphy;
 			int freq = ieee80211_channel_to_frequency(chan_no,
-							NL80211_BAND_2GHZ);
+					   NL80211_BAND_2GHZ);
 			struct ieee80211_channel *channel =
 				ieee80211_get_channel(wiphy, freq);
 
 			lbs_deb_scan("scan: %pM, capa %04x, chan %2d, %*pE, %d dBm\n",
-				     bssid, capa, chan_no, ssid_len, ssid,
-				     LBS_SCAN_RSSI_TO_MBM(rssi)/100);
+						 bssid, capa, chan_no, ssid_len, ssid,
+						 LBS_SCAN_RSSI_TO_MBM(rssi) / 100);
 
 			if (channel &&
-			    !(channel->flags & IEEE80211_CHAN_DISABLED)) {
+				!(channel->flags & IEEE80211_CHAN_DISABLED))
+			{
 				bss = cfg80211_inform_bss(wiphy, channel,
-					CFG80211_BSS_FTYPE_UNKNOWN,
-					bssid, get_unaligned_le64(tsfdesc),
-					capa, intvl, ie, ielen,
-					LBS_SCAN_RSSI_TO_MBM(rssi),
-					GFP_KERNEL);
+										  CFG80211_BSS_FTYPE_UNKNOWN,
+										  bssid, get_unaligned_le64(tsfdesc),
+										  capa, intvl, ie, ielen,
+										  LBS_SCAN_RSSI_TO_MBM(rssi),
+										  GFP_KERNEL);
 				cfg80211_put_bss(wiphy, bss);
 			}
-		} else
+		}
+		else
+		{
 			lbs_deb_scan("scan response: missing BSS channel IE\n");
+		}
 
 		tsfdesc += 8;
 	}
+
 	ret = 0;
 
- done:
+done:
 	lbs_deb_leave_args(LBS_DEB_SCAN, "ret %d", ret);
 	return ret;
 }
@@ -696,8 +758,11 @@ static void lbs_scan_worker(struct work_struct *work)
 	lbs_deb_enter(LBS_DEB_SCAN);
 
 	scan_cmd = kzalloc(LBS_SCAN_MAX_CMD_SIZE, GFP_KERNEL);
+
 	if (scan_cmd == NULL)
+	{
 		goto out_no_scan_cmd;
+	}
 
 	/* prepare fixed part of scan command */
 	scan_cmd->bsstype = CMD_BSS_TYPE_ANY;
@@ -705,10 +770,16 @@ static void lbs_scan_worker(struct work_struct *work)
 	/* stop network while we're away from our main channel */
 	running = !netif_queue_stopped(priv->dev);
 	carrier = netif_carrier_ok(priv->dev);
+
 	if (running)
+	{
 		netif_stop_queue(priv->dev);
+	}
+
 	if (carrier)
+	{
 		netif_carrier_off(priv->dev);
+	}
 
 	/* prepare fixed part of scan command */
 	tlv = scan_cmd->tlvbuffer;
@@ -716,38 +787,45 @@ static void lbs_scan_worker(struct work_struct *work)
 	/* add SSID TLV */
 	if (priv->scan_req->n_ssids && priv->scan_req->ssids[0].ssid_len > 0)
 		tlv += lbs_add_ssid_tlv(tlv,
-					priv->scan_req->ssids[0].ssid,
-					priv->scan_req->ssids[0].ssid_len);
+								priv->scan_req->ssids[0].ssid,
+								priv->scan_req->ssids[0].ssid_len);
 
 	/* add channel TLVs */
 	last_channel = priv->scan_channel + LBS_SCAN_BEFORE_NAP;
+
 	if (last_channel > priv->scan_req->n_channels)
+	{
 		last_channel = priv->scan_req->n_channels;
+	}
+
 	tlv += lbs_add_channel_list_tlv(priv, tlv, last_channel,
-		priv->scan_req->n_ssids);
+									priv->scan_req->n_ssids);
 
 	/* add rates TLV */
 	tlv += lbs_add_supported_rates_tlv(tlv);
 
-	if (priv->scan_channel < priv->scan_req->n_channels) {
+	if (priv->scan_channel < priv->scan_req->n_channels)
+	{
 		cancel_delayed_work(&priv->scan_work);
+
 		if (netif_running(priv->dev))
 			queue_delayed_work(priv->work_thread, &priv->scan_work,
-				msecs_to_jiffies(300));
+							   msecs_to_jiffies(300));
 	}
 
 	/* This is the final data we are about to send */
 	scan_cmd->hdr.size = cpu_to_le16(tlv - (u8 *)scan_cmd);
 	lbs_deb_hex(LBS_DEB_SCAN, "SCAN_CMD", (void *)scan_cmd,
-		    sizeof(*scan_cmd));
+				sizeof(*scan_cmd));
 	lbs_deb_hex(LBS_DEB_SCAN, "SCAN_TLV", scan_cmd->tlvbuffer,
-		    tlv - scan_cmd->tlvbuffer);
+				tlv - scan_cmd->tlvbuffer);
 
 	__lbs_cmd(priv, CMD_802_11_SCAN, &scan_cmd->hdr,
-		le16_to_cpu(scan_cmd->hdr.size),
-		lbs_ret_scan, 0);
+			  le16_to_cpu(scan_cmd->hdr.size),
+			  lbs_ret_scan, 0);
 
-	if (priv->scan_channel >= priv->scan_req->n_channels) {
+	if (priv->scan_channel >= priv->scan_req->n_channels)
+	{
 		/* Mark scan done */
 		cancel_delayed_work(&priv->scan_work);
 		lbs_scan_done(priv);
@@ -755,36 +833,42 @@ static void lbs_scan_worker(struct work_struct *work)
 
 	/* Restart network */
 	if (carrier)
+	{
 		netif_carrier_on(priv->dev);
+	}
+
 	if (running && !priv->tx_pending_len)
+	{
 		netif_wake_queue(priv->dev);
+	}
 
 	kfree(scan_cmd);
 
 	/* Wake up anything waiting on scan completion */
-	if (priv->scan_req == NULL) {
+	if (priv->scan_req == NULL)
+	{
 		lbs_deb_scan("scan: waking up waiters\n");
 		wake_up_all(&priv->scan_q);
 	}
 
- out_no_scan_cmd:
+out_no_scan_cmd:
 	lbs_deb_leave(LBS_DEB_SCAN);
 }
 
 static void _internal_start_scan(struct lbs_private *priv, bool internal,
-	struct cfg80211_scan_request *request)
+								 struct cfg80211_scan_request *request)
 {
 	lbs_deb_enter(LBS_DEB_CFG80211);
 
 	lbs_deb_scan("scan: ssids %d, channels %d, ie_len %zd\n",
-		request->n_ssids, request->n_channels, request->ie_len);
+				 request->n_ssids, request->n_channels, request->ie_len);
 
 	priv->scan_channel = 0;
 	priv->scan_req = request;
 	priv->internal_scan = internal;
 
 	queue_delayed_work(priv->work_thread, &priv->scan_work,
-		msecs_to_jiffies(50));
+					   msecs_to_jiffies(50));
 
 	lbs_deb_leave(LBS_DEB_CFG80211);
 }
@@ -796,10 +880,14 @@ void lbs_scan_done(struct lbs_private *priv)
 {
 	WARN_ON(!priv->scan_req);
 
-	if (priv->internal_scan) {
+	if (priv->internal_scan)
+	{
 		kfree(priv->scan_req);
-	} else {
-		struct cfg80211_scan_info info = {
+	}
+	else
+	{
+		struct cfg80211_scan_info info =
+		{
 			.aborted = false,
 		};
 
@@ -810,14 +898,15 @@ void lbs_scan_done(struct lbs_private *priv)
 }
 
 static int lbs_cfg_scan(struct wiphy *wiphy,
-	struct cfg80211_scan_request *request)
+						struct cfg80211_scan_request *request)
 {
 	struct lbs_private *priv = wiphy_priv(wiphy);
 	int ret = 0;
 
 	lbs_deb_enter(LBS_DEB_CFG80211);
 
-	if (priv->scan_req || delayed_work_pending(&priv->scan_work)) {
+	if (priv->scan_req || delayed_work_pending(&priv->scan_work))
+	{
 		/* old scan request not yet processed */
 		ret = -EAGAIN;
 		goto out;
@@ -826,9 +915,11 @@ static int lbs_cfg_scan(struct wiphy *wiphy,
 	_internal_start_scan(priv, false, request);
 
 	if (priv->surpriseremoved)
+	{
 		ret = -EIO;
+	}
 
- out:
+out:
 	lbs_deb_leave_args(LBS_DEB_CFG80211, "ret %d", ret);
 	return ret;
 }
@@ -841,12 +932,12 @@ static int lbs_cfg_scan(struct wiphy *wiphy,
  */
 
 void lbs_send_disconnect_notification(struct lbs_private *priv,
-				      bool locally_generated)
+									  bool locally_generated)
 {
 	lbs_deb_enter(LBS_DEB_CFG80211);
 
 	cfg80211_disconnected(priv->dev, 0, NULL, 0, locally_generated,
-			      GFP_KERNEL);
+						  GFP_KERNEL);
 
 	lbs_deb_leave(LBS_DEB_CFG80211);
 }
@@ -856,13 +947,13 @@ void lbs_send_mic_failureevent(struct lbs_private *priv, u32 event)
 	lbs_deb_enter(LBS_DEB_CFG80211);
 
 	cfg80211_michael_mic_failure(priv->dev,
-		priv->assoc_bss,
-		event == MACREG_INT_CODE_MIC_ERR_MULTICAST ?
-			NL80211_KEYTYPE_GROUP :
-			NL80211_KEYTYPE_PAIRWISE,
-		-1,
-		NULL,
-		GFP_KERNEL);
+								 priv->assoc_bss,
+								 event == MACREG_INT_CODE_MIC_ERR_MULTICAST ?
+								 NL80211_KEYTYPE_GROUP :
+								 NL80211_KEYTYPE_PAIRWISE,
+								 -1,
+								 NULL,
+								 GFP_KERNEL);
 
 	lbs_deb_leave(LBS_DEB_CFG80211);
 }
@@ -927,31 +1018,39 @@ static int lbs_set_wep_keys(struct lbs_private *priv)
 	 * key 4           00 00 00 00 00 00 00 00
 	 */
 	if (priv->wep_key_len[0] || priv->wep_key_len[1] ||
-	    priv->wep_key_len[2] || priv->wep_key_len[3]) {
+		priv->wep_key_len[2] || priv->wep_key_len[3])
+	{
 		/* Only set wep keys if we have at least one of them */
 		memset(&cmd, 0, sizeof(cmd));
 		cmd.hdr.size = cpu_to_le16(sizeof(cmd));
 		cmd.keyindex = cpu_to_le16(priv->wep_tx_key);
 		cmd.action = cpu_to_le16(CMD_ACT_ADD);
 
-		for (i = 0; i < 4; i++) {
-			switch (priv->wep_key_len[i]) {
-			case WLAN_KEY_LEN_WEP40:
-				cmd.keytype[i] = CMD_TYPE_WEP_40_BIT;
-				break;
-			case WLAN_KEY_LEN_WEP104:
-				cmd.keytype[i] = CMD_TYPE_WEP_104_BIT;
-				break;
-			default:
-				cmd.keytype[i] = 0;
-				break;
+		for (i = 0; i < 4; i++)
+		{
+			switch (priv->wep_key_len[i])
+			{
+				case WLAN_KEY_LEN_WEP40:
+					cmd.keytype[i] = CMD_TYPE_WEP_40_BIT;
+					break;
+
+				case WLAN_KEY_LEN_WEP104:
+					cmd.keytype[i] = CMD_TYPE_WEP_104_BIT;
+					break;
+
+				default:
+					cmd.keytype[i] = 0;
+					break;
 			}
+
 			memcpy(cmd.keymaterial[i], priv->wep_key[i],
-			       priv->wep_key_len[i]);
+				   priv->wep_key_len[i]);
 		}
 
 		ret = lbs_cmd_with_response(priv, CMD_802_11_SET_WEP, &cmd);
-	} else {
+	}
+	else
+	{
 		/* Otherwise remove all wep keys */
 		ret = lbs_remove_wep_keys(priv);
 	}
@@ -1000,7 +1099,8 @@ static int lbs_enable_rsn(struct lbs_private *priv, int enable)
  * get rid of WEXT, this should go into host.h
  */
 
-struct cmd_key_material {
+struct cmd_key_material
+{
 	struct cmd_header hdr;
 
 	__le16 action;
@@ -1008,8 +1108,8 @@ struct cmd_key_material {
 } __packed;
 
 static int lbs_set_key_material(struct lbs_private *priv,
-				int key_type, int key_info,
-				const u8 *key, u16 key_len)
+								int key_type, int key_info,
+								const u8 *key, u16 key_len)
 {
 	struct cmd_key_material cmd;
 	int ret;
@@ -1039,8 +1139,11 @@ static int lbs_set_key_material(struct lbs_private *priv,
 	cmd.param.keytypeid = cpu_to_le16(key_type);
 	cmd.param.keyinfo = cpu_to_le16(key_info);
 	cmd.param.keylen = cpu_to_le16(key_len);
+
 	if (key && key_len)
+	{
 		memcpy(cmd.param.key, key, key_len);
+	}
 
 	ret = lbs_cmd_with_response(priv, CMD_802_11_KEY_MATERIAL, &cmd);
 
@@ -1056,7 +1159,7 @@ static int lbs_set_key_material(struct lbs_private *priv,
  * stores the auth_type.
  */
 static int lbs_set_authtype(struct lbs_private *priv,
-			    struct cfg80211_connect_params *sme)
+							struct cfg80211_connect_params *sme)
 {
 	struct cmd_ds_802_11_authenticate cmd;
 	int ret;
@@ -1074,17 +1177,24 @@ static int lbs_set_authtype(struct lbs_private *priv,
 	 */
 	memset(&cmd, 0, sizeof(cmd));
 	cmd.hdr.size = cpu_to_le16(sizeof(cmd));
+
 	if (sme->bssid)
+	{
 		memcpy(cmd.bssid, sme->bssid, ETH_ALEN);
+	}
+
 	/* convert auth_type */
 	ret = lbs_auth_to_authtype(sme->auth_type);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	cmd.authtype = ret;
 	ret = lbs_cmd_with_response(priv, CMD_802_11_AUTHENTICATE, &cmd);
 
- done:
+done:
 	lbs_deb_leave_args(LBS_DEB_CFG80211, "ret %d", ret);
 	return ret;
 }
@@ -1103,12 +1213,12 @@ static int lbs_set_authtype(struct lbs_private *priv,
 	 + LBS_MAX_WPA_TLV_SIZE)
 
 static int lbs_associate(struct lbs_private *priv,
-		struct cfg80211_bss *bss,
-		struct cfg80211_connect_params *sme)
+						 struct cfg80211_bss *bss,
+						 struct cfg80211_connect_params *sme)
 {
 	struct cmd_ds_802_11_associate_response *resp;
 	struct cmd_ds_802_11_associate *cmd = kzalloc(LBS_ASSOC_MAX_CMD_SIZE,
-						      GFP_KERNEL);
+										  GFP_KERNEL);
 	const u8 *ssid_eid;
 	size_t len, resp_ie_len;
 	int status;
@@ -1118,10 +1228,12 @@ static int lbs_associate(struct lbs_private *priv,
 
 	lbs_deb_enter(LBS_DEB_CFG80211);
 
-	if (!cmd) {
+	if (!cmd)
+	{
 		ret = -ENOMEM;
 		goto done;
 	}
+
 	pos = &cmd->iebuf[0];
 
 	/*
@@ -1146,17 +1258,27 @@ static int lbs_associate(struct lbs_private *priv,
 	/* add SSID TLV */
 	rcu_read_lock();
 	ssid_eid = ieee80211_bss_get_ie(bss, WLAN_EID_SSID);
+
 	if (ssid_eid)
+	{
 		pos += lbs_add_ssid_tlv(pos, ssid_eid + 2, ssid_eid[1]);
+	}
 	else
+	{
 		lbs_deb_assoc("no SSID\n");
+	}
+
 	rcu_read_unlock();
 
 	/* add DS param TLV */
 	if (bss->channel)
+	{
 		pos += lbs_add_channel_tlv(pos, bss->channel->hw_value);
+	}
 	else
+	{
 		lbs_deb_assoc("no channel\n");
+	}
 
 	/* add (empty) CF param TLV */
 	pos += lbs_add_cf_param_tlv(pos);
@@ -1168,25 +1290,32 @@ static int lbs_associate(struct lbs_private *priv,
 
 	/* add auth type TLV */
 	if (MRVL_FW_MAJOR_REV(priv->fwrelease) >= 9)
+	{
 		pos += lbs_add_auth_type_tlv(pos, sme->auth_type);
+	}
 
 	/* add WPA/WPA2 TLV */
 	if (sme->ie && sme->ie_len)
+	{
 		pos += lbs_add_wpa_tlv(pos, sme->ie, sme->ie_len);
+	}
 
 	len = (sizeof(*cmd) - sizeof(cmd->iebuf)) +
-		(u16)(pos - (u8 *) &cmd->iebuf);
+		  (u16)(pos - (u8 *) &cmd->iebuf);
 	cmd->hdr.size = cpu_to_le16(len);
 
 	lbs_deb_hex(LBS_DEB_ASSOC, "ASSOC_CMD", (u8 *) cmd,
-			le16_to_cpu(cmd->hdr.size));
+				le16_to_cpu(cmd->hdr.size));
 
 	/* store for later use */
 	memcpy(priv->assoc_bss, bss->bssid, ETH_ALEN);
 
 	ret = lbs_cmd_with_response(priv, CMD_802_11_ASSOCIATE, cmd);
+
 	if (ret)
+	{
 		goto done;
+	}
 
 	/* generate connect message to cfg80211 */
 
@@ -1209,55 +1338,66 @@ static int lbs_associate(struct lbs_private *priv,
 	 *    0x0002 -> ASSOC_RESULT_TIMEOUT (internal timer expired waiting for
 	 *                                    association response from the AP)
 	 */
-	if (MRVL_FW_MAJOR_REV(priv->fwrelease) <= 8) {
-		switch (status) {
-		case 0:
-			break;
-		case 1:
-			lbs_deb_assoc("invalid association parameters\n");
-			status = WLAN_STATUS_CAPS_UNSUPPORTED;
-			break;
-		case 2:
-			lbs_deb_assoc("timer expired while waiting for AP\n");
-			status = WLAN_STATUS_AUTH_TIMEOUT;
-			break;
-		case 3:
-			lbs_deb_assoc("association refused by AP\n");
-			status = WLAN_STATUS_ASSOC_DENIED_UNSPEC;
-			break;
-		case 4:
-			lbs_deb_assoc("authentication refused by AP\n");
-			status = WLAN_STATUS_UNKNOWN_AUTH_TRANSACTION;
-			break;
-		default:
-			lbs_deb_assoc("association failure %d\n", status);
-			/* v5 OLPC firmware does return the AP status code if
-			 * it's not one of the values above.  Let that through.
-			 */
-			break;
+	if (MRVL_FW_MAJOR_REV(priv->fwrelease) <= 8)
+	{
+		switch (status)
+		{
+			case 0:
+				break;
+
+			case 1:
+				lbs_deb_assoc("invalid association parameters\n");
+				status = WLAN_STATUS_CAPS_UNSUPPORTED;
+				break;
+
+			case 2:
+				lbs_deb_assoc("timer expired while waiting for AP\n");
+				status = WLAN_STATUS_AUTH_TIMEOUT;
+				break;
+
+			case 3:
+				lbs_deb_assoc("association refused by AP\n");
+				status = WLAN_STATUS_ASSOC_DENIED_UNSPEC;
+				break;
+
+			case 4:
+				lbs_deb_assoc("authentication refused by AP\n");
+				status = WLAN_STATUS_UNKNOWN_AUTH_TRANSACTION;
+				break;
+
+			default:
+				lbs_deb_assoc("association failure %d\n", status);
+				/* v5 OLPC firmware does return the AP status code if
+				 * it's not one of the values above.  Let that through.
+				 */
+				break;
 		}
 	}
 
 	lbs_deb_assoc("status %d, statuscode 0x%04x, capability 0x%04x, "
-		      "aid 0x%04x\n", status, le16_to_cpu(resp->statuscode),
-		      le16_to_cpu(resp->capability), le16_to_cpu(resp->aid));
+				  "aid 0x%04x\n", status, le16_to_cpu(resp->statuscode),
+				  le16_to_cpu(resp->capability), le16_to_cpu(resp->aid));
 
 	resp_ie_len = le16_to_cpu(resp->hdr.size)
-		- sizeof(resp->hdr)
-		- 6;
+				  - sizeof(resp->hdr)
+				  - 6;
 	cfg80211_connect_result(priv->dev,
-				priv->assoc_bss,
-				sme->ie, sme->ie_len,
-				resp->iebuf, resp_ie_len,
-				status,
-				GFP_KERNEL);
+							priv->assoc_bss,
+							sme->ie, sme->ie_len,
+							resp->iebuf, resp_ie_len,
+							status,
+							GFP_KERNEL);
 
-	if (status == 0) {
+	if (status == 0)
+	{
 		/* TODO: get rid of priv->connect_status */
 		priv->connect_status = LBS_CONNECTED;
 		netif_carrier_on(priv->dev);
+
 		if (!priv->tx_pending_len)
+		{
 			netif_tx_wake_all_queues(priv->dev);
+		}
 	}
 
 	kfree(cmd);
@@ -1274,10 +1414,13 @@ _new_connect_scan_req(struct wiphy *wiphy, struct cfg80211_connect_params *sme)
 	enum nl80211_band band;
 
 	creq = kzalloc(sizeof(*creq) + sizeof(struct cfg80211_ssid) +
-		       n_channels * sizeof(void *),
-		       GFP_ATOMIC);
+				   n_channels * sizeof(void *),
+				   GFP_ATOMIC);
+
 	if (!creq)
+	{
 		return NULL;
+	}
 
 	/* SSIDs come after channels */
 	creq->ssids = (void *)&creq->channels[n_channels];
@@ -1286,30 +1429,41 @@ _new_connect_scan_req(struct wiphy *wiphy, struct cfg80211_connect_params *sme)
 
 	/* Scan all available channels */
 	i = 0;
-	for (band = 0; band < NUM_NL80211_BANDS; band++) {
+
+	for (band = 0; band < NUM_NL80211_BANDS; band++)
+	{
 		int j;
 
 		if (!wiphy->bands[band])
+		{
 			continue;
+		}
 
-		for (j = 0; j < wiphy->bands[band]->n_channels; j++) {
+		for (j = 0; j < wiphy->bands[band]->n_channels; j++)
+		{
 			/* ignore disabled channels */
 			if (wiphy->bands[band]->channels[j].flags &
-						IEEE80211_CHAN_DISABLED)
+				IEEE80211_CHAN_DISABLED)
+			{
 				continue;
+			}
 
 			creq->channels[i] = &wiphy->bands[band]->channels[j];
 			i++;
 		}
 	}
-	if (i) {
+
+	if (i)
+	{
 		/* Set real number of channels specified in creq->channels[] */
 		creq->n_channels = i;
 
 		/* Scan for the SSID we're going to connect to */
 		memcpy(creq->ssids[0].ssid, sme->ssid, sme->ssid_len);
 		creq->ssids[0].ssid_len = sme->ssid_len;
-	} else {
+	}
+	else
+	{
 		/* No channels found... */
 		kfree(creq);
 		creq = NULL;
@@ -1319,7 +1473,7 @@ _new_connect_scan_req(struct wiphy *wiphy, struct cfg80211_connect_params *sme)
 }
 
 static int lbs_cfg_connect(struct wiphy *wiphy, struct net_device *dev,
-			   struct cfg80211_connect_params *sme)
+						   struct cfg80211_connect_params *sme)
 {
 	struct lbs_private *priv = wiphy_priv(wiphy);
 	struct cfg80211_bss *bss = NULL;
@@ -1327,11 +1481,14 @@ static int lbs_cfg_connect(struct wiphy *wiphy, struct net_device *dev,
 	u8 preamble = RADIO_PREAMBLE_SHORT;
 
 	if (dev == priv->mesh_dev)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	lbs_deb_enter(LBS_DEB_CFG80211);
 
-	if (!sme->bssid) {
+	if (!sme->bssid)
+	{
 		struct cfg80211_scan_request *creq;
 
 		/*
@@ -1340,11 +1497,13 @@ static int lbs_cfg_connect(struct wiphy *wiphy, struct net_device *dev,
 		 */
 		lbs_deb_assoc("assoc: waiting for existing scans\n");
 		wait_event_interruptible_timeout(priv->scan_q,
-						 (priv->scan_req == NULL),
-						 (15 * HZ));
+										 (priv->scan_req == NULL),
+										 (15 * HZ));
 
 		creq = _new_connect_scan_req(wiphy, sme);
-		if (!creq) {
+
+		if (!creq)
+		{
 			ret = -EINVAL;
 			goto done;
 		}
@@ -1354,25 +1513,28 @@ static int lbs_cfg_connect(struct wiphy *wiphy, struct net_device *dev,
 
 		lbs_deb_assoc("assoc: waiting for scan to complete\n");
 		wait_event_interruptible_timeout(priv->scan_q,
-						 (priv->scan_req == NULL),
-						 (15 * HZ));
+										 (priv->scan_req == NULL),
+										 (15 * HZ));
 		lbs_deb_assoc("assoc: scanning completed\n");
 	}
 
 	/* Find the BSS we want using available scan results */
 	bss = cfg80211_get_bss(wiphy, sme->channel, sme->bssid,
-		sme->ssid, sme->ssid_len, IEEE80211_BSS_TYPE_ESS,
-		IEEE80211_PRIVACY_ANY);
-	if (!bss) {
+						   sme->ssid, sme->ssid_len, IEEE80211_BSS_TYPE_ESS,
+						   IEEE80211_PRIVACY_ANY);
+
+	if (!bss)
+	{
 		wiphy_err(wiphy, "assoc: bss %pM not in scan results\n",
-			  sme->bssid);
+				  sme->bssid);
 		ret = -ENOENT;
 		goto done;
 	}
+
 	lbs_deb_assoc("trying %pM\n", bss->bssid);
 	lbs_deb_assoc("cipher 0x%x, key index %d, key len %d\n",
-		      sme->crypto.cipher_group,
-		      sme->key_idx, sme->key_len);
+				  sme->crypto.cipher_group,
+				  sme->key_idx, sme->key_len);
 
 	/* As this is a new connection, clear locally stored WEP keys */
 	priv->wep_tx_key = 0;
@@ -1380,21 +1542,24 @@ static int lbs_cfg_connect(struct wiphy *wiphy, struct net_device *dev,
 	memset(priv->wep_key_len, 0, sizeof(priv->wep_key_len));
 
 	/* set/remove WEP keys */
-	switch (sme->crypto.cipher_group) {
-	case WLAN_CIPHER_SUITE_WEP40:
-	case WLAN_CIPHER_SUITE_WEP104:
-		/* Store provided WEP keys in priv-> */
-		priv->wep_tx_key = sme->key_idx;
-		priv->wep_key_len[sme->key_idx] = sme->key_len;
-		memcpy(priv->wep_key[sme->key_idx], sme->key, sme->key_len);
-		/* Set WEP keys and WEP mode */
-		lbs_set_wep_keys(priv);
-		priv->mac_control |= CMD_ACT_MAC_WEP_ENABLE;
-		lbs_set_mac_control(priv);
-		/* No RSN mode for WEP */
-		lbs_enable_rsn(priv, 0);
-		break;
-	case 0: /* there's no WLAN_CIPHER_SUITE_NONE definition */
+	switch (sme->crypto.cipher_group)
+	{
+		case WLAN_CIPHER_SUITE_WEP40:
+		case WLAN_CIPHER_SUITE_WEP104:
+			/* Store provided WEP keys in priv-> */
+			priv->wep_tx_key = sme->key_idx;
+			priv->wep_key_len[sme->key_idx] = sme->key_len;
+			memcpy(priv->wep_key[sme->key_idx], sme->key, sme->key_len);
+			/* Set WEP keys and WEP mode */
+			lbs_set_wep_keys(priv);
+			priv->mac_control |= CMD_ACT_MAC_WEP_ENABLE;
+			lbs_set_mac_control(priv);
+			/* No RSN mode for WEP */
+			lbs_enable_rsn(priv, 0);
+			break;
+
+		case 0: /* there's no WLAN_CIPHER_SUITE_NONE definition */
+
 		/*
 		 * If we don't have no WEP, no WPA and no WPA2,
 		 * we remove all keys like in the WPA/WPA2 setup,
@@ -1402,34 +1567,37 @@ static int lbs_cfg_connect(struct wiphy *wiphy, struct net_device *dev,
 		 *
 		 * Therefore: fall-through
 		 */
-	case WLAN_CIPHER_SUITE_TKIP:
-	case WLAN_CIPHER_SUITE_CCMP:
-		/* Remove WEP keys and WEP mode */
-		lbs_remove_wep_keys(priv);
-		priv->mac_control &= ~CMD_ACT_MAC_WEP_ENABLE;
-		lbs_set_mac_control(priv);
+		case WLAN_CIPHER_SUITE_TKIP:
+		case WLAN_CIPHER_SUITE_CCMP:
+			/* Remove WEP keys and WEP mode */
+			lbs_remove_wep_keys(priv);
+			priv->mac_control &= ~CMD_ACT_MAC_WEP_ENABLE;
+			lbs_set_mac_control(priv);
 
-		/* clear the WPA/WPA2 keys */
-		lbs_set_key_material(priv,
-			KEY_TYPE_ID_WEP, /* doesn't matter */
-			KEY_INFO_WPA_UNICAST,
-			NULL, 0);
-		lbs_set_key_material(priv,
-			KEY_TYPE_ID_WEP, /* doesn't matter */
-			KEY_INFO_WPA_MCAST,
-			NULL, 0);
-		/* RSN mode for WPA/WPA2 */
-		lbs_enable_rsn(priv, sme->crypto.cipher_group != 0);
-		break;
-	default:
-		wiphy_err(wiphy, "unsupported cipher group 0x%x\n",
-			  sme->crypto.cipher_group);
-		ret = -ENOTSUPP;
-		goto done;
+			/* clear the WPA/WPA2 keys */
+			lbs_set_key_material(priv,
+								 KEY_TYPE_ID_WEP, /* doesn't matter */
+								 KEY_INFO_WPA_UNICAST,
+								 NULL, 0);
+			lbs_set_key_material(priv,
+								 KEY_TYPE_ID_WEP, /* doesn't matter */
+								 KEY_INFO_WPA_MCAST,
+								 NULL, 0);
+			/* RSN mode for WPA/WPA2 */
+			lbs_enable_rsn(priv, sme->crypto.cipher_group != 0);
+			break;
+
+		default:
+			wiphy_err(wiphy, "unsupported cipher group 0x%x\n",
+					  sme->crypto.cipher_group);
+			ret = -ENOTSUPP;
+			goto done;
 	}
 
 	ret = lbs_set_authtype(priv, sme);
-	if (ret == -ENOTSUPP) {
+
+	if (ret == -ENOTSUPP)
+	{
 		wiphy_err(wiphy, "unsupported authtype 0x%x\n", sme->auth_type);
 		goto done;
 	}
@@ -1439,9 +1607,13 @@ static int lbs_cfg_connect(struct wiphy *wiphy, struct net_device *dev,
 	/* Do the actual association */
 	ret = lbs_associate(priv, bss, sme);
 
- done:
+done:
+
 	if (bss)
+	{
 		cfg80211_put_bss(wiphy, bss);
+	}
+
 	lbs_deb_leave_args(LBS_DEB_CFG80211, "ret %d", ret);
 	return ret;
 }
@@ -1458,25 +1630,30 @@ int lbs_disconnect(struct lbs_private *priv, u16 reason)
 	cmd.reasoncode = cpu_to_le16(reason);
 
 	ret = lbs_cmd_with_response(priv, CMD_802_11_DEAUTHENTICATE, &cmd);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	cfg80211_disconnected(priv->dev,
-			reason,
-			NULL, 0, true,
-			GFP_KERNEL);
+						  reason,
+						  NULL, 0, true,
+						  GFP_KERNEL);
 	priv->connect_status = LBS_DISCONNECTED;
 
 	return 0;
 }
 
 static int lbs_cfg_disconnect(struct wiphy *wiphy, struct net_device *dev,
-	u16 reason_code)
+							  u16 reason_code)
 {
 	struct lbs_private *priv = wiphy_priv(wiphy);
 
 	if (dev == priv->mesh_dev)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	lbs_deb_enter_args(LBS_DEB_CFG80211, "reason_code %d", reason_code);
 
@@ -1487,18 +1664,21 @@ static int lbs_cfg_disconnect(struct wiphy *wiphy, struct net_device *dev,
 }
 
 static int lbs_cfg_set_default_key(struct wiphy *wiphy,
-				   struct net_device *netdev,
-				   u8 key_index, bool unicast,
-				   bool multicast)
+								   struct net_device *netdev,
+								   u8 key_index, bool unicast,
+								   bool multicast)
 {
 	struct lbs_private *priv = wiphy_priv(wiphy);
 
 	if (netdev == priv->mesh_dev)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	lbs_deb_enter(LBS_DEB_CFG80211);
 
-	if (key_index != priv->wep_tx_key) {
+	if (key_index != priv->wep_tx_key)
+	{
 		lbs_deb_assoc("set_default_key: to %d\n", key_index);
 		priv->wep_tx_key = key_index;
 		lbs_set_wep_keys(priv);
@@ -1509,8 +1689,8 @@ static int lbs_cfg_set_default_key(struct wiphy *wiphy,
 
 
 static int lbs_cfg_add_key(struct wiphy *wiphy, struct net_device *netdev,
-			   u8 idx, bool pairwise, const u8 *mac_addr,
-			   struct key_params *params)
+						   u8 idx, bool pairwise, const u8 *mac_addr,
+						   struct key_params *params)
 {
 	struct lbs_private *priv = wiphy_priv(wiphy);
 	u16 key_info;
@@ -1518,53 +1698,63 @@ static int lbs_cfg_add_key(struct wiphy *wiphy, struct net_device *netdev,
 	int ret = 0;
 
 	if (netdev == priv->mesh_dev)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	lbs_deb_enter(LBS_DEB_CFG80211);
 
 	lbs_deb_assoc("add_key: cipher 0x%x, mac_addr %pM\n",
-		      params->cipher, mac_addr);
+				  params->cipher, mac_addr);
 	lbs_deb_assoc("add_key: key index %d, key len %d\n",
-		      idx, params->key_len);
+				  idx, params->key_len);
+
 	if (params->key_len)
 		lbs_deb_hex(LBS_DEB_CFG80211, "KEY",
-			    params->key, params->key_len);
+					params->key, params->key_len);
 
 	lbs_deb_assoc("add_key: seq len %d\n", params->seq_len);
+
 	if (params->seq_len)
 		lbs_deb_hex(LBS_DEB_CFG80211, "SEQ",
-			    params->seq, params->seq_len);
+					params->seq, params->seq_len);
 
-	switch (params->cipher) {
-	case WLAN_CIPHER_SUITE_WEP40:
-	case WLAN_CIPHER_SUITE_WEP104:
-		/* actually compare if something has changed ... */
-		if ((priv->wep_key_len[idx] != params->key_len) ||
-			memcmp(priv->wep_key[idx],
-			       params->key, params->key_len) != 0) {
-			priv->wep_key_len[idx] = params->key_len;
-			memcpy(priv->wep_key[idx],
-			       params->key, params->key_len);
-			lbs_set_wep_keys(priv);
-		}
-		break;
-	case WLAN_CIPHER_SUITE_TKIP:
-	case WLAN_CIPHER_SUITE_CCMP:
-		key_info = KEY_INFO_WPA_ENABLED | ((idx == 0)
-						   ? KEY_INFO_WPA_UNICAST
-						   : KEY_INFO_WPA_MCAST);
-		key_type = (params->cipher == WLAN_CIPHER_SUITE_TKIP)
-			? KEY_TYPE_ID_TKIP
-			: KEY_TYPE_ID_AES;
-		lbs_set_key_material(priv,
-				     key_type,
-				     key_info,
-				     params->key, params->key_len);
-		break;
-	default:
-		wiphy_err(wiphy, "unhandled cipher 0x%x\n", params->cipher);
-		ret = -ENOTSUPP;
-		break;
+	switch (params->cipher)
+	{
+		case WLAN_CIPHER_SUITE_WEP40:
+		case WLAN_CIPHER_SUITE_WEP104:
+
+			/* actually compare if something has changed ... */
+			if ((priv->wep_key_len[idx] != params->key_len) ||
+				memcmp(priv->wep_key[idx],
+					   params->key, params->key_len) != 0)
+			{
+				priv->wep_key_len[idx] = params->key_len;
+				memcpy(priv->wep_key[idx],
+					   params->key, params->key_len);
+				lbs_set_wep_keys(priv);
+			}
+
+			break;
+
+		case WLAN_CIPHER_SUITE_TKIP:
+		case WLAN_CIPHER_SUITE_CCMP:
+			key_info = KEY_INFO_WPA_ENABLED | ((idx == 0)
+											   ? KEY_INFO_WPA_UNICAST
+											   : KEY_INFO_WPA_MCAST);
+			key_type = (params->cipher == WLAN_CIPHER_SUITE_TKIP)
+					   ? KEY_TYPE_ID_TKIP
+					   : KEY_TYPE_ID_AES;
+			lbs_set_key_material(priv,
+								 key_type,
+								 key_info,
+								 params->key, params->key_len);
+			break;
+
+		default:
+			wiphy_err(wiphy, "unhandled cipher 0x%x\n", params->cipher);
+			ret = -ENOTSUPP;
+			break;
 	}
 
 	return ret;
@@ -1572,16 +1762,17 @@ static int lbs_cfg_add_key(struct wiphy *wiphy, struct net_device *netdev,
 
 
 static int lbs_cfg_del_key(struct wiphy *wiphy, struct net_device *netdev,
-			   u8 key_index, bool pairwise, const u8 *mac_addr)
+						   u8 key_index, bool pairwise, const u8 *mac_addr)
 {
 
 	lbs_deb_enter(LBS_DEB_CFG80211);
 
 	lbs_deb_assoc("del_key: key_idx %d, mac_addr %pM\n",
-		      key_index, mac_addr);
+				  key_index, mac_addr);
 
 #ifdef TODO
 	struct lbs_private *priv = wiphy_priv(wiphy);
+
 	/*
 	 * I think can keep this a NO-OP, because:
 
@@ -1597,10 +1788,12 @@ static int lbs_cfg_del_key(struct wiphy *wiphy, struct net_device *netdev,
 	 * where we'd just waste time deleting a key that is not going
 	 * to be used anyway.
 	 */
-	if (key_index < 3 && priv->wep_key_len[key_index]) {
+	if (key_index < 3 && priv->wep_key_len[key_index])
+	{
 		priv->wep_key_len[key_index] = 0;
 		lbs_set_wep_keys(priv);
 	}
+
 #endif
 
 	return 0;
@@ -1612,7 +1805,7 @@ static int lbs_cfg_del_key(struct wiphy *wiphy, struct net_device *netdev,
  */
 
 static int lbs_cfg_get_station(struct wiphy *wiphy, struct net_device *dev,
-			       const u8 *mac, struct station_info *sinfo)
+							   const u8 *mac, struct station_info *sinfo)
 {
 	struct lbs_private *priv = wiphy_priv(wiphy);
 	s8 signal, noise;
@@ -1622,9 +1815,9 @@ static int lbs_cfg_get_station(struct wiphy *wiphy, struct net_device *dev,
 	lbs_deb_enter(LBS_DEB_CFG80211);
 
 	sinfo->filled |= BIT(NL80211_STA_INFO_TX_BYTES) |
-			 BIT(NL80211_STA_INFO_TX_PACKETS) |
-			 BIT(NL80211_STA_INFO_RX_BYTES) |
-			 BIT(NL80211_STA_INFO_RX_PACKETS);
+					 BIT(NL80211_STA_INFO_TX_PACKETS) |
+					 BIT(NL80211_STA_INFO_RX_BYTES) |
+					 BIT(NL80211_STA_INFO_RX_PACKETS);
 	sinfo->tx_bytes = priv->dev->stats.tx_bytes;
 	sinfo->tx_packets = priv->dev->stats.tx_packets;
 	sinfo->rx_bytes = priv->dev->stats.rx_bytes;
@@ -1632,14 +1825,18 @@ static int lbs_cfg_get_station(struct wiphy *wiphy, struct net_device *dev,
 
 	/* Get current RSSI */
 	ret = lbs_get_rssi(priv, &signal, &noise);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		sinfo->signal = signal;
 		sinfo->filled |= BIT(NL80211_STA_INFO_SIGNAL);
 	}
 
 	/* Convert priv->cur_rate from hw_value to NL80211 value */
-	for (i = 0; i < ARRAY_SIZE(lbs_rates); i++) {
-		if (priv->cur_rate == lbs_rates[i].hw_value) {
+	for (i = 0; i < ARRAY_SIZE(lbs_rates); i++)
+	{
+		if (priv->cur_rate == lbs_rates[i].hw_value)
+		{
 			sinfo->txrate.legacy = lbs_rates[i].bitrate;
 			sinfo->filled |= BIT(NL80211_STA_INFO_TX_BITRATE);
 			break;
@@ -1657,31 +1854,39 @@ static int lbs_cfg_get_station(struct wiphy *wiphy, struct net_device *dev,
  */
 
 static int lbs_change_intf(struct wiphy *wiphy, struct net_device *dev,
-	enum nl80211_iftype type, u32 *flags,
-	       struct vif_params *params)
+						   enum nl80211_iftype type, u32 *flags,
+						   struct vif_params *params)
 {
 	struct lbs_private *priv = wiphy_priv(wiphy);
 	int ret = 0;
 
 	if (dev == priv->mesh_dev)
+	{
 		return -EOPNOTSUPP;
+	}
 
-	switch (type) {
-	case NL80211_IFTYPE_MONITOR:
-	case NL80211_IFTYPE_STATION:
-	case NL80211_IFTYPE_ADHOC:
-		break;
-	default:
-		return -EOPNOTSUPP;
+	switch (type)
+	{
+		case NL80211_IFTYPE_MONITOR:
+		case NL80211_IFTYPE_STATION:
+		case NL80211_IFTYPE_ADHOC:
+			break;
+
+		default:
+			return -EOPNOTSUPP;
 	}
 
 	lbs_deb_enter(LBS_DEB_CFG80211);
 
 	if (priv->iface_running)
+	{
 		ret = lbs_set_iface_type(priv, type);
+	}
 
 	if (!ret)
+	{
 		priv->wdev->iftype = type;
+	}
 
 	lbs_deb_leave_args(LBS_DEB_CFG80211, "ret %d", ret);
 	return ret;
@@ -1702,14 +1907,14 @@ static int lbs_change_intf(struct wiphy *wiphy, struct net_device *dev,
 
 
 static void lbs_join_post(struct lbs_private *priv,
-			  struct cfg80211_ibss_params *params,
-			  u8 *bssid, u16 capability)
+						  struct cfg80211_ibss_params *params,
+						  u8 *bssid, u16 capability)
 {
 	u8 fake_ie[2 + IEEE80211_MAX_SSID_LEN + /* ssid */
-		   2 + 4 +                      /* basic rates */
-		   2 + 1 +                      /* DS parameter */
-		   2 + 2 +                      /* atim */
-		   2 + 8];                      /* extended rates */
+			   2 + 4 +                      /* basic rates */
+			   2 + 1 +                      /* DS parameter */
+			   2 + 2 +                      /* atim */
+			   2 + 8];                      /* extended rates */
 	u8 *fake = fake_ie;
 	struct cfg80211_bss *bss;
 
@@ -1756,34 +1961,37 @@ static void lbs_join_post(struct lbs_private *priv,
 	lbs_deb_hex(LBS_DEB_CFG80211, "IE", fake_ie, fake - fake_ie);
 
 	bss = cfg80211_inform_bss(priv->wdev->wiphy,
-				  params->chandef.chan,
-				  CFG80211_BSS_FTYPE_UNKNOWN,
-				  bssid,
-				  0,
-				  capability,
-				  params->beacon_interval,
-				  fake_ie, fake - fake_ie,
-				  0, GFP_KERNEL);
+							  params->chandef.chan,
+							  CFG80211_BSS_FTYPE_UNKNOWN,
+							  bssid,
+							  0,
+							  capability,
+							  params->beacon_interval,
+							  fake_ie, fake - fake_ie,
+							  0, GFP_KERNEL);
 	cfg80211_put_bss(priv->wdev->wiphy, bss);
 
 	memcpy(priv->wdev->ssid, params->ssid, params->ssid_len);
 	priv->wdev->ssid_len = params->ssid_len;
 
 	cfg80211_ibss_joined(priv->dev, bssid, params->chandef.chan,
-			     GFP_KERNEL);
+						 GFP_KERNEL);
 
 	/* TODO: consider doing this at MACREG_INT_CODE_LINK_SENSED time */
 	priv->connect_status = LBS_CONNECTED;
 	netif_carrier_on(priv->dev);
+
 	if (!priv->tx_pending_len)
+	{
 		netif_wake_queue(priv->dev);
+	}
 
 	lbs_deb_leave(LBS_DEB_CFG80211);
 }
 
 static int lbs_ibss_join_existing(struct lbs_private *priv,
-	struct cfg80211_ibss_params *params,
-	struct cfg80211_bss *bss)
+								  struct cfg80211_ibss_params *params,
+								  struct cfg80211_bss *bss)
 {
 	const u8 *rates_eid;
 	struct cmd_ds_802_11_ad_hoc_join cmd;
@@ -1794,8 +2002,11 @@ static int lbs_ibss_join_existing(struct lbs_private *priv,
 
 	/* TODO: set preamble based on scan result */
 	ret = lbs_set_radio(priv, preamble, 1);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/*
 	 * Example CMD_802_11_AD_HOC_JOIN command:
@@ -1846,35 +2057,54 @@ static int lbs_ibss_join_existing(struct lbs_private *priv,
 	   bss */
 	rcu_read_lock();
 	rates_eid = ieee80211_bss_get_ie(bss, WLAN_EID_SUPP_RATES);
-	if (!rates_eid) {
+
+	if (!rates_eid)
+	{
 		lbs_add_rates(cmd.bss.rates);
-	} else {
+	}
+	else
+	{
 		int hw, i;
 		u8 rates_max = rates_eid[1];
 		u8 *rates = cmd.bss.rates;
-		for (hw = 0; hw < ARRAY_SIZE(lbs_rates); hw++) {
+
+		for (hw = 0; hw < ARRAY_SIZE(lbs_rates); hw++)
+		{
 			u8 hw_rate = lbs_rates[hw].bitrate / 5;
-			for (i = 0; i < rates_max; i++) {
-				if (hw_rate == (rates_eid[i+2] & 0x7f)) {
-					u8 rate = rates_eid[i+2];
+
+			for (i = 0; i < rates_max; i++)
+			{
+				if (hw_rate == (rates_eid[i + 2] & 0x7f))
+				{
+					u8 rate = rates_eid[i + 2];
+
 					if (rate == 0x02 || rate == 0x04 ||
-					    rate == 0x0b || rate == 0x16)
+						rate == 0x0b || rate == 0x16)
+					{
 						rate |= 0x80;
+					}
+
 					*rates++ = rate;
 				}
 			}
 		}
 	}
+
 	rcu_read_unlock();
 
 	/* Only v8 and below support setting this */
-	if (MRVL_FW_MAJOR_REV(priv->fwrelease) <= 8) {
+	if (MRVL_FW_MAJOR_REV(priv->fwrelease) <= 8)
+	{
 		cmd.failtimeout = cpu_to_le16(MRVDRV_ASSOCIATION_TIME_OUT);
 		cmd.probedelay = cpu_to_le16(CMD_SCAN_PROBE_DELAY_TIME);
 	}
+
 	ret = lbs_cmd_with_response(priv, CMD_802_11_AD_HOC_JOIN, &cmd);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/*
 	 * This is a sample response to CMD_802_11_AD_HOC_JOIN:
@@ -1887,7 +2117,7 @@ static int lbs_ibss_join_existing(struct lbs_private *priv,
 	 */
 	lbs_join_post(priv, params, bss->bssid, bss->capability);
 
- out:
+out:
 	lbs_deb_leave_args(LBS_DEB_CFG80211, "ret %d", ret);
 	return ret;
 }
@@ -1895,7 +2125,7 @@ static int lbs_ibss_join_existing(struct lbs_private *priv,
 
 
 static int lbs_ibss_start_new(struct lbs_private *priv,
-	struct cfg80211_ibss_params *params)
+							  struct cfg80211_ibss_params *params)
 {
 	struct cmd_ds_802_11_ad_hoc_start cmd;
 	struct cmd_ds_802_11_ad_hoc_result *resp =
@@ -1907,8 +2137,11 @@ static int lbs_ibss_start_new(struct lbs_private *priv,
 	lbs_deb_enter(LBS_DEB_CFG80211);
 
 	ret = lbs_set_radio(priv, preamble, 1);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/*
 	 * Example CMD_802_11_AD_HOC_START command:
@@ -1949,9 +2182,13 @@ static int lbs_ibss_start_new(struct lbs_private *priv,
 	cmd.ds.header.id = WLAN_EID_DS_PARAMS;
 	cmd.ds.header.len = 1;
 	cmd.ds.channel = params->chandef.chan->hw_value;
+
 	/* Only v8 and below support setting probe delay */
 	if (MRVL_FW_MAJOR_REV(priv->fwrelease) <= 8)
+	{
 		cmd.probedelay = cpu_to_le16(CMD_SCAN_PROBE_DELAY_TIME);
+	}
+
 	/* TODO: mix in WLAN_CAPABILITY_PRIVACY */
 	capability = WLAN_CAPABILITY_IBSS;
 	cmd.capability = cpu_to_le16(capability);
@@ -1959,8 +2196,11 @@ static int lbs_ibss_start_new(struct lbs_private *priv,
 
 
 	ret = lbs_cmd_with_response(priv, CMD_802_11_AD_HOC_START, &cmd);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/*
 	 * This is a sample response to CMD_802_11_AD_HOC_JOIN:
@@ -1974,47 +2214,57 @@ static int lbs_ibss_start_new(struct lbs_private *priv,
 	 */
 	lbs_join_post(priv, params, resp->bssid, capability);
 
- out:
+out:
 	lbs_deb_leave_args(LBS_DEB_CFG80211, "ret %d", ret);
 	return ret;
 }
 
 
 static int lbs_join_ibss(struct wiphy *wiphy, struct net_device *dev,
-		struct cfg80211_ibss_params *params)
+						 struct cfg80211_ibss_params *params)
 {
 	struct lbs_private *priv = wiphy_priv(wiphy);
 	int ret = 0;
 	struct cfg80211_bss *bss;
 
 	if (dev == priv->mesh_dev)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	lbs_deb_enter(LBS_DEB_CFG80211);
 
-	if (!params->chandef.chan) {
+	if (!params->chandef.chan)
+	{
 		ret = -ENOTSUPP;
 		goto out;
 	}
 
 	ret = lbs_set_channel(priv, params->chandef.chan->hw_value);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* Search if someone is beaconing. This assumes that the
 	 * bss list is populated already */
 	bss = cfg80211_get_bss(wiphy, params->chandef.chan, params->bssid,
-		params->ssid, params->ssid_len,
-		IEEE80211_BSS_TYPE_IBSS, IEEE80211_PRIVACY_ANY);
+						   params->ssid, params->ssid_len,
+						   IEEE80211_BSS_TYPE_IBSS, IEEE80211_PRIVACY_ANY);
 
-	if (bss) {
+	if (bss)
+	{
 		ret = lbs_ibss_join_existing(priv, params, bss);
 		cfg80211_put_bss(wiphy, bss);
-	} else
+	}
+	else
+	{
 		ret = lbs_ibss_start_new(priv, params);
+	}
 
 
- out:
+out:
 	lbs_deb_leave_args(LBS_DEB_CFG80211, "ret %d", ret);
 	return ret;
 }
@@ -2027,7 +2277,9 @@ static int lbs_leave_ibss(struct wiphy *wiphy, struct net_device *dev)
 	int ret = 0;
 
 	if (dev == priv->mesh_dev)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	lbs_deb_enter(LBS_DEB_CFG80211);
 
@@ -2045,40 +2297,63 @@ static int lbs_leave_ibss(struct wiphy *wiphy, struct net_device *dev)
 
 
 static int lbs_set_power_mgmt(struct wiphy *wiphy, struct net_device *dev,
-			      bool enabled, int timeout)
+							  bool enabled, int timeout)
 {
 	struct lbs_private *priv = wiphy_priv(wiphy);
 
-	if  (!(priv->fwcapinfo & FW_CAPINFO_PS)) {
+	if  (!(priv->fwcapinfo & FW_CAPINFO_PS))
+	{
 		if (!enabled)
+		{
 			return 0;
+		}
 		else
+		{
 			return -EINVAL;
+		}
 	}
+
 	/* firmware does not work well with too long latency with power saving
 	 * enabled, so do not enable it if there is only polling, no
 	 * interrupts (like in some sdio hosts which can only
 	 * poll for sdio irqs)
 	 */
-	if  (priv->is_polling) {
+	if  (priv->is_polling)
+	{
 		if (!enabled)
+		{
 			return 0;
+		}
 		else
+		{
 			return -EINVAL;
+		}
 	}
-	if (!enabled) {
+
+	if (!enabled)
+	{
 		priv->psmode = LBS802_11POWERMODECAM;
+
 		if (priv->psstate != PS_STATE_FULL_POWER)
 			lbs_set_ps_mode(priv,
-					PS_MODE_ACTION_EXIT_PS,
-					true);
+							PS_MODE_ACTION_EXIT_PS,
+							true);
+
 		return 0;
 	}
+
 	if (priv->psmode != LBS802_11POWERMODECAM)
+	{
 		return 0;
+	}
+
 	priv->psmode = LBS802_11POWERMODEMAX_PSP;
+
 	if (priv->connect_status == LBS_CONNECTED)
+	{
 		lbs_set_ps_mode(priv, PS_MODE_ACTION_ENTER_PS, true);
+	}
+
 	return 0;
 }
 
@@ -2086,7 +2361,8 @@ static int lbs_set_power_mgmt(struct wiphy *wiphy, struct net_device *dev,
  * Initialization
  */
 
-static struct cfg80211_ops lbs_cfg80211_ops = {
+static struct cfg80211_ops lbs_cfg80211_ops =
+{
 	.set_monitor_channel = lbs_cfg_set_monitor_channel,
 	.libertas_set_mesh_channel = lbs_cfg_set_mesh_channel,
 	.scan = lbs_cfg_scan,
@@ -2117,11 +2393,16 @@ struct wireless_dev *lbs_cfg_alloc(struct device *dev)
 	lbs_deb_enter(LBS_DEB_CFG80211);
 
 	wdev = kzalloc(sizeof(struct wireless_dev), GFP_KERNEL);
+
 	if (!wdev)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	wdev->wiphy = wiphy_new(&lbs_cfg80211_ops, sizeof(struct lbs_private));
-	if (!wdev->wiphy) {
+
+	if (!wdev->wiphy)
+	{
 		dev_err(dev, "cannot allocate wiphy\n");
 		ret = -ENOMEM;
 		goto err_wiphy_new;
@@ -2130,7 +2411,7 @@ struct wireless_dev *lbs_cfg_alloc(struct device *dev)
 	lbs_deb_leave(LBS_DEB_CFG80211);
 	return wdev;
 
- err_wiphy_new:
+err_wiphy_new:
 	kfree(wdev);
 	lbs_deb_leave_args(LBS_DEB_CFG80211, "ret %d", ret);
 	return ERR_PTR(ret);
@@ -2139,13 +2420,15 @@ struct wireless_dev *lbs_cfg_alloc(struct device *dev)
 
 static void lbs_cfg_set_regulatory_hint(struct lbs_private *priv)
 {
-	struct region_code_mapping {
+	struct region_code_mapping
+	{
 		const char *cn;
 		int code;
 	};
 
 	/* Section 5.17.2 */
-	static const struct region_code_mapping regmap[] = {
+	static const struct region_code_mapping regmap[] =
+	{
 		{"US ", 0x10}, /* US FCC */
 		{"CA ", 0x20}, /* Canada */
 		{"EU ", 0x30}, /* ETSI   */
@@ -2158,7 +2441,8 @@ static void lbs_cfg_set_regulatory_hint(struct lbs_private *priv)
 	lbs_deb_enter(LBS_DEB_CFG80211);
 
 	for (i = 0; i < ARRAY_SIZE(regmap); i++)
-		if (regmap[i].code == priv->regioncode) {
+		if (regmap[i].code == priv->regioncode)
+		{
 			regulatory_hint(priv->wdev->wiphy, regmap[i].cn);
 			break;
 		}
@@ -2167,17 +2451,20 @@ static void lbs_cfg_set_regulatory_hint(struct lbs_private *priv)
 }
 
 static void lbs_reg_notifier(struct wiphy *wiphy,
-			     struct regulatory_request *request)
+							 struct regulatory_request *request)
 {
 	struct lbs_private *priv = wiphy_priv(wiphy);
 
 	lbs_deb_enter_args(LBS_DEB_CFG80211, "cfg80211 regulatory domain "
-			"callback for domain %c%c\n", request->alpha2[0],
-			request->alpha2[1]);
+					   "callback for domain %c%c\n", request->alpha2[0],
+					   request->alpha2[1]);
 
 	memcpy(priv->country_code, request->alpha2, sizeof(request->alpha2));
+
 	if (lbs_iface_active(priv))
+	{
 		lbs_set_11d_domain_info(priv);
+	}
 
 	lbs_deb_leave(LBS_DEB_CFG80211);
 }
@@ -2198,12 +2485,18 @@ int lbs_cfg_register(struct lbs_private *priv)
 	wdev->wiphy->signal_type = CFG80211_SIGNAL_TYPE_MBM;
 
 	wdev->wiphy->interface_modes =
-			BIT(NL80211_IFTYPE_STATION) |
-			BIT(NL80211_IFTYPE_ADHOC);
+		BIT(NL80211_IFTYPE_STATION) |
+		BIT(NL80211_IFTYPE_ADHOC);
+
 	if (lbs_rtap_supported(priv))
+	{
 		wdev->wiphy->interface_modes |= BIT(NL80211_IFTYPE_MONITOR);
+	}
+
 	if (lbs_mesh_activated(priv))
+	{
 		wdev->wiphy->interface_modes |= BIT(NL80211_IFTYPE_MESH_POINT);
+	}
 
 	wdev->wiphy->bands[NL80211_BAND_2GHZ] = &lbs_band_2ghz;
 
@@ -2216,14 +2509,20 @@ int lbs_cfg_register(struct lbs_private *priv)
 	wdev->wiphy->reg_notifier = lbs_reg_notifier;
 
 	ret = wiphy_register(wdev->wiphy);
+
 	if (ret < 0)
+	{
 		pr_err("cannot register wiphy device\n");
+	}
 
 	priv->wiphy_registered = true;
 
 	ret = register_netdev(priv->dev);
+
 	if (ret)
+	{
 		pr_err("cannot register network device\n");
+	}
 
 	INIT_DELAYED_WORK(&priv->scan_work, lbs_scan_worker);
 
@@ -2247,13 +2546,19 @@ void lbs_cfg_free(struct lbs_private *priv)
 	lbs_deb_enter(LBS_DEB_CFG80211);
 
 	if (!wdev)
+	{
 		return;
+	}
 
 	if (priv->wiphy_registered)
+	{
 		wiphy_unregister(wdev->wiphy);
+	}
 
 	if (wdev->wiphy)
+	{
 		wiphy_free(wdev->wiphy);
+	}
 
 	kfree(wdev);
 }

@@ -44,7 +44,8 @@
 #define NEMC_NFCSR_NFCEn(n)	BIT((((n) - 1) << 1) + 1)
 #define NEMC_NFCSR_TNFEn(n)	BIT(16 + (n) - 1)
 
-struct jz4780_nemc {
+struct jz4780_nemc
+{
 	spinlock_t lock;
 	struct device *dev;
 	void __iomem *base;
@@ -68,9 +69,12 @@ unsigned int jz4780_nemc_num_banks(struct device *dev)
 	unsigned long referenced = 0;
 	int i = 0;
 
-	while ((prop = of_get_address(dev->of_node, i++, NULL, NULL))) {
+	while ((prop = of_get_address(dev->of_node, i++, NULL, NULL)))
+	{
 		bank = of_read_number(prop, 1);
-		if (!(referenced & BIT(bank))) {
+
+		if (!(referenced & BIT(bank)))
+		{
 			referenced |= BIT(bank);
 			count++;
 		}
@@ -87,7 +91,7 @@ EXPORT_SYMBOL(jz4780_nemc_num_banks);
  * @type: type of device connected to the bank.
  */
 void jz4780_nemc_set_type(struct device *dev, unsigned int bank,
-			  enum jz4780_nemc_bank_type type)
+						  enum jz4780_nemc_bank_type type)
 {
 	struct jz4780_nemc *nemc = dev_get_drvdata(dev->parent);
 	uint32_t nfcsr;
@@ -95,14 +99,16 @@ void jz4780_nemc_set_type(struct device *dev, unsigned int bank,
 	nfcsr = readl(nemc->base + NEMC_NFCSR);
 
 	/* TODO: Support toggle NAND devices. */
-	switch (type) {
-	case JZ4780_NEMC_BANK_SRAM:
-		nfcsr &= ~(NEMC_NFCSR_TNFEn(bank) | NEMC_NFCSR_NFEn(bank));
-		break;
-	case JZ4780_NEMC_BANK_NAND:
-		nfcsr &= ~NEMC_NFCSR_TNFEn(bank);
-		nfcsr |= NEMC_NFCSR_NFEn(bank);
-		break;
+	switch (type)
+	{
+		case JZ4780_NEMC_BANK_SRAM:
+			nfcsr &= ~(NEMC_NFCSR_TNFEn(bank) | NEMC_NFCSR_NFEn(bank));
+			break;
+
+		case JZ4780_NEMC_BANK_NAND:
+			nfcsr &= ~NEMC_NFCSR_TNFEn(bank);
+			nfcsr |= NEMC_NFCSR_NFEn(bank);
+			break;
 	}
 
 	writel(nfcsr, nemc->base + NEMC_NFCSR);
@@ -126,9 +132,13 @@ void jz4780_nemc_assert(struct device *dev, unsigned int bank, bool assert)
 	nfcsr = readl(nemc->base + NEMC_NFCSR);
 
 	if (assert)
+	{
 		nfcsr |= NEMC_NFCSR_NFCEn(bank);
+	}
 	else
+	{
 		nfcsr &= ~NEMC_NFCSR_NFCEn(bank);
+	}
 
 	writel(nfcsr, nemc->base + NEMC_NFCSR);
 }
@@ -139,8 +149,11 @@ static uint32_t jz4780_nemc_clk_period(struct jz4780_nemc *nemc)
 	unsigned long rate;
 
 	rate = clk_get_rate(nemc->clk);
+
 	if (!rate)
+	{
 		return 0;
+	}
 
 	/* Return in picoseconds. */
 	return div64_ul(1000000000000ull, rate);
@@ -152,8 +165,8 @@ static uint32_t jz4780_nemc_ns_to_cycles(struct jz4780_nemc *nemc, uint32_t ns)
 }
 
 static bool jz4780_nemc_configure_bank(struct jz4780_nemc *nemc,
-				       unsigned int bank,
-				       struct device_node *node)
+									   unsigned int bank,
+									   struct device_node *node)
 {
 	uint32_t smcr, val, cycles;
 
@@ -161,7 +174,8 @@ static bool jz4780_nemc_configure_bank(struct jz4780_nemc *nemc,
 	 * Conversion of tBP and tAW cycle counts to values supported by the
 	 * hardware (round up to the next supported value).
 	 */
-	static const uint32_t convert_tBP_tAW[] = {
+	static const uint32_t convert_tBP_tAW[] =
+	{
 		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
 
 		/* 11 - 12 -> 12 cycles */
@@ -183,76 +197,95 @@ static bool jz4780_nemc_configure_bank(struct jz4780_nemc *nemc,
 	smcr = readl(nemc->base + NEMC_SMCRn(bank));
 	smcr &= ~NEMC_SMCR_SMT;
 
-	if (!of_property_read_u32(node, "ingenic,nemc-bus-width", &val)) {
+	if (!of_property_read_u32(node, "ingenic,nemc-bus-width", &val))
+	{
 		smcr &= ~NEMC_SMCR_BW_MASK;
-		switch (val) {
-		case 8:
-			smcr |= NEMC_SMCR_BW_8;
-			break;
-		default:
-			/*
-			 * Earlier SoCs support a 16 bit bus width (the 4780
-			 * does not), until those are properly supported, error.
-			 */
-			dev_err(nemc->dev, "unsupported bus width: %u\n", val);
-			return false;
+
+		switch (val)
+		{
+			case 8:
+				smcr |= NEMC_SMCR_BW_8;
+				break;
+
+			default:
+				/*
+				 * Earlier SoCs support a 16 bit bus width (the 4780
+				 * does not), until those are properly supported, error.
+				 */
+				dev_err(nemc->dev, "unsupported bus width: %u\n", val);
+				return false;
 		}
 	}
 
-	if (of_property_read_u32(node, "ingenic,nemc-tAS", &val) == 0) {
+	if (of_property_read_u32(node, "ingenic,nemc-tAS", &val) == 0)
+	{
 		smcr &= ~NEMC_SMCR_TAS_MASK;
 		cycles = jz4780_nemc_ns_to_cycles(nemc, val);
-		if (cycles > 15) {
+
+		if (cycles > 15)
+		{
 			dev_err(nemc->dev, "tAS %u is too high (%u cycles)\n",
-				val, cycles);
+					val, cycles);
 			return false;
 		}
 
 		smcr |= cycles << NEMC_SMCR_TAS_SHIFT;
 	}
 
-	if (of_property_read_u32(node, "ingenic,nemc-tAH", &val) == 0) {
+	if (of_property_read_u32(node, "ingenic,nemc-tAH", &val) == 0)
+	{
 		smcr &= ~NEMC_SMCR_TAH_MASK;
 		cycles = jz4780_nemc_ns_to_cycles(nemc, val);
-		if (cycles > 15) {
+
+		if (cycles > 15)
+		{
 			dev_err(nemc->dev, "tAH %u is too high (%u cycles)\n",
-				val, cycles);
+					val, cycles);
 			return false;
 		}
 
 		smcr |= cycles << NEMC_SMCR_TAH_SHIFT;
 	}
 
-	if (of_property_read_u32(node, "ingenic,nemc-tBP", &val) == 0) {
+	if (of_property_read_u32(node, "ingenic,nemc-tBP", &val) == 0)
+	{
 		smcr &= ~NEMC_SMCR_TBP_MASK;
 		cycles = jz4780_nemc_ns_to_cycles(nemc, val);
-		if (cycles > 31) {
+
+		if (cycles > 31)
+		{
 			dev_err(nemc->dev, "tBP %u is too high (%u cycles)\n",
-				val, cycles);
+					val, cycles);
 			return false;
 		}
 
 		smcr |= convert_tBP_tAW[cycles] << NEMC_SMCR_TBP_SHIFT;
 	}
 
-	if (of_property_read_u32(node, "ingenic,nemc-tAW", &val) == 0) {
+	if (of_property_read_u32(node, "ingenic,nemc-tAW", &val) == 0)
+	{
 		smcr &= ~NEMC_SMCR_TAW_MASK;
 		cycles = jz4780_nemc_ns_to_cycles(nemc, val);
-		if (cycles > 31) {
+
+		if (cycles > 31)
+		{
 			dev_err(nemc->dev, "tAW %u is too high (%u cycles)\n",
-				val, cycles);
+					val, cycles);
 			return false;
 		}
 
 		smcr |= convert_tBP_tAW[cycles] << NEMC_SMCR_TAW_SHIFT;
 	}
 
-	if (of_property_read_u32(node, "ingenic,nemc-tSTRV", &val) == 0) {
+	if (of_property_read_u32(node, "ingenic,nemc-tSTRV", &val) == 0)
+	{
 		smcr &= ~NEMC_SMCR_TSTRV_MASK;
 		cycles = jz4780_nemc_ns_to_cycles(nemc, val);
-		if (cycles > 63) {
+
+		if (cycles > 63)
+		{
 			dev_err(nemc->dev, "tSTRV %u is too high (%u cycles)\n",
-				val, cycles);
+					val, cycles);
 			return false;
 		}
 
@@ -275,15 +308,20 @@ static int jz4780_nemc_probe(struct platform_device *pdev)
 	int i, ret;
 
 	nemc = devm_kzalloc(dev, sizeof(*nemc), GFP_KERNEL);
+
 	if (!nemc)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&nemc->lock);
 	nemc->dev = dev;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	nemc->base = devm_ioremap_resource(dev, res);
-	if (IS_ERR(nemc->base)) {
+
+	if (IS_ERR(nemc->base))
+	{
 		dev_err(dev, "failed to get I/O memory\n");
 		return PTR_ERR(nemc->base);
 	}
@@ -291,19 +329,25 @@ static int jz4780_nemc_probe(struct platform_device *pdev)
 	writel(0, nemc->base + NEMC_NFCSR);
 
 	nemc->clk = devm_clk_get(dev, NULL);
-	if (IS_ERR(nemc->clk)) {
+
+	if (IS_ERR(nemc->clk))
+	{
 		dev_err(dev, "failed to get clock\n");
 		return PTR_ERR(nemc->clk);
 	}
 
 	ret = clk_prepare_enable(nemc->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to enable clock: %d\n", ret);
 		return ret;
 	}
 
 	nemc->clk_period = jz4780_nemc_clk_period(nemc);
-	if (!nemc->clk_period) {
+
+	if (!nemc->clk_period)
+	{
 		dev_err(dev, "failed to calculate clock period\n");
 		clk_disable_unprepare(nemc->clk);
 		return -EINVAL;
@@ -315,15 +359,20 @@ static int jz4780_nemc_probe(struct platform_device *pdev)
 	 * has invalid properties, it is ignored and no platform device is
 	 * registered for it.
 	 */
-	for_each_child_of_node(nemc->dev->of_node, child) {
+	for_each_child_of_node(nemc->dev->of_node, child)
+	{
 		referenced = 0;
 		i = 0;
-		while ((prop = of_get_address(child, i++, NULL, NULL))) {
+
+		while ((prop = of_get_address(child, i++, NULL, NULL)))
+		{
 			bank = of_read_number(prop, 1);
-			if (bank < 1 || bank >= JZ4780_NEMC_NUM_BANKS) {
+
+			if (bank < 1 || bank >= JZ4780_NEMC_NUM_BANKS)
+			{
 				dev_err(nemc->dev,
-					"%s requests invalid bank %u\n",
-					child->full_name, bank);
+						"%s requests invalid bank %u\n",
+						child->full_name, bank);
 
 				/* Will continue the outer loop below. */
 				referenced = 0;
@@ -333,27 +382,35 @@ static int jz4780_nemc_probe(struct platform_device *pdev)
 			referenced |= BIT(bank);
 		}
 
-		if (!referenced) {
+		if (!referenced)
+		{
 			dev_err(nemc->dev, "%s has no addresses\n",
-				child->full_name);
+					child->full_name);
 			continue;
-		} else if (nemc->banks_present & referenced) {
+		}
+		else if (nemc->banks_present & referenced)
+		{
 			dev_err(nemc->dev, "%s conflicts with another node\n",
-				child->full_name);
+					child->full_name);
 			continue;
 		}
 
 		/* Configure bank parameters. */
-		for_each_set_bit(bank, &referenced, JZ4780_NEMC_NUM_BANKS) {
-			if (!jz4780_nemc_configure_bank(nemc, bank, child)) {
+		for_each_set_bit(bank, &referenced, JZ4780_NEMC_NUM_BANKS)
+		{
+			if (!jz4780_nemc_configure_bank(nemc, bank, child))
+			{
 				referenced = 0;
 				break;
 			}
 		}
 
-		if (referenced) {
+		if (referenced)
+		{
 			if (of_platform_device_create(child, NULL, nemc->dev))
+			{
 				nemc->banks_present |= referenced;
+			}
 		}
 	}
 
@@ -370,12 +427,14 @@ static int jz4780_nemc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id jz4780_nemc_dt_match[] = {
+static const struct of_device_id jz4780_nemc_dt_match[] =
+{
 	{ .compatible = "ingenic,jz4780-nemc" },
 	{},
 };
 
-static struct platform_driver jz4780_nemc_driver = {
+static struct platform_driver jz4780_nemc_driver =
+{
 	.probe		= jz4780_nemc_probe,
 	.remove		= jz4780_nemc_remove,
 	.driver	= {

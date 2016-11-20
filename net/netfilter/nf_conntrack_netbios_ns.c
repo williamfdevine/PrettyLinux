@@ -36,17 +36,19 @@ static unsigned int timeout __read_mostly = 3;
 module_param(timeout, uint, S_IRUSR);
 MODULE_PARM_DESC(timeout, "timeout for master connection/replies in seconds");
 
-static struct nf_conntrack_expect_policy exp_policy = {
+static struct nf_conntrack_expect_policy exp_policy =
+{
 	.max_expected	= 1,
 };
 
 static int netbios_ns_help(struct sk_buff *skb, unsigned int protoff,
-		   struct nf_conn *ct, enum ip_conntrack_info ctinfo)
+						   struct nf_conn *ct, enum ip_conntrack_info ctinfo)
 {
 	return nf_conntrack_broadcast_help(skb, protoff, ct, ctinfo, timeout);
 }
 
-static struct nf_conntrack_helper helper __read_mostly = {
+static struct nf_conntrack_helper helper __read_mostly =
+{
 	.name			= "netbios-ns",
 	.tuple.src.l3num	= NFPROTO_IPV4,
 	.tuple.src.u.udp.port	= cpu_to_be16(NMBD_PORT),

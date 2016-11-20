@@ -154,13 +154,14 @@
 #define SD_ERR1_TIMEOUT_CRC_BUSY	BIT(22)
 
 #define IRQ_DONT_CARE_BITS (SD_CARD_PRESENT_3 \
-	| SD_CARD_WRITE_PROTECT \
-	| SD_CARD_UNK6 \
-	| SD_CARD_PRESENT_0 \
-	| SD_BUF_UNK7 \
-	| SD_BUF_CMD_BUSY)
+							| SD_CARD_WRITE_PROTECT \
+							| SD_CARD_UNK6 \
+							| SD_CARD_PRESENT_0 \
+							| SD_BUF_UNK7 \
+							| SD_BUF_CMD_BUSY)
 
-struct toshsd_host {
+struct toshsd_host
+{
 	struct pci_dev *pdev;
 	struct mmc_host *mmc;
 

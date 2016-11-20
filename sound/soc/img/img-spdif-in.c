@@ -69,7 +69,8 @@
 
 #define IMG_SPDIF_IN_NUM_ACLKGEN		4
 
-struct img_spdif_in {
+struct img_spdif_in
+{
 	spinlock_t lock;
 	void __iomem *base;
 	struct clk *clk_sys;
@@ -88,7 +89,7 @@ struct img_spdif_in {
 };
 
 static inline void img_spdif_in_writel(struct img_spdif_in *spdif,
-					u32 val, u32 reg)
+									   u32 val, u32 reg)
 {
 	writel(val, spdif->base + reg);
 }
@@ -99,14 +100,14 @@ static inline u32 img_spdif_in_readl(struct img_spdif_in *spdif, u32 reg)
 }
 
 static inline void img_spdif_in_aclkgen_writel(struct img_spdif_in *spdif,
-						u32 index)
+		u32 index)
 {
 	img_spdif_in_writel(spdif, spdif->aclkgen_regs[index],
-			IMG_SPDIF_IN_ACLKGEN_START + (index * 0x4));
+						IMG_SPDIF_IN_ACLKGEN_START + (index * 0x4));
 }
 
 static int img_spdif_in_check_max_rate(struct img_spdif_in *spdif,
-		unsigned int sample_rate, unsigned long *actual_freq)
+									   unsigned int sample_rate, unsigned long *actual_freq)
 {
 	unsigned long min_freq, freq_t;
 
@@ -116,7 +117,9 @@ static int img_spdif_in_check_max_rate(struct img_spdif_in *spdif,
 	freq_t = clk_get_rate(spdif->clk_sys);
 
 	if (freq_t < min_freq)
+	{
 		return -EINVAL;
+	}
 
 	*actual_freq = freq_t;
 
@@ -124,7 +127,7 @@ static int img_spdif_in_check_max_rate(struct img_spdif_in *spdif,
 }
 
 static int img_spdif_in_do_clkgen_calc(unsigned int rate, unsigned int *pnom,
-		unsigned int *phld, unsigned long clk_rate)
+									   unsigned int *phld, unsigned long clk_rate)
 {
 	unsigned int ori, nom, hld;
 
@@ -134,16 +137,23 @@ static int img_spdif_in_do_clkgen_calc(unsigned int rate, unsigned int *pnom,
 	 */
 
 	if (!rate)
+	{
 		return -EINVAL;
+	}
 
 	ori = clk_rate / (rate * 64);
 
 	if (!ori)
+	{
 		return -EINVAL;
+	}
 
 	nom = (4096 / ori) + 1;
+
 	do
+	{
 		hld = 4096 - (--nom * (ori - 1));
+	}
 	while (hld < 120);
 
 	*pnom = nom;
@@ -161,21 +171,28 @@ static int img_spdif_in_do_clkgen_single(struct img_spdif_in *spdif,
 	u32 reg;
 
 	ret = img_spdif_in_check_max_rate(spdif, rate, &clk_rate);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = img_spdif_in_do_clkgen_calc(rate, &nom, &hld, clk_rate);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	reg = (nom << IMG_SPDIF_IN_CLKGEN_NOM_SHIFT) &
-		IMG_SPDIF_IN_CLKGEN_NOM_MASK;
+		  IMG_SPDIF_IN_CLKGEN_NOM_MASK;
 	reg |= (hld << IMG_SPDIF_IN_CLKGEN_HLD_SHIFT) &
-		IMG_SPDIF_IN_CLKGEN_HLD_MASK;
+		   IMG_SPDIF_IN_CLKGEN_HLD_MASK;
 
 	spin_lock_irqsave(&spdif->lock, flags);
 
-	if (spdif->active) {
+	if (spdif->active)
+	{
 		spin_unlock_irqrestore(&spdif->lock, flags);
 		return -EBUSY;
 	}
@@ -190,7 +207,7 @@ static int img_spdif_in_do_clkgen_single(struct img_spdif_in *spdif,
 }
 
 static int img_spdif_in_do_clkgen_multi(struct img_spdif_in *spdif,
-		unsigned int multi_freqs[])
+										unsigned int multi_freqs[])
 {
 	unsigned int nom, hld, rate, max_rate = 0;
 	unsigned long flags, clk_rate;
@@ -199,36 +216,47 @@ static int img_spdif_in_do_clkgen_multi(struct img_spdif_in *spdif,
 
 	for (i = 0; i < IMG_SPDIF_IN_NUM_ACLKGEN; i++)
 		if (multi_freqs[i] > max_rate)
+		{
 			max_rate = multi_freqs[i];
+		}
 
 	ret = img_spdif_in_check_max_rate(spdif, max_rate, &clk_rate);
-	if (ret)
-		return ret;
 
-	for (i = 0; i < IMG_SPDIF_IN_NUM_ACLKGEN; i++) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	for (i = 0; i < IMG_SPDIF_IN_NUM_ACLKGEN; i++)
+	{
 		rate = multi_freqs[i];
 
 		ret = img_spdif_in_do_clkgen_calc(rate, &nom, &hld, clk_rate);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		reg = (nom << IMG_SPDIF_IN_ACLKGEN_NOM_SHIFT) &
-			IMG_SPDIF_IN_ACLKGEN_NOM_MASK;
+			  IMG_SPDIF_IN_ACLKGEN_NOM_MASK;
 		reg |= (hld << IMG_SPDIF_IN_ACLKGEN_HLD_SHIFT) &
-			IMG_SPDIF_IN_ACLKGEN_HLD_MASK;
+			   IMG_SPDIF_IN_ACLKGEN_HLD_MASK;
 		temp_regs[i] = reg;
 	}
 
 	spin_lock_irqsave(&spdif->lock, flags);
 
-	if (spdif->active) {
+	if (spdif->active)
+	{
 		spin_unlock_irqrestore(&spdif->lock, flags);
 		return -EBUSY;
 	}
 
 	trk_reg = spdif->trk << IMG_SPDIF_IN_ACLKGEN_TRK_SHIFT;
 
-	for (i = 0; i < IMG_SPDIF_IN_NUM_ACLKGEN; i++) {
+	for (i = 0; i < IMG_SPDIF_IN_NUM_ACLKGEN; i++)
+	{
 		spdif->aclkgen_regs[i] = temp_regs[i] | trk_reg;
 		img_spdif_in_aclkgen_writel(spdif, i);
 	}
@@ -245,7 +273,7 @@ static int img_spdif_in_do_clkgen_multi(struct img_spdif_in *spdif,
 }
 
 static int img_spdif_in_iec958_info(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_info *uinfo)
+									struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_IEC958;
 	uinfo->count = 1;
@@ -254,7 +282,7 @@ static int img_spdif_in_iec958_info(struct snd_kcontrol *kcontrol,
 }
 
 static int img_spdif_in_get_status_mask(struct snd_kcontrol *kcontrol,
-				       struct snd_ctl_elem_value *ucontrol)
+										struct snd_ctl_elem_value *ucontrol)
 {
 	ucontrol->value.iec958.status[0] = 0xff;
 	ucontrol->value.iec958.status[1] = 0xff;
@@ -266,7 +294,7 @@ static int img_spdif_in_get_status_mask(struct snd_kcontrol *kcontrol,
 }
 
 static int img_spdif_in_get_status(struct snd_kcontrol *kcontrol,
-				  struct snd_ctl_elem_value *ucontrol)
+								   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_dai *cpu_dai = snd_kcontrol_chip(kcontrol);
 	struct img_spdif_in *spdif = snd_soc_dai_get_drvdata(cpu_dai);
@@ -279,13 +307,13 @@ static int img_spdif_in_get_status(struct snd_kcontrol *kcontrol,
 	ucontrol->value.iec958.status[3] = (reg >> 24) & 0xff;
 	reg = img_spdif_in_readl(spdif, IMG_SPDIF_IN_CSH);
 	ucontrol->value.iec958.status[4] = (reg & IMG_SPDIF_IN_CSH_MASK)
-		>> IMG_SPDIF_IN_CSH_SHIFT;
+									   >> IMG_SPDIF_IN_CSH_SHIFT;
 
 	return 0;
 }
 
 static int img_spdif_in_info_multi_freq(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_info *uinfo)
+										struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = IMG_SPDIF_IN_NUM_ACLKGEN;
@@ -296,31 +324,36 @@ static int img_spdif_in_info_multi_freq(struct snd_kcontrol *kcontrol,
 }
 
 static int img_spdif_in_get_multi_freq(struct snd_kcontrol *kcontrol,
-				  struct snd_ctl_elem_value *ucontrol)
+									   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_dai *cpu_dai = snd_kcontrol_chip(kcontrol);
 	struct img_spdif_in *spdif = snd_soc_dai_get_drvdata(cpu_dai);
 	unsigned long flags;
 
 	spin_lock_irqsave(&spdif->lock, flags);
-	if (spdif->multi_freq) {
+
+	if (spdif->multi_freq)
+	{
 		ucontrol->value.integer.value[0] = spdif->multi_freqs[0];
 		ucontrol->value.integer.value[1] = spdif->multi_freqs[1];
 		ucontrol->value.integer.value[2] = spdif->multi_freqs[2];
 		ucontrol->value.integer.value[3] = spdif->multi_freqs[3];
-	} else {
+	}
+	else
+	{
 		ucontrol->value.integer.value[0] = 0;
 		ucontrol->value.integer.value[1] = 0;
 		ucontrol->value.integer.value[2] = 0;
 		ucontrol->value.integer.value[3] = 0;
 	}
+
 	spin_unlock_irqrestore(&spdif->lock, flags);
 
 	return 0;
 }
 
 static int img_spdif_in_set_multi_freq(struct snd_kcontrol *kcontrol,
-				  struct snd_ctl_elem_value *ucontrol)
+									   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_dai *cpu_dai = snd_kcontrol_chip(kcontrol);
 	struct img_spdif_in *spdif = snd_soc_dai_get_drvdata(cpu_dai);
@@ -329,11 +362,14 @@ static int img_spdif_in_set_multi_freq(struct snd_kcontrol *kcontrol,
 	unsigned long flags;
 
 	if ((ucontrol->value.integer.value[0] == 0) &&
-			(ucontrol->value.integer.value[1] == 0) &&
-			(ucontrol->value.integer.value[2] == 0) &&
-			(ucontrol->value.integer.value[3] == 0)) {
+		(ucontrol->value.integer.value[1] == 0) &&
+		(ucontrol->value.integer.value[2] == 0) &&
+		(ucontrol->value.integer.value[3] == 0))
+	{
 		multi_freq = false;
-	} else {
+	}
+	else
+	{
 		multi_freqs[0] = ucontrol->value.integer.value[0];
 		multi_freqs[1] = ucontrol->value.integer.value[1];
 		multi_freqs[2] = ucontrol->value.integer.value[2];
@@ -342,11 +378,14 @@ static int img_spdif_in_set_multi_freq(struct snd_kcontrol *kcontrol,
 	}
 
 	if (multi_freq)
+	{
 		return img_spdif_in_do_clkgen_multi(spdif, multi_freqs);
+	}
 
 	spin_lock_irqsave(&spdif->lock, flags);
 
-	if (spdif->active) {
+	if (spdif->active)
+	{
 		spin_unlock_irqrestore(&spdif->lock, flags);
 		return -EBUSY;
 	}
@@ -359,7 +398,7 @@ static int img_spdif_in_set_multi_freq(struct snd_kcontrol *kcontrol,
 }
 
 static int img_spdif_in_info_lock_freq(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_info *uinfo)
+									   struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 1;
@@ -370,7 +409,7 @@ static int img_spdif_in_info_lock_freq(struct snd_kcontrol *kcontrol,
 }
 
 static int img_spdif_in_get_lock_freq(struct snd_kcontrol *kcontrol,
-				  struct snd_ctl_elem_value *uc)
+									  struct snd_ctl_elem_value *uc)
 {
 	struct snd_soc_dai *cpu_dai = snd_kcontrol_chip(kcontrol);
 	struct img_spdif_in *spdif = snd_soc_dai_get_drvdata(cpu_dai);
@@ -381,15 +420,22 @@ static int img_spdif_in_get_lock_freq(struct snd_kcontrol *kcontrol,
 	spin_lock_irqsave(&spdif->lock, flags);
 
 	reg = img_spdif_in_readl(spdif, IMG_SPDIF_IN_STATUS);
-	if (reg & IMG_SPDIF_IN_STATUS_LOCK_MASK) {
-		if (spdif->multi_freq) {
+
+	if (reg & IMG_SPDIF_IN_STATUS_LOCK_MASK)
+	{
+		if (spdif->multi_freq)
+		{
 			i = ((reg & IMG_SPDIF_IN_STATUS_SAM_MASK) >>
-					IMG_SPDIF_IN_STATUS_SAM_SHIFT) - 1;
+				 IMG_SPDIF_IN_STATUS_SAM_SHIFT) - 1;
 			uc->value.integer.value[0] = spdif->multi_freqs[i];
-		} else {
+		}
+		else
+		{
 			uc->value.integer.value[0] = spdif->single_freq;
 		}
-	} else {
+	}
+	else
+	{
 		uc->value.integer.value[0] = 0;
 	}
 
@@ -399,7 +445,7 @@ static int img_spdif_in_get_lock_freq(struct snd_kcontrol *kcontrol,
 }
 
 static int img_spdif_in_info_trk(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_info *uinfo)
+								 struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 1;
@@ -410,7 +456,7 @@ static int img_spdif_in_info_trk(struct snd_kcontrol *kcontrol,
 }
 
 static int img_spdif_in_get_trk(struct snd_kcontrol *kcontrol,
-				  struct snd_ctl_elem_value *ucontrol)
+								struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_dai *cpu_dai = snd_kcontrol_chip(kcontrol);
 	struct img_spdif_in *spdif = snd_soc_dai_get_drvdata(cpu_dai);
@@ -421,7 +467,7 @@ static int img_spdif_in_get_trk(struct snd_kcontrol *kcontrol,
 }
 
 static int img_spdif_in_set_trk(struct snd_kcontrol *kcontrol,
-				  struct snd_ctl_elem_value *ucontrol)
+								struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_dai *cpu_dai = snd_kcontrol_chip(kcontrol);
 	struct img_spdif_in *spdif = snd_soc_dai_get_drvdata(cpu_dai);
@@ -431,7 +477,8 @@ static int img_spdif_in_set_trk(struct snd_kcontrol *kcontrol,
 
 	spin_lock_irqsave(&spdif->lock, flags);
 
-	if (spdif->active) {
+	if (spdif->active)
+	{
 		spin_unlock_irqrestore(&spdif->lock, flags);
 		return -EBUSY;
 	}
@@ -443,10 +490,11 @@ static int img_spdif_in_set_trk(struct snd_kcontrol *kcontrol,
 	reg |= spdif->trk << IMG_SPDIF_IN_CTL_TRK_SHIFT;
 	img_spdif_in_writel(spdif, reg, IMG_SPDIF_IN_CTL);
 
-	for (i = 0; i < IMG_SPDIF_IN_NUM_ACLKGEN; i++) {
+	for (i = 0; i < IMG_SPDIF_IN_NUM_ACLKGEN; i++)
+	{
 		spdif->aclkgen_regs[i] = (spdif->aclkgen_regs[i] &
-			~IMG_SPDIF_IN_ACLKGEN_TRK_MASK) |
-			(spdif->trk << IMG_SPDIF_IN_ACLKGEN_TRK_SHIFT);
+								  ~IMG_SPDIF_IN_ACLKGEN_TRK_MASK) |
+								 (spdif->trk << IMG_SPDIF_IN_ACLKGEN_TRK_SHIFT);
 
 		img_spdif_in_aclkgen_writel(spdif, i);
 	}
@@ -457,7 +505,7 @@ static int img_spdif_in_set_trk(struct snd_kcontrol *kcontrol,
 }
 
 static int img_spdif_in_info_lock(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_info *uinfo)
+								  struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 1;
@@ -468,7 +516,7 @@ static int img_spdif_in_info_lock(struct snd_kcontrol *kcontrol,
 }
 
 static int img_spdif_in_get_lock_acquire(struct snd_kcontrol *kcontrol,
-				  struct snd_ctl_elem_value *ucontrol)
+		struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_dai *cpu_dai = snd_kcontrol_chip(kcontrol);
 	struct img_spdif_in *spdif = snd_soc_dai_get_drvdata(cpu_dai);
@@ -479,7 +527,7 @@ static int img_spdif_in_get_lock_acquire(struct snd_kcontrol *kcontrol,
 }
 
 static int img_spdif_in_set_lock_acquire(struct snd_kcontrol *kcontrol,
-				  struct snd_ctl_elem_value *ucontrol)
+		struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_dai *cpu_dai = snd_kcontrol_chip(kcontrol);
 	struct img_spdif_in *spdif = snd_soc_dai_get_drvdata(cpu_dai);
@@ -488,7 +536,8 @@ static int img_spdif_in_set_lock_acquire(struct snd_kcontrol *kcontrol,
 
 	spin_lock_irqsave(&spdif->lock, flags);
 
-	if (spdif->active) {
+	if (spdif->active)
+	{
 		spin_unlock_irqrestore(&spdif->lock, flags);
 		return -EBUSY;
 	}
@@ -498,7 +547,7 @@ static int img_spdif_in_set_lock_acquire(struct snd_kcontrol *kcontrol,
 	reg = img_spdif_in_readl(spdif, IMG_SPDIF_IN_CTL);
 	reg &= ~IMG_SPDIF_IN_CTL_LOCKHI_MASK;
 	reg |= (spdif->lock_acquire << IMG_SPDIF_IN_CTL_LOCKHI_SHIFT) &
-		IMG_SPDIF_IN_CTL_LOCKHI_MASK;
+		   IMG_SPDIF_IN_CTL_LOCKHI_MASK;
 	img_spdif_in_writel(spdif, reg, IMG_SPDIF_IN_CTL);
 
 	spin_unlock_irqrestore(&spdif->lock, flags);
@@ -507,7 +556,7 @@ static int img_spdif_in_set_lock_acquire(struct snd_kcontrol *kcontrol,
 }
 
 static int img_spdif_in_get_lock_release(struct snd_kcontrol *kcontrol,
-				  struct snd_ctl_elem_value *ucontrol)
+		struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_dai *cpu_dai = snd_kcontrol_chip(kcontrol);
 	struct img_spdif_in *spdif = snd_soc_dai_get_drvdata(cpu_dai);
@@ -518,7 +567,7 @@ static int img_spdif_in_get_lock_release(struct snd_kcontrol *kcontrol,
 }
 
 static int img_spdif_in_set_lock_release(struct snd_kcontrol *kcontrol,
-				  struct snd_ctl_elem_value *ucontrol)
+		struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_dai *cpu_dai = snd_kcontrol_chip(kcontrol);
 	struct img_spdif_in *spdif = snd_soc_dai_get_drvdata(cpu_dai);
@@ -527,7 +576,8 @@ static int img_spdif_in_set_lock_release(struct snd_kcontrol *kcontrol,
 
 	spin_lock_irqsave(&spdif->lock, flags);
 
-	if (spdif->active) {
+	if (spdif->active)
+	{
 		spin_unlock_irqrestore(&spdif->lock, flags);
 		return -EBUSY;
 	}
@@ -537,7 +587,7 @@ static int img_spdif_in_set_lock_release(struct snd_kcontrol *kcontrol,
 	reg = img_spdif_in_readl(spdif, IMG_SPDIF_IN_CTL);
 	reg &= ~IMG_SPDIF_IN_CTL_LOCKLO_MASK;
 	reg |= (spdif->lock_release << IMG_SPDIF_IN_CTL_LOCKLO_SHIFT) &
-		IMG_SPDIF_IN_CTL_LOCKLO_MASK;
+		   IMG_SPDIF_IN_CTL_LOCKLO_MASK;
 	img_spdif_in_writel(spdif, reg, IMG_SPDIF_IN_CTL);
 
 	spin_unlock_irqrestore(&spdif->lock, flags);
@@ -545,7 +595,8 @@ static int img_spdif_in_set_lock_release(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-static struct snd_kcontrol_new img_spdif_in_controls[] = {
+static struct snd_kcontrol_new img_spdif_in_controls[] =
+{
 	{
 		.access = SNDRV_CTL_ELEM_ACCESS_READ,
 		.iface = SNDRV_CTL_ELEM_IFACE_PCM,
@@ -555,7 +606,7 @@ static struct snd_kcontrol_new img_spdif_in_controls[] = {
 	},
 	{
 		.access = SNDRV_CTL_ELEM_ACCESS_READ |
-			SNDRV_CTL_ELEM_ACCESS_VOLATILE,
+		SNDRV_CTL_ELEM_ACCESS_VOLATILE,
 		.iface = SNDRV_CTL_ELEM_IFACE_PCM,
 		.name = SNDRV_CTL_NAME_IEC958("", CAPTURE, DEFAULT),
 		.info = img_spdif_in_iec958_info,
@@ -570,7 +621,7 @@ static struct snd_kcontrol_new img_spdif_in_controls[] = {
 	},
 	{
 		.access = SNDRV_CTL_ELEM_ACCESS_READ |
-			SNDRV_CTL_ELEM_ACCESS_VOLATILE,
+		SNDRV_CTL_ELEM_ACCESS_VOLATILE,
 		.iface = SNDRV_CTL_ELEM_IFACE_PCM,
 		.name = "SPDIF In Lock Frequency",
 		.info = img_spdif_in_info_lock_freq,
@@ -600,7 +651,7 @@ static struct snd_kcontrol_new img_spdif_in_controls[] = {
 };
 
 static int img_spdif_in_trigger(struct snd_pcm_substream *substream, int cmd,
-	struct snd_soc_dai *dai)
+								struct snd_soc_dai *dai)
 {
 	unsigned long flags;
 	struct img_spdif_in *spdif = snd_soc_dai_get_drvdata(dai);
@@ -609,29 +660,38 @@ static int img_spdif_in_trigger(struct snd_pcm_substream *substream, int cmd,
 
 	spin_lock_irqsave(&spdif->lock, flags);
 
-	switch (cmd) {
-	case SNDRV_PCM_TRIGGER_START:
-	case SNDRV_PCM_TRIGGER_RESUME:
-	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-		reg = img_spdif_in_readl(spdif, IMG_SPDIF_IN_CTL);
-		if (spdif->multi_freq)
-			reg &= ~IMG_SPDIF_IN_CTL_SRD_MASK;
-		else
-			reg |= (1UL << IMG_SPDIF_IN_CTL_SRD_SHIFT);
-		reg |= IMG_SPDIF_IN_CTL_SRT_MASK;
-		img_spdif_in_writel(spdif, reg, IMG_SPDIF_IN_CTL);
-		spdif->active = true;
-		break;
-	case SNDRV_PCM_TRIGGER_STOP:
-	case SNDRV_PCM_TRIGGER_SUSPEND:
-	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
-		reg = img_spdif_in_readl(spdif, IMG_SPDIF_IN_CTL);
-		reg &= ~IMG_SPDIF_IN_CTL_SRT_MASK;
-		img_spdif_in_writel(spdif, reg, IMG_SPDIF_IN_CTL);
-		spdif->active = false;
-		break;
-	default:
-		ret = -EINVAL;
+	switch (cmd)
+	{
+		case SNDRV_PCM_TRIGGER_START:
+		case SNDRV_PCM_TRIGGER_RESUME:
+		case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+			reg = img_spdif_in_readl(spdif, IMG_SPDIF_IN_CTL);
+
+			if (spdif->multi_freq)
+			{
+				reg &= ~IMG_SPDIF_IN_CTL_SRD_MASK;
+			}
+			else
+			{
+				reg |= (1UL << IMG_SPDIF_IN_CTL_SRD_SHIFT);
+			}
+
+			reg |= IMG_SPDIF_IN_CTL_SRT_MASK;
+			img_spdif_in_writel(spdif, reg, IMG_SPDIF_IN_CTL);
+			spdif->active = true;
+			break;
+
+		case SNDRV_PCM_TRIGGER_STOP:
+		case SNDRV_PCM_TRIGGER_SUSPEND:
+		case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+			reg = img_spdif_in_readl(spdif, IMG_SPDIF_IN_CTL);
+			reg &= ~IMG_SPDIF_IN_CTL_SRT_MASK;
+			img_spdif_in_writel(spdif, reg, IMG_SPDIF_IN_CTL);
+			spdif->active = false;
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	spin_unlock_irqrestore(&spdif->lock, flags);
@@ -640,7 +700,7 @@ static int img_spdif_in_trigger(struct snd_pcm_substream *substream, int cmd,
 }
 
 static int img_spdif_in_hw_params(struct snd_pcm_substream *substream,
-	struct snd_pcm_hw_params *params, struct snd_soc_dai *dai)
+								  struct snd_pcm_hw_params *params, struct snd_soc_dai *dai)
 {
 	struct img_spdif_in *spdif = snd_soc_dai_get_drvdata(dai);
 	unsigned int rate, channels;
@@ -651,15 +711,20 @@ static int img_spdif_in_hw_params(struct snd_pcm_substream *substream,
 	format = params_format(params);
 
 	if (format != SNDRV_PCM_FORMAT_S32_LE)
+	{
 		return -EINVAL;
+	}
 
 	if (channels != 2)
+	{
 		return -EINVAL;
+	}
 
 	return img_spdif_in_do_clkgen_single(spdif, rate);
 }
 
-static const struct snd_soc_dai_ops img_spdif_in_dai_ops = {
+static const struct snd_soc_dai_ops img_spdif_in_dai_ops =
+{
 	.trigger = img_spdif_in_trigger,
 	.hw_params = img_spdif_in_hw_params
 };
@@ -671,12 +736,13 @@ static int img_spdif_in_dai_probe(struct snd_soc_dai *dai)
 	snd_soc_dai_init_dma_data(dai, NULL, &spdif->dma_data);
 
 	snd_soc_add_dai_controls(dai, img_spdif_in_controls,
-			ARRAY_SIZE(img_spdif_in_controls));
+							 ARRAY_SIZE(img_spdif_in_controls));
 
 	return 0;
 }
 
-static struct snd_soc_dai_driver img_spdif_in_dai = {
+static struct snd_soc_dai_driver img_spdif_in_dai =
+{
 	.probe = img_spdif_in_dai_probe,
 	.capture = {
 		.channels_min = 2,
@@ -687,7 +753,8 @@ static struct snd_soc_dai_driver img_spdif_in_dai = {
 	.ops = &img_spdif_in_dai_ops
 };
 
-static const struct snd_soc_component_driver img_spdif_in_component = {
+static const struct snd_soc_component_driver img_spdif_in_component =
+{
 	.name = "img-spdif-in"
 };
 
@@ -702,8 +769,11 @@ static int img_spdif_in_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 
 	spdif = devm_kzalloc(&pdev->dev, sizeof(*spdif), GFP_KERNEL);
+
 	if (!spdif)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, spdif);
 
@@ -711,33 +781,50 @@ static int img_spdif_in_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	spdif->base = base;
 
 	spdif->clk_sys = devm_clk_get(dev, "sys");
-	if (IS_ERR(spdif->clk_sys)) {
+
+	if (IS_ERR(spdif->clk_sys))
+	{
 		if (PTR_ERR(spdif->clk_sys) != -EPROBE_DEFER)
+		{
 			dev_err(dev, "Failed to acquire clock 'sys'\n");
+		}
+
 		return PTR_ERR(spdif->clk_sys);
 	}
 
 	ret = clk_prepare_enable(spdif->clk_sys);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	rst = devm_reset_control_get(&pdev->dev, "rst");
-	if (IS_ERR(rst)) {
-		if (PTR_ERR(rst) == -EPROBE_DEFER) {
+
+	if (IS_ERR(rst))
+	{
+		if (PTR_ERR(rst) == -EPROBE_DEFER)
+		{
 			ret = -EPROBE_DEFER;
 			goto err_clk_disable;
 		}
+
 		dev_dbg(dev, "No top level reset found\n");
 		img_spdif_in_writel(spdif, IMG_SPDIF_IN_SOFT_RESET_MASK,
-				IMG_SPDIF_IN_SOFT_RESET);
+							IMG_SPDIF_IN_SOFT_RESET);
 		img_spdif_in_writel(spdif, 0, IMG_SPDIF_IN_SOFT_RESET);
-	} else {
+	}
+	else
+	{
 		reset_control_assert(rst);
 		reset_control_deassert(rst);
 	}
@@ -752,21 +839,27 @@ static int img_spdif_in_probe(struct platform_device *pdev)
 	spdif->lock_release = -128;
 
 	reg = (spdif->lock_acquire << IMG_SPDIF_IN_CTL_LOCKHI_SHIFT) &
-		IMG_SPDIF_IN_CTL_LOCKHI_MASK;
+		  IMG_SPDIF_IN_CTL_LOCKHI_MASK;
 	reg |= (spdif->lock_release << IMG_SPDIF_IN_CTL_LOCKLO_SHIFT) &
-		IMG_SPDIF_IN_CTL_LOCKLO_MASK;
+		   IMG_SPDIF_IN_CTL_LOCKLO_MASK;
 	reg |= (spdif->trk << IMG_SPDIF_IN_CTL_TRK_SHIFT) &
-		IMG_SPDIF_IN_CTL_TRK_MASK;
+		   IMG_SPDIF_IN_CTL_TRK_MASK;
 	img_spdif_in_writel(spdif, reg, IMG_SPDIF_IN_CTL);
 
 	ret = devm_snd_soc_register_component(&pdev->dev,
-			&img_spdif_in_component, &img_spdif_in_dai, 1);
+										  &img_spdif_in_component, &img_spdif_in_dai, 1);
+
 	if (ret)
+	{
 		goto err_clk_disable;
+	}
 
 	ret = devm_snd_dmaengine_pcm_register(&pdev->dev, NULL, 0);
+
 	if (ret)
+	{
 		goto err_clk_disable;
+	}
 
 	return 0;
 
@@ -785,13 +878,15 @@ static int img_spdif_in_dev_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id img_spdif_in_of_match[] = {
+static const struct of_device_id img_spdif_in_of_match[] =
+{
 	{ .compatible = "img,spdif-in" },
 	{}
 };
 MODULE_DEVICE_TABLE(of, img_spdif_in_of_match);
 
-static struct platform_driver img_spdif_in_driver = {
+static struct platform_driver img_spdif_in_driver =
+{
 	.driver = {
 		.name = "img-spdif-in",
 		.of_match_table = img_spdif_in_of_match

@@ -25,7 +25,8 @@
 #include <asm/spi.h>
 #include <asm/io.h>
 
-struct sh_sci_spi {
+struct sh_sci_spi
+{
 	struct spi_bitbang bitbang;
 
 	void __iomem *membase;
@@ -51,9 +52,13 @@ static inline void setbits(struct sh_sci_spi *sp, int bits, int on)
 	 */
 
 	if (on)
+	{
 		sp->val |= bits;
+	}
 	else
+	{
 		sp->val &= ~bits;
+	}
 
 	iowrite8(sp->val, SCSPTR(sp));
 }
@@ -80,25 +85,25 @@ static inline u32 getmiso(struct spi_device *dev)
 #include "spi-bitbang-txrx.h"
 
 static u32 sh_sci_spi_txrx_mode0(struct spi_device *spi,
-				      unsigned nsecs, u32 word, u8 bits)
+								 unsigned nsecs, u32 word, u8 bits)
 {
 	return bitbang_txrx_be_cpha0(spi, nsecs, 0, 0, word, bits);
 }
 
 static u32 sh_sci_spi_txrx_mode1(struct spi_device *spi,
-				      unsigned nsecs, u32 word, u8 bits)
+								 unsigned nsecs, u32 word, u8 bits)
 {
 	return bitbang_txrx_be_cpha1(spi, nsecs, 0, 0, word, bits);
 }
 
 static u32 sh_sci_spi_txrx_mode2(struct spi_device *spi,
-				      unsigned nsecs, u32 word, u8 bits)
+								 unsigned nsecs, u32 word, u8 bits)
 {
 	return bitbang_txrx_be_cpha0(spi, nsecs, 1, 0, word, bits);
 }
 
 static u32 sh_sci_spi_txrx_mode3(struct spi_device *spi,
-				      unsigned nsecs, u32 word, u8 bits)
+								 unsigned nsecs, u32 word, u8 bits)
 {
 	return bitbang_txrx_be_cpha1(spi, nsecs, 1, 0, word, bits);
 }
@@ -108,7 +113,9 @@ static void sh_sci_spi_chipselect(struct spi_device *dev, int value)
 	struct sh_sci_spi *sp = spi_master_get_devdata(dev->master);
 
 	if (sp->info->chip_select)
+	{
 		(sp->info->chip_select)(sp->info, dev->chip_select, value);
+	}
 }
 
 static int sh_sci_spi_probe(struct platform_device *dev)
@@ -119,7 +126,9 @@ static int sh_sci_spi_probe(struct platform_device *dev)
 	int ret;
 
 	master = spi_alloc_master(&dev->dev, sizeof(struct sh_sci_spi));
-	if (master == NULL) {
+
+	if (master == NULL)
+	{
 		dev_err(&dev->dev, "failed to allocate spi master\n");
 		ret = -ENOMEM;
 		goto err0;
@@ -129,7 +138,9 @@ static int sh_sci_spi_probe(struct platform_device *dev)
 
 	platform_set_drvdata(dev, sp);
 	sp->info = dev_get_platdata(&dev->dev);
-	if (!sp->info) {
+
+	if (!sp->info)
+	{
 		dev_err(&dev->dev, "platform data is missing\n");
 		ret = -ENOENT;
 		goto err1;
@@ -147,27 +158,36 @@ static int sh_sci_spi_probe(struct platform_device *dev)
 	sp->bitbang.txrx_word[SPI_MODE_3] = sh_sci_spi_txrx_mode3;
 
 	r = platform_get_resource(dev, IORESOURCE_MEM, 0);
-	if (r == NULL) {
+
+	if (r == NULL)
+	{
 		ret = -ENOENT;
 		goto err1;
 	}
+
 	sp->membase = ioremap(r->start, resource_size(r));
-	if (!sp->membase) {
+
+	if (!sp->membase)
+	{
 		ret = -ENXIO;
 		goto err1;
 	}
+
 	sp->val = ioread8(SCSPTR(sp));
 	setbits(sp, PIN_INIT, 1);
 
 	ret = spi_bitbang_start(&sp->bitbang);
+
 	if (!ret)
+	{
 		return 0;
+	}
 
 	setbits(sp, PIN_INIT, 0);
 	iounmap(sp->membase);
- err1:
+err1:
 	spi_master_put(sp->bitbang.master);
- err0:
+err0:
 	return ret;
 }
 
@@ -182,7 +202,8 @@ static int sh_sci_spi_remove(struct platform_device *dev)
 	return 0;
 }
 
-static struct platform_driver sh_sci_spi_drv = {
+static struct platform_driver sh_sci_spi_drv =
+{
 	.probe		= sh_sci_spi_probe,
 	.remove		= sh_sci_spi_remove,
 	.driver		= {

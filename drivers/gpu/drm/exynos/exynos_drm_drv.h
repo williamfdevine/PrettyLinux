@@ -28,7 +28,8 @@
 #define to_exynos_plane(x)	container_of(x, struct exynos_drm_plane, base)
 
 /* this enumerates display type. */
-enum exynos_drm_output_type {
+enum exynos_drm_output_type
+{
 	EXYNOS_DISPLAY_TYPE_NONE,
 	/* RGB or CPU Interface. */
 	EXYNOS_DISPLAY_TYPE_LCD,
@@ -38,7 +39,8 @@ enum exynos_drm_output_type {
 	EXYNOS_DISPLAY_TYPE_VIDI,
 };
 
-struct exynos_drm_rect {
+struct exynos_drm_rect
+{
 	unsigned int x, y;
 	unsigned int w, h;
 };
@@ -58,7 +60,8 @@ struct exynos_drm_rect {
  * specific overlay info.
  */
 
-struct exynos_drm_plane_state {
+struct exynos_drm_plane_state
+{
 	struct drm_plane_state base;
 	struct exynos_drm_rect crtc;
 	struct exynos_drm_rect src;
@@ -82,7 +85,8 @@ to_exynos_plane_state(struct drm_plane_state *state)
  * to hardware specific overlay info.
  */
 
-struct exynos_drm_plane {
+struct exynos_drm_plane
+{
 	struct drm_plane base;
 	const struct exynos_drm_plane_config *config;
 	unsigned int index;
@@ -102,7 +106,8 @@ struct exynos_drm_plane {
  * @capabilities: supported features (see EXYNOS_DRM_PLANE_CAP_*)
  */
 
-struct exynos_drm_plane_config {
+struct exynos_drm_plane_config
+{
 	unsigned int zpos;
 	enum drm_plane_type type;
 	const uint32_t *pixel_formats;
@@ -127,24 +132,26 @@ struct exynos_drm_plane_config {
  *	synchronization signal if there is a page flip request.
  */
 struct exynos_drm_crtc;
-struct exynos_drm_crtc_ops {
+struct exynos_drm_crtc_ops
+{
 	void (*enable)(struct exynos_drm_crtc *crtc);
 	void (*disable)(struct exynos_drm_crtc *crtc);
 	void (*commit)(struct exynos_drm_crtc *crtc);
 	int (*enable_vblank)(struct exynos_drm_crtc *crtc);
 	void (*disable_vblank)(struct exynos_drm_crtc *crtc);
 	int (*atomic_check)(struct exynos_drm_crtc *crtc,
-			    struct drm_crtc_state *state);
+						struct drm_crtc_state *state);
 	void (*atomic_begin)(struct exynos_drm_crtc *crtc);
 	void (*update_plane)(struct exynos_drm_crtc *crtc,
-			     struct exynos_drm_plane *plane);
+						 struct exynos_drm_plane *plane);
 	void (*disable_plane)(struct exynos_drm_crtc *crtc,
-			      struct exynos_drm_plane *plane);
+						  struct exynos_drm_plane *plane);
 	void (*atomic_flush)(struct exynos_drm_crtc *crtc);
 	void (*te_handler)(struct exynos_drm_crtc *crtc);
 };
 
-struct exynos_drm_clk {
+struct exynos_drm_clk
+{
 	void (*enable)(struct exynos_drm_clk *clk, bool enable);
 };
 
@@ -167,7 +174,8 @@ struct exynos_drm_clk {
  * @ops: pointer to callbacks for exynos drm specific functionality
  * @ctx: A pointer to the crtc's implementation specific context
  */
-struct exynos_drm_crtc {
+struct exynos_drm_crtc
+{
 	struct drm_crtc			base;
 	enum exynos_drm_output_type	type;
 	unsigned int			pipe;
@@ -177,20 +185,24 @@ struct exynos_drm_crtc {
 };
 
 static inline void exynos_drm_pipe_clk_enable(struct exynos_drm_crtc *crtc,
-					      bool enable)
+		bool enable)
 {
 	if (crtc->pipe_clk)
+	{
 		crtc->pipe_clk->enable(crtc->pipe_clk, enable);
+	}
 }
 
-struct exynos_drm_g2d_private {
+struct exynos_drm_g2d_private
+{
 	struct device		*dev;
 	struct list_head	inuse_cmdlist;
 	struct list_head	event_list;
 	struct list_head	userptr_list;
 };
 
-struct drm_exynos_file_private {
+struct drm_exynos_file_private
+{
 	struct exynos_drm_g2d_private	*g2d_priv;
 	struct device			*ipp_dev;
 };
@@ -208,7 +220,8 @@ struct drm_exynos_file_private {
  * @lock: protect access to @pending
  * @wait: wait an atomic commit to finish
  */
-struct exynos_drm_private {
+struct exynos_drm_private
+{
 	struct drm_fb_helper *fb_helper;
 
 	/*
@@ -257,7 +270,8 @@ static inline struct device *to_dma_dev(struct drm_device *dev)
  * @open: this would be called with drm device file open.
  * @close: this would be called with drm device file close.
  */
-struct exynos_drm_subdrv {
+struct exynos_drm_subdrv
+{
 	struct list_head list;
 	struct device *dev;
 	struct drm_device *drm_dev;
@@ -265,12 +279,12 @@ struct exynos_drm_subdrv {
 	int (*probe)(struct drm_device *drm_dev, struct device *dev);
 	void (*remove)(struct drm_device *drm_dev, struct device *dev);
 	int (*open)(struct drm_device *drm_dev, struct device *dev,
-			struct drm_file *file);
+				struct drm_file *file);
 	void (*close)(struct drm_device *drm_dev, struct device *dev,
-			struct drm_file *file);
+				  struct drm_file *file);
 };
 
- /* This function would be called by non kms drivers such as g2d and ipp. */
+/* This function would be called by non kms drivers such as g2d and ipp. */
 int exynos_drm_subdrv_register(struct exynos_drm_subdrv *drm_subdrv);
 
 /* this function removes subdrv list from exynos drm driver */
@@ -293,14 +307,14 @@ static inline int exynos_dpi_remove(struct drm_encoder *encoder)
 	return 0;
 }
 static inline int exynos_dpi_bind(struct drm_device *dev,
-				  struct drm_encoder *encoder)
+								  struct drm_encoder *encoder)
 {
 	return 0;
 }
 #endif
 
 int exynos_atomic_commit(struct drm_device *dev, struct drm_atomic_state *state,
-			 bool nonblock);
+						 bool nonblock);
 int exynos_atomic_check(struct drm_device *dev, struct drm_atomic_state *state);
 
 

@@ -34,26 +34,26 @@
 /* debugfs macros idea from mac80211 */
 
 #define DEBUGFS_READONLY_FILE(name, buflen, fmt, value...)		\
-static ssize_t name## _read(struct file *file, char __user *userbuf,	\
-			    size_t count, loff_t *ppos)			\
-{									\
-	struct wl1251 *wl = file->private_data;				\
-	char buf[buflen];						\
-	int res;							\
-									\
-	res = scnprintf(buf, buflen, fmt "\n", ##value);		\
-	return simple_read_from_buffer(userbuf, count, ppos, buf, res);	\
-}									\
-									\
-static const struct file_operations name## _ops = {			\
-	.read = name## _read,						\
-	.open = simple_open,						\
-	.llseek	= generic_file_llseek,					\
-};
+	static ssize_t name## _read(struct file *file, char __user *userbuf,	\
+								size_t count, loff_t *ppos)			\
+	{									\
+		struct wl1251 *wl = file->private_data;				\
+		char buf[buflen];						\
+		int res;							\
+		\
+		res = scnprintf(buf, buflen, fmt "\n", ##value);		\
+		return simple_read_from_buffer(userbuf, count, ppos, buf, res);	\
+	}									\
+	\
+	static const struct file_operations name## _ops = {			\
+		.read = name## _read,						\
+				.open = simple_open,						\
+						.llseek	= generic_file_llseek,					\
+	};
 
 #define DEBUGFS_ADD(name, parent)					\
 	wl->debugfs.name = debugfs_create_file(#name, 0400, parent,	\
-					       wl, &name## _ops);	\
+										   wl, &name## _ops);	\
 	if (IS_ERR(wl->debugfs.name)) {					\
 		ret = PTR_ERR(wl->debugfs.name);			\
 		wl->debugfs.name = NULL;				\
@@ -67,26 +67,26 @@ static const struct file_operations name## _ops = {			\
 	} while (0)
 
 #define DEBUGFS_FWSTATS_FILE(sub, name, buflen, fmt)			\
-static ssize_t sub## _ ##name## _read(struct file *file,		\
-				      char __user *userbuf,		\
-				      size_t count, loff_t *ppos)	\
-{									\
-	struct wl1251 *wl = file->private_data;				\
-	char buf[buflen];						\
-	int res;							\
-									\
-	wl1251_debugfs_update_stats(wl);				\
-									\
-	res = scnprintf(buf, buflen, fmt "\n",				\
-			wl->stats.fw_stats->sub.name);			\
-	return simple_read_from_buffer(userbuf, count, ppos, buf, res);	\
-}									\
-									\
-static const struct file_operations sub## _ ##name## _ops = {		\
-	.read = sub## _ ##name## _read,					\
-	.open = simple_open,						\
-	.llseek	= generic_file_llseek,					\
-};
+	static ssize_t sub## _ ##name## _read(struct file *file,		\
+										  char __user *userbuf,		\
+										  size_t count, loff_t *ppos)	\
+	{									\
+		struct wl1251 *wl = file->private_data;				\
+		char buf[buflen];						\
+		int res;							\
+		\
+		wl1251_debugfs_update_stats(wl);				\
+		\
+		res = scnprintf(buf, buflen, fmt "\n",				\
+						wl->stats.fw_stats->sub.name);			\
+		return simple_read_from_buffer(userbuf, count, ppos, buf, res);	\
+	}									\
+	\
+	static const struct file_operations sub## _ ##name## _ops = {		\
+		.read = sub## _ ##name## _read,					\
+				.open = simple_open,						\
+						.llseek	= generic_file_llseek,					\
+	};
 
 #define DEBUGFS_FWSTATS_ADD(sub, name)				\
 	DEBUGFS_ADD(sub## _ ##name, wl->debugfs.fw_statistics)
@@ -101,12 +101,16 @@ static void wl1251_debugfs_update_stats(struct wl1251 *wl)
 	mutex_lock(&wl->mutex);
 
 	ret = wl1251_ps_elp_wakeup(wl);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	if (wl->state == WL1251_STATE_ON &&
-	    time_after(jiffies, wl->stats.fw_stats_update +
-		       msecs_to_jiffies(WL1251_DEBUGFS_STATS_LIFETIME))) {
+		time_after(jiffies, wl->stats.fw_stats_update +
+				   msecs_to_jiffies(WL1251_DEBUGFS_STATS_LIFETIME)))
+	{
 		wl1251_acx_statistics(wl, wl->stats.fw_stats);
 		wl->stats.fw_stats_update = jiffies;
 	}
@@ -205,16 +209,16 @@ DEBUGFS_FWSTATS_FILE(ps, upsd_utilization, 20, "%u");
 DEBUGFS_FWSTATS_FILE(rxpipe, rx_prep_beacon_drop, 20, "%u");
 DEBUGFS_FWSTATS_FILE(rxpipe, descr_host_int_trig_rx_data, 20, "%u");
 DEBUGFS_FWSTATS_FILE(rxpipe, beacon_buffer_thres_host_int_trig_rx_data,
-		     20, "%u");
+					 20, "%u");
 DEBUGFS_FWSTATS_FILE(rxpipe, missed_beacon_host_int_trig_rx_data, 20, "%u");
 DEBUGFS_FWSTATS_FILE(rxpipe, tx_xfr_host_int_trig_rx_data, 20, "%u");
 
 DEBUGFS_READONLY_FILE(retry_count, 20, "%u", wl->stats.retry_count);
 DEBUGFS_READONLY_FILE(excessive_retries, 20, "%u",
-		      wl->stats.excessive_retries);
+					  wl->stats.excessive_retries);
 
 static ssize_t tx_queue_len_read(struct file *file, char __user *userbuf,
-				 size_t count, loff_t *ppos)
+								 size_t count, loff_t *ppos)
 {
 	struct wl1251 *wl = file->private_data;
 	u32 queue_len;
@@ -227,29 +231,35 @@ static ssize_t tx_queue_len_read(struct file *file, char __user *userbuf,
 	return simple_read_from_buffer(userbuf, count, ppos, buf, res);
 }
 
-static const struct file_operations tx_queue_len_ops = {
+static const struct file_operations tx_queue_len_ops =
+{
 	.read = tx_queue_len_read,
 	.open = simple_open,
 	.llseek = generic_file_llseek,
 };
 
 static ssize_t tx_queue_status_read(struct file *file, char __user *userbuf,
-				    size_t count, loff_t *ppos)
+									size_t count, loff_t *ppos)
 {
 	struct wl1251 *wl = file->private_data;
 	char buf[3], status;
 	int len;
 
 	if (wl->tx_queue_stopped)
+	{
 		status = 's';
+	}
 	else
+	{
 		status = 'r';
+	}
 
 	len = scnprintf(buf, sizeof(buf), "%c\n", status);
 	return simple_read_from_buffer(userbuf, count, ppos, buf, len);
 }
 
-static const struct file_operations tx_queue_status_ops = {
+static const struct file_operations tx_queue_status_ops =
+{
 	.read = tx_queue_status_read,
 	.open = simple_open,
 	.llseek = generic_file_llseek,
@@ -455,8 +465,11 @@ static int wl1251_debugfs_add_files(struct wl1251 *wl)
 	DEBUGFS_ADD(excessive_retries, wl->debugfs.rootdir);
 
 out:
+
 	if (ret < 0)
+	{
 		wl1251_debugfs_delete_files(wl);
+	}
 
 	return ret;
 }
@@ -464,7 +477,10 @@ out:
 void wl1251_debugfs_reset(struct wl1251 *wl)
 {
 	if (wl->stats.fw_stats != NULL)
+	{
 		memset(wl->stats.fw_stats, 0, sizeof(*wl->stats.fw_stats));
+	}
+
 	wl->stats.retry_count = 0;
 	wl->stats.excessive_retries = 0;
 }
@@ -475,25 +491,28 @@ int wl1251_debugfs_init(struct wl1251 *wl)
 
 	wl->debugfs.rootdir = debugfs_create_dir(KBUILD_MODNAME, NULL);
 
-	if (IS_ERR(wl->debugfs.rootdir)) {
+	if (IS_ERR(wl->debugfs.rootdir))
+	{
 		ret = PTR_ERR(wl->debugfs.rootdir);
 		wl->debugfs.rootdir = NULL;
 		goto err;
 	}
 
 	wl->debugfs.fw_statistics = debugfs_create_dir("fw-statistics",
-						       wl->debugfs.rootdir);
+								wl->debugfs.rootdir);
 
-	if (IS_ERR(wl->debugfs.fw_statistics)) {
+	if (IS_ERR(wl->debugfs.fw_statistics))
+	{
 		ret = PTR_ERR(wl->debugfs.fw_statistics);
 		wl->debugfs.fw_statistics = NULL;
 		goto err_root;
 	}
 
 	wl->stats.fw_stats = kzalloc(sizeof(*wl->stats.fw_stats),
-				      GFP_KERNEL);
+								 GFP_KERNEL);
 
-	if (!wl->stats.fw_stats) {
+	if (!wl->stats.fw_stats)
+	{
 		ret = -ENOMEM;
 		goto err_fw;
 	}
@@ -503,7 +522,9 @@ int wl1251_debugfs_init(struct wl1251 *wl)
 	ret = wl1251_debugfs_add_files(wl);
 
 	if (ret < 0)
+	{
 		goto err_file;
+	}
 
 	return 0;
 

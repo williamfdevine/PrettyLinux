@@ -822,12 +822,14 @@
 #define RT5660_PLL1_S_MCLK			0
 #define RT5660_PLL1_S_BCLK			1
 
-enum {
+enum
+{
 	RT5660_AIF1,
 	RT5660_AIFS,
 };
 
-struct rt5660_priv {
+struct rt5660_priv
+{
 	struct snd_soc_codec *codec;
 	struct rt5660_platform_data pdata;
 	struct regmap *regmap;

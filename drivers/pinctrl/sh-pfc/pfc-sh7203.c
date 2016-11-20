@@ -14,7 +14,8 @@
 
 #include "sh_pfc.h"
 
-enum {
+enum
+{
 	PINMUX_RESERVED = 0,
 
 	PINMUX_DATA_BEGIN,
@@ -272,7 +273,8 @@ enum {
 	PINMUX_MARK_END,
 };
 
-static const u16 pinmux_data[] = {
+static const u16 pinmux_data[] =
+{
 	/* PA */
 	PINMUX_DATA(PA7_DATA, PA7_IN),
 	PINMUX_DATA(PA6_DATA, PA6_IN),
@@ -702,7 +704,8 @@ static const u16 pinmux_data[] = {
 	PINMUX_DATA(SSCK0_PF_MARK, PF0MD_11),
 };
 
-static const struct sh_pfc_pin pinmux_pins[] = {
+static const struct sh_pfc_pin pinmux_pins[] =
+{
 	/* PA */
 	PINMUX_GPIO(PA7),
 	PINMUX_GPIO(PA6),
@@ -817,7 +820,8 @@ static const struct sh_pfc_pin pinmux_pins[] = {
 
 #define PINMUX_FN_BASE	ARRAY_SIZE(pinmux_pins)
 
-static const struct pinmux_func pinmux_func_gpios[] = {
+static const struct pinmux_func pinmux_func_gpios[] =
+{
 	/* INTC */
 	GPIO_FN(PINT7_PB),
 	GPIO_FN(PINT6_PB),
@@ -1075,505 +1079,622 @@ static const struct pinmux_func pinmux_func_gpios[] = {
 	GPIO_FN(LCD_DATA0),
 };
 
-static const struct pinmux_cfg_reg pinmux_config_regs[] = {
-	{ PINMUX_CFG_REG("PBIORL", 0xfffe3886, 16, 1) {
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		PB11_IN, PB11_OUT,
-		PB10_IN, PB10_OUT,
-		PB9_IN, PB9_OUT,
-		PB8_IN, PB8_OUT,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0,
-		0, 0 }
+static const struct pinmux_cfg_reg pinmux_config_regs[] =
+{
+	{
+		PINMUX_CFG_REG("PBIORL", 0xfffe3886, 16, 1)
+		{
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			PB11_IN, PB11_OUT,
+			PB10_IN, PB10_OUT,
+			PB9_IN, PB9_OUT,
+			PB8_IN, PB8_OUT,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0,
+			0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PBCRL4", 0xfffe3890, 16, 4) {
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PBCRL4", 0xfffe3890, 16, 4)
+		{
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PB12MD_00, PB12MD_01, PB12MD_10, PB12MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+			PB12MD_00, PB12MD_01, PB12MD_10, PB12MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PBCRL3", 0xfffe3892, 16, 4) {
-		PB11MD_0, PB11MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PBCRL3", 0xfffe3892, 16, 4)
+		{
+			PB11MD_0, PB11MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PB10MD_0, PB10MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PB10MD_0, PB10MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PB9MD_00, PB9MD_01, PB9MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PB9MD_00, PB9MD_01, PB9MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PB8MD_00, PB8MD_01, PB8MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+			PB8MD_00, PB8MD_01, PB8MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PBCRL2", 0xfffe3894, 16, 4) {
-		PB7MD_00, PB7MD_01, PB7MD_10, PB7MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PBCRL2", 0xfffe3894, 16, 4)
+		{
+			PB7MD_00, PB7MD_01, PB7MD_10, PB7MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PB6MD_00, PB6MD_01, PB6MD_10, PB6MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PB6MD_00, PB6MD_01, PB6MD_10, PB6MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PB5MD_00, PB5MD_01, PB5MD_10, PB5MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PB5MD_00, PB5MD_01, PB5MD_10, PB5MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PB4MD_00, PB4MD_01, PB4MD_10, PB4MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+			PB4MD_00, PB4MD_01, PB4MD_10, PB4MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PBCRL1", 0xfffe3896, 16, 4) {
-		PB3MD_00, PB3MD_01, PB3MD_10, PB3MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PBCRL1", 0xfffe3896, 16, 4)
+		{
+			PB3MD_00, PB3MD_01, PB3MD_10, PB3MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PB2MD_00, PB2MD_01, PB2MD_10, PB2MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PB2MD_00, PB2MD_01, PB2MD_10, PB2MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PB1MD_00, PB1MD_01, PB1MD_10, PB1MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PB1MD_00, PB1MD_01, PB1MD_10, PB1MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PB0MD_00, PB0MD_01, PB0MD_10, PB0MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+			PB0MD_00, PB0MD_01, PB0MD_10, PB0MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("IFCR", 0xfffe38a2, 16, 4) {
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("IFCR", 0xfffe38a2, 16, 4)
+		{
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PB12IRQ_00, PB12IRQ_01, PB12IRQ_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+			PB12IRQ_00, PB12IRQ_01, PB12IRQ_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PCIORL", 0xfffe3906, 16, 1) {
-		0, 0,
-		PC14_IN, PC14_OUT,
-		PC13_IN, PC13_OUT,
-		PC12_IN, PC12_OUT,
-		PC11_IN, PC11_OUT,
-		PC10_IN, PC10_OUT,
-		PC9_IN, PC9_OUT,
-		PC8_IN, PC8_OUT,
-		PC7_IN, PC7_OUT,
-		PC6_IN, PC6_OUT,
-		PC5_IN, PC5_OUT,
-		PC4_IN, PC4_OUT,
-		PC3_IN, PC3_OUT,
-		PC2_IN, PC2_OUT,
-		PC1_IN, PC1_OUT,
-		PC0_IN, PC0_OUT }
+	{
+		PINMUX_CFG_REG("PCIORL", 0xfffe3906, 16, 1)
+		{
+			0, 0,
+			PC14_IN, PC14_OUT,
+			PC13_IN, PC13_OUT,
+			PC12_IN, PC12_OUT,
+			PC11_IN, PC11_OUT,
+			PC10_IN, PC10_OUT,
+			PC9_IN, PC9_OUT,
+			PC8_IN, PC8_OUT,
+			PC7_IN, PC7_OUT,
+			PC6_IN, PC6_OUT,
+			PC5_IN, PC5_OUT,
+			PC4_IN, PC4_OUT,
+			PC3_IN, PC3_OUT,
+			PC2_IN, PC2_OUT,
+			PC1_IN, PC1_OUT,
+			PC0_IN, PC0_OUT
+		}
 	},
-	{ PINMUX_CFG_REG("PCCRL4", 0xfffe3910, 16, 4) {
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PCCRL4", 0xfffe3910, 16, 4)
+		{
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PC14MD_0, PC14MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PC14MD_0, PC14MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PC13MD_0, PC13MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PC13MD_0, PC13MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PC12MD_0, PC12MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+			PC12MD_0, PC12MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PCCRL3", 0xfffe3912, 16, 4) {
-		PC11MD_00, PC11MD_01, PC11MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PCCRL3", 0xfffe3912, 16, 4)
+		{
+			PC11MD_00, PC11MD_01, PC11MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PC10MD_00, PC10MD_01, PC10MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PC10MD_00, PC10MD_01, PC10MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PC9MD_0, PC9MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PC9MD_0, PC9MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PC8MD_0, PC8MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+			PC8MD_0, PC8MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PCCRL2", 0xfffe3914, 16, 4) {
-		PC7MD_0, PC7MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PCCRL2", 0xfffe3914, 16, 4)
+		{
+			PC7MD_0, PC7MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PC6MD_0, PC6MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PC6MD_0, PC6MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PC5MD_0, PC5MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PC5MD_0, PC5MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PC4MD_0, PC4MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+			PC4MD_0, PC4MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PCCRL1", 0xfffe3916, 16, 4) {
-		PC3MD_0, PC3MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PCCRL1", 0xfffe3916, 16, 4)
+		{
+			PC3MD_0, PC3MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PC2MD_0, PC2MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PC2MD_0, PC2MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PC1MD_0, PC1MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PC1MD_0, PC1MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PC0MD_00, PC0MD_01, PC0MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+			PC0MD_00, PC0MD_01, PC0MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PDIORL", 0xfffe3986, 16, 1) {
-		PD15_IN, PD15_OUT,
-		PD14_IN, PD14_OUT,
-		PD13_IN, PD13_OUT,
-		PD12_IN, PD12_OUT,
-		PD11_IN, PD11_OUT,
-		PD10_IN, PD10_OUT,
-		PD9_IN, PD9_OUT,
-		PD8_IN, PD8_OUT,
-		PD7_IN, PD7_OUT,
-		PD6_IN, PD6_OUT,
-		PD5_IN, PD5_OUT,
-		PD4_IN, PD4_OUT,
-		PD3_IN, PD3_OUT,
-		PD2_IN, PD2_OUT,
-		PD1_IN, PD1_OUT,
-		PD0_IN, PD0_OUT }
+	{
+		PINMUX_CFG_REG("PDIORL", 0xfffe3986, 16, 1)
+		{
+			PD15_IN, PD15_OUT,
+			PD14_IN, PD14_OUT,
+			PD13_IN, PD13_OUT,
+			PD12_IN, PD12_OUT,
+			PD11_IN, PD11_OUT,
+			PD10_IN, PD10_OUT,
+			PD9_IN, PD9_OUT,
+			PD8_IN, PD8_OUT,
+			PD7_IN, PD7_OUT,
+			PD6_IN, PD6_OUT,
+			PD5_IN, PD5_OUT,
+			PD4_IN, PD4_OUT,
+			PD3_IN, PD3_OUT,
+			PD2_IN, PD2_OUT,
+			PD1_IN, PD1_OUT,
+			PD0_IN, PD0_OUT
+		}
 	},
-	{ PINMUX_CFG_REG("PDCRL4", 0xfffe3990, 16, 4) {
-		PD15MD_000, PD15MD_001, PD15MD_010, 0,
-		PD15MD_100, PD15MD_101, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PDCRL4", 0xfffe3990, 16, 4)
+		{
+			PD15MD_000, PD15MD_001, PD15MD_010, 0,
+			PD15MD_100, PD15MD_101, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0,
 
-		PD14MD_000, PD14MD_001, PD14MD_010, 0,
-		0, PD14MD_101, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
+			PD14MD_000, PD14MD_001, PD14MD_010, 0,
+			0, PD14MD_101, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0,
 
-		PD13MD_000, PD13MD_001, PD13MD_010, 0,
-		PD13MD_100, PD13MD_101, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
+			PD13MD_000, PD13MD_001, PD13MD_010, 0,
+			PD13MD_100, PD13MD_101, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0,
 
-		PD12MD_000, PD12MD_001, PD12MD_010, 0,
-		PD12MD_100, PD12MD_101, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0 }
+			PD12MD_000, PD12MD_001, PD12MD_010, 0,
+			PD12MD_100, PD12MD_101, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PDCRL3", 0xfffe3992, 16, 4) {
-		PD11MD_000, PD11MD_001, PD11MD_010, 0,
-		PD11MD_100, PD11MD_101, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PDCRL3", 0xfffe3992, 16, 4)
+		{
+			PD11MD_000, PD11MD_001, PD11MD_010, 0,
+			PD11MD_100, PD11MD_101, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0,
 
-		PD10MD_000, PD10MD_001, PD10MD_010, 0,
-		PD10MD_100, PD10MD_101, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
+			PD10MD_000, PD10MD_001, PD10MD_010, 0,
+			PD10MD_100, PD10MD_101, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0,
 
-		PD9MD_000, PD9MD_001, PD9MD_010, 0,
-		PD9MD_100, PD9MD_101, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
+			PD9MD_000, PD9MD_001, PD9MD_010, 0,
+			PD9MD_100, PD9MD_101, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0,
 
-		PD8MD_000, PD8MD_001, PD8MD_010, 0,
-		PD8MD_100, PD8MD_101, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0 }
+			PD8MD_000, PD8MD_001, PD8MD_010, 0,
+			PD8MD_100, PD8MD_101, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PDCRL2", 0xfffe3994, 16, 4) {
-		PD7MD_000, PD7MD_001, PD7MD_010, PD7MD_011,
-		PD7MD_100, PD7MD_101, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PDCRL2", 0xfffe3994, 16, 4)
+		{
+			PD7MD_000, PD7MD_001, PD7MD_010, PD7MD_011,
+			PD7MD_100, PD7MD_101, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0,
 
-		PD6MD_000, PD6MD_001, PD6MD_010, PD6MD_011,
-		PD6MD_100, PD6MD_101, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
+			PD6MD_000, PD6MD_001, PD6MD_010, PD6MD_011,
+			PD6MD_100, PD6MD_101, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0,
 
-		PD5MD_000, PD5MD_001, PD5MD_010, PD5MD_011,
-		PD5MD_100, PD5MD_101, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
+			PD5MD_000, PD5MD_001, PD5MD_010, PD5MD_011,
+			PD5MD_100, PD5MD_101, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0,
 
-		PD4MD_000, PD4MD_001, PD4MD_010, PD4MD_011,
-		PD4MD_100, PD4MD_101, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0 }
+			PD4MD_000, PD4MD_001, PD4MD_010, PD4MD_011,
+			PD4MD_100, PD4MD_101, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PDCRL1", 0xfffe3996, 16, 4) {
-		PD3MD_000, PD3MD_001, PD3MD_010, PD3MD_011,
-		PD3MD_100, PD3MD_101, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PDCRL1", 0xfffe3996, 16, 4)
+		{
+			PD3MD_000, PD3MD_001, PD3MD_010, PD3MD_011,
+			PD3MD_100, PD3MD_101, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0,
 
-		PD2MD_000, PD2MD_001, PD2MD_010, PD2MD_011,
-		PD2MD_100, PD2MD_101, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
+			PD2MD_000, PD2MD_001, PD2MD_010, PD2MD_011,
+			PD2MD_100, PD2MD_101, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0,
 
-		PD1MD_000, PD1MD_001, PD1MD_010, PD1MD_011,
-		PD1MD_100, PD1MD_101, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
+			PD1MD_000, PD1MD_001, PD1MD_010, PD1MD_011,
+			PD1MD_100, PD1MD_101, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0,
 
-		PD0MD_000, PD0MD_001, PD0MD_010, PD0MD_011,
-		PD0MD_100, PD0MD_101, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0 }
+			PD0MD_000, PD0MD_001, PD0MD_010, PD0MD_011,
+			PD0MD_100, PD0MD_101, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PEIORL", 0xfffe3a06, 16, 1) {
-		PE15_IN, PE15_OUT,
-		PE14_IN, PE14_OUT,
-		PE13_IN, PE13_OUT,
-		PE12_IN, PE12_OUT,
-		PE11_IN, PE11_OUT,
-		PE10_IN, PE10_OUT,
-		PE9_IN, PE9_OUT,
-		PE8_IN, PE8_OUT,
-		PE7_IN, PE7_OUT,
-		PE6_IN, PE6_OUT,
-		PE5_IN, PE5_OUT,
-		PE4_IN, PE4_OUT,
-		PE3_IN, PE3_OUT,
-		PE2_IN, PE2_OUT,
-		PE1_IN, PE1_OUT,
-		PE0_IN, PE0_OUT }
+	{
+		PINMUX_CFG_REG("PEIORL", 0xfffe3a06, 16, 1)
+		{
+			PE15_IN, PE15_OUT,
+			PE14_IN, PE14_OUT,
+			PE13_IN, PE13_OUT,
+			PE12_IN, PE12_OUT,
+			PE11_IN, PE11_OUT,
+			PE10_IN, PE10_OUT,
+			PE9_IN, PE9_OUT,
+			PE8_IN, PE8_OUT,
+			PE7_IN, PE7_OUT,
+			PE6_IN, PE6_OUT,
+			PE5_IN, PE5_OUT,
+			PE4_IN, PE4_OUT,
+			PE3_IN, PE3_OUT,
+			PE2_IN, PE2_OUT,
+			PE1_IN, PE1_OUT,
+			PE0_IN, PE0_OUT
+		}
 	},
-	{ PINMUX_CFG_REG("PECRL4", 0xfffe3a10, 16, 4) {
-		PE15MD_00, PE15MD_01, 0, PE15MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PECRL4", 0xfffe3a10, 16, 4)
+		{
+			PE15MD_00, PE15MD_01, 0, PE15MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PE14MD_00, PE14MD_01, 0, PE14MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PE14MD_00, PE14MD_01, 0, PE14MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PE13MD_00, 0, 0, PE13MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PE13MD_00, 0, 0, PE13MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PE12MD_00, 0, 0, PE12MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+			PE12MD_00, 0, 0, PE12MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PECRL3", 0xfffe3a12, 16, 4) {
-		PE11MD_000, PE11MD_001, PE11MD_010, 0,
-		PE11MD_100, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PECRL3", 0xfffe3a12, 16, 4)
+		{
+			PE11MD_000, PE11MD_001, PE11MD_010, 0,
+			PE11MD_100, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0,
 
-		PE10MD_000, PE10MD_001, PE10MD_010, 0,
-		PE10MD_100, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
+			PE10MD_000, PE10MD_001, PE10MD_010, 0,
+			PE10MD_100, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0,
 
-		PE9MD_00, PE9MD_01, PE9MD_10, PE9MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PE9MD_00, PE9MD_01, PE9MD_10, PE9MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PE8MD_00, PE8MD_01, PE8MD_10, PE8MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+			PE8MD_00, PE8MD_01, PE8MD_10, PE8MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PECRL2", 0xfffe3a14, 16, 4) {
-		PE7MD_000, PE7MD_001, PE7MD_010, PE7MD_011,
-		PE7MD_100, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PECRL2", 0xfffe3a14, 16, 4)
+		{
+			PE7MD_000, PE7MD_001, PE7MD_010, PE7MD_011,
+			PE7MD_100, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0,
 
-		PE6MD_000, PE6MD_001, PE6MD_010, PE6MD_011,
-		PE6MD_100, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
+			PE6MD_000, PE6MD_001, PE6MD_010, PE6MD_011,
+			PE6MD_100, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0,
 
-		PE5MD_000, PE5MD_001, PE5MD_010, PE5MD_011,
-		PE5MD_100, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
+			PE5MD_000, PE5MD_001, PE5MD_010, PE5MD_011,
+			PE5MD_100, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0,
 
-		PE4MD_000, PE4MD_001, PE4MD_010, PE4MD_011,
-		PE4MD_100, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0 }
+			PE4MD_000, PE4MD_001, PE4MD_010, PE4MD_011,
+			PE4MD_100, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PECRL1", 0xfffe3a16, 16, 4) {
-		PE3MD_00, PE3MD_01, 0, PE3MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PECRL1", 0xfffe3a16, 16, 4)
+		{
+			PE3MD_00, PE3MD_01, 0, PE3MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PE2MD_00, PE2MD_01, 0, PE2MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PE2MD_00, PE2MD_01, 0, PE2MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PE1MD_00, PE1MD_01, PE1MD_10, PE1MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PE1MD_00, PE1MD_01, PE1MD_10, PE1MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PE0MD_000, PE0MD_001, 0, PE0MD_011,
-		PE0MD_100, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0 }
+			PE0MD_000, PE0MD_001, 0, PE0MD_011,
+			PE0MD_100, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PFIORH", 0xfffe3a84, 16, 1) {
-		0, 0,
-		PF30_IN, PF30_OUT,
-		PF29_IN, PF29_OUT,
-		PF28_IN, PF28_OUT,
-		PF27_IN, PF27_OUT,
-		PF26_IN, PF26_OUT,
-		PF25_IN, PF25_OUT,
-		PF24_IN, PF24_OUT,
-		PF23_IN, PF23_OUT,
-		PF22_IN, PF22_OUT,
-		PF21_IN, PF21_OUT,
-		PF20_IN, PF20_OUT,
-		PF19_IN, PF19_OUT,
-		PF18_IN, PF18_OUT,
-		PF17_IN, PF17_OUT,
-		PF16_IN, PF16_OUT }
+	{
+		PINMUX_CFG_REG("PFIORH", 0xfffe3a84, 16, 1)
+		{
+			0, 0,
+			PF30_IN, PF30_OUT,
+			PF29_IN, PF29_OUT,
+			PF28_IN, PF28_OUT,
+			PF27_IN, PF27_OUT,
+			PF26_IN, PF26_OUT,
+			PF25_IN, PF25_OUT,
+			PF24_IN, PF24_OUT,
+			PF23_IN, PF23_OUT,
+			PF22_IN, PF22_OUT,
+			PF21_IN, PF21_OUT,
+			PF20_IN, PF20_OUT,
+			PF19_IN, PF19_OUT,
+			PF18_IN, PF18_OUT,
+			PF17_IN, PF17_OUT,
+			PF16_IN, PF16_OUT
+		}
 	},
-	{ PINMUX_CFG_REG("PFIORL", 0xfffe3a86, 16, 1) {
-		PF15_IN, PF15_OUT,
-		PF14_IN, PF14_OUT,
-		PF13_IN, PF13_OUT,
-		PF12_IN, PF12_OUT,
-		PF11_IN, PF11_OUT,
-		PF10_IN, PF10_OUT,
-		PF9_IN, PF9_OUT,
-		PF8_IN, PF8_OUT,
-		PF7_IN, PF7_OUT,
-		PF6_IN, PF6_OUT,
-		PF5_IN, PF5_OUT,
-		PF4_IN, PF4_OUT,
-		PF3_IN, PF3_OUT,
-		PF2_IN, PF2_OUT,
-		PF1_IN, PF1_OUT,
-		PF0_IN, PF0_OUT }
+	{
+		PINMUX_CFG_REG("PFIORL", 0xfffe3a86, 16, 1)
+		{
+			PF15_IN, PF15_OUT,
+			PF14_IN, PF14_OUT,
+			PF13_IN, PF13_OUT,
+			PF12_IN, PF12_OUT,
+			PF11_IN, PF11_OUT,
+			PF10_IN, PF10_OUT,
+			PF9_IN, PF9_OUT,
+			PF8_IN, PF8_OUT,
+			PF7_IN, PF7_OUT,
+			PF6_IN, PF6_OUT,
+			PF5_IN, PF5_OUT,
+			PF4_IN, PF4_OUT,
+			PF3_IN, PF3_OUT,
+			PF2_IN, PF2_OUT,
+			PF1_IN, PF1_OUT,
+			PF0_IN, PF0_OUT
+		}
 	},
-	{ PINMUX_CFG_REG("PFCRH4", 0xfffe3a88, 16, 4) {
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PFCRH4", 0xfffe3a88, 16, 4)
+		{
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF30MD_0, PF30MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PF30MD_0, PF30MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF29MD_0, PF29MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PF29MD_0, PF29MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF28MD_0, PF28MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+			PF28MD_0, PF28MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PFCRH3", 0xfffe3a8a, 16, 4) {
-		PF27MD_0, PF27MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PFCRH3", 0xfffe3a8a, 16, 4)
+		{
+			PF27MD_0, PF27MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF26MD_0, PF26MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PF26MD_0, PF26MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF25MD_0, PF25MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PF25MD_0, PF25MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF24MD_0, PF24MD_1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+			PF24MD_0, PF24MD_1,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PFCRH2", 0xfffe3a8c, 16, 4) {
-		PF23MD_00, PF23MD_01, PF23MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PFCRH2", 0xfffe3a8c, 16, 4)
+		{
+			PF23MD_00, PF23MD_01, PF23MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF22MD_00, PF22MD_01, PF22MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PF22MD_00, PF22MD_01, PF22MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF21MD_00, PF21MD_01, PF21MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PF21MD_00, PF21MD_01, PF21MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF20MD_00, PF20MD_01, PF20MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+			PF20MD_00, PF20MD_01, PF20MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PFCRH1", 0xfffe3a8e, 16, 4) {
-		PF19MD_00, PF19MD_01, PF19MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PFCRH1", 0xfffe3a8e, 16, 4)
+		{
+			PF19MD_00, PF19MD_01, PF19MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF18MD_00, PF18MD_01, PF18MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PF18MD_00, PF18MD_01, PF18MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF17MD_00, PF17MD_01, PF17MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PF17MD_00, PF17MD_01, PF17MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF16MD_00, PF16MD_01, PF16MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+			PF16MD_00, PF16MD_01, PF16MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PFCRL4", 0xfffe3a90, 16, 4) {
-		PF15MD_00, PF15MD_01, PF15MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PFCRL4", 0xfffe3a90, 16, 4)
+		{
+			PF15MD_00, PF15MD_01, PF15MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF14MD_00, PF14MD_01, PF14MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PF14MD_00, PF14MD_01, PF14MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF13MD_00, PF13MD_01, PF13MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PF13MD_00, PF13MD_01, PF13MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF12MD_00, PF12MD_01, PF12MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+			PF12MD_00, PF12MD_01, PF12MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PFCRL3", 0xfffe3a92, 16, 4) {
-		PF11MD_00, PF11MD_01, PF11MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PFCRL3", 0xfffe3a92, 16, 4)
+		{
+			PF11MD_00, PF11MD_01, PF11MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF10MD_00, PF10MD_01, PF10MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PF10MD_00, PF10MD_01, PF10MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF9MD_00, PF9MD_01, PF9MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PF9MD_00, PF9MD_01, PF9MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF8MD_00, PF8MD_01, PF8MD_10, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+			PF8MD_00, PF8MD_01, PF8MD_10, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PFCRL2", 0xfffe3a94, 16, 4) {
-		PF7MD_00, PF7MD_01, PF7MD_10, PF7MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PFCRL2", 0xfffe3a94, 16, 4)
+		{
+			PF7MD_00, PF7MD_01, PF7MD_10, PF7MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF6MD_00, PF6MD_01, PF6MD_10, PF6MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PF6MD_00, PF6MD_01, PF6MD_10, PF6MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF5MD_00, PF5MD_01, PF5MD_10, PF5MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PF5MD_00, PF5MD_01, PF5MD_10, PF5MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF4MD_00, PF4MD_01, PF4MD_10, PF4MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+			PF4MD_00, PF4MD_01, PF4MD_10, PF4MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
-	{ PINMUX_CFG_REG("PFCRL1", 0xfffe3a96, 16, 4) {
-		PF3MD_00, PF3MD_01, PF3MD_10, PF3MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{
+		PINMUX_CFG_REG("PFCRL1", 0xfffe3a96, 16, 4)
+		{
+			PF3MD_00, PF3MD_01, PF3MD_10, PF3MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF2MD_00, PF2MD_01, PF2MD_10, PF2MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PF2MD_00, PF2MD_01, PF2MD_10, PF2MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF1MD_00, PF1MD_01, PF1MD_10, PF1MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			PF1MD_00, PF1MD_01, PF1MD_10, PF1MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-		PF0MD_00, PF0MD_01, PF0MD_10, PF0MD_11,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+			PF0MD_00, PF0MD_01, PF0MD_10, PF0MD_11,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		}
 	},
 	{}
 };
 
-static const struct pinmux_data_reg pinmux_data_regs[] = {
-	{ PINMUX_DATA_REG("PADRL", 0xfffe3802, 16) {
-		0, 0, 0, 0,
-		0, 0, 0, 0,
-		PA7_DATA, PA6_DATA, PA5_DATA, PA4_DATA,
-		PA3_DATA, PA2_DATA, PA1_DATA, PA0_DATA }
+static const struct pinmux_data_reg pinmux_data_regs[] =
+{
+	{
+		PINMUX_DATA_REG("PADRL", 0xfffe3802, 16)
+		{
+			0, 0, 0, 0,
+			0, 0, 0, 0,
+			PA7_DATA, PA6_DATA, PA5_DATA, PA4_DATA,
+			PA3_DATA, PA2_DATA, PA1_DATA, PA0_DATA
+		}
 	},
-	{ PINMUX_DATA_REG("PBDRL", 0xfffe3882, 16) {
-		0, 0, 0, PB12_DATA,
-		PB11_DATA, PB10_DATA, PB9_DATA, PB8_DATA,
-		PB7_DATA, PB6_DATA, PB5_DATA, PB4_DATA,
-		PB3_DATA, PB2_DATA, PB1_DATA, PB0_DATA }
+	{
+		PINMUX_DATA_REG("PBDRL", 0xfffe3882, 16)
+		{
+			0, 0, 0, PB12_DATA,
+			PB11_DATA, PB10_DATA, PB9_DATA, PB8_DATA,
+			PB7_DATA, PB6_DATA, PB5_DATA, PB4_DATA,
+			PB3_DATA, PB2_DATA, PB1_DATA, PB0_DATA
+		}
 	},
-	{ PINMUX_DATA_REG("PCDRL", 0xfffe3902, 16) {
-		0, PC14_DATA, PC13_DATA, PC12_DATA,
-		PC11_DATA, PC10_DATA, PC9_DATA, PC8_DATA,
-		PC7_DATA, PC6_DATA, PC5_DATA, PC4_DATA,
-		PC3_DATA, PC2_DATA, PC1_DATA, PC0_DATA }
+	{
+		PINMUX_DATA_REG("PCDRL", 0xfffe3902, 16)
+		{
+			0, PC14_DATA, PC13_DATA, PC12_DATA,
+			PC11_DATA, PC10_DATA, PC9_DATA, PC8_DATA,
+			PC7_DATA, PC6_DATA, PC5_DATA, PC4_DATA,
+			PC3_DATA, PC2_DATA, PC1_DATA, PC0_DATA
+		}
 	},
-	{ PINMUX_DATA_REG("PDDRL", 0xfffe3982, 16) {
-		PD15_DATA, PD14_DATA, PD13_DATA, PD12_DATA,
-		PD11_DATA, PD10_DATA, PD9_DATA, PD8_DATA,
-		PD7_DATA, PD6_DATA, PD5_DATA, PD4_DATA,
-		PD3_DATA, PD2_DATA, PD1_DATA, PD0_DATA }
+	{
+		PINMUX_DATA_REG("PDDRL", 0xfffe3982, 16)
+		{
+			PD15_DATA, PD14_DATA, PD13_DATA, PD12_DATA,
+			PD11_DATA, PD10_DATA, PD9_DATA, PD8_DATA,
+			PD7_DATA, PD6_DATA, PD5_DATA, PD4_DATA,
+			PD3_DATA, PD2_DATA, PD1_DATA, PD0_DATA
+		}
 	},
-	{ PINMUX_DATA_REG("PEDRL", 0xfffe3a02, 16) {
-		PE15_DATA, PE14_DATA, PE13_DATA, PE12_DATA,
-		PE11_DATA, PE10_DATA, PE9_DATA, PE8_DATA,
-		PE7_DATA, PE6_DATA, PE5_DATA, PE4_DATA,
-		PE3_DATA, PE2_DATA, PE1_DATA, PE0_DATA }
+	{
+		PINMUX_DATA_REG("PEDRL", 0xfffe3a02, 16)
+		{
+			PE15_DATA, PE14_DATA, PE13_DATA, PE12_DATA,
+			PE11_DATA, PE10_DATA, PE9_DATA, PE8_DATA,
+			PE7_DATA, PE6_DATA, PE5_DATA, PE4_DATA,
+			PE3_DATA, PE2_DATA, PE1_DATA, PE0_DATA
+		}
 	},
-	{ PINMUX_DATA_REG("PFDRH", 0xfffe3a80, 16) {
-		0, PF30_DATA, PF29_DATA, PF28_DATA,
-		PF27_DATA, PF26_DATA, PF25_DATA, PF24_DATA,
-		PF23_DATA, PF22_DATA, PF21_DATA, PF20_DATA,
-		PF19_DATA, PF18_DATA, PF17_DATA, PF16_DATA }
+	{
+		PINMUX_DATA_REG("PFDRH", 0xfffe3a80, 16)
+		{
+			0, PF30_DATA, PF29_DATA, PF28_DATA,
+			PF27_DATA, PF26_DATA, PF25_DATA, PF24_DATA,
+			PF23_DATA, PF22_DATA, PF21_DATA, PF20_DATA,
+			PF19_DATA, PF18_DATA, PF17_DATA, PF16_DATA
+		}
 	},
-	{ PINMUX_DATA_REG("PFDRL", 0xfffe3a82, 16) {
-		PF15_DATA, PF14_DATA, PF13_DATA, PF12_DATA,
-		PF11_DATA, PF10_DATA, PF9_DATA, PF8_DATA,
-		PF7_DATA, PF6_DATA, PF5_DATA, PF4_DATA,
-		PF3_DATA, PF2_DATA, PF1_DATA, PF0_DATA }
+	{
+		PINMUX_DATA_REG("PFDRL", 0xfffe3a82, 16)
+		{
+			PF15_DATA, PF14_DATA, PF13_DATA, PF12_DATA,
+			PF11_DATA, PF10_DATA, PF9_DATA, PF8_DATA,
+			PF7_DATA, PF6_DATA, PF5_DATA, PF4_DATA,
+			PF3_DATA, PF2_DATA, PF1_DATA, PF0_DATA
+		}
 	},
 	{ },
 };
 
-const struct sh_pfc_soc_info sh7203_pinmux_info = {
+const struct sh_pfc_soc_info sh7203_pinmux_info =
+{
 	.name = "sh7203_pfc",
 	.input = { PINMUX_INPUT_BEGIN, PINMUX_INPUT_END, FORCE_IN },
 	.output = { PINMUX_OUTPUT_BEGIN, PINMUX_OUTPUT_END, FORCE_OUT },

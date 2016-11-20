@@ -22,7 +22,8 @@
 #define __TSI721_H
 
 /* Debug output filtering masks */
-enum {
+enum
+{
 	DBG_NONE	= 0,
 	DBG_INIT	= BIT(0), /* driver init */
 	DBG_EXIT	= BIT(1), /* driver exit */
@@ -49,7 +50,7 @@ extern u32 dbg_level;
 	} while (0)
 #else
 #define tsi_debug(level, dev, fmt, arg...) \
-		no_printk(KERN_DEBUG "%s: " fmt "\n", __func__, ##arg)
+	no_printk(KERN_DEBUG "%s: " fmt "\n", __func__, ##arg)
 #endif
 
 #define tsi_info(dev, fmt, arg...) \
@@ -519,7 +520,8 @@ extern u32 dbg_level;
  * Block DMA Descriptors
  */
 
-struct tsi721_dma_desc {
+struct tsi721_dma_desc
+{
 	__le32 type_id;
 
 #define TSI721_DMAD_DEVID	0x0000ffff
@@ -536,7 +538,8 @@ struct tsi721_dma_desc {
 #define TSI721_DMAD_TT		0x0c000000
 #define TSI721_DMAD_RADDR0	0xc0000000
 
-	union {
+	union
+	{
 		__le32 raddr_lo;	   /* if DTYPE == (1 || 2) */
 		__le32 next_lo;		   /* if DTYPE == 3 */
 	};
@@ -544,13 +547,16 @@ struct tsi721_dma_desc {
 #define TSI721_DMAD_CFGOFF	0x00ffffff
 #define TSI721_DMAD_HOPCNT	0xff000000
 
-	union {
+	union
+	{
 		__le32 raddr_hi;	   /* if DTYPE == (1 || 2) */
 		__le32 next_hi;		   /* if DTYPE == 3 */
 	};
 
-	union {
-		struct {		   /* if DTYPE == 1 */
+	union
+	{
+		struct  		   /* if DTYPE == 1 */
+		{
 			__le32 bufptr_lo;
 			__le32 bufptr_hi;
 			__le32 s_dist;
@@ -564,7 +570,8 @@ struct tsi721_dma_desc {
 /*
  * Inbound Messaging Descriptor
  */
-struct tsi721_imsg_desc {
+struct tsi721_imsg_desc
+{
 	__le32 type_id;
 
 #define TSI721_IMD_DEVID	0x0000ffff
@@ -592,7 +599,8 @@ struct tsi721_imsg_desc {
 /*
  * Outbound Messaging Descriptor
  */
-struct tsi721_omsg_desc {
+struct tsi721_omsg_desc
+{
 	__le32 type_id;
 
 #define TSI721_OMD_DEVID	0x0000ffff
@@ -611,26 +619,32 @@ struct tsi721_omsg_desc {
 #define TSI721_OMD_MBOX		0x00c00000
 #define TSI721_OMD_TT		0x0c000000
 
-	union {
+	union
+	{
 		__le32 bufptr_lo;	/* if DTYPE == 4 */
 		__le32 next_lo;		/* if DTYPE == 5 */
 	};
 
-	union {
+	union
+	{
 		__le32 bufptr_hi;	/* if DTYPE == 4 */
 		__le32 next_hi;		/* if DTYPE == 5 */
 	};
 
 } __aligned(16);
 
-struct tsi721_dma_sts {
+struct tsi721_dma_sts
+{
 	__le64	desc_sts[8];
 } __aligned(64);
 
-struct tsi721_desc_sts_fifo {
-	union {
+struct tsi721_desc_sts_fifo
+{
+	union
+	{
 		__le64	da64;
-		struct {
+		struct
+		{
 			__le32	lo;
 			__le32	hi;
 		} da32;
@@ -638,7 +652,8 @@ struct tsi721_desc_sts_fifo {
 } __aligned(64);
 
 /* Descriptor types for BDMA and Messaging blocks */
-enum dma_dtype {
+enum dma_dtype
+{
 	DTYPE1 = 1, /* Data Transfer DMA Descriptor */
 	DTYPE2 = 2, /* Immediate Data Transfer DMA Descriptor */
 	DTYPE3 = 3, /* Block Pointer DMA Descriptor */
@@ -647,7 +662,8 @@ enum dma_dtype {
 	DTYPE6 = 6  /* Inbound Messaging Descriptor */
 };
 
-enum dma_rtype {
+enum dma_rtype
+{
 	NREAD = 0,
 	LAST_NWRITE_R = 1,
 	ALL_NWRITE = 2,
@@ -668,7 +684,8 @@ enum dma_rtype {
 
 #define MSG_DMA_ENTRY_INX_TO_SIZE(x)	((0x10 << (x)) & 0xFFFF0)
 
-enum tsi721_smsg_int_flag {
+enum tsi721_smsg_int_flag
+{
 	SMSG_INT_NONE		= 0x00000000,
 	SMSG_INT_ECC_COR_CH	= 0x000000ff,
 	SMSG_INT_ECC_NCOR_CH	= 0x0000ff00,
@@ -684,7 +701,8 @@ enum tsi721_smsg_int_flag {
 
 #define TSI721_BDMA_MAX_BCOUNT	(TSI721_DMAD_BCOUNT1 + 1)
 
-struct tsi721_tx_desc {
+struct tsi721_tx_desc
+{
 	struct dma_async_tx_descriptor	txd;
 	u16				destid;
 	/* low 64-bits of 66-bit RIO address */
@@ -698,7 +716,8 @@ struct tsi721_tx_desc {
 	enum dma_status			status;
 };
 
-struct tsi721_bdma_chan {
+struct tsi721_bdma_chan
+{
 	int		id;
 	void __iomem	*regs;
 	int		bd_num;		/* number of HW buffer descriptors */
@@ -723,7 +742,8 @@ struct tsi721_bdma_chan {
 
 #endif /* CONFIG_RAPIDIO_DMA_ENGINE */
 
-struct tsi721_bdma_maint {
+struct tsi721_bdma_maint
+{
 	int		ch_id;		/* BDMA channel number */
 	int		bd_num;		/* number of buffer descriptors */
 	void		*bd_base;	/* start of DMA descriptors */
@@ -733,7 +753,8 @@ struct tsi721_bdma_maint {
 	int		sts_size;
 };
 
-struct tsi721_imsg_ring {
+struct tsi721_imsg_ring
+{
 	u32		size;
 	/* VA/PA of data buffers for incoming messages */
 	void		*buf_base;
@@ -744,7 +765,7 @@ struct tsi721_imsg_ring {
 	/* VA/PA of Inbound message descriptors */
 	void		*imd_base;
 	dma_addr_t	imd_phys;
-	 /* Inbound Queue buffer pointers */
+	/* Inbound Queue buffer pointers */
 	void		*imq_base[TSI721_IMSGD_RING_SIZE];
 
 	u32		rx_slot;
@@ -754,7 +775,8 @@ struct tsi721_imsg_ring {
 	spinlock_t	lock;
 };
 
-struct tsi721_omsg_ring {
+struct tsi721_omsg_ring
+{
 	u32		size;
 	/* VA/PA of OB Msg descriptors */
 	void		*omd_base;
@@ -774,7 +796,8 @@ struct tsi721_omsg_ring {
 	spinlock_t	lock;
 };
 
-enum tsi721_flags {
+enum tsi721_flags
+{
 	TSI721_USING_MSI	= (1 << 0),
 	TSI721_USING_MSIX	= (1 << 1),
 	TSI721_IMSGID_SET	= (1 << 2),
@@ -800,7 +823,8 @@ enum tsi721_flags {
 #define TSI721_MSIX_I2C_INT		69
 
 /* MSI-X vector and init table entry indexes */
-enum tsi721_msix_vect {
+enum tsi721_msix_vect
+{
 	TSI721_VECT_IDB,
 	TSI721_VECT_PWRX, /* PW_RX is part of SRIO MAC Interrupt reporting */
 	TSI721_VECT_OMB0_DONE,
@@ -842,18 +866,21 @@ enum tsi721_msix_vect {
 
 #define IRQ_DEVICE_NAME_MAX	64
 
-struct msix_irq {
+struct msix_irq
+{
 	u16	vector;
 	char	irq_name[IRQ_DEVICE_NAME_MAX];
 };
 #endif /* CONFIG_PCI_MSI */
 
-struct tsi721_ib_win_mapping {
+struct tsi721_ib_win_mapping
+{
 	struct list_head node;
 	dma_addr_t	lstart;
 };
 
-struct tsi721_ib_win {
+struct tsi721_ib_win
+{
 	u64		rstart;
 	u32		size;
 	dma_addr_t	lstart;
@@ -862,13 +889,15 @@ struct tsi721_ib_win {
 	struct list_head mappings;
 };
 
-struct tsi721_obw_bar {
+struct tsi721_obw_bar
+{
 	u64		base;
 	u64		size;
 	u64		free;
 };
 
-struct tsi721_ob_win {
+struct tsi721_ob_win
+{
 	u64		base;
 	u32		size;
 	u16		destid;
@@ -877,7 +906,8 @@ struct tsi721_ob_win {
 	struct tsi721_obw_bar *pbar;
 };
 
-struct tsi721_device {
+struct tsi721_device
+{
 	struct pci_dev	*pdev;
 	struct rio_mport mport;
 	u32		flags;
@@ -924,13 +954,13 @@ struct tsi721_device {
 };
 
 #ifdef CONFIG_RAPIDIO_DMA_ENGINE
-extern void tsi721_bdma_handler(struct tsi721_bdma_chan *bdma_chan);
-extern int tsi721_register_dma(struct tsi721_device *priv);
-extern void tsi721_unregister_dma(struct tsi721_device *priv);
-extern void tsi721_dma_stop_all(struct tsi721_device *priv);
+	extern void tsi721_bdma_handler(struct tsi721_bdma_chan *bdma_chan);
+	extern int tsi721_register_dma(struct tsi721_device *priv);
+	extern void tsi721_unregister_dma(struct tsi721_device *priv);
+	extern void tsi721_dma_stop_all(struct tsi721_device *priv);
 #else
-#define tsi721_dma_stop_all(priv) do {} while (0)
-#define tsi721_unregister_dma(priv) do {} while (0)
+	#define tsi721_dma_stop_all(priv) do {} while (0)
+	#define tsi721_unregister_dma(priv) do {} while (0)
 #endif
 
 #endif

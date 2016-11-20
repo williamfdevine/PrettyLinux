@@ -24,7 +24,8 @@
 #define mcp77_ram(p) container_of((p), struct mcp77_ram, base)
 #include "ram.h"
 
-struct mcp77_ram {
+struct mcp77_ram
+{
 	struct nvkm_ram base;
 	u64 poller_base;
 };
@@ -51,7 +52,8 @@ mcp77_ram_init(struct nvkm_ram *base)
 }
 
 static const struct nvkm_ram_func
-mcp77_ram_func = {
+	mcp77_ram_func =
+{
 	.init = mcp77_ram_init,
 	.get = nv50_ram_get,
 	.put = nv50_ram_put,
@@ -69,19 +71,25 @@ mcp77_ram_new(struct nvkm_fb *fb, struct nvkm_ram **pram)
 	int ret;
 
 	if (!(ram = kzalloc(sizeof(*ram), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pram = &ram->base;
 
 	ret = nvkm_ram_ctor(&mcp77_ram_func, fb, NVKM_RAM_TYPE_STOLEN,
-			    size, 0, &ram->base);
+						size, 0, &ram->base);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ram->poller_base = size - rsvd_tail;
 	ram->base.stolen = base;
 	nvkm_mm_fini(&ram->base.vram);
 
 	return nvkm_mm_init(&ram->base.vram, rsvd_head >> NVKM_RAM_MM_SHIFT,
-			    (size - rsvd_head - rsvd_tail) >>
-			    NVKM_RAM_MM_SHIFT, 1);
+						(size - rsvd_head - rsvd_tail) >>
+						NVKM_RAM_MM_SHIFT, 1);
 }

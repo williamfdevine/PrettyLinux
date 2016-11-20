@@ -1,26 +1,26 @@
 /******************************************************************************
  * gntdev.h
- * 
+ *
  * Interface to /dev/xen/gntdev.
- * 
+ *
  * Copyright (c) 2007, D G Murray
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation; or, when distributed
  * separately from the Linux kernel or incorporated into other
  * software packages, subject to the following license:
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this source file (the "Software"), to deal in the Software without
  * restriction, including without limitation the rights to use, copy, modify,
  * merge, publish, distribute, sublicense, and/or sell copies of the Software,
  * and to permit persons to whom the Software is furnished to do so, subject to
  * the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,7 +35,8 @@
 
 #include <linux/types.h>
 
-struct ioctl_gntdev_grant_ref {
+struct ioctl_gntdev_grant_ref
+{
 	/* The domain ID of the grant to be mapped. */
 	__u32 domid;
 	/* The grant reference of the grant to be mapped. */
@@ -48,8 +49,9 @@ struct ioctl_gntdev_grant_ref {
  * until mmap() is called with @index as the offset.
  */
 #define IOCTL_GNTDEV_MAP_GRANT_REF \
-_IOC(_IOC_NONE, 'G', 0, sizeof(struct ioctl_gntdev_map_grant_ref))
-struct ioctl_gntdev_map_grant_ref {
+	_IOC(_IOC_NONE, 'G', 0, sizeof(struct ioctl_gntdev_map_grant_ref))
+struct ioctl_gntdev_map_grant_ref
+{
 	/* IN parameters */
 	/* The number of grants to be mapped. */
 	__u32 count;
@@ -68,8 +70,9 @@ struct ioctl_gntdev_map_grant_ref {
  * before this ioctl is called, or an error will result.
  */
 #define IOCTL_GNTDEV_UNMAP_GRANT_REF \
-_IOC(_IOC_NONE, 'G', 1, sizeof(struct ioctl_gntdev_unmap_grant_ref))
-struct ioctl_gntdev_unmap_grant_ref {
+	_IOC(_IOC_NONE, 'G', 1, sizeof(struct ioctl_gntdev_unmap_grant_ref))
+struct ioctl_gntdev_unmap_grant_ref
+{
 	/* IN parameters */
 	/* The offset was returned by the corresponding map operation. */
 	__u64 index;
@@ -91,8 +94,9 @@ struct ioctl_gntdev_unmap_grant_ref {
  *      contiguously-allocated range at once, and not any subrange thereof.
  */
 #define IOCTL_GNTDEV_GET_OFFSET_FOR_VADDR \
-_IOC(_IOC_NONE, 'G', 2, sizeof(struct ioctl_gntdev_get_offset_for_vaddr))
-struct ioctl_gntdev_get_offset_for_vaddr {
+	_IOC(_IOC_NONE, 'G', 2, sizeof(struct ioctl_gntdev_get_offset_for_vaddr))
+struct ioctl_gntdev_get_offset_for_vaddr
+{
 	/* IN parameters */
 	/* The virtual address of the first mapped page in a range. */
 	__u64 vaddr;
@@ -111,8 +115,9 @@ struct ioctl_gntdev_get_offset_for_vaddr {
  * N.B. This must be called before any other ioctl is performed on the device.
  */
 #define IOCTL_GNTDEV_SET_MAX_GRANTS \
-_IOC(_IOC_NONE, 'G', 3, sizeof(struct ioctl_gntdev_set_max_grants))
-struct ioctl_gntdev_set_max_grants {
+	_IOC(_IOC_NONE, 'G', 3, sizeof(struct ioctl_gntdev_set_max_grants))
+struct ioctl_gntdev_set_max_grants
+{
 	/* IN parameter */
 	/* The maximum number of grants that may be mapped at once. */
 	__u32 count;
@@ -129,8 +134,9 @@ struct ioctl_gntdev_set_max_grants {
  * to occur.
  */
 #define IOCTL_GNTDEV_SET_UNMAP_NOTIFY \
-_IOC(_IOC_NONE, 'G', 7, sizeof(struct ioctl_gntdev_unmap_notify))
-struct ioctl_gntdev_unmap_notify {
+	_IOC(_IOC_NONE, 'G', 7, sizeof(struct ioctl_gntdev_unmap_notify))
+struct ioctl_gntdev_unmap_notify
+{
 	/* IN parameters */
 	/* Offset in the file descriptor for a byte within the page (same as
 	 * used in mmap). If using UNMAP_NOTIFY_CLEAR_BYTE, this is the byte to
@@ -144,10 +150,13 @@ struct ioctl_gntdev_unmap_notify {
 	__u32 event_channel_port;
 };
 
-struct gntdev_grant_copy_segment {
-	union {
+struct gntdev_grant_copy_segment
+{
+	union
+	{
 		void __user *virt;
-		struct {
+		struct
+		{
 			grant_ref_t ref;
 			__u16 offset;
 			domid_t domid;
@@ -189,7 +198,8 @@ struct gntdev_grant_copy_segment {
  */
 #define IOCTL_GNTDEV_GRANT_COPY \
 	_IOC(_IOC_NONE, 'G', 8, sizeof(struct ioctl_gntdev_grant_copy))
-struct ioctl_gntdev_grant_copy {
+struct ioctl_gntdev_grant_copy
+{
 	unsigned int count;
 	struct gntdev_grant_copy_segment __user *segments;
 };

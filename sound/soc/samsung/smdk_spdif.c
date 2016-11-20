@@ -27,32 +27,40 @@ static int set_audio_clock_heirachy(struct platform_device *pdev)
 	int ret = 0;
 
 	fout_epll = clk_get(NULL, "fout_epll");
-	if (IS_ERR(fout_epll)) {
+
+	if (IS_ERR(fout_epll))
+	{
 		printk(KERN_WARNING "%s: Cannot find fout_epll.\n",
-				__func__);
+			   __func__);
 		return -EINVAL;
 	}
 
 	mout_epll = clk_get(NULL, "mout_epll");
-	if (IS_ERR(mout_epll)) {
+
+	if (IS_ERR(mout_epll))
+	{
 		printk(KERN_WARNING "%s: Cannot find mout_epll.\n",
-				__func__);
+			   __func__);
 		ret = -EINVAL;
 		goto out1;
 	}
 
 	sclk_audio0 = clk_get(&pdev->dev, "sclk_audio");
-	if (IS_ERR(sclk_audio0)) {
+
+	if (IS_ERR(sclk_audio0))
+	{
 		printk(KERN_WARNING "%s: Cannot find sclk_audio.\n",
-				__func__);
+			   __func__);
 		ret = -EINVAL;
 		goto out2;
 	}
 
 	sclk_spdif = clk_get(NULL, "sclk_spdif");
-	if (IS_ERR(sclk_spdif)) {
+
+	if (IS_ERR(sclk_spdif))
+	{
 		printk(KERN_WARNING "%s: Cannot find sclk_spdif.\n",
-				__func__);
+			   __func__);
 		ret = -EINVAL;
 		goto out3;
 	}
@@ -78,12 +86,14 @@ out1:
  * clock of it's hierarchy.
  */
 static int set_audio_clock_rate(unsigned long epll_rate,
-				unsigned long audio_rate)
+								unsigned long audio_rate)
 {
 	struct clk *fout_epll, *sclk_spdif;
 
 	fout_epll = clk_get(NULL, "fout_epll");
-	if (IS_ERR(fout_epll)) {
+
+	if (IS_ERR(fout_epll))
+	{
 		printk(KERN_ERR "%s: failed to get fout_epll\n", __func__);
 		return -ENOENT;
 	}
@@ -92,7 +102,9 @@ static int set_audio_clock_rate(unsigned long epll_rate,
 	clk_put(fout_epll);
 
 	sclk_spdif = clk_get(NULL, "sclk_spdif");
-	if (IS_ERR(sclk_spdif)) {
+
+	if (IS_ERR(sclk_spdif))
+	{
 		printk(KERN_ERR "%s: failed to get sclk_spdif\n", __func__);
 		return -ENOENT;
 	}
@@ -104,24 +116,27 @@ static int set_audio_clock_rate(unsigned long epll_rate,
 }
 
 static int smdk_hw_params(struct snd_pcm_substream *substream,
-		struct snd_pcm_hw_params *params)
+						  struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
 	unsigned long pll_out, rclk_rate;
 	int ret, ratio;
 
-	switch (params_rate(params)) {
-	case 44100:
-		pll_out = 45158400;
-		break;
-	case 32000:
-	case 48000:
-	case 96000:
-		pll_out = 49152000;
-		break;
-	default:
-		return -EINVAL;
+	switch (params_rate(params))
+	{
+		case 44100:
+			pll_out = 45158400;
+			break;
+
+		case 32000:
+		case 48000:
+		case 96000:
+			pll_out = 49152000;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* Setting ratio to 512fs helps to use S/PDIF with HDMI without
@@ -132,23 +147,31 @@ static int smdk_hw_params(struct snd_pcm_substream *substream,
 
 	/* Set audio source clock rates */
 	ret = set_audio_clock_rate(pll_out, rclk_rate);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Set S/PDIF uses internal source clock */
 	ret = snd_soc_dai_set_sysclk(cpu_dai, SND_SOC_SPDIF_INT_MCLK,
-					rclk_rate, SND_SOC_CLOCK_IN);
+								 rclk_rate, SND_SOC_CLOCK_IN);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return ret;
 }
 
-static struct snd_soc_ops smdk_spdif_ops = {
+static struct snd_soc_ops smdk_spdif_ops =
+{
 	.hw_params = smdk_hw_params,
 };
 
-static struct snd_soc_dai_link smdk_dai = {
+static struct snd_soc_dai_link smdk_dai =
+{
 	.name = "S/PDIF",
 	.stream_name = "S/PDIF PCM Playback",
 	.platform_name = "samsung-spdif",
@@ -158,7 +181,8 @@ static struct snd_soc_dai_link smdk_dai = {
 	.ops = &smdk_spdif_ops,
 };
 
-static struct snd_soc_card smdk = {
+static struct snd_soc_card smdk =
+{
 	.name = "SMDK-S/PDIF",
 	.owner = THIS_MODULE,
 	.dai_link = &smdk_dai,
@@ -173,15 +197,23 @@ static int __init smdk_init(void)
 	int ret;
 
 	smdk_snd_spdif_dit_device = platform_device_alloc("spdif-dit", -1);
+
 	if (!smdk_snd_spdif_dit_device)
+	{
 		return -ENOMEM;
+	}
 
 	ret = platform_device_add(smdk_snd_spdif_dit_device);
+
 	if (ret)
+	{
 		goto err1;
+	}
 
 	smdk_snd_spdif_device = platform_device_alloc("soc-audio", -1);
-	if (!smdk_snd_spdif_device) {
+
+	if (!smdk_snd_spdif_device)
+	{
 		ret = -ENOMEM;
 		goto err2;
 	}
@@ -189,13 +221,19 @@ static int __init smdk_init(void)
 	platform_set_drvdata(smdk_snd_spdif_device, &smdk);
 
 	ret = platform_device_add(smdk_snd_spdif_device);
+
 	if (ret)
+	{
 		goto err3;
+	}
 
 	/* Set audio clock hierarchy manually */
 	ret = set_audio_clock_heirachy(smdk_snd_spdif_device);
+
 	if (ret)
+	{
 		goto err4;
+	}
 
 	return 0;
 err4:

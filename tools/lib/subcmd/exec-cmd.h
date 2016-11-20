@@ -2,7 +2,7 @@
 #define __SUBCMD_EXEC_CMD_H
 
 extern void exec_cmd_init(const char *exec_name, const char *prefix,
-			  const char *exec_path, const char *exec_path_env);
+						  const char *exec_path, const char *exec_path_env);
 
 extern void set_argv_exec_path(const char *exec_path);
 extern const char *extract_argv0_path(const char *path);

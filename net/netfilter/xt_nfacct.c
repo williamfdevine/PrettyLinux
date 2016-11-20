@@ -38,11 +38,14 @@ nfacct_mt_checkentry(const struct xt_mtchk_param *par)
 	struct nf_acct *nfacct;
 
 	nfacct = nfnl_acct_find_get(par->net, info->name);
-	if (nfacct == NULL) {
+
+	if (nfacct == NULL)
+	{
 		pr_info("xt_nfacct: accounting object with name `%s' "
-			"does not exists\n", info->name);
+				"does not exists\n", info->name);
 		return -ENOENT;
 	}
+
 	info->nfacct = nfacct;
 	return 0;
 }
@@ -55,7 +58,8 @@ nfacct_mt_destroy(const struct xt_mtdtor_param *par)
 	nfnl_acct_put(info->nfacct);
 }
 
-static struct xt_match nfacct_mt_reg __read_mostly = {
+static struct xt_match nfacct_mt_reg __read_mostly =
+{
 	.name       = "nfacct",
 	.family     = NFPROTO_UNSPEC,
 	.checkentry = nfacct_mt_checkentry,

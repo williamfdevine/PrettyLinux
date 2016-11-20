@@ -23,20 +23,24 @@
  * squashfs_fs_i.h
  */
 
-struct squashfs_inode_info {
+struct squashfs_inode_info
+{
 	u64		start;
 	int		offset;
 	u64		xattr;
 	unsigned int	xattr_size;
 	int		xattr_count;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u64		fragment_block;
 			int		fragment_size;
 			int		fragment_offset;
 			u64		block_list_start;
 		};
-		struct {
+		struct
+		{
 			u64		dir_idx_start;
 			int		dir_idx_offset;
 			int		dir_idx_cnt;

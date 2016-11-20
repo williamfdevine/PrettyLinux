@@ -9,7 +9,8 @@
 
 struct tvec_base;
 
-struct timer_list {
+struct timer_list
+{
 	/*
 	 * All fields that change during normal runtime grouped to the
 	 * same cacheline
@@ -68,12 +69,12 @@ struct timer_list {
 
 #define __TIMER_INITIALIZER(_function, _expires, _data, _flags) { \
 		.entry = { .next = TIMER_ENTRY_STATIC },	\
-		.function = (_function),			\
-		.expires = (_expires),				\
-		.data = (_data),				\
-		.flags = (_flags),				\
-		__TIMER_LOCKDEP_MAP_INITIALIZER(		\
-			__FILE__ ":" __stringify(__LINE__))	\
+				 .function = (_function),			\
+							 .expires = (_expires),				\
+										.data = (_data),				\
+												.flags = (_flags),				\
+														__TIMER_LOCKDEP_MAP_INITIALIZER(		\
+																__FILE__ ":" __stringify(__LINE__))	\
 	}
 
 #define TIMER_INITIALIZER(_function, _expires, _data)		\
@@ -90,21 +91,21 @@ struct timer_list {
 
 #define DEFINE_TIMER(_name, _function, _expires, _data)		\
 	struct timer_list _name =				\
-		TIMER_INITIALIZER(_function, _expires, _data)
+											TIMER_INITIALIZER(_function, _expires, _data)
 
 void init_timer_key(struct timer_list *timer, unsigned int flags,
-		    const char *name, struct lock_class_key *key);
+					const char *name, struct lock_class_key *key);
 
 #ifdef CONFIG_DEBUG_OBJECTS_TIMERS
 extern void init_timer_on_stack_key(struct timer_list *timer,
-				    unsigned int flags, const char *name,
-				    struct lock_class_key *key);
+									unsigned int flags, const char *name,
+									struct lock_class_key *key);
 extern void destroy_timer_on_stack(struct timer_list *timer);
 #else
 static inline void destroy_timer_on_stack(struct timer_list *timer) { }
 static inline void init_timer_on_stack_key(struct timer_list *timer,
-					   unsigned int flags, const char *name,
-					   struct lock_class_key *key)
+		unsigned int flags, const char *name,
+		struct lock_class_key *key)
 {
 	init_timer_key(timer, flags, name, key);
 }
@@ -181,13 +182,13 @@ static inline void init_timer_on_stack_key(struct timer_list *timer,
  *
  * return value: 1 if the timer is pending, 0 if not.
  */
-static inline int timer_pending(const struct timer_list * timer)
+static inline int timer_pending(const struct timer_list *timer)
 {
 	return timer->entry.pprev != NULL;
 }
 
 extern void add_timer_on(struct timer_list *timer, int cpu);
-extern int del_timer(struct timer_list * timer);
+extern int del_timer(struct timer_list *timer);
 extern int mod_timer(struct timer_list *timer, unsigned long expires);
 extern int mod_timer_pending(struct timer_list *timer, unsigned long expires);
 
@@ -207,15 +208,18 @@ extern int timer_stats_active;
 extern void init_timer_stats(void);
 
 extern void timer_stats_update_stats(void *timer, pid_t pid, void *startf,
-				     void *timerf, char *comm, u32 flags);
+									 void *timerf, char *comm, u32 flags);
 
 extern void __timer_stats_timer_set_start_info(struct timer_list *timer,
-					       void *addr);
+		void *addr);
 
 static inline void timer_stats_timer_set_start_info(struct timer_list *timer)
 {
 	if (likely(!timer_stats_active))
+	{
 		return;
+	}
+
 	__timer_stats_timer_set_start_info(timer, __builtin_return_address(0));
 }
 
@@ -242,9 +246,9 @@ extern void add_timer(struct timer_list *timer);
 extern int try_to_del_timer_sync(struct timer_list *timer);
 
 #ifdef CONFIG_SMP
-  extern int del_timer_sync(struct timer_list *timer);
+	extern int del_timer_sync(struct timer_list *timer);
 #else
-# define del_timer_sync(t)		del_timer(t)
+	#define del_timer_sync(t)		del_timer(t)
 #endif
 
 #define del_singleshot_timer_sync(t) del_timer_sync(t)
@@ -259,8 +263,8 @@ extern enum hrtimer_restart it_real_fn(struct hrtimer *);
 
 extern unsigned int sysctl_timer_migration;
 int timer_migration_handler(struct ctl_table *table, int write,
-			    void __user *buffer, size_t *lenp,
-			    loff_t *ppos);
+							void __user *buffer, size_t *lenp,
+							loff_t *ppos);
 #endif
 
 unsigned long __round_jiffies(unsigned long j, int cpu);
@@ -274,9 +278,9 @@ unsigned long round_jiffies_up(unsigned long j);
 unsigned long round_jiffies_up_relative(unsigned long j);
 
 #ifdef CONFIG_HOTPLUG_CPU
-int timers_dead_cpu(unsigned int cpu);
+	int timers_dead_cpu(unsigned int cpu);
 #else
-#define timers_dead_cpu NULL
+	#define timers_dead_cpu NULL
 #endif
 
 #endif

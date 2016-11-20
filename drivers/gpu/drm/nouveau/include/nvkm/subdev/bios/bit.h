@@ -1,6 +1,7 @@
 #ifndef __NVBIOS_BIT_H__
 #define __NVBIOS_BIT_H__
-struct bit_entry {
+struct bit_entry
+{
 	u8  id;
 	u8  version;
 	u16 length;

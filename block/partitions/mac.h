@@ -7,7 +7,8 @@
 /* type field value for A/UX or other Unix partitions */
 #define APPLE_AUX_TYPE	"Apple_UNIX_SVR2"
 
-struct mac_partition {
+struct mac_partition
+{
 	__be16	signature;	/* expected to be MAC_PARTITION_MAGIC */
 	__be16	res1;
 	__be32	map_count;	/* # blocks in partition map */
@@ -34,11 +35,12 @@ struct mac_partition {
 #define MAC_DRIVER_MAGIC	0x4552
 
 /* Driver descriptor structure, in block 0 */
-struct mac_driver_desc {
+struct mac_driver_desc
+{
 	__be16	signature;	/* expected to be MAC_DRIVER_MAGIC */
 	__be16	block_size;
 	__be32	block_count;
-    /* ... more stuff */
+	/* ... more stuff */
 };
 
 int mac_partition(struct parsed_partitions *state);

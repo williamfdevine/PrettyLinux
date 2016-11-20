@@ -38,7 +38,8 @@
 #include "dvb_usb.h"
 #include "dvb_ca_en50221.h"
 
-enum cmd {
+enum cmd
+{
 	CMD_I2C_READ            = 0x33,
 	CMD_I2C_WRITE           = 0x31,
 	CMD_REG_READ            = 0xb0,
@@ -51,16 +52,17 @@ enum cmd {
 	CMD_CI                  = 0x37,
 };
 
-struct anysee_state {
+struct anysee_state
+{
 	u8 buf[64];
 	u8 seq;
 	u8 hw; /* PCB ID */
-	#define ANYSEE_I2C_CLIENT_MAX 1
+#define ANYSEE_I2C_CLIENT_MAX 1
 	struct i2c_client *i2c_client[ANYSEE_I2C_CLIENT_MAX];
-	u8 fe_id:1; /* frondend ID */
-	u8 has_ci:1;
-	u8 has_tda18212:1;
-	u8 ci_attached:1;
+	u8 fe_id: 1; /* frondend ID */
+	u8 has_ci: 1;
+	u8 has_tda18212: 1;
+	u8 ci_attached: 1;
 	struct dvb_ca_en50221 ci;
 	unsigned long ci_cam_ready; /* jiffies */
 };

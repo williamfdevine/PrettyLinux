@@ -20,7 +20,7 @@ Linux HPI ioctl, and shared module init functions
 *******************************************************************************/
 
 int asihpi_adapter_probe(struct pci_dev *pci_dev,
-			 const struct pci_device_id *pci_id);
+						 const struct pci_device_id *pci_id);
 void asihpi_adapter_remove(struct pci_dev *pci_dev);
 void __init asihpi_init(void);
 void __exit asihpi_exit(void);

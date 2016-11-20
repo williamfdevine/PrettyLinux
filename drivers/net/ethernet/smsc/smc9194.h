@@ -162,7 +162,8 @@ typedef unsigned long int 		dword;
 #define CHIP_9195	5
 #define CHIP_91100	7
 
-static const char * chip_ids[ 15 ] =  {
+static const char *chip_ids[ 15 ] =
+{
 	NULL, NULL, NULL,
 	/* 3 */ "SMC91C90/91C92",
 	/* 4 */ "SMC91C94",
@@ -171,7 +172,8 @@ static const char * chip_ids[ 15 ] =  {
 	/* 7 */ "SMC91C100",
 	/* 8 */ "SMC91C100FD",
 	NULL, NULL, NULL,
-	NULL, NULL, NULL};
+	NULL, NULL, NULL
+};
 
 /*
  . Transmit status bits
@@ -192,7 +194,7 @@ static const char * chip_ids[ 15 ] =  {
 #define RS_MULTICAST	0x0001
 #define RS_ERRORS	(RS_ALGNERR | RS_BADCRC | RS_TOOLONG | RS_TOOSHORT)
 
-static const char * interfaces[ 2 ] = { "TP", "AUI" };
+static const char *interfaces[ 2 ] = { "TP", "AUI" };
 
 /*-------------------------------------------------------------------------
  .  I define some macros to make it easier to do somewhat common
@@ -205,8 +207,8 @@ static const char * interfaces[ 2 ] = { "TP", "AUI" };
 
 /* define a small delay for the reset */
 #define SMC_DELAY() { inw( ioaddr + RCR );\
-			inw( ioaddr + RCR );\
-			inw( ioaddr + RCR );  }
+		inw( ioaddr + RCR );\
+		inw( ioaddr + RCR );  }
 
 /* this enables an interrupt in the interrupt mask register */
 #define SMC_ENABLE_INT(x) {\
@@ -215,7 +217,7 @@ static const char * interfaces[ 2 ] = { "TP", "AUI" };
 		mask = inb( ioaddr + INT_MASK );\
 		mask |= (x);\
 		outb( mask, ioaddr + INT_MASK ); \
-}
+	}
 
 /* this disables an interrupt from the interrupt mask register */
 
@@ -225,7 +227,7 @@ static const char * interfaces[ 2 ] = { "TP", "AUI" };
 		mask = inb( ioaddr + INT_MASK );\
 		mask &= ~(x);\
 		outb( mask, ioaddr + INT_MASK ); \
-}
+	}
 
 /*----------------------------------------------------------------------
  . Define the interrupts that I want to receive from the card

@@ -1,10 +1,10 @@
 /* drivers/atm/firestream.h - FireStream 155 (MB86697) and
- *                            FireStream  50 (MB86695) device driver 
+ *                            FireStream  50 (MB86695) device driver
  */
- 
-/* Written & (C) 2000 by R.E.Wolff@BitWizard.nl 
- * Copied snippets from zatm.c by Werner Almesberger, EPFL LRC/ICA 
- * and ambassador.c Copyright (C) 1995-1999  Madge Networks Ltd 
+
+/* Written & (C) 2000 by R.E.Wolff@BitWizard.nl
+ * Copied snippets from zatm.c by Werner Almesberger, EPFL LRC/ICA
+ * and ambassador.c Copyright (C) 1995-1999  Madge Networks Ltd
  */
 
 /*
@@ -42,14 +42,16 @@
 
 
 /* A queue entry. */
-struct FS_QENTRY {
+struct FS_QENTRY
+{
 	u32 cmd;
 	u32 p0, p1, p2;
 };
 
 
 /* A freepool entry. */
-struct FS_BPENTRY {
+struct FS_BPENTRY
+{
 	u32 flags;
 	u32 next;
 	u32 bsa;
@@ -188,7 +190,7 @@ struct FS_BPENTRY {
  */
 
 
-/* And now for something completely different: 
+/* And now for something completely different:
  * The rest of the registers... */
 
 
@@ -229,7 +231,7 @@ struct FS_BPENTRY {
 #define SARMODE0_RXVCS_16k  (0x5 << 8)
 #define SARMODE0_RXVCS_32k  (0x6 << 8)
 #define SARMODE0_RXVCS_64k  (0x7 << 8)
-#define SARMODE0_RXVCS_32   (0x8 << 8) 
+#define SARMODE0_RXVCS_32   (0x8 << 8)
 
 #define SARMODE0_CALSUP_1  (0x0 << 12)
 #define SARMODE0_CALSUP_2  (0x1 << 12)
@@ -370,7 +372,8 @@ struct FS_BPENTRY {
 
 
 
-struct fs_transmit_config {
+struct fs_transmit_config
+{
 	u32 flags;
 	u32 atm_hdr;
 	u32 TMC[4];
@@ -382,7 +385,7 @@ struct fs_transmit_config {
 #define TC_FLAGS_TRANSPARENT_PAYLOAD (0x1 << 29)
 #define TC_FLAGS_TRANSPARENT_CELL    (0x2 << 29)
 #define TC_FLAGS_STREAMING (0x1 << 28)
-#define TC_FLAGS_PACKET    (0x0) 
+#define TC_FLAGS_PACKET    (0x0)
 #define TC_FLAGS_TYPE_ABR  (0x0 << 22)
 #define TC_FLAGS_TYPE_CBR  (0x1 << 22)
 #define TC_FLAGS_TYPE_VBR  (0x2 << 22)
@@ -446,19 +449,22 @@ struct fs_transmit_config {
 #define RXRQ_NENTRIES 1024
 
 
-struct fs_vcc {
+struct fs_vcc
+{
 	int channo;
 	wait_queue_head_t close_wait;
 	struct sk_buff *last_skb;
 };
 
 
-struct queue {
-	struct FS_QENTRY *sa, *ea;  
+struct queue
+{
+	struct FS_QENTRY *sa, *ea;
 	int offset;
 };
 
-struct freepool {
+struct freepool
+{
 	int offset;
 	int bufsize;
 	int nr_buffers;
@@ -466,7 +472,8 @@ struct freepool {
 };
 
 
-struct fs_dev {
+struct fs_dev
+{
 	struct fs_dev *next;		/* other FS devices */
 	int flags;
 
@@ -497,7 +504,7 @@ struct fs_dev {
 #define FS50_CHANNEL_BITS  5
 #define FS50_NR_CHANNELS      (1 << FS50_CHANNEL_BITS)
 
-         
+
 #define FS_DEV(atm_dev) ((struct fs_dev *) (atm_dev)->dev_data)
 #define FS_VCC(atm_vcc) ((struct fs_vcc *) (atm_vcc)->dev_data)
 
@@ -507,7 +514,7 @@ struct fs_dev {
 
 #define IS_FS50(dev)  (dev->flags & FS_IS50)
 #define IS_FS155(dev) (dev->flags & FS_IS155)
- 
+
 /* Within limits this is user-configurable. */
 /* Note: Currently the sum (10 -> 1k channels) is hardcoded in the driver. */
 #define FS155_VPI_BITS 4

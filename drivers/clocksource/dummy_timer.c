@@ -22,8 +22,8 @@ static int dummy_timer_starting_cpu(unsigned int cpu)
 
 	evt->name	= "dummy_timer";
 	evt->features	= CLOCK_EVT_FEAT_PERIODIC |
-			  CLOCK_EVT_FEAT_ONESHOT |
-			  CLOCK_EVT_FEAT_DUMMY;
+					  CLOCK_EVT_FEAT_ONESHOT |
+					  CLOCK_EVT_FEAT_DUMMY;
 	evt->rating	= 100;
 	evt->cpumask	= cpumask_of(cpu);
 
@@ -34,7 +34,7 @@ static int dummy_timer_starting_cpu(unsigned int cpu)
 static int __init dummy_timer_register(void)
 {
 	return cpuhp_setup_state(CPUHP_AP_DUMMY_TIMER_STARTING,
-				 "AP_DUMMY_TIMER_STARTING",
-				 dummy_timer_starting_cpu, NULL);
+							 "AP_DUMMY_TIMER_STARTING",
+							 dummy_timer_starting_cpu, NULL);
 }
 early_initcall(dummy_timer_register);

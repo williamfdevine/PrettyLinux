@@ -21,7 +21,8 @@
 #ifndef __MANTIS_DVB_H
 #define __MANTIS_DVB_H
 
-enum mantis_power {
+enum mantis_power
+{
 	POWER_OFF	= 0,
 	POWER_ON	= 1
 };

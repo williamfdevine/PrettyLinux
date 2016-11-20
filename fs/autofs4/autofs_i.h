@@ -35,7 +35,7 @@
 #include <linux/uaccess.h>
 
 #ifdef pr_fmt
-#undef pr_fmt
+	#undef pr_fmt
 #endif
 #define pr_fmt(fmt) KBUILD_MODNAME ":pid:%d:%s: " fmt, current->pid, __func__
 
@@ -47,7 +47,8 @@
  * dentry level, although the filesystem can interfere in the validation
  * process.  Readdir is implemented by traversing the dentry lists.
  */
-struct autofs_info {
+struct autofs_info
+{
 	struct dentry	*dentry;
 	struct inode	*inode;
 
@@ -79,7 +80,8 @@ struct autofs_info {
 					*/
 #define AUTOFS_INF_PENDING	(1<<2) /* dentry pending mount */
 
-struct autofs_wait_queue {
+struct autofs_wait_queue
+{
 	wait_queue_head_t queue;
 	struct autofs_wait_queue *next;
 	autofs_wqt_t wait_queue_token;
@@ -98,7 +100,8 @@ struct autofs_wait_queue {
 
 #define AUTOFS_SBI_MAGIC 0x6d4a556d
 
-struct autofs_sb_info {
+struct autofs_sb_info
+{
 	u32 magic;
 	int pipefd;
 	struct file *pipe;
@@ -147,18 +150,18 @@ void autofs4_free_ino(struct autofs_info *);
 int is_autofs4_dentry(struct dentry *);
 int autofs4_expire_wait(struct dentry *dentry, int rcu_walk);
 int autofs4_expire_run(struct super_block *, struct vfsmount *,
-		       struct autofs_sb_info *,
-		       struct autofs_packet_expire __user *);
+					   struct autofs_sb_info *,
+					   struct autofs_packet_expire __user *);
 int autofs4_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
-			    struct autofs_sb_info *sbi, int when);
+							struct autofs_sb_info *sbi, int when);
 int autofs4_expire_multi(struct super_block *, struct vfsmount *,
-			 struct autofs_sb_info *, int __user *);
+						 struct autofs_sb_info *, int __user *);
 struct dentry *autofs4_expire_direct(struct super_block *sb,
-				     struct vfsmount *mnt,
-				     struct autofs_sb_info *sbi, int how);
+									 struct vfsmount *mnt,
+									 struct autofs_sb_info *sbi, int how);
 struct dentry *autofs4_expire_indirect(struct super_block *sb,
-				       struct vfsmount *mnt,
-				       struct autofs_sb_info *sbi, int how);
+									   struct vfsmount *mnt,
+									   struct autofs_sb_info *sbi, int how);
 
 /* Device node initialization */
 
@@ -176,7 +179,7 @@ extern const struct dentry_operations autofs4_dentry_operations;
 /* VFS automount flags management functions */
 static inline void __managed_dentry_set_managed(struct dentry *dentry)
 {
-	dentry->d_flags |= (DCACHE_NEED_AUTOMOUNT|DCACHE_MANAGE_TRANSIT);
+	dentry->d_flags |= (DCACHE_NEED_AUTOMOUNT | DCACHE_MANAGE_TRANSIT);
 }
 
 static inline void managed_dentry_set_managed(struct dentry *dentry)
@@ -188,7 +191,7 @@ static inline void managed_dentry_set_managed(struct dentry *dentry)
 
 static inline void __managed_dentry_clear_managed(struct dentry *dentry)
 {
-	dentry->d_flags &= ~(DCACHE_NEED_AUTOMOUNT|DCACHE_MANAGE_TRANSIT);
+	dentry->d_flags &= ~(DCACHE_NEED_AUTOMOUNT | DCACHE_MANAGE_TRANSIT);
 }
 
 static inline void managed_dentry_clear_managed(struct dentry *dentry)
@@ -207,9 +210,15 @@ void autofs4_clean_ino(struct autofs_info *);
 static inline int autofs_prepare_pipe(struct file *pipe)
 {
 	if (!(pipe->f_mode & FMODE_CAN_WRITE))
+	{
 		return -EINVAL;
+	}
+
 	if (!S_ISFIFO(file_inode(pipe)->i_mode))
+	{
 		return -EINVAL;
+	}
+
 	/* We want a packet pipe */
 	pipe->f_flags |= O_DIRECT;
 	return 0;
@@ -236,9 +245,12 @@ static inline void __autofs4_add_expiring(struct dentry *dentry)
 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
 
-	if (ino) {
+	if (ino)
+	{
 		if (list_empty(&ino->expiring))
+		{
 			list_add(&ino->expiring, &sbi->expiring_list);
+		}
 	}
 }
 
@@ -247,10 +259,15 @@ static inline void autofs4_add_expiring(struct dentry *dentry)
 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
 
-	if (ino) {
+	if (ino)
+	{
 		spin_lock(&sbi->lookup_lock);
+
 		if (list_empty(&ino->expiring))
+		{
 			list_add(&ino->expiring, &sbi->expiring_list);
+		}
+
 		spin_unlock(&sbi->lookup_lock);
 	}
 }
@@ -260,10 +277,15 @@ static inline void autofs4_del_expiring(struct dentry *dentry)
 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
 
-	if (ino) {
+	if (ino)
+	{
 		spin_lock(&sbi->lookup_lock);
+
 		if (!list_empty(&ino->expiring))
+		{
 			list_del_init(&ino->expiring);
+		}
+
 		spin_unlock(&sbi->lookup_lock);
 	}
 }

@@ -25,7 +25,8 @@
 #include "fuc/gf100.fuc3.h"
 
 static const struct nvkm_pmu_func
-gf100_pmu = {
+	gf100_pmu =
+{
 	.code.data = gf100_pmu_code,
 	.code.size = sizeof(gf100_pmu_code),
 	.data.data = gf100_pmu_data,

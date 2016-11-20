@@ -29,7 +29,8 @@
 
 #define to_omap_connector(x) container_of(x, struct omap_connector, base)
 
-struct omap_connector {
+struct omap_connector
+{
 	struct drm_connector base;
 	struct omap_dss_device *dssdev;
 	bool hdmi_mode;
@@ -43,7 +44,7 @@ bool omap_connector_get_hdmi_mode(struct drm_connector *connector)
 }
 
 void copy_timings_omap_to_drm(struct drm_display_mode *mode,
-		struct omap_video_timings *timings)
+							  struct omap_video_timings *timings)
 {
 	mode->clock = timings->pixelclock / 1000;
 
@@ -60,24 +61,36 @@ void copy_timings_omap_to_drm(struct drm_display_mode *mode,
 	mode->flags = 0;
 
 	if (timings->interlace)
+	{
 		mode->flags |= DRM_MODE_FLAG_INTERLACE;
+	}
 
 	if (timings->double_pixel)
+	{
 		mode->flags |= DRM_MODE_FLAG_DBLCLK;
+	}
 
 	if (timings->hsync_level == OMAPDSS_SIG_ACTIVE_HIGH)
+	{
 		mode->flags |= DRM_MODE_FLAG_PHSYNC;
+	}
 	else
+	{
 		mode->flags |= DRM_MODE_FLAG_NHSYNC;
+	}
 
 	if (timings->vsync_level == OMAPDSS_SIG_ACTIVE_HIGH)
+	{
 		mode->flags |= DRM_MODE_FLAG_PVSYNC;
+	}
 	else
+	{
 		mode->flags |= DRM_MODE_FLAG_NVSYNC;
+	}
 }
 
 void copy_timings_drm_to_omap(struct omap_video_timings *timings,
-		struct drm_display_mode *mode)
+							  struct drm_display_mode *mode)
 {
 	timings->pixelclock = mode->clock * 1000;
 
@@ -95,14 +108,22 @@ void copy_timings_drm_to_omap(struct omap_video_timings *timings,
 	timings->double_pixel = !!(mode->flags & DRM_MODE_FLAG_DBLCLK);
 
 	if (mode->flags & DRM_MODE_FLAG_PHSYNC)
+	{
 		timings->hsync_level = OMAPDSS_SIG_ACTIVE_HIGH;
+	}
 	else
+	{
 		timings->hsync_level = OMAPDSS_SIG_ACTIVE_LOW;
+	}
 
 	if (mode->flags & DRM_MODE_FLAG_PVSYNC)
+	{
 		timings->vsync_level = OMAPDSS_SIG_ACTIVE_HIGH;
+	}
 	else
+	{
 		timings->vsync_level = OMAPDSS_SIG_ACTIVE_LOW;
+	}
 
 	timings->data_pclk_edge = OMAPDSS_DRIVE_SIG_RISING_EDGE;
 	timings->de_level = OMAPDSS_SIG_ACTIVE_HIGH;
@@ -110,24 +131,33 @@ void copy_timings_drm_to_omap(struct omap_video_timings *timings,
 }
 
 static enum drm_connector_status omap_connector_detect(
-		struct drm_connector *connector, bool force)
+	struct drm_connector *connector, bool force)
 {
 	struct omap_connector *omap_connector = to_omap_connector(connector);
 	struct omap_dss_device *dssdev = omap_connector->dssdev;
 	struct omap_dss_driver *dssdrv = dssdev->driver;
 	enum drm_connector_status ret;
 
-	if (dssdrv->detect) {
+	if (dssdrv->detect)
+	{
 		if (dssdrv->detect(dssdev))
+		{
 			ret = connector_status_connected;
+		}
 		else
+		{
 			ret = connector_status_disconnected;
-	} else if (dssdev->type == OMAP_DISPLAY_TYPE_DPI ||
-			dssdev->type == OMAP_DISPLAY_TYPE_DBI ||
-			dssdev->type == OMAP_DISPLAY_TYPE_SDI ||
-			dssdev->type == OMAP_DISPLAY_TYPE_DSI) {
+		}
+	}
+	else if (dssdev->type == OMAP_DISPLAY_TYPE_DPI ||
+			 dssdev->type == OMAP_DISPLAY_TYPE_DBI ||
+			 dssdev->type == OMAP_DISPLAY_TYPE_SDI ||
+			 dssdev->type == OMAP_DISPLAY_TYPE_DSI)
+	{
 		ret = connector_status_connected;
-	} else {
+	}
+	else
+	{
 		ret = connector_status_unknown;
 	}
 
@@ -166,24 +196,30 @@ static int omap_connector_get_modes(struct drm_connector *connector)
 	 * LCD panels) we just return a single mode corresponding to the
 	 * currently configured timings:
 	 */
-	if (dssdrv->read_edid) {
+	if (dssdrv->read_edid)
+	{
 		void *edid = kzalloc(MAX_EDID, GFP_KERNEL);
 
 		if ((dssdrv->read_edid(dssdev, edid, MAX_EDID) > 0) &&
-				drm_edid_is_valid(edid)) {
+			drm_edid_is_valid(edid))
+		{
 			drm_mode_connector_update_edid_property(
-					connector, edid);
+				connector, edid);
 			n = drm_add_edid_modes(connector, edid);
 
 			omap_connector->hdmi_mode =
 				drm_detect_hdmi_monitor(edid);
-		} else {
+		}
+		else
+		{
 			drm_mode_connector_update_edid_property(
-					connector, NULL);
+				connector, NULL);
 		}
 
 		kfree(edid);
-	} else {
+	}
+	else
+	{
 		struct drm_display_mode *mode = drm_mode_create(dev);
 		struct omap_video_timings timings = {0};
 
@@ -202,7 +238,7 @@ static int omap_connector_get_modes(struct drm_connector *connector)
 }
 
 static int omap_connector_mode_valid(struct drm_connector *connector,
-				 struct drm_display_mode *mode)
+									 struct drm_display_mode *mode)
 {
 	struct omap_connector *omap_connector = to_omap_connector(connector);
 	struct omap_dss_device *dssdev = omap_connector->dssdev;
@@ -220,42 +256,55 @@ static int omap_connector_mode_valid(struct drm_connector *connector,
 	 * a fixed resolution panel, check if the timings match with the
 	 * panel's timings
 	 */
-	if (dssdrv->check_timings) {
+	if (dssdrv->check_timings)
+	{
 		r = dssdrv->check_timings(dssdev, &timings);
-	} else {
+	}
+	else
+	{
 		struct omap_video_timings t = {0};
 
 		dssdrv->get_timings(dssdev, &t);
 
 		if (memcmp(&timings, &t, sizeof(struct omap_video_timings)))
+		{
 			r = -EINVAL;
+		}
 		else
+		{
 			r = 0;
+		}
 	}
 
-	if (!r) {
+	if (!r)
+	{
 		/* check if vrefresh is still valid */
 		new_mode = drm_mode_duplicate(dev, mode);
 		new_mode->clock = timings.pixelclock / 1000;
 		new_mode->vrefresh = 0;
+
 		if (mode->vrefresh == drm_mode_vrefresh(new_mode))
+		{
 			ret = MODE_OK;
+		}
+
 		drm_mode_destroy(dev, new_mode);
 	}
 
 	DBG("connector: mode %s: "
-			"%d:\"%s\" %d %d %d %d %d %d %d %d %d %d 0x%x 0x%x",
-			(ret == MODE_OK) ? "valid" : "invalid",
-			mode->base.id, mode->name, mode->vrefresh, mode->clock,
-			mode->hdisplay, mode->hsync_start,
-			mode->hsync_end, mode->htotal,
-			mode->vdisplay, mode->vsync_start,
-			mode->vsync_end, mode->vtotal, mode->type, mode->flags);
+		"%d:\"%s\" %d %d %d %d %d %d %d %d %d %d 0x%x 0x%x",
+		(ret == MODE_OK) ? "valid" : "invalid",
+		mode->base.id, mode->name, mode->vrefresh, mode->clock,
+		mode->hdisplay, mode->hsync_start,
+		mode->hsync_end, mode->htotal,
+		mode->vdisplay, mode->vsync_start,
+		mode->vsync_end, mode->vtotal, mode->type, mode->flags);
 
 	return ret;
 }
 
-static const struct drm_connector_funcs omap_connector_funcs = {
+static const struct drm_connector_funcs omap_connector_funcs =
+{
 	.dpms = drm_atomic_helper_connector_dpms,
 	.reset = drm_atomic_helper_connector_reset,
 	.detect = omap_connector_detect,
@@ -265,7 +314,8 @@ static const struct drm_connector_funcs omap_connector_funcs = {
 	.atomic_destroy_state = drm_atomic_helper_connector_destroy_state,
 };
 
-static const struct drm_connector_helper_funcs omap_connector_helper_funcs = {
+static const struct drm_connector_helper_funcs omap_connector_helper_funcs =
+{
 	.get_modes = omap_connector_get_modes,
 	.mode_valid = omap_connector_mode_valid,
 };
@@ -283,24 +333,30 @@ struct drm_connector *omap_connector_init(struct drm_device *dev,
 	omap_dss_get_device(dssdev);
 
 	omap_connector = kzalloc(sizeof(struct omap_connector), GFP_KERNEL);
+
 	if (!omap_connector)
+	{
 		goto fail;
+	}
 
 	omap_connector->dssdev = dssdev;
 
 	connector = &omap_connector->base;
 
 	drm_connector_init(dev, connector, &omap_connector_funcs,
-				connector_type);
+					   connector_type);
 	drm_connector_helper_add(connector, &omap_connector_helper_funcs);
 
 #if 0 /* enable when dss2 supports hotplug */
+
 	if (dssdev->caps & OMAP_DSS_DISPLAY_CAP_HPD)
+	{
 		connector->polled = 0;
+	}
 	else
 #endif
 		connector->polled = DRM_CONNECTOR_POLL_CONNECT |
-				DRM_CONNECTOR_POLL_DISCONNECT;
+							DRM_CONNECTOR_POLL_DISCONNECT;
 
 	connector->interlace_allowed = 1;
 	connector->doublescan_allowed = 0;
@@ -310,8 +366,11 @@ struct drm_connector *omap_connector_init(struct drm_device *dev,
 	return connector;
 
 fail:
+
 	if (connector)
+	{
 		omap_connector_destroy(connector);
+	}
 
 	return NULL;
 }

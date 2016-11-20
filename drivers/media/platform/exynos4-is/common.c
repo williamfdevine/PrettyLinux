@@ -19,31 +19,39 @@ struct v4l2_subdev *fimc_find_remote_sensor(struct media_entity *entity)
 	struct media_pad *pad = &entity->pads[0];
 	struct v4l2_subdev *sd;
 
-	while (pad->flags & MEDIA_PAD_FL_SINK) {
+	while (pad->flags & MEDIA_PAD_FL_SINK)
+	{
 		/* source pad */
 		pad = media_entity_remote_pad(pad);
+
 		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+		{
 			break;
+		}
 
 		sd = media_entity_to_v4l2_subdev(pad->entity);
 
 		if (sd->grp_id == GRP_ID_FIMC_IS_SENSOR ||
-		    sd->grp_id == GRP_ID_SENSOR)
+			sd->grp_id == GRP_ID_SENSOR)
+		{
 			return sd;
+		}
+
 		/* sink pad */
 		pad = &sd->entity.pads[0];
 	}
+
 	return NULL;
 }
 EXPORT_SYMBOL(fimc_find_remote_sensor);
 
 void __fimc_vidioc_querycap(struct device *dev, struct v4l2_capability *cap,
-						unsigned int caps)
+							unsigned int caps)
 {
 	strlcpy(cap->driver, dev->driver->name, sizeof(cap->driver));
 	strlcpy(cap->card, dev->driver->name, sizeof(cap->card));
 	snprintf(cap->bus_info, sizeof(cap->bus_info),
-				"platform:%s", dev_name(dev));
+			 "platform:%s", dev_name(dev));
 	cap->device_caps = caps;
 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
 }

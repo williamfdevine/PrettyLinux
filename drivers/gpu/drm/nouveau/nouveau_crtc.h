@@ -29,7 +29,8 @@
 
 #include <nvif/notify.h>
 
-struct nouveau_crtc {
+struct nouveau_crtc
+{
 	struct drm_crtc base;
 
 	int index;
@@ -45,14 +46,16 @@ struct nouveau_crtc {
 
 	int cursor_saved_x, cursor_saved_y;
 
-	struct {
+	struct
+	{
 		int cpp;
 		bool blanked;
 		uint32_t offset;
 		uint32_t handle;
 	} fb;
 
-	struct {
+	struct
+	{
 		struct nouveau_bo *nvbo;
 		bool visible;
 		uint32_t offset;
@@ -62,7 +65,8 @@ struct nouveau_crtc {
 		void (*show)(struct nouveau_crtc *, bool update);
 	} cursor;
 
-	struct {
+	struct
+	{
 		struct nouveau_bo *nvbo;
 		uint16_t r[256];
 		uint16_t g[256];

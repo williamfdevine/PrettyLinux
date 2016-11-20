@@ -12,12 +12,12 @@
 #define _I2C_PXA_H_
 
 #if 0
-#define DEF_TIMEOUT             3
+	#define DEF_TIMEOUT             3
 #else
-/* need a longer timeout if we're dealing with the fact we may well be
- * looking at a multi-master environment
-*/
-#define DEF_TIMEOUT             32
+	/* need a longer timeout if we're dealing with the fact we may well be
+	* looking at a multi-master environment
+	*/
+	#define DEF_TIMEOUT             32
 #endif
 
 #define BUS_ERROR               (-EREMOTEIO)
@@ -61,13 +61,14 @@
 
 struct i2c_slave_client;
 
-struct i2c_pxa_platform_data {
+struct i2c_pxa_platform_data
+{
 	unsigned int		slave_addr;
 	struct i2c_slave_client	*slave;
 	unsigned int		class;
-	unsigned int		use_pio :1;
-	unsigned int		fast_mode :1;
-	unsigned int		high_mode:1;
+	unsigned int		use_pio : 1;
+	unsigned int		fast_mode : 1;
+	unsigned int		high_mode: 1;
 	unsigned char		master_code;
 	unsigned long		rate;
 };
@@ -75,11 +76,11 @@ struct i2c_pxa_platform_data {
 extern void pxa_set_i2c_info(struct i2c_pxa_platform_data *info);
 
 #ifdef CONFIG_PXA27x
-extern void pxa27x_set_i2c_power_info(struct i2c_pxa_platform_data *info);
+	extern void pxa27x_set_i2c_power_info(struct i2c_pxa_platform_data *info);
 #endif
 
 #ifdef CONFIG_PXA3xx
-extern void pxa3xx_set_i2c_power_info(struct i2c_pxa_platform_data *info);
+	extern void pxa3xx_set_i2c_power_info(struct i2c_pxa_platform_data *info);
 #endif
 
 #endif

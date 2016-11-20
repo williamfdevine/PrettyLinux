@@ -58,15 +58,16 @@ struct edid;
 
 static inline int64_t U642I64(uint64_t val)
 {
-	return (int64_t)*((int64_t *)&val);
+	return (int64_t) * ((int64_t *)&val);
 }
 static inline uint64_t I642U64(int64_t val)
 {
-	return (uint64_t)*((uint64_t *)&val);
+	return (uint64_t) * ((uint64_t *)&val);
 }
 
 /* data corresponds to displayid vend/prod/serial */
-struct drm_tile_group {
+struct drm_tile_group
+{
 	struct kref refcount;
 	struct drm_device *dev;
 	int id;
@@ -117,7 +118,8 @@ struct drm_plane_helper_funcs;
  * that a DPMS On will always succeed. In other words: @enable controls resource
  * assignment, @active controls the actual hardware state.
  */
-struct drm_crtc_state {
+struct drm_crtc_state
+{
 	struct drm_crtc *crtc;
 
 	bool enable;
@@ -214,7 +216,8 @@ struct drm_crtc_state {
  * in addition to providing other modesetting features, like i2c and DDC
  * bus accessors.
  */
-struct drm_crtc_funcs {
+struct drm_crtc_funcs
+{
 	/**
 	 * @reset:
 	 *
@@ -249,7 +252,7 @@ struct drm_crtc_funcs {
 	 * 0 on success or a negative error code on failure.
 	 */
 	int (*cursor_set)(struct drm_crtc *crtc, struct drm_file *file_priv,
-			  uint32_t handle, uint32_t width, uint32_t height);
+					  uint32_t handle, uint32_t width, uint32_t height);
 
 	/**
 	 * @cursor_set2:
@@ -271,8 +274,8 @@ struct drm_crtc_funcs {
 	 * 0 on success or a negative error code on failure.
 	 */
 	int (*cursor_set2)(struct drm_crtc *crtc, struct drm_file *file_priv,
-			   uint32_t handle, uint32_t width, uint32_t height,
-			   int32_t hot_x, int32_t hot_y);
+					   uint32_t handle, uint32_t width, uint32_t height,
+					   int32_t hot_x, int32_t hot_y);
 
 	/**
 	 * @cursor_move:
@@ -308,7 +311,7 @@ struct drm_crtc_funcs {
 	 * hooks.
 	 */
 	int (*gamma_set)(struct drm_crtc *crtc, u16 *r, u16 *g, u16 *b,
-			 uint32_t size);
+					 uint32_t size);
 
 	/**
 	 * @destroy:
@@ -389,9 +392,9 @@ struct drm_crtc_funcs {
 	 * drm_atomic_helper_page_flip() checks this already for atomic drivers.
 	 */
 	int (*page_flip)(struct drm_crtc *crtc,
-			 struct drm_framebuffer *fb,
-			 struct drm_pending_vblank_event *event,
-			 uint32_t flags);
+					 struct drm_framebuffer *fb,
+					 struct drm_pending_vblank_event *event,
+					 uint32_t flags);
 
 	/**
 	 * @page_flip_target:
@@ -407,9 +410,9 @@ struct drm_crtc_funcs {
 	 * the flip completes.
 	 */
 	int (*page_flip_target)(struct drm_crtc *crtc,
-				struct drm_framebuffer *fb,
-				struct drm_pending_vblank_event *event,
-				uint32_t flags, uint32_t target);
+							struct drm_framebuffer *fb,
+							struct drm_pending_vblank_event *event,
+							uint32_t flags, uint32_t target);
 
 	/**
 	 * @set_property:
@@ -428,7 +431,7 @@ struct drm_crtc_funcs {
 	 * 0 on success or a negative error code on failure.
 	 */
 	int (*set_property)(struct drm_crtc *crtc,
-			    struct drm_property *property, uint64_t val);
+						struct drm_property *property, uint64_t val);
 
 	/**
 	 * @atomic_duplicate_state:
@@ -468,7 +471,7 @@ struct drm_crtc_funcs {
 	 * or unreference all resources it references
 	 */
 	void (*atomic_destroy_state)(struct drm_crtc *crtc,
-				     struct drm_crtc_state *state);
+								 struct drm_crtc_state *state);
 
 	/**
 	 * @atomic_set_property:
@@ -513,9 +516,9 @@ struct drm_crtc_funcs {
 	 * set when registering the property.
 	 */
 	int (*atomic_set_property)(struct drm_crtc *crtc,
-				   struct drm_crtc_state *state,
-				   struct drm_property *property,
-				   uint64_t val);
+							   struct drm_crtc_state *state,
+							   struct drm_property *property,
+							   uint64_t val);
 	/**
 	 * @atomic_get_property:
 	 *
@@ -535,9 +538,9 @@ struct drm_crtc_funcs {
 	 * properties attached to this CRTC).
 	 */
 	int (*atomic_get_property)(struct drm_crtc *crtc,
-				   const struct drm_crtc_state *state,
-				   struct drm_property *property,
-				   uint64_t *val);
+							   const struct drm_crtc_state *state,
+							   struct drm_property *property,
+							   uint64_t *val);
 
 	/**
 	 * @late_register:
@@ -592,7 +595,8 @@ struct drm_crtc_funcs {
  * Each CRTC may have one or more connectors associated with it.  This structure
  * allows the CRTC to be controlled.
  */
-struct drm_crtc {
+struct drm_crtc
+{
 	struct drm_device *dev;
 	struct device_node *port;
 	struct list_head head;
@@ -697,7 +701,8 @@ struct drm_crtc {
  *
  * This is used to set modes.
  */
-struct drm_mode_set {
+struct drm_mode_set
+{
 	struct drm_framebuffer *fb;
 	struct drm_crtc *crtc;
 	struct drm_display_mode *mode;
@@ -715,7 +720,8 @@ struct drm_mode_set {
  * Some global (i.e. not per-CRTC, connector, etc) mode setting functions that
  * involve drivers.
  */
-struct drm_mode_config_funcs {
+struct drm_mode_config_funcs
+{
 	/**
 	 * @fb_create:
 	 *
@@ -740,8 +746,8 @@ struct drm_mode_config_funcs {
 	 * error code encoded with ERR_PTR().
 	 */
 	struct drm_framebuffer *(*fb_create)(struct drm_device *dev,
-					     struct drm_file *file_priv,
-					     const struct drm_mode_fb_cmd2 *mode_cmd);
+										 struct drm_file *file_priv,
+										 const struct drm_mode_fb_cmd2 *mode_cmd);
 
 	/**
 	 * @output_poll_changed:
@@ -835,7 +841,7 @@ struct drm_mode_config_funcs {
 	 *    treated equally.
 	 */
 	int (*atomic_check)(struct drm_device *dev,
-			    struct drm_atomic_state *state);
+						struct drm_atomic_state *state);
 
 	/**
 	 * @atomic_commit:
@@ -917,8 +923,8 @@ struct drm_mode_config_funcs {
 	 * additional modeset locks).
 	 */
 	int (*atomic_commit)(struct drm_device *dev,
-			     struct drm_atomic_state *state,
-			     bool nonblock);
+						 struct drm_atomic_state *state,
+						 bool nonblock);
 
 	/**
 	 * @atomic_state_alloc:
@@ -1005,7 +1011,8 @@ struct drm_mode_config_funcs {
  * enumerated by the driver are added here, as are global properties.  Some
  * global restrictions are also here, e.g. dimension restrictions.
  */
-struct drm_mode_config {
+struct drm_mode_config
+{
 	struct mutex mutex; /* protects configuration (mode lists etc.) */
 	struct drm_modeset_lock connection_mutex; /* protects connector->encoder and encoder->crtc links */
 	struct drm_modeset_acquire_ctx *acquire_ctx; /* for legacy _lock_all() / _unlock_all() */
@@ -1328,11 +1335,11 @@ struct drm_mode_config {
 
 extern __printf(6, 7)
 int drm_crtc_init_with_planes(struct drm_device *dev,
-			      struct drm_crtc *crtc,
-			      struct drm_plane *primary,
-			      struct drm_plane *cursor,
-			      const struct drm_crtc_funcs *funcs,
-			      const char *name, ...);
+							  struct drm_crtc *crtc,
+							  struct drm_plane *primary,
+							  struct drm_plane *cursor,
+							  const struct drm_crtc_funcs *funcs,
+							  const char *name, ...);
 extern void drm_crtc_cleanup(struct drm_crtc *crtc);
 
 /**
@@ -1360,7 +1367,7 @@ static inline uint32_t drm_crtc_mask(struct drm_crtc *crtc)
 }
 
 extern void drm_crtc_get_hv_timing(const struct drm_display_mode *mode,
-				   int *hdisplay, int *vdisplay);
+								   int *hdisplay, int *vdisplay);
 extern int drm_crtc_force_disable(struct drm_crtc *crtc);
 extern int drm_crtc_force_disable_all(struct drm_device *dev);
 
@@ -1371,15 +1378,15 @@ extern void drm_mode_config_cleanup(struct drm_device *dev);
 extern int drm_mode_set_config_internal(struct drm_mode_set *set);
 
 extern struct drm_tile_group *drm_mode_create_tile_group(struct drm_device *dev,
-							 char topology[8]);
+		char topology[8]);
 extern struct drm_tile_group *drm_mode_get_tile_group(struct drm_device *dev,
-					       char topology[8]);
+		char topology[8]);
 extern void drm_mode_put_tile_group(struct drm_device *dev,
-				   struct drm_tile_group *tg);
+									struct drm_tile_group *tg);
 
 /* Helpers */
 static inline struct drm_crtc *drm_crtc_find(struct drm_device *dev,
-	uint32_t id)
+		uint32_t id)
 {
 	struct drm_mode_object *mo;
 	mo = drm_mode_object_find(dev, id, DRM_MODE_OBJECT_CRTC);
@@ -1400,7 +1407,7 @@ assert_drm_connector_list_read_locked(struct drm_mode_config *mode_config)
 	 * WARN_ON(not_holding(A) && not_holding(B)).
 	 */
 	WARN_ON(!mutex_is_locked(&mode_config->mutex) &&
-		!drm_modeset_is_locked(&mode_config->connection_mutex));
+			!drm_modeset_is_locked(&mode_config->connection_mutex));
 }
 
 #endif /* __DRM_CRTC_H__ */

@@ -36,11 +36,12 @@
 #define ROM48(x) ({ u8 *p = &(x); (u64)ROM16(p[4]) << 32 | ROM32(p[0]); })
 #define ROM64(x) le64_to_cpu(*(u64 *)&(x))
 #define ROMPTR(d,x) ({            \
-	struct nouveau_drm *drm = nouveau_drm((d)); \
-	ROM16(x) ? &drm->vbios.data[ROM16(x)] : NULL; \
-})
+		struct nouveau_drm *drm = nouveau_drm((d)); \
+		ROM16(x) ? &drm->vbios.data[ROM16(x)] : NULL; \
+	})
 
-struct bit_entry {
+struct bit_entry
+{
 	uint8_t  id;
 	uint8_t  version;
 	uint16_t length;
@@ -53,19 +54,22 @@ int bit_table(struct drm_device *, u8 id, struct bit_entry *);
 #include <subdev/bios/dcb.h>
 #include <subdev/bios/conn.h>
 
-struct dcb_table {
+struct dcb_table
+{
 	uint8_t version;
 	int entries;
 	struct dcb_output entry[DCB_MAX_NUM_ENTRIES];
 };
 
-enum nouveau_or {
+enum nouveau_or
+{
 	DCB_OUTPUT_A = (1 << 0),
 	DCB_OUTPUT_B = (1 << 1),
 	DCB_OUTPUT_C = (1 << 2)
 };
 
-enum LVDS_script {
+enum LVDS_script
+{
 	/* Order *does* matter here */
 	LVDS_INIT = 1,
 	LVDS_RESET,
@@ -75,9 +79,11 @@ enum LVDS_script {
 	LVDS_PANEL_OFF
 };
 
-struct nvbios {
+struct nvbios
+{
 	struct drm_device *dev;
-	enum {
+	enum
+	{
 		NVBIOS_BMP,
 		NVBIOS_BIT
 	} type;
@@ -111,11 +117,13 @@ struct nvbios {
 
 	struct dcb_table dcb;
 
-	struct {
+	struct
+	{
 		int crtchead;
 	} state;
 
-	struct {
+	struct
+	{
 		uint16_t fptablepointer;	/* also used by tmds */
 		uint16_t fpxlatetableptr;
 		int xlatwidth;
@@ -137,17 +145,20 @@ struct nvbios {
 		bool lvds_init_run;
 	} fp;
 
-	struct {
+	struct
+	{
 		uint16_t output0_script_ptr;
 		uint16_t output1_script_ptr;
 	} tmds;
 
-	struct {
+	struct
+	{
 		uint16_t mem_init_tbl_ptr;
 		uint16_t sdr_seq_tbl_ptr;
 		uint16_t ddr_seq_tbl_ptr;
 
-		struct {
+		struct
+		{
 			uint8_t crt, tv, panel;
 		} i2c_indices;
 
@@ -158,7 +169,7 @@ struct nvbios {
 void *olddcb_table(struct drm_device *);
 void *olddcb_outp(struct drm_device *, u8 idx);
 int olddcb_outp_foreach(struct drm_device *, void *data,
-		     int (*)(struct drm_device *, void *, int idx, u8 *outp));
+						int (*)(struct drm_device *, void *, int idx, u8 *outp));
 u8 *olddcb_conntab(struct drm_device *);
 u8 *olddcb_conn(struct drm_device *, u8 idx);
 
@@ -170,10 +181,10 @@ nouveau_bios_connector_entry(struct drm_device *, int index);
 bool nouveau_bios_fp_mode(struct drm_device *, struct drm_display_mode *);
 uint8_t *nouveau_bios_embedded_edid(struct drm_device *);
 int nouveau_bios_parse_lvds_table(struct drm_device *, int pxclk,
-					 bool *dl, bool *if_is_24bit);
+								  bool *dl, bool *if_is_24bit);
 int run_tmds_table(struct drm_device *, struct dcb_output *,
-			  int head, int pxclk);
+				   int head, int pxclk);
 int call_lvds_script(struct drm_device *, struct dcb_output *, int head,
-			    enum LVDS_script, int pxclk);
+					 enum LVDS_script, int pxclk);
 
 #endif

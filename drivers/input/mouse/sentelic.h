@@ -104,7 +104,8 @@
 
 #ifdef __KERNEL__
 
-struct fsp_data {
+struct fsp_data
+{
 	unsigned char	ver;		/* hardware version */
 	unsigned char	rev;		/* hardware revison */
 	unsigned int	buttons;	/* Number of buttons */

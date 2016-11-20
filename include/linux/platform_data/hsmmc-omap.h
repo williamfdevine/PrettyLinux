@@ -28,13 +28,15 @@
 #define OMAP_HSMMC_BROKEN_MULTIBLOCK_READ	BIT(1)
 #define OMAP_HSMMC_SWAKEUP_MISSING		BIT(2)
 
-struct omap_hsmmc_dev_attr {
+struct omap_hsmmc_dev_attr
+{
 	u8 flags;
 };
 
 struct mmc_card;
 
-struct omap_hsmmc_platform_data {
+struct omap_hsmmc_platform_data
+{
 	/* back-link to device */
 	struct device *dev;
 
@@ -56,13 +58,13 @@ struct omap_hsmmc_platform_data {
 	u32 pm_caps;	/* PM capabilities of the mmc */
 
 	/* use the internal clock */
-	unsigned internal_clock:1;
+	unsigned internal_clock: 1;
 
 	/* nonremovable e.g. eMMC */
-	unsigned nonremovable:1;
+	unsigned nonremovable: 1;
 
 	/* eMMC does not handle power off when not in sleep state */
-	unsigned no_regulator_off_init:1;
+	unsigned no_regulator_off_init: 1;
 
 	/* we can put the features above into this variable */
 #define HSMMC_HAS_PBIAS		(1 << 0)

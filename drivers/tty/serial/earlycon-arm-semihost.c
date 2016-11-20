@@ -24,9 +24,9 @@
 #include <linux/serial_core.h>
 
 #ifdef CONFIG_THUMB2_KERNEL
-#define SEMIHOST_SWI	"0xab"
+	#define SEMIHOST_SWI	"0xab"
 #else
-#define SEMIHOST_SWI	"0x123456"
+	#define SEMIHOST_SWI	"0x123456"
 #endif
 
 /*
@@ -36,14 +36,14 @@ static void smh_putc(struct uart_port *port, int c)
 {
 #ifdef CONFIG_ARM64
 	asm volatile("mov  x1, %0\n"
-		     "mov  x0, #3\n"
-		     "hlt  0xf000\n"
-		     : : "r" (&c) : "x0", "x1", "memory");
+				 "mov  x0, #3\n"
+				 "hlt  0xf000\n"
+				 : : "r" (&c) : "x0", "x1", "memory");
 #else
 	asm volatile("mov  r1, %0\n"
-		     "mov  r0, #3\n"
-		     "svc  " SEMIHOST_SWI "\n"
-		     : : "r" (&c) : "r0", "r1", "memory");
+				 "mov  r0, #3\n"
+				 "svc  " SEMIHOST_SWI "\n"
+				 : : "r" (&c) : "r0", "r1", "memory");
 #endif
 }
 

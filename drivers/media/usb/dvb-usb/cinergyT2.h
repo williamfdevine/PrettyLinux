@@ -51,7 +51,8 @@ extern int dvb_usb_cinergyt2_debug;
 
 
 
-enum cinergyt2_ep1_cmd {
+enum cinergyt2_ep1_cmd
+{
 	CINERGYT2_EP1_PID_TABLE_RESET		= 0x01,
 	CINERGYT2_EP1_PID_SETUP			= 0x02,
 	CINERGYT2_EP1_CONTROL_STREAM_TRANSFER	= 0x03,
@@ -65,7 +66,8 @@ enum cinergyt2_ep1_cmd {
 };
 
 
-struct dvbt_get_status_msg {
+struct dvbt_get_status_msg
+{
 	uint32_t freq;
 	uint8_t bandwidth;
 	uint16_t tps;
@@ -80,7 +82,8 @@ struct dvbt_get_status_msg {
 } __attribute__((packed));
 
 
-struct dvbt_set_parameters_msg {
+struct dvbt_set_parameters_msg
+{
 	uint8_t cmd;
 	__le32 freq;
 	uint8_t bandwidth;

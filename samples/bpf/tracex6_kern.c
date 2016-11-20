@@ -3,7 +3,8 @@
 #include <uapi/linux/bpf.h>
 #include "bpf_helpers.h"
 
-struct bpf_map_def SEC("maps") my_map = {
+struct bpf_map_def SEC("maps") my_map =
+{
 	.type = BPF_MAP_TYPE_PERF_EVENT_ARRAY,
 	.key_size = sizeof(int),
 	.value_size = sizeof(u32),

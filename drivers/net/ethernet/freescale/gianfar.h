@@ -46,12 +46,14 @@
 #include <linux/workqueue.h>
 #include <linux/ethtool.h>
 
-struct ethtool_flow_spec_container {
+struct ethtool_flow_spec_container
+{
 	struct ethtool_rx_flow_spec fs;
 	struct list_head list;
 };
 
-struct ethtool_rx_list {
+struct ethtool_rx_list
+{
 	struct list_head list;
 	unsigned int count;
 };
@@ -103,7 +105,7 @@ extern const char gfar_driver_version[];
 /* prevent fragmenation by HW in DSA environments */
 #define GFAR_RXB_SIZE roundup(1536 + 8, 64)
 #define GFAR_SKBFRAG_SIZE (RXBUF_ALIGNMENT + GFAR_RXB_SIZE \
-			  + SKB_DATA_ALIGN(sizeof(struct skb_shared_info)))
+						   + SKB_DATA_ALIGN(sizeof(struct skb_shared_info)))
 #define GFAR_RXB_TRUESIZE 2048
 
 #define TX_RING_MOD_MASK(size) (size-1)
@@ -144,11 +146,11 @@ extern const char gfar_driver_version[];
 #define DEFAULT_RXCOUNT	0
 
 #define GFAR_SUPPORTED (SUPPORTED_10baseT_Half \
-		| SUPPORTED_10baseT_Full \
-		| SUPPORTED_100baseT_Half \
-		| SUPPORTED_100baseT_Full \
-		| SUPPORTED_Autoneg \
-		| SUPPORTED_MII)
+						| SUPPORTED_10baseT_Full \
+						| SUPPORTED_100baseT_Half \
+						| SUPPORTED_100baseT_Full \
+						| SUPPORTED_Autoneg \
+						| SUPPORTED_MII)
 
 #define GFAR_SUPPORTED_GBIT SUPPORTED_1000baseT_Full
 
@@ -261,18 +263,18 @@ extern const char gfar_driver_version[];
 #define mk_ic_ictt(x)		(x&IC_ICTT_MASK)
 
 #define mk_ic_value(count, time) (IC_ICEN | \
-				mk_ic_icft(count) | \
-				mk_ic_ictt(time))
+								  mk_ic_icft(count) | \
+								  mk_ic_ictt(time))
 #define get_icft_value(ic)	(((unsigned long)ic & IC_ICFT_MASK) >> \
-				 IC_ICFT_SHIFT)
+							 IC_ICFT_SHIFT)
 #define get_ictt_value(ic)	((unsigned long)ic & IC_ICTT_MASK)
 
 #define DEFAULT_TXIC mk_ic_value(DEFAULT_TXCOUNT, DEFAULT_TXTIME)
 #define DEFAULT_RXIC mk_ic_value(DEFAULT_RXCOUNT, DEFAULT_RXTIME)
 
 #define skip_bd(bdp, stride, base, ring_size) ({ \
-	typeof(bdp) new_bd = (bdp) + (stride); \
-	(new_bd >= (base) + (ring_size)) ? (new_bd - (ring_size)) : new_bd; })
+		typeof(bdp) new_bd = (bdp) + (stride); \
+		(new_bd >= (base) + (ring_size)) ? (new_bd - (ring_size)) : new_bd; })
 
 #define next_bd(bdp, base, ring_size) skip_bd(bdp, 1, base, ring_size)
 
@@ -290,9 +292,9 @@ extern const char gfar_driver_version[];
 #define RCTRL_PROM		0x00000008
 #define RCTRL_EMEN		0x00000002
 #define RCTRL_REQ_PARSER	(RCTRL_VLEX | RCTRL_IPCSEN | \
-				 RCTRL_TUCSEN | RCTRL_FILREN)
+							 RCTRL_TUCSEN | RCTRL_FILREN)
 #define RCTRL_CHECKSUMMING	(RCTRL_IPCSEN | RCTRL_TUCSEN | \
-				RCTRL_PRSDEP_INIT)
+							 RCTRL_PRSDEP_INIT)
 #define RCTRL_EXTHASH		(RCTRL_GHTX)
 #define RCTRL_VLAN		(RCTRL_PRSDEP_INIT)
 #define RCTRL_PADDING(x)	((x << 16) & RCTRL_PAL_MASK)
@@ -350,10 +352,10 @@ extern const char gfar_driver_version[];
 #define IEVENT_TX_MASK          (IEVENT_TXB | IEVENT_TXF)
 #define IEVENT_RTX_MASK         (IEVENT_RX_MASK | IEVENT_TX_MASK)
 #define IEVENT_ERR_MASK         \
-(IEVENT_RXC | IEVENT_BSY | IEVENT_EBERR | IEVENT_MSRO | \
- IEVENT_BABT | IEVENT_TXC | IEVENT_TXE | IEVENT_LC \
- | IEVENT_CRL | IEVENT_XFUN | IEVENT_DPE | IEVENT_PERR \
- | IEVENT_MAG | IEVENT_BABR)
+	(IEVENT_RXC | IEVENT_BSY | IEVENT_EBERR | IEVENT_MSRO | \
+	 IEVENT_BABT | IEVENT_TXC | IEVENT_TXE | IEVENT_LC \
+	 | IEVENT_CRL | IEVENT_XFUN | IEVENT_DPE | IEVENT_PERR \
+	 | IEVENT_MAG | IEVENT_BABR)
 
 #define IMASK_INIT_CLEAR	0x00000000
 #define IMASK_BABR              0x80000000
@@ -380,9 +382,9 @@ extern const char gfar_driver_version[];
 #define IMASK_DPE		0x00000002
 #define IMASK_PERR		0x00000001
 #define IMASK_DEFAULT  (IMASK_TXEEN | IMASK_TXFEN | IMASK_TXBEN | \
-		IMASK_RXFEN0 | IMASK_BSY | IMASK_EBERR | IMASK_BABR | \
-		IMASK_XFUN | IMASK_RXC | IMASK_BABT | IMASK_DPE \
-		| IMASK_PERR)
+						IMASK_RXFEN0 | IMASK_BSY | IMASK_EBERR | IMASK_BABR | \
+						IMASK_XFUN | IMASK_RXC | IMASK_BABT | IMASK_DPE \
+						| IMASK_PERR)
 #define IMASK_RX_DEFAULT (IMASK_RXFEN0 | IMASK_BSY)
 #define IMASK_TX_DEFAULT (IMASK_TXFEN | IMASK_TXBEN)
 
@@ -525,8 +527,8 @@ extern const char gfar_driver_version[];
 #define RXBD_TRUNCATED		0x0001
 #define RXBD_STATS		0x01ff
 #define RXBD_ERR		(RXBD_LARGE | RXBD_SHORT | RXBD_NONOCTET 	\
-				| RXBD_CRCERR | RXBD_OVERRUN			\
-				| RXBD_TRUNCATED)
+						 | RXBD_CRCERR | RXBD_OVERRUN			\
+						 | RXBD_TRUNCATED)
 
 /* Rx FCB status field bits */
 #define RXFCB_VLN		0x8000
@@ -548,8 +550,10 @@ extern const char gfar_driver_version[];
 
 struct txbd8
 {
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__be16	status;	/* Status Fields */
 			__be16	length;	/* Buffer length */
 		};
@@ -558,7 +562,8 @@ struct txbd8
 	__be32	bufPtr;	/* Buffer Pointer */
 };
 
-struct txfcb {
+struct txfcb
+{
 	u8	flags;
 	u8	ptp;    /* Flag to enable tx timestamping */
 	u8	l4os;	/* Level 4 Header Offset */
@@ -569,8 +574,10 @@ struct txfcb {
 
 struct rxbd8
 {
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__be16	status;	/* Status Fields */
 			__be16	length;	/* Buffer Length */
 		};
@@ -579,7 +586,8 @@ struct rxbd8
 	__be32	bufPtr;	/* Buffer Pointer */
 };
 
-struct rxfcb {
+struct rxfcb
+{
 	__be16	flags;
 	u8	rq;	/* Receive Queue index */
 	u8	pro;	/* Layer 4 Protocol */
@@ -587,7 +595,8 @@ struct rxfcb {
 	__be16	vlctl;	/* VLAN control word */
 };
 
-struct gianfar_skb_cb {
+struct gianfar_skb_cb
+{
 	unsigned int bytes_sent; /* bytes-on-wire (i.e. no FCB) */
 };
 
@@ -645,7 +654,8 @@ struct rmon_mib
 	u32	cam2;	/* 0x.73c - Carry Mask Register Two */
 };
 
-struct gfar_extra_stats {
+struct gfar_extra_stats
+{
 	atomic64_t rx_alloc_err;
 	atomic64_t rx_large;
 	atomic64_t rx_short;
@@ -668,7 +678,8 @@ struct gfar_extra_stats {
 /* Number of stats exported via ethtool */
 #define GFAR_STATS_LEN (GFAR_RMON_LEN + GFAR_EXTRA_STATS_LEN)
 
-struct gfar {
+struct gfar
+{
 	u32	tsec_id;	/* 0x.000 - Controller ID register */
 	u32	tsec_id2;	/* 0x.004 - Controller ID2 register */
 	u8	res1[8];
@@ -927,9 +938,9 @@ struct gfar {
 #define FSL_GIANFAR_DEV_HAS_RX_FILER		0x00002000
 
 #if (MAXGROUPS == 2)
-#define DEFAULT_MAPPING 	0xAA
+	#define DEFAULT_MAPPING 	0xAA
 #else
-#define DEFAULT_MAPPING 	0xFF
+	#define DEFAULT_MAPPING 	0xFF
 #endif
 
 #define ISRG_RR0	0x80000000
@@ -940,7 +951,8 @@ struct gfar {
  * 		(Backward compatible mode)
  * MQ_MG_MODE: Multi Queue Multi Group mode
  */
-enum {
+enum
+{
 	SQ_SG_MODE = 0,
 	MQ_MG_MODE
 };
@@ -956,7 +968,8 @@ enum {
  *	the 2 interrupt groups. This mode implies significant
  *	processing overhead (CPU and controller level).
  */
-enum gfar_poll_mode {
+enum gfar_poll_mode
+{
 	GFAR_SQ_POLLING = 0,
 	GFAR_MQ_POLLING
 };
@@ -964,7 +977,8 @@ enum gfar_poll_mode {
 /*
  * Per TX queue stats
  */
-struct tx_q_stats {
+struct tx_q_stats
+{
 	unsigned long tx_packets;
 	unsigned long tx_bytes;
 };
@@ -989,7 +1003,8 @@ struct tx_q_stats {
  *	@txcount: coalescing value if based on tx frame count
  *	@txtime: coalescing value if based on time
  */
-struct gfar_priv_tx_q {
+struct gfar_priv_tx_q
+{
 	/* cacheline 1 */
 	spinlock_t txlock __attribute__ ((aligned (SMP_CACHE_BYTES)));
 	struct	txbd8 *tx_bd_base;
@@ -1014,13 +1029,15 @@ struct gfar_priv_tx_q {
 /*
  * Per RX queue stats
  */
-struct rx_q_stats {
+struct rx_q_stats
+{
 	unsigned long rx_packets;
 	unsigned long rx_bytes;
 	unsigned long rx_dropped;
 };
 
-struct gfar_rx_buff {
+struct gfar_rx_buff
+{
 	dma_addr_t dma;
 	struct page *page;
 	unsigned int page_offset;
@@ -1039,7 +1056,8 @@ struct gfar_rx_buff {
  *	@rxic: receive interrupt coalescing vlaue
  */
 
-struct gfar_priv_rx_q {
+struct gfar_priv_rx_q
+{
 	struct	gfar_rx_buff *rx_buff __aligned(SMP_CACHE_BYTES);
 	struct	rxbd8 *rx_bd_base;
 	struct	net_device *ndev;
@@ -1058,14 +1076,16 @@ struct gfar_priv_rx_q {
 	dma_addr_t rx_bd_dma_base;
 };
 
-enum gfar_irqinfo_id {
+enum gfar_irqinfo_id
+{
 	GFAR_TX = 0,
 	GFAR_RX = 1,
 	GFAR_ER = 2,
 	GFAR_NUM_IRQS = 3
 };
 
-struct gfar_irqinfo {
+struct gfar_irqinfo
+{
 	unsigned int irq;
 	char name[GFAR_INT_NAME_MAX];
 };
@@ -1078,7 +1098,8 @@ struct gfar_irqinfo {
  *	@irqinfo: TX/RX/ER irq data for this group
  */
 
-struct gfar_priv_grp {
+struct gfar_priv_grp
+{
 	spinlock_t grplock __aligned(SMP_CACHE_BYTES);
 	struct	napi_struct napi_rx;
 	struct	napi_struct napi_tx;
@@ -1100,14 +1121,16 @@ struct gfar_priv_grp {
 #define gfar_irq(grp, ID) \
 	((grp)->irqinfo[GFAR_##ID])
 
-enum gfar_errata {
+enum gfar_errata
+{
 	GFAR_ERRATA_74		= 0x01,
 	GFAR_ERRATA_76		= 0x02,
 	GFAR_ERRATA_A002	= 0x04,
 	GFAR_ERRATA_12		= 0x08, /* a.k.a errata eTSEC49 */
 };
 
-enum gfar_dev_state {
+enum gfar_dev_state
+{
 	GFAR_DOWN = 1,
 	GFAR_RESETTING
 };
@@ -1121,7 +1144,8 @@ enum gfar_dev_state {
  * empty and completely full conditions.  The empty/ready indicator in
  * the buffer descriptor determines the actual condition.
  */
-struct gfar_private {
+struct gfar_private
+{
 	struct device *dev;
 	struct net_device *ndev;
 	enum gfar_errata errata;
@@ -1165,15 +1189,15 @@ struct gfar_private {
 
 	struct platform_device *ofdev;
 	unsigned char
-		extended_hash:1,
-		bd_stash_en:1,
-		rx_filer_enable:1,
-		/* Enable priorty based Tx scheduling in Hw */
-		prio_sched_en:1,
-		/* Flow control flags */
-		pause_aneg_en:1,
-		tx_pause_en:1,
-		rx_pause_en:1;
+	extended_hash: 1,
+				   bd_stash_en: 1,
+				   rx_filer_enable: 1,
+				   /* Enable priorty based Tx scheduling in Hw */
+				   prio_sched_en: 1,
+				   /* Flow control flags */
+				   pause_aneg_en: 1,
+				   tx_pause_en: 1,
+				   rx_pause_en: 1;
 
 	/* The total tx and rx ring size for the enabled queues */
 	unsigned int total_tx_ring_size;
@@ -1207,7 +1231,7 @@ struct gfar_private {
 
 
 static inline int gfar_has_errata(struct gfar_private *priv,
-				  enum gfar_errata err)
+								  enum gfar_errata err)
 {
 	return priv->errata & err;
 }
@@ -1225,7 +1249,7 @@ static inline void gfar_write(unsigned __iomem *addr, u32 val)
 }
 
 static inline void gfar_write_filer(struct gfar_private *priv,
-		unsigned int far, unsigned int fcr, unsigned int fpr)
+									unsigned int far, unsigned int fcr, unsigned int fpr)
 {
 	struct gfar __iomem *regs = priv->gfargrp[0].regs;
 
@@ -1235,7 +1259,7 @@ static inline void gfar_write_filer(struct gfar_private *priv,
 }
 
 static inline void gfar_read_filer(struct gfar_private *priv,
-		unsigned int far, unsigned int *fcr, unsigned int *fpr)
+								   unsigned int far, unsigned int *fcr, unsigned int *fpr)
 {
 	struct gfar __iomem *regs = priv->gfargrp[0].regs;
 
@@ -1251,14 +1275,17 @@ static inline void gfar_write_isrg(struct gfar_private *priv)
 	u32 isrg = 0;
 	int grp_idx, i;
 
-	for (grp_idx = 0; grp_idx < priv->num_grps; grp_idx++) {
+	for (grp_idx = 0; grp_idx < priv->num_grps; grp_idx++)
+	{
 		struct gfar_priv_grp *grp = &priv->gfargrp[grp_idx];
 
-		for_each_set_bit(i, &grp->rx_bit_map, priv->num_rx_queues) {
+		for_each_set_bit(i, &grp->rx_bit_map, priv->num_rx_queues)
+		{
 			isrg |= (ISRG_RR0 >> i);
 		}
 
-		for_each_set_bit(i, &grp->tx_bit_map, priv->num_tx_queues) {
+		for_each_set_bit(i, &grp->tx_bit_map, priv->num_tx_queues)
+		{
 			isrg |= (ISRG_TR0 >> i);
 		}
 
@@ -1274,7 +1301,7 @@ static inline int gfar_is_dma_stopped(struct gfar_private *priv)
 	struct gfar __iomem *regs = priv->gfargrp[0].regs;
 
 	return ((gfar_read(&regs->ievent) & (IEVENT_GRSC | IEVENT_GTSC)) ==
-	       (IEVENT_GRSC | IEVENT_GTSC));
+			(IEVENT_GRSC | IEVENT_GTSC));
 }
 
 static inline int gfar_is_rx_dma_stopped(struct gfar_private *priv)
@@ -1311,7 +1338,9 @@ static inline void gfar_clear_txbd_status(struct txbd8 *bdp)
 static inline int gfar_rxbd_unused(struct gfar_priv_rx_q *rxq)
 {
 	if (rxq->next_to_clean > rxq->next_to_use)
+	{
 		return rxq->next_to_clean - rxq->next_to_use - 1;
+	}
 
 	return rxq->rx_ring_size + rxq->next_to_clean - rxq->next_to_use - 1;
 }
@@ -1338,7 +1367,7 @@ void gfar_mac_reset(struct gfar_private *priv);
 void gfar_halt(struct gfar_private *priv);
 void gfar_start(struct gfar_private *priv);
 void gfar_phy_test(struct mii_bus *bus, struct phy_device *phydev, int enable,
-		   u32 regnum, u32 read);
+				   u32 regnum, u32 read);
 void gfar_configure_coalescing_all(struct gfar_private *priv);
 int gfar_set_features(struct net_device *dev, netdev_features_t features);
 
@@ -1352,7 +1381,8 @@ extern const struct ethtool_ops gfar_ethtool_ops;
 #define RQFCR_PID_PORT_MASK 0xFFFF0000
 #define RQFCR_PID_MAC_MASK 0xFF000000
 
-struct gfar_mask_entry {
+struct gfar_mask_entry
+{
 	unsigned int mask; /* The mask value which is valid form start to end */
 	unsigned int start;
 	unsigned int end;
@@ -1360,14 +1390,16 @@ struct gfar_mask_entry {
 };
 
 /* Represents a receive filer table entry */
-struct gfar_filer_entry {
+struct gfar_filer_entry
+{
 	u32 ctrl;
 	u32 prop;
 };
 
 
 /* The 20 additional entries are a shadow for one extra element */
-struct filer_table {
+struct filer_table
+{
 	u32 index;
 	struct gfar_filer_entry fe[MAX_FILER_CACHE_IDX + 20];
 };

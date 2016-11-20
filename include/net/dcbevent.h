@@ -19,7 +19,8 @@
 #ifndef _DCB_EVENT_H
 #define _DCB_EVENT_H
 
-enum dcbevent_notif_type {
+enum dcbevent_notif_type
+{
 	DCB_APP_EVENT = 1,
 };
 

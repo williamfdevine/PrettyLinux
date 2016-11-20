@@ -11,7 +11,8 @@
 #ifndef __LINUX_SND_RT286_H
 #define __LINUX_SND_RT286_H
 
-struct rt286_platform_data {
+struct rt286_platform_data
+{
 	bool cbj_en; /*combo jack enable*/
 	bool gpio2_en; /*GPIO2 enable*/
 };

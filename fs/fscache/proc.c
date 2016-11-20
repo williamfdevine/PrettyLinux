@@ -23,24 +23,38 @@ int __init fscache_proc_init(void)
 	_enter("");
 
 	if (!proc_mkdir("fs/fscache", NULL))
+	{
 		goto error_dir;
+	}
 
 #ifdef CONFIG_FSCACHE_STATS
+
 	if (!proc_create("fs/fscache/stats", S_IFREG | 0444, NULL,
-			 &fscache_stats_fops))
+					 &fscache_stats_fops))
+	{
 		goto error_stats;
+	}
+
 #endif
 
 #ifdef CONFIG_FSCACHE_HISTOGRAM
+
 	if (!proc_create("fs/fscache/histogram", S_IFREG | 0444, NULL,
-			 &fscache_histogram_fops))
+					 &fscache_histogram_fops))
+	{
 		goto error_histogram;
+	}
+
 #endif
 
 #ifdef CONFIG_FSCACHE_OBJECT_LIST
+
 	if (!proc_create("fs/fscache/objects", S_IFREG | 0444, NULL,
-			 &fscache_objlist_fops))
+					 &fscache_objlist_fops))
+	{
 		goto error_objects;
+	}
+
 #endif
 
 	_leave(" = 0");

@@ -52,19 +52,22 @@ extern const char fld_index_name[];
 /*
  * FLD (Fid Location Database) interface.
  */
-enum {
+enum
+{
 	LUSTRE_CLI_FLD_HASH_DHT = 0,
 	LUSTRE_CLI_FLD_HASH_RRB
 };
 
-struct lu_fld_target {
+struct lu_fld_target
+{
 	struct list_head	       ft_chain;
 	struct obd_export       *ft_exp;
 	struct lu_server_fld    *ft_srv;
 	__u64		    ft_idx;
 };
 
-struct lu_server_fld {
+struct lu_server_fld
+{
 	/**
 	 * super sequence controller export, needed to forward fld
 	 * lookup  request.
@@ -82,7 +85,8 @@ struct lu_server_fld {
 
 };
 
-struct lu_client_fld {
+struct lu_client_fld
+{
 	/** Client side debugfs entry. */
 	struct dentry		*lcf_debugfs_entry;
 
@@ -109,27 +113,27 @@ struct lu_client_fld {
 
 /* Client methods */
 int fld_client_init(struct lu_client_fld *fld,
-		    const char *prefix, int hash);
+					const char *prefix, int hash);
 
 void fld_client_fini(struct lu_client_fld *fld);
 
 void fld_client_flush(struct lu_client_fld *fld);
 
 int fld_client_lookup(struct lu_client_fld *fld, u64 seq, u32 *mds,
-		      __u32 flags, const struct lu_env *env);
+					  __u32 flags, const struct lu_env *env);
 
 int fld_client_create(struct lu_client_fld *fld,
-		      struct lu_seq_range *range,
-		      const struct lu_env *env);
+					  struct lu_seq_range *range,
+					  const struct lu_env *env);
 
 int fld_client_delete(struct lu_client_fld *fld, u64 seq,
-		      const struct lu_env *env);
+					  const struct lu_env *env);
 
 int fld_client_add_target(struct lu_client_fld *fld,
-			  struct lu_fld_target *tar);
+						  struct lu_fld_target *tar);
 
 int fld_client_del_target(struct lu_client_fld *fld,
-			  __u64 idx);
+						  __u64 idx);
 
 void fld_client_debugfs_fini(struct lu_client_fld *fld);
 

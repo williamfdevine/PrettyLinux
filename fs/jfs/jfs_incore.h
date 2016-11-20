@@ -35,7 +35,8 @@
 /*
  * JFS-private inode information
  */
-struct jfs_inode_info {
+struct jfs_inode_info
+{
 	int	fileset;	/* fileset number (always 16)*/
 	uint	mode2;		/* jfs-specific mode		*/
 	kuid_t	saved_uid;	/* saved for uid mount option */
@@ -75,16 +76,20 @@ struct jfs_inode_info {
 	/* xattr_sem allows us to access the xattrs without taking i_mutex */
 	struct rw_semaphore xattr_sem;
 	lid_t	xtlid;		/* lid of xtree lock on directory */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			xtpage_t _xtroot;	/* 288: xtree root */
 			struct inomap *_imap;	/* 4: inode map header	*/
 		} file;
-		struct {
+		struct
+		{
 			struct dir_table_slot _table[12]; /* 96: dir index */
 			dtroot_t _dtroot;	/* 288: dtree root */
 		} dir;
-		struct {
+		struct
+		{
 			unchar _unused[16];	/* 16: */
 			dxd_t _dxd;		/* 16: */
 			unchar _inline[128];	/* 128: inline symlink */
@@ -117,7 +122,8 @@ struct jfs_inode_info {
 /*
  * cflag
  */
-enum cflags {
+enum cflags
+{
 	COMMIT_Nolink,		/* inode committed with zero link count */
 	COMMIT_Inlineea,	/* commit inode inline EA */
 	COMMIT_Freewmap,	/* free WMAP at iClose() */
@@ -158,7 +164,8 @@ enum rdwrlock_class
 /*
  * JFS-private superblock information.
  */
-struct jfs_sb_info {
+struct jfs_sb_info
+{
 	struct super_block *sb;		/* Point back to vfs super block */
 	unsigned long	mntflag;	/* aggregate attributes	*/
 	struct inode	*ipbmap;	/* block map inode		*/
@@ -222,7 +229,10 @@ static inline struct jfs_sb_info *JFS_SBI(struct super_block *sb)
 static inline int isReadOnly(struct inode *inode)
 {
 	if (JFS_SBI(inode->i_sb)->log)
+	{
 		return 0;
+	}
+
 	return 1;
 }
 #endif /* _H_JFS_INCORE */

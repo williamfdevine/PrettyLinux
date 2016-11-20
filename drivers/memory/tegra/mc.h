@@ -20,29 +20,29 @@ static inline u32 mc_readl(struct tegra_mc *mc, unsigned long offset)
 }
 
 static inline void mc_writel(struct tegra_mc *mc, u32 value,
-			     unsigned long offset)
+							 unsigned long offset)
 {
 	writel(value, mc->regs + offset);
 }
 
 #ifdef CONFIG_ARCH_TEGRA_3x_SOC
-extern const struct tegra_mc_soc tegra30_mc_soc;
+	extern const struct tegra_mc_soc tegra30_mc_soc;
 #endif
 
 #ifdef CONFIG_ARCH_TEGRA_114_SOC
-extern const struct tegra_mc_soc tegra114_mc_soc;
+	extern const struct tegra_mc_soc tegra114_mc_soc;
 #endif
 
 #ifdef CONFIG_ARCH_TEGRA_124_SOC
-extern const struct tegra_mc_soc tegra124_mc_soc;
+	extern const struct tegra_mc_soc tegra124_mc_soc;
 #endif
 
 #ifdef CONFIG_ARCH_TEGRA_132_SOC
-extern const struct tegra_mc_soc tegra132_mc_soc;
+	extern const struct tegra_mc_soc tegra132_mc_soc;
 #endif
 
 #ifdef CONFIG_ARCH_TEGRA_210_SOC
-extern const struct tegra_mc_soc tegra210_mc_soc;
+	extern const struct tegra_mc_soc tegra210_mc_soc;
 #endif
 
 #endif /* MEMORY_TEGRA_MC_H */

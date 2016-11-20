@@ -40,8 +40,11 @@ struct mdio_device *mdio_device_create(struct mii_bus *bus, int addr)
 
 	/* We allocate the device, and initialize the default values */
 	mdiodev = kzalloc(sizeof(*mdiodev), GFP_KERNEL);
+
 	if (!mdiodev)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	mdiodev->dev.release = mdio_device_release;
 	mdiodev->dev.parent = &bus->dev;
@@ -70,18 +73,23 @@ int mdio_device_register(struct mdio_device *mdiodev)
 	dev_info(&mdiodev->dev, "mdio_device_register\n");
 
 	err = mdiobus_register_device(mdiodev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = device_add(&mdiodev->dev);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("MDIO %d failed to add\n", mdiodev->addr);
 		goto out;
 	}
 
 	return 0;
 
- out:
+out:
 	mdiobus_unregister_device(mdiodev);
 	return err;
 }
@@ -118,7 +126,9 @@ static int mdio_probe(struct device *dev)
 	int err = 0;
 
 	if (mdiodrv->probe)
+	{
 		err = mdiodrv->probe(mdiodev);
+	}
 
 	return err;
 }
@@ -130,7 +140,9 @@ static int mdio_remove(struct device *dev)
 	struct mdio_driver *mdiodrv = to_mdio_driver(drv);
 
 	if (mdiodrv->remove)
+	{
 		mdiodrv->remove(mdiodev);
+	}
 
 	return 0;
 }
@@ -151,9 +163,11 @@ int mdio_driver_register(struct mdio_driver *drv)
 	mdiodrv->driver.remove = mdio_remove;
 
 	retval = driver_register(&mdiodrv->driver);
-	if (retval) {
+
+	if (retval)
+	{
 		pr_err("%s: Error %d in registering driver\n",
-		       mdiodrv->driver.name, retval);
+			   mdiodrv->driver.name, retval);
 
 		return retval;
 	}

@@ -25,11 +25,11 @@ int xfs_ag_resv_init(struct xfs_perag *pag);
 
 bool xfs_ag_resv_critical(struct xfs_perag *pag, enum xfs_ag_resv_type type);
 xfs_extlen_t xfs_ag_resv_needed(struct xfs_perag *pag,
-		enum xfs_ag_resv_type type);
+								enum xfs_ag_resv_type type);
 
 void xfs_ag_resv_alloc_extent(struct xfs_perag *pag, enum xfs_ag_resv_type type,
-		struct xfs_alloc_arg *args);
+							  struct xfs_alloc_arg *args);
 void xfs_ag_resv_free_extent(struct xfs_perag *pag, enum xfs_ag_resv_type type,
-		struct xfs_trans *tp, xfs_extlen_t len);
+							 struct xfs_trans *tp, xfs_extlen_t len);
 
 #endif	/* __XFS_AG_RESV_H__ */

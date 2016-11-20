@@ -59,15 +59,17 @@ static void alx_free_txbuf(struct alx_priv *alx, int entry)
 {
 	struct alx_buffer *txb = &alx->txq.bufs[entry];
 
-	if (dma_unmap_len(txb, size)) {
+	if (dma_unmap_len(txb, size))
+	{
 		dma_unmap_single(&alx->hw.pdev->dev,
-				 dma_unmap_addr(txb, dma),
-				 dma_unmap_len(txb, size),
-				 DMA_TO_DEVICE);
+						 dma_unmap_addr(txb, dma),
+						 dma_unmap_len(txb, size),
+						 DMA_TO_DEVICE);
 		dma_unmap_len_set(txb, size, 0);
 	}
 
-	if (txb->skb) {
+	if (txb->skb)
+	{
 		dev_kfree_skb_any(txb->skb);
 		txb->skb = NULL;
 	}
@@ -82,11 +84,16 @@ static int alx_refill_rx_ring(struct alx_priv *alx, gfp_t gfp)
 	u16 cur, next, count = 0;
 
 	next = cur = rxq->write_idx;
+
 	if (++next == alx->rx_ringsz)
+	{
 		next = 0;
+	}
+
 	cur_buf = &rxq->bufs[cur];
 
-	while (!cur_buf->skb && next != rxq->read_idx) {
+	while (!cur_buf->skb && next != rxq->read_idx)
+	{
 		struct alx_rfd *rfd = &rxq->rfd[cur];
 
 		/*
@@ -99,16 +106,23 @@ static int alx_refill_rx_ring(struct alx_priv *alx, gfp_t gfp)
 		 * 0x....fc0 is detected.
 		 */
 		skb = __netdev_alloc_skb(alx->dev, alx->rxbuf_size + 64, gfp);
+
 		if (!skb)
+		{
 			break;
+		}
 
 		if (((unsigned long)skb->data & 0xfff) == 0xfc0)
+		{
 			skb_reserve(skb, 64);
+		}
 
 		dma = dma_map_single(&alx->hw.pdev->dev,
-				     skb->data, alx->rxbuf_size,
-				     DMA_FROM_DEVICE);
-		if (dma_mapping_error(&alx->hw.pdev->dev, dma)) {
+							 skb->data, alx->rxbuf_size,
+							 DMA_FROM_DEVICE);
+
+		if (dma_mapping_error(&alx->hw.pdev->dev, dma))
+		{
 			dev_kfree_skb(skb);
 			break;
 		}
@@ -116,7 +130,8 @@ static int alx_refill_rx_ring(struct alx_priv *alx, gfp_t gfp)
 		/* Unfortunately, RX descriptor buffers must be 4-byte
 		 * aligned, so we can't use IP alignment.
 		 */
-		if (WARN_ON(dma & 3)) {
+		if (WARN_ON(dma & 3))
+		{
 			dev_kfree_skb(skb);
 			break;
 		}
@@ -127,13 +142,18 @@ static int alx_refill_rx_ring(struct alx_priv *alx, gfp_t gfp)
 		rfd->addr = cpu_to_le64(dma);
 
 		cur = next;
+
 		if (++next == alx->rx_ringsz)
+		{
 			next = 0;
+		}
+
 		cur_buf = &rxq->bufs[cur];
 		count++;
 	}
 
-	if (count) {
+	if (count)
+	{
 		/* flush all updates before updating hardware */
 		wmb();
 		rxq->write_idx = cur;
@@ -148,7 +168,10 @@ static inline int alx_tpd_avail(struct alx_priv *alx)
 	struct alx_tx_queue *txq = &alx->txq;
 
 	if (txq->write_idx >= txq->read_idx)
+	{
 		return alx->tx_ringsz + txq->read_idx - txq->write_idx - 1;
+	}
+
 	return txq->read_idx - txq->write_idx - 1;
 }
 
@@ -162,12 +185,16 @@ static bool alx_clean_tx_irq(struct alx_priv *alx)
 	sw_read_idx = txq->read_idx;
 	hw_read_idx = alx_read_mem16(&alx->hw, ALX_TPD_PRI0_CIDX);
 
-	if (sw_read_idx != hw_read_idx) {
-		while (sw_read_idx != hw_read_idx && budget > 0) {
+	if (sw_read_idx != hw_read_idx)
+	{
+		while (sw_read_idx != hw_read_idx && budget > 0)
+		{
 			struct sk_buff *skb;
 
 			skb = txq->bufs[sw_read_idx].skb;
-			if (skb) {
+
+			if (skb)
+			{
 				total_bytes += skb->len;
 				total_packets++;
 				budget--;
@@ -176,16 +203,21 @@ static bool alx_clean_tx_irq(struct alx_priv *alx)
 			alx_free_txbuf(alx, sw_read_idx);
 
 			if (++sw_read_idx == alx->tx_ringsz)
+			{
 				sw_read_idx = 0;
+			}
 		}
+
 		txq->read_idx = sw_read_idx;
 
 		netdev_completed_queue(alx->dev, total_packets, total_bytes);
 	}
 
 	if (netif_queue_stopped(alx->dev) && netif_carrier_ok(alx->dev) &&
-	    alx_tpd_avail(alx) > alx->tx_ringsz/4)
+		alx_tpd_avail(alx) > alx->tx_ringsz / 4)
+	{
 		netif_wake_queue(alx->dev);
+	}
 
 	return sw_read_idx == hw_read_idx;
 }
@@ -209,53 +241,63 @@ static int alx_clean_rx_irq(struct alx_priv *alx, int budget)
 	u16 length, rfd_cleaned = 0;
 	int work = 0;
 
-	while (work < budget) {
+	while (work < budget)
+	{
 		rrd = &rxq->rrd[rxq->rrd_read_idx];
+
 		if (!(rrd->word3 & cpu_to_le32(1 << RRD_UPDATED_SHIFT)))
+		{
 			break;
+		}
+
 		rrd->word3 &= ~cpu_to_le32(1 << RRD_UPDATED_SHIFT);
 
 		if (ALX_GET_FIELD(le32_to_cpu(rrd->word0),
-				  RRD_SI) != rxq->read_idx ||
-		    ALX_GET_FIELD(le32_to_cpu(rrd->word0),
-				  RRD_NOR) != 1) {
+						  RRD_SI) != rxq->read_idx ||
+			ALX_GET_FIELD(le32_to_cpu(rrd->word0),
+						  RRD_NOR) != 1)
+		{
 			alx_schedule_reset(alx);
 			return work;
 		}
 
 		rxb = &rxq->bufs[rxq->read_idx];
 		dma_unmap_single(&alx->hw.pdev->dev,
-				 dma_unmap_addr(rxb, dma),
-				 dma_unmap_len(rxb, size),
-				 DMA_FROM_DEVICE);
+						 dma_unmap_addr(rxb, dma),
+						 dma_unmap_len(rxb, size),
+						 DMA_FROM_DEVICE);
 		dma_unmap_len_set(rxb, size, 0);
 		skb = rxb->skb;
 		rxb->skb = NULL;
 
 		if (rrd->word3 & cpu_to_le32(1 << RRD_ERR_RES_SHIFT) ||
-		    rrd->word3 & cpu_to_le32(1 << RRD_ERR_LEN_SHIFT)) {
+			rrd->word3 & cpu_to_le32(1 << RRD_ERR_LEN_SHIFT))
+		{
 			rrd->word3 = 0;
 			dev_kfree_skb_any(skb);
 			goto next_pkt;
 		}
 
 		length = ALX_GET_FIELD(le32_to_cpu(rrd->word3),
-				       RRD_PKTLEN) - ETH_FCS_LEN;
+							   RRD_PKTLEN) - ETH_FCS_LEN;
 		skb_put(skb, length);
 		skb->protocol = eth_type_trans(skb, alx->dev);
 
 		skb_checksum_none_assert(skb);
+
 		if (alx->dev->features & NETIF_F_RXCSUM &&
-		    !(rrd->word3 & (cpu_to_le32(1 << RRD_ERR_L4_SHIFT) |
-				    cpu_to_le32(1 << RRD_ERR_IPV4_SHIFT)))) {
+			!(rrd->word3 & (cpu_to_le32(1 << RRD_ERR_L4_SHIFT) |
+							cpu_to_le32(1 << RRD_ERR_IPV4_SHIFT))))
+		{
 			switch (ALX_GET_FIELD(le32_to_cpu(rrd->word2),
-					      RRD_PID)) {
-			case RRD_PID_IPV6UDP:
-			case RRD_PID_IPV4UDP:
-			case RRD_PID_IPV4TCP:
-			case RRD_PID_IPV6TCP:
-				skb->ip_summed = CHECKSUM_UNNECESSARY;
-				break;
+								  RRD_PID))
+			{
+				case RRD_PID_IPV6UDP:
+				case RRD_PID_IPV4UDP:
+				case RRD_PID_IPV4TCP:
+				case RRD_PID_IPV6TCP:
+					skb->ip_summed = CHECKSUM_UNNECESSARY;
+					break;
 			}
 		}
 
@@ -263,17 +305,27 @@ static int alx_clean_rx_irq(struct alx_priv *alx, int budget)
 		work++;
 
 next_pkt:
+
 		if (++rxq->read_idx == alx->rx_ringsz)
+		{
 			rxq->read_idx = 0;
+		}
+
 		if (++rxq->rrd_read_idx == alx->rx_ringsz)
+		{
 			rxq->rrd_read_idx = 0;
+		}
 
 		if (++rfd_cleaned > ALX_RX_ALLOC_THRESH)
+		{
 			rfd_cleaned -= alx_refill_rx_ring(alx, GFP_ATOMIC);
+		}
 	}
 
 	if (rfd_cleaned)
+	{
 		alx_refill_rx_ring(alx, GFP_ATOMIC);
+	}
 
 	return work;
 }
@@ -290,14 +342,19 @@ static int alx_poll(struct napi_struct *napi, int budget)
 	work = alx_clean_rx_irq(alx, budget);
 
 	if (!tx_complete || work == budget)
+	{
 		return budget;
+	}
 
 	napi_complete(&alx->napi);
 
 	/* enable interrupt */
-	if (alx->flags & ALX_FLAG_USING_MSIX) {
+	if (alx->flags & ALX_FLAG_USING_MSIX)
+	{
 		alx_mask_msix(hw, 1, false);
-	} else {
+	}
+	else
+	{
 		spin_lock_irqsave(&alx->irq_lock, flags);
 		alx->int_mask |= ALX_ISR_TX_Q0 | ALX_ISR_RX_Q0;
 		alx_write_mem32(hw, ALX_IMR, alx->int_mask);
@@ -313,17 +370,21 @@ static bool alx_intr_handle_misc(struct alx_priv *alx, u32 intr)
 {
 	struct alx_hw *hw = &alx->hw;
 
-	if (intr & ALX_ISR_FATAL) {
+	if (intr & ALX_ISR_FATAL)
+	{
 		netif_warn(alx, hw, alx->dev,
-			   "fatal interrupt 0x%x, resetting\n", intr);
+				   "fatal interrupt 0x%x, resetting\n", intr);
 		alx_schedule_reset(alx);
 		return true;
 	}
 
 	if (intr & ALX_ISR_ALERT)
+	{
 		netdev_warn(alx->dev, "alert interrupt: 0x%x\n", intr);
+	}
 
-	if (intr & ALX_ISR_PHY) {
+	if (intr & ALX_ISR_PHY)
+	{
 		/* suppress PHY interrupt, because the source
 		 * is from PHY internal. only the internal status
 		 * is cleared, the interrupt status could be cleared.
@@ -347,9 +408,12 @@ static irqreturn_t alx_intr_handle(struct alx_priv *alx, u32 intr)
 	intr &= alx->int_mask;
 
 	if (alx_intr_handle_misc(alx, intr))
+	{
 		goto out;
+	}
 
-	if (intr & (ALX_ISR_TX_Q0 | ALX_ISR_RX_Q0)) {
+	if (intr & (ALX_ISR_TX_Q0 | ALX_ISR_RX_Q0))
+	{
 		napi_schedule(&alx->napi);
 		/* mask rx/tx interrupt, enable them when napi complete */
 		alx->int_mask &= ~ALX_ISR_ALL_QUEUES;
@@ -358,7 +422,7 @@ static irqreturn_t alx_intr_handle(struct alx_priv *alx, u32 intr)
 
 	alx_write_mem32(hw, ALX_ISR, 0);
 
- out:
+out:
 	spin_unlock(&alx->irq_lock);
 	return IRQ_HANDLED;
 }
@@ -392,7 +456,9 @@ static irqreturn_t alx_intr_msix_misc(int irq, void *data)
 	intr &= (alx->int_mask & ~ALX_ISR_ALL_QUEUES);
 
 	if (alx_intr_handle_misc(alx, intr))
+	{
 		return IRQ_HANDLED;
+	}
 
 	/* clear interrupt status */
 	alx_write_mem32(hw, ALX_ISR, intr);
@@ -419,7 +485,9 @@ static irqreturn_t alx_intr_legacy(int irq, void *data)
 	intr = alx_read_mem32(hw, ALX_ISR);
 
 	if (intr & ALX_ISR_DIS || !(intr & alx->int_mask))
+	{
 		return IRQ_NONE;
+	}
 
 	return alx_intr_handle(alx, intr);
 }
@@ -455,10 +523,14 @@ static void alx_free_txring_buf(struct alx_priv *alx)
 	int i;
 
 	if (!txq->bufs)
+	{
 		return;
+	}
 
 	for (i = 0; i < alx->tx_ringsz; i++)
+	{
 		alx_free_txbuf(alx, i);
+	}
 
 	memset(txq->bufs, 0, alx->tx_ringsz * sizeof(struct alx_buffer));
 	memset(txq->tpd, 0, alx->tx_ringsz * sizeof(struct alx_txd));
@@ -475,15 +547,20 @@ static void alx_free_rxring_buf(struct alx_priv *alx)
 	u16 i;
 
 	if (rxq == NULL)
+	{
 		return;
+	}
 
-	for (i = 0; i < alx->rx_ringsz; i++) {
+	for (i = 0; i < alx->rx_ringsz; i++)
+	{
 		cur_buf = rxq->bufs + i;
-		if (cur_buf->skb) {
+
+		if (cur_buf->skb)
+		{
 			dma_unmap_single(&alx->hw.pdev->dev,
-					 dma_unmap_addr(cur_buf, dma),
-					 dma_unmap_len(cur_buf, size),
-					 DMA_FROM_DEVICE);
+							 dma_unmap_addr(cur_buf, dma),
+							 dma_unmap_len(cur_buf, size),
+							 DMA_FROM_DEVICE);
 			dev_kfree_skb(cur_buf->skb);
 			cur_buf->skb = NULL;
 			dma_unmap_len_set(cur_buf, size, 0);
@@ -509,7 +586,9 @@ static int alx_reinit_rings(struct alx_priv *alx)
 	alx_init_ring_ptrs(alx);
 
 	if (!alx_refill_rx_ring(alx, GFP_KERNEL))
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -532,19 +611,26 @@ static void __alx_set_rx_mode(struct net_device *netdev)
 	struct netdev_hw_addr *ha;
 	u32 mc_hash[2] = {};
 
-	if (!(netdev->flags & IFF_ALLMULTI)) {
+	if (!(netdev->flags & IFF_ALLMULTI))
+	{
 		netdev_for_each_mc_addr(ha, netdev)
-			alx_add_mc_addr(hw, ha->addr, mc_hash);
+		alx_add_mc_addr(hw, ha->addr, mc_hash);
 
 		alx_write_mem32(hw, ALX_HASH_TBL0, mc_hash[0]);
 		alx_write_mem32(hw, ALX_HASH_TBL1, mc_hash[1]);
 	}
 
 	hw->rx_ctrl &= ~(ALX_MAC_CTRL_MULTIALL_EN | ALX_MAC_CTRL_PROMISC_EN);
+
 	if (netdev->flags & IFF_PROMISC)
+	{
 		hw->rx_ctrl |= ALX_MAC_CTRL_PROMISC_EN;
+	}
+
 	if (netdev->flags & IFF_ALLMULTI)
+	{
 		hw->rx_ctrl |= ALX_MAC_CTRL_MULTIALL_EN;
+	}
 
 	alx_write_mem32(hw, ALX_MAC_CTRL, hw->rx_ctrl);
 }
@@ -561,10 +647,14 @@ static int alx_set_mac_address(struct net_device *netdev, void *data)
 	struct sockaddr *addr = data;
 
 	if (!is_valid_ether_addr(addr->sa_data))
+	{
 		return -EADDRNOTAVAIL;
+	}
 
 	if (netdev->addr_assign_type & NET_ADDR_RANDOM)
+	{
 		netdev->addr_assign_type ^= NET_ADDR_RANDOM;
+	}
 
 	memcpy(netdev->dev_addr, addr->sa_data, netdev->addr_len);
 	memcpy(hw->mac_addr, addr->sa_data, netdev->addr_len);
@@ -576,16 +666,22 @@ static int alx_set_mac_address(struct net_device *netdev, void *data)
 static int alx_alloc_descriptors(struct alx_priv *alx)
 {
 	alx->txq.bufs = kcalloc(alx->tx_ringsz,
-				sizeof(struct alx_buffer),
-				GFP_KERNEL);
+							sizeof(struct alx_buffer),
+							GFP_KERNEL);
+
 	if (!alx->txq.bufs)
+	{
 		return -ENOMEM;
+	}
 
 	alx->rxq.bufs = kcalloc(alx->rx_ringsz,
-				sizeof(struct alx_buffer),
-				GFP_KERNEL);
+							sizeof(struct alx_buffer),
+							GFP_KERNEL);
+
 	if (!alx->rxq.bufs)
+	{
 		goto out_free;
+	}
 
 	/* physical tx/rx ring descriptors
 	 *
@@ -594,14 +690,17 @@ static int alx_alloc_descriptors(struct alx_priv *alx)
 	 * of addresses only)
 	 */
 	alx->descmem.size = sizeof(struct alx_txd) * alx->tx_ringsz +
-			    sizeof(struct alx_rrd) * alx->rx_ringsz +
-			    sizeof(struct alx_rfd) * alx->rx_ringsz;
+						sizeof(struct alx_rrd) * alx->rx_ringsz +
+						sizeof(struct alx_rfd) * alx->rx_ringsz;
 	alx->descmem.virt = dma_zalloc_coherent(&alx->hw.pdev->dev,
-						alx->descmem.size,
-						&alx->descmem.dma,
-						GFP_KERNEL);
+											alx->descmem.size,
+											&alx->descmem.dma,
+											GFP_KERNEL);
+
 	if (!alx->descmem.virt)
+	{
 		goto out_free;
+	}
 
 	alx->txq.tpd = alx->descmem.virt;
 	alx->txq.tpd_dma = alx->descmem.dma;
@@ -611,20 +710,20 @@ static int alx_alloc_descriptors(struct alx_priv *alx)
 
 	alx->rxq.rrd =
 		(void *)((u8 *)alx->descmem.virt +
-			 sizeof(struct alx_txd) * alx->tx_ringsz);
+				 sizeof(struct alx_txd) * alx->tx_ringsz);
 	alx->rxq.rrd_dma = alx->descmem.dma +
-			   sizeof(struct alx_txd) * alx->tx_ringsz;
+					   sizeof(struct alx_txd) * alx->tx_ringsz;
 
 	/* alignment requirement for next block */
 	BUILD_BUG_ON(sizeof(struct alx_rrd) % 8);
 
 	alx->rxq.rfd =
 		(void *)((u8 *)alx->descmem.virt +
-			 sizeof(struct alx_txd) * alx->tx_ringsz +
-			 sizeof(struct alx_rrd) * alx->rx_ringsz);
+				 sizeof(struct alx_txd) * alx->tx_ringsz +
+				 sizeof(struct alx_rrd) * alx->rx_ringsz);
 	alx->rxq.rfd_dma = alx->descmem.dma +
-			   sizeof(struct alx_txd) * alx->tx_ringsz +
-			   sizeof(struct alx_rrd) * alx->rx_ringsz;
+					   sizeof(struct alx_txd) * alx->tx_ringsz +
+					   sizeof(struct alx_rrd) * alx->rx_ringsz;
 
 	return 0;
 out_free:
@@ -638,8 +737,11 @@ static int alx_alloc_rings(struct alx_priv *alx)
 	int err;
 
 	err = alx_alloc_descriptors(alx);
+
 	if (err)
+	{
 		return err;
+	}
 
 	alx->int_mask &= ~ALX_ISR_ALL_QUEUES;
 	alx->int_mask |= ALX_ISR_TX_Q0 | ALX_ISR_RX_Q0;
@@ -659,9 +761,9 @@ static void alx_free_rings(struct alx_priv *alx)
 	kfree(alx->rxq.bufs);
 
 	dma_free_coherent(&alx->hw.pdev->dev,
-			  alx->descmem.size,
-			  alx->descmem.virt,
-			  alx->descmem.dma);
+					  alx->descmem.size,
+					  alx->descmem.virt,
+					  alx->descmem.dma);
 }
 
 static void alx_config_vector_mapping(struct alx_priv *alx)
@@ -669,7 +771,8 @@ static void alx_config_vector_mapping(struct alx_priv *alx)
 	struct alx_hw *hw = &alx->hw;
 	u32 tbl = 0;
 
-	if (alx->flags & ALX_FLAG_USING_MSIX) {
+	if (alx->flags & ALX_FLAG_USING_MSIX)
+	{
 		tbl |= 1 << ALX_MSI_MAP_TBL1_TXQ0_SHIFT;
 		tbl |= 1 << ALX_MSI_MAP_TBL1_RXQ0_SHIFT;
 	}
@@ -684,17 +787,23 @@ static bool alx_enable_msix(struct alx_priv *alx)
 	int i, err, num_vec = 2;
 
 	alx->msix_entries = kcalloc(num_vec, sizeof(struct msix_entry),
-				    GFP_KERNEL);
-	if (!alx->msix_entries) {
+								GFP_KERNEL);
+
+	if (!alx->msix_entries)
+	{
 		netdev_warn(alx->dev, "Allocation of msix entries failed!\n");
 		return false;
 	}
 
 	for (i = 0; i < num_vec; i++)
+	{
 		alx->msix_entries[i].entry = i;
+	}
 
 	err = pci_enable_msix(alx->hw.pdev, alx->msix_entries, num_vec);
-	if (err) {
+
+	if (err)
+	{
 		kfree(alx->msix_entries);
 		netdev_warn(alx->dev, "Enabling MSI-X interrupts failed!\n");
 		return false;
@@ -710,17 +819,23 @@ static int alx_request_msix(struct alx_priv *alx)
 	int i, err, vector = 0, free_vector = 0;
 
 	err = request_irq(alx->msix_entries[0].vector, alx_intr_msix_misc,
-			  0, netdev->name, alx);
+					  0, netdev->name, alx);
+
 	if (err)
+	{
 		goto out_err;
+	}
 
 	vector++;
 	sprintf(alx->irq_lbl, "%s-TxRx-0", netdev->name);
 
 	err = request_irq(alx->msix_entries[vector].vector,
-			  alx_intr_msix_ring, 0, alx->irq_lbl, alx);
-		if (err)
-			goto out_free;
+					  alx_intr_msix_ring, 0, alx->irq_lbl, alx);
+
+	if (err)
+	{
+		goto out_free;
+	}
 
 	return 0;
 
@@ -728,8 +843,11 @@ out_free:
 	free_irq(alx->msix_entries[free_vector++].vector, alx);
 
 	vector--;
+
 	for (i = 0; i < vector; i++)
+	{
 		free_irq(alx->msix_entries[free_vector++].vector, alx);
+	}
 
 out_err:
 	return err;
@@ -737,28 +855,36 @@ out_err:
 
 static void alx_init_intr(struct alx_priv *alx, bool msix)
 {
-	if (msix) {
+	if (msix)
+	{
 		if (alx_enable_msix(alx))
+		{
 			alx->flags |= ALX_FLAG_USING_MSIX;
+		}
 	}
 
-	if (!(alx->flags & ALX_FLAG_USING_MSIX)) {
+	if (!(alx->flags & ALX_FLAG_USING_MSIX))
+	{
 		alx->num_vec = 1;
 
 		if (!pci_enable_msi(alx->hw.pdev))
+		{
 			alx->flags |= ALX_FLAG_USING_MSI;
+		}
 	}
 }
 
 static void alx_disable_advanced_intr(struct alx_priv *alx)
 {
-	if (alx->flags & ALX_FLAG_USING_MSIX) {
+	if (alx->flags & ALX_FLAG_USING_MSIX)
+	{
 		kfree(alx->msix_entries);
 		pci_disable_msix(alx->hw.pdev);
 		alx->flags &= ~ALX_FLAG_USING_MSIX;
 	}
 
-	if (alx->flags & ALX_FLAG_USING_MSI) {
+	if (alx->flags & ALX_FLAG_USING_MSI)
+	{
 		pci_disable_msi(alx->hw.pdev);
 		alx->flags &= ~ALX_FLAG_USING_MSI;
 	}
@@ -775,9 +901,12 @@ static void alx_irq_enable(struct alx_priv *alx)
 	alx_post_write(hw);
 
 	if (alx->flags & ALX_FLAG_USING_MSIX)
+
 		/* enable all msix irqs */
 		for (i = 0; i < alx->num_vec; i++)
+		{
 			alx_mask_msix(hw, i, false);
+		}
 }
 
 static void alx_irq_disable(struct alx_priv *alx)
@@ -789,12 +918,16 @@ static void alx_irq_disable(struct alx_priv *alx)
 	alx_write_mem32(hw, ALX_IMR, 0);
 	alx_post_write(hw);
 
-	if (alx->flags & ALX_FLAG_USING_MSIX) {
-		for (i = 0; i < alx->num_vec; i++) {
+	if (alx->flags & ALX_FLAG_USING_MSIX)
+	{
+		for (i = 0; i < alx->num_vec; i++)
+		{
 			alx_mask_msix(hw, i, true);
 			synchronize_irq(alx->msix_entries[i].vector);
 		}
-	} else {
+	}
+	else
+	{
 		synchronize_irq(alx->hw.pdev->irq);
 	}
 }
@@ -808,24 +941,33 @@ static int alx_request_irq(struct alx_priv *alx)
 
 	msi_ctrl = (hw->imt >> 1) << ALX_MSI_RETRANS_TM_SHIFT;
 
-	if (alx->flags & ALX_FLAG_USING_MSIX) {
+	if (alx->flags & ALX_FLAG_USING_MSIX)
+	{
 		alx_write_mem32(hw, ALX_MSI_RETRANS_TIMER, msi_ctrl);
 		err = alx_request_msix(alx);
+
 		if (!err)
+		{
 			goto out;
+		}
 
 		/* msix request failed, realloc resources */
 		alx_disable_advanced_intr(alx);
 		alx_init_intr(alx, false);
 	}
 
-	if (alx->flags & ALX_FLAG_USING_MSI) {
+	if (alx->flags & ALX_FLAG_USING_MSI)
+	{
 		alx_write_mem32(hw, ALX_MSI_RETRANS_TIMER,
-				msi_ctrl | ALX_MSI_MASK_SEL_LINE);
+						msi_ctrl | ALX_MSI_MASK_SEL_LINE);
 		err = request_irq(pdev->irq, alx_intr_msi, 0,
-				  alx->dev->name, alx);
+						  alx->dev->name, alx);
+
 		if (!err)
+		{
 			goto out;
+		}
+
 		/* fall back to legacy interrupt */
 		alx->flags &= ~ALX_FLAG_USING_MSI;
 		pci_disable_msi(alx->hw.pdev);
@@ -833,12 +975,18 @@ static int alx_request_irq(struct alx_priv *alx)
 
 	alx_write_mem32(hw, ALX_MSI_RETRANS_TIMER, 0);
 	err = request_irq(pdev->irq, alx_intr_legacy, IRQF_SHARED,
-			  alx->dev->name, alx);
+					  alx->dev->name, alx);
 out:
+
 	if (!err)
+	{
 		alx_config_vector_mapping(alx);
+	}
 	else
+	{
 		netdev_err(alx->dev, "IRQ registration failed!\n");
+	}
+
 	return err;
 }
 
@@ -847,11 +995,16 @@ static void alx_free_irq(struct alx_priv *alx)
 	struct pci_dev *pdev = alx->hw.pdev;
 	int i;
 
-	if (alx->flags & ALX_FLAG_USING_MSIX) {
+	if (alx->flags & ALX_FLAG_USING_MSIX)
+	{
 		/* we have only 2 vectors without multi queue support */
 		for (i = 0; i < 2; i++)
+		{
 			free_irq(alx->msix_entries[i].vector, alx);
-	} else {
+		}
+	}
+	else
+	{
 		free_irq(pdev->irq, alx);
 	}
 
@@ -864,7 +1017,9 @@ static int alx_identify_hw(struct alx_priv *alx)
 	int rev = alx_hw_revision(hw);
 
 	if (rev > ALX_REV_C0)
+	{
 		return -EINVAL;
+	}
 
 	hw->max_dma_chnl = rev >= ALX_REV_B0 ? 4 : 2;
 
@@ -878,7 +1033,9 @@ static int alx_init_sw(struct alx_priv *alx)
 	int err;
 
 	err = alx_identify_hw(alx);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "unrecognized chip, aborting\n");
 		return err;
 	}
@@ -901,31 +1058,33 @@ static int alx_init_sw(struct alx_priv *alx)
 	hw->link_speed = SPEED_UNKNOWN;
 	hw->duplex = DUPLEX_UNKNOWN;
 	hw->adv_cfg = ADVERTISED_Autoneg |
-		      ADVERTISED_10baseT_Half |
-		      ADVERTISED_10baseT_Full |
-		      ADVERTISED_100baseT_Full |
-		      ADVERTISED_100baseT_Half |
-		      ADVERTISED_1000baseT_Full;
+				  ADVERTISED_10baseT_Half |
+				  ADVERTISED_10baseT_Full |
+				  ADVERTISED_100baseT_Full |
+				  ADVERTISED_100baseT_Half |
+				  ADVERTISED_1000baseT_Full;
 	hw->flowctrl = ALX_FC_ANEG | ALX_FC_RX | ALX_FC_TX;
 
 	hw->rx_ctrl = ALX_MAC_CTRL_WOLSPED_SWEN |
-		      ALX_MAC_CTRL_MHASH_ALG_HI5B |
-		      ALX_MAC_CTRL_BRD_EN |
-		      ALX_MAC_CTRL_PCRCE |
-		      ALX_MAC_CTRL_CRCE |
-		      ALX_MAC_CTRL_RXFC_EN |
-		      ALX_MAC_CTRL_TXFC_EN |
-		      7 << ALX_MAC_CTRL_PRMBLEN_SHIFT;
+				  ALX_MAC_CTRL_MHASH_ALG_HI5B |
+				  ALX_MAC_CTRL_BRD_EN |
+				  ALX_MAC_CTRL_PCRCE |
+				  ALX_MAC_CTRL_CRCE |
+				  ALX_MAC_CTRL_RXFC_EN |
+				  ALX_MAC_CTRL_TXFC_EN |
+				  7 << ALX_MAC_CTRL_PRMBLEN_SHIFT;
 
 	return err;
 }
 
 
 static netdev_features_t alx_fix_features(struct net_device *netdev,
-					  netdev_features_t features)
+		netdev_features_t features)
 {
 	if (netdev->mtu > ALX_MAX_TSO_PKT_SIZE)
+	{
 		features &= ~(NETIF_F_TSO | NETIF_F_TSO6);
+	}
 
 	return features;
 }
@@ -933,7 +1092,9 @@ static netdev_features_t alx_fix_features(struct net_device *netdev,
 static void alx_netif_stop(struct alx_priv *alx)
 {
 	netif_trans_update(alx->dev);
-	if (netif_carrier_ok(alx->dev)) {
+
+	if (netif_carrier_ok(alx->dev))
+	{
 		netif_carrier_off(alx->dev);
 		netif_tx_disable(alx->dev);
 		napi_disable(&alx->napi);
@@ -995,18 +1156,26 @@ static int alx_change_mtu(struct net_device *netdev, int mtu)
 	int max_frame = ALX_MAX_FRAME_LEN(mtu);
 
 	if ((max_frame < ALX_MIN_FRAME_SIZE) ||
-	    (max_frame > ALX_MAX_FRAME_SIZE))
+		(max_frame > ALX_MAX_FRAME_SIZE))
+	{
 		return -EINVAL;
+	}
 
 	if (netdev->mtu == mtu)
+	{
 		return 0;
+	}
 
 	netdev->mtu = mtu;
 	alx->hw.mtu = mtu;
 	alx->rxbuf_size = max(max_frame, ALX_DEF_RXBUF_SIZE);
 	netdev_update_features(netdev);
+
 	if (netif_running(netdev))
+	{
 		alx_reinit(alx);
+	}
+
 	return 0;
 }
 
@@ -1024,17 +1193,25 @@ static int __alx_open(struct alx_priv *alx, bool resume)
 	alx_init_intr(alx, msix);
 
 	if (!resume)
+	{
 		netif_carrier_off(alx->dev);
+	}
 
 	err = alx_alloc_rings(alx);
+
 	if (err)
+	{
 		goto out_disable_adv_intr;
+	}
 
 	alx_configure(alx);
 
 	err = alx_request_irq(alx);
+
 	if (err)
+	{
 		goto out_free_rings;
+	}
 
 	/* clear old interrupts */
 	alx_write_mem32(&alx->hw, ALX_ISR, ~(u32)ALX_ISR_DIS);
@@ -1042,7 +1219,9 @@ static int __alx_open(struct alx_priv *alx, bool resume)
 	alx_irq_enable(alx);
 
 	if (!resume)
+	{
 		netif_tx_start_all_queues(alx->dev);
+	}
 
 	alx_schedule_link_check(alx);
 	return 0;
@@ -1063,19 +1242,25 @@ static void __alx_stop(struct alx_priv *alx)
 
 static const char *alx_speed_desc(struct alx_hw *hw)
 {
-	switch (alx_speed_to_ethadv(hw->link_speed, hw->duplex)) {
-	case ADVERTISED_1000baseT_Full:
-		return "1 Gbps Full";
-	case ADVERTISED_100baseT_Full:
-		return "100 Mbps Full";
-	case ADVERTISED_100baseT_Half:
-		return "100 Mbps Half";
-	case ADVERTISED_10baseT_Full:
-		return "10 Mbps Full";
-	case ADVERTISED_10baseT_Half:
-		return "10 Mbps Half";
-	default:
-		return "Unknown speed";
+	switch (alx_speed_to_ethadv(hw->link_speed, hw->duplex))
+	{
+		case ADVERTISED_1000baseT_Full:
+			return "1 Gbps Full";
+
+		case ADVERTISED_100baseT_Full:
+			return "100 Mbps Full";
+
+		case ADVERTISED_100baseT_Half:
+			return "100 Mbps Half";
+
+		case ADVERTISED_10baseT_Full:
+			return "10 Mbps Full";
+
+		case ADVERTISED_10baseT_Half:
+			return "10 Mbps Half";
+
+		default:
+			return "Unknown speed";
 	}
 }
 
@@ -1095,8 +1280,11 @@ static void alx_check_link(struct alx_priv *alx)
 	old_speed = hw->link_speed;
 	old_duplex = hw->duplex;
 	err = alx_read_phy_link(hw);
+
 	if (err < 0)
+	{
 		goto reset;
+	}
 
 	spin_lock_irqsave(&alx->irq_lock, flags);
 	alx->int_mask |= ALX_ISR_PHY;
@@ -1104,30 +1292,45 @@ static void alx_check_link(struct alx_priv *alx)
 	spin_unlock_irqrestore(&alx->irq_lock, flags);
 
 	if (old_speed == hw->link_speed)
+	{
 		return;
+	}
 
-	if (hw->link_speed != SPEED_UNKNOWN) {
+	if (hw->link_speed != SPEED_UNKNOWN)
+	{
 		netif_info(alx, link, alx->dev,
-			   "NIC Up: %s\n", alx_speed_desc(hw));
+				   "NIC Up: %s\n", alx_speed_desc(hw));
 		alx_post_phy_link(hw);
 		alx_enable_aspm(hw, true, true);
 		alx_start_mac(hw);
 
 		if (old_speed == SPEED_UNKNOWN)
+		{
 			alx_netif_start(alx);
-	} else {
+		}
+	}
+	else
+	{
 		/* link is now down */
 		alx_netif_stop(alx);
 		netif_info(alx, link, alx->dev, "Link Down\n");
 		err = alx_reset_mac(hw);
+
 		if (err)
+		{
 			goto reset;
+		}
+
 		alx_irq_disable(alx);
 
 		/* MAC reset causes all HW settings to be lost, restore all */
 		err = alx_reinit_rings(alx);
+
 		if (err)
+		{
 			goto reset;
+		}
+
 		alx_configure(alx);
 		alx_enable_aspm(hw, false, true);
 		alx_post_phy_link(hw);
@@ -1176,9 +1379,12 @@ static int alx_tpd_req(struct sk_buff *skb)
 	int num;
 
 	num = skb_shinfo(skb)->nr_frags + 1;
+
 	/* we need one extra descriptor for LSOv2 */
 	if (skb_is_gso(skb) && skb_shinfo(skb)->gso_type & SKB_GSO_TCPV6)
+	{
 		num++;
+	}
 
 	return num;
 }
@@ -1188,11 +1394,16 @@ static int alx_tx_csum(struct sk_buff *skb, struct alx_txd *first)
 	u8 cso, css;
 
 	if (skb->ip_summed != CHECKSUM_PARTIAL)
+	{
 		return 0;
+	}
 
 	cso = skb_checksum_start_offset(skb);
+
 	if (cso & 1)
+	{
 		return -EINVAL;
+	}
 
 	css = cso + skb->csum_offset;
 	first->word1 |= cpu_to_le32((cso >> 1) << TPD_CXSUMSTART_SHIFT);
@@ -1207,27 +1418,37 @@ static int alx_tso(struct sk_buff *skb, struct alx_txd *first)
 	int err;
 
 	if (skb->ip_summed != CHECKSUM_PARTIAL)
+	{
 		return 0;
+	}
 
 	if (!skb_is_gso(skb))
+	{
 		return 0;
+	}
 
 	err = skb_cow_head(skb, 0);
-	if (err < 0)
-		return err;
 
-	if (skb->protocol == htons(ETH_P_IP)) {
+	if (err < 0)
+	{
+		return err;
+	}
+
+	if (skb->protocol == htons(ETH_P_IP))
+	{
 		struct iphdr *iph = ip_hdr(skb);
 
 		iph->check = 0;
 		tcp_hdr(skb)->check = ~csum_tcpudp_magic(iph->saddr, iph->daddr,
-							 0, IPPROTO_TCP, 0);
+							  0, IPPROTO_TCP, 0);
 		first->word1 |= 1 << TPD_IPV4_SHIFT;
-	} else if (skb_is_gso_v6(skb)) {
+	}
+	else if (skb_is_gso_v6(skb))
+	{
 		ipv6_hdr(skb)->payload_len = 0;
 		tcp_hdr(skb)->check = ~csum_ipv6_magic(&ipv6_hdr(skb)->saddr,
-						       &ipv6_hdr(skb)->daddr,
-						       0, IPPROTO_TCP, 0);
+											   &ipv6_hdr(skb)->daddr,
+											   0, IPPROTO_TCP, 0);
 		/* LSOv2: the first TPD only provides the packet length */
 		first->adrl.l.pkt_len = skb->len;
 		first->word1 |= 1 << TPD_LSO_V2_SHIFT;
@@ -1235,9 +1456,9 @@ static int alx_tso(struct sk_buff *skb, struct alx_txd *first)
 
 	first->word1 |= 1 << TPD_LSO_EN_SHIFT;
 	first->word1 |= (skb_transport_offset(skb) &
-			 TPD_L4HDROFFSET_MASK) << TPD_L4HDROFFSET_SHIFT;
+					 TPD_L4HDROFFSET_MASK) << TPD_L4HDROFFSET_SHIFT;
 	first->word1 |= (skb_shinfo(skb)->gso_size &
-			 TPD_MSS_MASK) << TPD_MSS_SHIFT;
+					 TPD_MSS_MASK) << TPD_MSS_SHIFT;
 	return 1;
 }
 
@@ -1251,9 +1472,12 @@ static int alx_map_tx_skb(struct alx_priv *alx, struct sk_buff *skb)
 	first_tpd = &txq->tpd[txq->write_idx];
 	tpd = first_tpd;
 
-	if (tpd->word1 & (1 << TPD_LSO_V2_SHIFT)) {
+	if (tpd->word1 & (1 << TPD_LSO_V2_SHIFT))
+	{
 		if (++txq->write_idx == alx->tx_ringsz)
+		{
 			txq->write_idx = 0;
+		}
 
 		tpd = &txq->tpd[txq->write_idx];
 		tpd->len = first_tpd->len;
@@ -1263,9 +1487,12 @@ static int alx_map_tx_skb(struct alx_priv *alx, struct sk_buff *skb)
 
 	maplen = skb_headlen(skb);
 	dma = dma_map_single(&alx->hw.pdev->dev, skb->data, maplen,
-			     DMA_TO_DEVICE);
+						 DMA_TO_DEVICE);
+
 	if (dma_mapping_error(&alx->hw.pdev->dev, dma))
+	{
 		goto err_dma;
+	}
 
 	dma_unmap_len_set(&txq->bufs[txq->write_idx], size, maplen);
 	dma_unmap_addr_set(&txq->bufs[txq->write_idx], dma, dma);
@@ -1273,22 +1500,30 @@ static int alx_map_tx_skb(struct alx_priv *alx, struct sk_buff *skb)
 	tpd->adrl.addr = cpu_to_le64(dma);
 	tpd->len = cpu_to_le16(maplen);
 
-	for (f = 0; f < skb_shinfo(skb)->nr_frags; f++) {
+	for (f = 0; f < skb_shinfo(skb)->nr_frags; f++)
+	{
 		struct skb_frag_struct *frag;
 
 		frag = &skb_shinfo(skb)->frags[f];
 
 		if (++txq->write_idx == alx->tx_ringsz)
+		{
 			txq->write_idx = 0;
+		}
+
 		tpd = &txq->tpd[txq->write_idx];
 
 		tpd->word1 = first_tpd->word1;
 
 		maplen = skb_frag_size(frag);
 		dma = skb_frag_dma_map(&alx->hw.pdev->dev, frag, 0,
-				       maplen, DMA_TO_DEVICE);
+							   maplen, DMA_TO_DEVICE);
+
 		if (dma_mapping_error(&alx->hw.pdev->dev, dma))
+		{
 			goto err_dma;
+		}
+
 		dma_unmap_len_set(&txq->bufs[txq->write_idx], size, maplen);
 		dma_unmap_addr_set(&txq->bufs[txq->write_idx], dma, dma);
 
@@ -1301,29 +1536,38 @@ static int alx_map_tx_skb(struct alx_priv *alx, struct sk_buff *skb)
 	txq->bufs[txq->write_idx].skb = skb;
 
 	if (++txq->write_idx == alx->tx_ringsz)
+	{
 		txq->write_idx = 0;
+	}
 
 	return 0;
 
 err_dma:
 	f = first_idx;
-	while (f != txq->write_idx) {
+
+	while (f != txq->write_idx)
+	{
 		alx_free_txbuf(alx, f);
+
 		if (++f == alx->tx_ringsz)
+		{
 			f = 0;
+		}
 	}
+
 	return -ENOMEM;
 }
 
 static netdev_tx_t alx_start_xmit(struct sk_buff *skb,
-				  struct net_device *netdev)
+								  struct net_device *netdev)
 {
 	struct alx_priv *alx = netdev_priv(netdev);
 	struct alx_tx_queue *txq = &alx->txq;
 	struct alx_txd *first;
 	int tso;
 
-	if (alx_tpd_avail(alx) < alx_tpd_req(skb)) {
+	if (alx_tpd_avail(alx) < alx_tpd_req(skb))
+	{
 		netif_stop_queue(alx->dev);
 		goto drop;
 	}
@@ -1332,13 +1576,20 @@ static netdev_tx_t alx_start_xmit(struct sk_buff *skb,
 	memset(first, 0, sizeof(*first));
 
 	tso = alx_tso(skb, first);
+
 	if (tso < 0)
+	{
 		goto drop;
+	}
 	else if (!tso && alx_tx_csum(skb, first))
+	{
 		goto drop;
+	}
 
 	if (alx_map_tx_skb(alx, skb) < 0)
+	{
 		goto drop;
+	}
 
 	netdev_sent_queue(alx->dev, skb->len);
 
@@ -1346,8 +1597,10 @@ static netdev_tx_t alx_start_xmit(struct sk_buff *skb,
 	wmb();
 	alx_write_mem16(&alx->hw, ALX_TPD_PRI0_PIDX, txq->write_idx);
 
-	if (alx_tpd_avail(alx) < alx->tx_ringsz/8)
+	if (alx_tpd_avail(alx) < alx->tx_ringsz / 8)
+	{
 		netif_stop_queue(alx->dev);
+	}
 
 	return NETDEV_TX_OK;
 
@@ -1364,7 +1617,7 @@ static void alx_tx_timeout(struct net_device *dev)
 }
 
 static int alx_mdio_read(struct net_device *netdev,
-			 int prtad, int devad, u16 addr)
+						 int prtad, int devad, u16 addr)
 {
 	struct alx_priv *alx = netdev_priv(netdev);
 	struct alx_hw *hw = &alx->hw;
@@ -1372,29 +1625,42 @@ static int alx_mdio_read(struct net_device *netdev,
 	int err;
 
 	if (prtad != hw->mdio.prtad)
+	{
 		return -EINVAL;
+	}
 
 	if (devad == MDIO_DEVAD_NONE)
+	{
 		err = alx_read_phy_reg(hw, addr, &val);
+	}
 	else
+	{
 		err = alx_read_phy_ext(hw, devad, addr, &val);
+	}
 
 	if (err)
+	{
 		return err;
+	}
+
 	return val;
 }
 
 static int alx_mdio_write(struct net_device *netdev,
-			  int prtad, int devad, u16 addr, u16 val)
+						  int prtad, int devad, u16 addr, u16 val)
 {
 	struct alx_priv *alx = netdev_priv(netdev);
 	struct alx_hw *hw = &alx->hw;
 
 	if (prtad != hw->mdio.prtad)
+	{
 		return -EINVAL;
+	}
 
 	if (devad == MDIO_DEVAD_NONE)
+	{
 		return alx_write_phy_reg(hw, addr, val);
+	}
 
 	return alx_write_phy_ext(hw, devad, addr, val);
 }
@@ -1404,7 +1670,9 @@ static int alx_ioctl(struct net_device *netdev, struct ifreq *ifr, int cmd)
 	struct alx_priv *alx = netdev_priv(netdev);
 
 	if (!netif_running(netdev))
+	{
 		return -EAGAIN;
+	}
 
 	return mdio_mii_ioctl(&alx->hw.mdio, if_mii(ifr), cmd);
 }
@@ -1414,18 +1682,24 @@ static void alx_poll_controller(struct net_device *netdev)
 {
 	struct alx_priv *alx = netdev_priv(netdev);
 
-	if (alx->flags & ALX_FLAG_USING_MSIX) {
+	if (alx->flags & ALX_FLAG_USING_MSIX)
+	{
 		alx_intr_msix_misc(0, alx);
 		alx_intr_msix_ring(0, alx);
-	} else if (alx->flags & ALX_FLAG_USING_MSI)
+	}
+	else if (alx->flags & ALX_FLAG_USING_MSI)
+	{
 		alx_intr_msi(0, alx);
+	}
 	else
+	{
 		alx_intr_legacy(0, alx);
+	}
 }
 #endif
 
 static struct rtnl_link_stats64 *alx_get_stats64(struct net_device *dev,
-					struct rtnl_link_stats64 *net_stats)
+		struct rtnl_link_stats64 *net_stats)
 {
 	struct alx_priv *alx = netdev_priv(dev);
 	struct alx_hw_stats *hw_stats = &alx->hw.stats;
@@ -1438,17 +1712,17 @@ static struct rtnl_link_stats64 *alx_get_stats64(struct net_device *dev,
 	net_stats->rx_bytes   = hw_stats->rx_byte_cnt;
 	net_stats->multicast  = hw_stats->rx_mcast;
 	net_stats->collisions = hw_stats->tx_single_col +
-				hw_stats->tx_multi_col +
-				hw_stats->tx_late_col +
-				hw_stats->tx_abort_col;
+							hw_stats->tx_multi_col +
+							hw_stats->tx_late_col +
+							hw_stats->tx_abort_col;
 
 	net_stats->rx_errors  = hw_stats->rx_frag +
-				hw_stats->rx_fcs_err +
-				hw_stats->rx_len_err +
-				hw_stats->rx_ov_sz +
-				hw_stats->rx_ov_rrd +
-				hw_stats->rx_align_err +
-				hw_stats->rx_ov_rxf;
+							hw_stats->rx_fcs_err +
+							hw_stats->rx_len_err +
+							hw_stats->rx_ov_sz +
+							hw_stats->rx_ov_rrd +
+							hw_stats->rx_align_err +
+							hw_stats->rx_ov_rxf;
 
 	net_stats->rx_fifo_errors   = hw_stats->rx_ov_rxf;
 	net_stats->rx_length_errors = hw_stats->rx_len_err;
@@ -1457,9 +1731,9 @@ static struct rtnl_link_stats64 *alx_get_stats64(struct net_device *dev,
 	net_stats->rx_dropped       = hw_stats->rx_ov_rrd;
 
 	net_stats->tx_errors = hw_stats->tx_late_col +
-			       hw_stats->tx_abort_col +
-			       hw_stats->tx_underrun +
-			       hw_stats->tx_trunc;
+						   hw_stats->tx_abort_col +
+						   hw_stats->tx_underrun +
+						   hw_stats->tx_trunc;
 
 	net_stats->tx_aborted_errors = hw_stats->tx_abort_col;
 	net_stats->tx_fifo_errors    = hw_stats->tx_underrun;
@@ -1473,7 +1747,8 @@ static struct rtnl_link_stats64 *alx_get_stats64(struct net_device *dev,
 	return net_stats;
 }
 
-static const struct net_device_ops alx_netdev_ops = {
+static const struct net_device_ops alx_netdev_ops =
+{
 	.ndo_open               = alx_open,
 	.ndo_stop               = alx_stop,
 	.ndo_start_xmit         = alx_start_xmit,
@@ -1499,42 +1774,55 @@ static int alx_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	int err;
 
 	err = pci_enable_device_mem(pdev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* The alx chip can DMA to 64-bit addresses, but it uses a single
 	 * shared register for the high 32 bits, so only a single, aligned,
 	 * 4 GB physical address range can be used for descriptors.
 	 */
-	if (!dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64))) {
+	if (!dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64)))
+	{
 		dev_dbg(&pdev->dev, "DMA to 64-BIT addresses\n");
-	} else {
+	}
+	else
+	{
 		err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
-		if (err) {
+
+		if (err)
+		{
 			dev_err(&pdev->dev, "No usable DMA config, aborting\n");
 			goto out_pci_disable;
 		}
 	}
 
 	err = pci_request_mem_regions(pdev, alx_drv_name);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev,
-			"pci_request_mem_regions failed\n");
+				"pci_request_mem_regions failed\n");
 		goto out_pci_disable;
 	}
 
 	pci_enable_pcie_error_reporting(pdev);
 	pci_set_master(pdev);
 
-	if (!pdev->pm_cap) {
+	if (!pdev->pm_cap)
+	{
 		dev_err(&pdev->dev,
-			"Can't find power management capability, aborting\n");
+				"Can't find power management capability, aborting\n");
 		err = -EIO;
 		goto out_pci_release;
 	}
 
 	netdev = alloc_etherdev(sizeof(*alx));
-	if (!netdev) {
+
+	if (!netdev)
+	{
 		err = -ENOMEM;
 		goto out_pci_release;
 	}
@@ -1547,12 +1835,14 @@ static int alx_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	alx->dev = netdev;
 	alx->hw.pdev = pdev;
 	alx->msg_enable = NETIF_MSG_LINK | NETIF_MSG_HW | NETIF_MSG_IFUP |
-			  NETIF_MSG_TX_ERR | NETIF_MSG_RX_ERR | NETIF_MSG_WOL;
+					  NETIF_MSG_TX_ERR | NETIF_MSG_RX_ERR | NETIF_MSG_WOL;
 	hw = &alx->hw;
 	pci_set_drvdata(pdev, alx);
 
 	hw->hw_addr = pci_ioremap_bar(pdev, 0);
-	if (!hw->hw_addr) {
+
+	if (!hw->hw_addr)
+	{
 		dev_err(&pdev->dev, "cannot map device registers\n");
 		err = -EIO;
 		goto out_free_netdev;
@@ -1564,10 +1854,14 @@ static int alx_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	netdev->watchdog_timeo = ALX_WATCHDOG_TIME;
 
 	if (ent->driver_data & ALX_DEV_QUIRK_MSI_INTX_DISABLE_BUG)
+	{
 		pdev->dev_flags |= PCI_DEV_FLAGS_MSI_INTX_DISABLE_BUG;
+	}
 
 	err = alx_init_sw(alx);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "net device private data init failed\n");
 		goto out_unmap;
 	}
@@ -1577,33 +1871,41 @@ static int alx_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	phy_configured = alx_phy_configured(hw);
 
 	if (!phy_configured)
+	{
 		alx_reset_phy(hw);
+	}
 
 	err = alx_reset_mac(hw);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "MAC Reset failed, error = %d\n", err);
 		goto out_unmap;
 	}
 
 	/* setup link to put it in a known good starting state */
-	if (!phy_configured) {
+	if (!phy_configured)
+	{
 		err = alx_setup_speed_duplex(hw, hw->adv_cfg, hw->flowctrl);
-		if (err) {
+
+		if (err)
+		{
 			dev_err(&pdev->dev,
-				"failed to configure PHY speed/duplex (err=%d)\n",
-				err);
+					"failed to configure PHY speed/duplex (err=%d)\n",
+					err);
 			goto out_unmap;
 		}
 	}
 
 	netdev->hw_features = NETIF_F_SG |
-			      NETIF_F_HW_CSUM |
-			      NETIF_F_TSO |
-			      NETIF_F_TSO6;
+						  NETIF_F_HW_CSUM |
+						  NETIF_F_TSO |
+						  NETIF_F_TSO6;
 
-	if (alx_get_perm_macaddr(hw, hw->perm_addr)) {
+	if (alx_get_perm_macaddr(hw, hw->perm_addr))
+	{
 		dev_warn(&pdev->dev,
-			 "Invalid permanent address programmed, using random one\n");
+				 "Invalid permanent address programmed, using random one\n");
 		eth_hw_addr_random(netdev);
 		memcpy(hw->perm_addr, netdev->dev_addr, netdev->addr_len);
 	}
@@ -1616,12 +1918,13 @@ static int alx_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	hw->mdio.mmds = 0;
 	hw->mdio.dev = netdev;
 	hw->mdio.mode_support = MDIO_SUPPORTS_C45 |
-				MDIO_SUPPORTS_C22 |
-				MDIO_EMULATE_C22;
+							MDIO_SUPPORTS_C22 |
+							MDIO_EMULATE_C22;
 	hw->mdio.mdio_read = alx_mdio_read;
 	hw->mdio.mdio_write = alx_mdio_write;
 
-	if (!alx_get_phy_info(hw)) {
+	if (!alx_get_phy_info(hw))
+	{
 		dev_err(&pdev->dev, "failed to identify PHY\n");
 		err = -EIO;
 		goto out_unmap;
@@ -1632,14 +1935,16 @@ static int alx_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	netif_carrier_off(netdev);
 
 	err = register_netdev(netdev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "register netdevice failed\n");
 		goto out_unmap;
 	}
 
 	netdev_info(netdev,
-		    "Qualcomm Atheros AR816x/AR817x Ethernet [%pM]\n",
-		    netdev->dev_addr);
+				"Qualcomm Atheros AR816x/AR817x Ethernet [%pM]\n",
+				netdev->dev_addr);
 
 	return 0;
 
@@ -1682,7 +1987,10 @@ static int alx_suspend(struct device *dev)
 	struct alx_priv *alx = pci_get_drvdata(pdev);
 
 	if (!netif_running(alx->dev))
+	{
 		return 0;
+	}
+
 	netif_device_detach(alx->dev);
 	__alx_stop(alx);
 	return 0;
@@ -1697,7 +2005,10 @@ static int alx_resume(struct device *dev)
 	alx_reset_phy(hw);
 
 	if (!netif_running(alx->dev))
+	{
 		return 0;
+	}
+
 	netif_device_attach(alx->dev);
 	return __alx_open(alx, true);
 }
@@ -1710,7 +2021,7 @@ static SIMPLE_DEV_PM_OPS(alx_pm_ops, alx_suspend, alx_resume);
 
 
 static pci_ers_result_t alx_pci_error_detected(struct pci_dev *pdev,
-					       pci_channel_state_t state)
+		pci_channel_state_t state)
 {
 	struct alx_priv *alx = pci_get_drvdata(pdev);
 	struct net_device *netdev = alx->dev;
@@ -1720,15 +2031,20 @@ static pci_ers_result_t alx_pci_error_detected(struct pci_dev *pdev,
 
 	rtnl_lock();
 
-	if (netif_running(netdev)) {
+	if (netif_running(netdev))
+	{
 		netif_device_detach(netdev);
 		alx_halt(alx);
 	}
 
 	if (state == pci_channel_io_perm_failure)
+	{
 		rc = PCI_ERS_RESULT_DISCONNECT;
+	}
 	else
+	{
 		pci_disable_device(pdev);
+	}
 
 	rtnl_unlock();
 
@@ -1745,7 +2061,8 @@ static pci_ers_result_t alx_pci_error_slot_reset(struct pci_dev *pdev)
 
 	rtnl_lock();
 
-	if (pci_enable_device(pdev)) {
+	if (pci_enable_device(pdev))
+	{
 		dev_err(&pdev->dev, "Failed to re-enable PCI device after reset\n");
 		goto out;
 	}
@@ -1753,8 +2070,12 @@ static pci_ers_result_t alx_pci_error_slot_reset(struct pci_dev *pdev)
 	pci_set_master(pdev);
 
 	alx_reset_pcie(hw);
+
 	if (!alx_reset_mac(hw))
+	{
 		rc = PCI_ERS_RESULT_RECOVERED;
+	}
+
 out:
 	pci_cleanup_aer_uncorrect_error_status(pdev);
 
@@ -1772,7 +2093,8 @@ static void alx_pci_error_resume(struct pci_dev *pdev)
 
 	rtnl_lock();
 
-	if (netif_running(netdev)) {
+	if (netif_running(netdev))
+	{
 		alx_activate(alx);
 		netif_device_attach(netdev);
 	}
@@ -1780,29 +2102,42 @@ static void alx_pci_error_resume(struct pci_dev *pdev)
 	rtnl_unlock();
 }
 
-static const struct pci_error_handlers alx_err_handlers = {
+static const struct pci_error_handlers alx_err_handlers =
+{
 	.error_detected = alx_pci_error_detected,
 	.slot_reset     = alx_pci_error_slot_reset,
 	.resume         = alx_pci_error_resume,
 };
 
-static const struct pci_device_id alx_pci_tbl[] = {
-	{ PCI_VDEVICE(ATTANSIC, ALX_DEV_ID_AR8161),
-	  .driver_data = ALX_DEV_QUIRK_MSI_INTX_DISABLE_BUG },
-	{ PCI_VDEVICE(ATTANSIC, ALX_DEV_ID_E2200),
-	  .driver_data = ALX_DEV_QUIRK_MSI_INTX_DISABLE_BUG },
-	{ PCI_VDEVICE(ATTANSIC, ALX_DEV_ID_E2400),
-	  .driver_data = ALX_DEV_QUIRK_MSI_INTX_DISABLE_BUG },
-	{ PCI_VDEVICE(ATTANSIC, ALX_DEV_ID_E2500),
-	  .driver_data = ALX_DEV_QUIRK_MSI_INTX_DISABLE_BUG },
-	{ PCI_VDEVICE(ATTANSIC, ALX_DEV_ID_AR8162),
-	  .driver_data = ALX_DEV_QUIRK_MSI_INTX_DISABLE_BUG },
+static const struct pci_device_id alx_pci_tbl[] =
+{
+	{
+		PCI_VDEVICE(ATTANSIC, ALX_DEV_ID_AR8161),
+		.driver_data = ALX_DEV_QUIRK_MSI_INTX_DISABLE_BUG
+	},
+	{
+		PCI_VDEVICE(ATTANSIC, ALX_DEV_ID_E2200),
+		.driver_data = ALX_DEV_QUIRK_MSI_INTX_DISABLE_BUG
+	},
+	{
+		PCI_VDEVICE(ATTANSIC, ALX_DEV_ID_E2400),
+		.driver_data = ALX_DEV_QUIRK_MSI_INTX_DISABLE_BUG
+	},
+	{
+		PCI_VDEVICE(ATTANSIC, ALX_DEV_ID_E2500),
+		.driver_data = ALX_DEV_QUIRK_MSI_INTX_DISABLE_BUG
+	},
+	{
+		PCI_VDEVICE(ATTANSIC, ALX_DEV_ID_AR8162),
+		.driver_data = ALX_DEV_QUIRK_MSI_INTX_DISABLE_BUG
+	},
 	{ PCI_VDEVICE(ATTANSIC, ALX_DEV_ID_AR8171) },
 	{ PCI_VDEVICE(ATTANSIC, ALX_DEV_ID_AR8172) },
 	{}
 };
 
-static struct pci_driver alx_driver = {
+static struct pci_driver alx_driver =
+{
 	.name        = alx_drv_name,
 	.id_table    = alx_pci_tbl,
 	.probe       = alx_probe,

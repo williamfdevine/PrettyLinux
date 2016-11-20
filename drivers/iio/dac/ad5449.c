@@ -43,7 +43,8 @@
  * @num_channels:	Number of channels
  * @has_ctrl:		Chip has a control register
  */
-struct ad5449_chip_info {
+struct ad5449_chip_info
+{
 	const struct iio_chan_spec *channels;
 	unsigned int num_channels;
 	bool has_ctrl;
@@ -58,7 +59,8 @@ struct ad5449_chip_info {
  * @dac_cache:		Cache for the DAC values
  * @data:		spi transfer buffers
  */
-struct ad5449 {
+struct ad5449
+{
 	struct spi_device		*spi;
 	const struct ad5449_chip_info	*chip_info;
 	struct regulator_bulk_data	vref_reg[AD5449_MAX_VREFS];
@@ -73,7 +75,8 @@ struct ad5449 {
 	__be16 data[2] ____cacheline_aligned;
 };
 
-enum ad5449_type {
+enum ad5449_type
+{
 	ID_AD5426,
 	ID_AD5429,
 	ID_AD5432,
@@ -83,7 +86,7 @@ enum ad5449_type {
 };
 
 static int ad5449_write(struct iio_dev *indio_dev, unsigned int addr,
-	unsigned int val)
+						unsigned int val)
 {
 	struct ad5449 *st = iio_priv(indio_dev);
 	int ret;
@@ -97,11 +100,12 @@ static int ad5449_write(struct iio_dev *indio_dev, unsigned int addr,
 }
 
 static int ad5449_read(struct iio_dev *indio_dev, unsigned int addr,
-	unsigned int *val)
+					   unsigned int *val)
 {
 	struct ad5449 *st = iio_priv(indio_dev);
 	int ret;
-	struct spi_transfer t[] = {
+	struct spi_transfer t[] =
+	{
 		{
 			.tx_buf = &st->data[0],
 			.len = 2,
@@ -118,8 +122,11 @@ static int ad5449_read(struct iio_dev *indio_dev, unsigned int addr,
 	st->data[1] = cpu_to_be16(AD5449_CMD_NOOP);
 
 	ret = spi_sync_transfer(st->spi, t, ARRAY_SIZE(t));
+
 	if (ret < 0)
+	{
 		goto out_unlock;
+	}
 
 	*val = be16_to_cpu(st->data[1]);
 
@@ -129,100 +136,123 @@ out_unlock:
 }
 
 static int ad5449_read_raw(struct iio_dev *indio_dev,
-	struct iio_chan_spec const *chan, int *val, int *val2, long info)
+						   struct iio_chan_spec const *chan, int *val, int *val2, long info)
 {
 	struct ad5449 *st = iio_priv(indio_dev);
 	struct regulator_bulk_data *reg;
 	int scale_uv;
 	int ret;
 
-	switch (info) {
-	case IIO_CHAN_INFO_RAW:
-		if (st->has_sdo) {
-			ret = ad5449_read(indio_dev,
-				AD5449_CMD_READ(chan->address), val);
-			if (ret)
-				return ret;
-			*val &= 0xfff;
-		} else {
-			*val = st->dac_cache[chan->address];
-		}
+	switch (info)
+	{
+		case IIO_CHAN_INFO_RAW:
+			if (st->has_sdo)
+			{
+				ret = ad5449_read(indio_dev,
+								  AD5449_CMD_READ(chan->address), val);
 
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_SCALE:
-		reg = &st->vref_reg[chan->channel];
-		scale_uv = regulator_get_voltage(reg->consumer);
-		if (scale_uv < 0)
-			return scale_uv;
+				if (ret)
+				{
+					return ret;
+				}
 
-		*val = scale_uv / 1000;
-		*val2 = chan->scan_type.realbits;
+				*val &= 0xfff;
+			}
+			else
+			{
+				*val = st->dac_cache[chan->address];
+			}
 
-		return IIO_VAL_FRACTIONAL_LOG2;
-	default:
-		break;
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_SCALE:
+			reg = &st->vref_reg[chan->channel];
+			scale_uv = regulator_get_voltage(reg->consumer);
+
+			if (scale_uv < 0)
+			{
+				return scale_uv;
+			}
+
+			*val = scale_uv / 1000;
+			*val2 = chan->scan_type.realbits;
+
+			return IIO_VAL_FRACTIONAL_LOG2;
+
+		default:
+			break;
 	}
 
 	return -EINVAL;
 }
 
 static int ad5449_write_raw(struct iio_dev *indio_dev,
-	struct iio_chan_spec const *chan, int val, int val2, long info)
+							struct iio_chan_spec const *chan, int val, int val2, long info)
 {
 	struct ad5449 *st = iio_priv(indio_dev);
 	int ret;
 
-	switch (info) {
-	case IIO_CHAN_INFO_RAW:
-		if (val < 0 || val >= (1 << chan->scan_type.realbits))
-			return -EINVAL;
+	switch (info)
+	{
+		case IIO_CHAN_INFO_RAW:
+			if (val < 0 || val >= (1 << chan->scan_type.realbits))
+			{
+				return -EINVAL;
+			}
 
-		ret = ad5449_write(indio_dev,
-			AD5449_CMD_LOAD_AND_UPDATE(chan->address),
-			val << chan->scan_type.shift);
-		if (ret == 0)
-			st->dac_cache[chan->address] = val;
-		break;
-	default:
-		ret = -EINVAL;
+			ret = ad5449_write(indio_dev,
+							   AD5449_CMD_LOAD_AND_UPDATE(chan->address),
+							   val << chan->scan_type.shift);
+
+			if (ret == 0)
+			{
+				st->dac_cache[chan->address] = val;
+			}
+
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	return ret;
 }
 
-static const struct iio_info ad5449_info = {
+static const struct iio_info ad5449_info =
+{
 	.read_raw = ad5449_read_raw,
 	.write_raw = ad5449_write_raw,
 	.driver_module = THIS_MODULE,
 };
 
 #define AD5449_CHANNEL(chan, bits) {				\
-	.type = IIO_VOLTAGE,					\
-	.indexed = 1,						\
-	.output = 1,						\
-	.channel = (chan),					\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |		\
-		BIT(IIO_CHAN_INFO_SCALE),			\
-	.address = (chan),					\
-	.scan_type = {						\
-		.sign = 'u',					\
-		.realbits = (bits),				\
-		.storagebits = 16,				\
-		.shift = 12 - (bits),				\
-	},							\
-}
+		.type = IIO_VOLTAGE,					\
+				.indexed = 1,						\
+						   .output = 1,						\
+									 .channel = (chan),					\
+												.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |		\
+														BIT(IIO_CHAN_INFO_SCALE),			\
+														.address = (chan),					\
+																.scan_type = {						\
+																									.sign = 'u',					\
+																									.realbits = (bits),				\
+																									.storagebits = 16,				\
+																									.shift = 12 - (bits),				\
+																			 },							\
+	}
 
 #define DECLARE_AD5449_CHANNELS(name, bits) \
-const struct iio_chan_spec name[] = { \
-	AD5449_CHANNEL(0, bits), \
-	AD5449_CHANNEL(1, bits), \
-}
+	const struct iio_chan_spec name[] = { \
+		AD5449_CHANNEL(0, bits), \
+		AD5449_CHANNEL(1, bits), \
+	}
 
 static DECLARE_AD5449_CHANNELS(ad5429_channels, 8);
 static DECLARE_AD5449_CHANNELS(ad5439_channels, 10);
 static DECLARE_AD5449_CHANNELS(ad5449_channels, 12);
 
-static const struct ad5449_chip_info ad5449_chip_info[] = {
+static const struct ad5449_chip_info ad5449_chip_info[] =
+{
 	[ID_AD5426] = {
 		.channels = ad5429_channels,
 		.num_channels = 1,
@@ -258,12 +288,18 @@ static const struct ad5449_chip_info ad5449_chip_info[] = {
 static const char *ad5449_vref_name(struct ad5449 *st, int n)
 {
 	if (st->chip_info->num_channels == 1)
+	{
 		return "VREF";
+	}
 
 	if (n == 0)
+	{
 		return "VREFA";
+	}
 	else
+	{
 		return "VREFB";
+	}
 }
 
 static int ad5449_spi_probe(struct spi_device *spi)
@@ -276,8 +312,11 @@ static int ad5449_spi_probe(struct spi_device *spi)
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*st));
+
 	if (indio_dev == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	st = iio_priv(indio_dev);
 	spi_set_drvdata(spi, indio_dev);
@@ -286,16 +325,24 @@ static int ad5449_spi_probe(struct spi_device *spi)
 	st->spi = spi;
 
 	for (i = 0; i < st->chip_info->num_channels; ++i)
+	{
 		st->vref_reg[i].supply = ad5449_vref_name(st, i);
+	}
 
 	ret = devm_regulator_bulk_get(&spi->dev, st->chip_info->num_channels,
-				st->vref_reg);
+								  st->vref_reg);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = regulator_bulk_enable(st->chip_info->num_channels, st->vref_reg);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	indio_dev->dev.parent = &spi->dev;
 	indio_dev->name = id->name;
@@ -304,22 +351,34 @@ static int ad5449_spi_probe(struct spi_device *spi)
 	indio_dev->channels = st->chip_info->channels;
 	indio_dev->num_channels = st->chip_info->num_channels;
 
-	if (st->chip_info->has_ctrl) {
+	if (st->chip_info->has_ctrl)
+	{
 		unsigned int ctrl = 0x00;
-		if (pdata) {
+
+		if (pdata)
+		{
 			if (pdata->hardware_clear_to_midscale)
+			{
 				ctrl |= AD5449_CTRL_HCLR_TO_MIDSCALE;
+			}
+
 			ctrl |= pdata->sdo_mode << AD5449_CTRL_SDO_OFFSET;
 			st->has_sdo = pdata->sdo_mode != AD5449_SDO_DISABLED;
-		} else {
+		}
+		else
+		{
 			st->has_sdo = true;
 		}
+
 		ad5449_write(indio_dev, AD5449_CMD_CTRL, ctrl);
 	}
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret)
+	{
 		goto error_disable_reg;
+	}
 
 	return 0;
 
@@ -341,7 +400,8 @@ static int ad5449_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct spi_device_id ad5449_spi_ids[] = {
+static const struct spi_device_id ad5449_spi_ids[] =
+{
 	{ "ad5415", ID_AD5449 },
 	{ "ad5426", ID_AD5426 },
 	{ "ad5429", ID_AD5429 },
@@ -353,7 +413,8 @@ static const struct spi_device_id ad5449_spi_ids[] = {
 };
 MODULE_DEVICE_TABLE(spi, ad5449_spi_ids);
 
-static struct spi_driver ad5449_spi_driver = {
+static struct spi_driver ad5449_spi_driver =
+{
 	.driver = {
 		.name = "ad5449",
 	},

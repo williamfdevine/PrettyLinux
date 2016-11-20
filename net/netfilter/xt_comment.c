@@ -22,7 +22,8 @@ comment_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	return true;
 }
 
-static struct xt_match comment_mt_reg __read_mostly = {
+static struct xt_match comment_mt_reg __read_mostly =
+{
 	.name      = "comment",
 	.revision  = 0,
 	.family    = NFPROTO_UNSPEC,

@@ -21,9 +21,10 @@
 
 #define NL802154_GENL_NAME "nl802154"
 
-enum nl802154_commands {
-/* don't change the order or add anything between, this is ABI! */
-/* currently we don't shipping this file via uapi, ignore the above one */
+enum nl802154_commands
+{
+	/* don't change the order or add anything between, this is ABI! */
+	/* currently we don't shipping this file via uapi, ignore the above one */
 	NL802154_CMD_UNSPEC,
 
 	NL802154_CMD_GET_WPAN_PHY,		/* can dump */
@@ -79,9 +80,10 @@ enum nl802154_commands {
 	NL802154_CMD_MAX = __NL802154_CMD_AFTER_LAST - 1
 };
 
-enum nl802154_attrs {
-/* don't change the order or add anything between, this is ABI! */
-/* currently we don't shipping this file via uapi, ignore the above one */
+enum nl802154_attrs
+{
+	/* don't change the order or add anything between, this is ABI! */
+	/* currently we don't shipping this file via uapi, ignore the above one */
 	NL802154_ATTR_UNSPEC,
 
 	NL802154_ATTR_WPAN_PHY,
@@ -149,7 +151,8 @@ enum nl802154_attrs {
 	NL802154_ATTR_MAX = __NL802154_ATTR_AFTER_LAST - 1
 };
 
-enum nl802154_iftype {
+enum nl802154_iftype
+{
 	/* for backwards compatibility TODO */
 	NL802154_IFTYPE_UNSPEC = -1,
 
@@ -186,7 +189,8 @@ enum nl802154_iftype {
  * @NL802154_CAP_ATTR_MAX: highest cap attribute currently defined
  * @__NL802154_CAP_ATTR_AFTER_LAST: internal use
  */
-enum nl802154_wpan_phy_capability_attr {
+enum nl802154_wpan_phy_capability_attr
+{
 	__NL802154_CAP_ATTR_INVALID,
 
 	NL802154_CAP_ATTR_IFTYPES,
@@ -231,7 +235,8 @@ enum nl802154_wpan_phy_capability_attr {
  * @__NL802154_CCA_ATTR_AFTER_LAST: Internal
  * @NL802154_CCA_ATTR_MAX: Maximum CCA attribute number
  */
-enum nl802154_cca_modes {
+enum nl802154_cca_modes
+{
 	__NL802154_CCA_INVALID,
 	NL802154_CCA_ENERGY,
 	NL802154_CCA_CARRIER,
@@ -251,7 +256,8 @@ enum nl802154_cca_modes {
  * @NL802154_CCA_OPT_ENERGY_CARRIER_OR: NL802154_CCA_ENERGY_CARRIER with OR
  * @NL802154_CCA_OPT_ENERGY_CARRIER_AND: NL802154_CCA_ENERGY_CARRIER with AND
  */
-enum nl802154_cca_opts {
+enum nl802154_cca_opts
+{
 	NL802154_CCA_OPT_ENERGY_CARRIER_AND,
 	NL802154_CCA_OPT_ENERGY_CARRIER_OR,
 
@@ -270,7 +276,8 @@ enum nl802154_cca_opts {
  * @__NL802154_SUPPORTED_BOOL_AFTER_LAST: Internal
  * @NL802154_SUPPORTED_BOOL_MAX: highest value for bool states
  */
-enum nl802154_supported_bool_states {
+enum nl802154_supported_bool_states
+{
 	NL802154_SUPPORTED_BOOL_FALSE,
 	NL802154_SUPPORTED_BOOL_TRUE,
 	/* to handle them in a mask */
@@ -284,7 +291,8 @@ enum nl802154_supported_bool_states {
 
 #ifdef CONFIG_IEEE802154_NL802154_EXPERIMENTAL
 
-enum nl802154_dev_addr_modes {
+enum nl802154_dev_addr_modes
+{
 	NL802154_DEV_ADDR_NONE,
 	__NL802154_DEV_ADDR_INVALID,
 	NL802154_DEV_ADDR_SHORT,
@@ -295,7 +303,8 @@ enum nl802154_dev_addr_modes {
 	NL802154_DEV_ADDR_MAX = __NL802154_DEV_ADDR_AFTER_LAST - 1
 };
 
-enum nl802154_dev_addr_attrs {
+enum nl802154_dev_addr_attrs
+{
 	NL802154_DEV_ADDR_ATTR_UNSPEC,
 
 	NL802154_DEV_ADDR_ATTR_PAN_ID,
@@ -309,7 +318,8 @@ enum nl802154_dev_addr_attrs {
 	NL802154_DEV_ADDR_ATTR_MAX = __NL802154_DEV_ADDR_ATTR_AFTER_LAST - 1
 };
 
-enum nl802154_key_id_modes {
+enum nl802154_key_id_modes
+{
 	NL802154_KEY_ID_MODE_IMPLICIT,
 	NL802154_KEY_ID_MODE_INDEX,
 	NL802154_KEY_ID_MODE_INDEX_SHORT,
@@ -320,7 +330,8 @@ enum nl802154_key_id_modes {
 	NL802154_KEY_ID_MODE_MAX = __NL802154_KEY_ID_MODE_AFTER_LAST - 1
 };
 
-enum nl802154_key_id_attrs {
+enum nl802154_key_id_attrs
+{
 	NL802154_KEY_ID_ATTR_UNSPEC,
 
 	NL802154_KEY_ID_ATTR_MODE,
@@ -335,7 +346,8 @@ enum nl802154_key_id_attrs {
 	NL802154_KEY_ID_ATTR_MAX = __NL802154_KEY_ID_ATTR_AFTER_LAST - 1
 };
 
-enum nl802154_seclevels {
+enum nl802154_seclevels
+{
 	NL802154_SECLEVEL_NONE,
 	NL802154_SECLEVEL_MIC32,
 	NL802154_SECLEVEL_MIC64,
@@ -350,7 +362,8 @@ enum nl802154_seclevels {
 	NL802154_SECLEVEL_MAX = __NL802154_SECLEVEL_AFTER_LAST - 1
 };
 
-enum nl802154_frames {
+enum nl802154_frames
+{
 	NL802154_FRAME_BEACON,
 	NL802154_FRAME_DATA,
 	NL802154_FRAME_ACK,
@@ -361,7 +374,8 @@ enum nl802154_frames {
 	NL802154_FRAME_MAX = __NL802154_FRAME_AFTER_LAST - 1
 };
 
-enum nl802154_cmd_frames {
+enum nl802154_cmd_frames
+{
 	__NL802154_CMD_FRAME_INVALID,
 	NL802154_CMD_FRAME_ASSOC_REQUEST,
 	NL802154_CMD_FRAME_ASSOC_RESPONSE,
@@ -378,7 +392,8 @@ enum nl802154_cmd_frames {
 	NL802154_CMD_FRAME_MAX = __NL802154_CMD_FRAME_AFTER_LAST - 1
 };
 
-enum nl802154_seclevel_attrs {
+enum nl802154_seclevel_attrs
+{
 	NL802154_SECLEVEL_ATTR_UNSPEC,
 
 	NL802154_SECLEVEL_ATTR_LEVELS,
@@ -392,7 +407,8 @@ enum nl802154_seclevel_attrs {
 };
 
 /* TODO what is this? couldn't find in mib */
-enum {
+enum
+{
 	NL802154_DEVKEY_IGNORE,
 	NL802154_DEVKEY_RESTRICT,
 	NL802154_DEVKEY_RECORD,
@@ -402,7 +418,8 @@ enum {
 	NL802154_DEVKEY_MAX = __NL802154_DEVKEY_AFTER_LAST - 1
 };
 
-enum nl802154_dev {
+enum nl802154_dev
+{
 	NL802154_DEV_ATTR_UNSPEC,
 
 	NL802154_DEV_ATTR_FRAME_COUNTER,
@@ -418,7 +435,8 @@ enum nl802154_dev {
 	NL802154_DEV_ATTR_MAX = __NL802154_DEV_ATTR_AFTER_LAST - 1
 };
 
-enum nl802154_devkey {
+enum nl802154_devkey
+{
 	NL802154_DEVKEY_ATTR_UNSPEC,
 
 	NL802154_DEVKEY_ATTR_FRAME_COUNTER,
@@ -431,7 +449,8 @@ enum nl802154_devkey {
 	NL802154_DEVKEY_ATTR_MAX = __NL802154_DEVKEY_ATTR_AFTER_LAST - 1
 };
 
-enum nl802154_key {
+enum nl802154_key
+{
 	NL802154_KEY_ATTR_UNSPEC,
 
 	NL802154_KEY_ATTR_ID,

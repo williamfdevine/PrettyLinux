@@ -37,8 +37,8 @@
 #define INSN_LAST		INSN_OTHER
 
 int arch_decode_instruction(struct elf *elf, struct section *sec,
-			    unsigned long offset, unsigned int maxlen,
-			    unsigned int *len, unsigned char *type,
-			    unsigned long *displacement);
+							unsigned long offset, unsigned int maxlen,
+							unsigned int *len, unsigned char *type,
+							unsigned long *displacement);
 
 #endif /* _ARCH_H */

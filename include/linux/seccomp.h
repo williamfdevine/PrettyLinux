@@ -22,7 +22,8 @@ struct seccomp_filter;
  *          @filter must only be accessed from the context of current as there
  *          is no read locking.
  */
-struct seccomp {
+struct seccomp
+{
 	int mode;
 	struct seccomp_filter *filter;
 };
@@ -32,7 +33,10 @@ extern int __secure_computing(const struct seccomp_data *sd);
 static inline int secure_computing(const struct seccomp_data *sd)
 {
 	if (unlikely(test_thread_flag(TIF_SECCOMP)))
+	{
 		return  __secure_computing(sd);
+	}
+
 	return 0;
 }
 #else
@@ -92,10 +96,10 @@ static inline void get_seccomp_filter(struct task_struct *tsk)
 
 #if defined(CONFIG_SECCOMP_FILTER) && defined(CONFIG_CHECKPOINT_RESTORE)
 extern long seccomp_get_filter(struct task_struct *task,
-			       unsigned long filter_off, void __user *data);
+							   unsigned long filter_off, void __user *data);
 #else
 static inline long seccomp_get_filter(struct task_struct *task,
-				      unsigned long n, void __user *data)
+									  unsigned long n, void __user *data)
 {
 	return -EINVAL;
 }

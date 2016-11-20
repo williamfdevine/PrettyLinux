@@ -78,7 +78,8 @@
 /***
  * Video frame sizes
  ***/
-enum {
+enum
+{
 	VIDEOSIZE_VGA = 0,	/* 640x480 */
 	VIDEOSIZE_CIF,		/* 352x288 */
 	VIDEOSIZE_QVGA,		/* 320x240 */
@@ -107,7 +108,8 @@ enum {
  * Enums
  ***/
 /* Sensor types available with cpia2 asics */
-enum sensors {
+enum sensors
+{
 	CPIA2_SENSOR_410,
 	CPIA2_SENSOR_500
 };
@@ -119,7 +121,8 @@ enum sensors {
 #define  DEVICE_STV_672   0x0001
 #define  DEVICE_STV_676   0x0002
 
-enum frame_status {
+enum frame_status
+{
 	FRAME_EMPTY,
 	FRAME_READING,		/* In the process of being grabbed into */
 	FRAME_READY,		/* Ready to be read */
@@ -129,7 +132,8 @@ enum frame_status {
 /***
  * Register access (for USB request byte)
  ***/
-enum {
+enum
+{
 	CAMERAACCESS_SYSTEM = 0,
 	CAMERAACCESS_VC,
 	CAMERAACCESS_VP,
@@ -157,7 +161,8 @@ enum {
 /********
  * Commands
  *******/
-enum {
+enum
+{
 	CPIA2_CMD_NONE = 0,
 	CPIA2_CMD_GET_VERSION,
 	CPIA2_CMD_GET_PNP_ID,
@@ -213,7 +218,8 @@ enum {
 	CPIA2_CMD_SET_USER_EFFECTS
 };
 
-enum user_cmd {
+enum user_cmd
+{
 	COMMAND_NONE = 0x00000001,
 	COMMAND_SET_FPS = 0x00000002,
 	COMMAND_SET_COLOR_PARAMS = 0x00000004,
@@ -231,25 +237,29 @@ enum user_cmd {
 #define CAMACC_QVGA     0x08
 
 
-struct cpia2_register {
+struct cpia2_register
+{
 	u8 index;
 	u8 value;
 };
 
-struct cpia2_reg_mask {
+struct cpia2_reg_mask
+{
 	u8 index;
 	u8 and_mask;
 	u8 or_mask;
 	u8 fill;
 };
 
-struct cpia2_command {
+struct cpia2_command
+{
 	u32 command;
 	u8 req_mode;		/* (Block or random) | registerBank */
 	u8 reg_count;
 	u8 direction;
 	u8 start;
-	union reg_types {
+	union reg_types
+	{
 		struct cpia2_register registers[32];
 		struct cpia2_reg_mask masks[16];
 		u8 block_data[64];
@@ -257,8 +267,10 @@ struct cpia2_command {
 	} buffer;
 };
 
-struct camera_params {
-	struct {
+struct camera_params
+{
+	struct
+	{
 		u8 firmware_revision_hi; /* For system register set (bank 0) */
 		u8 firmware_revision_lo;
 		u8 asic_id;	/* Video Compressor set (bank 1) */
@@ -269,7 +281,8 @@ struct camera_params {
 		u8 sensor_rev;
 	} version;
 
-	struct {
+	struct
+	{
 		u32 device_type;     /* enumerated from vendor/product ids.
 				      * Currently, either STV_672 or STV_676 */
 		u16 vendor;
@@ -277,25 +290,29 @@ struct camera_params {
 		u16 device_revision;
 	} pnp_id;
 
-	struct {
+	struct
+	{
 		u8 brightness;	/* CPIA2_VP_EXPOSURE_TARGET */
 		u8 contrast;	/* Note: this is CPIA2_VP_YRANGE */
 		u8 saturation;	/*  CPIA2_VP_SATURATION */
 	} color_params;
 
-	struct {
+	struct
+	{
 		u8 cam_register;
 		u8 flicker_mode_req;	/* 1 if flicker on, else never flicker */
 	} flicker_control;
 
-	struct {
+	struct
+	{
 		u8 jpeg_options;
 		u8 creep_period;
 		u8 user_squeeze;
 		u8 inhibit_htables;
 	} compression;
 
-	struct {
+	struct
+	{
 		u8 ohsize;	/* output image size */
 		u8 ovsize;
 		u8 hcrop;	/* cropping start_pos/4 */
@@ -310,12 +327,14 @@ struct camera_params {
 		u8 vifraction;
 	} image_size;
 
-	struct {
+	struct
+	{
 		int width;	/* actual window width */
 		int height;	/* actual window height */
 	} roi;
 
-	struct {
+	struct
+	{
 		u8 video_mode;
 		u8 frame_rate;
 		u8 video_size;	/* Not a register, just a convenience for cropped sizes */
@@ -329,7 +348,8 @@ struct camera_params {
 		u8 user_effects;
 	} vp_params;
 
-	struct {
+	struct
+	{
 		u8 pw_control;
 		u8 wakeup;
 		u8 vc_control;
@@ -338,7 +358,8 @@ struct camera_params {
 		u8 quality;
 	} vc_params;
 
-	struct {
+	struct
+	{
 		u8 power_mode;
 		u8 system_ctrl;
 		u8 stream_mode;	/* This is the current alternate for usb drivers */
@@ -348,12 +369,14 @@ struct camera_params {
 
 #define NUM_SBUF    2
 
-struct cpia2_sbuf {
+struct cpia2_sbuf
+{
 	char *data;
 	struct urb *urb;
 };
 
-struct framebuf {
+struct framebuf
+{
 	struct timeval timestamp;
 	unsigned long seq;
 	int num;
@@ -364,12 +387,14 @@ struct framebuf {
 	struct framebuf *next;
 };
 
-struct camera_data {
+struct camera_data
+{
 	/* locks */
 	struct v4l2_device v4l2_dev;
 	struct mutex v4l2_lock;	/* serialize file operations */
 	struct v4l2_ctrl_handler hdl;
-	struct {
+	struct
+	{
 		/* Lights control cluster */
 		struct v4l2_ctrl *top_light;
 		struct v4l2_ctrl *bottom_light;
@@ -408,7 +433,7 @@ struct camera_data {
 	unsigned long frame_count;
 	u8 *frame_buffer;	/* frame buffer data */
 	struct framebuf *buffers;
-	struct framebuf * volatile curbuff;
+	struct framebuf *volatile curbuff;
 	struct framebuf *workbuff;
 
 	/* MJPEG Extension */
@@ -440,16 +465,16 @@ int cpia2_set_flicker_mode(struct camera_data *cam, int mode);
 void cpia2_set_format(struct camera_data *cam);
 int cpia2_send_command(struct camera_data *cam, struct cpia2_command *cmd);
 int cpia2_do_command(struct camera_data *cam,
-		     unsigned int command,
-		     unsigned char direction, unsigned char param);
+					 unsigned int command,
+					 unsigned char direction, unsigned char param);
 struct camera_data *cpia2_init_camera_struct(struct usb_interface *intf);
 int cpia2_init_camera(struct camera_data *cam);
 int cpia2_allocate_buffers(struct camera_data *cam);
 void cpia2_free_buffers(struct camera_data *cam);
 long cpia2_read(struct camera_data *cam,
-		char __user *buf, unsigned long count, int noblock);
+				char __user *buf, unsigned long count, int noblock);
 unsigned int cpia2_poll(struct camera_data *cam,
-			struct file *filp, poll_table *wait);
+						struct file *filp, poll_table *wait);
 int cpia2_remap_buffer(struct camera_data *cam, struct vm_area_struct *vma);
 void cpia2_set_property_flip(struct camera_data *cam, int prop_val);
 void cpia2_set_property_mirror(struct camera_data *cam, int prop_val);
@@ -460,26 +485,26 @@ int cpia2_set_fps(struct camera_data *cam, int framerate);
 int cpia2_usb_init(void);
 void cpia2_usb_cleanup(void);
 int cpia2_usb_transfer_cmd(struct camera_data *cam, void *registers,
-			   u8 request, u8 start, u8 count, u8 direction);
+						   u8 request, u8 start, u8 count, u8 direction);
 int cpia2_usb_stream_start(struct camera_data *cam, unsigned int alternate);
 int cpia2_usb_stream_stop(struct camera_data *cam);
 int cpia2_usb_stream_pause(struct camera_data *cam);
 int cpia2_usb_stream_resume(struct camera_data *cam);
 int cpia2_usb_change_streaming_alternate(struct camera_data *cam,
-					 unsigned int alt);
+		unsigned int alt);
 
 
 /* ----------------------- debug functions ---------------------- */
 #ifdef _CPIA2_DEBUG_
-#define ALOG(lev, fmt, args...) printk(lev "%s:%d %s(): " fmt, __FILE__, __LINE__, __func__, ## args)
-#define LOG(fmt, args...) ALOG(KERN_INFO, fmt, ## args)
-#define ERR(fmt, args...) ALOG(KERN_ERR, fmt, ## args)
-#define DBG(fmt, args...) ALOG(KERN_DEBUG, fmt, ## args)
+	#define ALOG(lev, fmt, args...) printk(lev "%s:%d %s(): " fmt, __FILE__, __LINE__, __func__, ## args)
+	#define LOG(fmt, args...) ALOG(KERN_INFO, fmt, ## args)
+	#define ERR(fmt, args...) ALOG(KERN_ERR, fmt, ## args)
+	#define DBG(fmt, args...) ALOG(KERN_DEBUG, fmt, ## args)
 #else
-#define ALOG(fmt,args...) printk(fmt,##args)
-#define LOG(fmt,args...) ALOG(KERN_INFO "cpia2: "fmt,##args)
-#define ERR(fmt,args...) ALOG(KERN_ERR "cpia2: "fmt,##args)
-#define DBG(fmn,args...) do {} while(0)
+	#define ALOG(fmt,args...) printk(fmt,##args)
+	#define LOG(fmt,args...) ALOG(KERN_INFO "cpia2: "fmt,##args)
+	#define ERR(fmt,args...) ALOG(KERN_ERR "cpia2: "fmt,##args)
+	#define DBG(fmn,args...) do {} while(0)
 #endif
 /* No function or lineno, for shorter lines */
 #define KINFO(fmt, args...) printk(KERN_INFO fmt,##args)

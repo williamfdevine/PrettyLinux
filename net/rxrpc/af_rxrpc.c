@@ -66,13 +66,19 @@ static void rxrpc_write_space(struct sock *sk)
 {
 	_enter("%p", sk);
 	rcu_read_lock();
-	if (rxrpc_writable(sk)) {
+
+	if (rxrpc_writable(sk))
+	{
 		struct socket_wq *wq = rcu_dereference(sk->sk_wq);
 
 		if (skwq_has_sleeper(wq))
+		{
 			wake_up_interruptible(&wq->wait);
+		}
+
 		sk_wake_async(sk, SOCK_WAKE_SPACE, POLL_OUT);
 	}
+
 	rcu_read_unlock();
 }
 
@@ -80,50 +86,72 @@ static void rxrpc_write_space(struct sock *sk)
  * validate an RxRPC address
  */
 static int rxrpc_validate_address(struct rxrpc_sock *rx,
-				  struct sockaddr_rxrpc *srx,
-				  int len)
+								  struct sockaddr_rxrpc *srx,
+								  int len)
 {
 	unsigned int tail;
 
 	if (len < sizeof(struct sockaddr_rxrpc))
+	{
 		return -EINVAL;
+	}
 
 	if (srx->srx_family != AF_RXRPC)
-		return -EAFNOSUPPORT;
-
-	if (srx->transport_type != SOCK_DGRAM)
-		return -ESOCKTNOSUPPORT;
-
-	len -= offsetof(struct sockaddr_rxrpc, transport);
-	if (srx->transport_len < sizeof(sa_family_t) ||
-	    srx->transport_len > len)
-		return -EINVAL;
-
-	if (srx->transport.family != rx->family)
-		return -EAFNOSUPPORT;
-
-	switch (srx->transport.family) {
-	case AF_INET:
-		if (srx->transport_len < sizeof(struct sockaddr_in))
-			return -EINVAL;
-		tail = offsetof(struct sockaddr_rxrpc, transport.sin.__pad);
-		break;
-
-#ifdef CONFIG_AF_RXRPC_IPV6
-	case AF_INET6:
-		if (srx->transport_len < sizeof(struct sockaddr_in6))
-			return -EINVAL;
-		tail = offsetof(struct sockaddr_rxrpc, transport) +
-			sizeof(struct sockaddr_in6);
-		break;
-#endif
-
-	default:
+	{
 		return -EAFNOSUPPORT;
 	}
 
+	if (srx->transport_type != SOCK_DGRAM)
+	{
+		return -ESOCKTNOSUPPORT;
+	}
+
+	len -= offsetof(struct sockaddr_rxrpc, transport);
+
+	if (srx->transport_len < sizeof(sa_family_t) ||
+		srx->transport_len > len)
+	{
+		return -EINVAL;
+	}
+
+	if (srx->transport.family != rx->family)
+	{
+		return -EAFNOSUPPORT;
+	}
+
+	switch (srx->transport.family)
+	{
+		case AF_INET:
+			if (srx->transport_len < sizeof(struct sockaddr_in))
+			{
+				return -EINVAL;
+			}
+
+			tail = offsetof(struct sockaddr_rxrpc, transport.sin.__pad);
+			break;
+
+#ifdef CONFIG_AF_RXRPC_IPV6
+
+		case AF_INET6:
+			if (srx->transport_len < sizeof(struct sockaddr_in6))
+			{
+				return -EINVAL;
+			}
+
+			tail = offsetof(struct sockaddr_rxrpc, transport) +
+				   sizeof(struct sockaddr_in6);
+			break;
+#endif
+
+		default:
+			return -EAFNOSUPPORT;
+	}
+
 	if (tail < len)
+	{
 		memset((void *)srx + tail, 0, len - tail);
+	}
+
 	_debug("INET: %pISp", &srx->transport);
 	return 0;
 }
@@ -143,12 +171,16 @@ static int rxrpc_bind(struct socket *sock, struct sockaddr *saddr, int len)
 	_enter("%p,%p,%d", rx, saddr, len);
 
 	ret = rxrpc_validate_address(rx, srx, len);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	lock_sock(&rx->sk);
 
-	if (rx->sk.sk_state != RXRPC_UNBOUND) {
+	if (rx->sk.sk_state != RXRPC_UNBOUND)
+	{
 		ret = -EINVAL;
 		goto error_unlock;
 	}
@@ -156,21 +188,30 @@ static int rxrpc_bind(struct socket *sock, struct sockaddr *saddr, int len)
 	memcpy(&rx->srx, srx, sizeof(rx->srx));
 
 	local = rxrpc_lookup_local(&rx->srx);
-	if (IS_ERR(local)) {
+
+	if (IS_ERR(local))
+	{
 		ret = PTR_ERR(local);
 		goto error_unlock;
 	}
 
-	if (service_id) {
+	if (service_id)
+	{
 		write_lock(&local->services_lock);
+
 		if (rcu_access_pointer(local->service))
+		{
 			goto service_in_use;
+		}
+
 		rx->local = local;
 		rcu_assign_pointer(local->service, rx);
 		write_unlock(&local->services_lock);
 
 		rx->sk.sk_state = RXRPC_SERVER_BOUND;
-	} else {
+	}
+	else
+	{
 		rx->local = local;
 		rx->sk.sk_state = RXRPC_CLIENT_BOUND;
 	}
@@ -204,29 +245,44 @@ static int rxrpc_listen(struct socket *sock, int backlog)
 
 	lock_sock(&rx->sk);
 
-	switch (rx->sk.sk_state) {
-	case RXRPC_UNBOUND:
-		ret = -EADDRNOTAVAIL;
-		break;
-	case RXRPC_SERVER_BOUND:
-		ASSERT(rx->local != NULL);
-		max = READ_ONCE(rxrpc_max_backlog);
-		ret = -EINVAL;
-		if (backlog == INT_MAX)
-			backlog = max;
-		else if (backlog < 0 || backlog > max)
+	switch (rx->sk.sk_state)
+	{
+		case RXRPC_UNBOUND:
+			ret = -EADDRNOTAVAIL;
 			break;
-		old = sk->sk_max_ack_backlog;
-		sk->sk_max_ack_backlog = backlog;
-		ret = rxrpc_service_prealloc(rx, GFP_KERNEL);
-		if (ret == 0)
-			rx->sk.sk_state = RXRPC_SERVER_LISTENING;
-		else
-			sk->sk_max_ack_backlog = old;
-		break;
-	default:
-		ret = -EBUSY;
-		break;
+
+		case RXRPC_SERVER_BOUND:
+			ASSERT(rx->local != NULL);
+			max = READ_ONCE(rxrpc_max_backlog);
+			ret = -EINVAL;
+
+			if (backlog == INT_MAX)
+			{
+				backlog = max;
+			}
+			else if (backlog < 0 || backlog > max)
+			{
+				break;
+			}
+
+			old = sk->sk_max_ack_backlog;
+			sk->sk_max_ack_backlog = backlog;
+			ret = rxrpc_service_prealloc(rx, GFP_KERNEL);
+
+			if (ret == 0)
+			{
+				rx->sk.sk_state = RXRPC_SERVER_LISTENING;
+			}
+			else
+			{
+				sk->sk_max_ack_backlog = old;
+			}
+
+			break;
+
+		default:
+			ret = -EBUSY;
+			break;
 	}
 
 	release_sock(&rx->sk);
@@ -251,11 +307,11 @@ static int rxrpc_listen(struct socket *sock, int backlog)
  * supplying @srx and @key.
  */
 struct rxrpc_call *rxrpc_kernel_begin_call(struct socket *sock,
-					   struct sockaddr_rxrpc *srx,
-					   struct key *key,
-					   unsigned long user_call_ID,
-					   gfp_t gfp,
-					   rxrpc_notify_rx_t notify_rx)
+		struct sockaddr_rxrpc *srx,
+		struct key *key,
+		unsigned long user_call_ID,
+		gfp_t gfp,
+		rxrpc_notify_rx_t notify_rx)
 {
 	struct rxrpc_conn_parameters cp;
 	struct rxrpc_call *call;
@@ -265,15 +321,23 @@ struct rxrpc_call *rxrpc_kernel_begin_call(struct socket *sock,
 	_enter(",,%x,%lx", key_serial(key), user_call_ID);
 
 	ret = rxrpc_validate_address(rx, srx, sizeof(*srx));
+
 	if (ret < 0)
+	{
 		return ERR_PTR(ret);
+	}
 
 	lock_sock(&rx->sk);
 
 	if (!key)
+	{
 		key = rx->key;
+	}
+
 	if (key && !key->payload.data[0])
-		key = NULL; /* a no-security key */
+	{
+		key = NULL;    /* a no-security key */
+	}
 
 	memset(&cp, 0, sizeof(cp));
 	cp.local		= rx->local;
@@ -282,8 +346,11 @@ struct rxrpc_call *rxrpc_kernel_begin_call(struct socket *sock,
 	cp.exclusive		= false;
 	cp.service_id		= srx->srx_service;
 	call = rxrpc_new_client_call(rx, &cp, srx, user_call_ID, gfp);
+
 	if (!IS_ERR(call))
+	{
 		call->notify_rx = notify_rx;
+	}
 
 	release_sock(&rx->sk);
 	_leave(" = %p", call);
@@ -333,7 +400,7 @@ EXPORT_SYMBOL(rxrpc_kernel_new_call_notification);
  *   negotiation takes place
  */
 static int rxrpc_connect(struct socket *sock, struct sockaddr *addr,
-			 int addr_len, int flags)
+						 int addr_len, int flags)
 {
 	struct sockaddr_rxrpc *srx = (struct sockaddr_rxrpc *)addr;
 	struct rxrpc_sock *rx = rxrpc_sk(sock->sk);
@@ -342,7 +409,9 @@ static int rxrpc_connect(struct socket *sock, struct sockaddr *addr,
 	_enter("%p,%p,%d,%d", rx, addr, addr_len, flags);
 
 	ret = rxrpc_validate_address(rx, srx, addr_len);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		_leave(" = %d [bad addr]", ret);
 		return ret;
 	}
@@ -350,18 +419,24 @@ static int rxrpc_connect(struct socket *sock, struct sockaddr *addr,
 	lock_sock(&rx->sk);
 
 	ret = -EISCONN;
-	if (test_bit(RXRPC_SOCK_CONNECTED, &rx->flags))
-		goto error;
 
-	switch (rx->sk.sk_state) {
-	case RXRPC_UNBOUND:
-		rx->sk.sk_state = RXRPC_CLIENT_UNBOUND;
-	case RXRPC_CLIENT_UNBOUND:
-	case RXRPC_CLIENT_BOUND:
-		break;
-	default:
-		ret = -EBUSY;
+	if (test_bit(RXRPC_SOCK_CONNECTED, &rx->flags))
+	{
 		goto error;
+	}
+
+	switch (rx->sk.sk_state)
+	{
+		case RXRPC_UNBOUND:
+			rx->sk.sk_state = RXRPC_CLIENT_UNBOUND;
+
+		case RXRPC_CLIENT_UNBOUND:
+		case RXRPC_CLIENT_BOUND:
+			break;
+
+		default:
+			ret = -EBUSY;
+			goto error;
 	}
 
 	rx->connect_srx = *srx;
@@ -391,11 +466,16 @@ static int rxrpc_sendmsg(struct socket *sock, struct msghdr *m, size_t len)
 	_enter(",{%d},,%zu", rx->sk.sk_state, len);
 
 	if (m->msg_flags & MSG_OOB)
+	{
 		return -EOPNOTSUPP;
+	}
 
-	if (m->msg_name) {
+	if (m->msg_name)
+	{
 		ret = rxrpc_validate_address(rx, m->msg_name, m->msg_namelen);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			_leave(" = %d [bad addr]", ret);
 			return ret;
 		}
@@ -403,49 +483,61 @@ static int rxrpc_sendmsg(struct socket *sock, struct msghdr *m, size_t len)
 
 	lock_sock(&rx->sk);
 
-	switch (rx->sk.sk_state) {
-	case RXRPC_UNBOUND:
-		rx->srx.srx_family = AF_RXRPC;
-		rx->srx.srx_service = 0;
-		rx->srx.transport_type = SOCK_DGRAM;
-		rx->srx.transport.family = rx->family;
-		switch (rx->family) {
-		case AF_INET:
-			rx->srx.transport_len = sizeof(struct sockaddr_in);
-			break;
-#ifdef CONFIG_AF_RXRPC_IPV6
-		case AF_INET6:
-			rx->srx.transport_len = sizeof(struct sockaddr_in6);
-			break;
-#endif
-		default:
-			ret = -EAFNOSUPPORT;
-			goto error_unlock;
-		}
-		local = rxrpc_lookup_local(&rx->srx);
-		if (IS_ERR(local)) {
-			ret = PTR_ERR(local);
-			goto error_unlock;
-		}
+	switch (rx->sk.sk_state)
+	{
+		case RXRPC_UNBOUND:
+			rx->srx.srx_family = AF_RXRPC;
+			rx->srx.srx_service = 0;
+			rx->srx.transport_type = SOCK_DGRAM;
+			rx->srx.transport.family = rx->family;
 
-		rx->local = local;
-		rx->sk.sk_state = RXRPC_CLIENT_UNBOUND;
+			switch (rx->family)
+			{
+				case AF_INET:
+					rx->srx.transport_len = sizeof(struct sockaddr_in);
+					break;
+#ifdef CONFIG_AF_RXRPC_IPV6
+
+				case AF_INET6:
+					rx->srx.transport_len = sizeof(struct sockaddr_in6);
+					break;
+#endif
+
+				default:
+					ret = -EAFNOSUPPORT;
+					goto error_unlock;
+			}
+
+			local = rxrpc_lookup_local(&rx->srx);
+
+			if (IS_ERR(local))
+			{
+				ret = PTR_ERR(local);
+				goto error_unlock;
+			}
+
+			rx->local = local;
+			rx->sk.sk_state = RXRPC_CLIENT_UNBOUND;
+
 		/* Fall through */
 
-	case RXRPC_CLIENT_UNBOUND:
-	case RXRPC_CLIENT_BOUND:
-		if (!m->msg_name &&
-		    test_bit(RXRPC_SOCK_CONNECTED, &rx->flags)) {
-			m->msg_name = &rx->connect_srx;
-			m->msg_namelen = sizeof(rx->connect_srx);
-		}
-	case RXRPC_SERVER_BOUND:
-	case RXRPC_SERVER_LISTENING:
-		ret = rxrpc_do_sendmsg(rx, m, len);
-		break;
-	default:
-		ret = -EINVAL;
-		break;
+		case RXRPC_CLIENT_UNBOUND:
+		case RXRPC_CLIENT_BOUND:
+			if (!m->msg_name &&
+				test_bit(RXRPC_SOCK_CONNECTED, &rx->flags))
+			{
+				m->msg_name = &rx->connect_srx;
+				m->msg_namelen = sizeof(rx->connect_srx);
+			}
+
+		case RXRPC_SERVER_BOUND:
+		case RXRPC_SERVER_LISTENING:
+			ret = rxrpc_do_sendmsg(rx, m, len);
+			break;
+
+		default:
+			ret = -EINVAL;
+			break;
 	}
 
 error_unlock:
@@ -458,7 +550,7 @@ error_unlock:
  * set RxRPC socket options
  */
 static int rxrpc_setsockopt(struct socket *sock, int level, int optname,
-			    char __user *optval, unsigned int optlen)
+							char __user *optval, unsigned int optlen)
 {
 	struct rxrpc_sock *rx = rxrpc_sk(sock->sk);
 	unsigned int min_sec_level;
@@ -469,57 +561,99 @@ static int rxrpc_setsockopt(struct socket *sock, int level, int optname,
 	lock_sock(&rx->sk);
 	ret = -EOPNOTSUPP;
 
-	if (level == SOL_RXRPC) {
-		switch (optname) {
-		case RXRPC_EXCLUSIVE_CONNECTION:
-			ret = -EINVAL;
-			if (optlen != 0)
-				goto error;
-			ret = -EISCONN;
-			if (rx->sk.sk_state != RXRPC_UNBOUND)
-				goto error;
-			rx->exclusive = true;
-			goto success;
+	if (level == SOL_RXRPC)
+	{
+		switch (optname)
+		{
+			case RXRPC_EXCLUSIVE_CONNECTION:
+				ret = -EINVAL;
 
-		case RXRPC_SECURITY_KEY:
-			ret = -EINVAL;
-			if (rx->key)
-				goto error;
-			ret = -EISCONN;
-			if (rx->sk.sk_state != RXRPC_UNBOUND)
-				goto error;
-			ret = rxrpc_request_key(rx, optval, optlen);
-			goto error;
+				if (optlen != 0)
+				{
+					goto error;
+				}
 
-		case RXRPC_SECURITY_KEYRING:
-			ret = -EINVAL;
-			if (rx->key)
-				goto error;
-			ret = -EISCONN;
-			if (rx->sk.sk_state != RXRPC_UNBOUND)
-				goto error;
-			ret = rxrpc_server_keyring(rx, optval, optlen);
-			goto error;
+				ret = -EISCONN;
 
-		case RXRPC_MIN_SECURITY_LEVEL:
-			ret = -EINVAL;
-			if (optlen != sizeof(unsigned int))
-				goto error;
-			ret = -EISCONN;
-			if (rx->sk.sk_state != RXRPC_UNBOUND)
-				goto error;
-			ret = get_user(min_sec_level,
-				       (unsigned int __user *) optval);
-			if (ret < 0)
-				goto error;
-			ret = -EINVAL;
-			if (min_sec_level > RXRPC_SECURITY_MAX)
-				goto error;
-			rx->min_sec_level = min_sec_level;
-			goto success;
+				if (rx->sk.sk_state != RXRPC_UNBOUND)
+				{
+					goto error;
+				}
 
-		default:
-			break;
+				rx->exclusive = true;
+				goto success;
+
+			case RXRPC_SECURITY_KEY:
+				ret = -EINVAL;
+
+				if (rx->key)
+				{
+					goto error;
+				}
+
+				ret = -EISCONN;
+
+				if (rx->sk.sk_state != RXRPC_UNBOUND)
+				{
+					goto error;
+				}
+
+				ret = rxrpc_request_key(rx, optval, optlen);
+				goto error;
+
+			case RXRPC_SECURITY_KEYRING:
+				ret = -EINVAL;
+
+				if (rx->key)
+				{
+					goto error;
+				}
+
+				ret = -EISCONN;
+
+				if (rx->sk.sk_state != RXRPC_UNBOUND)
+				{
+					goto error;
+				}
+
+				ret = rxrpc_server_keyring(rx, optval, optlen);
+				goto error;
+
+			case RXRPC_MIN_SECURITY_LEVEL:
+				ret = -EINVAL;
+
+				if (optlen != sizeof(unsigned int))
+				{
+					goto error;
+				}
+
+				ret = -EISCONN;
+
+				if (rx->sk.sk_state != RXRPC_UNBOUND)
+				{
+					goto error;
+				}
+
+				ret = get_user(min_sec_level,
+							   (unsigned int __user *) optval);
+
+				if (ret < 0)
+				{
+					goto error;
+				}
+
+				ret = -EINVAL;
+
+				if (min_sec_level > RXRPC_SECURITY_MAX)
+				{
+					goto error;
+				}
+
+				rx->min_sec_level = min_sec_level;
+				goto success;
+
+			default:
+				break;
 		}
 	}
 
@@ -534,7 +668,7 @@ error:
  * permit an RxRPC socket to be polled
  */
 static unsigned int rxrpc_poll(struct file *file, struct socket *sock,
-			       poll_table *wait)
+							   poll_table *wait)
 {
 	struct sock *sk = sock->sk;
 	struct rxrpc_sock *rx = rxrpc_sk(sk);
@@ -546,13 +680,17 @@ static unsigned int rxrpc_poll(struct file *file, struct socket *sock,
 	/* the socket is readable if there are any messages waiting on the Rx
 	 * queue */
 	if (!list_empty(&rx->recvmsg_q))
+	{
 		mask |= POLLIN | POLLRDNORM;
+	}
 
 	/* the socket is writable if there is space to add new data to the
 	 * socket; there is no guarantee that any particular call in progress
 	 * on the socket may have space in the Tx ACK window */
 	if (rxrpc_writable(sk))
+	{
 		mask |= POLLOUT | POLLWRNORM;
+	}
 
 	return mask;
 }
@@ -561,7 +699,7 @@ static unsigned int rxrpc_poll(struct file *file, struct socket *sock,
  * create an RxRPC socket
  */
 static int rxrpc_create(struct net *net, struct socket *sock, int protocol,
-			int kern)
+						int kern)
 {
 	struct rxrpc_sock *rx;
 	struct sock *sk;
@@ -569,22 +707,31 @@ static int rxrpc_create(struct net *net, struct socket *sock, int protocol,
 	_enter("%p,%d", sock, protocol);
 
 	if (!net_eq(net, &init_net))
+	{
 		return -EAFNOSUPPORT;
+	}
 
 	/* we support transport protocol UDP/UDP6 only */
 	if (protocol != PF_INET &&
-	    IS_ENABLED(CONFIG_AF_RXRPC_IPV6) && protocol != PF_INET6)
+		IS_ENABLED(CONFIG_AF_RXRPC_IPV6) && protocol != PF_INET6)
+	{
 		return -EPROTONOSUPPORT;
+	}
 
 	if (sock->type != SOCK_DGRAM)
+	{
 		return -ESOCKTNOSUPPORT;
+	}
 
 	sock->ops = &rxrpc_rpc_ops;
 	sock->state = SS_UNCONNECTED;
 
 	sk = sk_alloc(net, PF_RXRPC, GFP_KERNEL, &rxrpc_proto, kern);
+
 	if (!sk)
+	{
 		return -ENOMEM;
+	}
 
 	sock_init_data(sock, sk);
 	sock_set_flag(sk, SOCK_RCU_FREE);
@@ -621,19 +768,29 @@ static int rxrpc_shutdown(struct socket *sock, int flags)
 	_enter("%p,%d", sk, flags);
 
 	if (flags != SHUT_RDWR)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	if (sk->sk_state == RXRPC_CLOSE)
+	{
 		return -ESHUTDOWN;
+	}
 
 	lock_sock(sk);
 
 	spin_lock_bh(&sk->sk_receive_queue.lock);
-	if (sk->sk_state < RXRPC_CLOSE) {
+
+	if (sk->sk_state < RXRPC_CLOSE)
+	{
 		sk->sk_state = RXRPC_CLOSE;
 		sk->sk_shutdown = SHUTDOWN_MASK;
-	} else {
+	}
+	else
+	{
 		ret = -ESHUTDOWN;
 	}
+
 	spin_unlock_bh(&sk->sk_receive_queue.lock);
 
 	rxrpc_discard_prealloc(rx);
@@ -655,7 +812,8 @@ static void rxrpc_sock_destructor(struct sock *sk)
 	WARN_ON(!sk_unhashed(sk));
 	WARN_ON(sk->sk_socket);
 
-	if (!sock_flag(sk, SOCK_DEAD)) {
+	if (!sock_flag(sk, SOCK_DEAD))
+	{
 		printk("Attempt to release alive rxrpc socket: %p\n", sk);
 		return;
 	}
@@ -678,7 +836,8 @@ static int rxrpc_release_sock(struct sock *sk)
 	sk->sk_state = RXRPC_CLOSE;
 	spin_unlock_bh(&sk->sk_receive_queue.lock);
 
-	if (rx->local && rcu_access_pointer(rx->local->service) == rx) {
+	if (rx->local && rcu_access_pointer(rx->local->service) == rx)
+	{
 		write_lock(&rx->local->services_lock);
 		rcu_assign_pointer(rx->local->service, NULL);
 		write_unlock(&rx->local->services_lock);
@@ -712,7 +871,9 @@ static int rxrpc_release(struct socket *sock)
 	_enter("%p{%p}", sock, sk);
 
 	if (!sk)
+	{
 		return 0;
+	}
 
 	sock->sk = NULL;
 
@@ -722,7 +883,8 @@ static int rxrpc_release(struct socket *sock)
 /*
  * RxRPC network protocol
  */
-static const struct proto_ops rxrpc_rpc_ops = {
+static const struct proto_ops rxrpc_rpc_ops =
+{
 	.family		= PF_RXRPC,
 	.owner		= THIS_MODULE,
 	.release	= rxrpc_release,
@@ -743,14 +905,16 @@ static const struct proto_ops rxrpc_rpc_ops = {
 	.sendpage	= sock_no_sendpage,
 };
 
-static struct proto rxrpc_proto = {
+static struct proto rxrpc_proto =
+{
 	.name		= "RXRPC",
 	.owner		= THIS_MODULE,
 	.obj_size	= sizeof(struct rxrpc_sock),
 	.max_header	= sizeof(struct rxrpc_wire_header),
 };
 
-static const struct net_proto_family rxrpc_family_ops = {
+static const struct net_proto_family rxrpc_family_ops =
+{
 	.family	= PF_RXRPC,
 	.create = rxrpc_create,
 	.owner	= THIS_MODULE,
@@ -768,58 +932,77 @@ static int __init af_rxrpc_init(void)
 	get_random_bytes(&rxrpc_epoch, sizeof(rxrpc_epoch));
 	rxrpc_epoch |= RXRPC_RANDOM_EPOCH;
 	get_random_bytes(&rxrpc_client_conn_ids.cur,
-			 sizeof(rxrpc_client_conn_ids.cur));
+					 sizeof(rxrpc_client_conn_ids.cur));
 	rxrpc_client_conn_ids.cur &= 0x3fffffff;
+
 	if (rxrpc_client_conn_ids.cur == 0)
+	{
 		rxrpc_client_conn_ids.cur = 1;
+	}
 
 	ret = -ENOMEM;
 	rxrpc_call_jar = kmem_cache_create(
-		"rxrpc_call_jar", sizeof(struct rxrpc_call), 0,
-		SLAB_HWCACHE_ALIGN, NULL);
-	if (!rxrpc_call_jar) {
+						 "rxrpc_call_jar", sizeof(struct rxrpc_call), 0,
+						 SLAB_HWCACHE_ALIGN, NULL);
+
+	if (!rxrpc_call_jar)
+	{
 		pr_notice("Failed to allocate call jar\n");
 		goto error_call_jar;
 	}
 
 	rxrpc_workqueue = alloc_workqueue("krxrpcd", 0, 1);
-	if (!rxrpc_workqueue) {
+
+	if (!rxrpc_workqueue)
+	{
 		pr_notice("Failed to allocate work queue\n");
 		goto error_work_queue;
 	}
 
 	ret = rxrpc_init_security();
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_crit("Cannot initialise security\n");
 		goto error_security;
 	}
 
 	ret = proto_register(&rxrpc_proto, 1);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_crit("Cannot register protocol\n");
 		goto error_proto;
 	}
 
 	ret = sock_register(&rxrpc_family_ops);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_crit("Cannot register socket family\n");
 		goto error_sock;
 	}
 
 	ret = register_key_type(&key_type_rxrpc);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_crit("Cannot register client key type\n");
 		goto error_key_type;
 	}
 
 	ret = register_key_type(&key_type_rxrpc_s);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_crit("Cannot register server key type\n");
 		goto error_key_type_s;
 	}
 
 	ret = rxrpc_sysctl_init();
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_crit("Cannot register sysctls\n");
 		goto error_sysctls;
 	}
@@ -827,7 +1010,7 @@ static int __init af_rxrpc_init(void)
 #ifdef CONFIG_PROC_FS
 	proc_create("rxrpc_calls", 0, init_net.proc_net, &rxrpc_call_seq_fops);
 	proc_create("rxrpc_conns", 0, init_net.proc_net,
-		    &rxrpc_connection_seq_fops);
+				&rxrpc_connection_seq_fops);
 #endif
 	return 0;
 

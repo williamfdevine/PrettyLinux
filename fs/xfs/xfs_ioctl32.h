@@ -37,18 +37,20 @@
  * On intel, even if sizes match, alignment and/or padding may differ.
  */
 #if defined(CONFIG_IA64) || defined(CONFIG_X86_64)
-#define BROKEN_X86_ALIGNMENT
-#define __compat_packed __attribute__((packed))
+	#define BROKEN_X86_ALIGNMENT
+	#define __compat_packed __attribute__((packed))
 #else
-#define __compat_packed
+	#define __compat_packed
 #endif
 
-typedef struct compat_xfs_bstime {
+typedef struct compat_xfs_bstime
+{
 	compat_time_t	tv_sec;		/* seconds		*/
 	__s32		tv_nsec;	/* and nanoseconds	*/
 } compat_xfs_bstime_t;
 
-typedef struct compat_xfs_bstat {
+typedef struct compat_xfs_bstat
+{
 	__u64		bs_ino;		/* inode number			*/
 	__u16		bs_mode;	/* type and mode		*/
 	__u16		bs_nlink;	/* number of links		*/
@@ -75,7 +77,8 @@ typedef struct compat_xfs_bstat {
 	__u16		bs_aextents;	/* attribute number of extents	*/
 } __compat_packed compat_xfs_bstat_t;
 
-typedef struct compat_xfs_fsop_bulkreq {
+typedef struct compat_xfs_fsop_bulkreq
+{
 	compat_uptr_t	lastip;		/* last inode # pointer		*/
 	__s32		icount;		/* count of entries in buffer	*/
 	compat_uptr_t	ubuffer;	/* user buffer for inode desc.	*/
@@ -89,7 +92,8 @@ typedef struct compat_xfs_fsop_bulkreq {
 #define XFS_IOC_FSINUMBERS_32 \
 	_IOWR('X', 103, struct compat_xfs_fsop_bulkreq)
 
-typedef struct compat_xfs_fsop_handlereq {
+typedef struct compat_xfs_fsop_handlereq
+{
 	__u32		fd;		/* fd for FD_TO_HANDLE		*/
 	compat_uptr_t	path;		/* user pathname		*/
 	__u32		oflags;		/* open flags			*/
@@ -111,7 +115,8 @@ typedef struct compat_xfs_fsop_handlereq {
 	_IOWR('X', 108, struct compat_xfs_fsop_handlereq)
 
 /* The bstat field in the swapext struct needs translation */
-typedef struct compat_xfs_swapext {
+typedef struct compat_xfs_swapext
+{
 	__int64_t		sx_version;	/* version */
 	__int64_t		sx_fdtarget;	/* fd of target file */
 	__int64_t		sx_fdtmp;	/* fd of tmp file */
@@ -123,7 +128,8 @@ typedef struct compat_xfs_swapext {
 
 #define XFS_IOC_SWAPEXT_32	_IOWR('X', 109, struct compat_xfs_swapext)
 
-typedef struct compat_xfs_fsop_attrlist_handlereq {
+typedef struct compat_xfs_fsop_attrlist_handlereq
+{
 	struct compat_xfs_fsop_handlereq hreq; /* handle interface structure */
 	struct xfs_attrlist_cursor	pos; /* opaque cookie, list offset */
 	__u32				flags;	/* which namespace to use */
@@ -136,7 +142,8 @@ typedef struct compat_xfs_fsop_attrlist_handlereq {
 	_IOW('X', 122, struct compat_xfs_fsop_attrlist_handlereq)
 
 /* am_opcodes defined in xfs_fs.h */
-typedef struct compat_xfs_attr_multiop {
+typedef struct compat_xfs_attr_multiop
+{
 	__u32		am_opcode;
 	__s32		am_error;
 	compat_uptr_t	am_attrname;
@@ -145,7 +152,8 @@ typedef struct compat_xfs_attr_multiop {
 	__u32		am_flags;
 } compat_xfs_attr_multiop_t;
 
-typedef struct compat_xfs_fsop_attrmulti_handlereq {
+typedef struct compat_xfs_fsop_attrmulti_handlereq
+{
 	struct compat_xfs_fsop_handlereq hreq; /* handle interface structure */
 	__u32				opcount;/* count of following multiop */
 	/* ptr to compat_xfs_attr_multiop */
@@ -155,7 +163,8 @@ typedef struct compat_xfs_fsop_attrmulti_handlereq {
 #define XFS_IOC_ATTRMULTI_BY_HANDLE_32 \
 	_IOW('X', 123, struct compat_xfs_fsop_attrmulti_handlereq)
 
-typedef struct compat_xfs_fsop_setdm_handlereq {
+typedef struct compat_xfs_fsop_setdm_handlereq
+{
 	struct compat_xfs_fsop_handlereq hreq;	/* handle information   */
 	/* ptr to struct fsdmidata */
 	compat_uptr_t			data;	/* DMAPI data   */
@@ -166,11 +175,12 @@ typedef struct compat_xfs_fsop_setdm_handlereq {
 
 #ifdef BROKEN_X86_ALIGNMENT
 /* on ia32 l_start is on a 32-bit boundary */
-typedef struct compat_xfs_flock64 {
+typedef struct compat_xfs_flock64
+{
 	__s16		l_type;
 	__s16		l_whence;
 	__s64		l_start	__attribute__((packed));
-			/* len == 0 means until end of file */
+	/* len == 0 means until end of file */
 	__s64		l_len __attribute__((packed));
 	__s32		l_sysid;
 	__u32		l_pid;
@@ -187,7 +197,8 @@ typedef struct compat_xfs_flock64 {
 #define XFS_IOC_UNRESVSP64_32	_IOW('X', 43, struct compat_xfs_flock64)
 #define XFS_IOC_ZERO_RANGE_32	_IOW('X', 57, struct compat_xfs_flock64)
 
-typedef struct compat_xfs_fsop_geom_v1 {
+typedef struct compat_xfs_fsop_geom_v1
+{
 	__u32		blocksize;	/* filesystem (data) block size */
 	__u32		rtextsize;	/* realtime extent size		*/
 	__u32		agblocks;	/* fsblocks in an AG		*/
@@ -213,19 +224,22 @@ typedef struct compat_xfs_fsop_geom_v1 {
 #define XFS_IOC_FSGEOMETRY_V1_32  \
 	_IOR('X', 100, struct compat_xfs_fsop_geom_v1)
 
-typedef struct compat_xfs_inogrp {
+typedef struct compat_xfs_inogrp
+{
 	__u64		xi_startino;	/* starting inode number	*/
 	__s32		xi_alloccount;	/* # bits set in allocmask	*/
 	__u64		xi_allocmask;	/* mask of allocated inodes	*/
 } __attribute__((packed)) compat_xfs_inogrp_t;
 
 /* These growfs input structures have padding on the end, so must translate */
-typedef struct compat_xfs_growfs_data {
+typedef struct compat_xfs_growfs_data
+{
 	__u64		newblocks;	/* new data subvol size, fsblocks */
 	__u32		imaxpct;	/* new inode space percentage limit */
 } __attribute__((packed)) compat_xfs_growfs_data_t;
 
-typedef struct compat_xfs_growfs_rt {
+typedef struct compat_xfs_growfs_rt
+{
 	__u64		newblocks;	/* new realtime size, fsblocks */
 	__u32		extsize;	/* new realtime extent size, fsblocks */
 } __attribute__((packed)) compat_xfs_growfs_rt_t;

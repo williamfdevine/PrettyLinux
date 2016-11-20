@@ -54,13 +54,13 @@ ACPI_MODULE_NAME("exprep")
 /* Local prototypes */
 static u32
 acpi_ex_decode_field_access(union acpi_operand_object *obj_desc,
-			    u8 field_flags, u32 * return_byte_alignment);
+							u8 field_flags, u32 *return_byte_alignment);
 
 #ifdef ACPI_UNDER_DEVELOPMENT
 
 static u32
 acpi_ex_generate_access(u32 field_bit_offset,
-			u32 field_bit_length, u32 region_length);
+						u32 field_bit_length, u32 region_length);
 
 /*******************************************************************************
  *
@@ -86,7 +86,7 @@ acpi_ex_generate_access(u32 field_bit_offset,
 
 static u32
 acpi_ex_generate_access(u32 field_bit_offset,
-			u32 field_bit_length, u32 region_length)
+						u32 field_bit_length, u32 region_length)
 {
 	u32 field_byte_length;
 	u32 field_byte_offset;
@@ -105,18 +105,18 @@ acpi_ex_generate_access(u32 field_bit_offset,
 	field_byte_offset = ACPI_DIV_8(ACPI_ROUND_DOWN(field_bit_offset, 8));
 
 	field_byte_end_offset =
-	    ACPI_DIV_8(ACPI_ROUND_UP(field_bit_length + field_bit_offset, 8));
+		ACPI_DIV_8(ACPI_ROUND_UP(field_bit_length + field_bit_offset, 8));
 
 	field_byte_length = field_byte_end_offset - field_byte_offset;
 
 	ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
-			  "Bit length %u, Bit offset %u\n",
-			  field_bit_length, field_bit_offset));
+					  "Bit length %u, Bit offset %u\n",
+					  field_bit_length, field_bit_offset));
 
 	ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
-			  "Byte Length %u, Byte Offset %u, End Offset %u\n",
-			  field_byte_length, field_byte_offset,
-			  field_byte_end_offset));
+					  "Byte Length %u, Byte Offset %u, End Offset %u\n",
+					  field_byte_length, field_byte_offset,
+					  field_byte_end_offset));
 
 	/*
 	 * Iterative search for the maximum access width that is both aligned
@@ -125,7 +125,8 @@ acpi_ex_generate_access(u32 field_bit_offset,
 	 * Start at byte_acc and work upwards to qword_acc max. (1,2,4,8 bytes)
 	 */
 	for (access_byte_width = 1; access_byte_width <= 8;
-	     access_byte_width <<= 1) {
+		 access_byte_width <<= 1)
+	{
 		/*
 		 * 1) Round end offset up to next access boundary and make sure that
 		 *    this does not go beyond the end of the parent region.
@@ -134,36 +135,38 @@ acpi_ex_generate_access(u32 field_bit_offset,
 		 *    case yet).
 		 */
 		if (ACPI_ROUND_UP(field_byte_end_offset, access_byte_width) <=
-		    region_length) {
+			region_length)
+		{
 			field_start_offset =
-			    ACPI_ROUND_DOWN(field_byte_offset,
-					    access_byte_width) /
-			    access_byte_width;
+				ACPI_ROUND_DOWN(field_byte_offset,
+								access_byte_width) /
+				access_byte_width;
 
 			field_end_offset =
-			    ACPI_ROUND_UP((field_byte_length +
-					   field_byte_offset),
-					  access_byte_width) /
-			    access_byte_width;
+				ACPI_ROUND_UP((field_byte_length +
+							   field_byte_offset),
+							  access_byte_width) /
+				access_byte_width;
 
 			accesses = field_end_offset - field_start_offset;
 
 			ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
-					  "AccessWidth %u end is within region\n",
-					  access_byte_width));
+							  "AccessWidth %u end is within region\n",
+							  access_byte_width));
 
 			ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
-					  "Field Start %u, Field End %u -- requires %u accesses\n",
-					  field_start_offset, field_end_offset,
-					  accesses));
+							  "Field Start %u, Field End %u -- requires %u accesses\n",
+							  field_start_offset, field_end_offset,
+							  accesses));
 
 			/* Single access is optimal */
 
-			if (accesses <= 1) {
+			if (accesses <= 1)
+			{
 				ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
-						  "Entire field can be accessed "
-						  "with one operation of size %u\n",
-						  access_byte_width));
+								  "Entire field can be accessed "
+								  "with one operation of size %u\n",
+								  access_byte_width));
 				return_VALUE(access_byte_width);
 			}
 
@@ -171,17 +174,22 @@ acpi_ex_generate_access(u32 field_bit_offset,
 			 * Fits in the region, but requires more than one read/write.
 			 * try the next wider access on next iteration
 			 */
-			if (accesses < minimum_accesses) {
+			if (accesses < minimum_accesses)
+			{
 				minimum_accesses = accesses;
 				minimum_access_width = access_byte_width;
 			}
-		} else {
+		}
+		else
+		{
 			ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
-					  "AccessWidth %u end is NOT within region\n",
-					  access_byte_width));
-			if (access_byte_width == 1) {
+							  "AccessWidth %u end is NOT within region\n",
+							  access_byte_width));
+
+			if (access_byte_width == 1)
+			{
 				ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
-						  "Field goes beyond end-of-region!\n"));
+								  "Field goes beyond end-of-region!\n"));
 
 				/* Field does not fit in the region at all */
 
@@ -193,8 +201,8 @@ acpi_ex_generate_access(u32 field_bit_offset,
 			 * previous access
 			 */
 			ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
-					  "Backing off to previous optimal access width of %u\n",
-					  minimum_access_width));
+							  "Backing off to previous optimal access width of %u\n",
+							  minimum_access_width));
 			return_VALUE(minimum_access_width);
 		}
 	}
@@ -204,7 +212,7 @@ acpi_ex_generate_access(u32 field_bit_offset,
 	 * just use max access width
 	 */
 	ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
-			  "Cannot access field in one operation, using width 8\n"));
+					  "Cannot access field in one operation, using width 8\n"));
 
 	return_VALUE(8);
 }
@@ -227,7 +235,7 @@ acpi_ex_generate_access(u32 field_bit_offset,
 
 static u32
 acpi_ex_decode_field_access(union acpi_operand_object *obj_desc,
-			    u8 field_flags, u32 * return_byte_alignment)
+							u8 field_flags, u32 *return_byte_alignment)
 {
 	u32 access;
 	u32 byte_alignment;
@@ -237,59 +245,61 @@ acpi_ex_decode_field_access(union acpi_operand_object *obj_desc,
 
 	access = (field_flags & AML_FIELD_ACCESS_TYPE_MASK);
 
-	switch (access) {
-	case AML_FIELD_ACCESS_ANY:
+	switch (access)
+	{
+		case AML_FIELD_ACCESS_ANY:
 
 #ifdef ACPI_UNDER_DEVELOPMENT
-		byte_alignment =
-		    acpi_ex_generate_access(obj_desc->common_field.
-					    start_field_bit_offset,
-					    obj_desc->common_field.bit_length,
-					    0xFFFFFFFF
-					    /* Temp until we pass region_length as parameter */
-		    );
-		bit_length = byte_alignment * 8;
+			byte_alignment =
+				acpi_ex_generate_access(obj_desc->common_field.
+										start_field_bit_offset,
+										obj_desc->common_field.bit_length,
+										0xFFFFFFFF
+										/* Temp until we pass region_length as parameter */
+									   );
+			bit_length = byte_alignment * 8;
 #endif
 
-		byte_alignment = 1;
-		bit_length = 8;
-		break;
+			byte_alignment = 1;
+			bit_length = 8;
+			break;
 
-	case AML_FIELD_ACCESS_BYTE:
-	case AML_FIELD_ACCESS_BUFFER:	/* ACPI 2.0 (SMBus Buffer) */
+		case AML_FIELD_ACCESS_BYTE:
+		case AML_FIELD_ACCESS_BUFFER:	/* ACPI 2.0 (SMBus Buffer) */
 
-		byte_alignment = 1;
-		bit_length = 8;
-		break;
+			byte_alignment = 1;
+			bit_length = 8;
+			break;
 
-	case AML_FIELD_ACCESS_WORD:
+		case AML_FIELD_ACCESS_WORD:
 
-		byte_alignment = 2;
-		bit_length = 16;
-		break;
+			byte_alignment = 2;
+			bit_length = 16;
+			break;
 
-	case AML_FIELD_ACCESS_DWORD:
+		case AML_FIELD_ACCESS_DWORD:
 
-		byte_alignment = 4;
-		bit_length = 32;
-		break;
+			byte_alignment = 4;
+			bit_length = 32;
+			break;
 
-	case AML_FIELD_ACCESS_QWORD:	/* ACPI 2.0 */
+		case AML_FIELD_ACCESS_QWORD:	/* ACPI 2.0 */
 
-		byte_alignment = 8;
-		bit_length = 64;
-		break;
+			byte_alignment = 8;
+			bit_length = 64;
+			break;
 
-	default:
+		default:
 
-		/* Invalid field access type */
+			/* Invalid field access type */
 
-		ACPI_ERROR((AE_INFO, "Unknown field access type 0x%X", access));
+			ACPI_ERROR((AE_INFO, "Unknown field access type 0x%X", access));
 
-		return_UINT32(0);
+			return_UINT32(0);
 	}
 
-	if (obj_desc->common.type == ACPI_TYPE_BUFFER_FIELD) {
+	if (obj_desc->common.type == ACPI_TYPE_BUFFER_FIELD)
+	{
 		/*
 		 * buffer_field access can be on any byte boundary, so the
 		 * byte_alignment is always 1 byte -- regardless of any byte_alignment
@@ -325,9 +335,9 @@ acpi_ex_decode_field_access(union acpi_operand_object *obj_desc,
 
 acpi_status
 acpi_ex_prep_common_field_object(union acpi_operand_object *obj_desc,
-				 u8 field_flags,
-				 u8 field_attribute,
-				 u32 field_bit_position, u32 field_bit_length)
+								 u8 field_flags,
+								 u8 field_attribute,
+								 u32 field_bit_position, u32 field_bit_length)
 {
 	u32 access_bit_width;
 	u32 byte_alignment;
@@ -360,15 +370,17 @@ acpi_ex_prep_common_field_object(union acpi_operand_object *obj_desc,
 	 * the same (equivalent) as the byte_alignment.
 	 */
 	access_bit_width =
-	    acpi_ex_decode_field_access(obj_desc, field_flags, &byte_alignment);
-	if (!access_bit_width) {
+		acpi_ex_decode_field_access(obj_desc, field_flags, &byte_alignment);
+
+	if (!access_bit_width)
+	{
 		return_ACPI_STATUS(AE_AML_OPERAND_VALUE);
 	}
 
 	/* Setup width (access granularity) fields (values are: 1, 2, 4, 8) */
 
 	obj_desc->common_field.access_byte_width = (u8)
-	    ACPI_DIV_8(access_bit_width);
+			ACPI_DIV_8(access_bit_width);
 
 	/*
 	 * base_byte_offset is the address of the start of the field within the
@@ -381,17 +393,17 @@ acpi_ex_prep_common_field_object(union acpi_operand_object *obj_desc,
 	 * region or buffer.
 	 */
 	nearest_byte_address =
-	    ACPI_ROUND_BITS_DOWN_TO_BYTES(field_bit_position);
+		ACPI_ROUND_BITS_DOWN_TO_BYTES(field_bit_position);
 	obj_desc->common_field.base_byte_offset = (u32)
-	    ACPI_ROUND_DOWN(nearest_byte_address, byte_alignment);
+			ACPI_ROUND_DOWN(nearest_byte_address, byte_alignment);
 
 	/*
 	 * start_field_bit_offset is the offset of the first bit of the field within
 	 * a field datum.
 	 */
 	obj_desc->common_field.start_field_bit_offset = (u8)
-	    (field_bit_position -
-	     ACPI_MUL_8(obj_desc->common_field.base_byte_offset));
+			(field_bit_position -
+			 ACPI_MUL_8(obj_desc->common_field.base_byte_offset));
 
 	return_ACPI_STATUS(AE_OK);
 }
@@ -421,17 +433,21 @@ acpi_status acpi_ex_prep_field_value(struct acpi_create_field_info *info)
 
 	/* Parameter validation */
 
-	if (info->field_type != ACPI_TYPE_LOCAL_INDEX_FIELD) {
-		if (!info->region_node) {
+	if (info->field_type != ACPI_TYPE_LOCAL_INDEX_FIELD)
+	{
+		if (!info->region_node)
+		{
 			ACPI_ERROR((AE_INFO, "Null RegionNode"));
 			return_ACPI_STATUS(AE_AML_NO_OPERAND);
 		}
 
 		type = acpi_ns_get_type(info->region_node);
-		if (type != ACPI_TYPE_REGION) {
+
+		if (type != ACPI_TYPE_REGION)
+		{
 			ACPI_ERROR((AE_INFO,
-				    "Needed Region, found type 0x%X (%s)", type,
-				    acpi_ut_get_type_name(type)));
+						"Needed Region, found type 0x%X (%s)", type,
+						acpi_ut_get_type_name(type)));
 
 			return_ACPI_STATUS(AE_AML_OPERAND_TYPE);
 		}
@@ -440,7 +456,9 @@ acpi_status acpi_ex_prep_field_value(struct acpi_create_field_info *info)
 	/* Allocate a new field object */
 
 	obj_desc = acpi_ut_create_internal_object(info->field_type);
-	if (!obj_desc) {
+
+	if (!obj_desc)
+	{
 		return_ACPI_STATUS(AE_NO_MEMORY);
 	}
 
@@ -448,173 +466,187 @@ acpi_status acpi_ex_prep_field_value(struct acpi_create_field_info *info)
 
 	obj_desc->common_field.node = info->field_node;
 	status = acpi_ex_prep_common_field_object(obj_desc,
-						  info->field_flags,
-						  info->attribute,
-						  info->field_bit_position,
-						  info->field_bit_length);
-	if (ACPI_FAILURE(status)) {
+			 info->field_flags,
+			 info->attribute,
+			 info->field_bit_position,
+			 info->field_bit_length);
+
+	if (ACPI_FAILURE(status))
+	{
 		acpi_ut_delete_object_desc(obj_desc);
 		return_ACPI_STATUS(status);
 	}
 
 	/* Initialize areas of the object that are specific to the field type */
 
-	switch (info->field_type) {
-	case ACPI_TYPE_LOCAL_REGION_FIELD:
+	switch (info->field_type)
+	{
+		case ACPI_TYPE_LOCAL_REGION_FIELD:
 
-		obj_desc->field.region_obj =
-		    acpi_ns_get_attached_object(info->region_node);
+			obj_desc->field.region_obj =
+				acpi_ns_get_attached_object(info->region_node);
 
-		/* Fields specific to generic_serial_bus fields */
+			/* Fields specific to generic_serial_bus fields */
 
-		obj_desc->field.access_length = info->access_length;
+			obj_desc->field.access_length = info->access_length;
 
-		if (info->connection_node) {
-			second_desc = info->connection_node->object;
-			if (!(second_desc->common.flags & AOPOBJ_DATA_VALID)) {
-				status =
-				    acpi_ds_get_buffer_arguments(second_desc);
-				if (ACPI_FAILURE(status)) {
-					acpi_ut_delete_object_desc(obj_desc);
-					return_ACPI_STATUS(status);
+			if (info->connection_node)
+			{
+				second_desc = info->connection_node->object;
+
+				if (!(second_desc->common.flags & AOPOBJ_DATA_VALID))
+				{
+					status =
+						acpi_ds_get_buffer_arguments(second_desc);
+
+					if (ACPI_FAILURE(status))
+					{
+						acpi_ut_delete_object_desc(obj_desc);
+						return_ACPI_STATUS(status);
+					}
+				}
+
+				obj_desc->field.resource_buffer =
+					second_desc->buffer.pointer;
+				obj_desc->field.resource_length =
+					(u16)second_desc->buffer.length;
+			}
+			else if (info->resource_buffer)
+			{
+				obj_desc->field.resource_buffer = info->resource_buffer;
+				obj_desc->field.resource_length = info->resource_length;
+			}
+
+			obj_desc->field.pin_number_index = info->pin_number_index;
+
+			/* Allow full data read from EC address space */
+
+			if ((obj_desc->field.region_obj->region.space_id ==
+				 ACPI_ADR_SPACE_EC)
+				&& (obj_desc->common_field.bit_length > 8))
+			{
+				access_byte_width =
+					ACPI_ROUND_BITS_UP_TO_BYTES(obj_desc->common_field.
+												bit_length);
+
+				/* Maximum byte width supported is 255 */
+
+				if (access_byte_width < 256)
+				{
+					obj_desc->common_field.access_byte_width =
+						(u8)access_byte_width;
 				}
 			}
 
-			obj_desc->field.resource_buffer =
-			    second_desc->buffer.pointer;
-			obj_desc->field.resource_length =
-			    (u16)second_desc->buffer.length;
-		} else if (info->resource_buffer) {
-			obj_desc->field.resource_buffer = info->resource_buffer;
-			obj_desc->field.resource_length = info->resource_length;
-		}
+			/* An additional reference for the container */
 
-		obj_desc->field.pin_number_index = info->pin_number_index;
+			acpi_ut_add_reference(obj_desc->field.region_obj);
 
-		/* Allow full data read from EC address space */
+			ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
+							  "RegionField: BitOff %X, Off %X, Gran %X, Region %p\n",
+							  obj_desc->field.start_field_bit_offset,
+							  obj_desc->field.base_byte_offset,
+							  obj_desc->field.access_byte_width,
+							  obj_desc->field.region_obj));
+			break;
 
-		if ((obj_desc->field.region_obj->region.space_id ==
-		     ACPI_ADR_SPACE_EC)
-		    && (obj_desc->common_field.bit_length > 8)) {
-			access_byte_width =
-			    ACPI_ROUND_BITS_UP_TO_BYTES(obj_desc->common_field.
-							bit_length);
+		case ACPI_TYPE_LOCAL_BANK_FIELD:
 
-			/* Maximum byte width supported is 255 */
+			obj_desc->bank_field.value = info->bank_value;
+			obj_desc->bank_field.region_obj =
+				acpi_ns_get_attached_object(info->region_node);
+			obj_desc->bank_field.bank_obj =
+				acpi_ns_get_attached_object(info->register_node);
 
-			if (access_byte_width < 256) {
-				obj_desc->common_field.access_byte_width =
-				    (u8)access_byte_width;
+			/* An additional reference for the attached objects */
+
+			acpi_ut_add_reference(obj_desc->bank_field.region_obj);
+			acpi_ut_add_reference(obj_desc->bank_field.bank_obj);
+
+			ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
+							  "Bank Field: BitOff %X, Off %X, Gran %X, Region %p, BankReg %p\n",
+							  obj_desc->bank_field.start_field_bit_offset,
+							  obj_desc->bank_field.base_byte_offset,
+							  obj_desc->field.access_byte_width,
+							  obj_desc->bank_field.region_obj,
+							  obj_desc->bank_field.bank_obj));
+
+			/*
+			 * Remember location in AML stream of the field unit
+			 * opcode and operands -- since the bank_value
+			 * operands must be evaluated.
+			 */
+			second_desc = obj_desc->common.next_object;
+			second_desc->extra.aml_start =
+				ACPI_CAST_PTR(union acpi_parse_object,
+							  info->data_register_node)->named.data;
+			second_desc->extra.aml_length =
+				ACPI_CAST_PTR(union acpi_parse_object,
+							  info->data_register_node)->named.length;
+
+			break;
+
+		case ACPI_TYPE_LOCAL_INDEX_FIELD:
+
+			/* Get the Index and Data registers */
+
+			obj_desc->index_field.index_obj =
+				acpi_ns_get_attached_object(info->register_node);
+			obj_desc->index_field.data_obj =
+				acpi_ns_get_attached_object(info->data_register_node);
+
+			if (!obj_desc->index_field.data_obj
+				|| !obj_desc->index_field.index_obj)
+			{
+				ACPI_ERROR((AE_INFO,
+							"Null Index Object during field prep"));
+				acpi_ut_delete_object_desc(obj_desc);
+				return_ACPI_STATUS(AE_AML_INTERNAL);
 			}
-		}
-		/* An additional reference for the container */
 
-		acpi_ut_add_reference(obj_desc->field.region_obj);
+			/* An additional reference for the attached objects */
 
-		ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
-				  "RegionField: BitOff %X, Off %X, Gran %X, Region %p\n",
-				  obj_desc->field.start_field_bit_offset,
-				  obj_desc->field.base_byte_offset,
-				  obj_desc->field.access_byte_width,
-				  obj_desc->field.region_obj));
-		break;
+			acpi_ut_add_reference(obj_desc->index_field.data_obj);
+			acpi_ut_add_reference(obj_desc->index_field.index_obj);
 
-	case ACPI_TYPE_LOCAL_BANK_FIELD:
+			/*
+			 * April 2006: Changed to match MS behavior
+			 *
+			 * The value written to the Index register is the byte offset of the
+			 * target field in units of the granularity of the index_field
+			 *
+			 * Previously, the value was calculated as an index in terms of the
+			 * width of the Data register, as below:
+			 *
+			 *      obj_desc->index_field.Value = (u32)
+			 *          (Info->field_bit_position / ACPI_MUL_8 (
+			 *              obj_desc->Field.access_byte_width));
+			 *
+			 * February 2006: Tried value as a byte offset:
+			 *      obj_desc->index_field.Value = (u32)
+			 *          ACPI_DIV_8 (Info->field_bit_position);
+			 */
+			obj_desc->index_field.value =
+				(u32) ACPI_ROUND_DOWN(ACPI_DIV_8(info->field_bit_position),
+									  obj_desc->index_field.
+									  access_byte_width);
 
-		obj_desc->bank_field.value = info->bank_value;
-		obj_desc->bank_field.region_obj =
-		    acpi_ns_get_attached_object(info->region_node);
-		obj_desc->bank_field.bank_obj =
-		    acpi_ns_get_attached_object(info->register_node);
+			ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
+							  "IndexField: BitOff %X, Off %X, Value %X, "
+							  "Gran %X, Index %p, Data %p\n",
+							  obj_desc->index_field.start_field_bit_offset,
+							  obj_desc->index_field.base_byte_offset,
+							  obj_desc->index_field.value,
+							  obj_desc->field.access_byte_width,
+							  obj_desc->index_field.index_obj,
+							  obj_desc->index_field.data_obj));
+			break;
 
-		/* An additional reference for the attached objects */
+		default:
 
-		acpi_ut_add_reference(obj_desc->bank_field.region_obj);
-		acpi_ut_add_reference(obj_desc->bank_field.bank_obj);
+			/* No other types should get here */
 
-		ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
-				  "Bank Field: BitOff %X, Off %X, Gran %X, Region %p, BankReg %p\n",
-				  obj_desc->bank_field.start_field_bit_offset,
-				  obj_desc->bank_field.base_byte_offset,
-				  obj_desc->field.access_byte_width,
-				  obj_desc->bank_field.region_obj,
-				  obj_desc->bank_field.bank_obj));
-
-		/*
-		 * Remember location in AML stream of the field unit
-		 * opcode and operands -- since the bank_value
-		 * operands must be evaluated.
-		 */
-		second_desc = obj_desc->common.next_object;
-		second_desc->extra.aml_start =
-		    ACPI_CAST_PTR(union acpi_parse_object,
-				  info->data_register_node)->named.data;
-		second_desc->extra.aml_length =
-		    ACPI_CAST_PTR(union acpi_parse_object,
-				  info->data_register_node)->named.length;
-
-		break;
-
-	case ACPI_TYPE_LOCAL_INDEX_FIELD:
-
-		/* Get the Index and Data registers */
-
-		obj_desc->index_field.index_obj =
-		    acpi_ns_get_attached_object(info->register_node);
-		obj_desc->index_field.data_obj =
-		    acpi_ns_get_attached_object(info->data_register_node);
-
-		if (!obj_desc->index_field.data_obj
-		    || !obj_desc->index_field.index_obj) {
-			ACPI_ERROR((AE_INFO,
-				    "Null Index Object during field prep"));
-			acpi_ut_delete_object_desc(obj_desc);
-			return_ACPI_STATUS(AE_AML_INTERNAL);
-		}
-
-		/* An additional reference for the attached objects */
-
-		acpi_ut_add_reference(obj_desc->index_field.data_obj);
-		acpi_ut_add_reference(obj_desc->index_field.index_obj);
-
-		/*
-		 * April 2006: Changed to match MS behavior
-		 *
-		 * The value written to the Index register is the byte offset of the
-		 * target field in units of the granularity of the index_field
-		 *
-		 * Previously, the value was calculated as an index in terms of the
-		 * width of the Data register, as below:
-		 *
-		 *      obj_desc->index_field.Value = (u32)
-		 *          (Info->field_bit_position / ACPI_MUL_8 (
-		 *              obj_desc->Field.access_byte_width));
-		 *
-		 * February 2006: Tried value as a byte offset:
-		 *      obj_desc->index_field.Value = (u32)
-		 *          ACPI_DIV_8 (Info->field_bit_position);
-		 */
-		obj_desc->index_field.value =
-		    (u32) ACPI_ROUND_DOWN(ACPI_DIV_8(info->field_bit_position),
-					  obj_desc->index_field.
-					  access_byte_width);
-
-		ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
-				  "IndexField: BitOff %X, Off %X, Value %X, "
-				  "Gran %X, Index %p, Data %p\n",
-				  obj_desc->index_field.start_field_bit_offset,
-				  obj_desc->index_field.base_byte_offset,
-				  obj_desc->index_field.value,
-				  obj_desc->field.access_byte_width,
-				  obj_desc->index_field.index_obj,
-				  obj_desc->index_field.data_obj));
-		break;
-
-	default:
-
-		/* No other types should get here */
-
-		break;
+			break;
 	}
 
 	/*
@@ -622,13 +654,13 @@ acpi_status acpi_ex_prep_field_value(struct acpi_create_field_info *info)
 	 * preserving the current type of that named_obj.
 	 */
 	status =
-	    acpi_ns_attach_object(info->field_node, obj_desc,
-				  acpi_ns_get_type(info->field_node));
+		acpi_ns_attach_object(info->field_node, obj_desc,
+							  acpi_ns_get_type(info->field_node));
 
 	ACPI_DEBUG_PRINT((ACPI_DB_BFIELD,
-			  "Set NamedObj %p [%4.4s], ObjDesc %p\n",
-			  info->field_node,
-			  acpi_ut_get_node_name(info->field_node), obj_desc));
+					  "Set NamedObj %p [%4.4s], ObjDesc %p\n",
+					  info->field_node,
+					  acpi_ut_get_node_name(info->field_node), obj_desc));
 
 	/* Remove local reference to the object */
 

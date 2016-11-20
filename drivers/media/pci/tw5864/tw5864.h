@@ -53,7 +53,8 @@
 #define MAX_GOP_SIZE 255
 #define GOP_SIZE MAX_GOP_SIZE
 
-enum resolution {
+enum resolution
+{
 	D1 = 1,
 	HD1 = 2, /* half d1 - 360x(240|288) */
 	CIF = 3,
@@ -66,19 +67,22 @@ enum resolution {
 struct tw5864_dev; /* forward delclaration */
 
 /* buffer for one video/vbi/ts frame */
-struct tw5864_buf {
+struct tw5864_buf
+{
 	struct vb2_v4l2_buffer vb;
 	struct list_head list;
 
 	unsigned int size;
 };
 
-struct tw5864_dma_buf {
+struct tw5864_dma_buf
+{
 	void *addr;
 	dma_addr_t dma_addr;
 };
 
-enum tw5864_vid_std {
+enum tw5864_vid_std
+{
 	STD_NTSC = 0, /* NTSC (M) */
 	STD_PAL = 1, /* PAL (B, D, G, H, I) */
 	STD_SECAM = 2, /* SECAM */
@@ -90,7 +94,8 @@ enum tw5864_vid_std {
 	STD_AUTO = 7,
 };
 
-struct tw5864_input {
+struct tw5864_input
+{
 	int nr; /* input number */
 	struct tw5864_dev *root;
 	struct mutex lock; /* used for vidq and vdev */
@@ -138,7 +143,8 @@ struct tw5864_input {
 	unsigned long new_frame_deadline;
 };
 
-struct tw5864_h264_frame {
+struct tw5864_h264_frame
+{
 	struct tw5864_dma_buf vlc;
 	struct tw5864_dma_buf mv;
 	int vlc_len;
@@ -150,7 +156,8 @@ struct tw5864_h264_frame {
 };
 
 /* global device status */
-struct tw5864_dev {
+struct tw5864_dev
+{
 	spinlock_t slock; /* used for sync between ISR, tasklet & V4L2 API */
 	struct v4l2_device v4l2_dev;
 	struct tw5864_input inputs[TW5864_INPUTS];
@@ -197,9 +204,9 @@ int tw5864_video_init(struct tw5864_dev *dev, int *video_nr);
 void tw5864_video_fini(struct tw5864_dev *dev);
 void tw5864_prepare_frame_headers(struct tw5864_input *input);
 void tw5864_h264_put_stream_header(u8 **buf, size_t *space_left, int qp,
-				   int width, int height);
+								   int width, int height);
 void tw5864_h264_put_slice_header(u8 **buf, size_t *space_left,
-				  unsigned int idr_pic_id,
-				  unsigned int frame_gop_seqno,
-				  int *tail_nb_bits, u8 *tail);
+								  unsigned int idr_pic_id,
+								  unsigned int frame_gop_seqno,
+								  int *tail_nb_bits, u8 *tail);
 void tw5864_request_encoded_frame(struct tw5864_input *input);

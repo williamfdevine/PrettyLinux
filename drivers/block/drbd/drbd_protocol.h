@@ -1,7 +1,8 @@
 #ifndef __DRBD_PROTOCOL_H
 #define __DRBD_PROTOCOL_H
 
-enum drbd_packet {
+enum drbd_packet
+{
 	/* receiver (data socket) */
 	P_DATA		      = 0x00,
 	P_DATA_REPLY	      = 0x01, /* Response to P_DATA_REQUEST */
@@ -54,7 +55,7 @@ enum drbd_packet {
 	P_CONN_ST_CHG_REPLY   = 0x2b, /* meta sock: Connection side state req reply */
 	P_RETRY_WRITE	      = 0x2c, /* Protocol C: retry conflicting write request */
 	P_PROTOCOL_UPDATE     = 0x2d, /* data sock: is used in established connections */
-        /* 0x2e to 0x30 reserved, used in drbd 9 */
+	/* 0x2e to 0x30 reserved, used in drbd 9 */
 
 	/* REQ_DISCARD. We used "discard" in different contexts before,
 	 * which is why I chose TRIM here, to disambiguate. */
@@ -81,7 +82,7 @@ enum drbd_packet {
 };
 
 #ifndef __packed
-#define __packed __attribute__((packed))
+	#define __packed __attribute__((packed))
 #endif
 
 /* This is the layout for a packet on the wire.
@@ -94,20 +95,23 @@ enum drbd_packet {
  * NOTE that the payload starts at a long aligned offset,
  * regardless of 32 or 64 bit arch!
  */
-struct p_header80 {
+struct p_header80
+{
 	u32	  magic;
 	u16	  command;
 	u16	  length;	/* bytes of data after this header */
 } __packed;
 
 /* Header for big packets, Used for data packets exceeding 64kB */
-struct p_header95 {
+struct p_header95
+{
 	u16	  magic;	/* use DRBD_MAGIC_BIG here */
 	u16	  command;
 	u32	  length;
 } __packed;
 
-struct p_header100 {
+struct p_header100
+{
 	u32	  magic;
 	u16	  volume;
 	u16	  command;
@@ -130,19 +134,22 @@ struct p_header100 {
 #define DP_SEND_WRITE_ACK   256 /* This is a proto C write request */
 #define DP_WSAME            512 /* equiv. REQ_WRITE_SAME */
 
-struct p_data {
+struct p_data
+{
 	u64	    sector;    /* 64 bits sector number */
 	u64	    block_id;  /* to identify the request in protocol B&C */
 	u32	    seq_num;
 	u32	    dp_flags;
 } __packed;
 
-struct p_trim {
+struct p_trim
+{
 	struct p_data p_data;
 	u32	    size;	/* == bio->bi_size */
 } __packed;
 
-struct p_wsame {
+struct p_wsame
+{
 	struct p_data p_data;
 	u32           size;     /* == bio->bi_size */
 } __packed;
@@ -155,14 +162,16 @@ struct p_wsame {
  *  p_block_req:
  *   P_DATA_REQUEST, P_RS_DATA_REQUEST
  */
-struct p_block_ack {
+struct p_block_ack
+{
 	u64	    sector;
 	u64	    block_id;
 	u32	    blksize;
 	u32	    seq_num;
 } __packed;
 
-struct p_block_req {
+struct p_block_req
+{
 	u64 sector;
 	u64 block_id;
 	u32 blksize;
@@ -196,7 +205,8 @@ struct p_block_req {
  */
 #define DRBD_FF_WSAME 4
 
-struct p_connection_features {
+struct p_connection_features
+{
 	u32 protocol_min;
 	u32 feature_flags;
 	u32 protocol_max;
@@ -209,31 +219,36 @@ struct p_connection_features {
 	u64 reserved[7];
 } __packed;
 
-struct p_barrier {
+struct p_barrier
+{
 	u32 barrier;	/* barrier number _handle_ only */
 	u32 pad;	/* to multiple of 8 Byte */
 } __packed;
 
-struct p_barrier_ack {
+struct p_barrier_ack
+{
 	u32 barrier;
 	u32 set_size;
 } __packed;
 
-struct p_rs_param {
+struct p_rs_param
+{
 	u32 resync_rate;
 
-	      /* Since protocol version 88 and higher. */
+	/* Since protocol version 88 and higher. */
 	char verify_alg[0];
 } __packed;
 
-struct p_rs_param_89 {
+struct p_rs_param_89
+{
 	u32 resync_rate;
 	/* protocol version 89: */
 	char verify_alg[SHARED_SECRET_MAX];
 	char csums_alg[SHARED_SECRET_MAX];
 } __packed;
 
-struct p_rs_param_95 {
+struct p_rs_param_95
+{
 	u32 resync_rate;
 	char verify_alg[SHARED_SECRET_MAX];
 	char csums_alg[SHARED_SECRET_MAX];
@@ -243,12 +258,14 @@ struct p_rs_param_95 {
 	u32 c_max_rate;
 } __packed;
 
-enum drbd_conn_flags {
+enum drbd_conn_flags
+{
 	CF_DISCARD_MY_DATA = 1,
 	CF_DRY_RUN = 2,
 };
 
-struct p_protocol {
+struct p_protocol
+{
 	u32 protocol;
 	u32 after_sb_0p;
 	u32 after_sb_1p;
@@ -261,17 +278,20 @@ struct p_protocol {
 
 } __packed;
 
-struct p_uuids {
+struct p_uuids
+{
 	u64 uuid[UI_EXTENDED_SIZE];
 } __packed;
 
-struct p_rs_uuid {
+struct p_rs_uuid
+{
 	u64	    uuid;
 } __packed;
 
 /* optional queue_limits if (agreed_features & DRBD_FF_WSAME)
  * see also struct queue_limits, as of late 2015 */
-struct o_qlim {
+struct o_qlim
+{
 	/* we don't need it yet, but we may as well communicate it now */
 	u32 physical_block_size;
 
@@ -303,7 +323,8 @@ struct o_qlim {
 	u8 _pad;
 } __packed;
 
-struct p_sizes {
+struct p_sizes
+{
 	u64	    d_size;  /* size of disk */
 	u64	    u_size;  /* user requested size */
 	u64	    c_size;  /* current exported size */
@@ -315,20 +336,24 @@ struct p_sizes {
 	struct o_qlim qlim[0];
 } __packed;
 
-struct p_state {
+struct p_state
+{
 	u32	    state;
 } __packed;
 
-struct p_req_state {
+struct p_req_state
+{
 	u32	    mask;
 	u32	    val;
 } __packed;
 
-struct p_req_state_reply {
+struct p_req_state_reply
+{
 	u32	    retcode;
 } __packed;
 
-struct p_drbd06_param {
+struct p_drbd06_param
+{
 	u64	  size;
 	u32	  state;
 	u32	  blksize;
@@ -338,7 +363,8 @@ struct p_drbd06_param {
 	u32	  bit_map_gen[5];
 } __packed;
 
-struct p_block_desc {
+struct p_block_desc
+{
 	u64 sector;
 	u32 blksize;
 	u32 pad;	/* to multiple of 8 Byte */
@@ -346,14 +372,16 @@ struct p_block_desc {
 
 /* Valid values for the encoding field.
  * Bump proto version when changing this. */
-enum drbd_bitmap_code {
+enum drbd_bitmap_code
+{
 	/* RLE_VLI_Bytes = 0,
 	 * and other bit variants had been defined during
 	 * algorithm evaluation. */
 	RLE_VLI_Bits = 2,
 };
 
-struct p_compressed_bm {
+struct p_compressed_bm
+{
 	/* (encoding & 0x0f): actual encoding, see enum drbd_bitmap_code
 	 * (encoding & 0x80): polarity (set/unset) of first runlength
 	 * ((encoding >> 4) & 0x07): pad_bits, number of trailing zero bits
@@ -364,7 +392,8 @@ struct p_compressed_bm {
 	u8 code[0];
 } __packed;
 
-struct p_delay_probe93 {
+struct p_delay_probe93
+{
 	u32     seq_num; /* sequence number to match the two probe packets */
 	u32     offset;  /* usecs the probe got sent after the reference time point */
 } __packed;

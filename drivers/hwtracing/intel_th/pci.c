@@ -28,23 +28,32 @@
 #define BAR_MASK (BIT(TH_MMIO_CONFIG) | BIT(TH_MMIO_SW))
 
 static int intel_th_pci_probe(struct pci_dev *pdev,
-			      const struct pci_device_id *id)
+							  const struct pci_device_id *id)
 {
 	struct intel_th *th;
 	int err;
 
 	err = pcim_enable_device(pdev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = pcim_iomap_regions_request_all(pdev, BAR_MASK, DRIVER_NAME);
+
 	if (err)
+	{
 		return err;
+	}
 
 	th = intel_th_alloc(&pdev->dev, pdev->resource,
-			    DEVICE_COUNT_RESOURCE, pdev->irq);
+						DEVICE_COUNT_RESOURCE, pdev->irq);
+
 	if (IS_ERR(th))
+	{
 		return PTR_ERR(th);
+	}
 
 	return 0;
 }
@@ -56,7 +65,8 @@ static void intel_th_pci_remove(struct pci_dev *pdev)
 	intel_th_free(th);
 }
 
-static const struct pci_device_id intel_th_pci_id_table[] = {
+static const struct pci_device_id intel_th_pci_id_table[] =
+{
 	{
 		PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x9d26),
 		.driver_data = (kernel_ulong_t)0,
@@ -90,7 +100,8 @@ static const struct pci_device_id intel_th_pci_id_table[] = {
 
 MODULE_DEVICE_TABLE(pci, intel_th_pci_id_table);
 
-static struct pci_driver intel_th_pci_driver = {
+static struct pci_driver intel_th_pci_driver =
+{
 	.name		= DRIVER_NAME,
 	.id_table	= intel_th_pci_id_table,
 	.probe		= intel_th_pci_probe,

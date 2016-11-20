@@ -62,14 +62,16 @@
 
 #define MLXSW_PORT_MODULE_MAX_WIDTH	4
 
-enum mlxsw_port_admin_status {
+enum mlxsw_port_admin_status
+{
 	MLXSW_PORT_ADMIN_STATUS_UP = 1,
 	MLXSW_PORT_ADMIN_STATUS_DOWN = 2,
 	MLXSW_PORT_ADMIN_STATUS_UP_ONCE = 3,
 	MLXSW_PORT_ADMIN_STATUS_DISABLED = 4,
 };
 
-enum mlxsw_reg_pude_oper_status {
+enum mlxsw_reg_pude_oper_status
+{
 	MLXSW_PORT_OPER_STATUS_UP = 1,
 	MLXSW_PORT_OPER_STATUS_DOWN = 2,
 	MLXSW_PORT_OPER_STATUS_FAILURE = 4,	/* Can be set to up again. */

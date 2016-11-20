@@ -13,7 +13,8 @@
 
 struct device;
 
-enum ad193x_type {
+enum ad193x_type
+{
 	AD193X,
 	AD1933,
 	AD1934,
@@ -21,7 +22,7 @@ enum ad193x_type {
 
 extern const struct regmap_config ad193x_regmap_config;
 int ad193x_probe(struct device *dev, struct regmap *regmap,
-		 enum ad193x_type type);
+				 enum ad193x_type type);
 
 #define AD193X_PLL_CLK_CTRL0    0x00
 #define AD193X_PLL_POWERDOWN           0x01
@@ -44,7 +45,7 @@ int ad193x_probe(struct device *dev, struct regmap *regmap,
 #define AD193X_DAC_LEFT_HIGH    (1 << 3)
 #define AD193X_DAC_BCLK_INV     (1 << 7)
 #define AD193X_DAC_FMT_MASK	(AD193X_DAC_LCR_MASTER | \
-	AD193X_DAC_BCLK_MASTER | AD193X_DAC_LEFT_HIGH | AD193X_DAC_BCLK_INV)
+							 AD193X_DAC_BCLK_MASTER | AD193X_DAC_LEFT_HIGH | AD193X_DAC_BCLK_INV)
 #define AD193X_DAC_CTRL2        0x04
 #define AD193X_DAC_WORD_LEN_SHFT        3
 #define AD193X_DAC_WORD_LEN_MASK        0x18
@@ -87,7 +88,7 @@ int ad193x_probe(struct device *dev, struct regmap *regmap,
 #define AD193X_ADC_LEFT_HIGH    (1 << 2)
 #define AD193X_ADC_BCLK_INV     (1 << 1)
 #define AD193X_ADC_FMT_MASK	(AD193X_ADC_LCR_MASTER | \
-	AD193X_ADC_BCLK_MASTER | AD193X_ADC_LEFT_HIGH | AD193X_ADC_BCLK_INV)
+							 AD193X_ADC_BCLK_MASTER | AD193X_ADC_LEFT_HIGH | AD193X_ADC_BCLK_INV)
 
 #define AD193X_2_CHANNELS   0
 #define AD193X_4_CHANNELS   1

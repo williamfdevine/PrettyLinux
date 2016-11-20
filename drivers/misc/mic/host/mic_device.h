@@ -36,7 +36,8 @@
 /**
  * enum mic_stepping - MIC stepping ids.
  */
-enum mic_stepping {
+enum mic_stepping
+{
 	MIC_A0_STEP = 0x0,
 	MIC_B0_STEP = 0x10,
 	MIC_B1_STEP = 0x11,
@@ -72,7 +73,8 @@ extern struct cosm_hw_ops cosm_hw_ops;
  * @vpdev: Virtio over PCIe device on the VOP virtual bus.
  * @cosm_dev: COSM device
  */
-struct mic_device {
+struct mic_device
+{
 	struct mic_mw mmio;
 	struct mic_mw aper;
 	enum mic_hw_family family;
@@ -118,7 +120,8 @@ struct mic_device {
  * @get_postcode: Get post code status from firmware.
  * @dma_filter: DMA filter function to be used.
  */
-struct mic_hw_ops {
+struct mic_hw_ops
+{
 	u8 aper_bar;
 	u8 mmio_bar;
 	u32 (*read_spad)(struct mic_device *mdev, unsigned int idx);

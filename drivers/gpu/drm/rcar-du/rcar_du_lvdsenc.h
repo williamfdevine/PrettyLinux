@@ -20,7 +20,8 @@
 struct rcar_drm_crtc;
 struct rcar_du_lvdsenc;
 
-enum rcar_lvds_input {
+enum rcar_lvds_input
+{
 	RCAR_LVDS_INPUT_DU0,
 	RCAR_LVDS_INPUT_DU1,
 	RCAR_LVDS_INPUT_DU2,
@@ -29,21 +30,21 @@ enum rcar_lvds_input {
 #if IS_ENABLED(CONFIG_DRM_RCAR_LVDS)
 int rcar_du_lvdsenc_init(struct rcar_du_device *rcdu);
 int rcar_du_lvdsenc_enable(struct rcar_du_lvdsenc *lvds,
-			   struct drm_crtc *crtc, bool enable);
+						   struct drm_crtc *crtc, bool enable);
 void rcar_du_lvdsenc_atomic_check(struct rcar_du_lvdsenc *lvds,
-				  struct drm_display_mode *mode);
+								  struct drm_display_mode *mode);
 #else
 static inline int rcar_du_lvdsenc_init(struct rcar_du_device *rcdu)
 {
 	return 0;
 }
 static inline int rcar_du_lvdsenc_enable(struct rcar_du_lvdsenc *lvds,
-					 struct drm_crtc *crtc, bool enable)
+		struct drm_crtc *crtc, bool enable)
 {
 	return 0;
 }
 static inline void rcar_du_lvdsenc_atomic_check(struct rcar_du_lvdsenc *lvds,
-						struct drm_display_mode *mode)
+		struct drm_display_mode *mode)
 {
 }
 #endif

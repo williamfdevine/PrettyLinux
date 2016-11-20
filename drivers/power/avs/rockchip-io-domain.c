@@ -56,20 +56,23 @@ struct rockchip_iodomain;
 /**
  * @supplies: voltage settings matching the register bits.
  */
-struct rockchip_iodomain_soc_data {
+struct rockchip_iodomain_soc_data
+{
 	int grf_offset;
 	const char *supply_names[MAX_SUPPLIES];
 	void (*init)(struct rockchip_iodomain *iod);
 };
 
-struct rockchip_iodomain_supply {
+struct rockchip_iodomain_supply
+{
 	struct rockchip_iodomain *iod;
 	struct regulator *reg;
 	struct notifier_block nb;
 	int idx;
 };
 
-struct rockchip_iodomain {
+struct rockchip_iodomain
+{
 	struct device *dev;
 	struct regmap *grf;
 	struct rockchip_iodomain_soc_data *soc_data;
@@ -77,7 +80,7 @@ struct rockchip_iodomain {
 };
 
 static int rockchip_iodomain_write(struct rockchip_iodomain_supply *supply,
-				   int uV)
+								   int uV)
 {
 	struct rockchip_iodomain *iod = supply->iod;
 	u32 val;
@@ -91,18 +94,21 @@ static int rockchip_iodomain_write(struct rockchip_iodomain_supply *supply,
 	val |= (BIT(supply->idx) << 16);
 
 	ret = regmap_write(iod->grf, iod->soc_data->grf_offset, val);
+
 	if (ret)
+	{
 		dev_err(iod->dev, "Couldn't write to GRF\n");
+	}
 
 	return ret;
 }
 
 static int rockchip_iodomain_notify(struct notifier_block *nb,
-				    unsigned long event,
-				    void *data)
+									unsigned long event,
+									void *data)
 {
 	struct rockchip_iodomain_supply *supply =
-			container_of(nb, struct rockchip_iodomain_supply, nb);
+		container_of(nb, struct rockchip_iodomain_supply, nb);
 	int uV;
 	int ret;
 
@@ -119,29 +125,40 @@ static int rockchip_iodomain_notify(struct notifier_block *nb,
 	 * request something like a max of 3.6V when they really want 3.3V.
 	 * We could attempt to come up with better rules if this fails.
 	 */
-	if (event & REGULATOR_EVENT_PRE_VOLTAGE_CHANGE) {
+	if (event & REGULATOR_EVENT_PRE_VOLTAGE_CHANGE)
+	{
 		struct pre_voltage_change_data *pvc_data = data;
 
 		uV = max_t(unsigned long, pvc_data->old_uV, pvc_data->max_uV);
-	} else if (event & (REGULATOR_EVENT_VOLTAGE_CHANGE |
-			    REGULATOR_EVENT_ABORT_VOLTAGE_CHANGE)) {
+	}
+	else if (event & (REGULATOR_EVENT_VOLTAGE_CHANGE |
+					  REGULATOR_EVENT_ABORT_VOLTAGE_CHANGE))
+	{
 		uV = (unsigned long)data;
-	} else {
+	}
+	else
+	{
 		return NOTIFY_OK;
 	}
 
 	dev_dbg(supply->iod->dev, "Setting to %d\n", uV);
 
-	if (uV > MAX_VOLTAGE_3_3) {
+	if (uV > MAX_VOLTAGE_3_3)
+	{
 		dev_err(supply->iod->dev, "Voltage too high: %d\n", uV);
 
 		if (event == REGULATOR_EVENT_PRE_VOLTAGE_CHANGE)
+		{
 			return NOTIFY_BAD;
+		}
 	}
 
 	ret = rockchip_iodomain_write(supply, uV);
+
 	if (ret && event == REGULATOR_EVENT_PRE_VOLTAGE_CHANGE)
+	{
 		return NOTIFY_BAD;
+	}
 
 	dev_info(supply->iod->dev, "Setting to %d done\n", uV);
 	return NOTIFY_OK;
@@ -154,7 +171,9 @@ static void rk3288_iodomain_init(struct rockchip_iodomain *iod)
 
 	/* if no flash supply we should leave things alone */
 	if (!iod->supplies[RK3288_SOC_FLASH_SUPPLY_NUM].reg)
+	{
 		return;
+	}
 
 	/*
 	 * set flash0 iodomain to also use this framework
@@ -162,8 +181,11 @@ static void rk3288_iodomain_init(struct rockchip_iodomain *iod)
 	 */
 	val = RK3288_SOC_CON2_FLASH0 | (RK3288_SOC_CON2_FLASH0 << 16);
 	ret = regmap_write(iod->grf, RK3288_SOC_CON2, val);
+
 	if (ret < 0)
+	{
 		dev_warn(iod->dev, "couldn't update flash0 ctrl\n");
+	}
 }
 
 static void rk3368_iodomain_init(struct rockchip_iodomain *iod)
@@ -173,7 +195,9 @@ static void rk3368_iodomain_init(struct rockchip_iodomain *iod)
 
 	/* if no flash supply we should leave things alone */
 	if (!iod->supplies[RK3368_SOC_FLASH_SUPPLY_NUM].reg)
+	{
 		return;
+	}
 
 	/*
 	 * set flash0 iodomain to also use this framework
@@ -181,8 +205,11 @@ static void rk3368_iodomain_init(struct rockchip_iodomain *iod)
 	 */
 	val = RK3368_SOC_CON15_FLASH0 | (RK3368_SOC_CON15_FLASH0 << 16);
 	ret = regmap_write(iod->grf, RK3368_SOC_CON15, val);
+
 	if (ret < 0)
+	{
 		dev_warn(iod->dev, "couldn't update flash0 ctrl\n");
+	}
 }
 
 static void rk3399_pmu_iodomain_init(struct rockchip_iodomain *iod)
@@ -192,7 +219,9 @@ static void rk3399_pmu_iodomain_init(struct rockchip_iodomain *iod)
 
 	/* if no pmu io supply we should leave things alone */
 	if (!iod->supplies[RK3399_PMUGRF_VSEL_SUPPLY_NUM].reg)
+	{
 		return;
+	}
 
 	/*
 	 * set pmu io iodomain to also use this framework
@@ -200,15 +229,19 @@ static void rk3399_pmu_iodomain_init(struct rockchip_iodomain *iod)
 	 */
 	val = RK3399_PMUGRF_CON0_VSEL | (RK3399_PMUGRF_CON0_VSEL << 16);
 	ret = regmap_write(iod->grf, RK3399_PMUGRF_CON0, val);
+
 	if (ret < 0)
+	{
 		dev_warn(iod->dev, "couldn't update pmu io iodomain ctrl\n");
+	}
 }
 
 /*
  * On the rk3188 the io-domains are handled by a shared register with the
  * lower 8 bits being still being continuing drive-strength settings.
  */
-static const struct rockchip_iodomain_soc_data soc_data_rk3188 = {
+static const struct rockchip_iodomain_soc_data soc_data_rk3188 =
+{
 	.grf_offset = 0x104,
 	.supply_names = {
 		NULL,
@@ -230,7 +263,8 @@ static const struct rockchip_iodomain_soc_data soc_data_rk3188 = {
 	},
 };
 
-static const struct rockchip_iodomain_soc_data soc_data_rk3288 = {
+static const struct rockchip_iodomain_soc_data soc_data_rk3288 =
+{
 	.grf_offset = 0x380,
 	.supply_names = {
 		"lcdc",		/* LCDC_VDD */
@@ -247,7 +281,8 @@ static const struct rockchip_iodomain_soc_data soc_data_rk3288 = {
 	.init = rk3288_iodomain_init,
 };
 
-static const struct rockchip_iodomain_soc_data soc_data_rk3368 = {
+static const struct rockchip_iodomain_soc_data soc_data_rk3368 =
+{
 	.grf_offset = 0x900,
 	.supply_names = {
 		NULL,		/* reserved */
@@ -263,7 +298,8 @@ static const struct rockchip_iodomain_soc_data soc_data_rk3368 = {
 	.init = rk3368_iodomain_init,
 };
 
-static const struct rockchip_iodomain_soc_data soc_data_rk3368_pmu = {
+static const struct rockchip_iodomain_soc_data soc_data_rk3368_pmu =
+{
 	.grf_offset = 0x100,
 	.supply_names = {
 		NULL,
@@ -275,7 +311,8 @@ static const struct rockchip_iodomain_soc_data soc_data_rk3368_pmu = {
 	},
 };
 
-static const struct rockchip_iodomain_soc_data soc_data_rk3399 = {
+static const struct rockchip_iodomain_soc_data soc_data_rk3399 =
+{
 	.grf_offset = 0xe640,
 	.supply_names = {
 		"bt656",		/* APIO2_VDD */
@@ -285,7 +322,8 @@ static const struct rockchip_iodomain_soc_data soc_data_rk3399 = {
 	},
 };
 
-static const struct rockchip_iodomain_soc_data soc_data_rk3399_pmu = {
+static const struct rockchip_iodomain_soc_data soc_data_rk3399_pmu =
+{
 	.grf_offset = 0x180,
 	.supply_names = {
 		NULL,
@@ -302,30 +340,31 @@ static const struct rockchip_iodomain_soc_data soc_data_rk3399_pmu = {
 	.init = rk3399_pmu_iodomain_init,
 };
 
-static const struct of_device_id rockchip_iodomain_match[] = {
+static const struct of_device_id rockchip_iodomain_match[] =
+{
 	{
 		.compatible = "rockchip,rk3188-io-voltage-domain",
-		.data = (void *)&soc_data_rk3188
+		.data = (void *) &soc_data_rk3188
 	},
 	{
 		.compatible = "rockchip,rk3288-io-voltage-domain",
-		.data = (void *)&soc_data_rk3288
+		.data = (void *) &soc_data_rk3288
 	},
 	{
 		.compatible = "rockchip,rk3368-io-voltage-domain",
-		.data = (void *)&soc_data_rk3368
+		.data = (void *) &soc_data_rk3368
 	},
 	{
 		.compatible = "rockchip,rk3368-pmu-io-voltage-domain",
-		.data = (void *)&soc_data_rk3368_pmu
+		.data = (void *) &soc_data_rk3368_pmu
 	},
 	{
 		.compatible = "rockchip,rk3399-io-voltage-domain",
-		.data = (void *)&soc_data_rk3399
+		.data = (void *) &soc_data_rk3399
 	},
 	{
 		.compatible = "rockchip,rk3399-pmu-io-voltage-domain",
-		.data = (void *)&soc_data_rk3399_pmu
+		.data = (void *) &soc_data_rk3399_pmu
 	},
 	{ /* sentinel */ },
 };
@@ -340,11 +379,16 @@ static int rockchip_iodomain_probe(struct platform_device *pdev)
 	int i, ret = 0;
 
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	iod = devm_kzalloc(&pdev->dev, sizeof(*iod), GFP_KERNEL);
+
 	if (!iod)
+	{
 		return -ENOMEM;
+	}
 
 	iod->dev = &pdev->dev;
 	platform_set_drvdata(pdev, iod);
@@ -353,37 +397,50 @@ static int rockchip_iodomain_probe(struct platform_device *pdev)
 	iod->soc_data = (struct rockchip_iodomain_soc_data *)match->data;
 
 	parent = pdev->dev.parent;
-	if (parent && parent->of_node) {
+
+	if (parent && parent->of_node)
+	{
 		iod->grf = syscon_node_to_regmap(parent->of_node);
-	} else {
+	}
+	else
+	{
 		dev_dbg(&pdev->dev, "falling back to old binding\n");
 		iod->grf = syscon_regmap_lookup_by_phandle(np, "rockchip,grf");
 	}
 
-	if (IS_ERR(iod->grf)) {
+	if (IS_ERR(iod->grf))
+	{
 		dev_err(&pdev->dev, "couldn't find grf regmap\n");
 		return PTR_ERR(iod->grf);
 	}
 
-	for (i = 0; i < MAX_SUPPLIES; i++) {
+	for (i = 0; i < MAX_SUPPLIES; i++)
+	{
 		const char *supply_name = iod->soc_data->supply_names[i];
 		struct rockchip_iodomain_supply *supply = &iod->supplies[i];
 		struct regulator *reg;
 		int uV;
 
 		if (!supply_name)
+		{
 			continue;
+		}
 
 		reg = devm_regulator_get_optional(iod->dev, supply_name);
-		if (IS_ERR(reg)) {
+
+		if (IS_ERR(reg))
+		{
 			ret = PTR_ERR(reg);
 
 			/* If a supply wasn't specified, that's OK */
 			if (ret == -ENODEV)
+			{
 				continue;
+			}
 			else if (ret != -EPROBE_DEFER)
 				dev_err(iod->dev, "couldn't get regulator %s\n",
-					supply_name);
+						supply_name);
+
 			goto unreg_notify;
 		}
 
@@ -391,16 +448,18 @@ static int rockchip_iodomain_probe(struct platform_device *pdev)
 		uV = regulator_get_voltage(reg);
 
 		/* must be a regulator we can get the voltage of */
-		if (uV < 0) {
+		if (uV < 0)
+		{
 			dev_err(iod->dev, "Can't determine voltage: %s\n",
-				supply_name);
+					supply_name);
 			goto unreg_notify;
 		}
 
-		if (uV > MAX_VOLTAGE_3_3) {
+		if (uV > MAX_VOLTAGE_3_3)
+		{
 			dev_crit(iod->dev,
-				 "%d uV is too high. May damage SoC!\n",
-				 uV);
+					 "%d uV is too high. May damage SoC!\n",
+					 uV);
 			ret = -EINVAL;
 			goto unreg_notify;
 		}
@@ -412,33 +471,41 @@ static int rockchip_iodomain_probe(struct platform_device *pdev)
 		supply->nb.notifier_call = rockchip_iodomain_notify;
 
 		ret = rockchip_iodomain_write(supply, uV);
-		if (ret) {
+
+		if (ret)
+		{
 			supply->reg = NULL;
 			goto unreg_notify;
 		}
 
 		/* register regulator notifier */
 		ret = regulator_register_notifier(reg, &supply->nb);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(&pdev->dev,
-				"regulator notifier request failed\n");
+					"regulator notifier request failed\n");
 			supply->reg = NULL;
 			goto unreg_notify;
 		}
 	}
 
 	if (iod->soc_data->init)
+	{
 		iod->soc_data->init(iod);
+	}
 
 	return 0;
 
 unreg_notify:
-	for (i = MAX_SUPPLIES - 1; i >= 0; i--) {
+
+	for (i = MAX_SUPPLIES - 1; i >= 0; i--)
+	{
 		struct rockchip_iodomain_supply *io_supply = &iod->supplies[i];
 
 		if (io_supply->reg)
 			regulator_unregister_notifier(io_supply->reg,
-						      &io_supply->nb);
+										  &io_supply->nb);
 	}
 
 	return ret;
@@ -449,18 +516,20 @@ static int rockchip_iodomain_remove(struct platform_device *pdev)
 	struct rockchip_iodomain *iod = platform_get_drvdata(pdev);
 	int i;
 
-	for (i = MAX_SUPPLIES - 1; i >= 0; i--) {
+	for (i = MAX_SUPPLIES - 1; i >= 0; i--)
+	{
 		struct rockchip_iodomain_supply *io_supply = &iod->supplies[i];
 
 		if (io_supply->reg)
 			regulator_unregister_notifier(io_supply->reg,
-						      &io_supply->nb);
+										  &io_supply->nb);
 	}
 
 	return 0;
 }
 
-static struct platform_driver rockchip_iodomain_driver = {
+static struct platform_driver rockchip_iodomain_driver =
+{
 	.probe   = rockchip_iodomain_probe,
 	.remove  = rockchip_iodomain_remove,
 	.driver  = {

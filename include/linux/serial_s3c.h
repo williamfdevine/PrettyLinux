@@ -99,10 +99,10 @@
 #define S3C2443_UCON_LOOPBACK	  (1<<5)
 
 #define S3C2410_UCON_DEFAULT	  (S3C2410_UCON_TXILEVEL  | \
-				   S3C2410_UCON_RXILEVEL  | \
-				   S3C2410_UCON_TXIRQMODE | \
-				   S3C2410_UCON_RXIRQMODE | \
-				   S3C2410_UCON_RXFIFO_TOI)
+								   S3C2410_UCON_RXILEVEL  | \
+								   S3C2410_UCON_TXIRQMODE | \
+								   S3C2410_UCON_RXIRQMODE | \
+								   S3C2410_UCON_RXFIFO_TOI)
 
 #define S3C64XX_UCON_TXBURST_1          (0<<20)
 #define S3C64XX_UCON_TXBURST_4          (1<<20)
@@ -150,8 +150,8 @@
 #define S3C2410_UFCON_RESETRX	  (1<<1)
 
 #define S3C2410_UFCON_DEFAULT	  (S3C2410_UFCON_FIFOMODE | \
-				   S3C2410_UFCON_TXTRIG0  | \
-				   S3C2410_UFCON_RXTRIG8 )
+								   S3C2410_UFCON_TXTRIG0  | \
+								   S3C2410_UFCON_RXTRIG8 )
 
 #define	S3C2410_UMCOM_AFC	  (1<<4)
 #define	S3C2410_UMCOM_RTS_LOW	  (1<<0)
@@ -191,8 +191,8 @@
 #define S3C2443_UERSTAT_PARITY	  (1<<1)
 
 #define S3C2410_UERSTAT_ANY	  (S3C2410_UERSTAT_OVERRUN | \
-				   S3C2410_UERSTAT_FRAME | \
-				   S3C2410_UERSTAT_BREAK)
+							   S3C2410_UERSTAT_FRAME | \
+							   S3C2410_UERSTAT_BREAK)
 
 #define S3C2410_UMSTAT_CTS	  (1<<0)
 #define S3C2410_UMSTAT_DeltaCTS	  (1<<2)
@@ -249,15 +249,15 @@
 
 /* Default values for s5pv210 UCON and UFCON uart registers */
 #define S5PV210_UCON_DEFAULT	(S3C2410_UCON_TXILEVEL |	\
-				 S3C2410_UCON_RXILEVEL |	\
-				 S3C2410_UCON_TXIRQMODE |	\
-				 S3C2410_UCON_RXIRQMODE |	\
-				 S3C2410_UCON_RXFIFO_TOI |	\
-				 S3C2443_UCON_RXERR_IRQEN)
+								 S3C2410_UCON_RXILEVEL |	\
+								 S3C2410_UCON_TXIRQMODE |	\
+								 S3C2410_UCON_RXIRQMODE |	\
+								 S3C2410_UCON_RXFIFO_TOI |	\
+								 S3C2443_UCON_RXERR_IRQEN)
 
 #define S5PV210_UFCON_DEFAULT	(S3C2410_UFCON_FIFOMODE |	\
-				 S5PV210_UFCON_TXTRIG4 |	\
-				 S5PV210_UFCON_RXTRIG4)
+								 S5PV210_UFCON_TXTRIG4 |	\
+								 S5PV210_UFCON_RXTRIG4)
 
 #ifndef __ASSEMBLY__
 
@@ -270,7 +270,8 @@
  * arch/arm/mach-s3c2410/ directory.
 */
 
-struct s3c2410_uartcfg {
+struct s3c2410_uartcfg
+{
 	unsigned char	   hwport;	 /* hardware port number */
 	unsigned char	   unused;
 	unsigned short	   flags;

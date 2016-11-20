@@ -53,7 +53,8 @@ static int ps3_set_time(struct device *dev, struct rtc_time *tm)
 	return 0;
 }
 
-static const struct rtc_class_ops ps3_rtc_ops = {
+static const struct rtc_class_ops ps3_rtc_ops =
+{
 	.read_time = ps3_get_time,
 	.set_time = ps3_set_time,
 };
@@ -63,15 +64,19 @@ static int __init ps3_rtc_probe(struct platform_device *dev)
 	struct rtc_device *rtc;
 
 	rtc = devm_rtc_device_register(&dev->dev, "rtc-ps3", &ps3_rtc_ops,
-				  THIS_MODULE);
+								   THIS_MODULE);
+
 	if (IS_ERR(rtc))
+	{
 		return PTR_ERR(rtc);
+	}
 
 	platform_set_drvdata(dev, rtc);
 	return 0;
 }
 
-static struct platform_driver ps3_rtc_driver = {
+static struct platform_driver ps3_rtc_driver =
+{
 	.driver = {
 		.name = "rtc-ps3",
 	},

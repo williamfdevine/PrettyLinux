@@ -27,7 +27,8 @@ typedef unsigned long long dma_addr_t;
 typedef size_t __kernel_size_t;
 typedef unsigned int __wsum;
 
-struct page {
+struct page
+{
 	unsigned long long dummy;
 };
 
@@ -48,7 +49,10 @@ extern void *__kmalloc_fake, *__kfree_ignore_start, *__kfree_ignore_end;
 static inline void *kmalloc(size_t s, gfp_t gfp)
 {
 	if (__kmalloc_fake)
+	{
 		return __kmalloc_fake;
+	}
+
 	return malloc(s);
 }
 static inline void *kzalloc(size_t s, gfp_t gfp)
@@ -67,7 +71,10 @@ static inline void *alloc_pages_exact(size_t s, gfp_t gfp)
 static inline void kfree(void *p)
 {
 	if (p >= __kfree_ignore_start && p < __kfree_ignore_end)
+	{
 		return;
+	}
+
 	free(p);
 }
 
@@ -96,23 +103,23 @@ static inline void free_page(unsigned long addr)
 }
 
 #define container_of(ptr, type, member) ({			\
-	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
-	(type *)( (char *)__mptr - offsetof(type,member) );})
+		const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
+		(type *)( (char *)__mptr - offsetof(type,member) );})
 
 #define uninitialized_var(x) x = x
 
-# ifndef likely
-#  define likely(x)	(__builtin_expect(!!(x), 1))
-# endif
-# ifndef unlikely
-#  define unlikely(x)	(__builtin_expect(!!(x), 0))
-# endif
+#ifndef likely
+	#define likely(x)	(__builtin_expect(!!(x), 1))
+#endif
+#ifndef unlikely
+	#define unlikely(x)	(__builtin_expect(!!(x), 0))
+#endif
 
 #define pr_err(format, ...) fprintf (stderr, format, ## __VA_ARGS__)
 #ifdef DEBUG
-#define pr_debug(format, ...) fprintf (stderr, format, ## __VA_ARGS__)
+	#define pr_debug(format, ...) fprintf (stderr, format, ## __VA_ARGS__)
 #else
-#define pr_debug(format, ...) do {} while (0)
+	#define pr_debug(format, ...) do {} while (0)
 #endif
 #define dev_err(dev, format, ...) fprintf (stderr, format, ## __VA_ARGS__)
 #define dev_warn(dev, format, ...) fprintf (stderr, format, ## __VA_ARGS__)
@@ -120,10 +127,10 @@ static inline void free_page(unsigned long addr)
 #define WARN_ON_ONCE(cond) ((cond) && fprintf (stderr, "WARNING\n"))
 
 #define min(x, y) ({				\
-	typeof(x) _min1 = (x);			\
-	typeof(y) _min2 = (y);			\
-	(void) (&_min1 == &_min2);		\
-	_min1 < _min2 ? _min1 : _min2; })
+		typeof(x) _min1 = (x);			\
+		typeof(y) _min2 = (y);			\
+		(void) (&_min1 == &_min2);		\
+		_min1 < _min2 ? _min1 : _min2; })
 
 /* TODO: empty stubs for now. Broken but enough for virtio_ring.c */
 #define list_add_tail(a, b) do {} while (0)

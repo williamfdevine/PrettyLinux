@@ -58,7 +58,8 @@
  * corresponding to each fragment.
  *
  */
-struct sdma_desc {
+struct sdma_desc
+{
 	/* private:  don't use directly */
 	u64 qw[2];
 };
@@ -96,7 +97,8 @@ struct sdma_txreq;
 typedef void (*callback_t)(struct sdma_txreq *, int);
 
 struct iowait;
-struct sdma_txreq {
+struct sdma_txreq
+{
 	struct list_head list;
 	/* private: */
 	struct sdma_desc *descp;

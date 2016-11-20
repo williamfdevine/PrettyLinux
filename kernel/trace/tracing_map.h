@@ -8,7 +8,7 @@
 #define TRACING_MAP_KEYS_MAX		2
 #define TRACING_MAP_VALS_MAX		3
 #define TRACING_MAP_FIELDS_MAX		(TRACING_MAP_KEYS_MAX + \
-					 TRACING_MAP_VALS_MAX)
+									 TRACING_MAP_VALS_MAX)
 #define TRACING_MAP_SORT_KEYS_MAX	2
 
 typedef int (*tracing_map_cmp_fn_t) (void *val_a, void *val_b);
@@ -125,39 +125,46 @@ typedef int (*tracing_map_cmp_fn_t) (void *val_a, void *val_b);
  * safely be ignored.
 */
 
-struct tracing_map_field {
+struct tracing_map_field
+{
 	tracing_map_cmp_fn_t		cmp_fn;
-	union {
+	union
+	{
 		atomic64_t			sum;
 		unsigned int			offset;
 	};
 };
 
-struct tracing_map_elt {
+struct tracing_map_elt
+{
 	struct tracing_map		*map;
 	struct tracing_map_field	*fields;
 	void				*key;
 	void				*private_data;
 };
 
-struct tracing_map_entry {
+struct tracing_map_entry
+{
 	u32				key;
 	struct tracing_map_elt		*val;
 };
 
-struct tracing_map_sort_key {
+struct tracing_map_sort_key
+{
 	unsigned int			field_idx;
 	bool				descending;
 };
 
-struct tracing_map_sort_entry {
+struct tracing_map_sort_entry
+{
 	void				*key;
 	struct tracing_map_elt		*elt;
 	bool				elt_copied;
 	bool				dup;
 };
 
-struct tracing_map_array {
+struct tracing_map_array
+{
 	unsigned int entries_per_page;
 	unsigned int entry_size_shift;
 	unsigned int entry_shift;
@@ -176,7 +183,8 @@ struct tracing_map_array {
 #define TRACING_MAP_ELT(array, idx)					\
 	((struct tracing_map_elt **)TRACING_MAP_ARRAY_ELT(array, idx))
 
-struct tracing_map {
+struct tracing_map
+{
 	unsigned int			key_size;
 	unsigned int			map_bits;
 	unsigned int			map_size;
@@ -230,10 +238,11 @@ struct tracing_map {
  *	claimed by tracing_map_insert() in the context of the map
  *	insertion.
  */
-struct tracing_map_ops {
+struct tracing_map_ops
+{
 	int			(*elt_alloc)(struct tracing_map_elt *elt);
 	void			(*elt_copy)(struct tracing_map_elt *to,
-					    struct tracing_map_elt *from);
+								struct tracing_map_elt *from);
 	void			(*elt_free)(struct tracing_map_elt *elt);
 	void			(*elt_clear)(struct tracing_map_elt *elt);
 	void			(*elt_init)(struct tracing_map_elt *elt);
@@ -241,15 +250,15 @@ struct tracing_map_ops {
 
 extern struct tracing_map *
 tracing_map_create(unsigned int map_bits,
-		   unsigned int key_size,
-		   const struct tracing_map_ops *ops,
-		   void *private_data);
+				   unsigned int key_size,
+				   const struct tracing_map_ops *ops,
+				   void *private_data);
 extern int tracing_map_init(struct tracing_map *map);
 
 extern int tracing_map_add_sum_field(struct tracing_map *map);
 extern int tracing_map_add_key_field(struct tracing_map *map,
-				     unsigned int offset,
-				     tracing_map_cmp_fn_t cmp_fn);
+									 unsigned int offset,
+									 tracing_map_cmp_fn_t cmp_fn);
 
 extern void tracing_map_destroy(struct tracing_map *map);
 extern void tracing_map_clear(struct tracing_map *map);
@@ -260,24 +269,24 @@ extern struct tracing_map_elt *
 tracing_map_lookup(struct tracing_map *map, void *key);
 
 extern tracing_map_cmp_fn_t tracing_map_cmp_num(int field_size,
-						int field_is_signed);
+		int field_is_signed);
 extern int tracing_map_cmp_string(void *val_a, void *val_b);
 extern int tracing_map_cmp_none(void *val_a, void *val_b);
 
 extern void tracing_map_update_sum(struct tracing_map_elt *elt,
-				   unsigned int i, u64 n);
+								   unsigned int i, u64 n);
 extern u64 tracing_map_read_sum(struct tracing_map_elt *elt, unsigned int i);
 extern void tracing_map_set_field_descr(struct tracing_map *map,
-					unsigned int i,
-					unsigned int key_offset,
-					tracing_map_cmp_fn_t cmp_fn);
+										unsigned int i,
+										unsigned int key_offset,
+										tracing_map_cmp_fn_t cmp_fn);
 extern int
 tracing_map_sort_entries(struct tracing_map *map,
-			 struct tracing_map_sort_key *sort_keys,
-			 unsigned int n_sort_keys,
-			 struct tracing_map_sort_entry ***sort_entries);
+						 struct tracing_map_sort_key *sort_keys,
+						 unsigned int n_sort_keys,
+						 struct tracing_map_sort_entry ***sort_entries);
 
 extern void
 tracing_map_destroy_sort_entries(struct tracing_map_sort_entry **entries,
-				 unsigned int n_entries);
+								 unsigned int n_entries);
 #endif /* __TRACING_MAP_H */

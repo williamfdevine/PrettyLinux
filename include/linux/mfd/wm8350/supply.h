@@ -108,7 +108,8 @@
 /*
  * Policy to control charger state machine.
  */
-struct wm8350_charger_policy {
+struct wm8350_charger_policy
+{
 
 	/* charger state machine policy  - set in machine driver */
 	int eoc_mA;		/* end of charge current (mA)  */
@@ -121,7 +122,8 @@ struct wm8350_charger_policy {
 	int trickle_charge_USB_mA;	/* USB trickle charge current */
 };
 
-struct wm8350_power {
+struct wm8350_power
+{
 	struct platform_device *pdev;
 	struct power_supply *battery;
 	struct power_supply *usb;

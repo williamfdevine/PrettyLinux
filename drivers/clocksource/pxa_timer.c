@@ -120,7 +120,9 @@ static void pxa_timer_resume(struct clock_event_device *cedev)
 	 * to OSCR to guarantee that OSCR is monotonically incrementing.
 	 */
 	if (osmr[0] - oscr < MIN_OSCR_DELTA)
+	{
 		osmr[0] += MIN_OSCR_DELTA;
+	}
 
 	timer_writel(osmr[0], OSMR0);
 	timer_writel(osmr[1], OSMR1);
@@ -134,7 +136,8 @@ static void pxa_timer_resume(struct clock_event_device *cedev)
 #define pxa_timer_resume NULL
 #endif
 
-static struct clock_event_device ckevt_pxa_osmr0 = {
+static struct clock_event_device ckevt_pxa_osmr0 =
+{
 	.name			= "osmr0",
 	.features		= CLOCK_EVT_FEAT_ONESHOT,
 	.rating			= 200,
@@ -145,7 +148,8 @@ static struct clock_event_device ckevt_pxa_osmr0 = {
 	.resume			= pxa_timer_resume,
 };
 
-static struct irqaction pxa_ost0_irq = {
+static struct irqaction pxa_ost0_irq =
+{
 	.name		= "ost0",
 	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
 	.handler	= pxa_ost0_interrupt,
@@ -164,20 +168,24 @@ static int __init pxa_timer_common_init(int irq, unsigned long clock_tick_rate)
 	ckevt_pxa_osmr0.cpumask = cpumask_of(0);
 
 	ret = setup_irq(irq, &pxa_ost0_irq);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Failed to setup irq");
 		return ret;
 	}
 
 	ret = clocksource_mmio_init(timer_base + OSCR, "oscr0", clock_tick_rate, 200,
-				    32, clocksource_mmio_readl_up);
-	if (ret) {
+								32, clocksource_mmio_readl_up);
+
+	if (ret)
+	{
 		pr_err("Failed to init clocksource");
 		return ret;
 	}
 
 	clockevents_config_and_register(&ckevt_pxa_osmr0, clock_tick_rate,
-					MIN_OSCR_DELTA * 2, 0x7fffffff);
+									MIN_OSCR_DELTA * 2, 0x7fffffff);
 
 	return 0;
 }
@@ -189,26 +197,34 @@ static int __init pxa_timer_dt_init(struct device_node *np)
 
 	/* timer registers are shared with watchdog timer */
 	timer_base = of_iomap(np, 0);
-	if (!timer_base) {
+
+	if (!timer_base)
+	{
 		pr_err("%s: unable to map resource\n", np->name);
 		return -ENXIO;
 	}
 
 	clk = of_clk_get(np, 0);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_crit("%s: unable to get clk\n", np->name);
 		return PTR_ERR(clk);
 	}
 
 	ret = clk_prepare_enable(clk);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_crit("Failed to prepare clock");
 		return ret;
 	}
 
 	/* we are only interested in OS-timer0 irq */
 	irq = irq_of_parse_and_map(np, 0);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		pr_crit("%s: unable to parse OS-timer0 irq\n", np->name);
 		return -EINVAL;
 	}
@@ -221,16 +237,21 @@ CLOCKSOURCE_OF_DECLARE(pxa_timer, "marvell,pxa-timer", pxa_timer_dt_init);
  * Legacy timer init for non device-tree boards.
  */
 void __init pxa_timer_nodt_init(int irq, void __iomem *base,
-	unsigned long clock_tick_rate)
+								unsigned long clock_tick_rate)
 {
 	struct clk *clk;
 
 	timer_base = base;
 	clk = clk_get(NULL, "OSTIMER0");
+
 	if (clk && !IS_ERR(clk))
+	{
 		clk_prepare_enable(clk);
+	}
 	else
+	{
 		pr_crit("%s: unable to get clk\n", __func__);
+	}
 
 	pxa_timer_common_init(irq, clock_tick_rate);
 }

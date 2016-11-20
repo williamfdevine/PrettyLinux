@@ -36,7 +36,8 @@
  * of 3.85. i.e. light_above_sensor = light_above_cover_window / 3.85
  */
 
-struct bh1770_platform_data {
+struct bh1770_platform_data
+{
 #define BH1770_LED_5mA	0
 #define BH1770_LED_10mA	1
 #define BH1770_LED_20mA	2

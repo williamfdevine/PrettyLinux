@@ -1,7 +1,7 @@
 /*
  *  Copyright (c) by Jaroslav Kysela <perex@perex.cz>
  *                   Takashi Iwai <tiwai@suse.de>
- * 
+ *
  *  Generic memory allocators
  *
  *
@@ -29,15 +29,16 @@ struct device;
 /*
  * buffer device info
  */
-struct snd_dma_device {
+struct snd_dma_device
+{
 	int type;			/* SNDRV_DMA_TYPE_XXX */
 	struct device *dev;		/* generic device */
 };
 
 #ifndef snd_dma_pci_data
-#define snd_dma_pci_data(pci)	(&(pci)->dev)
-#define snd_dma_isa_data()	NULL
-#define snd_dma_continuous_data(x)	((struct device *)(__force unsigned long)(x))
+	#define snd_dma_pci_data(pci)	(&(pci)->dev)
+	#define snd_dma_isa_data()	NULL
+	#define snd_dma_continuous_data(x)	((struct device *)(__force unsigned long)(x))
 #endif
 
 
@@ -48,20 +49,21 @@ struct snd_dma_device {
 #define SNDRV_DMA_TYPE_CONTINUOUS	1	/* continuous no-DMA memory */
 #define SNDRV_DMA_TYPE_DEV		2	/* generic device continuous */
 #ifdef CONFIG_SND_DMA_SGBUF
-#define SNDRV_DMA_TYPE_DEV_SG		3	/* generic device SG-buffer */
+	#define SNDRV_DMA_TYPE_DEV_SG		3	/* generic device SG-buffer */
 #else
-#define SNDRV_DMA_TYPE_DEV_SG	SNDRV_DMA_TYPE_DEV /* no SG-buf support */
+	#define SNDRV_DMA_TYPE_DEV_SG	SNDRV_DMA_TYPE_DEV /* no SG-buf support */
 #endif
 #ifdef CONFIG_GENERIC_ALLOCATOR
-#define SNDRV_DMA_TYPE_DEV_IRAM		4	/* generic device iram-buffer */
+	#define SNDRV_DMA_TYPE_DEV_IRAM		4	/* generic device iram-buffer */
 #else
-#define SNDRV_DMA_TYPE_DEV_IRAM	SNDRV_DMA_TYPE_DEV
+	#define SNDRV_DMA_TYPE_DEV_IRAM	SNDRV_DMA_TYPE_DEV
 #endif
 
 /*
  * info for buffer allocation
  */
-struct snd_dma_buffer {
+struct snd_dma_buffer
+{
 	struct snd_dma_device dev;	/* device type */
 	unsigned char *area;	/* virtual pointer */
 	dma_addr_t addr;	/* physical address */
@@ -74,16 +76,18 @@ struct snd_dma_buffer {
  * Scatter-Gather generic device pages
  */
 void *snd_malloc_sgbuf_pages(struct device *device,
-			     size_t size, struct snd_dma_buffer *dmab,
-			     size_t *res_size);
+							 size_t size, struct snd_dma_buffer *dmab,
+							 size_t *res_size);
 int snd_free_sgbuf_pages(struct snd_dma_buffer *dmab);
 
-struct snd_sg_page {
+struct snd_sg_page
+{
 	void *buf;
 	dma_addr_t addr;
 };
 
-struct snd_sg_buf {
+struct snd_sg_buf
+{
 	int size;	/* allocated byte size */
 	int pages;	/* allocated pages */
 	int tblsize;	/* allocated table size */
@@ -104,7 +108,7 @@ static inline unsigned int snd_sgbuf_aligned_pages(size_t size)
  * return the physical address at the corresponding offset
  */
 static inline dma_addr_t snd_sgbuf_get_addr(struct snd_dma_buffer *dmab,
-					   size_t offset)
+		size_t offset)
 {
 	struct snd_sg_buf *sgbuf = dmab->private_data;
 	dma_addr_t addr = sgbuf->table[offset >> PAGE_SHIFT].addr;
@@ -116,24 +120,24 @@ static inline dma_addr_t snd_sgbuf_get_addr(struct snd_dma_buffer *dmab,
  * return the virtual address at the corresponding offset
  */
 static inline void *snd_sgbuf_get_ptr(struct snd_dma_buffer *dmab,
-				     size_t offset)
+									  size_t offset)
 {
 	struct snd_sg_buf *sgbuf = dmab->private_data;
 	return sgbuf->table[offset >> PAGE_SHIFT].buf + offset % PAGE_SIZE;
 }
 
 unsigned int snd_sgbuf_get_chunk_size(struct snd_dma_buffer *dmab,
-				      unsigned int ofs, unsigned int size);
+									  unsigned int ofs, unsigned int size);
 #else
 /* non-SG versions */
 static inline dma_addr_t snd_sgbuf_get_addr(struct snd_dma_buffer *dmab,
-					    size_t offset)
+		size_t offset)
 {
 	return dmab->addr + offset;
 }
 
 static inline void *snd_sgbuf_get_ptr(struct snd_dma_buffer *dmab,
-				      size_t offset)
+									  size_t offset)
 {
 	return dmab->area + offset;
 }
@@ -144,9 +148,9 @@ static inline void *snd_sgbuf_get_ptr(struct snd_dma_buffer *dmab,
 
 /* allocate/release a buffer */
 int snd_dma_alloc_pages(int type, struct device *dev, size_t size,
-			struct snd_dma_buffer *dmab);
+						struct snd_dma_buffer *dmab);
 int snd_dma_alloc_pages_fallback(int type, struct device *dev, size_t size,
-                                 struct snd_dma_buffer *dmab);
+								 struct snd_dma_buffer *dmab);
 void snd_dma_free_pages(struct snd_dma_buffer *dmab);
 
 /* basic memory allocation functions */

@@ -9,7 +9,8 @@
 #include "./bebob.h"
 
 /* contents of information register */
-struct hw_info {
+struct hw_info
+{
 	u64 manufacturer;
 	u32 protocol_ver;
 	u32 bld_ver;
@@ -24,35 +25,40 @@ struct hw_info {
 	u32 max_size;
 	u64 bld_date;
 	u64 bld_time;
-/* may not used in product
-	u64 dbg_date;
-	u64 dbg_time;
-	u32 dbg_id;
-	u32 dbg_version;
-*/
+	/* may not used in product
+		u64 dbg_date;
+		u64 dbg_time;
+		u32 dbg_id;
+		u32 dbg_version;
+	*/
 } __packed;
 
 static void
 proc_read_hw_info(struct snd_info_entry *entry,
-		  struct snd_info_buffer *buffer)
+				  struct snd_info_buffer *buffer)
 {
 	struct snd_bebob *bebob = entry->private_data;
 	struct hw_info *info;
 
 	info = kzalloc(sizeof(struct hw_info), GFP_KERNEL);
+
 	if (info == NULL)
+	{
 		return;
+	}
 
 	if (snd_bebob_read_block(bebob->unit, 0,
-				   info, sizeof(struct hw_info)) < 0)
+							 info, sizeof(struct hw_info)) < 0)
+	{
 		goto end;
+	}
 
 	snd_iprintf(buffer, "Manufacturer:\t%.8s\n",
-		    (char *)&info->manufacturer);
+				(char *)&info->manufacturer);
 	snd_iprintf(buffer, "Protocol Ver:\t%d\n", info->protocol_ver);
 	snd_iprintf(buffer, "Build Ver:\t%d\n", info->bld_ver);
 	snd_iprintf(buffer, "GUID:\t\t0x%.8X%.8X\n",
-		    info->guid[0], info->guid[1]);
+				info->guid[0], info->guid[1]);
 	snd_iprintf(buffer, "Model ID:\t0x%02X\n", info->model_id);
 	snd_iprintf(buffer, "Model Rev:\t%d\n", info->model_rev);
 	snd_iprintf(buffer, "Firmware Date:\t%.8s\n", (char *)&info->fw_date);
@@ -70,7 +76,7 @@ end:
 
 static void
 proc_read_meters(struct snd_info_entry *entry,
-		 struct snd_info_buffer *buffer)
+				 struct snd_info_buffer *buffer)
 {
 	struct snd_bebob *bebob = entry->private_data;
 	const struct snd_bebob_meter_spec *spec = bebob->spec->meter;
@@ -78,32 +84,44 @@ proc_read_meters(struct snd_info_entry *entry,
 	unsigned int i, c, channels, size;
 
 	if (spec == NULL)
+	{
 		return;
+	}
 
 	channels = spec->num * 2;
 	size = channels * sizeof(u32);
 	buf = kmalloc(size, GFP_KERNEL);
+
 	if (buf == NULL)
+	{
 		return;
+	}
 
 	if (spec->get(bebob, buf, size) < 0)
+	{
 		goto end;
-
-	for (i = 0, c = 1; i < channels; i++) {
-		snd_iprintf(buffer, "%s %d:\t%d\n",
-			    spec->labels[i / 2], c++, buf[i]);
-		if ((i + 1 < channels - 1) &&
-		    (strcmp(spec->labels[i / 2],
-			    spec->labels[(i + 1) / 2]) != 0))
-			c = 1;
 	}
+
+	for (i = 0, c = 1; i < channels; i++)
+	{
+		snd_iprintf(buffer, "%s %d:\t%d\n",
+					spec->labels[i / 2], c++, buf[i]);
+
+		if ((i + 1 < channels - 1) &&
+			(strcmp(spec->labels[i / 2],
+					spec->labels[(i + 1) / 2]) != 0))
+		{
+			c = 1;
+		}
+	}
+
 end:
 	kfree(buf);
 }
 
 static void
 proc_read_formation(struct snd_info_entry *entry,
-		struct snd_info_buffer *buffer)
+					struct snd_info_buffer *buffer)
 {
 	struct snd_bebob *bebob = entry->private_data;
 	struct snd_bebob_stream_formation *formation;
@@ -112,27 +130,32 @@ proc_read_formation(struct snd_info_entry *entry,
 	snd_iprintf(buffer, "Output Stream from device:\n");
 	snd_iprintf(buffer, "\tRate\tPCM\tMIDI\n");
 	formation = bebob->tx_stream_formations;
-	for (i = 0; i < SND_BEBOB_STRM_FMT_ENTRIES; i++) {
+
+	for (i = 0; i < SND_BEBOB_STRM_FMT_ENTRIES; i++)
+	{
 		snd_iprintf(buffer,
-			    "\t%d\t%d\t%d\n", snd_bebob_rate_table[i],
-			    formation[i].pcm, formation[i].midi);
+					"\t%d\t%d\t%d\n", snd_bebob_rate_table[i],
+					formation[i].pcm, formation[i].midi);
 	}
 
 	snd_iprintf(buffer, "Input Stream to device:\n");
 	snd_iprintf(buffer, "\tRate\tPCM\tMIDI\n");
 	formation = bebob->rx_stream_formations;
-	for (i = 0; i < SND_BEBOB_STRM_FMT_ENTRIES; i++) {
+
+	for (i = 0; i < SND_BEBOB_STRM_FMT_ENTRIES; i++)
+	{
 		snd_iprintf(buffer,
-			    "\t%d\t%d\t%d\n", snd_bebob_rate_table[i],
-			    formation[i].pcm, formation[i].midi);
+					"\t%d\t%d\t%d\n", snd_bebob_rate_table[i],
+					formation[i].pcm, formation[i].midi);
 	}
 }
 
 static void
 proc_read_clock(struct snd_info_entry *entry,
-		struct snd_info_buffer *buffer)
+				struct snd_info_buffer *buffer)
 {
-	static const char *const clk_labels[] = {
+	static const char *const clk_labels[] =
+	{
 		"Internal",
 		"External",
 		"SYT-Match",
@@ -144,31 +167,40 @@ proc_read_clock(struct snd_info_entry *entry,
 	unsigned int rate;
 
 	if (rate_spec->get(bebob, &rate) >= 0)
+	{
 		snd_iprintf(buffer, "Sampling rate: %d\n", rate);
+	}
 
-	if (snd_bebob_stream_get_clock_src(bebob, &src) >= 0) {
+	if (snd_bebob_stream_get_clock_src(bebob, &src) >= 0)
+	{
 		if (clk_spec)
 			snd_iprintf(buffer, "Clock Source: %s\n",
-				    clk_labels[src]);
+						clk_labels[src]);
 		else
 			snd_iprintf(buffer, "Clock Source: %s (MSU-dest: %d)\n",
-				    clk_labels[src], bebob->sync_input_plug);
+						clk_labels[src], bebob->sync_input_plug);
 	}
 }
 
 static void
 add_node(struct snd_bebob *bebob, struct snd_info_entry *root, const char *name,
-	 void (*op)(struct snd_info_entry *e, struct snd_info_buffer *b))
+		 void (*op)(struct snd_info_entry *e, struct snd_info_buffer *b))
 {
 	struct snd_info_entry *entry;
 
 	entry = snd_info_create_card_entry(bebob->card, name, root);
+
 	if (entry == NULL)
+	{
 		return;
+	}
 
 	snd_info_set_text_ops(entry, bebob, op);
+
 	if (snd_info_register(entry) < 0)
+	{
 		snd_info_free_entry(entry);
+	}
 }
 
 void snd_bebob_proc_init(struct snd_bebob *bebob)
@@ -180,11 +212,17 @@ void snd_bebob_proc_init(struct snd_bebob *bebob)
 	 * by following to link list.
 	 */
 	root = snd_info_create_card_entry(bebob->card, "firewire",
-					  bebob->card->proc_root);
+									  bebob->card->proc_root);
+
 	if (root == NULL)
+	{
 		return;
+	}
+
 	root->mode = S_IFDIR | S_IRUGO | S_IXUGO;
-	if (snd_info_register(root) < 0) {
+
+	if (snd_info_register(root) < 0)
+	{
 		snd_info_free_entry(root);
 		return;
 	}
@@ -194,5 +232,7 @@ void snd_bebob_proc_init(struct snd_bebob *bebob)
 	add_node(bebob, root, "formation", proc_read_formation);
 
 	if (bebob->spec->meter != NULL)
+	{
 		add_node(bebob, root, "meter", proc_read_meters);
+	}
 }

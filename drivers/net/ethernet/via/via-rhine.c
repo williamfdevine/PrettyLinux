@@ -41,16 +41,16 @@
    These may be modified when a driver module is loaded. */
 static int debug = 0;
 #define RHINE_MSG_DEFAULT \
-        (0x0000)
+	(0x0000)
 
 /* Set the copy breakpoint for the copy-only-tiny-frames scheme.
    Setting to > 1518 effectively disables this feature. */
 #if defined(__alpha__) || defined(__arm__) || defined(__hppa__) || \
 	defined(CONFIG_SPARC) || defined(__ia64__) ||		   \
 	defined(__sh__) || defined(__mips__)
-static int rx_copybreak = 1518;
+	static int rx_copybreak = 1518;
 #else
-static int rx_copybreak;
+	static int rx_copybreak;
 #endif
 
 /* Work-around for broken BIOSes: they are unable to get the chip back out of
@@ -235,7 +235,8 @@ The chip does not pad to minimum transmit length.
    second only the 1234 card.
 */
 
-enum rhine_revs {
+enum rhine_revs
+{
 	VT86C100A	= 0x00,
 	VTunknown0	= 0x20,
 	VT6102		= 0x40,
@@ -252,7 +253,8 @@ enum rhine_revs {
 	VT6105M		= 0x90,	/* Management adapter */
 };
 
-enum rhine_quirks {
+enum rhine_quirks
+{
 	rqWOL		= 0x0001,	/* Wake-On-LAN support */
 	rqForceReset	= 0x0002,
 	rq6patterns	= 0x0040,	/* 6 instead of 4 patterns for WOL */
@@ -274,7 +276,8 @@ enum rhine_quirks {
 /* Beware of PCI posted writes */
 #define IOSYNC	do { ioread8(ioaddr + StationAddr); } while (0)
 
-static const struct pci_device_id rhine_pci_tbl[] = {
+static const struct pci_device_id rhine_pci_tbl[] =
+{
 	{ 0x1106, 0x3043, PCI_ANY_ID, PCI_ANY_ID, },	/* VT86C100A */
 	{ 0x1106, 0x3065, PCI_ANY_ID, PCI_ANY_ID, },	/* VT6102 */
 	{ 0x1106, 0x3106, PCI_ANY_ID, PCI_ANY_ID, },	/* 6105{,L,LOM} */
@@ -287,78 +290,86 @@ MODULE_DEVICE_TABLE(pci, rhine_pci_tbl);
  * The .data field is currently only used to store quirks
  */
 static u32 vt8500_quirks = rqWOL | rqForceReset | rq6patterns;
-static const struct of_device_id rhine_of_tbl[] = {
+static const struct of_device_id rhine_of_tbl[] =
+{
 	{ .compatible = "via,vt8500-rhine", .data = &vt8500_quirks },
 	{ }	/* terminate list */
 };
 MODULE_DEVICE_TABLE(of, rhine_of_tbl);
 
 /* Offsets to the device registers. */
-enum register_offsets {
-	StationAddr=0x00, RxConfig=0x06, TxConfig=0x07, ChipCmd=0x08,
-	ChipCmd1=0x09, TQWake=0x0A,
-	IntrStatus=0x0C, IntrEnable=0x0E,
-	MulticastFilter0=0x10, MulticastFilter1=0x14,
-	RxRingPtr=0x18, TxRingPtr=0x1C, GFIFOTest=0x54,
-	MIIPhyAddr=0x6C, MIIStatus=0x6D, PCIBusConfig=0x6E, PCIBusConfig1=0x6F,
-	MIICmd=0x70, MIIRegAddr=0x71, MIIData=0x72, MACRegEEcsr=0x74,
-	ConfigA=0x78, ConfigB=0x79, ConfigC=0x7A, ConfigD=0x7B,
-	RxMissed=0x7C, RxCRCErrs=0x7E, MiscCmd=0x81,
-	StickyHW=0x83, IntrStatus2=0x84,
-	CamMask=0x88, CamCon=0x92, CamAddr=0x93,
-	WOLcrSet=0xA0, PwcfgSet=0xA1, WOLcgSet=0xA3, WOLcrClr=0xA4,
-	WOLcrClr1=0xA6, WOLcgClr=0xA7,
-	PwrcsrSet=0xA8, PwrcsrSet1=0xA9, PwrcsrClr=0xAC, PwrcsrClr1=0xAD,
+enum register_offsets
+{
+	StationAddr = 0x00, RxConfig = 0x06, TxConfig = 0x07, ChipCmd = 0x08,
+	ChipCmd1 = 0x09, TQWake = 0x0A,
+	IntrStatus = 0x0C, IntrEnable = 0x0E,
+	MulticastFilter0 = 0x10, MulticastFilter1 = 0x14,
+	RxRingPtr = 0x18, TxRingPtr = 0x1C, GFIFOTest = 0x54,
+	MIIPhyAddr = 0x6C, MIIStatus = 0x6D, PCIBusConfig = 0x6E, PCIBusConfig1 = 0x6F,
+	MIICmd = 0x70, MIIRegAddr = 0x71, MIIData = 0x72, MACRegEEcsr = 0x74,
+	ConfigA = 0x78, ConfigB = 0x79, ConfigC = 0x7A, ConfigD = 0x7B,
+	RxMissed = 0x7C, RxCRCErrs = 0x7E, MiscCmd = 0x81,
+	StickyHW = 0x83, IntrStatus2 = 0x84,
+	CamMask = 0x88, CamCon = 0x92, CamAddr = 0x93,
+	WOLcrSet = 0xA0, PwcfgSet = 0xA1, WOLcgSet = 0xA3, WOLcrClr = 0xA4,
+	WOLcrClr1 = 0xA6, WOLcgClr = 0xA7,
+	PwrcsrSet = 0xA8, PwrcsrSet1 = 0xA9, PwrcsrClr = 0xAC, PwrcsrClr1 = 0xAD,
 };
 
 /* Bits in ConfigD */
-enum backoff_bits {
-	BackOptional=0x01, BackModify=0x02,
-	BackCaptureEffect=0x04, BackRandom=0x08
+enum backoff_bits
+{
+	BackOptional = 0x01, BackModify = 0x02,
+	BackCaptureEffect = 0x04, BackRandom = 0x08
 };
 
 /* Bits in the TxConfig (TCR) register */
-enum tcr_bits {
-	TCR_PQEN=0x01,
-	TCR_LB0=0x02,		/* loopback[0] */
-	TCR_LB1=0x04,		/* loopback[1] */
-	TCR_OFSET=0x08,
-	TCR_RTGOPT=0x10,
-	TCR_RTFT0=0x20,
-	TCR_RTFT1=0x40,
-	TCR_RTSF=0x80,
+enum tcr_bits
+{
+	TCR_PQEN = 0x01,
+	TCR_LB0 = 0x02,		/* loopback[0] */
+	TCR_LB1 = 0x04,		/* loopback[1] */
+	TCR_OFSET = 0x08,
+	TCR_RTGOPT = 0x10,
+	TCR_RTFT0 = 0x20,
+	TCR_RTFT1 = 0x40,
+	TCR_RTSF = 0x80,
 };
 
 /* Bits in the CamCon (CAMC) register */
-enum camcon_bits {
-	CAMC_CAMEN=0x01,
-	CAMC_VCAMSL=0x02,
-	CAMC_CAMWR=0x04,
-	CAMC_CAMRD=0x08,
+enum camcon_bits
+{
+	CAMC_CAMEN = 0x01,
+	CAMC_VCAMSL = 0x02,
+	CAMC_CAMWR = 0x04,
+	CAMC_CAMRD = 0x08,
 };
 
 /* Bits in the PCIBusConfig1 (BCR1) register */
-enum bcr1_bits {
-	BCR1_POT0=0x01,
-	BCR1_POT1=0x02,
-	BCR1_POT2=0x04,
-	BCR1_CTFT0=0x08,
-	BCR1_CTFT1=0x10,
-	BCR1_CTSF=0x20,
-	BCR1_TXQNOBK=0x40,	/* for VT6105 */
-	BCR1_VIDFR=0x80,	/* for VT6105 */
-	BCR1_MED0=0x40,		/* for VT6102 */
-	BCR1_MED1=0x80,		/* for VT6102 */
+enum bcr1_bits
+{
+	BCR1_POT0 = 0x01,
+	BCR1_POT1 = 0x02,
+	BCR1_POT2 = 0x04,
+	BCR1_CTFT0 = 0x08,
+	BCR1_CTFT1 = 0x10,
+	BCR1_CTSF = 0x20,
+	BCR1_TXQNOBK = 0x40,	/* for VT6105 */
+	BCR1_VIDFR = 0x80,	/* for VT6105 */
+	BCR1_MED0 = 0x40,		/* for VT6102 */
+	BCR1_MED1 = 0x80,		/* for VT6102 */
 };
 
 /* Registers we check that mmio and reg are the same. */
-static const int mmio_verify_registers[] = {
+static const int mmio_verify_registers[] =
+{
 	RxConfig, TxConfig, IntrEnable, ConfigA, ConfigB, ConfigC, ConfigD,
 	0
 };
 
 /* Bits in the interrupt status/mask registers. */
-enum intr_status_bits {
+enum intr_status_bits
+{
 	IntrRxDone	= 0x0001,
 	IntrTxDone	= 0x0002,
 	IntrRxErr	= 0x0004,
@@ -377,11 +388,12 @@ enum intr_status_bits {
 	IntrTxDescRace		= 0x080000,	/* mapped from IntrStatus2 */
 	IntrNormalSummary	= IntrRxDone | IntrTxDone,
 	IntrTxErrSummary	= IntrTxDescRace | IntrTxAborted | IntrTxError |
-				  IntrTxUnderrun,
+						  IntrTxUnderrun,
 };
 
 /* Bits in WOLcrSet/WOLcrClr and PwrcsrSet/PwrcsrClr */
-enum wol_bits {
+enum wol_bits
+{
 	WOLucast	= 0x10,
 	WOLmagic	= 0x20,
 	WOLbmcast	= 0x30,
@@ -390,13 +402,15 @@ enum wol_bits {
 };
 
 /* The Rx and Tx buffer descriptors. */
-struct rx_desc {
+struct rx_desc
+{
 	__le32 rx_status;
 	__le32 desc_length; /* Chain flag, Buffer/frame length */
 	__le32 addr;
 	__le32 next_desc;
 };
-struct tx_desc {
+struct tx_desc
+{
 	__le32 tx_status;
 	__le32 desc_length; /* Chain flag, Tx Config, Frame length */
 	__le32 addr;
@@ -406,35 +420,41 @@ struct tx_desc {
 /* Initial value for tx_desc.desc_length, Buffer size goes to bits 0-10 */
 #define TXDESC		0x00e08000
 
-enum rx_status_bits {
-	RxOK=0x8000, RxWholePkt=0x0300, RxErr=0x008F
+enum rx_status_bits
+{
+	RxOK = 0x8000, RxWholePkt = 0x0300, RxErr = 0x008F
 };
 
 /* Bits in *_desc.*_status */
-enum desc_status_bits {
-	DescOwn=0x80000000
+enum desc_status_bits
+{
+	DescOwn = 0x80000000
 };
 
 /* Bits in *_desc.*_length */
-enum desc_length_bits {
-	DescTag=0x00010000
+enum desc_length_bits
+{
+	DescTag = 0x00010000
 };
 
 /* Bits in ChipCmd. */
-enum chip_cmd_bits {
-	CmdInit=0x01, CmdStart=0x02, CmdStop=0x04, CmdRxOn=0x08,
-	CmdTxOn=0x10, Cmd1TxDemand=0x20, CmdRxDemand=0x40,
-	Cmd1EarlyRx=0x01, Cmd1EarlyTx=0x02, Cmd1FDuplex=0x04,
-	Cmd1NoTxPoll=0x08, Cmd1Reset=0x80,
+enum chip_cmd_bits
+{
+	CmdInit = 0x01, CmdStart = 0x02, CmdStop = 0x04, CmdRxOn = 0x08,
+	CmdTxOn = 0x10, Cmd1TxDemand = 0x20, CmdRxDemand = 0x40,
+	Cmd1EarlyRx = 0x01, Cmd1EarlyTx = 0x02, Cmd1FDuplex = 0x04,
+	Cmd1NoTxPoll = 0x08, Cmd1Reset = 0x80,
 };
 
-struct rhine_stats {
+struct rhine_stats
+{
 	u64		packets;
 	u64		bytes;
 	struct u64_stats_sync syncp;
 };
 
-struct rhine_private {
+struct rhine_private
+{
 	/* Bit mask for configured VLAN ids */
 	unsigned long active_vlans[BITS_TO_LONGS(VLAN_N_VID)];
 
@@ -508,20 +528,20 @@ static void rhine_reset_task(struct work_struct *work);
 static void rhine_slow_event_task(struct work_struct *work);
 static void rhine_tx_timeout(struct net_device *dev);
 static netdev_tx_t rhine_start_tx(struct sk_buff *skb,
-				  struct net_device *dev);
+								  struct net_device *dev);
 static irqreturn_t rhine_interrupt(int irq, void *dev_instance);
 static void rhine_tx(struct net_device *dev);
 static int rhine_rx(struct net_device *dev, int limit);
 static void rhine_set_rx_mode(struct net_device *dev);
 static struct rtnl_link_stats64 *rhine_get_stats64(struct net_device *dev,
-	       struct rtnl_link_stats64 *stats);
+		struct rtnl_link_stats64 *stats);
 static int netdev_ioctl(struct net_device *dev, struct ifreq *rq, int cmd);
 static const struct ethtool_ops netdev_ethtool_ops;
 static int  rhine_close(struct net_device *dev);
 static int rhine_vlan_rx_add_vid(struct net_device *dev,
-				 __be16 proto, u16 vid);
+								 __be16 proto, u16 vid);
 static int rhine_vlan_rx_kill_vid(struct net_device *dev,
-				  __be16 proto, u16 vid);
+								  __be16 proto, u16 vid);
 static void rhine_restart_tx(struct net_device *dev);
 
 static void rhine_wait_bit(struct rhine_private *rp, u8 reg, u8 mask, bool low)
@@ -529,16 +549,22 @@ static void rhine_wait_bit(struct rhine_private *rp, u8 reg, u8 mask, bool low)
 	void __iomem *ioaddr = rp->base;
 	int i;
 
-	for (i = 0; i < 1024; i++) {
+	for (i = 0; i < 1024; i++)
+	{
 		bool has_mask_bits = !!(ioread8(ioaddr + reg) & mask);
 
 		if (low ^ has_mask_bits)
+		{
 			break;
+		}
+
 		udelay(10);
 	}
-	if (i > 64) {
+
+	if (i > 64)
+	{
 		netif_dbg(rp, hw, rp->dev, "%s bit wait (%02x/%02x) cycle "
-			  "count: %04d\n", low ? "low" : "high", reg, mask, i);
+				  "count: %04d\n", low ? "low" : "high", reg, mask, i);
 	}
 }
 
@@ -558,9 +584,13 @@ static u32 rhine_get_events(struct rhine_private *rp)
 	u32 intr_status;
 
 	intr_status = ioread16(ioaddr + IntrStatus);
+
 	/* On Rhine-II, Bit 3 indicates Tx descriptor write-back race. */
 	if (rp->quirks & rqStatusWBRace)
+	{
 		intr_status |= ioread8(ioaddr + IntrStatus2) << 16;
+	}
+
 	return intr_status;
 }
 
@@ -569,7 +599,10 @@ static void rhine_ack_events(struct rhine_private *rp, u32 mask)
 	void __iomem *ioaddr = rp->base;
 
 	if (rp->quirks & rqStatusWBRace)
+	{
 		iowrite8(mask >> 16, ioaddr + IntrStatus2);
+	}
+
 	iowrite16(mask, ioaddr + IntrStatus);
 	mmiowb();
 }
@@ -584,7 +617,8 @@ static void rhine_power_init(struct net_device *dev)
 	void __iomem *ioaddr = rp->base;
 	u16 wolstat;
 
-	if (rp->quirks & rqWOL) {
+	if (rp->quirks & rqWOL)
+	{
 		/* Make sure chip is in power state D0 */
 		iowrite8(ioread8(ioaddr + StickyHW) & 0xFC, ioaddr + StickyHW);
 
@@ -593,43 +627,61 @@ static void rhine_power_init(struct net_device *dev)
 
 		/* Clear power-event config bits (WOL) */
 		iowrite8(0xFF, ioaddr + WOLcrClr);
+
 		/* More recent cards can manage two additional patterns */
 		if (rp->quirks & rq6patterns)
+		{
 			iowrite8(0x03, ioaddr + WOLcrClr1);
+		}
 
 		/* Save power-event status bits */
 		wolstat = ioread8(ioaddr + PwrcsrSet);
+
 		if (rp->quirks & rq6patterns)
+		{
 			wolstat |= (ioread8(ioaddr + PwrcsrSet1) & 0x03) << 8;
+		}
 
 		/* Clear power-event status bits */
 		iowrite8(0xFF, ioaddr + PwrcsrClr);
-		if (rp->quirks & rq6patterns)
-			iowrite8(0x03, ioaddr + PwrcsrClr1);
 
-		if (wolstat) {
+		if (rp->quirks & rq6patterns)
+		{
+			iowrite8(0x03, ioaddr + PwrcsrClr1);
+		}
+
+		if (wolstat)
+		{
 			char *reason;
-			switch (wolstat) {
-			case WOLmagic:
-				reason = "Magic packet";
-				break;
-			case WOLlnkon:
-				reason = "Link went up";
-				break;
-			case WOLlnkoff:
-				reason = "Link went down";
-				break;
-			case WOLucast:
-				reason = "Unicast packet";
-				break;
-			case WOLbmcast:
-				reason = "Multicast/broadcast packet";
-				break;
-			default:
-				reason = "Unknown";
+
+			switch (wolstat)
+			{
+				case WOLmagic:
+					reason = "Magic packet";
+					break;
+
+				case WOLlnkon:
+					reason = "Link went up";
+					break;
+
+				case WOLlnkoff:
+					reason = "Link went down";
+					break;
+
+				case WOLucast:
+					reason = "Unicast packet";
+					break;
+
+				case WOLbmcast:
+					reason = "Multicast/broadcast packet";
+					break;
+
+				default:
+					reason = "Unknown";
 			}
+
 			netdev_info(dev, "Woke system up. Reason: %s\n",
-				    reason);
+						reason);
 		}
 	}
 }
@@ -643,12 +695,15 @@ static void rhine_chip_reset(struct net_device *dev)
 	iowrite8(Cmd1Reset, ioaddr + ChipCmd1);
 	IOSYNC;
 
-	if (ioread8(ioaddr + ChipCmd1) & Cmd1Reset) {
+	if (ioread8(ioaddr + ChipCmd1) & Cmd1Reset)
+	{
 		netdev_info(dev, "Reset not complete yet. Trying harder.\n");
 
 		/* Force reset */
 		if (rp->quirks & rqForceReset)
+		{
 			iowrite8(0x40, ioaddr + MiscCmd);
+		}
 
 		/* Reset can take somewhat longer (rare) */
 		rhine_wait_bit_low(rp, ChipCmd1, Cmd1Reset);
@@ -656,19 +711,23 @@ static void rhine_chip_reset(struct net_device *dev)
 
 	cmd1 = ioread8(ioaddr + ChipCmd1);
 	netif_info(rp, hw, dev, "Reset %s\n", (cmd1 & Cmd1Reset) ?
-		   "failed" : "succeeded");
+			   "failed" : "succeeded");
 }
 
 static void enable_mmio(long pioaddr, u32 quirks)
 {
 	int n;
 
-	if (quirks & rqNeedEnMMIO) {
-		if (quirks & rqRhineI) {
+	if (quirks & rqNeedEnMMIO)
+	{
+		if (quirks & rqRhineI)
+		{
 			/* More recent docs say that this bit is reserved */
 			n = inb(pioaddr + ConfigA) | 0x20;
 			outb(n, pioaddr + ConfigA);
-		} else {
+		}
+		else
+		{
 			n = inb(pioaddr + ConfigD) | 0x80;
 			outb(n, pioaddr + ConfigD);
 		}
@@ -676,27 +735,31 @@ static void enable_mmio(long pioaddr, u32 quirks)
 }
 
 static inline int verify_mmio(struct device *hwdev,
-			      long pioaddr,
-			      void __iomem *ioaddr,
-			      u32 quirks)
+							  long pioaddr,
+							  void __iomem *ioaddr,
+							  u32 quirks)
 {
-	if (quirks & rqNeedEnMMIO) {
+	if (quirks & rqNeedEnMMIO)
+	{
 		int i = 0;
 
 		/* Check that selected MMIO registers match the PIO ones */
-		while (mmio_verify_registers[i]) {
+		while (mmio_verify_registers[i])
+		{
 			int reg = mmio_verify_registers[i++];
-			unsigned char a = inb(pioaddr+reg);
-			unsigned char b = readb(ioaddr+reg);
+			unsigned char a = inb(pioaddr + reg);
+			unsigned char b = readb(ioaddr + reg);
 
-			if (a != b) {
+			if (a != b)
+			{
 				dev_err(hwdev,
-					"MMIO do not match PIO [%02x] (%02x != %02x)\n",
-					reg, a, b);
+						"MMIO do not match PIO [%02x] (%02x != %02x)\n",
+						reg, a, b);
 				return -EIO;
 			}
 		}
 	}
+
 	return 0;
 }
 
@@ -711,12 +774,19 @@ static void rhine_reload_eeprom(long pioaddr, struct net_device *dev)
 	int i;
 
 	outb(0x20, pioaddr + MACRegEEcsr);
-	for (i = 0; i < 1024; i++) {
+
+	for (i = 0; i < 1024; i++)
+	{
 		if (!(inb(pioaddr + MACRegEEcsr) & 0x20))
+		{
 			break;
+		}
 	}
+
 	if (i > 512)
+	{
 		pr_info("%4d cycles used @ %s:%d\n", i, __func__, __LINE__);
+	}
 
 	/*
 	 * Reloading from EEPROM overwrites ConfigA-D, so we must re-enable
@@ -727,7 +797,9 @@ static void rhine_reload_eeprom(long pioaddr, struct net_device *dev)
 
 	/* Turn off EEPROM-controlled wake-up (magic packet) */
 	if (rp->quirks & rqWOL)
+	{
 		iowrite8(ioread8(ioaddr + ConfigA) & 0xFC, ioaddr + ConfigA);
+	}
 
 }
 
@@ -745,7 +817,8 @@ static void rhine_poll(struct net_device *dev)
 
 static void rhine_kick_tx_threshold(struct rhine_private *rp)
 {
-	if (rp->tx_thresh < 0xe0) {
+	if (rp->tx_thresh < 0xe0)
+	{
 		void __iomem *ioaddr = rp->base;
 
 		rp->tx_thresh += 0x20;
@@ -757,25 +830,30 @@ static void rhine_tx_err(struct rhine_private *rp, u32 status)
 {
 	struct net_device *dev = rp->dev;
 
-	if (status & IntrTxAborted) {
+	if (status & IntrTxAborted)
+	{
 		netif_info(rp, tx_err, dev,
-			   "Abort %08x, frame dropped\n", status);
+				   "Abort %08x, frame dropped\n", status);
 	}
 
-	if (status & IntrTxUnderrun) {
+	if (status & IntrTxUnderrun)
+	{
 		rhine_kick_tx_threshold(rp);
-		netif_info(rp, tx_err ,dev, "Transmitter underrun, "
-			   "Tx threshold now %02x\n", rp->tx_thresh);
+		netif_info(rp, tx_err , dev, "Transmitter underrun, "
+				   "Tx threshold now %02x\n", rp->tx_thresh);
 	}
 
 	if (status & IntrTxDescRace)
+	{
 		netif_info(rp, tx_err, dev, "Tx descriptor write-back race\n");
+	}
 
 	if ((status & IntrTxError) &&
-	    (status & (IntrTxAborted | IntrTxUnderrun | IntrTxDescRace)) == 0) {
+		(status & (IntrTxAborted | IntrTxUnderrun | IntrTxDescRace)) == 0)
+	{
 		rhine_kick_tx_threshold(rp);
 		netif_info(rp, tx_err, dev, "Unspecified error. "
-			   "Tx threshold now %02x\n", rp->tx_thresh);
+				   "Tx threshold now %02x\n", rp->tx_thresh);
 	}
 
 	rhine_restart_tx(dev);
@@ -801,22 +879,22 @@ static void rhine_update_rx_crc_and_missed_errord(struct rhine_private *rp)
 }
 
 #define RHINE_EVENT_NAPI_RX	(IntrRxDone | \
-				 IntrRxErr | \
-				 IntrRxEmpty | \
-				 IntrRxOverflow	| \
-				 IntrRxDropped | \
-				 IntrRxNoBuf | \
-				 IntrRxWakeUp)
+							 IntrRxErr | \
+							 IntrRxEmpty | \
+							 IntrRxOverflow	| \
+							 IntrRxDropped | \
+							 IntrRxNoBuf | \
+							 IntrRxWakeUp)
 
 #define RHINE_EVENT_NAPI_TX_ERR	(IntrTxError | \
-				 IntrTxAborted | \
-				 IntrTxUnderrun | \
-				 IntrTxDescRace)
+								 IntrTxAborted | \
+								 IntrTxUnderrun | \
+								 IntrTxDescRace)
 #define RHINE_EVENT_NAPI_TX	(IntrTxDone | RHINE_EVENT_NAPI_TX_ERR)
 
 #define RHINE_EVENT_NAPI	(RHINE_EVENT_NAPI_RX | \
-				 RHINE_EVENT_NAPI_TX | \
-				 IntrStatsMax)
+							 RHINE_EVENT_NAPI_TX | \
+							 IntrStatsMax)
 #define RHINE_EVENT_SLOW	(IntrPCIErr | IntrLinkChange)
 #define RHINE_EVENT		(RHINE_EVENT_NAPI | RHINE_EVENT_SLOW)
 
@@ -833,38 +911,51 @@ static int rhine_napipoll(struct napi_struct *napi, int budget)
 	rhine_ack_events(rp, status & ~RHINE_EVENT_SLOW);
 
 	if (status & RHINE_EVENT_NAPI_RX)
+	{
 		work_done += rhine_rx(dev, budget);
+	}
 
-	if (status & RHINE_EVENT_NAPI_TX) {
-		if (status & RHINE_EVENT_NAPI_TX_ERR) {
+	if (status & RHINE_EVENT_NAPI_TX)
+	{
+		if (status & RHINE_EVENT_NAPI_TX_ERR)
+		{
 			/* Avoid scavenging before Tx engine turned off */
 			rhine_wait_bit_low(rp, ChipCmd, CmdTxOn);
+
 			if (ioread8(ioaddr + ChipCmd) & CmdTxOn)
+			{
 				netif_warn(rp, tx_err, dev, "Tx still on\n");
+			}
 		}
 
 		rhine_tx(dev);
 
 		if (status & RHINE_EVENT_NAPI_TX_ERR)
+		{
 			rhine_tx_err(rp, status);
+		}
 	}
 
-	if (status & IntrStatsMax) {
+	if (status & IntrStatsMax)
+	{
 		spin_lock(&rp->lock);
 		rhine_update_rx_crc_and_missed_errord(rp);
 		spin_unlock(&rp->lock);
 	}
 
-	if (status & RHINE_EVENT_SLOW) {
+	if (status & RHINE_EVENT_SLOW)
+	{
 		enable_mask &= ~RHINE_EVENT_SLOW;
 		schedule_work(&rp->slow_event_task);
 	}
 
-	if (work_done < budget) {
+	if (work_done < budget)
+	{
 		napi_complete(napi);
 		iowrite16(enable_mask, ioaddr + IntrEnable);
 		mmiowb();
 	}
+
 	return work_done;
 }
 
@@ -877,14 +968,19 @@ static void rhine_hw_init(struct net_device *dev, long pioaddr)
 
 	/* Rhine-I needs extra time to recuperate before EEPROM reload */
 	if (rp->quirks & rqRhineI)
+	{
 		msleep(5);
+	}
 
 	/* Reload EEPROM controlled bytes cleared by soft reset */
 	if (dev_is_pci(dev->dev.parent))
+	{
 		rhine_reload_eeprom(pioaddr, dev);
+	}
 }
 
-static const struct net_device_ops rhine_netdev_ops = {
+static const struct net_device_ops rhine_netdev_ops =
+{
 	.ndo_open		 = rhine_open,
 	.ndo_stop		 = rhine_close,
 	.ndo_start_xmit		 = rhine_start_tx,
@@ -903,7 +999,7 @@ static const struct net_device_ops rhine_netdev_ops = {
 };
 
 static int rhine_init_one_common(struct device *hwdev, u32 quirks,
-				 long pioaddr, void __iomem *ioaddr, int irq)
+								 long pioaddr, void __iomem *ioaddr, int irq)
 {
 	struct net_device *dev;
 	struct rhine_private *rp;
@@ -912,16 +1008,21 @@ static int rhine_init_one_common(struct device *hwdev, u32 quirks,
 
 	/* this should always be supported */
 	rc = dma_set_mask(hwdev, DMA_BIT_MASK(32));
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(hwdev, "32-bit DMA addresses not supported by the card!?\n");
 		goto err_out;
 	}
 
 	dev = alloc_etherdev(sizeof(struct rhine_private));
-	if (!dev) {
+
+	if (!dev)
+	{
 		rc = -ENOMEM;
 		goto err_out;
 	}
+
 	SET_NETDEV_DEV(dev, hwdev);
 
 	rp = netdev_priv(dev);
@@ -942,19 +1043,24 @@ static int rhine_init_one_common(struct device *hwdev, u32 quirks,
 	rhine_hw_init(dev, pioaddr);
 
 	for (i = 0; i < 6; i++)
+	{
 		dev->dev_addr[i] = ioread8(ioaddr + StationAddr + i);
+	}
 
-	if (!is_valid_ether_addr(dev->dev_addr)) {
+	if (!is_valid_ether_addr(dev->dev_addr))
+	{
 		/* Report it and use a random ethernet address instead */
 		netdev_err(dev, "Invalid MAC address: %pM\n", dev->dev_addr);
 		eth_hw_addr_random(dev);
 		netdev_info(dev, "Using random MAC address: %pM\n",
-			    dev->dev_addr);
+					dev->dev_addr);
 	}
 
 	/* For Rhine-I/II, phy_id is loaded from EEPROM */
 	if (!phy_id)
+	{
 		phy_id = ioread8(ioaddr + 0x6C);
+	}
 
 	spin_lock_init(&rp->lock);
 	mutex_init(&rp->task_lock);
@@ -975,29 +1081,42 @@ static int rhine_init_one_common(struct device *hwdev, u32 quirks,
 	netif_napi_add(dev, &rp->napi, rhine_napipoll, 64);
 
 	if (rp->quirks & rqRhineI)
-		dev->features |= NETIF_F_SG|NETIF_F_HW_CSUM;
+	{
+		dev->features |= NETIF_F_SG | NETIF_F_HW_CSUM;
+	}
 
 	if (rp->quirks & rqMgmt)
 		dev->features |= NETIF_F_HW_VLAN_CTAG_TX |
-				 NETIF_F_HW_VLAN_CTAG_RX |
-				 NETIF_F_HW_VLAN_CTAG_FILTER;
+						 NETIF_F_HW_VLAN_CTAG_RX |
+						 NETIF_F_HW_VLAN_CTAG_FILTER;
 
 	/* dev->name not defined before register_netdev()! */
 	rc = register_netdev(dev);
+
 	if (rc)
+	{
 		goto err_out_free_netdev;
+	}
 
 	if (rp->quirks & rqRhineI)
+	{
 		name = "Rhine";
+	}
 	else if (rp->quirks & rqStatusWBRace)
+	{
 		name = "Rhine II";
+	}
 	else if (rp->quirks & rqMgmt)
+	{
 		name = "Rhine III (Management Adapter)";
+	}
 	else
+	{
 		name = "Rhine III";
+	}
 
 	netdev_info(dev, "VIA %s at 0x%lx, %pM, IRQ %d\n",
-		    name, (long)ioaddr, dev->dev_addr, rp->irq);
+				name, (long)ioaddr, dev->dev_addr, rp->irq);
 
 	dev_set_drvdata(hwdev, dev);
 
@@ -1006,25 +1125,34 @@ static int rhine_init_one_common(struct device *hwdev, u32 quirks,
 		int mii_status = mdio_read(dev, phy_id, 1);
 		mii_cmd = mdio_read(dev, phy_id, MII_BMCR) & ~BMCR_ISOLATE;
 		mdio_write(dev, phy_id, MII_BMCR, mii_cmd);
-		if (mii_status != 0xffff && mii_status != 0x0000) {
+
+		if (mii_status != 0xffff && mii_status != 0x0000)
+		{
 			rp->mii_if.advertising = mdio_read(dev, phy_id, 4);
 			netdev_info(dev,
-				    "MII PHY found at address %d, status 0x%04x advertising %04x Link %04x\n",
-				    phy_id,
-				    mii_status, rp->mii_if.advertising,
-				    mdio_read(dev, phy_id, 5));
+						"MII PHY found at address %d, status 0x%04x advertising %04x Link %04x\n",
+						phy_id,
+						mii_status, rp->mii_if.advertising,
+						mdio_read(dev, phy_id, 5));
 
 			/* set IFF_RUNNING */
 			if (mii_status & BMSR_LSTATUS)
+			{
 				netif_carrier_on(dev);
+			}
 			else
+			{
 				netif_carrier_off(dev);
+			}
 
 		}
 	}
 	rp->mii_if.phy_id = phy_id;
+
 	if (avoid_D3)
+	{
 		netif_info(rp, probe, dev, "No D3 power state at shutdown\n");
+	}
 
 	return 0;
 
@@ -1035,7 +1163,7 @@ err_out:
 }
 
 static int rhine_init_one_pci(struct pci_dev *pdev,
-			      const struct pci_device_id *ent)
+							  const struct pci_device_id *ent)
 {
 	struct device *hwdev = &pdev->dev;
 	int rc;
@@ -1043,44 +1171,61 @@ static int rhine_init_one_pci(struct pci_dev *pdev,
 	void __iomem *ioaddr;
 	int io_size = pdev->revision < VTunknown0 ? 128 : 256;
 
-/* This driver was written to use PCI memory space. Some early versions
- * of the Rhine may only work correctly with I/O space accesses.
- * TODO: determine for which revisions this is true and assign the flag
- *	 in code as opposed to this Kconfig option (???)
- */
+	/* This driver was written to use PCI memory space. Some early versions
+	 * of the Rhine may only work correctly with I/O space accesses.
+	 * TODO: determine for which revisions this is true and assign the flag
+	 *	 in code as opposed to this Kconfig option (???)
+	 */
 #ifdef CONFIG_VIA_RHINE_MMIO
 	u32 quirks = rqNeedEnMMIO;
 #else
 	u32 quirks = 0;
 #endif
 
-/* when built into the kernel, we only print version if device is found */
+	/* when built into the kernel, we only print version if device is found */
 #ifndef MODULE
 	pr_info_once("%s\n", version);
 #endif
 
 	rc = pci_enable_device(pdev);
-	if (rc)
-		goto err_out;
 
-	if (pdev->revision < VTunknown0) {
+	if (rc)
+	{
+		goto err_out;
+	}
+
+	if (pdev->revision < VTunknown0)
+	{
 		quirks |= rqRhineI;
-	} else if (pdev->revision >= VT6102) {
+	}
+	else if (pdev->revision >= VT6102)
+	{
 		quirks |= rqWOL | rqForceReset;
-		if (pdev->revision < VT6105) {
+
+		if (pdev->revision < VT6105)
+		{
 			quirks |= rqStatusWBRace;
-		} else {
+		}
+		else
+		{
 			quirks |= rqIntPHY;
+
 			if (pdev->revision >= VT6105_B0)
+			{
 				quirks |= rq6patterns;
+			}
+
 			if (pdev->revision >= VT6105M)
+			{
 				quirks |= rqMgmt;
+			}
 		}
 	}
 
 	/* sanity check */
 	if ((pci_resource_len(pdev, 0) < io_size) ||
-	    (pci_resource_len(pdev, 1) < io_size)) {
+		(pci_resource_len(pdev, 1) < io_size))
+	{
 		rc = -EIO;
 		dev_err(hwdev, "Insufficient PCI resources, aborting\n");
 		goto err_out_pci_disable;
@@ -1092,28 +1237,39 @@ static int rhine_init_one_pci(struct pci_dev *pdev,
 	pci_set_master(pdev);
 
 	rc = pci_request_regions(pdev, DRV_NAME);
+
 	if (rc)
+	{
 		goto err_out_pci_disable;
+	}
 
 	ioaddr = pci_iomap(pdev, (quirks & rqNeedEnMMIO ? 1 : 0), io_size);
-	if (!ioaddr) {
+
+	if (!ioaddr)
+	{
 		rc = -EIO;
 		dev_err(hwdev,
-			"ioremap failed for device %s, region 0x%X @ 0x%lX\n",
-			dev_name(hwdev), io_size, memaddr);
+				"ioremap failed for device %s, region 0x%X @ 0x%lX\n",
+				dev_name(hwdev), io_size, memaddr);
 		goto err_out_free_res;
 	}
 
 	enable_mmio(pioaddr, quirks);
 
 	rc = verify_mmio(hwdev, pioaddr, ioaddr, quirks);
+
 	if (rc)
+	{
 		goto err_out_unmap;
+	}
 
 	rc = rhine_init_one_common(&pdev->dev, quirks,
-				   pioaddr, ioaddr, pdev->irq);
+							   pioaddr, ioaddr, pdev->irq);
+
 	if (!rc)
+	{
 		return 0;
+	}
 
 err_out_unmap:
 	pci_iounmap(pdev, ioaddr);
@@ -1134,27 +1290,39 @@ static int rhine_init_one_platform(struct platform_device *pdev)
 	void __iomem *ioaddr;
 
 	match = of_match_device(rhine_of_tbl, &pdev->dev);
+
 	if (!match)
+	{
 		return -EINVAL;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ioaddr = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(ioaddr))
+	{
 		return PTR_ERR(ioaddr);
+	}
 
 	irq = irq_of_parse_and_map(pdev->dev.of_node, 0);
+
 	if (!irq)
+	{
 		return -EINVAL;
+	}
 
 	quirks = match->data;
+
 	if (!quirks)
+	{
 		return -EINVAL;
+	}
 
 	return rhine_init_one_common(&pdev->dev, *quirks,
-				     (long)ioaddr, ioaddr, irq);
+								 (long)ioaddr, ioaddr, irq);
 }
 
-static int alloc_ring(struct net_device* dev)
+static int alloc_ring(struct net_device *dev)
 {
 	struct rhine_private *rp = netdev_priv(dev);
 	struct device *hwdev = dev->dev.parent;
@@ -1162,24 +1330,30 @@ static int alloc_ring(struct net_device* dev)
 	dma_addr_t ring_dma;
 
 	ring = dma_alloc_coherent(hwdev,
-				  RX_RING_SIZE * sizeof(struct rx_desc) +
-				  TX_RING_SIZE * sizeof(struct tx_desc),
-				  &ring_dma,
-				  GFP_ATOMIC);
-	if (!ring) {
+							  RX_RING_SIZE * sizeof(struct rx_desc) +
+							  TX_RING_SIZE * sizeof(struct tx_desc),
+							  &ring_dma,
+							  GFP_ATOMIC);
+
+	if (!ring)
+	{
 		netdev_err(dev, "Could not allocate DMA memory\n");
 		return -ENOMEM;
 	}
-	if (rp->quirks & rqRhineI) {
+
+	if (rp->quirks & rqRhineI)
+	{
 		rp->tx_bufs = dma_alloc_coherent(hwdev,
-						 PKT_BUF_SZ * TX_RING_SIZE,
-						 &rp->tx_bufs_dma,
-						 GFP_ATOMIC);
-		if (rp->tx_bufs == NULL) {
+										 PKT_BUF_SZ * TX_RING_SIZE,
+										 &rp->tx_bufs_dma,
+										 GFP_ATOMIC);
+
+		if (rp->tx_bufs == NULL)
+		{
 			dma_free_coherent(hwdev,
-					  RX_RING_SIZE * sizeof(struct rx_desc) +
-					  TX_RING_SIZE * sizeof(struct tx_desc),
-					  ring, ring_dma);
+							  RX_RING_SIZE * sizeof(struct rx_desc) +
+							  TX_RING_SIZE * sizeof(struct tx_desc),
+							  ring, ring_dma);
 			return -ENOMEM;
 		}
 	}
@@ -1192,43 +1366,49 @@ static int alloc_ring(struct net_device* dev)
 	return 0;
 }
 
-static void free_ring(struct net_device* dev)
+static void free_ring(struct net_device *dev)
 {
 	struct rhine_private *rp = netdev_priv(dev);
 	struct device *hwdev = dev->dev.parent;
 
 	dma_free_coherent(hwdev,
-			  RX_RING_SIZE * sizeof(struct rx_desc) +
-			  TX_RING_SIZE * sizeof(struct tx_desc),
-			  rp->rx_ring, rp->rx_ring_dma);
+					  RX_RING_SIZE * sizeof(struct rx_desc) +
+					  TX_RING_SIZE * sizeof(struct tx_desc),
+					  rp->rx_ring, rp->rx_ring_dma);
 	rp->tx_ring = NULL;
 
 	if (rp->tx_bufs)
 		dma_free_coherent(hwdev, PKT_BUF_SZ * TX_RING_SIZE,
-				  rp->tx_bufs, rp->tx_bufs_dma);
+						  rp->tx_bufs, rp->tx_bufs_dma);
 
 	rp->tx_bufs = NULL;
 
 }
 
-struct rhine_skb_dma {
+struct rhine_skb_dma
+{
 	struct sk_buff *skb;
 	dma_addr_t dma;
 };
 
 static inline int rhine_skb_dma_init(struct net_device *dev,
-				     struct rhine_skb_dma *sd)
+									 struct rhine_skb_dma *sd)
 {
 	struct rhine_private *rp = netdev_priv(dev);
 	struct device *hwdev = dev->dev.parent;
 	const int size = rp->rx_buf_sz;
 
 	sd->skb = netdev_alloc_skb(dev, size);
+
 	if (!sd->skb)
+	{
 		return -ENOMEM;
+	}
 
 	sd->dma = dma_map_single(hwdev, sd->skb->data, size, DMA_FROM_DEVICE);
-	if (unlikely(dma_mapping_error(hwdev, sd->dma))) {
+
+	if (unlikely(dma_mapping_error(hwdev, sd->dma)))
+	{
 		netif_err(rp, drv, dev, "Rx DMA mapping failure\n");
 		dev_kfree_skb_any(sd->skb);
 		return -EIO;
@@ -1244,11 +1424,13 @@ static void rhine_reset_rbufs(struct rhine_private *rp)
 	rp->cur_rx = 0;
 
 	for (i = 0; i < RX_RING_SIZE; i++)
+	{
 		rp->rx_ring[i].rx_status = cpu_to_le32(DescOwn);
+	}
 }
 
 static inline void rhine_skb_dma_nic_store(struct rhine_private *rp,
-					   struct rhine_skb_dma *sd, int entry)
+		struct rhine_skb_dma *sd, int entry)
 {
 	rp->rx_skbuff_dma[entry] = sd->dma;
 	rp->rx_skbuff[entry] = sd->skb;
@@ -1257,7 +1439,7 @@ static inline void rhine_skb_dma_nic_store(struct rhine_private *rp,
 	dma_wmb();
 }
 
-static void free_rbufs(struct net_device* dev);
+static void free_rbufs(struct net_device *dev);
 
 static int alloc_rbufs(struct net_device *dev)
 {
@@ -1269,22 +1451,27 @@ static int alloc_rbufs(struct net_device *dev)
 	next = rp->rx_ring_dma;
 
 	/* Init the ring entries */
-	for (i = 0; i < RX_RING_SIZE; i++) {
+	for (i = 0; i < RX_RING_SIZE; i++)
+	{
 		rp->rx_ring[i].rx_status = 0;
 		rp->rx_ring[i].desc_length = cpu_to_le32(rp->rx_buf_sz);
 		next += sizeof(struct rx_desc);
 		rp->rx_ring[i].next_desc = cpu_to_le32(next);
 		rp->rx_skbuff[i] = NULL;
 	}
+
 	/* Mark the last entry as wrapping the ring. */
-	rp->rx_ring[i-1].next_desc = cpu_to_le32(rp->rx_ring_dma);
+	rp->rx_ring[i - 1].next_desc = cpu_to_le32(rp->rx_ring_dma);
 
 	/* Fill in the Rx buffers.  Handle allocation failure gracefully. */
-	for (i = 0; i < RX_RING_SIZE; i++) {
+	for (i = 0; i < RX_RING_SIZE; i++)
+	{
 		struct rhine_skb_dma sd;
 
 		rc = rhine_skb_dma_init(dev, &sd);
-		if (rc < 0) {
+
+		if (rc < 0)
+		{
 			free_rbufs(dev);
 			goto out;
 		}
@@ -1297,27 +1484,31 @@ out:
 	return rc;
 }
 
-static void free_rbufs(struct net_device* dev)
+static void free_rbufs(struct net_device *dev)
 {
 	struct rhine_private *rp = netdev_priv(dev);
 	struct device *hwdev = dev->dev.parent;
 	int i;
 
 	/* Free all the skbuffs in the Rx queue. */
-	for (i = 0; i < RX_RING_SIZE; i++) {
+	for (i = 0; i < RX_RING_SIZE; i++)
+	{
 		rp->rx_ring[i].rx_status = 0;
 		rp->rx_ring[i].addr = cpu_to_le32(0xBADF00D0); /* An invalid address. */
-		if (rp->rx_skbuff[i]) {
+
+		if (rp->rx_skbuff[i])
+		{
 			dma_unmap_single(hwdev,
-					 rp->rx_skbuff_dma[i],
-					 rp->rx_buf_sz, DMA_FROM_DEVICE);
+							 rp->rx_skbuff_dma[i],
+							 rp->rx_buf_sz, DMA_FROM_DEVICE);
 			dev_kfree_skb(rp->rx_skbuff[i]);
 		}
+
 		rp->rx_skbuff[i] = NULL;
 	}
 }
 
-static void alloc_tbufs(struct net_device* dev)
+static void alloc_tbufs(struct net_device *dev)
 {
 	struct rhine_private *rp = netdev_priv(dev);
 	dma_addr_t next;
@@ -1325,39 +1516,51 @@ static void alloc_tbufs(struct net_device* dev)
 
 	rp->dirty_tx = rp->cur_tx = 0;
 	next = rp->tx_ring_dma;
-	for (i = 0; i < TX_RING_SIZE; i++) {
+
+	for (i = 0; i < TX_RING_SIZE; i++)
+	{
 		rp->tx_skbuff[i] = NULL;
 		rp->tx_ring[i].tx_status = 0;
 		rp->tx_ring[i].desc_length = cpu_to_le32(TXDESC);
 		next += sizeof(struct tx_desc);
 		rp->tx_ring[i].next_desc = cpu_to_le32(next);
+
 		if (rp->quirks & rqRhineI)
+		{
 			rp->tx_buf[i] = &rp->tx_bufs[i * PKT_BUF_SZ];
+		}
 	}
-	rp->tx_ring[i-1].next_desc = cpu_to_le32(rp->tx_ring_dma);
+
+	rp->tx_ring[i - 1].next_desc = cpu_to_le32(rp->tx_ring_dma);
 
 	netdev_reset_queue(dev);
 }
 
-static void free_tbufs(struct net_device* dev)
+static void free_tbufs(struct net_device *dev)
 {
 	struct rhine_private *rp = netdev_priv(dev);
 	struct device *hwdev = dev->dev.parent;
 	int i;
 
-	for (i = 0; i < TX_RING_SIZE; i++) {
+	for (i = 0; i < TX_RING_SIZE; i++)
+	{
 		rp->tx_ring[i].tx_status = 0;
 		rp->tx_ring[i].desc_length = cpu_to_le32(TXDESC);
 		rp->tx_ring[i].addr = cpu_to_le32(0xBADF00D0); /* An invalid address. */
-		if (rp->tx_skbuff[i]) {
-			if (rp->tx_skbuff_dma[i]) {
+
+		if (rp->tx_skbuff[i])
+		{
+			if (rp->tx_skbuff_dma[i])
+			{
 				dma_unmap_single(hwdev,
-						 rp->tx_skbuff_dma[i],
-						 rp->tx_skbuff[i]->len,
-						 DMA_TO_DEVICE);
+								 rp->tx_skbuff_dma[i],
+								 rp->tx_skbuff[i]->len,
+								 DMA_TO_DEVICE);
 			}
+
 			dev_kfree_skb(rp->tx_skbuff[i]);
 		}
+
 		rp->tx_skbuff[i] = NULL;
 		rp->tx_buf[i] = NULL;
 	}
@@ -1369,17 +1572,19 @@ static void rhine_check_media(struct net_device *dev, unsigned int init_media)
 	void __iomem *ioaddr = rp->base;
 
 	if (!rp->mii_if.force_media)
+	{
 		mii_check_media(&rp->mii_if, netif_msg_link(rp), init_media);
+	}
 
 	if (rp->mii_if.full_duplex)
-	    iowrite8(ioread8(ioaddr + ChipCmd1) | Cmd1FDuplex,
-		   ioaddr + ChipCmd1);
+		iowrite8(ioread8(ioaddr + ChipCmd1) | Cmd1FDuplex,
+				 ioaddr + ChipCmd1);
 	else
-	    iowrite8(ioread8(ioaddr + ChipCmd1) & ~Cmd1FDuplex,
-		   ioaddr + ChipCmd1);
+		iowrite8(ioread8(ioaddr + ChipCmd1) & ~Cmd1FDuplex,
+				 ioaddr + ChipCmd1);
 
 	netif_info(rp, link, dev, "force_media %d, carrier %d\n",
-		   rp->mii_if.force_media, netif_carrier_ok(dev));
+			   rp->mii_if.force_media, netif_carrier_ok(dev));
 }
 
 /* Called after status of force_media possibly changed */
@@ -1388,16 +1593,19 @@ static void rhine_set_carrier(struct mii_if_info *mii)
 	struct net_device *dev = mii->dev;
 	struct rhine_private *rp = netdev_priv(dev);
 
-	if (mii->force_media) {
+	if (mii->force_media)
+	{
 		/* autoneg is off: Link is always assumed to be up */
 		if (!netif_carrier_ok(dev))
+		{
 			netif_carrier_on(dev);
+		}
 	}
 
 	rhine_check_media(dev, 0);
 
 	netif_info(rp, link, dev, "force_media %d, carrier %d\n",
-		   mii->force_media, netif_carrier_ok(dev));
+			   mii->force_media, netif_carrier_ok(dev));
 }
 
 /**
@@ -1421,7 +1629,10 @@ static void rhine_set_cam(void __iomem *ioaddr, int idx, u8 *addr)
 	iowrite8((u8) idx, ioaddr + CamAddr);
 
 	for (i = 0; i < 6; i++, addr++)
+	{
 		iowrite8(*addr, ioaddr + MulticastFilter0 + i);
+	}
+
 	udelay(10);
 	wmb();
 
@@ -1532,11 +1743,15 @@ static void rhine_update_vcam(struct net_device *dev)
 	u32 vCAMmask = 0;	/* 32 vCAMs (6105M and better) */
 	unsigned int i = 0;
 
-	for_each_set_bit(vid, rp->active_vlans, VLAN_N_VID) {
+	for_each_set_bit(vid, rp->active_vlans, VLAN_N_VID)
+	{
 		rhine_set_vlan_cam(ioaddr, i, (u8 *)&vid);
 		vCAMmask |= 1 << i;
+
 		if (++i >= VCAM_SIZE)
+		{
 			break;
+		}
 	}
 	rhine_set_vlan_cam_mask(ioaddr, vCAMmask);
 }
@@ -1570,7 +1785,9 @@ static void init_registers(struct net_device *dev)
 	int i;
 
 	for (i = 0; i < 6; i++)
+	{
 		iowrite8(dev->dev_addr[i], ioaddr + StationAddr + i);
+	}
 
 	/* Initialize other registers. */
 	iowrite16(0x0006, ioaddr + PCIBusConfig);	/* Tune configuration??? */
@@ -1585,14 +1802,16 @@ static void init_registers(struct net_device *dev)
 	rhine_set_rx_mode(dev);
 
 	if (rp->quirks & rqMgmt)
+	{
 		rhine_init_cam_filter(dev);
+	}
 
 	napi_enable(&rp->napi);
 
 	iowrite16(RHINE_EVENT & 0xffff, ioaddr + IntrEnable);
 
 	iowrite16(CmdStart | CmdTxOn | CmdRxOn | (Cmd1NoTxPoll << 8),
-	       ioaddr + ChipCmd);
+			  ioaddr + ChipCmd);
 	rhine_check_media(dev, 1);
 }
 
@@ -1617,7 +1836,8 @@ static void rhine_disable_linkmon(struct rhine_private *rp)
 
 	iowrite8(0, ioaddr + MIICmd);
 
-	if (rp->quirks & rqRhineI) {
+	if (rp->quirks & rqRhineI)
+	{
 		iowrite8(0x01, ioaddr + MIIRegAddr);	// MII_BMSR
 
 		/* Can be called from ISR. Evil. */
@@ -1632,7 +1852,9 @@ static void rhine_disable_linkmon(struct rhine_private *rp)
 		iowrite8(0, ioaddr + MIICmd);
 	}
 	else
+	{
 		rhine_wait_bit_high(rp, MIIRegAddr, 0x80);
+	}
 }
 
 /* Read and write over the MII Management Data I/O (MDIO) interface. */
@@ -1697,18 +1919,27 @@ static int rhine_open(struct net_device *dev)
 	int rc;
 
 	rc = request_irq(rp->irq, rhine_interrupt, IRQF_SHARED, dev->name, dev);
+
 	if (rc)
+	{
 		goto out;
+	}
 
 	netif_dbg(rp, ifup, dev, "%s() irq %d\n", __func__, rp->irq);
 
 	rc = alloc_ring(dev);
+
 	if (rc < 0)
+	{
 		goto out_free_irq;
+	}
 
 	rc = alloc_rbufs(dev);
+
 	if (rc < 0)
+	{
 		goto out_free_ring;
+	}
 
 	alloc_tbufs(dev);
 	rhine_chip_reset(dev);
@@ -1716,8 +1947,8 @@ static int rhine_open(struct net_device *dev)
 	init_registers(dev);
 
 	netif_dbg(rp, ifup, dev, "%s() Done - status %04x MII status: %04x\n",
-		  __func__, ioread16(ioaddr + ChipCmd),
-		  mdio_read(dev, rp->mii_if.phy_id, MII_BMSR));
+			  __func__, ioread16(ioaddr + ChipCmd),
+			  mdio_read(dev, rp->mii_if.phy_id, MII_BMSR));
 
 	netif_start_queue(dev);
 
@@ -1734,13 +1965,15 @@ out_free_irq:
 static void rhine_reset_task(struct work_struct *work)
 {
 	struct rhine_private *rp = container_of(work, struct rhine_private,
-						reset_task);
+											reset_task);
 	struct net_device *dev = rp->dev;
 
 	mutex_lock(&rp->task_lock);
 
 	if (!rp->task_enable)
+	{
 		goto out_unlock;
+	}
 
 	napi_disable(&rp->napi);
 	netif_tx_disable(dev);
@@ -1772,8 +2005,8 @@ static void rhine_tx_timeout(struct net_device *dev)
 	void __iomem *ioaddr = rp->base;
 
 	netdev_warn(dev, "Transmit timed out, status %04x, PHY status %04x, resetting...\n",
-		    ioread16(ioaddr + IntrStatus),
-		    mdio_read(dev, rp->mii_if.phy_id, MII_BMSR));
+				ioread16(ioaddr + IntrStatus),
+				mdio_read(dev, rp->mii_if.phy_id, MII_BMSR));
 
 	schedule_work(&rp->reset_task);
 }
@@ -1784,7 +2017,7 @@ static inline bool rhine_tx_queue_full(struct rhine_private *rp)
 }
 
 static netdev_tx_t rhine_start_tx(struct sk_buff *skb,
-				  struct net_device *dev)
+								  struct net_device *dev)
 {
 	struct rhine_private *rp = netdev_priv(dev);
 	struct device *hwdev = dev->dev.parent;
@@ -1798,14 +2031,18 @@ static netdev_tx_t rhine_start_tx(struct sk_buff *skb,
 	entry = rp->cur_tx % TX_RING_SIZE;
 
 	if (skb_padto(skb, ETH_ZLEN))
+	{
 		return NETDEV_TX_OK;
+	}
 
 	rp->tx_skbuff[entry] = skb;
 
 	if ((rp->quirks & rqRhineI) &&
-	    (((unsigned long)skb->data & 3) || skb_shinfo(skb)->nr_frags != 0 || skb->ip_summed == CHECKSUM_PARTIAL)) {
+		(((unsigned long)skb->data & 3) || skb_shinfo(skb)->nr_frags != 0 || skb->ip_summed == CHECKSUM_PARTIAL))
+	{
 		/* Must use alignment buffer. */
-		if (skb->len > PKT_BUF_SZ) {
+		if (skb->len > PKT_BUF_SZ)
+		{
 			/* packet too long, drop it */
 			dev_kfree_skb_any(skb);
 			rp->tx_skbuff[entry] = NULL;
@@ -1815,41 +2052,51 @@ static netdev_tx_t rhine_start_tx(struct sk_buff *skb,
 
 		/* Padding is not copied and so must be redone. */
 		skb_copy_and_csum_dev(skb, rp->tx_buf[entry]);
+
 		if (skb->len < ETH_ZLEN)
 			memset(rp->tx_buf[entry] + skb->len, 0,
-			       ETH_ZLEN - skb->len);
+				   ETH_ZLEN - skb->len);
+
 		rp->tx_skbuff_dma[entry] = 0;
 		rp->tx_ring[entry].addr = cpu_to_le32(rp->tx_bufs_dma +
-						      (rp->tx_buf[entry] -
-						       rp->tx_bufs));
-	} else {
+											  (rp->tx_buf[entry] -
+											   rp->tx_bufs));
+	}
+	else
+	{
 		rp->tx_skbuff_dma[entry] =
 			dma_map_single(hwdev, skb->data, skb->len,
-				       DMA_TO_DEVICE);
-		if (dma_mapping_error(hwdev, rp->tx_skbuff_dma[entry])) {
+						   DMA_TO_DEVICE);
+
+		if (dma_mapping_error(hwdev, rp->tx_skbuff_dma[entry]))
+		{
 			dev_kfree_skb_any(skb);
 			rp->tx_skbuff_dma[entry] = 0;
 			dev->stats.tx_dropped++;
 			return NETDEV_TX_OK;
 		}
+
 		rp->tx_ring[entry].addr = cpu_to_le32(rp->tx_skbuff_dma[entry]);
 	}
 
 	rp->tx_ring[entry].desc_length =
 		cpu_to_le32(TXDESC | (skb->len >= ETH_ZLEN ? skb->len : ETH_ZLEN));
 
-	if (unlikely(skb_vlan_tag_present(skb))) {
+	if (unlikely(skb_vlan_tag_present(skb)))
+	{
 		u16 vid_pcp = skb_vlan_tag_get(skb);
 
 		/* drop CFI/DEI bit, register needs VID and PCP */
 		vid_pcp = (vid_pcp & VLAN_VID_MASK) |
-			  ((vid_pcp & VLAN_PRIO_MASK) >> 1);
+				  ((vid_pcp & VLAN_PRIO_MASK) >> 1);
 		rp->tx_ring[entry].tx_status = cpu_to_le32((vid_pcp) << 16);
 		/* request tagging */
 		rp->tx_ring[entry].desc_length |= cpu_to_le32(0x020000);
 	}
 	else
+	{
 		rp->tx_ring[entry].tx_status = 0;
+	}
 
 	netdev_sent_queue(dev, skb->len);
 	/* lock eth irq */
@@ -1869,24 +2116,30 @@ static netdev_tx_t rhine_start_tx(struct sk_buff *skb,
 
 	if (skb_vlan_tag_present(skb))
 		/* Tx queues are bits 7-0 (first Tx queue: bit 7) */
+	{
 		BYTE_REG_BITS_ON(1 << 7, ioaddr + TQWake);
+	}
 
 	/* Wake the potentially-idle transmit channel */
 	iowrite8(ioread8(ioaddr + ChipCmd1) | Cmd1TxDemand,
-	       ioaddr + ChipCmd1);
+			 ioaddr + ChipCmd1);
 	IOSYNC;
 
 	/* dirty_tx may be pessimistically out-of-sync. See rhine_tx. */
-	if (rhine_tx_queue_full(rp)) {
+	if (rhine_tx_queue_full(rp))
+	{
 		netif_stop_queue(dev);
 		smp_rmb();
+
 		/* Rejuvenate. */
 		if (!rhine_tx_queue_full(rp))
+		{
 			netif_wake_queue(dev);
+		}
 	}
 
 	netif_dbg(rp, tx_queued, dev, "Transmit frame #%d queued in slot %d\n",
-		  rp->cur_tx - 1, entry);
+			  rp->cur_tx - 1, entry);
 
 	return NETDEV_TX_OK;
 }
@@ -1910,16 +2163,18 @@ static irqreturn_t rhine_interrupt(int irq, void *dev_instance)
 
 	netif_dbg(rp, intr, dev, "Interrupt, status %08x\n", status);
 
-	if (status & RHINE_EVENT) {
+	if (status & RHINE_EVENT)
+	{
 		handled = 1;
 
 		rhine_irq_disable(rp);
 		napi_schedule(&rp->napi);
 	}
 
-	if (status & ~(IntrLinkChange | IntrStatsMax | RHINE_EVENT_NAPI)) {
+	if (status & ~(IntrLinkChange | IntrStatsMax | RHINE_EVENT_NAPI))
+	{
 		netif_err(rp, intr, dev, "Something Wicked happened! %08x\n",
-			  status);
+				  status);
 	}
 
 	return IRQ_RETVAL(handled);
@@ -1944,55 +2199,88 @@ static void rhine_tx(struct net_device *dev)
 	 */
 	smp_rmb();
 	cur_tx = rp->cur_tx;
+
 	/* find and cleanup dirty tx descriptors */
-	while (dirty_tx != cur_tx) {
+	while (dirty_tx != cur_tx)
+	{
 		unsigned int entry = dirty_tx % TX_RING_SIZE;
 		u32 txstatus = le32_to_cpu(rp->tx_ring[entry].tx_status);
 
 		netif_dbg(rp, tx_done, dev, "Tx scavenge %d status %08x\n",
-			  entry, txstatus);
+				  entry, txstatus);
+
 		if (txstatus & DescOwn)
+		{
 			break;
+		}
+
 		skb = rp->tx_skbuff[entry];
-		if (txstatus & 0x8000) {
+
+		if (txstatus & 0x8000)
+		{
 			netif_dbg(rp, tx_done, dev,
-				  "Transmit error, Tx status %08x\n", txstatus);
+					  "Transmit error, Tx status %08x\n", txstatus);
 			dev->stats.tx_errors++;
+
 			if (txstatus & 0x0400)
+			{
 				dev->stats.tx_carrier_errors++;
+			}
+
 			if (txstatus & 0x0200)
+			{
 				dev->stats.tx_window_errors++;
+			}
+
 			if (txstatus & 0x0100)
+			{
 				dev->stats.tx_aborted_errors++;
+			}
+
 			if (txstatus & 0x0080)
+			{
 				dev->stats.tx_heartbeat_errors++;
+			}
+
 			if (((rp->quirks & rqRhineI) && txstatus & 0x0002) ||
-			    (txstatus & 0x0800) || (txstatus & 0x1000)) {
+				(txstatus & 0x0800) || (txstatus & 0x1000))
+			{
 				dev->stats.tx_fifo_errors++;
 				rp->tx_ring[entry].tx_status = cpu_to_le32(DescOwn);
 				break; /* Keep the skb - we try again */
 			}
+
 			/* Transmitter restarted in 'abnormal' handler. */
-		} else {
+		}
+		else
+		{
 			if (rp->quirks & rqRhineI)
+			{
 				dev->stats.collisions += (txstatus >> 3) & 0x0F;
+			}
 			else
+			{
 				dev->stats.collisions += txstatus & 0x0F;
+			}
+
 			netif_dbg(rp, tx_done, dev, "collisions: %1.1x:%1.1x\n",
-				  (txstatus >> 3) & 0xF, txstatus & 0xF);
+					  (txstatus >> 3) & 0xF, txstatus & 0xF);
 
 			u64_stats_update_begin(&rp->tx_stats.syncp);
 			rp->tx_stats.bytes += skb->len;
 			rp->tx_stats.packets++;
 			u64_stats_update_end(&rp->tx_stats.syncp);
 		}
+
 		/* Free the original skb. */
-		if (rp->tx_skbuff_dma[entry]) {
+		if (rp->tx_skbuff_dma[entry])
+		{
 			dma_unmap_single(hwdev,
-					 rp->tx_skbuff_dma[entry],
-					 skb->len,
-					 DMA_TO_DEVICE);
+							 rp->tx_skbuff_dma[entry],
+							 skb->len,
+							 DMA_TO_DEVICE);
 		}
+
 		bytes_compl += skb->len;
 		pkts_compl++;
 		dev_consume_skb_any(skb);
@@ -2007,12 +2295,16 @@ static void rhine_tx(struct net_device *dev)
 	netdev_completed_queue(dev, pkts_compl, bytes_compl);
 
 	/* cur_tx may be optimistically out-of-sync. See rhine_start_tx. */
-	if (!rhine_tx_queue_full(rp) && netif_queue_stopped(dev)) {
+	if (!rhine_tx_queue_full(rp) && netif_queue_stopped(dev))
+	{
 		netif_wake_queue(dev);
 		smp_rmb();
+
 		/* Rejuvenate. */
 		if (rhine_tx_queue_full(rp))
+		{
 			netif_stop_queue(dev);
+		}
 	}
 }
 
@@ -2032,10 +2324,12 @@ static inline u16 rhine_get_vlan_tci(struct sk_buff *skb, int data_size)
 }
 
 static inline void rhine_rx_vlan_tag(struct sk_buff *skb, struct rx_desc *desc,
-				     int data_size)
+									 int data_size)
 {
 	dma_rmb();
-	if (unlikely(desc->desc_length & cpu_to_le32(DescTag))) {
+
+	if (unlikely(desc->desc_length & cpu_to_le32(DescTag)))
+	{
 		u16 vlan_tci;
 
 		vlan_tci = rhine_get_vlan_tci(skb, data_size);
@@ -2052,84 +2346,112 @@ static int rhine_rx(struct net_device *dev, int limit)
 	int count;
 
 	netif_dbg(rp, rx_status, dev, "%s(), entry %d status %08x\n", __func__,
-		  entry, le32_to_cpu(rp->rx_ring[entry].rx_status));
+			  entry, le32_to_cpu(rp->rx_ring[entry].rx_status));
 
 	/* If EOP is set on the next entry, it's a new packet. Send it up. */
-	for (count = 0; count < limit; ++count) {
+	for (count = 0; count < limit; ++count)
+	{
 		struct rx_desc *desc = rp->rx_ring + entry;
 		u32 desc_status = le32_to_cpu(desc->rx_status);
 		int data_size = desc_status >> 16;
 
 		if (desc_status & DescOwn)
+		{
 			break;
+		}
 
 		netif_dbg(rp, rx_status, dev, "%s() status %08x\n", __func__,
-			  desc_status);
+				  desc_status);
 
-		if ((desc_status & (RxWholePkt | RxErr)) != RxWholePkt) {
-			if ((desc_status & RxWholePkt) != RxWholePkt) {
+		if ((desc_status & (RxWholePkt | RxErr)) != RxWholePkt)
+		{
+			if ((desc_status & RxWholePkt) != RxWholePkt)
+			{
 				netdev_warn(dev,
-	"Oversized Ethernet frame spanned multiple buffers, "
-	"entry %#x length %d status %08x!\n",
-					    entry, data_size,
-					    desc_status);
+							"Oversized Ethernet frame spanned multiple buffers, "
+							"entry %#x length %d status %08x!\n",
+							entry, data_size,
+							desc_status);
 				dev->stats.rx_length_errors++;
-			} else if (desc_status & RxErr) {
+			}
+			else if (desc_status & RxErr)
+			{
 				/* There was a error. */
 				netif_dbg(rp, rx_err, dev,
-					  "%s() Rx error %08x\n", __func__,
-					  desc_status);
+						  "%s() Rx error %08x\n", __func__,
+						  desc_status);
 				dev->stats.rx_errors++;
+
 				if (desc_status & 0x0030)
+				{
 					dev->stats.rx_length_errors++;
+				}
+
 				if (desc_status & 0x0048)
+				{
 					dev->stats.rx_fifo_errors++;
+				}
+
 				if (desc_status & 0x0004)
+				{
 					dev->stats.rx_frame_errors++;
-				if (desc_status & 0x0002) {
+				}
+
+				if (desc_status & 0x0002)
+				{
 					/* this can also be updated outside the interrupt handler */
 					spin_lock(&rp->lock);
 					dev->stats.rx_crc_errors++;
 					spin_unlock(&rp->lock);
 				}
 			}
-		} else {
+		}
+		else
+		{
 			/* Length should omit the CRC */
 			int pkt_len = data_size - 4;
 			struct sk_buff *skb;
 
 			/* Check if the packet is long enough to accept without
 			   copying to a minimally-sized skbuff. */
-			if (pkt_len < rx_copybreak) {
+			if (pkt_len < rx_copybreak)
+			{
 				skb = netdev_alloc_skb_ip_align(dev, pkt_len);
+
 				if (unlikely(!skb))
+				{
 					goto drop;
+				}
 
 				dma_sync_single_for_cpu(hwdev,
-							rp->rx_skbuff_dma[entry],
-							rp->rx_buf_sz,
-							DMA_FROM_DEVICE);
+										rp->rx_skbuff_dma[entry],
+										rp->rx_buf_sz,
+										DMA_FROM_DEVICE);
 
 				skb_copy_to_linear_data(skb,
-						 rp->rx_skbuff[entry]->data,
-						 pkt_len);
+										rp->rx_skbuff[entry]->data,
+										pkt_len);
 
 				dma_sync_single_for_device(hwdev,
-							   rp->rx_skbuff_dma[entry],
-							   rp->rx_buf_sz,
-							   DMA_FROM_DEVICE);
-			} else {
+										   rp->rx_skbuff_dma[entry],
+										   rp->rx_buf_sz,
+										   DMA_FROM_DEVICE);
+			}
+			else
+			{
 				struct rhine_skb_dma sd;
 
 				if (unlikely(rhine_skb_dma_init(dev, &sd) < 0))
+				{
 					goto drop;
+				}
 
 				skb = rp->rx_skbuff[entry];
 
 				dma_unmap_single(hwdev,
-						 rp->rx_skbuff_dma[entry],
-						 rp->rx_buf_sz,
-						 DMA_FROM_DEVICE);
+								 rp->rx_skbuff_dma[entry],
+								 rp->rx_buf_sz,
+								 DMA_FROM_DEVICE);
 				rhine_skb_dma_nic_store(rp, &sd, entry);
 			}
 
@@ -2146,6 +2468,7 @@ static int rhine_rx(struct net_device *dev, int limit)
 			rp->rx_stats.packets++;
 			u64_stats_update_end(&rp->rx_stats.syncp);
 		}
+
 give_descriptor_to_nic:
 		desc->rx_status = cpu_to_le32(DescOwn);
 		entry = (++rp->cur_rx) % RX_RING_SIZE;
@@ -2158,7 +2481,8 @@ drop:
 	goto give_descriptor_to_nic;
 }
 
-static void rhine_restart_tx(struct net_device *dev) {
+static void rhine_restart_tx(struct net_device *dev)
+{
 	struct rhine_private *rp = netdev_priv(dev);
 	void __iomem *ioaddr = rp->base;
 	int entry = rp->dirty_tx % TX_RING_SIZE;
@@ -2170,27 +2494,31 @@ static void rhine_restart_tx(struct net_device *dev) {
 	 */
 	intr_status = rhine_get_events(rp);
 
-	if ((intr_status & IntrTxErrSummary) == 0) {
+	if ((intr_status & IntrTxErrSummary) == 0)
+	{
 
 		/* We know better than the chip where it should continue. */
 		iowrite32(rp->tx_ring_dma + entry * sizeof(struct tx_desc),
-		       ioaddr + TxRingPtr);
+				  ioaddr + TxRingPtr);
 
 		iowrite8(ioread8(ioaddr + ChipCmd) | CmdTxOn,
-		       ioaddr + ChipCmd);
+				 ioaddr + ChipCmd);
 
 		if (rp->tx_ring[entry].desc_length & cpu_to_le32(0x020000))
 			/* Tx queues are bits 7-0 (first Tx queue: bit 7) */
+		{
 			BYTE_REG_BITS_ON(1 << 7, ioaddr + TQWake);
+		}
 
 		iowrite8(ioread8(ioaddr + ChipCmd1) | Cmd1TxDemand,
-		       ioaddr + ChipCmd1);
+				 ioaddr + ChipCmd1);
 		IOSYNC;
 	}
-	else {
+	else
+	{
 		/* This should never happen */
 		netif_warn(rp, tx_err, dev, "another error occurred %08x\n",
-			   intr_status);
+				   intr_status);
 	}
 
 }
@@ -2205,16 +2533,22 @@ static void rhine_slow_event_task(struct work_struct *work)
 	mutex_lock(&rp->task_lock);
 
 	if (!rp->task_enable)
+	{
 		goto out_unlock;
+	}
 
 	intr_status = rhine_get_events(rp);
 	rhine_ack_events(rp, intr_status & RHINE_EVENT_SLOW);
 
 	if (intr_status & IntrLinkChange)
+	{
 		rhine_check_media(dev, 0);
+	}
 
 	if (intr_status & IntrPCIErr)
+	{
 		netif_warn(rp, hw, dev, "PCI error\n");
+	}
 
 	iowrite16(RHINE_EVENT & 0xffff, rp->base + IntrEnable);
 
@@ -2234,17 +2568,21 @@ rhine_get_stats64(struct net_device *dev, struct rtnl_link_stats64 *stats)
 
 	netdev_stats_to_stats64(stats, &dev->stats);
 
-	do {
+	do
+	{
 		start = u64_stats_fetch_begin_irq(&rp->rx_stats.syncp);
 		stats->rx_packets = rp->rx_stats.packets;
 		stats->rx_bytes = rp->rx_stats.bytes;
-	} while (u64_stats_fetch_retry_irq(&rp->rx_stats.syncp, start));
+	}
+	while (u64_stats_fetch_retry_irq(&rp->rx_stats.syncp, start));
 
-	do {
+	do
+	{
 		start = u64_stats_fetch_begin_irq(&rp->tx_stats.syncp);
 		stats->tx_packets = rp->tx_stats.packets;
 		stats->tx_bytes = rp->tx_stats.bytes;
-	} while (u64_stats_fetch_retry_irq(&rp->tx_stats.syncp, start));
+	}
+	while (u64_stats_fetch_retry_irq(&rp->tx_stats.syncp, start));
 
 	return stats;
 }
@@ -2257,29 +2595,41 @@ static void rhine_set_rx_mode(struct net_device *dev)
 	u8 rx_mode = 0x0C;	/* Note: 0x02=accept runt, 0x01=accept errs */
 	struct netdev_hw_addr *ha;
 
-	if (dev->flags & IFF_PROMISC) {		/* Set promiscuous. */
+	if (dev->flags & IFF_PROMISC)  		/* Set promiscuous. */
+	{
 		rx_mode = 0x1C;
 		iowrite32(0xffffffff, ioaddr + MulticastFilter0);
 		iowrite32(0xffffffff, ioaddr + MulticastFilter1);
-	} else if ((netdev_mc_count(dev) > multicast_filter_limit) ||
-		   (dev->flags & IFF_ALLMULTI)) {
+	}
+	else if ((netdev_mc_count(dev) > multicast_filter_limit) ||
+			 (dev->flags & IFF_ALLMULTI))
+	{
 		/* Too many to match, or accept all multicasts. */
 		iowrite32(0xffffffff, ioaddr + MulticastFilter0);
 		iowrite32(0xffffffff, ioaddr + MulticastFilter1);
-	} else if (rp->quirks & rqMgmt) {
+	}
+	else if (rp->quirks & rqMgmt)
+	{
 		int i = 0;
 		u32 mCAMmask = 0;	/* 32 mCAMs (6105M and better) */
-		netdev_for_each_mc_addr(ha, dev) {
+		netdev_for_each_mc_addr(ha, dev)
+		{
 			if (i == MCAM_SIZE)
+			{
 				break;
+			}
+
 			rhine_set_cam(ioaddr, i, ha->addr);
 			mCAMmask |= 1 << i;
 			i++;
 		}
 		rhine_set_cam_mask(ioaddr, mCAMmask);
-	} else {
+	}
+	else
+	{
 		memset(mc_filter, 0, sizeof(mc_filter));
-		netdev_for_each_mc_addr(ha, dev) {
+		netdev_for_each_mc_addr(ha, dev)
+		{
 			int bit_nr = ether_crc(ETH_ALEN, ha->addr) >> 26;
 
 			mc_filter[bit_nr >> 5] |= 1 << (bit_nr & 31);
@@ -2287,13 +2637,20 @@ static void rhine_set_rx_mode(struct net_device *dev)
 		iowrite32(mc_filter[0], ioaddr + MulticastFilter0);
 		iowrite32(mc_filter[1], ioaddr + MulticastFilter1);
 	}
+
 	/* enable/disable VLAN receive filtering */
-	if (rp->quirks & rqMgmt) {
+	if (rp->quirks & rqMgmt)
+	{
 		if (dev->flags & IFF_PROMISC)
+		{
 			BYTE_REG_BITS_OFF(BCR1_VIDFR, ioaddr + PCIBusConfig1);
+		}
 		else
+		{
 			BYTE_REG_BITS_ON(BCR1_VIDFR, ioaddr + PCIBusConfig1);
+		}
 	}
+
 	BYTE_REG_BITS_ON(rx_mode, ioaddr + RxConfig);
 }
 
@@ -2364,11 +2721,13 @@ static void rhine_get_wol(struct net_device *dev, struct ethtool_wolinfo *wol)
 	struct rhine_private *rp = netdev_priv(dev);
 
 	if (!(rp->quirks & rqWOL))
+	{
 		return;
+	}
 
 	spin_lock_irq(&rp->lock);
 	wol->supported = WAKE_PHY | WAKE_MAGIC |
-			 WAKE_UCAST | WAKE_MCAST | WAKE_BCAST;	/* Untested */
+					 WAKE_UCAST | WAKE_MCAST | WAKE_BCAST;	/* Untested */
 	wol->wolopts = rp->wolopts;
 	spin_unlock_irq(&rp->lock);
 }
@@ -2377,13 +2736,17 @@ static int rhine_set_wol(struct net_device *dev, struct ethtool_wolinfo *wol)
 {
 	struct rhine_private *rp = netdev_priv(dev);
 	u32 support = WAKE_PHY | WAKE_MAGIC |
-		      WAKE_UCAST | WAKE_MCAST | WAKE_BCAST;	/* Untested */
+				  WAKE_UCAST | WAKE_MCAST | WAKE_BCAST;	/* Untested */
 
 	if (!(rp->quirks & rqWOL))
+	{
 		return -EINVAL;
+	}
 
 	if (wol->wolopts & ~support)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irq(&rp->lock);
 	rp->wolopts = wol->wolopts;
@@ -2392,7 +2755,8 @@ static int rhine_set_wol(struct net_device *dev, struct ethtool_wolinfo *wol)
 	return 0;
 }
 
-static const struct ethtool_ops netdev_ethtool_ops = {
+static const struct ethtool_ops netdev_ethtool_ops =
+{
 	.get_drvinfo		= netdev_get_drvinfo,
 	.get_settings		= netdev_get_settings,
 	.set_settings		= netdev_set_settings,
@@ -2410,7 +2774,9 @@ static int netdev_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 	int rc;
 
 	if (!netif_running(dev))
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&rp->task_lock);
 	rc = generic_mii_ioctl(&rp->mii_if, if_mii(rq), cmd, NULL);
@@ -2430,7 +2796,7 @@ static int rhine_close(struct net_device *dev)
 	netif_stop_queue(dev);
 
 	netif_dbg(rp, ifdown, dev, "Shutting down ethercard, status was %04x\n",
-		  ioread16(ioaddr + ChipCmd));
+			  ioread16(ioaddr + ChipCmd));
 
 	/* Switch to loopback mode to avoid hardware races. */
 	iowrite8(rp->tx_thresh | 0x02, ioaddr + TxConfig);
@@ -2484,17 +2850,22 @@ static void rhine_shutdown_pci(struct pci_dev *pdev)
 	void __iomem *ioaddr = rp->base;
 
 	if (!(rp->quirks & rqWOL))
-		return; /* Nothing to do for non-WOL adapters */
+	{
+		return;    /* Nothing to do for non-WOL adapters */
+	}
 
 	rhine_power_init(dev);
 
 	/* Make sure we use pattern 0, 1 and not 4, 5 */
 	if (rp->quirks & rq6patterns)
+	{
 		iowrite8(0x04, ioaddr + WOLcgClr);
+	}
 
 	spin_lock(&rp->lock);
 
-	if (rp->wolopts & WAKE_MAGIC) {
+	if (rp->wolopts & WAKE_MAGIC)
+	{
 		iowrite8(WOLmagic, ioaddr + WOLcrSet);
 		/*
 		 * Turn EEPROM-controlled wake-up back on -- some hardware may
@@ -2503,16 +2874,23 @@ static void rhine_shutdown_pci(struct pci_dev *pdev)
 		iowrite8(ioread8(ioaddr + ConfigA) | 0x03, ioaddr + ConfigA);
 	}
 
-	if (rp->wolopts & (WAKE_BCAST|WAKE_MCAST))
+	if (rp->wolopts & (WAKE_BCAST | WAKE_MCAST))
+	{
 		iowrite8(WOLbmcast, ioaddr + WOLcgSet);
+	}
 
 	if (rp->wolopts & WAKE_PHY)
+	{
 		iowrite8(WOLlnkon | WOLlnkoff, ioaddr + WOLcrSet);
+	}
 
 	if (rp->wolopts & WAKE_UCAST)
+	{
 		iowrite8(WOLucast, ioaddr + WOLcrSet);
+	}
 
-	if (rp->wolopts) {
+	if (rp->wolopts)
+	{
 		/* Enable legacy WOL (for old motherboards) */
 		iowrite8(0x01, ioaddr + PwcfgSet);
 		iowrite8(ioread8(ioaddr + StickyHW) | 0x04, ioaddr + StickyHW);
@@ -2520,7 +2898,8 @@ static void rhine_shutdown_pci(struct pci_dev *pdev)
 
 	spin_unlock(&rp->lock);
 
-	if (system_state == SYSTEM_POWER_OFF && !avoid_D3) {
+	if (system_state == SYSTEM_POWER_OFF && !avoid_D3)
+	{
 		iowrite8(ioread8(ioaddr + StickyHW) | 0x03, ioaddr + StickyHW);
 
 		pci_wake_from_d3(pdev, true);
@@ -2535,7 +2914,9 @@ static int rhine_suspend(struct device *device)
 	struct rhine_private *rp = netdev_priv(dev);
 
 	if (!netif_running(dev))
+	{
 		return 0;
+	}
 
 	rhine_task_disable(rp);
 	rhine_irq_disable(rp);
@@ -2544,7 +2925,9 @@ static int rhine_suspend(struct device *device)
 	netif_device_detach(dev);
 
 	if (dev_is_pci(device))
+	{
 		rhine_shutdown_pci(to_pci_dev(device));
+	}
 
 	return 0;
 }
@@ -2555,7 +2938,9 @@ static int rhine_resume(struct device *device)
 	struct rhine_private *rp = netdev_priv(dev);
 
 	if (!netif_running(dev))
+	{
 		return 0;
+	}
 
 	enable_mmio(rp->pioaddr, rp->quirks);
 	rhine_power_init(dev);
@@ -2581,7 +2966,8 @@ static SIMPLE_DEV_PM_OPS(rhine_pm_ops, rhine_suspend, rhine_resume);
 
 #endif /* !CONFIG_PM_SLEEP */
 
-static struct pci_driver rhine_driver_pci = {
+static struct pci_driver rhine_driver_pci =
+{
 	.name		= DRV_NAME,
 	.id_table	= rhine_pci_tbl,
 	.probe		= rhine_init_one_pci,
@@ -2590,7 +2976,8 @@ static struct pci_driver rhine_driver_pci = {
 	.driver.pm	= RHINE_PM_OPS,
 };
 
-static struct platform_driver rhine_driver_platform = {
+static struct platform_driver rhine_driver_platform =
+{
 	.probe		= rhine_init_one_platform,
 	.remove		= rhine_remove_one_platform,
 	.driver = {
@@ -2600,7 +2987,8 @@ static struct platform_driver rhine_driver_platform = {
 	}
 };
 
-static struct dmi_system_id rhine_dmi_table[] __initdata = {
+static struct dmi_system_id rhine_dmi_table[] __initdata =
+{
 	{
 		.ident = "EPIA-M",
 		.matches = {
@@ -2622,22 +3010,29 @@ static int __init rhine_init(void)
 {
 	int ret_pci, ret_platform;
 
-/* when a module, this is printed whether or not devices are found in probe */
+	/* when a module, this is printed whether or not devices are found in probe */
 #ifdef MODULE
 	pr_info("%s\n", version);
 #endif
-	if (dmi_check_system(rhine_dmi_table)) {
+
+	if (dmi_check_system(rhine_dmi_table))
+	{
 		/* these BIOSes fail at PXE boot if chip is in D3 */
 		avoid_D3 = true;
 		pr_warn("Broken BIOS detected, avoid_D3 enabled\n");
 	}
 	else if (avoid_D3)
+	{
 		pr_info("avoid_D3 set\n");
+	}
 
 	ret_pci = pci_register_driver(&rhine_driver_pci);
 	ret_platform = platform_driver_register(&rhine_driver_platform);
+
 	if ((ret_pci < 0) && (ret_platform < 0))
+	{
 		return ret_pci;
+	}
 
 	return 0;
 }

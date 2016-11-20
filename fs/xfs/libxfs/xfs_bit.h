@@ -27,7 +27,7 @@
  */
 static inline __uint64_t xfs_mask64hi(int n)
 {
-	return (__uint64_t)-1 << (64 - (n));
+	return (__uint64_t) - 1 << (64 - (n));
 }
 static inline __uint32_t xfs_mask32lo(int n)
 {
@@ -62,16 +62,25 @@ static inline int xfs_lowbit64(__uint64_t v)
 	__uint32_t	w = (__uint32_t)v;
 	int		n = 0;
 
-	if (w) {	/* lower bits */
+	if (w)  	/* lower bits */
+	{
 		n = ffs(w);
-	} else {	/* upper bits */
+	}
+	else  	/* upper bits */
+	{
 		w = (__uint32_t)(v >> 32);
-		if (w) {
+
+		if (w)
+		{
 			n = ffs(w);
+
 			if (n)
+			{
 				n += 32;
+			}
 		}
 	}
+
 	return n - 1;
 }
 

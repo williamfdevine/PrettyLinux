@@ -16,7 +16,8 @@ typedef unsigned __bitwise__ lowpan_rx_result;
 #define LOWPAN_DISPATCH_FRAG1           0xc0
 #define LOWPAN_DISPATCH_FRAGN           0xe0
 
-struct lowpan_create_arg {
+struct lowpan_create_arg
+{
 	u16 tag;
 	u16 d_size;
 	const struct ieee802154_addr *src;
@@ -25,7 +26,8 @@ struct lowpan_create_arg {
 
 /* Equivalent of ipv4 struct ip
  */
-struct lowpan_frag_queue {
+struct lowpan_frag_queue
+{
 	struct inet_frag_queue	q;
 
 	u16			tag;
@@ -36,14 +38,17 @@ struct lowpan_frag_queue {
 
 static inline u32 ieee802154_addr_hash(const struct ieee802154_addr *a)
 {
-	switch (a->mode) {
-	case IEEE802154_ADDR_LONG:
-		return (((__force u64)a->extended_addr) >> 32) ^
-			(((__force u64)a->extended_addr) & 0xffffffff);
-	case IEEE802154_ADDR_SHORT:
-		return (__force u32)(a->short_addr + (a->pan_id << 16));
-	default:
-		return 0;
+	switch (a->mode)
+	{
+		case IEEE802154_ADDR_LONG:
+			return (((__force u64)a->extended_addr) >> 32) ^
+				   (((__force u64)a->extended_addr) & 0xffffffff);
+
+		case IEEE802154_ADDR_SHORT:
+			return (__force u32)(a->short_addr + (a->pan_id << 16));
+
+		default:
+			return 0;
 	}
 }
 
@@ -55,8 +60,8 @@ void lowpan_rx_init(void);
 void lowpan_rx_exit(void);
 
 int lowpan_header_create(struct sk_buff *skb, struct net_device *dev,
-			 unsigned short type, const void *_daddr,
-			 const void *_saddr, unsigned int len);
+						 unsigned short type, const void *_daddr,
+						 const void *_saddr, unsigned int len);
 netdev_tx_t lowpan_xmit(struct sk_buff *skb, struct net_device *dev);
 
 int lowpan_iphc_decompress(struct sk_buff *skb);

@@ -23,7 +23,8 @@
 #include <uapi/linux/usb/audio.h>
 
 
-struct usb_audio_control {
+struct usb_audio_control
+{
 	struct list_head list;
 	const char *name;
 	u8 type;
@@ -32,7 +33,8 @@ struct usb_audio_control {
 	int (*get)(struct usb_audio_control *con, u8 cmd);
 };
 
-struct usb_audio_control_selector {
+struct usb_audio_control_selector
+{
 	struct list_head list;
 	struct list_head control;
 	u8 id;

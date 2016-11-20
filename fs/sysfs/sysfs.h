@@ -29,15 +29,15 @@ void sysfs_warn_dup(struct kernfs_node *parent, const char *name);
  * file.c
  */
 int sysfs_add_file(struct kernfs_node *parent,
-		   const struct attribute *attr, bool is_bin);
+				   const struct attribute *attr, bool is_bin);
 int sysfs_add_file_mode_ns(struct kernfs_node *parent,
-			   const struct attribute *attr, bool is_bin,
-			   umode_t amode, const void *ns);
+						   const struct attribute *attr, bool is_bin,
+						   umode_t amode, const void *ns);
 
 /*
  * symlink.c
  */
 int sysfs_create_link_sd(struct kernfs_node *kn, struct kobject *target,
-			 const char *name);
+						 const char *name);
 
 #endif	/* __SYSFS_INTERNAL_H */

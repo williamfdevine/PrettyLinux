@@ -42,7 +42,8 @@
  */
 #define RNG_TIMEOUT 500
 
-struct stm32_rng_private {
+struct stm32_rng_private
+{
 	struct hwrng rng;
 	void __iomem *base;
 	struct clk *clk;
@@ -51,28 +52,37 @@ struct stm32_rng_private {
 static int stm32_rng_read(struct hwrng *rng, void *data, size_t max, bool wait)
 {
 	struct stm32_rng_private *priv =
-	    container_of(rng, struct stm32_rng_private, rng);
+		container_of(rng, struct stm32_rng_private, rng);
 	u32 sr;
 	int retval = 0;
 
 	pm_runtime_get_sync((struct device *) priv->rng.priv);
 
-	while (max > sizeof(u32)) {
+	while (max > sizeof(u32))
+	{
 		sr = readl_relaxed(priv->base + RNG_SR);
-		if (!sr && wait) {
+
+		if (!sr && wait)
+		{
 			unsigned int timeout = RNG_TIMEOUT;
 
-			do {
+			do
+			{
 				cpu_relax();
 				sr = readl_relaxed(priv->base + RNG_SR);
-			} while (!sr && --timeout);
+			}
+			while (!sr && --timeout);
 		}
 
 		/* If error detected or data not ready... */
-		if (sr != RNG_SR_DRDY) {
+		if (sr != RNG_SR_DRDY)
+		{
 			if (WARN_ONCE(sr & (RNG_SR_SEIS | RNG_SR_CEIS),
-					"bad RNG status - %x\n", sr))
+						  "bad RNG status - %x\n", sr))
+			{
 				writel_relaxed(0, priv->base + RNG_SR);
+			}
+
 			break;
 		}
 
@@ -92,12 +102,15 @@ static int stm32_rng_read(struct hwrng *rng, void *data, size_t max, bool wait)
 static int stm32_rng_init(struct hwrng *rng)
 {
 	struct stm32_rng_private *priv =
-	    container_of(rng, struct stm32_rng_private, rng);
+		container_of(rng, struct stm32_rng_private, rng);
 	int err;
 
 	err = clk_prepare_enable(priv->clk);
+
 	if (err)
+	{
 		return err;
+	}
 
 	writel_relaxed(RNG_CR_RNGEN, priv->base + RNG_CR);
 
@@ -110,7 +123,7 @@ static int stm32_rng_init(struct hwrng *rng)
 static void stm32_rng_cleanup(struct hwrng *rng)
 {
 	struct stm32_rng_private *priv =
-	    container_of(rng, struct stm32_rng_private, rng);
+		container_of(rng, struct stm32_rng_private, rng);
 
 	writel_relaxed(0, priv->base + RNG_CR);
 	clk_disable_unprepare(priv->clk);
@@ -125,30 +138,42 @@ static int stm32_rng_probe(struct platform_device *ofdev)
 	int err;
 
 	priv = devm_kzalloc(dev, sizeof(struct stm32_rng_private), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	err = of_address_to_resource(np, 0, &res);
+
 	if (err)
+	{
 		return err;
+	}
 
 	priv->base = devm_ioremap_resource(dev, &res);
+
 	if (IS_ERR(priv->base))
+	{
 		return PTR_ERR(priv->base);
+	}
 
 	priv->clk = devm_clk_get(&ofdev->dev, NULL);
+
 	if (IS_ERR(priv->clk))
+	{
 		return PTR_ERR(priv->clk);
+	}
 
 	dev_set_drvdata(dev, priv);
 
 	priv->rng.name = dev_driver_string(dev),
 #ifndef CONFIG_PM
-	priv->rng.init = stm32_rng_init,
-	priv->rng.cleanup = stm32_rng_cleanup,
+			  priv->rng.init = stm32_rng_init,
+						priv->rng.cleanup = stm32_rng_cleanup,
 #endif
-	priv->rng.read = stm32_rng_read,
-	priv->rng.priv = (unsigned long) dev;
+								  priv->rng.read = stm32_rng_read,
+											priv->rng.priv = (unsigned long) dev;
 
 	pm_runtime_set_autosuspend_delay(dev, 100);
 	pm_runtime_use_autosuspend(dev);
@@ -176,9 +201,10 @@ static int stm32_rng_runtime_resume(struct device *dev)
 #endif
 
 static UNIVERSAL_DEV_PM_OPS(stm32_rng_pm_ops, stm32_rng_runtime_suspend,
-			    stm32_rng_runtime_resume, NULL);
+							stm32_rng_runtime_resume, NULL);
 
-static const struct of_device_id stm32_rng_match[] = {
+static const struct of_device_id stm32_rng_match[] =
+{
 	{
 		.compatible = "st,stm32-rng",
 	},
@@ -186,7 +212,8 @@ static const struct of_device_id stm32_rng_match[] = {
 };
 MODULE_DEVICE_TABLE(of, stm32_rng_match);
 
-static struct platform_driver stm32_rng_driver = {
+static struct platform_driver stm32_rng_driver =
+{
 	.driver = {
 		.name = "stm32-rng",
 		.pm = &stm32_rng_pm_ops,

@@ -28,13 +28,16 @@ int set_cap_limits(rlim_t max)
 
 	new.rlim_cur = max;
 	new.rlim_max = max;
-	if (setrlimit(RLIMIT_MEMLOCK, &new)) {
+
+	if (setrlimit(RLIMIT_MEMLOCK, &new))
+	{
 		perror("setrlimit() returns error\n");
 		return -1;
 	}
 
 	/* drop capabilities including CAP_IPC_LOCK */
-	if (cap_set_proc(cap)) {
+	if (cap_set_proc(cap))
+	{
 		perror("cap_set_proc() returns error\n");
 		return -2;
 	}
@@ -50,20 +53,27 @@ int get_proc_locked_vm_size(void)
 	unsigned long lock_size = 0;
 
 	f = fopen("/proc/self/status", "r");
-	if (!f) {
+
+	if (!f)
+	{
 		perror("fopen");
 		return -1;
 	}
 
-	while (fgets(line, 1024, f)) {
-		if (strstr(line, "VmLck")) {
+	while (fgets(line, 1024, f))
+	{
+		if (strstr(line, "VmLck"))
+		{
 			ret = sscanf(line, "VmLck:\t%8lu kB", &lock_size);
-			if (ret <= 0) {
+
+			if (ret <= 0)
+			{
 				printf("sscanf() on VmLck error: %s: %d\n",
-						line, ret);
+					   line, ret);
 				fclose(f);
 				return -1;
 			}
+
 			fclose(f);
 			return (int)(lock_size << 10);
 		}
@@ -89,13 +99,17 @@ int get_proc_page_size(unsigned long addr)
 	size_t size;
 
 	smaps = seek_to_smaps_entry(addr);
-	if (!smaps) {
+
+	if (!smaps)
+	{
 		printf("Unable to parse /proc/self/smaps\n");
 		return 0;
 	}
 
-	while (getline(&line, &size, smaps) > 0) {
-		if (!strstr(line, "MMUPageSize")) {
+	while (getline(&line, &size, smaps) > 0)
+	{
+		if (!strstr(line, "MMUPageSize"))
+		{
 			free(line);
 			line = NULL;
 			size = 0;
@@ -104,16 +118,22 @@ int get_proc_page_size(unsigned long addr)
 
 		/* found the MMUPageSize of this section */
 		if (sscanf(line, "MMUPageSize:    %8lu kB",
-					&mmupage_size) < 1) {
+				   &mmupage_size) < 1)
+		{
 			printf("Unable to parse smaps entry for Size:%s\n",
-					line);
+				   line);
 			break;
 		}
 
 	}
+
 	free(line);
+
 	if (smaps)
+	{
 		fclose(smaps);
+	}
+
 	return mmupage_size << 10;
 }
 
@@ -143,14 +163,18 @@ int test_mlock_within_limit(char *p, int alloc_size)
 	int page_size = 0;
 
 	getrlimit(RLIMIT_MEMLOCK, &cur);
-	if (cur.rlim_cur < alloc_size) {
+
+	if (cur.rlim_cur < alloc_size)
+	{
 		printf("alloc_size[%d] < %u rlimit,lead to mlock failure\n",
-				alloc_size, (unsigned int)cur.rlim_cur);
+			   alloc_size, (unsigned int)cur.rlim_cur);
 		return -1;
 	}
 
 	srand(time(NULL));
-	for (i = 0; i < TEST_LOOP; i++) {
+
+	for (i = 0; i < TEST_LOOP; i++)
+	{
 		/*
 		 * - choose mlock/mlock2 randomly
 		 * - choose lock_size randomly but lock_size < alloc_size
@@ -162,16 +186,19 @@ int test_mlock_within_limit(char *p, int alloc_size)
 		int start_offset = rand() % (alloc_size - lock_size);
 
 		if (is_mlock)
+		{
 			ret = mlock(p + start_offset, lock_size);
+		}
 		else
 			ret = mlock2_(p + start_offset, lock_size,
-				       MLOCK_ONFAULT);
+						  MLOCK_ONFAULT);
 
-		if (ret) {
+		if (ret)
+		{
 			printf("%s() failure at |%p(%d)| mlock:|%p(%d)|\n",
-					is_mlock ? "mlock" : "mlock2",
-					p, alloc_size,
-					p + start_offset, lock_size);
+				   is_mlock ? "mlock" : "mlock2",
+				   p, alloc_size,
+				   p + start_offset, lock_size);
 			return ret;
 		}
 	}
@@ -181,14 +208,17 @@ int test_mlock_within_limit(char *p, int alloc_size)
 	 */
 	locked_vm_size = get_proc_locked_vm_size();
 	page_size = get_proc_page_size((unsigned long)p);
-	if (page_size == 0) {
+
+	if (page_size == 0)
+	{
 		printf("cannot get proc MMUPageSize\n");
 		return -1;
 	}
 
-	if (locked_vm_size > PAGE_ALIGN(alloc_size, page_size) + page_size) {
+	if (locked_vm_size > PAGE_ALIGN(alloc_size, page_size) + page_size)
+	{
 		printf("test_mlock_within_limit() left VmLck:%d on %d chunk\n",
-				locked_vm_size, alloc_size);
+			   locked_vm_size, alloc_size);
 		return -1;
 	}
 
@@ -219,39 +249,49 @@ int test_mlock_outof_limit(char *p, int alloc_size)
 	struct rlimit cur;
 
 	getrlimit(RLIMIT_MEMLOCK, &cur);
-	if (cur.rlim_cur >= alloc_size) {
+
+	if (cur.rlim_cur >= alloc_size)
+	{
 		printf("alloc_size[%d] >%u rlimit, violates test condition\n",
-				alloc_size, (unsigned int)cur.rlim_cur);
+			   alloc_size, (unsigned int)cur.rlim_cur);
 		return -1;
 	}
 
 	old_locked_vm_size = get_proc_locked_vm_size();
 	srand(time(NULL));
-	for (i = 0; i < TEST_LOOP; i++) {
+
+	for (i = 0; i < TEST_LOOP; i++)
+	{
 		int is_mlock = !!(rand() % 2);
 		int lock_size = (rand() % (alloc_size - cur.rlim_cur))
-			+ cur.rlim_cur;
+						+ cur.rlim_cur;
 		int start_offset = rand() % (alloc_size - lock_size);
 
 		if (is_mlock)
+		{
 			ret = mlock(p + start_offset, lock_size);
+		}
 		else
 			ret = mlock2_(p + start_offset, lock_size,
-					MLOCK_ONFAULT);
-		if (ret == 0) {
+						  MLOCK_ONFAULT);
+
+		if (ret == 0)
+		{
 			printf("%s() succeeds? on %p(%d) mlock%p(%d)\n",
-					is_mlock ? "mlock" : "mlock2",
-					p, alloc_size,
-					p + start_offset, lock_size);
+				   is_mlock ? "mlock" : "mlock2",
+				   p, alloc_size,
+				   p + start_offset, lock_size);
 			return -1;
 		}
 	}
 
 	locked_vm_size = get_proc_locked_vm_size();
-	if (locked_vm_size != old_locked_vm_size) {
+
+	if (locked_vm_size != old_locked_vm_size)
+	{
 		printf("tests leads to new mlocked page: old[%d], new[%d]\n",
-				old_locked_vm_size,
-				locked_vm_size);
+			   old_locked_vm_size,
+			   locked_vm_size);
 		return -1;
 	}
 
@@ -264,28 +304,44 @@ int main(int argc, char **argv)
 	int ret = 0;
 
 	if (set_cap_limits(MLOCK_RLIMIT_SIZE))
+	{
 		return -1;
+	}
 
 	p = malloc(MLOCK_WITHIN_LIMIT_SIZE);
-	if (p == NULL) {
+
+	if (p == NULL)
+	{
 		perror("malloc() failure\n");
 		return -1;
 	}
+
 	ret = test_mlock_within_limit(p, MLOCK_WITHIN_LIMIT_SIZE);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	munlock(p, MLOCK_WITHIN_LIMIT_SIZE);
 	free(p);
 
 
 	p = malloc(MLOCK_OUTOF_LIMIT_SIZE);
-	if (p == NULL) {
+
+	if (p == NULL)
+	{
 		perror("malloc() failure\n");
 		return -1;
 	}
+
 	ret = test_mlock_outof_limit(p, MLOCK_OUTOF_LIMIT_SIZE);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	munlock(p, MLOCK_OUTOF_LIMIT_SIZE);
 	free(p);
 

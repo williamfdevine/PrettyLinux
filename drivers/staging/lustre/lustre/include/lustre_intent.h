@@ -35,7 +35,8 @@
 
 /* intent IT_XXX are defined in lustre/include/obd.h */
 
-struct lookup_intent {
+struct lookup_intent
+{
 	int		it_op;
 	int		it_create_mode;
 	__u64		it_flags;
@@ -47,7 +48,7 @@ struct lookup_intent {
 	int		it_remote_lock_mode;
 	__u64	   it_remote_lock_handle;
 	struct ptlrpc_request *it_request;
-	unsigned int    it_lock_set:1;
+	unsigned int    it_lock_set: 1;
 };
 
 static inline int it_disposition(struct lookup_intent *it, int flag)

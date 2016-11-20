@@ -29,26 +29,30 @@
 #include "bmc150-accel.h"
 
 static int bmc150_accel_probe(struct i2c_client *client,
-			      const struct i2c_device_id *id)
+							  const struct i2c_device_id *id)
 {
 	struct regmap *regmap;
 	const char *name = NULL;
 	bool block_supported =
 		i2c_check_functionality(client->adapter, I2C_FUNC_I2C) ||
 		i2c_check_functionality(client->adapter,
-					I2C_FUNC_SMBUS_READ_I2C_BLOCK);
+								I2C_FUNC_SMBUS_READ_I2C_BLOCK);
 
 	regmap = devm_regmap_init_i2c(client, &bmc150_regmap_conf);
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		dev_err(&client->dev, "Failed to initialize i2c regmap\n");
 		return PTR_ERR(regmap);
 	}
 
 	if (id)
+	{
 		name = id->name;
+	}
 
 	return bmc150_accel_core_probe(&client->dev, regmap, client->irq, name,
-				       block_supported);
+								   block_supported);
 }
 
 static int bmc150_accel_remove(struct i2c_client *client)
@@ -56,7 +60,8 @@ static int bmc150_accel_remove(struct i2c_client *client)
 	return bmc150_accel_core_remove(&client->dev);
 }
 
-static const struct acpi_device_id bmc150_accel_acpi_match[] = {
+static const struct acpi_device_id bmc150_accel_acpi_match[] =
+{
 	{"BSBA0150",	bmc150},
 	{"BMC150A",	bmc150},
 	{"BMI055A",	bmi055},
@@ -68,7 +73,8 @@ static const struct acpi_device_id bmc150_accel_acpi_match[] = {
 };
 MODULE_DEVICE_TABLE(acpi, bmc150_accel_acpi_match);
 
-static const struct i2c_device_id bmc150_accel_id[] = {
+static const struct i2c_device_id bmc150_accel_id[] =
+{
 	{"bmc150_accel",	bmc150},
 	{"bmi055_accel",	bmi055},
 	{"bma255",		bma255},
@@ -80,7 +86,8 @@ static const struct i2c_device_id bmc150_accel_id[] = {
 
 MODULE_DEVICE_TABLE(i2c, bmc150_accel_id);
 
-static struct i2c_driver bmc150_accel_driver = {
+static struct i2c_driver bmc150_accel_driver =
+{
 	.driver = {
 		.name	= "bmc150_accel_i2c",
 		.acpi_match_table = ACPI_PTR(bmc150_accel_acpi_match),

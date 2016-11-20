@@ -55,9 +55,12 @@ static irqreturn_t htcpen_interrupt(int irq, void *handle)
 	/* 0 = press; 1 = release */
 	outb_p(TOUCH_INDEX, HTCPEN_PORT_INDEX);
 
-	if (inb_p(HTCPEN_PORT_DATA)) {
+	if (inb_p(HTCPEN_PORT_DATA))
+	{
 		input_report_key(htcpen_dev, BTN_TOUCH, 0);
-	} else {
+	}
+	else
+	{
 		outb_p(X_INDEX, HTCPEN_PORT_INDEX);
 		x = inb_p(HTCPEN_PORT_DATA);
 
@@ -70,12 +73,19 @@ static irqreturn_t htcpen_interrupt(int irq, void *handle)
 		/* get high resolution value of X and Y using LSB */
 		x = X_AXIS_MAX - ((x * 8) + ((xy >> 4) & 0xf));
 		y = (y * 8) + (xy & 0xf);
-		if (invert_x)
-			x = X_AXIS_MAX - x;
-		if (invert_y)
-			y = Y_AXIS_MAX - y;
 
-		if (x != X_AXIS_MAX && x != 0) {
+		if (invert_x)
+		{
+			x = X_AXIS_MAX - x;
+		}
+
+		if (invert_y)
+		{
+			y = Y_AXIS_MAX - y;
+		}
+
+		if (x != X_AXIS_MAX && x != 0)
+		{
 			input_report_key(htcpen_dev, BTN_TOUCH, 1);
 			input_report_abs(htcpen_dev, ABS_X, x);
 			input_report_abs(htcpen_dev, ABS_Y, y);
@@ -107,26 +117,31 @@ static int htcpen_isa_probe(struct device *dev, unsigned int id)
 	struct input_dev *htcpen_dev;
 	int err = -EBUSY;
 
-	if (!request_region(HTCPEN_PORT_IRQ_CLEAR, 1, "htcpen")) {
+	if (!request_region(HTCPEN_PORT_IRQ_CLEAR, 1, "htcpen"))
+	{
 		printk(KERN_ERR "htcpen: unable to get IO region 0x%x\n",
-			HTCPEN_PORT_IRQ_CLEAR);
+			   HTCPEN_PORT_IRQ_CLEAR);
 		goto request_region1_failed;
 	}
 
-	if (!request_region(HTCPEN_PORT_INIT, 1, "htcpen")) {
+	if (!request_region(HTCPEN_PORT_INIT, 1, "htcpen"))
+	{
 		printk(KERN_ERR "htcpen: unable to get IO region 0x%x\n",
-			HTCPEN_PORT_INIT);
+			   HTCPEN_PORT_INIT);
 		goto request_region2_failed;
 	}
 
-	if (!request_region(HTCPEN_PORT_INDEX, 2, "htcpen")) {
+	if (!request_region(HTCPEN_PORT_INDEX, 2, "htcpen"))
+	{
 		printk(KERN_ERR "htcpen: unable to get IO region 0x%x\n",
-			HTCPEN_PORT_INDEX);
+			   HTCPEN_PORT_INDEX);
 		goto request_region3_failed;
 	}
 
 	htcpen_dev = input_allocate_device();
-	if (!htcpen_dev) {
+
+	if (!htcpen_dev)
+	{
 		printk(KERN_ERR "htcpen: can't allocate device\n");
 		err = -ENOMEM;
 		goto input_alloc_failed;
@@ -144,8 +159,10 @@ static int htcpen_isa_probe(struct device *dev, unsigned int id)
 	htcpen_dev->close = htcpen_close;
 
 	err = request_irq(HTCPEN_IRQ, htcpen_interrupt, 0, "htcpen",
-			htcpen_dev);
-	if (err) {
+					  htcpen_dev);
+
+	if (err)
+	{
 		printk(KERN_ERR "htcpen: irq busy\n");
 		goto request_irq_failed;
 	}
@@ -153,24 +170,27 @@ static int htcpen_isa_probe(struct device *dev, unsigned int id)
 	inb_p(HTCPEN_PORT_IRQ_CLEAR);
 
 	err = input_register_device(htcpen_dev);
+
 	if (err)
+	{
 		goto input_register_failed;
+	}
 
 	dev_set_drvdata(dev, htcpen_dev);
 
 	return 0;
 
- input_register_failed:
+input_register_failed:
 	free_irq(HTCPEN_IRQ, htcpen_dev);
- request_irq_failed:
+request_irq_failed:
 	input_free_device(htcpen_dev);
- input_alloc_failed:
+input_alloc_failed:
 	release_region(HTCPEN_PORT_INDEX, 2);
- request_region3_failed:
+request_region3_failed:
 	release_region(HTCPEN_PORT_INIT, 1);
- request_region2_failed:
+request_region2_failed:
 	release_region(HTCPEN_PORT_IRQ_CLEAR, 1);
- request_region1_failed:
+request_region1_failed:
 	return err;
 }
 
@@ -191,7 +211,7 @@ static int htcpen_isa_remove(struct device *dev, unsigned int id)
 
 #ifdef CONFIG_PM
 static int htcpen_isa_suspend(struct device *dev, unsigned int n,
-				pm_message_t state)
+							  pm_message_t state)
 {
 	outb_p(DEVICE_DISABLE, HTCPEN_PORT_INIT);
 
@@ -206,7 +226,8 @@ static int htcpen_isa_resume(struct device *dev, unsigned int n)
 }
 #endif
 
-static struct isa_driver htcpen_isa_driver = {
+static struct isa_driver htcpen_isa_driver =
+{
 	.probe		= htcpen_isa_probe,
 	.remove		= htcpen_isa_remove,
 #ifdef CONFIG_PM
@@ -219,7 +240,8 @@ static struct isa_driver htcpen_isa_driver = {
 	}
 };
 
-static struct dmi_system_id htcshift_dmi_table[] __initdata = {
+static struct dmi_system_id htcshift_dmi_table[] __initdata =
+{
 	{
 		.ident = "Shift",
 		.matches = {
@@ -234,7 +256,9 @@ MODULE_DEVICE_TABLE(dmi, htcshift_dmi_table);
 static int __init htcpen_isa_init(void)
 {
 	if (!dmi_check_system(htcshift_dmi_table))
+	{
 		return -ENODEV;
+	}
 
 	return isa_register_driver(&htcpen_isa_driver, 1);
 }

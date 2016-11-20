@@ -11,7 +11,8 @@
  * SCI register subset common for all port types.
  * Not all registers will exist on all parts.
  */
-enum {
+enum
+{
 	SCSMR,				/* Serial Mode Register */
 	SCBRR,				/* Bit Rate Register */
 	SCSCR,				/* Serial Control Register */

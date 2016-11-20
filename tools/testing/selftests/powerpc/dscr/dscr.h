@@ -80,20 +80,27 @@ unsigned long get_default_dscr(void)
 	char buf[16];
 	unsigned long val;
 
-	if (fd == -1) {
+	if (fd == -1)
+	{
 		fd = open(DSCR_DEFAULT, O_RDONLY);
-		if (fd == -1) {
+
+		if (fd == -1)
+		{
 			perror("open() failed");
 			exit(1);
 		}
 	}
+
 	memset(buf, 0, sizeof(buf));
 	lseek(fd, 0, SEEK_SET);
 	ret = read(fd, buf, sizeof(buf));
-	if (ret == -1) {
+
+	if (ret == -1)
+	{
 		perror("read() failed");
 		exit(1);
 	}
+
 	sscanf(buf, "%lx", &val);
 	close(fd);
 	return val;
@@ -104,19 +111,26 @@ void set_default_dscr(unsigned long val)
 	int fd = -1, ret;
 	char buf[16];
 
-	if (fd == -1) {
+	if (fd == -1)
+	{
 		fd = open(DSCR_DEFAULT, O_RDWR);
-		if (fd == -1) {
+
+		if (fd == -1)
+		{
 			perror("open() failed");
 			exit(1);
 		}
 	}
+
 	sprintf(buf, "%lx\n", val);
 	ret = write(fd, buf, strlen(buf));
-	if (ret == -1) {
+
+	if (ret == -1)
+	{
 		perror("write() failed");
 		exit(1);
 	}
+
 	close(fd);
 }
 

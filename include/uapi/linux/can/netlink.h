@@ -27,7 +27,8 @@
  * REQUIREMENTS" of the "Bosch CAN Specification version 2.0"
  * at http://www.semiconductors.bosch.de/pdf/can2spec.pdf.
  */
-struct can_bittiming {
+struct can_bittiming
+{
 	__u32 bitrate;		/* Bit-rate in bits/second */
 	__u32 sample_point;	/* Sample point in one-tenth of a percent */
 	__u32 tq;		/* Time quanta (TQ) in nanoseconds */
@@ -43,7 +44,8 @@ struct can_bittiming {
  *
  * Used for calculating and checking bit-timing parameters
  */
-struct can_bittiming_const {
+struct can_bittiming_const
+{
 	char name[16];		/* Name of the CAN controller hardware */
 	__u32 tseg1_min;	/* Time segement 1 = prop_seg + phase_seg1 */
 	__u32 tseg1_max;
@@ -58,14 +60,16 @@ struct can_bittiming_const {
 /*
  * CAN clock parameters
  */
-struct can_clock {
+struct can_clock
+{
 	__u32 freq;		/* CAN system clock frequency in Hz */
 };
 
 /*
  * CAN operational and error states
  */
-enum can_state {
+enum can_state
+{
 	CAN_STATE_ERROR_ACTIVE = 0,	/* RX/TX error count < 96 */
 	CAN_STATE_ERROR_WARNING,	/* RX/TX error count < 128 */
 	CAN_STATE_ERROR_PASSIVE,	/* RX/TX error count < 256 */
@@ -78,7 +82,8 @@ enum can_state {
 /*
  * CAN bus error counters
  */
-struct can_berr_counter {
+struct can_berr_counter
+{
 	__u16 txerr;
 	__u16 rxerr;
 };
@@ -86,7 +91,8 @@ struct can_berr_counter {
 /*
  * CAN controller mode
  */
-struct can_ctrlmode {
+struct can_ctrlmode
+{
 	__u32 mask;
 	__u32 flags;
 };
@@ -103,7 +109,8 @@ struct can_ctrlmode {
 /*
  * CAN device statistics
  */
-struct can_device_stats {
+struct can_device_stats
+{
 	__u32 bus_error;	/* Bus errors */
 	__u32 error_warning;	/* Changes to error warning state */
 	__u32 error_passive;	/* Changes to error passive state */
@@ -115,7 +122,8 @@ struct can_device_stats {
 /*
  * CAN netlink interface
  */
-enum {
+enum
+{
 	IFLA_CAN_UNSPEC,
 	IFLA_CAN_BITTIMING,
 	IFLA_CAN_BITTIMING_CONST,

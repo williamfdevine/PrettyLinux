@@ -26,7 +26,8 @@
 
 /* platform_device configuration data, should be assigned to
  * the platform_device's dev.platform_data */
-struct smsc911x_platform_config {
+struct smsc911x_platform_config
+{
 	unsigned int irq_polarity;
 	unsigned int irq_type;
 	unsigned int flags;

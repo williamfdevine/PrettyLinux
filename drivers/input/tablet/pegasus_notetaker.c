@@ -68,7 +68,8 @@
 #define PEN_BUTTON_PRESSED		BIT(1)
 #define PEN_TIP				BIT(0)
 
-struct pegasus {
+struct pegasus
+{
 	unsigned char *data;
 	u8 data_len;
 	dma_addr_t data_dma;
@@ -89,26 +90,30 @@ static int pegasus_control_msg(struct pegasus *pegasus, u8 *data, int len)
 	u8 *cmd_buf;
 
 	cmd_buf = kmalloc(sizeof_buf, GFP_KERNEL);
+
 	if (!cmd_buf)
+	{
 		return -ENOMEM;
+	}
 
 	cmd_buf[0] = NOTETAKER_REPORT_ID;
 	cmd_buf[1] = len;
 	memcpy(cmd_buf + 2, data, len);
 
 	result = usb_control_msg(pegasus->usbdev,
-				 usb_sndctrlpipe(pegasus->usbdev, 0),
-				 USB_REQ_SET_REPORT,
-				 USB_TYPE_VENDOR | USB_DIR_OUT,
-				 0, 0, cmd_buf, sizeof_buf,
-				 USB_CTRL_SET_TIMEOUT);
+							 usb_sndctrlpipe(pegasus->usbdev, 0),
+							 USB_REQ_SET_REPORT,
+							 USB_TYPE_VENDOR | USB_DIR_OUT,
+							 0, 0, cmd_buf, sizeof_buf,
+							 USB_CTRL_SET_TIMEOUT);
 
 	kfree(cmd_buf);
 
-	if (unlikely(result != sizeof_buf)) {
+	if (unlikely(result != sizeof_buf))
+	{
 		error = result < 0 ? result : -EIO;
 		dev_err(&pegasus->usbdev->dev, "control msg error: %d\n",
-			error);
+				error);
 		return error;
 	}
 
@@ -128,40 +133,47 @@ static void pegasus_parse_packet(struct pegasus *pegasus)
 	struct input_dev *dev = pegasus->dev;
 	u16 x, y;
 
-	switch (data[0]) {
-	case SPECIAL_COMMAND:
-		/* device button pressed */
-		if (data[1] == BUTTON_PRESSED)
-			schedule_work(&pegasus->init);
+	switch (data[0])
+	{
+		case SPECIAL_COMMAND:
 
-		break;
+			/* device button pressed */
+			if (data[1] == BUTTON_PRESSED)
+			{
+				schedule_work(&pegasus->init);
+			}
 
-	/* xy data */
-	case BATTERY_LOW:
-		dev_warn_once(&dev->dev, "Pen battery low\n");
-		/* fall through */
-
-	case BATTERY_NO_REPORT:
-	case BATTERY_GOOD:
-		x = le16_to_cpup((__le16 *)&data[2]);
-		y = le16_to_cpup((__le16 *)&data[4]);
-
-		/* pen-up event */
-		if (x == 0 && y == 0)
 			break;
 
-		input_report_key(dev, BTN_TOUCH, data[1] & PEN_TIP);
-		input_report_key(dev, BTN_RIGHT, data[1] & PEN_BUTTON_PRESSED);
-		input_report_key(dev, BTN_TOOL_PEN, 1);
-		input_report_abs(dev, ABS_X, (s16)x);
-		input_report_abs(dev, ABS_Y, y);
+		/* xy data */
+		case BATTERY_LOW:
+			dev_warn_once(&dev->dev, "Pen battery low\n");
 
-		input_sync(dev);
-		break;
+		/* fall through */
 
-	default:
-		dev_warn_once(&pegasus->usbdev->dev,
-			      "unknown answer from device\n");
+		case BATTERY_NO_REPORT:
+		case BATTERY_GOOD:
+			x = le16_to_cpup((__le16 *)&data[2]);
+			y = le16_to_cpup((__le16 *)&data[4]);
+
+			/* pen-up event */
+			if (x == 0 && y == 0)
+			{
+				break;
+			}
+
+			input_report_key(dev, BTN_TOUCH, data[1] & PEN_TIP);
+			input_report_key(dev, BTN_RIGHT, data[1] & PEN_BUTTON_PRESSED);
+			input_report_key(dev, BTN_TOOL_PEN, 1);
+			input_report_abs(dev, ABS_X, (s16)x);
+			input_report_abs(dev, ABS_Y, y);
+
+			input_sync(dev);
+			break;
+
+		default:
+			dev_warn_once(&pegasus->usbdev->dev,
+						  "unknown answer from device\n");
 	}
 }
 
@@ -171,29 +183,31 @@ static void pegasus_irq(struct urb *urb)
 	struct usb_device *dev = pegasus->usbdev;
 	int retval;
 
-	switch (urb->status) {
-	case 0:
-		pegasus_parse_packet(pegasus);
-		usb_mark_last_busy(pegasus->usbdev);
-		break;
+	switch (urb->status)
+	{
+		case 0:
+			pegasus_parse_packet(pegasus);
+			usb_mark_last_busy(pegasus->usbdev);
+			break;
 
-	case -ECONNRESET:
-	case -ENOENT:
-	case -ESHUTDOWN:
-		dev_err(&dev->dev, "%s - urb shutting down with status: %d",
-			__func__, urb->status);
-		return;
+		case -ECONNRESET:
+		case -ENOENT:
+		case -ESHUTDOWN:
+			dev_err(&dev->dev, "%s - urb shutting down with status: %d",
+					__func__, urb->status);
+			return;
 
-	default:
-		dev_err(&dev->dev, "%s - nonzero urb status received: %d",
-			__func__, urb->status);
-		break;
+		default:
+			dev_err(&dev->dev, "%s - nonzero urb status received: %d",
+					__func__, urb->status);
+			break;
 	}
 
 	retval = usb_submit_urb(urb, GFP_ATOMIC);
+
 	if (retval)
 		dev_err(&dev->dev, "%s - usb_submit_urb failed with result %d",
-			__func__, retval);
+				__func__, retval);
 }
 
 static void pegasus_init(struct work_struct *work)
@@ -202,9 +216,10 @@ static void pegasus_init(struct work_struct *work)
 	int error;
 
 	error = pegasus_set_mode(pegasus, PEN_MODE_XY, NOTETAKER_LED_MOUSE);
+
 	if (error)
 		dev_err(&pegasus->usbdev->dev, "pegasus_set_mode error: %d\n",
-			error);
+				error);
 }
 
 static int pegasus_open(struct input_dev *dev)
@@ -213,18 +228,26 @@ static int pegasus_open(struct input_dev *dev)
 	int error;
 
 	error = usb_autopm_get_interface(pegasus->intf);
+
 	if (error)
+	{
 		return error;
+	}
 
 	pegasus->irq->dev = pegasus->usbdev;
-	if (usb_submit_urb(pegasus->irq, GFP_KERNEL)) {
+
+	if (usb_submit_urb(pegasus->irq, GFP_KERNEL))
+	{
 		error = -EIO;
 		goto err_autopm_put;
 	}
 
 	error = pegasus_set_mode(pegasus, PEN_MODE_XY, NOTETAKER_LED_MOUSE);
+
 	if (error)
+	{
 		goto err_kill_urb;
+	}
 
 	return 0;
 
@@ -246,7 +269,7 @@ static void pegasus_close(struct input_dev *dev)
 }
 
 static int pegasus_probe(struct usb_interface *intf,
-			 const struct usb_device_id *id)
+						 const struct usb_device_id *id)
 {
 	struct usb_device *dev = interface_to_usbdev(intf);
 	struct usb_endpoint_descriptor *endpoint;
@@ -257,10 +280,13 @@ static int pegasus_probe(struct usb_interface *intf,
 
 	/* We control interface 0 */
 	if (intf->cur_altsetting->desc.bInterfaceNumber >= 1)
+	{
 		return -ENODEV;
+	}
 
 	/* Sanity check that the device has an endpoint */
-	if (intf->altsetting[0].desc.bNumEndpoints < 1) {
+	if (intf->altsetting[0].desc.bNumEndpoints < 1)
+	{
 		dev_err(&intf->dev, "Invalid number of endpoints\n");
 		return -EINVAL;
 	}
@@ -269,7 +295,9 @@ static int pegasus_probe(struct usb_interface *intf,
 
 	pegasus = kzalloc(sizeof(*pegasus), GFP_KERNEL);
 	input_dev = input_allocate_device();
-	if (!pegasus || !input_dev) {
+
+	if (!pegasus || !input_dev)
+	{
 		error = -ENOMEM;
 		goto err_free_mem;
 	}
@@ -282,40 +310,48 @@ static int pegasus_probe(struct usb_interface *intf,
 	pegasus->data_len = usb_maxpacket(dev, pipe, usb_pipeout(pipe));
 
 	pegasus->data = usb_alloc_coherent(dev, pegasus->data_len, GFP_KERNEL,
-					   &pegasus->data_dma);
-	if (!pegasus->data) {
+									   &pegasus->data_dma);
+
+	if (!pegasus->data)
+	{
 		error = -ENOMEM;
 		goto err_free_mem;
 	}
 
 	pegasus->irq = usb_alloc_urb(0, GFP_KERNEL);
-	if (!pegasus->irq) {
+
+	if (!pegasus->irq)
+	{
 		error = -ENOMEM;
 		goto err_free_dma;
 	}
 
 	usb_fill_int_urb(pegasus->irq, dev, pipe,
-			 pegasus->data, pegasus->data_len,
-			 pegasus_irq, pegasus, endpoint->bInterval);
+					 pegasus->data, pegasus->data_len,
+					 pegasus_irq, pegasus, endpoint->bInterval);
 
 	pegasus->irq->transfer_dma = pegasus->data_dma;
 	pegasus->irq->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
 
 	if (dev->manufacturer)
 		strlcpy(pegasus->name, dev->manufacturer,
-			sizeof(pegasus->name));
+				sizeof(pegasus->name));
 
-	if (dev->product) {
+	if (dev->product)
+	{
 		if (dev->manufacturer)
+		{
 			strlcat(pegasus->name, " ", sizeof(pegasus->name));
+		}
+
 		strlcat(pegasus->name, dev->product, sizeof(pegasus->name));
 	}
 
 	if (!strlen(pegasus->name))
 		snprintf(pegasus->name, sizeof(pegasus->name),
-			 "USB Pegasus Device %04x:%04x",
-			 le16_to_cpu(dev->descriptor.idVendor),
-			 le16_to_cpu(dev->descriptor.idProduct));
+				 "USB Pegasus Device %04x:%04x",
+				 le16_to_cpu(dev->descriptor.idVendor),
+				 le16_to_cpu(dev->descriptor.idProduct));
 
 	usb_make_path(dev, pegasus->phys, sizeof(pegasus->phys));
 	strlcat(pegasus->phys, "/input0", sizeof(pegasus->phys));
@@ -351,8 +387,11 @@ static int pegasus_probe(struct usb_interface *intf,
 	input_set_abs_params(input_dev, ABS_Y, 1600, 3000, 8, 0);
 
 	error = input_register_device(pegasus->dev);
+
 	if (error)
+	{
 		goto err_free_urb;
+	}
 
 	return 0;
 
@@ -360,7 +399,7 @@ err_free_urb:
 	usb_free_urb(pegasus->irq);
 err_free_dma:
 	usb_free_coherent(dev, pegasus->data_len,
-			  pegasus->data, pegasus->data_dma);
+					  pegasus->data, pegasus->data_dma);
 err_free_mem:
 	input_free_device(input_dev);
 	kfree(pegasus);
@@ -377,8 +416,8 @@ static void pegasus_disconnect(struct usb_interface *intf)
 
 	usb_free_urb(pegasus->irq);
 	usb_free_coherent(interface_to_usbdev(intf),
-			  pegasus->data_len, pegasus->data,
-			  pegasus->data_dma);
+					  pegasus->data_len, pegasus->data,
+					  pegasus->data_dma);
 
 	kfree(pegasus);
 	usb_set_intfdata(intf, NULL);
@@ -402,8 +441,12 @@ static int pegasus_resume(struct usb_interface *intf)
 	int retval = 0;
 
 	mutex_lock(&pegasus->dev->mutex);
+
 	if (pegasus->dev->users && usb_submit_urb(pegasus->irq, GFP_NOIO) < 0)
+	{
 		retval = -EIO;
+	}
+
 	mutex_unlock(&pegasus->dev->mutex);
 
 	return retval;
@@ -415,25 +458,35 @@ static int pegasus_reset_resume(struct usb_interface *intf)
 	int retval = 0;
 
 	mutex_lock(&pegasus->dev->mutex);
-	if (pegasus->dev->users) {
+
+	if (pegasus->dev->users)
+	{
 		retval = pegasus_set_mode(pegasus, PEN_MODE_XY,
-					  NOTETAKER_LED_MOUSE);
+								  NOTETAKER_LED_MOUSE);
+
 		if (!retval && usb_submit_urb(pegasus->irq, GFP_NOIO) < 0)
+		{
 			retval = -EIO;
+		}
 	}
+
 	mutex_unlock(&pegasus->dev->mutex);
 
 	return retval;
 }
 
-static const struct usb_device_id pegasus_ids[] = {
-	{ USB_DEVICE(USB_VENDOR_ID_PEGASUSTECH,
-		     USB_DEVICE_ID_PEGASUS_NOTETAKER_EN100) },
+static const struct usb_device_id pegasus_ids[] =
+{
+	{
+		USB_DEVICE(USB_VENDOR_ID_PEGASUSTECH,
+		USB_DEVICE_ID_PEGASUS_NOTETAKER_EN100)
+	},
 	{ }
 };
 MODULE_DEVICE_TABLE(usb, pegasus_ids);
 
-static struct usb_driver pegasus_driver = {
+static struct usb_driver pegasus_driver =
+{
 	.name		= "pegasus_notetaker",
 	.probe		= pegasus_probe,
 	.disconnect	= pegasus_disconnect,

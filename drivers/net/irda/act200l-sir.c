@@ -83,7 +83,8 @@ static int act200l_change_speed(struct sir_dev *dev, unsigned speed);
 #define ACT200L_EXCK    0x02 /* Disable clock output driver */
 #define ACT200L_OSCL    0x04 /* oscillator in low power, medium accuracy mode */
 
-static struct dongle_driver act200l = {
+static struct dongle_driver act200l =
+{
 	.owner		= THIS_MODULE,
 	.driver_name	= "ACTiSYS ACT-IR200L",
 	.type		= IRDA_ACT200L_DONGLE,
@@ -111,7 +112,7 @@ static int act200l_open(struct sir_dev *dev)
 	sirdev_set_dtr_rts(dev, TRUE, TRUE);
 
 	/* Set the speeds we can accept */
-	qos->baud_rate.bits &= IR_9600|IR_19200|IR_38400|IR_57600|IR_115200;
+	qos->baud_rate.bits &= IR_9600 | IR_19200 | IR_38400 | IR_57600 | IR_115200;
 	qos->min_turn_time.bits = 0x03;
 	irda_qos_bits_to_value(qos);
 
@@ -142,31 +143,38 @@ static int act200l_change_speed(struct sir_dev *dev, unsigned speed)
 	/* Clear DTR and set RTS to enter command mode */
 	sirdev_set_dtr_rts(dev, FALSE, TRUE);
 
-	switch (speed) {
-	default:
-		ret = -EINVAL;
+	switch (speed)
+	{
+		default:
+			ret = -EINVAL;
+
 		/* fall through */
-	case 9600:
-		control[0] = ACT200L_REG8 |  (ACT200L_9600       & 0x0f);
-		control[1] = ACT200L_REG9 | ((ACT200L_9600 >> 4) & 0x0f);
-		break;
-	case 19200:
-		control[0] = ACT200L_REG8 |  (ACT200L_19200       & 0x0f);
-		control[1] = ACT200L_REG9 | ((ACT200L_19200 >> 4) & 0x0f);
-		break;
-	case 38400:
-		control[0] = ACT200L_REG8 |  (ACT200L_38400       & 0x0f);
-		control[1] = ACT200L_REG9 | ((ACT200L_38400 >> 4) & 0x0f);
-		break;
-	case 57600:
-		control[0] = ACT200L_REG8 |  (ACT200L_57600       & 0x0f);
-		control[1] = ACT200L_REG9 | ((ACT200L_57600 >> 4) & 0x0f);
-		break;
-	case 115200:
-		control[0] = ACT200L_REG8 |  (ACT200L_115200       & 0x0f);
-		control[1] = ACT200L_REG9 | ((ACT200L_115200 >> 4) & 0x0f);
-		break;
+		case 9600:
+			control[0] = ACT200L_REG8 |  (ACT200L_9600       & 0x0f);
+			control[1] = ACT200L_REG9 | ((ACT200L_9600 >> 4) & 0x0f);
+			break;
+
+		case 19200:
+			control[0] = ACT200L_REG8 |  (ACT200L_19200       & 0x0f);
+			control[1] = ACT200L_REG9 | ((ACT200L_19200 >> 4) & 0x0f);
+			break;
+
+		case 38400:
+			control[0] = ACT200L_REG8 |  (ACT200L_38400       & 0x0f);
+			control[1] = ACT200L_REG9 | ((ACT200L_38400 >> 4) & 0x0f);
+			break;
+
+		case 57600:
+			control[0] = ACT200L_REG8 |  (ACT200L_57600       & 0x0f);
+			control[1] = ACT200L_REG9 | ((ACT200L_57600 >> 4) & 0x0f);
+			break;
+
+		case 115200:
+			control[0] = ACT200L_REG8 |  (ACT200L_115200       & 0x0f);
+			control[1] = ACT200L_REG9 | ((ACT200L_115200 >> 4) & 0x0f);
+			break;
 	}
+
 	control[2] = ACT200L_REG1 | ACT200L_LODB | ACT200L_WIDE;
 
 	/* Write control bytes */
@@ -193,7 +201,8 @@ static int act200l_reset(struct sir_dev *dev)
 {
 	unsigned state = dev->fsm.substate;
 	unsigned delay = 0;
-	static const u8 control[9] = {
+	static const u8 control[9] =
+	{
 		ACT200L_REG15,
 		ACT200L_REG13 | ACT200L_SHDW,
 		ACT200L_REG21 | ACT200L_EXCK | ACT200L_OSCL,
@@ -206,37 +215,40 @@ static int act200l_reset(struct sir_dev *dev)
 	};
 	int ret = 0;
 
-	switch (state) {
-	case SIRDEV_STATE_DONGLE_RESET:
-		/* Reset the dongle : set RTS low for 25 ms */
-		sirdev_set_dtr_rts(dev, TRUE, FALSE);
-		state = ACT200L_STATE_WAIT1_RESET;
-		delay = 50;
-		break;
+	switch (state)
+	{
+		case SIRDEV_STATE_DONGLE_RESET:
+			/* Reset the dongle : set RTS low for 25 ms */
+			sirdev_set_dtr_rts(dev, TRUE, FALSE);
+			state = ACT200L_STATE_WAIT1_RESET;
+			delay = 50;
+			break;
 
-	case ACT200L_STATE_WAIT1_RESET:
-		/* Clear DTR and set RTS to enter command mode */
-		sirdev_set_dtr_rts(dev, FALSE, TRUE);
+		case ACT200L_STATE_WAIT1_RESET:
+			/* Clear DTR and set RTS to enter command mode */
+			sirdev_set_dtr_rts(dev, FALSE, TRUE);
 
-		udelay(25);			/* better wait for some short while */
+			udelay(25);			/* better wait for some short while */
 
-		/* Write control bytes */
-		sirdev_raw_write(dev, control, sizeof(control));
-		state = ACT200L_STATE_WAIT2_RESET;
-		delay = 15;
-		break;
+			/* Write control bytes */
+			sirdev_raw_write(dev, control, sizeof(control));
+			state = ACT200L_STATE_WAIT2_RESET;
+			delay = 15;
+			break;
 
-	case ACT200L_STATE_WAIT2_RESET:
-		/* Go back to normal mode */
-		sirdev_set_dtr_rts(dev, TRUE, TRUE);
-		dev->speed = 9600;
-		break;
-	default:
-		net_err_ratelimited("%s(), unknown state %d\n",
-				    __func__, state);
-		ret = -1;
-		break;
+		case ACT200L_STATE_WAIT2_RESET:
+			/* Go back to normal mode */
+			sirdev_set_dtr_rts(dev, TRUE, TRUE);
+			dev->speed = 9600;
+			break;
+
+		default:
+			net_err_ratelimited("%s(), unknown state %d\n",
+								__func__, state);
+			ret = -1;
+			break;
 	}
+
 	dev->fsm.substate = state;
 	return (delay > 0) ? delay : ret;
 }

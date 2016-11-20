@@ -38,7 +38,10 @@ enum OID look_up_OID(const void *data, size_t datasize)
 	hash = datasize - 1;
 
 	for (i = 0; i < datasize; i++)
+	{
 		hash += octets[i] * 33;
+	}
+
 	hash = (hash >> 24) ^ (hash >> 16) ^ (hash >> 8) ^ hash;
 	hash &= 0xff;
 
@@ -48,26 +51,36 @@ enum OID look_up_OID(const void *data, size_t datasize)
 	 */
 	i = 0;
 	k = OID__NR;
-	while (i < k) {
+
+	while (i < k)
+	{
 		j = (i + k) / 2;
 
 		xhash = oid_search_table[j].hash;
-		if (xhash > hash) {
+
+		if (xhash > hash)
+		{
 			k = j;
 			continue;
 		}
-		if (xhash < hash) {
+
+		if (xhash < hash)
+		{
 			i = j + 1;
 			continue;
 		}
 
 		oid = oid_search_table[j].oid;
 		len = oid_index[oid + 1] - oid_index[oid];
-		if (len > datasize) {
+
+		if (len > datasize)
+		{
 			k = j;
 			continue;
 		}
-		if (len < datasize) {
+
+		if (len < datasize)
+		{
 			i = j + 1;
 			continue;
 		}
@@ -75,20 +88,26 @@ enum OID look_up_OID(const void *data, size_t datasize)
 		/* Variation is most likely to be at the tail end of the
 		 * OID, so do the comparison in reverse.
 		 */
-		while (len > 0) {
+		while (len > 0)
+		{
 			unsigned char a = oid_data[oid_index[oid] + --len];
 			unsigned char b = octets[len];
-			if (a > b) {
+
+			if (a > b)
+			{
 				k = j;
 				goto next;
 			}
-			if (a < b) {
+
+			if (a < b)
+			{
 				i = j + 1;
 				goto next;
 			}
 		}
+
 		return oid;
-	next:
+next:
 		;
 	}
 
@@ -116,35 +135,55 @@ int sprint_oid(const void *data, size_t datasize, char *buffer, size_t bufsize)
 	int count;
 
 	if (v >= end)
+	{
 		return -EBADMSG;
+	}
 
 	n = *v++;
 	ret = count = snprintf(buffer, bufsize, "%u.%u", n / 40, n % 40);
 	buffer += count;
 	bufsize -= count;
-	if (bufsize == 0)
-		return -ENOBUFS;
 
-	while (v < end) {
+	if (bufsize == 0)
+	{
+		return -ENOBUFS;
+	}
+
+	while (v < end)
+	{
 		num = 0;
 		n = *v++;
-		if (!(n & 0x80)) {
+
+		if (!(n & 0x80))
+		{
 			num = n;
-		} else {
+		}
+		else
+		{
 			num = n & 0x7f;
-			do {
+
+			do
+			{
 				if (v >= end)
+				{
 					return -EBADMSG;
+				}
+
 				n = *v++;
 				num <<= 7;
 				num |= n & 0x7f;
-			} while (n & 0x80);
+			}
+			while (n & 0x80);
 		}
+
 		ret += count = snprintf(buffer, bufsize, ".%lu", num);
 		buffer += count;
 		bufsize -= count;
+
 		if (bufsize == 0)
+		{
 			return -ENOBUFS;
+		}
 	}
 
 	return ret;
@@ -167,8 +206,8 @@ int sprint_OID(enum OID oid, char *buffer, size_t bufsize)
 	BUG_ON(oid >= OID__NR);
 
 	ret = sprint_oid(oid_data + oid_index[oid],
-			 oid_index[oid + 1] - oid_index[oid],
-			 buffer, bufsize);
+					 oid_index[oid + 1] - oid_index[oid],
+					 buffer, bufsize);
 	BUG_ON(ret == -EBADMSG);
 	return ret;
 }

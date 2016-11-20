@@ -22,10 +22,11 @@ extern int scsi_is_sas_rphy(const struct device *);
 static inline int sas_protocol_ata(enum sas_protocol proto)
 {
 	return ((proto & SAS_PROTOCOL_SATA) ||
-		(proto & SAS_PROTOCOL_STP))? 1 : 0;
+			(proto & SAS_PROTOCOL_STP)) ? 1 : 0;
 }
 
-enum sas_linkrate {
+enum sas_linkrate
+{
 	/* These Values are defined in the SAS standard */
 	SAS_LINK_RATE_UNKNOWN = 0,
 	SAS_PHY_DISABLED = 1,
@@ -46,7 +47,8 @@ enum sas_linkrate {
 	SAS_PHY_VIRTUAL = 0x11,
 };
 
-struct sas_identify {
+struct sas_identify
+{
 	enum sas_device_type	device_type;
 	enum sas_protocol	initiator_port_protocols;
 	enum sas_protocol	target_port_protocols;
@@ -54,7 +56,8 @@ struct sas_identify {
 	u8			phy_identifier;
 };
 
-struct sas_phy {
+struct sas_phy
+{
 	struct device		dev;
 	int			number;
 	int			enabled;
@@ -90,7 +93,8 @@ struct sas_phy {
 	dev_to_shost((phy)->dev.parent)
 
 struct request_queue;
-struct sas_rphy {
+struct sas_rphy
+{
 	struct device		dev;
 	struct sas_identify	identify;
 	struct list_head	list;
@@ -107,12 +111,13 @@ struct sas_rphy {
 #define target_to_rphy(targ) \
 	dev_to_rphy((targ)->dev.parent)
 
-struct sas_end_device {
+struct sas_end_device
+{
 	struct sas_rphy		rphy;
 	/* flags */
-	unsigned		ready_led_meaning:1;
-	unsigned		tlr_supported:1;
-	unsigned		tlr_enabled:1;
+	unsigned		ready_led_meaning: 1;
+	unsigned		tlr_supported: 1;
+	unsigned		tlr_enabled: 1;
 	/* parameters */
 	u16			I_T_nexus_loss_timeout;
 	u16			initiator_response_timeout;
@@ -120,18 +125,19 @@ struct sas_end_device {
 #define rphy_to_end_device(r) \
 	container_of((r), struct sas_end_device, rphy)
 
-struct sas_expander_device {
+struct sas_expander_device
+{
 	int    level;
 	int    next_port_id;
 
-	#define SAS_EXPANDER_VENDOR_ID_LEN	8
-	char   vendor_id[SAS_EXPANDER_VENDOR_ID_LEN+1];
-	#define SAS_EXPANDER_PRODUCT_ID_LEN	16
-	char   product_id[SAS_EXPANDER_PRODUCT_ID_LEN+1];
-	#define SAS_EXPANDER_PRODUCT_REV_LEN	4
-	char   product_rev[SAS_EXPANDER_PRODUCT_REV_LEN+1];
-	#define SAS_EXPANDER_COMPONENT_VENDOR_ID_LEN	8
-	char   component_vendor_id[SAS_EXPANDER_COMPONENT_VENDOR_ID_LEN+1];
+#define SAS_EXPANDER_VENDOR_ID_LEN	8
+	char   vendor_id[SAS_EXPANDER_VENDOR_ID_LEN + 1];
+#define SAS_EXPANDER_PRODUCT_ID_LEN	16
+	char   product_id[SAS_EXPANDER_PRODUCT_ID_LEN + 1];
+#define SAS_EXPANDER_PRODUCT_REV_LEN	4
+	char   product_rev[SAS_EXPANDER_PRODUCT_REV_LEN + 1];
+#define SAS_EXPANDER_COMPONENT_VENDOR_ID_LEN	8
+	char   component_vendor_id[SAS_EXPANDER_COMPONENT_VENDOR_ID_LEN + 1];
 	u16    component_id;
 	u8     component_revision_id;
 
@@ -141,13 +147,14 @@ struct sas_expander_device {
 #define rphy_to_expander_device(r) \
 	container_of((r), struct sas_expander_device, rphy)
 
-struct sas_port {
+struct sas_port
+{
 	struct device		dev;
 
 	int			port_identifier;
 	int			num_phys;
 	/* port flags */
-	unsigned int		is_backlink:1;
+	unsigned int		is_backlink: 1;
 
 	/* the other end of the link */
 	struct sas_rphy		*rphy;
@@ -161,13 +168,15 @@ struct sas_port {
 #define transport_class_to_sas_port(dev) \
 	dev_to_sas_port((dev)->parent)
 
-struct sas_phy_linkrates {
+struct sas_phy_linkrates
+{
 	enum sas_linkrate maximum_linkrate;
 	enum sas_linkrate minimum_linkrate;
 };
 
 /* The functions by which the transport class and the driver communicate */
-struct sas_function_template {
+struct sas_function_template
+{
 	int (*get_linkerrors)(struct sas_phy *);
 	int (*get_enclosure_identifier)(struct sas_rphy *, u64 *);
 	int (*get_bay_identifier)(struct sas_rphy *);
@@ -216,7 +225,9 @@ struct sas_phy *sas_port_get_phy(struct sas_port *port);
 static inline void sas_port_put_phy(struct sas_phy *phy)
 {
 	if (phy)
+	{
 		put_device(&phy->dev);
+	}
 }
 
 extern struct scsi_transport_template *
@@ -228,11 +239,15 @@ static inline int
 scsi_is_sas_expander_device(struct device *dev)
 {
 	struct sas_rphy *rphy;
+
 	if (!scsi_is_sas_rphy(dev))
+	{
 		return 0;
+	}
+
 	rphy = dev_to_rphy(dev);
 	return rphy->identify.device_type == SAS_FANOUT_EXPANDER_DEVICE ||
-		rphy->identify.device_type == SAS_EDGE_EXPANDER_DEVICE;
+		   rphy->identify.device_type == SAS_EDGE_EXPANDER_DEVICE;
 }
 
 #define scsi_is_sas_phy_local(phy)	scsi_is_host_device((phy)->dev.parent)

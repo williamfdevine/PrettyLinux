@@ -4,7 +4,7 @@
  *
  *  Copyright (C) 1999 Eric A. Thomas
  *   Based on acornfb.c Copyright (C) Russell King.
- *  
+ *
  * This file is subject to the terms and conditions of the GNU General Public
  * License.  See the file COPYING in the main directory of this archive
  * for more details.
@@ -21,14 +21,16 @@
 #define LCCR3           0x0028          /* LCD Control Reg. 3 */
 
 /* Shadows for LCD controller registers */
-struct sa1100fb_lcd_reg {
+struct sa1100fb_lcd_reg
+{
 	unsigned long lccr0;
 	unsigned long lccr1;
 	unsigned long lccr2;
 	unsigned long lccr3;
 };
 
-struct sa1100fb_info {
+struct sa1100fb_info
+{
 	struct fb_info		fb;
 	struct device		*dev;
 	const struct sa1100fb_rgb *rgb[NR_RGB];
@@ -39,12 +41,12 @@ struct sa1100fb_info {
 	 * the framebuffer memory region to.
 	 */
 	dma_addr_t		map_dma;
-	u_char *		map_cpu;
+	u_char 		*map_cpu;
 	u_int			map_size;
 
-	u_char *		screen_cpu;
+	u_char 		*screen_cpu;
 	dma_addr_t		screen_dma;
-	u16 *			palette_cpu;
+	u16 			*palette_cpu;
 	dma_addr_t		palette_dma;
 	u_int			palette_size;
 

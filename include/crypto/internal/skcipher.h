@@ -1,11 +1,11 @@
 /*
  * Symmetric key ciphers.
- * 
+ *
  * Copyright (c) 2007 Herbert Xu <herbert@gondor.apana.org.au>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option) 
+ * Software Foundation; either version 2 of the License, or (at your option)
  * any later version.
  *
  */
@@ -19,10 +19,13 @@
 
 struct rtattr;
 
-struct skcipher_instance {
+struct skcipher_instance
+{
 	void (*free)(struct skcipher_instance *inst);
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			char head[offsetof(struct skcipher_alg, base)];
 			struct crypto_instance base;
 		} s;
@@ -30,7 +33,8 @@ struct skcipher_instance {
 	};
 };
 
-struct crypto_skcipher_spawn {
+struct crypto_skcipher_spawn
+{
 	struct crypto_spawn base;
 };
 
@@ -46,7 +50,7 @@ static inline struct skcipher_instance *skcipher_alg_instance(
 	struct crypto_skcipher *skcipher)
 {
 	return container_of(crypto_skcipher_alg(skcipher),
-			    struct skcipher_instance, alg);
+						struct skcipher_instance, alg);
 }
 
 static inline void *skcipher_instance_ctx(struct skcipher_instance *inst)
@@ -66,10 +70,10 @@ static inline void crypto_set_skcipher_spawn(
 }
 
 int crypto_grab_skcipher(struct crypto_skcipher_spawn *spawn, const char *name,
-			 u32 type, u32 mask);
+						 u32 type, u32 mask);
 
 static inline int crypto_grab_skcipher2(struct crypto_skcipher_spawn *spawn,
-					const char *name, u32 type, u32 mask)
+										const char *name, u32 type, u32 mask)
 {
 	return crypto_grab_skcipher(spawn, name, type, mask);
 }
@@ -116,10 +120,10 @@ void crypto_unregister_skcipher(struct skcipher_alg *alg);
 int crypto_register_skciphers(struct skcipher_alg *algs, int count);
 void crypto_unregister_skciphers(struct skcipher_alg *algs, int count);
 int skcipher_register_instance(struct crypto_template *tmpl,
-			       struct skcipher_instance *inst);
+							   struct skcipher_instance *inst);
 
 static inline void ablkcipher_request_complete(struct ablkcipher_request *req,
-					       int err)
+		int err)
 {
 	req->base.complete(&req->base, err);
 }
@@ -148,11 +152,15 @@ static inline unsigned int crypto_skcipher_alg_min_keysize(
 	struct skcipher_alg *alg)
 {
 	if ((alg->base.cra_flags & CRYPTO_ALG_TYPE_MASK) ==
-	    CRYPTO_ALG_TYPE_BLKCIPHER)
+		CRYPTO_ALG_TYPE_BLKCIPHER)
+	{
 		return alg->base.cra_blkcipher.min_keysize;
+	}
 
 	if (alg->base.cra_ablkcipher.encrypt)
+	{
 		return alg->base.cra_ablkcipher.min_keysize;
+	}
 
 	return alg->min_keysize;
 }
@@ -161,11 +169,15 @@ static inline unsigned int crypto_skcipher_alg_max_keysize(
 	struct skcipher_alg *alg)
 {
 	if ((alg->base.cra_flags & CRYPTO_ALG_TYPE_MASK) ==
-	    CRYPTO_ALG_TYPE_BLKCIPHER)
+		CRYPTO_ALG_TYPE_BLKCIPHER)
+	{
 		return alg->base.cra_blkcipher.max_keysize;
+	}
 
 	if (alg->base.cra_ablkcipher.encrypt)
+	{
 		return alg->base.cra_ablkcipher.max_keysize;
+	}
 
 	return alg->max_keysize;
 }

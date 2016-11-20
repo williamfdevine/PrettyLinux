@@ -612,16 +612,16 @@
 #define AR_PHY_TXGAIN_TABLE      (AR_SM_BASE + 0x300)
 
 #define AR_PHY_TX_IQCAL_CONTROL_0   (AR_SM_BASE + (AR_SREV_9485(ah) ? \
-						 0x3c4 : 0x444))
+									 0x3c4 : 0x444))
 #define AR_PHY_TX_IQCAL_CONTROL_1   (AR_SM_BASE + (AR_SREV_9485(ah) ? \
-						 0x3c8 : 0x448))
+									 0x3c8 : 0x448))
 #define AR_PHY_TX_IQCAL_START       (AR_SM_BASE + (AR_SREV_9485(ah) ? \
-						 0x3c4 : 0x440))
+									 0x3c4 : 0x440))
 #define AR_PHY_TX_IQCAL_STATUS_B0   (AR_SM_BASE + (AR_SREV_9485(ah) ? \
-						 0x3f0 : 0x48c))
+									 0x3f0 : 0x48c))
 #define AR_PHY_TX_IQCAL_CORR_COEFF_B0(_i)    (AR_SM_BASE + \
-					     (AR_SREV_9485(ah) ? \
-					      0x3d0 : 0x450) + ((_i) << 2))
+		(AR_SREV_9485(ah) ? \
+		 0x3d0 : 0x450) + ((_i) << 2))
 #define AR_PHY_RTT_CTRL			(AR_SM_BASE + 0x380)
 
 #define AR_PHY_WATCHDOG_STATUS      (AR_SM_BASE + 0x5c0)
@@ -685,7 +685,7 @@
 #define AR_PHY_65NM_CH0_RXTX2_SYNTHOVR_MASK_S      3
 
 #define AR_CH0_TOP	(AR_SREV_9300(ah) ? 0x16288 : \
-			 (((AR_SREV_9462(ah) || AR_SREV_9565(ah)) ? 0x1628c : 0x16280)))
+					 (((AR_SREV_9462(ah) || AR_SREV_9565(ah)) ? 0x1628c : 0x16280)))
 #define AR_CH0_TOP_XPABIASLVL (AR_SREV_9550(ah) ? 0x3c0 : 0x300)
 #define AR_CH0_TOP_XPABIASLVL_S (AR_SREV_9550(ah) ? 6 : 8)
 
@@ -706,7 +706,7 @@
 #define AR_SWITCH_TABLE_ALL_S (0)
 
 #define AR_CH0_THERM       (AR_SREV_9300(ah) ? 0x16290 :\
-			    ((AR_SREV_9462(ah) || AR_SREV_9565(ah)) ? 0x16294 : 0x1628c))
+							((AR_SREV_9462(ah) || AR_SREV_9565(ah)) ? 0x16294 : 0x1628c))
 #define AR_CH0_THERM_XPABIASLVL_MSB 0x3
 #define AR_CH0_THERM_XPABIASLVL_MSB_S 0
 #define AR_CH0_THERM_XPASHORT2GND 0x4
@@ -718,25 +718,25 @@
 #define AR_CH0_THERM_SAR_ADC_OUT_S 8
 
 #define AR_CH0_TOP2		(AR_SREV_9300(ah) ? 0x1628c : \
-					(AR_SREV_9462(ah) ? 0x16290 : 0x16284))
+						 (AR_SREV_9462(ah) ? 0x16290 : 0x16284))
 #define AR_CH0_TOP2_XPABIASLVL		(AR_SREV_9561(ah) ? 0x1e00 : 0xf000)
 #define AR_CH0_TOP2_XPABIASLVL_S	12
 
 #define AR_CH0_XTAL		(AR_SREV_9300(ah) ? 0x16294 : \
-				 ((AR_SREV_9462(ah) || AR_SREV_9565(ah)) ? 0x16298 : \
-				  (AR_SREV_9561(ah) ? 0x162c0 : 0x16290)))
+						 ((AR_SREV_9462(ah) || AR_SREV_9565(ah)) ? 0x16298 : \
+						  (AR_SREV_9561(ah) ? 0x162c0 : 0x16290)))
 #define AR_CH0_XTAL_CAPINDAC	0x7f000000
 #define AR_CH0_XTAL_CAPINDAC_S	24
 #define AR_CH0_XTAL_CAPOUTDAC	0x00fe0000
 #define AR_CH0_XTAL_CAPOUTDAC_S	17
 
 #define AR_PHY_PMU1		((AR_SREV_9462(ah) || AR_SREV_9565(ah)) ? 0x16340 : \
-				 (AR_SREV_9561(ah) ? 0x16cc0 : 0x16c40))
+						 (AR_SREV_9561(ah) ? 0x16cc0 : 0x16c40))
 #define AR_PHY_PMU1_PWD		0x1
 #define AR_PHY_PMU1_PWD_S	0
 
 #define AR_PHY_PMU2		((AR_SREV_9462(ah) || AR_SREV_9565(ah)) ? 0x16344 : \
-				 (AR_SREV_9561(ah) ? 0x16cc4 : 0x16c44))
+						 (AR_SREV_9561(ah) ? 0x16cc4 : 0x16c44))
 #define AR_PHY_PMU2_PGM		0x00200000
 #define AR_PHY_PMU2_PGM_S	21
 
@@ -975,7 +975,7 @@
 #define AR_PHY_TPC_6_B1         (AR_SM1_BASE + 0x20c)
 #define AR_PHY_TPC_11_B1        (AR_SM1_BASE + 0x220)
 #define AR_PHY_PDADC_TAB_1	(AR_SM1_BASE + (AR_SREV_9462_20_OR_LATER(ah) ? \
-					0x280 : 0x240))
+							 0x280 : 0x240))
 #define AR_PHY_TPC_19_B1	(AR_SM1_BASE + 0x240)
 #define AR_PHY_TPC_19_B1_ALPHA_THERM		0xff
 #define AR_PHY_TPC_19_B1_ALPHA_THERM_S		0
@@ -983,9 +983,9 @@
 #define AR_PHY_TX_IQCAL_CORR_COEFF_B1(_i)    (AR_SM1_BASE + 0x450 + ((_i) << 2))
 
 #define AR_PHY_RTT_TABLE_SW_INTF_B(i)	(0x384 + ((i) ? \
-					AR_SM1_BASE : AR_SM_BASE))
+		AR_SM1_BASE : AR_SM_BASE))
 #define AR_PHY_RTT_TABLE_SW_INTF_1_B(i)	(0x388 + ((i) ? \
-					AR_SM1_BASE : AR_SM_BASE))
+		AR_SM1_BASE : AR_SM_BASE))
 /*
  * Channel 2 Register Map
  */
@@ -1053,7 +1053,7 @@
 #define AR_GLB_GPIO_CONTROL	(AR_GLB_BASE)
 #define AR_PHY_GLB_CONTROL	(AR_GLB_BASE + 0x44)
 #define AR_GLB_SCRATCH(_ah)	(AR_GLB_BASE + \
-					(AR_SREV_9462_20_OR_LATER(_ah) ? 0x4c : 0x50))
+							 (AR_SREV_9462_20_OR_LATER(_ah) ? 0x4c : 0x50))
 #define AR_GLB_STATUS		(AR_GLB_BASE + 0x48)
 
 /*
@@ -1288,7 +1288,7 @@
 /* Manual Peak detector calibration */
 #define AR_PHY_65NM_BASE                               0x16000
 #define AR_PHY_65NM_RXRF_GAINSTAGES(i)                 (AR_PHY_65NM_BASE + \
-							(i * 0x400) + 0x8)
+		(i * 0x400) + 0x8)
 #define AR_PHY_65NM_RXRF_GAINSTAGES_RX_OVERRIDE        0x80000000
 #define AR_PHY_65NM_RXRF_GAINSTAGES_RX_OVERRIDE_S      31
 #define AR_PHY_65NM_RXRF_GAINSTAGES_LNAON_CALDC        0x00000002
@@ -1299,14 +1299,14 @@
 #define AR_PHY_65NM_RXRF_GAINSTAGES_LNA5G_GAIN_OVR_S   23
 
 #define AR_PHY_65NM_RXTX2(i)                           (AR_PHY_65NM_BASE + \
-							(i * 0x400) + 0x104)
+		(i * 0x400) + 0x104)
 #define AR_PHY_65NM_RXTX2_RXON_OVR                     0x00001000
 #define AR_PHY_65NM_RXTX2_RXON_OVR_S                   12
 #define AR_PHY_65NM_RXTX2_RXON                         0x00000800
 #define AR_PHY_65NM_RXTX2_RXON_S                       11
 
 #define AR_PHY_65NM_RXRF_AGC(i)                        (AR_PHY_65NM_BASE + \
-							(i * 0x400) + 0xc)
+		(i * 0x400) + 0xc)
 #define AR_PHY_65NM_RXRF_AGC_AGC_OVERRIDE              0x80000000
 #define AR_PHY_65NM_RXRF_AGC_AGC_OVERRIDE_S            31
 #define AR_PHY_65NM_RXRF_AGC_AGC_ON_OVR                0x40000000

@@ -15,7 +15,8 @@ struct device;
  * @align: pages reserved to meet allocation alignments
  * @alloc: track pages consumed, private to vmemmap_populate()
  */
-struct vmem_altmap {
+struct vmem_altmap
+{
 	const unsigned long base_pfn;
 	const unsigned long reserve;
 	unsigned long free;
@@ -42,7 +43,8 @@ static inline struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start)
  * @ref: reference count that pins the devm_memremap_pages() mapping
  * @dev: host device of the mapping for debug
  */
-struct dev_pagemap {
+struct dev_pagemap
+{
 	struct vmem_altmap *altmap;
 	const struct resource *res;
 	struct percpu_ref *ref;
@@ -51,12 +53,12 @@ struct dev_pagemap {
 
 #ifdef CONFIG_ZONE_DEVICE
 void *devm_memremap_pages(struct device *dev, struct resource *res,
-		struct percpu_ref *ref, struct vmem_altmap *altmap);
+						  struct percpu_ref *ref, struct vmem_altmap *altmap);
 struct dev_pagemap *find_dev_pagemap(resource_size_t phys);
 #else
 static inline void *devm_memremap_pages(struct device *dev,
-		struct resource *res, struct percpu_ref *ref,
-		struct vmem_altmap *altmap)
+										struct resource *res, struct percpu_ref *ref,
+										struct vmem_altmap *altmap)
 {
 	/*
 	 * Fail attempts to call devm_memremap_pages() without
@@ -91,7 +93,8 @@ static inline struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
 	 * In the cached case we're already holding a live reference so
 	 * we can simply do a blind increment
 	 */
-	if (res && phys >= res->start && phys <= res->end) {
+	if (res && phys >= res->start && phys <= res->end)
+	{
 		percpu_ref_get(pgmap->ref);
 		return pgmap;
 	}
@@ -99,8 +102,12 @@ static inline struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
 	/* fall back to slow path lookup */
 	rcu_read_lock();
 	pgmap = find_dev_pagemap(phys);
+
 	if (pgmap && !percpu_ref_tryget_live(pgmap->ref))
+	{
 		pgmap = NULL;
+	}
+
 	rcu_read_unlock();
 
 	return pgmap;
@@ -109,6 +116,8 @@ static inline struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
 static inline void put_dev_pagemap(struct dev_pagemap *pgmap)
 {
 	if (pgmap)
+	{
 		percpu_ref_put(pgmap->ref);
+	}
 }
 #endif /* _LINUX_MEMREMAP_H_ */

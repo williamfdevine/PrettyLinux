@@ -18,7 +18,7 @@
  *	The percussive mode is implemented in the left side only.
  *
  *	With the above exceptions the both sides can be operated independently.
- *	
+ *
  *	A 4 OP voice can be created by setting the corresponding
  *	bit at offset 4 of the right side.
  *
@@ -27,7 +27,7 @@
  *	voice is made inaccessible.
  *
  *	If a voice is set to the 2 OP mode, it works like 2 OP modes
- *	of the original YM3812 (AdLib). In addition the voice can 
+ *	of the original YM3812 (AdLib). In addition the voice can
  *	be connected the left, right or both stereo channels. It can
  *	even be left unconnected. This works with 4 OP voices also.
  *
@@ -91,9 +91,9 @@
 #define   KSR				0x10 	/* Key scaling rate */
 #define   MULTIPLE_MASK		0x0f	/* Frequency multiplier */
 
- /*
-  *	KSL/Total level (0x40 to 0x55)
-  */
+/*
+ *	KSL/Total level (0x40 to 0x55)
+ */
 #define KSL_LEVEL				0x40
 #define   KSL_MASK			0xc0	/* Envelope scaling bits */
 #define   TOTAL_LEVEL_MASK		0x3f	/* Strength (volume) of OP */
@@ -161,13 +161,13 @@
  *	0		0		>+-1-+--2--3--4-->
  *
  *
- *					
+ *
  *					 +---+
  *					 |   |
  *	0		1		>+-1-+--2-+
  *						  |->
  *					>--3----4-+
- *					
+ *
  *					 +---+
  *					 |   |
  *	1		0		>+-1-+-----+
@@ -190,12 +190,13 @@
  * 	Definition table for the physical voices
  */
 
-struct physical_voice_info {
-		unsigned char voice_num;
-		unsigned char voice_mode; /* 0=unavailable, 2=2 OP, 4=4 OP */
-		unsigned short ioaddr; /* I/O port (left or right side) */
-		unsigned char op[4]; /* Operator offsets */
-	};
+struct physical_voice_info
+{
+	unsigned char voice_num;
+	unsigned char voice_mode; /* 0=unavailable, 2=2 OP, 4=4 OP */
+	unsigned short ioaddr; /* I/O port (left or right side) */
+	unsigned char op[4]; /* Operator offsets */
+};
 
 /*
  *	There is 18 possible 2 OP voices
@@ -215,8 +216,8 @@ struct physical_voice_info {
 
 static struct physical_voice_info pv_map[18] =
 {
-/*       No Mode Side		OP1	OP2	OP3   OP4	*/
-/*	---------------------------------------------------	*/
+	/*       No Mode Side		OP1	OP2	OP3   OP4	*/
+	/*	---------------------------------------------------	*/
 	{ 0,  2, USE_LEFT,	{0x00,	0x03,	0x08, 0x0b}},
 	{ 1,  2, USE_LEFT,	{0x01,	0x04,	0x09, 0x0c}},
 	{ 2,  2, USE_LEFT,	{0x02,	0x05,	0x0a, 0x0d}},

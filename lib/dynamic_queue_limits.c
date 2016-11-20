@@ -33,7 +33,8 @@ void dql_completed(struct dql *dql, unsigned int count)
 	all_prev_completed = AFTER_EQ(completed, dql->prev_num_queued);
 
 	if ((ovlimit && !inprogress) ||
-	    (dql->prev_ovlimit && all_prev_completed)) {
+		(dql->prev_ovlimit && all_prev_completed))
+	{
 		/*
 		 * Queue considered starved if:
 		 *   - The queue was over-limit in the last interval,
@@ -50,10 +51,12 @@ void dql_completed(struct dql *dql, unsigned int count)
 		 *     plus any previous over-limit.
 		 */
 		limit += POSDIFF(completed, dql->prev_num_queued) +
-		     dql->prev_ovlimit;
+				 dql->prev_ovlimit;
 		dql->slack_start_time = jiffies;
 		dql->lowest_slack = UINT_MAX;
-	} else if (inprogress && prev_inprogress && !all_prev_completed) {
+	}
+	else if (inprogress && prev_inprogress && !all_prev_completed)
+	{
 		/*
 		 * Queue was not starved, check if the limit can be decreased.
 		 * A decrease is only considered if the queue has been busy in
@@ -79,17 +82,20 @@ void dql_completed(struct dql *dql, unsigned int count)
 		 *     queueing operation.
 		 */
 		slack = POSDIFF(limit + dql->prev_ovlimit,
-		    2 * (completed - dql->num_completed));
+						2 * (completed - dql->num_completed));
 		slack_last_objs = dql->prev_ovlimit ?
-		    POSDIFF(dql->prev_last_obj_cnt, dql->prev_ovlimit) : 0;
+						  POSDIFF(dql->prev_last_obj_cnt, dql->prev_ovlimit) : 0;
 
 		slack = max(slack, slack_last_objs);
 
 		if (slack < dql->lowest_slack)
+		{
 			dql->lowest_slack = slack;
+		}
 
 		if (time_after(jiffies,
-			       dql->slack_start_time + dql->slack_hold_time)) {
+					   dql->slack_start_time + dql->slack_hold_time))
+		{
 			limit = POSDIFF(limit, dql->lowest_slack);
 			dql->slack_start_time = jiffies;
 			dql->lowest_slack = UINT_MAX;
@@ -99,7 +105,8 @@ void dql_completed(struct dql *dql, unsigned int count)
 	/* Enforce bounds on limit */
 	limit = clamp(limit, dql->min_limit, dql->max_limit);
 
-	if (limit != dql->limit) {
+	if (limit != dql->limit)
+	{
 		dql->limit = limit;
 		ovlimit = 0;
 	}

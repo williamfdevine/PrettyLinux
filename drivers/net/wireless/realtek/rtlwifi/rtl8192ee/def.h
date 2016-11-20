@@ -41,13 +41,15 @@
 #define IS_OFDM_RATE(_rate)	\
 	(_rate >= DESC92C_RATE6M && _rate <= DESC92C_RATE54M)
 
-enum version_8192e {
+enum version_8192e
+{
 	VERSION_TEST_CHIP_2T2R_8192E = 0x0024,
 	VERSION_NORMAL_CHIP_2T2R_8192E = 0x102C,
 	VERSION_UNKNOWN = 0xFF,
 };
 
-enum rx_packet_type {
+enum rx_packet_type
+{
 	NORMAL_RX,
 	TX_REPORT1,
 	TX_REPORT2,
@@ -55,7 +57,8 @@ enum rx_packet_type {
 	C2H_PACKET,
 };
 
-enum rtl_desc_qsel {
+enum rtl_desc_qsel
+{
 	QSLT_BK = 0x2,
 	QSLT_BE = 0x0,
 	QSLT_VI = 0x5,
@@ -66,7 +69,8 @@ enum rtl_desc_qsel {
 	QSLT_CMD = 0x13,
 };
 
-enum rtl_desc92c_rate {
+enum rtl_desc92c_rate
+{
 	DESC92C_RATE1M = 0x00,
 	DESC92C_RATE2M = 0x01,
 	DESC92C_RATE5_5M = 0x02,

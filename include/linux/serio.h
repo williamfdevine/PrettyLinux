@@ -20,7 +20,8 @@
 
 extern struct bus_type serio_bus;
 
-struct serio {
+struct serio
+{
 	void *port_data;
 
 	char name[32];
@@ -67,7 +68,8 @@ struct serio {
 };
 #define to_serio_port(d)	container_of(d, struct serio, dev)
 
-struct serio_driver {
+struct serio_driver
+{
 	const char *description;
 
 	const struct serio_device_id *id_table;
@@ -100,7 +102,7 @@ void serio_unregister_port(struct serio *serio);
 void serio_unregister_child_port(struct serio *serio);
 
 int __must_check __serio_register_driver(struct serio_driver *drv,
-				struct module *owner, const char *mod_name);
+		struct module *owner, const char *mod_name);
 
 /* use a define to avoid include chaining to get THIS_MODULE & friends */
 #define serio_register_driver(drv) \
@@ -119,20 +121,26 @@ void serio_unregister_driver(struct serio_driver *drv);
  */
 #define module_serio_driver(__serio_driver) \
 	module_driver(__serio_driver, serio_register_driver, \
-		       serio_unregister_driver)
+				  serio_unregister_driver)
 
 static inline int serio_write(struct serio *serio, unsigned char data)
 {
 	if (serio->write)
+	{
 		return serio->write(serio, data);
+	}
 	else
+	{
 		return -1;
+	}
 }
 
 static inline void serio_drv_write_wakeup(struct serio *serio)
 {
 	if (serio->drv && serio->drv->write_wakeup)
+	{
 		serio->drv->write_wakeup(serio);
+	}
 }
 
 /*

@@ -18,7 +18,8 @@
 #define __ALTERA_SGDMAHW_H__
 
 /* SGDMA descriptor structure */
-struct sgdma_descrip {
+struct sgdma_descrip
+{
 	u32	raddr; /* address of data to be read */
 	u32	pad1;
 	u32	waddr;
@@ -69,7 +70,8 @@ struct sgdma_descrip {
 #define SGDMA_CONTROL_HW_OWNED		BIT(7)
 
 /* SGDMA register space */
-struct sgdma_csr {
+struct sgdma_csr
+{
 	/* bit 0: error
 	 * bit 1: eop
 	 * bit 2: descriptor completed

@@ -38,14 +38,19 @@ static int ahci_octeon_probe(struct platform_device *pdev)
 	int ret;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "Platform resource[0] is missing\n");
 		return -ENODEV;
 	}
 
 	base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	cfg = cvmx_readq_csr(base + CVMX_SATA_UCTL_SHIM_CFG);
 
@@ -64,13 +69,16 @@ static int ahci_octeon_probe(struct platform_device *pdev)
 
 	cvmx_writeq_csr(base + CVMX_SATA_UCTL_SHIM_CFG, cfg);
 
-	if (!node) {
+	if (!node)
+	{
 		dev_err(dev, "no device node, failed to add octeon sata\n");
 		return -ENODEV;
 	}
 
 	ret = of_platform_populate(node, NULL, NULL, dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to add ahci-platform core\n");
 		return ret;
 	}
@@ -83,13 +91,15 @@ static int ahci_octeon_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id octeon_ahci_match[] = {
+static const struct of_device_id octeon_ahci_match[] =
+{
 	{ .compatible = "cavium,octeon-7130-sata-uctl", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, octeon_ahci_match);
 
-static struct platform_driver ahci_octeon_driver = {
+static struct platform_driver ahci_octeon_driver =
+{
 	.probe          = ahci_octeon_probe,
 	.remove         = ahci_octeon_remove,
 	.driver         = {

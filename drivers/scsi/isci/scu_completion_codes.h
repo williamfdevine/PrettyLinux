@@ -143,8 +143,8 @@
  */
 #define SCU_NORMALIZE_COMPLETION_STATUS(completion_code) \
 	(\
-		((completion_code) & SCU_COMPLETION_TL_STATUS_MASK) \
-		>> SCU_COMPLETION_TL_STATUS_SHIFT \
+	 ((completion_code) & SCU_COMPLETION_TL_STATUS_MASK) \
+	 >> SCU_COMPLETION_TL_STATUS_SHIFT \
 	)
 
 /**
@@ -199,8 +199,8 @@
  */
 #define SCU_GET_FRAME_INDEX(completion_code) \
 	(\
-		((completion_code) & SCU_UNSOLICITED_FRAME_MASK) \
-		>> SCU_UNSOLICITED_FRAME_SHIFT \
+	 ((completion_code) & SCU_UNSOLICITED_FRAME_MASK) \
+	 >> SCU_UNSOLICITED_FRAME_SHIFT \
 	)
 
 #define SCU_UNSOLICITED_FRAME_ERROR_MASK  0x00008000

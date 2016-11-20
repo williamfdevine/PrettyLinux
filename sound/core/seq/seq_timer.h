@@ -24,17 +24,19 @@
 #include <sound/timer.h>
 #include <sound/seq_kernel.h>
 
-struct snd_seq_timer_tick {
+struct snd_seq_timer_tick
+{
 	snd_seq_tick_time_t	cur_tick;	/* current tick */
 	unsigned long		resolution;	/* time per tick in nsec */
 	unsigned long		fraction;	/* current time per tick in nsec */
 };
 
-struct snd_seq_timer {
+struct snd_seq_timer
+{
 	/* ... tempo / offset / running state */
 
-	unsigned int		running:1,	/* running state of queue */	
-				initialized:1;	/* timer is initialized */
+	unsigned int		running: 1,	/* running state of queue */
+				   initialized: 1;	/* timer is initialized */
 
 	unsigned int		tempo;		/* current tempo, us/tick */
 	int			ppq;		/* time resolution, ticks/quarter */
@@ -42,7 +44,7 @@ struct snd_seq_timer {
 	snd_seq_real_time_t	cur_time;	/* current time */
 	struct snd_seq_timer_tick	tick;	/* current tick */
 	int tick_updated;
-	
+
 	int			type;		/* timer type */
 	struct snd_timer_id	alsa_id;	/* ALSA's timer ID */
 	struct snd_timer_instance	*timeri;	/* timer instance */
@@ -66,9 +68,10 @@ void snd_seq_timer_delete(struct snd_seq_timer **tmr);
 
 /* */
 static inline void snd_seq_timer_update_tick(struct snd_seq_timer_tick *tick,
-					     unsigned long resolution)
+		unsigned long resolution)
 {
-	if (tick->resolution > 0) {
+	if (tick->resolution > 0)
+	{
 		tick->fraction += resolution;
 		tick->cur_tick += (unsigned int)(tick->fraction / tick->resolution);
 		tick->fraction %= tick->resolution;
@@ -88,20 +91,27 @@ static inline int snd_seq_compare_real_time(snd_seq_real_time_t *a, snd_seq_real
 {
 	/* compare real time */
 	if (a->tv_sec > b->tv_sec)
+	{
 		return 1;
+	}
+
 	if ((a->tv_sec == b->tv_sec) && (a->tv_nsec >= b->tv_nsec))
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
 
 static inline void snd_seq_sanity_real_time(snd_seq_real_time_t *tm)
 {
-	while (tm->tv_nsec >= 1000000000) {
+	while (tm->tv_nsec >= 1000000000)
+	{
 		/* roll-over */
 		tm->tv_nsec -= 1000000000;
-                tm->tv_sec++;
-        }
+		tm->tv_sec++;
+	}
 }
 
 

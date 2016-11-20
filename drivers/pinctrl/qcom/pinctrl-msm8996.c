@@ -20,18 +20,18 @@
 
 #define FUNCTION(fname)			                \
 	[msm_mux_##fname] = {		                \
-		.name = #fname,				\
-		.groups = fname##_groups,               \
-		.ngroups = ARRAY_SIZE(fname##_groups),	\
-	}
+												.name = #fname,				\
+												.groups = fname##_groups,               \
+												.ngroups = ARRAY_SIZE(fname##_groups),	\
+						}
 
 #define REG_BASE 0x0
 #define REG_SIZE 0x1000
 #define PINGROUP(id, f1, f2, f3, f4, f5, f6, f7, f8, f9)	\
 	{					        \
 		.name = "gpio" #id,			\
-		.pins = gpio##id##_pins,		\
-		.npins = (unsigned)ARRAY_SIZE(gpio##id##_pins),	\
+				.pins = gpio##id##_pins,		\
+						.npins = (unsigned)ARRAY_SIZE(gpio##id##_pins),	\
 		.funcs = (int[]){			\
 			msm_mux_gpio, /* gpio mode */	\
 			msm_mux_##f1,			\
@@ -45,52 +45,53 @@
 			msm_mux_##f9			\
 		},				        \
 		.nfuncs = 10,				\
-		.ctl_reg = REG_BASE + REG_SIZE * id,	\
-		.io_reg = REG_BASE + 0x4 + REG_SIZE * id,		\
-		.intr_cfg_reg = REG_BASE + 0x8 + REG_SIZE * id,		\
-		.intr_status_reg = REG_BASE + 0xc + REG_SIZE * id,	\
-		.intr_target_reg = REG_BASE + 0x8 + REG_SIZE * id,	\
-		.mux_bit = 2,			\
-		.pull_bit = 0,			\
-		.drv_bit = 6,			\
-		.oe_bit = 9,			\
-		.in_bit = 0,			\
-		.out_bit = 1,			\
-		.intr_enable_bit = 0,		\
-		.intr_status_bit = 0,		\
-		.intr_target_bit = 5,		\
-		.intr_target_kpss_val = 3,	\
-		.intr_raw_status_bit = 4,	\
-		.intr_polarity_bit = 1,		\
-		.intr_detection_bit = 2,	\
-		.intr_detection_width = 2,	\
+				  .ctl_reg = REG_BASE + REG_SIZE * id,	\
+							 .io_reg = REG_BASE + 0x4 + REG_SIZE * id,		\
+									   .intr_cfg_reg = REG_BASE + 0x8 + REG_SIZE * id,		\
+											   .intr_status_reg = REG_BASE + 0xc + REG_SIZE * id,	\
+													   .intr_target_reg = REG_BASE + 0x8 + REG_SIZE * id,	\
+															   .mux_bit = 2,			\
+																	   .pull_bit = 0,			\
+																			   .drv_bit = 6,			\
+																					   .oe_bit = 9,			\
+																							   .in_bit = 0,			\
+																									   .out_bit = 1,			\
+																											   .intr_enable_bit = 0,		\
+																													   .intr_status_bit = 0,		\
+																															   .intr_target_bit = 5,		\
+																																	   .intr_target_kpss_val = 3,	\
+																																			   .intr_raw_status_bit = 4,	\
+																																					   .intr_polarity_bit = 1,		\
+																																							   .intr_detection_bit = 2,	\
+																																									   .intr_detection_width = 2,	\
 	}
 
 #define SDC_QDSD_PINGROUP(pg_name, ctl, pull, drv)	\
 	{					        \
 		.name = #pg_name,			\
-		.pins = pg_name##_pins,			\
-		.npins = (unsigned)ARRAY_SIZE(pg_name##_pins),	\
-		.ctl_reg = ctl,				\
-		.io_reg = 0,				\
-		.intr_cfg_reg = 0,			\
-		.intr_status_reg = 0,			\
-		.intr_target_reg = 0,			\
-		.mux_bit = -1,				\
-		.pull_bit = pull,			\
-		.drv_bit = drv,				\
-		.oe_bit = -1,				\
-		.in_bit = -1,				\
-		.out_bit = -1,				\
-		.intr_enable_bit = -1,			\
-		.intr_status_bit = -1,			\
-		.intr_target_bit = -1,			\
-		.intr_raw_status_bit = -1,		\
-		.intr_polarity_bit = -1,		\
-		.intr_detection_bit = -1,		\
-		.intr_detection_width = -1,		\
+				.pins = pg_name##_pins,			\
+						.npins = (unsigned)ARRAY_SIZE(pg_name##_pins),	\
+								 .ctl_reg = ctl,				\
+											.io_reg = 0,				\
+													.intr_cfg_reg = 0,			\
+															.intr_status_reg = 0,			\
+																	.intr_target_reg = 0,			\
+																			.mux_bit = -1,				\
+																					.pull_bit = pull,			\
+																							.drv_bit = drv,				\
+																									.oe_bit = -1,				\
+																											.in_bit = -1,				\
+																													.out_bit = -1,				\
+																															.intr_enable_bit = -1,			\
+																																	.intr_status_bit = -1,			\
+																																			.intr_target_bit = -1,			\
+																																					.intr_raw_status_bit = -1,		\
+																																							.intr_polarity_bit = -1,		\
+																																									.intr_detection_bit = -1,		\
+																																											.intr_detection_width = -1,		\
 	}
-static const struct pinctrl_pin_desc msm8996_pins[] = {
+static const struct pinctrl_pin_desc msm8996_pins[] =
+{
 	PINCTRL_PIN(0, "GPIO_0"),
 	PINCTRL_PIN(1, "GPIO_1"),
 	PINCTRL_PIN(2, "GPIO_2"),
@@ -411,7 +412,8 @@ static const unsigned int sdc2_cmd_pins[] = { 154 };
 static const unsigned int sdc2_data_pins[] = { 155 };
 static const unsigned int sdc1_rclk_pins[] = { 156 };
 
-enum msm8996_functions {
+enum msm8996_functions
+{
 	msm_mux_adsp_ext,
 	msm_mux_atest_bbrx0,
 	msm_mux_atest_bbrx1,
@@ -658,7 +660,8 @@ enum msm8996_functions {
 	msm_mux_NA,
 };
 
-static const char * const gpio_groups[] = {
+static const char *const gpio_groups[] =
+{
 	"gpio0", "gpio1", "gpio2", "gpio3", "gpio4", "gpio5", "gpio6", "gpio7",
 	"gpio8", "gpio9", "gpio10", "gpio11", "gpio12", "gpio13", "gpio14",
 	"gpio15", "gpio16", "gpio17", "gpio18", "gpio19", "gpio20", "gpio21",
@@ -685,739 +688,982 @@ static const char * const gpio_groups[] = {
 };
 
 
-static const char * const blsp_uart1_groups[] = {
+static const char *const blsp_uart1_groups[] =
+{
 	"gpio0", "gpio1", "gpio2", "gpio3",
 };
-static const char * const blsp_spi1_groups[] = {
+static const char *const blsp_spi1_groups[] =
+{
 	"gpio0", "gpio1", "gpio2", "gpio3",
 };
-static const char * const blsp_i2c1_groups[] = {
+static const char *const blsp_i2c1_groups[] =
+{
 	"gpio2", "gpio3",
 };
-static const char * const blsp_uim1_groups[] = {
+static const char *const blsp_uim1_groups[] =
+{
 	"gpio0", "gpio1",
 };
-static const char * const atest_tsens_groups[] = {
+static const char *const atest_tsens_groups[] =
+{
 	"gpio3",
 };
-static const char * const bimc_dte1_groups[] = {
+static const char *const bimc_dte1_groups[] =
+{
 	"gpio3", "gpio5",
 };
-static const char * const blsp_spi8_groups[] = {
+static const char *const blsp_spi8_groups[] =
+{
 	"gpio4", "gpio5", "gpio6", "gpio7",
 };
-static const char * const blsp_uart8_groups[] = {
+static const char *const blsp_uart8_groups[] =
+{
 	"gpio4", "gpio5", "gpio6", "gpio7",
 };
-static const char * const blsp_uim8_groups[] = {
+static const char *const blsp_uim8_groups[] =
+{
 	"gpio4", "gpio5",
 };
-static const char * const qdss_cti_trig_out_b_groups[] = {
+static const char *const qdss_cti_trig_out_b_groups[] =
+{
 	"gpio4",
 };
-static const char * const dac_calib0_groups[] = {
+static const char *const dac_calib0_groups[] =
+{
 	"gpio4", "gpio41",
 };
-static const char * const bimc_dte0_groups[] = {
+static const char *const bimc_dte0_groups[] =
+{
 	"gpio4", "gpio6",
 };
-static const char * const qdss_cti_trig_in_b_groups[] = {
+static const char *const qdss_cti_trig_in_b_groups[] =
+{
 	"gpio5",
 };
-static const char * const dac_calib1_groups[] = {
+static const char *const dac_calib1_groups[] =
+{
 	"gpio5", "gpio42",
 };
-static const char * const dac_calib2_groups[] = {
+static const char *const dac_calib2_groups[] =
+{
 	"gpio6", "gpio43",
 };
-static const char * const atest_tsens2_groups[] = {
+static const char *const atest_tsens2_groups[] =
+{
 	"gpio7",
 };
-static const char * const blsp_spi10_groups[] = {
+static const char *const blsp_spi10_groups[] =
+{
 	"gpio8", "gpio9", "gpio10", "gpio11",
 };
-static const char * const blsp_uart10_groups[] = {
+static const char *const blsp_uart10_groups[] =
+{
 	"gpio8", "gpio9", "gpio10", "gpio11",
 };
-static const char * const blsp_uim10_groups[] = {
+static const char *const blsp_uim10_groups[] =
+{
 	"gpio8", "gpio9",
 };
-static const char * const atest_bbrx1_groups[] = {
+static const char *const atest_bbrx1_groups[] =
+{
 	"gpio8",
 };
-static const char * const atest_usb12_groups[] = {
+static const char *const atest_usb12_groups[] =
+{
 	"gpio9",
 };
-static const char * const mdp_vsync_groups[] = {
+static const char *const mdp_vsync_groups[] =
+{
 	"gpio10", "gpio11", "gpio12",
 };
-static const char * const edp_lcd_groups[] = {
+static const char *const edp_lcd_groups[] =
+{
 	"gpio10",
 };
-static const char * const blsp_i2c10_groups[] = {
+static const char *const blsp_i2c10_groups[] =
+{
 	"gpio10", "gpio11",
 };
-static const char * const atest_usb11_groups[] = {
+static const char *const atest_usb11_groups[] =
+{
 	"gpio10",
 };
-static const char * const atest_gpsadc0_groups[] = {
+static const char *const atest_gpsadc0_groups[] =
+{
 	"gpio11",
 };
-static const char * const edp_hot_groups[] = {
+static const char *const edp_hot_groups[] =
+{
 	"gpio11",
 };
-static const char * const atest_usb10_groups[] = {
+static const char *const atest_usb10_groups[] =
+{
 	"gpio11",
 };
-static const char * const m_voc_groups[] = {
+static const char *const m_voc_groups[] =
+{
 	"gpio12",
 };
-static const char * const dac_gpio_groups[] = {
+static const char *const dac_gpio_groups[] =
+{
 	"gpio12",
 };
-static const char * const atest_char_groups[] = {
+static const char *const atest_char_groups[] =
+{
 	"gpio12",
 };
-static const char * const cam_mclk_groups[] = {
+static const char *const cam_mclk_groups[] =
+{
 	"gpio13", "gpio14", "gpio15", "gpio16",
 };
-static const char * const pll_bypassnl_groups[] = {
+static const char *const pll_bypassnl_groups[] =
+{
 	"gpio13",
 };
-static const char * const qdss_stm7_groups[] = {
+static const char *const qdss_stm7_groups[] =
+{
 	"gpio13",
 };
-static const char * const blsp_i2c8_groups[] = {
+static const char *const blsp_i2c8_groups[] =
+{
 	"gpio6", "gpio7",
 };
-static const char * const atest_usb1_groups[] = {
+static const char *const atest_usb1_groups[] =
+{
 	"gpio7",
 };
-static const char * const atest_usb13_groups[] = {
+static const char *const atest_usb13_groups[] =
+{
 	"gpio8",
 };
-static const char * const atest_bbrx0_groups[] = {
+static const char *const atest_bbrx0_groups[] =
+{
 	"gpio9",
 };
-static const char * const atest_gpsadc1_groups[] = {
+static const char *const atest_gpsadc1_groups[] =
+{
 	"gpio10",
 };
-static const char * const qdss_tracedata_b_groups[] = {
+static const char *const qdss_tracedata_b_groups[] =
+{
 	"gpio13", "gpio14", "gpio15", "gpio16", "gpio17", "gpio18", "gpio19",
 	"gpio21", "gpio22", "gpio23", "gpio26", "gpio29", "gpio57", "gpio58",
 	"gpio92", "gpio93",
 };
-static const char * const pll_reset_groups[] = {
+static const char *const pll_reset_groups[] =
+{
 	"gpio14",
 };
-static const char * const qdss_stm6_groups[] = {
+static const char *const qdss_stm6_groups[] =
+{
 	"gpio14",
 };
-static const char * const qdss_stm5_groups[] = {
+static const char *const qdss_stm5_groups[] =
+{
 	"gpio15",
 };
-static const char * const qdss_stm4_groups[] = {
+static const char *const qdss_stm4_groups[] =
+{
 	"gpio16",
 };
-static const char * const atest_usb2_groups[] = {
+static const char *const atest_usb2_groups[] =
+{
 	"gpio16",
 };
-static const char * const dac_calib3_groups[] = {
+static const char *const dac_calib3_groups[] =
+{
 	"gpio17", "gpio44",
 };
-static const char * const cci_i2c_groups[] = {
+static const char *const cci_i2c_groups[] =
+{
 	"gpio17", "gpio18", "gpio19", "gpio20",
 };
-static const char * const qdss_stm3_groups[] = {
+static const char *const qdss_stm3_groups[] =
+{
 	"gpio17",
 };
-static const char * const atest_usb23_groups[] = {
+static const char *const atest_usb23_groups[] =
+{
 	"gpio17",
 };
-static const char * const atest_char3_groups[] = {
+static const char *const atest_char3_groups[] =
+{
 	"gpio17",
 };
-static const char * const dac_calib4_groups[] = {
+static const char *const dac_calib4_groups[] =
+{
 	"gpio18", "gpio45",
 };
-static const char * const qdss_stm2_groups[] = {
+static const char *const qdss_stm2_groups[] =
+{
 	"gpio18",
 };
-static const char * const atest_usb22_groups[] = {
+static const char *const atest_usb22_groups[] =
+{
 	"gpio18",
 };
-static const char * const atest_char2_groups[] = {
+static const char *const atest_char2_groups[] =
+{
 	"gpio18",
 };
-static const char * const dac_calib5_groups[] = {
+static const char *const dac_calib5_groups[] =
+{
 	"gpio19", "gpio46",
 };
-static const char * const qdss_stm1_groups[] = {
+static const char *const qdss_stm1_groups[] =
+{
 	"gpio19",
 };
-static const char * const atest_usb21_groups[] = {
+static const char *const atest_usb21_groups[] =
+{
 	"gpio19",
 };
-static const char * const atest_char1_groups[] = {
+static const char *const atest_char1_groups[] =
+{
 	"gpio19",
 };
-static const char * const dac_calib6_groups[] = {
+static const char *const dac_calib6_groups[] =
+{
 	"gpio20", "gpio47",
 };
-static const char * const dbg_out_groups[] = {
+static const char *const dbg_out_groups[] =
+{
 	"gpio20",
 };
-static const char * const qdss_stm0_groups[] = {
+static const char *const qdss_stm0_groups[] =
+{
 	"gpio20",
 };
-static const char * const atest_usb20_groups[] = {
+static const char *const atest_usb20_groups[] =
+{
 	"gpio20",
 };
-static const char * const atest_char0_groups[] = {
+static const char *const atest_char0_groups[] =
+{
 	"gpio20",
 };
-static const char * const dac_calib7_groups[] = {
+static const char *const dac_calib7_groups[] =
+{
 	"gpio21", "gpio48",
 };
-static const char * const cci_timer0_groups[] = {
+static const char *const cci_timer0_groups[] =
+{
 	"gpio21",
 };
-static const char * const qdss_stm13_groups[] = {
+static const char *const qdss_stm13_groups[] =
+{
 	"gpio21",
 };
-static const char * const dac_calib8_groups[] = {
+static const char *const dac_calib8_groups[] =
+{
 	"gpio22", "gpio49",
 };
-static const char * const cci_timer1_groups[] = {
+static const char *const cci_timer1_groups[] =
+{
 	"gpio22",
 };
-static const char * const qdss_stm12_groups[] = {
+static const char *const qdss_stm12_groups[] =
+{
 	"gpio22",
 };
-static const char * const dac_calib9_groups[] = {
+static const char *const dac_calib9_groups[] =
+{
 	"gpio23", "gpio50",
 };
-static const char * const cci_timer2_groups[] = {
+static const char *const cci_timer2_groups[] =
+{
 	"gpio23",
 };
-static const char * const qdss_stm11_groups[] = {
+static const char *const qdss_stm11_groups[] =
+{
 	"gpio23",
 };
-static const char * const dac_calib10_groups[] = {
+static const char *const dac_calib10_groups[] =
+{
 	"gpio24", "gpio51",
 };
-static const char * const cci_timer3_groups[] = {
+static const char *const cci_timer3_groups[] =
+{
 	"gpio24",
 };
-static const char * const cci_async_groups[] = {
+static const char *const cci_async_groups[] =
+{
 	"gpio24", "gpio25", "gpio26",
 };
-static const char * const blsp1_spi_groups[] = {
+static const char *const blsp1_spi_groups[] =
+{
 	"gpio24", "gpio27", "gpio28", "gpio90",
 };
-static const char * const qdss_stm10_groups[] = {
+static const char *const qdss_stm10_groups[] =
+{
 	"gpio24",
 };
-static const char * const qdss_cti_trig_in_a_groups[] = {
+static const char *const qdss_cti_trig_in_a_groups[] =
+{
 	"gpio24",
 };
-static const char * const dac_calib11_groups[] = {
+static const char *const dac_calib11_groups[] =
+{
 	"gpio25", "gpio52",
 };
-static const char * const cci_timer4_groups[] = {
+static const char *const cci_timer4_groups[] =
+{
 	"gpio25",
 };
-static const char * const blsp_spi6_groups[] = {
+static const char *const blsp_spi6_groups[] =
+{
 	"gpio25", "gpio26", "gpio27", "gpio28",
 };
-static const char * const blsp_uart6_groups[] = {
+static const char *const blsp_uart6_groups[] =
+{
 	"gpio25", "gpio26", "gpio27", "gpio28",
 };
-static const char * const blsp_uim6_groups[] = {
+static const char *const blsp_uim6_groups[] =
+{
 	"gpio25", "gpio26",
 };
-static const char * const blsp2_spi_groups[] = {
+static const char *const blsp2_spi_groups[] =
+{
 	"gpio25", "gpio29", "gpio30",
 };
-static const char * const qdss_stm9_groups[] = {
+static const char *const qdss_stm9_groups[] =
+{
 	"gpio25",
 };
-static const char * const qdss_cti_trig_out_a_groups[] = {
+static const char *const qdss_cti_trig_out_a_groups[] =
+{
 	"gpio25",
 };
-static const char * const dac_calib12_groups[] = {
+static const char *const dac_calib12_groups[] =
+{
 	"gpio26", "gpio53",
 };
-static const char * const qdss_stm8_groups[] = {
+static const char *const qdss_stm8_groups[] =
+{
 	"gpio26",
 };
-static const char * const dac_calib13_groups[] = {
+static const char *const dac_calib13_groups[] =
+{
 	"gpio27", "gpio54",
 };
-static const char * const blsp_i2c6_groups[] = {
+static const char *const blsp_i2c6_groups[] =
+{
 	"gpio27", "gpio28",
 };
-static const char * const qdss_tracectl_a_groups[] = {
+static const char *const qdss_tracectl_a_groups[] =
+{
 	"gpio27",
 };
-static const char * const dac_calib14_groups[] = {
+static const char *const dac_calib14_groups[] =
+{
 	"gpio28", "gpio55",
 };
-static const char * const qdss_traceclk_a_groups[] = {
+static const char *const qdss_traceclk_a_groups[] =
+{
 	"gpio28",
 };
-static const char * const dac_calib15_groups[] = {
+static const char *const dac_calib15_groups[] =
+{
 	"gpio29", "gpio56",
 };
-static const char * const dac_calib16_groups[] = {
+static const char *const dac_calib16_groups[] =
+{
 	"gpio30", "gpio57",
 };
-static const char * const hdmi_rcv_groups[] = {
+static const char *const hdmi_rcv_groups[] =
+{
 	"gpio30",
 };
-static const char * const dac_calib17_groups[] = {
+static const char *const dac_calib17_groups[] =
+{
 	"gpio31", "gpio58",
 };
-static const char * const pwr_modem_groups[] = {
+static const char *const pwr_modem_groups[] =
+{
 	"gpio31",
 };
-static const char * const hdmi_cec_groups[] = {
+static const char *const hdmi_cec_groups[] =
+{
 	"gpio31",
 };
-static const char * const pwr_nav_groups[] = {
+static const char *const pwr_nav_groups[] =
+{
 	"gpio32",
 };
-static const char * const dac_calib18_groups[] = {
+static const char *const dac_calib18_groups[] =
+{
 	"gpio32", "gpio59",
 };
-static const char * const hdmi_ddc_groups[] = {
+static const char *const hdmi_ddc_groups[] =
+{
 	"gpio32", "gpio33",
 };
-static const char * const pwr_crypto_groups[] = {
+static const char *const pwr_crypto_groups[] =
+{
 	"gpio33",
 };
-static const char * const dac_calib19_groups[] = {
+static const char *const dac_calib19_groups[] =
+{
 	"gpio33", "gpio60",
 };
-static const char * const dac_calib20_groups[] = {
+static const char *const dac_calib20_groups[] =
+{
 	"gpio34", "gpio61",
 };
-static const char * const hdmi_hot_groups[] = {
+static const char *const hdmi_hot_groups[] =
+{
 	"gpio34",
 };
-static const char * const dac_calib21_groups[] = {
+static const char *const dac_calib21_groups[] =
+{
 	"gpio35", "gpio62",
 };
-static const char * const pci_e0_groups[] = {
+static const char *const pci_e0_groups[] =
+{
 	"gpio35", "gpio36",
 };
-static const char * const dac_calib22_groups[] = {
+static const char *const dac_calib22_groups[] =
+{
 	"gpio36", "gpio63",
 };
-static const char * const dac_calib23_groups[] = {
+static const char *const dac_calib23_groups[] =
+{
 	"gpio37", "gpio64",
 };
-static const char * const blsp_i2c2_groups[] = {
+static const char *const blsp_i2c2_groups[] =
+{
 	"gpio43", "gpio44",
 };
-static const char * const blsp_spi3_groups[] = {
+static const char *const blsp_spi3_groups[] =
+{
 	"gpio45", "gpio46", "gpio47", "gpio48",
 };
-static const char * const blsp_uart3_groups[] = {
+static const char *const blsp_uart3_groups[] =
+{
 	"gpio45", "gpio46", "gpio47", "gpio48",
 };
-static const char * const blsp_uim3_groups[] = {
+static const char *const blsp_uim3_groups[] =
+{
 	"gpio45", "gpio46",
 };
-static const char * const blsp_i2c3_groups[] = {
+static const char *const blsp_i2c3_groups[] =
+{
 	"gpio47", "gpio48",
 };
-static const char * const dac_calib24_groups[] = {
+static const char *const dac_calib24_groups[] =
+{
 	"gpio38", "gpio65",
 };
-static const char * const dac_calib25_groups[] = {
+static const char *const dac_calib25_groups[] =
+{
 	"gpio39", "gpio66",
 };
-static const char * const tsif1_sync_groups[] = {
+static const char *const tsif1_sync_groups[] =
+{
 	"gpio39",
 };
-static const char * const sd_write_groups[] = {
+static const char *const sd_write_groups[] =
+{
 	"gpio40",
 };
-static const char * const tsif1_error_groups[] = {
+static const char *const tsif1_error_groups[] =
+{
 	"gpio40",
 };
-static const char * const blsp_spi2_groups[] = {
+static const char *const blsp_spi2_groups[] =
+{
 	"gpio41", "gpio42", "gpio43", "gpio44",
 };
-static const char * const blsp_uart2_groups[] = {
+static const char *const blsp_uart2_groups[] =
+{
 	"gpio41", "gpio42", "gpio43", "gpio44",
 };
-static const char * const blsp_uim2_groups[] = {
+static const char *const blsp_uim2_groups[] =
+{
 	"gpio41", "gpio42",
 };
-static const char * const qdss_cti_groups[] = {
+static const char *const qdss_cti_groups[] =
+{
 	"gpio41", "gpio42", "gpio100", "gpio101",
 };
-static const char * const uim3_groups[] = {
+static const char *const uim3_groups[] =
+{
 	"gpio49", "gpio50", "gpio51", "gpio52",
 };
-static const char * const blsp_spi9_groups[] = {
+static const char *const blsp_spi9_groups[] =
+{
 	"gpio49", "gpio50", "gpio51", "gpio52",
 };
-static const char * const blsp_uart9_groups[] = {
+static const char *const blsp_uart9_groups[] =
+{
 	"gpio49", "gpio50", "gpio51", "gpio52",
 };
-static const char * const blsp_uim9_groups[] = {
+static const char *const blsp_uim9_groups[] =
+{
 	"gpio49", "gpio50",
 };
-static const char * const blsp10_spi_groups[] = {
+static const char *const blsp10_spi_groups[] =
+{
 	"gpio49", "gpio50", "gpio51", "gpio52", "gpio88",
 };
-static const char * const blsp_i2c9_groups[] = {
+static const char *const blsp_i2c9_groups[] =
+{
 	"gpio51", "gpio52",
 };
-static const char * const blsp_spi7_groups[] = {
+static const char *const blsp_spi7_groups[] =
+{
 	"gpio53", "gpio54", "gpio55", "gpio56",
 };
-static const char * const blsp_uart7_groups[] = {
+static const char *const blsp_uart7_groups[] =
+{
 	"gpio53", "gpio54", "gpio55", "gpio56",
 };
-static const char * const blsp_uim7_groups[] = {
+static const char *const blsp_uim7_groups[] =
+{
 	"gpio53", "gpio54",
 };
-static const char * const qdss_tracedata_a_groups[] = {
+static const char *const qdss_tracedata_a_groups[] =
+{
 	"gpio53", "gpio54", "gpio63", "gpio64", "gpio65", "gpio66", "gpio67",
 	"gpio74", "gpio75", "gpio76", "gpio77", "gpio85", "gpio86", "gpio87",
 	"gpio89", "gpio90",
 };
-static const char * const blsp_i2c7_groups[] = {
+static const char *const blsp_i2c7_groups[] =
+{
 	"gpio55", "gpio56",
 };
-static const char * const qua_mi2s_groups[] = {
+static const char *const qua_mi2s_groups[] =
+{
 	"gpio57", "gpio58", "gpio59", "gpio60", "gpio61", "gpio62", "gpio63",
 };
-static const char * const gcc_gp1_clk_a_groups[] = {
+static const char *const gcc_gp1_clk_a_groups[] =
+{
 	"gpio57",
 };
-static const char * const uim4_groups[] = {
+static const char *const uim4_groups[] =
+{
 	"gpio58", "gpio59", "gpio60", "gpio61",
 };
-static const char * const blsp_spi11_groups[] = {
+static const char *const blsp_spi11_groups[] =
+{
 	"gpio58", "gpio59", "gpio60", "gpio61",
 };
-static const char * const blsp_uart11_groups[] = {
+static const char *const blsp_uart11_groups[] =
+{
 	"gpio58", "gpio59", "gpio60", "gpio61",
 };
-static const char * const blsp_uim11_groups[] = {
+static const char *const blsp_uim11_groups[] =
+{
 	"gpio58", "gpio59",
 };
-static const char * const gcc_gp2_clk_a_groups[] = {
+static const char *const gcc_gp2_clk_a_groups[] =
+{
 	"gpio58",
 };
-static const char * const gcc_gp3_clk_a_groups[] = {
+static const char *const gcc_gp3_clk_a_groups[] =
+{
 	"gpio59",
 };
-static const char * const blsp_i2c11_groups[] = {
+static const char *const blsp_i2c11_groups[] =
+{
 	"gpio60", "gpio61",
 };
-static const char * const cri_trng0_groups[] = {
+static const char *const cri_trng0_groups[] =
+{
 	"gpio60",
 };
-static const char * const cri_trng1_groups[] = {
+static const char *const cri_trng1_groups[] =
+{
 	"gpio61",
 };
-static const char * const cri_trng_groups[] = {
+static const char *const cri_trng_groups[] =
+{
 	"gpio62",
 };
-static const char * const qdss_stm18_groups[] = {
+static const char *const qdss_stm18_groups[] =
+{
 	"gpio63",
 };
-static const char * const pri_mi2s_groups[] = {
+static const char *const pri_mi2s_groups[] =
+{
 	"gpio64", "gpio65", "gpio66", "gpio67", "gpio68",
 };
-static const char * const qdss_stm17_groups[] = {
+static const char *const qdss_stm17_groups[] =
+{
 	"gpio64",
 };
-static const char * const blsp_spi4_groups[] = {
+static const char *const blsp_spi4_groups[] =
+{
 	"gpio65", "gpio66", "gpio67", "gpio68",
 };
-static const char * const blsp_uart4_groups[] = {
+static const char *const blsp_uart4_groups[] =
+{
 	"gpio65", "gpio66", "gpio67", "gpio68",
 };
-static const char * const blsp_uim4_groups[] = {
+static const char *const blsp_uim4_groups[] =
+{
 	"gpio65", "gpio66",
 };
-static const char * const qdss_stm16_groups[] = {
+static const char *const qdss_stm16_groups[] =
+{
 	"gpio65",
 };
-static const char * const qdss_stm15_groups[] = {
+static const char *const qdss_stm15_groups[] =
+{
 	"gpio66",
 };
-static const char * const dac_calib26_groups[] = {
+static const char *const dac_calib26_groups[] =
+{
 	"gpio67",
 };
-static const char * const blsp_i2c4_groups[] = {
+static const char *const blsp_i2c4_groups[] =
+{
 	"gpio67", "gpio68",
 };
-static const char * const qdss_stm14_groups[] = {
+static const char *const qdss_stm14_groups[] =
+{
 	"gpio67",
 };
-static const char * const spkr_i2s_groups[] = {
+static const char *const spkr_i2s_groups[] =
+{
 	"gpio69", "gpio70", "gpio71", "gpio72",
 };
-static const char * const audio_ref_groups[] = {
+static const char *const audio_ref_groups[] =
+{
 	"gpio69",
 };
-static const char * const lpass_slimbus_groups[] = {
+static const char *const lpass_slimbus_groups[] =
+{
 	"gpio70", "gpio71", "gpio72",
 };
-static const char * const isense_dbg_groups[] = {
+static const char *const isense_dbg_groups[] =
+{
 	"gpio70",
 };
-static const char * const tsense_pwm1_groups[] = {
+static const char *const tsense_pwm1_groups[] =
+{
 	"gpio71",
 };
-static const char * const tsense_pwm2_groups[] = {
+static const char *const tsense_pwm2_groups[] =
+{
 	"gpio71",
 };
-static const char * const btfm_slimbus_groups[] = {
+static const char *const btfm_slimbus_groups[] =
+{
 	"gpio73", "gpio74",
 };
-static const char * const ter_mi2s_groups[] = {
+static const char *const ter_mi2s_groups[] =
+{
 	"gpio74", "gpio75", "gpio76", "gpio77", "gpio78",
 };
-static const char * const qdss_stm22_groups[] = {
+static const char *const qdss_stm22_groups[] =
+{
 	"gpio74",
 };
-static const char * const qdss_stm21_groups[] = {
+static const char *const qdss_stm21_groups[] =
+{
 	"gpio75",
 };
-static const char * const qdss_stm20_groups[] = {
+static const char *const qdss_stm20_groups[] =
+{
 	"gpio76",
 };
-static const char * const qdss_stm19_groups[] = {
+static const char *const qdss_stm19_groups[] =
+{
 	"gpio77",
 };
-static const char * const ssc_irq_groups[] = {
+static const char *const ssc_irq_groups[] =
+{
 	"gpio78", "gpio79", "gpio80", "gpio117", "gpio118", "gpio119",
 	"gpio120", "gpio121", "gpio122", "gpio123", "gpio124", "gpio125",
 };
-static const char * const gcc_gp1_clk_b_groups[] = {
+static const char *const gcc_gp1_clk_b_groups[] =
+{
 	"gpio78",
 };
-static const char * const sec_mi2s_groups[] = {
+static const char *const sec_mi2s_groups[] =
+{
 	"gpio79", "gpio80", "gpio81", "gpio82", "gpio83",
 };
-static const char * const blsp_spi5_groups[] = {
+static const char *const blsp_spi5_groups[] =
+{
 	"gpio81", "gpio82", "gpio83", "gpio84",
 };
-static const char * const blsp_uart5_groups[] = {
+static const char *const blsp_uart5_groups[] =
+{
 	"gpio81", "gpio82", "gpio83", "gpio84",
 };
-static const char * const blsp_uim5_groups[] = {
+static const char *const blsp_uim5_groups[] =
+{
 	"gpio81", "gpio82",
 };
-static const char * const gcc_gp2_clk_b_groups[] = {
+static const char *const gcc_gp2_clk_b_groups[] =
+{
 	"gpio81",
 };
-static const char * const gcc_gp3_clk_b_groups[] = {
+static const char *const gcc_gp3_clk_b_groups[] =
+{
 	"gpio82",
 };
-static const char * const blsp_i2c5_groups[] = {
+static const char *const blsp_i2c5_groups[] =
+{
 	"gpio83", "gpio84",
 };
-static const char * const blsp_spi12_groups[] = {
+static const char *const blsp_spi12_groups[] =
+{
 	"gpio85", "gpio86", "gpio87", "gpio88",
 };
-static const char * const blsp_uart12_groups[] = {
+static const char *const blsp_uart12_groups[] =
+{
 	"gpio85", "gpio86", "gpio87", "gpio88",
 };
-static const char * const blsp_uim12_groups[] = {
+static const char *const blsp_uim12_groups[] =
+{
 	"gpio85", "gpio86",
 };
-static const char * const qdss_stm25_groups[] = {
+static const char *const qdss_stm25_groups[] =
+{
 	"gpio85",
 };
-static const char * const qdss_stm31_groups[] = {
+static const char *const qdss_stm31_groups[] =
+{
 	"gpio86",
 };
-static const char * const blsp_i2c12_groups[] = {
+static const char *const blsp_i2c12_groups[] =
+{
 	"gpio87", "gpio88",
 };
-static const char * const qdss_stm30_groups[] = {
+static const char *const qdss_stm30_groups[] =
+{
 	"gpio87",
 };
-static const char * const qdss_stm29_groups[] = {
+static const char *const qdss_stm29_groups[] =
+{
 	"gpio88",
 };
-static const char * const tsif1_clk_groups[] = {
+static const char *const tsif1_clk_groups[] =
+{
 	"gpio89",
 };
-static const char * const qdss_stm28_groups[] = {
+static const char *const qdss_stm28_groups[] =
+{
 	"gpio89",
 };
-static const char * const tsif1_en_groups[] = {
+static const char *const tsif1_en_groups[] =
+{
 	"gpio90",
 };
-static const char * const tsif1_data_groups[] = {
+static const char *const tsif1_data_groups[] =
+{
 	"gpio91",
 };
-static const char * const sdc4_cmd_groups[] = {
+static const char *const sdc4_cmd_groups[] =
+{
 	"gpio91",
 };
-static const char * const qdss_stm27_groups[] = {
+static const char *const qdss_stm27_groups[] =
+{
 	"gpio91",
 };
-static const char * const qdss_traceclk_b_groups[] = {
+static const char *const qdss_traceclk_b_groups[] =
+{
 	"gpio91",
 };
-static const char * const tsif2_error_groups[] = {
+static const char *const tsif2_error_groups[] =
+{
 	"gpio92",
 };
-static const char * const sdc43_groups[] = {
+static const char *const sdc43_groups[] =
+{
 	"gpio92",
 };
-static const char * const vfr_1_groups[] = {
+static const char *const vfr_1_groups[] =
+{
 	"gpio92",
 };
-static const char * const qdss_stm26_groups[] = {
+static const char *const qdss_stm26_groups[] =
+{
 	"gpio92",
 };
-static const char * const tsif2_clk_groups[] = {
+static const char *const tsif2_clk_groups[] =
+{
 	"gpio93",
 };
-static const char * const sdc4_clk_groups[] = {
+static const char *const sdc4_clk_groups[] =
+{
 	"gpio93",
 };
-static const char * const qdss_stm24_groups[] = {
+static const char *const qdss_stm24_groups[] =
+{
 	"gpio93",
 };
-static const char * const tsif2_en_groups[] = {
+static const char *const tsif2_en_groups[] =
+{
 	"gpio94",
 };
-static const char * const sdc42_groups[] = {
+static const char *const sdc42_groups[] =
+{
 	"gpio94",
 };
-static const char * const qdss_stm23_groups[] = {
+static const char *const qdss_stm23_groups[] =
+{
 	"gpio94",
 };
-static const char * const qdss_tracectl_b_groups[] = {
+static const char *const qdss_tracectl_b_groups[] =
+{
 	"gpio94",
 };
-static const char * const sd_card_groups[] = {
+static const char *const sd_card_groups[] =
+{
 	"gpio95",
 };
-static const char * const tsif2_data_groups[] = {
+static const char *const tsif2_data_groups[] =
+{
 	"gpio95",
 };
-static const char * const sdc41_groups[] = {
+static const char *const sdc41_groups[] =
+{
 	"gpio95",
 };
-static const char * const tsif2_sync_groups[] = {
+static const char *const tsif2_sync_groups[] =
+{
 	"gpio96",
 };
-static const char * const sdc40_groups[] = {
+static const char *const sdc40_groups[] =
+{
 	"gpio96",
 };
-static const char * const mdp_vsync_p_b_groups[] = {
+static const char *const mdp_vsync_p_b_groups[] =
+{
 	"gpio97",
 };
-static const char * const ldo_en_groups[] = {
+static const char *const ldo_en_groups[] =
+{
 	"gpio97",
 };
-static const char * const mdp_vsync_s_b_groups[] = {
+static const char *const mdp_vsync_s_b_groups[] =
+{
 	"gpio98",
 };
-static const char * const ldo_update_groups[] = {
+static const char *const ldo_update_groups[] =
+{
 	"gpio98",
 };
-static const char * const blsp11_uart_tx_b_groups[] = {
+static const char *const blsp11_uart_tx_b_groups[] =
+{
 	"gpio100",
 };
-static const char * const blsp11_uart_rx_b_groups[] = {
+static const char *const blsp11_uart_rx_b_groups[] =
+{
 	"gpio101",
 };
-static const char * const blsp11_i2c_sda_b_groups[] = {
+static const char *const blsp11_i2c_sda_b_groups[] =
+{
 	"gpio102",
 };
-static const char * const prng_rosc_groups[] = {
+static const char *const prng_rosc_groups[] =
+{
 	"gpio102",
 };
-static const char * const blsp11_i2c_scl_b_groups[] = {
+static const char *const blsp11_i2c_scl_b_groups[] =
+{
 	"gpio103",
 };
-static const char * const uim2_groups[] = {
+static const char *const uim2_groups[] =
+{
 	"gpio105", "gpio106", "gpio107", "gpio108",
 };
-static const char * const uim1_groups[] = {
+static const char *const uim1_groups[] =
+{
 	"gpio109", "gpio110", "gpio111", "gpio112",
 };
-static const char * const uim_batt_groups[] = {
+static const char *const uim_batt_groups[] =
+{
 	"gpio113",
 };
-static const char * const pci_e2_groups[] = {
+static const char *const pci_e2_groups[] =
+{
 	"gpio114", "gpio115", "gpio116",
 };
-static const char * const pa_indicator_groups[] = {
+static const char *const pa_indicator_groups[] =
+{
 	"gpio116",
 };
-static const char * const adsp_ext_groups[] = {
+static const char *const adsp_ext_groups[] =
+{
 	"gpio118",
 };
-static const char * const ddr_bist_groups[] = {
+static const char *const ddr_bist_groups[] =
+{
 	"gpio121", "gpio122", "gpio123", "gpio124",
 };
-static const char * const qdss_tracedata_11_groups[] = {
+static const char *const qdss_tracedata_11_groups[] =
+{
 	"gpio123",
 };
-static const char * const qdss_tracedata_12_groups[] = {
+static const char *const qdss_tracedata_12_groups[] =
+{
 	"gpio124",
 };
-static const char * const modem_tsync_groups[] = {
+static const char *const modem_tsync_groups[] =
+{
 	"gpio128",
 };
-static const char * const nav_dr_groups[] = {
+static const char *const nav_dr_groups[] =
+{
 	"gpio128",
 };
-static const char * const nav_pps_groups[] = {
+static const char *const nav_pps_groups[] =
+{
 	"gpio128",
 };
-static const char * const pci_e1_groups[] = {
+static const char *const pci_e1_groups[] =
+{
 	"gpio130", "gpio131", "gpio132",
 };
-static const char * const gsm_tx_groups[] = {
+static const char *const gsm_tx_groups[] =
+{
 	"gpio134", "gpio135",
 };
-static const char * const qspi_cs_groups[] = {
+static const char *const qspi_cs_groups[] =
+{
 	"gpio138", "gpio141",
 };
-static const char * const ssbi2_groups[] = {
+static const char *const ssbi2_groups[] =
+{
 	"gpio139",
 };
-static const char * const ssbi1_groups[] = {
+static const char *const ssbi1_groups[] =
+{
 	"gpio140",
 };
-static const char * const mss_lte_groups[] = {
+static const char *const mss_lte_groups[] =
+{
 	"gpio144", "gpio145",
 };
-static const char * const qspi_clk_groups[] = {
+static const char *const qspi_clk_groups[] =
+{
 	"gpio145",
 };
-static const char * const qspi0_groups[] = {
+static const char *const qspi0_groups[] =
+{
 	"gpio146",
 };
-static const char * const qspi1_groups[] = {
+static const char *const qspi1_groups[] =
+{
 	"gpio147",
 };
-static const char * const qspi2_groups[] = {
+static const char *const qspi2_groups[] =
+{
 	"gpio148",
 };
-static const char * const qspi3_groups[] = {
+static const char *const qspi3_groups[] =
+{
 	"gpio149",
 };
 
-static const struct msm_function msm8996_functions[] = {
+static const struct msm_function msm8996_functions[] =
+{
 	FUNCTION(adsp_ext),
 	FUNCTION(atest_bbrx0),
 	FUNCTION(atest_bbrx1),
@@ -1663,64 +1909,65 @@ static const struct msm_function msm8996_functions[] = {
 	FUNCTION(vfr_1),
 };
 
-static const struct msm_pingroup msm8996_groups[] = {
+static const struct msm_pingroup msm8996_groups[] =
+{
 	PINGROUP(0, blsp_spi1, blsp_uart1, blsp_uim1, NA, NA, NA, NA, NA, NA),
 	PINGROUP(1, blsp_spi1, blsp_uart1, blsp_uim1, NA, NA, NA, NA, NA, NA),
 	PINGROUP(2, blsp_spi1, blsp_uart1, blsp_i2c1, NA, NA, NA, NA, NA, NA),
 	PINGROUP(3, blsp_spi1, blsp_uart1, blsp_i2c1, NA, atest_tsens,
-		 bimc_dte1, NA, NA, NA),
+	bimc_dte1, NA, NA, NA),
 	PINGROUP(4, blsp_spi8, blsp_uart8, blsp_uim8, NA, qdss_cti_trig_out_b,
-		 dac_calib0, bimc_dte0, NA, NA),
+	dac_calib0, bimc_dte0, NA, NA),
 	PINGROUP(5, blsp_spi8, blsp_uart8, blsp_uim8, NA, qdss_cti_trig_in_b,
-		 dac_calib1, bimc_dte1, NA, NA),
+	dac_calib1, bimc_dte1, NA, NA),
 	PINGROUP(6, blsp_spi8, blsp_uart8, blsp_i2c8, NA, dac_calib2,
-		 bimc_dte0, NA, NA, NA),
+	bimc_dte0, NA, NA, NA),
 	PINGROUP(7, blsp_spi8, blsp_uart8, blsp_i2c8, NA, atest_tsens2,
-		 atest_usb1, NA, NA, NA),
+	atest_usb1, NA, NA, NA),
 	PINGROUP(8, blsp_spi10, blsp_uart10, blsp_uim10, NA, atest_bbrx1,
-		 atest_usb13, NA, NA, NA),
+	atest_usb13, NA, NA, NA),
 	PINGROUP(9, blsp_spi10, blsp_uart10, blsp_uim10, atest_bbrx0,
-		 atest_usb12, NA, NA, NA, NA),
+	atest_usb12, NA, NA, NA, NA),
 	PINGROUP(10, mdp_vsync, blsp_spi10, blsp_uart10, blsp_i2c10,
-		 atest_gpsadc1, atest_usb11, NA, NA, NA),
+	atest_gpsadc1, atest_usb11, NA, NA, NA),
 	PINGROUP(11, mdp_vsync, blsp_spi10, blsp_uart10, blsp_i2c10,
-		 atest_gpsadc0, atest_usb10, NA, NA, NA),
+	atest_gpsadc0, atest_usb10, NA, NA, NA),
 	PINGROUP(12, mdp_vsync, m_voc, dac_gpio, atest_char, NA, NA, NA, NA,
-		 NA),
+	NA),
 	PINGROUP(13, cam_mclk, pll_bypassnl, qdss_stm7, qdss_tracedata_b, NA,
-		 NA, NA, NA, NA),
+	NA, NA, NA, NA),
 	PINGROUP(14, cam_mclk, pll_reset, qdss_stm6, qdss_tracedata_b, NA, NA,
-		 NA, NA, NA),
+	NA, NA, NA),
 	PINGROUP(15, cam_mclk, qdss_stm5, qdss_tracedata_b, NA, NA, NA, NA, NA,
-		 NA),
+	NA),
 	PINGROUP(16, cam_mclk, qdss_stm4, qdss_tracedata_b, NA, atest_usb2, NA,
-		 NA, NA, NA),
+	NA, NA, NA),
 	PINGROUP(17, cci_i2c, qdss_stm3, qdss_tracedata_b, dac_calib3,
-		 atest_usb23, atest_char3, NA, NA, NA),
+	atest_usb23, atest_char3, NA, NA, NA),
 	PINGROUP(18, cci_i2c, qdss_stm2, qdss_tracedata_b, dac_calib4,
-		 atest_usb22, atest_char2, NA, NA, NA),
+	atest_usb22, atest_char2, NA, NA, NA),
 	PINGROUP(19, cci_i2c, qdss_stm1, qdss_tracedata_b, dac_calib5,
-		 atest_usb21, atest_char1, NA, NA, NA),
+	atest_usb21, atest_char1, NA, NA, NA),
 	PINGROUP(20, cci_i2c, dbg_out, qdss_stm0, dac_calib6, atest_usb20,
-		 atest_char0, NA, NA, NA),
+	atest_char0, NA, NA, NA),
 	PINGROUP(21, cci_timer0, qdss_stm13, qdss_tracedata_b, dac_calib7, NA,
-		 NA, NA, NA, NA),
+	NA, NA, NA, NA),
 	PINGROUP(22, cci_timer1, qdss_stm12, qdss_tracedata_b, dac_calib8, NA,
-		 NA, NA, NA, NA),
+	NA, NA, NA, NA),
 	PINGROUP(23, cci_timer2, blsp1_spi, qdss_stm11, qdss_tracedata_b,
-		 dac_calib9, NA, NA, NA, NA),
+	dac_calib9, NA, NA, NA, NA),
 	PINGROUP(24, cci_timer3, cci_async, blsp1_spi, qdss_stm10,
-		 qdss_cti_trig_in_a, dac_calib10, NA, NA, NA),
+	qdss_cti_trig_in_a, dac_calib10, NA, NA, NA),
 	PINGROUP(25, cci_timer4, cci_async, blsp_spi6, blsp_uart6, blsp_uim6,
-		 blsp2_spi, qdss_stm9, qdss_cti_trig_out_a, dac_calib11),
+	blsp2_spi, qdss_stm9, qdss_cti_trig_out_a, dac_calib11),
 	PINGROUP(26, cci_async, blsp_spi6, blsp_uart6, blsp_uim6, qdss_stm8,
-		 qdss_tracedata_b, dac_calib12, NA, NA),
+	qdss_tracedata_b, dac_calib12, NA, NA),
 	PINGROUP(27, blsp_spi6, blsp_uart6, blsp_i2c6, blsp1_spi,
-		 qdss_tracectl_a, dac_calib13, NA, NA, NA),
+	qdss_tracectl_a, dac_calib13, NA, NA, NA),
 	PINGROUP(28, blsp_spi6, blsp_uart6, blsp_i2c6, blsp1_spi,
-		 qdss_traceclk_a, dac_calib14, NA, NA, NA),
+	qdss_traceclk_a, dac_calib14, NA, NA, NA),
 	PINGROUP(29, blsp2_spi, NA, qdss_tracedata_b, dac_calib15, NA, NA, NA,
-		 NA, NA),
+	NA, NA),
 	PINGROUP(30, hdmi_rcv, blsp2_spi, dac_calib16, NA, NA, NA, NA, NA, NA),
 	PINGROUP(31, hdmi_cec, pwr_modem, dac_calib17, NA, NA, NA, NA, NA, NA),
 	PINGROUP(32, hdmi_ddc, pwr_nav, NA, dac_calib18, NA, NA, NA, NA, NA),
@@ -1733,105 +1980,105 @@ static const struct msm_pingroup msm8996_groups[] = {
 	PINGROUP(39, tsif1_sync, NA, dac_calib25, NA, NA, NA, NA, NA, NA),
 	PINGROUP(40, sd_write, tsif1_error, NA, NA, NA, NA, NA, NA, NA),
 	PINGROUP(41, blsp_spi2, blsp_uart2, blsp_uim2, NA, qdss_cti,
-		 dac_calib0, NA, NA, NA),
+	dac_calib0, NA, NA, NA),
 	PINGROUP(42, blsp_spi2, blsp_uart2, blsp_uim2, NA, qdss_cti,
-		 dac_calib1, NA, NA, NA),
+	dac_calib1, NA, NA, NA),
 	PINGROUP(43, blsp_spi2, blsp_uart2, blsp_i2c2, NA, dac_calib2, NA, NA,
-		 NA, NA),
+	NA, NA),
 	PINGROUP(44, blsp_spi2, blsp_uart2, blsp_i2c2, NA, dac_calib3, NA, NA,
-		 NA, NA),
+	NA, NA),
 	PINGROUP(45, blsp_spi3, blsp_uart3, blsp_uim3, NA, dac_calib4, NA, NA,
-		 NA, NA),
+	NA, NA),
 	PINGROUP(46, blsp_spi3, blsp_uart3, blsp_uim3, NA, dac_calib5, NA, NA,
-		 NA, NA),
+	NA, NA),
 	PINGROUP(47, blsp_spi3, blsp_uart3, blsp_i2c3, dac_calib6, NA, NA, NA,
-		 NA, NA),
+	NA, NA),
 	PINGROUP(48, blsp_spi3, blsp_uart3, blsp_i2c3, dac_calib7, NA, NA, NA,
-		 NA, NA),
+	NA, NA),
 	PINGROUP(49, uim3, blsp_spi9, blsp_uart9, blsp_uim9, blsp10_spi,
-		 dac_calib8, NA, NA, NA),
+	dac_calib8, NA, NA, NA),
 	PINGROUP(50, uim3, blsp_spi9, blsp_uart9, blsp_uim9, blsp10_spi,
-		 dac_calib9, NA, NA, NA),
+	dac_calib9, NA, NA, NA),
 	PINGROUP(51, uim3, blsp_spi9, blsp_uart9, blsp_i2c9, blsp10_spi,
-		 dac_calib10, NA, NA, NA),
+	dac_calib10, NA, NA, NA),
 	PINGROUP(52, uim3, blsp_spi9, blsp_uart9, blsp_i2c9,
-		 blsp10_spi, dac_calib11, NA, NA, NA),
+	blsp10_spi, dac_calib11, NA, NA, NA),
 	PINGROUP(53, blsp_spi7, blsp_uart7, blsp_uim7, NA, qdss_tracedata_a,
-		 dac_calib12, NA, NA, NA),
+	dac_calib12, NA, NA, NA),
 	PINGROUP(54, blsp_spi7, blsp_uart7, blsp_uim7, NA, NA,
-		 qdss_tracedata_a, dac_calib13, NA, NA),
+	qdss_tracedata_a, dac_calib13, NA, NA),
 	PINGROUP(55, blsp_spi7, blsp_uart7, blsp_i2c7, NA, dac_calib14, NA, NA,
-		 NA, NA),
+	NA, NA),
 	PINGROUP(56, blsp_spi7, blsp_uart7, blsp_i2c7, NA, dac_calib15, NA, NA,
-		 NA, NA),
+	NA, NA),
 	PINGROUP(57, qua_mi2s, gcc_gp1_clk_a, NA, qdss_tracedata_b,
-		 dac_calib16, NA, NA, NA, NA),
+	dac_calib16, NA, NA, NA, NA),
 	PINGROUP(58, qua_mi2s, uim4, blsp_spi11, blsp_uart11, blsp_uim11,
-		 gcc_gp2_clk_a, NA, qdss_tracedata_b, dac_calib17),
+	gcc_gp2_clk_a, NA, qdss_tracedata_b, dac_calib17),
 	PINGROUP(59, qua_mi2s, uim4, blsp_spi11, blsp_uart11, blsp_uim11,
-		 gcc_gp3_clk_a, NA, dac_calib18, NA),
+	gcc_gp3_clk_a, NA, dac_calib18, NA),
 	PINGROUP(60, qua_mi2s, uim4, blsp_spi11, blsp_uart11, blsp_i2c11,
-		 cri_trng0, NA, dac_calib19, NA),
+	cri_trng0, NA, dac_calib19, NA),
 	PINGROUP(61, qua_mi2s, uim4, blsp_spi11, blsp_uart11,
-		 blsp_i2c11, cri_trng1, NA, dac_calib20, NA),
+	blsp_i2c11, cri_trng1, NA, dac_calib20, NA),
 	PINGROUP(62, qua_mi2s, cri_trng, NA, dac_calib21, NA, NA, NA, NA, NA),
 	PINGROUP(63, qua_mi2s, NA, NA, qdss_stm18, qdss_tracedata_a,
-		 dac_calib22, NA, NA, NA),
+	dac_calib22, NA, NA, NA),
 	PINGROUP(64, pri_mi2s, NA, qdss_stm17, qdss_tracedata_a, dac_calib23,
-		 NA, NA, NA, NA),
+	NA, NA, NA, NA),
 	PINGROUP(65, pri_mi2s, blsp_spi4, blsp_uart4, blsp_uim4, NA,
-		 qdss_stm16, qdss_tracedata_a, dac_calib24, NA),
+	qdss_stm16, qdss_tracedata_a, dac_calib24, NA),
 	PINGROUP(66, pri_mi2s, blsp_spi4, blsp_uart4, blsp_uim4, NA,
-		 qdss_stm15, qdss_tracedata_a, dac_calib25, NA),
+	qdss_stm15, qdss_tracedata_a, dac_calib25, NA),
 	PINGROUP(67, pri_mi2s, blsp_spi4, blsp_uart4, blsp_i2c4, qdss_stm14,
-		 qdss_tracedata_a, dac_calib26, NA, NA),
+	qdss_tracedata_a, dac_calib26, NA, NA),
 	PINGROUP(68, pri_mi2s, blsp_spi4, blsp_uart4, blsp_i2c4, NA, NA, NA,
-		 NA, NA),
+	NA, NA),
 	PINGROUP(69, spkr_i2s, audio_ref, NA, NA, NA, NA, NA, NA, NA),
 	PINGROUP(70, lpass_slimbus, spkr_i2s, isense_dbg, NA, NA, NA, NA, NA,
-		 NA),
+	NA),
 	PINGROUP(71, lpass_slimbus, spkr_i2s, tsense_pwm1, tsense_pwm2, NA, NA,
-		 NA, NA, NA),
+	NA, NA, NA),
 	PINGROUP(72, lpass_slimbus, spkr_i2s, NA, NA, NA, NA, NA, NA, NA),
 	PINGROUP(73, btfm_slimbus, NA, NA, NA, NA, NA, NA, NA, NA),
 	PINGROUP(74, btfm_slimbus, ter_mi2s, qdss_stm22, qdss_tracedata_a, NA,
-		 NA, NA, NA, NA),
+	NA, NA, NA, NA),
 	PINGROUP(75, ter_mi2s, qdss_stm21, qdss_tracedata_a, NA, NA, NA, NA,
-		 NA, NA),
+	NA, NA),
 	PINGROUP(76, ter_mi2s, qdss_stm20, qdss_tracedata_a, NA, NA, NA, NA,
-		 NA, NA),
+	NA, NA),
 	PINGROUP(77, ter_mi2s, qdss_stm19, qdss_tracedata_a, NA, NA, NA, NA,
-		 NA, NA),
+	NA, NA),
 	PINGROUP(78, ter_mi2s, gcc_gp1_clk_b, NA, NA, NA, NA, NA, NA, NA),
 	PINGROUP(79, sec_mi2s, NA, NA, NA, NA, NA, NA, NA, NA),
 	PINGROUP(80, sec_mi2s, NA, NA, NA, NA, NA, NA, NA, NA),
 	PINGROUP(81, sec_mi2s, blsp_spi5, blsp_uart5, blsp_uim5, gcc_gp2_clk_b,
-		 NA, NA, NA, NA),
+	NA, NA, NA, NA),
 	PINGROUP(82, sec_mi2s, blsp_spi5, blsp_uart5, blsp_uim5, gcc_gp3_clk_b,
-		 NA, NA, NA, NA),
+	NA, NA, NA, NA),
 	PINGROUP(83, sec_mi2s, blsp_spi5, blsp_uart5, blsp_i2c5, NA, NA, NA,
-		 NA, NA),
+	NA, NA),
 	PINGROUP(84, blsp_spi5, blsp_uart5, blsp_i2c5, NA, NA, NA, NA, NA, NA),
 	PINGROUP(85, blsp_spi12, blsp_uart12, blsp_uim12, NA, qdss_stm25,
-		 qdss_tracedata_a, NA, NA, NA),
+	qdss_tracedata_a, NA, NA, NA),
 	PINGROUP(86, blsp_spi12, blsp_uart12, blsp_uim12, NA, NA, qdss_stm31,
-		 qdss_tracedata_a, NA, NA),
+	qdss_tracedata_a, NA, NA),
 	PINGROUP(87, blsp_spi12, blsp_uart12, blsp_i2c12, NA, qdss_stm30,
-		 qdss_tracedata_a, NA, NA, NA),
+	qdss_tracedata_a, NA, NA, NA),
 	PINGROUP(88, blsp_spi12, blsp_uart12, blsp_i2c12, blsp10_spi, NA,
-		 qdss_stm29, NA, NA, NA),
+	qdss_stm29, NA, NA, NA),
 	PINGROUP(89, tsif1_clk, qdss_stm28, qdss_tracedata_a, NA, NA, NA, NA,
-		 NA, NA),
+	NA, NA),
 	PINGROUP(90, tsif1_en, blsp1_spi, qdss_tracedata_a, NA, NA, NA, NA, NA,
-		 NA),
+	NA),
 	PINGROUP(91, tsif1_data, sdc4_cmd, qdss_stm27, qdss_traceclk_b, NA, NA,
-		 NA, NA, NA),
+	NA, NA, NA),
 	PINGROUP(92, tsif2_error, sdc43, vfr_1, qdss_stm26, qdss_tracedata_b,
-		 NA, NA, NA, NA),
+	NA, NA, NA, NA),
 	PINGROUP(93, tsif2_clk, sdc4_clk, NA, qdss_stm24, qdss_tracedata_b, NA,
-		 NA, NA, NA),
+	NA, NA, NA),
 	PINGROUP(94, tsif2_en, sdc42, NA, qdss_stm23, qdss_tracectl_b, NA, NA,
-		 NA, NA),
+	NA, NA),
 	PINGROUP(95, tsif2_data, sdc41, NA, NA, NA, NA, NA, NA, NA),
 	PINGROUP(96, tsif2_sync, sdc40, NA, NA, NA, NA, NA, NA, NA),
 	PINGROUP(97, NA, NA, mdp_vsync_p_b, ldo_en, NA, NA, NA, NA, NA),
@@ -1896,7 +2143,8 @@ static const struct msm_pingroup msm8996_groups[] = {
 	SDC_QDSD_PINGROUP(sdc1_rclk, 0x12c000, 15, 0),
 };
 
-static const struct msm_pinctrl_soc_data msm8996_pinctrl = {
+static const struct msm_pinctrl_soc_data msm8996_pinctrl =
+{
 	.pins = msm8996_pins,
 	.npins = ARRAY_SIZE(msm8996_pins),
 	.functions = msm8996_functions,
@@ -1911,12 +2159,14 @@ static int msm8996_pinctrl_probe(struct platform_device *pdev)
 	return msm_pinctrl_probe(pdev, &msm8996_pinctrl);
 }
 
-static const struct of_device_id msm8996_pinctrl_of_match[] = {
+static const struct of_device_id msm8996_pinctrl_of_match[] =
+{
 	{ .compatible = "qcom,msm8996-pinctrl", },
 	{ }
 };
 
-static struct platform_driver msm8996_pinctrl_driver = {
+static struct platform_driver msm8996_pinctrl_driver =
+{
 	.driver = {
 		.name = "msm8996-pinctrl",
 		.of_match_table = msm8996_pinctrl_of_match,

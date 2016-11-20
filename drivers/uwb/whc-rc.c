@@ -60,7 +60,8 @@
  * Unless there is a lock specific to the 'data members', all access
  * is protected by uwb_rc->mutex.
  */
-struct whcrc {
+struct whcrc
+{
 	struct umc_dev *umc_dev;
 	struct uwb_rc *uwb_rc;		/* UWB host controller */
 
@@ -90,7 +91,7 @@ struct whcrc {
  * NOTE: rc's mutex has to be locked
  */
 static int whcrc_cmd(struct uwb_rc *uwb_rc,
-	      const struct uwb_rccb *cmd, size_t cmd_size)
+					 const struct uwb_rccb *cmd, size_t cmd_size)
 {
 	int result = 0;
 	struct whcrc *whcrc = uwb_rc->priv;
@@ -98,7 +99,9 @@ static int whcrc_cmd(struct uwb_rc *uwb_rc,
 	u32 urccmd;
 
 	if (cmd_size >= 4096)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * If the URC is halted, then the hardware has reset itself.
@@ -106,15 +109,18 @@ static int whcrc_cmd(struct uwb_rc *uwb_rc,
 	 * an error as it's likely that the current command isn't
 	 * valid for a newly started RC.
 	 */
-	if (le_readl(whcrc->rc_base + URCSTS) & URCSTS_HALTED) {
+	if (le_readl(whcrc->rc_base + URCSTS) & URCSTS_HALTED)
+	{
 		dev_err(dev, "requesting reset of halted radio controller\n");
 		uwb_rc_reset_all(uwb_rc);
 		return -EIO;
 	}
 
 	result = wait_event_timeout(whcrc->cmd_wq,
-		!(le_readl(whcrc->rc_base + URCCMD) & URCCMD_ACTIVE), HZ/2);
-	if (result == 0) {
+								!(le_readl(whcrc->rc_base + URCCMD) & URCCMD_ACTIVE), HZ / 2);
+
+	if (result == 0)
+	{
 		dev_err(dev, "device is not ready to execute commands\n");
 		return -ETIMEDOUT;
 	}
@@ -126,7 +132,7 @@ static int whcrc_cmd(struct uwb_rc *uwb_rc,
 	urccmd = le_readl(whcrc->rc_base + URCCMD);
 	urccmd &= ~(URCCMD_EARV | URCCMD_SIZE_MASK);
 	le_writel(urccmd | URCCMD_ACTIVE | URCCMD_IWR | cmd_size,
-		  whcrc->rc_base + URCCMD);
+			  whcrc->rc_base + URCCMD);
 	spin_unlock(&whcrc->irq_lock);
 
 	return 0;
@@ -193,19 +199,31 @@ irqreturn_t whcrc_irq_cb(int irq, void *_whcrc)
 	u32 urcsts;
 
 	urcsts = le_readl(whcrc->rc_base + URCSTS);
+
 	if (!(urcsts & URCSTS_INT_MASK))
+	{
 		return IRQ_NONE;
+	}
+
 	le_writel(urcsts & URCSTS_INT_MASK, whcrc->rc_base + URCSTS);
 
-	if (urcsts & URCSTS_HSE) {
+	if (urcsts & URCSTS_HSE)
+	{
 		dev_err(dev, "host system error -- hardware halted\n");
 		/* FIXME: do something sensible here */
 		goto out;
 	}
+
 	if (urcsts & URCSTS_ER)
+	{
 		schedule_work(&whcrc->event_work);
+	}
+
 	if (urcsts & URCSTS_RCI)
+	{
 		wake_up_all(&whcrc->cmd_wq);
+	}
+
 out:
 	return IRQ_HANDLED;
 }
@@ -224,46 +242,57 @@ int whcrc_setup_rc_umc(struct whcrc *whcrc)
 	whcrc->area = umc_dev->resource.start;
 	whcrc->rc_len = resource_size(&umc_dev->resource);
 	result = -EBUSY;
-	if (request_mem_region(whcrc->area, whcrc->rc_len, KBUILD_MODNAME) == NULL) {
+
+	if (request_mem_region(whcrc->area, whcrc->rc_len, KBUILD_MODNAME) == NULL)
+	{
 		dev_err(dev, "can't request URC region (%zu bytes @ 0x%lx): %d\n",
-			whcrc->rc_len, whcrc->area, result);
+				whcrc->rc_len, whcrc->area, result);
 		goto error_request_region;
 	}
 
 	whcrc->rc_base = ioremap_nocache(whcrc->area, whcrc->rc_len);
-	if (whcrc->rc_base == NULL) {
+
+	if (whcrc->rc_base == NULL)
+	{
 		dev_err(dev, "can't ioremap registers (%zu bytes @ 0x%lx): %d\n",
-			whcrc->rc_len, whcrc->area, result);
+				whcrc->rc_len, whcrc->area, result);
 		goto error_ioremap_nocache;
 	}
 
 	result = request_irq(umc_dev->irq, whcrc_irq_cb, IRQF_SHARED,
-			     KBUILD_MODNAME, whcrc);
-	if (result < 0) {
+						 KBUILD_MODNAME, whcrc);
+
+	if (result < 0)
+	{
 		dev_err(dev, "can't allocate IRQ %d: %d\n",
-			umc_dev->irq, result);
+				umc_dev->irq, result);
 		goto error_request_irq;
 	}
 
 	result = -ENOMEM;
 	whcrc->cmd_buf = dma_alloc_coherent(&umc_dev->dev, PAGE_SIZE,
-					    &whcrc->cmd_dma_buf, GFP_KERNEL);
-	if (whcrc->cmd_buf == NULL) {
+										&whcrc->cmd_dma_buf, GFP_KERNEL);
+
+	if (whcrc->cmd_buf == NULL)
+	{
 		dev_err(dev, "Can't allocate cmd transfer buffer\n");
 		goto error_cmd_buffer;
 	}
 
 	whcrc->evt_buf = dma_alloc_coherent(&umc_dev->dev, PAGE_SIZE,
-					    &whcrc->evt_dma_buf, GFP_KERNEL);
-	if (whcrc->evt_buf == NULL) {
+										&whcrc->evt_dma_buf, GFP_KERNEL);
+
+	if (whcrc->evt_buf == NULL)
+	{
 		dev_err(dev, "Can't allocate evt transfer buffer\n");
 		goto error_evt_buffer;
 	}
+
 	return 0;
 
 error_evt_buffer:
 	dma_free_coherent(&umc_dev->dev, PAGE_SIZE, whcrc->cmd_buf,
-			  whcrc->cmd_dma_buf);
+					  whcrc->cmd_dma_buf);
 error_cmd_buffer:
 	free_irq(umc_dev->irq, whcrc);
 error_request_irq:
@@ -284,9 +313,9 @@ void whcrc_release_rc_umc(struct whcrc *whcrc)
 	struct umc_dev *umc_dev = whcrc->umc_dev;
 
 	dma_free_coherent(&umc_dev->dev, PAGE_SIZE, whcrc->evt_buf,
-			  whcrc->evt_dma_buf);
+					  whcrc->evt_dma_buf);
 	dma_free_coherent(&umc_dev->dev, PAGE_SIZE, whcrc->cmd_buf,
-			  whcrc->cmd_dma_buf);
+					  whcrc->cmd_dma_buf);
 	free_irq(umc_dev->irq, whcrc);
 	iounmap(whcrc->rc_base);
 	release_mem_region(whcrc->area, whcrc->rc_len);
@@ -307,16 +336,23 @@ static int whcrc_start_rc(struct uwb_rc *rc)
 
 	/* Reset the thing */
 	le_writel(URCCMD_RESET, whcrc->rc_base + URCCMD);
+
 	if (whci_wait_for(dev, whcrc->rc_base + URCCMD, URCCMD_RESET, 0,
-			  5000, "hardware reset") < 0)
+					  5000, "hardware reset") < 0)
+	{
 		return -EBUSY;
+	}
 
 	/* Set the event buffer, start the controller (enable IRQs later) */
 	le_writel(0, whcrc->rc_base + URCINTR);
 	le_writel(URCCMD_RS, whcrc->rc_base + URCCMD);
+
 	if (whci_wait_for(dev, whcrc->rc_base + URCSTS, URCSTS_HALTED, 0,
-			  5000, "radio controller start") < 0)
+					  5000, "radio controller start") < 0)
+	{
 		return -ETIMEDOUT;
+	}
+
 	whcrc_enable_events(whcrc);
 	le_writel(URCINTR_EN_ALL, whcrc->rc_base + URCINTR);
 	return 0;
@@ -341,7 +377,7 @@ void whcrc_stop_rc(struct uwb_rc *rc)
 
 	le_writel(0, whcrc->rc_base + URCCMD);
 	whci_wait_for(&umc_dev->dev, whcrc->rc_base + URCSTS,
-		      URCSTS_HALTED, URCSTS_HALTED, 100, "radio controller stop");
+				  URCSTS_HALTED, URCSTS_HALTED, 100, "radio controller stop");
 }
 
 static void whcrc_init(struct whcrc *whcrc)
@@ -369,23 +405,32 @@ int whcrc_probe(struct umc_dev *umc_dev)
 
 	result = -ENOMEM;
 	uwb_rc = uwb_rc_alloc();
-	if (uwb_rc == NULL) {
+
+	if (uwb_rc == NULL)
+	{
 		dev_err(dev, "unable to allocate RC instance\n");
 		goto error_rc_alloc;
 	}
+
 	whcrc = kzalloc(sizeof(*whcrc), GFP_KERNEL);
-	if (whcrc == NULL) {
+
+	if (whcrc == NULL)
+	{
 		dev_err(dev, "unable to allocate WHC-RC instance\n");
 		goto error_alloc;
 	}
+
 	whcrc_init(whcrc);
 	whcrc->umc_dev = umc_dev;
 
 	result = whcrc_setup_rc_umc(whcrc);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		dev_err(dev, "Can't setup RC UMC interface: %d\n", result);
 		goto error_setup_rc_umc;
 	}
+
 	whcrc->uwb_rc = uwb_rc;
 
 	uwb_rc->owner = THIS_MODULE;
@@ -395,8 +440,12 @@ int whcrc_probe(struct umc_dev *umc_dev)
 	uwb_rc->stop  = whcrc_stop_rc;
 
 	result = uwb_rc_add(uwb_rc, dev, whcrc);
+
 	if (result < 0)
+	{
 		goto error_rc_add;
+	}
+
 	umc_set_drvdata(umc_dev, whcrc);
 	return 0;
 
@@ -449,13 +498,15 @@ static int whcrc_post_reset(struct umc_dev *umc)
 }
 
 /* PCI device ID's that we handle [so it gets loaded] */
-static struct pci_device_id __used whcrc_id_table[] = {
+static struct pci_device_id __used whcrc_id_table[] =
+{
 	{ PCI_DEVICE_CLASS(PCI_CLASS_WIRELESS_WHCI, ~0) },
 	{ /* empty last entry */ }
 };
 MODULE_DEVICE_TABLE(pci, whcrc_id_table);
 
-static struct umc_driver whcrc_driver = {
+static struct umc_driver whcrc_driver =
+{
 	.name       = "whc-rc",
 	.cap_id     = UMC_CAP_ID_WHCI_RC,
 	.probe      = whcrc_probe,

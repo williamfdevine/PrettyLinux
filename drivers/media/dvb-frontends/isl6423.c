@@ -40,22 +40,23 @@ MODULE_PARM_DESC(verbose, "Set Verbosity level");
 #define FE_DEBUGREG				4
 
 #define dprintk(__y, __z, format, arg...) do {						\
-	if (__z) {									\
-		if	((verbose > FE_ERROR) && (verbose > __y))			\
-			printk(KERN_ERR "%s: " format "\n", __func__ , ##arg);		\
-		else if	((verbose > FE_NOTICE) && (verbose > __y))			\
-			printk(KERN_NOTICE "%s: " format "\n", __func__ , ##arg);	\
-		else if ((verbose > FE_INFO) && (verbose > __y))			\
-			printk(KERN_INFO "%s: " format "\n", __func__ , ##arg);		\
-		else if ((verbose > FE_DEBUG) && (verbose > __y))			\
-			printk(KERN_DEBUG "%s: " format "\n", __func__ , ##arg);	\
-	} else {									\
-		if (verbose > __y)							\
-			printk(format, ##arg);						\
-	}										\
-} while (0)
+		if (__z) {									\
+			if	((verbose > FE_ERROR) && (verbose > __y))			\
+				printk(KERN_ERR "%s: " format "\n", __func__ , ##arg);		\
+			else if	((verbose > FE_NOTICE) && (verbose > __y))			\
+				printk(KERN_NOTICE "%s: " format "\n", __func__ , ##arg);	\
+			else if ((verbose > FE_INFO) && (verbose > __y))			\
+				printk(KERN_INFO "%s: " format "\n", __func__ , ##arg);		\
+			else if ((verbose > FE_DEBUG) && (verbose > __y))			\
+				printk(KERN_DEBUG "%s: " format "\n", __func__ , ##arg);	\
+		} else {									\
+			if (verbose > __y)							\
+				printk(format, ##arg);						\
+		}										\
+	} while (0)
 
-struct isl6423_dev {
+struct isl6423_dev
+{
 	const struct isl6423_config	*config;
 	struct i2c_adapter		*i2c;
 
@@ -75,8 +76,12 @@ static int isl6423_write(struct isl6423_dev *isl6423, u8 reg)
 
 	dprintk(FE_DEBUG, 1, "write reg %02X", reg);
 	err = i2c_transfer(i2c, &msg, 1);
+
 	if (err < 0)
+	{
 		goto exit;
+	}
+
 	return 0;
 
 exit:
@@ -94,13 +99,21 @@ static int isl6423_set_modulation(struct dvb_frontend *fe)
 	reg_2 = 0x01 << 5;
 
 	if (config->mod_extern)
+	{
 		reg_2 |= (1 << 3);
+	}
 	else
+	{
 		reg_2 |= (1 << 4);
+	}
 
 	err = isl6423_write(isl6423, reg_2);
+
 	if (err < 0)
+	{
 		goto exit;
+	}
+
 	return 0;
 
 exit:
@@ -115,24 +128,34 @@ static int isl6423_voltage_boost(struct dvb_frontend *fe, long arg)
 	u8 reg_4 = isl6423->reg_4;
 	int err = 0;
 
-	if (arg) {
+	if (arg)
+	{
 		/* EN = 1, VSPEN = 1, VBOT = 1 */
 		reg_4 |= (1 << 4);
 		reg_4 |= 0x1;
 		reg_3 |= (1 << 3);
-	} else {
+	}
+	else
+	{
 		/* EN = 1, VSPEN = 1, VBOT = 0 */
 		reg_4 |= (1 << 4);
 		reg_4 &= ~0x1;
 		reg_3 |= (1 << 3);
 	}
+
 	err = isl6423_write(isl6423, reg_3);
+
 	if (err < 0)
+	{
 		goto exit;
+	}
 
 	err = isl6423_write(isl6423, reg_4);
+
 	if (err < 0)
+	{
 		goto exit;
+	}
 
 	isl6423->reg_3 = reg_3;
 	isl6423->reg_4 = reg_4;
@@ -145,44 +168,52 @@ exit:
 
 
 static int isl6423_set_voltage(struct dvb_frontend *fe,
-			       enum fe_sec_voltage voltage)
+							   enum fe_sec_voltage voltage)
 {
 	struct isl6423_dev *isl6423 = (struct isl6423_dev *) fe->sec_priv;
 	u8 reg_3 = isl6423->reg_3;
 	u8 reg_4 = isl6423->reg_4;
 	int err = 0;
 
-	switch (voltage) {
-	case SEC_VOLTAGE_OFF:
-		/* EN = 0 */
-		reg_4 &= ~(1 << 4);
-		break;
+	switch (voltage)
+	{
+		case SEC_VOLTAGE_OFF:
+			/* EN = 0 */
+			reg_4 &= ~(1 << 4);
+			break;
 
-	case SEC_VOLTAGE_13:
-		/* EN = 1, VSPEN = 1, VTOP = 0, VBOT = 0 */
-		reg_4 |= (1 << 4);
-		reg_4 &= ~0x3;
-		reg_3 |= (1 << 3);
-		break;
+		case SEC_VOLTAGE_13:
+			/* EN = 1, VSPEN = 1, VTOP = 0, VBOT = 0 */
+			reg_4 |= (1 << 4);
+			reg_4 &= ~0x3;
+			reg_3 |= (1 << 3);
+			break;
 
-	case SEC_VOLTAGE_18:
-		/* EN = 1, VSPEN = 1, VTOP = 1, VBOT = 0 */
-		reg_4 |= (1 << 4);
-		reg_4 |=  0x2;
-		reg_4 &= ~0x1;
-		reg_3 |= (1 << 3);
-		break;
+		case SEC_VOLTAGE_18:
+			/* EN = 1, VSPEN = 1, VTOP = 1, VBOT = 0 */
+			reg_4 |= (1 << 4);
+			reg_4 |=  0x2;
+			reg_4 &= ~0x1;
+			reg_3 |= (1 << 3);
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
+
 	err = isl6423_write(isl6423, reg_3);
+
 	if (err < 0)
+	{
 		goto exit;
+	}
 
 	err = isl6423_write(isl6423, reg_4);
+
 	if (err < 0)
+	{
 		goto exit;
+	}
 
 	isl6423->reg_3 = reg_3;
 	isl6423->reg_4 = reg_4;
@@ -200,53 +231,61 @@ static int isl6423_set_current(struct dvb_frontend *fe)
 	const struct isl6423_config *config	= isl6423->config;
 	int err = 0;
 
-	switch (config->current_max) {
-	case SEC_CURRENT_275m:
-		/* 275mA */
-		/* ISELH = 0, ISELL = 0 */
-		reg_3 &= ~0x3;
-		break;
+	switch (config->current_max)
+	{
+		case SEC_CURRENT_275m:
+			/* 275mA */
+			/* ISELH = 0, ISELL = 0 */
+			reg_3 &= ~0x3;
+			break;
 
-	case SEC_CURRENT_515m:
-		/* 515mA */
-		/* ISELH = 0, ISELL = 1 */
-		reg_3 &= ~0x2;
-		reg_3 |=  0x1;
-		break;
+		case SEC_CURRENT_515m:
+			/* 515mA */
+			/* ISELH = 0, ISELL = 1 */
+			reg_3 &= ~0x2;
+			reg_3 |=  0x1;
+			break;
 
-	case SEC_CURRENT_635m:
-		/* 635mA */
-		/* ISELH = 1, ISELL = 0 */
-		reg_3 &= ~0x1;
-		reg_3 |=  0x2;
-		break;
+		case SEC_CURRENT_635m:
+			/* 635mA */
+			/* ISELH = 1, ISELL = 0 */
+			reg_3 &= ~0x1;
+			reg_3 |=  0x2;
+			break;
 
-	case SEC_CURRENT_800m:
-		/* 800mA */
-		/* ISELH = 1, ISELL = 1 */
-		reg_3 |= 0x3;
-		break;
+		case SEC_CURRENT_800m:
+			/* 800mA */
+			/* ISELH = 1, ISELL = 1 */
+			reg_3 |= 0x3;
+			break;
 	}
 
 	err = isl6423_write(isl6423, reg_3);
+
 	if (err < 0)
+	{
 		goto exit;
+	}
 
-	switch (config->curlim) {
-	case SEC_CURRENT_LIM_ON:
-		/* DCL = 0 */
-		reg_3 &= ~0x10;
-		break;
+	switch (config->curlim)
+	{
+		case SEC_CURRENT_LIM_ON:
+			/* DCL = 0 */
+			reg_3 &= ~0x10;
+			break;
 
-	case SEC_CURRENT_LIM_OFF:
-		/* DCL = 1 */
-		reg_3 |= 0x10;
-		break;
+		case SEC_CURRENT_LIM_OFF:
+			/* DCL = 1 */
+			reg_3 |= 0x10;
+			break;
 	}
 
 	err = isl6423_write(isl6423, reg_3);
+
 	if (err < 0)
+	{
 		goto exit;
+	}
 
 	isl6423->reg_3 = reg_3;
 
@@ -265,14 +304,17 @@ static void isl6423_release(struct dvb_frontend *fe)
 }
 
 struct dvb_frontend *isl6423_attach(struct dvb_frontend *fe,
-				    struct i2c_adapter *i2c,
-				    const struct isl6423_config *config)
+									struct i2c_adapter *i2c,
+									const struct isl6423_config *config)
 {
 	struct isl6423_dev *isl6423;
 
 	isl6423 = kzalloc(sizeof(struct isl6423_dev), GFP_KERNEL);
+
 	if (!isl6423)
+	{
 		return NULL;
+	}
 
 	isl6423->config	= config;
 	isl6423->i2c	= i2c;
@@ -284,10 +326,14 @@ struct dvb_frontend *isl6423_attach(struct dvb_frontend *fe,
 	isl6423->reg_4 = 0x03 << 5;
 
 	if (isl6423_set_current(fe))
+	{
 		goto exit;
+	}
 
 	if (isl6423_set_modulation(fe))
+	{
 		goto exit;
+	}
 
 	fe->ops.release_sec		= isl6423_release;
 	fe->ops.set_voltage		= isl6423_set_voltage;

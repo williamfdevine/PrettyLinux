@@ -53,7 +53,8 @@
 
 #include <linux/types.h>
 
-enum {
+enum
+{
 	/**
 	 * Version of the interface (unsigned decimal, MMm, max 25.5)
 	 * M - Major: change if removing or modifying an existing call.
@@ -72,7 +73,8 @@ enum {
  * Most of these map to an API call; _OP_ stands for operation, _RP_
  * for reply and _RE_ for report (aka: signal).
  */
-enum {
+enum
+{
 	WIMAX_GNL_OP_MSG_FROM_USER,	/* User to kernel message */
 	WIMAX_GNL_OP_MSG_TO_USER,	/* Kernel to user message */
 	WIMAX_GNL_OP_RFKILL,	/* Run wimax_rfkill() */
@@ -83,7 +85,8 @@ enum {
 
 
 /* Message from user / to user */
-enum {
+enum
+{
 	WIMAX_GNL_MSG_IFIDX = 1,
 	WIMAX_GNL_MSG_PIPE_NAME,
 	WIMAX_GNL_MSG_DATA,
@@ -96,26 +99,30 @@ enum {
  * The state of the radio (ON/OFF) is mapped to the rfkill subsystem's
  * switch state (DISABLED/ENABLED).
  */
-enum wimax_rf_state {
+enum wimax_rf_state
+{
 	WIMAX_RF_OFF = 0,	/* Radio is off, rfkill on/enabled */
 	WIMAX_RF_ON = 1,	/* Radio is on, rfkill off/disabled */
 	WIMAX_RF_QUERY = 2,
 };
 
 /* Attributes */
-enum {
+enum
+{
 	WIMAX_GNL_RFKILL_IFIDX = 1,
 	WIMAX_GNL_RFKILL_STATE,
 };
 
 
 /* Attributes for wimax_reset() */
-enum {
+enum
+{
 	WIMAX_GNL_RESET_IFIDX = 1,
 };
 
 /* Attributes for wimax_state_get() */
-enum {
+enum
+{
 	WIMAX_GNL_STGET_IFIDX = 1,
 };
 
@@ -125,7 +132,8 @@ enum {
  * For now we just have the old and new states; new attributes might
  * be added later on.
  */
-enum {
+enum
+{
 	WIMAX_GNL_STCH_IFIDX = 1,
 	WIMAX_GNL_STCH_STATE_OLD,
 	WIMAX_GNL_STCH_STATE_NEW,
@@ -222,7 +230,8 @@ enum {
  *
  * This table not available in kernel-doc because the formatting messes it up.
  */
- enum wimax_st {
+enum wimax_st
+{
 	__WIMAX_ST_NULL = 0,
 	WIMAX_ST_DOWN,
 	__WIMAX_ST_QUIESCING,

@@ -75,7 +75,8 @@
  * values than the one computed based only on the input clock frequency.
  * Leave them to be %0 if not used.
  */
-struct dw_i2c_dev {
+struct dw_i2c_dev
+{
 	struct device		*dev;
 	void __iomem		*base;
 	struct completion	cmd_complete;

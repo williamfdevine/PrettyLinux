@@ -52,19 +52,21 @@
  * one
  *
  */
-struct kernel_queue_ops {
+struct kernel_queue_ops
+{
 	bool	(*initialize)(struct kernel_queue *kq, struct kfd_dev *dev,
-			enum kfd_queue_type type, unsigned int queue_size);
+						  enum kfd_queue_type type, unsigned int queue_size);
 	void	(*uninitialize)(struct kernel_queue *kq);
 	int	(*acquire_packet_buffer)(struct kernel_queue *kq,
-					size_t packet_size_in_dwords,
-					unsigned int **buffer_ptr);
+								 size_t packet_size_in_dwords,
+								 unsigned int **buffer_ptr);
 
 	void	(*submit_packet)(struct kernel_queue *kq);
 	void	(*rollback_packet)(struct kernel_queue *kq);
 };
 
-struct kernel_queue {
+struct kernel_queue
+{
 	struct kernel_queue_ops ops;
 	struct kernel_queue_ops ops_asic_specific;
 

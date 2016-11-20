@@ -17,7 +17,8 @@
 
 static bool request_mem_succeeded = false;
 
-static struct fb_var_screeninfo efifb_defined = {
+static struct fb_var_screeninfo efifb_defined =
+{
 	.activate		= FB_ACTIVATE_NOW,
 	.height			= -1,
 	.width			= -1,
@@ -28,7 +29,8 @@ static struct fb_var_screeninfo efifb_defined = {
 	.vmode			= FB_VMODE_NONINTERLACED,
 };
 
-static struct fb_fix_screeninfo efifb_fix = {
+static struct fb_fix_screeninfo efifb_fix =
+{
 	.id			= "EFI VGA",
 	.type			= FB_TYPE_PACKED_PIXELS,
 	.accel			= FB_ACCEL_NONE,
@@ -36,8 +38,8 @@ static struct fb_fix_screeninfo efifb_fix = {
 };
 
 static int efifb_setcolreg(unsigned regno, unsigned red, unsigned green,
-			   unsigned blue, unsigned transp,
-			   struct fb_info *info)
+						   unsigned blue, unsigned transp,
+						   struct fb_info *info)
 {
 	/*
 	 *  Set a single color register. The values supplied are
@@ -47,9 +49,12 @@ static int efifb_setcolreg(unsigned regno, unsigned red, unsigned green,
 	 */
 
 	if (regno >= info->cmap.len)
+	{
 		return 1;
+	}
 
-	if (regno < 16) {
+	if (regno < 16)
+	{
 		red   >>= 16 - info->var.red.length;
 		green >>= 16 - info->var.green.length;
 		blue  >>= 16 - info->var.blue.length;
@@ -58,20 +63,26 @@ static int efifb_setcolreg(unsigned regno, unsigned red, unsigned green,
 			(green << info->var.green.offset) |
 			(blue  << info->var.blue.offset);
 	}
+
 	return 0;
 }
 
 static void efifb_destroy(struct fb_info *info)
 {
 	if (info->screen_base)
+	{
 		iounmap(info->screen_base);
+	}
+
 	if (request_mem_succeeded)
 		release_mem_region(info->apertures->ranges[0].base,
-				   info->apertures->ranges[0].size);
+						   info->apertures->ranges[0].size);
+
 	fb_dealloc_cmap(&info->cmap);
 }
 
-static struct fb_ops efifb_ops = {
+static struct fb_ops efifb_ops =
+{
 	.owner		= THIS_MODULE,
 	.fb_destroy	= efifb_destroy,
 	.fb_setcolreg	= efifb_setcolreg,
@@ -84,20 +95,30 @@ static int efifb_setup(char *options)
 {
 	char *this_opt;
 
-	if (options && *options) {
-		while ((this_opt = strsep(&options, ",")) != NULL) {
-			if (!*this_opt) continue;
+	if (options && *options)
+	{
+		while ((this_opt = strsep(&options, ",")) != NULL)
+		{
+			if (!*this_opt) { continue; }
 
 			efifb_setup_from_dmi(&screen_info, this_opt);
 
 			if (!strncmp(this_opt, "base:", 5))
-				screen_info.lfb_base = simple_strtoul(this_opt+5, NULL, 0);
+			{
+				screen_info.lfb_base = simple_strtoul(this_opt + 5, NULL, 0);
+			}
 			else if (!strncmp(this_opt, "stride:", 7))
-				screen_info.lfb_linelength = simple_strtoul(this_opt+7, NULL, 0) * 4;
+			{
+				screen_info.lfb_linelength = simple_strtoul(this_opt + 7, NULL, 0) * 4;
+			}
 			else if (!strncmp(this_opt, "height:", 7))
-				screen_info.lfb_height = simple_strtoul(this_opt+7, NULL, 0);
+			{
+				screen_info.lfb_height = simple_strtoul(this_opt + 7, NULL, 0);
+			}
 			else if (!strncmp(this_opt, "width:", 6))
-				screen_info.lfb_width = simple_strtoul(this_opt+6, NULL, 0);
+			{
+				screen_info.lfb_width = simple_strtoul(this_opt + 6, NULL, 0);
+			}
 		}
 	}
 
@@ -107,13 +128,19 @@ static int efifb_setup(char *options)
 static inline bool fb_base_is_valid(void)
 {
 	if (screen_info.lfb_base)
+	{
 		return true;
+	}
 
 	if (!(screen_info.capabilities & VIDEO_CAPABILITY_64BIT_BASE))
+	{
 		return false;
+	}
 
 	if (screen_info.ext_lfb_base)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -128,10 +155,15 @@ static int efifb_probe(struct platform_device *dev)
 	char *option = NULL;
 
 	if (screen_info.orig_video_isVGA != VIDEO_TYPE_EFI)
+	{
 		return -ENODEV;
+	}
 
 	if (fb_get_options("efifb", &option))
+	{
 		return -ENODEV;
+	}
+
 	efifb_setup(option);
 
 	/* We don't get linelength from UGA Draw Protocol, only from
@@ -139,20 +171,31 @@ static int efifb_probe(struct platform_device *dev)
 	 * passed in from the user, we really can't use the framebuffer.
 	 */
 	if (!screen_info.lfb_linelength)
+	{
 		return -ENODEV;
+	}
 
 	if (!screen_info.lfb_depth)
+	{
 		screen_info.lfb_depth = 32;
+	}
+
 	if (!screen_info.pages)
+	{
 		screen_info.pages = 1;
-	if (!fb_base_is_valid()) {
+	}
+
+	if (!fb_base_is_valid())
+	{
 		printk(KERN_DEBUG "efifb: invalid framebuffer address\n");
 		return -ENODEV;
 	}
+
 	printk(KERN_INFO "efifb: probing for efifb\n");
 
 	/* just assume they're all unset if any are */
-	if (!screen_info.blue_size) {
+	if (!screen_info.blue_size)
+	{
 		screen_info.blue_size = 8;
 		screen_info.blue_pos = 0;
 		screen_info.green_size = 8;
@@ -165,7 +208,8 @@ static int efifb_probe(struct platform_device *dev)
 
 	efifb_fix.smem_start = screen_info.lfb_base;
 
-	if (screen_info.capabilities & VIDEO_CAPABILITY_64BIT_BASE) {
+	if (screen_info.capabilities & VIDEO_CAPABILITY_64BIT_BASE)
+	{
 		u64 ext_lfb_base;
 
 		ext_lfb_base = (u64)(unsigned long)screen_info.ext_lfb_base << 32;
@@ -186,73 +230,94 @@ static int efifb_probe(struct platform_device *dev)
 	 *                 entries, ressource allocation and bounds
 	 *                 checking. */
 	size_total = screen_info.lfb_size;
+
 	if (size_total < size_vmode)
+	{
 		size_total = size_vmode;
+	}
 
 	/*   size_remap -- the amount of video memory we are going to
 	 *                 use for efifb.  With modern cards it is no
 	 *                 option to simply use size_total as that
 	 *                 wastes plenty of kernel address space. */
 	size_remap  = size_vmode * 2;
+
 	if (size_remap > size_total)
+	{
 		size_remap = size_total;
+	}
+
 	if (size_remap % PAGE_SIZE)
+	{
 		size_remap += PAGE_SIZE - (size_remap % PAGE_SIZE);
+	}
+
 	efifb_fix.smem_len = size_remap;
 
-	if (request_mem_region(efifb_fix.smem_start, size_remap, "efifb")) {
+	if (request_mem_region(efifb_fix.smem_start, size_remap, "efifb"))
+	{
 		request_mem_succeeded = true;
-	} else {
+	}
+	else
+	{
 		/* We cannot make this fatal. Sometimes this comes from magic
 		   spaces our resource handlers simply don't know about */
 		printk(KERN_WARNING
-		       "efifb: cannot reserve video memory at 0x%lx\n",
-			efifb_fix.smem_start);
+			   "efifb: cannot reserve video memory at 0x%lx\n",
+			   efifb_fix.smem_start);
 	}
 
 	info = framebuffer_alloc(sizeof(u32) * 16, &dev->dev);
-	if (!info) {
+
+	if (!info)
+	{
 		printk(KERN_ERR "efifb: cannot allocate framebuffer\n");
 		err = -ENOMEM;
 		goto err_release_mem;
 	}
+
 	platform_set_drvdata(dev, info);
 	info->pseudo_palette = info->par;
 	info->par = NULL;
 
 	info->apertures = alloc_apertures(1);
-	if (!info->apertures) {
+
+	if (!info->apertures)
+	{
 		err = -ENOMEM;
 		goto err_release_fb;
 	}
+
 	info->apertures->ranges[0].base = efifb_fix.smem_start;
 	info->apertures->ranges[0].size = size_remap;
 
 	info->screen_base = ioremap_wc(efifb_fix.smem_start, efifb_fix.smem_len);
-	if (!info->screen_base) {
+
+	if (!info->screen_base)
+	{
 		printk(KERN_ERR "efifb: abort, cannot ioremap video memory "
-				"0x%x @ 0x%lx\n",
-			efifb_fix.smem_len, efifb_fix.smem_start);
+			   "0x%x @ 0x%lx\n",
+			   efifb_fix.smem_len, efifb_fix.smem_start);
 		err = -EIO;
 		goto err_release_fb;
 	}
 
 	printk(KERN_INFO "efifb: framebuffer at 0x%lx, using %dk, total %dk\n",
-	       efifb_fix.smem_start, size_remap/1024, size_total/1024);
+		   efifb_fix.smem_start, size_remap / 1024, size_total / 1024);
 	printk(KERN_INFO "efifb: mode is %dx%dx%d, linelength=%d, pages=%d\n",
-	       efifb_defined.xres, efifb_defined.yres,
-	       efifb_defined.bits_per_pixel, efifb_fix.line_length,
-	       screen_info.pages);
+		   efifb_defined.xres, efifb_defined.yres,
+		   efifb_defined.bits_per_pixel, efifb_fix.line_length,
+		   screen_info.pages);
 
 	efifb_defined.xres_virtual = efifb_defined.xres;
 	efifb_defined.yres_virtual = efifb_fix.smem_len /
-					efifb_fix.line_length;
+								 efifb_fix.line_length;
 	printk(KERN_INFO "efifb: scrolling: redraw\n");
 	efifb_defined.yres_virtual = efifb_defined.yres;
 
 	/* some dummy values for timing to make fbset happy */
 	efifb_defined.pixclock     = 10000000 / efifb_defined.xres *
-					1000 / efifb_defined.yres;
+								 1000 / efifb_defined.yres;
 	efifb_defined.left_margin  = (efifb_defined.xres / 8) & 0xf8;
 	efifb_defined.hsync_len    = (efifb_defined.xres / 8) & 0xf8;
 
@@ -266,16 +331,16 @@ static int efifb_probe(struct platform_device *dev)
 	efifb_defined.transp.length = screen_info.rsvd_size;
 
 	printk(KERN_INFO "efifb: %s: "
-	       "size=%d:%d:%d:%d, shift=%d:%d:%d:%d\n",
-	       "Truecolor",
-	       screen_info.rsvd_size,
-	       screen_info.red_size,
-	       screen_info.green_size,
-	       screen_info.blue_size,
-	       screen_info.rsvd_pos,
-	       screen_info.red_pos,
-	       screen_info.green_pos,
-	       screen_info.blue_pos);
+		   "size=%d:%d:%d:%d, shift=%d:%d:%d:%d\n",
+		   "Truecolor",
+		   screen_info.rsvd_size,
+		   screen_info.red_size,
+		   screen_info.green_size,
+		   screen_info.blue_size,
+		   screen_info.rsvd_pos,
+		   screen_info.red_pos,
+		   screen_info.green_pos,
+		   screen_info.blue_pos);
 
 	efifb_fix.ypanstep  = 0;
 	efifb_fix.ywrapstep = 0;
@@ -285,14 +350,18 @@ static int efifb_probe(struct platform_device *dev)
 	info->fix = efifb_fix;
 	info->flags = FBINFO_FLAG_DEFAULT | FBINFO_MISC_FIRMWARE;
 
-	if ((err = fb_alloc_cmap(&info->cmap, 256, 0)) < 0) {
+	if ((err = fb_alloc_cmap(&info->cmap, 256, 0)) < 0)
+	{
 		printk(KERN_ERR "efifb: cannot allocate colormap\n");
 		goto err_unmap;
 	}
-	if ((err = register_framebuffer(info)) < 0) {
+
+	if ((err = register_framebuffer(info)) < 0)
+	{
 		printk(KERN_ERR "efifb: cannot register framebuffer\n");
 		goto err_fb_dealoc;
 	}
+
 	fb_info(info, "%s frame buffer device\n", info->fix.id);
 	return 0;
 
@@ -303,8 +372,12 @@ err_unmap:
 err_release_fb:
 	framebuffer_release(info);
 err_release_mem:
+
 	if (request_mem_succeeded)
+	{
 		release_mem_region(efifb_fix.smem_start, size_total);
+	}
+
 	return err;
 }
 
@@ -318,7 +391,8 @@ static int efifb_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver efifb_driver = {
+static struct platform_driver efifb_driver =
+{
 	.driver = {
 		.name = "efi-framebuffer",
 	},

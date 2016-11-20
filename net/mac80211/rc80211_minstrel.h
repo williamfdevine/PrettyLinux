@@ -53,7 +53,8 @@ minstrel_ewmsd(int old_ewmsd, int cur_prob, int prob_ewma, int weight)
 	return (u16) int_sqrt(tmp_var);
 }
 
-struct minstrel_rate_stats {
+struct minstrel_rate_stats
+{
 	/* current / last sampling period attempts/success counters */
 	u16 attempts, last_attempts;
 	u16 success, last_success;
@@ -77,7 +78,8 @@ struct minstrel_rate_stats {
 	bool retry_updated;
 };
 
-struct minstrel_rate {
+struct minstrel_rate
+{
 	int bitrate;
 
 	s8 rix;
@@ -92,7 +94,8 @@ struct minstrel_rate {
 	struct minstrel_rate_stats stats;
 };
 
-struct minstrel_sta_info {
+struct minstrel_sta_info
+{
 	struct ieee80211_sta *sta;
 
 	unsigned long last_stats_update;
@@ -123,7 +126,8 @@ struct minstrel_sta_info {
 #endif
 };
 
-struct minstrel_priv {
+struct minstrel_priv
+{
 	struct ieee80211_hw *hw;
 	bool has_mrr;
 	unsigned int cw_min;
@@ -148,7 +152,8 @@ struct minstrel_priv {
 #endif
 };
 
-struct minstrel_debugfs_info {
+struct minstrel_debugfs_info
+{
 	size_t len;
 	char buf[];
 };

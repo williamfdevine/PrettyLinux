@@ -30,7 +30,8 @@
 ***************************************************************************/
 #define CLASS_DEFAULT       0xFF
 
-enum VENDOR_REQUEST_TYPE {
+enum VENDOR_REQUEST_TYPE
+{
 	/* Set/Get I2C */
 	VRT_SET_I2C0 = 0x0,
 	VRT_SET_I2C1 = 0x1,
@@ -55,7 +56,8 @@ enum VENDOR_REQUEST_TYPE {
 	VRT_GET_EXTCID_DESC = 0xFF,
 };
 
-enum BYTE_ENABLE_MASK {
+enum BYTE_ENABLE_MASK
+{
 	ENABLE_ONE_BYTE = 0x1,
 	ENABLE_TWE_BYTE = 0x3,
 	ENABLE_THREE_BYTE = 0x7,
@@ -63,13 +65,15 @@ enum BYTE_ENABLE_MASK {
 };
 
 #define SPEED_MASK      0x1
-enum USB_SPEED{
+enum USB_SPEED
+{
 	FULL_SPEED = 0x0,	/* 0: full speed */
 	HIGH_SPEED = 0x1	/* 1: high speed */
 };
 
 #define TS_MASK         0x6
-enum TS_PORT{
+enum TS_PORT
+{
 	NO_TS_PORT = 0x0,	/* 2'b00: Neither port used. PCB not a Hybrid,
 				   only offers Analog TV or Video */
 	TS1_PORT = 0x4,		/* 2'b10: TS1 Input (Hybrid mode :
@@ -84,7 +88,8 @@ enum TS_PORT{
 };
 
 #define EAVP_MASK       0x8
-enum EAV_PRESENT{
+enum EAV_PRESENT
+{
 	NO_EXTERNAL_AV = 0x0,	/* 0: No External A/V inputs
 						(no need for i2s blcok),
 						Analog Tuner must be present */
@@ -93,7 +98,8 @@ enum EAV_PRESENT{
 };
 
 #define ATM_MASK        0x30
-enum AT_MODE{
+enum AT_MODE
+{
 	DIF_TUNER = 0x30,	/* 2'b11: IF Tuner (requires use of DIF) */
 	BASEBAND_SOUND = 0x20,	/* 2'b10: Baseband Composite &
 						Sound-IF Signals present */
@@ -101,18 +107,21 @@ enum AT_MODE{
 };
 
 #define PWR_SEL_MASK    0x40
-enum POWE_TYPE{
+enum POWE_TYPE
+{
 	SELF_POWER = 0x0,	/* 0: self power */
 	BUS_POWER = 0x40	/* 1: bus power */
 };
 
-enum USB_POWE_TYPE{
+enum USB_POWE_TYPE
+{
 	USB_SELF_POWER = 0,
 	USB_BUS_POWER
 };
 
 #define BO_0_MASK       0x80
-enum AVDEC_STATUS{
+enum AVDEC_STATUS
+{
 	AVDEC_DISABLE = 0x0,	/* 0: A/V Decoder Disabled */
 	AVDEC_ENABLE = 0x80	/* 1: A/V Decoder Enabled */
 };
@@ -149,7 +158,8 @@ enum AVDEC_STATUS{
 /***************************************************************************
 				* interface information define *
 ***************************************************************************/
-struct INTERFACE_INFO {
+struct INTERFACE_INFO
+{
 	u8 interrupt_index;
 	u8 ts1_index;
 	u8 ts2_index;
@@ -160,7 +170,8 @@ struct INTERFACE_INFO {
 	u8 ir_index;
 };
 
-enum INDEX_INTERFACE_INFO{
+enum INDEX_INTERFACE_INFO
+{
 	INDEX_INTERRUPT = 0x0,
 	INDEX_TS1,
 	INDEX_TS2,
@@ -174,12 +185,14 @@ enum INDEX_INTERFACE_INFO{
 /***************************************************************************
 				* configuration information define *
 ***************************************************************************/
-struct CONFIG_INFO {
+struct CONFIG_INFO
+{
 	u8 config_index;
 	struct INTERFACE_INFO interface_info;
 };
 
-struct pcb_config {
+struct pcb_config
+{
 	u8 index;
 	u8 type;		/* bus power or self power,
 					   self power--0, bus_power--1 */
@@ -198,7 +211,8 @@ struct pcb_config {
 	struct CONFIG_INFO fs_config_info[3];
 };
 
-enum INDEX_PCB_CONFIG{
+enum INDEX_PCB_CONFIG
+{
 	INDEX_SELFPOWER_DIGITAL_ONLY = 0x0,
 	INDEX_SELFPOWER_DUAL_DIGITAL,
 	INDEX_SELFPOWER_ANALOG_ONLY,

@@ -36,80 +36,80 @@
 #include <linux/spinlock.h>
 
 #ifdef CONFIG_COMPAT
-#define SIS_NEW_CONFIG_COMPAT
+	#define SIS_NEW_CONFIG_COMPAT
 #endif	/* CONFIG_COMPAT */
 
 #undef SISFBDEBUG
 
 #ifdef SISFBDEBUG
-#define DPRINTK(fmt, args...) printk(KERN_DEBUG "%s: " fmt, __func__ , ## args)
-#define TWDEBUG(x) printk(KERN_INFO x "\n");
+	#define DPRINTK(fmt, args...) printk(KERN_DEBUG "%s: " fmt, __func__ , ## args)
+	#define TWDEBUG(x) printk(KERN_INFO x "\n");
 #else
-#define DPRINTK(fmt, args...)
-#define TWDEBUG(x)
+	#define DPRINTK(fmt, args...)
+	#define TWDEBUG(x)
 #endif
 
 #define SISFAIL(x) do { printk(x "\n"); return -EINVAL; } while(0)
 
 /* To be included in pci_ids.h */
 #ifndef PCI_DEVICE_ID_SI_650_VGA
-#define PCI_DEVICE_ID_SI_650_VGA	0x6325
+	#define PCI_DEVICE_ID_SI_650_VGA	0x6325
 #endif
 #ifndef PCI_DEVICE_ID_SI_650
-#define PCI_DEVICE_ID_SI_650		0x0650
+	#define PCI_DEVICE_ID_SI_650		0x0650
 #endif
 #ifndef PCI_DEVICE_ID_SI_651
-#define PCI_DEVICE_ID_SI_651		0x0651
+	#define PCI_DEVICE_ID_SI_651		0x0651
 #endif
 #ifndef PCI_DEVICE_ID_SI_740
-#define PCI_DEVICE_ID_SI_740		0x0740
+	#define PCI_DEVICE_ID_SI_740		0x0740
 #endif
 #ifndef PCI_DEVICE_ID_SI_330
-#define PCI_DEVICE_ID_SI_330		0x0330
+	#define PCI_DEVICE_ID_SI_330		0x0330
 #endif
 #ifndef PCI_DEVICE_ID_SI_660_VGA
-#define PCI_DEVICE_ID_SI_660_VGA	0x6330
+	#define PCI_DEVICE_ID_SI_660_VGA	0x6330
 #endif
 #ifndef PCI_DEVICE_ID_SI_661
-#define PCI_DEVICE_ID_SI_661		0x0661
+	#define PCI_DEVICE_ID_SI_661		0x0661
 #endif
 #ifndef PCI_DEVICE_ID_SI_741
-#define PCI_DEVICE_ID_SI_741		0x0741
+	#define PCI_DEVICE_ID_SI_741		0x0741
 #endif
 #ifndef PCI_DEVICE_ID_SI_660
-#define PCI_DEVICE_ID_SI_660		0x0660
+	#define PCI_DEVICE_ID_SI_660		0x0660
 #endif
 #ifndef PCI_DEVICE_ID_SI_760
-#define PCI_DEVICE_ID_SI_760		0x0760
+	#define PCI_DEVICE_ID_SI_760		0x0760
 #endif
 #ifndef PCI_DEVICE_ID_SI_761
-#define PCI_DEVICE_ID_SI_761		0x0761
+	#define PCI_DEVICE_ID_SI_761		0x0761
 #endif
 
 #ifndef PCI_VENDOR_ID_XGI
-#define PCI_VENDOR_ID_XGI		0x18ca
+	#define PCI_VENDOR_ID_XGI		0x18ca
 #endif
 
 #ifndef PCI_DEVICE_ID_XGI_20
-#define PCI_DEVICE_ID_XGI_20		0x0020
+	#define PCI_DEVICE_ID_XGI_20		0x0020
 #endif
 
 #ifndef PCI_DEVICE_ID_XGI_40
-#define PCI_DEVICE_ID_XGI_40		0x0040
+	#define PCI_DEVICE_ID_XGI_40		0x0040
 #endif
 
 /* To be included in fb.h */
 #ifndef FB_ACCEL_SIS_GLAMOUR_2
-#define FB_ACCEL_SIS_GLAMOUR_2	40	/* SiS 315, 65x, 740, 661, 741  */
+	#define FB_ACCEL_SIS_GLAMOUR_2	40	/* SiS 315, 65x, 740, 661, 741  */
 #endif
 #ifndef FB_ACCEL_SIS_XABRE
-#define FB_ACCEL_SIS_XABRE	41	/* SiS 330 ("Xabre"), 76x 	*/
+	#define FB_ACCEL_SIS_XABRE	41	/* SiS 330 ("Xabre"), 76x 	*/
 #endif
 #ifndef FB_ACCEL_XGI_VOLARI_V
-#define FB_ACCEL_XGI_VOLARI_V	47	/* XGI Volari Vx (V3XT, V5, V8)	*/
+	#define FB_ACCEL_XGI_VOLARI_V	47	/* XGI Volari Vx (V3XT, V5, V8)	*/
 #endif
 #ifndef FB_ACCEL_XGI_VOLARI_Z
-#define FB_ACCEL_XGI_VOLARI_Z	48	/* XGI Volari Z7		*/
+	#define FB_ACCEL_XGI_VOLARI_Z	48	/* XGI Volari Z7		*/
 #endif
 
 /* ivideo->caps */
@@ -233,7 +233,7 @@
 #define SIS_VB_HIVISION		0x40
 #define SIS_VB_YPBPR		0x80
 #define SIS_VB_TV		(SIS_VB_COMPOSITE | SIS_VB_SVIDEO | \
-				SIS_VB_SCART | SIS_VB_HIVISION | SIS_VB_YPBPR)
+						 SIS_VB_SCART | SIS_VB_HIVISION | SIS_VB_YPBPR)
 
 #define SIS_EXTERNAL_CHIP_MASK			0x0E  /* CR37 (< SiS 660) */
 #define SIS_EXTERNAL_CHIP_SIS301		0x01  /* in CR37 << 1 ! */
@@ -341,67 +341,72 @@ u32 SiS_GetRegLong(SISIOADDRESS);
 #define MMIO_QUEUE_READPORT     Q_READ_PTR
 
 #ifndef FB_BLANK_UNBLANK
-#define FB_BLANK_UNBLANK	0
+	#define FB_BLANK_UNBLANK	0
 #endif
 #ifndef FB_BLANK_NORMAL
-#define FB_BLANK_NORMAL		1
+	#define FB_BLANK_NORMAL		1
 #endif
 #ifndef FB_BLANK_VSYNC_SUSPEND
-#define FB_BLANK_VSYNC_SUSPEND	2
+	#define FB_BLANK_VSYNC_SUSPEND	2
 #endif
 #ifndef FB_BLANK_HSYNC_SUSPEND
-#define FB_BLANK_HSYNC_SUSPEND	3
+	#define FB_BLANK_HSYNC_SUSPEND	3
 #endif
 #ifndef FB_BLANK_POWERDOWN
-#define FB_BLANK_POWERDOWN	4
+	#define FB_BLANK_POWERDOWN	4
 #endif
 
-enum _SIS_LCD_TYPE {
-    LCD_INVALID = 0,
-    LCD_800x600,
-    LCD_1024x768,
-    LCD_1280x1024,
-    LCD_1280x960,
-    LCD_640x480,
-    LCD_1600x1200,
-    LCD_1920x1440,
-    LCD_2048x1536,
-    LCD_320x240,	/* FSTN */
-    LCD_1400x1050,
-    LCD_1152x864,
-    LCD_1152x768,
-    LCD_1280x768,
-    LCD_1024x600,
-    LCD_320x240_2,	/* DSTN */
-    LCD_320x240_3,	/* DSTN */
-    LCD_848x480,
-    LCD_1280x800,
-    LCD_1680x1050,
-    LCD_1280x720,
-    LCD_1280x854,
-    LCD_CUSTOM,
-    LCD_UNKNOWN
+enum _SIS_LCD_TYPE
+{
+	LCD_INVALID = 0,
+	LCD_800x600,
+	LCD_1024x768,
+	LCD_1280x1024,
+	LCD_1280x960,
+	LCD_640x480,
+	LCD_1600x1200,
+	LCD_1920x1440,
+	LCD_2048x1536,
+	LCD_320x240,	/* FSTN */
+	LCD_1400x1050,
+	LCD_1152x864,
+	LCD_1152x768,
+	LCD_1280x768,
+	LCD_1024x600,
+	LCD_320x240_2,	/* DSTN */
+	LCD_320x240_3,	/* DSTN */
+	LCD_848x480,
+	LCD_1280x800,
+	LCD_1680x1050,
+	LCD_1280x720,
+	LCD_1280x854,
+	LCD_CUSTOM,
+	LCD_UNKNOWN
 };
 
-enum _SIS_CMDTYPE {
-    MMIO_CMD = 0,
-    AGP_CMD_QUEUE,
-    VM_CMD_QUEUE,
+enum _SIS_CMDTYPE
+{
+	MMIO_CMD = 0,
+	AGP_CMD_QUEUE,
+	VM_CMD_QUEUE,
 };
 
-struct SIS_OH {
+struct SIS_OH
+{
 	struct SIS_OH *poh_next;
 	struct SIS_OH *poh_prev;
 	u32            offset;
 	u32            size;
 };
 
-struct SIS_OHALLOC {
+struct SIS_OHALLOC
+{
 	struct SIS_OHALLOC *poha_next;
 	struct SIS_OH aoh[1];
 };
 
-struct SIS_HEAP {
+struct SIS_HEAP
+{
 	struct SIS_OH	oh_free;
 	struct SIS_OH	oh_used;
 	struct SIS_OH	*poh_freelist;
@@ -411,7 +416,8 @@ struct SIS_HEAP {
 };
 
 /* Our "par" */
-struct sis_video_info {
+struct sis_video_info
+{
 	int		cardnumber;
 	struct fb_info  *memyselfandi;
 
@@ -424,7 +430,8 @@ struct sis_video_info {
 	struct fb_fix_screeninfo sisfb_fix;
 	u32		pseudo_palette[16];
 
-	struct sisfb_monitor {
+	struct sisfb_monitor
+	{
 		u16 hmin;
 		u16 hmax;
 		u16 vmin;
@@ -565,7 +572,7 @@ struct sis_video_info {
 
 	int		chronteltype;
 	int		tvxpos, tvypos;
-	u8		p2_1f,p2_20,p2_2b,p2_42,p2_43,p2_01,p2_02;
+	u8		p2_1f, p2_20, p2_2b, p2_42, p2_43, p2_01, p2_02;
 	int		tvx, tvy;
 
 	u8		sisfblocked;

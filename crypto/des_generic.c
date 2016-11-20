@@ -25,17 +25,20 @@
 #define ROL(x, r) ((x) = rol32((x), (r)))
 #define ROR(x, r) ((x) = ror32((x), (r)))
 
-struct des_ctx {
+struct des_ctx
+{
 	u32 expkey[DES_EXPKEY_WORDS];
 };
 
-struct des3_ede_ctx {
+struct des3_ede_ctx
+{
 	u32 expkey[DES3_EDE_EXPKEY_WORDS];
 };
 
 /* Lookup tables for key expansion */
 
-static const u8 pc1[256] = {
+static const u8 pc1[256] =
+{
 	0x00, 0x00, 0x40, 0x04, 0x10, 0x10, 0x50, 0x14,
 	0x04, 0x40, 0x44, 0x44, 0x14, 0x50, 0x54, 0x54,
 	0x02, 0x02, 0x42, 0x06, 0x12, 0x12, 0x52, 0x16,
@@ -70,7 +73,8 @@ static const u8 pc1[256] = {
 	0xae, 0xea, 0xee, 0xee, 0xbe, 0xfa, 0xfe, 0xfe
 };
 
-static const u8 rs[256] = {
+static const u8 rs[256] =
+{
 	0x00, 0x00, 0x80, 0x80, 0x02, 0x02, 0x82, 0x82,
 	0x04, 0x04, 0x84, 0x84, 0x06, 0x06, 0x86, 0x86,
 	0x08, 0x08, 0x88, 0x88, 0x0a, 0x0a, 0x8a, 0x8a,
@@ -105,7 +109,8 @@ static const u8 rs[256] = {
 	0x7c, 0x7c, 0xfc, 0xfc, 0x7e, 0x7e, 0xfe, 0xfe
 };
 
-static const u32 pc2[1024] = {
+static const u32 pc2[1024] =
+{
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
 	0x00040000, 0x00000000, 0x04000000, 0x00100000,
 	0x00400000, 0x00000008, 0x00000800, 0x40000000,
@@ -367,7 +372,8 @@ static const u32 pc2[1024] = {
 
 /* S-box lookup tables */
 
-static const u32 S1[64] = {
+static const u32 S1[64] =
+{
 	0x01010400, 0x00000000, 0x00010000, 0x01010404,
 	0x01010004, 0x00010404, 0x00000004, 0x00010000,
 	0x00000400, 0x01010400, 0x01010404, 0x00000400,
@@ -386,7 +392,8 @@ static const u32 S1[64] = {
 	0x00010004, 0x00010400, 0x00000000, 0x01010004
 };
 
-static const u32 S2[64] = {
+static const u32 S2[64] =
+{
 	0x80108020, 0x80008000, 0x00008000, 0x00108020,
 	0x00100000, 0x00000020, 0x80100020, 0x80008020,
 	0x80000020, 0x80108020, 0x80108000, 0x80000000,
@@ -405,7 +412,8 @@ static const u32 S2[64] = {
 	0x80000000, 0x80100020, 0x80108020, 0x00108000
 };
 
-static const u32 S3[64] = {
+static const u32 S3[64] =
+{
 	0x00000208, 0x08020200, 0x00000000, 0x08020008,
 	0x08000200, 0x00000000, 0x00020208, 0x08000200,
 	0x00020008, 0x08000008, 0x08000008, 0x00020000,
@@ -424,7 +432,8 @@ static const u32 S3[64] = {
 	0x00020208, 0x00000008, 0x08020008, 0x00020200
 };
 
-static const u32 S4[64] = {
+static const u32 S4[64] =
+{
 	0x00802001, 0x00002081, 0x00002081, 0x00000080,
 	0x00802080, 0x00800081, 0x00800001, 0x00002001,
 	0x00000000, 0x00802000, 0x00802000, 0x00802081,
@@ -443,7 +452,8 @@ static const u32 S4[64] = {
 	0x00000080, 0x00800000, 0x00002000, 0x00802080
 };
 
-static const u32 S5[64] = {
+static const u32 S5[64] =
+{
 	0x00000100, 0x02080100, 0x02080000, 0x42000100,
 	0x00080000, 0x00000100, 0x40000000, 0x02080000,
 	0x40080100, 0x00080000, 0x02000100, 0x40080100,
@@ -462,7 +472,8 @@ static const u32 S5[64] = {
 	0x00000000, 0x40080000, 0x02080100, 0x40000100
 };
 
-static const u32 S6[64] = {
+static const u32 S6[64] =
+{
 	0x20000010, 0x20400000, 0x00004000, 0x20404010,
 	0x20400000, 0x00000010, 0x20404010, 0x00400000,
 	0x20004000, 0x00404010, 0x00400000, 0x20000010,
@@ -481,7 +492,8 @@ static const u32 S6[64] = {
 	0x20404000, 0x20000000, 0x00400010, 0x20004010
 };
 
-static const u32 S7[64] = {
+static const u32 S7[64] =
+{
 	0x00200000, 0x04200002, 0x04000802, 0x00000000,
 	0x00000800, 0x04000802, 0x00200802, 0x04200800,
 	0x04200802, 0x00200000, 0x00000000, 0x04000002,
@@ -500,7 +512,8 @@ static const u32 S7[64] = {
 	0x04000002, 0x04000800, 0x00000800, 0x00200002
 };
 
-static const u32 S8[64] = {
+static const u32 S8[64] =
+{
 	0x10001040, 0x00001000, 0x00040000, 0x10041040,
 	0x10000000, 0x10001040, 0x00000040, 0x10000000,
 	0x00040040, 0x10040000, 0x10041040, 0x00041000,
@@ -688,7 +701,8 @@ unsigned long des_ekey(u32 *pe, const u8 *k)
 	pe[ 0 * 2 + 1] = DES_PC2(b, c, d, a);
 
 	/* Fixup: 2413 5768 -> 1357 2468 */
-	for (d = 0; d < 16; ++d) {
+	for (d = 0; d < 16; ++d)
+	{
 		a = pe[2 * d];
 		b = pe[2 * d + 1];
 		c = a ^ b;
@@ -765,7 +779,8 @@ static void dkey(u32 *pe, const u8 *k)
 	pe[15 * 2 + 1] = DES_PC2(b, c, d, a);
 
 	/* Fixup: 2413 5768 -> 1357 2468 */
-	for (d = 0; d < 16; ++d) {
+	for (d = 0; d < 16; ++d)
+	{
 		a = pe[2 * d];
 		b = pe[2 * d + 1];
 		c = a ^ b;
@@ -779,7 +794,7 @@ static void dkey(u32 *pe, const u8 *k)
 }
 
 static int des_setkey(struct crypto_tfm *tfm, const u8 *key,
-		      unsigned int keylen)
+					  unsigned int keylen)
 {
 	struct des_ctx *dctx = crypto_tfm_ctx(tfm);
 	u32 *flags = &tfm->crt_flags;
@@ -789,7 +804,8 @@ static int des_setkey(struct crypto_tfm *tfm, const u8 *key,
 	/* Expand to tmp */
 	ret = des_ekey(tmp, key);
 
-	if (unlikely(ret == 0) && (*flags & CRYPTO_TFM_REQ_WEAK_KEY)) {
+	if (unlikely(ret == 0) && (*flags & CRYPTO_TFM_REQ_WEAK_KEY))
+	{
 		*flags |= CRYPTO_TFM_RES_WEAK_KEY;
 		return -EINVAL;
 	}
@@ -813,10 +829,13 @@ static void des_encrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 	R = le32_to_cpu(s[1]);
 
 	IP(L, R, A);
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		ROUND(L, R, A, B, K, 2);
 		ROUND(R, L, A, B, K, 2);
 	}
+
 	FP(R, L, A);
 
 	d[0] = cpu_to_le32(R);
@@ -836,10 +855,13 @@ static void des_decrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 	R = le32_to_cpu(s[1]);
 
 	IP(L, R, A);
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		ROUND(L, R, A, B, K, -2);
 		ROUND(R, L, A, B, K, -2);
 	}
+
 	FP(R, L, A);
 
 	d[0] = cpu_to_le32(R);
@@ -860,13 +882,14 @@ static void des_decrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
  *
  */
 int __des3_ede_setkey(u32 *expkey, u32 *flags, const u8 *key,
-		      unsigned int keylen)
+					  unsigned int keylen)
 {
 	const u32 *K = (const u32 *)key;
 
 	if (unlikely(!((K[0] ^ K[2]) | (K[1] ^ K[3])) ||
-		     !((K[2] ^ K[4]) | (K[3] ^ K[5]))) &&
-		     (*flags & CRYPTO_TFM_REQ_WEAK_KEY)) {
+				 !((K[2] ^ K[4]) | (K[3] ^ K[5]))) &&
+		(*flags & CRYPTO_TFM_REQ_WEAK_KEY))
+	{
 		*flags |= CRYPTO_TFM_RES_WEAK_KEY;
 		return -EINVAL;
 	}
@@ -880,7 +903,7 @@ int __des3_ede_setkey(u32 *expkey, u32 *flags, const u8 *key,
 EXPORT_SYMBOL_GPL(__des3_ede_setkey);
 
 static int des3_ede_setkey(struct crypto_tfm *tfm, const u8 *key,
-			   unsigned int keylen)
+						   unsigned int keylen)
 {
 	struct des3_ede_ctx *dctx = crypto_tfm_ctx(tfm);
 	u32 *flags = &tfm->crt_flags;
@@ -902,18 +925,25 @@ static void des3_ede_encrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 	R = le32_to_cpu(s[1]);
 
 	IP(L, R, A);
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		ROUND(L, R, A, B, K, 2);
 		ROUND(R, L, A, B, K, 2);
 	}
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		ROUND(R, L, A, B, K, 2);
 		ROUND(L, R, A, B, K, 2);
 	}
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		ROUND(L, R, A, B, K, 2);
 		ROUND(R, L, A, B, K, 2);
 	}
+
 	FP(R, L, A);
 
 	d[0] = cpu_to_le32(R);
@@ -933,18 +963,25 @@ static void des3_ede_decrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 	R = le32_to_cpu(s[1]);
 
 	IP(L, R, A);
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		ROUND(L, R, A, B, K, -2);
 		ROUND(R, L, A, B, K, -2);
 	}
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		ROUND(R, L, A, B, K, -2);
 		ROUND(L, R, A, B, K, -2);
 	}
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		ROUND(L, R, A, B, K, -2);
 		ROUND(R, L, A, B, K, -2);
 	}
+
 	FP(R, L, A);
 
 	d[0] = cpu_to_le32(R);
@@ -952,36 +989,43 @@ static void des3_ede_decrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 }
 
 static struct crypto_alg des_algs[2] = { {
-	.cra_name		=	"des",
-	.cra_driver_name	=	"des-generic",
-	.cra_priority		=	100,
-	.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
-	.cra_blocksize		=	DES_BLOCK_SIZE,
-	.cra_ctxsize		=	sizeof(struct des_ctx),
-	.cra_module		=	THIS_MODULE,
-	.cra_alignmask		=	3,
-	.cra_u			=	{ .cipher = {
-	.cia_min_keysize	=	DES_KEY_SIZE,
-	.cia_max_keysize	=	DES_KEY_SIZE,
-	.cia_setkey		=	des_setkey,
-	.cia_encrypt		=	des_encrypt,
-	.cia_decrypt		=	des_decrypt } }
-}, {
-	.cra_name		=	"des3_ede",
-	.cra_driver_name	=	"des3_ede-generic",
-	.cra_priority		=	100,
-	.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
-	.cra_blocksize		=	DES3_EDE_BLOCK_SIZE,
-	.cra_ctxsize		=	sizeof(struct des3_ede_ctx),
-	.cra_module		=	THIS_MODULE,
-	.cra_alignmask		=	3,
-	.cra_u			=	{ .cipher = {
-	.cia_min_keysize	=	DES3_EDE_KEY_SIZE,
-	.cia_max_keysize	=	DES3_EDE_KEY_SIZE,
-	.cia_setkey		=	des3_ede_setkey,
-	.cia_encrypt		=	des3_ede_encrypt,
-	.cia_decrypt		=	des3_ede_decrypt } }
-} };
+		.cra_name		=	"des",
+		.cra_driver_name	=	"des-generic",
+		.cra_priority		=	100,
+		.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
+		.cra_blocksize		=	DES_BLOCK_SIZE,
+		.cra_ctxsize		=	sizeof(struct des_ctx),
+		.cra_module		=	THIS_MODULE,
+		.cra_alignmask		=	3,
+		.cra_u			=	{
+			.cipher = {
+				.cia_min_keysize	=	DES_KEY_SIZE,
+				.cia_max_keysize	=	DES_KEY_SIZE,
+				.cia_setkey		=	des_setkey,
+				.cia_encrypt		=	des_encrypt,
+				.cia_decrypt		=	des_decrypt
+			}
+		}
+	}, {
+		.cra_name		=	"des3_ede",
+		.cra_driver_name	=	"des3_ede-generic",
+		.cra_priority		=	100,
+		.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
+		.cra_blocksize		=	DES3_EDE_BLOCK_SIZE,
+		.cra_ctxsize		=	sizeof(struct des3_ede_ctx),
+		.cra_module		=	THIS_MODULE,
+		.cra_alignmask		=	3,
+		.cra_u			=	{
+			.cipher = {
+				.cia_min_keysize	=	DES3_EDE_KEY_SIZE,
+				.cia_max_keysize	=	DES3_EDE_KEY_SIZE,
+				.cia_setkey		=	des3_ede_setkey,
+				.cia_encrypt		=	des3_ede_encrypt,
+				.cia_decrypt		=	des3_ede_decrypt
+			}
+		}
+	}
+};
 
 static int __init des_generic_mod_init(void)
 {

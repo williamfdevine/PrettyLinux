@@ -68,7 +68,8 @@
 #define ACPI_WALK_METHOD            0x01
 #define ACPI_WALK_METHOD_RESTART    0x02
 
-struct acpi_walk_state {
+struct acpi_walk_state
+{
 	struct acpi_walk_state *next;	/* Next walk_state in list */
 	u8 descriptor_type;	/* To differentiate various internal objs */
 	u8 walk_type;
@@ -97,7 +98,8 @@ struct acpi_walk_state {
 
 	struct acpi_namespace_node arguments[ACPI_METHOD_NUM_ARGS];	/* Control method arguments */
 	struct acpi_namespace_node local_variables[ACPI_METHOD_NUM_LOCALS];	/* Control method locals */
-	union acpi_operand_object *operands[ACPI_OBJ_NUM_OPERANDS + 1];	/* Operands passed to the interpreter (+1 for NULL terminator) */
+	union acpi_operand_object *operands[ACPI_OBJ_NUM_OPERANDS +
+											1];	/* Operands passed to the interpreter (+1 for NULL terminator) */
 	union acpi_operand_object **params;
 
 	u8 *aml_last_while;
@@ -125,7 +127,8 @@ struct acpi_walk_state {
 
 /* Info used by acpi_ns_initialize_objects and acpi_ds_initialize_objects */
 
-struct acpi_init_walk_info {
+struct acpi_init_walk_info
+{
 	u32 table_index;
 	u32 object_count;
 	u32 method_count;
@@ -144,30 +147,35 @@ struct acpi_init_walk_info {
 	acpi_owner_id owner_id;
 };
 
-struct acpi_get_devices_info {
+struct acpi_get_devices_info
+{
 	acpi_walk_callback user_function;
 	void *context;
 	const char *hid;
 };
 
-union acpi_aml_operands {
+union acpi_aml_operands
+{
 	union acpi_operand_object *operands[7];
 
-	struct {
+	struct
+	{
 		struct acpi_object_integer *type;
 		struct acpi_object_integer *code;
 		struct acpi_object_integer *argument;
 
 	} fatal;
 
-	struct {
+	struct
+	{
 		union acpi_operand_object *source;
 		struct acpi_object_integer *index;
 		union acpi_operand_object *target;
 
 	} index;
 
-	struct {
+	struct
+	{
 		union acpi_operand_object *source;
 		struct acpi_object_integer *index;
 		struct acpi_object_integer *length;
@@ -180,7 +188,8 @@ union acpi_aml_operands {
  * Structure used to pass object evaluation information and parameters.
  * Purpose is to reduce CPU stack use.
  */
-struct acpi_evaluate_info {
+struct acpi_evaluate_info
+{
 	/* The first 3 elements are passed by the caller to acpi_ns_evaluate */
 
 	struct acpi_namespace_node *prefix_node;	/* Input: starting node */
@@ -215,7 +224,8 @@ struct acpi_evaluate_info {
 
 /* Info used by acpi_ns_initialize_devices */
 
-struct acpi_device_walk_info {
+struct acpi_device_walk_info
+{
 	struct acpi_table_desc *table_desc;
 	struct acpi_evaluate_info *evaluate_info;
 	u32 device_count;
@@ -225,7 +235,8 @@ struct acpi_device_walk_info {
 
 /* TBD: [Restructure] Merge with struct above */
 
-struct acpi_walk_info {
+struct acpi_walk_info
+{
 	u32 debug_level;
 	u32 count;
 	acpi_owner_id owner_id;

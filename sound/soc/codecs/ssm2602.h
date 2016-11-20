@@ -32,7 +32,8 @@
 
 struct device;
 
-enum ssm2602_type {
+enum ssm2602_type
+{
 	SSM2602,
 	SSM2604,
 };
@@ -40,7 +41,7 @@ enum ssm2602_type {
 extern const struct regmap_config ssm2602_regmap_config;
 
 int ssm2602_probe(struct device *dev, enum ssm2602_type type,
-	struct regmap *regmap);
+				  struct regmap *regmap);
 
 /* SSM2602 Codec Register definitions */
 
@@ -130,7 +131,8 @@ int ssm2602_probe(struct device *dev, enum ssm2602_type type,
 
 #define SSM2602_CACHEREGNUM 	10
 
-enum ssm2602_clk {
+enum ssm2602_clk
+{
 	SSM2602_SYSCLK,
 	SSM2602_CLK_CLKOUT,
 	SSM2602_CLK_XTO

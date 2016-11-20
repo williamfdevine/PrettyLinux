@@ -21,7 +21,7 @@
 #include "page_actor.h"
 
 static int squashfs_read_cache(struct page *target_page, u64 block, int bsize,
-	int pages, struct page **page);
+							   int pages, struct page **page);
 
 /* Read separately compressed datablock directly into page cache */
 int squashfs_readpage_block(struct page *target_page, u64 block, int bsize)
@@ -40,33 +40,44 @@ int squashfs_readpage_block(struct page *target_page, u64 block, int bsize)
 	void *pageaddr;
 
 	if (end_index > file_end)
+	{
 		end_index = file_end;
+	}
 
 	pages = end_index - start_index + 1;
 
 	page = kmalloc_array(pages, sizeof(void *), GFP_KERNEL);
+
 	if (page == NULL)
+	{
 		return res;
+	}
 
 	/*
 	 * Create a "page actor" which will kmap and kunmap the
 	 * page cache pages appropriately within the decompressor
 	 */
 	actor = squashfs_page_actor_init_special(page, pages, 0);
+
 	if (actor == NULL)
+	{
 		goto out;
+	}
 
 	/* Try to grab all the pages covered by the Squashfs block */
-	for (missing_pages = 0, i = 0, n = start_index; i < pages; i++, n++) {
+	for (missing_pages = 0, i = 0, n = start_index; i < pages; i++, n++)
+	{
 		page[i] = (n == target_page->index) ? target_page :
-			grab_cache_page_nowait(target_page->mapping, n);
+				  grab_cache_page_nowait(target_page->mapping, n);
 
-		if (page[i] == NULL) {
+		if (page[i] == NULL)
+		{
 			missing_pages++;
 			continue;
 		}
 
-		if (PageUptodate(page[i])) {
+		if (PageUptodate(page[i]))
+		{
 			unlock_page(page[i]);
 			put_page(page[i]);
 			page[i] = NULL;
@@ -74,7 +85,8 @@ int squashfs_readpage_block(struct page *target_page, u64 block, int bsize)
 		}
 	}
 
-	if (missing_pages) {
+	if (missing_pages)
+	{
 		/*
 		 * Couldn't get one or more pages, this page has either
 		 * been VM reclaimed, but others are still in the page cache
@@ -83,33 +95,45 @@ int squashfs_readpage_block(struct page *target_page, u64 block, int bsize)
 		 * using an intermediate buffer.
 		 */
 		res = squashfs_read_cache(target_page, block, bsize, pages,
-								page);
+								  page);
+
 		if (res < 0)
+		{
 			goto mark_errored;
+		}
 
 		goto out;
 	}
 
 	/* Decompress directly into the page cache buffers */
 	res = squashfs_read_data(inode->i_sb, block, bsize, NULL, actor);
+
 	if (res < 0)
+	{
 		goto mark_errored;
+	}
 
 	/* Last page may have trailing bytes not filled */
 	bytes = res % PAGE_SIZE;
-	if (bytes) {
+
+	if (bytes)
+	{
 		pageaddr = kmap_atomic(page[pages - 1]);
 		memset(pageaddr + bytes, 0, PAGE_SIZE - bytes);
 		kunmap_atomic(pageaddr);
 	}
 
 	/* Mark pages as uptodate, unlock and release */
-	for (i = 0; i < pages; i++) {
+	for (i = 0; i < pages; i++)
+	{
 		flush_dcache_page(page[i]);
 		SetPageUptodate(page[i]);
 		unlock_page(page[i]);
+
 		if (page[i] != target_page)
+		{
 			put_page(page[i]);
+		}
 	}
 
 	kfree(actor);
@@ -118,12 +142,17 @@ int squashfs_readpage_block(struct page *target_page, u64 block, int bsize)
 	return 0;
 
 mark_errored:
+
 	/* Decompression failed, mark pages as errored.  Target_page is
 	 * dealt with by the caller
 	 */
-	for (i = 0; i < pages; i++) {
+	for (i = 0; i < pages; i++)
+	{
 		if (page[i] == NULL || page[i] == target_page)
+		{
 			continue;
+		}
+
 		flush_dcache_page(page[i]);
 		SetPageError(page[i]);
 		unlock_page(page[i]);
@@ -138,26 +167,30 @@ out:
 
 
 static int squashfs_read_cache(struct page *target_page, u64 block, int bsize,
-	int pages, struct page **page)
+							   int pages, struct page **page)
 {
 	struct inode *i = target_page->mapping->host;
 	struct squashfs_cache_entry *buffer = squashfs_get_datablock(i->i_sb,
-						 block, bsize);
+										  block, bsize);
 	int bytes = buffer->length, res = buffer->error, n, offset = 0;
 	void *pageaddr;
 
-	if (res) {
+	if (res)
+	{
 		ERROR("Unable to read page, block %llx, size %x\n", block,
-			bsize);
+			  bsize);
 		goto out;
 	}
 
 	for (n = 0; n < pages && bytes > 0; n++,
-			bytes -= PAGE_SIZE, offset += PAGE_SIZE) {
+		 bytes -= PAGE_SIZE, offset += PAGE_SIZE)
+	{
 		int avail = min_t(int, bytes, PAGE_SIZE);
 
 		if (page[n] == NULL)
+		{
 			continue;
+		}
 
 		pageaddr = kmap_atomic(page[n]);
 		squashfs_copy_data(pageaddr, buffer, offset, avail);
@@ -166,8 +199,11 @@ static int squashfs_read_cache(struct page *target_page, u64 block, int bsize,
 		flush_dcache_page(page[n]);
 		SetPageUptodate(page[n]);
 		unlock_page(page[n]);
+
 		if (page[n] != target_page)
+		{
 			put_page(page[n]);
+		}
 	}
 
 out:

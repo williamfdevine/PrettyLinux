@@ -92,7 +92,9 @@ munmap_notify(struct notifier_block *self, unsigned long val, void *data)
 	down_read(&mm->mmap_sem);
 
 	mpnt = find_vma(mm, addr);
-	if (mpnt && mpnt->vm_file && (mpnt->vm_flags & VM_EXEC)) {
+
+	if (mpnt && mpnt->vm_file && (mpnt->vm_flags & VM_EXEC))
+	{
 		up_read(&mm->mmap_sem);
 		/* To avoid latency problems, we only process the current CPU,
 		 * hoping that most samples for the task are on this CPU
@@ -113,8 +115,11 @@ static int
 module_load_notify(struct notifier_block *self, unsigned long val, void *data)
 {
 #ifdef CONFIG_MODULES
+
 	if (val != MODULE_STATE_COMING)
+	{
 		return 0;
+	}
 
 	/* FIXME: should we process all CPU buffers ? */
 	mutex_lock(&buffer_mutex);
@@ -126,19 +131,23 @@ module_load_notify(struct notifier_block *self, unsigned long val, void *data)
 }
 
 
-static struct notifier_block task_free_nb = {
+static struct notifier_block task_free_nb =
+{
 	.notifier_call	= task_free_notify,
 };
 
-static struct notifier_block task_exit_nb = {
+static struct notifier_block task_exit_nb =
+{
 	.notifier_call	= task_exit_notify,
 };
 
-static struct notifier_block munmap_nb = {
+static struct notifier_block munmap_nb =
+{
 	.notifier_call	= munmap_notify,
 };
 
-static struct notifier_block module_load_nb = {
+static struct notifier_block module_load_nb =
+{
 	.notifier_call = module_load_notify,
 };
 
@@ -154,20 +163,37 @@ int sync_start(void)
 	int err;
 
 	if (!zalloc_cpumask_var(&marked_cpus, GFP_KERNEL))
+	{
 		return -ENOMEM;
+	}
 
 	err = task_handoff_register(&task_free_nb);
+
 	if (err)
+	{
 		goto out1;
+	}
+
 	err = profile_event_register(PROFILE_TASK_EXIT, &task_exit_nb);
+
 	if (err)
+	{
 		goto out2;
+	}
+
 	err = profile_event_register(PROFILE_MUNMAP, &munmap_nb);
+
 	if (err)
+	{
 		goto out3;
+	}
+
 	err = register_module_notifier(&module_load_nb);
+
 	if (err)
+	{
 		goto out4;
+	}
 
 	start_cpu_work();
 
@@ -211,7 +237,10 @@ static inline unsigned long fast_get_dcookie(struct path *path)
 	unsigned long cookie;
 
 	if (path->dentry->d_flags & DCACHE_COOKIE)
+	{
 		return (unsigned long)path->dentry;
+	}
+
 	get_dcookie(path, &cookie);
 	return cookie;
 }
@@ -228,11 +257,16 @@ static unsigned long get_exec_dcookie(struct mm_struct *mm)
 	struct file *exe_file;
 
 	if (!mm)
+	{
 		goto done;
+	}
 
 	exe_file = get_mm_exe_file(mm);
+
 	if (!exe_file)
+	{
 		goto done;
+	}
 
 	cookie = fast_get_dcookie(&exe_file->f_path);
 	fput(exe_file);
@@ -255,16 +289,23 @@ lookup_dcookie(struct mm_struct *mm, unsigned long addr, off_t *offset)
 	struct vm_area_struct *vma;
 
 	down_read(&mm->mmap_sem);
-	for (vma = find_vma(mm, addr); vma; vma = vma->vm_next) {
+
+	for (vma = find_vma(mm, addr); vma; vma = vma->vm_next)
+	{
 
 		if (addr < vma->vm_start || addr >= vma->vm_end)
+		{
 			continue;
+		}
 
-		if (vma->vm_file) {
+		if (vma->vm_file)
+		{
 			cookie = fast_get_dcookie(&vma->vm_file->f_path);
 			*offset = (vma->vm_pgoff << PAGE_SHIFT) + addr -
-				vma->vm_start;
-		} else {
+					  vma->vm_start;
+		}
+		else
+		{
 			/* must be an anonymous map */
 			*offset = addr;
 		}
@@ -273,7 +314,10 @@ lookup_dcookie(struct mm_struct *mm, unsigned long addr, off_t *offset)
 	}
 
 	if (!vma)
+	{
 		cookie = INVALID_COOKIE;
+	}
+
 	up_read(&mm->mmap_sem);
 
 	return cookie;
@@ -292,10 +336,15 @@ static void add_cpu_switch(int i)
 static void add_kernel_ctx_switch(unsigned int in_kernel)
 {
 	add_event_entry(ESCAPE_CODE);
+
 	if (in_kernel)
+	{
 		add_event_entry(KERNEL_ENTER_SWITCH_CODE);
+	}
 	else
+	{
 		add_event_entry(KERNEL_EXIT_SWITCH_CODE);
+	}
 }
 
 static void
@@ -333,34 +382,54 @@ static void add_data(struct op_entry *entry, struct mm_struct *mm)
 	off_t offset;
 
 	if (!op_cpu_buffer_get_data(entry, &code))
+	{
 		return;
-	if (!op_cpu_buffer_get_data(entry, &pc))
-		return;
-	if (!op_cpu_buffer_get_size(entry))
-		return;
+	}
 
-	if (mm) {
+	if (!op_cpu_buffer_get_data(entry, &pc))
+	{
+		return;
+	}
+
+	if (!op_cpu_buffer_get_size(entry))
+	{
+		return;
+	}
+
+	if (mm)
+	{
 		cookie = lookup_dcookie(mm, pc, &offset);
 
 		if (cookie == NO_COOKIE)
+		{
 			offset = pc;
-		if (cookie == INVALID_COOKIE) {
+		}
+
+		if (cookie == INVALID_COOKIE)
+		{
 			atomic_inc(&oprofile_stats.sample_lost_no_mapping);
 			offset = pc;
 		}
-		if (cookie != last_cookie) {
+
+		if (cookie != last_cookie)
+		{
 			add_cookie_switch(cookie);
 			last_cookie = cookie;
 		}
-	} else
+	}
+	else
+	{
 		offset = pc;
+	}
 
 	add_event_entry(ESCAPE_CODE);
 	add_event_entry(code);
 	add_event_entry(offset);	/* Offset from Dcookie */
 
 	while (op_cpu_buffer_get_data(entry, &val))
+	{
 		add_event_entry(val);
+	}
 }
 
 static inline void add_sample_entry(unsigned long offset, unsigned long event)
@@ -381,26 +450,30 @@ add_sample(struct mm_struct *mm, struct op_sample *s, int in_kernel)
 	unsigned long cookie;
 	off_t offset;
 
-	if (in_kernel) {
+	if (in_kernel)
+	{
 		add_sample_entry(s->eip, s->event);
 		return 1;
 	}
 
 	/* add userspace sample */
 
-	if (!mm) {
+	if (!mm)
+	{
 		atomic_inc(&oprofile_stats.sample_lost_no_mm);
 		return 0;
 	}
 
 	cookie = lookup_dcookie(mm, s->eip, &offset);
 
-	if (cookie == INVALID_COOKIE) {
+	if (cookie == INVALID_COOKIE)
+	{
 		atomic_inc(&oprofile_stats.sample_lost_no_mapping);
 		return 0;
 	}
 
-	if (cookie != last_cookie) {
+	if (cookie != last_cookie)
+	{
 		add_cookie_switch(cookie);
 		last_cookie = cookie;
 	}
@@ -414,7 +487,10 @@ add_sample(struct mm_struct *mm, struct op_sample *s, int in_kernel)
 static void release_mm(struct mm_struct *mm)
 {
 	if (!mm)
+	{
 		return;
+	}
+
 	mmput(mm);
 }
 
@@ -444,7 +520,8 @@ static void process_task_mortuary(void)
 
 	spin_unlock_irqrestore(&task_mortuary, flags);
 
-	list_for_each_entry_safe(task, ttask, &local_dead_tasks, tasks) {
+	list_for_each_entry_safe(task, ttask, &local_dead_tasks, tasks)
+	{
 		list_del(&task->tasks);
 		free_task(task);
 	}
@@ -457,9 +534,12 @@ static void mark_done(int cpu)
 
 	cpumask_set_cpu(cpu, marked_cpus);
 
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		if (!cpumask_test_cpu(i, marked_cpus))
+		{
 			return;
+		}
 	}
 
 	/* All CPUs have been processed at least once,
@@ -475,7 +555,8 @@ static void mark_done(int cpu)
  * traversal, the code switch to sb_sample_start at first kernel enter/exit
  * switch so we need a fifth state and some special handling in sync_buffer()
  */
-typedef enum {
+typedef enum
+{
 	sb_bt_ignore = -2,
 	sb_buffer_start,
 	sb_bt_start,
@@ -510,53 +591,82 @@ void sync_buffer(int cpu)
 	op_cpu_buffer_reset(cpu);
 	available = op_cpu_buffer_entries(cpu);
 
-	for (i = 0; i < available; ++i) {
+	for (i = 0; i < available; ++i)
+	{
 		sample = op_cpu_buffer_read_entry(&entry, cpu);
-		if (!sample)
-			break;
 
-		if (is_code(sample->eip)) {
+		if (!sample)
+		{
+			break;
+		}
+
+		if (is_code(sample->eip))
+		{
 			flags = sample->event;
-			if (flags & TRACE_BEGIN) {
+
+			if (flags & TRACE_BEGIN)
+			{
 				state = sb_bt_start;
 				add_trace_begin();
 			}
-			if (flags & KERNEL_CTX_SWITCH) {
+
+			if (flags & KERNEL_CTX_SWITCH)
+			{
 				/* kernel/userspace switch */
 				in_kernel = flags & IS_KERNEL;
+
 				if (state == sb_buffer_start)
+				{
 					state = sb_sample_start;
+				}
+
 				add_kernel_ctx_switch(flags & IS_KERNEL);
 			}
+
 			if (flags & USER_CTX_SWITCH
-			    && op_cpu_buffer_get_data(&entry, &val)) {
+				&& op_cpu_buffer_get_data(&entry, &val))
+			{
 				/* userspace context switch */
 				new = (struct task_struct *)val;
 				oldmm = mm;
 				release_mm(oldmm);
 				mm = get_task_mm(new);
+
 				if (mm != oldmm)
+				{
 					cookie = get_exec_dcookie(mm);
+				}
+
 				add_user_ctx_switch(new, cookie);
 			}
+
 			if (op_cpu_buffer_get_size(&entry))
+			{
 				add_data(&entry, mm);
+			}
+
 			continue;
 		}
 
 		if (state < sb_bt_start)
 			/* ignore sample */
+		{
 			continue;
+		}
 
 		if (add_sample(mm, sample, in_kernel))
+		{
 			continue;
+		}
 
 		/* ignore backtraces if failed to add a sample */
-		if (state == sb_bt_start) {
+		if (state == sb_bt_start)
+		{
 			state = sb_bt_ignore;
 			atomic_inc(&oprofile_stats.bt_lost_no_mapping);
 		}
 	}
+
 	release_mm(mm);
 
 	mark_done(cpu);
@@ -570,18 +680,22 @@ void sync_buffer(int cpu)
  * at max_entries.
  */
 void oprofile_put_buff(unsigned long *buf, unsigned int start,
-		       unsigned int stop, unsigned int max)
+					   unsigned int stop, unsigned int max)
 {
 	int i;
 
 	i = start;
 
 	mutex_lock(&buffer_mutex);
-	while (i != stop) {
+
+	while (i != stop)
+	{
 		add_event_entry(buf[i++]);
 
 		if (i >= max)
+		{
 			i = 0;
+		}
 	}
 
 	mutex_unlock(&buffer_mutex);

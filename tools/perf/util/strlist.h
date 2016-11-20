@@ -6,12 +6,14 @@
 
 #include "rblist.h"
 
-struct str_node {
+struct str_node
+{
 	struct rb_node rb_node;
 	const char     *s;
 };
 
-struct strlist {
+struct strlist
+{
 	struct rblist rblist;
 	bool	      dupstr;
 	bool	      file_only;
@@ -22,7 +24,8 @@ struct strlist {
  *             that should not be added to the list if dirname/entry is not
  *             found
  */
-struct strlist_config {
+struct strlist_config
+{
 	bool dont_dupstr;
 	bool file_only;
 	const char *dirname;
@@ -62,8 +65,12 @@ static inline struct str_node *strlist__first(struct strlist *slist)
 static inline struct str_node *strlist__next(struct str_node *sn)
 {
 	struct rb_node *rn;
+
 	if (!sn)
+	{
 		return NULL;
+	}
+
 	rn = rb_next(&sn->rb_node);
 	return rn ? rb_entry(rn, struct str_node, rb_node) : NULL;
 }
@@ -85,5 +92,5 @@ static inline struct str_node *strlist__next(struct str_node *sn)
  */
 #define strlist__for_each_entry_safe(pos, n, slist)	\
 	for (pos = strlist__first(slist), n = strlist__next(pos); pos;\
-	     pos = n, n = strlist__next(n))
+		 pos = n, n = strlist__next(n))
 #endif /* __PERF_STRLIST_H */

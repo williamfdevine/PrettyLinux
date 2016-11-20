@@ -26,69 +26,93 @@
 #define container_obj(layr) container_of(layr, struct cfsrvl, layer)
 
 static void cfservl_ctrlcmd(struct cflayer *layr, enum caif_ctrlcmd ctrl,
-			    int phyid)
+							int phyid)
 {
 	struct cfsrvl *service = container_obj(layr);
 
 	if (layr->up == NULL || layr->up->ctrlcmd == NULL)
+	{
 		return;
+	}
 
-	switch (ctrl) {
-	case CAIF_CTRLCMD_INIT_RSP:
-		service->open = true;
-		layr->up->ctrlcmd(layr->up, ctrl, phyid);
-		break;
-	case CAIF_CTRLCMD_DEINIT_RSP:
-	case CAIF_CTRLCMD_INIT_FAIL_RSP:
-		service->open = false;
-		layr->up->ctrlcmd(layr->up, ctrl, phyid);
-		break;
-	case _CAIF_CTRLCMD_PHYIF_FLOW_OFF_IND:
-		if (phyid != service->dev_info.id)
+	switch (ctrl)
+	{
+		case CAIF_CTRLCMD_INIT_RSP:
+			service->open = true;
+			layr->up->ctrlcmd(layr->up, ctrl, phyid);
 			break;
-		if (service->modem_flow_on)
+
+		case CAIF_CTRLCMD_DEINIT_RSP:
+		case CAIF_CTRLCMD_INIT_FAIL_RSP:
+			service->open = false;
+			layr->up->ctrlcmd(layr->up, ctrl, phyid);
+			break;
+
+		case _CAIF_CTRLCMD_PHYIF_FLOW_OFF_IND:
+			if (phyid != service->dev_info.id)
+			{
+				break;
+			}
+
+			if (service->modem_flow_on)
+				layr->up->ctrlcmd(layr->up,
+								  CAIF_CTRLCMD_FLOW_OFF_IND, phyid);
+
+			service->phy_flow_on = false;
+			break;
+
+		case _CAIF_CTRLCMD_PHYIF_FLOW_ON_IND:
+			if (phyid != service->dev_info.id)
+			{
+				return;
+			}
+
+			if (service->modem_flow_on)
+			{
+				layr->up->ctrlcmd(layr->up,
+								  CAIF_CTRLCMD_FLOW_ON_IND,
+								  phyid);
+			}
+
+			service->phy_flow_on = true;
+			break;
+
+		case CAIF_CTRLCMD_FLOW_OFF_IND:
+			if (service->phy_flow_on)
+			{
+				layr->up->ctrlcmd(layr->up,
+								  CAIF_CTRLCMD_FLOW_OFF_IND, phyid);
+			}
+
+			service->modem_flow_on = false;
+			break;
+
+		case CAIF_CTRLCMD_FLOW_ON_IND:
+			if (service->phy_flow_on)
+			{
+				layr->up->ctrlcmd(layr->up,
+								  CAIF_CTRLCMD_FLOW_ON_IND, phyid);
+			}
+
+			service->modem_flow_on = true;
+			break;
+
+		case _CAIF_CTRLCMD_PHYIF_DOWN_IND:
+			/* In case interface is down, let's fake a remove shutdown */
 			layr->up->ctrlcmd(layr->up,
-					  CAIF_CTRLCMD_FLOW_OFF_IND, phyid);
-		service->phy_flow_on = false;
-		break;
-	case _CAIF_CTRLCMD_PHYIF_FLOW_ON_IND:
-		if (phyid != service->dev_info.id)
-			return;
-		if (service->modem_flow_on) {
-			layr->up->ctrlcmd(layr->up,
-					   CAIF_CTRLCMD_FLOW_ON_IND,
-					   phyid);
-		}
-		service->phy_flow_on = true;
-		break;
-	case CAIF_CTRLCMD_FLOW_OFF_IND:
-		if (service->phy_flow_on) {
-			layr->up->ctrlcmd(layr->up,
-					  CAIF_CTRLCMD_FLOW_OFF_IND, phyid);
-		}
-		service->modem_flow_on = false;
-		break;
-	case CAIF_CTRLCMD_FLOW_ON_IND:
-		if (service->phy_flow_on) {
-			layr->up->ctrlcmd(layr->up,
-					  CAIF_CTRLCMD_FLOW_ON_IND, phyid);
-		}
-		service->modem_flow_on = true;
-		break;
-	case _CAIF_CTRLCMD_PHYIF_DOWN_IND:
-		/* In case interface is down, let's fake a remove shutdown */
-		layr->up->ctrlcmd(layr->up,
-				CAIF_CTRLCMD_REMOTE_SHUTDOWN_IND, phyid);
-		break;
-	case CAIF_CTRLCMD_REMOTE_SHUTDOWN_IND:
-		layr->up->ctrlcmd(layr->up, ctrl, phyid);
-		break;
-	default:
-		pr_warn("Unexpected ctrl in cfsrvl (%d)\n", ctrl);
-		/* We have both modem and phy flow on, send flow on */
-		layr->up->ctrlcmd(layr->up, ctrl, phyid);
-		service->phy_flow_on = true;
-		break;
+							  CAIF_CTRLCMD_REMOTE_SHUTDOWN_IND, phyid);
+			break;
+
+		case CAIF_CTRLCMD_REMOTE_SHUTDOWN_IND:
+			layr->up->ctrlcmd(layr->up, ctrl, phyid);
+			break;
+
+		default:
+			pr_warn("Unexpected ctrl in cfsrvl (%d)\n", ctrl);
+			/* We have both modem and phy flow on, send flow on */
+			layr->up->ctrlcmd(layr->up, ctrl, phyid);
+			service->phy_flow_on = true;
+			break;
 	}
 }
 
@@ -101,54 +125,70 @@ static int cfservl_modemcmd(struct cflayer *layr, enum caif_modemcmd ctrl)
 	caif_assert(layr->dn->transmit != NULL);
 
 	if (!service->supports_flowctrl)
+	{
 		return 0;
-
-	switch (ctrl) {
-	case CAIF_MODEMCMD_FLOW_ON_REQ:
-		{
-			struct cfpkt *pkt;
-			struct caif_payload_info *info;
-			u8 flow_on = SRVL_FLOW_ON;
-			pkt = cfpkt_create(SRVL_CTRL_PKT_SIZE);
-			if (!pkt)
-				return -ENOMEM;
-
-			if (cfpkt_add_head(pkt, &flow_on, 1) < 0) {
-				pr_err("Packet is erroneous!\n");
-				cfpkt_destroy(pkt);
-				return -EPROTO;
-			}
-			info = cfpkt_info(pkt);
-			info->channel_id = service->layer.id;
-			info->hdr_len = 1;
-			info->dev_info = &service->dev_info;
-			cfpkt_set_prio(pkt, TC_PRIO_CONTROL);
-			return layr->dn->transmit(layr->dn, pkt);
-		}
-	case CAIF_MODEMCMD_FLOW_OFF_REQ:
-		{
-			struct cfpkt *pkt;
-			struct caif_payload_info *info;
-			u8 flow_off = SRVL_FLOW_OFF;
-			pkt = cfpkt_create(SRVL_CTRL_PKT_SIZE);
-			if (!pkt)
-				return -ENOMEM;
-
-			if (cfpkt_add_head(pkt, &flow_off, 1) < 0) {
-				pr_err("Packet is erroneous!\n");
-				cfpkt_destroy(pkt);
-				return -EPROTO;
-			}
-			info = cfpkt_info(pkt);
-			info->channel_id = service->layer.id;
-			info->hdr_len = 1;
-			info->dev_info = &service->dev_info;
-			cfpkt_set_prio(pkt, TC_PRIO_CONTROL);
-			return layr->dn->transmit(layr->dn, pkt);
-		}
-	default:
-	  break;
 	}
+
+	switch (ctrl)
+	{
+		case CAIF_MODEMCMD_FLOW_ON_REQ:
+			{
+				struct cfpkt *pkt;
+				struct caif_payload_info *info;
+				u8 flow_on = SRVL_FLOW_ON;
+				pkt = cfpkt_create(SRVL_CTRL_PKT_SIZE);
+
+				if (!pkt)
+				{
+					return -ENOMEM;
+				}
+
+				if (cfpkt_add_head(pkt, &flow_on, 1) < 0)
+				{
+					pr_err("Packet is erroneous!\n");
+					cfpkt_destroy(pkt);
+					return -EPROTO;
+				}
+
+				info = cfpkt_info(pkt);
+				info->channel_id = service->layer.id;
+				info->hdr_len = 1;
+				info->dev_info = &service->dev_info;
+				cfpkt_set_prio(pkt, TC_PRIO_CONTROL);
+				return layr->dn->transmit(layr->dn, pkt);
+			}
+
+		case CAIF_MODEMCMD_FLOW_OFF_REQ:
+			{
+				struct cfpkt *pkt;
+				struct caif_payload_info *info;
+				u8 flow_off = SRVL_FLOW_OFF;
+				pkt = cfpkt_create(SRVL_CTRL_PKT_SIZE);
+
+				if (!pkt)
+				{
+					return -ENOMEM;
+				}
+
+				if (cfpkt_add_head(pkt, &flow_off, 1) < 0)
+				{
+					pr_err("Packet is erroneous!\n");
+					cfpkt_destroy(pkt);
+					return -EPROTO;
+				}
+
+				info = cfpkt_info(pkt);
+				info->channel_id = service->layer.id;
+				info->hdr_len = 1;
+				info->dev_info = &service->dev_info;
+				cfpkt_set_prio(pkt, TC_PRIO_CONTROL);
+				return layr->dn->transmit(layr->dn, pkt);
+			}
+
+		default:
+			break;
+	}
+
 	return -EINVAL;
 }
 
@@ -159,9 +199,9 @@ static void cfsrvl_release(struct cflayer *layer)
 }
 
 void cfsrvl_init(struct cfsrvl *service,
-		 u8 channel_id,
-		 struct dev_info *dev_info,
-		 bool supports_flowctrl)
+				 u8 channel_id,
+				 struct dev_info *dev_info,
+				 bool supports_flowctrl)
 {
 	caif_assert(offsetof(struct cfsrvl, layer) == 0);
 	service->open = false;
@@ -177,10 +217,12 @@ void cfsrvl_init(struct cfsrvl *service,
 
 bool cfsrvl_ready(struct cfsrvl *service, int *err)
 {
-	if (!service->open) {
+	if (!service->open)
+	{
 		*err = -ENOTCONN;
 		return false;
 	}
+
 	return true;
 }
 
@@ -199,21 +241,28 @@ bool cfsrvl_phyid_match(struct cflayer *layer, int phyid)
 void caif_free_client(struct cflayer *adap_layer)
 {
 	struct cfsrvl *servl;
+
 	if (adap_layer == NULL || adap_layer->dn == NULL)
+	{
 		return;
+	}
+
 	servl = container_obj(adap_layer->dn);
 	servl->release(&servl->layer);
 }
 EXPORT_SYMBOL(caif_free_client);
 
 void caif_client_register_refcnt(struct cflayer *adapt_layer,
-				 void (*hold)(struct cflayer *lyr),
-				 void (*put)(struct cflayer *lyr))
+								 void (*hold)(struct cflayer *lyr),
+								 void (*put)(struct cflayer *lyr))
 {
 	struct cfsrvl *service;
 
 	if (WARN_ON(adapt_layer == NULL || adapt_layer->dn == NULL))
+	{
 		return;
+	}
+
 	service = container_of(adapt_layer->dn, struct cfsrvl, layer);
 	service->hold = hold;
 	service->put = put;

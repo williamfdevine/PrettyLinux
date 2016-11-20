@@ -30,8 +30,8 @@ const char *aspeed_pinctrl_get_group_name(struct pinctrl_dev *pctldev,
 }
 
 int aspeed_pinctrl_get_group_pins(struct pinctrl_dev *pctldev,
-				  unsigned int group, const unsigned int **pins,
-				  unsigned int *npins)
+								  unsigned int group, const unsigned int **pins,
+								  unsigned int *npins)
 {
 	struct aspeed_pinctrl_data *pdata = pinctrl_dev_get_drvdata(pctldev);
 
@@ -42,7 +42,7 @@ int aspeed_pinctrl_get_group_pins(struct pinctrl_dev *pctldev,
 }
 
 void aspeed_pinctrl_pin_dbg_show(struct pinctrl_dev *pctldev,
-				 struct seq_file *s, unsigned int offset)
+								 struct seq_file *s, unsigned int offset)
 {
 	seq_printf(s, " %s", dev_name(pctldev->dev));
 }
@@ -55,7 +55,7 @@ int aspeed_pinmux_get_fn_count(struct pinctrl_dev *pctldev)
 }
 
 const char *aspeed_pinmux_get_fn_name(struct pinctrl_dev *pctldev,
-				      unsigned int function)
+									  unsigned int function)
 {
 	struct aspeed_pinctrl_data *pdata = pinctrl_dev_get_drvdata(pctldev);
 
@@ -63,9 +63,9 @@ const char *aspeed_pinmux_get_fn_name(struct pinctrl_dev *pctldev,
 }
 
 int aspeed_pinmux_get_fn_groups(struct pinctrl_dev *pctldev,
-				unsigned int function,
-				const char * const **groups,
-				unsigned int * const num_groups)
+								unsigned int function,
+								const char *const **groups,
+								unsigned int *const num_groups)
 {
 	struct aspeed_pinctrl_data *pdata = pinctrl_dev_get_drvdata(pctldev);
 
@@ -76,11 +76,11 @@ int aspeed_pinmux_get_fn_groups(struct pinctrl_dev *pctldev,
 }
 
 static inline void aspeed_sig_desc_print_val(
-		const struct aspeed_sig_desc *desc, bool enable, u32 rv)
+	const struct aspeed_sig_desc *desc, bool enable, u32 rv)
 {
 	pr_debug("SCU%x[0x%08x]=0x%x, got 0x%x from 0x%08x\n", desc->reg,
-			desc->mask, enable ? desc->enable : desc->disable,
-			(rv & desc->mask) >> __ffs(desc->mask), rv);
+			 desc->mask, enable ? desc->enable : desc->disable,
+			 (rv & desc->mask) >> __ffs(desc->mask), rv);
 }
 
 /**
@@ -100,13 +100,15 @@ static inline void aspeed_sig_desc_print_val(
  * is enabled). Thus we must explicitly test for either condition as required.
  */
 static bool aspeed_sig_desc_eval(const struct aspeed_sig_desc *desc,
-				 bool enabled, struct regmap *map)
+								 bool enabled, struct regmap *map)
 {
 	unsigned int raw;
 	u32 want;
 
 	if (regmap_read(map, desc->reg, &raw) < 0)
+	{
 		return false;
+	}
 
 	aspeed_sig_desc_print_val(desc, enabled, raw);
 	want = enabled ? desc->enable : desc->disable;
@@ -136,15 +138,18 @@ static bool aspeed_sig_desc_eval(const struct aspeed_sig_desc *desc,
  * either condition as required.
  */
 static bool aspeed_sig_expr_eval(const struct aspeed_sig_expr *expr,
-				 bool enabled, struct regmap *map)
+								 bool enabled, struct regmap *map)
 {
 	int i;
 
-	for (i = 0; i < expr->ndescs; i++) {
+	for (i = 0; i < expr->ndescs; i++)
+	{
 		const struct aspeed_sig_desc *desc = &expr->descs[i];
 
 		if (!aspeed_sig_desc_eval(desc, enabled, map))
+		{
 			return false;
+		}
 	}
 
 	return true;
@@ -163,11 +168,12 @@ static bool aspeed_sig_expr_eval(const struct aspeed_sig_expr *expr,
  * @return true if the expression is configured as requested, false otherwise
  */
 static bool aspeed_sig_expr_set(const struct aspeed_sig_expr *expr,
-				bool enable, struct regmap *map)
+								bool enable, struct regmap *map)
 {
 	int i;
 
-	for (i = 0; i < expr->ndescs; i++) {
+	for (i = 0; i < expr->ndescs; i++)
+	{
 		bool ret;
 		const struct aspeed_sig_desc *desc = &expr->descs[i];
 		u32 pattern = enable ? desc->enable : desc->disable;
@@ -180,32 +186,40 @@ static bool aspeed_sig_expr_set(const struct aspeed_sig_expr *expr,
 		 * all descriptor bits.
 		 */
 		if (desc->reg == HW_STRAP1 || desc->reg == HW_STRAP2)
+		{
 			continue;
+		}
 
 		ret = regmap_update_bits(map, desc->reg, desc->mask,
-				pattern << __ffs(desc->mask)) == 0;
+								 pattern << __ffs(desc->mask)) == 0;
 
 		if (!ret)
+		{
 			return ret;
+		}
 	}
 
 	return aspeed_sig_expr_eval(expr, enable, map);
 }
 
 static bool aspeed_sig_expr_enable(const struct aspeed_sig_expr *expr,
-				   struct regmap *map)
+								   struct regmap *map)
 {
 	if (aspeed_sig_expr_eval(expr, true, map))
+	{
 		return true;
+	}
 
 	return aspeed_sig_expr_set(expr, true, map);
 }
 
 static bool aspeed_sig_expr_disable(const struct aspeed_sig_expr *expr,
-				    struct regmap *map)
+									struct regmap *map)
 {
 	if (!aspeed_sig_expr_eval(expr, true, map))
+	{
 		return true;
+	}
 
 	return aspeed_sig_expr_set(expr, false, map);
 }
@@ -220,14 +234,17 @@ static bool aspeed_sig_expr_disable(const struct aspeed_sig_expr *expr,
  * otherwise
  */
 static bool aspeed_disable_sig(const struct aspeed_sig_expr **exprs,
-			       struct regmap *map)
+							   struct regmap *map)
 {
 	bool disabled = true;
 
 	if (!exprs)
+	{
 		return true;
+	}
 
-	while (*exprs) {
+	while (*exprs)
+	{
 		bool ret;
 
 		ret = aspeed_sig_expr_disable(*exprs, map);
@@ -251,11 +268,15 @@ static bool aspeed_disable_sig(const struct aspeed_sig_expr **exprs,
  *
  */
 static const struct aspeed_sig_expr *aspeed_find_expr_by_name(
-		const struct aspeed_sig_expr **exprs, const char *name)
+	const struct aspeed_sig_expr **exprs, const char *name)
 {
-	while (*exprs) {
+	while (*exprs)
+	{
 		if (strcmp((*exprs)->function, name) == 0)
+		{
 			return *exprs;
+		}
+
 		exprs++;
 	}
 
@@ -263,8 +284,8 @@ static const struct aspeed_sig_expr *aspeed_find_expr_by_name(
 }
 
 static char *get_defined_attribute(const struct aspeed_pin_desc *pdesc,
-				   const char *(*get)(
-					   const struct aspeed_sig_expr *))
+								   const char *(*get)(
+									   const struct aspeed_sig_expr *))
 {
 	char *found = NULL;
 	size_t len = 0;
@@ -272,14 +293,18 @@ static char *get_defined_attribute(const struct aspeed_pin_desc *pdesc,
 
 	prios = pdesc->prios;
 
-	while ((funcs = *prios)) {
-		while ((expr = *funcs)) {
+	while ((funcs = *prios))
+	{
+		while ((expr = *funcs))
+		{
 			const char *str = get(expr);
 			size_t delta = strlen(str) + 2;
 			char *expanded;
 
 			expanded = krealloc(found, len + delta + 1, GFP_KERNEL);
-			if (!expanded) {
+
+			if (!expanded)
+			{
 				kfree(found);
 				return expanded;
 			}
@@ -293,10 +318,12 @@ static char *get_defined_attribute(const struct aspeed_pin_desc *pdesc,
 
 			funcs++;
 		}
+
 		prios++;
 	}
 
-	if (len < 2) {
+	if (len < 2)
+	{
 		kfree(found);
 		return NULL;
 	}
@@ -327,16 +354,17 @@ static char *get_defined_signals(const struct aspeed_pin_desc *pdesc)
 }
 
 int aspeed_pinmux_set_mux(struct pinctrl_dev *pctldev, unsigned int function,
-			  unsigned int group)
+						  unsigned int group)
 {
 	int i;
 	const struct aspeed_pinctrl_data *pdata =
 		pinctrl_dev_get_drvdata(pctldev);
 	const struct aspeed_pin_group *pgroup = &pdata->groups[group];
 	const struct aspeed_pin_function *pfunc =
-		&pdata->functions[function];
+			&pdata->functions[function];
 
-	for (i = 0; i < pgroup->npins; i++) {
+	for (i = 0; i < pgroup->npins; i++)
+	{
 		int pin = pgroup->pins[i];
 		const struct aspeed_pin_desc *pdesc = pdata->pins[pin].drv_data;
 		const struct aspeed_sig_expr *expr = NULL;
@@ -344,33 +372,43 @@ int aspeed_pinmux_set_mux(struct pinctrl_dev *pctldev, unsigned int function,
 		const struct aspeed_sig_expr ***prios;
 
 		if (!pdesc)
+		{
 			return -EINVAL;
+		}
 
 		prios = pdesc->prios;
 
 		if (!prios)
+		{
 			continue;
+		}
 
 		/* Disable functions at a higher priority than that requested */
-		while ((funcs = *prios)) {
+		while ((funcs = *prios))
+		{
 			expr = aspeed_find_expr_by_name(funcs, pfunc->name);
 
 			if (expr)
+			{
 				break;
+			}
 
 			if (!aspeed_disable_sig(funcs, pdata->map))
+			{
 				return -EPERM;
+			}
 
 			prios++;
 		}
 
-		if (!expr) {
+		if (!expr)
+		{
 			char *functions = get_defined_functions(pdesc);
 			char *signals = get_defined_signals(pdesc);
 
 			pr_warn("No function %s found on pin %s (%d). Found signal(s) %s for function(s) %s\n",
-				pfunc->name, pdesc->name, pin, signals,
-				functions);
+					pfunc->name, pdesc->name, pin, signals,
+					functions);
 			kfree(signals);
 			kfree(functions);
 
@@ -378,7 +416,9 @@ int aspeed_pinmux_set_mux(struct pinctrl_dev *pctldev, unsigned int function,
 		}
 
 		if (!aspeed_sig_expr_enable(expr, pdata->map))
+		{
 			return -EPERM;
+		}
 	}
 
 	return 0;
@@ -399,11 +439,17 @@ static bool aspeed_expr_is_gpio(const struct aspeed_sig_expr *expr)
 static bool aspeed_gpio_in_exprs(const struct aspeed_sig_expr **exprs)
 {
 	if (!exprs)
+	{
 		return false;
+	}
 
-	while (*exprs) {
+	while (*exprs)
+	{
 		if (aspeed_expr_is_gpio(*exprs))
+		{
 			return true;
+		}
+
 		exprs++;
 	}
 
@@ -411,8 +457,8 @@ static bool aspeed_gpio_in_exprs(const struct aspeed_sig_expr **exprs)
 }
 
 int aspeed_gpio_request_enable(struct pinctrl_dev *pctldev,
-			       struct pinctrl_gpio_range *range,
-			       unsigned int offset)
+							   struct pinctrl_gpio_range *range,
+							   unsigned int offset)
 {
 	const struct aspeed_pinctrl_data *pdata =
 		pinctrl_dev_get_drvdata(pctldev);
@@ -420,29 +466,39 @@ int aspeed_gpio_request_enable(struct pinctrl_dev *pctldev,
 	const struct aspeed_sig_expr ***prios, **funcs, *expr;
 
 	if (!pdesc)
+	{
 		return -EINVAL;
+	}
 
 	prios = pdesc->prios;
 
 	if (!prios)
+	{
 		return -ENXIO;
+	}
 
 	/* Disable any functions of higher priority than GPIO */
-	while ((funcs = *prios)) {
+	while ((funcs = *prios))
+	{
 		if (aspeed_gpio_in_exprs(funcs))
+		{
 			break;
+		}
 
 		if (!aspeed_disable_sig(funcs, pdata->map))
+		{
 			return -EPERM;
+		}
 
 		prios++;
 	}
 
-	if (!funcs) {
+	if (!funcs)
+	{
 		char *signals = get_defined_signals(pdesc);
 
 		pr_warn("No GPIO signal type found on pin %s (%d). Found: %s\n",
-			pdesc->name, offset, signals);
+				pdesc->name, offset, signals);
 		kfree(signals);
 
 		return -ENXIO;
@@ -456,40 +512,49 @@ int aspeed_gpio_request_enable(struct pinctrl_dev *pctldev,
 	 * expression.
 	 */
 	if (!expr)
+	{
 		return 0;
+	}
 
 	/*
 	 * If GPIO is not the lowest priority signal type, assume there is only
 	 * one expression defined to enable the GPIO function
 	 */
 	if (!aspeed_sig_expr_enable(expr, pdata->map))
+	{
 		return -EPERM;
+	}
 
 	return 0;
 }
 
 int aspeed_pinctrl_probe(struct platform_device *pdev,
-			 struct pinctrl_desc *pdesc,
-			 struct aspeed_pinctrl_data *pdata)
+						 struct pinctrl_desc *pdesc,
+						 struct aspeed_pinctrl_data *pdata)
 {
 	struct device *parent;
 	struct pinctrl_dev *pctl;
 
 	parent = pdev->dev.parent;
-	if (!parent) {
+
+	if (!parent)
+	{
 		dev_err(&pdev->dev, "No parent for syscon pincontroller\n");
 		return -ENODEV;
 	}
 
 	pdata->map = syscon_node_to_regmap(parent->of_node);
-	if (IS_ERR(pdata->map)) {
+
+	if (IS_ERR(pdata->map))
+	{
 		dev_err(&pdev->dev, "No regmap for syscon pincontroller parent\n");
 		return PTR_ERR(pdata->map);
 	}
 
 	pctl = pinctrl_register(pdesc, &pdev->dev, pdata);
 
-	if (IS_ERR(pctl)) {
+	if (IS_ERR(pctl))
+	{
 		dev_err(&pdev->dev, "Failed to register pinctrl\n");
 		return PTR_ERR(pctl);
 	}

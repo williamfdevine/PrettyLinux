@@ -144,7 +144,7 @@
 
 // max transmit or receive buffer size
 #define CB_RX_BUF_SIZE     2048UL	// max buffer size
-					// NOTE: must be multiple of 4
+// NOTE: must be multiple of 4
 
 #define CB_MAX_RD_NUM       512	// MAX # of RD
 #define CB_MAX_TD_NUM       256	// MAX # of TD
@@ -172,22 +172,26 @@
  *	Receive descriptor
  */
 
-struct rdesc0 {
+struct rdesc0
+{
 	__le16 RSR;		/* Receive status */
 	__le16 len;		/* bits 0--13; bit 15 - owner */
 };
 
-struct rdesc1 {
+struct rdesc1
+{
 	__le16 PQTAG;
 	u8 CSM;
 	u8 IPKT;
 };
 
-enum {
+enum
+{
 	RX_INTEN = cpu_to_le16(0x8000)
 };
 
-struct rx_desc {
+struct rx_desc
+{
 	struct rdesc0 rdesc0;
 	struct rdesc1 rdesc1;
 	__le32 pa_low;		/* Low 32 bit PCI address */
@@ -199,34 +203,40 @@ struct rx_desc {
  *	Transmit descriptor
  */
 
-struct tdesc0 {
+struct tdesc0
+{
 	__le16 TSR;		/* Transmit status register */
 	__le16 len;		/* bits 0--13 - size of frame, bit 15 - owner */
 };
 
-struct tdesc1 {
+struct tdesc1
+{
 	__le16 vlan;
 	u8 TCR;
 	u8 cmd;			/* bits 0--1 - TCPLS, bits 4--7 - CMDZ */
 } __packed;
 
-enum {
+enum
+{
 	TD_QUEUE = cpu_to_le16(0x8000)
 };
 
-struct td_buf {
+struct td_buf
+{
 	__le32 pa_low;
 	__le16 pa_high;
 	__le16 size;		/* bits 0--13 - size, bit 15 - queue */
 } __packed;
 
-struct tx_desc {
+struct tx_desc
+{
 	struct tdesc0 tdesc0;
 	struct tdesc1 tdesc1;
 	struct td_buf td_buf[7];
 };
 
-struct velocity_rd_info {
+struct velocity_rd_info
+{
 	struct sk_buff *skb;
 	dma_addr_t skb_dma;
 };
@@ -235,13 +245,15 @@ struct velocity_rd_info {
  *	Used to track transmit side buffers.
  */
 
-struct velocity_td_info {
+struct velocity_td_info
+{
 	struct sk_buff *skb;
 	int nskb_dma;
 	dma_addr_t skb_dma[7];
 };
 
-enum  velocity_owner {
+enum  velocity_owner
+{
 	OWNED_BY_HOST = 0,
 	OWNED_BY_NIC = cpu_to_le16(0x8000)
 };
@@ -595,9 +607,9 @@ enum  velocity_owner {
 /* 0x0013FB0FUL  =  initial value of IMR */
 
 #define INT_MASK_DEF        (IMR_PPTXIM|IMR_PPRXIM|IMR_PTXIM|IMR_PRXIM|\
-                            IMR_PWEIM|IMR_TXWB0IM|IMR_TXWB1IM|IMR_FLONIM|\
-                            IMR_OVFIM|IMR_LSTEIM|IMR_LSTPEIM|IMR_SRCIM|IMR_MIBFIM|\
-                            IMR_SHDNIM|IMR_TMR1IM|IMR_TMR0IM|IMR_TXSTLM)
+							 IMR_PWEIM|IMR_TXWB0IM|IMR_TXWB1IM|IMR_FLONIM|\
+							 IMR_OVFIM|IMR_LSTEIM|IMR_LSTPEIM|IMR_SRCIM|IMR_MIBFIM|\
+							 IMR_SHDNIM|IMR_TMR1IM|IMR_TMR0IM|IMR_TXSTLM)
 
 /*
  *	Bits in the TDCSR0/1, RDCSR0 register
@@ -941,17 +953,17 @@ enum  velocity_owner {
  */
 
 #if defined(_SIM)
-#define IMR_MASK_VALUE      0x0033FF0FUL	/* initial value of IMR
-						   set IMR0 to 0x0F according to spec */
+	#define IMR_MASK_VALUE      0x0033FF0FUL	/* initial value of IMR
+	set IMR0 to 0x0F according to spec */
 
 #else
-#define IMR_MASK_VALUE      0x0013FB0FUL	/* initial value of IMR
-						   ignore MIBFI,RACEI to
-						   reduce intr. frequency
-						   NOTE.... do not enable NoBuf int mask at driver driver
-						      when (1) NoBuf -> RxThreshold = SF
-							   (2) OK    -> RxThreshold = original value
-						 */
+	#define IMR_MASK_VALUE      0x0013FB0FUL	/* initial value of IMR
+	ignore MIBFI,RACEI to
+	reduce intr. frequency
+	NOTE.... do not enable NoBuf int mask at driver driver
+	when (1) NoBuf -> RxThreshold = SF
+	(2) OK    -> RxThreshold = original value
+	*/
 #endif
 
 /*
@@ -974,7 +986,8 @@ enum  velocity_owner {
  *	way but generates offsets for readl/writel() calls
  */
 
-struct mac_regs {
+struct mac_regs
+{
 	volatile u8 PAR[6];		/* 0x00 */
 	volatile u8 RCR;
 	volatile u8 TCR;
@@ -1099,7 +1112,8 @@ struct mac_regs {
 };
 
 
-enum hw_mib {
+enum hw_mib
+{
 	HW_MIB_ifRxAllPkts = 0,
 	HW_MIB_ifRxOkPkts,
 	HW_MIB_ifTxOkPkts,
@@ -1135,11 +1149,13 @@ enum hw_mib {
 	HW_MIB_SIZE
 };
 
-enum chip_type {
+enum chip_type
+{
 	CHIP_TYPE_VT6110 = 1,
 };
 
-struct velocity_info_tbl {
+struct velocity_info_tbl
+{
 	enum chip_type chip_id;
 	const char *name;
 	int txqueue;
@@ -1147,12 +1163,12 @@ struct velocity_info_tbl {
 };
 
 #define mac_hw_mibs_init(regs) {\
-	BYTE_REG_BITS_ON(MIBCR_MIBFRZ,&((regs)->MIBCR));\
-	BYTE_REG_BITS_ON(MIBCR_MIBCLR,&((regs)->MIBCR));\
-	do {}\
+		BYTE_REG_BITS_ON(MIBCR_MIBFRZ,&((regs)->MIBCR));\
+		BYTE_REG_BITS_ON(MIBCR_MIBCLR,&((regs)->MIBCR));\
+		do {}\
 		while (BYTE_REG_BITS_IS_ON(MIBCR_MIBCLR,&((regs)->MIBCR)));\
-	BYTE_REG_BITS_OFF(MIBCR_MIBFRZ,&((regs)->MIBCR));\
-}
+		BYTE_REG_BITS_OFF(MIBCR_MIBFRZ,&((regs)->MIBCR));\
+	}
 
 #define mac_read_isr(regs)  		readl(&((regs)->ISR))
 #define mac_write_isr(regs, x)  	writel((x),&((regs)->ISR))
@@ -1163,38 +1179,45 @@ struct velocity_info_tbl {
 #define mac_enable_int(regs)    	writel(CR0_GINTMSK1,&((regs)->CR0Set))
 
 #define mac_set_dma_length(regs, n) {\
-	BYTE_REG_BITS_SET((n),0x07,&((regs)->DCFG));\
-}
+		BYTE_REG_BITS_SET((n),0x07,&((regs)->DCFG));\
+	}
 
 #define mac_set_rx_thresh(regs, n) {\
-	BYTE_REG_BITS_SET((n),(MCFG_RFT0|MCFG_RFT1),&((regs)->MCFG));\
-}
+		BYTE_REG_BITS_SET((n),(MCFG_RFT0|MCFG_RFT1),&((regs)->MCFG));\
+	}
 
 #define mac_rx_queue_run(regs) {\
-	writeb(TRDCSR_RUN, &((regs)->RDCSRSet));\
-}
+		writeb(TRDCSR_RUN, &((regs)->RDCSRSet));\
+	}
 
 #define mac_rx_queue_wake(regs) {\
-	writeb(TRDCSR_WAK, &((regs)->RDCSRSet));\
-}
+		writeb(TRDCSR_WAK, &((regs)->RDCSRSet));\
+	}
 
 #define mac_tx_queue_run(regs, n) {\
-	writew(TRDCSR_RUN<<((n)*4),&((regs)->TDCSRSet));\
-}
+		writew(TRDCSR_RUN<<((n)*4),&((regs)->TDCSRSet));\
+	}
 
 #define mac_tx_queue_wake(regs, n) {\
-	writew(TRDCSR_WAK<<(n*4),&((regs)->TDCSRSet));\
-}
+		writew(TRDCSR_WAK<<(n*4),&((regs)->TDCSRSet));\
+	}
 
-static inline void mac_eeprom_reload(struct mac_regs __iomem * regs) {
-	int i=0;
+static inline void mac_eeprom_reload(struct mac_regs __iomem *regs)
+{
+	int i = 0;
 
-	BYTE_REG_BITS_ON(EECSR_RELOAD,&(regs->EECSR));
-	do {
+	BYTE_REG_BITS_ON(EECSR_RELOAD, &(regs->EECSR));
+
+	do
+	{
 		udelay(10);
-		if (i++>0x1000)
+
+		if (i++ > 0x1000)
+		{
 			break;
-	} while (BYTE_REG_BITS_IS_ON(EECSR_RELOAD,&(regs->EECSR)));
+		}
+	}
+	while (BYTE_REG_BITS_IS_ON(EECSR_RELOAD, &(regs->EECSR)));
 }
 
 /*
@@ -1203,7 +1226,8 @@ static inline void mac_eeprom_reload(struct mac_regs __iomem * regs) {
 
 typedef u8 MCAM_ADDR[ETH_ALEN];
 
-struct arp_packet {
+struct arp_packet
+{
 	u8 dest_mac[ETH_ALEN];
 	u8 src_mac[ETH_ALEN];
 	__be16 type;
@@ -1218,7 +1242,8 @@ struct arp_packet {
 	u8 ar_tip[4];
 } __packed;
 
-struct _magic_packet {
+struct _magic_packet
+{
 	u8 dest_mac[6];
 	u8 src_mac[6];
 	__be16 type;
@@ -1231,7 +1256,8 @@ struct _magic_packet {
  *	all fields are saved/restored currently.
  */
 
-struct velocity_context {
+struct velocity_context
+{
 	u8 mac_reg[256];
 	MCAM_ADDR cam_addr[MCAM_SIZE];
 	u16 vcam[VCAM_SIZE];
@@ -1271,36 +1297,37 @@ struct velocity_context {
 #define PHYID_GET_PHY_ID(i)         ((i) & ~PHYID_REV_ID_MASK)
 
 #define MII_REG_BITS_ON(x,i,p) do {\
-    u16 w;\
-    velocity_mii_read((p),(i),&(w));\
-    (w)|=(x);\
-    velocity_mii_write((p),(i),(w));\
-} while (0)
+		u16 w;\
+		velocity_mii_read((p),(i),&(w));\
+		(w)|=(x);\
+		velocity_mii_write((p),(i),(w));\
+	} while (0)
 
 #define MII_REG_BITS_OFF(x,i,p) do {\
-    u16 w;\
-    velocity_mii_read((p),(i),&(w));\
-    (w)&=(~(x));\
-    velocity_mii_write((p),(i),(w));\
-} while (0)
+		u16 w;\
+		velocity_mii_read((p),(i),&(w));\
+		(w)&=(~(x));\
+		velocity_mii_write((p),(i),(w));\
+	} while (0)
 
 #define MII_REG_BITS_IS_ON(x,i,p) ({\
-    u16 w;\
-    velocity_mii_read((p),(i),&(w));\
-    ((int) ((w) & (x)));})
+		u16 w;\
+		velocity_mii_read((p),(i),&(w));\
+		((int) ((w) & (x)));})
 
 #define MII_GET_PHY_ID(p) ({\
-    u32 id;\
-    velocity_mii_read((p),MII_PHYSID2,(u16 *) &id);\
-    velocity_mii_read((p),MII_PHYSID1,((u16 *) &id)+1);\
-    (id);})
+		u32 id;\
+		velocity_mii_read((p),MII_PHYSID2,(u16 *) &id);\
+		velocity_mii_read((p),MII_PHYSID1,((u16 *) &id)+1);\
+		(id);})
 
 /*
  * Inline debug routine
  */
 
 
-enum velocity_msg_level {
+enum velocity_msg_level
+{
 	MSG_LEVEL_ERR = 0,	//Errors that will cause abnormal operation.
 	MSG_LEVEL_NOTICE = 1,	//Some errors need users to be notified.
 	MSG_LEVEL_INFO = 2,	//Normal message.
@@ -1310,12 +1337,12 @@ enum velocity_msg_level {
 
 #ifdef VELOCITY_DEBUG
 #define ASSERT(x) { \
-	if (!(x)) { \
-		printk(KERN_ERR "assertion %s failed: file %s line %d\n", #x,\
-			__func__, __LINE__);\
-		BUG(); \
-	}\
-}
+		if (!(x)) { \
+			printk(KERN_ERR "assertion %s failed: file %s line %d\n", #x,\
+				   __func__, __LINE__);\
+			BUG(); \
+		}\
+	}
 #define VELOCITY_DBG(p,args...) printk(p, ##args)
 #else
 #define ASSERT(x)
@@ -1325,17 +1352,17 @@ enum velocity_msg_level {
 #define VELOCITY_PRT(l, p, args...) do {if (l<=msglevel) printk( p ,##args);} while (0)
 
 #define VELOCITY_PRT_CAMMASK(p,t) {\
-	int i;\
-	if ((t)==VELOCITY_MULTICAST_CAM) {\
-        	for (i=0;i<(MCAM_SIZE/8);i++)\
-			printk("%02X",(p)->mCAMmask[i]);\
-	}\
-	else {\
-		for (i=0;i<(VCAM_SIZE/8);i++)\
-			printk("%02X",(p)->vCAMmask[i]);\
-	}\
-	printk("\n");\
-}
+		int i;\
+		if ((t)==VELOCITY_MULTICAST_CAM) {\
+			for (i=0;i<(MCAM_SIZE/8);i++)\
+				printk("%02X",(p)->mCAMmask[i]);\
+		}\
+		else {\
+			for (i=0;i<(VCAM_SIZE/8);i++)\
+				printk("%02X",(p)->vCAMmask[i]);\
+		}\
+		printk("\n");\
+	}
 
 
 
@@ -1385,7 +1412,8 @@ enum velocity_msg_level {
 
 #define     VELOCITY_LINK_CHANGE           0x00000001UL
 
-enum speed_opt {
+enum speed_opt
+{
 	SPD_DPX_AUTO = 0,
 	SPD_DPX_100_HALF = 1,
 	SPD_DPX_100_FULL = 2,
@@ -1394,13 +1422,15 @@ enum speed_opt {
 	SPD_DPX_1000_FULL = 5
 };
 
-enum velocity_init_type {
+enum velocity_init_type
+{
 	VELOCITY_INIT_COLD = 0,
 	VELOCITY_INIT_RESET,
 	VELOCITY_INIT_WOL
 };
 
-enum velocity_flow_cntl_type {
+enum velocity_flow_cntl_type
+{
 	FLOW_CNTL_DEFAULT = 1,
 	FLOW_CNTL_TX,
 	FLOW_CNTL_RX,
@@ -1408,7 +1438,8 @@ enum velocity_flow_cntl_type {
 	FLOW_CNTL_DISABLE,
 };
 
-struct velocity_opt {
+struct velocity_opt
+{
 	int numrx;			/* Number of RX descriptors */
 	int numtx;			/* Number of TX descriptors */
 	enum speed_opt spd_dpx;		/* Media link mode */
@@ -1433,7 +1464,8 @@ struct velocity_opt {
 
 #define GET_RD_BY_IDX(vptr, idx)   (vptr->rd_ring[idx])
 
-struct velocity_info {
+struct velocity_info
+{
 	struct device *dev;
 	struct pci_dev *pdev;
 	struct net_device *netdev;
@@ -1443,11 +1475,12 @@ struct velocity_info {
 	u8 ip_addr[4];
 	enum chip_type chip_id;
 
-	struct mac_regs __iomem * mac_regs;
+	struct mac_regs __iomem *mac_regs;
 	unsigned long memaddr;
 	unsigned long ioaddr;
 
-	struct tx_info {
+	struct tx_info
+	{
 		int numq;
 
 		/* FIXME: the locality of the data seems rather poor. */
@@ -1459,7 +1492,8 @@ struct velocity_info {
 		dma_addr_t pool_dma[TX_QUEUE_NO];
 	} tx;
 
-	struct rx_info {
+	struct rx_info
+	{
 		int buf_sz;
 
 		int dirty;
@@ -1517,13 +1551,18 @@ static inline int velocity_get_ip(struct velocity_info *vptr)
 
 	rcu_read_lock();
 	in_dev = __in_dev_get_rcu(vptr->netdev);
-	if (in_dev != NULL) {
+
+	if (in_dev != NULL)
+	{
 		ifa = (struct in_ifaddr *) in_dev->ifa_list;
-		if (ifa != NULL) {
+
+		if (ifa != NULL)
+		{
 			memcpy(vptr->ip_addr, &ifa->ifa_address, 4);
 			res = 0;
 		}
 	}
+
 	rcu_read_unlock();
 	return res;
 }
@@ -1548,7 +1587,9 @@ static inline void velocity_update_hw_mibs(struct velocity_info *vptr)
 	while (BYTE_REG_BITS_IS_ON(MIBCR_MIBFLSH, &(vptr->mac_regs->MIBCR)));
 
 	BYTE_REG_BITS_ON(MIBCR_MPTRINI, &(vptr->mac_regs->MIBCR));
-	for (i = 0; i < HW_MIB_SIZE; i++) {
+
+	for (i = 0; i < HW_MIB_SIZE; i++)
+	{
 		tmp = readl(&(vptr->mac_regs->MIBData)) & 0x00FFFFFFUL;
 		vptr->mib_counter[i] += tmp;
 	}
@@ -1563,7 +1604,7 @@ static inline void velocity_update_hw_mibs(struct velocity_info *vptr)
 
 static inline void init_flow_control_register(struct velocity_info *vptr)
 {
-	struct mac_regs __iomem * regs = vptr->mac_regs;
+	struct mac_regs __iomem *regs = vptr->mac_regs;
 
 	/* Set {XHITH1, XHITH0, XLTH1, XLTH0} in FlowCR1 to {1, 0, 1, 1}
 	   depend on RD=64, and Turn on XNOEN in FlowCR1 */

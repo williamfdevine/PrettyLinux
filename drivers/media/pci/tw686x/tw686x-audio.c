@@ -32,12 +32,13 @@
 #define AUDIO_CHANNEL_OFFSET 8
 
 void tw686x_audio_irq(struct tw686x_dev *dev, unsigned long requests,
-		      unsigned int pb_status)
+					  unsigned int pb_status)
 {
 	unsigned long flags;
 	unsigned int ch, pb;
 
-	for_each_set_bit(ch, &requests, max_channels(dev)) {
+	for_each_set_bit(ch, &requests, max_channels(dev))
+	{
 		struct tw686x_audio_channel *ac = &dev->audio_channels[ch];
 		struct tw686x_audio_buf *done = NULL;
 		struct tw686x_audio_buf *next = NULL;
@@ -48,41 +49,52 @@ void tw686x_audio_irq(struct tw686x_dev *dev, unsigned long requests,
 		spin_lock_irqsave(&ac->lock, flags);
 
 		/* Sanity check */
-		if (!ac->ss || !ac->curr_bufs[0] || !ac->curr_bufs[1]) {
+		if (!ac->ss || !ac->curr_bufs[0] || !ac->curr_bufs[1])
+		{
 			spin_unlock_irqrestore(&ac->lock, flags);
 			continue;
 		}
 
-		if (!list_empty(&ac->buf_list)) {
+		if (!list_empty(&ac->buf_list))
+		{
 			next = list_first_entry(&ac->buf_list,
-					struct tw686x_audio_buf, list);
+									struct tw686x_audio_buf, list);
 			list_move_tail(&next->list, &ac->buf_list);
 			done = ac->curr_bufs[!pb];
 			ac->curr_bufs[pb] = next;
 		}
+
 		spin_unlock_irqrestore(&ac->lock, flags);
 
 		if (!done || !next)
+		{
 			continue;
+		}
+
 		/*
 		 * Checking for a non-nil dma_desc[pb]->virt buffer is
 		 * the same as checking for memcpy DMA mode.
 		 */
 		desc = &ac->dma_descs[pb];
-		if (desc->virt) {
+
+		if (desc->virt)
+		{
 			memcpy(done->virt, desc->virt,
-			       dev->period_size);
-		} else {
+				   dev->period_size);
+		}
+		else
+		{
 			u32 reg = pb ? ADMA_B_ADDR[ch] : ADMA_P_ADDR[ch];
 			reg_write(dev, reg, next->dma);
 		}
+
 		ac->ptr = done->dma - ac->buf[0].dma;
 		snd_pcm_period_elapsed(ac->ss);
 	}
 }
 
 static int tw686x_pcm_hw_params(struct snd_pcm_substream *ss,
-				struct snd_pcm_hw_params *hw_params)
+								struct snd_pcm_hw_params *hw_params)
 {
 	return snd_pcm_lib_malloc_pages(ss, params_buffer_bytes(hw_params));
 }
@@ -97,11 +109,12 @@ static int tw686x_pcm_hw_free(struct snd_pcm_substream *ss)
  * capture channels. The driver prevents changes to
  * the parameters if any audio channel is capturing.
  */
-static const struct snd_pcm_hardware tw686x_capture_hw = {
+static const struct snd_pcm_hardware tw686x_capture_hw =
+{
 	.info			= (SNDRV_PCM_INFO_MMAP |
-				   SNDRV_PCM_INFO_INTERLEAVED |
-				   SNDRV_PCM_INFO_BLOCK_TRANSFER |
-				   SNDRV_PCM_INFO_MMAP_VALID),
+	SNDRV_PCM_INFO_INTERLEAVED |
+	SNDRV_PCM_INFO_BLOCK_TRANSFER |
+	SNDRV_PCM_INFO_MMAP_VALID),
 	.formats		= SNDRV_PCM_FMTBIT_S16_LE,
 	.rates			= SNDRV_PCM_RATE_8000_48000,
 	.rate_min		= 8000,
@@ -126,8 +139,11 @@ static int tw686x_pcm_open(struct snd_pcm_substream *ss)
 	rt->hw = tw686x_capture_hw;
 
 	err = snd_pcm_hw_constraint_integer(rt, SNDRV_PCM_HW_PARAM_PERIODS);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -152,28 +168,33 @@ static int tw686x_pcm_prepare(struct snd_pcm_substream *ss)
 	int i;
 
 	spin_lock_irqsave(&dev->lock, flags);
+
 	/*
 	 * Given the audio parameters are global (i.e. shared across
 	 * DMA channels), we need to check new params are allowed.
 	 */
 	if (((dev->audio_rate != rt->rate) ||
-	     (dev->period_size != period_size)) && dev->audio_enabled)
+		 (dev->period_size != period_size)) && dev->audio_enabled)
+	{
 		goto err_audio_busy;
+	}
 
 	tw686x_disable_channel(dev, AUDIO_CHANNEL_OFFSET + ac->ch);
 	spin_unlock_irqrestore(&dev->lock, flags);
 
-	if (dev->audio_rate != rt->rate) {
+	if (dev->audio_rate != rt->rate)
+	{
 		u32 reg;
 
 		dev->audio_rate = rt->rate;
 		reg = ((125000000 / rt->rate) << 16) +
-		       ((125000000 % rt->rate) << 16) / rt->rate;
+			  ((125000000 % rt->rate) << 16) / rt->rate;
 
 		reg_write(dev, AUDIO_CONTROL2, reg);
 	}
 
-	if (dev->period_size != period_size) {
+	if (dev->period_size != period_size)
+	{
 		u32 reg;
 
 		dev->period_size = period_size;
@@ -185,13 +206,16 @@ static int tw686x_pcm_prepare(struct snd_pcm_substream *ss)
 	}
 
 	if (rt->periods < TW686X_AUDIO_PERIODS_MIN ||
-	    rt->periods > TW686X_AUDIO_PERIODS_MAX)
+		rt->periods > TW686X_AUDIO_PERIODS_MAX)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&ac->lock, flags);
 	INIT_LIST_HEAD(&ac->buf_list);
 
-	for (i = 0; i < rt->periods; i++) {
+	for (i = 0; i < rt->periods; i++)
+	{
 		ac->buf[i].dma = rt->dma_addr + period_size * i;
 		ac->buf[i].virt = rt->dma_area + period_size * i;
 		INIT_LIST_HEAD(&ac->buf[i].list);
@@ -208,7 +232,8 @@ static int tw686x_pcm_prepare(struct snd_pcm_substream *ss)
 	ac->curr_bufs[1] = b_buf;
 	ac->ptr = 0;
 
-	if (dev->dma_mode != TW686X_DMA_MODE_MEMCPY) {
+	if (dev->dma_mode != TW686X_DMA_MODE_MEMCPY)
+	{
 		reg_write(dev, ADMA_P_ADDR[ac->ch], p_buf->dma);
 		reg_write(dev, ADMA_B_ADDR[ac->ch], b_buf->dma);
 	}
@@ -229,35 +254,43 @@ static int tw686x_pcm_trigger(struct snd_pcm_substream *ss, int cmd)
 	unsigned long flags;
 	int err = 0;
 
-	switch (cmd) {
-	case SNDRV_PCM_TRIGGER_START:
-		if (ac->curr_bufs[0] && ac->curr_bufs[1]) {
+	switch (cmd)
+	{
+		case SNDRV_PCM_TRIGGER_START:
+			if (ac->curr_bufs[0] && ac->curr_bufs[1])
+			{
+				spin_lock_irqsave(&dev->lock, flags);
+				dev->audio_enabled = 1;
+				tw686x_enable_channel(dev,
+									  AUDIO_CHANNEL_OFFSET + ac->ch);
+				spin_unlock_irqrestore(&dev->lock, flags);
+
+				mod_timer(&dev->dma_delay_timer,
+						  jiffies + msecs_to_jiffies(100));
+			}
+			else
+			{
+				err = -EIO;
+			}
+
+			break;
+
+		case SNDRV_PCM_TRIGGER_STOP:
 			spin_lock_irqsave(&dev->lock, flags);
-			dev->audio_enabled = 1;
-			tw686x_enable_channel(dev,
-				AUDIO_CHANNEL_OFFSET + ac->ch);
+			dev->audio_enabled = 0;
+			tw686x_disable_channel(dev, AUDIO_CHANNEL_OFFSET + ac->ch);
 			spin_unlock_irqrestore(&dev->lock, flags);
 
-			mod_timer(&dev->dma_delay_timer,
-				  jiffies + msecs_to_jiffies(100));
-		} else {
-			err = -EIO;
-		}
-		break;
-	case SNDRV_PCM_TRIGGER_STOP:
-		spin_lock_irqsave(&dev->lock, flags);
-		dev->audio_enabled = 0;
-		tw686x_disable_channel(dev, AUDIO_CHANNEL_OFFSET + ac->ch);
-		spin_unlock_irqrestore(&dev->lock, flags);
+			spin_lock_irqsave(&ac->lock, flags);
+			ac->curr_bufs[0] = NULL;
+			ac->curr_bufs[1] = NULL;
+			spin_unlock_irqrestore(&ac->lock, flags);
+			break;
 
-		spin_lock_irqsave(&ac->lock, flags);
-		ac->curr_bufs[0] = NULL;
-		ac->curr_bufs[1] = NULL;
-		spin_unlock_irqrestore(&ac->lock, flags);
-		break;
-	default:
-		err = -EINVAL;
+		default:
+			err = -EINVAL;
 	}
+
 	return err;
 }
 
@@ -269,7 +302,8 @@ static snd_pcm_uframes_t tw686x_pcm_pointer(struct snd_pcm_substream *ss)
 	return bytes_to_frames(ss->runtime, ac->ptr);
 }
 
-static const struct snd_pcm_ops tw686x_pcm_ops = {
+static const struct snd_pcm_ops tw686x_pcm_ops =
+{
 	.open = tw686x_pcm_open,
 	.close = tw686x_pcm_close,
 	.ioctl = snd_pcm_lib_ioctl,
@@ -289,8 +323,11 @@ static int tw686x_snd_pcm_init(struct tw686x_dev *dev)
 	int err;
 
 	err = snd_pcm_new(card, card->driver, 0, 0, max_channels(dev), &pcm);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_CAPTURE, &tw686x_pcm_ops);
 	snd_pcm_chip(pcm) = dev;
@@ -298,33 +335,39 @@ static int tw686x_snd_pcm_init(struct tw686x_dev *dev)
 	strlcpy(pcm->name, "tw686x PCM", sizeof(pcm->name));
 
 	for (i = 0, ss = pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream;
-	     ss; ss = ss->next, i++)
+		 ss; ss = ss->next, i++)
+	{
 		snprintf(ss->name, sizeof(ss->name), "vch%u audio", i);
+	}
 
 	return snd_pcm_lib_preallocate_pages_for_all(pcm,
-				SNDRV_DMA_TYPE_DEV,
-				snd_dma_pci_data(dev->pci_dev),
-				TW686X_AUDIO_PAGE_MAX * AUDIO_DMA_SIZE_MAX,
-				TW686X_AUDIO_PAGE_MAX * AUDIO_DMA_SIZE_MAX);
+			SNDRV_DMA_TYPE_DEV,
+			snd_dma_pci_data(dev->pci_dev),
+			TW686X_AUDIO_PAGE_MAX * AUDIO_DMA_SIZE_MAX,
+			TW686X_AUDIO_PAGE_MAX * AUDIO_DMA_SIZE_MAX);
 }
 
 static void tw686x_audio_dma_free(struct tw686x_dev *dev,
-				  struct tw686x_audio_channel *ac)
+								  struct tw686x_audio_channel *ac)
 {
 	int pb;
 
-	for (pb = 0; pb < 2; pb++) {
+	for (pb = 0; pb < 2; pb++)
+	{
 		if (!ac->dma_descs[pb].virt)
+		{
 			continue;
+		}
+
 		pci_free_consistent(dev->pci_dev, ac->dma_descs[pb].size,
-				    ac->dma_descs[pb].virt,
-				    ac->dma_descs[pb].phys);
+							ac->dma_descs[pb].virt,
+							ac->dma_descs[pb].phys);
 		ac->dma_descs[pb].virt = NULL;
 	}
 }
 
 static int tw686x_audio_dma_alloc(struct tw686x_dev *dev,
-				  struct tw686x_audio_channel *ac)
+								  struct tw686x_audio_channel *ac)
 {
 	int pb;
 
@@ -334,24 +377,31 @@ static int tw686x_audio_dma_alloc(struct tw686x_dev *dev,
 	 * acts on the ALSA buffers as received in pcm_prepare.
 	 */
 	if (dev->dma_mode != TW686X_DMA_MODE_MEMCPY)
+	{
 		return 0;
+	}
 
-	for (pb = 0; pb < 2; pb++) {
+	for (pb = 0; pb < 2; pb++)
+	{
 		u32 reg = pb ? ADMA_B_ADDR[ac->ch] : ADMA_P_ADDR[ac->ch];
 		void *virt;
 
 		virt = pci_alloc_consistent(dev->pci_dev, AUDIO_DMA_SIZE_MAX,
-					    &ac->dma_descs[pb].phys);
-		if (!virt) {
+									&ac->dma_descs[pb].phys);
+
+		if (!virt)
+		{
 			dev_err(&dev->pci_dev->dev,
-				"dma%d: unable to allocate audio DMA %s-buffer\n",
-				ac->ch, pb ? "B" : "P");
+					"dma%d: unable to allocate audio DMA %s-buffer\n",
+					ac->ch, pb ? "B" : "P");
 			return -ENOMEM;
 		}
+
 		ac->dma_descs[pb].virt = virt;
 		ac->dma_descs[pb].size = AUDIO_DMA_SIZE_MAX;
 		reg_write(dev, reg, ac->dma_descs[pb].phys);
 	}
+
 	return 0;
 }
 
@@ -369,7 +419,10 @@ void tw686x_audio_free(struct tw686x_dev *dev)
 	spin_unlock_irqrestore(&dev->lock, flags);
 
 	if (!dev->snd_card)
+	{
 		return;
+	}
+
 	snd_card_free(dev->snd_card);
 	dev->snd_card = NULL;
 }
@@ -384,10 +437,13 @@ int tw686x_audio_init(struct tw686x_dev *dev)
 	reg_write(dev, AUDIO_CONTROL1, BIT(0));
 
 	err = snd_card_new(&pci_dev->dev, SNDRV_DEFAULT_IDX1,
-			   SNDRV_DEFAULT_STR1,
-			   THIS_MODULE, 0, &card);
+					   SNDRV_DEFAULT_STR1,
+					   THIS_MODULE, 0, &card);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	dev->snd_card = card;
 	strlcpy(card->driver, "tw686x", sizeof(card->driver));
@@ -395,7 +451,8 @@ int tw686x_audio_init(struct tw686x_dev *dev)
 	strlcpy(card->longname, pci_name(pci_dev), sizeof(card->longname));
 	snd_card_set_dev(card, &pci_dev->dev);
 
-	for (ch = 0; ch < max_channels(dev); ch++) {
+	for (ch = 0; ch < max_channels(dev); ch++)
+	{
 		struct tw686x_audio_channel *ac;
 
 		ac = &dev->audio_channels[ch];
@@ -404,24 +461,39 @@ int tw686x_audio_init(struct tw686x_dev *dev)
 		ac->ch = ch;
 
 		err = tw686x_audio_dma_alloc(dev, ac);
+
 		if (err < 0)
+		{
 			goto err_cleanup;
+		}
 	}
 
 	err = tw686x_snd_pcm_init(dev);
+
 	if (err < 0)
+	{
 		goto err_cleanup;
+	}
 
 	err = snd_card_register(card);
+
 	if (!err)
+	{
 		return 0;
+	}
 
 err_cleanup:
-	for (ch = 0; ch < max_channels(dev); ch++) {
+
+	for (ch = 0; ch < max_channels(dev); ch++)
+	{
 		if (!dev->audio_channels[ch].dev)
+		{
 			continue;
+		}
+
 		tw686x_audio_dma_free(dev, &dev->audio_channels[ch]);
 	}
+
 	snd_card_free(card);
 	dev->snd_card = NULL;
 	return err;

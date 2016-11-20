@@ -27,11 +27,12 @@
 #include "xfs_stats.h"
 #include "xfs_mount.h"
 
-struct xfs_sysfs_attr {
+struct xfs_sysfs_attr
+{
 	struct attribute attr;
 	ssize_t (*show)(struct kobject *kobject, char *buf);
 	ssize_t (*store)(struct kobject *kobject, const char *buf,
-			 size_t count);
+					 size_t count);
 };
 
 static inline struct xfs_sysfs_attr *
@@ -72,7 +73,8 @@ xfs_sysfs_object_store(
 	return xfs_attr->store ? xfs_attr->store(kobject, buf, count) : 0;
 }
 
-static const struct sysfs_ops xfs_sysfs_ops = {
+static const struct sysfs_ops xfs_sysfs_ops =
+{
 	.show = xfs_sysfs_object_show,
 	.store = xfs_sysfs_object_store,
 };
@@ -103,15 +105,24 @@ fail_writes_store(
 	int			val;
 
 	ret = kstrtoint(buf, 0, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (val == 1)
+	{
 		mp->m_fail_writes = true;
+	}
 	else if (val == 0)
+	{
 		mp->m_fail_writes = false;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	return count;
 }
@@ -129,14 +140,16 @@ XFS_SYSFS_ATTR_RW(fail_writes);
 
 #endif /* DEBUG */
 
-static struct attribute *xfs_mp_attrs[] = {
+static struct attribute *xfs_mp_attrs[] =
+{
 #ifdef DEBUG
 	ATTR_LIST(fail_writes),
 #endif
 	NULL,
 };
 
-struct kobj_type xfs_mp_ktype = {
+struct kobj_type xfs_mp_ktype =
+{
 	.release = xfs_sysfs_release,
 	.sysfs_ops = &xfs_sysfs_ops,
 	.default_attrs = xfs_mp_attrs,
@@ -155,11 +168,16 @@ log_recovery_delay_store(
 	int		val;
 
 	ret = kstrtoint(buf, 0, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (val < 0 || val > 60)
+	{
 		return -EINVAL;
+	}
 
 	xfs_globals.log_recovery_delay = val;
 
@@ -175,12 +193,14 @@ log_recovery_delay_show(
 }
 XFS_SYSFS_ATTR_RW(log_recovery_delay);
 
-static struct attribute *xfs_dbg_attrs[] = {
+static struct attribute *xfs_dbg_attrs[] =
+{
 	ATTR_LIST(log_recovery_delay),
 	NULL,
 };
 
-struct kobj_type xfs_dbg_ktype = {
+struct kobj_type xfs_dbg_ktype =
+{
 	.release = xfs_sysfs_release,
 	.sysfs_ops = &xfs_sysfs_ops,
 	.default_attrs = xfs_dbg_attrs,
@@ -220,24 +240,31 @@ stats_clear_store(
 	struct xstats	*stats = to_xstats(kobject);
 
 	ret = kstrtoint(buf, 0, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (val != 1)
+	{
 		return -EINVAL;
+	}
 
 	xfs_stats_clearall(stats->xs_stats);
 	return count;
 }
 XFS_SYSFS_ATTR_WO(stats_clear);
 
-static struct attribute *xfs_stats_attrs[] = {
+static struct attribute *xfs_stats_attrs[] =
+{
 	ATTR_LIST(stats),
 	ATTR_LIST(stats_clear),
 	NULL,
 };
 
-struct kobj_type xfs_stats_ktype = {
+struct kobj_type xfs_stats_ktype =
+{
 	.release = xfs_sysfs_release,
 	.sysfs_ops = &xfs_sysfs_ops,
 	.default_attrs = xfs_stats_attrs,
@@ -326,8 +353,11 @@ log_badcrc_factor_store(
 	uint32_t	val;
 
 	ret = kstrtouint(buf, 0, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	log->l_badcrc_factor = val;
 
@@ -347,7 +377,8 @@ log_badcrc_factor_show(
 XFS_SYSFS_ATTR_RW(log_badcrc_factor);
 #endif	/* DEBUG */
 
-static struct attribute *xfs_log_attrs[] = {
+static struct attribute *xfs_log_attrs[] =
+{
 	ATTR_LIST(log_head_lsn),
 	ATTR_LIST(log_tail_lsn),
 	ATTR_LIST(reserve_grant_head),
@@ -358,7 +389,8 @@ static struct attribute *xfs_log_attrs[] = {
 	NULL,
 };
 
-struct kobj_type xfs_log_ktype = {
+struct kobj_type xfs_log_ktype =
+{
 	.release = xfs_sysfs_release,
 	.sysfs_ops = &xfs_sysfs_ops,
 	.default_attrs = xfs_log_attrs,
@@ -397,9 +429,13 @@ max_retries_show(
 	struct xfs_error_cfg *cfg = to_error_cfg(kobject);
 
 	if (cfg->retry_timeout == XFS_ERR_RETRY_FOREVER)
+	{
 		retries = -1;
+	}
 	else
+	{
 		retries = cfg->max_retries;
+	}
 
 	return snprintf(buf, PAGE_SIZE, "%d\n", retries);
 }
@@ -415,16 +451,26 @@ max_retries_store(
 	int		val;
 
 	ret = kstrtoint(buf, 0, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (val < -1)
+	{
 		return -EINVAL;
+	}
 
 	if (val == -1)
+	{
 		cfg->retry_timeout = XFS_ERR_RETRY_FOREVER;
+	}
 	else
+	{
 		cfg->max_retries = val;
+	}
+
 	return count;
 }
 XFS_SYSFS_ATTR_RW(max_retries);
@@ -438,9 +484,13 @@ retry_timeout_seconds_show(
 	struct xfs_error_cfg *cfg = to_error_cfg(kobject);
 
 	if (cfg->retry_timeout == XFS_ERR_RETRY_FOREVER)
+	{
 		timeout = -1;
+	}
 	else
+	{
 		timeout = jiffies_to_msecs(cfg->retry_timeout) / MSEC_PER_SEC;
+	}
 
 	return snprintf(buf, PAGE_SIZE, "%d\n", timeout);
 }
@@ -456,19 +506,28 @@ retry_timeout_seconds_store(
 	int		val;
 
 	ret = kstrtoint(buf, 0, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* 1 day timeout maximum, -1 means infinite */
 	if (val < -1 || val > 86400)
+	{
 		return -EINVAL;
+	}
 
 	if (val == -1)
+	{
 		cfg->retry_timeout = XFS_ERR_RETRY_FOREVER;
-	else {
+	}
+	else
+	{
 		cfg->retry_timeout = msecs_to_jiffies(val * MSEC_PER_SEC);
 		ASSERT(msecs_to_jiffies(val * MSEC_PER_SEC) < LONG_MAX);
 	}
+
 	return count;
 }
 XFS_SYSFS_ATTR_RW(retry_timeout_seconds);
@@ -494,31 +553,39 @@ fail_at_unmount_store(
 	int		val;
 
 	ret = kstrtoint(buf, 0, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (val < 0 || val > 1)
+	{
 		return -EINVAL;
+	}
 
 	mp->m_fail_unmount = val;
 	return count;
 }
 XFS_SYSFS_ATTR_RW(fail_at_unmount);
 
-static struct attribute *xfs_error_attrs[] = {
+static struct attribute *xfs_error_attrs[] =
+{
 	ATTR_LIST(max_retries),
 	ATTR_LIST(retry_timeout_seconds),
 	NULL,
 };
 
 
-static struct kobj_type xfs_error_cfg_ktype = {
+static struct kobj_type xfs_error_cfg_ktype =
+{
 	.release = xfs_sysfs_release,
 	.sysfs_ops = &xfs_sysfs_ops,
 	.default_attrs = xfs_error_attrs,
 };
 
-static struct kobj_type xfs_error_ktype = {
+static struct kobj_type xfs_error_ktype =
+{
 	.release = xfs_sysfs_release,
 	.sysfs_ops = &xfs_sysfs_ops,
 };
@@ -529,28 +596,34 @@ static struct kobj_type xfs_error_ktype = {
  * define a "default" behaviour as the first entry, all other entries can be
  * empty.
  */
-struct xfs_error_init {
+struct xfs_error_init
+{
 	char		*name;
 	int		max_retries;
 	int		retry_timeout;	/* in seconds */
 };
 
-static const struct xfs_error_init xfs_error_meta_init[XFS_ERR_ERRNO_MAX] = {
-	{ .name = "default",
-	  .max_retries = XFS_ERR_RETRY_FOREVER,
-	  .retry_timeout = XFS_ERR_RETRY_FOREVER,
+static const struct xfs_error_init xfs_error_meta_init[XFS_ERR_ERRNO_MAX] =
+{
+	{
+		.name = "default",
+		.max_retries = XFS_ERR_RETRY_FOREVER,
+		.retry_timeout = XFS_ERR_RETRY_FOREVER,
 	},
-	{ .name = "EIO",
-	  .max_retries = XFS_ERR_RETRY_FOREVER,
-	  .retry_timeout = XFS_ERR_RETRY_FOREVER,
+	{
+		.name = "EIO",
+		.max_retries = XFS_ERR_RETRY_FOREVER,
+		.retry_timeout = XFS_ERR_RETRY_FOREVER,
 	},
-	{ .name = "ENOSPC",
-	  .max_retries = XFS_ERR_RETRY_FOREVER,
-	  .retry_timeout = XFS_ERR_RETRY_FOREVER,
+	{
+		.name = "ENOSPC",
+		.max_retries = XFS_ERR_RETRY_FOREVER,
+		.retry_timeout = XFS_ERR_RETRY_FOREVER,
 	},
-	{ .name = "ENODEV",
-	  .max_retries = 0,	/* We can't recover from devices disappearing */
-	  .retry_timeout = 0,
+	{
+		.name = "ENODEV",
+		.max_retries = 0,	/* We can't recover from devices disappearing */
+		.retry_timeout = 0,
 	},
 };
 
@@ -569,32 +642,46 @@ xfs_error_sysfs_init_class(
 	ASSERT(class < XFS_ERR_CLASS_MAX);
 
 	error = xfs_sysfs_init(parent_kobj, &xfs_error_ktype,
-				&mp->m_error_kobj, parent_name);
-	if (error)
-		return error;
+						   &mp->m_error_kobj, parent_name);
 
-	for (i = 0; i < XFS_ERR_ERRNO_MAX; i++) {
+	if (error)
+	{
+		return error;
+	}
+
+	for (i = 0; i < XFS_ERR_ERRNO_MAX; i++)
+	{
 		cfg = &mp->m_error_cfg[class][i];
 		error = xfs_sysfs_init(&cfg->kobj, &xfs_error_cfg_ktype,
-					parent_kobj, init[i].name);
+							   parent_kobj, init[i].name);
+
 		if (error)
+		{
 			goto out_error;
+		}
 
 		cfg->max_retries = init[i].max_retries;
+
 		if (init[i].retry_timeout == XFS_ERR_RETRY_FOREVER)
+		{
 			cfg->retry_timeout = XFS_ERR_RETRY_FOREVER;
+		}
 		else
 			cfg->retry_timeout = msecs_to_jiffies(
-					init[i].retry_timeout * MSEC_PER_SEC);
+									 init[i].retry_timeout * MSEC_PER_SEC);
 	}
+
 	return 0;
 
 out_error:
+
 	/* unwind the entries that succeeded */
-	for (i--; i >= 0; i--) {
+	for (i--; i >= 0; i--)
+	{
 		cfg = &mp->m_error_cfg[class][i];
 		xfs_sysfs_del(&cfg->kobj);
 	}
+
 	xfs_sysfs_del(parent_kobj);
 	return error;
 }
@@ -607,22 +694,30 @@ xfs_error_sysfs_init(
 
 	/* .../xfs/<dev>/error/ */
 	error = xfs_sysfs_init(&mp->m_error_kobj, &xfs_error_ktype,
-				&mp->m_kobj, "error");
+						   &mp->m_kobj, "error");
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = sysfs_create_file(&mp->m_error_kobj.kobject,
-				  ATTR_LIST(fail_at_unmount));
+							  ATTR_LIST(fail_at_unmount));
 
 	if (error)
+	{
 		goto out_error;
+	}
 
 	/* .../xfs/<dev>/error/metadata/ */
 	error = xfs_error_sysfs_init_class(mp, XFS_ERR_METADATA,
-				"metadata", &mp->m_error_meta_kobj,
-				xfs_error_meta_init);
+									   "metadata", &mp->m_error_meta_kobj,
+									   xfs_error_meta_init);
+
 	if (error)
+	{
 		goto out_error;
+	}
 
 	return 0;
 
@@ -638,13 +733,16 @@ xfs_error_sysfs_del(
 	struct xfs_error_cfg	*cfg;
 	int			i, j;
 
-	for (i = 0; i < XFS_ERR_CLASS_MAX; i++) {
-		for (j = 0; j < XFS_ERR_ERRNO_MAX; j++) {
+	for (i = 0; i < XFS_ERR_CLASS_MAX; i++)
+	{
+		for (j = 0; j < XFS_ERR_ERRNO_MAX; j++)
+		{
 			cfg = &mp->m_error_cfg[i][j];
 
 			xfs_sysfs_del(&cfg->kobj);
 		}
 	}
+
 	xfs_sysfs_del(&mp->m_error_meta_kobj);
 	xfs_sysfs_del(&mp->m_error_kobj);
 }
@@ -658,21 +756,27 @@ xfs_error_get_cfg(
 	struct xfs_error_cfg	*cfg;
 
 	if (error < 0)
+	{
 		error = -error;
+	}
 
-	switch (error) {
-	case EIO:
-		cfg = &mp->m_error_cfg[error_class][XFS_ERR_EIO];
-		break;
-	case ENOSPC:
-		cfg = &mp->m_error_cfg[error_class][XFS_ERR_ENOSPC];
-		break;
-	case ENODEV:
-		cfg = &mp->m_error_cfg[error_class][XFS_ERR_ENODEV];
-		break;
-	default:
-		cfg = &mp->m_error_cfg[error_class][XFS_ERR_DEFAULT];
-		break;
+	switch (error)
+	{
+		case EIO:
+			cfg = &mp->m_error_cfg[error_class][XFS_ERR_EIO];
+			break;
+
+		case ENOSPC:
+			cfg = &mp->m_error_cfg[error_class][XFS_ERR_ENOSPC];
+			break;
+
+		case ENODEV:
+			cfg = &mp->m_error_cfg[error_class][XFS_ERR_ENODEV];
+			break;
+
+		default:
+			cfg = &mp->m_error_cfg[error_class][XFS_ERR_DEFAULT];
+			break;
 	}
 
 	return cfg;

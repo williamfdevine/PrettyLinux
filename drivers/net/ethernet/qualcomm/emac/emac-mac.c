@@ -270,7 +270,8 @@
 #define EMAC_WRAPPER_TX_TS_EMPTY                               BIT(31)
 #define EMAC_WRAPPER_TX_TS_INX_BMSK                             0xffff
 
-struct emac_skb_cb {
+struct emac_skb_cb
+{
 	u32           tpd_idx;
 	unsigned long jiffies;
 };
@@ -295,8 +296,8 @@ struct emac_skb_cb {
 
 /* Error bits that will result in a received frame being discarded */
 #define EMAC_RRD_ERROR (EMAC_RRD_IPF | EMAC_RRD_CRC | EMAC_RRD_FAE | \
-			EMAC_RRD_TRN | EMAC_RRD_RNT | EMAC_RRD_INC | \
-			EMAC_RRD_FOV | EMAC_RRD_LEN)
+						EMAC_RRD_TRN | EMAC_RRD_RNT | EMAC_RRD_INC | \
+						EMAC_RRD_FOV | EMAC_RRD_LEN)
 #define EMAC_RRD_STATS_DW_IDX 3
 
 #define EMAC_RRD(RXQ, SIZE, IDX)	((RXQ)->rrd.v_addr + (SIZE * (IDX)))
@@ -309,10 +310,10 @@ struct emac_skb_cb {
 #define EMAC_TX_POLL_HWTXTSTAMP_THRESHOLD	8
 
 #define ISR_RX_PKT      (\
-	RX_PKT_INT0     |\
-	RX_PKT_INT1     |\
-	RX_PKT_INT2     |\
-	RX_PKT_INT3)
+						 RX_PKT_INT0     |\
+						 RX_PKT_INT1     |\
+						 RX_PKT_INT2     |\
+						 RX_PKT_INT3)
 
 #define EMAC_MAC_IRQ_RES                                    	"core0"
 
@@ -343,9 +344,9 @@ void emac_mac_multicast_addr_clear(struct emac_adapter *adpt)
 
 /* definitions for RSS */
 #define EMAC_RSS_KEY(_i, _type) \
-		(EMAC_RSS_KEY0 + ((_i) * sizeof(_type)))
+	(EMAC_RSS_KEY0 + ((_i) * sizeof(_type)))
 #define EMAC_RSS_TBL(_i, _type) \
-		(EMAC_IDT_TABLE0 + ((_i) * sizeof(_type)))
+	(EMAC_IDT_TABLE0 + ((_i) * sizeof(_type)))
 
 /* Config MAC modes */
 void emac_mac_mode_config(struct emac_adapter *adpt)
@@ -357,13 +358,19 @@ void emac_mac_mode_config(struct emac_adapter *adpt)
 	mac &= ~(VLAN_STRIP | PROM_MODE | MULTI_ALL | MAC_LP_EN);
 
 	if (netdev->features & NETIF_F_HW_VLAN_CTAG_RX)
+	{
 		mac |= VLAN_STRIP;
+	}
 
 	if (netdev->flags & IFF_PROMISC)
+	{
 		mac |= PROM_MODE;
+	}
 
 	if (netdev->flags & IFF_ALLMULTI)
+	{
 		mac |= MULTI_ALL;
+	}
 
 	writel(mac, adpt->base + EMAC_MAC_CTRL);
 }
@@ -371,42 +378,48 @@ void emac_mac_mode_config(struct emac_adapter *adpt)
 /* Config descriptor rings */
 static void emac_mac_dma_rings_config(struct emac_adapter *adpt)
 {
-	static const unsigned short tpd_q_offset[] = {
+	static const unsigned short tpd_q_offset[] =
+	{
 		EMAC_DESC_CTRL_8,        EMAC_H1TPD_BASE_ADDR_LO,
-		EMAC_H2TPD_BASE_ADDR_LO, EMAC_H3TPD_BASE_ADDR_LO};
-	static const unsigned short rfd_q_offset[] = {
+		EMAC_H2TPD_BASE_ADDR_LO, EMAC_H3TPD_BASE_ADDR_LO
+	};
+	static const unsigned short rfd_q_offset[] =
+	{
 		EMAC_DESC_CTRL_2,        EMAC_DESC_CTRL_10,
-		EMAC_DESC_CTRL_12,       EMAC_DESC_CTRL_13};
-	static const unsigned short rrd_q_offset[] = {
+		EMAC_DESC_CTRL_12,       EMAC_DESC_CTRL_13
+	};
+	static const unsigned short rrd_q_offset[] =
+	{
 		EMAC_DESC_CTRL_5,        EMAC_DESC_CTRL_14,
-		EMAC_DESC_CTRL_15,       EMAC_DESC_CTRL_16};
+		EMAC_DESC_CTRL_15,       EMAC_DESC_CTRL_16
+	};
 
 	/* TPD (Transmit Packet Descriptor) */
 	writel(upper_32_bits(adpt->tx_q.tpd.dma_addr),
-	       adpt->base + EMAC_DESC_CTRL_1);
+		   adpt->base + EMAC_DESC_CTRL_1);
 
 	writel(lower_32_bits(adpt->tx_q.tpd.dma_addr),
-	       adpt->base + tpd_q_offset[0]);
+		   adpt->base + tpd_q_offset[0]);
 
 	writel(adpt->tx_q.tpd.count & TPD_RING_SIZE_BMSK,
-	       adpt->base + EMAC_DESC_CTRL_9);
+		   adpt->base + EMAC_DESC_CTRL_9);
 
 	/* RFD (Receive Free Descriptor) & RRD (Receive Return Descriptor) */
 	writel(upper_32_bits(adpt->rx_q.rfd.dma_addr),
-	       adpt->base + EMAC_DESC_CTRL_0);
+		   adpt->base + EMAC_DESC_CTRL_0);
 
 	writel(lower_32_bits(adpt->rx_q.rfd.dma_addr),
-	       adpt->base + rfd_q_offset[0]);
+		   adpt->base + rfd_q_offset[0]);
 	writel(lower_32_bits(adpt->rx_q.rrd.dma_addr),
-	       adpt->base + rrd_q_offset[0]);
+		   adpt->base + rrd_q_offset[0]);
 
 	writel(adpt->rx_q.rfd.count & RFD_RING_SIZE_BMSK,
-	       adpt->base + EMAC_DESC_CTRL_3);
+		   adpt->base + EMAC_DESC_CTRL_3);
 	writel(adpt->rx_q.rrd.count & RRD_RING_SIZE_BMSK,
-	       adpt->base + EMAC_DESC_CTRL_6);
+		   adpt->base + EMAC_DESC_CTRL_6);
 
 	writel(adpt->rxbuf_size & RX_BUFFER_SIZE_BMSK,
-	       adpt->base + EMAC_DESC_CTRL_4);
+		   adpt->base + EMAC_DESC_CTRL_4);
 
 	writel(0, adpt->base + EMAC_DESC_CTRL_11);
 
@@ -422,18 +435,18 @@ static void emac_mac_tx_config(struct emac_adapter *adpt)
 	u32 val;
 
 	writel((EMAC_MAX_TX_OFFLOAD_THRESH >> 3) &
-	       JUMBO_TASK_OFFLOAD_THRESHOLD_BMSK, adpt->base + EMAC_TXQ_CTRL_1);
+		   JUMBO_TASK_OFFLOAD_THRESHOLD_BMSK, adpt->base + EMAC_TXQ_CTRL_1);
 
 	val = (adpt->tpd_burst << NUM_TPD_BURST_PREF_SHFT) &
-	       NUM_TPD_BURST_PREF_BMSK;
+		  NUM_TPD_BURST_PREF_BMSK;
 
 	val |= TXQ_MODE | LS_8023_SP;
 	val |= (0x0100 << NUM_TXF_BURST_PREF_SHFT) &
-		NUM_TXF_BURST_PREF_BMSK;
+		   NUM_TXF_BURST_PREF_BMSK;
 
 	writel(val, adpt->base + EMAC_TXQ_CTRL_0);
 	emac_reg_update32(adpt->base + EMAC_TXQ_CTRL_2,
-			  (TXF_HWM_BMSK | TXF_LWM_BMSK), 0);
+					  (TXF_HWM_BMSK | TXF_LWM_BMSK), 0);
 }
 
 /* Config receive parameters */
@@ -442,23 +455,23 @@ static void emac_mac_rx_config(struct emac_adapter *adpt)
 	u32 val;
 
 	val = (adpt->rfd_burst << NUM_RFD_BURST_PREF_SHFT) &
-	       NUM_RFD_BURST_PREF_BMSK;
+		  NUM_RFD_BURST_PREF_BMSK;
 	val |= (SP_IPV6 | CUT_THRU_EN);
 
 	writel(val, adpt->base + EMAC_RXQ_CTRL_0);
 
 	val = readl(adpt->base + EMAC_RXQ_CTRL_1);
 	val &= ~(JUMBO_1KAH_BMSK | RFD_PREF_LOW_THRESHOLD_BMSK |
-		 RFD_PREF_UP_THRESHOLD_BMSK);
+			 RFD_PREF_UP_THRESHOLD_BMSK);
 	val |= (JUMBO_1KAH << JUMBO_1KAH_SHFT) |
-		(RFD_PREF_LOW_TH << RFD_PREF_LOW_THRESHOLD_SHFT) |
-		(RFD_PREF_UP_TH  << RFD_PREF_UP_THRESHOLD_SHFT);
+		   (RFD_PREF_LOW_TH << RFD_PREF_LOW_THRESHOLD_SHFT) |
+		   (RFD_PREF_UP_TH  << RFD_PREF_UP_THRESHOLD_SHFT);
 	writel(val, adpt->base + EMAC_RXQ_CTRL_1);
 
 	val = readl(adpt->base + EMAC_RXQ_CTRL_2);
 	val &= ~(RXF_DOF_THRESHOLD_BMSK | RXF_UOF_THRESHOLD_BMSK);
 	val |= (RXF_DOF_THRESFHOLD  << RXF_DOF_THRESHOLD_SHFT) |
-		(RXF_UOF_THRESFHOLD << RXF_UOF_THRESHOLD_SHFT);
+		   (RXF_UOF_THRESFHOLD << RXF_UOF_THRESHOLD_SHFT);
 	writel(val, adpt->base + EMAC_RXQ_CTRL_2);
 
 	val = readl(adpt->base + EMAC_RXQ_CTRL_3);
@@ -472,28 +485,32 @@ static void emac_mac_dma_config(struct emac_adapter *adpt)
 {
 	u32 dma_ctrl = DMAR_REQ_PRI;
 
-	switch (adpt->dma_order) {
-	case emac_dma_ord_in:
-		dma_ctrl |= IN_ORDER_MODE;
-		break;
-	case emac_dma_ord_enh:
-		dma_ctrl |= ENH_ORDER_MODE;
-		break;
-	case emac_dma_ord_out:
-		dma_ctrl |= OUT_ORDER_MODE;
-		break;
-	default:
-		break;
+	switch (adpt->dma_order)
+	{
+		case emac_dma_ord_in:
+			dma_ctrl |= IN_ORDER_MODE;
+			break;
+
+		case emac_dma_ord_enh:
+			dma_ctrl |= ENH_ORDER_MODE;
+			break;
+
+		case emac_dma_ord_out:
+			dma_ctrl |= OUT_ORDER_MODE;
+			break;
+
+		default:
+			break;
 	}
 
 	dma_ctrl |= (((u32)adpt->dmar_block) << REGRDBLEN_SHFT) &
-						REGRDBLEN_BMSK;
+				REGRDBLEN_BMSK;
 	dma_ctrl |= (((u32)adpt->dmaw_block) << REGWRBLEN_SHFT) &
-						REGWRBLEN_BMSK;
+				REGWRBLEN_BMSK;
 	dma_ctrl |= (((u32)adpt->dmar_dly_cnt) << DMAR_DLY_CNT_SHFT) &
-						DMAR_DLY_CNT_BMSK;
+				DMAR_DLY_CNT_BMSK;
 	dma_ctrl |= (((u32)adpt->dmaw_dly_cnt) << DMAW_DLY_CNT_SHFT) &
-						DMAW_DLY_CNT_BMSK;
+				DMAW_DLY_CNT_BMSK;
 
 	/* config DMA and ensure that configuration is flushed to HW */
 	writel(dma_ctrl, adpt->base + EMAC_DMA_CTRL);
@@ -510,7 +527,7 @@ static void emac_set_mac_address(struct emac_adapter *adpt, u8 *addr)
 
 	/* low 32bit word */
 	sta = (((u32)addr[2]) << 24) | (((u32)addr[3]) << 16) |
-	      (((u32)addr[4]) << 8)  | (((u32)addr[5]));
+		  (((u32)addr[4]) << 8)  | (((u32)addr[5]));
 	writel(sta, adpt->base + EMAC_MAC_STA_ADDR0);
 
 	/* hight 32bit word */
@@ -528,12 +545,12 @@ static void emac_mac_config(struct emac_adapter *adpt)
 
 	max_frame = netdev->mtu + ETH_HLEN + ETH_FCS_LEN + VLAN_HLEN;
 	adpt->rxbuf_size = netdev->mtu > EMAC_DEF_RX_BUF_SIZE ?
-		ALIGN(max_frame, 8) : EMAC_DEF_RX_BUF_SIZE;
+					   ALIGN(max_frame, 8) : EMAC_DEF_RX_BUF_SIZE;
 
 	emac_mac_dma_rings_config(adpt);
 
 	writel(netdev->mtu + ETH_HLEN + VLAN_HLEN + ETH_FCS_LEN,
-	       adpt->base + EMAC_MAX_FRAM_LEN_CTRL);
+		   adpt->base + EMAC_MAX_FRAM_LEN_CTRL);
 
 	emac_mac_tx_config(adpt);
 	emac_mac_rx_config(adpt);
@@ -577,24 +594,37 @@ void emac_mac_start(struct emac_adapter *adpt)
 
 	/* Configure MAC flow control to match the PHY's settings. */
 	if (phydev->pause)
+	{
 		mac |= RXFC;
+	}
+
 	if (phydev->pause != phydev->asym_pause)
+	{
 		mac |= TXFC;
+	}
 
 	/* setup link speed */
 	mac &= ~SPEED_MASK;
-	if (phydev->speed == SPEED_1000) {
+
+	if (phydev->speed == SPEED_1000)
+	{
 		mac |= SPEED(2);
 		csr1 |= FREQ_MODE;
-	} else {
+	}
+	else
+	{
 		mac |= SPEED(1);
 		csr1 &= ~FREQ_MODE;
 	}
 
 	if (phydev->duplex == DUPLEX_FULL)
+	{
 		mac |= FULLD;
+	}
 	else
+	{
 		mac &= ~FULLD;
+	}
 
 	/* other parameters */
 	mac |= (CRCE | PCRCE);
@@ -603,7 +633,7 @@ void emac_mac_start(struct emac_adapter *adpt)
 	mac |= FLCHK;
 	mac &= ~RX_CHKSUM_EN;
 	mac &= ~(HUGEN | VLAN_STRIP | TPAUSE | SIMR | HUGE | MULTI_ALL |
-		 DEBUG_MODE | SINGLE_PAUSE_MODE);
+			 DEBUG_MODE | SINGLE_PAUSE_MODE);
 
 	writel_relaxed(csr1, adpt->csr + EMAC_EMAC_WRAPPER_CSR1);
 
@@ -615,12 +645,12 @@ void emac_mac_start(struct emac_adapter *adpt)
 
 	writel_relaxed(adpt->irq_mod, adpt->base + EMAC_IRQ_MOD_TIM_INIT);
 	writel_relaxed(INT_RD_CLR_EN | LPW_MODE | IRQ_MODERATOR_EN |
-			IRQ_MODERATOR2_EN, adpt->base + EMAC_DMA_MAS_CTRL);
+				   IRQ_MODERATOR2_EN, adpt->base + EMAC_DMA_MAS_CTRL);
 
 	emac_mac_mode_config(adpt);
 
 	emac_reg_update32(adpt->base + EMAC_ATHR_HEADER_CTRL,
-			  (HEADER_ENABLE | HEADER_CNT_EN), 0);
+					  (HEADER_ENABLE | HEADER_CNT_EN), 0);
 
 	emac_reg_update32(adpt->csr + EMAC_EMAC_WRAPPER_CSR2, 0, WOL_EN);
 }
@@ -642,18 +672,24 @@ static void emac_tx_q_descs_free(struct emac_adapter *adpt)
 
 	/* ring already cleared, nothing to do */
 	if (!tx_q->tpd.tpbuff)
+	{
 		return;
+	}
 
-	for (i = 0; i < tx_q->tpd.count; i++) {
+	for (i = 0; i < tx_q->tpd.count; i++)
+	{
 		struct emac_buffer *tpbuf = GET_TPD_BUFFER(tx_q, i);
 
-		if (tpbuf->dma_addr) {
+		if (tpbuf->dma_addr)
+		{
 			dma_unmap_single(adpt->netdev->dev.parent,
-					 tpbuf->dma_addr, tpbuf->length,
-					 DMA_TO_DEVICE);
+							 tpbuf->dma_addr, tpbuf->length,
+							 DMA_TO_DEVICE);
 			tpbuf->dma_addr = 0;
 		}
-		if (tpbuf->skb) {
+
+		if (tpbuf->skb)
+		{
 			dev_kfree_skb_any(tpbuf->skb);
 			tpbuf->skb = NULL;
 		}
@@ -679,17 +715,23 @@ static void emac_rx_q_free_descs(struct emac_adapter *adpt)
 
 	/* ring already cleared, nothing to do */
 	if (!rx_q->rfd.rfbuff)
+	{
 		return;
+	}
 
-	for (i = 0; i < rx_q->rfd.count; i++) {
+	for (i = 0; i < rx_q->rfd.count; i++)
+	{
 		struct emac_buffer *rfbuf = GET_RFD_BUFFER(rx_q, i);
 
-		if (rfbuf->dma_addr) {
+		if (rfbuf->dma_addr)
+		{
 			dma_unmap_single(dev, rfbuf->dma_addr, rfbuf->length,
-					 DMA_FROM_DEVICE);
+							 DMA_FROM_DEVICE);
 			rfbuf->dma_addr = 0;
 		}
-		if (rfbuf->skb) {
+
+		if (rfbuf->skb)
+		{
 			dev_kfree_skb(rfbuf->skb);
 			rfbuf->skb = NULL;
 		}
@@ -724,15 +766,18 @@ static void emac_tx_q_bufs_free(struct emac_adapter *adpt)
 
 /* Allocate TX descriptor ring for the given transmit queue */
 static int emac_tx_q_desc_alloc(struct emac_adapter *adpt,
-				struct emac_tx_queue *tx_q)
+								struct emac_tx_queue *tx_q)
 {
 	struct emac_ring_header *ring_header = &adpt->ring_header;
 	size_t size;
 
 	size = sizeof(struct emac_buffer) * tx_q->tpd.count;
 	tx_q->tpd.tpbuff = kzalloc(size, GFP_KERNEL);
+
 	if (!tx_q->tpd.tpbuff)
+	{
 		return -ENOMEM;
+	}
 
 	tx_q->tpd.size = tx_q->tpd.count * (adpt->tpd_size * 4);
 	tx_q->tpd.dma_addr = ring_header->dma_addr + ring_header->used;
@@ -772,8 +817,11 @@ static int emac_rx_descs_alloc(struct emac_adapter *adpt)
 
 	size = sizeof(struct emac_buffer) * rx_q->rfd.count;
 	rx_q->rfd.rfbuff = kzalloc(size, GFP_KERNEL);
+
 	if (!rx_q->rfd.rfbuff)
+	{
 		return -ENOMEM;
+	}
 
 	rx_q->rrd.size = rx_q->rrd.count * (adpt->rrd_size * 4);
 	rx_q->rfd.size = rx_q->rfd.count * (adpt->rfd_size * 4);
@@ -813,28 +861,35 @@ int emac_mac_rx_tx_rings_alloc_all(struct emac_adapter *adpt)
 	 * hence the additional padding bytes are allocated.
 	 */
 	ring_header->size = num_tx_descs * (adpt->tpd_size * 4) +
-			    num_rx_descs * (adpt->rfd_size * 4) +
-			    num_rx_descs * (adpt->rrd_size * 4) +
-			    8 + 2 * 8; /* 8 byte per one Tx and two Rx rings */
+						num_rx_descs * (adpt->rfd_size * 4) +
+						num_rx_descs * (adpt->rrd_size * 4) +
+						8 + 2 * 8; /* 8 byte per one Tx and two Rx rings */
 
 	ring_header->used = 0;
 	ring_header->v_addr = dma_zalloc_coherent(dev, ring_header->size,
-						 &ring_header->dma_addr,
-						 GFP_KERNEL);
+						  &ring_header->dma_addr,
+						  GFP_KERNEL);
+
 	if (!ring_header->v_addr)
+	{
 		return -ENOMEM;
+	}
 
 	ring_header->used = ALIGN(ring_header->dma_addr, 8) -
-							ring_header->dma_addr;
+						ring_header->dma_addr;
 
 	ret = emac_tx_q_desc_alloc(adpt, &adpt->tx_q);
-	if (ret) {
+
+	if (ret)
+	{
 		netdev_err(adpt->netdev, "error: Tx Queue alloc failed\n");
 		goto err_alloc_tx;
 	}
 
 	ret = emac_rx_descs_alloc(adpt);
-	if (ret) {
+
+	if (ret)
+	{
 		netdev_err(adpt->netdev, "error: Rx Queue alloc failed\n");
 		goto err_alloc_rx;
 	}
@@ -845,7 +900,7 @@ err_alloc_rx:
 	emac_tx_q_bufs_free(adpt);
 err_alloc_tx:
 	dma_free_coherent(dev, ring_header->size,
-			  ring_header->v_addr, ring_header->dma_addr);
+					  ring_header->v_addr, ring_header->dma_addr);
 
 	ring_header->v_addr   = NULL;
 	ring_header->dma_addr = 0;
@@ -865,7 +920,7 @@ void emac_mac_rx_tx_rings_free_all(struct emac_adapter *adpt)
 	emac_rx_q_bufs_free(adpt);
 
 	dma_free_coherent(dev, ring_header->size,
-			  ring_header->v_addr, ring_header->dma_addr);
+					  ring_header->v_addr, ring_header->dma_addr);
 
 	ring_header->v_addr   = NULL;
 	ring_header->dma_addr = 0;
@@ -880,21 +935,27 @@ static void emac_mac_rx_tx_ring_reset_all(struct emac_adapter *adpt)
 
 	adpt->tx_q.tpd.produce_idx = 0;
 	adpt->tx_q.tpd.consume_idx = 0;
+
 	for (i = 0; i < adpt->tx_q.tpd.count; i++)
+	{
 		adpt->tx_q.tpd.tpbuff[i].dma_addr = 0;
+	}
 
 	adpt->rx_q.rrd.produce_idx = 0;
 	adpt->rx_q.rrd.consume_idx = 0;
 	adpt->rx_q.rfd.produce_idx = 0;
 	adpt->rx_q.rfd.consume_idx = 0;
+
 	for (i = 0; i < adpt->rx_q.rfd.count; i++)
+	{
 		adpt->rx_q.rfd.rfbuff[i].dma_addr = 0;
+	}
 }
 
 /* Produce new receive free descriptor */
 static void emac_mac_rx_rfd_create(struct emac_adapter *adpt,
-				   struct emac_rx_queue *rx_q,
-				   dma_addr_t addr)
+								   struct emac_rx_queue *rx_q,
+								   dma_addr_t addr)
 {
 	u32 *hw_rfd = EMAC_RFD(rx_q, adpt->rfd_size, rx_q->rfd.produce_idx);
 
@@ -902,12 +963,14 @@ static void emac_mac_rx_rfd_create(struct emac_adapter *adpt,
 	*hw_rfd = upper_32_bits(addr);
 
 	if (++rx_q->rfd.produce_idx == rx_q->rfd.count)
+	{
 		rx_q->rfd.produce_idx = 0;
+	}
 }
 
 /* Fill up receive queue's RFD with preallocated receive buffers */
 static void emac_mac_rx_descs_refill(struct emac_adapter *adpt,
-				    struct emac_rx_queue *rx_q)
+									 struct emac_rx_queue *rx_q)
 {
 	struct emac_buffer *curr_rxbuf;
 	struct emac_buffer *next_rxbuf;
@@ -915,48 +978,62 @@ static void emac_mac_rx_descs_refill(struct emac_adapter *adpt,
 	u32 next_produce_idx;
 
 	next_produce_idx = rx_q->rfd.produce_idx + 1;
+
 	if (next_produce_idx == rx_q->rfd.count)
+	{
 		next_produce_idx = 0;
+	}
 
 	curr_rxbuf = GET_RFD_BUFFER(rx_q, rx_q->rfd.produce_idx);
 	next_rxbuf = GET_RFD_BUFFER(rx_q, next_produce_idx);
 
 	/* this always has a blank rx_buffer*/
-	while (!next_rxbuf->dma_addr) {
+	while (!next_rxbuf->dma_addr)
+	{
 		struct sk_buff *skb;
 		int ret;
 
 		skb = netdev_alloc_skb_ip_align(adpt->netdev, adpt->rxbuf_size);
+
 		if (!skb)
+		{
 			break;
+		}
 
 		curr_rxbuf->dma_addr =
 			dma_map_single(adpt->netdev->dev.parent, skb->data,
-				       curr_rxbuf->length, DMA_FROM_DEVICE);
+						   curr_rxbuf->length, DMA_FROM_DEVICE);
 		ret = dma_mapping_error(adpt->netdev->dev.parent,
-					curr_rxbuf->dma_addr);
-		if (ret) {
+								curr_rxbuf->dma_addr);
+
+		if (ret)
+		{
 			dev_kfree_skb(skb);
 			break;
 		}
+
 		curr_rxbuf->skb = skb;
 		curr_rxbuf->length = adpt->rxbuf_size;
 
 		emac_mac_rx_rfd_create(adpt, rx_q, curr_rxbuf->dma_addr);
 		next_produce_idx = rx_q->rfd.produce_idx + 1;
+
 		if (next_produce_idx == rx_q->rfd.count)
+		{
 			next_produce_idx = 0;
+		}
 
 		curr_rxbuf = GET_RFD_BUFFER(rx_q, rx_q->rfd.produce_idx);
 		next_rxbuf = GET_RFD_BUFFER(rx_q, next_produce_idx);
 		count++;
 	}
 
-	if (count) {
+	if (count)
+	{
 		u32 prod_idx = (rx_q->rfd.produce_idx << rx_q->produce_shift) &
-				rx_q->produce_mask;
+					   rx_q->produce_mask;
 		emac_reg_update32(adpt->base + rx_q->produce_reg,
-				  rx_q->produce_mask, prod_idx);
+						  rx_q->produce_mask, prod_idx);
 	}
 }
 
@@ -966,9 +1043,13 @@ static void emac_adjust_link(struct net_device *netdev)
 	struct phy_device *phydev = netdev->phydev;
 
 	if (phydev->link)
+	{
 		emac_mac_start(adpt);
+	}
 	else
+	{
 		emac_mac_stop(adpt);
+	}
 
 	phy_print_status(phydev);
 }
@@ -984,17 +1065,21 @@ int emac_mac_up(struct emac_adapter *adpt)
 	emac_mac_config(adpt);
 
 	ret = request_irq(irq->irq, emac_isr, 0, EMAC_MAC_IRQ_RES, irq);
-	if (ret) {
+
+	if (ret)
+	{
 		netdev_err(adpt->netdev, "could not request %s irq\n",
-			   EMAC_MAC_IRQ_RES);
+				   EMAC_MAC_IRQ_RES);
 		return ret;
 	}
 
 	emac_mac_rx_descs_refill(adpt, &adpt->rx_q);
 
 	ret = phy_connect_direct(netdev, adpt->phydev, emac_adjust_link,
-				 PHY_INTERFACE_MODE_SGMII);
-	if (ret) {
+							 PHY_INTERFACE_MODE_SGMII);
+
+	if (ret)
+	{
 		netdev_err(adpt->netdev, "could not connect phy\n");
 		free_irq(irq->irq, irq);
 		return ret;
@@ -1049,15 +1134,17 @@ void emac_mac_down(struct emac_adapter *adpt)
 
 /* Consume next received packet descriptor */
 static bool emac_rx_process_rrd(struct emac_adapter *adpt,
-				struct emac_rx_queue *rx_q,
-				struct emac_rrd *rrd)
+								struct emac_rx_queue *rx_q,
+								struct emac_rrd *rrd)
 {
 	u32 *hw_rrd = EMAC_RRD(rx_q, adpt->rrd_size, rx_q->rrd.consume_idx);
 
 	rrd->word[3] = *(hw_rrd + 3);
 
 	if (!RRD_UPDT(rrd))
+	{
 		return false;
+	}
 
 	rrd->word[4] = 0;
 	rrd->word[5] = 0;
@@ -1066,10 +1153,11 @@ static bool emac_rx_process_rrd(struct emac_adapter *adpt,
 	rrd->word[1] = *(hw_rrd++);
 	rrd->word[2] = *(hw_rrd++);
 
-	if (unlikely(RRD_NOR(rrd) != 1)) {
+	if (unlikely(RRD_NOR(rrd) != 1))
+	{
 		netdev_err(adpt->netdev,
-			   "error: multi-RFD not support yet! nor:%lu\n",
-			   RRD_NOR(rrd));
+				   "error: multi-RFD not support yet! nor:%lu\n",
+				   RRD_NOR(rrd));
 	}
 
 	/* mark rrd as processed */
@@ -1077,14 +1165,16 @@ static bool emac_rx_process_rrd(struct emac_adapter *adpt,
 	*hw_rrd = rrd->word[3];
 
 	if (++rx_q->rrd.consume_idx == rx_q->rrd.count)
+	{
 		rx_q->rrd.consume_idx = 0;
+	}
 
 	return true;
 }
 
 /* Produce new transmit descriptor */
 static void emac_tx_tpd_create(struct emac_adapter *adpt,
-			       struct emac_tx_queue *tx_q, struct emac_tpd *tpd)
+							   struct emac_tx_queue *tx_q, struct emac_tpd *tpd)
 {
 	u32 *hw_tpd;
 
@@ -1092,7 +1182,9 @@ static void emac_tx_tpd_create(struct emac_adapter *adpt,
 	hw_tpd = EMAC_TPD(tx_q, adpt->tpd_size, tx_q->tpd.produce_idx);
 
 	if (++tx_q->tpd.produce_idx == tx_q->tpd.count)
+	{
 		tx_q->tpd.produce_idx = 0;
+	}
 
 	*(hw_tpd++) = tpd->word[0];
 	*(hw_tpd++) = tpd->word[1];
@@ -1102,7 +1194,7 @@ static void emac_tx_tpd_create(struct emac_adapter *adpt,
 
 /* Mark the last transmit descriptor as such (for the transmit packet) */
 static void emac_tx_tpd_mark_last(struct emac_adapter *adpt,
-				  struct emac_tx_queue *tx_q)
+								  struct emac_tx_queue *tx_q)
 {
 	u32 *hw_tpd =
 		EMAC_TPD(tx_q, adpt->tpd_size, tx_q->tpd.last_produce_idx);
@@ -1119,10 +1211,14 @@ static void emac_rx_rfd_clean(struct emac_rx_queue *rx_q, struct emac_rrd *rrd)
 	u32 consume_idx = RRD_SI(rrd);
 	unsigned int i;
 
-	for (i = 0; i < RRD_NOR(rrd); i++) {
+	for (i = 0; i < RRD_NOR(rrd); i++)
+	{
 		rfbuf[consume_idx].skb = NULL;
+
 		if (++consume_idx == rx_q->rfd.count)
+		{
 			consume_idx = 0;
+		}
 	}
 
 	rx_q->rfd.consume_idx = consume_idx;
@@ -1131,10 +1227,11 @@ static void emac_rx_rfd_clean(struct emac_rx_queue *rx_q, struct emac_rrd *rrd)
 
 /* Push the received skb to upper layers */
 static void emac_receive_skb(struct emac_rx_queue *rx_q,
-			     struct sk_buff *skb,
-			     u16 vlan_tag, bool vlan_flag)
+							 struct sk_buff *skb,
+							 u16 vlan_tag, bool vlan_flag)
 {
-	if (vlan_flag) {
+	if (vlan_flag)
+	{
 		u16 vlan;
 
 		EMAC_TAG_TO_VLAN(vlan_tag, vlan);
@@ -1146,7 +1243,7 @@ static void emac_receive_skb(struct emac_rx_queue *rx_q,
 
 /* Process receive event */
 void emac_mac_rx_process(struct emac_adapter *adpt, struct emac_rx_queue *rx_q,
-			 int *num_pkts, int max_pkts)
+						 int *num_pkts, int max_pkts)
 {
 	u32 proc_idx, hw_consume_idx, num_consume_pkts;
 	struct net_device *netdev  = adpt->netdev;
@@ -1160,29 +1257,38 @@ void emac_mac_rx_process(struct emac_adapter *adpt, struct emac_rx_queue *rx_q,
 
 	hw_consume_idx = (reg & rx_q->consume_mask) >> rx_q->consume_shift;
 	num_consume_pkts = (hw_consume_idx >= rx_q->rrd.consume_idx) ?
-		(hw_consume_idx -  rx_q->rrd.consume_idx) :
-		(hw_consume_idx + rx_q->rrd.count - rx_q->rrd.consume_idx);
+					   (hw_consume_idx -  rx_q->rrd.consume_idx) :
+					   (hw_consume_idx + rx_q->rrd.count - rx_q->rrd.consume_idx);
 
-	do {
+	do
+	{
 		if (!num_consume_pkts)
+		{
 			break;
+		}
 
 		if (!emac_rx_process_rrd(adpt, rx_q, &rrd))
+		{
 			break;
+		}
 
-		if (likely(RRD_NOR(&rrd) == 1)) {
+		if (likely(RRD_NOR(&rrd) == 1))
+		{
 			/* good receive */
 			rfbuf = GET_RFD_BUFFER(rx_q, RRD_SI(&rrd));
 			dma_unmap_single(adpt->netdev->dev.parent,
-					 rfbuf->dma_addr, rfbuf->length,
-					 DMA_FROM_DEVICE);
+							 rfbuf->dma_addr, rfbuf->length,
+							 DMA_FROM_DEVICE);
 			rfbuf->dma_addr = 0;
 			skb = rfbuf->skb;
-		} else {
+		}
+		else
+		{
 			netdev_err(adpt->netdev,
-				   "error: multi-RFD not support yet!\n");
+					   "error: multi-RFD not support yet!\n");
 			break;
 		}
+
 		emac_rx_rfd_clean(rx_q, &rrd);
 		num_consume_pkts--;
 		count++;
@@ -1191,11 +1297,12 @@ void emac_mac_rx_process(struct emac_adapter *adpt, struct emac_rx_queue *rx_q,
 		 * with DF set are marked as error), drop packets based on the
 		 * error mask rather than the summary bit (ignoring L4F errors)
 		 */
-		if (rrd.word[EMAC_RRD_STATS_DW_IDX] & EMAC_RRD_ERROR) {
+		if (rrd.word[EMAC_RRD_STATS_DW_IDX] & EMAC_RRD_ERROR)
+		{
 			netif_dbg(adpt, rx_status, adpt->netdev,
-				  "Drop error packet[RRD: 0x%x:0x%x:0x%x:0x%x]\n",
-				  rrd.word[0], rrd.word[1],
-				  rrd.word[2], rrd.word[3]);
+					  "Drop error packet[RRD: 0x%x:0x%x:0x%x:0x%x]\n",
+					  rrd.word[0], rrd.word[1],
+					  rrd.word[2], rrd.word[3]);
 
 			dev_kfree_skb(skb);
 			continue;
@@ -1204,24 +1311,29 @@ void emac_mac_rx_process(struct emac_adapter *adpt, struct emac_rx_queue *rx_q,
 		skb_put(skb, RRD_PKT_SIZE(&rrd) - ETH_FCS_LEN);
 		skb->dev = netdev;
 		skb->protocol = eth_type_trans(skb, skb->dev);
+
 		if (netdev->features & NETIF_F_RXCSUM)
 			skb->ip_summed = RRD_L4F(&rrd) ?
-					  CHECKSUM_NONE : CHECKSUM_UNNECESSARY;
+							 CHECKSUM_NONE : CHECKSUM_UNNECESSARY;
 		else
+		{
 			skb_checksum_none_assert(skb);
+		}
 
 		emac_receive_skb(rx_q, skb, (u16)RRD_CVALN_TAG(&rrd),
-				 (bool)RRD_CVTAG(&rrd));
+						 (bool)RRD_CVTAG(&rrd));
 
 		netdev->last_rx = jiffies;
 		(*num_pkts)++;
-	} while (*num_pkts < max_pkts);
+	}
+	while (*num_pkts < max_pkts);
 
-	if (count) {
+	if (count)
+	{
 		proc_idx = (rx_q->rfd.process_idx << rx_q->process_shft) &
-				rx_q->process_mask;
+				   rx_q->process_mask;
 		emac_reg_update32(adpt->base + rx_q->process_reg,
-				  rx_q->process_mask, proc_idx);
+						  rx_q->process_mask, proc_idx);
 		emac_mac_rx_descs_refill(adpt, rx_q);
 	}
 }
@@ -1233,8 +1345,8 @@ static unsigned int emac_tpd_num_free_descs(struct emac_tx_queue *tx_q)
 	u32 consume_idx = tx_q->tpd.consume_idx;
 
 	return (consume_idx > produce_idx) ?
-		(consume_idx - produce_idx - 1) :
-		(tx_q->tpd.count + consume_idx - produce_idx - 1);
+		   (consume_idx - produce_idx - 1) :
+		   (tx_q->tpd.count + consume_idx - produce_idx - 1);
 }
 
 /* Process transmit event */
@@ -1246,16 +1358,20 @@ void emac_mac_tx_process(struct emac_adapter *adpt, struct emac_tx_queue *tx_q)
 
 	hw_consume_idx = (reg & tx_q->consume_mask) >> tx_q->consume_shift;
 
-	while (tx_q->tpd.consume_idx != hw_consume_idx) {
+	while (tx_q->tpd.consume_idx != hw_consume_idx)
+	{
 		tpbuf = GET_TPD_BUFFER(tx_q, tx_q->tpd.consume_idx);
-		if (tpbuf->dma_addr) {
+
+		if (tpbuf->dma_addr)
+		{
 			dma_unmap_single(adpt->netdev->dev.parent,
-					 tpbuf->dma_addr, tpbuf->length,
-					 DMA_TO_DEVICE);
+							 tpbuf->dma_addr, tpbuf->length,
+							 DMA_TO_DEVICE);
 			tpbuf->dma_addr = 0;
 		}
 
-		if (tpbuf->skb) {
+		if (tpbuf->skb)
+		{
 			pkts_compl++;
 			bytes_compl += tpbuf->skb->len;
 			dev_kfree_skb_irq(tpbuf->skb);
@@ -1263,19 +1379,23 @@ void emac_mac_tx_process(struct emac_adapter *adpt, struct emac_tx_queue *tx_q)
 		}
 
 		if (++tx_q->tpd.consume_idx == tx_q->tpd.count)
+		{
 			tx_q->tpd.consume_idx = 0;
+		}
 	}
 
 	netdev_completed_queue(adpt->netdev, pkts_compl, bytes_compl);
 
 	if (netif_queue_stopped(adpt->netdev))
 		if (emac_tpd_num_free_descs(tx_q) > (MAX_SKB_FRAGS + 1))
+		{
 			netif_wake_queue(adpt->netdev);
+		}
 }
 
 /* Initialize all queue data structures */
 void emac_mac_rx_tx_ring_init_all(struct platform_device *pdev,
-				  struct emac_adapter *adpt)
+								  struct emac_adapter *adpt)
 {
 	adpt->rx_q.netdev = adpt->netdev;
 
@@ -1305,45 +1425,58 @@ void emac_mac_rx_tx_ring_init_all(struct platform_device *pdev,
 
 /* Fill up transmit descriptors with TSO and Checksum offload information */
 static int emac_tso_csum(struct emac_adapter *adpt,
-			 struct emac_tx_queue *tx_q,
-			 struct sk_buff *skb,
-			 struct emac_tpd *tpd)
+						 struct emac_tx_queue *tx_q,
+						 struct sk_buff *skb,
+						 struct emac_tpd *tpd)
 {
 	unsigned int hdr_len;
 	int ret;
 
-	if (skb_is_gso(skb)) {
-		if (skb_header_cloned(skb)) {
+	if (skb_is_gso(skb))
+	{
+		if (skb_header_cloned(skb))
+		{
 			ret = pskb_expand_head(skb, 0, 0, GFP_ATOMIC);
+
 			if (unlikely(ret))
+			{
 				return ret;
+			}
 		}
 
-		if (skb->protocol == htons(ETH_P_IP)) {
+		if (skb->protocol == htons(ETH_P_IP))
+		{
 			u32 pkt_len = ((unsigned char *)ip_hdr(skb) - skb->data)
-				       + ntohs(ip_hdr(skb)->tot_len);
+						  + ntohs(ip_hdr(skb)->tot_len);
+
 			if (skb->len > pkt_len)
+			{
 				pskb_trim(skb, pkt_len);
+			}
 		}
 
 		hdr_len = skb_transport_offset(skb) + tcp_hdrlen(skb);
-		if (unlikely(skb->len == hdr_len)) {
+
+		if (unlikely(skb->len == hdr_len))
+		{
 			/* we only need to do csum */
 			netif_warn(adpt, tx_err, adpt->netdev,
-				   "tso not needed for packet with 0 data\n");
+					   "tso not needed for packet with 0 data\n");
 			goto do_csum;
 		}
 
-		if (skb_shinfo(skb)->gso_type & SKB_GSO_TCPV4) {
+		if (skb_shinfo(skb)->gso_type & SKB_GSO_TCPV4)
+		{
 			ip_hdr(skb)->check = 0;
 			tcp_hdr(skb)->check =
 				~csum_tcpudp_magic(ip_hdr(skb)->saddr,
-						   ip_hdr(skb)->daddr,
-						   0, IPPROTO_TCP, 0);
+								   ip_hdr(skb)->daddr,
+								   0, IPPROTO_TCP, 0);
 			TPD_IPV4_SET(tpd, 1);
 		}
 
-		if (skb_shinfo(skb)->gso_type & SKB_GSO_TCPV6) {
+		if (skb_shinfo(skb)->gso_type & SKB_GSO_TCPV6)
+		{
 			/* ipv6 tso need an extra tpd */
 			struct emac_tpd extra_tpd;
 
@@ -1353,8 +1486,8 @@ static int emac_tso_csum(struct emac_adapter *adpt,
 			ipv6_hdr(skb)->payload_len = 0;
 			tcp_hdr(skb)->check =
 				~csum_ipv6_magic(&ipv6_hdr(skb)->saddr,
-						 &ipv6_hdr(skb)->daddr,
-						 0, IPPROTO_TCP, 0);
+								 &ipv6_hdr(skb)->daddr,
+								 0, IPPROTO_TCP, 0);
 			TPD_PKT_LEN_SET(&extra_tpd, skb->len);
 			TPD_LSO_SET(&extra_tpd, 1);
 			TPD_LSOV_SET(&extra_tpd, 1);
@@ -1369,15 +1502,20 @@ static int emac_tso_csum(struct emac_adapter *adpt,
 	}
 
 do_csum:
-	if (likely(skb->ip_summed == CHECKSUM_PARTIAL)) {
+
+	if (likely(skb->ip_summed == CHECKSUM_PARTIAL))
+	{
 		unsigned int css, cso;
 
 		cso = skb_transport_offset(skb);
-		if (unlikely(cso & 0x1)) {
+
+		if (unlikely(cso & 0x1))
+		{
 			netdev_err(adpt->netdev,
-				   "error: payload offset should be even\n");
+					   "error: payload offset should be even\n");
 			return -EINVAL;
 		}
+
 		css = cso + skb->csum_offset;
 
 		TPD_PAYLOAD_OFFSET_SET(tpd, cso >> 1);
@@ -1390,8 +1528,8 @@ do_csum:
 
 /* Fill up transmit descriptors */
 static void emac_tx_fill_tpd(struct emac_adapter *adpt,
-			     struct emac_tx_queue *tx_q, struct sk_buff *skb,
-			     struct emac_tpd *tpd)
+							 struct emac_tx_queue *tx_q, struct sk_buff *skb,
+							 struct emac_tpd *tpd)
 {
 	unsigned int nr_frags = skb_shinfo(skb)->nr_frags;
 	unsigned int first = tx_q->tpd.produce_idx;
@@ -1403,18 +1541,22 @@ static void emac_tx_fill_tpd(struct emac_adapter *adpt,
 	int ret;
 
 	/* if Large Segment Offload is (in TCP Segmentation Offload struct) */
-	if (TPD_LSO(tpd)) {
+	if (TPD_LSO(tpd))
+	{
 		mapped_len = skb_transport_offset(skb) + tcp_hdrlen(skb);
 
 		tpbuf = GET_TPD_BUFFER(tx_q, tx_q->tpd.produce_idx);
 		tpbuf->length = mapped_len;
 		tpbuf->dma_addr = dma_map_single(adpt->netdev->dev.parent,
-						 skb->data, tpbuf->length,
-						 DMA_TO_DEVICE);
+										 skb->data, tpbuf->length,
+										 DMA_TO_DEVICE);
 		ret = dma_mapping_error(adpt->netdev->dev.parent,
-					tpbuf->dma_addr);
+								tpbuf->dma_addr);
+
 		if (ret)
+		{
 			goto error;
+		}
 
 		TPD_BUFFER_ADDR_L_SET(tpd, lower_32_bits(tpbuf->dma_addr));
 		TPD_BUFFER_ADDR_H_SET(tpd, upper_32_bits(tpbuf->dma_addr));
@@ -1423,16 +1565,20 @@ static void emac_tx_fill_tpd(struct emac_adapter *adpt,
 		count++;
 	}
 
-	if (mapped_len < len) {
+	if (mapped_len < len)
+	{
 		tpbuf = GET_TPD_BUFFER(tx_q, tx_q->tpd.produce_idx);
 		tpbuf->length = len - mapped_len;
 		tpbuf->dma_addr = dma_map_single(adpt->netdev->dev.parent,
-						 skb->data + mapped_len,
-						 tpbuf->length, DMA_TO_DEVICE);
+										 skb->data + mapped_len,
+										 tpbuf->length, DMA_TO_DEVICE);
 		ret = dma_mapping_error(adpt->netdev->dev.parent,
-					tpbuf->dma_addr);
+								tpbuf->dma_addr);
+
 		if (ret)
+		{
 			goto error;
+		}
 
 		TPD_BUFFER_ADDR_L_SET(tpd, lower_32_bits(tpbuf->dma_addr));
 		TPD_BUFFER_ADDR_H_SET(tpd, upper_32_bits(tpbuf->dma_addr));
@@ -1441,7 +1587,8 @@ static void emac_tx_fill_tpd(struct emac_adapter *adpt,
 		count++;
 	}
 
-	for (i = 0; i < nr_frags; i++) {
+	for (i = 0; i < nr_frags; i++)
+	{
 		struct skb_frag_struct *frag;
 
 		frag = &skb_shinfo(skb)->frags[i];
@@ -1449,12 +1596,15 @@ static void emac_tx_fill_tpd(struct emac_adapter *adpt,
 		tpbuf = GET_TPD_BUFFER(tx_q, tx_q->tpd.produce_idx);
 		tpbuf->length = frag->size;
 		tpbuf->dma_addr = dma_map_page(adpt->netdev->dev.parent,
-					       frag->page.p, frag->page_offset,
-					       tpbuf->length, DMA_TO_DEVICE);
+									   frag->page.p, frag->page_offset,
+									   tpbuf->length, DMA_TO_DEVICE);
 		ret = dma_mapping_error(adpt->netdev->dev.parent,
-					tpbuf->dma_addr);
+								tpbuf->dma_addr);
+
 		if (ret)
+		{
 			goto error;
+		}
 
 		TPD_BUFFER_ADDR_L_SET(tpd, lower_32_bits(tpbuf->dma_addr));
 		TPD_BUFFER_ADDR_H_SET(tpd, upper_32_bits(tpbuf->dma_addr));
@@ -1478,15 +1628,18 @@ error:
 	/* One of the memory mappings failed, so undo everything */
 	tx_q->tpd.produce_idx = first;
 
-	while (count--) {
+	while (count--)
+	{
 		tpbuf = GET_TPD_BUFFER(tx_q, first);
 		dma_unmap_page(adpt->netdev->dev.parent, tpbuf->dma_addr,
-			       tpbuf->length, DMA_TO_DEVICE);
+					   tpbuf->length, DMA_TO_DEVICE);
 		tpbuf->dma_addr = 0;
 		tpbuf->length = 0;
 
 		if (++first == tx_q->tpd.count)
+		{
 			first = 0;
+		}
 	}
 
 	dev_kfree_skb(skb);
@@ -1494,19 +1647,21 @@ error:
 
 /* Transmit the packet using specified transmit queue */
 int emac_mac_tx_buf_send(struct emac_adapter *adpt, struct emac_tx_queue *tx_q,
-			 struct sk_buff *skb)
+						 struct sk_buff *skb)
 {
 	struct emac_tpd tpd;
 	u32 prod_idx;
 
 	memset(&tpd, 0, sizeof(tpd));
 
-	if (emac_tso_csum(adpt, tx_q, skb, &tpd) != 0) {
+	if (emac_tso_csum(adpt, tx_q, skb, &tpd) != 0)
+	{
 		dev_kfree_skb_any(skb);
 		return NETDEV_TX_OK;
 	}
 
-	if (skb_vlan_tag_present(skb)) {
+	if (skb_vlan_tag_present(skb))
+	{
 		u16 tag;
 
 		EMAC_VLAN_TO_TAG(skb_vlan_tag_get(skb), tag);
@@ -1515,7 +1670,9 @@ int emac_mac_tx_buf_send(struct emac_adapter *adpt, struct emac_tx_queue *tx_q,
 	}
 
 	if (skb_network_offset(skb) != ETH_HLEN)
+	{
 		TPD_TYP_SET(&tpd, 1);
+	}
 
 	emac_tx_fill_tpd(adpt, tx_q, skb, &tpd);
 
@@ -1527,13 +1684,15 @@ int emac_mac_tx_buf_send(struct emac_adapter *adpt, struct emac_tx_queue *tx_q,
 	 * and one for the SKB header.
 	 */
 	if (emac_tpd_num_free_descs(tx_q) < (MAX_SKB_FRAGS + 3))
+	{
 		netif_stop_queue(adpt->netdev);
+	}
 
 	/* update produce idx */
 	prod_idx = (tx_q->tpd.produce_idx << tx_q->produce_shift) &
-		    tx_q->produce_mask;
+			   tx_q->produce_mask;
 	emac_reg_update32(adpt->base + tx_q->produce_reg,
-			  tx_q->produce_mask, prod_idx);
+					  tx_q->produce_mask, prod_idx);
 
 	return NETDEV_TX_OK;
 }

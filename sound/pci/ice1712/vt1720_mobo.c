@@ -19,7 +19,7 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
- */      
+ */
 
 #include <linux/delay.h>
 #include <linux/interrupt.h>
@@ -53,7 +53,8 @@ static int k8x800_add_controls(struct snd_ice1712 *ice)
 
 /* EEPROM image */
 
-static unsigned char k8x800_eeprom[] = {
+static unsigned char k8x800_eeprom[] =
+{
 	[ICE_EEP2_SYSCONF]     = 0x01,	/* clock 256, 1ADC, 2DACs */
 	[ICE_EEP2_ACLINK]      = 0x02,	/* ACLINK, packed */
 	[ICE_EEP2_I2S]         = 0x00,	/* - */
@@ -69,7 +70,8 @@ static unsigned char k8x800_eeprom[] = {
 	[ICE_EEP2_GPIO_STATE2] = 0x00,	/* - */
 };
 
-static unsigned char sn25p_eeprom[] = {
+static unsigned char sn25p_eeprom[] =
+{
 	[ICE_EEP2_SYSCONF]     = 0x01,	/* clock 256, 1ADC, 2DACs */
 	[ICE_EEP2_ACLINK]      = 0x02,	/* ACLINK, packed */
 	[ICE_EEP2_I2S]         = 0x00,	/* - */
@@ -87,7 +89,8 @@ static unsigned char sn25p_eeprom[] = {
 
 
 /* entry point */
-struct snd_ice1712_card_info snd_vt1720_mobo_cards[] = {
+struct snd_ice1712_card_info snd_vt1720_mobo_cards[] =
+{
 	{
 		.subvendor = VT1720_SUBDEVICE_K8X800,
 		.name = "Albatron K8X800 Pro II",

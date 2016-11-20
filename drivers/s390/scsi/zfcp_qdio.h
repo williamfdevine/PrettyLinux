@@ -30,7 +30,8 @@
  * @req_q_wq: used to wait for SBAL availability
  * @adapter: adapter used in conjunction with this qdio structure
  */
-struct zfcp_qdio {
+struct zfcp_qdio
+{
 	struct qdio_buffer	*res_q[QDIO_MAX_BUFFERS_PER_Q];
 	struct qdio_buffer	*req_q[QDIO_MAX_BUFFERS_PER_Q];
 	u8			req_q_idx;
@@ -57,7 +58,8 @@ struct zfcp_qdio {
  * @sbal_response: sbal used in interrupt
  * @qdio_outb_usage: usage of outbound queue
  */
-struct zfcp_qdio_req {
+struct zfcp_qdio_req
+{
 	u8	sbtype;
 	u8	sbal_number;
 	u8	sbal_first;
@@ -107,18 +109,18 @@ zfcp_qdio_sbale_curr(struct zfcp_qdio *qdio, struct zfcp_qdio_req *q_req)
  */
 static inline
 void zfcp_qdio_req_init(struct zfcp_qdio *qdio, struct zfcp_qdio_req *q_req,
-			unsigned long req_id, u8 sbtype, void *data, u32 len)
+						unsigned long req_id, u8 sbtype, void *data, u32 len)
 {
 	struct qdio_buffer_element *sbale;
 	int count = min(atomic_read(&qdio->req_q_free),
-			ZFCP_QDIO_MAX_SBALS_PER_REQ);
+					ZFCP_QDIO_MAX_SBALS_PER_REQ);
 
 	q_req->sbal_first = q_req->sbal_last = qdio->req_q_idx;
 	q_req->sbal_number = 1;
 	q_req->sbtype = sbtype;
 	q_req->sbale_curr = 1;
 	q_req->sbal_limit = (q_req->sbal_first + count - 1)
-					% QDIO_MAX_BUFFERS_PER_Q;
+						% QDIO_MAX_BUFFERS_PER_Q;
 
 	sbale = zfcp_qdio_sbale_req(qdio, q_req);
 	sbale->addr = (void *) req_id;
@@ -126,7 +128,10 @@ void zfcp_qdio_req_init(struct zfcp_qdio *qdio, struct zfcp_qdio_req *q_req,
 	sbale->sflags = SBAL_SFLAGS0_COMMAND | sbtype;
 
 	if (unlikely(!data))
+	{
 		return;
+	}
+
 	sbale++;
 	sbale->addr = data;
 	sbale->length = len;
@@ -142,7 +147,7 @@ void zfcp_qdio_req_init(struct zfcp_qdio *qdio, struct zfcp_qdio_req *q_req,
  */
 static inline
 void zfcp_qdio_fill_next(struct zfcp_qdio *qdio, struct zfcp_qdio_req *q_req,
-			 void *data, u32 len)
+						 void *data, u32 len)
 {
 	struct qdio_buffer_element *sbale;
 
@@ -160,7 +165,7 @@ void zfcp_qdio_fill_next(struct zfcp_qdio *qdio, struct zfcp_qdio_req *q_req,
  */
 static inline
 void zfcp_qdio_set_sbale_last(struct zfcp_qdio *qdio,
-			      struct zfcp_qdio_req *q_req)
+							  struct zfcp_qdio_req *q_req)
 {
 	struct qdio_buffer_element *sbale;
 
@@ -187,7 +192,7 @@ int zfcp_qdio_sg_one_sbale(struct scatterlist *sg)
  */
 static inline
 void zfcp_qdio_skip_to_last_sbale(struct zfcp_qdio *qdio,
-				  struct zfcp_qdio_req *q_req)
+								  struct zfcp_qdio_req *q_req)
 {
 	q_req->sbale_curr = qdio->max_sbale_per_sbal - 1;
 }
@@ -200,12 +205,12 @@ void zfcp_qdio_skip_to_last_sbale(struct zfcp_qdio *qdio,
  */
 static inline
 void zfcp_qdio_sbal_limit(struct zfcp_qdio *qdio,
-			  struct zfcp_qdio_req *q_req, int max_sbals)
+						  struct zfcp_qdio_req *q_req, int max_sbals)
 {
 	int count = min(atomic_read(&qdio->req_q_free), max_sbals);
 
 	q_req->sbal_limit = (q_req->sbal_first + count - 1) %
-				QDIO_MAX_BUFFERS_PER_Q;
+						QDIO_MAX_BUFFERS_PER_Q;
 }
 
 /**
@@ -216,7 +221,7 @@ void zfcp_qdio_sbal_limit(struct zfcp_qdio *qdio,
  */
 static inline
 void zfcp_qdio_set_data_div(struct zfcp_qdio *qdio,
-			    struct zfcp_qdio_req *q_req, u32 count)
+							struct zfcp_qdio_req *q_req, u32 count)
 {
 	struct qdio_buffer_element *sbale;
 
@@ -234,7 +239,9 @@ unsigned int zfcp_qdio_sbale_count(struct scatterlist *sg)
 	unsigned int count = 0;
 
 	for (; sg; sg = sg_next(sg))
+	{
 		count++;
+	}
 
 	return count;
 }
@@ -249,7 +256,9 @@ unsigned int zfcp_qdio_real_bytes(struct scatterlist *sg)
 	unsigned int real_bytes = 0;
 
 	for (; sg; sg = sg_next(sg))
+	{
 		real_bytes += sg->length;
+	}
 
 	return real_bytes;
 }

@@ -27,7 +27,8 @@
  * The struct is separate from struct timekeeper as it is also used
  * for a fast NMI safe accessors.
  */
-struct tk_read_base {
+struct tk_read_base
+{
 	struct clocksource	*clock;
 	cycle_t			(*read)(struct clocksource *cs);
 	cycle_t			mask;
@@ -81,7 +82,8 @@ struct tk_read_base {
  * wall_to_monotonic is no longer the boot time, getboottime must be
  * used instead.
  */
-struct timekeeper {
+struct timekeeper
+{
 	struct tk_read_base	tkr_mono;
 	struct tk_read_base	tkr_raw;
 	u64			xtime_sec;
@@ -135,8 +137,8 @@ extern void update_vsyscall_tz(void);
 #elif defined(CONFIG_GENERIC_TIME_VSYSCALL_OLD)
 
 extern void update_vsyscall_old(struct timespec *ts, struct timespec *wtm,
-				struct clocksource *c, u32 mult,
-				cycle_t cycle_last);
+								struct clocksource *c, u32 mult,
+								cycle_t cycle_last);
 extern void update_vsyscall_tz(void);
 
 #else

@@ -195,12 +195,14 @@
 /*
  * si4713_device - private data
  */
-struct si4713_device {
+struct si4713_device
+{
 	/* v4l2_subdev and i2c reference (v4l2_subdev priv data) */
 	struct v4l2_subdev sd;
 	struct v4l2_ctrl_handler ctrl_handler;
 	/* private data structures */
-	struct { /* si4713 control cluster */
+	struct   /* si4713 control cluster */
+	{
 		/* This is one big cluster since the mute control
 		 * powers off the device and after unmuting again all
 		 * controls need to be set at once. The only way of doing
@@ -248,7 +250,8 @@ struct si4713_device {
 	u32 tune_rnl;
 };
 
-struct radio_si4713_platform_data {
+struct radio_si4713_platform_data
+{
 	struct i2c_client *subdev;
 };
 #endif /* ifndef SI4713_I2C_H */

@@ -43,7 +43,9 @@ static int pem_init(struct pp_eventmgr *eventmgr)
 	result = pem_handle_event(eventmgr, AMD_PP_EVENT_INITIALIZE, &event_data);
 
 	if (0 != result)
+	{
 		return result;
+	}
 
 	/* Register interrupt callback functions */
 	result = pem_register_interrupts(eventmgr);
@@ -66,11 +68,16 @@ int eventmgr_init(struct pp_instance *handle)
 	struct pp_eventmgr *eventmgr;
 
 	if (handle == NULL)
+	{
 		return -EINVAL;
+	}
 
 	eventmgr = kzalloc(sizeof(struct pp_eventmgr), GFP_KERNEL);
+
 	if (eventmgr == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	eventmgr->hwmgr = handle->hwmgr;
 	handle->eventmgr = eventmgr;
@@ -91,7 +98,9 @@ int eventmgr_fini(struct pp_eventmgr *eventmgr)
 static int pem_handle_event_unlocked(struct pp_eventmgr *eventmgr, enum amd_pp_event event, struct pem_event_data *data)
 {
 	if (eventmgr == NULL || event >= AMD_PP_EVENT_MAX || data == NULL)
+	{
 		return -EINVAL;
+	}
 
 	return pem_excute_event_chain(eventmgr, eventmgr->event_chain[event], data);
 }

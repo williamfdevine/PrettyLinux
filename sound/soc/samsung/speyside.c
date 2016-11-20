@@ -22,8 +22,8 @@
 #define MCLK_AUDIO_RATE (512 * 48000)
 
 static int speyside_set_bias_level(struct snd_soc_card *card,
-				   struct snd_soc_dapm_context *dapm,
-				   enum snd_soc_bias_level level)
+								   struct snd_soc_dapm_context *dapm,
+								   enum snd_soc_bias_level level)
 {
 	struct snd_soc_pcm_runtime *rtd;
 	struct snd_soc_dai *codec_dai;
@@ -33,33 +33,42 @@ static int speyside_set_bias_level(struct snd_soc_card *card,
 	codec_dai = rtd->codec_dai;
 
 	if (dapm->dev != codec_dai->dev)
+	{
 		return 0;
+	}
 
-	switch (level) {
-	case SND_SOC_BIAS_STANDBY:
-		ret = snd_soc_dai_set_sysclk(codec_dai, WM8996_SYSCLK_MCLK2,
-					     32768, SND_SOC_CLOCK_IN);
-		if (ret < 0)
-			return ret;
+	switch (level)
+	{
+		case SND_SOC_BIAS_STANDBY:
+			ret = snd_soc_dai_set_sysclk(codec_dai, WM8996_SYSCLK_MCLK2,
+										 32768, SND_SOC_CLOCK_IN);
 
-		ret = snd_soc_dai_set_pll(codec_dai, WM8996_FLL_MCLK2,
-					  0, 0, 0);
-		if (ret < 0) {
-			pr_err("Failed to stop FLL\n");
-			return ret;
-		}
-		break;
+			if (ret < 0)
+			{
+				return ret;
+			}
 
-	default:
-		break;
+			ret = snd_soc_dai_set_pll(codec_dai, WM8996_FLL_MCLK2,
+									  0, 0, 0);
+
+			if (ret < 0)
+			{
+				pr_err("Failed to stop FLL\n");
+				return ret;
+			}
+
+			break;
+
+		default:
+			break;
 	}
 
 	return 0;
 }
 
 static int speyside_set_bias_level_post(struct snd_soc_card *card,
-					struct snd_soc_dapm_context *dapm,
-					enum snd_soc_bias_level level)
+										struct snd_soc_dapm_context *dapm,
+										enum snd_soc_bias_level level)
 {
 	struct snd_soc_pcm_runtime *rtd;
 	struct snd_soc_dai *codec_dai;
@@ -69,30 +78,40 @@ static int speyside_set_bias_level_post(struct snd_soc_card *card,
 	codec_dai = rtd->codec_dai;
 
 	if (dapm->dev != codec_dai->dev)
+	{
 		return 0;
+	}
 
-	switch (level) {
-	case SND_SOC_BIAS_PREPARE:
-		if (card->dapm.bias_level == SND_SOC_BIAS_STANDBY) {
-			ret = snd_soc_dai_set_pll(codec_dai, 0,
-						  WM8996_FLL_MCLK2,
-						  32768, MCLK_AUDIO_RATE);
-			if (ret < 0) {
-				pr_err("Failed to start FLL\n");
-				return ret;
+	switch (level)
+	{
+		case SND_SOC_BIAS_PREPARE:
+			if (card->dapm.bias_level == SND_SOC_BIAS_STANDBY)
+			{
+				ret = snd_soc_dai_set_pll(codec_dai, 0,
+										  WM8996_FLL_MCLK2,
+										  32768, MCLK_AUDIO_RATE);
+
+				if (ret < 0)
+				{
+					pr_err("Failed to start FLL\n");
+					return ret;
+				}
+
+				ret = snd_soc_dai_set_sysclk(codec_dai,
+											 WM8996_SYSCLK_FLL,
+											 MCLK_AUDIO_RATE,
+											 SND_SOC_CLOCK_IN);
+
+				if (ret < 0)
+				{
+					return ret;
+				}
 			}
 
-			ret = snd_soc_dai_set_sysclk(codec_dai,
-						     WM8996_SYSCLK_FLL,
-						     MCLK_AUDIO_RATE,
-						     SND_SOC_CLOCK_IN);
-			if (ret < 0)
-				return ret;
-		}
-		break;
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 	card->dapm.bias_level = level;
@@ -103,7 +122,8 @@ static int speyside_set_bias_level_post(struct snd_soc_card *card,
 static struct snd_soc_jack speyside_headset;
 
 /* Headset jack detection DAPM pins */
-static struct snd_soc_jack_pin speyside_headset_pins[] = {
+static struct snd_soc_jack_pin speyside_headset_pins[] =
+{
 	{
 		.pin = "Headset Mic",
 		.mask = SND_JACK_MICROPHONE,
@@ -114,18 +134,23 @@ static struct snd_soc_jack_pin speyside_headset_pins[] = {
 static int speyside_jack_polarity;
 
 static int speyside_get_micbias(struct snd_soc_dapm_widget *source,
-				struct snd_soc_dapm_widget *sink)
+								struct snd_soc_dapm_widget *sink)
 {
 	if (speyside_jack_polarity && (strcmp(source->name, "MICB1") == 0))
+	{
 		return 1;
+	}
+
 	if (!speyside_jack_polarity && (strcmp(source->name, "MICB2") == 0))
+	{
 		return 1;
+	}
 
 	return 0;
 }
 
 static void speyside_set_polarity(struct snd_soc_codec *codec,
-				  int polarity)
+								  int polarity)
 {
 	speyside_jack_polarity = !polarity;
 	gpio_direction_output(WM8996_HPSEL_GPIO, speyside_jack_polarity);
@@ -140,8 +165,11 @@ static int speyside_wm0010_init(struct snd_soc_pcm_runtime *rtd)
 	int ret;
 
 	ret = snd_soc_dai_set_sysclk(dai, 0, MCLK_AUDIO_RATE, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -153,20 +181,30 @@ static int speyside_wm8996_init(struct snd_soc_pcm_runtime *rtd)
 	int ret;
 
 	ret = snd_soc_dai_set_sysclk(dai, WM8996_SYSCLK_MCLK2, 32768, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = gpio_request(WM8996_HPSEL_GPIO, "HP_SEL");
+
 	if (ret != 0)
+	{
 		pr_err("Failed to request HP_SEL GPIO: %d\n", ret);
+	}
+
 	gpio_direction_output(WM8996_HPSEL_GPIO, speyside_jack_polarity);
 
 	ret = snd_soc_card_jack_new(rtd->card, "Headset", SND_JACK_LINEOUT |
-				    SND_JACK_HEADSET | SND_JACK_BTN_0,
-				    &speyside_headset, speyside_headset_pins,
-				    ARRAY_SIZE(speyside_headset_pins));
+								SND_JACK_HEADSET | SND_JACK_BTN_0,
+								&speyside_headset, speyside_headset_pins,
+								ARRAY_SIZE(speyside_headset_pins));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	wm8996_detect(codec, &speyside_headset, speyside_set_polarity);
 
@@ -186,7 +224,8 @@ static int speyside_late_probe(struct snd_soc_card *card)
 	return 0;
 }
 
-static const struct snd_soc_pcm_stream dsp_codec_params = {
+static const struct snd_soc_pcm_stream dsp_codec_params =
+{
 	.formats = SNDRV_PCM_FMTBIT_S32_LE,
 	.rate_min = 48000,
 	.rate_max = 48000,
@@ -194,7 +233,8 @@ static const struct snd_soc_pcm_stream dsp_codec_params = {
 	.channels_max = 2,
 };
 
-static struct snd_soc_dai_link speyside_dai[] = {
+static struct snd_soc_dai_link speyside_dai[] =
+{
 	{
 		.name = "CPU-DSP",
 		.stream_name = "CPU-DSP",
@@ -204,7 +244,7 @@ static struct snd_soc_dai_link speyside_dai[] = {
 		.codec_name = "spi0.0",
 		.init = speyside_wm0010_init,
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF
-				| SND_SOC_DAIFMT_CBM_CFM,
+		| SND_SOC_DAIFMT_CBM_CFM,
 	},
 	{
 		.name = "DSP-CODEC",
@@ -214,7 +254,7 @@ static struct snd_soc_dai_link speyside_dai[] = {
 		.codec_name = "wm8996.1-001a",
 		.init = speyside_wm8996_init,
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF
-				| SND_SOC_DAIFMT_CBM_CFM,
+		| SND_SOC_DAIFMT_CBM_CFM,
 		.params = &dsp_codec_params,
 		.ignore_suspend = 1,
 	},
@@ -225,7 +265,7 @@ static struct snd_soc_dai_link speyside_dai[] = {
 		.codec_dai_name = "wm1250-ev1",
 		.codec_name = "wm1250-ev1.1-0027",
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF
-				| SND_SOC_DAIFMT_CBM_CFM,
+		| SND_SOC_DAIFMT_CBM_CFM,
 		.ignore_suspend = 1,
 	},
 };
@@ -236,10 +276,11 @@ static int speyside_wm9081_init(struct snd_soc_component *component)
 
 	/* At any time the WM9081 is active it will have this clock */
 	return snd_soc_codec_set_sysclk(codec, WM9081_SYSCLK_MCLK, 0,
-					MCLK_AUDIO_RATE, 0);
+									MCLK_AUDIO_RATE, 0);
 }
 
-static struct snd_soc_aux_dev speyside_aux_dev[] = {
+static struct snd_soc_aux_dev speyside_aux_dev[] =
+{
 	{
 		.name = "wm9081",
 		.codec_name = "wm9081.1-006c",
@@ -247,14 +288,16 @@ static struct snd_soc_aux_dev speyside_aux_dev[] = {
 	},
 };
 
-static struct snd_soc_codec_conf speyside_codec_conf[] = {
+static struct snd_soc_codec_conf speyside_codec_conf[] =
+{
 	{
 		.dev_name = "wm9081.1-006c",
 		.name_prefix = "Sub",
 	},
 };
 
-static const struct snd_kcontrol_new controls[] = {
+static const struct snd_kcontrol_new controls[] =
+{
 	SOC_DAPM_PIN_SWITCH("Main Speaker"),
 	SOC_DAPM_PIN_SWITCH("Main DMIC"),
 	SOC_DAPM_PIN_SWITCH("Main AMIC"),
@@ -263,7 +306,8 @@ static const struct snd_kcontrol_new controls[] = {
 	SOC_DAPM_PIN_SWITCH("Headphone"),
 };
 
-static struct snd_soc_dapm_widget widgets[] = {
+static struct snd_soc_dapm_widget widgets[] =
+{
 	SND_SOC_DAPM_HP("Headphone", NULL),
 	SND_SOC_DAPM_MIC("Headset Mic", NULL),
 
@@ -273,7 +317,8 @@ static struct snd_soc_dapm_widget widgets[] = {
 	SND_SOC_DAPM_MIC("Main DMIC", NULL),
 };
 
-static struct snd_soc_dapm_route audio_paths[] = {
+static struct snd_soc_dapm_route audio_paths[] =
+{
 	{ "IN1RN", NULL, "MICB1" },
 	{ "IN1RP", NULL, "MICB1" },
 	{ "IN1RN", NULL, "MICB2" },
@@ -300,7 +345,8 @@ static struct snd_soc_dapm_route audio_paths[] = {
 	{ "Main Speaker", NULL, "SPKDAT" },
 };
 
-static struct snd_soc_card speyside = {
+static struct snd_soc_card speyside =
+{
 	.name = "Speyside",
 	.owner = THIS_MODULE,
 	.dai_link = speyside_dai,
@@ -332,14 +378,16 @@ static int speyside_probe(struct platform_device *pdev)
 	card->dev = &pdev->dev;
 
 	ret = devm_snd_soc_register_card(&pdev->dev, card);
+
 	if (ret)
 		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
-			ret);
+				ret);
 
 	return ret;
 }
 
-static struct platform_driver speyside_driver = {
+static struct platform_driver speyside_driver =
+{
 	.driver = {
 		.name = "speyside",
 		.pm = &snd_soc_pm_ops,

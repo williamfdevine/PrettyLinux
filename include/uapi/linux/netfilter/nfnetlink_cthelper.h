@@ -4,14 +4,16 @@
 #define NFCT_HELPER_STATUS_DISABLED	0
 #define NFCT_HELPER_STATUS_ENABLED	1
 
-enum nfnl_acct_msg_types {
+enum nfnl_acct_msg_types
+{
 	NFNL_MSG_CTHELPER_NEW,
 	NFNL_MSG_CTHELPER_GET,
 	NFNL_MSG_CTHELPER_DEL,
 	NFNL_MSG_CTHELPER_MAX
 };
 
-enum nfnl_cthelper_type {
+enum nfnl_cthelper_type
+{
 	NFCTH_UNSPEC,
 	NFCTH_NAME,
 	NFCTH_TUPLE,
@@ -23,7 +25,8 @@ enum nfnl_cthelper_type {
 };
 #define NFCTH_MAX (__NFCTH_MAX - 1)
 
-enum nfnl_cthelper_policy_type {
+enum nfnl_cthelper_policy_type
+{
 	NFCTH_POLICY_SET_UNSPEC,
 	NFCTH_POLICY_SET_NUM,
 	NFCTH_POLICY_SET,
@@ -35,7 +38,8 @@ enum nfnl_cthelper_policy_type {
 };
 #define NFCTH_POLICY_SET_MAX (__NFCTH_POLICY_SET_MAX - 1)
 
-enum nfnl_cthelper_pol_type {
+enum nfnl_cthelper_pol_type
+{
 	NFCTH_POLICY_UNSPEC,
 	NFCTH_POLICY_NAME,
 	NFCTH_POLICY_EXPECT_MAX,
@@ -44,7 +48,8 @@ enum nfnl_cthelper_pol_type {
 };
 #define NFCTH_POLICY_MAX (__NFCTH_POLICY_MAX - 1)
 
-enum nfnl_cthelper_tuple_type {
+enum nfnl_cthelper_tuple_type
+{
 	NFCTH_TUPLE_UNSPEC,
 	NFCTH_TUPLE_L3PROTONUM,
 	NFCTH_TUPLE_L4PROTONUM,

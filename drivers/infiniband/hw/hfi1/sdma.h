@@ -152,7 +152,8 @@
 #define SDMA_DESC1_INT_REQ_FLAG         BIT_ULL(1)
 #define SDMA_DESC1_HEAD_TO_HOST_FLAG    BIT_ULL(0)
 
-enum sdma_states {
+enum sdma_states
+{
 	sdma_state_s00_hw_down,
 	sdma_state_s10_hw_start_up_halt_wait,
 	sdma_state_s15_hw_start_up_clean_wait,
@@ -166,7 +167,8 @@ enum sdma_states {
 	sdma_state_s99_running,
 };
 
-enum sdma_events {
+enum sdma_events
+{
 	sdma_event_e00_go_hw_down,
 	sdma_event_e10_go_hw_start,
 	sdma_event_e15_hw_halt_done,
@@ -183,16 +185,18 @@ enum sdma_events {
 	sdma_event_e90_sw_halted,
 };
 
-struct sdma_set_state_action {
-	unsigned op_enable:1;
-	unsigned op_intenable:1;
-	unsigned op_halt:1;
-	unsigned op_cleanup:1;
-	unsigned go_s99_running_tofalse:1;
-	unsigned go_s99_running_totrue:1;
+struct sdma_set_state_action
+{
+	unsigned op_enable: 1;
+	unsigned op_intenable: 1;
+	unsigned op_halt: 1;
+	unsigned op_cleanup: 1;
+	unsigned go_s99_running_tofalse: 1;
+	unsigned go_s99_running_totrue: 1;
 };
 
-struct sdma_state {
+struct sdma_state
+{
 	struct kref          kref;
 	struct completion    comp;
 	enum sdma_states current_state;
@@ -301,7 +305,8 @@ struct sdma_state {
  *
  * This is the raw descriptor in the SDMA ring
  */
-struct hw_sdma_desc {
+struct hw_sdma_desc
+{
 	/* private:  don't use directly */
 	__le64 qw[2];
 };
@@ -318,7 +323,8 @@ struct hw_sdma_desc {
  * Accessing to non public fields are not supported
  * since the private members are subject to change.
  */
-struct sdma_engine {
+struct sdma_engine
+{
 	/* read mostly */
 	struct hfi1_devdata *dd;
 	struct hfi1_pportdata *ppd;
@@ -444,8 +450,8 @@ static inline int sdma_empty(struct sdma_engine *sde)
 static inline u16 sdma_descq_freecnt(struct sdma_engine *sde)
 {
 	return sde->descq_cnt -
-		(sde->descq_tail -
-		 ACCESS_ONCE(sde->descq_head)) - 1;
+		   (sde->descq_tail -
+			ACCESS_ONCE(sde->descq_head)) - 1;
 }
 
 static inline u16 sdma_descq_inprocess(struct sdma_engine *sde)
@@ -554,9 +560,15 @@ static inline int sdma_txinit_ahg(
 	void (*cb)(struct sdma_txreq *, int))
 {
 	if (tlen == 0)
+	{
 		return -ENODATA;
+	}
+
 	if (tlen > MAX_SDMA_PKT_SIZE)
+	{
 		return -EMSGSIZE;
+	}
+
 	tx->desc_limit = ARRAY_SIZE(tx->descs);
 	tx->descp = &tx->descs[0];
 	INIT_LIST_HEAD(&tx->list);
@@ -569,14 +581,18 @@ static inline int sdma_txinit_ahg(
 	tx->tlen = tx->packet_len;
 	tx->descs[0].qw[0] = SDMA_DESC0_FIRST_DESC_FLAG;
 	tx->descs[0].qw[1] = 0;
+
 	if (flags & SDMA_TXREQ_F_AHG_COPY)
 		tx->descs[0].qw[1] |=
 			(((u64)ahg_entry & SDMA_DESC1_HEADER_INDEX_MASK)
-				<< SDMA_DESC1_HEADER_INDEX_SHIFT) |
+			 << SDMA_DESC1_HEADER_INDEX_SHIFT) |
 			(((u64)SDMA_AHG_COPY & SDMA_DESC1_HEADER_MODE_MASK)
-				<< SDMA_DESC1_HEADER_MODE_SHIFT);
+			 << SDMA_DESC1_HEADER_MODE_SHIFT);
 	else if (flags & SDMA_TXREQ_F_USE_AHG && num_ahg)
+	{
 		_sdma_txreq_ahgadd(tx, num_ahg, ahg_entry, ahg, ahg_hlen);
+	}
+
 	return 0;
 }
 
@@ -624,19 +640,19 @@ static inline int sdma_txinit(
 static inline int sdma_mapping_type(struct sdma_desc *d)
 {
 	return (d->qw[1] & SDMA_DESC1_GENERATION_SMASK)
-		>> SDMA_DESC1_GENERATION_SHIFT;
+		   >> SDMA_DESC1_GENERATION_SHIFT;
 }
 
 static inline size_t sdma_mapping_len(struct sdma_desc *d)
 {
 	return (d->qw[0] & SDMA_DESC0_BYTE_COUNT_SMASK)
-		>> SDMA_DESC0_BYTE_COUNT_SHIFT;
+		   >> SDMA_DESC0_BYTE_COUNT_SHIFT;
 }
 
 static inline dma_addr_t sdma_mapping_addr(struct sdma_desc *d)
 {
 	return (d->qw[0] & SDMA_DESC0_PHY_ADDR_SMASK)
-		>> SDMA_DESC0_PHY_ADDR_SHIFT;
+		   >> SDMA_DESC0_PHY_ADDR_SHIFT;
 }
 
 static inline void make_tx_sdma_desc(
@@ -647,36 +663,41 @@ static inline void make_tx_sdma_desc(
 {
 	struct sdma_desc *desc = &tx->descp[tx->num_desc];
 
-	if (!tx->num_desc) {
+	if (!tx->num_desc)
+	{
 		/* qw[0] zero; qw[1] first, ahg mode already in from init */
 		desc->qw[1] |= ((u64)type & SDMA_DESC1_GENERATION_MASK)
-				<< SDMA_DESC1_GENERATION_SHIFT;
-	} else {
+					   << SDMA_DESC1_GENERATION_SHIFT;
+	}
+	else
+	{
 		desc->qw[0] = 0;
 		desc->qw[1] = ((u64)type & SDMA_DESC1_GENERATION_MASK)
-				<< SDMA_DESC1_GENERATION_SHIFT;
+					  << SDMA_DESC1_GENERATION_SHIFT;
 	}
+
 	desc->qw[0] |= (((u64)addr & SDMA_DESC0_PHY_ADDR_MASK)
-				<< SDMA_DESC0_PHY_ADDR_SHIFT) |
-			(((u64)len & SDMA_DESC0_BYTE_COUNT_MASK)
-				<< SDMA_DESC0_BYTE_COUNT_SHIFT);
+					<< SDMA_DESC0_PHY_ADDR_SHIFT) |
+				   (((u64)len & SDMA_DESC0_BYTE_COUNT_MASK)
+					<< SDMA_DESC0_BYTE_COUNT_SHIFT);
 }
 
 /* helper to extend txreq */
 int ext_coal_sdma_tx_descs(struct hfi1_devdata *dd, struct sdma_txreq *tx,
-			   int type, void *kvaddr, struct page *page,
-			   unsigned long offset, u16 len);
+						   int type, void *kvaddr, struct page *page,
+						   unsigned long offset, u16 len);
 int _pad_sdma_tx_descs(struct hfi1_devdata *, struct sdma_txreq *);
 void sdma_txclean(struct hfi1_devdata *, struct sdma_txreq *);
 
 /* helpers used by public routines */
 static inline void _sdma_close_tx(struct hfi1_devdata *dd,
-				  struct sdma_txreq *tx)
+								  struct sdma_txreq *tx)
 {
 	tx->descp[tx->num_desc].qw[0] |=
 		SDMA_DESC0_LAST_DESC_FLAG;
 	tx->descp[tx->num_desc].qw[1] |=
 		dd->default_desc1;
+
 	if (tx->flags & SDMA_TXREQ_F_URGENT)
 		tx->descp[tx->num_desc].qw[1] |=
 			(SDMA_DESC1_HEAD_TO_HOST_FLAG |
@@ -698,16 +719,25 @@ static inline int _sdma_txadd_daddr(
 		addr, len);
 	WARN_ON(len > tx->tlen);
 	tx->tlen -= len;
+
 	/* special cases for last */
-	if (!tx->tlen) {
-		if (tx->packet_len & (sizeof(u32) - 1)) {
+	if (!tx->tlen)
+	{
+		if (tx->packet_len & (sizeof(u32) - 1))
+		{
 			rval = _pad_sdma_tx_descs(dd, tx);
+
 			if (rval)
+			{
 				return rval;
-		} else {
+			}
+		}
+		else
+		{
 			_sdma_close_tx(dd, tx);
 		}
 	}
+
 	tx->num_desc++;
 	return rval;
 }
@@ -738,27 +768,32 @@ static inline int sdma_txadd_page(
 	dma_addr_t addr;
 	int rval;
 
-	if ((unlikely(tx->num_desc == tx->desc_limit))) {
+	if ((unlikely(tx->num_desc == tx->desc_limit)))
+	{
 		rval = ext_coal_sdma_tx_descs(dd, tx, SDMA_MAP_PAGE,
-					      NULL, page, offset, len);
+									  NULL, page, offset, len);
+
 		if (rval <= 0)
+		{
 			return rval;
+		}
 	}
 
 	addr = dma_map_page(
-		       &dd->pcidev->dev,
-		       page,
-		       offset,
-		       len,
-		       DMA_TO_DEVICE);
+			   &dd->pcidev->dev,
+			   page,
+			   offset,
+			   len,
+			   DMA_TO_DEVICE);
 
-	if (unlikely(dma_mapping_error(&dd->pcidev->dev, addr))) {
+	if (unlikely(dma_mapping_error(&dd->pcidev->dev, addr)))
+	{
 		sdma_txclean(dd, tx);
 		return -ENOSPC;
 	}
 
 	return _sdma_txadd_daddr(
-			dd, SDMA_MAP_PAGE, tx, addr, len);
+			   dd, SDMA_MAP_PAGE, tx, addr, len);
 }
 
 /**
@@ -785,11 +820,15 @@ static inline int sdma_txadd_daddr(
 {
 	int rval;
 
-	if ((unlikely(tx->num_desc == tx->desc_limit))) {
+	if ((unlikely(tx->num_desc == tx->desc_limit)))
+	{
 		rval = ext_coal_sdma_tx_descs(dd, tx, SDMA_MAP_NONE,
-					      NULL, NULL, 0, 0);
+									  NULL, NULL, 0, 0);
+
 		if (rval <= 0)
+		{
 			return rval;
+		}
 	}
 
 	return _sdma_txadd_daddr(dd, SDMA_MAP_NONE, tx, addr, len);
@@ -820,37 +859,42 @@ static inline int sdma_txadd_kvaddr(
 	dma_addr_t addr;
 	int rval;
 
-	if ((unlikely(tx->num_desc == tx->desc_limit))) {
+	if ((unlikely(tx->num_desc == tx->desc_limit)))
+	{
 		rval = ext_coal_sdma_tx_descs(dd, tx, SDMA_MAP_SINGLE,
-					      kvaddr, NULL, 0, len);
+									  kvaddr, NULL, 0, len);
+
 		if (rval <= 0)
+		{
 			return rval;
+		}
 	}
 
 	addr = dma_map_single(
-		       &dd->pcidev->dev,
-		       kvaddr,
-		       len,
-		       DMA_TO_DEVICE);
+			   &dd->pcidev->dev,
+			   kvaddr,
+			   len,
+			   DMA_TO_DEVICE);
 
-	if (unlikely(dma_mapping_error(&dd->pcidev->dev, addr))) {
+	if (unlikely(dma_mapping_error(&dd->pcidev->dev, addr)))
+	{
 		sdma_txclean(dd, tx);
 		return -ENOSPC;
 	}
 
 	return _sdma_txadd_daddr(
-			dd, SDMA_MAP_SINGLE, tx, addr, len);
+			   dd, SDMA_MAP_SINGLE, tx, addr, len);
 }
 
 struct iowait;
 
 int sdma_send_txreq(struct sdma_engine *sde,
-		    struct iowait *wait,
-		    struct sdma_txreq *tx);
+					struct iowait *wait,
+					struct sdma_txreq *tx);
 int sdma_send_txlist(struct sdma_engine *sde,
-		     struct iowait *wait,
-		     struct list_head *tx_list,
-		     u32 *count);
+					 struct iowait *wait,
+					 struct list_head *tx_list,
+					 u32 *count);
 
 int sdma_ahg_alloc(struct sdma_engine *sde);
 void sdma_ahg_free(struct sdma_engine *sde, int ahg_index);
@@ -871,14 +915,14 @@ static inline u32 sdma_build_ahg_descriptor(
 	u8 bits)
 {
 	return (u32)(1UL << SDMA_AHG_UPDATE_ENABLE_SHIFT |
-		((startbit & SDMA_AHG_FIELD_START_MASK) <<
-		SDMA_AHG_FIELD_START_SHIFT) |
-		((bits & SDMA_AHG_FIELD_LEN_MASK) <<
-		SDMA_AHG_FIELD_LEN_SHIFT) |
-		((dwindex & SDMA_AHG_INDEX_MASK) <<
-		SDMA_AHG_INDEX_SHIFT) |
-		((data & SDMA_AHG_VALUE_MASK) <<
-		SDMA_AHG_VALUE_SHIFT));
+				 ((startbit & SDMA_AHG_FIELD_START_MASK) <<
+				  SDMA_AHG_FIELD_START_SHIFT) |
+				 ((bits & SDMA_AHG_FIELD_LEN_MASK) <<
+				  SDMA_AHG_FIELD_LEN_SHIFT) |
+				 ((dwindex & SDMA_AHG_INDEX_MASK) <<
+				  SDMA_AHG_INDEX_SHIFT) |
+				 ((data & SDMA_AHG_VALUE_MASK) <<
+				  SDMA_AHG_VALUE_SHIFT));
 }
 
 /**
@@ -896,14 +940,20 @@ static inline u32 sdma_build_ahg_descriptor(
  * queue has enough descriptor for the txreq.
  */
 static inline unsigned sdma_progress(struct sdma_engine *sde, unsigned seq,
-				     struct sdma_txreq *tx)
+									 struct sdma_txreq *tx)
 {
-	if (read_seqretry(&sde->head_lock, seq)) {
+	if (read_seqretry(&sde->head_lock, seq))
+	{
 		sde->desc_avail = sdma_descq_freecnt(sde);
+
 		if (tx->num_desc > sde->desc_avail)
+		{
 			return 0;
+		}
+
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -1000,7 +1050,8 @@ void sdma_engine_interrupt(struct sdma_engine *sde, u64 status);
  * to produce index into the trailing
  * array of sdes.
  */
-struct sdma_map_elem {
+struct sdma_map_elem
+{
 	u32 mask;
 	struct sdma_engine *sde[0];
 };
@@ -1018,7 +1069,8 @@ struct sdma_map_elem {
  * members of the struct point to sdma_map_elem entries, which
  * in turn point to an array of sde's for that vl.
  */
-struct sdma_vl_map {
+struct sdma_vl_map
+{
 	s8 engine_to_vl[TXE_NUM_SDMA_ENGINES];
 	struct rcu_head list;
 	u32 mask;
@@ -1047,7 +1099,10 @@ static inline void sdma_engine_progress_schedule(
 	struct sdma_engine *sde)
 {
 	if (!sde || sdma_descq_inprocess(sde) < (sde->descq_cnt / 8))
+	{
 		return;
+	}
+
 	_sdma_engine_progress_schedule(sde);
 }
 
@@ -1062,17 +1117,17 @@ struct sdma_engine *sdma_select_engine_vl(
 	u8 vl);
 
 struct sdma_engine *sdma_select_user_engine(struct hfi1_devdata *dd,
-					    u32 selector, u8 vl);
+		u32 selector, u8 vl);
 ssize_t sdma_get_cpu_to_sde_map(struct sdma_engine *sde, char *buf);
 ssize_t sdma_set_cpu_to_sde_map(struct sdma_engine *sde, const char *buf,
-				size_t count);
+								size_t count);
 int sdma_engine_get_vl(struct sdma_engine *sde);
 void sdma_seqfile_dump_sde(struct seq_file *s, struct sdma_engine *);
 void sdma_seqfile_dump_cpu_list(struct seq_file *s, struct hfi1_devdata *dd,
-				unsigned long cpuid);
+								unsigned long cpuid);
 
 #ifdef CONFIG_SDMA_VERBOSITY
-void sdma_dumpstate(struct sdma_engine *);
+	void sdma_dumpstate(struct sdma_engine *);
 #endif
 static inline char *slashstrip(char *s)
 {
@@ -1080,7 +1135,10 @@ static inline char *slashstrip(char *s)
 
 	while (*s)
 		if (*s++ == '/')
+		{
 			r = s;
+		}
+
 	return r;
 }
 

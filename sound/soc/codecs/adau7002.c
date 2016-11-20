@@ -14,17 +14,20 @@
 
 #include <sound/soc.h>
 
-static const struct snd_soc_dapm_widget adau7002_widgets[] = {
+static const struct snd_soc_dapm_widget adau7002_widgets[] =
+{
 	SND_SOC_DAPM_INPUT("PDM_DAT"),
 	SND_SOC_DAPM_REGULATOR_SUPPLY("IOVDD", 0, 0),
 };
 
-static const struct snd_soc_dapm_route adau7002_routes[] = {
+static const struct snd_soc_dapm_route adau7002_routes[] =
+{
 	{ "Capture", NULL, "PDM_DAT" },
 	{ "Capture", NULL, "IOVDD" },
 };
 
-static struct snd_soc_dai_driver adau7002_dai = {
+static struct snd_soc_dai_driver adau7002_dai =
+{
 	.name = "adau7002-hifi",
 	.capture = {
 		.stream_name = "Capture",
@@ -32,13 +35,14 @@ static struct snd_soc_dai_driver adau7002_dai = {
 		.channels_max = 2,
 		.rates = SNDRV_PCM_RATE_8000_96000,
 		.formats = SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S18_3LE |
-			SNDRV_PCM_FMTBIT_S20_3LE | SNDRV_PCM_FMTBIT_S24_LE |
-			SNDRV_PCM_FMTBIT_S24_3LE | SNDRV_PCM_FMTBIT_S32_LE,
+		SNDRV_PCM_FMTBIT_S20_3LE | SNDRV_PCM_FMTBIT_S24_LE |
+		SNDRV_PCM_FMTBIT_S24_3LE | SNDRV_PCM_FMTBIT_S32_LE,
 		.sig_bits = 20,
 	},
 };
 
-static const struct snd_soc_codec_driver adau7002_codec_driver = {
+static const struct snd_soc_codec_driver adau7002_codec_driver =
+{
 	.component_driver = {
 		.dapm_widgets		= adau7002_widgets,
 		.num_dapm_widgets	= ARRAY_SIZE(adau7002_widgets),
@@ -50,7 +54,7 @@ static const struct snd_soc_codec_driver adau7002_codec_driver = {
 static int adau7002_probe(struct platform_device *pdev)
 {
 	return snd_soc_register_codec(&pdev->dev, &adau7002_codec_driver,
-			&adau7002_dai, 1);
+								  &adau7002_dai, 1);
 }
 
 static int adau7002_remove(struct platform_device *pdev)
@@ -60,14 +64,16 @@ static int adau7002_remove(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id adau7002_dt_ids[] = {
+static const struct of_device_id adau7002_dt_ids[] =
+{
 	{ .compatible = "adi,adau7002", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, adau7002_dt_ids);
 #endif
 
-static struct platform_driver adau7002_driver = {
+static struct platform_driver adau7002_driver =
+{
 	.driver = {
 		.name = "adau7002",
 		.of_match_table	= of_match_ptr(adau7002_dt_ids),

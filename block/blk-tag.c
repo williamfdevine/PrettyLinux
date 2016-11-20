@@ -35,9 +35,10 @@ EXPORT_SYMBOL(blk_queue_find_tag);
  */
 void blk_free_tags(struct blk_queue_tag *bqt)
 {
-	if (atomic_dec_and_test(&bqt->refcnt)) {
+	if (atomic_dec_and_test(&bqt->refcnt))
+	{
 		BUG_ON(find_first_bit(bqt->tag_map, bqt->max_depth) <
-							bqt->max_depth);
+			   bqt->max_depth);
 
 		kfree(bqt->tag_index);
 		bqt->tag_index = NULL;
@@ -63,7 +64,9 @@ void __blk_queue_free_tags(struct request_queue *q)
 	struct blk_queue_tag *bqt = q->queue_tags;
 
 	if (!bqt)
+	{
 		return;
+	}
 
 	blk_free_tags(bqt);
 
@@ -92,20 +95,27 @@ init_tag_map(struct request_queue *q, struct blk_queue_tag *tags, int depth)
 	unsigned long *tag_map;
 	int nr_ulongs;
 
-	if (q && depth > q->nr_requests * 2) {
+	if (q && depth > q->nr_requests * 2)
+	{
 		depth = q->nr_requests * 2;
 		printk(KERN_ERR "%s: adjusted depth to %d\n",
-		       __func__, depth);
+			   __func__, depth);
 	}
 
 	tag_index = kzalloc(depth * sizeof(struct request *), GFP_ATOMIC);
+
 	if (!tag_index)
+	{
 		goto fail;
+	}
 
 	nr_ulongs = ALIGN(depth, BITS_PER_LONG) / BITS_PER_LONG;
 	tag_map = kzalloc(nr_ulongs * sizeof(unsigned long), GFP_ATOMIC);
+
 	if (!tag_map)
+	{
 		goto fail;
+	}
 
 	tags->real_max_depth = depth;
 	tags->max_depth = depth;
@@ -119,16 +129,21 @@ fail:
 }
 
 static struct blk_queue_tag *__blk_queue_init_tags(struct request_queue *q,
-						int depth, int alloc_policy)
+		int depth, int alloc_policy)
 {
 	struct blk_queue_tag *tags;
 
 	tags = kmalloc(sizeof(struct blk_queue_tag), GFP_ATOMIC);
+
 	if (!tags)
+	{
 		goto fail;
+	}
 
 	if (init_tag_map(q, tags, depth))
+	{
 		goto fail;
+	}
 
 	atomic_set(&tags->refcnt, 1);
 	tags->alloc_policy = alloc_policy;
@@ -161,26 +176,38 @@ EXPORT_SYMBOL(blk_init_tags);
  * existing map.
  **/
 int blk_queue_init_tags(struct request_queue *q, int depth,
-			struct blk_queue_tag *tags, int alloc_policy)
+						struct blk_queue_tag *tags, int alloc_policy)
 {
 	int rc;
 
 	BUG_ON(tags && q->queue_tags && tags != q->queue_tags);
 
-	if (!tags && !q->queue_tags) {
+	if (!tags && !q->queue_tags)
+	{
 		tags = __blk_queue_init_tags(q, depth, alloc_policy);
 
 		if (!tags)
+		{
 			return -ENOMEM;
+		}
 
-	} else if (q->queue_tags) {
+	}
+	else if (q->queue_tags)
+	{
 		rc = blk_queue_resize_tags(q, depth);
+
 		if (rc)
+		{
 			return rc;
+		}
+
 		queue_flag_set(QUEUE_FLAG_QUEUED, q);
 		return 0;
-	} else
+	}
+	else
+	{
 		atomic_inc(&tags->refcnt);
+	}
 
 	/*
 	 * assign it, all done
@@ -208,7 +235,9 @@ int blk_queue_resize_tags(struct request_queue *q, int new_depth)
 	int max_depth, nr_ulongs;
 
 	if (!bqt)
+	{
 		return -ENXIO;
+	}
 
 	/*
 	 * if we already have large enough real_max_depth.  just
@@ -216,7 +245,8 @@ int blk_queue_resize_tags(struct request_queue *q, int new_depth)
 	 * between new_depth and real_max_depth can be in-flight, tag
 	 * map can not be shrunk blindly here.
 	 */
-	if (new_depth <= bqt->real_max_depth) {
+	if (new_depth <= bqt->real_max_depth)
+	{
 		bqt->max_depth = new_depth;
 		return 0;
 	}
@@ -226,7 +256,9 @@ int blk_queue_resize_tags(struct request_queue *q, int new_depth)
 	 * one, so error out if this is the case
 	 */
 	if (atomic_read(&bqt->refcnt) != 1)
+	{
 		return -EBUSY;
+	}
 
 	/*
 	 * save the old state info, so we can copy it back
@@ -236,7 +268,9 @@ int blk_queue_resize_tags(struct request_queue *q, int new_depth)
 	max_depth = bqt->real_max_depth;
 
 	if (init_tag_map(q, bqt, new_depth))
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(bqt->tag_index, tag_index, max_depth * sizeof(struct request *));
 	nr_ulongs = ALIGN(max_depth, BITS_PER_LONG) / BITS_PER_LONG;
@@ -275,15 +309,17 @@ void blk_queue_end_tag(struct request_queue *q, struct request *rq)
 
 	if (unlikely(bqt->tag_index[tag] == NULL))
 		printk(KERN_ERR "%s: tag %d is missing\n",
-		       __func__, tag);
+			   __func__, tag);
 
 	bqt->tag_index[tag] = NULL;
 
-	if (unlikely(!test_bit(tag, bqt->tag_map))) {
+	if (unlikely(!test_bit(tag, bqt->tag_map)))
+	{
 		printk(KERN_ERR "%s: attempt to clear non-busy tag (%d)\n",
-		       __func__, tag);
+			   __func__, tag);
 		return;
 	}
+
 	/*
 	 * The tag_map bit acts as a lock for tag_index[bit], so we need
 	 * unlock memory barrier semantics.
@@ -316,11 +352,12 @@ int blk_queue_start_tag(struct request_queue *q, struct request *rq)
 	unsigned max_depth;
 	int tag;
 
-	if (unlikely((rq->cmd_flags & REQ_QUEUED))) {
+	if (unlikely((rq->cmd_flags & REQ_QUEUED)))
+	{
 		printk(KERN_ERR
-		       "%s: request %p for device [%s] already tagged %d",
-		       __func__, rq,
-		       rq->rq_disk ? rq->rq_disk->disk_name : "?", rq->tag);
+			   "%s: request %p for device [%s] already tagged %d",
+			   __func__, rq,
+			   rq->rq_disk ? rq->rq_disk->disk_name : "?", rq->tag);
 		BUG();
 	}
 
@@ -332,39 +369,61 @@ int blk_queue_start_tag(struct request_queue *q, struct request *rq)
 	 * to starve sync IO on behalf of flooding async IO.
 	 */
 	max_depth = bqt->max_depth;
-	if (!rq_is_sync(rq) && max_depth > 1) {
-		switch (max_depth) {
-		case 2:
-			max_depth = 1;
-			break;
-		case 3:
-			max_depth = 2;
-			break;
-		default:
-			max_depth -= 2;
+
+	if (!rq_is_sync(rq) && max_depth > 1)
+	{
+		switch (max_depth)
+		{
+			case 2:
+				max_depth = 1;
+				break;
+
+			case 3:
+				max_depth = 2;
+				break;
+
+			default:
+				max_depth -= 2;
 		}
+
 		if (q->in_flight[BLK_RW_ASYNC] > max_depth)
+		{
 			return 1;
+		}
 	}
 
-	do {
-		if (bqt->alloc_policy == BLK_TAG_ALLOC_FIFO) {
+	do
+	{
+		if (bqt->alloc_policy == BLK_TAG_ALLOC_FIFO)
+		{
 			tag = find_first_zero_bit(bqt->tag_map, max_depth);
+
 			if (tag >= max_depth)
+			{
 				return 1;
-		} else {
+			}
+		}
+		else
+		{
 			int start = bqt->next_tag;
 			int size = min_t(int, bqt->max_depth, max_depth + start);
 			tag = find_next_zero_bit(bqt->tag_map, size, start);
-			if (tag >= size && start + size > bqt->max_depth) {
+
+			if (tag >= size && start + size > bqt->max_depth)
+			{
 				size = start + size - bqt->max_depth;
 				tag = find_first_zero_bit(bqt->tag_map, size);
 			}
+
 			if (tag >= size)
+			{
 				return 1;
+			}
 		}
 
-	} while (test_and_set_bit_lock(tag, bqt->tag_map));
+	}
+	while (test_and_set_bit_lock(tag, bqt->tag_map));
+
 	/*
 	 * We need lock ordering semantics given by test_and_set_bit_lock.
 	 * See blk_queue_end_tag for details.
@@ -397,6 +456,6 @@ void blk_queue_invalidate_tags(struct request_queue *q)
 	struct list_head *tmp, *n;
 
 	list_for_each_safe(tmp, n, &q->tag_busy_list)
-		blk_requeue_request(q, list_entry_rq(tmp));
+	blk_requeue_request(q, list_entry_rq(tmp));
 }
 EXPORT_SYMBOL(blk_queue_invalidate_tags);

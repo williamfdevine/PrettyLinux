@@ -14,7 +14,8 @@
 
 #define ADT7316_REG_MAX_ADDR		0x3F
 
-struct adt7316_bus {
+struct adt7316_bus
+{
 	void *client;
 	int irq;
 	int irq_flags;
@@ -25,12 +26,12 @@ struct adt7316_bus {
 };
 
 #ifdef CONFIG_PM_SLEEP
-extern const struct dev_pm_ops adt7316_pm_ops;
-#define ADT7316_PM_OPS (&adt7316_pm_ops)
+	extern const struct dev_pm_ops adt7316_pm_ops;
+	#define ADT7316_PM_OPS (&adt7316_pm_ops)
 #else
-#define ADT7316_PM_OPS NULL
+	#define ADT7316_PM_OPS NULL
 #endif
 int adt7316_probe(struct device *dev, struct adt7316_bus *bus,
-		   const char *name);
+				  const char *name);
 
 #endif

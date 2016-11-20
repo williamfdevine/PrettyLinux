@@ -11,7 +11,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table twinhan_dtv_cab_ci[] = {
+static struct rc_map_table twinhan_dtv_cab_ci[] =
+{
 	{ 0x29, KEY_POWER},
 	{ 0x28, KEY_FAVORITES},
 	{ 0x30, KEY_TEXT},
@@ -73,7 +74,8 @@ static struct rc_map_table twinhan_dtv_cab_ci[] = {
 	{ 0x00, KEY_BLUE},
 };
 
-static struct rc_map_list twinhan_dtv_cab_ci_map = {
+static struct rc_map_list twinhan_dtv_cab_ci_map =
+{
 	.map = {
 		.scan    = twinhan_dtv_cab_ci,
 		.size    = ARRAY_SIZE(twinhan_dtv_cab_ci),

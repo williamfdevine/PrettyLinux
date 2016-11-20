@@ -16,7 +16,8 @@
 
 #include <linux/pinctrl/pinctrl-state.h>
 
-enum pinctrl_map_type {
+enum pinctrl_map_type
+{
 	PIN_MAP_TYPE_INVALID,
 	PIN_MAP_TYPE_DUMMY_STATE,
 	PIN_MAP_TYPE_MUX_GROUP,
@@ -31,7 +32,8 @@ enum pinctrl_map_type {
  *	will be used.
  * @function: the mux function to select for the group
  */
-struct pinctrl_map_mux {
+struct pinctrl_map_mux
+{
 	const char *group;
 	const char *function;
 };
@@ -45,7 +47,8 @@ struct pinctrl_map_mux {
  *	of config parameters.
  * @num_configs: the number of entries in array @configs
  */
-struct pinctrl_map_configs {
+struct pinctrl_map_configs
+{
 	const char *group_or_pin;
 	unsigned long *configs;
 	unsigned num_configs;
@@ -65,12 +68,14 @@ struct pinctrl_map_configs {
  *	used for PIN_MAP_TYPE_DUMMY_STATE
  * @data: Data specific to the mapping type
  */
-struct pinctrl_map {
+struct pinctrl_map
+{
 	const char *dev_name;
 	const char *name;
 	enum pinctrl_map_type type;
 	const char *ctrl_dev_name;
-	union {
+	union
+	{
 		struct pinctrl_map_mux mux;
 		struct pinctrl_map_configs configs;
 	} data;
@@ -81,20 +86,20 @@ struct pinctrl_map {
 #define PIN_MAP_DUMMY_STATE(dev, state) \
 	{								\
 		.dev_name = dev,					\
-		.name = state,						\
-		.type = PIN_MAP_TYPE_DUMMY_STATE,			\
+					.name = state,						\
+							.type = PIN_MAP_TYPE_DUMMY_STATE,			\
 	}
 
 #define PIN_MAP_MUX_GROUP(dev, state, pinctrl, grp, func)		\
 	{								\
 		.dev_name = dev,					\
-		.name = state,						\
-		.type = PIN_MAP_TYPE_MUX_GROUP,				\
-		.ctrl_dev_name = pinctrl,				\
-		.data.mux = {						\
-			.group = grp,					\
-			.function = func,				\
-		},							\
+					.name = state,						\
+							.type = PIN_MAP_TYPE_MUX_GROUP,				\
+									.ctrl_dev_name = pinctrl,				\
+											.data.mux = {						\
+																				.group = grp,					\
+																				.function = func,				\
+														},							\
 	}
 
 #define PIN_MAP_MUX_GROUP_DEFAULT(dev, pinctrl, grp, func)		\
@@ -109,14 +114,14 @@ struct pinctrl_map {
 #define PIN_MAP_CONFIGS_PIN(dev, state, pinctrl, pin, cfgs)		\
 	{								\
 		.dev_name = dev,					\
-		.name = state,						\
-		.type = PIN_MAP_TYPE_CONFIGS_PIN,			\
-		.ctrl_dev_name = pinctrl,				\
-		.data.configs = {					\
-			.group_or_pin = pin,				\
-			.configs = cfgs,				\
-			.num_configs = ARRAY_SIZE(cfgs),		\
-		},							\
+					.name = state,						\
+							.type = PIN_MAP_TYPE_CONFIGS_PIN,			\
+									.ctrl_dev_name = pinctrl,				\
+											.data.configs = {					\
+																				.group_or_pin = pin,				\
+																				.configs = cfgs,				\
+																				.num_configs = ARRAY_SIZE(cfgs),		\
+															},							\
 	}
 
 #define PIN_MAP_CONFIGS_PIN_DEFAULT(dev, pinctrl, pin, cfgs)		\
@@ -131,14 +136,14 @@ struct pinctrl_map {
 #define PIN_MAP_CONFIGS_GROUP(dev, state, pinctrl, grp, cfgs)		\
 	{								\
 		.dev_name = dev,					\
-		.name = state,						\
-		.type = PIN_MAP_TYPE_CONFIGS_GROUP,			\
-		.ctrl_dev_name = pinctrl,				\
-		.data.configs = {					\
-			.group_or_pin = grp,				\
-			.configs = cfgs,				\
-			.num_configs = ARRAY_SIZE(cfgs),		\
-		},							\
+					.name = state,						\
+							.type = PIN_MAP_TYPE_CONFIGS_GROUP,			\
+									.ctrl_dev_name = pinctrl,				\
+											.data.configs = {					\
+																				.group_or_pin = grp,				\
+																				.configs = cfgs,				\
+																				.num_configs = ARRAY_SIZE(cfgs),		\
+															},							\
 	}
 
 #define PIN_MAP_CONFIGS_GROUP_DEFAULT(dev, pinctrl, grp, cfgs)		\
@@ -153,12 +158,12 @@ struct pinctrl_map {
 #ifdef CONFIG_PINCTRL
 
 extern int pinctrl_register_mappings(struct pinctrl_map const *map,
-				unsigned num_maps);
+									 unsigned num_maps);
 extern void pinctrl_provide_dummies(void);
 #else
 
 static inline int pinctrl_register_mappings(struct pinctrl_map const *map,
-					   unsigned num_maps)
+		unsigned num_maps)
 {
 	return 0;
 }

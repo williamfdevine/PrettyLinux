@@ -32,7 +32,8 @@
 
 static struct pmc_dev pmc;
 
-static const struct pci_device_id pmc_pci_ids[] = {
+static const struct pci_device_id pmc_pci_ids[] =
+{
 	{ PCI_VDEVICE(INTEL, SPT_PMC_PCI_DEVICE_ID), (kernel_ulong_t)NULL },
 	{ 0, },
 };
@@ -68,7 +69,9 @@ int intel_pmc_slp_s0_counter_read(u32 *data)
 	u32 value;
 
 	if (!pmcdev->has_slp_s0_res)
+	{
 		return -EACCES;
+	}
 
 	value = pmc_core_reg_read(pmcdev, SPT_PMC_SLP_S0_RES_COUNTER_OFFSET);
 	*data = pmc_core_adjust_slp_s0_step(value);
@@ -100,14 +103,18 @@ static int pmc_core_dbgfs_register(struct pmc_dev *pmcdev)
 	struct dentry *dir, *file;
 
 	dir = debugfs_create_dir("pmc_core", NULL);
+
 	if (!dir)
+	{
 		return -ENOMEM;
+	}
 
 	pmcdev->dbgfs_dir = dir;
 	file = debugfs_create_file("slp_s0_residency_usec", S_IFREG | S_IRUGO,
-				   dir, pmcdev, &pmc_core_dev_state);
+							   dir, pmcdev, &pmc_core_dev_state);
 
-	if (!file) {
+	if (!file)
+	{
 		pmc_core_dbgfs_unregister(pmcdev);
 		return -ENODEV;
 	}
@@ -115,11 +122,16 @@ static int pmc_core_dbgfs_register(struct pmc_dev *pmcdev)
 	return 0;
 }
 
-static const struct x86_cpu_id intel_pmc_core_ids[] = {
-	{ X86_VENDOR_INTEL, 6, INTEL_FAM6_SKYLAKE_MOBILE, X86_FEATURE_MWAIT,
-		(kernel_ulong_t)NULL},
-	{ X86_VENDOR_INTEL, 6, INTEL_FAM6_SKYLAKE_DESKTOP, X86_FEATURE_MWAIT,
-		(kernel_ulong_t)NULL},
+static const struct x86_cpu_id intel_pmc_core_ids[] =
+{
+	{
+		X86_VENDOR_INTEL, 6, INTEL_FAM6_SKYLAKE_MOBILE, X86_FEATURE_MWAIT,
+		(kernel_ulong_t)NULL
+	},
+	{
+		X86_VENDOR_INTEL, 6, INTEL_FAM6_SKYLAKE_DESKTOP, X86_FEATURE_MWAIT,
+		(kernel_ulong_t)NULL
+	},
 	{}
 };
 
@@ -131,43 +143,56 @@ static int pmc_core_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	int err;
 
 	cpu_id = x86_match_cpu(intel_pmc_core_ids);
-	if (!cpu_id) {
+
+	if (!cpu_id)
+	{
 		dev_dbg(&dev->dev, "PMC Core: cpuid mismatch.\n");
 		return -EINVAL;
 	}
 
 	err = pcim_enable_device(dev);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_dbg(&dev->dev, "PMC Core: failed to enable Power Management Controller.\n");
 		return err;
 	}
 
 	err = pci_read_config_dword(dev,
-				    SPT_PMC_BASE_ADDR_OFFSET,
-				    &pmcdev->base_addr);
-	if (err < 0) {
+								SPT_PMC_BASE_ADDR_OFFSET,
+								&pmcdev->base_addr);
+
+	if (err < 0)
+	{
 		dev_dbg(&dev->dev, "PMC Core: failed to read PCI config space.\n");
 		return err;
 	}
+
 	dev_dbg(&dev->dev, "PMC Core: PWRMBASE is %#x\n", pmcdev->base_addr);
 
 	pmcdev->regbase = devm_ioremap_nocache(ptr_dev,
-					      pmcdev->base_addr,
-					      SPT_PMC_MMIO_REG_LEN);
-	if (!pmcdev->regbase) {
+										   pmcdev->base_addr,
+										   SPT_PMC_MMIO_REG_LEN);
+
+	if (!pmcdev->regbase)
+	{
 		dev_dbg(&dev->dev, "PMC Core: ioremap failed.\n");
 		return -ENOMEM;
 	}
 
 	err = pmc_core_dbgfs_register(pmcdev);
+
 	if (err < 0)
+	{
 		dev_warn(&dev->dev, "PMC Core: debugfs register failed.\n");
+	}
 
 	pmc.has_slp_s0_res = true;
 	return 0;
 }
 
-static struct pci_driver intel_pmc_core_driver = {
+static struct pci_driver intel_pmc_core_driver =
+{
 	.name = "intel_pmc_core",
 	.id_table = pmc_pci_ids,
 	.probe = pmc_core_probe,

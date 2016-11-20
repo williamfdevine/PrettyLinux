@@ -87,7 +87,8 @@
 #define QLA83XX_FW_API			0x356C
 #define QLA83XX_DRV_OP_MODE		0x3570
 
-static const uint32_t qla4_83xx_reg_tbl[] = {
+static const uint32_t qla4_83xx_reg_tbl[] =
+{
 	QLA83XX_PEG_HALT_STATUS1,
 	QLA83XX_PEG_HALT_STATUS2,
 	QLA83XX_PEG_ALIVE_COUNTER,
@@ -176,7 +177,8 @@ static const uint32_t qla4_83xx_reg_tbl[] = {
 
 /* Template Header */
 #define RESET_TMPLT_HDR_SIGNATURE	0xCAFE
-struct qla4_83xx_reset_template_hdr {
+struct qla4_83xx_reset_template_hdr
+{
 	__le16	version;
 	__le16	signature;
 	__le16	size;
@@ -188,7 +190,8 @@ struct qla4_83xx_reset_template_hdr {
 } __packed;
 
 /* Common Entry Header. */
-struct qla4_83xx_reset_entry_hdr {
+struct qla4_83xx_reset_entry_hdr
+{
 	__le16 cmd;
 	__le16 size;
 	__le16 count;
@@ -196,13 +199,15 @@ struct qla4_83xx_reset_entry_hdr {
 } __packed;
 
 /* Generic poll entry type. */
-struct qla4_83xx_poll {
+struct qla4_83xx_poll
+{
 	__le32  test_mask;
 	__le32  test_value;
 } __packed;
 
 /* Read modify write entry type. */
-struct qla4_83xx_rmw {
+struct qla4_83xx_rmw
+{
 	__le32  test_mask;
 	__le32  xor_value;
 	__le32  or_value;
@@ -213,20 +218,23 @@ struct qla4_83xx_rmw {
 } __packed;
 
 /* Generic Entry Item with 2 DWords. */
-struct qla4_83xx_entry {
+struct qla4_83xx_entry
+{
 	__le32 arg1;
 	__le32 arg2;
 } __packed;
 
 /* Generic Entry Item with 4 DWords.*/
-struct qla4_83xx_quad_entry {
+struct qla4_83xx_quad_entry
+{
 	__le32 dr_addr;
 	__le32 dr_value;
 	__le32 ar_addr;
 	__le32 ar_value;
 } __packed;
 
-struct qla4_83xx_reset_template {
+struct qla4_83xx_reset_template
+{
 	int seq_index;
 	int seq_error;
 	int array_index;
@@ -241,7 +249,8 @@ struct qla4_83xx_reset_template {
 };
 
 /* POLLRD Entry */
-struct qla83xx_minidump_entry_pollrd {
+struct qla83xx_minidump_entry_pollrd
+{
 	struct qla8xxx_minidump_entry_hdr h;
 	uint32_t select_addr;
 	uint32_t read_addr;
@@ -254,7 +263,8 @@ struct qla83xx_minidump_entry_pollrd {
 	uint32_t rsvd_1;
 };
 
-struct qla8044_minidump_entry_rddfe {
+struct qla8044_minidump_entry_rddfe
+{
 	struct qla8xxx_minidump_entry_hdr h;
 	uint32_t addr_1;
 	uint32_t value;
@@ -269,7 +279,8 @@ struct qla8044_minidump_entry_rddfe {
 
 } __packed;
 
-struct qla8044_minidump_entry_rdmdio {
+struct qla8044_minidump_entry_rdmdio
+{
 	struct qla8xxx_minidump_entry_hdr h;
 
 	uint32_t addr_1;
@@ -285,7 +296,8 @@ struct qla8044_minidump_entry_rdmdio {
 
 } __packed;
 
-struct qla8044_minidump_entry_pollwr {
+struct qla8044_minidump_entry_pollwr
+{
 	struct qla8xxx_minidump_entry_hdr h;
 	uint32_t addr_1;
 	uint32_t addr_2;
@@ -299,7 +311,8 @@ struct qla8044_minidump_entry_pollwr {
 } __packed;
 
 /* RDMUX2 Entry */
-struct qla83xx_minidump_entry_rdmux2 {
+struct qla83xx_minidump_entry_rdmux2
+{
 	struct qla8xxx_minidump_entry_hdr h;
 	uint32_t select_addr_1;
 	uint32_t select_addr_2;
@@ -314,7 +327,8 @@ struct qla83xx_minidump_entry_rdmux2 {
 };
 
 /* POLLRDMWR Entry */
-struct qla83xx_minidump_entry_pollrdmwr {
+struct qla83xx_minidump_entry_pollrdmwr
+{
 	struct qla8xxx_minidump_entry_hdr h;
 	uint32_t addr_1;
 	uint32_t addr_2;
@@ -327,7 +341,8 @@ struct qla83xx_minidump_entry_pollrdmwr {
 };
 
 /* IDC additional information */
-struct qla4_83xx_idc_information {
+struct qla4_83xx_idc_information
+{
 	uint32_t request_desc;  /* IDC request descriptor */
 	uint32_t info1; /* IDC additional info */
 	uint32_t info2; /* IDC additional info */
@@ -345,7 +360,8 @@ struct qla4_83xx_idc_information {
 #define QLA83XX_PEX_DMA_MAX_WAIT	(100 * 100) /* Max wait of 100 msecs */
 
 /* Read Memory: For Pex-DMA */
-struct qla4_83xx_minidump_entry_rdmem_pex_dma {
+struct qla4_83xx_minidump_entry_rdmem_pex_dma
+{
 	struct qla8xxx_minidump_entry_hdr h;
 	uint32_t desc_card_addr;
 	uint16_t dma_desc_cmd;
@@ -356,8 +372,10 @@ struct qla4_83xx_minidump_entry_rdmem_pex_dma {
 	uint32_t read_data_size;
 };
 
-struct qla4_83xx_pex_dma_descriptor {
-	struct {
+struct qla4_83xx_pex_dma_descriptor
+{
+	struct
+	{
 		uint32_t read_data_size; /* 0-23: size, 24-31: rsvd */
 		uint8_t rsvd[2];
 		uint16_t dma_desc_cmd;

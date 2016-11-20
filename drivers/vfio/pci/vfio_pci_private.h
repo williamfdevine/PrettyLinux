@@ -29,7 +29,8 @@
 #define PCI_CAP_ID_INVALID		0xFF	/* default raw access */
 #define PCI_CAP_ID_INVALID_VIRT		0xFE	/* default virt access */
 
-struct vfio_pci_irq_ctx {
+struct vfio_pci_irq_ctx
+{
 	struct eventfd_ctx	*trigger;
 	struct virqfd		*unmask;
 	struct virqfd		*mask;
@@ -41,14 +42,16 @@ struct vfio_pci_irq_ctx {
 struct vfio_pci_device;
 struct vfio_pci_region;
 
-struct vfio_pci_regops {
+struct vfio_pci_regops
+{
 	size_t	(*rw)(struct vfio_pci_device *vdev, char __user *buf,
-		      size_t count, loff_t *ppos, bool iswrite);
+				  size_t count, loff_t *ppos, bool iswrite);
 	void	(*release)(struct vfio_pci_device *vdev,
-			   struct vfio_pci_region *region);
+					   struct vfio_pci_region *region);
 };
 
-struct vfio_pci_region {
+struct vfio_pci_region
+{
 	u32				type;
 	u32				subtype;
 	const struct vfio_pci_regops	*ops;
@@ -57,13 +60,15 @@ struct vfio_pci_region {
 	u32				flags;
 };
 
-struct vfio_pci_dummy_resource {
+struct vfio_pci_dummy_resource
+{
 	struct resource		resource;
 	int			index;
 	struct list_head	res_next;
 };
 
-struct vfio_pci_device {
+struct vfio_pci_device
+{
 	struct pci_dev		*pdev;
 	void __iomem		*barmap[PCI_STD_RESOURCE_END + 1];
 	bool			bar_mmap_supported[PCI_STD_RESOURCE_END + 1];
@@ -107,18 +112,18 @@ extern void vfio_pci_intx_mask(struct vfio_pci_device *vdev);
 extern void vfio_pci_intx_unmask(struct vfio_pci_device *vdev);
 
 extern int vfio_pci_set_irqs_ioctl(struct vfio_pci_device *vdev,
-				   uint32_t flags, unsigned index,
-				   unsigned start, unsigned count, void *data);
+								   uint32_t flags, unsigned index,
+								   unsigned start, unsigned count, void *data);
 
 extern ssize_t vfio_pci_config_rw(struct vfio_pci_device *vdev,
-				  char __user *buf, size_t count,
-				  loff_t *ppos, bool iswrite);
+								  char __user *buf, size_t count,
+								  loff_t *ppos, bool iswrite);
 
 extern ssize_t vfio_pci_bar_rw(struct vfio_pci_device *vdev, char __user *buf,
-			       size_t count, loff_t *ppos, bool iswrite);
+							   size_t count, loff_t *ppos, bool iswrite);
 
 extern ssize_t vfio_pci_vga_rw(struct vfio_pci_device *vdev, char __user *buf,
-			       size_t count, loff_t *ppos, bool iswrite);
+							   size_t count, loff_t *ppos, bool iswrite);
 
 extern int vfio_pci_init_perm_bits(void);
 extern void vfio_pci_uninit_perm_bits(void);
@@ -127,9 +132,9 @@ extern int vfio_config_init(struct vfio_pci_device *vdev);
 extern void vfio_config_free(struct vfio_pci_device *vdev);
 
 extern int vfio_pci_register_dev_region(struct vfio_pci_device *vdev,
-					unsigned int type, unsigned int subtype,
-					const struct vfio_pci_regops *ops,
-					size_t size, u32 flags, void *data);
+										unsigned int type, unsigned int subtype,
+										const struct vfio_pci_regops *ops,
+										size_t size, u32 flags, void *data);
 #ifdef CONFIG_VFIO_PCI_IGD
 extern int vfio_pci_igd_init(struct vfio_pci_device *vdev);
 #else

@@ -34,7 +34,8 @@
 #define KONA_GPTIMER_STCS_TIMER_MATCH_SHIFT		0
 #define KONA_GPTIMER_STCS_COMPARE_ENABLE_SHIFT		4
 
-struct kona_bcm_timers {
+struct kona_bcm_timers
+{
 	int tmr_irq;
 	void __iomem *tmr_regs;
 };
@@ -83,13 +84,20 @@ kona_timer_get_counter(void __iomem *timer_base, uint32_t *msw, uint32_t *lsw)
 	 *      if new hi-word is equal to previously read hi-word then stop.
 	 */
 
-	do {
+	do
+	{
 		*msw = readl(timer_base + KONA_GPTIMER_STCHI_OFFSET);
 		*lsw = readl(timer_base + KONA_GPTIMER_STCLO_OFFSET);
+
 		if (*msw == readl(timer_base + KONA_GPTIMER_STCHI_OFFSET))
+		{
 			break;
-	} while (--loop_limit);
-	if (!loop_limit) {
+		}
+	}
+	while (--loop_limit);
+
+	if (!loop_limit)
+	{
 		pr_err("bcm_kona_timer: getting counter failed.\n");
 		pr_err(" Timer will be impacted\n");
 		return -ETIMEDOUT;
@@ -99,7 +107,7 @@ kona_timer_get_counter(void __iomem *timer_base, uint32_t *msw, uint32_t *lsw)
 }
 
 static int kona_timer_set_next_event(unsigned long clc,
-				  struct clock_event_device *unused)
+									 struct clock_event_device *unused)
 {
 	/*
 	 * timer (0) is disabled by the timer interrupt already
@@ -116,8 +124,11 @@ static int kona_timer_set_next_event(unsigned long clc,
 	int ret;
 
 	ret = kona_timer_get_counter(timers.tmr_regs, &msw, &lsw);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Load the "next" event tick value */
 	writel(lsw + clc, timers.tmr_regs + KONA_GPTIMER_STCM0_OFFSET);
@@ -136,7 +147,8 @@ static int kona_timer_shutdown(struct clock_event_device *evt)
 	return 0;
 }
 
-static struct clock_event_device kona_clockevent_timer = {
+static struct clock_event_device kona_clockevent_timer =
+{
 	.name = "timer 1",
 	.features = CLOCK_EVT_FEAT_ONESHOT,
 	.set_next_event = kona_timer_set_next_event,
@@ -148,7 +160,7 @@ static void __init kona_timer_clockevents_init(void)
 {
 	kona_clockevent_timer.cpumask = cpumask_of(0);
 	clockevents_config_and_register(&kona_clockevent_timer,
-		arch_timer_rate, 6, 0xffffffff);
+									arch_timer_rate, 6, 0xffffffff);
 }
 
 static irqreturn_t kona_timer_interrupt(int irq, void *dev_id)
@@ -160,7 +172,8 @@ static irqreturn_t kona_timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction kona_timer_irq = {
+static struct irqaction kona_timer_irq =
+{
 	.name = "Kona Timer Tick",
 	.flags = IRQF_TIMER,
 	.handler = kona_timer_interrupt,
@@ -173,12 +186,17 @@ static int __init kona_timer_init(struct device_node *node)
 
 	external_clk = of_clk_get_by_name(node, NULL);
 
-	if (!IS_ERR(external_clk)) {
+	if (!IS_ERR(external_clk))
+	{
 		arch_timer_rate = clk_get_rate(external_clk);
 		clk_prepare_enable(external_clk);
-	} else if (!of_property_read_u32(node, "clock-frequency", &freq)) {
+	}
+	else if (!of_property_read_u32(node, "clock-frequency", &freq))
+	{
 		arch_timer_rate = freq;
-	} else {
+	}
+	else
+	{
 		pr_err("Kona Timer v1 unable to determine clock-frequency");
 		return -EINVAL;
 	}

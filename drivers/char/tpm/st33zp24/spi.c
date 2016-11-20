@@ -64,10 +64,11 @@
  * We have 2048 + 1024 + 15.
  */
 #define ST33ZP24_SPI_BUFFER_SIZE (TPM_BUFSIZE + (TPM_BUFSIZE / 2) +\
-				  MAX_SPI_LATENCY)
+								  MAX_SPI_LATENCY)
 
 
-struct st33zp24_spi_phy {
+struct st33zp24_spi_phy
+{
 	struct spi_device *spi_device;
 
 	u8 tx_buf[ST33ZP24_SPI_BUFFER_SIZE];
@@ -79,25 +80,30 @@ struct st33zp24_spi_phy {
 
 static int st33zp24_status_to_errno(u8 code)
 {
-	switch (code) {
-	case ST33ZP24_OK:
-		return 0;
-	case ST33ZP24_UNDEFINED_ERR:
-	case ST33ZP24_BADLOCALITY:
-	case ST33ZP24_TISREGISTER_UKNOWN:
-	case ST33ZP24_LOCALITY_NOT_ACTIVATED:
-	case ST33ZP24_HASH_END_BEFORE_HASH_START:
-	case ST33ZP24_BAD_COMMAND_ORDER:
-	case ST33ZP24_UNEXPECTED_READ_FIFO:
-	case ST33ZP24_UNEXPECTED_WRITE_FIFO:
-	case ST33ZP24_CMDRDY_SET_WHEN_PROCESSING_HASH_END:
-		return -EPROTO;
-	case ST33ZP24_INCORECT_RECEIVED_LENGTH:
-	case ST33ZP24_TPM_FIFO_OVERFLOW:
-		return -EMSGSIZE;
-	case ST33ZP24_DUMMY_BYTES:
-		return -ENOSYS;
+	switch (code)
+	{
+		case ST33ZP24_OK:
+			return 0;
+
+		case ST33ZP24_UNDEFINED_ERR:
+		case ST33ZP24_BADLOCALITY:
+		case ST33ZP24_TISREGISTER_UKNOWN:
+		case ST33ZP24_LOCALITY_NOT_ACTIVATED:
+		case ST33ZP24_HASH_END_BEFORE_HASH_START:
+		case ST33ZP24_BAD_COMMAND_ORDER:
+		case ST33ZP24_UNEXPECTED_READ_FIFO:
+		case ST33ZP24_UNEXPECTED_WRITE_FIFO:
+		case ST33ZP24_CMDRDY_SET_WHEN_PROCESSING_HASH_END:
+			return -EPROTO;
+
+		case ST33ZP24_INCORECT_RECEIVED_LENGTH:
+		case ST33ZP24_TPM_FIFO_OVERFLOW:
+			return -EMSGSIZE;
+
+		case ST33ZP24_DUMMY_BYTES:
+			return -ENOSYS;
 	}
+
 	return code;
 }
 
@@ -111,12 +117,13 @@ static int st33zp24_status_to_errno(u8 code)
  * @return: should be zero if success else a negative error code.
  */
 static int st33zp24_spi_send(void *phy_id, u8 tpm_register, u8 *tpm_data,
-			     int tpm_size)
+							 int tpm_size)
 {
 	int total_length = 0, ret = 0;
 	struct st33zp24_spi_phy *phy = phy_id;
 	struct spi_device *dev = phy->spi_device;
-	struct spi_transfer spi_xfer = {
+	struct spi_transfer spi_xfer =
+	{
 		.tx_buf = phy->tx_buf,
 		.rx_buf = phy->rx_buf,
 	};
@@ -125,7 +132,8 @@ static int st33zp24_spi_send(void *phy_id, u8 tpm_register, u8 *tpm_data,
 	phy->tx_buf[total_length++] = TPM_WRITE_DIRECTION | LOCALITY0;
 	phy->tx_buf[total_length++] = tpm_register;
 
-	if (tpm_size > 0 && tpm_register == TPM_DATA_FIFO) {
+	if (tpm_size > 0 && tpm_register == TPM_DATA_FIFO)
+	{
 		phy->tx_buf[total_length++] = tpm_size >> 8;
 		phy->tx_buf[total_length++] = tpm_size;
 	}
@@ -138,8 +146,11 @@ static int st33zp24_spi_send(void *phy_id, u8 tpm_register, u8 *tpm_data,
 	spi_xfer.len = total_length + phy->latency;
 
 	ret = spi_sync_transfer(dev, &spi_xfer, 1);
+
 	if (ret == 0)
+	{
 		ret = phy->rx_buf[total_length + phy->latency - 1];
+	}
 
 	return st33zp24_status_to_errno(ret);
 } /* st33zp24_spi_send() */
@@ -154,12 +165,13 @@ static int st33zp24_spi_send(void *phy_id, u8 tpm_register, u8 *tpm_data,
  * @return: should be zero if success else a negative error code.
  */
 static int st33zp24_spi_read8_reg(void *phy_id, u8 tpm_register, u8 *tpm_data,
-				  int tpm_size)
+								  int tpm_size)
 {
 	int total_length = 0, ret;
 	struct st33zp24_spi_phy *phy = phy_id;
 	struct spi_device *dev = phy->spi_device;
-	struct spi_transfer spi_xfer = {
+	struct spi_transfer spi_xfer =
+	{
 		.tx_buf = phy->tx_buf,
 		.rx_buf = phy->rx_buf,
 	};
@@ -169,17 +181,19 @@ static int st33zp24_spi_read8_reg(void *phy_id, u8 tpm_register, u8 *tpm_data,
 	phy->tx_buf[total_length++] = tpm_register;
 
 	memset(&phy->tx_buf[total_length], TPM_DUMMY_BYTE,
-	       phy->latency + tpm_size);
+		   phy->latency + tpm_size);
 
 	spi_xfer.len = total_length + phy->latency + tpm_size;
 
 	/* header + status byte + size of the data + status byte */
 	ret = spi_sync_transfer(dev, &spi_xfer, 1);
-	if (tpm_size > 0 && ret == 0) {
+
+	if (tpm_size > 0 && ret == 0)
+	{
 		ret = phy->rx_buf[total_length + phy->latency - 1];
 
 		memcpy(tpm_data, phy->rx_buf + total_length + phy->latency,
-		       tpm_size);
+			   tpm_size);
 	}
 
 	return ret;
@@ -195,13 +209,17 @@ static int st33zp24_spi_read8_reg(void *phy_id, u8 tpm_register, u8 *tpm_data,
  * @return: number of byte read successfully: should be one if success.
  */
 static int st33zp24_spi_recv(void *phy_id, u8 tpm_register, u8 *tpm_data,
-			     int tpm_size)
+							 int tpm_size)
 {
 	int ret;
 
 	ret = st33zp24_spi_read8_reg(phy_id, tpm_register, tpm_data, tpm_size);
+
 	if (!st33zp24_status_to_errno(ret))
+	{
 		return tpm_size;
+	}
+
 	return ret;
 } /* st33zp24_spi_recv() */
 
@@ -211,21 +229,29 @@ static int st33zp24_spi_evaluate_latency(void *phy_id)
 	int latency = 1, status = 0;
 	u8 data = 0;
 
-	while (!status && latency < MAX_SPI_LATENCY) {
+	while (!status && latency < MAX_SPI_LATENCY)
+	{
 		phy->latency = latency;
 		status = st33zp24_spi_read8_reg(phy_id, TPM_INTF_CAPABILITY,
-						&data, 1);
+										&data, 1);
 		latency++;
 	}
+
 	if (status < 0)
+	{
 		return status;
+	}
+
 	if (latency == MAX_SPI_LATENCY)
+	{
 		return -ENODEV;
+	}
 
 	return latency - 1;
 } /* evaluate_latency() */
 
-static const struct st33zp24_phy_ops spi_phy_ops = {
+static const struct st33zp24_phy_ops spi_phy_ops =
+{
 	.send = st33zp24_spi_send,
 	.recv = st33zp24_spi_recv,
 };
@@ -240,8 +266,10 @@ static int st33zp24_spi_acpi_request_resources(struct spi_device *spi_dev)
 
 	/* Get LPCPD GPIO from ACPI */
 	gpiod_lpcpd = devm_gpiod_get_index(dev, "TPM IO LPCPD", 1,
-					   GPIOD_OUT_HIGH);
-	if (IS_ERR(gpiod_lpcpd)) {
+									   GPIOD_OUT_HIGH);
+
+	if (IS_ERR(gpiod_lpcpd))
+	{
 		dev_err(dev, "Failed to retrieve lpcpd-gpios from acpi.\n");
 		phy->io_lpcpd = -1;
 		/*
@@ -267,16 +295,20 @@ static int st33zp24_spi_of_request_resources(struct spi_device *spi_dev)
 	int ret;
 
 	pp = spi_dev->dev.of_node;
-	if (!pp) {
+
+	if (!pp)
+	{
 		dev_err(&spi_dev->dev, "No platform data\n");
 		return -ENODEV;
 	}
 
 	/* Get GPIO from device tree */
 	gpio = of_get_named_gpio(pp, "lpcpd-gpios", 0);
-	if (gpio < 0) {
+
+	if (gpio < 0)
+	{
 		dev_err(&spi_dev->dev,
-			"Failed to retrieve lpcpd-gpios from dts.\n");
+				"Failed to retrieve lpcpd-gpios from dts.\n");
 		phy->io_lpcpd = -1;
 		/*
 		 * lpcpd pin is not specified. This is not an issue as
@@ -285,13 +317,17 @@ static int st33zp24_spi_of_request_resources(struct spi_device *spi_dev)
 		 */
 		return 0;
 	}
+
 	/* GPIO request and configuration */
 	ret = devm_gpio_request_one(&spi_dev->dev, gpio,
-			GPIOF_OUT_INIT_HIGH, "TPM IO LPCPD");
-	if (ret) {
+								GPIOF_OUT_INIT_HIGH, "TPM IO LPCPD");
+
+	if (ret)
+	{
 		dev_err(&spi_dev->dev, "Failed to request lpcpd pin\n");
 		return -ENODEV;
 	}
+
 	phy->io_lpcpd = gpio;
 
 	return 0;
@@ -306,7 +342,9 @@ static int st33zp24_spi_request_resources(struct spi_device *dev)
 	int ret;
 
 	pdata = dev->dev.platform_data;
-	if (!pdata) {
+
+	if (!pdata)
+	{
 		dev_err(&dev->dev, "No platform data\n");
 		return -ENODEV;
 	}
@@ -314,13 +352,16 @@ static int st33zp24_spi_request_resources(struct spi_device *dev)
 	/* store for late use */
 	phy->io_lpcpd = pdata->io_lpcpd;
 
-	if (gpio_is_valid(pdata->io_lpcpd)) {
+	if (gpio_is_valid(pdata->io_lpcpd))
+	{
 		ret = devm_gpio_request_one(&dev->dev,
-				pdata->io_lpcpd, GPIOF_OUT_INIT_HIGH,
-				"TPM IO_LPCPD");
-		if (ret) {
+									pdata->io_lpcpd, GPIOF_OUT_INIT_HIGH,
+									"TPM IO_LPCPD");
+
+		if (ret)
+		{
 			dev_err(&dev->dev, "%s : reset gpio_request failed\n",
-				__FILE__);
+					__FILE__);
 			return ret;
 		}
 	}
@@ -341,40 +382,62 @@ static int st33zp24_spi_probe(struct spi_device *dev)
 	struct st33zp24_spi_phy *phy;
 
 	/* Check SPI platform functionnalities */
-	if (!dev) {
+	if (!dev)
+	{
 		pr_info("%s: dev is NULL. Device is not accessible.\n",
-			__func__);
+				__func__);
 		return -ENODEV;
 	}
 
 	phy = devm_kzalloc(&dev->dev, sizeof(struct st33zp24_spi_phy),
-			   GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!phy)
+	{
 		return -ENOMEM;
+	}
 
 	phy->spi_device = dev;
 
 	pdata = dev->dev.platform_data;
-	if (!pdata && dev->dev.of_node) {
+
+	if (!pdata && dev->dev.of_node)
+	{
 		ret = st33zp24_spi_of_request_resources(dev);
+
 		if (ret)
+		{
 			return ret;
-	} else if (pdata) {
+		}
+	}
+	else if (pdata)
+	{
 		ret = st33zp24_spi_request_resources(dev);
+
 		if (ret)
+		{
 			return ret;
-	} else if (ACPI_HANDLE(&dev->dev)) {
+		}
+	}
+	else if (ACPI_HANDLE(&dev->dev))
+	{
 		ret = st33zp24_spi_acpi_request_resources(dev);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	phy->latency = st33zp24_spi_evaluate_latency(phy);
+
 	if (phy->latency <= 0)
+	{
 		return -ENODEV;
+	}
 
 	return st33zp24_probe(phy, &spi_phy_ops, &dev->dev, dev->irq,
-			      phy->io_lpcpd);
+						  phy->io_lpcpd);
 }
 
 /*
@@ -389,28 +452,32 @@ static int st33zp24_spi_remove(struct spi_device *dev)
 	return st33zp24_remove(chip);
 }
 
-static const struct spi_device_id st33zp24_spi_id[] = {
+static const struct spi_device_id st33zp24_spi_id[] =
+{
 	{TPM_ST33_SPI, 0},
 	{}
 };
 MODULE_DEVICE_TABLE(spi, st33zp24_spi_id);
 
-static const struct of_device_id of_st33zp24_spi_match[] = {
+static const struct of_device_id of_st33zp24_spi_match[] =
+{
 	{ .compatible = "st,st33zp24-spi", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, of_st33zp24_spi_match);
 
-static const struct acpi_device_id st33zp24_spi_acpi_match[] = {
+static const struct acpi_device_id st33zp24_spi_acpi_match[] =
+{
 	{"SMO3324"},
 	{}
 };
 MODULE_DEVICE_TABLE(acpi, st33zp24_spi_acpi_match);
 
 static SIMPLE_DEV_PM_OPS(st33zp24_spi_ops, st33zp24_pm_suspend,
-			 st33zp24_pm_resume);
+						 st33zp24_pm_resume);
 
-static struct spi_driver st33zp24_spi_driver = {
+static struct spi_driver st33zp24_spi_driver =
+{
 	.driver = {
 		.name = TPM_ST33_SPI,
 		.pm = &st33zp24_spi_ops,

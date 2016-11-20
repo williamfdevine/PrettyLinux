@@ -6,7 +6,10 @@
 static inline int rt_prio(int prio)
 {
 	if (unlikely(prio < MAX_RT_PRIO))
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -32,7 +35,7 @@ static inline int rt_mutex_getprio(struct task_struct *p)
 }
 
 static inline int rt_mutex_get_effective_prio(struct task_struct *task,
-					      int newprio)
+		int newprio)
 {
 	return newprio;
 }

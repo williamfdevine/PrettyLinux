@@ -32,8 +32,8 @@
 #define VPFE_MINOR_RELEASE		0
 #define VPFE_BUILD			1
 #define VPFE_CAPTURE_VERSION_CODE       ((VPFE_MAJOR_RELEASE << 16) | \
-					(VPFE_MINOR_RELEASE << 8)  | \
-					VPFE_BUILD)
+		(VPFE_MINOR_RELEASE << 8)  | \
+		VPFE_BUILD)
 
 /* IPIPE hardware limits */
 #define IPIPE_MAX_OUTPUT_WIDTH_A	2176
@@ -49,7 +49,8 @@
 #define to_device(ptr_module)						\
 	(to_vpfe_device(ptr_module)->dev)
 
-struct vpfe_device {
+struct vpfe_device
+{
 	/* external registered sub devices */
 	struct v4l2_subdev		**sd;
 	/* number of registered external subdevs */
@@ -80,7 +81,8 @@ struct vpfe_device {
 };
 
 /* File handle structure */
-struct vpfe_fh {
+struct vpfe_fh
+{
 	struct v4l2_fh vfh;
 	struct vpfe_video_device *video;
 	/* Indicates whether this file handle is doing IO */
@@ -88,6 +90,6 @@ struct vpfe_fh {
 };
 
 void mbus_to_pix(const struct v4l2_mbus_framefmt *mbus,
-			   struct v4l2_pix_format *pix);
+				 struct v4l2_pix_format *pix);
 
 #endif		/* _DAVINCI_VPFE_MC_CAPTURE_H */

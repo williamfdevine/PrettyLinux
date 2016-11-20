@@ -18,7 +18,8 @@
 
 #include "pinctrl-imx.h"
 
-enum imx6sl_pads {
+enum imx6sl_pads
+{
 	MX6SL_PAD_RESERVE0 = 0,
 	MX6SL_PAD_RESERVE1 = 1,
 	MX6SL_PAD_RESERVE2 = 2,
@@ -191,7 +192,8 @@ enum imx6sl_pads {
 };
 
 /* Pad names for the pinmux subsystem */
-static const struct pinctrl_pin_desc imx6sl_pinctrl_pads[] = {
+static const struct pinctrl_pin_desc imx6sl_pinctrl_pads[] =
+{
 	IMX_PINCTRL_PIN(MX6SL_PAD_RESERVE0),
 	IMX_PINCTRL_PIN(MX6SL_PAD_RESERVE1),
 	IMX_PINCTRL_PIN(MX6SL_PAD_RESERVE2),
@@ -363,13 +365,15 @@ static const struct pinctrl_pin_desc imx6sl_pinctrl_pads[] = {
 	IMX_PINCTRL_PIN(MX6SL_PAD_WDOG_B),
 };
 
-static struct imx_pinctrl_soc_info imx6sl_pinctrl_info = {
+static struct imx_pinctrl_soc_info imx6sl_pinctrl_info =
+{
 	.pins = imx6sl_pinctrl_pads,
 	.npins = ARRAY_SIZE(imx6sl_pinctrl_pads),
 	.gpr_compatible = "fsl,imx6sl-iomuxc-gpr",
 };
 
-static const struct of_device_id imx6sl_pinctrl_of_match[] = {
+static const struct of_device_id imx6sl_pinctrl_of_match[] =
+{
 	{ .compatible = "fsl,imx6sl-iomuxc", },
 	{ /* sentinel */ }
 };
@@ -379,7 +383,8 @@ static int imx6sl_pinctrl_probe(struct platform_device *pdev)
 	return imx_pinctrl_probe(pdev, &imx6sl_pinctrl_info);
 }
 
-static struct platform_driver imx6sl_pinctrl_driver = {
+static struct platform_driver imx6sl_pinctrl_driver =
+{
 	.driver = {
 		.name = "imx6sl-pinctrl",
 		.of_match_table = imx6sl_pinctrl_of_match,

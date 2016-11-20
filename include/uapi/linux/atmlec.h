@@ -21,7 +21,8 @@
 /* Maximum number of LEC interfaces (tweakable) */
 #define MAX_LEC_ITF 48
 
-typedef enum {
+typedef enum
+{
 	l_set_mac_addr,
 	l_del_mac_addr,
 	l_svc_setup,
@@ -41,7 +42,8 @@ typedef enum {
 
 #define ATMLEC_MSG_TYPE_MAX l_should_bridge
 
-struct atmlec_config_msg {
+struct atmlec_config_msg
+{
 	unsigned int maximum_unknown_frame_count;
 	unsigned int max_unknown_frame_time;
 	unsigned short max_retry_count;
@@ -55,11 +57,14 @@ struct atmlec_config_msg {
 	int is_proxy;
 };
 
-struct atmlec_msg {
+struct atmlec_msg
+{
 	atmlec_msg_type type;
 	int sizeoftlvs;		/* LANE2: if != 0, tlvs follow */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			unsigned char mac_addr[ETH_ALEN];
 			unsigned char atm_addr[ATM_ESA_LEN];
 			unsigned int flag;	/*
@@ -71,7 +76,8 @@ struct atmlec_msg {
 			unsigned int no_source_le_narp;	/* LANE2 */
 		} normal;
 		struct atmlec_config_msg config;
-		struct {
+		struct
+		{
 			__u16 lec_id;				/* requestor lec_id  */
 			__u32 tran_id;				/* transaction id    */
 			unsigned char mac_addr[ETH_ALEN];	/* dst mac addr      */
@@ -83,7 +89,8 @@ struct atmlec_msg {
 	} content;
 } __ATM_API_ALIGN;
 
-struct atmlec_ioc {
+struct atmlec_ioc
+{
 	int dev_num;
 	unsigned char atm_addr[ATM_ESA_LEN];
 	unsigned char receive;	/* 1= receive vcc, 0 = send vcc */

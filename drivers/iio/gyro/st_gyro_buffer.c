@@ -41,19 +41,27 @@ static int st_gyro_buffer_postenable(struct iio_dev *indio_dev)
 	struct st_sensor_data *gdata = iio_priv(indio_dev);
 
 	gdata->buffer_data = kmalloc(indio_dev->scan_bytes, GFP_KERNEL);
-	if (gdata->buffer_data == NULL) {
+
+	if (gdata->buffer_data == NULL)
+	{
 		err = -ENOMEM;
 		goto allocate_memory_error;
 	}
 
 	err = st_sensors_set_axis_enable(indio_dev,
-					(u8)indio_dev->active_scan_mask[0]);
+									 (u8)indio_dev->active_scan_mask[0]);
+
 	if (err < 0)
+	{
 		goto st_gyro_buffer_postenable_error;
+	}
 
 	err = iio_triggered_buffer_postenable(indio_dev);
+
 	if (err < 0)
+	{
 		goto st_gyro_buffer_postenable_error;
+	}
 
 	return err;
 
@@ -69,12 +77,18 @@ static int st_gyro_buffer_predisable(struct iio_dev *indio_dev)
 	struct st_sensor_data *gdata = iio_priv(indio_dev);
 
 	err = iio_triggered_buffer_predisable(indio_dev);
+
 	if (err < 0)
+	{
 		goto st_gyro_buffer_predisable_error;
+	}
 
 	err = st_sensors_set_axis_enable(indio_dev, ST_SENSORS_ENABLE_ALL_AXIS);
+
 	if (err < 0)
+	{
 		goto st_gyro_buffer_predisable_error;
+	}
 
 	err = st_sensors_set_enable(indio_dev, false);
 
@@ -83,7 +97,8 @@ st_gyro_buffer_predisable_error:
 	return err;
 }
 
-static const struct iio_buffer_setup_ops st_gyro_buffer_setup_ops = {
+static const struct iio_buffer_setup_ops st_gyro_buffer_setup_ops =
+{
 	.preenable = &st_gyro_buffer_preenable,
 	.postenable = &st_gyro_buffer_postenable,
 	.predisable = &st_gyro_buffer_predisable,
@@ -92,7 +107,7 @@ static const struct iio_buffer_setup_ops st_gyro_buffer_setup_ops = {
 int st_gyro_allocate_ring(struct iio_dev *indio_dev)
 {
 	return iio_triggered_buffer_setup(indio_dev, NULL,
-		&st_sensors_trigger_handler, &st_gyro_buffer_setup_ops);
+									  &st_sensors_trigger_handler, &st_gyro_buffer_setup_ops);
 }
 
 void st_gyro_deallocate_ring(struct iio_dev *indio_dev)

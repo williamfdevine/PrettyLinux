@@ -13,7 +13,8 @@
 #define SCM_NR_PARTS 8
 #define SCM_QUEUE_DELAY 5
 
-struct scm_blk_dev {
+struct scm_blk_dev
+{
 	struct tasklet_struct tasklet;
 	struct request_queue *rq;
 	struct gendisk *gendisk;
@@ -28,7 +29,8 @@ struct scm_blk_dev {
 #endif
 };
 
-struct scm_request {
+struct scm_request
+{
 	struct scm_blk_dev *bdev;
 	struct aidaw *next_aidaw;
 	struct request **request;
@@ -37,7 +39,8 @@ struct scm_request {
 	u8 retries;
 	int error;
 #ifdef CONFIG_SCM_BLOCK_CLUSTER_WRITE
-	struct {
+	struct
+	{
 		enum {CLUSTER_NONE, CLUSTER_READ, CLUSTER_WRITE} state;
 		struct list_head list;
 		void **buf;
@@ -110,8 +113,12 @@ extern debug_info_t *scm_debug;
 static inline void SCM_LOG_HEX(int level, void *data, int length)
 {
 	if (!debug_level_enabled(scm_debug, level))
+	{
 		return;
-	while (length > 0) {
+	}
+
+	while (length > 0)
+	{
 		debug_event(scm_debug, level, data, length);
 		length -= scm_debug->buf_size;
 		data += scm_debug->buf_size;
@@ -120,11 +127,13 @@ static inline void SCM_LOG_HEX(int level, void *data, int length)
 
 static inline void SCM_LOG_STATE(int level, struct scm_device *scmdev)
 {
-	struct {
+	struct
+	{
 		u64 address;
 		u8 oper_state;
 		u8 rank;
-	} __packed data = {
+	} __packed data =
+	{
 		.address = scmdev->address,
 		.oper_state = scmdev->attrs.oper_state,
 		.rank = scmdev->attrs.rank,

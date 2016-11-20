@@ -33,11 +33,11 @@ void intel_device_info_dump(struct drm_i915_private *dev_priv)
 #define PRINT_FLAG(name) info->name ? #name "," : ""
 #define SEP_COMMA ,
 	DRM_DEBUG_DRIVER("i915 device info: gen=%i, pciid=0x%04x rev=0x%02x flags="
-			 DEV_INFO_FOR_EACH_FLAG(PRINT_S, SEP_EMPTY),
-			 info->gen,
-			 dev_priv->drm.pdev->device,
-			 dev_priv->drm.pdev->revision,
-			 DEV_INFO_FOR_EACH_FLAG(PRINT_FLAG, SEP_COMMA));
+					 DEV_INFO_FOR_EACH_FLAG(PRINT_S, SEP_EMPTY),
+					 info->gen,
+					 dev_priv->drm.pdev->device,
+					 dev_priv->drm.pdev->revision,
+					 DEV_INFO_FOR_EACH_FLAG(PRINT_FLAG, SEP_COMMA));
 #undef PRINT_S
 #undef SEP_EMPTY
 #undef PRINT_FLAG
@@ -53,17 +53,19 @@ static void cherryview_sseu_info_init(struct drm_i915_private *dev_priv)
 
 	sseu->slice_mask = BIT(0);
 
-	if (!(fuse & CHV_FGT_DISABLE_SS0)) {
+	if (!(fuse & CHV_FGT_DISABLE_SS0))
+	{
 		sseu->subslice_mask |= BIT(0);
 		eu_dis = fuse & (CHV_FGT_EU_DIS_SS0_R0_MASK |
-				 CHV_FGT_EU_DIS_SS0_R1_MASK);
+						 CHV_FGT_EU_DIS_SS0_R1_MASK);
 		sseu->eu_total += 8 - hweight32(eu_dis);
 	}
 
-	if (!(fuse & CHV_FGT_DISABLE_SS1)) {
+	if (!(fuse & CHV_FGT_DISABLE_SS1))
+	{
 		sseu->subslice_mask |= BIT(1);
 		eu_dis = fuse & (CHV_FGT_EU_DIS_SS1_R0_MASK |
-				 CHV_FGT_EU_DIS_SS1_R1_MASK);
+						 CHV_FGT_EU_DIS_SS1_R1_MASK);
 		sseu->eu_total += 8 - hweight32(eu_dis);
 	}
 
@@ -72,8 +74,8 @@ static void cherryview_sseu_info_init(struct drm_i915_private *dev_priv)
 	 * across subslices.
 	*/
 	sseu->eu_per_subslice = sseu_subslice_total(sseu) ?
-				sseu->eu_total / sseu_subslice_total(sseu) :
-				0;
+							sseu->eu_total / sseu_subslice_total(sseu) :
+							0;
 	/*
 	 * CHV supports subslice power gating on devices with more than
 	 * one subslice, and supports EU power gating on devices with
@@ -102,27 +104,34 @@ static void gen9_sseu_info_init(struct drm_i915_private *dev_priv)
 	*/
 	sseu->subslice_mask = (1 << ss_max) - 1;
 	sseu->subslice_mask &= ~((fuse2 & GEN9_F2_SS_DIS_MASK) >>
-				 GEN9_F2_SS_DIS_SHIFT);
+							 GEN9_F2_SS_DIS_SHIFT);
 
 	/*
 	 * Iterate through enabled slices and subslices to
 	 * count the total enabled EU.
 	*/
-	for (s = 0; s < s_max; s++) {
+	for (s = 0; s < s_max; s++)
+	{
 		if (!(sseu->slice_mask & BIT(s)))
 			/* skip disabled slice */
+		{
 			continue;
+		}
 
 		eu_disable = I915_READ(GEN9_EU_DISABLE(s));
-		for (ss = 0; ss < ss_max; ss++) {
+
+		for (ss = 0; ss < ss_max; ss++)
+		{
 			int eu_per_ss;
 
 			if (!(sseu->subslice_mask & BIT(ss)))
 				/* skip disabled subslice */
+			{
 				continue;
+			}
 
-			eu_per_ss = eu_max - hweight8((eu_disable >> (ss*8)) &
-						      eu_mask);
+			eu_per_ss = eu_max - hweight8((eu_disable >> (ss * 8)) &
+										  eu_mask);
 
 			/*
 			 * Record which subslice(s) has(have) 7 EUs. we
@@ -130,7 +139,9 @@ static void gen9_sseu_info_init(struct drm_i915_private *dev_priv)
 			 * subslices if they are unbalanced.
 			 */
 			if (eu_per_ss == 7)
+			{
 				sseu->subslice_7eu[s] |= BIT(ss);
+			}
 
 			sseu->eu_total += eu_per_ss;
 		}
@@ -144,8 +155,8 @@ static void gen9_sseu_info_init(struct drm_i915_private *dev_priv)
 	 * distribution.
 	*/
 	sseu->eu_per_subslice = sseu_subslice_total(sseu) ?
-				DIV_ROUND_UP(sseu->eu_total,
-					     sseu_subslice_total(sseu)) : 0;
+							DIV_ROUND_UP(sseu->eu_total,
+										 sseu_subslice_total(sseu)) : 0;
 	/*
 	 * SKL supports slice power gating on devices with more than
 	 * one slice, and supports EU power gating on devices with
@@ -161,7 +172,8 @@ static void gen9_sseu_info_init(struct drm_i915_private *dev_priv)
 		IS_BROXTON(dev_priv) && sseu_subslice_total(sseu) > 1;
 	sseu->has_eu_pg = sseu->eu_per_subslice > 2;
 
-	if (IS_BROXTON(dev_priv)) {
+	if (IS_BROXTON(dev_priv))
+	{
 #define IS_SS_DISABLED(ss)	(!(sseu->subslice_mask & BIT(ss)))
 		/*
 		 * There is a HW issue in 2x6 fused down parts that requires
@@ -171,18 +183,27 @@ static void gen9_sseu_info_init(struct drm_i915_private *dev_priv)
 		 */
 		/* WaEnablePooledEuFor2x6:bxt */
 		info->has_pooled_eu = ((hweight8(sseu->subslice_mask) == 3) ||
-				       (hweight8(sseu->subslice_mask) == 2 &&
-					INTEL_REVID(dev_priv) < BXT_REVID_C0));
+							   (hweight8(sseu->subslice_mask) == 2 &&
+								INTEL_REVID(dev_priv) < BXT_REVID_C0));
 
 		sseu->min_eu_in_pool = 0;
-		if (info->has_pooled_eu) {
+
+		if (info->has_pooled_eu)
+		{
 			if (IS_SS_DISABLED(2) || IS_SS_DISABLED(0))
+			{
 				sseu->min_eu_in_pool = 3;
+			}
 			else if (IS_SS_DISABLED(1))
+			{
 				sseu->min_eu_in_pool = 6;
+			}
 			else
+			{
 				sseu->min_eu_in_pool = 9;
+			}
 		}
+
 #undef IS_SS_DISABLED
 	}
 }
@@ -202,31 +223,37 @@ static void broadwell_sseu_info_init(struct drm_i915_private *dev_priv)
 	 */
 	sseu->subslice_mask = BIT(ss_max) - 1;
 	sseu->subslice_mask &= ~((fuse2 & GEN8_F2_SS_DIS_MASK) >>
-				 GEN8_F2_SS_DIS_SHIFT);
+							 GEN8_F2_SS_DIS_SHIFT);
 
 	eu_disable[0] = I915_READ(GEN8_EU_DISABLE0) & GEN8_EU_DIS0_S0_MASK;
 	eu_disable[1] = (I915_READ(GEN8_EU_DISABLE0) >> GEN8_EU_DIS0_S1_SHIFT) |
-			((I915_READ(GEN8_EU_DISABLE1) & GEN8_EU_DIS1_S1_MASK) <<
-			 (32 - GEN8_EU_DIS0_S1_SHIFT));
+					((I915_READ(GEN8_EU_DISABLE1) & GEN8_EU_DIS1_S1_MASK) <<
+					 (32 - GEN8_EU_DIS0_S1_SHIFT));
 	eu_disable[2] = (I915_READ(GEN8_EU_DISABLE1) >> GEN8_EU_DIS1_S2_SHIFT) |
-			((I915_READ(GEN8_EU_DISABLE2) & GEN8_EU_DIS2_S2_MASK) <<
-			 (32 - GEN8_EU_DIS1_S2_SHIFT));
+					((I915_READ(GEN8_EU_DISABLE2) & GEN8_EU_DIS2_S2_MASK) <<
+					 (32 - GEN8_EU_DIS1_S2_SHIFT));
 
 	/*
 	 * Iterate through enabled slices and subslices to
 	 * count the total enabled EU.
 	 */
-	for (s = 0; s < s_max; s++) {
+	for (s = 0; s < s_max; s++)
+	{
 		if (!(sseu->slice_mask & BIT(s)))
 			/* skip disabled slice */
+		{
 			continue;
+		}
 
-		for (ss = 0; ss < ss_max; ss++) {
+		for (ss = 0; ss < ss_max; ss++)
+		{
 			u32 n_disabled;
 
 			if (!(sseu->subslice_mask & BIT(ss)))
 				/* skip disabled subslice */
+			{
 				continue;
+			}
 
 			n_disabled = hweight8(eu_disable[s] >> (ss * eu_max));
 
@@ -234,7 +261,9 @@ static void broadwell_sseu_info_init(struct drm_i915_private *dev_priv)
 			 * Record which subslices have 7 EUs.
 			 */
 			if (eu_max - n_disabled == 7)
+			{
 				sseu->subslice_7eu[s] |= 1 << ss;
+			}
 
 			sseu->eu_total += eu_max - n_disabled;
 		}
@@ -246,8 +275,8 @@ static void broadwell_sseu_info_init(struct drm_i915_private *dev_priv)
 	 * be fused off for die recovery.
 	 */
 	sseu->eu_per_subslice = sseu_subslice_total(sseu) ?
-				DIV_ROUND_UP(sseu->eu_total,
-					     sseu_subslice_total(sseu)) : 0;
+							DIV_ROUND_UP(sseu->eu_total,
+										 sseu_subslice_total(sseu)) : 0;
 
 	/*
 	 * BDW supports slice power gating on devices with more than
@@ -284,23 +313,28 @@ void intel_device_info_runtime_init(struct drm_i915_private *dev_priv)
 	 * we don't expose the topmost plane at all to prevent ABI breakage
 	 * down the line.
 	 */
-	if (IS_BROXTON(dev_priv)) {
+	if (IS_BROXTON(dev_priv))
+	{
 		info->num_sprites[PIPE_A] = 2;
 		info->num_sprites[PIPE_B] = 2;
 		info->num_sprites[PIPE_C] = 1;
-	} else if (IS_VALLEYVIEW(dev_priv) || IS_CHERRYVIEW(dev_priv))
+	}
+	else if (IS_VALLEYVIEW(dev_priv) || IS_CHERRYVIEW(dev_priv))
 		for_each_pipe(dev_priv, pipe)
-			info->num_sprites[pipe] = 2;
+		info->num_sprites[pipe] = 2;
 	else
 		for_each_pipe(dev_priv, pipe)
-			info->num_sprites[pipe] = 1;
+		info->num_sprites[pipe] = 1;
 
-	if (i915.disable_display) {
+	if (i915.disable_display)
+	{
 		DRM_INFO("Display disabled (module parameter)\n");
 		info->num_pipes = 0;
-	} else if (info->num_pipes > 0 &&
-		   (IS_GEN7(dev_priv) || IS_GEN8(dev_priv)) &&
-		   HAS_PCH_SPLIT(dev_priv)) {
+	}
+	else if (info->num_pipes > 0 &&
+			 (IS_GEN7(dev_priv) || IS_GEN8(dev_priv)) &&
+			 HAS_PCH_SPLIT(dev_priv))
+	{
 		u32 fuse_strap = I915_READ(FUSE_STRAP);
 		u32 sfuse_strap = I915_READ(SFUSE_STRAP);
 
@@ -314,75 +348,100 @@ void intel_device_info_runtime_init(struct drm_i915_private *dev_priv)
 		 * should be set when taking over after the firmware.
 		 */
 		if (fuse_strap & ILK_INTERNAL_DISPLAY_DISABLE ||
-		    sfuse_strap & SFUSE_STRAP_DISPLAY_DISABLED ||
-		    (dev_priv->pch_type == PCH_CPT &&
-		     !(sfuse_strap & SFUSE_STRAP_FUSE_LOCK))) {
+			sfuse_strap & SFUSE_STRAP_DISPLAY_DISABLED ||
+			(dev_priv->pch_type == PCH_CPT &&
+			 !(sfuse_strap & SFUSE_STRAP_FUSE_LOCK)))
+		{
 			DRM_INFO("Display fused off, disabling\n");
 			info->num_pipes = 0;
-		} else if (fuse_strap & IVB_PIPE_C_DISABLE) {
+		}
+		else if (fuse_strap & IVB_PIPE_C_DISABLE)
+		{
 			DRM_INFO("PipeC fused off\n");
 			info->num_pipes -= 1;
 		}
-	} else if (info->num_pipes > 0 && IS_GEN9(dev_priv)) {
+	}
+	else if (info->num_pipes > 0 && IS_GEN9(dev_priv))
+	{
 		u32 dfsm = I915_READ(SKL_DFSM);
 		u8 disabled_mask = 0;
 		bool invalid;
 		int num_bits;
 
 		if (dfsm & SKL_DFSM_PIPE_A_DISABLE)
+		{
 			disabled_mask |= BIT(PIPE_A);
+		}
+
 		if (dfsm & SKL_DFSM_PIPE_B_DISABLE)
+		{
 			disabled_mask |= BIT(PIPE_B);
+		}
+
 		if (dfsm & SKL_DFSM_PIPE_C_DISABLE)
+		{
 			disabled_mask |= BIT(PIPE_C);
+		}
 
 		num_bits = hweight8(disabled_mask);
 
-		switch (disabled_mask) {
-		case BIT(PIPE_A):
-		case BIT(PIPE_B):
-		case BIT(PIPE_A) | BIT(PIPE_B):
-		case BIT(PIPE_A) | BIT(PIPE_C):
-			invalid = true;
-			break;
-		default:
-			invalid = false;
+		switch (disabled_mask)
+		{
+			case BIT(PIPE_A):
+			case BIT(PIPE_B):
+			case BIT(PIPE_A) | BIT(PIPE_B):
+			case BIT(PIPE_A) | BIT(PIPE_C):
+				invalid = true;
+				break;
+
+			default:
+				invalid = false;
 		}
 
 		if (num_bits > info->num_pipes || invalid)
 			DRM_ERROR("invalid pipe fuse configuration: 0x%x\n",
-				  disabled_mask);
+					  disabled_mask);
 		else
+		{
 			info->num_pipes -= num_bits;
+		}
 	}
 
 	/* Initialize slice/subslice/EU info */
 	if (IS_CHERRYVIEW(dev_priv))
+	{
 		cherryview_sseu_info_init(dev_priv);
+	}
 	else if (IS_BROADWELL(dev_priv))
+	{
 		broadwell_sseu_info_init(dev_priv);
+	}
 	else if (INTEL_INFO(dev_priv)->gen >= 9)
+	{
 		gen9_sseu_info_init(dev_priv);
+	}
 
 	info->has_snoop = !info->has_llc;
 
 	/* Snooping is broken on BXT A stepping. */
 	if (IS_BXT_REVID(dev_priv, 0, BXT_REVID_A1))
+	{
 		info->has_snoop = false;
+	}
 
 	DRM_DEBUG_DRIVER("slice mask: %04x\n", info->sseu.slice_mask);
 	DRM_DEBUG_DRIVER("slice total: %u\n", hweight8(info->sseu.slice_mask));
 	DRM_DEBUG_DRIVER("subslice total: %u\n",
-			 sseu_subslice_total(&info->sseu));
+					 sseu_subslice_total(&info->sseu));
 	DRM_DEBUG_DRIVER("subslice mask %04x\n", info->sseu.subslice_mask);
 	DRM_DEBUG_DRIVER("subslice per slice: %u\n",
-			 hweight8(info->sseu.subslice_mask));
+					 hweight8(info->sseu.subslice_mask));
 	DRM_DEBUG_DRIVER("EU total: %u\n", info->sseu.eu_total);
 	DRM_DEBUG_DRIVER("EU per subslice: %u\n", info->sseu.eu_per_subslice);
 	DRM_DEBUG_DRIVER("has slice power gating: %s\n",
-			 info->sseu.has_slice_pg ? "y" : "n");
+					 info->sseu.has_slice_pg ? "y" : "n");
 	DRM_DEBUG_DRIVER("has subslice power gating: %s\n",
-			 info->sseu.has_subslice_pg ? "y" : "n");
+					 info->sseu.has_subslice_pg ? "y" : "n");
 	DRM_DEBUG_DRIVER("has EU power gating: %s\n",
-			 info->sseu.has_eu_pg ? "y" : "n");
+					 info->sseu.has_eu_pg ? "y" : "n");
 }

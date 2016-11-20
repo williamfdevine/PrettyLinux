@@ -22,7 +22,8 @@
  *  - then, mmap() call (several calls are allowed but not useful)
  *  - then, repeated enable/disable for a task (only one task a time allowed)
  */
-struct kcov {
+struct kcov
+{
 	/*
 	 * Reference counter. We keep one for:
 	 *  - opened file descriptor
@@ -50,6 +51,7 @@ void notrace __sanitizer_cov_trace_pc(void)
 	enum kcov_mode mode;
 
 	t = current;
+
 	/*
 	 * We are interested in code coverage as a function of a syscall inputs,
 	 * so we ignore code executed in interrupts.
@@ -61,10 +63,15 @@ void notrace __sanitizer_cov_trace_pc(void)
 	 *    one for each of the flags).
 	 */
 	if (!t || (preempt_count() & (HARDIRQ_MASK | SOFTIRQ_OFFSET
-							| NMI_MASK)))
+								  | NMI_MASK)))
+	{
 		return;
+	}
+
 	mode = READ_ONCE(t->kcov_mode);
-	if (mode == KCOV_MODE_TRACE) {
+
+	if (mode == KCOV_MODE_TRACE)
+	{
 		unsigned long *area;
 		unsigned long pos;
 
@@ -79,7 +86,9 @@ void notrace __sanitizer_cov_trace_pc(void)
 		area = t->kcov_area;
 		/* The first word is number of subsequent PCs. */
 		pos = READ_ONCE(area[0]) + 1;
-		if (likely(pos < t->kcov_size)) {
+
+		if (likely(pos < t->kcov_size))
+		{
 			area[pos] = _RET_IP_;
 			WRITE_ONCE(area[0], pos);
 		}
@@ -94,7 +103,8 @@ static void kcov_get(struct kcov *kcov)
 
 static void kcov_put(struct kcov *kcov)
 {
-	if (atomic_dec_and_test(&kcov->refcount)) {
+	if (atomic_dec_and_test(&kcov->refcount))
+	{
 		vfree(kcov->area);
 		kfree(kcov);
 	}
@@ -113,13 +123,20 @@ void kcov_task_exit(struct task_struct *t)
 	struct kcov *kcov;
 
 	kcov = t->kcov;
+
 	if (kcov == NULL)
+	{
 		return;
+	}
+
 	spin_lock(&kcov->lock);
-	if (WARN_ON(kcov->t != t)) {
+
+	if (WARN_ON(kcov->t != t))
+	{
 		spin_unlock(&kcov->lock);
 		return;
 	}
+
 	/* Just to not leave dangling references behind. */
 	kcov_task_init(t);
 	kcov->t = NULL;
@@ -136,27 +153,41 @@ static int kcov_mmap(struct file *filep, struct vm_area_struct *vma)
 	struct page *page;
 
 	area = vmalloc_user(vma->vm_end - vma->vm_start);
+
 	if (!area)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock(&kcov->lock);
 	size = kcov->size * sizeof(unsigned long);
+
 	if (kcov->mode == KCOV_MODE_DISABLED || vma->vm_pgoff != 0 ||
-	    vma->vm_end - vma->vm_start != size) {
+		vma->vm_end - vma->vm_start != size)
+	{
 		res = -EINVAL;
 		goto exit;
 	}
-	if (!kcov->area) {
+
+	if (!kcov->area)
+	{
 		kcov->area = area;
 		vma->vm_flags |= VM_DONTEXPAND;
 		spin_unlock(&kcov->lock);
-		for (off = 0; off < size; off += PAGE_SIZE) {
+
+		for (off = 0; off < size; off += PAGE_SIZE)
+		{
 			page = vmalloc_to_page(kcov->area + off);
+
 			if (vm_insert_page(vma, vma->vm_start + off, page))
+			{
 				WARN_ONCE(1, "vm_insert_page() failed");
+			}
 		}
+
 		return 0;
 	}
+
 exit:
 	spin_unlock(&kcov->lock);
 	vfree(area);
@@ -168,8 +199,12 @@ static int kcov_open(struct inode *inode, struct file *filep)
 	struct kcov *kcov;
 
 	kcov = kzalloc(sizeof(*kcov), GFP_KERNEL);
+
 	if (!kcov)
+	{
 		return -ENOMEM;
+	}
+
 	atomic_set(&kcov->refcount, 1);
 	spin_lock_init(&kcov->lock);
 	filep->private_data = kcov;
@@ -183,70 +218,97 @@ static int kcov_close(struct inode *inode, struct file *filep)
 }
 
 static int kcov_ioctl_locked(struct kcov *kcov, unsigned int cmd,
-			     unsigned long arg)
+							 unsigned long arg)
 {
 	struct task_struct *t;
 	unsigned long size, unused;
 
-	switch (cmd) {
-	case KCOV_INIT_TRACE:
-		/*
-		 * Enable kcov in trace mode and setup buffer size.
-		 * Must happen before anything else.
-		 */
-		if (kcov->mode != KCOV_MODE_DISABLED)
-			return -EBUSY;
-		/*
-		 * Size must be at least 2 to hold current position and one PC.
-		 * Later we allocate size * sizeof(unsigned long) memory,
-		 * that must not overflow.
-		 */
-		size = arg;
-		if (size < 2 || size > INT_MAX / sizeof(unsigned long))
-			return -EINVAL;
-		kcov->size = size;
-		kcov->mode = KCOV_MODE_TRACE;
-		return 0;
-	case KCOV_ENABLE:
-		/*
-		 * Enable coverage for the current task.
-		 * At this point user must have been enabled trace mode,
-		 * and mmapped the file. Coverage collection is disabled only
-		 * at task exit or voluntary by KCOV_DISABLE. After that it can
-		 * be enabled for another task.
-		 */
-		unused = arg;
-		if (unused != 0 || kcov->mode == KCOV_MODE_DISABLED ||
-		    kcov->area == NULL)
-			return -EINVAL;
-		if (kcov->t != NULL)
-			return -EBUSY;
-		t = current;
-		/* Cache in task struct for performance. */
-		t->kcov_size = kcov->size;
-		t->kcov_area = kcov->area;
-		/* See comment in __sanitizer_cov_trace_pc(). */
-		barrier();
-		WRITE_ONCE(t->kcov_mode, kcov->mode);
-		t->kcov = kcov;
-		kcov->t = t;
-		/* This is put either in kcov_task_exit() or in KCOV_DISABLE. */
-		kcov_get(kcov);
-		return 0;
-	case KCOV_DISABLE:
-		/* Disable coverage for the current task. */
-		unused = arg;
-		if (unused != 0 || current->kcov != kcov)
-			return -EINVAL;
-		t = current;
-		if (WARN_ON(kcov->t != t))
-			return -EINVAL;
-		kcov_task_init(t);
-		kcov->t = NULL;
-		kcov_put(kcov);
-		return 0;
-	default:
-		return -ENOTTY;
+	switch (cmd)
+	{
+		case KCOV_INIT_TRACE:
+
+			/*
+			 * Enable kcov in trace mode and setup buffer size.
+			 * Must happen before anything else.
+			 */
+			if (kcov->mode != KCOV_MODE_DISABLED)
+			{
+				return -EBUSY;
+			}
+
+			/*
+			 * Size must be at least 2 to hold current position and one PC.
+			 * Later we allocate size * sizeof(unsigned long) memory,
+			 * that must not overflow.
+			 */
+			size = arg;
+
+			if (size < 2 || size > INT_MAX / sizeof(unsigned long))
+			{
+				return -EINVAL;
+			}
+
+			kcov->size = size;
+			kcov->mode = KCOV_MODE_TRACE;
+			return 0;
+
+		case KCOV_ENABLE:
+			/*
+			 * Enable coverage for the current task.
+			 * At this point user must have been enabled trace mode,
+			 * and mmapped the file. Coverage collection is disabled only
+			 * at task exit or voluntary by KCOV_DISABLE. After that it can
+			 * be enabled for another task.
+			 */
+			unused = arg;
+
+			if (unused != 0 || kcov->mode == KCOV_MODE_DISABLED ||
+				kcov->area == NULL)
+			{
+				return -EINVAL;
+			}
+
+			if (kcov->t != NULL)
+			{
+				return -EBUSY;
+			}
+
+			t = current;
+			/* Cache in task struct for performance. */
+			t->kcov_size = kcov->size;
+			t->kcov_area = kcov->area;
+			/* See comment in __sanitizer_cov_trace_pc(). */
+			barrier();
+			WRITE_ONCE(t->kcov_mode, kcov->mode);
+			t->kcov = kcov;
+			kcov->t = t;
+			/* This is put either in kcov_task_exit() or in KCOV_DISABLE. */
+			kcov_get(kcov);
+			return 0;
+
+		case KCOV_DISABLE:
+			/* Disable coverage for the current task. */
+			unused = arg;
+
+			if (unused != 0 || current->kcov != kcov)
+			{
+				return -EINVAL;
+			}
+
+			t = current;
+
+			if (WARN_ON(kcov->t != t))
+			{
+				return -EINVAL;
+			}
+
+			kcov_task_init(t);
+			kcov->t = NULL;
+			kcov_put(kcov);
+			return 0;
+
+		default:
+			return -ENOTTY;
 	}
 }
 
@@ -262,7 +324,8 @@ static long kcov_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
 	return res;
 }
 
-static const struct file_operations kcov_fops = {
+static const struct file_operations kcov_fops =
+{
 	.open		= kcov_open,
 	.unlocked_ioctl	= kcov_ioctl,
 	.mmap		= kcov_mmap,
@@ -276,10 +339,12 @@ static int __init kcov_init(void)
 	 * there is no need to protect it against removal races. The
 	 * use of debugfs_create_file_unsafe() is actually safe here.
 	 */
-	if (!debugfs_create_file_unsafe("kcov", 0600, NULL, NULL, &kcov_fops)) {
+	if (!debugfs_create_file_unsafe("kcov", 0600, NULL, NULL, &kcov_fops))
+	{
 		pr_err("failed to create kcov in debugfs\n");
 		return -ENOMEM;
 	}
+
 	return 0;
 }
 

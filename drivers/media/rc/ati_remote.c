@@ -152,7 +152,8 @@ MODULE_PARM_DESC(mouse, "Enable mouse device, default = yes");
 #undef err
 #define err(format, arg...) printk(KERN_ERR format , ## arg)
 
-struct ati_receiver_type {
+struct ati_receiver_type
+{
 	/* either default_keymap or get_default_keymap should be set */
 	const char *default_keymap;
 	const char *(*get_default_keymap)(struct usb_interface *interface);
@@ -168,64 +169,78 @@ static const char *get_medion_keymap(struct usb_interface *interface)
 	 * in the USB descriptors allowing us to detect them.
 	 */
 
-	if (udev->manufacturer && udev->product) {
-		if (udev->actconfig->desc.bmAttributes & USB_CONFIG_ATT_WAKEUP) {
+	if (udev->manufacturer && udev->product)
+	{
+		if (udev->actconfig->desc.bmAttributes & USB_CONFIG_ATT_WAKEUP)
+		{
 
 			if (!strcmp(udev->manufacturer, "X10 Wireless Technology Inc")
-			    && !strcmp(udev->product, "USB Receiver"))
+				&& !strcmp(udev->product, "USB Receiver"))
+			{
 				return RC_MAP_MEDION_X10_DIGITAINER;
+			}
 
 			if (!strcmp(udev->manufacturer, "X10 WTI")
-			    && !strcmp(udev->product, "RF receiver"))
+				&& !strcmp(udev->product, "RF receiver"))
+			{
 				return RC_MAP_MEDION_X10_OR2X;
-		} else {
+			}
+		}
+		else
+		{
 
-			 if (!strcmp(udev->manufacturer, "X10 Wireless Technology Inc")
-			    && !strcmp(udev->product, "USB Receiver"))
+			if (!strcmp(udev->manufacturer, "X10 Wireless Technology Inc")
+				&& !strcmp(udev->product, "USB Receiver"))
+			{
 				return RC_MAP_MEDION_X10;
+			}
 		}
 	}
 
 	dev_info(&interface->dev,
-		 "Unknown Medion X10 receiver, using default ati_remote Medion keymap\n");
+			 "Unknown Medion X10 receiver, using default ati_remote Medion keymap\n");
 
 	return RC_MAP_MEDION_X10;
 }
 
-static const struct ati_receiver_type type_ati		= {
+static const struct ati_receiver_type type_ati		=
+{
 	.default_keymap = RC_MAP_ATI_X10
 };
-static const struct ati_receiver_type type_medion	= {
+static const struct ati_receiver_type type_medion	=
+{
 	.get_default_keymap = get_medion_keymap
 };
-static const struct ati_receiver_type type_firefly	= {
+static const struct ati_receiver_type type_firefly	=
+{
 	.default_keymap = RC_MAP_SNAPSTREAM_FIREFLY
 };
 
-static struct usb_device_id ati_remote_table[] = {
+static struct usb_device_id ati_remote_table[] =
+{
 	{
 		USB_DEVICE(ATI_REMOTE_VENDOR_ID, LOLA_REMOTE_PRODUCT_ID),
-		.driver_info = (unsigned long)&type_ati
+		.driver_info = (unsigned long) &type_ati
 	},
 	{
 		USB_DEVICE(ATI_REMOTE_VENDOR_ID, LOLA2_REMOTE_PRODUCT_ID),
-		.driver_info = (unsigned long)&type_ati
+		.driver_info = (unsigned long) &type_ati
 	},
 	{
 		USB_DEVICE(ATI_REMOTE_VENDOR_ID, ATI_REMOTE_PRODUCT_ID),
-		.driver_info = (unsigned long)&type_ati
+		.driver_info = (unsigned long) &type_ati
 	},
 	{
 		USB_DEVICE(ATI_REMOTE_VENDOR_ID, NVIDIA_REMOTE_PRODUCT_ID),
-		.driver_info = (unsigned long)&type_ati
+		.driver_info = (unsigned long) &type_ati
 	},
 	{
 		USB_DEVICE(ATI_REMOTE_VENDOR_ID, MEDION_REMOTE_PRODUCT_ID),
-		.driver_info = (unsigned long)&type_medion
+		.driver_info = (unsigned long) &type_medion
 	},
 	{
 		USB_DEVICE(ATI_REMOTE_VENDOR_ID, FIREFLY_REMOTE_PRODUCT_ID),
-		.driver_info = (unsigned long)&type_firefly
+		.driver_info = (unsigned long) &type_firefly
 	},
 	{}	/* Terminating entry */
 };
@@ -243,7 +258,8 @@ MODULE_DEVICE_TABLE(usb, ati_remote_table);
 static char init1[] = { 0x01, 0x00, 0x20, 0x14 };
 static char init2[] = { 0x01, 0x00, 0x20, 0x14, 0x20, 0x20, 0x20 };
 
-struct ati_remote {
+struct ati_remote
+{
 	struct input_dev *idev;
 	struct rc_dev *rdev;
 	struct usb_device *udev;
@@ -284,11 +300,13 @@ struct ati_remote {
 #define KIND_ACCEL      3   /* Translate to EV_REL mouse-move events */
 
 /* Translation table from hardware messages to input events. */
-static const struct {
+static const struct
+{
 	unsigned char kind;
 	unsigned char data;	/* Raw key code from remote */
 	unsigned short code;	/* Input layer translation */
-}  ati_remote_tbl[] = {
+}  ati_remote_tbl[] =
+{
 	/* Directional control pad axes.  Code is xxyy */
 	{KIND_ACCEL,    0x70, 0xff00},	/* left */
 	{KIND_ACCEL,    0x71, 0x0100},	/* right */
@@ -321,15 +339,23 @@ static const struct {
  * ati_remote_dump_input
  */
 static void ati_remote_dump(struct device *dev, unsigned char *data,
-			    unsigned int len)
+							unsigned int len)
 {
-	if (len == 1) {
+	if (len == 1)
+	{
 		if (data[0] != (unsigned char)0xff && data[0] != 0x00)
+		{
 			dev_warn(dev, "Weird byte 0x%02x\n", data[0]);
-	} else if (len == 4)
+		}
+	}
+	else if (len == 4)
+	{
 		dev_warn(dev, "Weird key %*ph\n", 4, data);
+	}
 	else
+	{
 		dev_warn(dev, "Weird data, len=%d %*ph ...\n", len, 6, data);
+	}
 }
 
 /*
@@ -342,13 +368,17 @@ static int ati_remote_open(struct ati_remote *ati_remote)
 	mutex_lock(&ati_remote->open_mutex);
 
 	if (ati_remote->users++ != 0)
-		goto out; /* one was already active */
+	{
+		goto out;    /* one was already active */
+	}
 
 	/* On first open, submit the read urb which was set up previously. */
 	ati_remote->irq_urb->dev = ati_remote->udev;
-	if (usb_submit_urb(ati_remote->irq_urb, GFP_KERNEL)) {
+
+	if (usb_submit_urb(ati_remote->irq_urb, GFP_KERNEL))
+	{
 		dev_err(&ati_remote->interface->dev,
-			"%s: usb_submit_urb failed!\n", __func__);
+				"%s: usb_submit_urb failed!\n", __func__);
 		err = -EIO;
 	}
 
@@ -362,8 +392,12 @@ out:	mutex_unlock(&ati_remote->open_mutex);
 static void ati_remote_close(struct ati_remote *ati_remote)
 {
 	mutex_lock(&ati_remote->open_mutex);
+
 	if (--ati_remote->users == 0)
+	{
 		usb_kill_urb(ati_remote->irq_urb);
+	}
+
 	mutex_unlock(&ati_remote->open_mutex);
 }
 
@@ -398,9 +432,10 @@ static void ati_remote_irq_out(struct urb *urb)
 {
 	struct ati_remote *ati_remote = urb->context;
 
-	if (urb->status) {
+	if (urb->status)
+	{
 		dev_dbg(&ati_remote->interface->dev, "%s: status %d\n",
-			__func__, urb->status);
+				__func__, urb->status);
 		return;
 	}
 
@@ -415,7 +450,7 @@ static void ati_remote_irq_out(struct urb *urb)
  * Used to send device initialization strings
  */
 static int ati_remote_sendpacket(struct ati_remote *ati_remote, u16 cmd,
-	unsigned char *data)
+								 unsigned char *data)
 {
 	int retval = 0;
 
@@ -428,27 +463,31 @@ static int ati_remote_sendpacket(struct ati_remote *ati_remote, u16 cmd,
 	ati_remote->send_flags = SEND_FLAG_IN_PROGRESS;
 
 	retval = usb_submit_urb(ati_remote->out_urb, GFP_ATOMIC);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_dbg(&ati_remote->interface->dev,
-			 "sendpacket: usb_submit_urb failed: %d\n", retval);
+				"sendpacket: usb_submit_urb failed: %d\n", retval);
 		return retval;
 	}
 
 	wait_event_timeout(ati_remote->wait,
-		((ati_remote->out_urb->status != -EINPROGRESS) ||
-			(ati_remote->send_flags & SEND_FLAG_COMPLETE)),
-		HZ);
+					   ((ati_remote->out_urb->status != -EINPROGRESS) ||
+						(ati_remote->send_flags & SEND_FLAG_COMPLETE)),
+					   HZ);
 	usb_kill_urb(ati_remote->out_urb);
 
 	return retval;
 }
 
-struct accel_times {
+struct accel_times
+{
 	const char	value;
 	unsigned int	msecs;
 };
 
-static const struct accel_times accel[] = {
+static const struct accel_times accel[] =
+{
 	{  1,  125 },
 	{  2,  250 },
 	{  4,  500 },
@@ -474,16 +513,22 @@ static int ati_remote_compute_accel(struct ati_remote *ati_remote)
 
 	reset_time = msecs_to_jiffies(250);
 
-	if (time_after(now, ati_remote->old_jiffies + reset_time)) {
+	if (time_after(now, ati_remote->old_jiffies + reset_time))
+	{
 		ati_remote->acc_jiffies = now;
 		return 1;
 	}
-	for (i = 0; i < ARRAY_SIZE(accel) - 1; i++) {
+
+	for (i = 0; i < ARRAY_SIZE(accel) - 1; i++)
+	{
 		unsigned long timeout = msecs_to_jiffies(accel[i].msecs);
 
 		if (time_before(now, ati_remote->acc_jiffies + timeout))
+		{
 			return accel[i].value;
+		}
 	}
+
 	return accel[i].value;
 }
 
@@ -493,7 +538,7 @@ static int ati_remote_compute_accel(struct ati_remote *ati_remote)
 static void ati_remote_input_report(struct urb *urb)
 {
 	struct ati_remote *ati_remote = urb->context;
-	unsigned char *data= ati_remote->inbuf;
+	unsigned char *data = ati_remote->inbuf;
 	struct input_dev *dev = ati_remote->idev;
 	int index = -1;
 	int remote_num;
@@ -510,26 +555,30 @@ static void ati_remote_input_report(struct urb *urb)
 
 	/* Deal with strange looking inputs */
 	if ( urb->actual_length != 4 || data[0] != 0x14 ||
-	     data[1] != (unsigned char)(data[2] + data[3] + 0xD5) ||
-	     (data[3] & 0x0f) != 0x00) {
+		 data[1] != (unsigned char)(data[2] + data[3] + 0xD5) ||
+		 (data[3] & 0x0f) != 0x00)
+	{
 		ati_remote_dump(&urb->dev->dev, data, urb->actual_length);
 		return;
 	}
 
-	if (data[1] != ((data[2] + data[3] + 0xd5) & 0xff)) {
+	if (data[1] != ((data[2] + data[3] + 0xd5) & 0xff))
+	{
 		dbginfo(&ati_remote->interface->dev,
-			"wrong checksum in input: %*ph\n", 4, data);
+				"wrong checksum in input: %*ph\n", 4, data);
 		return;
 	}
 
 	/* Mask unwanted remote channels.  */
 	/* note: remote_num is 0-based, channel 1 on remote == 0 here */
 	remote_num = (data[3] >> 4) & 0x0f;
-	if (channel_mask & (1 << (remote_num + 1))) {
+
+	if (channel_mask & (1 << (remote_num + 1)))
+	{
 		dbginfo(&ati_remote->interface->dev,
-			"Masked input from channel 0x%02x: data %02x, "
-			"mask= 0x%02lx\n",
-			remote_num, data[2], channel_mask);
+				"Masked input from channel 0x%02x: data %02x, "
+				"mask= 0x%02lx\n",
+				remote_num, data[2], channel_mask);
 		return;
 	}
 
@@ -540,10 +589,11 @@ static void ati_remote_input_report(struct urb *urb)
 	scancode = data[2] & 0x7f;
 
 	dbginfo(&ati_remote->interface->dev,
-		"channel 0x%02x; key data %02x, scancode %02x\n",
-		remote_num, data[2], scancode);
+			"channel 0x%02x; key data %02x, scancode %02x\n",
+			remote_num, data[2], scancode);
 
-	if (scancode >= 0x70) {
+	if (scancode >= 0x70)
+	{
 		/*
 		 * This is either a mouse or scrollwheel event, depending on
 		 * the remote/keymap.
@@ -551,16 +601,19 @@ static void ati_remote_input_report(struct urb *urb)
 		 * set, assume this is a scrollwheel up/down event.
 		 */
 		wheel_keycode = rc_g_keycode_from_table(ati_remote->rdev,
-							scancode & 0x78);
+												scancode & 0x78);
 
-		if (wheel_keycode == KEY_RESERVED) {
+		if (wheel_keycode == KEY_RESERVED)
+		{
 			/* scrollwheel was not mapped, assume mouse */
 
 			/* Look up event code index in the mouse translation
 			 * table.
 			 */
-			for (i = 0; ati_remote_tbl[i].kind != KIND_END; i++) {
-				if (scancode == ati_remote_tbl[i].data) {
+			for (i = 0; ati_remote_tbl[i].kind != KIND_END; i++)
+			{
+				if (scancode == ati_remote_tbl[i].data)
+				{
 					index = i;
 					break;
 				}
@@ -568,25 +621,31 @@ static void ati_remote_input_report(struct urb *urb)
 		}
 	}
 
-	if (index >= 0 && ati_remote_tbl[index].kind == KIND_LITERAL) {
+	if (index >= 0 && ati_remote_tbl[index].kind == KIND_LITERAL)
+	{
 		/*
 		 * The lsbit of the raw key code is a down/up flag.
 		 * Invert it to match the input layer's conventions.
 		 */
 		input_event(dev, EV_KEY, ati_remote_tbl[index].code,
-			!(data[2] & 1));
+					!(data[2] & 1));
 
 		ati_remote->old_jiffies = jiffies;
 
-	} else if (index < 0 || ati_remote_tbl[index].kind == KIND_FILTERED) {
+	}
+	else if (index < 0 || ati_remote_tbl[index].kind == KIND_FILTERED)
+	{
 		unsigned long now = jiffies;
 
 		/* Filter duplicate events which happen "too close" together. */
 		if (ati_remote->old_data == data[2] &&
-		    time_before(now, ati_remote->old_jiffies +
-				     msecs_to_jiffies(repeat_filter))) {
+			time_before(now, ati_remote->old_jiffies +
+						msecs_to_jiffies(repeat_filter)))
+		{
 			ati_remote->repeat_count++;
-		} else {
+		}
+		else
+		{
 			ati_remote->repeat_count = 0;
 			ati_remote->first_jiffies = now;
 		}
@@ -598,19 +657,25 @@ static void ati_remote_input_report(struct urb *urb)
 		 * until repeat_delay msecs have passed.
 		 */
 		if (ati_remote->repeat_count > 0 &&
-		    (ati_remote->repeat_count < 5 ||
-		     time_before(now, ati_remote->first_jiffies +
-				      msecs_to_jiffies(repeat_delay))))
+			(ati_remote->repeat_count < 5 ||
+			 time_before(now, ati_remote->first_jiffies +
+						 msecs_to_jiffies(repeat_delay))))
+		{
 			return;
+		}
 
-		if (index >= 0) {
+		if (index >= 0)
+		{
 			input_event(dev, EV_KEY, ati_remote_tbl[index].code, 1);
 			input_event(dev, EV_KEY, ati_remote_tbl[index].code, 0);
-		} else {
+		}
+		else
+		{
 			/* Not a mouse event, hand it to rc-core. */
 			int count = 1;
 
-			if (wheel_keycode != KEY_RESERVED) {
+			if (wheel_keycode != KEY_RESERVED)
+			{
 				/*
 				 * This is a scrollwheel event, send the
 				 * scroll up (0x78) / down (0x70) scancode
@@ -621,20 +686,24 @@ static void ati_remote_input_report(struct urb *urb)
 				scancode &= 0x78;
 			}
 
-			while (count--) {
+			while (count--)
+			{
 				/*
 				* We don't use the rc-core repeat handling yet as
 				* it would cause ghost repeats which would be a
 				* regression for this driver.
 				*/
 				rc_keydown_notimeout(ati_remote->rdev, RC_TYPE_OTHER,
-						     scancode, data[2]);
+									 scancode, data[2]);
 				rc_keyup(ati_remote->rdev);
 			}
+
 			goto nosync;
 		}
 
-	} else if (ati_remote_tbl[index].kind == KIND_ACCEL) {
+	}
+	else if (ati_remote_tbl[index].kind == KIND_ACCEL)
+	{
 		signed char dx = ati_remote_tbl[index].code >> 8;
 		signed char dy = ati_remote_tbl[index].code & 255;
 
@@ -644,17 +713,27 @@ static void ati_remote_input_report(struct urb *urb)
 		 * acceleration, the control pad is mostly unusable.
 		 */
 		int acc = ati_remote_compute_accel(ati_remote);
+
 		if (dx)
+		{
 			input_report_rel(dev, REL_X, dx * acc);
+		}
+
 		if (dy)
+		{
 			input_report_rel(dev, REL_Y, dy * acc);
+		}
+
 		ati_remote->old_jiffies = jiffies;
 
-	} else {
+	}
+	else
+	{
 		dev_dbg(&ati_remote->interface->dev, "ati_remote kind=%d\n",
-			ati_remote_tbl[index].kind);
+				ati_remote_tbl[index].kind);
 		return;
 	}
+
 	input_sync(dev);
 nosync:
 	ati_remote->old_data = data[2];
@@ -668,53 +747,69 @@ static void ati_remote_irq_in(struct urb *urb)
 	struct ati_remote *ati_remote = urb->context;
 	int retval;
 
-	switch (urb->status) {
-	case 0:			/* success */
-		ati_remote_input_report(urb);
-		break;
-	case -ECONNRESET:	/* unlink */
-	case -ENOENT:
-	case -ESHUTDOWN:
-		dev_dbg(&ati_remote->interface->dev,
-			"%s: urb error status, unlink?\n",
-			__func__);
-		return;
-	default:		/* error */
-		dev_dbg(&ati_remote->interface->dev,
-			"%s: Nonzero urb status %d\n",
-			__func__, urb->status);
+	switch (urb->status)
+	{
+		case 0:			/* success */
+			ati_remote_input_report(urb);
+			break;
+
+		case -ECONNRESET:	/* unlink */
+		case -ENOENT:
+		case -ESHUTDOWN:
+			dev_dbg(&ati_remote->interface->dev,
+					"%s: urb error status, unlink?\n",
+					__func__);
+			return;
+
+		default:		/* error */
+			dev_dbg(&ati_remote->interface->dev,
+					"%s: Nonzero urb status %d\n",
+					__func__, urb->status);
 	}
 
 	retval = usb_submit_urb(urb, GFP_ATOMIC);
+
 	if (retval)
 		dev_err(&ati_remote->interface->dev,
-			"%s: usb_submit_urb()=%d\n",
-			__func__, retval);
+				"%s: usb_submit_urb()=%d\n",
+				__func__, retval);
 }
 
 /*
  * ati_remote_alloc_buffers
  */
 static int ati_remote_alloc_buffers(struct usb_device *udev,
-				    struct ati_remote *ati_remote)
+									struct ati_remote *ati_remote)
 {
 	ati_remote->inbuf = usb_alloc_coherent(udev, DATA_BUFSIZE, GFP_ATOMIC,
-					       &ati_remote->inbuf_dma);
+										   &ati_remote->inbuf_dma);
+
 	if (!ati_remote->inbuf)
+	{
 		return -1;
+	}
 
 	ati_remote->outbuf = usb_alloc_coherent(udev, DATA_BUFSIZE, GFP_ATOMIC,
-						&ati_remote->outbuf_dma);
+											&ati_remote->outbuf_dma);
+
 	if (!ati_remote->outbuf)
+	{
 		return -1;
+	}
 
 	ati_remote->irq_urb = usb_alloc_urb(0, GFP_KERNEL);
+
 	if (!ati_remote->irq_urb)
+	{
 		return -1;
+	}
 
 	ati_remote->out_urb = usb_alloc_urb(0, GFP_KERNEL);
+
 	if (!ati_remote->out_urb)
+	{
 		return -1;
+	}
 
 	return 0;
 }
@@ -728,10 +823,10 @@ static void ati_remote_free_buffers(struct ati_remote *ati_remote)
 	usb_free_urb(ati_remote->out_urb);
 
 	usb_free_coherent(ati_remote->udev, DATA_BUFSIZE,
-		ati_remote->inbuf, ati_remote->inbuf_dma);
+					  ati_remote->inbuf, ati_remote->inbuf_dma);
 
 	usb_free_coherent(ati_remote->udev, DATA_BUFSIZE,
-		ati_remote->outbuf, ati_remote->outbuf_dma);
+					  ati_remote->outbuf, ati_remote->outbuf_dma);
 }
 
 static void ati_remote_input_init(struct ati_remote *ati_remote)
@@ -741,12 +836,15 @@ static void ati_remote_input_init(struct ati_remote *ati_remote)
 
 	idev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REL);
 	idev->keybit[BIT_WORD(BTN_MOUSE)] = BIT_MASK(BTN_LEFT) |
-		BIT_MASK(BTN_RIGHT) | BIT_MASK(BTN_SIDE) | BIT_MASK(BTN_EXTRA);
+										BIT_MASK(BTN_RIGHT) | BIT_MASK(BTN_SIDE) | BIT_MASK(BTN_EXTRA);
 	idev->relbit[0] = BIT_MASK(REL_X) | BIT_MASK(REL_Y);
+
 	for (i = 0; ati_remote_tbl[i].kind != KIND_END; i++)
 		if (ati_remote_tbl[i].kind == KIND_LITERAL ||
-		    ati_remote_tbl[i].kind == KIND_FILTERED)
+			ati_remote_tbl[i].kind == KIND_FILTERED)
+		{
 			__set_bit(ati_remote_tbl[i].code, idev->keybit);
+		}
 
 	input_set_drvdata(idev, ati_remote);
 
@@ -792,8 +890,8 @@ static int ati_remote_initialize(struct ati_remote *ati_remote)
 	maxp = (maxp > DATA_BUFSIZE) ? DATA_BUFSIZE : maxp;
 
 	usb_fill_int_urb(ati_remote->irq_urb, udev, pipe, ati_remote->inbuf,
-			 maxp, ati_remote_irq_in, ati_remote,
-			 ati_remote->endpoint_in->bInterval);
+					 maxp, ati_remote_irq_in, ati_remote,
+					 ati_remote->endpoint_in->bInterval);
 	ati_remote->irq_urb->transfer_dma = ati_remote->inbuf_dma;
 	ati_remote->irq_urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
 
@@ -803,16 +901,17 @@ static int ati_remote_initialize(struct ati_remote *ati_remote)
 	maxp = (maxp > DATA_BUFSIZE) ? DATA_BUFSIZE : maxp;
 
 	usb_fill_int_urb(ati_remote->out_urb, udev, pipe, ati_remote->outbuf,
-			 maxp, ati_remote_irq_out, ati_remote,
-			 ati_remote->endpoint_out->bInterval);
+					 maxp, ati_remote_irq_out, ati_remote,
+					 ati_remote->endpoint_out->bInterval);
 	ati_remote->out_urb->transfer_dma = ati_remote->outbuf_dma;
 	ati_remote->out_urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
 
 	/* send initialization strings */
 	if ((ati_remote_sendpacket(ati_remote, 0x8004, init1)) ||
-	    (ati_remote_sendpacket(ati_remote, 0x8007, init2))) {
+		(ati_remote_sendpacket(ati_remote, 0x8007, init2)))
+	{
 		dev_err(&ati_remote->interface->dev,
-			 "Initializing ati_remote hardware failed.\n");
+				"Initializing ati_remote hardware failed.\n");
 		return -EIO;
 	}
 
@@ -823,7 +922,7 @@ static int ati_remote_initialize(struct ati_remote *ati_remote)
  * ati_remote_probe
  */
 static int ati_remote_probe(struct usb_interface *interface,
-	const struct usb_device_id *id)
+							const struct usb_device_id *id)
 {
 	struct usb_device *udev = interface_to_usbdev(interface);
 	struct usb_host_interface *iface_host = interface->cur_altsetting;
@@ -834,7 +933,8 @@ static int ati_remote_probe(struct usb_interface *interface,
 	struct rc_dev *rc_dev;
 	int err = -ENOMEM;
 
-	if (iface_host->desc.bNumEndpoints != 2) {
+	if (iface_host->desc.bNumEndpoints != 2)
+	{
 		err("%s: Unexpected desc.bNumEndpoints\n", __func__);
 		return -ENODEV;
 	}
@@ -842,23 +942,31 @@ static int ati_remote_probe(struct usb_interface *interface,
 	endpoint_in = &iface_host->endpoint[0].desc;
 	endpoint_out = &iface_host->endpoint[1].desc;
 
-	if (!usb_endpoint_is_int_in(endpoint_in)) {
+	if (!usb_endpoint_is_int_in(endpoint_in))
+	{
 		err("%s: Unexpected endpoint_in\n", __func__);
 		return -ENODEV;
 	}
-	if (le16_to_cpu(endpoint_in->wMaxPacketSize) == 0) {
+
+	if (le16_to_cpu(endpoint_in->wMaxPacketSize) == 0)
+	{
 		err("%s: endpoint_in message size==0? \n", __func__);
 		return -ENODEV;
 	}
 
 	ati_remote = kzalloc(sizeof (struct ati_remote), GFP_KERNEL);
 	rc_dev = rc_allocate_device();
+
 	if (!ati_remote || !rc_dev)
+	{
 		goto exit_free_dev_rdev;
+	}
 
 	/* Allocate URB buffers, URBs */
 	if (ati_remote_alloc_buffers(udev, ati_remote))
+	{
 		goto exit_free_buffers;
+	}
 
 	ati_remote->endpoint_in = endpoint_in;
 	ati_remote->endpoint_out = endpoint_out;
@@ -868,33 +976,38 @@ static int ati_remote_probe(struct usb_interface *interface,
 
 	usb_make_path(udev, ati_remote->rc_phys, sizeof(ati_remote->rc_phys));
 	strlcpy(ati_remote->mouse_phys, ati_remote->rc_phys,
-		sizeof(ati_remote->mouse_phys));
+			sizeof(ati_remote->mouse_phys));
 
 	strlcat(ati_remote->rc_phys, "/input0", sizeof(ati_remote->rc_phys));
 	strlcat(ati_remote->mouse_phys, "/input1", sizeof(ati_remote->mouse_phys));
 
 	snprintf(ati_remote->rc_name, sizeof(ati_remote->rc_name), "%s%s%s",
-		udev->manufacturer ?: "",
-		udev->manufacturer && udev->product ? " " : "",
-		udev->product ?: "");
+			 udev->manufacturer ? : "",
+			 udev->manufacturer && udev->product ? " " : "",
+			 udev->product ? : "");
 
 	if (!strlen(ati_remote->rc_name))
 		snprintf(ati_remote->rc_name, sizeof(ati_remote->rc_name),
-			DRIVER_DESC "(%04x,%04x)",
-			le16_to_cpu(ati_remote->udev->descriptor.idVendor),
-			le16_to_cpu(ati_remote->udev->descriptor.idProduct));
+				 DRIVER_DESC "(%04x,%04x)",
+				 le16_to_cpu(ati_remote->udev->descriptor.idVendor),
+				 le16_to_cpu(ati_remote->udev->descriptor.idProduct));
 
 	snprintf(ati_remote->mouse_name, sizeof(ati_remote->mouse_name),
-		 "%s mouse", ati_remote->rc_name);
+			 "%s mouse", ati_remote->rc_name);
 
 	rc_dev->map_name = RC_MAP_ATI_X10; /* default map */
 
 	/* set default keymap according to receiver model */
-	if (type) {
+	if (type)
+	{
 		if (type->default_keymap)
+		{
 			rc_dev->map_name = type->default_keymap;
+		}
 		else if (type->get_default_keymap)
+		{
 			rc_dev->map_name = type->get_default_keymap(interface);
+		}
 	}
 
 	ati_remote_rc_init(ati_remote);
@@ -902,21 +1015,30 @@ static int ati_remote_probe(struct usb_interface *interface,
 
 	/* Device Hardware Initialization - fills in ati_remote->idev from udev. */
 	err = ati_remote_initialize(ati_remote);
+
 	if (err)
+	{
 		goto exit_kill_urbs;
+	}
 
 	/* Set up and register rc device */
 	err = rc_register_device(ati_remote->rdev);
+
 	if (err)
+	{
 		goto exit_kill_urbs;
+	}
 
 	/* use our delay for rc_dev */
 	ati_remote->rdev->input_dev->rep[REP_DELAY] = repeat_delay;
 
 	/* Set up and register mouse input device */
-	if (mouse) {
+	if (mouse)
+	{
 		input_dev = input_allocate_device();
-		if (!input_dev) {
+
+		if (!input_dev)
+		{
 			err = -ENOMEM;
 			goto exit_unregister_device;
 		}
@@ -926,24 +1048,26 @@ static int ati_remote_probe(struct usb_interface *interface,
 		err = input_register_device(input_dev);
 
 		if (err)
+		{
 			goto exit_free_input_device;
+		}
 	}
 
 	usb_set_intfdata(interface, ati_remote);
 	return 0;
 
- exit_free_input_device:
+exit_free_input_device:
 	input_free_device(input_dev);
- exit_unregister_device:
+exit_unregister_device:
 	rc_unregister_device(rc_dev);
 	rc_dev = NULL;
- exit_kill_urbs:
+exit_kill_urbs:
 	usb_kill_urb(ati_remote->irq_urb);
 	usb_kill_urb(ati_remote->out_urb);
- exit_free_buffers:
+exit_free_buffers:
 	ati_remote_free_buffers(ati_remote);
- exit_free_dev_rdev:
-	 rc_free_device(rc_dev);
+exit_free_dev_rdev:
+	rc_free_device(rc_dev);
 	kfree(ati_remote);
 	return err;
 }
@@ -957,22 +1081,29 @@ static void ati_remote_disconnect(struct usb_interface *interface)
 
 	ati_remote = usb_get_intfdata(interface);
 	usb_set_intfdata(interface, NULL);
-	if (!ati_remote) {
+
+	if (!ati_remote)
+	{
 		dev_warn(&interface->dev, "%s - null device?\n", __func__);
 		return;
 	}
 
 	usb_kill_urb(ati_remote->irq_urb);
 	usb_kill_urb(ati_remote->out_urb);
+
 	if (ati_remote->idev)
+	{
 		input_unregister_device(ati_remote->idev);
+	}
+
 	rc_unregister_device(ati_remote->rdev);
 	ati_remote_free_buffers(ati_remote);
 	kfree(ati_remote);
 }
 
 /* usb specific object to register with the usb subsystem */
-static struct usb_driver ati_remote_driver = {
+static struct usb_driver ati_remote_driver =
+{
 	.name         = "ati_remote",
 	.probe        = ati_remote_probe,
 	.disconnect   = ati_remote_disconnect,

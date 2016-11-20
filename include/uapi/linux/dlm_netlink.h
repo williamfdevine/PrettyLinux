@@ -11,7 +11,8 @@
 
 #include <linux/types.h>
 
-enum {
+enum
+{
 	DLM_STATUS_WAITING = 1,
 	DLM_STATUS_GRANTED = 2,
 	DLM_STATUS_CONVERT = 3,
@@ -19,7 +20,8 @@ enum {
 
 #define DLM_LOCK_DATA_VERSION 1
 
-struct dlm_lock_data {
+struct dlm_lock_data
+{
 	__u16 version;
 	__u32 lockspace_id;
 	int nodeid;
@@ -35,7 +37,8 @@ struct dlm_lock_data {
 	char resource_name[DLM_RESNAME_MAXLEN];
 };
 
-enum {
+enum
+{
 	DLM_CMD_UNSPEC = 0,
 	DLM_CMD_HELLO,		/* user->kernel */
 	DLM_CMD_TIMEOUT,	/* kernel->user */
@@ -44,7 +47,8 @@ enum {
 
 #define DLM_CMD_MAX (__DLM_CMD_MAX - 1)
 
-enum {
+enum
+{
 	DLM_TYPE_UNSPEC = 0,
 	DLM_TYPE_LOCK,
 	__DLM_TYPE_MAX,

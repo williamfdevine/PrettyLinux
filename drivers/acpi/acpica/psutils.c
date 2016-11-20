@@ -65,7 +65,9 @@ union acpi_parse_object *acpi_ps_create_scope_op(u8 *aml)
 	union acpi_parse_object *scope_op;
 
 	scope_op = acpi_ps_alloc_op(AML_SCOPE_OP, aml);
-	if (!scope_op) {
+
+	if (!scope_op)
+	{
 		return (NULL);
 	}
 
@@ -94,8 +96,8 @@ void acpi_ps_init_op(union acpi_parse_object *op, u16 opcode)
 	op->common.aml_opcode = opcode;
 
 	ACPI_DISASM_ONLY_MEMBERS(strncpy(op->common.aml_op_name,
-					 (acpi_ps_get_opcode_info(opcode))->
-					 name, sizeof(op->common.aml_op_name)));
+									 (acpi_ps_get_opcode_info(opcode))->
+									 name, sizeof(op->common.aml_op_name)));
 }
 
 /*******************************************************************************
@@ -125,22 +127,30 @@ union acpi_parse_object *acpi_ps_alloc_op(u16 opcode, u8 *aml)
 
 	/* Determine type of parse_op required */
 
-	if (op_info->flags & AML_DEFER) {
+	if (op_info->flags & AML_DEFER)
+	{
 		flags = ACPI_PARSEOP_DEFERRED;
-	} else if (op_info->flags & AML_NAMED) {
+	}
+	else if (op_info->flags & AML_NAMED)
+	{
 		flags = ACPI_PARSEOP_NAMED_OBJECT;
-	} else if (opcode == AML_INT_BYTELIST_OP) {
+	}
+	else if (opcode == AML_INT_BYTELIST_OP)
+	{
 		flags = ACPI_PARSEOP_BYTELIST;
 	}
 
 	/* Allocate the minimum required size object */
 
-	if (flags == ACPI_PARSEOP_GENERIC) {
+	if (flags == ACPI_PARSEOP_GENERIC)
+	{
 
 		/* The generic op (default) is by far the most common (16 to 1) */
 
 		op = acpi_os_acquire_object(acpi_gbl_ps_node_cache);
-	} else {
+	}
+	else
+	{
 		/* Extended parseop */
 
 		op = acpi_os_acquire_object(acpi_gbl_ps_node_ext_cache);
@@ -148,7 +158,8 @@ union acpi_parse_object *acpi_ps_alloc_op(u16 opcode, u8 *aml)
 
 	/* Initialize the Op */
 
-	if (op) {
+	if (op)
+	{
 		acpi_ps_init_op(op, opcode);
 		op->common.aml = aml;
 		op->common.flags = flags;
@@ -174,14 +185,18 @@ void acpi_ps_free_op(union acpi_parse_object *op)
 {
 	ACPI_FUNCTION_NAME(ps_free_op);
 
-	if (op->common.aml_opcode == AML_INT_RETURN_VALUE_OP) {
+	if (op->common.aml_opcode == AML_INT_RETURN_VALUE_OP)
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_ALLOCATIONS,
-				  "Free retval op: %p\n", op));
+						  "Free retval op: %p\n", op));
 	}
 
-	if (op->common.flags & ACPI_PARSEOP_GENERIC) {
+	if (op->common.flags & ACPI_PARSEOP_GENERIC)
+	{
 		(void)acpi_os_release_object(acpi_gbl_ps_node_cache, op);
-	} else {
+	}
+	else
+	{
 		(void)acpi_os_release_object(acpi_gbl_ps_node_ext_cache, op);
 	}
 }
@@ -205,12 +220,13 @@ u8 acpi_ps_is_leading_char(u32 c)
 /*
  * Get op's name (4-byte name segment) or 0 if unnamed
  */
-u32 acpi_ps_get_name(union acpi_parse_object * op)
+u32 acpi_ps_get_name(union acpi_parse_object *op)
 {
 
 	/* The "generic" object has no name associated with it */
 
-	if (op->common.flags & ACPI_PARSEOP_GENERIC) {
+	if (op->common.flags & ACPI_PARSEOP_GENERIC)
+	{
 		return (0);
 	}
 
@@ -227,7 +243,8 @@ void acpi_ps_set_name(union acpi_parse_object *op, u32 name)
 
 	/* The "generic" object has no name associated with it */
 
-	if (op->common.flags & ACPI_PARSEOP_GENERIC) {
+	if (op->common.flags & ACPI_PARSEOP_GENERIC)
+	{
 		return;
 	}
 

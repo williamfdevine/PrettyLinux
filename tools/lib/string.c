@@ -29,7 +29,9 @@ void *memdup(const void *src, size_t len)
 	void *p = malloc(len);
 
 	if (p)
+	{
 		memcpy(p, src, len);
+	}
 
 	return p;
 }
@@ -45,20 +47,24 @@ void *memdup(const void *src, size_t len)
  */
 int strtobool(const char *s, bool *res)
 {
-	switch (s[0]) {
-	case 'y':
-	case 'Y':
-	case '1':
-		*res = true;
-		break;
-	case 'n':
-	case 'N':
-	case '0':
-		*res = false;
-		break;
-	default:
-		return -EINVAL;
+	switch (s[0])
+	{
+		case 'y':
+		case 'Y':
+		case '1':
+			*res = true;
+			break;
+
+		case 'n':
+		case 'N':
+		case '0':
+			*res = false;
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -80,10 +86,12 @@ size_t __weak strlcpy(char *dest, const char *src, size_t size)
 {
 	size_t ret = strlen(src);
 
-	if (size) {
+	if (size)
+	{
 		size_t len = (ret >= size) ? size - 1 : ret;
 		memcpy(dest, src, len);
 		dest[len] = '\0';
 	}
+
 	return ret;
 }

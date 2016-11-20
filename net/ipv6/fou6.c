@@ -15,7 +15,7 @@
 #include <net/udp_tunnel.h>
 
 static void fou6_build_udp(struct sk_buff *skb, struct ip_tunnel_encap *e,
-			   struct flowi6 *fl6, u8 *protocol, __be16 sport)
+						   struct flowi6 *fl6, u8 *protocol, __be16 sport)
 {
 	struct udphdr *uh;
 
@@ -28,22 +28,25 @@ static void fou6_build_udp(struct sk_buff *skb, struct ip_tunnel_encap *e,
 	uh->source = sport;
 	uh->len = htons(skb->len);
 	udp6_set_csum(!(e->flags & TUNNEL_ENCAP_FLAG_CSUM6), skb,
-		      &fl6->saddr, &fl6->daddr, skb->len);
+				  &fl6->saddr, &fl6->daddr, skb->len);
 
 	*protocol = IPPROTO_UDP;
 }
 
 int fou6_build_header(struct sk_buff *skb, struct ip_tunnel_encap *e,
-		      u8 *protocol, struct flowi6 *fl6)
+					  u8 *protocol, struct flowi6 *fl6)
 {
 	__be16 sport;
 	int err;
 	int type = e->flags & TUNNEL_ENCAP_FLAG_CSUM6 ?
-		SKB_GSO_UDP_TUNNEL_CSUM : SKB_GSO_UDP_TUNNEL;
+			   SKB_GSO_UDP_TUNNEL_CSUM : SKB_GSO_UDP_TUNNEL;
 
 	err = __fou_build_header(skb, e, protocol, &sport, type);
+
 	if (err)
+	{
 		return err;
+	}
 
 	fou6_build_udp(skb, e, fl6, protocol, sport);
 
@@ -52,16 +55,19 @@ int fou6_build_header(struct sk_buff *skb, struct ip_tunnel_encap *e,
 EXPORT_SYMBOL(fou6_build_header);
 
 int gue6_build_header(struct sk_buff *skb, struct ip_tunnel_encap *e,
-		      u8 *protocol, struct flowi6 *fl6)
+					  u8 *protocol, struct flowi6 *fl6)
 {
 	__be16 sport;
 	int err;
 	int type = e->flags & TUNNEL_ENCAP_FLAG_CSUM6 ?
-		SKB_GSO_UDP_TUNNEL_CSUM : SKB_GSO_UDP_TUNNEL;
+			   SKB_GSO_UDP_TUNNEL_CSUM : SKB_GSO_UDP_TUNNEL;
 
 	err = __gue_build_header(skb, e, protocol, &sport, type);
+
 	if (err)
+	{
 		return err;
+	}
 
 	fou6_build_udp(skb, e, fl6, protocol, sport);
 
@@ -71,12 +77,14 @@ EXPORT_SYMBOL(gue6_build_header);
 
 #if IS_ENABLED(CONFIG_IPV6_FOU_TUNNEL)
 
-static const struct ip6_tnl_encap_ops fou_ip6tun_ops = {
+static const struct ip6_tnl_encap_ops fou_ip6tun_ops =
+{
 	.encap_hlen = fou_encap_hlen,
 	.build_header = fou6_build_header,
 };
 
-static const struct ip6_tnl_encap_ops gue_ip6tun_ops = {
+static const struct ip6_tnl_encap_ops gue_ip6tun_ops =
+{
 	.encap_hlen = gue_encap_hlen,
 	.build_header = gue6_build_header,
 };
@@ -86,13 +94,17 @@ static int ip6_tnl_encap_add_fou_ops(void)
 	int ret;
 
 	ret = ip6_tnl_encap_add_ops(&fou_ip6tun_ops, TUNNEL_ENCAP_FOU);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("can't add fou6 ops\n");
 		return ret;
 	}
 
 	ret = ip6_tnl_encap_add_ops(&gue_ip6tun_ops, TUNNEL_ENCAP_GUE);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("can't add gue6 ops\n");
 		ip6_tnl_encap_del_ops(&fou_ip6tun_ops, TUNNEL_ENCAP_FOU);
 		return ret;

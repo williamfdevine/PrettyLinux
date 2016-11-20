@@ -40,7 +40,8 @@
 
 #define PG_MAX_DATA	32768
 
-struct pg_write_hdr {
+struct pg_write_hdr
+{
 
 	char	magic;		/* == PG_MAGIC */
 	char	func;		/* PG_RESET or PG_COMMAND */
@@ -50,7 +51,8 @@ struct pg_write_hdr {
 
 };
 
-struct pg_read_hdr {
+struct pg_read_hdr
+{
 
 	char	magic;		/* == PG_MAGIC */
 	char	scsi;		/* "scsi" status == sense key */

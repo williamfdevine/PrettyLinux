@@ -30,9 +30,9 @@
 struct acx_header;
 
 int wl1271_cmd_send(struct wl1271 *wl, u16 id, void *buf, size_t len,
-		    size_t res_len);
+					size_t res_len);
 int wl12xx_cmd_role_enable(struct wl1271 *wl, u8 *addr, u8 role_type,
-			   u8 *role_id);
+						   u8 *role_id);
 int wl12xx_cmd_role_disable(struct wl1271 *wl, u8 *role_id);
 int wl12xx_cmd_role_start_sta(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 int wl12xx_cmd_role_stop_sta(struct wl1271 *wl, struct wl12xx_vif *wlvif);
@@ -40,76 +40,77 @@ int wl12xx_cmd_role_start_ap(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 int wl12xx_cmd_role_stop_ap(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 int wl12xx_cmd_role_start_ibss(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 int wl12xx_start_dev(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-		     enum nl80211_band band, int channel);
+					 enum nl80211_band band, int channel);
 int wl12xx_stop_dev(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 int wl1271_cmd_test(struct wl1271 *wl, void *buf, size_t buf_len, u8 answer);
 int wl1271_cmd_interrogate(struct wl1271 *wl, u16 id, void *buf,
-			   size_t cmd_len, size_t res_len);
+						   size_t cmd_len, size_t res_len);
 int wl1271_cmd_configure(struct wl1271 *wl, u16 id, void *buf, size_t len);
 int wlcore_cmd_configure_failsafe(struct wl1271 *wl, u16 id, void *buf,
-				  size_t len, unsigned long valid_rets);
+								  size_t len, unsigned long valid_rets);
 int wl1271_cmd_data_path(struct wl1271 *wl, bool enable);
 int wl1271_cmd_ps_mode(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-		       u8 ps_mode, u16 auto_ps_timeout);
+					   u8 ps_mode, u16 auto_ps_timeout);
 int wl1271_cmd_read_memory(struct wl1271 *wl, u32 addr, void *answer,
-			   size_t len);
+						   size_t len);
 int wl1271_cmd_template_set(struct wl1271 *wl, u8 role_id,
-			    u16 template_id, void *buf, size_t buf_len,
-			    int index, u32 rates);
+							u16 template_id, void *buf, size_t buf_len,
+							int index, u32 rates);
 int wl12xx_cmd_build_null_data(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 int wl1271_cmd_build_ps_poll(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-			     u16 aid);
+							 u16 aid);
 int wl12xx_cmd_build_probe_req(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-			       u8 role_id, u8 band,
-			       const u8 *ssid, size_t ssid_len,
-			       const u8 *ie, size_t ie_len, const u8 *common_ie,
-			       size_t common_ie_len, bool sched_scan);
+							   u8 role_id, u8 band,
+							   const u8 *ssid, size_t ssid_len,
+							   const u8 *ie, size_t ie_len, const u8 *common_ie,
+							   size_t common_ie_len, bool sched_scan);
 struct sk_buff *wl1271_cmd_build_ap_probe_req(struct wl1271 *wl,
-					      struct wl12xx_vif *wlvif,
-					      struct sk_buff *skb);
+		struct wl12xx_vif *wlvif,
+		struct sk_buff *skb);
 int wl1271_cmd_build_arp_rsp(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 int wl1271_build_qos_null_data(struct wl1271 *wl, struct ieee80211_vif *vif);
 int wl12xx_cmd_build_klv_null_data(struct wl1271 *wl,
-				   struct wl12xx_vif *wlvif);
+								   struct wl12xx_vif *wlvif);
 int wl12xx_cmd_set_default_wep_key(struct wl1271 *wl, u8 id, u8 hlid);
 int wl1271_cmd_set_sta_key(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-			   u16 action, u8 id, u8 key_type,
-			   u8 key_size, const u8 *key, const u8 *addr,
-			   u32 tx_seq_32, u16 tx_seq_16);
+						   u16 action, u8 id, u8 key_type,
+						   u8 key_size, const u8 *key, const u8 *addr,
+						   u32 tx_seq_32, u16 tx_seq_16);
 int wl1271_cmd_set_ap_key(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-			  u16 action, u8 id, u8 key_type,
-			  u8 key_size, const u8 *key, u8 hlid, u32 tx_seq_32,
-			  u16 tx_seq_16);
+						  u16 action, u8 id, u8 key_type,
+						  u8 key_size, const u8 *key, u8 hlid, u32 tx_seq_32,
+						  u16 tx_seq_16);
 int wl12xx_cmd_set_peer_state(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-			      u8 hlid);
+							  u8 hlid);
 int wl12xx_roc(struct wl1271 *wl, struct wl12xx_vif *wlvif, u8 role_id,
-	       enum nl80211_band band, u8 channel);
+			   enum nl80211_band band, u8 channel);
 int wl12xx_croc(struct wl1271 *wl, u8 role_id);
 int wl12xx_cmd_add_peer(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-			struct ieee80211_sta *sta, u8 hlid);
+						struct ieee80211_sta *sta, u8 hlid);
 int wl12xx_cmd_remove_peer(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-			   u8 hlid);
+						   u8 hlid);
 void wlcore_set_pending_regdomain_ch(struct wl1271 *wl, u16 channel,
-				     enum nl80211_band band);
+									 enum nl80211_band band);
 int wlcore_cmd_regdomain_config_locked(struct wl1271 *wl);
 int wlcore_cmd_generic_cfg(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-			   u8 feature, u8 enable, u8 value);
+						   u8 feature, u8 enable, u8 value);
 int wl12xx_cmd_config_fwlog(struct wl1271 *wl);
 int wl12xx_cmd_start_fwlog(struct wl1271 *wl);
 int wl12xx_cmd_stop_fwlog(struct wl1271 *wl);
 int wl12xx_cmd_channel_switch(struct wl1271 *wl,
-			      struct wl12xx_vif *wlvif,
-			      struct ieee80211_channel_switch *ch_switch);
+							  struct wl12xx_vif *wlvif,
+							  struct ieee80211_channel_switch *ch_switch);
 int wl12xx_cmd_stop_channel_switch(struct wl1271 *wl,
-				   struct wl12xx_vif *wlvif);
+								   struct wl12xx_vif *wlvif);
 int wl12xx_allocate_link(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-			 u8 *hlid);
+						 u8 *hlid);
 void wl12xx_free_link(struct wl1271 *wl, struct wl12xx_vif *wlvif, u8 *hlid);
 int wlcore_cmd_wait_for_event_or_timeout(struct wl1271 *wl,
-					 u32 mask, bool *timeout);
+		u32 mask, bool *timeout);
 u8 wlcore_get_native_channel_type(u8 nl_channel_type);
 
-enum wl1271_commands {
+enum wl1271_commands
+{
 	CMD_INTERROGATE	= 1, /* use this to read information elements */
 	CMD_CONFIGURE	= 2, /* use this to write information elements */
 	CMD_ENABLE_RX	= 3,
@@ -185,7 +186,8 @@ enum wl1271_commands {
 
 #define MAX_CMD_PARAMS 572
 
-enum cmd_templ {
+enum cmd_templ
+{
 	CMD_TEMPL_NULL_DATA = 0,
 	CMD_TEMPL_BEACON,
 	CMD_TEMPL_CFG_PROBE_REQ_2_4,
@@ -219,7 +221,8 @@ enum cmd_templ {
 #define WL1271_CMD_TEMPL_MAX_SIZE  512
 #define WL1271_EVENT_TIMEOUT       5000
 
-struct wl1271_cmd_header {
+struct wl1271_cmd_header
+{
 	__le16 id;
 	__le16 status;
 	/* payload */
@@ -228,12 +231,14 @@ struct wl1271_cmd_header {
 
 #define WL1271_CMD_MAX_PARAMS 572
 
-struct wl1271_command {
+struct wl1271_command
+{
 	struct wl1271_cmd_header header;
 	u8  parameters[WL1271_CMD_MAX_PARAMS];
 } __packed;
 
-enum {
+enum
+{
 	CMD_MAILBOX_IDLE		=  0,
 	CMD_STATUS_SUCCESS		=  1,
 	CMD_STATUS_UNKNOWN_CMD		=  2,
@@ -257,7 +262,8 @@ enum {
 #define CMDMBOX_HEADER_LEN 4
 #define CMDMBOX_INFO_ELEM_HEADER_LEN 4
 
-enum {
+enum
+{
 	BSS_TYPE_IBSS = 0,
 	BSS_TYPE_STA_BSS = 2,
 	BSS_TYPE_AP_BSS = 3,
@@ -268,7 +274,8 @@ enum {
 #define WL1271_JOIN_CMD_TX_SESSION_OFFSET 1
 #define WL1271_JOIN_CMD_BSS_TYPE_5GHZ 0x10
 
-struct wl12xx_cmd_role_enable {
+struct wl12xx_cmd_role_enable
+{
 	struct wl1271_cmd_header header;
 
 	u8 role_id;
@@ -276,14 +283,16 @@ struct wl12xx_cmd_role_enable {
 	u8 mac_address[ETH_ALEN];
 } __packed;
 
-struct wl12xx_cmd_role_disable {
+struct wl12xx_cmd_role_disable
+{
 	struct wl1271_cmd_header header;
 
 	u8 role_id;
 	u8 padding[3];
 } __packed;
 
-enum wlcore_band {
+enum wlcore_band
+{
 	WLCORE_BAND_2_4GHZ		= 0,
 	WLCORE_BAND_5GHZ		= 1,
 	WLCORE_BAND_JAPAN_4_9_GHZ	= 2,
@@ -292,14 +301,16 @@ enum wlcore_band {
 	WLCORE_BAND_MAX_RADIO		= 0x7F,
 };
 
-enum wlcore_channel_type {
+enum wlcore_channel_type
+{
 	WLCORE_CHAN_NO_HT,
 	WLCORE_CHAN_HT20,
 	WLCORE_CHAN_HT40MINUS,
 	WLCORE_CHAN_HT40PLUS
 };
 
-struct wl12xx_cmd_role_start {
+struct wl12xx_cmd_role_start
+{
 	struct wl1271_cmd_header header;
 
 	u8 role_id;
@@ -309,14 +320,17 @@ struct wl12xx_cmd_role_start {
 	/* enum wlcore_channel_type */
 	u8 channel_type;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u8 hlid;
 			u8 session;
 			u8 padding_1[54];
 		} __packed device;
 		/* sta & p2p_cli use the same struct */
-		struct {
+		struct
+		{
 			u8 bssid[ETH_ALEN];
 			u8 hlid; /* data hlid */
 			u8 session;
@@ -336,7 +350,8 @@ struct wl12xx_cmd_role_start {
 
 			__le16 beacon_interval; /* in TBTTs */
 		} __packed sta;
-		struct {
+		struct
+		{
 			u8 bssid[ETH_ALEN];
 			u8 hlid; /* data hlid */
 			u8 dtim_interval;
@@ -354,7 +369,8 @@ struct wl12xx_cmd_role_start {
 			u8 padding_1[4];
 		} __packed ibss;
 		/* ap & p2p_go use the same struct */
-		struct {
+		struct
+		{
 			__le16 aging_period; /* in secs */
 			u8 beacon_expiry; /* in ms */
 			u8 bss_index;
@@ -389,7 +405,8 @@ struct wl12xx_cmd_role_start {
 	};
 } __packed;
 
-struct wl12xx_cmd_role_stop {
+struct wl12xx_cmd_role_stop
+{
 	struct wl1271_cmd_header header;
 
 	u8 role_id;
@@ -397,7 +414,8 @@ struct wl12xx_cmd_role_stop {
 	__le16 reason; /* only STA and P2P_CLI */
 } __packed;
 
-struct cmd_enabledisable_path {
+struct cmd_enabledisable_path
+{
 	struct wl1271_cmd_header header;
 
 	u8 channel;
@@ -406,7 +424,8 @@ struct cmd_enabledisable_path {
 
 #define WL1271_RATE_AUTOMATIC  0
 
-struct wl1271_cmd_template_set {
+struct wl1271_cmd_template_set
+{
 	struct wl1271_cmd_header header;
 
 	u8 role_id;
@@ -427,7 +446,8 @@ struct wl1271_cmd_template_set {
 #define TIM_ELE_ID    5
 #define PARTIAL_VBM_MAX    251
 
-struct wl1271_tim {
+struct wl1271_tim
+{
 	u8 identity;
 	u8 length;
 	u8 dtim_count;
@@ -436,13 +456,15 @@ struct wl1271_tim {
 	u8 pvb_field[PARTIAL_VBM_MAX]; /* Partial Virtual Bitmap */
 } __packed;
 
-enum wl1271_cmd_ps_mode {
+enum wl1271_cmd_ps_mode
+{
 	STATION_AUTO_PS_MODE,   /* Dynamic Power Save */
 	STATION_ACTIVE_MODE,
 	STATION_POWER_SAVE_MODE
 };
 
-struct wl1271_cmd_ps_params {
+struct wl1271_cmd_ps_params
+{
 	struct wl1271_cmd_header header;
 
 	u8 role_id;
@@ -453,20 +475,23 @@ struct wl1271_cmd_ps_params {
 /* HW encryption keys */
 #define NUM_ACCESS_CATEGORIES_COPY 4
 
-enum wl1271_cmd_key_action {
+enum wl1271_cmd_key_action
+{
 	KEY_ADD_OR_REPLACE = 1,
 	KEY_REMOVE         = 2,
 	KEY_SET_ID         = 3,
 	MAX_KEY_ACTION     = 0xffff,
 };
 
-enum wl1271_cmd_lid_key_type {
+enum wl1271_cmd_lid_key_type
+{
 	UNICAST_LID_TYPE     = 0,
 	BROADCAST_LID_TYPE   = 1,
 	WEP_DEFAULT_LID_TYPE = 2
 };
 
-enum wl1271_cmd_key_type {
+enum wl1271_cmd_key_type
+{
 	KEY_NONE = 0,
 	KEY_WEP  = 1,
 	KEY_TKIP = 2,
@@ -474,7 +499,8 @@ enum wl1271_cmd_key_type {
 	KEY_GEM  = 4,
 };
 
-struct wl1271_cmd_set_keys {
+struct wl1271_cmd_set_keys
+{
 	struct wl1271_cmd_header header;
 
 	/*
@@ -519,12 +545,14 @@ struct wl1271_cmd_set_keys {
 	__le32 ac_seq_num32[NUM_ACCESS_CATEGORIES_COPY];
 } __packed;
 
-struct wl1271_cmd_test_header {
+struct wl1271_cmd_test_header
+{
 	u8 id;
 	u8 padding[3];
 } __packed;
 
-enum wl1271_channel_tune_bands {
+enum wl1271_channel_tune_bands
+{
 	WL1271_CHANNEL_TUNE_BAND_2_4,
 	WL1271_CHANNEL_TUNE_BAND_5,
 	WL1271_CHANNEL_TUNE_BAND_4_9
@@ -541,7 +569,8 @@ enum wl1271_channel_tune_bands {
  * DISCONNECT_DISASSOC:  the fw generates a DESASSOC request with the reason
  *                       we have passed
  */
-enum wl1271_disconnect_type {
+enum wl1271_disconnect_type
+{
 	DISCONNECT_IMMEDIATE,
 	DISCONNECT_DEAUTH,
 	DISCONNECT_DISASSOC
@@ -549,7 +578,8 @@ enum wl1271_disconnect_type {
 
 #define WL1271_CMD_STA_STATE_CONNECTED  1
 
-struct wl12xx_cmd_set_peer_state {
+struct wl12xx_cmd_set_peer_state
+{
 	struct wl1271_cmd_header header;
 
 	u8 hlid;
@@ -564,7 +594,8 @@ struct wl12xx_cmd_set_peer_state {
 	u8 padding[1];
 } __packed;
 
-struct wl12xx_cmd_roc {
+struct wl12xx_cmd_roc
+{
 	struct wl1271_cmd_header header;
 
 	u8 role_id;
@@ -573,27 +604,31 @@ struct wl12xx_cmd_roc {
 	u8 padding;
 };
 
-struct wl12xx_cmd_croc {
+struct wl12xx_cmd_croc
+{
 	struct wl1271_cmd_header header;
 
 	u8 role_id;
 	u8 padding[3];
 };
 
-enum wl12xx_ssid_type {
+enum wl12xx_ssid_type
+{
 	WL12XX_SSID_TYPE_PUBLIC = 0,
 	WL12XX_SSID_TYPE_HIDDEN = 1,
 	WL12XX_SSID_TYPE_ANY = 2,
 };
 
-enum wl1271_psd_type {
+enum wl1271_psd_type
+{
 	WL1271_PSD_LEGACY = 0,
 	WL1271_PSD_UPSD_TRIGGER = 1,
 	WL1271_PSD_LEGACY_PSPOLL = 2,
 	WL1271_PSD_SAPSD = 3
 };
 
-struct wl12xx_cmd_add_peer {
+struct wl12xx_cmd_add_peer
+{
 	struct wl1271_cmd_header header;
 
 	u8 addr[ETH_ALEN];
@@ -609,7 +644,8 @@ struct wl12xx_cmd_add_peer {
 	u8 padding[3];
 } __packed;
 
-struct wl12xx_cmd_remove_peer {
+struct wl12xx_cmd_remove_peer
+{
 	struct wl1271_cmd_header header;
 
 	u8 hlid;
@@ -624,12 +660,14 @@ struct wl12xx_cmd_remove_peer {
  * On demand - Log messages are stored in a cyclic buffer in the
  * firmware, and only transferred to the host when explicitly requested
  */
-enum wl12xx_fwlogger_log_mode {
+enum wl12xx_fwlogger_log_mode
+{
 	WL12XX_FWLOG_CONTINUOUS,
 };
 
 /* Include/exclude timestamps from the log messages */
-enum wl12xx_fwlogger_timestamp {
+enum wl12xx_fwlogger_timestamp
+{
 	WL12XX_FWLOG_TIMESTAMP_DISABLED,
 	WL12XX_FWLOG_TIMESTAMP_ENABLED
 };
@@ -638,13 +676,15 @@ enum wl12xx_fwlogger_timestamp {
  * Logs can be routed to the debug pinouts (where available), to the host bus
  * (SDIO/SPI), or dropped
  */
-enum wl12xx_fwlogger_output {
+enum wl12xx_fwlogger_output
+{
 	WL12XX_FWLOG_OUTPUT_NONE,
 	WL12XX_FWLOG_OUTPUT_DBG_PINS,
 	WL12XX_FWLOG_OUTPUT_HOST,
 };
 
-struct wl12xx_cmd_regdomain_dfs_config {
+struct wl12xx_cmd_regdomain_dfs_config
+{
 	struct wl1271_cmd_header header;
 
 	__le32 ch_bit_map1;
@@ -653,11 +693,13 @@ struct wl12xx_cmd_regdomain_dfs_config {
 	u8 padding[3];
 } __packed;
 
-enum wlcore_generic_cfg_feature {
+enum wlcore_generic_cfg_feature
+{
 	WLCORE_CFG_FEATURE_RADAR_DEBUG = 2,
 };
 
-struct wlcore_cmd_generic_cfg {
+struct wlcore_cmd_generic_cfg
+{
 	struct wl1271_cmd_header header;
 
 	u8 role_id;
@@ -666,7 +708,8 @@ struct wlcore_cmd_generic_cfg {
 	u8 value;
 } __packed;
 
-struct wl12xx_cmd_config_fwlog {
+struct wl12xx_cmd_config_fwlog
+{
 	struct wl1271_cmd_header header;
 
 	/* See enum wl12xx_fwlogger_log_mode */
@@ -687,15 +730,18 @@ struct wl12xx_cmd_config_fwlog {
 	u8 padding[3];
 } __packed;
 
-struct wl12xx_cmd_start_fwlog {
+struct wl12xx_cmd_start_fwlog
+{
 	struct wl1271_cmd_header header;
 } __packed;
 
-struct wl12xx_cmd_stop_fwlog {
+struct wl12xx_cmd_stop_fwlog
+{
 	struct wl1271_cmd_header header;
 } __packed;
 
-struct wl12xx_cmd_stop_channel_switch {
+struct wl12xx_cmd_stop_channel_switch
+{
 	struct wl1271_cmd_header header;
 
 	u8 role_id;
@@ -706,7 +752,8 @@ struct wl12xx_cmd_stop_channel_switch {
 #define MAX_TLV_LENGTH		500
 #define TEST_CMD_P2G_CAL	2	/* TX BiP */
 
-struct wl1271_cmd_cal_p2g {
+struct wl1271_cmd_cal_p2g
+{
 	struct wl1271_cmd_header header;
 
 	struct wl1271_cmd_test_header test;

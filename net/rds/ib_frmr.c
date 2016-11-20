@@ -33,7 +33,7 @@
 #include "ib_mr.h"
 
 static struct rds_ib_mr *rds_ib_alloc_frmr(struct rds_ib_device *rds_ibdev,
-					   int npages)
+		int npages)
 {
 	struct rds_ib_mr_pool *pool;
 	struct rds_ib_mr *ibmr = NULL;
@@ -41,37 +41,55 @@ static struct rds_ib_mr *rds_ib_alloc_frmr(struct rds_ib_device *rds_ibdev,
 	int err = 0;
 
 	if (npages <= RDS_MR_8K_MSG_SIZE)
+	{
 		pool = rds_ibdev->mr_8k_pool;
+	}
 	else
+	{
 		pool = rds_ibdev->mr_1m_pool;
+	}
 
 	ibmr = rds_ib_try_reuse_ibmr(pool);
+
 	if (ibmr)
+	{
 		return ibmr;
+	}
 
 	ibmr = kzalloc_node(sizeof(*ibmr), GFP_KERNEL,
-			    rdsibdev_to_node(rds_ibdev));
-	if (!ibmr) {
+						rdsibdev_to_node(rds_ibdev));
+
+	if (!ibmr)
+	{
 		err = -ENOMEM;
 		goto out_no_cigar;
 	}
 
 	frmr = &ibmr->u.frmr;
 	frmr->mr = ib_alloc_mr(rds_ibdev->pd, IB_MR_TYPE_MEM_REG,
-			 pool->fmr_attr.max_pages);
-	if (IS_ERR(frmr->mr)) {
+						   pool->fmr_attr.max_pages);
+
+	if (IS_ERR(frmr->mr))
+	{
 		pr_warn("RDS/IB: %s failed to allocate MR", __func__);
 		goto out_no_cigar;
 	}
 
 	ibmr->pool = pool;
+
 	if (pool->pool_type == RDS_IB_MR_8K_POOL)
+	{
 		rds_ib_stats_inc(s_ib_rdma_mr_8k_alloc);
+	}
 	else
+	{
 		rds_ib_stats_inc(s_ib_rdma_mr_1m_alloc);
+	}
 
 	if (atomic_read(&pool->item_count) > pool->max_items_soft)
+	{
 		pool->max_items_soft = pool->max_items;
+	}
 
 	frmr->fr_state = FRMR_IS_FREE;
 	return ibmr;
@@ -87,16 +105,23 @@ static void rds_ib_free_frmr(struct rds_ib_mr *ibmr, bool drop)
 	struct rds_ib_mr_pool *pool = ibmr->pool;
 
 	if (drop)
+	{
 		llist_add(&ibmr->llnode, &pool->drop_list);
+	}
 	else
+	{
 		llist_add(&ibmr->llnode, &pool->free_list);
+	}
+
 	atomic_add(ibmr->sg_len, &pool->free_pinned);
 	atomic_inc(&pool->dirty_count);
 
 	/* If we've pinned too many pages, request a flush */
 	if (atomic_read(&pool->free_pinned) >= pool->max_free_pinned ||
-	    atomic_read(&pool->dirty_count) >= pool->max_items / 5)
+		atomic_read(&pool->dirty_count) >= pool->max_items / 5)
+	{
 		queue_delayed_work(rds_ib_mr_wq, &pool->flush_worker, 10);
+	}
 }
 
 static int rds_ib_post_reg_frmr(struct rds_ib_mr *ibmr)
@@ -106,14 +131,18 @@ static int rds_ib_post_reg_frmr(struct rds_ib_mr *ibmr)
 	struct ib_reg_wr reg_wr;
 	int ret;
 
-	while (atomic_dec_return(&ibmr->ic->i_fastreg_wrs) <= 0) {
+	while (atomic_dec_return(&ibmr->ic->i_fastreg_wrs) <= 0)
+	{
 		atomic_inc(&ibmr->ic->i_fastreg_wrs);
 		cpu_relax();
 	}
 
 	ret = ib_map_mr_sg_zbva(frmr->mr, ibmr->sg, ibmr->sg_len, 0, PAGE_SIZE);
+
 	if (unlikely(ret != ibmr->sg_len))
+	{
 		return ret < 0 ? ret : -EINVAL;
+	}
 
 	/* Perform a WR for the fast_reg_mr. Each individual page
 	 * in the sg list is added to the fast reg page list and placed
@@ -130,28 +159,32 @@ static int rds_ib_post_reg_frmr(struct rds_ib_mr *ibmr)
 	reg_wr.mr = frmr->mr;
 	reg_wr.key = frmr->mr->rkey;
 	reg_wr.access = IB_ACCESS_LOCAL_WRITE |
-			IB_ACCESS_REMOTE_READ |
-			IB_ACCESS_REMOTE_WRITE;
+					IB_ACCESS_REMOTE_READ |
+					IB_ACCESS_REMOTE_WRITE;
 	reg_wr.wr.send_flags = IB_SEND_SIGNALED;
 
 	failed_wr = &reg_wr.wr;
 	ret = ib_post_send(ibmr->ic->i_cm_id->qp, &reg_wr.wr, &failed_wr);
 	WARN_ON(failed_wr != &reg_wr.wr);
-	if (unlikely(ret)) {
+
+	if (unlikely(ret))
+	{
 		/* Failure here can be because of -ENOMEM as well */
 		frmr->fr_state = FRMR_IS_STALE;
 		atomic_inc(&ibmr->ic->i_fastreg_wrs);
+
 		if (printk_ratelimit())
 			pr_warn("RDS/IB: %s returned error(%d)\n",
-				__func__, ret);
+					__func__, ret);
 	}
+
 	return ret;
 }
 
 static int rds_ib_map_frmr(struct rds_ib_device *rds_ibdev,
-			   struct rds_ib_mr_pool *pool,
-			   struct rds_ib_mr *ibmr,
-			   struct scatterlist *sg, unsigned int sg_len)
+						   struct rds_ib_mr_pool *pool,
+						   struct rds_ib_mr *ibmr,
+						   struct scatterlist *sg, unsigned int sg_len)
 {
 	struct ib_device *dev = rds_ibdev->dev;
 	struct rds_ib_frmr *frmr = &ibmr->u.frmr;
@@ -170,8 +203,10 @@ static int rds_ib_map_frmr(struct rds_ib_device *rds_ibdev,
 	frmr->sg_byte_len = 0;
 	WARN_ON(ibmr->sg_dma_len);
 	ibmr->sg_dma_len = ib_dma_map_sg(dev, ibmr->sg, ibmr->sg_len,
-					 DMA_BIDIRECTIONAL);
-	if (unlikely(!ibmr->sg_dma_len)) {
+									 DMA_BIDIRECTIONAL);
+
+	if (unlikely(!ibmr->sg_dma_len))
+	{
 		pr_warn("RDS/IB: %s failed!\n", __func__);
 		return -EBUSY;
 	}
@@ -181,48 +216,70 @@ static int rds_ib_map_frmr(struct rds_ib_device *rds_ibdev,
 	len = 0;
 
 	ret = -EINVAL;
-	for (i = 0; i < ibmr->sg_dma_len; ++i) {
+
+	for (i = 0; i < ibmr->sg_dma_len; ++i)
+	{
 		unsigned int dma_len = ib_sg_dma_len(dev, &ibmr->sg[i]);
 		u64 dma_addr = ib_sg_dma_address(dev, &ibmr->sg[i]);
 
 		frmr->sg_byte_len += dma_len;
-		if (dma_addr & ~PAGE_MASK) {
+
+		if (dma_addr & ~PAGE_MASK)
+		{
 			if (i > 0)
+			{
 				goto out_unmap;
+			}
 			else
+			{
 				++frmr->dma_npages;
+			}
 		}
 
-		if ((dma_addr + dma_len) & ~PAGE_MASK) {
+		if ((dma_addr + dma_len) & ~PAGE_MASK)
+		{
 			if (i < ibmr->sg_dma_len - 1)
+			{
 				goto out_unmap;
+			}
 			else
+			{
 				++frmr->dma_npages;
+			}
 		}
 
 		len += dma_len;
 	}
+
 	frmr->dma_npages += len >> PAGE_SHIFT;
 
-	if (frmr->dma_npages > ibmr->pool->fmr_attr.max_pages) {
+	if (frmr->dma_npages > ibmr->pool->fmr_attr.max_pages)
+	{
 		ret = -EMSGSIZE;
 		goto out_unmap;
 	}
 
 	ret = rds_ib_post_reg_frmr(ibmr);
+
 	if (ret)
+	{
 		goto out_unmap;
+	}
 
 	if (ibmr->pool->pool_type == RDS_IB_MR_8K_POOL)
+	{
 		rds_ib_stats_inc(s_ib_rdma_mr_8k_used);
+	}
 	else
+	{
 		rds_ib_stats_inc(s_ib_rdma_mr_1m_used);
+	}
 
 	return ret;
 
 out_unmap:
 	ib_dma_unmap_sg(rds_ibdev->dev, ibmr->sg, ibmr->sg_len,
-			DMA_BIDIRECTIONAL);
+					DMA_BIDIRECTIONAL);
 	ibmr->sg_dma_len = 0;
 	return ret;
 }
@@ -235,12 +292,17 @@ static int rds_ib_post_inv(struct rds_ib_mr *ibmr)
 	int ret = -EINVAL;
 
 	if (!i_cm_id || !i_cm_id->qp || !frmr->mr)
+	{
 		goto out;
+	}
 
 	if (frmr->fr_state != FRMR_IS_INUSE)
+	{
 		goto out;
+	}
 
-	while (atomic_dec_return(&ibmr->ic->i_fastreg_wrs) <= 0) {
+	while (atomic_dec_return(&ibmr->ic->i_fastreg_wrs) <= 0)
+	{
 		atomic_inc(&ibmr->ic->i_fastreg_wrs);
 		cpu_relax();
 	}
@@ -257,13 +319,16 @@ static int rds_ib_post_inv(struct rds_ib_mr *ibmr)
 	failed_wr = s_wr;
 	ret = ib_post_send(i_cm_id->qp, s_wr, &failed_wr);
 	WARN_ON(failed_wr != s_wr);
-	if (unlikely(ret)) {
+
+	if (unlikely(ret))
+	{
 		frmr->fr_state = FRMR_IS_STALE;
 		frmr->fr_inv = false;
 		atomic_inc(&ibmr->ic->i_fastreg_wrs);
 		pr_err("RDS/IB: %s returned error(%d)\n", __func__, ret);
 		goto out;
 	}
+
 out:
 	return ret;
 }
@@ -273,19 +338,22 @@ void rds_ib_mr_cqe_handler(struct rds_ib_connection *ic, struct ib_wc *wc)
 	struct rds_ib_mr *ibmr = (void *)(unsigned long)wc->wr_id;
 	struct rds_ib_frmr *frmr = &ibmr->u.frmr;
 
-	if (wc->status != IB_WC_SUCCESS) {
+	if (wc->status != IB_WC_SUCCESS)
+	{
 		frmr->fr_state = FRMR_IS_STALE;
+
 		if (rds_conn_up(ic->conn))
 			rds_ib_conn_error(ic->conn,
-					  "frmr completion <%pI4,%pI4> status %u(%s), vendor_err 0x%x, disconnecting and reconnecting\n",
-					  &ic->conn->c_laddr,
-					  &ic->conn->c_faddr,
-					  wc->status,
-					  ib_wc_status_msg(wc->status),
-					  wc->vendor_err);
+							  "frmr completion <%pI4,%pI4> status %u(%s), vendor_err 0x%x, disconnecting and reconnecting\n",
+							  &ic->conn->c_laddr,
+							  &ic->conn->c_faddr,
+							  wc->status,
+							  ib_wc_status_msg(wc->status),
+							  wc->vendor_err);
 	}
 
-	if (frmr->fr_inv) {
+	if (frmr->fr_inv)
+	{
 		frmr->fr_state = FRMR_IS_FREE;
 		frmr->fr_inv = false;
 	}
@@ -294,7 +362,7 @@ void rds_ib_mr_cqe_handler(struct rds_ib_connection *ic, struct ib_wc *wc)
 }
 
 void rds_ib_unreg_frmr(struct list_head *list, unsigned int *nfreed,
-		       unsigned long *unpinned, unsigned int goal)
+					   unsigned long *unpinned, unsigned int goal)
 {
 	struct rds_ib_mr *ibmr, *next;
 	struct rds_ib_frmr *frmr;
@@ -302,30 +370,50 @@ void rds_ib_unreg_frmr(struct list_head *list, unsigned int *nfreed,
 	unsigned int freed = *nfreed;
 
 	/* String all ib_mr's onto one list and hand them to ib_unmap_fmr */
-	list_for_each_entry(ibmr, list, unmap_list) {
+	list_for_each_entry(ibmr, list, unmap_list)
+	{
 		if (ibmr->sg_dma_len)
+		{
 			ret |= rds_ib_post_inv(ibmr);
+		}
 	}
+
 	if (ret)
+	{
 		pr_warn("RDS/IB: %s failed (err=%d)\n", __func__, ret);
+	}
 
 	/* Now we can destroy the DMA mapping and unpin any pages */
-	list_for_each_entry_safe(ibmr, next, list, unmap_list) {
+	list_for_each_entry_safe(ibmr, next, list, unmap_list)
+	{
 		*unpinned += ibmr->sg_len;
 		frmr = &ibmr->u.frmr;
 		__rds_ib_teardown_mr(ibmr);
-		if (freed < goal || frmr->fr_state == FRMR_IS_STALE) {
+
+		if (freed < goal || frmr->fr_state == FRMR_IS_STALE)
+		{
 			/* Don't de-allocate if the MR is not free yet */
 			if (frmr->fr_state == FRMR_IS_INUSE)
+			{
 				continue;
+			}
 
 			if (ibmr->pool->pool_type == RDS_IB_MR_8K_POOL)
+			{
 				rds_ib_stats_inc(s_ib_rdma_mr_8k_free);
+			}
 			else
+			{
 				rds_ib_stats_inc(s_ib_rdma_mr_1m_free);
+			}
+
 			list_del(&ibmr->unmap_list);
+
 			if (frmr->mr)
+			{
 				ib_dereg_mr(frmr->mr);
+			}
+
 			kfree(ibmr);
 			freed++;
 		}
@@ -334,29 +422,42 @@ void rds_ib_unreg_frmr(struct list_head *list, unsigned int *nfreed,
 }
 
 struct rds_ib_mr *rds_ib_reg_frmr(struct rds_ib_device *rds_ibdev,
-				  struct rds_ib_connection *ic,
-				  struct scatterlist *sg,
-				  unsigned long nents, u32 *key)
+								  struct rds_ib_connection *ic,
+								  struct scatterlist *sg,
+								  unsigned long nents, u32 *key)
 {
 	struct rds_ib_mr *ibmr = NULL;
 	struct rds_ib_frmr *frmr;
 	int ret;
 
-	do {
+	do
+	{
 		if (ibmr)
+		{
 			rds_ib_free_frmr(ibmr, true);
+		}
+
 		ibmr = rds_ib_alloc_frmr(rds_ibdev, nents);
+
 		if (IS_ERR(ibmr))
+		{
 			return ibmr;
+		}
+
 		frmr = &ibmr->u.frmr;
-	} while (frmr->fr_state != FRMR_IS_FREE);
+	}
+	while (frmr->fr_state != FRMR_IS_FREE);
 
 	ibmr->ic = ic;
 	ibmr->device = rds_ibdev;
 	ret = rds_ib_map_frmr(rds_ibdev, ibmr->pool, ibmr, sg, nents);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		*key = frmr->mr->rkey;
-	} else {
+	}
+	else
+	{
 		rds_ib_free_frmr(ibmr, false);
 		ibmr = ERR_PTR(ret);
 	}
@@ -370,7 +471,11 @@ void rds_ib_free_frmr_list(struct rds_ib_mr *ibmr)
 	struct rds_ib_frmr *frmr = &ibmr->u.frmr;
 
 	if (frmr->fr_state == FRMR_IS_STALE)
+	{
 		llist_add(&ibmr->llnode, &pool->drop_list);
+	}
 	else
+	{
 		llist_add(&ibmr->llnode, &pool->free_list);
+	}
 }

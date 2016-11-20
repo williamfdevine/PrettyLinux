@@ -24,7 +24,8 @@ struct sst_dsp;
 struct skl_sst;
 struct sst_generic_ipc;
 
-enum skl_ipc_pipeline_state {
+enum skl_ipc_pipeline_state
+{
 	PPL_INVALID_STATE =	0,
 	PPL_UNINITIALIZED =	1,
 	PPL_RESET =		2,
@@ -35,25 +36,29 @@ enum skl_ipc_pipeline_state {
 	PPL_RESTORED =		7
 };
 
-struct skl_ipc_dxstate_info {
+struct skl_ipc_dxstate_info
+{
 	u32 core_mask;
 	u32 dx_mask;
 };
 
-struct skl_ipc_header {
+struct skl_ipc_header
+{
 	u32 primary;
 	u32 extension;
 };
 
 #define SKL_DSP_CORES_MAX  2
 
-struct skl_dsp_cores {
+struct skl_dsp_cores
+{
 	unsigned int count;
 	enum skl_dsp_states state[SKL_DSP_CORES_MAX];
 	int usage_count[SKL_DSP_CORES_MAX];
 };
 
-struct skl_sst {
+struct skl_sst
+{
 	struct device *dev;
 	struct sst_dsp *dsp;
 
@@ -85,7 +90,8 @@ struct skl_sst {
 	struct skl_dfw_manifest manifest;
 };
 
-struct skl_ipc_init_instance_msg {
+struct skl_ipc_init_instance_msg
+{
 	u32 module_id;
 	u32 instance_id;
 	u16 param_data_size;
@@ -94,7 +100,8 @@ struct skl_ipc_init_instance_msg {
 	u8 domain;
 };
 
-struct skl_ipc_bind_unbind_msg {
+struct skl_ipc_bind_unbind_msg
+{
 	u32 module_id;
 	u32 instance_id;
 	u32 dst_module_id;
@@ -104,7 +111,8 @@ struct skl_ipc_bind_unbind_msg {
 	bool bind;
 };
 
-struct skl_ipc_large_config_msg {
+struct skl_ipc_large_config_msg
+{
 	u32 module_id;
 	u32 instance_id;
 	u32 large_param_id;
@@ -119,41 +127,41 @@ struct skl_ipc_large_config_msg {
 irqreturn_t skl_dsp_irq_thread_handler(int irq, void *context);
 
 int skl_ipc_create_pipeline(struct sst_generic_ipc *sst_ipc,
-		u16 ppl_mem_size, u8 ppl_type, u8 instance_id);
+							u16 ppl_mem_size, u8 ppl_type, u8 instance_id);
 
 int skl_ipc_delete_pipeline(struct sst_generic_ipc *sst_ipc, u8 instance_id);
 
 int skl_ipc_set_pipeline_state(struct sst_generic_ipc *sst_ipc,
-		u8 instance_id,	enum skl_ipc_pipeline_state state);
+							   u8 instance_id,	enum skl_ipc_pipeline_state state);
 
 int skl_ipc_save_pipeline(struct sst_generic_ipc *ipc,
-		u8 instance_id, int dma_id);
+						  u8 instance_id, int dma_id);
 
 int skl_ipc_restore_pipeline(struct sst_generic_ipc *ipc, u8 instance_id);
 
 int skl_ipc_init_instance(struct sst_generic_ipc *sst_ipc,
-		struct skl_ipc_init_instance_msg *msg, void *param_data);
+						  struct skl_ipc_init_instance_msg *msg, void *param_data);
 
 int skl_ipc_bind_unbind(struct sst_generic_ipc *sst_ipc,
-		struct skl_ipc_bind_unbind_msg *msg);
+						struct skl_ipc_bind_unbind_msg *msg);
 
 int skl_ipc_load_modules(struct sst_generic_ipc *ipc,
-				u8 module_cnt, void *data);
+						 u8 module_cnt, void *data);
 
 int skl_ipc_unload_modules(struct sst_generic_ipc *ipc,
-				u8 module_cnt, void *data);
+						   u8 module_cnt, void *data);
 
 int skl_ipc_set_dx(struct sst_generic_ipc *ipc,
-		u8 instance_id, u16 module_id, struct skl_ipc_dxstate_info *dx);
+				   u8 instance_id, u16 module_id, struct skl_ipc_dxstate_info *dx);
 
 int skl_ipc_set_large_config(struct sst_generic_ipc *ipc,
-		struct skl_ipc_large_config_msg *msg, u32 *param);
+							 struct skl_ipc_large_config_msg *msg, u32 *param);
 
 int skl_ipc_get_large_config(struct sst_generic_ipc *ipc,
-		struct skl_ipc_large_config_msg *msg, u32 *param);
+							 struct skl_ipc_large_config_msg *msg, u32 *param);
 
 int skl_sst_ipc_load_library(struct sst_generic_ipc *ipc,
-			u8 dma_id, u8 table_id);
+							 u8 dma_id, u8 table_id);
 
 void skl_ipc_int_enable(struct sst_dsp *dsp);
 void skl_ipc_op_int_enable(struct sst_dsp *ctx);

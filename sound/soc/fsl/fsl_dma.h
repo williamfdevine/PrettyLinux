@@ -9,9 +9,11 @@
 #ifndef _MPC8610_PCM_H
 #define _MPC8610_PCM_H
 
-struct ccsr_dma {
+struct ccsr_dma
+{
 	u8 res0[0x100];
-	struct ccsr_dma_channel {
+	struct ccsr_dma_channel
+	{
 		__be32 mr;      /* Mode register */
 		__be32 sr;      /* Status register */
 		__be32 eclndar; /* Current link descriptor extended addr reg */
@@ -102,7 +104,8 @@ static inline u32 CCSR_DMA_ECLNDAR_ADDR(u64 x)
  *  Descriptor.  Each object must be aligned on a 32-byte boundary. Each
  *  list descriptor points to a linked-list of link Descriptors.
  */
-struct fsl_dma_list_descriptor {
+struct fsl_dma_list_descriptor
+{
 	__be64 next;    	/* Address of next list descriptor */
 	__be64 first_link;      /* Address of first link descriptor */
 	__be32 source;  	/* Source stride */
@@ -116,7 +119,8 @@ struct fsl_dma_list_descriptor {
  *  A Link Descriptor points to a single DMA buffer.  Each link descriptor
  *  must be aligned on a 32-byte boundary.
  */
-struct fsl_dma_link_descriptor {
+struct fsl_dma_link_descriptor
+{
 	__be32 source_attr;     /* Programmed into SATR register */
 	__be32 source_addr;     /* Programmed into SAR register */
 	__be32 dest_attr;       /* Programmed into DATR register */

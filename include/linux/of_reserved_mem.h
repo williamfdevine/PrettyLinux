@@ -6,7 +6,8 @@
 struct of_phandle_args;
 struct reserved_mem_ops;
 
-struct reserved_mem {
+struct reserved_mem
+{
 	const char			*name;
 	unsigned long			fdt_node;
 	unsigned long			phandle;
@@ -16,11 +17,12 @@ struct reserved_mem {
 	void				*priv;
 };
 
-struct reserved_mem_ops {
+struct reserved_mem_ops
+{
 	int	(*device_init)(struct reserved_mem *rmem,
-			       struct device *dev);
+					   struct device *dev);
 	void	(*device_release)(struct reserved_mem *rmem,
-				  struct device *dev);
+							  struct device *dev);
 };
 
 typedef int (*reservedmem_of_init_fn)(struct reserved_mem *rmem);
@@ -31,22 +33,22 @@ typedef int (*reservedmem_of_init_fn)(struct reserved_mem *rmem);
 #ifdef CONFIG_OF_RESERVED_MEM
 
 int of_reserved_mem_device_init_by_idx(struct device *dev,
-				       struct device_node *np, int idx);
+									   struct device_node *np, int idx);
 void of_reserved_mem_device_release(struct device *dev);
 
 int early_init_dt_alloc_reserved_memory_arch(phys_addr_t size,
-					     phys_addr_t align,
-					     phys_addr_t start,
-					     phys_addr_t end,
-					     bool nomap,
-					     phys_addr_t *res_base);
+		phys_addr_t align,
+		phys_addr_t start,
+		phys_addr_t end,
+		bool nomap,
+		phys_addr_t *res_base);
 
 void fdt_init_reserved_mem(void);
 void fdt_reserved_mem_save_node(unsigned long node, const char *uname,
-			       phys_addr_t base, phys_addr_t size);
+								phys_addr_t base, phys_addr_t size);
 #else
 static inline int of_reserved_mem_device_init_by_idx(struct device *dev,
-					struct device_node *np, int idx)
+		struct device_node *np, int idx)
 {
 	return -ENOSYS;
 }

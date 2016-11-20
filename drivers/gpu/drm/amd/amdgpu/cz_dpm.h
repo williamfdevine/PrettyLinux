@@ -55,7 +55,8 @@
  * 10k Hz unit*/
 #define CZ_MIN_DEEP_SLEEP_SCLK				800
 
-enum cz_pt_config_reg_type {
+enum cz_pt_config_reg_type
+{
 	CZ_CONFIGREG_MMR = 0,
 	CZ_CONFIGREG_SMC_IND,
 	CZ_CONFIGREG_DIDT_IND,
@@ -63,7 +64,8 @@ enum cz_pt_config_reg_type {
 	CZ_CONFIGREG_MAX
 };
 
-struct cz_pt_config_reg {
+struct cz_pt_config_reg
+{
 	uint32_t offset;
 	uint32_t mask;
 	uint32_t shift;
@@ -71,14 +73,16 @@ struct cz_pt_config_reg {
 	enum cz_pt_config_reg_type type;
 };
 
-struct cz_dpm_entry {
+struct cz_dpm_entry
+{
 	uint32_t	soft_min_clk;
 	uint32_t	hard_min_clk;
 	uint32_t	soft_max_clk;
 	uint32_t	hard_max_clk;
 };
 
-struct cz_pl {
+struct cz_pl
+{
 	uint32_t sclk;
 	uint8_t vddc_index;
 	uint8_t ds_divider_index;
@@ -89,7 +93,8 @@ struct cz_pl {
 	uint8_t vce_wm;
 };
 
-struct cz_ps {
+struct cz_ps
+{
 	struct cz_pl levels[CZ_MAX_HARDWARE_POWERLEVELS];
 	uint32_t num_levels;
 	bool need_dfs_bypass;
@@ -100,19 +105,22 @@ struct cz_ps {
 	bool force_high;
 };
 
-struct cz_displayphy_entry {
+struct cz_displayphy_entry
+{
 	uint8_t phy_present;
 	uint8_t active_lane_mapping;
 	uint8_t display_conf_type;
 	uint8_t num_active_lanes;
 };
 
-struct cz_displayphy_info {
+struct cz_displayphy_info
+{
 	bool phy_access_initialized;
 	struct cz_displayphy_entry entries[CZ_MAX_DISPLAYPHY_IDS];
 };
 
-struct cz_sys_info {
+struct cz_sys_info
+{
 	uint32_t bootup_uma_clk;
 	uint32_t bootup_sclk;
 	uint32_t dentist_vco_freq;
@@ -127,7 +135,8 @@ struct cz_sys_info {
 	uint32_t uma_channel_number;
 };
 
-struct cz_power_info {
+struct cz_power_info
+{
 	uint32_t active_target[CZ_MAX_HARDWARE_POWERLEVELS];
 	struct cz_sys_info sys_info;
 	struct cz_pl boot_pl;
@@ -231,9 +240,9 @@ struct cz_power_info {
 uint32_t cz_get_argument(struct amdgpu_device *adev);
 int cz_send_msg_to_smc(struct amdgpu_device *adev, uint16_t msg);
 int cz_send_msg_to_smc_with_parameter(struct amdgpu_device *adev,
-			uint16_t msg, uint32_t parameter);
+									  uint16_t msg, uint32_t parameter);
 int cz_read_smc_sram_dword(struct amdgpu_device *adev,
-			uint32_t smc_address, uint32_t *value, uint32_t limit);
+						   uint32_t smc_address, uint32_t *value, uint32_t limit);
 int cz_smu_upload_pptable(struct amdgpu_device *adev);
 int cz_smu_download_pptable(struct amdgpu_device *adev, void **table);
 #endif

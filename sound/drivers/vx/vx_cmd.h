@@ -23,7 +23,8 @@
 #ifndef __VX_CMD_H
 #define __VX_CMD_H
 
-enum {
+enum
+{
 	CMD_VERSION,
 	CMD_SUPPORTED,
 	CMD_TEST_IT,
@@ -88,7 +89,8 @@ enum {
 	CMD_LAST_INDEX
 };
 
-struct vx_cmd_info {
+struct vx_cmd_info
+{
 	unsigned int opcode;	/* command word */
 	int length;		/* command length (in words) */
 	int st_type;		/* status type (RMH_SSIZE_XXX) */
@@ -173,7 +175,7 @@ struct vx_cmd_info {
 
 #define BIT_SKIP_SOUND					0x08	// bit 3
 #define BIT_DATA_MODE					0x10	// bit 4
-    
+
 /* Bits in the CMD_MODIFY_CLOCK request. */
 #define CMD_MODIFY_CLOCK_FD_BIT     0x00000001
 #define CMD_MODIFY_CLOCK_T_BIT      0x00000002
@@ -191,7 +193,7 @@ struct vx_cmd_info {
 
 /* Values for the CMD_CONFIG_TIME_CODE RMH. */
 #define CONFIG_TIME_CODE_CANCEL     0x00001000
-    
+
 /* Mask to get only the effective time from the
  * high word out of the 2 returned by the DSP
  */
@@ -219,15 +221,20 @@ void vx_init_rmh(struct vx_rmh *rmh, unsigned int cmd);
  * @param2: second pipe-parameter
  */
 static inline void vx_set_pipe_cmd_params(struct vx_rmh *rmh, int is_capture,
-					  int param1, int param2)
+		int param1, int param2)
 {
 	if (is_capture)
+	{
 		rmh->Cmd[0] |= COMMAND_RECORD_MASK;
+	}
+
 	rmh->Cmd[0] |= (((u32)param1 & MASK_FIRST_FIELD) << FIELD_SIZE) & MASK_DSP_WORD;
-		
+
 	if (param2)
+	{
 		rmh->Cmd[0] |= ((u32)param2 & MASK_FIRST_FIELD) & MASK_DSP_WORD;
-	
+	}
+
 }
 
 /**
@@ -239,7 +246,10 @@ static inline void vx_set_pipe_cmd_params(struct vx_rmh *rmh, int is_capture,
 static inline void vx_set_stream_cmd_params(struct vx_rmh *rmh, int is_capture, int pipe)
 {
 	if (is_capture)
+	{
 		rmh->Cmd[0] |= COMMAND_RECORD_MASK;
+	}
+
 	rmh->Cmd[0] |= (((u32)pipe & MASK_FIRST_FIELD) << FIELD_SIZE) & MASK_DSP_WORD;
 }
 

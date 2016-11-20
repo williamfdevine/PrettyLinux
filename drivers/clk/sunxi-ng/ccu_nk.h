@@ -25,7 +25,8 @@
  *
  * Clocks based on the formula parent * N * K
  */
-struct ccu_nk {
+struct ccu_nk
+{
 	u16			reg;
 	u32			enable;
 	u32			lock;
@@ -39,25 +40,25 @@ struct ccu_nk {
 };
 
 #define SUNXI_CCU_NK_WITH_GATE_LOCK_POSTDIV(_struct, _name, _parent, _reg, \
-					    _nshift, _nwidth,		\
-					    _kshift, _kwidth,		\
-					    _gate, _lock, _postdiv,	\
-					    _flags)			\
-	struct ccu_nk _struct = {					\
-		.enable		= _gate,				\
-		.lock		= _lock,				\
-		.k		= _SUNXI_CCU_MULT(_kshift, _kwidth),	\
-		.n		= _SUNXI_CCU_MULT(_nshift, _nwidth),	\
-		.fixed_post_div	= _postdiv,				\
-		.common		= {					\
-			.reg		= _reg,				\
-			.features	= CCU_FEATURE_FIXED_POSTDIV,	\
-			.hw.init	= CLK_HW_INIT(_name,		\
-						      _parent,		\
-						      &ccu_nk_ops,	\
-						      _flags),		\
-		},							\
-	}
+		_nshift, _nwidth,		\
+		_kshift, _kwidth,		\
+		_gate, _lock, _postdiv,	\
+		_flags)			\
+struct ccu_nk _struct = {					\
+	.enable		= _gate,				\
+				  .lock		= _lock,				\
+								.k		= _SUNXI_CCU_MULT(_kshift, _kwidth),	\
+										  .n		= _SUNXI_CCU_MULT(_nshift, _nwidth),	\
+												  .fixed_post_div	= _postdiv,				\
+														  .common		= {					\
+																						  .reg		= _reg,				\
+																						  .features	= CCU_FEATURE_FIXED_POSTDIV,	\
+																						  .hw.init	= CLK_HW_INIT(_name,		\
+																								  _parent,		\
+																								  &ccu_nk_ops,	\
+																								  _flags),		\
+																	 },							\
+}
 
 static inline struct ccu_nk *hw_to_ccu_nk(struct clk_hw *hw)
 {

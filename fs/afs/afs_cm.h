@@ -15,7 +15,8 @@
 #define AFS_CM_PORT		7001	/* AFS file server port */
 #define CM_SERVICE		1	/* AFS File Service ID */
 
-enum AFS_CM_Operations {
+enum AFS_CM_Operations
+{
 	CBCallBack		= 204,	/* break callback promises */
 	CBInitCallBackState	= 205,	/* initialise callback state */
 	CBProbe			= 206,	/* probe client */

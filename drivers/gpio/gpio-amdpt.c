@@ -25,7 +25,8 @@
 #define PT_CLOCKRATE_REG   0x0C
 #define PT_SYNC_REG        0x28
 
-struct pt_gpio_chip {
+struct pt_gpio_chip
+{
 	struct gpio_chip         gc;
 	void __iomem             *reg_base;
 };
@@ -41,9 +42,11 @@ static int pt_gpio_request(struct gpio_chip *gc, unsigned offset)
 	spin_lock_irqsave(&gc->bgpio_lock, flags);
 
 	using_pins = readl(pt_gpio->reg_base + PT_SYNC_REG);
-	if (using_pins & BIT(offset)) {
+
+	if (using_pins & BIT(offset))
+	{
 		dev_warn(gc->parent, "PT GPIO pin %x reconfigured\n",
-			 offset);
+				 offset);
 		spin_unlock_irqrestore(&gc->bgpio_lock, flags);
 		return -EINVAL;
 	}
@@ -81,32 +84,43 @@ static int pt_gpio_probe(struct platform_device *pdev)
 	struct resource *res_mem;
 	int ret = 0;
 
-	if (acpi_bus_get_device(handle, &acpi_dev)) {
+	if (acpi_bus_get_device(handle, &acpi_dev))
+	{
 		dev_err(dev, "PT GPIO device node not found\n");
 		return -ENODEV;
 	}
 
 	pt_gpio = devm_kzalloc(dev, sizeof(struct pt_gpio_chip), GFP_KERNEL);
+
 	if (!pt_gpio)
+	{
 		return -ENOMEM;
+	}
 
 	res_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res_mem) {
+
+	if (!res_mem)
+	{
 		dev_err(&pdev->dev, "Failed to get MMIO resource for PT GPIO.\n");
 		return -EINVAL;
 	}
+
 	pt_gpio->reg_base = devm_ioremap_resource(dev, res_mem);
-	if (IS_ERR(pt_gpio->reg_base)) {
+
+	if (IS_ERR(pt_gpio->reg_base))
+	{
 		dev_err(&pdev->dev, "Failed to map MMIO resource for PT GPIO.\n");
 		return PTR_ERR(pt_gpio->reg_base);
 	}
 
 	ret = bgpio_init(&pt_gpio->gc, dev, 4,
-			 pt_gpio->reg_base + PT_INPUTDATA_REG,
-			 pt_gpio->reg_base + PT_OUTPUTDATA_REG, NULL,
-			 pt_gpio->reg_base + PT_DIRECTION_REG, NULL,
-			 BGPIOF_READ_OUTPUT_REG_SET);
-	if (ret) {
+					 pt_gpio->reg_base + PT_INPUTDATA_REG,
+					 pt_gpio->reg_base + PT_OUTPUTDATA_REG, NULL,
+					 pt_gpio->reg_base + PT_DIRECTION_REG, NULL,
+					 BGPIOF_READ_OUTPUT_REG_SET);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "bgpio_init failed\n");
 		return ret;
 	}
@@ -119,7 +133,9 @@ static int pt_gpio_probe(struct platform_device *pdev)
 	pt_gpio->gc.of_node          = pdev->dev.of_node;
 #endif
 	ret = gpiochip_add_data(&pt_gpio->gc, pt_gpio);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to register GPIO lib\n");
 		return ret;
 	}
@@ -143,14 +159,16 @@ static int pt_gpio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct acpi_device_id pt_gpio_acpi_match[] = {
+static const struct acpi_device_id pt_gpio_acpi_match[] =
+{
 	{ "AMDF030", 0 },
 	{ "AMDIF030", 0 },
 	{ },
 };
 MODULE_DEVICE_TABLE(acpi, pt_gpio_acpi_match);
 
-static struct platform_driver pt_gpio_driver = {
+static struct platform_driver pt_gpio_driver =
+{
 	.driver = {
 		.name = "pt-gpio",
 		.acpi_match_table = ACPI_PTR(pt_gpio_acpi_match),

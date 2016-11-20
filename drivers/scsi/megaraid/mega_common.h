@@ -65,7 +65,8 @@
  * dev_channel and dev_target must be initialized with the actual channel and
  * target on the controller.
  */
-typedef struct {
+typedef struct
+{
 	caddr_t			ccb;
 	struct list_head	list;
 	unsigned long		gp;
@@ -152,7 +153,8 @@ typedef struct {
 // amount of space required to store the bios and firmware version strings
 #define VERSION_SIZE	16
 
-typedef struct {
+typedef struct
+{
 	struct tasklet_struct	dpc_h;
 	struct pci_dev		*pdev;
 	struct Scsi_Host	*host;
@@ -168,7 +170,7 @@ typedef struct {
 	spinlock_t		completed_list_lock;
 	uint16_t		sglen;
 	int			device_ids[LSI_MAX_CHANNELS]
-					[LSI_MAX_LOGICAL_DRIVES_64LD];
+	[LSI_MAX_LOGICAL_DRIVES_64LD];
 	caddr_t			raid_device;
 	uint8_t			max_channel;
 	uint16_t		max_target;
@@ -233,39 +235,39 @@ typedef struct {
 	 * Is the request coming for the virtual channel		\
 	 */								\
 	islogical = MRAID_IS_LOGICAL(adp, scp);				\
-									\
+	\
 	/*								\
 	 * Get an index into our table of drive ids mapping		\
 	 */								\
 	if (islogical) {						\
 		p_chan = 0xFF;						\
 		target =						\
-		(adp)->device_ids[(adp)->max_channel][SCP2TARGET(scp)];	\
+										(adp)->device_ids[(adp)->max_channel][SCP2TARGET(scp)];	\
 	}								\
 	else {								\
 		p_chan = ((adp)->device_ids[SCP2CHANNEL(scp)]		\
-					[SCP2TARGET(scp)] >> 8) & 0xFF;	\
+				  [SCP2TARGET(scp)] >> 8) & 0xFF;	\
 		target = ((adp)->device_ids[SCP2CHANNEL(scp)]		\
-					[SCP2TARGET(scp)] & 0xFF);	\
+				  [SCP2TARGET(scp)] & 0xFF);	\
 	}
 
 /*
  * ### Helper routines ###
  */
 #define LSI_DBGLVL mraid_debug_level	// each LLD must define a global
- 					// mraid_debug_level
+// mraid_debug_level
 
 #ifdef DEBUG
 #if defined (_ASSERT_PANIC)
-#define ASSERT_ACTION	panic
+	#define ASSERT_ACTION	panic
 #else
-#define ASSERT_ACTION	printk
+	#define ASSERT_ACTION	printk
 #endif
 
 #define ASSERT(expression)						\
 	if (!(expression)) {						\
-	ASSERT_ACTION("assertion failed:(%s), file: %s, line: %d:%s\n",	\
-			#expression, __FILE__, __LINE__, __func__);	\
+		ASSERT_ACTION("assertion failed:(%s), file: %s, line: %d:%s\n",	\
+					  #expression, __FILE__, __LINE__, __func__);	\
 	}
 #else
 #define ASSERT(expression)
@@ -280,7 +282,8 @@ typedef struct {
  * caller to allocate this array big enough to store addresses for all
  * requested elements
  */
-struct mraid_pci_blk {
+struct mraid_pci_blk
+{
 	caddr_t		vaddr;
 	dma_addr_t	dma_addr;
 };

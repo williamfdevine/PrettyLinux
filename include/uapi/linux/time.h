@@ -6,18 +6,21 @@
 
 #ifndef _STRUCT_TIMESPEC
 #define _STRUCT_TIMESPEC
-struct timespec {
+struct timespec
+{
 	__kernel_time_t	tv_sec;			/* seconds */
 	long		tv_nsec;		/* nanoseconds */
 };
 #endif
 
-struct timeval {
+struct timeval
+{
 	__kernel_time_t		tv_sec;		/* seconds */
 	__kernel_suseconds_t	tv_usec;	/* microseconds */
 };
 
-struct timezone {
+struct timezone
+{
 	int	tz_minuteswest;	/* minutes west of Greenwich */
 	int	tz_dsttime;	/* type of dst correction */
 };
@@ -31,12 +34,14 @@ struct timezone {
 #define	ITIMER_VIRTUAL		1
 #define	ITIMER_PROF		2
 
-struct itimerspec {
+struct itimerspec
+{
 	struct timespec it_interval;	/* timer period */
 	struct timespec it_value;	/* timer expiration */
 };
 
-struct itimerval {
+struct itimerval
+{
 	struct timeval it_interval;	/* timer interval */
 	struct timeval it_value;	/* current value */
 };

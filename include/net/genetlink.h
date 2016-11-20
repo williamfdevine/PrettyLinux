@@ -11,7 +11,8 @@
  * struct genl_multicast_group - generic netlink multicast group
  * @name: name of the multicast group, names are per-family
  */
-struct genl_multicast_group {
+struct genl_multicast_group
+{
 	char			name[GENL_NAMSIZ];
 };
 
@@ -47,7 +48,8 @@ struct genl_info;
  * @ops: the operations supported by this family (private)
  * @n_ops: number of operations supported by this family (private)
  */
-struct genl_family {
+struct genl_family
+{
 	unsigned int		id;
 	unsigned int		hdrsize;
 	char			name[GENL_NAMSIZ];
@@ -56,15 +58,15 @@ struct genl_family {
 	bool			netnsok;
 	bool			parallel_ops;
 	int			(*pre_doit)(const struct genl_ops *ops,
-					    struct sk_buff *skb,
-					    struct genl_info *info);
+							struct sk_buff *skb,
+							struct genl_info *info);
 	void			(*post_doit)(const struct genl_ops *ops,
-					     struct sk_buff *skb,
-					     struct genl_info *info);
+								 struct sk_buff *skb,
+								 struct genl_info *info);
 	int			(*mcast_bind)(struct net *net, int group);
 	void			(*mcast_unbind)(struct net *net, int group);
-	struct nlattr **	attrbuf;	/* private */
-	const struct genl_ops *	ops;		/* private */
+	struct nlattr 	**attrbuf;	/* private */
+	const struct genl_ops 	*ops;		/* private */
 	const struct genl_multicast_group *mcgrps; /* private */
 	unsigned int		n_ops;		/* private */
 	unsigned int		n_mcgrps;	/* private */
@@ -84,15 +86,16 @@ struct genl_family {
  * @_net: network namespace
  * @user_ptr: user pointers
  */
-struct genl_info {
+struct genl_info
+{
 	u32			snd_seq;
 	u32			snd_portid;
-	struct nlmsghdr *	nlhdr;
-	struct genlmsghdr *	genlhdr;
-	void *			userhdr;
-	struct nlattr **	attrs;
+	struct nlmsghdr 	*nlhdr;
+	struct genlmsghdr 	*genlhdr;
+	void 			*userhdr;
+	struct nlattr 	**attrs;
 	possible_net_t		_net;
-	void *			user_ptr[2];
+	void 			*user_ptr[2];
 };
 
 static inline struct net *genl_info_net(struct genl_info *info)
@@ -117,13 +120,14 @@ static inline void genl_info_net_set(struct genl_info *info, struct net *net)
  * @done: completion callback for dumps
  * @ops_list: operations list
  */
-struct genl_ops {
+struct genl_ops
+{
 	const struct nla_policy	*policy;
 	int		       (*doit)(struct sk_buff *skb,
-				       struct genl_info *info);
+						   struct genl_info *info);
 	int		       (*start)(struct netlink_callback *cb);
 	int		       (*dumpit)(struct sk_buff *skb,
-					 struct netlink_callback *cb);
+							 struct netlink_callback *cb);
 	int		       (*done)(struct netlink_callback *cb);
 	u8			cmd;
 	u8			internal_flags;
@@ -161,9 +165,9 @@ static inline int genl_register_family(struct genl_family *family)
  */
 static inline int
 _genl_register_family_with_ops_grps(struct genl_family *family,
-				    const struct genl_ops *ops, size_t n_ops,
-				    const struct genl_multicast_group *mcgrps,
-				    size_t n_mcgrps)
+									const struct genl_ops *ops, size_t n_ops,
+									const struct genl_multicast_group *mcgrps,
+									size_t n_mcgrps)
 {
 	family->module = THIS_MODULE;
 	family->ops = ops;
@@ -175,19 +179,19 @@ _genl_register_family_with_ops_grps(struct genl_family *family,
 
 #define genl_register_family_with_ops(family, ops)			\
 	_genl_register_family_with_ops_grps((family),			\
-					    (ops), ARRAY_SIZE(ops),	\
-					    NULL, 0)
+										(ops), ARRAY_SIZE(ops),	\
+										NULL, 0)
 #define genl_register_family_with_ops_groups(family, ops, grps)	\
 	_genl_register_family_with_ops_grps((family),			\
-					    (ops), ARRAY_SIZE(ops),	\
-					    (grps), ARRAY_SIZE(grps))
+										(ops), ARRAY_SIZE(ops),	\
+										(grps), ARRAY_SIZE(grps))
 
 int genl_unregister_family(struct genl_family *family);
 void genl_notify(struct genl_family *family, struct sk_buff *skb,
-		 struct genl_info *info, u32 group, gfp_t flags);
+				 struct genl_info *info, u32 group, gfp_t flags);
 
 void *genlmsg_put(struct sk_buff *skb, u32 portid, u32 seq,
-		  struct genl_family *family, int flags, u8 cmd);
+				  struct genl_family *family, int flags, u8 cmd);
 
 /**
  * genlmsg_nlhdr - Obtain netlink header from user specified header
@@ -197,12 +201,12 @@ void *genlmsg_put(struct sk_buff *skb, u32 portid, u32 seq,
  * Returns pointer to netlink header.
  */
 static inline struct nlmsghdr *genlmsg_nlhdr(void *user_hdr,
-					     struct genl_family *family)
+		struct genl_family *family)
 {
 	return (struct nlmsghdr *)((char *)user_hdr -
-				   family->hdrsize -
-				   GENL_HDRLEN -
-				   NLMSG_HDRLEN);
+							   family->hdrsize -
+							   GENL_HDRLEN -
+							   NLMSG_HDRLEN);
 }
 
 /**
@@ -214,12 +218,12 @@ static inline struct nlmsghdr *genlmsg_nlhdr(void *user_hdr,
  * @policy: validation policy
  * */
 static inline int genlmsg_parse(const struct nlmsghdr *nlh,
-				const struct genl_family *family,
-				struct nlattr *tb[], int maxtype,
-				const struct nla_policy *policy)
+								const struct genl_family *family,
+								struct nlattr *tb[], int maxtype,
+								const struct nla_policy *policy)
 {
 	return nlmsg_parse(nlh, family->hdrsize + GENL_HDRLEN, tb, maxtype,
-			   policy);
+					   policy);
 }
 
 /**
@@ -232,8 +236,8 @@ static inline int genlmsg_parse(const struct nlmsghdr *nlh,
  * simpler to use with generic netlink.
  */
 static inline void genl_dump_check_consistent(struct netlink_callback *cb,
-					      void *user_hdr,
-					      struct genl_family *family)
+		void *user_hdr,
+		struct genl_family *family)
 {
 	nl_dump_check_consistent(cb, genlmsg_nlhdr(user_hdr, family));
 }
@@ -249,12 +253,12 @@ static inline void genl_dump_check_consistent(struct netlink_callback *cb,
  * Returns pointer to user specific header
  */
 static inline void *genlmsg_put_reply(struct sk_buff *skb,
-				      struct genl_info *info,
-				      struct genl_family *family,
-				      int flags, u8 cmd)
+									  struct genl_info *info,
+									  struct genl_family *family,
+									  int flags, u8 cmd)
 {
 	return genlmsg_put(skb, info->snd_portid, info->snd_seq, family,
-			   flags, cmd);
+					   flags, cmd);
 }
 
 /**
@@ -275,7 +279,9 @@ static inline void genlmsg_end(struct sk_buff *skb, void *hdr)
 static inline void genlmsg_cancel(struct sk_buff *skb, void *hdr)
 {
 	if (hdr)
+	{
 		nlmsg_cancel(skb, hdr - GENL_HDRLEN - NLMSG_HDRLEN);
+	}
 }
 
 /**
@@ -288,11 +294,14 @@ static inline void genlmsg_cancel(struct sk_buff *skb, void *hdr)
  * @flags: allocation flags
  */
 static inline int genlmsg_multicast_netns(struct genl_family *family,
-					  struct net *net, struct sk_buff *skb,
-					  u32 portid, unsigned int group, gfp_t flags)
+		struct net *net, struct sk_buff *skb,
+		u32 portid, unsigned int group, gfp_t flags)
 {
 	if (WARN_ON_ONCE(group >= family->n_mcgrps))
+	{
 		return -EINVAL;
+	}
+
 	group = family->mcgrp_offset + group;
 	return nlmsg_multicast(net->genl_sock, skb, portid, group, flags);
 }
@@ -306,11 +315,11 @@ static inline int genlmsg_multicast_netns(struct genl_family *family,
  * @flags: allocation flags
  */
 static inline int genlmsg_multicast(struct genl_family *family,
-				    struct sk_buff *skb, u32 portid,
-				    unsigned int group, gfp_t flags)
+									struct sk_buff *skb, u32 portid,
+									unsigned int group, gfp_t flags)
 {
 	return genlmsg_multicast_netns(family, &init_net, skb,
-				       portid, group, flags);
+								   portid, group, flags);
 }
 
 /**
@@ -324,8 +333,8 @@ static inline int genlmsg_multicast(struct genl_family *family,
  * This function must hold the RTNL or rcu_read_lock().
  */
 int genlmsg_multicast_allns(struct genl_family *family,
-			    struct sk_buff *skb, u32 portid,
-			    unsigned int group, gfp_t flags);
+							struct sk_buff *skb, u32 portid,
+							unsigned int group, gfp_t flags);
 
 /**
  * genlmsg_unicast - unicast a netlink message
@@ -363,7 +372,7 @@ static inline void *genlmsg_data(const struct genlmsghdr *gnlh)
 static inline int genlmsg_len(const struct genlmsghdr *gnlh)
 {
 	struct nlmsghdr *nlh = (struct nlmsghdr *)((unsigned char *)gnlh -
-							NLMSG_HDRLEN);
+						   NLMSG_HDRLEN);
 	return (nlh->nlmsg_len - GENL_HDRLEN - NLMSG_HDRLEN);
 }
 
@@ -408,19 +417,25 @@ static inline struct sk_buff *genlmsg_new(size_t payload, gfp_t flags)
  * NETLINK_RECV_NO_ENOBUFS socket option.
  */
 static inline int genl_set_err(struct genl_family *family, struct net *net,
-			       u32 portid, u32 group, int code)
+							   u32 portid, u32 group, int code)
 {
 	if (WARN_ON_ONCE(group >= family->n_mcgrps))
+	{
 		return -EINVAL;
+	}
+
 	group = family->mcgrp_offset + group;
 	return netlink_set_err(net->genl_sock, portid, group, code);
 }
 
 static inline int genl_has_listeners(struct genl_family *family,
-				     struct net *net, unsigned int group)
+									 struct net *net, unsigned int group)
 {
 	if (WARN_ON_ONCE(group >= family->n_mcgrps))
+	{
 		return -EINVAL;
+	}
+
 	group = family->mcgrp_offset + group;
 	return netlink_has_listeners(net->genl_sock, group);
 }

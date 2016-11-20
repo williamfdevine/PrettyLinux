@@ -41,40 +41,40 @@ static void cpld_info_ver3(struct cobalt *cobalt)
 
 	cobalt_info("CPLD System control register (read/write)\n");
 	cobalt_info("\t\tSystem control:  0x%04x (0x0f00)\n",
-		    cpld_read(cobalt, 0));
+				cpld_read(cobalt, 0));
 	cobalt_info("CPLD Clock control register (read/write)\n");
 	cobalt_info("\t\tClock control:   0x%04x (0x0000)\n",
-		    cpld_read(cobalt, 0x04));
+				cpld_read(cobalt, 0x04));
 	cobalt_info("CPLD HSMA Clk Osc register (read/write) - Must set wr trigger to load default values\n");
 	cobalt_info("\t\tRegister #7:\t0x%04x (0x0022)\n",
-		    cpld_read(cobalt, 0x08));
+				cpld_read(cobalt, 0x08));
 	cobalt_info("\t\tRegister #8:\t0x%04x (0x0047)\n",
-		    cpld_read(cobalt, 0x0c));
+				cpld_read(cobalt, 0x0c));
 	cobalt_info("\t\tRegister #9:\t0x%04x (0x00fa)\n",
-		    cpld_read(cobalt, 0x10));
+				cpld_read(cobalt, 0x10));
 	cobalt_info("\t\tRegister #10:\t0x%04x (0x0061)\n",
-		    cpld_read(cobalt, 0x14));
+				cpld_read(cobalt, 0x14));
 	cobalt_info("\t\tRegister #11:\t0x%04x (0x001e)\n",
-		    cpld_read(cobalt, 0x18));
+				cpld_read(cobalt, 0x18));
 	cobalt_info("\t\tRegister #12:\t0x%04x (0x0045)\n",
-		    cpld_read(cobalt, 0x1c));
+				cpld_read(cobalt, 0x1c));
 	cobalt_info("\t\tRegister #135:\t0x%04x\n",
-		    cpld_read(cobalt, 0x20));
+				cpld_read(cobalt, 0x20));
 	cobalt_info("\t\tRegister #137:\t0x%04x\n",
-		    cpld_read(cobalt, 0x24));
+				cpld_read(cobalt, 0x24));
 	cobalt_info("CPLD System status register (read only)\n");
 	cobalt_info("\t\tSystem status:  0x%04x\n",
-		    cpld_read(cobalt, 0x28));
+				cpld_read(cobalt, 0x28));
 	cobalt_info("CPLD MAXII info register (read only)\n");
 	cobalt_info("\t\tBoard serial number:     0x%04x\n",
-		    cpld_read(cobalt, 0x2c));
+				cpld_read(cobalt, 0x2c));
 	cobalt_info("\t\tMAXII program revision:  0x%04x\n",
-		    cpld_read(cobalt, 0x30));
+				cpld_read(cobalt, 0x30));
 	cobalt_info("CPLD temp and voltage ADT7411 registers (read only)\n");
 	cobalt_info("\t\tBoard temperature:  %u Celcius\n",
-		    cpld_read(cobalt, 0x34) / 4);
+				cpld_read(cobalt, 0x34) / 4);
 	cobalt_info("\t\tFPGA temperature:   %u Celcius\n",
-		    cpld_read(cobalt, 0x38) / 4);
+				cpld_read(cobalt, 0x38) / 4);
 	rd = cpld_read(cobalt, 0x3c);
 	tmp = (rd * 33 * 1000) / (483 * 10);
 	cobalt_info("\t\tVDD 3V3:      %u,%03uV\n", tmp / 1000, tmp % 1000);
@@ -102,15 +102,17 @@ void cobalt_cpld_status(struct cobalt *cobalt)
 {
 	u32 rev = cpld_read(cobalt, 0x30);
 
-	switch (rev) {
-	case 3:
-	case 4:
-	case 5:
-		cpld_info_ver3(cobalt);
-		break;
-	default:
-		cobalt_info("CPLD revision %u is not supported!\n", rev);
-		break;
+	switch (rev)
+	{
+		case 3:
+		case 4:
+		case 5:
+			cpld_info_ver3(cobalt);
+			break;
+
+		default:
+			cobalt_info("CPLD revision %u is not supported!\n", rev);
+			break;
 	}
 }
 
@@ -132,7 +134,8 @@ void cobalt_cpld_status(struct cobalt *cobalt)
 #define SI570_REG135 0x20
 #define SI570_REG137 0x24
 
-struct multiplier {
+struct multiplier
+{
 	unsigned mult, hsdiv, n1;
 };
 
@@ -140,7 +143,8 @@ struct multiplier {
    which are all removed in this list to keep the list as short as possible.
    The values for hsdiv and n1 are the actual values, not the register values.
  */
-static const struct multiplier multipliers[] = {
+static const struct multiplier multipliers[] =
+{
 	{    4,  4,   1 }, {    5,  5,   1 }, {    6,  6,   1 },
 	{    7,  7,   1 }, {    8,  4,   2 }, {    9,  9,   1 },
 	{   10,  5,   2 }, {   11, 11,   1 }, {   12,  6,   2 },
@@ -251,22 +255,33 @@ bool cobalt_cpld_set_freq(struct cobalt *cobalt, unsigned f_out)
 	u16 clock_ctrl;
 	int retries = 3;
 
-	for (i = 0; i < ARRAY_SIZE(multipliers); i++) {
+	for (i = 0; i < ARRAY_SIZE(multipliers); i++)
+	{
 		unsigned mult = multipliers[i].mult;
 		u32 d;
 
 		dco = (u64)f_out * mult;
+
 		if (dco < DCO_MIN || dco > DCO_MAX)
+		{
 			continue;
+		}
+
 		div_u64_rem((dco << 28) + f_xtal / 2, f_xtal, &d);
-		if (d < delta) {
+
+		if (d < delta)
+		{
 			found = 1;
 			i_best = i;
 			delta = d;
 		}
 	}
+
 	if (!found)
+	{
 		return false;
+	}
+
 	dco = (u64)f_out * multipliers[i_best].mult;
 	n1 = multipliers[i_best].n1 - 1;
 	hsdiv = multipliers[i_best].hsdiv - 4;
@@ -292,12 +307,13 @@ bool cobalt_cpld_set_freq(struct cobalt *cobalt, unsigned f_out)
 
 	cobalt_dbg(1, "%u: %6ph\n", f_out, regs);
 
-	while (retries--) {
+	while (retries--)
+	{
 		u8 read_regs[6];
 
 		cpld_write(cobalt, SI570_CLOCK_CTRL,
-			S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_EN |
-			S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_FPGA_CTRL);
+				   S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_EN |
+				   S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_FPGA_CTRL);
 		usleep_range(10000, 15000);
 		cpld_write(cobalt, SI570_REG7, regs[0]);
 		cpld_write(cobalt, SI570_REG8, regs[1]);
@@ -306,12 +322,12 @@ bool cobalt_cpld_set_freq(struct cobalt *cobalt, unsigned f_out)
 		cpld_write(cobalt, SI570_REG11, regs[4]);
 		cpld_write(cobalt, SI570_REG12, regs[5]);
 		cpld_write(cobalt, SI570_CLOCK_CTRL,
-			S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_EN |
-			S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_WR_TRIGGER);
+				   S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_EN |
+				   S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_WR_TRIGGER);
 		usleep_range(10000, 15000);
 		cpld_write(cobalt, SI570_CLOCK_CTRL,
-			S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_EN |
-			S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_FPGA_CTRL);
+				   S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_EN |
+				   S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_FPGA_CTRL);
 		usleep_range(10000, 15000);
 		read_regs[0] = cpld_read(cobalt, SI570_REG7);
 		read_regs[1] = cpld_read(cobalt, SI570_REG8);
@@ -320,20 +336,26 @@ bool cobalt_cpld_set_freq(struct cobalt *cobalt, unsigned f_out)
 		read_regs[4] = cpld_read(cobalt, SI570_REG11);
 		read_regs[5] = cpld_read(cobalt, SI570_REG12);
 		cpld_write(cobalt, SI570_CLOCK_CTRL,
-			S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_EN |
-			S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_FPGA_CTRL |
-			S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_RST_TRIGGER);
+				   S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_EN |
+				   S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_FPGA_CTRL |
+				   S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_RST_TRIGGER);
 		usleep_range(10000, 15000);
 		cpld_write(cobalt, SI570_CLOCK_CTRL,
-			S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_EN);
+				   S01755_REG_CLOCK_CTRL_BITMAP_CLKHSMA_EN);
 		usleep_range(10000, 15000);
 
 		if (!memcmp(read_regs, regs, sizeof(read_regs)))
+		{
 			break;
+		}
+
 		cobalt_dbg(1, "retry: %6ph\n", read_regs);
 	}
+
 	if (2 - retries)
+	{
 		cobalt_info("Needed %d retries\n", 2 - retries);
+	}
 
 	return true;
 }

@@ -40,7 +40,8 @@
 #define CIK_SDMA_QUEUES_PER_ENGINE		(2)
 #define CIK_SDMA_ENGINE_NUM			(2)
 
-struct device_process_node {
+struct device_process_node
+{
 	struct qcm_process_device *qpd;
 	struct list_head list;
 };
@@ -83,62 +84,64 @@ struct device_process_node {
  *
  */
 
-struct device_queue_manager_ops {
+struct device_queue_manager_ops
+{
 	int	(*create_queue)(struct device_queue_manager *dqm,
-				struct queue *q,
-				struct qcm_process_device *qpd,
-				int *allocate_vmid);
+						struct queue *q,
+						struct qcm_process_device *qpd,
+						int *allocate_vmid);
 
 	int	(*destroy_queue)(struct device_queue_manager *dqm,
-				struct qcm_process_device *qpd,
-				struct queue *q);
+						 struct qcm_process_device *qpd,
+						 struct queue *q);
 
 	int	(*update_queue)(struct device_queue_manager *dqm,
-				struct queue *q);
+						struct queue *q);
 
-	struct mqd_manager * (*get_mqd_manager)
-					(struct device_queue_manager *dqm,
-					enum KFD_MQD_TYPE type);
+	struct mqd_manager *(*get_mqd_manager)
+	(struct device_queue_manager *dqm,
+	 enum KFD_MQD_TYPE type);
 
 	int	(*register_process)(struct device_queue_manager *dqm,
-					struct qcm_process_device *qpd);
+							struct qcm_process_device *qpd);
 
 	int	(*unregister_process)(struct device_queue_manager *dqm,
-					struct qcm_process_device *qpd);
+							  struct qcm_process_device *qpd);
 
 	int	(*initialize)(struct device_queue_manager *dqm);
 	int	(*start)(struct device_queue_manager *dqm);
 	int	(*stop)(struct device_queue_manager *dqm);
 	void	(*uninitialize)(struct device_queue_manager *dqm);
 	int	(*create_kernel_queue)(struct device_queue_manager *dqm,
-					struct kernel_queue *kq,
-					struct qcm_process_device *qpd);
+							   struct kernel_queue *kq,
+							   struct qcm_process_device *qpd);
 
 	void	(*destroy_kernel_queue)(struct device_queue_manager *dqm,
-					struct kernel_queue *kq,
-					struct qcm_process_device *qpd);
+									struct kernel_queue *kq,
+									struct qcm_process_device *qpd);
 
 	bool	(*set_cache_memory_policy)(struct device_queue_manager *dqm,
-					   struct qcm_process_device *qpd,
-					   enum cache_policy default_policy,
-					   enum cache_policy alternate_policy,
-					   void __user *alternate_aperture_base,
-					   uint64_t alternate_aperture_size);
+									   struct qcm_process_device *qpd,
+									   enum cache_policy default_policy,
+									   enum cache_policy alternate_policy,
+									   void __user *alternate_aperture_base,
+									   uint64_t alternate_aperture_size);
 };
 
-struct device_queue_manager_asic_ops {
+struct device_queue_manager_asic_ops
+{
 	int	(*register_process)(struct device_queue_manager *dqm,
-					struct qcm_process_device *qpd);
+							struct qcm_process_device *qpd);
 	int	(*initialize)(struct device_queue_manager *dqm);
 	bool	(*set_cache_memory_policy)(struct device_queue_manager *dqm,
-					   struct qcm_process_device *qpd,
-					   enum cache_policy default_policy,
-					   enum cache_policy alternate_policy,
-					   void __user *alternate_aperture_base,
-					   uint64_t alternate_aperture_size);
+									   struct qcm_process_device *qpd,
+									   enum cache_policy default_policy,
+									   enum cache_policy alternate_policy,
+									   void __user *alternate_aperture_base,
+									   uint64_t alternate_aperture_size);
 	void	(*init_sdma_vm)(struct device_queue_manager *dqm,
-				struct queue *q,
-				struct qcm_process_device *qpd);
+							struct queue *q,
+							struct qcm_process_device *qpd);
 };
 
 /**
@@ -153,7 +156,8 @@ struct device_queue_manager_asic_ops {
  *
  */
 
-struct device_queue_manager {
+struct device_queue_manager
+{
 	struct device_queue_manager_ops ops;
 	struct device_queue_manager_asic_ops ops_asic_specific;
 
@@ -181,9 +185,9 @@ struct device_queue_manager {
 void device_queue_manager_init_cik(struct device_queue_manager_asic_ops *ops);
 void device_queue_manager_init_vi(struct device_queue_manager_asic_ops *ops);
 void program_sh_mem_settings(struct device_queue_manager *dqm,
-					struct qcm_process_device *qpd);
+							 struct qcm_process_device *qpd);
 int init_pipelines(struct device_queue_manager *dqm,
-		unsigned int pipes_num, unsigned int first_pipe);
+				   unsigned int pipes_num, unsigned int first_pipe);
 unsigned int get_first_pipe(struct device_queue_manager *dqm);
 unsigned int get_pipes_num(struct device_queue_manager *dqm);
 

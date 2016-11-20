@@ -205,7 +205,8 @@
  * @dev: JPEG IP struct device
  * @ref_count: reference counter
  */
-struct jpu {
+struct jpu
+{
 	struct mutex	mutex;
 	spinlock_t	lock;
 	struct v4l2_device	v4l2_dev;
@@ -228,7 +229,8 @@ struct jpu {
  * @compr_quality: destination image quality in compression mode
  * @subsampling: source image subsampling in decompression mode
  */
-struct jpu_buffer {
+struct jpu_buffer
+{
 	struct v4l2_m2m_buffer buf;
 	unsigned short	compr_quality;
 	unsigned char	subsampling;
@@ -245,7 +247,8 @@ struct jpu_buffer {
  * @num_planes: number of planes
  * @types: types of queue this format is applicable to
  */
-struct jpu_fmt {
+struct jpu_fmt
+{
 	u32 fourcc;
 	u32 colorspace;
 	u8 bpp[2];
@@ -262,7 +265,8 @@ struct jpu_fmt {
  * @format: multiplanar format of this queue
  * @sequence: sequence number
  */
-struct jpu_q_data {
+struct jpu_q_data
+{
 	struct jpu_fmt *fmtinfo;
 	struct v4l2_pix_format_mplane format;
 	unsigned int sequence;
@@ -278,7 +282,8 @@ struct jpu_q_data {
  * @fh: file handler
  * @ctrl_handler: controls handler
  */
-struct jpu_ctx {
+struct jpu_ctx
+{
 	struct jpu		*jpu;
 	bool			encoder;
 	unsigned short		compr_quality;
@@ -288,30 +293,43 @@ struct jpu_ctx {
 	struct v4l2_ctrl_handler ctrl_handler;
 };
 
- /**
- * jpeg_buffer - description of memory containing input JPEG data
- * @end: end position in the buffer
- * @curr: current position in the buffer
- */
-struct jpeg_buffer {
+/**
+* jpeg_buffer - description of memory containing input JPEG data
+* @end: end position in the buffer
+* @curr: current position in the buffer
+*/
+struct jpeg_buffer
+{
 	void *end;
 	void *curr;
 };
 
-static struct jpu_fmt jpu_formats[] = {
-	{ V4L2_PIX_FMT_JPEG, V4L2_COLORSPACE_JPEG,
-	  {0, 0}, 0, 0, 0, 1, JPU_ENC_CAPTURE | JPU_DEC_OUTPUT },
-	{ V4L2_PIX_FMT_NV16M, V4L2_COLORSPACE_SRGB,
-	  {8, 8}, 2, 2, JPU_JPEG_422, 2, JPU_ENC_OUTPUT | JPU_DEC_CAPTURE },
-	{ V4L2_PIX_FMT_NV12M, V4L2_COLORSPACE_SRGB,
-	  {8, 4}, 2, 2, JPU_JPEG_420, 2, JPU_ENC_OUTPUT | JPU_DEC_CAPTURE },
-	{ V4L2_PIX_FMT_NV16, V4L2_COLORSPACE_SRGB,
-	  {16, 0}, 2, 2, JPU_JPEG_422, 1, JPU_ENC_OUTPUT | JPU_DEC_CAPTURE },
-	{ V4L2_PIX_FMT_NV12, V4L2_COLORSPACE_SRGB,
-	  {12, 0}, 2, 2, JPU_JPEG_420, 1, JPU_ENC_OUTPUT | JPU_DEC_CAPTURE },
+static struct jpu_fmt jpu_formats[] =
+{
+	{
+		V4L2_PIX_FMT_JPEG, V4L2_COLORSPACE_JPEG,
+		{0, 0}, 0, 0, 0, 1, JPU_ENC_CAPTURE | JPU_DEC_OUTPUT
+	},
+	{
+		V4L2_PIX_FMT_NV16M, V4L2_COLORSPACE_SRGB,
+		{8, 8}, 2, 2, JPU_JPEG_422, 2, JPU_ENC_OUTPUT | JPU_DEC_CAPTURE
+	},
+	{
+		V4L2_PIX_FMT_NV12M, V4L2_COLORSPACE_SRGB,
+		{8, 4}, 2, 2, JPU_JPEG_420, 2, JPU_ENC_OUTPUT | JPU_DEC_CAPTURE
+	},
+	{
+		V4L2_PIX_FMT_NV16, V4L2_COLORSPACE_SRGB,
+		{16, 0}, 2, 2, JPU_JPEG_422, 1, JPU_ENC_OUTPUT | JPU_DEC_CAPTURE
+	},
+	{
+		V4L2_PIX_FMT_NV12, V4L2_COLORSPACE_SRGB,
+		{12, 0}, 2, 2, JPU_JPEG_420, 1, JPU_ENC_OUTPUT | JPU_DEC_CAPTURE
+	},
 };
 
-static const u8 zigzag[] = {
+static const u8 zigzag[] =
+{
 	0x03, 0x02, 0x0b, 0x13, 0x0a, 0x01, 0x00, 0x09,
 	0x12, 0x1b, 0x23, 0x1a, 0x11, 0x08, 0x07, 0x06,
 	0x0f, 0x10, 0x19, 0x22, 0x2b, 0x33, 0x2a, 0x21,
@@ -323,11 +341,11 @@ static const u8 zigzag[] = {
 };
 
 #define QTBL_SIZE (ALIGN(JPU_JPEG_QTBL_SIZE, \
-			  sizeof(unsigned int)) / sizeof(unsigned int))
+						 sizeof(unsigned int)) / sizeof(unsigned int))
 #define HDCTBL_SIZE (ALIGN(JPU_JPEG_HDCTBL_SIZE, \
-			  sizeof(unsigned int)) / sizeof(unsigned int))
+						   sizeof(unsigned int)) / sizeof(unsigned int))
 #define HACTBL_SIZE (ALIGN(JPU_JPEG_HACTBL_SIZE, \
-			  sizeof(unsigned int)) / sizeof(unsigned int))
+						   sizeof(unsigned int)) / sizeof(unsigned int))
 /*
  * Start of image; Quantization tables
  * SOF0 (17 bytes payload) is Baseline DCT - Sample precision, height, width,
@@ -335,36 +353,38 @@ static const u8 zigzag[] = {
  * Huffman tables; Padding with 0xff (33.3.27 R01UH0501EJ0100 Rev.1.00)
  */
 #define JPU_JPEG_HDR_BLOB {                                                    \
-	0xff, SOI, 0xff, DQT, 0x00, JPU_JPEG_QTBL_SIZE + 0x3, JPU_JPEG_LUM,    \
-	[JPU_JPEG_QTBL_LUM_OFFSET ...                                          \
-		JPU_JPEG_QTBL_LUM_OFFSET + JPU_JPEG_QTBL_SIZE - 1] = 0x00,     \
-	0xff, DQT, 0x00, JPU_JPEG_QTBL_SIZE + 0x3, JPU_JPEG_CHR,               \
-	[JPU_JPEG_QTBL_CHR_OFFSET ... JPU_JPEG_QTBL_CHR_OFFSET +               \
-		JPU_JPEG_QTBL_SIZE - 1] = 0x00, 0xff, SOF0, 0x00, 0x11, 0x08,  \
-	[JPU_JPEG_HEIGHT_OFFSET ... JPU_JPEG_HEIGHT_OFFSET + 1] = 0x00,        \
-	[JPU_JPEG_WIDTH_OFFSET ... JPU_JPEG_WIDTH_OFFSET + 1] = 0x00,          \
-	0x03, 0x01, [JPU_JPEG_SUBS_OFFSET] = 0x00, JPU_JPEG_LUM,               \
-	0x02, 0x11, JPU_JPEG_CHR, 0x03, 0x11, JPU_JPEG_CHR,                    \
-	0xff, DHT, 0x00, JPU_JPEG_HDCTBL_SIZE + 0x3, JPU_JPEG_LUM|JPU_JPEG_DC, \
-	[JPU_JPEG_HDCTBL_LUM_OFFSET ...                                        \
-		JPU_JPEG_HDCTBL_LUM_OFFSET + JPU_JPEG_HDCTBL_SIZE - 1] = 0x00, \
-	0xff, DHT, 0x00, JPU_JPEG_HACTBL_SIZE + 0x3, JPU_JPEG_LUM|JPU_JPEG_AC, \
-	[JPU_JPEG_HACTBL_LUM_OFFSET ...                                        \
-		JPU_JPEG_HACTBL_LUM_OFFSET + JPU_JPEG_HACTBL_SIZE - 1] = 0x00, \
-	0xff, DHT, 0x00, JPU_JPEG_HDCTBL_SIZE + 0x3, JPU_JPEG_CHR|JPU_JPEG_DC, \
-	[JPU_JPEG_HDCTBL_CHR_OFFSET ...                                        \
-		JPU_JPEG_HDCTBL_CHR_OFFSET + JPU_JPEG_HDCTBL_SIZE - 1] = 0x00, \
-	0xff, DHT, 0x00, JPU_JPEG_HACTBL_SIZE + 0x3, JPU_JPEG_CHR|JPU_JPEG_AC, \
-	[JPU_JPEG_HACTBL_CHR_OFFSET ...                                        \
-		JPU_JPEG_HACTBL_CHR_OFFSET + JPU_JPEG_HACTBL_SIZE - 1] = 0x00, \
-	[JPU_JPEG_PADDING_OFFSET ... JPU_JPEG_HDR_SIZE - 1] = 0xff             \
-}
+		0xff, SOI, 0xff, DQT, 0x00, JPU_JPEG_QTBL_SIZE + 0x3, JPU_JPEG_LUM,    \
+		[JPU_JPEG_QTBL_LUM_OFFSET ...                                          \
+		 JPU_JPEG_QTBL_LUM_OFFSET + JPU_JPEG_QTBL_SIZE - 1] = 0x00,     \
+				 0xff, DQT, 0x00, JPU_JPEG_QTBL_SIZE + 0x3, JPU_JPEG_CHR,               \
+				 [JPU_JPEG_QTBL_CHR_OFFSET ... JPU_JPEG_QTBL_CHR_OFFSET +               \
+				  JPU_JPEG_QTBL_SIZE - 1] = 0x00, 0xff, SOF0, 0x00, 0x11, 0x08,  \
+											[JPU_JPEG_HEIGHT_OFFSET ... JPU_JPEG_HEIGHT_OFFSET + 1] = 0x00,        \
+													[JPU_JPEG_WIDTH_OFFSET ... JPU_JPEG_WIDTH_OFFSET + 1] = 0x00,          \
+															0x03, 0x01, [JPU_JPEG_SUBS_OFFSET] = 0x00, JPU_JPEG_LUM,               \
+																	0x02, 0x11, JPU_JPEG_CHR, 0x03, 0x11, JPU_JPEG_CHR,                    \
+																	0xff, DHT, 0x00, JPU_JPEG_HDCTBL_SIZE + 0x3, JPU_JPEG_LUM|JPU_JPEG_DC, \
+																	[JPU_JPEG_HDCTBL_LUM_OFFSET ...                                        \
+																			JPU_JPEG_HDCTBL_LUM_OFFSET + JPU_JPEG_HDCTBL_SIZE - 1] = 0x00, \
+																					0xff, DHT, 0x00, JPU_JPEG_HACTBL_SIZE + 0x3, JPU_JPEG_LUM|JPU_JPEG_AC, \
+																					[JPU_JPEG_HACTBL_LUM_OFFSET ...                                        \
+																							JPU_JPEG_HACTBL_LUM_OFFSET + JPU_JPEG_HACTBL_SIZE - 1] = 0x00, \
+																									0xff, DHT, 0x00, JPU_JPEG_HDCTBL_SIZE + 0x3, JPU_JPEG_CHR|JPU_JPEG_DC, \
+																									[JPU_JPEG_HDCTBL_CHR_OFFSET ...                                        \
+																											JPU_JPEG_HDCTBL_CHR_OFFSET + JPU_JPEG_HDCTBL_SIZE - 1] = 0x00, \
+																													0xff, DHT, 0x00, JPU_JPEG_HACTBL_SIZE + 0x3, JPU_JPEG_CHR|JPU_JPEG_AC, \
+																													[JPU_JPEG_HACTBL_CHR_OFFSET ...                                        \
+																															JPU_JPEG_HACTBL_CHR_OFFSET + JPU_JPEG_HACTBL_SIZE - 1] = 0x00, \
+																																	[JPU_JPEG_PADDING_OFFSET ... JPU_JPEG_HDR_SIZE - 1] = 0xff             \
+	}
 
-static unsigned char jpeg_hdrs[JPU_MAX_QUALITY][JPU_JPEG_HDR_SIZE] = {
+static unsigned char jpeg_hdrs[JPU_MAX_QUALITY][JPU_JPEG_HDR_SIZE] =
+{
 	[0 ... JPU_MAX_QUALITY - 1] = JPU_JPEG_HDR_BLOB
 };
 
-static const unsigned int qtbl_lum[JPU_MAX_QUALITY][QTBL_SIZE] = {
+static const unsigned int qtbl_lum[JPU_MAX_QUALITY][QTBL_SIZE] =
+{
 	{
 		0x14101927, 0x322e3e44, 0x10121726, 0x26354144,
 		0x19171f26, 0x35414444, 0x27262635, 0x41444444,
@@ -391,7 +411,8 @@ static const unsigned int qtbl_lum[JPU_MAX_QUALITY][QTBL_SIZE] = {
 	}
 };
 
-static const unsigned int qtbl_chr[JPU_MAX_QUALITY][QTBL_SIZE] = {
+static const unsigned int qtbl_chr[JPU_MAX_QUALITY][QTBL_SIZE] =
+{
 	{
 		0x15192026, 0x36444444, 0x191c1826, 0x36444444,
 		0x2018202b, 0x42444444, 0x26262b35, 0x44444444,
@@ -418,17 +439,20 @@ static const unsigned int qtbl_chr[JPU_MAX_QUALITY][QTBL_SIZE] = {
 	}
 };
 
-static const unsigned int hdctbl_lum[HDCTBL_SIZE] = {
+static const unsigned int hdctbl_lum[HDCTBL_SIZE] =
+{
 	0x00010501, 0x01010101, 0x01000000, 0x00000000,
 	0x00010203, 0x04050607, 0x08090a0b
 };
 
-static const unsigned int hdctbl_chr[HDCTBL_SIZE] = {
+static const unsigned int hdctbl_chr[HDCTBL_SIZE] =
+{
 	0x00010501, 0x01010101, 0x01000000, 0x00000000,
 	0x00010203, 0x04050607, 0x08090a0b
 };
 
-static const unsigned int hactbl_lum[HACTBL_SIZE] = {
+static const unsigned int hactbl_lum[HACTBL_SIZE] =
+{
 	0x00020103, 0x03020403, 0x05050404, 0x0000017d, 0x01020300, 0x04110512,
 	0x21314106, 0x13516107,	0x22711432, 0x8191a108, 0x2342b1c1, 0x1552d1f0,
 	0x24336272, 0x82090a16, 0x1718191a, 0x25262728, 0x292a3435, 0x36373839,
@@ -439,7 +463,8 @@ static const unsigned int hactbl_lum[HACTBL_SIZE] = {
 	0xf1f2f3f4, 0xf5f6f7f8, 0xf9fa0000
 };
 
-static const unsigned int hactbl_chr[HACTBL_SIZE] = {
+static const unsigned int hactbl_chr[HACTBL_SIZE] =
+{
 	0x00020103, 0x03020403, 0x05050404, 0x0000017d, 0x01020300, 0x04110512,
 	0x21314106, 0x13516107,	0x22711432, 0x8191a108, 0x2342b1c1, 0x1552d1f0,
 	0x24336272, 0x82090a16, 0x1718191a, 0x25262728, 0x292a3435, 0x36373839,
@@ -450,7 +475,8 @@ static const unsigned int hactbl_chr[HACTBL_SIZE] = {
 	0xf1f2f3f4, 0xf5f6f7f8, 0xf9fa0000
 };
 
-static const char *error_to_text[16] = {
+static const char *error_to_text[16] =
+{
 	"Normal",
 	"SOI not detected",
 	"SOF1 to SOFF detected",
@@ -498,11 +524,14 @@ static struct jpu_ctx *fh_to_ctx(struct v4l2_fh *fh)
 }
 
 static void jpu_set_tbl(struct jpu *jpu, u32 reg, const unsigned int *tbl,
-			unsigned int len) {
+						unsigned int len)
+{
 	unsigned int i;
 
 	for (i = 0; i < len; i++)
+	{
 		jpu_write(jpu, tbl[i], reg + (i << 2));
+	}
 }
 
 static void jpu_set_qtbl(struct jpu *jpu, unsigned short quality)
@@ -525,11 +554,14 @@ static int jpu_wait_reset(struct jpu *jpu)
 
 	timeout = jiffies + msecs_to_jiffies(JPU_RESET_TIMEOUT);
 
-	while (jpu_read(jpu, JCCMD) & JCCMD_SRST) {
-		if (time_after(jiffies, timeout)) {
+	while (jpu_read(jpu, JCCMD) & JCCMD_SRST)
+	{
+		if (time_after(jiffies, timeout))
+		{
 			dev_err(jpu->dev, "timed out in reset\n");
 			return -ETIMEDOUT;
 		}
+
 		schedule();
 	}
 
@@ -552,7 +584,9 @@ static void put_qtbl(u8 *p, const u8 *qtbl)
 	unsigned int i;
 
 	for (i = 0; i < ARRAY_SIZE(zigzag); i++)
+	{
 		p[i] = *(qtbl + zigzag[i]);
+	}
 }
 
 static void put_htbl(u8 *p, const u8 *htbl, unsigned int len)
@@ -561,7 +595,9 @@ static void put_htbl(u8 *p, const u8 *htbl, unsigned int len)
 
 	for (i = 0; i < len; i += 4)
 		for (j = 0; j < 4 && (i + j) < len; ++j)
+		{
 			p[i + j] = htbl[i + 3 - j];
+		}
 }
 
 static void jpu_generate_hdr(unsigned short quality, unsigned char *p)
@@ -570,20 +606,22 @@ static void jpu_generate_hdr(unsigned short quality, unsigned char *p)
 	put_qtbl(p + JPU_JPEG_QTBL_CHR_OFFSET, (const u8 *)qtbl_chr[quality]);
 
 	put_htbl(p + JPU_JPEG_HDCTBL_LUM_OFFSET, (const u8 *)hdctbl_lum,
-		 JPU_JPEG_HDCTBL_SIZE);
+			 JPU_JPEG_HDCTBL_SIZE);
 	put_htbl(p + JPU_JPEG_HACTBL_LUM_OFFSET, (const u8 *)hactbl_lum,
-		 JPU_JPEG_HACTBL_SIZE);
+			 JPU_JPEG_HACTBL_SIZE);
 
 	put_htbl(p + JPU_JPEG_HDCTBL_CHR_OFFSET, (const u8 *)hdctbl_chr,
-		 JPU_JPEG_HDCTBL_SIZE);
+			 JPU_JPEG_HDCTBL_SIZE);
 	put_htbl(p + JPU_JPEG_HACTBL_CHR_OFFSET, (const u8 *)hactbl_chr,
-		 JPU_JPEG_HACTBL_SIZE);
+			 JPU_JPEG_HACTBL_SIZE);
 }
 
 static int get_byte(struct jpeg_buffer *buf)
 {
 	if (buf->curr >= buf->end)
+	{
 		return -1;
+	}
 
 	return *(u8 *)buf->curr++;
 }
@@ -591,7 +629,9 @@ static int get_byte(struct jpeg_buffer *buf)
 static int get_word_be(struct jpeg_buffer *buf, unsigned int *word)
 {
 	if (buf->end - buf->curr < 2)
+	{
 		return -1;
+	}
 
 	*word = get_unaligned_be16(buf->curr);
 	buf->curr += 2;
@@ -605,7 +645,7 @@ static void skip(struct jpeg_buffer *buf, unsigned long len)
 }
 
 static u8 jpu_parse_hdr(void *buffer, unsigned long size, unsigned int *width,
-			  unsigned int *height)
+						unsigned int *height)
 {
 	struct jpeg_buffer jpeg_buffer;
 	unsigned int word;
@@ -619,44 +659,63 @@ static u8 jpu_parse_hdr(void *buffer, unsigned long size, unsigned int *width,
 	 * buffer bounds in any case. Hope it's stopping by EOI.
 	 */
 	if (size < JPU_JPEG_MIN_SIZE || *(u8 *)(buffer + size - 1) != EOI)
+	{
 		return 0;
+	}
 
-	for (;;) {
+	for (;;)
+	{
 		int c;
 
 		/* skip preceding filler bytes */
 		do
+		{
 			c = get_byte(&jpeg_buffer);
+		}
 		while (c == 0xff || c == 0);
 
-		if (!soi && c == SOI) {
+		if (!soi && c == SOI)
+		{
 			soi = true;
 			continue;
-		} else if (soi != (c != SOI))
+		}
+		else if (soi != (c != SOI))
+		{
 			return 0;
+		}
 
-		switch (c) {
-		case SOF0: /* SOF0: baseline JPEG */
-			skip(&jpeg_buffer, 3); /* segment length and bpp */
-			if (get_word_be(&jpeg_buffer, height) ||
-			    get_word_be(&jpeg_buffer, width) ||
-			    get_byte(&jpeg_buffer) != 3) /* YCbCr only */
-				return 0;
+		switch (c)
+		{
+			case SOF0: /* SOF0: baseline JPEG */
+				skip(&jpeg_buffer, 3); /* segment length and bpp */
 
-			skip(&jpeg_buffer, 1);
-			return get_byte(&jpeg_buffer);
-		case DHT:
-		case DQT:
-		case COM:
-		case DRI:
-		case APP0 ... APP0 + 0x0f:
-			if (get_word_be(&jpeg_buffer, &word))
+				if (get_word_be(&jpeg_buffer, height) ||
+					get_word_be(&jpeg_buffer, width) ||
+					get_byte(&jpeg_buffer) != 3) /* YCbCr only */
+				{
+					return 0;
+				}
+
+				skip(&jpeg_buffer, 1);
+				return get_byte(&jpeg_buffer);
+
+			case DHT:
+			case DQT:
+			case COM:
+			case DRI:
+			case APP0 ... APP0 + 0x0f:
+				if (get_word_be(&jpeg_buffer, &word))
+				{
+					return 0;
+				}
+
+				skip(&jpeg_buffer, (long)word - 2);
+
+			case 0:
+				break;
+
+			default:
 				return 0;
-			skip(&jpeg_buffer, (long)word - 2);
-		case 0:
-			break;
-		default:
-			return 0;
 		}
 	}
 
@@ -664,18 +723,22 @@ static u8 jpu_parse_hdr(void *buffer, unsigned long size, unsigned int *width,
 }
 
 static int jpu_querycap(struct file *file, void *priv,
-			struct v4l2_capability *cap)
+						struct v4l2_capability *cap)
 {
 	struct jpu_ctx *ctx = fh_to_ctx(priv);
 
 	if (ctx->encoder)
+	{
 		strlcpy(cap->card, DRV_NAME " encoder", sizeof(cap->card));
+	}
 	else
+	{
 		strlcpy(cap->card, DRV_NAME " decoder", sizeof(cap->card));
+	}
 
 	strlcpy(cap->driver, DRV_NAME, sizeof(cap->driver));
 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
-		 dev_name(ctx->jpu->dev));
+			 dev_name(ctx->jpu->dev));
 	cap->device_caps |= V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M_MPLANE;
 	cap->capabilities = V4L2_CAP_DEVICE_CAPS | cap->device_caps;
 	memset(cap->reserved, 0, sizeof(cap->reserved));
@@ -684,22 +747,25 @@ static int jpu_querycap(struct file *file, void *priv,
 }
 
 static struct jpu_fmt *jpu_find_format(bool encoder, u32 pixelformat,
-				       unsigned int fmt_type)
+									   unsigned int fmt_type)
 {
 	unsigned int i, fmt_flag;
 
 	if (encoder)
 		fmt_flag = fmt_type == JPU_FMT_TYPE_OUTPUT ? JPU_ENC_OUTPUT :
-							     JPU_ENC_CAPTURE;
+				   JPU_ENC_CAPTURE;
 	else
 		fmt_flag = fmt_type == JPU_FMT_TYPE_OUTPUT ? JPU_DEC_OUTPUT :
-							     JPU_DEC_CAPTURE;
+				   JPU_DEC_CAPTURE;
 
-	for (i = 0; i < ARRAY_SIZE(jpu_formats); i++) {
+	for (i = 0; i < ARRAY_SIZE(jpu_formats); i++)
+	{
 		struct jpu_fmt *fmt = &jpu_formats[i];
 
 		if (fmt->fourcc == pixelformat && fmt->types & fmt_flag)
+		{
 			return fmt;
+		}
 	}
 
 	return NULL;
@@ -709,16 +775,23 @@ static int jpu_enum_fmt(struct v4l2_fmtdesc *f, u32 type)
 {
 	unsigned int i, num = 0;
 
-	for (i = 0; i < ARRAY_SIZE(jpu_formats); ++i) {
-		if (jpu_formats[i].types & type) {
+	for (i = 0; i < ARRAY_SIZE(jpu_formats); ++i)
+	{
+		if (jpu_formats[i].types & type)
+		{
 			if (num == f->index)
+			{
 				break;
+			}
+
 			++num;
 		}
 	}
 
 	if (i >= ARRAY_SIZE(jpu_formats))
+	{
 		return -EINVAL;
+	}
 
 	f->pixelformat = jpu_formats[i].fourcc;
 
@@ -726,16 +799,16 @@ static int jpu_enum_fmt(struct v4l2_fmtdesc *f, u32 type)
 }
 
 static int jpu_enum_fmt_cap(struct file *file, void *priv,
-			    struct v4l2_fmtdesc *f)
+							struct v4l2_fmtdesc *f)
 {
 	struct jpu_ctx *ctx = fh_to_ctx(priv);
 
 	return jpu_enum_fmt(f, ctx->encoder ? JPU_ENC_CAPTURE :
-			    JPU_DEC_CAPTURE);
+						JPU_DEC_CAPTURE);
 }
 
 static int jpu_enum_fmt_out(struct file *file, void *priv,
-			    struct v4l2_fmtdesc *f)
+							struct v4l2_fmtdesc *f)
 {
 	struct jpu_ctx *ctx = fh_to_ctx(priv);
 
@@ -743,18 +816,22 @@ static int jpu_enum_fmt_out(struct file *file, void *priv,
 }
 
 static struct jpu_q_data *jpu_get_q_data(struct jpu_ctx *ctx,
-					 enum v4l2_buf_type type)
+		enum v4l2_buf_type type)
 {
 	if (V4L2_TYPE_IS_OUTPUT(type))
+	{
 		return &ctx->out_q;
+	}
 	else
+	{
 		return &ctx->cap_q;
+	}
 }
 
 static void jpu_bound_align_image(u32 *w, unsigned int w_min,
-				  unsigned int w_max, unsigned int w_align,
-				  u32 *h, unsigned int h_min,
-				  unsigned int h_max, unsigned int h_align)
+								  unsigned int w_max, unsigned int w_align,
+								  u32 *h, unsigned int h_min,
+								  unsigned int h_max, unsigned int h_align)
 {
 	unsigned int width, height, w_step, h_step;
 
@@ -764,35 +841,44 @@ static void jpu_bound_align_image(u32 *w, unsigned int w_min,
 	w_step = 1U << w_align;
 	h_step = 1U << h_align;
 	v4l_bound_align_image(w, w_min, w_max, w_align, h, h_min, h_max,
-			      h_align, 3);
+						  h_align, 3);
 
 	if (*w < width && *w + w_step < w_max)
+	{
 		*w += w_step;
+	}
+
 	if (*h < height && *h + h_step < h_max)
+	{
 		*h += h_step;
+	}
 }
 
 static int __jpu_try_fmt(struct jpu_ctx *ctx, struct jpu_fmt **fmtinfo,
-			 struct v4l2_pix_format_mplane *pix,
-			 enum v4l2_buf_type type)
+						 struct v4l2_pix_format_mplane *pix,
+						 enum v4l2_buf_type type)
 {
 	struct jpu_fmt *fmt;
 	unsigned int f_type, w, h;
 
 	f_type = V4L2_TYPE_IS_OUTPUT(type) ? JPU_FMT_TYPE_OUTPUT :
-						JPU_FMT_TYPE_CAPTURE;
+			 JPU_FMT_TYPE_CAPTURE;
 
 	fmt = jpu_find_format(ctx->encoder, pix->pixelformat, f_type);
-	if (!fmt) {
+
+	if (!fmt)
+	{
 		unsigned int pixelformat;
 
 		dev_dbg(ctx->jpu->dev, "unknown format; set default format\n");
+
 		if (ctx->encoder)
 			pixelformat = f_type == JPU_FMT_TYPE_OUTPUT ?
-				V4L2_PIX_FMT_NV16M : V4L2_PIX_FMT_JPEG;
+						  V4L2_PIX_FMT_NV16M : V4L2_PIX_FMT_JPEG;
 		else
 			pixelformat = f_type == JPU_FMT_TYPE_CAPTURE ?
-				V4L2_PIX_FMT_NV16M : V4L2_PIX_FMT_JPEG;
+						  V4L2_PIX_FMT_NV16M : V4L2_PIX_FMT_JPEG;
+
 		fmt = jpu_find_format(ctx->encoder, pixelformat, f_type);
 	}
 
@@ -803,39 +889,48 @@ static int __jpu_try_fmt(struct jpu_ctx *ctx, struct jpu_fmt **fmtinfo,
 	memset(pix->reserved, 0, sizeof(pix->reserved));
 
 	jpu_bound_align_image(&pix->width, JPU_WIDTH_MIN, JPU_WIDTH_MAX,
-			      fmt->h_align, &pix->height, JPU_HEIGHT_MIN,
-			      JPU_HEIGHT_MAX, fmt->v_align);
+						  fmt->h_align, &pix->height, JPU_HEIGHT_MIN,
+						  JPU_HEIGHT_MAX, fmt->v_align);
 
 	w = pix->width;
 	h = pix->height;
 
-	if (fmt->fourcc == V4L2_PIX_FMT_JPEG) {
+	if (fmt->fourcc == V4L2_PIX_FMT_JPEG)
+	{
 		/* ignore userspaces's sizeimage for encoding */
 		if (pix->plane_fmt[0].sizeimage <= 0 || ctx->encoder)
 			pix->plane_fmt[0].sizeimage = JPU_JPEG_HDR_SIZE +
-				(JPU_JPEG_MAX_BYTES_PER_PIXEL * w * h);
+										  (JPU_JPEG_MAX_BYTES_PER_PIXEL * w * h);
+
 		pix->plane_fmt[0].bytesperline = 0;
 		memset(pix->plane_fmt[0].reserved, 0,
-		       sizeof(pix->plane_fmt[0].reserved));
-	} else {
+			   sizeof(pix->plane_fmt[0].reserved));
+	}
+	else
+	{
 		unsigned int i, bpl = 0;
 
 		for (i = 0; i < pix->num_planes; ++i)
+		{
 			bpl = max(bpl, pix->plane_fmt[i].bytesperline);
+		}
 
 		bpl = clamp_t(unsigned int, bpl, w, JPU_WIDTH_MAX);
 		bpl = round_up(bpl, JPU_MEMALIGN);
 
-		for (i = 0; i < pix->num_planes; ++i) {
+		for (i = 0; i < pix->num_planes; ++i)
+		{
 			pix->plane_fmt[i].bytesperline = bpl;
 			pix->plane_fmt[i].sizeimage = bpl * h * fmt->bpp[i] / 8;
 			memset(pix->plane_fmt[i].reserved, 0,
-			       sizeof(pix->plane_fmt[i].reserved));
+				   sizeof(pix->plane_fmt[i].reserved));
 		}
 	}
 
 	if (fmtinfo)
+	{
 		*fmtinfo = fmt;
+	}
 
 	return 0;
 }
@@ -845,7 +940,9 @@ static int jpu_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
 	struct jpu_ctx *ctx = fh_to_ctx(priv);
 
 	if (!v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type))
+	{
 		return -EINVAL;
+	}
 
 	return __jpu_try_fmt(ctx, NULL, &f->fmt.pix_mp, f->type);
 }
@@ -860,17 +957,24 @@ static int jpu_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
 	int ret;
 
 	vq = v4l2_m2m_get_vq(m2m_ctx, f->type);
-	if (!vq)
-		return -EINVAL;
 
-	if (vb2_is_busy(vq)) {
+	if (!vq)
+	{
+		return -EINVAL;
+	}
+
+	if (vb2_is_busy(vq))
+	{
 		v4l2_err(&ctx->jpu->v4l2_dev, "%s queue busy\n", __func__);
 		return -EBUSY;
 	}
 
 	ret = __jpu_try_fmt(ctx, &fmtinfo, &f->fmt.pix_mp, f->type);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	q_data = jpu_get_q_data(ctx, f->type);
 
@@ -886,7 +990,9 @@ static int jpu_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
 	struct jpu_ctx *ctx = fh_to_ctx(priv);
 
 	if (!v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type))
+	{
 		return -EINVAL;
+	}
 
 	q_data = jpu_get_q_data(ctx, f->type);
 	f->fmt.pix_mp = q_data->format;
@@ -903,14 +1009,19 @@ static int jpu_s_ctrl(struct v4l2_ctrl *ctrl)
 	unsigned long flags;
 
 	spin_lock_irqsave(&ctx->jpu->lock, flags);
+
 	if (ctrl->id == V4L2_CID_JPEG_COMPRESSION_QUALITY)
+	{
 		ctx->compr_quality = ctrl->val;
+	}
+
 	spin_unlock_irqrestore(&ctx->jpu->lock, flags);
 
 	return 0;
 }
 
-static const struct v4l2_ctrl_ops jpu_ctrl_ops = {
+static const struct v4l2_ctrl_ops jpu_ctrl_ops =
+{
 	.s_ctrl		= jpu_s_ctrl,
 };
 
@@ -923,12 +1034,15 @@ static int jpu_streamon(struct file *file, void *priv, enum v4l2_buf_type type)
 	src_q_data = jpu_get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
 	dst_q_data = jpu_get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
 
-	if (ctx->encoder) {
+	if (ctx->encoder)
+	{
 		adj = *src_q_data;
 		orig = src_q_data;
 		ref = dst_q_data;
 		adj_type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-	} else {
+	}
+	else
+	{
 		adj = *dst_q_data;
 		orig = dst_q_data;
 		ref = src_q_data;
@@ -941,7 +1055,8 @@ static int jpu_streamon(struct file *file, void *priv, enum v4l2_buf_type type)
 	__jpu_try_fmt(ctx, NULL, &adj.format, adj_type);
 
 	if (adj.format.width != orig->format.width ||
-	    adj.format.height != orig->format.height) {
+		adj.format.height != orig->format.height)
+	{
 		dev_err(ctx->jpu->dev, "src and dst formats do not match.\n");
 		/* maybe we can return -EPIPE here? */
 		return -EINVAL;
@@ -950,7 +1065,8 @@ static int jpu_streamon(struct file *file, void *priv, enum v4l2_buf_type type)
 	return v4l2_m2m_streamon(file, ctx->fh.m2m_ctx, type);
 }
 
-static const struct v4l2_ioctl_ops jpu_ioctl_ops = {
+static const struct v4l2_ioctl_ops jpu_ioctl_ops =
+{
 	.vidioc_querycap		= jpu_querycap,
 
 	.vidioc_enum_fmt_vid_cap_mplane = jpu_enum_fmt_cap,
@@ -984,21 +1100,25 @@ static int jpu_controls_create(struct jpu_ctx *ctx)
 	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 1);
 
 	ctrl = v4l2_ctrl_new_std(&ctx->ctrl_handler, &jpu_ctrl_ops,
-				 V4L2_CID_JPEG_COMPRESSION_QUALITY,
-				 0, JPU_MAX_QUALITY - 1, 1, 0);
+							 V4L2_CID_JPEG_COMPRESSION_QUALITY,
+							 0, JPU_MAX_QUALITY - 1, 1, 0);
 
-	if (ctx->ctrl_handler.error) {
+	if (ctx->ctrl_handler.error)
+	{
 		ret = ctx->ctrl_handler.error;
 		goto error_free;
 	}
 
 	if (!ctx->encoder)
 		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE |
-				V4L2_CTRL_FLAG_READ_ONLY;
+					   V4L2_CTRL_FLAG_READ_ONLY;
 
 	ret = v4l2_ctrl_handler_setup(&ctx->ctrl_handler);
+
 	if (ret < 0)
+	{
 		goto error_free;
+	}
 
 	return 0;
 
@@ -1013,8 +1133,8 @@ error_free:
  * ============================================================================
  */
 static int jpu_queue_setup(struct vb2_queue *vq,
-			   unsigned int *nbuffers, unsigned int *nplanes,
-			   unsigned int sizes[], struct device *alloc_devs[])
+						   unsigned int *nbuffers, unsigned int *nplanes,
+						   unsigned int sizes[], struct device *alloc_devs[])
 {
 	struct jpu_ctx *ctx = vb2_get_drv_priv(vq);
 	struct jpu_q_data *q_data;
@@ -1022,23 +1142,32 @@ static int jpu_queue_setup(struct vb2_queue *vq,
 
 	q_data = jpu_get_q_data(ctx, vq->type);
 
-	if (*nplanes) {
+	if (*nplanes)
+	{
 		if (*nplanes != q_data->format.num_planes)
+		{
 			return -EINVAL;
+		}
 
-		for (i = 0; i < *nplanes; i++) {
+		for (i = 0; i < *nplanes; i++)
+		{
 			unsigned int q_size = q_data->format.plane_fmt[i].sizeimage;
 
 			if (sizes[i] < q_size)
+			{
 				return -EINVAL;
+			}
 		}
+
 		return 0;
 	}
 
 	*nplanes = q_data->format.num_planes;
 
 	for (i = 0; i < *nplanes; i++)
+	{
 		sizes[i] = q_data->format.plane_fmt[i].sizeimage;
+	}
 
 	return 0;
 }
@@ -1052,29 +1181,38 @@ static int jpu_buf_prepare(struct vb2_buffer *vb)
 
 	q_data = jpu_get_q_data(ctx, vb->vb2_queue->type);
 
-	if (V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type)) {
+	if (V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type))
+	{
 		if (vbuf->field == V4L2_FIELD_ANY)
+		{
 			vbuf->field = V4L2_FIELD_NONE;
-		if (vbuf->field != V4L2_FIELD_NONE) {
+		}
+
+		if (vbuf->field != V4L2_FIELD_NONE)
+		{
 			dev_err(ctx->jpu->dev, "%s field isn't supported\n",
 					__func__);
 			return -EINVAL;
 		}
 	}
 
-	for (i = 0; i < q_data->format.num_planes; i++) {
+	for (i = 0; i < q_data->format.num_planes; i++)
+	{
 		unsigned long size = q_data->format.plane_fmt[i].sizeimage;
 
-		if (vb2_plane_size(vb, i) < size) {
+		if (vb2_plane_size(vb, i) < size)
+		{
 			dev_err(ctx->jpu->dev,
-				"%s: data will not fit into plane (%lu < %lu)\n",
-			       __func__, vb2_plane_size(vb, i), size);
+					"%s: data will not fit into plane (%lu < %lu)\n",
+					__func__, vb2_plane_size(vb, i), size);
 			return -EINVAL;
 		}
 
 		/* decoder capture queue */
 		if (!ctx->encoder && !V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type))
+		{
 			vb2_set_plane_payload(vb, i, size);
+		}
 	}
 
 	return 0;
@@ -1085,7 +1223,8 @@ static void jpu_buf_queue(struct vb2_buffer *vb)
 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
 	struct jpu_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
 
-	if (!ctx->encoder && V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type)) {
+	if (!ctx->encoder && V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type))
+	{
 		struct jpu_buffer *jpu_buf = vb2_to_jpu_buffer(vbuf);
 		struct jpu_q_data *q_data, adjust;
 		void *buffer = vb2_plane_vaddr(vb, 0);
@@ -1093,11 +1232,13 @@ static void jpu_buf_queue(struct vb2_buffer *vb)
 		unsigned int width, height;
 
 		u8 subsampling = jpu_parse_hdr(buffer, buf_size, &width,
-						 &height);
+									   &height);
 
 		/* check if JPEG data basic parsing was successful */
 		if (subsampling != JPU_JPEG_422 && subsampling != JPU_JPEG_420)
+		{
 			goto format_error;
+		}
 
 		q_data = &ctx->out_q;
 
@@ -1106,11 +1247,13 @@ static void jpu_buf_queue(struct vb2_buffer *vb)
 		adjust.format.height = height;
 
 		__jpu_try_fmt(ctx, &adjust.fmtinfo, &adjust.format,
-			      V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
+					  V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
 
 		if (adjust.format.width != q_data->format.width ||
-		    adjust.format.height != q_data->format.height)
+			adjust.format.height != q_data->format.height)
+		{
 			goto format_error;
+		}
 
 		/*
 		 * keep subsampling in buffer to check it
@@ -1120,7 +1263,9 @@ static void jpu_buf_queue(struct vb2_buffer *vb)
 	}
 
 	if (ctx->fh.m2m_ctx)
+	{
 		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
+	}
 
 	return;
 
@@ -1139,19 +1284,23 @@ static void jpu_buf_finish(struct vb2_buffer *vb)
 	u8 *buffer;
 
 	if (vb->state == VB2_BUF_STATE_DONE)
+	{
 		vbuf->sequence = jpu_get_q_data(ctx, type)->sequence++;
+	}
 
 	if (!ctx->encoder || vb->state != VB2_BUF_STATE_DONE ||
-	    V4L2_TYPE_IS_OUTPUT(type))
+		V4L2_TYPE_IS_OUTPUT(type))
+	{
 		return;
+	}
 
 	buffer = vb2_plane_vaddr(vb, 0);
 
 	memcpy(buffer, jpeg_hdrs[jpu_buf->compr_quality], JPU_JPEG_HDR_SIZE);
 	*(__be16 *)(buffer + JPU_JPEG_HEIGHT_OFFSET) =
-					cpu_to_be16(q_data->format.height);
+		cpu_to_be16(q_data->format.height);
 	*(__be16 *)(buffer + JPU_JPEG_WIDTH_OFFSET) =
-					cpu_to_be16(q_data->format.width);
+		cpu_to_be16(q_data->format.width);
 	*(buffer + JPU_JPEG_SUBS_OFFSET) = q_data->fmtinfo->subsampling;
 }
 
@@ -1170,20 +1319,30 @@ static void jpu_stop_streaming(struct vb2_queue *vq)
 	struct vb2_v4l2_buffer *vb;
 	unsigned long flags;
 
-	for (;;) {
+	for (;;)
+	{
 		if (V4L2_TYPE_IS_OUTPUT(vq->type))
+		{
 			vb = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+		}
 		else
+		{
 			vb = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+		}
+
 		if (vb == NULL)
+		{
 			return;
+		}
+
 		spin_lock_irqsave(&ctx->jpu->lock, flags);
 		v4l2_m2m_buf_done(vb, VB2_BUF_STATE_ERROR);
 		spin_unlock_irqrestore(&ctx->jpu->lock, flags);
 	}
 }
 
-static const struct vb2_ops jpu_qops = {
+static const struct vb2_ops jpu_qops =
+{
 	.queue_setup		= jpu_queue_setup,
 	.buf_prepare		= jpu_buf_prepare,
 	.buf_queue		= jpu_buf_queue,
@@ -1195,7 +1354,7 @@ static const struct vb2_ops jpu_qops = {
 };
 
 static int jpu_queue_init(void *priv, struct vb2_queue *src_vq,
-			  struct vb2_queue *dst_vq)
+						  struct vb2_queue *dst_vq)
 {
 	struct jpu_ctx *ctx = priv;
 	int ret;
@@ -1212,8 +1371,11 @@ static int jpu_queue_init(void *priv, struct vb2_queue *src_vq,
 	src_vq->dev = ctx->jpu->v4l2_dev.dev;
 
 	ret = vb2_queue_init(src_vq);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	memset(dst_vq, 0, sizeof(*dst_vq));
 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
@@ -1242,8 +1404,11 @@ static int jpu_open(struct file *file)
 	int ret;
 
 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	v4l2_fh_init(&ctx->fh, vfd);
 	ctx->fh.ctrl_handler = &ctx->ctrl_handler;
@@ -1254,33 +1419,47 @@ static int jpu_open(struct file *file)
 	ctx->encoder = vfd == &jpu->vfd_encoder;
 
 	__jpu_try_fmt(ctx, &ctx->out_q.fmtinfo, &ctx->out_q.format,
-		      V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
+				  V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
 	__jpu_try_fmt(ctx, &ctx->cap_q.fmtinfo, &ctx->cap_q.format,
-		      V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
+				  V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
 
 	ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(jpu->m2m_dev, ctx, jpu_queue_init);
-	if (IS_ERR(ctx->fh.m2m_ctx)) {
+
+	if (IS_ERR(ctx->fh.m2m_ctx))
+	{
 		ret = PTR_ERR(ctx->fh.m2m_ctx);
 		goto v4l_prepare_rollback;
 	}
 
 	ret = jpu_controls_create(ctx);
-	if (ret < 0)
-		goto v4l_prepare_rollback;
 
-	if (mutex_lock_interruptible(&jpu->mutex)) {
+	if (ret < 0)
+	{
+		goto v4l_prepare_rollback;
+	}
+
+	if (mutex_lock_interruptible(&jpu->mutex))
+	{
 		ret = -ERESTARTSYS;
 		goto v4l_prepare_rollback;
 	}
 
-	if (jpu->ref_count == 0) {
+	if (jpu->ref_count == 0)
+	{
 		ret = clk_prepare_enable(jpu->clk);
+
 		if (ret < 0)
+		{
 			goto device_prepare_rollback;
+		}
+
 		/* ...issue software reset */
 		ret = jpu_reset(jpu);
+
 		if (ret)
+		{
 			goto device_prepare_rollback;
+		}
 	}
 
 	jpu->ref_count++;
@@ -1309,14 +1488,19 @@ static int jpu_release(struct file *file)
 	kfree(ctx);
 
 	mutex_lock(&jpu->mutex);
+
 	if (--jpu->ref_count == 0)
+	{
 		clk_disable_unprepare(jpu->clk);
+	}
+
 	mutex_unlock(&jpu->mutex);
 
 	return 0;
 }
 
-static const struct v4l2_file_operations jpu_fops = {
+static const struct v4l2_file_operations jpu_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= jpu_open,
 	.release	= jpu_release,
@@ -1346,7 +1530,9 @@ static void jpu_cleanup(struct jpu_ctx *ctx, bool reset)
 
 	/* ...and give it a chance on next run */
 	if (reset)
+	{
 		jpu_write(ctx->jpu, JCCMD_SRST, JCCMD);
+	}
 
 	spin_unlock_irqrestore(&ctx->jpu->lock, flags);
 
@@ -1365,7 +1551,8 @@ static void jpu_device_run(void *priv)
 	unsigned long flags;
 
 	/* ...wait until module reset completes; we have mutex locked here */
-	if (jpu_wait_reset(jpu)) {
+	if (jpu_wait_reset(jpu))
+	{
 		jpu_cleanup(ctx, true);
 		return;
 	}
@@ -1377,10 +1564,13 @@ static void jpu_device_run(void *priv)
 	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
 	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
 
-	if (ctx->encoder) {
+	if (ctx->encoder)
+	{
 		jpu_buf = vb2_to_jpu_buffer(dst_buf);
 		q_data = &ctx->out_q;
-	} else {
+	}
+	else
+	{
 		jpu_buf = vb2_to_jpu_buffer(src_buf);
 		q_data = &ctx->cap_q;
 	}
@@ -1391,32 +1581,39 @@ static void jpu_device_run(void *priv)
 	num_planes = q_data->fmtinfo->num_planes;
 	subsampling = q_data->fmtinfo->subsampling;
 
-	if (ctx->encoder) {
+	if (ctx->encoder)
+	{
 		unsigned long src_1_addr, src_2_addr, dst_addr;
 		unsigned int redu, inft;
 
 		dst_addr = vb2_dma_contig_plane_dma_addr(&dst_buf->vb2_buf, 0);
 		src_1_addr =
 			vb2_dma_contig_plane_dma_addr(&src_buf->vb2_buf, 0);
+
 		if (num_planes > 1)
 			src_2_addr = vb2_dma_contig_plane_dma_addr(
-					&src_buf->vb2_buf, 1);
+							 &src_buf->vb2_buf, 1);
 		else
+		{
 			src_2_addr = src_1_addr + w * h;
+		}
 
 		jpu_buf->compr_quality = ctx->compr_quality;
 
-		if (subsampling == JPU_JPEG_420) {
+		if (subsampling == JPU_JPEG_420)
+		{
 			redu = JCMOD_REDU_420;
 			inft = JIFECNT_INFT_420;
-		} else {
+		}
+		else
+		{
 			redu = JCMOD_REDU_422;
 			inft = JIFECNT_INFT_422;
 		}
 
 		/* only no marker mode works for encoding */
 		jpu_write(jpu, JCMOD_DSP_ENC | JCMOD_PCTR | redu |
-			  JCMOD_MSKIP_ENABLE, JCMOD);
+				  JCMOD_MSKIP_ENABLE, JCMOD);
 
 		jpu_write(jpu, JIFECNT_SWAP_WB | inft, JIFECNT);
 		jpu_write(jpu, JIFDCNT_SWAP_WB, JIFDCNT);
@@ -1441,21 +1638,24 @@ static void jpu_device_run(void *priv)
 		jpu_write(jpu, dst_addr + JPU_JPEG_HDR_SIZE, JIFEDA1);
 
 		jpu_write(jpu, 0 << JCQTN_SHIFT(1) | 1 << JCQTN_SHIFT(2) |
-			  1 << JCQTN_SHIFT(3), JCQTN);
+				  1 << JCQTN_SHIFT(3), JCQTN);
 
 		jpu_write(jpu, 0 << JCHTN_AC_SHIFT(1) | 0 << JCHTN_DC_SHIFT(1) |
-			  1 << JCHTN_AC_SHIFT(2) | 1 << JCHTN_DC_SHIFT(2) |
-			  1 << JCHTN_AC_SHIFT(3) | 1 << JCHTN_DC_SHIFT(3),
-			  JCHTN);
+				  1 << JCHTN_AC_SHIFT(2) | 1 << JCHTN_DC_SHIFT(2) |
+				  1 << JCHTN_AC_SHIFT(3) | 1 << JCHTN_DC_SHIFT(3),
+				  JCHTN);
 
 		jpu_set_qtbl(jpu, ctx->compr_quality);
 		jpu_set_htbl(jpu);
-	} else {
+	}
+	else
+	{
 		unsigned long src_addr, dst_1_addr, dst_2_addr;
 
-		if (jpu_buf->subsampling != subsampling) {
+		if (jpu_buf->subsampling != subsampling)
+		{
 			dev_err(ctx->jpu->dev,
-				"src and dst formats do not match.\n");
+					"src and dst formats do not match.\n");
 			spin_unlock_irqrestore(&ctx->jpu->lock, flags);
 			jpu_cleanup(ctx, false);
 			return;
@@ -1464,11 +1664,14 @@ static void jpu_device_run(void *priv)
 		src_addr = vb2_dma_contig_plane_dma_addr(&src_buf->vb2_buf, 0);
 		dst_1_addr =
 			vb2_dma_contig_plane_dma_addr(&dst_buf->vb2_buf, 0);
+
 		if (q_data->fmtinfo->num_planes > 1)
 			dst_2_addr = vb2_dma_contig_plane_dma_addr(
-					&dst_buf->vb2_buf, 1);
+							 &dst_buf->vb2_buf, 1);
 		else
+		{
 			dst_2_addr = dst_1_addr + w * h;
+		}
 
 		/* ...set up decoder operation */
 		jpu_write(jpu, JCMOD_DSP_DEC | JCMOD_PCTR, JCMOD);
@@ -1502,11 +1705,14 @@ static void jpu_job_abort(void *priv)
 	struct jpu_ctx *ctx = priv;
 
 	if (!wait_event_timeout(ctx->jpu->irq_queue, !ctx->jpu->curr,
-				msecs_to_jiffies(JPU_JOB_TIMEOUT)))
+							msecs_to_jiffies(JPU_JOB_TIMEOUT)))
+	{
 		jpu_cleanup(ctx, true);
+	}
 }
 
-static struct v4l2_m2m_ops jpu_m2m_ops = {
+static struct v4l2_m2m_ops jpu_m2m_ops =
+{
 	.device_run	= jpu_device_run,
 	.job_ready	= jpu_job_ready,
 	.job_abort	= jpu_job_abort,
@@ -1528,22 +1734,31 @@ static irqreturn_t jpu_irq_handler(int irq, void *dev_id)
 
 	/* ...spurious interrupt */
 	if (!((JINTS_TRANSF_COMPL | JINTS_PROCESS_COMPL | JINTS_ERR) &
-	    int_status))
+		  int_status))
+	{
 		return IRQ_NONE;
+	}
 
 	/* ...clear interrupts */
 	jpu_write(jpu, ~(int_status & JINTS_MASK), JINTS);
+
 	if (int_status & (JINTS_ERR | JINTS_PROCESS_COMPL))
+	{
 		jpu_write(jpu, JCCMD_JEND, JCCMD);
+	}
 
 	spin_lock(&jpu->lock);
 
 	if ((int_status & JINTS_PROCESS_COMPL) &&
-	   !(int_status & JINTS_TRANSF_COMPL))
+		!(int_status & JINTS_TRANSF_COMPL))
+	{
 		goto handled;
+	}
 
 	curr_ctx = v4l2_m2m_get_curr_priv(jpu->m2m_dev);
-	if (!curr_ctx) {
+
+	if (!curr_ctx)
+	{
 		/* ...instance is not running */
 		dev_err(jpu->dev, "no active context for m2m\n");
 		goto handled;
@@ -1552,31 +1767,39 @@ static irqreturn_t jpu_irq_handler(int irq, void *dev_id)
 	src_buf = v4l2_m2m_src_buf_remove(curr_ctx->fh.m2m_ctx);
 	dst_buf = v4l2_m2m_dst_buf_remove(curr_ctx->fh.m2m_ctx);
 
-	if (int_status & JINTS_TRANSF_COMPL) {
-		if (curr_ctx->encoder) {
+	if (int_status & JINTS_TRANSF_COMPL)
+	{
+		if (curr_ctx->encoder)
+		{
 			unsigned long payload_size = jpu_read(jpu, JCDTCU) << 16
-						   | jpu_read(jpu, JCDTCM) << 8
-						   | jpu_read(jpu, JCDTCD);
+										 | jpu_read(jpu, JCDTCM) << 8
+										 | jpu_read(jpu, JCDTCD);
 			vb2_set_plane_payload(&dst_buf->vb2_buf, 0,
-				payload_size + JPU_JPEG_HDR_SIZE);
+								  payload_size + JPU_JPEG_HDR_SIZE);
 		}
 
 		dst_buf->field = src_buf->field;
 		dst_buf->vb2_buf.timestamp = src_buf->vb2_buf.timestamp;
+
 		if (src_buf->flags & V4L2_BUF_FLAG_TIMECODE)
+		{
 			dst_buf->timecode = src_buf->timecode;
+		}
+
 		dst_buf->flags = src_buf->flags &
-			(V4L2_BUF_FLAG_TIMECODE | V4L2_BUF_FLAG_KEYFRAME |
-			 V4L2_BUF_FLAG_PFRAME | V4L2_BUF_FLAG_BFRAME |
-			 V4L2_BUF_FLAG_TSTAMP_SRC_MASK);
+						 (V4L2_BUF_FLAG_TIMECODE | V4L2_BUF_FLAG_KEYFRAME |
+						  V4L2_BUF_FLAG_PFRAME | V4L2_BUF_FLAG_BFRAME |
+						  V4L2_BUF_FLAG_TSTAMP_SRC_MASK);
 
 		v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
 		v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_DONE);
-	} else if (int_status & JINTS_ERR) {
+	}
+	else if (int_status & JINTS_ERR)
+	{
 		unsigned char error = jpu_read(jpu, JCDERR) & JCDERR_MASK;
 
 		dev_dbg(jpu->dev, "processing error: %#X: %s\n", error,
-			error_to_text[error]);
+				error_to_text[error]);
 
 		v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_ERROR);
 		v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_ERROR);
@@ -1605,7 +1828,8 @@ handled:
  * Driver basic infrastructure
  * ============================================================================
  */
-static const struct of_device_id jpu_dt_ids[] = {
+static const struct of_device_id jpu_dt_ids[] =
+{
 	{ .compatible = "renesas,jpu-r8a7790" }, /* H2 */
 	{ .compatible = "renesas,jpu-r8a7791" }, /* M2-W */
 	{ .compatible = "renesas,jpu-r8a7792" }, /* V2H */
@@ -1623,8 +1847,11 @@ static int jpu_probe(struct platform_device *pdev)
 	unsigned int i;
 
 	jpu = devm_kzalloc(&pdev->dev, sizeof(*jpu), GFP_KERNEL);
+
 	if (!jpu)
+	{
 		return -ENOMEM;
+	}
 
 	init_waitqueue_head(&jpu->irq_queue);
 	mutex_init(&jpu->mutex);
@@ -1634,40 +1861,53 @@ static int jpu_probe(struct platform_device *pdev)
 	/* memory-mapped registers */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	jpu->regs = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(jpu->regs))
+	{
 		return PTR_ERR(jpu->regs);
+	}
 
 	/* interrupt service routine registration */
 	jpu->irq = ret = platform_get_irq(pdev, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "cannot find IRQ\n");
 		return ret;
 	}
 
 	ret = devm_request_irq(&pdev->dev, jpu->irq, jpu_irq_handler, 0,
-			       dev_name(&pdev->dev), jpu);
-	if (ret) {
+						   dev_name(&pdev->dev), jpu);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "cannot claim IRQ %d\n", jpu->irq);
 		return ret;
 	}
 
 	/* clocks */
 	jpu->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(jpu->clk)) {
+
+	if (IS_ERR(jpu->clk))
+	{
 		dev_err(&pdev->dev, "cannot get clock\n");
 		return PTR_ERR(jpu->clk);
 	}
 
 	/* v4l2 device */
 	ret = v4l2_device_register(&pdev->dev, &jpu->v4l2_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to register v4l2 device\n");
 		return ret;
 	}
 
 	/* mem2mem device */
 	jpu->m2m_dev = v4l2_m2m_init(&jpu_m2m_ops);
-	if (IS_ERR(jpu->m2m_dev)) {
+
+	if (IS_ERR(jpu->m2m_dev))
+	{
 		v4l2_err(&jpu->v4l2_dev, "Failed to init mem2mem device\n");
 		ret = PTR_ERR(jpu->m2m_dev);
 		goto device_register_rollback;
@@ -1675,7 +1915,9 @@ static int jpu_probe(struct platform_device *pdev)
 
 	/* fill in qantization and Huffman tables for encoder */
 	for (i = 0; i < JPU_MAX_QUALITY; i++)
+	{
 		jpu_generate_hdr(i, (unsigned char *)jpeg_hdrs[i]);
+	}
 
 	strlcpy(jpu->vfd_encoder.name, DRV_NAME, sizeof(jpu->vfd_encoder.name));
 	jpu->vfd_encoder.fops		= &jpu_fops;
@@ -1687,7 +1929,9 @@ static int jpu_probe(struct platform_device *pdev)
 	jpu->vfd_encoder.vfl_dir	= VFL_DIR_M2M;
 
 	ret = video_register_device(&jpu->vfd_encoder, VFL_TYPE_GRABBER, -1);
-	if (ret) {
+
+	if (ret)
+	{
 		v4l2_err(&jpu->v4l2_dev, "Failed to register video device\n");
 		goto m2m_init_rollback;
 	}
@@ -1704,7 +1948,9 @@ static int jpu_probe(struct platform_device *pdev)
 	jpu->vfd_decoder.vfl_dir	= VFL_DIR_M2M;
 
 	ret = video_register_device(&jpu->vfd_decoder, VFL_TYPE_GRABBER, -1);
-	if (ret) {
+
+	if (ret)
+	{
 		v4l2_err(&jpu->v4l2_dev, "Failed to register video device\n");
 		goto enc_vdev_register_rollback;
 	}
@@ -1713,9 +1959,9 @@ static int jpu_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, jpu);
 
 	v4l2_info(&jpu->v4l2_dev, "encoder device registered as /dev/video%d\n",
-		  jpu->vfd_encoder.num);
+			  jpu->vfd_encoder.num);
 	v4l2_info(&jpu->v4l2_dev, "decoder device registered as /dev/video%d\n",
-		  jpu->vfd_decoder.num);
+			  jpu->vfd_decoder.num);
 
 	return 0;
 
@@ -1749,7 +1995,9 @@ static int jpu_suspend(struct device *dev)
 	struct jpu *jpu = dev_get_drvdata(dev);
 
 	if (jpu->ref_count == 0)
+	{
 		return 0;
+	}
 
 	clk_disable_unprepare(jpu->clk);
 
@@ -1761,7 +2009,9 @@ static int jpu_resume(struct device *dev)
 	struct jpu *jpu = dev_get_drvdata(dev);
 
 	if (jpu->ref_count == 0)
+	{
 		return 0;
+	}
 
 	clk_prepare_enable(jpu->clk);
 
@@ -1769,11 +2019,13 @@ static int jpu_resume(struct device *dev)
 }
 #endif
 
-static const struct dev_pm_ops jpu_pm_ops = {
+static const struct dev_pm_ops jpu_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(jpu_suspend, jpu_resume)
 };
 
-static struct platform_driver jpu_driver = {
+static struct platform_driver jpu_driver =
+{
 	.probe = jpu_probe,
 	.remove = jpu_remove,
 	.driver = {

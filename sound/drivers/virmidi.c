@@ -75,7 +75,8 @@ MODULE_PARM_DESC(enable, "Enable this soundcard.");
 module_param_array(midi_devs, int, NULL, 0444);
 MODULE_PARM_DESC(midi_devs, "MIDI devices # (1-4)");
 
-struct snd_card_virmidi {
+struct snd_card_virmidi
+{
 	struct snd_card *card;
 	struct snd_rawmidi *midi[MAX_MIDI_DEVICES];
 };
@@ -91,25 +92,36 @@ static int snd_virmidi_probe(struct platform_device *devptr)
 	int dev = devptr->id;
 
 	err = snd_card_new(&devptr->dev, index[dev], id[dev], THIS_MODULE,
-			   sizeof(struct snd_card_virmidi), &card);
+					   sizeof(struct snd_card_virmidi), &card);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	vmidi = card->private_data;
 	vmidi->card = card;
 
-	if (midi_devs[dev] > MAX_MIDI_DEVICES) {
+	if (midi_devs[dev] > MAX_MIDI_DEVICES)
+	{
 		snd_printk(KERN_WARNING
-			   "too much midi devices for virmidi %d: force to use %d\n",
-			   dev, MAX_MIDI_DEVICES);
+				   "too much midi devices for virmidi %d: force to use %d\n",
+				   dev, MAX_MIDI_DEVICES);
 		midi_devs[dev] = MAX_MIDI_DEVICES;
 	}
-	for (idx = 0; idx < midi_devs[dev]; idx++) {
+
+	for (idx = 0; idx < midi_devs[dev]; idx++)
+	{
 		struct snd_rawmidi *rmidi;
 		struct snd_virmidi_dev *rdev;
 
 		err = snd_virmidi_new(card, idx, &rmidi);
+
 		if (err < 0)
+		{
 			goto __nodev;
+		}
+
 		rdev = rmidi->private_data;
 		vmidi->midi[idx] = rmidi;
 		strcpy(rmidi->name, "Virtual Raw MIDI");
@@ -121,10 +133,13 @@ static int snd_virmidi_probe(struct platform_device *devptr)
 	sprintf(card->longname, "Virtual MIDI Card %i", dev + 1);
 
 	err = snd_card_register(card);
-	if (!err) {
+
+	if (!err)
+	{
 		platform_set_drvdata(devptr, card);
 		return 0;
 	}
+
 __nodev:
 	snd_card_free(card);
 	return err;
@@ -138,7 +153,8 @@ static int snd_virmidi_remove(struct platform_device *devptr)
 
 #define SND_VIRMIDI_DRIVER	"snd_virmidi"
 
-static struct platform_driver snd_virmidi_driver = {
+static struct platform_driver snd_virmidi_driver =
+{
 	.probe		= snd_virmidi_probe,
 	.remove		= snd_virmidi_remove,
 	.driver		= {
@@ -151,7 +167,10 @@ static void snd_virmidi_unregister_all(void)
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(devices); ++i)
+	{
 		platform_device_unregister(devices[i]);
+	}
+
 	platform_driver_unregister(&snd_virmidi_driver);
 }
 
@@ -160,33 +179,50 @@ static int __init alsa_card_virmidi_init(void)
 	int i, cards, err;
 
 	err = platform_driver_register(&snd_virmidi_driver);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	cards = 0;
-	for (i = 0; i < SNDRV_CARDS; i++) {
+
+	for (i = 0; i < SNDRV_CARDS; i++)
+	{
 		struct platform_device *device;
 
 		if (!enable[i])
+		{
 			continue;
+		}
+
 		device = platform_device_register_simple(SND_VIRMIDI_DRIVER,
-							 i, NULL, 0);
+				 i, NULL, 0);
+
 		if (IS_ERR(device))
+		{
 			continue;
-		if (!platform_get_drvdata(device)) {
+		}
+
+		if (!platform_get_drvdata(device))
+		{
 			platform_device_unregister(device);
 			continue;
 		}
+
 		devices[i] = device;
 		cards++;
 	}
-	if (!cards) {
+
+	if (!cards)
+	{
 #ifdef MODULE
 		printk(KERN_ERR "Card-VirMIDI soundcard not found or device busy\n");
 #endif
 		snd_virmidi_unregister_all();
 		return -ENODEV;
 	}
+
 	return 0;
 }
 

@@ -23,9 +23,9 @@
 #define PFX	"bcm63xx_pcmcia: "
 
 #ifdef CONFIG_CARDBUS
-/* if cardbus is used, platform device needs reference to actual pci
- * device */
-static struct pci_dev *bcm63xx_cb_dev;
+	/* if cardbus is used, platform device needs reference to actual pci
+	* device */
+	static struct pci_dev *bcm63xx_cb_dev;
 #endif
 
 /*
@@ -37,7 +37,7 @@ static inline u32 pcmcia_readl(struct bcm63xx_pcmcia_socket *skt, u32 off)
 }
 
 static inline void pcmcia_writel(struct bcm63xx_pcmcia_socket *skt,
-				 u32 val, u32 off)
+								 u32 val, u32 off)
 {
 	bcm_writel(val, skt->base + off);
 }
@@ -73,7 +73,7 @@ static int bcm63xx_pcmcia_suspend(struct pcmcia_socket *sock)
  * `state' in order to regurgitate it to the PCMCIA core later.
  */
 static int bcm63xx_pcmcia_set_socket(struct pcmcia_socket *sock,
-				     socket_state_t *state)
+									 socket_state_t *state)
 {
 	struct bcm63xx_pcmcia_socket *skt;
 	unsigned long flags;
@@ -88,14 +88,21 @@ static int bcm63xx_pcmcia_set_socket(struct pcmcia_socket *sock,
 
 	/* apply socket reset */
 	val = pcmcia_readl(skt, PCMCIA_C1_REG);
+
 	if (state->flags & SS_RESET)
+	{
 		val |= PCMCIA_C1_RESET_MASK;
+	}
 	else
+	{
 		val &= ~PCMCIA_C1_RESET_MASK;
+	}
 
 	/* reverse reset logic for cardbus card */
 	if (skt->card_detected && (skt->card_type & CARD_CARDBUS))
+	{
 		val ^= PCMCIA_C1_RESET_MASK;
+	}
 
 	pcmcia_writel(skt, val, PCMCIA_C1_REG);
 
@@ -111,7 +118,8 @@ static int bcm63xx_pcmcia_set_socket(struct pcmcia_socket *sock,
  * identity cardtype from VS[12] input, CD[12] input while only VS2 is
  * floating, and CD[12] input while only VS1 is floating
  */
-enum {
+enum
+{
 	IN_VS1 = (1 << 0),
 	IN_VS2 = (1 << 1),
 	IN_CD1_VS2H = (1 << 2),
@@ -120,7 +128,8 @@ enum {
 	IN_CD2_VS1H = (1 << 5),
 };
 
-static const u8 vscd_to_cardtype[] = {
+static const u8 vscd_to_cardtype[] =
+{
 
 	/* VS1 float, VS2 float */
 	[IN_VS1 | IN_VS2] = (CARD_PCCARD | CARD_5V),
@@ -170,10 +179,13 @@ static unsigned int __get_socket_status(struct bcm63xx_pcmcia_socket *skt)
 	val = pcmcia_readl(skt, PCMCIA_C1_REG);
 
 	if (!(val & PCMCIA_C1_CD1_MASK) && !(val & PCMCIA_C1_CD2_MASK))
+	{
 		stat |= SS_DETECT;
+	}
 
 	/* if new insertion, detect cardtype */
-	if ((stat & SS_DETECT) && !skt->card_detected) {
+	if ((stat & SS_DETECT) && !skt->card_detected)
+	{
 		unsigned int stat = 0;
 
 		/* float VS1, float VS2 */
@@ -211,34 +223,54 @@ static unsigned int __get_socket_status(struct bcm63xx_pcmcia_socket *skt)
 
 		/* guess cardtype from all this */
 		skt->card_type = vscd_to_cardtype[stat];
+
 		if (!skt->card_type)
+		{
 			dev_err(&skt->socket.dev, "unsupported card type\n");
+		}
 
 		/* drive both VS pin to 0 again */
 		val &= ~(PCMCIA_C1_VS1OE_MASK | PCMCIA_C1_VS2OE_MASK);
 
 		/* enable correct logic */
 		val &= ~(PCMCIA_C1_EN_PCMCIA_MASK | PCMCIA_C1_EN_CARDBUS_MASK);
+
 		if (skt->card_type & CARD_PCCARD)
+		{
 			val |= PCMCIA_C1_EN_PCMCIA_MASK;
+		}
 		else
+		{
 			val |= PCMCIA_C1_EN_CARDBUS_MASK;
+		}
 
 		pcmcia_writel(skt, val, PCMCIA_C1_REG);
 	}
+
 	skt->card_detected = (stat & SS_DETECT) ? 1 : 0;
 
 	/* report card type/voltage */
 	if (skt->card_type & CARD_CARDBUS)
+	{
 		stat |= SS_CARDBUS;
+	}
+
 	if (skt->card_type & CARD_3V)
+	{
 		stat |= SS_3VCARD;
+	}
+
 	if (skt->card_type & CARD_XV)
+	{
 		stat |= SS_XVCARD;
+	}
+
 	stat |= SS_POWERON;
 
 	if (gpio_get_value(skt->pd->ready_gpio))
+	{
 		stat |= SS_READY;
+	}
 
 	return stat;
 }
@@ -247,7 +279,7 @@ static unsigned int __get_socket_status(struct bcm63xx_pcmcia_socket *skt)
  * core request to get current socket status
  */
 static int bcm63xx_pcmcia_get_status(struct pcmcia_socket *sock,
-				     unsigned int *status)
+									 unsigned int *status)
 {
 	struct bcm63xx_pcmcia_socket *skt;
 
@@ -281,14 +313,16 @@ static void bcm63xx_pcmcia_poll(unsigned long data)
 	spin_unlock_bh(&skt->lock);
 
 	if (events)
+	{
 		pcmcia_parse_events(&skt->socket, events);
+	}
 
 	mod_timer(&skt->timer,
-		  jiffies + msecs_to_jiffies(BCM63XX_PCMCIA_POLL_RATE));
+			  jiffies + msecs_to_jiffies(BCM63XX_PCMCIA_POLL_RATE));
 }
 
 static int bcm63xx_pcmcia_set_io_map(struct pcmcia_socket *sock,
-				     struct pccard_io_map *map)
+									 struct pccard_io_map *map)
 {
 	/* this doesn't seem to be called by pcmcia layer if static
 	 * mapping is used */
@@ -296,22 +330,28 @@ static int bcm63xx_pcmcia_set_io_map(struct pcmcia_socket *sock,
 }
 
 static int bcm63xx_pcmcia_set_mem_map(struct pcmcia_socket *sock,
-				      struct pccard_mem_map *map)
+									  struct pccard_mem_map *map)
 {
 	struct bcm63xx_pcmcia_socket *skt;
 	struct resource *res;
 
 	skt = sock->driver_data;
+
 	if (map->flags & MAP_ATTRIB)
+	{
 		res = skt->attr_res;
+	}
 	else
+	{
 		res = skt->common_res;
+	}
 
 	map->static_start = res->start + map->card_start;
 	return 0;
 }
 
-static struct pccard_operations bcm63xx_pcmcia_operations = {
+static struct pccard_operations bcm63xx_pcmcia_operations =
+{
 	.init			= bcm63xx_pcmcia_sock_init,
 	.suspend		= bcm63xx_pcmcia_suspend,
 	.get_status		= bcm63xx_pcmcia_get_status,
@@ -333,8 +373,12 @@ static int bcm63xx_drv_pcmcia_probe(struct platform_device *pdev)
 	int ret;
 
 	skt = kzalloc(sizeof(*skt), GFP_KERNEL);
+
 	if (!skt)
+	{
 		return -ENOMEM;
+	}
+
 	spin_lock_init(&skt->lock);
 	sock = &skt->socket;
 	sock->driver_data = skt;
@@ -344,7 +388,9 @@ static int bcm63xx_drv_pcmcia_probe(struct platform_device *pdev)
 	skt->attr_res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
 	irq_res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
 	skt->pd = pdev->dev.platform_data;
-	if (!skt->common_res || !skt->attr_res || !irq_res || !skt->pd) {
+
+	if (!skt->common_res || !skt->attr_res || !irq_res || !skt->pd)
+	{
 		ret = -EINVAL;
 		goto err;
 	}
@@ -352,14 +398,19 @@ static int bcm63xx_drv_pcmcia_probe(struct platform_device *pdev)
 	/* remap pcmcia registers */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	regmem_size = resource_size(res);
-	if (!request_mem_region(res->start, regmem_size, "bcm63xx_pcmcia")) {
+
+	if (!request_mem_region(res->start, regmem_size, "bcm63xx_pcmcia"))
+	{
 		ret = -EINVAL;
 		goto err;
 	}
+
 	skt->reg_res = res;
 
 	skt->base = ioremap(res->start, regmem_size);
-	if (!skt->base) {
+
+	if (!skt->base)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
@@ -368,7 +419,9 @@ static int bcm63xx_drv_pcmcia_probe(struct platform_device *pdev)
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 3);
 	iomem_size = resource_size(res);
 	skt->io_base = ioremap(res->start, iomem_size);
-	if (!skt->io_base) {
+
+	if (!skt->io_base)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
@@ -384,8 +437,12 @@ static int bcm63xx_drv_pcmcia_probe(struct platform_device *pdev)
 
 #ifdef CONFIG_CARDBUS
 	sock->cb_dev = bcm63xx_cb_dev;
+
 	if (bcm63xx_cb_dev)
+	{
 		sock->features |= SS_CAP_CARDBUS;
+	}
+
 #endif
 
 	/* assume common & attribute memory have the same size */
@@ -415,23 +472,36 @@ static int bcm63xx_drv_pcmcia_probe(struct platform_device *pdev)
 	pcmcia_writel(skt, val, PCMCIA_C2_REG);
 
 	ret = pcmcia_register_socket(sock);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	/* start polling socket */
 	mod_timer(&skt->timer,
-		  jiffies + msecs_to_jiffies(BCM63XX_PCMCIA_POLL_RATE));
+			  jiffies + msecs_to_jiffies(BCM63XX_PCMCIA_POLL_RATE));
 
 	platform_set_drvdata(pdev, skt);
 	return 0;
 
 err:
+
 	if (skt->io_base)
+	{
 		iounmap(skt->io_base);
+	}
+
 	if (skt->base)
+	{
 		iounmap(skt->base);
+	}
+
 	if (skt->reg_res)
+	{
 		release_mem_region(skt->reg_res->start, regmem_size);
+	}
+
 	kfree(skt);
 	return ret;
 }
@@ -451,7 +521,8 @@ static int bcm63xx_drv_pcmcia_remove(struct platform_device *pdev)
 	return 0;
 }
 
-struct platform_driver bcm63xx_pcmcia_driver = {
+struct platform_driver bcm63xx_pcmcia_driver =
+{
 	.probe	= bcm63xx_drv_pcmcia_probe,
 	.remove	= bcm63xx_drv_pcmcia_remove,
 	.driver	= {
@@ -462,7 +533,7 @@ struct platform_driver bcm63xx_pcmcia_driver = {
 
 #ifdef CONFIG_CARDBUS
 static int bcm63xx_cb_probe(struct pci_dev *dev,
-				      const struct pci_device_id *id)
+							const struct pci_device_id *id)
 {
 	/* keep pci device */
 	bcm63xx_cb_dev = dev;
@@ -475,7 +546,8 @@ static void bcm63xx_cb_exit(struct pci_dev *dev)
 	bcm63xx_cb_dev = NULL;
 }
 
-static const struct pci_device_id bcm63xx_cb_table[] = {
+static const struct pci_device_id bcm63xx_cb_table[] =
+{
 	{
 		.vendor		= PCI_VENDOR_ID_BROADCOM,
 		.device		= BCM6348_CPU_ID,
@@ -499,7 +571,8 @@ static const struct pci_device_id bcm63xx_cb_table[] = {
 
 MODULE_DEVICE_TABLE(pci, bcm63xx_cb_table);
 
-static struct pci_driver bcm63xx_cardbus_driver = {
+static struct pci_driver bcm63xx_cardbus_driver =
+{
 	.name		= "bcm63xx_cardbus",
 	.id_table	= bcm63xx_cb_table,
 	.probe		= bcm63xx_cb_probe,

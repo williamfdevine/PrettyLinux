@@ -28,7 +28,8 @@
 #define SUMO_MAX_HARDWARE_POWERLEVELS 5
 #define SUMO_PM_NUMBER_OF_TC 15
 
-struct sumo_pl {
+struct sumo_pl
+{
 	u32 sclk;
 	u32 vddc_index;
 	u32 ds_divider_index;
@@ -41,7 +42,8 @@ struct sumo_pl {
 #define SUMO_POWERSTATE_FLAGS_FORCE_NBPS1_STATE (1 << 0)
 #define SUMO_POWERSTATE_FLAGS_BOOST_STATE       (1 << 1)
 
-struct sumo_ps {
+struct sumo_ps
+{
 	struct sumo_pl levels[SUMO_MAX_HARDWARE_POWERLEVELS];
 	u32 num_levels;
 	/* flags */
@@ -51,33 +53,39 @@ struct sumo_ps {
 #define NUMBER_OF_M3ARB_PARAM_SETS 10
 #define SUMO_MAX_NUMBER_VOLTAGES    4
 
-struct sumo_disp_clock_voltage_mapping_table {
+struct sumo_disp_clock_voltage_mapping_table
+{
 	u32 num_max_voltage_levels;
 	u32 display_clock_frequency[SUMO_MAX_NUMBER_VOLTAGES];
 };
 
-struct sumo_vid_mapping_entry {
+struct sumo_vid_mapping_entry
+{
 	u16 vid_2bit;
 	u16 vid_7bit;
 };
 
-struct sumo_vid_mapping_table {
+struct sumo_vid_mapping_table
+{
 	u32 num_entries;
 	struct sumo_vid_mapping_entry entries[SUMO_MAX_NUMBER_VOLTAGES];
 };
 
-struct sumo_sclk_voltage_mapping_entry {
+struct sumo_sclk_voltage_mapping_entry
+{
 	u32 sclk_frequency;
 	u16 vid_2bit;
 	u16 rsv;
 };
 
-struct sumo_sclk_voltage_mapping_table {
+struct sumo_sclk_voltage_mapping_table
+{
 	u32 num_max_dpm_entries;
 	struct sumo_sclk_voltage_mapping_entry entries[SUMO_MAX_HARDWARE_POWERLEVELS];
 };
 
-struct sumo_sys_info {
+struct sumo_sys_info
+{
 	u32 bootup_sclk;
 	u32 min_sclk;
 	u32 bootup_uma_clk;
@@ -100,7 +108,8 @@ struct sumo_sys_info {
 	bool enable_boost;
 };
 
-struct sumo_power_info {
+struct sumo_power_info
+{
 	u32 asi;
 	u32 pasi;
 	u32 bsp;
@@ -194,25 +203,25 @@ void sumo_clear_vc(struct radeon_device *rdev);
 void sumo_program_sstp(struct radeon_device *rdev);
 void sumo_take_smu_control(struct radeon_device *rdev, bool enable);
 void sumo_construct_sclk_voltage_mapping_table(struct radeon_device *rdev,
-					       struct sumo_sclk_voltage_mapping_table *sclk_voltage_mapping_table,
-					       ATOM_AVAILABLE_SCLK_LIST *table);
+		struct sumo_sclk_voltage_mapping_table *sclk_voltage_mapping_table,
+		ATOM_AVAILABLE_SCLK_LIST *table);
 void sumo_construct_vid_mapping_table(struct radeon_device *rdev,
-				      struct sumo_vid_mapping_table *vid_mapping_table,
-				      ATOM_AVAILABLE_SCLK_LIST *table);
+									  struct sumo_vid_mapping_table *vid_mapping_table,
+									  ATOM_AVAILABLE_SCLK_LIST *table);
 u32 sumo_convert_vid2_to_vid7(struct radeon_device *rdev,
-			      struct sumo_vid_mapping_table *vid_mapping_table,
-			      u32 vid_2bit);
+							  struct sumo_vid_mapping_table *vid_mapping_table,
+							  u32 vid_2bit);
 u32 sumo_get_sleep_divider_from_id(u32 id);
 u32 sumo_get_sleep_divider_id_from_clock(struct radeon_device *rdev,
-					 u32 sclk,
-					 u32 min_sclk_in_sr);
+		u32 sclk,
+		u32 min_sclk_in_sr);
 
 /* sumo_smc.c */
 void sumo_initialize_m3_arb(struct radeon_device *rdev);
 void sumo_smu_pg_init(struct radeon_device *rdev);
 void sumo_set_tdp_limit(struct radeon_device *rdev, u32 index, u32 tdp_limit);
 void sumo_smu_notify_alt_vddnb_change(struct radeon_device *rdev,
-				      bool powersaving, bool force_nbps1);
+									  bool powersaving, bool force_nbps1);
 void sumo_boost_state_enable(struct radeon_device *rdev, bool enable);
 void sumo_enable_boost_timer(struct radeon_device *rdev);
 u32 sumo_get_running_fw_version(struct radeon_device *rdev);

@@ -13,7 +13,8 @@
 #define BNXT_FIRMWARE_BIN_SIGNATURE     0x1a4d4342	/* "BCM"+0x1a */
 #define BNXT_UCODE_TRAILER_SIGNATURE	0x726c7254	/* "Trlr" */
 
-enum SUPPORTED_FAMILY {
+enum SUPPORTED_FAMILY
+{
 	DEVICE_5702_3_4_FAMILY,		/* 0  - Denali, Vinson, K2 */
 	DEVICE_5705_FAMILY,		/* 1  - Bachelor */
 	DEVICE_SHASTA_FAMILY,		/* 2  - 5751 */
@@ -40,7 +41,8 @@ enum SUPPORTED_FAMILY {
 	MAX_DEVICE_FAMILY
 };
 
-enum SUPPORTED_CODE {
+enum SUPPORTED_CODE
+{
 	CODE_ASF1,		/* 0  - ASF VERSION 1.03 <deprecated> */
 	CODE_ASF2,		/* 1  - ASF VERSION 2.00 <deprecated> */
 	CODE_PASSTHRU,		/* 2  - PassThru         <deprecated> */
@@ -76,7 +78,8 @@ enum SUPPORTED_CODE {
 	MAX_CODE_TYPE,
 };
 
-enum SUPPORTED_MEDIA {
+enum SUPPORTED_MEDIA
+{
 	MEDIA_COPPER,		/* 0 */
 	MEDIA_FIBER,		/* 1 */
 	MEDIA_NONE,		/* 2 */
@@ -84,7 +87,8 @@ enum SUPPORTED_MEDIA {
 	MAX_MEDIA_TYPE,
 };
 
-struct bnxt_fw_header {
+struct bnxt_fw_header
+{
 	__le32 signature;	/* constains the constant value of
 				 * BNXT_FIRMWARE_BIN_SIGNATURE
 				 */
@@ -104,7 +108,8 @@ struct bnxt_fw_header {
 };
 
 /* Microcode and pre-boot software/firmware trailer: */
-struct bnxt_ucode_trailer {
+struct bnxt_ucode_trailer
+{
 	u8 rsa_sig[256];
 	__le16 flags;
 	u8 version_format;

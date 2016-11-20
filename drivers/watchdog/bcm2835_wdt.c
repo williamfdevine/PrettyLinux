@@ -46,7 +46,8 @@
 #define SECS_TO_WDOG_TICKS(x) ((x) << 16)
 #define WDOG_TICKS_TO_SECS(x) ((x) >> 16)
 
-struct bcm2835_wdt {
+struct bcm2835_wdt
+{
 	void __iomem		*base;
 	spinlock_t		lock;
 	struct notifier_block	restart_handler;
@@ -64,10 +65,10 @@ static int bcm2835_wdt_start(struct watchdog_device *wdog)
 	spin_lock_irqsave(&wdt->lock, flags);
 
 	writel_relaxed(PM_PASSWORD | (SECS_TO_WDOG_TICKS(wdog->timeout) &
-				PM_WDOG_TIME_SET), wdt->base + PM_WDOG);
+								  PM_WDOG_TIME_SET), wdt->base + PM_WDOG);
 	cur = readl_relaxed(wdt->base + PM_RSTC);
 	writel_relaxed(PM_PASSWORD | (cur & PM_RSTC_WRCFG_CLR) |
-		  PM_RSTC_WRCFG_FULL_RESET, wdt->base + PM_RSTC);
+				   PM_RSTC_WRCFG_FULL_RESET, wdt->base + PM_RSTC);
 
 	spin_unlock_irqrestore(&wdt->lock, flags);
 
@@ -90,20 +91,23 @@ static unsigned int bcm2835_wdt_get_timeleft(struct watchdog_device *wdog)
 	return WDOG_TICKS_TO_SECS(ret & PM_WDOG_TIME_SET);
 }
 
-static const struct watchdog_ops bcm2835_wdt_ops = {
+static const struct watchdog_ops bcm2835_wdt_ops =
+{
 	.owner =	THIS_MODULE,
 	.start =	bcm2835_wdt_start,
 	.stop =		bcm2835_wdt_stop,
 	.get_timeleft =	bcm2835_wdt_get_timeleft,
 };
 
-static const struct watchdog_info bcm2835_wdt_info = {
+static const struct watchdog_info bcm2835_wdt_info =
+{
 	.options =	WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE |
-			WDIOF_KEEPALIVEPING,
+	WDIOF_KEEPALIVEPING,
 	.identity =	"Broadcom BCM2835 Watchdog timer",
 };
 
-static struct watchdog_device bcm2835_wdt_wdd = {
+static struct watchdog_device bcm2835_wdt_wdd =
+{
 	.info =		&bcm2835_wdt_info,
 	.ops =		&bcm2835_wdt_ops,
 	.min_timeout =	1,
@@ -115,7 +119,7 @@ static int
 bcm2835_restart(struct notifier_block *this, unsigned long mode, void *cmd)
 {
 	struct bcm2835_wdt *wdt = container_of(this, struct bcm2835_wdt,
-					       restart_handler);
+										   restart_handler);
 	u32 val;
 
 	/* use a timeout of 10 ticks (~150us) */
@@ -165,14 +169,20 @@ static int bcm2835_wdt_probe(struct platform_device *pdev)
 	int err;
 
 	wdt = devm_kzalloc(dev, sizeof(struct bcm2835_wdt), GFP_KERNEL);
+
 	if (!wdt)
+	{
 		return -ENOMEM;
+	}
+
 	platform_set_drvdata(pdev, wdt);
 
 	spin_lock_init(&wdt->lock);
 
 	wdt->base = of_iomap(np, 0);
-	if (!wdt->base) {
+
+	if (!wdt->base)
+	{
 		dev_err(dev, "Failed to remap watchdog regs");
 		return -ENODEV;
 	}
@@ -182,7 +192,9 @@ static int bcm2835_wdt_probe(struct platform_device *pdev)
 	watchdog_set_nowayout(&bcm2835_wdt_wdd, nowayout);
 	bcm2835_wdt_wdd.parent = &pdev->dev;
 	err = watchdog_register_device(&bcm2835_wdt_wdd);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "Failed to register watchdog device");
 		iounmap(wdt->base);
 		return err;
@@ -191,8 +203,11 @@ static int bcm2835_wdt_probe(struct platform_device *pdev)
 	wdt->restart_handler.notifier_call = bcm2835_restart;
 	wdt->restart_handler.priority = 128;
 	register_restart_handler(&wdt->restart_handler);
+
 	if (pm_power_off == NULL)
+	{
 		pm_power_off = bcm2835_power_off;
+	}
 
 	dev_info(dev, "Broadcom BCM2835 watchdog timer");
 	return 0;
@@ -203,8 +218,12 @@ static int bcm2835_wdt_remove(struct platform_device *pdev)
 	struct bcm2835_wdt *wdt = platform_get_drvdata(pdev);
 
 	unregister_restart_handler(&wdt->restart_handler);
+
 	if (pm_power_off == bcm2835_power_off)
+	{
 		pm_power_off = NULL;
+	}
+
 	watchdog_unregister_device(&bcm2835_wdt_wdd);
 	iounmap(wdt->base);
 
@@ -216,13 +235,15 @@ static void bcm2835_wdt_shutdown(struct platform_device *pdev)
 	bcm2835_wdt_stop(&bcm2835_wdt_wdd);
 }
 
-static const struct of_device_id bcm2835_wdt_of_match[] = {
+static const struct of_device_id bcm2835_wdt_of_match[] =
+{
 	{ .compatible = "brcm,bcm2835-pm-wdt", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, bcm2835_wdt_of_match);
 
-static struct platform_driver bcm2835_wdt_driver = {
+static struct platform_driver bcm2835_wdt_driver =
+{
 	.probe		= bcm2835_wdt_probe,
 	.remove		= bcm2835_wdt_remove,
 	.shutdown	= bcm2835_wdt_shutdown,
@@ -238,7 +259,7 @@ MODULE_PARM_DESC(heartbeat, "Initial watchdog heartbeat in seconds");
 
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default="
-				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 MODULE_AUTHOR("Lubomir Rintel <lkundrak@v3.sk>");
 MODULE_DESCRIPTION("Driver for Broadcom BCM2835 watchdog timer");

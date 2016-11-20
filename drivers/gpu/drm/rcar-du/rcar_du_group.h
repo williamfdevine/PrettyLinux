@@ -34,7 +34,8 @@ struct rcar_du_device;
  * @planes: planes handled by the group
  * @need_restart: the group needs to be restarted due to a configuration change
  */
-struct rcar_du_group {
+struct rcar_du_group
+{
 	struct rcar_du_device *dev;
 	unsigned int mmio_offset;
 	unsigned int index;

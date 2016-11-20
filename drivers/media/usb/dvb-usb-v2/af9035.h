@@ -34,18 +34,21 @@
 #include "si2168.h"
 #include "si2157.h"
 
-struct reg_val {
+struct reg_val
+{
 	u32 reg;
 	u8  val;
 };
 
-struct reg_val_mask {
+struct reg_val_mask
+{
 	u32 reg;
 	u8  val;
 	u8  mask;
 };
 
-struct usb_req {
+struct usb_req
+{
 	u8  cmd;
 	u8  mbox;
 	u8  wlen;
@@ -54,25 +57,27 @@ struct usb_req {
 	u8  *rbuf;
 };
 
-struct state {
+struct state
+{
 #define BUF_LEN 64
 	u8 buf[BUF_LEN];
 	u8 seq; /* packet sequence number */
 	u8 prechip_version;
 	u8 chip_version;
 	u16 chip_type;
-	u8 dual_mode:1;
-	u8 no_read:1;
+	u8 dual_mode: 1;
+	u8 no_read: 1;
 	u16 eeprom_addr;
 	u8 af9033_i2c_addr[2];
 	struct af9033_config af9033_config[2];
 	struct af9033_ops ops;
-	#define AF9035_I2C_CLIENT_MAX 4
+#define AF9035_I2C_CLIENT_MAX 4
 	struct i2c_client *i2c_client[AF9035_I2C_CLIENT_MAX];
 	struct i2c_adapter *i2c_adapter_demod;
 };
 
-static const u32 clock_lut_af9035[] = {
+static const u32 clock_lut_af9035[] =
+{
 	20480000, /*      FPGA */
 	16384000, /* 16.38 MHz */
 	20480000, /* 20.48 MHz */
@@ -87,7 +92,8 @@ static const u32 clock_lut_af9035[] = {
 	12000000, /* 12.00 MHz */
 };
 
-static const u32 clock_lut_it9135[] = {
+static const u32 clock_lut_it9135[] =
+{
 	12000000, /* 12.00 MHz */
 	20480000, /* 20.48 MHz */
 	36000000, /* 36.00 MHz */

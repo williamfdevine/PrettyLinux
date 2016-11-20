@@ -21,7 +21,8 @@
 
 struct tsens_device;
 
-struct tsens_sensor {
+struct tsens_sensor
+{
 	struct tsens_device		*tmdev;
 	struct thermal_zone_device	*tzd;
 	int				offset;
@@ -42,7 +43,8 @@ struct tsens_sensor {
  * @resume: Function to resume the tsens device
  * @get_trend: Function to get the thermal/temp trend
  */
-struct tsens_ops {
+struct tsens_ops
+{
 	/* mandatory callbacks */
 	int (*init)(struct tsens_device *);
 	int (*calibrate)(struct tsens_device *);
@@ -61,19 +63,22 @@ struct tsens_ops {
  * @ops: operations the tsens instance supports
  * @hw_ids: Subset of sensors ids supported by platform, if not the first n
  */
-struct tsens_data {
+struct tsens_data
+{
 	const u32		num_sensors;
 	const struct tsens_ops	*ops;
 	unsigned int		*hw_ids;
 };
 
 /* Registers to be saved/restored across a context loss */
-struct tsens_context {
+struct tsens_context
+{
 	int	threshold;
 	int	control;
 };
 
-struct tsens_device {
+struct tsens_device
+{
 	struct device			*dev;
 	u32				num_sensors;
 	struct regmap			*map;

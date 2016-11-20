@@ -32,10 +32,10 @@
 #define CX18_HW_Z8F0811_IR_TX_HAUP	(1 << 7)
 #define CX18_HW_Z8F0811_IR_RX_HAUP	(1 << 8)
 #define CX18_HW_Z8F0811_IR_HAUP	(CX18_HW_Z8F0811_IR_RX_HAUP | \
-				 CX18_HW_Z8F0811_IR_TX_HAUP)
+								 CX18_HW_Z8F0811_IR_TX_HAUP)
 
 #define CX18_HW_IR_ANY (CX18_HW_Z8F0811_IR_RX_HAUP | \
-			CX18_HW_Z8F0811_IR_TX_HAUP)
+						CX18_HW_Z8F0811_IR_TX_HAUP)
 
 /* video inputs */
 #define	CX18_CARD_INPUT_VID_TUNER	1
@@ -56,24 +56,27 @@
 
 /* V4L2 capability aliases */
 #define CX18_CAP_ENCODER (V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_TUNER | \
-			  V4L2_CAP_AUDIO | V4L2_CAP_READWRITE | \
-			  V4L2_CAP_STREAMING | V4L2_CAP_VBI_CAPTURE | \
-			  V4L2_CAP_SLICED_VBI_CAPTURE)
+						  V4L2_CAP_AUDIO | V4L2_CAP_READWRITE | \
+						  V4L2_CAP_STREAMING | V4L2_CAP_VBI_CAPTURE | \
+						  V4L2_CAP_SLICED_VBI_CAPTURE)
 
-struct cx18_card_video_input {
+struct cx18_card_video_input
+{
 	u8  video_type; 	/* video input type */
 	u8  audio_index;	/* index in cx18_card_audio_input array */
 	u32 video_input;	/* hardware video input */
 };
 
-struct cx18_card_audio_input {
+struct cx18_card_audio_input
+{
 	u8  audio_type;		/* audio input type */
 	u32 audio_input;	/* hardware audio input */
 	u16 muxer_input;	/* hardware muxer input for boards with a
 				   multiplexer chip */
 };
 
-struct cx18_card_pci_info {
+struct cx18_card_pci_info
+{
 	u16 device;
 	u16 subsystem_vendor;
 	u16 subsystem_device;
@@ -83,12 +86,14 @@ struct cx18_card_pci_info {
 
 /* The mask is the set of bits used by the operation */
 
-struct cx18_gpio_init { /* set initial GPIO DIR and OUT values */
+struct cx18_gpio_init   /* set initial GPIO DIR and OUT values */
+{
 	u32 direction; 	/* DIR setting. Leave to 0 if no init is needed */
 	u32 initial_value;
 };
 
-struct cx18_gpio_i2c_slave_reset {
+struct cx18_gpio_i2c_slave_reset
+{
 	u32 active_lo_mask; /* GPIO outputs that reset i2c chips when low */
 	u32 active_hi_mask; /* GPIO outputs that reset i2c chips when high */
 	int msecs_asserted; /* time period reset must remain asserted */
@@ -96,25 +101,29 @@ struct cx18_gpio_i2c_slave_reset {
 	u32 ir_reset_mask;  /* GPIO to reset the Zilog Z8F0811 IR contoller */
 };
 
-struct cx18_gpio_audio_input { 	/* select tuner/line in input */
+struct cx18_gpio_audio_input   	/* select tuner/line in input */
+{
 	u32 mask; 		/* leave to 0 if not supported */
 	u32 tuner;
 	u32 linein;
 	u32 radio;
 };
 
-struct cx18_card_tuner {
+struct cx18_card_tuner
+{
 	v4l2_std_id std; 	/* standard for which the tuner is suitable */
 	int 	    tuner; 	/* tuner ID (from tuner.h) */
 };
 
-struct cx18_card_tuner_i2c {
+struct cx18_card_tuner_i2c
+{
 	unsigned short radio[2];/* radio tuner i2c address to probe */
 	unsigned short demod[3];/* demodulator i2c address to probe */
 	unsigned short tv[4];	/* tv tuner i2c addresses to probe */
 };
 
-struct cx18_ddr {		/* DDR config data */
+struct cx18_ddr  		/* DDR config data */
+{
 	u32 chip_config;
 	u32 refresh;
 	u32 timing1;
@@ -124,7 +133,8 @@ struct cx18_ddr {		/* DDR config data */
 };
 
 /* for card information/parameters */
-struct cx18_card {
+struct cx18_card
+{
 	int type;
 	char *name;
 	char *comment;

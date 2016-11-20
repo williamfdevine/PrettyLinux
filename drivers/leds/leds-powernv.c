@@ -22,18 +22,21 @@
 #include <asm/opal.h>
 
 /* Map LED type to description. */
-struct led_type_map {
+struct led_type_map
+{
 	const int	type;
 	const char	*desc;
 };
-static const struct led_type_map led_type_map[] = {
+static const struct led_type_map led_type_map[] =
+{
 	{OPAL_SLOT_LED_TYPE_ID,		"identify"},
 	{OPAL_SLOT_LED_TYPE_FAULT,	"fault"},
 	{OPAL_SLOT_LED_TYPE_ATTN,	"attention"},
-	{-1,				NULL},
+	{ -1,				NULL},
 };
 
-struct powernv_led_common {
+struct powernv_led_common
+{
 	/*
 	 * By default unload path resets all the LEDs. But on PowerNV
 	 * platform we want to retain LED state across reboot as these
@@ -51,7 +54,8 @@ struct powernv_led_common {
 };
 
 /* PowerNV LED data */
-struct powernv_led_data {
+struct powernv_led_data
+{
 	struct led_classdev	cdev;
 	char			*loc_code;	/* LED location code */
 	int			led_type;	/* OPAL_SLOT_LED_TYPE_* */
@@ -67,7 +71,9 @@ static int powernv_get_led_type(const char *led_type_desc)
 
 	for (i = 0; i < ARRAY_SIZE(led_type_map); i++)
 		if (!strcmp(led_type_map[i].desc, led_type_desc))
+		{
 			return led_type_map[i].type;
+		}
 
 	return -1;
 }
@@ -78,7 +84,7 @@ static int powernv_get_led_type(const char *led_type_desc)
  * scheduled. This function can sleep at opal_async_wait_response call.
  */
 static int powernv_led_set(struct powernv_led_data *powernv_led,
-			    enum led_brightness value)
+						   enum led_brightness value)
 {
 	int rc, token;
 	u64 led_mask, led_value = 0;
@@ -90,38 +96,49 @@ static int powernv_led_set(struct powernv_led_data *powernv_led,
 	/* Prepare for the OPAL call */
 	max_type = powernv_led_common->max_led_type;
 	led_mask = OPAL_SLOT_LED_STATE_ON << powernv_led->led_type;
+
 	if (value)
+	{
 		led_value = led_mask;
+	}
 
 	/* OPAL async call */
 	token = opal_async_get_token_interruptible();
-	if (token < 0) {
+
+	if (token < 0)
+	{
 		if (token != -ERESTARTSYS)
 			dev_err(dev, "%s: Couldn't get OPAL async token\n",
-				__func__);
+					__func__);
+
 		return token;
 	}
 
 	rc = opal_leds_set_ind(token, powernv_led->loc_code,
-			       led_mask, led_value, &max_type);
-	if (rc != OPAL_ASYNC_COMPLETION) {
+						   led_mask, led_value, &max_type);
+
+	if (rc != OPAL_ASYNC_COMPLETION)
+	{
 		dev_err(dev, "%s: OPAL set LED call failed for %s [rc=%d]\n",
-			__func__, powernv_led->loc_code, rc);
+				__func__, powernv_led->loc_code, rc);
 		goto out_token;
 	}
 
 	rc = opal_async_wait_response(token, &msg);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(dev,
-			"%s: Failed to wait for the async response [rc=%d]\n",
-			__func__, rc);
+				"%s: Failed to wait for the async response [rc=%d]\n",
+				__func__, rc);
 		goto out_token;
 	}
 
 	rc = opal_get_async_rc(msg);
+
 	if (rc != OPAL_SUCCESS)
 		dev_err(dev, "%s : OAPL async call returned failed [rc=%d]\n",
-			__func__, rc);
+				__func__, rc);
 
 out_token:
 	opal_async_release_token(token);
@@ -146,10 +163,12 @@ static enum led_brightness powernv_led_get(struct powernv_led_data *powernv_led)
 	max_type = powernv_led_common->max_led_type;
 
 	rc = opal_leds_get_ind(powernv_led->loc_code,
-			       &mask, &value, &max_type);
-	if (rc != OPAL_SUCCESS && rc != OPAL_PARTIAL) {
+						   &mask, &value, &max_type);
+
+	if (rc != OPAL_SUCCESS && rc != OPAL_PARTIAL)
+	{
 		dev_err(dev, "%s: OPAL get led call failed [rc=%d]\n",
-			__func__, rc);
+				__func__, rc);
 		return LED_OFF;
 	}
 
@@ -157,15 +176,18 @@ static enum led_brightness powernv_led_get(struct powernv_led_data *powernv_led)
 	led_value = be64_to_cpu(value);
 
 	/* LED status available */
-	if (!((led_mask >> powernv_led->led_type) & OPAL_SLOT_LED_STATE_ON)) {
+	if (!((led_mask >> powernv_led->led_type) & OPAL_SLOT_LED_STATE_ON))
+	{
 		dev_err(dev, "%s: LED status not available for %s\n",
-			__func__, powernv_led->cdev.name);
+				__func__, powernv_led->cdev.name);
 		return LED_OFF;
 	}
 
 	/* LED status value */
 	if ((led_value >> powernv_led->led_type) & OPAL_SLOT_LED_STATE_ON)
+	{
 		return LED_FULL;
+	}
 
 	return LED_OFF;
 }
@@ -175,7 +197,7 @@ static enum led_brightness powernv_led_get(struct powernv_led_data *powernv_led)
  * to update LED state.
  */
 static int powernv_brightness_set(struct led_classdev *led_cdev,
-				   enum led_brightness value)
+								  enum led_brightness value)
 {
 	struct powernv_led_data *powernv_led =
 		container_of(led_cdev, struct powernv_led_data, cdev);
@@ -184,7 +206,9 @@ static int powernv_brightness_set(struct led_classdev *led_cdev,
 
 	/* Do not modify LED in unload path */
 	if (powernv_led_common->led_disabled)
+	{
 		return 0;
+	}
 
 	mutex_lock(&powernv_led_common->lock);
 	rc = powernv_led_set(powernv_led, value);
@@ -207,27 +231,31 @@ static enum led_brightness powernv_brightness_get(struct led_classdev *led_cdev)
  * a given child LED device node.
  */
 static int powernv_led_create(struct device *dev,
-			      struct powernv_led_data *powernv_led,
-			      const char *led_type_desc)
+							  struct powernv_led_data *powernv_led,
+							  const char *led_type_desc)
 {
 	int rc;
 
 	/* Make sure LED type is supported */
 	powernv_led->led_type = powernv_get_led_type(led_type_desc);
-	if (powernv_led->led_type == -1) {
+
+	if (powernv_led->led_type == -1)
+	{
 		dev_warn(dev, "%s: No support for led type : %s\n",
-			 __func__, led_type_desc);
+				 __func__, led_type_desc);
 		return -EINVAL;
 	}
 
 	/* Create the name for classdev */
 	powernv_led->cdev.name = devm_kasprintf(dev, GFP_KERNEL, "%s:%s",
-						powernv_led->loc_code,
-						led_type_desc);
-	if (!powernv_led->cdev.name) {
+											powernv_led->loc_code,
+											led_type_desc);
+
+	if (!powernv_led->cdev.name)
+	{
 		dev_err(dev,
-			"%s: Memory allocation failed for classdev name\n",
-			__func__);
+				"%s: Memory allocation failed for classdev name\n",
+				__func__);
 		return -ENOMEM;
 	}
 
@@ -238,9 +266,11 @@ static int powernv_led_create(struct device *dev,
 
 	/* Register the classdev */
 	rc = devm_led_classdev_register(dev, &powernv_led->cdev);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(dev, "%s: Classdev registration failed for %s\n",
-			__func__, powernv_led->cdev.name);
+				__func__, powernv_led->cdev.name);
 	}
 
 	return rc;
@@ -248,8 +278,8 @@ static int powernv_led_create(struct device *dev,
 
 /* Go through LED device tree node and register LED classdev structure */
 static int powernv_led_classdev(struct platform_device *pdev,
-				struct device_node *led_node,
-				struct powernv_led_common *powernv_led_common)
+								struct device_node *led_node,
+								struct powernv_led_common *powernv_led_common)
 {
 	const char *cur = NULL;
 	int rc = -1;
@@ -258,13 +288,17 @@ static int powernv_led_classdev(struct platform_device *pdev,
 	struct powernv_led_data *powernv_led;
 	struct device *dev = &pdev->dev;
 
-	for_each_child_of_node(led_node, np) {
+	for_each_child_of_node(led_node, np)
+	{
 		p = of_find_property(np, "led-types", NULL);
 
-		while ((cur = of_prop_next_string(p, cur)) != NULL) {
+		while ((cur = of_prop_next_string(p, cur)) != NULL)
+		{
 			powernv_led = devm_kzalloc(dev, sizeof(*powernv_led),
-						   GFP_KERNEL);
-			if (!powernv_led) {
+									   GFP_KERNEL);
+
+			if (!powernv_led)
+			{
 				of_node_put(np);
 				return -ENOMEM;
 			}
@@ -273,7 +307,9 @@ static int powernv_led_classdev(struct platform_device *pdev,
 			powernv_led->loc_code = (char *)np->name;
 
 			rc = powernv_led_create(dev, powernv_led, cur);
-			if (rc) {
+
+			if (rc)
+			{
 				of_node_put(np);
 				return rc;
 			}
@@ -291,16 +327,21 @@ static int powernv_led_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 
 	led_node = of_find_node_by_path("/ibm,opal/leds");
-	if (!led_node) {
+
+	if (!led_node)
+	{
 		dev_err(dev, "%s: LED parent device node not found\n",
-			__func__);
+				__func__);
 		return -EINVAL;
 	}
 
 	powernv_led_common = devm_kzalloc(dev, sizeof(*powernv_led_common),
-					  GFP_KERNEL);
+									  GFP_KERNEL);
+
 	if (!powernv_led_common)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&powernv_led_common->lock);
 	powernv_led_common->max_led_type = cpu_to_be64(OPAL_SLOT_LED_TYPE_MAX);
@@ -327,7 +368,8 @@ static int powernv_led_remove(struct platform_device *pdev)
 }
 
 /* Platform driver property match */
-static const struct of_device_id powernv_led_match[] = {
+static const struct of_device_id powernv_led_match[] =
+{
 	{
 		.compatible	= "ibm,opal-v3-led",
 	},
@@ -335,7 +377,8 @@ static const struct of_device_id powernv_led_match[] = {
 };
 MODULE_DEVICE_TABLE(of, powernv_led_match);
 
-static struct platform_driver powernv_led_driver = {
+static struct platform_driver powernv_led_driver =
+{
 	.probe	= powernv_led_probe,
 	.remove = powernv_led_remove,
 	.driver = {

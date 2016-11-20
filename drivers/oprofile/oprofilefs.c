@@ -27,16 +27,19 @@ static struct inode *oprofilefs_get_inode(struct super_block *sb, int mode)
 {
 	struct inode *inode = new_inode(sb);
 
-	if (inode) {
+	if (inode)
+	{
 		inode->i_ino = get_next_ino();
 		inode->i_mode = mode;
 		inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
 	}
+
 	return inode;
 }
 
 
-static const struct super_operations s_ops = {
+static const struct super_operations s_ops =
+{
 	.statfs		= simple_statfs,
 	.drop_inode 	= generic_delete_inode,
 };
@@ -54,8 +57,12 @@ ssize_t oprofilefs_ulong_to_user(unsigned long val, char __user *buf, size_t cou
 {
 	char tmpbuf[TMPBUFSIZE];
 	size_t maxlen = snprintf(tmpbuf, TMPBUFSIZE, "%lu\n", val);
+
 	if (maxlen > TMPBUFSIZE)
+	{
 		maxlen = TMPBUFSIZE;
+	}
+
 	return simple_read_from_buffer(buf, count, offset, tmpbuf, maxlen);
 }
 
@@ -73,15 +80,21 @@ int oprofilefs_ulong_from_user(unsigned long *val, char const __user *buf, size_
 	unsigned long flags;
 
 	if (!count)
+	{
 		return 0;
+	}
 
 	if (count > TMPBUFSIZE - 1)
+	{
 		return -EINVAL;
+	}
 
 	memset(tmpbuf, 0x0, TMPBUFSIZE);
 
 	if (copy_from_user(tmpbuf, buf, count))
+	{
 		return -EFAULT;
+	}
 
 	raw_spin_lock_irqsave(&oprofilefs_lock, flags);
 	*val = simple_strtoul(tmpbuf, NULL, 0);
@@ -103,21 +116,30 @@ static ssize_t ulong_write_file(struct file *file, char const __user *buf, size_
 	int retval;
 
 	if (*offset)
+	{
 		return -EINVAL;
+	}
 
 	retval = oprofilefs_ulong_from_user(&value, buf, count);
+
 	if (retval <= 0)
+	{
 		return retval;
+	}
 
 	retval = oprofile_set_ulong(file->private_data, value);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	return count;
 }
 
 
-static const struct file_operations ulong_fops = {
+static const struct file_operations ulong_fops =
+{
 	.read		= ulong_read_file,
 	.write		= ulong_write_file,
 	.open		= simple_open,
@@ -125,7 +147,8 @@ static const struct file_operations ulong_fops = {
 };
 
 
-static const struct file_operations ulong_ro_fops = {
+static const struct file_operations ulong_ro_fops =
+{
 	.read		= ulong_read_file,
 	.open		= simple_open,
 	.llseek		= default_llseek,
@@ -133,23 +156,29 @@ static const struct file_operations ulong_ro_fops = {
 
 
 static int __oprofilefs_create_file(struct dentry *root, char const *name,
-	const struct file_operations *fops, int perm, void *priv)
+									const struct file_operations *fops, int perm, void *priv)
 {
 	struct dentry *dentry;
 	struct inode *inode;
 
 	inode_lock(d_inode(root));
 	dentry = d_alloc_name(root, name);
-	if (!dentry) {
+
+	if (!dentry)
+	{
 		inode_unlock(d_inode(root));
 		return -ENOMEM;
 	}
+
 	inode = oprofilefs_get_inode(root->d_sb, S_IFREG | perm);
-	if (!inode) {
+
+	if (!inode)
+	{
 		dput(dentry);
 		inode_unlock(d_inode(root));
 		return -ENOMEM;
 	}
+
 	inode->i_fop = fops;
 	inode->i_private = priv;
 	d_add(dentry, inode);
@@ -159,18 +188,18 @@ static int __oprofilefs_create_file(struct dentry *root, char const *name,
 
 
 int oprofilefs_create_ulong(struct dentry *root,
-	char const *name, unsigned long *val)
+							char const *name, unsigned long *val)
 {
 	return __oprofilefs_create_file(root, name,
-					&ulong_fops, 0644, val);
+									&ulong_fops, 0644, val);
 }
 
 
 int oprofilefs_create_ro_ulong(struct dentry *root,
-	char const *name, unsigned long *val)
+							   char const *name, unsigned long *val)
 {
 	return __oprofilefs_create_file(root, name,
-					&ulong_ro_fops, 0444, val);
+									&ulong_ro_fops, 0444, val);
 }
 
 
@@ -181,7 +210,8 @@ static ssize_t atomic_read_file(struct file *file, char __user *buf, size_t coun
 }
 
 
-static const struct file_operations atomic_ro_fops = {
+static const struct file_operations atomic_ro_fops =
+{
 	.read		= atomic_read_file,
 	.open		= simple_open,
 	.llseek		= default_llseek,
@@ -189,22 +219,22 @@ static const struct file_operations atomic_ro_fops = {
 
 
 int oprofilefs_create_ro_atomic(struct dentry *root,
-	char const *name, atomic_t *val)
+								char const *name, atomic_t *val)
 {
 	return __oprofilefs_create_file(root, name,
-					&atomic_ro_fops, 0444, val);
+									&atomic_ro_fops, 0444, val);
 }
 
 
 int oprofilefs_create_file(struct dentry *root,
-	char const *name, const struct file_operations *fops)
+						   char const *name, const struct file_operations *fops)
 {
 	return __oprofilefs_create_file(root, name, fops, 0644, NULL);
 }
 
 
 int oprofilefs_create_file_perm(struct dentry *root,
-	char const *name, const struct file_operations *fops, int perm)
+								char const *name, const struct file_operations *fops, int perm)
 {
 	return __oprofilefs_create_file(root, name, fops, perm, NULL);
 }
@@ -217,16 +247,22 @@ struct dentry *oprofilefs_mkdir(struct dentry *parent, char const *name)
 
 	inode_lock(d_inode(parent));
 	dentry = d_alloc_name(parent, name);
-	if (!dentry) {
+
+	if (!dentry)
+	{
 		inode_unlock(d_inode(parent));
 		return NULL;
 	}
+
 	inode = oprofilefs_get_inode(parent->d_sb, S_IFDIR | 0755);
-	if (!inode) {
+
+	if (!inode)
+	{
 		dput(dentry);
 		inode_unlock(d_inode(parent));
 		return NULL;
 	}
+
 	inode->i_op = &simple_dir_inode_operations;
 	inode->i_fop = &simple_dir_operations;
 	d_add(dentry, inode);
@@ -246,13 +282,20 @@ static int oprofilefs_fill_super(struct super_block *sb, void *data, int silent)
 	sb->s_time_gran = 1;
 
 	root_inode = oprofilefs_get_inode(sb, S_IFDIR | 0755);
+
 	if (!root_inode)
+	{
 		return -ENOMEM;
+	}
+
 	root_inode->i_op = &simple_dir_inode_operations;
 	root_inode->i_fop = &simple_dir_operations;
 	sb->s_root = d_make_root(root_inode);
+
 	if (!sb->s_root)
+	{
 		return -ENOMEM;
+	}
 
 	oprofile_create_files(sb->s_root);
 
@@ -262,13 +305,14 @@ static int oprofilefs_fill_super(struct super_block *sb, void *data, int silent)
 
 
 static struct dentry *oprofilefs_mount(struct file_system_type *fs_type,
-	int flags, const char *dev_name, void *data)
+									   int flags, const char *dev_name, void *data)
 {
 	return mount_single(fs_type, flags, data, oprofilefs_fill_super);
 }
 
 
-static struct file_system_type oprofilefs_type = {
+static struct file_system_type oprofilefs_type =
+{
 	.owner		= THIS_MODULE,
 	.name		= "oprofilefs",
 	.mount		= oprofilefs_mount,

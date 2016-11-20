@@ -18,9 +18,10 @@
 
 struct device;
 
-struct svm_dev_ops {
+struct svm_dev_ops
+{
 	void (*fault_cb)(struct device *dev, int pasid, u64 address,
-			 u32 private, int rwxp, int response);
+					 u32 private, int rwxp, int response);
 };
 
 /* Values for rxwp in fault_cb callback */
@@ -83,7 +84,7 @@ struct svm_dev_ops {
  * being re-used. A reference count is kept.
  */
 extern int intel_svm_bind_mm(struct device *dev, int *pasid, int flags,
-			     struct svm_dev_ops *ops);
+							 struct svm_dev_ops *ops);
 
 /**
  * intel_svm_unbind_mm() - Unbind a specified PASID
@@ -105,7 +106,7 @@ extern int intel_svm_unbind_mm(struct device *dev, int pasid);
 #else /* CONFIG_INTEL_IOMMU_SVM */
 
 static inline int intel_svm_bind_mm(struct device *dev, int *pasid,
-				    int flags, struct svm_dev_ops *ops)
+									int flags, struct svm_dev_ops *ops)
 {
 	return -ENOSYS;
 }

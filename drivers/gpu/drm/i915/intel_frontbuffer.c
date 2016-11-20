@@ -67,12 +67,13 @@
 #include "i915_drv.h"
 
 void __intel_fb_obj_invalidate(struct drm_i915_gem_object *obj,
-			       enum fb_op_origin origin,
-			       unsigned int frontbuffer_bits)
+							   enum fb_op_origin origin,
+							   unsigned int frontbuffer_bits)
 {
 	struct drm_i915_private *dev_priv = to_i915(obj->base.dev);
 
-	if (origin == ORIGIN_CS) {
+	if (origin == ORIGIN_CS)
+	{
 		spin_lock(&dev_priv->fb_tracking.lock);
 		dev_priv->fb_tracking.busy_bits |= frontbuffer_bits;
 		dev_priv->fb_tracking.flip_bits &= ~frontbuffer_bits;
@@ -97,8 +98,8 @@ void __intel_fb_obj_invalidate(struct drm_i915_gem_object *obj,
  * Can be called without any locks held.
  */
 static void intel_frontbuffer_flush(struct drm_i915_private *dev_priv,
-				    unsigned frontbuffer_bits,
-				    enum fb_op_origin origin)
+									unsigned frontbuffer_bits,
+									enum fb_op_origin origin)
 {
 	/* Delay flushing when rings are still busy.*/
 	spin_lock(&dev_priv->fb_tracking.lock);
@@ -106,7 +107,9 @@ static void intel_frontbuffer_flush(struct drm_i915_private *dev_priv,
 	spin_unlock(&dev_priv->fb_tracking.lock);
 
 	if (!frontbuffer_bits)
+	{
 		return;
+	}
 
 	intel_edp_drrs_flush(dev_priv, frontbuffer_bits);
 	intel_psr_flush(dev_priv, frontbuffer_bits, origin);
@@ -114,13 +117,14 @@ static void intel_frontbuffer_flush(struct drm_i915_private *dev_priv,
 }
 
 void __intel_fb_obj_flush(struct drm_i915_gem_object *obj,
-			  bool retire,
-			  enum fb_op_origin origin,
-			  unsigned int frontbuffer_bits)
+						  bool retire,
+						  enum fb_op_origin origin,
+						  unsigned int frontbuffer_bits)
 {
 	struct drm_i915_private *dev_priv = to_i915(obj->base.dev);
 
-	if (retire) {
+	if (retire)
+	{
 		spin_lock(&dev_priv->fb_tracking.lock);
 		/* Filter out new bits since rendering started. */
 		frontbuffer_bits &= dev_priv->fb_tracking.busy_bits;
@@ -129,7 +133,9 @@ void __intel_fb_obj_flush(struct drm_i915_gem_object *obj,
 	}
 
 	if (frontbuffer_bits)
+	{
 		intel_frontbuffer_flush(dev_priv, frontbuffer_bits, origin);
+	}
 }
 
 /**
@@ -145,7 +151,7 @@ void __intel_fb_obj_flush(struct drm_i915_gem_object *obj,
  * Can be called without any locks held.
  */
 void intel_frontbuffer_flip_prepare(struct drm_i915_private *dev_priv,
-				    unsigned frontbuffer_bits)
+									unsigned frontbuffer_bits)
 {
 	spin_lock(&dev_priv->fb_tracking.lock);
 	dev_priv->fb_tracking.flip_bits |= frontbuffer_bits;
@@ -167,7 +173,7 @@ void intel_frontbuffer_flip_prepare(struct drm_i915_private *dev_priv,
  * Can be called without any locks held.
  */
 void intel_frontbuffer_flip_complete(struct drm_i915_private *dev_priv,
-				     unsigned frontbuffer_bits)
+									 unsigned frontbuffer_bits)
 {
 	spin_lock(&dev_priv->fb_tracking.lock);
 	/* Mask any cancelled flips. */
@@ -177,7 +183,7 @@ void intel_frontbuffer_flip_complete(struct drm_i915_private *dev_priv,
 
 	if (frontbuffer_bits)
 		intel_frontbuffer_flush(dev_priv,
-					frontbuffer_bits, ORIGIN_FLIP);
+								frontbuffer_bits, ORIGIN_FLIP);
 }
 
 /**
@@ -192,7 +198,7 @@ void intel_frontbuffer_flip_complete(struct drm_i915_private *dev_priv,
  * Can be called without any locks held.
  */
 void intel_frontbuffer_flip(struct drm_i915_private *dev_priv,
-			    unsigned frontbuffer_bits)
+							unsigned frontbuffer_bits)
 {
 	spin_lock(&dev_priv->fb_tracking.lock);
 	/* Remove stale busy bits due to the old buffer. */

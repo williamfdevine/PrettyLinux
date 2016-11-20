@@ -128,25 +128,25 @@
 #define	SWITCH_PASS		0x07
 
 #ifdef SUPPORT_SD_LOCK
-#define SD_ERASE		0x08
-#define SD_LOCK			0x04
-#define SD_UNLOCK		0x00
-#define SD_CLR_PWD		0x02
-#define SD_SET_PWD		0x01
+	#define SD_ERASE		0x08
+	#define SD_LOCK			0x04
+	#define SD_UNLOCK		0x00
+	#define SD_CLR_PWD		0x02
+	#define SD_SET_PWD		0x01
 
-#define SD_PWD_LEN		0x10
+	#define SD_PWD_LEN		0x10
 
-#define SD_LOCKED		0x80
-#define SD_LOCK_1BIT_MODE	0x40
-#define SD_PWD_EXIST		0x20
-#define SD_UNLOCK_POW_ON	0x01
-#define SD_SDR_RST		0x02
+	#define SD_LOCKED		0x80
+	#define SD_LOCK_1BIT_MODE	0x40
+	#define SD_PWD_EXIST		0x20
+	#define SD_UNLOCK_POW_ON	0x01
+	#define SD_SDR_RST		0x02
 
-#define SD_NOT_ERASE		0x00
-#define SD_UNDER_ERASING	0x01
-#define SD_COMPLETE_ERASE	0x02
+	#define SD_NOT_ERASE		0x00
+	#define SD_UNDER_ERASING	0x01
+	#define SD_COMPLETE_ERASE	0x02
 
-#define SD_RW_FORBIDDEN		0x0F
+	#define SD_RW_FORBIDDEN		0x0F
 
 #endif
 
@@ -267,7 +267,8 @@
 #define DIVIDE_BY_9      0x08
 #define DIVIDE_BY_10     0x09
 
-struct timing_phase_path {
+struct timing_phase_path
+{
 	int start;
 	int end;
 	int mid;
@@ -280,14 +281,14 @@ int reset_sd_card(struct rtsx_chip *chip);
 int sd_switch_clock(struct rtsx_chip *chip);
 void sd_stop_seq_mode(struct rtsx_chip *chip);
 int sd_rw(struct scsi_cmnd *srb, struct rtsx_chip *chip,
-	u32 start_sector, u16 sector_cnt);
+		  u32 start_sector, u16 sector_cnt);
 void sd_cleanup_work(struct rtsx_chip *chip);
 int sd_power_off_card3v3(struct rtsx_chip *chip);
 int release_sd_card(struct rtsx_chip *chip);
 #ifdef SUPPORT_CPRM
 int soft_reset_sd_card(struct rtsx_chip *chip);
 int ext_sd_send_cmd_get_rsp(struct rtsx_chip *chip, u8 cmd_idx,
-		u32 arg, u8 rsp_type, u8 *rsp, int rsp_len, bool special_check);
+							u32 arg, u8 rsp_type, u8 *rsp, int rsp_len, bool special_check);
 int ext_sd_get_rsp(struct rtsx_chip *chip, int len, u8 *rsp, u8 rsp_type);
 
 int sd_pass_thru_mode(struct scsi_cmnd *srb, struct rtsx_chip *chip);

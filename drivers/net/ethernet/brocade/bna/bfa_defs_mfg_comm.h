@@ -38,7 +38,8 @@
 #define STRSZ(_n)				(((_n) + 4) & ~3)
 
 /* Manufacturing card type */
-enum {
+enum
+{
 	BFA_MFG_TYPE_CB_MAX  = 825,      /*!< Crossbow card type max	*/
 	BFA_MFG_TYPE_FC8P2   = 825,      /*!< 8G 2port FC card		*/
 	BFA_MFG_TYPE_FC8P1   = 815,      /*!< 8G 1port FC card		*/
@@ -61,14 +62,15 @@ enum {
 
 /* Check if Mezz card */
 #define bfa_mfg_is_mezz(type) (( \
-	(type) == BFA_MFG_TYPE_JAYHAWK || \
-	(type) == BFA_MFG_TYPE_WANCHESE || \
-	(type) == BFA_MFG_TYPE_ASTRA || \
-	(type) == BFA_MFG_TYPE_LIGHTNING_P0 || \
-	(type) == BFA_MFG_TYPE_LIGHTNING || \
-	(type) == BFA_MFG_TYPE_CHINOOK))
+								 (type) == BFA_MFG_TYPE_JAYHAWK || \
+								 (type) == BFA_MFG_TYPE_WANCHESE || \
+								 (type) == BFA_MFG_TYPE_ASTRA || \
+								 (type) == BFA_MFG_TYPE_LIGHTNING_P0 || \
+								 (type) == BFA_MFG_TYPE_LIGHTNING || \
+								 (type) == BFA_MFG_TYPE_CHINOOK))
 
-enum {
+enum
+{
 	CB_GPIO_TTV	= (1),		/*!< TTV debug capable cards	*/
 	CB_GPIO_FC8P2   = (2),		/*!< 8G 2port FC card		*/
 	CB_GPIO_FC8P1   = (3),		/*!< 8G 1port FC card		*/
@@ -79,40 +81,40 @@ enum {
 };
 
 #define bfa_mfg_adapter_prop_init_gpio(gpio, card_type, prop)	\
-do {								\
-	if ((gpio) & CB_GPIO_PROTO) {				\
-		(prop) |= BFI_ADAPTER_PROTO;			\
-		(gpio) &= ~CB_GPIO_PROTO;			\
-	}							\
-	switch (gpio) {						\
-	case CB_GPIO_TTV:					\
-		(prop) |= BFI_ADAPTER_TTV;			\
-	case CB_GPIO_DFLY:					\
-	case CB_GPIO_FC8P2:					\
-		(prop) |= BFI_ADAPTER_SETP(NPORTS, 2);		\
-		(prop) |= BFI_ADAPTER_SETP(SPEED, 8);		\
-		(card_type) = BFA_MFG_TYPE_FC8P2;		\
-		break;						\
-	case CB_GPIO_FC8P1:					\
-		(prop) |= BFI_ADAPTER_SETP(NPORTS, 1);		\
-		(prop) |= BFI_ADAPTER_SETP(SPEED, 8);		\
-		(card_type) = BFA_MFG_TYPE_FC8P1;		\
-		break;						\
-	case CB_GPIO_FC4P2:					\
-		(prop) |= BFI_ADAPTER_SETP(NPORTS, 2);		\
-		(prop) |= BFI_ADAPTER_SETP(SPEED, 4);		\
-		(card_type) = BFA_MFG_TYPE_FC4P2;		\
-		break;						\
-	case CB_GPIO_FC4P1:					\
-		(prop) |= BFI_ADAPTER_SETP(NPORTS, 1);		\
-		(prop) |= BFI_ADAPTER_SETP(SPEED, 4);		\
-		(card_type) = BFA_MFG_TYPE_FC4P1;		\
-		break;						\
-	default:						\
-		(prop) |= BFI_ADAPTER_UNSUPP;			\
-		(card_type) = BFA_MFG_TYPE_INVALID;		\
-	}							\
-} while (0)
+	do {								\
+		if ((gpio) & CB_GPIO_PROTO) {				\
+			(prop) |= BFI_ADAPTER_PROTO;			\
+			(gpio) &= ~CB_GPIO_PROTO;			\
+		}							\
+		switch (gpio) {						\
+			case CB_GPIO_TTV:					\
+				(prop) |= BFI_ADAPTER_TTV;			\
+			case CB_GPIO_DFLY:					\
+			case CB_GPIO_FC8P2:					\
+				(prop) |= BFI_ADAPTER_SETP(NPORTS, 2);		\
+				(prop) |= BFI_ADAPTER_SETP(SPEED, 8);		\
+				(card_type) = BFA_MFG_TYPE_FC8P2;		\
+				break;						\
+			case CB_GPIO_FC8P1:					\
+				(prop) |= BFI_ADAPTER_SETP(NPORTS, 1);		\
+				(prop) |= BFI_ADAPTER_SETP(SPEED, 8);		\
+				(card_type) = BFA_MFG_TYPE_FC8P1;		\
+				break;						\
+			case CB_GPIO_FC4P2:					\
+				(prop) |= BFI_ADAPTER_SETP(NPORTS, 2);		\
+				(prop) |= BFI_ADAPTER_SETP(SPEED, 4);		\
+				(card_type) = BFA_MFG_TYPE_FC4P2;		\
+				break;						\
+			case CB_GPIO_FC4P1:					\
+				(prop) |= BFI_ADAPTER_SETP(NPORTS, 1);		\
+				(prop) |= BFI_ADAPTER_SETP(SPEED, 4);		\
+				(card_type) = BFA_MFG_TYPE_FC4P1;		\
+				break;						\
+			default:						\
+				(prop) |= BFI_ADAPTER_UNSUPP;			\
+				(card_type) = BFA_MFG_TYPE_INVALID;		\
+		}							\
+	} while (0)
 
 /* VPD data length */
 #define BFA_MFG_VPD_LEN			512
@@ -123,7 +125,8 @@ do {								\
 #define BFA_MFG_VPD_PCI_VDR_MASK	0xf8	/*!< vendor mask 5 bits */
 
 /* VPD vendor tag */
-enum {
+enum
+{
 	BFA_MFG_VPD_UNKNOWN	= 0,     /*!< vendor unknown		*/
 	BFA_MFG_VPD_IBM		= 1,     /*!< vendor IBM		*/
 	BFA_MFG_VPD_HP		= 2,     /*!< vendor HP			*/
@@ -138,7 +141,8 @@ enum {
  *
  * All numerical fields are in big-endian format.
  */
-struct bfa_mfg_vpd {
+struct bfa_mfg_vpd
+{
 	u8		version;	/*!< vpd data version */
 	u8		vpd_sig[3];	/*!< characters 'V', 'P', 'D' */
 	u8		chksum;		/*!< u8 checksum */

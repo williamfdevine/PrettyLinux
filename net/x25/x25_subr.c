@@ -63,7 +63,8 @@ void x25_frames_acked(struct sock *sk, unsigned short nr)
 	 * Remove all the ack-ed frames from the ack queue.
 	 */
 	if (x25->va != nr)
-		while (skb_peek(&x25->ack_queue) && x25->va != nr) {
+		while (skb_peek(&x25->ack_queue) && x25->va != nr)
+		{
 			skb = skb_dequeue(&x25->ack_queue);
 			kfree_skb(skb);
 			x25->va = (x25->va + 1) % modulus;
@@ -79,11 +80,17 @@ void x25_requeue_frames(struct sock *sk)
 	 * up by x25_kick. This arrangement handles the possibility of an empty
 	 * output queue.
 	 */
-	while ((skb = skb_dequeue(&x25_sk(sk)->ack_queue)) != NULL) {
+	while ((skb = skb_dequeue(&x25_sk(sk)->ack_queue)) != NULL)
+	{
 		if (!skb_prev)
+		{
 			skb_queue_head(&sk->sk_write_queue, skb);
+		}
 		else
+		{
 			skb_append(skb_prev, skb, &sk->sk_write_queue);
+		}
+
 		skb_prev = skb;
 	}
 }
@@ -98,9 +105,13 @@ int x25_validate_nr(struct sock *sk, unsigned short nr)
 	unsigned short vc = x25->va;
 	int modulus = x25->neighbour->extended ? X25_EMODULUS : X25_SMODULUS;
 
-	while (vc != x25->vs) {
+	while (vc != x25->vs)
+	{
 		if (nr == vc)
+		{
 			return 1;
+		}
+
 		vc = (vc + 1) % modulus;
 	}
 
@@ -127,35 +138,46 @@ void x25_write_internal(struct sock *sk, int frametype)
 	/*
 	 *	Adjust frame size.
 	 */
-	switch (frametype) {
-	case X25_CALL_REQUEST:
-		len += 1 + X25_ADDR_LEN + X25_MAX_FAC_LEN + X25_MAX_CUD_LEN;
-		break;
-	case X25_CALL_ACCEPTED: /* fast sel with no restr on resp */
-		if (x25->facilities.reverse & 0x80) {
-			len += 1 + X25_MAX_FAC_LEN + X25_MAX_CUD_LEN;
-		} else {
-			len += 1 + X25_MAX_FAC_LEN;
-		}
-		break;
-	case X25_CLEAR_REQUEST:
-	case X25_RESET_REQUEST:
-		len += 2;
-		break;
-	case X25_RR:
-	case X25_RNR:
-	case X25_REJ:
-	case X25_CLEAR_CONFIRMATION:
-	case X25_INTERRUPT_CONFIRMATION:
-	case X25_RESET_CONFIRMATION:
-		break;
-	default:
-		pr_err("invalid frame type %02X\n", frametype);
-		return;
+	switch (frametype)
+	{
+		case X25_CALL_REQUEST:
+			len += 1 + X25_ADDR_LEN + X25_MAX_FAC_LEN + X25_MAX_CUD_LEN;
+			break;
+
+		case X25_CALL_ACCEPTED: /* fast sel with no restr on resp */
+			if (x25->facilities.reverse & 0x80)
+			{
+				len += 1 + X25_MAX_FAC_LEN + X25_MAX_CUD_LEN;
+			}
+			else
+			{
+				len += 1 + X25_MAX_FAC_LEN;
+			}
+
+			break;
+
+		case X25_CLEAR_REQUEST:
+		case X25_RESET_REQUEST:
+			len += 2;
+			break;
+
+		case X25_RR:
+		case X25_RNR:
+		case X25_REJ:
+		case X25_CLEAR_CONFIRMATION:
+		case X25_INTERRUPT_CONFIRMATION:
+		case X25_RESET_CONFIRMATION:
+			break;
+
+		default:
+			pr_err("invalid frame type %02X\n", frametype);
+			return;
 	}
 
 	if ((skb = alloc_skb(len, GFP_ATOMIC)) == NULL)
+	{
 		return;
+	}
 
 	/*
 	 *	Space for Ethernet and 802.2 LLC headers.
@@ -170,10 +192,13 @@ void x25_write_internal(struct sock *sk, int frametype)
 	lci1 = (x25->lci >> 8) & 0x0F;
 	lci2 = (x25->lci >> 0) & 0xFF;
 
-	if (x25->neighbour->extended) {
+	if (x25->neighbour->extended)
+	{
 		*dptr++ = lci1 | X25_GFI_EXTSEQ;
 		*dptr++ = lci2;
-	} else {
+	}
+	else
+	{
 		*dptr++ = lci1 | X25_GFI_STDSEQ;
 		*dptr++ = lci2;
 	}
@@ -181,24 +206,25 @@ void x25_write_internal(struct sock *sk, int frametype)
 	/*
 	 *	Now fill in the frame type specific information.
 	 */
-	switch (frametype) {
+	switch (frametype)
+	{
 
 		case X25_CALL_REQUEST:
 			dptr    = skb_put(skb, 1);
 			*dptr++ = X25_CALL_REQUEST;
 			len     = x25_addr_aton(addresses, &x25->dest_addr,
-						&x25->source_addr);
+									&x25->source_addr);
 			dptr    = skb_put(skb, len);
 			memcpy(dptr, addresses, len);
 			len     = x25_create_facilities(facilities,
-					&x25->facilities,
-					&x25->dte_facilities,
-					x25->neighbour->global_facil_mask);
+											&x25->facilities,
+											&x25->dte_facilities,
+											x25->neighbour->global_facil_mask);
 			dptr    = skb_put(skb, len);
 			memcpy(dptr, facilities, len);
 			dptr = skb_put(skb, x25->calluserdata.cudlength);
 			memcpy(dptr, x25->calluserdata.cuddata,
-			       x25->calluserdata.cudlength);
+				   x25->calluserdata.cudlength);
 			x25->calluserdata.cudlength = 0;
 			break;
 
@@ -207,21 +233,23 @@ void x25_write_internal(struct sock *sk, int frametype)
 			*dptr++ = X25_CALL_ACCEPTED;
 			*dptr++ = 0x00;		/* Address lengths */
 			len     = x25_create_facilities(facilities,
-							&x25->facilities,
-							&x25->dte_facilities,
-							x25->vc_facil_mask);
+											&x25->facilities,
+											&x25->dte_facilities,
+											x25->vc_facil_mask);
 			dptr    = skb_put(skb, len);
 			memcpy(dptr, facilities, len);
 
 			/* fast select with no restriction on response
 				allows call user data. Userland must
 				ensure it is ours and not theirs */
-			if(x25->facilities.reverse & 0x80) {
+			if (x25->facilities.reverse & 0x80)
+			{
 				dptr = skb_put(skb,
-					x25->calluserdata.cudlength);
+							   x25->calluserdata.cudlength);
 				memcpy(dptr, x25->calluserdata.cuddata,
-				       x25->calluserdata.cudlength);
+					   x25->calluserdata.cudlength);
 			}
+
 			x25->calluserdata.cudlength = 0;
 			break;
 
@@ -242,15 +270,19 @@ void x25_write_internal(struct sock *sk, int frametype)
 		case X25_RR:
 		case X25_RNR:
 		case X25_REJ:
-			if (x25->neighbour->extended) {
+			if (x25->neighbour->extended)
+			{
 				dptr     = skb_put(skb, 2);
 				*dptr++  = frametype;
 				*dptr++  = (x25->vr << 1) & 0xFE;
-			} else {
+			}
+			else
+			{
 				dptr     = skb_put(skb, 1);
 				*dptr    = frametype;
 				*dptr++ |= (x25->vr << 5) & 0xE0;
 			}
+
 			break;
 
 		case X25_CLEAR_CONFIRMATION:
@@ -268,58 +300,75 @@ void x25_write_internal(struct sock *sk, int frametype)
  *	Unpick the contents of the passed X.25 Packet Layer frame.
  */
 int x25_decode(struct sock *sk, struct sk_buff *skb, int *ns, int *nr, int *q,
-	       int *d, int *m)
+			   int *d, int *m)
 {
 	struct x25_sock *x25 = x25_sk(sk);
 	unsigned char *frame;
 
 	if (!pskb_may_pull(skb, X25_STD_MIN_LEN))
+	{
 		return X25_ILLEGAL;
+	}
+
 	frame = skb->data;
 
 	*ns = *nr = *q = *d = *m = 0;
 
-	switch (frame[2]) {
-	case X25_CALL_REQUEST:
-	case X25_CALL_ACCEPTED:
-	case X25_CLEAR_REQUEST:
-	case X25_CLEAR_CONFIRMATION:
-	case X25_INTERRUPT:
-	case X25_INTERRUPT_CONFIRMATION:
-	case X25_RESET_REQUEST:
-	case X25_RESET_CONFIRMATION:
-	case X25_RESTART_REQUEST:
-	case X25_RESTART_CONFIRMATION:
-	case X25_REGISTRATION_REQUEST:
-	case X25_REGISTRATION_CONFIRMATION:
-	case X25_DIAGNOSTIC:
-		return frame[2];
+	switch (frame[2])
+	{
+		case X25_CALL_REQUEST:
+		case X25_CALL_ACCEPTED:
+		case X25_CLEAR_REQUEST:
+		case X25_CLEAR_CONFIRMATION:
+		case X25_INTERRUPT:
+		case X25_INTERRUPT_CONFIRMATION:
+		case X25_RESET_REQUEST:
+		case X25_RESET_CONFIRMATION:
+		case X25_RESTART_REQUEST:
+		case X25_RESTART_CONFIRMATION:
+		case X25_REGISTRATION_REQUEST:
+		case X25_REGISTRATION_CONFIRMATION:
+		case X25_DIAGNOSTIC:
+			return frame[2];
 	}
 
-	if (x25->neighbour->extended) {
+	if (x25->neighbour->extended)
+	{
 		if (frame[2] == X25_RR  ||
-		    frame[2] == X25_RNR ||
-		    frame[2] == X25_REJ) {
+			frame[2] == X25_RNR ||
+			frame[2] == X25_REJ)
+		{
 			if (!pskb_may_pull(skb, X25_EXT_MIN_LEN))
+			{
 				return X25_ILLEGAL;
+			}
+
 			frame = skb->data;
 
 			*nr = (frame[3] >> 1) & 0x7F;
 			return frame[2];
 		}
-	} else {
+	}
+	else
+	{
 		if ((frame[2] & 0x1F) == X25_RR  ||
-		    (frame[2] & 0x1F) == X25_RNR ||
-		    (frame[2] & 0x1F) == X25_REJ) {
+			(frame[2] & 0x1F) == X25_RNR ||
+			(frame[2] & 0x1F) == X25_REJ)
+		{
 			*nr = (frame[2] >> 5) & 0x07;
 			return frame[2] & 0x1F;
 		}
 	}
 
-	if (x25->neighbour->extended) {
-		if ((frame[2] & 0x01) == X25_DATA) {
+	if (x25->neighbour->extended)
+	{
+		if ((frame[2] & 0x01) == X25_DATA)
+		{
 			if (!pskb_may_pull(skb, X25_EXT_MIN_LEN))
+			{
 				return X25_ILLEGAL;
+			}
+
 			frame = skb->data;
 
 			*q  = (frame[0] & X25_Q_BIT) == X25_Q_BIT;
@@ -329,8 +378,11 @@ int x25_decode(struct sock *sk, struct sk_buff *skb, int *ns, int *nr, int *q,
 			*ns = (frame[2] >> 1) & 0x7F;
 			return X25_DATA;
 		}
-	} else {
-		if ((frame[2] & 0x01) == X25_DATA) {
+	}
+	else
+	{
+		if ((frame[2] & 0x01) == X25_DATA)
+		{
 			*q  = (frame[0] & X25_Q_BIT) == X25_Q_BIT;
 			*d  = (frame[0] & X25_D_BIT) == X25_D_BIT;
 			*m  = (frame[2] & X25_STD_M_BIT) == X25_STD_M_BIT;
@@ -341,13 +393,13 @@ int x25_decode(struct sock *sk, struct sk_buff *skb, int *ns, int *nr, int *q,
 	}
 
 	pr_debug("invalid PLP frame %02X %02X %02X\n",
-	       frame[0], frame[1], frame[2]);
+			 frame[0], frame[1], frame[2]);
 
 	return X25_ILLEGAL;
 }
 
 void x25_disconnect(struct sock *sk, int reason, unsigned char cause,
-		    unsigned char diagnostic)
+					unsigned char diagnostic)
 {
 	struct x25_sock *x25 = x25_sk(sk);
 
@@ -364,7 +416,8 @@ void x25_disconnect(struct sock *sk, int reason, unsigned char cause,
 	sk->sk_err       = reason;
 	sk->sk_shutdown |= SEND_SHUTDOWN;
 
-	if (!sock_flag(sk, SOCK_DEAD)) {
+	if (!sock_flag(sk, SOCK_DEAD))
+	{
 		sk->sk_state_change(sk);
 		sock_set_flag(sk, SOCK_DEAD);
 	}
@@ -379,7 +432,8 @@ void x25_check_rbuf(struct sock *sk)
 	struct x25_sock *x25 = x25_sk(sk);
 
 	if (atomic_read(&sk->sk_rmem_alloc) < (sk->sk_rcvbuf >> 1) &&
-	    (x25->condition & X25_COND_OWN_RX_BUSY)) {
+		(x25->condition & X25_COND_OWN_RX_BUSY))
+	{
 		x25->condition &= ~X25_COND_OWN_RX_BUSY;
 		x25->condition &= ~X25_COND_ACK_PENDING;
 		x25->vl         = x25->vr;

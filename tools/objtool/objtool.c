@@ -36,7 +36,8 @@
 
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof(x[0]))
 
-struct cmd_struct {
+struct cmd_struct
+{
 	const char *name;
 	int (*fn)(int, const char **);
 	const char *help;
@@ -45,7 +46,8 @@ struct cmd_struct {
 static const char objtool_usage_string[] =
 	"objtool [OPTIONS] COMMAND [ARGS]";
 
-static struct cmd_struct objtool_cmds[] = {
+static struct cmd_struct objtool_cmds[] =
+{
 	{"check",	cmd_check,	"Perform stack metadata validation on an object file" },
 };
 
@@ -57,13 +59,18 @@ static void cmd_usage(void)
 
 	printf("\n usage: %s\n\n", objtool_usage_string);
 
-	for (i = 0; i < ARRAY_SIZE(objtool_cmds); i++) {
+	for (i = 0; i < ARRAY_SIZE(objtool_cmds); i++)
+	{
 		if (longest < strlen(objtool_cmds[i].name))
+		{
 			longest = strlen(objtool_cmds[i].name);
+		}
 	}
 
 	puts(" Commands:");
-	for (i = 0; i < ARRAY_SIZE(objtool_cmds); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(objtool_cmds); i++)
+	{
 		printf("   %-*s   ", longest, objtool_cmds[i].name);
 		puts(objtool_cmds[i].help);
 	}
@@ -75,19 +82,25 @@ static void cmd_usage(void)
 
 static void handle_options(int *argc, const char ***argv)
 {
-	while (*argc > 0) {
+	while (*argc > 0)
+	{
 		const char *cmd = (*argv)[0];
 
 		if (cmd[0] != '-')
+		{
 			break;
+		}
 
-		if (!strcmp(cmd, "--help") || !strcmp(cmd, "-h")) {
+		if (!strcmp(cmd, "--help") || !strcmp(cmd, "-h"))
+		{
 			help = true;
 			break;
-		} else {
+		}
+		else
+		{
 			fprintf(stderr, "Unknown option: %s\n", cmd);
 			fprintf(stderr, "\n Usage: %s\n",
-				objtool_usage_string);
+					objtool_usage_string);
 			exit(1);
 		}
 
@@ -101,11 +114,14 @@ static void handle_internal_command(int argc, const char **argv)
 	const char *cmd = argv[0];
 	unsigned int i, ret;
 
-	for (i = 0; i < ARRAY_SIZE(objtool_cmds); i++) {
-		struct cmd_struct *p = objtool_cmds+i;
+	for (i = 0; i < ARRAY_SIZE(objtool_cmds); i++)
+	{
+		struct cmd_struct *p = objtool_cmds + i;
 
 		if (strcmp(p->name, cmd))
+		{
 			continue;
+		}
 
 		ret = p->fn(argc, argv);
 
@@ -128,7 +144,9 @@ int main(int argc, const char **argv)
 	handle_options(&argc, &argv);
 
 	if (!argc || help)
+	{
 		cmd_usage();
+	}
 
 	handle_internal_command(argc, argv);
 

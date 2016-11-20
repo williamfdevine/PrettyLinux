@@ -43,13 +43,15 @@
 
 struct cxgb3_client;
 
-enum t3ctype {
+enum t3ctype
+{
 	T3A = 0,
 	T3B,
 	T3C,
 };
 
-struct t3cdev {
+struct t3cdev
+{
 	char name[T3CNAMSIZ];	/* T3C device name */
 	enum t3ctype type;
 	struct list_head ofld_dev_list;	/* for list linking */

@@ -19,14 +19,16 @@
 #include <drv_types.h>
 #include <Hal8188EPhyCfg.h>
 
-enum RTL871X_HCI_TYPE {
+enum RTL871X_HCI_TYPE
+{
 	RTW_PCIE	= BIT(0),
 	RTW_USB		= BIT(1),
 	RTW_SDIO	= BIT(2),
 	RTW_GSPI	= BIT(3),
 };
 
-enum _CHIP_TYPE {
+enum _CHIP_TYPE
+{
 	NULL_CHIP_TYPE,
 	RTL8712_8188S_8191S_8192S,
 	RTL8188C_8192C,
@@ -36,7 +38,8 @@ enum _CHIP_TYPE {
 	MAX_CHIP_TYPE
 };
 
-enum hw_variables {
+enum hw_variables
+{
 	HW_VAR_MEDIA_STATUS,
 	HW_VAR_MEDIA_STATUS1,
 	HW_VAR_SET_OPMODE,
@@ -108,7 +111,8 @@ enum hw_variables {
 	HW_VAR_CHK_HI_QUEUE_EMPTY,
 };
 
-enum hal_def_variable {
+enum hal_def_variable
+{
 	HAL_DEF_UNDERCORATEDSMOOTHEDPWDB,
 	HAL_DEF_IS_SUPPORT_ANT_DIV,
 	HAL_DEF_CURRENT_ANTENNA,
@@ -127,18 +131,21 @@ enum hal_def_variable {
 	HW_DEF_ODM_DBG_FLAG,
 };
 
-enum hal_odm_variable {
+enum hal_odm_variable
+{
 	HAL_ODM_STA_INFO,
 	HAL_ODM_P2P_STATE,
 	HAL_ODM_WIFI_DISPLAY_STATE,
 };
 
-enum hal_intf_ps_func {
+enum hal_intf_ps_func
+{
 	HAL_USB_SELECT_SUSPEND,
 	HAL_MAX_ID,
 };
 
-enum rt_eeprom_type {
+enum rt_eeprom_type
+{
 	EEPROM_93C46,
 	EEPROM_93C56,
 	EEPROM_BOOT_EFUSE,
@@ -150,7 +157,8 @@ enum rt_eeprom_type {
 #define RF_CHANGE_BY_HW		BIT(30)
 #define RF_CHANGE_BY_SW		BIT(31)
 
-enum hardware_type {
+enum hardware_type
+{
 	HARDWARE_TYPE_RTL8188EU,
 	HARDWARE_TYPE_MAX,
 };
@@ -182,18 +190,18 @@ void rtw_hal_read_chip_info(struct adapter *padapter);
 void rtw_hal_read_chip_version(struct adapter *padapter);
 
 u8 rtw_hal_get_def_var(struct adapter *padapter,
-		       enum hal_def_variable eVariable, void *pValue);
+					   enum hal_def_variable eVariable, void *pValue);
 
 void rtw_hal_set_odm_var(struct adapter *padapter,
-			 enum hal_odm_variable eVariable, void *pValue1,
-			 bool bSet);
+						 enum hal_odm_variable eVariable, void *pValue1,
+						 bool bSet);
 
 u32	rtw_hal_inirp_init(struct adapter *padapter);
 void	rtw_hal_inirp_deinit(struct adapter *padapter);
 
 s32	rtw_hal_xmit(struct adapter *padapter, struct xmit_frame *pxmitframe);
 s32	rtw_hal_mgnt_xmit(struct adapter *padapter,
-			  struct xmit_frame *pmgntframe);
+					  struct xmit_frame *pmgntframe);
 
 s32	rtw_hal_init_xmit_priv(struct adapter *padapter);
 
@@ -203,22 +211,22 @@ void	rtw_hal_free_recv_priv(struct adapter *padapter);
 void rtw_hal_update_ra_mask(struct adapter *padapter, u32 mac_id, u8 level);
 void	rtw_hal_add_ra_tid(struct adapter *adapt, u32 bitmap, u8 arg, u8 level);
 void	rtw_hal_clone_data(struct adapter *dst_adapt,
-			   struct adapter *src_adapt);
+						   struct adapter *src_adapt);
 
 void rtw_hal_bcn_related_reg_setting(struct adapter *padapter);
 
 u32	rtw_hal_read_rfreg(struct adapter *padapter, enum rf_radio_path eRFPath,
-			   u32 RegAddr, u32 BitMask);
+					   u32 RegAddr, u32 BitMask);
 
 void	rtw_hal_set_bwmode(struct adapter *padapter,
-			   enum ht_channel_width Bandwidth, u8 Offset);
+						   enum ht_channel_width Bandwidth, u8 Offset);
 void	rtw_hal_set_chan(struct adapter *padapter, u8 channel);
 void	rtw_hal_dm_watchdog(struct adapter *padapter);
 
 u8	rtw_hal_antdiv_before_linked(struct adapter *padapter);
 void	rtw_hal_antdiv_rssi_compared(struct adapter *padapter,
-				     struct wlan_bssid_ex *dst,
-				     struct wlan_bssid_ex *src);
+									 struct wlan_bssid_ex *dst,
+									 struct wlan_bssid_ex *src);
 
 void rtw_hal_sreset_init(struct adapter *padapter);
 

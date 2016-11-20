@@ -3,7 +3,8 @@
 
 #include <linux/mtd/nand.h>
 
-struct gpio_nand_platdata {
+struct gpio_nand_platdata
+{
 	int	gpio_nce;
 	int	gpio_nwp;
 	int	gpio_cle;

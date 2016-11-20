@@ -59,8 +59,8 @@ u64 mlx4_en_get_cqe_ts(struct mlx4_cqe *cqe)
 }
 
 void mlx4_en_fill_hwtstamps(struct mlx4_en_dev *mdev,
-			    struct skb_shared_hwtstamps *hwts,
-			    u64 timestamp)
+							struct skb_shared_hwtstamps *hwts,
+							u64 timestamp)
 {
 	unsigned long flags;
 	u64 nsec;
@@ -81,7 +81,8 @@ void mlx4_en_fill_hwtstamps(struct mlx4_en_dev *mdev,
  **/
 void mlx4_en_remove_timestamp(struct mlx4_en_dev *mdev)
 {
-	if (mdev->ptp_clock) {
+	if (mdev->ptp_clock)
+	{
 		ptp_clock_unregister(mdev->ptp_clock);
 		mdev->ptp_clock = NULL;
 		mlx4_info(mdev, "removed PHC\n");
@@ -91,10 +92,11 @@ void mlx4_en_remove_timestamp(struct mlx4_en_dev *mdev)
 void mlx4_en_ptp_overflow_check(struct mlx4_en_dev *mdev)
 {
 	bool timeout = time_is_before_jiffies(mdev->last_overflow_check +
-					      mdev->overflow_period);
+										  mdev->overflow_period);
 	unsigned long flags;
 
-	if (timeout) {
+	if (timeout)
+	{
 		write_lock_irqsave(&mdev->clock_lock, flags);
 		timecounter_read(&mdev->clock);
 		write_unlock_irqrestore(&mdev->clock_lock, flags);
@@ -117,12 +119,14 @@ static int mlx4_en_phc_adjfreq(struct ptp_clock_info *ptp, s32 delta)
 	int neg_adj = 0;
 	unsigned long flags;
 	struct mlx4_en_dev *mdev = container_of(ptp, struct mlx4_en_dev,
-						ptp_clock_info);
+											ptp_clock_info);
 
-	if (delta < 0) {
+	if (delta < 0)
+	{
 		neg_adj = 1;
 		delta = -delta;
 	}
+
 	mult = mdev->nominal_c_mult;
 	adj = mult;
 	adj *= delta;
@@ -146,7 +150,7 @@ static int mlx4_en_phc_adjfreq(struct ptp_clock_info *ptp, s32 delta)
 static int mlx4_en_phc_adjtime(struct ptp_clock_info *ptp, s64 delta)
 {
 	struct mlx4_en_dev *mdev = container_of(ptp, struct mlx4_en_dev,
-						ptp_clock_info);
+											ptp_clock_info);
 	unsigned long flags;
 
 	write_lock_irqsave(&mdev->clock_lock, flags);
@@ -165,10 +169,10 @@ static int mlx4_en_phc_adjtime(struct ptp_clock_info *ptp, s64 delta)
  * it into a struct timespec.
  **/
 static int mlx4_en_phc_gettime(struct ptp_clock_info *ptp,
-			       struct timespec64 *ts)
+							   struct timespec64 *ts)
 {
 	struct mlx4_en_dev *mdev = container_of(ptp, struct mlx4_en_dev,
-						ptp_clock_info);
+											ptp_clock_info);
 	unsigned long flags;
 	u64 ns;
 
@@ -190,10 +194,10 @@ static int mlx4_en_phc_gettime(struct ptp_clock_info *ptp,
  * wall timer value.
  **/
 static int mlx4_en_phc_settime(struct ptp_clock_info *ptp,
-			       const struct timespec64 *ts)
+							   const struct timespec64 *ts)
 {
 	struct mlx4_en_dev *mdev = container_of(ptp, struct mlx4_en_dev,
-						ptp_clock_info);
+											ptp_clock_info);
 	u64 ns = timespec64_to_ns(ts);
 	unsigned long flags;
 
@@ -215,13 +219,14 @@ static int mlx4_en_phc_settime(struct ptp_clock_info *ptp,
  * Currently, no ancillary features are supported.
  **/
 static int mlx4_en_phc_enable(struct ptp_clock_info __always_unused *ptp,
-			      struct ptp_clock_request __always_unused *request,
-			      int __always_unused on)
+							  struct ptp_clock_request __always_unused *request,
+							  int __always_unused on)
 {
 	return -EOPNOTSUPP;
 }
 
-static const struct ptp_clock_info mlx4_en_ptp_clock_info = {
+static const struct ptp_clock_info mlx4_en_ptp_clock_info =
+{
 	.owner		= THIS_MODULE,
 	.max_adj	= 100000000,
 	.n_alarm	= 0,
@@ -249,7 +254,7 @@ static u32 freq_to_shift(u16 freq)
 		roundup_pow_of_two(max_val_cycles) > max_val_cycles ?
 		roundup_pow_of_two(max_val_cycles) - 1 : UINT_MAX;
 	u64 max_val_cycles_rounded = is_power_of_2(max_val_cycles + 1) ?
-		max_val_cycles : tmp_rounded;
+								 max_val_cycles : tmp_rounded;
 	/* calculate max possible multiplier in order to fit in 64bit */
 	u64 max_mul = div_u64(0xffffffffffffffffULL, max_val_cycles_rounded);
 
@@ -268,7 +273,9 @@ void mlx4_en_init_timestamp(struct mlx4_en_dev *mdev)
 	 * was done for other port.
 	 */
 	if (mdev->ptp_clock)
+	{
 		return;
+	}
 
 	rwlock_init(&mdev->clock_lock);
 
@@ -282,7 +289,7 @@ void mlx4_en_init_timestamp(struct mlx4_en_dev *mdev)
 
 	write_lock_irqsave(&mdev->clock_lock, flags);
 	timecounter_init(&mdev->clock, &mdev->cycles,
-			 ktime_to_ns(ktime_get_real()));
+					 ktime_to_ns(ktime_get_real()));
 	write_unlock_irqrestore(&mdev->clock_lock, flags);
 
 	/* Calculate period in seconds to call the overflow watchdog - to make
@@ -297,11 +304,15 @@ void mlx4_en_init_timestamp(struct mlx4_en_dev *mdev)
 	snprintf(mdev->ptp_clock_info.name, 16, "mlx4 ptp");
 
 	mdev->ptp_clock = ptp_clock_register(&mdev->ptp_clock_info,
-					     &mdev->pdev->dev);
-	if (IS_ERR(mdev->ptp_clock)) {
+										 &mdev->pdev->dev);
+
+	if (IS_ERR(mdev->ptp_clock))
+	{
 		mdev->ptp_clock = NULL;
 		mlx4_err(mdev, "ptp_clock_register failed\n");
-	} else if (mdev->ptp_clock) {
+	}
+	else if (mdev->ptp_clock)
+	{
 		mlx4_info(mdev, "registered PHC clock\n");
 	}
 

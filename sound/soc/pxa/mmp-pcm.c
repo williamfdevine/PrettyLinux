@@ -25,19 +25,21 @@
 #include <sound/soc.h>
 #include <sound/dmaengine_pcm.h>
 
-struct mmp_dma_data {
+struct mmp_dma_data
+{
 	int ssp_id;
 	struct resource *dma_res;
 };
 
 #define MMP_PCM_INFO (SNDRV_PCM_INFO_MMAP |	\
-		SNDRV_PCM_INFO_MMAP_VALID |	\
-		SNDRV_PCM_INFO_INTERLEAVED |	\
-		SNDRV_PCM_INFO_PAUSE |		\
-		SNDRV_PCM_INFO_RESUME |		\
-		SNDRV_PCM_INFO_NO_PERIOD_WAKEUP)
+					  SNDRV_PCM_INFO_MMAP_VALID |	\
+					  SNDRV_PCM_INFO_INTERLEAVED |	\
+					  SNDRV_PCM_INFO_PAUSE |		\
+					  SNDRV_PCM_INFO_RESUME |		\
+					  SNDRV_PCM_INFO_NO_PERIOD_WAKEUP)
 
-static struct snd_pcm_hardware mmp_pcm_hardware[] = {
+static struct snd_pcm_hardware mmp_pcm_hardware[] =
+{
 	{
 		.info			= MMP_PCM_INFO,
 		.period_bytes_min	= 1024,
@@ -59,21 +61,27 @@ static struct snd_pcm_hardware mmp_pcm_hardware[] = {
 };
 
 static int mmp_pcm_hw_params(struct snd_pcm_substream *substream,
-			      struct snd_pcm_hw_params *params)
+							 struct snd_pcm_hw_params *params)
 {
 	struct dma_chan *chan = snd_dmaengine_pcm_get_chan(substream);
 	struct dma_slave_config slave_config;
 	int ret;
 
 	ret =
-	    snd_dmaengine_pcm_prepare_slave_config(substream, params,
-						   &slave_config);
+		snd_dmaengine_pcm_prepare_slave_config(substream, params,
+				&slave_config);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = dmaengine_slave_config(chan, &slave_config);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	snd_pcm_set_runtime_buffer(substream, &substream->dma_buffer);
 
@@ -87,9 +95,11 @@ static bool filter(struct dma_chan *chan, void *param)
 	char *devname;
 
 	devname = kasprintf(GFP_KERNEL, "%s.%d", dma_data->dma_res->name,
-		dma_data->ssp_id);
+						dma_data->ssp_id);
+
 	if ((strcmp(dev_name(chan->device->dev), devname) == 0) &&
-		(chan->chan_id == dma_data->dma_res->start)) {
+		(chan->chan_id == dma_data->dma_res->start))
+	{
 		found = true;
 	}
 
@@ -106,32 +116,36 @@ static int mmp_pcm_open(struct snd_pcm_substream *substream)
 	struct resource *r;
 
 	r = platform_get_resource(pdev, IORESOURCE_DMA, substream->stream);
+
 	if (!r)
+	{
 		return -EBUSY;
+	}
 
 	snd_soc_set_runtime_hwparams(substream,
-				&mmp_pcm_hardware[substream->stream]);
+								 &mmp_pcm_hardware[substream->stream]);
 
 	dma_data.dma_res = r;
 	dma_data.ssp_id = cpu_dai->id;
 
 	return snd_dmaengine_pcm_open_request_chan(substream, filter,
-		    &dma_data);
+			&dma_data);
 }
 
 static int mmp_pcm_mmap(struct snd_pcm_substream *substream,
-			 struct vm_area_struct *vma)
+						struct vm_area_struct *vma)
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	unsigned long off = vma->vm_pgoff;
 
 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
 	return remap_pfn_range(vma, vma->vm_start,
-		__phys_to_pfn(runtime->dma_addr) + off,
-		vma->vm_end - vma->vm_start, vma->vm_page_prot);
+						   __phys_to_pfn(runtime->dma_addr) + off,
+						   vma->vm_end - vma->vm_start, vma->vm_page_prot);
 }
 
-static struct snd_pcm_ops mmp_pcm_ops = {
+static struct snd_pcm_ops mmp_pcm_ops =
+{
 	.open		= mmp_pcm_open,
 	.close		= snd_dmaengine_pcm_close_release_chan,
 	.ioctl		= snd_pcm_lib_ioctl,
@@ -149,19 +163,30 @@ static void mmp_pcm_free_dma_buffers(struct snd_pcm *pcm)
 	struct gen_pool *gpool;
 
 	gpool = sram_get_gpool("asram");
-	if (!gpool)
-		return;
 
-	for (stream = 0; stream < 2; stream++) {
+	if (!gpool)
+	{
+		return;
+	}
+
+	for (stream = 0; stream < 2; stream++)
+	{
 		size_t size = mmp_pcm_hardware[stream].buffer_bytes_max;
 
 		substream = pcm->streams[stream].substream;
+
 		if (!substream)
+		{
 			continue;
+		}
 
 		buf = &substream->dma_buffer;
+
 		if (!buf->area)
+		{
 			continue;
+		}
+
 		gen_pool_free(gpool, (unsigned long)buf->area, size);
 		buf->area = NULL;
 	}
@@ -170,7 +195,7 @@ static void mmp_pcm_free_dma_buffers(struct snd_pcm *pcm)
 }
 
 static int mmp_pcm_preallocate_dma_buffer(struct snd_pcm_substream *substream,
-								int stream)
+		int stream)
 {
 	struct snd_dma_buffer *buf = &substream->dma_buffer;
 	size_t size = mmp_pcm_hardware[stream].buffer_bytes_max;
@@ -181,12 +206,19 @@ static int mmp_pcm_preallocate_dma_buffer(struct snd_pcm_substream *substream,
 	buf->private_data = NULL;
 
 	gpool = sram_get_gpool("asram");
+
 	if (!gpool)
+	{
 		return -ENOMEM;
+	}
 
 	buf->area = gen_pool_dma_alloc(gpool, size, &buf->addr);
+
 	if (!buf->area)
+	{
 		return -ENOMEM;
+	}
+
 	buf->bytes = size;
 	return 0;
 }
@@ -197,12 +229,16 @@ static int mmp_pcm_new(struct snd_soc_pcm_runtime *rtd)
 	struct snd_pcm *pcm = rtd->pcm;
 	int ret = 0, stream;
 
-	for (stream = 0; stream < 2; stream++) {
+	for (stream = 0; stream < 2; stream++)
+	{
 		substream = pcm->streams[stream].substream;
 
 		ret = mmp_pcm_preallocate_dma_buffer(substream,	stream);
+
 		if (ret)
+		{
 			goto err;
+		}
 	}
 
 	return 0;
@@ -212,7 +248,8 @@ err:
 	return ret;
 }
 
-static struct snd_soc_platform_driver mmp_soc_platform = {
+static struct snd_soc_platform_driver mmp_soc_platform =
+{
 	.ops		= &mmp_pcm_ops,
 	.pcm_new	= mmp_pcm_new,
 	.pcm_free	= mmp_pcm_free_dma_buffers,
@@ -222,20 +259,23 @@ static int mmp_pcm_probe(struct platform_device *pdev)
 {
 	struct mmp_audio_platdata *pdata = pdev->dev.platform_data;
 
-	if (pdata) {
+	if (pdata)
+	{
 		mmp_pcm_hardware[SNDRV_PCM_STREAM_PLAYBACK].buffer_bytes_max =
-						pdata->buffer_max_playback;
+			pdata->buffer_max_playback;
 		mmp_pcm_hardware[SNDRV_PCM_STREAM_PLAYBACK].period_bytes_max =
-						pdata->period_max_playback;
+			pdata->period_max_playback;
 		mmp_pcm_hardware[SNDRV_PCM_STREAM_CAPTURE].buffer_bytes_max =
-						pdata->buffer_max_capture;
+			pdata->buffer_max_capture;
 		mmp_pcm_hardware[SNDRV_PCM_STREAM_CAPTURE].period_bytes_max =
-						pdata->period_max_capture;
+			pdata->period_max_capture;
 	}
+
 	return devm_snd_soc_register_platform(&pdev->dev, &mmp_soc_platform);
 }
 
-static struct platform_driver mmp_pcm_driver = {
+static struct platform_driver mmp_pcm_driver =
+{
 	.driver = {
 		.name = "mmp-pcm-audio",
 	},

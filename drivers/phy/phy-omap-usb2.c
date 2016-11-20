@@ -52,7 +52,9 @@ int omap_usb2_set_comparator(struct phy_companion *comparator)
 	struct usb_phy	*x = usb_get_phy(USB_PHY_TYPE_USB2);
 
 	if (IS_ERR(x))
+	{
 		return -ENODEV;
+	}
 
 	phy = phy_to_omapusb(x);
 	phy->comparator = comparator;
@@ -65,7 +67,9 @@ static int omap_usb_set_vbus(struct usb_otg *otg, bool enabled)
 	struct omap_usb *phy = phy_to_omapusb(otg->usb_phy);
 
 	if (!phy->comparator)
+	{
 		return -ENODEV;
+	}
 
 	return phy->comparator->set_vbus(phy->comparator, enabled);
 }
@@ -75,7 +79,9 @@ static int omap_usb_start_srp(struct usb_otg *otg)
 	struct omap_usb *phy = phy_to_omapusb(otg->usb_phy);
 
 	if (!phy->comparator)
+	{
 		return -ENODEV;
+	}
 
 	return phy->comparator->start_srp(phy->comparator);
 }
@@ -83,18 +89,24 @@ static int omap_usb_start_srp(struct usb_otg *otg)
 static int omap_usb_set_host(struct usb_otg *otg, struct usb_bus *host)
 {
 	otg->host = host;
+
 	if (!host)
+	{
 		otg->state = OTG_STATE_UNDEFINED;
+	}
 
 	return 0;
 }
 
 static int omap_usb_set_peripheral(struct usb_otg *otg,
-		struct usb_gadget *gadget)
+								   struct usb_gadget *gadget)
 {
 	otg->gadget = gadget;
+
 	if (!gadget)
+	{
 		otg->state = OTG_STATE_UNDEFINED;
+	}
 
 	return 0;
 }
@@ -104,18 +116,23 @@ static int omap_usb_phy_power(struct omap_usb *phy, int on)
 	u32 val;
 	int ret;
 
-	if (!phy->syscon_phy_power) {
+	if (!phy->syscon_phy_power)
+	{
 		omap_control_phy_power(phy->control_dev, on);
 		return 0;
 	}
 
 	if (on)
+	{
 		val = phy->power_on;
+	}
 	else
+	{
 		val = phy->power_off;
+	}
 
 	ret = regmap_update_bits(phy->syscon_phy_power, phy->power_reg,
-				 phy->mask, val);
+							 phy->mask, val);
 	return ret;
 }
 
@@ -136,8 +153,11 @@ static int omap_usb_power_on(struct phy *x)
 static int omap_usb2_disable_clocks(struct omap_usb *phy)
 {
 	clk_disable(phy->wkupclk);
+
 	if (!IS_ERR(phy->optclk))
+	{
 		clk_disable(phy->optclk);
+	}
 
 	return 0;
 }
@@ -147,14 +167,19 @@ static int omap_usb2_enable_clocks(struct omap_usb *phy)
 	int ret;
 
 	ret = clk_enable(phy->wkupclk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(phy->dev, "Failed to enable wkupclk %d\n", ret);
 		goto err0;
 	}
 
-	if (!IS_ERR(phy->optclk)) {
+	if (!IS_ERR(phy->optclk))
+	{
 		ret = clk_enable(phy->optclk);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(phy->dev, "Failed to enable optclk %d\n", ret);
 			goto err1;
 		}
@@ -176,7 +201,8 @@ static int omap_usb_init(struct phy *x)
 
 	omap_usb2_enable_clocks(phy);
 
-	if (phy->flags & OMAP_USB2_CALIBRATE_FALSE_DISCONNECT) {
+	if (phy->flags & OMAP_USB2_CALIBRATE_FALSE_DISCONNECT)
+	{
 		/*
 		 *
 		 * Reduce the sensitivity of internal PHY by enabling the
@@ -200,7 +226,8 @@ static int omap_usb_exit(struct phy *x)
 	return omap_usb2_disable_clocks(phy);
 }
 
-static const struct phy_ops ops = {
+static const struct phy_ops ops =
+{
 	.init		= omap_usb_init,
 	.exit		= omap_usb_exit,
 	.power_on	= omap_usb_power_on,
@@ -208,44 +235,50 @@ static const struct phy_ops ops = {
 	.owner		= THIS_MODULE,
 };
 
-static const struct usb_phy_data omap_usb2_data = {
+static const struct usb_phy_data omap_usb2_data =
+{
 	.label = "omap_usb2",
 	.flags = OMAP_USB2_HAS_START_SRP | OMAP_USB2_HAS_SET_VBUS,
 	.mask = OMAP_DEV_PHY_PD,
 	.power_off = OMAP_DEV_PHY_PD,
 };
 
-static const struct usb_phy_data omap5_usb2_data = {
+static const struct usb_phy_data omap5_usb2_data =
+{
 	.label = "omap5_usb2",
 	.flags = 0,
 	.mask = OMAP_DEV_PHY_PD,
 	.power_off = OMAP_DEV_PHY_PD,
 };
 
-static const struct usb_phy_data dra7x_usb2_data = {
+static const struct usb_phy_data dra7x_usb2_data =
+{
 	.label = "dra7x_usb2",
 	.flags = OMAP_USB2_CALIBRATE_FALSE_DISCONNECT,
 	.mask = OMAP_DEV_PHY_PD,
 	.power_off = OMAP_DEV_PHY_PD,
 };
 
-static const struct usb_phy_data dra7x_usb2_phy2_data = {
+static const struct usb_phy_data dra7x_usb2_phy2_data =
+{
 	.label = "dra7x_usb2_phy2",
 	.flags = OMAP_USB2_CALIBRATE_FALSE_DISCONNECT,
 	.mask = OMAP_USB2_PHY_PD,
 	.power_off = OMAP_USB2_PHY_PD,
 };
 
-static const struct usb_phy_data am437x_usb2_data = {
+static const struct usb_phy_data am437x_usb2_data =
+{
 	.label = "am437x_usb2",
 	.flags =  0,
 	.mask = AM437X_USB2_PHY_PD | AM437X_USB2_OTG_PD |
-		AM437X_USB2_OTGVDET_EN | AM437X_USB2_OTGSESSEND_EN,
+	AM437X_USB2_OTGVDET_EN | AM437X_USB2_OTGSESSEND_EN,
 	.power_on = AM437X_USB2_OTGVDET_EN | AM437X_USB2_OTGSESSEND_EN,
 	.power_off = AM437X_USB2_PHY_PD | AM437X_USB2_OTG_PD,
 };
 
-static const struct of_device_id omap_usb2_id_table[] = {
+static const struct of_device_id omap_usb2_id_table[] =
+{
 	{
 		.compatible = "ti,omap-usb2",
 		.data = &omap_usb2_data,
@@ -286,17 +319,25 @@ static int omap_usb2_probe(struct platform_device *pdev)
 	of_id = of_match_device(omap_usb2_id_table, &pdev->dev);
 
 	if (!of_id)
+	{
 		return -EINVAL;
+	}
 
 	phy_data = (struct usb_phy_data *)of_id->data;
 
 	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
+
 	if (!phy)
+	{
 		return -ENOMEM;
+	}
 
 	otg = devm_kzalloc(&pdev->dev, sizeof(*otg), GFP_KERNEL);
+
 	if (!otg)
+	{
 		return -ENOMEM;
+	}
 
 	phy->dev		= &pdev->dev;
 
@@ -308,57 +349,81 @@ static int omap_usb2_probe(struct platform_device *pdev)
 	phy->power_on		= phy_data->power_on;
 	phy->power_off		= phy_data->power_off;
 
-	if (phy_data->flags & OMAP_USB2_CALIBRATE_FALSE_DISCONNECT) {
+	if (phy_data->flags & OMAP_USB2_CALIBRATE_FALSE_DISCONNECT)
+	{
 		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 		phy->phy_base = devm_ioremap_resource(&pdev->dev, res);
+
 		if (IS_ERR(phy->phy_base))
+		{
 			return PTR_ERR(phy->phy_base);
+		}
+
 		phy->flags |= OMAP_USB2_CALIBRATE_FALSE_DISCONNECT;
 	}
 
 	phy->syscon_phy_power = syscon_regmap_lookup_by_phandle(node,
 							"syscon-phy-power");
-	if (IS_ERR(phy->syscon_phy_power)) {
+
+	if (IS_ERR(phy->syscon_phy_power))
+	{
 		dev_dbg(&pdev->dev,
-			"can't get syscon-phy-power, using control device\n");
+				"can't get syscon-phy-power, using control device\n");
 		phy->syscon_phy_power = NULL;
 
 		control_node = of_parse_phandle(node, "ctrl-module", 0);
-		if (!control_node) {
+
+		if (!control_node)
+		{
 			dev_err(&pdev->dev,
-				"Failed to get control device phandle\n");
+					"Failed to get control device phandle\n");
 			return -EINVAL;
 		}
 
 		control_pdev = of_find_device_by_node(control_node);
-		if (!control_pdev) {
+
+		if (!control_pdev)
+		{
 			dev_err(&pdev->dev, "Failed to get control device\n");
 			return -EINVAL;
 		}
+
 		phy->control_dev = &control_pdev->dev;
-	} else {
+	}
+	else
+	{
 		if (of_property_read_u32_index(node,
-					       "syscon-phy-power", 1,
-					       &phy->power_reg)) {
+									   "syscon-phy-power", 1,
+									   &phy->power_reg))
+		{
 			dev_err(&pdev->dev,
-				"couldn't get power reg. offset\n");
+					"couldn't get power reg. offset\n");
 			return -EINVAL;
 		}
 	}
 
 	otg->set_host		= omap_usb_set_host;
 	otg->set_peripheral	= omap_usb_set_peripheral;
+
 	if (phy_data->flags & OMAP_USB2_HAS_SET_VBUS)
+	{
 		otg->set_vbus		= omap_usb_set_vbus;
+	}
+
 	if (phy_data->flags & OMAP_USB2_HAS_START_SRP)
+	{
 		otg->start_srp		= omap_usb_start_srp;
+	}
+
 	otg->usb_phy		= &phy->phy;
 
 	platform_set_drvdata(pdev, phy);
 	pm_runtime_enable(phy->dev);
 
 	generic_phy = devm_phy_create(phy->dev, NULL, &ops);
-	if (IS_ERR(generic_phy)) {
+
+	if (IS_ERR(generic_phy))
+	{
 		pm_runtime_disable(phy->dev);
 		return PTR_ERR(generic_phy);
 	}
@@ -367,42 +432,59 @@ static int omap_usb2_probe(struct platform_device *pdev)
 	omap_usb_power_off(generic_phy);
 
 	phy_provider = devm_of_phy_provider_register(phy->dev,
-			of_phy_simple_xlate);
-	if (IS_ERR(phy_provider)) {
+				   of_phy_simple_xlate);
+
+	if (IS_ERR(phy_provider))
+	{
 		pm_runtime_disable(phy->dev);
 		return PTR_ERR(phy_provider);
 	}
 
 	phy->wkupclk = devm_clk_get(phy->dev, "wkupclk");
-	if (IS_ERR(phy->wkupclk)) {
+
+	if (IS_ERR(phy->wkupclk))
+	{
 		dev_warn(&pdev->dev, "unable to get wkupclk, trying old name\n");
 		phy->wkupclk = devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
-		if (IS_ERR(phy->wkupclk)) {
+
+		if (IS_ERR(phy->wkupclk))
+		{
 			dev_err(&pdev->dev, "unable to get usb_phy_cm_clk32k\n");
 			pm_runtime_disable(phy->dev);
 			return PTR_ERR(phy->wkupclk);
-		} else {
+		}
+		else
+		{
 			dev_warn(&pdev->dev,
-				 "found usb_phy_cm_clk32k, please fix DTS\n");
+					 "found usb_phy_cm_clk32k, please fix DTS\n");
 		}
 	}
+
 	clk_prepare(phy->wkupclk);
 
 	phy->optclk = devm_clk_get(phy->dev, "refclk");
-	if (IS_ERR(phy->optclk)) {
+
+	if (IS_ERR(phy->optclk))
+	{
 		dev_dbg(&pdev->dev, "unable to get refclk, trying old name\n");
 		phy->optclk = devm_clk_get(phy->dev, "usb_otg_ss_refclk960m");
-		if (IS_ERR(phy->optclk)) {
+
+		if (IS_ERR(phy->optclk))
+		{
 			dev_dbg(&pdev->dev,
-				"unable to get usb_otg_ss_refclk960m\n");
-		} else {
+					"unable to get usb_otg_ss_refclk960m\n");
+		}
+		else
+		{
 			dev_warn(&pdev->dev,
-				 "found usb_otg_ss_refclk960m, please fix DTS\n");
+					 "found usb_otg_ss_refclk960m, please fix DTS\n");
 		}
 	}
 
 	if (!IS_ERR(phy->optclk))
+	{
 		clk_prepare(phy->optclk);
+	}
 
 	usb_add_phy_dev(&phy->phy);
 
@@ -414,15 +496,20 @@ static int omap_usb2_remove(struct platform_device *pdev)
 	struct omap_usb	*phy = platform_get_drvdata(pdev);
 
 	clk_unprepare(phy->wkupclk);
+
 	if (!IS_ERR(phy->optclk))
+	{
 		clk_unprepare(phy->optclk);
+	}
+
 	usb_remove_phy(&phy->phy);
 	pm_runtime_disable(phy->dev);
 
 	return 0;
 }
 
-static struct platform_driver omap_usb2_driver = {
+static struct platform_driver omap_usb2_driver =
+{
 	.probe		= omap_usb2_probe,
 	.remove		= omap_usb2_remove,
 	.driver		= {

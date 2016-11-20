@@ -45,14 +45,15 @@
  * are no longer valid.
  */
 
-struct ceph_reconnect_state {
+struct ceph_reconnect_state
+{
 	int nr_caps;
 	struct ceph_pagelist *pagelist;
 	unsigned msg_version;
 };
 
 static void __wake_requests(struct ceph_mds_client *mdsc,
-			    struct list_head *head);
+							struct list_head *head);
 
 static const struct ceph_connection_operations mds_con_ops;
 
@@ -65,15 +66,15 @@ static const struct ceph_connection_operations mds_con_ops;
  * parse individual inode info
  */
 static int parse_reply_info_in(void **p, void *end,
-			       struct ceph_mds_reply_info_in *info,
-			       u64 features)
+							   struct ceph_mds_reply_info_in *info,
+							   u64 features)
 {
 	int err = -EIO;
 
 	info->in = *p;
 	*p += sizeof(struct ceph_mds_reply_inode) +
-		sizeof(*info->in->fragtree.splits) *
-		le32_to_cpu(info->in->fragtree.nsplits);
+		  sizeof(*info->in->fragtree.splits) *
+		  le32_to_cpu(info->in->fragtree.nsplits);
 
 	ceph_decode_32_safe(p, end, info->symlink_len, bad);
 	ceph_decode_need(p, end, info->symlink_len, bad);
@@ -82,29 +83,39 @@ static int parse_reply_info_in(void **p, void *end,
 
 	if (features & CEPH_FEATURE_DIRLAYOUTHASH)
 		ceph_decode_copy_safe(p, end, &info->dir_layout,
-				      sizeof(info->dir_layout), bad);
+							  sizeof(info->dir_layout), bad);
 	else
+	{
 		memset(&info->dir_layout, 0, sizeof(info->dir_layout));
+	}
 
 	ceph_decode_32_safe(p, end, info->xattr_len, bad);
 	ceph_decode_need(p, end, info->xattr_len, bad);
 	info->xattr_data = *p;
 	*p += info->xattr_len;
 
-	if (features & CEPH_FEATURE_MDS_INLINE_DATA) {
+	if (features & CEPH_FEATURE_MDS_INLINE_DATA)
+	{
 		ceph_decode_64_safe(p, end, info->inline_version, bad);
 		ceph_decode_32_safe(p, end, info->inline_len, bad);
 		ceph_decode_need(p, end, info->inline_len, bad);
 		info->inline_data = *p;
 		*p += info->inline_len;
-	} else
+	}
+	else
+	{
 		info->inline_version = CEPH_INLINE_NONE;
+	}
 
 	info->pool_ns_len = 0;
 	info->pool_ns_data = NULL;
-	if (features & CEPH_FEATURE_FS_FILE_LAYOUT_V2) {
+
+	if (features & CEPH_FEATURE_FS_FILE_LAYOUT_V2)
+	{
 		ceph_decode_32_safe(p, end, info->pool_ns_len, bad);
-		if (info->pool_ns_len > 0) {
+
+		if (info->pool_ns_len > 0)
+		{
 			ceph_decode_need(p, end, info->pool_ns_len, bad);
 			info->pool_ns_data = *p;
 			*p += info->pool_ns_len;
@@ -121,23 +132,33 @@ bad:
  * target inode.
  */
 static int parse_reply_info_trace(void **p, void *end,
-				  struct ceph_mds_reply_info_parsed *info,
-				  u64 features)
+								  struct ceph_mds_reply_info_parsed *info,
+								  u64 features)
 {
 	int err;
 
-	if (info->head->is_dentry) {
+	if (info->head->is_dentry)
+	{
 		err = parse_reply_info_in(p, end, &info->diri, features);
+
 		if (err < 0)
+		{
 			goto out_bad;
+		}
 
 		if (unlikely(*p + sizeof(*info->dirfrag) > end))
+		{
 			goto bad;
+		}
+
 		info->dirfrag = *p;
 		*p += sizeof(*info->dirfrag) +
-			sizeof(u32)*le32_to_cpu(info->dirfrag->ndist);
+			  sizeof(u32) * le32_to_cpu(info->dirfrag->ndist);
+
 		if (unlikely(*p > end))
+		{
 			goto bad;
+		}
 
 		ceph_decode_32_safe(p, end, info->dname_len, bad);
 		ceph_decode_need(p, end, info->dname_len, bad);
@@ -147,14 +168,21 @@ static int parse_reply_info_trace(void **p, void *end,
 		*p += sizeof(*info->dlease);
 	}
 
-	if (info->head->is_target) {
+	if (info->head->is_target)
+	{
 		err = parse_reply_info_in(p, end, &info->targeti, features);
+
 		if (err < 0)
+		{
 			goto out_bad;
+		}
 	}
 
 	if (unlikely(*p != end))
+	{
 		goto bad;
+	}
+
 	return 0;
 
 bad:
@@ -168,19 +196,26 @@ out_bad:
  * parse readdir results
  */
 static int parse_reply_info_dir(void **p, void *end,
-				struct ceph_mds_reply_info_parsed *info,
-				u64 features)
+								struct ceph_mds_reply_info_parsed *info,
+								u64 features)
 {
 	u32 num, i = 0;
 	int err;
 
 	info->dir_dir = *p;
+
 	if (*p + sizeof(*info->dir_dir) > end)
+	{
 		goto bad;
+	}
+
 	*p += sizeof(*info->dir_dir) +
-		sizeof(u32)*le32_to_cpu(info->dir_dir->ndist);
+		  sizeof(u32) * le32_to_cpu(info->dir_dir->ndist);
+
 	if (*p > end)
+	{
 		goto bad;
+	}
 
 	ceph_decode_need(p, end, sizeof(num) + 2, bad);
 	num = ceph_decode_32(p);
@@ -190,22 +225,29 @@ static int parse_reply_info_dir(void **p, void *end,
 		info->dir_complete = !!(flags & CEPH_READDIR_FRAG_COMPLETE);
 		info->hash_order = !!(flags & CEPH_READDIR_HASH_ORDER);
 	}
+
 	if (num == 0)
+	{
 		goto done;
+	}
 
 	BUG_ON(!info->dir_entries);
+
 	if ((unsigned long)(info->dir_entries + num) >
-	    (unsigned long)info->dir_entries + info->dir_buf_size) {
+		(unsigned long)info->dir_entries + info->dir_buf_size)
+	{
 		pr_err("dir contents are larger than expected\n");
 		WARN_ON(1);
 		goto bad;
 	}
 
 	info->dir_nr = num;
-	while (num) {
+
+	while (num)
+	{
 		struct ceph_mds_reply_dir_entry *rde = info->dir_entries + i;
 		/* dentry */
-		ceph_decode_need(p, end, sizeof(u32)*2, bad);
+		ceph_decode_need(p, end, sizeof(u32) * 2, bad);
 		rde->name_len = ceph_decode_32(p);
 		ceph_decode_need(p, end, rde->name_len, bad);
 		rde->name = *p;
@@ -216,8 +258,12 @@ static int parse_reply_info_dir(void **p, void *end,
 
 		/* inode */
 		err = parse_reply_info_in(p, end, &rde->inode, features);
+
 		if (err < 0)
+		{
 			goto out_bad;
+		}
+
 		/* ceph_readdir_prepopulate() will update it */
 		rde->offset = 0;
 		i++;
@@ -225,8 +271,12 @@ static int parse_reply_info_dir(void **p, void *end,
 	}
 
 done:
+
 	if (*p != end)
+	{
 		goto bad;
+	}
+
 	return 0;
 
 bad:
@@ -240,17 +290,22 @@ out_bad:
  * parse fcntl F_GETLK results
  */
 static int parse_reply_info_filelock(void **p, void *end,
-				     struct ceph_mds_reply_info_parsed *info,
-				     u64 features)
+									 struct ceph_mds_reply_info_parsed *info,
+									 u64 features)
 {
 	if (*p + sizeof(*info->filelock_reply) > end)
+	{
 		goto bad;
+	}
 
 	info->filelock_reply = *p;
 	*p += sizeof(*info->filelock_reply);
 
 	if (unlikely(*p != end))
+	{
 		goto bad;
+	}
+
 	return 0;
 
 bad:
@@ -261,20 +316,27 @@ bad:
  * parse create results
  */
 static int parse_reply_info_create(void **p, void *end,
-				  struct ceph_mds_reply_info_parsed *info,
-				  u64 features)
+								   struct ceph_mds_reply_info_parsed *info,
+								   u64 features)
 {
-	if (features & CEPH_FEATURE_REPLY_CREATE_INODE) {
-		if (*p == end) {
+	if (features & CEPH_FEATURE_REPLY_CREATE_INODE)
+	{
+		if (*p == end)
+		{
 			info->has_create_ino = false;
-		} else {
+		}
+		else
+		{
 			info->has_create_ino = true;
 			info->ino = ceph_decode_64(p);
 		}
 	}
 
 	if (unlikely(*p != end))
+	{
 		goto bad;
+	}
+
 	return 0;
 
 bad:
@@ -285,26 +347,34 @@ bad:
  * parse extra results
  */
 static int parse_reply_info_extra(void **p, void *end,
-				  struct ceph_mds_reply_info_parsed *info,
-				  u64 features)
+								  struct ceph_mds_reply_info_parsed *info,
+								  u64 features)
 {
 	if (info->head->op == CEPH_MDS_OP_GETFILELOCK)
+	{
 		return parse_reply_info_filelock(p, end, info, features);
+	}
 	else if (info->head->op == CEPH_MDS_OP_READDIR ||
-		 info->head->op == CEPH_MDS_OP_LSSNAP)
+			 info->head->op == CEPH_MDS_OP_LSSNAP)
+	{
 		return parse_reply_info_dir(p, end, info, features);
+	}
 	else if (info->head->op == CEPH_MDS_OP_CREATE)
+	{
 		return parse_reply_info_create(p, end, info, features);
+	}
 	else
+	{
 		return -EIO;
+	}
 }
 
 /*
  * parse entire mds reply
  */
 static int parse_reply_info(struct ceph_msg *msg,
-			    struct ceph_mds_reply_info_parsed *info,
-			    u64 features)
+							struct ceph_mds_reply_info_parsed *info,
+							u64 features)
 {
 	void *p, *end;
 	u32 len;
@@ -316,20 +386,30 @@ static int parse_reply_info(struct ceph_msg *msg,
 
 	/* trace */
 	ceph_decode_32_safe(&p, end, len, bad);
-	if (len > 0) {
+
+	if (len > 0)
+	{
 		ceph_decode_need(&p, end, len, bad);
-		err = parse_reply_info_trace(&p, p+len, info, features);
+		err = parse_reply_info_trace(&p, p + len, info, features);
+
 		if (err < 0)
+		{
 			goto out_bad;
+		}
 	}
 
 	/* extra */
 	ceph_decode_32_safe(&p, end, len, bad);
-	if (len > 0) {
+
+	if (len > 0)
+	{
 		ceph_decode_need(&p, end, len, bad);
-		err = parse_reply_info_extra(&p, p+len, info, features);
+		err = parse_reply_info_extra(&p, p + len, info, features);
+
 		if (err < 0)
+		{
 			goto out_bad;
+		}
 	}
 
 	/* snap blob */
@@ -339,7 +419,10 @@ static int parse_reply_info(struct ceph_msg *msg,
 	p += len;
 
 	if (p != end)
+	{
 		goto bad;
+	}
+
 	return 0;
 
 bad:
@@ -352,7 +435,10 @@ out_bad:
 static void destroy_reply_info(struct ceph_mds_reply_info_parsed *info)
 {
 	if (!info->dir_entries)
+	{
 		return;
+	}
+
 	free_pages((unsigned long)info->dir_entries, get_order(info->dir_buf_size));
 }
 
@@ -362,26 +448,38 @@ static void destroy_reply_info(struct ceph_mds_reply_info_parsed *info)
  */
 const char *ceph_session_state_name(int s)
 {
-	switch (s) {
-	case CEPH_MDS_SESSION_NEW: return "new";
-	case CEPH_MDS_SESSION_OPENING: return "opening";
-	case CEPH_MDS_SESSION_OPEN: return "open";
-	case CEPH_MDS_SESSION_HUNG: return "hung";
-	case CEPH_MDS_SESSION_CLOSING: return "closing";
-	case CEPH_MDS_SESSION_RESTARTING: return "restarting";
-	case CEPH_MDS_SESSION_RECONNECTING: return "reconnecting";
-	case CEPH_MDS_SESSION_REJECTED: return "rejected";
-	default: return "???";
+	switch (s)
+	{
+		case CEPH_MDS_SESSION_NEW: return "new";
+
+		case CEPH_MDS_SESSION_OPENING: return "opening";
+
+		case CEPH_MDS_SESSION_OPEN: return "open";
+
+		case CEPH_MDS_SESSION_HUNG: return "hung";
+
+		case CEPH_MDS_SESSION_CLOSING: return "closing";
+
+		case CEPH_MDS_SESSION_RESTARTING: return "restarting";
+
+		case CEPH_MDS_SESSION_RECONNECTING: return "reconnecting";
+
+		case CEPH_MDS_SESSION_REJECTED: return "rejected";
+
+		default: return "???";
 	}
 }
 
 static struct ceph_mds_session *get_session(struct ceph_mds_session *s)
 {
-	if (atomic_inc_not_zero(&s->s_ref)) {
+	if (atomic_inc_not_zero(&s->s_ref))
+	{
 		dout("mdsc get_session %p %d -> %d\n", s,
-		     atomic_read(&s->s_ref)-1, atomic_read(&s->s_ref));
+			 atomic_read(&s->s_ref) - 1, atomic_read(&s->s_ref));
 		return s;
-	} else {
+	}
+	else
+	{
 		dout("mdsc get_session %p 0 -- FAIL", s);
 		return NULL;
 	}
@@ -390,10 +488,15 @@ static struct ceph_mds_session *get_session(struct ceph_mds_session *s)
 void ceph_put_mds_session(struct ceph_mds_session *s)
 {
 	dout("mdsc put_session %p %d -> %d\n", s,
-	     atomic_read(&s->s_ref), atomic_read(&s->s_ref)-1);
-	if (atomic_dec_and_test(&s->s_ref)) {
+		 atomic_read(&s->s_ref), atomic_read(&s->s_ref) - 1);
+
+	if (atomic_dec_and_test(&s->s_ref))
+	{
 		if (s->s_auth.authorizer)
+		{
 			ceph_auth_destroy_authorizer(s->s_auth.authorizer);
+		}
+
 		kfree(s);
 	}
 }
@@ -402,15 +505,18 @@ void ceph_put_mds_session(struct ceph_mds_session *s)
  * called under mdsc->mutex
  */
 struct ceph_mds_session *__ceph_lookup_mds_session(struct ceph_mds_client *mdsc,
-						   int mds)
+		int mds)
 {
 	struct ceph_mds_session *session;
 
 	if (mds >= mdsc->max_sessions || mdsc->sessions[mds] == NULL)
+	{
 		return NULL;
+	}
+
 	session = mdsc->sessions[mds];
 	dout("lookup_mds_session %p %d\n", session,
-	     atomic_read(&session->s_ref));
+		 atomic_read(&session->s_ref));
 	get_session(session);
 	return session;
 }
@@ -418,16 +524,22 @@ struct ceph_mds_session *__ceph_lookup_mds_session(struct ceph_mds_client *mdsc,
 static bool __have_session(struct ceph_mds_client *mdsc, int mds)
 {
 	if (mds >= mdsc->max_sessions)
+	{
 		return false;
+	}
+
 	return mdsc->sessions[mds];
 }
 
 static int __verify_registered_session(struct ceph_mds_client *mdsc,
-				       struct ceph_mds_session *s)
+									   struct ceph_mds_session *s)
 {
 	if (s->s_mds >= mdsc->max_sessions ||
-	    mdsc->sessions[s->s_mds] != s)
+		mdsc->sessions[s->s_mds] != s)
+	{
 		return -ENOENT;
+	}
+
 	return 0;
 }
 
@@ -436,16 +548,22 @@ static int __verify_registered_session(struct ceph_mds_client *mdsc,
  * called under mdsc->mutex.
  */
 static struct ceph_mds_session *register_session(struct ceph_mds_client *mdsc,
-						 int mds)
+		int mds)
 {
 	struct ceph_mds_session *s;
 
 	if (mds >= mdsc->mdsmap->m_max_mds)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	s = kzalloc(sizeof(*s), GFP_NOFS);
+
 	if (!s)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	s->s_mdsc = mdsc;
 	s->s_mds = mds;
 	s->s_state = CEPH_MDS_SESSION_NEW;
@@ -475,28 +593,37 @@ static struct ceph_mds_session *register_session(struct ceph_mds_client *mdsc,
 	INIT_LIST_HEAD(&s->s_cap_flushing);
 
 	dout("register_session mds%d\n", mds);
-	if (mds >= mdsc->max_sessions) {
-		int newmax = 1 << get_count_order(mds+1);
+
+	if (mds >= mdsc->max_sessions)
+	{
+		int newmax = 1 << get_count_order(mds + 1);
 		struct ceph_mds_session **sa;
 
 		dout("register_session realloc to %d\n", newmax);
 		sa = kcalloc(newmax, sizeof(void *), GFP_NOFS);
+
 		if (sa == NULL)
+		{
 			goto fail_realloc;
-		if (mdsc->sessions) {
+		}
+
+		if (mdsc->sessions)
+		{
 			memcpy(sa, mdsc->sessions,
-			       mdsc->max_sessions * sizeof(void *));
+				   mdsc->max_sessions * sizeof(void *));
 			kfree(mdsc->sessions);
 		}
+
 		mdsc->sessions = sa;
 		mdsc->max_sessions = newmax;
 	}
+
 	mdsc->sessions[mds] = s;
 	atomic_inc(&mdsc->num_sessions);
 	atomic_inc(&s->s_ref);  /* one ref to sessions[], one to caller */
 
 	ceph_con_open(&s->s_con, CEPH_ENTITY_TYPE_MDS, mds,
-		      ceph_mdsmap_get_addr(mdsc->mdsmap, mds));
+				  ceph_mdsmap_get_addr(mdsc->mdsmap, mds));
 
 	return s;
 
@@ -509,7 +636,7 @@ fail_realloc:
  * called under mdsc->mutex
  */
 static void __unregister_session(struct ceph_mds_client *mdsc,
-			       struct ceph_mds_session *s)
+								 struct ceph_mds_session *s)
 {
 	dout("__unregister_session mds%d %p\n", s->s_mds, s);
 	BUG_ON(mdsc->sessions[s->s_mds] != s);
@@ -526,7 +653,8 @@ static void __unregister_session(struct ceph_mds_client *mdsc,
  */
 static void put_request_session(struct ceph_mds_request *req)
 {
-	if (req->r_session) {
+	if (req->r_session)
+	{
 		ceph_put_mds_session(req->r_session);
 		req->r_session = NULL;
 	}
@@ -535,25 +663,45 @@ static void put_request_session(struct ceph_mds_request *req)
 void ceph_mdsc_release_request(struct kref *kref)
 {
 	struct ceph_mds_request *req = container_of(kref,
-						    struct ceph_mds_request,
-						    r_kref);
+								   struct ceph_mds_request,
+								   r_kref);
 	destroy_reply_info(&req->r_reply_info);
+
 	if (req->r_request)
+	{
 		ceph_msg_put(req->r_request);
+	}
+
 	if (req->r_reply)
+	{
 		ceph_msg_put(req->r_reply);
-	if (req->r_inode) {
+	}
+
+	if (req->r_inode)
+	{
 		ceph_put_cap_refs(ceph_inode(req->r_inode), CEPH_CAP_PIN);
 		iput(req->r_inode);
 	}
+
 	if (req->r_locked_dir)
+	{
 		ceph_put_cap_refs(ceph_inode(req->r_locked_dir), CEPH_CAP_PIN);
+	}
+
 	iput(req->r_target_inode);
+
 	if (req->r_dentry)
+	{
 		dput(req->r_dentry);
+	}
+
 	if (req->r_old_dentry)
+	{
 		dput(req->r_old_dentry);
-	if (req->r_old_dentry_dir) {
+	}
+
+	if (req->r_old_dentry_dir)
+	{
 		/*
 		 * track (and drop pins for) r_old_dentry_dir
 		 * separately, since r_old_dentry's d_parent may have
@@ -561,13 +709,18 @@ void ceph_mdsc_release_request(struct kref *kref)
 		 * this request being freed.
 		 */
 		ceph_put_cap_refs(ceph_inode(req->r_old_dentry_dir),
-				  CEPH_CAP_PIN);
+						  CEPH_CAP_PIN);
 		iput(req->r_old_dentry_dir);
 	}
+
 	kfree(req->r_path1);
 	kfree(req->r_path2);
+
 	if (req->r_pagelist)
+	{
 		ceph_pagelist_release(req->r_pagelist);
+	}
+
 	put_request_session(req);
 	ceph_unreserve_caps(req->r_mdsc, &req->r_caps_reservation);
 	kfree(req);
@@ -586,8 +739,11 @@ lookup_get_request(struct ceph_mds_client *mdsc, u64 tid)
 	struct ceph_mds_request *req;
 
 	req = lookup_request(&mdsc->request_tree, tid);
+
 	if (req)
+	{
 		ceph_mdsc_get_request(req);
+	}
 
 	return req;
 }
@@ -599,13 +755,15 @@ lookup_get_request(struct ceph_mds_client *mdsc, u64 tid)
  * Called under mdsc->mutex.
  */
 static void __register_request(struct ceph_mds_client *mdsc,
-			       struct ceph_mds_request *req,
-			       struct inode *dir)
+							   struct ceph_mds_request *req,
+							   struct inode *dir)
 {
 	req->r_tid = ++mdsc->last_tid;
+
 	if (req->r_num_caps)
 		ceph_reserve_caps(mdsc, &req->r_caps_reservation,
-				  req->r_num_caps);
+						  req->r_num_caps);
+
 	dout("__register_request %p tid %lld\n", req, req->r_tid);
 	ceph_mdsc_get_request(req);
 	insert_request(&mdsc->request_tree, req);
@@ -614,49 +772,62 @@ static void __register_request(struct ceph_mds_client *mdsc,
 	req->r_gid = current_fsgid();
 
 	if (mdsc->oldest_tid == 0 && req->r_op != CEPH_MDS_OP_SETFILELOCK)
+	{
 		mdsc->oldest_tid = req->r_tid;
+	}
 
-	if (dir) {
+	if (dir)
+	{
 		ihold(dir);
 		req->r_unsafe_dir = dir;
 	}
 }
 
 static void __unregister_request(struct ceph_mds_client *mdsc,
-				 struct ceph_mds_request *req)
+								 struct ceph_mds_request *req)
 {
 	dout("__unregister_request %p tid %lld\n", req, req->r_tid);
 
-	if (req->r_tid == mdsc->oldest_tid) {
+	if (req->r_tid == mdsc->oldest_tid)
+	{
 		struct rb_node *p = rb_next(&req->r_node);
 		mdsc->oldest_tid = 0;
-		while (p) {
+
+		while (p)
+		{
 			struct ceph_mds_request *next_req =
 				rb_entry(p, struct ceph_mds_request, r_node);
-			if (next_req->r_op != CEPH_MDS_OP_SETFILELOCK) {
+
+			if (next_req->r_op != CEPH_MDS_OP_SETFILELOCK)
+			{
 				mdsc->oldest_tid = next_req->r_tid;
 				break;
 			}
+
 			p = rb_next(p);
 		}
 	}
 
 	erase_request(&mdsc->request_tree, req);
 
-	if (req->r_unsafe_dir && req->r_got_unsafe) {
+	if (req->r_unsafe_dir && req->r_got_unsafe)
+	{
 		struct ceph_inode_info *ci = ceph_inode(req->r_unsafe_dir);
 		spin_lock(&ci->i_unsafe_lock);
 		list_del_init(&req->r_unsafe_dir_item);
 		spin_unlock(&ci->i_unsafe_lock);
 	}
-	if (req->r_target_inode && req->r_got_unsafe) {
+
+	if (req->r_target_inode && req->r_got_unsafe)
+	{
 		struct ceph_inode_info *ci = ceph_inode(req->r_target_inode);
 		spin_lock(&ci->i_unsafe_lock);
 		list_del_init(&req->r_unsafe_target_item);
 		spin_unlock(&ci->i_unsafe_lock);
 	}
 
-	if (req->r_unsafe_dir) {
+	if (req->r_unsafe_dir)
+	{
 		iput(req->r_unsafe_dir);
 		req->r_unsafe_dir = NULL;
 	}
@@ -683,12 +854,15 @@ static struct dentry *get_nonsnap_parent(struct dentry *dentry)
 	 * result is a valid result.
 	 */
 	while (!IS_ROOT(dentry) && ceph_snap(d_inode(dentry)) != CEPH_NOSNAP)
+	{
 		dentry = dentry->d_parent;
+	}
+
 	return dentry;
 }
 
 static int __choose_mds(struct ceph_mds_client *mdsc,
-			struct ceph_mds_request *req)
+						struct ceph_mds_request *req)
 {
 	struct inode *inode;
 	struct ceph_inode_info *ci;
@@ -703,37 +877,51 @@ static int __choose_mds(struct ceph_mds_client *mdsc,
 	 * no session and the mds is not up (active or recovering).
 	 */
 	if (req->r_resend_mds >= 0 &&
-	    (__have_session(mdsc, req->r_resend_mds) ||
-	     ceph_mdsmap_get_state(mdsc->mdsmap, req->r_resend_mds) > 0)) {
+		(__have_session(mdsc, req->r_resend_mds) ||
+		 ceph_mdsmap_get_state(mdsc->mdsmap, req->r_resend_mds) > 0))
+	{
 		dout("choose_mds using resend_mds mds%d\n",
-		     req->r_resend_mds);
+			 req->r_resend_mds);
 		return req->r_resend_mds;
 	}
 
 	if (mode == USE_RANDOM_MDS)
+	{
 		goto random;
+	}
 
 	inode = NULL;
-	if (req->r_inode) {
+
+	if (req->r_inode)
+	{
 		inode = req->r_inode;
-	} else if (req->r_dentry) {
+	}
+	else if (req->r_dentry)
+	{
 		/* ignore race with rename; old or new d_parent is okay */
 		struct dentry *parent = req->r_dentry->d_parent;
 		struct inode *dir = d_inode(parent);
 
-		if (dir->i_sb != mdsc->fsc->sb) {
+		if (dir->i_sb != mdsc->fsc->sb)
+		{
 			/* not this fs! */
 			inode = d_inode(req->r_dentry);
-		} else if (ceph_snap(dir) != CEPH_NOSNAP) {
+		}
+		else if (ceph_snap(dir) != CEPH_NOSNAP)
+		{
 			/* direct snapped/virtual snapdir requests
 			 * based on parent dir inode */
 			struct dentry *dn = get_nonsnap_parent(parent);
 			inode = d_inode(dn);
 			dout("__choose_mds using nonsnap parent %p\n", inode);
-		} else {
+		}
+		else
+		{
 			/* dentry target */
 			inode = d_inode(req->r_dentry);
-			if (!inode || mode == USE_AUTH_MDS) {
+
+			if (!inode || mode == USE_AUTH_MDS)
+			{
 				/* dir + name */
 				inode = dir;
 				hash = ceph_dentry_hash(dir, req->r_dentry);
@@ -743,18 +931,26 @@ static int __choose_mds(struct ceph_mds_client *mdsc,
 	}
 
 	dout("__choose_mds %p is_hash=%d (%d) mode %d\n", inode, (int)is_hash,
-	     (int)hash, mode);
+		 (int)hash, mode);
+
 	if (!inode)
+	{
 		goto random;
+	}
+
 	ci = ceph_inode(inode);
 
-	if (is_hash && S_ISDIR(inode->i_mode)) {
+	if (is_hash && S_ISDIR(inode->i_mode))
+	{
 		struct ceph_inode_frag frag;
 		int found;
 
 		ceph_choose_frag(ci, hash, &frag, &found);
-		if (found) {
-			if (mode == USE_ANY_MDS && frag.ndist > 0) {
+
+		if (found)
+		{
+			if (mode == USE_ANY_MDS && frag.ndist > 0)
+			{
 				u8 r;
 
 				/* choose a random replica */
@@ -762,46 +958,63 @@ static int __choose_mds(struct ceph_mds_client *mdsc,
 				r %= frag.ndist;
 				mds = frag.dist[r];
 				dout("choose_mds %p %llx.%llx "
-				     "frag %u mds%d (%d/%d)\n",
-				     inode, ceph_vinop(inode),
-				     frag.frag, mds,
-				     (int)r, frag.ndist);
+					 "frag %u mds%d (%d/%d)\n",
+					 inode, ceph_vinop(inode),
+					 frag.frag, mds,
+					 (int)r, frag.ndist);
+
 				if (ceph_mdsmap_get_state(mdsc->mdsmap, mds) >=
-				    CEPH_MDS_STATE_ACTIVE)
+					CEPH_MDS_STATE_ACTIVE)
+				{
 					return mds;
+				}
 			}
 
 			/* since this file/dir wasn't known to be
 			 * replicated, then we want to look for the
 			 * authoritative mds. */
 			mode = USE_AUTH_MDS;
-			if (frag.mds >= 0) {
+
+			if (frag.mds >= 0)
+			{
 				/* choose auth mds */
 				mds = frag.mds;
 				dout("choose_mds %p %llx.%llx "
-				     "frag %u mds%d (auth)\n",
-				     inode, ceph_vinop(inode), frag.frag, mds);
+					 "frag %u mds%d (auth)\n",
+					 inode, ceph_vinop(inode), frag.frag, mds);
+
 				if (ceph_mdsmap_get_state(mdsc->mdsmap, mds) >=
-				    CEPH_MDS_STATE_ACTIVE)
+					CEPH_MDS_STATE_ACTIVE)
+				{
 					return mds;
+				}
 			}
 		}
 	}
 
 	spin_lock(&ci->i_ceph_lock);
 	cap = NULL;
+
 	if (mode == USE_AUTH_MDS)
+	{
 		cap = ci->i_auth_cap;
+	}
+
 	if (!cap && !RB_EMPTY_ROOT(&ci->i_caps))
+	{
 		cap = rb_entry(rb_first(&ci->i_caps), struct ceph_cap, ci_node);
-	if (!cap) {
+	}
+
+	if (!cap)
+	{
 		spin_unlock(&ci->i_ceph_lock);
 		goto random;
 	}
+
 	mds = cap->session->s_mds;
 	dout("choose_mds %p %llx.%llx mds%d (%scap %p)\n",
-	     inode, ceph_vinop(inode), mds,
-	     cap == ci->i_auth_cap ? "auth " : "", cap);
+		 inode, ceph_vinop(inode), mds,
+		 cap == ci->i_auth_cap ? "auth " : "", cap);
 	spin_unlock(&ci->i_ceph_lock);
 	return mds;
 
@@ -821,11 +1034,14 @@ static struct ceph_msg *create_session_msg(u32 op, u64 seq)
 	struct ceph_mds_session_head *h;
 
 	msg = ceph_msg_new(CEPH_MSG_CLIENT_SESSION, sizeof(*h), GFP_NOFS,
-			   false);
-	if (!msg) {
+					   false);
+
+	if (!msg)
+	{
 		pr_err("create_session_msg ENOMEM creating msg\n");
 		return NULL;
 	}
+
 	h = msg->front.iov_base;
 	h->op = cpu_to_le32(op);
 	h->seq = cpu_to_le64(seq);
@@ -848,7 +1064,8 @@ static struct ceph_msg *create_session_open_msg(struct ceph_mds_client *mdsc, u6
 	struct ceph_mount_options *fsopt = mdsc->fsc->mount_options;
 	void *p;
 
-	const char* metadata[][2] = {
+	const char *metadata[][2] =
+	{
 		{"hostname", utsname()->nodename},
 		{"kernel_version", utsname()->release},
 		{"entity_id", opt->name ? : ""},
@@ -858,19 +1075,24 @@ static struct ceph_msg *create_session_open_msg(struct ceph_mds_client *mdsc, u6
 
 	/* Calculate serialized length of metadata */
 	metadata_bytes = 4;  /* map length */
-	for (i = 0; metadata[i][0] != NULL; ++i) {
+
+	for (i = 0; metadata[i][0] != NULL; ++i)
+	{
 		metadata_bytes += 8 + strlen(metadata[i][0]) +
-			strlen(metadata[i][1]);
+						  strlen(metadata[i][1]);
 		metadata_key_count++;
 	}
 
 	/* Allocate the message */
 	msg = ceph_msg_new(CEPH_MSG_CLIENT_SESSION, sizeof(*h) + metadata_bytes,
-			   GFP_NOFS, false);
-	if (!msg) {
+					   GFP_NOFS, false);
+
+	if (!msg)
+	{
 		pr_err("create_session_msg ENOMEM creating msg\n");
 		return NULL;
 	}
+
 	h = msg->front.iov_base;
 	h->op = cpu_to_le32(CEPH_SESSION_REQUEST_OPEN);
 	h->seq = cpu_to_le64(seq);
@@ -891,7 +1113,8 @@ static struct ceph_msg *create_session_open_msg(struct ceph_mds_client *mdsc, u6
 	ceph_encode_32(&p, metadata_key_count);
 
 	/* Two length-prefixed strings for each entry in the map */
-	for (i = 0; metadata[i][0] != NULL; ++i) {
+	for (i = 0; metadata[i][0] != NULL; ++i)
+	{
 		size_t const key_len = strlen(metadata[i][0]);
 		size_t const val_len = strlen(metadata[i][1]);
 
@@ -912,7 +1135,7 @@ static struct ceph_msg *create_session_open_msg(struct ceph_mds_client *mdsc, u6
  * called under mdsc->mutex
  */
 static int __open_session(struct ceph_mds_client *mdsc,
-			  struct ceph_mds_session *session)
+						  struct ceph_mds_session *session)
 {
 	struct ceph_msg *msg;
 	int mstate;
@@ -921,14 +1144,18 @@ static int __open_session(struct ceph_mds_client *mdsc,
 	/* wait for mds to go active? */
 	mstate = ceph_mdsmap_get_state(mdsc->mdsmap, mds);
 	dout("open_session to mds%d (%s)\n", mds,
-	     ceph_mds_state_name(mstate));
+		 ceph_mds_state_name(mstate));
 	session->s_state = CEPH_MDS_SESSION_OPENING;
 	session->s_renew_requested = jiffies;
 
 	/* send connect message */
 	msg = create_session_open_msg(mdsc, session->s_seq);
+
 	if (!msg)
+	{
 		return -ENOMEM;
+	}
+
 	ceph_con_send(&session->s_con, msg);
 	return 0;
 }
@@ -944,14 +1171,22 @@ __open_export_target_session(struct ceph_mds_client *mdsc, int target)
 	struct ceph_mds_session *session;
 
 	session = __ceph_lookup_mds_session(mdsc, target);
-	if (!session) {
+
+	if (!session)
+	{
 		session = register_session(mdsc, target);
+
 		if (IS_ERR(session))
+		{
 			return session;
+		}
 	}
+
 	if (session->s_state == CEPH_MDS_SESSION_NEW ||
-	    session->s_state == CEPH_MDS_SESSION_CLOSING)
+		session->s_state == CEPH_MDS_SESSION_CLOSING)
+	{
 		__open_session(mdsc, session);
+	}
 
 	return session;
 }
@@ -971,28 +1206,34 @@ ceph_mdsc_open_export_target_session(struct ceph_mds_client *mdsc, int target)
 }
 
 static void __open_export_target_sessions(struct ceph_mds_client *mdsc,
-					  struct ceph_mds_session *session)
+		struct ceph_mds_session *session)
 {
 	struct ceph_mds_info *mi;
 	struct ceph_mds_session *ts;
 	int i, mds = session->s_mds;
 
 	if (mds >= mdsc->mdsmap->m_max_mds)
+	{
 		return;
+	}
 
 	mi = &mdsc->mdsmap->m_info[mds];
 	dout("open_export_target_sessions for mds%d (%d targets)\n",
-	     session->s_mds, mi->num_export_targets);
+		 session->s_mds, mi->num_export_targets);
 
-	for (i = 0; i < mi->num_export_targets; i++) {
+	for (i = 0; i < mi->num_export_targets; i++)
+	{
 		ts = __open_export_target_session(mdsc, mi->export_targets[i]);
+
 		if (!IS_ERR(ts))
+		{
 			ceph_put_mds_session(ts);
+		}
 	}
 }
 
 void ceph_mdsc_open_export_target_sessions(struct ceph_mds_client *mdsc,
-					   struct ceph_mds_session *session)
+		struct ceph_mds_session *session)
 {
 	mutex_lock(&mdsc->mutex);
 	__open_export_target_sessions(mdsc, session);
@@ -1005,8 +1246,8 @@ void ceph_mdsc_open_export_target_sessions(struct ceph_mds_client *mdsc,
 
 /* caller holds s_cap_lock, we drop it */
 static void cleanup_cap_releases(struct ceph_mds_client *mdsc,
-				 struct ceph_mds_session *session)
-	__releases(session->s_cap_lock)
+								 struct ceph_mds_session *session)
+__releases(session->s_cap_lock)
 {
 	LIST_HEAD(tmp_list);
 	list_splice_init(&session->s_cap_releases, &tmp_list);
@@ -1014,41 +1255,52 @@ static void cleanup_cap_releases(struct ceph_mds_client *mdsc,
 	spin_unlock(&session->s_cap_lock);
 
 	dout("cleanup_cap_releases mds%d\n", session->s_mds);
-	while (!list_empty(&tmp_list)) {
+
+	while (!list_empty(&tmp_list))
+	{
 		struct ceph_cap *cap;
 		/* zero out the in-progress message */
 		cap = list_first_entry(&tmp_list,
-					struct ceph_cap, session_caps);
+							   struct ceph_cap, session_caps);
 		list_del(&cap->session_caps);
 		ceph_put_cap(mdsc, cap);
 	}
 }
 
 static void cleanup_session_requests(struct ceph_mds_client *mdsc,
-				     struct ceph_mds_session *session)
+									 struct ceph_mds_session *session)
 {
 	struct ceph_mds_request *req;
 	struct rb_node *p;
 
 	dout("cleanup_session_requests mds%d\n", session->s_mds);
 	mutex_lock(&mdsc->mutex);
-	while (!list_empty(&session->s_unsafe)) {
+
+	while (!list_empty(&session->s_unsafe))
+	{
 		req = list_first_entry(&session->s_unsafe,
-				       struct ceph_mds_request, r_unsafe_item);
+							   struct ceph_mds_request, r_unsafe_item);
 		list_del_init(&req->r_unsafe_item);
 		pr_warn_ratelimited(" dropping unsafe request %llu\n",
-				    req->r_tid);
+							req->r_tid);
 		__unregister_request(mdsc, req);
 	}
+
 	/* zero r_attempts, so kick_requests() will re-send requests */
 	p = rb_first(&mdsc->request_tree);
-	while (p) {
+
+	while (p)
+	{
 		req = rb_entry(p, struct ceph_mds_request, r_node);
 		p = rb_next(p);
+
 		if (req->r_session &&
-		    req->r_session->s_mds == session->s_mds)
+			req->r_session->s_mds == session->s_mds)
+		{
 			req->r_attempts = 0;
+		}
 	}
+
 	mutex_unlock(&mdsc->mutex);
 }
 
@@ -1059,8 +1311,8 @@ static void cleanup_session_requests(struct ceph_mds_client *mdsc,
  * Caller must hold session s_mutex.
  */
 static int iterate_session_caps(struct ceph_mds_session *session,
-				 int (*cb)(struct inode *, struct ceph_cap *,
-					    void *), void *arg)
+								int (*cb)(struct inode *, struct ceph_cap *,
+										void *), void *arg)
 {
 	struct list_head *p;
 	struct ceph_cap *cap;
@@ -1071,21 +1323,29 @@ static int iterate_session_caps(struct ceph_mds_session *session,
 	dout("iterate_session_caps %p mds%d\n", session, session->s_mds);
 	spin_lock(&session->s_cap_lock);
 	p = session->s_caps.next;
-	while (p != &session->s_caps) {
+
+	while (p != &session->s_caps)
+	{
 		cap = list_entry(p, struct ceph_cap, session_caps);
 		inode = igrab(&cap->ci->vfs_inode);
-		if (!inode) {
+
+		if (!inode)
+		{
 			p = p->next;
 			continue;
 		}
+
 		session->s_cap_iterator = cap;
 		spin_unlock(&session->s_cap_lock);
 
-		if (last_inode) {
+		if (last_inode)
+		{
 			iput(last_inode);
 			last_inode = NULL;
 		}
-		if (old_cap) {
+
+		if (old_cap)
+		{
 			ceph_put_cap(session->s_mdsc, old_cap);
 			old_cap = NULL;
 		}
@@ -1095,38 +1355,51 @@ static int iterate_session_caps(struct ceph_mds_session *session,
 
 		spin_lock(&session->s_cap_lock);
 		p = p->next;
-		if (cap->ci == NULL) {
+
+		if (cap->ci == NULL)
+		{
 			dout("iterate_session_caps  finishing cap %p removal\n",
-			     cap);
+				 cap);
 			BUG_ON(cap->session != session);
 			cap->session = NULL;
 			list_del_init(&cap->session_caps);
 			session->s_nr_caps--;
-			if (cap->queue_release) {
+
+			if (cap->queue_release)
+			{
 				list_add_tail(&cap->session_caps,
-					      &session->s_cap_releases);
+							  &session->s_cap_releases);
 				session->s_num_cap_releases++;
-			} else {
+			}
+			else
+			{
 				old_cap = cap;  /* put_cap it w/o locks held */
 			}
 		}
+
 		if (ret < 0)
+		{
 			goto out;
+		}
 	}
+
 	ret = 0;
 out:
 	session->s_cap_iterator = NULL;
 	spin_unlock(&session->s_cap_lock);
 
 	iput(last_inode);
+
 	if (old_cap)
+	{
 		ceph_put_cap(session->s_mdsc, old_cap);
+	}
 
 	return ret;
 }
 
 static int remove_session_caps_cb(struct inode *inode, struct ceph_cap *cap,
-				  void *arg)
+								  void *arg)
 {
 	struct ceph_fs_client *fsc = (struct ceph_fs_client *)arg;
 	struct ceph_inode_info *ci = ceph_inode(inode);
@@ -1135,31 +1408,37 @@ static int remove_session_caps_cb(struct inode *inode, struct ceph_cap *cap,
 	bool invalidate = false;
 
 	dout("removing cap %p, ci is %p, inode is %p\n",
-	     cap, ci, &ci->vfs_inode);
+		 cap, ci, &ci->vfs_inode);
 	spin_lock(&ci->i_ceph_lock);
 	__ceph_remove_cap(cap, false);
-	if (!ci->i_auth_cap) {
+
+	if (!ci->i_auth_cap)
+	{
 		struct ceph_cap_flush *cf;
 		struct ceph_mds_client *mdsc = fsc->mdsc;
 
 		ci->i_ceph_flags |= CEPH_I_CAP_DROPPED;
 
 		if (ci->i_wrbuffer_ref > 0 &&
-		    ACCESS_ONCE(fsc->mount_state) == CEPH_MOUNT_SHUTDOWN)
+			ACCESS_ONCE(fsc->mount_state) == CEPH_MOUNT_SHUTDOWN)
+		{
 			invalidate = true;
+		}
 
-		while (!list_empty(&ci->i_cap_flush_list)) {
+		while (!list_empty(&ci->i_cap_flush_list))
+		{
 			cf = list_first_entry(&ci->i_cap_flush_list,
-					      struct ceph_cap_flush, i_list);
+								  struct ceph_cap_flush, i_list);
 			list_move(&cf->i_list, &to_remove);
 		}
 
 		spin_lock(&mdsc->cap_dirty_lock);
 
 		list_for_each_entry(cf, &to_remove, i_list)
-			list_del(&cf->g_list);
+		list_del(&cf->g_list);
 
-		if (!list_empty(&ci->i_dirty_item)) {
+		if (!list_empty(&ci->i_dirty_item))
+		{
 			pr_warn_ratelimited(
 				" dropping dirty %s state for %p %lld\n",
 				ceph_cap_string(ci->i_dirty_caps),
@@ -1168,7 +1447,9 @@ static int remove_session_caps_cb(struct inode *inode, struct ceph_cap *cap,
 			list_del_init(&ci->i_dirty_item);
 			drop = true;
 		}
-		if (!list_empty(&ci->i_flushing_item)) {
+
+		if (!list_empty(&ci->i_flushing_item))
+		{
 			pr_warn_ratelimited(
 				" dropping dirty+flushing %s state for %p %lld\n",
 				ceph_cap_string(ci->i_flushing_caps),
@@ -1178,27 +1459,39 @@ static int remove_session_caps_cb(struct inode *inode, struct ceph_cap *cap,
 			mdsc->num_cap_flushing--;
 			drop = true;
 		}
+
 		spin_unlock(&mdsc->cap_dirty_lock);
 
-		if (!ci->i_dirty_caps && ci->i_prealloc_cap_flush) {
+		if (!ci->i_dirty_caps && ci->i_prealloc_cap_flush)
+		{
 			list_add(&ci->i_prealloc_cap_flush->i_list, &to_remove);
 			ci->i_prealloc_cap_flush = NULL;
 		}
 	}
+
 	spin_unlock(&ci->i_ceph_lock);
-	while (!list_empty(&to_remove)) {
+
+	while (!list_empty(&to_remove))
+	{
 		struct ceph_cap_flush *cf;
 		cf = list_first_entry(&to_remove,
-				      struct ceph_cap_flush, i_list);
+							  struct ceph_cap_flush, i_list);
 		list_del(&cf->i_list);
 		ceph_free_cap_flush(cf);
 	}
 
 	wake_up_all(&ci->i_cap_wq);
+
 	if (invalidate)
+	{
 		ceph_queue_invalidate(inode);
+	}
+
 	if (drop)
+	{
 		iput(inode);
+	}
+
 	return 0;
 }
 
@@ -1215,10 +1508,13 @@ static void remove_session_caps(struct ceph_mds_session *session)
 	wake_up_all(&fsc->mdsc->cap_flushing_wq);
 
 	spin_lock(&session->s_cap_lock);
-	if (session->s_nr_caps > 0) {
+
+	if (session->s_nr_caps > 0)
+	{
 		struct inode *inode;
 		struct ceph_cap *cap, *prev = NULL;
 		struct ceph_vino vino;
+
 		/*
 		 * iterate_session_caps() skips inodes that are being
 		 * deleted, we need to wait until deletions are complete.
@@ -1226,11 +1522,16 @@ static void remove_session_caps(struct ceph_mds_session *session)
 		 * but it is not exported, so use lookup inode function
 		 * to access it.
 		 */
-		while (!list_empty(&session->s_caps)) {
+		while (!list_empty(&session->s_caps))
+		{
 			cap = list_entry(session->s_caps.next,
-					 struct ceph_cap, session_caps);
+							 struct ceph_cap, session_caps);
+
 			if (cap == prev)
+			{
 				break;
+			}
+
 			prev = cap;
 			vino = cap->ci->i_vino;
 			spin_unlock(&session->s_cap_lock);
@@ -1256,26 +1557,28 @@ static void remove_session_caps(struct ceph_mds_session *session)
  * caller must hold s_mutex.
  */
 static int wake_up_session_cb(struct inode *inode, struct ceph_cap *cap,
-			      void *arg)
+							  void *arg)
 {
 	struct ceph_inode_info *ci = ceph_inode(inode);
 
-	if (arg) {
+	if (arg)
+	{
 		spin_lock(&ci->i_ceph_lock);
 		ci->i_wanted_max_size = 0;
 		ci->i_requested_max_size = 0;
 		spin_unlock(&ci->i_ceph_lock);
 	}
+
 	wake_up_all(&ci->i_cap_wq);
 	return 0;
 }
 
 static void wake_up_session_caps(struct ceph_mds_session *session,
-				 int reconnect)
+								 int reconnect)
 {
 	dout("wake_up_session_caps %p mds%d\n", session, session->s_mds);
 	iterate_session_caps(session, wake_up_session_cb,
-			     (void *)(unsigned long)reconnect);
+						 (void *)(unsigned long)reconnect);
 }
 
 /*
@@ -1285,45 +1588,58 @@ static void wake_up_session_caps(struct ceph_mds_session *session,
  * caller holds s_mutex
  */
 static int send_renew_caps(struct ceph_mds_client *mdsc,
-			   struct ceph_mds_session *session)
+						   struct ceph_mds_session *session)
 {
 	struct ceph_msg *msg;
 	int state;
 
 	if (time_after_eq(jiffies, session->s_cap_ttl) &&
-	    time_after_eq(session->s_cap_ttl, session->s_renew_requested))
+		time_after_eq(session->s_cap_ttl, session->s_renew_requested))
+	{
 		pr_info("mds%d caps stale\n", session->s_mds);
+	}
+
 	session->s_renew_requested = jiffies;
 
 	/* do not try to renew caps until a recovering mds has reconnected
 	 * with its clients. */
 	state = ceph_mdsmap_get_state(mdsc->mdsmap, session->s_mds);
-	if (state < CEPH_MDS_STATE_RECONNECT) {
+
+	if (state < CEPH_MDS_STATE_RECONNECT)
+	{
 		dout("send_renew_caps ignoring mds%d (%s)\n",
-		     session->s_mds, ceph_mds_state_name(state));
+			 session->s_mds, ceph_mds_state_name(state));
 		return 0;
 	}
 
 	dout("send_renew_caps to mds%d (%s)\n", session->s_mds,
-		ceph_mds_state_name(state));
+		 ceph_mds_state_name(state));
 	msg = create_session_msg(CEPH_SESSION_REQUEST_RENEWCAPS,
-				 ++session->s_renew_seq);
+							 ++session->s_renew_seq);
+
 	if (!msg)
+	{
 		return -ENOMEM;
+	}
+
 	ceph_con_send(&session->s_con, msg);
 	return 0;
 }
 
 static int send_flushmsg_ack(struct ceph_mds_client *mdsc,
-			     struct ceph_mds_session *session, u64 seq)
+							 struct ceph_mds_session *session, u64 seq)
 {
 	struct ceph_msg *msg;
 
 	dout("send_flushmsg_ack to mds%d (%s)s seq %lld\n",
-	     session->s_mds, ceph_session_state_name(session->s_state), seq);
+		 session->s_mds, ceph_session_state_name(session->s_state), seq);
 	msg = create_session_msg(CEPH_SESSION_FLUSHMSG_ACK, seq);
+
 	if (!msg)
+	{
 		return -ENOMEM;
+	}
+
 	ceph_con_send(&session->s_con, msg);
 	return 0;
 }
@@ -1335,7 +1651,7 @@ static int send_flushmsg_ack(struct ceph_mds_client *mdsc,
  * Called under session->s_mutex
  */
 static void renewed_caps(struct ceph_mds_client *mdsc,
-			 struct ceph_mds_session *session, int is_renew)
+						 struct ceph_mds_session *session, int is_renew)
 {
 	int was_stale;
 	int wake = 0;
@@ -1344,39 +1660,50 @@ static void renewed_caps(struct ceph_mds_client *mdsc,
 	was_stale = is_renew && time_after_eq(jiffies, session->s_cap_ttl);
 
 	session->s_cap_ttl = session->s_renew_requested +
-		mdsc->mdsmap->m_session_timeout*HZ;
+						 mdsc->mdsmap->m_session_timeout * HZ;
 
-	if (was_stale) {
-		if (time_before(jiffies, session->s_cap_ttl)) {
+	if (was_stale)
+	{
+		if (time_before(jiffies, session->s_cap_ttl))
+		{
 			pr_info("mds%d caps renewed\n", session->s_mds);
 			wake = 1;
-		} else {
+		}
+		else
+		{
 			pr_info("mds%d caps still stale\n", session->s_mds);
 		}
 	}
+
 	dout("renewed_caps mds%d ttl now %lu, was %s, now %s\n",
-	     session->s_mds, session->s_cap_ttl, was_stale ? "stale" : "fresh",
-	     time_before(jiffies, session->s_cap_ttl) ? "stale" : "fresh");
+		 session->s_mds, session->s_cap_ttl, was_stale ? "stale" : "fresh",
+		 time_before(jiffies, session->s_cap_ttl) ? "stale" : "fresh");
 	spin_unlock(&session->s_cap_lock);
 
 	if (wake)
+	{
 		wake_up_session_caps(session, 0);
+	}
 }
 
 /*
  * send a session close request
  */
 static int request_close_session(struct ceph_mds_client *mdsc,
-				 struct ceph_mds_session *session)
+								 struct ceph_mds_session *session)
 {
 	struct ceph_msg *msg;
 
 	dout("request_close_session mds%d state %s seq %lld\n",
-	     session->s_mds, ceph_session_state_name(session->s_state),
-	     session->s_seq);
+		 session->s_mds, ceph_session_state_name(session->s_state),
+		 session->s_seq);
 	msg = create_session_msg(CEPH_SESSION_REQUEST_CLOSE, session->s_seq);
+
 	if (!msg)
+	{
 		return -ENOMEM;
+	}
+
 	ceph_con_send(&session->s_con, msg);
 	return 1;
 }
@@ -1385,10 +1712,13 @@ static int request_close_session(struct ceph_mds_client *mdsc,
  * Called with s_mutex held.
  */
 static int __close_session(struct ceph_mds_client *mdsc,
-			 struct ceph_mds_session *session)
+						   struct ceph_mds_session *session)
 {
 	if (session->s_state >= CEPH_MDS_SESSION_CLOSING)
+	{
 		return 0;
+	}
+
 	session->s_state = CEPH_MDS_SESSION_CLOSING;
 	return request_close_session(mdsc, session);
 }
@@ -1410,7 +1740,9 @@ static int trim_caps_cb(struct inode *inode, struct ceph_cap *cap, void *arg)
 	int used, wanted, oissued, mine;
 
 	if (session->s_trim_caps <= 0)
+	{
 		return -1;
+	}
 
 	spin_lock(&ci->i_ceph_lock);
 	mine = cap->issued | cap->implemented;
@@ -1419,35 +1751,51 @@ static int trim_caps_cb(struct inode *inode, struct ceph_cap *cap, void *arg)
 	oissued = __ceph_caps_issued_other(ci, cap);
 
 	dout("trim_caps_cb %p cap %p mine %s oissued %s used %s wanted %s\n",
-	     inode, cap, ceph_cap_string(mine), ceph_cap_string(oissued),
-	     ceph_cap_string(used), ceph_cap_string(wanted));
-	if (cap == ci->i_auth_cap) {
+		 inode, cap, ceph_cap_string(mine), ceph_cap_string(oissued),
+		 ceph_cap_string(used), ceph_cap_string(wanted));
+
+	if (cap == ci->i_auth_cap)
+	{
 		if (ci->i_dirty_caps || ci->i_flushing_caps ||
-		    !list_empty(&ci->i_cap_snaps))
+			!list_empty(&ci->i_cap_snaps))
+		{
 			goto out;
+		}
+
 		if ((used | wanted) & CEPH_CAP_ANY_WR)
+		{
 			goto out;
+		}
 	}
+
 	/* The inode has cached pages, but it's no longer used.
 	 * we can safely drop it */
 	if (wanted == 0 && used == CEPH_CAP_FILE_CACHE &&
-	    !(oissued & CEPH_CAP_FILE_CACHE)) {
-	  used = 0;
-	  oissued = 0;
+		!(oissued & CEPH_CAP_FILE_CACHE))
+	{
+		used = 0;
+		oissued = 0;
 	}
+
 	if ((used | wanted) & ~oissued & mine)
-		goto out;   /* we need these caps */
+	{
+		goto out;    /* we need these caps */
+	}
 
 	session->s_trim_caps--;
-	if (oissued) {
+
+	if (oissued)
+	{
 		/* we aren't the only cap.. just remove us */
 		__ceph_remove_cap(cap, true);
-	} else {
+	}
+	else
+	{
 		/* try dropping referring dentries */
 		spin_unlock(&ci->i_ceph_lock);
 		d_prune_aliases(inode);
 		dout("trim_caps_cb %p cap %p  pruned, count now %d\n",
-		     inode, cap, atomic_read(&inode->i_count));
+			 inode, cap, atomic_read(&inode->i_count));
 		return 0;
 	}
 
@@ -1460,19 +1808,21 @@ out:
  * Trim session cap count down to some max number.
  */
 static int trim_caps(struct ceph_mds_client *mdsc,
-		     struct ceph_mds_session *session,
-		     int max_caps)
+					 struct ceph_mds_session *session,
+					 int max_caps)
 {
 	int trim_caps = session->s_nr_caps - max_caps;
 
 	dout("trim_caps mds%d start: %d / %d, trim %d\n",
-	     session->s_mds, session->s_nr_caps, max_caps, trim_caps);
-	if (trim_caps > 0) {
+		 session->s_mds, session->s_nr_caps, max_caps, trim_caps);
+
+	if (trim_caps > 0)
+	{
 		session->s_trim_caps = trim_caps;
 		iterate_session_caps(session, trim_caps_cb, session);
 		dout("trim_caps mds%d done: %d / %d, trimmed %d\n",
-		     session->s_mds, session->s_nr_caps, max_caps,
-			trim_caps - session->s_trim_caps);
+			 session->s_mds, session->s_nr_caps, max_caps,
+			 trim_caps - session->s_trim_caps);
 		session->s_trim_caps = 0;
 	}
 
@@ -1481,21 +1831,26 @@ static int trim_caps(struct ceph_mds_client *mdsc,
 }
 
 static int check_caps_flush(struct ceph_mds_client *mdsc,
-			    u64 want_flush_tid)
+							u64 want_flush_tid)
 {
 	int ret = 1;
 
 	spin_lock(&mdsc->cap_dirty_lock);
-	if (!list_empty(&mdsc->cap_flush_list)) {
+
+	if (!list_empty(&mdsc->cap_flush_list))
+	{
 		struct ceph_cap_flush *cf =
 			list_first_entry(&mdsc->cap_flush_list,
-					 struct ceph_cap_flush, g_list);
-		if (cf->tid <= want_flush_tid) {
+							 struct ceph_cap_flush, g_list);
+
+		if (cf->tid <= want_flush_tid)
+		{
 			dout("check_caps_flush still flushing tid "
-			     "%llu <= %llu\n", cf->tid, want_flush_tid);
+				 "%llu <= %llu\n", cf->tid, want_flush_tid);
 			ret = 0;
 		}
 	}
+
 	spin_unlock(&mdsc->cap_dirty_lock);
 	return ret;
 }
@@ -1506,12 +1861,12 @@ static int check_caps_flush(struct ceph_mds_client *mdsc,
  * returns true if we've flushed through want_flush_tid
  */
 static void wait_caps_flush(struct ceph_mds_client *mdsc,
-			    u64 want_flush_tid)
+							u64 want_flush_tid)
 {
 	dout("check_caps_flush want %llu\n", want_flush_tid);
 
 	wait_event(mdsc->cap_flushing_wq,
-		   check_caps_flush(mdsc, want_flush_tid));
+			   check_caps_flush(mdsc, want_flush_tid));
 
 	dout("check_caps_flush ok, flushed thru %llu\n", want_flush_tid);
 }
@@ -1520,7 +1875,7 @@ static void wait_caps_flush(struct ceph_mds_client *mdsc,
  * called under s_mutex
  */
 void ceph_send_cap_releases(struct ceph_mds_client *mdsc,
-			    struct ceph_mds_session *session)
+							struct ceph_mds_session *session)
 {
 	struct ceph_msg *msg = NULL;
 	struct ceph_mds_cap_release *head;
@@ -1536,18 +1891,25 @@ again:
 	session->s_num_cap_releases = 0;
 	spin_unlock(&session->s_cap_lock);
 
-	while (!list_empty(&tmp_list)) {
-		if (!msg) {
+	while (!list_empty(&tmp_list))
+	{
+		if (!msg)
+		{
 			msg = ceph_msg_new(CEPH_MSG_CLIENT_CAPRELEASE,
-					PAGE_SIZE, GFP_NOFS, false);
+							   PAGE_SIZE, GFP_NOFS, false);
+
 			if (!msg)
+			{
 				goto out_err;
+			}
+
 			head = msg->front.iov_base;
 			head->num = cpu_to_le32(0);
 			msg->front.iov_len = sizeof(*head);
 		}
+
 		cap = list_first_entry(&tmp_list, struct ceph_cap,
-					session_caps);
+							   session_caps);
 		list_del(&cap->session_caps);
 		num_cap_releases--;
 
@@ -1562,7 +1924,8 @@ again:
 
 		ceph_put_cap(mdsc, cap);
 
-		if (le32_to_cpu(head->num) == CEPH_CAPS_PER_RELEASE) {
+		if (le32_to_cpu(head->num) == CEPH_CAPS_PER_RELEASE)
+		{
 			msg->hdr.front_len = cpu_to_le32(msg->front.iov_len);
 			dout("send_cap_releases mds%d %p\n", session->s_mds, msg);
 			ceph_con_send(&session->s_con, msg);
@@ -1573,19 +1936,25 @@ again:
 	BUG_ON(num_cap_releases != 0);
 
 	spin_lock(&session->s_cap_lock);
+
 	if (!list_empty(&session->s_cap_releases))
+	{
 		goto again;
+	}
+
 	spin_unlock(&session->s_cap_lock);
 
-	if (msg) {
+	if (msg)
+	{
 		msg->hdr.front_len = cpu_to_le32(msg->front.iov_len);
 		dout("send_cap_releases mds%d %p\n", session->s_mds, msg);
 		ceph_con_send(&session->s_con, msg);
 	}
+
 	return;
 out_err:
 	pr_err("send_cap_releases mds%d, failed to allocate message\n",
-		session->s_mds);
+		   session->s_mds);
 	spin_lock(&session->s_cap_lock);
 	list_splice(&tmp_list, &session->s_cap_releases);
 	session->s_num_cap_releases += num_cap_releases;
@@ -1597,7 +1966,7 @@ out_err:
  */
 
 int ceph_alloc_readdir_reply_buffer(struct ceph_mds_request *req,
-				    struct inode *dir)
+									struct inode *dir)
 {
 	struct ceph_inode_info *ci = ceph_inode(dir);
 	struct ceph_mds_reply_info_parsed *rinfo = &req->r_reply_info;
@@ -1612,16 +1981,25 @@ int ceph_alloc_readdir_reply_buffer(struct ceph_mds_request *req,
 	num_entries = min(num_entries, opt->max_readdir);
 
 	order = get_order(size * num_entries);
-	while (order >= 0) {
-		rinfo->dir_entries = (void*)__get_free_pages(GFP_KERNEL |
-							     __GFP_NOWARN,
-							     order);
+
+	while (order >= 0)
+	{
+		rinfo->dir_entries = (void *)__get_free_pages(GFP_KERNEL |
+							 __GFP_NOWARN,
+							 order);
+
 		if (rinfo->dir_entries)
+		{
 			break;
+		}
+
 		order--;
 	}
+
 	if (!rinfo->dir_entries)
+	{
 		return -ENOMEM;
+	}
 
 	num_entries = (PAGE_SIZE << order) / size;
 	num_entries = min(num_entries, opt->max_readdir);
@@ -1642,7 +2020,9 @@ ceph_mdsc_create_request(struct ceph_mds_client *mdsc, int op, int mode)
 	struct ceph_mds_request *req = kzalloc(sizeof(*req), GFP_NOFS);
 
 	if (!req)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	mutex_init(&req->r_fill_mutex);
 	req->r_mdsc = mdsc;
@@ -1673,9 +2053,12 @@ ceph_mdsc_create_request(struct ceph_mds_client *mdsc, int op, int mode)
 static struct ceph_mds_request *__get_oldest_req(struct ceph_mds_client *mdsc)
 {
 	if (RB_EMPTY_ROOT(&mdsc->request_tree))
+	{
 		return NULL;
+	}
+
 	return rb_entry(rb_first(&mdsc->request_tree),
-			struct ceph_mds_request, r_node);
+					struct ceph_mds_request, r_node);
 }
 
 static inline  u64 __get_oldest_tid(struct ceph_mds_client *mdsc)
@@ -1694,7 +2077,7 @@ static inline  u64 __get_oldest_tid(struct ceph_mds_client *mdsc)
  *   foo/.snap/bar -> foo//bar
  */
 char *ceph_mdsc_build_path(struct dentry *dentry, int *plen, u64 *base,
-			   int stop_on_nosnap)
+						   int stop_on_nosnap)
 {
 	struct dentry *temp;
 	char *path;
@@ -1702,63 +2085,102 @@ char *ceph_mdsc_build_path(struct dentry *dentry, int *plen, u64 *base,
 	unsigned seq;
 
 	if (dentry == NULL)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 retry:
 	len = 0;
 	seq = read_seqbegin(&rename_lock);
 	rcu_read_lock();
-	for (temp = dentry; !IS_ROOT(temp);) {
+
+	for (temp = dentry; !IS_ROOT(temp);)
+	{
 		struct inode *inode = d_inode(temp);
+
 		if (inode && ceph_snap(inode) == CEPH_SNAPDIR)
-			len++;  /* slash only */
+		{
+			len++;    /* slash only */
+		}
 		else if (stop_on_nosnap && inode &&
-			 ceph_snap(inode) == CEPH_NOSNAP)
+				 ceph_snap(inode) == CEPH_NOSNAP)
+		{
 			break;
+		}
 		else
+		{
 			len += 1 + temp->d_name.len;
+		}
+
 		temp = temp->d_parent;
 	}
-	rcu_read_unlock();
-	if (len)
-		len--;  /* no leading '/' */
 
-	path = kmalloc(len+1, GFP_NOFS);
+	rcu_read_unlock();
+
+	if (len)
+	{
+		len--;    /* no leading '/' */
+	}
+
+	path = kmalloc(len + 1, GFP_NOFS);
+
 	if (path == NULL)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	pos = len;
 	path[pos] = 0;	/* trailing null */
 	rcu_read_lock();
-	for (temp = dentry; !IS_ROOT(temp) && pos != 0; ) {
+
+	for (temp = dentry; !IS_ROOT(temp) && pos != 0; )
+	{
 		struct inode *inode;
 
 		spin_lock(&temp->d_lock);
 		inode = d_inode(temp);
-		if (inode && ceph_snap(inode) == CEPH_SNAPDIR) {
+
+		if (inode && ceph_snap(inode) == CEPH_SNAPDIR)
+		{
 			dout("build_path path+%d: %p SNAPDIR\n",
-			     pos, temp);
-		} else if (stop_on_nosnap && inode &&
-			   ceph_snap(inode) == CEPH_NOSNAP) {
+				 pos, temp);
+		}
+		else if (stop_on_nosnap && inode &&
+				 ceph_snap(inode) == CEPH_NOSNAP)
+		{
 			spin_unlock(&temp->d_lock);
 			break;
-		} else {
+		}
+		else
+		{
 			pos -= temp->d_name.len;
-			if (pos < 0) {
+
+			if (pos < 0)
+			{
 				spin_unlock(&temp->d_lock);
 				break;
 			}
+
 			strncpy(path + pos, temp->d_name.name,
-				temp->d_name.len);
+					temp->d_name.len);
 		}
+
 		spin_unlock(&temp->d_lock);
+
 		if (pos)
+		{
 			path[--pos] = '/';
+		}
+
 		temp = temp->d_parent;
 	}
+
 	rcu_read_unlock();
-	if (pos != 0 || read_seqretry(&rename_lock, seq)) {
+
+	if (pos != 0 || read_seqretry(&rename_lock, seq))
+	{
 		pr_err("build_path did not end path lookup where "
-		       "expected, namelen is %d, pos is %d\n", len, pos);
+			   "expected, namelen is %d, pos is %d\n", len, pos);
 		/* presumably this is only possible if racing with a
 		   rename of one of the parent directories (we can not
 		   lock the dentries above us to prevent this, but
@@ -1770,47 +2192,59 @@ retry:
 	*base = ceph_ino(d_inode(temp));
 	*plen = len;
 	dout("build_path on %p %d built %llx '%.*s'\n",
-	     dentry, d_count(dentry), *base, len, path);
+		 dentry, d_count(dentry), *base, len, path);
 	return path;
 }
 
 static int build_dentry_path(struct dentry *dentry,
-			     const char **ppath, int *ppathlen, u64 *pino,
-			     int *pfreepath)
+							 const char **ppath, int *ppathlen, u64 *pino,
+							 int *pfreepath)
 {
 	char *path;
 
-	if (ceph_snap(d_inode(dentry->d_parent)) == CEPH_NOSNAP) {
+	if (ceph_snap(d_inode(dentry->d_parent)) == CEPH_NOSNAP)
+	{
 		*pino = ceph_ino(d_inode(dentry->d_parent));
 		*ppath = dentry->d_name.name;
 		*ppathlen = dentry->d_name.len;
 		return 0;
 	}
+
 	path = ceph_mdsc_build_path(dentry, ppathlen, pino, 1);
+
 	if (IS_ERR(path))
+	{
 		return PTR_ERR(path);
+	}
+
 	*ppath = path;
 	*pfreepath = 1;
 	return 0;
 }
 
 static int build_inode_path(struct inode *inode,
-			    const char **ppath, int *ppathlen, u64 *pino,
-			    int *pfreepath)
+							const char **ppath, int *ppathlen, u64 *pino,
+							int *pfreepath)
 {
 	struct dentry *dentry;
 	char *path;
 
-	if (ceph_snap(inode) == CEPH_NOSNAP) {
+	if (ceph_snap(inode) == CEPH_NOSNAP)
+	{
 		*pino = ceph_ino(inode);
 		*ppathlen = 0;
 		return 0;
 	}
+
 	dentry = d_find_alias(inode);
 	path = ceph_mdsc_build_path(dentry, ppathlen, pino, 1);
 	dput(dentry);
+
 	if (IS_ERR(path))
+	{
 		return PTR_ERR(path);
+	}
+
 	*ppath = path;
 	*pfreepath = 1;
 	return 0;
@@ -1821,21 +2255,26 @@ static int build_inode_path(struct inode *inode,
  * an explicit ino+path.
  */
 static int set_request_path_attr(struct inode *rinode, struct dentry *rdentry,
-				  const char *rpath, u64 rino,
-				  const char **ppath, int *pathlen,
-				  u64 *ino, int *freepath)
+								 const char *rpath, u64 rino,
+								 const char **ppath, int *pathlen,
+								 u64 *ino, int *freepath)
 {
 	int r = 0;
 
-	if (rinode) {
+	if (rinode)
+	{
 		r = build_inode_path(rinode, ppath, pathlen, ino, freepath);
 		dout(" inode %p %llx.%llx\n", rinode, ceph_ino(rinode),
-		     ceph_snap(rinode));
-	} else if (rdentry) {
+			 ceph_snap(rinode));
+	}
+	else if (rdentry)
+	{
 		r = build_dentry_path(rdentry, ppath, pathlen, ino, freepath);
 		dout(" dentry %p %llx/%.*s\n", rdentry, *ino, *pathlen,
-		     *ppath);
-	} else if (rpath || rino) {
+			 *ppath);
+	}
+	else if (rpath || rino)
+	{
 		*ino = rino;
 		*ppath = rpath;
 		*pathlen = rpath ? strlen(rpath) : 0;
@@ -1849,8 +2288,8 @@ static int set_request_path_attr(struct inode *rinode, struct dentry *rdentry,
  * called under mdsc->mutex
  */
 static struct ceph_msg *create_request_message(struct ceph_mds_client *mdsc,
-					       struct ceph_mds_request *req,
-					       int mds, bool drop_cap_releases)
+		struct ceph_mds_request *req,
+		int mds, bool drop_cap_releases)
 {
 	struct ceph_msg *msg;
 	struct ceph_mds_request_head *head;
@@ -1865,36 +2304,48 @@ static struct ceph_msg *create_request_message(struct ceph_mds_client *mdsc,
 	int ret;
 
 	ret = set_request_path_attr(req->r_inode, req->r_dentry,
-			      req->r_path1, req->r_ino1.ino,
-			      &path1, &pathlen1, &ino1, &freepath1);
-	if (ret < 0) {
+								req->r_path1, req->r_ino1.ino,
+								&path1, &pathlen1, &ino1, &freepath1);
+
+	if (ret < 0)
+	{
 		msg = ERR_PTR(ret);
 		goto out;
 	}
 
 	ret = set_request_path_attr(NULL, req->r_old_dentry,
-			      req->r_path2, req->r_ino2.ino,
-			      &path2, &pathlen2, &ino2, &freepath2);
-	if (ret < 0) {
+								req->r_path2, req->r_ino2.ino,
+								&path2, &pathlen2, &ino2, &freepath2);
+
+	if (ret < 0)
+	{
 		msg = ERR_PTR(ret);
 		goto out_free1;
 	}
 
 	len = sizeof(*head) +
-		pathlen1 + pathlen2 + 2*(1 + sizeof(u32) + sizeof(u64)) +
-		sizeof(struct ceph_timespec);
+		  pathlen1 + pathlen2 + 2 * (1 + sizeof(u32) + sizeof(u64)) +
+		  sizeof(struct ceph_timespec);
 
 	/* calculate (max) length for cap releases */
 	len += sizeof(struct ceph_mds_request_release) *
-		(!!req->r_inode_drop + !!req->r_dentry_drop +
-		 !!req->r_old_inode_drop + !!req->r_old_dentry_drop);
+		   (!!req->r_inode_drop + !!req->r_dentry_drop +
+			!!req->r_old_inode_drop + !!req->r_old_dentry_drop);
+
 	if (req->r_dentry_drop)
+	{
 		len += req->r_dentry->d_name.len;
+	}
+
 	if (req->r_old_dentry_drop)
+	{
 		len += req->r_old_dentry->d_name.len;
+	}
 
 	msg = ceph_msg_new(CEPH_MSG_CLIENT_REQUEST, len, GFP_NOFS, false);
-	if (!msg) {
+
+	if (!msg)
+	{
 		msg = ERR_PTR(-ENOMEM);
 		goto out_free2;
 	}
@@ -1920,22 +2371,27 @@ static struct ceph_msg *create_request_message(struct ceph_mds_client *mdsc,
 
 	/* cap releases */
 	releases = 0;
+
 	if (req->r_inode_drop)
 		releases += ceph_encode_inode_release(&p,
-		      req->r_inode ? req->r_inode : d_inode(req->r_dentry),
-		      mds, req->r_inode_drop, req->r_inode_unless, 0);
+											  req->r_inode ? req->r_inode : d_inode(req->r_dentry),
+											  mds, req->r_inode_drop, req->r_inode_unless, 0);
+
 	if (req->r_dentry_drop)
 		releases += ceph_encode_dentry_release(&p, req->r_dentry,
-		       mds, req->r_dentry_drop, req->r_dentry_unless);
+											   mds, req->r_dentry_drop, req->r_dentry_unless);
+
 	if (req->r_old_dentry_drop)
 		releases += ceph_encode_dentry_release(&p, req->r_old_dentry,
-		       mds, req->r_old_dentry_drop, req->r_old_dentry_unless);
+											   mds, req->r_old_dentry_drop, req->r_old_dentry_unless);
+
 	if (req->r_old_inode_drop)
 		releases += ceph_encode_inode_release(&p,
-		      d_inode(req->r_old_dentry),
-		      mds, req->r_old_inode_drop, req->r_old_inode_unless, 0);
+											  d_inode(req->r_old_dentry),
+											  mds, req->r_old_inode_drop, req->r_old_inode_unless, 0);
 
-	if (drop_cap_releases) {
+	if (drop_cap_releases)
+	{
 		releases = 0;
 		p = msg->front.iov_base + req->r_request_release_offset;
 	}
@@ -1953,23 +2409,34 @@ static struct ceph_msg *create_request_message(struct ceph_mds_client *mdsc,
 	msg->front.iov_len = p - msg->front.iov_base;
 	msg->hdr.front_len = cpu_to_le32(msg->front.iov_len);
 
-	if (req->r_pagelist) {
+	if (req->r_pagelist)
+	{
 		struct ceph_pagelist *pagelist = req->r_pagelist;
 		atomic_inc(&pagelist->refcnt);
 		ceph_msg_data_add_pagelist(msg, pagelist);
 		msg->hdr.data_len = cpu_to_le32(pagelist->length);
-	} else {
+	}
+	else
+	{
 		msg->hdr.data_len = 0;
 	}
 
 	msg->hdr.data_off = cpu_to_le16(0);
 
 out_free2:
+
 	if (freepath2)
+	{
 		kfree((char *)path2);
+	}
+
 out_free1:
+
 	if (freepath1)
+	{
 		kfree((char *)path1);
+	}
+
 out:
 	return msg;
 }
@@ -1979,39 +2446,51 @@ out:
  * success.
  */
 static void complete_request(struct ceph_mds_client *mdsc,
-			     struct ceph_mds_request *req)
+							 struct ceph_mds_request *req)
 {
 	if (req->r_callback)
+	{
 		req->r_callback(mdsc, req);
+	}
 	else
+	{
 		complete_all(&req->r_completion);
+	}
 }
 
 /*
  * called under mdsc->mutex
  */
 static int __prepare_send_request(struct ceph_mds_client *mdsc,
-				  struct ceph_mds_request *req,
-				  int mds, bool drop_cap_releases)
+								  struct ceph_mds_request *req,
+								  int mds, bool drop_cap_releases)
 {
 	struct ceph_mds_request_head *rhead;
 	struct ceph_msg *msg;
 	int flags = 0;
 
 	req->r_attempts++;
-	if (req->r_inode) {
+
+	if (req->r_inode)
+	{
 		struct ceph_cap *cap =
 			ceph_get_cap_for_mds(ceph_inode(req->r_inode), mds);
 
 		if (cap)
+		{
 			req->r_sent_on_mseq = cap->mseq;
+		}
 		else
+		{
 			req->r_sent_on_mseq = -1;
+		}
 	}
-	dout("prepare_send_request %p tid %lld %s (attempt %d)\n", req,
-	     req->r_tid, ceph_mds_op_name(req->r_op), req->r_attempts);
 
-	if (req->r_got_unsafe) {
+	dout("prepare_send_request %p tid %lld %s (attempt %d)\n", req,
+		 req->r_tid, ceph_mds_op_name(req->r_op), req->r_attempts);
+
+	if (req->r_got_unsafe)
+	{
 		void *p;
 		/*
 		 * Replay.  Do not regenerate message (and rebuild
@@ -2027,7 +2506,9 @@ static int __prepare_send_request(struct ceph_mds_client *mdsc,
 		rhead->flags = cpu_to_le32(flags);
 
 		if (req->r_target_inode)
+		{
 			rhead->ino = cpu_to_le64(ceph_ino(req->r_target_inode));
+		}
 
 		rhead->num_retry = req->r_attempts - 1;
 
@@ -2047,23 +2528,35 @@ static int __prepare_send_request(struct ceph_mds_client *mdsc,
 		return 0;
 	}
 
-	if (req->r_request) {
+	if (req->r_request)
+	{
 		ceph_msg_put(req->r_request);
 		req->r_request = NULL;
 	}
+
 	msg = create_request_message(mdsc, req, mds, drop_cap_releases);
-	if (IS_ERR(msg)) {
+
+	if (IS_ERR(msg))
+	{
 		req->r_err = PTR_ERR(msg);
 		return PTR_ERR(msg);
 	}
+
 	req->r_request = msg;
 
 	rhead = msg->front.iov_base;
 	rhead->oldest_client_tid = cpu_to_le64(__get_oldest_tid(mdsc));
+
 	if (req->r_got_unsafe)
+	{
 		flags |= CEPH_MDS_FLAG_REPLAY;
+	}
+
 	if (req->r_locked_dir)
+	{
 		flags |= CEPH_MDS_FLAG_WANT_DENTRY;
+	}
+
 	rhead->flags = cpu_to_le32(flags);
 	rhead->num_fwd = req->r_num_fwd;
 	rhead->num_retry = req->r_attempts - 1;
@@ -2077,25 +2570,32 @@ static int __prepare_send_request(struct ceph_mds_client *mdsc,
  * send request, or put it on the appropriate wait list.
  */
 static int __do_request(struct ceph_mds_client *mdsc,
-			struct ceph_mds_request *req)
+						struct ceph_mds_request *req)
 {
 	struct ceph_mds_session *session = NULL;
 	int mds = -1;
 	int err = 0;
 
-	if (req->r_err || req->r_got_result) {
+	if (req->r_err || req->r_got_result)
+	{
 		if (req->r_aborted)
+		{
 			__unregister_request(mdsc, req);
+		}
+
 		goto out;
 	}
 
 	if (req->r_timeout &&
-	    time_after_eq(jiffies, req->r_started + req->r_timeout)) {
+		time_after_eq(jiffies, req->r_started + req->r_timeout))
+	{
 		dout("do_request timed out\n");
 		err = -EIO;
 		goto finish;
 	}
-	if (ACCESS_ONCE(mdsc->fsc->mount_state) == CEPH_MOUNT_SHUTDOWN) {
+
+	if (ACCESS_ONCE(mdsc->fsc->mount_state) == CEPH_MOUNT_SHUTDOWN)
+	{
 		dout("do_request forced umount\n");
 		err = -EIO;
 		goto finish;
@@ -2104,13 +2604,17 @@ static int __do_request(struct ceph_mds_client *mdsc,
 	put_request_session(req);
 
 	mds = __choose_mds(mdsc, req);
+
 	if (mds < 0 ||
-	    ceph_mdsmap_get_state(mdsc->mdsmap, mds) < CEPH_MDS_STATE_ACTIVE) {
-		if (mdsc->mdsmap_err) {
+		ceph_mdsmap_get_state(mdsc->mdsmap, mds) < CEPH_MDS_STATE_ACTIVE)
+	{
+		if (mdsc->mdsmap_err)
+		{
 			err = mdsc->mdsmap_err;
 			dout("do_request mdsmap err %d\n", err);
 			goto finish;
 		}
+
 		dout("do_request no mds or not active, waiting for map\n");
 		list_add(&req->r_wait, &mdsc->waiting_for_map);
 		goto out;
@@ -2118,26 +2622,38 @@ static int __do_request(struct ceph_mds_client *mdsc,
 
 	/* get, open session */
 	session = __ceph_lookup_mds_session(mdsc, mds);
-	if (!session) {
+
+	if (!session)
+	{
 		session = register_session(mdsc, mds);
-		if (IS_ERR(session)) {
+
+		if (IS_ERR(session))
+		{
 			err = PTR_ERR(session);
 			goto finish;
 		}
 	}
+
 	req->r_session = get_session(session);
 
 	dout("do_request mds%d session %p state %s\n", mds, session,
-	     ceph_session_state_name(session->s_state));
+		 ceph_session_state_name(session->s_state));
+
 	if (session->s_state != CEPH_MDS_SESSION_OPEN &&
-	    session->s_state != CEPH_MDS_SESSION_HUNG) {
-		if (session->s_state == CEPH_MDS_SESSION_REJECTED) {
+		session->s_state != CEPH_MDS_SESSION_HUNG)
+	{
+		if (session->s_state == CEPH_MDS_SESSION_REJECTED)
+		{
 			err = -EACCES;
 			goto out_session;
 		}
+
 		if (session->s_state == CEPH_MDS_SESSION_NEW ||
-		    session->s_state == CEPH_MDS_SESSION_CLOSING)
+			session->s_state == CEPH_MDS_SESSION_CLOSING)
+		{
 			__open_session(mdsc, session);
+		}
+
 		list_add(&req->r_wait, &session->s_waiting);
 		goto out_session;
 	}
@@ -2146,10 +2662,14 @@ static int __do_request(struct ceph_mds_client *mdsc,
 	req->r_resend_mds = -1;   /* forget any previous mds hint */
 
 	if (req->r_request_started == 0)   /* note request start time */
+	{
 		req->r_request_started = jiffies;
+	}
 
 	err = __prepare_send_request(mdsc, req, mds, false);
-	if (!err) {
+
+	if (!err)
+	{
 		ceph_msg_get(req->r_request);
 		ceph_con_send(&session->s_con, req->r_request);
 	}
@@ -2157,12 +2677,15 @@ static int __do_request(struct ceph_mds_client *mdsc,
 out_session:
 	ceph_put_mds_session(session);
 finish:
-	if (err) {
+
+	if (err)
+	{
 		dout("__do_request early error %d\n", err);
 		req->r_err = err;
 		complete_request(mdsc, req);
 		__unregister_request(mdsc, req);
 	}
+
 out:
 	return err;
 }
@@ -2171,16 +2694,17 @@ out:
  * called under mdsc->mutex
  */
 static void __wake_requests(struct ceph_mds_client *mdsc,
-			    struct list_head *head)
+							struct list_head *head)
 {
 	struct ceph_mds_request *req;
 	LIST_HEAD(tmp_list);
 
 	list_splice_init(head, &tmp_list);
 
-	while (!list_empty(&tmp_list)) {
+	while (!list_empty(&tmp_list))
+	{
 		req = list_entry(tmp_list.next,
-				 struct ceph_mds_request, r_wait);
+						 struct ceph_mds_request, r_wait);
 		list_del_init(&req->r_wait);
 		dout(" wake request %p tid %llu\n", req, req->r_tid);
 		__do_request(mdsc, req);
@@ -2197,15 +2721,25 @@ static void kick_requests(struct ceph_mds_client *mdsc, int mds)
 	struct rb_node *p = rb_first(&mdsc->request_tree);
 
 	dout("kick_requests mds%d\n", mds);
-	while (p) {
+
+	while (p)
+	{
 		req = rb_entry(p, struct ceph_mds_request, r_node);
 		p = rb_next(p);
+
 		if (req->r_got_unsafe)
+		{
 			continue;
+		}
+
 		if (req->r_attempts > 0)
-			continue; /* only new requests */
+		{
+			continue;    /* only new requests */
+		}
+
 		if (req->r_session &&
-		    req->r_session->s_mds == mds) {
+			req->r_session->s_mds == mds)
+		{
 			dout(" kicking tid %llu\n", req->r_tid);
 			list_del_init(&req->r_wait);
 			__do_request(mdsc, req);
@@ -2214,7 +2748,7 @@ static void kick_requests(struct ceph_mds_client *mdsc, int mds)
 }
 
 void ceph_mdsc_submit_request(struct ceph_mds_client *mdsc,
-			      struct ceph_mds_request *req)
+							  struct ceph_mds_request *req)
 {
 	dout("submit_request on %p\n", req);
 	mutex_lock(&mdsc->mutex);
@@ -2228,8 +2762,8 @@ void ceph_mdsc_submit_request(struct ceph_mds_client *mdsc,
  * session setup, forwarding, retry details.
  */
 int ceph_mdsc_do_request(struct ceph_mds_client *mdsc,
-			 struct inode *dir,
-			 struct ceph_mds_request *req)
+						 struct inode *dir,
+						 struct ceph_mds_request *req)
 {
 	int err;
 
@@ -2237,19 +2771,26 @@ int ceph_mdsc_do_request(struct ceph_mds_client *mdsc,
 
 	/* take CAP_PIN refs for r_inode, r_locked_dir, r_old_dentry */
 	if (req->r_inode)
+	{
 		ceph_get_cap_refs(ceph_inode(req->r_inode), CEPH_CAP_PIN);
+	}
+
 	if (req->r_locked_dir)
+	{
 		ceph_get_cap_refs(ceph_inode(req->r_locked_dir), CEPH_CAP_PIN);
+	}
+
 	if (req->r_old_dentry_dir)
 		ceph_get_cap_refs(ceph_inode(req->r_old_dentry_dir),
-				  CEPH_CAP_PIN);
+						  CEPH_CAP_PIN);
 
 	/* issue */
 	mutex_lock(&mdsc->mutex);
 	__register_request(mdsc, req, dir);
 	__do_request(mdsc, req);
 
-	if (req->r_err) {
+	if (req->r_err)
+	{
 		err = req->r_err;
 		goto out;
 	}
@@ -2257,26 +2798,41 @@ int ceph_mdsc_do_request(struct ceph_mds_client *mdsc,
 	/* wait */
 	mutex_unlock(&mdsc->mutex);
 	dout("do_request waiting\n");
-	if (!req->r_timeout && req->r_wait_for_completion) {
+
+	if (!req->r_timeout && req->r_wait_for_completion)
+	{
 		err = req->r_wait_for_completion(mdsc, req);
-	} else {
-		long timeleft = wait_for_completion_killable_timeout(
-					&req->r_completion,
-					ceph_timeout_jiffies(req->r_timeout));
-		if (timeleft > 0)
-			err = 0;
-		else if (!timeleft)
-			err = -EIO;  /* timed out */
-		else
-			err = timeleft;  /* killed */
 	}
+	else
+	{
+		long timeleft = wait_for_completion_killable_timeout(
+							&req->r_completion,
+							ceph_timeout_jiffies(req->r_timeout));
+
+		if (timeleft > 0)
+		{
+			err = 0;
+		}
+		else if (!timeleft)
+		{
+			err = -EIO;    /* timed out */
+		}
+		else
+		{
+			err = timeleft;    /* killed */
+		}
+	}
+
 	dout("do_request waited, got %d\n", err);
 	mutex_lock(&mdsc->mutex);
 
 	/* only abort if we didn't race with a real reply */
-	if (req->r_got_result) {
+	if (req->r_got_result)
+	{
 		err = le32_to_cpu(req->r_reply_info.head->result);
-	} else if (err < 0) {
+	}
+	else if (err < 0)
+	{
 		dout("aborted request %lld with %d\n", req->r_tid, err);
 
 		/*
@@ -2290,9 +2846,13 @@ int ceph_mdsc_do_request(struct ceph_mds_client *mdsc,
 		mutex_unlock(&req->r_fill_mutex);
 
 		if (req->r_locked_dir &&
-		    (req->r_op & CEPH_MDS_OP_WRITE))
+			(req->r_op & CEPH_MDS_OP_WRITE))
+		{
 			ceph_invalidate_dir_request(req);
-	} else {
+		}
+	}
+	else
+	{
 		err = req->r_err;
 	}
 
@@ -2313,10 +2873,16 @@ void ceph_invalidate_dir_request(struct ceph_mds_request *req)
 	dout("invalidate_dir_request %p (complete, lease(s))\n", inode);
 
 	ceph_dir_clear_complete(inode);
+
 	if (req->r_dentry)
+	{
 		ceph_invalidate_dentry_lease(req->r_dentry);
+	}
+
 	if (req->r_old_dentry)
+	{
 		ceph_invalidate_dentry_lease(req->r_old_dentry);
+	}
 }
 
 /*
@@ -2337,7 +2903,8 @@ static void handle_reply(struct ceph_mds_session *session, struct ceph_msg *msg)
 	int err, result;
 	int mds = session->s_mds;
 
-	if (msg->front.iov_len < sizeof(*head)) {
+	if (msg->front.iov_len < sizeof(*head))
+	{
 		pr_err("mdsc_handle_reply got corrupt (short) reply\n");
 		ceph_msg_dump(msg);
 		return;
@@ -2347,33 +2914,40 @@ static void handle_reply(struct ceph_mds_session *session, struct ceph_msg *msg)
 	tid = le64_to_cpu(msg->hdr.tid);
 	mutex_lock(&mdsc->mutex);
 	req = lookup_get_request(mdsc, tid);
-	if (!req) {
+
+	if (!req)
+	{
 		dout("handle_reply on unknown tid %llu\n", tid);
 		mutex_unlock(&mdsc->mutex);
 		return;
 	}
+
 	dout("handle_reply %p\n", req);
 
 	/* correct session? */
-	if (req->r_session != session) {
+	if (req->r_session != session)
+	{
 		pr_err("mdsc_handle_reply got %llu on session mds%d"
-		       " not mds%d\n", tid, session->s_mds,
-		       req->r_session ? req->r_session->s_mds : -1);
+			   " not mds%d\n", tid, session->s_mds,
+			   req->r_session ? req->r_session->s_mds : -1);
 		mutex_unlock(&mdsc->mutex);
 		goto out;
 	}
 
 	/* dup? */
 	if ((req->r_got_unsafe && !head->safe) ||
-	    (req->r_got_safe && head->safe)) {
+		(req->r_got_safe && head->safe))
+	{
 		pr_warn("got a dup %s reply on %llu from mds%d\n",
-			   head->safe ? "safe" : "unsafe", tid, mds);
+				head->safe ? "safe" : "unsafe", tid, mds);
 		mutex_unlock(&mdsc->mutex);
 		goto out;
 	}
-	if (req->r_got_safe) {
+
+	if (req->r_got_safe)
+	{
 		pr_warn("got unsafe after safe on %llu from mds%d\n",
-			   tid, mds);
+				tid, mds);
 		mutex_unlock(&mdsc->mutex);
 		goto out;
 	}
@@ -2387,33 +2961,43 @@ static void handle_reply(struct ceph_mds_session *session, struct ceph_msg *msg)
 	 * send to new authority
 	 * Otherwise we just have to return an ESTALE
 	 */
-	if (result == -ESTALE) {
+	if (result == -ESTALE)
+	{
 		dout("got ESTALE on request %llu", req->r_tid);
 		req->r_resend_mds = -1;
-		if (req->r_direct_mode != USE_AUTH_MDS) {
+
+		if (req->r_direct_mode != USE_AUTH_MDS)
+		{
 			dout("not using auth, setting for that now");
 			req->r_direct_mode = USE_AUTH_MDS;
 			__do_request(mdsc, req);
 			mutex_unlock(&mdsc->mutex);
 			goto out;
-		} else  {
+		}
+		else
+		{
 			int mds = __choose_mds(mdsc, req);
-			if (mds >= 0 && mds != req->r_session->s_mds) {
+
+			if (mds >= 0 && mds != req->r_session->s_mds)
+			{
 				dout("but auth changed, so resending");
 				__do_request(mdsc, req);
 				mutex_unlock(&mdsc->mutex);
 				goto out;
 			}
 		}
+
 		dout("have to return ESTALE on request %llu", req->r_tid);
 	}
 
 
-	if (head->safe) {
+	if (head->safe)
+	{
 		req->r_got_safe = true;
 		__unregister_request(mdsc, req);
 
-		if (req->r_got_unsafe) {
+		if (req->r_got_unsafe)
+		{
 			/*
 			 * We already handled the unsafe response, now do the
 			 * cleanup.  No need to examine the response; the MDS
@@ -2426,19 +3010,26 @@ static void handle_reply(struct ceph_mds_session *session, struct ceph_msg *msg)
 
 			/* last unsafe request during umount? */
 			if (mdsc->stopping && !__get_oldest_req(mdsc))
+			{
 				complete_all(&mdsc->safe_umount_waiters);
+			}
+
 			mutex_unlock(&mdsc->mutex);
 			goto out;
 		}
-	} else {
+	}
+	else
+	{
 		req->r_got_unsafe = true;
 		list_add_tail(&req->r_unsafe_item, &req->r_session->s_unsafe);
-		if (req->r_unsafe_dir) {
+
+		if (req->r_unsafe_dir)
+		{
 			struct ceph_inode_info *ci =
-					ceph_inode(req->r_unsafe_dir);
+				ceph_inode(req->r_unsafe_dir);
 			spin_lock(&ci->i_unsafe_lock);
 			list_add_tail(&req->r_unsafe_dir_item,
-				      &ci->i_unsafe_dirops);
+						  &ci->i_unsafe_dirops);
 			spin_unlock(&ci->i_unsafe_lock);
 		}
 	}
@@ -2449,7 +3040,9 @@ static void handle_reply(struct ceph_mds_session *session, struct ceph_msg *msg)
 	mutex_unlock(&mdsc->mutex);
 
 	mutex_lock(&session->s_mutex);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		pr_err("mdsc_handle_reply got corrupt reply mds%d(tid:%lld)\n", mds, tid);
 		ceph_msg_dump(msg);
 		goto out_err;
@@ -2457,14 +3050,18 @@ static void handle_reply(struct ceph_mds_session *session, struct ceph_msg *msg)
 
 	/* snap trace */
 	realm = NULL;
-	if (rinfo->snapblob_len) {
+
+	if (rinfo->snapblob_len)
+	{
 		down_write(&mdsc->snap_rwsem);
 		ceph_update_snap_trace(mdsc, rinfo->snapblob,
-				rinfo->snapblob + rinfo->snapblob_len,
-				le32_to_cpu(head->op) == CEPH_MDS_OP_RMSNAP,
-				&realm);
+							   rinfo->snapblob + rinfo->snapblob_len,
+							   le32_to_cpu(head->op) == CEPH_MDS_OP_RMSNAP,
+							   &realm);
 		downgrade_write(&mdsc->snap_rwsem);
-	} else {
+	}
+	else
+	{
 		down_read(&mdsc->snap_rwsem);
 	}
 
@@ -2472,37 +3069,56 @@ static void handle_reply(struct ceph_mds_session *session, struct ceph_msg *msg)
 	mutex_lock(&req->r_fill_mutex);
 	current->journal_info = req;
 	err = ceph_fill_trace(mdsc->fsc->sb, req, req->r_session);
-	if (err == 0) {
+
+	if (err == 0)
+	{
 		if (result == 0 && (req->r_op == CEPH_MDS_OP_READDIR ||
-				    req->r_op == CEPH_MDS_OP_LSSNAP))
+							req->r_op == CEPH_MDS_OP_LSSNAP))
+		{
 			ceph_readdir_prepopulate(req, req->r_session);
+		}
+
 		ceph_unreserve_caps(mdsc, &req->r_caps_reservation);
 	}
+
 	current->journal_info = NULL;
 	mutex_unlock(&req->r_fill_mutex);
 
 	up_read(&mdsc->snap_rwsem);
-	if (realm)
-		ceph_put_snap_realm(mdsc, realm);
 
-	if (err == 0 && req->r_got_unsafe && req->r_target_inode) {
+	if (realm)
+	{
+		ceph_put_snap_realm(mdsc, realm);
+	}
+
+	if (err == 0 && req->r_got_unsafe && req->r_target_inode)
+	{
 		struct ceph_inode_info *ci = ceph_inode(req->r_target_inode);
 		spin_lock(&ci->i_unsafe_lock);
 		list_add_tail(&req->r_unsafe_target_item, &ci->i_unsafe_iops);
 		spin_unlock(&ci->i_unsafe_lock);
 	}
+
 out_err:
 	mutex_lock(&mdsc->mutex);
-	if (!req->r_aborted) {
-		if (err) {
+
+	if (!req->r_aborted)
+	{
+		if (err)
+		{
 			req->r_err = err;
-		} else {
+		}
+		else
+		{
 			req->r_reply =  ceph_msg_get(msg);
 			req->r_got_result = true;
 		}
-	} else {
+	}
+	else
+	{
 		dout("reply arrived after request %lld was aborted\n", tid);
 	}
+
 	mutex_unlock(&mdsc->mutex);
 
 	mutex_unlock(&session->s_mutex);
@@ -2520,8 +3136,8 @@ out:
  * handle mds notification that our request has been forwarded.
  */
 static void handle_forward(struct ceph_mds_client *mdsc,
-			   struct ceph_mds_session *session,
-			   struct ceph_msg *msg)
+						   struct ceph_mds_session *session,
+						   struct ceph_msg *msg)
 {
 	struct ceph_mds_request *req;
 	u64 tid = le64_to_cpu(msg->hdr.tid);
@@ -2531,24 +3147,31 @@ static void handle_forward(struct ceph_mds_client *mdsc,
 	void *p = msg->front.iov_base;
 	void *end = p + msg->front.iov_len;
 
-	ceph_decode_need(&p, end, 2*sizeof(u32), bad);
+	ceph_decode_need(&p, end, 2 * sizeof(u32), bad);
 	next_mds = ceph_decode_32(&p);
 	fwd_seq = ceph_decode_32(&p);
 
 	mutex_lock(&mdsc->mutex);
 	req = lookup_get_request(mdsc, tid);
-	if (!req) {
+
+	if (!req)
+	{
 		dout("forward tid %llu to mds%d - req dne\n", tid, next_mds);
 		goto out;  /* dup reply? */
 	}
 
-	if (req->r_aborted) {
+	if (req->r_aborted)
+	{
 		dout("forward tid %llu aborted, unregistering\n", tid);
 		__unregister_request(mdsc, req);
-	} else if (fwd_seq <= req->r_num_fwd) {
+	}
+	else if (fwd_seq <= req->r_num_fwd)
+	{
 		dout("forward tid %llu to mds%d - old seq %d <= %d\n",
-		     tid, next_mds, req->r_num_fwd, fwd_seq);
-	} else {
+			 tid, next_mds, req->r_num_fwd, fwd_seq);
+	}
+	else
+	{
 		/* resend. forward race not possible; mds would drop */
 		dout("forward tid %llu to mds%d (we resend)\n", tid, next_mds);
 		BUG_ON(req->r_err);
@@ -2559,6 +3182,7 @@ static void handle_forward(struct ceph_mds_client *mdsc,
 		put_request_session(req);
 		__do_request(mdsc, req);
 	}
+
 	ceph_mdsc_put_request(req);
 out:
 	mutex_unlock(&mdsc->mutex);
@@ -2572,7 +3196,7 @@ bad:
  * handle a mds session control message
  */
 static void handle_session(struct ceph_mds_session *session,
-			   struct ceph_msg *msg)
+						   struct ceph_msg *msg)
 {
 	struct ceph_mds_client *mdsc = session->s_mdsc;
 	u32 op;
@@ -2583,106 +3207,135 @@ static void handle_session(struct ceph_mds_session *session,
 
 	/* decode */
 	if (msg->front.iov_len != sizeof(*h))
+	{
 		goto bad;
+	}
+
 	op = le32_to_cpu(h->op);
 	seq = le64_to_cpu(h->seq);
 
 	mutex_lock(&mdsc->mutex);
+
 	if (op == CEPH_SESSION_CLOSE)
+	{
 		__unregister_session(mdsc, session);
+	}
+
 	/* FIXME: this ttl calculation is generous */
-	session->s_ttl = jiffies + HZ*mdsc->mdsmap->m_session_autoclose;
+	session->s_ttl = jiffies + HZ * mdsc->mdsmap->m_session_autoclose;
 	mutex_unlock(&mdsc->mutex);
 
 	mutex_lock(&session->s_mutex);
 
 	dout("handle_session mds%d %s %p state %s seq %llu\n",
-	     mds, ceph_session_op_name(op), session,
-	     ceph_session_state_name(session->s_state), seq);
+		 mds, ceph_session_op_name(op), session,
+		 ceph_session_state_name(session->s_state), seq);
 
-	if (session->s_state == CEPH_MDS_SESSION_HUNG) {
+	if (session->s_state == CEPH_MDS_SESSION_HUNG)
+	{
 		session->s_state = CEPH_MDS_SESSION_OPEN;
 		pr_info("mds%d came back\n", session->s_mds);
 	}
 
-	switch (op) {
-	case CEPH_SESSION_OPEN:
-		if (session->s_state == CEPH_MDS_SESSION_RECONNECTING)
-			pr_info("mds%d reconnect success\n", session->s_mds);
-		session->s_state = CEPH_MDS_SESSION_OPEN;
-		renewed_caps(mdsc, session, 0);
-		wake = 1;
-		if (mdsc->stopping)
-			__close_session(mdsc, session);
-		break;
+	switch (op)
+	{
+		case CEPH_SESSION_OPEN:
+			if (session->s_state == CEPH_MDS_SESSION_RECONNECTING)
+			{
+				pr_info("mds%d reconnect success\n", session->s_mds);
+			}
 
-	case CEPH_SESSION_RENEWCAPS:
-		if (session->s_renew_seq == seq)
-			renewed_caps(mdsc, session, 1);
-		break;
+			session->s_state = CEPH_MDS_SESSION_OPEN;
+			renewed_caps(mdsc, session, 0);
+			wake = 1;
 
-	case CEPH_SESSION_CLOSE:
-		if (session->s_state == CEPH_MDS_SESSION_RECONNECTING)
-			pr_info("mds%d reconnect denied\n", session->s_mds);
-		cleanup_session_requests(mdsc, session);
-		remove_session_caps(session);
-		wake = 2; /* for good measure */
-		wake_up_all(&mdsc->session_close_wq);
-		break;
+			if (mdsc->stopping)
+			{
+				__close_session(mdsc, session);
+			}
 
-	case CEPH_SESSION_STALE:
-		pr_info("mds%d caps went stale, renewing\n",
-			session->s_mds);
-		spin_lock(&session->s_gen_ttl_lock);
-		session->s_cap_gen++;
-		session->s_cap_ttl = jiffies - 1;
-		spin_unlock(&session->s_gen_ttl_lock);
-		send_renew_caps(mdsc, session);
-		break;
+			break;
 
-	case CEPH_SESSION_RECALL_STATE:
-		trim_caps(mdsc, session, le32_to_cpu(h->max_caps));
-		break;
+		case CEPH_SESSION_RENEWCAPS:
+			if (session->s_renew_seq == seq)
+			{
+				renewed_caps(mdsc, session, 1);
+			}
 
-	case CEPH_SESSION_FLUSHMSG:
-		send_flushmsg_ack(mdsc, session, seq);
-		break;
+			break;
 
-	case CEPH_SESSION_FORCE_RO:
-		dout("force_session_readonly %p\n", session);
-		spin_lock(&session->s_cap_lock);
-		session->s_readonly = true;
-		spin_unlock(&session->s_cap_lock);
-		wake_up_session_caps(session, 0);
-		break;
+		case CEPH_SESSION_CLOSE:
+			if (session->s_state == CEPH_MDS_SESSION_RECONNECTING)
+			{
+				pr_info("mds%d reconnect denied\n", session->s_mds);
+			}
 
-	case CEPH_SESSION_REJECT:
-		WARN_ON(session->s_state != CEPH_MDS_SESSION_OPENING);
-		pr_info("mds%d rejected session\n", session->s_mds);
-		session->s_state = CEPH_MDS_SESSION_REJECTED;
-		cleanup_session_requests(mdsc, session);
-		remove_session_caps(session);
-		wake = 2; /* for good measure */
-		break;
+			cleanup_session_requests(mdsc, session);
+			remove_session_caps(session);
+			wake = 2; /* for good measure */
+			wake_up_all(&mdsc->session_close_wq);
+			break;
 
-	default:
-		pr_err("mdsc_handle_session bad op %d mds%d\n", op, mds);
-		WARN_ON(1);
+		case CEPH_SESSION_STALE:
+			pr_info("mds%d caps went stale, renewing\n",
+					session->s_mds);
+			spin_lock(&session->s_gen_ttl_lock);
+			session->s_cap_gen++;
+			session->s_cap_ttl = jiffies - 1;
+			spin_unlock(&session->s_gen_ttl_lock);
+			send_renew_caps(mdsc, session);
+			break;
+
+		case CEPH_SESSION_RECALL_STATE:
+			trim_caps(mdsc, session, le32_to_cpu(h->max_caps));
+			break;
+
+		case CEPH_SESSION_FLUSHMSG:
+			send_flushmsg_ack(mdsc, session, seq);
+			break;
+
+		case CEPH_SESSION_FORCE_RO:
+			dout("force_session_readonly %p\n", session);
+			spin_lock(&session->s_cap_lock);
+			session->s_readonly = true;
+			spin_unlock(&session->s_cap_lock);
+			wake_up_session_caps(session, 0);
+			break;
+
+		case CEPH_SESSION_REJECT:
+			WARN_ON(session->s_state != CEPH_MDS_SESSION_OPENING);
+			pr_info("mds%d rejected session\n", session->s_mds);
+			session->s_state = CEPH_MDS_SESSION_REJECTED;
+			cleanup_session_requests(mdsc, session);
+			remove_session_caps(session);
+			wake = 2; /* for good measure */
+			break;
+
+		default:
+			pr_err("mdsc_handle_session bad op %d mds%d\n", op, mds);
+			WARN_ON(1);
 	}
 
 	mutex_unlock(&session->s_mutex);
-	if (wake) {
+
+	if (wake)
+	{
 		mutex_lock(&mdsc->mutex);
 		__wake_requests(mdsc, &session->s_waiting);
+
 		if (wake == 2)
+		{
 			kick_requests(mdsc, mds);
+		}
+
 		mutex_unlock(&mdsc->mutex);
 	}
+
 	return;
 
 bad:
 	pr_err("mdsc_handle_session corrupt message mds%d len %d\n", mds,
-	       (int)msg->front.iov_len);
+		   (int)msg->front.iov_len);
 	ceph_msg_dump(msg);
 	return;
 }
@@ -2692,7 +3345,7 @@ bad:
  * called under session->mutex.
  */
 static void replay_unsafe_requests(struct ceph_mds_client *mdsc,
-				   struct ceph_mds_session *session)
+								   struct ceph_mds_session *session)
 {
 	struct ceph_mds_request *req, *nreq;
 	struct rb_node *p;
@@ -2701,9 +3354,12 @@ static void replay_unsafe_requests(struct ceph_mds_client *mdsc,
 	dout("replay_unsafe_requests mds%d\n", session->s_mds);
 
 	mutex_lock(&mdsc->mutex);
-	list_for_each_entry_safe(req, nreq, &session->s_unsafe, r_unsafe_item) {
+	list_for_each_entry_safe(req, nreq, &session->s_unsafe, r_unsafe_item)
+	{
 		err = __prepare_send_request(mdsc, req, session->s_mds, true);
-		if (!err) {
+
+		if (!err)
+		{
 			ceph_msg_get(req->r_request);
 			ceph_con_send(&session->s_con, req->r_request);
 		}
@@ -2714,23 +3370,36 @@ static void replay_unsafe_requests(struct ceph_mds_client *mdsc,
 	 * can process completed request in clientreplay stage.
 	 */
 	p = rb_first(&mdsc->request_tree);
-	while (p) {
+
+	while (p)
+	{
 		req = rb_entry(p, struct ceph_mds_request, r_node);
 		p = rb_next(p);
+
 		if (req->r_got_unsafe)
+		{
 			continue;
+		}
+
 		if (req->r_attempts == 0)
-			continue; /* only old requests */
+		{
+			continue;    /* only old requests */
+		}
+
 		if (req->r_session &&
-		    req->r_session->s_mds == session->s_mds) {
+			req->r_session->s_mds == session->s_mds)
+		{
 			err = __prepare_send_request(mdsc, req,
-						     session->s_mds, true);
-			if (!err) {
+										 session->s_mds, true);
+
+			if (!err)
+			{
 				ceph_msg_get(req->r_request);
 				ceph_con_send(&session->s_con, req->r_request);
 			}
 		}
 	}
+
 	mutex_unlock(&mdsc->mutex);
 }
 
@@ -2738,9 +3407,10 @@ static void replay_unsafe_requests(struct ceph_mds_client *mdsc,
  * Encode information about a cap for a reconnect with the MDS.
  */
 static int encode_caps_cb(struct inode *inode, struct ceph_cap *cap,
-			  void *arg)
+						  void *arg)
 {
-	union {
+	union
+	{
 		struct ceph_mds_cap_reconnect v2;
 		struct ceph_mds_cap_reconnect_v1 v1;
 	} rec;
@@ -2756,20 +3426,29 @@ static int encode_caps_cb(struct inode *inode, struct ceph_cap *cap,
 	ci = cap->ci;
 
 	dout(" adding %p ino %llx.%llx cap %p %lld %s\n",
-	     inode, ceph_vinop(inode), cap, cap->cap_id,
-	     ceph_cap_string(cap->issued));
+		 inode, ceph_vinop(inode), cap, cap->cap_id,
+		 ceph_cap_string(cap->issued));
 	err = ceph_pagelist_encode_64(pagelist, ceph_ino(inode));
+
 	if (err)
+	{
 		return err;
+	}
 
 	dentry = d_find_alias(inode);
-	if (dentry) {
+
+	if (dentry)
+	{
 		path = ceph_mdsc_build_path(dentry, &pathlen, &pathbase, 0);
-		if (IS_ERR(path)) {
+
+		if (IS_ERR(path))
+		{
 			err = PTR_ERR(path);
 			goto out_dput;
 		}
-	} else {
+	}
+	else
+	{
 		path = NULL;
 		pathlen = 0;
 		pathbase = 0;
@@ -2781,14 +3460,17 @@ static int encode_caps_cb(struct inode *inode, struct ceph_cap *cap,
 	cap->mseq = 0;       /* and migrate_seq */
 	cap->cap_gen = cap->session->s_cap_gen;
 
-	if (recon_state->msg_version >= 2) {
+	if (recon_state->msg_version >= 2)
+	{
 		rec.v2.cap_id = cpu_to_le64(cap->cap_id);
 		rec.v2.wanted = cpu_to_le32(__ceph_caps_wanted(ci));
 		rec.v2.issued = cpu_to_le32(cap->issued);
 		rec.v2.snaprealm = cpu_to_le64(ci->i_snap_realm->ino);
 		rec.v2.pathbase = cpu_to_le64(pathbase);
 		rec.v2.flock_len = 0;
-	} else {
+	}
+	else
+	{
 		rec.v1.cap_id = cpu_to_le64(cap->cap_id);
 		rec.v1.wanted = cpu_to_le32(__ceph_caps_wanted(ci));
 		rec.v1.issued = cpu_to_le32(cap->issued);
@@ -2799,17 +3481,22 @@ static int encode_caps_cb(struct inode *inode, struct ceph_cap *cap,
 		rec.v1.pathbase = cpu_to_le64(pathbase);
 	}
 
-	if (list_empty(&ci->i_cap_snaps)) {
+	if (list_empty(&ci->i_cap_snaps))
+	{
 		snap_follows = 0;
-	} else {
+	}
+	else
+	{
 		struct ceph_cap_snap *capsnap =
 			list_first_entry(&ci->i_cap_snaps,
-					 struct ceph_cap_snap, ci_item);
+							 struct ceph_cap_snap, ci_item);
 		snap_follows = capsnap->follows;
 	}
+
 	spin_unlock(&ci->i_ceph_lock);
 
-	if (recon_state->msg_version >= 2) {
+	if (recon_state->msg_version >= 2)
+	{
 		int num_fcntl_locks, num_flock_locks;
 		struct ceph_filelock *flocks;
 		size_t struct_len, total_len = 0;
@@ -2817,63 +3504,87 @@ static int encode_caps_cb(struct inode *inode, struct ceph_cap *cap,
 
 encode_again:
 		ceph_count_locks(inode, &num_fcntl_locks, &num_flock_locks);
-		flocks = kmalloc((num_fcntl_locks+num_flock_locks) *
-				 sizeof(struct ceph_filelock), GFP_NOFS);
-		if (!flocks) {
+		flocks = kmalloc((num_fcntl_locks + num_flock_locks) *
+						 sizeof(struct ceph_filelock), GFP_NOFS);
+
+		if (!flocks)
+		{
 			err = -ENOMEM;
 			goto out_free;
 		}
+
 		err = ceph_encode_locks_to_buffer(inode, flocks,
-						  num_fcntl_locks,
-						  num_flock_locks);
-		if (err) {
+										  num_fcntl_locks,
+										  num_flock_locks);
+
+		if (err)
+		{
 			kfree(flocks);
+
 			if (err == -ENOSPC)
+			{
 				goto encode_again;
+			}
+
 			goto out_free;
 		}
 
-		if (recon_state->msg_version >= 3) {
+		if (recon_state->msg_version >= 3)
+		{
 			/* version, compat_version and struct_len */
 			total_len = 2 * sizeof(u8) + sizeof(u32);
 			struct_v = 2;
 		}
+
 		/*
 		 * number of encoded locks is stable, so copy to pagelist
 		 */
 		struct_len = 2 * sizeof(u32) +
-			    (num_fcntl_locks + num_flock_locks) *
-			    sizeof(struct ceph_filelock);
+					 (num_fcntl_locks + num_flock_locks) *
+					 sizeof(struct ceph_filelock);
 		rec.v2.flock_len = cpu_to_le32(struct_len);
 
 		struct_len += sizeof(rec.v2);
 		struct_len += sizeof(u32) + pathlen;
 
 		if (struct_v >= 2)
-			struct_len += sizeof(u64); /* snap_follows */
+		{
+			struct_len += sizeof(u64);    /* snap_follows */
+		}
 
 		total_len += struct_len;
 		err = ceph_pagelist_reserve(pagelist, total_len);
 
-		if (!err) {
-			if (recon_state->msg_version >= 3) {
+		if (!err)
+		{
+			if (recon_state->msg_version >= 3)
+			{
 				ceph_pagelist_encode_8(pagelist, struct_v);
 				ceph_pagelist_encode_8(pagelist, 1);
 				ceph_pagelist_encode_32(pagelist, struct_len);
 			}
+
 			ceph_pagelist_encode_string(pagelist, path, pathlen);
 			ceph_pagelist_append(pagelist, &rec, sizeof(rec.v2));
 			ceph_locks_to_pagelist(flocks, pagelist,
-					       num_fcntl_locks,
-					       num_flock_locks);
+								   num_fcntl_locks,
+								   num_flock_locks);
+
 			if (struct_v >= 2)
+			{
 				ceph_pagelist_encode_64(pagelist, snap_follows);
+			}
 		}
+
 		kfree(flocks);
-	} else {
+	}
+	else
+	{
 		size_t size = sizeof(u32) + pathlen + sizeof(rec.v1);
 		err = ceph_pagelist_reserve(pagelist, size);
-		if (!err) {
+
+		if (!err)
+		{
 			ceph_pagelist_encode_string(pagelist, path, pathlen);
 			ceph_pagelist_append(pagelist, &rec, sizeof(rec.v1));
 		}
@@ -2901,7 +3612,7 @@ out_dput:
  * called with mdsc->mutex held.
  */
 static void send_mds_reconnect(struct ceph_mds_client *mdsc,
-			       struct ceph_mds_session *session)
+							   struct ceph_mds_session *session)
 {
 	struct ceph_msg *reply;
 	struct rb_node *p;
@@ -2914,20 +3625,27 @@ static void send_mds_reconnect(struct ceph_mds_client *mdsc,
 	pr_info("mds%d reconnect start\n", mds);
 
 	pagelist = kmalloc(sizeof(*pagelist), GFP_NOFS);
+
 	if (!pagelist)
+	{
 		goto fail_nopagelist;
+	}
+
 	ceph_pagelist_init(pagelist);
 
 	reply = ceph_msg_new(CEPH_MSG_CLIENT_RECONNECT, 0, GFP_NOFS, false);
+
 	if (!reply)
+	{
 		goto fail_nomsg;
+	}
 
 	mutex_lock(&session->s_mutex);
 	session->s_state = CEPH_MDS_SESSION_RECONNECTING;
 	session->s_seq = 0;
 
 	dout("session %p state %s\n", session,
-	     ceph_session_state_name(session->s_state));
+		 ceph_session_state_name(session->s_state));
 
 	spin_lock(&session->s_gen_ttl_lock);
 	session->s_cap_gen++;
@@ -2947,12 +3665,14 @@ static void send_mds_reconnect(struct ceph_mds_client *mdsc,
 
 	/* trim unused caps to reduce MDS's cache rejoin time */
 	if (mdsc->fsc->sb->s_root)
+	{
 		shrink_dcache_parent(mdsc->fsc->sb->s_root);
+	}
 
 	ceph_con_close(&session->s_con);
 	ceph_con_open(&session->s_con,
-		      CEPH_ENTITY_TYPE_MDS, mds,
-		      ceph_mdsmap_get_addr(mdsc->mdsmap, mds));
+				  CEPH_ENTITY_TYPE_MDS, mds,
+				  ceph_mdsmap_get_addr(mdsc->mdsmap, mds));
 
 	/* replay unsafe requests */
 	replay_unsafe_requests(mdsc, session);
@@ -2962,20 +3682,34 @@ static void send_mds_reconnect(struct ceph_mds_client *mdsc,
 	/* traverse this session's caps */
 	s_nr_caps = session->s_nr_caps;
 	err = ceph_pagelist_encode_32(pagelist, s_nr_caps);
+
 	if (err)
+	{
 		goto fail;
+	}
 
 	recon_state.nr_caps = 0;
 	recon_state.pagelist = pagelist;
+
 	if (session->s_con.peer_features & CEPH_FEATURE_MDSENC)
+	{
 		recon_state.msg_version = 3;
+	}
 	else if (session->s_con.peer_features & CEPH_FEATURE_FLOCK)
+	{
 		recon_state.msg_version = 2;
+	}
 	else
+	{
 		recon_state.msg_version = 1;
+	}
+
 	err = iterate_session_caps(session, encode_caps_cb, &recon_state);
+
 	if (err < 0)
+	{
 		goto fail;
+	}
 
 	spin_lock(&session->s_cap_lock);
 	session->s_cap_reconnect = 0;
@@ -2986,27 +3720,32 @@ static void send_mds_reconnect(struct ceph_mds_client *mdsc,
 	 * parent for all of our realms.  If the mds has any newer info,
 	 * it will tell us.
 	 */
-	for (p = rb_first(&mdsc->snap_realms); p; p = rb_next(p)) {
+	for (p = rb_first(&mdsc->snap_realms); p; p = rb_next(p))
+	{
 		struct ceph_snap_realm *realm =
 			rb_entry(p, struct ceph_snap_realm, node);
 		struct ceph_mds_snaprealm_reconnect sr_rec;
 
 		dout(" adding snap realm %llx seq %lld parent %llx\n",
-		     realm->ino, realm->seq, realm->parent_ino);
+			 realm->ino, realm->seq, realm->parent_ino);
 		sr_rec.ino = cpu_to_le64(realm->ino);
 		sr_rec.seq = cpu_to_le64(realm->seq);
 		sr_rec.parent = cpu_to_le64(realm->parent_ino);
 		err = ceph_pagelist_append(pagelist, &sr_rec, sizeof(sr_rec));
+
 		if (err)
+		{
 			goto fail;
+		}
 	}
 
 	reply->hdr.version = cpu_to_le16(recon_state.msg_version);
 
 	/* raced with cap release? */
-	if (s_nr_caps != recon_state.nr_caps) {
+	if (s_nr_caps != recon_state.nr_caps)
+	{
 		struct page *page = list_first_entry(&pagelist->head,
-						     struct page, lru);
+											 struct page, lru);
 		__le32 *addr = kmap_atomic(page);
 		*addr = cpu_to_le32(recon_state.nr_caps);
 		kunmap_atomic(addr);
@@ -3047,40 +3786,48 @@ fail_nopagelist:
  * called under mdsc->mutex.
  */
 static void check_new_map(struct ceph_mds_client *mdsc,
-			  struct ceph_mdsmap *newmap,
-			  struct ceph_mdsmap *oldmap)
+						  struct ceph_mdsmap *newmap,
+						  struct ceph_mdsmap *oldmap)
 {
 	int i;
 	int oldstate, newstate;
 	struct ceph_mds_session *s;
 
 	dout("check_new_map new %u old %u\n",
-	     newmap->m_epoch, oldmap->m_epoch);
+		 newmap->m_epoch, oldmap->m_epoch);
 
-	for (i = 0; i < oldmap->m_max_mds && i < mdsc->max_sessions; i++) {
+	for (i = 0; i < oldmap->m_max_mds && i < mdsc->max_sessions; i++)
+	{
 		if (mdsc->sessions[i] == NULL)
+		{
 			continue;
+		}
+
 		s = mdsc->sessions[i];
 		oldstate = ceph_mdsmap_get_state(oldmap, i);
 		newstate = ceph_mdsmap_get_state(newmap, i);
 
 		dout("check_new_map mds%d state %s%s -> %s%s (session %s)\n",
-		     i, ceph_mds_state_name(oldstate),
-		     ceph_mdsmap_is_laggy(oldmap, i) ? " (laggy)" : "",
-		     ceph_mds_state_name(newstate),
-		     ceph_mdsmap_is_laggy(newmap, i) ? " (laggy)" : "",
-		     ceph_session_state_name(s->s_state));
+			 i, ceph_mds_state_name(oldstate),
+			 ceph_mdsmap_is_laggy(oldmap, i) ? " (laggy)" : "",
+			 ceph_mds_state_name(newstate),
+			 ceph_mdsmap_is_laggy(newmap, i) ? " (laggy)" : "",
+			 ceph_session_state_name(s->s_state));
 
 		if (i >= newmap->m_max_mds ||
-		    memcmp(ceph_mdsmap_get_addr(oldmap, i),
-			   ceph_mdsmap_get_addr(newmap, i),
-			   sizeof(struct ceph_entity_addr))) {
-			if (s->s_state == CEPH_MDS_SESSION_OPENING) {
+			memcmp(ceph_mdsmap_get_addr(oldmap, i),
+				   ceph_mdsmap_get_addr(newmap, i),
+				   sizeof(struct ceph_entity_addr)))
+		{
+			if (s->s_state == CEPH_MDS_SESSION_OPENING)
+			{
 				/* the session never opened, just close it
 				 * out now */
 				__wake_requests(mdsc, &s->s_waiting);
 				__unregister_session(mdsc, s);
-			} else {
+			}
+			else
+			{
 				/* just close it */
 				mutex_unlock(&mdsc->mutex);
 				mutex_lock(&s->s_mutex);
@@ -3089,7 +3836,9 @@ static void check_new_map(struct ceph_mds_client *mdsc,
 				mutex_unlock(&s->s_mutex);
 				s->s_state = CEPH_MDS_SESSION_RESTARTING;
 			}
-		} else if (oldstate == newstate) {
+		}
+		else if (oldstate == newstate)
+		{
 			continue;  /* nothing new with this mds */
 		}
 
@@ -3097,7 +3846,8 @@ static void check_new_map(struct ceph_mds_client *mdsc,
 		 * send reconnect?
 		 */
 		if (s->s_state == CEPH_MDS_SESSION_RESTARTING &&
-		    newstate >= CEPH_MDS_STATE_RECONNECT) {
+			newstate >= CEPH_MDS_STATE_RECONNECT)
+		{
 			mutex_unlock(&mdsc->mutex);
 			send_mds_reconnect(mdsc, s);
 			mutex_lock(&mdsc->mutex);
@@ -3107,27 +3857,40 @@ static void check_new_map(struct ceph_mds_client *mdsc,
 		 * kick request on any mds that has gone active.
 		 */
 		if (oldstate < CEPH_MDS_STATE_ACTIVE &&
-		    newstate >= CEPH_MDS_STATE_ACTIVE) {
+			newstate >= CEPH_MDS_STATE_ACTIVE)
+		{
 			if (oldstate != CEPH_MDS_STATE_CREATING &&
-			    oldstate != CEPH_MDS_STATE_STARTING)
+				oldstate != CEPH_MDS_STATE_STARTING)
+			{
 				pr_info("mds%d recovery completed\n", s->s_mds);
+			}
+
 			kick_requests(mdsc, i);
 			ceph_kick_flushing_caps(mdsc, s);
 			wake_up_session_caps(s, 1);
 		}
 	}
 
-	for (i = 0; i < newmap->m_max_mds && i < mdsc->max_sessions; i++) {
+	for (i = 0; i < newmap->m_max_mds && i < mdsc->max_sessions; i++)
+	{
 		s = mdsc->sessions[i];
+
 		if (!s)
+		{
 			continue;
+		}
+
 		if (!ceph_mdsmap_is_laggy(newmap, i))
+		{
 			continue;
+		}
+
 		if (s->s_state == CEPH_MDS_SESSION_OPEN ||
-		    s->s_state == CEPH_MDS_SESSION_HUNG ||
-		    s->s_state == CEPH_MDS_SESSION_CLOSING) {
+			s->s_state == CEPH_MDS_SESSION_HUNG ||
+			s->s_state == CEPH_MDS_SESSION_CLOSING)
+		{
 			dout(" connecting to export targets of laggy mds%d\n",
-			     i);
+				 i);
 			__open_export_target_sessions(mdsc, s);
 		}
 	}
@@ -3151,8 +3914,8 @@ void __ceph_mdsc_drop_dentry_lease(struct dentry *dentry)
 }
 
 static void handle_lease(struct ceph_mds_client *mdsc,
-			 struct ceph_mds_session *session,
-			 struct ceph_msg *msg)
+						 struct ceph_mds_session *session,
+						 struct ceph_msg *msg)
 {
 	struct super_block *sb = mdsc->fsc->sb;
 	struct inode *inode;
@@ -3169,75 +3932,100 @@ static void handle_lease(struct ceph_mds_client *mdsc,
 
 	/* decode */
 	if (msg->front.iov_len < sizeof(*h) + sizeof(u32))
+	{
 		goto bad;
+	}
+
 	vino.ino = le64_to_cpu(h->ino);
 	vino.snap = CEPH_NOSNAP;
 	seq = le32_to_cpu(h->seq);
 	dname.name = (void *)h + sizeof(*h) + sizeof(u32);
 	dname.len = msg->front.iov_len - sizeof(*h) - sizeof(u32);
-	if (dname.len != get_unaligned_le32(h+1))
+
+	if (dname.len != get_unaligned_le32(h + 1))
+	{
 		goto bad;
+	}
 
 	/* lookup inode */
 	inode = ceph_find_inode(sb, vino);
 	dout("handle_lease %s, ino %llx %p %.*s\n",
-	     ceph_lease_op_name(h->action), vino.ino, inode,
-	     dname.len, dname.name);
+		 ceph_lease_op_name(h->action), vino.ino, inode,
+		 dname.len, dname.name);
 
 	mutex_lock(&session->s_mutex);
 	session->s_seq++;
 
-	if (inode == NULL) {
+	if (inode == NULL)
+	{
 		dout("handle_lease no inode %llx\n", vino.ino);
 		goto release;
 	}
 
 	/* dentry */
 	parent = d_find_alias(inode);
-	if (!parent) {
+
+	if (!parent)
+	{
 		dout("no parent dentry on inode %p\n", inode);
 		WARN_ON(1);
 		goto release;  /* hrm... */
 	}
+
 	dname.hash = full_name_hash(parent, dname.name, dname.len);
 	dentry = d_lookup(parent, &dname);
 	dput(parent);
+
 	if (!dentry)
+	{
 		goto release;
+	}
 
 	spin_lock(&dentry->d_lock);
 	di = ceph_dentry(dentry);
-	switch (h->action) {
-	case CEPH_MDS_LEASE_REVOKE:
-		if (di->lease_session == session) {
-			if (ceph_seq_cmp(di->lease_seq, seq) > 0)
-				h->seq = cpu_to_le32(di->lease_seq);
-			__ceph_mdsc_drop_dentry_lease(dentry);
-		}
-		release = 1;
-		break;
 
-	case CEPH_MDS_LEASE_RENEW:
-		if (di->lease_session == session &&
-		    di->lease_gen == session->s_cap_gen &&
-		    di->lease_renew_from &&
-		    di->lease_renew_after == 0) {
-			unsigned long duration =
-				msecs_to_jiffies(le32_to_cpu(h->duration_ms));
+	switch (h->action)
+	{
+		case CEPH_MDS_LEASE_REVOKE:
+			if (di->lease_session == session)
+			{
+				if (ceph_seq_cmp(di->lease_seq, seq) > 0)
+				{
+					h->seq = cpu_to_le32(di->lease_seq);
+				}
 
-			di->lease_seq = seq;
-			di->time = di->lease_renew_from + duration;
-			di->lease_renew_after = di->lease_renew_from +
-				(duration >> 1);
-			di->lease_renew_from = 0;
-		}
-		break;
+				__ceph_mdsc_drop_dentry_lease(dentry);
+			}
+
+			release = 1;
+			break;
+
+		case CEPH_MDS_LEASE_RENEW:
+			if (di->lease_session == session &&
+				di->lease_gen == session->s_cap_gen &&
+				di->lease_renew_from &&
+				di->lease_renew_after == 0)
+			{
+				unsigned long duration =
+					msecs_to_jiffies(le32_to_cpu(h->duration_ms));
+
+				di->lease_seq = seq;
+				di->time = di->lease_renew_from + duration;
+				di->lease_renew_after = di->lease_renew_from +
+										(duration >> 1);
+				di->lease_renew_from = 0;
+			}
+
+			break;
 	}
+
 	spin_unlock(&dentry->d_lock);
 	dput(dentry);
 
 	if (!release)
+	{
 		goto out;
+	}
 
 release:
 	/* let's just reuse the same message */
@@ -3256,9 +4044,9 @@ bad:
 }
 
 void ceph_mdsc_lease_send_msg(struct ceph_mds_session *session,
-			      struct inode *inode,
-			      struct dentry *dentry, char action,
-			      u32 seq)
+							  struct inode *inode,
+							  struct dentry *dentry, char action,
+							  u32 seq)
 {
 	struct ceph_msg *msg;
 	struct ceph_mds_lease *lease;
@@ -3266,13 +4054,17 @@ void ceph_mdsc_lease_send_msg(struct ceph_mds_session *session,
 	int dnamelen = 0;
 
 	dout("lease_send_msg inode %p dentry %p %s to mds%d\n",
-	     inode, dentry, ceph_lease_op_name(action), session->s_mds);
+		 inode, dentry, ceph_lease_op_name(action), session->s_mds);
 	dnamelen = dentry->d_name.len;
 	len += dnamelen;
 
 	msg = ceph_msg_new(CEPH_MSG_CLIENT_LEASE, len, GFP_NOFS, false);
+
 	if (!msg)
+	{
 		return;
+	}
+
 	lease = msg->front.iov_base;
 	lease->action = action;
 	lease->ino = cpu_to_le64(ceph_vino(inode).ino);
@@ -3300,16 +4092,23 @@ static void drop_leases(struct ceph_mds_client *mdsc)
 
 	dout("drop_leases\n");
 	mutex_lock(&mdsc->mutex);
-	for (i = 0; i < mdsc->max_sessions; i++) {
+
+	for (i = 0; i < mdsc->max_sessions; i++)
+	{
 		struct ceph_mds_session *s = __ceph_lookup_mds_session(mdsc, i);
+
 		if (!s)
+		{
 			continue;
+		}
+
 		mutex_unlock(&mdsc->mutex);
 		mutex_lock(&s->s_mutex);
 		mutex_unlock(&s->s_mutex);
 		ceph_put_mds_session(s);
 		mutex_lock(&mdsc->mutex);
 	}
+
 	mutex_unlock(&mdsc->mutex);
 }
 
@@ -3338,48 +4137,73 @@ static void delayed_work(struct work_struct *work)
 
 	mutex_lock(&mdsc->mutex);
 	renew_interval = mdsc->mdsmap->m_session_timeout >> 2;
-	renew_caps = time_after_eq(jiffies, HZ*renew_interval +
-				   mdsc->last_renew_caps);
-	if (renew_caps)
-		mdsc->last_renew_caps = jiffies;
+	renew_caps = time_after_eq(jiffies, HZ * renew_interval +
+							   mdsc->last_renew_caps);
 
-	for (i = 0; i < mdsc->max_sessions; i++) {
+	if (renew_caps)
+	{
+		mdsc->last_renew_caps = jiffies;
+	}
+
+	for (i = 0; i < mdsc->max_sessions; i++)
+	{
 		struct ceph_mds_session *s = __ceph_lookup_mds_session(mdsc, i);
+
 		if (s == NULL)
+		{
 			continue;
-		if (s->s_state == CEPH_MDS_SESSION_CLOSING) {
+		}
+
+		if (s->s_state == CEPH_MDS_SESSION_CLOSING)
+		{
 			dout("resending session close request for mds%d\n",
-			     s->s_mds);
+				 s->s_mds);
 			request_close_session(mdsc, s);
 			ceph_put_mds_session(s);
 			continue;
 		}
-		if (s->s_ttl && time_after(jiffies, s->s_ttl)) {
-			if (s->s_state == CEPH_MDS_SESSION_OPEN) {
+
+		if (s->s_ttl && time_after(jiffies, s->s_ttl))
+		{
+			if (s->s_state == CEPH_MDS_SESSION_OPEN)
+			{
 				s->s_state = CEPH_MDS_SESSION_HUNG;
 				pr_info("mds%d hung\n", s->s_mds);
 			}
 		}
-		if (s->s_state < CEPH_MDS_SESSION_OPEN) {
+
+		if (s->s_state < CEPH_MDS_SESSION_OPEN)
+		{
 			/* this mds is failed or recovering, just wait */
 			ceph_put_mds_session(s);
 			continue;
 		}
+
 		mutex_unlock(&mdsc->mutex);
 
 		mutex_lock(&s->s_mutex);
+
 		if (renew_caps)
+		{
 			send_renew_caps(mdsc, s);
+		}
 		else
+		{
 			ceph_con_keepalive(&s->s_con);
+		}
+
 		if (s->s_state == CEPH_MDS_SESSION_OPEN ||
-		    s->s_state == CEPH_MDS_SESSION_HUNG)
+			s->s_state == CEPH_MDS_SESSION_HUNG)
+		{
 			ceph_send_cap_releases(mdsc, s);
+		}
+
 		mutex_unlock(&s->s_mutex);
 		ceph_put_mds_session(s);
 
 		mutex_lock(&mdsc->mutex);
 	}
+
 	mutex_unlock(&mdsc->mutex);
 
 	schedule_delayed(mdsc);
@@ -3391,13 +4215,19 @@ int ceph_mdsc_init(struct ceph_fs_client *fsc)
 	struct ceph_mds_client *mdsc;
 
 	mdsc = kzalloc(sizeof(struct ceph_mds_client), GFP_NOFS);
+
 	if (!mdsc)
+	{
 		return -ENOMEM;
+	}
+
 	mdsc->fsc = fsc;
 	fsc->mdsc = mdsc;
 	mutex_init(&mdsc->mutex);
 	mdsc->mdsmap = kzalloc(sizeof(*mdsc->mdsmap), GFP_NOFS);
-	if (mdsc->mdsmap == NULL) {
+
+	if (mdsc->mdsmap == NULL)
+	{
 		kfree(mdsc);
 		return -ENOMEM;
 	}
@@ -3452,21 +4282,26 @@ static void wait_requests(struct ceph_mds_client *mdsc)
 	struct ceph_mds_request *req;
 
 	mutex_lock(&mdsc->mutex);
-	if (__get_oldest_req(mdsc)) {
+
+	if (__get_oldest_req(mdsc))
+	{
 		mutex_unlock(&mdsc->mutex);
 
 		dout("wait_requests waiting for requests\n");
 		wait_for_completion_timeout(&mdsc->safe_umount_waiters,
-				    ceph_timeout_jiffies(opts->mount_timeout));
+									ceph_timeout_jiffies(opts->mount_timeout));
 
 		/* tear down remaining requests */
 		mutex_lock(&mdsc->mutex);
-		while ((req = __get_oldest_req(mdsc))) {
+
+		while ((req = __get_oldest_req(mdsc)))
+		{
 			dout("wait_requests timed out on tid %llu\n",
-			     req->r_tid);
+				 req->r_tid);
 			__unregister_request(mdsc, req);
 		}
 	}
+
 	mutex_unlock(&mdsc->mutex);
 	dout("wait_requests done\n");
 }
@@ -3503,36 +4338,57 @@ static void wait_unsafe_requests(struct ceph_mds_client *mdsc, u64 want_tid)
 	dout("wait_unsafe_requests want %lld\n", want_tid);
 restart:
 	req = __get_oldest_req(mdsc);
-	while (req && req->r_tid <= want_tid) {
+
+	while (req && req->r_tid <= want_tid)
+	{
 		/* find next request */
 		n = rb_next(&req->r_node);
+
 		if (n)
+		{
 			nextreq = rb_entry(n, struct ceph_mds_request, r_node);
+		}
 		else
+		{
 			nextreq = NULL;
+		}
+
 		if (req->r_op != CEPH_MDS_OP_SETFILELOCK &&
-		    (req->r_op & CEPH_MDS_OP_WRITE)) {
+			(req->r_op & CEPH_MDS_OP_WRITE))
+		{
 			/* write op */
 			ceph_mdsc_get_request(req);
+
 			if (nextreq)
+			{
 				ceph_mdsc_get_request(nextreq);
+			}
+
 			mutex_unlock(&mdsc->mutex);
 			dout("wait_unsafe_requests  wait on %llu (want %llu)\n",
-			     req->r_tid, want_tid);
+				 req->r_tid, want_tid);
 			wait_for_completion(&req->r_safe_completion);
 			mutex_lock(&mdsc->mutex);
 			ceph_mdsc_put_request(req);
+
 			if (!nextreq)
-				break;  /* next dne before, so we're done! */
-			if (RB_EMPTY_NODE(&nextreq->r_node)) {
+			{
+				break;    /* next dne before, so we're done! */
+			}
+
+			if (RB_EMPTY_NODE(&nextreq->r_node))
+			{
 				/* next request was removed from tree */
 				ceph_mdsc_put_request(nextreq);
 				goto restart;
 			}
+
 			ceph_mdsc_put_request(nextreq);  /* won't go away */
 		}
+
 		req = nextreq;
 	}
+
 	mutex_unlock(&mdsc->mutex);
 	dout("wait_unsafe_requests done\n");
 }
@@ -3542,7 +4398,9 @@ void ceph_mdsc_sync(struct ceph_mds_client *mdsc)
 	u64 want_tid, want_flush;
 
 	if (ACCESS_ONCE(mdsc->fsc->mount_state) == CEPH_MOUNT_SHUTDOWN)
+	{
 		return;
+	}
 
 	dout("sync\n");
 	mutex_lock(&mdsc->mutex);
@@ -3552,16 +4410,19 @@ void ceph_mdsc_sync(struct ceph_mds_client *mdsc)
 	ceph_flush_dirty_caps(mdsc);
 	spin_lock(&mdsc->cap_dirty_lock);
 	want_flush = mdsc->last_cap_flush_tid;
-	if (!list_empty(&mdsc->cap_flush_list)) {
+
+	if (!list_empty(&mdsc->cap_flush_list))
+	{
 		struct ceph_cap_flush *cf =
 			list_last_entry(&mdsc->cap_flush_list,
-					struct ceph_cap_flush, g_list);
+							struct ceph_cap_flush, g_list);
 		cf->wake = true;
 	}
+
 	spin_unlock(&mdsc->cap_dirty_lock);
 
 	dout("sync want tid %lld flush_seq %lld\n",
-	     want_tid, want_flush);
+		 want_tid, want_flush);
 
 	wait_unsafe_requests(mdsc, want_tid);
 	wait_caps_flush(mdsc, want_flush);
@@ -3573,7 +4434,10 @@ void ceph_mdsc_sync(struct ceph_mds_client *mdsc)
 static bool done_closing_sessions(struct ceph_mds_client *mdsc, int skipped)
 {
 	if (ACCESS_ONCE(mdsc->fsc->mount_state) == CEPH_MOUNT_SHUTDOWN)
+	{
 		return true;
+	}
+
 	return atomic_read(&mdsc->num_sessions) <= skipped;
 }
 
@@ -3591,29 +4455,43 @@ void ceph_mdsc_close_sessions(struct ceph_mds_client *mdsc)
 
 	/* close sessions */
 	mutex_lock(&mdsc->mutex);
-	for (i = 0; i < mdsc->max_sessions; i++) {
+
+	for (i = 0; i < mdsc->max_sessions; i++)
+	{
 		session = __ceph_lookup_mds_session(mdsc, i);
+
 		if (!session)
+		{
 			continue;
+		}
+
 		mutex_unlock(&mdsc->mutex);
 		mutex_lock(&session->s_mutex);
+
 		if (__close_session(mdsc, session) <= 0)
+		{
 			skipped++;
+		}
+
 		mutex_unlock(&session->s_mutex);
 		ceph_put_mds_session(session);
 		mutex_lock(&mdsc->mutex);
 	}
+
 	mutex_unlock(&mdsc->mutex);
 
 	dout("waiting for sessions to close\n");
 	wait_event_timeout(mdsc->session_close_wq,
-			   done_closing_sessions(mdsc, skipped),
-			   ceph_timeout_jiffies(opts->mount_timeout));
+					   done_closing_sessions(mdsc, skipped),
+					   ceph_timeout_jiffies(opts->mount_timeout));
 
 	/* tear down remaining sessions */
 	mutex_lock(&mdsc->mutex);
-	for (i = 0; i < mdsc->max_sessions; i++) {
-		if (mdsc->sessions[i]) {
+
+	for (i = 0; i < mdsc->max_sessions; i++)
+	{
+		if (mdsc->sessions[i])
+		{
 			session = get_session(mdsc->sessions[i]);
 			__unregister_session(mdsc, session);
 			mutex_unlock(&mdsc->mutex);
@@ -3624,6 +4502,7 @@ void ceph_mdsc_close_sessions(struct ceph_mds_client *mdsc)
 			mutex_lock(&mdsc->mutex);
 		}
 	}
+
 	WARN_ON(!list_empty(&mdsc->cap_delay_list));
 	mutex_unlock(&mdsc->mutex);
 
@@ -3642,22 +4521,32 @@ void ceph_mdsc_force_umount(struct ceph_mds_client *mdsc)
 	dout("force umount\n");
 
 	mutex_lock(&mdsc->mutex);
-	for (mds = 0; mds < mdsc->max_sessions; mds++) {
+
+	for (mds = 0; mds < mdsc->max_sessions; mds++)
+	{
 		session = __ceph_lookup_mds_session(mdsc, mds);
+
 		if (!session)
+		{
 			continue;
+		}
+
 		mutex_unlock(&mdsc->mutex);
 		mutex_lock(&session->s_mutex);
 		__close_session(mdsc, session);
-		if (session->s_state == CEPH_MDS_SESSION_CLOSING) {
+
+		if (session->s_state == CEPH_MDS_SESSION_CLOSING)
+		{
 			cleanup_session_requests(mdsc, session);
 			remove_session_caps(session);
 		}
+
 		mutex_unlock(&session->s_mutex);
 		ceph_put_mds_session(session);
 		mutex_lock(&mdsc->mutex);
 		kick_requests(mdsc, mds);
 	}
+
 	__wake_requests(mdsc, &mdsc->waiting_for_map);
 	mutex_unlock(&mdsc->mutex);
 }
@@ -3666,8 +4555,12 @@ static void ceph_mdsc_stop(struct ceph_mds_client *mdsc)
 {
 	dout("stop\n");
 	cancel_delayed_work_sync(&mdsc->delayed_work); /* cancel timer */
+
 	if (mdsc->mdsmap)
+	{
 		ceph_mdsmap_destroy(mdsc->mdsmap);
+	}
+
 	kfree(mdsc->sessions);
 	ceph_caps_finalize(mdsc);
 	ceph_pool_perm_destroy(mdsc);
@@ -3697,7 +4590,7 @@ void ceph_mdsc_handle_fsmap(struct ceph_mds_client *mdsc, struct ceph_msg *msg)
 	u32 epoch;
 	u32 map_len;
 	u32 num_fs;
-	u32 mount_fscid = (u32)-1;
+	u32 mount_fscid = (u32) - 1;
 	u8 struct_v, struct_cv;
 	int err = -EINVAL;
 
@@ -3715,7 +4608,9 @@ void ceph_mdsc_handle_fsmap(struct ceph_mds_client *mdsc, struct ceph_msg *msg)
 	p += sizeof(u32) * 2; /* skip epoch and legacy_client_fscid */
 
 	num_fs = ceph_decode_32(&p);
-	while (num_fs-- > 0) {
+
+	while (num_fs-- > 0)
+	{
 		void *info_p, *info_end;
 		u32 info_len;
 		u8 info_v, info_cv;
@@ -3736,23 +4631,29 @@ void ceph_mdsc_handle_fsmap(struct ceph_mds_client *mdsc, struct ceph_msg *msg)
 		ceph_decode_need(&info_p, info_end, namelen, bad);
 
 		if (mds_namespace &&
-		    strlen(mds_namespace) == namelen &&
-		    !strncmp(mds_namespace, (char *)info_p, namelen)) {
+			strlen(mds_namespace) == namelen &&
+			!strncmp(mds_namespace, (char *)info_p, namelen))
+		{
 			mount_fscid = fscid;
 			break;
 		}
 	}
 
 	ceph_monc_got_map(&fsc->client->monc, CEPH_SUB_FSMAP, epoch);
-	if (mount_fscid != (u32)-1) {
+
+	if (mount_fscid != (u32) - 1)
+	{
 		fsc->client->monc.fs_cluster_id = mount_fscid;
 		ceph_monc_want_map(&fsc->client->monc, CEPH_SUB_MDSMAP,
-				   0, true);
+						   0, true);
 		ceph_monc_renew_subs(&fsc->client->monc);
-	} else {
+	}
+	else
+	{
 		err = -ENOENT;
 		goto err_out;
 	}
+
 	return;
 bad:
 	pr_err("error decoding fsmap\n");
@@ -3777,43 +4678,55 @@ void ceph_mdsc_handle_mdsmap(struct ceph_mds_client *mdsc, struct ceph_msg *msg)
 	struct ceph_fsid fsid;
 	int err = -EINVAL;
 
-	ceph_decode_need(&p, end, sizeof(fsid)+2*sizeof(u32), bad);
+	ceph_decode_need(&p, end, sizeof(fsid) + 2 * sizeof(u32), bad);
 	ceph_decode_copy(&p, &fsid, sizeof(fsid));
+
 	if (ceph_check_fsid(mdsc->fsc->client, &fsid) < 0)
+	{
 		return;
+	}
+
 	epoch = ceph_decode_32(&p);
 	maplen = ceph_decode_32(&p);
 	dout("handle_map epoch %u len %d\n", epoch, (int)maplen);
 
 	/* do we need it? */
 	mutex_lock(&mdsc->mutex);
-	if (mdsc->mdsmap && epoch <= mdsc->mdsmap->m_epoch) {
+
+	if (mdsc->mdsmap && epoch <= mdsc->mdsmap->m_epoch)
+	{
 		dout("handle_map epoch %u <= our %u\n",
-		     epoch, mdsc->mdsmap->m_epoch);
+			 epoch, mdsc->mdsmap->m_epoch);
 		mutex_unlock(&mdsc->mutex);
 		return;
 	}
 
 	newmap = ceph_mdsmap_decode(&p, end);
-	if (IS_ERR(newmap)) {
+
+	if (IS_ERR(newmap))
+	{
 		err = PTR_ERR(newmap);
 		goto bad_unlock;
 	}
 
 	/* swap into place */
-	if (mdsc->mdsmap) {
+	if (mdsc->mdsmap)
+	{
 		oldmap = mdsc->mdsmap;
 		mdsc->mdsmap = newmap;
 		check_new_map(mdsc, newmap, oldmap);
 		ceph_mdsmap_destroy(oldmap);
-	} else {
+	}
+	else
+	{
 		mdsc->mdsmap = newmap;  /* first mds map */
 	}
+
 	mdsc->fsc->sb->s_maxbytes = mdsc->mdsmap->m_max_file_size;
 
 	__wake_requests(mdsc, &mdsc->waiting_for_map);
 	ceph_monc_got_map(&mdsc->fsc->client->monc, CEPH_SUB_MDSMAP,
-			  mdsc->mdsmap->m_epoch);
+					  mdsc->mdsmap->m_epoch);
 
 	mutex_unlock(&mdsc->mutex);
 	schedule_delayed(mdsc);
@@ -3830,10 +4743,12 @@ static struct ceph_connection *con_get(struct ceph_connection *con)
 {
 	struct ceph_mds_session *s = con->private;
 
-	if (get_session(s)) {
+	if (get_session(s))
+	{
 		dout("mdsc con_get %p ok (%d)\n", s, atomic_read(&s->s_ref));
 		return con;
 	}
+
 	dout("mdsc con_get %p FAIL\n", s);
 	return NULL;
 }
@@ -3866,42 +4781,54 @@ static void dispatch(struct ceph_connection *con, struct ceph_msg *msg)
 	int type = le16_to_cpu(msg->hdr.type);
 
 	mutex_lock(&mdsc->mutex);
-	if (__verify_registered_session(mdsc, s) < 0) {
+
+	if (__verify_registered_session(mdsc, s) < 0)
+	{
 		mutex_unlock(&mdsc->mutex);
 		goto out;
 	}
+
 	mutex_unlock(&mdsc->mutex);
 
-	switch (type) {
-	case CEPH_MSG_MDS_MAP:
-		ceph_mdsc_handle_mdsmap(mdsc, msg);
-		break;
-	case CEPH_MSG_FS_MAP_USER:
-		ceph_mdsc_handle_fsmap(mdsc, msg);
-		break;
-	case CEPH_MSG_CLIENT_SESSION:
-		handle_session(s, msg);
-		break;
-	case CEPH_MSG_CLIENT_REPLY:
-		handle_reply(s, msg);
-		break;
-	case CEPH_MSG_CLIENT_REQUEST_FORWARD:
-		handle_forward(mdsc, s, msg);
-		break;
-	case CEPH_MSG_CLIENT_CAPS:
-		ceph_handle_caps(s, msg);
-		break;
-	case CEPH_MSG_CLIENT_SNAP:
-		ceph_handle_snap(mdsc, s, msg);
-		break;
-	case CEPH_MSG_CLIENT_LEASE:
-		handle_lease(mdsc, s, msg);
-		break;
+	switch (type)
+	{
+		case CEPH_MSG_MDS_MAP:
+			ceph_mdsc_handle_mdsmap(mdsc, msg);
+			break;
 
-	default:
-		pr_err("received unknown message type %d %s\n", type,
-		       ceph_msg_type_name(type));
+		case CEPH_MSG_FS_MAP_USER:
+			ceph_mdsc_handle_fsmap(mdsc, msg);
+			break;
+
+		case CEPH_MSG_CLIENT_SESSION:
+			handle_session(s, msg);
+			break;
+
+		case CEPH_MSG_CLIENT_REPLY:
+			handle_reply(s, msg);
+			break;
+
+		case CEPH_MSG_CLIENT_REQUEST_FORWARD:
+			handle_forward(mdsc, s, msg);
+			break;
+
+		case CEPH_MSG_CLIENT_CAPS:
+			ceph_handle_caps(s, msg);
+			break;
+
+		case CEPH_MSG_CLIENT_SNAP:
+			ceph_handle_snap(mdsc, s, msg);
+			break;
+
+		case CEPH_MSG_CLIENT_LEASE:
+			handle_lease(mdsc, s, msg);
+			break;
+
+		default:
+			pr_err("received unknown message type %d %s\n", type,
+				   ceph_msg_type_name(type));
 	}
+
 out:
 	ceph_msg_put(msg);
 }
@@ -3915,28 +4842,40 @@ out:
  * managed separately.  Caller must *not* attempt to free it.
  */
 static struct ceph_auth_handshake *get_authorizer(struct ceph_connection *con,
-					int *proto, int force_new)
+		int *proto, int force_new)
 {
 	struct ceph_mds_session *s = con->private;
 	struct ceph_mds_client *mdsc = s->s_mdsc;
 	struct ceph_auth_client *ac = mdsc->fsc->client->monc.auth;
 	struct ceph_auth_handshake *auth = &s->s_auth;
 
-	if (force_new && auth->authorizer) {
+	if (force_new && auth->authorizer)
+	{
 		ceph_auth_destroy_authorizer(auth->authorizer);
 		auth->authorizer = NULL;
 	}
-	if (!auth->authorizer) {
+
+	if (!auth->authorizer)
+	{
 		int ret = ceph_auth_create_authorizer(ac, CEPH_ENTITY_TYPE_MDS,
-						      auth);
+											  auth);
+
 		if (ret)
+		{
 			return ERR_PTR(ret);
-	} else {
-		int ret = ceph_auth_update_authorizer(ac, CEPH_ENTITY_TYPE_MDS,
-						      auth);
-		if (ret)
-			return ERR_PTR(ret);
+		}
 	}
+	else
+	{
+		int ret = ceph_auth_update_authorizer(ac, CEPH_ENTITY_TYPE_MDS,
+											  auth);
+
+		if (ret)
+		{
+			return ERR_PTR(ret);
+		}
+	}
+
 	*proto = ac->protocol;
 
 	return auth;
@@ -3964,20 +4903,24 @@ static int invalidate_authorizer(struct ceph_connection *con)
 }
 
 static struct ceph_msg *mds_alloc_msg(struct ceph_connection *con,
-				struct ceph_msg_header *hdr, int *skip)
+									  struct ceph_msg_header *hdr, int *skip)
 {
 	struct ceph_msg *msg;
 	int type = (int) le16_to_cpu(hdr->type);
 	int front_len = (int) le32_to_cpu(hdr->front_len);
 
 	if (con->in_msg)
+	{
 		return con->in_msg;
+	}
 
 	*skip = 0;
 	msg = ceph_msg_new(type, front_len, GFP_NOFS, false);
-	if (!msg) {
+
+	if (!msg)
+	{
 		pr_err("unable to allocate msg type %d len %d\n",
-		       type, front_len);
+			   type, front_len);
 		return NULL;
 	}
 
@@ -3986,21 +4929,22 @@ static struct ceph_msg *mds_alloc_msg(struct ceph_connection *con,
 
 static int mds_sign_message(struct ceph_msg *msg)
 {
-       struct ceph_mds_session *s = msg->con->private;
-       struct ceph_auth_handshake *auth = &s->s_auth;
+	struct ceph_mds_session *s = msg->con->private;
+	struct ceph_auth_handshake *auth = &s->s_auth;
 
-       return ceph_auth_sign_message(auth, msg);
+	return ceph_auth_sign_message(auth, msg);
 }
 
 static int mds_check_message_signature(struct ceph_msg *msg)
 {
-       struct ceph_mds_session *s = msg->con->private;
-       struct ceph_auth_handshake *auth = &s->s_auth;
+	struct ceph_mds_session *s = msg->con->private;
+	struct ceph_auth_handshake *auth = &s->s_auth;
 
-       return ceph_auth_check_message_signature(auth, msg);
+	return ceph_auth_check_message_signature(auth, msg);
 }
 
-static const struct ceph_connection_operations mds_con_ops = {
+static const struct ceph_connection_operations mds_con_ops =
+{
 	.get = con_get,
 	.put = con_put,
 	.dispatch = dispatch,

@@ -141,7 +141,7 @@ void dwmac_mmc_ctrl(void __iomem *mmcaddr, unsigned int mode)
 	writel(value, mmcaddr + MMC_CNTRL);
 
 	pr_debug("stmmac: MMC ctrl register (offset 0x%x): 0x%08x\n",
-		 MMC_CNTRL, value);
+			 MMC_CNTRL, value);
 }
 
 /* To mask all all interrupts.*/
@@ -162,20 +162,20 @@ void dwmac_mmc_read(void __iomem *mmcaddr, struct stmmac_counters *mmc)
 	mmc->mmc_tx_octetcount_gb += readl(mmcaddr + MMC_TX_OCTETCOUNT_GB);
 	mmc->mmc_tx_framecount_gb += readl(mmcaddr + MMC_TX_FRAMECOUNT_GB);
 	mmc->mmc_tx_broadcastframe_g += readl(mmcaddr +
-					      MMC_TX_BROADCASTFRAME_G);
+										  MMC_TX_BROADCASTFRAME_G);
 	mmc->mmc_tx_multicastframe_g += readl(mmcaddr +
-					      MMC_TX_MULTICASTFRAME_G);
+										  MMC_TX_MULTICASTFRAME_G);
 	mmc->mmc_tx_64_octets_gb += readl(mmcaddr + MMC_TX_64_OCTETS_GB);
 	mmc->mmc_tx_65_to_127_octets_gb +=
-	    readl(mmcaddr + MMC_TX_65_TO_127_OCTETS_GB);
+		readl(mmcaddr + MMC_TX_65_TO_127_OCTETS_GB);
 	mmc->mmc_tx_128_to_255_octets_gb +=
-	    readl(mmcaddr + MMC_TX_128_TO_255_OCTETS_GB);
+		readl(mmcaddr + MMC_TX_128_TO_255_OCTETS_GB);
 	mmc->mmc_tx_256_to_511_octets_gb +=
-	    readl(mmcaddr + MMC_TX_256_TO_511_OCTETS_GB);
+		readl(mmcaddr + MMC_TX_256_TO_511_OCTETS_GB);
 	mmc->mmc_tx_512_to_1023_octets_gb +=
-	    readl(mmcaddr + MMC_TX_512_TO_1023_OCTETS_GB);
+		readl(mmcaddr + MMC_TX_512_TO_1023_OCTETS_GB);
 	mmc->mmc_tx_1024_to_max_octets_gb +=
-	    readl(mmcaddr + MMC_TX_1024_TO_MAX_OCTETS_GB);
+		readl(mmcaddr + MMC_TX_1024_TO_MAX_OCTETS_GB);
 	mmc->mmc_tx_unicast_gb += readl(mmcaddr + MMC_TX_UNICAST_GB);
 	mmc->mmc_tx_multicast_gb += readl(mmcaddr + MMC_TX_MULTICAST_GB);
 	mmc->mmc_tx_broadcast_gb += readl(mmcaddr + MMC_TX_BROADCAST_GB);
@@ -197,9 +197,9 @@ void dwmac_mmc_read(void __iomem *mmcaddr, struct stmmac_counters *mmc)
 	mmc->mmc_rx_octetcount_gb += readl(mmcaddr + MMC_RX_OCTETCOUNT_GB);
 	mmc->mmc_rx_octetcount_g += readl(mmcaddr + MMC_RX_OCTETCOUNT_G);
 	mmc->mmc_rx_broadcastframe_g += readl(mmcaddr +
-					      MMC_RX_BROADCASTFRAME_G);
+										  MMC_RX_BROADCASTFRAME_G);
 	mmc->mmc_rx_multicastframe_g += readl(mmcaddr +
-					      MMC_RX_MULTICASTFRAME_G);
+										  MMC_RX_MULTICASTFRAME_G);
 	mmc->mmc_rx_crc_error += readl(mmcaddr + MMC_RX_CRC_ERROR);
 	mmc->mmc_rx_align_error += readl(mmcaddr + MMC_RX_ALIGN_ERROR);
 	mmc->mmc_rx_run_error += readl(mmcaddr + MMC_RX_RUN_ERROR);
@@ -208,15 +208,15 @@ void dwmac_mmc_read(void __iomem *mmcaddr, struct stmmac_counters *mmc)
 	mmc->mmc_rx_oversize_g += readl(mmcaddr + MMC_RX_OVERSIZE_G);
 	mmc->mmc_rx_64_octets_gb += readl(mmcaddr + MMC_RX_64_OCTETS_GB);
 	mmc->mmc_rx_65_to_127_octets_gb +=
-	    readl(mmcaddr + MMC_RX_65_TO_127_OCTETS_GB);
+		readl(mmcaddr + MMC_RX_65_TO_127_OCTETS_GB);
 	mmc->mmc_rx_128_to_255_octets_gb +=
-	    readl(mmcaddr + MMC_RX_128_TO_255_OCTETS_GB);
+		readl(mmcaddr + MMC_RX_128_TO_255_OCTETS_GB);
 	mmc->mmc_rx_256_to_511_octets_gb +=
-	    readl(mmcaddr + MMC_RX_256_TO_511_OCTETS_GB);
+		readl(mmcaddr + MMC_RX_256_TO_511_OCTETS_GB);
 	mmc->mmc_rx_512_to_1023_octets_gb +=
-	    readl(mmcaddr + MMC_RX_512_TO_1023_OCTETS_GB);
+		readl(mmcaddr + MMC_RX_512_TO_1023_OCTETS_GB);
 	mmc->mmc_rx_1024_to_max_octets_gb +=
-	    readl(mmcaddr + MMC_RX_1024_TO_MAX_OCTETS_GB);
+		readl(mmcaddr + MMC_RX_1024_TO_MAX_OCTETS_GB);
 	mmc->mmc_rx_unicast_g += readl(mmcaddr + MMC_RX_UNICAST_G);
 	mmc->mmc_rx_length_error += readl(mmcaddr + MMC_RX_LENGTH_ERROR);
 	mmc->mmc_rx_autofrangetype += readl(mmcaddr + MMC_RX_AUTOFRANGETYPE);
@@ -236,20 +236,20 @@ void dwmac_mmc_read(void __iomem *mmcaddr, struct stmmac_counters *mmc)
 
 	mmc->mmc_rx_ipv4_gd_octets += readl(mmcaddr + MMC_RX_IPV4_GD_OCTETS);
 	mmc->mmc_rx_ipv4_hderr_octets +=
-	    readl(mmcaddr + MMC_RX_IPV4_HDERR_OCTETS);
+		readl(mmcaddr + MMC_RX_IPV4_HDERR_OCTETS);
 	mmc->mmc_rx_ipv4_nopay_octets +=
-	    readl(mmcaddr + MMC_RX_IPV4_NOPAY_OCTETS);
+		readl(mmcaddr + MMC_RX_IPV4_NOPAY_OCTETS);
 	mmc->mmc_rx_ipv4_frag_octets += readl(mmcaddr +
-					      MMC_RX_IPV4_FRAG_OCTETS);
+										  MMC_RX_IPV4_FRAG_OCTETS);
 	mmc->mmc_rx_ipv4_udsbl_octets +=
-	    readl(mmcaddr + MMC_RX_IPV4_UDSBL_OCTETS);
+		readl(mmcaddr + MMC_RX_IPV4_UDSBL_OCTETS);
 
 	/* IPV6 */
 	mmc->mmc_rx_ipv6_gd_octets += readl(mmcaddr + MMC_RX_IPV6_GD_OCTETS);
 	mmc->mmc_rx_ipv6_hderr_octets +=
-	    readl(mmcaddr + MMC_RX_IPV6_HDERR_OCTETS);
+		readl(mmcaddr + MMC_RX_IPV6_HDERR_OCTETS);
 	mmc->mmc_rx_ipv6_nopay_octets +=
-	    readl(mmcaddr + MMC_RX_IPV6_NOPAY_OCTETS);
+		readl(mmcaddr + MMC_RX_IPV6_NOPAY_OCTETS);
 
 	mmc->mmc_rx_ipv6_gd += readl(mmcaddr + MMC_RX_IPV6_GD);
 	mmc->mmc_rx_ipv6_hderr += readl(mmcaddr + MMC_RX_IPV6_HDERR);

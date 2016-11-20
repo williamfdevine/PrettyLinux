@@ -65,7 +65,8 @@
 
 struct regulator_init_data;
 
-struct pfuze_regulator_platform_data {
+struct pfuze_regulator_platform_data
+{
 	struct regulator_init_data *init_data[PFUZE100_MAX_REGULATOR];
 };
 

@@ -25,41 +25,51 @@
 #include "pxa2xx-ac97.h"
 
 static int e800_spk_amp_event(struct snd_soc_dapm_widget *w,
-				struct snd_kcontrol *kcontrol, int event)
+							  struct snd_kcontrol *kcontrol, int event)
 {
 	if (event & SND_SOC_DAPM_PRE_PMU)
+	{
 		gpio_set_value(GPIO_E800_SPK_AMP_ON, 1);
+	}
 	else if (event & SND_SOC_DAPM_POST_PMD)
+	{
 		gpio_set_value(GPIO_E800_SPK_AMP_ON, 0);
+	}
 
 	return 0;
 }
 
 static int e800_hp_amp_event(struct snd_soc_dapm_widget *w,
-				struct snd_kcontrol *kcontrol, int event)
+							 struct snd_kcontrol *kcontrol, int event)
 {
 	if (event & SND_SOC_DAPM_PRE_PMU)
+	{
 		gpio_set_value(GPIO_E800_HP_AMP_OFF, 0);
+	}
 	else if (event & SND_SOC_DAPM_POST_PMD)
+	{
 		gpio_set_value(GPIO_E800_HP_AMP_OFF, 1);
+	}
 
 	return 0;
 }
 
-static const struct snd_soc_dapm_widget e800_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget e800_dapm_widgets[] =
+{
 	SND_SOC_DAPM_HP("Headphone Jack", NULL),
 	SND_SOC_DAPM_MIC("Mic (Internal1)", NULL),
 	SND_SOC_DAPM_MIC("Mic (Internal2)", NULL),
 	SND_SOC_DAPM_SPK("Speaker", NULL),
 	SND_SOC_DAPM_PGA_E("Headphone Amp", SND_SOC_NOPM, 0, 0, NULL, 0,
-			e800_hp_amp_event, SND_SOC_DAPM_PRE_PMU |
-			SND_SOC_DAPM_POST_PMD),
+	e800_hp_amp_event, SND_SOC_DAPM_PRE_PMU |
+	SND_SOC_DAPM_POST_PMD),
 	SND_SOC_DAPM_PGA_E("Speaker Amp", SND_SOC_NOPM, 0, 0, NULL, 0,
-			e800_spk_amp_event, SND_SOC_DAPM_PRE_PMU |
-			SND_SOC_DAPM_POST_PMD),
+	e800_spk_amp_event, SND_SOC_DAPM_PRE_PMU |
+	SND_SOC_DAPM_POST_PMD),
 };
 
-static const struct snd_soc_dapm_route audio_map[] = {
+static const struct snd_soc_dapm_route audio_map[] =
+{
 	{"Headphone Jack", NULL, "HPOUTL"},
 	{"Headphone Jack", NULL, "HPOUTR"},
 	{"Headphone Jack", NULL, "Headphone Amp"},
@@ -71,7 +81,8 @@ static const struct snd_soc_dapm_route audio_map[] = {
 	{"MIC2", NULL, "Mic (Internal2)"},
 };
 
-static struct snd_soc_dai_link e800_dai[] = {
+static struct snd_soc_dai_link e800_dai[] =
+{
 	{
 		.name = "AC97",
 		.stream_name = "AC97 HiFi",
@@ -84,13 +95,14 @@ static struct snd_soc_dai_link e800_dai[] = {
 		.name = "AC97 Aux",
 		.stream_name = "AC97 Aux",
 		.cpu_dai_name = "pxa2xx-ac97-aux",
-		.codec_dai_name ="wm9712-aux",
+		.codec_dai_name = "wm9712-aux",
 		.platform_name = "pxa-pcm-audio",
 		.codec_name = "wm9712-codec",
 	},
 };
 
-static struct snd_soc_card e800 = {
+static struct snd_soc_card e800 =
+{
 	.name = "Toshiba e800",
 	.owner = THIS_MODULE,
 	.dai_link = e800_dai,
@@ -102,7 +114,8 @@ static struct snd_soc_card e800 = {
 	.num_dapm_routes = ARRAY_SIZE(audio_map),
 };
 
-static struct gpio e800_audio_gpios[] = {
+static struct gpio e800_audio_gpios[] =
+{
 	{ GPIO_E800_SPK_AMP_ON, GPIOF_OUT_INIT_HIGH, "Headphone amp" },
 	{ GPIO_E800_HP_AMP_OFF, GPIOF_OUT_INIT_HIGH, "Speaker amp" },
 };
@@ -113,18 +126,24 @@ static int e800_probe(struct platform_device *pdev)
 	int ret;
 
 	ret = gpio_request_array(e800_audio_gpios,
-				 ARRAY_SIZE(e800_audio_gpios));
+							 ARRAY_SIZE(e800_audio_gpios));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	card->dev = &pdev->dev;
 
 	ret = devm_snd_soc_register_card(&pdev->dev, card);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
-			ret);
+				ret);
 		gpio_free_array(e800_audio_gpios, ARRAY_SIZE(e800_audio_gpios));
 	}
+
 	return ret;
 }
 
@@ -134,7 +153,8 @@ static int e800_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver e800_driver = {
+static struct platform_driver e800_driver =
+{
 	.driver		= {
 		.name	= "e800-audio",
 		.pm     = &snd_soc_pm_ops,

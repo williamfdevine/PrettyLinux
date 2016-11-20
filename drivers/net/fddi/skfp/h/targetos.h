@@ -52,9 +52,9 @@
 // is redefined by linux, but we need our definition
 #undef ADDR
 #ifdef MEM_MAPPED_IO
-#define	ADDR(a) (smc->hw.iop+(a))
+	#define	ADDR(a) (smc->hw.iop+(a))
 #else
-#define	ADDR(a) (((a)>>7) ? (outp(smc->hw.iop+B0_RAP,(a)>>7), (smc->hw.iop+( ((a)&0x7F) | ((a)>>7 ? 0x80:0)) )) : (smc->hw.iop+(((a)&0x7F)|((a)>>7 ? 0x80:0))))
+	#define	ADDR(a) (((a)>>7) ? (outp(smc->hw.iop+B0_RAP,(a)>>7), (smc->hw.iop+( ((a)&0x7F) | ((a)>>7 ? 0x80:0)) )) : (smc->hw.iop+(((a)&0x7F)|((a)>>7 ? 0x80:0))))
 #endif
 
 #include "hwmtm.h"
@@ -66,7 +66,7 @@
 // -----------------------
 #define FDDI_TRACE(string, arg1, arg2, arg3)	// Performance analysis.
 #ifdef PCI
-#define NDD_TRACE(string, arg1, arg2, arg3)	// Performance analysis.
+	#define NDD_TRACE(string, arg1, arg2, arg3)	// Performance analysis.
 #endif	// PCI
 #define SMT_PAGESIZE	PAGE_SIZE	// Size of a memory page (power of 2).
 // -----------------------
@@ -106,30 +106,32 @@
 
 #define	SKFPIOCTL	SIOCDEVPRIVATE
 
-struct s_skfp_ioctl {
+struct s_skfp_ioctl
+{
 	unsigned short cmd;                /* Command to run */
 	unsigned short len;                /* Length of the data buffer */
 	unsigned char __user *data;        /* Pointer to the data buffer */
 };
 
-/* 
-** Recognised ioctl commands for the driver 
+/*
+** Recognised ioctl commands for the driver
 */
 #define SKFP_GET_STATS		0x05 /* Get the driver statistics */
 #define SKFP_CLR_STATS		0x06 /* Zero out the driver statistics */
 
 // The per-adapter driver structure
-struct s_smt_os {
+struct s_smt_os
+{
 	struct net_device *dev;
 	struct net_device *next_module;
 	u32	bus_type;		/* bus type (0 == PCI, 1 == EISA) */
 	struct pci_dev 	pdev;		/* PCI device structure */
-	
+
 	unsigned long base_addr;
 	unsigned char factory_mac_addr[8];
 	ulong	SharedMemSize;
 	ulong	SharedMemHeap;
-	void*	SharedMemAddr;
+	void	*SharedMemAddr;
 	dma_addr_t SharedMemDMA;
 
 	ulong	QueueSkb;
@@ -147,16 +149,16 @@ struct s_smt_os {
 	// MAX_FRAME_SIZE bytes in size
 	unsigned char *LocalRxBuffer;
 	dma_addr_t LocalRxBufferDMA;
-	
+
 	// Version (required by SMT module).
 	u_long smc_version ;
 
 	// Required by Hardware Module (HWM).
 	struct hw_modul hwm ;
-	
+
 	// For SMP-savety
 	spinlock_t DriverLock;
-	
+
 };
 
 typedef struct s_smt_os skfddi_priv;

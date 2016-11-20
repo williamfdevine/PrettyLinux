@@ -1,8 +1,8 @@
 #include <netinet/in.h>
 #ifdef __sun__
-#include <inttypes.h>
+	#include <inttypes.h>
 #else
-#include <stdint.h>
+	#include <stdint.h>
 #endif
 #include <ctype.h>
 #include <errno.h>
@@ -37,7 +37,8 @@
 #define MD4_BLOCK_WORDS		16
 #define MD4_HASH_WORDS		4
 
-struct md4_ctx {
+struct md4_ctx
+{
 	uint32_t hash[MD4_HASH_WORDS];
 	uint32_t block[MD4_BLOCK_WORDS];
 	uint64_t byte_count;
@@ -71,7 +72,8 @@ static inline uint32_t H(uint32_t x, uint32_t y, uint32_t z)
 /* XXX: this stuff can be optimized */
 static inline void le32_to_cpu_array(uint32_t *buf, unsigned int words)
 {
-	while (words--) {
+	while (words--)
+	{
 		*buf = ntohl(*buf);
 		buf++;
 	}
@@ -79,7 +81,8 @@ static inline void le32_to_cpu_array(uint32_t *buf, unsigned int words)
 
 static inline void cpu_to_le32_array(uint32_t *buf, unsigned int words)
 {
-	while (words--) {
+	while (words--)
+	{
 		*buf = htonl(*buf);
 		buf++;
 	}
@@ -111,7 +114,7 @@ static void md4_transform(uint32_t *hash, uint32_t const *in)
 	ROUND1(c, d, a, b, in[14], 11);
 	ROUND1(b, c, d, a, in[15], 19);
 
-	ROUND2(a, b, c, d,in[ 0], 3);
+	ROUND2(a, b, c, d, in[ 0], 3);
 	ROUND2(d, a, b, c, in[4], 5);
 	ROUND2(c, d, a, b, in[8], 9);
 	ROUND2(b, c, d, a, in[12], 13);
@@ -128,7 +131,7 @@ static void md4_transform(uint32_t *hash, uint32_t const *in)
 	ROUND2(c, d, a, b, in[11], 9);
 	ROUND2(b, c, d, a, in[15], 13);
 
-	ROUND3(a, b, c, d,in[ 0], 3);
+	ROUND3(a, b, c, d, in[ 0], 3);
 	ROUND3(d, a, b, c, in[8], 9);
 	ROUND3(c, d, a, b, in[4], 11);
 	ROUND3(b, c, d, a, in[12], 15);
@@ -167,26 +170,28 @@ static void md4_init(struct md4_ctx *mctx)
 }
 
 static void md4_update(struct md4_ctx *mctx,
-		       const unsigned char *data, unsigned int len)
+					   const unsigned char *data, unsigned int len)
 {
 	const uint32_t avail = sizeof(mctx->block) - (mctx->byte_count & 0x3f);
 
 	mctx->byte_count += len;
 
-	if (avail > len) {
+	if (avail > len)
+	{
 		memcpy((char *)mctx->block + (sizeof(mctx->block) - avail),
-		       data, len);
+			   data, len);
 		return;
 	}
 
 	memcpy((char *)mctx->block + (sizeof(mctx->block) - avail),
-	       data, avail);
+		   data, avail);
 
 	md4_transform_helper(mctx);
 	data += avail;
 	len -= avail;
 
-	while (len >= sizeof(mctx->block)) {
+	while (len >= sizeof(mctx->block))
+	{
 		memcpy(mctx->block, data, sizeof(mctx->block));
 		md4_transform_helper(mctx);
 		data += sizeof(mctx->block);
@@ -203,7 +208,9 @@ static void md4_final_ascii(struct md4_ctx *mctx, char *out, unsigned int len)
 	int padding = 56 - (offset + 1);
 
 	*p++ = 0x80;
-	if (padding < 0) {
+
+	if (padding < 0)
+	{
 		memset(p, 0x00, padding + sizeof (uint64_t));
 		md4_transform_helper(mctx);
 		p = (char *)mctx->block;
@@ -214,12 +221,12 @@ static void md4_final_ascii(struct md4_ctx *mctx, char *out, unsigned int len)
 	mctx->block[14] = mctx->byte_count << 3;
 	mctx->block[15] = mctx->byte_count >> 29;
 	le32_to_cpu_array(mctx->block, (sizeof(mctx->block) -
-			  sizeof(uint64_t)) / sizeof(uint32_t));
+									sizeof(uint64_t)) / sizeof(uint32_t));
 	md4_transform(mctx->hash, mctx->block);
 	cpu_to_le32_array(mctx->hash, sizeof(mctx->hash) / sizeof(uint32_t));
 
 	snprintf(out, len, "%08X%08X%08X%08X",
-		 mctx->hash[0], mctx->hash[1], mctx->hash[2], mctx->hash[3]);
+			 mctx->hash[0], mctx->hash[1], mctx->hash[2], mctx->hash[3]);
 }
 
 static inline void add_char(unsigned char c, struct md4_ctx *md)
@@ -228,16 +235,22 @@ static inline void add_char(unsigned char c, struct md4_ctx *md)
 }
 
 static int parse_string(const char *file, unsigned long len,
-			struct md4_ctx *md)
+						struct md4_ctx *md)
 {
 	unsigned long i;
 
 	add_char(file[0], md);
-	for (i = 1; i < len; i++) {
+
+	for (i = 1; i < len; i++)
+	{
 		add_char(file[i], md);
-		if (file[i] == '"' && file[i-1] != '\\')
+
+		if (file[i] == '"' && file[i - 1] != '\\')
+		{
 			break;
+		}
 	}
+
 	return i;
 }
 
@@ -245,10 +258,14 @@ static int parse_comment(const char *file, unsigned long len)
 {
 	unsigned long i;
 
-	for (i = 2; i < len; i++) {
-		if (file[i-1] == '*' && file[i] == '/')
+	for (i = 2; i < len; i++)
+	{
+		if (file[i - 1] == '*' && file[i] == '/')
+		{
 			break;
+		}
 	}
+
 	return i;
 }
 
@@ -259,34 +276,44 @@ static int parse_file(const char *fname, struct md4_ctx *md)
 	unsigned long i, len;
 
 	file = grab_file(fname, &len);
-	if (!file)
-		return 0;
 
-	for (i = 0; i < len; i++) {
+	if (!file)
+	{
+		return 0;
+	}
+
+	for (i = 0; i < len; i++)
+	{
 		/* Collapse and ignore \ and CR. */
-		if (file[i] == '\\' && (i+1 < len) && file[i+1] == '\n') {
+		if (file[i] == '\\' && (i + 1 < len) && file[i + 1] == '\n')
+		{
 			i++;
 			continue;
 		}
 
 		/* Ignore whitespace */
 		if (isspace(file[i]))
+		{
 			continue;
+		}
 
 		/* Handle strings as whole units */
-		if (file[i] == '"') {
-			i += parse_string(file+i, len - i, md);
+		if (file[i] == '"')
+		{
+			i += parse_string(file + i, len - i, md);
 			continue;
 		}
 
 		/* Comments: ignore */
-		if (file[i] == '/' && file[i+1] == '*') {
-			i += parse_comment(file+i, len - i);
+		if (file[i] == '/' && file[i + 1] == '*')
+		{
+			i += parse_comment(file + i, len - i);
 			continue;
 		}
 
 		add_char(file[i], md);
 	}
+
 	release_file(file, len);
 	return 1;
 }
@@ -294,10 +321,15 @@ static int parse_file(const char *fname, struct md4_ctx *md)
 static int is_static_library(const char *objfile)
 {
 	int len = strlen(objfile);
+
 	if (objfile[len - 2] == '.' && objfile[len - 1] == 'a')
+	{
 		return 1;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 /* We have dir/file.o.  Open dir/.file.o.cmd, look for source_ and deps_ line
@@ -312,20 +344,27 @@ static int parse_source_files(const char *objfile, struct md4_ctx *md)
 	cmd = NOFAIL(malloc(strlen(objfile) + sizeof("..cmd")));
 
 	base = strrchr(objfile, '/');
-	if (base) {
+
+	if (base)
+	{
 		base++;
 		dirlen = base - objfile;
 		sprintf(cmd, "%.*s.%s.cmd", dirlen, objfile, base);
-	} else {
+	}
+	else
+	{
 		dirlen = 0;
 		sprintf(cmd, ".%s.cmd", objfile);
 	}
+
 	dir = NOFAIL(malloc(dirlen + 1));
 	strncpy(dir, objfile, dirlen);
 	dir[dirlen] = '\0';
 
 	file = grab_file(cmd, &flen);
-	if (!file) {
+
+	if (!file)
+	{
 		warn("could not find %s for %s\n", cmd, objfile);
 		goto out;
 	}
@@ -338,47 +377,68 @@ static int parse_source_files(const char *objfile, struct md4_ctx *md)
 
 	   Sum all files in the same dir or subdirs.
 	*/
-	while ((line = get_next_line(&pos, file, flen)) != NULL) {
-		char* p = line;
+	while ((line = get_next_line(&pos, file, flen)) != NULL)
+	{
+		char *p = line;
 
-		if (strncmp(line, "source_", sizeof("source_")-1) == 0) {
+		if (strncmp(line, "source_", sizeof("source_") - 1) == 0)
+		{
 			p = strrchr(line, ' ');
-			if (!p) {
+
+			if (!p)
+			{
 				warn("malformed line: %s\n", line);
 				goto out_file;
 			}
+
 			p++;
-			if (!parse_file(p, md)) {
+
+			if (!parse_file(p, md))
+			{
 				warn("could not open %s: %s\n",
-				     p, strerror(errno));
+					 p, strerror(errno));
 				goto out_file;
 			}
+
 			continue;
 		}
-		if (strncmp(line, "deps_", sizeof("deps_")-1) == 0) {
+
+		if (strncmp(line, "deps_", sizeof("deps_") - 1) == 0)
+		{
 			check_files = 1;
 			continue;
 		}
+
 		if (!check_files)
+		{
 			continue;
+		}
 
 		/* Continue until line does not end with '\' */
-		if ( *(p + strlen(p)-1) != '\\')
+		if ( *(p + strlen(p) - 1) != '\\')
+		{
 			break;
+		}
+
 		/* Terminate line at first space, to get rid of final ' \' */
-		while (*p) {
-			if (isspace(*p)) {
+		while (*p)
+		{
+			if (isspace(*p))
+			{
 				*p = '\0';
 				break;
 			}
+
 			p++;
 		}
 
 		/* Check if this file is in same dir as objfile */
-		if ((strstr(line, dir)+strlen(dir)-1) == strrchr(line, '/')) {
-			if (!parse_file(line, md)) {
+		if ((strstr(line, dir) + strlen(dir) - 1) == strrchr(line, '/'))
+		{
+			if (!parse_file(line, md))
+			{
 				warn("could not open %s: %s\n",
-				     line, strerror(errno));
+					 line, strerror(errno));
 				goto out_file;
 			}
 
@@ -408,43 +468,65 @@ void get_src_version(const char *modname, char sum[], unsigned sumlen)
 	char *modverdir = getenv("MODVERDIR");
 
 	if (!modverdir)
+	{
 		modverdir = ".";
+	}
 
 	/* Source files for module are in .tmp_versions/modname.mod,
 	   after the first line. */
 	if (strrchr(modname, '/'))
+	{
 		basename = strrchr(modname, '/') + 1;
+	}
 	else
+	{
 		basename = modname;
+	}
+
 	snprintf(filelist, sizeof(filelist), "%s/%.*s.mod", modverdir,
-		(int) strlen(basename) - 2, basename);
+			 (int) strlen(basename) - 2, basename);
 
 	file = grab_file(filelist, &len);
+
 	if (!file)
 		/* not a module or .mod file missing - ignore */
+	{
 		return;
+	}
 
 	sources = strchr(file, '\n');
-	if (!sources) {
+
+	if (!sources)
+	{
 		warn("malformed versions file for %s\n", modname);
 		goto release;
 	}
 
 	sources++;
 	end = strchr(sources, '\n');
-	if (!end) {
+
+	if (!end)
+	{
 		warn("bad ending versions file for %s\n", modname);
 		goto release;
 	}
+
 	*end = '\0';
 
 	md4_init(&md);
-	while ((fname = strsep(&sources, " ")) != NULL) {
+
+	while ((fname = strsep(&sources, " ")) != NULL)
+	{
 		if (!*fname)
+		{
 			continue;
+		}
+
 		if (!(is_static_library(fname)) &&
-				!parse_source_files(fname, &md))
+			!parse_source_files(fname, &md))
+		{
 			goto release;
+		}
 	}
 
 	md4_final_ascii(&md, sum, sumlen);
@@ -453,28 +535,33 @@ release:
 }
 
 static void write_version(const char *filename, const char *sum,
-			  unsigned long offset)
+						  unsigned long offset)
 {
 	int fd;
 
 	fd = open(filename, O_RDWR);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		warn("changing sum in %s failed: %s\n",
-			filename, strerror(errno));
+			 filename, strerror(errno));
 		return;
 	}
 
-	if (lseek(fd, offset, SEEK_SET) == (off_t)-1) {
+	if (lseek(fd, offset, SEEK_SET) == (off_t) - 1)
+	{
 		warn("changing sum in %s:%lu failed: %s\n",
-			filename, offset, strerror(errno));
+			 filename, offset, strerror(errno));
 		goto out;
 	}
 
-	if (write(fd, sum, strlen(sum)+1) != strlen(sum)+1) {
+	if (write(fd, sum, strlen(sum) + 1) != strlen(sum) + 1)
+	{
 		warn("writing sum in %s failed: %s\n",
-			filename, strerror(errno));
+			 filename, strerror(errno));
 		goto out;
 	}
+
 out:
 	close(fd);
 }
@@ -484,7 +571,9 @@ static int strip_rcs_crap(char *version)
 	unsigned int len, full_len;
 
 	if (strncmp(version, "$Revision", strlen("$Revision")) != 0)
+	{
 		return 0;
+	}
 
 	/* Space for version string follows. */
 	full_len = strlen(version) + strlen(version + strlen(version) + 1) + 2;
@@ -492,28 +581,41 @@ static int strip_rcs_crap(char *version)
 	/* Move string to start with version number: prefix will be
 	 * $Revision$ or $Revision: */
 	len = strlen("$Revision");
+
 	if (version[len] == ':' || version[len] == '$')
+	{
 		len++;
+	}
+
 	while (isspace(version[len]))
+	{
 		len++;
-	memmove(version, version+len, full_len-len);
+	}
+
+	memmove(version, version + len, full_len - len);
 	full_len -= len;
 
 	/* Preserve up to next whitespace. */
 	len = 0;
+
 	while (version[len] && !isspace(version[len]))
+	{
 		len++;
+	}
+
 	memmove(version + len, version + strlen(version),
-		full_len - strlen(version));
+			full_len - strlen(version));
 	return 1;
 }
 
 /* Clean up RCS-style version numbers. */
 void maybe_frob_rcs_version(const char *modfilename,
-			    char *version,
-			    void *modinfo,
-			    unsigned long version_offset)
+							char *version,
+							void *modinfo,
+							unsigned long version_offset)
 {
 	if (strip_rcs_crap(version))
+	{
 		write_version(modfilename, version, version_offset);
+	}
 }

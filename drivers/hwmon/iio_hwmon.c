@@ -26,7 +26,8 @@
  * @attr_group:	the group of attributes
  * @attrs:		null terminated array of attribute pointers.
  */
-struct iio_hwmon_state {
+struct iio_hwmon_state
+{
 	struct iio_channel *channels;
 	int num_channels;
 	struct device *hwmon_dev;
@@ -41,8 +42,8 @@ struct iio_hwmon_state {
  * new channel types.
  */
 static ssize_t iio_hwmon_read_val(struct device *dev,
-				  struct device_attribute *attr,
-				  char *buf)
+								  struct device_attribute *attr,
+								  char *buf)
 {
 	int result;
 	int ret;
@@ -50,9 +51,12 @@ static ssize_t iio_hwmon_read_val(struct device *dev,
 	struct iio_hwmon_state *state = dev_get_drvdata(dev);
 
 	ret = iio_read_channel_processed(&state->channels[sattr->index],
-					&result);
+									 &result);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return sprintf(buf, "%d\n", result);
 }
@@ -70,17 +74,26 @@ static int iio_hwmon_probe(struct platform_device *pdev)
 	char *sname;
 
 	if (dev->of_node && dev->of_node->name)
+	{
 		name = dev->of_node->name;
+	}
 
 	channels = iio_channel_get_all(dev);
-	if (IS_ERR(channels)) {
+
+	if (IS_ERR(channels))
+	{
 		if (PTR_ERR(channels) == -ENODEV)
+		{
 			return -EPROBE_DEFER;
+		}
+
 		return PTR_ERR(channels);
 	}
 
 	st = devm_kzalloc(dev, sizeof(*st), GFP_KERNEL);
-	if (st == NULL) {
+
+	if (st == NULL)
+	{
 		ret = -ENOMEM;
 		goto error_release_channels;
 	}
@@ -89,57 +102,75 @@ static int iio_hwmon_probe(struct platform_device *pdev)
 
 	/* count how many attributes we have */
 	while (st->channels[st->num_channels].indio_dev)
+	{
 		st->num_channels++;
+	}
 
 	st->attrs = devm_kzalloc(dev,
-				 sizeof(*st->attrs) * (st->num_channels + 1),
-				 GFP_KERNEL);
-	if (st->attrs == NULL) {
+							 sizeof(*st->attrs) * (st->num_channels + 1),
+							 GFP_KERNEL);
+
+	if (st->attrs == NULL)
+	{
 		ret = -ENOMEM;
 		goto error_release_channels;
 	}
 
-	for (i = 0; i < st->num_channels; i++) {
+	for (i = 0; i < st->num_channels; i++)
+	{
 		a = devm_kzalloc(dev, sizeof(*a), GFP_KERNEL);
-		if (a == NULL) {
+
+		if (a == NULL)
+		{
 			ret = -ENOMEM;
 			goto error_release_channels;
 		}
 
 		sysfs_attr_init(&a->dev_attr.attr);
 		ret = iio_get_channel_type(&st->channels[i], &type);
-		if (ret < 0)
-			goto error_release_channels;
 
-		switch (type) {
-		case IIO_VOLTAGE:
-			a->dev_attr.attr.name = devm_kasprintf(dev, GFP_KERNEL,
-							       "in%d_input",
-							       in_i++);
-			break;
-		case IIO_TEMP:
-			a->dev_attr.attr.name = devm_kasprintf(dev, GFP_KERNEL,
-							       "temp%d_input",
-							       temp_i++);
-			break;
-		case IIO_CURRENT:
-			a->dev_attr.attr.name = devm_kasprintf(dev, GFP_KERNEL,
-							       "curr%d_input",
-							       curr_i++);
-			break;
-		case IIO_HUMIDITYRELATIVE:
-			a->dev_attr.attr.name = devm_kasprintf(dev, GFP_KERNEL,
-							       "humidity%d_input",
-							       humidity_i++);
-			break;
-		default:
-			ret = -EINVAL;
+		if (ret < 0)
+		{
 			goto error_release_channels;
 		}
-		if (a->dev_attr.attr.name == NULL) {
+
+		switch (type)
+		{
+			case IIO_VOLTAGE:
+				a->dev_attr.attr.name = devm_kasprintf(dev, GFP_KERNEL,
+													   "in%d_input",
+													   in_i++);
+				break;
+
+			case IIO_TEMP:
+				a->dev_attr.attr.name = devm_kasprintf(dev, GFP_KERNEL,
+													   "temp%d_input",
+													   temp_i++);
+				break;
+
+			case IIO_CURRENT:
+				a->dev_attr.attr.name = devm_kasprintf(dev, GFP_KERNEL,
+													   "curr%d_input",
+													   curr_i++);
+				break;
+
+			case IIO_HUMIDITYRELATIVE:
+				a->dev_attr.attr.name = devm_kasprintf(dev, GFP_KERNEL,
+													   "humidity%d_input",
+													   humidity_i++);
+				break;
+
+			default:
+				ret = -EINVAL;
+				goto error_release_channels;
+		}
+
+		if (a->dev_attr.attr.name == NULL)
+		{
 			ret = -ENOMEM;
 			goto error_release_channels;
 		}
+
 		a->dev_attr.show = iio_hwmon_read_val;
 		a->dev_attr.attr.mode = S_IRUGO;
 		a->index = i;
@@ -150,18 +181,23 @@ static int iio_hwmon_probe(struct platform_device *pdev)
 	st->groups[0] = &st->attr_group;
 
 	sname = devm_kstrdup(dev, name, GFP_KERNEL);
-	if (!sname) {
+
+	if (!sname)
+	{
 		ret = -ENOMEM;
 		goto error_release_channels;
 	}
 
 	strreplace(sname, '-', '_');
 	st->hwmon_dev = hwmon_device_register_with_groups(dev, sname, st,
-							  st->groups);
-	if (IS_ERR(st->hwmon_dev)) {
+					st->groups);
+
+	if (IS_ERR(st->hwmon_dev))
+	{
 		ret = PTR_ERR(st->hwmon_dev);
 		goto error_release_channels;
 	}
+
 	platform_set_drvdata(pdev, st);
 	return 0;
 
@@ -180,13 +216,15 @@ static int iio_hwmon_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id iio_hwmon_of_match[] = {
+static const struct of_device_id iio_hwmon_of_match[] =
+{
 	{ .compatible = "iio-hwmon", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, iio_hwmon_of_match);
 
-static struct platform_driver __refdata iio_hwmon_driver = {
+static struct platform_driver __refdata iio_hwmon_driver =
+{
 	.driver = {
 		.name = "iio_hwmon",
 		.of_match_table = iio_hwmon_of_match,

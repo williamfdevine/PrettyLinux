@@ -18,7 +18,7 @@
 
 static
 int ufs_qcom_phy_qmp_20nm_phy_calibrate(struct ufs_qcom_phy *ufs_qcom_phy,
-					bool is_rate_B)
+										bool is_rate_B)
 {
 	struct ufs_qcom_phy_calibration *tbl_A, *tbl_B;
 	int tbl_size_A, tbl_size_B;
@@ -27,15 +27,20 @@ int ufs_qcom_phy_qmp_20nm_phy_calibrate(struct ufs_qcom_phy *ufs_qcom_phy,
 	u16 step = ufs_qcom_phy->host_ctrl_rev_step;
 	int err;
 
-	if ((major == 0x1) && (minor == 0x002) && (step == 0x0000)) {
+	if ((major == 0x1) && (minor == 0x002) && (step == 0x0000))
+	{
 		tbl_size_A = ARRAY_SIZE(phy_cal_table_rate_A_1_2_0);
 		tbl_A = phy_cal_table_rate_A_1_2_0;
-	} else if ((major == 0x1) && (minor == 0x003) && (step == 0x0000)) {
+	}
+	else if ((major == 0x1) && (minor == 0x003) && (step == 0x0000))
+	{
 		tbl_size_A = ARRAY_SIZE(phy_cal_table_rate_A_1_3_0);
 		tbl_A = phy_cal_table_rate_A_1_3_0;
-	} else {
+	}
+	else
+	{
 		dev_err(ufs_qcom_phy->dev, "%s: Unknown UFS-PHY version, no calibration values\n",
-			__func__);
+				__func__);
 		err = -ENODEV;
 		goto out;
 	}
@@ -44,11 +49,11 @@ int ufs_qcom_phy_qmp_20nm_phy_calibrate(struct ufs_qcom_phy *ufs_qcom_phy,
 	tbl_B = phy_cal_table_rate_B;
 
 	err = ufs_qcom_phy_calibrate(ufs_qcom_phy, tbl_A, tbl_size_A,
-						tbl_B, tbl_size_B, is_rate_B);
+								 tbl_B, tbl_size_B, is_rate_B);
 
 	if (err)
 		dev_err(ufs_qcom_phy->dev, "%s: ufs_qcom_phy_calibrate() failed %d\n",
-			__func__, err);
+				__func__, err);
 
 out:
 	return err;
@@ -68,16 +73,20 @@ static int ufs_qcom_phy_qmp_20nm_init(struct phy *generic_phy)
 	int err = 0;
 
 	err = ufs_qcom_phy_init_clks(generic_phy, phy_common);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(phy_common->dev, "%s: ufs_qcom_phy_init_clks() failed %d\n",
-			__func__, err);
+				__func__, err);
 		goto out;
 	}
 
 	err = ufs_qcom_phy_init_vregulators(generic_phy, phy_common);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(phy_common->dev, "%s: ufs_qcom_phy_init_vregulators() failed %d\n",
-			__func__, err);
+				__func__, err);
 		goto out;
 	}
 
@@ -91,9 +100,10 @@ static
 void ufs_qcom_phy_qmp_20nm_power_control(struct ufs_qcom_phy *phy, bool val)
 {
 	bool hibern8_exit_after_pwr_collapse = phy->quirks &
-		UFS_QCOM_PHY_QUIRK_HIBERN8_EXIT_AFTER_PHY_PWR_COLLAPSE;
+										   UFS_QCOM_PHY_QUIRK_HIBERN8_EXIT_AFTER_PHY_PWR_COLLAPSE;
 
-	if (val) {
+	if (val)
+	{
 		writel_relaxed(0x1, phy->mmio + UFS_PHY_POWER_DOWN_CONTROL);
 		/*
 		 * Before any transactions involving PHY, ensure PHY knows
@@ -101,28 +111,32 @@ void ufs_qcom_phy_qmp_20nm_power_control(struct ufs_qcom_phy *phy, bool val)
 		 */
 		mb();
 
-		if (hibern8_exit_after_pwr_collapse) {
+		if (hibern8_exit_after_pwr_collapse)
+		{
 			/*
 			 * Give atleast 1us delay after restoring PHY analog
 			 * power.
 			 */
 			usleep_range(1, 2);
 			writel_relaxed(0x0A, phy->mmio +
-				       QSERDES_COM_SYSCLK_EN_SEL_TXBAND);
+						   QSERDES_COM_SYSCLK_EN_SEL_TXBAND);
 			writel_relaxed(0x08, phy->mmio +
-				       QSERDES_COM_SYSCLK_EN_SEL_TXBAND);
+						   QSERDES_COM_SYSCLK_EN_SEL_TXBAND);
 			/*
 			 * Make sure workaround is deactivated before proceeding
 			 * with normal PHY operations.
 			 */
 			mb();
 		}
-	} else {
-		if (hibern8_exit_after_pwr_collapse) {
+	}
+	else
+	{
+		if (hibern8_exit_after_pwr_collapse)
+		{
 			writel_relaxed(0x0A, phy->mmio +
-				       QSERDES_COM_SYSCLK_EN_SEL_TXBAND);
+						   QSERDES_COM_SYSCLK_EN_SEL_TXBAND);
 			writel_relaxed(0x02, phy->mmio +
-				       QSERDES_COM_SYSCLK_EN_SEL_TXBAND);
+						   QSERDES_COM_SYSCLK_EN_SEL_TXBAND);
 			/*
 			 * Make sure that above workaround is activated before
 			 * PHY analog power collapse.
@@ -143,7 +157,7 @@ static
 void ufs_qcom_phy_qmp_20nm_set_tx_lane_enable(struct ufs_qcom_phy *phy, u32 val)
 {
 	writel_relaxed(val & UFS_PHY_TX_LANE_ENABLE_MASK,
-			phy->mmio + UFS_PHY_TX_LANE_ENABLE);
+				   phy->mmio + UFS_PHY_TX_LANE_ENABLE);
 	mb();
 }
 
@@ -164,14 +178,17 @@ static int ufs_qcom_phy_qmp_20nm_is_pcs_ready(struct ufs_qcom_phy *phy_common)
 	u32 val;
 
 	err = readl_poll_timeout(phy_common->mmio + UFS_PHY_PCS_READY_STATUS,
-			val, (val & MASK_PCS_READY), 10, 1000000);
+							 val, (val & MASK_PCS_READY), 10, 1000000);
+
 	if (err)
 		dev_err(phy_common->dev, "%s: poll for pcs failed err = %d\n",
-			__func__, err);
+				__func__, err);
+
 	return err;
 }
 
-static const struct phy_ops ufs_qcom_phy_qmp_20nm_phy_ops = {
+static const struct phy_ops ufs_qcom_phy_qmp_20nm_phy_ops =
+{
 	.init		= ufs_qcom_phy_qmp_20nm_init,
 	.exit		= ufs_qcom_phy_exit,
 	.power_on	= ufs_qcom_phy_power_on,
@@ -179,7 +196,8 @@ static const struct phy_ops ufs_qcom_phy_qmp_20nm_phy_ops = {
 	.owner		= THIS_MODULE,
 };
 
-static struct ufs_qcom_phy_specific_ops phy_20nm_ops = {
+static struct ufs_qcom_phy_specific_ops phy_20nm_ops =
+{
 	.calibrate_phy		= ufs_qcom_phy_qmp_20nm_phy_calibrate,
 	.start_serdes		= ufs_qcom_phy_qmp_20nm_start_serdes,
 	.is_physical_coding_sublayer_ready = ufs_qcom_phy_qmp_20nm_is_pcs_ready,
@@ -195,17 +213,20 @@ static int ufs_qcom_phy_qmp_20nm_probe(struct platform_device *pdev)
 	int err = 0;
 
 	phy = devm_kzalloc(dev, sizeof(*phy), GFP_KERNEL);
-	if (!phy) {
+
+	if (!phy)
+	{
 		err = -ENOMEM;
 		goto out;
 	}
 
 	generic_phy = ufs_qcom_phy_generic_probe(pdev, &phy->common_cfg,
-				&ufs_qcom_phy_qmp_20nm_phy_ops, &phy_20nm_ops);
+				  &ufs_qcom_phy_qmp_20nm_phy_ops, &phy_20nm_ops);
 
-	if (!generic_phy) {
+	if (!generic_phy)
+	{
 		dev_err(dev, "%s: ufs_qcom_phy_generic_probe() failed\n",
-			__func__);
+				__func__);
 		err = -EIO;
 		goto out;
 	}
@@ -227,20 +248,23 @@ static int ufs_qcom_phy_qmp_20nm_remove(struct platform_device *pdev)
 	int err = 0;
 
 	err = ufs_qcom_phy_remove(generic_phy, ufs_qcom_phy);
+
 	if (err)
 		dev_err(dev, "%s: ufs_qcom_phy_remove failed = %d\n",
-			__func__, err);
+				__func__, err);
 
 	return err;
 }
 
-static const struct of_device_id ufs_qcom_phy_qmp_20nm_of_match[] = {
+static const struct of_device_id ufs_qcom_phy_qmp_20nm_of_match[] =
+{
 	{.compatible = "qcom,ufs-phy-qmp-20nm"},
 	{},
 };
 MODULE_DEVICE_TABLE(of, ufs_qcom_phy_qmp_20nm_of_match);
 
-static struct platform_driver ufs_qcom_phy_qmp_20nm_driver = {
+static struct platform_driver ufs_qcom_phy_qmp_20nm_driver =
+{
 	.probe = ufs_qcom_phy_qmp_20nm_probe,
 	.remove = ufs_qcom_phy_qmp_20nm_remove,
 	.driver = {

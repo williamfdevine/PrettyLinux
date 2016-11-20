@@ -99,14 +99,16 @@ extern "C" {
 #define I810_BACK    0x2
 #define I810_DEPTH   0x4
 
-typedef enum _drm_i810_init_func {
+typedef enum _drm_i810_init_func
+{
 	I810_INIT_DMA = 0x01,
 	I810_CLEANUP_DMA = 0x02,
 	I810_INIT_DMA_1_4 = 0x03
 } drm_i810_init_func_t;
 
 /* This is the init structure after v1.2 */
-typedef struct _drm_i810_init {
+typedef struct _drm_i810_init
+{
 	drm_i810_init_func_t func;
 	unsigned int mmio_offset;
 	unsigned int buffers_offset;
@@ -126,7 +128,8 @@ typedef struct _drm_i810_init {
 } drm_i810_init_t;
 
 /* This is the init structure prior to v1.2 */
-typedef struct _drm_i810_pre12_init {
+typedef struct _drm_i810_pre12_init
+{
 	drm_i810_init_func_t func;
 	unsigned int mmio_offset;
 	unsigned int buffers_offset;
@@ -146,13 +149,15 @@ typedef struct _drm_i810_pre12_init {
 /* Warning: If you change the SAREA structure you must change the Xserver
  * structure as well */
 
-typedef struct _drm_i810_tex_region {
+typedef struct _drm_i810_tex_region
+{
 	unsigned char next, prev;	/* indices to form a circular LRU  */
 	unsigned char in_use;	/* owned by a client, or free? */
 	int age;		/* tracked by clients to update local LRU's */
 } drm_i810_tex_region_t;
 
-typedef struct _drm_i810_sarea {
+typedef struct _drm_i810_sarea
+{
 	unsigned int ContextState[I810_CTX_SETUP_SIZE];
 	unsigned int BufferState[I810_DEST_SETUP_SIZE];
 	unsigned int TexState[2][I810_TEX_SETUP_SIZE];
@@ -231,7 +236,8 @@ typedef struct _drm_i810_sarea {
 #define DRM_IOCTL_I810_RSTATUS		DRM_IO ( DRM_COMMAND_BASE + DRM_I810_RSTATUS)
 #define DRM_IOCTL_I810_FLIP             DRM_IO ( DRM_COMMAND_BASE + DRM_I810_FLIP)
 
-typedef struct _drm_i810_clear {
+typedef struct _drm_i810_clear
+{
 	int clear_color;
 	int clear_depth;
 	int flags;
@@ -242,13 +248,15 @@ typedef struct _drm_i810_clear {
  * false, indicating that the buffer will be dispatched again with a
  * new set of cliprects.
  */
-typedef struct _drm_i810_vertex {
+typedef struct _drm_i810_vertex
+{
 	int idx;		/* buffer index */
 	int used;		/* nr bytes in use */
 	int discard;		/* client is finished with the buffer? */
 } drm_i810_vertex_t;
 
-typedef struct _drm_i810_copy_t {
+typedef struct _drm_i810_copy_t
+{
 	int idx;		/* buffer index */
 	int used;		/* nr bytes in use */
 	void *address;		/* Address to copy from */
@@ -264,19 +272,22 @@ typedef struct _drm_i810_copy_t {
 #define PR_RECTS             (0x7<<18)
 #define PR_MASK              (0x7<<18)
 
-typedef struct drm_i810_dma {
+typedef struct drm_i810_dma
+{
 	void *virtual;
 	int request_idx;
 	int request_size;
 	int granted;
 } drm_i810_dma_t;
 
-typedef struct _drm_i810_overlay_t {
+typedef struct _drm_i810_overlay_t
+{
 	unsigned int offset;	/* Address of the Overlay Regs */
 	unsigned int physical;
 } drm_i810_overlay_t;
 
-typedef struct _drm_i810_mc {
+typedef struct _drm_i810_mc
+{
 	int idx;		/* buffer index */
 	int used;		/* nr bytes in use */
 	int num_blocks;		/* number of GFXBlocks */

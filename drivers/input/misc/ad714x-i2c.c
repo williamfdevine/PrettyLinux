@@ -26,7 +26,7 @@ static int __maybe_unused ad714x_i2c_resume(struct device *dev)
 static SIMPLE_DEV_PM_OPS(ad714x_i2c_pm, ad714x_i2c_suspend, ad714x_i2c_resume);
 
 static int ad714x_i2c_write(struct ad714x_chip *chip,
-			    unsigned short reg, unsigned short data)
+							unsigned short reg, unsigned short data)
 {
 	struct i2c_client *client = to_i2c_client(chip->dev);
 	int error;
@@ -35,8 +35,10 @@ static int ad714x_i2c_write(struct ad714x_chip *chip,
 	chip->xfer_buf[1] = cpu_to_be16(data);
 
 	error = i2c_master_send(client, (u8 *)chip->xfer_buf,
-				2 * sizeof(*chip->xfer_buf));
-	if (unlikely(error < 0)) {
+							2 * sizeof(*chip->xfer_buf));
+
+	if (unlikely(error < 0))
+	{
 		dev_err(&client->dev, "I2C write error: %d\n", error);
 		return error;
 	}
@@ -45,7 +47,7 @@ static int ad714x_i2c_write(struct ad714x_chip *chip,
 }
 
 static int ad714x_i2c_read(struct ad714x_chip *chip,
-			   unsigned short reg, unsigned short *data, size_t len)
+						   unsigned short reg, unsigned short *data, size_t len)
 {
 	struct i2c_client *client = to_i2c_client(chip->dev);
 	int i;
@@ -54,38 +56,46 @@ static int ad714x_i2c_read(struct ad714x_chip *chip,
 	chip->xfer_buf[0] = cpu_to_be16(reg);
 
 	error = i2c_master_send(client, (u8 *)chip->xfer_buf,
-				sizeof(*chip->xfer_buf));
+							sizeof(*chip->xfer_buf));
+
 	if (error >= 0)
 		error = i2c_master_recv(client, (u8 *)chip->xfer_buf,
-					len * sizeof(*chip->xfer_buf));
+								len * sizeof(*chip->xfer_buf));
 
-	if (unlikely(error < 0)) {
+	if (unlikely(error < 0))
+	{
 		dev_err(&client->dev, "I2C read error: %d\n", error);
 		return error;
 	}
 
 	for (i = 0; i < len; i++)
+	{
 		data[i] = be16_to_cpu(chip->xfer_buf[i]);
+	}
 
 	return 0;
 }
 
 static int ad714x_i2c_probe(struct i2c_client *client,
-					const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct ad714x_chip *chip;
 
 	chip = ad714x_probe(&client->dev, BUS_I2C, client->irq,
-			    ad714x_i2c_read, ad714x_i2c_write);
+						ad714x_i2c_read, ad714x_i2c_write);
+
 	if (IS_ERR(chip))
+	{
 		return PTR_ERR(chip);
+	}
 
 	i2c_set_clientdata(client, chip);
 
 	return 0;
 }
 
-static const struct i2c_device_id ad714x_id[] = {
+static const struct i2c_device_id ad714x_id[] =
+{
 	{ "ad7142_captouch", 0 },
 	{ "ad7143_captouch", 0 },
 	{ "ad7147_captouch", 0 },
@@ -95,7 +105,8 @@ static const struct i2c_device_id ad714x_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, ad714x_id);
 
-static struct i2c_driver ad714x_i2c_driver = {
+static struct i2c_driver ad714x_i2c_driver =
+{
 	.driver = {
 		.name = "ad714x_captouch",
 		.pm   = &ad714x_i2c_pm,

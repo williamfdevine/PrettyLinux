@@ -8,7 +8,8 @@ struct request;
 struct scsi_cmnd;
 struct scsi_device;
 
-struct scsi_driver {
+struct scsi_driver
+{
 	struct device_driver	gendrv;
 
 	void (*rescan)(struct device *);

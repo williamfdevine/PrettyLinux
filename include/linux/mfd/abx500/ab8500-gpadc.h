@@ -54,22 +54,22 @@ struct ab8500_gpadc;
 
 struct ab8500_gpadc *ab8500_gpadc_get(char *name);
 int ab8500_gpadc_sw_hw_convert(struct ab8500_gpadc *gpadc, u8 channel,
-		u8 avg_sample, u8 trig_edge, u8 trig_timer, u8 conv_type);
+							   u8 avg_sample, u8 trig_edge, u8 trig_timer, u8 conv_type);
 static inline int ab8500_gpadc_convert(struct ab8500_gpadc *gpadc, u8 channel)
 {
 	return ab8500_gpadc_sw_hw_convert(gpadc, channel,
-			SAMPLE_16, 0, 0, ADC_SW);
+									  SAMPLE_16, 0, 0, ADC_SW);
 }
 
 int ab8500_gpadc_read_raw(struct ab8500_gpadc *gpadc, u8 channel,
-		u8 avg_sample, u8 trig_edge, u8 trig_timer, u8 conv_type);
+						  u8 avg_sample, u8 trig_edge, u8 trig_timer, u8 conv_type);
 int ab8500_gpadc_double_read_raw(struct ab8500_gpadc *gpadc, u8 channel,
-		u8 avg_sample, u8 trig_edge, u8 trig_timer, u8 conv_type,
-		int *ibat);
+								 u8 avg_sample, u8 trig_edge, u8 trig_timer, u8 conv_type,
+								 int *ibat);
 int ab8500_gpadc_ad_to_voltage(struct ab8500_gpadc *gpadc,
-		u8 channel, int ad_value);
+							   u8 channel, int ad_value);
 void ab8540_gpadc_get_otp(struct ab8500_gpadc *gpadc,
-			u16 *vmain_l, u16 *vmain_h, u16 *btemp_l, u16 *btemp_h,
-			u16 *vbat_l, u16 *vbat_h, u16 *ibat_l, u16 *ibat_h);
+						  u16 *vmain_l, u16 *vmain_h, u16 *btemp_l, u16 *btemp_h,
+						  u16 *vbat_l, u16 *vbat_h, u16 *ibat_l, u16 *ibat_h);
 
 #endif /* _AB8500_GPADC_H */

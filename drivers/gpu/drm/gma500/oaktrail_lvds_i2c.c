@@ -97,11 +97,14 @@ static void set_clock(void *data, int state_high)
 	struct psb_intel_i2c_chan *chan = data;
 	u32 val;
 
-	if (state_high) {
+	if (state_high)
+	{
 		val = LPC_READ_REG(chan, RGIO);
 		val |= GPIO_CLOCK;
 		LPC_WRITE_REG(chan, RGIO, val);
-	} else {
+	}
+	else
+	{
 		val = LPC_READ_REG(chan, RGIO);
 		val &= ~GPIO_CLOCK;
 		LPC_WRITE_REG(chan, RGIO, val);
@@ -116,11 +119,14 @@ static void set_data(void *data, int state_high)
 	struct psb_intel_i2c_chan *chan = data;
 	u32 val;
 
-	if (state_high) {
+	if (state_high)
+	{
 		val = LPC_READ_REG(chan, RGIO);
 		val |= GPIO_DATA;
 		LPC_WRITE_REG(chan, RGIO, val);
-	} else {
+	}
+	else
+	{
 		val = LPC_READ_REG(chan, RGIO);
 		val &= ~GPIO_DATA;
 		LPC_WRITE_REG(chan, RGIO, val);
@@ -138,8 +144,11 @@ void oaktrail_lvds_i2c_init(struct drm_encoder *encoder)
 	struct psb_intel_i2c_chan *chan;
 
 	chan = kzalloc(sizeof(struct psb_intel_i2c_chan), GFP_KERNEL);
+
 	if (!chan)
+	{
 		return;
+	}
 
 	chan->drm_dev = dev;
 	chan->reg = dev_priv->lpc_gpio_base;
@@ -161,7 +170,8 @@ void oaktrail_lvds_i2c_init(struct drm_encoder *encoder)
 	set_clock(chan, 1);
 	udelay(50);
 
-	if (i2c_bit_add_bus(&chan->adapter)) {
+	if (i2c_bit_add_bus(&chan->adapter))
+	{
 		kfree(chan);
 		return;
 	}

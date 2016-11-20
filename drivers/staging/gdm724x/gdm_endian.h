@@ -16,7 +16,8 @@
 
 #include <linux/types.h>
 
-enum {
+enum
+{
 	ENDIANNESS_MIN = 0,
 	ENDIANNESS_UNKNOWN,
 	ENDIANNESS_LITTLE,
@@ -25,7 +26,8 @@ enum {
 	ENDIANNESS_MAX
 };
 
-struct gdm_endian {
+struct gdm_endian
+{
 	u8 dev_ed;
 };
 

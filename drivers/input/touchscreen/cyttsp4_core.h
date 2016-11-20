@@ -61,11 +61,12 @@
 #define IS_LARGE_AREA(x)		((x) & 0x20)
 #define IS_BAD_PKT(x)			((x) & 0x20)
 #define IS_BOOTLOADER(hst_mode, reset_detect)	\
-		((hst_mode) & 0x01 || (reset_detect) != 0)
+	((hst_mode) & 0x01 || (reset_detect) != 0)
 #define IS_TMO(t)			((t) == 0)
 
 
-enum cyttsp_cmd_bits {
+enum cyttsp_cmd_bits
+{
 	CY_CMD_COMPLETE = (1 << 6),
 };
 
@@ -74,11 +75,12 @@ enum cyttsp_cmd_bits {
 
 #define CY_MAX_PRINT_SIZE		512
 #ifdef VERBOSE_DEBUG
-#define CY_MAX_PRBUF_SIZE		PIPE_BUF
-#define CY_PR_TRUNCATED			" truncated..."
+	#define CY_MAX_PRBUF_SIZE		PIPE_BUF
+	#define CY_PR_TRUNCATED			" truncated..."
 #endif
 
-enum cyttsp4_ic_grpnum {
+enum cyttsp4_ic_grpnum
+{
 	CY_IC_GRPNUM_RESERVED,
 	CY_IC_GRPNUM_CMD_REGS,
 	CY_IC_GRPNUM_TCH_REP,
@@ -98,7 +100,8 @@ enum cyttsp4_ic_grpnum {
 	CY_IC_GRPNUM_NUM
 };
 
-enum cyttsp4_int_state {
+enum cyttsp4_int_state
+{
 	CY_INT_NONE,
 	CY_INT_IGNORE      = (1 << 0),
 	CY_INT_MODE_CHANGE = (1 << 1),
@@ -106,7 +109,8 @@ enum cyttsp4_int_state {
 	CY_INT_AWAKE       = (1 << 3),
 };
 
-enum cyttsp4_mode {
+enum cyttsp4_mode
+{
 	CY_MODE_UNKNOWN,
 	CY_MODE_BOOTLOADER   = (1 << 1),
 	CY_MODE_OPERATIONAL  = (1 << 2),
@@ -119,21 +123,24 @@ enum cyttsp4_mode {
 	CY_MODE_CMD_COMPLETE = (1 << 9),
 };
 
-enum cyttsp4_sleep_state {
+enum cyttsp4_sleep_state
+{
 	SS_SLEEP_OFF,
 	SS_SLEEP_ON,
 	SS_SLEEPING,
 	SS_WAKING,
 };
 
-enum cyttsp4_startup_state {
+enum cyttsp4_startup_state
+{
 	STARTUP_NONE,
 	STARTUP_QUEUED,
 	STARTUP_RUNNING,
 };
 
 #define CY_NUM_REVCTRL			8
-struct cyttsp4_cydata {
+struct cyttsp4_cydata
+{
 	u8 ttpidh;
 	u8 ttpidl;
 	u8 fw_ver_major;
@@ -156,12 +163,14 @@ struct cyttsp4_cydata {
 	u8 mfg_id[];
 } __packed;
 
-struct cyttsp4_test {
+struct cyttsp4_test
+{
 	u8 post_codeh;
 	u8 post_codel;
 } __packed;
 
-struct cyttsp4_pcfg {
+struct cyttsp4_pcfg
+{
 	u8 electrodes_x;
 	u8 electrodes_y;
 	u8 len_xh;
@@ -177,14 +186,16 @@ struct cyttsp4_pcfg {
 	u8 panel_info0;
 } __packed;
 
-struct cyttsp4_tch_rec_params {
+struct cyttsp4_tch_rec_params
+{
 	u8 loc;
 	u8 size;
 } __packed;
 
 #define CY_NUM_TCH_FIELDS		7
 #define CY_NUM_EXT_TCH_FIELDS		3
-struct cyttsp4_opcfg {
+struct cyttsp4_opcfg
+{
 	u8 cmd_ofs;
 	u8 rep_ofs;
 	u8 rep_szh;
@@ -201,7 +212,8 @@ struct cyttsp4_opcfg {
 	struct cyttsp4_tch_rec_params tch_rec_new[CY_NUM_EXT_TCH_FIELDS];
 } __packed;
 
-struct cyttsp4_sysinfo_ptr {
+struct cyttsp4_sysinfo_ptr
+{
 	struct cyttsp4_cydata *cydata;
 	struct cyttsp4_test *test;
 	struct cyttsp4_pcfg *pcfg;
@@ -210,7 +222,8 @@ struct cyttsp4_sysinfo_ptr {
 	struct cyttsp4_mdata *mdata;
 } __packed;
 
-struct cyttsp4_sysinfo_data {
+struct cyttsp4_sysinfo_data
+{
 	u8 hst_mode;
 	u8 reserved;
 	u8 map_szh;
@@ -229,7 +242,8 @@ struct cyttsp4_sysinfo_data {
 	u8 mdata_ofsl;
 } __packed;
 
-enum cyttsp4_tch_abs {	/* for ordering within the extracted touch data array */
+enum cyttsp4_tch_abs  	/* for ordering within the extracted touch data array */
+{
 	CY_TCH_X,	/* X */
 	CY_TCH_Y,	/* Y */
 	CY_TCH_P,	/* P (Z) */
@@ -243,7 +257,8 @@ enum cyttsp4_tch_abs {	/* for ordering within the extracted touch data array */
 	CY_TCH_NUM_ABS
 };
 
-static const char * const cyttsp4_tch_abs_string[] = {
+static const char *const cyttsp4_tch_abs_string[] =
+{
 	[CY_TCH_X]	= "X",
 	[CY_TCH_Y]	= "Y",
 	[CY_TCH_P]	= "P",
@@ -257,18 +272,21 @@ static const char * const cyttsp4_tch_abs_string[] = {
 	[CY_TCH_NUM_ABS] = "INVALID"
 };
 
-struct cyttsp4_touch {
+struct cyttsp4_touch
+{
 	int abs[CY_TCH_NUM_ABS];
 };
 
-struct cyttsp4_tch_abs_params {
+struct cyttsp4_tch_abs_params
+{
 	size_t ofs;	/* abs byte offset */
 	size_t size;	/* size in bits */
 	size_t max;	/* max value */
 	size_t bofs;	/* bit offset */
 };
 
-struct cyttsp4_sysinfo_ofs {
+struct cyttsp4_sysinfo_ofs
+{
 	size_t chip_type;
 	size_t cmd_ofs;
 	size_t rep_ofs;
@@ -306,19 +324,22 @@ struct cyttsp4_sysinfo_ofs {
 	size_t btn_diff_size;/* btn size of diff counts (in bits) */
 };
 
-enum cyttsp4_btn_state {
+enum cyttsp4_btn_state
+{
 	CY_BTN_RELEASED,
 	CY_BTN_PRESSED,
 	CY_BTN_NUM_STATE
 };
 
-struct cyttsp4_btn {
+struct cyttsp4_btn
+{
 	bool enabled;
 	int state;	/* CY_BTN_PRESSED, CY_BTN_RELEASED */
 	int key_code;
 };
 
-struct cyttsp4_sysinfo {
+struct cyttsp4_sysinfo
+{
 	bool ready;
 	struct cyttsp4_sysinfo_data si_data;
 	struct cyttsp4_sysinfo_ptr si_ptrs;
@@ -329,7 +350,8 @@ struct cyttsp4_sysinfo {
 	u8 *xy_data;			/* operational touch regs */
 };
 
-struct cyttsp4_mt_data {
+struct cyttsp4_mt_data
+{
 	struct cyttsp4_mt_platform_data *pdata;
 	struct cyttsp4_sysinfo *si;
 	struct input_dev *input;
@@ -339,7 +361,8 @@ struct cyttsp4_mt_data {
 	int num_prv_tch;
 };
 
-struct cyttsp4 {
+struct cyttsp4
+{
 	struct device *dev;
 	struct mutex system_lock;
 	struct mutex adap_lock;
@@ -367,15 +390,17 @@ struct cyttsp4 {
 #endif
 };
 
-struct cyttsp4_bus_ops {
+struct cyttsp4_bus_ops
+{
 	u16 bustype;
 	int (*write)(struct device *dev, u8 *xfer_buf, u16 addr, u8 length,
-			const void *values);
+				 const void *values);
 	int (*read)(struct device *dev, u8 *xfer_buf, u16 addr, u8 length,
-			void *values);
+				void *values);
 };
 
-enum cyttsp4_hst_mode_bits {
+enum cyttsp4_hst_mode_bits
+{
 	CY_HST_TOGGLE      = (1 << 7),
 	CY_HST_MODE_CHANGE = (1 << 3),
 	CY_HST_MODE        = (7 << 4),
@@ -391,7 +416,8 @@ enum cyttsp4_hst_mode_bits {
 #define CY_IGNORE_VALUE			0xFFFF
 
 /* abs signal capabilities offsets in the frameworks array */
-enum cyttsp4_sig_caps {
+enum cyttsp4_sig_caps
+{
 	CY_SIGNAL_OST,
 	CY_MIN_OST,
 	CY_MAX_OST,
@@ -401,7 +427,8 @@ enum cyttsp4_sig_caps {
 };
 
 /* abs axis signal offsets in the framworks array  */
-enum cyttsp4_sig_ost {
+enum cyttsp4_sig_ost
+{
 	CY_ABS_X_OST,
 	CY_ABS_Y_OST,
 	CY_ABS_P_OST,
@@ -413,7 +440,8 @@ enum cyttsp4_sig_ost {
 	CY_NUM_ABS_OST	/* number of abs signals */
 };
 
-enum cyttsp4_flags {
+enum cyttsp4_flags
+{
 	CY_FLAG_NONE = 0x00,
 	CY_FLAG_HOVER = 0x04,
 	CY_FLAG_FLIP = 0x08,
@@ -422,14 +450,16 @@ enum cyttsp4_flags {
 	CY_FLAG_VKEYS = 0x40,
 };
 
-enum cyttsp4_object_id {
+enum cyttsp4_object_id
+{
 	CY_OBJ_STANDARD_FINGER,
 	CY_OBJ_LARGE_OBJECT,
 	CY_OBJ_STYLUS,
 	CY_OBJ_HOVER,
 };
 
-enum cyttsp4_event_id {
+enum cyttsp4_event_id
+{
 	CY_EV_NO_EVENT,
 	CY_EV_TOUCHDOWN,
 	CY_EV_MOVE,		/* significant displacement (> act dist) */
@@ -449,24 +479,24 @@ enum cyttsp4_event_id {
 #define CY_PCFG_ORIGIN_Y_MASK		0x80
 
 static inline int cyttsp4_adap_read(struct cyttsp4 *ts, u16 addr, int size,
-		void *buf)
+									void *buf)
 {
 	return ts->bus_ops->read(ts->dev, ts->xfer_buf, addr, size, buf);
 }
 
 static inline int cyttsp4_adap_write(struct cyttsp4 *ts, u16 addr, int size,
-		const void *buf)
+									 const void *buf)
 {
 	return ts->bus_ops->write(ts->dev, ts->xfer_buf, addr, size, buf);
 }
 
 extern struct cyttsp4 *cyttsp4_probe(const struct cyttsp4_bus_ops *ops,
-		struct device *dev, u16 irq, size_t xfer_buf_size);
+									 struct device *dev, u16 irq, size_t xfer_buf_size);
 extern int cyttsp4_remove(struct cyttsp4 *ts);
 int cyttsp_i2c_write_block_data(struct device *dev, u8 *xfer_buf, u16 addr,
-		u8 length, const void *values);
+								u8 length, const void *values);
 int cyttsp_i2c_read_block_data(struct device *dev, u8 *xfer_buf, u16 addr,
-		u8 length, void *values);
+							   u8 length, void *values);
 extern const struct dev_pm_ops cyttsp4_pm_ops;
 
 #endif /* _LINUX_CYTTSP4_CORE_H */

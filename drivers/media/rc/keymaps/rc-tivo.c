@@ -19,7 +19,8 @@
  * NEC extended checksums do pass, so the table presently has the intended
  * values and the checksum-passed versions for those keys.
  */
-static struct rc_map_table tivo[] = {
+static struct rc_map_table tivo[] =
+{
 	{ 0xa10c900f, KEY_MEDIA },	/* TiVo Button */
 	{ 0xa10c0807, KEY_POWER2 },	/* TV Power */
 	{ 0xa10c8807, KEY_TV },		/* Live TV/Swap */
@@ -73,7 +74,8 @@ static struct rc_map_table tivo[] = {
 	{ 0xa10c4c03, KEY_CLEAR },
 };
 
-static struct rc_map_list tivo_map = {
+static struct rc_map_list tivo_map =
+{
 	.map = {
 		.scan    = tivo,
 		.size    = ARRAY_SIZE(tivo),

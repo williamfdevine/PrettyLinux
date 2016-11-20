@@ -32,7 +32,7 @@
 #include "h/smc.h"
 
 #ifndef	lint
-static const char ID_sccs[] = "@(#)hwt.c	1.13 97/04/23 (C) SK " ;
+	static const char ID_sccs[] = "@(#)hwt.c	1.13 97/04/23 (C) SK " ;
 #endif
 
 /*
@@ -65,18 +65,23 @@ void hwt_start(struct s_smc *smc, u_long time)
 	u_short	cnt ;
 
 	if (time > HWT_MAX)
+	{
 		time = HWT_MAX ;
+	}
 
 	smc->hw.t_start = time ;
 	smc->hw.t_stop = 0L ;
 
 	cnt = (u_short)time ;
+
 	/*
 	 * if time < 16 us
 	 *	time = 16 us
 	 */
 	if (!cnt)
+	{
 		cnt++ ;
+	}
 
 	outpd(ADDR(B2_TI_INI), (u_long) cnt * 200) ;	/* Load timer value. */
 	outpw(ADDR(B2_TI_CRTL), TIM_START) ;		/* Start timer. */
@@ -166,19 +171,25 @@ u_long hwt_read(struct s_smc *smc)
 	u_short	tr ;
 	u_long	is ;
 
-	if (smc->hw.timer_activ) {
+	if (smc->hw.timer_activ)
+	{
 		hwt_stop(smc) ;
-		tr = (u_short)((inpd(ADDR(B2_TI_VAL))/200) & 0xffff) ;
+		tr = (u_short)((inpd(ADDR(B2_TI_VAL)) / 200) & 0xffff) ;
 
 		is = GET_ISR() ;
+
 		/* Check if timer expired (or wraparound). */
-		if ((tr > smc->hw.t_start) || (is & IS_TIMINT)) {
+		if ((tr > smc->hw.t_start) || (is & IS_TIMINT))
+		{
 			hwt_restart(smc) ;
 			smc->hw.t_stop = smc->hw.t_start ;
 		}
 		else
+		{
 			smc->hw.t_stop = smc->hw.t_start - tr ;
+		}
 	}
+
 	return smc->hw.t_stop;
 }
 
@@ -204,9 +215,9 @@ u_long hwt_quick_read(struct s_smc *smc)
 	interval = inpd(ADDR(B2_TI_INI)) ;
 	outpw(ADDR(B2_TI_CRTL), TIM_STOP) ;
 	time = inpd(ADDR(B2_TI_VAL)) ;
-	outpd(ADDR(B2_TI_INI),time) ;
+	outpd(ADDR(B2_TI_INI), time) ;
 	outpw(ADDR(B2_TI_CRTL), TIM_START) ;
-	outpd(ADDR(B2_TI_INI),interval) ;
+	outpd(ADDR(B2_TI_INI), interval) ;
 
 	return time;
 }
@@ -217,7 +228,7 @@ u_long hwt_quick_read(struct s_smc *smc)
  *
  *	This function returnes after the amount of time is elapsed
  *	since the start time.
- * 
+ *
  * para	start		start time
  *	duration	time to wait
  *
@@ -234,35 +245,50 @@ void hwt_wait_time(struct s_smc *smc, u_long start, long int duration)
 	 * check if timer is running
 	 */
 	if (smc->hw.timer_activ == FALSE ||
-		hwt_quick_read(smc) == hwt_quick_read(smc)) {
+		hwt_quick_read(smc) == hwt_quick_read(smc))
+	{
 		return ;
 	}
 
 	interval = inpd(ADDR(B2_TI_INI)) ;
-	if (interval > duration) {
-		do {
+
+	if (interval > duration)
+	{
+		do
+		{
 			diff = (long)(start - hwt_quick_read(smc)) ;
-			if (diff < 0) {
+
+			if (diff < 0)
+			{
 				diff += interval ;
 			}
-		} while (diff <= duration) ;
+		}
+		while (diff <= duration) ;
 	}
-	else {
+	else
+	{
 		diff = interval ;
 		wrapped = 0 ;
-		do {
-			if (!wrapped) {
-				if (hwt_quick_read(smc) >= start) {
+
+		do
+		{
+			if (!wrapped)
+			{
+				if (hwt_quick_read(smc) >= start)
+				{
 					diff += interval ;
 					wrapped = 1 ;
 				}
 			}
-			else {
-				if (hwt_quick_read(smc) < start) {
+			else
+			{
+				if (hwt_quick_read(smc) < start)
+				{
 					wrapped = 0 ;
 				}
 			}
-		} while (diff <= duration) ;
+		}
+		while (diff <= duration) ;
 	}
 }
 #endif

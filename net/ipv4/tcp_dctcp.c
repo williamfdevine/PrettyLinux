@@ -47,7 +47,8 @@
 
 #define DCTCP_MAX_ALPHA	1024U
 
-struct dctcp {
+struct dctcp
+{
 	u32 acked_bytes_ecn;
 	u32 acked_bytes_total;
 	u32 prior_snd_una;
@@ -70,7 +71,7 @@ MODULE_PARM_DESC(dctcp_alpha_on_init, "parameter for initial alpha value");
 static unsigned int dctcp_clamp_alpha_on_loss __read_mostly;
 module_param(dctcp_clamp_alpha_on_loss, uint, 0644);
 MODULE_PARM_DESC(dctcp_clamp_alpha_on_loss,
-		 "parameter for clamping alpha on loss");
+				 "parameter for clamping alpha on loss");
 
 static struct tcp_congestion_ops dctcp_reno;
 
@@ -87,8 +88,9 @@ static void dctcp_init(struct sock *sk)
 	const struct tcp_sock *tp = tcp_sk(sk);
 
 	if ((tp->ecn_flags & TCP_ECN_OK) ||
-	    (sk->sk_state == TCP_LISTEN ||
-	     sk->sk_state == TCP_CLOSE)) {
+		(sk->sk_state == TCP_LISTEN ||
+		 sk->sk_state == TCP_CLOSE))
+	{
 		struct dctcp *ca = inet_csk_ca(sk);
 
 		ca->prior_snd_una = tp->snd_una;
@@ -134,7 +136,8 @@ static void dctcp_ce_state_0_to_1(struct sock *sk)
 	/* State has changed from CE=0 to CE=1 and delayed
 	 * ACK has not sent yet.
 	 */
-	if (!ca->ce_state && ca->delayed_ack_reserved) {
+	if (!ca->ce_state && ca->delayed_ack_reserved)
+	{
 		u32 tmp_rcv_nxt;
 
 		/* Save current rcv_nxt. */
@@ -164,7 +167,8 @@ static void dctcp_ce_state_1_to_0(struct sock *sk)
 	/* State has changed from CE=1 to CE=0 and delayed
 	 * ACK has not sent yet.
 	 */
-	if (ca->ce_state && ca->delayed_ack_reserved) {
+	if (ca->ce_state && ca->delayed_ack_reserved)
+	{
 		u32 tmp_rcv_nxt;
 
 		/* Save current rcv_nxt. */
@@ -196,24 +200,33 @@ static void dctcp_update_alpha(struct sock *sk, u32 flags)
 	 * If ack did update window, do not count it at all.
 	 */
 	if (acked_bytes == 0 && !(flags & CA_ACK_WIN_UPDATE))
+	{
 		acked_bytes = inet_csk(sk)->icsk_ack.rcv_mss;
-	if (acked_bytes) {
+	}
+
+	if (acked_bytes)
+	{
 		ca->acked_bytes_total += acked_bytes;
 		ca->prior_snd_una = tp->snd_una;
 
 		if (flags & CA_ACK_ECE)
+		{
 			ca->acked_bytes_ecn += acked_bytes;
+		}
 	}
 
 	/* Expired RTT */
-	if (!before(tp->snd_una, ca->next_seq)) {
+	if (!before(tp->snd_una, ca->next_seq))
+	{
 		u64 bytes_ecn = ca->acked_bytes_ecn;
 		u32 alpha = ca->dctcp_alpha;
 
 		/* alpha = (1 - g) * alpha + g * F */
 
 		alpha -= min_not_zero(alpha, alpha >> dctcp_shift_g);
-		if (bytes_ecn) {
+
+		if (bytes_ecn)
+		{
 			/* If dctcp_shift_g == 1, a 32bit value would overflow
 			 * after 8 Mbytes.
 			 */
@@ -222,6 +235,7 @@ static void dctcp_update_alpha(struct sock *sk, u32 flags)
 
 			alpha = min(alpha + (u32)bytes_ecn, DCTCP_MAX_ALPHA);
 		}
+
 		/* dctcp_alpha can be read from dctcp_get_info() without
 		 * synchro, so we ask compiler to not use dctcp_alpha
 		 * as a temporary variable in prior operations.
@@ -233,7 +247,8 @@ static void dctcp_update_alpha(struct sock *sk, u32 flags)
 
 static void dctcp_state(struct sock *sk, u8 new_state)
 {
-	if (dctcp_clamp_alpha_on_loss && new_state == TCP_CA_Loss) {
+	if (dctcp_clamp_alpha_on_loss && new_state == TCP_CA_Loss)
+	{
 		struct dctcp *ca = inet_csk_ca(sk);
 
 		/* If this extension is enabled, we clamp dctcp_alpha to
@@ -252,42 +267,55 @@ static void dctcp_update_ack_reserved(struct sock *sk, enum tcp_ca_event ev)
 {
 	struct dctcp *ca = inet_csk_ca(sk);
 
-	switch (ev) {
-	case CA_EVENT_DELAYED_ACK:
-		if (!ca->delayed_ack_reserved)
-			ca->delayed_ack_reserved = 1;
-		break;
-	case CA_EVENT_NON_DELAYED_ACK:
-		if (ca->delayed_ack_reserved)
-			ca->delayed_ack_reserved = 0;
-		break;
-	default:
-		/* Don't care for the rest. */
-		break;
+	switch (ev)
+	{
+		case CA_EVENT_DELAYED_ACK:
+			if (!ca->delayed_ack_reserved)
+			{
+				ca->delayed_ack_reserved = 1;
+			}
+
+			break;
+
+		case CA_EVENT_NON_DELAYED_ACK:
+			if (ca->delayed_ack_reserved)
+			{
+				ca->delayed_ack_reserved = 0;
+			}
+
+			break;
+
+		default:
+			/* Don't care for the rest. */
+			break;
 	}
 }
 
 static void dctcp_cwnd_event(struct sock *sk, enum tcp_ca_event ev)
 {
-	switch (ev) {
-	case CA_EVENT_ECN_IS_CE:
-		dctcp_ce_state_0_to_1(sk);
-		break;
-	case CA_EVENT_ECN_NO_CE:
-		dctcp_ce_state_1_to_0(sk);
-		break;
-	case CA_EVENT_DELAYED_ACK:
-	case CA_EVENT_NON_DELAYED_ACK:
-		dctcp_update_ack_reserved(sk, ev);
-		break;
-	default:
-		/* Don't care for the rest. */
-		break;
+	switch (ev)
+	{
+		case CA_EVENT_ECN_IS_CE:
+			dctcp_ce_state_0_to_1(sk);
+			break;
+
+		case CA_EVENT_ECN_NO_CE:
+			dctcp_ce_state_1_to_0(sk);
+			break;
+
+		case CA_EVENT_DELAYED_ACK:
+		case CA_EVENT_NON_DELAYED_ACK:
+			dctcp_update_ack_reserved(sk, ev);
+			break;
+
+		default:
+			/* Don't care for the rest. */
+			break;
 	}
 }
 
 static size_t dctcp_get_info(struct sock *sk, u32 ext, int *attr,
-			     union tcp_cc_info *info)
+							 union tcp_cc_info *info)
 {
 	const struct dctcp *ca = inet_csk_ca(sk);
 
@@ -295,9 +323,12 @@ static size_t dctcp_get_info(struct sock *sk, u32 ext, int *attr,
 	 * We can still correctly retrieve it later.
 	 */
 	if (ext & (1 << (INET_DIAG_DCTCPINFO - 1)) ||
-	    ext & (1 << (INET_DIAG_VEGASINFO - 1))) {
+		ext & (1 << (INET_DIAG_VEGASINFO - 1)))
+	{
 		memset(&info->dctcp, 0, sizeof(info->dctcp));
-		if (inet_csk(sk)->icsk_ca_ops != &dctcp_reno) {
+
+		if (inet_csk(sk)->icsk_ca_ops != &dctcp_reno)
+		{
 			info->dctcp.dctcp_enabled = 1;
 			info->dctcp.dctcp_ce_state = (u16) ca->ce_state;
 			info->dctcp.dctcp_alpha = ca->dctcp_alpha;
@@ -308,6 +339,7 @@ static size_t dctcp_get_info(struct sock *sk, u32 ext, int *attr,
 		*attr = INET_DIAG_DCTCPINFO;
 		return sizeof(info->dctcp);
 	}
+
 	return 0;
 }
 
@@ -318,7 +350,8 @@ static u32 dctcp_cwnd_undo(struct sock *sk)
 	return max(tcp_sk(sk)->snd_cwnd, ca->loss_cwnd);
 }
 
-static struct tcp_congestion_ops dctcp __read_mostly = {
+static struct tcp_congestion_ops dctcp __read_mostly =
+{
 	.init		= dctcp_init,
 	.in_ack_event   = dctcp_update_alpha,
 	.cwnd_event	= dctcp_cwnd_event,
@@ -332,7 +365,8 @@ static struct tcp_congestion_ops dctcp __read_mostly = {
 	.name		= "dctcp",
 };
 
-static struct tcp_congestion_ops dctcp_reno __read_mostly = {
+static struct tcp_congestion_ops dctcp_reno __read_mostly =
+{
 	.ssthresh	= tcp_reno_ssthresh,
 	.cong_avoid	= tcp_reno_cong_avoid,
 	.get_info	= dctcp_get_info,

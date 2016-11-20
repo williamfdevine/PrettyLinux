@@ -43,108 +43,111 @@
 #define _MAKE_PASS_NAME_PASS		__MAKE_PASS_NAME_PASS(PASS_NAME)
 
 #ifdef NO_GENERATE_SUMMARY
-#define _GENERATE_SUMMARY NULL
+	#define _GENERATE_SUMMARY NULL
 #else
-#define __GENERATE_SUMMARY(n)		_GCC_PLUGIN_CONCAT2(n, _generate_summary)
-#define _GENERATE_SUMMARY		__GENERATE_SUMMARY(PASS_NAME)
+	#define __GENERATE_SUMMARY(n)		_GCC_PLUGIN_CONCAT2(n, _generate_summary)
+	#define _GENERATE_SUMMARY		__GENERATE_SUMMARY(PASS_NAME)
 #endif
 
 #ifdef NO_READ_SUMMARY
-#define _READ_SUMMARY NULL
+	#define _READ_SUMMARY NULL
 #else
-#define __READ_SUMMARY(n)		_GCC_PLUGIN_CONCAT2(n, _read_summary)
-#define _READ_SUMMARY			__READ_SUMMARY(PASS_NAME)
+	#define __READ_SUMMARY(n)		_GCC_PLUGIN_CONCAT2(n, _read_summary)
+	#define _READ_SUMMARY			__READ_SUMMARY(PASS_NAME)
 #endif
 
 #ifdef NO_WRITE_SUMMARY
-#define _WRITE_SUMMARY NULL
+	#define _WRITE_SUMMARY NULL
 #else
-#define __WRITE_SUMMARY(n)		_GCC_PLUGIN_CONCAT2(n, _write_summary)
-#define _WRITE_SUMMARY			__WRITE_SUMMARY(PASS_NAME)
+	#define __WRITE_SUMMARY(n)		_GCC_PLUGIN_CONCAT2(n, _write_summary)
+	#define _WRITE_SUMMARY			__WRITE_SUMMARY(PASS_NAME)
 #endif
 
 #ifdef NO_READ_OPTIMIZATION_SUMMARY
-#define _READ_OPTIMIZATION_SUMMARY NULL
+	#define _READ_OPTIMIZATION_SUMMARY NULL
 #else
-#define __READ_OPTIMIZATION_SUMMARY(n)	_GCC_PLUGIN_CONCAT2(n, _read_optimization_summary)
-#define _READ_OPTIMIZATION_SUMMARY	__READ_OPTIMIZATION_SUMMARY(PASS_NAME)
+	#define __READ_OPTIMIZATION_SUMMARY(n)	_GCC_PLUGIN_CONCAT2(n, _read_optimization_summary)
+	#define _READ_OPTIMIZATION_SUMMARY	__READ_OPTIMIZATION_SUMMARY(PASS_NAME)
 #endif
 
 #ifdef NO_WRITE_OPTIMIZATION_SUMMARY
-#define _WRITE_OPTIMIZATION_SUMMARY NULL
+	#define _WRITE_OPTIMIZATION_SUMMARY NULL
 #else
-#define __WRITE_OPTIMIZATION_SUMMARY(n)	_GCC_PLUGIN_CONCAT2(n, _write_optimization_summary)
-#define _WRITE_OPTIMIZATION_SUMMARY	__WRITE_OPTIMIZATION_SUMMARY(PASS_NAME)
+	#define __WRITE_OPTIMIZATION_SUMMARY(n)	_GCC_PLUGIN_CONCAT2(n, _write_optimization_summary)
+	#define _WRITE_OPTIMIZATION_SUMMARY	__WRITE_OPTIMIZATION_SUMMARY(PASS_NAME)
 #endif
 
 #ifdef NO_STMT_FIXUP
-#define _STMT_FIXUP NULL
+	#define _STMT_FIXUP NULL
 #else
-#define __STMT_FIXUP(n)			_GCC_PLUGIN_CONCAT2(n, _stmt_fixup)
-#define _STMT_FIXUP			__STMT_FIXUP(PASS_NAME)
+	#define __STMT_FIXUP(n)			_GCC_PLUGIN_CONCAT2(n, _stmt_fixup)
+	#define _STMT_FIXUP			__STMT_FIXUP(PASS_NAME)
 #endif
 
 #ifdef NO_FUNCTION_TRANSFORM
-#define _FUNCTION_TRANSFORM NULL
+	#define _FUNCTION_TRANSFORM NULL
 #else
-#define __FUNCTION_TRANSFORM(n)		_GCC_PLUGIN_CONCAT2(n, _function_transform)
-#define _FUNCTION_TRANSFORM		__FUNCTION_TRANSFORM(PASS_NAME)
+	#define __FUNCTION_TRANSFORM(n)		_GCC_PLUGIN_CONCAT2(n, _function_transform)
+	#define _FUNCTION_TRANSFORM		__FUNCTION_TRANSFORM(PASS_NAME)
 #endif
 
 #ifdef NO_VARIABLE_TRANSFORM
-#define _VARIABLE_TRANSFORM NULL
+	#define _VARIABLE_TRANSFORM NULL
 #else
-#define __VARIABLE_TRANSFORM(n)		_GCC_PLUGIN_CONCAT2(n, _variable_transform)
-#define _VARIABLE_TRANSFORM		__VARIABLE_TRANSFORM(PASS_NAME)
+	#define __VARIABLE_TRANSFORM(n)		_GCC_PLUGIN_CONCAT2(n, _variable_transform)
+	#define _VARIABLE_TRANSFORM		__VARIABLE_TRANSFORM(PASS_NAME)
 #endif
 
 #ifdef NO_GATE
-#define _GATE NULL
-#define _HAS_GATE false
+	#define _GATE NULL
+	#define _HAS_GATE false
 #else
-#define __GATE(n)			_GCC_PLUGIN_CONCAT2(n, _gate)
-#define _GATE				__GATE(PASS_NAME)
-#define _HAS_GATE true
+	#define __GATE(n)			_GCC_PLUGIN_CONCAT2(n, _gate)
+	#define _GATE				__GATE(PASS_NAME)
+	#define _HAS_GATE true
 #endif
 
 #ifdef NO_EXECUTE
-#define _EXECUTE NULL
-#define _HAS_EXECUTE false
+	#define _EXECUTE NULL
+	#define _HAS_EXECUTE false
 #else
-#define __EXECUTE(n)			_GCC_PLUGIN_CONCAT2(n, _execute)
-#define _EXECUTE			__EXECUTE(PASS_NAME)
-#define _HAS_EXECUTE true
+	#define __EXECUTE(n)			_GCC_PLUGIN_CONCAT2(n, _execute)
+	#define _EXECUTE			__EXECUTE(PASS_NAME)
+	#define _HAS_EXECUTE true
 #endif
 
 #ifndef PROPERTIES_REQUIRED
-#define PROPERTIES_REQUIRED 0
+	#define PROPERTIES_REQUIRED 0
 #endif
 
 #ifndef PROPERTIES_PROVIDED
-#define PROPERTIES_PROVIDED 0
+	#define PROPERTIES_PROVIDED 0
 #endif
 
 #ifndef PROPERTIES_DESTROYED
-#define PROPERTIES_DESTROYED 0
+	#define PROPERTIES_DESTROYED 0
 #endif
 
 #ifndef TODO_FLAGS_START
-#define TODO_FLAGS_START 0
+	#define TODO_FLAGS_START 0
 #endif
 
 #ifndef TODO_FLAGS_FINISH
-#define TODO_FLAGS_FINISH 0
+	#define TODO_FLAGS_FINISH 0
 #endif
 
 #ifndef FUNCTION_TRANSFORM_TODO_FLAGS_START
-#define FUNCTION_TRANSFORM_TODO_FLAGS_START 0
+	#define FUNCTION_TRANSFORM_TODO_FLAGS_START 0
 #endif
 
 #if BUILDING_GCC_VERSION >= 4009
-namespace {
-static const pass_data _PASS_NAME_PASS_DATA = {
+namespace
+{
+	static const pass_data _PASS_NAME_PASS_DATA =
+	{
 #else
-static struct ipa_opt_pass_d _PASS_NAME_PASS = {
+static struct ipa_opt_pass_d _PASS_NAME_PASS =
+{
 	.pass = {
 #endif
 		.type			= IPA_PASS,
@@ -186,35 +189,36 @@ static struct ipa_opt_pass_d _PASS_NAME_PASS = {
 };
 
 #if BUILDING_GCC_VERSION >= 4009
-class _PASS_NAME_PASS : public ipa_opt_pass_d {
-public:
-	_PASS_NAME_PASS() : ipa_opt_pass_d(_PASS_NAME_PASS_DATA,
-			 g,
-			 _GENERATE_SUMMARY,
-			 _WRITE_SUMMARY,
-			 _READ_SUMMARY,
-			 _WRITE_OPTIMIZATION_SUMMARY,
-			 _READ_OPTIMIZATION_SUMMARY,
-			 _STMT_FIXUP,
-			 FUNCTION_TRANSFORM_TODO_FLAGS_START,
-			 _FUNCTION_TRANSFORM,
-			 _VARIABLE_TRANSFORM) {}
+class _PASS_NAME_PASS : public ipa_opt_pass_d
+{
+	public:
+		_PASS_NAME_PASS() : ipa_opt_pass_d(_PASS_NAME_PASS_DATA,
+											   g,
+											   _GENERATE_SUMMARY,
+											   _WRITE_SUMMARY,
+											   _READ_SUMMARY,
+											   _WRITE_OPTIMIZATION_SUMMARY,
+											   _READ_OPTIMIZATION_SUMMARY,
+											   _STMT_FIXUP,
+											   FUNCTION_TRANSFORM_TODO_FLAGS_START,
+											   _FUNCTION_TRANSFORM,
+											   _VARIABLE_TRANSFORM) {}
 
 #ifndef NO_GATE
 #if BUILDING_GCC_VERSION >= 5000
-	virtual bool gate(function *) { return _GATE(); }
+		virtual bool gate(function *) { return _GATE(); }
 #else
-	virtual bool gate(void) { return _GATE(); }
+		virtual bool gate(void) { return _GATE(); }
 #endif
 #endif
 
-	virtual opt_pass *clone() { return new _PASS_NAME_PASS(); }
+		virtual opt_pass *clone() { return new _PASS_NAME_PASS(); }
 
 #ifndef NO_EXECUTE
 #if BUILDING_GCC_VERSION >= 5000
-	virtual unsigned int execute(function *) { return _EXECUTE(); }
+		virtual unsigned int execute(function *) { return _EXECUTE(); }
 #else
-	virtual unsigned int execute(void) { return _EXECUTE(); }
+		virtual unsigned int execute(void) { return _EXECUTE(); }
 #endif
 #endif
 };

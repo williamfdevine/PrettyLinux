@@ -12,7 +12,8 @@
 
 #define REG(x)	volatile unsigned char x; char x ## _pad[15]
 
-struct mace {
+struct mace
+{
 	REG(rcvfifo);		/* receive FIFO */
 	REG(xmtfifo);		/* transmit FIFO */
 	REG(xmtfc);		/* transmit frame control */

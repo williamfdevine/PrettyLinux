@@ -15,7 +15,8 @@
 # define NLM4_OFFSET_MAX	((s64) ((~(u64)0) >> 1))
 
 /* Return states for NLM */
-enum {
+enum
+{
 	NLM_LCK_GRANTED			= 0,
 	NLM_LCK_DENIED			= 1,
 	NLM_LCK_DENIED_NOLOCKS		= 2,

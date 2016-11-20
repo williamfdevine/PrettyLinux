@@ -12,9 +12,12 @@ int dvb_usb_i2c_init(struct dvb_usb_device *d)
 	int ret = 0;
 
 	if (!(d->props.caps & DVB_USB_IS_AN_I2C_ADAPTER))
+	{
 		return 0;
+	}
 
-	if (d->props.i2c_algo == NULL) {
+	if (d->props.i2c_algo == NULL)
+	{
 		err("no i2c algorithm specified");
 		return -EINVAL;
 	}
@@ -27,7 +30,9 @@ int dvb_usb_i2c_init(struct dvb_usb_device *d)
 	i2c_set_adapdata(&d->i2c_adap, d);
 
 	if ((ret = i2c_add_adapter(&d->i2c_adap)) < 0)
+	{
 		err("could not add i2c adapter");
+	}
 
 	d->state |= DVB_USB_STATE_I2C;
 
@@ -37,7 +42,10 @@ int dvb_usb_i2c_init(struct dvb_usb_device *d)
 int dvb_usb_i2c_exit(struct dvb_usb_device *d)
 {
 	if (d->state & DVB_USB_STATE_I2C)
+	{
 		i2c_del_adapter(&d->i2c_adap);
+	}
+
 	d->state &= ~DVB_USB_STATE_I2C;
 	return 0;
 }

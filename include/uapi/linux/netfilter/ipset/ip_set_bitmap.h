@@ -4,7 +4,8 @@
 #include <linux/netfilter/ipset/ip_set.h>
 
 /* Bitmap type specific error codes */
-enum {
+enum
+{
 	/* The element is out of the range of the set */
 	IPSET_ERR_BITMAP_RANGE = IPSET_ERR_TYPE_SPECIFIC,
 	/* The range exceeds the size limit of the set type */

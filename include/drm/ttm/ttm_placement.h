@@ -67,8 +67,8 @@
 #define TTM_PL_FLAG_TOPDOWN     (1 << 22)
 
 #define TTM_PL_MASK_CACHING     (TTM_PL_FLAG_CACHED | \
-				 TTM_PL_FLAG_UNCACHED | \
-				 TTM_PL_FLAG_WC)
+								 TTM_PL_FLAG_UNCACHED | \
+								 TTM_PL_FLAG_WC)
 
 #define TTM_PL_MASK_MEMTYPE     (TTM_PL_MASK_MEM | TTM_PL_MASK_CACHING)
 
@@ -81,7 +81,8 @@
  *
  * Structure indicating a possible place to put an object.
  */
-struct ttm_place {
+struct ttm_place
+{
 	unsigned	fpfn;
 	unsigned	lpfn;
 	uint32_t	flags;
@@ -97,7 +98,8 @@ struct ttm_place {
  *
  * Structure indicating the placement you request for an object.
  */
-struct ttm_placement {
+struct ttm_placement
+{
 	unsigned		num_placement;
 	const struct ttm_place	*placement;
 	unsigned		num_busy_placement;

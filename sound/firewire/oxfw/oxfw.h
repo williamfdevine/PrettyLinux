@@ -33,7 +33,8 @@
 
 /* This is an arbitrary number for convinience. */
 #define	SND_OXFW_STREAM_FORMAT_ENTRIES	10
-struct snd_oxfw {
+struct snd_oxfw
+{
 	struct snd_card *card;
 	struct fw_unit *unit;
 	struct mutex mutex;
@@ -70,22 +71,22 @@ struct snd_oxfw {
  * (Apr 2005, 1394TA)
  */
 int avc_stream_set_format(struct fw_unit *unit, enum avc_general_plug_dir dir,
-			  unsigned int pid, u8 *format, unsigned int len);
+						  unsigned int pid, u8 *format, unsigned int len);
 int avc_stream_get_format(struct fw_unit *unit,
-			  enum avc_general_plug_dir dir, unsigned int pid,
-			  u8 *buf, unsigned int *len, unsigned int eid);
+						  enum avc_general_plug_dir dir, unsigned int pid,
+						  u8 *buf, unsigned int *len, unsigned int eid);
 static inline int
 avc_stream_get_format_single(struct fw_unit *unit,
-			     enum avc_general_plug_dir dir, unsigned int pid,
-			     u8 *buf, unsigned int *len)
+							 enum avc_general_plug_dir dir, unsigned int pid,
+							 u8 *buf, unsigned int *len)
 {
 	return avc_stream_get_format(unit, dir, pid, buf, len, 0xff);
 }
 static inline int
 avc_stream_get_format_list(struct fw_unit *unit,
-			   enum avc_general_plug_dir dir, unsigned int pid,
-			   u8 *buf, unsigned int *len,
-			   unsigned int eid)
+						   enum avc_general_plug_dir dir, unsigned int pid,
+						   u8 *buf, unsigned int *len,
+						   unsigned int eid)
 {
 	return avc_stream_get_format(unit, dir, pid, buf, len, eid);
 }
@@ -95,31 +96,32 @@ avc_stream_get_format_list(struct fw_unit *unit,
  * (Sep 2004, 1394TA)
  */
 int avc_general_inquiry_sig_fmt(struct fw_unit *unit, unsigned int rate,
-				enum avc_general_plug_dir dir,
-				unsigned short pid);
+								enum avc_general_plug_dir dir,
+								unsigned short pid);
 
 int snd_oxfw_stream_init_simplex(struct snd_oxfw *oxfw,
-				 struct amdtp_stream *stream);
+								 struct amdtp_stream *stream);
 int snd_oxfw_stream_start_simplex(struct snd_oxfw *oxfw,
-				  struct amdtp_stream *stream,
-				  unsigned int rate, unsigned int pcm_channels);
+								  struct amdtp_stream *stream,
+								  unsigned int rate, unsigned int pcm_channels);
 void snd_oxfw_stream_stop_simplex(struct snd_oxfw *oxfw,
-				  struct amdtp_stream *stream);
+								  struct amdtp_stream *stream);
 void snd_oxfw_stream_destroy_simplex(struct snd_oxfw *oxfw,
-				     struct amdtp_stream *stream);
+									 struct amdtp_stream *stream);
 void snd_oxfw_stream_update_simplex(struct snd_oxfw *oxfw,
-				    struct amdtp_stream *stream);
+									struct amdtp_stream *stream);
 
-struct snd_oxfw_stream_formation {
+struct snd_oxfw_stream_formation
+{
 	unsigned int rate;
 	unsigned int pcm;
 	unsigned int midi;
 };
 int snd_oxfw_stream_parse_format(u8 *format,
-				 struct snd_oxfw_stream_formation *formation);
+								 struct snd_oxfw_stream_formation *formation);
 int snd_oxfw_stream_get_current_formation(struct snd_oxfw *oxfw,
-				enum avc_general_plug_dir dir,
-				struct snd_oxfw_stream_formation *formation);
+		enum avc_general_plug_dir dir,
+		struct snd_oxfw_stream_formation *formation);
 
 int snd_oxfw_stream_discover(struct snd_oxfw *oxfw);
 

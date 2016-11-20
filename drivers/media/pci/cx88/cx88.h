@@ -54,9 +54,9 @@
 
 /* Currently unsupported by the driver: PAL/H, NTSC/Kr, SECAM/LC */
 #define CX88_NORMS (V4L2_STD_ALL 		\
-		    & ~V4L2_STD_PAL_H		\
-		    & ~V4L2_STD_NTSC_M_KR	\
-		    & ~V4L2_STD_SECAM_LC)
+					& ~V4L2_STD_PAL_H		\
+					& ~V4L2_STD_NTSC_M_KR	\
+					& ~V4L2_STD_SECAM_LC)
 
 #define FORMAT_FLAGS_PACKED       0x01
 #define FORMAT_FLAGS_PLANAR       0x02
@@ -73,19 +73,22 @@
 #define SHADOW_MAX                   3
 
 /* FM Radio deemphasis type */
-enum cx88_deemph_type {
+enum cx88_deemph_type
+{
 	FM_NO_DEEMPH = 0,
 	FM_DEEMPH_50,
 	FM_DEEMPH_75
 };
 
-enum cx88_board_type {
+enum cx88_board_type
+{
 	CX88_BOARD_NONE = 0,
 	CX88_MPEG_DVB,
 	CX88_MPEG_BLACKBIRD
 };
 
-enum cx8802_board_access {
+enum cx8802_board_access
+{
 	CX8802_DRVCTL_SHARED    = 1,
 	CX8802_DRVCTL_EXCLUSIVE = 2,
 };
@@ -107,7 +110,8 @@ static inline unsigned int norm_maxh(v4l2_std_id norm)
 /* ----------------------------------------------------------- */
 /* static data                                                 */
 
-struct cx8800_fmt {
+struct cx8800_fmt
+{
 	const char  *name;
 	u32   fourcc;          /* v4l2 format id */
 	int   depth;
@@ -128,7 +132,8 @@ struct cx8800_fmt {
 #define SRAM_CH27 7   /* audio rds */
 /* more */
 
-struct sram_channel {
+struct sram_channel
+{
 	const char *name;
 	u32  cmds_start;
 	u32  ctrl_start;
@@ -238,7 +243,8 @@ extern const struct sram_channel cx88_sram_channels[];
 #define CX88_BOARD_WINFAST_TV2000_XP_GLOBAL_6F36 89
 #define CX88_BOARD_WINFAST_TV2000_XP_GLOBAL_6F43 90
 
-enum cx88_itype {
+enum cx88_itype
+{
 	CX88_VMUX_COMPOSITE1 = 1,
 	CX88_VMUX_COMPOSITE2,
 	CX88_VMUX_COMPOSITE3,
@@ -251,19 +257,22 @@ enum cx88_itype {
 	CX88_RADIO,
 };
 
-struct cx88_input {
+struct cx88_input
+{
 	enum cx88_itype type;
 	u32             gpio0, gpio1, gpio2, gpio3;
-	unsigned int    vmux:2;
-	unsigned int    audioroute:4;
+	unsigned int    vmux: 2;
+	unsigned int    audioroute: 4;
 };
 
-enum cx88_audio_chip {
+enum cx88_audio_chip
+{
 	CX88_AUDIO_WM8775 = 1,
 	CX88_AUDIO_TVAUDIO,
 };
 
-struct cx88_board {
+struct cx88_board
+{
 	const char              *name;
 	unsigned int            tuner_type;
 	unsigned int		radio_type;
@@ -280,13 +289,15 @@ struct cx88_board {
 	int			i2sinputcntl;
 };
 
-struct cx88_subid {
+struct cx88_subid
+{
 	u16     subvendor;
 	u16     subdevice;
 	u32     card;
 };
 
-enum cx88_tvaudio {
+enum cx88_tvaudio
+{
 	WW_NONE = 1,
 	WW_BTSC,
 	WW_BG,
@@ -311,7 +322,8 @@ enum cx88_tvaudio {
 
 #define BUFFER_TIMEOUT     msecs_to_jiffies(2000)
 
-struct cx88_riscmem {
+struct cx88_riscmem
+{
 	unsigned int   size;
 	__le32         *cpu;
 	__le32         *jmp;
@@ -319,7 +331,8 @@ struct cx88_riscmem {
 };
 
 /* buffer for one video frame */
-struct cx88_buffer {
+struct cx88_buffer
+{
 	/* common v4l buffer stuff -- must be first */
 	struct vb2_v4l2_buffer vb;
 	struct list_head       list;
@@ -329,7 +342,8 @@ struct cx88_buffer {
 	struct cx88_riscmem    risc;
 };
 
-struct cx88_dmaqueue {
+struct cx88_dmaqueue
+{
 	struct list_head       active;
 	u32                    count;
 };
@@ -337,7 +351,8 @@ struct cx88_dmaqueue {
 struct cx8800_dev;
 struct cx8802_dev;
 
-struct cx88_core {
+struct cx88_core
+{
 	struct list_head           devlist;
 	atomic_t                   refcount;
 
@@ -376,7 +391,7 @@ struct cx88_core {
 	/* config info -- dvb */
 #if IS_ENABLED(CONFIG_VIDEO_CX88_DVB)
 	int	(*prev_set_voltage)(struct dvb_frontend *fe,
-				    enum fe_sec_voltage voltage);
+							enum fe_sec_voltage voltage);
 #endif
 	void	(*gate_ctrl)(struct cx88_core *core, int open);
 
@@ -440,7 +455,7 @@ static inline struct cx88_core *to_core(struct v4l2_device *v4l2_dev)
 #define wm8775_s_ctrl(core, id, val) \
 	do {									\
 		struct v4l2_ctrl *ctrl_ =					\
-			v4l2_ctrl_find(core->sd_wm8775->ctrl_handler, id);	\
+				v4l2_ctrl_find(core->sd_wm8775->ctrl_handler, id);	\
 		if (ctrl_ && !core->i2c_rc) {					\
 			if (core->gate_ctrl)					\
 				core->gate_ctrl(core, 1);			\
@@ -453,7 +468,7 @@ static inline struct cx88_core *to_core(struct v4l2_device *v4l2_dev)
 #define wm8775_g_ctrl(core, id) \
 	({									\
 		struct v4l2_ctrl *ctrl_ =					\
-			v4l2_ctrl_find(core->sd_wm8775->ctrl_handler, id);	\
+				v4l2_ctrl_find(core->sd_wm8775->ctrl_handler, id);	\
 		s32 val = 0;							\
 		if (ctrl_ && !core->i2c_rc) {					\
 			if (core->gate_ctrl)					\
@@ -468,11 +483,13 @@ static inline struct cx88_core *to_core(struct v4l2_device *v4l2_dev)
 /* ----------------------------------------------------------- */
 /* function 0: video stuff                                     */
 
-struct cx8800_suspend_state {
+struct cx8800_suspend_state
+{
 	int                        disabled;
 };
 
-struct cx8800_dev {
+struct cx8800_dev
+{
 	struct cx88_core           *core;
 	spinlock_t                 slock;
 
@@ -484,7 +501,7 @@ struct cx8800_dev {
 
 	/* pci i/o */
 	struct pci_dev             *pci;
-	unsigned char              pci_rev,pci_lat;
+	unsigned char              pci_rev, pci_lat;
 
 	const struct cx8800_fmt    *fmt;
 
@@ -508,11 +525,13 @@ struct cx8800_dev {
 /* ----------------------------------------------------------- */
 /* function 2: mpeg stuff                                      */
 
-struct cx8802_suspend_state {
+struct cx8802_suspend_state
+{
 	int                        disabled;
 };
 
-struct cx8802_driver {
+struct cx8802_driver
+{
 	struct cx88_core *core;
 
 	/* List of drivers attached to device */
@@ -541,13 +560,14 @@ struct cx8802_driver {
 	int (*request_release)(struct cx8802_driver *drv);
 };
 
-struct cx8802_dev {
+struct cx8802_dev
+{
 	struct cx88_core           *core;
 	spinlock_t                 slock;
 
 	/* pci i/o */
 	struct pci_dev             *pci;
-	unsigned char              pci_rev,pci_lat;
+	unsigned char              pci_rev, pci_lat;
 
 	/* dma queues */
 	struct cx88_dmaqueue       mpegq;
@@ -593,8 +613,8 @@ struct cx8802_dev {
 #define cx_writeb(reg,value)     writeb((value), core->bmmio + (reg))
 
 #define cx_andor(reg,mask,value) \
-  writel((readl(core->lmmio+((reg)>>2)) & ~(mask)) |\
-  ((value) & (mask)), core->lmmio+((reg)>>2))
+	writel((readl(core->lmmio+((reg)>>2)) & ~(mask)) |\
+		   ((value) & (mask)), core->lmmio+((reg)>>2))
 #define cx_set(reg,bit)          cx_andor((reg),(bit),(bit))
 #define cx_clear(reg,bit)        cx_andor((reg),(bit),0)
 
@@ -603,11 +623,11 @@ struct cx8802_dev {
 /* shadow registers */
 #define cx_sread(sreg)		    (core->shadow[sreg])
 #define cx_swrite(sreg,reg,value) \
-  (core->shadow[sreg] = value, \
-   writel(core->shadow[sreg], core->lmmio + ((reg)>>2)))
+	(core->shadow[sreg] = value, \
+	 writel(core->shadow[sreg], core->lmmio + ((reg)>>2)))
 #define cx_sandor(sreg,reg,mask,value) \
-  (core->shadow[sreg] = (core->shadow[sreg] & ~(mask)) | ((value) & (mask)), \
-   writel(core->shadow[sreg], core->lmmio + ((reg)>>2)))
+	(core->shadow[sreg] = (core->shadow[sreg] & ~(mask)) | ((value) & (mask)), \
+	 writel(core->shadow[sreg], core->lmmio + ((reg)>>2)))
 
 /* ----------------------------------------------------------- */
 /* cx88-core.c                                                 */
@@ -615,44 +635,44 @@ struct cx8802_dev {
 extern unsigned int cx88_core_debug;
 
 extern void cx88_print_irqbits(const char *name, const char *tag, const char *strings[],
-			       int len, u32 bits, u32 mask);
+							   int len, u32 bits, u32 mask);
 
 extern int cx88_core_irq(struct cx88_core *core, u32 status);
 extern void cx88_wakeup(struct cx88_core *core,
-			struct cx88_dmaqueue *q, u32 count);
+						struct cx88_dmaqueue *q, u32 count);
 extern void cx88_shutdown(struct cx88_core *core);
 extern int cx88_reset(struct cx88_core *core);
 
 extern int
 cx88_risc_buffer(struct pci_dev *pci, struct cx88_riscmem *risc,
-		 struct scatterlist *sglist,
-		 unsigned int top_offset, unsigned int bottom_offset,
-		 unsigned int bpl, unsigned int padding, unsigned int lines);
+				 struct scatterlist *sglist,
+				 unsigned int top_offset, unsigned int bottom_offset,
+				 unsigned int bpl, unsigned int padding, unsigned int lines);
 extern int
 cx88_risc_databuffer(struct pci_dev *pci, struct cx88_riscmem *risc,
-		     struct scatterlist *sglist, unsigned int bpl,
-		     unsigned int lines, unsigned int lpi);
+					 struct scatterlist *sglist, unsigned int bpl,
+					 unsigned int lines, unsigned int lpi);
 
 extern void cx88_risc_disasm(struct cx88_core *core,
-			     struct cx88_riscmem *risc);
+							 struct cx88_riscmem *risc);
 extern int cx88_sram_channel_setup(struct cx88_core *core,
-				   const struct sram_channel *ch,
-				   unsigned int bpl, u32 risc);
+								   const struct sram_channel *ch,
+								   unsigned int bpl, u32 risc);
 extern void cx88_sram_channel_dump(struct cx88_core *core,
-				   const struct sram_channel *ch);
+								   const struct sram_channel *ch);
 
 extern int cx88_set_scale(struct cx88_core *core, unsigned int width,
-			  unsigned int height, enum v4l2_field field);
+						  unsigned int height, enum v4l2_field field);
 extern int cx88_set_tvnorm(struct cx88_core *core, v4l2_std_id norm);
 
 extern void cx88_vdev_init(struct cx88_core *core,
-			   struct pci_dev *pci,
-			   struct video_device *vfd,
-			   const struct video_device *template_,
-			   const char *type);
+						   struct pci_dev *pci,
+						   struct video_device *vfd,
+						   const struct video_device *template_,
+						   const char *type);
 extern struct cx88_core *cx88_core_get(struct pci_dev *pci);
 extern void cx88_core_put(struct cx88_core *core,
-			  struct pci_dev *pci);
+						  struct pci_dev *pci);
 
 extern int cx88_start_audio_dma(struct cx88_core *core);
 extern int cx88_stop_audio_dma(struct cx88_core *core);
@@ -686,7 +706,7 @@ extern int cx88_i2c_init(struct cx88_core *core, struct pci_dev *pci);
 
 extern int cx88_tuner_callback(void *dev, int component, int command, int arg);
 extern int cx88_get_resources(const struct cx88_core *core,
-			      struct pci_dev *pci);
+							  struct pci_dev *pci);
 extern struct cx88_core *cx88_core_create(struct pci_dev *pci, int nr);
 extern void cx88_setup_xc3028(struct cx88_core *core, struct xc2028_ctrl *ctl);
 
@@ -703,7 +723,7 @@ int cx8802_register_driver(struct cx8802_driver *drv);
 int cx8802_unregister_driver(struct cx8802_driver *drv);
 
 /* Caller must hold core->lock */
-struct cx8802_driver * cx8802_get_driver(struct cx8802_dev *dev, enum cx88_board_type btype);
+struct cx8802_driver *cx8802_get_driver(struct cx8802_dev *dev, enum cx88_board_type btype);
 
 /* ----------------------------------------------------------- */
 /* cx88-dsp.c                                                  */
@@ -724,12 +744,12 @@ extern void cx88_i2c_init_ir(struct cx88_core *core);
 /* cx88-mpeg.c                                                 */
 
 int cx8802_buf_prepare(struct vb2_queue *q, struct cx8802_dev *dev,
-			struct cx88_buffer *buf);
+					   struct cx88_buffer *buf);
 void cx8802_buf_queue(struct cx8802_dev *dev, struct cx88_buffer *buf);
 void cx8802_cancel_buffers(struct cx8802_dev *dev);
 int cx8802_start_dma(struct cx8802_dev    *dev,
-			    struct cx88_dmaqueue *q,
-			    struct cx88_buffer   *buf);
+					 struct cx88_dmaqueue *q,
+					 struct cx88_buffer   *buf);
 
 /* ----------------------------------------------------------- */
 /* cx88-video.c*/
@@ -737,4 +757,4 @@ int cx88_enum_input(struct cx88_core *core, struct v4l2_input *i);
 int cx88_set_freq(struct cx88_core  *core, const struct v4l2_frequency *f);
 int cx88_video_mux(struct cx88_core *core, unsigned int input);
 void cx88_querycap(struct file *file, struct cx88_core *core,
-		struct v4l2_capability *cap);
+				   struct v4l2_capability *cap);

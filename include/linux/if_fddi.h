@@ -28,7 +28,8 @@
 #include <uapi/linux/if_fddi.h>
 
 /* Define FDDI statistics structure */
-struct fddi_statistics {
+struct fddi_statistics
+{
 
 	/* Generic statistics. */
 
@@ -100,7 +101,7 @@ struct fddi_statistics {
 	__u32	port_connection_policies[2];
 	__u32	port_mac_indicated[2];
 	__u32	port_current_path[2];
-	__u8	port_requested_paths[3*2];
+	__u8	port_requested_paths[3 * 2];
 	__u32	port_mac_placement[2];
 	__u32	port_available_paths[2];
 	__u32	port_pmd_class[2];

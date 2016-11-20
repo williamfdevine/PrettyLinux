@@ -64,8 +64,8 @@ xfs_icreate_item_format(
 	struct xfs_log_iovec	*vecp = NULL;
 
 	xlog_copy_iovec(lv, &vecp, XLOG_REG_TYPE_ICREATE,
-			&icp->ic_format,
-			sizeof(struct xfs_icreate_log));
+					&icp->ic_format,
+					sizeof(struct xfs_icreate_log));
 }
 
 
@@ -92,7 +92,10 @@ xfs_icreate_item_unlock(
 	struct xfs_icreate_item	*icp = ICR_ITEM(lip);
 
 	if (icp->ic_item.li_flags & XFS_LI_ABORTED)
+	{
 		kmem_zone_free(xfs_icreate_zone, icp);
+	}
+
 	return;
 }
 
@@ -109,7 +112,7 @@ xfs_icreate_item_committed(
 	struct xfs_icreate_item	*icp = ICR_ITEM(lip);
 
 	kmem_zone_free(xfs_icreate_zone, icp);
-	return (xfs_lsn_t)-1;
+	return (xfs_lsn_t) - 1;
 }
 
 /* item can never get into the AIL */
@@ -133,7 +136,8 @@ xfs_icreate_item_committing(
 /*
  * This is the ops vector shared by all buf log items.
  */
-static struct xfs_item_ops xfs_icreate_item_ops = {
+static struct xfs_item_ops xfs_icreate_item_ops =
+{
 	.iop_size	= xfs_icreate_item_size,
 	.iop_format	= xfs_icreate_item_format,
 	.iop_pin	= xfs_icreate_item_pin,
@@ -171,7 +175,7 @@ xfs_icreate_log(
 	icp = kmem_zone_zalloc(xfs_icreate_zone, KM_SLEEP);
 
 	xfs_log_item_init(tp->t_mountp, &icp->ic_item, XFS_LI_ICREATE,
-			  &xfs_icreate_item_ops);
+					  &xfs_icreate_item_ops);
 
 	icp->ic_format.icl_type = XFS_LI_ICREATE;
 	icp->ic_format.icl_size = 1;	/* single vector */

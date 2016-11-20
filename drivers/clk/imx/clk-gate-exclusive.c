@@ -24,7 +24,8 @@
  * with an addtional mask to indicate which other gate bits in the same
  * register is mutually exclusive to this gate clock.
  */
-struct clk_gate_exclusive {
+struct clk_gate_exclusive
+{
 	struct clk_gate gate;
 	u32 exclusive_mask;
 };
@@ -33,11 +34,13 @@ static int clk_gate_exclusive_enable(struct clk_hw *hw)
 {
 	struct clk_gate *gate = to_clk_gate(hw);
 	struct clk_gate_exclusive *exgate = container_of(gate,
-					struct clk_gate_exclusive, gate);
+										struct clk_gate_exclusive, gate);
 	u32 val = readl(gate->reg);
 
 	if (val & exgate->exclusive_mask)
+	{
 		return -EBUSY;
+	}
 
 	return clk_gate_ops.enable(hw);
 }
@@ -52,14 +55,15 @@ static int clk_gate_exclusive_is_enabled(struct clk_hw *hw)
 	return clk_gate_ops.is_enabled(hw);
 }
 
-static const struct clk_ops clk_gate_exclusive_ops = {
+static const struct clk_ops clk_gate_exclusive_ops =
+{
 	.enable = clk_gate_exclusive_enable,
 	.disable = clk_gate_exclusive_disable,
 	.is_enabled = clk_gate_exclusive_is_enabled,
 };
 
 struct clk *imx_clk_gate_exclusive(const char *name, const char *parent,
-	 void __iomem *reg, u8 shift, u32 exclusive_mask)
+								   void __iomem *reg, u8 shift, u32 exclusive_mask)
 {
 	struct clk_gate_exclusive *exgate;
 	struct clk_gate *gate;
@@ -67,11 +71,17 @@ struct clk *imx_clk_gate_exclusive(const char *name, const char *parent,
 	struct clk_init_data init;
 
 	if (exclusive_mask == 0)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	exgate = kzalloc(sizeof(*exgate), GFP_KERNEL);
+
 	if (!exgate)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	gate = &exgate->gate;
 
 	init.name = name;
@@ -87,8 +97,11 @@ struct clk *imx_clk_gate_exclusive(const char *name, const char *parent,
 	exgate->exclusive_mask = exclusive_mask;
 
 	clk = clk_register(NULL, &gate->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(exgate);
+	}
 
 	return clk;
 }

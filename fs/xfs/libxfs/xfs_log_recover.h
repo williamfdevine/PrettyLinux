@@ -34,7 +34,8 @@
 /*
  * item headers are in ri_buf[0].  Additional buffers follow.
  */
-typedef struct xlog_recover_item {
+typedef struct xlog_recover_item
+{
 	struct list_head	ri_list;
 	int			ri_type;
 	int			ri_cnt;	/* count of regions found */
@@ -43,7 +44,8 @@ typedef struct xlog_recover_item {
 } xlog_recover_item_t;
 
 struct xlog_tid;
-typedef struct xlog_recover {
+typedef struct xlog_recover
+{
 	struct hlist_node	r_list;
 	xlog_tid_t		r_log_tid;	/* log's transaction id */
 	xfs_trans_header_t	r_theader;	/* trans header for partial */

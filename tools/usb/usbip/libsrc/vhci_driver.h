@@ -13,7 +13,8 @@
 #define USBIP_VHCI_BUS_TYPE "platform"
 #define MAXNPORT 128
 
-struct usbip_imported_device {
+struct usbip_imported_device
+{
 	uint8_t port;
 	uint32_t status;
 
@@ -26,7 +27,8 @@ struct usbip_imported_device {
 	struct usbip_usb_device udev;
 };
 
-struct usbip_vhci_driver {
+struct usbip_vhci_driver
+{
 
 	/* /sys/devices/platform/vhci_hcd */
 	struct udev_device *hc_device;
@@ -46,11 +48,11 @@ int  usbip_vhci_refresh_device_list(void);
 
 int usbip_vhci_get_free_port(void);
 int usbip_vhci_attach_device2(uint8_t port, int sockfd, uint32_t devid,
-		uint32_t speed);
+							  uint32_t speed);
 
 /* will be removed */
 int usbip_vhci_attach_device(uint8_t port, int sockfd, uint8_t busnum,
-		uint8_t devnum, uint32_t speed);
+							 uint8_t devnum, uint32_t speed);
 
 int usbip_vhci_detach_device(uint8_t port);
 

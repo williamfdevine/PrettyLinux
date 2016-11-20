@@ -33,7 +33,8 @@
  * keypad interrupt. The keypad wake must be cleared in addition to
  * reading the MI/DI bits in the KPC register.
  */
-struct pxa27x_keypad_platform_data {
+struct pxa27x_keypad_platform_data
+{
 
 	/* code map for the matrix keys */
 	const struct matrix_keymap_data *matrix_keymap_data;

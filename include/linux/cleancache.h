@@ -17,21 +17,24 @@
  * filesystems, the inode number is unique, but for "modern" filesystems
  * an exportable filehandle is required (see exportfs.h)
  */
-struct cleancache_filekey {
-	union {
+struct cleancache_filekey
+{
+	union
+	{
 		ino_t ino;
 		__u32 fh[CLEANCACHE_KEY_MAX];
 		u32 key[CLEANCACHE_KEY_MAX];
 	} u;
 };
 
-struct cleancache_ops {
+struct cleancache_ops
+{
 	int (*init_fs)(size_t);
 	int (*init_shared_fs)(char *uuid, size_t);
 	int (*get_page)(int, struct cleancache_filekey,
-			pgoff_t, struct page *);
+					pgoff_t, struct page *);
 	void (*put_page)(int, struct cleancache_filekey,
-			pgoff_t, struct page *);
+					 pgoff_t, struct page *);
 	void (*invalidate_page)(int, struct cleancache_filekey, pgoff_t);
 	void (*invalidate_inode)(int, struct cleancache_filekey);
 	void (*invalidate_fs)(int);
@@ -78,46 +81,61 @@ static inline bool cleancache_fs_enabled(struct page *page)
 static inline void cleancache_init_fs(struct super_block *sb)
 {
 	if (cleancache_enabled)
+	{
 		__cleancache_init_fs(sb);
+	}
 }
 
 static inline void cleancache_init_shared_fs(struct super_block *sb)
 {
 	if (cleancache_enabled)
+	{
 		__cleancache_init_shared_fs(sb);
+	}
 }
 
 static inline int cleancache_get_page(struct page *page)
 {
 	if (cleancache_enabled && cleancache_fs_enabled(page))
+	{
 		return __cleancache_get_page(page);
+	}
+
 	return -1;
 }
 
 static inline void cleancache_put_page(struct page *page)
 {
 	if (cleancache_enabled && cleancache_fs_enabled(page))
+	{
 		__cleancache_put_page(page);
+	}
 }
 
 static inline void cleancache_invalidate_page(struct address_space *mapping,
-					struct page *page)
+		struct page *page)
 {
 	/* careful... page->mapping is NULL sometimes when this is called */
 	if (cleancache_enabled && cleancache_fs_enabled_mapping(mapping))
+	{
 		__cleancache_invalidate_page(mapping, page);
+	}
 }
 
 static inline void cleancache_invalidate_inode(struct address_space *mapping)
 {
 	if (cleancache_enabled && cleancache_fs_enabled_mapping(mapping))
+	{
 		__cleancache_invalidate_inode(mapping);
+	}
 }
 
 static inline void cleancache_invalidate_fs(struct super_block *sb)
 {
 	if (cleancache_enabled)
+	{
 		__cleancache_invalidate_fs(sb);
+	}
 }
 
 #endif /* _LINUX_CLEANCACHE_H */

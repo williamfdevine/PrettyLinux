@@ -8,7 +8,8 @@
 
 struct bpf_prog;
 
-struct xt_bpf_info {
+struct xt_bpf_info
+{
 	__u16 bpf_program_num_elem;
 	struct sock_filter bpf_program[XT_BPF_MAX_NUM_INSTR];
 

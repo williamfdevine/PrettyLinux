@@ -5,7 +5,7 @@
  * Copyright (c) 2001-2007 Anton Altaparmakov
  * Copyright (C) 2001,2002 Jakob Kemi <jakob.kemi@telia.com>
  *
- * Documentation is available at http://www.linux-ntfs.org/doku.php?id=downloads 
+ * Documentation is available at http://www.linux-ntfs.org/doku.php?id=downloads
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -101,7 +101,8 @@ struct parsed_partitions;
 /* Borrowed from msdos.c */
 #define SYS_IND(p)		(get_unaligned(&(p)->sys_ind))
 
-struct frag {				/* VBLK Fragment handling */
+struct frag  				/* VBLK Fragment handling */
+{
 	struct list_head list;
 	u32		group;
 	u8		num;		/* Total number of records */
@@ -114,7 +115,8 @@ struct frag {				/* VBLK Fragment handling */
 
 #define GUID_SIZE		16
 
-struct privhead {			/* Offsets and sizes are in sectors. */
+struct privhead  			/* Offsets and sizes are in sectors. */
+{
 	u16	ver_major;
 	u16	ver_minor;
 	u64	logical_disk_start;
@@ -124,7 +126,8 @@ struct privhead {			/* Offsets and sizes are in sectors. */
 	u8	disk_id[GUID_SIZE];
 };
 
-struct tocblock {			/* We have exactly two bitmaps. */
+struct tocblock  			/* We have exactly two bitmaps. */
+{
 	u8	bitmap1_name[16];
 	u64	bitmap1_start;
 	u64	bitmap1_size;
@@ -133,7 +136,8 @@ struct tocblock {			/* We have exactly two bitmaps. */
 	u64	bitmap2_size;
 };
 
-struct vmdb {				/* VMDB: The database header */
+struct vmdb  				/* VMDB: The database header */
+{
 	u16	ver_major;
 	u16	ver_minor;
 	u32	vblk_size;
@@ -141,7 +145,8 @@ struct vmdb {				/* VMDB: The database header */
 	u32	last_vblk_seq;
 };
 
-struct vblk_comp {			/* VBLK Component */
+struct vblk_comp  			/* VBLK Component */
+{
 	u8	state[16];
 	u64	parent_id;
 	u8	type;
@@ -149,16 +154,19 @@ struct vblk_comp {			/* VBLK Component */
 	u16	chunksize;
 };
 
-struct vblk_dgrp {			/* VBLK Disk Group */
+struct vblk_dgrp  			/* VBLK Disk Group */
+{
 	u8	disk_id[64];
 };
 
-struct vblk_disk {			/* VBLK Disk */
+struct vblk_disk  			/* VBLK Disk */
+{
 	u8	disk_id[GUID_SIZE];
 	u8	alt_name[128];
 };
 
-struct vblk_part {			/* VBLK Partition */
+struct vblk_part  			/* VBLK Partition */
+{
 	u64	start;
 	u64	size;			/* start, size and vol_off in sectors */
 	u64	volume_offset;
@@ -167,7 +175,8 @@ struct vblk_part {			/* VBLK Partition */
 	u8	partnum;
 };
 
-struct vblk_volu {			/* VBLK Volume */
+struct vblk_volu  			/* VBLK Volume */
+{
 	u8	volume_type[16];
 	u8	volume_state[16];
 	u8	guid[16];
@@ -176,19 +185,22 @@ struct vblk_volu {			/* VBLK Volume */
 	u8	partition_type;
 };
 
-struct vblk_head {			/* VBLK standard header */
+struct vblk_head  			/* VBLK standard header */
+{
 	u32 group;
 	u16 rec;
 	u16 nrec;
 };
 
-struct vblk {				/* Generalised VBLK */
+struct vblk  				/* Generalised VBLK */
+{
 	u8	name[64];
 	u64	obj_id;
 	u32	sequence;
 	u8	flags;
 	u8	type;
-	union {
+	union
+	{
 		struct vblk_comp comp;
 		struct vblk_dgrp dgrp;
 		struct vblk_disk disk;
@@ -198,7 +210,8 @@ struct vblk {				/* Generalised VBLK */
 	struct list_head list;
 };
 
-struct ldmdb {				/* Cache of the database */
+struct ldmdb  				/* Cache of the database */
+{
 	struct privhead ph;
 	struct tocblock toc;
 	struct vmdb     vm;

@@ -113,7 +113,8 @@
 
 
 /* Values for PHY registers used on channel switching */
-struct b43_phy_ht_channeltab_e_phy {
+struct b43_phy_ht_channeltab_e_phy
+{
 	u16 bw1;
 	u16 bw2;
 	u16 bw3;
@@ -123,7 +124,8 @@ struct b43_phy_ht_channeltab_e_phy {
 };
 
 
-struct b43_phy_ht {
+struct b43_phy_ht
+{
 	u16 rf_ctl_int_save[3];
 
 	bool tx_pwr_ctl;

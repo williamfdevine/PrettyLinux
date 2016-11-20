@@ -46,7 +46,7 @@
 #include "acdispat.h"
 #include "acnamesp.h"
 #ifdef ACPI_DISASSEMBLER
-#include "acdisasm.h"
+	#include "acdisasm.h"
 #endif
 #include "acinterp.h"
 
@@ -57,7 +57,7 @@ ACPI_MODULE_NAME("dsdebug")
 /* Local prototypes */
 static void
 acpi_ds_print_node_pathname(struct acpi_namespace_node *node,
-			    const char *message);
+							const char *message);
 
 /*******************************************************************************
  *
@@ -73,14 +73,15 @@ acpi_ds_print_node_pathname(struct acpi_namespace_node *node,
 
 static void
 acpi_ds_print_node_pathname(struct acpi_namespace_node *node,
-			    const char *message)
+							const char *message)
 {
 	struct acpi_buffer buffer;
 	acpi_status status;
 
 	ACPI_FUNCTION_TRACE(ds_print_node_pathname);
 
-	if (!node) {
+	if (!node)
+	{
 		ACPI_DEBUG_PRINT_RAW((ACPI_DB_DISPATCH, "[NULL NAME]"));
 		return_VOID;
 	}
@@ -90,14 +91,17 @@ acpi_ds_print_node_pathname(struct acpi_namespace_node *node,
 	buffer.length = ACPI_ALLOCATE_LOCAL_BUFFER;
 
 	status = acpi_ns_handle_to_pathname(node, &buffer, TRUE);
-	if (ACPI_SUCCESS(status)) {
-		if (message) {
+
+	if (ACPI_SUCCESS(status))
+	{
+		if (message)
+		{
 			ACPI_DEBUG_PRINT_RAW((ACPI_DB_DISPATCH, "%s ",
-					      message));
+								  message));
 		}
 
 		ACPI_DEBUG_PRINT_RAW((ACPI_DB_DISPATCH, "[%s] (Node %p)",
-				      (char *)buffer.pointer, node));
+							  (char *)buffer.pointer, node));
 		ACPI_FREE(buffer.pointer);
 	}
 
@@ -121,8 +125,8 @@ acpi_ds_print_node_pathname(struct acpi_namespace_node *node,
 
 void
 acpi_ds_dump_method_stack(acpi_status status,
-			  struct acpi_walk_state *walk_state,
-			  union acpi_parse_object *op)
+						  struct acpi_walk_state *walk_state,
+						  union acpi_parse_object *op)
 {
 	union acpi_parse_object *next;
 	struct acpi_thread_state *thread;
@@ -134,15 +138,17 @@ acpi_ds_dump_method_stack(acpi_status status,
 
 	/* Ignore control codes, they are not errors */
 
-	if ((status & AE_CODE_MASK) == AE_CODE_CONTROL) {
+	if ((status & AE_CODE_MASK) == AE_CODE_CONTROL)
+	{
 		return_VOID;
 	}
 
 	/* We may be executing a deferred opcode */
 
-	if (walk_state->deferred_node) {
+	if (walk_state->deferred_node)
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
-				  "Executing subtree for Buffer/Package/Region\n"));
+						  "Executing subtree for Buffer/Package/Region\n"));
 		return_VOID;
 	}
 
@@ -152,43 +158,50 @@ acpi_ds_dump_method_stack(acpi_status status,
 	 * to perform constant folding.
 	 */
 	thread = walk_state->thread;
-	if (!thread) {
+
+	if (!thread)
+	{
 		return_VOID;
 	}
 
 	/* Display exception and method name */
 
 	ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
-			  "\n**** Exception %s during execution of method ",
-			  acpi_format_exception(status)));
+					  "\n**** Exception %s during execution of method ",
+					  acpi_format_exception(status)));
 
 	acpi_ds_print_node_pathname(walk_state->method_node, NULL);
 
 	/* Display stack of executing methods */
 
 	ACPI_DEBUG_PRINT_RAW((ACPI_DB_DISPATCH,
-			      "\n\nMethod Execution Stack:\n"));
+						  "\n\nMethod Execution Stack:\n"));
 	next_walk_state = thread->walk_state_list;
 
 	/* Walk list of linked walk states */
 
-	while (next_walk_state) {
+	while (next_walk_state)
+	{
 		method_desc = next_walk_state->method_desc;
-		if (method_desc) {
+
+		if (method_desc)
+		{
 			acpi_ex_stop_trace_method((struct acpi_namespace_node *)
-						  method_desc->method.node,
-						  method_desc, walk_state);
+									  method_desc->method.node,
+									  method_desc, walk_state);
 		}
 
 		ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
-				  "    Method [%4.4s] executing: ",
-				  acpi_ut_get_node_name(next_walk_state->
-							method_node)));
+						  "    Method [%4.4s] executing: ",
+						  acpi_ut_get_node_name(next_walk_state->
+												method_node)));
 
 		/* First method is the currently executing method */
 
-		if (next_walk_state == walk_state) {
-			if (op) {
+		if (next_walk_state == walk_state)
+		{
+			if (op)
+			{
 
 				/* Display currently executing ASL statement */
 
@@ -197,18 +210,20 @@ acpi_ds_dump_method_stack(acpi_status status,
 
 #ifdef ACPI_DISASSEMBLER
 				acpi_dm_disassemble(next_walk_state, op,
-						    ACPI_UINT32_MAX);
+									ACPI_UINT32_MAX);
 #endif
 				op->common.next = next;
 			}
-		} else {
+		}
+		else
+		{
 			/*
 			 * This method has called another method
 			 * NOTE: the method call parse subtree is already deleted at
 			 * this point, so we cannot disassemble the method invocation.
 			 */
 			ACPI_DEBUG_PRINT_RAW((ACPI_DB_DISPATCH,
-					      "Call to method "));
+								  "Call to method "));
 			acpi_ds_print_node_pathname(previous_method, NULL);
 		}
 
@@ -223,8 +238,8 @@ acpi_ds_dump_method_stack(acpi_status status,
 #else
 void
 acpi_ds_dump_method_stack(acpi_status status,
-			  struct acpi_walk_state *walk_state,
-			  union acpi_parse_object *op)
+						  struct acpi_walk_state *walk_state,
+						  union acpi_parse_object *op)
 {
 	return;
 }

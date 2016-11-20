@@ -59,7 +59,8 @@
 /* DMIC_FIFO_CTRL bit fields */
 #define OMAP_DMIC_THRES_MAX		0xF
 
-enum omap_dmic_clk {
+enum omap_dmic_clk
+{
 	OMAP_DMIC_SYSCLK_PAD_CLKS,		/* PAD_CLKS */
 	OMAP_DMIC_SYSCLK_SLIMBLUS_CLKS,		/* SLIMBUS_CLK */
 	OMAP_DMIC_SYSCLK_SYNC_MUX_CLKS,		/* DMIC_SYNC_MUX_CLK */

@@ -45,7 +45,8 @@
  * This structure contains the I2C address, the device ID and a user_data pointer.
  * The user_data pointer can be used for application specific purposes.
  */
-struct i2c_device_addr {
+struct i2c_device_addr
+{
 	u16 i2c_addr;		/* The I2C address of the device. */
 	u16 i2c_dev_id;		/* The device identifier. */
 	void *user_data;		/* User data pointer */
@@ -61,7 +62,7 @@ struct i2c_device_addr {
 * \retval 1 if address is a 10 bits I2C address.
 */
 #define IS_I2C_10BIT(addr) \
-	 (((addr) & 0xF8) == 0xF0)
+	(((addr) & 0xF8) == 0xF0)
 
 /*------------------------------------------------------------------------------
 Exported FUNCTIONS
@@ -74,7 +75,7 @@ Exported FUNCTIONS
 * \retval 0 Initialization successful.
 * \retval -EIO Initialization failed.
 */
-	drx_status_t drxbsp_i2c_init(void);
+drx_status_t drxbsp_i2c_init(void);
 
 /**
 * \fn drxbsp_i2c_term()
@@ -83,7 +84,7 @@ Exported FUNCTIONS
 * \retval 0 Termination successful.
 * \retval -EIO Termination failed.
 */
-	drx_status_t drxbsp_i2c_term(void);
+drx_status_t drxbsp_i2c_term(void);
 
 /**
 * \fn drx_status_t drxbsp_i2c_write_read( struct i2c_device_addr *w_dev_addr,
@@ -115,11 +116,11 @@ Exported FUNCTIONS
 * The device ID can be useful if several devices share an I2C address.
 * It can be used to control a "switch" on the I2C bus to the correct device.
 */
-	drx_status_t drxbsp_i2c_write_read(struct i2c_device_addr *w_dev_addr,
-					 u16 w_count,
-					 u8 *w_data,
-					 struct i2c_device_addr *r_dev_addr,
-					 u16 r_count, u8 *r_data);
+drx_status_t drxbsp_i2c_write_read(struct i2c_device_addr *w_dev_addr,
+								   u16 w_count,
+								   u8 *w_data,
+								   struct i2c_device_addr *r_dev_addr,
+								   u16 r_count, u8 *r_data);
 
 /**
 * \fn drxbsp_i2c_error_text()
@@ -128,12 +129,12 @@ Exported FUNCTIONS
 *
 * \return char* Pointer to human readable error text.
 */
-	char *drxbsp_i2c_error_text(void);
+char *drxbsp_i2c_error_text(void);
 
 /**
 * \var drx_i2c_error_g;
 * \brief I2C specific error codes, platform dependent.
 */
-	extern int drx_i2c_error_g;
+extern int drx_i2c_error_g;
 
 #endif				/* __BSPI2C_H__ */

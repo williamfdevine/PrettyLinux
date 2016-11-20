@@ -43,7 +43,8 @@
 
 #define X86_FEATURE_POPCNT (4*32+23)
 
-struct special_entry {
+struct special_entry
+{
 	const char *sec;
 	bool group, jump_or_nop;
 	unsigned char size, orig, new;
@@ -51,7 +52,8 @@ struct special_entry {
 	unsigned char feature; /* ALTERNATIVE macro CPU feature */
 };
 
-struct special_entry entries[] = {
+struct special_entry entries[] =
+{
 	{
 		.sec = ".altinstructions",
 		.group = true,
@@ -79,8 +81,8 @@ struct special_entry entries[] = {
 };
 
 static int get_alt_entry(struct elf *elf, struct special_entry *entry,
-			 struct section *sec, int idx,
-			 struct special_alt *alt)
+						 struct section *sec, int idx,
+						 struct special_alt *alt)
 {
 	struct rela *orig_rela, *new_rela;
 	unsigned long offset;
@@ -90,18 +92,20 @@ static int get_alt_entry(struct elf *elf, struct special_entry *entry,
 	alt->group = entry->group;
 	alt->jump_or_nop = entry->jump_or_nop;
 
-	if (alt->group) {
+	if (alt->group)
+	{
 		alt->orig_len = *(unsigned char *)(sec->data + offset +
-						   entry->orig_len);
+										   entry->orig_len);
 		alt->new_len = *(unsigned char *)(sec->data + offset +
-						  entry->new_len);
+										  entry->new_len);
 	}
 
-	if (entry->feature) {
+	if (entry->feature)
+	{
 		unsigned short feature;
 
 		feature = *(unsigned short *)(sec->data + offset +
-					      entry->feature);
+									  entry->feature);
 
 		/*
 		 * It has been requested that we don't validate the !POPCNT
@@ -109,28 +113,37 @@ static int get_alt_entry(struct elf *elf, struct special_entry *entry,
 		 * machines".
 		 */
 		if (feature == X86_FEATURE_POPCNT)
+		{
 			alt->skip_orig = true;
+		}
 	}
 
 	orig_rela = find_rela_by_dest(sec, offset + entry->orig);
-	if (!orig_rela) {
+
+	if (!orig_rela)
+	{
 		WARN_FUNC("can't find orig rela", sec, offset + entry->orig);
 		return -1;
 	}
-	if (orig_rela->sym->type != STT_SECTION) {
+
+	if (orig_rela->sym->type != STT_SECTION)
+	{
 		WARN_FUNC("don't know how to handle non-section rela symbol %s",
-			   sec, offset + entry->orig, orig_rela->sym->name);
+				  sec, offset + entry->orig, orig_rela->sym->name);
 		return -1;
 	}
 
 	alt->orig_sec = orig_rela->sym->sec;
 	alt->orig_off = orig_rela->addend;
 
-	if (!entry->group || alt->new_len) {
+	if (!entry->group || alt->new_len)
+	{
 		new_rela = find_rela_by_dest(sec, offset + entry->new);
-		if (!new_rela) {
+
+		if (!new_rela)
+		{
 			WARN_FUNC("can't find new rela",
-				  sec, offset + entry->new);
+					  sec, offset + entry->new);
 			return -1;
 		}
 
@@ -139,7 +152,9 @@ static int get_alt_entry(struct elf *elf, struct special_entry *entry,
 
 		/* _ASM_EXTABLE_EX hack */
 		if (alt->new_off >= 0x7ffffff0)
+		{
 			alt->new_off -= 0x7ffffff0;
+		}
 	}
 
 	return 0;
@@ -160,30 +175,42 @@ int special_get_alts(struct elf *elf, struct list_head *alts)
 
 	INIT_LIST_HEAD(alts);
 
-	for (entry = entries; entry->sec; entry++) {
+	for (entry = entries; entry->sec; entry++)
+	{
 		sec = find_section_by_name(elf, entry->sec);
-		if (!sec)
-			continue;
 
-		if (sec->len % entry->size != 0) {
+		if (!sec)
+		{
+			continue;
+		}
+
+		if (sec->len % entry->size != 0)
+		{
 			WARN("%s size not a multiple of %d",
-			     sec->name, entry->size);
+				 sec->name, entry->size);
 			return -1;
 		}
 
 		nr_entries = sec->len / entry->size;
 
-		for (idx = 0; idx < nr_entries; idx++) {
+		for (idx = 0; idx < nr_entries; idx++)
+		{
 			alt = malloc(sizeof(*alt));
-			if (!alt) {
+
+			if (!alt)
+			{
 				WARN("malloc failed");
 				return -1;
 			}
+
 			memset(alt, 0, sizeof(*alt));
 
 			ret = get_alt_entry(elf, entry, sec, idx, alt);
+
 			if (ret)
+			{
 				return ret;
+			}
 
 			list_add_tail(&alt->list, alts);
 		}

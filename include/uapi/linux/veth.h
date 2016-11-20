@@ -1,7 +1,8 @@
 #ifndef __NET_VETH_H_
 #define __NET_VETH_H_
 
-enum {
+enum
+{
 	VETH_INFO_UNSPEC,
 	VETH_INFO_PEER,
 

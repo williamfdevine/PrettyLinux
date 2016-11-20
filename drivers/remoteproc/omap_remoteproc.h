@@ -57,7 +57,8 @@
  * @RP_MBOX_ABORT_REQUEST: a "please crash" request, used for testing the
  * recovery mechanism (to some extent).
  */
-enum omap_rp_mbox_messages {
+enum omap_rp_mbox_messages
+{
 	RP_MBOX_READY		= 0xFFFFFF00,
 	RP_MBOX_PENDING_MSG	= 0xFFFFFF01,
 	RP_MBOX_CRASH		= 0xFFFFFF02,

@@ -24,7 +24,8 @@
 #define FT_LUN_NAMELEN 32	/* max length of LUN name */
 #define TCM_FC_DEFAULT_TAGS 512	/* tags used for per-session preallocation */
 
-struct ft_transport_id {
+struct ft_transport_id
+{
 	__u8	format;
 	__u8	__resvd1[7];
 	__u8	wwpn[8];
@@ -34,7 +35,8 @@ struct ft_transport_id {
 /*
  * Session (remote port).
  */
-struct ft_sess {
+struct ft_sess
+{
 	u32 port_id;			/* for hash lookup use only */
 	u32 params;
 	u16 max_frame;			/* maximum frame size */
@@ -60,7 +62,8 @@ struct ft_sess {
  * we're notified that the local port has been created, or when
  * the first PRLI provider callback is received.
  */
-struct ft_tport {
+struct ft_tport
+{
 	struct fc_lport *lport;
 	struct ft_tpg *tpg;		/* NULL if TPG deleted before tport */
 	u32	sess_count;		/* number of sessions in hash */
@@ -71,7 +74,8 @@ struct ft_tport {
 /*
  * Node ID and authentication.
  */
-struct ft_node_auth {
+struct ft_node_auth
+{
 	u64	port_name;
 	u64	node_name;
 };
@@ -79,12 +83,14 @@ struct ft_node_auth {
 /*
  * Node ACL for FC remote port session.
  */
-struct ft_node_acl {
+struct ft_node_acl
+{
 	struct se_node_acl se_node_acl;
 	struct ft_node_auth node_auth;
 };
 
-struct ft_lun {
+struct ft_lun
+{
 	u32 index;
 	char name[FT_LUN_NAMELEN];
 };
@@ -92,7 +98,8 @@ struct ft_lun {
 /*
  * Target portal group (local port).
  */
-struct ft_tpg {
+struct ft_tpg
+{
 	u32 index;
 	struct ft_lport_wwn *lport_wwn;
 	struct ft_tport *tport;		/* active tport or NULL */
@@ -101,7 +108,8 @@ struct ft_tpg {
 	struct workqueue_struct *workqueue;
 };
 
-struct ft_lport_wwn {
+struct ft_lport_wwn
+{
 	u64 wwpn;
 	char name[FT_NAMELEN];
 	struct list_head ft_wwn_node;
@@ -112,7 +120,8 @@ struct ft_lport_wwn {
 /*
  * Commands
  */
-struct ft_cmd {
+struct ft_cmd
+{
 	struct ft_sess *sess;		/* session held for cmd */
 	struct fc_seq *seq;		/* sequence in exchange mgr */
 	struct se_cmd se_cmd;		/* Local TCM I/O descriptor */
@@ -121,8 +130,8 @@ struct ft_cmd {
 	struct work_struct work;
 	/* Local sense buffer */
 	unsigned char ft_sense_buffer[TRANSPORT_SENSE_BUFFER];
-	u32 was_ddp_setup:1;		/* Set only if ddp is setup */
-	u32 aborted:1;			/* Set if aborted by reset or timeout */
+	u32 was_ddp_setup: 1;		/* Set only if ddp is setup */
+	u32 aborted: 1;			/* Set if aborted by reset or timeout */
 	struct scatterlist *sg;		/* Set only if DDP is setup */
 	u32 sg_cnt;			/* No. of item in scatterlist */
 };

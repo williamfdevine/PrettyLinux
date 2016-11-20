@@ -48,12 +48,14 @@ u32 acpi_pm_read_verified(void)
 	 * source is not latched, you must read it multiple
 	 * times to ensure a safe value is read:
 	 */
-	do {
+	do
+	{
 		v1 = read_pmtmr();
 		v2 = read_pmtmr();
 		v3 = read_pmtmr();
-	} while (unlikely((v1 > v2 && v1 < v3) || (v2 > v3 && v2 < v1)
-			  || (v3 > v1 && v3 < v2)));
+	}
+	while (unlikely((v1 > v2 && v1 < v3) || (v2 > v3 && v2 < v1)
+					|| (v3 > v1 && v3 < v2)));
 
 	return v2;
 }
@@ -63,7 +65,8 @@ static cycle_t acpi_pm_read(struct clocksource *cs)
 	return (cycle_t)read_pmtmr();
 }
 
-static struct clocksource clocksource_acpi_pm = {
+static struct clocksource clocksource_acpi_pm =
+{
 	.name		= "acpi_pm",
 	.rating		= 200,
 	.read		= acpi_pm_read,
@@ -105,40 +108,45 @@ static inline void acpi_pm_need_workaround(void)
 static void acpi_pm_check_blacklist(struct pci_dev *dev)
 {
 	if (acpi_pm_good)
+	{
 		return;
+	}
 
 	/* the bug has been fixed in PIIX4M */
-	if (dev->revision < 3) {
+	if (dev->revision < 3)
+	{
 		pr_warn("* Found PM-Timer Bug on the chipset. Due to workarounds for a bug,\n"
-			"* this clock source is slow. Consider trying other clock sources\n");
+				"* this clock source is slow. Consider trying other clock sources\n");
 
 		acpi_pm_need_workaround();
 	}
 }
 DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82371AB_3,
-			acpi_pm_check_blacklist);
+						acpi_pm_check_blacklist);
 
 static void acpi_pm_check_graylist(struct pci_dev *dev)
 {
 	if (acpi_pm_good)
+	{
 		return;
+	}
 
 	pr_warn("* The chipset may have PM-Timer Bug. Due to workarounds for a bug,\n"
-		"* this clock source is slow. If you are sure your timer does not have\n"
-		"* this bug, please use \"acpi_pm_good\" to disable the workaround\n");
+			"* this clock source is slow. If you are sure your timer does not have\n"
+			"* this bug, please use \"acpi_pm_good\" to disable the workaround\n");
 
 	acpi_pm_need_workaround();
 }
 DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82801DB_0,
-			acpi_pm_check_graylist);
+						acpi_pm_check_graylist);
 DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_SERVERWORKS, PCI_DEVICE_ID_SERVERWORKS_LE,
-			acpi_pm_check_graylist);
+						acpi_pm_check_graylist);
 #endif
 
 #ifndef CONFIG_X86_64
 #include <asm/mach_timer.h>
 #define PMTMR_EXPECTED_RATE \
-  ((CALIBRATE_LATCH * (PMTMR_TICKS_PER_SEC >> 10)) / (PIT_TICK_RATE>>10))
+	((CALIBRATE_LATCH * (PMTMR_TICKS_PER_SEC >> 10)) / (PIT_TICK_RATE>>10))
 /*
  * Some boards have the PMTMR running way too fast. We check
  * the PMTMR rate against PIT channel 2 to catch these cases.
@@ -156,9 +164,10 @@ static int verify_pmtmr_rate(void)
 
 	/* Check that the PMTMR delta is within 5% of what we expect */
 	if (delta < (PMTMR_EXPECTED_RATE * 19) / 20 ||
-	    delta > (PMTMR_EXPECTED_RATE * 21) / 20) {
+		delta > (PMTMR_EXPECTED_RATE * 21) / 20)
+	{
 		pr_info("PM-Timer running at invalid rate: %lu%% of normal - aborting.\n",
-			100UL * delta / PMTMR_EXPECTED_RATE);
+				100UL * delta / PMTMR_EXPECTED_RATE);
 		return -1;
 	}
 
@@ -179,40 +188,58 @@ static int __init init_acpi_pm_clocksource(void)
 	unsigned int i, j = 0;
 
 	if (!pmtmr_ioport)
+	{
 		return -ENODEV;
+	}
 
 	/* "verify" this timing source: */
-	for (j = 0; j < ACPI_PM_MONOTONICITY_CHECKS; j++) {
+	for (j = 0; j < ACPI_PM_MONOTONICITY_CHECKS; j++)
+	{
 		udelay(100 * j);
 		value1 = clocksource_acpi_pm.read(&clocksource_acpi_pm);
-		for (i = 0; i < ACPI_PM_READ_CHECKS; i++) {
+
+		for (i = 0; i < ACPI_PM_READ_CHECKS; i++)
+		{
 			value2 = clocksource_acpi_pm.read(&clocksource_acpi_pm);
+
 			if (value2 == value1)
+			{
 				continue;
+			}
+
 			if (value2 > value1)
+			{
 				break;
+			}
+
 			if ((value2 < value1) && ((value2) < 0xFFF))
+			{
 				break;
+			}
+
 			pr_info("PM-Timer had inconsistent results: %#llx, %#llx - aborting.\n",
-				value1, value2);
+					value1, value2);
 			pmtmr_ioport = 0;
 			return -EINVAL;
 		}
-		if (i == ACPI_PM_READ_CHECKS) {
+
+		if (i == ACPI_PM_READ_CHECKS)
+		{
 			pr_info("PM-Timer failed consistency check  (%#llx) - aborting.\n",
-				value1);
+					value1);
 			pmtmr_ioport = 0;
 			return -ENODEV;
 		}
 	}
 
-	if (verify_pmtmr_rate() != 0){
+	if (verify_pmtmr_rate() != 0)
+	{
 		pmtmr_ioport = 0;
 		return -ENODEV;
 	}
 
 	return clocksource_register_hz(&clocksource_acpi_pm,
-						PMTMR_TICKS_PER_SEC);
+								   PMTMR_TICKS_PER_SEC);
 }
 
 /* We use fs_initcall because we want the PCI fixups to have run
@@ -230,11 +257,14 @@ static int __init parse_pmtmr(char *arg)
 	int ret;
 
 	ret = kstrtouint(arg, 16, &base);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pr_info("PMTMR IOPort override: 0x%04x -> 0x%04x\n", pmtmr_ioport,
-		base);
+			base);
 	pmtmr_ioport = base;
 
 	return 1;

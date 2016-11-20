@@ -7,7 +7,8 @@
 #include <linux/rculist.h>
 #include <linux/mutex.h>
 
-struct netns_packet {
+struct netns_packet
+{
 	struct mutex		sklist_lock;
 	struct hlist_head	sklist;
 };

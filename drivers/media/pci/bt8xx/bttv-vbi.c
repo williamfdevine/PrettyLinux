@@ -61,17 +61,17 @@ static unsigned int vbi_debug;
 
 module_param(vbibufs,   int, 0444);
 module_param(vbi_debug, int, 0644);
-MODULE_PARM_DESC(vbibufs,"number of vbi buffers, range 2-32, default 4");
-MODULE_PARM_DESC(vbi_debug,"vbi code debug messages, default is 0 (no)");
+MODULE_PARM_DESC(vbibufs, "number of vbi buffers, range 2-32, default 4");
+MODULE_PARM_DESC(vbi_debug, "vbi code debug messages, default is 0 (no)");
 
 #ifdef dprintk
-# undef dprintk
+	#undef dprintk
 #endif
 #define dprintk(fmt, ...)						\
-do {									\
-	if (vbi_debug)							\
-		pr_debug("%d: " fmt, btv->c.nr, ##__VA_ARGS__);		\
-} while (0)
+	do {									\
+		if (vbi_debug)							\
+			pr_debug("%d: " fmt, btv->c.nr, ##__VA_ARGS__);		\
+	} while (0)
 
 #define IMAGE_SIZE(fmt) \
 	(((fmt)->count[0] + (fmt)->count[1]) * (fmt)->samples_per_line)
@@ -80,41 +80,46 @@ do {									\
 /* vbi risc code + mm                                                      */
 
 static int vbi_buffer_setup(struct videobuf_queue *q,
-			    unsigned int *count, unsigned int *size)
+							unsigned int *count, unsigned int *size)
 {
 	struct bttv_fh *fh = q->priv_data;
 	struct bttv *btv = fh->btv;
 
 	if (0 == *count)
+	{
 		*count = vbibufs;
+	}
 
 	*size = IMAGE_SIZE(&fh->vbi_fmt.fmt);
 
 	dprintk("setup: samples=%u start=%d,%d count=%u,%u\n",
-		fh->vbi_fmt.fmt.samples_per_line,
-		fh->vbi_fmt.fmt.start[0],
-		fh->vbi_fmt.fmt.start[1],
-		fh->vbi_fmt.fmt.count[0],
-		fh->vbi_fmt.fmt.count[1]);
+			fh->vbi_fmt.fmt.samples_per_line,
+			fh->vbi_fmt.fmt.start[0],
+			fh->vbi_fmt.fmt.start[1],
+			fh->vbi_fmt.fmt.count[0],
+			fh->vbi_fmt.fmt.count[1]);
 
 	return 0;
 }
 
 static int vbi_buffer_prepare(struct videobuf_queue *q,
-			      struct videobuf_buffer *vb,
-			      enum v4l2_field field)
+							  struct videobuf_buffer *vb,
+							  enum v4l2_field field)
 {
 	struct bttv_fh *fh = q->priv_data;
 	struct bttv *btv = fh->btv;
-	struct bttv_buffer *buf = container_of(vb,struct bttv_buffer,vb);
+	struct bttv_buffer *buf = container_of(vb, struct bttv_buffer, vb);
 	const struct bttv_tvnorm *tvnorm;
 	unsigned int skip_lines0, skip_lines1, min_vdelay;
 	int redo_dma_risc;
 	int rc;
 
 	buf->vb.size = IMAGE_SIZE(&fh->vbi_fmt.fmt);
+
 	if (0 != buf->vb.baddr  &&  buf->vb.bsize < buf->vb.size)
+	{
 		return -EINVAL;
+	}
 
 	tvnorm = fh->vbi_fmt.tvnorm;
 
@@ -130,17 +135,19 @@ static int vbi_buffer_prepare(struct videobuf_queue *q,
 
 	if (fh->vbi_fmt.fmt.count[0] > 0)
 		skip_lines0 = max(0, (fh->vbi_fmt.fmt.start[0]
-				      - tvnorm->vbistart[0]));
+							  - tvnorm->vbistart[0]));
+
 	if (fh->vbi_fmt.fmt.count[1] > 0)
 		skip_lines1 = max(0, (fh->vbi_fmt.fmt.start[1]
-				      - tvnorm->vbistart[1]));
+							  - tvnorm->vbistart[1]));
 
 	redo_dma_risc = 0;
 
 	if (buf->vbi_skip[0] != skip_lines0 ||
-	    buf->vbi_skip[1] != skip_lines1 ||
-	    buf->vbi_count[0] != fh->vbi_fmt.fmt.count[0] ||
-	    buf->vbi_count[1] != fh->vbi_fmt.fmt.count[1]) {
+		buf->vbi_skip[1] != skip_lines1 ||
+		buf->vbi_count[0] != fh->vbi_fmt.fmt.count[0] ||
+		buf->vbi_count[1] != fh->vbi_fmt.fmt.count[1])
+	{
 		buf->vbi_skip[0] = skip_lines0;
 		buf->vbi_skip[1] = skip_lines1;
 		buf->vbi_count[0] = fh->vbi_fmt.fmt.count[0];
@@ -148,39 +155,52 @@ static int vbi_buffer_prepare(struct videobuf_queue *q,
 		redo_dma_risc = 1;
 	}
 
-	if (VIDEOBUF_NEEDS_INIT == buf->vb.state) {
+	if (VIDEOBUF_NEEDS_INIT == buf->vb.state)
+	{
 		redo_dma_risc = 1;
+
 		if (0 != (rc = videobuf_iolock(q, &buf->vb, NULL)))
+		{
 			goto fail;
+		}
 	}
 
-	if (redo_dma_risc) {
+	if (redo_dma_risc)
+	{
 		unsigned int bpl, padding, offset;
-		struct videobuf_dmabuf *dma=videobuf_to_dma(&buf->vb);
+		struct videobuf_dmabuf *dma = videobuf_to_dma(&buf->vb);
 
 		bpl = 2044; /* max. vbipack */
 		padding = VBI_BPL - bpl;
 
-		if (fh->vbi_fmt.fmt.count[0] > 0) {
+		if (fh->vbi_fmt.fmt.count[0] > 0)
+		{
 			rc = bttv_risc_packed(btv, &buf->top,
-					      dma->sglist,
-					      /* offset */ 0, bpl,
-					      padding, skip_lines0,
-					      fh->vbi_fmt.fmt.count[0]);
+								  dma->sglist,
+								  /* offset */ 0, bpl,
+								  padding, skip_lines0,
+								  fh->vbi_fmt.fmt.count[0]);
+
 			if (0 != rc)
+			{
 				goto fail;
+			}
 		}
 
-		if (fh->vbi_fmt.fmt.count[1] > 0) {
+		if (fh->vbi_fmt.fmt.count[1] > 0)
+		{
 			offset = fh->vbi_fmt.fmt.count[0] * VBI_BPL;
 
 			rc = bttv_risc_packed(btv, &buf->bottom,
-					      dma->sglist,
-					      offset, bpl,
-					      padding, skip_lines1,
-					      fh->vbi_fmt.fmt.count[1]);
+								  dma->sglist,
+								  offset, bpl,
+								  padding, skip_lines1,
+								  fh->vbi_fmt.fmt.count[1]);
+
 			if (0 != rc)
+			{
 				goto fail;
+			}
 		}
 	}
 
@@ -189,8 +209,11 @@ static int vbi_buffer_prepare(struct videobuf_queue *q,
 	   bounds.top is the corresponding first field line number
 	   times two. VDELAY counts half field lines. */
 	min_vdelay = MIN_VDELAY;
+
 	if (fh->vbi_fmt.end >= tvnorm->cropcap.bounds.top)
+	{
 		min_vdelay += fh->vbi_fmt.end - tvnorm->cropcap.bounds.top;
+	}
 
 	/* For bttv_buffer_activate_vbi(). */
 	buf->geo.vdelay = min_vdelay;
@@ -198,12 +221,12 @@ static int vbi_buffer_prepare(struct videobuf_queue *q,
 	buf->vb.state = VIDEOBUF_PREPARED;
 	buf->vb.field = field;
 	dprintk("buf prepare %p: top=%p bottom=%p field=%s\n",
-		vb, &buf->top, &buf->bottom,
-		v4l2_field_names[buf->vb.field]);
+			vb, &buf->top, &buf->bottom,
+			v4l2_field_names[buf->vb.field]);
 	return 0;
 
- fail:
-	bttv_dma_free(q,btv,buf);
+fail:
+	bttv_dma_free(q, btv, buf);
 	return rc;
 }
 
@@ -212,14 +235,16 @@ vbi_buffer_queue(struct videobuf_queue *q, struct videobuf_buffer *vb)
 {
 	struct bttv_fh *fh = q->priv_data;
 	struct bttv *btv = fh->btv;
-	struct bttv_buffer *buf = container_of(vb,struct bttv_buffer,vb);
+	struct bttv_buffer *buf = container_of(vb, struct bttv_buffer, vb);
 
-	dprintk("queue %p\n",vb);
+	dprintk("queue %p\n", vb);
 	buf->vb.state = VIDEOBUF_QUEUED;
-	list_add_tail(&buf->vb.queue,&btv->vcapture);
-	if (NULL == btv->cvbi) {
+	list_add_tail(&buf->vb.queue, &btv->vcapture);
+
+	if (NULL == btv->cvbi)
+	{
 		fh->btv->loop_irq |= 4;
-		bttv_set_dma(btv,0x0c);
+		bttv_set_dma(btv, 0x0c);
 	}
 }
 
@@ -227,13 +252,14 @@ static void vbi_buffer_release(struct videobuf_queue *q, struct videobuf_buffer 
 {
 	struct bttv_fh *fh = q->priv_data;
 	struct bttv *btv = fh->btv;
-	struct bttv_buffer *buf = container_of(vb,struct bttv_buffer,vb);
+	struct bttv_buffer *buf = container_of(vb, struct bttv_buffer, vb);
 
-	dprintk("free %p\n",vb);
-	bttv_dma_free(q,fh->btv,buf);
+	dprintk("free %p\n", vb);
+	bttv_dma_free(q, fh->btv, buf);
 }
 
-struct videobuf_queue_ops bttv_vbi_qops = {
+struct videobuf_queue_ops bttv_vbi_qops =
+{
 	.buf_setup    = vbi_buffer_setup,
 	.buf_prepare  = vbi_buffer_prepare,
 	.buf_queue    = vbi_buffer_queue,
@@ -243,7 +269,7 @@ struct videobuf_queue_ops bttv_vbi_qops = {
 /* ----------------------------------------------------------------------- */
 
 static int try_fmt(struct v4l2_vbi_format *f, const struct bttv_tvnorm *tvnorm,
-			__s32 crop_start)
+				   __s32 crop_start)
 {
 	__s32 min_start, max_start, max_end, f2_offset;
 	unsigned int i;
@@ -257,10 +283,12 @@ static int try_fmt(struct v4l2_vbi_format *f, const struct bttv_tvnorm *tvnorm,
 	min_start = tvnorm->vbistart[0];
 	max_start = (crop_start >> 1) - 1;
 	max_end = (tvnorm->cropcap.bounds.top
-		   + tvnorm->cropcap.bounds.height) >> 1;
+			   + tvnorm->cropcap.bounds.height) >> 1;
 
 	if (min_start > max_start)
+	{
 		return -EBUSY;
+	}
 
 	BUG_ON(max_start >= max_end);
 
@@ -271,13 +299,17 @@ static int try_fmt(struct v4l2_vbi_format *f, const struct bttv_tvnorm *tvnorm,
 
 	f2_offset = tvnorm->vbistart[1] - tvnorm->vbistart[0];
 
-	for (i = 0; i < 2; ++i) {
-		if (0 == f->count[i]) {
+	for (i = 0; i < 2; ++i)
+	{
+		if (0 == f->count[i])
+		{
 			/* No data from this field. We leave f->start[i]
 			   alone because VIDIOCSVBIFMT is w/o and EINVALs
 			   when a driver does not support exactly the
 			   requested parameters. */
-		} else {
+		}
+		else
+		{
 			s64 start, count;
 
 			start = clamp(f->start[i], min_start, max_start);
@@ -285,7 +317,7 @@ static int try_fmt(struct v4l2_vbi_format *f, const struct bttv_tvnorm *tvnorm,
 			count = (s64) f->start[i] + f->count[i] - start;
 			f->start[i] = start;
 			f->count[i] = clamp(count, (s64) 1,
-					    max_end - start);
+								max_end - start);
 		}
 
 		min_start += f2_offset;
@@ -293,7 +325,8 @@ static int try_fmt(struct v4l2_vbi_format *f, const struct bttv_tvnorm *tvnorm,
 		max_end += f2_offset;
 	}
 
-	if (0 == (f->count[0] | f->count[1])) {
+	if (0 == (f->count[0] | f->count[1]))
+	{
 		/* As in earlier driver versions. */
 		f->start[0] = tvnorm->vbistart[0];
 		f->start[1] = tvnorm->vbistart[1];
@@ -338,17 +371,23 @@ int bttv_s_fmt_vbi_cap(struct file *file, void *f, struct v4l2_format *frt)
 	mutex_lock(&btv->lock);
 
 	rc = -EBUSY;
+
 	if (fh->resources & RESOURCE_VBI)
+	{
 		goto fail;
+	}
 
 	tvnorm = &bttv_tvnorms[btv->tvnorm];
 
 	rc = try_fmt(&frt->fmt.vbi, tvnorm, btv->crop_start);
+
 	if (0 != rc)
+	{
 		goto fail;
+	}
 
 	start1 = frt->fmt.vbi.start[1] - tvnorm->vbistart[1] +
-		tvnorm->vbistart[0];
+			 tvnorm->vbistart[0];
 
 	/* First possible line of video capturing. Should be
 	   max(f->start[0] + f->count[0], start1 + f->count[1]) * 2
@@ -368,7 +407,7 @@ int bttv_s_fmt_vbi_cap(struct file *file, void *f, struct v4l2_format *frt)
 
 	rc = 0;
 
- fail:
+fail:
 	mutex_unlock(&btv->lock);
 
 	return rc;
@@ -384,7 +423,8 @@ int bttv_g_fmt_vbi_cap(struct file *file, void *f, struct v4l2_format *frt)
 
 	tvnorm = &bttv_tvnorms[fh->btv->tvnorm];
 
-	if (tvnorm != fh->vbi_fmt.tvnorm) {
+	if (tvnorm != fh->vbi_fmt.tvnorm)
+	{
 		__s32 max_end;
 		unsigned int i;
 
@@ -393,26 +433,28 @@ int bttv_g_fmt_vbi_cap(struct file *file, void *f, struct v4l2_format *frt)
 		   standard changes, with default parameters anyway. */
 
 		max_end = (tvnorm->cropcap.bounds.top
-			   + tvnorm->cropcap.bounds.height) >> 1;
+				   + tvnorm->cropcap.bounds.height) >> 1;
 
 		frt->fmt.vbi.sampling_rate = tvnorm->Fsc;
 
-		for (i = 0; i < 2; ++i) {
+		for (i = 0; i < 2; ++i)
+		{
 			__s32 new_start;
 
 			new_start = frt->fmt.vbi.start[i]
-				+ tvnorm->vbistart[i]
-				- fh->vbi_fmt.tvnorm->vbistart[i];
+						+ tvnorm->vbistart[i]
+						- fh->vbi_fmt.tvnorm->vbistart[i];
 
 			frt->fmt.vbi.start[i] = min(new_start, max_end - 1);
 			frt->fmt.vbi.count[i] =
 				min((__s32) frt->fmt.vbi.count[i],
-					  max_end - frt->fmt.vbi.start[i]);
+					max_end - frt->fmt.vbi.start[i]);
 
 			max_end += tvnorm->vbistart[1]
-				- tvnorm->vbistart[0];
+					   - tvnorm->vbistart[0];
 		}
 	}
+
 	return 0;
 }
 
@@ -440,7 +482,7 @@ void bttv_vbi_fmt_reset(struct bttv_vbi_fmt *f, unsigned int norm)
 	   VBI_BPL regardless of the current video standard. */
 	real_samples_per_line   = 1024 + tvnorm->vbipack * 4;
 	real_count              = ((tvnorm->cropcap.defrect.top >> 1)
-				   - tvnorm->vbistart[0]);
+							   - tvnorm->vbistart[0]);
 
 	BUG_ON(real_samples_per_line > VBI_BPL);
 	BUG_ON(real_count > VBI_DEFLINES);

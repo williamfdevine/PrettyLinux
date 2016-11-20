@@ -41,12 +41,13 @@
 
 #define DRV_NAME "tegra-snd-trimslice"
 
-struct tegra_trimslice {
+struct tegra_trimslice
+{
 	struct tegra_asoc_utils_data util_data;
 };
 
 static int trimslice_asoc_hw_params(struct snd_pcm_substream *substream,
-					struct snd_pcm_hw_params *params)
+									struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
@@ -59,14 +60,18 @@ static int trimslice_asoc_hw_params(struct snd_pcm_substream *substream,
 	mclk = 128 * srate;
 
 	err = tegra_asoc_utils_set_rate(&trimslice->util_data, srate, mclk);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(card->dev, "Can't configure clocks\n");
 		return err;
 	}
 
 	err = snd_soc_dai_set_sysclk(codec_dai, 0, mclk,
-					SND_SOC_CLOCK_IN);
-	if (err < 0) {
+								 SND_SOC_CLOCK_IN);
+
+	if (err < 0)
+	{
 		dev_err(card->dev, "codec_dai clock not set\n");
 		return err;
 	}
@@ -74,16 +79,19 @@ static int trimslice_asoc_hw_params(struct snd_pcm_substream *substream,
 	return 0;
 }
 
-static struct snd_soc_ops trimslice_asoc_ops = {
+static struct snd_soc_ops trimslice_asoc_ops =
+{
 	.hw_params = trimslice_asoc_hw_params,
 };
 
-static const struct snd_soc_dapm_widget trimslice_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget trimslice_dapm_widgets[] =
+{
 	SND_SOC_DAPM_HP("Line Out", NULL),
 	SND_SOC_DAPM_LINE("Line In", NULL),
 };
 
-static const struct snd_soc_dapm_route trimslice_audio_map[] = {
+static const struct snd_soc_dapm_route trimslice_audio_map[] =
+{
 	{"Line Out", NULL, "LOUT"},
 	{"Line Out", NULL, "ROUT"},
 
@@ -91,17 +99,19 @@ static const struct snd_soc_dapm_route trimslice_audio_map[] = {
 	{"RLINEIN", NULL, "Line In"},
 };
 
-static struct snd_soc_dai_link trimslice_tlv320aic23_dai = {
+static struct snd_soc_dai_link trimslice_tlv320aic23_dai =
+{
 	.name = "TLV320AIC23",
 	.stream_name = "AIC23",
 	.codec_dai_name = "tlv320aic23-hifi",
 	.ops = &trimslice_asoc_ops,
 	.dai_fmt = SND_SOC_DAIFMT_I2S |
-		   SND_SOC_DAIFMT_NB_NF |
-		   SND_SOC_DAIFMT_CBS_CFS,
+	SND_SOC_DAIFMT_NB_NF |
+	SND_SOC_DAIFMT_CBS_CFS,
 };
 
-static struct snd_soc_card snd_soc_trimslice = {
+static struct snd_soc_card snd_soc_trimslice =
+{
 	.name = "tegra-trimslice",
 	.owner = THIS_MODULE,
 	.dai_link = &trimslice_tlv320aic23_dai,
@@ -122,8 +132,10 @@ static int tegra_snd_trimslice_probe(struct platform_device *pdev)
 	int ret;
 
 	trimslice = devm_kzalloc(&pdev->dev, sizeof(struct tegra_trimslice),
-				 GFP_KERNEL);
-	if (!trimslice) {
+							 GFP_KERNEL);
+
+	if (!trimslice)
+	{
 		dev_err(&pdev->dev, "Can't allocate tegra_trimslice\n");
 		return -ENOMEM;
 	}
@@ -134,33 +146,42 @@ static int tegra_snd_trimslice_probe(struct platform_device *pdev)
 
 	trimslice_tlv320aic23_dai.codec_of_node = of_parse_phandle(np,
 			"nvidia,audio-codec", 0);
-	if (!trimslice_tlv320aic23_dai.codec_of_node) {
+
+	if (!trimslice_tlv320aic23_dai.codec_of_node)
+	{
 		dev_err(&pdev->dev,
-			"Property 'nvidia,audio-codec' missing or invalid\n");
+				"Property 'nvidia,audio-codec' missing or invalid\n");
 		ret = -EINVAL;
 		goto err;
 	}
 
 	trimslice_tlv320aic23_dai.cpu_of_node = of_parse_phandle(np,
-			"nvidia,i2s-controller", 0);
-	if (!trimslice_tlv320aic23_dai.cpu_of_node) {
+											"nvidia,i2s-controller", 0);
+
+	if (!trimslice_tlv320aic23_dai.cpu_of_node)
+	{
 		dev_err(&pdev->dev,
-			"Property 'nvidia,i2s-controller' missing or invalid\n");
+				"Property 'nvidia,i2s-controller' missing or invalid\n");
 		ret = -EINVAL;
 		goto err;
 	}
 
 	trimslice_tlv320aic23_dai.platform_of_node =
-			trimslice_tlv320aic23_dai.cpu_of_node;
+		trimslice_tlv320aic23_dai.cpu_of_node;
 
 	ret = tegra_asoc_utils_init(&trimslice->util_data, &pdev->dev);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = snd_soc_register_card(card);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n",
-			ret);
+				ret);
 		goto err_fini_utils;
 	}
 
@@ -184,13 +205,15 @@ static int tegra_snd_trimslice_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id trimslice_of_match[] = {
+static const struct of_device_id trimslice_of_match[] =
+{
 	{ .compatible = "nvidia,tegra-audio-trimslice", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, trimslice_of_match);
 
-static struct platform_driver tegra_snd_trimslice_driver = {
+static struct platform_driver tegra_snd_trimslice_driver =
+{
 	.driver = {
 		.name = DRV_NAME,
 		.of_match_table = trimslice_of_match,

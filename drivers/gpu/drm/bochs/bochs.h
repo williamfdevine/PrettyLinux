@@ -44,17 +44,20 @@
 
 /* ---------------------------------------------------------------------- */
 
-enum bochs_types {
+enum bochs_types
+{
 	BOCHS_QEMU_STDVGA,
 	BOCHS_UNKNOWN,
 };
 
-struct bochs_framebuffer {
+struct bochs_framebuffer
+{
 	struct drm_framebuffer base;
 	struct drm_gem_object *obj;
 };
 
-struct bochs_device {
+struct bochs_device
+{
 	/* hw */
 	void __iomem   *mmio;
 	int            ioports;
@@ -77,7 +80,8 @@ struct bochs_device {
 	bool mode_config_initialized;
 
 	/* ttm */
-	struct {
+	struct
+	{
 		struct drm_global_reference mem_global_ref;
 		struct ttm_bo_global_ref bo_global_ref;
 		struct ttm_bo_device bdev;
@@ -85,7 +89,8 @@ struct bochs_device {
 	} ttm;
 
 	/* fbdev */
-	struct {
+	struct
+	{
 		struct bochs_framebuffer gfb;
 		struct drm_fb_helper helper;
 		int size;
@@ -95,7 +100,8 @@ struct bochs_device {
 
 #define to_bochs_framebuffer(x) container_of(x, struct bochs_framebuffer, base)
 
-struct bochs_bo {
+struct bochs_bo
+{
 	struct ttm_buffer_object bo;
 	struct ttm_placement placement;
 	struct ttm_bo_kmap_obj kmap;
@@ -128,9 +134,9 @@ int bochs_hw_init(struct drm_device *dev, uint32_t flags);
 void bochs_hw_fini(struct drm_device *dev);
 
 void bochs_hw_setmode(struct bochs_device *bochs,
-		      struct drm_display_mode *mode);
+					  struct drm_display_mode *mode);
 void bochs_hw_setbase(struct bochs_device *bochs,
-		      int x, int y, u64 addr);
+					  int x, int y, u64 addr);
 
 /* bochs_mm.c */
 int bochs_mm_init(struct bochs_device *bochs);
@@ -138,18 +144,18 @@ void bochs_mm_fini(struct bochs_device *bochs);
 int bochs_mmap(struct file *filp, struct vm_area_struct *vma);
 
 int bochs_gem_create(struct drm_device *dev, u32 size, bool iskernel,
-		     struct drm_gem_object **obj);
+					 struct drm_gem_object **obj);
 int bochs_gem_init_object(struct drm_gem_object *obj);
 void bochs_gem_free_object(struct drm_gem_object *obj);
 int bochs_dumb_create(struct drm_file *file, struct drm_device *dev,
-		      struct drm_mode_create_dumb *args);
+					  struct drm_mode_create_dumb *args);
 int bochs_dumb_mmap_offset(struct drm_file *file, struct drm_device *dev,
-			   uint32_t handle, uint64_t *offset);
+						   uint32_t handle, uint64_t *offset);
 
 int bochs_framebuffer_init(struct drm_device *dev,
-			   struct bochs_framebuffer *gfb,
-			   const struct drm_mode_fb_cmd2 *mode_cmd,
-			   struct drm_gem_object *obj);
+						   struct bochs_framebuffer *gfb,
+						   const struct drm_mode_fb_cmd2 *mode_cmd,
+						   struct drm_gem_object *obj);
 int bochs_bo_pin(struct bochs_bo *bo, u32 pl_flag, u64 *gpu_addr);
 int bochs_bo_unpin(struct bochs_bo *bo);
 

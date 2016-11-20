@@ -72,16 +72,19 @@ acpi_status acpi_ut_allocate_owner_id(acpi_owner_id *owner_id)
 
 	/* Guard against multiple allocations of ID to the same location */
 
-	if (*owner_id) {
+	if (*owner_id)
+	{
 		ACPI_ERROR((AE_INFO,
-			    "Owner ID [0x%2.2X] already exists", *owner_id));
+					"Owner ID [0x%2.2X] already exists", *owner_id));
 		return_ACPI_STATUS(AE_ALREADY_EXISTS);
 	}
 
 	/* Mutex for the global ID mask */
 
 	status = acpi_ut_acquire_mutex(ACPI_MTX_CACHES);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
@@ -91,20 +94,25 @@ acpi_status acpi_ut_allocate_owner_id(acpi_owner_id *owner_id)
 	 * may have to be scanned twice.
 	 */
 	for (i = 0, j = acpi_gbl_last_owner_id_index;
-	     i < (ACPI_NUM_OWNERID_MASKS + 1); i++, j++) {
-		if (j >= ACPI_NUM_OWNERID_MASKS) {
+		 i < (ACPI_NUM_OWNERID_MASKS + 1); i++, j++)
+	{
+		if (j >= ACPI_NUM_OWNERID_MASKS)
+		{
 			j = 0;	/* Wraparound to start of mask array */
 		}
 
-		for (k = acpi_gbl_next_owner_id_offset; k < 32; k++) {
-			if (acpi_gbl_owner_id_mask[j] == ACPI_UINT32_MAX) {
+		for (k = acpi_gbl_next_owner_id_offset; k < 32; k++)
+		{
+			if (acpi_gbl_owner_id_mask[j] == ACPI_UINT32_MAX)
+			{
 
 				/* There are no free IDs in this mask */
 
 				break;
 			}
 
-			if (!(acpi_gbl_owner_id_mask[j] & (1 << k))) {
+			if (!(acpi_gbl_owner_id_mask[j] & (1 << k)))
+			{
 				/*
 				 * Found a free ID. The actual ID is the bit index plus one,
 				 * making zero an invalid Owner ID. Save this as the last ID
@@ -122,11 +130,11 @@ acpi_status acpi_ut_allocate_owner_id(acpi_owner_id *owner_id)
 				 * permanently allocated (prevents +1 overflow)
 				 */
 				*owner_id =
-				    (acpi_owner_id)((k + 1) + ACPI_MUL_32(j));
+					(acpi_owner_id)((k + 1) + ACPI_MUL_32(j));
 
 				ACPI_DEBUG_PRINT((ACPI_DB_VALUES,
-						  "Allocated OwnerId: %2.2X\n",
-						  (unsigned int)*owner_id));
+								  "Allocated OwnerId: %2.2X\n",
+								  (unsigned int)*owner_id));
 				goto exit;
 			}
 		}
@@ -146,7 +154,7 @@ acpi_status acpi_ut_allocate_owner_id(acpi_owner_id *owner_id)
 	 */
 	status = AE_OWNER_ID_LIMIT;
 	ACPI_ERROR((AE_INFO,
-		    "Could not allocate new OwnerId (255 max), AE_OWNER_ID_LIMIT"));
+				"Could not allocate new OwnerId (255 max), AE_OWNER_ID_LIMIT"));
 
 exit:
 	(void)acpi_ut_release_mutex(ACPI_MTX_CACHES);
@@ -182,7 +190,8 @@ void acpi_ut_release_owner_id(acpi_owner_id *owner_id_ptr)
 
 	/* Zero is not a valid owner_ID */
 
-	if (owner_id == 0) {
+	if (owner_id == 0)
+	{
 		ACPI_ERROR((AE_INFO, "Invalid OwnerId: 0x%2.2X", owner_id));
 		return_VOID;
 	}
@@ -190,7 +199,9 @@ void acpi_ut_release_owner_id(acpi_owner_id *owner_id_ptr)
 	/* Mutex for the global ID mask */
 
 	status = acpi_ut_acquire_mutex(ACPI_MTX_CACHES);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return_VOID;
 	}
 
@@ -205,12 +216,15 @@ void acpi_ut_release_owner_id(acpi_owner_id *owner_id_ptr)
 
 	/* Free the owner ID only if it is valid */
 
-	if (acpi_gbl_owner_id_mask[index] & bit) {
+	if (acpi_gbl_owner_id_mask[index] & bit)
+	{
 		acpi_gbl_owner_id_mask[index] ^= bit;
-	} else {
+	}
+	else
+	{
 		ACPI_ERROR((AE_INFO,
-			    "Release of non-allocated OwnerId: 0x%2.2X",
-			    owner_id + 1));
+					"Release of non-allocated OwnerId: 0x%2.2X",
+					owner_id + 1));
 	}
 
 	(void)acpi_ut_release_mutex(ACPI_MTX_CACHES);

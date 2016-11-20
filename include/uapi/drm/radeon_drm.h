@@ -185,27 +185,35 @@ extern "C" {
 					 *  the graphics hardware */
 #define RADEON_CMD_VECLINEAR	9       /* another r200 stopgap */
 
-typedef union {
+typedef union
+{
 	int i;
-	struct {
+	struct
+	{
 		unsigned char cmd_type, pad0, pad1, pad2;
 	} header;
-	struct {
+	struct
+	{
 		unsigned char cmd_type, packet_id, pad0, pad1;
 	} packet;
-	struct {
+	struct
+	{
 		unsigned char cmd_type, offset, stride, count;
 	} scalars;
-	struct {
+	struct
+	{
 		unsigned char cmd_type, offset, stride, count;
 	} vectors;
-	struct {
+	struct
+	{
 		unsigned char cmd_type, addr_lo, addr_hi, count;
 	} veclinear;
-	struct {
+	struct
+	{
 		unsigned char cmd_type, buf_idx, pad0, pad1;
 	} dma;
-	struct {
+	struct
+	{
 		unsigned char cmd_type, flags, pad0, pad1;
 	} wait;
 } drm_radeon_cmd_header_t;
@@ -233,7 +241,7 @@ typedef union {
 #	define R300_WAIT_3D		0x2
 /* these two defines are DOING IT WRONG - however
  * we have userspace which relies on using these.
- * The wait interface is backwards compat new 
+ * The wait interface is backwards compat new
  * code should use the NEW_WAIT defines below
  * THESE ARE NOT BIT FIELDS
  */
@@ -248,34 +256,44 @@ typedef union {
 #define R300_CMD_SCRATCH		8
 #define R300_CMD_R500FP                 9
 
-typedef union {
+typedef union
+{
 	unsigned int u;
-	struct {
+	struct
+	{
 		unsigned char cmd_type, pad0, pad1, pad2;
 	} header;
-	struct {
+	struct
+	{
 		unsigned char cmd_type, count, reglo, reghi;
 	} packet0;
-	struct {
+	struct
+	{
 		unsigned char cmd_type, count, adrlo, adrhi;
 	} vpu;
-	struct {
+	struct
+	{
 		unsigned char cmd_type, packet, pad0, pad1;
 	} packet3;
-	struct {
+	struct
+	{
 		unsigned char cmd_type, packet;
 		unsigned short count;	/* amount of packet2 to emit */
 	} delay;
-	struct {
+	struct
+	{
 		unsigned char cmd_type, buf_idx, pad0, pad1;
 	} dma;
-	struct {
+	struct
+	{
 		unsigned char cmd_type, flags, pad0, pad1;
 	} wait;
-	struct {
+	struct
+	{
 		unsigned char cmd_type, reg, n_bufs, flags;
 	} scratch;
-	struct {
+	struct
+	{
 		unsigned char cmd_type, count, adrlo, adrhi_flags;
 	} r500fp;
 } drm_r300_cmd_header_t;
@@ -337,14 +355,16 @@ typedef union {
 
 #endif				/* __RADEON_SAREA_DEFINES__ */
 
-typedef struct {
+typedef struct
+{
 	unsigned int red;
 	unsigned int green;
 	unsigned int blue;
 	unsigned int alpha;
 } radeon_color_regs_t;
 
-typedef struct {
+typedef struct
+{
 	/* Context state */
 	unsigned int pp_misc;	/* 0x1c14 */
 	unsigned int pp_fog_color;
@@ -397,7 +417,8 @@ typedef struct {
 	unsigned int re_misc;
 } drm_radeon_context_regs_t;
 
-typedef struct {
+typedef struct
+{
 	/* Zbias state */
 	unsigned int se_zbias_factor;	/* 0x1dac */
 	unsigned int se_zbias_constant;
@@ -405,7 +426,8 @@ typedef struct {
 
 /* Setup registers for each texture unit
  */
-typedef struct {
+typedef struct
+{
 	unsigned int pp_txfilter;
 	unsigned int pp_txformat;
 	unsigned int pp_txoffset;
@@ -415,23 +437,26 @@ typedef struct {
 	unsigned int pp_border_color;
 } drm_radeon_texture_regs_t;
 
-typedef struct {
+typedef struct
+{
 	unsigned int start;
 	unsigned int finish;
-	unsigned int prim:8;
-	unsigned int stateidx:8;
-	unsigned int numverts:16;	/* overloaded as offset/64 for elt prims */
+	unsigned int prim: 8;
+	unsigned int stateidx: 8;
+	unsigned int numverts: 16;	/* overloaded as offset/64 for elt prims */
 	unsigned int vc_format;	/* vertex format */
 } drm_radeon_prim_t;
 
-typedef struct {
+typedef struct
+{
 	drm_radeon_context_regs_t context;
 	drm_radeon_texture_regs_t tex[RADEON_MAX_TEXTURE_UNITS];
 	drm_radeon_context2_regs_t context2;
 	unsigned int dirty;
 } drm_radeon_state_t;
 
-typedef struct {
+typedef struct
+{
 	/* The channel for communication of state information to the
 	 * kernel on firing a vertex buffer with either of the
 	 * obsoleted vertex/index ioctls.
@@ -454,7 +479,7 @@ typedef struct {
 	unsigned int last_clear;
 
 	struct drm_tex_region tex_list[RADEON_NR_TEX_HEAPS][RADEON_NR_TEX_REGIONS +
-						       1];
+				1];
 	unsigned int tex_age[RADEON_NR_TEX_HEAPS];
 	int ctx_owner;
 	int pfState;		/* number of 3d windows (0,1,2ormore) */
@@ -561,8 +586,10 @@ typedef struct {
 #define DRM_IOCTL_RADEON_GEM_OP		DRM_IOWR(DRM_COMMAND_BASE + DRM_RADEON_GEM_OP, struct drm_radeon_gem_op)
 #define DRM_IOCTL_RADEON_GEM_USERPTR	DRM_IOWR(DRM_COMMAND_BASE + DRM_RADEON_GEM_USERPTR, struct drm_radeon_gem_userptr)
 
-typedef struct drm_radeon_init {
-	enum {
+typedef struct drm_radeon_init
+{
+	enum
+	{
 		RADEON_INIT_CP = 0x01,
 		RADEON_CLEANUP_CP = 0x02,
 		RADEON_INIT_R200_CP = 0x03,
@@ -590,13 +617,16 @@ typedef struct drm_radeon_init {
 	unsigned long gart_textures_offset;
 } drm_radeon_init_t;
 
-typedef struct drm_radeon_cp_stop {
+typedef struct drm_radeon_cp_stop
+{
 	int flush;
 	int idle;
 } drm_radeon_cp_stop_t;
 
-typedef struct drm_radeon_fullscreen {
-	enum {
+typedef struct drm_radeon_fullscreen
+{
+	enum
+	{
 		RADEON_INIT_FULLSCREEN = 0x01,
 		RADEON_CLEANUP_FULLSCREEN = 0x02
 	} func;
@@ -608,12 +638,14 @@ typedef struct drm_radeon_fullscreen {
 #define CLEAR_Y2	3
 #define CLEAR_DEPTH	4
 
-typedef union drm_radeon_clear_rect {
+typedef union drm_radeon_clear_rect
+{
 	float f[5];
 	unsigned int ui[5];
 } drm_radeon_clear_rect_t;
 
-typedef struct drm_radeon_clear {
+typedef struct drm_radeon_clear
+{
 	unsigned int flags;
 	unsigned int clear_color;
 	unsigned int clear_depth;
@@ -622,14 +654,16 @@ typedef struct drm_radeon_clear {
 	drm_radeon_clear_rect_t __user *depth_boxes;
 } drm_radeon_clear_t;
 
-typedef struct drm_radeon_vertex {
+typedef struct drm_radeon_vertex
+{
 	int prim;
 	int idx;		/* Index of vertex buffer */
 	int count;		/* Number of vertices in buffer */
 	int discard;		/* Client finished with buffer? */
 } drm_radeon_vertex_t;
 
-typedef struct drm_radeon_indices {
+typedef struct drm_radeon_indices
+{
 	int prim;
 	int idx;
 	int start;
@@ -641,7 +675,8 @@ typedef struct drm_radeon_indices {
  *      - allows multiple primitives and state changes in a single ioctl
  *      - supports driver change to emit native primitives
  */
-typedef struct drm_radeon_vertex2 {
+typedef struct drm_radeon_vertex2
+{
 	int idx;		/* Index of vertex buffer */
 	int discard;		/* Client finished with buffer? */
 	int nr_states;
@@ -660,20 +695,23 @@ typedef struct drm_radeon_vertex2 {
  *      - supports tcl driver
  *      - may be extended in future versions with new cmd types, packets
  */
-typedef struct drm_radeon_cmd_buffer {
+typedef struct drm_radeon_cmd_buffer
+{
 	int bufsz;
 	char __user *buf;
 	int nbox;
 	struct drm_clip_rect __user *boxes;
 } drm_radeon_cmd_buffer_t;
 
-typedef struct drm_radeon_tex_image {
+typedef struct drm_radeon_tex_image
+{
 	unsigned int x, y;	/* Blit coordinates */
 	unsigned int width, height;
 	const void __user *data;
 } drm_radeon_tex_image_t;
 
-typedef struct drm_radeon_texture {
+typedef struct drm_radeon_texture
+{
 	unsigned int offset;
 	int pitch;
 	int format;
@@ -682,11 +720,13 @@ typedef struct drm_radeon_texture {
 	drm_radeon_tex_image_t __user *image;
 } drm_radeon_texture_t;
 
-typedef struct drm_radeon_stipple {
+typedef struct drm_radeon_stipple
+{
 	unsigned int __user *mask;
 } drm_radeon_stipple_t;
 
-typedef struct drm_radeon_indirect {
+typedef struct drm_radeon_indirect
+{
 	int idx;
 	int start;
 	int end;
@@ -721,7 +761,8 @@ typedef struct drm_radeon_indirect {
 #define RADEON_PARAM_DEVICE_ID             16
 #define RADEON_PARAM_NUM_Z_PIPES           17   /* num Z pipes */
 
-typedef struct drm_radeon_getparam {
+typedef struct drm_radeon_getparam
+{
 	int param;
 	void __user *value;
 } drm_radeon_getparam_t;
@@ -731,19 +772,22 @@ typedef struct drm_radeon_getparam {
 #define RADEON_MEM_REGION_GART 1
 #define RADEON_MEM_REGION_FB   2
 
-typedef struct drm_radeon_mem_alloc {
+typedef struct drm_radeon_mem_alloc
+{
 	int region;
 	int alignment;
 	int size;
 	int __user *region_offset;	/* offset from start of fb or GART */
 } drm_radeon_mem_alloc_t;
 
-typedef struct drm_radeon_mem_free {
+typedef struct drm_radeon_mem_free
+{
 	int region;
 	int region_offset;
 } drm_radeon_mem_free_t;
 
-typedef struct drm_radeon_mem_init_heap {
+typedef struct drm_radeon_mem_init_heap
+{
 	int region;
 	int size;
 	int start;
@@ -751,11 +795,13 @@ typedef struct drm_radeon_mem_init_heap {
 
 /* 1.6: Userspace can request & wait on irq's:
  */
-typedef struct drm_radeon_irq_emit {
+typedef struct drm_radeon_irq_emit
+{
 	int __user *irq_seq;
 } drm_radeon_irq_emit_t;
 
-typedef struct drm_radeon_irq_wait {
+typedef struct drm_radeon_irq_wait
+{
 	int irq_seq;
 } drm_radeon_irq_wait_t;
 
@@ -763,7 +809,8 @@ typedef struct drm_radeon_irq_wait {
  * the card's address space, via a new generic ioctl to set parameters
  */
 
-typedef struct drm_radeon_setparam {
+typedef struct drm_radeon_setparam
+{
 	unsigned int param;
 	__s64 value;
 } drm_radeon_setparam_t;
@@ -776,13 +823,15 @@ typedef struct drm_radeon_setparam {
 #define RADEON_SETPARAM_VBLANK_CRTC 6           /* VBLANK CRTC */
 /* 1.14: Clients can allocate/free a surface
  */
-typedef struct drm_radeon_surface_alloc {
+typedef struct drm_radeon_surface_alloc
+{
 	unsigned int address;
 	unsigned int size;
 	unsigned int flags;
 } drm_radeon_surface_alloc_t;
 
-typedef struct drm_radeon_surface_free {
+typedef struct drm_radeon_surface_free
+{
 	unsigned int address;
 } drm_radeon_surface_free_t;
 
@@ -796,7 +845,8 @@ typedef struct drm_radeon_surface_free {
 #define RADEON_GEM_DOMAIN_GTT		0x2
 #define RADEON_GEM_DOMAIN_VRAM		0x4
 
-struct drm_radeon_gem_info {
+struct drm_radeon_gem_info
+{
 	__u64	gart_size;
 	__u64	vram_size;
 	__u64	vram_visible;
@@ -810,7 +860,8 @@ struct drm_radeon_gem_info {
 /* CPU access is not expected to work for this BO */
 #define RADEON_GEM_NO_CPU_ACCESS	(1 << 4)
 
-struct drm_radeon_gem_create {
+struct drm_radeon_gem_create
+{
 	__u64	size;
 	__u64	alignment;
 	__u32	handle;
@@ -828,7 +879,8 @@ struct drm_radeon_gem_create {
 #define RADEON_GEM_USERPTR_VALIDATE	(1 << 2)
 #define RADEON_GEM_USERPTR_REGISTER	(1 << 3)
 
-struct drm_radeon_gem_userptr {
+struct drm_radeon_gem_userptr
+{
 	__u64		addr;
 	__u64		size;
 	__u32		flags;
@@ -853,19 +905,22 @@ struct drm_radeon_gem_userptr {
 #define RADEON_TILING_EG_STENCIL_TILE_SPLIT_SHIFT	28
 #define RADEON_TILING_EG_STENCIL_TILE_SPLIT_MASK	0xf
 
-struct drm_radeon_gem_set_tiling {
+struct drm_radeon_gem_set_tiling
+{
 	__u32	handle;
 	__u32	tiling_flags;
 	__u32	pitch;
 };
 
-struct drm_radeon_gem_get_tiling {
+struct drm_radeon_gem_get_tiling
+{
 	__u32	handle;
 	__u32	tiling_flags;
 	__u32	pitch;
 };
 
-struct drm_radeon_gem_mmap {
+struct drm_radeon_gem_mmap
+{
 	__u32	handle;
 	__u32	pad;
 	__u64	offset;
@@ -873,23 +928,27 @@ struct drm_radeon_gem_mmap {
 	__u64	addr_ptr;
 };
 
-struct drm_radeon_gem_set_domain {
+struct drm_radeon_gem_set_domain
+{
 	__u32	handle;
 	__u32	read_domains;
 	__u32	write_domain;
 };
 
-struct drm_radeon_gem_wait_idle {
+struct drm_radeon_gem_wait_idle
+{
 	__u32	handle;
 	__u32	pad;
 };
 
-struct drm_radeon_gem_busy {
+struct drm_radeon_gem_busy
+{
 	__u32	handle;
 	__u32        domain;
 };
 
-struct drm_radeon_gem_pread {
+struct drm_radeon_gem_pread
+{
 	/** Handle for the object being read. */
 	__u32 handle;
 	__u32 pad;
@@ -902,7 +961,8 @@ struct drm_radeon_gem_pread {
 	__u64 data_ptr;
 };
 
-struct drm_radeon_gem_pwrite {
+struct drm_radeon_gem_pwrite
+{
 	/** Handle for the object being written to. */
 	__u32 handle;
 	__u32 pad;
@@ -916,7 +976,8 @@ struct drm_radeon_gem_pwrite {
 };
 
 /* Sets or returns a value associated with a buffer. */
-struct drm_radeon_gem_op {
+struct drm_radeon_gem_op
+{
 	__u32	handle; /* buffer */
 	__u32	op;     /* RADEON_GEM_OP_* */
 	__u64	value;  /* input or return value */
@@ -938,7 +999,8 @@ struct drm_radeon_gem_op {
 #define RADEON_VM_PAGE_SYSTEM		(1 << 3)
 #define RADEON_VM_PAGE_SNOOPED		(1 << 4)
 
-struct drm_radeon_gem_va {
+struct drm_radeon_gem_va
+{
 	__u32		handle;
 	__u32		operation;
 	__u32		vm_id;
@@ -964,7 +1026,8 @@ struct drm_radeon_gem_va {
 /* The third dword of RADEON_CHUNK_ID_FLAGS is a sint32 that sets the priority */
 /* 0 = normal, + = higher priority, - = lower priority */
 
-struct drm_radeon_cs_chunk {
+struct drm_radeon_cs_chunk
+{
 	__u32		chunk_id;
 	__u32		length_dw;
 	__u64		chunk_data;
@@ -973,14 +1036,16 @@ struct drm_radeon_cs_chunk {
 /* drm_radeon_cs_reloc.flags */
 #define RADEON_RELOC_PRIO_MASK		(0xf << 0)
 
-struct drm_radeon_cs_reloc {
+struct drm_radeon_cs_reloc
+{
 	__u32		handle;
 	__u32		read_domains;
 	__u32		write_domain;
 	__u32		flags;
 };
 
-struct drm_radeon_cs {
+struct drm_radeon_cs
+{
 	__u32		num_chunks;
 	__u32		cs_id;
 	/* this points to __u64 * which point to cs chunks */
@@ -1045,7 +1110,8 @@ struct drm_radeon_cs {
 #define RADEON_INFO_VA_UNMAP_WORKING	0x25
 #define RADEON_INFO_GPU_RESET_COUNTER	0x26
 
-struct drm_radeon_info {
+struct drm_radeon_info
+{
 	__u32		request;
 	__u32		pad;
 	__u64		value;

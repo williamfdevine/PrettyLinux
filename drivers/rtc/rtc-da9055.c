@@ -20,7 +20,8 @@
 #include <linux/mfd/da9055/reg.h>
 #include <linux/mfd/da9055/pdata.h>
 
-struct da9055_rtc {
+struct da9055_rtc
+{
 	struct rtc_device *rtc;
 	struct da9055 *da9055;
 	int alarm_enable;
@@ -29,22 +30,31 @@ struct da9055_rtc {
 static int da9055_rtc_enable_alarm(struct da9055_rtc *rtc, bool enable)
 {
 	int ret;
-	if (enable) {
+
+	if (enable)
+	{
 		ret = da9055_reg_update(rtc->da9055, DA9055_REG_ALARM_Y,
-					DA9055_RTC_ALM_EN,
-					DA9055_RTC_ALM_EN);
+								DA9055_RTC_ALM_EN,
+								DA9055_RTC_ALM_EN);
+
 		if (ret != 0)
 			dev_err(rtc->da9055->dev, "Failed to enable ALM: %d\n",
-				ret);
+					ret);
+
 		rtc->alarm_enable = 1;
-	} else {
+	}
+	else
+	{
 		ret = da9055_reg_update(rtc->da9055, DA9055_REG_ALARM_Y,
-					DA9055_RTC_ALM_EN, 0);
+								DA9055_RTC_ALM_EN, 0);
+
 		if (ret != 0)
 			dev_err(rtc->da9055->dev,
-				"Failed to disable ALM: %d\n", ret);
+					"Failed to disable ALM: %d\n", ret);
+
 		rtc->alarm_enable = 0;
 	}
+
 	return ret;
 }
 
@@ -64,7 +74,9 @@ static int da9055_read_alarm(struct da9055 *da9055, struct rtc_time *rtc_tm)
 	uint8_t v[5];
 
 	ret = da9055_group_read(da9055, DA9055_REG_ALARM_MI, 5, v);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		dev_err(da9055->dev, "Failed to group read ALM: %d\n", ret);
 		return ret;
 	}
@@ -88,8 +100,10 @@ static int da9055_set_alarm(struct da9055 *da9055, struct rtc_time *rtc_tm)
 	rtc_tm->tm_mon += 1;
 
 	ret = da9055_reg_update(da9055, DA9055_REG_ALARM_MI,
-				DA9055_RTC_ALM_MIN, rtc_tm->tm_min);
-	if (ret != 0) {
+							DA9055_RTC_ALM_MIN, rtc_tm->tm_min);
+
+	if (ret != 0)
+	{
 		dev_err(da9055->dev, "Failed to write ALRM MIN: %d\n", ret);
 		return ret;
 	}
@@ -98,18 +112,27 @@ static int da9055_set_alarm(struct da9055 *da9055, struct rtc_time *rtc_tm)
 	v[1] = rtc_tm->tm_mday;
 
 	ret = da9055_group_write(da9055, DA9055_REG_ALARM_H, 2, v);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = da9055_reg_update(da9055, DA9055_REG_ALARM_MO,
-				DA9055_RTC_ALM_MONTH, rtc_tm->tm_mon);
+							DA9055_RTC_ALM_MONTH, rtc_tm->tm_mon);
+
 	if (ret < 0)
+	{
 		dev_err(da9055->dev, "Failed to write ALM Month:%d\n", ret);
+	}
 
 	ret = da9055_reg_update(da9055, DA9055_REG_ALARM_Y,
-				DA9055_RTC_ALM_YEAR, rtc_tm->tm_year);
+							DA9055_RTC_ALM_YEAR, rtc_tm->tm_year);
+
 	if (ret < 0)
+	{
 		dev_err(da9055->dev, "Failed to write ALM Year:%d\n", ret);
+	}
 
 	return ret;
 }
@@ -119,10 +142,13 @@ static int da9055_rtc_get_alarm_status(struct da9055 *da9055)
 	int ret;
 
 	ret = da9055_reg_read(da9055, DA9055_REG_ALARM_Y);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(da9055->dev, "Failed to read ALM: %d\n", ret);
 		return ret;
 	}
+
 	ret &= DA9055_RTC_ALM_EN;
 	return (ret > 0) ? 1 : 0;
 }
@@ -134,20 +160,27 @@ static int da9055_rtc_read_time(struct device *dev, struct rtc_time *rtc_tm)
 	int ret;
 
 	ret = da9055_reg_read(rtc->da9055, DA9055_REG_COUNT_S);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/*
 	 * Registers are only valid when RTC_READ
 	 * status bit is asserted
 	 */
 	if (!(ret & DA9055_RTC_READ))
+	{
 		return -EBUSY;
+	}
 
 	ret = da9055_group_read(rtc->da9055, DA9055_REG_COUNT_S, 6, v);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(rtc->da9055->dev, "Failed to read RTC time : %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
@@ -187,7 +220,9 @@ static int da9055_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	ret = da9055_read_alarm(rtc->da9055, tm);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	alrm->enabled = da9055_rtc_get_alarm_status(rtc->da9055);
 
@@ -201,12 +236,18 @@ static int da9055_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	struct da9055_rtc *rtc = dev_get_drvdata(dev);
 
 	ret = da9055_rtc_enable_alarm(rtc, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = da9055_set_alarm(rtc->da9055, tm);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = da9055_rtc_enable_alarm(rtc, 1);
 
@@ -220,7 +261,8 @@ static int da9055_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
 	return da9055_rtc_enable_alarm(rtc, enabled);
 }
 
-static const struct rtc_class_ops da9055_rtc_ops = {
+static const struct rtc_class_ops da9055_rtc_ops =
+{
 	.read_time	= da9055_rtc_read_time,
 	.set_time	= da9055_rtc_set_time,
 	.read_alarm	= da9055_rtc_read_alarm,
@@ -229,41 +271,58 @@ static const struct rtc_class_ops da9055_rtc_ops = {
 };
 
 static int da9055_rtc_device_init(struct da9055 *da9055,
-					struct da9055_pdata *pdata)
+								  struct da9055_pdata *pdata)
 {
 	int ret;
 
 	/* Enable RTC and the internal Crystal */
 	ret = da9055_reg_update(da9055, DA9055_REG_CONTROL_B,
-				DA9055_RTC_EN, DA9055_RTC_EN);
+							DA9055_RTC_EN, DA9055_RTC_EN);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	ret = da9055_reg_update(da9055, DA9055_REG_EN_32K,
-				DA9055_CRYSTAL_EN, DA9055_CRYSTAL_EN);
+							DA9055_CRYSTAL_EN, DA9055_CRYSTAL_EN);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Enable RTC in Power Down mode */
 	ret = da9055_reg_update(da9055, DA9055_REG_CONTROL_B,
-				DA9055_RTC_MODE_PD, DA9055_RTC_MODE_PD);
+							DA9055_RTC_MODE_PD, DA9055_RTC_MODE_PD);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Enable RTC in Reset mode */
-	if (pdata && pdata->reset_enable) {
+	if (pdata && pdata->reset_enable)
+	{
 		ret = da9055_reg_update(da9055, DA9055_REG_CONTROL_B,
-					DA9055_RTC_MODE_SD,
-					DA9055_RTC_MODE_SD <<
-					DA9055_RTC_MODE_SD_SHIFT);
+								DA9055_RTC_MODE_SD,
+								DA9055_RTC_MODE_SD <<
+								DA9055_RTC_MODE_SD_SHIFT);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	/* Disable the RTC TICK ALM */
 	ret = da9055_reg_update(da9055, DA9055_REG_ALARM_MO,
-				DA9055_RTC_TICK_WAKE_MASK, 0);
+							DA9055_RTC_TICK_WAKE_MASK, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -275,43 +334,62 @@ static int da9055_rtc_probe(struct platform_device *pdev)
 	int ret, alm_irq;
 
 	rtc = devm_kzalloc(&pdev->dev, sizeof(struct da9055_rtc), GFP_KERNEL);
+
 	if (!rtc)
+	{
 		return -ENOMEM;
+	}
 
 	rtc->da9055 = dev_get_drvdata(pdev->dev.parent);
 	pdata = dev_get_platdata(rtc->da9055->dev);
 	platform_set_drvdata(pdev, rtc);
 
 	ret = da9055_rtc_device_init(rtc->da9055, pdata);
+
 	if (ret < 0)
+	{
 		goto err_rtc;
+	}
 
 	ret = da9055_reg_read(rtc->da9055, DA9055_REG_ALARM_Y);
+
 	if (ret < 0)
+	{
 		goto err_rtc;
+	}
 
 	if (ret & DA9055_RTC_ALM_EN)
+	{
 		rtc->alarm_enable = 1;
+	}
 
 	device_init_wakeup(&pdev->dev, 1);
 
 	rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
-					&da9055_rtc_ops, THIS_MODULE);
-	if (IS_ERR(rtc->rtc)) {
+										&da9055_rtc_ops, THIS_MODULE);
+
+	if (IS_ERR(rtc->rtc))
+	{
 		ret = PTR_ERR(rtc->rtc);
 		goto err_rtc;
 	}
 
 	alm_irq = platform_get_irq_byname(pdev, "ALM");
+
 	if (alm_irq < 0)
+	{
 		return alm_irq;
+	}
 
 	ret = devm_request_threaded_irq(&pdev->dev, alm_irq, NULL,
-					da9055_rtc_alm_irq,
-					IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
-					"ALM", rtc);
+									da9055_rtc_alm_irq,
+									IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
+									"ALM", rtc);
+
 	if (ret != 0)
+	{
 		dev_err(rtc->da9055->dev, "irq registration failed: %d\n", ret);
+	}
 
 err_rtc:
 	return ret;
@@ -326,11 +404,15 @@ static int da9055_rtc_suspend(struct device *dev)
 	struct da9055_rtc *rtc = dev_get_drvdata(&pdev->dev);
 	int ret;
 
-	if (!device_may_wakeup(&pdev->dev)) {
+	if (!device_may_wakeup(&pdev->dev))
+	{
 		/* Disable the ALM IRQ */
 		ret = da9055_rtc_enable_alarm(rtc, 0);
+
 		if (ret < 0)
+		{
 			dev_err(&pdev->dev, "Failed to disable RTC ALM\n");
+		}
 	}
 
 	return 0;
@@ -345,12 +427,15 @@ static int da9055_rtc_resume(struct device *dev)
 	struct da9055_rtc *rtc = dev_get_drvdata(&pdev->dev);
 	int ret;
 
-	if (!device_may_wakeup(&pdev->dev)) {
-		if (rtc->alarm_enable) {
+	if (!device_may_wakeup(&pdev->dev))
+	{
+		if (rtc->alarm_enable)
+		{
 			ret = da9055_rtc_enable_alarm(rtc, 1);
+
 			if (ret < 0)
 				dev_err(&pdev->dev,
-					"Failed to restart RTC ALM\n");
+						"Failed to restart RTC ALM\n");
 		}
 	}
 
@@ -365,8 +450,11 @@ static int da9055_rtc_freeze(struct device *dev)
 	int ret;
 
 	ret = da9055_rtc_enable_alarm(rtc, 0);
+
 	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to freeze RTC ALMs\n");
+	}
 
 	return 0;
 
@@ -377,7 +465,8 @@ static int da9055_rtc_freeze(struct device *dev)
 #define da9055_rtc_freeze NULL
 #endif
 
-static const struct dev_pm_ops da9055_rtc_pm_ops = {
+static const struct dev_pm_ops da9055_rtc_pm_ops =
+{
 	.suspend = da9055_rtc_suspend,
 	.resume = da9055_rtc_resume,
 
@@ -388,7 +477,8 @@ static const struct dev_pm_ops da9055_rtc_pm_ops = {
 	.poweroff = da9055_rtc_suspend,
 };
 
-static struct platform_driver da9055_rtc_driver = {
+static struct platform_driver da9055_rtc_driver =
+{
 	.probe  = da9055_rtc_probe,
 	.driver = {
 		.name   = "da9055-rtc",

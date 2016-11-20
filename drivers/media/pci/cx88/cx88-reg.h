@@ -29,10 +29,10 @@
 /* PCI IDs and config space                                               */
 
 #ifndef PCI_VENDOR_ID_CONEXANT
-# define PCI_VENDOR_ID_CONEXANT		0x14F1
+	#define PCI_VENDOR_ID_CONEXANT		0x14F1
 #endif
 #ifndef PCI_DEVICE_ID_CX2300_VID
-# define PCI_DEVICE_ID_CX2300_VID	0x8800
+	#define PCI_DEVICE_ID_CX2300_VID	0x8800
 #endif
 
 #define CX88X_DEVCTRL 0x40

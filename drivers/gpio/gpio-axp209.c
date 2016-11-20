@@ -27,20 +27,24 @@
 #define AXP20X_GPIO_FUNCTION_OUT_HIGH	1
 #define AXP20X_GPIO_FUNCTION_INPUT	2
 
-struct axp20x_gpio {
+struct axp20x_gpio
+{
 	struct gpio_chip	chip;
 	struct regmap		*regmap;
 };
 
 static int axp20x_gpio_get_reg(unsigned offset)
 {
-	switch (offset) {
-	case 0:
-		return AXP20X_GPIO0_CTRL;
-	case 1:
-		return AXP20X_GPIO1_CTRL;
-	case 2:
-		return AXP20X_GPIO2_CTRL;
+	switch (offset)
+	{
+		case 0:
+			return AXP20X_GPIO0_CTRL;
+
+		case 1:
+			return AXP20X_GPIO1_CTRL;
+
+		case 2:
+			return AXP20X_GPIO2_CTRL;
 	}
 
 	return -EINVAL;
@@ -52,12 +56,15 @@ static int axp20x_gpio_input(struct gpio_chip *chip, unsigned offset)
 	int reg;
 
 	reg = axp20x_gpio_get_reg(offset);
+
 	if (reg < 0)
+	{
 		return reg;
+	}
 
 	return regmap_update_bits(gpio->regmap, reg,
-				  AXP20X_GPIO_FUNCTIONS,
-				  AXP20X_GPIO_FUNCTION_INPUT);
+							  AXP20X_GPIO_FUNCTIONS,
+							  AXP20X_GPIO_FUNCTION_INPUT);
 }
 
 static int axp20x_gpio_get(struct gpio_chip *chip, unsigned offset)
@@ -67,12 +74,18 @@ static int axp20x_gpio_get(struct gpio_chip *chip, unsigned offset)
 	int reg, ret;
 
 	reg = axp20x_gpio_get_reg(offset);
+
 	if (reg < 0)
+	{
 		return reg;
+	}
 
 	ret = regmap_read(gpio->regmap, reg, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return !!(val & BIT(offset + 4));
 }
@@ -84,12 +97,18 @@ static int axp20x_gpio_get_direction(struct gpio_chip *chip, unsigned offset)
 	int reg, ret;
 
 	reg = axp20x_gpio_get_reg(offset);
+
 	if (reg < 0)
+	{
 		return reg;
+	}
 
 	ret = regmap_read(gpio->regmap, reg, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * This shouldn't really happen if the pin is in use already,
@@ -97,7 +116,9 @@ static int axp20x_gpio_get_direction(struct gpio_chip *chip, unsigned offset)
 	 * going to change the value soon anyway. Default to output.
 	 */
 	if ((val & AXP20X_GPIO_FUNCTIONS) > 2)
+	{
 		return 0;
+	}
 
 	/*
 	 * The GPIO directions are the three lowest values.
@@ -107,23 +128,26 @@ static int axp20x_gpio_get_direction(struct gpio_chip *chip, unsigned offset)
 }
 
 static int axp20x_gpio_output(struct gpio_chip *chip, unsigned offset,
-			      int value)
+							  int value)
 {
 	struct axp20x_gpio *gpio = gpiochip_get_data(chip);
 	int reg;
 
 	reg = axp20x_gpio_get_reg(offset);
+
 	if (reg < 0)
+	{
 		return reg;
+	}
 
 	return regmap_update_bits(gpio->regmap, reg,
-				  AXP20X_GPIO_FUNCTIONS,
-				  value ? AXP20X_GPIO_FUNCTION_OUT_HIGH
-				  : AXP20X_GPIO_FUNCTION_OUT_LOW);
+							  AXP20X_GPIO_FUNCTIONS,
+							  value ? AXP20X_GPIO_FUNCTION_OUT_HIGH
+							  : AXP20X_GPIO_FUNCTION_OUT_LOW);
 }
 
 static void axp20x_gpio_set(struct gpio_chip *chip, unsigned offset,
-			    int value)
+							int value)
 {
 	axp20x_gpio_output(chip, offset, value);
 }
@@ -135,16 +159,22 @@ static int axp20x_gpio_probe(struct platform_device *pdev)
 	int ret;
 
 	if (!of_device_is_available(pdev->dev.of_node))
+	{
 		return -ENODEV;
+	}
 
-	if (!axp20x) {
+	if (!axp20x)
+	{
 		dev_err(&pdev->dev, "Parent drvdata not set\n");
 		return -EINVAL;
 	}
 
 	gpio = devm_kzalloc(&pdev->dev, sizeof(*gpio), GFP_KERNEL);
+
 	if (!gpio)
+	{
 		return -ENOMEM;
+	}
 
 	gpio->chip.base			= -1;
 	gpio->chip.can_sleep		= true;
@@ -161,7 +191,9 @@ static int axp20x_gpio_probe(struct platform_device *pdev)
 	gpio->regmap = axp20x->regmap;
 
 	ret = devm_gpiochip_add_data(&pdev->dev, &gpio->chip, gpio);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to register GPIO chip\n");
 		return ret;
 	}
@@ -171,13 +203,15 @@ static int axp20x_gpio_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id axp20x_gpio_match[] = {
+static const struct of_device_id axp20x_gpio_match[] =
+{
 	{ .compatible = "x-powers,axp209-gpio" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, axp20x_gpio_match);
 
-static struct platform_driver axp20x_gpio_driver = {
+static struct platform_driver axp20x_gpio_driver =
+{
 	.probe		= axp20x_gpio_probe,
 	.driver = {
 		.name		= "axp20x-gpio",

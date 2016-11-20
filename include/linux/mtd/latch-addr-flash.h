@@ -13,7 +13,8 @@
 struct map_info;
 struct mtd_partition;
 
-struct latch_addr_flash_data {
+struct latch_addr_flash_data
+{
 	unsigned int		width;
 	unsigned int		size;
 

@@ -43,11 +43,11 @@ If this function succeeds, then HpiOs_LockedMem_GetVirtAddr() and
 HpiOs_LockedMem_GetPyhsAddr() will always succed on the returned handle.
 */
 u16 hpios_locked_mem_alloc(struct consistent_dma_area *p_locked_mem_handle,
-							   /**< memory handle */
-	u32 size, /**< Size in bytes to allocate */
-	struct pci_dev *p_os_reference
-	/**< OS specific data required for memory allocation */
-	);
+						   /**< memory handle */
+						   u32 size, /**< Size in bytes to allocate */
+						   struct pci_dev *p_os_reference
+						   /**< OS specific data required for memory allocation */
+						  );
 
 /** Free mapping and memory represented by LockedMemHandle
 
@@ -62,14 +62,14 @@ u16 hpios_locked_mem_free(struct consistent_dma_area *locked_mem_handle);
 If handle is invalid *pPhysicalAddr is set to zero and return 1
 */
 u16 hpios_locked_mem_get_phys_addr(struct consistent_dma_area
-	*locked_mem_handle, u32 *p_physical_addr);
+								   *locked_mem_handle, u32 *p_physical_addr);
 
 /** Get the CPU address of of memory represented by LockedMemHandle.
 
 If handle is NULL *ppvVirtualAddr is set to NULL and return 1
 */
 u16 hpios_locked_mem_get_virt_addr(struct consistent_dma_area
-	*locked_mem_handle, void **ppv_virtual_addr);
+								   *locked_mem_handle, void **ppv_virtual_addr);
 
 /** Check that handle is valid
 i.e it represents a valid memory area
@@ -89,17 +89,19 @@ typedef void hpi_handler_func(struct hpi_message *, struct hpi_response *);
    Unlike linux BUILD_BUG_ON, this works outside function scope.
 */
 #define compile_time_assert(cond, msg) \
-    typedef char ASSERT_##msg[(cond) ? 1 : -1]
+	typedef char ASSERT_##msg[(cond) ? 1 : -1]
 
 /******************************************* bus types */
-enum HPI_BUSES {
+enum HPI_BUSES
+{
 	HPI_BUS_ISAPNP = 1,
 	HPI_BUS_PCI = 2,
 	HPI_BUS_USB = 3,
 	HPI_BUS_NET = 4
 };
 
-enum HPI_SUBSYS_OPTIONS {
+enum HPI_SUBSYS_OPTIONS
+{
 	/* 0, 256 are invalid, 1..255 reserved for global options */
 	HPI_SUBSYS_OPT_NET_ENABLE = 257,
 	HPI_SUBSYS_OPT_NET_BROADCAST = 258,
@@ -111,14 +113,15 @@ enum HPI_SUBSYS_OPTIONS {
 
 /** Volume flags
 */
-enum HPI_VOLUME_FLAGS {
+enum HPI_VOLUME_FLAGS
+{
 	/** Set if the volume control is muted */
 	HPI_VOLUME_FLAG_MUTED = (1 << 0),
 	/** Set if the volume control has a mute function */
 	HPI_VOLUME_FLAG_HAS_MUTE = (1 << 1),
 	/** Set if volume control can do autofading */
 	HPI_VOLUME_FLAG_HAS_AUTOFADE = (1 << 2)
-		/* Note Flags >= (1<<8) are for DSP internal use only */
+								   /* Note Flags >= (1<<8) are for DSP internal use only */
 };
 
 /******************************************* CONTROL ATTRIBUTES ****/
@@ -140,7 +143,8 @@ enum HPI_VOLUME_FLAGS {
 
 /** Unique identifiers for every control attribute
 */
-enum HPI_CONTROL_ATTRIBUTES {
+enum HPI_CONTROL_ATTRIBUTES
+{
 	HPI_GENERIC_ENABLE = HPI_CTL_ATTR(GENERIC, 1),
 	HPI_GENERIC_EVENT_ENABLE = HPI_CTL_ATTR(GENERIC, 2),
 
@@ -266,13 +270,13 @@ enum HPI_CONTROL_ATTRIBUTES {
 	(HPI_COBRANET_HMI_cobra_protocolIP + 0x2)
 #define  HPI_COBRANET_HMI_cobra_sys              0x100000
 #define  HPI_COBRANET_HMI_cobra_sys_desc \
-		(HPI_COBRANET_HMI_cobra_sys + 0x0)
+	(HPI_COBRANET_HMI_cobra_sys + 0x0)
 #define  HPI_COBRANET_HMI_cobra_sys_objectID \
 	(HPI_COBRANET_HMI_cobra_sys + 0x100)
 #define  HPI_COBRANET_HMI_cobra_sys_contact \
 	(HPI_COBRANET_HMI_cobra_sys + 0x200)
 #define  HPI_COBRANET_HMI_cobra_sys_name \
-		(HPI_COBRANET_HMI_cobra_sys + 0x300)
+	(HPI_COBRANET_HMI_cobra_sys + 0x300)
 #define  HPI_COBRANET_HMI_cobra_sys_location \
 	(HPI_COBRANET_HMI_cobra_sys + 0x400)
 
@@ -308,7 +312,8 @@ enum HPI_CONTROL_ATTRIBUTES {
 #define HPI_ETHERNET_TIMEOUT_MS 500
 
 /** Locked memory buffer alloc/free phases */
-enum HPI_BUFFER_CMDS {
+enum HPI_BUFFER_CMDS
+{
 	/** use one message to allocate or free physical memory */
 	HPI_BUFFER_CMD_EXTERNAL = 0,
 	/** alloc physical memory */
@@ -358,7 +363,8 @@ Used in DLL to indicate device not present
 #define HPI_MODULE_FAMILY_ASI(f)   (f & HPI_MODULE_FAMILY_MASK)
 #define HPI_ADAPTER_ASI(f)   (f)
 
-enum HPI_MESSAGE_TYPES {
+enum HPI_MESSAGE_TYPES
+{
 	HPI_TYPE_REQUEST = 1,
 	HPI_TYPE_RESPONSE = 2,
 	HPI_TYPE_DATA = 3,
@@ -367,7 +373,8 @@ enum HPI_MESSAGE_TYPES {
 	HPI_TYPE_NOTIFICATION = 6
 };
 
-enum HPI_OBJECT_TYPES {
+enum HPI_OBJECT_TYPES
+{
 	HPI_OBJ_SUBSYSTEM = 1,
 	HPI_OBJ_ADAPTER = 2,
 	HPI_OBJ_OSTREAM = 3,
@@ -390,7 +397,8 @@ enum HPI_OBJECT_TYPES {
 
 #define HPI_EXTRACT_INDEX(fn) (fn & 0xff)
 
-enum HPI_FUNCTION_IDS {
+enum HPI_FUNCTION_IDS
+{
 	HPI_SUBSYS_OPEN = HPI_FUNC_ID(SUBSYSTEM, 1),
 	HPI_SUBSYS_GET_VERSION = HPI_FUNC_ID(SUBSYSTEM, 2),
 	HPI_SUBSYS_GET_INFO = HPI_FUNC_ID(SUBSYSTEM, 3),
@@ -481,8 +489,8 @@ enum HPI_FUNCTION_IDS {
 	HPI_ISTREAM_WAIT = HPI_FUNC_ID(ISTREAM, 20),
 #define HPI_ISTREAM_FUNCTION_COUNT 20
 
-/* NOTE:
-   GET_NODE_INFO, SET_CONNECTION, GET_CONNECTIONS are not currently used */
+	/* NOTE:
+	   GET_NODE_INFO, SET_CONNECTION, GET_CONNECTIONS are not currently used */
 	HPI_MIXER_OPEN = HPI_FUNC_ID(MIXER, 1),
 	HPI_MIXER_CLOSE = HPI_FUNC_ID(MIXER, 2),
 	HPI_MIXER_GET_INFO = HPI_FUNC_ID(MIXER, 3),
@@ -545,23 +553,27 @@ enum HPI_FUNCTION_IDS {
 /* ////////////////////////////////////////////////////////////////////// */
 /* STRUCTURES */
 #ifndef DISABLE_PRAGMA_PACK1
-#pragma pack(push, 1)
+	#pragma pack(push, 1)
 #endif
 
 /** PCI bus resource */
-struct hpi_pci {
+struct hpi_pci
+{
 	u32 __iomem *ap_mem_base[HPI_MAX_ADAPTER_MEM_SPACES];
 	struct pci_dev *pci_dev;
 };
 
 /** Adapter specification resource */
-struct hpi_adapter_specification {
+struct hpi_adapter_specification
+{
 	u32 type;
 	u8 modules[4];
 };
 
-struct hpi_resource {
-	union {
+struct hpi_resource
+{
+	union
+	{
 		const struct hpi_pci *pci;
 		const char *net_if;
 		struct hpi_adapter_specification adapter_spec;
@@ -573,7 +585,8 @@ struct hpi_resource {
 
 /** Format info used inside struct hpi_message
     Not the same as public API struct hpi_format */
-struct hpi_msg_format {
+struct hpi_msg_format
+{
 	u32 sample_rate; /**< 11025, 32000, 44100 etc. */
 	u32 bit_rate; /**< for MPEG */
 	u32 attributes;	/**< stereo/joint_stereo/mono */
@@ -583,7 +596,8 @@ struct hpi_msg_format {
 
 /**  Buffer+format structure.
 	 Must be kept 7 * 32 bits to match public struct hpi_datastruct */
-struct hpi_msg_data {
+struct hpi_msg_data
+{
 	struct hpi_msg_format format;
 	u8 *pb_data;
 #ifndef CONFIG_64BIT
@@ -593,7 +607,8 @@ struct hpi_msg_data {
 };
 
 /** struct hpi_datastructure used up to 3.04 driver */
-struct hpi_data_legacy32 {
+struct hpi_data_legacy32
+{
 	struct hpi_format format;
 	u32 pb_data;
 	u32 data_size;
@@ -601,7 +616,8 @@ struct hpi_data_legacy32 {
 
 #ifdef CONFIG_64BIT
 /* Compatibility version of struct hpi_data*/
-struct hpi_data_compat32 {
+struct hpi_data_compat32
+{
 	struct hpi_msg_format format;
 	u32 pb_data;
 	u32 padding;
@@ -609,8 +625,9 @@ struct hpi_data_compat32 {
 };
 #endif
 
-struct hpi_buffer {
-  /** placeholder for backward compatibility (see dwBufferSize) */
+struct hpi_buffer
+{
+	/** placeholder for backward compatibility (see dwBufferSize) */
 	struct hpi_msg_format reserved;
 	u32 command; /**< HPI_BUFFER_CMD_xxx*/
 	u32 pci_address; /**< PCI physical address of buffer for DSP DMA */
@@ -619,7 +636,8 @@ struct hpi_buffer {
 
 /*/////////////////////////////////////////////////////////////////////////// */
 /* This is used for background buffer bus mastering stream buffers.           */
-struct hpi_hostbuffer_status {
+struct hpi_hostbuffer_status
+{
 	u32 samples_processed;
 	u32 auxiliary_data_available;
 	u32 stream_state;
@@ -630,22 +648,26 @@ struct hpi_hostbuffer_status {
 	u32 size_in_bytes;
 };
 
-struct hpi_streamid {
+struct hpi_streamid
+{
 	u16 object_type;
-		    /**< Type of object, HPI_OBJ_OSTREAM or HPI_OBJ_ISTREAM. */
+	/**< Type of object, HPI_OBJ_OSTREAM or HPI_OBJ_ISTREAM. */
 	u16 stream_index; /**< outstream or instream index. */
 };
 
-struct hpi_punchinout {
+struct hpi_punchinout
+{
 	u32 punch_in_sample;
 	u32 punch_out_sample;
 };
 
-struct hpi_subsys_msg {
+struct hpi_subsys_msg
+{
 	struct hpi_resource resource;
 };
 
-struct hpi_subsys_res {
+struct hpi_subsys_res
+{
 	u32 version;
 	u32 data;		/* extended version */
 	u16 num_adapters;
@@ -654,44 +676,54 @@ struct hpi_subsys_res {
 	u16 pad16;
 };
 
-union hpi_adapterx_msg {
-	struct {
+union hpi_adapterx_msg
+{
+	struct
+	{
 		u32 dsp_address;
 		u32 count_bytes;
 	} debug_read;
-	struct {
+	struct
+	{
 		u32 adapter_mode;
 		u16 query_or_set;
 	} mode;
-	struct {
+	struct
+	{
 		u16 index;
 	} module_info;
-	struct {
+	struct
+	{
 		u16 index;
 		u16 what;
 		u16 property_index;
 	} property_enum;
-	struct {
+	struct
+	{
 		u16 property;
 		u16 parameter1;
 		u16 parameter2;
 	} property_set;
-	struct {
+	struct
+	{
 		u32 pad32;
 		u16 key1;
 		u16 key2;
 	} restart;
-	struct {
+	struct
+	{
 		u32 pad32;
 		u16 value;
 	} test_assert;
-	struct {
+	struct
+	{
 		u32 message;
 	} irq;
 	u32 pad[3];
 };
 
-struct hpi_adapter_res {
+struct hpi_adapter_res
+{
 	u32 serial_number;
 	u16 adapter_type;
 	u16 adapter_index;
@@ -702,9 +734,11 @@ struct hpi_adapter_res {
 	u8 sz_adapter_assert[HPI_STRING_LEN];
 };
 
-union hpi_adapterx_res {
+union hpi_adapterx_res
+{
 	struct hpi_adapter_res info;
-	struct {
+	struct
+	{
 		u32 p1;
 		u16 count;
 		u16 dsp_index;
@@ -712,20 +746,25 @@ union hpi_adapterx_res {
 		u32 dsp_msg_addr;
 		char sz_message[HPI_STRING_LEN];
 	} assert;
-	struct {
+	struct
+	{
 		u32 adapter_mode;
 	} mode;
-	struct {
+	struct
+	{
 		u16 parameter1;
 		u16 parameter2;
 	} property_get;
-	struct {
+	struct
+	{
 		u32 yes;
 	} irq_query;
 };
 
-struct hpi_stream_msg {
-	union {
+struct hpi_stream_msg
+{
+	union
+	{
 		struct hpi_msg_data data;
 		struct hpi_data_legacy32 data32;
 		u16 velocity;
@@ -737,9 +776,12 @@ struct hpi_stream_msg {
 	} u;
 };
 
-struct hpi_stream_res {
-	union {
-		struct {
+struct hpi_stream_res
+{
+	union
+	{
+		struct
+		{
 			/* size of hardware buffer */
 			u32 buffer_size;
 			/* OutStream - data to play,
@@ -754,7 +796,8 @@ struct hpi_stream_res {
 			u16 state;	/* HPI_STATE_PLAYING, _STATE_STOPPED */
 			u16 padding;
 		} stream_info;
-		struct {
+		struct
+		{
 			u32 buffer_size;
 			u32 data_available;
 			u32 samples_transfered;
@@ -764,13 +807,15 @@ struct hpi_stream_res {
 			u16 padding;
 			u32 auxiliary_data_available;
 		} legacy_stream_info;
-		struct {
+		struct
+		{
 			/* bitmap of grouped OutStreams */
 			u32 outstream_group_map;
 			/* bitmap of grouped InStreams */
 			u32 instream_group_map;
 		} group_info;
-		struct {
+		struct
+		{
 			/* pointer to the buffer */
 			u8 *p_buffer;
 			/* pointer to the hostbuffer status */
@@ -779,7 +824,8 @@ struct hpi_stream_res {
 	} u;
 };
 
-struct hpi_mixer_msg {
+struct hpi_mixer_msg
+{
 	u16 control_index;
 	u16 control_type;	/* = HPI_CONTROL_METER _VOLUME etc */
 	u16 padding1;		/* Maintain alignment of subsequent fields */
@@ -790,7 +836,8 @@ struct hpi_mixer_msg {
 	u16 padding2;		/* round to 4 bytes */
 };
 
-struct hpi_mixer_res {
+struct hpi_mixer_res
+{
 	u16 src_node_type;	/* = HPI_SOURCENODE_LINEIN etc */
 	u16 src_node_index;	/* = 0..N */
 	u16 dst_node_type;
@@ -801,33 +848,40 @@ struct hpi_mixer_res {
 	u16 dsp_index;
 };
 
-union hpi_mixerx_msg {
-	struct {
+union hpi_mixerx_msg
+{
+	struct
+	{
 		u16 starting_index;
 		u16 flags;
 		u32 length_in_bytes;	/* length in bytes of p_data */
 		u32 p_data;	/* pointer to a data array */
 	} gcabi;
-	struct {
+	struct
+	{
 		u16 command;
 		u16 index;
 	} store;		/* for HPI_MIXER_STORE message */
 };
 
-union hpi_mixerx_res {
-	struct {
+union hpi_mixerx_res
+{
+	struct
+	{
 		u32 bytes_returned;	/* size of items returned */
 		u32 p_data;	/* pointer to data array */
 		u16 more_to_do;	/* indicates if there is more to do */
 	} gcabi;
-	struct {
+	struct
+	{
 		u32 total_controls;	/* count of controls in the mixer */
 		u32 cache_controls;	/* count of controls in the cac */
 		u32 cache_bytes;	/* size of cache */
 	} cache_info;
 };
 
-struct hpi_control_msg {
+struct hpi_control_msg
+{
 	u16 attribute;		/* control attribute or property */
 	u16 saved_index;
 	u32 param1;		/* generic parameter 1 */
@@ -835,22 +889,27 @@ struct hpi_control_msg {
 	short an_log_value[HPI_MAX_CHANNELS];
 };
 
-struct hpi_control_union_msg {
+struct hpi_control_union_msg
+{
 	u16 attribute;		/* control attribute or property */
 	u16 saved_index;	/* only used in ctrl save/restore */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u32 param1;	/* generic parameter 1 */
 			u32 param2;	/* generic parameter 2 */
 			short an_log_value[HPI_MAX_CHANNELS];
 		} old;
-		union {
+		union
+		{
 			u32 frequency;
 			u32 gain;
 			u32 band;
 			u32 deemphasis;
 			u32 program;
-			struct {
+			struct
+			{
 				u32 mode;
 				u32 value;
 			} mode;
@@ -859,41 +918,50 @@ struct hpi_control_union_msg {
 	} u;
 };
 
-struct hpi_control_res {
+struct hpi_control_res
+{
 	/* Could make union. dwParam, anLogValue never used in same response */
 	u32 param1;
 	u32 param2;
 	short an_log_value[HPI_MAX_CHANNELS];
 };
 
-union hpi_control_union_res {
-	struct {
+union hpi_control_union_res
+{
+	struct
+	{
 		u32 param1;
 		u32 param2;
 		short an_log_value[HPI_MAX_CHANNELS];
 	} old;
-	union {
+	union
+	{
 		u32 band;
 		u32 frequency;
 		u32 gain;
 		u32 deemphasis;
-		struct {
+		struct
+		{
 			u32 data[2];
 			u32 bLER;
 		} rds;
 		short s_level;
-		struct {
+		struct
+		{
 			u16 value;
 			u16 mask;
 		} status;
 	} tuner;
-	struct {
+	struct
+	{
 		char sz_data[8];
 		u32 remaining_chars;
 	} chars8;
 	char c_data12[12];
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u32 status;
 			u32 readable_size;
 			u32 writeable_size;
@@ -901,39 +969,48 @@ union hpi_control_union_res {
 	} cobranet;
 };
 
-struct hpi_nvmemory_msg {
+struct hpi_nvmemory_msg
+{
 	u16 address;
 	u16 data;
 };
 
-struct hpi_nvmemory_res {
+struct hpi_nvmemory_res
+{
 	u16 size_in_bytes;
 	u16 data;
 };
 
-struct hpi_gpio_msg {
+struct hpi_gpio_msg
+{
 	u16 bit_index;
 	u16 bit_data;
 };
 
-struct hpi_gpio_res {
+struct hpi_gpio_res
+{
 	u16 number_input_bits;
 	u16 number_output_bits;
 	u16 bit_data[4];
 };
 
-struct hpi_async_msg {
+struct hpi_async_msg
+{
 	u32 events;
 	u16 maximum_events;
 	u16 padding;
 };
 
-struct hpi_async_res {
-	union {
-		struct {
+struct hpi_async_res
+{
+	union
+	{
+		struct
+		{
 			u16 count;
 		} count;
-		struct {
+		struct
+		{
 			u32 events;
 			u16 number_returned;
 			u16 padding;
@@ -942,22 +1019,26 @@ struct hpi_async_res {
 	} u;
 };
 
-struct hpi_watchdog_msg {
+struct hpi_watchdog_msg
+{
 	u32 time_ms;
 };
 
-struct hpi_watchdog_res {
+struct hpi_watchdog_res
+{
 	u32 time_ms;
 };
 
-struct hpi_clock_msg {
+struct hpi_clock_msg
+{
 	u16 hours;
 	u16 minutes;
 	u16 seconds;
 	u16 milli_seconds;
 };
 
-struct hpi_clock_res {
+struct hpi_clock_res
+{
 	u16 size_in_bytes;
 	u16 hours;
 	u16 minutes;
@@ -966,16 +1047,19 @@ struct hpi_clock_res {
 	u16 padding;
 };
 
-struct hpi_profile_msg {
+struct hpi_profile_msg
+{
 	u16 bin_index;
 	u16 padding;
 };
 
-struct hpi_profile_res_open {
+struct hpi_profile_res_open
+{
 	u16 max_profiles;
 };
 
-struct hpi_profile_res_time {
+struct hpi_profile_res_time
+{
 	u32 total_tick_count;
 	u32 call_count;
 	u32 max_tick_count;
@@ -983,19 +1067,23 @@ struct hpi_profile_res_time {
 	u16 profile_interval;
 };
 
-struct hpi_profile_res_name {
+struct hpi_profile_res_name
+{
 	u8 sz_name[32];
 };
 
-struct hpi_profile_res {
-	union {
+struct hpi_profile_res
+{
+	union
+	{
 		struct hpi_profile_res_open o;
 		struct hpi_profile_res_time t;
 		struct hpi_profile_res_name n;
 	} u;
 };
 
-struct hpi_message_header {
+struct hpi_message_header
+{
 	u16 size;		/* total size in bytes */
 	u8 type;		/* HPI_TYPE_MESSAGE  */
 	u8 version;		/* message version */
@@ -1005,7 +1093,8 @@ struct hpi_message_header {
 	u16 obj_index;		/* */
 };
 
-struct hpi_message {
+struct hpi_message
+{
 	/* following fields must match HPI_MESSAGE_HEADER */
 	u16 size;		/* total size in bytes */
 	u8 type;		/* HPI_TYPE_MESSAGE  */
@@ -1014,7 +1103,8 @@ struct hpi_message {
 	u16 function;		/* HPI_SUBSYS_xxx, HPI_ADAPTER_xxx */
 	u16 adapter_index;	/* the adapter index */
 	u16 obj_index;		/*  */
-	union {
+	union
+	{
 		struct hpi_subsys_msg s;
 		union hpi_adapterx_msg ax;
 		struct hpi_stream_msg d;
@@ -1035,29 +1125,30 @@ struct hpi_message {
 };
 
 #define HPI_MESSAGE_SIZE_BY_OBJECT { \
-	sizeof(struct hpi_message_header) ,   /* Default, no object type 0 */ \
-	sizeof(struct hpi_message_header) + sizeof(struct hpi_subsys_msg),\
-	sizeof(struct hpi_message_header) + sizeof(union hpi_adapterx_msg),\
-	sizeof(struct hpi_message_header) + sizeof(struct hpi_stream_msg),\
-	sizeof(struct hpi_message_header) + sizeof(struct hpi_stream_msg),\
-	sizeof(struct hpi_message_header) + sizeof(struct hpi_mixer_msg),\
-	sizeof(struct hpi_message_header) ,   /* no node message */ \
-	sizeof(struct hpi_message_header) + sizeof(struct hpi_control_msg),\
-	sizeof(struct hpi_message_header) + sizeof(struct hpi_nvmemory_msg),\
-	sizeof(struct hpi_message_header) + sizeof(struct hpi_gpio_msg),\
-	sizeof(struct hpi_message_header) + sizeof(struct hpi_watchdog_msg),\
-	sizeof(struct hpi_message_header) + sizeof(struct hpi_clock_msg),\
-	sizeof(struct hpi_message_header) + sizeof(struct hpi_profile_msg),\
-	sizeof(struct hpi_message_header), /* controlx obj removed */ \
-	sizeof(struct hpi_message_header) + sizeof(struct hpi_async_msg) \
-}
+		sizeof(struct hpi_message_header) ,   /* Default, no object type 0 */ \
+			   sizeof(struct hpi_message_header) + sizeof(struct hpi_subsys_msg),\
+			   sizeof(struct hpi_message_header) + sizeof(union hpi_adapterx_msg),\
+			   sizeof(struct hpi_message_header) + sizeof(struct hpi_stream_msg),\
+			   sizeof(struct hpi_message_header) + sizeof(struct hpi_stream_msg),\
+			   sizeof(struct hpi_message_header) + sizeof(struct hpi_mixer_msg),\
+			   sizeof(struct hpi_message_header) ,   /* no node message */ \
+			   sizeof(struct hpi_message_header) + sizeof(struct hpi_control_msg),\
+			   sizeof(struct hpi_message_header) + sizeof(struct hpi_nvmemory_msg),\
+			   sizeof(struct hpi_message_header) + sizeof(struct hpi_gpio_msg),\
+			   sizeof(struct hpi_message_header) + sizeof(struct hpi_watchdog_msg),\
+			   sizeof(struct hpi_message_header) + sizeof(struct hpi_clock_msg),\
+			   sizeof(struct hpi_message_header) + sizeof(struct hpi_profile_msg),\
+			   sizeof(struct hpi_message_header), /* controlx obj removed */ \
+			   sizeof(struct hpi_message_header) + sizeof(struct hpi_async_msg) \
+	}
 
 /*
 Note that the wSpecificError error field should be inspected and potentially
 reported whenever HPI_ERROR_DSP_COMMUNICATION or HPI_ERROR_DSP_BOOTLOAD is
 returned in wError.
 */
-struct hpi_response_header {
+struct hpi_response_header
+{
 	u16 size;
 	u8 type;		/* HPI_TYPE_RESPONSE  */
 	u8 version;		/* response version */
@@ -1067,8 +1158,9 @@ struct hpi_response_header {
 	u16 specific_error;	/* adapter specific error */
 };
 
-struct hpi_response {
-/* following fields must match HPI_RESPONSE_HEADER */
+struct hpi_response
+{
+	/* following fields must match HPI_RESPONSE_HEADER */
 	u16 size;
 	u8 type;		/* HPI_TYPE_RESPONSE  */
 	u8 version;		/* response version */
@@ -1076,7 +1168,8 @@ struct hpi_response {
 	u16 function;		/* HPI_SUBSYS_xxx, HPI_ADAPTER_xxx */
 	u16 error;		/* HPI_ERROR_xxx */
 	u16 specific_error;	/* adapter specific error */
-	union {
+	union
+	{
 		struct hpi_subsys_res s;
 		union hpi_adapterx_res ax;
 		struct hpi_stream_res d;
@@ -1096,22 +1189,22 @@ struct hpi_response {
 };
 
 #define HPI_RESPONSE_SIZE_BY_OBJECT { \
-	sizeof(struct hpi_response_header) ,/* Default, no object type 0 */ \
-	sizeof(struct hpi_response_header) + sizeof(struct hpi_subsys_res),\
-	sizeof(struct hpi_response_header) + sizeof(union  hpi_adapterx_res),\
-	sizeof(struct hpi_response_header) + sizeof(struct hpi_stream_res),\
-	sizeof(struct hpi_response_header) + sizeof(struct hpi_stream_res),\
-	sizeof(struct hpi_response_header) + sizeof(struct hpi_mixer_res),\
-	sizeof(struct hpi_response_header) , /* no node response */ \
-	sizeof(struct hpi_response_header) + sizeof(struct hpi_control_res),\
-	sizeof(struct hpi_response_header) + sizeof(struct hpi_nvmemory_res),\
-	sizeof(struct hpi_response_header) + sizeof(struct hpi_gpio_res),\
-	sizeof(struct hpi_response_header) + sizeof(struct hpi_watchdog_res),\
-	sizeof(struct hpi_response_header) + sizeof(struct hpi_clock_res),\
-	sizeof(struct hpi_response_header) + sizeof(struct hpi_profile_res),\
-	sizeof(struct hpi_response_header), /* controlx obj removed */ \
-	sizeof(struct hpi_response_header) + sizeof(struct hpi_async_res) \
-}
+		sizeof(struct hpi_response_header) ,/* Default, no object type 0 */ \
+			   sizeof(struct hpi_response_header) + sizeof(struct hpi_subsys_res),\
+			   sizeof(struct hpi_response_header) + sizeof(union  hpi_adapterx_res),\
+			   sizeof(struct hpi_response_header) + sizeof(struct hpi_stream_res),\
+			   sizeof(struct hpi_response_header) + sizeof(struct hpi_stream_res),\
+			   sizeof(struct hpi_response_header) + sizeof(struct hpi_mixer_res),\
+			   sizeof(struct hpi_response_header) , /* no node response */ \
+			   sizeof(struct hpi_response_header) + sizeof(struct hpi_control_res),\
+			   sizeof(struct hpi_response_header) + sizeof(struct hpi_nvmemory_res),\
+			   sizeof(struct hpi_response_header) + sizeof(struct hpi_gpio_res),\
+			   sizeof(struct hpi_response_header) + sizeof(struct hpi_watchdog_res),\
+			   sizeof(struct hpi_response_header) + sizeof(struct hpi_clock_res),\
+			   sizeof(struct hpi_response_header) + sizeof(struct hpi_profile_res),\
+			   sizeof(struct hpi_response_header), /* controlx obj removed */ \
+			   sizeof(struct hpi_response_header) + sizeof(struct hpi_async_res) \
+	}
 
 /*********************** version 1 message/response **************************/
 #define HPINET_ETHERNET_DATA_SIZE (1500)
@@ -1125,39 +1218,46 @@ struct hpi_response {
 #define HPI_MAX_PAYLOAD_SIZE (HPINET_ASI_DATA_SIZE - 2)
 
 /* New style message/response, but still V0 compatible */
-struct hpi_msg_adapter_get_info {
+struct hpi_msg_adapter_get_info
+{
 	struct hpi_message_header h;
 };
 
-struct hpi_res_adapter_get_info {
+struct hpi_res_adapter_get_info
+{
 	struct hpi_response_header h;	/*v0 */
 	struct hpi_adapter_res p;
 };
 
-struct hpi_res_adapter_debug_read {
+struct hpi_res_adapter_debug_read
+{
 	struct hpi_response_header h;
 	u8 bytes[1024];
 };
 
-struct hpi_msg_cobranet_hmi {
+struct hpi_msg_cobranet_hmi
+{
 	u16 attribute;
 	u16 padding;
 	u32 hmi_address;
 	u32 byte_count;
 };
 
-struct hpi_msg_cobranet_hmiwrite {
+struct hpi_msg_cobranet_hmiwrite
+{
 	struct hpi_message_header h;
 	struct hpi_msg_cobranet_hmi p;
 	u8 bytes[256];
 };
 
-struct hpi_msg_cobranet_hmiread {
+struct hpi_msg_cobranet_hmiread
+{
 	struct hpi_message_header h;
 	struct hpi_msg_cobranet_hmi p;
 };
 
-struct hpi_res_cobranet_hmiread {
+struct hpi_res_cobranet_hmiread
+{
 	struct hpi_response_header h;
 	u32 byte_count;
 	u8 bytes[256];
@@ -1168,24 +1268,29 @@ struct hpi_res_cobranet_hmiread {
 #define hpi_response_header_v1 hpi_response_header
 #else
 /* V1 headers in Addition to v0 headers */
-struct hpi_message_header_v1 {
+struct hpi_message_header_v1
+{
 	struct hpi_message_header h0;
-/* struct {
-} h1; */
+	/* struct {
+	} h1; */
 };
 
-struct hpi_response_header_v1 {
+struct hpi_response_header_v1
+{
 	struct hpi_response_header h0;
-	struct {
+	struct
+	{
 		u16 adapter_index;	/* the adapter index */
 		u16 obj_index;	/* object index */
 	} h1;
 };
 #endif
 
-struct hpi_msg_payload_v0 {
+struct hpi_msg_payload_v0
+{
 	struct hpi_message_header h;
-	union {
+	union
+	{
 		struct hpi_subsys_msg s;
 		union hpi_adapterx_msg ax;
 		struct hpi_stream_msg d;
@@ -1202,9 +1307,11 @@ struct hpi_msg_payload_v0 {
 	} u;
 };
 
-struct hpi_res_payload_v0 {
+struct hpi_res_payload_v0
+{
 	struct hpi_response_header h;
-	union {
+	union
+	{
 		struct hpi_subsys_res s;
 		union hpi_adapterx_res ax;
 		struct hpi_stream_res d;
@@ -1221,26 +1328,29 @@ struct hpi_res_payload_v0 {
 	} u;
 };
 
-union hpi_message_buffer_v1 {
+union hpi_message_buffer_v1
+{
 	struct hpi_message m0;	/* version 0 */
 	struct hpi_message_header_v1 h;
 	u8 buf[HPI_MAX_PAYLOAD_SIZE];
 };
 
-union hpi_response_buffer_v1 {
+union hpi_response_buffer_v1
+{
 	struct hpi_response r0;	/* version 0 */
 	struct hpi_response_header_v1 h;
 	u8 buf[HPI_MAX_PAYLOAD_SIZE];
 };
 
 compile_time_assert((sizeof(union hpi_message_buffer_v1) <=
-		HPI_MAX_PAYLOAD_SIZE), message_buffer_ok);
+					 HPI_MAX_PAYLOAD_SIZE), message_buffer_ok);
 compile_time_assert((sizeof(union hpi_response_buffer_v1) <=
-		HPI_MAX_PAYLOAD_SIZE), response_buffer_ok);
+					 HPI_MAX_PAYLOAD_SIZE), response_buffer_ok);
 
 /*////////////////////////////////////////////////////////////////////////// */
 /* declarations for compact control calls  */
-struct hpi_control_defn {
+struct hpi_control_defn
+{
 	u8 type;
 	u8 channels;
 	u8 src_node_type;
@@ -1261,7 +1371,8 @@ struct hpi_control_defn {
 Used for efficient transfer of the control state
 between DSP and host or across a network
 */
-struct hpi_control_cache_info {
+struct hpi_control_cache_info
+{
 	/** one of HPI_CONTROL_* */
 	u8 control_type;
 	/** The total size of cached information in 32-bit words. */
@@ -1270,84 +1381,98 @@ struct hpi_control_cache_info {
 	u16 control_index;
 };
 
-struct hpi_control_cache_vol {
+struct hpi_control_cache_vol
+{
 	struct hpi_control_cache_info i;
 	short an_log[2];
 	unsigned short flags;
 	char padding[2];
 };
 
-struct hpi_control_cache_meter {
+struct hpi_control_cache_meter
+{
 	struct hpi_control_cache_info i;
 	short an_log_peak[2];
 	short an_logRMS[2];
 };
 
-struct hpi_control_cache_channelmode {
+struct hpi_control_cache_channelmode
+{
 	struct hpi_control_cache_info i;
 	u16 mode;
 	char temp_padding[6];
 };
 
-struct hpi_control_cache_mux {
+struct hpi_control_cache_mux
+{
 	struct hpi_control_cache_info i;
 	u16 source_node_type;
 	u16 source_node_index;
 	char temp_padding[4];
 };
 
-struct hpi_control_cache_level {
+struct hpi_control_cache_level
+{
 	struct hpi_control_cache_info i;
 	short an_log[2];
 	char temp_padding[4];
 };
 
-struct hpi_control_cache_tuner {
+struct hpi_control_cache_tuner
+{
 	struct hpi_control_cache_info i;
 	u32 freq_ink_hz;
 	u16 band;
 	short s_level_avg;
 };
 
-struct hpi_control_cache_aes3rx {
+struct hpi_control_cache_aes3rx
+{
 	struct hpi_control_cache_info i;
 	u32 error_status;
 	u32 format;
 };
 
-struct hpi_control_cache_aes3tx {
+struct hpi_control_cache_aes3tx
+{
 	struct hpi_control_cache_info i;
 	u32 format;
 	char temp_padding[4];
 };
 
-struct hpi_control_cache_tonedetector {
+struct hpi_control_cache_tonedetector
+{
 	struct hpi_control_cache_info i;
 	u16 state;
 	char temp_padding[6];
 };
 
-struct hpi_control_cache_silencedetector {
+struct hpi_control_cache_silencedetector
+{
 	struct hpi_control_cache_info i;
 	u32 state;
 	char temp_padding[4];
 };
 
-struct hpi_control_cache_sampleclock {
+struct hpi_control_cache_sampleclock
+{
 	struct hpi_control_cache_info i;
 	u16 source;
 	u16 source_index;
 	u32 sample_rate;
 };
 
-struct hpi_control_cache_microphone {
+struct hpi_control_cache_microphone
+{
 	struct hpi_control_cache_info i;
 	u16 phantom_state;
 	char temp_padding[6];
 };
 
-struct hpi_control_cache_single {
-	union {
+struct hpi_control_cache_single
+{
+	union
+	{
 		struct hpi_control_cache_info i;
 		struct hpi_control_cache_vol vol;
 		struct hpi_control_cache_meter meter;
@@ -1364,7 +1489,8 @@ struct hpi_control_cache_single {
 	} u;
 };
 
-struct hpi_control_cache_pad {
+struct hpi_control_cache_pad
+{
 	struct hpi_control_cache_info i;
 	u32 field_valid_flags;
 	u8 c_channel[40];
@@ -1378,14 +1504,15 @@ struct hpi_control_cache_pad {
 };
 
 /* 2^N sized FIFO buffer (internal to HPI<->DSP interaction) */
-struct hpi_fifo_buffer {
+struct hpi_fifo_buffer
+{
 	u32 size;
 	u32 dsp_index;
 	u32 host_index;
 };
 
 #ifndef DISABLE_PRAGMA_PACK1
-#pragma pack(pop)
+	#pragma pack(pop)
 #endif
 
 /* skip host side function declarations for DSP
@@ -1394,10 +1521,10 @@ struct hpi_fifo_buffer {
 char hpi_handle_object(const u32 handle);
 
 void hpi_handle_to_indexes(const u32 handle, u16 *pw_adapter_index,
-	u16 *pw_object_index);
+						   u16 *pw_object_index);
 
 u32 hpi_indexes_to_handle(const char c_object, const u16 adapter_index,
-	const u16 object_index);
+						  const u16 object_index);
 
 /*////////////////////////////////////////////////////////////////////////// */
 
@@ -1406,13 +1533,13 @@ void hpi_send_recv(struct hpi_message *phm, struct hpi_response *phr);
 
 /* used in PnP OS/driver */
 u16 hpi_subsys_create_adapter(const struct hpi_resource *p_resource,
-	u16 *pw_adapter_index);
+							  u16 *pw_adapter_index);
 
 u16 hpi_outstream_host_buffer_get_info(u32 h_outstream, u8 **pp_buffer,
-	struct hpi_hostbuffer_status **pp_status);
+									   struct hpi_hostbuffer_status **pp_status);
 
 u16 hpi_instream_host_buffer_get_info(u32 h_instream, u8 **pp_buffer,
-	struct hpi_hostbuffer_status **pp_status);
+									  struct hpi_hostbuffer_status **pp_status);
 
 u16 hpi_adapter_restart(u16 adapter_index);
 
@@ -1424,7 +1551,7 @@ compatibility.
 */
 
 void hpi_format_to_msg(struct hpi_msg_format *pMF,
-	const struct hpi_format *pF);
+					   const struct hpi_format *pF);
 void hpi_stream_response_to_legacy(struct hpi_stream_res *pSR);
 
 /*////////////////////////////////////////////////////////////////////////// */

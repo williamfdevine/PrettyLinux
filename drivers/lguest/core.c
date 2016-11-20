@@ -53,9 +53,10 @@ static __init int map_switcher(void)
 	 */
 
 	/* We assume Switcher text fits into a single page. */
-	if (end_switcher_text - start_switcher_text > PAGE_SIZE) {
+	if (end_switcher_text - start_switcher_text > PAGE_SIZE)
+	{
 		printk(KERN_ERR "lguest: switcher text too large (%zu)\n",
-		       end_switcher_text - start_switcher_text);
+			   end_switcher_text - start_switcher_text);
 		return -EINVAL;
 	}
 
@@ -64,9 +65,11 @@ static __init int map_switcher(void)
 	 * this, rather than just an array of pages.
 	 */
 	lg_switcher_pages = kmalloc(sizeof(lg_switcher_pages[0])
-				    * TOTAL_SWITCHER_PAGES,
-				    GFP_KERNEL);
-	if (!lg_switcher_pages) {
+								* TOTAL_SWITCHER_PAGES,
+								GFP_KERNEL);
+
+	if (!lg_switcher_pages)
+	{
 		err = -ENOMEM;
 		goto out;
 	}
@@ -75,9 +78,12 @@ static __init int map_switcher(void)
 	 * Now we actually allocate the pages.  The Guest will see these pages,
 	 * so we make sure they're zeroed.
 	 */
-	for (i = 0; i < TOTAL_SWITCHER_PAGES; i++) {
-		lg_switcher_pages[i] = alloc_page(GFP_KERNEL|__GFP_ZERO);
-		if (!lg_switcher_pages[i]) {
+	for (i = 0; i < TOTAL_SWITCHER_PAGES; i++)
+	{
+		lg_switcher_pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO);
+
+		if (!lg_switcher_pages[i])
+		{
 			err = -ENOMEM;
 			goto free_some_pages;
 		}
@@ -88,7 +94,7 @@ static __init int map_switcher(void)
 	 * It goes in the first page, which we map in momentarily.
 	 */
 	memcpy(kmap(lg_switcher_pages[0]), start_switcher_text,
-	       end_switcher_text - start_switcher_text);
+		   end_switcher_text - start_switcher_text);
 	kunmap(lg_switcher_pages[0]);
 
 	/*
@@ -97,7 +103,7 @@ static __init int map_switcher(void)
 	 * tell the Guest it can't access this memory, so we want its ceiling
 	 * as high as possible.
 	 */
-	switcher_addr = FIXADDR_START - TOTAL_SWITCHER_PAGES*PAGE_SIZE;
+	switcher_addr = FIXADDR_START - TOTAL_SWITCHER_PAGES * PAGE_SIZE;
 
 	/*
 	 * Now we reserve the "virtual memory area"s we want.  We might
@@ -106,21 +112,24 @@ static __init int map_switcher(void)
 	 * We want the switcher text to be read-only and executable, and
 	 * the stacks to be read-write and non-executable.
 	 */
-	switcher_text_vma = __get_vm_area(PAGE_SIZE, VM_ALLOC|VM_NO_GUARD,
-					  switcher_addr,
-					  switcher_addr + PAGE_SIZE);
+	switcher_text_vma = __get_vm_area(PAGE_SIZE, VM_ALLOC | VM_NO_GUARD,
+									  switcher_addr,
+									  switcher_addr + PAGE_SIZE);
 
-	if (!switcher_text_vma) {
+	if (!switcher_text_vma)
+	{
 		err = -ENOMEM;
 		printk("lguest: could not map switcher pages high\n");
 		goto free_pages;
 	}
 
 	switcher_stacks_vma = __get_vm_area(SWITCHER_STACK_PAGES * PAGE_SIZE,
-					    VM_ALLOC|VM_NO_GUARD,
-					    switcher_addr + PAGE_SIZE,
-					    switcher_addr + TOTAL_SWITCHER_PAGES * PAGE_SIZE);
-	if (!switcher_stacks_vma) {
+										VM_ALLOC | VM_NO_GUARD,
+										switcher_addr + PAGE_SIZE,
+										switcher_addr + TOTAL_SWITCHER_PAGES * PAGE_SIZE);
+
+	if (!switcher_stacks_vma)
+	{
 		err = -ENOMEM;
 		printk("lguest: could not map switcher pages high\n");
 		goto free_text_vma;
@@ -133,14 +142,18 @@ static __init int map_switcher(void)
 	 * pages respectively), and a pointer to our array of struct pages.
 	 */
 	err = map_vm_area(switcher_text_vma, PAGE_KERNEL_RX, lg_switcher_pages);
-	if (err) {
+
+	if (err)
+	{
 		printk("lguest: text map_vm_area failed: %i\n", err);
 		goto free_vmas;
 	}
 
 	err = map_vm_area(switcher_stacks_vma, PAGE_KERNEL,
-			  lg_switcher_pages + SWITCHER_TEXT_PAGES);
-	if (err) {
+					  lg_switcher_pages + SWITCHER_TEXT_PAGES);
+
+	if (err)
+	{
 		printk("lguest: stacks map_vm_area failed: %i\n", err);
 		goto free_vmas;
 	}
@@ -149,7 +162,7 @@ static __init int map_switcher(void)
 	 * Now the Switcher is mapped at the right address, we can't fail!
 	 */
 	printk(KERN_INFO "lguest: mapped switcher at %p\n",
-	       switcher_text_vma->addr);
+		   switcher_text_vma->addr);
 	/* And we succeeded... */
 	return 0;
 
@@ -161,8 +174,12 @@ free_text_vma:
 free_pages:
 	i = TOTAL_SWITCHER_PAGES;
 free_some_pages:
+
 	for (--i; i >= 0; i--)
+	{
 		__free_pages(lg_switcher_pages[i], 0);
+	}
+
 	kfree(lg_switcher_pages);
 out:
 	return err;
@@ -177,9 +194,13 @@ static void unmap_switcher(void)
 	/* vunmap() undoes *both* map_vm_area() and __get_vm_area(). */
 	vunmap(switcher_text_vma->addr);
 	vunmap(switcher_stacks_vma->addr);
+
 	/* Now we just need to free the pages we copied the switcher into */
 	for (i = 0; i < TOTAL_SWITCHER_PAGES; i++)
+	{
 		__free_pages(lg_switcher_pages[i], 0);
+	}
+
 	kfree(lg_switcher_pages);
 }
 
@@ -199,9 +220,9 @@ static void unmap_switcher(void)
  * positive by overflowing, too.
  */
 bool lguest_address_ok(const struct lguest *lg,
-		       unsigned long addr, unsigned long len)
+					   unsigned long addr, unsigned long len)
 {
-	return addr+len <= lg->pfn_limit * PAGE_SIZE && (addr+len >= addr);
+	return addr + len <= lg->pfn_limit * PAGE_SIZE && (addr + len >= addr);
 }
 
 /*
@@ -212,7 +233,8 @@ bool lguest_address_ok(const struct lguest *lg,
 void __lgread(struct lg_cpu *cpu, void *b, unsigned long addr, unsigned bytes)
 {
 	if (!lguest_address_ok(cpu->lg, addr, bytes)
-	    || copy_from_user(b, cpu->lg->mem_base + addr, bytes) != 0) {
+		|| copy_from_user(b, cpu->lg->mem_base + addr, bytes) != 0)
+	{
 		/* copy_from_user should do this, but as we rely on it... */
 		memset(b, 0, bytes);
 		kill_guest(cpu, "bad read address %#lx len %u", addr, bytes);
@@ -221,11 +243,13 @@ void __lgread(struct lg_cpu *cpu, void *b, unsigned long addr, unsigned bytes)
 
 /* This is the write (copy into Guest) version. */
 void __lgwrite(struct lg_cpu *cpu, unsigned long addr, const void *b,
-	       unsigned bytes)
+			   unsigned bytes)
 {
 	if (!lguest_address_ok(cpu->lg, addr, bytes)
-	    || copy_to_user(cpu->lg->mem_base + addr, b, bytes) != 0)
+		|| copy_to_user(cpu->lg->mem_base + addr, b, bytes) != 0)
+	{
 		kill_guest(cpu, "bad write address %#lx len %u", addr, bytes);
+	}
 }
 /*:*/
 
@@ -237,27 +261,38 @@ void __lgwrite(struct lg_cpu *cpu, unsigned long addr, const void *b,
 int run_guest(struct lg_cpu *cpu, unsigned long __user *user)
 {
 	/* If the launcher asked for a register with LHREQ_GETREG */
-	if (cpu->reg_read) {
+	if (cpu->reg_read)
+	{
 		if (put_user(*cpu->reg_read, user))
+		{
 			return -EFAULT;
+		}
+
 		cpu->reg_read = NULL;
 		return sizeof(*cpu->reg_read);
 	}
 
 	/* We stop running once the Guest is dead. */
-	while (!cpu->lg->dead) {
+	while (!cpu->lg->dead)
+	{
 		unsigned int irq;
 		bool more;
 
 		/* First we run any hypercalls the Guest wants done. */
 		if (cpu->hcall)
+		{
 			do_hypercalls(cpu);
+		}
 
 		/* Do we have to tell the Launcher about a trap? */
-		if (cpu->pending.trap) {
+		if (cpu->pending.trap)
+		{
 			if (copy_to_user(user, &cpu->pending,
-					 sizeof(cpu->pending)))
+							 sizeof(cpu->pending)))
+			{
 				return -EFAULT;
+			}
+
 			return sizeof(cpu->pending);
 		}
 
@@ -270,7 +305,9 @@ int run_guest(struct lg_cpu *cpu, unsigned long __user *user)
 
 		/* Check for signals */
 		if (signal_pending(current))
+		{
 			return -ERESTARTSYS;
+		}
 
 		/*
 		 * Check if there are any interrupts which can be delivered now:
@@ -278,30 +315,42 @@ int run_guest(struct lg_cpu *cpu, unsigned long __user *user)
 		 * run the Guest.
 		 */
 		irq = interrupt_pending(cpu, &more);
+
 		if (irq < LGUEST_IRQS)
+		{
 			try_deliver_interrupt(cpu, irq, more);
+		}
 
 		/*
 		 * Just make absolutely sure the Guest is still alive.  One of
 		 * those hypercalls could have been fatal, for example.
 		 */
 		if (cpu->lg->dead)
+		{
 			break;
+		}
 
 		/*
 		 * If the Guest asked to be stopped, we sleep.  The Guest's
 		 * clock timer will wake us.
 		 */
-		if (cpu->halted) {
+		if (cpu->halted)
+		{
 			set_current_state(TASK_INTERRUPTIBLE);
+
 			/*
 			 * Just before we sleep, make sure no interrupt snuck in
 			 * which we should be doing.
 			 */
 			if (interrupt_pending(cpu, &more) < LGUEST_IRQS)
+			{
 				set_current_state(TASK_RUNNING);
+			}
 			else
+			{
 				schedule();
+			}
+
 			continue;
 		}
 
@@ -323,7 +372,9 @@ int run_guest(struct lg_cpu *cpu, unsigned long __user *user)
 
 	/* Special case: Guest is 'dead' but wants a reboot. */
 	if (cpu->lg->dead == ERR_PTR(-ERESTART))
+	{
 		return -ERESTART;
+	}
 
 	/* The Guest is dead => "No such file or directory" */
 	return -ENOENT;
@@ -342,25 +393,35 @@ static int __init init(void)
 	int err;
 
 	/* Lguest can't run under Xen, VMI or itself.  It does Tricky Stuff. */
-	if (get_kernel_rpl() != 0) {
+	if (get_kernel_rpl() != 0)
+	{
 		printk("lguest is afraid of being a guest\n");
 		return -EPERM;
 	}
 
 	/* First we put the Switcher up in very high virtual memory. */
 	err = map_switcher();
+
 	if (err)
+	{
 		goto out;
+	}
 
 	/* We might need to reserve an interrupt vector. */
 	err = init_interrupts();
+
 	if (err)
+	{
 		goto unmap;
+	}
 
 	/* /dev/lguest needs to be registered. */
 	err = lguest_device_init();
+
 	if (err)
+	{
 		goto free_interrupts;
+	}
 
 	/* Finally we do some architecture-specific setup. */
 	lguest_arch_host_init();

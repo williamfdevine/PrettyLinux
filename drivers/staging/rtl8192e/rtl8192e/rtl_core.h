@@ -69,8 +69,8 @@
 
 #define RTL_PCI_DEVICE(vend, dev, cfg) \
 	.vendor = (vend), .device = (dev), \
-	.subvendor = PCI_ANY_ID, .subdevice = PCI_ANY_ID, \
-	.driver_data = (kernel_ulong_t)&(cfg)
+								.subvendor = PCI_ANY_ID, .subdevice = PCI_ANY_ID, \
+										.driver_data = (kernel_ulong_t)&(cfg)
 
 #define TOTAL_CAM_ENTRY		32
 #define CAM_CONTENT_COUNT	8
@@ -122,7 +122,8 @@
 
 extern int hwwep;
 
-enum nic_t {
+enum nic_t
+{
 	NIC_UNKNOWN     = 0,
 	NIC_8192E       = 1,
 	NIC_8190P       = 2,
@@ -133,12 +134,14 @@ enum nic_t {
 	NIC_8192DU	= 8,
 };
 
-enum rt_eeprom_type {
+enum rt_eeprom_type
+{
 	EEPROM_93C46,
 	EEPROM_93C56,
 };
 
-enum dcmg_txcmd_op {
+enum dcmg_txcmd_op
+{
 	TXCMD_TXRA_HISTORY_CTRL		= 0xFF900000,
 	TXCMD_RESET_TX_PKT_BUFF		= 0xFF900001,
 	TXCMD_RESET_RX_PKT_BUFF		= 0xFF900002,
@@ -148,7 +151,8 @@ enum dcmg_txcmd_op {
 	TXCMD_XXXX_CTRL,
 };
 
-enum rt_rf_type_819xu {
+enum rt_rf_type_819xu
+{
 	RF_TYPE_MIN = 0,
 	RF_8225,
 	RF_8256,
@@ -157,7 +161,8 @@ enum rt_rf_type_819xu {
 	RF_PSEUDO_11N = 5,
 };
 
-enum rt_customer_id {
+enum rt_customer_id
+{
 	RT_CID_DEFAULT	  = 0,
 	RT_CID_8187_ALPHA0      = 1,
 	RT_CID_8187_SERCOMM_PS  = 2,
@@ -190,13 +195,15 @@ enum rt_customer_id {
 	RT_CID_819x_WNC_COREGA = 31,
 };
 
-enum reset_type {
+enum reset_type
+{
 	RESET_TYPE_NORESET = 0x00,
 	RESET_TYPE_NORMAL = 0x01,
 	RESET_TYPE_SILENT = 0x02
 };
 
-struct rt_stats {
+struct rt_stats
+{
 	unsigned long rxrdu;
 	unsigned long rxok;
 	unsigned long rxdatacrcerr;
@@ -248,7 +255,8 @@ struct rt_stats {
 	u32	CurrentShowTxate;
 };
 
-struct channel_access_setting {
+struct channel_access_setting
+{
 	u16 SIFS_Timer;
 	u16 DIFS_Timer;
 	u16 SlotTimeTimer;
@@ -257,7 +265,8 @@ struct channel_access_setting {
 	u16 CWmaxIndex;
 };
 
-struct init_gain {
+struct init_gain
+{
 	u8	xaagccore1;
 	u8	xbagccore1;
 	u8	xcagccore1;
@@ -266,13 +275,15 @@ struct init_gain {
 
 };
 
-struct tx_ring {
+struct tx_ring
+{
 	u32 *desc;
 	u8 nStuckCount;
 	struct tx_ring *next;
 } __packed;
 
-struct rtl8192_tx_ring {
+struct rtl8192_tx_ring
+{
 	struct tx_desc *desc;
 	dma_addr_t dma;
 	unsigned int idx;
@@ -282,7 +293,8 @@ struct rtl8192_tx_ring {
 
 
 
-struct rtl819x_ops {
+struct rtl819x_ops
+{
 	enum nic_t nic_type;
 	void (*get_eeprom_size)(struct net_device *dev);
 	void (*init_adapter_variable)(struct net_device *dev);
@@ -290,20 +302,20 @@ struct rtl819x_ops {
 	bool (*initialize_adapter)(struct net_device *dev);
 	void (*link_change)(struct net_device *dev);
 	void (*tx_fill_descriptor)(struct net_device *dev,
-				   struct tx_desc *tx_desc,
-				   struct cb_desc *cb_desc,
-				   struct sk_buff *skb);
+							   struct tx_desc *tx_desc,
+							   struct cb_desc *cb_desc,
+							   struct sk_buff *skb);
 	void (*tx_fill_cmd_descriptor)(struct net_device *dev,
-				       struct tx_desc_cmd *entry,
-				       struct cb_desc *cb_desc,
-				       struct sk_buff *skb);
+								   struct tx_desc_cmd *entry,
+								   struct cb_desc *cb_desc,
+								   struct sk_buff *skb);
 	bool (*rx_query_status_descriptor)(struct net_device *dev,
-					   struct rtllib_rx_stats *stats,
-					   struct rx_desc *pdesc,
-					   struct sk_buff *skb);
+									   struct rtllib_rx_stats *stats,
+									   struct rx_desc *pdesc,
+									   struct sk_buff *skb);
 	bool (*rx_command_packet_handler)(struct net_device *dev,
-					  struct sk_buff *skb,
-					  struct rx_desc *pdesc);
+									  struct sk_buff *skb,
+									  struct rx_desc *pdesc);
 	void (*stop_adapter)(struct net_device *dev, bool reset);
 	void (*update_ratr_table)(struct net_device *dev);
 	void (*irq_enable)(struct net_device *dev);
@@ -312,12 +324,13 @@ struct rtl819x_ops {
 	void (*rx_enable)(struct net_device *dev);
 	void (*tx_enable)(struct net_device *dev);
 	void (*interrupt_recognized)(struct net_device *dev,
-				     u32 *p_inta, u32 *p_intb);
+								 u32 *p_inta, u32 *p_intb);
 	bool (*TxCheckStuckHandler)(struct net_device *dev);
 	bool (*RxCheckStuckHandler)(struct net_device *dev);
 };
 
-struct r8192_priv {
+struct r8192_priv
+{
 	struct pci_dev *pdev;
 	struct pci_dev *bridge_pdev;
 
@@ -412,7 +425,8 @@ struct r8192_priv {
 
 	/**********************************************************/
 
-	enum card_type {
+	enum card_type
+	{
 		PCI, MINIPCI,
 		CARDBUS, USB
 	} card_type;
@@ -600,18 +614,18 @@ void rtl92e_config_rate(struct net_device *dev, u16 *rate_config);
 void rtl92e_irq_disable(struct net_device *dev);
 
 void rtl92e_update_rx_pkt_timestamp(struct net_device *dev,
-				    struct rtllib_rx_stats *stats);
+									struct rtllib_rx_stats *stats);
 long rtl92e_translate_to_dbm(struct r8192_priv *priv, u8 signal_strength_index);
 void rtl92e_update_rx_statistics(struct r8192_priv *priv,
-				 struct rtllib_rx_stats *pprevious_stats);
+								 struct rtllib_rx_stats *pprevious_stats);
 u8 rtl92e_evm_db_to_percent(s8 value);
 u8 rtl92e_rx_db_to_percent(s8 antpower);
 void rtl92e_copy_mpdu_stats(struct rtllib_rx_stats *psrc_stats,
-			    struct rtllib_rx_stats *ptarget_stats);
+							struct rtllib_rx_stats *ptarget_stats);
 bool rtl92e_enable_nic(struct net_device *dev);
 bool rtl92e_disable_nic(struct net_device *dev);
 
 bool rtl92e_set_rf_state(struct net_device *dev,
-			 enum rt_rf_power_state StateToSet,
-			 RT_RF_CHANGE_SOURCE ChangeSource);
+						 enum rt_rf_power_state StateToSet,
+						 RT_RF_CHANGE_SOURCE ChangeSource);
 #endif

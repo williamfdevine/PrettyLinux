@@ -44,7 +44,8 @@
 
 #define to_stub_clk(hw) container_of(hw, struct hi6220_stub_clk, hw)
 
-struct hi6220_stub_clk {
+struct hi6220_stub_clk
+{
 	u32 id;
 
 	struct device *dev;
@@ -55,7 +56,8 @@ struct hi6220_stub_clk {
 	struct mbox_chan *mbox;
 };
 
-struct hi6220_mbox_msg {
+struct hi6220_mbox_msg
+{
 	unsigned char type;
 	unsigned char cmd;
 	unsigned char obj;
@@ -63,7 +65,8 @@ struct hi6220_mbox_msg {
 	unsigned char para[4];
 };
 
-union hi6220_mbox_data {
+union hi6220_mbox_data
+{
 	unsigned int data[HI6220_MBOX_MSG_LEN];
 	struct hi6220_mbox_msg msg;
 };
@@ -77,7 +80,7 @@ static unsigned int hi6220_acpu_get_freq(struct hi6220_stub_clk *stub_clk)
 }
 
 static int hi6220_acpu_set_freq(struct hi6220_stub_clk *stub_clk,
-				unsigned int freq)
+								unsigned int freq)
 {
 	union hi6220_mbox_data data;
 
@@ -95,15 +98,18 @@ static int hi6220_acpu_set_freq(struct hi6220_stub_clk *stub_clk,
 }
 
 static int hi6220_acpu_round_freq(struct hi6220_stub_clk *stub_clk,
-				  unsigned int freq)
+								  unsigned int freq)
 {
 	unsigned int limit_flag, limit_freq = UINT_MAX;
 	unsigned int max_freq;
 
 	/* check the constrained frequency */
 	regmap_read(stub_clk->dfs_map, ACPU_DFS_FLAG, &limit_flag);
+
 	if (limit_flag == ACPU_DFS_LOCK_FLAG)
+	{
 		regmap_read(stub_clk->dfs_map, ACPU_DFS_FREQ_LMT, &limit_freq);
+	}
 
 	/* check the supported maximum frequency */
 	regmap_read(stub_clk->dfs_map, ACPU_DFS_FREQ_MAX, &max_freq);
@@ -112,7 +118,9 @@ static int hi6220_acpu_round_freq(struct hi6220_stub_clk *stub_clk,
 	max_freq = min(max_freq, limit_freq);
 
 	if (WARN_ON(freq > max_freq))
+	{
 		freq = max_freq;
+	}
 
 	return freq;
 }
@@ -123,42 +131,47 @@ static unsigned long hi6220_stub_clk_recalc_rate(struct clk_hw *hw,
 	u32 rate = 0;
 	struct hi6220_stub_clk *stub_clk = to_stub_clk(hw);
 
-	switch (stub_clk->id) {
-	case HI6220_STUB_ACPU0:
-		rate = hi6220_acpu_get_freq(stub_clk);
+	switch (stub_clk->id)
+	{
+		case HI6220_STUB_ACPU0:
+			rate = hi6220_acpu_get_freq(stub_clk);
 
-		/* convert from kHz to Hz */
-		rate *= 1000;
-		break;
+			/* convert from kHz to Hz */
+			rate *= 1000;
+			break;
 
-	default:
-		dev_err(stub_clk->dev, "%s: un-supported clock id %d\n",
-			__func__, stub_clk->id);
-		break;
+		default:
+			dev_err(stub_clk->dev, "%s: un-supported clock id %d\n",
+					__func__, stub_clk->id);
+			break;
 	}
 
 	return rate;
 }
 
 static int hi6220_stub_clk_set_rate(struct clk_hw *hw, unsigned long rate,
-		unsigned long parent_rate)
+									unsigned long parent_rate)
 {
 	struct hi6220_stub_clk *stub_clk = to_stub_clk(hw);
 	unsigned long new_rate = rate / 1000;  /* kHz */
 	int ret = 0;
 
-	switch (stub_clk->id) {
-	case HI6220_STUB_ACPU0:
-		ret = hi6220_acpu_set_freq(stub_clk, new_rate);
-		if (ret < 0)
-			return ret;
+	switch (stub_clk->id)
+	{
+		case HI6220_STUB_ACPU0:
+			ret = hi6220_acpu_set_freq(stub_clk, new_rate);
 
-		break;
+			if (ret < 0)
+			{
+				return ret;
+			}
 
-	default:
-		dev_err(stub_clk->dev, "%s: un-supported clock id %d\n",
-			__func__, stub_clk->id);
-		break;
+			break;
+
+		default:
+			dev_err(stub_clk->dev, "%s: un-supported clock id %d\n",
+					__func__, stub_clk->id);
+			break;
 	}
 
 	pr_debug("%s: set rate=%ldkHz\n", __func__, new_rate);
@@ -166,29 +179,31 @@ static int hi6220_stub_clk_set_rate(struct clk_hw *hw, unsigned long rate,
 }
 
 static long hi6220_stub_clk_round_rate(struct clk_hw *hw, unsigned long rate,
-		unsigned long *parent_rate)
+									   unsigned long *parent_rate)
 {
 	struct hi6220_stub_clk *stub_clk = to_stub_clk(hw);
 	unsigned long new_rate = rate / 1000;  /* kHz */
 
-	switch (stub_clk->id) {
-	case HI6220_STUB_ACPU0:
-		new_rate = hi6220_acpu_round_freq(stub_clk, new_rate);
+	switch (stub_clk->id)
+	{
+		case HI6220_STUB_ACPU0:
+			new_rate = hi6220_acpu_round_freq(stub_clk, new_rate);
 
-		/* convert from kHz to Hz */
-		new_rate *= 1000;
-		break;
+			/* convert from kHz to Hz */
+			new_rate *= 1000;
+			break;
 
-	default:
-		dev_err(stub_clk->dev, "%s: un-supported clock id %d\n",
-			__func__, stub_clk->id);
-		break;
+		default:
+			dev_err(stub_clk->dev, "%s: un-supported clock id %d\n",
+					__func__, stub_clk->id);
+			break;
 	}
 
 	return new_rate;
 }
 
-static const struct clk_ops hi6220_stub_clk_ops = {
+static const struct clk_ops hi6220_stub_clk_ops =
+{
 	.recalc_rate	= hi6220_stub_clk_recalc_rate,
 	.round_rate	= hi6220_stub_clk_round_rate,
 	.set_rate	= hi6220_stub_clk_set_rate,
@@ -204,12 +219,17 @@ static int hi6220_stub_clk_probe(struct platform_device *pdev)
 	int ret;
 
 	stub_clk = devm_kzalloc(dev, sizeof(*stub_clk), GFP_KERNEL);
+
 	if (!stub_clk)
+	{
 		return -ENOMEM;
+	}
 
 	stub_clk->dfs_map = syscon_regmap_lookup_by_phandle(np,
-				"hisilicon,hi6220-clk-sram");
-	if (IS_ERR(stub_clk->dfs_map)) {
+						"hisilicon,hi6220-clk-sram");
+
+	if (IS_ERR(stub_clk->dfs_map))
+	{
 		dev_err(dev, "failed to get sram regmap\n");
 		return PTR_ERR(stub_clk->dfs_map);
 	}
@@ -227,7 +247,9 @@ static int hi6220_stub_clk_probe(struct platform_device *pdev)
 
 	/* Allocate mailbox channel */
 	stub_clk->mbox = mbox_request_channel(&stub_clk->cl, 0);
-	if (IS_ERR(stub_clk->mbox)) {
+
+	if (IS_ERR(stub_clk->mbox))
+	{
 		dev_err(dev, "failed get mailbox channel\n");
 		return PTR_ERR(stub_clk->mbox);
 	}
@@ -238,11 +260,16 @@ static int hi6220_stub_clk_probe(struct platform_device *pdev)
 	init.flags = 0;
 
 	clk = devm_clk_register(dev, &stub_clk->hw);
+
 	if (IS_ERR(clk))
+	{
 		return PTR_ERR(clk);
+	}
 
 	ret = of_clk_add_provider(np, of_clk_src_simple_get, clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to register OF clock provider\n");
 		return ret;
 	}
@@ -256,12 +283,14 @@ static int hi6220_stub_clk_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id hi6220_stub_clk_of_match[] = {
+static const struct of_device_id hi6220_stub_clk_of_match[] =
+{
 	{ .compatible = "hisilicon,hi6220-stub-clk", },
 	{}
 };
 
-static struct platform_driver hi6220_stub_clk_driver = {
+static struct platform_driver hi6220_stub_clk_driver =
+{
 	.driver	= {
 		.name = "hi6220-stub-clk",
 		.of_match_table = hi6220_stub_clk_of_match,

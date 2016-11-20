@@ -13,7 +13,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table nebula[] = {
+static struct rc_map_table nebula[] =
+{
 	{ 0x0000, KEY_0 },
 	{ 0x0001, KEY_1 },
 	{ 0x0002, KEY_2 },
@@ -71,7 +72,8 @@ static struct rc_map_table nebula[] = {
 	{ 0x0036, KEY_PC },
 };
 
-static struct rc_map_list nebula_map = {
+static struct rc_map_list nebula_map =
+{
 	.map = {
 		.scan    = nebula,
 		.size    = ARRAY_SIZE(nebula),

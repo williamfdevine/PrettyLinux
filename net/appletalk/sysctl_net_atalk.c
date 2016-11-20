@@ -10,7 +10,8 @@
 #include <net/sock.h>
 #include <linux/atalk.h>
 
-static struct ctl_table atalk_table[] = {
+static struct ctl_table atalk_table[] =
+{
 	{
 		.procname	= "aarp-expiry-time",
 		.data		= &sysctl_aarp_expiry_time,

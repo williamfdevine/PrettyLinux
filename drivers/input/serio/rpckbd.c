@@ -43,7 +43,8 @@ MODULE_DESCRIPTION("Acorn RiscPC PS/2 keyboard controller driver");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform:kart");
 
-struct rpckbd_data {
+struct rpckbd_data
+{
 	int tx_irq;
 	int rx_irq;
 };
@@ -51,7 +52,9 @@ struct rpckbd_data {
 static int rpckbd_write(struct serio *port, unsigned char val)
 {
 	while (!(iomd_readb(IOMD_KCTRL) & (1 << 7)))
+	{
 		cpu_relax();
+	}
 
 	iomd_writeb(val, IOMD_KARTTX);
 
@@ -64,12 +67,14 @@ static irqreturn_t rpckbd_rx(int irq, void *dev_id)
 	unsigned int byte;
 	int handled = IRQ_NONE;
 
-	while (iomd_readb(IOMD_KCTRL) & (1 << 5)) {
+	while (iomd_readb(IOMD_KCTRL) & (1 << 5))
+	{
 		byte = iomd_readb(IOMD_KARTRX);
 
 		serio_interrupt(port, byte, 0);
 		handled = IRQ_HANDLED;
 	}
+
 	return handled;
 }
 
@@ -87,12 +92,14 @@ static int rpckbd_open(struct serio *port)
 	iomd_writeb(8, IOMD_KCTRL);
 	iomd_readb(IOMD_KARTRX);
 
-	if (request_irq(rpckbd->rx_irq, rpckbd_rx, 0, "rpckbd", port) != 0) {
+	if (request_irq(rpckbd->rx_irq, rpckbd_rx, 0, "rpckbd", port) != 0)
+	{
 		printk(KERN_ERR "rpckbd.c: Could not allocate keyboard receive IRQ\n");
 		return -EBUSY;
 	}
 
-	if (request_irq(rpckbd->tx_irq, rpckbd_tx, 0, "rpckbd", port) != 0) {
+	if (request_irq(rpckbd->tx_irq, rpckbd_tx, 0, "rpckbd", port) != 0)
+	{
 		printk(KERN_ERR "rpckbd.c: Could not allocate keyboard transmit IRQ\n");
 		free_irq(rpckbd->rx_irq, port);
 		return -EBUSY;
@@ -120,16 +127,24 @@ static int rpckbd_probe(struct platform_device *dev)
 	int tx_irq, rx_irq;
 
 	rx_irq = platform_get_irq(dev, 0);
+
 	if (rx_irq <= 0)
+	{
 		return rx_irq < 0 ? rx_irq : -ENXIO;
+	}
 
 	tx_irq = platform_get_irq(dev, 1);
+
 	if (tx_irq <= 0)
+	{
 		return tx_irq < 0 ? tx_irq : -ENXIO;
+	}
 
 	serio = kzalloc(sizeof(struct serio), GFP_KERNEL);
 	rpckbd = kzalloc(sizeof(*rpckbd), GFP_KERNEL);
-	if (!serio || !rpckbd) {
+
+	if (!serio || !rpckbd)
+	{
 		kfree(rpckbd);
 		kfree(serio);
 		return -ENOMEM;
@@ -163,7 +178,8 @@ static int rpckbd_remove(struct platform_device *dev)
 	return 0;
 }
 
-static struct platform_driver rpckbd_driver = {
+static struct platform_driver rpckbd_driver =
+{
 	.probe		= rpckbd_probe,
 	.remove		= rpckbd_remove,
 	.driver		= {

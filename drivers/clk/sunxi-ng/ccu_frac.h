@@ -18,7 +18,8 @@
 
 #include "ccu_common.h"
 
-struct _ccu_frac {
+struct _ccu_frac
+{
 	u32		enable;
 	u32		select;
 
@@ -28,26 +29,26 @@ struct _ccu_frac {
 #define _SUNXI_CCU_FRAC(_enable, _select, _rate1, _rate2)		\
 	{								\
 		.enable	= _enable,					\
-		.select	= _select,					\
-		.rates = { _rate1, _rate2 },				\
+				  .select	= _select,					\
+							.rates = { _rate1, _rate2 },				\
 	}
 
 bool ccu_frac_helper_is_enabled(struct ccu_common *common,
-				struct _ccu_frac *cf);
+								struct _ccu_frac *cf);
 void ccu_frac_helper_enable(struct ccu_common *common,
-			    struct _ccu_frac *cf);
+							struct _ccu_frac *cf);
 void ccu_frac_helper_disable(struct ccu_common *common,
-			     struct _ccu_frac *cf);
+							 struct _ccu_frac *cf);
 
 bool ccu_frac_helper_has_rate(struct ccu_common *common,
-			      struct _ccu_frac *cf,
-			      unsigned long rate);
+							  struct _ccu_frac *cf,
+							  unsigned long rate);
 
 unsigned long ccu_frac_helper_read_rate(struct ccu_common *common,
-					struct _ccu_frac *cf);
+										struct _ccu_frac *cf);
 
 int ccu_frac_helper_set_rate(struct ccu_common *common,
-			     struct _ccu_frac *cf,
-			     unsigned long rate);
+							 struct _ccu_frac *cf,
+							 unsigned long rate);
 
 #endif /* _CCU_FRAC_H_ */

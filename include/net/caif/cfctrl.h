@@ -10,7 +10,8 @@
 #include <net/caif/cfsrvl.h>
 
 /* CAIF Control packet commands */
-enum cfctrl_cmd {
+enum cfctrl_cmd
+{
 	CFCTRL_CMD_LINK_SETUP = 0,
 	CFCTRL_CMD_LINK_DESTROY = 1,
 	CFCTRL_CMD_LINK_ERR = 2,
@@ -25,7 +26,8 @@ enum cfctrl_cmd {
 };
 
 /* Channel types */
-enum cfctrl_srv {
+enum cfctrl_srv
+{
 	CFCTRL_SRV_DECM = 0,
 	CFCTRL_SRV_VEI = 1,
 	CFCTRL_SRV_VIDEO = 2,
@@ -39,10 +41,11 @@ enum cfctrl_srv {
 #define CFCTRL_RSP_BIT 0x20
 #define CFCTRL_ERR_BIT 0x10
 
-struct cfctrl_rsp {
+struct cfctrl_rsp
+{
 	void (*linksetup_rsp)(struct cflayer *layer, u8 linkid,
-			      enum cfctrl_srv serv, u8 phyid,
-			      struct cflayer *adapt_layer);
+						  enum cfctrl_srv serv, u8 phyid,
+						  struct cflayer *adapt_layer);
 	void (*linkdestroy_rsp)(struct cflayer *layer, u8 linkid);
 	void (*linkerror_ind)(void);
 	void (*enum_rsp)(void);
@@ -51,33 +54,39 @@ struct cfctrl_rsp {
 	void (*restart_rsp)(void);
 	void (*radioset_rsp)(void);
 	void (*reject_rsp)(struct cflayer *layer, u8 linkid,
-				struct cflayer *client_layer);
+					   struct cflayer *client_layer);
 };
 
 /* Link Setup Parameters for CAIF-Links. */
-struct cfctrl_link_param {
+struct cfctrl_link_param
+{
 	enum cfctrl_srv linktype;/* (T3,T0) Type of Channel */
 	u8 priority;		  /* (P4,P0) Priority of the channel */
 	u8 phyid;		  /* (U2-U0) Physical interface to connect */
 	u8 endpoint;		  /* (E1,E0) Endpoint for data channels */
 	u8 chtype;		  /* (H1,H0) Channel-Type, applies to
 				   *            VEI, DEBUG */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u8 connid;	/*  (D7,D0) Video LinkId */
 		} video;
 
-		struct {
+		struct
+		{
 			u32 connid;	/* (N31,Ngit0) Connection ID used
 					 *  for Datagram */
 		} datagram;
 
-		struct {
+		struct
+		{
 			u32 connid;	/* Connection ID used for RFM */
 			char volume[20];	/* Volume to mount for RFM */
 		} rfm;		/* Configuration for RFM */
 
-		struct {
+		struct
+		{
 			u16 fifosize_kb;	/* Psock FIFO size in KB */
 			u16 fifosize_bufs;	/* Psock # signal buffers */
 			char name[16];	/* Name of the PSOCK service */
@@ -89,7 +98,8 @@ struct cfctrl_link_param {
 };
 
 /* This structure is used internally in CFCTRL */
-struct cfctrl_request_info {
+struct cfctrl_request_info
+{
 	int sequence_no;
 	enum cfctrl_cmd cmd;
 	u8 channel_id;
@@ -98,7 +108,8 @@ struct cfctrl_request_info {
 	struct list_head list;
 };
 
-struct cfctrl {
+struct cfctrl
+{
 	struct cfsrvl serv;
 	struct cfctrl_rsp res;
 	atomic_t req_seq_no;
@@ -117,10 +128,10 @@ struct cfctrl {
 
 void cfctrl_enum_req(struct cflayer *cfctrl, u8 physlinkid);
 int cfctrl_linkup_request(struct cflayer *cfctrl,
-			   struct cfctrl_link_param *param,
-			   struct cflayer *user_layer);
+						  struct cfctrl_link_param *param,
+						  struct cflayer *user_layer);
 int  cfctrl_linkdown_req(struct cflayer *cfctrl, u8 linkid,
-			 struct cflayer *client);
+						 struct cflayer *client);
 
 struct cflayer *cfctrl_create(void);
 struct cfctrl_rsp *cfctrl_get_respfuncs(struct cflayer *layer);

@@ -21,7 +21,8 @@
 
 #ifdef __KERNEL__
 
-struct pcbit_chan {
+struct pcbit_chan
+{
 	unsigned short id;
 	unsigned short callref;                   /* Call Reference */
 	unsigned char  proto;                     /* layer2protocol  */
@@ -37,12 +38,14 @@ struct pcbit_chan {
 #endif
 };
 
-struct msn_entry {
+struct msn_entry
+{
 	char *msn;
 	struct msn_entry *next;
 };
 
-struct pcbit_dev {
+struct pcbit_dev
+{
 	/* board */
 
 	volatile unsigned char __iomem *sh_mem;		/* RDP address	*/
@@ -114,9 +117,12 @@ struct pcbit_dev {
 
 /* isdn_ctrl only allows a long sized argument */
 
-struct pcbit_ioctl {
-	union {
-		struct byte_op {
+struct pcbit_ioctl
+{
+	union
+	{
+		struct byte_op
+		{
 			ushort addr;
 			ushort value;
 		} rdp_byte;
@@ -141,20 +147,20 @@ struct pcbit_ioctl {
 
 #ifndef __KERNEL__
 
-#define PCBIT_GETSTAT  (PCBIT_IOCTL_GETSTAT  + IIOCDRVCTL)
-#define PCBIT_LWMODE   (PCBIT_IOCTL_LWMODE   + IIOCDRVCTL)
-#define PCBIT_STRLOAD  (PCBIT_IOCTL_STRLOAD  + IIOCDRVCTL)
-#define PCBIT_ENDLOAD  (PCBIT_IOCTL_ENDLOAD  + IIOCDRVCTL)
-#define PCBIT_SETBYTE  (PCBIT_IOCTL_SETBYTE  + IIOCDRVCTL)
-#define PCBIT_GETBYTE  (PCBIT_IOCTL_GETBYTE  + IIOCDRVCTL)
-#define PCBIT_RUNNING  (PCBIT_IOCTL_RUNNING  + IIOCDRVCTL)
-#define PCBIT_WATCH188 (PCBIT_IOCTL_WATCH188 + IIOCDRVCTL)
-#define PCBIT_PING188  (PCBIT_IOCTL_PING188  + IIOCDRVCTL)
-#define PCBIT_FWMODE   (PCBIT_IOCTL_FWMODE   + IIOCDRVCTL)
-#define PCBIT_STOP     (PCBIT_IOCTL_STOP     + IIOCDRVCTL)
-#define PCBIT_APION    (PCBIT_IOCTL_APION    + IIOCDRVCTL)
+	#define PCBIT_GETSTAT  (PCBIT_IOCTL_GETSTAT  + IIOCDRVCTL)
+	#define PCBIT_LWMODE   (PCBIT_IOCTL_LWMODE   + IIOCDRVCTL)
+	#define PCBIT_STRLOAD  (PCBIT_IOCTL_STRLOAD  + IIOCDRVCTL)
+	#define PCBIT_ENDLOAD  (PCBIT_IOCTL_ENDLOAD  + IIOCDRVCTL)
+	#define PCBIT_SETBYTE  (PCBIT_IOCTL_SETBYTE  + IIOCDRVCTL)
+	#define PCBIT_GETBYTE  (PCBIT_IOCTL_GETBYTE  + IIOCDRVCTL)
+	#define PCBIT_RUNNING  (PCBIT_IOCTL_RUNNING  + IIOCDRVCTL)
+	#define PCBIT_WATCH188 (PCBIT_IOCTL_WATCH188 + IIOCDRVCTL)
+	#define PCBIT_PING188  (PCBIT_IOCTL_PING188  + IIOCDRVCTL)
+	#define PCBIT_FWMODE   (PCBIT_IOCTL_FWMODE   + IIOCDRVCTL)
+	#define PCBIT_STOP     (PCBIT_IOCTL_STOP     + IIOCDRVCTL)
+	#define PCBIT_APION    (PCBIT_IOCTL_APION    + IIOCDRVCTL)
 
-#define MAXSUPERLINE 3000
+	#define MAXSUPERLINE 3000
 
 #endif
 
@@ -170,8 +176,8 @@ void pcbit_deliver(struct work_struct *work);
 int pcbit_init_dev(int board, int mem_base, int irq);
 void pcbit_terminate(int board);
 void pcbit_l3_receive(struct pcbit_dev *dev, ulong msg, struct sk_buff *skb,
-		      ushort hdr_len, ushort refnum);
+					  ushort hdr_len, ushort refnum);
 void pcbit_state_change(struct pcbit_dev *dev, struct pcbit_chan *chan,
-			unsigned short i, unsigned short ev, unsigned short f);
+						unsigned short i, unsigned short ev, unsigned short f);
 
 #endif

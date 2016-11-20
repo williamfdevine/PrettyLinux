@@ -31,7 +31,8 @@
  * This is the original minix inode layout on disk.
  * Note the 8-bit gid and atime and ctime.
  */
-struct minix_inode {
+struct minix_inode
+{
 	__u16 i_mode;
 	__u16 i_uid;
 	__u32 i_size;
@@ -47,7 +48,8 @@ struct minix_inode {
  * instead of 7+1+1). Also, some previously 8-bit values are
  * now 16-bit. The inode is now 64 bytes instead of 32.
  */
-struct minix2_inode {
+struct minix2_inode
+{
 	__u16 i_mode;
 	__u16 i_nlinks;
 	__u16 i_uid;
@@ -62,7 +64,8 @@ struct minix2_inode {
 /*
  * minix super-block data on disk
  */
-struct minix_super_block {
+struct minix_super_block
+{
 	__u16 s_ninodes;
 	__u16 s_nzones;
 	__u16 s_imap_blocks;
@@ -78,7 +81,8 @@ struct minix_super_block {
 /*
  * V3 minix super-block data on disk
  */
-struct minix3_super_block {
+struct minix3_super_block
+{
 	__u32 s_ninodes;
 	__u16 s_pad0;
 	__u16 s_imap_blocks;
@@ -94,12 +98,14 @@ struct minix3_super_block {
 	__u8  s_disk_version;
 };
 
-struct minix_dir_entry {
+struct minix_dir_entry
+{
 	__u16 inode;
 	char name[0];
 };
 
-struct minix3_dir_entry {
+struct minix3_dir_entry
+{
 	__u32 inode;
 	char name[0];
 };

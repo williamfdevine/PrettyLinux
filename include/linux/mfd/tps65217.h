@@ -195,7 +195,8 @@
 #define TPS65217_PROTECT_L2		2
 
 
-enum tps65217_regulator_id {
+enum tps65217_regulator_id
+{
 	/* DCDC's */
 	TPS65217_DCDC_1,
 	TPS65217_DCDC_2,
@@ -216,25 +217,29 @@ enum tps65217_regulator_id {
 /* Number of total regulators available */
 #define TPS65217_NUM_REGULATOR		(TPS65217_NUM_DCDC + TPS65217_NUM_LDO)
 
-enum tps65217_bl_isel {
+enum tps65217_bl_isel
+{
 	TPS65217_BL_ISET1 = 1,
 	TPS65217_BL_ISET2,
 };
 
-enum tps65217_bl_fdim {
+enum tps65217_bl_fdim
+{
 	TPS65217_BL_FDIM_100HZ,
 	TPS65217_BL_FDIM_200HZ,
 	TPS65217_BL_FDIM_500HZ,
 	TPS65217_BL_FDIM_1000HZ,
 };
 
-struct tps65217_bl_pdata {
+struct tps65217_bl_pdata
+{
 	enum tps65217_bl_isel isel;
 	enum tps65217_bl_fdim fdim;
 	int dft_brightness;
 };
 
-enum tps65217_irq_type {
+enum tps65217_irq_type
+{
 	TPS65217_IRQ_PB,
 	TPS65217_IRQ_AC,
 	TPS65217_IRQ_USB,
@@ -247,7 +252,8 @@ enum tps65217_irq_type {
  *
  * Board data may be used to initialize regulator.
  */
-struct tps65217_board {
+struct tps65217_board
+{
 	struct regulator_init_data *tps65217_init_data[TPS65217_NUM_REGULATOR];
 	struct device_node *of_node[TPS65217_NUM_REGULATOR];
 	struct tps65217_bl_pdata *bl_pdata;
@@ -259,7 +265,8 @@ struct tps65217_board {
  * Device data may be used to access the TPS65217 chip
  */
 
-struct tps65217 {
+struct tps65217
+{
 	struct device *dev;
 	struct tps65217_board *pdata;
 	unsigned long id;
@@ -283,12 +290,12 @@ static inline unsigned long tps65217_chip_id(struct tps65217 *tps65217)
 }
 
 int tps65217_reg_read(struct tps65217 *tps, unsigned int reg,
-					unsigned int *val);
+					  unsigned int *val);
 int tps65217_reg_write(struct tps65217 *tps, unsigned int reg,
-			unsigned int val, unsigned int level);
+					   unsigned int val, unsigned int level);
 int tps65217_set_bits(struct tps65217 *tps, unsigned int reg,
-		unsigned int mask, unsigned int val, unsigned int level);
+					  unsigned int mask, unsigned int val, unsigned int level);
 int tps65217_clear_bits(struct tps65217 *tps, unsigned int reg,
-		unsigned int mask, unsigned int level);
+						unsigned int mask, unsigned int level);
 
 #endif /*  __LINUX_MFD_TPS65217_H */

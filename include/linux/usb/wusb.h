@@ -42,12 +42,14 @@
  * I don't know why, they decided to make it different to the MBOA MAC
  * IE Header; beats me.
  */
-struct wuie_hdr {
+struct wuie_hdr
+{
 	u8 bLength;
 	u8 bIEIdentifier;
 } __attribute__((packed));
 
-enum {
+enum
+{
 	WUIE_ID_WCTA = 0x80,
 	WUIE_ID_CONNECTACK,
 	WUIE_ID_HOST_INFO,
@@ -76,7 +78,8 @@ enum {
  *
  * Make it packed, as we use it in some hw definitions.
  */
-struct wusb_ckhdid {
+struct wusb_ckhdid
+{
 	u8 data[16];
 } __attribute__((packed));
 
@@ -90,7 +93,8 @@ static const struct wusb_ckhdid wusb_ckhdid_zero = { .data = { 0 } };
  * Used to provide information about the host to the Wireless USB
  * devices in range (CHID can be used as an ASCII string).
  */
-struct wuie_host_info {
+struct wuie_host_info
+{
 	struct wuie_hdr hdr;
 	__le16 attributes;
 	struct wusb_ckhdid CHID;
@@ -102,9 +106,11 @@ struct wuie_host_info {
  * Used to acknowledge device connect requests. See note for
  * WUIE_ELT_MAX.
  */
-struct wuie_connect_ack {
+struct wuie_connect_ack
+{
 	struct wuie_hdr hdr;
-	struct {
+	struct
+	{
 		struct wusb_ckhdid CDID;
 		u8 bDeviceAddress;	/* 0 means unused */
 		u8 bReserved;
@@ -116,7 +122,8 @@ struct wuie_connect_ack {
  *
  * WUSB1.0[7.5.2], bmAttributes description
  */
-enum {
+enum
+{
 	WUIE_HI_CAP_RECONNECT = 0,
 	WUIE_HI_CAP_LIMITED,
 	WUIE_HI_CAP_RESERVED,
@@ -128,7 +135,8 @@ enum {
  *
  * Tells devices the host is going to stop sending MMCs and will disappear.
  */
-struct wuie_channel_stop {
+struct wuie_channel_stop
+{
 	struct wuie_hdr hdr;
 	u8 attributes;
 	u8 timestamp[3];
@@ -139,7 +147,8 @@ struct wuie_channel_stop {
  *
  * Ask device(s) to send keepalives.
  */
-struct wuie_keep_alive {
+struct wuie_keep_alive
+{
 	struct wuie_hdr hdr;
 	u8 bDeviceAddress[WUIE_ELT_MAX];
 } __attribute__((packed));
@@ -153,7 +162,8 @@ struct wuie_keep_alive {
  * In any case, this request is a wee bit silly: why don't they target
  * by address??
  */
-struct wuie_reset {
+struct wuie_reset
+{
 	struct wuie_hdr hdr;
 	struct wusb_ckhdid CDID;
 } __attribute__((packed));
@@ -164,7 +174,8 @@ struct wuie_reset {
  * Tell device to disconnect; we can fit 4 addresses, but we only use
  * it for one at the time...
  */
-struct wuie_disconnect {
+struct wuie_disconnect
+{
 	struct wuie_hdr hdr;
 	u8 bDeviceAddress;
 	u8 padding;
@@ -175,20 +186,23 @@ struct wuie_disconnect {
  *
  * Tells all connected devices to disconnect.
  */
-struct wuie_host_disconnect {
+struct wuie_host_disconnect
+{
 	struct wuie_hdr hdr;
 } __attribute__((packed));
 
 /**
  * WUSB Device Notification header (WUSB1.0[7.6])
  */
-struct wusb_dn_hdr {
+struct wusb_dn_hdr
+{
 	u8 bType;
 	u8 notifdata[];
 } __attribute__((packed));
 
 /** Device Notification codes (WUSB1.0[Table 7-54]) */
-enum WUSB_DN {
+enum WUSB_DN
+{
 	WUSB_DN_CONNECT = 0x01,
 	WUSB_DN_DISCONNECT = 0x02,
 	WUSB_DN_EPRDY = 0x03,
@@ -199,7 +213,8 @@ enum WUSB_DN {
 };
 
 /** WUSB Device Notification Connect */
-struct wusb_dn_connect {
+struct wusb_dn_connect
+{
 	struct wusb_dn_hdr hdr;
 	__le16 attributes;
 	struct wusb_ckhdid CDID;
@@ -221,34 +236,37 @@ static inline int wusb_dn_connect_beacon_behavior(const struct wusb_dn_connect *
 }
 
 /** Device is alive (aka: pong) (WUSB1.0[7.6.7]) */
-struct wusb_dn_alive {
+struct wusb_dn_alive
+{
 	struct wusb_dn_hdr hdr;
 } __attribute__((packed));
 
 /** Device is disconnecting (WUSB1.0[7.6.2]) */
-struct wusb_dn_disconnect {
+struct wusb_dn_disconnect
+{
 	struct wusb_dn_hdr hdr;
 } __attribute__((packed));
 
 /* General constants */
-enum {
+enum
+{
 	WUSB_TRUST_TIMEOUT_MS = 4000,	/* [WUSB] section 4.15.1 */
 };
 
 static inline size_t ckhdid_printf(char *pr_ckhdid, size_t size,
-				   const struct wusb_ckhdid *ckhdid)
+								   const struct wusb_ckhdid *ckhdid)
 {
 	return scnprintf(pr_ckhdid, size,
-			 "%02hx %02hx %02hx %02hx %02hx %02hx %02hx %02hx "
-			 "%02hx %02hx %02hx %02hx %02hx %02hx %02hx %02hx",
-			 ckhdid->data[0],  ckhdid->data[1],
-			 ckhdid->data[2],  ckhdid->data[3],
-			 ckhdid->data[4],  ckhdid->data[5],
-			 ckhdid->data[6],  ckhdid->data[7],
-			 ckhdid->data[8],  ckhdid->data[9],
-			 ckhdid->data[10], ckhdid->data[11],
-			 ckhdid->data[12], ckhdid->data[13],
-			 ckhdid->data[14], ckhdid->data[15]);
+					 "%02hx %02hx %02hx %02hx %02hx %02hx %02hx %02hx "
+					 "%02hx %02hx %02hx %02hx %02hx %02hx %02hx %02hx",
+					 ckhdid->data[0],  ckhdid->data[1],
+					 ckhdid->data[2],  ckhdid->data[3],
+					 ckhdid->data[4],  ckhdid->data[5],
+					 ckhdid->data[6],  ckhdid->data[7],
+					 ckhdid->data[8],  ckhdid->data[9],
+					 ckhdid->data[10], ckhdid->data[11],
+					 ckhdid->data[12], ckhdid->data[13],
+					 ckhdid->data[14], ckhdid->data[15]);
 }
 
 /*
@@ -275,7 +293,8 @@ static inline u8 wusb_key_index(int index, int type, int originator)
 #define WUSB_KEY_INDEX_MAX			15
 
 /* A CCM Nonce, defined in WUSB1.0[6.4.1] */
-struct aes_ccm_nonce {
+struct aes_ccm_nonce
+{
 	u8 sfn[6];              /* Little Endian */
 	u8 tkid[3];             /* LE */
 	struct uwb_dev_addr dest_addr;
@@ -283,7 +302,8 @@ struct aes_ccm_nonce {
 } __attribute__((packed));
 
 /* A CCM operation label, defined on WUSB1.0[6.5.x] */
-struct aes_ccm_label {
+struct aes_ccm_label
+{
 	u8 data[14];
 } __attribute__((packed));
 
@@ -292,7 +312,8 @@ struct aes_ccm_label {
  * WUSB1.0[6.5.1]. Rest of the data is in the CCM Nonce passed to the
  * PRF function.
  */
-struct wusb_keydvt_in {
+struct wusb_keydvt_in
+{
 	u8 hnonce[16];
 	u8 dnonce[16];
 } __attribute__((packed));
@@ -301,7 +322,8 @@ struct wusb_keydvt_in {
  * Output from the key derivation sequence defined in
  * WUSB1.0[6.5.1].
  */
-struct wusb_keydvt_out {
+struct wusb_keydvt_out
+{
 	u8 kck[16];
 	u8 ptk[16];
 } __attribute__((packed));
@@ -310,43 +332,43 @@ struct wusb_keydvt_out {
 extern int wusb_crypto_init(void);
 extern void wusb_crypto_exit(void);
 extern ssize_t wusb_prf(void *out, size_t out_size,
-			const u8 key[16], const struct aes_ccm_nonce *_n,
-			const struct aes_ccm_label *a,
-			const void *b, size_t blen, size_t len);
+						const u8 key[16], const struct aes_ccm_nonce *_n,
+						const struct aes_ccm_label *a,
+						const void *b, size_t blen, size_t len);
 
 static inline int wusb_prf_64(void *out, size_t out_size, const u8 key[16],
-			      const struct aes_ccm_nonce *n,
-			      const struct aes_ccm_label *a,
-			      const void *b, size_t blen)
+							  const struct aes_ccm_nonce *n,
+							  const struct aes_ccm_label *a,
+							  const void *b, size_t blen)
 {
 	return wusb_prf(out, out_size, key, n, a, b, blen, 64);
 }
 
 static inline int wusb_prf_128(void *out, size_t out_size, const u8 key[16],
-			       const struct aes_ccm_nonce *n,
-			       const struct aes_ccm_label *a,
-			       const void *b, size_t blen)
+							   const struct aes_ccm_nonce *n,
+							   const struct aes_ccm_label *a,
+							   const void *b, size_t blen)
 {
 	return wusb_prf(out, out_size, key, n, a, b, blen, 128);
 }
 
 static inline int wusb_prf_256(void *out, size_t out_size, const u8 key[16],
-			       const struct aes_ccm_nonce *n,
-			       const struct aes_ccm_label *a,
-			       const void *b, size_t blen)
+							   const struct aes_ccm_nonce *n,
+							   const struct aes_ccm_label *a,
+							   const void *b, size_t blen)
 {
 	return wusb_prf(out, out_size, key, n, a, b, blen, 256);
 }
 
 /* Key derivation WUSB1.0[6.5.1] */
 static inline int wusb_key_derive(struct wusb_keydvt_out *keydvt_out,
-				  const u8 key[16],
-				  const struct aes_ccm_nonce *n,
-				  const struct wusb_keydvt_in *keydvt_in)
+								  const u8 key[16],
+								  const struct aes_ccm_nonce *n,
+								  const struct wusb_keydvt_in *keydvt_in)
 {
 	const struct aes_ccm_label a = { .data = "Pair-wise keys" };
 	return wusb_prf_256(keydvt_out, sizeof(*keydvt_out), key, n, &a,
-			    keydvt_in, sizeof(*keydvt_in));
+						keydvt_in, sizeof(*keydvt_in));
 }
 
 /*
@@ -366,12 +388,12 @@ static inline int wusb_key_derive(struct wusb_keydvt_out *keydvt_out,
  *            hs->mic is ignored (as we compute that value).
  */
 static inline int wusb_oob_mic(u8 mic_out[8], const u8 key[16],
-			       const struct aes_ccm_nonce *n,
-			       const struct usb_handshake *hs)
+							   const struct aes_ccm_nonce *n,
+							   const struct usb_handshake *hs)
 {
 	const struct aes_ccm_label a = { .data = "out-of-bandMIC" };
 	return wusb_prf_64(mic_out, 8, key, n, &a,
-			   hs, sizeof(*hs) - sizeof(hs->MIC));
+					   hs, sizeof(*hs) - sizeof(hs->MIC));
 }
 
 #endif /* #ifndef __WUSB_H__ */

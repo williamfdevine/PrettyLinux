@@ -1,7 +1,8 @@
 #ifndef AMBA_PL011_H
 #define AMBA_PL011_H
 
-enum {
+enum
+{
 	REG_DR,
 	REG_ST_DMAWM,
 	REG_ST_TIMEOUT,

@@ -11,7 +11,8 @@
 /**
  * struct ux500_wdt_data
  */
-struct ux500_wdt_data {
+struct ux500_wdt_data
+{
 	unsigned int timeout;
 	bool has_28_bits_resolution;
 };

@@ -25,15 +25,16 @@
 #define __ASOC_MCBSP_H
 
 #ifdef CONFIG_ARCH_OMAP1
-#define mcbsp_omap1()	1
+	#define mcbsp_omap1()	1
 #else
-#define mcbsp_omap1()	0
+	#define mcbsp_omap1()	0
 #endif
 
 #include <sound/dmaengine_pcm.h>
 
 /* McBSP register numbers. Register address offset = num * reg_step */
-enum {
+enum
+{
 	/* Common registers */
 	OMAP_MCBSP_REG_SPCR2 = 4,
 	OMAP_MCBSP_REG_SPCR1,
@@ -250,7 +251,8 @@ enum {
 #define MCBSP_CLKS_PAD_SRC	1
 
 /* we don't do multichannel for now */
-struct omap_mcbsp_reg_cfg {
+struct omap_mcbsp_reg_cfg
+{
 	u16 spcr2;
 	u16 spcr1;
 	u16 rcr2;
@@ -278,7 +280,8 @@ struct omap_mcbsp_reg_cfg {
 	u16 rccr;
 };
 
-struct omap_mcbsp_st_data {
+struct omap_mcbsp_st_data
+{
 	void __iomem *io_base_st;
 	struct clk *mcbsp_iclk;
 	bool running;
@@ -289,7 +292,8 @@ struct omap_mcbsp_st_data {
 	s16 ch1gain;
 };
 
-struct omap_mcbsp {
+struct omap_mcbsp
+{
 	struct device *dev;
 	struct clk *fclk;
 	spinlock_t lock;
@@ -328,7 +332,7 @@ struct omap_mcbsp {
 };
 
 void omap_mcbsp_config(struct omap_mcbsp *mcbsp,
-		       const struct omap_mcbsp_reg_cfg *config);
+					   const struct omap_mcbsp_reg_cfg *config);
 void omap_mcbsp_set_tx_threshold(struct omap_mcbsp *mcbsp, u16 threshold);
 void omap_mcbsp_set_rx_threshold(struct omap_mcbsp *mcbsp, u16 threshold);
 u16 omap_mcbsp_get_tx_delay(struct omap_mcbsp *mcbsp);

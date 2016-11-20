@@ -49,33 +49,38 @@
 /* DA9055 BUCK current limit */
 static const int da9055_current_limits[] = { 500000, 600000, 700000, 800000 };
 
-struct da9055_conf_reg {
+struct da9055_conf_reg
+{
 	int reg;
 	int sel_mask;
 	int en_mask;
 };
 
-struct da9055_volt_reg {
+struct da9055_volt_reg
+{
 	int reg_a;
 	int reg_b;
 	int sl_shift;
 	int v_mask;
 };
 
-struct da9055_mode_reg {
+struct da9055_mode_reg
+{
 	int reg;
 	int mask;
 	int shift;
 };
 
-struct da9055_regulator_info {
+struct da9055_regulator_info
+{
 	struct regulator_desc reg_desc;
 	struct da9055_conf_reg conf;
 	struct da9055_volt_reg volt;
 	struct da9055_mode_reg mode;
 };
 
-struct da9055_regulator {
+struct da9055_regulator
+{
 	struct da9055 *da9055;
 	struct da9055_regulator_info *info;
 	struct regulator_dev *rdev;
@@ -89,45 +94,54 @@ static unsigned int da9055_buck_get_mode(struct regulator_dev *rdev)
 	int ret, mode = 0;
 
 	ret = da9055_reg_read(regulator->da9055, info->mode.reg);
-	if (ret < 0)
-		return ret;
 
-	switch ((ret & info->mode.mask) >> info->mode.shift) {
-	case DA9055_BUCK_MODE_SYNC:
-		mode = REGULATOR_MODE_FAST;
-		break;
-	case DA9055_BUCK_MODE_AUTO:
-		mode = REGULATOR_MODE_NORMAL;
-		break;
-	case DA9055_BUCK_MODE_SLEEP:
-		mode = REGULATOR_MODE_STANDBY;
-		break;
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	switch ((ret & info->mode.mask) >> info->mode.shift)
+	{
+		case DA9055_BUCK_MODE_SYNC:
+			mode = REGULATOR_MODE_FAST;
+			break;
+
+		case DA9055_BUCK_MODE_AUTO:
+			mode = REGULATOR_MODE_NORMAL;
+			break;
+
+		case DA9055_BUCK_MODE_SLEEP:
+			mode = REGULATOR_MODE_STANDBY;
+			break;
 	}
 
 	return mode;
 }
 
 static int da9055_buck_set_mode(struct regulator_dev *rdev,
-					unsigned int mode)
+								unsigned int mode)
 {
 	struct da9055_regulator *regulator = rdev_get_drvdata(rdev);
 	struct da9055_regulator_info *info = regulator->info;
 	int val = 0;
 
-	switch (mode) {
-	case REGULATOR_MODE_FAST:
-		val = DA9055_BUCK_MODE_SYNC << info->mode.shift;
-		break;
-	case REGULATOR_MODE_NORMAL:
-		val = DA9055_BUCK_MODE_AUTO << info->mode.shift;
-		break;
-	case REGULATOR_MODE_STANDBY:
-		val = DA9055_BUCK_MODE_SLEEP << info->mode.shift;
-		break;
+	switch (mode)
+	{
+		case REGULATOR_MODE_FAST:
+			val = DA9055_BUCK_MODE_SYNC << info->mode.shift;
+			break;
+
+		case REGULATOR_MODE_NORMAL:
+			val = DA9055_BUCK_MODE_AUTO << info->mode.shift;
+			break;
+
+		case REGULATOR_MODE_STANDBY:
+			val = DA9055_BUCK_MODE_SLEEP << info->mode.shift;
+			break;
 	}
 
 	return da9055_reg_update(regulator->da9055, info->mode.reg,
-				 info->mode.mask, val);
+							 info->mode.mask, val);
 }
 
 static unsigned int da9055_ldo_get_mode(struct regulator_dev *rdev)
@@ -137,13 +151,20 @@ static unsigned int da9055_ldo_get_mode(struct regulator_dev *rdev)
 	int ret;
 
 	ret = da9055_reg_read(regulator->da9055, info->volt.reg_b);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (ret >> info->volt.sl_shift)
+	{
 		return REGULATOR_MODE_STANDBY;
+	}
 	else
+	{
 		return REGULATOR_MODE_NORMAL;
+	}
 }
 
 static int da9055_ldo_set_mode(struct regulator_dev *rdev, unsigned int mode)
@@ -153,19 +174,21 @@ static int da9055_ldo_set_mode(struct regulator_dev *rdev, unsigned int mode)
 	struct da9055_volt_reg volt = info->volt;
 	int val = 0;
 
-	switch (mode) {
-	case REGULATOR_MODE_NORMAL:
-	case REGULATOR_MODE_FAST:
-		val = DA9055_LDO_MODE_SYNC;
-		break;
-	case REGULATOR_MODE_STANDBY:
-		val = DA9055_LDO_MODE_SLEEP;
-		break;
+	switch (mode)
+	{
+		case REGULATOR_MODE_NORMAL:
+		case REGULATOR_MODE_FAST:
+			val = DA9055_LDO_MODE_SYNC;
+			break;
+
+		case REGULATOR_MODE_STANDBY:
+			val = DA9055_LDO_MODE_SLEEP;
+			break;
 	}
 
 	return da9055_reg_update(regulator->da9055, volt.reg_b,
-				 1 << volt.sl_shift,
-				 val << volt.sl_shift);
+							 1 << volt.sl_shift,
+							 val << volt.sl_shift);
 }
 
 static int da9055_buck_get_current_limit(struct regulator_dev *rdev)
@@ -175,27 +198,31 @@ static int da9055_buck_get_current_limit(struct regulator_dev *rdev)
 	int ret;
 
 	ret = da9055_reg_read(regulator->da9055, DA9055_REG_BUCK_LIM);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret &= info->mode.mask;
 	return da9055_current_limits[ret >> info->mode.shift];
 }
 
 static int da9055_buck_set_current_limit(struct regulator_dev *rdev, int min_uA,
-					 int max_uA)
+		int max_uA)
 {
 	struct da9055_regulator *regulator = rdev_get_drvdata(rdev);
 	struct da9055_regulator_info *info = regulator->info;
 	int i;
 
-	for (i = ARRAY_SIZE(da9055_current_limits) - 1; i >= 0; i--) {
+	for (i = ARRAY_SIZE(da9055_current_limits) - 1; i >= 0; i--)
+	{
 		if ((min_uA <= da9055_current_limits[i]) &&
-		    (da9055_current_limits[i] <= max_uA))
+			(da9055_current_limits[i] <= max_uA))
 			return da9055_reg_update(regulator->da9055,
-						 DA9055_REG_BUCK_LIM,
-						 info->mode.mask,
-						 i << info->mode.shift);
+									 DA9055_REG_BUCK_LIM,
+									 info->mode.mask,
+									 i << info->mode.shift);
 	}
 
 	return -EINVAL;
@@ -214,26 +241,35 @@ static int da9055_regulator_get_voltage_sel(struct regulator_dev *rdev)
 	 * the active register set.
 	 */
 	ret = da9055_reg_read(regulator->da9055, info->conf.reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret &= info->conf.sel_mask;
 
 	/* Get the voltage for the active register set A/B */
 	if (ret == DA9055_REGUALTOR_SET_A)
+	{
 		ret = da9055_reg_read(regulator->da9055, volt.reg_a);
+	}
 	else
+	{
 		ret = da9055_reg_read(regulator->da9055, volt.reg_b);
+	}
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	sel = (ret & volt.v_mask);
 	return sel;
 }
 
 static int da9055_regulator_set_voltage_sel(struct regulator_dev *rdev,
-					    unsigned int selector)
+		unsigned int selector)
 {
 	struct da9055_regulator *regulator = rdev_get_drvdata(rdev);
 	struct da9055_regulator_info *info = regulator->info;
@@ -243,16 +279,20 @@ static int da9055_regulator_set_voltage_sel(struct regulator_dev *rdev,
 	 * Regulator register set A/B is not selected through GPIO therefore
 	 * we use default register set A for voltage ramping.
 	 */
-	if (regulator->reg_rselect == NO_GPIO) {
+	if (regulator->reg_rselect == NO_GPIO)
+	{
 		/* Select register set A */
 		ret = da9055_reg_update(regulator->da9055, info->conf.reg,
-					info->conf.sel_mask, DA9055_SEL_REG_A);
+								info->conf.sel_mask, DA9055_SEL_REG_A);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		/* Set the voltage */
 		return da9055_reg_update(regulator->da9055, info->volt.reg_a,
-					 info->volt.v_mask, selector);
+								 info->volt.v_mask, selector);
 	}
 
 	/*
@@ -261,41 +301,51 @@ static int da9055_regulator_set_voltage_sel(struct regulator_dev *rdev,
 	 * then set the desired voltage for that register set A/B.
 	 */
 	ret = da9055_reg_read(regulator->da9055, info->conf.reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret &= info->conf.sel_mask;
 
 	/* Set the voltage */
 	if (ret == DA9055_REGUALTOR_SET_A)
 		return da9055_reg_update(regulator->da9055, info->volt.reg_a,
-					 info->volt.v_mask, selector);
+								 info->volt.v_mask, selector);
 	else
 		return da9055_reg_update(regulator->da9055, info->volt.reg_b,
-					 info->volt.v_mask, selector);
+								 info->volt.v_mask, selector);
 }
 
 static int da9055_regulator_set_suspend_voltage(struct regulator_dev *rdev,
-						int uV)
+		int uV)
 {
 	struct da9055_regulator *regulator = rdev_get_drvdata(rdev);
 	struct da9055_regulator_info *info = regulator->info;
 	int ret;
 
 	/* Select register set B for suspend voltage ramping. */
-	if (regulator->reg_rselect == NO_GPIO) {
+	if (regulator->reg_rselect == NO_GPIO)
+	{
 		ret = da9055_reg_update(regulator->da9055, info->conf.reg,
-					info->conf.sel_mask, DA9055_SEL_REG_B);
+								info->conf.sel_mask, DA9055_SEL_REG_B);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	ret = regulator_map_voltage_linear(rdev, uV, uV);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return da9055_reg_update(regulator->da9055, info->volt.reg_b,
-				 info->volt.v_mask, ret);
+							 info->volt.v_mask, ret);
 }
 
 static int da9055_suspend_enable(struct regulator_dev *rdev)
@@ -306,9 +356,11 @@ static int da9055_suspend_enable(struct regulator_dev *rdev)
 	/* Select register set B for voltage ramping. */
 	if (regulator->reg_rselect == NO_GPIO)
 		return da9055_reg_update(regulator->da9055, info->conf.reg,
-					info->conf.sel_mask, DA9055_SEL_REG_B);
+								 info->conf.sel_mask, DA9055_SEL_REG_B);
 	else
+	{
 		return 0;
+	}
 }
 
 static int da9055_suspend_disable(struct regulator_dev *rdev)
@@ -319,12 +371,15 @@ static int da9055_suspend_disable(struct regulator_dev *rdev)
 	/* Diselect register set B. */
 	if (regulator->reg_rselect == NO_GPIO)
 		return da9055_reg_update(regulator->da9055, info->conf.reg,
-					info->conf.sel_mask, DA9055_SEL_REG_A);
+								 info->conf.sel_mask, DA9055_SEL_REG_A);
 	else
+	{
 		return 0;
+	}
 }
 
-static const struct regulator_ops da9055_buck_ops = {
+static const struct regulator_ops da9055_buck_ops =
+{
 	.get_mode = da9055_buck_get_mode,
 	.set_mode = da9055_buck_set_mode,
 
@@ -345,7 +400,8 @@ static const struct regulator_ops da9055_buck_ops = {
 	.set_suspend_mode = da9055_buck_set_mode,
 };
 
-static const struct regulator_ops da9055_ldo_ops = {
+static const struct regulator_ops da9055_ldo_ops =
+{
 	.get_mode = da9055_ldo_get_mode,
 	.set_mode = da9055_ldo_set_mode,
 
@@ -365,67 +421,68 @@ static const struct regulator_ops da9055_ldo_ops = {
 };
 
 #define DA9055_LDO(_id, step, min, max, vbits, voffset) \
-{\
-	.reg_desc = {\
-		.name = #_id,\
-		.ops = &da9055_ldo_ops,\
-		.type = REGULATOR_VOLTAGE,\
-		.id = DA9055_ID_##_id,\
-		.n_voltages = (max - min) / step + 1 + (voffset), \
-		.enable_reg = DA9055_REG_BCORE_CONT + DA9055_ID_##_id, \
-		.enable_mask = 1, \
-		.min_uV = (min) * 1000,\
-		.uV_step = (step) * 1000,\
-		.linear_min_sel = (voffset),\
-		.owner = THIS_MODULE,\
-	},\
-	.conf = {\
-		.reg = DA9055_REG_BCORE_CONT + DA9055_ID_##_id, \
-		.sel_mask = (1 << 4),\
-		.en_mask = 1,\
-	},\
-	.volt = {\
-		.reg_a = DA9055_REG_VBCORE_A + DA9055_ID_##_id, \
-		.reg_b = DA9055_REG_VBCORE_B + DA9055_ID_##_id, \
-		.sl_shift = 7,\
-		.v_mask = (1 << (vbits)) - 1,\
-	},\
-}
+	{\
+		.reg_desc = {\
+					 .name = #_id,\
+					 .ops = &da9055_ldo_ops,\
+					 .type = REGULATOR_VOLTAGE,\
+					 .id = DA9055_ID_##_id,\
+					 .n_voltages = (max - min) / step + 1 + (voffset), \
+					 .enable_reg = DA9055_REG_BCORE_CONT + DA9055_ID_##_id, \
+					 .enable_mask = 1, \
+					 .min_uV = (min) * 1000,\
+					 .uV_step = (step) * 1000,\
+					 .linear_min_sel = (voffset),\
+					 .owner = THIS_MODULE,\
+					},\
+					.conf = {\
+							 .reg = DA9055_REG_BCORE_CONT + DA9055_ID_##_id, \
+							 .sel_mask = (1 << 4),\
+							 .en_mask = 1,\
+							},\
+							.volt = {\
+									 .reg_a = DA9055_REG_VBCORE_A + DA9055_ID_##_id, \
+									 .reg_b = DA9055_REG_VBCORE_B + DA9055_ID_##_id, \
+									 .sl_shift = 7,\
+									 .v_mask = (1 << (vbits)) - 1,\
+									},\
+	}
 
 #define DA9055_BUCK(_id, step, min, max, vbits, voffset, mbits, sbits) \
-{\
-	.reg_desc = {\
-		.name = #_id,\
-		.ops = &da9055_buck_ops,\
-		.type = REGULATOR_VOLTAGE,\
-		.id = DA9055_ID_##_id,\
-		.n_voltages = (max - min) / step + 1 + (voffset), \
-		.enable_reg = DA9055_REG_BCORE_CONT + DA9055_ID_##_id, \
-		.enable_mask = 1,\
-		.min_uV = (min) * 1000,\
-		.uV_step = (step) * 1000,\
-		.linear_min_sel = (voffset),\
-		.owner = THIS_MODULE,\
-	},\
-	.conf = {\
-		.reg = DA9055_REG_BCORE_CONT + DA9055_ID_##_id, \
-		.sel_mask = (1 << 4),\
-		.en_mask = 1,\
-	},\
-	.volt = {\
-		.reg_a = DA9055_REG_VBCORE_A + DA9055_ID_##_id, \
-		.reg_b = DA9055_REG_VBCORE_B + DA9055_ID_##_id, \
-		.sl_shift = 7,\
-		.v_mask = (1 << (vbits)) - 1,\
-	},\
-	.mode = {\
-		.reg = DA9055_REG_BCORE_MODE,\
-		.mask = (mbits),\
-		.shift = (sbits),\
-	},\
-}
+	{\
+		.reg_desc = {\
+					 .name = #_id,\
+					 .ops = &da9055_buck_ops,\
+					 .type = REGULATOR_VOLTAGE,\
+					 .id = DA9055_ID_##_id,\
+					 .n_voltages = (max - min) / step + 1 + (voffset), \
+					 .enable_reg = DA9055_REG_BCORE_CONT + DA9055_ID_##_id, \
+					 .enable_mask = 1,\
+					 .min_uV = (min) * 1000,\
+					 .uV_step = (step) * 1000,\
+					 .linear_min_sel = (voffset),\
+					 .owner = THIS_MODULE,\
+					},\
+					.conf = {\
+							 .reg = DA9055_REG_BCORE_CONT + DA9055_ID_##_id, \
+							 .sel_mask = (1 << 4),\
+							 .en_mask = 1,\
+							},\
+							.volt = {\
+									 .reg_a = DA9055_REG_VBCORE_A + DA9055_ID_##_id, \
+									 .reg_b = DA9055_REG_VBCORE_B + DA9055_ID_##_id, \
+									 .sl_shift = 7,\
+									 .v_mask = (1 << (vbits)) - 1,\
+									},\
+									.mode = {\
+											 .reg = DA9055_REG_BCORE_MODE,\
+											 .mask = (mbits),\
+											 .shift = (sbits),\
+											},\
+	}
 
-static struct da9055_regulator_info da9055_regulator_info[] = {
+static struct da9055_regulator_info da9055_regulator_info[] =
+{
 	DA9055_BUCK(BUCK1, 25, 725, 2075, 6, 9, 0xc, 2),
 	DA9055_BUCK(BUCK2, 25, 925, 2500, 6, 0, 3, 0),
 	DA9055_LDO(LDO1, 50, 900, 3300, 6, 2),
@@ -442,16 +499,19 @@ static struct da9055_regulator_info da9055_regulator_info[] = {
  * set A/B for voltage ramping.
  */
 static int da9055_gpio_init(struct da9055_regulator *regulator,
-			    struct regulator_config *config,
-			    struct da9055_pdata *pdata, int id)
+							struct regulator_config *config,
+							struct da9055_pdata *pdata, int id)
 {
 	struct da9055_regulator_info *info = regulator->info;
 	int ret = 0;
 
 	if (!pdata)
+	{
 		return 0;
+	}
 
-	if (pdata->gpio_ren && pdata->gpio_ren[id]) {
+	if (pdata->gpio_ren && pdata->gpio_ren[id])
+	{
 		char name[18];
 		int gpio_mux = pdata->gpio_ren[id];
 
@@ -465,23 +525,30 @@ static int da9055_gpio_init(struct da9055_regulator *regulator,
 		 */
 		sprintf(name, "DA9055 GPI %d", gpio_mux);
 		ret = devm_gpio_request_one(config->dev, gpio_mux, GPIOF_DIR_IN,
-					    name);
+									name);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 
 		/*
 		 * Let the regulator know that its state is controlled
 		 * through GPI.
 		 */
 		ret = da9055_reg_update(regulator->da9055, info->conf.reg,
-					DA9055_E_GPI_MASK,
-					pdata->reg_ren[id]
-					<< DA9055_E_GPI_SHIFT);
+								DA9055_E_GPI_MASK,
+								pdata->reg_ren[id]
+								<< DA9055_E_GPI_SHIFT);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 	}
 
-	if (pdata->gpio_rsel && pdata->gpio_rsel[id]) {
+	if (pdata->gpio_rsel && pdata->gpio_rsel[id])
+	{
 		char name[18];
 		int gpio_mux = pdata->gpio_rsel[id];
 
@@ -493,18 +560,21 @@ static int da9055_gpio_init(struct da9055_regulator *regulator,
 		 */
 		sprintf(name, "DA9055 GPI %d", gpio_mux);
 		ret = devm_gpio_request_one(config->dev, gpio_mux, GPIOF_DIR_IN,
-					    name);
+									name);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 
 		/*
 		 * Let the regulator know that its register set A/B
 		 * will be selected through GPI for voltage ramping.
 		 */
 		ret = da9055_reg_update(regulator->da9055, info->conf.reg,
-					DA9055_V_GPI_MASK,
-					pdata->reg_rsel[id]
-					<< DA9055_V_GPI_SHIFT);
+								DA9055_V_GPI_MASK,
+								pdata->reg_rsel[id]
+								<< DA9055_V_GPI_SHIFT);
 	}
 
 err:
@@ -516,7 +586,7 @@ static irqreturn_t da9055_ldo5_6_oc_irq(int irq, void *data)
 	struct da9055_regulator *regulator = data;
 
 	regulator_notifier_call_chain(regulator->rdev,
-				      REGULATOR_EVENT_OVER_CURRENT, NULL);
+								  REGULATOR_EVENT_OVER_CURRENT, NULL);
 
 	return IRQ_HANDLED;
 }
@@ -526,17 +596,22 @@ static inline struct da9055_regulator_info *find_regulator_info(int id)
 	struct da9055_regulator_info *info;
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(da9055_regulator_info); i++) {
+	for (i = 0; i < ARRAY_SIZE(da9055_regulator_info); i++)
+	{
 		info = &da9055_regulator_info[i];
+
 		if (info->reg_desc.id == id)
+		{
 			return info;
+		}
 	}
 
 	return NULL;
 }
 
 #ifdef CONFIG_OF
-static struct of_regulator_match da9055_reg_matches[] = {
+static struct of_regulator_match da9055_reg_matches[] =
+{
 	{ .name = "BUCK1", },
 	{ .name = "BUCK2", },
 	{ .name = "LDO1", },
@@ -548,24 +623,32 @@ static struct of_regulator_match da9055_reg_matches[] = {
 };
 
 static int da9055_regulator_dt_init(struct platform_device *pdev,
-				    struct da9055_regulator *regulator,
-				    struct regulator_config *config,
-				    int regid)
+									struct da9055_regulator *regulator,
+									struct regulator_config *config,
+									int regid)
 {
 	struct device_node *nproot, *np;
 	int ret;
 
 	nproot = of_node_get(pdev->dev.parent->of_node);
+
 	if (!nproot)
+	{
 		return -ENODEV;
+	}
 
 	np = of_get_child_by_name(nproot, "regulators");
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	ret = of_regulator_match(&pdev->dev, np, &da9055_reg_matches[regid], 1);
 	of_node_put(nproot);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Error matching regulator: %d\n", ret);
 		return ret;
 	}
@@ -574,15 +657,17 @@ static int da9055_regulator_dt_init(struct platform_device *pdev,
 	config->of_node = da9055_reg_matches[regid].of_node;
 
 	if (!config->of_node)
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
 #else
 static inline int da9055_regulator_dt_init(struct platform_device *pdev,
-				       struct da9055_regulator *regulator,
-				       struct regulator_config *config,
-				       int regid)
+		struct da9055_regulator *regulator,
+		struct regulator_config *config,
+		int regid)
 {
 	return -ENODEV;
 }
@@ -597,12 +682,17 @@ static int da9055_regulator_probe(struct platform_device *pdev)
 	int ret, irq;
 
 	regulator = devm_kzalloc(&pdev->dev, sizeof(struct da9055_regulator),
-				 GFP_KERNEL);
+							 GFP_KERNEL);
+
 	if (!regulator)
+	{
 		return -ENOMEM;
+	}
 
 	regulator->info = find_regulator_info(pdev->id);
-	if (regulator->info == NULL) {
+
+	if (regulator->info == NULL)
+	{
 		dev_err(&pdev->dev, "invalid regulator ID specified\n");
 		return -EINVAL;
 	}
@@ -612,45 +702,63 @@ static int da9055_regulator_probe(struct platform_device *pdev)
 	config.driver_data = regulator;
 	config.regmap = da9055->regmap;
 
-	if (pdata && pdata->regulators) {
+	if (pdata && pdata->regulators)
+	{
 		config.init_data = pdata->regulators[pdev->id];
-	} else {
+	}
+	else
+	{
 		ret = da9055_regulator_dt_init(pdev, regulator, &config,
-					       pdev->id);
+									   pdev->id);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	ret = da9055_gpio_init(regulator, &config, pdata, pdev->id);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	regulator->rdev = devm_regulator_register(&pdev->dev,
-						  &regulator->info->reg_desc,
-						  &config);
-	if (IS_ERR(regulator->rdev)) {
+					  &regulator->info->reg_desc,
+					  &config);
+
+	if (IS_ERR(regulator->rdev))
+	{
 		dev_err(&pdev->dev, "Failed to register regulator %s\n",
-			regulator->info->reg_desc.name);
+				regulator->info->reg_desc.name);
 		return PTR_ERR(regulator->rdev);
 	}
 
 	/* Only LDO 5 and 6 has got the over current interrupt */
-	if (pdev->id == DA9055_ID_LDO5 || pdev->id ==  DA9055_ID_LDO6) {
+	if (pdev->id == DA9055_ID_LDO5 || pdev->id ==  DA9055_ID_LDO6)
+	{
 		irq = platform_get_irq_byname(pdev, "REGULATOR");
+
 		if (irq < 0)
+		{
 			return irq;
+		}
 
 		ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
-						da9055_ldo5_6_oc_irq,
-						IRQF_TRIGGER_HIGH |
-						IRQF_ONESHOT |
-						IRQF_PROBE_SHARED,
-						pdev->name, regulator);
-		if (ret != 0) {
-			if (ret != -EBUSY) {
+										da9055_ldo5_6_oc_irq,
+										IRQF_TRIGGER_HIGH |
+										IRQF_ONESHOT |
+										IRQF_PROBE_SHARED,
+										pdev->name, regulator);
+
+		if (ret != 0)
+		{
+			if (ret != -EBUSY)
+			{
 				dev_err(&pdev->dev,
-				"Failed to request Regulator IRQ %d: %d\n",
-				irq, ret);
+						"Failed to request Regulator IRQ %d: %d\n",
+						irq, ret);
 				return ret;
 			}
 		}
@@ -661,7 +769,8 @@ static int da9055_regulator_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver da9055_regulator_driver = {
+static struct platform_driver da9055_regulator_driver =
+{
 	.probe = da9055_regulator_probe,
 	.driver = {
 		.name = "da9055-regulator",

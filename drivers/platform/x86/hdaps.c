@@ -94,7 +94,10 @@ static inline u8 __get_latch(u16 port)
 static inline int __check_latch(u16 port, u8 val)
 {
 	if (__get_latch(port) == val)
+	{
 		return 0;
+	}
+
 	return -EINVAL;
 }
 
@@ -106,9 +109,13 @@ static int __wait_latch(u16 port, u8 val)
 {
 	unsigned int i;
 
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < 20; i++)
+	{
 		if (!__check_latch(port, val))
+		{
 			return 0;
+		}
+
 		udelay(5);
 	}
 
@@ -122,7 +129,9 @@ static int __wait_latch(u16 port, u8 val)
 static void __device_refresh(void)
 {
 	udelay(200);
-	if (inb(0x1604) != STATE_FRESH) {
+
+	if (inb(0x1604) != STATE_FRESH)
+	{
 		outb(0x11, 0x1610);
 		outb(0x01, 0x161f);
 	}
@@ -163,8 +172,11 @@ static int hdaps_readb_one(unsigned int port, u8 *val)
 
 	/* do a sync refresh -- we need to be sure that we read fresh data */
 	ret = __device_refresh_sync();
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	*val = inb(port);
 	__device_complete();
@@ -176,11 +188,13 @@ out:
 
 /* __hdaps_read_pair - internal lockless helper for hdaps_read_pair(). */
 static int __hdaps_read_pair(unsigned int port1, unsigned int port2,
-			     int *x, int *y)
+							 int *x, int *y)
 {
 	/* do a sync refresh -- we need to be sure that we read fresh data */
 	if (__device_refresh_sync())
+	{
 		return -EIO;
+	}
 
 	*y = inw(port2);
 	*x = inw(port1);
@@ -189,9 +203,14 @@ static int __hdaps_read_pair(unsigned int port1, unsigned int port2,
 
 	/* hdaps_invert is a bitvector to negate the axes */
 	if (hdaps_invert & HDAPS_X_AXIS)
+	{
 		*x = -*x;
+	}
+
 	if (hdaps_invert & HDAPS_Y_AXIS)
+	{
 		*y = -*y;
+	}
 
 	return 0;
 }
@@ -201,7 +220,7 @@ static int __hdaps_read_pair(unsigned int port1, unsigned int port2,
  * in the given pointers.  Returns zero on success.  Can sleep.
  */
 static int hdaps_read_pair(unsigned int port1, unsigned int port2,
-			   int *val1, int *val2)
+						   int *val1, int *val2)
 {
 	int ret;
 
@@ -224,8 +243,11 @@ static int hdaps_device_init(void)
 
 	outb(0x13, 0x1610);
 	outb(0x01, 0x161f);
+
 	if (__wait_latch(0x161f, 0x00))
+	{
 		goto out;
+	}
 
 	/*
 	 * Most ThinkPads return 0x01.
@@ -236,48 +258,79 @@ static int hdaps_device_init(void)
 	 * The 0x02 value occurs when the chip has been previously initialized.
 	 */
 	if (__check_latch(0x1611, 0x03) &&
-		     __check_latch(0x1611, 0x02) &&
-		     __check_latch(0x1611, 0x01))
+		__check_latch(0x1611, 0x02) &&
+		__check_latch(0x1611, 0x01))
+	{
 		goto out;
+	}
 
 	printk(KERN_DEBUG "hdaps: initial latch check good (0x%02x)\n",
-	       __get_latch(0x1611));
+		   __get_latch(0x1611));
 
 	outb(0x17, 0x1610);
 	outb(0x81, 0x1611);
 	outb(0x01, 0x161f);
+
 	if (__wait_latch(0x161f, 0x00))
+	{
 		goto out;
+	}
+
 	if (__wait_latch(0x1611, 0x00))
+	{
 		goto out;
+	}
+
 	if (__wait_latch(0x1612, 0x60))
+	{
 		goto out;
+	}
+
 	if (__wait_latch(0x1613, 0x00))
+	{
 		goto out;
+	}
+
 	outb(0x14, 0x1610);
 	outb(0x01, 0x1611);
 	outb(0x01, 0x161f);
+
 	if (__wait_latch(0x161f, 0x00))
+	{
 		goto out;
+	}
+
 	outb(0x10, 0x1610);
 	outb(0xc8, 0x1611);
 	outb(0x00, 0x1612);
 	outb(0x02, 0x1613);
 	outb(0x01, 0x161f);
+
 	if (__wait_latch(0x161f, 0x00))
+	{
 		goto out;
+	}
+
 	if (__device_refresh_sync())
+	{
 		goto out;
+	}
+
 	if (__wait_latch(0x1611, 0x00))
+	{
 		goto out;
+	}
 
 	/* we have done our dance, now let's wait for the applause */
-	for (total = INIT_TIMEOUT_MSECS; total > 0; total -= INIT_WAIT_MSECS) {
+	for (total = INIT_TIMEOUT_MSECS; total > 0; total -= INIT_WAIT_MSECS)
+	{
 		int x, y;
 
 		/* a read of the device helps push it into action */
 		__hdaps_read_pair(HDAPS_PORT_XPOS, HDAPS_PORT_YPOS, &x, &y);
-		if (!__wait_latch(0x1611, 0x02)) {
+
+		if (!__wait_latch(0x1611, 0x02))
+		{
 			ret = 0;
 			break;
 		}
@@ -298,8 +351,11 @@ static int hdaps_probe(struct platform_device *dev)
 	int ret;
 
 	ret = hdaps_device_init();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pr_info("device successfully initialized\n");
 	return 0;
@@ -314,7 +370,8 @@ static int hdaps_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(hdaps_pm, NULL, hdaps_resume);
 
-static struct platform_driver hdaps_driver = {
+static struct platform_driver hdaps_driver =
+{
 	.probe = hdaps_probe,
 	.driver	= {
 		.name = "hdaps",
@@ -338,7 +395,9 @@ static void hdaps_mousedev_poll(struct input_polled_dev *dev)
 	mutex_lock(&hdaps_mtx);
 
 	if (__hdaps_read_pair(HDAPS_PORT_XPOS, HDAPS_PORT_YPOS, &x, &y))
+	{
 		goto out;
+	}
 
 	input_report_abs(input_dev, ABS_X, x - rest_x);
 	input_report_abs(input_dev, ABS_Y, y - rest_y);
@@ -352,78 +411,90 @@ out:
 /* Sysfs Files */
 
 static ssize_t hdaps_position_show(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+								   struct device_attribute *attr, char *buf)
 {
 	int ret, x, y;
 
 	ret = hdaps_read_pair(HDAPS_PORT_XPOS, HDAPS_PORT_YPOS, &x, &y);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return sprintf(buf, "(%d,%d)\n", x, y);
 }
 
 static ssize_t hdaps_variance_show(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+								   struct device_attribute *attr, char *buf)
 {
 	int ret, x, y;
 
 	ret = hdaps_read_pair(HDAPS_PORT_XVAR, HDAPS_PORT_YVAR, &x, &y);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return sprintf(buf, "(%d,%d)\n", x, y);
 }
 
 static ssize_t hdaps_temp1_show(struct device *dev,
-				struct device_attribute *attr, char *buf)
+								struct device_attribute *attr, char *buf)
 {
 	u8 uninitialized_var(temp);
 	int ret;
 
 	ret = hdaps_readb_one(HDAPS_PORT_TEMP1, &temp);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return sprintf(buf, "%u\n", temp);
 }
 
 static ssize_t hdaps_temp2_show(struct device *dev,
-				struct device_attribute *attr, char *buf)
+								struct device_attribute *attr, char *buf)
 {
 	u8 uninitialized_var(temp);
 	int ret;
 
 	ret = hdaps_readb_one(HDAPS_PORT_TEMP2, &temp);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return sprintf(buf, "%u\n", temp);
 }
 
 static ssize_t hdaps_keyboard_activity_show(struct device *dev,
-					    struct device_attribute *attr,
-					    char *buf)
+		struct device_attribute *attr,
+		char *buf)
 {
 	return sprintf(buf, "%u\n", KEYBD_ISSET(km_activity));
 }
 
 static ssize_t hdaps_mouse_activity_show(struct device *dev,
-					 struct device_attribute *attr,
-					 char *buf)
+		struct device_attribute *attr,
+		char *buf)
 {
 	return sprintf(buf, "%u\n", MOUSE_ISSET(km_activity));
 }
 
 static ssize_t hdaps_calibrate_show(struct device *dev,
-				    struct device_attribute *attr, char *buf)
+									struct device_attribute *attr, char *buf)
 {
 	return sprintf(buf, "(%d,%d)\n", rest_x, rest_y);
 }
 
 static ssize_t hdaps_calibrate_store(struct device *dev,
-				     struct device_attribute *attr,
-				     const char *buf, size_t count)
+									 struct device_attribute *attr,
+									 const char *buf, size_t count)
 {
 	mutex_lock(&hdaps_mtx);
 	hdaps_calibrate();
@@ -433,20 +504,22 @@ static ssize_t hdaps_calibrate_store(struct device *dev,
 }
 
 static ssize_t hdaps_invert_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%u\n", hdaps_invert);
 }
 
 static ssize_t hdaps_invert_store(struct device *dev,
-				  struct device_attribute *attr,
-				  const char *buf, size_t count)
+								  struct device_attribute *attr,
+								  const char *buf, size_t count)
 {
 	int invert;
 
 	if (sscanf(buf, "%d", &invert) != 1 ||
-	    invert < 0 || invert > HDAPS_BOTH_AXES)
+		invert < 0 || invert > HDAPS_BOTH_AXES)
+	{
 		return -EINVAL;
+	}
 
 	hdaps_invert = invert;
 	hdaps_calibrate();
@@ -460,10 +533,11 @@ static DEVICE_ATTR(temp1, 0444, hdaps_temp1_show, NULL);
 static DEVICE_ATTR(temp2, 0444, hdaps_temp2_show, NULL);
 static DEVICE_ATTR(keyboard_activity, 0444, hdaps_keyboard_activity_show, NULL);
 static DEVICE_ATTR(mouse_activity, 0444, hdaps_mouse_activity_show, NULL);
-static DEVICE_ATTR(calibrate, 0644, hdaps_calibrate_show,hdaps_calibrate_store);
+static DEVICE_ATTR(calibrate, 0644, hdaps_calibrate_show, hdaps_calibrate_store);
 static DEVICE_ATTR(invert, 0644, hdaps_invert_show, hdaps_invert_store);
 
-static struct attribute *hdaps_attributes[] = {
+static struct attribute *hdaps_attributes[] =
+{
 	&dev_attr_position.attr,
 	&dev_attr_variance.attr,
 	&dev_attr_temp1.attr,
@@ -475,7 +549,8 @@ static struct attribute *hdaps_attributes[] = {
 	NULL,
 };
 
-static struct attribute_group hdaps_attribute_group = {
+static struct attribute_group hdaps_attribute_group =
+{
 	.attrs = hdaps_attributes,
 };
 
@@ -498,14 +573,14 @@ static int __init hdaps_dmi_match_invert(const struct dmi_system_id *id)
 }
 
 #define HDAPS_DMI_MATCH_INVERT(vendor, model, axes) {	\
-	.ident = vendor " " model,			\
-	.callback = hdaps_dmi_match_invert,		\
-	.driver_data = (void *)axes,			\
-	.matches = {					\
-		DMI_MATCH(DMI_BOARD_VENDOR, vendor),	\
-		DMI_MATCH(DMI_PRODUCT_VERSION, model)	\
-	}						\
-}
+		.ident = vendor " " model,			\
+				 .callback = hdaps_dmi_match_invert,		\
+							 .driver_data = (void *)axes,			\
+											.matches = {					\
+																			DMI_MATCH(DMI_BOARD_VENDOR, vendor),	\
+																			DMI_MATCH(DMI_PRODUCT_VERSION, model)	\
+													   }						\
+	}
 
 #define HDAPS_DMI_MATCH_NORMAL(vendor, model)		\
 	HDAPS_DMI_MATCH_INVERT(vendor, model, 0)
@@ -514,7 +589,8 @@ static int __init hdaps_dmi_match_invert(const struct dmi_system_id *id)
    "ThinkPad T42p", so the order of the entries matters.
    If your ThinkPad is not recognized, please update to latest
    BIOS. This is especially the case for some R52 ThinkPads. */
-static struct dmi_system_id __initdata hdaps_whitelist[] = {
+static struct dmi_system_id __initdata hdaps_whitelist[] =
+{
 	HDAPS_DMI_MATCH_INVERT("IBM", "ThinkPad R50p", HDAPS_BOTH_AXES),
 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad R50"),
 	HDAPS_DMI_MATCH_NORMAL("IBM", "ThinkPad R51"),
@@ -546,33 +622,45 @@ static int __init hdaps_init(void)
 	struct input_dev *idev;
 	int ret;
 
-	if (!dmi_check_system(hdaps_whitelist)) {
+	if (!dmi_check_system(hdaps_whitelist))
+	{
 		pr_warn("supported laptop not found!\n");
 		ret = -ENODEV;
 		goto out;
 	}
 
-	if (!request_region(HDAPS_LOW_PORT, HDAPS_NR_PORTS, "hdaps")) {
+	if (!request_region(HDAPS_LOW_PORT, HDAPS_NR_PORTS, "hdaps"))
+	{
 		ret = -ENXIO;
 		goto out;
 	}
 
 	ret = platform_driver_register(&hdaps_driver);
+
 	if (ret)
+	{
 		goto out_region;
+	}
 
 	pdev = platform_device_register_simple("hdaps", -1, NULL, 0);
-	if (IS_ERR(pdev)) {
+
+	if (IS_ERR(pdev))
+	{
 		ret = PTR_ERR(pdev);
 		goto out_driver;
 	}
 
 	ret = sysfs_create_group(&pdev->dev.kobj, &hdaps_attribute_group);
+
 	if (ret)
+	{
 		goto out_device;
+	}
 
 	hdaps_idev = input_allocate_polled_device();
-	if (!hdaps_idev) {
+
+	if (!hdaps_idev)
+	{
 		ret = -ENOMEM;
 		goto out_group;
 	}
@@ -591,13 +679,16 @@ static int __init hdaps_init(void)
 	idev->dev.parent = &pdev->dev;
 	idev->evbit[0] = BIT_MASK(EV_ABS);
 	input_set_abs_params(idev, ABS_X,
-			-256, 256, HDAPS_INPUT_FUZZ, HDAPS_INPUT_FLAT);
+						 -256, 256, HDAPS_INPUT_FUZZ, HDAPS_INPUT_FLAT);
 	input_set_abs_params(idev, ABS_Y,
-			-256, 256, HDAPS_INPUT_FUZZ, HDAPS_INPUT_FLAT);
+						 -256, 256, HDAPS_INPUT_FUZZ, HDAPS_INPUT_FLAT);
 
 	ret = input_register_polled_device(hdaps_idev);
+
 	if (ret)
+	{
 		goto out_idev;
+	}
 
 	pr_info("driver successfully loaded\n");
 	return 0;
@@ -634,7 +725,7 @@ module_exit(hdaps_exit);
 
 module_param_named(invert, hdaps_invert, int, 0);
 MODULE_PARM_DESC(invert, "invert data along each axis. 1 invert x-axis, "
-		 "2 invert y-axis, 3 invert both axes.");
+				 "2 invert y-axis, 3 invert both axes.");
 
 MODULE_AUTHOR("Robert Love");
 MODULE_DESCRIPTION("IBM Hard Drive Active Protection System (HDAPS) driver");

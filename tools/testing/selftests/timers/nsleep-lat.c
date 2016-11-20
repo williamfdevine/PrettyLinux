@@ -60,40 +60,55 @@ static inline int ksft_exit_fail(void)
 
 char *clockstring(int clockid)
 {
-	switch (clockid) {
-	case CLOCK_REALTIME:
-		return "CLOCK_REALTIME";
-	case CLOCK_MONOTONIC:
-		return "CLOCK_MONOTONIC";
-	case CLOCK_PROCESS_CPUTIME_ID:
-		return "CLOCK_PROCESS_CPUTIME_ID";
-	case CLOCK_THREAD_CPUTIME_ID:
-		return "CLOCK_THREAD_CPUTIME_ID";
-	case CLOCK_MONOTONIC_RAW:
-		return "CLOCK_MONOTONIC_RAW";
-	case CLOCK_REALTIME_COARSE:
-		return "CLOCK_REALTIME_COARSE";
-	case CLOCK_MONOTONIC_COARSE:
-		return "CLOCK_MONOTONIC_COARSE";
-	case CLOCK_BOOTTIME:
-		return "CLOCK_BOOTTIME";
-	case CLOCK_REALTIME_ALARM:
-		return "CLOCK_REALTIME_ALARM";
-	case CLOCK_BOOTTIME_ALARM:
-		return "CLOCK_BOOTTIME_ALARM";
-	case CLOCK_TAI:
-		return "CLOCK_TAI";
+	switch (clockid)
+	{
+		case CLOCK_REALTIME:
+			return "CLOCK_REALTIME";
+
+		case CLOCK_MONOTONIC:
+			return "CLOCK_MONOTONIC";
+
+		case CLOCK_PROCESS_CPUTIME_ID:
+			return "CLOCK_PROCESS_CPUTIME_ID";
+
+		case CLOCK_THREAD_CPUTIME_ID:
+			return "CLOCK_THREAD_CPUTIME_ID";
+
+		case CLOCK_MONOTONIC_RAW:
+			return "CLOCK_MONOTONIC_RAW";
+
+		case CLOCK_REALTIME_COARSE:
+			return "CLOCK_REALTIME_COARSE";
+
+		case CLOCK_MONOTONIC_COARSE:
+			return "CLOCK_MONOTONIC_COARSE";
+
+		case CLOCK_BOOTTIME:
+			return "CLOCK_BOOTTIME";
+
+		case CLOCK_REALTIME_ALARM:
+			return "CLOCK_REALTIME_ALARM";
+
+		case CLOCK_BOOTTIME_ALARM:
+			return "CLOCK_BOOTTIME_ALARM";
+
+		case CLOCK_TAI:
+			return "CLOCK_TAI";
 	};
+
 	return "UNKNOWN_CLOCKID";
 }
 
 struct timespec timespec_add(struct timespec ts, unsigned long long ns)
 {
 	ts.tv_nsec += ns;
-	while (ts.tv_nsec >= NSEC_PER_SEC) {
+
+	while (ts.tv_nsec >= NSEC_PER_SEC)
+	{
 		ts.tv_nsec -= NSEC_PER_SEC;
 		ts.tv_sec++;
 	}
+
 	return ts;
 }
 
@@ -112,29 +127,40 @@ int nanosleep_lat_test(int clockid, long long ns)
 	long long latency = 0;
 	int i, count;
 
-	target.tv_sec = ns/NSEC_PER_SEC;
-	target.tv_nsec = ns%NSEC_PER_SEC;
+	target.tv_sec = ns / NSEC_PER_SEC;
+	target.tv_nsec = ns % NSEC_PER_SEC;
 
 	if (clock_gettime(clockid, &start))
+	{
 		return UNSUPPORTED;
+	}
+
 	if (clock_nanosleep(clockid, 0, &target, NULL))
+	{
 		return UNSUPPORTED;
+	}
 
 	count = 10;
 
 	/* First check relative latency */
 	clock_gettime(clockid, &start);
+
 	for (i = 0; i < count; i++)
+	{
 		clock_nanosleep(clockid, 0, &target, NULL);
+	}
+
 	clock_gettime(clockid, &end);
 
-	if (((timespec_sub(start, end)/count)-ns) > UNRESONABLE_LATENCY) {
-		printf("Large rel latency: %lld ns :", (timespec_sub(start, end)/count)-ns);
+	if (((timespec_sub(start, end) / count) - ns) > UNRESONABLE_LATENCY)
+	{
+		printf("Large rel latency: %lld ns :", (timespec_sub(start, end) / count) - ns);
 		return -1;
 	}
 
 	/* Next check absolute latency */
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		clock_gettime(clockid, &start);
 		target = timespec_add(start, ns);
 		clock_nanosleep(clockid, TIMER_ABSTIME, &target, NULL);
@@ -142,8 +168,9 @@ int nanosleep_lat_test(int clockid, long long ns)
 		latency += timespec_sub(target, end);
 	}
 
-	if (latency/count > UNRESONABLE_LATENCY) {
-		printf("Large abs latency: %lld ns :", latency/count);
+	if (latency / count > UNRESONABLE_LATENCY)
+	{
+		printf("Large abs latency: %lld ns :", latency / count);
 		return -1;
 	}
 
@@ -157,34 +184,48 @@ int main(int argc, char **argv)
 	long long length;
 	int clockid, ret;
 
-	for (clockid = CLOCK_REALTIME; clockid < NR_CLOCKIDS; clockid++) {
+	for (clockid = CLOCK_REALTIME; clockid < NR_CLOCKIDS; clockid++)
+	{
 
 		/* Skip cputime clockids since nanosleep won't increment cputime */
 		if (clockid == CLOCK_PROCESS_CPUTIME_ID ||
-				clockid == CLOCK_THREAD_CPUTIME_ID ||
-				clockid == CLOCK_HWSPECIFIC)
+			clockid == CLOCK_THREAD_CPUTIME_ID ||
+			clockid == CLOCK_HWSPECIFIC)
+		{
 			continue;
+		}
 
 		printf("nsleep latency %-26s ", clockstring(clockid));
 
 		length = 10;
-		while (length <= (NSEC_PER_SEC * 10)) {
+
+		while (length <= (NSEC_PER_SEC * 10))
+		{
 			ret = nanosleep_lat_test(clockid, length);
+
 			if (ret)
+			{
 				break;
+			}
+
 			length *= 100;
 
 		}
 
-		if (ret == UNSUPPORTED) {
+		if (ret == UNSUPPORTED)
+		{
 			printf("[UNSUPPORTED]\n");
 			continue;
 		}
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			printf("[FAILED]\n");
 			return ksft_exit_fail();
 		}
+
 		printf("[OK]\n");
 	}
+
 	return ksft_exit_pass();
 }

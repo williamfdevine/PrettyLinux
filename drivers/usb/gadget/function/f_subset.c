@@ -50,7 +50,8 @@
  * caring about specific product and vendor IDs.
  */
 
-struct f_gether {
+struct f_gether
+{
 	struct gether			port;
 
 	char				ethaddr[14];
@@ -76,7 +77,8 @@ static inline struct f_gether *func_to_geth(struct usb_function *f)
 
 /* interface descriptor: */
 
-static struct usb_interface_descriptor subset_data_intf = {
+static struct usb_interface_descriptor subset_data_intf =
+{
 	.bLength =		sizeof subset_data_intf,
 	.bDescriptorType =	USB_DT_INTERFACE,
 
@@ -89,7 +91,8 @@ static struct usb_interface_descriptor subset_data_intf = {
 	/* .iInterface = DYNAMIC */
 };
 
-static struct usb_cdc_header_desc mdlm_header_desc = {
+static struct usb_cdc_header_desc mdlm_header_desc =
+{
 	.bLength =		sizeof mdlm_header_desc,
 	.bDescriptorType =	USB_DT_CS_INTERFACE,
 	.bDescriptorSubType =	USB_CDC_HEADER_TYPE,
@@ -97,7 +100,8 @@ static struct usb_cdc_header_desc mdlm_header_desc = {
 	.bcdCDC =		cpu_to_le16(0x0110),
 };
 
-static struct usb_cdc_mdlm_desc mdlm_desc = {
+static struct usb_cdc_mdlm_desc mdlm_desc =
+{
 	.bLength =		sizeof mdlm_desc,
 	.bDescriptorType =	USB_DT_CS_INTERFACE,
 	.bDescriptorSubType =	USB_CDC_MDLM_TYPE,
@@ -113,7 +117,8 @@ static struct usb_cdc_mdlm_desc mdlm_desc = {
  * can't really use its struct.  All we do here is say that we're using
  * the submode of "SAFE" which directly matches the CDC Subset.
  */
-static u8 mdlm_detail_desc[] = {
+static u8 mdlm_detail_desc[] =
+{
 	6,
 	USB_DT_CS_INTERFACE,
 	USB_CDC_MDLM_DETAIL_TYPE,
@@ -123,7 +128,8 @@ static u8 mdlm_detail_desc[] = {
 	0,	/* network data capabilities ("raw" encapsulation) */
 };
 
-static struct usb_cdc_ether_desc ether_desc = {
+static struct usb_cdc_ether_desc ether_desc =
+{
 	.bLength =		sizeof ether_desc,
 	.bDescriptorType =	USB_DT_CS_INTERFACE,
 	.bDescriptorSubType =	USB_CDC_ETHERNET_TYPE,
@@ -138,7 +144,8 @@ static struct usb_cdc_ether_desc ether_desc = {
 
 /* full speed support: */
 
-static struct usb_endpoint_descriptor fs_subset_in_desc = {
+static struct usb_endpoint_descriptor fs_subset_in_desc =
+{
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 
@@ -146,7 +153,8 @@ static struct usb_endpoint_descriptor fs_subset_in_desc = {
 	.bmAttributes =		USB_ENDPOINT_XFER_BULK,
 };
 
-static struct usb_endpoint_descriptor fs_subset_out_desc = {
+static struct usb_endpoint_descriptor fs_subset_out_desc =
+{
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 
@@ -154,7 +162,8 @@ static struct usb_endpoint_descriptor fs_subset_out_desc = {
 	.bmAttributes =		USB_ENDPOINT_XFER_BULK,
 };
 
-static struct usb_descriptor_header *fs_eth_function[] = {
+static struct usb_descriptor_header *fs_eth_function[] =
+{
 	(struct usb_descriptor_header *) &subset_data_intf,
 	(struct usb_descriptor_header *) &mdlm_header_desc,
 	(struct usb_descriptor_header *) &mdlm_desc,
@@ -167,7 +176,8 @@ static struct usb_descriptor_header *fs_eth_function[] = {
 
 /* high speed support: */
 
-static struct usb_endpoint_descriptor hs_subset_in_desc = {
+static struct usb_endpoint_descriptor hs_subset_in_desc =
+{
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 
@@ -175,7 +185,8 @@ static struct usb_endpoint_descriptor hs_subset_in_desc = {
 	.wMaxPacketSize =	cpu_to_le16(512),
 };
 
-static struct usb_endpoint_descriptor hs_subset_out_desc = {
+static struct usb_endpoint_descriptor hs_subset_out_desc =
+{
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 
@@ -183,7 +194,8 @@ static struct usb_endpoint_descriptor hs_subset_out_desc = {
 	.wMaxPacketSize =	cpu_to_le16(512),
 };
 
-static struct usb_descriptor_header *hs_eth_function[] = {
+static struct usb_descriptor_header *hs_eth_function[] =
+{
 	(struct usb_descriptor_header *) &subset_data_intf,
 	(struct usb_descriptor_header *) &mdlm_header_desc,
 	(struct usb_descriptor_header *) &mdlm_desc,
@@ -196,7 +208,8 @@ static struct usb_descriptor_header *hs_eth_function[] = {
 
 /* super speed support: */
 
-static struct usb_endpoint_descriptor ss_subset_in_desc = {
+static struct usb_endpoint_descriptor ss_subset_in_desc =
+{
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 
@@ -204,7 +217,8 @@ static struct usb_endpoint_descriptor ss_subset_in_desc = {
 	.wMaxPacketSize =	cpu_to_le16(1024),
 };
 
-static struct usb_endpoint_descriptor ss_subset_out_desc = {
+static struct usb_endpoint_descriptor ss_subset_out_desc =
+{
 	.bLength =		USB_DT_ENDPOINT_SIZE,
 	.bDescriptorType =	USB_DT_ENDPOINT,
 
@@ -212,7 +226,8 @@ static struct usb_endpoint_descriptor ss_subset_out_desc = {
 	.wMaxPacketSize =	cpu_to_le16(1024),
 };
 
-static struct usb_ss_ep_comp_descriptor ss_subset_bulk_comp_desc = {
+static struct usb_ss_ep_comp_descriptor ss_subset_bulk_comp_desc =
+{
 	.bLength =		sizeof ss_subset_bulk_comp_desc,
 	.bDescriptorType =	USB_DT_SS_ENDPOINT_COMP,
 
@@ -221,7 +236,8 @@ static struct usb_ss_ep_comp_descriptor ss_subset_bulk_comp_desc = {
 	/* .bmAttributes =	0, */
 };
 
-static struct usb_descriptor_header *ss_eth_function[] = {
+static struct usb_descriptor_header *ss_eth_function[] =
+{
 	(struct usb_descriptor_header *) &subset_data_intf,
 	(struct usb_descriptor_header *) &mdlm_header_desc,
 	(struct usb_descriptor_header *) &mdlm_desc,
@@ -236,18 +252,21 @@ static struct usb_descriptor_header *ss_eth_function[] = {
 
 /* string descriptors: */
 
-static struct usb_string geth_string_defs[] = {
+static struct usb_string geth_string_defs[] =
+{
 	[0].s = "CDC Ethernet Subset/SAFE",
 	[1].s = "",
 	{  } /* end of list */
 };
 
-static struct usb_gadget_strings geth_string_table = {
+static struct usb_gadget_strings geth_string_table =
+{
 	.language =		0x0409,	/* en-us */
 	.strings =		geth_string_defs,
 };
 
-static struct usb_gadget_strings *geth_strings[] = {
+static struct usb_gadget_strings *geth_strings[] =
+{
 	&geth_string_table,
 	NULL,
 };
@@ -262,14 +281,17 @@ static int geth_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 
 	/* we know alt == 0, so this is an activation or a reset */
 
-	if (geth->port.in_ep->enabled) {
+	if (geth->port.in_ep->enabled)
+	{
 		DBG(cdev, "reset cdc subset\n");
 		gether_disconnect(&geth->port);
 	}
 
 	DBG(cdev, "init + activate cdc subset\n");
+
 	if (config_ep_by_speed(cdev->gadget, f, geth->port.in_ep) ||
-	    config_ep_by_speed(cdev->gadget, f, geth->port.out_ep)) {
+		config_ep_by_speed(cdev->gadget, f, geth->port.out_ep))
+	{
 		geth->port.in_ep->desc = NULL;
 		geth->port.out_ep->desc = NULL;
 		return -EINVAL;
@@ -312,41 +334,61 @@ geth_bind(struct usb_configuration *c, struct usb_function *f)
 	 * with list_for_each_entry, so we assume no race condition
 	 * with regard to gether_opts->bound access
 	 */
-	if (!gether_opts->bound) {
+	if (!gether_opts->bound)
+	{
 		mutex_lock(&gether_opts->lock);
 		gether_set_gadget(gether_opts->net, cdev->gadget);
 		status = gether_register_netdev(gether_opts->net);
 		mutex_unlock(&gether_opts->lock);
+
 		if (status)
+		{
 			return status;
+		}
+
 		gether_opts->bound = true;
 	}
 
 	us = usb_gstrings_attach(cdev, geth_strings,
-				 ARRAY_SIZE(geth_string_defs));
+							 ARRAY_SIZE(geth_string_defs));
+
 	if (IS_ERR(us))
+	{
 		return PTR_ERR(us);
+	}
 
 	subset_data_intf.iInterface = us[0].id;
 	ether_desc.iMACAddress = us[1].id;
 
 	/* allocate instance-specific interface IDs */
 	status = usb_interface_id(c, f);
+
 	if (status < 0)
+	{
 		goto fail;
+	}
+
 	subset_data_intf.bInterfaceNumber = status;
 
 	status = -ENODEV;
 
 	/* allocate instance-specific endpoints */
 	ep = usb_ep_autoconfig(cdev->gadget, &fs_subset_in_desc);
+
 	if (!ep)
+	{
 		goto fail;
+	}
+
 	geth->port.in_ep = ep;
 
 	ep = usb_ep_autoconfig(cdev->gadget, &fs_subset_out_desc);
+
 	if (!ep)
+	{
 		goto fail;
+	}
+
 	geth->port.out_ep = ep;
 
 	/* support all relevant hardware speeds... we expect that when
@@ -362,9 +404,12 @@ geth_bind(struct usb_configuration *c, struct usb_function *f)
 		fs_subset_out_desc.bEndpointAddress;
 
 	status = usb_assign_descriptors(f, fs_eth_function, hs_eth_function,
-			ss_eth_function, NULL);
+									ss_eth_function, NULL);
+
 	if (status)
+	{
 		goto fail;
+	}
 
 	/* NOTE:  all that is done without knowing or caring about
 	 * the network link ... which is unavailable to this code
@@ -372,9 +417,9 @@ geth_bind(struct usb_configuration *c, struct usb_function *f)
 	 */
 
 	DBG(cdev, "CDC Subset: %s speed IN/%s OUT/%s\n",
-			gadget_is_superspeed(c->cdev->gadget) ? "super" :
-			gadget_is_dualspeed(c->cdev->gadget) ? "dual" : "full",
-			geth->port.in_ep->name, geth->port.out_ep->name);
+		gadget_is_superspeed(c->cdev->gadget) ? "super" :
+		gadget_is_dualspeed(c->cdev->gadget) ? "dual" : "full",
+		geth->port.in_ep->name, geth->port.out_ep->name);
 	return 0;
 
 fail:
@@ -386,7 +431,7 @@ fail:
 static inline struct f_gether_opts *to_f_gether_opts(struct config_item *item)
 {
 	return container_of(to_config_group(item), struct f_gether_opts,
-			    func_inst.group);
+						func_inst.group);
 }
 
 /* f_gether_item_ops */
@@ -404,7 +449,8 @@ USB_ETHERNET_CONFIGFS_ITEM_ATTR_QMULT(gether);
 /* f_gether_opts_ifname */
 USB_ETHERNET_CONFIGFS_ITEM_ATTR_IFNAME(gether);
 
-static struct configfs_attribute *gether_attrs[] = {
+static struct configfs_attribute *gether_attrs[] =
+{
 	&gether_opts_attr_dev_addr,
 	&gether_opts_attr_host_addr,
 	&gether_opts_attr_qmult,
@@ -412,7 +458,8 @@ static struct configfs_attribute *gether_attrs[] = {
 	NULL,
 };
 
-static struct config_item_type gether_func_type = {
+static struct config_item_type gether_func_type =
+{
 	.ct_item_ops	= &gether_item_ops,
 	.ct_attrs	= gether_attrs,
 	.ct_owner	= THIS_MODULE,
@@ -423,10 +470,16 @@ static void geth_free_inst(struct usb_function_instance *f)
 	struct f_gether_opts *opts;
 
 	opts = container_of(f, struct f_gether_opts, func_inst);
+
 	if (opts->bound)
+	{
 		gether_cleanup(netdev_priv(opts->net));
+	}
 	else
+	{
 		free_netdev(opts->net);
+	}
+
 	kfree(opts);
 }
 
@@ -435,19 +488,25 @@ static struct usb_function_instance *geth_alloc_inst(void)
 	struct f_gether_opts *opts;
 
 	opts = kzalloc(sizeof(*opts), GFP_KERNEL);
+
 	if (!opts)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	mutex_init(&opts->lock);
 	opts->func_inst.free_func_inst = geth_free_inst;
 	opts->net = gether_setup_default();
-	if (IS_ERR(opts->net)) {
+
+	if (IS_ERR(opts->net))
+	{
 		struct net_device *net = opts->net;
 		kfree(opts);
 		return ERR_CAST(net);
 	}
 
 	config_group_init_type_name(&opts->func_inst.group, "",
-				    &gether_func_type);
+								&gether_func_type);
 
 	return &opts->func_inst;
 }
@@ -474,8 +533,11 @@ static struct usb_function *geth_alloc(struct usb_function_instance *fi)
 
 	/* allocate and initialize one new instance */
 	geth = kzalloc(sizeof(*geth), GFP_KERNEL);
+
 	if (!geth)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	opts = container_of(fi, struct f_gether_opts, func_inst);
 
@@ -483,12 +545,15 @@ static struct usb_function *geth_alloc(struct usb_function_instance *fi)
 	opts->refcnt++;
 	/* export host's Ethernet address in CDC format */
 	status = gether_get_host_addr_cdc(opts->net, geth->ethaddr,
-					  sizeof(geth->ethaddr));
-	if (status < 12) {
+									  sizeof(geth->ethaddr));
+
+	if (status < 12)
+	{
 		kfree(geth);
 		mutex_unlock(&opts->lock);
 		return ERR_PTR(-EINVAL);
 	}
+
 	geth_string_defs[1].s = geth->ethaddr;
 
 	geth->port.ioport = netdev_priv(opts->net);

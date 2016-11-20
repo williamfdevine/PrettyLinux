@@ -31,12 +31,14 @@
 
 #define GPU_MEM_START	0x80000000
 
-struct etnaviv_iommu_domain_pgtable {
+struct etnaviv_iommu_domain_pgtable
+{
 	u32 *pgtable;
 	dma_addr_t paddr;
 };
 
-struct etnaviv_iommu_domain {
+struct etnaviv_iommu_domain
+{
 	struct iommu_domain domain;
 	struct device *dev;
 	void *bad_page_cpu;
@@ -51,23 +53,26 @@ static struct etnaviv_iommu_domain *to_etnaviv_domain(struct iommu_domain *domai
 }
 
 static int pgtable_alloc(struct etnaviv_iommu_domain_pgtable *pgtable,
-			 size_t size)
+						 size_t size)
 {
 	pgtable->pgtable = dma_alloc_coherent(NULL, size, &pgtable->paddr, GFP_KERNEL);
+
 	if (!pgtable->pgtable)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
 
 static void pgtable_free(struct etnaviv_iommu_domain_pgtable *pgtable,
-			 size_t size)
+						 size_t size)
 {
 	dma_free_coherent(NULL, size, pgtable->pgtable, pgtable->paddr);
 }
 
 static u32 pgtable_read(struct etnaviv_iommu_domain_pgtable *pgtable,
-			   unsigned long iova)
+						unsigned long iova)
 {
 	/* calcuate index into page table */
 	unsigned int index = (iova - GPU_MEM_START) / SZ_4K;
@@ -79,7 +84,7 @@ static u32 pgtable_read(struct etnaviv_iommu_domain_pgtable *pgtable,
 }
 
 static void pgtable_write(struct etnaviv_iommu_domain_pgtable *pgtable,
-			  unsigned long iova, phys_addr_t paddr)
+						  unsigned long iova, phys_addr_t paddr)
 {
 	/* calcuate index into page table */
 	unsigned int index = (iova - GPU_MEM_START) / SZ_4K;
@@ -93,21 +98,29 @@ static int __etnaviv_iommu_init(struct etnaviv_iommu_domain *etnaviv_domain)
 	int ret, i;
 
 	etnaviv_domain->bad_page_cpu = dma_alloc_coherent(etnaviv_domain->dev,
-						  SZ_4K,
-						  &etnaviv_domain->bad_page_dma,
-						  GFP_KERNEL);
+								   SZ_4K,
+								   &etnaviv_domain->bad_page_dma,
+								   GFP_KERNEL);
+
 	if (!etnaviv_domain->bad_page_cpu)
+	{
 		return -ENOMEM;
+	}
 
 	p = etnaviv_domain->bad_page_cpu;
+
 	for (i = 0; i < SZ_4K / 4; i++)
+	{
 		*p++ = 0xdead55aa;
+	}
 
 	ret = pgtable_alloc(&etnaviv_domain->pgtable, PT_SIZE);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dma_free_coherent(etnaviv_domain->dev, SZ_4K,
-				  etnaviv_domain->bad_page_cpu,
-				  etnaviv_domain->bad_page_dma);
+						  etnaviv_domain->bad_page_cpu,
+						  etnaviv_domain->bad_page_dma);
 		return ret;
 	}
 
@@ -127,19 +140,21 @@ static void etnaviv_domain_free(struct iommu_domain *domain)
 	pgtable_free(&etnaviv_domain->pgtable, PT_SIZE);
 
 	dma_free_coherent(etnaviv_domain->dev, SZ_4K,
-			  etnaviv_domain->bad_page_cpu,
-			  etnaviv_domain->bad_page_dma);
+					  etnaviv_domain->bad_page_cpu,
+					  etnaviv_domain->bad_page_dma);
 
 	kfree(etnaviv_domain);
 }
 
 static int etnaviv_iommuv1_map(struct iommu_domain *domain, unsigned long iova,
-	   phys_addr_t paddr, size_t size, int prot)
+							   phys_addr_t paddr, size_t size, int prot)
 {
 	struct etnaviv_iommu_domain *etnaviv_domain = to_etnaviv_domain(domain);
 
 	if (size != SZ_4K)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock(&etnaviv_domain->map_lock);
 	pgtable_write(&etnaviv_domain->pgtable, iova, paddr);
@@ -149,23 +164,25 @@ static int etnaviv_iommuv1_map(struct iommu_domain *domain, unsigned long iova,
 }
 
 static size_t etnaviv_iommuv1_unmap(struct iommu_domain *domain,
-	unsigned long iova, size_t size)
+									unsigned long iova, size_t size)
 {
 	struct etnaviv_iommu_domain *etnaviv_domain = to_etnaviv_domain(domain);
 
 	if (size != SZ_4K)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock(&etnaviv_domain->map_lock);
 	pgtable_write(&etnaviv_domain->pgtable, iova,
-		      etnaviv_domain->bad_page_dma);
+				  etnaviv_domain->bad_page_dma);
 	spin_unlock(&etnaviv_domain->map_lock);
 
 	return SZ_4K;
 }
 
 static phys_addr_t etnaviv_iommu_iova_to_phys(struct iommu_domain *domain,
-	dma_addr_t iova)
+		dma_addr_t iova)
 {
 	struct etnaviv_iommu_domain *etnaviv_domain = to_etnaviv_domain(domain);
 
@@ -184,7 +201,8 @@ static void etnaviv_iommuv1_dump(struct iommu_domain *domain, void *buf)
 	memcpy(buf, etnaviv_domain->pgtable.pgtable, PT_SIZE);
 }
 
-static struct etnaviv_iommu_ops etnaviv_iommu_ops = {
+static struct etnaviv_iommu_ops etnaviv_iommu_ops =
+{
 	.ops = {
 		.domain_free = etnaviv_domain_free,
 		.map = etnaviv_iommuv1_map,
@@ -199,7 +217,7 @@ static struct etnaviv_iommu_ops etnaviv_iommu_ops = {
 void etnaviv_iommuv1_restore(struct etnaviv_gpu *gpu)
 {
 	struct etnaviv_iommu_domain *etnaviv_domain =
-			to_etnaviv_domain(gpu->mmu->domain);
+		to_etnaviv_domain(gpu->mmu->domain);
 	u32 pgtable;
 
 	/* set base addresses */
@@ -225,8 +243,11 @@ struct iommu_domain *etnaviv_iommuv1_domain_alloc(struct etnaviv_gpu *gpu)
 	int ret;
 
 	etnaviv_domain = kzalloc(sizeof(*etnaviv_domain), GFP_KERNEL);
+
 	if (!etnaviv_domain)
+	{
 		return NULL;
+	}
 
 	etnaviv_domain->dev = gpu->dev;
 
@@ -237,8 +258,11 @@ struct iommu_domain *etnaviv_iommuv1_domain_alloc(struct etnaviv_gpu *gpu)
 	etnaviv_domain->domain.geometry.aperture_end = GPU_MEM_START + PT_ENTRIES * SZ_4K - 1;
 
 	ret = __etnaviv_iommu_init(etnaviv_domain);
+
 	if (ret)
+	{
 		goto out_free;
+	}
 
 	return &etnaviv_domain->domain;
 

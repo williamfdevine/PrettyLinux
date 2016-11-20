@@ -18,20 +18,23 @@
 
 #define DM_VERITY_MAX_LEVELS		63
 
-enum verity_mode {
+enum verity_mode
+{
 	DM_VERITY_MODE_EIO,
 	DM_VERITY_MODE_LOGGING,
 	DM_VERITY_MODE_RESTART
 };
 
-enum verity_block_type {
+enum verity_block_type
+{
 	DM_VERITY_BLOCK_TYPE_DATA,
 	DM_VERITY_BLOCK_TYPE_METADATA
 };
 
 struct dm_verity_fec;
 
-struct dm_verity {
+struct dm_verity
+{
 	struct dm_dev *data_dev;
 	struct dm_dev *hash_dev;
 	struct dm_target *ti;
@@ -65,7 +68,8 @@ struct dm_verity {
 	struct dm_verity_fec *fec;	/* forward error correction */
 };
 
-struct dm_verity_io {
+struct dm_verity_io
+{
 	struct dm_verity *v;
 
 	/* original value of bio->bi_end_io */
@@ -91,39 +95,39 @@ struct dm_verity_io {
 };
 
 static inline struct shash_desc *verity_io_hash_desc(struct dm_verity *v,
-						     struct dm_verity_io *io)
+		struct dm_verity_io *io)
 {
 	return (struct shash_desc *)(io + 1);
 }
 
 static inline u8 *verity_io_real_digest(struct dm_verity *v,
-					struct dm_verity_io *io)
+										struct dm_verity_io *io)
 {
 	return (u8 *)(io + 1) + v->shash_descsize;
 }
 
 static inline u8 *verity_io_want_digest(struct dm_verity *v,
-					struct dm_verity_io *io)
+										struct dm_verity_io *io)
 {
 	return (u8 *)(io + 1) + v->shash_descsize + v->digest_size;
 }
 
 static inline u8 *verity_io_digest_end(struct dm_verity *v,
-				       struct dm_verity_io *io)
+									   struct dm_verity_io *io)
 {
 	return verity_io_want_digest(v, io) + v->digest_size;
 }
 
 extern int verity_for_bv_block(struct dm_verity *v, struct dm_verity_io *io,
-			       struct bvec_iter *iter,
-			       int (*process)(struct dm_verity *v,
-					      struct dm_verity_io *io,
-					      u8 *data, size_t len));
+							   struct bvec_iter *iter,
+							   int (*process)(struct dm_verity *v,
+									   struct dm_verity_io *io,
+									   u8 *data, size_t len));
 
 extern int verity_hash(struct dm_verity *v, struct shash_desc *desc,
-		       const u8 *data, size_t len, u8 *digest);
+					   const u8 *data, size_t len, u8 *digest);
 
 extern int verity_hash_for_block(struct dm_verity *v, struct dm_verity_io *io,
-				 sector_t block, u8 *digest, bool *is_zero);
+								 sector_t block, u8 *digest, bool *is_zero);
 
 #endif /* DM_VERITY_H */

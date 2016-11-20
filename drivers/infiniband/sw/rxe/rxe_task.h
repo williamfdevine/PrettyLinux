@@ -34,7 +34,8 @@
 #ifndef RXE_TASK_H
 #define RXE_TASK_H
 
-enum {
+enum
+{
 	TASK_STATE_START	= 0,
 	TASK_STATE_BUSY		= 1,
 	TASK_STATE_ARMED	= 2,
@@ -45,7 +46,8 @@ enum {
  * function that returns 0 as long as it needs to be
  * called again.
  */
-struct rxe_task {
+struct rxe_task
+{
 	void			*obj;
 	struct tasklet_struct	tasklet;
 	int			state;
@@ -62,7 +64,7 @@ struct rxe_task {
  *	fcn  => function to call until it returns != 0
  */
 int rxe_init_task(void *obj, struct rxe_task *task,
-		  void *arg, int (*func)(void *), char *name);
+				  void *arg, int (*func)(void *), char *name);
 
 /* cleanup task */
 void rxe_cleanup_task(struct rxe_task *task);

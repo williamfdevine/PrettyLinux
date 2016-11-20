@@ -47,14 +47,16 @@
 #include <linux/types.h>
 #include <linux/can.h>
 
-struct rtcanmsg {
+struct rtcanmsg
+{
 	__u8  can_family;
 	__u8  gwtype;
 	__u16 flags;
 };
 
 /* CAN gateway types */
-enum {
+enum
+{
 	CGW_TYPE_UNSPEC,
 	CGW_TYPE_CAN_CAN,	/* CAN->CAN routing */
 	__CGW_TYPE_MAX
@@ -63,7 +65,8 @@ enum {
 #define CGW_TYPE_MAX (__CGW_TYPE_MAX - 1)
 
 /* CAN rtnetlink attribute definitions */
-enum {
+enum
+{
 	CGW_UNSPEC,
 	CGW_MOD_AND,	/* CAN frame modification binary AND */
 	CGW_MOD_OR,	/* CAN frame modification binary OR */
@@ -99,21 +102,24 @@ enum {
 
 #define MAX_MODFUNCTIONS (CGW_MOD_FUNCS * CGW_FRAME_MODS)
 
-struct cgw_frame_mod {
+struct cgw_frame_mod
+{
 	struct can_frame cf;
 	__u8 modtype;
 } __attribute__((packed));
 
 #define CGW_MODATTR_LEN sizeof(struct cgw_frame_mod)
 
-struct cgw_csum_xor {
+struct cgw_csum_xor
+{
 	__s8 from_idx;
 	__s8 to_idx;
 	__s8 result_idx;
 	__u8 init_xor_val;
 } __attribute__((packed));
 
-struct cgw_csum_crc8 {
+struct cgw_csum_crc8
+{
 	__s8 from_idx;
 	__s8 to_idx;
 	__s8 result_idx;
@@ -129,7 +135,8 @@ struct cgw_csum_crc8 {
 #define CGW_CS_CRC8_LEN  sizeof(struct cgw_csum_crc8)
 
 /* CRC8 profiles (compute CRC for additional data elements - see below) */
-enum {
+enum
+{
 	CGW_CRC8PRF_UNSPEC,
 	CGW_CRC8PRF_1U8,	/* compute one additional u8 value */
 	CGW_CRC8PRF_16U8,	/* u8 value table indexed by data[1] & 0xF */

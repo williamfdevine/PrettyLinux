@@ -48,7 +48,7 @@
 #include "timer.h"
 
 #ifndef MADE_WITHOUT_COMPROMISE
-#define MADE_WITHOUT_COMPROMISE
+	#define MADE_WITHOUT_COMPROMISE
 #endif
 
 #define SWI_STATE_NEWBORN		0
@@ -91,45 +91,48 @@ struct sfw_test_instance;
 static inline enum srpc_msg_type
 srpc_service2request(int service)
 {
-	switch (service) {
-	default:
-		LBUG();
-	case SRPC_SERVICE_DEBUG:
-		return SRPC_MSG_DEBUG_REQST;
+	switch (service)
+	{
+		default:
+					LBUG();
 
-	case SRPC_SERVICE_MAKE_SESSION:
-		return SRPC_MSG_MKSN_REQST;
+			case SRPC_SERVICE_DEBUG:
+				return SRPC_MSG_DEBUG_REQST;
 
-	case SRPC_SERVICE_REMOVE_SESSION:
-		return SRPC_MSG_RMSN_REQST;
+			case SRPC_SERVICE_MAKE_SESSION:
+				return SRPC_MSG_MKSN_REQST;
 
-	case SRPC_SERVICE_BATCH:
-		return SRPC_MSG_BATCH_REQST;
+			case SRPC_SERVICE_REMOVE_SESSION:
+				return SRPC_MSG_RMSN_REQST;
 
-	case SRPC_SERVICE_TEST:
-		return SRPC_MSG_TEST_REQST;
+			case SRPC_SERVICE_BATCH:
+				return SRPC_MSG_BATCH_REQST;
 
-	case SRPC_SERVICE_QUERY_STAT:
-		return SRPC_MSG_STAT_REQST;
+			case SRPC_SERVICE_TEST:
+				return SRPC_MSG_TEST_REQST;
 
-	case SRPC_SERVICE_BRW:
-		return SRPC_MSG_BRW_REQST;
+			case SRPC_SERVICE_QUERY_STAT:
+				return SRPC_MSG_STAT_REQST;
 
-	case SRPC_SERVICE_PING:
-		return SRPC_MSG_PING_REQST;
+			case SRPC_SERVICE_BRW:
+				return SRPC_MSG_BRW_REQST;
 
-	case SRPC_SERVICE_JOIN:
-		return SRPC_MSG_JOIN_REQST;
+			case SRPC_SERVICE_PING:
+				return SRPC_MSG_PING_REQST;
+
+			case SRPC_SERVICE_JOIN:
+				return SRPC_MSG_JOIN_REQST;
+		}
 	}
-}
 
-static inline enum srpc_msg_type
-srpc_service2reply(int service)
+	static inline enum srpc_msg_type
+	srpc_service2reply(int service)
 {
 	return srpc_service2request(service) + 1;
 }
 
-enum srpc_event_type {
+enum srpc_event_type
+{
 	SRPC_BULK_REQ_RCVD   = 1, /* passive bulk request(PUT sink/GET source)
 				   * received */
 	SRPC_BULK_PUT_SENT   = 2, /* active bulk PUT sent (source) */
@@ -141,7 +144,8 @@ enum srpc_event_type {
 };
 
 /* RPC event */
-struct srpc_event {
+struct srpc_event
+{
 	enum srpc_event_type	ev_type;	/* what's up */
 	lnet_event_kind_t ev_lnet;   /* LNet event type */
 	int		  ev_fired;  /* LNet event fired? */
@@ -150,7 +154,8 @@ struct srpc_event {
 };
 
 /* bulk descriptor */
-struct srpc_bulk {
+struct srpc_bulk
+{
 	int		 bk_len;     /* len of bulk data */
 	lnet_handle_md_t bk_mdh;
 	int		 bk_sink;    /* sink/source */
@@ -159,7 +164,8 @@ struct srpc_bulk {
 };
 
 /* message buffer descriptor */
-struct srpc_buffer {
+struct srpc_buffer
+{
 	struct list_head  buf_list; /* chain on srpc_service::*_msgq */
 	struct srpc_msg	  buf_msg;
 	lnet_handle_md_t  buf_mdh;
@@ -170,7 +176,8 @@ struct srpc_buffer {
 struct swi_workitem;
 typedef int (*swi_action_t) (struct swi_workitem *);
 
-struct swi_workitem {
+struct swi_workitem
+{
 	struct cfs_wi_sched *swi_sched;
 	struct cfs_workitem swi_workitem;
 	swi_action_t	    swi_action;
@@ -178,7 +185,8 @@ struct swi_workitem {
 };
 
 /* server-side state of a RPC */
-struct srpc_server_rpc {
+struct srpc_server_rpc
+{
 	/* chain on srpc_service::*_rpcq */
 	struct list_head       srpc_list;
 	struct srpc_service_cd *srpc_scd;
@@ -197,7 +205,8 @@ struct srpc_server_rpc {
 };
 
 /* client-side state of a RPC */
-struct srpc_client_rpc {
+struct srpc_client_rpc
+{
 	struct list_head  crpc_list;	  /* chain on user's lists */
 	spinlock_t	  crpc_lock;	  /* serialize */
 	int		  crpc_service;
@@ -213,8 +222,8 @@ struct srpc_client_rpc {
 	void		  *crpc_priv;	  /* caller data */
 
 	/* state flags */
-	unsigned int	  crpc_aborted:1; /* being given up */
-	unsigned int	  crpc_closed:1;  /* completed */
+	unsigned int	  crpc_aborted: 1; /* being given up */
+	unsigned int	  crpc_closed: 1; /* completed */
 
 	/* RPC events */
 	struct srpc_event	crpc_bulkev;	/* bulk event */
@@ -230,33 +239,34 @@ struct srpc_client_rpc {
 };
 
 #define srpc_client_rpc_size(rpc)					\
-offsetof(struct srpc_client_rpc, crpc_bulk.bk_iovs[(rpc)->crpc_bulk.bk_niov])
+	offsetof(struct srpc_client_rpc, crpc_bulk.bk_iovs[(rpc)->crpc_bulk.bk_niov])
 
 #define srpc_client_rpc_addref(rpc)					\
-do {									\
-	CDEBUG(D_NET, "RPC[%p] -> %s (%d)++\n",				\
-	       (rpc), libcfs_id2str((rpc)->crpc_dest),			\
-	       atomic_read(&(rpc)->crpc_refcount));			\
-	LASSERT(atomic_read(&(rpc)->crpc_refcount) > 0);		\
-	atomic_inc(&(rpc)->crpc_refcount);				\
-} while (0)
+	do {									\
+		CDEBUG(D_NET, "RPC[%p] -> %s (%d)++\n",				\
+			   (rpc), libcfs_id2str((rpc)->crpc_dest),			\
+			   atomic_read(&(rpc)->crpc_refcount));			\
+		LASSERT(atomic_read(&(rpc)->crpc_refcount) > 0);		\
+		atomic_inc(&(rpc)->crpc_refcount);				\
+	} while (0)
 
 #define srpc_client_rpc_decref(rpc)					\
-do {									\
-	CDEBUG(D_NET, "RPC[%p] -> %s (%d)--\n",				\
-	       (rpc), libcfs_id2str((rpc)->crpc_dest),			\
-	       atomic_read(&(rpc)->crpc_refcount));			\
-	LASSERT(atomic_read(&(rpc)->crpc_refcount) > 0);		\
-	if (atomic_dec_and_test(&(rpc)->crpc_refcount))			\
-		srpc_destroy_client_rpc(rpc);				\
-} while (0)
+	do {									\
+		CDEBUG(D_NET, "RPC[%p] -> %s (%d)--\n",				\
+			   (rpc), libcfs_id2str((rpc)->crpc_dest),			\
+			   atomic_read(&(rpc)->crpc_refcount));			\
+		LASSERT(atomic_read(&(rpc)->crpc_refcount) > 0);		\
+		if (atomic_dec_and_test(&(rpc)->crpc_refcount))			\
+			srpc_destroy_client_rpc(rpc);				\
+	} while (0)
 
 #define srpc_event_pending(rpc)   (!(rpc)->crpc_bulkev.ev_fired ||	\
-				   !(rpc)->crpc_reqstev.ev_fired ||	\
-				   !(rpc)->crpc_replyev.ev_fired)
+								   !(rpc)->crpc_reqstev.ev_fired ||	\
+								   !(rpc)->crpc_replyev.ev_fired)
 
 /* CPU partition data of srpc service */
-struct srpc_service_cd {
+struct srpc_service_cd
+{
 	/** serialize */
 	spinlock_t		scd_lock;
 	/** backref to service */
@@ -302,7 +312,8 @@ struct srpc_service_cd {
 #define SFW_FRWK_WI_MIN		16
 #define SFW_FRWK_WI_MAX		256
 
-struct srpc_service {
+struct srpc_service
+{
 	int			sv_id;		/* service id */
 	const char		*sv_name;	/* human readable name */
 	int			sv_wi_total;	/* total server workitems */
@@ -318,7 +329,8 @@ struct srpc_service {
 	int (*sv_bulk_ready)(struct srpc_server_rpc *, int);
 };
 
-struct sfw_session {
+struct sfw_session
+{
 	struct list_head sn_list;    /* chain on fw_zombie_sessions */
 	lst_sid_t	 sn_id;      /* unique identifier */
 	unsigned int	 sn_timeout; /* # seconds' inactivity to expire */
@@ -334,9 +346,10 @@ struct sfw_session {
 };
 
 #define sfw_sid_equal(sid0, sid1)     ((sid0).ses_nid == (sid1).ses_nid && \
-				       (sid0).ses_stamp == (sid1).ses_stamp)
+									   (sid0).ses_stamp == (sid1).ses_stamp)
 
-struct sfw_batch {
+struct sfw_batch
+{
 	struct list_head bat_list;	/* chain on sn_batches */
 	lst_bid_t	 bat_id;	/* batch id */
 	int		 bat_error;	/* error code of batch */
@@ -345,19 +358,21 @@ struct sfw_batch {
 	struct list_head bat_tests;	/* test instances */
 };
 
-struct sfw_test_client_ops {
+struct sfw_test_client_ops
+{
 	int  (*tso_init)(struct sfw_test_instance *tsi); /* initialize test
 							  * client */
 	void (*tso_fini)(struct sfw_test_instance *tsi); /* finalize test
 							  * client */
 	int  (*tso_prep_rpc)(struct sfw_test_unit *tsu,
-			     lnet_process_id_t dest,
-			     struct srpc_client_rpc **rpc);	/* prep a tests rpc */
+						 lnet_process_id_t dest,
+						 struct srpc_client_rpc **rpc);	/* prep a tests rpc */
 	void (*tso_done_rpc)(struct sfw_test_unit *tsu,
-			     struct srpc_client_rpc *rpc);	/* done a test rpc */
+						 struct srpc_client_rpc *rpc);	/* done a test rpc */
 };
 
-struct sfw_test_instance {
+struct sfw_test_instance
+{
 	struct list_head	   tsi_list;		/* chain on batch */
 	int			   tsi_service;		/* test type */
 	struct sfw_batch		*tsi_batch;	/* batch */
@@ -365,21 +380,22 @@ struct sfw_test_instance {
 							 */
 
 	/* public parameter for all test units */
-	unsigned int		   tsi_is_client:1;	/* is test client */
-	unsigned int		   tsi_stoptsu_onerr:1; /* stop tsu on error */
+	unsigned int		   tsi_is_client: 1;	/* is test client */
+	unsigned int		   tsi_stoptsu_onerr: 1; /* stop tsu on error */
 	int			   tsi_concur;		/* concurrency */
 	int			   tsi_loop;		/* loop count */
 
 	/* status of test instance */
 	spinlock_t		   tsi_lock;		/* serialize */
-	unsigned int		   tsi_stopping:1;	/* test is stopping */
+	unsigned int		   tsi_stopping: 1;	/* test is stopping */
 	atomic_t		   tsi_nactive;		/* # of active test
 							 * unit */
 	struct list_head	   tsi_units;		/* test units */
 	struct list_head	   tsi_free_rpcs;	/* free rpcs */
 	struct list_head	   tsi_active_rpcs;	/* active rpcs */
 
-	union {
+	union
+	{
 		struct test_ping_req	ping;		/* ping parameter */
 		struct test_bulk_req	bulk_v0;	/* bulk parameter */
 		struct test_bulk_req_v1	bulk_v1;	/* bulk v1 parameter */
@@ -393,7 +409,8 @@ struct sfw_test_instance {
 #define SFW_MAX_NDESTS	   (LNET_MAX_IOV * SFW_ID_PER_PAGE)
 #define sfw_id_pages(n)    (((n) + SFW_ID_PER_PAGE - 1) / SFW_ID_PER_PAGE)
 
-struct sfw_test_unit {
+struct sfw_test_unit
+{
 	struct list_head    tsu_list;	   /* chain on lst_test_instance */
 	lnet_process_id_t   tsu_dest;	   /* id of dest node */
 	int		    tsu_loop;	   /* loop count of the test */
@@ -402,7 +419,8 @@ struct sfw_test_unit {
 	struct swi_workitem	tsu_worker;	/* workitem of the test unit */
 };
 
-struct sfw_test_case {
+struct sfw_test_case
+{
 	struct list_head      tsc_list;		/* chain on fw_tests */
 	struct srpc_service		*tsc_srv_service;	/* test service */
 	struct sfw_test_client_ops	*tsc_cli_ops;	/* ops of test client */
@@ -410,11 +428,11 @@ struct sfw_test_case {
 
 struct srpc_client_rpc *
 sfw_create_rpc(lnet_process_id_t peer, int service,
-	       unsigned features, int nbulkiov, int bulklen,
-	       void (*done)(struct srpc_client_rpc *), void *priv);
+			   unsigned features, int nbulkiov, int bulklen,
+			   void (*done)(struct srpc_client_rpc *), void *priv);
 int sfw_create_test_rpc(struct sfw_test_unit *tsu,
-			lnet_process_id_t peer, unsigned features,
-			int nblk, int blklen, struct srpc_client_rpc **rpc);
+						lnet_process_id_t peer, unsigned features,
+						int nblk, int blklen, struct srpc_client_rpc **rpc);
 void sfw_abort_rpc(struct srpc_client_rpc *rpc);
 void sfw_post_rpc(struct srpc_client_rpc *rpc);
 void sfw_client_rpc_done(struct srpc_client_rpc *rpc);
@@ -422,20 +440,20 @@ void sfw_unpack_message(struct srpc_msg *msg);
 void sfw_free_pages(struct srpc_server_rpc *rpc);
 void sfw_add_bulk_page(struct srpc_bulk *bk, struct page *pg, int i);
 int sfw_alloc_pages(struct srpc_server_rpc *rpc, int cpt, int npages, int len,
-		    int sink);
+					int sink);
 int sfw_make_session(struct srpc_mksn_reqst *request,
-		     struct srpc_mksn_reply *reply);
+					 struct srpc_mksn_reply *reply);
 
 struct srpc_client_rpc *
 srpc_create_client_rpc(lnet_process_id_t peer, int service,
-		       int nbulkiov, int bulklen,
-		       void (*rpc_done)(struct srpc_client_rpc *),
-		       void (*rpc_fini)(struct srpc_client_rpc *), void *priv);
+					   int nbulkiov, int bulklen,
+					   void (*rpc_done)(struct srpc_client_rpc *),
+					   void (*rpc_fini)(struct srpc_client_rpc *), void *priv);
 void srpc_post_rpc(struct srpc_client_rpc *rpc);
 void srpc_abort_rpc(struct srpc_client_rpc *rpc, int why);
 void srpc_free_bulk(struct srpc_bulk *bk);
 struct srpc_bulk *srpc_alloc_bulk(int cpt, unsigned bulk_npg,
-				  unsigned bulk_len, int sink);
+								  unsigned bulk_len, int sink);
 int srpc_send_rpc(struct swi_workitem *wi);
 int srpc_send_reply(struct srpc_server_rpc *rpc);
 int srpc_add_service(struct srpc_service *sv);
@@ -469,7 +487,7 @@ swi_wi_action(struct cfs_workitem *wi)
 
 static inline void
 swi_init_workitem(struct swi_workitem *swi, void *data,
-		  swi_action_t action, struct cfs_wi_sched *sched)
+				  swi_action_t action, struct cfs_wi_sched *sched)
 {
 	swi->swi_sched = sched;
 	swi->swi_action = action;
@@ -508,25 +526,29 @@ srpc_destroy_client_rpc(struct srpc_client_rpc *rpc)
 	LASSERT(!atomic_read(&rpc->crpc_refcount));
 
 	if (!rpc->crpc_fini)
+	{
 		LIBCFS_FREE(rpc, srpc_client_rpc_size(rpc));
+	}
 	else
+	{
 		(*rpc->crpc_fini)(rpc);
+	}
 }
 
 static inline void
 srpc_init_client_rpc(struct srpc_client_rpc *rpc, lnet_process_id_t peer,
-		     int service, int nbulkiov, int bulklen,
-		     void (*rpc_done)(struct srpc_client_rpc *),
-		     void (*rpc_fini)(struct srpc_client_rpc *), void *priv)
+					 int service, int nbulkiov, int bulklen,
+					 void (*rpc_done)(struct srpc_client_rpc *),
+					 void (*rpc_fini)(struct srpc_client_rpc *), void *priv)
 {
 	LASSERT(nbulkiov <= LNET_MAX_IOV);
 
 	memset(rpc, 0, offsetof(struct srpc_client_rpc,
-				crpc_bulk.bk_iovs[nbulkiov]));
+							crpc_bulk.bk_iovs[nbulkiov]));
 
 	INIT_LIST_HEAD(&rpc->crpc_list);
 	swi_init_workitem(&rpc->crpc_wi, rpc, srpc_send_rpc,
-			  lst_sched_test[lnet_cpt_of_nid(peer.nid)]);
+					  lst_sched_test[lnet_cpt_of_nid(peer.nid)]);
 	spin_lock_init(&rpc->crpc_lock);
 	atomic_set(&rpc->crpc_refcount, 1); /* 1 ref for caller */
 
@@ -555,18 +577,21 @@ static inline const char *
 swi_state2str(int state)
 {
 #define STATE2STR(x) case x: return #x
-	switch (state) {
-	default:
-		LBUG();
-	STATE2STR(SWI_STATE_NEWBORN);
-	STATE2STR(SWI_STATE_REPLY_SUBMITTED);
-	STATE2STR(SWI_STATE_REPLY_SENT);
-	STATE2STR(SWI_STATE_REQUEST_SUBMITTED);
-	STATE2STR(SWI_STATE_REQUEST_SENT);
-	STATE2STR(SWI_STATE_REPLY_RECEIVED);
-	STATE2STR(SWI_STATE_BULK_STARTED);
-	STATE2STR(SWI_STATE_DONE);
+
+	switch (state)
+	{
+		default:
+			LBUG();
+			STATE2STR(SWI_STATE_NEWBORN);
+			STATE2STR(SWI_STATE_REPLY_SUBMITTED);
+			STATE2STR(SWI_STATE_REPLY_SENT);
+			STATE2STR(SWI_STATE_REQUEST_SUBMITTED);
+			STATE2STR(SWI_STATE_REQUEST_SENT);
+			STATE2STR(SWI_STATE_REPLY_RECEIVED);
+			STATE2STR(SWI_STATE_BULK_STARTED);
+			STATE2STR(SWI_STATE_DONE);
 	}
+
 #undef STATE2STR
 }
 
@@ -577,18 +602,18 @@ swi_state2str(int state)
 	} while (0)
 
 #define lst_wait_until(cond, lock, fmt, ...)				\
-do {									\
-	int __I = 2;							\
-	while (!(cond)) {						\
-		CDEBUG(is_power_of_2(++__I) ? D_WARNING : D_NET,	\
-		       fmt, ## __VA_ARGS__);				\
-		spin_unlock(&(lock));					\
-									\
-		selftest_wait_events();					\
-									\
-		spin_lock(&(lock));					\
-	}								\
-} while (0)
+	do {									\
+		int __I = 2;							\
+		while (!(cond)) {						\
+			CDEBUG(is_power_of_2(++__I) ? D_WARNING : D_NET,	\
+				   fmt, ## __VA_ARGS__);				\
+			spin_unlock(&(lock));					\
+			\
+			selftest_wait_events();					\
+			\
+			spin_lock(&(lock));					\
+		}								\
+	} while (0)
 
 static inline void
 srpc_wait_service_shutdown(struct srpc_service *sv)
@@ -597,11 +622,12 @@ srpc_wait_service_shutdown(struct srpc_service *sv)
 
 	LASSERT(sv->sv_shuttingdown);
 
-	while (!srpc_finish_service(sv)) {
+	while (!srpc_finish_service(sv))
+	{
 		i++;
 		CDEBUG(((i & -i) == i) ? D_WARNING : D_NET,
-		       "Waiting for %s service to shutdown...\n",
-		       sv->sv_name);
+			   "Waiting for %s service to shutdown...\n",
+			   sv->sv_name);
 		selftest_wait_events();
 	}
 }

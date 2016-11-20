@@ -41,7 +41,8 @@
 #define SUNXI_HSIC_CONNECT_INT		BIT(16)
 #define SUNXI_HSIC			BIT(1)
 
-struct sun9i_usb_phy {
+struct sun9i_usb_phy
+{
 	struct phy *phy;
 	void __iomem *pmu;
 	struct reset_control *reset;
@@ -55,19 +56,23 @@ static void sun9i_usb_phy_passby(struct sun9i_usb_phy *phy, int enable)
 	u32 bits, reg_value;
 
 	bits = SUNXI_AHB_INCR16_BURST_EN | SUNXI_AHB_INCR8_BURST_EN |
-		SUNXI_AHB_INCR4_BURST_EN | SUNXI_AHB_INCRX_ALIGN_EN |
-		SUNXI_ULPI_BYPASS_EN;
+		   SUNXI_AHB_INCR4_BURST_EN | SUNXI_AHB_INCRX_ALIGN_EN |
+		   SUNXI_ULPI_BYPASS_EN;
 
 	if (phy->type == USBPHY_INTERFACE_MODE_HSIC)
 		bits |= SUNXI_HSIC | SUNXI_EHCI_HS_FORCE |
-			SUNXI_HSIC_CONNECT_DET | SUNXI_HSIC_CONNECT_INT;
+				SUNXI_HSIC_CONNECT_DET | SUNXI_HSIC_CONNECT_INT;
 
 	reg_value = readl(phy->pmu);
 
 	if (enable)
+	{
 		reg_value |= bits;
+	}
 	else
+	{
 		reg_value &= ~bits;
+	}
 
 	writel(reg_value, phy->pmu);
 }
@@ -78,16 +83,25 @@ static int sun9i_usb_phy_init(struct phy *_phy)
 	int ret;
 
 	ret = clk_prepare_enable(phy->clk);
+
 	if (ret)
+	{
 		goto err_clk;
+	}
 
 	ret = clk_prepare_enable(phy->hsic_clk);
+
 	if (ret)
+	{
 		goto err_hsic_clk;
+	}
 
 	ret = reset_control_deassert(phy->reset);
+
 	if (ret)
+	{
 		goto err_reset;
+	}
 
 	sun9i_usb_phy_passby(phy, 1);
 	return 0;
@@ -114,7 +128,8 @@ static int sun9i_usb_phy_exit(struct phy *_phy)
 	return 0;
 }
 
-static const struct phy_ops sun9i_usb_phy_ops = {
+static const struct phy_ops sun9i_usb_phy_ops =
+{
 	.init		= sun9i_usb_phy_init,
 	.exit		= sun9i_usb_phy_exit,
 	.owner		= THIS_MODULE,
@@ -129,37 +144,54 @@ static int sun9i_usb_phy_probe(struct platform_device *pdev)
 	struct resource *res;
 
 	phy = devm_kzalloc(dev, sizeof(*phy), GFP_KERNEL);
+
 	if (!phy)
+	{
 		return -ENOMEM;
+	}
 
 	phy->type = of_usb_get_phy_mode(np);
-	if (phy->type == USBPHY_INTERFACE_MODE_HSIC) {
+
+	if (phy->type == USBPHY_INTERFACE_MODE_HSIC)
+	{
 		phy->clk = devm_clk_get(dev, "hsic_480M");
-		if (IS_ERR(phy->clk)) {
+
+		if (IS_ERR(phy->clk))
+		{
 			dev_err(dev, "failed to get hsic_480M clock\n");
 			return PTR_ERR(phy->clk);
 		}
 
 		phy->hsic_clk = devm_clk_get(dev, "hsic_12M");
-		if (IS_ERR(phy->hsic_clk)) {
+
+		if (IS_ERR(phy->hsic_clk))
+		{
 			dev_err(dev, "failed to get hsic_12M clock\n");
 			return PTR_ERR(phy->hsic_clk);
 		}
 
 		phy->reset = devm_reset_control_get(dev, "hsic");
-		if (IS_ERR(phy->reset)) {
+
+		if (IS_ERR(phy->reset))
+		{
 			dev_err(dev, "failed to get reset control\n");
 			return PTR_ERR(phy->reset);
 		}
-	} else {
+	}
+	else
+	{
 		phy->clk = devm_clk_get(dev, "phy");
-		if (IS_ERR(phy->clk)) {
+
+		if (IS_ERR(phy->clk))
+		{
 			dev_err(dev, "failed to get phy clock\n");
 			return PTR_ERR(phy->clk);
 		}
 
 		phy->reset = devm_reset_control_get(dev, "phy");
-		if (IS_ERR(phy->reset)) {
+
+		if (IS_ERR(phy->reset))
+		{
 			dev_err(dev, "failed to get reset control\n");
 			return PTR_ERR(phy->reset);
 		}
@@ -167,11 +199,16 @@ static int sun9i_usb_phy_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	phy->pmu = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(phy->pmu))
+	{
 		return PTR_ERR(phy->pmu);
+	}
 
 	phy->phy = devm_phy_create(dev, NULL, &sun9i_usb_phy_ops);
-	if (IS_ERR(phy->phy)) {
+
+	if (IS_ERR(phy->phy))
+	{
 		dev_err(dev, "failed to create PHY\n");
 		return PTR_ERR(phy->phy);
 	}
@@ -182,13 +219,15 @@ static int sun9i_usb_phy_probe(struct platform_device *pdev)
 	return PTR_ERR_OR_ZERO(phy_provider);
 }
 
-static const struct of_device_id sun9i_usb_phy_of_match[] = {
+static const struct of_device_id sun9i_usb_phy_of_match[] =
+{
 	{ .compatible = "allwinner,sun9i-a80-usb-phy" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, sun9i_usb_phy_of_match);
 
-static struct platform_driver sun9i_usb_phy_driver = {
+static struct platform_driver sun9i_usb_phy_driver =
+{
 	.probe	= sun9i_usb_phy_probe,
 	.driver = {
 		.of_match_table	= sun9i_usb_phy_of_match,

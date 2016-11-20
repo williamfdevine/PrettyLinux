@@ -71,17 +71,18 @@
 #define AR9300_BASE_ADDR_512 0x1ff
 
 #define AR9300_OTP_BASE \
-		((AR_SREV_9340(ah) || AR_SREV_9550(ah)) ? 0x30000 : 0x14000)
+	((AR_SREV_9340(ah) || AR_SREV_9550(ah)) ? 0x30000 : 0x14000)
 #define AR9300_OTP_STATUS \
-		((AR_SREV_9340(ah) || AR_SREV_9550(ah)) ? 0x30018 : 0x15f18)
+	((AR_SREV_9340(ah) || AR_SREV_9550(ah)) ? 0x30018 : 0x15f18)
 #define AR9300_OTP_STATUS_TYPE		0x7
 #define AR9300_OTP_STATUS_VALID		0x4
 #define AR9300_OTP_STATUS_ACCESS_BUSY	0x2
 #define AR9300_OTP_STATUS_SM_BUSY	0x1
 #define AR9300_OTP_READ_DATA \
-		((AR_SREV_9340(ah) || AR_SREV_9550(ah)) ? 0x3001c : 0x15f1c)
+	((AR_SREV_9340(ah) || AR_SREV_9550(ah)) ? 0x3001c : 0x15f1c)
 
-enum targetPowerHTRates {
+enum targetPowerHTRates
+{
 	HT_TARGET_RATE_0_8_16,
 	HT_TARGET_RATE_1_3_9_11_17_19,
 	HT_TARGET_RATE_4,
@@ -98,21 +99,24 @@ enum targetPowerHTRates {
 	HT_TARGET_RATE_23
 };
 
-enum targetPowerLegacyRates {
+enum targetPowerLegacyRates
+{
 	LEGACY_TARGET_RATE_6_24,
 	LEGACY_TARGET_RATE_36,
 	LEGACY_TARGET_RATE_48,
 	LEGACY_TARGET_RATE_54
 };
 
-enum targetPowerCckRates {
+enum targetPowerCckRates
+{
 	LEGACY_TARGET_RATE_1L_5L,
 	LEGACY_TARGET_RATE_5S,
 	LEGACY_TARGET_RATE_11L,
 	LEGACY_TARGET_RATE_11S
 };
 
-enum ar9300_Rates {
+enum ar9300_Rates
+{
 	ALL_TARGET_LEGACY_6_24,
 	ALL_TARGET_LEGACY_36,
 	ALL_TARGET_LEGACY_48,
@@ -153,12 +157,14 @@ enum ar9300_Rates {
 };
 
 
-struct eepFlags {
+struct eepFlags
+{
 	u8 opFlags;
 	u8 eepMisc;
 } __packed;
 
-enum CompressAlgorithm {
+enum CompressAlgorithm
+{
 	_CompressNone = 0,
 	_CompressLzma,
 	_CompressPairs,
@@ -169,7 +175,8 @@ enum CompressAlgorithm {
 	_Compress7,
 };
 
-struct ar9300_base_eep_hdr {
+struct ar9300_base_eep_hdr
+{
 	__le16 regDmn[2];
 	/* 4 bits tx and 4 bits rx */
 	u8 txrxMask;
@@ -203,7 +210,8 @@ struct ar9300_base_eep_hdr {
 	__le32 swreg;
 } __packed;
 
-struct ar9300_modal_eep_header {
+struct ar9300_modal_eep_header
+{
 	/* 4 idle, t1, t2, b (4 bits per setting) */
 	__le32 antCtrlCommon;
 	/* 4 ra1l1, ra2l1, ra1l2, ra2l2, ra12 */
@@ -240,7 +248,8 @@ struct ar9300_modal_eep_header {
 	u8 futureModal[7];
 } __packed;
 
-struct ar9300_cal_data_per_freq_op_loop {
+struct ar9300_cal_data_per_freq_op_loop
+{
 	int8_t refPower;
 	/* pdadc voltage at power measurement */
 	u8 voltMeas;
@@ -254,25 +263,30 @@ struct ar9300_cal_data_per_freq_op_loop {
 	u8 rxTempMeas;
 } __packed;
 
-struct cal_tgt_pow_legacy {
+struct cal_tgt_pow_legacy
+{
 	u8 tPow2x[4];
 } __packed;
 
-struct cal_tgt_pow_ht {
+struct cal_tgt_pow_ht
+{
 	u8 tPow2x[14];
 } __packed;
 
-struct cal_ctl_data_2g {
+struct cal_ctl_data_2g
+{
 	u8 ctlEdges[AR9300_NUM_BAND_EDGES_2G];
 } __packed;
 
-struct cal_ctl_data_5g {
+struct cal_ctl_data_5g
+{
 	u8 ctlEdges[AR9300_NUM_BAND_EDGES_5G];
 } __packed;
 
 #define MAX_BASE_EXTENSION_FUTURE 2
 
-struct ar9300_BaseExtension_1 {
+struct ar9300_BaseExtension_1
+{
 	u8 ant_div_control;
 	u8 future[MAX_BASE_EXTENSION_FUTURE];
 	/*
@@ -288,7 +302,8 @@ struct ar9300_BaseExtension_1 {
 	int8_t quick_drop_high;
 } __packed;
 
-struct ar9300_BaseExtension_2 {
+struct ar9300_BaseExtension_2
+{
 	int8_t    tempSlopeLow;
 	int8_t    tempSlopeHigh;
 	u8   xatten1DBLow[AR9300_MAX_CHAINS];
@@ -297,7 +312,8 @@ struct ar9300_BaseExtension_2 {
 	u8   xatten1MarginHigh[AR9300_MAX_CHAINS];
 } __packed;
 
-struct ar9300_eeprom {
+struct ar9300_eeprom
+{
 	u8 eepromVersion;
 	u8 templateVersion;
 	u8 macAddr[6];
@@ -309,19 +325,19 @@ struct ar9300_eeprom {
 	struct ar9300_BaseExtension_1 base_ext1;
 	u8 calFreqPier2G[AR9300_NUM_2G_CAL_PIERS];
 	struct ar9300_cal_data_per_freq_op_loop
-	 calPierData2G[AR9300_MAX_CHAINS][AR9300_NUM_2G_CAL_PIERS];
+		calPierData2G[AR9300_MAX_CHAINS][AR9300_NUM_2G_CAL_PIERS];
 	u8 calTarget_freqbin_Cck[AR9300_NUM_2G_CCK_TARGET_POWERS];
 	u8 calTarget_freqbin_2G[AR9300_NUM_2G_20_TARGET_POWERS];
 	u8 calTarget_freqbin_2GHT20[AR9300_NUM_2G_20_TARGET_POWERS];
 	u8 calTarget_freqbin_2GHT40[AR9300_NUM_2G_40_TARGET_POWERS];
 	struct cal_tgt_pow_legacy
-	 calTargetPowerCck[AR9300_NUM_2G_CCK_TARGET_POWERS];
+		calTargetPowerCck[AR9300_NUM_2G_CCK_TARGET_POWERS];
 	struct cal_tgt_pow_legacy
-	 calTargetPower2G[AR9300_NUM_2G_20_TARGET_POWERS];
+		calTargetPower2G[AR9300_NUM_2G_20_TARGET_POWERS];
 	struct cal_tgt_pow_ht
-	 calTargetPower2GHT20[AR9300_NUM_2G_20_TARGET_POWERS];
+		calTargetPower2GHT20[AR9300_NUM_2G_20_TARGET_POWERS];
 	struct cal_tgt_pow_ht
-	 calTargetPower2GHT40[AR9300_NUM_2G_40_TARGET_POWERS];
+		calTargetPower2GHT40[AR9300_NUM_2G_40_TARGET_POWERS];
 	u8 ctlIndex_2G[AR9300_NUM_CTLS_2G];
 	u8 ctl_freqbin_2G[AR9300_NUM_CTLS_2G][AR9300_NUM_BAND_EDGES_2G];
 	struct cal_ctl_data_2g ctlPowerData_2G[AR9300_NUM_CTLS_2G];
@@ -329,16 +345,16 @@ struct ar9300_eeprom {
 	struct ar9300_BaseExtension_2 base_ext2;
 	u8 calFreqPier5G[AR9300_NUM_5G_CAL_PIERS];
 	struct ar9300_cal_data_per_freq_op_loop
-	 calPierData5G[AR9300_MAX_CHAINS][AR9300_NUM_5G_CAL_PIERS];
+		calPierData5G[AR9300_MAX_CHAINS][AR9300_NUM_5G_CAL_PIERS];
 	u8 calTarget_freqbin_5G[AR9300_NUM_5G_20_TARGET_POWERS];
 	u8 calTarget_freqbin_5GHT20[AR9300_NUM_5G_20_TARGET_POWERS];
 	u8 calTarget_freqbin_5GHT40[AR9300_NUM_5G_40_TARGET_POWERS];
 	struct cal_tgt_pow_legacy
-	 calTargetPower5G[AR9300_NUM_5G_20_TARGET_POWERS];
+		calTargetPower5G[AR9300_NUM_5G_20_TARGET_POWERS];
 	struct cal_tgt_pow_ht
-	 calTargetPower5GHT20[AR9300_NUM_5G_20_TARGET_POWERS];
+		calTargetPower5GHT20[AR9300_NUM_5G_20_TARGET_POWERS];
 	struct cal_tgt_pow_ht
-	 calTargetPower5GHT40[AR9300_NUM_5G_40_TARGET_POWERS];
+		calTargetPower5GHT40[AR9300_NUM_5G_40_TARGET_POWERS];
 	u8 ctlIndex_5G[AR9300_NUM_CTLS_5G];
 	u8 ctl_freqbin_5G[AR9300_NUM_CTLS_5G][AR9300_NUM_BAND_EDGES_5G];
 	struct cal_ctl_data_5g ctlPowerData_5G[AR9300_NUM_CTLS_5G];
@@ -352,9 +368,9 @@ u32 ar9003_hw_ant_ctrl_common_2_get(struct ath_hw *ah, bool is2ghz);
 u8 *ar9003_get_spur_chan_ptr(struct ath_hw *ah, bool is_2ghz);
 
 unsigned int ar9003_get_paprd_scale_factor(struct ath_hw *ah,
-					   struct ath9k_channel *chan);
+		struct ath9k_channel *chan);
 
 void ar9003_hw_internal_regulator_apply(struct ath_hw *ah);
-int ar9003_hw_tx_power_regwrite(struct ath_hw *ah, u8 * pPwrArray);
+int ar9003_hw_tx_power_regwrite(struct ath_hw *ah, u8 *pPwrArray);
 
 #endif

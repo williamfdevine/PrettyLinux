@@ -160,8 +160,9 @@
 #include <linux/wimax/i2400m.h>
 #include <asm/byteorder.h>
 
-enum {
-/* netdev interface */
+enum
+{
+	/* netdev interface */
 	/*
 	 * Out of NWG spec (R1_v1.2.2), 3.3.3 ASN Bearer Plane MTU Size
 	 *
@@ -171,13 +172,15 @@ enum {
 };
 
 /* Misc constants */
-enum {
+enum
+{
 	/* Size of the Boot Mode Command buffer */
 	I2400M_BM_CMD_BUF_SIZE = 16 * 1024,
 	I2400M_BM_ACK_BUF_SIZE = 256,
 };
 
-enum {
+enum
+{
 	/* Maximum number of bus reset can be retried */
 	I2400M_BUS_RESET_RETRIES = 3,
 };
@@ -193,15 +196,16 @@ enum {
  * @data: The data value to poke to the device address
  *
  */
-struct i2400m_poke_table{
+struct i2400m_poke_table
+{
 	__le32 address;
 	__le32 data;
 };
 
 #define I2400M_FW_POKE(a, d) {		\
-	.address = cpu_to_le32(a),	\
-	.data = cpu_to_le32(d)		\
-}
+		.address = cpu_to_le32(a),	\
+				   .data = cpu_to_le32(d)		\
+	}
 
 
 /**
@@ -215,7 +219,8 @@ struct i2400m_poke_table{
  * @I2400M_RT_BUS: Tells the bus to reset the device; last measure
  *     used when both types above don't work.
  */
-enum i2400m_reset_type {
+enum i2400m_reset_type
+{
 	I2400M_RT_WARM,	/* first measure */
 	I2400M_RT_COLD,	/* second measure */
 	I2400M_RT_BUS,	/* call in artillery */
@@ -563,16 +568,17 @@ struct i2400m_barker_db;
  *	error recovery is already in place (error_recovery was set 1), we
  *	should not schedule another one until the last one is done.
  */
-struct i2400m {
+struct i2400m
+{
 	struct wimax_dev wimax_dev;	/* FIRST! See doc */
 
-	unsigned updown:1;		/* Network device is up or down */
-	unsigned boot_mode:1;		/* is the device in boot mode? */
-	unsigned sboot:1;		/* signed or unsigned fw boot */
-	unsigned ready:1;		/* Device comm infrastructure ready */
-	unsigned rx_reorder:1;		/* RX reorder is enabled */
+	unsigned updown: 1;		/* Network device is up or down */
+	unsigned boot_mode: 1;		/* is the device in boot mode? */
+	unsigned sboot: 1;		/* signed or unsigned fw boot */
+	unsigned ready: 1;		/* Device comm infrastructure ready */
+	unsigned rx_reorder: 1;		/* RX reorder is enabled */
 	u8 trace_msg_from_user;		/* echo rx msgs to 'trace' pipe */
-					/* typed u8 so /sys/kernel/debug/u8 can tweak */
+	/* typed u8 so /sys/kernel/debug/u8 can tweak */
 	enum i2400m_system_state state;
 	wait_queue_head_t state_wq;	/* Woken up when on state updates */
 
@@ -588,12 +594,12 @@ struct i2400m {
 	void (*bus_tx_kick)(struct i2400m *);
 	int (*bus_reset)(struct i2400m *, enum i2400m_reset_type);
 	ssize_t (*bus_bm_cmd_send)(struct i2400m *,
-				   const struct i2400m_bootrom_header *,
-				   size_t, int flags);
+							   const struct i2400m_bootrom_header *,
+							   size_t, int flags);
 	ssize_t (*bus_bm_wait_for_ack)(struct i2400m *,
-				       struct i2400m_bootrom_header *, size_t);
+								   struct i2400m_bootrom_header *, size_t);
 	const char **bus_fw_names;
-	unsigned bus_bm_mac_addr_impaired:1;
+	unsigned bus_bm_mac_addr_impaired: 1;
 	const struct i2400m_poke_table *bus_bm_pokes_table;
 
 	spinlock_t tx_lock;		/* protect TX state */
@@ -603,13 +609,13 @@ struct i2400m {
 	size_t tx_sequence, tx_msg_size;
 	/* TX stats */
 	unsigned tx_pl_num, tx_pl_max, tx_pl_min,
-		tx_num, tx_size_acc, tx_size_min, tx_size_max;
+			 tx_num, tx_size_acc, tx_size_min, tx_size_max;
 
 	/* RX stuff */
 	/* protect RX state and rx_roq_refcount */
 	spinlock_t rx_lock;
 	unsigned rx_pl_num, rx_pl_max, rx_pl_min,
-		rx_num, rx_size_acc, rx_size_min, rx_size_max;
+			 rx_num, rx_size_acc, rx_size_min, rx_size_max;
 	struct i2400m_roq *rx_roq;	/* access is refcounted */
 	struct kref rx_roq_refcount;	/* refcount access to rx_roq */
 	u8 src_mac_addr[ETH_HLEN];
@@ -684,7 +690,8 @@ struct i2400m *net_dev_to_i2400m(struct net_device *net_dev)
  * @I2400M_BM_CMD_RAW: send the command block as-is, without doing any
  *     extra processing for adding CRC.
  */
-enum i2400m_bm_cmd_flags {
+enum i2400m_bm_cmd_flags
+{
 	I2400M_BM_CMD_RAW	= 1 << 2,
 };
 
@@ -704,7 +711,8 @@ enum i2400m_bm_cmd_flags {
  *     if you ask me -- the device requires the bootrom to be
  *     initialized after reading the MAC address.
  */
-enum i2400m_bri {
+enum i2400m_bri
+{
 	I2400M_BRI_SOFT       = 1 << 1,
 	I2400M_BRI_NO_REBOOT  = 1 << 2,
 	I2400M_BRI_MAC_REINIT = 1 << 3,
@@ -727,23 +735,23 @@ void i2400m_unknown_barker(struct i2400m *, const void *, size_t);
 
 static inline
 __le32 i2400m_brh_command(enum i2400m_brh_opcode opcode, unsigned use_checksum,
-			  unsigned direct_access)
+						  unsigned direct_access)
 {
 	return cpu_to_le32(
-		I2400M_BRH_SIGNATURE
-		| (direct_access ? I2400M_BRH_DIRECT_ACCESS : 0)
-		| I2400M_BRH_RESPONSE_REQUIRED /* response always required */
-		| (use_checksum ? I2400M_BRH_USE_CHECKSUM : 0)
-		| (opcode & I2400M_BRH_OPCODE_MASK));
+			   I2400M_BRH_SIGNATURE
+			   | (direct_access ? I2400M_BRH_DIRECT_ACCESS : 0)
+			   | I2400M_BRH_RESPONSE_REQUIRED /* response always required */
+			   | (use_checksum ? I2400M_BRH_USE_CHECKSUM : 0)
+			   | (opcode & I2400M_BRH_OPCODE_MASK));
 }
 
 static inline
 void i2400m_brh_set_opcode(struct i2400m_bootrom_header *hdr,
-			   enum i2400m_brh_opcode opcode)
+						   enum i2400m_brh_opcode opcode)
 {
 	hdr->command = cpu_to_le32(
-		(le32_to_cpu(hdr->command) & ~I2400M_BRH_OPCODE_MASK)
-		| (opcode & I2400M_BRH_OPCODE_MASK));
+					   (le32_to_cpu(hdr->command) & ~I2400M_BRH_OPCODE_MASK)
+					   | (opcode & I2400M_BRH_OPCODE_MASK));
 }
 
 static inline
@@ -756,7 +764,7 @@ static inline
 unsigned i2400m_brh_get_response(const struct i2400m_bootrom_header *hdr)
 {
 	return (le32_to_cpu(hdr->command) & I2400M_BRH_RESPONSE_MASK)
-		>> I2400M_BRH_RESPONSE_SHIFT;
+		   >> I2400M_BRH_RESPONSE_SHIFT;
 }
 
 static inline
@@ -782,7 +790,7 @@ static inline
 unsigned i2400m_brh_get_signature(const struct i2400m_bootrom_header *hdr)
 {
 	return (le32_to_cpu(hdr->command) & I2400M_BRH_SIGNATURE_MASK)
-		>> I2400M_BRH_SIGNATURE_SHIFT;
+		   >> I2400M_BRH_SIGNATURE_SHIFT;
 }
 
 
@@ -805,7 +813,7 @@ void i2400m_fw_cache(struct i2400m *);
 void i2400m_fw_uncache(struct i2400m *);
 
 void i2400m_net_rx(struct i2400m *, struct sk_buff *, unsigned, const void *,
-		   int);
+				   int);
 void i2400m_net_erx(struct i2400m *, struct sk_buff *, enum i2400m_cs);
 void i2400m_net_wake_stop(struct i2400m *);
 enum i2400m_pt;
@@ -841,16 +849,16 @@ static inline
 enum i2400m_pt i2400m_pld_type(const struct i2400m_pld *pld)
 {
 	return (I2400M_PLD_TYPE_MASK & le32_to_cpu(pld->val))
-		>> I2400M_PLD_TYPE_SHIFT;
+		   >> I2400M_PLD_TYPE_SHIFT;
 }
 
 static inline
 void i2400m_pld_set(struct i2400m_pld *pld, size_t size,
-		    enum i2400m_pt type)
+					enum i2400m_pt type)
 {
 	pld->val = cpu_to_le32(
-		((type << I2400M_PLD_TYPE_SHIFT) & I2400M_PLD_TYPE_MASK)
-		|  (size & I2400M_PLD_SIZE_MASK));
+				   ((type << I2400M_PLD_TYPE_SHIFT) & I2400M_PLD_TYPE_MASK)
+				   |  (size & I2400M_PLD_SIZE_MASK));
 }
 
 
@@ -901,11 +909,11 @@ struct device *i2400m_dev(struct i2400m *i2400m)
 
 int i2400m_msg_check_status(const struct i2400m_l3l4_hdr *, char *, size_t);
 int i2400m_msg_size_check(struct i2400m *, const struct i2400m_l3l4_hdr *,
-			  size_t);
+						  size_t);
 struct sk_buff *i2400m_msg_to_dev(struct i2400m *, const void *, size_t);
 void i2400m_msg_to_dev_cancel_wait(struct i2400m *, int);
 void i2400m_report_hook(struct i2400m *, const struct i2400m_l3l4_hdr *,
-			size_t);
+						size_t);
 void i2400m_report_hook_work(struct work_struct *);
 int i2400m_cmd_enter_powersave(struct i2400m *);
 int i2400m_cmd_exit_idle(struct i2400m *);
@@ -921,7 +929,7 @@ struct usb_endpoint_descriptor *usb_get_epd(struct usb_interface *iface, int ep)
 
 int i2400m_op_rfkill_sw_toggle(struct wimax_dev *, enum wimax_rf_state);
 void i2400m_report_tlv_rf_switches_status(struct i2400m *,
-					  const struct i2400m_tlv_rf_switches_status *);
+		const struct i2400m_tlv_rf_switches_status *);
 
 /*
  * Helpers for firmware backwards compatibility

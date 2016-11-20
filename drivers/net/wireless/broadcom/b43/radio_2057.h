@@ -435,7 +435,8 @@
 
 #define R2057_VCM_MASK				0x7
 
-struct b43_nphy_chantabent_rev7 {
+struct b43_nphy_chantabent_rev7
+{
 	/* The channel frequency in MHz */
 	u16 freq;
 	/* Radio regs values on channelswitch */
@@ -471,7 +472,8 @@ struct b43_nphy_chantabent_rev7 {
 	struct b43_phy_n_sfo_cfg phy_regs;
 };
 
-struct b43_nphy_chantabent_rev7_2g {
+struct b43_nphy_chantabent_rev7_2g
+{
 	/* The channel frequency in MHz */
 	u16 freq;
 	/* Radio regs values on channelswitch */
@@ -500,7 +502,7 @@ struct b43_nphy_chantabent_rev7_2g {
 void r2057_upload_inittabs(struct b43_wldev *dev);
 
 void r2057_get_chantabent_rev7(struct b43_wldev *dev, u16 freq,
-			       const struct b43_nphy_chantabent_rev7 **tabent_r7,
-			       const struct b43_nphy_chantabent_rev7_2g **tabent_r7_2g);
+							   const struct b43_nphy_chantabent_rev7 **tabent_r7,
+							   const struct b43_nphy_chantabent_rev7_2g **tabent_r7_2g);
 
 #endif /* B43_RADIO_2057_H_ */

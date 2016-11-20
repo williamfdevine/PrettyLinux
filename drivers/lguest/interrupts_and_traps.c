@@ -76,7 +76,8 @@ static void push_guest_interrupt_stack(struct lg_cpu *cpu, bool has_err)
 	 * in the kernel, and a more complex one where the Guest is in
 	 * userspace.  We check the privilege level to find out.
 	 */
-	if ((cpu->regs->ss&0x3) != GUEST_PL) {
+	if ((cpu->regs->ss & 0x3) != GUEST_PL)
+	{
 		/*
 		 * The Guest told us their kernel stack with the SET_STACK
 		 * hypercall: both the virtual address and the segment.
@@ -93,7 +94,9 @@ static void push_guest_interrupt_stack(struct lg_cpu *cpu, bool has_err)
 		 */
 		push_guest_stack(cpu, &gstack, cpu->regs->ss);
 		push_guest_stack(cpu, &gstack, cpu->regs->esp);
-	} else {
+	}
+	else
+	{
 		/* We're staying on the same Guest (kernel) stack. */
 		virtstack = cpu->regs->esp;
 		ss = cpu->regs->ss;
@@ -108,9 +111,12 @@ static void push_guest_interrupt_stack(struct lg_cpu *cpu, bool has_err)
 	 * copy it back in "lguest_iret".
 	 */
 	eflags = cpu->regs->eflags;
+
 	if (get_user(irq_enable, &cpu->lg->lguest_data->irq_enabled) == 0
-	    && !(irq_enable & X86_EFLAGS_IF))
+		&& !(irq_enable & X86_EFLAGS_IF))
+	{
 		eflags &= ~X86_EFLAGS_IF;
+	}
 
 	/*
 	 * An interrupt is expected to push three things on the stack: the old
@@ -123,7 +129,9 @@ static void push_guest_interrupt_stack(struct lg_cpu *cpu, bool has_err)
 
 	/* For the six traps which supply an error code, we push that, too. */
 	if (has_err)
+	{
 		push_guest_stack(cpu, &gstack, cpu->regs->errcode);
+	}
 
 	/* Adjust the stack pointer and stack segment. */
 	cpu->regs->ss = ss;
@@ -141,13 +149,15 @@ static void push_guest_interrupt_stack(struct lg_cpu *cpu, bool has_err)
 static void guest_run_interrupt(struct lg_cpu *cpu, u32 lo, u32 hi)
 {
 	/* If we're already in the kernel, we don't change stacks. */
-	if ((cpu->regs->ss&0x3) != GUEST_PL)
+	if ((cpu->regs->ss & 0x3) != GUEST_PL)
+	{
 		cpu->regs->ss = cpu->esp1;
+	}
 
 	/*
 	 * Set the code segment and the address to execute.
 	 */
-	cpu->regs->cs = (__KERNEL_CS|GUEST_PL);
+	cpu->regs->cs = (__KERNEL_CS | GUEST_PL);
 	cpu->regs->eip = idt_address(lo, hi);
 
 	/*
@@ -158,7 +168,7 @@ static void guest_run_interrupt(struct lg_cpu *cpu, u32 lo, u32 hi)
 	 * NT: Nested task.
 	 */
 	cpu->regs->eflags &=
-		~(X86_EFLAGS_TF|X86_EFLAGS_VM|X86_EFLAGS_RF|X86_EFLAGS_NT);
+		~(X86_EFLAGS_TF | X86_EFLAGS_VM | X86_EFLAGS_RF | X86_EFLAGS_NT);
 
 	/*
 	 * There are two kinds of interrupt handlers: 0xE is an "interrupt
@@ -166,7 +176,9 @@ static void guest_run_interrupt(struct lg_cpu *cpu, u32 lo, u32 hi)
 	 */
 	if (idt_type(lo, hi) == 0xE)
 		if (put_user(0, &cpu->lg->lguest_data->irq_enabled))
+		{
 			kill_guest(cpu, "Disabling interrupts");
+		}
 }
 
 /* This restores the eflags word which was pushed on the stack by a trap */
@@ -184,7 +196,7 @@ static void restore_eflags(struct lg_cpu *cpu)
 	 */
 	cpu->regs->eflags = lgread(cpu, stack_pa + 8, u32);
 	cpu->regs->eflags &=
-		~(X86_EFLAGS_TF|X86_EFLAGS_VM|X86_EFLAGS_RF|X86_EFLAGS_NT);
+		~(X86_EFLAGS_TF | X86_EFLAGS_VM | X86_EFLAGS_RF | X86_EFLAGS_NT);
 }
 
 /*H:205
@@ -201,20 +213,25 @@ unsigned int interrupt_pending(struct lg_cpu *cpu, bool *more)
 
 	/* If the Guest hasn't even initialized yet, we can do nothing. */
 	if (!cpu->lg->lguest_data)
+	{
 		return LGUEST_IRQS;
+	}
 
 	/*
 	 * Take our "irqs_pending" array and remove any interrupts the Guest
 	 * wants blocked: the result ends up in "blk".
 	 */
 	if (copy_from_user(&blk, cpu->lg->lguest_data->blocked_interrupts,
-			   sizeof(blk)))
+					   sizeof(blk)))
+	{
 		return LGUEST_IRQS;
+	}
+
 	bitmap_andnot(blk, cpu->irqs_pending, blk, LGUEST_IRQS);
 
 	/* Find the first interrupt. */
 	irq = find_first_bit(blk, LGUEST_IRQS);
-	*more = find_next_bit(blk, LGUEST_IRQS, irq+1);
+	*more = find_next_bit(blk, LGUEST_IRQS, irq + 1);
 
 	return irq;
 }
@@ -230,20 +247,31 @@ void try_deliver_interrupt(struct lg_cpu *cpu, unsigned int irq, bool more)
 	BUG_ON(irq >= LGUEST_IRQS);
 
 	/* If they're halted, interrupts restart them. */
-	if (cpu->halted) {
+	if (cpu->halted)
+	{
 		/* Re-enable interrupts. */
 		if (put_user(X86_EFLAGS_IF, &cpu->lg->lguest_data->irq_enabled))
+		{
 			kill_guest(cpu, "Re-enabling interrupts");
+		}
+
 		cpu->halted = 0;
-	} else {
+	}
+	else
+	{
 		/* Otherwise we check if they have interrupts disabled. */
 		u32 irq_enabled;
+
 		if (get_user(irq_enabled, &cpu->lg->lguest_data->irq_enabled))
+		{
 			irq_enabled = 0;
-		if (!irq_enabled) {
+		}
+
+		if (!irq_enabled)
+		{
 			/* Make sure they know an IRQ is pending. */
 			put_user(X86_EFLAGS_IF,
-				 &cpu->lg->lguest_data->irq_pending);
+					 &cpu->lg->lguest_data->irq_pending);
 			return;
 		}
 	}
@@ -253,9 +281,11 @@ void try_deliver_interrupt(struct lg_cpu *cpu, unsigned int irq, bool more)
 	 * first 32 (FIRST_EXTERNAL_VECTOR) entries are for traps, so we skip
 	 * over them.
 	 */
-	idt = &cpu->arch.idt[FIRST_EXTERNAL_VECTOR+irq];
+	idt = &cpu->arch.idt[FIRST_EXTERNAL_VECTOR + irq];
+
 	/* If they don't have a handler (yet?), we just ignore it */
-	if (idt_present(idt->a, idt->b)) {
+	if (idt_present(idt->a, idt->b))
+	{
 		/* OK, mark it no longer pending and deliver it. */
 		clear_bit(irq, cpu->irqs_pending);
 
@@ -274,9 +304,12 @@ void try_deliver_interrupt(struct lg_cpu *cpu, unsigned int irq, bool more)
 		 * *really* weird, that will be the same as the current stack
 		 * anyway.
 		 */
-		if (cpu->regs->eip == cpu->lg->noirq_iret) {
+		if (cpu->regs->eip == cpu->lg->noirq_iret)
+		{
 			restore_eflags(cpu);
-		} else {
+		}
+		else
+		{
 			/*
 			 * set_guest_interrupt() takes a flag to say whether
 			 * this interrupt pushes an error code onto the stack
@@ -284,6 +317,7 @@ void try_deliver_interrupt(struct lg_cpu *cpu, unsigned int irq, bool more)
 			 */
 			push_guest_interrupt_stack(cpu, false);
 		}
+
 		/* Actually make Guest cpu jump to handler. */
 		guest_run_interrupt(cpu, idt->a, idt->b);
 	}
@@ -302,7 +336,9 @@ void try_deliver_interrupt(struct lg_cpu *cpu, unsigned int irq, bool more)
 	 * the pending flag.
 	 */
 	if (!more)
+	{
 		put_user(0, &cpu->lg->lguest_data->irq_pending);
+	}
 }
 
 /* And this is the routine when we want to set an interrupt for the Guest. */
@@ -319,7 +355,9 @@ void set_interrupt(struct lg_cpu *cpu, unsigned int irq)
 	 * the Guest right now, in which case kick_process() will knock it out.
 	 */
 	if (!wake_up_process(cpu->tsk))
+	{
 		kick_process(cpu->tsk);
+	}
 }
 /*:*/
 
@@ -343,7 +381,9 @@ bool check_syscall_vector(struct lguest *lg)
 	u32 vector;
 
 	if (get_user(vector, &lg->lguest_data->syscall_vec))
+	{
 		return false;
+	}
 
 	return could_be_syscall(vector);
 }
@@ -351,13 +391,16 @@ bool check_syscall_vector(struct lguest *lg)
 int init_interrupts(void)
 {
 	/* If they want some strange system call vector, reserve it now */
-	if (syscall_vector != IA32_SYSCALL_VECTOR) {
+	if (syscall_vector != IA32_SYSCALL_VECTOR)
+	{
 		if (test_bit(syscall_vector, used_vectors) ||
-		    vector_used_by_percpu_irq(syscall_vector)) {
+			vector_used_by_percpu_irq(syscall_vector))
+		{
 			printk(KERN_ERR "lg: couldn't reserve syscall %u\n",
-				 syscall_vector);
+				   syscall_vector);
 			return -EBUSY;
 		}
+
 		set_bit(syscall_vector, used_vectors);
 	}
 
@@ -367,7 +410,9 @@ int init_interrupts(void)
 void free_interrupts(void)
 {
 	if (syscall_vector != IA32_SYSCALL_VECTOR)
+	{
 		clear_bit(syscall_vector, used_vectors);
+	}
 }
 
 /*H:220
@@ -388,17 +433,22 @@ bool deliver_trap(struct lg_cpu *cpu, unsigned int num)
 	 * for traps inside the Switcher, so check that here.
 	 */
 	if (num >= ARRAY_SIZE(cpu->arch.idt))
+	{
 		return false;
+	}
 
 	/*
 	 * Early on the Guest hasn't set the IDT entries (or maybe it put a
 	 * bogus one in): if we fail here, the Guest will be killed.
 	 */
 	if (!idt_present(cpu->arch.idt[num].a, cpu->arch.idt[num].b))
+	{
 		return false;
+	}
+
 	push_guest_interrupt_stack(cpu, has_err(num));
 	guest_run_interrupt(cpu, cpu->arch.idt[num].a,
-			    cpu->arch.idt[num].b);
+						cpu->arch.idt[num].b);
 	return true;
 }
 
@@ -428,7 +478,9 @@ static bool direct_trap(unsigned int num)
 	 * call).
 	 */
 	if (num >= FIRST_EXTERNAL_VECTOR && !could_be_syscall(num))
+	{
 		return false;
+	}
 
 	/*
 	 * The Host needs to see page faults (for shadow paging and to save the
@@ -481,7 +533,9 @@ void pin_stack_pages(struct lg_cpu *cpu)
 		 * get back onto the first stack page, and keep subtracting to
 		 * get to the rest of the stack pages.
 		 */
+	{
 		pin_page(cpu, cpu->esp1 - 1 - i * PAGE_SIZE);
+	}
 }
 
 /*
@@ -500,10 +554,16 @@ void guest_set_stack(struct lg_cpu *cpu, u32 seg, u32 esp, unsigned int pages)
 	 * You're not allowed a stack segment with privilege level 0: bad Guest!
 	 */
 	if ((seg & 0x3) != GUEST_PL)
+	{
 		kill_guest(cpu, "bad stack segment %i", seg);
+	}
+
 	/* We only expect one or two stack pages. */
 	if (pages > 2)
+	{
 		kill_guest(cpu, "bad stack pages %u", pages);
+	}
+
 	/* Save where the stack is, and how many pages */
 	cpu->ss1 = seg;
 	cpu->esp1 = esp;
@@ -522,19 +582,22 @@ void guest_set_stack(struct lg_cpu *cpu, u32 seg, u32 esp, unsigned int pages)
  * transfers it into the entry in "struct lguest":
  */
 static void set_trap(struct lg_cpu *cpu, struct desc_struct *trap,
-		     unsigned int num, u32 lo, u32 hi)
+					 unsigned int num, u32 lo, u32 hi)
 {
 	u8 type = idt_type(lo, hi);
 
 	/* We zero-out a not-present entry */
-	if (!idt_present(lo, hi)) {
+	if (!idt_present(lo, hi))
+	{
 		trap->a = trap->b = 0;
 		return;
 	}
 
 	/* We only support interrupt and trap gates. */
 	if (type != 0xE && type != 0xF)
+	{
 		kill_guest(cpu, "bad IDT type %i", type);
+	}
 
 	/*
 	 * We only copy the handler address, present bit, privilege level and
@@ -542,8 +605,8 @@ static void set_trap(struct lg_cpu *cpu, struct desc_struct *trap,
 	 * manually with an "int" instruction.  This is usually GUEST_PL,
 	 * except for system calls which userspace can use.
 	 */
-	trap->a = ((__KERNEL_CS|GUEST_PL)<<16) | (lo&0x0000FFFF);
-	trap->b = (hi&0xFFFFEF00);
+	trap->a = ((__KERNEL_CS | GUEST_PL) << 16) | (lo & 0x0000FFFF);
+	trap->b = (hi & 0xFFFFEF00);
 }
 
 /*H:230
@@ -562,7 +625,9 @@ void load_guest_idt_entry(struct lg_cpu *cpu, unsigned int num, u32 lo, u32 hi)
 	 * hypercall.  We ignore when it tries to set them.
 	 */
 	if (num == 2 || num == 8 || num == 15 || num == LGUEST_TRAP_ENTRY)
+	{
 		return;
+	}
 
 	/*
 	 * Mark the IDT as changed: next time the Guest runs we'll know we have
@@ -572,9 +637,13 @@ void load_guest_idt_entry(struct lg_cpu *cpu, unsigned int num, u32 lo, u32 hi)
 
 	/* Check that the Guest doesn't try to step outside the bounds. */
 	if (num >= ARRAY_SIZE(cpu->arch.idt))
+	{
 		kill_guest(cpu, "Setting idt entry %u", num);
+	}
 	else
+	{
 		set_trap(cpu, &cpu->arch.idt[num], num, lo, hi);
+	}
 }
 
 /*
@@ -583,9 +652,9 @@ void load_guest_idt_entry(struct lg_cpu *cpu, unsigned int num, u32 lo, u32 hi)
  * deliver_trap() to bounce it back into the Guest.
  */
 static void default_idt_entry(struct desc_struct *idt,
-			      int trap,
-			      const unsigned long handler,
-			      const struct desc_struct *base)
+							  int trap,
+							  const unsigned long handler,
+							  const struct desc_struct *base)
 {
 	/* A present interrupt gate. */
 	u32 flags = 0x8e00;
@@ -595,27 +664,33 @@ static void default_idt_entry(struct desc_struct *idt,
 	 * the Guest to use the "int" instruction to trigger it.
 	 */
 	if (trap == LGUEST_TRAP_ENTRY)
+	{
 		flags |= (GUEST_PL << 13);
+	}
 	else if (base)
 		/*
 		 * Copy privilege level from what Guest asked for.  This allows
 		 * debug (int 3) traps from Guest userspace, for example.
 		 */
+	{
 		flags |= (base->b & 0x6000);
+	}
 
 	/* Now pack it into the IDT entry in its weird format. */
-	idt->a = (LGUEST_CS<<16) | (handler&0x0000FFFF);
-	idt->b = (handler&0xFFFF0000) | flags;
+	idt->a = (LGUEST_CS << 16) | (handler & 0x0000FFFF);
+	idt->b = (handler & 0xFFFF0000) | flags;
 }
 
 /* When the Guest first starts, we put default entries into the IDT. */
 void setup_default_idt_entries(struct lguest_ro_state *state,
-			       const unsigned long *def)
+							   const unsigned long *def)
 {
 	unsigned int i;
 
 	for (i = 0; i < ARRAY_SIZE(state->guest_idt); i++)
+	{
 		default_idt_entry(&state->guest_idt[i], i, def[i], NULL);
+	}
 }
 
 /*H:240
@@ -624,7 +699,7 @@ void setup_default_idt_entries(struct lguest_ro_state *state,
  * before we run the Guest.  This routine does that copy.
  */
 void copy_traps(const struct lg_cpu *cpu, struct desc_struct *idt,
-		const unsigned long *def)
+				const unsigned long *def)
 {
 	unsigned int i;
 
@@ -632,12 +707,15 @@ void copy_traps(const struct lg_cpu *cpu, struct desc_struct *idt,
 	 * We can simply copy the direct traps, otherwise we use the default
 	 * ones in the Switcher: they will return to the Host.
 	 */
-	for (i = 0; i < ARRAY_SIZE(cpu->arch.idt); i++) {
+	for (i = 0; i < ARRAY_SIZE(cpu->arch.idt); i++)
+	{
 		const struct desc_struct *gidt = &cpu->arch.idt[i];
 
 		/* If no Guest can ever override this trap, leave it alone. */
 		if (!direct_trap(i))
+		{
 			continue;
+		}
 
 		/*
 		 * Only trap gates (type 15) can go direct to the Guest.
@@ -650,9 +728,13 @@ void copy_traps(const struct lg_cpu *cpu, struct desc_struct *idt,
 		 * interrupt.
 		 */
 		if (idt_type(gidt->a, gidt->b) == 0xF)
+		{
 			idt[i] = *gidt;
+		}
 		else
+		{
 			default_idt_entry(&idt[i], i, def[i], gidt);
+		}
 	}
 }
 
@@ -673,7 +755,8 @@ void guest_set_clockevent(struct lg_cpu *cpu, unsigned long delta)
 {
 	ktime_t expires;
 
-	if (unlikely(delta == 0)) {
+	if (unlikely(delta == 0))
+	{
 		/* Clock event device is shutting down. */
 		hrtimer_cancel(&cpu->hrt);
 		return;

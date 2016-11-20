@@ -22,10 +22,11 @@
  * 	@tfrcrx_rtt:	round-trip-time (communicated by sender)
  * 	@tfrcrx_p:	current estimate of loss event rate (3.2.2)
  */
-struct tfrc_rx_info {
-  	__u32 tfrcrx_x_recv;
+struct tfrc_rx_info
+{
+	__u32 tfrcrx_x_recv;
 	__u32 tfrcrx_rtt;
-  	__u32 tfrcrx_p;
+	__u32 tfrcrx_p;
 };
 
 /** 	tfrc_tx_info    -    TFRC Sender Data Structure
@@ -42,7 +43,8 @@ struct tfrc_rx_info {
  *        enables a finer resolution of sending rates and avoids problems with
  *        integer arithmetic; u32 is not sufficient as scaling consumes 6 bits.
  */
-struct tfrc_tx_info {
+struct tfrc_tx_info
+{
 	__u64 tfrctx_x;
 	__u64 tfrctx_x_recv;
 	__u32 tfrctx_x_calc;

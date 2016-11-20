@@ -69,7 +69,9 @@ struct acpi_namespace_node *acpi_ns_create_node(u32 name)
 	ACPI_FUNCTION_TRACE(ns_create_node);
 
 	node = acpi_os_acquire_object(acpi_gbl_namespace_cache);
-	if (!node) {
+
+	if (!node)
+	{
 		return_PTR(NULL);
 	}
 
@@ -77,10 +79,13 @@ struct acpi_namespace_node *acpi_ns_create_node(u32 name)
 
 #ifdef ACPI_DBG_TRACK_ALLOCATIONS
 	temp = acpi_gbl_ns_node_list->total_allocated -
-	    acpi_gbl_ns_node_list->total_freed;
-	if (temp > acpi_gbl_ns_node_list->max_occupied) {
+		   acpi_gbl_ns_node_list->total_freed;
+
+	if (temp > acpi_gbl_ns_node_list->max_occupied)
+	{
 		acpi_gbl_ns_node_list->max_occupied = temp;
 	}
+
 #endif
 
 	node->name.integer = name;
@@ -121,11 +126,14 @@ void acpi_ns_delete_node(struct acpi_namespace_node *node)
 	 * objects, in a linked list.
 	 */
 	obj_desc = node->object;
-	while (obj_desc && (obj_desc->common.type == ACPI_TYPE_LOCAL_DATA)) {
+
+	while (obj_desc && (obj_desc->common.type == ACPI_TYPE_LOCAL_DATA))
+	{
 
 		/* Invoke the attached data deletion handler if present */
 
-		if (obj_desc->data.handler) {
+		if (obj_desc->data.handler)
+		{
 			obj_desc->data.handler(node, obj_desc->data.pointer);
 		}
 
@@ -136,7 +144,8 @@ void acpi_ns_delete_node(struct acpi_namespace_node *node)
 
 	/* Special case for the statically allocated root node */
 
-	if (node == acpi_gbl_root_node) {
+	if (node == acpi_gbl_root_node)
+	{
 		return;
 	}
 
@@ -146,7 +155,7 @@ void acpi_ns_delete_node(struct acpi_namespace_node *node)
 
 	ACPI_MEM_TRACKING(acpi_gbl_ns_node_list->total_freed++);
 	ACPI_DEBUG_PRINT((ACPI_DB_ALLOCATIONS, "Node %p, Remaining %X\n",
-			  node, acpi_gbl_current_node_count));
+					  node, acpi_gbl_current_node_count));
 }
 
 /*******************************************************************************
@@ -176,17 +185,21 @@ void acpi_ns_remove_node(struct acpi_namespace_node *node)
 
 	/* Find the node that is the previous peer in the parent's child list */
 
-	while (next_node != node) {
+	while (next_node != node)
+	{
 		prev_node = next_node;
 		next_node = next_node->peer;
 	}
 
-	if (prev_node) {
+	if (prev_node)
+	{
 
 		/* Node is not first child, unlink it */
 
 		prev_node->peer = node->peer;
-	} else {
+	}
+	else
+	{
 		/*
 		 * Node is first child (has no previous peer).
 		 * Link peer list to parent
@@ -221,15 +234,16 @@ void acpi_ns_remove_node(struct acpi_namespace_node *node)
  ******************************************************************************/
 
 void acpi_ns_install_node(struct acpi_walk_state *walk_state, struct acpi_namespace_node *parent_node,	/* Parent */
-			  struct acpi_namespace_node *node,	/* New Child */
-			  acpi_object_type type)
+						  struct acpi_namespace_node *node,	/* New Child */
+						  acpi_object_type type)
 {
 	acpi_owner_id owner_id = 0;
 	struct acpi_namespace_node *child_node;
 
 	ACPI_FUNCTION_TRACE(ns_install_node);
 
-	if (walk_state) {
+	if (walk_state)
+	{
 		/*
 		 * Get the owner ID from the Walk state. The owner ID is used to
 		 * track table deletion and deletion of objects created by methods.
@@ -237,7 +251,8 @@ void acpi_ns_install_node(struct acpi_walk_state *walk_state, struct acpi_namesp
 		owner_id = walk_state->owner_id;
 
 		if ((walk_state->method_desc) &&
-		    (parent_node != walk_state->method_node)) {
+			(parent_node != walk_state->method_node))
+		{
 			/*
 			 * A method is creating a new node that is not a child of the
 			 * method (it is non-local). Mark the executing method as having
@@ -245,7 +260,7 @@ void acpi_ns_install_node(struct acpi_walk_state *walk_state, struct acpi_namesp
 			 * method exits.
 			 */
 			walk_state->method_desc->method.info_flags |=
-			    ACPI_METHOD_MODIFIED_NAMESPACE;
+				ACPI_METHOD_MODIFIED_NAMESPACE;
 		}
 	}
 
@@ -255,12 +270,16 @@ void acpi_ns_install_node(struct acpi_walk_state *walk_state, struct acpi_namesp
 	node->parent = parent_node;
 	child_node = parent_node->child;
 
-	if (!child_node) {
+	if (!child_node)
+	{
 		parent_node->child = node;
-	} else {
+	}
+	else
+	{
 		/* Add node to the end of the peer list */
 
-		while (child_node->peer) {
+		while (child_node->peer)
+		{
 			child_node = child_node->peer;
 		}
 
@@ -273,12 +292,12 @@ void acpi_ns_install_node(struct acpi_walk_state *walk_state, struct acpi_namesp
 	node->type = (u8) type;
 
 	ACPI_DEBUG_PRINT((ACPI_DB_NAMES,
-			  "%4.4s (%s) [Node %p Owner %X] added to %4.4s (%s) [Node %p]\n",
-			  acpi_ut_get_node_name(node),
-			  acpi_ut_get_type_name(node->type), node, owner_id,
-			  acpi_ut_get_node_name(parent_node),
-			  acpi_ut_get_type_name(parent_node->type),
-			  parent_node));
+					  "%4.4s (%s) [Node %p Owner %X] added to %4.4s (%s) [Node %p]\n",
+					  acpi_ut_get_node_name(node),
+					  acpi_ut_get_type_name(node->type), node, owner_id,
+					  acpi_ut_get_node_name(parent_node),
+					  acpi_ut_get_type_name(parent_node->type),
+					  parent_node));
 
 	return_VOID;
 }
@@ -303,20 +322,24 @@ void acpi_ns_delete_children(struct acpi_namespace_node *parent_node)
 
 	ACPI_FUNCTION_TRACE_PTR(ns_delete_children, parent_node);
 
-	if (!parent_node) {
+	if (!parent_node)
+	{
 		return_VOID;
 	}
 
 	/* Deallocate all children at this level */
 
 	next_node = parent_node->child;
-	while (next_node) {
+
+	while (next_node)
+	{
 
 		/* Grandchildren should have all been deleted already */
 
-		if (next_node->child) {
+		if (next_node->child)
+		{
 			ACPI_ERROR((AE_INFO, "Found a grandchild! P=%p C=%p",
-				    parent_node, next_node));
+						parent_node, next_node));
 		}
 
 		/*
@@ -331,6 +354,7 @@ void acpi_ns_delete_children(struct acpi_namespace_node *parent_node)
 	/* Clear the parent's child pointer */
 
 	parent_node->child = NULL;
+
 	return_VOID;
 }
 
@@ -355,14 +379,17 @@ void acpi_ns_delete_namespace_subtree(struct acpi_namespace_node *parent_node)
 
 	ACPI_FUNCTION_TRACE(ns_delete_namespace_subtree);
 
-	if (!parent_node) {
+	if (!parent_node)
+	{
 		return_VOID;
 	}
 
 	/* Lock namespace for possible update */
 
 	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return_VOID;
 	}
 
@@ -370,12 +397,15 @@ void acpi_ns_delete_namespace_subtree(struct acpi_namespace_node *parent_node)
 	 * Traverse the tree of objects until we bubble back up
 	 * to where we started.
 	 */
-	while (level > 0) {
+	while (level > 0)
+	{
 
 		/* Get the next node in this scope (NULL if none) */
 
 		child_node = acpi_ns_get_next_node(parent_node, child_node);
-		if (child_node) {
+
+		if (child_node)
+		{
 
 			/* Found a child node - detach any attached object */
 
@@ -383,7 +413,8 @@ void acpi_ns_delete_namespace_subtree(struct acpi_namespace_node *parent_node)
 
 			/* Check if this node has any children */
 
-			if (child_node->child) {
+			if (child_node->child)
+			{
 				/*
 				 * There is at least one child of this node,
 				 * visit the node
@@ -392,7 +423,9 @@ void acpi_ns_delete_namespace_subtree(struct acpi_namespace_node *parent_node)
 				parent_node = child_node;
 				child_node = NULL;
 			}
-		} else {
+		}
+		else
+		{
 			/*
 			 * No more children of this parent node.
 			 * Move up to the grandparent.
@@ -445,14 +478,17 @@ void acpi_ns_delete_namespace_by_owner(acpi_owner_id owner_id)
 
 	ACPI_FUNCTION_TRACE_U32(ns_delete_namespace_by_owner, owner_id);
 
-	if (owner_id == 0) {
+	if (owner_id == 0)
+	{
 		return_VOID;
 	}
 
 	/* Lock namespace for possible update */
 
 	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return_VOID;
 	}
 
@@ -465,21 +501,25 @@ void acpi_ns_delete_namespace_by_owner(acpi_owner_id owner_id)
 	 * Traverse the tree of nodes until we bubble back up
 	 * to where we started.
 	 */
-	while (level > 0) {
+	while (level > 0)
+	{
 		/*
 		 * Get the next child of this parent node. When child_node is NULL,
 		 * the first child of the parent is returned
 		 */
 		child_node = acpi_ns_get_next_node(parent_node, child_node);
 
-		if (deletion_node) {
+		if (deletion_node)
+		{
 			acpi_ns_delete_children(deletion_node);
 			acpi_ns_remove_node(deletion_node);
 			deletion_node = NULL;
 		}
 
-		if (child_node) {
-			if (child_node->owner_id == owner_id) {
+		if (child_node)
+		{
+			if (child_node->owner_id == owner_id)
+			{
 
 				/* Found a matching child node - detach any attached object */
 
@@ -488,7 +528,8 @@ void acpi_ns_delete_namespace_by_owner(acpi_owner_id owner_id)
 
 			/* Check if this node has any children */
 
-			if (child_node->child) {
+			if (child_node->child)
+			{
 				/*
 				 * There is at least one child of this node,
 				 * visit the node
@@ -496,17 +537,24 @@ void acpi_ns_delete_namespace_by_owner(acpi_owner_id owner_id)
 				level++;
 				parent_node = child_node;
 				child_node = NULL;
-			} else if (child_node->owner_id == owner_id) {
+			}
+			else if (child_node->owner_id == owner_id)
+			{
 				deletion_node = child_node;
 			}
-		} else {
+		}
+		else
+		{
 			/*
 			 * No more children of this parent node.
 			 * Move up to the grandparent.
 			 */
 			level--;
-			if (level != 0) {
-				if (parent_node->owner_id == owner_id) {
+
+			if (level != 0)
+			{
+				if (parent_node->owner_id == owner_id)
+				{
 					deletion_node = parent_node;
 				}
 			}

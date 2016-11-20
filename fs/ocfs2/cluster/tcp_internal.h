@@ -76,7 +76,8 @@
  * 	- introduction of "rw" lock and pushing meta/data locking down
  */
 #define O2NET_PROTOCOL_VERSION 11ULL
-struct o2net_handshake {
+struct o2net_handshake
+{
 	__be64	protocol_version;
 	__be64	connector_id;
 	__be32  o2hb_heartbeat_timeout_ms;
@@ -85,14 +86,15 @@ struct o2net_handshake {
 	__be32  o2net_reconnect_delay_ms;
 };
 
-struct o2net_node {
+struct o2net_node
+{
 	/* this is never called from int/bh */
 	spinlock_t			nn_lock;
 
 	/* set the moment an sc is allocated and a connect is started */
 	struct o2net_sock_container	*nn_sc;
 	/* _valid is only set after the handshake passes and tx can happen */
-	unsigned			nn_sc_valid:1;
+	unsigned			nn_sc_valid: 1;
 	/* if this is set tx just returns it */
 	int				nn_persistent_error;
 	/* It is only set to 1 after the idle time out. */
@@ -127,7 +129,8 @@ struct o2net_node {
 	struct delayed_work		nn_still_up;
 };
 
-struct o2net_sock_container {
+struct o2net_sock_container
+{
 	struct kref		sc_kref;
 	/* the next two are valid for the life time of the sc */
 	struct socket		*sc_sock;
@@ -158,7 +161,7 @@ struct o2net_sock_container {
 	struct timer_list	sc_idle_timeout;
 	struct delayed_work	sc_keepalive_work;
 
-	unsigned		sc_handshake_ok:1;
+	unsigned		sc_handshake_ok: 1;
 
 	struct page 		*sc_page;
 	size_t			sc_page_off;
@@ -190,7 +193,8 @@ struct o2net_sock_container {
 	struct mutex		sc_send_lock;
 };
 
-struct o2net_msg_handler {
+struct o2net_msg_handler
+{
 	struct rb_node		nh_node;
 	u32			nh_max_len;
 	u32			nh_msg_type;
@@ -198,12 +202,13 @@ struct o2net_msg_handler {
 	o2net_msg_handler_func	*nh_func;
 	o2net_msg_handler_func	*nh_func_data;
 	o2net_post_msg_handler_func
-				*nh_post_func;
+	*nh_post_func;
 	struct kref		nh_kref;
 	struct list_head	nh_unregister_item;
 };
 
-enum o2net_system_error {
+enum o2net_system_error
+{
 	O2NET_ERR_NONE = 0,
 	O2NET_ERR_NO_HNDLR,
 	O2NET_ERR_OVERFLOW,
@@ -211,7 +216,8 @@ enum o2net_system_error {
 	O2NET_ERR_MAX
 };
 
-struct o2net_status_wait {
+struct o2net_status_wait
+{
 	enum o2net_system_error	ns_sys_status;
 	s32			ns_status;
 	int			ns_id;
@@ -221,7 +227,8 @@ struct o2net_status_wait {
 
 #ifdef CONFIG_DEBUG_FS
 /* just for state dumps */
-struct o2net_send_tracking {
+struct o2net_send_tracking
+{
 	struct list_head		st_net_debug_item;
 	struct task_struct		*st_task;
 	struct o2net_sock_container	*st_sc;
@@ -234,7 +241,8 @@ struct o2net_send_tracking {
 	ktime_t				st_status_time;
 };
 #else
-struct o2net_send_tracking {
+struct o2net_send_tracking
+{
 	u32	dummy;
 };
 #endif	/* CONFIG_DEBUG_FS */

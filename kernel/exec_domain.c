@@ -32,7 +32,8 @@ static int execdomains_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, execdomains_proc_show, NULL);
 }
 
-static const struct file_operations execdomains_proc_fops = {
+static const struct file_operations execdomains_proc_fops =
+{
 	.open		= execdomains_proc_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -52,7 +53,9 @@ SYSCALL_DEFINE1(personality, unsigned int, personality)
 	unsigned int old = current->personality;
 
 	if (personality != 0xffffffff)
+	{
 		set_personality(personality);
+	}
 
 	return old;
 }

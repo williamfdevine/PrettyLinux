@@ -57,7 +57,8 @@
  * ctx_list:	list of 'struct msm_iommu_ctx_dev'
  * context_map: Bitmap to track allocated context banks
  */
-struct msm_iommu_dev {
+struct msm_iommu_dev
+{
 	void __iomem *base;
 	int ncb;
 	struct device *dev;
@@ -81,7 +82,8 @@ struct msm_iommu_dev {
  * num_mids	Total number of mids
  * node		list head in ctx_list
  */
-struct msm_iommu_ctx_dev {
+struct msm_iommu_ctx_dev
+{
 	struct device_node *of_node;
 	int num;
 	int mids[MAX_NUM_MIDS];

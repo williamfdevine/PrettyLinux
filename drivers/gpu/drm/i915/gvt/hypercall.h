@@ -28,7 +28,8 @@
  * Specific GVT-g MPT modules function collections. Currently GVT-g supports
  * both Xen and KVM by providing dedicated hypervisor-related MPT modules.
  */
-struct intel_gvt_mpt {
+struct intel_gvt_mpt
+{
 	int (*detect_host)(void);
 };
 

@@ -99,14 +99,16 @@
 
 /* Generic subtable header (used in MADT, SRAT, etc.) */
 
-struct acpi_subtable_header {
+struct acpi_subtable_header
+{
 	u8 type;
 	u8 length;
 };
 
 /* Subtable header for WHEA tables (EINJ, ERST, WDAT) */
 
-struct acpi_whea_header {
+struct acpi_whea_header
+{
 	u8 action;
 	u8 instruction;
 	u8 flags;
@@ -123,7 +125,8 @@ struct acpi_whea_header {
  *
  ******************************************************************************/
 
-struct acpi_table_bert {
+struct acpi_table_bert
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u32 region_length;	/* Length of the boot error region */
 	u64 address;		/* Physical address of the error region */
@@ -131,7 +134,8 @@ struct acpi_table_bert {
 
 /* Boot Error Region (not a subtable, pointed to by Address field above) */
 
-struct acpi_bert_region {
+struct acpi_bert_region
+{
 	u32 block_status;	/* Type of error information */
 	u32 raw_data_offset;	/* Offset to raw error data */
 	u32 raw_data_length;	/* Length of raw error data */
@@ -149,7 +153,8 @@ struct acpi_bert_region {
 
 /* Values for error_severity above */
 
-enum acpi_bert_error_severity {
+enum acpi_bert_error_severity
+{
 	ACPI_BERT_ERROR_CORRECTABLE = 0,
 	ACPI_BERT_ERROR_FATAL = 1,
 	ACPI_BERT_ERROR_CORRECTED = 2,
@@ -169,14 +174,16 @@ enum acpi_bert_error_severity {
  *
  ******************************************************************************/
 
-struct acpi_table_cpep {
+struct acpi_table_cpep
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u64 reserved;
 };
 
 /* Subtable */
 
-struct acpi_cpep_polling {
+struct acpi_cpep_polling
+{
 	struct acpi_subtable_header header;
 	u8 id;			/* Processor ID */
 	u8 eid;			/* Processor EID */
@@ -190,7 +197,8 @@ struct acpi_cpep_polling {
  *
  ******************************************************************************/
 
-struct acpi_table_ecdt {
+struct acpi_table_ecdt
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	struct acpi_generic_address control;	/* Address of EC command/status register */
 	struct acpi_generic_address data;	/* Address of EC data register */
@@ -206,7 +214,8 @@ struct acpi_table_ecdt {
  *
  ******************************************************************************/
 
-struct acpi_table_einj {
+struct acpi_table_einj
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u32 header_length;
 	u8 flags;
@@ -216,7 +225,8 @@ struct acpi_table_einj {
 
 /* EINJ Injection Instruction Entries (actions) */
 
-struct acpi_einj_entry {
+struct acpi_einj_entry
+{
 	struct acpi_whea_header whea_header;	/* Common header for WHEA tables */
 };
 
@@ -226,7 +236,8 @@ struct acpi_einj_entry {
 
 /* Values for Action field above */
 
-enum acpi_einj_actions {
+enum acpi_einj_actions
+{
 	ACPI_EINJ_BEGIN_OPERATION = 0,
 	ACPI_EINJ_GET_TRIGGER_TABLE = 1,
 	ACPI_EINJ_SET_ERROR_TYPE = 2,
@@ -243,7 +254,8 @@ enum acpi_einj_actions {
 
 /* Values for Instruction field above */
 
-enum acpi_einj_instructions {
+enum acpi_einj_instructions
+{
 	ACPI_EINJ_READ_REGISTER = 0,
 	ACPI_EINJ_READ_REGISTER_VALUE = 1,
 	ACPI_EINJ_WRITE_REGISTER = 2,
@@ -253,7 +265,8 @@ enum acpi_einj_instructions {
 	ACPI_EINJ_INSTRUCTION_RESERVED = 6	/* 6 and greater are reserved */
 };
 
-struct acpi_einj_error_type_with_addr {
+struct acpi_einj_error_type_with_addr
+{
 	u32 error_type;
 	u32 vendor_struct_offset;
 	u32 flags;
@@ -263,7 +276,8 @@ struct acpi_einj_error_type_with_addr {
 	u32 pcie_id;
 };
 
-struct acpi_einj_vendor {
+struct acpi_einj_vendor
+{
 	u32 length;
 	u32 pcie_id;
 	u16 vendor_id;
@@ -274,7 +288,8 @@ struct acpi_einj_vendor {
 
 /* EINJ Trigger Error Action Table */
 
-struct acpi_einj_trigger {
+struct acpi_einj_trigger
+{
 	u32 header_size;
 	u32 revision;
 	u32 table_size;
@@ -283,7 +298,8 @@ struct acpi_einj_trigger {
 
 /* Command status return values */
 
-enum acpi_einj_command_status {
+enum acpi_einj_command_status
+{
 	ACPI_EINJ_SUCCESS = 0,
 	ACPI_EINJ_FAILURE = 1,
 	ACPI_EINJ_INVALID_ACCESS = 2,
@@ -313,7 +329,8 @@ enum acpi_einj_command_status {
  *
  ******************************************************************************/
 
-struct acpi_table_erst {
+struct acpi_table_erst
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u32 header_length;
 	u32 reserved;
@@ -322,7 +339,8 @@ struct acpi_table_erst {
 
 /* ERST Serialization Entries (actions) */
 
-struct acpi_erst_entry {
+struct acpi_erst_entry
+{
 	struct acpi_whea_header whea_header;	/* Common header for WHEA tables */
 };
 
@@ -332,7 +350,8 @@ struct acpi_erst_entry {
 
 /* Values for Action field above */
 
-enum acpi_erst_actions {
+enum acpi_erst_actions
+{
 	ACPI_ERST_BEGIN_WRITE = 0,
 	ACPI_ERST_BEGIN_READ = 1,
 	ACPI_ERST_BEGIN_CLEAR = 2,
@@ -355,7 +374,8 @@ enum acpi_erst_actions {
 
 /* Values for Instruction field above */
 
-enum acpi_erst_instructions {
+enum acpi_erst_instructions
+{
 	ACPI_ERST_READ_REGISTER = 0,
 	ACPI_ERST_READ_REGISTER_VALUE = 1,
 	ACPI_ERST_WRITE_REGISTER = 2,
@@ -380,7 +400,8 @@ enum acpi_erst_instructions {
 
 /* Command status return values */
 
-enum acpi_erst_command_status {
+enum acpi_erst_command_status
+{
 	ACPI_ERST_SUCESS = 0,
 	ACPI_ERST_NO_SPACE = 1,
 	ACPI_ERST_NOT_AVAILABLE = 2,
@@ -392,7 +413,8 @@ enum acpi_erst_command_status {
 
 /* Error Record Serialization Information */
 
-struct acpi_erst_info {
+struct acpi_erst_info
+{
 	u16 signature;		/* Should be "ER" */
 	u8 data[48];
 };
@@ -404,21 +426,24 @@ struct acpi_erst_info {
  *
  ******************************************************************************/
 
-struct acpi_table_hest {
+struct acpi_table_hest
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u32 error_source_count;
 };
 
 /* HEST subtable header */
 
-struct acpi_hest_header {
+struct acpi_hest_header
+{
 	u16 type;
 	u16 source_id;
 };
 
 /* Values for Type field above for subtables */
 
-enum acpi_hest_types {
+enum acpi_hest_types
+{
 	ACPI_HEST_TYPE_IA32_CHECK = 0,
 	ACPI_HEST_TYPE_IA32_CORRECTED_CHECK = 1,
 	ACPI_HEST_TYPE_IA32_NMI = 2,
@@ -441,7 +466,8 @@ enum acpi_hest_types {
  * IA32 Error Bank(s) - Follows the struct acpi_hest_ia_machine_check and
  * struct acpi_hest_ia_corrected structures.
  */
-struct acpi_hest_ia_error_bank {
+struct acpi_hest_ia_error_bank
+{
 	u8 bank_number;
 	u8 clear_status_on_init;
 	u8 status_format;
@@ -455,7 +481,8 @@ struct acpi_hest_ia_error_bank {
 
 /* Common HEST sub-structure for PCI/AER structures below (6,7,8) */
 
-struct acpi_hest_aer_common {
+struct acpi_hest_aer_common
+{
 	u16 reserved1;
 	u8 flags;
 	u8 enabled;
@@ -487,7 +514,8 @@ struct acpi_hest_aer_common {
 
 /* Hardware Error Notification */
 
-struct acpi_hest_notify {
+struct acpi_hest_notify
+{
 	u8 type;
 	u8 length;
 	u16 config_write_enable;
@@ -501,7 +529,8 @@ struct acpi_hest_notify {
 
 /* Values for Notify Type field above */
 
-enum acpi_hest_notify_types {
+enum acpi_hest_notify_types
+{
 	ACPI_HEST_NOTIFY_POLLED = 0,
 	ACPI_HEST_NOTIFY_EXTERNAL = 1,
 	ACPI_HEST_NOTIFY_LOCAL = 2,
@@ -531,7 +560,8 @@ enum acpi_hest_notify_types {
 
 /* 0: IA32 Machine Check Exception */
 
-struct acpi_hest_ia_machine_check {
+struct acpi_hest_ia_machine_check
+{
 	struct acpi_hest_header header;
 	u16 reserved1;
 	u8 flags;
@@ -546,7 +576,8 @@ struct acpi_hest_ia_machine_check {
 
 /* 1: IA32 Corrected Machine Check */
 
-struct acpi_hest_ia_corrected {
+struct acpi_hest_ia_corrected
+{
 	struct acpi_hest_header header;
 	u16 reserved1;
 	u8 flags;
@@ -560,7 +591,8 @@ struct acpi_hest_ia_corrected {
 
 /* 2: IA32 Non-Maskable Interrupt */
 
-struct acpi_hest_ia_nmi {
+struct acpi_hest_ia_nmi
+{
 	struct acpi_hest_header header;
 	u32 reserved;
 	u32 records_to_preallocate;
@@ -572,7 +604,8 @@ struct acpi_hest_ia_nmi {
 
 /* 6: PCI Express Root Port AER */
 
-struct acpi_hest_aer_root {
+struct acpi_hest_aer_root
+{
 	struct acpi_hest_header header;
 	struct acpi_hest_aer_common aer;
 	u32 root_error_command;
@@ -580,14 +613,16 @@ struct acpi_hest_aer_root {
 
 /* 7: PCI Express AER (AER Endpoint) */
 
-struct acpi_hest_aer {
+struct acpi_hest_aer
+{
 	struct acpi_hest_header header;
 	struct acpi_hest_aer_common aer;
 };
 
 /* 8: PCI Express/PCI-X Bridge AER */
 
-struct acpi_hest_aer_bridge {
+struct acpi_hest_aer_bridge
+{
 	struct acpi_hest_header header;
 	struct acpi_hest_aer_common aer;
 	u32 uncorrectable_mask2;
@@ -597,7 +632,8 @@ struct acpi_hest_aer_bridge {
 
 /* 9: Generic Hardware Error Source */
 
-struct acpi_hest_generic {
+struct acpi_hest_generic
+{
 	struct acpi_hest_header header;
 	u16 related_source_id;
 	u8 reserved;
@@ -612,7 +648,8 @@ struct acpi_hest_generic {
 
 /* 10: Generic Hardware Error Source, version 2 */
 
-struct acpi_hest_generic_v2 {
+struct acpi_hest_generic_v2
+{
 	struct acpi_hest_header header;
 	u16 related_source_id;
 	u8 reserved;
@@ -630,7 +667,8 @@ struct acpi_hest_generic_v2 {
 
 /* Generic Error Status block */
 
-struct acpi_hest_generic_status {
+struct acpi_hest_generic_status
+{
 	u32 block_status;
 	u32 raw_data_offset;
 	u32 raw_data_length;
@@ -648,7 +686,8 @@ struct acpi_hest_generic_status {
 
 /* Generic Error Data entry */
 
-struct acpi_hest_generic_data {
+struct acpi_hest_generic_data
+{
 	u8 section_type[16];
 	u32 error_severity;
 	u16 revision;
@@ -661,7 +700,8 @@ struct acpi_hest_generic_data {
 
 /* Extension for revision 0x0300 */
 
-struct acpi_hest_generic_data_v300 {
+struct acpi_hest_generic_data_v300
+{
 	u8 section_type[16];
 	u32 error_severity;
 	u16 revision;
@@ -693,7 +733,8 @@ struct acpi_hest_generic_data_v300 {
  *
  ******************************************************************************/
 
-struct acpi_table_madt {
+struct acpi_table_madt
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u32 address;		/* Physical address of local APIC */
 	u32 flags;
@@ -710,7 +751,8 @@ struct acpi_table_madt {
 
 /* Values for MADT subtable type in struct acpi_subtable_header */
 
-enum acpi_madt_type {
+enum acpi_madt_type
+{
 	ACPI_MADT_TYPE_LOCAL_APIC = 0,
 	ACPI_MADT_TYPE_IO_APIC = 1,
 	ACPI_MADT_TYPE_INTERRUPT_OVERRIDE = 2,
@@ -736,7 +778,8 @@ enum acpi_madt_type {
 
 /* 0: Processor Local APIC */
 
-struct acpi_madt_local_apic {
+struct acpi_madt_local_apic
+{
 	struct acpi_subtable_header header;
 	u8 processor_id;	/* ACPI processor id */
 	u8 id;			/* Processor's local APIC id */
@@ -745,7 +788,8 @@ struct acpi_madt_local_apic {
 
 /* 1: IO APIC */
 
-struct acpi_madt_io_apic {
+struct acpi_madt_io_apic
+{
 	struct acpi_subtable_header header;
 	u8 id;			/* I/O APIC ID */
 	u8 reserved;		/* reserved - must be zero */
@@ -755,7 +799,8 @@ struct acpi_madt_io_apic {
 
 /* 2: Interrupt Override */
 
-struct acpi_madt_interrupt_override {
+struct acpi_madt_interrupt_override
+{
 	struct acpi_subtable_header header;
 	u8 bus;			/* 0 - ISA */
 	u8 source_irq;		/* Interrupt source (IRQ) */
@@ -765,7 +810,8 @@ struct acpi_madt_interrupt_override {
 
 /* 3: NMI Source */
 
-struct acpi_madt_nmi_source {
+struct acpi_madt_nmi_source
+{
 	struct acpi_subtable_header header;
 	u16 inti_flags;
 	u32 global_irq;		/* Global system interrupt */
@@ -773,7 +819,8 @@ struct acpi_madt_nmi_source {
 
 /* 4: Local APIC NMI */
 
-struct acpi_madt_local_apic_nmi {
+struct acpi_madt_local_apic_nmi
+{
 	struct acpi_subtable_header header;
 	u8 processor_id;	/* ACPI processor id */
 	u16 inti_flags;
@@ -782,7 +829,8 @@ struct acpi_madt_local_apic_nmi {
 
 /* 5: Address Override */
 
-struct acpi_madt_local_apic_override {
+struct acpi_madt_local_apic_override
+{
 	struct acpi_subtable_header header;
 	u16 reserved;		/* Reserved, must be zero */
 	u64 address;		/* APIC physical address */
@@ -790,7 +838,8 @@ struct acpi_madt_local_apic_override {
 
 /* 6: I/O Sapic */
 
-struct acpi_madt_io_sapic {
+struct acpi_madt_io_sapic
+{
 	struct acpi_subtable_header header;
 	u8 id;			/* I/O SAPIC ID */
 	u8 reserved;		/* Reserved, must be zero */
@@ -800,7 +849,8 @@ struct acpi_madt_io_sapic {
 
 /* 7: Local Sapic */
 
-struct acpi_madt_local_sapic {
+struct acpi_madt_local_sapic
+{
 	struct acpi_subtable_header header;
 	u8 processor_id;	/* ACPI processor id */
 	u8 id;			/* SAPIC ID */
@@ -813,7 +863,8 @@ struct acpi_madt_local_sapic {
 
 /* 8: Platform Interrupt Source */
 
-struct acpi_madt_interrupt_source {
+struct acpi_madt_interrupt_source
+{
 	struct acpi_subtable_header header;
 	u16 inti_flags;
 	u8 type;		/* 1=PMI, 2=INIT, 3=corrected */
@@ -830,7 +881,8 @@ struct acpi_madt_interrupt_source {
 
 /* 9: Processor Local X2APIC (ACPI 4.0) */
 
-struct acpi_madt_local_x2apic {
+struct acpi_madt_local_x2apic
+{
 	struct acpi_subtable_header header;
 	u16 reserved;		/* reserved - must be zero */
 	u32 local_apic_id;	/* Processor x2APIC ID  */
@@ -840,7 +892,8 @@ struct acpi_madt_local_x2apic {
 
 /* 10: Local X2APIC NMI (ACPI 4.0) */
 
-struct acpi_madt_local_x2apic_nmi {
+struct acpi_madt_local_x2apic_nmi
+{
 	struct acpi_subtable_header header;
 	u16 inti_flags;
 	u32 uid;		/* ACPI processor UID */
@@ -850,7 +903,8 @@ struct acpi_madt_local_x2apic_nmi {
 
 /* 11: Generic Interrupt (ACPI 5.0 + ACPI 6.0 changes) */
 
-struct acpi_madt_generic_interrupt {
+struct acpi_madt_generic_interrupt
+{
 	struct acpi_subtable_header header;
 	u16 reserved;		/* reserved - must be zero */
 	u32 cpu_interface_number;
@@ -877,7 +931,8 @@ struct acpi_madt_generic_interrupt {
 
 /* 12: Generic Distributor (ACPI 5.0 + ACPI 6.0 changes) */
 
-struct acpi_madt_generic_distributor {
+struct acpi_madt_generic_distributor
+{
 	struct acpi_subtable_header header;
 	u16 reserved;		/* reserved - must be zero */
 	u32 gic_id;
@@ -889,7 +944,8 @@ struct acpi_madt_generic_distributor {
 
 /* Values for Version field above */
 
-enum acpi_madt_gic_version {
+enum acpi_madt_gic_version
+{
 	ACPI_MADT_GIC_VERSION_NONE = 0,
 	ACPI_MADT_GIC_VERSION_V1 = 1,
 	ACPI_MADT_GIC_VERSION_V2 = 2,
@@ -900,7 +956,8 @@ enum acpi_madt_gic_version {
 
 /* 13: Generic MSI Frame (ACPI 5.1) */
 
-struct acpi_madt_generic_msi_frame {
+struct acpi_madt_generic_msi_frame
+{
 	struct acpi_subtable_header header;
 	u16 reserved;		/* reserved - must be zero */
 	u32 msi_frame_id;
@@ -916,7 +973,8 @@ struct acpi_madt_generic_msi_frame {
 
 /* 14: Generic Redistributor (ACPI 5.1) */
 
-struct acpi_madt_generic_redistributor {
+struct acpi_madt_generic_redistributor
+{
 	struct acpi_subtable_header header;
 	u16 reserved;		/* reserved - must be zero */
 	u64 base_address;
@@ -925,7 +983,8 @@ struct acpi_madt_generic_redistributor {
 
 /* 15: Generic Translator (ACPI 6.0) */
 
-struct acpi_madt_generic_translator {
+struct acpi_madt_generic_translator
+{
 	struct acpi_subtable_header header;
 	u16 reserved;		/* reserved - must be zero */
 	u32 translation_id;
@@ -965,7 +1024,8 @@ struct acpi_madt_generic_translator {
  *
  ******************************************************************************/
 
-struct acpi_table_msct {
+struct acpi_table_msct
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u32 proximity_offset;	/* Location of proximity info struct(s) */
 	u32 max_proximity_domains;	/* Max number of proximity domains */
@@ -975,7 +1035,8 @@ struct acpi_table_msct {
 
 /* subtable - Maximum Proximity Domain Information. Version 1 */
 
-struct acpi_msct_proximity {
+struct acpi_msct_proximity
+{
 	u8 revision;
 	u8 length;
 	u32 range_start;	/* Start of domain range */
@@ -991,21 +1052,24 @@ struct acpi_msct_proximity {
  *
  ******************************************************************************/
 
-struct acpi_table_nfit {
+struct acpi_table_nfit
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u32 reserved;		/* Reserved, must be zero */
 };
 
 /* Subtable header for NFIT */
 
-struct acpi_nfit_header {
+struct acpi_nfit_header
+{
 	u16 type;
 	u16 length;
 };
 
 /* Values for subtable type in struct acpi_nfit_header */
 
-enum acpi_nfit_type {
+enum acpi_nfit_type
+{
 	ACPI_NFIT_TYPE_SYSTEM_ADDRESS = 0,
 	ACPI_NFIT_TYPE_MEMORY_MAP = 1,
 	ACPI_NFIT_TYPE_INTERLEAVE = 2,
@@ -1022,7 +1086,8 @@ enum acpi_nfit_type {
 
 /* 0: System Physical Address Range Structure */
 
-struct acpi_nfit_system_address {
+struct acpi_nfit_system_address
+{
 	struct acpi_nfit_header header;
 	u16 range_index;
 	u16 flags;
@@ -1043,7 +1108,8 @@ struct acpi_nfit_system_address {
 
 /* 1: Memory Device to System Address Range Map Structure */
 
-struct acpi_nfit_memory_map {
+struct acpi_nfit_memory_map
+{
 	struct acpi_nfit_header header;
 	u32 device_handle;
 	u16 physical_id;
@@ -1071,7 +1137,8 @@ struct acpi_nfit_memory_map {
 
 /* 2: Interleave Structure */
 
-struct acpi_nfit_interleave {
+struct acpi_nfit_interleave
+{
 	struct acpi_nfit_header header;
 	u16 interleave_index;
 	u16 reserved;		/* Reserved, must be zero */
@@ -1082,7 +1149,8 @@ struct acpi_nfit_interleave {
 
 /* 3: SMBIOS Management Information Structure */
 
-struct acpi_nfit_smbios {
+struct acpi_nfit_smbios
+{
 	struct acpi_nfit_header header;
 	u32 reserved;		/* Reserved, must be zero */
 	u8 data[1];		/* Variable length */
@@ -1090,7 +1158,8 @@ struct acpi_nfit_smbios {
 
 /* 4: NVDIMM Control Region Structure */
 
-struct acpi_nfit_control_region {
+struct acpi_nfit_control_region
+{
 	struct acpi_nfit_header header;
 	u16 region_index;
 	u16 vendor_id;
@@ -1125,7 +1194,8 @@ struct acpi_nfit_control_region {
 
 /* 5: NVDIMM Block Data Window Region Structure */
 
-struct acpi_nfit_data_region {
+struct acpi_nfit_data_region
+{
 	struct acpi_nfit_header header;
 	u16 region_index;
 	u16 windows;
@@ -1137,7 +1207,8 @@ struct acpi_nfit_data_region {
 
 /* 6: Flush Hint Address Structure */
 
-struct acpi_nfit_flush_address {
+struct acpi_nfit_flush_address
+{
 	struct acpi_nfit_header header;
 	u32 device_handle;
 	u16 hint_count;
@@ -1152,7 +1223,8 @@ struct acpi_nfit_flush_address {
  *
  ******************************************************************************/
 
-struct acpi_table_sbst {
+struct acpi_table_sbst
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u32 warning_level;
 	u32 low_level;
@@ -1166,7 +1238,8 @@ struct acpi_table_sbst {
  *
  ******************************************************************************/
 
-struct acpi_table_slit {
+struct acpi_table_slit
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u64 locality_count;
 	u8 entry[1];		/* Real size = localities^2 */
@@ -1179,7 +1252,8 @@ struct acpi_table_slit {
  *
  ******************************************************************************/
 
-struct acpi_table_srat {
+struct acpi_table_srat
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u32 table_revision;	/* Must be value '1' */
 	u64 reserved;		/* Reserved, must be zero */
@@ -1187,7 +1261,8 @@ struct acpi_table_srat {
 
 /* Values for subtable type in struct acpi_subtable_header */
 
-enum acpi_srat_type {
+enum acpi_srat_type
+{
 	ACPI_SRAT_TYPE_CPU_AFFINITY = 0,
 	ACPI_SRAT_TYPE_MEMORY_AFFINITY = 1,
 	ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY = 2,
@@ -1201,7 +1276,8 @@ enum acpi_srat_type {
 
 /* 0: Processor Local APIC/SAPIC Affinity */
 
-struct acpi_srat_cpu_affinity {
+struct acpi_srat_cpu_affinity
+{
 	struct acpi_subtable_header header;
 	u8 proximity_domain_lo;
 	u8 apic_id;
@@ -1217,15 +1293,16 @@ struct acpi_srat_cpu_affinity {
 
 /* 1: Memory Affinity */
 
-struct acpi_srat_mem_affinity {
+struct acpi_srat_mem_affinity
+{
 	struct acpi_subtable_header header;
 	u32 proximity_domain;
 	u16 reserved;		/* Reserved, must be zero */
 	u64 base_address;
 	u64 length;
-       u32 reserved1;
+	u32 reserved1;
 	u32 flags;
-       u64 reserved2;	       /* Reserved, must be zero */
+	u64 reserved2;	       /* Reserved, must be zero */
 };
 
 /* Flags */
@@ -1236,7 +1313,8 @@ struct acpi_srat_mem_affinity {
 
 /* 2: Processor Local X2_APIC Affinity (ACPI 4.0) */
 
-struct acpi_srat_x2apic_cpu_affinity {
+struct acpi_srat_x2apic_cpu_affinity
+{
 	struct acpi_subtable_header header;
 	u16 reserved;		/* Reserved, must be zero */
 	u32 proximity_domain;
@@ -1252,7 +1330,8 @@ struct acpi_srat_x2apic_cpu_affinity {
 
 /* 3: GICC Affinity (ACPI 5.1) */
 
-struct acpi_srat_gicc_affinity {
+struct acpi_srat_gicc_affinity
+{
 	struct acpi_subtable_header header;
 	u32 proximity_domain;
 	u32 acpi_processor_uid;

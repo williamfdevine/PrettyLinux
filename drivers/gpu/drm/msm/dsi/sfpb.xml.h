@@ -46,7 +46,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 
-enum sfpb_ahb_arb_master_port_en {
+enum sfpb_ahb_arb_master_port_en
+{
 	SFPB_MASTER_PORT_ENABLE = 3,
 	SFPB_MASTER_PORT_DISABLE = 0,
 };

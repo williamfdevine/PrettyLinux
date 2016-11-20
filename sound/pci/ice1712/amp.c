@@ -19,7 +19,7 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
- */      
+ */
 
 #include <linux/delay.h>
 #include <linux/interrupt.h>
@@ -39,11 +39,12 @@ static void wm_put(struct snd_ice1712 *ice, int reg, unsigned short val)
 
 static int snd_vt1724_amp_init(struct snd_ice1712 *ice)
 {
-	static const unsigned short wm_inits[] = {
+	static const unsigned short wm_inits[] =
+	{
 		WM_ATTEN_L,	0x0000,	/* 0 db */
 		WM_ATTEN_R,	0x0000,	/* 0 db */
 		WM_DAC_CTRL,	0x0008,	/* 24bit I2S */
-		WM_INT_CTRL,	0x0001, /* 24bit I2S */	
+		WM_INT_CTRL,	0x0001, /* 24bit I2S */
 	};
 
 	unsigned int i;
@@ -57,9 +58,12 @@ static int snd_vt1724_amp_init(struct snd_ice1712 *ice)
 	/* Chaintech AV-710 has another WM8728 codec connected to PSDOUT4
 	   (shared with the SPDIF output). Mixer control for this codec
 	   is not yet supported. */
-	if (ice->eeprom.subvendor == VT1724_SUBDEVICE_AV710) {
+	if (ice->eeprom.subvendor == VT1724_SUBDEVICE_AV710)
+	{
 		for (i = 0; i < ARRAY_SIZE(wm_inits); i += 2)
-			wm_put(ice, wm_inits[i], wm_inits[i+1]);
+		{
+			wm_put(ice, wm_inits[i], wm_inits[i + 1]);
+		}
 	}
 
 	return 0;
@@ -71,13 +75,15 @@ static int snd_vt1724_amp_add_controls(struct snd_ice1712 *ice)
 		/* we use pins 39 and 41 of the VT1616 for left and right
 		read outputs */
 		snd_ac97_write_cache(ice->ac97, 0x5a,
-			snd_ac97_read(ice->ac97, 0x5a) & ~0x8000);
+							 snd_ac97_read(ice->ac97, 0x5a) & ~0x8000);
+
 	return 0;
 }
 
 
 /* entry point */
-struct snd_ice1712_card_info snd_vt1724_amp_cards[] = {
+struct snd_ice1712_card_info snd_vt1724_amp_cards[] =
+{
 	{
 		.subvendor = VT1724_SUBDEVICE_AV710,
 		.name = "Chaintech AV-710",

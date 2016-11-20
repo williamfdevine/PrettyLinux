@@ -17,24 +17,25 @@
  * base them entirely on which videobuf2 options have been selected.
  */
 #if IS_ENABLED(CONFIG_VIDEOBUF2_VMALLOC)
-#define MCAM_MODE_VMALLOC 1
+	#define MCAM_MODE_VMALLOC 1
 #endif
 
 #if IS_ENABLED(CONFIG_VIDEOBUF2_DMA_CONTIG)
-#define MCAM_MODE_DMA_CONTIG 1
+	#define MCAM_MODE_DMA_CONTIG 1
 #endif
 
 #if IS_ENABLED(CONFIG_VIDEOBUF2_DMA_SG)
-#define MCAM_MODE_DMA_SG 1
+	#define MCAM_MODE_DMA_SG 1
 #endif
 
 #if !defined(MCAM_MODE_VMALLOC) && !defined(MCAM_MODE_DMA_CONTIG) && \
 	!defined(MCAM_MODE_DMA_SG)
-#error One of the videobuf buffer modes must be selected in the config
+	#error One of the videobuf buffer modes must be selected in the config
 #endif
 
 
-enum mcam_state {
+enum mcam_state
+{
 	S_NOTREADY,	/* Not yet initialized */
 	S_IDLE,		/* Just hanging around */
 	S_FLAKED,	/* Some sort of problem */
@@ -47,13 +48,15 @@ enum mcam_state {
  * Different platforms work best with different buffer modes, so we
  * let the platform pick.
  */
-enum mcam_buffer_mode {
+enum mcam_buffer_mode
+{
 	B_vmalloc = 0,
 	B_DMA_contig = 1,
 	B_DMA_sg = 2
 };
 
-enum mcam_chip_id {
+enum mcam_chip_id
+{
 	MCAM_CAFE,
 	MCAM_ARMADA610,
 };
@@ -63,26 +66,30 @@ enum mcam_chip_id {
  */
 static inline int mcam_buffer_mode_supported(enum mcam_buffer_mode mode)
 {
-	switch (mode) {
+	switch (mode)
+	{
 #ifdef MCAM_MODE_VMALLOC
-	case B_vmalloc:
+
+		case B_vmalloc:
 #endif
 #ifdef MCAM_MODE_DMA_CONTIG
-	case B_DMA_contig:
+		case B_DMA_contig:
 #endif
 #ifdef MCAM_MODE_DMA_SG
-	case B_DMA_sg:
+		case B_DMA_sg:
 #endif
-		return 1;
-	default:
-		return 0;
+			return 1;
+
+		default:
+			return 0;
 	}
 }
 
 /*
  * Basic frame states
  */
-struct mcam_frame_state {
+struct mcam_frame_state
+{
 	unsigned int frames;
 	unsigned int singles;
 	unsigned int delivered;
@@ -96,7 +103,8 @@ struct mcam_frame_state {
  *          the dev_lock spinlock; they are marked as such by comments.
  *          dev_lock is also required for access to device registers.
  */
-struct mcam_camera {
+struct mcam_camera
+{
 	/*
 	 * These fields should be set by the platform code prior to
 	 * calling mcam_register().
@@ -198,7 +206,7 @@ struct mcam_camera {
  * Device register I/O
  */
 static inline void mcam_reg_write(struct mcam_camera *cam, unsigned int reg,
-		unsigned int val)
+								  unsigned int val)
 {
 	iowrite32(val, cam->regs + reg);
 }
@@ -211,7 +219,7 @@ static inline unsigned int mcam_reg_read(struct mcam_camera *cam,
 
 
 static inline void mcam_reg_write_mask(struct mcam_camera *cam, unsigned int reg,
-		unsigned int val, unsigned int mask)
+									   unsigned int val, unsigned int mask)
 {
 	unsigned int v = mcam_reg_read(cam, reg);
 
@@ -220,13 +228,13 @@ static inline void mcam_reg_write_mask(struct mcam_camera *cam, unsigned int reg
 }
 
 static inline void mcam_reg_clear_bit(struct mcam_camera *cam,
-		unsigned int reg, unsigned int val)
+									  unsigned int reg, unsigned int val)
 {
 	mcam_reg_write_mask(cam, reg, 0, val);
 }
 
 static inline void mcam_reg_set_bit(struct mcam_camera *cam,
-		unsigned int reg, unsigned int val)
+									unsigned int reg, unsigned int val)
 {
 	mcam_reg_write_mask(cam, reg, val, val);
 }
@@ -238,8 +246,8 @@ int mccic_register(struct mcam_camera *cam);
 int mccic_irq(struct mcam_camera *cam, unsigned int irqs);
 void mccic_shutdown(struct mcam_camera *cam);
 #ifdef CONFIG_PM
-void mccic_suspend(struct mcam_camera *cam);
-int mccic_resume(struct mcam_camera *cam);
+	void mccic_suspend(struct mcam_camera *cam);
+	int mccic_resume(struct mcam_camera *cam);
 #endif
 
 /*

@@ -56,9 +56,9 @@
 #define GICD_INT_EN_CLR_PPI		0xffff0000
 #define GICD_INT_DEF_PRI		0xa0
 #define GICD_INT_DEF_PRI_X4		((GICD_INT_DEF_PRI << 24) |\
-					(GICD_INT_DEF_PRI << 16) |\
-					(GICD_INT_DEF_PRI << 8) |\
-					GICD_INT_DEF_PRI)
+								 (GICD_INT_DEF_PRI << 16) |\
+								 (GICD_INT_DEF_PRI << 8) |\
+								 GICD_INT_DEF_PRI)
 
 #define GICH_HCR			0x0
 #define GICH_VTR			0x4
@@ -127,10 +127,10 @@ int gic_of_init_child(struct device *dev, struct gic_chip_data **gic, int irq);
  * their GIC
  */
 void gic_init(unsigned int nr, int start,
-	      void __iomem *dist , void __iomem *cpu);
+			  void __iomem *dist , void __iomem *cpu);
 
 int gicv2m_init(struct fwnode_handle *parent_handle,
-		struct irq_domain *parent);
+				struct irq_domain *parent);
 
 void gic_send_sgi(unsigned int cpu_id, unsigned int irq);
 int gic_get_cpu_id(unsigned int cpu);

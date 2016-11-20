@@ -5,7 +5,8 @@
 #include <linux/icmpv6.h>
 
 /* MLDv1 Query/Report/Done */
-struct mld_msg {
+struct mld_msg
+{
 	struct icmp6hdr		mld_hdr;
 	struct in6_addr		mld_mca;
 };
@@ -18,7 +19,8 @@ struct mld_msg {
 
 /* Multicast Listener Discovery version 2 headers */
 /* MLDv2 Report */
-struct mld2_grec {
+struct mld2_grec
+{
 	__u8		grec_type;
 	__u8		grec_auxwords;
 	__be16		grec_nsrcs;
@@ -26,7 +28,8 @@ struct mld2_grec {
 	struct in6_addr	grec_src[0];
 };
 
-struct mld2_report {
+struct mld2_report
+{
 	struct icmp6hdr		mld2r_hdr;
 	struct mld2_grec	mld2r_grec[0];
 };
@@ -38,17 +41,18 @@ struct mld2_report {
 #define mld2r_ngrec		mld2r_hdr.icmp6_dataun.un_data16[1]
 
 /* MLDv2 Query */
-struct mld2_query {
+struct mld2_query
+{
 	struct icmp6hdr		mld2q_hdr;
 	struct in6_addr		mld2q_mca;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8			mld2q_qrv:3,
-				mld2q_suppress:1,
-				mld2q_resv2:4;
+	__u8			mld2q_qrv: 3,
+					mld2q_suppress: 1,
+					mld2q_resv2: 4;
 #elif defined(__BIG_ENDIAN_BITFIELD)
-	__u8			mld2q_resv2:4,
-				mld2q_suppress:1,
-				mld2q_qrv:3;
+	__u8			mld2q_resv2: 4,
+					mld2q_suppress: 1,
+					mld2q_qrv: 3;
 #else
 #error "Please fix <asm/byteorder.h>"
 #endif
@@ -96,9 +100,12 @@ static inline unsigned long mldv2_mrc(const struct mld2_query *mlh2)
 	/* RFC3810, 5.1.3. Maximum Response Code */
 	unsigned long ret, mc_mrc = ntohs(mlh2->mld2q_mrc);
 
-	if (mc_mrc < MLD_EXP_MIN_LIMIT) {
+	if (mc_mrc < MLD_EXP_MIN_LIMIT)
+	{
 		ret = mc_mrc;
-	} else {
+	}
+	else
+	{
 		unsigned long mc_man, mc_exp;
 
 		mc_exp = MLDV2_MRC_EXP(mc_mrc);

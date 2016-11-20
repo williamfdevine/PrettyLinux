@@ -40,9 +40,9 @@ static const char i40evf_driver_string[] =
 #define DRV_VERSION_MINOR 6
 #define DRV_VERSION_BUILD 16
 #define DRV_VERSION __stringify(DRV_VERSION_MAJOR) "." \
-	     __stringify(DRV_VERSION_MINOR) "." \
-	     __stringify(DRV_VERSION_BUILD) \
-	     DRV_KERN
+	__stringify(DRV_VERSION_MINOR) "." \
+	__stringify(DRV_VERSION_BUILD) \
+	DRV_KERN
 const char i40evf_driver_version[] = DRV_VERSION;
 static const char i40evf_copyright[] =
 	"Copyright (c) 2013 - 2015 Intel Corporation.";
@@ -55,7 +55,8 @@ static const char i40evf_copyright[] =
  * { Vendor ID, Device ID, SubVendor ID, SubDevice ID,
  *   Class, Class Mask, private data (not used) }
  */
-static const struct pci_device_id i40evf_pci_tbl[] = {
+static const struct pci_device_id i40evf_pci_tbl[] =
+{
 	{PCI_VDEVICE(INTEL, I40E_DEV_ID_VF), 0},
 	{PCI_VDEVICE(INTEL, I40E_DEV_ID_VF_HV), 0},
 	{PCI_VDEVICE(INTEL, I40E_DEV_ID_X722_VF), 0},
@@ -81,21 +82,28 @@ static struct workqueue_struct *i40evf_wq;
  * @alignment: what to align the allocation to
  **/
 i40e_status i40evf_allocate_dma_mem_d(struct i40e_hw *hw,
-				      struct i40e_dma_mem *mem,
-				      u64 size, u32 alignment)
+									  struct i40e_dma_mem *mem,
+									  u64 size, u32 alignment)
 {
 	struct i40evf_adapter *adapter = (struct i40evf_adapter *)hw->back;
 
 	if (!mem)
+	{
 		return I40E_ERR_PARAM;
+	}
 
 	mem->size = ALIGN(size, alignment);
 	mem->va = dma_alloc_coherent(&adapter->pdev->dev, mem->size,
-				     (dma_addr_t *)&mem->pa, GFP_KERNEL);
+								 (dma_addr_t *)&mem->pa, GFP_KERNEL);
+
 	if (mem->va)
+	{
 		return 0;
+	}
 	else
+	{
 		return I40E_ERR_NO_MEMORY;
+	}
 }
 
 /**
@@ -108,9 +116,12 @@ i40e_status i40evf_free_dma_mem_d(struct i40e_hw *hw, struct i40e_dma_mem *mem)
 	struct i40evf_adapter *adapter = (struct i40evf_adapter *)hw->back;
 
 	if (!mem || !mem->va)
+	{
 		return I40E_ERR_PARAM;
+	}
+
 	dma_free_coherent(&adapter->pdev->dev, mem->size,
-			  mem->va, (dma_addr_t)mem->pa);
+					  mem->va, (dma_addr_t)mem->pa);
 	return 0;
 }
 
@@ -121,18 +132,24 @@ i40e_status i40evf_free_dma_mem_d(struct i40e_hw *hw, struct i40e_dma_mem *mem)
  * @size: size of memory requested
  **/
 i40e_status i40evf_allocate_virt_mem_d(struct i40e_hw *hw,
-				       struct i40e_virt_mem *mem, u32 size)
+									   struct i40e_virt_mem *mem, u32 size)
 {
 	if (!mem)
+	{
 		return I40E_ERR_PARAM;
+	}
 
 	mem->size = size;
 	mem->va = kzalloc(size, GFP_KERNEL);
 
 	if (mem->va)
+	{
 		return 0;
+	}
 	else
+	{
 		return I40E_ERR_NO_MEMORY;
+	}
 }
 
 /**
@@ -141,10 +158,12 @@ i40e_status i40evf_allocate_virt_mem_d(struct i40e_hw *hw,
  * @mem:  ptr to mem struct to free
  **/
 i40e_status i40evf_free_virt_mem_d(struct i40e_hw *hw,
-				   struct i40e_virt_mem *mem)
+								   struct i40e_virt_mem *mem)
 {
 	if (!mem)
+	{
 		return I40E_ERR_PARAM;
+	}
 
 	/* it's ok to kfree a NULL pointer */
 	kfree(mem->va);
@@ -164,7 +183,9 @@ void i40evf_debug_d(void *hw, u32 mask, char *fmt_str, ...)
 	va_list argptr;
 
 	if (!(mask & ((struct i40e_hw *)hw)->debug_mask))
+	{
 		return;
+	}
 
 	va_start(argptr, fmt_str);
 	vsnprintf(buf, sizeof(buf), fmt_str, argptr);
@@ -181,7 +202,8 @@ void i40evf_debug_d(void *hw, u32 mask, char *fmt_str, ...)
 void i40evf_schedule_reset(struct i40evf_adapter *adapter)
 {
 	if (!(adapter->flags &
-	      (I40EVF_FLAG_RESET_PENDING | I40EVF_FLAG_RESET_NEEDED))) {
+		  (I40EVF_FLAG_RESET_PENDING | I40EVF_FLAG_RESET_NEEDED)))
+	{
 		adapter->flags |= I40EVF_FLAG_RESET_NEEDED;
 		schedule_work(&adapter->reset_task);
 	}
@@ -224,7 +246,7 @@ static void i40evf_misc_irq_enable(struct i40evf_adapter *adapter)
 	struct i40e_hw *hw = &adapter->hw;
 
 	wr32(hw, I40E_VFINT_DYN_CTL01, I40E_VFINT_DYN_CTL01_INTENA_MASK |
-				       I40E_VFINT_DYN_CTL01_ITR_INDX_MASK);
+		 I40E_VFINT_DYN_CTL01_ITR_INDX_MASK);
 	wr32(hw, I40E_VFINT_ICR0_ENA1, I40E_VFINT_ICR0_ENA1_ADMINQ_MASK);
 
 	/* read flush */
@@ -241,12 +263,16 @@ static void i40evf_irq_disable(struct i40evf_adapter *adapter)
 	struct i40e_hw *hw = &adapter->hw;
 
 	if (!adapter->msix_entries)
+	{
 		return;
+	}
 
-	for (i = 1; i < adapter->num_msix_vectors; i++) {
+	for (i = 1; i < adapter->num_msix_vectors; i++)
+	{
 		wr32(hw, I40E_VFINT_DYN_CTLN1(i - 1), 0);
 		synchronize_irq(adapter->msix_entries[i].vector);
 	}
+
 	/* read flush */
 	rd32(hw, I40E_VFGEN_RSTAT);
 }
@@ -261,12 +287,14 @@ void i40evf_irq_enable_queues(struct i40evf_adapter *adapter, u32 mask)
 	struct i40e_hw *hw = &adapter->hw;
 	int i;
 
-	for (i = 1; i < adapter->num_msix_vectors; i++) {
-		if (mask & BIT(i - 1)) {
+	for (i = 1; i < adapter->num_msix_vectors; i++)
+	{
+		if (mask & BIT(i - 1))
+		{
 			wr32(hw, I40E_VFINT_DYN_CTLN1(i - 1),
-			     I40E_VFINT_DYN_CTLN1_INTENA_MASK |
-			     I40E_VFINT_DYN_CTLN1_ITR_INDX_MASK |
-			     I40E_VFINT_DYN_CTLN1_CLEARPBA_MASK);
+				 I40E_VFINT_DYN_CTLN1_INTENA_MASK |
+				 I40E_VFINT_DYN_CTLN1_ITR_INDX_MASK |
+				 I40E_VFINT_DYN_CTLN1_CLEARPBA_MASK);
 		}
 	}
 }
@@ -282,19 +310,23 @@ static void i40evf_fire_sw_int(struct i40evf_adapter *adapter, u32 mask)
 	int i;
 	u32 dyn_ctl;
 
-	if (mask & 1) {
+	if (mask & 1)
+	{
 		dyn_ctl = rd32(hw, I40E_VFINT_DYN_CTL01);
 		dyn_ctl |= I40E_VFINT_DYN_CTLN1_SWINT_TRIG_MASK |
-			   I40E_VFINT_DYN_CTLN1_ITR_INDX_MASK |
-			   I40E_VFINT_DYN_CTLN1_CLEARPBA_MASK;
-		wr32(hw, I40E_VFINT_DYN_CTL01, dyn_ctl);
-	}
-	for (i = 1; i < adapter->num_msix_vectors; i++) {
-		if (mask & BIT(i)) {
-			dyn_ctl = rd32(hw, I40E_VFINT_DYN_CTLN1(i - 1));
-			dyn_ctl |= I40E_VFINT_DYN_CTLN1_SWINT_TRIG_MASK |
 				   I40E_VFINT_DYN_CTLN1_ITR_INDX_MASK |
 				   I40E_VFINT_DYN_CTLN1_CLEARPBA_MASK;
+		wr32(hw, I40E_VFINT_DYN_CTL01, dyn_ctl);
+	}
+
+	for (i = 1; i < adapter->num_msix_vectors; i++)
+	{
+		if (mask & BIT(i))
+		{
+			dyn_ctl = rd32(hw, I40E_VFINT_DYN_CTLN1(i - 1));
+			dyn_ctl |= I40E_VFINT_DYN_CTLN1_SWINT_TRIG_MASK |
+					   I40E_VFINT_DYN_CTLN1_ITR_INDX_MASK |
+					   I40E_VFINT_DYN_CTLN1_CLEARPBA_MASK;
 			wr32(hw, I40E_VFINT_DYN_CTLN1(i - 1), dyn_ctl);
 		}
 	}
@@ -313,7 +345,9 @@ void i40evf_irq_enable(struct i40evf_adapter *adapter, bool flush)
 	i40evf_irq_enable_queues(adapter, ~0);
 
 	if (flush)
+	{
 		rd32(hw, I40E_VFGEN_RSTAT);
+	}
 }
 
 /**
@@ -333,7 +367,7 @@ static irqreturn_t i40evf_msix_aq(int irq, void *data)
 	val = rd32(hw, I40E_VFINT_ICR0_ENA1);
 
 	val = rd32(hw, I40E_VFINT_DYN_CTL01) |
-	      I40E_VFINT_DYN_CTL01_CLEARPBA_MASK;
+		  I40E_VFINT_DYN_CTL01_CLEARPBA_MASK;
 	wr32(hw, I40E_VFINT_DYN_CTL01, val);
 
 	/* schedule work on the private workqueue */
@@ -352,7 +386,9 @@ static irqreturn_t i40evf_msix_clean_rings(int irq, void *data)
 	struct i40e_q_vector *q_vector = data;
 
 	if (!q_vector->tx.ring && !q_vector->rx.ring)
+	{
 		return IRQ_HANDLED;
+	}
 
 	napi_schedule_irqoff(&q_vector->napi);
 
@@ -435,12 +471,18 @@ static int i40evf_map_rings_to_vectors(struct i40evf_adapter *adapter)
 	/* The ideal configuration...
 	 * We have enough vectors to map one per queue.
 	 */
-	if (q_vectors >= (rxr_remaining * 2)) {
+	if (q_vectors >= (rxr_remaining * 2))
+	{
 		for (; rxr_idx < rxr_remaining; v_start++, rxr_idx++)
+		{
 			i40evf_map_vector_to_rxq(adapter, v_start, rxr_idx);
+		}
 
 		for (; txr_idx < txr_remaining; v_start++, txr_idx++)
+		{
 			i40evf_map_vector_to_txq(adapter, v_start, txr_idx);
+		}
+
 		goto out;
 	}
 
@@ -449,17 +491,24 @@ static int i40evf_map_rings_to_vectors(struct i40evf_adapter *adapter)
 	 * multiple queues per vector.
 	 * Re-adjusting *qpv takes care of the remainder.
 	 */
-	for (i = v_start; i < q_vectors; i++) {
+	for (i = v_start; i < q_vectors; i++)
+	{
 		rqpv = DIV_ROUND_UP(rxr_remaining, q_vectors - i);
-		for (j = 0; j < rqpv; j++) {
+
+		for (j = 0; j < rqpv; j++)
+		{
 			i40evf_map_vector_to_rxq(adapter, i, rxr_idx);
 			rxr_idx++;
 			rxr_remaining--;
 		}
 	}
-	for (i = v_start; i < q_vectors; i++) {
+
+	for (i = v_start; i < q_vectors; i++)
+	{
 		tqpv = DIV_ROUND_UP(txr_remaining, q_vectors - i);
-		for (j = 0; j < tqpv; j++) {
+
+		for (j = 0; j < tqpv; j++)
+		{
 			i40evf_map_vector_to_txq(adapter, i, txr_idx);
 			txr_idx++;
 			txr_remaining--;
@@ -488,10 +537,14 @@ static void i40evf_netpoll(struct net_device *netdev)
 
 	/* if interface is down do nothing */
 	if (test_bit(__I40E_DOWN, &adapter->vsi.state))
+	{
 		return;
+	}
 
 	for (i = 0; i < q_vectors; i++)
+	{
 		i40evf_msix_clean_rings(0, &adapter->q_vectors[i]);
+	}
 }
 
 #endif
@@ -512,37 +565,49 @@ i40evf_request_traffic_irqs(struct i40evf_adapter *adapter, char *basename)
 	/* Decrement for Other and TCP Timer vectors */
 	q_vectors = adapter->num_msix_vectors - NONQ_VECS;
 
-	for (vector = 0; vector < q_vectors; vector++) {
+	for (vector = 0; vector < q_vectors; vector++)
+	{
 		struct i40e_q_vector *q_vector = &adapter->q_vectors[vector];
 
-		if (q_vector->tx.ring && q_vector->rx.ring) {
+		if (q_vector->tx.ring && q_vector->rx.ring)
+		{
 			snprintf(q_vector->name, sizeof(q_vector->name) - 1,
-				 "i40evf-%s-%s-%d", basename,
-				 "TxRx", rx_int_idx++);
+					 "i40evf-%s-%s-%d", basename,
+					 "TxRx", rx_int_idx++);
 			tx_int_idx++;
-		} else if (q_vector->rx.ring) {
+		}
+		else if (q_vector->rx.ring)
+		{
 			snprintf(q_vector->name, sizeof(q_vector->name) - 1,
-				 "i40evf-%s-%s-%d", basename,
-				 "rx", rx_int_idx++);
-		} else if (q_vector->tx.ring) {
+					 "i40evf-%s-%s-%d", basename,
+					 "rx", rx_int_idx++);
+		}
+		else if (q_vector->tx.ring)
+		{
 			snprintf(q_vector->name, sizeof(q_vector->name) - 1,
-				 "i40evf-%s-%s-%d", basename,
-				 "tx", tx_int_idx++);
-		} else {
+					 "i40evf-%s-%s-%d", basename,
+					 "tx", tx_int_idx++);
+		}
+		else
+		{
 			/* skip this unused q_vector */
 			continue;
 		}
+
 		err = request_irq(
-			adapter->msix_entries[vector + NONQ_VECS].vector,
-			i40evf_msix_clean_rings,
-			0,
-			q_vector->name,
-			q_vector);
-		if (err) {
+				  adapter->msix_entries[vector + NONQ_VECS].vector,
+				  i40evf_msix_clean_rings,
+				  0,
+				  q_vector->name,
+				  q_vector);
+
+		if (err)
+		{
 			dev_info(&adapter->pdev->dev,
-				 "Request_irq failed, error: %d\n", err);
+					 "Request_irq failed, error: %d\n", err);
 			goto free_queue_irqs;
 		}
+
 		/* assign the mask for this irq */
 		irq_set_affinity_hint(
 			adapter->msix_entries[vector + NONQ_VECS].vector,
@@ -552,14 +617,17 @@ i40evf_request_traffic_irqs(struct i40evf_adapter *adapter, char *basename)
 	return 0;
 
 free_queue_irqs:
-	while (vector) {
+
+	while (vector)
+	{
 		vector--;
 		irq_set_affinity_hint(
 			adapter->msix_entries[vector + NONQ_VECS].vector,
 			NULL);
 		free_irq(adapter->msix_entries[vector + NONQ_VECS].vector,
-			 &adapter->q_vectors[vector]);
+				 &adapter->q_vectors[vector]);
 	}
+
 	return err;
 }
 
@@ -577,17 +645,20 @@ static int i40evf_request_misc_irq(struct i40evf_adapter *adapter)
 	int err;
 
 	snprintf(adapter->misc_vector_name,
-		 sizeof(adapter->misc_vector_name) - 1, "i40evf-%s:mbx",
-		 dev_name(&adapter->pdev->dev));
+			 sizeof(adapter->misc_vector_name) - 1, "i40evf-%s:mbx",
+			 dev_name(&adapter->pdev->dev));
 	err = request_irq(adapter->msix_entries[0].vector,
-			  &i40evf_msix_aq, 0,
-			  adapter->misc_vector_name, netdev);
-	if (err) {
+					  &i40evf_msix_aq, 0,
+					  adapter->misc_vector_name, netdev);
+
+	if (err)
+	{
 		dev_err(&adapter->pdev->dev,
-			"request_irq for %s failed: %d\n",
-			adapter->misc_vector_name, err);
+				"request_irq for %s failed: %d\n",
+				adapter->misc_vector_name, err);
 		free_irq(adapter->msix_entries[0].vector, netdev);
 	}
+
 	return err;
 }
 
@@ -604,11 +675,12 @@ static void i40evf_free_traffic_irqs(struct i40evf_adapter *adapter)
 
 	q_vectors = adapter->num_msix_vectors - NONQ_VECS;
 
-	for (i = 0; i < q_vectors; i++) {
-		irq_set_affinity_hint(adapter->msix_entries[i+1].vector,
-				      NULL);
-		free_irq(adapter->msix_entries[i+1].vector,
-			 &adapter->q_vectors[i]);
+	for (i = 0; i < q_vectors; i++)
+	{
+		irq_set_affinity_hint(adapter->msix_entries[i + 1].vector,
+							  NULL);
+		free_irq(adapter->msix_entries[i + 1].vector,
+				 &adapter->q_vectors[i]);
 	}
 }
 
@@ -637,7 +709,9 @@ static void i40evf_configure_tx(struct i40evf_adapter *adapter)
 	int i;
 
 	for (i = 0; i < adapter->num_active_queues; i++)
+	{
 		adapter->tx_rings[i].tail = hw->hw_addr + I40E_QTX_TAIL1(i);
+	}
 }
 
 /**
@@ -651,7 +725,8 @@ static void i40evf_configure_rx(struct i40evf_adapter *adapter)
 	struct i40e_hw *hw = &adapter->hw;
 	int i;
 
-	for (i = 0; i < adapter->num_active_queues; i++) {
+	for (i = 0; i < adapter->num_active_queues; i++)
+	{
 		adapter->rx_rings[i].tail = hw->hw_addr + I40E_QRX_TAIL1(i);
 		adapter->rx_rings[i].rx_buf_len = I40EVF_RXBUFFER_2048;
 	}
@@ -669,9 +744,12 @@ i40evf_vlan_filter *i40evf_find_vlan(struct i40evf_adapter *adapter, u16 vlan)
 {
 	struct i40evf_vlan_filter *f;
 
-	list_for_each_entry(f, &adapter->vlan_filter_list, list) {
+	list_for_each_entry(f, &adapter->vlan_filter_list, list)
+	{
 		if (vlan == f->vlan)
+		{
 			return f;
+		}
 	}
 	return NULL;
 }
@@ -690,17 +768,26 @@ i40evf_vlan_filter *i40evf_add_vlan(struct i40evf_adapter *adapter, u16 vlan)
 	int count = 50;
 
 	while (test_and_set_bit(__I40EVF_IN_CRITICAL_TASK,
-				&adapter->crit_section)) {
+							&adapter->crit_section))
+	{
 		udelay(1);
+
 		if (--count == 0)
+		{
 			goto out;
+		}
 	}
 
 	f = i40evf_find_vlan(adapter, vlan);
-	if (!f) {
+
+	if (!f)
+	{
 		f = kzalloc(sizeof(*f), GFP_ATOMIC);
+
 		if (!f)
+		{
 			goto clearout;
+		}
 
 		f->vlan = vlan;
 
@@ -727,17 +814,24 @@ static void i40evf_del_vlan(struct i40evf_adapter *adapter, u16 vlan)
 	int count = 50;
 
 	while (test_and_set_bit(__I40EVF_IN_CRITICAL_TASK,
-				&adapter->crit_section)) {
+							&adapter->crit_section))
+	{
 		udelay(1);
+
 		if (--count == 0)
+		{
 			return;
+		}
 	}
 
 	f = i40evf_find_vlan(adapter, vlan);
-	if (f) {
+
+	if (f)
+	{
 		f->remove = true;
 		adapter->aq_required |= I40EVF_FLAG_AQ_DEL_VLAN_FILTER;
 	}
+
 	clear_bit(__I40EVF_IN_CRITICAL_TASK, &adapter->crit_section);
 }
 
@@ -747,14 +841,20 @@ static void i40evf_del_vlan(struct i40evf_adapter *adapter, u16 vlan)
  * @vid: VLAN tag
  **/
 static int i40evf_vlan_rx_add_vid(struct net_device *netdev,
-				  __always_unused __be16 proto, u16 vid)
+								  __always_unused __be16 proto, u16 vid)
 {
 	struct i40evf_adapter *adapter = netdev_priv(netdev);
 
 	if (!VLAN_ALLOWED(adapter))
+	{
 		return -EIO;
+	}
+
 	if (i40evf_add_vlan(adapter, vid) == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 
@@ -764,14 +864,16 @@ static int i40evf_vlan_rx_add_vid(struct net_device *netdev,
  * @vid: VLAN tag
  **/
 static int i40evf_vlan_rx_kill_vid(struct net_device *netdev,
-				   __always_unused __be16 proto, u16 vid)
+								   __always_unused __be16 proto, u16 vid)
 {
 	struct i40evf_adapter *adapter = netdev_priv(netdev);
 
-	if (VLAN_ALLOWED(adapter)) {
+	if (VLAN_ALLOWED(adapter))
+	{
 		i40evf_del_vlan(adapter, vid);
 		return 0;
 	}
+
 	return -EIO;
 }
 
@@ -784,16 +886,21 @@ static int i40evf_vlan_rx_kill_vid(struct net_device *netdev,
  **/
 static struct
 i40evf_mac_filter *i40evf_find_filter(struct i40evf_adapter *adapter,
-				      u8 *macaddr)
+									  u8 *macaddr)
 {
 	struct i40evf_mac_filter *f;
 
 	if (!macaddr)
+	{
 		return NULL;
+	}
 
-	list_for_each_entry(f, &adapter->mac_filter_list, list) {
+	list_for_each_entry(f, &adapter->mac_filter_list, list)
+	{
 		if (ether_addr_equal(macaddr, f->macaddr))
+		{
 			return f;
+		}
 	}
 	return NULL;
 }
@@ -807,27 +914,37 @@ i40evf_mac_filter *i40evf_find_filter(struct i40evf_adapter *adapter,
  **/
 static struct
 i40evf_mac_filter *i40evf_add_filter(struct i40evf_adapter *adapter,
-				     u8 *macaddr)
+									 u8 *macaddr)
 {
 	struct i40evf_mac_filter *f;
 	int count = 50;
 
 	if (!macaddr)
+	{
 		return NULL;
+	}
 
 	while (test_and_set_bit(__I40EVF_IN_CRITICAL_TASK,
-				&adapter->crit_section)) {
+							&adapter->crit_section))
+	{
 		udelay(1);
+
 		if (--count == 0)
+		{
 			return NULL;
+		}
 	}
 
 	f = i40evf_find_filter(adapter, macaddr);
-	if (!f) {
+
+	if (!f)
+	{
 		f = kzalloc(sizeof(*f), GFP_ATOMIC);
-		if (!f) {
+
+		if (!f)
+		{
 			clear_bit(__I40EVF_IN_CRITICAL_TASK,
-				  &adapter->crit_section);
+					  &adapter->crit_section);
 			return NULL;
 		}
 
@@ -857,22 +974,32 @@ static int i40evf_set_mac(struct net_device *netdev, void *p)
 	struct sockaddr *addr = p;
 
 	if (!is_valid_ether_addr(addr->sa_data))
+	{
 		return -EADDRNOTAVAIL;
+	}
 
 	if (ether_addr_equal(netdev->dev_addr, addr->sa_data))
+	{
 		return 0;
+	}
 
 	if (adapter->flags & I40EVF_FLAG_ADDR_SET_BY_PF)
+	{
 		return -EPERM;
+	}
 
 	f = i40evf_find_filter(adapter, hw->mac.addr);
-	if (f) {
+
+	if (f)
+	{
 		f->remove = true;
 		adapter->aq_required |= I40EVF_FLAG_AQ_DEL_MAC_FILTER;
 	}
 
 	f = i40evf_add_filter(adapter, addr->sa_data);
-	if (f) {
+
+	if (f)
+	{
 		ether_addr_copy(hw->mac.addr, addr->sa_data);
 		ether_addr_copy(netdev->dev_addr, adapter->hw.mac.addr);
 	}
@@ -894,38 +1021,56 @@ static void i40evf_set_rx_mode(struct net_device *netdev)
 	int count = 50;
 
 	/* add addr if not already in the filter list */
-	netdev_for_each_uc_addr(uca, netdev) {
+	netdev_for_each_uc_addr(uca, netdev)
+	{
 		i40evf_add_filter(adapter, uca->addr);
 	}
-	netdev_for_each_mc_addr(mca, netdev) {
+	netdev_for_each_mc_addr(mca, netdev)
+	{
 		i40evf_add_filter(adapter, mca->addr);
 	}
 
 	while (test_and_set_bit(__I40EVF_IN_CRITICAL_TASK,
-				&adapter->crit_section)) {
+							&adapter->crit_section))
+	{
 		udelay(1);
-		if (--count == 0) {
+
+		if (--count == 0)
+		{
 			dev_err(&adapter->pdev->dev,
-				"Failed to get lock in %s\n", __func__);
+					"Failed to get lock in %s\n", __func__);
 			return;
 		}
 	}
+
 	/* remove filter if not in netdev list */
-	list_for_each_entry_safe(f, ftmp, &adapter->mac_filter_list, list) {
+	list_for_each_entry_safe(f, ftmp, &adapter->mac_filter_list, list)
+	{
 		netdev_for_each_mc_addr(mca, netdev)
-			if (ether_addr_equal(mca->addr, f->macaddr))
-				goto bottom_of_search_loop;
+
+		if (ether_addr_equal(mca->addr, f->macaddr))
+		{
+			goto bottom_of_search_loop;
+		}
 
 		netdev_for_each_uc_addr(uca, netdev)
-			if (ether_addr_equal(uca->addr, f->macaddr))
-				goto bottom_of_search_loop;
+
+		if (ether_addr_equal(uca->addr, f->macaddr))
+		{
+			goto bottom_of_search_loop;
+		}
 
 		for_each_dev_addr(netdev, ha)
-			if (ether_addr_equal(ha->addr, f->macaddr))
-				goto bottom_of_search_loop;
+
+		if (ether_addr_equal(ha->addr, f->macaddr))
+		{
+			goto bottom_of_search_loop;
+		}
 
 		if (ether_addr_equal(f->macaddr, adapter->hw.mac.addr))
+		{
 			goto bottom_of_search_loop;
+		}
 
 		/* f->macaddr wasn't found in uc, mc, or ha list so delete it */
 		f->remove = true;
@@ -936,18 +1081,26 @@ bottom_of_search_loop:
 	}
 
 	if (netdev->flags & IFF_PROMISC &&
-	    !(adapter->flags & I40EVF_FLAG_PROMISC_ON))
+		!(adapter->flags & I40EVF_FLAG_PROMISC_ON))
+	{
 		adapter->aq_required |= I40EVF_FLAG_AQ_REQUEST_PROMISC;
+	}
 	else if (!(netdev->flags & IFF_PROMISC) &&
-		 adapter->flags & I40EVF_FLAG_PROMISC_ON)
+			 adapter->flags & I40EVF_FLAG_PROMISC_ON)
+	{
 		adapter->aq_required |= I40EVF_FLAG_AQ_RELEASE_PROMISC;
+	}
 
 	if (netdev->flags & IFF_ALLMULTI &&
-	    !(adapter->flags & I40EVF_FLAG_ALLMULTI_ON))
+		!(adapter->flags & I40EVF_FLAG_ALLMULTI_ON))
+	{
 		adapter->aq_required |= I40EVF_FLAG_AQ_REQUEST_ALLMULTI;
+	}
 	else if (!(netdev->flags & IFF_ALLMULTI) &&
-		 adapter->flags & I40EVF_FLAG_ALLMULTI_ON)
+			 adapter->flags & I40EVF_FLAG_ALLMULTI_ON)
+	{
 		adapter->aq_required |= I40EVF_FLAG_AQ_RELEASE_ALLMULTI;
+	}
 
 	clear_bit(__I40EVF_IN_CRITICAL_TASK, &adapter->crit_section);
 }
@@ -962,7 +1115,8 @@ static void i40evf_napi_enable_all(struct i40evf_adapter *adapter)
 	struct i40e_q_vector *q_vector;
 	int q_vectors = adapter->num_msix_vectors - NONQ_VECS;
 
-	for (q_idx = 0; q_idx < q_vectors; q_idx++) {
+	for (q_idx = 0; q_idx < q_vectors; q_idx++)
+	{
 		struct napi_struct *napi;
 
 		q_vector = &adapter->q_vectors[q_idx];
@@ -981,7 +1135,8 @@ static void i40evf_napi_disable_all(struct i40evf_adapter *adapter)
 	struct i40e_q_vector *q_vector;
 	int q_vectors = adapter->num_msix_vectors - NONQ_VECS;
 
-	for (q_idx = 0; q_idx < q_vectors; q_idx++) {
+	for (q_idx = 0; q_idx < q_vectors; q_idx++)
+	{
 		q_vector = &adapter->q_vectors[q_idx];
 		napi_disable(&q_vector->napi);
 	}
@@ -1002,7 +1157,8 @@ static void i40evf_configure(struct i40evf_adapter *adapter)
 	i40evf_configure_rx(adapter);
 	adapter->aq_required |= I40EVF_FLAG_AQ_CONFIGURE_QUEUES;
 
-	for (i = 0; i < adapter->num_active_queues; i++) {
+	for (i = 0; i < adapter->num_active_queues; i++)
+	{
 		struct i40e_ring *ring = &adapter->rx_rings[i];
 
 		i40evf_alloc_rx_buffers(ring, I40E_DESC_UNUSED(ring));
@@ -1034,11 +1190,15 @@ void i40evf_down(struct i40evf_adapter *adapter)
 	struct i40evf_mac_filter *f;
 
 	if (adapter->state <= __I40EVF_DOWN_PENDING)
+	{
 		return;
+	}
 
 	while (test_and_set_bit(__I40EVF_IN_CRITICAL_TASK,
-				&adapter->crit_section))
+							&adapter->crit_section))
+	{
 		usleep_range(500, 1000);
+	}
 
 	netif_carrier_off(netdev);
 	netif_tx_disable(netdev);
@@ -1047,15 +1207,19 @@ void i40evf_down(struct i40evf_adapter *adapter)
 	i40evf_irq_disable(adapter);
 
 	/* remove all MAC filters */
-	list_for_each_entry(f, &adapter->mac_filter_list, list) {
+	list_for_each_entry(f, &adapter->mac_filter_list, list)
+	{
 		f->remove = true;
 	}
 	/* remove all VLAN filters */
-	list_for_each_entry(f, &adapter->vlan_filter_list, list) {
+	list_for_each_entry(f, &adapter->vlan_filter_list, list)
+	{
 		f->remove = true;
 	}
+
 	if (!(adapter->flags & I40EVF_FLAG_PF_COMMS_FAILED) &&
-	    adapter->state != __I40EVF_RESETTING) {
+		adapter->state != __I40EVF_RESETTING)
+	{
 		/* cancel any current operation */
 		adapter->current_op = I40E_VIRTCHNL_OP_UNKNOWN;
 		/* Schedule operations to close down the HW. Don't wait
@@ -1097,8 +1261,10 @@ i40evf_acquire_msix_vectors(struct i40evf_adapter *adapter, int vectors)
 	 * set them up later while requesting irq's.
 	 */
 	err = pci_enable_msix_range(adapter->pdev, adapter->msix_entries,
-				    vector_threshold, vectors);
-	if (err < 0) {
+								vector_threshold, vectors);
+
+	if (err < 0)
+	{
 		dev_err(&adapter->pdev->dev, "Unable to allocate MSI-X interrupts\n");
 		kfree(adapter->msix_entries);
 		adapter->msix_entries = NULL;
@@ -1122,7 +1288,10 @@ i40evf_acquire_msix_vectors(struct i40evf_adapter *adapter, int vectors)
 static void i40evf_free_queues(struct i40evf_adapter *adapter)
 {
 	if (!adapter->vsi_res)
+	{
 		return;
+	}
+
 	kfree(adapter->tx_rings);
 	adapter->tx_rings = NULL;
 	kfree(adapter->rx_rings);
@@ -1142,15 +1311,23 @@ static int i40evf_alloc_queues(struct i40evf_adapter *adapter)
 	int i;
 
 	adapter->tx_rings = kcalloc(adapter->num_active_queues,
-				    sizeof(struct i40e_ring), GFP_KERNEL);
-	if (!adapter->tx_rings)
-		goto err_out;
-	adapter->rx_rings = kcalloc(adapter->num_active_queues,
-				    sizeof(struct i40e_ring), GFP_KERNEL);
-	if (!adapter->rx_rings)
-		goto err_out;
+								sizeof(struct i40e_ring), GFP_KERNEL);
 
-	for (i = 0; i < adapter->num_active_queues; i++) {
+	if (!adapter->tx_rings)
+	{
+		goto err_out;
+	}
+
+	adapter->rx_rings = kcalloc(adapter->num_active_queues,
+								sizeof(struct i40e_ring), GFP_KERNEL);
+
+	if (!adapter->rx_rings)
+	{
+		goto err_out;
+	}
+
+	for (i = 0; i < adapter->num_active_queues; i++)
+	{
 		struct i40e_ring *tx_ring;
 		struct i40e_ring *rx_ring;
 
@@ -1161,8 +1338,11 @@ static int i40evf_alloc_queues(struct i40evf_adapter *adapter)
 		tx_ring->dev = &adapter->pdev->dev;
 		tx_ring->count = adapter->tx_desc_count;
 		tx_ring->tx_itr_setting = (I40E_ITR_DYNAMIC | I40E_ITR_TX_DEF);
+
 		if (adapter->flags & I40E_FLAG_WB_ON_ITR_CAPABLE)
+		{
 			tx_ring->flags |= I40E_TXR_FLAGS_WB_ON_ITR;
+		}
 
 		rx_ring = &adapter->rx_rings[i];
 		rx_ring->queue_index = i;
@@ -1192,10 +1372,12 @@ static int i40evf_set_interrupt_capability(struct i40evf_adapter *adapter)
 	int pairs = 0;
 	int err = 0;
 
-	if (!adapter->vsi_res) {
+	if (!adapter->vsi_res)
+	{
 		err = -EIO;
 		goto out;
 	}
+
 	pairs = adapter->num_active_queues;
 
 	/* It's easy to be greedy for MSI-X vectors, but it really
@@ -1207,14 +1389,18 @@ static int i40evf_set_interrupt_capability(struct i40evf_adapter *adapter)
 	v_budget = min_t(int, v_budget, (int)adapter->vf_res->max_vectors);
 
 	adapter->msix_entries = kcalloc(v_budget,
-					sizeof(struct msix_entry), GFP_KERNEL);
-	if (!adapter->msix_entries) {
+									sizeof(struct msix_entry), GFP_KERNEL);
+
+	if (!adapter->msix_entries)
+	{
 		err = -ENOMEM;
 		goto out;
 	}
 
 	for (vector = 0; vector < v_budget; vector++)
+	{
 		adapter->msix_entries[vector].entry = vector;
+	}
 
 	err = i40evf_acquire_msix_vectors(adapter, v_budget);
 
@@ -1237,28 +1423,33 @@ static int i40evf_config_rss_aq(struct i40evf_adapter *adapter)
 	struct i40e_hw *hw = &adapter->hw;
 	int ret = 0;
 
-	if (adapter->current_op != I40E_VIRTCHNL_OP_UNKNOWN) {
+	if (adapter->current_op != I40E_VIRTCHNL_OP_UNKNOWN)
+	{
 		/* bail because we already have a command pending */
 		dev_err(&adapter->pdev->dev, "Cannot configure RSS, command %d pending\n",
-			adapter->current_op);
+				adapter->current_op);
 		return -EBUSY;
 	}
 
 	ret = i40evf_aq_set_rss_key(hw, adapter->vsi.id, rss_key);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&adapter->pdev->dev, "Cannot set RSS key, err %s aq_err %s\n",
-			i40evf_stat_str(hw, ret),
-			i40evf_aq_str(hw, hw->aq.asq_last_status));
+				i40evf_stat_str(hw, ret),
+				i40evf_aq_str(hw, hw->aq.asq_last_status));
 		return ret;
 
 	}
 
 	ret = i40evf_aq_set_rss_lut(hw, adapter->vsi.id, false,
-				    adapter->rss_lut, adapter->rss_lut_size);
-	if (ret) {
+								adapter->rss_lut, adapter->rss_lut_size);
+
+	if (ret)
+	{
 		dev_err(&adapter->pdev->dev, "Cannot set RSS lut, err %s aq_err %s\n",
-			i40evf_stat_str(hw, ret),
-			i40evf_aq_str(hw, hw->aq.asq_last_status));
+				i40evf_stat_str(hw, ret),
+				i40evf_aq_str(hw, hw->aq.asq_last_status));
 	}
 
 	return ret;
@@ -1278,12 +1469,18 @@ static int i40evf_config_rss_reg(struct i40evf_adapter *adapter)
 	u16 i;
 
 	dw = (u32 *)adapter->rss_key;
+
 	for (i = 0; i <= adapter->rss_key_size / 4; i++)
+	{
 		wr32(hw, I40E_VFQF_HKEY(i), dw[i]);
+	}
 
 	dw = (u32 *)adapter->rss_lut;
+
 	for (i = 0; i <= adapter->rss_lut_size / 4; i++)
+	{
 		wr32(hw, I40E_VFQF_HLUT(i), dw[i]);
+	}
 
 	i40e_flush(hw);
 
@@ -1299,13 +1496,18 @@ static int i40evf_config_rss_reg(struct i40evf_adapter *adapter)
 int i40evf_config_rss(struct i40evf_adapter *adapter)
 {
 
-	if (RSS_PF(adapter)) {
+	if (RSS_PF(adapter))
+	{
 		adapter->aq_required |= I40EVF_FLAG_AQ_SET_RSS_LUT |
-					I40EVF_FLAG_AQ_SET_RSS_KEY;
+								I40EVF_FLAG_AQ_SET_RSS_KEY;
 		return 0;
-	} else if (RSS_AQ(adapter)) {
+	}
+	else if (RSS_AQ(adapter))
+	{
 		return i40evf_config_rss_aq(adapter);
-	} else {
+	}
+	else
+	{
 		return i40evf_config_rss_reg(adapter);
 	}
 }
@@ -1319,7 +1521,9 @@ static void i40evf_fill_rss_lut(struct i40evf_adapter *adapter)
 	u16 i;
 
 	for (i = 0; i < adapter->rss_lut_size; i++)
+	{
 		adapter->rss_lut[i] = i % adapter->num_active_queues;
+	}
 }
 
 /**
@@ -1333,13 +1537,18 @@ static int i40evf_init_rss(struct i40evf_adapter *adapter)
 	struct i40e_hw *hw = &adapter->hw;
 	int ret;
 
-	if (!RSS_PF(adapter)) {
+	if (!RSS_PF(adapter))
+	{
 		/* Enable PCTYPES for RSS, TCP/UDP with IPv4/IPv6 */
 		if (adapter->vf_res->vf_offload_flags &
-		    I40E_VIRTCHNL_VF_OFFLOAD_RSS_PCTYPE_V2)
+			I40E_VIRTCHNL_VF_OFFLOAD_RSS_PCTYPE_V2)
+		{
 			adapter->hena = I40E_DEFAULT_RSS_HENA_EXPANDED;
+		}
 		else
+		{
 			adapter->hena = I40E_DEFAULT_RSS_HENA;
+		}
 
 		wr32(hw, I40E_VFQF_HENA(0), (u32)adapter->hena);
 		wr32(hw, I40E_VFQF_HENA(1), (u32)(adapter->hena >> 32));
@@ -1367,17 +1576,21 @@ static int i40evf_alloc_q_vectors(struct i40evf_adapter *adapter)
 
 	num_q_vectors = adapter->num_msix_vectors - NONQ_VECS;
 	adapter->q_vectors = kcalloc(num_q_vectors, sizeof(*q_vector),
-				     GFP_KERNEL);
-	if (!adapter->q_vectors)
-		return -ENOMEM;
+								 GFP_KERNEL);
 
-	for (q_idx = 0; q_idx < num_q_vectors; q_idx++) {
+	if (!adapter->q_vectors)
+	{
+		return -ENOMEM;
+	}
+
+	for (q_idx = 0; q_idx < num_q_vectors; q_idx++)
+	{
 		q_vector = &adapter->q_vectors[q_idx];
 		q_vector->adapter = adapter;
 		q_vector->vsi = &adapter->vsi;
 		q_vector->v_idx = q_idx;
 		netif_napi_add(adapter->netdev, &q_vector->napi,
-			       i40evf_napi_poll, NAPI_POLL_WEIGHT);
+					   i40evf_napi_poll, NAPI_POLL_WEIGHT);
 	}
 
 	return 0;
@@ -1399,11 +1612,16 @@ static void i40evf_free_q_vectors(struct i40evf_adapter *adapter)
 	num_q_vectors = adapter->num_msix_vectors - NONQ_VECS;
 	napi_vectors = adapter->num_active_queues;
 
-	for (q_idx = 0; q_idx < num_q_vectors; q_idx++) {
+	for (q_idx = 0; q_idx < num_q_vectors; q_idx++)
+	{
 		struct i40e_q_vector *q_vector = &adapter->q_vectors[q_idx];
+
 		if (q_idx < napi_vectors)
+		{
 			netif_napi_del(&q_vector->napi);
+		}
 	}
+
 	kfree(adapter->q_vectors);
 }
 
@@ -1431,29 +1649,35 @@ int i40evf_init_interrupt_scheme(struct i40evf_adapter *adapter)
 	rtnl_lock();
 	err = i40evf_set_interrupt_capability(adapter);
 	rtnl_unlock();
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&adapter->pdev->dev,
-			"Unable to setup interrupt capabilities\n");
+				"Unable to setup interrupt capabilities\n");
 		goto err_set_interrupt;
 	}
 
 	err = i40evf_alloc_q_vectors(adapter);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&adapter->pdev->dev,
-			"Unable to allocate memory for queue vectors\n");
+				"Unable to allocate memory for queue vectors\n");
 		goto err_alloc_q_vectors;
 	}
 
 	err = i40evf_alloc_queues(adapter);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&adapter->pdev->dev,
-			"Unable to allocate memory for queues\n");
+				"Unable to allocate memory for queues\n");
 		goto err_alloc_queues;
 	}
 
 	dev_info(&adapter->pdev->dev, "Multiqueue %s: Queue pair count = %u",
-		 (adapter->num_active_queues > 1) ? "Enabled" : "Disabled",
-		 adapter->num_active_queues);
+			 (adapter->num_active_queues > 1) ? "Enabled" : "Disabled",
+			 adapter->num_active_queues);
 
 	return 0;
 err_alloc_queues:
@@ -1496,26 +1720,31 @@ static void i40evf_watchdog_timer(unsigned long data)
 static void i40evf_watchdog_task(struct work_struct *work)
 {
 	struct i40evf_adapter *adapter = container_of(work,
-						      struct i40evf_adapter,
-						      watchdog_task);
+									 struct i40evf_adapter,
+									 watchdog_task);
 	struct i40e_hw *hw = &adapter->hw;
 	u32 reg_val;
 
 	if (test_and_set_bit(__I40EVF_IN_CRITICAL_TASK, &adapter->crit_section))
+	{
 		goto restart_watchdog;
+	}
 
-	if (adapter->flags & I40EVF_FLAG_PF_COMMS_FAILED) {
+	if (adapter->flags & I40EVF_FLAG_PF_COMMS_FAILED)
+	{
 		reg_val = rd32(hw, I40E_VFGEN_RSTAT) &
-			  I40E_VFGEN_RSTAT_VFR_STATE_MASK;
+				  I40E_VFGEN_RSTAT_VFR_STATE_MASK;
+
 		if ((reg_val == I40E_VFR_VFACTIVE) ||
-		    (reg_val == I40E_VFR_COMPLETED)) {
+			(reg_val == I40E_VFR_COMPLETED))
+		{
 			/* A chance for redemption! */
 			dev_err(&adapter->pdev->dev, "Hardware came out of reset. Attempting reinit.\n");
 			adapter->state = __I40EVF_STARTUP;
 			adapter->flags &= ~I40EVF_FLAG_PF_COMMS_FAILED;
 			schedule_delayed_work(&adapter->init_task, 10);
 			clear_bit(__I40EVF_IN_CRITICAL_TASK,
-				  &adapter->crit_section);
+					  &adapter->crit_section);
 			/* Don't reschedule the watchdog, since we've restarted
 			 * the init task. When init_task contacts the PF and
 			 * gets everything set up again, it'll restart the
@@ -1523,18 +1752,23 @@ static void i40evf_watchdog_task(struct work_struct *work)
 			 */
 			return;
 		}
+
 		adapter->aq_required = 0;
 		adapter->current_op = I40E_VIRTCHNL_OP_UNKNOWN;
 		goto watchdog_done;
 	}
 
 	if ((adapter->state < __I40EVF_DOWN) ||
-	    (adapter->flags & I40EVF_FLAG_RESET_PENDING))
+		(adapter->flags & I40EVF_FLAG_RESET_PENDING))
+	{
 		goto watchdog_done;
+	}
 
 	/* check for reset */
 	reg_val = rd32(hw, I40E_VF_ARQLEN1) & I40E_VF_ARQLEN1_ARQENABLE_MASK;
-	if (!(adapter->flags & I40EVF_FLAG_RESET_PENDING) && !reg_val) {
+
+	if (!(adapter->flags & I40EVF_FLAG_RESET_PENDING) && !reg_val)
+	{
 		adapter->state = __I40EVF_RESETTING;
 		adapter->flags |= I40EVF_FLAG_RESET_PENDING;
 		dev_err(&adapter->pdev->dev, "Hardware reset detected\n");
@@ -1547,59 +1781,73 @@ static void i40evf_watchdog_task(struct work_struct *work)
 	/* Process admin queue tasks. After init, everything gets done
 	 * here so we don't race on the admin queue.
 	 */
-	if (adapter->current_op) {
-		if (!i40evf_asq_done(hw)) {
+	if (adapter->current_op)
+	{
+		if (!i40evf_asq_done(hw))
+		{
 			dev_dbg(&adapter->pdev->dev, "Admin queue timeout\n");
 			i40evf_send_api_ver(adapter);
 		}
+
 		goto watchdog_done;
 	}
-	if (adapter->aq_required & I40EVF_FLAG_AQ_GET_CONFIG) {
+
+	if (adapter->aq_required & I40EVF_FLAG_AQ_GET_CONFIG)
+	{
 		i40evf_send_vf_config_msg(adapter);
 		goto watchdog_done;
 	}
 
-	if (adapter->aq_required & I40EVF_FLAG_AQ_DISABLE_QUEUES) {
+	if (adapter->aq_required & I40EVF_FLAG_AQ_DISABLE_QUEUES)
+	{
 		i40evf_disable_queues(adapter);
 		goto watchdog_done;
 	}
 
-	if (adapter->aq_required & I40EVF_FLAG_AQ_MAP_VECTORS) {
+	if (adapter->aq_required & I40EVF_FLAG_AQ_MAP_VECTORS)
+	{
 		i40evf_map_queues(adapter);
 		goto watchdog_done;
 	}
 
-	if (adapter->aq_required & I40EVF_FLAG_AQ_ADD_MAC_FILTER) {
+	if (adapter->aq_required & I40EVF_FLAG_AQ_ADD_MAC_FILTER)
+	{
 		i40evf_add_ether_addrs(adapter);
 		goto watchdog_done;
 	}
 
-	if (adapter->aq_required & I40EVF_FLAG_AQ_ADD_VLAN_FILTER) {
+	if (adapter->aq_required & I40EVF_FLAG_AQ_ADD_VLAN_FILTER)
+	{
 		i40evf_add_vlans(adapter);
 		goto watchdog_done;
 	}
 
-	if (adapter->aq_required & I40EVF_FLAG_AQ_DEL_MAC_FILTER) {
+	if (adapter->aq_required & I40EVF_FLAG_AQ_DEL_MAC_FILTER)
+	{
 		i40evf_del_ether_addrs(adapter);
 		goto watchdog_done;
 	}
 
-	if (adapter->aq_required & I40EVF_FLAG_AQ_DEL_VLAN_FILTER) {
+	if (adapter->aq_required & I40EVF_FLAG_AQ_DEL_VLAN_FILTER)
+	{
 		i40evf_del_vlans(adapter);
 		goto watchdog_done;
 	}
 
-	if (adapter->aq_required & I40EVF_FLAG_AQ_CONFIGURE_QUEUES) {
+	if (adapter->aq_required & I40EVF_FLAG_AQ_CONFIGURE_QUEUES)
+	{
 		i40evf_configure_queues(adapter);
 		goto watchdog_done;
 	}
 
-	if (adapter->aq_required & I40EVF_FLAG_AQ_ENABLE_QUEUES) {
+	if (adapter->aq_required & I40EVF_FLAG_AQ_ENABLE_QUEUES)
+	{
 		i40evf_enable_queues(adapter);
 		goto watchdog_done;
 	}
 
-	if (adapter->aq_required & I40EVF_FLAG_AQ_CONFIGURE_RSS) {
+	if (adapter->aq_required & I40EVF_FLAG_AQ_CONFIGURE_RSS)
+	{
 		/* This message goes straight to the firmware, not the
 		 * PF, so we don't have to set current_op as we will
 		 * not get a response through the ARQ.
@@ -1608,59 +1856,84 @@ static void i40evf_watchdog_task(struct work_struct *work)
 		adapter->aq_required &= ~I40EVF_FLAG_AQ_CONFIGURE_RSS;
 		goto watchdog_done;
 	}
-	if (adapter->aq_required & I40EVF_FLAG_AQ_GET_HENA) {
+
+	if (adapter->aq_required & I40EVF_FLAG_AQ_GET_HENA)
+	{
 		i40evf_get_hena(adapter);
 		goto watchdog_done;
 	}
-	if (adapter->aq_required & I40EVF_FLAG_AQ_SET_HENA) {
+
+	if (adapter->aq_required & I40EVF_FLAG_AQ_SET_HENA)
+	{
 		i40evf_set_hena(adapter);
 		goto watchdog_done;
 	}
-	if (adapter->aq_required & I40EVF_FLAG_AQ_SET_RSS_KEY) {
+
+	if (adapter->aq_required & I40EVF_FLAG_AQ_SET_RSS_KEY)
+	{
 		i40evf_set_rss_key(adapter);
 		goto watchdog_done;
 	}
-	if (adapter->aq_required & I40EVF_FLAG_AQ_SET_RSS_LUT) {
+
+	if (adapter->aq_required & I40EVF_FLAG_AQ_SET_RSS_LUT)
+	{
 		i40evf_set_rss_lut(adapter);
 		goto watchdog_done;
 	}
 
-	if (adapter->aq_required & I40EVF_FLAG_AQ_REQUEST_PROMISC) {
+	if (adapter->aq_required & I40EVF_FLAG_AQ_REQUEST_PROMISC)
+	{
 		i40evf_set_promiscuous(adapter, I40E_FLAG_VF_UNICAST_PROMISC |
-				       I40E_FLAG_VF_MULTICAST_PROMISC);
+							   I40E_FLAG_VF_MULTICAST_PROMISC);
 		goto watchdog_done;
 	}
 
-	if (adapter->aq_required & I40EVF_FLAG_AQ_REQUEST_ALLMULTI) {
+	if (adapter->aq_required & I40EVF_FLAG_AQ_REQUEST_ALLMULTI)
+	{
 		i40evf_set_promiscuous(adapter, I40E_FLAG_VF_MULTICAST_PROMISC);
 		goto watchdog_done;
 	}
 
 	if ((adapter->aq_required & I40EVF_FLAG_AQ_RELEASE_PROMISC) &&
-	    (adapter->aq_required & I40EVF_FLAG_AQ_RELEASE_ALLMULTI)) {
+		(adapter->aq_required & I40EVF_FLAG_AQ_RELEASE_ALLMULTI))
+	{
 		i40evf_set_promiscuous(adapter, 0);
 		goto watchdog_done;
 	}
 
 	if (adapter->state == __I40EVF_RUNNING)
+	{
 		i40evf_request_stats(adapter);
+	}
+
 watchdog_done:
-	if (adapter->state == __I40EVF_RUNNING) {
+
+	if (adapter->state == __I40EVF_RUNNING)
+	{
 		i40evf_irq_enable_queues(adapter, ~0);
 		i40evf_fire_sw_int(adapter, 0xFF);
-	} else {
+	}
+	else
+	{
 		i40evf_fire_sw_int(adapter, 0x1);
 	}
 
 	clear_bit(__I40EVF_IN_CRITICAL_TASK, &adapter->crit_section);
 restart_watchdog:
+
 	if (adapter->state == __I40EVF_REMOVE)
+	{
 		return;
+	}
+
 	if (adapter->aq_required)
 		mod_timer(&adapter->watchdog_timer,
-			  jiffies + msecs_to_jiffies(20));
+				  jiffies + msecs_to_jiffies(20));
 	else
+	{
 		mod_timer(&adapter->watchdog_timer, jiffies + (HZ * 2));
+	}
+
 	schedule_work(&adapter->adminq_task);
 }
 
@@ -1677,8 +1950,8 @@ restart_watchdog:
 static void i40evf_reset_task(struct work_struct *work)
 {
 	struct i40evf_adapter *adapter = container_of(work,
-						      struct i40evf_adapter,
-						      reset_task);
+									 struct i40evf_adapter,
+									 reset_task);
 	struct net_device *netdev = adapter->netdev;
 	struct i40e_hw *hw = &adapter->hw;
 	struct i40evf_vlan_filter *vlf;
@@ -1687,11 +1960,15 @@ static void i40evf_reset_task(struct work_struct *work)
 	int i = 0, err;
 
 	while (test_and_set_bit(__I40EVF_IN_CRITICAL_TASK,
-				&adapter->crit_section))
+							&adapter->crit_section))
+	{
 		usleep_range(500, 1000);
+	}
 
 	i40evf_misc_irq_disable(adapter);
-	if (adapter->flags & I40EVF_FLAG_RESET_NEEDED) {
+
+	if (adapter->flags & I40EVF_FLAG_RESET_NEEDED)
+	{
 		adapter->flags &= ~I40EVF_FLAG_RESET_NEEDED;
 		/* Restart the AQ here. If we have been reset but didn't
 		 * detect it, or if the PF had to reinit, our AQ will be hosed.
@@ -1700,42 +1977,59 @@ static void i40evf_reset_task(struct work_struct *work)
 		i40evf_init_adminq(hw);
 		i40evf_request_reset(adapter);
 	}
+
 	adapter->flags |= I40EVF_FLAG_RESET_PENDING;
 
 	/* poll until we see the reset actually happen */
-	for (i = 0; i < I40EVF_RESET_WAIT_COUNT; i++) {
+	for (i = 0; i < I40EVF_RESET_WAIT_COUNT; i++)
+	{
 		reg_val = rd32(hw, I40E_VF_ARQLEN1) &
-			  I40E_VF_ARQLEN1_ARQENABLE_MASK;
+				  I40E_VF_ARQLEN1_ARQENABLE_MASK;
+
 		if (!reg_val)
+		{
 			break;
+		}
+
 		usleep_range(5000, 10000);
 	}
-	if (i == I40EVF_RESET_WAIT_COUNT) {
+
+	if (i == I40EVF_RESET_WAIT_COUNT)
+	{
 		dev_info(&adapter->pdev->dev, "Never saw reset\n");
 		goto continue_reset; /* act like the reset happened */
 	}
 
 	/* wait until the reset is complete and the PF is responding to us */
-	for (i = 0; i < I40EVF_RESET_WAIT_COUNT; i++) {
+	for (i = 0; i < I40EVF_RESET_WAIT_COUNT; i++)
+	{
 		reg_val = rd32(hw, I40E_VFGEN_RSTAT) &
-			  I40E_VFGEN_RSTAT_VFR_STATE_MASK;
+				  I40E_VFGEN_RSTAT_VFR_STATE_MASK;
+
 		if (reg_val == I40E_VFR_VFACTIVE)
+		{
 			break;
+		}
+
 		msleep(I40EVF_RESET_WAIT_MS);
 	}
+
 	pci_set_master(adapter->pdev);
 	/* extra wait to make sure minimum wait is met */
 	msleep(I40EVF_RESET_WAIT_MS);
-	if (i == I40EVF_RESET_WAIT_COUNT) {
+
+	if (i == I40EVF_RESET_WAIT_COUNT)
+	{
 		struct i40evf_mac_filter *ftmp;
 		struct i40evf_vlan_filter *fv, *fvtmp;
 
 		/* reset never finished */
 		dev_err(&adapter->pdev->dev, "Reset never finished (%x)\n",
-			reg_val);
+				reg_val);
 		adapter->flags |= I40EVF_FLAG_PF_COMMS_FAILED;
 
-		if (netif_running(adapter->netdev)) {
+		if (netif_running(adapter->netdev))
+		{
 			set_bit(__I40E_DOWN, &adapter->vsi.state);
 			netif_carrier_off(netdev);
 			netif_tx_disable(netdev);
@@ -1749,13 +2043,15 @@ static void i40evf_reset_task(struct work_struct *work)
 
 		/* Delete all of the filters, both MAC and VLAN. */
 		list_for_each_entry_safe(f, ftmp, &adapter->mac_filter_list,
-					 list) {
+								 list)
+		{
 			list_del(&f->list);
 			kfree(f);
 		}
 
 		list_for_each_entry_safe(fv, fvtmp, &adapter->vlan_filter_list,
-					 list) {
+								 list)
+		{
 			list_del(&fv->list);
 			kfree(fv);
 		}
@@ -1775,12 +2071,15 @@ static void i40evf_reset_task(struct work_struct *work)
 	}
 
 continue_reset:
-	if (netif_running(adapter->netdev)) {
+
+	if (netif_running(adapter->netdev))
+	{
 		netif_carrier_off(netdev);
 		netif_tx_stop_all_queues(netdev);
 		adapter->link_up = false;
 		i40evf_napi_disable_all(adapter);
 	}
+
 	i40evf_irq_disable(adapter);
 
 	adapter->state = __I40EVF_RESETTING;
@@ -1796,19 +2095,22 @@ continue_reset:
 	i40evf_shutdown_adminq(hw);
 	adapter->current_op = I40E_VIRTCHNL_OP_UNKNOWN;
 	err = i40evf_init_adminq(hw);
+
 	if (err)
 		dev_info(&adapter->pdev->dev, "Failed to init adminq: %d\n",
-			 err);
+				 err);
 
 	adapter->aq_required = I40EVF_FLAG_AQ_GET_CONFIG;
 	adapter->aq_required |= I40EVF_FLAG_AQ_MAP_VECTORS;
 
 	/* re-add all MAC filters */
-	list_for_each_entry(f, &adapter->mac_filter_list, list) {
+	list_for_each_entry(f, &adapter->mac_filter_list, list)
+	{
 		f->add = true;
 	}
 	/* re-add all VLAN filters */
-	list_for_each_entry(vlf, &adapter->vlan_filter_list, list) {
+	list_for_each_entry(vlf, &adapter->vlan_filter_list, list)
+	{
 		vlf->add = true;
 	}
 	adapter->aq_required |= I40EVF_FLAG_AQ_ADD_MAC_FILTER;
@@ -1820,23 +2122,32 @@ continue_reset:
 
 	mod_timer(&adapter->watchdog_timer, jiffies + 2);
 
-	if (netif_running(adapter->netdev)) {
+	if (netif_running(adapter->netdev))
+	{
 		/* allocate transmit descriptors */
 		err = i40evf_setup_all_tx_resources(adapter);
+
 		if (err)
+		{
 			goto reset_err;
+		}
 
 		/* allocate receive descriptors */
 		err = i40evf_setup_all_rx_resources(adapter);
+
 		if (err)
+		{
 			goto reset_err;
+		}
 
 		i40evf_configure(adapter);
 
 		i40evf_up_complete(adapter);
 
 		i40evf_irq_enable(adapter, true);
-	} else {
+	}
+	else
+	{
 		adapter->state = __I40EVF_DOWN;
 	}
 
@@ -1862,67 +2173,105 @@ static void i40evf_adminq_task(struct work_struct *work)
 	u16 pending;
 
 	if (adapter->flags & I40EVF_FLAG_PF_COMMS_FAILED)
+	{
 		goto out;
+	}
 
 	event.buf_len = I40EVF_MAX_AQ_BUF_SIZE;
 	event.msg_buf = kzalloc(event.buf_len, GFP_KERNEL);
+
 	if (!event.msg_buf)
+	{
 		goto out;
+	}
 
 	v_msg = (struct i40e_virtchnl_msg *)&event.desc;
-	do {
+
+	do
+	{
 		ret = i40evf_clean_arq_element(hw, &event, &pending);
+
 		if (ret || !v_msg->v_opcode)
-			break; /* No event to process or error cleaning ARQ */
+		{
+			break;    /* No event to process or error cleaning ARQ */
+		}
 
 		i40evf_virtchnl_completion(adapter, v_msg->v_opcode,
-					   v_msg->v_retval, event.msg_buf,
-					   event.msg_len);
+								   v_msg->v_retval, event.msg_buf,
+								   event.msg_len);
+
 		if (pending != 0)
+		{
 			memset(event.msg_buf, 0, I40EVF_MAX_AQ_BUF_SIZE);
-	} while (pending);
+		}
+	}
+	while (pending);
 
 	if ((adapter->flags &
-	     (I40EVF_FLAG_RESET_PENDING | I40EVF_FLAG_RESET_NEEDED)) ||
-	    adapter->state == __I40EVF_RESETTING)
+		 (I40EVF_FLAG_RESET_PENDING | I40EVF_FLAG_RESET_NEEDED)) ||
+		adapter->state == __I40EVF_RESETTING)
+	{
 		goto freedom;
+	}
 
 	/* check for error indications */
 	val = rd32(hw, hw->aq.arq.len);
+
 	if (val == 0xdeadbeef) /* indicates device in reset */
+	{
 		goto freedom;
+	}
+
 	oldval = val;
-	if (val & I40E_VF_ARQLEN1_ARQVFE_MASK) {
+
+	if (val & I40E_VF_ARQLEN1_ARQVFE_MASK)
+	{
 		dev_info(&adapter->pdev->dev, "ARQ VF Error detected\n");
 		val &= ~I40E_VF_ARQLEN1_ARQVFE_MASK;
 	}
-	if (val & I40E_VF_ARQLEN1_ARQOVFL_MASK) {
+
+	if (val & I40E_VF_ARQLEN1_ARQOVFL_MASK)
+	{
 		dev_info(&adapter->pdev->dev, "ARQ Overflow Error detected\n");
 		val &= ~I40E_VF_ARQLEN1_ARQOVFL_MASK;
 	}
-	if (val & I40E_VF_ARQLEN1_ARQCRIT_MASK) {
+
+	if (val & I40E_VF_ARQLEN1_ARQCRIT_MASK)
+	{
 		dev_info(&adapter->pdev->dev, "ARQ Critical Error detected\n");
 		val &= ~I40E_VF_ARQLEN1_ARQCRIT_MASK;
 	}
+
 	if (oldval != val)
+	{
 		wr32(hw, hw->aq.arq.len, val);
+	}
 
 	val = rd32(hw, hw->aq.asq.len);
 	oldval = val;
-	if (val & I40E_VF_ATQLEN1_ATQVFE_MASK) {
+
+	if (val & I40E_VF_ATQLEN1_ATQVFE_MASK)
+	{
 		dev_info(&adapter->pdev->dev, "ASQ VF Error detected\n");
 		val &= ~I40E_VF_ATQLEN1_ATQVFE_MASK;
 	}
-	if (val & I40E_VF_ATQLEN1_ATQOVFL_MASK) {
+
+	if (val & I40E_VF_ATQLEN1_ATQOVFL_MASK)
+	{
 		dev_info(&adapter->pdev->dev, "ASQ Overflow Error detected\n");
 		val &= ~I40E_VF_ATQLEN1_ATQOVFL_MASK;
 	}
-	if (val & I40E_VF_ATQLEN1_ATQCRIT_MASK) {
+
+	if (val & I40E_VF_ATQLEN1_ATQCRIT_MASK)
+	{
 		dev_info(&adapter->pdev->dev, "ASQ Critical Error detected\n");
 		val &= ~I40E_VF_ATQLEN1_ATQCRIT_MASK;
 	}
+
 	if (oldval != val)
+	{
 		wr32(hw, hw->aq.asq.len, val);
+	}
 
 freedom:
 	kfree(event.msg_buf);
@@ -1942,11 +2291,15 @@ void i40evf_free_all_tx_resources(struct i40evf_adapter *adapter)
 	int i;
 
 	if (!adapter->tx_rings)
+	{
 		return;
+	}
 
 	for (i = 0; i < adapter->num_active_queues; i++)
 		if (adapter->tx_rings[i].desc)
+		{
 			i40evf_free_tx_resources(&adapter->tx_rings[i]);
+		}
 }
 
 /**
@@ -1963,13 +2316,18 @@ static int i40evf_setup_all_tx_resources(struct i40evf_adapter *adapter)
 {
 	int i, err = 0;
 
-	for (i = 0; i < adapter->num_active_queues; i++) {
+	for (i = 0; i < adapter->num_active_queues; i++)
+	{
 		adapter->tx_rings[i].count = adapter->tx_desc_count;
 		err = i40evf_setup_tx_descriptors(&adapter->tx_rings[i]);
+
 		if (!err)
+		{
 			continue;
+		}
+
 		dev_err(&adapter->pdev->dev,
-			"Allocation for Tx Queue %u failed\n", i);
+				"Allocation for Tx Queue %u failed\n", i);
 		break;
 	}
 
@@ -1990,15 +2348,21 @@ static int i40evf_setup_all_rx_resources(struct i40evf_adapter *adapter)
 {
 	int i, err = 0;
 
-	for (i = 0; i < adapter->num_active_queues; i++) {
+	for (i = 0; i < adapter->num_active_queues; i++)
+	{
 		adapter->rx_rings[i].count = adapter->rx_desc_count;
 		err = i40evf_setup_rx_descriptors(&adapter->rx_rings[i]);
+
 		if (!err)
+		{
 			continue;
+		}
+
 		dev_err(&adapter->pdev->dev,
-			"Allocation for Rx Queue %u failed\n", i);
+				"Allocation for Rx Queue %u failed\n", i);
 		break;
 	}
+
 	return err;
 }
 
@@ -2013,11 +2377,15 @@ void i40evf_free_all_rx_resources(struct i40evf_adapter *adapter)
 	int i;
 
 	if (!adapter->rx_rings)
+	{
 		return;
+	}
 
 	for (i = 0; i < adapter->num_active_queues; i++)
 		if (adapter->rx_rings[i].desc)
+		{
 			i40evf_free_rx_resources(&adapter->rx_rings[i]);
+		}
 }
 
 /**
@@ -2037,28 +2405,40 @@ static int i40evf_open(struct net_device *netdev)
 	struct i40evf_adapter *adapter = netdev_priv(netdev);
 	int err;
 
-	if (adapter->flags & I40EVF_FLAG_PF_COMMS_FAILED) {
+	if (adapter->flags & I40EVF_FLAG_PF_COMMS_FAILED)
+	{
 		dev_err(&adapter->pdev->dev, "Unable to open device due to PF driver failure.\n");
 		return -EIO;
 	}
 
 	if (adapter->state != __I40EVF_DOWN)
+	{
 		return -EBUSY;
+	}
 
 	/* allocate transmit descriptors */
 	err = i40evf_setup_all_tx_resources(adapter);
+
 	if (err)
+	{
 		goto err_setup_tx;
+	}
 
 	/* allocate receive descriptors */
 	err = i40evf_setup_all_rx_resources(adapter);
+
 	if (err)
+	{
 		goto err_setup_rx;
+	}
 
 	/* clear any pending interrupts, may auto mask */
 	err = i40evf_request_traffic_irqs(adapter, netdev->name);
+
 	if (err)
+	{
 		goto err_req_irq;
+	}
 
 	i40evf_add_filter(adapter, adapter->hw.mac.addr);
 	i40evf_configure(adapter);
@@ -2096,7 +2476,9 @@ static int i40evf_close(struct net_device *netdev)
 	struct i40evf_adapter *adapter = netdev_priv(netdev);
 
 	if (adapter->state <= __I40EVF_DOWN_PENDING)
+	{
 		return 0;
+	}
 
 
 	set_bit(__I40E_DOWN, &adapter->vsi.state);
@@ -2136,7 +2518,9 @@ static int i40evf_change_mtu(struct net_device *netdev, int new_mtu)
 	int max_frame = new_mtu + ETH_HLEN + ETH_FCS_LEN;
 
 	if ((new_mtu < 68) || (max_frame > I40E_MAX_RXBUFFER))
+	{
 		return -EINVAL;
+	}
 
 	netdev->mtu = new_mtu;
 	adapter->flags |= I40EVF_FLAG_RESET_NEEDED;
@@ -2146,8 +2530,8 @@ static int i40evf_change_mtu(struct net_device *netdev, int new_mtu)
 }
 
 #define I40EVF_VLAN_FEATURES (NETIF_F_HW_VLAN_CTAG_TX |\
-			      NETIF_F_HW_VLAN_CTAG_RX |\
-			      NETIF_F_HW_VLAN_CTAG_FILTER)
+							  NETIF_F_HW_VLAN_CTAG_RX |\
+							  NETIF_F_HW_VLAN_CTAG_FILTER)
 
 /**
  * i40evf_fix_features - fix up the netdev feature bits
@@ -2157,17 +2541,22 @@ static int i40evf_change_mtu(struct net_device *netdev, int new_mtu)
  * Returns fixed-up features bits
  **/
 static netdev_features_t i40evf_fix_features(struct net_device *netdev,
-					     netdev_features_t features)
+		netdev_features_t features)
 {
 	struct i40evf_adapter *adapter = netdev_priv(netdev);
 
 	features &= ~I40EVF_VLAN_FEATURES;
+
 	if (adapter->vf_res->vf_offload_flags & I40E_VIRTCHNL_VF_OFFLOAD_VLAN)
+	{
 		features |= I40EVF_VLAN_FEATURES;
+	}
+
 	return features;
 }
 
-static const struct net_device_ops i40evf_netdev_ops = {
+static const struct net_device_ops i40evf_netdev_ops =
+{
 	.ndo_open		= i40evf_open,
 	.ndo_stop		= i40evf_close,
 	.ndo_start_xmit		= i40evf_xmit_frame,
@@ -2196,14 +2585,20 @@ static int i40evf_check_reset_complete(struct i40e_hw *hw)
 	u32 rstat;
 	int i;
 
-	for (i = 0; i < 100; i++) {
+	for (i = 0; i < 100; i++)
+	{
 		rstat = rd32(hw, I40E_VFGEN_RSTAT) &
-			    I40E_VFGEN_RSTAT_VFR_STATE_MASK;
+				I40E_VFGEN_RSTAT_VFR_STATE_MASK;
+
 		if ((rstat == I40E_VFR_VFACTIVE) ||
-		    (rstat == I40E_VFR_COMPLETED))
+			(rstat == I40E_VFR_COMPLETED))
+		{
 			return 0;
+		}
+
 		usleep_range(10, 20);
 	}
+
 	return -EBUSY;
 }
 
@@ -2222,43 +2617,50 @@ int i40evf_process_config(struct i40evf_adapter *adapter)
 	int i;
 
 	/* got VF config message back from PF, now we can parse it */
-	for (i = 0; i < vfres->num_vsis; i++) {
+	for (i = 0; i < vfres->num_vsis; i++)
+	{
 		if (vfres->vsi_res[i].vsi_type == I40E_VSI_SRIOV)
+		{
 			adapter->vsi_res = &vfres->vsi_res[i];
+		}
 	}
-	if (!adapter->vsi_res) {
+
+	if (!adapter->vsi_res)
+	{
 		dev_err(&adapter->pdev->dev, "No LAN VSI found\n");
 		return -ENODEV;
 	}
 
 	netdev->hw_enc_features |= NETIF_F_SG			|
-				   NETIF_F_IP_CSUM		|
-				   NETIF_F_IPV6_CSUM		|
-				   NETIF_F_HIGHDMA		|
-				   NETIF_F_SOFT_FEATURES	|
-				   NETIF_F_TSO			|
-				   NETIF_F_TSO_ECN		|
-				   NETIF_F_TSO6			|
-				   NETIF_F_GSO_GRE		|
-				   NETIF_F_GSO_GRE_CSUM		|
-				   NETIF_F_GSO_IPXIP4		|
-				   NETIF_F_GSO_IPXIP6		|
-				   NETIF_F_GSO_UDP_TUNNEL	|
-				   NETIF_F_GSO_UDP_TUNNEL_CSUM	|
-				   NETIF_F_GSO_PARTIAL		|
-				   NETIF_F_SCTP_CRC		|
-				   NETIF_F_RXHASH		|
-				   NETIF_F_RXCSUM		|
-				   0;
+							   NETIF_F_IP_CSUM		|
+							   NETIF_F_IPV6_CSUM		|
+							   NETIF_F_HIGHDMA		|
+							   NETIF_F_SOFT_FEATURES	|
+							   NETIF_F_TSO			|
+							   NETIF_F_TSO_ECN		|
+							   NETIF_F_TSO6			|
+							   NETIF_F_GSO_GRE		|
+							   NETIF_F_GSO_GRE_CSUM		|
+							   NETIF_F_GSO_IPXIP4		|
+							   NETIF_F_GSO_IPXIP6		|
+							   NETIF_F_GSO_UDP_TUNNEL	|
+							   NETIF_F_GSO_UDP_TUNNEL_CSUM	|
+							   NETIF_F_GSO_PARTIAL		|
+							   NETIF_F_SCTP_CRC		|
+							   NETIF_F_RXHASH		|
+							   NETIF_F_RXCSUM		|
+							   0;
 
 	if (!(adapter->flags & I40EVF_FLAG_OUTER_UDP_CSUM_CAPABLE))
+	{
 		netdev->gso_partial_features |= NETIF_F_GSO_UDP_TUNNEL_CSUM;
+	}
 
 	netdev->gso_partial_features |= NETIF_F_GSO_GRE_CSUM;
 
 	/* record features VLANs can make use of */
 	netdev->vlan_features |= netdev->hw_enc_features |
-				 NETIF_F_TSO_MANGLEID;
+							 NETIF_F_TSO_MANGLEID;
 
 	/* Write features and hw_features separately to avoid polluting
 	 * with, or dropping, features that are set when we registgered.
@@ -2270,7 +2672,9 @@ int i40evf_process_config(struct i40evf_adapter *adapter)
 
 	/* disable VLAN features if not supported */
 	if (!(vfres->vf_offload_flags & I40E_VIRTCHNL_VF_OFFLOAD_VLAN))
+	{
 		netdev->features ^= I40EVF_VLAN_FEATURES;
+	}
 
 	adapter->vsi.id = adapter->vsi_res->vsi_id;
 
@@ -2279,10 +2683,14 @@ int i40evf_process_config(struct i40evf_adapter *adapter)
 	adapter->vsi.work_limit = I40E_DEFAULT_IRQ_WORK;
 	vsi->netdev = adapter->netdev;
 	vsi->qs_handle = adapter->vsi_res->qset_handle;
-	if (vfres->vf_offload_flags & I40E_VIRTCHNL_VF_OFFLOAD_RSS_PF) {
+
+	if (vfres->vf_offload_flags & I40E_VIRTCHNL_VF_OFFLOAD_RSS_PF)
+	{
 		adapter->rss_key_size = vfres->rss_key_size;
 		adapter->rss_lut_size = vfres->rss_lut_size;
-	} else {
+	}
+	else
+	{
 		adapter->rss_key_size = I40EVF_HKEY_ARRAY_SIZE;
 		adapter->rss_lut_size = I40EVF_HLUT_ARRAY_SIZE;
 	}
@@ -2305,117 +2713,161 @@ int i40evf_process_config(struct i40evf_adapter *adapter)
 static void i40evf_init_task(struct work_struct *work)
 {
 	struct i40evf_adapter *adapter = container_of(work,
-						      struct i40evf_adapter,
-						      init_task.work);
+									 struct i40evf_adapter,
+									 init_task.work);
 	struct net_device *netdev = adapter->netdev;
 	struct i40e_hw *hw = &adapter->hw;
 	struct pci_dev *pdev = adapter->pdev;
 	int err, bufsz;
 
-	switch (adapter->state) {
-	case __I40EVF_STARTUP:
-		/* driver loaded, probe complete */
-		adapter->flags &= ~I40EVF_FLAG_PF_COMMS_FAILED;
-		adapter->flags &= ~I40EVF_FLAG_RESET_PENDING;
-		err = i40e_set_mac_type(hw);
-		if (err) {
-			dev_err(&pdev->dev, "Failed to set MAC type (%d)\n",
-				err);
-			goto err;
-		}
-		err = i40evf_check_reset_complete(hw);
-		if (err) {
-			dev_info(&pdev->dev, "Device is still in reset (%d), retrying\n",
-				 err);
-			goto err;
-		}
-		hw->aq.num_arq_entries = I40EVF_AQ_LEN;
-		hw->aq.num_asq_entries = I40EVF_AQ_LEN;
-		hw->aq.arq_buf_size = I40EVF_MAX_AQ_BUF_SIZE;
-		hw->aq.asq_buf_size = I40EVF_MAX_AQ_BUF_SIZE;
+	switch (adapter->state)
+	{
+		case __I40EVF_STARTUP:
+			/* driver loaded, probe complete */
+			adapter->flags &= ~I40EVF_FLAG_PF_COMMS_FAILED;
+			adapter->flags &= ~I40EVF_FLAG_RESET_PENDING;
+			err = i40e_set_mac_type(hw);
 
-		err = i40evf_init_adminq(hw);
-		if (err) {
-			dev_err(&pdev->dev, "Failed to init Admin Queue (%d)\n",
-				err);
-			goto err;
-		}
-		err = i40evf_send_api_ver(adapter);
-		if (err) {
-			dev_err(&pdev->dev, "Unable to send to PF (%d)\n", err);
-			i40evf_shutdown_adminq(hw);
-			goto err;
-		}
-		adapter->state = __I40EVF_INIT_VERSION_CHECK;
-		goto restart;
-	case __I40EVF_INIT_VERSION_CHECK:
-		if (!i40evf_asq_done(hw)) {
-			dev_err(&pdev->dev, "Admin queue command never completed\n");
-			i40evf_shutdown_adminq(hw);
-			adapter->state = __I40EVF_STARTUP;
-			goto err;
-		}
-
-		/* aq msg sent, awaiting reply */
-		err = i40evf_verify_api_ver(adapter);
-		if (err) {
-			if (err == I40E_ERR_ADMIN_QUEUE_NO_WORK)
-				err = i40evf_send_api_ver(adapter);
-			else
-				dev_err(&pdev->dev, "Unsupported PF API version %d.%d, expected %d.%d\n",
-					adapter->pf_version.major,
-					adapter->pf_version.minor,
-					I40E_VIRTCHNL_VERSION_MAJOR,
-					I40E_VIRTCHNL_VERSION_MINOR);
-			goto err;
-		}
-		err = i40evf_send_vf_config_msg(adapter);
-		if (err) {
-			dev_err(&pdev->dev, "Unable to send config request (%d)\n",
-				err);
-			goto err;
-		}
-		adapter->state = __I40EVF_INIT_GET_RESOURCES;
-		goto restart;
-	case __I40EVF_INIT_GET_RESOURCES:
-		/* aq msg sent, awaiting reply */
-		if (!adapter->vf_res) {
-			bufsz = sizeof(struct i40e_virtchnl_vf_resource) +
-				(I40E_MAX_VF_VSI *
-				 sizeof(struct i40e_virtchnl_vsi_resource));
-			adapter->vf_res = kzalloc(bufsz, GFP_KERNEL);
-			if (!adapter->vf_res)
+			if (err)
+			{
+				dev_err(&pdev->dev, "Failed to set MAC type (%d)\n",
+						err);
 				goto err;
-		}
-		err = i40evf_get_vf_config(adapter);
-		if (err == I40E_ERR_ADMIN_QUEUE_NO_WORK) {
+			}
+
+			err = i40evf_check_reset_complete(hw);
+
+			if (err)
+			{
+				dev_info(&pdev->dev, "Device is still in reset (%d), retrying\n",
+						 err);
+				goto err;
+			}
+
+			hw->aq.num_arq_entries = I40EVF_AQ_LEN;
+			hw->aq.num_asq_entries = I40EVF_AQ_LEN;
+			hw->aq.arq_buf_size = I40EVF_MAX_AQ_BUF_SIZE;
+			hw->aq.asq_buf_size = I40EVF_MAX_AQ_BUF_SIZE;
+
+			err = i40evf_init_adminq(hw);
+
+			if (err)
+			{
+				dev_err(&pdev->dev, "Failed to init Admin Queue (%d)\n",
+						err);
+				goto err;
+			}
+
+			err = i40evf_send_api_ver(adapter);
+
+			if (err)
+			{
+				dev_err(&pdev->dev, "Unable to send to PF (%d)\n", err);
+				i40evf_shutdown_adminq(hw);
+				goto err;
+			}
+
+			adapter->state = __I40EVF_INIT_VERSION_CHECK;
+			goto restart;
+
+		case __I40EVF_INIT_VERSION_CHECK:
+			if (!i40evf_asq_done(hw))
+			{
+				dev_err(&pdev->dev, "Admin queue command never completed\n");
+				i40evf_shutdown_adminq(hw);
+				adapter->state = __I40EVF_STARTUP;
+				goto err;
+			}
+
+			/* aq msg sent, awaiting reply */
+			err = i40evf_verify_api_ver(adapter);
+
+			if (err)
+			{
+				if (err == I40E_ERR_ADMIN_QUEUE_NO_WORK)
+				{
+					err = i40evf_send_api_ver(adapter);
+				}
+				else
+					dev_err(&pdev->dev, "Unsupported PF API version %d.%d, expected %d.%d\n",
+							adapter->pf_version.major,
+							adapter->pf_version.minor,
+							I40E_VIRTCHNL_VERSION_MAJOR,
+							I40E_VIRTCHNL_VERSION_MINOR);
+
+				goto err;
+			}
+
 			err = i40evf_send_vf_config_msg(adapter);
-			goto err;
-		} else if (err == I40E_ERR_PARAM) {
-			/* We only get ERR_PARAM if the device is in a very bad
-			 * state or if we've been disabled for previous bad
-			 * behavior. Either way, we're done now.
-			 */
-			i40evf_shutdown_adminq(hw);
-			dev_err(&pdev->dev, "Unable to get VF config due to PF error condition, not retrying\n");
-			return;
-		}
-		if (err) {
-			dev_err(&pdev->dev, "Unable to get VF config (%d)\n",
-				err);
+
+			if (err)
+			{
+				dev_err(&pdev->dev, "Unable to send config request (%d)\n",
+						err);
+				goto err;
+			}
+
+			adapter->state = __I40EVF_INIT_GET_RESOURCES;
+			goto restart;
+
+		case __I40EVF_INIT_GET_RESOURCES:
+
+			/* aq msg sent, awaiting reply */
+			if (!adapter->vf_res)
+			{
+				bufsz = sizeof(struct i40e_virtchnl_vf_resource) +
+						(I40E_MAX_VF_VSI *
+						 sizeof(struct i40e_virtchnl_vsi_resource));
+				adapter->vf_res = kzalloc(bufsz, GFP_KERNEL);
+
+				if (!adapter->vf_res)
+				{
+					goto err;
+				}
+			}
+
+			err = i40evf_get_vf_config(adapter);
+
+			if (err == I40E_ERR_ADMIN_QUEUE_NO_WORK)
+			{
+				err = i40evf_send_vf_config_msg(adapter);
+				goto err;
+			}
+			else if (err == I40E_ERR_PARAM)
+			{
+				/* We only get ERR_PARAM if the device is in a very bad
+				 * state or if we've been disabled for previous bad
+				 * behavior. Either way, we're done now.
+				 */
+				i40evf_shutdown_adminq(hw);
+				dev_err(&pdev->dev, "Unable to get VF config due to PF error condition, not retrying\n");
+				return;
+			}
+
+			if (err)
+			{
+				dev_err(&pdev->dev, "Unable to get VF config (%d)\n",
+						err);
+				goto err_alloc;
+			}
+
+			adapter->state = __I40EVF_INIT_SW;
+			break;
+
+		default:
 			goto err_alloc;
-		}
-		adapter->state = __I40EVF_INIT_SW;
-		break;
-	default:
-		goto err_alloc;
 	}
 
 	if (hw->mac.type == I40E_MAC_X722_VF)
+	{
 		adapter->flags |= I40EVF_FLAG_OUTER_UDP_CSUM_CAPABLE;
+	}
 
 	if (i40evf_process_config(adapter))
+	{
 		goto err_alloc;
+	}
+
 	adapter->current_op = I40E_VIRTCHNL_OP_UNKNOWN;
 
 	adapter->flags |= I40EVF_FLAG_RX_CSUM_ENABLED;
@@ -2424,12 +2876,15 @@ static void i40evf_init_task(struct work_struct *work)
 	i40evf_set_ethtool_ops(netdev);
 	netdev->watchdog_timeo = 5 * HZ;
 
-	if (!is_valid_ether_addr(adapter->hw.mac.addr)) {
+	if (!is_valid_ether_addr(adapter->hw.mac.addr))
+	{
 		dev_info(&pdev->dev, "Invalid MAC address %pM, using random\n",
-			 adapter->hw.mac.addr);
+				 adapter->hw.mac.addr);
 		eth_hw_addr_random(netdev);
 		ether_addr_copy(adapter->hw.mac.addr, netdev->dev_addr);
-	} else {
+	}
+	else
+	{
 		adapter->flags |= I40EVF_FLAG_ADDR_SET_BY_PF;
 		ether_addr_copy(netdev->dev_addr, adapter->hw.mac.addr);
 		ether_addr_copy(netdev->perm_addr, adapter->hw.mac.addr);
@@ -2441,29 +2896,43 @@ static void i40evf_init_task(struct work_struct *work)
 	mod_timer(&adapter->watchdog_timer, jiffies + 1);
 
 	adapter->num_active_queues = min_t(int,
-					   adapter->vsi_res->num_queue_pairs,
-					   (int)(num_online_cpus()));
+									   adapter->vsi_res->num_queue_pairs,
+									   (int)(num_online_cpus()));
 	adapter->tx_desc_count = I40EVF_DEFAULT_TXD;
 	adapter->rx_desc_count = I40EVF_DEFAULT_RXD;
 	err = i40evf_init_interrupt_scheme(adapter);
+
 	if (err)
+	{
 		goto err_sw_init;
+	}
+
 	i40evf_map_rings_to_vectors(adapter);
+
 	if (adapter->vf_res->vf_offload_flags &
-	    I40E_VIRTCHNL_VF_OFFLOAD_WB_ON_ITR)
+		I40E_VIRTCHNL_VF_OFFLOAD_WB_ON_ITR)
+	{
 		adapter->flags |= I40EVF_FLAG_WB_ON_ITR_CAPABLE;
+	}
 
 	err = i40evf_request_misc_irq(adapter);
+
 	if (err)
+	{
 		goto err_sw_init;
+	}
 
 	netif_carrier_off(netdev);
 	adapter->link_up = false;
 
-	if (!adapter->netdev_registered) {
+	if (!adapter->netdev_registered)
+	{
 		err = register_netdev(netdev);
+
 		if (err)
+		{
 			goto err_register;
+		}
 	}
 
 	adapter->netdev_registered = true;
@@ -2471,8 +2940,11 @@ static void i40evf_init_task(struct work_struct *work)
 	netif_tx_stop_all_queues(netdev);
 
 	dev_info(&pdev->dev, "MAC address: %pM\n", adapter->hw.mac.addr);
+
 	if (netdev->features & NETIF_F_GRO)
+	{
 		dev_info(&pdev->dev, "GRO is enabled\n");
+	}
 
 	adapter->state = __I40EVF_DOWN;
 	set_bit(__I40E_DOWN, &adapter->vsi.state);
@@ -2480,15 +2952,22 @@ static void i40evf_init_task(struct work_struct *work)
 
 	adapter->rss_key = kzalloc(adapter->rss_key_size, GFP_KERNEL);
 	adapter->rss_lut = kzalloc(adapter->rss_lut_size, GFP_KERNEL);
-	if (!adapter->rss_key || !adapter->rss_lut)
-		goto err_mem;
 
-	if (RSS_AQ(adapter)) {
+	if (!adapter->rss_key || !adapter->rss_lut)
+	{
+		goto err_mem;
+	}
+
+	if (RSS_AQ(adapter))
+	{
 		adapter->aq_required |= I40EVF_FLAG_AQ_CONFIGURE_RSS;
 		mod_timer_pending(&adapter->watchdog_timer, jiffies + 1);
-	} else {
+	}
+	else
+	{
 		i40evf_init_rss(adapter);
 	}
+
 	return;
 restart:
 	schedule_delayed_work(&adapter->init_task, msecs_to_jiffies(30));
@@ -2503,8 +2982,10 @@ err_alloc:
 	kfree(adapter->vf_res);
 	adapter->vf_res = NULL;
 err:
+
 	/* Things went into the weeds, so try again later */
-	if (++adapter->aq_wait_count > I40EVF_AQ_MAX_ERR) {
+	if (++adapter->aq_wait_count > I40EVF_AQ_MAX_ERR)
+	{
 		dev_err(&pdev->dev, "Failed to communicate with PF; waiting before retry\n");
 		adapter->flags |= I40EVF_FLAG_PF_COMMS_FAILED;
 		i40evf_shutdown_adminq(hw);
@@ -2512,6 +2993,7 @@ err:
 		schedule_delayed_work(&adapter->init_task, HZ * 5);
 		return;
 	}
+
 	schedule_delayed_work(&adapter->init_task, HZ);
 }
 
@@ -2527,7 +3009,9 @@ static void i40evf_shutdown(struct pci_dev *pdev)
 	netif_device_detach(netdev);
 
 	if (netif_running(netdev))
+	{
 		i40evf_close(netdev);
+	}
 
 	/* Prevent the watchdog from running. */
 	adapter->state = __I40EVF_REMOVE;
@@ -2559,23 +3043,32 @@ static int i40evf_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	int err;
 
 	err = pci_enable_device(pdev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64));
-	if (err) {
+
+	if (err)
+	{
 		err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
-		if (err) {
+
+		if (err)
+		{
 			dev_err(&pdev->dev,
-				"DMA configuration failed: 0x%x\n", err);
+					"DMA configuration failed: 0x%x\n", err);
 			goto err_dma;
 		}
 	}
 
 	err = pci_request_regions(pdev, i40evf_driver_name);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev,
-			"pci_request_regions failed 0x%x\n", err);
+				"pci_request_regions failed 0x%x\n", err);
 		goto err_pci_reg;
 	}
 
@@ -2584,7 +3077,9 @@ static int i40evf_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	pci_set_master(pdev);
 
 	netdev = alloc_etherdev_mq(sizeof(struct i40evf_adapter), MAX_QUEUES);
-	if (!netdev) {
+
+	if (!netdev)
+	{
 		err = -ENOMEM;
 		goto err_alloc_etherdev;
 	}
@@ -2607,11 +3102,14 @@ static int i40evf_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	pci_save_state(pdev);
 
 	hw->hw_addr = ioremap(pci_resource_start(pdev, 0),
-			      pci_resource_len(pdev, 0));
-	if (!hw->hw_addr) {
+						  pci_resource_len(pdev, 0));
+
+	if (!hw->hw_addr)
+	{
 		err = -EIO;
 		goto err_ioremap;
 	}
+
 	hw->vendor_id = pdev->vendor;
 	hw->device_id = pdev->device;
 	pci_read_config_byte(pdev, PCI_REVISION_ID, &hw->revision_id);
@@ -2634,7 +3132,7 @@ static int i40evf_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	INIT_WORK(&adapter->watchdog_task, i40evf_watchdog_task);
 	INIT_DELAYED_WORK(&adapter->init_task, i40evf_init_task);
 	schedule_delayed_work(&adapter->init_task,
-			      msecs_to_jiffies(5 * (pdev->devfn & 0x07)));
+						  msecs_to_jiffies(5 * (pdev->devfn & 0x07)));
 
 	return 0;
 
@@ -2664,17 +3162,22 @@ static int i40evf_suspend(struct pci_dev *pdev, pm_message_t state)
 
 	netif_device_detach(netdev);
 
-	if (netif_running(netdev)) {
+	if (netif_running(netdev))
+	{
 		rtnl_lock();
 		i40evf_down(adapter);
 		rtnl_unlock();
 	}
+
 	i40evf_free_misc_irq(adapter);
 	i40evf_reset_interrupt_capability(adapter);
 
 	retval = pci_save_state(pdev);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	pci_disable_device(pdev);
 
@@ -2701,22 +3204,30 @@ static int i40evf_resume(struct pci_dev *pdev)
 	pci_save_state(pdev);
 
 	err = pci_enable_device_mem(pdev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Cannot enable PCI device from suspend.\n");
 		return err;
 	}
+
 	pci_set_master(pdev);
 
 	rtnl_lock();
 	err = i40evf_set_interrupt_capability(adapter);
-	if (err) {
+
+	if (err)
+	{
 		rtnl_unlock();
 		dev_err(&pdev->dev, "Cannot enable MSI-X interrupts.\n");
 		return err;
 	}
+
 	err = i40evf_request_misc_irq(adapter);
 	rtnl_unlock();
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Cannot get interrupt vector.\n");
 		return err;
 	}
@@ -2748,7 +3259,8 @@ static void i40evf_remove(struct pci_dev *pdev)
 	cancel_delayed_work_sync(&adapter->init_task);
 	cancel_work_sync(&adapter->reset_task);
 
-	if (adapter->netdev_registered) {
+	if (adapter->netdev_registered)
+	{
 		unregister_netdev(netdev);
 		adapter->netdev_registered = false;
 	}
@@ -2758,13 +3270,16 @@ static void i40evf_remove(struct pci_dev *pdev)
 	adapter->aq_required = 0;
 	i40evf_request_reset(adapter);
 	msleep(50);
+
 	/* If the FW isn't responding, kick it once, but only once. */
-	if (!i40evf_asq_done(hw)) {
+	if (!i40evf_asq_done(hw))
+	{
 		i40evf_request_reset(adapter);
 		msleep(50);
 	}
 
-	if (adapter->msix_entries) {
+	if (adapter->msix_entries)
+	{
 		i40evf_misc_irq_disable(adapter);
 		i40evf_free_misc_irq(adapter);
 		i40evf_reset_interrupt_capability(adapter);
@@ -2772,14 +3287,18 @@ static void i40evf_remove(struct pci_dev *pdev)
 	}
 
 	if (adapter->watchdog_timer.function)
+	{
 		del_timer_sync(&adapter->watchdog_timer);
+	}
 
 	flush_scheduled_work();
 
 	i40evf_free_rss(adapter);
 
 	if (hw->aq.asq.count)
+	{
 		i40evf_shutdown_adminq(hw);
+	}
 
 	/* destroy the locks only once, here */
 	mutex_destroy(&hw->aq.arq_mutex);
@@ -2794,11 +3313,13 @@ static void i40evf_remove(struct pci_dev *pdev)
 	/* If we got removed before an up/down sequence, we've got a filter
 	 * hanging out there that we need to get rid of.
 	 */
-	list_for_each_entry_safe(f, ftmp, &adapter->mac_filter_list, list) {
+	list_for_each_entry_safe(f, ftmp, &adapter->mac_filter_list, list)
+	{
 		list_del(&f->list);
 		kfree(f);
 	}
-	list_for_each_entry_safe(f, ftmp, &adapter->vlan_filter_list, list) {
+	list_for_each_entry_safe(f, ftmp, &adapter->vlan_filter_list, list)
+	{
 		list_del(&f->list);
 		kfree(f);
 	}
@@ -2810,7 +3331,8 @@ static void i40evf_remove(struct pci_dev *pdev)
 	pci_disable_device(pdev);
 }
 
-static struct pci_driver i40evf_driver = {
+static struct pci_driver i40evf_driver =
+{
 	.name     = i40evf_driver_name,
 	.id_table = i40evf_pci_tbl,
 	.probe    = i40evf_probe,
@@ -2833,16 +3355,19 @@ static int __init i40evf_init_module(void)
 	int ret;
 
 	pr_info("i40evf: %s - version %s\n", i40evf_driver_string,
-		i40evf_driver_version);
+			i40evf_driver_version);
 
 	pr_info("%s\n", i40evf_copyright);
 
 	i40evf_wq = alloc_workqueue("%s", WQ_UNBOUND | WQ_MEM_RECLAIM, 1,
-				    i40evf_driver_name);
-	if (!i40evf_wq) {
+								i40evf_driver_name);
+
+	if (!i40evf_wq)
+	{
 		pr_err("%s: Failed to create workqueue\n", i40evf_driver_name);
 		return -ENOMEM;
 	}
+
 	ret = pci_register_driver(&i40evf_driver);
 	return ret;
 }

@@ -48,7 +48,7 @@ module_param(recovery_enable, uint, 0644);
 module_param(heart_beat_poll, uint, 0644);
 MODULE_PARM_DESC(recovery_enable, "Enable recovery from firmware error");
 MODULE_PARM_DESC(heart_beat_poll,
-		 "Enable fw error detection periodic polling in msecs - Also set recovery_enable for this to be effective");
+				 "Enable fw error detection periodic polling in msecs - Also set recovery_enable for this to be effective");
 
 
 void ath6kl_core_tx_complete(struct ath6kl *ar, struct sk_buff *skb)
@@ -69,25 +69,34 @@ int ath6kl_core_init(struct ath6kl *ar, enum ath6kl_htc_type htc_type)
 	struct wireless_dev *wdev;
 	int ret = 0, i;
 
-	switch (htc_type) {
-	case ATH6KL_HTC_TYPE_MBOX:
-		ath6kl_htc_mbox_attach(ar);
-		break;
-	case ATH6KL_HTC_TYPE_PIPE:
-		ath6kl_htc_pipe_attach(ar);
-		break;
-	default:
-		WARN_ON(1);
-		return -ENOMEM;
+	switch (htc_type)
+	{
+		case ATH6KL_HTC_TYPE_MBOX:
+			ath6kl_htc_mbox_attach(ar);
+			break;
+
+		case ATH6KL_HTC_TYPE_PIPE:
+			ath6kl_htc_pipe_attach(ar);
+			break;
+
+		default:
+			WARN_ON(1);
+			return -ENOMEM;
 	}
 
 	ar->ath6kl_wq = create_singlethread_workqueue("ath6kl");
+
 	if (!ar->ath6kl_wq)
+	{
 		return -ENOMEM;
+	}
 
 	ret = ath6kl_bmi_init(ar);
+
 	if (ret)
+	{
 		goto err_wq;
+	}
 
 	/*
 	 * Turn on power to get hardware (target) version and leave power
@@ -95,24 +104,34 @@ int ath6kl_core_init(struct ath6kl *ar, enum ath6kl_htc_type htc_type)
 	 * seconds.
 	 */
 	ret = ath6kl_hif_power_on(ar);
+
 	if (ret)
+	{
 		goto err_bmi_cleanup;
+	}
 
 	ret = ath6kl_bmi_get_target_info(ar, &targ_info);
+
 	if (ret)
+	{
 		goto err_power_off;
+	}
 
 	ar->version.target_ver = le32_to_cpu(targ_info.version);
 	ar->target_type = le32_to_cpu(targ_info.type);
 	ar->wiphy->hw_version = le32_to_cpu(targ_info.version);
 
 	ret = ath6kl_init_hw_params(ar);
+
 	if (ret)
+	{
 		goto err_power_off;
+	}
 
 	ar->htc_target = ath6kl_htc_create(ar);
 
-	if (!ar->htc_target) {
+	if (!ar->htc_target)
+	{
 		ret = -ENOMEM;
 		goto err_power_off;
 	}
@@ -120,8 +139,11 @@ int ath6kl_core_init(struct ath6kl *ar, enum ath6kl_htc_type htc_type)
 	ar->testmode = testmode;
 
 	ret = ath6kl_init_fetch_firmwares(ar);
+
 	if (ret)
+	{
 		goto err_htc_cleanup;
+	}
 
 	/* FIXME: we should free all firmwares in the error cases below */
 
@@ -130,21 +152,24 @@ int ath6kl_core_init(struct ath6kl *ar, enum ath6kl_htc_type htc_type)
 	 * which do not set these feature flags.
 	 */
 	if (ar->target_type == TARGET_TYPE_AR6004 &&
-	    ar->fw_api <= 4) {
+		ar->fw_api <= 4)
+	{
 		__set_bit(ATH6KL_FW_CAPABILITY_64BIT_RATES,
-			  ar->fw_capabilities);
+				  ar->fw_capabilities);
 		__set_bit(ATH6KL_FW_CAPABILITY_AP_INACTIVITY_MINS,
-			  ar->fw_capabilities);
+				  ar->fw_capabilities);
 
 		if (ar->hw.id == AR6004_HW_1_3_VERSION)
 			__set_bit(ATH6KL_FW_CAPABILITY_MAP_LP_ENDPOINT,
-				  ar->fw_capabilities);
+					  ar->fw_capabilities);
 	}
 
 	/* Indicate that WMI is enabled (although not ready yet) */
 	set_bit(WMI_ENABLED, &ar->flag);
 	ar->wmi = ath6kl_wmi_init(ar);
-	if (!ar->wmi) {
+
+	if (!ar->wmi)
+	{
 		ath6kl_err("failed to initialize wmi\n");
 		ret = -EIO;
 		goto err_htc_cleanup;
@@ -164,24 +189,35 @@ int ath6kl_core_init(struct ath6kl *ar, enum ath6kl_htc_type htc_type)
 	ath6kl_cookie_init(ar);
 
 	ar->conf_flags = ATH6KL_CONF_IGNORE_ERP_BARKER |
-			 ATH6KL_CONF_ENABLE_11N | ATH6KL_CONF_ENABLE_TX_BURST;
+					 ATH6KL_CONF_ENABLE_11N | ATH6KL_CONF_ENABLE_TX_BURST;
 
 	if (suspend_mode &&
-	    suspend_mode >= WLAN_POWER_STATE_CUT_PWR &&
-	    suspend_mode <= WLAN_POWER_STATE_WOW)
+		suspend_mode >= WLAN_POWER_STATE_CUT_PWR &&
+		suspend_mode <= WLAN_POWER_STATE_WOW)
+	{
 		ar->suspend_mode = suspend_mode;
+	}
 	else
+	{
 		ar->suspend_mode = 0;
+	}
 
 	if (suspend_mode == WLAN_POWER_STATE_WOW &&
-	    (wow_mode == WLAN_POWER_STATE_CUT_PWR ||
-	     wow_mode == WLAN_POWER_STATE_DEEP_SLEEP))
+		(wow_mode == WLAN_POWER_STATE_CUT_PWR ||
+		 wow_mode == WLAN_POWER_STATE_DEEP_SLEEP))
+	{
 		ar->wow_suspend_mode = wow_mode;
+	}
 	else
+	{
 		ar->wow_suspend_mode = 0;
+	}
 
 	if (uart_debug)
+	{
 		ar->conf_flags |= ATH6KL_CONF_UART_DEBUG;
+	}
+
 	ar->hw.uarttx_rate = uart_rate;
 
 	set_bit(FIRST_BOOT, &ar->flag);
@@ -189,7 +225,9 @@ int ath6kl_core_init(struct ath6kl *ar, enum ath6kl_htc_type htc_type)
 	ath6kl_debug_init(ar);
 
 	ret = ath6kl_init_hw_start(ar);
-	if (ret) {
+
+	if (ret)
+	{
 		ath6kl_err("Failed to start hardware: %d\n", ret);
 		goto err_rxbuf_cleanup;
 	}
@@ -199,27 +237,35 @@ int ath6kl_core_init(struct ath6kl *ar, enum ath6kl_htc_type htc_type)
 	ath6kl_rx_refill(ar->htc_target, ar->ac2ep_map[WMM_AC_BE]);
 
 	ret = ath6kl_cfg80211_init(ar);
+
 	if (ret)
+	{
 		goto err_rxbuf_cleanup;
+	}
 
 	ret = ath6kl_debug_init_fs(ar);
-	if (ret) {
+
+	if (ret)
+	{
 		wiphy_unregister(ar->wiphy);
 		goto err_rxbuf_cleanup;
 	}
 
 	for (i = 0; i < ar->vif_max; i++)
+	{
 		ar->avail_idx_map |= BIT(i);
+	}
 
 	rtnl_lock();
 
 	/* Add an initial station interface */
 	wdev = ath6kl_interface_add(ar, "wlan%d", NET_NAME_ENUM,
-				    NL80211_IFTYPE_STATION, 0, INFRA_NETWORK);
+								NL80211_IFTYPE_STATION, 0, INFRA_NETWORK);
 
 	rtnl_unlock();
 
-	if (!wdev) {
+	if (!wdev)
+	{
 		ath6kl_err("Failed to instantiate a network device\n");
 		ret = -ENOMEM;
 		wiphy_unregister(ar->wiphy);
@@ -227,16 +273,21 @@ int ath6kl_core_init(struct ath6kl *ar, enum ath6kl_htc_type htc_type)
 	}
 
 	ath6kl_dbg(ATH6KL_DBG_TRC, "%s: name=%s dev=0x%p, ar=0x%p\n",
-		   __func__, wdev->netdev->name, wdev->netdev, ar);
+			   __func__, wdev->netdev->name, wdev->netdev, ar);
 
 	ar->fw_recovery.enable = !!recovery_enable;
+
 	if (!ar->fw_recovery.enable)
+	{
 		return ret;
+	}
 
 	if (heart_beat_poll &&
-	    test_bit(ATH6KL_FW_CAPABILITY_HEART_BEAT_POLL,
-		     ar->fw_capabilities))
+		test_bit(ATH6KL_FW_CAPABILITY_HEART_BEAT_POLL,
+				 ar->fw_capabilities))
+	{
 		ar->fw_recovery.hb_poll = heart_beat_poll;
+	}
 
 	ath6kl_recovery_init(ar);
 
@@ -268,8 +319,11 @@ struct ath6kl *ath6kl_core_create(struct device *dev)
 	u8 ctr;
 
 	ar = ath6kl_cfg80211_create();
+
 	if (!ar)
+	{
 		return NULL;
+	}
 
 	ar->p2p = !!ath6kl_p2p;
 	ar->dev = dev;
@@ -299,10 +353,11 @@ struct ath6kl *ath6kl_core_create(struct device *dev)
 	ar->state = ATH6KL_STATE_OFF;
 
 	memset((u8 *)ar->sta_list, 0,
-	       AP_MAX_NUM_STA * sizeof(struct ath6kl_sta));
+		   AP_MAX_NUM_STA * sizeof(struct ath6kl_sta));
 
 	/* Init the PS queues */
-	for (ctr = 0; ctr < AP_MAX_NUM_STA; ctr++) {
+	for (ctr = 0; ctr < AP_MAX_NUM_STA; ctr++)
+	{
 		spin_lock_init(&ar->sta_list[ctr].psq_lock);
 		skb_queue_head_init(&ar->sta_list[ctr].psq);
 		skb_queue_head_init(&ar->sta_list[ctr].apsdq);
@@ -310,7 +365,9 @@ struct ath6kl *ath6kl_core_create(struct device *dev)
 		INIT_LIST_HEAD(&ar->sta_list[ctr].mgmt_psq);
 		ar->sta_list[ctr].aggr_conn =
 			kzalloc(sizeof(struct aggr_info_conn), GFP_KERNEL);
-		if (!ar->sta_list[ctr].aggr_conn) {
+
+		if (!ar->sta_list[ctr].aggr_conn)
+		{
 			ath6kl_err("Failed to allocate memory for sta aggregation information\n");
 			ath6kl_core_destroy(ar);
 			return NULL;
@@ -334,7 +391,9 @@ void ath6kl_core_cleanup(struct ath6kl *ar)
 	destroy_workqueue(ar->ath6kl_wq);
 
 	if (ar->htc_target)
+	{
 		ath6kl_htc_cleanup(ar->htc_target);
+	}
 
 	ath6kl_cookie_cleanup(ar);
 

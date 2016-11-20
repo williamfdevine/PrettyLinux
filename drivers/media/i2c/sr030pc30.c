@@ -141,22 +141,25 @@ module_param(debug, int, 0644);
 #define EXPOS_MIN_MS		1
 #define EXPOS_MAX_MS		125
 
-struct sr030pc30_info {
+struct sr030pc30_info
+{
 	struct v4l2_subdev sd;
 	struct v4l2_ctrl_handler hdl;
 	const struct sr030pc30_platform_data *pdata;
 	const struct sr030pc30_format *curr_fmt;
 	const struct sr030pc30_frmsize *curr_win;
-	unsigned int hflip:1;
-	unsigned int vflip:1;
-	unsigned int sleep:1;
-	struct {
+	unsigned int hflip: 1;
+	unsigned int vflip: 1;
+	unsigned int sleep: 1;
+	struct
+	{
 		/* auto whitebalance control cluster */
 		struct v4l2_ctrl *awb;
 		struct v4l2_ctrl *red;
 		struct v4l2_ctrl *blue;
 	};
-	struct {
+	struct
+	{
 		/* auto exposure control cluster */
 		struct v4l2_ctrl *autoexp;
 		struct v4l2_ctrl *exp;
@@ -164,25 +167,29 @@ struct sr030pc30_info {
 	u8 i2c_reg_page;
 };
 
-struct sr030pc30_format {
+struct sr030pc30_format
+{
 	u32 code;
 	enum v4l2_colorspace colorspace;
 	u16 ispctl1_reg;
 };
 
-struct sr030pc30_frmsize {
+struct sr030pc30_frmsize
+{
 	u16 width;
 	u16 height;
 	int vid_ctl1;
 };
 
-struct i2c_regval {
+struct i2c_regval
+{
 	u16 addr;
 	u16 val;
 };
 
 /* supported resolutions */
-static const struct sr030pc30_frmsize sr030pc30_sizes[] = {
+static const struct sr030pc30_frmsize sr030pc30_sizes[] =
+{
 	{
 		.width		= 640,
 		.height		= 480,
@@ -199,7 +206,8 @@ static const struct sr030pc30_frmsize sr030pc30_sizes[] = {
 };
 
 /* supported pixel formats */
-static const struct sr030pc30_format sr030pc30_formats[] = {
+static const struct sr030pc30_format sr030pc30_formats[] =
+{
 	{
 		.code		= MEDIA_BUS_FMT_YUYV8_2X8,
 		.colorspace	= V4L2_COLORSPACE_JPEG,
@@ -223,7 +231,8 @@ static const struct sr030pc30_format sr030pc30_formats[] = {
 	},
 };
 
-static const struct i2c_regval sr030pc30_base_regs[] = {
+static const struct i2c_regval sr030pc30_base_regs[] =
+{
 	/* Window size and position within pixel matrix */
 	{ WIN_ROWH_REG,		0x00 }, { WIN_ROWL_REG,		0x06 },
 	{ WIN_COLH_REG,		0x00 },	{ WIN_COLL_REG,		0x06 },
@@ -287,16 +296,21 @@ static inline struct sr030pc30_info *to_sr030pc30(struct v4l2_subdev *sd)
 }
 
 static inline int set_i2c_page(struct sr030pc30_info *info,
-			       struct i2c_client *client, unsigned int reg)
+							   struct i2c_client *client, unsigned int reg)
 {
 	int ret = 0;
 	u32 page = reg >> 8 & 0xFF;
 
-	if (info->i2c_reg_page != page && (reg & 0xFF) != 0x03) {
+	if (info->i2c_reg_page != page && (reg & 0xFF) != 0x03)
+	{
 		ret = i2c_smbus_write_byte_data(client, PAGEMODE_REG, page);
+
 		if (!ret)
+		{
 			info->i2c_reg_page = page;
+		}
 	}
+
 	return ret;
 }
 
@@ -306,8 +320,12 @@ static int cam_i2c_read(struct v4l2_subdev *sd, u32 reg_addr)
 	struct sr030pc30_info *info = to_sr030pc30(sd);
 
 	int ret = set_i2c_page(info, client, reg_addr);
+
 	if (!ret)
+	{
 		ret = i2c_smbus_read_byte_data(client, reg_addr & 0xFF);
+	}
+
 	return ret;
 }
 
@@ -317,42 +335,60 @@ static int cam_i2c_write(struct v4l2_subdev *sd, u32 reg_addr, u32 val)
 	struct sr030pc30_info *info = to_sr030pc30(sd);
 
 	int ret = set_i2c_page(info, client, reg_addr);
+
 	if (!ret)
 		ret = i2c_smbus_write_byte_data(
-			client, reg_addr & 0xFF, val);
+				  client, reg_addr & 0xFF, val);
+
 	return ret;
 }
 
 static inline int sr030pc30_bulk_write_reg(struct v4l2_subdev *sd,
-				const struct i2c_regval *msg)
+		const struct i2c_regval *msg)
 {
-	while (msg->addr != REG_TERM) {
+	while (msg->addr != REG_TERM)
+	{
 		int ret = cam_i2c_write(sd, msg->addr, msg->val);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		msg++;
 	}
+
 	return 0;
 }
 
 /* Device reset and sleep mode control */
 static int sr030pc30_pwr_ctrl(struct v4l2_subdev *sd,
-				     bool reset, bool sleep)
+							  bool reset, bool sleep)
 {
 	struct sr030pc30_info *info = to_sr030pc30(sd);
 	u8 reg = sleep ? 0xF1 : 0xF0;
 	int ret = 0;
 
 	if (reset)
+	{
 		ret = cam_i2c_write(sd, POWER_CTRL_REG, reg | 0x02);
-	if (!ret) {
+	}
+
+	if (!ret)
+	{
 		ret = cam_i2c_write(sd, POWER_CTRL_REG, reg);
-		if (!ret) {
+
+		if (!ret)
+		{
 			info->sleep = sleep;
+
 			if (reset)
+			{
 				info->i2c_reg_page = -1;
+			}
 		}
 	}
+
 	return ret;
 }
 
@@ -361,14 +397,24 @@ static int sr030pc30_set_flip(struct v4l2_subdev *sd)
 	struct sr030pc30_info *info = to_sr030pc30(sd);
 
 	s32 reg = cam_i2c_read(sd, VDO_CTL2_REG);
+
 	if (reg < 0)
+	{
 		return reg;
+	}
 
 	reg &= 0x7C;
+
 	if (info->hflip)
+	{
 		reg |= 0x01;
+	}
+
 	if (info->vflip)
+	{
 		reg |= 0x02;
+	}
+
 	return cam_i2c_write(sd, VDO_CTL2_REG, reg | 0x80);
 }
 
@@ -379,17 +425,22 @@ static int sr030pc30_set_params(struct v4l2_subdev *sd)
 	int ret;
 
 	if (!info->curr_win)
+	{
 		return -EINVAL;
+	}
 
 	/* Configure the resolution through subsampling */
 	ret = cam_i2c_write(sd, VDO_CTL1_REG,
-			    info->curr_win->vid_ctl1);
+						info->curr_win->vid_ctl1);
 
 	if (!ret && info->curr_fmt)
 		ret = cam_i2c_write(sd, ISP_CTL_REG(0),
-				info->curr_fmt->ispctl1_reg);
+							info->curr_fmt->ispctl1_reg);
+
 	if (!ret)
+	{
 		ret = sr030pc30_set_flip(sd);
+	}
 
 	return ret;
 }
@@ -400,21 +451,29 @@ static int sr030pc30_try_frame_size(struct v4l2_mbus_framefmt *mf)
 	unsigned int min_err = ~0;
 	int i = ARRAY_SIZE(sr030pc30_sizes);
 	const struct sr030pc30_frmsize *fsize = &sr030pc30_sizes[0],
-					*match = NULL;
-	while (i--) {
+										*match = NULL;
+
+	while (i--)
+	{
 		int err = abs(fsize->width - mf->width)
-				+ abs(fsize->height - mf->height);
-		if (err < min_err) {
+				  + abs(fsize->height - mf->height);
+
+		if (err < min_err)
+		{
 			min_err = err;
 			match = fsize;
 		}
+
 		fsize++;
 	}
-	if (match) {
+
+	if (match)
+	{
 		mf->width  = match->width;
 		mf->height = match->height;
 		return 0;
 	}
+
 	return -EINVAL;
 }
 
@@ -428,75 +487,98 @@ static int sr030pc30_s_ctrl(struct v4l2_ctrl *ctrl)
 	v4l2_dbg(1, debug, sd, "%s: ctrl_id: %d, value: %d\n",
 			 __func__, ctrl->id, ctrl->val);
 
-	switch (ctrl->id) {
-	case V4L2_CID_AUTO_WHITE_BALANCE:
-		if (ctrl->is_new) {
-			ret = cam_i2c_write(sd, AWB_CTL2_REG,
-					ctrl->val ? 0x2E : 0x2F);
-			if (!ret)
-				ret = cam_i2c_write(sd, AWB_CTL1_REG,
-						ctrl->val ? 0xFB : 0x7B);
-		}
-		if (!ret && info->blue->is_new)
-			ret = cam_i2c_write(sd, MWB_BGAIN_REG, info->blue->val);
-		if (!ret && info->red->is_new)
-			ret = cam_i2c_write(sd, MWB_RGAIN_REG, info->red->val);
-		return ret;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_AUTO_WHITE_BALANCE:
+			if (ctrl->is_new)
+			{
+				ret = cam_i2c_write(sd, AWB_CTL2_REG,
+									ctrl->val ? 0x2E : 0x2F);
 
-	case V4L2_CID_EXPOSURE_AUTO:
-		/* auto anti-flicker is also enabled here */
-		if (ctrl->is_new)
-			ret = cam_i2c_write(sd, AE_CTL1_REG,
-				ctrl->val == V4L2_EXPOSURE_AUTO ? 0xDC : 0x0C);
-		if (info->exp->is_new) {
-			unsigned long expos = info->exp->val;
+				if (!ret)
+					ret = cam_i2c_write(sd, AWB_CTL1_REG,
+										ctrl->val ? 0xFB : 0x7B);
+			}
 
-			expos = expos * info->pdata->clk_rate / (8 * 1000);
+			if (!ret && info->blue->is_new)
+			{
+				ret = cam_i2c_write(sd, MWB_BGAIN_REG, info->blue->val);
+			}
 
-			if (!ret)
-				ret = cam_i2c_write(sd, EXP_TIMEH_REG,
-						expos >> 16 & 0xFF);
-			if (!ret)
-				ret = cam_i2c_write(sd, EXP_TIMEM_REG,
-						expos >> 8 & 0xFF);
-			if (!ret)
-				ret = cam_i2c_write(sd, EXP_TIMEL_REG,
-						expos & 0xFF);
-		}
-		return ret;
-	default:
-		return -EINVAL;
+			if (!ret && info->red->is_new)
+			{
+				ret = cam_i2c_write(sd, MWB_RGAIN_REG, info->red->val);
+			}
+
+			return ret;
+
+		case V4L2_CID_EXPOSURE_AUTO:
+
+			/* auto anti-flicker is also enabled here */
+			if (ctrl->is_new)
+				ret = cam_i2c_write(sd, AE_CTL1_REG,
+									ctrl->val == V4L2_EXPOSURE_AUTO ? 0xDC : 0x0C);
+
+			if (info->exp->is_new)
+			{
+				unsigned long expos = info->exp->val;
+
+				expos = expos * info->pdata->clk_rate / (8 * 1000);
+
+				if (!ret)
+					ret = cam_i2c_write(sd, EXP_TIMEH_REG,
+										expos >> 16 & 0xFF);
+
+				if (!ret)
+					ret = cam_i2c_write(sd, EXP_TIMEM_REG,
+										expos >> 8 & 0xFF);
+
+				if (!ret)
+					ret = cam_i2c_write(sd, EXP_TIMEL_REG,
+										expos & 0xFF);
+			}
+
+			return ret;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
 static int sr030pc30_enum_mbus_code(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_mbus_code_enum *code)
+									struct v4l2_subdev_pad_config *cfg,
+									struct v4l2_subdev_mbus_code_enum *code)
 {
 	if (!code || code->pad ||
-	    code->index >= ARRAY_SIZE(sr030pc30_formats))
+		code->index >= ARRAY_SIZE(sr030pc30_formats))
+	{
 		return -EINVAL;
+	}
 
 	code->code = sr030pc30_formats[code->index].code;
 	return 0;
 }
 
 static int sr030pc30_get_fmt(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_format *format)
+							 struct v4l2_subdev_pad_config *cfg,
+							 struct v4l2_subdev_format *format)
 {
 	struct v4l2_mbus_framefmt *mf;
 	struct sr030pc30_info *info = to_sr030pc30(sd);
 
 	if (!format || format->pad)
+	{
 		return -EINVAL;
+	}
 
 	mf = &format->format;
 
 	if (!info->curr_win || !info->curr_fmt)
+	{
 		return -EINVAL;
+	}
 
 	mf->width	= info->curr_win->width;
 	mf->height	= info->curr_win->height;
@@ -509,7 +591,7 @@ static int sr030pc30_get_fmt(struct v4l2_subdev *sd,
 
 /* Return nearest media bus frame format. */
 static const struct sr030pc30_format *try_fmt(struct v4l2_subdev *sd,
-					      struct v4l2_mbus_framefmt *mf)
+		struct v4l2_mbus_framefmt *mf)
 {
 	int i = ARRAY_SIZE(sr030pc30_formats);
 
@@ -517,7 +599,9 @@ static const struct sr030pc30_format *try_fmt(struct v4l2_subdev *sd,
 
 	while (i--)
 		if (mf->code == sr030pc30_formats[i].code)
+		{
 			break;
+		}
 
 	mf->code = sr030pc30_formats[i].code;
 
@@ -526,22 +610,29 @@ static const struct sr030pc30_format *try_fmt(struct v4l2_subdev *sd,
 
 /* Return nearest media bus frame format. */
 static int sr030pc30_set_fmt(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_format *format)
+							 struct v4l2_subdev_pad_config *cfg,
+							 struct v4l2_subdev_format *format)
 {
 	struct sr030pc30_info *info = sd ? to_sr030pc30(sd) : NULL;
 	const struct sr030pc30_format *fmt;
 	struct v4l2_mbus_framefmt *mf;
 
 	if (!sd || !format)
+	{
 		return -EINVAL;
+	}
 
 	mf = &format->format;
+
 	if (format->pad)
+	{
 		return -EINVAL;
+	}
 
 	fmt = try_fmt(sd, mf);
-	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
+
+	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
+	{
 		cfg->try_fmt = *mf;
 		return 0;
 	}
@@ -558,33 +649,52 @@ static int sr030pc30_base_config(struct v4l2_subdev *sd)
 	unsigned long expmin, expmax;
 
 	ret = sr030pc30_bulk_write_reg(sd, sr030pc30_base_regs);
-	if (!ret) {
+
+	if (!ret)
+	{
 		info->curr_fmt = &sr030pc30_formats[0];
 		info->curr_win = &sr030pc30_sizes[0];
 		ret = sr030pc30_set_params(sd);
 	}
+
 	if (!ret)
+	{
 		ret = sr030pc30_pwr_ctrl(sd, false, false);
+	}
 
 	if (!ret && !info->pdata)
+	{
 		return ret;
+	}
 
 	expmin = EXPOS_MIN_MS * info->pdata->clk_rate / (8 * 1000);
 	expmax = EXPOS_MAX_MS * info->pdata->clk_rate / (8 * 1000);
 
 	v4l2_dbg(1, debug, sd, "%s: expmin= %lx, expmax= %lx", __func__,
-		 expmin, expmax);
+			 expmin, expmax);
 
 	/* Setting up manual exposure time range */
 	ret = cam_i2c_write(sd, EXP_MMINH_REG, expmin >> 8 & 0xFF);
+
 	if (!ret)
+	{
 		ret = cam_i2c_write(sd, EXP_MMINL_REG, expmin & 0xFF);
+	}
+
 	if (!ret)
+	{
 		ret = cam_i2c_write(sd, EXP_MMAXH_REG, expmax >> 16 & 0xFF);
+	}
+
 	if (!ret)
+	{
 		ret = cam_i2c_write(sd, EXP_MMAXM_REG, expmax >> 8 & 0xFF);
+	}
+
 	if (!ret)
+	{
 		ret = cam_i2c_write(sd, EXP_MMAXL_REG, expmax & 0xFF);
+	}
 
 	return ret;
 }
@@ -596,7 +706,8 @@ static int sr030pc30_s_power(struct v4l2_subdev *sd, int on)
 	const struct sr030pc30_platform_data *pdata = info->pdata;
 	int ret;
 
-	if (pdata == NULL) {
+	if (pdata == NULL)
+	{
 		WARN(1, "No platform data!\n");
 		return -EINVAL;
 	}
@@ -606,18 +717,27 @@ static int sr030pc30_s_power(struct v4l2_subdev *sd, int on)
 	 * power and disabling MCLK.
 	 */
 	if (!on)
+	{
 		sr030pc30_pwr_ctrl(sd, false, true);
-
-	/* set_power controls sensor's power and clock */
-	if (pdata->set_power) {
-		ret = pdata->set_power(&client->dev, on);
-		if (ret)
-			return ret;
 	}
 
-	if (on) {
+	/* set_power controls sensor's power and clock */
+	if (pdata->set_power)
+	{
+		ret = pdata->set_power(&client->dev, on);
+
+		if (ret)
+		{
+			return ret;
+		}
+	}
+
+	if (on)
+	{
 		ret = sr030pc30_base_config(sd);
-	} else {
+	}
+	else
+	{
 		ret = 0;
 		info->curr_win = NULL;
 		info->curr_fmt = NULL;
@@ -626,21 +746,25 @@ static int sr030pc30_s_power(struct v4l2_subdev *sd, int on)
 	return ret;
 }
 
-static const struct v4l2_ctrl_ops sr030pc30_ctrl_ops = {
+static const struct v4l2_ctrl_ops sr030pc30_ctrl_ops =
+{
 	.s_ctrl = sr030pc30_s_ctrl,
 };
 
-static const struct v4l2_subdev_core_ops sr030pc30_core_ops = {
+static const struct v4l2_subdev_core_ops sr030pc30_core_ops =
+{
 	.s_power	= sr030pc30_s_power,
 };
 
-static const struct v4l2_subdev_pad_ops sr030pc30_pad_ops = {
+static const struct v4l2_subdev_pad_ops sr030pc30_pad_ops =
+{
 	.enum_mbus_code = sr030pc30_enum_mbus_code,
 	.get_fmt	= sr030pc30_get_fmt,
 	.set_fmt	= sr030pc30_set_fmt,
 };
 
-static const struct v4l2_subdev_ops sr030pc30_ops = {
+static const struct v4l2_subdev_ops sr030pc30_ops =
+{
 	.core	= &sr030pc30_core_ops,
 	.pad	= &sr030pc30_pad_ops,
 };
@@ -652,22 +776,29 @@ static const struct v4l2_subdev_ops sr030pc30_ops = {
 static int sr030pc30_detect(struct i2c_client *client)
 {
 	const struct sr030pc30_platform_data *pdata
-		= client->dev.platform_data;
+			= client->dev.platform_data;
 	int ret;
 
 	/* Enable sensor's power and clock */
-	if (pdata->set_power) {
+	if (pdata->set_power)
+	{
 		ret = pdata->set_power(&client->dev, 1);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	ret = i2c_smbus_read_byte_data(client, DEVICE_ID_REG);
 
 	if (pdata->set_power)
+	{
 		pdata->set_power(&client->dev, 0);
+	}
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "%s: I2C read failed\n", __func__);
 		return ret;
 	}
@@ -677,27 +808,34 @@ static int sr030pc30_detect(struct i2c_client *client)
 
 
 static int sr030pc30_probe(struct i2c_client *client,
-			   const struct i2c_device_id *id)
+						   const struct i2c_device_id *id)
 {
 	struct sr030pc30_info *info;
 	struct v4l2_subdev *sd;
 	struct v4l2_ctrl_handler *hdl;
 	const struct sr030pc30_platform_data *pdata
-		= client->dev.platform_data;
+			= client->dev.platform_data;
 	int ret;
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		dev_err(&client->dev, "No platform data!");
 		return -EIO;
 	}
 
 	ret = sr030pc30_detect(client);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	info = devm_kzalloc(&client->dev, sizeof(*info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	sd = &info->sd;
 	strcpy(sd->name, MODULE_NAME);
@@ -708,22 +846,25 @@ static int sr030pc30_probe(struct i2c_client *client,
 	hdl = &info->hdl;
 	v4l2_ctrl_handler_init(hdl, 6);
 	info->awb = v4l2_ctrl_new_std(hdl, &sr030pc30_ctrl_ops,
-			V4L2_CID_AUTO_WHITE_BALANCE, 0, 1, 1, 1);
+								  V4L2_CID_AUTO_WHITE_BALANCE, 0, 1, 1, 1);
 	info->red = v4l2_ctrl_new_std(hdl, &sr030pc30_ctrl_ops,
-			V4L2_CID_RED_BALANCE, 0, 127, 1, 64);
+								  V4L2_CID_RED_BALANCE, 0, 127, 1, 64);
 	info->blue = v4l2_ctrl_new_std(hdl, &sr030pc30_ctrl_ops,
-			V4L2_CID_BLUE_BALANCE, 0, 127, 1, 64);
+								   V4L2_CID_BLUE_BALANCE, 0, 127, 1, 64);
 	info->autoexp = v4l2_ctrl_new_std(hdl, &sr030pc30_ctrl_ops,
-			V4L2_CID_EXPOSURE_AUTO, 0, 1, 1, 1);
+									  V4L2_CID_EXPOSURE_AUTO, 0, 1, 1, 1);
 	info->exp = v4l2_ctrl_new_std(hdl, &sr030pc30_ctrl_ops,
-			V4L2_CID_EXPOSURE, EXPOS_MIN_MS, EXPOS_MAX_MS, 1, 30);
+								  V4L2_CID_EXPOSURE, EXPOS_MIN_MS, EXPOS_MAX_MS, 1, 30);
 	sd->ctrl_handler = hdl;
-	if (hdl->error) {
+
+	if (hdl->error)
+	{
 		int err = hdl->error;
 
 		v4l2_ctrl_handler_free(hdl);
 		return err;
 	}
+
 	v4l2_ctrl_auto_cluster(3, &info->awb, 0, false);
 	v4l2_ctrl_auto_cluster(2, &info->autoexp, V4L2_EXPOSURE_MANUAL, false);
 	v4l2_ctrl_handler_setup(hdl);
@@ -743,14 +884,16 @@ static int sr030pc30_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id sr030pc30_id[] = {
+static const struct i2c_device_id sr030pc30_id[] =
+{
 	{ MODULE_NAME, 0 },
 	{ },
 };
 MODULE_DEVICE_TABLE(i2c, sr030pc30_id);
 
 
-static struct i2c_driver sr030pc30_i2c_driver = {
+static struct i2c_driver sr030pc30_i2c_driver =
+{
 	.driver = {
 		.name = MODULE_NAME
 	},

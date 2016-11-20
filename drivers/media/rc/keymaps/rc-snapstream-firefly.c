@@ -21,7 +21,8 @@
 #include <linux/module.h>
 #include <media/rc-map.h>
 
-static struct rc_map_table snapstream_firefly[] = {
+static struct rc_map_table snapstream_firefly[] =
+{
 	{ 0x2c, KEY_ZOOM },       /* Maximize */
 	{ 0x02, KEY_CLOSE },
 
@@ -81,7 +82,8 @@ static struct rc_map_table snapstream_firefly[] = {
 	{ 0x23, KEY_D },
 };
 
-static struct rc_map_list snapstream_firefly_map = {
+static struct rc_map_list snapstream_firefly_map =
+{
 	.map = {
 		.scan    = snapstream_firefly,
 		.size    = ARRAY_SIZE(snapstream_firefly),

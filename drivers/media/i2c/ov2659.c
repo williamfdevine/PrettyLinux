@@ -189,36 +189,42 @@
 #define OV265X_ID(_msb, _lsb)		((_msb) << 8 | (_lsb))
 #define OV2659_ID			0x2656
 
-struct sensor_register {
+struct sensor_register
+{
 	u16 addr;
 	u8 value;
 };
 
-struct ov2659_framesize {
+struct ov2659_framesize
+{
 	u16 width;
 	u16 height;
 	u16 max_exp_lines;
 	const struct sensor_register *regs;
 };
 
-struct ov2659_pll_ctrl {
+struct ov2659_pll_ctrl
+{
 	u8 ctrl1;
 	u8 ctrl2;
 	u8 ctrl3;
 };
 
-struct ov2659_pixfmt {
+struct ov2659_pixfmt
+{
 	u32 code;
 	/* Output format Register Value (REG_FORMAT_CTRL00) */
 	struct sensor_register *format_ctrl_regs;
 };
 
-struct pll_ctrl_reg {
+struct pll_ctrl_reg
+{
 	unsigned int div;
 	unsigned char reg;
 };
 
-struct ov2659 {
+struct ov2659
+{
 	struct v4l2_subdev sd;
 	struct media_pad pad;
 	struct v4l2_mbus_framefmt format;
@@ -234,7 +240,8 @@ struct ov2659 {
 	int streaming;
 };
 
-static const struct sensor_register ov2659_init_regs[] = {
+static const struct sensor_register ov2659_init_regs[] =
+{
 	{ REG_IO_CTRL00, 0x03 },
 	{ REG_IO_CTRL01, 0xff },
 	{ REG_IO_CTRL02, 0xe0 },
@@ -396,7 +403,8 @@ static const struct sensor_register ov2659_init_regs[] = {
 };
 
 /* 1280X720 720p */
-static struct sensor_register ov2659_720p[] = {
+static struct sensor_register ov2659_720p[] =
+{
 	{ REG_TIMING_HS_H, 0x00 },
 	{ REG_TIMING_HS_L, 0xa0 },
 	{ REG_TIMING_VS_H, 0x00 },
@@ -427,7 +435,8 @@ static struct sensor_register ov2659_720p[] = {
 };
 
 /* 1600X1200 UXGA */
-static struct sensor_register ov2659_uxga[] = {
+static struct sensor_register ov2659_uxga[] =
+{
 	{ REG_TIMING_HS_H, 0x00 },
 	{ REG_TIMING_HS_L, 0x00 },
 	{ REG_TIMING_VS_H, 0x00 },
@@ -475,7 +484,8 @@ static struct sensor_register ov2659_uxga[] = {
 };
 
 /* 1280X1024 SXGA */
-static struct sensor_register ov2659_sxga[] = {
+static struct sensor_register ov2659_sxga[] =
+{
 	{ REG_TIMING_HS_H, 0x00 },
 	{ REG_TIMING_HS_L, 0x00 },
 	{ REG_TIMING_VS_H, 0x00 },
@@ -523,7 +533,8 @@ static struct sensor_register ov2659_sxga[] = {
 };
 
 /* 1024X768 SXGA */
-static struct sensor_register ov2659_xga[] = {
+static struct sensor_register ov2659_xga[] =
+{
 	{ REG_TIMING_HS_H, 0x00 },
 	{ REG_TIMING_HS_L, 0x00 },
 	{ REG_TIMING_VS_H, 0x00 },
@@ -571,7 +582,8 @@ static struct sensor_register ov2659_xga[] = {
 };
 
 /* 800X600 SVGA */
-static struct sensor_register ov2659_svga[] = {
+static struct sensor_register ov2659_svga[] =
+{
 	{ REG_TIMING_HS_H, 0x00 },
 	{ REG_TIMING_HS_L, 0x00 },
 	{ REG_TIMING_VS_H, 0x00 },
@@ -619,7 +631,8 @@ static struct sensor_register ov2659_svga[] = {
 };
 
 /* 640X480 VGA */
-static struct sensor_register ov2659_vga[] = {
+static struct sensor_register ov2659_vga[] =
+{
 	{ REG_TIMING_HS_H, 0x00 },
 	{ REG_TIMING_HS_L, 0x00 },
 	{ REG_TIMING_VS_H, 0x00 },
@@ -667,7 +680,8 @@ static struct sensor_register ov2659_vga[] = {
 };
 
 /* 320X240 QVGA */
-static  struct sensor_register ov2659_qvga[] = {
+static  struct sensor_register ov2659_qvga[] =
+{
 	{ REG_TIMING_HS_H, 0x00 },
 	{ REG_TIMING_HS_L, 0x00 },
 	{ REG_TIMING_VS_H, 0x00 },
@@ -714,7 +728,8 @@ static  struct sensor_register ov2659_qvga[] = {
 	{ REG_NULL, 0x00 },
 };
 
-static const struct pll_ctrl_reg ctrl3[] = {
+static const struct pll_ctrl_reg ctrl3[] =
+{
 	{ 1, 0x00 },
 	{ 2, 0x02 },
 	{ 3, 0x03 },
@@ -731,7 +746,8 @@ static const struct pll_ctrl_reg ctrl3[] = {
 	{ 0, 0x00 },
 };
 
-static const struct pll_ctrl_reg ctrl1[] = {
+static const struct pll_ctrl_reg ctrl1[] =
+{
 	{ 2, 0x10 },
 	{ 4, 0x20 },
 	{ 6, 0x30 },
@@ -750,7 +766,8 @@ static const struct pll_ctrl_reg ctrl1[] = {
 	{ 0, 0x00 },
 };
 
-static const struct ov2659_framesize ov2659_framesizes[] = {
+static const struct ov2659_framesize ov2659_framesizes[] =
+{
 	{ /* QVGA */
 		.width		= 320,
 		.height		= 240,
@@ -790,30 +807,35 @@ static const struct ov2659_framesize ov2659_framesizes[] = {
 };
 
 /* YUV422 YUYV*/
-static struct sensor_register ov2659_format_yuyv[] = {
+static struct sensor_register ov2659_format_yuyv[] =
+{
 	{ REG_FORMAT_CTRL00, 0x30 },
 	{ REG_NULL, 0x0 },
 };
 
 /* YUV422 UYVY  */
-static struct sensor_register ov2659_format_uyvy[] = {
+static struct sensor_register ov2659_format_uyvy[] =
+{
 	{ REG_FORMAT_CTRL00, 0x32 },
 	{ REG_NULL, 0x0 },
 };
 
 /* Raw Bayer BGGR */
-static struct sensor_register ov2659_format_bggr[] = {
+static struct sensor_register ov2659_format_bggr[] =
+{
 	{ REG_FORMAT_CTRL00, 0x00 },
 	{ REG_NULL, 0x0 },
 };
 
 /* RGB565 */
-static struct sensor_register ov2659_format_rgb565[] = {
+static struct sensor_register ov2659_format_rgb565[] =
+{
 	{ REG_FORMAT_CTRL00, 0x60 },
 	{ REG_NULL, 0x0 },
 };
 
-static const struct ov2659_pixfmt ov2659_formats[] = {
+static const struct ov2659_pixfmt ov2659_formats[] =
+{
 	{
 		.code = MEDIA_BUS_FMT_YUYV8_2X8,
 		.format_ctrl_regs = ov2659_format_yuyv,
@@ -851,11 +873,14 @@ static int ov2659_write(struct i2c_client *client, u16 reg, u8 val)
 	msg.len = sizeof(buf);
 
 	ret = i2c_transfer(client->adapter, &msg, 1);
+
 	if (ret >= 0)
+	{
 		return 0;
+	}
 
 	dev_dbg(&client->dev,
-		"ov2659 write reg(0x%x val:0x%x) failed !\n", reg, val);
+			"ov2659 write reg(0x%x val:0x%x) failed !\n", reg, val);
 
 	return ret;
 }
@@ -881,24 +906,28 @@ static int ov2659_read(struct i2c_client *client, u16 reg, u8 *val)
 	msg[1].len = 1;
 
 	ret = i2c_transfer(client->adapter, msg, 2);
-	if (ret >= 0) {
+
+	if (ret >= 0)
+	{
 		*val = buf[0];
 		return 0;
 	}
 
 	dev_dbg(&client->dev,
-		"ov2659 read reg(0x%x val:0x%x) failed !\n", reg, *val);
+			"ov2659 read reg(0x%x val:0x%x) failed !\n", reg, *val);
 
 	return ret;
 }
 
 static int ov2659_write_array(struct i2c_client *client,
-			      const struct sensor_register *regs)
+							  const struct sensor_register *regs)
 {
 	int i, ret = 0;
 
 	for (i = 0; ret == 0 && regs[i].addr; i++)
+	{
 		ret = ov2659_write(client, regs[i].addr, regs[i].value);
+	}
 
 	return ret;
 }
@@ -914,11 +943,16 @@ static void ov2659_pll_calc_params(struct ov2659 *ov2659)
 	u32 delta, actual;
 	int i, j;
 
-	for (i = 0; ctrl1[i].div != 0; i++) {
+	for (i = 0; ctrl1[i].div != 0; i++)
+	{
 		postdiv = ctrl1[i].div;
-		for (j = 0; ctrl3[j].div != 0; j++) {
+
+		for (j = 0; ctrl3[j].div != 0; j++)
+		{
 			prediv = ctrl3[j].div;
-			for (mult = 1; mult <= 63; mult++) {
+
+			for (mult = 1; mult <= 63; mult++)
+			{
 				actual  = ov2659->xvclk_frequency;
 				actual *= mult;
 				actual /= prediv;
@@ -926,7 +960,8 @@ static void ov2659_pll_calc_params(struct ov2659 *ov2659)
 				delta = actual - desired;
 				delta = abs(delta);
 
-				if ((delta < bestdelta) || (bestdelta == -1)) {
+				if ((delta < bestdelta) || (bestdelta == -1))
+				{
 					bestdelta = delta;
 					ctrl1_reg = ctrl1[i].reg;
 					ctrl2_reg = mult;
@@ -941,14 +976,15 @@ static void ov2659_pll_calc_params(struct ov2659 *ov2659)
 	ov2659->pll.ctrl3 = ctrl3_reg;
 
 	dev_dbg(&client->dev,
-		"Actual reg config: ctrl1_reg: %02x ctrl2_reg: %02x ctrl3_reg: %02x\n",
-		ctrl1_reg, ctrl2_reg, ctrl3_reg);
+			"Actual reg config: ctrl1_reg: %02x ctrl2_reg: %02x ctrl3_reg: %02x\n",
+			ctrl1_reg, ctrl2_reg, ctrl3_reg);
 }
 
 static int ov2659_set_pixel_clock(struct ov2659 *ov2659)
 {
 	struct i2c_client *client = ov2659->client;
-	struct sensor_register pll_regs[] = {
+	struct sensor_register pll_regs[] =
+	{
 		{REG_SC_PLL_CTRL1, ov2659->pll.ctrl1},
 		{REG_SC_PLL_CTRL2, ov2659->pll.ctrl2},
 		{REG_SC_PLL_CTRL3, ov2659->pll.ctrl3},
@@ -979,8 +1015,11 @@ static void ov2659_set_streaming(struct ov2659 *ov2659, int on)
 	dev_dbg(&client->dev, "%s: on: %d\n", __func__, on);
 
 	ret = ov2659_write(client, REG_SOFTWARE_STANDBY, on);
+
 	if (ret)
+	{
 		dev_err(&client->dev, "ov2659 soft standby failed\n");
+	}
 }
 
 static int ov2659_init(struct v4l2_subdev *sd, u32 val)
@@ -995,15 +1034,17 @@ static int ov2659_init(struct v4l2_subdev *sd, u32 val)
  */
 
 static int ov2659_enum_mbus_code(struct v4l2_subdev *sd,
-				 struct v4l2_subdev_pad_config *cfg,
-				 struct v4l2_subdev_mbus_code_enum *code)
+								 struct v4l2_subdev_pad_config *cfg,
+								 struct v4l2_subdev_mbus_code_enum *code)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 
 	dev_dbg(&client->dev, "%s:\n", __func__);
 
 	if (code->index >= ARRAY_SIZE(ov2659_formats))
+	{
 		return -EINVAL;
+	}
 
 	code->code = ov2659_formats[code->index].code;
 
@@ -1011,8 +1052,8 @@ static int ov2659_enum_mbus_code(struct v4l2_subdev *sd,
 }
 
 static int ov2659_enum_frame_sizes(struct v4l2_subdev *sd,
-				   struct v4l2_subdev_pad_config *cfg,
-				   struct v4l2_subdev_frame_size_enum *fse)
+								   struct v4l2_subdev_pad_config *cfg,
+								   struct v4l2_subdev_frame_size_enum *fse)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	int i = ARRAY_SIZE(ov2659_formats);
@@ -1020,11 +1061,15 @@ static int ov2659_enum_frame_sizes(struct v4l2_subdev *sd,
 	dev_dbg(&client->dev, "%s:\n", __func__);
 
 	if (fse->index >= ARRAY_SIZE(ov2659_framesizes))
+	{
 		return -EINVAL;
+	}
 
 	while (--i)
 		if (fse->code == ov2659_formats[i].code)
+		{
 			break;
+		}
 
 	fse->code = ov2659_formats[i].code;
 
@@ -1037,15 +1082,16 @@ static int ov2659_enum_frame_sizes(struct v4l2_subdev *sd,
 }
 
 static int ov2659_get_fmt(struct v4l2_subdev *sd,
-			  struct v4l2_subdev_pad_config *cfg,
-			  struct v4l2_subdev_format *fmt)
+						  struct v4l2_subdev_pad_config *cfg,
+						  struct v4l2_subdev_format *fmt)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct ov2659 *ov2659 = to_ov2659(sd);
 
 	dev_dbg(&client->dev, "ov2659_get_fmt\n");
 
-	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
+	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
+	{
 #ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
 		struct v4l2_mbus_framefmt *mf;
 
@@ -1055,7 +1101,7 @@ static int ov2659_get_fmt(struct v4l2_subdev *sd,
 		mutex_unlock(&ov2659->lock);
 		return 0;
 #else
-	return -ENOTTY;
+		return -ENOTTY;
 #endif
 	}
 
@@ -1064,43 +1110,51 @@ static int ov2659_get_fmt(struct v4l2_subdev *sd,
 	mutex_unlock(&ov2659->lock);
 
 	dev_dbg(&client->dev, "ov2659_get_fmt: %x %dx%d\n",
-		ov2659->format.code, ov2659->format.width,
-		ov2659->format.height);
+			ov2659->format.code, ov2659->format.width,
+			ov2659->format.height);
 
 	return 0;
 }
 
 static void __ov2659_try_frame_size(struct v4l2_mbus_framefmt *mf,
-				    const struct ov2659_framesize **size)
+									const struct ov2659_framesize **size)
 {
 	const struct ov2659_framesize *fsize = &ov2659_framesizes[0];
 	const struct ov2659_framesize *match = NULL;
 	int i = ARRAY_SIZE(ov2659_framesizes);
 	unsigned int min_err = UINT_MAX;
 
-	while (i--) {
+	while (i--)
+	{
 		int err = abs(fsize->width - mf->width)
-				+ abs(fsize->height - mf->height);
-		if ((err < min_err) && (fsize->regs[0].addr)) {
+				  + abs(fsize->height - mf->height);
+
+		if ((err < min_err) && (fsize->regs[0].addr))
+		{
 			min_err = err;
 			match = fsize;
 		}
+
 		fsize++;
 	}
 
 	if (!match)
+	{
 		match = &ov2659_framesizes[2];
+	}
 
 	mf->width  = match->width;
 	mf->height = match->height;
 
 	if (size)
+	{
 		*size = match;
+	}
 }
 
 static int ov2659_set_fmt(struct v4l2_subdev *sd,
-			  struct v4l2_subdev_pad_config *cfg,
-			  struct v4l2_subdev_format *fmt)
+						  struct v4l2_subdev_pad_config *cfg,
+						  struct v4l2_subdev_format *fmt)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	int index = ARRAY_SIZE(ov2659_formats);
@@ -1115,10 +1169,14 @@ static int ov2659_set_fmt(struct v4l2_subdev *sd,
 
 	while (--index >= 0)
 		if (ov2659_formats[index].code == mf->code)
+		{
 			break;
+		}
 
 	if (index < 0)
+	{
 		return -EINVAL;
+	}
 
 	mf->colorspace = V4L2_COLORSPACE_SRGB;
 	mf->code = ov2659_formats[index].code;
@@ -1126,17 +1184,21 @@ static int ov2659_set_fmt(struct v4l2_subdev *sd,
 
 	mutex_lock(&ov2659->lock);
 
-	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
+	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
+	{
 #ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
 		mf = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
 		*mf = fmt->format;
 #else
 		return -ENOTTY;
 #endif
-	} else {
+	}
+	else
+	{
 		s64 val;
 
-		if (ov2659->streaming) {
+		if (ov2659->streaming)
+		{
 			mutex_unlock(&ov2659->lock);
 			return -EBUSY;
 		}
@@ -1147,15 +1209,20 @@ static int ov2659_set_fmt(struct v4l2_subdev *sd,
 			ov2659_formats[index].format_ctrl_regs;
 
 		if (ov2659->format.code != MEDIA_BUS_FMT_SBGGR8_1X8)
+		{
 			val = ov2659->pdata->link_frequency / 2;
+		}
 		else
+		{
 			val = ov2659->pdata->link_frequency;
+		}
 
 		ret = v4l2_ctrl_s_ctrl_int64(ov2659->link_frequency, val);
+
 		if (ret < 0)
 			dev_warn(&client->dev,
-				 "failed to set link_frequency rate (%d)\n",
-				 ret);
+					 "failed to set link_frequency rate (%d)\n",
+					 ret);
 	}
 
 	mutex_unlock(&ov2659->lock);
@@ -1193,9 +1260,12 @@ static int ov2659_s_stream(struct v4l2_subdev *sd, int on)
 	on = !!on;
 
 	if (ov2659->streaming == on)
+	{
 		goto unlock;
+	}
 
-	if (!on) {
+	if (!on)
+	{
 		/* Stop Streaming Sequence */
 		ov2659_set_streaming(ov2659, 0);
 		ov2659->streaming = on;
@@ -1220,17 +1290,22 @@ static int ov2659_set_test_pattern(struct ov2659 *ov2659, int value)
 	u8 val;
 
 	ret = ov2659_read(client, REG_PRE_ISP_CTRL00, &val);
-	if (ret < 0)
-		return ret;
 
-	switch (value) {
-	case 0:
-		val &= ~TEST_PATTERN_ENABLE;
-		break;
-	case 1:
-		val &= VERTICAL_COLOR_BAR_MASK;
-		val |= TEST_PATTERN_ENABLE;
-		break;
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	switch (value)
+	{
+		case 0:
+			val &= ~TEST_PATTERN_ENABLE;
+			break;
+
+		case 1:
+			val &= VERTICAL_COLOR_BAR_MASK;
+			val |= TEST_PATTERN_ENABLE;
+			break;
 	}
 
 	return ov2659_write(client, REG_PRE_ISP_CTRL00, val);
@@ -1239,21 +1314,24 @@ static int ov2659_set_test_pattern(struct ov2659 *ov2659, int value)
 static int ov2659_s_ctrl(struct v4l2_ctrl *ctrl)
 {
 	struct ov2659 *ov2659 =
-			container_of(ctrl->handler, struct ov2659, ctrls);
+		container_of(ctrl->handler, struct ov2659, ctrls);
 
-	switch (ctrl->id) {
-	case V4L2_CID_TEST_PATTERN:
-		return ov2659_set_test_pattern(ov2659, ctrl->val);
+	switch (ctrl->id)
+	{
+		case V4L2_CID_TEST_PATTERN:
+			return ov2659_set_test_pattern(ov2659, ctrl->val);
 	}
 
 	return 0;
 }
 
-static const struct v4l2_ctrl_ops ov2659_ctrl_ops = {
+static const struct v4l2_ctrl_ops ov2659_ctrl_ops =
+{
 	.s_ctrl = ov2659_s_ctrl,
 };
 
-static const char * const ov2659_test_pattern_menu[] = {
+static const char *const ov2659_test_pattern_menu[] =
+{
 	"Disabled",
 	"Vertical Color Bars",
 };
@@ -1267,7 +1345,7 @@ static int ov2659_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct v4l2_mbus_framefmt *format =
-				v4l2_subdev_get_try_format(sd, fh->pad, 0);
+		v4l2_subdev_get_try_format(sd, fh->pad, 0);
 
 	dev_dbg(&client->dev, "%s:\n", __func__);
 
@@ -1277,17 +1355,20 @@ static int ov2659_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
 }
 #endif
 
-static const struct v4l2_subdev_core_ops ov2659_subdev_core_ops = {
+static const struct v4l2_subdev_core_ops ov2659_subdev_core_ops =
+{
 	.log_status = v4l2_ctrl_subdev_log_status,
 	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
 	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
 };
 
-static const struct v4l2_subdev_video_ops ov2659_subdev_video_ops = {
+static const struct v4l2_subdev_video_ops ov2659_subdev_video_ops =
+{
 	.s_stream = ov2659_s_stream,
 };
 
-static const struct v4l2_subdev_pad_ops ov2659_subdev_pad_ops = {
+static const struct v4l2_subdev_pad_ops ov2659_subdev_pad_ops =
+{
 	.enum_mbus_code = ov2659_enum_mbus_code,
 	.enum_frame_size = ov2659_enum_frame_sizes,
 	.get_fmt = ov2659_get_fmt,
@@ -1295,13 +1376,15 @@ static const struct v4l2_subdev_pad_ops ov2659_subdev_pad_ops = {
 };
 
 #ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-static const struct v4l2_subdev_ops ov2659_subdev_ops = {
+static const struct v4l2_subdev_ops ov2659_subdev_ops =
+{
 	.core  = &ov2659_subdev_core_ops,
 	.video = &ov2659_subdev_video_ops,
 	.pad   = &ov2659_subdev_pad_ops,
 };
 
-static const struct v4l2_subdev_internal_ops ov2659_subdev_internal_ops = {
+static const struct v4l2_subdev_internal_ops ov2659_subdev_internal_ops =
+{
 	.open = ov2659_open,
 };
 #endif
@@ -1315,26 +1398,35 @@ static int ov2659_detect(struct v4l2_subdev *sd)
 	dev_dbg(&client->dev, "%s:\n", __func__);
 
 	ret = ov2659_write(client, REG_SOFTWARE_RESET, 0x01);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		dev_err(&client->dev, "Sensor soft reset failed\n");
 		return -ENODEV;
 	}
+
 	usleep_range(1000, 2000);
 
 	/* Check sensor revision */
 	ret = ov2659_read(client, REG_SC_CHIP_ID_H, &pid);
-	if (!ret)
-		ret = ov2659_read(client, REG_SC_CHIP_ID_L, &ver);
 
-	if (!ret) {
+	if (!ret)
+	{
+		ret = ov2659_read(client, REG_SC_CHIP_ID_L, &ver);
+	}
+
+	if (!ret)
+	{
 		unsigned short id;
 
 		id = OV265X_ID(pid, ver);
+
 		if (id != OV2659_ID)
 			dev_err(&client->dev,
-				"Sensor detection failed (%04X, %d)\n",
-				id, ret);
-		else {
+					"Sensor detection failed (%04X, %d)\n",
+					id, ret);
+		else
+		{
 			dev_info(&client->dev, "Found OV%04X sensor\n", id);
 			ret = ov2659_init(sd, 0);
 		}
@@ -1351,25 +1443,36 @@ ov2659_get_pdata(struct i2c_client *client)
 	struct device_node *endpoint;
 
 	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
+	{
 		return client->dev.platform_data;
+	}
 
 	endpoint = of_graph_get_next_endpoint(client->dev.of_node, NULL);
+
 	if (!endpoint)
+	{
 		return NULL;
+	}
 
 	bus_cfg = v4l2_of_alloc_parse_endpoint(endpoint);
-	if (IS_ERR(bus_cfg)) {
+
+	if (IS_ERR(bus_cfg))
+	{
 		pdata = NULL;
 		goto done;
 	}
 
 	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
-	if (!pdata)
-		goto done;
 
-	if (!bus_cfg->nr_of_link_frequencies) {
+	if (!pdata)
+	{
+		goto done;
+	}
+
+	if (!bus_cfg->nr_of_link_frequencies)
+	{
 		dev_err(&client->dev,
-			"link-frequencies property not found or too many\n");
+				"link-frequencies property not found or too many\n");
 		pdata = NULL;
 		goto done;
 	}
@@ -1383,7 +1486,7 @@ done:
 }
 
 static int ov2659_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	const struct ov2659_platform_data *pdata = ov2659_get_pdata(client);
 	struct v4l2_subdev *sd;
@@ -1391,43 +1494,54 @@ static int ov2659_probe(struct i2c_client *client,
 	struct clk *clk;
 	int ret;
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		dev_err(&client->dev, "platform data not specified\n");
 		return -EINVAL;
 	}
 
 	ov2659 = devm_kzalloc(&client->dev, sizeof(*ov2659), GFP_KERNEL);
+
 	if (!ov2659)
+	{
 		return -ENOMEM;
+	}
 
 	ov2659->pdata = pdata;
 	ov2659->client = client;
 
 	clk = devm_clk_get(&client->dev, "xvclk");
+
 	if (IS_ERR(clk))
+	{
 		return PTR_ERR(clk);
+	}
 
 	ov2659->xvclk_frequency = clk_get_rate(clk);
+
 	if (ov2659->xvclk_frequency < 6000000 ||
-	    ov2659->xvclk_frequency > 27000000)
+		ov2659->xvclk_frequency > 27000000)
+	{
 		return -EINVAL;
+	}
 
 	v4l2_ctrl_handler_init(&ov2659->ctrls, 2);
 	ov2659->link_frequency =
-			v4l2_ctrl_new_std(&ov2659->ctrls, &ov2659_ctrl_ops,
-					  V4L2_CID_PIXEL_RATE,
-					  pdata->link_frequency / 2,
-					  pdata->link_frequency, 1,
-					  pdata->link_frequency);
+		v4l2_ctrl_new_std(&ov2659->ctrls, &ov2659_ctrl_ops,
+						  V4L2_CID_PIXEL_RATE,
+						  pdata->link_frequency / 2,
+						  pdata->link_frequency, 1,
+						  pdata->link_frequency);
 	v4l2_ctrl_new_std_menu_items(&ov2659->ctrls, &ov2659_ctrl_ops,
-				     V4L2_CID_TEST_PATTERN,
-				     ARRAY_SIZE(ov2659_test_pattern_menu) - 1,
-				     0, 0, ov2659_test_pattern_menu);
+								 V4L2_CID_TEST_PATTERN,
+								 ARRAY_SIZE(ov2659_test_pattern_menu) - 1,
+								 0, 0, ov2659_test_pattern_menu);
 	ov2659->sd.ctrl_handler = &ov2659->ctrls;
 
-	if (ov2659->ctrls.error) {
+	if (ov2659->ctrls.error)
+	{
 		dev_err(&client->dev, "%s: control initialization error %d\n",
-			__func__, ov2659->ctrls.error);
+				__func__, ov2659->ctrls.error);
 		return  ov2659->ctrls.error;
 	}
 
@@ -1438,17 +1552,20 @@ static int ov2659_probe(struct i2c_client *client,
 
 	sd->internal_ops = &ov2659_subdev_internal_ops;
 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
-		     V4L2_SUBDEV_FL_HAS_EVENTS;
+				 V4L2_SUBDEV_FL_HAS_EVENTS;
 #endif
 
 #if defined(CONFIG_MEDIA_CONTROLLER)
 	ov2659->pad.flags = MEDIA_PAD_FL_SOURCE;
 	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
 	ret = media_entity_pads_init(&sd->entity, 1, &ov2659->pad);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		v4l2_ctrl_handler_free(&ov2659->ctrls);
 		return ret;
 	}
+
 #endif
 
 	mutex_init(&ov2659->lock);
@@ -1458,15 +1575,21 @@ static int ov2659_probe(struct i2c_client *client,
 	ov2659->format_ctrl_regs = ov2659_formats[0].format_ctrl_regs;
 
 	ret = ov2659_detect(sd);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	/* Calculate the PLL register value needed */
 	ov2659_pll_calc_params(ov2659);
 
 	ret = v4l2_async_register_subdev(&ov2659->sd);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	dev_info(&client->dev, "%s sensor driver registered !!\n", sd->name);
 
@@ -1496,21 +1619,24 @@ static int ov2659_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id ov2659_id[] = {
+static const struct i2c_device_id ov2659_id[] =
+{
 	{ "ov2659", 0 },
 	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(i2c, ov2659_id);
 
 #if IS_ENABLED(CONFIG_OF)
-static const struct of_device_id ov2659_of_match[] = {
+static const struct of_device_id ov2659_of_match[] =
+{
 	{ .compatible = "ovti,ov2659", },
 	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(of, ov2659_of_match);
 #endif
 
-static struct i2c_driver ov2659_i2c_driver = {
+static struct i2c_driver ov2659_i2c_driver =
+{
 	.driver = {
 		.name	= DRIVER_NAME,
 		.of_match_table = of_match_ptr(ov2659_of_match),

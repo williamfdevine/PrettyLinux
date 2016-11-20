@@ -5,13 +5,15 @@
 #include <scsi/scsi_cmnd.h>
 
 /* Common header for all IUs */
-struct iu {
+struct iu
+{
 	__u8 iu_id;
 	__u8 rsvd1;
 	__be16 tag;
 } __attribute__((__packed__));
 
-enum {
+enum
+{
 	IU_ID_COMMAND		= 0x01,
 	IU_ID_STATUS		= 0x03,
 	IU_ID_RESPONSE		= 0x04,
@@ -20,7 +22,8 @@ enum {
 	IU_ID_WRITE_READY	= 0x07,
 };
 
-enum {
+enum
+{
 	TMF_ABORT_TASK          = 0x01,
 	TMF_ABORT_TASK_SET      = 0x02,
 	TMF_CLEAR_TASK_SET      = 0x04,
@@ -32,7 +35,8 @@ enum {
 	TMF_QUERY_ASYNC_EVENT   = 0x82,
 };
 
-enum {
+enum
+{
 	RC_TMF_COMPLETE         = 0x00,
 	RC_INVALID_INFO_UNIT    = 0x02,
 	RC_TMF_NOT_SUPPORTED    = 0x04,
@@ -42,7 +46,8 @@ enum {
 	RC_OVERLAPPED_TAG       = 0x0a,
 };
 
-struct command_iu {
+struct command_iu
+{
 	__u8 iu_id;
 	__u8 rsvd1;
 	__be16 tag;
@@ -54,7 +59,8 @@ struct command_iu {
 	__u8 cdb[16];	/* XXX: Overflow-checking tools may misunderstand */
 } __attribute__((__packed__));
 
-struct task_mgmt_iu {
+struct task_mgmt_iu
+{
 	__u8 iu_id;
 	__u8 rsvd1;
 	__be16 tag;
@@ -68,7 +74,8 @@ struct task_mgmt_iu {
  * Also used for the Read Ready and Write Ready IUs since they have the
  * same first four bytes
  */
-struct sense_iu {
+struct sense_iu
+{
 	__u8 iu_id;
 	__u8 rsvd1;
 	__be16 tag;
@@ -79,7 +86,8 @@ struct sense_iu {
 	__u8 sense[SCSI_SENSE_BUFFERSIZE];
 } __attribute__((__packed__));
 
-struct response_iu {
+struct response_iu
+{
 	__u8 iu_id;
 	__u8 rsvd1;
 	__be16 tag;
@@ -87,7 +95,8 @@ struct response_iu {
 	__u8 response_code;
 } __attribute__((__packed__));
 
-struct usb_pipe_usage_descriptor {
+struct usb_pipe_usage_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 
@@ -95,7 +104,8 @@ struct usb_pipe_usage_descriptor {
 	__u8  Reserved;
 } __attribute__((__packed__));
 
-enum {
+enum
+{
 	CMD_PIPE_ID		= 1,
 	STATUS_PIPE_ID		= 2,
 	DATA_IN_PIPE_ID		= 3,

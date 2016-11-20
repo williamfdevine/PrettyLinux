@@ -23,7 +23,8 @@
 #include <linux/spinlock.h>
 #include <linux/mfd/syscon.h>
 
-enum exynos_mipi_phy_id {
+enum exynos_mipi_phy_id
+{
 	EXYNOS_MIPI_PHY_ID_NONE = -1,
 	EXYNOS_MIPI_PHY_ID_CSIS0,
 	EXYNOS_MIPI_PHY_ID_DSIM0,
@@ -33,7 +34,8 @@ enum exynos_mipi_phy_id {
 	EXYNOS_MIPI_PHYS_NUM
 };
 
-enum exynos_mipi_phy_regmap_id {
+enum exynos_mipi_phy_regmap_id
+{
 	EXYNOS_MIPI_REGMAP_PMU,
 	EXYNOS_MIPI_REGMAP_DISP,
 	EXYNOS_MIPI_REGMAP_CAM0,
@@ -41,11 +43,13 @@ enum exynos_mipi_phy_regmap_id {
 	EXYNOS_MIPI_REGMAPS_NUM
 };
 
-struct mipi_phy_device_desc {
+struct mipi_phy_device_desc
+{
 	int num_phys;
 	int num_regmaps;
 	const char *regmap_names[EXYNOS_MIPI_REGMAPS_NUM];
-	struct exynos_mipi_phy_desc {
+	struct exynos_mipi_phy_desc
+	{
 		enum exynos_mipi_phy_id	coupled_phy_id;
 		u32 enable_val;
 		unsigned int enable_reg;
@@ -56,7 +60,8 @@ struct mipi_phy_device_desc {
 	} phys[EXYNOS_MIPI_PHYS_NUM];
 };
 
-static const struct mipi_phy_device_desc s5pv210_mipi_phy = {
+static const struct mipi_phy_device_desc s5pv210_mipi_phy =
+{
 	.num_regmaps = 1,
 	.regmap_names = {"syscon"},
 	.num_phys = 4,
@@ -101,7 +106,8 @@ static const struct mipi_phy_device_desc s5pv210_mipi_phy = {
 	},
 };
 
-static const struct mipi_phy_device_desc exynos5420_mipi_phy = {
+static const struct mipi_phy_device_desc exynos5420_mipi_phy =
+{
 	.num_regmaps = 1,
 	.regmap_names = {"syscon"},
 	.num_phys = 5,
@@ -159,7 +165,8 @@ static const struct mipi_phy_device_desc exynos5420_mipi_phy = {
 #define EXYNOS5433_SYSREG_CAM0_MIPI_DPHY_CON	0x1014
 #define EXYNOS5433_SYSREG_CAM1_MIPI_DPHY_CON	0x1020
 
-static const struct mipi_phy_device_desc exynos5433_mipi_phy = {
+static const struct mipi_phy_device_desc exynos5433_mipi_phy =
+{
 	.num_regmaps = 4,
 	.regmap_names = {
 		"samsung,pmu-syscon",
@@ -218,10 +225,12 @@ static const struct mipi_phy_device_desc exynos5433_mipi_phy = {
 	},
 };
 
-struct exynos_mipi_video_phy {
+struct exynos_mipi_video_phy
+{
 	struct regmap *regmaps[EXYNOS_MIPI_REGMAPS_NUM];
 	int num_phys;
-	struct video_phy_desc {
+	struct video_phy_desc
+	{
 		struct phy *phy;
 		unsigned int index;
 		const struct exynos_mipi_phy_desc *data;
@@ -230,20 +239,23 @@ struct exynos_mipi_video_phy {
 };
 
 static inline int __is_running(const struct exynos_mipi_phy_desc *data,
-			struct exynos_mipi_video_phy *state)
+							   struct exynos_mipi_video_phy *state)
 {
 	u32 val;
 	int ret;
 
 	ret = regmap_read(state->regmaps[data->resetn_map], data->resetn_reg, &val);
+
 	if (ret)
+	{
 		return 0;
+	}
 
 	return val & data->resetn_val;
 }
 
 static int __set_phy_state(const struct exynos_mipi_phy_desc *data,
-			   struct exynos_mipi_video_phy *state, unsigned int on)
+						   struct exynos_mipi_video_phy *state, unsigned int on)
 {
 	u32 val;
 
@@ -251,12 +263,13 @@ static int __set_phy_state(const struct exynos_mipi_phy_desc *data,
 
 	/* disable in PMU sysreg */
 	if (!on && data->coupled_phy_id >= 0 &&
-	    !__is_running(state->phys[data->coupled_phy_id].data, state)) {
+		!__is_running(state->phys[data->coupled_phy_id].data, state))
+	{
 		regmap_read(state->regmaps[data->enable_map], data->enable_reg,
-			    &val);
+					&val);
 		val &= ~data->enable_val;
 		regmap_write(state->regmaps[data->enable_map], data->enable_reg,
-			     val);
+					 val);
 	}
 
 	/* PHY reset */
@@ -265,12 +278,13 @@ static int __set_phy_state(const struct exynos_mipi_phy_desc *data,
 	regmap_write(state->regmaps[data->resetn_map], data->resetn_reg, val);
 
 	/* enable in PMU sysreg */
-	if (on) {
+	if (on)
+	{
 		regmap_read(state->regmaps[data->enable_map], data->enable_reg,
-			    &val);
+					&val);
 		val |= data->enable_val;
 		regmap_write(state->regmaps[data->enable_map], data->enable_reg,
-			     val);
+					 val);
 	}
 
 	spin_unlock(&state->slock);
@@ -298,17 +312,20 @@ static int exynos_mipi_video_phy_power_off(struct phy *phy)
 }
 
 static struct phy *exynos_mipi_video_phy_xlate(struct device *dev,
-					struct of_phandle_args *args)
+		struct of_phandle_args *args)
 {
 	struct exynos_mipi_video_phy *state = dev_get_drvdata(dev);
 
 	if (WARN_ON(args->args[0] >= state->num_phys))
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
 	return state->phys[args->args[0]].phy;
 }
 
-static const struct phy_ops exynos_mipi_video_phy_ops = {
+static const struct phy_ops exynos_mipi_video_phy_ops =
+{
 	.power_on	= exynos_mipi_video_phy_power_on,
 	.power_off	= exynos_mipi_video_phy_power_off,
 	.owner		= THIS_MODULE,
@@ -324,28 +341,42 @@ static int exynos_mipi_video_phy_probe(struct platform_device *pdev)
 	unsigned int i;
 
 	phy_dev = of_device_get_match_data(dev);
+
 	if (!phy_dev)
+	{
 		return -ENODEV;
+	}
 
 	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
-	if (!state)
-		return -ENOMEM;
 
-	for (i = 0; i < phy_dev->num_regmaps; i++) {
-		state->regmaps[i] = syscon_regmap_lookup_by_phandle(np,
-						phy_dev->regmap_names[i]);
-		if (IS_ERR(state->regmaps[i]))
-			return PTR_ERR(state->regmaps[i]);
+	if (!state)
+	{
+		return -ENOMEM;
 	}
+
+	for (i = 0; i < phy_dev->num_regmaps; i++)
+	{
+		state->regmaps[i] = syscon_regmap_lookup_by_phandle(np,
+							phy_dev->regmap_names[i]);
+
+		if (IS_ERR(state->regmaps[i]))
+		{
+			return PTR_ERR(state->regmaps[i]);
+		}
+	}
+
 	state->num_phys = phy_dev->num_phys;
 	spin_lock_init(&state->slock);
 
 	dev_set_drvdata(dev, state);
 
-	for (i = 0; i < state->num_phys; i++) {
+	for (i = 0; i < state->num_phys; i++)
+	{
 		struct phy *phy = devm_phy_create(dev, NULL,
-						  &exynos_mipi_video_phy_ops);
-		if (IS_ERR(phy)) {
+										  &exynos_mipi_video_phy_ops);
+
+		if (IS_ERR(phy))
+		{
 			dev_err(dev, "failed to create PHY %d\n", i);
 			return PTR_ERR(phy);
 		}
@@ -357,12 +388,13 @@ static int exynos_mipi_video_phy_probe(struct platform_device *pdev)
 	}
 
 	phy_provider = devm_of_phy_provider_register(dev,
-					exynos_mipi_video_phy_xlate);
+				   exynos_mipi_video_phy_xlate);
 
 	return PTR_ERR_OR_ZERO(phy_provider);
 }
 
-static const struct of_device_id exynos_mipi_video_phy_of_match[] = {
+static const struct of_device_id exynos_mipi_video_phy_of_match[] =
+{
 	{
 		.compatible = "samsung,s5pv210-mipi-video-phy",
 		.data = &s5pv210_mipi_phy,
@@ -377,7 +409,8 @@ static const struct of_device_id exynos_mipi_video_phy_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, exynos_mipi_video_phy_of_match);
 
-static struct platform_driver exynos_mipi_video_phy_driver = {
+static struct platform_driver exynos_mipi_video_phy_driver =
+{
 	.probe	= exynos_mipi_video_phy_probe,
 	.driver = {
 		.of_match_table	= exynos_mipi_video_phy_of_match,

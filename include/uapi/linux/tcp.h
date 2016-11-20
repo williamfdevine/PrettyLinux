@@ -21,36 +21,37 @@
 #include <asm/byteorder.h>
 #include <linux/socket.h>
 
-struct tcphdr {
+struct tcphdr
+{
 	__be16	source;
 	__be16	dest;
 	__be32	seq;
 	__be32	ack_seq;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u16	res1:4,
-		doff:4,
-		fin:1,
-		syn:1,
-		rst:1,
-		psh:1,
-		ack:1,
-		urg:1,
-		ece:1,
-		cwr:1;
+	__u16	res1: 4,
+			doff: 4,
+			fin: 1,
+			syn: 1,
+			rst: 1,
+			psh: 1,
+			ack: 1,
+			urg: 1,
+			ece: 1,
+			cwr: 1;
 #elif defined(__BIG_ENDIAN_BITFIELD)
-	__u16	doff:4,
-		res1:4,
-		cwr:1,
-		ece:1,
-		urg:1,
-		ack:1,
-		psh:1,
-		rst:1,
-		syn:1,
-		fin:1;
+	__u16	doff: 4,
+			res1: 4,
+			cwr: 1,
+			ece: 1,
+			urg: 1,
+			ack: 1,
+			psh: 1,
+			rst: 1,
+			syn: 1,
+			fin: 1;
 #else
 #error	"Adjust your <asm/byteorder.h> defines"
-#endif	
+#endif
 	__be16	window;
 	__sum16	check;
 	__be16	urg_ptr;
@@ -61,14 +62,16 @@ struct tcphdr {
  *  (union is compatible to any of its members)
  *  This means this part of the code is -fstrict-aliasing safe now.
  */
-union tcp_word_hdr { 
+union tcp_word_hdr
+{
 	struct tcphdr hdr;
 	__be32 		  words[5];
-}; 
+};
 
-#define tcp_flag_word(tp) ( ((union tcp_word_hdr *)(tp))->words [3]) 
+#define tcp_flag_word(tp) ( ((union tcp_word_hdr *)(tp))->words [3])
 
-enum { 
+enum
+{
 	TCP_FLAG_CWR = __constant_cpu_to_be32(0x00800000),
 	TCP_FLAG_ECE = __constant_cpu_to_be32(0x00400000),
 	TCP_FLAG_URG = __constant_cpu_to_be32(0x00200000),
@@ -79,7 +82,7 @@ enum {
 	TCP_FLAG_FIN = __constant_cpu_to_be32(0x00010000),
 	TCP_RESERVED_BITS = __constant_cpu_to_be32(0x0F000000),
 	TCP_DATA_OFFSET = __constant_cpu_to_be32(0xF0000000)
-}; 
+};
 
 /*
  * TCP general constants
@@ -117,12 +120,14 @@ enum {
 #define TCP_SAVED_SYN		28	/* Get SYN headers recorded for connection */
 #define TCP_REPAIR_WINDOW	29	/* Get/set window parameters */
 
-struct tcp_repair_opt {
+struct tcp_repair_opt
+{
 	__u32	opt_code;
 	__u32	opt_val;
 };
 
-struct tcp_repair_window {
+struct tcp_repair_window
+{
 	__u32	snd_wl1;
 	__u32	snd_wnd;
 	__u32	max_window;
@@ -131,7 +136,8 @@ struct tcp_repair_window {
 	__u32	rcv_wup;
 };
 
-enum {
+enum
+{
 	TCP_NO_QUEUE,
 	TCP_RECV_QUEUE,
 	TCP_SEND_QUEUE,
@@ -146,7 +152,8 @@ enum {
 #define TCPI_OPT_ECN_SEEN	16 /* we received at least one packet with ECT */
 #define TCPI_OPT_SYN_DATA	32 /* SYN-ACK acked data in SYN sent or rcvd */
 
-enum tcp_ca_state {
+enum tcp_ca_state
+{
 	TCP_CA_Open = 0,
 #define TCPF_CA_Open	(1<<TCP_CA_Open)
 	TCP_CA_Disorder = 1,
@@ -159,7 +166,8 @@ enum tcp_ca_state {
 #define TCPF_CA_Loss	(1<<TCP_CA_Loss)
 };
 
-struct tcp_info {
+struct tcp_info
+{
 	__u8	tcpi_state;
 	__u8	tcpi_ca_state;
 	__u8	tcpi_retransmits;
@@ -167,7 +175,7 @@ struct tcp_info {
 	__u8	tcpi_backoff;
 	__u8	tcpi_options;
 	__u8	tcpi_snd_wscale : 4, tcpi_rcv_wscale : 4;
-	__u8	tcpi_delivery_rate_app_limited:1;
+	__u8	tcpi_delivery_rate_app_limited: 1;
 
 	__u32	tcpi_rto;
 	__u32	tcpi_ato;
@@ -219,7 +227,8 @@ struct tcp_info {
 /* for TCP_MD5SIG socket option */
 #define TCP_MD5SIG_MAXKEYLEN	80
 
-struct tcp_md5sig {
+struct tcp_md5sig
+{
 	struct __kernel_sockaddr_storage tcpm_addr;	/* address associated */
 	__u16	__tcpm_pad1;				/* zero */
 	__u16	tcpm_keylen;				/* key length */

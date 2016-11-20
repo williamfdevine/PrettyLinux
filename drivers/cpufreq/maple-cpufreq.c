@@ -60,7 +60,8 @@
 #define CPUFREQ_HIGH                  0
 #define CPUFREQ_LOW                   1
 
-static struct cpufreq_frequency_table maple_cpu_freqs[] = {
+static struct cpufreq_frequency_table maple_cpu_freqs[] =
+{
 	{0, CPUFREQ_HIGH,		0},
 	{0, CPUFREQ_LOW,		0},
 	{0, 0,				CPUFREQ_TABLE_END},
@@ -90,19 +91,26 @@ static int maple_scom_switch_freq(int speed_mode)
 	scom970_write(SCOM_PCR, PCR_HILO_SELECT | 0);
 	/* Set PCR low */
 	scom970_write(SCOM_PCR, PCR_HILO_SELECT |
-		      maple_pmode_data[speed_mode]);
+				  maple_pmode_data[speed_mode]);
 
 	/* Wait for completion */
-	for (to = 0; to < 10; to++) {
+	for (to = 0; to < 10; to++)
+	{
 		unsigned long psr = scom970_read(SCOM_PSR);
 
 		if ((psr & PSR_CMD_RECEIVED) == 0 &&
-		    (((psr >> PSR_CUR_SPEED_SHIFT) ^
-		      (maple_pmode_data[speed_mode] >> PCR_SPEED_SHIFT)) & 0x3)
-		    == 0)
+			(((psr >> PSR_CUR_SPEED_SHIFT) ^
+			  (maple_pmode_data[speed_mode] >> PCR_SPEED_SHIFT)) & 0x3)
+			== 0)
+		{
 			break;
+		}
+
 		if (psr & PSR_CMD_COMPLETED)
+		{
 			break;
+		}
+
 		udelay(100);
 	}
 
@@ -121,8 +129,11 @@ static int maple_scom_query_freq(void)
 
 	for (i = 0; i <= maple_pmode_max; i++)
 		if ((((psr >> PSR_CUR_SPEED_SHIFT) ^
-		      (maple_pmode_data[i] >> PCR_SPEED_SHIFT)) & 0x3) == 0)
+			  (maple_pmode_data[i] >> PCR_SPEED_SHIFT)) & 0x3) == 0)
+		{
 			break;
+		}
+
 	return i;
 }
 
@@ -131,7 +142,7 @@ static int maple_scom_query_freq(void)
  */
 
 static int maple_cpufreq_target(struct cpufreq_policy *policy,
-	unsigned int index)
+								unsigned int index)
 {
 	return maple_scom_switch_freq(index);
 }
@@ -146,7 +157,8 @@ static int maple_cpufreq_cpu_init(struct cpufreq_policy *policy)
 	return cpufreq_generic_init(policy, maple_cpu_freqs, 12000);
 }
 
-static struct cpufreq_driver maple_cpufreq_driver = {
+static struct cpufreq_driver maple_cpufreq_driver =
+{
 	.name		= "maple",
 	.flags		= CPUFREQ_CONST_LOOPS,
 	.init		= maple_cpufreq_cpu_init,
@@ -170,12 +182,16 @@ static int __init maple_cpufreq_init(void)
 	 * to ease merging of two drivers in future.
 	 */
 	if (!of_machine_is_compatible("Momentum,Maple") &&
-	    !of_machine_is_compatible("Momentum,Apache"))
+		!of_machine_is_compatible("Momentum,Apache"))
+	{
 		return 0;
+	}
 
 	/* Get first CPU node */
 	cpunode = of_cpu_device_node_get(0);
-	if (cpunode == NULL) {
+
+	if (cpunode == NULL)
+	{
 		pr_err("Can't find any CPU 0 node\n");
 		goto bail_noprops;
 	}
@@ -183,7 +199,9 @@ static int __init maple_cpufreq_init(void)
 	/* Check 970FX for now */
 	/* we actually don't care on which CPU to access PVR */
 	pvr_hi = PVR_VER(mfspr(SPRN_PVR));
-	if (pvr_hi != 0x3c && pvr_hi != 0x44) {
+
+	if (pvr_hi != 0x3c && pvr_hi != 0x44)
+	{
 		pr_err("Unsupported CPU version (%x)\n", pvr_hi);
 		goto bail_noprops;
 	}
@@ -195,10 +213,13 @@ static int __init maple_cpufreq_init(void)
 	 * so YMMV
 	 */
 	maple_pmode_data = of_get_property(cpunode, "power-mode-data", &psize);
-	if (!maple_pmode_data) {
+
+	if (!maple_pmode_data)
+	{
 		DBG("No power-mode-data !\n");
 		goto bail_noprops;
 	}
+
 	maple_pmode_max = psize / sizeof(u32) - 1;
 
 	/*
@@ -209,11 +230,15 @@ static int __init maple_cpufreq_init(void)
 	 * supporting anything else.
 	 */
 	valp = of_get_property(cpunode, "clock-frequency", NULL);
+
 	if (!valp)
+	{
 		return -ENODEV;
-	max_freq = (*valp)/1000;
+	}
+
+	max_freq = (*valp) / 1000;
 	maple_cpu_freqs[0].frequency = max_freq;
-	maple_cpu_freqs[1].frequency = max_freq/2;
+	maple_cpu_freqs[1].frequency = max_freq / 2;
 
 	/* Force apply current frequency to make sure everything is in
 	 * sync (voltage is right for example). Firmware may leave us with
@@ -225,9 +250,9 @@ static int __init maple_cpufreq_init(void)
 
 	pr_info("Registering Maple CPU frequency driver\n");
 	pr_info("Low: %d Mhz, High: %d Mhz, Cur: %d MHz\n",
-		maple_cpu_freqs[1].frequency/1000,
-		maple_cpu_freqs[0].frequency/1000,
-		maple_cpu_freqs[maple_pmode_cur].frequency/1000);
+			maple_cpu_freqs[1].frequency / 1000,
+			maple_cpu_freqs[0].frequency / 1000,
+			maple_cpu_freqs[maple_pmode_cur].frequency / 1000);
 
 	rc = cpufreq_register_driver(&maple_cpufreq_driver);
 

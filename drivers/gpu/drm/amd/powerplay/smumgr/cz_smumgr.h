@@ -31,7 +31,8 @@
 #define CZ_SCRATCH_SIZE_SDMA_METADATA           1024
 #define CZ_SCRATCH_SIZE_IH                      ((2*256+1)*4)
 
-enum cz_scratch_entry {
+enum cz_scratch_entry
+{
 	CZ_SCRATCH_ENTRY_UCODE_ID_SDMA0 = 0,
 	CZ_SCRATCH_ENTRY_UCODE_ID_SDMA1,
 	CZ_SCRATCH_ENTRY_UCODE_ID_CP_CE,
@@ -56,7 +57,8 @@ enum cz_scratch_entry {
 	CZ_SCRATCH_ENTRY_SMU8_FUSION_CLKTABLE
 };
 
-struct cz_buffer_entry {
+struct cz_buffer_entry
+{
 	uint32_t data_size;
 	uint32_t mc_addr_low;
 	uint32_t mc_addr_high;
@@ -65,17 +67,20 @@ struct cz_buffer_entry {
 	unsigned long handle; /* as bo handle used when release bo */
 };
 
-struct cz_register_index_data_pair {
+struct cz_register_index_data_pair
+{
 	uint32_t offset;
 	uint32_t value;
 };
 
-struct cz_ih_meta_data {
+struct cz_ih_meta_data
+{
 	uint32_t command;
 	struct cz_register_index_data_pair register_index_value_pair[1];
 };
 
-struct cz_smumgr {
+struct cz_smumgr
+{
 	uint8_t driver_buffer_length;
 	uint8_t scratch_buffer_length;
 	uint16_t toc_entry_used_count;

@@ -15,7 +15,8 @@
 #define UASP_SS_EP_COMP_LOG_STREAMS 4
 #define UASP_SS_EP_COMP_NUM_STREAMS (1 << UASP_SS_EP_COMP_LOG_STREAMS)
 
-enum {
+enum
+{
 	USB_G_STR_INT_UAS = 0,
 	USB_G_STR_INT_BBB,
 };
@@ -25,11 +26,13 @@ enum {
 
 #define USB_G_DEFAULT_SESSION_TAGS	128
 
-struct tcm_usbg_nexus {
+struct tcm_usbg_nexus
+{
 	struct se_session *tvn_se_sess;
 };
 
-struct usbg_tpg {
+struct usbg_tpg
+{
 	struct mutex tpg_mutex;
 	/* SAS port target portal group tag for TCM */
 	u16 tport_tpgt;
@@ -45,7 +48,8 @@ struct usbg_tpg {
 	struct usb_function_instance *fi;
 };
 
-struct usbg_tport {
+struct usbg_tport
+{
 	/* Binary World Wide unique Port Name for SAS Target port */
 	u64 tport_wwpn;
 	/* ASCII formatted WWPN for SAS Target port */
@@ -54,7 +58,8 @@ struct usbg_tport {
 	struct se_wwn tport_wwn;
 };
 
-enum uas_state {
+enum uas_state
+{
 	UASP_SEND_DATA,
 	UASP_RECEIVE_DATA,
 	UASP_SEND_STATUS,
@@ -62,7 +67,8 @@ enum uas_state {
 };
 
 #define USBG_MAX_CMD    64
-struct usbg_cmd {
+struct usbg_cmd
+{
 	/* common */
 	u8 cmd_buf[USBG_MAX_CMD];
 	u32 data_len;
@@ -84,27 +90,31 @@ struct usbg_cmd {
 	/* BOT only */
 	__le32 bot_tag;
 	unsigned int csw_code;
-	unsigned is_read:1;
+	unsigned is_read: 1;
 
 };
 
-struct uas_stream {
+struct uas_stream
+{
 	struct usb_request	*req_in;
 	struct usb_request	*req_out;
 	struct usb_request	*req_status;
 };
 
-struct usbg_cdb {
+struct usbg_cdb
+{
 	struct usb_request	*req;
 	void			*buf;
 };
 
-struct bot_status {
+struct bot_status
+{
 	struct usb_request	*req;
 	struct bulk_cs_wrap	csw;
 };
 
-struct f_uas {
+struct f_uas
+{
 	struct usbg_tpg		*tpg;
 	struct usb_function	function;
 	u16			iface;

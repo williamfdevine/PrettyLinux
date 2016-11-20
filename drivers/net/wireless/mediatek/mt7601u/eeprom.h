@@ -22,7 +22,8 @@ struct mt7601u_dev;
 
 #define MT7601U_DEFAULT_TX_POWER		6
 
-enum mt76_eeprom_field {
+enum mt76_eeprom_field
+{
 	MT_EE_CHIP_ID =				0x00,
 	MT_EE_VERSION_FAE =			0x02,
 	MT_EE_VERSION_EE =			0x03,
@@ -70,35 +71,40 @@ enum mt76_eeprom_field {
 #define MT_EE_NIC_CONF_2_COEX_METHOD		GENMASK(15, 13)
 
 #define MT_EE_TX_POWER_BYRATE(i)		(MT_EE_TX_POWER_BYRATE_BASE + \
-						 (i) * 4)
+		(i) * 4)
 
 #define MT_EFUSE_USAGE_MAP_SIZE			(MT_EE_USAGE_MAP_END -	\
-						 MT_EE_USAGE_MAP_START + 1)
+		MT_EE_USAGE_MAP_START + 1)
 
-enum mt7601u_eeprom_access_modes {
+enum mt7601u_eeprom_access_modes
+{
 	MT_EE_READ = 0,
 	MT_EE_PHYSICAL_READ = 1,
 };
 
-struct power_per_rate  {
+struct power_per_rate
+{
 	u8 raw;  /* validated s6 value */
 	s8 bw20; /* sign-extended int */
 	s8 bw40; /* sign-extended int */
 };
 
 /* Power per rate - one value per two rates */
-struct mt7601u_rate_power {
+struct mt7601u_rate_power
+{
 	struct power_per_rate cck[2];
 	struct power_per_rate ofdm[4];
 	struct power_per_rate ht[4];
 };
 
-struct reg_channel_bounds {
+struct reg_channel_bounds
+{
 	u8 start;
 	u8 num;
 };
 
-struct mt7601u_eeprom_params {
+struct mt7601u_eeprom_params
+{
 	bool tssi_enabled;
 	u8 rf_freq_off;
 	s8 rssi_offset[2];
@@ -110,7 +116,8 @@ struct mt7601u_eeprom_params {
 	s8 real_cck_bw20[2];
 
 	/* TSSI stuff - only with internal TX ALC */
-	struct tssi_data {
+	struct tssi_data
+	{
 		int tx0_delta_offset;
 		u8 slope;
 		u8 offset[3];
@@ -132,8 +139,11 @@ static inline int s6_to_int(u32 reg)
 	int s6;
 
 	s6 = s6_validate(reg);
+
 	if (s6 & BIT(5))
+	{
 		s6 -= BIT(6);
+	}
 
 	return s6;
 }
@@ -141,9 +151,14 @@ static inline int s6_to_int(u32 reg)
 static inline u32 int_to_s6(int val)
 {
 	if (val < -0x20)
+	{
 		return 0x20;
+	}
+
 	if (val > 0x1f)
+	{
 		return 0x1f;
+	}
 
 	return val & 0x3f;
 }

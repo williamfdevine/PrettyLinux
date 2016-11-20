@@ -28,12 +28,13 @@
 #undef DEBUG
 
 #ifdef DEBUG
-#define DBG(args...)	printk(args)
+	#define DBG(args...)	printk(args)
 #else
-#define DBG(args...)	do { } while(0)
+	#define DBG(args...)	do { } while(0)
 #endif
 
-struct wf_lm75_sensor {
+struct wf_lm75_sensor
+{
 	int			ds1775 : 1;
 	int			inited : 1;
 	struct i2c_client	*i2c;
@@ -47,14 +48,17 @@ static int wf_lm75_get(struct wf_sensor *sr, s32 *value)
 	s32 data;
 
 	if (lm->i2c == NULL)
+	{
 		return -ENODEV;
+	}
 
 	/* Init chip if necessary */
-	if (!lm->inited) {
+	if (!lm->inited)
+	{
 		u8 cfg_new, cfg = (u8)i2c_smbus_read_byte_data(lm->i2c, 1);
 
 		DBG("wf_lm75: Initializing %s, cfg was: %02x\n",
-		    sr->name, cfg);
+			sr->name, cfg);
 
 		/* clear shutdown bit, keep other settings as left by
 		 * the firmware for now
@@ -82,24 +86,27 @@ static void wf_lm75_release(struct wf_sensor *sr)
 	kfree(lm);
 }
 
-static struct wf_sensor_ops wf_lm75_ops = {
+static struct wf_sensor_ops wf_lm75_ops =
+{
 	.get_value	= wf_lm75_get,
 	.release	= wf_lm75_release,
 	.owner		= THIS_MODULE,
 };
 
 static int wf_lm75_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
-{	
+						 const struct i2c_device_id *id)
+{
 	struct wf_lm75_sensor *lm;
 	int rc, ds1775 = id->driver_data;
 	const char *name, *loc;
 
 	DBG("wf_lm75: creating  %s device at address 0x%02x\n",
-	    ds1775 ? "ds1775" : "lm75", client->addr);
+		ds1775 ? "ds1775" : "lm75", client->addr);
 
 	loc = of_get_property(client->dev.of_node, "hwsensor-location", NULL);
-	if (!loc) {
+
+	if (!loc)
+	{
 		dev_warn(&client->dev, "Missing hwsensor-location property!\n");
 		return -ENXIO;
 	}
@@ -109,26 +116,45 @@ static int wf_lm75_probe(struct i2c_client *client,
 	 * Add more entries below as you deal with more setups
 	 */
 	if (!strcmp(loc, "Hard drive") || !strcmp(loc, "DRIVE BAY"))
+	{
 		name = "hd-temp";
+	}
 	else if (!strcmp(loc, "Incoming Air Temp"))
+	{
 		name = "incoming-air-temp";
+	}
 	else if (!strcmp(loc, "ODD Temp"))
+	{
 		name = "optical-drive-temp";
+	}
 	else if (!strcmp(loc, "HD Temp"))
+	{
 		name = "hard-drive-temp";
+	}
 	else if (!strcmp(loc, "PCI SLOTS"))
+	{
 		name = "slots-temp";
+	}
 	else if (!strcmp(loc, "CPU A INLET"))
+	{
 		name = "cpu-inlet-temp-0";
+	}
 	else if (!strcmp(loc, "CPU B INLET"))
+	{
 		name = "cpu-inlet-temp-1";
+	}
 	else
+	{
 		return -ENXIO;
- 	
+	}
+
 
 	lm = kzalloc(sizeof(struct wf_lm75_sensor), GFP_KERNEL);
+
 	if (lm == NULL)
+	{
 		return -ENODEV;
+	}
 
 	lm->inited = 0;
 	lm->ds1775 = ds1775;
@@ -138,8 +164,12 @@ static int wf_lm75_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, lm);
 
 	rc = wf_register_sensor(&lm->sens);
+
 	if (rc)
+	{
 		kfree(lm);
+	}
+
 	return rc;
 }
 
@@ -158,14 +188,16 @@ static int wf_lm75_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id wf_lm75_id[] = {
+static const struct i2c_device_id wf_lm75_id[] =
+{
 	{ "MAC,lm75", 0 },
 	{ "MAC,ds1775", 1 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, wf_lm75_id);
 
-static struct i2c_driver wf_lm75_driver = {
+static struct i2c_driver wf_lm75_driver =
+{
 	.driver = {
 		.name	= "wf_lm75",
 	},

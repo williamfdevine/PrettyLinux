@@ -22,7 +22,9 @@ extern void vdso_init_from_auxv(void *auxv);
 int main(int argc, char **argv)
 {
 	unsigned long sysinfo_ehdr = getauxval(AT_SYSINFO_EHDR);
-	if (!sysinfo_ehdr) {
+
+	if (!sysinfo_ehdr)
+	{
 		printf("AT_SYSINFO_EHDR is not present!\n");
 		return 0;
 	}
@@ -30,21 +32,26 @@ int main(int argc, char **argv)
 	vdso_init_from_sysinfo_ehdr(getauxval(AT_SYSINFO_EHDR));
 
 	/* Find gettimeofday. */
-	typedef long (*gtod_t)(struct timeval *tv, struct timezone *tz);
+	typedef long (*gtod_t)(struct timeval * tv, struct timezone * tz);
 	gtod_t gtod = (gtod_t)vdso_sym("LINUX_2.6", "__vdso_gettimeofday");
 
-	if (!gtod) {
+	if (!gtod)
+	{
 		printf("Could not find __vdso_gettimeofday\n");
 		return 1;
 	}
 
 	struct timeval tv;
+
 	long ret = gtod(&tv, 0);
 
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		printf("The time is %lld.%06lld\n",
-		       (long long)tv.tv_sec, (long long)tv.tv_usec);
-	} else {
+			   (long long)tv.tv_sec, (long long)tv.tv_usec);
+	}
+	else
+	{
 		printf("__vdso_gettimeofday failed\n");
 	}
 

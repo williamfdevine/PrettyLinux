@@ -26,25 +26,25 @@
 #define REG_VAL(o, s, w) { .offset = o, .shift = s, .width = w, }
 
 #define AON_VAL(o, pw, ps, is) { .offset = o, .pwr_width = pw, \
-	.pwr_shift = ps, .iso_shift = is }
+			.pwr_shift = ps, .iso_shift = is }
 
 #define SW_CTRL_VAL(o, s) { .offset = o, .shift = s, }
 
 #define ASIU_DIV_VAL(o, es, hs, hw, ls, lw) \
-		{ .offset = o, .en_shift = es, .high_shift = hs, \
-		.high_width = hw, .low_shift = ls, .low_width = lw }
+	{ .offset = o, .en_shift = es, .high_shift = hs, \
+							   .high_width = hw, .low_shift = ls, .low_width = lw }
 
 #define RESET_VAL(o, rs, prs) { .offset = o, .reset_shift = rs, \
-	.p_reset_shift = prs }
+			.p_reset_shift = prs }
 
 #define DF_VAL(o, kis, kiw, kps, kpw, kas, kaw) { .offset = o, .ki_shift = kis,\
-	.ki_width = kiw, .kp_shift = kps, .kp_width = kpw, .ka_shift = kas,    \
-	.ka_width = kaw }
+			.ki_width = kiw, .kp_shift = kps, .kp_width = kpw, .ka_shift = kas,    \
+										 .ka_width = kaw }
 
 #define VCO_CTRL_VAL(uo, lo) { .u_offset = uo, .l_offset = lo }
 
 #define ENABLE_VAL(o, es, hs, bs) { .offset = o, .enable_shift = es, \
-	.hold_shift = hs, .bypass_shift = bs }
+			.hold_shift = hs, .bypass_shift = bs }
 
 #define ASIU_GATE_VAL(o, es) { .offset = o, .en_shift = es }
 
@@ -54,9 +54,10 @@ static void __init cygnus_armpll_init(struct device_node *node)
 }
 CLK_OF_DECLARE(cygnus_armpll, "brcm,cygnus-armpll", cygnus_armpll_init);
 
-static const struct iproc_pll_ctrl genpll = {
+static const struct iproc_pll_ctrl genpll =
+{
 	.flags = IPROC_CLK_AON | IPROC_CLK_PLL_HAS_NDIV_FRAC |
-		IPROC_CLK_PLL_NEEDS_SW_CFG,
+	IPROC_CLK_PLL_NEEDS_SW_CFG,
 	.aon = AON_VAL(0x0, 2, 1, 0),
 	.reset = RESET_VAL(0x0, 11, 10),
 	.dig_filter = DF_VAL(0x0, 4, 3, 0, 4, 7, 3),
@@ -68,7 +69,8 @@ static const struct iproc_pll_ctrl genpll = {
 	.status = REG_VAL(0x28, 12, 1),
 };
 
-static const struct iproc_clk_ctrl genpll_clk[] = {
+static const struct iproc_clk_ctrl genpll_clk[] =
+{
 	[BCM_CYGNUS_GENPLL_AXI21_CLK] = {
 		.channel = BCM_CYGNUS_GENPLL_AXI21_CLK,
 		.flags = IPROC_CLK_AON,
@@ -110,11 +112,12 @@ static const struct iproc_clk_ctrl genpll_clk[] = {
 static void __init cygnus_genpll_clk_init(struct device_node *node)
 {
 	iproc_pll_clk_setup(node, &genpll, NULL, 0, genpll_clk,
-			    ARRAY_SIZE(genpll_clk));
+						ARRAY_SIZE(genpll_clk));
 }
 CLK_OF_DECLARE(cygnus_genpll, "brcm,cygnus-genpll", cygnus_genpll_clk_init);
 
-static const struct iproc_pll_ctrl lcpll0 = {
+static const struct iproc_pll_ctrl lcpll0 =
+{
 	.flags = IPROC_CLK_AON | IPROC_CLK_PLL_NEEDS_SW_CFG,
 	.aon = AON_VAL(0x0, 2, 5, 4),
 	.reset = RESET_VAL(0x0, 31, 30),
@@ -126,7 +129,8 @@ static const struct iproc_pll_ctrl lcpll0 = {
 	.status = REG_VAL(0x18, 12, 1),
 };
 
-static const struct iproc_clk_ctrl lcpll0_clk[] = {
+static const struct iproc_clk_ctrl lcpll0_clk[] =
+{
 	[BCM_CYGNUS_LCPLL0_PCIE_PHY_REF_CLK] = {
 		.channel = BCM_CYGNUS_LCPLL0_PCIE_PHY_REF_CLK,
 		.flags = IPROC_CLK_AON,
@@ -168,14 +172,15 @@ static const struct iproc_clk_ctrl lcpll0_clk[] = {
 static void __init cygnus_lcpll0_clk_init(struct device_node *node)
 {
 	iproc_pll_clk_setup(node, &lcpll0, NULL, 0, lcpll0_clk,
-			    ARRAY_SIZE(lcpll0_clk));
+						ARRAY_SIZE(lcpll0_clk));
 }
 CLK_OF_DECLARE(cygnus_lcpll0, "brcm,cygnus-lcpll0", cygnus_lcpll0_clk_init);
 
 /*
  * MIPI PLL VCO frequency parameter table
  */
-static const struct iproc_pll_vco_param mipipll_vco_params[] = {
+static const struct iproc_pll_vco_param mipipll_vco_params[] =
+{
 	/* rate (Hz) ndiv_int ndiv_frac pdiv */
 	{ 750000000UL,   30,     0,        1 },
 	{ 1000000000UL,  40,     0,        1 },
@@ -190,9 +195,10 @@ static const struct iproc_pll_vco_param mipipll_vco_params[] = {
 	{ 3150000000UL,  126,    0,        1 },
 };
 
-static const struct iproc_pll_ctrl mipipll = {
+static const struct iproc_pll_ctrl mipipll =
+{
 	.flags = IPROC_CLK_PLL_ASIU | IPROC_CLK_PLL_HAS_NDIV_FRAC |
-		 IPROC_CLK_NEEDS_READ_BACK,
+	IPROC_CLK_NEEDS_READ_BACK,
 	.aon = AON_VAL(0x0, 4, 17, 16),
 	.asiu = ASIU_GATE_VAL(0x0, 3),
 	.reset = RESET_VAL(0x0, 11, 10),
@@ -204,7 +210,8 @@ static const struct iproc_pll_ctrl mipipll = {
 	.status = REG_VAL(0x28, 12, 1),
 };
 
-static const struct iproc_clk_ctrl mipipll_clk[] = {
+static const struct iproc_clk_ctrl mipipll_clk[] =
+{
 	[BCM_CYGNUS_MIPIPLL_CH0_UNUSED] = {
 		.channel = BCM_CYGNUS_MIPIPLL_CH0_UNUSED,
 		.flags = IPROC_CLK_NEEDS_READ_BACK,
@@ -246,18 +253,20 @@ static const struct iproc_clk_ctrl mipipll_clk[] = {
 static void __init cygnus_mipipll_clk_init(struct device_node *node)
 {
 	iproc_pll_clk_setup(node, &mipipll, mipipll_vco_params,
-			    ARRAY_SIZE(mipipll_vco_params), mipipll_clk,
-			    ARRAY_SIZE(mipipll_clk));
+						ARRAY_SIZE(mipipll_vco_params), mipipll_clk,
+						ARRAY_SIZE(mipipll_clk));
 }
 CLK_OF_DECLARE(cygnus_mipipll, "brcm,cygnus-mipipll", cygnus_mipipll_clk_init);
 
-static const struct iproc_asiu_div asiu_div[] = {
+static const struct iproc_asiu_div asiu_div[] =
+{
 	[BCM_CYGNUS_ASIU_KEYPAD_CLK] = ASIU_DIV_VAL(0x0, 31, 16, 10, 0, 10),
 	[BCM_CYGNUS_ASIU_ADC_CLK] = ASIU_DIV_VAL(0x4, 31, 16, 10, 0, 10),
 	[BCM_CYGNUS_ASIU_PWM_CLK] = ASIU_DIV_VAL(0x8, 31, 16, 10, 0, 10),
 };
 
-static const struct iproc_asiu_gate asiu_gate[] = {
+static const struct iproc_asiu_gate asiu_gate[] =
+{
 	[BCM_CYGNUS_ASIU_KEYPAD_CLK] = ASIU_GATE_VAL(0x0, 7),
 	[BCM_CYGNUS_ASIU_ADC_CLK] = ASIU_GATE_VAL(0x0, 9),
 	[BCM_CYGNUS_ASIU_PWM_CLK] = ASIU_GATE_VAL(IPROC_CLK_INVALID_OFFSET, 0),
@@ -277,15 +286,17 @@ CLK_OF_DECLARE(cygnus_asiu_clk, "brcm,cygnus-asiu-clk", cygnus_asiu_init);
  *
  * On Cygnus, parent is the 25MHz oscillator
  */
-static const struct iproc_pll_vco_param audiopll_vco_params[] = {
+static const struct iproc_pll_vco_param audiopll_vco_params[] =
+{
 	/* rate (Hz) ndiv_int ndiv_frac pdiv */
 	{ 1354750204UL,  54,     199238,   1 },
 	{ 1769470191UL,  70,     816639,   1 },
 };
 
-static const struct iproc_pll_ctrl audiopll = {
+static const struct iproc_pll_ctrl audiopll =
+{
 	.flags = IPROC_CLK_PLL_NEEDS_SW_CFG | IPROC_CLK_PLL_HAS_NDIV_FRAC |
-		IPROC_CLK_PLL_USER_MODE_ON | IPROC_CLK_PLL_RESET_ACTIVE_LOW,
+	IPROC_CLK_PLL_USER_MODE_ON | IPROC_CLK_PLL_RESET_ACTIVE_LOW,
 	.reset = RESET_VAL(0x5c, 0, 1),
 	.dig_filter = DF_VAL(0x48, 0, 3, 6, 4, 3, 3),
 	.sw_ctrl = SW_CTRL_VAL(0x4, 0),
@@ -297,11 +308,12 @@ static const struct iproc_pll_ctrl audiopll = {
 	.macro_mode = REG_VAL(0x0, 0, 3),
 };
 
-static const struct iproc_clk_ctrl audiopll_clk[] = {
+static const struct iproc_clk_ctrl audiopll_clk[] =
+{
 	[BCM_CYGNUS_AUDIOPLL_CH0] = {
 		.channel = BCM_CYGNUS_AUDIOPLL_CH0,
 		.flags = IPROC_CLK_AON |
-				IPROC_CLK_MCLK_DIV_BY_2,
+		IPROC_CLK_MCLK_DIV_BY_2,
 		.enable = ENABLE_VAL(0x14, 8, 10, 9),
 		.mdiv = REG_VAL(0x14, 0, 8),
 	},
@@ -322,8 +334,8 @@ static const struct iproc_clk_ctrl audiopll_clk[] = {
 static void __init cygnus_audiopll_clk_init(struct device_node *node)
 {
 	iproc_pll_clk_setup(node, &audiopll, audiopll_vco_params,
-			    ARRAY_SIZE(audiopll_vco_params), audiopll_clk,
-			    ARRAY_SIZE(audiopll_clk));
+						ARRAY_SIZE(audiopll_vco_params), audiopll_clk,
+						ARRAY_SIZE(audiopll_clk));
 }
 CLK_OF_DECLARE(cygnus_audiopll, "brcm,cygnus-audiopll",
-			cygnus_audiopll_clk_init);
+			   cygnus_audiopll_clk_init);

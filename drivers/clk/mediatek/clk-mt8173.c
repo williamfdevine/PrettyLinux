@@ -30,7 +30,8 @@
 
 static DEFINE_SPINLOCK(mt8173_clk_lock);
 
-static const struct mtk_fixed_clk fixed_clks[] __initconst = {
+static const struct mtk_fixed_clk fixed_clks[] __initconst =
+{
 	FIXED_CLK(CLK_TOP_CLKPH_MCK_O, "clkph_mck_o", "clk26m", DUMMY_RATE),
 	FIXED_CLK(CLK_TOP_USB_SYSPLL_125M, "usb_syspll_125m", "clk26m", 125 * MHZ),
 	FIXED_CLK(CLK_TOP_DSI0_DIG, "dsi0_dig", "clk26m", DUMMY_RATE),
@@ -39,7 +40,8 @@ static const struct mtk_fixed_clk fixed_clks[] __initconst = {
 	FIXED_CLK(CLK_TOP_LVDS_CTS, "lvds_cts", "lvdspll", DUMMY_RATE),
 };
 
-static const struct mtk_fixed_factor top_divs[] __initconst = {
+static const struct mtk_fixed_factor top_divs[] __initconst =
+{
 	FACTOR(CLK_TOP_ARMCA7PLL_754M, "armca7pll_754m", "armca7pll", 1, 2),
 	FACTOR(CLK_TOP_ARMCA7PLL_502M, "armca7pll_502m", "armca7pll", 1, 3),
 
@@ -135,7 +137,8 @@ static const struct mtk_fixed_factor top_divs[] __initconst = {
 	FACTOR(CLK_TOP_VENCPLL_D4, "vencpll_d4", "vencpll", 1, 4),
 };
 
-static const char * const axi_parents[] __initconst = {
+static const char *const axi_parents[] __initconst =
+{
 	"clk26m",
 	"syspll1_d2",
 	"syspll_d5",
@@ -146,17 +149,20 @@ static const char * const axi_parents[] __initconst = {
 	"dmpll_d4"
 };
 
-static const char * const mem_parents[] __initconst = {
+static const char *const mem_parents[] __initconst =
+{
 	"clk26m",
 	"dmpll_ck"
 };
 
-static const char * const ddrphycfg_parents[] __initconst = {
+static const char *const ddrphycfg_parents[] __initconst =
+{
 	"clk26m",
 	"syspll1_d8"
 };
 
-static const char * const mm_parents[] __initconst = {
+static const char *const mm_parents[] __initconst =
+{
 	"clk26m",
 	"vencpll_d2",
 	"main_h364m",
@@ -168,14 +174,16 @@ static const char * const mm_parents[] __initconst = {
 	"dmpll_d2"
 };
 
-static const char * const pwm_parents[] __initconst = {
+static const char *const pwm_parents[] __initconst =
+{
 	"clk26m",
 	"univpll2_d4",
 	"univpll3_d2",
 	"univpll1_d4"
 };
 
-static const char * const vdec_parents[] __initconst = {
+static const char *const vdec_parents[] __initconst =
+{
 	"clk26m",
 	"vcodecpll_ck",
 	"tvdpll_445p5m",
@@ -188,7 +196,8 @@ static const char * const vdec_parents[] __initconst = {
 	"dmpll_d4"
 };
 
-static const char * const venc_parents[] __initconst = {
+static const char *const venc_parents[] __initconst =
+{
 	"clk26m",
 	"vcodecpll_ck",
 	"tvdpll_445p5m",
@@ -201,7 +210,8 @@ static const char * const venc_parents[] __initconst = {
 	"dmpll_d4"
 };
 
-static const char * const mfg_parents[] __initconst = {
+static const char *const mfg_parents[] __initconst =
+{
 	"clk26m",
 	"mmpll_ck",
 	"dmpll_ck",
@@ -220,7 +230,8 @@ static const char * const mfg_parents[] __initconst = {
 	"univpll2_d2"
 };
 
-static const char * const camtg_parents[] __initconst = {
+static const char *const camtg_parents[] __initconst =
+{
 	"clk26m",
 	"univpll_d26",
 	"univpll2_d2",
@@ -229,12 +240,14 @@ static const char * const camtg_parents[] __initconst = {
 	"univpll1_d4"
 };
 
-static const char * const uart_parents[] __initconst = {
+static const char *const uart_parents[] __initconst =
+{
 	"clk26m",
 	"univpll2_d8"
 };
 
-static const char * const spi_parents[] __initconst = {
+static const char *const spi_parents[] __initconst =
+{
 	"clk26m",
 	"syspll3_d2",
 	"syspll1_d4",
@@ -244,20 +257,23 @@ static const char * const spi_parents[] __initconst = {
 	"univpll1_d8"
 };
 
-static const char * const usb20_parents[] __initconst = {
+static const char *const usb20_parents[] __initconst =
+{
 	"clk26m",
 	"univpll1_d8",
 	"univpll3_d4"
 };
 
-static const char * const usb30_parents[] __initconst = {
+static const char *const usb30_parents[] __initconst =
+{
 	"clk26m",
 	"univpll3_d2",
 	"usb_syspll_125m",
 	"univpll2_d4"
 };
 
-static const char * const msdc50_0_h_parents[] __initconst = {
+static const char *const msdc50_0_h_parents[] __initconst =
+{
 	"clk26m",
 	"syspll1_d2",
 	"syspll2_d2",
@@ -266,7 +282,8 @@ static const char * const msdc50_0_h_parents[] __initconst = {
 	"univpll1_d4"
 };
 
-static const char * const msdc50_0_parents[] __initconst = {
+static const char *const msdc50_0_parents[] __initconst =
+{
 	"clk26m",
 	"msdcpll_ck",
 	"msdcpll_d2",
@@ -284,7 +301,8 @@ static const char * const msdc50_0_parents[] __initconst = {
 	"msdcpll2_d4"
 };
 
-static const char * const msdc30_1_parents[] __initconst = {
+static const char *const msdc30_1_parents[] __initconst =
+{
 	"clk26m",
 	"univpll2_d2",
 	"msdcpll_d4",
@@ -295,7 +313,8 @@ static const char * const msdc30_1_parents[] __initconst = {
 	"vencpll_d4"
 };
 
-static const char * const msdc30_2_parents[] __initconst = {
+static const char *const msdc30_2_parents[] __initconst =
+{
 	"clk26m",
 	"univpll2_d2",
 	"msdcpll_d4",
@@ -306,7 +325,8 @@ static const char * const msdc30_2_parents[] __initconst = {
 	"vencpll_d2"
 };
 
-static const char * const msdc30_3_parents[] __initconst = {
+static const char *const msdc30_3_parents[] __initconst =
+{
 	"clk26m",
 	"msdcpll2_ck",
 	"msdcpll2_d2",
@@ -323,14 +343,16 @@ static const char * const msdc30_3_parents[] __initconst = {
 	"msdcpll_d4"
 };
 
-static const char * const audio_parents[] __initconst = {
+static const char *const audio_parents[] __initconst =
+{
 	"clk26m",
 	"syspll3_d4",
 	"syspll4_d4",
 	"syspll1_d16"
 };
 
-static const char * const aud_intbus_parents[] __initconst = {
+static const char *const aud_intbus_parents[] __initconst =
+{
 	"clk26m",
 	"syspll1_d4",
 	"syspll4_d2",
@@ -340,7 +362,8 @@ static const char * const aud_intbus_parents[] __initconst = {
 	"dmpll_d8"
 };
 
-static const char * const pmicspi_parents[] __initconst = {
+static const char *const pmicspi_parents[] __initconst =
+{
 	"clk26m",
 	"syspll1_d8",
 	"syspll3_d4",
@@ -351,7 +374,8 @@ static const char * const pmicspi_parents[] __initconst = {
 	"dmpll_d16"
 };
 
-static const char * const scp_parents[] __initconst = {
+static const char *const scp_parents[] __initconst =
+{
 	"clk26m",
 	"syspll1_d2",
 	"univpll_d5",
@@ -360,14 +384,16 @@ static const char * const scp_parents[] __initconst = {
 	"dmpll_d4"
 };
 
-static const char * const atb_parents[] __initconst = {
+static const char *const atb_parents[] __initconst =
+{
 	"clk26m",
 	"syspll1_d2",
 	"univpll_d5",
 	"dmpll_d2"
 };
 
-static const char * const venc_lt_parents[] __initconst = {
+static const char *const venc_lt_parents[] __initconst =
+{
 	"clk26m",
 	"univpll_d3",
 	"vcodecpll_ck",
@@ -382,7 +408,8 @@ static const char * const venc_lt_parents[] __initconst = {
 	"dmpll_ck"
 };
 
-static const char * const dpi0_parents[] __initconst = {
+static const char *const dpi0_parents[] __initconst =
+{
 	"clk26m",
 	"tvdpll_d2",
 	"tvdpll_d4",
@@ -392,13 +419,15 @@ static const char * const dpi0_parents[] __initconst = {
 	"tvdpll_d16"
 };
 
-static const char * const irda_parents[] __initconst = {
+static const char *const irda_parents[] __initconst =
+{
 	"clk26m",
 	"univpll2_d4",
 	"syspll2_d4"
 };
 
-static const char * const cci400_parents[] __initconst = {
+static const char *const cci400_parents[] __initconst =
+{
 	"clk26m",
 	"vencpll_ck",
 	"armca7pll_754m",
@@ -409,41 +438,47 @@ static const char * const cci400_parents[] __initconst = {
 	"dmpll_ck"
 };
 
-static const char * const aud_1_parents[] __initconst = {
+static const char *const aud_1_parents[] __initconst =
+{
 	"clk26m",
 	"apll1_ck",
 	"univpll2_d4",
 	"univpll2_d8"
 };
 
-static const char * const aud_2_parents[] __initconst = {
+static const char *const aud_2_parents[] __initconst =
+{
 	"clk26m",
 	"apll2_ck",
 	"univpll2_d4",
 	"univpll2_d8"
 };
 
-static const char * const mem_mfg_in_parents[] __initconst = {
+static const char *const mem_mfg_in_parents[] __initconst =
+{
 	"clk26m",
 	"mmpll_ck",
 	"dmpll_ck",
 	"clk26m"
 };
 
-static const char * const axi_mfg_in_parents[] __initconst = {
+static const char *const axi_mfg_in_parents[] __initconst =
+{
 	"clk26m",
 	"axi_sel",
 	"dmpll_d2"
 };
 
-static const char * const scam_parents[] __initconst = {
+static const char *const scam_parents[] __initconst =
+{
 	"clk26m",
 	"syspll3_d2",
 	"univpll2_d4",
 	"dmpll_d4"
 };
 
-static const char * const spinfi_ifr_parents[] __initconst = {
+static const char *const spinfi_ifr_parents[] __initconst =
+{
 	"clk26m",
 	"univpll2_d8",
 	"univpll3_d4",
@@ -454,14 +489,16 @@ static const char * const spinfi_ifr_parents[] __initconst = {
 	"univpll1_d4"
 };
 
-static const char * const hdmi_parents[] __initconst = {
+static const char *const hdmi_parents[] __initconst =
+{
 	"clk26m",
 	"hdmitx_dig_cts",
 	"hdmitxpll_d2",
 	"hdmitxpll_d3"
 };
 
-static const char * const dpilvds_parents[] __initconst = {
+static const char *const dpilvds_parents[] __initconst =
+{
 	"clk26m",
 	"lvdspll",
 	"lvdspll_d2",
@@ -470,7 +507,8 @@ static const char * const dpilvds_parents[] __initconst = {
 	"fpc_ck"
 };
 
-static const char * const msdc50_2_h_parents[] __initconst = {
+static const char *const msdc50_2_h_parents[] __initconst =
+{
 	"clk26m",
 	"syspll1_d2",
 	"syspll2_d2",
@@ -479,53 +517,62 @@ static const char * const msdc50_2_h_parents[] __initconst = {
 	"univpll1_d4"
 };
 
-static const char * const hdcp_parents[] __initconst = {
+static const char *const hdcp_parents[] __initconst =
+{
 	"clk26m",
 	"syspll4_d2",
 	"syspll3_d4",
 	"univpll2_d4"
 };
 
-static const char * const hdcp_24m_parents[] __initconst = {
+static const char *const hdcp_24m_parents[] __initconst =
+{
 	"clk26m",
 	"univpll_d26",
 	"univpll_d52",
 	"univpll2_d8"
 };
 
-static const char * const rtc_parents[] __initconst = {
+static const char *const rtc_parents[] __initconst =
+{
 	"clkrtc_int",
 	"clkrtc_ext",
 	"clk26m",
 	"univpll3_d8"
 };
 
-static const char * const i2s0_m_ck_parents[] __initconst = {
+static const char *const i2s0_m_ck_parents[] __initconst =
+{
 	"apll1_div1",
 	"apll2_div1"
 };
 
-static const char * const i2s1_m_ck_parents[] __initconst = {
+static const char *const i2s1_m_ck_parents[] __initconst =
+{
 	"apll1_div2",
 	"apll2_div2"
 };
 
-static const char * const i2s2_m_ck_parents[] __initconst = {
+static const char *const i2s2_m_ck_parents[] __initconst =
+{
 	"apll1_div3",
 	"apll2_div3"
 };
 
-static const char * const i2s3_m_ck_parents[] __initconst = {
+static const char *const i2s3_m_ck_parents[] __initconst =
+{
 	"apll1_div4",
 	"apll2_div4"
 };
 
-static const char * const i2s3_b_ck_parents[] __initconst = {
+static const char *const i2s3_b_ck_parents[] __initconst =
+{
 	"apll1_div5",
 	"apll2_div5"
 };
 
-static const struct mtk_composite top_muxes[] __initconst = {
+static const struct mtk_composite top_muxes[] __initconst =
+{
 	/* CLK_CFG_0 */
 	MUX(CLK_TOP_AXI_SEL, "axi_sel", axi_parents, 0x0040, 0, 3),
 	MUX(CLK_TOP_MEM_SEL, "mem_sel", mem_parents, 0x0040, 8, 1),
@@ -601,7 +648,8 @@ static const struct mtk_composite top_muxes[] __initconst = {
 	MUX(CLK_TOP_I2S3_B_SEL, "i2s3_b_ck_sel", i2s3_b_ck_parents, 0x120, 8, 1),
 };
 
-static const struct mtk_gate_regs infra_cg_regs __initconst = {
+static const struct mtk_gate_regs infra_cg_regs __initconst =
+{
 	.set_ofs = 0x0040,
 	.clr_ofs = 0x0044,
 	.sta_ofs = 0x0048,
@@ -609,14 +657,15 @@ static const struct mtk_gate_regs infra_cg_regs __initconst = {
 
 #define GATE_ICG(_id, _name, _parent, _shift) {	\
 		.id = _id,					\
-		.name = _name,					\
-		.parent_name = _parent,				\
-		.regs = &infra_cg_regs,				\
-		.shift = _shift,				\
-		.ops = &mtk_clk_gate_ops_setclr,		\
+			  .name = _name,					\
+					  .parent_name = _parent,				\
+									 .regs = &infra_cg_regs,				\
+											 .shift = _shift,				\
+													 .ops = &mtk_clk_gate_ops_setclr,		\
 	}
 
-static const struct mtk_gate infra_clks[] __initconst = {
+static const struct mtk_gate infra_clks[] __initconst =
+{
 	GATE_ICG(CLK_INFRA_DBGCLK, "infra_dbgclk", "axi_sel", 0),
 	GATE_ICG(CLK_INFRA_SMI, "infra_smi", "mm_sel", 1),
 	GATE_ICG(CLK_INFRA_AUDIO, "infra_audio", "aud_intbus_sel", 5),
@@ -630,17 +679,20 @@ static const struct mtk_gate infra_clks[] __initconst = {
 	GATE_ICG(CLK_INFRA_PMICWRAP, "infra_pmicwrap", "axi_sel", 23),
 };
 
-static const struct mtk_fixed_factor infra_divs[] __initconst = {
+static const struct mtk_fixed_factor infra_divs[] __initconst =
+{
 	FACTOR(CLK_INFRA_CLK_13M, "clk13m", "clk26m", 1, 2),
 };
 
-static const struct mtk_gate_regs peri0_cg_regs __initconst = {
+static const struct mtk_gate_regs peri0_cg_regs __initconst =
+{
 	.set_ofs = 0x0008,
 	.clr_ofs = 0x0010,
 	.sta_ofs = 0x0018,
 };
 
-static const struct mtk_gate_regs peri1_cg_regs __initconst = {
+static const struct mtk_gate_regs peri1_cg_regs __initconst =
+{
 	.set_ofs = 0x000c,
 	.clr_ofs = 0x0014,
 	.sta_ofs = 0x001c,
@@ -648,23 +700,24 @@ static const struct mtk_gate_regs peri1_cg_regs __initconst = {
 
 #define GATE_PERI0(_id, _name, _parent, _shift) {	\
 		.id = _id,					\
-		.name = _name,					\
-		.parent_name = _parent,				\
-		.regs = &peri0_cg_regs,				\
-		.shift = _shift,				\
-		.ops = &mtk_clk_gate_ops_setclr,		\
+			  .name = _name,					\
+					  .parent_name = _parent,				\
+									 .regs = &peri0_cg_regs,				\
+											 .shift = _shift,				\
+													 .ops = &mtk_clk_gate_ops_setclr,		\
 	}
 
 #define GATE_PERI1(_id, _name, _parent, _shift) {	\
 		.id = _id,					\
-		.name = _name,					\
-		.parent_name = _parent,				\
-		.regs = &peri1_cg_regs,				\
-		.shift = _shift,				\
-		.ops = &mtk_clk_gate_ops_setclr,		\
+			  .name = _name,					\
+					  .parent_name = _parent,				\
+									 .regs = &peri1_cg_regs,				\
+											 .shift = _shift,				\
+													 .ops = &mtk_clk_gate_ops_setclr,		\
 	}
 
-static const struct mtk_gate peri_gates[] __initconst = {
+static const struct mtk_gate peri_gates[] __initconst =
+{
 	/* PERI0 */
 	GATE_PERI0(CLK_PERI_NFI, "peri_nfi", "axi_sel", 0),
 	GATE_PERI0(CLK_PERI_THERM, "peri_therm", "axi_sel", 1),
@@ -704,19 +757,22 @@ static const struct mtk_gate peri_gates[] __initconst = {
 	GATE_PERI1(CLK_PERI_I2C6, "peri_i2c6", "axi_sel", 2),
 };
 
-static const char * const uart_ck_sel_parents[] __initconst = {
+static const char *const uart_ck_sel_parents[] __initconst =
+{
 	"clk26m",
 	"uart_sel",
 };
 
-static const struct mtk_composite peri_clks[] __initconst = {
+static const struct mtk_composite peri_clks[] __initconst =
+{
 	MUX(CLK_PERI_UART0_SEL, "uart0_ck_sel", uart_ck_sel_parents, 0x40c, 0, 1),
 	MUX(CLK_PERI_UART1_SEL, "uart1_ck_sel", uart_ck_sel_parents, 0x40c, 1, 1),
 	MUX(CLK_PERI_UART2_SEL, "uart2_ck_sel", uart_ck_sel_parents, 0x40c, 2, 1),
 	MUX(CLK_PERI_UART3_SEL, "uart3_ck_sel", uart_ck_sel_parents, 0x40c, 3, 1),
 };
 
-static const struct mtk_gate_regs cg_regs_4_8_0 __initconst = {
+static const struct mtk_gate_regs cg_regs_4_8_0 __initconst =
+{
 	.set_ofs = 0x0004,
 	.clr_ofs = 0x0008,
 	.sta_ofs = 0x0000,
@@ -724,14 +780,15 @@ static const struct mtk_gate_regs cg_regs_4_8_0 __initconst = {
 
 #define GATE_IMG(_id, _name, _parent, _shift) {			\
 		.id = _id,					\
-		.name = _name,					\
-		.parent_name = _parent,				\
-		.regs = &cg_regs_4_8_0,				\
-		.shift = _shift,				\
-		.ops = &mtk_clk_gate_ops_setclr,		\
+			  .name = _name,					\
+					  .parent_name = _parent,				\
+									 .regs = &cg_regs_4_8_0,				\
+											 .shift = _shift,				\
+													 .ops = &mtk_clk_gate_ops_setclr,		\
 	}
 
-static const struct mtk_gate img_clks[] __initconst = {
+static const struct mtk_gate img_clks[] __initconst =
+{
 	GATE_IMG(CLK_IMG_LARB2_SMI, "img_larb2_smi", "mm_sel", 0),
 	GATE_IMG(CLK_IMG_CAM_SMI, "img_cam_smi", "mm_sel", 5),
 	GATE_IMG(CLK_IMG_CAM_CAM, "img_cam_cam", "mm_sel", 6),
@@ -741,13 +798,15 @@ static const struct mtk_gate img_clks[] __initconst = {
 	GATE_IMG(CLK_IMG_FD, "img_fd", "mm_sel", 11),
 };
 
-static const struct mtk_gate_regs mm0_cg_regs __initconst = {
+static const struct mtk_gate_regs mm0_cg_regs __initconst =
+{
 	.set_ofs = 0x0104,
 	.clr_ofs = 0x0108,
 	.sta_ofs = 0x0100,
 };
 
-static const struct mtk_gate_regs mm1_cg_regs __initconst = {
+static const struct mtk_gate_regs mm1_cg_regs __initconst =
+{
 	.set_ofs = 0x0114,
 	.clr_ofs = 0x0118,
 	.sta_ofs = 0x0110,
@@ -755,23 +814,24 @@ static const struct mtk_gate_regs mm1_cg_regs __initconst = {
 
 #define GATE_MM0(_id, _name, _parent, _shift) {			\
 		.id = _id,					\
-		.name = _name,					\
-		.parent_name = _parent,				\
-		.regs = &mm0_cg_regs,				\
-		.shift = _shift,				\
-		.ops = &mtk_clk_gate_ops_setclr,		\
+			  .name = _name,					\
+					  .parent_name = _parent,				\
+									 .regs = &mm0_cg_regs,				\
+											 .shift = _shift,				\
+													 .ops = &mtk_clk_gate_ops_setclr,		\
 	}
 
 #define GATE_MM1(_id, _name, _parent, _shift) {			\
 		.id = _id,					\
-		.name = _name,					\
-		.parent_name = _parent,				\
-		.regs = &mm1_cg_regs,				\
-		.shift = _shift,				\
-		.ops = &mtk_clk_gate_ops_setclr,		\
+			  .name = _name,					\
+					  .parent_name = _parent,				\
+									 .regs = &mm1_cg_regs,				\
+											 .shift = _shift,				\
+													 .ops = &mtk_clk_gate_ops_setclr,		\
 	}
 
-static const struct mtk_gate mm_clks[] __initconst = {
+static const struct mtk_gate mm_clks[] __initconst =
+{
 	/* MM0 */
 	GATE_MM0(CLK_MM_SMI_COMMON, "mm_smi_common", "mm_sel", 0),
 	GATE_MM0(CLK_MM_SMI_LARB0, "mm_smi_larb0", "mm_sel", 1),
@@ -828,13 +888,15 @@ static const struct mtk_gate mm_clks[] __initconst = {
 	GATE_MM1(CLK_MM_HDMI_HDCP24M, "mm_hdmi_hdcp24m", "hdcp_24m_sel", 20),
 };
 
-static const struct mtk_gate_regs vdec0_cg_regs __initconst = {
+static const struct mtk_gate_regs vdec0_cg_regs __initconst =
+{
 	.set_ofs = 0x0000,
 	.clr_ofs = 0x0004,
 	.sta_ofs = 0x0000,
 };
 
-static const struct mtk_gate_regs vdec1_cg_regs __initconst = {
+static const struct mtk_gate_regs vdec1_cg_regs __initconst =
+{
 	.set_ofs = 0x0008,
 	.clr_ofs = 0x000c,
 	.sta_ofs = 0x0008,
@@ -842,37 +904,39 @@ static const struct mtk_gate_regs vdec1_cg_regs __initconst = {
 
 #define GATE_VDEC0(_id, _name, _parent, _shift) {		\
 		.id = _id,					\
-		.name = _name,					\
-		.parent_name = _parent,				\
-		.regs = &vdec0_cg_regs,				\
-		.shift = _shift,				\
-		.ops = &mtk_clk_gate_ops_setclr_inv,		\
+			  .name = _name,					\
+					  .parent_name = _parent,				\
+									 .regs = &vdec0_cg_regs,				\
+											 .shift = _shift,				\
+													 .ops = &mtk_clk_gate_ops_setclr_inv,		\
 	}
 
 #define GATE_VDEC1(_id, _name, _parent, _shift) {		\
 		.id = _id,					\
-		.name = _name,					\
-		.parent_name = _parent,				\
-		.regs = &vdec1_cg_regs,				\
-		.shift = _shift,				\
-		.ops = &mtk_clk_gate_ops_setclr_inv,		\
+			  .name = _name,					\
+					  .parent_name = _parent,				\
+									 .regs = &vdec1_cg_regs,				\
+											 .shift = _shift,				\
+													 .ops = &mtk_clk_gate_ops_setclr_inv,		\
 	}
 
-static const struct mtk_gate vdec_clks[] __initconst = {
+static const struct mtk_gate vdec_clks[] __initconst =
+{
 	GATE_VDEC0(CLK_VDEC_CKEN, "vdec_cken", "vdec_sel", 0),
 	GATE_VDEC1(CLK_VDEC_LARB_CKEN, "vdec_larb_cken", "mm_sel", 0),
 };
 
 #define GATE_VENC(_id, _name, _parent, _shift) {		\
 		.id = _id,					\
-		.name = _name,					\
-		.parent_name = _parent,				\
-		.regs = &cg_regs_4_8_0,				\
-		.shift = _shift,				\
-		.ops = &mtk_clk_gate_ops_setclr_inv,		\
+			  .name = _name,					\
+					  .parent_name = _parent,				\
+									 .regs = &cg_regs_4_8_0,				\
+											 .shift = _shift,				\
+													 .ops = &mtk_clk_gate_ops_setclr_inv,		\
 	}
 
-static const struct mtk_gate venc_clks[] __initconst = {
+static const struct mtk_gate venc_clks[] __initconst =
+{
 	GATE_VENC(CLK_VENC_CKE0, "venc_cke0", "mm_sel", 0),
 	GATE_VENC(CLK_VENC_CKE1, "venc_cke1", "venc_sel", 4),
 	GATE_VENC(CLK_VENC_CKE2, "venc_cke2", "venc_sel", 8),
@@ -881,14 +945,15 @@ static const struct mtk_gate venc_clks[] __initconst = {
 
 #define GATE_VENCLT(_id, _name, _parent, _shift) {		\
 		.id = _id,					\
-		.name = _name,					\
-		.parent_name = _parent,				\
-		.regs = &cg_regs_4_8_0,				\
-		.shift = _shift,				\
-		.ops = &mtk_clk_gate_ops_setclr_inv,		\
+			  .name = _name,					\
+					  .parent_name = _parent,				\
+									 .regs = &cg_regs_4_8_0,				\
+											 .shift = _shift,				\
+													 .ops = &mtk_clk_gate_ops_setclr_inv,		\
 	}
 
-static const struct mtk_gate venclt_clks[] __initconst = {
+static const struct mtk_gate venclt_clks[] __initconst =
+{
 	GATE_VENCLT(CLK_VENCLT_CKE0, "venclt_cke0", "mm_sel", 0),
 	GATE_VENCLT(CLK_VENCLT_CKE1, "venclt_cke1", "venclt_sel", 4),
 };
@@ -899,7 +964,9 @@ static struct clk_onecell_data *mt8173_pll_clk_data __initdata;
 static void __init mtk_clk_enable_critical(void)
 {
 	if (!mt8173_top_clk_data || !mt8173_pll_clk_data)
+	{
 		return;
+	}
 
 	clk_prepare_enable(mt8173_pll_clk_data->clks[CLK_APMIXED_ARMCA15PLL]);
 	clk_prepare_enable(mt8173_pll_clk_data->clks[CLK_APMIXED_ARMCA7PLL]);
@@ -916,7 +983,9 @@ static void __init mtk_topckgen_init(struct device_node *node)
 	int r;
 
 	base = of_iomap(node, 0);
-	if (!base) {
+
+	if (!base)
+	{
 		pr_err("%s(): ioremap failed\n", __func__);
 		return;
 	}
@@ -926,12 +995,13 @@ static void __init mtk_topckgen_init(struct device_node *node)
 	mtk_clk_register_fixed_clks(fixed_clks, ARRAY_SIZE(fixed_clks), clk_data);
 	mtk_clk_register_factors(top_divs, ARRAY_SIZE(top_divs), clk_data);
 	mtk_clk_register_composites(top_muxes, ARRAY_SIZE(top_muxes), base,
-			&mt8173_clk_lock, clk_data);
+								&mt8173_clk_lock, clk_data);
 
 	r = of_clk_add_provider(node, of_clk_src_onecell_get, clk_data);
+
 	if (r)
 		pr_err("%s(): could not register clock provider: %d\n",
-			__func__, r);
+			   __func__, r);
 
 	mtk_clk_enable_critical();
 }
@@ -945,13 +1015,14 @@ static void __init mtk_infrasys_init(struct device_node *node)
 	clk_data = mtk_alloc_clk_data(CLK_INFRA_NR_CLK);
 
 	mtk_clk_register_gates(node, infra_clks, ARRAY_SIZE(infra_clks),
-						clk_data);
+						   clk_data);
 	mtk_clk_register_factors(infra_divs, ARRAY_SIZE(infra_divs), clk_data);
 
 	r = of_clk_add_provider(node, of_clk_src_onecell_get, clk_data);
+
 	if (r)
 		pr_err("%s(): could not register clock provider: %d\n",
-			__func__, r);
+			   __func__, r);
 
 	mtk_register_reset_controller(node, 2, 0x30);
 }
@@ -964,7 +1035,9 @@ static void __init mtk_pericfg_init(struct device_node *node)
 	void __iomem *base;
 
 	base = of_iomap(node, 0);
-	if (!base) {
+
+	if (!base)
+	{
 		pr_err("%s(): ioremap failed\n", __func__);
 		return;
 	}
@@ -972,20 +1045,22 @@ static void __init mtk_pericfg_init(struct device_node *node)
 	clk_data = mtk_alloc_clk_data(CLK_PERI_NR_CLK);
 
 	mtk_clk_register_gates(node, peri_gates, ARRAY_SIZE(peri_gates),
-						clk_data);
+						   clk_data);
 	mtk_clk_register_composites(peri_clks, ARRAY_SIZE(peri_clks), base,
-			&mt8173_clk_lock, clk_data);
+								&mt8173_clk_lock, clk_data);
 
 	r = of_clk_add_provider(node, of_clk_src_onecell_get, clk_data);
+
 	if (r)
 		pr_err("%s(): could not register clock provider: %d\n",
-			__func__, r);
+			   __func__, r);
 
 	mtk_register_reset_controller(node, 2, 0);
 }
 CLK_OF_DECLARE(mtk_pericfg, "mediatek,mt8173-pericfg", mtk_pericfg_init);
 
-struct mtk_clk_usb {
+struct mtk_clk_usb
+{
 	int id;
 	const char *name;
 	const char *parent;
@@ -994,12 +1069,13 @@ struct mtk_clk_usb {
 
 #define APMIXED_USB(_id, _name, _parent, _reg_ofs) {			\
 		.id = _id,						\
-		.name = _name,						\
-		.parent = _parent,					\
-		.reg_ofs = _reg_ofs,					\
+			  .name = _name,						\
+					  .parent = _parent,					\
+								.reg_ofs = _reg_ofs,					\
 	}
 
-static const struct mtk_clk_usb apmixed_usb[] __initconst = {
+static const struct mtk_clk_usb apmixed_usb[] __initconst =
+{
 	APMIXED_USB(CLK_APMIXED_REF2USB_TX, "ref2usb_tx", "clk26m", 0x8),
 };
 
@@ -1008,33 +1084,34 @@ static const struct mtk_clk_usb apmixed_usb[] __initconst = {
 #define CON0_MT8173_RST_BAR	BIT(24)
 
 #define PLL_B(_id, _name, _reg, _pwr_reg, _en_mask, _flags, _pcwbits,	\
-			_pd_reg, _pd_shift, _tuner_reg, _pcw_reg,	\
-			_pcw_shift, _div_table) {			\
-		.id = _id,						\
-		.name = _name,						\
-		.reg = _reg,						\
-		.pwr_reg = _pwr_reg,					\
-		.en_mask = _en_mask,					\
-		.flags = _flags,					\
-		.rst_bar_mask = CON0_MT8173_RST_BAR,			\
-		.fmax = MT8173_PLL_FMAX,				\
-		.pcwbits = _pcwbits,					\
-		.pd_reg = _pd_reg,					\
-		.pd_shift = _pd_shift,					\
-		.tuner_reg = _tuner_reg,				\
-		.pcw_reg = _pcw_reg,					\
-		.pcw_shift = _pcw_shift,				\
-		.div_table = _div_table,				\
-	}
+			  _pd_reg, _pd_shift, _tuner_reg, _pcw_reg,	\
+			  _pcw_shift, _div_table) {			\
+	.id = _id,						\
+		  .name = _name,						\
+				  .reg = _reg,						\
+						 .pwr_reg = _pwr_reg,					\
+									.en_mask = _en_mask,					\
+											.flags = _flags,					\
+													.rst_bar_mask = CON0_MT8173_RST_BAR,			\
+															.fmax = MT8173_PLL_FMAX,				\
+																	.pcwbits = _pcwbits,					\
+																			.pd_reg = _pd_reg,					\
+																					.pd_shift = _pd_shift,					\
+																							.tuner_reg = _tuner_reg,				\
+																									.pcw_reg = _pcw_reg,					\
+																											.pcw_shift = _pcw_shift,				\
+																													.div_table = _div_table,				\
+}
 
 #define PLL(_id, _name, _reg, _pwr_reg, _en_mask, _flags, _pcwbits,	\
 			_pd_reg, _pd_shift, _tuner_reg, _pcw_reg,	\
 			_pcw_shift)					\
-		PLL_B(_id, _name, _reg, _pwr_reg, _en_mask, _flags, _pcwbits, \
-			_pd_reg, _pd_shift, _tuner_reg, _pcw_reg, _pcw_shift, \
-			NULL)
+PLL_B(_id, _name, _reg, _pwr_reg, _en_mask, _flags, _pcwbits, \
+	  _pd_reg, _pd_shift, _tuner_reg, _pcw_reg, _pcw_shift, \
+	  NULL)
 
-static const struct mtk_pll_div_table mmpll_div_table[] = {
+static const struct mtk_pll_div_table mmpll_div_table[] =
+{
 	{ .div = 0, .freq = MT8173_PLL_FMAX },
 	{ .div = 1, .freq = 1000000000 },
 	{ .div = 2, .freq = 702000000 },
@@ -1043,7 +1120,8 @@ static const struct mtk_pll_div_table mmpll_div_table[] = {
 	{ } /* sentinel */
 };
 
-static const struct mtk_pll_data plls[] = {
+static const struct mtk_pll_data plls[] =
+{
 	PLL(CLK_APMIXED_ARMCA15PLL, "armca15pll", 0x200, 0x20c, 0x00000001, 0, 21, 0x204, 24, 0x0, 0x204, 0),
 	PLL(CLK_APMIXED_ARMCA7PLL, "armca7pll", 0x210, 0x21c, 0x00000001, 0, 21, 0x214, 24, 0x0, 0x214, 0),
 	PLL(CLK_APMIXED_MAINPLL, "mainpll", 0x220, 0x22c, 0xf0000101, HAVE_RST_BAR, 21, 0x220, 4, 0x0, 0x224, 0),
@@ -1068,28 +1146,34 @@ static void __init mtk_apmixedsys_init(struct device_node *node)
 	int r, i;
 
 	base = of_iomap(node, 0);
-	if (!base) {
+
+	if (!base)
+	{
 		pr_err("%s(): ioremap failed\n", __func__);
 		return;
 	}
 
 	mt8173_pll_clk_data = clk_data = mtk_alloc_clk_data(CLK_APMIXED_NR_CLK);
-	if (!clk_data) {
+
+	if (!clk_data)
+	{
 		iounmap(base);
 		return;
 	}
 
 	mtk_clk_register_plls(node, plls, ARRAY_SIZE(plls), clk_data);
 
-	for (i = 0; i < ARRAY_SIZE(apmixed_usb); i++) {
+	for (i = 0; i < ARRAY_SIZE(apmixed_usb); i++)
+	{
 		const struct mtk_clk_usb *cku = &apmixed_usb[i];
 
 		clk = mtk_clk_register_ref2usb_tx(cku->name, cku->parent,
-					base + cku->reg_ofs);
+										  base + cku->reg_ofs);
 
-		if (IS_ERR(clk)) {
+		if (IS_ERR(clk))
+		{
 			pr_err("Failed to register clk %s: %ld\n", cku->name,
-					PTR_ERR(clk));
+				   PTR_ERR(clk));
 			continue;
 		}
 
@@ -1097,19 +1181,20 @@ static void __init mtk_apmixedsys_init(struct device_node *node)
 	}
 
 	clk = clk_register_divider(NULL, "hdmi_ref", "tvdpll_594m", 0,
-				   base + 0x40, 16, 3, CLK_DIVIDER_POWER_OF_TWO,
-				   NULL);
+							   base + 0x40, 16, 3, CLK_DIVIDER_POWER_OF_TWO,
+							   NULL);
 	clk_data->clks[CLK_APMIXED_HDMI_REF] = clk;
 
 	r = of_clk_add_provider(node, of_clk_src_onecell_get, clk_data);
+
 	if (r)
 		pr_err("%s(): could not register clock provider: %d\n",
-			__func__, r);
+			   __func__, r);
 
 	mtk_clk_enable_critical();
 }
 CLK_OF_DECLARE(mtk_apmixedsys, "mediatek,mt8173-apmixedsys",
-		mtk_apmixedsys_init);
+			   mtk_apmixedsys_init);
 
 static void __init mtk_imgsys_init(struct device_node *node)
 {
@@ -1119,13 +1204,13 @@ static void __init mtk_imgsys_init(struct device_node *node)
 	clk_data = mtk_alloc_clk_data(CLK_IMG_NR_CLK);
 
 	mtk_clk_register_gates(node, img_clks, ARRAY_SIZE(img_clks),
-						clk_data);
+						   clk_data);
 
 	r = of_clk_add_provider(node, of_clk_src_onecell_get, clk_data);
 
 	if (r)
 		pr_err("%s(): could not register clock provider: %d\n",
-			__func__, r);
+			   __func__, r);
 }
 CLK_OF_DECLARE(mtk_imgsys, "mediatek,mt8173-imgsys", mtk_imgsys_init);
 
@@ -1137,12 +1222,13 @@ static void __init mtk_mmsys_init(struct device_node *node)
 	clk_data = mtk_alloc_clk_data(CLK_MM_NR_CLK);
 
 	mtk_clk_register_gates(node, mm_clks, ARRAY_SIZE(mm_clks),
-						clk_data);
+						   clk_data);
 
 	r = of_clk_add_provider(node, of_clk_src_onecell_get, clk_data);
+
 	if (r)
 		pr_err("%s(): could not register clock provider: %d\n",
-			__func__, r);
+			   __func__, r);
 }
 CLK_OF_DECLARE(mtk_mmsys, "mediatek,mt8173-mmsys", mtk_mmsys_init);
 
@@ -1154,12 +1240,13 @@ static void __init mtk_vdecsys_init(struct device_node *node)
 	clk_data = mtk_alloc_clk_data(CLK_VDEC_NR_CLK);
 
 	mtk_clk_register_gates(node, vdec_clks, ARRAY_SIZE(vdec_clks),
-						clk_data);
+						   clk_data);
 
 	r = of_clk_add_provider(node, of_clk_src_onecell_get, clk_data);
+
 	if (r)
 		pr_err("%s(): could not register clock provider: %d\n",
-			__func__, r);
+			   __func__, r);
 }
 CLK_OF_DECLARE(mtk_vdecsys, "mediatek,mt8173-vdecsys", mtk_vdecsys_init);
 
@@ -1171,12 +1258,13 @@ static void __init mtk_vencsys_init(struct device_node *node)
 	clk_data = mtk_alloc_clk_data(CLK_VENC_NR_CLK);
 
 	mtk_clk_register_gates(node, venc_clks, ARRAY_SIZE(venc_clks),
-						clk_data);
+						   clk_data);
 
 	r = of_clk_add_provider(node, of_clk_src_onecell_get, clk_data);
+
 	if (r)
 		pr_err("%s(): could not register clock provider: %d\n",
-			__func__, r);
+			   __func__, r);
 }
 CLK_OF_DECLARE(mtk_vencsys, "mediatek,mt8173-vencsys", mtk_vencsys_init);
 
@@ -1188,11 +1276,12 @@ static void __init mtk_vencltsys_init(struct device_node *node)
 	clk_data = mtk_alloc_clk_data(CLK_VENCLT_NR_CLK);
 
 	mtk_clk_register_gates(node, venclt_clks, ARRAY_SIZE(venclt_clks),
-						clk_data);
+						   clk_data);
 
 	r = of_clk_add_provider(node, of_clk_src_onecell_get, clk_data);
+
 	if (r)
 		pr_err("%s(): could not register clock provider: %d\n",
-			__func__, r);
+			   __func__, r);
 }
 CLK_OF_DECLARE(mtk_vencltsys, "mediatek,mt8173-vencltsys", mtk_vencltsys_init);

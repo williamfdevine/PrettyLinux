@@ -21,7 +21,8 @@
 
 #define IMXUART_HAVE_RTSCTS (1<<0)
 
-struct imxuart_platform_data {
+struct imxuart_platform_data
+{
 	unsigned int flags;
 };
 

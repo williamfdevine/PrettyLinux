@@ -34,7 +34,8 @@
  * @descriptor_elements: Number of elements in each descriptor.
  *
  */
-struct timb_dma_platform_data_channel {
+struct timb_dma_platform_data_channel
+{
 	bool rx;
 	unsigned int bytes_per_line;
 	unsigned int descriptors;
@@ -47,7 +48,8 @@ struct timb_dma_platform_data_channel {
  * @channels:		Definition of the each channel.
  *
  */
-struct timb_dma_platform_data {
+struct timb_dma_platform_data
+{
 	unsigned nr_channels;
 	struct timb_dma_platform_data_channel channels[32];
 };

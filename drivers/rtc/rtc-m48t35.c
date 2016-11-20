@@ -22,7 +22,8 @@
 #include <linux/io.h>
 #include <linux/err.h>
 
-struct m48t35_rtc {
+struct m48t35_rtc
+{
 	u8	pad[0x7ff8];    /* starts at 0x7ff8 */
 	u8	control;
 	u8	sec;
@@ -37,7 +38,8 @@ struct m48t35_rtc {
 #define M48T35_RTC_SET		0x80
 #define M48T35_RTC_READ		0x40
 
-struct m48t35_priv {
+struct m48t35_priv
+{
 	struct rtc_device *rtc;
 	struct m48t35_rtc __iomem *reg;
 	size_t size;
@@ -80,8 +82,11 @@ static int m48t35_read_time(struct device *dev, struct rtc_time *tm)
 	 * and how they are defined in a struct rtc_time;
 	 */
 	tm->tm_year += 70;
+
 	if (tm->tm_year <= 69)
+	{
 		tm->tm_year += 100;
+	}
 
 	tm->tm_mon--;
 	return rtc_valid_tm(tm);
@@ -102,17 +107,26 @@ static int m48t35_set_time(struct device *dev, struct rtc_time *tm)
 	sec = tm->tm_sec;
 
 	if (yrs < 1970)
+	{
 		return -EINVAL;
+	}
 
 	yrs -= 1970;
+
 	if (yrs > 255)    /* They are unsigned */
+	{
 		return -EINVAL;
+	}
 
 	if (yrs > 169)
+	{
 		return -EINVAL;
+	}
 
 	if (yrs >= 100)
+	{
 		yrs -= 100;
+	}
 
 	sec = bin2bcd(sec);
 	min = bin2bcd(min);
@@ -135,7 +149,8 @@ static int m48t35_set_time(struct device *dev, struct rtc_time *tm)
 	return 0;
 }
 
-static const struct rtc_class_ops m48t35_ops = {
+static const struct rtc_class_ops m48t35_ops =
+{
 	.read_time	= m48t35_read_time,
 	.set_time	= m48t35_set_time,
 };
@@ -146,11 +161,18 @@ static int m48t35_probe(struct platform_device *pdev)
 	struct m48t35_priv *priv;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		return -ENODEV;
+	}
+
 	priv = devm_kzalloc(&pdev->dev, sizeof(struct m48t35_priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	priv->size = resource_size(res);
 	/*
@@ -158,25 +180,33 @@ static int m48t35_probe(struct platform_device *pdev)
 	 * conflicts are resolved
 	 */
 #ifndef CONFIG_SGI_IP27
+
 	if (!devm_request_mem_region(&pdev->dev, res->start, priv->size,
-				     pdev->name))
+								 pdev->name))
+	{
 		return -EBUSY;
+	}
+
 #endif
 	priv->baseaddr = res->start;
 	priv->reg = devm_ioremap(&pdev->dev, priv->baseaddr, priv->size);
+
 	if (!priv->reg)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&priv->lock);
 
 	platform_set_drvdata(pdev, priv);
 
 	priv->rtc = devm_rtc_device_register(&pdev->dev, "m48t35",
-				  &m48t35_ops, THIS_MODULE);
+										 &m48t35_ops, THIS_MODULE);
 	return PTR_ERR_OR_ZERO(priv->rtc);
 }
 
-static struct platform_driver m48t35_platform_driver = {
+static struct platform_driver m48t35_platform_driver =
+{
 	.driver		= {
 		.name	= "rtc-m48t35",
 	},

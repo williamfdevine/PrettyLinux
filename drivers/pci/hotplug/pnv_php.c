@@ -22,7 +22,8 @@
 #define DRIVER_AUTHOR	"Gavin Shan, IBM Corporation"
 #define DRIVER_DESC	"PowerPC PowerNV PCI Hotplug Driver"
 
-struct pnv_php_event {
+struct pnv_php_event
+{
 	bool			added;
 	struct pnv_php_slot	*php_slot;
 	struct work_struct	work;
@@ -40,32 +41,38 @@ static void pnv_php_disable_irq(struct pnv_php_slot *php_slot)
 	struct pci_dev *pdev = php_slot->pdev;
 	u16 ctrl;
 
-	if (php_slot->irq > 0) {
+	if (php_slot->irq > 0)
+	{
 		pcie_capability_read_word(pdev, PCI_EXP_SLTCTL, &ctrl);
 		ctrl &= ~(PCI_EXP_SLTCTL_HPIE |
-			  PCI_EXP_SLTCTL_PDCE |
-			  PCI_EXP_SLTCTL_DLLSCE);
+				  PCI_EXP_SLTCTL_PDCE |
+				  PCI_EXP_SLTCTL_DLLSCE);
 		pcie_capability_write_word(pdev, PCI_EXP_SLTCTL, ctrl);
 
 		free_irq(php_slot->irq, php_slot);
 		php_slot->irq = 0;
 	}
 
-	if (php_slot->wq) {
+	if (php_slot->wq)
+	{
 		destroy_workqueue(php_slot->wq);
 		php_slot->wq = NULL;
 	}
 
 	if (pdev->msix_enabled)
+	{
 		pci_disable_msix(pdev);
+	}
 	else if (pdev->msi_enabled)
+	{
 		pci_disable_msi(pdev);
+	}
 }
 
 static void pnv_php_free_slot(struct kref *kref)
 {
 	struct pnv_php_slot *php_slot = container_of(kref,
-					struct pnv_php_slot, kref);
+									struct pnv_php_slot, kref);
 
 	WARN_ON(!list_empty(&php_slot->children));
 	pnv_php_disable_irq(php_slot);
@@ -77,25 +84,32 @@ static inline void pnv_php_put_slot(struct pnv_php_slot *php_slot)
 {
 
 	if (WARN_ON(!php_slot))
+	{
 		return;
+	}
 
 	kref_put(&php_slot->kref, pnv_php_free_slot);
 }
 
 static struct pnv_php_slot *pnv_php_match(struct device_node *dn,
-					  struct pnv_php_slot *php_slot)
+		struct pnv_php_slot *php_slot)
 {
 	struct pnv_php_slot *target, *tmp;
 
-	if (php_slot->dn == dn) {
+	if (php_slot->dn == dn)
+	{
 		kref_get(&php_slot->kref);
 		return php_slot;
 	}
 
-	list_for_each_entry(tmp, &php_slot->children, link) {
+	list_for_each_entry(tmp, &php_slot->children, link)
+	{
 		target = pnv_php_match(dn, tmp);
+
 		if (target)
+		{
 			return target;
+		}
 	}
 
 	return NULL;
@@ -107,9 +121,12 @@ struct pnv_php_slot *pnv_php_find_slot(struct device_node *dn)
 	unsigned long flags;
 
 	spin_lock_irqsave(&pnv_php_lock, flags);
-	list_for_each_entry(tmp, &pnv_php_slot_list, link) {
+	list_for_each_entry(tmp, &pnv_php_slot_list, link)
+	{
 		php_slot = pnv_php_match(dn, tmp);
-		if (php_slot) {
+
+		if (php_slot)
+		{
 			spin_unlock_irqrestore(&pnv_php_lock, flags);
 			return php_slot;
 		}
@@ -128,7 +145,8 @@ static void pnv_php_rmv_pdns(struct device_node *dn)
 {
 	struct device_node *child;
 
-	for_each_child_of_node(dn, child) {
+	for_each_child_of_node(dn, child)
+	{
 		pnv_php_rmv_pdns(child);
 
 		pci_remove_device_node_info(child);
@@ -151,14 +169,16 @@ static void pnv_php_detach_device_nodes(struct device_node *parent)
 	struct device_node *dn;
 	int refcount;
 
-	for_each_child_of_node(parent, dn) {
+	for_each_child_of_node(parent, dn)
+	{
 		pnv_php_detach_device_nodes(dn);
 
 		of_node_put(dn);
 		refcount = atomic_read(&dn->kobj.kref.refcount);
+
 		if (refcount != 1)
 			pr_warn("Invalid refcount %d on <%s>\n",
-				refcount, of_node_full_name(dn));
+					refcount, of_node_full_name(dn));
 
 		of_detach_node(dn);
 	}
@@ -173,10 +193,14 @@ static void pnv_php_rmv_devtree(struct pnv_php_slot *php_slot)
 	 * through OF changeset before detaching them.
 	 */
 	if (php_slot->fdt)
+	{
 		of_changeset_destroy(&php_slot->ocs);
+	}
+
 	pnv_php_detach_device_nodes(php_slot->dn);
 
-	if (php_slot->fdt) {
+	if (php_slot->fdt)
+	{
 		kfree(php_slot->dt);
 		kfree(php_slot->fdt);
 		php_slot->dt        = NULL;
@@ -196,12 +220,14 @@ static void pnv_php_reverse_nodes(struct device_node *parent)
 
 	/* In-depth first */
 	for_each_child_of_node(parent, child)
-		pnv_php_reverse_nodes(child);
+	pnv_php_reverse_nodes(child);
 
 	/* Reverse the nodes in the child list */
 	child = parent->child;
 	parent->child = NULL;
-	while (child) {
+
+	while (child)
+	{
 		next = child->sibling;
 
 		child->sibling = parent->child;
@@ -211,19 +237,26 @@ static void pnv_php_reverse_nodes(struct device_node *parent)
 }
 
 static int pnv_php_populate_changeset(struct of_changeset *ocs,
-				      struct device_node *dn)
+									  struct device_node *dn)
 {
 	struct device_node *child;
 	int ret = 0;
 
-	for_each_child_of_node(dn, child) {
+	for_each_child_of_node(dn, child)
+	{
 		ret = of_changeset_attach_node(ocs, child);
+
 		if (ret)
+		{
 			break;
+		}
 
 		ret = pnv_php_populate_changeset(ocs, child);
+
 		if (ret)
+		{
 			break;
+		}
 	}
 
 	return ret;
@@ -235,8 +268,11 @@ static void *pnv_php_add_one_pdn(struct device_node *dn, void *data)
 	struct pci_dn *pdn;
 
 	pdn = pci_add_device_node_info(hose, dn);
+
 	if (!pdn)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	return NULL;
 }
@@ -258,31 +294,39 @@ static int pnv_php_add_devtree(struct pnv_php_slot *php_slot)
 	 * fits the real size.
 	 */
 	fdt1 = kzalloc(0x10000, GFP_KERNEL);
-	if (!fdt1) {
+
+	if (!fdt1)
+	{
 		ret = -ENOMEM;
 		dev_warn(&php_slot->pdev->dev, "Cannot alloc FDT blob\n");
 		goto out;
 	}
 
 	ret = pnv_pci_get_device_tree(php_slot->dn->phandle, fdt1, 0x10000);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_warn(&php_slot->pdev->dev, "Error %d getting FDT blob\n",
-			 ret);
+				 ret);
 		goto free_fdt1;
 	}
 
 	fdt = kzalloc(fdt_totalsize(fdt1), GFP_KERNEL);
-	if (!fdt) {
+
+	if (!fdt)
+	{
 		ret = -ENOMEM;
 		dev_warn(&php_slot->pdev->dev, "Cannot %d bytes memory\n",
-			 fdt_totalsize(fdt1));
+				 fdt_totalsize(fdt1));
 		goto free_fdt1;
 	}
 
 	/* Unflatten device tree blob */
 	memcpy(fdt, fdt1, fdt_totalsize(fdt1));
 	dt = of_fdt_unflatten_tree(fdt, php_slot->dn, NULL);
-	if (!dt) {
+
+	if (!dt)
+	{
 		ret = -EINVAL;
 		dev_warn(&php_slot->pdev->dev, "Cannot unflatten FDT\n");
 		goto free_fdt;
@@ -292,18 +336,22 @@ static int pnv_php_add_devtree(struct pnv_php_slot *php_slot)
 	of_changeset_init(&php_slot->ocs);
 	pnv_php_reverse_nodes(php_slot->dn);
 	ret = pnv_php_populate_changeset(&php_slot->ocs, php_slot->dn);
-	if (ret) {
+
+	if (ret)
+	{
 		pnv_php_reverse_nodes(php_slot->dn);
 		dev_warn(&php_slot->pdev->dev, "Error %d populating changeset\n",
-			 ret);
+				 ret);
 		goto free_dt;
 	}
 
 	php_slot->dn->child = NULL;
 	ret = of_changeset_apply(&php_slot->ocs);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_warn(&php_slot->pdev->dev, "Error %d applying changeset\n",
-			 ret);
+				 ret);
 		goto destroy_changeset;
 	}
 
@@ -328,33 +376,42 @@ out:
 }
 
 int pnv_php_set_slot_power_state(struct hotplug_slot *slot,
-				 uint8_t state)
+								 uint8_t state)
 {
 	struct pnv_php_slot *php_slot = slot->private;
 	struct opal_msg msg;
 	int ret;
 
 	ret = pnv_pci_set_power_state(php_slot->id, state, &msg);
-	if (ret > 0) {
+
+	if (ret > 0)
+	{
 		if (be64_to_cpu(msg.params[1]) != php_slot->dn->phandle	||
-		    be64_to_cpu(msg.params[2]) != state			||
-		    be64_to_cpu(msg.params[3]) != OPAL_SUCCESS) {
+			be64_to_cpu(msg.params[2]) != state			||
+			be64_to_cpu(msg.params[3]) != OPAL_SUCCESS)
+		{
 			dev_warn(&php_slot->pdev->dev, "Wrong msg (%lld, %lld, %lld)\n",
-				 be64_to_cpu(msg.params[1]),
-				 be64_to_cpu(msg.params[2]),
-				 be64_to_cpu(msg.params[3]));
+					 be64_to_cpu(msg.params[1]),
+					 be64_to_cpu(msg.params[2]),
+					 be64_to_cpu(msg.params[3]));
 			return -ENOMSG;
 		}
-	} else if (ret < 0) {
+	}
+	else if (ret < 0)
+	{
 		dev_warn(&php_slot->pdev->dev, "Error %d powering %s\n",
-			 ret, (state == OPAL_PCI_SLOT_POWER_ON) ? "on" : "off");
+				 ret, (state == OPAL_PCI_SLOT_POWER_ON) ? "on" : "off");
 		return ret;
 	}
 
 	if (state == OPAL_PCI_SLOT_POWER_OFF || state == OPAL_PCI_SLOT_OFFLINE)
+	{
 		pnv_php_rmv_devtree(php_slot);
+	}
 	else
+	{
 		ret = pnv_php_add_devtree(php_slot);
+	}
 
 	return ret;
 }
@@ -372,10 +429,14 @@ static int pnv_php_get_power_state(struct hotplug_slot *slot, u8 *state)
 	 * be on.
 	 */
 	ret = pnv_pci_get_power_state(php_slot->id, &power_state);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_warn(&php_slot->pdev->dev, "Error %d getting power status\n",
-			 ret);
-	} else {
+				 ret);
+	}
+	else
+	{
 		*state = power_state;
 		slot->info->power_status = power_state;
 	}
@@ -394,13 +455,17 @@ static int pnv_php_get_adapter_state(struct hotplug_slot *slot, u8 *state)
 	 * get that, it will fail back to be empty.
 	 */
 	ret = pnv_pci_get_presence_state(php_slot->id, &presence);
-	if (ret >= 0) {
+
+	if (ret >= 0)
+	{
 		*state = presence;
 		slot->info->adapter_status = presence;
 		ret = 0;
-	} else {
+	}
+	else
+	{
 		dev_warn(&php_slot->pdev->dev, "Error %d getting presence\n",
-			 ret);
+				 ret);
 	}
 
 	return ret;
@@ -423,16 +488,23 @@ static int pnv_php_enable(struct pnv_php_slot *php_slot, bool rescan)
 
 	/* Check if the slot has been configured */
 	if (php_slot->state != PNV_PHP_STATE_REGISTERED)
+	{
 		return 0;
+	}
 
 	/* Retrieve slot presence status */
 	ret = pnv_php_get_adapter_state(slot, &presence);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Proceed if there have nothing behind the slot */
 	if (presence == OPAL_PCI_SLOT_EMPTY)
+	{
 		goto scan;
+	}
 
 	/*
 	 * If the power supply to the slot is off, we can't detect
@@ -444,33 +516,50 @@ static int pnv_php_enable(struct pnv_php_slot *php_slot, bool rescan)
 	 * supplies consistent slot power status: empty slot always
 	 * has its power off and non-empty slot has its power on.
 	 */
-	if (!php_slot->power_state_check) {
+	if (!php_slot->power_state_check)
+	{
 		php_slot->power_state_check = true;
 
 		ret = pnv_php_get_power_state(slot, &power_status);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		if (power_status != OPAL_PCI_SLOT_POWER_ON)
+		{
 			return 0;
+		}
 	}
 
 	/* Check the power status. Scan the slot if it is already on */
 	ret = pnv_php_get_power_state(slot, &power_status);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (power_status == OPAL_PCI_SLOT_POWER_ON)
+	{
 		goto scan;
+	}
 
 	/* Power is off, turn it on and then scan the slot */
 	ret = pnv_php_set_slot_power_state(slot, OPAL_PCI_SLOT_POWER_ON);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 scan:
-	if (presence == OPAL_PCI_SLOT_PRESENT) {
-		if (rescan) {
+
+	if (presence == OPAL_PCI_SLOT_PRESENT)
+	{
+		if (rescan)
+		{
 			pci_lock_rescan_remove();
 			pci_hp_add_devices(php_slot->bus);
 			pci_unlock_rescan_remove();
@@ -478,9 +567,14 @@ scan:
 
 		/* Rescan for child hotpluggable slots */
 		php_slot->state = PNV_PHP_STATE_POPULATED;
+
 		if (rescan)
+		{
 			pnv_php_register(php_slot->dn);
-	} else {
+		}
+	}
+	else
+	{
 		php_slot->state = PNV_PHP_STATE_POPULATED;
 	}
 
@@ -490,7 +584,7 @@ scan:
 static int pnv_php_enable_slot(struct hotplug_slot *slot)
 {
 	struct pnv_php_slot *php_slot = container_of(slot,
-						     struct pnv_php_slot, slot);
+									struct pnv_php_slot, slot);
 
 	return pnv_php_enable(php_slot, true);
 }
@@ -501,7 +595,9 @@ static int pnv_php_disable_slot(struct hotplug_slot *slot)
 	int ret;
 
 	if (php_slot->state != PNV_PHP_STATE_POPULATED)
+	{
 		return 0;
+	}
 
 	/* Remove all devices behind the slot */
 	pci_lock_rescan_remove();
@@ -518,7 +614,8 @@ static int pnv_php_disable_slot(struct hotplug_slot *slot)
 	return ret;
 }
 
-static struct hotplug_slot_ops php_slot_ops = {
+static struct hotplug_slot_ops php_slot_ops =
+{
 	.get_power_status	= pnv_php_get_power_state,
 	.get_adapter_status	= pnv_php_get_adapter_state,
 	.set_attention_status	= pnv_php_set_attention_state,
@@ -550,30 +647,47 @@ static struct pnv_php_slot *pnv_php_alloc_slot(struct device_node *dn)
 	int ret;
 
 	ret = of_property_read_string(dn, "ibm,slot-label", &label);
+
 	if (ret)
+	{
 		return NULL;
+	}
 
 	if (pnv_pci_get_slot_id(dn, &id))
+	{
 		return NULL;
+	}
 
 	bus = pci_find_bus_by_node(dn);
+
 	if (!bus)
+	{
 		return NULL;
+	}
 
 	php_slot = kzalloc(sizeof(*php_slot), GFP_KERNEL);
+
 	if (!php_slot)
+	{
 		return NULL;
+	}
 
 	php_slot->name = kstrdup(label, GFP_KERNEL);
-	if (!php_slot->name) {
+
+	if (!php_slot->name)
+	{
 		kfree(php_slot);
 		return NULL;
 	}
 
 	if (dn->child && PCI_DN(dn->child))
+	{
 		php_slot->slot_no = PCI_SLOT(PCI_DN(dn->child)->devfn);
+	}
 	else
-		php_slot->slot_no = -1;   /* Placeholder slot */
+	{
+		php_slot->slot_no = -1;    /* Placeholder slot */
+	}
 
 	kref_init(&php_slot->kref);
 	php_slot->state	                = PNV_PHP_STATE_INITIALIZED;
@@ -602,29 +716,37 @@ static int pnv_php_register_slot(struct pnv_php_slot *php_slot)
 
 	/* Check if the slot is registered or not */
 	parent = pnv_php_find_slot(php_slot->dn);
-	if (parent) {
+
+	if (parent)
+	{
 		pnv_php_put_slot(parent);
 		return -EEXIST;
 	}
 
 	/* Register PCI slot */
 	ret = pci_hp_register(&php_slot->slot, php_slot->bus,
-			      php_slot->slot_no, php_slot->name);
-	if (ret) {
+						  php_slot->slot_no, php_slot->name);
+
+	if (ret)
+	{
 		dev_warn(&php_slot->pdev->dev, "Error %d registering slot\n",
-			 ret);
+				 ret);
 		return ret;
 	}
 
 	/* Attach to the parent's child list or global list */
-	while ((dn = of_get_parent(dn))) {
-		if (!PCI_DN(dn)) {
+	while ((dn = of_get_parent(dn)))
+	{
+		if (!PCI_DN(dn))
+		{
 			of_node_put(dn);
 			break;
 		}
 
 		parent = pnv_php_find_slot(dn);
-		if (parent) {
+
+		if (parent)
+		{
 			of_node_put(dn);
 			break;
 		}
@@ -634,10 +756,16 @@ static int pnv_php_register_slot(struct pnv_php_slot *php_slot)
 
 	spin_lock_irqsave(&pnv_php_lock, flags);
 	php_slot->parent = parent;
+
 	if (parent)
+	{
 		list_add_tail(&php_slot->link, &parent->children);
+	}
 	else
+	{
 		list_add_tail(&php_slot->link, &pnv_php_slot_list);
+	}
+
 	spin_unlock_irqrestore(&pnv_php_lock, flags);
 
 	php_slot->state = PNV_PHP_STATE_REGISTERED;
@@ -653,18 +781,26 @@ static int pnv_php_enable_msix(struct pnv_php_slot *php_slot)
 
 	/* Get total number of MSIx entries */
 	nr_entries = pci_msix_vec_count(pdev);
+
 	if (nr_entries < 0)
+	{
 		return nr_entries;
+	}
 
 	/* Check hotplug MSIx entry is in range */
 	pcie_capability_read_word(pdev, PCI_EXP_FLAGS, &pcie_flag);
 	entry.entry = (pcie_flag & PCI_EXP_FLAGS_IRQ) >> 9;
+
 	if (entry.entry >= nr_entries)
+	{
 		return -ERANGE;
+	}
 
 	/* Enable MSIx */
 	ret = pci_enable_msix_exact(pdev, &entry, 1);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_warn(&pdev->dev, "Error %d enabling MSIx\n", ret);
 		return ret;
 	}
@@ -679,9 +815,13 @@ static void pnv_php_event_handler(struct work_struct *work)
 	struct pnv_php_slot *php_slot = event->php_slot;
 
 	if (event->added)
+	{
 		pnv_php_enable_slot(&php_slot->slot);
+	}
 	else
+	{
 		pnv_php_disable_slot(&php_slot->slot);
+	}
 
 	kfree(event);
 }
@@ -702,25 +842,38 @@ static irqreturn_t pnv_php_interrupt(int irq, void *data)
 	pcie_capability_read_word(pdev, PCI_EXP_SLTSTA, &sts);
 	sts &= (PCI_EXP_SLTSTA_PDC | PCI_EXP_SLTSTA_DLLSC);
 	pcie_capability_write_word(pdev, PCI_EXP_SLTSTA, sts);
-	if (sts & PCI_EXP_SLTSTA_DLLSC) {
+
+	if (sts & PCI_EXP_SLTSTA_DLLSC)
+	{
 		pcie_capability_read_word(pdev, PCI_EXP_LNKSTA, &lsts);
 		added = !!(lsts & PCI_EXP_LNKSTA_DLLLA);
-	} else if (sts & PCI_EXP_SLTSTA_PDC) {
+	}
+	else if (sts & PCI_EXP_SLTSTA_PDC)
+	{
 		ret = pnv_pci_get_presence_state(php_slot->id, &presence);
+
 		if (!ret)
+		{
 			return IRQ_HANDLED;
+		}
+
 		added = !!(presence == OPAL_PCI_SLOT_PRESENT);
-	} else {
+	}
+	else
+	{
 		return IRQ_NONE;
 	}
 
 	/* Freeze the removed PE to avoid unexpected error reporting */
-	if (!added) {
+	if (!added)
+	{
 		pchild = list_first_entry_or_null(&php_slot->bus->devices,
-						  struct pci_dev, bus_list);
+										  struct pci_dev, bus_list);
 		edev = pchild ? pci_dev_to_eeh_dev(pchild) : NULL;
 		pe = edev ? edev->pe : NULL;
-		if (pe) {
+
+		if (pe)
+		{
 			eeh_serialize_lock(&flags);
 			eeh_pe_state_mark(pe, EEH_PE_ISOLATED);
 			eeh_serialize_unlock(flags);
@@ -733,14 +886,16 @@ static irqreturn_t pnv_php_interrupt(int irq, void *data)
 	 * fine as the PCI devices (PE) aren't functional any more.
 	 */
 	event = kzalloc(sizeof(*event), GFP_ATOMIC);
-	if (!event) {
+
+	if (!event)
+	{
 		dev_warn(&pdev->dev, "PCI slot [%s] missed hotplug event 0x%04x\n",
-			 php_slot->name, sts);
+				 php_slot->name, sts);
 		return IRQ_HANDLED;
 	}
 
 	dev_info(&pdev->dev, "PCI slot [%s] %s (IRQ: %d)\n",
-		 php_slot->name, added ? "added" : "removed", irq);
+			 php_slot->name, added ? "added" : "removed", irq);
 	INIT_WORK(&event->work, pnv_php_event_handler);
 	event->added = added;
 	event->php_slot = php_slot;
@@ -757,7 +912,9 @@ static void pnv_php_init_irq(struct pnv_php_slot *php_slot, int irq)
 
 	/* Allocate workqueue */
 	php_slot->wq = alloc_workqueue("pciehp-%s", 0, 0, php_slot->name);
-	if (!php_slot->wq) {
+
+	if (!php_slot->wq)
+	{
 		dev_warn(&pdev->dev, "Cannot alloc workqueue\n");
 		pnv_php_disable_irq(php_slot);
 		return;
@@ -770,8 +927,10 @@ static void pnv_php_init_irq(struct pnv_php_slot *php_slot, int irq)
 
 	/* Request the interrupt */
 	ret = request_irq(irq, pnv_php_interrupt, IRQF_SHARED,
-			  php_slot->name, php_slot);
-	if (ret) {
+					  php_slot->name, php_slot);
+
+	if (ret)
+	{
 		pnv_php_disable_irq(php_slot);
 		dev_warn(&pdev->dev, "Error %d enabling IRQ %d\n", ret, irq);
 		return;
@@ -780,8 +939,8 @@ static void pnv_php_init_irq(struct pnv_php_slot *php_slot, int irq)
 	/* Enable the interrupts */
 	pcie_capability_read_word(pdev, PCI_EXP_SLTCTL, &ctrl);
 	ctrl |= (PCI_EXP_SLTCTL_HPIE |
-		 PCI_EXP_SLTCTL_PDCE |
-		 PCI_EXP_SLTCTL_DLLSCE);
+			 PCI_EXP_SLTCTL_PDCE |
+			 PCI_EXP_SLTCTL_DLLSCE);
 	pcie_capability_write_word(pdev, PCI_EXP_SLTCTL, ctrl);
 
 	/* The interrupt is initialized successfully when @irq is valid */
@@ -794,7 +953,9 @@ static void pnv_php_enable_irq(struct pnv_php_slot *php_slot)
 	int irq, ret;
 
 	ret = pci_enable_device(pdev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_warn(&pdev->dev, "Error %d enabling device\n", ret);
 		return;
 	}
@@ -803,7 +964,9 @@ static void pnv_php_enable_irq(struct pnv_php_slot *php_slot)
 
 	/* Enable MSIx interrupt */
 	irq = pnv_php_enable_msix(php_slot);
-	if (irq > 0) {
+
+	if (irq > 0)
+	{
 		pnv_php_init_irq(php_slot, irq);
 		return;
 	}
@@ -813,7 +976,9 @@ static void pnv_php_enable_irq(struct pnv_php_slot *php_slot)
 	 * if MSI doesn't work either
 	 */
 	ret = pci_enable_msi(pdev);
-	if (!ret || pdev->irq) {
+
+	if (!ret || pdev->irq)
+	{
 		irq = pdev->irq;
 		pnv_php_init_irq(php_slot, irq);
 	}
@@ -827,29 +992,47 @@ static int pnv_php_register_one(struct device_node *dn)
 
 	/* Check if it's hotpluggable slot */
 	ret = of_property_read_u32(dn, "ibm,slot-pluggable", &prop32);
+
 	if (ret || !prop32)
+	{
 		return -ENXIO;
+	}
 
 	ret = of_property_read_u32(dn, "ibm,reset-by-firmware", &prop32);
+
 	if (ret || !prop32)
+	{
 		return -ENXIO;
+	}
 
 	php_slot = pnv_php_alloc_slot(dn);
+
 	if (!php_slot)
+	{
 		return -ENODEV;
+	}
 
 	ret = pnv_php_register_slot(php_slot);
+
 	if (ret)
+	{
 		goto free_slot;
+	}
 
 	ret = pnv_php_enable(php_slot, false);
+
 	if (ret)
+	{
 		goto unregister_slot;
+	}
 
 	/* Enable interrupt if the slot supports surprise hotplug */
 	ret = of_property_read_u32(dn, "ibm,slot-surprise-pluggable", &prop32);
+
 	if (!ret && prop32)
+	{
 		pnv_php_enable_irq(php_slot);
+	}
 
 	return 0;
 
@@ -868,7 +1051,8 @@ static void pnv_php_register(struct device_node *dn)
 	 * The parent slots should be registered before their
 	 * child slots.
 	 */
-	for_each_child_of_node(dn, child) {
+	for_each_child_of_node(dn, child)
+	{
 		pnv_php_register_one(child);
 		pnv_php_register(child);
 	}
@@ -879,8 +1063,11 @@ static void pnv_php_unregister_one(struct device_node *dn)
 	struct pnv_php_slot *php_slot;
 
 	php_slot = pnv_php_find_slot(dn);
+
 	if (!php_slot)
+	{
 		return;
+	}
 
 	php_slot->state = PNV_PHP_STATE_OFFLINE;
 	pnv_php_put_slot(php_slot);
@@ -892,7 +1079,8 @@ static void pnv_php_unregister(struct device_node *dn)
 	struct device_node *child;
 
 	/* The child slots should go before their parent slots */
-	for_each_child_of_node(dn, child) {
+	for_each_child_of_node(dn, child)
+	{
 		pnv_php_unregister(child);
 		pnv_php_unregister_one(child);
 	}
@@ -904,7 +1092,7 @@ static int __init pnv_php_init(void)
 
 	pr_info(DRIVER_DESC " version: " DRIVER_VERSION "\n");
 	for_each_compatible_node(dn, NULL, "ibm,ioda2-phb")
-		pnv_php_register(dn);
+	pnv_php_register(dn);
 
 	return 0;
 }
@@ -914,7 +1102,7 @@ static void __exit pnv_php_exit(void)
 	struct device_node *dn;
 
 	for_each_compatible_node(dn, NULL, "ibm,ioda2-phb")
-		pnv_php_unregister(dn);
+	pnv_php_unregister(dn);
 }
 
 module_init(pnv_php_init);

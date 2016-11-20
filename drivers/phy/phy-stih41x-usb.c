@@ -33,7 +33,8 @@
  * @oscok: Notify the PHY oscillator clock is ready
  *	   Setting this bit enable the PHY
  */
-struct stih41x_usb_cfg {
+struct stih41x_usb_cfg
+{
 	u32 syscfg;
 	u32 cfg_mask;
 	u32 cfg;
@@ -47,21 +48,24 @@ struct stih41x_usb_cfg {
  * @cfg: SoC specific PHY register mapping
  * @clk: Oscillator used by the PHY
  */
-struct stih41x_usb_phy {
+struct stih41x_usb_phy
+{
 	struct device *dev;
 	struct regmap *regmap;
 	const struct stih41x_usb_cfg *cfg;
 	struct clk *clk;
 };
 
-static struct stih41x_usb_cfg stih415_usb_phy_cfg = {
+static struct stih41x_usb_cfg stih415_usb_phy_cfg =
+{
 	.syscfg = SYSCFG332,
 	.cfg_mask = 0x3f,
 	.cfg = 0x38,
 	.oscok = BIT(6),
 };
 
-static struct stih41x_usb_cfg stih416_usb_phy_cfg = {
+static struct stih41x_usb_cfg stih416_usb_phy_cfg =
+{
 	.syscfg = SYSCFG2520,
 	.cfg_mask = 0x33f,
 	.cfg = 0x238,
@@ -73,7 +77,7 @@ static int stih41x_usb_phy_init(struct phy *phy)
 	struct stih41x_usb_phy *phy_dev = phy_get_drvdata(phy);
 
 	return regmap_update_bits(phy_dev->regmap, phy_dev->cfg->syscfg,
-			   phy_dev->cfg->cfg_mask, phy_dev->cfg->cfg);
+							  phy_dev->cfg->cfg_mask, phy_dev->cfg->cfg);
 }
 
 static int stih41x_usb_phy_power_on(struct phy *phy)
@@ -82,15 +86,20 @@ static int stih41x_usb_phy_power_on(struct phy *phy)
 	int ret;
 
 	ret = clk_prepare_enable(phy_dev->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(phy_dev->dev, "Failed to enable osc_phy clock\n");
 		return ret;
 	}
 
 	ret = regmap_update_bits(phy_dev->regmap, phy_dev->cfg->syscfg,
-				 phy_dev->cfg->oscok, phy_dev->cfg->oscok);
+							 phy_dev->cfg->oscok, phy_dev->cfg->oscok);
+
 	if (ret)
+	{
 		clk_disable_unprepare(phy_dev->clk);
+	}
 
 	return ret;
 }
@@ -101,8 +110,10 @@ static int stih41x_usb_phy_power_off(struct phy *phy)
 	int ret;
 
 	ret = regmap_update_bits(phy_dev->regmap, phy_dev->cfg->syscfg,
-			phy_dev->cfg->oscok, 0);
-	if (ret) {
+							 phy_dev->cfg->oscok, 0);
+
+	if (ret)
+	{
 		dev_err(phy_dev->dev, "Failed to clear oscok bit\n");
 		return ret;
 	}
@@ -112,7 +123,8 @@ static int stih41x_usb_phy_power_off(struct phy *phy)
 	return 0;
 }
 
-static const struct phy_ops stih41x_usb_phy_ops = {
+static const struct phy_ops stih41x_usb_phy_ops =
+{
 	.init		= stih41x_usb_phy_init,
 	.power_on	= stih41x_usb_phy_power_on,
 	.power_off	= stih41x_usb_phy_power_off,
@@ -131,30 +143,41 @@ static int stih41x_usb_phy_probe(struct platform_device *pdev)
 	struct phy *phy;
 
 	phy_dev = devm_kzalloc(dev, sizeof(*phy_dev), GFP_KERNEL);
+
 	if (!phy_dev)
+	{
 		return -ENOMEM;
+	}
 
 	match = of_match_device(stih41x_usb_phy_of_match, &pdev->dev);
+
 	if (!match)
+	{
 		return -ENODEV;
+	}
 
 	phy_dev->cfg = match->data;
 
 	phy_dev->regmap = syscon_regmap_lookup_by_phandle(np, "st,syscfg");
-	if (IS_ERR(phy_dev->regmap)) {
+
+	if (IS_ERR(phy_dev->regmap))
+	{
 		dev_err(dev, "No syscfg phandle specified\n");
 		return PTR_ERR(phy_dev->regmap);
 	}
 
 	phy_dev->clk = devm_clk_get(dev, "osc_phy");
-	if (IS_ERR(phy_dev->clk)) {
+
+	if (IS_ERR(phy_dev->clk))
+	{
 		dev_err(dev, "osc_phy clk not found\n");
 		return PTR_ERR(phy_dev->clk);
 	}
 
 	phy = devm_phy_create(dev, NULL, &stih41x_usb_phy_ops);
 
-	if (IS_ERR(phy)) {
+	if (IS_ERR(phy))
+	{
 		dev_err(dev, "failed to create phy\n");
 		return PTR_ERR(phy);
 	}
@@ -167,14 +190,16 @@ static int stih41x_usb_phy_probe(struct platform_device *pdev)
 	return PTR_ERR_OR_ZERO(phy_provider);
 }
 
-static const struct of_device_id stih41x_usb_phy_of_match[] = {
+static const struct of_device_id stih41x_usb_phy_of_match[] =
+{
 	{ .compatible = "st,stih415-usb-phy", .data = &stih415_usb_phy_cfg },
 	{ .compatible = "st,stih416-usb-phy", .data = &stih416_usb_phy_cfg },
 	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(of, stih41x_usb_phy_of_match);
 
-static struct platform_driver stih41x_usb_phy_driver = {
+static struct platform_driver stih41x_usb_phy_driver =
+{
 	.probe	= stih41x_usb_phy_probe,
 	.driver = {
 		.name	= "stih41x-usb-phy",

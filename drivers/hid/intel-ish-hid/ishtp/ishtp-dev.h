@@ -55,7 +55,8 @@
 #define	MAX_DMA_DELAY	20
 
 /* ISHTP device states */
-enum ishtp_dev_state {
+enum ishtp_dev_state
+{
 	ISHTP_DEV_INITIALIZING = 0,
 	ISHTP_DEV_INIT_CLIENTS,
 	ISHTP_DEV_ENABLED,
@@ -74,7 +75,8 @@ struct ishtp_cl;
  * @props - client properties
  * @client_id - fw client id
  */
-struct ishtp_fw_client {
+struct ishtp_fw_client
+{
 	struct ishtp_client_properties props;
 	uint8_t client_id;
 };
@@ -84,7 +86,8 @@ struct ishtp_fw_client {
  * @size:	Size of data in the *data
  * @data:	Pointer to data
  */
-struct ishtp_msg_data {
+struct ishtp_msg_data
+{
 	uint32_t size;
 	unsigned char *data;
 };
@@ -97,7 +100,8 @@ struct ishtp_msg_data {
  * @buf_idx:	Index into buffer
  * @read_time:	 unused at this time
  */
-struct ishtp_cl_rb {
+struct ishtp_cl_rb
+{
 	struct list_head list;
 	struct ishtp_cl *cl;
 	struct ishtp_msg_data buffer;
@@ -125,7 +129,8 @@ struct ishtp_cl_rb {
  * structure for IPC processing.
  *
  */
-struct wr_msg_ctl_info {
+struct wr_msg_ctl_info
+{
 	/* Will be called with 'ipc_send_compl_prm' as parameter */
 	void (*ipc_send_compl)(void *);
 
@@ -139,17 +144,18 @@ struct wr_msg_ctl_info {
  * The ISHTP layer talks to hardware IPC message using the following
  * callbacks
  */
-struct ishtp_hw_ops {
+struct ishtp_hw_ops
+{
 	int	(*hw_reset)(struct ishtp_device *dev);
 	int	(*ipc_reset)(struct ishtp_device *dev);
 	uint32_t (*ipc_get_header)(struct ishtp_device *dev, int length,
-				   int busy);
+							   int busy);
 	int	(*write)(struct ishtp_device *dev,
-		void (*ipc_send_compl)(void *), void *ipc_send_compl_prm,
-		unsigned char *msg, int length);
+				 void (*ipc_send_compl)(void *), void *ipc_send_compl_prm,
+				 unsigned char *msg, int length);
 	uint32_t	(*ishtp_read_hdr)(const struct ishtp_device *dev);
 	int	(*ishtp_read)(struct ishtp_device *dev, unsigned char *buffer,
-			unsigned long buffer_length);
+					  unsigned long buffer_length);
 	uint32_t	(*get_fw_status)(struct ishtp_device *dev);
 	void	(*sync_fw_clock)(struct ishtp_device *dev);
 };
@@ -157,7 +163,8 @@ struct ishtp_hw_ops {
 /**
  * struct ishtp_device - ISHTP private device struct
  */
-struct ishtp_device {
+struct ishtp_device
+{
 	struct device *devc;	/* pointer to lowest device */
 	struct pci_dev *pdev;	/* PCI device to get device ids */
 

@@ -42,7 +42,8 @@ extern "C" {
 #define DRM_IOCTL_VGEM_FENCE_ATTACH	DRM_IOWR( DRM_COMMAND_BASE + DRM_VGEM_FENCE_ATTACH, struct drm_vgem_fence_attach)
 #define DRM_IOCTL_VGEM_FENCE_SIGNAL	DRM_IOW( DRM_COMMAND_BASE + DRM_VGEM_FENCE_SIGNAL, struct drm_vgem_fence_signal)
 
-struct drm_vgem_fence_attach {
+struct drm_vgem_fence_attach
+{
 	__u32 handle;
 	__u32 flags;
 #define VGEM_FENCE_WRITE	0x1
@@ -50,7 +51,8 @@ struct drm_vgem_fence_attach {
 	__u32 pad;
 };
 
-struct drm_vgem_fence_signal {
+struct drm_vgem_fence_signal
+{
 	__u32 fence;
 	__u32 flags;
 };

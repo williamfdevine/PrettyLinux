@@ -3,7 +3,8 @@
 
 #include <linux/netfilter.h>
 
-struct xt_tee_tginfo {
+struct xt_tee_tginfo
+{
 	union nf_inet_addr gw;
 	char oif[16];
 

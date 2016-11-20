@@ -4,7 +4,7 @@
  *
  *  SB16ASP/AWE32 CSP control
  *
- *   This program is free software; you can redistribute it and/or modify 
+ *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation; either version 2 of the License, or
  *   (at your option) any later version.
@@ -30,7 +30,8 @@
 struct snd_sb_csp;
 
 /* indices for the known CSP programs */
-enum {
+enum
+{
 	CSP_PROGRAM_MULAW,
 	CSP_PROGRAM_ALAW,
 	CSP_PROGRAM_ADPCM_INIT,
@@ -43,19 +44,21 @@ enum {
 /*
  * CSP operators
  */
-struct snd_sb_csp_ops {
-	int (*csp_use) (struct snd_sb_csp * p);
-	int (*csp_unuse) (struct snd_sb_csp * p);
-	int (*csp_autoload) (struct snd_sb_csp * p, int pcm_sfmt, int play_rec_mode);
-	int (*csp_start) (struct snd_sb_csp * p, int sample_width, int channels);
-	int (*csp_stop) (struct snd_sb_csp * p);
-	int (*csp_qsound_transfer) (struct snd_sb_csp * p);
+struct snd_sb_csp_ops
+{
+	int (*csp_use) (struct snd_sb_csp *p);
+	int (*csp_unuse) (struct snd_sb_csp *p);
+	int (*csp_autoload) (struct snd_sb_csp *p, int pcm_sfmt, int play_rec_mode);
+	int (*csp_start) (struct snd_sb_csp *p, int sample_width, int channels);
+	int (*csp_stop) (struct snd_sb_csp *p);
+	int (*csp_qsound_transfer) (struct snd_sb_csp *p);
 };
 
 /*
  * CSP private data
  */
-struct snd_sb_csp {
+struct snd_sb_csp
+{
 	struct snd_sb *chip;		/* SB16 DSP */
 	int used;		/* usage flag - exclusive */
 	char codec_name[16];	/* name of codec */
@@ -86,5 +89,5 @@ struct snd_sb_csp {
 	const struct firmware *csp_programs[CSP_PROGRAM_COUNT];
 };
 
-int snd_sb_csp_new(struct snd_sb *chip, int device, struct snd_hwdep ** rhwdep);
+int snd_sb_csp_new(struct snd_sb *chip, int device, struct snd_hwdep **rhwdep);
 #endif /* __SOUND_SB16_CSP */

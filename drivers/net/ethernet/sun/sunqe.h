@@ -90,13 +90,13 @@
 #define CREG_STAT_RXSERR      0x00000001  /* Receive SBUS Error ACK    */
 
 #define CREG_STAT_ERRORS      (CREG_STAT_EDEFER|CREG_STAT_CLOSS|CREG_STAT_ERETRIES|     \
-			       CREG_STAT_LCOLL|CREG_STAT_FUFLOW|CREG_STAT_JERROR|       \
-			       CREG_STAT_BERROR|CREG_STAT_CCOFLOW|CREG_STAT_TXDERROR|   \
-			       CREG_STAT_TXLERR|CREG_STAT_TXPERR|CREG_STAT_TXSERR|      \
-			       CREG_STAT_RCCOFLOW|CREG_STAT_RUOFLOW|CREG_STAT_MCOFLOW| \
-			       CREG_STAT_RXFOFLOW|CREG_STAT_RLCOLL|CREG_STAT_FCOFLOW|   \
-			       CREG_STAT_CECOFLOW|CREG_STAT_RXDROP|CREG_STAT_RXSMALL|   \
-			       CREG_STAT_RXLERR|CREG_STAT_RXPERR|CREG_STAT_RXSERR)
+							   CREG_STAT_LCOLL|CREG_STAT_FUFLOW|CREG_STAT_JERROR|       \
+							   CREG_STAT_BERROR|CREG_STAT_CCOFLOW|CREG_STAT_TXDERROR|   \
+							   CREG_STAT_TXLERR|CREG_STAT_TXPERR|CREG_STAT_TXSERR|      \
+							   CREG_STAT_RCCOFLOW|CREG_STAT_RUOFLOW|CREG_STAT_MCOFLOW| \
+							   CREG_STAT_RXFOFLOW|CREG_STAT_RLCOLL|CREG_STAT_FCOFLOW|   \
+							   CREG_STAT_CECOFLOW|CREG_STAT_RXDROP|CREG_STAT_RXSMALL|   \
+							   CREG_STAT_RXLERR|CREG_STAT_RXPERR|CREG_STAT_RXSERR)
 
 #define CREG_QMASK_COFLOW     0x00100000  /* CollCntr overflow         */
 #define CREG_QMASK_TXDERROR   0x00080000  /* TXD error                 */
@@ -145,16 +145,16 @@
 #define MREGS_CHIPID1	0x10UL	/* Chip-ID, low bits              */
 #define MREGS_CHIPID2	0x11UL	/* Chip-ID, high bits             */
 #define MREGS_IACONFIG	0x12UL	/* Internal Address Config        */
-	/* 0x13UL, reserved */
+/* 0x13UL, reserved */
 #define MREGS_FILTER	0x14UL	/* Logical Address Filter         */
 #define MREGS_ETHADDR	0x15UL	/* Our Ethernet Address           */
-	/* 0x16UL, reserved */
-	/* 0x17UL, reserved */
+/* 0x16UL, reserved */
+/* 0x17UL, reserved */
 #define MREGS_MPCNT	0x18UL	/* Missed Packet Count            */
-	/* 0x19UL, reserved */
+/* 0x19UL, reserved */
 #define MREGS_RPCNT	0x1aUL	/* Runt Packet Count              */
 #define MREGS_RCCNT	0x1bUL	/* RX Collision Count             */
-	/* 0x1cUL, reserved */
+/* 0x1cUL, reserved */
 #define MREGS_UTEST	0x1dUL	/* User Test                      */
 #define MREGS_RTEST1	0x1eUL	/* Reserved Test 1                */
 #define MREGS_RTEST2	0x1fUL	/* Reserved Test 2                */
@@ -264,7 +264,8 @@
 #define MREGS_UTEST_EXTLOOP         0x02 /* Extern lpback                  */
 #define MREGS_UTEST_NOLOOP          0x00 /* No loopback                    */
 
-struct qe_rxd {
+struct qe_rxd
+{
 	u32 rx_flags;
 	u32 rx_addr;
 };
@@ -273,7 +274,8 @@ struct qe_rxd {
 #define RXD_UPDATE   0x10000000 /* Being Updated?  */
 #define RXD_LENGTH   0x000007ff /* Packet Length.  */
 
-struct qe_txd {
+struct qe_txd
+{
 	u32 tx_flags;
 	u32 tx_addr;
 };
@@ -296,21 +298,23 @@ struct qe_txd {
 #define PREV_TX(num)       (((num) - 1) & (TX_RING_MAXSIZE - 1))
 
 #define TX_BUFFS_AVAIL(qp)                                    \
-        (((qp)->tx_old <= (qp)->tx_new) ?                     \
-	  (qp)->tx_old + (TX_RING_SIZE - 1) - (qp)->tx_new :  \
-			    (qp)->tx_old - (qp)->tx_new - 1)
+	(((qp)->tx_old <= (qp)->tx_new) ?                     \
+	 (qp)->tx_old + (TX_RING_SIZE - 1) - (qp)->tx_new :  \
+	 (qp)->tx_old - (qp)->tx_new - 1)
 
-struct qe_init_block {
+struct qe_init_block
+{
 	struct qe_rxd qe_rxd[RX_RING_MAXSIZE];
 	struct qe_txd qe_txd[TX_RING_MAXSIZE];
 };
 
 #define qib_offset(mem, elem) \
-((__u32)((unsigned long)(&(((struct qe_init_block *)0)->mem[elem]))))
+	((__u32)((unsigned long)(&(((struct qe_init_block *)0)->mem[elem]))))
 
 struct sunqe;
 
-struct sunqec {
+struct sunqec
+{
 	void __iomem		*gregs;		/* QEC Global Registers         */
 	struct sunqe		*qes[4];	/* Each child MACE              */
 	unsigned int            qec_bursts;	/* Support burst sizes          */
@@ -321,16 +325,18 @@ struct sunqec {
 #define PKT_BUF_SZ	1664
 #define RXD_PKT_SZ	1664
 
-struct sunqe_buffers {
+struct sunqe_buffers
+{
 	u8	tx_buf[TX_RING_SIZE][PKT_BUF_SZ];
 	u8	__pad[2];
 	u8	rx_buf[RX_RING_SIZE][PKT_BUF_SZ];
 };
 
 #define qebuf_offset(mem, elem) \
-((__u32)((unsigned long)(&(((struct sunqe_buffers *)0)->mem[elem][0]))))
+	((__u32)((unsigned long)(&(((struct sunqe_buffers *)0)->mem[elem][0]))))
 
-struct sunqe {
+struct sunqe
+{
 	void __iomem			*qcregs;		/* QEC per-channel Registers   */
 	void __iomem			*mregs;		/* Per-channel MACE Registers  */
 	struct qe_init_block      	*qe_block;	/* RX and TX descriptors       */

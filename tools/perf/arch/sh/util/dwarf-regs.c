@@ -27,7 +27,8 @@
  */
 
 #define SH_MAX_REGS 18
-const char *sh_regs_table[SH_MAX_REGS] = {
+const char *sh_regs_table[SH_MAX_REGS] =
+{
 	"r0",
 	"r1",
 	"r2",

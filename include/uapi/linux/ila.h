@@ -7,7 +7,8 @@
 #define ILA_GENL_NAME		"ila"
 #define ILA_GENL_VERSION	0x1
 
-enum {
+enum
+{
 	ILA_ATTR_UNSPEC,
 	ILA_ATTR_LOCATOR,			/* u64 */
 	ILA_ATTR_IDENTIFIER,			/* u64 */
@@ -22,7 +23,8 @@ enum {
 
 #define ILA_ATTR_MAX		(__ILA_ATTR_MAX - 1)
 
-enum {
+enum
+{
 	ILA_CMD_UNSPEC,
 	ILA_CMD_ADD,
 	ILA_CMD_DEL,
@@ -36,7 +38,8 @@ enum {
 #define ILA_DIR_IN	(1 << 0)
 #define ILA_DIR_OUT	(1 << 1)
 
-enum {
+enum
+{
 	ILA_CSUM_ADJUST_TRANSPORT,
 	ILA_CSUM_NEUTRAL_MAP,
 	ILA_CSUM_NO_ACTION,

@@ -24,8 +24,8 @@
 #include "ade7753.h"
 
 static int ade7753_spi_write_reg_8(struct device *dev,
-				   u8 reg_address,
-				   u8 val)
+								   u8 reg_address,
+								   u8 val)
 {
 	int ret;
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
@@ -42,8 +42,8 @@ static int ade7753_spi_write_reg_8(struct device *dev,
 }
 
 static int ade7753_spi_write_reg_16(struct device *dev,
-		u8 reg_address,
-		u16 value)
+									u8 reg_address,
+									u16 value)
 {
 	int ret;
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
@@ -60,36 +60,41 @@ static int ade7753_spi_write_reg_16(struct device *dev,
 }
 
 static int ade7753_spi_read_reg_8(struct device *dev,
-		u8 reg_address,
-		u8 *val)
+								  u8 reg_address,
+								  u8 *val)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct ade7753_state *st = iio_priv(indio_dev);
 	ssize_t ret;
 
 	ret = spi_w8r8(st->us, ADE7753_READ_REG(reg_address));
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&st->us->dev, "problem when reading 8 bit register 0x%02X",
 				reg_address);
 		return ret;
 	}
+
 	*val = ret;
 
 	return 0;
 }
 
 static int ade7753_spi_read_reg_16(struct device *dev,
-		u8 reg_address,
-		u16 *val)
+								   u8 reg_address,
+								   u16 *val)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct ade7753_state *st = iio_priv(indio_dev);
 	ssize_t ret;
 
 	ret = spi_w8r16be(st->us, ADE7753_READ_REG(reg_address));
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&st->us->dev, "problem when reading 16 bit register 0x%02X",
-			reg_address);
+				reg_address);
 		return ret;
 	}
 
@@ -99,13 +104,14 @@ static int ade7753_spi_read_reg_16(struct device *dev,
 }
 
 static int ade7753_spi_read_reg_24(struct device *dev,
-		u8 reg_address,
-		u32 *val)
+								   u8 reg_address,
+								   u32 *val)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct ade7753_state *st = iio_priv(indio_dev);
 	int ret;
-	struct spi_transfer xfers[] = {
+	struct spi_transfer xfers[] =
+	{
 		{
 			.tx_buf = st->tx,
 			.bits_per_word = 8,
@@ -121,11 +127,14 @@ static int ade7753_spi_read_reg_24(struct device *dev,
 	st->tx[0] = ADE7753_READ_REG(reg_address);
 
 	ret = spi_sync_transfer(st->us, xfers, ARRAY_SIZE(xfers));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&st->us->dev, "problem when reading 24 bit register 0x%02X",
 				reg_address);
 		goto error_ret;
 	}
+
 	*val = (st->rx[0] << 16) | (st->rx[1] << 8) | st->rx[2];
 
 error_ret:
@@ -134,62 +143,75 @@ error_ret:
 }
 
 static ssize_t ade7753_read_8bit(struct device *dev,
-		struct device_attribute *attr,
-		char *buf)
+								 struct device_attribute *attr,
+								 char *buf)
 {
 	int ret;
 	u8 val;
 	struct iio_dev_attr *this_attr = to_iio_dev_attr(attr);
 
 	ret = ade7753_spi_read_reg_8(dev, this_attr->address, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return sprintf(buf, "%u\n", val);
 }
 
 static ssize_t ade7753_read_16bit(struct device *dev,
-		struct device_attribute *attr,
-		char *buf)
+								  struct device_attribute *attr,
+								  char *buf)
 {
 	int ret;
 	u16 val;
 	struct iio_dev_attr *this_attr = to_iio_dev_attr(attr);
 
 	ret = ade7753_spi_read_reg_16(dev, this_attr->address, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return sprintf(buf, "%u\n", val);
 }
 
 static ssize_t ade7753_read_24bit(struct device *dev,
-		struct device_attribute *attr,
-		char *buf)
+								  struct device_attribute *attr,
+								  char *buf)
 {
 	int ret;
 	u32 val;
 	struct iio_dev_attr *this_attr = to_iio_dev_attr(attr);
 
 	ret = ade7753_spi_read_reg_24(dev, this_attr->address, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return sprintf(buf, "%u\n", val);
 }
 
 static ssize_t ade7753_write_8bit(struct device *dev,
-		struct device_attribute *attr,
-		const char *buf,
-		size_t len)
+								  struct device_attribute *attr,
+								  const char *buf,
+								  size_t len)
 {
 	struct iio_dev_attr *this_attr = to_iio_dev_attr(attr);
 	int ret;
 	u8 val;
 
 	ret = kstrtou8(buf, 10, &val);
+
 	if (ret)
+	{
 		goto error_ret;
+	}
+
 	ret = ade7753_spi_write_reg_8(dev, this_attr->address, val);
 
 error_ret:
@@ -197,17 +219,21 @@ error_ret:
 }
 
 static ssize_t ade7753_write_16bit(struct device *dev,
-		struct device_attribute *attr,
-		const char *buf,
-		size_t len)
+								   struct device_attribute *attr,
+								   const char *buf,
+								   size_t len)
 {
 	struct iio_dev_attr *this_attr = to_iio_dev_attr(attr);
 	int ret;
 	u16 val;
 
 	ret = kstrtou16(buf, 10, &val);
+
 	if (ret)
+	{
 		goto error_ret;
+	}
+
 	ret = ade7753_spi_write_reg_16(dev, this_attr->address, val);
 
 error_ret:
@@ -220,8 +246,11 @@ static int ade7753_reset(struct device *dev)
 	int ret;
 
 	ret = ade7753_spi_read_reg_16(dev, ADE7753_MODE, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	val |= BIT(6); /* Software Chip Reset */
 
@@ -233,94 +262,94 @@ static IIO_DEV_ATTR_LAENERGY(ade7753_read_24bit, ADE7753_LAENERGY);
 static IIO_DEV_ATTR_VAENERGY(ade7753_read_24bit, ADE7753_VAENERGY);
 static IIO_DEV_ATTR_LVAENERGY(ade7753_read_24bit, ADE7753_LVAENERGY);
 static IIO_DEV_ATTR_CFDEN(S_IWUSR | S_IRUGO,
-		ade7753_read_16bit,
-		ade7753_write_16bit,
-		ADE7753_CFDEN);
+						  ade7753_read_16bit,
+						  ade7753_write_16bit,
+						  ADE7753_CFDEN);
 static IIO_DEV_ATTR_CFNUM(S_IWUSR | S_IRUGO,
-		ade7753_read_8bit,
-		ade7753_write_8bit,
-		ADE7753_CFNUM);
+						  ade7753_read_8bit,
+						  ade7753_write_8bit,
+						  ADE7753_CFNUM);
 static IIO_DEV_ATTR_CHKSUM(ade7753_read_8bit, ADE7753_CHKSUM);
 static IIO_DEV_ATTR_PHCAL(S_IWUSR | S_IRUGO,
-		ade7753_read_16bit,
-		ade7753_write_16bit,
-		ADE7753_PHCAL);
+						  ade7753_read_16bit,
+						  ade7753_write_16bit,
+						  ADE7753_PHCAL);
 static IIO_DEV_ATTR_APOS(S_IWUSR | S_IRUGO,
-		ade7753_read_16bit,
-		ade7753_write_16bit,
-		ADE7753_APOS);
+						 ade7753_read_16bit,
+						 ade7753_write_16bit,
+						 ADE7753_APOS);
 static IIO_DEV_ATTR_SAGCYC(S_IWUSR | S_IRUGO,
-		ade7753_read_8bit,
-		ade7753_write_8bit,
-		ADE7753_SAGCYC);
+						   ade7753_read_8bit,
+						   ade7753_write_8bit,
+						   ADE7753_SAGCYC);
 static IIO_DEV_ATTR_SAGLVL(S_IWUSR | S_IRUGO,
-		ade7753_read_8bit,
-		ade7753_write_8bit,
-		ADE7753_SAGLVL);
+						   ade7753_read_8bit,
+						   ade7753_write_8bit,
+						   ADE7753_SAGLVL);
 static IIO_DEV_ATTR_LINECYC(S_IWUSR | S_IRUGO,
-		ade7753_read_8bit,
-		ade7753_write_8bit,
-		ADE7753_LINECYC);
+							ade7753_read_8bit,
+							ade7753_write_8bit,
+							ADE7753_LINECYC);
 static IIO_DEV_ATTR_WDIV(S_IWUSR | S_IRUGO,
-		ade7753_read_8bit,
-		ade7753_write_8bit,
-		ADE7753_WDIV);
+						 ade7753_read_8bit,
+						 ade7753_write_8bit,
+						 ADE7753_WDIV);
 static IIO_DEV_ATTR_IRMS(S_IWUSR | S_IRUGO,
-		ade7753_read_24bit,
-		NULL,
-		ADE7753_IRMS);
+						 ade7753_read_24bit,
+						 NULL,
+						 ADE7753_IRMS);
 static IIO_DEV_ATTR_VRMS(S_IRUGO,
-		ade7753_read_24bit,
-		NULL,
-		ADE7753_VRMS);
+						 ade7753_read_24bit,
+						 NULL,
+						 ADE7753_VRMS);
 static IIO_DEV_ATTR_IRMSOS(S_IWUSR | S_IRUGO,
-		ade7753_read_16bit,
-		ade7753_write_16bit,
-		ADE7753_IRMSOS);
+						   ade7753_read_16bit,
+						   ade7753_write_16bit,
+						   ADE7753_IRMSOS);
 static IIO_DEV_ATTR_VRMSOS(S_IWUSR | S_IRUGO,
-		ade7753_read_16bit,
-		ade7753_write_16bit,
-		ADE7753_VRMSOS);
+						   ade7753_read_16bit,
+						   ade7753_write_16bit,
+						   ADE7753_VRMSOS);
 static IIO_DEV_ATTR_WGAIN(S_IWUSR | S_IRUGO,
-		ade7753_read_16bit,
-		ade7753_write_16bit,
-		ADE7753_WGAIN);
+						  ade7753_read_16bit,
+						  ade7753_write_16bit,
+						  ADE7753_WGAIN);
 static IIO_DEV_ATTR_VAGAIN(S_IWUSR | S_IRUGO,
-		ade7753_read_16bit,
-		ade7753_write_16bit,
-		ADE7753_VAGAIN);
+						   ade7753_read_16bit,
+						   ade7753_write_16bit,
+						   ADE7753_VAGAIN);
 static IIO_DEV_ATTR_PGA_GAIN(S_IWUSR | S_IRUGO,
-		ade7753_read_16bit,
-		ade7753_write_16bit,
-		ADE7753_GAIN);
+							 ade7753_read_16bit,
+							 ade7753_write_16bit,
+							 ADE7753_GAIN);
 static IIO_DEV_ATTR_IPKLVL(S_IWUSR | S_IRUGO,
-		ade7753_read_8bit,
-		ade7753_write_8bit,
-		ADE7753_IPKLVL);
+						   ade7753_read_8bit,
+						   ade7753_write_8bit,
+						   ADE7753_IPKLVL);
 static IIO_DEV_ATTR_VPKLVL(S_IWUSR | S_IRUGO,
-		ade7753_read_8bit,
-		ade7753_write_8bit,
-		ADE7753_VPKLVL);
+						   ade7753_read_8bit,
+						   ade7753_write_8bit,
+						   ADE7753_VPKLVL);
 static IIO_DEV_ATTR_IPEAK(S_IRUGO,
-		ade7753_read_24bit,
-		NULL,
-		ADE7753_IPEAK);
+						  ade7753_read_24bit,
+						  NULL,
+						  ADE7753_IPEAK);
 static IIO_DEV_ATTR_VPEAK(S_IRUGO,
-		ade7753_read_24bit,
-		NULL,
-		ADE7753_VPEAK);
+						  ade7753_read_24bit,
+						  NULL,
+						  ADE7753_VPEAK);
 static IIO_DEV_ATTR_VPERIOD(S_IRUGO,
-		ade7753_read_16bit,
-		NULL,
-		ADE7753_PERIOD);
+							ade7753_read_16bit,
+							NULL,
+							ADE7753_PERIOD);
 static IIO_DEV_ATTR_CH_OFF(1, S_IWUSR | S_IRUGO,
-		ade7753_read_8bit,
-		ade7753_write_8bit,
-		ADE7753_CH1OS);
+						   ade7753_read_8bit,
+						   ade7753_write_8bit,
+						   ADE7753_CH1OS);
 static IIO_DEV_ATTR_CH_OFF(2, S_IWUSR | S_IRUGO,
-		ade7753_read_8bit,
-		ade7753_write_8bit,
-		ADE7753_CH2OS);
+						   ade7753_read_8bit,
+						   ade7753_write_8bit,
+						   ADE7753_CH2OS);
 
 static int ade7753_set_irq(struct device *dev, bool enable)
 {
@@ -328,15 +357,23 @@ static int ade7753_set_irq(struct device *dev, bool enable)
 	u8 irqen;
 
 	ret = ade7753_spi_read_reg_8(dev, ADE7753_IRQEN, &irqen);
+
 	if (ret)
+	{
 		goto error_ret;
+	}
 
 	if (enable)
-		irqen |= BIT(3); /* Enables an interrupt when a data is
+	{
+		irqen |= BIT(3);
+	} /* Enables an interrupt when a data is
+
 				  * present in the waveform register
 				  */
 	else
+	{
 		irqen &= ~BIT(3);
+	}
 
 	ret = ade7753_spi_write_reg_8(dev, ADE7753_IRQEN, irqen);
 
@@ -351,8 +388,11 @@ static int ade7753_stop_device(struct device *dev)
 	int ret;
 
 	ret = ade7753_spi_read_reg_16(dev, ADE7753_MODE, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	val |= BIT(4);  /* AD converters can be turned off */
 
@@ -371,7 +411,9 @@ static int ade7753_initial_setup(struct iio_dev *indio_dev)
 
 	/* Disable IRQ */
 	ret = ade7753_set_irq(dev, false);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "disable irq failed");
 		goto err_ret;
 	}
@@ -384,16 +426,19 @@ err_ret:
 }
 
 static ssize_t ade7753_read_frequency(struct device *dev,
-		struct device_attribute *attr,
-		char *buf)
+									  struct device_attribute *attr,
+									  char *buf)
 {
 	int ret;
 	u16 t;
 	int sps;
 
 	ret = ade7753_spi_read_reg_16(dev, ADE7753_MODE, &t);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	t = (t >> 11) & 0x3;
 	sps = 27900 / (1 + t);
@@ -402,9 +447,9 @@ static ssize_t ade7753_read_frequency(struct device *dev,
 }
 
 static ssize_t ade7753_write_frequency(struct device *dev,
-		struct device_attribute *attr,
-		const char *buf,
-		size_t len)
+									   struct device_attribute *attr,
+									   const char *buf,
+									   size_t len)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct ade7753_state *st = iio_priv(indio_dev);
@@ -413,25 +458,41 @@ static ssize_t ade7753_write_frequency(struct device *dev,
 	u16 reg, t;
 
 	ret = kstrtou16(buf, 10, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	if (!val)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&indio_dev->mlock);
 
 	t = 27900 / val;
+
 	if (t > 0)
+	{
 		t--;
+	}
 
 	if (t > 1)
+	{
 		st->us->max_speed_hz = ADE7753_SPI_SLOW;
+	}
 	else
+	{
 		st->us->max_speed_hz = ADE7753_SPI_FAST;
+	}
 
 	ret = ade7753_spi_read_reg_16(dev, ADE7753_MODE, &reg);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	reg &= ~(3 << 11);
 	reg |= t << 11;
@@ -449,12 +510,13 @@ static IIO_CONST_ATTR(in_temp_offset, "-25 C");
 static IIO_CONST_ATTR(in_temp_scale, "0.67 C");
 
 static IIO_DEV_ATTR_SAMP_FREQ(S_IWUSR | S_IRUGO,
-		ade7753_read_frequency,
-		ade7753_write_frequency);
+							  ade7753_read_frequency,
+							  ade7753_write_frequency);
 
 static IIO_CONST_ATTR_SAMP_FREQ_AVAIL("27900 14000 7000 3500");
 
-static struct attribute *ade7753_attributes[] = {
+static struct attribute *ade7753_attributes[] =
+{
 	&iio_dev_attr_in_temp_raw.dev_attr.attr,
 	&iio_const_attr_in_temp_offset.dev_attr.attr,
 	&iio_const_attr_in_temp_scale.dev_attr.attr,
@@ -490,11 +552,13 @@ static struct attribute *ade7753_attributes[] = {
 	NULL,
 };
 
-static const struct attribute_group ade7753_attribute_group = {
+static const struct attribute_group ade7753_attribute_group =
+{
 	.attrs = ade7753_attributes,
 };
 
-static const struct iio_info ade7753_info = {
+static const struct iio_info ade7753_info =
+{
 	.attrs = &ade7753_attribute_group,
 	.driver_module = THIS_MODULE,
 };
@@ -507,8 +571,12 @@ static int ade7753_probe(struct spi_device *spi)
 
 	/* setup the industrialio driver allocated elements */
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*st));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
+
 	/* this is only used for removal purposes */
 	spi_set_drvdata(spi, indio_dev);
 
@@ -523,8 +591,11 @@ static int ade7753_probe(struct spi_device *spi)
 
 	/* Get the device into a sane initial state */
 	ret = ade7753_initial_setup(indio_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return iio_device_register(indio_dev);
 }
@@ -539,7 +610,8 @@ static int ade7753_remove(struct spi_device *spi)
 	return 0;
 }
 
-static struct spi_driver ade7753_driver = {
+static struct spi_driver ade7753_driver =
+{
 	.driver = {
 		.name = "ade7753",
 	},

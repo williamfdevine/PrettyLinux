@@ -147,7 +147,7 @@ int cfpkt_setlen(struct cfpkt *pkt, u16 len);
  * @return    The new appended packet.
  */
 struct cfpkt *cfpkt_append(struct cfpkt *dstpkt, struct cfpkt *addpkt,
-		      u16 expectlen);
+						   u16 expectlen);
 
 /*
  * cfpkt_split - Split a packet into two packets at the specified split point.
@@ -172,8 +172,8 @@ struct cfpkt *cfpkt_split(struct cfpkt *pkt, u16 pos);
  */
 
 int cfpkt_iterate(struct cfpkt *pkt,
-		u16 (*iter_func)(u16 chks, void *buf, u16 len),
-		u16 data);
+				  u16 (*iter_func)(u16 chks, void *buf, u16 len),
+				  u16 data);
 
 /* Map from a "native" packet (e.g. Linux Socket Buffer) to a CAIF packet.
  *  dir - Direction indicating whether this packet is to be sent or received.

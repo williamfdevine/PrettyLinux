@@ -41,11 +41,14 @@
 #define BRIGHT_RED ESC, BRIGHT, ';', RED, ESCEND
 #define RESET_COLOR ESC, '0', 'm'
 static const char PASS_COLOR[] = {BRIGHT_GREEN, ' ', 'P', 'A', 'S', 'S',
-				  RESET_COLOR, 0};
+								  RESET_COLOR, 0
+								 };
 static const char ERROR_COLOR[] = {BRIGHT_YELLOW, 'E', 'R', 'R', 'O', 'R',
-				   RESET_COLOR, 0};
+								   RESET_COLOR, 0
+								  };
 static const char FAIL_COLOR[] = {BRIGHT_RED, ' ', 'F', 'A', 'I', 'L',
-				  RESET_COLOR, 0};
+								  RESET_COLOR, 0
+								 };
 static const char INFO_NORMAL[] = " INFO";
 static const char PASS_NORMAL[] = " PASS";
 static const char ERROR_NORMAL[] = "ERROR";
@@ -73,11 +76,14 @@ int _verbose = VCRITICAL;
  */
 void log_color(int use_color)
 {
-	if (use_color) {
+	if (use_color)
+	{
 		PASS = PASS_COLOR;
 		ERROR = ERROR_COLOR;
 		FAIL = FAIL_COLOR;
-	} else {
+	}
+	else
+	{
 		PASS = PASS_NORMAL;
 		ERROR = ERROR_NORMAL;
 		FAIL = FAIL_NORMAL;
@@ -94,9 +100,14 @@ void log_color(int use_color)
 void log_verbosity(int level)
 {
 	if (level > VMAX)
+	{
 		level = VMAX;
+	}
 	else if (level < 0)
+	{
 		level = 0;
+	}
+
 	_verbose = level;
 }
 
@@ -110,44 +121,48 @@ void print_result(int ret)
 {
 	const char *result = "Unknown return code";
 
-	switch (ret) {
-	case RET_PASS:
-		ksft_inc_pass_cnt();
-		result = PASS;
-		break;
-	case RET_ERROR:
-		result = ERROR;
-		break;
-	case RET_FAIL:
-		ksft_inc_fail_cnt();
-		result = FAIL;
-		break;
+	switch (ret)
+	{
+		case RET_PASS:
+			ksft_inc_pass_cnt();
+			result = PASS;
+			break;
+
+		case RET_ERROR:
+			result = ERROR;
+			break;
+
+		case RET_FAIL:
+			ksft_inc_fail_cnt();
+			result = FAIL;
+			break;
 	}
+
 	printf("Result: %s\n", result);
 }
 
 /* log level macros */
 #define info(message, vargs...) \
-do { \
-	if (_verbose >= VINFO) \
-		fprintf(stderr, "\t%s: "message, INFO, ##vargs); \
-} while (0)
+	do { \
+		if (_verbose >= VINFO) \
+			fprintf(stderr, "\t%s: "message, INFO, ##vargs); \
+	} while (0)
 
 #define error(message, err, args...) \
-do { \
-	if (_verbose >= VCRITICAL) {\
-		if (err) \
-			fprintf(stderr, "\t%s: %s: "message, \
-				ERROR, strerror(err), ##args); \
-		else \
-			fprintf(stderr, "\t%s: "message, ERROR, ##args); \
-	} \
-} while (0)
+	do { \
+		if (_verbose >= VCRITICAL) {\
+			if (err) \
+				fprintf(stderr, "\t%s: %s: "message, \
+						ERROR, strerror(err), ##args); \
+			else \
+				fprintf(stderr, "\t%s: "message, ERROR, ##args); \
+		} \
+	} while (0)
 
 #define fail(message, args...) \
-do { \
-	if (_verbose >= VCRITICAL) \
-		fprintf(stderr, "\t%s: "message, FAIL, ##args); \
-} while (0)
+	do { \
+		if (_verbose >= VCRITICAL) \
+			fprintf(stderr, "\t%s: "message, FAIL, ##args); \
+	} while (0)
 
 #endif

@@ -47,7 +47,8 @@
 
 #define DLN2_GPIO_MAX_PINS 32
 
-struct dln2_gpio {
+struct dln2_gpio
+{
 	struct platform_device *pdev;
 	struct gpio_chip gpio;
 
@@ -65,11 +66,13 @@ struct dln2_gpio {
 	struct mutex irq_lock;
 };
 
-struct dln2_gpio_pin {
+struct dln2_gpio_pin
+{
 	__le16 pin;
 };
 
-struct dln2_gpio_pin_val {
+struct dln2_gpio_pin_val
+{
 	__le16 pin __packed;
 	u8 value;
 };
@@ -81,17 +84,24 @@ static int dln2_gpio_get_pin_count(struct platform_device *pdev)
 	int len = sizeof(count);
 
 	ret = dln2_transfer_rx(pdev, DLN2_GPIO_GET_PIN_COUNT, &count, &len);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (len < sizeof(count))
+	{
 		return -EPROTO;
+	}
 
 	return le16_to_cpu(count);
 }
 
 static int dln2_gpio_pin_cmd(struct dln2_gpio *dln2, int cmd, unsigned pin)
 {
-	struct dln2_gpio_pin req = {
+	struct dln2_gpio_pin req =
+	{
 		.pin = cpu_to_le16(pin),
 	};
 
@@ -101,17 +111,24 @@ static int dln2_gpio_pin_cmd(struct dln2_gpio *dln2, int cmd, unsigned pin)
 static int dln2_gpio_pin_val(struct dln2_gpio *dln2, int cmd, unsigned int pin)
 {
 	int ret;
-	struct dln2_gpio_pin req = {
+	struct dln2_gpio_pin req =
+	{
 		.pin = cpu_to_le16(pin),
 	};
 	struct dln2_gpio_pin_val rsp;
 	int len = sizeof(rsp);
 
 	ret = dln2_transfer(dln2->pdev, cmd, &req, sizeof(req), &rsp, &len);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (len < sizeof(rsp) || req.pin != rsp.pin)
+	{
 		return -EPROTO;
+	}
 
 	return rsp.value;
 }
@@ -121,8 +138,12 @@ static int dln2_gpio_pin_get_in_val(struct dln2_gpio *dln2, unsigned int pin)
 	int ret;
 
 	ret = dln2_gpio_pin_val(dln2, DLN2_GPIO_PIN_GET_VAL, pin);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return !!ret;
 }
 
@@ -131,21 +152,26 @@ static int dln2_gpio_pin_get_out_val(struct dln2_gpio *dln2, unsigned int pin)
 	int ret;
 
 	ret = dln2_gpio_pin_val(dln2, DLN2_GPIO_PIN_GET_OUT_VAL, pin);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return !!ret;
 }
 
 static int dln2_gpio_pin_set_out_val(struct dln2_gpio *dln2,
-				     unsigned int pin, int value)
+									 unsigned int pin, int value)
 {
-	struct dln2_gpio_pin_val req = {
+	struct dln2_gpio_pin_val req =
+	{
 		.pin = cpu_to_le16(pin),
 		.value = value,
 	};
 
 	return dln2_transfer_tx(dln2->pdev, DLN2_GPIO_PIN_SET_OUT_VAL, &req,
-				sizeof(req));
+							sizeof(req));
 }
 
 #define DLN2_GPIO_DIRECTION_IN		0
@@ -154,7 +180,8 @@ static int dln2_gpio_pin_set_out_val(struct dln2_gpio *dln2,
 static int dln2_gpio_request(struct gpio_chip *chip, unsigned offset)
 {
 	struct dln2_gpio *dln2 = gpiochip_get_data(chip);
-	struct dln2_gpio_pin req = {
+	struct dln2_gpio_pin req =
+	{
 		.pin = cpu_to_le16(offset),
 	};
 	struct dln2_gpio_pin_val rsp;
@@ -162,29 +189,40 @@ static int dln2_gpio_request(struct gpio_chip *chip, unsigned offset)
 	int ret;
 
 	ret = dln2_gpio_pin_cmd(dln2, DLN2_GPIO_PIN_ENABLE, offset);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* cache the pin direction */
 	ret = dln2_transfer(dln2->pdev, DLN2_GPIO_PIN_GET_DIRECTION,
-			    &req, sizeof(req), &rsp, &len);
+						&req, sizeof(req), &rsp, &len);
+
 	if (ret < 0)
+	{
 		return ret;
-	if (len < sizeof(rsp) || req.pin != rsp.pin) {
+	}
+
+	if (len < sizeof(rsp) || req.pin != rsp.pin)
+	{
 		ret = -EPROTO;
 		goto out_disable;
 	}
 
-	switch (rsp.value) {
-	case DLN2_GPIO_DIRECTION_IN:
-		clear_bit(offset, dln2->output_enabled);
-		return 0;
-	case DLN2_GPIO_DIRECTION_OUT:
-		set_bit(offset, dln2->output_enabled);
-		return 0;
-	default:
-		ret = -EPROTO;
-		goto out_disable;
+	switch (rsp.value)
+	{
+		case DLN2_GPIO_DIRECTION_IN:
+			clear_bit(offset, dln2->output_enabled);
+			return 0;
+
+		case DLN2_GPIO_DIRECTION_OUT:
+			set_bit(offset, dln2->output_enabled);
+			return 0;
+
+		default:
+			ret = -EPROTO;
+			goto out_disable;
 	}
 
 out_disable:
@@ -204,7 +242,9 @@ static int dln2_gpio_get_direction(struct gpio_chip *chip, unsigned offset)
 	struct dln2_gpio *dln2 = gpiochip_get_data(chip);
 
 	if (test_bit(offset, dln2->output_enabled))
+	{
 		return GPIOF_DIR_OUT;
+	}
 
 	return GPIOF_DIR_IN;
 }
@@ -215,11 +255,16 @@ static int dln2_gpio_get(struct gpio_chip *chip, unsigned int offset)
 	int dir;
 
 	dir = dln2_gpio_get_direction(chip, offset);
+
 	if (dir < 0)
+	{
 		return dir;
+	}
 
 	if (dir == GPIOF_DIR_IN)
+	{
 		return dln2_gpio_pin_get_in_val(dln2, offset);
+	}
 
 	return dln2_gpio_pin_get_out_val(dln2, offset);
 }
@@ -232,24 +277,32 @@ static void dln2_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 }
 
 static int dln2_gpio_set_direction(struct gpio_chip *chip, unsigned offset,
-				   unsigned dir)
+								   unsigned dir)
 {
 	struct dln2_gpio *dln2 = gpiochip_get_data(chip);
-	struct dln2_gpio_pin_val req = {
+	struct dln2_gpio_pin_val req =
+	{
 		.pin = cpu_to_le16(offset),
 		.value = dir,
 	};
 	int ret;
 
 	ret = dln2_transfer_tx(dln2->pdev, DLN2_GPIO_PIN_SET_DIRECTION,
-			       &req, sizeof(req));
+						   &req, sizeof(req));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (dir == DLN2_GPIO_DIRECTION_OUT)
+	{
 		set_bit(offset, dln2->output_enabled);
+	}
 	else
+	{
 		clear_bit(offset, dln2->output_enabled);
+	}
 
 	return ret;
 }
@@ -260,43 +313,48 @@ static int dln2_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
 }
 
 static int dln2_gpio_direction_output(struct gpio_chip *chip, unsigned offset,
-				      int value)
+									  int value)
 {
 	struct dln2_gpio *dln2 = gpiochip_get_data(chip);
 	int ret;
 
 	ret = dln2_gpio_pin_set_out_val(dln2, offset, value);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return dln2_gpio_set_direction(chip, offset, DLN2_GPIO_DIRECTION_OUT);
 }
 
 static int dln2_gpio_set_debounce(struct gpio_chip *chip, unsigned offset,
-				  unsigned debounce)
+								  unsigned debounce)
 {
 	struct dln2_gpio *dln2 = gpiochip_get_data(chip);
 	__le32 duration = cpu_to_le32(debounce);
 
 	return dln2_transfer_tx(dln2->pdev, DLN2_GPIO_SET_DEBOUNCE,
-				&duration, sizeof(duration));
+							&duration, sizeof(duration));
 }
 
 static int dln2_gpio_set_event_cfg(struct dln2_gpio *dln2, unsigned pin,
-				   unsigned type, unsigned period)
+								   unsigned type, unsigned period)
 {
-	struct {
+	struct
+	{
 		__le16 pin;
 		u8 type;
 		__le16 period;
-	} __packed req = {
+	} __packed req =
+	{
 		.pin = cpu_to_le16(pin),
 		.type = type,
 		.period = cpu_to_le16(period),
 	};
 
 	return dln2_transfer_tx(dln2->pdev, DLN2_GPIO_PIN_SET_EVENT_CFG,
-				&req, sizeof(req));
+							&req, sizeof(req));
 }
 
 static void dln2_irq_unmask(struct irq_data *irqd)
@@ -323,24 +381,30 @@ static int dln2_irq_set_type(struct irq_data *irqd, unsigned type)
 	struct dln2_gpio *dln2 = gpiochip_get_data(gc);
 	int pin = irqd_to_hwirq(irqd);
 
-	switch (type) {
-	case IRQ_TYPE_LEVEL_HIGH:
-		dln2->irq_type[pin] = DLN2_GPIO_EVENT_LVL_HIGH;
-		break;
-	case IRQ_TYPE_LEVEL_LOW:
-		dln2->irq_type[pin] = DLN2_GPIO_EVENT_LVL_LOW;
-		break;
-	case IRQ_TYPE_EDGE_BOTH:
-		dln2->irq_type[pin] = DLN2_GPIO_EVENT_CHANGE;
-		break;
-	case IRQ_TYPE_EDGE_RISING:
-		dln2->irq_type[pin] = DLN2_GPIO_EVENT_CHANGE_RISING;
-		break;
-	case IRQ_TYPE_EDGE_FALLING:
-		dln2->irq_type[pin] = DLN2_GPIO_EVENT_CHANGE_FALLING;
-		break;
-	default:
-		return -EINVAL;
+	switch (type)
+	{
+		case IRQ_TYPE_LEVEL_HIGH:
+			dln2->irq_type[pin] = DLN2_GPIO_EVENT_LVL_HIGH;
+			break;
+
+		case IRQ_TYPE_LEVEL_LOW:
+			dln2->irq_type[pin] = DLN2_GPIO_EVENT_LVL_LOW;
+			break;
+
+		case IRQ_TYPE_EDGE_BOTH:
+			dln2->irq_type[pin] = DLN2_GPIO_EVENT_CHANGE;
+			break;
+
+		case IRQ_TYPE_EDGE_RISING:
+			dln2->irq_type[pin] = DLN2_GPIO_EVENT_CHANGE_RISING;
+			break;
+
+		case IRQ_TYPE_EDGE_FALLING:
+			dln2->irq_type[pin] = DLN2_GPIO_EVENT_CHANGE_FALLING;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -366,24 +430,32 @@ static void dln2_irq_bus_unlock(struct irq_data *irqd)
 	enabled = test_bit(pin, dln2->enabled_irqs);
 	unmasked = test_bit(pin, dln2->unmasked_irqs);
 
-	if (enabled != unmasked) {
-		if (unmasked) {
+	if (enabled != unmasked)
+	{
+		if (unmasked)
+		{
 			type = dln2->irq_type[pin] & DLN2_GPIO_EVENT_MASK;
 			set_bit(pin, dln2->enabled_irqs);
-		} else {
+		}
+		else
+		{
 			type = DLN2_GPIO_EVENT_NONE;
 			clear_bit(pin, dln2->enabled_irqs);
 		}
 
 		ret = dln2_gpio_set_event_cfg(dln2, pin, type, 0);
+
 		if (ret)
+		{
 			dev_err(dln2->gpio.parent, "failed to set event\n");
+		}
 	}
 
 	mutex_unlock(&dln2->irq_lock);
 }
 
-static struct irq_chip dln2_gpio_irqchip = {
+static struct irq_chip dln2_gpio_irqchip =
+{
 	.name = "dln2-irq",
 	.irq_mask = dln2_irq_mask,
 	.irq_unmask = dln2_irq_unmask,
@@ -393,11 +465,12 @@ static struct irq_chip dln2_gpio_irqchip = {
 };
 
 static void dln2_gpio_event(struct platform_device *pdev, u16 echo,
-			    const void *data, int len)
+							const void *data, int len)
 {
 	int pin, irq;
 
-	const struct {
+	const struct
+	{
 		__le16 count;
 		__u8 type;
 		__le16 pin;
@@ -405,34 +478,48 @@ static void dln2_gpio_event(struct platform_device *pdev, u16 echo,
 	} __packed *event = data;
 	struct dln2_gpio *dln2 = platform_get_drvdata(pdev);
 
-	if (len < sizeof(*event)) {
+	if (len < sizeof(*event))
+	{
 		dev_err(dln2->gpio.parent, "short event message\n");
 		return;
 	}
 
 	pin = le16_to_cpu(event->pin);
-	if (pin >= dln2->gpio.ngpio) {
+
+	if (pin >= dln2->gpio.ngpio)
+	{
 		dev_err(dln2->gpio.parent, "out of bounds pin %d\n", pin);
 		return;
 	}
 
 	irq = irq_find_mapping(dln2->gpio.irqdomain, pin);
-	if (!irq) {
+
+	if (!irq)
+	{
 		dev_err(dln2->gpio.parent, "pin %d not mapped to IRQ\n", pin);
 		return;
 	}
 
-	switch (dln2->irq_type[pin]) {
-	case DLN2_GPIO_EVENT_CHANGE_RISING:
-		if (event->value)
+	switch (dln2->irq_type[pin])
+	{
+		case DLN2_GPIO_EVENT_CHANGE_RISING:
+			if (event->value)
+			{
+				generic_handle_irq(irq);
+			}
+
+			break;
+
+		case DLN2_GPIO_EVENT_CHANGE_FALLING:
+			if (!event->value)
+			{
+				generic_handle_irq(irq);
+			}
+
+			break;
+
+		default:
 			generic_handle_irq(irq);
-		break;
-	case DLN2_GPIO_EVENT_CHANGE_FALLING:
-		if (!event->value)
-			generic_handle_irq(irq);
-		break;
-	default:
-		generic_handle_irq(irq);
 	}
 }
 
@@ -444,18 +531,25 @@ static int dln2_gpio_probe(struct platform_device *pdev)
 	int ret;
 
 	pins = dln2_gpio_get_pin_count(pdev);
-	if (pins < 0) {
+
+	if (pins < 0)
+	{
 		dev_err(dev, "failed to get pin count: %d\n", pins);
 		return pins;
 	}
-	if (pins > DLN2_GPIO_MAX_PINS) {
+
+	if (pins > DLN2_GPIO_MAX_PINS)
+	{
 		pins = DLN2_GPIO_MAX_PINS;
 		dev_warn(dev, "clamping pins to %d\n", DLN2_GPIO_MAX_PINS);
 	}
 
 	dln2 = devm_kzalloc(&pdev->dev, sizeof(*dln2), GFP_KERNEL);
+
 	if (!dln2)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&dln2->irq_lock);
 
@@ -480,21 +574,27 @@ static int dln2_gpio_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, dln2);
 
 	ret = devm_gpiochip_add_data(dev, &dln2->gpio, dln2);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to add gpio chip: %d\n", ret);
 		return ret;
 	}
 
 	ret = gpiochip_irqchip_add(&dln2->gpio, &dln2_gpio_irqchip, 0,
-				   handle_simple_irq, IRQ_TYPE_NONE);
-	if (ret < 0) {
+							   handle_simple_irq, IRQ_TYPE_NONE);
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to add irq chip: %d\n", ret);
 		return ret;
 	}
 
 	ret = dln2_register_event_cb(pdev, DLN2_GPIO_CONDITION_MET_EV,
-				     dln2_gpio_event);
-	if (ret) {
+								 dln2_gpio_event);
+
+	if (ret)
+	{
 		dev_err(dev, "failed to register event cb: %d\n", ret);
 		return ret;
 	}
@@ -509,7 +609,8 @@ static int dln2_gpio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver dln2_gpio_driver = {
+static struct platform_driver dln2_gpio_driver =
+{
 	.driver.name	= "dln2-gpio",
 	.probe		= dln2_gpio_probe,
 	.remove		= dln2_gpio_remove,

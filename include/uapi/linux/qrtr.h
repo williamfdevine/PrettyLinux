@@ -3,7 +3,8 @@
 
 #include <linux/socket.h>
 
-struct sockaddr_qrtr {
+struct sockaddr_qrtr
+{
 	__kernel_sa_family_t sq_family;
 	__u32 sq_node;
 	__u32 sq_port;

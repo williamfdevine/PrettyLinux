@@ -11,7 +11,8 @@
 /* kernel -> mpc-daemon */
 int msg_to_mpoad(struct k_message *msg, struct mpoa_client *mpc);
 
-struct mpoa_client {
+struct mpoa_client
+{
 	struct mpoa_client *next;
 	struct net_device *dev;      /* lec in question                     */
 	int dev_num;                 /* e.g. 2 for lec2                     */
@@ -37,7 +38,8 @@ struct mpoa_client {
 };
 
 
-struct atm_mpoa_qos {
+struct atm_mpoa_qos
+{
 	struct atm_mpoa_qos *next;
 	__be32 ipaddr;
 	struct atm_qos qos;
@@ -54,11 +56,11 @@ struct seq_file;
 void atm_mpoa_disp_qos(struct seq_file *m);
 
 #ifdef CONFIG_PROC_FS
-int mpc_proc_init(void);
-void mpc_proc_clean(void);
+	int mpc_proc_init(void);
+	void mpc_proc_clean(void);
 #else
-#define mpc_proc_init() (0)
-#define mpc_proc_clean() do { } while(0)
+	#define mpc_proc_init() (0)
+	#define mpc_proc_clean() do { } while(0)
 #endif
 
 #endif /* _MPC_H_ */

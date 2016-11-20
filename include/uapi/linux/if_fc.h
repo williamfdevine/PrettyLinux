@@ -34,13 +34,15 @@
  *  constructed in the driver as the Tachyon needs certain fields in
  *  certains positions. So, it can't be generalized here.*/
 
-struct fch_hdr {
+struct fch_hdr
+{
 	__u8  daddr[FC_ALEN];		/* destination address */
 	__u8  saddr[FC_ALEN];		/* source address */
 };
 
 /* This is a Fibre Channel LLC structure */
-struct fcllc {
+struct fcllc
+{
 	__u8  dsap;			/* destination SAP */
 	__u8  ssap;			/* source SAP */
 	__u8  llc;			/* LLC control field */

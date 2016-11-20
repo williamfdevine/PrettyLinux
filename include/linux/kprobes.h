@@ -52,7 +52,8 @@
 
 #else /* CONFIG_KPROBES */
 typedef int kprobe_opcode_t;
-struct arch_specific_insn {
+struct arch_specific_insn
+{
 	int dummy;
 };
 #endif /* CONFIG_KPROBES */
@@ -64,13 +65,14 @@ struct kretprobe_instance;
 typedef int (*kprobe_pre_handler_t) (struct kprobe *, struct pt_regs *);
 typedef int (*kprobe_break_handler_t) (struct kprobe *, struct pt_regs *);
 typedef void (*kprobe_post_handler_t) (struct kprobe *, struct pt_regs *,
-				       unsigned long flags);
+									   unsigned long flags);
 typedef int (*kprobe_fault_handler_t) (struct kprobe *, struct pt_regs *,
-				       int trapnr);
+									   int trapnr);
 typedef int (*kretprobe_handler_t) (struct kretprobe_instance *,
-				    struct pt_regs *);
+									struct pt_regs *);
 
-struct kprobe {
+struct kprobe
+{
 	struct hlist_node hlist;
 
 	/* list of kprobes for multi-handler support */
@@ -163,7 +165,8 @@ static inline int kprobe_ftrace(struct kprobe *p)
  * etc upfront, regardless of sub-scopes within a function, this mirroring
  * principle currently works only for probes placed on function entry points.
  */
-struct jprobe {
+struct jprobe
+{
 	struct kprobe kp;
 	void *entry;	/* probe handling code to jump to */
 };
@@ -181,7 +184,8 @@ struct jprobe {
  * ignored, due to maxactive being too low.
  *
  */
-struct kretprobe {
+struct kretprobe
+{
 	struct kprobe kp;
 	kretprobe_handler_t handler;
 	kretprobe_handler_t entry_handler;
@@ -192,7 +196,8 @@ struct kretprobe {
 	raw_spinlock_t lock;
 };
 
-struct kretprobe_instance {
+struct kretprobe_instance
+{
 	struct hlist_node hlist;
 	struct kretprobe *rp;
 	kprobe_opcode_t *ret_addr;
@@ -200,12 +205,14 @@ struct kretprobe_instance {
 	char data[0];
 };
 
-struct kretprobe_blackpoint {
+struct kretprobe_blackpoint
+{
 	const char *name;
 	void *addr;
 };
 
-struct kprobe_blacklist_entry {
+struct kprobe_blacklist_entry
+{
 	struct list_head list;
 	unsigned long start_addr;
 	unsigned long end_addr;
@@ -225,11 +232,11 @@ static inline int kprobes_built_in(void)
 
 #ifdef CONFIG_KRETPROBES
 extern void arch_prepare_kretprobe(struct kretprobe_instance *ri,
-				   struct pt_regs *regs);
+								   struct pt_regs *regs);
 extern int arch_trampoline_kprobe(struct kprobe *p);
 #else /* CONFIG_KRETPROBES */
 static inline void arch_prepare_kretprobe(struct kretprobe *rp,
-					struct pt_regs *regs)
+		struct pt_regs *regs)
 {
 }
 static inline int arch_trampoline_kprobe(struct kprobe *p)
@@ -241,11 +248,12 @@ static inline int arch_trampoline_kprobe(struct kprobe *p)
 extern struct kretprobe_blackpoint kretprobe_blacklist[];
 
 static inline void kretprobe_assert(struct kretprobe_instance *ri,
-	unsigned long orig_ret_address, unsigned long trampoline_address)
+									unsigned long orig_ret_address, unsigned long trampoline_address)
 {
-	if (!orig_ret_address || (orig_ret_address == trampoline_address)) {
+	if (!orig_ret_address || (orig_ret_address == trampoline_address))
+	{
 		printk("kretprobe BUG!: Processing kretprobe %p @ %p\n",
-				ri->rp, ri->rp->kp.addr);
+			   ri->rp, ri->rp->kp.addr);
 		BUG();
 	}
 }
@@ -269,7 +277,8 @@ extern bool arch_within_kprobe_blacklist(unsigned long addr);
 
 extern bool within_kprobe_blacklist(unsigned long addr);
 
-struct kprobe_insn_cache {
+struct kprobe_insn_cache
+{
 	struct mutex mutex;
 	void *(*alloc)(void);	/* allocate insn page */
 	void (*free)(void *);	/* free insn page */
@@ -280,114 +289,115 @@ struct kprobe_insn_cache {
 
 extern kprobe_opcode_t *__get_insn_slot(struct kprobe_insn_cache *c);
 extern void __free_insn_slot(struct kprobe_insn_cache *c,
-			     kprobe_opcode_t *slot, int dirty);
+							 kprobe_opcode_t *slot, int dirty);
 
 #define DEFINE_INSN_CACHE_OPS(__name)					\
-extern struct kprobe_insn_cache kprobe_##__name##_slots;		\
-									\
-static inline kprobe_opcode_t *get_##__name##_slot(void)		\
-{									\
-	return __get_insn_slot(&kprobe_##__name##_slots);		\
-}									\
-									\
-static inline void free_##__name##_slot(kprobe_opcode_t *slot, int dirty)\
-{									\
-	__free_insn_slot(&kprobe_##__name##_slots, slot, dirty);	\
-}									\
+	extern struct kprobe_insn_cache kprobe_##__name##_slots;		\
+	\
+	static inline kprobe_opcode_t *get_##__name##_slot(void)		\
+	{									\
+		return __get_insn_slot(&kprobe_##__name##_slots);		\
+	}									\
+	\
+	static inline void free_##__name##_slot(kprobe_opcode_t *slot, int dirty)\
+	{									\
+		__free_insn_slot(&kprobe_##__name##_slots, slot, dirty);	\
+	}									\
 
-DEFINE_INSN_CACHE_OPS(insn);
+	DEFINE_INSN_CACHE_OPS(insn);
 
 #ifdef CONFIG_OPTPROBES
-/*
- * Internal structure for direct jump optimized probe
- */
-struct optimized_kprobe {
-	struct kprobe kp;
-	struct list_head list;	/* list for optimizing queue */
-	struct arch_optimized_insn optinsn;
-};
+	/*
+	 * Internal structure for direct jump optimized probe
+	 */
+	struct optimized_kprobe
+	{
+		struct kprobe kp;
+		struct list_head list;	/* list for optimizing queue */
+		struct arch_optimized_insn optinsn;
+	};
 
-/* Architecture dependent functions for direct jump optimization */
-extern int arch_prepared_optinsn(struct arch_optimized_insn *optinsn);
-extern int arch_check_optimized_kprobe(struct optimized_kprobe *op);
-extern int arch_prepare_optimized_kprobe(struct optimized_kprobe *op,
-					 struct kprobe *orig);
-extern void arch_remove_optimized_kprobe(struct optimized_kprobe *op);
-extern void arch_optimize_kprobes(struct list_head *oplist);
-extern void arch_unoptimize_kprobes(struct list_head *oplist,
-				    struct list_head *done_list);
-extern void arch_unoptimize_kprobe(struct optimized_kprobe *op);
-extern int arch_within_optimized_kprobe(struct optimized_kprobe *op,
-					unsigned long addr);
+	/* Architecture dependent functions for direct jump optimization */
+	extern int arch_prepared_optinsn(struct arch_optimized_insn *optinsn);
+	extern int arch_check_optimized_kprobe(struct optimized_kprobe *op);
+	extern int arch_prepare_optimized_kprobe(struct optimized_kprobe *op,
+			struct kprobe *orig);
+	extern void arch_remove_optimized_kprobe(struct optimized_kprobe *op);
+	extern void arch_optimize_kprobes(struct list_head *oplist);
+	extern void arch_unoptimize_kprobes(struct list_head *oplist,
+										struct list_head *done_list);
+	extern void arch_unoptimize_kprobe(struct optimized_kprobe *op);
+	extern int arch_within_optimized_kprobe(struct optimized_kprobe *op,
+											unsigned long addr);
 
-extern void opt_pre_handler(struct kprobe *p, struct pt_regs *regs);
+	extern void opt_pre_handler(struct kprobe *p, struct pt_regs *regs);
 
-DEFINE_INSN_CACHE_OPS(optinsn);
+	DEFINE_INSN_CACHE_OPS(optinsn);
 
 #ifdef CONFIG_SYSCTL
-extern int sysctl_kprobes_optimization;
-extern int proc_kprobes_optimization_handler(struct ctl_table *table,
-					     int write, void __user *buffer,
-					     size_t *length, loff_t *ppos);
+	extern int sysctl_kprobes_optimization;
+	extern int proc_kprobes_optimization_handler(struct ctl_table *table,
+			int write, void __user *buffer,
+			size_t *length, loff_t *ppos);
 #endif
 
 #endif /* CONFIG_OPTPROBES */
 #ifdef CONFIG_KPROBES_ON_FTRACE
-extern void kprobe_ftrace_handler(unsigned long ip, unsigned long parent_ip,
-				  struct ftrace_ops *ops, struct pt_regs *regs);
-extern int arch_prepare_kprobe_ftrace(struct kprobe *p);
+	extern void kprobe_ftrace_handler(unsigned long ip, unsigned long parent_ip,
+									  struct ftrace_ops *ops, struct pt_regs *regs);
+	extern int arch_prepare_kprobe_ftrace(struct kprobe *p);
 #endif
 
-int arch_check_ftrace_location(struct kprobe *p);
+	int arch_check_ftrace_location(struct kprobe *p);
 
-/* Get the kprobe at this addr (if any) - called with preemption disabled */
-struct kprobe *get_kprobe(void *addr);
-void kretprobe_hash_lock(struct task_struct *tsk,
-			 struct hlist_head **head, unsigned long *flags);
-void kretprobe_hash_unlock(struct task_struct *tsk, unsigned long *flags);
-struct hlist_head * kretprobe_inst_table_head(struct task_struct *tsk);
+	/* Get the kprobe at this addr (if any) - called with preemption disabled */
+	struct kprobe *get_kprobe(void *addr);
+	void kretprobe_hash_lock(struct task_struct *tsk,
+							 struct hlist_head **head, unsigned long *flags);
+	void kretprobe_hash_unlock(struct task_struct *tsk, unsigned long *flags);
+	struct hlist_head *kretprobe_inst_table_head(struct task_struct *tsk);
 
-/* kprobe_running() will just return the current_kprobe on this CPU */
-static inline struct kprobe *kprobe_running(void)
-{
-	return (__this_cpu_read(current_kprobe));
-}
+	/* kprobe_running() will just return the current_kprobe on this CPU */
+	static inline struct kprobe *kprobe_running(void)
+	{
+		return (__this_cpu_read(current_kprobe));
+	}
 
-static inline void reset_current_kprobe(void)
-{
-	__this_cpu_write(current_kprobe, NULL);
-}
+	static inline void reset_current_kprobe(void)
+	{
+		__this_cpu_write(current_kprobe, NULL);
+	}
 
-static inline struct kprobe_ctlblk *get_kprobe_ctlblk(void)
-{
-	return this_cpu_ptr(&kprobe_ctlblk);
-}
+	static inline struct kprobe_ctlblk *get_kprobe_ctlblk(void)
+	{
+		return this_cpu_ptr(&kprobe_ctlblk);
+	}
 
-int register_kprobe(struct kprobe *p);
-void unregister_kprobe(struct kprobe *p);
-int register_kprobes(struct kprobe **kps, int num);
-void unregister_kprobes(struct kprobe **kps, int num);
-int setjmp_pre_handler(struct kprobe *, struct pt_regs *);
-int longjmp_break_handler(struct kprobe *, struct pt_regs *);
-int register_jprobe(struct jprobe *p);
-void unregister_jprobe(struct jprobe *p);
-int register_jprobes(struct jprobe **jps, int num);
-void unregister_jprobes(struct jprobe **jps, int num);
-void jprobe_return(void);
-unsigned long arch_deref_entry_point(void *);
+	int register_kprobe(struct kprobe *p);
+	void unregister_kprobe(struct kprobe *p);
+	int register_kprobes(struct kprobe **kps, int num);
+	void unregister_kprobes(struct kprobe **kps, int num);
+	int setjmp_pre_handler(struct kprobe *, struct pt_regs *);
+	int longjmp_break_handler(struct kprobe *, struct pt_regs *);
+	int register_jprobe(struct jprobe *p);
+	void unregister_jprobe(struct jprobe *p);
+	int register_jprobes(struct jprobe **jps, int num);
+	void unregister_jprobes(struct jprobe **jps, int num);
+	void jprobe_return(void);
+	unsigned long arch_deref_entry_point(void *);
 
-int register_kretprobe(struct kretprobe *rp);
-void unregister_kretprobe(struct kretprobe *rp);
-int register_kretprobes(struct kretprobe **rps, int num);
-void unregister_kretprobes(struct kretprobe **rps, int num);
+	int register_kretprobe(struct kretprobe *rp);
+	void unregister_kretprobe(struct kretprobe *rp);
+	int register_kretprobes(struct kretprobe **rps, int num);
+	void unregister_kretprobes(struct kretprobe **rps, int num);
 
-void kprobe_flush_task(struct task_struct *tk);
-void recycle_rp_inst(struct kretprobe_instance *ri, struct hlist_head *head);
+	void kprobe_flush_task(struct task_struct *tk);
+	void recycle_rp_inst(struct kretprobe_instance *ri, struct hlist_head *head);
 
-int disable_kprobe(struct kprobe *kp);
-int enable_kprobe(struct kprobe *kp);
+	int disable_kprobe(struct kprobe *kp);
+	int enable_kprobe(struct kprobe *kp);
 
-void dump_kprobe(struct kprobe *kp);
+	void dump_kprobe(struct kprobe *kp);
 
 #else /* !CONFIG_KPROBES: */
 
@@ -487,7 +497,7 @@ static inline int enable_jprobe(struct jprobe *jp)
  * by using this macro.
  */
 #define __NOKPROBE_SYMBOL(fname)			\
-static unsigned long __used				\
+	static unsigned long __used				\
 	__attribute__((section("_kprobe_blacklist")))	\
 	_kbl_addr_##fname = (unsigned long)fname;
 #define NOKPROBE_SYMBOL(fname)	__NOKPROBE_SYMBOL(fname)

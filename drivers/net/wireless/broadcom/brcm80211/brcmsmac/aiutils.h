@@ -131,7 +131,8 @@
  * Data structure to export all chip specific common variables
  *   public (read-only) portion of aiutils handle returned by si_attach()
  */
-struct si_pub {
+struct si_pub
+{
 	int ccrev;		/* chip common core rev */
 	u32 cccaps;		/* chip common capabilities */
 	int pmurev;		/* pmu core rev */
@@ -145,7 +146,8 @@ struct si_pub {
 
 struct pci_dev;
 
-struct gpioh_item {
+struct gpioh_item
+{
 	void *arg;
 	bool level;
 	void (*handler) (u32 stat, void *arg);
@@ -154,7 +156,8 @@ struct gpioh_item {
 };
 
 /* misc si info needed by some of the routines */
-struct si_info {
+struct si_info
+{
 	struct si_pub pub;	/* back plane public state (must be first) */
 	struct bcma_bus *icbus;	/* handle to soc interconnect bus */
 	struct pci_dev *pcibus;	/* handle to pci bus */

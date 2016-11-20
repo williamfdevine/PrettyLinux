@@ -22,7 +22,8 @@ struct device;
  * struct abx500_init_setting
  * Initial value of the registers for driver to use during setup.
  */
-struct abx500_init_settings {
+struct abx500_init_settings
+{
 	u8 bank;
 	u8 reg;
 	u8 setting;
@@ -36,7 +37,8 @@ struct abx500_init_settings {
  * temperature. Different phone manufactures uses different techniques to both
  * identify the battery and to read its temperature.
  */
-enum abx500_adc_therm {
+enum abx500_adc_therm
+{
 	ABx500_ADC_THERM_BATCTRL,
 	ABx500_ADC_THERM_BATTEMP,
 };
@@ -48,7 +50,8 @@ enum abx500_adc_therm {
  * @temp:			battery pack temperature in Celcius
  * @resist:			NTC resistor net total resistance
  */
-struct abx500_res_to_temp {
+struct abx500_res_to_temp
+{
 	int temp;
 	int resist;
 };
@@ -58,7 +61,8 @@ struct abx500_res_to_temp {
  * @voltage:		Voltage in mV
  * @capacity:		Capacity in percent
  */
-struct abx500_v_to_cap {
+struct abx500_v_to_cap
+{
 	int voltage;
 	int capacity;
 };
@@ -95,7 +99,8 @@ struct abx500_fg;
  * @pcut_max_restart:		Max number of restarts
  * @pcut_debounce_time:		Sets battery debounce time
  */
-struct abx500_fg_parameters {
+struct abx500_fg_parameters
+{
 	int recovery_sleep_timer;
 	int recovery_total_time;
 	int init_timer;
@@ -125,7 +130,8 @@ struct abx500_fg_parameters {
  * @maxi_wait_cycles:	cycles to wait before setting charger current
  * @charger_curr_step	delta between two charger current settings (mA)
  */
-struct abx500_maxim_parameters {
+struct abx500_maxim_parameters
+{
 	bool ena_maxi;
 	int chg_curr;
 	int wait_cycles;
@@ -162,7 +168,8 @@ struct abx500_maxim_parameters {
  * @n_batres_tbl_elements	number of elements in the batres_tbl
  * @batres_tbl			battery internal resistance vs temperature table
  */
-struct abx500_battery_type {
+struct abx500_battery_type
+{
 	int name;
 	int resis_high;
 	int resis_low;
@@ -198,7 +205,8 @@ struct abx500_battery_type {
  * @high:		high capacity level in percent
  * @full:		full capacity level in percent
  */
-struct abx500_bm_capacity_levels {
+struct abx500_bm_capacity_levels
+{
 	int critical;
 	int low;
 	int normal;
@@ -213,7 +221,8 @@ struct abx500_bm_capacity_levels {
  * @ac_volt_max:	maximum allowed AC charger voltage in mV
  * @ac_curr_max:	maximum allowed AC charger current in mA
  */
-struct abx500_bm_charger_parameters {
+struct abx500_bm_charger_parameters
+{
 	int usb_volt_max;
 	int usb_curr_max;
 	int ac_volt_max;
@@ -256,7 +265,8 @@ struct abx500_bm_charger_parameters {
  * @chg_params		charger parameters
  * @fg_params		fuel gauge parameters
  */
-struct abx500_bm_data {
+struct abx500_bm_data
+{
 	int temp_under;
 	int temp_low;
 	int temp_high;
@@ -296,23 +306,24 @@ struct abx500_bm_data {
 	const struct abx500_fg_parameters *fg_params;
 };
 
-enum {
+enum
+{
 	NTC_EXTERNAL = 0,
 	NTC_INTERNAL,
 };
 
 int ab8500_bm_of_probe(struct device *dev,
-		       struct device_node *np,
-		       struct abx500_bm_data *bm);
+					   struct device_node *np,
+					   struct abx500_bm_data *bm);
 
 int abx500_set_register_interruptible(struct device *dev, u8 bank, u8 reg,
-	u8 value);
+									  u8 value);
 int abx500_get_register_interruptible(struct device *dev, u8 bank, u8 reg,
-	u8 *value);
+									  u8 *value);
 int abx500_get_register_page_interruptible(struct device *dev, u8 bank,
-	u8 first_reg, u8 *regvals, u8 numregs);
+		u8 first_reg, u8 *regvals, u8 numregs);
 int abx500_set_register_page_interruptible(struct device *dev, u8 bank,
-	u8 first_reg, u8 *regvals, u8 numregs);
+		u8 first_reg, u8 *regvals, u8 numregs);
 /**
  * abx500_mask_and_set_register_inerruptible() - Modifies selected bits of a
  *	target register
@@ -326,12 +337,13 @@ int abx500_set_register_page_interruptible(struct device *dev, u8 bank,
  * value -> ((value & ~bitmask) | (bitvalues & bitmask))
  */
 int abx500_mask_and_set_register_interruptible(struct device *dev, u8 bank,
-	u8 reg, u8 bitmask, u8 bitvalues);
+		u8 reg, u8 bitmask, u8 bitvalues);
 int abx500_get_chip_id(struct device *dev);
 int abx500_event_registers_startup_state_get(struct device *dev, u8 *event);
 int abx500_startup_irq_enabled(struct device *dev, unsigned int irq);
 
-struct abx500_ops {
+struct abx500_ops
+{
 	int (*get_chip_id) (struct device *);
 	int (*get_register) (struct device *, u8, u8, u8 *);
 	int (*set_register) (struct device *, u8, u8, u8);

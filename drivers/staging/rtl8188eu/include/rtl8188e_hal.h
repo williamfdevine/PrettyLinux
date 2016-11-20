@@ -65,14 +65,15 @@
 
 #define IS_FW_HEADER_EXIST(_pFwHdr)				\
 	((le16_to_cpu(_pFwHdr->signature)&0xFFF0) == 0x92C0 ||	\
-	(le16_to_cpu(_pFwHdr->signature)&0xFFF0) == 0x88C0 ||	\
-	(le16_to_cpu(_pFwHdr->signature)&0xFFF0) == 0x2300 ||	\
-	(le16_to_cpu(_pFwHdr->signature)&0xFFF0) == 0x88E0)
+	 (le16_to_cpu(_pFwHdr->signature)&0xFFF0) == 0x88C0 ||	\
+	 (le16_to_cpu(_pFwHdr->signature)&0xFFF0) == 0x2300 ||	\
+	 (le16_to_cpu(_pFwHdr->signature)&0xFFF0) == 0x88E0)
 
 #define DRIVER_EARLY_INT_TIME		0x05
 #define BCN_DMA_ATIME_INT_TIME		0x02
 
-enum usb_rx_agg_mode {
+enum usb_rx_agg_mode
+{
 	USB_RX_AGG_DISABLE,
 	USB_RX_AGG_DMA,
 	USB_RX_AGG_USB,
@@ -80,8 +81,8 @@ enum usb_rx_agg_mode {
 };
 
 #define MAX_RX_DMA_BUFFER_SIZE_88E				\
-      0x2400 /* 9k for 88E nornal chip , MaxRxBuff=10k-max(TxReportSize(64*8),
-	      * WOLPattern(16*24)) */
+	0x2400 /* 9k for 88E nornal chip , MaxRxBuff=10k-max(TxReportSize(64*8),
+* WOLPattern(16*24)) */
 
 #define MAX_TX_REPORT_BUFFER_SIZE		0x0400 /*  1k */
 
@@ -119,7 +120,8 @@ enum usb_rx_agg_mode {
 #include "hal_com.h"
 
 /* 	Channel Plan */
-enum ChannelPlan {
+enum ChannelPlan
+{
 	CHPL_FCC	= 0,
 	CHPL_IC		= 1,
 	CHPL_ETSI	= 2,
@@ -133,7 +135,8 @@ enum ChannelPlan {
 	CHPL_WORLD	= 10,
 };
 
-struct txpowerinfo24g {
+struct txpowerinfo24g
+{
 	u8 IndexCCK_Base[MAX_RF_PATH][MAX_CHNL_GROUP_24G];
 	u8 IndexBW40_Base[MAX_RF_PATH][MAX_CHNL_GROUP_24G];
 	/* If only one tx, only BW20 and OFDM are used. */
@@ -183,7 +186,8 @@ struct txpowerinfo24g {
 
 #define EFUSE_PROTECT_BYTES_BANK	16
 
-struct hal_data_8188e {
+struct hal_data_8188e
+{
 	struct HAL_VERSION	VersionID;
 	u16	CustomerID;
 	u16	FirmwareVersion;
@@ -361,24 +365,24 @@ s32 InitLLTTable(struct adapter *padapter, u8 txpktbuf_bndy);
 void Hal_InitPGData88E(struct adapter *padapter);
 void Hal_EfuseParseIDCode88E(struct adapter *padapter, u8 *hwinfo);
 void Hal_ReadTxPowerInfo88E(struct adapter *padapter, u8 *hwinfo,
-			    bool AutoLoadFail);
+							bool AutoLoadFail);
 
 void Hal_EfuseParseEEPROMVer88E(struct adapter *padapter, u8 *hwinfo,
-				bool AutoLoadFail);
+								bool AutoLoadFail);
 void rtl8188e_EfuseParseChnlPlan(struct adapter *padapter, u8 *hwinfo,
-				 bool AutoLoadFail);
+								 bool AutoLoadFail);
 void Hal_EfuseParseCustomerID88E(struct adapter *padapter, u8 *hwinfo,
-				 bool AutoLoadFail);
+								 bool AutoLoadFail);
 void Hal_ReadAntennaDiversity88E(struct adapter *pAdapter, u8 *PROMContent,
-				 bool AutoLoadFail);
+								 bool AutoLoadFail);
 void Hal_ReadThermalMeter_88E(struct adapter *dapter, u8 *PROMContent,
-			      bool AutoloadFail);
+							  bool AutoloadFail);
 void Hal_EfuseParseXtal_8188E(struct adapter *pAdapter, u8 *hwinfo,
-			      bool AutoLoadFail);
+							  bool AutoLoadFail);
 void Hal_EfuseParseBoardType88E(struct adapter *pAdapter, u8 *hwinfo,
-				bool AutoLoadFail);
+								bool AutoLoadFail);
 void Hal_ReadPowerSavingMode88E(struct adapter *pAdapter, u8 *hwinfo,
-				bool AutoLoadFail);
+								bool AutoLoadFail);
 
 /*  register */
 

@@ -24,7 +24,8 @@
 /*
  * ---- Global proportion definitions ----
  */
-struct fprop_global {
+struct fprop_global
+{
 	/* Number of events in the current period */
 	struct percpu_counter events;
 	/* Current period */
@@ -40,7 +41,8 @@ bool fprop_new_period(struct fprop_global *p, int periods);
 /*
  *  ---- SINGLE ----
  */
-struct fprop_local_single {
+struct fprop_local_single
+{
 	/* the local events counter */
 	unsigned long events;
 	/* Period in which we last updated events */
@@ -49,15 +51,15 @@ struct fprop_local_single {
 };
 
 #define INIT_FPROP_LOCAL_SINGLE(name)			\
-{	.lock = __RAW_SPIN_LOCK_UNLOCKED(name.lock),	\
-}
+	{	.lock = __RAW_SPIN_LOCK_UNLOCKED(name.lock),	\
+	}
 
 int fprop_local_init_single(struct fprop_local_single *pl);
 void fprop_local_destroy_single(struct fprop_local_single *pl);
 void __fprop_inc_single(struct fprop_global *p, struct fprop_local_single *pl);
 void fprop_fraction_single(struct fprop_global *p,
-	struct fprop_local_single *pl, unsigned long *numerator,
-	unsigned long *denominator);
+						   struct fprop_local_single *pl, unsigned long *numerator,
+						   unsigned long *denominator);
 
 static inline
 void fprop_inc_single(struct fprop_global *p, struct fprop_local_single *pl)
@@ -72,7 +74,8 @@ void fprop_inc_single(struct fprop_global *p, struct fprop_local_single *pl)
 /*
  * ---- PERCPU ----
  */
-struct fprop_local_percpu {
+struct fprop_local_percpu
+{
 	/* the local events counter */
 	struct percpu_counter events;
 	/* Period in which we last updated events */
@@ -84,10 +87,10 @@ int fprop_local_init_percpu(struct fprop_local_percpu *pl, gfp_t gfp);
 void fprop_local_destroy_percpu(struct fprop_local_percpu *pl);
 void __fprop_inc_percpu(struct fprop_global *p, struct fprop_local_percpu *pl);
 void __fprop_inc_percpu_max(struct fprop_global *p, struct fprop_local_percpu *pl,
-			    int max_frac);
+							int max_frac);
 void fprop_fraction_percpu(struct fprop_global *p,
-	struct fprop_local_percpu *pl, unsigned long *numerator,
-	unsigned long *denominator);
+						   struct fprop_local_percpu *pl, unsigned long *numerator,
+						   unsigned long *denominator);
 
 static inline
 void fprop_inc_percpu(struct fprop_global *p, struct fprop_local_percpu *pl)

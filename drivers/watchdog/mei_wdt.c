@@ -54,7 +54,8 @@
  * @MEI_WDT_STOPPING: wd is stopping and will move to IDLE
  * @MEI_WDT_NOT_REQUIRED: wd device is not required
  */
-enum mei_wdt_state {
+enum mei_wdt_state
+{
 	MEI_WDT_PROBE,
 	MEI_WDT_IDLE,
 	MEI_WDT_START,
@@ -65,21 +66,28 @@ enum mei_wdt_state {
 
 static const char *mei_wdt_state_str(enum mei_wdt_state state)
 {
-	switch (state) {
-	case MEI_WDT_PROBE:
-		return "PROBE";
-	case MEI_WDT_IDLE:
-		return "IDLE";
-	case MEI_WDT_START:
-		return "START";
-	case MEI_WDT_RUNNING:
-		return "RUNNING";
-	case MEI_WDT_STOPPING:
-		return "STOPPING";
-	case MEI_WDT_NOT_REQUIRED:
-		return "NOT_REQUIRED";
-	default:
-		return "unknown";
+	switch (state)
+	{
+		case MEI_WDT_PROBE:
+			return "PROBE";
+
+		case MEI_WDT_IDLE:
+			return "IDLE";
+
+		case MEI_WDT_START:
+			return "START";
+
+		case MEI_WDT_RUNNING:
+			return "RUNNING";
+
+		case MEI_WDT_STOPPING:
+			return "STOPPING";
+
+		case MEI_WDT_NOT_REQUIRED:
+			return "NOT_REQUIRED";
+
+		default:
+			return "unknown";
 	}
 }
 
@@ -97,7 +105,8 @@ static const char *mei_wdt_state_str(enum mei_wdt_state state)
  *
  * @dbgfs_dir: debugfs dir entry
  */
-struct mei_wdt {
+struct mei_wdt
+{
 	struct watchdog_device wdd;
 
 	struct mei_cl_device *cldev;
@@ -121,7 +130,8 @@ struct mei_wdt {
  * @subcommand: Management Control Subcommand
  * @versionnumber: Management Control Version (0x10)
  */
-struct mei_mc_hdr {
+struct mei_mc_hdr
+{
 	u8 command;
 	u8 bytecount;
 	u8 subcommand;
@@ -135,7 +145,8 @@ struct mei_mc_hdr {
  * @timeout: timeout value
  * @reserved: reserved (legacy)
  */
-struct mei_wdt_start_request {
+struct mei_wdt_start_request
+{
 	struct mei_mc_hdr hdr;
 	u16 timeout;
 	u8 reserved[17];
@@ -148,7 +159,8 @@ struct mei_wdt_start_request {
  * @status: operation status
  * @wdstate: watchdog status bit mask
  */
-struct mei_wdt_start_response {
+struct mei_wdt_start_response
+{
 	struct mei_mc_hdr hdr;
 	u8 status;
 	u8 wdstate;
@@ -159,7 +171,8 @@ struct mei_wdt_start_response {
  *
  * @hdr: Management Control Command Header
  */
-struct mei_wdt_stop_request {
+struct mei_wdt_stop_request
+{
 	struct mei_mc_hdr hdr;
 } __packed;
 
@@ -185,8 +198,11 @@ static int mei_wdt_ping(struct mei_wdt *wdt)
 	req.timeout = wdt->timeout;
 
 	ret = mei_cldev_send(wdt->cldev, (u8 *)&req, req_len);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -212,8 +228,11 @@ static int mei_wdt_stop(struct mei_wdt *wdt)
 	req.hdr.versionnumber = MEI_MC_VERSION_NUMBER;
 
 	ret = mei_cldev_send(wdt->cldev, (u8 *)&req, req_len);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -247,13 +266,18 @@ static int mei_wdt_ops_stop(struct watchdog_device *wdd)
 	int ret;
 
 	if (wdt->state != MEI_WDT_RUNNING)
+	{
 		return 0;
+	}
 
 	wdt->state = MEI_WDT_STOPPING;
 
 	ret = mei_wdt_stop(wdt);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	wdt->state = MEI_WDT_IDLE;
 
@@ -273,18 +297,27 @@ static int mei_wdt_ops_ping(struct watchdog_device *wdd)
 	int ret;
 
 	if (wdt->state != MEI_WDT_START && wdt->state != MEI_WDT_RUNNING)
+	{
 		return 0;
+	}
 
 	if (wdt->resp_required)
+	{
 		init_completion(&wdt->response);
+	}
 
 	wdt->state = MEI_WDT_RUNNING;
 	ret = mei_wdt_ping(wdt);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (wdt->resp_required)
+	{
 		ret = wait_for_completion_killable(&wdt->response);
+	}
 
 	return ret;
 }
@@ -298,7 +331,7 @@ static int mei_wdt_ops_ping(struct watchdog_device *wdd)
  * Return: 0 if success, negative errno code for failure
  */
 static int mei_wdt_ops_set_timeout(struct watchdog_device *wdd,
-				   unsigned int timeout)
+								   unsigned int timeout)
 {
 
 	struct mei_wdt *wdt = watchdog_get_drvdata(wdd);
@@ -310,7 +343,8 @@ static int mei_wdt_ops_set_timeout(struct watchdog_device *wdd,
 	return 0;
 }
 
-static const struct watchdog_ops wd_ops = {
+static const struct watchdog_ops wd_ops =
+{
 	.owner       = THIS_MODULE,
 	.start       = mei_wdt_ops_start,
 	.stop        = mei_wdt_ops_stop,
@@ -319,11 +353,12 @@ static const struct watchdog_ops wd_ops = {
 };
 
 /* not const as the firmware_version field need to be retrieved */
-static struct watchdog_info wd_info = {
+static struct watchdog_info wd_info =
+{
 	.identity = INTEL_AMT_WATCHDOG_ID,
 	.options  = WDIOF_KEEPALIVEPING |
-		    WDIOF_SETTIMEOUT |
-		    WDIOF_ALARMONLY,
+	WDIOF_SETTIMEOUT |
+	WDIOF_ALARMONLY,
 };
 
 /**
@@ -348,7 +383,8 @@ static void mei_wdt_unregister(struct mei_wdt *wdt)
 {
 	mutex_lock(&wdt->reg_lock);
 
-	if (__mei_wdt_is_registered(wdt)) {
+	if (__mei_wdt_is_registered(wdt))
+	{
 		watchdog_unregister_device(&wdt->wdd);
 		watchdog_set_drvdata(&wdt->wdd, NULL);
 		memset(&wdt->wdd, 0, sizeof(wdt->wdd));
@@ -370,13 +406,16 @@ static int mei_wdt_register(struct mei_wdt *wdt)
 	int ret;
 
 	if (!wdt || !wdt->cldev)
+	{
 		return -EINVAL;
+	}
 
 	dev = &wdt->cldev->dev;
 
 	mutex_lock(&wdt->reg_lock);
 
-	if (__mei_wdt_is_registered(wdt)) {
+	if (__mei_wdt_is_registered(wdt))
+	{
 		ret = 0;
 		goto out;
 	}
@@ -390,7 +429,9 @@ static int mei_wdt_register(struct mei_wdt *wdt)
 
 	watchdog_set_drvdata(&wdt->wdd, wdt);
 	ret = watchdog_register_device(&wdt->wdd);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "unable to register watchdog device = %d.\n", ret);
 		watchdog_set_drvdata(&wdt->wdd, NULL);
 	}
@@ -422,31 +463,38 @@ static void mei_wdt_event_rx(struct mei_cl_device *cldev)
 	int ret;
 
 	ret = mei_cldev_recv(wdt->cldev, (u8 *)&res, res_len);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&cldev->dev, "failure in recv %d\n", ret);
 		return;
 	}
 
 	/* Empty response can be sent on stop */
 	if (ret == 0)
+	{
 		return;
+	}
 
-	if (ret < sizeof(struct mei_mc_hdr)) {
+	if (ret < sizeof(struct mei_mc_hdr))
+	{
 		dev_err(&cldev->dev, "recv small data %d\n", ret);
 		return;
 	}
 
 	if (res.hdr.command != MEI_MANAGEMENT_CONTROL ||
-	    res.hdr.versionnumber != MEI_MC_VERSION_NUMBER) {
+		res.hdr.versionnumber != MEI_MC_VERSION_NUMBER)
+	{
 		dev_err(&cldev->dev, "wrong command received\n");
 		return;
 	}
 
-	if (res.hdr.subcommand != MEI_MC_START_WD_TIMER_RES) {
+	if (res.hdr.subcommand != MEI_MC_START_WD_TIMER_RES)
+	{
 		dev_warn(&cldev->dev, "unsupported command %d :%s[%d]\n",
-			 res.hdr.subcommand,
-			 mei_wdt_state_str(wdt->state),
-			 wdt->state);
+				 res.hdr.subcommand,
+				 mei_wdt_state_str(wdt->state),
+				 wdt->state);
 		return;
 	}
 
@@ -454,22 +502,30 @@ static void mei_wdt_event_rx(struct mei_cl_device *cldev)
 	 * run only after ping completion, otherwise the flow will
 	 * deadlock on watchdog core mutex.
 	 */
-	if (wdt->state == MEI_WDT_RUNNING) {
-		if (res.wdstate & MEI_WDT_WDSTATE_NOT_REQUIRED) {
+	if (wdt->state == MEI_WDT_RUNNING)
+	{
+		if (res.wdstate & MEI_WDT_WDSTATE_NOT_REQUIRED)
+		{
 			wdt->state = MEI_WDT_NOT_REQUIRED;
 			schedule_work(&wdt->unregister);
 		}
+
 		goto out;
 	}
 
-	if (wdt->state == MEI_WDT_PROBE) {
-		if (res.wdstate & MEI_WDT_WDSTATE_NOT_REQUIRED) {
+	if (wdt->state == MEI_WDT_PROBE)
+	{
+		if (res.wdstate & MEI_WDT_WDSTATE_NOT_REQUIRED)
+		{
 			wdt->state = MEI_WDT_NOT_REQUIRED;
-		} else {
+		}
+		else
+		{
 			/* stop the watchdog and register watchdog device */
 			mei_wdt_stop(wdt);
 			mei_wdt_register(wdt);
 		}
+
 		return;
 	}
 
@@ -477,8 +533,11 @@ static void mei_wdt_event_rx(struct mei_cl_device *cldev)
 			 mei_wdt_state_str(wdt->state), wdt->state);
 
 out:
+
 	if (!completion_done(&wdt->response))
+	{
 		complete(&wdt->response);
+	}
 }
 
 /*
@@ -491,7 +550,9 @@ static void mei_wdt_notify_event(struct mei_cl_device *cldev)
 	struct mei_wdt *wdt = mei_cldev_get_drvdata(cldev);
 
 	if (wdt->state != MEI_WDT_NOT_REQUIRED)
+	{
 		return;
+	}
 
 	mei_wdt_register(wdt);
 }
@@ -504,19 +565,23 @@ static void mei_wdt_notify_event(struct mei_cl_device *cldev)
  * @context: callback context
  */
 static void mei_wdt_event(struct mei_cl_device *cldev,
-			  u32 events, void *context)
+						  u32 events, void *context)
 {
 	if (events & BIT(MEI_CL_EVENT_RX))
+	{
 		mei_wdt_event_rx(cldev);
+	}
 
 	if (events & BIT(MEI_CL_EVENT_NOTIF))
+	{
 		mei_wdt_notify_event(cldev);
+	}
 }
 
 #if IS_ENABLED(CONFIG_DEBUG_FS)
 
 static ssize_t mei_dbgfs_read_activation(struct file *file, char __user *ubuf,
-					size_t cnt, loff_t *ppos)
+		size_t cnt, loff_t *ppos)
 {
 	struct mei_wdt *wdt = file->private_data;
 	const size_t bufsz = 32;
@@ -525,20 +590,21 @@ static ssize_t mei_dbgfs_read_activation(struct file *file, char __user *ubuf,
 
 	mutex_lock(&wdt->reg_lock);
 	pos = scnprintf(buf, bufsz, "%s\n",
-		__mei_wdt_is_registered(wdt) ? "activated" : "deactivated");
+					__mei_wdt_is_registered(wdt) ? "activated" : "deactivated");
 	mutex_unlock(&wdt->reg_lock);
 
 	return simple_read_from_buffer(ubuf, cnt, ppos, buf, pos);
 }
 
-static const struct file_operations dbgfs_fops_activation = {
+static const struct file_operations dbgfs_fops_activation =
+{
 	.open    = simple_open,
 	.read    = mei_dbgfs_read_activation,
 	.llseek  = generic_file_llseek,
 };
 
 static ssize_t mei_dbgfs_read_state(struct file *file, char __user *ubuf,
-				    size_t cnt, loff_t *ppos)
+									size_t cnt, loff_t *ppos)
 {
 	struct mei_wdt *wdt = file->private_data;
 	const size_t bufsz = 32;
@@ -546,12 +612,13 @@ static ssize_t mei_dbgfs_read_state(struct file *file, char __user *ubuf,
 	ssize_t pos;
 
 	pos = scnprintf(buf, bufsz, "state: %s\n",
-			 mei_wdt_state_str(wdt->state));
+					mei_wdt_state_str(wdt->state));
 
 	return simple_read_from_buffer(ubuf, cnt, ppos, buf, pos);
 }
 
-static const struct file_operations dbgfs_fops_state = {
+static const struct file_operations dbgfs_fops_state =
+{
 	.open = simple_open,
 	.read = mei_dbgfs_read_state,
 	.llseek = generic_file_llseek,
@@ -568,18 +635,27 @@ static int dbgfs_register(struct mei_wdt *wdt)
 	struct dentry *dir, *f;
 
 	dir = debugfs_create_dir(KBUILD_MODNAME, NULL);
+
 	if (!dir)
+	{
 		return -ENOMEM;
+	}
 
 	wdt->dbgfs_dir = dir;
 	f = debugfs_create_file("state", S_IRUSR, dir, wdt, &dbgfs_fops_state);
+
 	if (!f)
+	{
 		goto err;
+	}
 
 	f = debugfs_create_file("activation",  S_IRUSR,
-				dir, wdt, &dbgfs_fops_activation);
+							dir, wdt, &dbgfs_fops_activation);
+
 	if (!f)
+	{
 		goto err;
+	}
 
 	return 0;
 err:
@@ -598,14 +674,17 @@ static inline int dbgfs_register(struct mei_wdt *wdt)
 #endif /* CONFIG_DEBUG_FS */
 
 static int mei_wdt_probe(struct mei_cl_device *cldev,
-			 const struct mei_cl_device_id *id)
+						 const struct mei_cl_device_id *id)
 {
 	struct mei_wdt *wdt;
 	int ret;
 
 	wdt = kzalloc(sizeof(struct mei_wdt), GFP_KERNEL);
+
 	if (!wdt)
+	{
 		return -ENOMEM;
+	}
 
 	wdt->timeout = MEI_WDT_DEFAULT_TIMEOUT;
 	wdt->state = MEI_WDT_PROBE;
@@ -618,20 +697,23 @@ static int mei_wdt_probe(struct mei_cl_device *cldev,
 	mei_cldev_set_drvdata(cldev, wdt);
 
 	ret = mei_cldev_enable(cldev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&cldev->dev, "Could not enable cl device\n");
 		goto err_out;
 	}
 
 	ret = mei_cldev_register_event_cb(wdt->cldev,
-					  BIT(MEI_CL_EVENT_RX) |
-					  BIT(MEI_CL_EVENT_NOTIF),
-					  mei_wdt_event, NULL);
+									  BIT(MEI_CL_EVENT_RX) |
+									  BIT(MEI_CL_EVENT_NOTIF),
+									  mei_wdt_event, NULL);
 
 	/* on legacy devices notification is not supported
 	 * this doesn't fail the registration for RX event
 	 */
-	if (ret && ret != -EOPNOTSUPP) {
+	if (ret && ret != -EOPNOTSUPP)
+	{
 		dev_err(&cldev->dev, "Could not register event ret=%d\n", ret);
 		goto err_disable;
 	}
@@ -639,15 +721,23 @@ static int mei_wdt_probe(struct mei_cl_device *cldev,
 	wd_info.firmware_version = mei_cldev_ver(cldev);
 
 	if (wdt->resp_required)
+	{
 		ret = mei_wdt_ping(wdt);
+	}
 	else
+	{
 		ret = mei_wdt_register(wdt);
+	}
 
 	if (ret)
+	{
 		goto err_disable;
+	}
 
 	if (dbgfs_register(wdt))
+	{
 		dev_warn(&cldev->dev, "cannot register debugfs\n");
+	}
 
 	return 0;
 
@@ -666,7 +756,9 @@ static int mei_wdt_remove(struct mei_cl_device *cldev)
 
 	/* Free the caller in case of fw initiated or unexpected reset */
 	if (!completion_done(&wdt->response))
+	{
 		complete(&wdt->response);
+	}
 
 	cancel_work_sync(&wdt->unregister);
 
@@ -682,16 +774,18 @@ static int mei_wdt_remove(struct mei_cl_device *cldev)
 }
 
 #define MEI_UUID_WD UUID_LE(0x05B79A6F, 0x4628, 0x4D7F, \
-			    0x89, 0x9D, 0xA9, 0x15, 0x14, 0xCB, 0x32, 0xAB)
+							0x89, 0x9D, 0xA9, 0x15, 0x14, 0xCB, 0x32, 0xAB)
 
-static struct mei_cl_device_id mei_wdt_tbl[] = {
+static struct mei_cl_device_id mei_wdt_tbl[] =
+{
 	{ .uuid = MEI_UUID_WD, .version = MEI_CL_VERSION_ANY },
 	/* required last entry */
 	{ }
 };
 MODULE_DEVICE_TABLE(mei, mei_wdt_tbl);
 
-static struct mei_cl_driver mei_wdt_driver = {
+static struct mei_cl_driver mei_wdt_driver =
+{
 	.id_table = mei_wdt_tbl,
 	.name = KBUILD_MODNAME,
 
@@ -704,10 +798,13 @@ static int __init mei_wdt_init(void)
 	int ret;
 
 	ret = mei_cldev_driver_register(&mei_wdt_driver);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err(KBUILD_MODNAME ": module registration failed\n");
 		return ret;
 	}
+
 	return 0;
 }
 

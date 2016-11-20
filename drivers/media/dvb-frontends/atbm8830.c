@@ -50,11 +50,16 @@ static int atbm8830_write_reg(struct atbm_state *priv, u16 reg, u8 data)
 	msg2.addr = dev_addr;
 
 	if (debug >= 2)
+	{
 		dprintk("%s: reg=0x%04X, data=0x%02X\n", __func__, reg, data);
+	}
 
 	ret = i2c_transfer(priv->i2c, &msg1, 1);
+
 	if (ret != 1)
+	{
 		return -EIO;
+	}
 
 	ret = i2c_transfer(priv->i2c, &msg2, 1);
 	return (ret != 1) ? -EIO : 0;
@@ -75,19 +80,25 @@ static int atbm8830_read_reg(struct atbm_state *priv, u16 reg, u8 *p_data)
 	msg2.addr = dev_addr;
 
 	ret = i2c_transfer(priv->i2c, &msg1, 1);
-	if (ret != 1) {
+
+	if (ret != 1)
+	{
 		dprintk("%s: error reg=0x%04x, ret=%i\n", __func__, reg, ret);
 		return -EIO;
 	}
 
 	ret = i2c_transfer(priv->i2c, &msg2, 1);
+
 	if (ret != 1)
+	{
 		return -EIO;
+	}
 
 	*p_data = buf2[0];
+
 	if (debug >= 2)
 		dprintk("%s: reg=0x%04X, data=0x%02X\n",
-			__func__, reg, buf2[0]);
+				__func__, reg, buf2[0]);
 
 	return 0;
 }
@@ -123,7 +134,8 @@ static int set_if_freq(struct atbm_state *priv, u32 freq /*in kHz*/)
 	u32 val;
 	u8 dat;
 
-	if (freq != 0) {
+	if (freq != 0)
+	{
 		/* 2 * PI * (freq - fs) / fs * (2 ^ 22) */
 		t = (u64) 2 * 31416 * (freq - fs);
 		t <<= 22;
@@ -133,13 +145,15 @@ static int set_if_freq(struct atbm_state *priv, u32 freq /*in kHz*/)
 
 		atbm8830_write_reg(priv, REG_TUNER_BASEBAND, 1);
 		atbm8830_write_reg(priv, REG_IF_FREQ, val);
-		atbm8830_write_reg(priv, REG_IF_FREQ+1, val >> 8);
-		atbm8830_write_reg(priv, REG_IF_FREQ+2, val >> 16);
+		atbm8830_write_reg(priv, REG_IF_FREQ + 1, val >> 8);
+		atbm8830_write_reg(priv, REG_IF_FREQ + 2, val >> 16);
 
 		atbm8830_read_reg(priv, REG_ADC_CONFIG, &dat);
 		dat &= 0xFC;
 		atbm8830_write_reg(priv, REG_ADC_CONFIG, dat);
-	} else {
+	}
+	else
+	{
 		/* Zero IF */
 		atbm8830_write_reg(priv, REG_TUNER_BASEBAND, 0);
 
@@ -149,9 +163,13 @@ static int set_if_freq(struct atbm_state *priv, u32 freq /*in kHz*/)
 		atbm8830_write_reg(priv, REG_ADC_CONFIG, dat);
 
 		if (priv->config->zif_swap_iq)
+		{
 			atbm8830_write_reg(priv, REG_SWAP_I_Q, 0x03);
+		}
 		else
+		{
 			atbm8830_write_reg(priv, REG_SWAP_I_Q, 0x01);
+		}
 	}
 
 	return 0;
@@ -164,16 +182,21 @@ static int is_locked(struct atbm_state *priv, u8 *locked)
 	atbm8830_read_reg(priv, REG_LOCK_STATUS, &status);
 
 	if (locked != NULL)
+	{
 		*locked = (status == 1);
+	}
+
 	return 0;
 }
 
 static int set_agc_config(struct atbm_state *priv,
-	u8 min, u8 max, u8 hold_loop)
+						  u8 min, u8 max, u8 hold_loop)
 {
 	/* no effect if both min and max are zero */
 	if (!min && !max)
-	    return 0;
+	{
+		return 0;
+	}
 
 	atbm8830_write_reg(priv, REG_AGC_MIN, min);
 	atbm8830_write_reg(priv, REG_AGC_MAX, max);
@@ -187,7 +210,9 @@ static int set_static_channel_mode(struct atbm_state *priv)
 	int i;
 
 	for (i = 0; i < 5; i++)
+	{
 		atbm8830_write_reg(priv, 0x099B + i, 0x08);
+	}
 
 	atbm8830_write_reg(priv, 0x095B, 0x7F);
 	atbm8830_write_reg(priv, 0x09CB, 0x01);
@@ -219,10 +244,10 @@ static int set_ts_config(struct atbm_state *priv)
 	atbm8830_write_reg(priv, REG_TS_CLK_MODE, cfg->serial_ts ? 1 : 0);
 	/*Set ts sampling edge*/
 	atbm8830_write_reg(priv, REG_TS_SAMPLE_EDGE,
-		cfg->ts_sampling_edge ? 1 : 0);
+					   cfg->ts_sampling_edge ? 1 : 0);
 	/*Set ts clock freerun*/
 	atbm8830_write_reg(priv, REG_TS_CLK_FREERUN,
-		cfg->ts_clk_gated ? 0 : 1);
+					   cfg->ts_clk_gated ? 0 : 1);
 
 	return 0;
 }
@@ -240,7 +265,7 @@ static int atbm8830_init(struct dvb_frontend *fe)
 
 	/*Set AGC Config*/
 	set_agc_config(priv, cfg->agc_min, cfg->agc_max,
-		cfg->agc_hold_loop);
+				   cfg->agc_hold_loop);
 
 	/*Set static channel mode*/
 	set_static_channel_mode(priv);
@@ -275,20 +300,30 @@ static int atbm8830_set_fe(struct dvb_frontend *fe)
 	dprintk("%s\n", __func__);
 
 	/* set frequency */
-	if (fe->ops.tuner_ops.set_params) {
+	if (fe->ops.tuner_ops.set_params)
+	{
 		if (fe->ops.i2c_gate_ctrl)
+		{
 			fe->ops.i2c_gate_ctrl(fe, 1);
+		}
+
 		fe->ops.tuner_ops.set_params(fe);
+
 		if (fe->ops.i2c_gate_ctrl)
+		{
 			fe->ops.i2c_gate_ctrl(fe, 0);
+		}
 	}
 
 	/* start auto lock */
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; i++)
+	{
 		mdelay(100);
 		dprintk("Try %d\n", i);
 		is_locked(priv, &locked);
-		if (locked != 0) {
+
+		if (locked != 0)
+		{
 			dprintk("ATBM8830 locked!\n");
 			break;
 		}
@@ -298,7 +333,7 @@ static int atbm8830_set_fe(struct dvb_frontend *fe)
 }
 
 static int atbm8830_get_fe(struct dvb_frontend *fe,
-			   struct dtv_frontend_properties *c)
+						   struct dtv_frontend_properties *c)
 {
 	dprintk("%s\n", __func__);
 
@@ -327,7 +362,7 @@ static int atbm8830_get_fe(struct dvb_frontend *fe,
 }
 
 static int atbm8830_get_tune_settings(struct dvb_frontend *fe,
-	struct dvb_frontend_tune_settings *fesettings)
+									  struct dvb_frontend_tune_settings *fesettings)
 {
 	fesettings->min_delay_ms = 0;
 	fesettings->step_size = 0;
@@ -336,7 +371,7 @@ static int atbm8830_get_tune_settings(struct dvb_frontend *fe,
 }
 
 static int atbm8830_read_status(struct dvb_frontend *fe,
-				enum fe_status *fe_status)
+								enum fe_status *fe_status)
 {
 	struct atbm_state *priv = fe->demodulator_priv;
 	u8 locked = 0;
@@ -346,10 +381,13 @@ static int atbm8830_read_status(struct dvb_frontend *fe,
 	*fe_status = 0;
 
 	is_locked(priv, &locked);
-	if (locked) {
+
+	if (locked)
+	{
 		*fe_status |= FE_HAS_SIGNAL | FE_HAS_CARRIER |
-			FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
+					  FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
 	}
+
 	dprintk("%s: fe_status=0x%x\n", __func__, *fe_status);
 
 	atbm8830_read_reg(priv, REG_AGC_LOCK, &agc_locked);
@@ -428,7 +466,8 @@ static int atbm8830_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
 	return atbm8830_write_reg(priv, REG_I2C_GATE, enable ? 1 : 0);
 }
 
-static struct dvb_frontend_ops atbm8830_ops = {
+static struct dvb_frontend_ops atbm8830_ops =
+{
 	.delsys = { SYS_DTMB },
 	.info = {
 		.name = "AltoBeam ATBM8830/8831 DMB-TH",
@@ -436,10 +475,10 @@ static struct dvb_frontend_ops atbm8830_ops = {
 		.frequency_max = 858000000,
 		.frequency_stepsize = 10000,
 		.caps =
-			FE_CAN_FEC_AUTO |
-			FE_CAN_QAM_AUTO |
-			FE_CAN_TRANSMISSION_MODE_AUTO |
-			FE_CAN_GUARD_INTERVAL_AUTO
+		FE_CAN_FEC_AUTO |
+		FE_CAN_QAM_AUTO |
+		FE_CAN_TRANSMISSION_MODE_AUTO |
+		FE_CAN_GUARD_INTERVAL_AUTO
 	},
 
 	.release = atbm8830_release,
@@ -461,7 +500,7 @@ static struct dvb_frontend_ops atbm8830_ops = {
 };
 
 struct dvb_frontend *atbm8830_attach(const struct atbm8830_config *config,
-	struct i2c_adapter *i2c)
+									 struct i2c_adapter *i2c)
 {
 	struct atbm_state *priv = NULL;
 	u8 data = 0;
@@ -469,25 +508,32 @@ struct dvb_frontend *atbm8830_attach(const struct atbm8830_config *config,
 	dprintk("%s()\n", __func__);
 
 	if (config == NULL || i2c == NULL)
+	{
 		return NULL;
+	}
 
 	priv = kzalloc(sizeof(struct atbm_state), GFP_KERNEL);
+
 	if (priv == NULL)
+	{
 		goto error_out;
+	}
 
 	priv->config = config;
 	priv->i2c = i2c;
 
 	/* check if the demod is there */
-	if (atbm8830_read_reg(priv, REG_CHIP_ID, &data) != 0) {
+	if (atbm8830_read_reg(priv, REG_CHIP_ID, &data) != 0)
+	{
 		dprintk("%s atbm8830/8831 not found at i2c addr 0x%02X\n",
-			__func__, priv->config->demod_address);
+				__func__, priv->config->demod_address);
 		goto error_out;
 	}
+
 	dprintk("atbm8830 chip id: 0x%02X\n", data);
 
 	memcpy(&priv->frontend.ops, &atbm8830_ops,
-	       sizeof(struct dvb_frontend_ops));
+		   sizeof(struct dvb_frontend_ops));
 	priv->frontend.demodulator_priv = priv;
 
 	atbm8830_init(&priv->frontend);

@@ -44,20 +44,35 @@ int strncasecmp(const char *s1, const char *s2, size_t len)
 	unsigned char c1, c2;
 
 	if (!len)
+	{
 		return 0;
+	}
 
-	do {
+	do
+	{
 		c1 = *s1++;
 		c2 = *s2++;
+
 		if (!c1 || !c2)
+		{
 			break;
+		}
+
 		if (c1 == c2)
+		{
 			continue;
+		}
+
 		c1 = tolower(c1);
 		c2 = tolower(c2);
+
 		if (c1 != c2)
+		{
 			break;
-	} while (--len);
+		}
+	}
+	while (--len);
+
 	return (int)c1 - (int)c2;
 }
 EXPORT_SYMBOL(strncasecmp);
@@ -68,10 +83,13 @@ int strcasecmp(const char *s1, const char *s2)
 {
 	int c1, c2;
 
-	do {
+	do
+	{
 		c1 = tolower(*s1++);
 		c2 = tolower(*s2++);
-	} while (c1 == c2 && c1 != 0);
+	}
+	while (c1 == c2 && c1 != 0);
+
 	return c1 - c2;
 }
 EXPORT_SYMBOL(strcasecmp);
@@ -90,6 +108,7 @@ char *strcpy(char *dest, const char *src)
 
 	while ((*dest++ = *src++) != '\0')
 		/* nothing */;
+
 	return tmp;
 }
 EXPORT_SYMBOL(strcpy);
@@ -113,12 +132,17 @@ char *strncpy(char *dest, const char *src, size_t count)
 {
 	char *tmp = dest;
 
-	while (count) {
+	while (count)
+	{
 		if ((*tmp = *src) != 0)
+		{
 			src++;
+		}
+
 		tmp++;
 		count--;
 	}
+
 	return dest;
 }
 EXPORT_SYMBOL(strncpy);
@@ -140,11 +164,13 @@ size_t strlcpy(char *dest, const char *src, size_t size)
 {
 	size_t ret = strlen(src);
 
-	if (size) {
+	if (size)
+	{
 		size_t len = (ret >= size) ? size - 1 : ret;
 		memcpy(dest, src, len);
 		dest[len] = '\0';
 	}
+
 	return ret;
 }
 EXPORT_SYMBOL(strlcpy);
@@ -181,54 +207,77 @@ ssize_t strscpy(char *dest, const char *src, size_t count)
 	long res = 0;
 
 	if (count == 0)
+	{
 		return -E2BIG;
+	}
 
 #ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
+
 	/*
 	 * If src is unaligned, don't cross a page boundary,
 	 * since we don't know if the next page is mapped.
 	 */
-	if ((long)src & (sizeof(long) - 1)) {
+	if ((long)src & (sizeof(long) - 1))
+	{
 		size_t limit = PAGE_SIZE - ((long)src & (PAGE_SIZE - 1));
+
 		if (limit < max)
+		{
 			max = limit;
+		}
 	}
+
 #else
+
 	/* If src or dest is unaligned, don't do word-at-a-time. */
 	if (((long) dest | (long) src) & (sizeof(long) - 1))
+	{
 		max = 0;
+	}
+
 #endif
 
-	while (max >= sizeof(unsigned long)) {
+	while (max >= sizeof(unsigned long))
+	{
 		unsigned long c, data;
 
-		c = *(unsigned long *)(src+res);
-		if (has_zero(c, &data, &constants)) {
+		c = *(unsigned long *)(src + res);
+
+		if (has_zero(c, &data, &constants))
+		{
 			data = prep_zero_mask(c, data, &constants);
 			data = create_zero_mask(data);
-			*(unsigned long *)(dest+res) = c & zero_bytemask(data);
+			*(unsigned long *)(dest + res) = c & zero_bytemask(data);
 			return res + find_zero(data);
 		}
-		*(unsigned long *)(dest+res) = c;
+
+		*(unsigned long *)(dest + res) = c;
 		res += sizeof(unsigned long);
 		count -= sizeof(unsigned long);
 		max -= sizeof(unsigned long);
 	}
 
-	while (count) {
+	while (count)
+	{
 		char c;
 
 		c = src[res];
 		dest[res] = c;
+
 		if (!c)
+		{
 			return res;
+		}
+
 		res++;
 		count--;
 	}
 
 	/* Hit buffer length without finding a NUL; force NUL-termination. */
 	if (res)
-		dest[res-1] = '\0';
+	{
+		dest[res - 1] = '\0';
+	}
 
 	return -E2BIG;
 }
@@ -247,9 +296,13 @@ char *strcat(char *dest, const char *src)
 	char *tmp = dest;
 
 	while (*dest)
+	{
 		dest++;
+	}
+
 	while ((*dest++ = *src++) != '\0')
 		;
+
 	return tmp;
 }
 EXPORT_SYMBOL(strcat);
@@ -269,16 +322,23 @@ char *strncat(char *dest, const char *src, size_t count)
 {
 	char *tmp = dest;
 
-	if (count) {
+	if (count)
+	{
 		while (*dest)
+		{
 			dest++;
-		while ((*dest++ = *src++) != 0) {
-			if (--count == 0) {
+		}
+
+		while ((*dest++ = *src++) != 0)
+		{
+			if (--count == 0)
+			{
 				*dest = '\0';
 				break;
 			}
 		}
 	}
+
 	return tmp;
 }
 EXPORT_SYMBOL(strncat);
@@ -302,8 +362,12 @@ size_t strlcat(char *dest, const char *src, size_t count)
 
 	dest += dsize;
 	count -= dsize;
+
 	if (len >= count)
-		len = count-1;
+	{
+		len = count - 1;
+	}
+
 	memcpy(dest, src, len);
 	dest[len] = 0;
 	return res;
@@ -322,14 +386,22 @@ int strcmp(const char *cs, const char *ct)
 {
 	unsigned char c1, c2;
 
-	while (1) {
+	while (1)
+	{
 		c1 = *cs++;
 		c2 = *ct++;
+
 		if (c1 != c2)
+		{
 			return c1 < c2 ? -1 : 1;
+		}
+
 		if (!c1)
+		{
 			break;
+		}
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL(strcmp);
@@ -346,15 +418,24 @@ int strncmp(const char *cs, const char *ct, size_t count)
 {
 	unsigned char c1, c2;
 
-	while (count) {
+	while (count)
+	{
 		c1 = *cs++;
 		c2 = *ct++;
+
 		if (c1 != c2)
+		{
 			return c1 < c2 ? -1 : 1;
+		}
+
 		if (!c1)
+		{
 			break;
+		}
+
 		count--;
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL(strncmp);
@@ -370,7 +451,10 @@ char *strchr(const char *s, int c)
 {
 	for (; *s != (char)c; ++s)
 		if (*s == '\0')
+		{
 			return NULL;
+		}
+
 	return (char *)s;
 }
 EXPORT_SYMBOL(strchr);
@@ -388,7 +472,10 @@ EXPORT_SYMBOL(strchr);
 char *strchrnul(const char *s, int c)
 {
 	while (*s && *s != (char)c)
+	{
 		s++;
+	}
+
 	return (char *)s;
 }
 EXPORT_SYMBOL(strchrnul);
@@ -403,10 +490,16 @@ EXPORT_SYMBOL(strchrnul);
 char *strrchr(const char *s, int c)
 {
 	const char *last = NULL;
-	do {
+
+	do
+	{
 		if (*s == (char)c)
+		{
 			last = s;
-	} while (*s++);
+		}
+	}
+	while (*s++);
+
 	return (char *)last;
 }
 EXPORT_SYMBOL(strrchr);
@@ -423,7 +516,10 @@ char *strnchr(const char *s, size_t count, int c)
 {
 	for (; count-- && *s != '\0'; ++s)
 		if (*s == (char)c)
+		{
 			return (char *)s;
+		}
+
 	return NULL;
 }
 EXPORT_SYMBOL(strnchr);
@@ -438,7 +534,10 @@ EXPORT_SYMBOL(strnchr);
 char *skip_spaces(const char *str)
 {
 	while (isspace(*str))
+	{
 		++str;
+	}
+
 	return (char *)str;
 }
 EXPORT_SYMBOL(skip_spaces);
@@ -457,12 +556,19 @@ char *strim(char *s)
 	char *end;
 
 	size = strlen(s);
+
 	if (!size)
+	{
 		return s;
+	}
 
 	end = s + size - 1;
+
 	while (end >= s && isspace(*end))
+	{
 		end--;
+	}
+
 	*(end + 1) = '\0';
 
 	return skip_spaces(s);
@@ -480,6 +586,7 @@ size_t strlen(const char *s)
 
 	for (sc = s; *sc != '\0'; ++sc)
 		/* nothing */;
+
 	return sc - s;
 }
 EXPORT_SYMBOL(strlen);
@@ -497,6 +604,7 @@ size_t strnlen(const char *s, size_t count)
 
 	for (sc = s; count-- && *sc != '\0'; ++sc)
 		/* nothing */;
+
 	return sc - s;
 }
 EXPORT_SYMBOL(strnlen);
@@ -514,15 +622,24 @@ size_t strspn(const char *s, const char *accept)
 	const char *a;
 	size_t count = 0;
 
-	for (p = s; *p != '\0'; ++p) {
-		for (a = accept; *a != '\0'; ++a) {
+	for (p = s; *p != '\0'; ++p)
+	{
+		for (a = accept; *a != '\0'; ++a)
+		{
 			if (*p == *a)
+			{
 				break;
+			}
 		}
+
 		if (*a == '\0')
+		{
 			return count;
+		}
+
 		++count;
 	}
+
 	return count;
 }
 
@@ -541,13 +658,19 @@ size_t strcspn(const char *s, const char *reject)
 	const char *r;
 	size_t count = 0;
 
-	for (p = s; *p != '\0'; ++p) {
-		for (r = reject; *r != '\0'; ++r) {
+	for (p = s; *p != '\0'; ++p)
+	{
+		for (r = reject; *r != '\0'; ++r)
+		{
 			if (*p == *r)
+			{
 				return count;
+			}
 		}
+
 		++count;
 	}
+
 	return count;
 }
 EXPORT_SYMBOL(strcspn);
@@ -563,12 +686,17 @@ char *strpbrk(const char *cs, const char *ct)
 {
 	const char *sc1, *sc2;
 
-	for (sc1 = cs; *sc1 != '\0'; ++sc1) {
-		for (sc2 = ct; *sc2 != '\0'; ++sc2) {
+	for (sc1 = cs; *sc1 != '\0'; ++sc1)
+	{
+		for (sc2 = ct; *sc2 != '\0'; ++sc2)
+		{
 			if (*sc1 == *sc2)
+			{
 				return (char *)sc1;
+			}
 		}
 	}
+
 	return NULL;
 }
 EXPORT_SYMBOL(strpbrk);
@@ -592,11 +720,17 @@ char *strsep(char **s, const char *ct)
 	char *end;
 
 	if (sbegin == NULL)
+	{
 		return NULL;
+	}
 
 	end = strpbrk(sbegin, ct);
+
 	if (end)
+	{
 		*end++ = '\0';
+	}
+
 	*s = end;
 	return sbegin;
 }
@@ -615,17 +749,27 @@ EXPORT_SYMBOL(strsep);
  */
 bool sysfs_streq(const char *s1, const char *s2)
 {
-	while (*s1 && *s1 == *s2) {
+	while (*s1 && *s1 == *s2)
+	{
 		s1++;
 		s2++;
 	}
 
 	if (*s1 == *s2)
+	{
 		return true;
+	}
+
 	if (!*s1 && *s2 == '\n' && !s2[1])
+	{
 		return true;
+	}
+
 	if (*s1 == '\n' && !s1[1] && !*s2)
+	{
 		return true;
+	}
+
 	return false;
 }
 EXPORT_SYMBOL(sysfs_streq);
@@ -639,17 +783,24 @@ EXPORT_SYMBOL(sysfs_streq);
  * Return:
  * index of a @string in the @array if matches, or %-EINVAL otherwise.
  */
-int match_string(const char * const *array, size_t n, const char *string)
+int match_string(const char *const *array, size_t n, const char *string)
 {
 	int index;
 	const char *item;
 
-	for (index = 0; index < n; index++) {
+	for (index = 0; index < n; index++)
+	{
 		item = array[index];
+
 		if (!item)
+		{
 			break;
+		}
+
 		if (!strcmp(item, string))
+		{
 			return index;
+		}
 	}
 
 	return -EINVAL;
@@ -670,7 +821,10 @@ void *memset(void *s, int c, size_t count)
 	char *xs = s;
 
 	while (count--)
+	{
 		*xs++ = c;
+	}
+
 	return s;
 }
 EXPORT_SYMBOL(memset);
@@ -713,7 +867,10 @@ void *memcpy(void *dest, const void *src, size_t count)
 	const char *s = src;
 
 	while (count--)
+	{
 		*tmp++ = *s++;
+	}
+
 	return dest;
 }
 EXPORT_SYMBOL(memcpy);
@@ -733,19 +890,29 @@ void *memmove(void *dest, const void *src, size_t count)
 	char *tmp;
 	const char *s;
 
-	if (dest <= src) {
+	if (dest <= src)
+	{
 		tmp = dest;
 		s = src;
+
 		while (count--)
+		{
 			*tmp++ = *s++;
-	} else {
+		}
+	}
+	else
+	{
 		tmp = dest;
 		tmp += count;
 		s = src;
 		s += count;
+
 		while (count--)
+		{
 			*--tmp = *--s;
+		}
 	}
+
 	return dest;
 }
 EXPORT_SYMBOL(memmove);
@@ -766,7 +933,10 @@ __visible int memcmp(const void *cs, const void *ct, size_t count)
 
 	for (su1 = cs, su2 = ct; 0 < count; ++su1, ++su2, count--)
 		if ((res = *su1 - *su2) != 0)
+		{
 			break;
+		}
+
 	return res;
 }
 EXPORT_SYMBOL(memcmp);
@@ -786,13 +956,18 @@ void *memscan(void *addr, int c, size_t size)
 {
 	unsigned char *p = addr;
 
-	while (size) {
+	while (size)
+	{
 		if (*p == c)
+		{
 			return (void *)p;
+		}
+
 		p++;
 		size--;
 	}
-  	return (void *)p;
+
+	return (void *)p;
 }
 EXPORT_SYMBOL(memscan);
 #endif
@@ -808,15 +983,26 @@ char *strstr(const char *s1, const char *s2)
 	size_t l1, l2;
 
 	l2 = strlen(s2);
+
 	if (!l2)
+	{
 		return (char *)s1;
+	}
+
 	l1 = strlen(s1);
-	while (l1 >= l2) {
+
+	while (l1 >= l2)
+	{
 		l1--;
+
 		if (!memcmp(s1, s2, l2))
+		{
 			return (char *)s1;
+		}
+
 		s1++;
 	}
+
 	return NULL;
 }
 EXPORT_SYMBOL(strstr);
@@ -834,14 +1020,24 @@ char *strnstr(const char *s1, const char *s2, size_t len)
 	size_t l2;
 
 	l2 = strlen(s2);
+
 	if (!l2)
+	{
 		return (char *)s1;
-	while (len >= l2) {
+	}
+
+	while (len >= l2)
+	{
 		len--;
+
 		if (!memcmp(s1, s2, l2))
+		{
 			return (char *)s1;
+		}
+
 		s1++;
 	}
+
 	return NULL;
 }
 EXPORT_SYMBOL(strnstr);
@@ -860,11 +1056,15 @@ EXPORT_SYMBOL(strnstr);
 void *memchr(const void *s, int c, size_t n)
 {
 	const unsigned char *p = s;
-	while (n-- != 0) {
-        	if ((unsigned char)c == *p++) {
+
+	while (n-- != 0)
+	{
+		if ((unsigned char)c == *p++)
+		{
 			return (void *)(p - 1);
 		}
 	}
+
 	return NULL;
 }
 EXPORT_SYMBOL(memchr);
@@ -872,12 +1072,17 @@ EXPORT_SYMBOL(memchr);
 
 static void *check_bytes8(const u8 *start, u8 value, unsigned int bytes)
 {
-	while (bytes) {
+	while (bytes)
+	{
 		if (*start != value)
+		{
 			return (void *)start;
+		}
+
 		start++;
 		bytes--;
 	}
+
 	return NULL;
 }
 
@@ -897,7 +1102,9 @@ void *memchr_inv(const void *start, int c, size_t bytes)
 	unsigned int words, prefix;
 
 	if (bytes <= 16)
+	{
 		return check_bytes8(start, value, bytes);
+	}
 
 	value64 = value;
 #if defined(CONFIG_ARCH_HAS_FAST_MULTIPLIER) && BITS_PER_LONG == 64
@@ -912,22 +1119,32 @@ void *memchr_inv(const void *start, int c, size_t bytes)
 #endif
 
 	prefix = (unsigned long)start % 8;
-	if (prefix) {
+
+	if (prefix)
+	{
 		u8 *r;
 
 		prefix = 8 - prefix;
 		r = check_bytes8(start, value, prefix);
+
 		if (r)
+		{
 			return r;
+		}
+
 		start += prefix;
 		bytes -= prefix;
 	}
 
 	words = bytes / 8;
 
-	while (words) {
+	while (words)
+	{
 		if (*(u64 *)start != value64)
+		{
 			return check_bytes8(start, value, 8);
+		}
+
 		start += 8;
 		words--;
 	}
@@ -948,7 +1165,10 @@ char *strreplace(char *s, char old, char new)
 {
 	for (; *s; ++s)
 		if (*s == old)
+		{
 			*s = new;
+		}
+
 	return s;
 }
 EXPORT_SYMBOL(strreplace);

@@ -25,7 +25,8 @@
 
 #include "intel_renderstate.h"
 
-static const u32 gen8_null_state_relocs[] = {
+static const u32 gen8_null_state_relocs[] =
+{
 	0x00000798,
 	0x000007a4,
 	0x000007ac,
@@ -33,7 +34,8 @@ static const u32 gen8_null_state_relocs[] = {
 	-1,
 };
 
-static const u32 gen8_null_state_batch[] = {
+static const u32 gen8_null_state_batch[] =
+{
 	0x7a000004,
 	0x01000000,
 	0x00000000,

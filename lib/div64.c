@@ -9,7 +9,7 @@
  * Generic C version of 64bit/32bit division and modulo, with
  * 64bit result and 32bit remainder.
  *
- * The fast case for (n>>32 == 0) is handled inline by do_div(). 
+ * The fast case for (n>>32 == 0) is handled inline by do_div().
  *
  * Code generated for this function might be very inefficient
  * for some CPUs. __div64_32() can be overridden by linking arch-specific
@@ -34,25 +34,32 @@ uint32_t __attribute__((weak)) __div64_32(uint64_t *n, uint32_t base)
 
 	/* Reduce the thing a bit first */
 	res = 0;
-	if (high >= base) {
+
+	if (high >= base)
+	{
 		high /= base;
 		res = (uint64_t) high << 32;
-		rem -= (uint64_t) (high*base) << 32;
+		rem -= (uint64_t) (high * base) << 32;
 	}
 
-	while ((int64_t)b > 0 && b < rem) {
-		b = b+b;
-		d = d+d;
+	while ((int64_t)b > 0 && b < rem)
+	{
+		b = b + b;
+		d = d + d;
 	}
 
-	do {
-		if (rem >= b) {
+	do
+	{
+		if (rem >= b)
+		{
 			rem -= b;
 			res += d;
 		}
+
 		b >>= 1;
 		d >>= 1;
-	} while (d);
+	}
+	while (d);
 
 	*n = res;
 	return rem;
@@ -65,16 +72,26 @@ s64 div_s64_rem(s64 dividend, s32 divisor, s32 *remainder)
 {
 	u64 quotient;
 
-	if (dividend < 0) {
+	if (dividend < 0)
+	{
 		quotient = div_u64_rem(-dividend, abs(divisor), (u32 *)remainder);
 		*remainder = -*remainder;
+
 		if (divisor > 0)
+		{
 			quotient = -quotient;
-	} else {
-		quotient = div_u64_rem(dividend, abs(divisor), (u32 *)remainder);
-		if (divisor < 0)
-			quotient = -quotient;
+		}
 	}
+	else
+	{
+		quotient = div_u64_rem(dividend, abs(divisor), (u32 *)remainder);
+
+		if (divisor < 0)
+		{
+			quotient = -quotient;
+		}
+	}
+
 	return quotient;
 }
 EXPORT_SYMBOL(div_s64_rem);
@@ -97,19 +114,26 @@ u64 div64_u64_rem(u64 dividend, u64 divisor, u64 *remainder)
 	u32 high = divisor >> 32;
 	u64 quot;
 
-	if (high == 0) {
+	if (high == 0)
+	{
 		u32 rem32;
 		quot = div_u64_rem(dividend, divisor, &rem32);
 		*remainder = rem32;
-	} else {
+	}
+	else
+	{
 		int n = 1 + fls(high);
 		quot = div_u64(dividend >> n, divisor >> n);
 
 		if (quot != 0)
+		{
 			quot--;
+		}
 
 		*remainder = dividend - quot * divisor;
-		if (*remainder >= divisor) {
+
+		if (*remainder >= divisor)
+		{
 			quot++;
 			*remainder -= divisor;
 		}
@@ -137,16 +161,24 @@ u64 div64_u64(u64 dividend, u64 divisor)
 	u32 high = divisor >> 32;
 	u64 quot;
 
-	if (high == 0) {
+	if (high == 0)
+	{
 		quot = div_u64(dividend, divisor);
-	} else {
+	}
+	else
+	{
 		int n = 1 + fls(high);
 		quot = div_u64(dividend >> n, divisor >> n);
 
 		if (quot != 0)
+		{
 			quot--;
+		}
+
 		if ((dividend - quot * divisor) >= divisor)
+		{
 			quot++;
+		}
 	}
 
 	return quot;

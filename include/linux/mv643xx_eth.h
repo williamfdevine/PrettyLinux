@@ -18,7 +18,8 @@
 
 #define MV643XX_TX_CSUM_DEFAULT_LIMIT	0
 
-struct mv643xx_eth_shared_platform_data {
+struct mv643xx_eth_shared_platform_data
+{
 	struct mbus_dram_target_info	*dram;
 	/*
 	 * Max packet size for Tx IP/Layer 4 checksum, when set to 0, default
@@ -32,7 +33,8 @@ struct mv643xx_eth_shared_platform_data {
 #define MV643XX_ETH_PHY_NONE		0xff
 
 struct device_node;
-struct mv643xx_eth_platform_data {
+struct mv643xx_eth_platform_data
+{
 	/*
 	 * Pointer back to our parent instance, and our port number.
 	 */

@@ -16,7 +16,8 @@
  * At this point, the only control the max3421-hcd driver cares about is
  * to control Vbus (5V to the peripheral).
  */
-struct max3421_hcd_platform_data {
+struct max3421_hcd_platform_data
+{
 	u8 vbus_gpout;			/* pin controlling Vbus */
 	u8 vbus_active_level;		/* level that turns on power */
 };

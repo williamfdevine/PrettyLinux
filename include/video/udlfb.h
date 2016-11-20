@@ -10,20 +10,23 @@
  */
 #define DLFB_IOCTL_RETURN_EDID	 0xAD
 #define DLFB_IOCTL_REPORT_DAMAGE 0xAA
-struct dloarea {
+struct dloarea
+{
 	int x, y;
 	int w, h;
 	int x2, y2;
 };
 
-struct urb_node {
+struct urb_node
+{
 	struct list_head entry;
 	struct dlfb_data *dev;
 	struct delayed_work release_urb_work;
 	struct urb *urb;
 };
 
-struct urb_list {
+struct urb_list
+{
 	struct list_head list;
 	spinlock_t lock;
 	struct semaphore limit_sem;
@@ -32,7 +35,8 @@ struct urb_list {
 	size_t size;
 };
 
-struct dlfb_data {
+struct dlfb_data
+{
 	struct usb_device *udev;
 	struct device *gdev; /* &udev->dev */
 	struct fb_info *info;

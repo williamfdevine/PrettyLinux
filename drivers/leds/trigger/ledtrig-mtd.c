@@ -29,9 +29,9 @@ void ledtrig_mtd_activity(void)
 	unsigned long blink_delay = BLINK_DELAY;
 
 	led_trigger_blink_oneshot(ledtrig_mtd,
-				  &blink_delay, &blink_delay, 0);
+							  &blink_delay, &blink_delay, 0);
 	led_trigger_blink_oneshot(ledtrig_nand,
-				  &blink_delay, &blink_delay, 0);
+							  &blink_delay, &blink_delay, 0);
 }
 EXPORT_SYMBOL(ledtrig_mtd_activity);
 

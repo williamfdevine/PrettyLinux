@@ -41,30 +41,35 @@
 #define ISIF_CADU_BITS			0x07ff
 #define ISIF_CADL_BITS			0x0ffff
 
-enum isif_pixfmt {
+enum isif_pixfmt
+{
 	ISIF_PIXFMT_RAW = 0,
 	ISIF_PIXFMT_YCBCR_16BIT = 1,
 	ISIF_PIXFMT_YCBCR_8BIT = 2,
 };
 
-enum isif_frmfmt {
+enum isif_frmfmt
+{
 	ISIF_FRMFMT_PROGRESSIVE = 0,
 	ISIF_FRMFMT_INTERLACED = 1,
 };
 
 /* PIXEL ORDER IN MEMORY from LSB to MSB */
 /* only applicable for 8-bit input mode  */
-enum isif_pixorder {
+enum isif_pixorder
+{
 	ISIF_PIXORDER_YCBYCR = 0,
 	ISIF_PIXORDER_CBYCRY = 1,
 };
 
-enum isif_buftype {
+enum isif_buftype
+{
 	ISIF_BUFTYPE_FLD_INTERLEAVED = 0,
 	ISIF_BUFTYPE_FLD_SEPARATED = 1,
 };
 
-struct isif_ycbcr_config {
+struct isif_ycbcr_config
+{
 	/* v4l2 pixel format */
 	unsigned long v4l2_pix_fmt;
 	/* isif pixel format */
@@ -85,12 +90,14 @@ struct isif_ycbcr_config {
 	enum isif_buftype buf_type;
 };
 
-enum isif_cfa_pattern {
+enum isif_cfa_pattern
+{
 	ISIF_CFA_PAT_MOSAIC = 0,
 	ISIF_CFA_PAT_STRIPE = 1,
 };
 
-enum isif_data_msb {
+enum isif_data_msb
+{
 	/* MSB b15 */
 	ISIF_BIT_MSB_15 = 0,
 	/* MSB b14 */
@@ -111,7 +118,8 @@ enum isif_data_msb {
 	ISIF_BIT_MSB_7 = 8,
 };
 
-struct isif_params_raw {
+struct isif_params_raw
+{
 	/* v4l2 pixel format */
 	unsigned long v4l2_pix_fmt;
 	/* isif pixel format */
@@ -140,13 +148,15 @@ struct isif_params_raw {
 	struct vpfe_isif_raw_config config_params;
 };
 
-enum isif_data_pack {
+enum isif_data_pack
+{
 	ISIF_PACK_16BIT = 0,
 	ISIF_PACK_12BIT = 1,
 	ISIF_PACK_8BIT = 2,
 };
 
-struct isif_gain_values {
+struct isif_gain_values
+{
 	unsigned int cr_gain;
 	unsigned int cgr_gain;
 	unsigned int cgb_gain;
@@ -154,7 +164,8 @@ struct isif_gain_values {
 	unsigned int offset;
 };
 
-struct isif_oper_config {
+struct isif_oper_config
+{
 	struct isif_ycbcr_config ycbcr;
 	struct isif_params_raw bayer;
 	enum isif_data_pack data_pack;
@@ -169,7 +180,8 @@ struct isif_oper_config {
 
 #define ISIF_PADS_NUM      2
 
-enum isif_input_entity {
+enum isif_input_entity
+{
 	ISIF_INPUT_NONE = 0,
 	ISIF_INPUT_PARALLEL = 1,
 };
@@ -178,7 +190,8 @@ enum isif_input_entity {
 #define ISIF_OUTPUT_MEMORY	(1 << 0)
 #define ISIF_OUTPUT_IPIPEIF	(1 << 1)
 
-struct vpfe_isif_device {
+struct vpfe_isif_device
+{
 	struct v4l2_subdev		subdev;
 	struct media_pad		pads[ISIF_PADS_NUM];
 	struct v4l2_mbus_framefmt	formats[ISIF_PADS_NUM];
@@ -193,10 +206,10 @@ struct vpfe_isif_device {
 enum v4l2_field vpfe_isif_get_fid(struct vpfe_device *vpfe_dev);
 void vpfe_isif_unregister_entities(struct vpfe_isif_device *isif);
 int vpfe_isif_register_entities(struct vpfe_isif_device *isif,
-				struct v4l2_device *dev);
+								struct v4l2_device *dev);
 int vpfe_isif_init(struct vpfe_isif_device *isif, struct platform_device *pdev);
 void vpfe_isif_cleanup(struct vpfe_isif_device *vpfe_isif,
-		       struct platform_device *pdev);
+					   struct platform_device *pdev);
 void vpfe_isif_vidint1_isr(struct vpfe_isif_device *isif);
 void vpfe_isif_buffer_isr(struct vpfe_isif_device *isif);
 

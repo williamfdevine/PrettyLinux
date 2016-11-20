@@ -4,7 +4,8 @@
 #include <uapi/linux/netfilter/nf_conntrack_tcp.h>
 
 
-struct ip_ct_tcp_state {
+struct ip_ct_tcp_state
+{
 	u_int32_t	td_end;		/* max of seq + len */
 	u_int32_t	td_maxend;	/* max of ack + max(win, 1) */
 	u_int32_t	td_maxwin;	/* max(win) */
@@ -13,7 +14,8 @@ struct ip_ct_tcp_state {
 	u_int8_t	flags;		/* per direction options */
 };
 
-struct ip_ct_tcp {
+struct ip_ct_tcp
+{
 	struct ip_ct_tcp_state seen[2];	/* connection parameters per direction */
 	u_int8_t	state;		/* state of the connection (enum tcp_conntrack) */
 	/* For detecting stale connections */

@@ -4,12 +4,12 @@
  *
  *	Copyright (c) 2002 Martin Diehl
  *
- *	This program is free software; you can redistribute it and/or 
- *	modify it under the terms of the GNU General Public License as 
- *	published by the Free Software Foundation; either version 2 of 
+ *	This program is free software; you can redistribute it and/or
+ *	modify it under the terms of the GNU General Public License as
+ *	published by the Free Software Foundation; either version 2 of
  *	the License, or (at your option) any later version.
  *
- ********************************************************************/    
+ ********************************************************************/
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -35,12 +35,15 @@ int irda_register_dongle(struct dongle_driver *new)
 	struct dongle_driver *drv;
 
 	pr_debug("%s : registering dongle \"%s\" (%d).\n",
-		 __func__, new->driver_name, new->type);
+			 __func__, new->driver_name, new->type);
 
 	mutex_lock(&dongle_list_lock);
-	list_for_each(entry, &dongle_list) {
+	list_for_each(entry, &dongle_list)
+	{
 		drv = list_entry(entry, struct dongle_driver, dongle_list);
-		if (new->type == drv->type) {
+
+		if (new->type == drv->type)
+		{
 			mutex_unlock(&dongle_list_lock);
 			return -EEXIST;
 		}
@@ -69,20 +72,29 @@ int sirdev_get_dongle(struct sir_dev *dev, IRDA_DONGLE type)
 	request_module("irda-dongle-%d", type);
 
 	if (dev->dongle_drv != NULL)
+	{
 		return -EBUSY;
-	
+	}
+
 	/* serialize access to the list of registered dongles */
 	mutex_lock(&dongle_list_lock);
 
-	list_for_each(entry, &dongle_list) {
+	list_for_each(entry, &dongle_list)
+	{
 		drv = list_entry(entry, struct dongle_driver, dongle_list);
+
 		if (drv->type == type)
+		{
 			break;
+		}
 		else
+		{
 			drv = NULL;
+		}
 	}
 
-	if (!drv) {
+	if (!drv)
+	{
 		err = -ENODEV;
 		goto out_unlock;	/* no such dongle */
 	}
@@ -97,14 +109,18 @@ int sirdev_get_dongle(struct sir_dev *dev, IRDA_DONGLE type)
 	 *	because the module is in use.
 	 */
 
-	if (!try_module_get(drv->owner)) {
+	if (!try_module_get(drv->owner))
+	{
 		err = -ESTALE;
 		goto out_unlock;	/* rmmod already pending */
 	}
+
 	dev->dongle_drv = drv;
 
-	if (!drv->open  ||  (err=drv->open(dev))!=0)
-		goto out_reject;		/* failed to open driver */
+	if (!drv->open  ||  (err = drv->open(dev)) != 0)
+	{
+		goto out_reject;    /* failed to open driver */
+	}
 
 	mutex_unlock(&dongle_list_lock);
 	return 0;
@@ -121,9 +137,12 @@ int sirdev_put_dongle(struct sir_dev *dev)
 {
 	const struct dongle_driver *drv = dev->dongle_drv;
 
-	if (drv) {
+	if (drv)
+	{
 		if (drv->close)
-			drv->close(dev);		/* close this dongle instance */
+		{
+			drv->close(dev);    /* close this dongle instance */
+		}
 
 		dev->dongle_drv = NULL;			/* unlink the dongle driver */
 		module_put(drv->owner);/* decrement driver's module refcount */

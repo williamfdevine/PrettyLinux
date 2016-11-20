@@ -4,7 +4,8 @@
 
 #define RETRY_UNLIMITED	0
 
-struct balloon_stats {
+struct balloon_stats
+{
 	/* We aim for 'current allocation' == 'target allocation'. */
 	unsigned long current_pages;
 	unsigned long target_pages;

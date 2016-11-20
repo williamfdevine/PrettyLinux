@@ -23,21 +23,25 @@
 #define SNIC_SG_DESC_ALIGN	16	/* Descriptor address alignment */
 
 /* SG descriptor for snic */
-struct snic_sg_desc {
+struct snic_sg_desc
+{
 	__le64 addr;
 	__le32 len;
 	u32 _resvd;
 };
 
-struct snic_dflt_sgl {
+struct snic_dflt_sgl
+{
 	struct snic_sg_desc sg_desc[SNIC_DFLT_SG_DESC_CNT];
 };
 
-struct snic_max_sgl {
+struct snic_max_sgl
+{
 	struct snic_sg_desc sg_desc[SNIC_MAX_SG_DESC_CNT];
 };
 
-enum snic_req_cache_type {
+enum snic_req_cache_type
+{
 	SNIC_REQ_CACHE_DFLT_SGL = 0,	/* cache with default size sgl */
 	SNIC_REQ_CACHE_MAX_SGL,		/* cache with max size sgl */
 	SNIC_REQ_TM_CACHE,		/* cache for task mgmt reqs contains
@@ -46,7 +50,8 @@ enum snic_req_cache_type {
 };
 
 /* Per IO internal state */
-struct snic_internal_io_state {
+struct snic_internal_io_state
+{
 	char	*rqi;
 	u64	flags;
 	u32	state;
@@ -55,7 +60,8 @@ struct snic_internal_io_state {
 };
 
 /* IO state machine */
-enum snic_ioreq_state {
+enum snic_ioreq_state
+{
 	SNIC_IOREQ_NOT_INITED = 0,
 	SNIC_IOREQ_PENDING,
 	SNIC_IOREQ_ABTS_PENDING,
@@ -73,7 +79,8 @@ struct snic_host_req;
  * Notes: Make sure that the structure is aligned to 16 B
  * this helps in easy access to snic_req_info from snic_host_req
  */
-struct snic_req_info {
+struct snic_req_info
+{
 	struct list_head list;
 	struct snic_host_req *req;
 	u64	start_time;		/* start time in jiffies */
@@ -82,7 +89,7 @@ struct snic_req_info {
 	u32	tgt_id;
 
 	u32	tm_tag;
-	u8	io_cmpl:1;		/* sets to 1 when fw completes IO */
+	u8	io_cmpl: 1;		/* sets to 1 when fw completes IO */
 	u8	resvd[3];
 	struct scsi_cmnd *sc;		/* Associated scsi cmd */
 	struct snic	*snic;		/* Associated snic */

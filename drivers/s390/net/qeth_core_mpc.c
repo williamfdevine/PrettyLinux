@@ -9,7 +9,8 @@
 #include <asm/cio.h>
 #include "qeth_core_mpc.h"
 
-unsigned char IDX_ACTIVATE_READ[] = {
+unsigned char IDX_ACTIVATE_READ[] =
+{
 	0x00, 0x00, 0x80, 0x00,  0x00, 0x00, 0x00, 0x00,
 	0x19, 0x01, 0x01, 0x80,  0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0xc8, 0xc1,
@@ -17,7 +18,8 @@ unsigned char IDX_ACTIVATE_READ[] = {
 	0x00, 0x00
 };
 
-unsigned char IDX_ACTIVATE_WRITE[] = {
+unsigned char IDX_ACTIVATE_WRITE[] =
+{
 	0x00, 0x00, 0x80, 0x00,  0x00, 0x00, 0x00, 0x00,
 	0x15, 0x01, 0x01, 0x80,  0x00, 0x00, 0x00, 0x00,
 	0xff, 0xff, 0x00, 0x00,  0x00, 0x00, 0xc8, 0xc1,
@@ -25,7 +27,8 @@ unsigned char IDX_ACTIVATE_WRITE[] = {
 	0x00, 0x00
 };
 
-unsigned char CM_ENABLE[] = {
+unsigned char CM_ENABLE[] =
+{
 	0x00, 0xe0, 0x00, 0x00,  0x00, 0x00, 0x00, 0x01,
 	0x00, 0x00, 0x00, 0x14,  0x00, 0x00, 0x00, 0x63,
 	0x10, 0x00, 0x00, 0x01,
@@ -44,7 +47,8 @@ unsigned char CM_ENABLE[] = {
 	0xff, 0xff, 0xff
 };
 
-unsigned char CM_SETUP[] = {
+unsigned char CM_SETUP[] =
+{
 	0x00, 0xe0, 0x00, 0x00,  0x00, 0x00, 0x00, 0x02,
 	0x00, 0x00, 0x00, 0x14,  0x00, 0x00, 0x00, 0x64,
 	0x10, 0x00, 0x00, 0x01,
@@ -64,7 +68,8 @@ unsigned char CM_SETUP[] = {
 	0x04, 0x06, 0xc8, 0x00
 };
 
-unsigned char ULP_ENABLE[] = {
+unsigned char ULP_ENABLE[] =
+{
 	0x00, 0xe0, 0x00, 0x00,  0x00, 0x00, 0x00, 0x03,
 	0x00, 0x00, 0x00, 0x14,  0x00, 0x00, 0x00, 0x6b,
 	0x10, 0x00, 0x00, 0x01,
@@ -84,7 +89,8 @@ unsigned char ULP_ENABLE[] = {
 	0xf1, 0x00, 0x00
 };
 
-unsigned char ULP_SETUP[] = {
+unsigned char ULP_SETUP[] =
+{
 	0x00, 0xe0, 0x00, 0x00,  0x00, 0x00, 0x00, 0x04,
 	0x00, 0x00, 0x00, 0x14,  0x00, 0x00, 0x00, 0x6c,
 	0x10, 0x00, 0x00, 0x01,
@@ -106,7 +112,8 @@ unsigned char ULP_SETUP[] = {
 	0x00, 0x00, 0x00, 0x00
 };
 
-unsigned char DM_ACT[] = {
+unsigned char DM_ACT[] =
+{
 	0x00, 0xe0, 0x00, 0x00,  0x00, 0x00, 0x00, 0x05,
 	0x00, 0x00, 0x00, 0x14,  0x00, 0x00, 0x00, 0x55,
 	0x10, 0x00, 0x00, 0x01,
@@ -122,46 +129,51 @@ unsigned char DM_ACT[] = {
 	0x05, 0x40, 0x01, 0x01,  0x00
 };
 
-unsigned char IPA_PDU_HEADER[] = {
+unsigned char IPA_PDU_HEADER[] =
+{
 	0x00, 0xe0, 0x00, 0x00,  0x77, 0x77, 0x77, 0x77,
 	0x00, 0x00, 0x00, 0x14,  0x00, 0x00,
-		(IPA_PDU_HEADER_SIZE+sizeof(struct qeth_ipa_cmd)) / 256,
-		(IPA_PDU_HEADER_SIZE+sizeof(struct qeth_ipa_cmd)) % 256,
+	(IPA_PDU_HEADER_SIZE + sizeof(struct qeth_ipa_cmd)) / 256,
+	(IPA_PDU_HEADER_SIZE + sizeof(struct qeth_ipa_cmd)) % 256,
 	0x10, 0x00, 0x00, 0x01,  0x00, 0x00, 0x00, 0x00,
 	0xc1, 0x03, 0x00, 0x01,  0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00,  0x00, 0x24,
-		sizeof(struct qeth_ipa_cmd) / 256,
-		sizeof(struct qeth_ipa_cmd) % 256,
+	sizeof(struct qeth_ipa_cmd) / 256,
+	sizeof(struct qeth_ipa_cmd) % 256,
 	0x00,
-		sizeof(struct qeth_ipa_cmd) / 256,
-		sizeof(struct qeth_ipa_cmd) % 256,
+	sizeof(struct qeth_ipa_cmd) / 256,
+	sizeof(struct qeth_ipa_cmd) % 256,
 	0x05,
 	0x77, 0x77, 0x77, 0x77,
 	0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
 	0x01, 0x00,
-		sizeof(struct qeth_ipa_cmd) / 256,
-		sizeof(struct qeth_ipa_cmd) % 256,
+	sizeof(struct qeth_ipa_cmd) / 256,
+	sizeof(struct qeth_ipa_cmd) % 256,
 	0x00, 0x00, 0x00, 0x40,
 };
 EXPORT_SYMBOL_GPL(IPA_PDU_HEADER);
 
-unsigned char WRITE_CCW[] = {
+unsigned char WRITE_CCW[] =
+{
 	0x01, CCW_FLAG_SLI, 0, 0,
 	0, 0, 0, 0
 };
 
-unsigned char READ_CCW[] = {
+unsigned char READ_CCW[] =
+{
 	0x02, CCW_FLAG_SLI, 0, 0,
 	0, 0, 0, 0
 };
 
 
-struct ipa_rc_msg {
+struct ipa_rc_msg
+{
 	enum qeth_ipa_return_codes rc;
 	char *msg;
 };
 
-static struct ipa_rc_msg qeth_ipa_rc_msg[] = {
+static struct ipa_rc_msg qeth_ipa_rc_msg[] =
+{
 	{IPA_RC_SUCCESS,		"success"},
 	{IPA_RC_NOTSUPP,		"Command not supported"},
 	{IPA_RC_IP_TABLE_FULL,		"Add Addr IP Table Full - ipv6"},
@@ -216,19 +228,25 @@ char *qeth_get_ipa_msg(enum qeth_ipa_return_codes rc)
 {
 	int x = 0;
 	qeth_ipa_rc_msg[sizeof(qeth_ipa_rc_msg) /
-			sizeof(struct ipa_rc_msg) - 1].rc = rc;
+					sizeof(struct ipa_rc_msg) - 1].rc = rc;
+
 	while (qeth_ipa_rc_msg[x].rc != rc)
+	{
 		x++;
+	}
+
 	return qeth_ipa_rc_msg[x].msg;
 }
 
 
-struct ipa_cmd_names {
+struct ipa_cmd_names
+{
 	enum qeth_ipa_cmds cmd;
 	char *name;
 };
 
-static struct ipa_cmd_names qeth_ipa_cmd_names[] = {
+static struct ipa_cmd_names qeth_ipa_cmd_names[] =
+{
 	{IPA_CMD_STARTLAN,	"startlan"},
 	{IPA_CMD_STOPLAN,	"stoplan"},
 	{IPA_CMD_SETVMAC,	"setvmac"},
@@ -264,8 +282,12 @@ char *qeth_get_ipa_cmd_name(enum qeth_ipa_cmds cmd)
 	int x = 0;
 	qeth_ipa_cmd_names[
 		sizeof(qeth_ipa_cmd_names) /
-			sizeof(struct ipa_cmd_names)-1].cmd = cmd;
+		sizeof(struct ipa_cmd_names) - 1].cmd = cmd;
+
 	while (qeth_ipa_cmd_names[x].cmd != cmd)
+	{
 		x++;
+	}
+
 	return qeth_ipa_cmd_names[x].name;
 }

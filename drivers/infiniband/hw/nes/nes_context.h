@@ -33,7 +33,8 @@
 #ifndef NES_CONTEXT_H
 #define NES_CONTEXT_H
 
-struct nes_qp_context {
+struct nes_qp_context
+{
 	__le32   misc;
 	__le32   cqs;
 	__le32   sq_addr_low;
@@ -95,7 +96,8 @@ struct nes_qp_context {
 #define NES_QPCONTEXT_MISC_DUP_ACKS_MASK     0x00070000
 #define NES_QPCONTEXT_MISC_DUP_ACKS_SHIFT    16
 
-enum nes_qp_context_misc_bits {
+enum nes_qp_context_misc_bits
+{
 	NES_QPCONTEXT_MISC_RX_WQE_SIZE         = 0x00000004,
 	NES_QPCONTEXT_MISC_IPV4                = 0x00000008,
 	NES_QPCONTEXT_MISC_DO_NOT_FRAG         = 0x00000010,
@@ -113,7 +115,8 @@ enum nes_qp_context_misc_bits {
 	NES_QPCONTEXT_MISC_NO_NAGLE            = 0x80000000
 };
 
-enum nes_qp_acc_wq_sizes {
+enum nes_qp_acc_wq_sizes
+{
 	HCONTEXT_TSA_WQ_SIZE_4 = 0,
 	HCONTEXT_TSA_WQ_SIZE_32 = 1,
 	HCONTEXT_TSA_WQ_SIZE_128 = 2,
@@ -142,7 +145,8 @@ enum nes_qp_acc_wq_sizes {
 #define NES_QPCONTEXT_TCPFLOW_TCP_STATE_MASK    0xf0000000
 #define NES_QPCONTEXT_TCPFLOW_TCP_STATE_SHIFT   28
 
-enum nes_qp_tcp_state {
+enum nes_qp_tcp_state
+{
 	NES_QPCONTEXT_TCPSTATE_CLOSED = 1,
 	NES_QPCONTEXT_TCPSTATE_EST = 5,
 	NES_QPCONTEXT_TCPSTATE_TIME_WAIT = 11,
@@ -172,7 +176,8 @@ enum nes_qp_tcp_state {
 #define NES_QPCONTEXT_ORDIRD_IWARP_MODE_MASK    0x30000000
 #define NES_QPCONTEXT_ORDIRD_IWARP_MODE_SHIFT   28
 
-enum nes_ord_ird_bits {
+enum nes_ord_ird_bits
+{
 	NES_QPCONTEXT_ORDIRD_WRPDU                   = 0x02000000,
 	NES_QPCONTEXT_ORDIRD_LSMM_PRESENT            = 0x04000000,
 	NES_QPCONTEXT_ORDIRD_ALSMM                   = 0x08000000,
@@ -180,7 +185,8 @@ enum nes_ord_ird_bits {
 	NES_QPCONTEXT_ORDIRD_RNMC                    = 0x80000000
 };
 
-enum nes_iwarp_qp_state {
+enum nes_iwarp_qp_state
+{
 	NES_QPCONTEXT_IWARP_STATE_NONEXIST  = 0,
 	NES_QPCONTEXT_IWARP_STATE_IDLE      = 1,
 	NES_QPCONTEXT_IWARP_STATE_RTS       = 2,

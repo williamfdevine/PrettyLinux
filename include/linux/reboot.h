@@ -10,7 +10,8 @@
 #define SYS_HALT	0x0002	/* Notify of system halt */
 #define SYS_POWER_OFF	0x0003	/* Notify of system power off */
 
-enum reboot_mode {
+enum reboot_mode
+{
 	REBOOT_COLD = 0,
 	REBOOT_WARM,
 	REBOOT_HARD,
@@ -19,7 +20,8 @@ enum reboot_mode {
 };
 extern enum reboot_mode reboot_mode;
 
-enum reboot_type {
+enum reboot_type
+{
 	BOOT_TRIPLE	= 't',
 	BOOT_KBD	= 'k',
 	BOOT_BIOS	= 'b',

@@ -10,7 +10,7 @@
  * @fbit: the feature bit
  */
 static inline bool __virtio_test_bit(const struct virtio_device *vdev,
-				     unsigned int fbit)
+									 unsigned int fbit)
 {
 	return vdev->features & (1ULL << fbit);
 }
@@ -21,7 +21,7 @@ static inline bool __virtio_test_bit(const struct virtio_device *vdev,
  * @fbit: the feature bit
  */
 static inline void __virtio_set_bit(struct virtio_device *vdev,
-				    unsigned int fbit)
+									unsigned int fbit)
 {
 	vdev->features |= (1ULL << fbit);
 }
@@ -32,7 +32,7 @@ static inline void __virtio_set_bit(struct virtio_device *vdev,
  * @fbit: the feature bit
  */
 static inline void __virtio_clear_bit(struct virtio_device *vdev,
-				      unsigned int fbit)
+									  unsigned int fbit)
 {
 	vdev->features &= ~(1ULL << fbit);
 }
@@ -56,7 +56,7 @@ static inline bool virtio_has_iommu_quirk(const struct virtio_device *vdev)
 static inline bool virtio_is_little_endian(struct virtio_device *vdev)
 {
 	return virtio_has_feature(vdev, VIRTIO_F_VERSION_1) ||
-		virtio_legacy_is_little_endian();
+		   virtio_legacy_is_little_endian();
 }
 
 /* Memory accessors */

@@ -30,7 +30,8 @@
 
 #define MDFLD_MAX_DCS_PARAM	8
 
-struct mdfld_dsi_pkg_sender {
+struct mdfld_dsi_pkg_sender
+{
 	struct drm_device *dev;
 	struct mdfld_dsi_connector *dsi_connector;
 	u32 status;
@@ -63,18 +64,18 @@ struct mdfld_dsi_pkg_sender {
 };
 
 extern int mdfld_dsi_pkg_sender_init(struct mdfld_dsi_connector *dsi_connector,
-					int pipe);
+									 int pipe);
 extern void mdfld_dsi_pkg_sender_destroy(struct mdfld_dsi_pkg_sender *sender);
 int mdfld_dsi_send_mcs_short(struct mdfld_dsi_pkg_sender *sender, u8 cmd,
-					u8 param, u8 param_num, bool hs);
+							 u8 param, u8 param_num, bool hs);
 int mdfld_dsi_send_mcs_long(struct mdfld_dsi_pkg_sender *sender, u8 *data,
-					u32 len, bool hs);
+							u32 len, bool hs);
 int mdfld_dsi_send_gen_short(struct mdfld_dsi_pkg_sender *sender, u8 param0,
-					u8 param1, u8 param_num, bool hs);
+							 u8 param1, u8 param_num, bool hs);
 int mdfld_dsi_send_gen_long(struct mdfld_dsi_pkg_sender *sender, u8 *data,
-					u32 len, bool hs);
+							u32 len, bool hs);
 /* Read interfaces */
 int mdfld_dsi_read_mcs(struct mdfld_dsi_pkg_sender *sender, u8 cmd,
-		u32 *data, u16 len, bool hs);
+					   u32 *data, u16 len, bool hs);
 
 #endif

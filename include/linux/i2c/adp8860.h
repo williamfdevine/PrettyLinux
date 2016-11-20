@@ -98,7 +98,8 @@
  */
 #define ADP8860_L3_COMP_CURR_uA(I)	((I * 255) / 138)
 
-struct adp8860_backlight_platform_data {
+struct adp8860_backlight_platform_data
+{
 	u8 bl_led_assign;	/* 1 = Backlight 0 = Individual LED */
 
 	u8 bl_fade_in;		/* Backlight Fade-In Timer */

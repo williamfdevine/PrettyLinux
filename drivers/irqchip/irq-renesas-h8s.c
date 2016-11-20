@@ -13,7 +13,8 @@
 static void *intc_baseaddr;
 #define IPRA ((unsigned long)intc_baseaddr)
 
-static const unsigned char ipr_table[] = {
+static const unsigned char ipr_table[] =
+{
 	0x03, 0x02, 0x01, 0x00, 0x13, 0x12, 0x11, 0x10, /* 16 - 23 */
 	0x23, 0x22, 0x21, 0x20, 0x33, 0x32, 0x31, 0x30, /* 24 - 31 */
 	0x43, 0x42, 0x41, 0x40, 0x53, 0x53, 0x52, 0x52, /* 32 - 39 */
@@ -59,27 +60,29 @@ static void h8s_enable_irq(struct irq_data *data)
 	writew(pri, addr);
 }
 
-struct irq_chip h8s_irq_chip = {
+struct irq_chip h8s_irq_chip =
+{
 	.name		= "H8S-INTC",
 	.irq_enable	= h8s_enable_irq,
 	.irq_disable	= h8s_disable_irq,
 };
 
 static __init int irq_map(struct irq_domain *h, unsigned int virq,
-			  irq_hw_number_t hw_irq_num)
+						  irq_hw_number_t hw_irq_num)
 {
-       irq_set_chip_and_handler(virq, &h8s_irq_chip, handle_simple_irq);
+	irq_set_chip_and_handler(virq, &h8s_irq_chip, handle_simple_irq);
 
-       return 0;
+	return 0;
 }
 
-static struct irq_domain_ops irq_ops = {
-       .map    = irq_map,
-       .xlate  = irq_domain_xlate_onecell,
+static struct irq_domain_ops irq_ops =
+{
+	.map    = irq_map,
+	.xlate  = irq_domain_xlate_onecell,
 };
 
 static int __init h8s_intc_of_init(struct device_node *intc,
-				   struct device_node *parent)
+								   struct device_node *parent)
 {
 	struct irq_domain *domain;
 	int n;
@@ -90,7 +93,9 @@ static int __init h8s_intc_of_init(struct device_node *intc,
 	/* All interrupt priority is 0 (disable) */
 	/* IPRA to IPRK */
 	for (n = 0; n <= 'k' - 'a'; n++)
+	{
 		writew(0x0000, IPRA + (n * 2));
+	}
 
 	domain = irq_domain_add_linear(intc, NR_IRQS, &irq_ops, NULL);
 	BUG_ON(!domain);

@@ -32,7 +32,7 @@
 #define THRESH_INACT	0x25	/* R/W Inactivity threshold */
 #define TIME_INACT	0x26	/* R/W Inactivity time */
 #define ACT_INACT_CTL	0x27	/* R/W Axis enable control for activity and */
-				/* inactivity detection */
+/* inactivity detection */
 #define THRESH_FF	0x28	/* R/W Free-fall threshold */
 #define TIME_FF		0x29	/* R/W Free-fall time */
 #define TAP_AXES	0x2A	/* R/W Axis control for tap/double tap */
@@ -181,13 +181,15 @@
 #define AC_READ(ac, reg)	((ac)->bops->read((ac)->dev, reg))
 #define AC_WRITE(ac, reg, val)	((ac)->bops->write((ac)->dev, reg, val))
 
-struct axis_triple {
+struct axis_triple
+{
 	int x;
 	int y;
 	int z;
 };
 
-struct adxl34x {
+struct adxl34x
+{
 	struct device *dev;
 	struct input_dev *input;
 	struct mutex mutex;	/* reentrant protection for struct */
@@ -209,7 +211,8 @@ struct adxl34x {
 	const struct adxl34x_bus_ops *bops;
 };
 
-static const struct adxl34x_platform_data adxl34x_default_init = {
+static const struct adxl34x_platform_data adxl34x_default_init =
+{
 	.tap_threshold = 35,
 	.tap_duration = 3,
 	.tap_latency = 20,
@@ -261,11 +264,11 @@ static void adxl34x_service_ev_fifo(struct adxl34x *ac)
 	adxl34x_get_triple(ac, &axis);
 
 	input_event(ac->input, pdata->ev_type, pdata->ev_code_x,
-		    axis.x - ac->swcal.x);
+				axis.x - ac->swcal.x);
 	input_event(ac->input, pdata->ev_type, pdata->ev_code_y,
-		    axis.y - ac->swcal.y);
+				axis.y - ac->swcal.y);
 	input_event(ac->input, pdata->ev_type, pdata->ev_code_z,
-		    axis.z - ac->swcal.z);
+				axis.z - ac->swcal.z);
 }
 
 static void adxl34x_report_key_single(struct input_dev *input, int key)
@@ -276,19 +279,20 @@ static void adxl34x_report_key_single(struct input_dev *input, int key)
 }
 
 static void adxl34x_send_key_events(struct adxl34x *ac,
-		struct adxl34x_platform_data *pdata, int status, int press)
+									struct adxl34x_platform_data *pdata, int status, int press)
 {
 	int i;
 
-	for (i = ADXL_X_AXIS; i <= ADXL_Z_AXIS; i++) {
+	for (i = ADXL_X_AXIS; i <= ADXL_Z_AXIS; i++)
+	{
 		if (status & (1 << (ADXL_Z_AXIS - i)))
 			input_report_key(ac->input,
-					 pdata->ev_code_tap[i], press);
+							 pdata->ev_code_tap[i], press);
 	}
 }
 
 static void adxl34x_do_tap(struct adxl34x *ac,
-		struct adxl34x_platform_data *pdata, int status)
+						   struct adxl34x_platform_data *pdata, int status)
 {
 	adxl34x_send_key_events(ac, pdata, status, true);
 	input_sync(ac->input);
@@ -307,73 +311,101 @@ static irqreturn_t adxl34x_irq(int irq, void *handle)
 	 */
 
 	if (pdata->tap_axis_control & (TAP_X_EN | TAP_Y_EN | TAP_Z_EN))
+	{
 		tap_stat = AC_READ(ac, ACT_TAP_STATUS);
+	}
 	else
+	{
 		tap_stat = 0;
+	}
 
 	int_stat = AC_READ(ac, INT_SOURCE);
 
 	if (int_stat & FREE_FALL)
+	{
 		adxl34x_report_key_single(ac->input, pdata->ev_code_ff);
+	}
 
 	if (int_stat & OVERRUN)
+	{
 		dev_dbg(ac->dev, "OVERRUN\n");
+	}
 
-	if (int_stat & (SINGLE_TAP | DOUBLE_TAP)) {
+	if (int_stat & (SINGLE_TAP | DOUBLE_TAP))
+	{
 		adxl34x_do_tap(ac, pdata, tap_stat);
 
 		if (int_stat & DOUBLE_TAP)
+		{
 			adxl34x_do_tap(ac, pdata, tap_stat);
+		}
 	}
 
-	if (pdata->ev_code_act_inactivity) {
+	if (pdata->ev_code_act_inactivity)
+	{
 		if (int_stat & ACTIVITY)
 			input_report_key(ac->input,
-					 pdata->ev_code_act_inactivity, 1);
+							 pdata->ev_code_act_inactivity, 1);
+
 		if (int_stat & INACTIVITY)
 			input_report_key(ac->input,
-					 pdata->ev_code_act_inactivity, 0);
+							 pdata->ev_code_act_inactivity, 0);
 	}
 
 	/*
 	 * ORIENTATION SENSING ADXL346 only
 	 */
-	if (pdata->orientation_enable) {
+	if (pdata->orientation_enable)
+	{
 		orient = AC_READ(ac, ORIENT);
+
 		if ((pdata->orientation_enable & ADXL_EN_ORIENTATION_2D) &&
-		    (orient & ADXL346_2D_VALID)) {
+			(orient & ADXL346_2D_VALID))
+		{
 
 			orient_code = ADXL346_2D_ORIENT(orient);
+
 			/* Report orientation only when it changes */
-			if (ac->orient2d_saved != orient_code) {
+			if (ac->orient2d_saved != orient_code)
+			{
 				ac->orient2d_saved = orient_code;
 				adxl34x_report_key_single(ac->input,
-					pdata->ev_codes_orient_2d[orient_code]);
+										  pdata->ev_codes_orient_2d[orient_code]);
 			}
 		}
 
 		if ((pdata->orientation_enable & ADXL_EN_ORIENTATION_3D) &&
-		    (orient & ADXL346_3D_VALID)) {
+			(orient & ADXL346_3D_VALID))
+		{
 
 			orient_code = ADXL346_3D_ORIENT(orient) - 1;
+
 			/* Report orientation only when it changes */
-			if (ac->orient3d_saved != orient_code) {
+			if (ac->orient3d_saved != orient_code)
+			{
 				ac->orient3d_saved = orient_code;
 				adxl34x_report_key_single(ac->input,
-					pdata->ev_codes_orient_3d[orient_code]);
+										  pdata->ev_codes_orient_3d[orient_code]);
 			}
 		}
 	}
 
-	if (int_stat & (DATA_READY | WATERMARK)) {
+	if (int_stat & (DATA_READY | WATERMARK))
+	{
 
 		if (pdata->fifo_mode)
+		{
 			samples = ENTRIES(AC_READ(ac, FIFO_STATUS)) + 1;
+		}
 		else
+		{
 			samples = 1;
+		}
 
-		for (; samples > 0; samples--) {
+		for (; samples > 0; samples--)
+		{
 			adxl34x_service_ev_fifo(ac);
+
 			/*
 			 * To ensure that the FIFO has
 			 * completely popped, there must be at least 5 us between
@@ -389,7 +421,9 @@ static irqreturn_t adxl34x_irq(int irq, void *handle)
 			 * operation.
 			 */
 			if (ac->fifo_delay && (samples > 1))
+			{
 				udelay(3);
+			}
 		}
 	}
 
@@ -417,7 +451,9 @@ void adxl34x_suspend(struct adxl34x *ac)
 	mutex_lock(&ac->mutex);
 
 	if (!ac->suspended && !ac->disabled && ac->opened)
+	{
 		__adxl34x_disable(ac);
+	}
 
 	ac->suspended = true;
 
@@ -430,7 +466,9 @@ void adxl34x_resume(struct adxl34x *ac)
 	mutex_lock(&ac->mutex);
 
 	if (ac->suspended && !ac->disabled && ac->opened)
+	{
 		__adxl34x_enable(ac);
+	}
 
 	ac->suspended = false;
 
@@ -439,7 +477,7 @@ void adxl34x_resume(struct adxl34x *ac)
 EXPORT_SYMBOL_GPL(adxl34x_resume);
 
 static ssize_t adxl34x_disable_show(struct device *dev,
-				    struct device_attribute *attr, char *buf)
+									struct device_attribute *attr, char *buf)
 {
 	struct adxl34x *ac = dev_get_drvdata(dev);
 
@@ -447,26 +485,37 @@ static ssize_t adxl34x_disable_show(struct device *dev,
 }
 
 static ssize_t adxl34x_disable_store(struct device *dev,
-				     struct device_attribute *attr,
-				     const char *buf, size_t count)
+									 struct device_attribute *attr,
+									 const char *buf, size_t count)
 {
 	struct adxl34x *ac = dev_get_drvdata(dev);
 	unsigned int val;
 	int error;
 
 	error = kstrtouint(buf, 10, &val);
+
 	if (error)
+	{
 		return error;
+	}
 
 	mutex_lock(&ac->mutex);
 
-	if (!ac->suspended && ac->opened) {
-		if (val) {
+	if (!ac->suspended && ac->opened)
+	{
+		if (val)
+		{
 			if (!ac->disabled)
+			{
 				__adxl34x_disable(ac);
-		} else {
+			}
+		}
+		else
+		{
 			if (ac->disabled)
+			{
 				__adxl34x_enable(ac);
+			}
 		}
 	}
 
@@ -480,24 +529,24 @@ static ssize_t adxl34x_disable_store(struct device *dev,
 static DEVICE_ATTR(disable, 0664, adxl34x_disable_show, adxl34x_disable_store);
 
 static ssize_t adxl34x_calibrate_show(struct device *dev,
-				      struct device_attribute *attr, char *buf)
+									  struct device_attribute *attr, char *buf)
 {
 	struct adxl34x *ac = dev_get_drvdata(dev);
 	ssize_t count;
 
 	mutex_lock(&ac->mutex);
 	count = sprintf(buf, "%d,%d,%d\n",
-			ac->hwcal.x * 4 + ac->swcal.x,
-			ac->hwcal.y * 4 + ac->swcal.y,
-			ac->hwcal.z * 4 + ac->swcal.z);
+					ac->hwcal.x * 4 + ac->swcal.x,
+					ac->hwcal.y * 4 + ac->swcal.y,
+					ac->hwcal.z * 4 + ac->swcal.z);
 	mutex_unlock(&ac->mutex);
 
 	return count;
 }
 
 static ssize_t adxl34x_calibrate_store(struct device *dev,
-				       struct device_attribute *attr,
-				       const char *buf, size_t count)
+									   struct device_attribute *attr,
+									   const char *buf, size_t count)
 {
 	struct adxl34x *ac = dev_get_drvdata(dev);
 
@@ -525,10 +574,10 @@ static ssize_t adxl34x_calibrate_store(struct device *dev,
 }
 
 static DEVICE_ATTR(calibrate, 0664,
-		   adxl34x_calibrate_show, adxl34x_calibrate_store);
+				   adxl34x_calibrate_show, adxl34x_calibrate_store);
 
 static ssize_t adxl34x_rate_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	struct adxl34x *ac = dev_get_drvdata(dev);
 
@@ -536,23 +585,26 @@ static ssize_t adxl34x_rate_show(struct device *dev,
 }
 
 static ssize_t adxl34x_rate_store(struct device *dev,
-				  struct device_attribute *attr,
-				  const char *buf, size_t count)
+								  struct device_attribute *attr,
+								  const char *buf, size_t count)
 {
 	struct adxl34x *ac = dev_get_drvdata(dev);
 	unsigned char val;
 	int error;
 
 	error = kstrtou8(buf, 10, &val);
+
 	if (error)
+	{
 		return error;
+	}
 
 	mutex_lock(&ac->mutex);
 
 	ac->pdata.data_rate = RATE(val);
 	AC_WRITE(ac, BW_RATE,
-		 ac->pdata.data_rate |
-			(ac->pdata.low_power_mode ? LOW_POWER : 0));
+			 ac->pdata.data_rate |
+			 (ac->pdata.low_power_mode ? LOW_POWER : 0));
 
 	mutex_unlock(&ac->mutex);
 
@@ -562,35 +614,44 @@ static ssize_t adxl34x_rate_store(struct device *dev,
 static DEVICE_ATTR(rate, 0664, adxl34x_rate_show, adxl34x_rate_store);
 
 static ssize_t adxl34x_autosleep_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+									  struct device_attribute *attr, char *buf)
 {
 	struct adxl34x *ac = dev_get_drvdata(dev);
 
 	return sprintf(buf, "%u\n",
-		ac->pdata.power_mode & (PCTL_AUTO_SLEEP | PCTL_LINK) ? 1 : 0);
+				   ac->pdata.power_mode & (PCTL_AUTO_SLEEP | PCTL_LINK) ? 1 : 0);
 }
 
 static ssize_t adxl34x_autosleep_store(struct device *dev,
-				  struct device_attribute *attr,
-				  const char *buf, size_t count)
+									   struct device_attribute *attr,
+									   const char *buf, size_t count)
 {
 	struct adxl34x *ac = dev_get_drvdata(dev);
 	unsigned int val;
 	int error;
 
 	error = kstrtouint(buf, 10, &val);
+
 	if (error)
+	{
 		return error;
+	}
 
 	mutex_lock(&ac->mutex);
 
 	if (val)
+	{
 		ac->pdata.power_mode |= (PCTL_AUTO_SLEEP | PCTL_LINK);
+	}
 	else
+	{
 		ac->pdata.power_mode &= ~(PCTL_AUTO_SLEEP | PCTL_LINK);
+	}
 
 	if (!ac->disabled && !ac->suspended && ac->opened)
+	{
 		AC_WRITE(ac, POWER_CTL, ac->pdata.power_mode | PCTL_MEASURE);
+	}
 
 	mutex_unlock(&ac->mutex);
 
@@ -598,17 +659,17 @@ static ssize_t adxl34x_autosleep_store(struct device *dev,
 }
 
 static DEVICE_ATTR(autosleep, 0664,
-		   adxl34x_autosleep_show, adxl34x_autosleep_store);
+				   adxl34x_autosleep_show, adxl34x_autosleep_store);
 
 static ssize_t adxl34x_position_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	struct adxl34x *ac = dev_get_drvdata(dev);
 	ssize_t count;
 
 	mutex_lock(&ac->mutex);
 	count = sprintf(buf, "(%d, %d, %d)\n",
-			ac->saved.x, ac->saved.y, ac->saved.z);
+					ac->saved.x, ac->saved.y, ac->saved.z);
 	mutex_unlock(&ac->mutex);
 
 	return count;
@@ -618,8 +679,8 @@ static DEVICE_ATTR(position, S_IRUGO, adxl34x_position_show, NULL);
 
 #ifdef ADXL_DEBUG
 static ssize_t adxl34x_write_store(struct device *dev,
-				   struct device_attribute *attr,
-				   const char *buf, size_t count)
+								   struct device_attribute *attr,
+								   const char *buf, size_t count)
 {
 	struct adxl34x *ac = dev_get_drvdata(dev);
 	unsigned int val;
@@ -629,8 +690,11 @@ static ssize_t adxl34x_write_store(struct device *dev,
 	 * This allows basic ADXL register write access for debug purposes.
 	 */
 	error = kstrtouint(buf, 16, &val);
+
 	if (error)
+	{
 		return error;
+	}
 
 	mutex_lock(&ac->mutex);
 	AC_WRITE(ac, val >> 8, val & 0xFF);
@@ -642,7 +706,8 @@ static ssize_t adxl34x_write_store(struct device *dev,
 static DEVICE_ATTR(write, 0664, NULL, adxl34x_write_store);
 #endif
 
-static struct attribute *adxl34x_attributes[] = {
+static struct attribute *adxl34x_attributes[] =
+{
 	&dev_attr_disable.attr,
 	&dev_attr_calibrate.attr,
 	&dev_attr_rate.attr,
@@ -654,7 +719,8 @@ static struct attribute *adxl34x_attributes[] = {
 	NULL
 };
 
-static const struct attribute_group adxl34x_attr_group = {
+static const struct attribute_group adxl34x_attr_group =
+{
 	.attrs = adxl34x_attributes,
 };
 
@@ -665,7 +731,9 @@ static int adxl34x_input_open(struct input_dev *input)
 	mutex_lock(&ac->mutex);
 
 	if (!ac->suspended && !ac->disabled)
+	{
 		__adxl34x_enable(ac);
+	}
 
 	ac->opened = true;
 
@@ -681,7 +749,9 @@ static void adxl34x_input_close(struct input_dev *input)
 	mutex_lock(&ac->mutex);
 
 	if (!ac->suspended && !ac->disabled)
+	{
 		__adxl34x_disable(ac);
+	}
 
 	ac->opened = false;
 
@@ -689,8 +759,8 @@ static void adxl34x_input_close(struct input_dev *input)
 }
 
 struct adxl34x *adxl34x_probe(struct device *dev, int irq,
-			      bool fifo_delay_default,
-			      const struct adxl34x_bus_ops *bops)
+							  bool fifo_delay_default,
+							  const struct adxl34x_bus_ops *bops)
 {
 	struct adxl34x *ac;
 	struct input_dev *input_dev;
@@ -698,7 +768,8 @@ struct adxl34x *adxl34x_probe(struct device *dev, int irq,
 	int err, range, i;
 	unsigned char revid;
 
-	if (!irq) {
+	if (!irq)
+	{
 		dev_err(dev, "no IRQ?\n");
 		err = -ENODEV;
 		goto err_out;
@@ -706,7 +777,9 @@ struct adxl34x *adxl34x_probe(struct device *dev, int irq,
 
 	ac = kzalloc(sizeof(*ac), GFP_KERNEL);
 	input_dev = input_allocate_device();
-	if (!ac || !input_dev) {
+
+	if (!ac || !input_dev)
+	{
 		err = -ENOMEM;
 		goto err_free_mem;
 	}
@@ -714,9 +787,11 @@ struct adxl34x *adxl34x_probe(struct device *dev, int irq,
 	ac->fifo_delay = fifo_delay_default;
 
 	pdata = dev_get_platdata(dev);
-	if (!pdata) {
+
+	if (!pdata)
+	{
 		dev_dbg(dev,
-			"No platform data: Using default initialization\n");
+				"No platform data: Using default initialization\n");
 		pdata = &adxl34x_default_init;
 	}
 
@@ -733,17 +808,20 @@ struct adxl34x *adxl34x_probe(struct device *dev, int irq,
 	input_dev->name = "ADXL34x accelerometer";
 	revid = AC_READ(ac, DEVID);
 
-	switch (revid) {
-	case ID_ADXL345:
-		ac->model = 345;
-		break;
-	case ID_ADXL346:
-		ac->model = 346;
-		break;
-	default:
-		dev_err(dev, "Failed to probe %s\n", input_dev->name);
-		err = -ENODEV;
-		goto err_free_mem;
+	switch (revid)
+	{
+		case ID_ADXL345:
+			ac->model = 345;
+			break;
+
+		case ID_ADXL346:
+			ac->model = 346;
+			break;
+
+		default:
+			dev_err(dev, "Failed to probe %s\n", input_dev->name);
+			err = -ENODEV;
+			goto err_free_mem;
 	}
 
 	snprintf(ac->phys, sizeof(ac->phys), "%s/input0", dev_name(dev));
@@ -759,20 +837,27 @@ struct adxl34x *adxl34x_probe(struct device *dev, int irq,
 
 	__set_bit(ac->pdata.ev_type, input_dev->evbit);
 
-	if (ac->pdata.ev_type == EV_REL) {
+	if (ac->pdata.ev_type == EV_REL)
+	{
 		__set_bit(REL_X, input_dev->relbit);
 		__set_bit(REL_Y, input_dev->relbit);
 		__set_bit(REL_Z, input_dev->relbit);
-	} else {
+	}
+	else
+	{
 		/* EV_ABS */
 		__set_bit(ABS_X, input_dev->absbit);
 		__set_bit(ABS_Y, input_dev->absbit);
 		__set_bit(ABS_Z, input_dev->absbit);
 
 		if (pdata->data_range & FULL_RES)
-			range = ADXL_FULLRES_MAX_VAL;	/* Signed 13-bit */
+		{
+			range = ADXL_FULLRES_MAX_VAL;    /* Signed 13-bit */
+		}
 		else
-			range = ADXL_FIXEDRES_MAX_VAL;	/* Signed 10-bit */
+		{
+			range = ADXL_FIXEDRES_MAX_VAL;    /* Signed 10-bit */
+		}
 
 		input_set_abs_params(input_dev, ABS_X, -range, range, 3, 3);
 		input_set_abs_params(input_dev, ABS_Y, -range, range, 3, 3);
@@ -784,47 +869,68 @@ struct adxl34x *adxl34x_probe(struct device *dev, int irq,
 	__set_bit(pdata->ev_code_tap[ADXL_Y_AXIS], input_dev->keybit);
 	__set_bit(pdata->ev_code_tap[ADXL_Z_AXIS], input_dev->keybit);
 
-	if (pdata->ev_code_ff) {
+	if (pdata->ev_code_ff)
+	{
 		ac->int_mask = FREE_FALL;
 		__set_bit(pdata->ev_code_ff, input_dev->keybit);
 	}
 
 	if (pdata->ev_code_act_inactivity)
+	{
 		__set_bit(pdata->ev_code_act_inactivity, input_dev->keybit);
+	}
 
 	ac->int_mask |= ACTIVITY | INACTIVITY;
 
-	if (pdata->watermark) {
+	if (pdata->watermark)
+	{
 		ac->int_mask |= WATERMARK;
+
 		if (!FIFO_MODE(pdata->fifo_mode))
+		{
 			ac->pdata.fifo_mode |= FIFO_STREAM;
-	} else {
+		}
+	}
+	else
+	{
 		ac->int_mask |= DATA_READY;
 	}
 
 	if (pdata->tap_axis_control & (TAP_X_EN | TAP_Y_EN | TAP_Z_EN))
+	{
 		ac->int_mask |= SINGLE_TAP | DOUBLE_TAP;
+	}
 
 	if (FIFO_MODE(pdata->fifo_mode) == FIFO_BYPASS)
+	{
 		ac->fifo_delay = false;
+	}
 
 	AC_WRITE(ac, POWER_CTL, 0);
 
 	err = request_threaded_irq(ac->irq, NULL, adxl34x_irq,
-				   IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
-				   dev_name(dev), ac);
-	if (err) {
+							   IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
+							   dev_name(dev), ac);
+
+	if (err)
+	{
 		dev_err(dev, "irq %d busy?\n", ac->irq);
 		goto err_free_mem;
 	}
 
 	err = sysfs_create_group(&dev->kobj, &adxl34x_attr_group);
+
 	if (err)
+	{
 		goto err_free_irq;
+	}
 
 	err = input_register_device(input_dev);
+
 	if (err)
+	{
 		goto err_remove_attr;
+	}
 
 	AC_WRITE(ac, OFSX, pdata->x_axis_offset);
 	ac->hwcal.x = pdata->x_axis_offset;
@@ -844,23 +950,27 @@ struct adxl34x *adxl34x_probe(struct device *dev, int irq,
 	AC_WRITE(ac, TAP_AXES, pdata->tap_axis_control);
 	AC_WRITE(ac, ACT_INACT_CTL, pdata->act_axis_control);
 	AC_WRITE(ac, BW_RATE, RATE(ac->pdata.data_rate) |
-		 (pdata->low_power_mode ? LOW_POWER : 0));
+			 (pdata->low_power_mode ? LOW_POWER : 0));
 	AC_WRITE(ac, DATA_FORMAT, pdata->data_range);
 	AC_WRITE(ac, FIFO_CTL, FIFO_MODE(pdata->fifo_mode) |
-			SAMPLES(pdata->watermark));
+			 SAMPLES(pdata->watermark));
 
-	if (pdata->use_int2) {
+	if (pdata->use_int2)
+	{
 		/* Map all INTs to INT2 */
 		AC_WRITE(ac, INT_MAP, ac->int_mask | OVERRUN);
-	} else {
+	}
+	else
+	{
 		/* Map all INTs to INT1 */
 		AC_WRITE(ac, INT_MAP, 0);
 	}
 
-	if (ac->model == 346 && ac->pdata.orientation_enable) {
+	if (ac->model == 346 && ac->pdata.orientation_enable)
+	{
 		AC_WRITE(ac, ORIENT_CONF,
-			ORIENT_DEADZONE(ac->pdata.deadzone_angle) |
-			ORIENT_DIVISOR(ac->pdata.divisor_length));
+				 ORIENT_DEADZONE(ac->pdata.deadzone_angle) |
+				 ORIENT_DIVISOR(ac->pdata.divisor_length));
 
 		ac->orient2d_saved = 1234;
 		ac->orient3d_saved = 1234;
@@ -868,13 +978,15 @@ struct adxl34x *adxl34x_probe(struct device *dev, int irq,
 		if (pdata->orientation_enable & ADXL_EN_ORIENTATION_3D)
 			for (i = 0; i < ARRAY_SIZE(pdata->ev_codes_orient_3d); i++)
 				__set_bit(pdata->ev_codes_orient_3d[i],
-					  input_dev->keybit);
+						  input_dev->keybit);
 
 		if (pdata->orientation_enable & ADXL_EN_ORIENTATION_2D)
 			for (i = 0; i < ARRAY_SIZE(pdata->ev_codes_orient_2d); i++)
 				__set_bit(pdata->ev_codes_orient_2d[i],
-					  input_dev->keybit);
-	} else {
+						  input_dev->keybit);
+	}
+	else
+	{
 		ac->pdata.orientation_enable = 0;
 	}
 
@@ -884,14 +996,14 @@ struct adxl34x *adxl34x_probe(struct device *dev, int irq,
 
 	return ac;
 
- err_remove_attr:
+err_remove_attr:
 	sysfs_remove_group(&dev->kobj, &adxl34x_attr_group);
- err_free_irq:
+err_free_irq:
 	free_irq(ac->irq, ac);
- err_free_mem:
+err_free_mem:
 	input_free_device(input_dev);
 	kfree(ac);
- err_out:
+err_out:
 	return ERR_PTR(err);
 }
 EXPORT_SYMBOL_GPL(adxl34x_probe);

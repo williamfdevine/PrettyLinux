@@ -45,48 +45,68 @@ static void mantis_hifevm_work(struct work_struct *work)
 
 	gpif_stat = mmread(MANTIS_GPIF_STATUS);
 
-	if (gpif_stat & MANTIS_GPIF_DETSTAT) {
-		if (gpif_stat & MANTIS_CARD_PLUGIN) {
+	if (gpif_stat & MANTIS_GPIF_DETSTAT)
+	{
+		if (gpif_stat & MANTIS_CARD_PLUGIN)
+		{
 			dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): CAM Plugin", mantis->num);
 			mmwrite(0xdada0000, MANTIS_CARD_RESET);
 			mantis_event_cam_plugin(ca);
 			dvb_ca_en50221_camchange_irq(&ca->en50221,
-						     0,
-						     DVB_CA_EN50221_CAMCHANGE_INSERTED);
+										 0,
+										 DVB_CA_EN50221_CAMCHANGE_INSERTED);
 		}
-	} else {
-		if (gpif_stat & MANTIS_CARD_PLUGOUT) {
+	}
+	else
+	{
+		if (gpif_stat & MANTIS_CARD_PLUGOUT)
+		{
 			dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): CAM Unplug", mantis->num);
 			mmwrite(0xdada0000, MANTIS_CARD_RESET);
 			mantis_event_cam_unplug(ca);
 			dvb_ca_en50221_camchange_irq(&ca->en50221,
-						     0,
-						     DVB_CA_EN50221_CAMCHANGE_REMOVED);
+										 0,
+										 DVB_CA_EN50221_CAMCHANGE_REMOVED);
 		}
 	}
 
 	if (mantis->gpif_status & MANTIS_GPIF_EXTIRQ)
+	{
 		dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): Ext IRQ", mantis->num);
+	}
 
 	if (mantis->gpif_status & MANTIS_SBUF_WSTO)
+	{
 		dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): Smart Buffer Timeout", mantis->num);
+	}
 
 	if (mantis->gpif_status & MANTIS_GPIF_OTHERR)
+	{
 		dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): Alignment Error", mantis->num);
+	}
 
 	if (gpif_stat & MANTIS_SBUF_OVFLW)
+	{
 		dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): Smart Buffer Overflow", mantis->num);
+	}
 
 	if (gpif_stat & MANTIS_GPIF_BRRDY)
+	{
 		dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): Smart Buffer Read Ready", mantis->num);
+	}
 
 	if (gpif_stat & MANTIS_GPIF_INTSTAT)
+	{
 		dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): GPIF IRQ", mantis->num);
+	}
 
 	if (gpif_stat & MANTIS_SBUF_EMPTY)
+	{
 		dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): Smart Buffer Empty", mantis->num);
+	}
 
-	if (gpif_stat & MANTIS_SBUF_OPDONE) {
+	if (gpif_stat & MANTIS_SBUF_OPDONE)
+	{
 		dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): Smart Buffer operation complete", mantis->num);
 		ca->sbuf_status = MANTIS_SBUF_DATA_AVAIL;
 		ca->hif_event = MANTIS_SBUF_OPDONE;

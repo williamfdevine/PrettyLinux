@@ -15,21 +15,21 @@
  */
 
 #if defined(CONFIG_MACH_JAZZ)
-#include "i8042-jazzio.h"
+	#include "i8042-jazzio.h"
 #elif defined(CONFIG_SGI_HAS_I8042)
-#include "i8042-ip22io.h"
+	#include "i8042-ip22io.h"
 #elif defined(CONFIG_SNI_RM)
-#include "i8042-snirm.h"
+	#include "i8042-snirm.h"
 #elif defined(CONFIG_PPC)
-#include "i8042-ppcio.h"
+	#include "i8042-ppcio.h"
 #elif defined(CONFIG_SPARC)
-#include "i8042-sparcio.h"
+	#include "i8042-sparcio.h"
 #elif defined(CONFIG_X86) || defined(CONFIG_IA64)
-#include "i8042-x86ia64io.h"
+	#include "i8042-x86ia64io.h"
 #elif defined(CONFIG_UNICORE32)
-#include "i8042-unicore32io.h"
+	#include "i8042-unicore32io.h"
 #else
-#include "i8042-io.h"
+	#include "i8042-io.h"
 #endif
 
 /*
@@ -71,14 +71,14 @@ static unsigned long i8042_start_time;
 	do {									\
 		if (i8042_debug)						\
 			printk(KERN_DEBUG KBUILD_MODNAME ": [%d] " format,	\
-			       (int) (jiffies - i8042_start_time), ##arg);	\
+				   (int) (jiffies - i8042_start_time), ##arg);	\
 	} while (0)
 
 #define filter_dbg(filter, data, format, args...)		\
 	do {							\
 		if (!i8042_debug)				\
 			break;					\
-								\
+		\
 		if (!filter || i8042_unmask_kbd_data)		\
 			dbg("%02x " format, data, ##args);	\
 		else						\

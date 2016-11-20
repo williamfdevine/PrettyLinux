@@ -32,7 +32,8 @@
 #include "wm8711.h"
 
 /* codec private data */
-struct wm8711_priv {
+struct wm8711_priv
+{
 	struct regmap *regmap;
 	unsigned int sysclk;
 };
@@ -43,18 +44,21 @@ struct wm8711_priv {
  * using 2 wire for device control, so we cache them instead.
  * There is no point in caching the reset register
  */
-static const struct reg_default wm8711_reg_defaults[] = {
+static const struct reg_default wm8711_reg_defaults[] =
+{
 	{ 0, 0x0079 }, { 1, 0x0079 }, { 2, 0x000a }, { 3, 0x0008 },
 	{ 4, 0x009f }, { 5, 0x000a }, { 6, 0x0000 }, { 7, 0x0000 },
 };
 
 static bool wm8711_volatile(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case WM8711_RESET:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case WM8711_RESET:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
@@ -62,33 +66,37 @@ static bool wm8711_volatile(struct device *dev, unsigned int reg)
 
 static const DECLARE_TLV_DB_SCALE(out_tlv, -12100, 100, 1);
 
-static const struct snd_kcontrol_new wm8711_snd_controls[] = {
+static const struct snd_kcontrol_new wm8711_snd_controls[] =
+{
 
-SOC_DOUBLE_R_TLV("Master Playback Volume", WM8711_LOUT1V, WM8711_ROUT1V,
-		 0, 127, 0, out_tlv),
-SOC_DOUBLE_R("Master Playback ZC Switch", WM8711_LOUT1V, WM8711_ROUT1V,
+	SOC_DOUBLE_R_TLV("Master Playback Volume", WM8711_LOUT1V, WM8711_ROUT1V,
+	0, 127, 0, out_tlv),
+	SOC_DOUBLE_R("Master Playback ZC Switch", WM8711_LOUT1V, WM8711_ROUT1V,
 	7, 1, 0),
 
 };
 
 /* Output Mixer */
-static const struct snd_kcontrol_new wm8711_output_mixer_controls[] = {
-SOC_DAPM_SINGLE("Line Bypass Switch", WM8711_APANA, 3, 1, 0),
-SOC_DAPM_SINGLE("HiFi Playback Switch", WM8711_APANA, 4, 1, 0),
+static const struct snd_kcontrol_new wm8711_output_mixer_controls[] =
+{
+	SOC_DAPM_SINGLE("Line Bypass Switch", WM8711_APANA, 3, 1, 0),
+	SOC_DAPM_SINGLE("HiFi Playback Switch", WM8711_APANA, 4, 1, 0),
 };
 
-static const struct snd_soc_dapm_widget wm8711_dapm_widgets[] = {
-SND_SOC_DAPM_MIXER("Output Mixer", WM8711_PWR, 4, 1,
+static const struct snd_soc_dapm_widget wm8711_dapm_widgets[] =
+{
+	SND_SOC_DAPM_MIXER("Output Mixer", WM8711_PWR, 4, 1,
 	&wm8711_output_mixer_controls[0],
 	ARRAY_SIZE(wm8711_output_mixer_controls)),
-SND_SOC_DAPM_DAC("DAC", "HiFi Playback", WM8711_PWR, 3, 1),
-SND_SOC_DAPM_OUTPUT("LOUT"),
-SND_SOC_DAPM_OUTPUT("LHPOUT"),
-SND_SOC_DAPM_OUTPUT("ROUT"),
-SND_SOC_DAPM_OUTPUT("RHPOUT"),
+	SND_SOC_DAPM_DAC("DAC", "HiFi Playback", WM8711_PWR, 3, 1),
+	SND_SOC_DAPM_OUTPUT("LOUT"),
+	SND_SOC_DAPM_OUTPUT("LHPOUT"),
+	SND_SOC_DAPM_OUTPUT("ROUT"),
+	SND_SOC_DAPM_OUTPUT("RHPOUT"),
 };
 
-static const struct snd_soc_dapm_route wm8711_intercon[] = {
+static const struct snd_soc_dapm_route wm8711_intercon[] =
+{
 	/* output mixer */
 	{"Output Mixer", "Line Bypass Switch", "Line Input"},
 	{"Output Mixer", "HiFi Playback Switch", "DAC"},
@@ -100,17 +108,19 @@ static const struct snd_soc_dapm_route wm8711_intercon[] = {
 	{"LOUT", NULL, "Output Mixer"},
 };
 
-struct _coeff_div {
+struct _coeff_div
+{
 	u32 mclk;
 	u32 rate;
 	u16 fs;
-	u8 sr:4;
-	u8 bosr:1;
-	u8 usb:1;
+	u8 sr: 4;
+	u8 bosr: 1;
+	u8 usb: 1;
 };
 
 /* codec mclk clock divider coefficients */
-static const struct _coeff_div coeff_div[] = {
+static const struct _coeff_div coeff_div[] =
+{
 	/* 48k */
 	{12288000, 48000, 256, 0x0, 0x0, 0x0},
 	{18432000, 48000, 384, 0x0, 0x1, 0x0},
@@ -148,36 +158,43 @@ static inline int get_coeff(int mclk, int rate)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(coeff_div); i++) {
+	for (i = 0; i < ARRAY_SIZE(coeff_div); i++)
+	{
 		if (coeff_div[i].rate == rate && coeff_div[i].mclk == mclk)
+		{
 			return i;
+		}
 	}
+
 	return 0;
 }
 
 static int wm8711_hw_params(struct snd_pcm_substream *substream,
-	struct snd_pcm_hw_params *params,
-	struct snd_soc_dai *dai)
+							struct snd_pcm_hw_params *params,
+							struct snd_soc_dai *dai)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct wm8711_priv *wm8711 =  snd_soc_codec_get_drvdata(codec);
 	u16 iface = snd_soc_read(codec, WM8711_IFACE) & 0xfff3;
 	int i = get_coeff(wm8711->sysclk, params_rate(params));
 	u16 srate = (coeff_div[i].sr << 2) |
-		(coeff_div[i].bosr << 1) | coeff_div[i].usb;
+				(coeff_div[i].bosr << 1) | coeff_div[i].usb;
 
 	snd_soc_write(codec, WM8711_SRATE, srate);
 
 	/* bit size */
-	switch (params_width(params)) {
-	case 16:
-		break;
-	case 20:
-		iface |= 0x0004;
-		break;
-	case 24:
-		iface |= 0x0008;
-		break;
+	switch (params_width(params))
+	{
+		case 16:
+			break;
+
+		case 20:
+			iface |= 0x0004;
+			break;
+
+		case 24:
+			iface |= 0x0008;
+			break;
 	}
 
 	snd_soc_write(codec, WM8711_IFACE, iface);
@@ -185,7 +202,7 @@ static int wm8711_hw_params(struct snd_pcm_substream *substream,
 }
 
 static int wm8711_pcm_prepare(struct snd_pcm_substream *substream,
-			      struct snd_soc_dai *dai)
+							  struct snd_soc_dai *dai)
 {
 	struct snd_soc_codec *codec = dai->codec;
 
@@ -196,12 +213,13 @@ static int wm8711_pcm_prepare(struct snd_pcm_substream *substream,
 }
 
 static void wm8711_shutdown(struct snd_pcm_substream *substream,
-			    struct snd_soc_dai *dai)
+							struct snd_soc_dai *dai)
 {
 	struct snd_soc_codec *codec = dai->codec;
 
 	/* deactivate */
-	if (!snd_soc_codec_is_active(codec)) {
+	if (!snd_soc_codec_is_active(codec))
+	{
 		udelay(50);
 		snd_soc_write(codec, WM8711_ACTIVE, 0x0);
 	}
@@ -213,83 +231,103 @@ static int wm8711_mute(struct snd_soc_dai *dai, int mute)
 	u16 mute_reg = snd_soc_read(codec, WM8711_APDIGI) & 0xfff7;
 
 	if (mute)
+	{
 		snd_soc_write(codec, WM8711_APDIGI, mute_reg | 0x8);
+	}
 	else
+	{
 		snd_soc_write(codec, WM8711_APDIGI, mute_reg);
+	}
 
 	return 0;
 }
 
 static int wm8711_set_dai_sysclk(struct snd_soc_dai *codec_dai,
-		int clk_id, unsigned int freq, int dir)
+								 int clk_id, unsigned int freq, int dir)
 {
 	struct snd_soc_codec *codec = codec_dai->codec;
 	struct wm8711_priv *wm8711 =  snd_soc_codec_get_drvdata(codec);
 
-	switch (freq) {
-	case 11289600:
-	case 12000000:
-	case 12288000:
-	case 16934400:
-	case 18432000:
-		wm8711->sysclk = freq;
-		return 0;
+	switch (freq)
+	{
+		case 11289600:
+		case 12000000:
+		case 12288000:
+		case 16934400:
+		case 18432000:
+			wm8711->sysclk = freq;
+			return 0;
 	}
+
 	return -EINVAL;
 }
 
 static int wm8711_set_dai_fmt(struct snd_soc_dai *codec_dai,
-		unsigned int fmt)
+							  unsigned int fmt)
 {
 	struct snd_soc_codec *codec = codec_dai->codec;
 	u16 iface = snd_soc_read(codec, WM8711_IFACE) & 0x000c;
 
 	/* set master/slave audio interface */
-	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
-	case SND_SOC_DAIFMT_CBM_CFM:
-		iface |= 0x0040;
-		break;
-	case SND_SOC_DAIFMT_CBS_CFS:
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK)
+	{
+		case SND_SOC_DAIFMT_CBM_CFM:
+			iface |= 0x0040;
+			break;
+
+		case SND_SOC_DAIFMT_CBS_CFS:
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* interface format */
-	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-	case SND_SOC_DAIFMT_I2S:
-		iface |= 0x0002;
-		break;
-	case SND_SOC_DAIFMT_RIGHT_J:
-		break;
-	case SND_SOC_DAIFMT_LEFT_J:
-		iface |= 0x0001;
-		break;
-	case SND_SOC_DAIFMT_DSP_A:
-		iface |= 0x0003;
-		break;
-	case SND_SOC_DAIFMT_DSP_B:
-		iface |= 0x0013;
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK)
+	{
+		case SND_SOC_DAIFMT_I2S:
+			iface |= 0x0002;
+			break;
+
+		case SND_SOC_DAIFMT_RIGHT_J:
+			break;
+
+		case SND_SOC_DAIFMT_LEFT_J:
+			iface |= 0x0001;
+			break;
+
+		case SND_SOC_DAIFMT_DSP_A:
+			iface |= 0x0003;
+			break;
+
+		case SND_SOC_DAIFMT_DSP_B:
+			iface |= 0x0013;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* clock inversion */
-	switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
-	case SND_SOC_DAIFMT_NB_NF:
-		break;
-	case SND_SOC_DAIFMT_IB_IF:
-		iface |= 0x0090;
-		break;
-	case SND_SOC_DAIFMT_IB_NF:
-		iface |= 0x0080;
-		break;
-	case SND_SOC_DAIFMT_NB_IF:
-		iface |= 0x0010;
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_INV_MASK)
+	{
+		case SND_SOC_DAIFMT_NB_NF:
+			break;
+
+		case SND_SOC_DAIFMT_IB_IF:
+			iface |= 0x0090;
+			break;
+
+		case SND_SOC_DAIFMT_IB_NF:
+			iface |= 0x0080;
+			break;
+
+		case SND_SOC_DAIFMT_NB_IF:
+			iface |= 0x0010;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* set iface */
@@ -298,37 +336,45 @@ static int wm8711_set_dai_fmt(struct snd_soc_dai *codec_dai,
 }
 
 static int wm8711_set_bias_level(struct snd_soc_codec *codec,
-	enum snd_soc_bias_level level)
+								 enum snd_soc_bias_level level)
 {
 	struct wm8711_priv *wm8711 = snd_soc_codec_get_drvdata(codec);
 	u16 reg = snd_soc_read(codec, WM8711_PWR) & 0xff7f;
 
-	switch (level) {
-	case SND_SOC_BIAS_ON:
-		snd_soc_write(codec, WM8711_PWR, reg);
-		break;
-	case SND_SOC_BIAS_PREPARE:
-		break;
-	case SND_SOC_BIAS_STANDBY:
-		if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF)
-			regcache_sync(wm8711->regmap);
+	switch (level)
+	{
+		case SND_SOC_BIAS_ON:
+			snd_soc_write(codec, WM8711_PWR, reg);
+			break;
 
-		snd_soc_write(codec, WM8711_PWR, reg | 0x0040);
-		break;
-	case SND_SOC_BIAS_OFF:
-		snd_soc_write(codec, WM8711_ACTIVE, 0x0);
-		snd_soc_write(codec, WM8711_PWR, 0xffff);
-		break;
+		case SND_SOC_BIAS_PREPARE:
+			break;
+
+		case SND_SOC_BIAS_STANDBY:
+			if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF)
+			{
+				regcache_sync(wm8711->regmap);
+			}
+
+			snd_soc_write(codec, WM8711_PWR, reg | 0x0040);
+			break;
+
+		case SND_SOC_BIAS_OFF:
+			snd_soc_write(codec, WM8711_ACTIVE, 0x0);
+			snd_soc_write(codec, WM8711_PWR, 0xffff);
+			break;
 	}
+
 	return 0;
 }
 
 #define WM8711_RATES SNDRV_PCM_RATE_8000_96000
 
 #define WM8711_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S20_3LE |\
-	SNDRV_PCM_FMTBIT_S24_LE)
+						SNDRV_PCM_FMTBIT_S24_LE)
 
-static const struct snd_soc_dai_ops wm8711_ops = {
+static const struct snd_soc_dai_ops wm8711_ops =
+{
 	.prepare = wm8711_pcm_prepare,
 	.hw_params = wm8711_hw_params,
 	.shutdown = wm8711_shutdown,
@@ -337,7 +383,8 @@ static const struct snd_soc_dai_ops wm8711_ops = {
 	.set_fmt = wm8711_set_dai_fmt,
 };
 
-static struct snd_soc_dai_driver wm8711_dai = {
+static struct snd_soc_dai_driver wm8711_dai =
+{
 	.name = "wm8711-hifi",
 	.playback = {
 		.stream_name = "Playback",
@@ -354,7 +401,9 @@ static int wm8711_probe(struct snd_soc_codec *codec)
 	int ret;
 
 	ret = wm8711_reset(codec);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(codec->dev, "Failed to issue reset\n");
 		return ret;
 	}
@@ -367,7 +416,8 @@ static int wm8711_probe(struct snd_soc_codec *codec)
 
 }
 
-static const struct snd_soc_codec_driver soc_codec_dev_wm8711 = {
+static const struct snd_soc_codec_driver soc_codec_dev_wm8711 =
+{
 	.probe =	wm8711_probe,
 	.set_bias_level = wm8711_set_bias_level,
 	.suspend_bias_off = true,
@@ -382,13 +432,15 @@ static const struct snd_soc_codec_driver soc_codec_dev_wm8711 = {
 	},
 };
 
-static const struct of_device_id wm8711_of_match[] = {
+static const struct of_device_id wm8711_of_match[] =
+{
 	{ .compatible = "wlf,wm8711", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, wm8711_of_match);
 
-static const struct regmap_config wm8711_regmap = {
+static const struct regmap_config wm8711_regmap =
+{
 	.reg_bits = 7,
 	.val_bits = 9,
 	.max_register = WM8711_RESET,
@@ -407,18 +459,24 @@ static int wm8711_spi_probe(struct spi_device *spi)
 	int ret;
 
 	wm8711 = devm_kzalloc(&spi->dev, sizeof(struct wm8711_priv),
-			      GFP_KERNEL);
+						  GFP_KERNEL);
+
 	if (wm8711 == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	wm8711->regmap = devm_regmap_init_spi(spi, &wm8711_regmap);
+
 	if (IS_ERR(wm8711->regmap))
+	{
 		return PTR_ERR(wm8711->regmap);
+	}
 
 	spi_set_drvdata(spi, wm8711);
 
 	ret = snd_soc_register_codec(&spi->dev,
-			&soc_codec_dev_wm8711, &wm8711_dai, 1);
+								 &soc_codec_dev_wm8711, &wm8711_dai, 1);
 
 	return ret;
 }
@@ -430,7 +488,8 @@ static int wm8711_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static struct spi_driver wm8711_spi_driver = {
+static struct spi_driver wm8711_spi_driver =
+{
 	.driver = {
 		.name	= "wm8711",
 		.of_match_table = wm8711_of_match,
@@ -442,24 +501,30 @@ static struct spi_driver wm8711_spi_driver = {
 
 #if IS_ENABLED(CONFIG_I2C)
 static int wm8711_i2c_probe(struct i2c_client *client,
-			    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct wm8711_priv *wm8711;
 	int ret;
 
 	wm8711 = devm_kzalloc(&client->dev, sizeof(struct wm8711_priv),
-			      GFP_KERNEL);
+						  GFP_KERNEL);
+
 	if (wm8711 == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	wm8711->regmap = devm_regmap_init_i2c(client, &wm8711_regmap);
+
 	if (IS_ERR(wm8711->regmap))
+	{
 		return PTR_ERR(wm8711->regmap);
+	}
 
 	i2c_set_clientdata(client, wm8711);
 
 	ret =  snd_soc_register_codec(&client->dev,
-			&soc_codec_dev_wm8711, &wm8711_dai, 1);
+								  &soc_codec_dev_wm8711, &wm8711_dai, 1);
 
 	return ret;
 }
@@ -470,13 +535,15 @@ static int wm8711_i2c_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id wm8711_i2c_id[] = {
+static const struct i2c_device_id wm8711_i2c_id[] =
+{
 	{ "wm8711", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, wm8711_i2c_id);
 
-static struct i2c_driver wm8711_i2c_driver = {
+static struct i2c_driver wm8711_i2c_driver =
+{
 	.driver = {
 		.name = "wm8711",
 		.of_match_table = wm8711_of_match,
@@ -492,17 +559,23 @@ static int __init wm8711_modinit(void)
 	int ret;
 #if IS_ENABLED(CONFIG_I2C)
 	ret = i2c_add_driver(&wm8711_i2c_driver);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		printk(KERN_ERR "Failed to register WM8711 I2C driver: %d\n",
-		       ret);
+			   ret);
 	}
+
 #endif
 #if defined(CONFIG_SPI_MASTER)
 	ret = spi_register_driver(&wm8711_spi_driver);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		printk(KERN_ERR "Failed to register WM8711 SPI driver: %d\n",
-		       ret);
+			   ret);
 	}
+
 #endif
 	return 0;
 }

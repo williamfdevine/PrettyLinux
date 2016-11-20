@@ -43,15 +43,18 @@ static inline int ksft_exit_fail(void)
 #define NSEC_PER_SEC 1000000000LL
 
 #define shift_right(x, s) ({		\
-	__typeof__(x) __x = (x);	\
-	__typeof__(s) __s = (s);	\
-	__x < 0 ? -(-__x >> __s) : __x >> __s; \
-})
+		__typeof__(x) __x = (x);	\
+		__typeof__(s) __s = (s);	\
+		__x < 0 ? -(-__x >> __s) : __x >> __s; \
+	})
 
 long long llabs(long long val)
 {
 	if (val < 0)
+	{
 		val = -val;
+	}
+
 	return val;
 }
 
@@ -64,8 +67,8 @@ struct timespec nsec_to_ts(long long ns)
 {
 	struct timespec ts;
 
-	ts.tv_sec = ns/NSEC_PER_SEC;
-	ts.tv_nsec = ns%NSEC_PER_SEC;
+	ts.tv_sec = ns / NSEC_PER_SEC;
+	ts.tv_nsec = ns % NSEC_PER_SEC;
 	return ts;
 }
 
@@ -84,7 +87,8 @@ void get_monotonic_and_raw(struct timespec *mon, struct timespec *raw)
 	long long diff = 0, tmp;
 	int i;
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		long long newdiff;
 
 		clock_gettime(CLOCK_MONOTONIC, &start);
@@ -92,10 +96,12 @@ void get_monotonic_and_raw(struct timespec *mon, struct timespec *raw)
 		clock_gettime(CLOCK_MONOTONIC, &end);
 
 		newdiff = diff_timespec(start, end);
-		if (diff == 0 || newdiff < diff) {
+
+		if (diff == 0 || newdiff < diff)
+		{
 			diff = newdiff;
 			*raw = mid;
-			tmp = (ts_to_nsec(start) + ts_to_nsec(end))/2;
+			tmp = (ts_to_nsec(start) + ts_to_nsec(end)) / 2;
 			*mon = nsec_to_ts(tmp);
 		}
 	}
@@ -109,7 +115,8 @@ int main(int argv, char **argc)
 
 	setbuf(stdout, NULL);
 
-	if (clock_gettime(CLOCK_MONOTONIC_RAW, &raw)) {
+	if (clock_gettime(CLOCK_MONOTONIC_RAW, &raw))
+	{
 		printf("ERR: NO CLOCK_MONOTONIC_RAW\n");
 		return -1;
 	}
@@ -121,7 +128,9 @@ int main(int argv, char **argc)
 	delta1 = diff_timespec(mon, raw);
 
 	if (tx1.offset)
+	{
 		printf("WARNING: ADJ_OFFSET in progress, this will cause inaccurate results\n");
+	}
 
 	printf("Estimating clock drift: ");
 	sleep(120);
@@ -135,20 +144,22 @@ int main(int argv, char **argc)
 	interval = diff_timespec(start, end);
 
 	/* calculate measured ppm between MONOTONIC and MONOTONIC_RAW */
-	eppm = ((delta2-delta1)*NSEC_PER_SEC)/interval;
+	eppm = ((delta2 - delta1) * NSEC_PER_SEC) / interval;
 	eppm = -eppm;
-	printf("%lld.%i(est)", eppm/1000, abs((int)(eppm%1000)));
+	printf("%lld.%i(est)", eppm / 1000, abs((int)(eppm % 1000)));
 
 	/* Avg the two actual freq samples adjtimex gave us */
 	ppm = (tx1.freq + tx2.freq) * 1000 / 2;
 	ppm = (long long)tx1.freq * 1000;
 	ppm = shift_right(ppm, 16);
-	printf(" %lld.%i(act)", ppm/1000, abs((int)(ppm%1000)));
+	printf(" %lld.%i(act)", ppm / 1000, abs((int)(ppm % 1000)));
 
-	if (llabs(eppm - ppm) > 1000) {
+	if (llabs(eppm - ppm) > 1000)
+	{
 		printf("	[FAILED]\n");
 		return ksft_exit_fail();
 	}
+
 	printf("	[OK]\n");
 	return  ksft_exit_pass();
 }

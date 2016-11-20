@@ -53,7 +53,8 @@ struct clk;
  * particular @clk.  Future notifiers on that @clk are added to the
  * @notifier_head.
  */
-struct clk_notifier {
+struct clk_notifier
+{
 	struct clk			*clk;
 	struct srcu_notifier_head	notifier_head;
 	struct list_head		node;
@@ -70,7 +71,8 @@ struct clk_notifier {
  * post-notifier, old_rate and new_rate are both set to the clk's
  * current rate (this was done to optimize the implementation).
  */
-struct clk_notifier_data {
+struct clk_notifier_data
+{
 	struct clk		*clk;
 	unsigned long		old_rate;
 	unsigned long		new_rate;
@@ -141,13 +143,13 @@ bool clk_is_match(const struct clk *p, const struct clk *q);
 #else
 
 static inline int clk_notifier_register(struct clk *clk,
-					struct notifier_block *nb)
+										struct notifier_block *nb)
 {
 	return -ENOTSUPP;
 }
 
 static inline int clk_notifier_unregister(struct clk *clk,
-					  struct notifier_block *nb)
+		struct notifier_block *nb)
 {
 	return -ENOTSUPP;
 }
@@ -485,11 +487,18 @@ static inline int clk_prepare_enable(struct clk *clk)
 	int ret;
 
 	ret = clk_prepare(clk);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = clk_enable(clk);
+
 	if (ret)
+	{
 		clk_unprepare(clk);
+	}
 
 	return ret;
 }
@@ -514,7 +523,7 @@ static inline struct clk *of_clk_get(struct device_node *np, int index)
 	return ERR_PTR(-ENOENT);
 }
 static inline struct clk *of_clk_get_by_name(struct device_node *np,
-					     const char *name)
+		const char *name)
 {
 	return ERR_PTR(-ENOENT);
 }

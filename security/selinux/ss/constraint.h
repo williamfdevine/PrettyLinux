@@ -19,7 +19,8 @@
 
 #define CEXPR_MAXDEPTH 5
 
-struct constraint_expr {
+struct constraint_expr
+{
 #define CEXPR_NOT		1 /* not expr */
 #define CEXPR_AND		2 /* expr and expr */
 #define CEXPR_OR		3 /* expr or expr */
@@ -53,7 +54,8 @@ struct constraint_expr {
 	struct constraint_expr *next;   /* next expression */
 };
 
-struct constraint_node {
+struct constraint_node
+{
 	u32 permissions;	/* constrained permissions */
 	struct constraint_expr *expr;	/* constraint on permissions */
 	struct constraint_node *next;	/* next constraint */

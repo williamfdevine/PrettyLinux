@@ -48,13 +48,15 @@
 #define HSC_ARB_RR		0
 #define HSC_ARB_PRIO		1
 
-struct hsc_rx_config {
+struct hsc_rx_config
+{
 	__u32 mode;
 	__u32 flow;
 	__u32 channels;
 };
 
-struct hsc_tx_config {
+struct hsc_tx_config
+{
 	__u32 mode;
 	__u32 channels;
 	__u32 speed;

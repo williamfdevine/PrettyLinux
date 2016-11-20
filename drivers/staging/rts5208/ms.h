@@ -68,19 +68,19 @@
 
 #ifdef SUPPORT_MAGIC_GATE
 
-#define MG_GET_ID		0x40
-#define MG_SET_LID		0x41
-#define MG_GET_LEKB		0x42
-#define MG_SET_RD		0x43
-#define MG_MAKE_RMS		0x44
-#define MG_MAKE_KSE		0x45
-#define MG_SET_IBD		0x46
-#define MG_GET_IBD		0x47
+	#define MG_GET_ID		0x40
+	#define MG_SET_LID		0x41
+	#define MG_GET_LEKB		0x42
+	#define MG_SET_RD		0x43
+	#define MG_MAKE_RMS		0x44
+	#define MG_MAKE_KSE		0x45
+	#define MG_SET_IBD		0x46
+	#define MG_GET_IBD		0x47
 
 #endif
 
 #ifdef XC_POWERCLASS
-#define XC_CHG_POWER		0x16
+	#define XC_CHG_POWER		0x16
 #endif
 
 #define BLOCK_READ	0xAA
@@ -202,25 +202,25 @@ void mspro_polling_format_status(struct rtsx_chip *chip);
 void mspro_stop_seq_mode(struct rtsx_chip *chip);
 int reset_ms_card(struct rtsx_chip *chip);
 int ms_rw(struct scsi_cmnd *srb, struct rtsx_chip *chip,
-	u32 start_sector, u16 sector_cnt);
+		  u32 start_sector, u16 sector_cnt);
 int mspro_format(struct scsi_cmnd *srb, struct rtsx_chip *chip,
-		int short_data_len, bool quick_format);
+				 int short_data_len, bool quick_format);
 void ms_free_l2p_tbl(struct rtsx_chip *chip);
 void ms_cleanup_work(struct rtsx_chip *chip);
 int ms_power_off_card3v3(struct rtsx_chip *chip);
 int release_ms_card(struct rtsx_chip *chip);
 #ifdef MS_DELAY_WRITE
-int ms_delay_write(struct rtsx_chip *chip);
+	int ms_delay_write(struct rtsx_chip *chip);
 #endif
 
 #ifdef SUPPORT_MAGIC_GATE
-int mg_set_leaf_id(struct scsi_cmnd *srb, struct rtsx_chip *chip);
-int mg_get_local_EKB(struct scsi_cmnd *srb, struct rtsx_chip *chip);
-int mg_chg(struct scsi_cmnd *srb, struct rtsx_chip *chip);
-int mg_get_rsp_chg(struct scsi_cmnd *srb, struct rtsx_chip *chip);
-int mg_rsp(struct scsi_cmnd *srb, struct rtsx_chip *chip);
-int mg_get_ICV(struct scsi_cmnd *srb, struct rtsx_chip *chip);
-int mg_set_ICV(struct scsi_cmnd *srb, struct rtsx_chip *chip);
+	int mg_set_leaf_id(struct scsi_cmnd *srb, struct rtsx_chip *chip);
+	int mg_get_local_EKB(struct scsi_cmnd *srb, struct rtsx_chip *chip);
+	int mg_chg(struct scsi_cmnd *srb, struct rtsx_chip *chip);
+	int mg_get_rsp_chg(struct scsi_cmnd *srb, struct rtsx_chip *chip);
+	int mg_rsp(struct scsi_cmnd *srb, struct rtsx_chip *chip);
+	int mg_get_ICV(struct scsi_cmnd *srb, struct rtsx_chip *chip);
+	int mg_set_ICV(struct scsi_cmnd *srb, struct rtsx_chip *chip);
 #endif
 
 #endif  /* __REALTEK_RTSX_MS_H */

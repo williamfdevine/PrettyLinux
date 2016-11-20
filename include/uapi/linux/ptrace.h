@@ -55,7 +55,8 @@
 
 #define PTRACE_PEEKSIGINFO	0x4209
 
-struct ptrace_peeksiginfo_args {
+struct ptrace_peeksiginfo_args
+{
 	__u64 off;	/* from which siginfo to start */
 	__u32 flags;
 	__s32 nr;	/* how may siginfos to take */
@@ -95,7 +96,7 @@ struct ptrace_peeksiginfo_args {
 #define PTRACE_O_SUSPEND_SECCOMP	(1 << 21)
 
 #define PTRACE_O_MASK		(\
-	0x000000ff | PTRACE_O_EXITKILL | PTRACE_O_SUSPEND_SECCOMP)
+							 0x000000ff | PTRACE_O_EXITKILL | PTRACE_O_SUSPEND_SECCOMP)
 
 #include <asm/ptrace.h>
 

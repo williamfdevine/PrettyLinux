@@ -25,7 +25,8 @@
 #ifndef BSRU6_H
 #define BSRU6_H
 
-static u8 alps_bsru6_inittab[] = {
+static u8 alps_bsru6_inittab[] =
+{
 	0x01, 0x15,
 	0x02, 0x30,
 	0x03, 0x00,
@@ -72,22 +73,33 @@ static int alps_bsru6_set_symbol_rate(struct dvb_frontend *fe, u32 srate, u32 ra
 	u8 aclk = 0;
 	u8 bclk = 0;
 
-	if (srate < 1500000) {
+	if (srate < 1500000)
+	{
 		aclk = 0xb7;
 		bclk = 0x47;
-	} else if (srate < 3000000) {
+	}
+	else if (srate < 3000000)
+	{
 		aclk = 0xb7;
 		bclk = 0x4b;
-	} else if (srate < 7000000) {
+	}
+	else if (srate < 7000000)
+	{
 		aclk = 0xb7;
 		bclk = 0x4f;
-	} else if (srate < 14000000) {
+	}
+	else if (srate < 14000000)
+	{
 		aclk = 0xb7;
 		bclk = 0x53;
-	} else if (srate < 30000000) {
+	}
+	else if (srate < 30000000)
+	{
 		aclk = 0xb6;
 		bclk = 0x53;
-	} else if (srate < 45000000) {
+	}
+	else if (srate < 45000000)
+	{
 		aclk = 0xb4;
 		bclk = 0x51;
 	}
@@ -110,7 +122,9 @@ static int alps_bsru6_tuner_set_params(struct dvb_frontend *fe)
 	struct i2c_adapter *i2c = fe->tuner_priv;
 
 	if ((p->frequency < 950000) || (p->frequency > 2150000))
+	{
 		return -EINVAL;
+	}
 
 	div = (p->frequency + (125 - 1)) / 125;	/* round correctly */
 	buf[0] = (div >> 8) & 0x7f;
@@ -119,16 +133,25 @@ static int alps_bsru6_tuner_set_params(struct dvb_frontend *fe)
 	buf[3] = 0xC4;
 
 	if (p->frequency > 1530000)
+	{
 		buf[3] = 0xc0;
+	}
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
+
 	if (i2c_transfer(i2c, &msg, 1) != 1)
+	{
 		return -EIO;
+	}
+
 	return 0;
 }
 
-static struct stv0299_config alps_bsru6_config = {
+static struct stv0299_config alps_bsru6_config =
+{
 	.demod_address = 0x68,
 	.inittab = alps_bsru6_inittab,
 	.mclk = 88000000UL,

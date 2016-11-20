@@ -16,7 +16,8 @@
 
 #ifndef _BRCM_LED_H_
 #define _BRCM_LED_H_
-struct brcms_led {
+struct brcms_led
+{
 	char name[32];
 	unsigned gpio;
 	bool active_low;

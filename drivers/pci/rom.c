@@ -29,11 +29,15 @@ int pci_enable_rom(struct pci_dev *pdev)
 	u32 rom_addr;
 
 	if (!res->flags)
+	{
 		return -1;
+	}
 
 	/* Nothing to enable if we're using a shadow copy in RAM */
 	if (res->flags & IORESOURCE_ROM_SHADOW)
+	{
 		return 0;
+	}
 
 	pcibios_resource_to_bus(pdev->bus, &region, res);
 	pci_read_config_dword(pdev, pdev->rom_base_reg, &rom_addr);
@@ -57,7 +61,9 @@ void pci_disable_rom(struct pci_dev *pdev)
 	u32 rom_addr;
 
 	if (res->flags & IORESOURCE_ROM_SHADOW)
+	{
 		return;
+	}
 
 	pci_read_config_dword(pdev, pdev->rom_base_reg, &rom_addr);
 	rom_addr &= ~PCI_ROM_ADDRESS_ENABLE;
@@ -83,28 +89,40 @@ size_t pci_get_rom_size(struct pci_dev *pdev, void __iomem *rom, size_t size)
 	unsigned length;
 
 	image = rom;
-	do {
+
+	do
+	{
 		void __iomem *pds;
+
 		/* Standard PCI ROMs start out with these bytes 55 AA */
-		if (readw(image) != 0xAA55) {
+		if (readw(image) != 0xAA55)
+		{
 			dev_err(&pdev->dev, "Invalid PCI ROM header signature: expecting 0xaa55, got %#06x\n",
-				readw(image));
+					readw(image));
 			break;
 		}
+
 		/* get the PCI data structure and check its "PCIR" signature */
 		pds = image + readw(image + 24);
-		if (readl(pds) != 0x52494350) {
+
+		if (readl(pds) != 0x52494350)
+		{
 			dev_err(&pdev->dev, "Invalid PCI ROM data signature: expecting 0x52494350, got %#010x\n",
-				readl(pds));
+					readl(pds));
 			break;
 		}
+
 		last_image = readb(pds + 21) & 0x80;
 		length = readw(pds + 16);
 		image += length * 512;
+
 		/* Avoid iterating through memory outside the resource window */
 		if (image > rom + size)
+		{
 			break;
-	} while (length && !last_image);
+		}
+	}
+	while (length && !last_image);
 
 	/* never return a size larger than the PCI resource window */
 	/* there are known ROMs that get the size wrong */
@@ -130,22 +148,34 @@ void __iomem *pci_map_rom(struct pci_dev *pdev, size_t *size)
 
 	/* assign the ROM an address if it doesn't have one */
 	if (res->parent == NULL && pci_assign_resource(pdev, PCI_ROM_RESOURCE))
+	{
 		return NULL;
+	}
 
 	start = pci_resource_start(pdev, PCI_ROM_RESOURCE);
 	*size = pci_resource_len(pdev, PCI_ROM_RESOURCE);
+
 	if (*size == 0)
+	{
 		return NULL;
+	}
 
 	/* Enable ROM space decodes */
 	if (pci_enable_rom(pdev))
+	{
 		return NULL;
+	}
 
 	rom = ioremap(start, *size);
-	if (!rom) {
+
+	if (!rom)
+	{
 		/* restore enable if ioremap fails */
 		if (!(res->flags & IORESOURCE_ROM_ENABLE))
+		{
 			pci_disable_rom(pdev);
+		}
+
 		return NULL;
 	}
 
@@ -174,7 +204,9 @@ void pci_unmap_rom(struct pci_dev *pdev, void __iomem *rom)
 
 	/* Disable again before continuing */
 	if (!(res->flags & IORESOURCE_ROM_ENABLE))
+	{
 		pci_disable_rom(pdev);
+	}
 }
 EXPORT_SYMBOL(pci_unmap_rom);
 
@@ -186,7 +218,8 @@ EXPORT_SYMBOL(pci_unmap_rom);
  */
 void __iomem *pci_platform_rom(struct pci_dev *pdev, size_t *size)
 {
-	if (pdev->rom && pdev->romlen) {
+	if (pdev->rom && pdev->romlen)
+	{
 		*size = pdev->romlen;
 		return phys_to_virt((phys_addr_t)pdev->rom);
 	}

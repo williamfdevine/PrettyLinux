@@ -20,7 +20,7 @@ static void dest_ghid_setup(struct lowpan_nhc *nhc)
 }
 
 LOWPAN_NHC(ghc_ext_dest, "RFC7400 Destination Extension Header", NEXTHDR_DEST,
-	   0, dest_ghid_setup, LOWPAN_GHC_EXT_DEST_IDLEN, NULL, NULL);
+		   0, dest_ghid_setup, LOWPAN_GHC_EXT_DEST_IDLEN, NULL, NULL);
 
 module_lowpan_nhc(ghc_ext_dest);
 MODULE_DESCRIPTION("6LoWPAN generic header destination extension compression");

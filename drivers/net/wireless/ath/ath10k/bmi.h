@@ -52,13 +52,14 @@
 
 /* len = cmd + addr + length */
 #define BMI_MAX_CMDBUF_SIZE (BMI_MAX_DATA_SIZE + \
-			sizeof(u32) + \
-			sizeof(u32) + \
-			sizeof(u32))
+							 sizeof(u32) + \
+							 sizeof(u32) + \
+							 sizeof(u32))
 
 /* BMI Commands */
 
-enum bmi_cmd_id {
+enum bmi_cmd_id
+{
 	BMI_NO_COMMAND          = 0,
 	BMI_DONE                = 1,
 	BMI_READ_MEMORY         = 2,
@@ -92,89 +93,114 @@ enum bmi_cmd_id {
 
 #define ATH10K_BMI_BOARD_ID_STATUS_MASK 0xff
 
-struct bmi_cmd {
+struct bmi_cmd
+{
 	__le32 id; /* enum bmi_cmd_id */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 		} done;
-		struct {
+		struct
+		{
 			__le32 addr;
 			__le32 len;
 		} read_mem;
-		struct {
+		struct
+		{
 			__le32 addr;
 			__le32 len;
 			u8 payload[0];
 		} write_mem;
-		struct {
+		struct
+		{
 			__le32 addr;
 			__le32 param;
 		} execute;
-		struct {
+		struct
+		{
 			__le32 addr;
 		} set_app_start;
-		struct {
+		struct
+		{
 			__le32 addr;
 		} read_soc_reg;
-		struct {
+		struct
+		{
 			__le32 addr;
 			__le32 value;
 		} write_soc_reg;
-		struct {
+		struct
+		{
 		} get_target_info;
-		struct {
+		struct
+		{
 			__le32 rom_addr;
 			__le32 ram_addr; /* or value */
 			__le32 size;
 			__le32 activate; /* 0=install, but dont activate */
 		} rompatch_install;
-		struct {
+		struct
+		{
 			__le32 patch_id;
 		} rompatch_uninstall;
-		struct {
+		struct
+		{
 			__le32 count;
 			__le32 patch_ids[0]; /* length of @count */
 		} rompatch_activate;
-		struct {
+		struct
+		{
 			__le32 count;
 			__le32 patch_ids[0]; /* length of @count */
 		} rompatch_deactivate;
-		struct {
+		struct
+		{
 			__le32 addr;
 		} lz_start;
-		struct {
+		struct
+		{
 			__le32 len; /* max BMI_MAX_DATA_SIZE */
 			u8 payload[0]; /* length of @len */
 		} lz_data;
-		struct {
+		struct
+		{
 			u8 name[BMI_NVRAM_SEG_NAME_SZ];
 		} nvram_process;
 		u8 payload[BMI_MAX_CMDBUF_SIZE];
 	};
 } __packed;
 
-union bmi_resp {
-	struct {
+union bmi_resp
+{
+	struct
+	{
 		u8 payload[0];
 	} read_mem;
-	struct {
+	struct
+	{
 		__le32 result;
 	} execute;
-	struct {
+	struct
+	{
 		__le32 value;
 	} read_soc_reg;
-	struct {
+	struct
+	{
 		__le32 len;
 		__le32 version;
 		__le32 type;
 	} get_target_info;
-	struct {
+	struct
+	{
 		__le32 patch_id;
 	} rompatch_install;
-	struct {
+	struct
+	{
 		__le32 patch_id;
 	} rompatch_uninstall;
-	struct {
+	struct
+	{
 		/* 0 = nothing executed
 		 * otherwise = NVRAM segment return value */
 		__le32 result;
@@ -182,7 +208,8 @@ union bmi_resp {
 	u8 payload[BMI_MAX_CMDBUF_SIZE];
 } __packed;
 
-struct bmi_target_info {
+struct bmi_target_info
+{
 	u32 version;
 	u32 type;
 };
@@ -196,34 +223,34 @@ struct bmi_target_info {
 void ath10k_bmi_start(struct ath10k *ar);
 int ath10k_bmi_done(struct ath10k *ar);
 int ath10k_bmi_get_target_info(struct ath10k *ar,
-			       struct bmi_target_info *target_info);
+							   struct bmi_target_info *target_info);
 int ath10k_bmi_read_memory(struct ath10k *ar, u32 address,
-			   void *buffer, u32 length);
+						   void *buffer, u32 length);
 int ath10k_bmi_write_memory(struct ath10k *ar, u32 address,
-			    const void *buffer, u32 length);
+							const void *buffer, u32 length);
 
 #define ath10k_bmi_read32(ar, item, val)				\
 	({								\
 		int ret;						\
 		u32 addr;						\
 		__le32 tmp;						\
-									\
+		\
 		addr = host_interest_item_address(HI_ITEM(item));	\
 		ret = ath10k_bmi_read_memory(ar, addr, (u8 *)&tmp, 4); \
 		if (!ret)						\
 			*val = __le32_to_cpu(tmp);			\
 		ret;							\
-	 })
+	})
 
 #define ath10k_bmi_write32(ar, item, val)				\
 	({								\
 		int ret;						\
 		u32 address;						\
 		__le32 v = __cpu_to_le32(val);				\
-									\
+		\
 		address = host_interest_item_address(HI_ITEM(item));	\
 		ret = ath10k_bmi_write_memory(ar, address,		\
-					      (u8 *)&v, sizeof(v));	\
+									  (u8 *)&v, sizeof(v));	\
 		ret;							\
 	})
 
@@ -231,5 +258,5 @@ int ath10k_bmi_execute(struct ath10k *ar, u32 address, u32 param, u32 *result);
 int ath10k_bmi_lz_stream_start(struct ath10k *ar, u32 address);
 int ath10k_bmi_lz_data(struct ath10k *ar, const void *buffer, u32 length);
 int ath10k_bmi_fast_download(struct ath10k *ar, u32 address,
-			     const void *buffer, u32 length);
+							 const void *buffer, u32 length);
 #endif /* _BMI_H_ */

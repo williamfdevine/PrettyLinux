@@ -24,7 +24,8 @@
 #include "priv.h"
 
 static const struct nvkm_mc_map
-g84_mc_reset[] = {
+	g84_mc_reset[] =
+{
 	{ 0x04008000, NVKM_ENGINE_BSP },
 	{ 0x02004000, NVKM_ENGINE_CIPHER },
 	{ 0x01020000, NVKM_ENGINE_VP },
@@ -35,7 +36,8 @@ g84_mc_reset[] = {
 };
 
 const struct nvkm_mc_map
-g84_mc_intr[] = {
+	g84_mc_intr[] =
+{
 	{ 0x04000000, NVKM_ENGINE_DISP },
 	{ 0x00020000, NVKM_ENGINE_VP },
 	{ 0x00008000, NVKM_ENGINE_BSP },
@@ -52,7 +54,8 @@ g84_mc_intr[] = {
 };
 
 static const struct nvkm_mc_func
-g84_mc = {
+	g84_mc =
+{
 	.init = nv50_mc_init,
 	.intr = g84_mc_intr,
 	.intr_unarm = nv04_mc_intr_unarm,

@@ -40,9 +40,9 @@
 #define SNDRV_DEFAULT_ENABLE	{ 1, [1 ... (SNDRV_CARDS-1)] = 0 }
 #define SNDRV_DEFAULT_ENABLE_PNP { [0 ... (SNDRV_CARDS-1)] = 1 }
 #ifdef CONFIG_PNP
-#define SNDRV_DEFAULT_ENABLE_ISAPNP SNDRV_DEFAULT_ENABLE_PNP
+	#define SNDRV_DEFAULT_ENABLE_ISAPNP SNDRV_DEFAULT_ENABLE_PNP
 #else
-#define SNDRV_DEFAULT_ENABLE_ISAPNP SNDRV_DEFAULT_ENABLE
+	#define SNDRV_DEFAULT_ENABLE_ISAPNP SNDRV_DEFAULT_ENABLE
 #endif
 #define SNDRV_DEFAULT_PORT	{ [0 ... (SNDRV_CARDS-1)] = SNDRV_AUTO_PORT }
 #define SNDRV_DEFAULT_IRQ	{ [0 ... (SNDRV_CARDS-1)] = SNDRV_AUTO_IRQ }
@@ -53,13 +53,17 @@
 #ifdef SNDRV_LEGACY_FIND_FREE_IOPORT
 static long snd_legacy_find_free_ioport(long *port_table, long size)
 {
-	while (*port_table != -1) {
-		if (request_region(*port_table, size, "ALSA test")) {
+	while (*port_table != -1)
+	{
+		if (request_region(*port_table, size, "ALSA test"))
+		{
 			release_region(*port_table, size);
 			return *port_table;
 		}
+
 		port_table++;
 	}
+
 	return -1;
 }
 #endif
@@ -74,15 +78,19 @@ static irqreturn_t snd_legacy_empty_irq_handler(int irq, void *dev_id)
 
 static int snd_legacy_find_free_irq(int *irq_table)
 {
-	while (*irq_table != -1) {
+	while (*irq_table != -1)
+	{
 		if (!request_irq(*irq_table, snd_legacy_empty_irq_handler,
-				 IRQF_PROBE_SHARED, "ALSA Test IRQ",
-				 (void *) irq_table)) {
+						 IRQF_PROBE_SHARED, "ALSA Test IRQ",
+						 (void *) irq_table))
+		{
 			free_irq(*irq_table, (void *) irq_table);
 			return *irq_table;
 		}
+
 		irq_table++;
 	}
+
 	return -1;
 }
 #endif
@@ -90,13 +98,17 @@ static int snd_legacy_find_free_irq(int *irq_table)
 #ifdef SNDRV_LEGACY_FIND_FREE_DMA
 static int snd_legacy_find_free_dma(int *dma_table)
 {
-	while (*dma_table != -1) {
-		if (!request_dma(*dma_table, "ALSA Test DMA")) {
+	while (*dma_table != -1)
+	{
+		if (!request_dma(*dma_table, "ALSA Test DMA"))
+		{
 			free_dma(*dma_table);
 			return *dma_table;
 		}
+
 		dma_table++;
 	}
+
 	return -1;
 }
 #endif

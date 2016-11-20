@@ -35,12 +35,12 @@
 #define FW_8192D_POLLING_TIMEOUT_COUNT	1000
 
 #define IS_FW_HEADER_EXIST(_pfwhdr)	\
-		((GET_FIRMWARE_HDR_SIGNATURE(_pfwhdr) & 0xFFF0) == 0x92C0 || \
-		(GET_FIRMWARE_HDR_SIGNATURE(_pfwhdr) & 0xFFF0) == 0x88C0 ||  \
-		(GET_FIRMWARE_HDR_SIGNATURE(_pfwhdr) & 0xFFFF) == 0x92D0 ||  \
-		(GET_FIRMWARE_HDR_SIGNATURE(_pfwhdr) & 0xFFFF) == 0x92D1 ||  \
-		(GET_FIRMWARE_HDR_SIGNATURE(_pfwhdr) & 0xFFFF) == 0x92D2 ||  \
-		(GET_FIRMWARE_HDR_SIGNATURE(_pfwhdr) & 0xFFFF) == 0x92D3)
+	((GET_FIRMWARE_HDR_SIGNATURE(_pfwhdr) & 0xFFF0) == 0x92C0 || \
+	 (GET_FIRMWARE_HDR_SIGNATURE(_pfwhdr) & 0xFFF0) == 0x88C0 ||  \
+	 (GET_FIRMWARE_HDR_SIGNATURE(_pfwhdr) & 0xFFFF) == 0x92D0 ||  \
+	 (GET_FIRMWARE_HDR_SIGNATURE(_pfwhdr) & 0xFFFF) == 0x92D1 ||  \
+	 (GET_FIRMWARE_HDR_SIGNATURE(_pfwhdr) & 0xFFFF) == 0x92D2 ||  \
+	 (GET_FIRMWARE_HDR_SIGNATURE(_pfwhdr) & 0xFFFF) == 0x92D3)
 
 /* Define a macro that takes an le32 word, converts it to host ordering,
  * right shifts by a specified count, creates a mask of the specified
@@ -49,7 +49,7 @@
 
 #define SHIFT_AND_MASK_LE(__pdesc, __shift, __mask)		\
 	((le32_to_cpu(*(((__le32 *)(__pdesc)))) >> (__shift)) &	\
-	BIT_LEN_MASK_32(__mask))
+	 BIT_LEN_MASK_32(__mask))
 
 /* Firmware Header(8-byte alinment required) */
 /* --- LONG WORD 0 ---- */
@@ -112,7 +112,7 @@
 
 int rtl92d_download_fw(struct ieee80211_hw *hw);
 void rtl92d_fill_h2c_cmd(struct ieee80211_hw *hw, u8 element_id,
-			 u32 cmd_len, u8 *p_cmdbuffer);
+						 u32 cmd_len, u8 *p_cmdbuffer);
 void rtl92d_firmware_selfreset(struct ieee80211_hw *hw);
 void rtl92d_set_fw_rsvdpagepkt(struct ieee80211_hw *hw, bool b_dl_finished);
 void rtl92d_set_fw_joinbss_report_cmd(struct ieee80211_hw *hw, u8 mstatus);

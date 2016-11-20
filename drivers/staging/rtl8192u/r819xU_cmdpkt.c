@@ -36,8 +36,12 @@ rt_status SendTxCommandPacket(struct net_device *dev, void *pData, u32 DataLen)
 	/* Get TCB and local buffer from common pool.
 	   (It is shared by CmdQ, MgntQ, and USB coalesce DataQ) */
 	skb  = dev_alloc_skb(USB_HWDESC_HEADER_LEN + DataLen + 4);
+
 	if (!skb)
+	{
 		return RT_STATUS_FAILURE;
+	}
+
 	memcpy((unsigned char *)(skb->cb), &dev, sizeof(dev));
 	tcb_desc = (cb_desc *)(skb->cb + MAX_DEV_ADDR_SIZE);
 	tcb_desc->queue_index = TXCMD_QUEUE;
@@ -49,11 +53,14 @@ rt_status SendTxCommandPacket(struct net_device *dev, void *pData, u32 DataLen)
 	tcb_desc->txbuf_size = (u16)DataLen;
 
 	if (!priv->ieee80211->check_nic_enough_desc(dev, tcb_desc->queue_index) ||
-	    (!skb_queue_empty(&priv->ieee80211->skb_waitQ[tcb_desc->queue_index])) ||
-	    (priv->ieee80211->queue_stop)) {
+		(!skb_queue_empty(&priv->ieee80211->skb_waitQ[tcb_desc->queue_index])) ||
+		(priv->ieee80211->queue_stop))
+	{
 		RT_TRACE(COMP_FIRMWARE, "=== NULL packet ======> tx full!\n");
 		skb_queue_tail(&priv->ieee80211->skb_waitQ[tcb_desc->queue_index], skb);
-	} else {
+	}
+	else
+	{
 		priv->ieee80211->softmac_hard_start_xmit(skb, dev);
 	}
 
@@ -84,51 +91,73 @@ static void cmpk_count_txstatistic(struct net_device *dev, cmpk_txfb_t *pstx_fb)
 	RT_RF_POWER_STATE	rtState;
 
 	pAdapter->HalFunc.GetHwRegHandler(pAdapter, HW_VAR_RF_STATE,
-					  (pu1Byte)(&rtState));
+									  (pu1Byte)(&rtState));
 
 	/* When RF is off, we should not count the packet for hw/sw synchronize
 	   reason, ie. there may be a duration while sw switch is changed and
 	   hw switch is being changed. */
 	if (rtState == eRfOff)
+	{
 		return;
+	}
+
 #endif
 
 #ifdef TODO
+
 	if (pAdapter->bInHctTest)
+	{
 		return;
+	}
+
 #endif
+
 	/* We can not know the packet length and transmit type:
 	   broadcast or uni or multicast. So the relative statistics
 	   must be collected in tx feedback info. */
-	if (pstx_fb->tok) {
+	if (pstx_fb->tok)
+	{
 		priv->stats.txfeedbackok++;
 		priv->stats.txoktotal++;
 		priv->stats.txokbytestotal += pstx_fb->pkt_length;
 		priv->stats.txokinperiod++;
 
 		/* We can not make sure broadcast/multicast or unicast mode. */
-		if (pstx_fb->pkt_type == PACKET_MULTICAST) {
+		if (pstx_fb->pkt_type == PACKET_MULTICAST)
+		{
 			priv->stats.txmulticast++;
 			priv->stats.txbytesmulticast += pstx_fb->pkt_length;
-		} else if (pstx_fb->pkt_type == PACKET_BROADCAST) {
+		}
+		else if (pstx_fb->pkt_type == PACKET_BROADCAST)
+		{
 			priv->stats.txbroadcast++;
 			priv->stats.txbytesbroadcast += pstx_fb->pkt_length;
-		} else {
+		}
+		else
+		{
 			priv->stats.txunicast++;
 			priv->stats.txbytesunicast += pstx_fb->pkt_length;
 		}
-	} else {
+	}
+	else
+	{
 		priv->stats.txfeedbackfail++;
 		priv->stats.txerrtotal++;
 		priv->stats.txerrbytestotal += pstx_fb->pkt_length;
 
 		/* We can not make sure broadcast/multicast or unicast mode. */
 		if (pstx_fb->pkt_type == PACKET_MULTICAST)
+		{
 			priv->stats.txerrmulticast++;
+		}
 		else if (pstx_fb->pkt_type == PACKET_BROADCAST)
+		{
 			priv->stats.txerrbroadcast++;
+		}
 		else
+		{
 			priv->stats.txerrunicast++;
+		}
 	}
 
 	priv->stats.txretrycount += pstx_fb->retry_cnt;
@@ -185,19 +214,23 @@ static void cmdpkt_beacontimerinterrupt_819xusb(struct net_device *dev)
 {
 	struct r8192_priv *priv = ieee80211_priv(dev);
 	u16 tx_rate;
-		/* 87B have to S/W beacon for DTM encryption_cmn. */
-		if (priv->ieee80211->current_network.mode == IEEE_A ||
-			priv->ieee80211->current_network.mode == IEEE_N_5G ||
-			(priv->ieee80211->current_network.mode == IEEE_N_24G &&
-			 (!priv->ieee80211->pHTInfo->bCurSuppCCK))) {
-			tx_rate = 60;
-			DMESG("send beacon frame  tx rate is 6Mbpm\n");
-		} else {
-			tx_rate = 10;
-			DMESG("send beacon frame  tx rate is 1Mbpm\n");
-		}
 
-		rtl819xusb_beacon_tx(dev, tx_rate); /* HW Beacon */
+	/* 87B have to S/W beacon for DTM encryption_cmn. */
+	if (priv->ieee80211->current_network.mode == IEEE_A ||
+		priv->ieee80211->current_network.mode == IEEE_N_5G ||
+		(priv->ieee80211->current_network.mode == IEEE_N_24G &&
+		 (!priv->ieee80211->pHTInfo->bCurSuppCCK)))
+	{
+		tx_rate = 60;
+		DMESG("send beacon frame  tx rate is 6Mbpm\n");
+	}
+	else
+	{
+		tx_rate = 10;
+		DMESG("send beacon frame  tx rate is 1Mbpm\n");
+	}
+
+	rtl819xusb_beacon_tx(dev, tx_rate); /* HW Beacon */
 
 
 }
@@ -237,30 +270,38 @@ static void cmpk_handle_interrupt_status(struct net_device *dev, u8 *pmsg)
 	   windows OS. So we have to read the content byte by byte or transfer
 	   endian type before copy the message copy. */
 	rx_intr_status.length = pmsg[1];
-	if (rx_intr_status.length != (sizeof(cmpk_intr_sta_t) - 2)) {
+
+	if (rx_intr_status.length != (sizeof(cmpk_intr_sta_t) - 2))
+	{
 		DMESG("cmpk_Handle_Interrupt_Status: wrong length!\n");
 		return;
 	}
 
 
 	/* Statistics of beacon for ad-hoc mode. */
-	if (priv->ieee80211->iw_mode == IW_MODE_ADHOC) {
+	if (priv->ieee80211->iw_mode == IW_MODE_ADHOC)
+	{
 		/* 2 maybe need endian transform? */
 		rx_intr_status.interrupt_status = *((u32 *)(pmsg + 4));
 
 		DMESG("interrupt status = 0x%x\n",
-		      rx_intr_status.interrupt_status);
+			  rx_intr_status.interrupt_status);
 
-		if (rx_intr_status.interrupt_status & ISR_TxBcnOk) {
+		if (rx_intr_status.interrupt_status & ISR_TxBcnOk)
+		{
 			priv->ieee80211->bibsscoordinator = true;
 			priv->stats.txbeaconokint++;
-		} else if (rx_intr_status.interrupt_status & ISR_TxBcnErr) {
+		}
+		else if (rx_intr_status.interrupt_status & ISR_TxBcnErr)
+		{
 			priv->ieee80211->bibsscoordinator = false;
 			priv->stats.txbeaconerr++;
 		}
 
 		if (rx_intr_status.interrupt_status & ISR_BcnTimerIntr)
+		{
 			cmdpkt_beacontimerinterrupt_819xusb(dev);
+		}
 
 	}
 
@@ -306,9 +347,9 @@ static void cmpk_handle_query_config_rx(struct net_device *dev, u8 *pmsg)
 	rx_query_cfg.cfg_page		= (pmsg[6] & 0x0F) >> 0;
 	rx_query_cfg.cfg_offset		= pmsg[7];
 	rx_query_cfg.value		= (pmsg[8]  << 24) | (pmsg[9]  << 16) |
-					  (pmsg[10] <<  8) | (pmsg[11] <<  0);
+							  (pmsg[10] <<  8) | (pmsg[11] <<  0);
 	rx_query_cfg.mask		= (pmsg[12] << 24) | (pmsg[13] << 16) |
-					  (pmsg[14] <<  8) | (pmsg[15] <<  0);
+							  (pmsg[14] <<  8) | (pmsg[15] <<  0);
 
 }
 
@@ -331,7 +372,7 @@ static void cmpk_handle_query_config_rx(struct net_device *dev, u8 *pmsg)
  *
  *---------------------------------------------------------------------------*/
 static void cmpk_count_tx_status(struct net_device *dev,
-				 cmpk_tx_status_t *pstx_status)
+								 cmpk_tx_status_t *pstx_status)
 {
 	struct r8192_priv *priv = ieee80211_priv(dev);
 
@@ -340,13 +381,16 @@ static void cmpk_count_tx_status(struct net_device *dev,
 	RT_RF_POWER_STATE	rtstate;
 
 	pAdapter->HalFunc.GetHwRegHandler(pAdapter, HW_VAR_RF_STATE,
-					  (pu1Byte)(&rtState));
+									  (pu1Byte)(&rtState));
 
 	/* When RF is off, we should not count the packet for hw/sw synchronize
 	   reason, ie. there may be a duration while sw switch is changed and
 	   hw switch is being changed. */
 	if (rtState == eRfOff)
+	{
 		return;
+	}
+
 #endif
 
 	priv->stats.txfeedbackok	+= pstx_status->txok;
@@ -431,20 +475,24 @@ static void cmpk_handle_tx_rate_history(struct net_device *dev, u8 *pmsg)
 
 #ifdef ENABLE_PS
 	pAdapter->HalFunc.GetHwRegHandler(pAdapter, HW_VAR_RF_STATE,
-					  (pu1Byte)(&rtState));
+									  (pu1Byte)(&rtState));
 
 	/* When RF is off, we should not count the packet for hw/sw synchronize
 	   reason, ie. there may be a duration while sw switch is changed and
 	   hw switch is being changed. */
 	if (rtState == eRfOff)
+	{
 		return;
+	}
+
 #endif
 
 	ptemp = (u32 *)pmsg;
 
 	/* Do endian transfer to word alignment(16 bits) for windows system.
 	   You must do different endian transfer for linux and MAC OS */
-	for (i = 0; i < (length/4); i++) {
+	for (i = 0; i < (length / 4); i++)
+	{
 		u16	 temp1, temp2;
 
 		temp1 = ptemp[i] & 0x0000FFFF;
@@ -455,19 +503,28 @@ static void cmpk_handle_tx_rate_history(struct net_device *dev, u8 *pmsg)
 	ptxrate = (cmpk_tx_rahis_t *)pmsg;
 
 	if (ptxrate == NULL)
+	{
 		return;
+	}
 
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 16; i++)
+	{
 		/* Collect CCK rate packet num */
 		if (i < 4)
+		{
 			priv->stats.txrate.cck[i] += ptxrate->cck[i];
+		}
 
 		/* Collect OFDM rate packet num */
 		if (i < 8)
+		{
 			priv->stats.txrate.ofdm[i] += ptxrate->ofdm[i];
+		}
 
 		for (j = 0; j < 4; j++)
+		{
 			priv->stats.txrate.ht_mcs[j][i] += ptxrate->ht_mcs[j][i];
+		}
 	}
 
 }
@@ -494,7 +551,7 @@ static void cmpk_handle_tx_rate_history(struct net_device *dev, u8 *pmsg)
  *
  *---------------------------------------------------------------------------*/
 u32 cmpk_message_handle_rx(struct net_device *dev,
-			   struct ieee80211_rx_stats *pstats)
+						   struct ieee80211_rx_stats *pstats)
 {
 	int			total_length;
 	u8			cmd_length, exe_cnt = 0;
@@ -504,7 +561,9 @@ u32 cmpk_message_handle_rx(struct net_device *dev,
 	/* 0. Check inpt arguments. If is is a command queue message or
 	   pointer is null. */
 	if (pstats == NULL)
-		return 0;	/* This is not a command packet. */
+	{
+		return 0;    /* This is not a command packet. */
+	}
 
 	/* 1. Read received command packet message length from RFD. */
 	total_length = pstats->Length;
@@ -520,52 +579,55 @@ u32 cmpk_message_handle_rx(struct net_device *dev,
 	      minimize transmit time between DRV and FW.*/
 	/* Add a counter to prevent the lock in the loop from being held too
 	   long */
-	while (total_length > 0 && exe_cnt++ < 100) {
+	while (total_length > 0 && exe_cnt++ < 100)
+	{
 		/* We support aggregation of different cmd in the same packet */
 		element_id = pcmd_buff[0];
 
-		switch (element_id) {
-		case RX_TX_FEEDBACK:
-			cmpk_handle_tx_feedback(dev, pcmd_buff);
-			cmd_length = CMPK_RX_TX_FB_SIZE;
-			break;
+		switch (element_id)
+		{
+			case RX_TX_FEEDBACK:
+				cmpk_handle_tx_feedback(dev, pcmd_buff);
+				cmd_length = CMPK_RX_TX_FB_SIZE;
+				break;
 
-		case RX_INTERRUPT_STATUS:
-			cmpk_handle_interrupt_status(dev, pcmd_buff);
-			cmd_length = sizeof(cmpk_intr_sta_t);
-			break;
+			case RX_INTERRUPT_STATUS:
+				cmpk_handle_interrupt_status(dev, pcmd_buff);
+				cmd_length = sizeof(cmpk_intr_sta_t);
+				break;
 
-		case BOTH_QUERY_CONFIG:
-			cmpk_handle_query_config_rx(dev, pcmd_buff);
-			cmd_length = CMPK_BOTH_QUERY_CONFIG_SIZE;
-			break;
+			case BOTH_QUERY_CONFIG:
+				cmpk_handle_query_config_rx(dev, pcmd_buff);
+				cmd_length = CMPK_BOTH_QUERY_CONFIG_SIZE;
+				break;
 
-		case RX_TX_STATUS:
-			cmpk_handle_tx_status(dev, pcmd_buff);
-			cmd_length = CMPK_RX_TX_STS_SIZE;
-			break;
+			case RX_TX_STATUS:
+				cmpk_handle_tx_status(dev, pcmd_buff);
+				cmd_length = CMPK_RX_TX_STS_SIZE;
+				break;
 
-		case RX_TX_PER_PKT_FEEDBACK:
-			/* You must at lease add a switch case element here,
-			   Otherwise, we will jump to default case. */
-			cmd_length = CMPK_RX_TX_FB_SIZE;
-			break;
+			case RX_TX_PER_PKT_FEEDBACK:
+				/* You must at lease add a switch case element here,
+				   Otherwise, we will jump to default case. */
+				cmd_length = CMPK_RX_TX_FB_SIZE;
+				break;
 
-		case RX_TX_RATE_HISTORY:
-			cmpk_handle_tx_rate_history(dev, pcmd_buff);
-			cmd_length = CMPK_TX_RAHIS_SIZE;
-			break;
+			case RX_TX_RATE_HISTORY:
+				cmpk_handle_tx_rate_history(dev, pcmd_buff);
+				cmd_length = CMPK_TX_RAHIS_SIZE;
+				break;
 
-		default:
+			default:
 
-			RT_TRACE(COMP_ERR, "---->%s():unknown CMD Element\n",
-				 __func__);
-			return 1;	/* This is a command packet. */
+				RT_TRACE(COMP_ERR, "---->%s():unknown CMD Element\n",
+						 __func__);
+				return 1;	/* This is a command packet. */
 		}
 
 		total_length -= cmd_length;
 		pcmd_buff    += cmd_length;
 	}
+
 	return	1;	/* This is a command packet. */
 
 }

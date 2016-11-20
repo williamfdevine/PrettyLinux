@@ -86,7 +86,8 @@
 #define HIDP_WAITING_FOR_RETURN		10
 #define HIDP_WAITING_FOR_SEND_ACK	11
 
-struct hidp_connadd_req {
+struct hidp_connadd_req
+{
 	int   ctrl_sock;	/* Connected control socket */
 	int   intr_sock;	/* Connected interrupt socket */
 	__u16 parser;
@@ -102,12 +103,14 @@ struct hidp_connadd_req {
 	char  name[128];
 };
 
-struct hidp_conndel_req {
+struct hidp_conndel_req
+{
 	bdaddr_t bdaddr;
 	__u32    flags;
 };
 
-struct hidp_conninfo {
+struct hidp_conninfo
+{
 	bdaddr_t bdaddr;
 	__u32    flags;
 	__u16    state;
@@ -117,7 +120,8 @@ struct hidp_conninfo {
 	char     name[128];
 };
 
-struct hidp_connlist_req {
+struct hidp_connlist_req
+{
 	__u32  cnum;
 	struct hidp_conninfo __user *ci;
 };
@@ -127,14 +131,16 @@ int hidp_connection_del(struct hidp_conndel_req *req);
 int hidp_get_connlist(struct hidp_connlist_req *req);
 int hidp_get_conninfo(struct hidp_conninfo *ci);
 
-enum hidp_session_state {
+enum hidp_session_state
+{
 	HIDP_SESSION_IDLING,
 	HIDP_SESSION_PREPARING,
 	HIDP_SESSION_RUNNING,
 };
 
 /* HIDP session defines */
-struct hidp_session {
+struct hidp_session
+{
 	struct list_head list;
 	struct kref ref;
 

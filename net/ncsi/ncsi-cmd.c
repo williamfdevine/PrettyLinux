@@ -27,7 +27,9 @@ u32 ncsi_calculate_checksum(unsigned char *data, int len)
 	int i;
 
 	for (i = 0; i < len; i += 2)
+	{
 		checksum += (((u32)data[i] << 8) | data[i + 1]);
+	}
 
 	checksum = (~checksum + 1);
 	return checksum;
@@ -37,7 +39,7 @@ u32 ncsi_calculate_checksum(unsigned char *data, int len)
  * populated completely.
  */
 static void ncsi_cmd_build_header(struct ncsi_pkt_hdr *h,
-				  struct ncsi_cmd_arg *nca)
+								  struct ncsi_cmd_arg *nca)
 {
 	u32 checksum;
 	__be32 *pchecksum;
@@ -48,21 +50,21 @@ static void ncsi_cmd_build_header(struct ncsi_pkt_hdr *h,
 	h->id           = nca->id;
 	h->type         = nca->type;
 	h->channel      = NCSI_TO_CHANNEL(nca->package,
-					  nca->channel);
+									  nca->channel);
 	h->length       = htons(nca->payload);
 	h->reserved1[0] = 0;
 	h->reserved1[1] = 0;
 
 	/* Fill with calculated checksum */
 	checksum = ncsi_calculate_checksum((unsigned char *)h,
-					   sizeof(*h) + nca->payload);
+									   sizeof(*h) + nca->payload);
 	pchecksum = (__be32 *)((void *)h + sizeof(struct ncsi_pkt_hdr) +
-		    nca->payload);
+						   nca->payload);
 	*pchecksum = htonl(checksum);
 }
 
 static int ncsi_cmd_handler_default(struct sk_buff *skb,
-				    struct ncsi_cmd_arg *nca)
+									struct ncsi_cmd_arg *nca)
 {
 	struct ncsi_cmd_pkt *cmd;
 
@@ -74,7 +76,7 @@ static int ncsi_cmd_handler_default(struct sk_buff *skb,
 }
 
 static int ncsi_cmd_handler_sp(struct sk_buff *skb,
-			       struct ncsi_cmd_arg *nca)
+							   struct ncsi_cmd_arg *nca)
 {
 	struct ncsi_cmd_sp_pkt *cmd;
 
@@ -87,7 +89,7 @@ static int ncsi_cmd_handler_sp(struct sk_buff *skb,
 }
 
 static int ncsi_cmd_handler_dc(struct sk_buff *skb,
-			       struct ncsi_cmd_arg *nca)
+							   struct ncsi_cmd_arg *nca)
 {
 	struct ncsi_cmd_dc_pkt *cmd;
 
@@ -100,7 +102,7 @@ static int ncsi_cmd_handler_dc(struct sk_buff *skb,
 }
 
 static int ncsi_cmd_handler_rc(struct sk_buff *skb,
-			       struct ncsi_cmd_arg *nca)
+							   struct ncsi_cmd_arg *nca)
 {
 	struct ncsi_cmd_rc_pkt *cmd;
 
@@ -112,7 +114,7 @@ static int ncsi_cmd_handler_rc(struct sk_buff *skb,
 }
 
 static int ncsi_cmd_handler_ae(struct sk_buff *skb,
-			       struct ncsi_cmd_arg *nca)
+							   struct ncsi_cmd_arg *nca)
 {
 	struct ncsi_cmd_ae_pkt *cmd;
 
@@ -126,7 +128,7 @@ static int ncsi_cmd_handler_ae(struct sk_buff *skb,
 }
 
 static int ncsi_cmd_handler_sl(struct sk_buff *skb,
-			       struct ncsi_cmd_arg *nca)
+							   struct ncsi_cmd_arg *nca)
 {
 	struct ncsi_cmd_sl_pkt *cmd;
 
@@ -140,7 +142,7 @@ static int ncsi_cmd_handler_sl(struct sk_buff *skb,
 }
 
 static int ncsi_cmd_handler_svf(struct sk_buff *skb,
-				struct ncsi_cmd_arg *nca)
+								struct ncsi_cmd_arg *nca)
 {
 	struct ncsi_cmd_svf_pkt *cmd;
 
@@ -155,7 +157,7 @@ static int ncsi_cmd_handler_svf(struct sk_buff *skb,
 }
 
 static int ncsi_cmd_handler_ev(struct sk_buff *skb,
-			       struct ncsi_cmd_arg *nca)
+							   struct ncsi_cmd_arg *nca)
 {
 	struct ncsi_cmd_ev_pkt *cmd;
 
@@ -168,15 +170,19 @@ static int ncsi_cmd_handler_ev(struct sk_buff *skb,
 }
 
 static int ncsi_cmd_handler_sma(struct sk_buff *skb,
-				struct ncsi_cmd_arg *nca)
+								struct ncsi_cmd_arg *nca)
 {
 	struct ncsi_cmd_sma_pkt *cmd;
 	int i;
 
 	cmd = (struct ncsi_cmd_sma_pkt *)skb_put(skb, sizeof(*cmd));
 	memset(cmd, 0, sizeof(*cmd));
+
 	for (i = 0; i < 6; i++)
+	{
 		cmd->mac[i] = nca->bytes[i];
+	}
+
 	cmd->index = nca->bytes[6];
 	cmd->at_e = nca->bytes[7];
 	ncsi_cmd_build_header(&cmd->cmd.common, nca);
@@ -185,7 +191,7 @@ static int ncsi_cmd_handler_sma(struct sk_buff *skb,
 }
 
 static int ncsi_cmd_handler_ebf(struct sk_buff *skb,
-				struct ncsi_cmd_arg *nca)
+								struct ncsi_cmd_arg *nca)
 {
 	struct ncsi_cmd_ebf_pkt *cmd;
 
@@ -198,7 +204,7 @@ static int ncsi_cmd_handler_ebf(struct sk_buff *skb,
 }
 
 static int ncsi_cmd_handler_egmf(struct sk_buff *skb,
-				 struct ncsi_cmd_arg *nca)
+								 struct ncsi_cmd_arg *nca)
 {
 	struct ncsi_cmd_egmf_pkt *cmd;
 
@@ -211,7 +217,7 @@ static int ncsi_cmd_handler_egmf(struct sk_buff *skb,
 }
 
 static int ncsi_cmd_handler_snfc(struct sk_buff *skb,
-				 struct ncsi_cmd_arg *nca)
+								 struct ncsi_cmd_arg *nca)
 {
 	struct ncsi_cmd_snfc_pkt *cmd;
 
@@ -223,12 +229,14 @@ static int ncsi_cmd_handler_snfc(struct sk_buff *skb,
 	return 0;
 }
 
-static struct ncsi_cmd_handler {
+static struct ncsi_cmd_handler
+{
 	unsigned char type;
 	int           payload;
 	int           (*handler)(struct sk_buff *skb,
-				 struct ncsi_cmd_arg *nca);
-} ncsi_cmd_handlers[] = {
+							 struct ncsi_cmd_arg *nca);
+} ncsi_cmd_handlers[] =
+{
 	{ NCSI_PKT_CMD_CIS,    0, ncsi_cmd_handler_default },
 	{ NCSI_PKT_CMD_SP,     4, ncsi_cmd_handler_sp      },
 	{ NCSI_PKT_CMD_DP,     0, ncsi_cmd_handler_default },
@@ -273,22 +281,32 @@ static struct ncsi_request *ncsi_alloc_command(struct ncsi_cmd_arg *nca)
 	struct ncsi_request *nr;
 
 	nr = ncsi_alloc_request(ndp, nca->req_flags);
+
 	if (!nr)
+	{
 		return NULL;
+	}
 
 	/* NCSI command packet has 16-bytes header, payload, 4 bytes checksum.
 	 * The packet needs padding if its payload is less than 26 bytes to
 	 * meet 64 bytes minimal ethernet frame length.
 	 */
 	len += sizeof(struct ncsi_cmd_pkt_hdr) + 4;
+
 	if (nca->payload < 26)
+	{
 		len += 26;
+	}
 	else
+	{
 		len += nca->payload;
+	}
 
 	/* Allocate skb */
 	skb = alloc_skb(len, GFP_ATOMIC);
-	if (!skb) {
+
+	if (!skb)
+	{
 		ncsi_free_request(nr);
 		return NULL;
 	}
@@ -311,33 +329,45 @@ int ncsi_xmit_cmd(struct ncsi_cmd_arg *nca)
 	int i, ret;
 
 	/* Search for the handler */
-	for (i = 0; i < ARRAY_SIZE(ncsi_cmd_handlers); i++) {
-		if (ncsi_cmd_handlers[i].type == nca->type) {
+	for (i = 0; i < ARRAY_SIZE(ncsi_cmd_handlers); i++)
+	{
+		if (ncsi_cmd_handlers[i].type == nca->type)
+		{
 			if (ncsi_cmd_handlers[i].handler)
+			{
 				nch = &ncsi_cmd_handlers[i];
+			}
 			else
+			{
 				nch = NULL;
+			}
 
 			break;
 		}
 	}
 
-	if (!nch) {
+	if (!nch)
+	{
 		netdev_err(nca->ndp->ndev.dev,
-			   "Cannot send packet with type 0x%02x\n", nca->type);
+				   "Cannot send packet with type 0x%02x\n", nca->type);
 		return -ENOENT;
 	}
 
 	/* Get packet payload length and allocate the request */
 	nca->payload = nch->payload;
 	nr = ncsi_alloc_command(nca);
+
 	if (!nr)
+	{
 		return -ENOMEM;
+	}
 
 	/* Prepare the packet */
 	nca->id = nr->id;
 	ret = nch->handler(nr->cmd, nca);
-	if (ret) {
+
+	if (ret)
+	{
 		ncsi_free_request(nr);
 		return ret;
 	}
@@ -358,7 +388,9 @@ int ncsi_xmit_cmd(struct ncsi_cmd_arg *nca)
 	/* Send NCSI packet */
 	skb_get(nr->cmd);
 	ret = dev_queue_xmit(nr->cmd);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		ncsi_free_request(nr);
 		return ret;
 	}

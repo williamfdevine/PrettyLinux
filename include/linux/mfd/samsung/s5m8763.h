@@ -14,7 +14,8 @@
 #define __LINUX_MFD_S5M8763_H
 
 /* S5M8763 registers */
-enum s5m8763_reg {
+enum s5m8763_reg
+{
 	S5M8763_REG_IRQ1,
 	S5M8763_REG_IRQ2,
 	S5M8763_REG_IRQ3,
@@ -64,7 +65,8 @@ enum s5m8763_reg {
 };
 
 /* S5M8763 regulator ids */
-enum s5m8763_regulators {
+enum s5m8763_regulators
+{
 	S5M8763_LDO1,
 	S5M8763_LDO2,
 	S5M8763_LDO3,

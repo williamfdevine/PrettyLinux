@@ -70,7 +70,8 @@
  * @current_read_offset: Cached read offset for performance
  * @current_write_offset: Cached write offset for performance
  */
-struct scif_rb {
+struct scif_rb
+{
 	void *rb_base;
 	u32 *read_ptr;
 	u32 *write_ptr;
@@ -81,7 +82,7 @@ struct scif_rb {
 
 /* methods used by both */
 void scif_rb_init(struct scif_rb *rb, u32 *read_ptr, u32 *write_ptr,
-		  void *rb_base, u8 size);
+				  void *rb_base, u8 size);
 /* writer only methods */
 /* write a new command, then scif_rb_commit() */
 int scif_rb_write(struct scif_rb *rb, void *msg, u32 size);

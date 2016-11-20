@@ -2,7 +2,8 @@
 #define I18N_H
 /* Internationalization declarations */
 
-enum msg_index_t {
+enum msg_index_t
+{
 	MSG_FIRST_INDEX,
 	MSG_ANNOUNCEMENTS_START = MSG_FIRST_INDEX,
 	MSG_BLANK = MSG_ANNOUNCEMENTS_START,
@@ -51,11 +52,11 @@ enum msg_index_t {
 	MSG_END, /* A little confusing, given our convention. */
 	MSG_CTRL,
 
-/* A message containing the single word "or". */
+	/* A message containing the single word "or". */
 	MSG_DISJUNCTION,
 	MSG_ANNOUNCEMENTS_END = MSG_DISJUNCTION,
 
-/* Messages with format specifiers. */
+	/* Messages with format specifiers. */
 	MSG_FORMATTED_START,
 	MSG_POS_INFO = MSG_FORMATTED_START,
 	MSG_CHAR_INFO,
@@ -218,7 +219,8 @@ enum msg_index_t {
 	MSG_LAST_INDEX
 };
 
-struct msg_group_t {
+struct msg_group_t
+{
 	char *name;
 	enum msg_index_t start;
 	enum msg_index_t end;

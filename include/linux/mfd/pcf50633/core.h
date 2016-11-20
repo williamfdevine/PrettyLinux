@@ -25,7 +25,8 @@ struct regmap;
 
 #define PCF50633_NUM_REGULATORS	11
 
-struct pcf50633_platform_data {
+struct pcf50633_platform_data
+{
 	struct regulator_init_data reg_init_data[PCF50633_NUM_REGULATORS];
 
 	char **batteries;
@@ -49,13 +50,14 @@ struct pcf50633_platform_data {
 	struct pcf50633_bl_platform_data *backlight_data;
 };
 
-struct pcf50633_irq {
+struct pcf50633_irq
+{
 	void (*handler) (int, void *);
 	void *data;
 };
 
 int pcf50633_register_irq(struct pcf50633 *pcf, int irq,
-			void (*handler) (int, void *), void *data);
+						  void (*handler) (int, void *), void *data);
 int pcf50633_free_irq(struct pcf50633 *pcf, int irq);
 
 int pcf50633_irq_mask(struct pcf50633 *pcf, int irq);
@@ -63,9 +65,9 @@ int pcf50633_irq_unmask(struct pcf50633 *pcf, int irq);
 int pcf50633_irq_mask_get(struct pcf50633 *pcf, int irq);
 
 int pcf50633_read_block(struct pcf50633 *, u8 reg,
-					int nr_regs, u8 *data);
+						int nr_regs, u8 *data);
 int pcf50633_write_block(struct pcf50633 *pcf, u8 reg,
-					int nr_regs, u8 *data);
+						 int nr_regs, u8 *data);
 u8 pcf50633_reg_read(struct pcf50633 *, u8 reg);
 int pcf50633_reg_write(struct pcf50633 *pcf, u8 reg, u8 val);
 
@@ -86,7 +88,8 @@ int pcf50633_reg_clear_bits(struct pcf50633 *pcf, u8 reg, u8 bits);
 #define PCF50633_REG_INT4M	0x0a
 #define PCF50633_REG_INT5M	0x0b
 
-enum {
+enum
+{
 	/* Chip IRQs */
 	PCF50633_IRQ_ADPINS,
 	PCF50633_IRQ_ADPREM,
@@ -133,7 +136,8 @@ enum {
 	PCF50633_NUM_IRQ,
 };
 
-struct pcf50633 {
+struct pcf50633
+{
 	struct device *dev;
 	struct regmap *regmap;
 
@@ -160,7 +164,8 @@ struct pcf50633 {
 	struct platform_device *regulator_pdev[PCF50633_NUM_REGULATORS];
 };
 
-enum pcf50633_reg_int1 {
+enum pcf50633_reg_int1
+{
 	PCF50633_INT1_ADPINS	= 0x01,	/* Adapter inserted */
 	PCF50633_INT1_ADPREM	= 0x02,	/* Adapter removed */
 	PCF50633_INT1_USBINS	= 0x04,	/* USB inserted */
@@ -170,7 +175,8 @@ enum pcf50633_reg_int1 {
 	PCF50633_INT1_SECOND	= 0x80,	/* RTC periodic second interrupt */
 };
 
-enum pcf50633_reg_int2 {
+enum pcf50633_reg_int2
+{
 	PCF50633_INT2_ONKEYR	= 0x01, /* ONKEY rising edge */
 	PCF50633_INT2_ONKEYF	= 0x02, /* ONKEY falling edge */
 	PCF50633_INT2_EXTON1R	= 0x04, /* EXTON1 rising edge */
@@ -181,7 +187,8 @@ enum pcf50633_reg_int2 {
 	PCF50633_INT2_EXTON3F	= 0x80, /* EXTON3 falling edge */
 };
 
-enum pcf50633_reg_int3 {
+enum pcf50633_reg_int3
+{
 	PCF50633_INT3_BATFULL	= 0x01, /* Battery full */
 	PCF50633_INT3_CHGHALT	= 0x02,	/* Charger halt */
 	PCF50633_INT3_THLIMON	= 0x04,
@@ -192,7 +199,8 @@ enum pcf50633_reg_int3 {
 	PCF50633_INT3_ONKEY1S	= 0x80,	/* ONKEY pressed 1 second */
 };
 
-enum pcf50633_reg_int4 {
+enum pcf50633_reg_int4
+{
 	PCF50633_INT4_LOWSYS		= 0x01,
 	PCF50633_INT4_LOWBAT		= 0x02,
 	PCF50633_INT4_HIGHTMP		= 0x04,
@@ -203,7 +211,8 @@ enum pcf50633_reg_int4 {
 	PCF50633_INT4_LEDOVP		= 0x80,
 };
 
-enum pcf50633_reg_int5 {
+enum pcf50633_reg_int5
+{
 	PCF50633_INT5_LDO1PWRFAIL	= 0x01,
 	PCF50633_INT5_LDO2PWRFAIL	= 0x02,
 	PCF50633_INT5_LDO3PWRFAIL	= 0x04,
@@ -231,8 +240,8 @@ static inline struct pcf50633 *dev_to_pcf50633(struct device *dev)
 int pcf50633_irq_init(struct pcf50633 *pcf, int irq);
 void pcf50633_irq_free(struct pcf50633 *pcf);
 #ifdef CONFIG_PM
-int pcf50633_irq_suspend(struct pcf50633 *pcf);
-int pcf50633_irq_resume(struct pcf50633 *pcf);
+	int pcf50633_irq_suspend(struct pcf50633 *pcf);
+	int pcf50633_irq_resume(struct pcf50633 *pcf);
 #endif
 
 #endif

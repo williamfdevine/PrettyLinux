@@ -78,11 +78,12 @@
 
 #define IWL_PCI_DEVICE(dev, subdev, cfg) \
 	.vendor = PCI_VENDOR_ID_INTEL,  .device = (dev), \
-	.subvendor = PCI_ANY_ID, .subdevice = (subdev), \
-	.driver_data = (kernel_ulong_t)&(cfg)
+			  .subvendor = PCI_ANY_ID, .subdevice = (subdev), \
+						   .driver_data = (kernel_ulong_t)&(cfg)
 
 /* Hardware specific file defines the PCI IDs table for that hardware module */
-static const struct pci_device_id iwl_hw_card_ids[] = {
+static const struct pci_device_id iwl_hw_card_ids[] =
+{
 #if IS_ENABLED(CONFIG_IWLDVM)
 	{IWL_PCI_DEVICE(0x4232, 0x1201, iwl5100_agn_cfg)}, /* Mini Card */
 	{IWL_PCI_DEVICE(0x4232, 0x1301, iwl5100_agn_cfg)}, /* Half Mini Card */
@@ -109,7 +110,7 @@ static const struct pci_device_id iwl_hw_card_ids[] = {
 	{IWL_PCI_DEVICE(0x4237, 0x1216, iwl5100_abg_cfg)}, /* Mini Card */
 	{IWL_PCI_DEVICE(0x4237, 0x1316, iwl5100_abg_cfg)}, /* Half Mini Card */
 
-/* 5300 Series WiFi */
+	/* 5300 Series WiFi */
 	{IWL_PCI_DEVICE(0x4235, 0x1021, iwl5300_agn_cfg)}, /* Mini Card */
 	{IWL_PCI_DEVICE(0x4235, 0x1121, iwl5300_agn_cfg)}, /* Half Mini Card */
 	{IWL_PCI_DEVICE(0x4235, 0x1024, iwl5300_agn_cfg)}, /* Mini Card */
@@ -123,12 +124,12 @@ static const struct pci_device_id iwl_hw_card_ids[] = {
 	{IWL_PCI_DEVICE(0x4236, 0x1014, iwl5300_agn_cfg)}, /* Mini Card */
 	{IWL_PCI_DEVICE(0x4236, 0x1114, iwl5300_agn_cfg)}, /* Half Mini Card */
 
-/* 5350 Series WiFi/WiMax */
+	/* 5350 Series WiFi/WiMax */
 	{IWL_PCI_DEVICE(0x423A, 0x1001, iwl5350_agn_cfg)}, /* Mini Card */
 	{IWL_PCI_DEVICE(0x423A, 0x1021, iwl5350_agn_cfg)}, /* Mini Card */
 	{IWL_PCI_DEVICE(0x423B, 0x1011, iwl5350_agn_cfg)}, /* Mini Card */
 
-/* 5150 Series Wifi/WiMax */
+	/* 5150 Series Wifi/WiMax */
 	{IWL_PCI_DEVICE(0x423C, 0x1201, iwl5150_agn_cfg)}, /* Mini Card */
 	{IWL_PCI_DEVICE(0x423C, 0x1301, iwl5150_agn_cfg)}, /* Half Mini Card */
 	{IWL_PCI_DEVICE(0x423C, 0x1206, iwl5150_abg_cfg)}, /* Mini Card */
@@ -142,7 +143,7 @@ static const struct pci_device_id iwl_hw_card_ids[] = {
 	{IWL_PCI_DEVICE(0x423D, 0x1216, iwl5150_abg_cfg)}, /* Mini Card */
 	{IWL_PCI_DEVICE(0x423D, 0x1316, iwl5150_abg_cfg)}, /* Half Mini Card */
 
-/* 6x00 Series */
+	/* 6x00 Series */
 	{IWL_PCI_DEVICE(0x422B, 0x1101, iwl6000_3agn_cfg)},
 	{IWL_PCI_DEVICE(0x422B, 0x1108, iwl6000_3agn_cfg)},
 	{IWL_PCI_DEVICE(0x422B, 0x1121, iwl6000_3agn_cfg)},
@@ -157,7 +158,7 @@ static const struct pci_device_id iwl_hw_card_ids[] = {
 	{IWL_PCI_DEVICE(0x4239, 0x1311, iwl6000i_2agn_cfg)},
 	{IWL_PCI_DEVICE(0x4239, 0x1316, iwl6000i_2abg_cfg)},
 
-/* 6x05 Series */
+	/* 6x05 Series */
 	{IWL_PCI_DEVICE(0x0082, 0x1301, iwl6005_2agn_cfg)},
 	{IWL_PCI_DEVICE(0x0082, 0x1306, iwl6005_2abg_cfg)},
 	{IWL_PCI_DEVICE(0x0082, 0x1307, iwl6005_2bg_cfg)},
@@ -175,7 +176,7 @@ static const struct pci_device_id iwl_hw_card_ids[] = {
 	{IWL_PCI_DEVICE(0x0082, 0x1304, iwl6005_2agn_mow1_cfg)},/* low 5GHz active */
 	{IWL_PCI_DEVICE(0x0082, 0x1305, iwl6005_2agn_mow2_cfg)},/* high 5GHz active */
 
-/* 6x30 Series */
+	/* 6x30 Series */
 	{IWL_PCI_DEVICE(0x008A, 0x5305, iwl1030_bgn_cfg)},
 	{IWL_PCI_DEVICE(0x008A, 0x5307, iwl1030_bg_cfg)},
 	{IWL_PCI_DEVICE(0x008A, 0x5325, iwl1030_bgn_cfg)},
@@ -193,7 +194,7 @@ static const struct pci_device_id iwl_hw_card_ids[] = {
 	{IWL_PCI_DEVICE(0x0091, 0x5225, iwl6030_2bgn_cfg)},
 	{IWL_PCI_DEVICE(0x0091, 0x5226, iwl6030_2abg_cfg)},
 
-/* 6x50 WiFi/WiMax Series */
+	/* 6x50 WiFi/WiMax Series */
 	{IWL_PCI_DEVICE(0x0087, 0x1301, iwl6050_2agn_cfg)},
 	{IWL_PCI_DEVICE(0x0087, 0x1306, iwl6050_2abg_cfg)},
 	{IWL_PCI_DEVICE(0x0087, 0x1321, iwl6050_2agn_cfg)},
@@ -201,7 +202,7 @@ static const struct pci_device_id iwl_hw_card_ids[] = {
 	{IWL_PCI_DEVICE(0x0089, 0x1311, iwl6050_2agn_cfg)},
 	{IWL_PCI_DEVICE(0x0089, 0x1316, iwl6050_2abg_cfg)},
 
-/* 6150 WiFi/WiMax Series */
+	/* 6150 WiFi/WiMax Series */
 	{IWL_PCI_DEVICE(0x0885, 0x1305, iwl6150_bgn_cfg)},
 	{IWL_PCI_DEVICE(0x0885, 0x1307, iwl6150_bg_cfg)},
 	{IWL_PCI_DEVICE(0x0885, 0x1325, iwl6150_bgn_cfg)},
@@ -209,7 +210,7 @@ static const struct pci_device_id iwl_hw_card_ids[] = {
 	{IWL_PCI_DEVICE(0x0886, 0x1315, iwl6150_bgn_cfg)},
 	{IWL_PCI_DEVICE(0x0886, 0x1317, iwl6150_bg_cfg)},
 
-/* 1000 Series WiFi */
+	/* 1000 Series WiFi */
 	{IWL_PCI_DEVICE(0x0083, 0x1205, iwl1000_bgn_cfg)},
 	{IWL_PCI_DEVICE(0x0083, 0x1305, iwl1000_bgn_cfg)},
 	{IWL_PCI_DEVICE(0x0083, 0x1225, iwl1000_bgn_cfg)},
@@ -223,7 +224,7 @@ static const struct pci_device_id iwl_hw_card_ids[] = {
 	{IWL_PCI_DEVICE(0x0084, 0x1216, iwl1000_bg_cfg)},
 	{IWL_PCI_DEVICE(0x0084, 0x1316, iwl1000_bg_cfg)},
 
-/* 100 Series WiFi */
+	/* 100 Series WiFi */
 	{IWL_PCI_DEVICE(0x08AE, 0x1005, iwl100_bgn_cfg)},
 	{IWL_PCI_DEVICE(0x08AE, 0x1007, iwl100_bg_cfg)},
 	{IWL_PCI_DEVICE(0x08AF, 0x1015, iwl100_bgn_cfg)},
@@ -231,7 +232,7 @@ static const struct pci_device_id iwl_hw_card_ids[] = {
 	{IWL_PCI_DEVICE(0x08AE, 0x1025, iwl100_bgn_cfg)},
 	{IWL_PCI_DEVICE(0x08AE, 0x1027, iwl100_bg_cfg)},
 
-/* 130 Series WiFi */
+	/* 130 Series WiFi */
 	{IWL_PCI_DEVICE(0x0896, 0x5005, iwl130_bgn_cfg)},
 	{IWL_PCI_DEVICE(0x0896, 0x5007, iwl130_bg_cfg)},
 	{IWL_PCI_DEVICE(0x0897, 0x5015, iwl130_bgn_cfg)},
@@ -239,18 +240,18 @@ static const struct pci_device_id iwl_hw_card_ids[] = {
 	{IWL_PCI_DEVICE(0x0896, 0x5025, iwl130_bgn_cfg)},
 	{IWL_PCI_DEVICE(0x0896, 0x5027, iwl130_bg_cfg)},
 
-/* 2x00 Series */
+	/* 2x00 Series */
 	{IWL_PCI_DEVICE(0x0890, 0x4022, iwl2000_2bgn_cfg)},
 	{IWL_PCI_DEVICE(0x0891, 0x4222, iwl2000_2bgn_cfg)},
 	{IWL_PCI_DEVICE(0x0890, 0x4422, iwl2000_2bgn_cfg)},
 	{IWL_PCI_DEVICE(0x0890, 0x4822, iwl2000_2bgn_d_cfg)},
 
-/* 2x30 Series */
+	/* 2x30 Series */
 	{IWL_PCI_DEVICE(0x0887, 0x4062, iwl2030_2bgn_cfg)},
 	{IWL_PCI_DEVICE(0x0888, 0x4262, iwl2030_2bgn_cfg)},
 	{IWL_PCI_DEVICE(0x0887, 0x4462, iwl2030_2bgn_cfg)},
 
-/* 6x35 Series */
+	/* 6x35 Series */
 	{IWL_PCI_DEVICE(0x088E, 0x4060, iwl6035_2agn_cfg)},
 	{IWL_PCI_DEVICE(0x088E, 0x406A, iwl6035_2agn_sff_cfg)},
 	{IWL_PCI_DEVICE(0x088F, 0x4260, iwl6035_2agn_cfg)},
@@ -260,20 +261,20 @@ static const struct pci_device_id iwl_hw_card_ids[] = {
 	{IWL_PCI_DEVICE(0x088E, 0x4860, iwl6035_2agn_cfg)},
 	{IWL_PCI_DEVICE(0x088F, 0x5260, iwl6035_2agn_cfg)},
 
-/* 105 Series */
+	/* 105 Series */
 	{IWL_PCI_DEVICE(0x0894, 0x0022, iwl105_bgn_cfg)},
 	{IWL_PCI_DEVICE(0x0895, 0x0222, iwl105_bgn_cfg)},
 	{IWL_PCI_DEVICE(0x0894, 0x0422, iwl105_bgn_cfg)},
 	{IWL_PCI_DEVICE(0x0894, 0x0822, iwl105_bgn_d_cfg)},
 
-/* 135 Series */
+	/* 135 Series */
 	{IWL_PCI_DEVICE(0x0892, 0x0062, iwl135_bgn_cfg)},
 	{IWL_PCI_DEVICE(0x0893, 0x0262, iwl135_bgn_cfg)},
 	{IWL_PCI_DEVICE(0x0892, 0x0462, iwl135_bgn_cfg)},
 #endif /* CONFIG_IWLDVM */
 
 #if IS_ENABLED(CONFIG_IWLMVM)
-/* 7260 Series */
+	/* 7260 Series */
 	{IWL_PCI_DEVICE(0x08B1, 0x4070, iwl7260_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x08B1, 0x4072, iwl7260_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x08B1, 0x4170, iwl7260_2ac_cfg)},
@@ -341,7 +342,7 @@ static const struct pci_device_id iwl_hw_card_ids[] = {
 	{IWL_PCI_DEVICE(0x08B2, 0xC220, iwl7260_2n_cfg)},
 	{IWL_PCI_DEVICE(0x08B1, 0xC420, iwl7260_2n_cfg)},
 
-/* 3160 Series */
+	/* 3160 Series */
 	{IWL_PCI_DEVICE(0x08B3, 0x0070, iwl3160_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x08B3, 0x0072, iwl3160_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x08B3, 0x0170, iwl3160_2ac_cfg)},
@@ -367,7 +368,7 @@ static const struct pci_device_id iwl_hw_card_ids[] = {
 	{IWL_PCI_DEVICE(0x08B3, 0x1070, iwl3160_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x08B3, 0x1170, iwl3160_2ac_cfg)},
 
-/* 3165 Series */
+	/* 3165 Series */
 	{IWL_PCI_DEVICE(0x3165, 0x4010, iwl3165_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x3165, 0x4012, iwl3165_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x3166, 0x4212, iwl3165_2ac_cfg)},
@@ -379,14 +380,14 @@ static const struct pci_device_id iwl_hw_card_ids[] = {
 	{IWL_PCI_DEVICE(0x3165, 0x8010, iwl3165_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x3165, 0x8110, iwl3165_2ac_cfg)},
 
-/* 3168 Series */
+	/* 3168 Series */
 	{IWL_PCI_DEVICE(0x24FB, 0x2010, iwl3168_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x24FB, 0x2110, iwl3168_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x24FB, 0x2050, iwl3168_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x24FB, 0x2150, iwl3168_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x24FB, 0x0000, iwl3168_2ac_cfg)},
 
-/* 7265 Series */
+	/* 7265 Series */
 	{IWL_PCI_DEVICE(0x095A, 0x5010, iwl7265_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x095A, 0x5110, iwl7265_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x095A, 0x5100, iwl7265_2ac_cfg)},
@@ -430,7 +431,7 @@ static const struct pci_device_id iwl_hw_card_ids[] = {
 	{IWL_PCI_DEVICE(0x095A, 0x9000, iwl7265_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x095A, 0x9400, iwl7265_2ac_cfg)},
 
-/* 8000 Series */
+	/* 8000 Series */
 	{IWL_PCI_DEVICE(0x24F3, 0x0010, iwl8260_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x24F3, 0x1010, iwl8260_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x24F3, 0x10B0, iwl8260_2ac_cfg)},
@@ -503,7 +504,7 @@ static const struct pci_device_id iwl_hw_card_ids[] = {
 	{IWL_PCI_DEVICE(0x24FD, 0x0850, iwl8265_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x24FD, 0x0012, iwl8275_2ac_cfg)},
 
-/* 9000 Series */
+	/* 9000 Series */
 	{IWL_PCI_DEVICE(0x271B, 0x0010, iwl9160_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x2526, 0x0000, iwl9260_2ac_cfg)},
 	{IWL_PCI_DEVICE(0x2526, 0x0010, iwl9260_2ac_cfg)},
@@ -532,7 +533,7 @@ static const struct pci_device_id iwl_hw_card_ids[] = {
 	{IWL_PCI_DEVICE(0x2526, 0x1030, iwl9560_2ac_cfg)},
 	{IWL_PCI_DEVICE(0xA370, 0x1030, iwl9560_2ac_cfg)},
 
-/* a000 Series */
+	/* a000 Series */
 	{IWL_PCI_DEVICE(0x2720, 0x0A10, iwla000_2ac_cfg)},
 #endif /* CONFIG_IWLMVM */
 
@@ -554,16 +555,18 @@ static u64 splc_get_pwr_limit(struct iwl_trans *trans, union acpi_object *splc)
 	 * supported (currently only revision 0).
 	*/
 	if (splc->type != ACPI_TYPE_PACKAGE ||
-	    splc->package.count < 2 ||
-	    splc->package.elements[0].type != ACPI_TYPE_INTEGER ||
-	    splc->package.elements[0].integer.value != 0) {
+		splc->package.count < 2 ||
+		splc->package.elements[0].type != ACPI_TYPE_INTEGER ||
+		splc->package.elements[0].integer.value != 0)
+	{
 		IWL_DEBUG_INFO(trans,
-			       "Unsupported structure returned by the SPLC method.  Ignoring.\n");
+					   "Unsupported structure returned by the SPLC method.  Ignoring.\n");
 		return 0;
 	}
 
 	/* loop through all the packages to find the one for WiFi */
-	for (i = 1; i < splc->package.count; i++) {
+	for (i = 1; i < splc->package.count; i++)
+	{
 		union acpi_object *domain;
 
 		data_pkg = &splc->package.elements[i];
@@ -572,21 +575,27 @@ static u64 splc_get_pwr_limit(struct iwl_trans *trans, union acpi_object *splc)
 		 * amount of elements (i.e. at least 2 integers).
 		 */
 		if (data_pkg->type != ACPI_TYPE_PACKAGE ||
-		    data_pkg->package.count < 2 ||
-		    data_pkg->package.elements[0].type != ACPI_TYPE_INTEGER ||
-		    data_pkg->package.elements[1].type != ACPI_TYPE_INTEGER)
+			data_pkg->package.count < 2 ||
+			data_pkg->package.elements[0].type != ACPI_TYPE_INTEGER ||
+			data_pkg->package.elements[1].type != ACPI_TYPE_INTEGER)
+		{
 			continue;
+		}
 
 		domain = &data_pkg->package.elements[0];
+
 		if (domain->integer.value == ACPI_SPLC_DOMAIN_WIFI)
+		{
 			break;
+		}
 
 		data_pkg = NULL;
 	}
 
-	if (!data_pkg) {
+	if (!data_pkg)
+	{
 		IWL_DEBUG_INFO(trans,
-			       "No element for the WiFi domain returned by the SPLC method.\n");
+					   "No element for the WiFi domain returned by the SPLC method.\n");
 		return 0;
 	}
 
@@ -602,30 +611,36 @@ static void set_dflt_pwr_limit(struct iwl_trans *trans, struct pci_dev *pdev)
 	acpi_status status;
 
 	pxsx_handle = ACPI_HANDLE(&pdev->dev);
-	if (!pxsx_handle) {
+
+	if (!pxsx_handle)
+	{
 		IWL_DEBUG_INFO(trans,
-			       "Could not retrieve root port ACPI handle\n");
+					   "Could not retrieve root port ACPI handle\n");
 		return;
 	}
 
 	/* Get the method's handle */
 	status = acpi_get_handle(pxsx_handle, (acpi_string)ACPI_SPLC_METHOD,
-				 &handle);
-	if (ACPI_FAILURE(status)) {
+							 &handle);
+
+	if (ACPI_FAILURE(status))
+	{
 		IWL_DEBUG_INFO(trans, "SPLC method not found\n");
 		return;
 	}
 
 	/* Call SPLC with no arguments */
 	status = acpi_evaluate_object(handle, NULL, NULL, &splc);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		IWL_ERR(trans, "SPLC invocation failed (0x%x)\n", status);
 		return;
 	}
 
 	trans->dflt_pwr_limit = splc_get_pwr_limit(trans, splc.pointer);
 	IWL_DEBUG_INFO(trans, "Default power limit set to %lld\n",
-		       trans->dflt_pwr_limit);
+				   trans->dflt_pwr_limit);
 	kfree(splc.pointer);
 }
 
@@ -644,10 +659,14 @@ static int iwl_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	int ret;
 
 	iwl_trans = iwl_trans_pcie_alloc(pdev, ent, cfg);
+
 	if (IS_ERR(iwl_trans))
+	{
 		return PTR_ERR(iwl_trans);
+	}
 
 #if IS_ENABLED(CONFIG_IWLMVM)
+
 	/*
 	 * special-case 7265D, it has the same PCI IDs.
 	 *
@@ -656,30 +675,42 @@ static int iwl_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	 * changed, be identical to the ones in the 7265D configuration.
 	 */
 	if (cfg == &iwl7265_2ac_cfg)
+	{
 		cfg_7265d = &iwl7265d_2ac_cfg;
+	}
 	else if (cfg == &iwl7265_2n_cfg)
+	{
 		cfg_7265d = &iwl7265d_2n_cfg;
+	}
 	else if (cfg == &iwl7265_n_cfg)
+	{
 		cfg_7265d = &iwl7265d_n_cfg;
+	}
+
 	if (cfg_7265d &&
-	    (iwl_trans->hw_rev & CSR_HW_REV_TYPE_MSK) == CSR_HW_REV_TYPE_7265D) {
+		(iwl_trans->hw_rev & CSR_HW_REV_TYPE_MSK) == CSR_HW_REV_TYPE_7265D)
+	{
 		cfg = cfg_7265d;
 		iwl_trans->cfg = cfg_7265d;
 	}
 
-	if (iwl_trans->cfg->rf_id) {
+	if (iwl_trans->cfg->rf_id)
+	{
 		if (cfg == &iwl9460_2ac_cfg &&
-		    iwl_trans->hw_rf_id == CSR_HW_RF_ID_TYPE_LC) {
+			iwl_trans->hw_rf_id == CSR_HW_RF_ID_TYPE_LC)
+		{
 			cfg = &iwl9000lc_2ac_cfg;
 			iwl_trans->cfg = cfg;
 		}
 	}
+
 #endif
 
 	pci_set_drvdata(pdev, iwl_trans);
 	iwl_trans->drv = iwl_drv_start(iwl_trans, cfg);
 
-	if (IS_ERR(iwl_trans->drv)) {
+	if (IS_ERR(iwl_trans->drv))
+	{
 		ret = PTR_ERR(iwl_trans->drv);
 		goto out_free_trans;
 	}
@@ -688,18 +719,22 @@ static int iwl_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	/* register transport layer debugfs here */
 	ret = iwl_trans_pcie_dbgfs_register(iwl_trans);
+
 	if (ret)
+	{
 		goto out_free_drv;
+	}
 
 	/* if RTPM is in use, enable it in our device */
-	if (iwl_trans->runtime_pm_mode != IWL_PLAT_PM_MODE_DISABLED) {
+	if (iwl_trans->runtime_pm_mode != IWL_PLAT_PM_MODE_DISABLED)
+	{
 		/* We explicitly set the device to active here to
 		 * clear contingent errors.
 		 */
 		pm_runtime_set_active(&pdev->dev);
 
 		pm_runtime_set_autosuspend_delay(&pdev->dev,
-					 iwlwifi_mod_params.d0i3_entry_delay);
+										 iwlwifi_mod_params.d0i3_entry_delay);
 		pm_runtime_use_autosuspend(&pdev->dev);
 
 		/* We are not supposed to call pm_runtime_allow() by
@@ -730,7 +765,8 @@ static void iwl_pci_remove(struct pci_dev *pdev)
 	struct iwl_trans *trans = pci_get_drvdata(pdev);
 
 	/* if RTPM was in use, restore it to the state before probe */
-	if (trans->runtime_pm_mode != IWL_PLAT_PM_MODE_DISABLED) {
+	if (trans->runtime_pm_mode != IWL_PLAT_PM_MODE_DISABLED)
+	{
 		/* We should not call forbid here, but we do for now.
 		 * Check the comment to pm_runtime_allow() in
 		 * iwl_pci_probe().
@@ -774,7 +810,9 @@ static int iwl_pci_resume(struct device *device)
 	pci_write_config_byte(pdev, PCI_CFG_RETRY_TIMEOUT, 0x00);
 
 	if (!trans->op_mode)
+	{
 		return 0;
+	}
 
 	/*
 	 * Enable rfkill interrupt (in order to keep track of
@@ -797,24 +835,33 @@ int iwl_pci_fw_enter_d0i3(struct iwl_trans *trans)
 	int ret;
 
 	if (test_bit(STATUS_FW_ERROR, &trans->status))
+	{
 		return 0;
+	}
 
 	set_bit(STATUS_TRANS_GOING_IDLE, &trans->status);
 
 	/* config the fw */
 	ret = iwl_op_mode_enter_d0i3(trans->op_mode);
-	if (ret == 1) {
+
+	if (ret == 1)
+	{
 		IWL_DEBUG_RPM(trans, "aborting d0i3 entrance\n");
 		clear_bit(STATUS_TRANS_GOING_IDLE, &trans->status);
 		return -EBUSY;
 	}
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = wait_event_timeout(trans_pcie->d0i3_waitq,
-				 test_bit(STATUS_TRANS_IDLE, &trans->status),
-				 msecs_to_jiffies(IWL_TRANS_IDLE_TIMEOUT));
-	if (!ret) {
+							 test_bit(STATUS_TRANS_IDLE, &trans->status),
+							 msecs_to_jiffies(IWL_TRANS_IDLE_TIMEOUT));
+
+	if (!ret)
+	{
 		IWL_ERR(trans, "Timeout entering D0i3\n");
 		ret = -ETIMEDOUT;
 		goto err;
@@ -836,19 +883,26 @@ int iwl_pci_fw_exit_d0i3(struct iwl_trans *trans)
 
 	/* sometimes a D0i3 entry is not followed through */
 	if (!test_bit(STATUS_TRANS_IDLE, &trans->status))
+	{
 		return 0;
+	}
 
 	/* config the fw */
 	ret = iwl_op_mode_exit_d0i3(trans->op_mode);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	/* we clear STATUS_TRANS_IDLE only when D0I3_END command is completed */
 
 	ret = wait_event_timeout(trans_pcie->d0i3_waitq,
-				 !test_bit(STATUS_TRANS_IDLE, &trans->status),
-				 msecs_to_jiffies(IWL_TRANS_IDLE_TIMEOUT));
-	if (!ret) {
+							 !test_bit(STATUS_TRANS_IDLE, &trans->status),
+							 msecs_to_jiffies(IWL_TRANS_IDLE_TIMEOUT));
+
+	if (!ret)
+	{
 		IWL_ERR(trans, "Timeout exiting D0i3\n");
 		ret = -ETIMEDOUT;
 		goto err;
@@ -870,10 +924,14 @@ static int iwl_pci_runtime_suspend(struct device *device)
 
 	IWL_DEBUG_RPM(trans, "entering runtime suspend\n");
 
-	if (test_bit(STATUS_DEVICE_ENABLED, &trans->status)) {
+	if (test_bit(STATUS_DEVICE_ENABLED, &trans->status))
+	{
 		ret = iwl_pci_fw_enter_d0i3(trans);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	trans->system_pm_mode = IWL_PLAT_PM_MODE_D0I3;
@@ -894,7 +952,9 @@ static int iwl_pci_runtime_resume(struct device *device)
 	iwl_trans_d3_resume(trans, &d3_status, false, false);
 
 	if (test_bit(STATUS_DEVICE_ENABLED, &trans->status))
+	{
 		return iwl_pci_fw_exit_d0i3(trans);
+	}
 
 	return 0;
 }
@@ -939,13 +999,14 @@ static void iwl_pci_system_complete(struct device *device)
 }
 #endif /* CONFIG_IWLWIFI_PCIE_RTPM */
 
-static const struct dev_pm_ops iwl_dev_pm_ops = {
+static const struct dev_pm_ops iwl_dev_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(iwl_pci_suspend,
-				iwl_pci_resume)
+	iwl_pci_resume)
 #ifdef CONFIG_IWLWIFI_PCIE_RTPM
 	SET_RUNTIME_PM_OPS(iwl_pci_runtime_suspend,
-			   iwl_pci_runtime_resume,
-			   NULL)
+	iwl_pci_runtime_resume,
+	NULL)
 	.prepare = iwl_pci_system_prepare,
 	.complete = iwl_pci_system_complete,
 #endif /* CONFIG_IWLWIFI_PCIE_RTPM */
@@ -959,7 +1020,8 @@ static const struct dev_pm_ops iwl_dev_pm_ops = {
 
 #endif /* CONFIG_PM_SLEEP */
 
-static struct pci_driver iwl_pci_driver = {
+static struct pci_driver iwl_pci_driver =
+{
 	.name = DRV_NAME,
 	.id_table = iwl_hw_card_ids,
 	.probe = iwl_pci_probe,
@@ -971,8 +1033,11 @@ int __must_check iwl_pci_register_driver(void)
 {
 	int ret;
 	ret = pci_register_driver(&iwl_pci_driver);
+
 	if (ret)
+	{
 		pr_err("Unable to initialize PCI module\n");
+	}
 
 	return ret;
 }

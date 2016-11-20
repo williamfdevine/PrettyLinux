@@ -26,28 +26,28 @@
 #define PPC_MTOCRF(A, B)	mtocrf A, B
 
 FUNC_START(enter_vmx_usercopy)
-	li	r3,1
-	blr
+li	r3, 1
+blr
 
 FUNC_START(exit_vmx_usercopy)
-	li	r3,0
-	blr
+li	r3, 0
+blr
 
 FUNC_START(enter_vmx_copy)
-	li	r3,1
-	blr
+li	r3, 1
+blr
 
 FUNC_START(exit_vmx_copy)
-	blr
+blr
 
 FUNC_START(memcpy_power7)
-	blr
+blr
 
 FUNC_START(__copy_tofrom_user_power7)
-	blr
+blr
 
 FUNC_START(__copy_tofrom_user_base)
-	blr
+blr
 
 #define BEGIN_FTR_SECTION
 #define FTR_SECTION_ELSE

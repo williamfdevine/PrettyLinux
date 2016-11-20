@@ -27,7 +27,8 @@
  *			U = Unused.					*
  ************************************************************************/
 
-struct neo_uart_struct {
+struct neo_uart_struct
+{
 	u8 txrx;		/* WR  RHR/THR - Holding Reg */
 	u8 ier;		/* WR  IER - Interrupt Enable Reg */
 	u8 isr_fcr;		/* WR  ISR/FCR - Interrupt Status Reg/Fifo Control Reg */

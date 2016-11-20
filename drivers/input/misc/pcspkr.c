@@ -31,20 +31,27 @@ static int pcspkr_event(struct input_dev *dev, unsigned int type, unsigned int c
 	unsigned long flags;
 
 	if (type != EV_SND)
+	{
 		return -1;
+	}
 
-	switch (code) {
-		case SND_BELL: if (value) value = 1000;
+	switch (code)
+	{
+		case SND_BELL: if (value) { value = 1000; }
 		case SND_TONE: break;
+
 		default: return -1;
 	}
 
 	if (value > 20 && value < 32767)
+	{
 		count = PIT_TICK_RATE / value;
+	}
 
 	raw_spin_lock_irqsave(&i8253_lock, flags);
 
-	if (count) {
+	if (count)
+	{
 		/* set command for counter 2, 2 byte write */
 		outb_p(0xB6, 0x43);
 		/* select desired HZ */
@@ -52,7 +59,9 @@ static int pcspkr_event(struct input_dev *dev, unsigned int type, unsigned int c
 		outb((count >> 8) & 0xff, 0x42);
 		/* enable counter 2 */
 		outb_p(inb_p(0x61) | 3, 0x61);
-	} else {
+	}
+	else
+	{
 		/* disable counter 2 */
 		outb(inb_p(0x61) & 0xFC, 0x61);
 	}
@@ -68,8 +77,11 @@ static int pcspkr_probe(struct platform_device *dev)
 	int err;
 
 	pcspkr_dev = input_allocate_device();
+
 	if (!pcspkr_dev)
+	{
 		return -ENOMEM;
+	}
 
 	pcspkr_dev->name = "PC Speaker";
 	pcspkr_dev->phys = "isa0061/input0";
@@ -84,7 +96,9 @@ static int pcspkr_probe(struct platform_device *dev)
 	pcspkr_dev->event = pcspkr_event;
 
 	err = input_register_device(pcspkr_dev);
-	if (err) {
+
+	if (err)
+	{
 		input_free_device(pcspkr_dev);
 		return err;
 	}
@@ -118,11 +132,13 @@ static void pcspkr_shutdown(struct platform_device *dev)
 	pcspkr_event(NULL, EV_SND, SND_BELL, 0);
 }
 
-static const struct dev_pm_ops pcspkr_pm_ops = {
+static const struct dev_pm_ops pcspkr_pm_ops =
+{
 	.suspend = pcspkr_suspend,
 };
 
-static struct platform_driver pcspkr_platform_driver = {
+static struct platform_driver pcspkr_platform_driver =
+{
 	.driver		= {
 		.name	= "pcspkr",
 		.pm	= &pcspkr_pm_ops,

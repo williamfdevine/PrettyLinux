@@ -51,7 +51,8 @@
  */
 #define NULL_DESC_BUFFER_SIZE 1
 
-enum ioat_irq_mode {
+enum ioat_irq_mode
+{
 	IOAT_NOIRQ = 0,
 	IOAT_MSIX,
 	IOAT_MSI,
@@ -72,7 +73,8 @@ enum ioat_irq_mode {
  * @irq_mode: interrupt mode (INTX, MSI, MSIX)
  * @cap: read DMA capabilities register
  */
-struct ioatdma_device {
+struct ioatdma_device
+{
 	struct pci_dev *pdev;
 	void __iomem *reg_base;
 	struct dma_pool *completion_pool;
@@ -93,44 +95,46 @@ struct ioatdma_device {
 	u32 msixpba;
 };
 
-struct ioat_descs {
+struct ioat_descs
+{
 	void *virt;
 	dma_addr_t hw;
 };
 
-struct ioatdma_chan {
+struct ioatdma_chan
+{
 	struct dma_chan dma_chan;
 	void __iomem *reg_base;
 	dma_addr_t last_completion;
 	spinlock_t cleanup_lock;
 	unsigned long state;
-	#define IOAT_CHAN_DOWN 0
-	#define IOAT_COMPLETION_ACK 1
-	#define IOAT_RESET_PENDING 2
-	#define IOAT_KOBJ_INIT_FAIL 3
-	#define IOAT_RUN 5
-	#define IOAT_CHAN_ACTIVE 6
+#define IOAT_CHAN_DOWN 0
+#define IOAT_COMPLETION_ACK 1
+#define IOAT_RESET_PENDING 2
+#define IOAT_KOBJ_INIT_FAIL 3
+#define IOAT_RUN 5
+#define IOAT_CHAN_ACTIVE 6
 	struct timer_list timer;
-	#define COMPLETION_TIMEOUT msecs_to_jiffies(100)
-	#define IDLE_TIMEOUT msecs_to_jiffies(2000)
-	#define RESET_DELAY msecs_to_jiffies(100)
+#define COMPLETION_TIMEOUT msecs_to_jiffies(100)
+#define IDLE_TIMEOUT msecs_to_jiffies(2000)
+#define RESET_DELAY msecs_to_jiffies(100)
 	struct ioatdma_device *ioat_dma;
 	dma_addr_t completion_dma;
 	u64 *completion;
 	struct tasklet_struct cleanup_task;
 	struct kobject kobj;
 
-/* ioat v2 / v3 channel attributes
- * @xfercap_log; log2 of channel max transfer length (for fast division)
- * @head: allocated index
- * @issued: hardware notification point
- * @tail: cleanup index
- * @dmacount: identical to 'head' except for occasionally resetting to zero
- * @alloc_order: log2 of the number of allocated descriptors
- * @produce: number of descriptors to produce at submit time
- * @ring: software ring buffer implementation of hardware ring
- * @prep_lock: serializes descriptor preparation (producers)
- */
+	/* ioat v2 / v3 channel attributes
+	 * @xfercap_log; log2 of channel max transfer length (for fast division)
+	 * @head: allocated index
+	 * @issued: hardware notification point
+	 * @tail: cleanup index
+	 * @dmacount: identical to 'head' except for occasionally resetting to zero
+	 * @alloc_order: log2 of the number of allocated descriptors
+	 * @produce: number of descriptors to produce at submit time
+	 * @ring: software ring buffer implementation of hardware ring
+	 * @prep_lock: serializes descriptor preparation (producers)
+	 */
 	size_t xfercap_log;
 	u16 head;
 	u16 issued;
@@ -144,7 +148,8 @@ struct ioatdma_chan {
 	int desc_chunks;
 };
 
-struct ioat_sysfs_entry {
+struct ioat_sysfs_entry
+{
 	struct attribute attr;
 	ssize_t (*show)(struct dma_chan *, char *);
 };
@@ -156,7 +161,8 @@ struct ioat_sysfs_entry {
  * @parent: point to the dma descriptor that's the parent
  * @hw_pool: descriptor pool index
  */
-struct ioat_sed_ent {
+struct ioat_sed_ent
+{
 	struct ioat_sed_raw_descriptor *hw;
 	dma_addr_t dma;
 	struct ioat_ring_ent *parent;
@@ -179,8 +185,10 @@ struct ioat_sed_ent {
  * @sed: pointer to super extended descriptor sw desc
  */
 
-struct ioat_ring_ent {
-	union {
+struct ioat_ring_ent
+{
+	union
+	{
 		struct ioat_dma_descriptor *hw;
 		struct ioat_xor_descriptor *xor;
 		struct ioat_xor_ext_descriptor *xor_ex;
@@ -192,9 +200,9 @@ struct ioat_ring_ent {
 	size_t len;
 	struct dma_async_tx_descriptor txd;
 	enum sum_check_flags *result;
-	#ifdef DEBUG
+#ifdef DEBUG
 	int id;
-	#endif
+#endif
 	struct ioat_sed_ent *sed;
 };
 
@@ -215,24 +223,24 @@ static inline struct ioatdma_chan *to_ioat_chan(struct dma_chan *c)
 
 /* wrapper around hardware descriptor format + additional software fields */
 #ifdef DEBUG
-#define set_desc_id(desc, i) ((desc)->id = (i))
-#define desc_id(desc) ((desc)->id)
+	#define set_desc_id(desc, i) ((desc)->id = (i))
+	#define desc_id(desc) ((desc)->id)
 #else
-#define set_desc_id(desc, i)
-#define desc_id(desc) (0)
+	#define set_desc_id(desc, i)
+	#define desc_id(desc) (0)
 #endif
 
 static inline void
 __dump_desc_dbg(struct ioatdma_chan *ioat_chan, struct ioat_dma_descriptor *hw,
-		struct dma_async_tx_descriptor *tx, int id)
+				struct dma_async_tx_descriptor *tx, int id)
 {
 	struct device *dev = to_dev(ioat_chan);
 
 	dev_dbg(dev, "desc[%d]: (%#llx->%#llx) cookie: %d flags: %#x"
-		" ctl: %#10.8x (op: %#x int_en: %d compl: %d)\n", id,
-		(unsigned long long) tx->phys,
-		(unsigned long long) hw->next, tx->cookie, tx->flags,
-		hw->ctl, hw->ctl_f.op, hw->ctl_f.int_en, hw->ctl_f.compl_write);
+			" ctl: %#10.8x (op: %#x int_en: %d compl: %d)\n", id,
+			(unsigned long long) tx->phys,
+			(unsigned long long) hw->next, tx->cookie, tx->flags,
+			hw->ctl, hw->ctl_f.op, hw->ctl_f.int_en, hw->ctl_f.compl_write);
 }
 
 #define dump_desc_dbg(c, d) \
@@ -264,7 +272,7 @@ static inline void ioat_suspend(struct ioatdma_chan *ioat_chan)
 	u8 ver = ioat_chan->ioat_dma->version;
 
 	writeb(IOAT_CHANCMD_SUSPEND,
-	       ioat_chan->reg_base + IOAT_CHANCMD_OFFSET(ver));
+		   ioat_chan->reg_base + IOAT_CHANCMD_OFFSET(ver));
 }
 
 static inline void ioat_reset(struct ioatdma_chan *ioat_chan)
@@ -272,7 +280,7 @@ static inline void ioat_reset(struct ioatdma_chan *ioat_chan)
 	u8 ver = ioat_chan->ioat_dma->version;
 
 	writeb(IOAT_CHANCMD_RESET,
-	       ioat_chan->reg_base + IOAT_CHANCMD_OFFSET(ver));
+		   ioat_chan->reg_base + IOAT_CHANCMD_OFFSET(ver));
 }
 
 static inline bool ioat_reset_pending(struct ioatdma_chan *ioat_chan)
@@ -323,14 +331,14 @@ static inline u32 ioat_ring_size(struct ioatdma_chan *ioat_chan)
 static inline u16 ioat_ring_active(struct ioatdma_chan *ioat_chan)
 {
 	return CIRC_CNT(ioat_chan->head, ioat_chan->tail,
-			ioat_ring_size(ioat_chan));
+					ioat_ring_size(ioat_chan));
 }
 
 /* count of descriptors pending submission to hardware */
 static inline u16 ioat_ring_pending(struct ioatdma_chan *ioat_chan)
 {
 	return CIRC_CNT(ioat_chan->head, ioat_chan->issued,
-			ioat_ring_size(ioat_chan));
+					ioat_ring_size(ioat_chan));
 }
 
 static inline u32 ioat_ring_space(struct ioatdma_chan *ioat_chan)
@@ -357,39 +365,39 @@ static inline void
 ioat_set_chainaddr(struct ioatdma_chan *ioat_chan, u64 addr)
 {
 	writel(addr & 0x00000000FFFFFFFF,
-	       ioat_chan->reg_base + IOAT2_CHAINADDR_OFFSET_LOW);
+		   ioat_chan->reg_base + IOAT2_CHAINADDR_OFFSET_LOW);
 	writel(addr >> 32,
-	       ioat_chan->reg_base + IOAT2_CHAINADDR_OFFSET_HIGH);
+		   ioat_chan->reg_base + IOAT2_CHAINADDR_OFFSET_HIGH);
 }
 
 /* IOAT Prep functions */
 struct dma_async_tx_descriptor *
 ioat_dma_prep_memcpy_lock(struct dma_chan *c, dma_addr_t dma_dest,
-			   dma_addr_t dma_src, size_t len, unsigned long flags);
+						  dma_addr_t dma_src, size_t len, unsigned long flags);
 struct dma_async_tx_descriptor *
 ioat_prep_interrupt_lock(struct dma_chan *c, unsigned long flags);
 struct dma_async_tx_descriptor *
 ioat_prep_xor(struct dma_chan *chan, dma_addr_t dest, dma_addr_t *src,
-	       unsigned int src_cnt, size_t len, unsigned long flags);
+			  unsigned int src_cnt, size_t len, unsigned long flags);
 struct dma_async_tx_descriptor *
 ioat_prep_xor_val(struct dma_chan *chan, dma_addr_t *src,
-		    unsigned int src_cnt, size_t len,
-		    enum sum_check_flags *result, unsigned long flags);
+				  unsigned int src_cnt, size_t len,
+				  enum sum_check_flags *result, unsigned long flags);
 struct dma_async_tx_descriptor *
 ioat_prep_pq(struct dma_chan *chan, dma_addr_t *dst, dma_addr_t *src,
-	      unsigned int src_cnt, const unsigned char *scf, size_t len,
-	      unsigned long flags);
+			 unsigned int src_cnt, const unsigned char *scf, size_t len,
+			 unsigned long flags);
 struct dma_async_tx_descriptor *
 ioat_prep_pq_val(struct dma_chan *chan, dma_addr_t *pq, dma_addr_t *src,
-		  unsigned int src_cnt, const unsigned char *scf, size_t len,
-		  enum sum_check_flags *pqres, unsigned long flags);
+				 unsigned int src_cnt, const unsigned char *scf, size_t len,
+				 enum sum_check_flags *pqres, unsigned long flags);
 struct dma_async_tx_descriptor *
 ioat_prep_pqxor(struct dma_chan *chan, dma_addr_t dst, dma_addr_t *src,
-		 unsigned int src_cnt, size_t len, unsigned long flags);
+				unsigned int src_cnt, size_t len, unsigned long flags);
 struct dma_async_tx_descriptor *
 ioat_prep_pqxor_val(struct dma_chan *chan, dma_addr_t *src,
-		     unsigned int src_cnt, size_t len,
-		     enum sum_check_flags *result, unsigned long flags);
+					unsigned int src_cnt, size_t len,
+					enum sum_check_flags *result, unsigned long flags);
 
 /* IOAT Operation functions */
 irqreturn_t ioat_dma_do_interrupt(int irq, void *data);
@@ -401,7 +409,7 @@ void ioat_free_ring_ent(struct ioat_ring_ent *desc, struct dma_chan *chan);
 int ioat_reset_hw(struct ioatdma_chan *ioat_chan);
 enum dma_status
 ioat_tx_status(struct dma_chan *c, dma_cookie_t cookie,
-		struct dma_tx_state *txstate);
+			   struct dma_tx_state *txstate);
 void ioat_cleanup_event(unsigned long data);
 void ioat_timer_event(unsigned long data);
 int ioat_check_space_lock(struct ioatdma_chan *ioat_chan, int num_descs);

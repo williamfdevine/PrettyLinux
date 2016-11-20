@@ -29,7 +29,8 @@
  *		it will be updated to the size required for the operation.
  * @__ctx:	Start of private context data
  */
-struct kpp_request {
+struct kpp_request
+{
 	struct crypto_async_request base;
 	struct scatterlist *src;
 	struct scatterlist *dst;
@@ -44,7 +45,8 @@ struct kpp_request {
  *
  * @base:	Common crypto API algorithm data structure
  */
-struct crypto_kpp {
+struct crypto_kpp
+{
 	struct crypto_tfm base;
 };
 
@@ -73,9 +75,10 @@ struct crypto_kpp {
  *			implementation
  * @base		Common crypto API algorithm data structure
  */
-struct kpp_alg {
+struct kpp_alg
+{
 	int (*set_secret)(struct crypto_kpp *tfm, void *buffer,
-			  unsigned int len);
+					  unsigned int len);
 	int (*generate_public_key)(struct kpp_request *req);
 	int (*compute_shared_secret)(struct kpp_request *req);
 
@@ -135,7 +138,7 @@ static inline unsigned int crypto_kpp_reqsize(struct crypto_kpp *tfm)
 }
 
 static inline void kpp_request_set_tfm(struct kpp_request *req,
-				       struct crypto_kpp *tfm)
+									   struct crypto_kpp *tfm)
 {
 	req->base.tfm = crypto_kpp_tfm(tfm);
 }
@@ -164,13 +167,16 @@ static inline void crypto_free_kpp(struct crypto_kpp *tfm)
  * Return: allocated handle in case of success or NULL in case of an error.
  */
 static inline struct kpp_request *kpp_request_alloc(struct crypto_kpp *tfm,
-						    gfp_t gfp)
+		gfp_t gfp)
 {
 	struct kpp_request *req;
 
 	req = kmalloc(sizeof(*req) + crypto_kpp_reqsize(tfm), gfp);
+
 	if (likely(req))
+	{
 		kpp_request_set_tfm(req, tfm);
+	}
 
 	return req;
 }
@@ -197,9 +203,9 @@ static inline void kpp_request_free(struct kpp_request *req)
  * @data:	private data used by the caller
  */
 static inline void kpp_request_set_callback(struct kpp_request *req,
-					    u32 flgs,
-					    crypto_completion_t cmpl,
-					    void *data)
+		u32 flgs,
+		crypto_completion_t cmpl,
+		void *data)
 {
 	req->base.complete = cmpl;
 	req->base.data = data;
@@ -216,8 +222,8 @@ static inline void kpp_request_set_callback(struct kpp_request *req,
  * @input_len:	size of the input scatter list
  */
 static inline void kpp_request_set_input(struct kpp_request *req,
-					 struct scatterlist *input,
-					 unsigned int input_len)
+		struct scatterlist *input,
+		unsigned int input_len)
 {
 	req->src = input;
 	req->src_len = input_len;
@@ -233,14 +239,15 @@ static inline void kpp_request_set_input(struct kpp_request *req,
  * @output_len:	size of the output scatter list
  */
 static inline void kpp_request_set_output(struct kpp_request *req,
-					  struct scatterlist *output,
-					  unsigned int output_len)
+		struct scatterlist *output,
+		unsigned int output_len)
 {
 	req->dst = output;
 	req->dst_len = output_len;
 }
 
-enum {
+enum
+{
 	CRYPTO_KPP_SECRET_TYPE_UNKNOWN,
 	CRYPTO_KPP_SECRET_TYPE_DH,
 	CRYPTO_KPP_SECRET_TYPE_ECDH,
@@ -253,7 +260,8 @@ enum {
  * @len:	specify the len of the secret, include the header, that
  *		follows the struct
  */
-struct kpp_secret {
+struct kpp_secret
+{
 	unsigned short type;
 	unsigned short len;
 };
@@ -268,7 +276,7 @@ struct kpp_secret {
  * Return: zero on success; error code in case of error
  */
 static inline int crypto_kpp_set_secret(struct crypto_kpp *tfm, void *buffer,
-					unsigned int len)
+										unsigned int len)
 {
 	struct kpp_alg *alg = crypto_kpp_alg(tfm);
 

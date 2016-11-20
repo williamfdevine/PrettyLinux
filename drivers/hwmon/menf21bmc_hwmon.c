@@ -36,7 +36,8 @@
 #define IDX_TO_VOLT_MAX_CMD(idx) (0x50 + idx)
 #define IDX_TO_VOLT_INP_CMD(idx) (0x60 + idx)
 
-struct menf21bmc_hwmon {
+struct menf21bmc_hwmon
+{
 	bool valid;
 	struct i2c_client *i2c_client;
 	unsigned long last_update;
@@ -45,7 +46,8 @@ struct menf21bmc_hwmon {
 	int in_max[BMC_VOLT_COUNT];
 };
 
-static const char *const input_names[] = {
+static const char *const input_names[] =
+{
 	[MENF21BMC_V33]		= "MON_3_3V",
 	[MENF21BMC_V5]		= "MON_5V",
 	[MENF21BMC_V12]		= "MON_12V",
@@ -61,19 +63,26 @@ static struct menf21bmc_hwmon *menf21bmc_hwmon_update(struct device *dev)
 	struct menf21bmc_hwmon *data_ret = drv_data;
 
 	if (time_after(jiffies, drv_data->last_update + HZ)
-	    || !drv_data->valid) {
-		for (i = 0; i < BMC_VOLT_COUNT; i++) {
+		|| !drv_data->valid)
+	{
+		for (i = 0; i < BMC_VOLT_COUNT; i++)
+		{
 			val = i2c_smbus_read_word_data(drv_data->i2c_client,
-						       IDX_TO_VOLT_INP_CMD(i));
-			if (val < 0) {
+										   IDX_TO_VOLT_INP_CMD(i));
+
+			if (val < 0)
+			{
 				data_ret = ERR_PTR(val);
 				goto abort;
 			}
+
 			drv_data->in_val[i] = val;
 		}
+
 		drv_data->last_update = jiffies;
 		drv_data->valid = true;
 	}
+
 abort:
 	return data_ret;
 }
@@ -82,21 +91,29 @@ static int menf21bmc_hwmon_get_volt_limits(struct menf21bmc_hwmon *drv_data)
 {
 	int i, val;
 
-	for (i = 0; i < BMC_VOLT_COUNT; i++) {
+	for (i = 0; i < BMC_VOLT_COUNT; i++)
+	{
 		val = i2c_smbus_read_word_data(drv_data->i2c_client,
-					       IDX_TO_VOLT_MIN_CMD(i));
+									   IDX_TO_VOLT_MIN_CMD(i));
+
 		if (val < 0)
+		{
 			return val;
+		}
 
 		drv_data->in_min[i] = val;
 
 		val = i2c_smbus_read_word_data(drv_data->i2c_client,
-					       IDX_TO_VOLT_MAX_CMD(i));
+									   IDX_TO_VOLT_MAX_CMD(i));
+
 		if (val < 0)
+		{
 			return val;
+		}
 
 		drv_data->in_max[i] = val;
 	}
+
 	return 0;
 }
 
@@ -115,7 +132,9 @@ show_in(struct device *dev, struct device_attribute *devattr, char *buf)
 	struct menf21bmc_hwmon *drv_data = menf21bmc_hwmon_update(dev);
 
 	if (IS_ERR(drv_data))
+	{
 		return PTR_ERR(drv_data);
+	}
 
 	return sprintf(buf, "%d\n", drv_data->in_val[attr->index]);
 }
@@ -139,14 +158,14 @@ show_max(struct device *dev, struct device_attribute *devattr, char *buf)
 }
 
 #define create_voltage_sysfs(idx)			\
-static SENSOR_DEVICE_ATTR(in##idx##_input, S_IRUGO,	\
-			show_in, NULL, idx);		\
-static SENSOR_DEVICE_ATTR(in##idx##_min, S_IRUGO,	\
-			show_min, NULL, idx);		\
-static SENSOR_DEVICE_ATTR(in##idx##_max, S_IRUGO,	\
-			show_max, NULL, idx);		\
-static SENSOR_DEVICE_ATTR(in##idx##_label, S_IRUGO,	\
-			show_label, NULL, idx);
+	static SENSOR_DEVICE_ATTR(in##idx##_input, S_IRUGO,	\
+							  show_in, NULL, idx);		\
+	static SENSOR_DEVICE_ATTR(in##idx##_min, S_IRUGO,	\
+							  show_min, NULL, idx);		\
+	static SENSOR_DEVICE_ATTR(in##idx##_max, S_IRUGO,	\
+							  show_max, NULL, idx);		\
+	static SENSOR_DEVICE_ATTR(in##idx##_label, S_IRUGO,	\
+							  show_label, NULL, idx);
 
 create_voltage_sysfs(0);
 create_voltage_sysfs(1);
@@ -154,7 +173,8 @@ create_voltage_sysfs(2);
 create_voltage_sysfs(3);
 create_voltage_sysfs(4);
 
-static struct attribute *menf21bmc_hwmon_attrs[] = {
+static struct attribute *menf21bmc_hwmon_attrs[] =
+{
 	&sensor_dev_attr_in0_input.dev_attr.attr,
 	&sensor_dev_attr_in0_min.dev_attr.attr,
 	&sensor_dev_attr_in0_max.dev_attr.attr,
@@ -192,30 +212,39 @@ static int menf21bmc_hwmon_probe(struct platform_device *pdev)
 	struct device *hwmon_dev;
 
 	drv_data = devm_kzalloc(&pdev->dev, sizeof(struct menf21bmc_hwmon),
-				GFP_KERNEL);
+							GFP_KERNEL);
+
 	if (!drv_data)
+	{
 		return -ENOMEM;
+	}
 
 	drv_data->i2c_client = i2c_client;
 
 	ret = menf21bmc_hwmon_get_volt_limits(drv_data);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to read sensor limits");
 		return ret;
 	}
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(&pdev->dev,
-						   "menf21bmc", drv_data,
-						   menf21bmc_hwmon_groups);
+				"menf21bmc", drv_data,
+				menf21bmc_hwmon_groups);
+
 	if (IS_ERR(hwmon_dev))
+	{
 		return PTR_ERR(hwmon_dev);
+	}
 
 	dev_info(&pdev->dev, "MEN 14F021P00 BMC hwmon device enabled");
 
 	return 0;
 }
 
-static struct platform_driver menf21bmc_hwmon = {
+static struct platform_driver menf21bmc_hwmon =
+{
 	.probe		= menf21bmc_hwmon_probe,
 	.driver		= {
 		.name		= DRV_NAME,

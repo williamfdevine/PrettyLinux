@@ -47,9 +47,13 @@ static void midi_capture_trigger(struct snd_rawmidi_substream *substrm, int up)
 	spin_lock_irqsave(&tscm->lock, flags);
 
 	if (up)
+	{
 		tscm->tx_midi_substreams[substrm->number] = substrm;
+	}
 	else
+	{
 		tscm->tx_midi_substreams[substrm->number] = NULL;
+	}
 
 	spin_unlock_irqrestore(&tscm->lock, flags);
 }
@@ -63,18 +67,20 @@ static void midi_playback_trigger(struct snd_rawmidi_substream *substrm, int up)
 
 	if (up)
 		snd_fw_async_midi_port_run(&tscm->out_ports[substrm->number],
-					   substrm);
+								   substrm);
 
 	spin_unlock_irqrestore(&tscm->lock, flags);
 }
 
-static struct snd_rawmidi_ops midi_capture_ops = {
+static struct snd_rawmidi_ops midi_capture_ops =
+{
 	.open		= midi_capture_open,
 	.close		= midi_capture_close,
 	.trigger	= midi_capture_trigger,
 };
 
-static struct snd_rawmidi_ops midi_playback_ops = {
+static struct snd_rawmidi_ops midi_playback_ops =
+{
 	.open		= midi_playback_open,
 	.close		= midi_playback_close,
 	.trigger	= midi_playback_trigger,
@@ -88,44 +94,51 @@ int snd_tscm_create_midi_devices(struct snd_tscm *tscm)
 	int err;
 
 	err = snd_rawmidi_new(tscm->card, tscm->card->driver, 0,
-			      tscm->spec->midi_playback_ports,
-			      tscm->spec->midi_capture_ports,
-			      &rmidi);
+						  tscm->spec->midi_playback_ports,
+						  tscm->spec->midi_capture_ports,
+						  &rmidi);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	snprintf(rmidi->name, sizeof(rmidi->name),
-		 "%s MIDI", tscm->card->shortname);
+			 "%s MIDI", tscm->card->shortname);
 	rmidi->private_data = tscm;
 
 	rmidi->info_flags |= SNDRV_RAWMIDI_INFO_INPUT;
 	snd_rawmidi_set_ops(rmidi, SNDRV_RAWMIDI_STREAM_INPUT,
-			    &midi_capture_ops);
+						&midi_capture_ops);
 	stream = &rmidi->streams[SNDRV_RAWMIDI_STREAM_INPUT];
 
 	/* Set port names for MIDI input. */
-	list_for_each_entry(subs, &stream->substreams, list) {
+	list_for_each_entry(subs, &stream->substreams, list)
+	{
 		/* TODO: support virtual MIDI ports. */
-		if (subs->number < tscm->spec->midi_capture_ports) {
+		if (subs->number < tscm->spec->midi_capture_ports)
+		{
 			/* Hardware MIDI ports. */
 			snprintf(subs->name, sizeof(subs->name),
-				 "%s MIDI %d",
-				 tscm->card->shortname, subs->number + 1);
+					 "%s MIDI %d",
+					 tscm->card->shortname, subs->number + 1);
 		}
 	}
 
 	rmidi->info_flags |= SNDRV_RAWMIDI_INFO_OUTPUT;
 	snd_rawmidi_set_ops(rmidi, SNDRV_RAWMIDI_STREAM_OUTPUT,
-			    &midi_playback_ops);
+						&midi_playback_ops);
 	stream = &rmidi->streams[SNDRV_RAWMIDI_STREAM_OUTPUT];
 
 	/* Set port names for MIDI ourput. */
-	list_for_each_entry(subs, &stream->substreams, list) {
-		if (subs->number < tscm->spec->midi_playback_ports) {
+	list_for_each_entry(subs, &stream->substreams, list)
+	{
+		if (subs->number < tscm->spec->midi_playback_ports)
+		{
 			/* Hardware MIDI ports only. */
 			snprintf(subs->name, sizeof(subs->name),
-				 "%s MIDI %d",
-				 tscm->card->shortname, subs->number + 1);
+					 "%s MIDI %d",
+					 tscm->card->shortname, subs->number + 1);
 		}
 	}
 

@@ -28,7 +28,8 @@
 #include "system.h"
 #include "benchmark.h"
 
-static struct option long_options[] = {
+static struct option long_options[] =
+{
 	{"output",	1,	0,	'o'},
 	{"sleep",	1,	0,	's'},
 	{"load",	1,	0,	'l'},
@@ -82,110 +83,151 @@ int main(int argc, char **argv)
 	config = prepare_default_config();
 
 	if (config == NULL)
+	{
 		return EXIT_FAILURE;
+	}
 
-	while (1) {
+	while (1)
+	{
 		c = getopt_long (argc, argv, "hg:o:s:l:vc:p:f:n:r:x:y:",
-				long_options, &option_index);
+						 long_options, &option_index);
+
 		if (c == -1)
+		{
 			break;
+		}
 
-		switch (c) {
-		case 'o':
-			if (config->output != NULL)
-				fclose(config->output);
+		switch (c)
+		{
+			case 'o':
+				if (config->output != NULL)
+				{
+					fclose(config->output);
+				}
 
-			config->output = prepare_output(optarg);
+				config->output = prepare_output(optarg);
 
-			if (config->output == NULL)
-				return EXIT_FAILURE;
+				if (config->output == NULL)
+				{
+					return EXIT_FAILURE;
+				}
 
-			dprintf("user output path -> %s\n", optarg);
-			break;
-		case 's':
-			sscanf(optarg, "%li", &config->sleep);
-			dprintf("user sleep time -> %s\n", optarg);
-			break;
-		case 'l':
-			sscanf(optarg, "%li", &config->load);
-			dprintf("user load time -> %s\n", optarg);
-			break;
-		case 'c':
-			sscanf(optarg, "%u", &config->cpu);
-			dprintf("user cpu -> %s\n", optarg);
-			break;
-		case 'g':
-			strncpy(config->governor, optarg, 14);
-			dprintf("user governor -> %s\n", optarg);
-			break;
-		case 'p':
-			if (string_to_prio(optarg) != SCHED_ERR) {
-				config->prio = string_to_prio(optarg);
-				dprintf("user prio -> %s\n", optarg);
-			} else {
-				if (config != NULL) {
+				dprintf("user output path -> %s\n", optarg);
+				break;
+
+			case 's':
+				sscanf(optarg, "%li", &config->sleep);
+				dprintf("user sleep time -> %s\n", optarg);
+				break;
+
+			case 'l':
+				sscanf(optarg, "%li", &config->load);
+				dprintf("user load time -> %s\n", optarg);
+				break;
+
+			case 'c':
+				sscanf(optarg, "%u", &config->cpu);
+				dprintf("user cpu -> %s\n", optarg);
+				break;
+
+			case 'g':
+				strncpy(config->governor, optarg, 14);
+				dprintf("user governor -> %s\n", optarg);
+				break;
+
+			case 'p':
+				if (string_to_prio(optarg) != SCHED_ERR)
+				{
+					config->prio = string_to_prio(optarg);
+					dprintf("user prio -> %s\n", optarg);
+				}
+				else
+				{
+					if (config != NULL)
+					{
+						if (config->output != NULL)
+						{
+							fclose(config->output);
+						}
+
+						free(config);
+					}
+
+					usage();
+				}
+
+				break;
+
+			case 'n':
+				sscanf(optarg, "%u", &config->cycles);
+				dprintf("user cycles -> %s\n", optarg);
+				break;
+
+			case 'r':
+				sscanf(optarg, "%u", &config->rounds);
+				dprintf("user rounds -> %s\n", optarg);
+				break;
+
+			case 'x':
+				sscanf(optarg, "%li", &config->load_step);
+				dprintf("user load_step -> %s\n", optarg);
+				break;
+
+			case 'y':
+				sscanf(optarg, "%li", &config->sleep_step);
+				dprintf("user sleep_step -> %s\n", optarg);
+				break;
+
+			case 'f':
+				if (prepare_config(optarg, config))
+				{
+					return EXIT_FAILURE;
+				}
+
+				break;
+
+			case 'v':
+				config->verbose = 1;
+				dprintf("verbose output enabled\n");
+				break;
+
+			case 'h':
+			case '?':
+			default:
+				if (config != NULL)
+				{
 					if (config->output != NULL)
+					{
 						fclose(config->output);
+					}
+
 					free(config);
 				}
+
 				usage();
-			}
-			break;
-		case 'n':
-			sscanf(optarg, "%u", &config->cycles);
-			dprintf("user cycles -> %s\n", optarg);
-			break;
-		case 'r':
-			sscanf(optarg, "%u", &config->rounds);
-			dprintf("user rounds -> %s\n", optarg);
-			break;
-		case 'x':
-			sscanf(optarg, "%li", &config->load_step);
-			dprintf("user load_step -> %s\n", optarg);
-			break;
-		case 'y':
-			sscanf(optarg, "%li", &config->sleep_step);
-			dprintf("user sleep_step -> %s\n", optarg);
-			break;
-		case 'f':
-			if (prepare_config(optarg, config))
-				return EXIT_FAILURE;
-			break;
-		case 'v':
-			config->verbose = 1;
-			dprintf("verbose output enabled\n");
-			break;
-		case 'h':
-		case '?':
-		default:
-			if (config != NULL) {
-				if (config->output != NULL)
-					fclose(config->output);
-				free(config);
-			}
-			usage();
 		}
 	}
 
-	if (config->verbose) {
+	if (config->verbose)
+	{
 		printf("starting benchmark with parameters:\n");
 		printf("config:\n\t"
-		       "sleep=%li\n\t"
-		       "load=%li\n\t"
-		       "sleep_step=%li\n\t"
-		       "load_step=%li\n\t"
-		       "cpu=%u\n\t"
-		       "cycles=%u\n\t"
-		       "rounds=%u\n\t"
-		       "governor=%s\n\n",
-		       config->sleep,
-		       config->load,
-		       config->sleep_step,
-		       config->load_step,
-		       config->cpu,
-		       config->cycles,
-		       config->rounds,
-		       config->governor);
+			   "sleep=%li\n\t"
+			   "load=%li\n\t"
+			   "sleep_step=%li\n\t"
+			   "load_step=%li\n\t"
+			   "cpu=%u\n\t"
+			   "cycles=%u\n\t"
+			   "rounds=%u\n\t"
+			   "governor=%s\n\n",
+			   config->sleep,
+			   config->load,
+			   config->sleep_step,
+			   config->load_step,
+			   config->cpu,
+			   config->cycles,
+			   config->rounds,
+			   config->governor);
 	}
 
 	prepare_user(config);
@@ -193,7 +235,9 @@ int main(int argc, char **argv)
 	start_benchmark(config);
 
 	if (config->output != stdout)
+	{
 		fclose(config->output);
+	}
 
 	free(config);
 

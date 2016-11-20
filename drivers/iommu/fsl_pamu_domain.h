@@ -21,14 +21,16 @@
 
 #include "fsl_pamu.h"
 
-struct dma_window {
+struct dma_window
+{
 	phys_addr_t paddr;
 	u64 size;
 	int valid;
 	int prot;
 };
 
-struct fsl_dma_domain {
+struct fsl_dma_domain
+{
 	/*
 	 * Indicates the geometry size for the domain.
 	 * This would be set when the geometry is
@@ -76,7 +78,8 @@ struct fsl_dma_domain {
 };
 
 /* domain-device relationship */
-struct device_domain_info {
+struct device_domain_info
+{
 	struct list_head link;	/* link to domain siblings */
 	struct device *dev;
 	u32 liodn;

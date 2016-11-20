@@ -19,9 +19,11 @@ struct worker_pool;
  *
  * Only to be used in workqueue and async.
  */
-struct worker {
+struct worker
+{
 	/* on idle list while idle, on busy hash table while busy */
-	union {
+	union
+	{
 		struct list_head	entry;	/* L: while idle */
 		struct hlist_node	hentry;	/* L: while busy */
 	};
@@ -36,9 +38,9 @@ struct worker {
 
 	struct task_struct	*task;		/* I: worker task */
 	struct worker_pool	*pool;		/* I: the associated pool */
-						/* L: for rescuers */
+	/* L: for rescuers */
 	struct list_head	node;		/* A: anchored at pool->workers */
-						/* A: runs through worker->node */
+	/* A: runs through worker->node */
 
 	unsigned long		last_active;	/* L: last active timestamp */
 	unsigned int		flags;		/* X: flags */
@@ -60,7 +62,10 @@ struct worker {
 static inline struct worker *current_wq_worker(void)
 {
 	if (current->flags & PF_WQ_WORKER)
+	{
 		return kthread_data(current);
+	}
+
 	return NULL;
 }
 

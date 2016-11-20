@@ -88,7 +88,7 @@ static inline int __test_and_clear_bit(int nr, volatile unsigned long *addr)
 
 /* WARNING: non atomic and it can be reordered! */
 static inline int __test_and_change_bit(int nr,
-					    volatile unsigned long *addr)
+										volatile unsigned long *addr)
 {
 	unsigned long mask = BITOP_MASK(nr);
 	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
@@ -105,7 +105,7 @@ static inline int __test_and_change_bit(int nr,
  */
 static inline int test_bit(int nr, const volatile unsigned long *addr)
 {
-	return 1UL & (addr[BITOP_WORD(nr)] >> (nr & (BITS_PER_LONG-1)));
+	return 1UL & (addr[BITOP_WORD(nr)] >> (nr & (BITS_PER_LONG - 1)));
 }
 
 /**
@@ -118,33 +118,46 @@ static inline unsigned long __ffs(unsigned long word)
 {
 	int num = 0;
 
-	if ((word & 0xffffffff) == 0) {
+	if ((word & 0xffffffff) == 0)
+	{
 		num += 32;
 		word >>= 32;
 	}
-	if ((word & 0xffff) == 0) {
+
+	if ((word & 0xffff) == 0)
+	{
 		num += 16;
 		word >>= 16;
 	}
-	if ((word & 0xff) == 0) {
+
+	if ((word & 0xff) == 0)
+	{
 		num += 8;
 		word >>= 8;
 	}
-	if ((word & 0xf) == 0) {
+
+	if ((word & 0xf) == 0)
+	{
 		num += 4;
 		word >>= 4;
 	}
-	if ((word & 0x3) == 0) {
+
+	if ((word & 0x3) == 0)
+	{
 		num += 2;
 		word >>= 2;
 	}
+
 	if ((word & 0x1) == 0)
+	{
 		num += 1;
+	}
+
 	return num;
 }
 
 unsigned long find_next_bit(const unsigned long *addr,
-			    unsigned long size,
-			    unsigned long offset);
+							unsigned long size,
+							unsigned long offset);
 
 #endif /* _ASM_GENERIC_BITOPS_NON_ATOMIC_H_ */

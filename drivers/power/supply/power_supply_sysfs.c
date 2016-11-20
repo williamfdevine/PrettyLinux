@@ -32,41 +32,49 @@
  */
 
 #define POWER_SUPPLY_ATTR(_name)					\
-{									\
-	.attr = { .name = #_name },					\
-	.show = power_supply_show_property,				\
-	.store = power_supply_store_property,				\
-}
+	{									\
+		.attr = { .name = #_name },					\
+				.show = power_supply_show_property,				\
+						.store = power_supply_store_property,				\
+	}
 
 static struct device_attribute power_supply_attrs[];
 
 static ssize_t power_supply_show_property(struct device *dev,
-					  struct device_attribute *attr,
-					  char *buf) {
-	static char *type_text[] = {
+		struct device_attribute *attr,
+		char *buf)
+{
+	static char *type_text[] =
+	{
 		"Unknown", "Battery", "UPS", "Mains", "USB",
 		"USB_DCP", "USB_CDP", "USB_ACA", "USB_C",
 		"USB_PD", "USB_PD_DRP"
 	};
-	static char *status_text[] = {
+	static char *status_text[] =
+	{
 		"Unknown", "Charging", "Discharging", "Not charging", "Full"
 	};
-	static char *charge_type[] = {
+	static char *charge_type[] =
+	{
 		"Unknown", "N/A", "Trickle", "Fast"
 	};
-	static char *health_text[] = {
+	static char *health_text[] =
+	{
 		"Unknown", "Good", "Overheat", "Dead", "Over voltage",
 		"Unspecified failure", "Cold", "Watchdog timer expire",
 		"Safety timer expire"
 	};
-	static char *technology_text[] = {
+	static char *technology_text[] =
+	{
 		"Unknown", "NiMH", "Li-ion", "Li-poly", "LiFe", "NiCd",
 		"LiMn"
 	};
-	static char *capacity_level_text[] = {
+	static char *capacity_level_text[] =
+	{
 		"Unknown", "Critical", "Low", "Normal", "High", "Full"
 	};
-	static char *scope_text[] = {
+	static char *scope_text[] =
+	{
 		"Unknown", "System", "Device"
 	};
 	ssize_t ret = 0;
@@ -74,45 +82,67 @@ static ssize_t power_supply_show_property(struct device *dev,
 	const ptrdiff_t off = attr - power_supply_attrs;
 	union power_supply_propval value;
 
-	if (off == POWER_SUPPLY_PROP_TYPE) {
+	if (off == POWER_SUPPLY_PROP_TYPE)
+	{
 		value.intval = psy->desc->type;
-	} else {
+	}
+	else
+	{
 		ret = power_supply_get_property(psy, off, &value);
 
-		if (ret < 0) {
+		if (ret < 0)
+		{
 			if (ret == -ENODATA)
 				dev_dbg(dev, "driver has no data for `%s' property\n",
-					attr->attr.name);
+						attr->attr.name);
 			else if (ret != -ENODEV && ret != -EAGAIN)
 				dev_err(dev, "driver failed to report `%s' property: %zd\n",
-					attr->attr.name, ret);
+						attr->attr.name, ret);
+
 			return ret;
 		}
 	}
 
 	if (off == POWER_SUPPLY_PROP_STATUS)
+	{
 		return sprintf(buf, "%s\n", status_text[value.intval]);
+	}
 	else if (off == POWER_SUPPLY_PROP_CHARGE_TYPE)
+	{
 		return sprintf(buf, "%s\n", charge_type[value.intval]);
+	}
 	else if (off == POWER_SUPPLY_PROP_HEALTH)
+	{
 		return sprintf(buf, "%s\n", health_text[value.intval]);
+	}
 	else if (off == POWER_SUPPLY_PROP_TECHNOLOGY)
+	{
 		return sprintf(buf, "%s\n", technology_text[value.intval]);
+	}
 	else if (off == POWER_SUPPLY_PROP_CAPACITY_LEVEL)
+	{
 		return sprintf(buf, "%s\n", capacity_level_text[value.intval]);
+	}
 	else if (off == POWER_SUPPLY_PROP_TYPE)
+	{
 		return sprintf(buf, "%s\n", type_text[value.intval]);
+	}
 	else if (off == POWER_SUPPLY_PROP_SCOPE)
+	{
 		return sprintf(buf, "%s\n", scope_text[value.intval]);
+	}
 	else if (off >= POWER_SUPPLY_PROP_MODEL_NAME)
+	{
 		return sprintf(buf, "%s\n", value.strval);
+	}
 
 	return sprintf(buf, "%d\n", value.intval);
 }
 
 static ssize_t power_supply_store_property(struct device *dev,
-					   struct device_attribute *attr,
-					   const char *buf, size_t count) {
+		struct device_attribute *attr,
+		const char *buf, size_t count)
+{
 	ssize_t ret;
 	struct power_supply *psy = dev_get_drvdata(dev);
 	const ptrdiff_t off = attr - power_supply_attrs;
@@ -121,20 +151,27 @@ static ssize_t power_supply_store_property(struct device *dev,
 
 	/* TODO: support other types than int */
 	ret = kstrtol(buf, 10, &long_val);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	value.intval = long_val;
 
 	ret = power_supply_set_property(psy, off, &value);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return count;
 }
 
 /* Must be in the same order as POWER_SUPPLY_PROP_* */
-static struct device_attribute power_supply_attrs[] = {
+static struct device_attribute power_supply_attrs[] =
+{
 	/* Properties of type `int' */
 	POWER_SUPPLY_ATTR(status),
 	POWER_SUPPLY_ATTR(charge_type),
@@ -208,8 +245,8 @@ static struct attribute *
 __power_supply_attrs[ARRAY_SIZE(power_supply_attrs) + 1];
 
 static umode_t power_supply_attr_is_visible(struct kobject *kobj,
-					   struct attribute *attr,
-					   int attrno)
+		struct attribute *attr,
+		int attrno)
 {
 	struct device *dev = container_of(kobj, struct device, kobj);
 	struct power_supply *psy = dev_get_drvdata(dev);
@@ -217,15 +254,21 @@ static umode_t power_supply_attr_is_visible(struct kobject *kobj,
 	int i;
 
 	if (attrno == POWER_SUPPLY_PROP_TYPE)
+	{
 		return mode;
+	}
 
-	for (i = 0; i < psy->desc->num_properties; i++) {
+	for (i = 0; i < psy->desc->num_properties; i++)
+	{
 		int property = psy->desc->properties[i];
 
-		if (property == attrno) {
+		if (property == attrno)
+		{
 			if (psy->desc->property_is_writeable &&
-			    psy->desc->property_is_writeable(psy, property) > 0)
+				psy->desc->property_is_writeable(psy, property) > 0)
+			{
 				mode |= S_IWUSR;
+			}
 
 			return mode;
 		}
@@ -234,12 +277,14 @@ static umode_t power_supply_attr_is_visible(struct kobject *kobj,
 	return 0;
 }
 
-static struct attribute_group power_supply_attr_group = {
+static struct attribute_group power_supply_attr_group =
+{
 	.attrs = __power_supply_attrs,
 	.is_visible = power_supply_attr_is_visible,
 };
 
-static const struct attribute_group *power_supply_attr_groups[] = {
+static const struct attribute_group *power_supply_attr_groups[] =
+{
 	&power_supply_attr_group,
 	NULL,
 };
@@ -251,7 +296,9 @@ void power_supply_init_attrs(struct device_type *dev_type)
 	dev_type->groups = power_supply_attr_groups;
 
 	for (i = 0; i < ARRAY_SIZE(power_supply_attrs); i++)
+	{
 		__power_supply_attrs[i] = &power_supply_attrs[i].attr;
+	}
 }
 
 static char *kstruprdup(const char *str, gfp_t gfp)
@@ -261,10 +308,14 @@ static char *kstruprdup(const char *str, gfp_t gfp)
 	ustr = ret = kmalloc(strlen(str) + 1, gfp);
 
 	if (!ret)
+	{
 		return NULL;
+	}
 
 	while (*str)
+	{
 		*ustr++ = toupper(*str++);
+	}
 
 	*ustr = 0;
 
@@ -280,7 +331,8 @@ int power_supply_uevent(struct device *dev, struct kobj_uevent_env *env)
 
 	dev_dbg(dev, "uevent\n");
 
-	if (!psy || !psy->desc) {
+	if (!psy || !psy->desc)
+	{
 		dev_dbg(dev, "No power supply yet\n");
 		return ret;
 	}
@@ -288,21 +340,30 @@ int power_supply_uevent(struct device *dev, struct kobj_uevent_env *env)
 	dev_dbg(dev, "POWER_SUPPLY_NAME=%s\n", psy->desc->name);
 
 	ret = add_uevent_var(env, "POWER_SUPPLY_NAME=%s", psy->desc->name);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	prop_buf = (char *)get_zeroed_page(GFP_KERNEL);
-	if (!prop_buf)
-		return -ENOMEM;
 
-	for (j = 0; j < psy->desc->num_properties; j++) {
+	if (!prop_buf)
+	{
+		return -ENOMEM;
+	}
+
+	for (j = 0; j < psy->desc->num_properties; j++)
+	{
 		struct device_attribute *attr;
 		char *line;
 
 		attr = &power_supply_attrs[psy->desc->properties[j]];
 
 		ret = power_supply_show_property(dev, attr, prop_buf);
-		if (ret == -ENODEV || ret == -ENODATA) {
+
+		if (ret == -ENODEV || ret == -ENODATA)
+		{
 			/* When a battery is absent, we expect -ENODEV. Don't abort;
 			   send the uevent with at least the the PRESENT=0 property */
 			ret = 0;
@@ -310,14 +371,21 @@ int power_supply_uevent(struct device *dev, struct kobj_uevent_env *env)
 		}
 
 		if (ret < 0)
+		{
 			goto out;
+		}
 
 		line = strchr(prop_buf, '\n');
+
 		if (line)
+		{
 			*line = 0;
+		}
 
 		attrname = kstruprdup(attr->attr.name, GFP_KERNEL);
-		if (!attrname) {
+
+		if (!attrname)
+		{
 			ret = -ENOMEM;
 			goto out;
 		}
@@ -326,8 +394,11 @@ int power_supply_uevent(struct device *dev, struct kobj_uevent_env *env)
 
 		ret = add_uevent_var(env, "POWER_SUPPLY_%s=%s", attrname, prop_buf);
 		kfree(attrname);
+
 		if (ret)
+		{
 			goto out;
+		}
 	}
 
 out:

@@ -34,7 +34,8 @@
 
 #define FTM_PS_MAX	7
 
-struct ftm_clock_device {
+struct ftm_clock_device
+{
 	void __iomem *clksrc_base;
 	void __iomem *clkevt_base;
 	unsigned long periodic_cyc;
@@ -47,17 +48,25 @@ static struct ftm_clock_device *priv;
 static inline u32 ftm_readl(void __iomem *addr)
 {
 	if (priv->big_endian)
+	{
 		return ioread32be(addr);
+	}
 	else
+	{
 		return ioread32(addr);
+	}
 }
 
 static inline void ftm_writel(u32 val, void __iomem *addr)
 {
 	if (priv->big_endian)
+	{
 		iowrite32be(val, addr);
+	}
 	else
+	{
 		iowrite32(val, addr);
+	}
 }
 
 static inline void ftm_counter_enable(void __iomem *base)
@@ -124,7 +133,7 @@ static u64 notrace ftm_read_sched_clock(void)
 }
 
 static int ftm_set_next_event(unsigned long delta,
-				struct clock_event_device *unused)
+							  struct clock_event_device *unused)
 {
 	/*
 	 * The CNNIN and MOD are all double buffer registers, writing
@@ -171,7 +180,8 @@ static irqreturn_t ftm_evt_interrupt(int irq, void *dev_id)
 
 	ftm_irq_acknowledge(priv->clkevt_base);
 
-	if (likely(clockevent_state_oneshot(evt))) {
+	if (likely(clockevent_state_oneshot(evt)))
+	{
 		ftm_irq_disable(priv->clkevt_base);
 		ftm_counter_disable(priv->clkevt_base);
 	}
@@ -181,17 +191,19 @@ static irqreturn_t ftm_evt_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct clock_event_device ftm_clockevent = {
+static struct clock_event_device ftm_clockevent =
+{
 	.name			= "Freescale ftm timer",
 	.features		= CLOCK_EVT_FEAT_PERIODIC |
-				  CLOCK_EVT_FEAT_ONESHOT,
+	CLOCK_EVT_FEAT_ONESHOT,
 	.set_state_periodic	= ftm_set_periodic,
 	.set_state_oneshot	= ftm_set_oneshot,
 	.set_next_event		= ftm_set_next_event,
 	.rating			= 300,
 };
 
-static struct irqaction ftm_timer_irq = {
+static struct irqaction ftm_timer_irq =
+{
 	.name		= "Freescale ftm timer",
 	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
 	.handler	= ftm_evt_interrupt,
@@ -208,7 +220,9 @@ static int __init ftm_clockevent_init(unsigned long freq, int irq)
 	ftm_reset_counter(priv->clkevt_base);
 
 	err = setup_irq(irq, &ftm_timer_irq);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("ftm: setup irq failed: %d\n", err);
 		return err;
 	}
@@ -217,8 +231,8 @@ static int __init ftm_clockevent_init(unsigned long freq, int irq)
 	ftm_clockevent.irq = irq;
 
 	clockevents_config_and_register(&ftm_clockevent,
-					freq / (1 << priv->ps),
-					1, 0xffff);
+									freq / (1 << priv->ps),
+									1, 0xffff);
 
 	ftm_counter_enable(priv->clkevt_base);
 
@@ -236,9 +250,11 @@ static int __init ftm_clocksource_init(unsigned long freq)
 
 	sched_clock_register(ftm_read_sched_clock, 16, freq / (1 << priv->ps));
 	err = clocksource_mmio_init(priv->clksrc_base + FTM_CNT, "fsl-ftm",
-				    freq / (1 << priv->ps), 300, 16,
-				    clocksource_mmio_readl_up);
-	if (err) {
+								freq / (1 << priv->ps), 300, 16,
+								clocksource_mmio_readl_up);
+
+	if (err)
+	{
 		pr_err("ftm: init clock source mmio failed: %d\n", err);
 		return err;
 	}
@@ -249,32 +265,41 @@ static int __init ftm_clocksource_init(unsigned long freq)
 }
 
 static int __init __ftm_clk_init(struct device_node *np, char *cnt_name,
-				 char *ftm_name)
+								 char *ftm_name)
 {
 	struct clk *clk;
 	int err;
 
 	clk = of_clk_get_by_name(np, cnt_name);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_err("ftm: Cannot get \"%s\": %ld\n", cnt_name, PTR_ERR(clk));
 		return PTR_ERR(clk);
 	}
+
 	err = clk_prepare_enable(clk);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("ftm: clock failed to prepare+enable \"%s\": %d\n",
-			cnt_name, err);
+			   cnt_name, err);
 		return err;
 	}
 
 	clk = of_clk_get_by_name(np, ftm_name);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_err("ftm: Cannot get \"%s\": %ld\n", ftm_name, PTR_ERR(clk));
 		return PTR_ERR(clk);
 	}
+
 	err = clk_prepare_enable(clk);
+
 	if (err)
 		pr_err("ftm: clock failed to prepare+enable \"%s\": %d\n",
-			ftm_name, err);
+			   ftm_name, err);
 
 	return clk_get_rate(clk);
 }
@@ -284,12 +309,18 @@ static unsigned long __init ftm_clk_init(struct device_node *np)
 	unsigned long freq;
 
 	freq = __ftm_clk_init(np, "ftm-evt-counter-en", "ftm-evt");
+
 	if (freq <= 0)
+	{
 		return 0;
+	}
 
 	freq = __ftm_clk_init(np, "ftm-src-counter-en", "ftm-src");
+
 	if (freq <= 0)
+	{
 		return 0;
+	}
 
 	return freq;
 }
@@ -302,14 +333,17 @@ static int __init ftm_calc_closest_round_cyc(unsigned long freq)
 	 * if the 'freq' value is to big here, then the periodic_cyc
 	 * may exceed 0xFFFF.
 	 */
-	do {
+	do
+	{
 		priv->periodic_cyc = DIV_ROUND_CLOSEST(freq,
-						HZ * (1 << priv->ps++));
-	} while (priv->periodic_cyc > 0xFFFF);
+											   HZ * (1 << priv->ps++));
+	}
+	while (priv->periodic_cyc > 0xFFFF);
 
-	if (priv->ps > FTM_PS_MAX) {
+	if (priv->ps > FTM_PS_MAX)
+	{
 		pr_err("ftm: the prescaler is %lu > %d\n",
-				priv->ps, FTM_PS_MAX);
+			   priv->ps, FTM_PS_MAX);
 		return -EINVAL;
 	}
 
@@ -322,25 +356,34 @@ static int __init ftm_timer_init(struct device_node *np)
 	int ret, irq;
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	ret = -ENXIO;
 	priv->clkevt_base = of_iomap(np, 0);
-	if (!priv->clkevt_base) {
+
+	if (!priv->clkevt_base)
+	{
 		pr_err("ftm: unable to map event timer registers\n");
 		goto err;
 	}
 
 	priv->clksrc_base = of_iomap(np, 1);
-	if (!priv->clksrc_base) {
+
+	if (!priv->clksrc_base)
+	{
 		pr_err("ftm: unable to map source timer registers\n");
 		goto err;
 	}
 
 	ret = -EINVAL;
 	irq = irq_of_parse_and_map(np, 0);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		pr_err("ftm: unable to get IRQ from DT, %d\n", irq);
 		goto err;
 	}
@@ -348,20 +391,32 @@ static int __init ftm_timer_init(struct device_node *np)
 	priv->big_endian = of_property_read_bool(np, "big-endian");
 
 	freq = ftm_clk_init(np);
+
 	if (!freq)
+	{
 		goto err;
+	}
 
 	ret = ftm_calc_closest_round_cyc(freq);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = ftm_clocksource_init(freq);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = ftm_clockevent_init(freq, irq);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	return 0;
 

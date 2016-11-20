@@ -217,7 +217,8 @@ struct hfi1_cmd;
  * fields must remain unchanged, for binary compatibility.  It can
  * be extended, if userversion is changed so user code can tell, if needed
  */
-struct hfi1_user_info {
+struct hfi1_user_info
+{
 	/*
 	 * version of user software, to detect compatibility issues.
 	 * Should be set to HFI1_USER_SWVERSION.
@@ -236,7 +237,8 @@ struct hfi1_user_info {
 	__u8 uuid[16];
 };
 
-struct hfi1_ctxt_info {
+struct hfi1_ctxt_info
+{
 	__u64 runtime_flags;    /* chip/drv runtime flags (HFI1_CAP_*) */
 	__u32 rcvegr_size;      /* size of each eager buffer */
 	__u16 num_active;       /* number of active units */
@@ -254,7 +256,8 @@ struct hfi1_ctxt_info {
 	__u16 sdma_ring_size;   /* number of entries in SDMA request ring */
 };
 
-struct hfi1_tid_info {
+struct hfi1_tid_info
+{
 	/* virtual address of first page in transfer */
 	__u64 vaddr;
 	/* pointer to tid array. this array is big enough */
@@ -265,7 +268,8 @@ struct hfi1_tid_info {
 	__u32 length;
 };
 
-enum hfi1_sdma_comp_state {
+enum hfi1_sdma_comp_state
+{
 	FREE = 0,
 	QUEUED,
 	COMPLETE,
@@ -275,7 +279,8 @@ enum hfi1_sdma_comp_state {
 /*
  * SDMA completion ring entry
  */
-struct hfi1_sdma_comp_entry {
+struct hfi1_sdma_comp_entry
+{
 	__u32 status;
 	__u32 errcode;
 };
@@ -283,7 +288,8 @@ struct hfi1_sdma_comp_entry {
 /*
  * Device status and notifications from driver to user-space.
  */
-struct hfi1_status {
+struct hfi1_status
+{
 	__u64 dev;      /* device/hw status bits */
 	__u64 port;     /* port state and status bits */
 	char freezemsg[0];
@@ -299,7 +305,8 @@ struct hfi1_status {
  * programs, since the 64 bit * bit kernel requires the user code
  * to have matching offsets
  */
-struct hfi1_base_info {
+struct hfi1_base_info
+{
 	/* version of hardware, for feature checking. */
 	__u32 hw_version;
 	/* version of software, for feature checking. */
@@ -354,7 +361,8 @@ struct hfi1_base_info {
 	__u64 subctxt_rcvhdrbuf;
 };
 
-enum sdma_req_opcode {
+enum sdma_req_opcode
+{
 	EXPECTED = 0,
 	EAGER
 };
@@ -366,7 +374,8 @@ enum sdma_req_opcode {
 #define HFI1_SDMA_REQ_IOVCNT_MASK 0xFF
 #define HFI1_SDMA_REQ_IOVCNT_SHIFT 0x8
 
-struct sdma_req_info {
+struct sdma_req_info
+{
 	/*
 	 * bits 0-3 - version (currently unused)
 	 * bits 4-7 - opcode (enum sdma_req_opcode)
@@ -397,7 +406,8 @@ struct sdma_req_info {
  * SW KDETH header.
  * swdata is SW defined portion.
  */
-struct hfi1_kdeth_header {
+struct hfi1_kdeth_header
+{
 	__le32 ver_tid_offset;
 	__le16 jkey;
 	__le16 hcrc;
@@ -408,7 +418,8 @@ struct hfi1_kdeth_header {
  * Structure describing the headers that User space uses. The
  * structure above is a subset of this one.
  */
-struct hfi1_pkt_header {
+struct hfi1_pkt_header
+{
 	__le16 pbc[4];
 	__be16 lrh[4];
 	__be32 bth[3];
@@ -419,7 +430,8 @@ struct hfi1_pkt_header {
 /*
  * The list of usermode accessible registers.
  */
-enum hfi1_ureg {
+enum hfi1_ureg
+{
 	/* (RO)  DMA RcvHdr to be used next. */
 	ur_rcvhdrtail = 0,
 	/* (RW)  RcvHdr entry to be processed next by host. */

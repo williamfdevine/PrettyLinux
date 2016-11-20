@@ -61,18 +61,18 @@ static const struct v4l2_fract
 	tpf_default = {.numerator = 1001,	.denominator = 30000};
 
 #define cal_dbg(level, caldev, fmt, arg...)	\
-		v4l2_dbg(level, debug, &caldev->v4l2_dev, fmt, ##arg)
+	v4l2_dbg(level, debug, &caldev->v4l2_dev, fmt, ##arg)
 #define cal_info(caldev, fmt, arg...)	\
-		v4l2_info(&caldev->v4l2_dev, fmt, ##arg)
+	v4l2_info(&caldev->v4l2_dev, fmt, ##arg)
 #define cal_err(caldev, fmt, arg...)	\
-		v4l2_err(&caldev->v4l2_dev, fmt, ##arg)
+	v4l2_err(&caldev->v4l2_dev, fmt, ##arg)
 
 #define ctx_dbg(level, ctx, fmt, arg...)	\
-		v4l2_dbg(level, debug, &ctx->v4l2_dev, fmt, ##arg)
+	v4l2_dbg(level, debug, &ctx->v4l2_dev, fmt, ##arg)
 #define ctx_info(ctx, fmt, arg...)	\
-		v4l2_info(&ctx->v4l2_dev, fmt, ##arg)
+	v4l2_info(&ctx->v4l2_dev, fmt, ##arg)
 #define ctx_err(ctx, fmt, arg...)	\
-		v4l2_err(&ctx->v4l2_dev, fmt, ##arg)
+	v4l2_err(&ctx->v4l2_dev, fmt, ##arg)
 
 #define CAL_NUM_INPUT 1
 #define CAL_NUM_CONTEXT 2
@@ -83,24 +83,26 @@ static const struct v4l2_fract
 #define reg_write(dev, offset, val) iowrite32(val, dev->base + offset)
 
 #define reg_read_field(dev, offset, mask) get_field(reg_read(dev, offset), \
-						    mask)
+		mask)
 #define reg_write_field(dev, offset, field, mask) { \
-	u32 val = reg_read(dev, offset); \
-	set_field(&val, field, mask); \
-	reg_write(dev, offset, val); }
+		u32 val = reg_read(dev, offset); \
+		set_field(&val, field, mask); \
+		reg_write(dev, offset, val); }
 
 /* ------------------------------------------------------------------
  *	Basic structures
  * ------------------------------------------------------------------
  */
 
-struct cal_fmt {
+struct cal_fmt
+{
 	u32	fourcc;
 	u32	code;
 	u8	depth;
 };
 
-static struct cal_fmt cal_formats[] = {
+static struct cal_fmt cal_formats[] =
+{
 	{
 		.fourcc		= V4L2_PIX_FMT_YUYV,
 		.code		= MEDIA_BUS_FMT_YUYV8_2X8,
@@ -211,14 +213,16 @@ static char *fourcc_to_str(u32 fmt)
 }
 
 /* buffer for one video frame */
-struct cal_buffer {
+struct cal_buffer
+{
 	/* common v4l buffer stuff -- must be first */
 	struct vb2_v4l2_buffer	vb;
 	struct list_head	list;
 	const struct cal_fmt	*fmt;
 };
 
-struct cal_dmaqueue {
+struct cal_dmaqueue
+{
 	struct list_head	active;
 
 	/* Counters to control fps rate */
@@ -226,7 +230,8 @@ struct cal_dmaqueue {
 	int			ini_jiffies;
 };
 
-struct cm_data {
+struct cm_data
+{
 	void __iomem		*base;
 	struct resource		*res;
 
@@ -235,7 +240,8 @@ struct cm_data {
 	struct platform_device *pdev;
 };
 
-struct cc_data {
+struct cc_data
+{
 	void __iomem		*base;
 	struct resource		*res;
 
@@ -246,7 +252,8 @@ struct cc_data {
  * there is one cal_dev structure in the driver, it is shared by
  * all instances.
  */
-struct cal_dev {
+struct cal_dev
+{
 	int			irq;
 	void __iomem		*base;
 	struct resource		*res;
@@ -264,7 +271,8 @@ struct cal_dev {
 /*
  * There is one cal_ctx structure for each camera core context.
  */
-struct cal_ctx {
+struct cal_ctx
+{
 	struct v4l2_device	v4l2_dev;
 	struct v4l2_ctrl_handler ctrl_handler;
 	struct video_device	vdev;
@@ -318,30 +326,38 @@ struct cal_ctx {
 };
 
 static const struct cal_fmt *find_format_by_pix(struct cal_ctx *ctx,
-						u32 pixelformat)
+		u32 pixelformat)
 {
 	const struct cal_fmt *fmt;
 	unsigned int k;
 
-	for (k = 0; k < ctx->num_active_fmt; k++) {
+	for (k = 0; k < ctx->num_active_fmt; k++)
+	{
 		fmt = ctx->active_fmt[k];
+
 		if (fmt->fourcc == pixelformat)
+		{
 			return fmt;
+		}
 	}
 
 	return NULL;
 }
 
 static const struct cal_fmt *find_format_by_code(struct cal_ctx *ctx,
-						 u32 code)
+		u32 code)
 {
 	const struct cal_fmt *fmt;
 	unsigned int k;
 
-	for (k = 0; k < ctx->num_active_fmt; k++) {
+	for (k = 0; k < ctx->num_active_fmt; k++)
+	{
 		fmt = ctx->active_fmt[k];
+
 		if (fmt->code == code)
+		{
 			return fmt;
+		}
 	}
 
 	return NULL;
@@ -375,19 +391,24 @@ static struct cm_data *cm_create(struct cal_dev *dev)
 	struct cm_data *cm;
 
 	cm = devm_kzalloc(&pdev->dev, sizeof(*cm), GFP_KERNEL);
+
 	if (!cm)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	cm->res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
-						"camerrx_control");
+										   "camerrx_control");
 	cm->base = devm_ioremap_resource(&pdev->dev, cm->res);
-	if (IS_ERR(cm->base)) {
+
+	if (IS_ERR(cm->base))
+	{
 		cal_err(dev, "failed to ioremap\n");
 		return ERR_CAST(cm->base);
 	}
 
 	cal_dbg(1, dev, "ioresource %s at %pa - %pa\n",
-		cm->res->name, &cm->res->start, &cm->res->end);
+			cm->res->name, &cm->res->start, &cm->res->end);
 
 	return cm;
 }
@@ -396,25 +417,31 @@ static void camerarx_phy_enable(struct cal_ctx *ctx)
 {
 	u32 val;
 
-	if (!ctx->dev->cm->base) {
+	if (!ctx->dev->cm->base)
+	{
 		ctx_err(ctx, "cm not mapped\n");
 		return;
 	}
 
 	val = reg_read(ctx->dev->cm, CM_CTRL_CORE_CAMERRX_CONTROL);
-	if (ctx->csi2_port == 1) {
+
+	if (ctx->csi2_port == 1)
+	{
 		set_field(&val, 1, CM_CAMERRX_CTRL_CSI0_CTRLCLKEN_MASK);
 		set_field(&val, 0, CM_CAMERRX_CTRL_CSI0_CAMMODE_MASK);
 		/* enable all lanes by default */
 		set_field(&val, 0xf, CM_CAMERRX_CTRL_CSI0_LANEENABLE_MASK);
 		set_field(&val, 1, CM_CAMERRX_CTRL_CSI0_MODE_MASK);
-	} else if (ctx->csi2_port == 2) {
+	}
+	else if (ctx->csi2_port == 2)
+	{
 		set_field(&val, 1, CM_CAMERRX_CTRL_CSI1_CTRLCLKEN_MASK);
 		set_field(&val, 0, CM_CAMERRX_CTRL_CSI1_CAMMODE_MASK);
 		/* enable all lanes by default */
 		set_field(&val, 0x3, CM_CAMERRX_CTRL_CSI1_LANEENABLE_MASK);
 		set_field(&val, 1, CM_CAMERRX_CTRL_CSI1_MODE_MASK);
 	}
+
 	reg_write(ctx->dev->cm, CM_CTRL_CORE_CAMERRX_CONTROL, val);
 }
 
@@ -422,16 +449,23 @@ static void camerarx_phy_disable(struct cal_ctx *ctx)
 {
 	u32 val;
 
-	if (!ctx->dev->cm->base) {
+	if (!ctx->dev->cm->base)
+	{
 		ctx_err(ctx, "cm not mapped\n");
 		return;
 	}
 
 	val = reg_read(ctx->dev->cm, CM_CTRL_CORE_CAMERRX_CONTROL);
+
 	if (ctx->csi2_port == 1)
+	{
 		set_field(&val, 0x0, CM_CAMERRX_CTRL_CSI0_CTRLCLKEN_MASK);
+	}
 	else if (ctx->csi2_port == 2)
+	{
 		set_field(&val, 0x0, CM_CAMERRX_CTRL_CSI1_CTRLCLKEN_MASK);
+	}
+
 	reg_write(ctx->dev->cm, CM_CTRL_CORE_CAMERRX_CONTROL, val);
 }
 
@@ -444,22 +478,27 @@ static struct cc_data *cc_create(struct cal_dev *dev, unsigned int core)
 	struct cc_data *cc;
 
 	cc = devm_kzalloc(&pdev->dev, sizeof(*cc), GFP_KERNEL);
+
 	if (!cc)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	cc->res = platform_get_resource_byname(pdev,
-					       IORESOURCE_MEM,
-					       (core == 0) ?
-						"cal_rx_core0" :
-						"cal_rx_core1");
+										   IORESOURCE_MEM,
+										   (core == 0) ?
+										   "cal_rx_core0" :
+										   "cal_rx_core1");
 	cc->base = devm_ioremap_resource(&pdev->dev, cc->res);
-	if (IS_ERR(cc->base)) {
+
+	if (IS_ERR(cc->base))
+	{
 		cal_err(dev, "failed to ioremap\n");
 		return ERR_CAST(cc->base);
 	}
 
 	cal_dbg(1, dev, "ioresource %s at %pa - %pa\n",
-		cc->res->name, &cc->res->start, &cc->res->end);
+			cc->res->name, &cc->res->start, &cc->res->end);
 
 	return cc;
 }
@@ -474,11 +513,11 @@ static void cal_get_hwinfo(struct cal_dev *dev)
 
 	revision = reg_read(dev, CAL_HL_REVISION);
 	cal_dbg(3, dev, "CAL_HL_REVISION = 0x%08x (expecting 0x40000200)\n",
-		revision);
+			revision);
 
 	hwinfo = reg_read(dev, CAL_HL_HWINFO);
 	cal_dbg(3, dev, "CAL_HL_HWINFO = 0x%08x (expecting 0xA3C90469)\n",
-		hwinfo);
+			hwinfo);
 }
 
 static inline int cal_runtime_get(struct cal_dev *dev)
@@ -499,32 +538,34 @@ static void cal_quickdump_regs(struct cal_dev *dev)
 {
 	cal_info(dev, "CAL Registers @ 0x%pa:\n", &dev->res->start);
 	print_hex_dump(KERN_INFO, "", DUMP_PREFIX_OFFSET, 16, 4,
-		       (__force const void *)dev->base,
-		       resource_size(dev->res), false);
+				   (__force const void *)dev->base,
+				   resource_size(dev->res), false);
 
-	if (dev->ctx[0]) {
+	if (dev->ctx[0])
+	{
 		cal_info(dev, "CSI2 Core 0 Registers @ %pa:\n",
-			 &dev->ctx[0]->cc->res->start);
+				 &dev->ctx[0]->cc->res->start);
 		print_hex_dump(KERN_INFO, "", DUMP_PREFIX_OFFSET, 16, 4,
-			       (__force const void *)dev->ctx[0]->cc->base,
-			       resource_size(dev->ctx[0]->cc->res),
-			       false);
+					   (__force const void *)dev->ctx[0]->cc->base,
+					   resource_size(dev->ctx[0]->cc->res),
+					   false);
 	}
 
-	if (dev->ctx[1]) {
+	if (dev->ctx[1])
+	{
 		cal_info(dev, "CSI2 Core 1 Registers @ %pa:\n",
-			 &dev->ctx[1]->cc->res->start);
+				 &dev->ctx[1]->cc->res->start);
 		print_hex_dump(KERN_INFO, "", DUMP_PREFIX_OFFSET, 16, 4,
-			       (__force const void *)dev->ctx[1]->cc->base,
-			       resource_size(dev->ctx[1]->cc->res),
-			       false);
+					   (__force const void *)dev->ctx[1]->cc->base,
+					   resource_size(dev->ctx[1]->cc->res),
+					   false);
 	}
 
 	cal_info(dev, "CAMERRX_Control Registers @ %pa:\n",
-		 &dev->cm->res->start);
+			 &dev->cm->res->start);
 	print_hex_dump(KERN_INFO, "", DUMP_PREFIX_OFFSET, 16, 4,
-		       (__force const void *)dev->cm->base,
-		       resource_size(dev->cm->res), false);
+				   (__force const void *)dev->cm->base,
+				   resource_size(dev->cm->res), false);
 }
 
 /*
@@ -534,14 +575,14 @@ static void enable_irqs(struct cal_ctx *ctx)
 {
 	/* Enable IRQ_WDMA_END 0/1 */
 	reg_write_field(ctx->dev,
-			CAL_HL_IRQENABLE_SET(2),
-			CAL_HL_IRQ_ENABLE,
-			CAL_HL_IRQ_MASK(ctx->csi2_port));
+					CAL_HL_IRQENABLE_SET(2),
+					CAL_HL_IRQ_ENABLE,
+					CAL_HL_IRQ_MASK(ctx->csi2_port));
 	/* Enable IRQ_WDMA_START 0/1 */
 	reg_write_field(ctx->dev,
-			CAL_HL_IRQENABLE_SET(3),
-			CAL_HL_IRQ_ENABLE,
-			CAL_HL_IRQ_MASK(ctx->csi2_port));
+					CAL_HL_IRQENABLE_SET(3),
+					CAL_HL_IRQ_ENABLE,
+					CAL_HL_IRQ_MASK(ctx->csi2_port));
 	/* Todo: Add VC_IRQ and CSI2_COMPLEXIO_IRQ handling */
 	reg_write(ctx->dev, CAL_CSI2_VC_IRQENABLE(1), 0xFF000000);
 }
@@ -550,14 +591,14 @@ static void disable_irqs(struct cal_ctx *ctx)
 {
 	/* Disable IRQ_WDMA_END 0/1 */
 	reg_write_field(ctx->dev,
-			CAL_HL_IRQENABLE_CLR(2),
-			CAL_HL_IRQ_CLEAR,
-			CAL_HL_IRQ_MASK(ctx->csi2_port));
+					CAL_HL_IRQENABLE_CLR(2),
+					CAL_HL_IRQ_CLEAR,
+					CAL_HL_IRQ_MASK(ctx->csi2_port));
 	/* Disable IRQ_WDMA_START 0/1 */
 	reg_write_field(ctx->dev,
-			CAL_HL_IRQENABLE_CLR(3),
-			CAL_HL_IRQ_CLEAR,
-			CAL_HL_IRQ_MASK(ctx->csi2_port));
+					CAL_HL_IRQENABLE_CLR(3),
+					CAL_HL_IRQ_CLEAR,
+					CAL_HL_IRQ_MASK(ctx->csi2_port));
 	/* Todo: Add VC_IRQ and CSI2_COMPLEXIO_IRQ handling */
 	reg_write(ctx->dev, CAL_CSI2_VC_IRQENABLE(1), 0);
 }
@@ -569,38 +610,44 @@ static void csi2_init(struct cal_ctx *ctx)
 
 	val = reg_read(ctx->dev, CAL_CSI2_TIMING(ctx->csi2_port));
 	set_field(&val, CAL_GEN_ENABLE,
-		  CAL_CSI2_TIMING_FORCE_RX_MODE_IO1_MASK);
+			  CAL_CSI2_TIMING_FORCE_RX_MODE_IO1_MASK);
 	set_field(&val, CAL_GEN_ENABLE,
-		  CAL_CSI2_TIMING_STOP_STATE_X16_IO1_MASK);
+			  CAL_CSI2_TIMING_STOP_STATE_X16_IO1_MASK);
 	set_field(&val, CAL_GEN_DISABLE,
-		  CAL_CSI2_TIMING_STOP_STATE_X4_IO1_MASK);
+			  CAL_CSI2_TIMING_STOP_STATE_X4_IO1_MASK);
 	set_field(&val, 407, CAL_CSI2_TIMING_STOP_STATE_COUNTER_IO1_MASK);
 	reg_write(ctx->dev, CAL_CSI2_TIMING(ctx->csi2_port), val);
 	ctx_dbg(3, ctx, "CAL_CSI2_TIMING(%d) = 0x%08x\n", ctx->csi2_port,
-		reg_read(ctx->dev, CAL_CSI2_TIMING(ctx->csi2_port)));
+			reg_read(ctx->dev, CAL_CSI2_TIMING(ctx->csi2_port)));
 
 	val = reg_read(ctx->dev, CAL_CSI2_COMPLEXIO_CFG(ctx->csi2_port));
 	set_field(&val, CAL_CSI2_COMPLEXIO_CFG_RESET_CTRL_OPERATIONAL,
-		  CAL_CSI2_COMPLEXIO_CFG_RESET_CTRL_MASK);
+			  CAL_CSI2_COMPLEXIO_CFG_RESET_CTRL_MASK);
 	set_field(&val, CAL_CSI2_COMPLEXIO_CFG_PWR_CMD_STATE_ON,
-		  CAL_CSI2_COMPLEXIO_CFG_PWR_CMD_MASK);
+			  CAL_CSI2_COMPLEXIO_CFG_PWR_CMD_MASK);
 	reg_write(ctx->dev, CAL_CSI2_COMPLEXIO_CFG(ctx->csi2_port), val);
-	for (i = 0; i < 10; i++) {
+
+	for (i = 0; i < 10; i++)
+	{
 		if (reg_read_field(ctx->dev,
-				   CAL_CSI2_COMPLEXIO_CFG(ctx->csi2_port),
-				   CAL_CSI2_COMPLEXIO_CFG_PWR_STATUS_MASK) ==
-		    CAL_CSI2_COMPLEXIO_CFG_PWR_STATUS_STATE_ON)
+						   CAL_CSI2_COMPLEXIO_CFG(ctx->csi2_port),
+						   CAL_CSI2_COMPLEXIO_CFG_PWR_STATUS_MASK) ==
+			CAL_CSI2_COMPLEXIO_CFG_PWR_STATUS_STATE_ON)
+		{
 			break;
+		}
+
 		usleep_range(1000, 1100);
 	}
+
 	ctx_dbg(3, ctx, "CAL_CSI2_COMPLEXIO_CFG(%d) = 0x%08x\n", ctx->csi2_port,
-		reg_read(ctx->dev, CAL_CSI2_COMPLEXIO_CFG(ctx->csi2_port)));
+			reg_read(ctx->dev, CAL_CSI2_COMPLEXIO_CFG(ctx->csi2_port)));
 
 	val = reg_read(ctx->dev, CAL_CTRL);
 	set_field(&val, CAL_CTRL_BURSTSIZE_BURST128, CAL_CTRL_BURSTSIZE_MASK);
 	set_field(&val, 0xF, CAL_CTRL_TAGCNT_MASK);
 	set_field(&val, CAL_CTRL_POSTED_WRITES_NONPOSTED,
-		  CAL_CTRL_POSTED_WRITES_MASK);
+			  CAL_CTRL_POSTED_WRITES_MASK);
 	set_field(&val, 0xFF, CAL_CTRL_MFLAGL_MASK);
 	set_field(&val, 0xFF, CAL_CTRL_MFLAGH_MASK);
 	reg_write(ctx->dev, CAL_CTRL, val);
@@ -617,7 +664,9 @@ static void csi2_lane_config(struct cal_ctx *ctx)
 
 	set_field(&val, mipi_csi2->clock_lane + 1, lane_mask);
 	set_field(&val, mipi_csi2->lane_polarities[0], polarity_mask);
-	for (lane = 0; lane < mipi_csi2->num_data_lanes; lane++) {
+
+	for (lane = 0; lane < mipi_csi2->num_data_lanes; lane++)
+	{
 		/*
 		 * Every lane are one nibble apart starting with the
 		 * clock followed by the data lanes so shift masks by 4.
@@ -626,24 +675,24 @@ static void csi2_lane_config(struct cal_ctx *ctx)
 		polarity_mask <<= 4;
 		set_field(&val, mipi_csi2->data_lanes[lane] + 1, lane_mask);
 		set_field(&val, mipi_csi2->lane_polarities[lane + 1],
-			  polarity_mask);
+				  polarity_mask);
 	}
 
 	reg_write(ctx->dev, CAL_CSI2_COMPLEXIO_CFG(ctx->csi2_port), val);
 	ctx_dbg(3, ctx, "CAL_CSI2_COMPLEXIO_CFG(%d) = 0x%08x\n",
-		ctx->csi2_port, val);
+			ctx->csi2_port, val);
 }
 
 static void csi2_ppi_enable(struct cal_ctx *ctx)
 {
 	reg_write_field(ctx->dev, CAL_CSI2_PPI_CTRL(ctx->csi2_port),
-			CAL_GEN_ENABLE, CAL_CSI2_PPI_CTRL_IF_EN_MASK);
+					CAL_GEN_ENABLE, CAL_CSI2_PPI_CTRL_IF_EN_MASK);
 }
 
 static void csi2_ppi_disable(struct cal_ctx *ctx)
 {
 	reg_write_field(ctx->dev, CAL_CSI2_PPI_CTRL(ctx->csi2_port),
-			CAL_GEN_DISABLE, CAL_CSI2_PPI_CTRL_IF_EN_MASK);
+					CAL_GEN_DISABLE, CAL_CSI2_PPI_CTRL_IF_EN_MASK);
 }
 
 static void csi2_ctx_config(struct cal_ctx *ctx)
@@ -667,10 +716,10 @@ static void csi2_ctx_config(struct cal_ctx *ctx)
 	set_field(&val, 0, CAL_CSI2_CTX_LINES_MASK);
 	set_field(&val, CAL_CSI2_CTX_ATT_PIX, CAL_CSI2_CTX_ATT_MASK);
 	set_field(&val, CAL_CSI2_CTX_PACK_MODE_LINE,
-		  CAL_CSI2_CTX_PACK_MODE_MASK);
+			  CAL_CSI2_CTX_PACK_MODE_MASK);
 	reg_write(ctx->dev, CAL_CSI2_CTX0(ctx->csi2_port), val);
 	ctx_dbg(3, ctx, "CAL_CSI2_CTX0(%d) = 0x%08x\n", ctx->csi2_port,
-		reg_read(ctx->dev, CAL_CSI2_CTX0(ctx->csi2_port)));
+			reg_read(ctx->dev, CAL_CSI2_CTX0(ctx->csi2_port)));
 }
 
 static void pix_proc_config(struct cal_ctx *ctx)
@@ -686,37 +735,37 @@ static void pix_proc_config(struct cal_ctx *ctx)
 	set_field(&val, CAL_GEN_ENABLE, CAL_PIX_PROC_EN_MASK);
 	reg_write(ctx->dev, CAL_PIX_PROC(ctx->csi2_port), val);
 	ctx_dbg(3, ctx, "CAL_PIX_PROC(%d) = 0x%08x\n", ctx->csi2_port,
-		reg_read(ctx->dev, CAL_PIX_PROC(ctx->csi2_port)));
+			reg_read(ctx->dev, CAL_PIX_PROC(ctx->csi2_port)));
 }
 
 static void cal_wr_dma_config(struct cal_ctx *ctx,
-			      unsigned int width)
+							  unsigned int width)
 {
 	u32 val;
 
 	val = reg_read(ctx->dev, CAL_WR_DMA_CTRL(ctx->csi2_port));
 	set_field(&val, ctx->csi2_port, CAL_WR_DMA_CTRL_CPORT_MASK);
 	set_field(&val, CAL_WR_DMA_CTRL_DTAG_PIX_DAT,
-		  CAL_WR_DMA_CTRL_DTAG_MASK);
+			  CAL_WR_DMA_CTRL_DTAG_MASK);
 	set_field(&val, CAL_WR_DMA_CTRL_MODE_CONST,
-		  CAL_WR_DMA_CTRL_MODE_MASK);
+			  CAL_WR_DMA_CTRL_MODE_MASK);
 	set_field(&val, CAL_WR_DMA_CTRL_PATTERN_LINEAR,
-		  CAL_WR_DMA_CTRL_PATTERN_MASK);
+			  CAL_WR_DMA_CTRL_PATTERN_MASK);
 	set_field(&val, CAL_GEN_ENABLE, CAL_WR_DMA_CTRL_STALL_RD_MASK);
 	reg_write(ctx->dev, CAL_WR_DMA_CTRL(ctx->csi2_port), val);
 	ctx_dbg(3, ctx, "CAL_WR_DMA_CTRL(%d) = 0x%08x\n", ctx->csi2_port,
-		reg_read(ctx->dev, CAL_WR_DMA_CTRL(ctx->csi2_port)));
+			reg_read(ctx->dev, CAL_WR_DMA_CTRL(ctx->csi2_port)));
 
 	/*
 	 * width/16 not sure but giving it a whirl.
 	 * zero does not work right
 	 */
 	reg_write_field(ctx->dev,
-			CAL_WR_DMA_OFST(ctx->csi2_port),
-			(width / 16),
-			CAL_WR_DMA_OFST_MASK);
+					CAL_WR_DMA_OFST(ctx->csi2_port),
+					(width / 16),
+					CAL_WR_DMA_OFST_MASK);
 	ctx_dbg(3, ctx, "CAL_WR_DMA_OFST(%d) = 0x%08x\n", ctx->csi2_port,
-		reg_read(ctx->dev, CAL_WR_DMA_OFST(ctx->csi2_port)));
+			reg_read(ctx->dev, CAL_WR_DMA_OFST(ctx->csi2_port)));
 
 	val = reg_read(ctx->dev, CAL_WR_DMA_XSIZE(ctx->csi2_port));
 	/* 64 bit word means no skipping */
@@ -729,7 +778,7 @@ static void cal_wr_dma_config(struct cal_ctx *ctx,
 	set_field(&val, (width / 8), CAL_WR_DMA_XSIZE_MASK);
 	reg_write(ctx->dev, CAL_WR_DMA_XSIZE(ctx->csi2_port), val);
 	ctx_dbg(3, ctx, "CAL_WR_DMA_XSIZE(%d) = 0x%08x\n", ctx->csi2_port,
-		reg_read(ctx->dev, CAL_WR_DMA_XSIZE(ctx->csi2_port)));
+			reg_read(ctx->dev, CAL_WR_DMA_XSIZE(ctx->csi2_port)));
 }
 
 static void cal_wr_dma_addr(struct cal_ctx *ctx, unsigned int dmaaddr)
@@ -782,7 +831,7 @@ static void csi2_phy_config(struct cal_ctx *ctx)
 
 	reg0 = reg_read(ctx->cc, CAL_CSI2_PHY_REG0);
 	set_field(&reg0, CAL_CSI2_PHY_REG0_HSCLOCKCONFIG_DISABLE,
-		  CAL_CSI2_PHY_REG0_HSCLOCKCONFIG_MASK);
+			  CAL_CSI2_PHY_REG0_HSCLOCKCONFIG_MASK);
 	set_field(&reg0, ths_term, CAL_CSI2_PHY_REG0_THS_TERM_MASK);
 	set_field(&reg0, ths_settle, CAL_CSI2_PHY_REG0_THS_SETTLE_MASK);
 
@@ -804,12 +853,16 @@ static int cal_get_external_info(struct cal_ctx *ctx)
 	struct v4l2_ctrl *ctrl;
 
 	if (!ctx->sensor)
+	{
 		return -ENODEV;
+	}
 
 	ctrl = v4l2_ctrl_find(ctx->sensor->ctrl_handler, V4L2_CID_PIXEL_RATE);
-	if (!ctrl) {
+
+	if (!ctrl)
+	{
 		ctx_err(ctx, "no pixel rate control in subdev: %s\n",
-			ctx->sensor->name);
+				ctx->sensor->name);
 		return -EPIPE;
 	}
 
@@ -844,7 +897,7 @@ static inline void cal_process_buffer_complete(struct cal_ctx *ctx)
 }
 
 #define isvcirqset(irq, vc, ff) (irq & \
-	(CAL_CSI2_VC_IRQENABLE_ ##ff ##_IRQ_##vc ##_MASK))
+								 (CAL_CSI2_VC_IRQENABLE_ ##ff ##_IRQ_##vc ##_MASK))
 
 #define isportirqset(irq, port) (irq & CAL_HL_IRQ_MASK(port))
 
@@ -857,52 +910,72 @@ static irqreturn_t cal_irq(int irq_cal, void *data)
 
 	/* Check which DMA just finished */
 	irqst2 = reg_read(dev, CAL_HL_IRQSTATUS(2));
-	if (irqst2) {
+
+	if (irqst2)
+	{
 		/* Clear Interrupt status */
 		reg_write(dev, CAL_HL_IRQSTATUS(2), irqst2);
 
 		/* Need to check both port */
-		if (isportirqset(irqst2, 1)) {
+		if (isportirqset(irqst2, 1))
+		{
 			ctx = dev->ctx[0];
 
 			if (ctx->cur_frm != ctx->next_frm)
+			{
 				cal_process_buffer_complete(ctx);
+			}
 		}
 
-		if (isportirqset(irqst2, 2)) {
+		if (isportirqset(irqst2, 2))
+		{
 			ctx = dev->ctx[1];
 
 			if (ctx->cur_frm != ctx->next_frm)
+			{
 				cal_process_buffer_complete(ctx);
+			}
 		}
 	}
 
 	/* Check which DMA just started */
 	irqst3 = reg_read(dev, CAL_HL_IRQSTATUS(3));
-	if (irqst3) {
+
+	if (irqst3)
+	{
 		/* Clear Interrupt status */
 		reg_write(dev, CAL_HL_IRQSTATUS(3), irqst3);
 
 		/* Need to check both port */
-		if (isportirqset(irqst3, 1)) {
+		if (isportirqset(irqst3, 1))
+		{
 			ctx = dev->ctx[0];
 			dma_q = &ctx->vidq;
 
 			spin_lock(&ctx->slock);
+
 			if (!list_empty(&dma_q->active) &&
-			    ctx->cur_frm == ctx->next_frm)
+				ctx->cur_frm == ctx->next_frm)
+			{
 				cal_schedule_next_buffer(ctx);
+			}
+
 			spin_unlock(&ctx->slock);
 		}
 
-		if (isportirqset(irqst3, 2)) {
+		if (isportirqset(irqst3, 2))
+		{
 			ctx = dev->ctx[1];
 			dma_q = &ctx->vidq;
 
 			spin_lock(&ctx->slock);
+
 			if (!list_empty(&dma_q->active) &&
-			    ctx->cur_frm == ctx->next_frm)
+				ctx->cur_frm == ctx->next_frm)
+			{
 				cal_schedule_next_buffer(ctx);
+			}
+
 			spin_unlock(&ctx->slock);
 		}
 	}
@@ -914,7 +987,7 @@ static irqreturn_t cal_irq(int irq_cal, void *data)
  * video ioctls
  */
 static int cal_querycap(struct file *file, void *priv,
-			struct v4l2_capability *cap)
+						struct v4l2_capability *cap)
 {
 	struct cal_ctx *ctx = video_drvdata(file);
 
@@ -922,21 +995,23 @@ static int cal_querycap(struct file *file, void *priv,
 	strlcpy(cap->card, CAL_MODULE_NAME, sizeof(cap->card));
 
 	snprintf(cap->bus_info, sizeof(cap->bus_info),
-		 "platform:%s", ctx->v4l2_dev.name);
+			 "platform:%s", ctx->v4l2_dev.name);
 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
-			    V4L2_CAP_READWRITE;
+					   V4L2_CAP_READWRITE;
 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
 	return 0;
 }
 
 static int cal_enum_fmt_vid_cap(struct file *file, void  *priv,
-				struct v4l2_fmtdesc *f)
+								struct v4l2_fmtdesc *f)
 {
 	struct cal_ctx *ctx = video_drvdata(file);
 	const struct cal_fmt *fmt = NULL;
 
 	if (f->index >= ctx->num_active_fmt)
+	{
 		return -EINVAL;
+	}
 
 	fmt = ctx->active_fmt[f->index];
 
@@ -946,7 +1021,7 @@ static int cal_enum_fmt_vid_cap(struct file *file, void  *priv,
 }
 
 static int __subdev_get_format(struct cal_ctx *ctx,
-			       struct v4l2_mbus_framefmt *fmt)
+							   struct v4l2_mbus_framefmt *fmt)
 {
 	struct v4l2_subdev_format sd_fmt;
 	struct v4l2_mbus_framefmt *mbus_fmt = &sd_fmt.format;
@@ -956,19 +1031,22 @@ static int __subdev_get_format(struct cal_ctx *ctx,
 	sd_fmt.pad = 0;
 
 	ret = v4l2_subdev_call(ctx->sensor, pad, get_fmt, NULL, &sd_fmt);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	*fmt = *mbus_fmt;
 
 	ctx_dbg(1, ctx, "%s %dx%d code:%04X\n", __func__,
-		fmt->width, fmt->height, fmt->code);
+			fmt->width, fmt->height, fmt->code);
 
 	return 0;
 }
 
 static int __subdev_set_format(struct cal_ctx *ctx,
-			       struct v4l2_mbus_framefmt *fmt)
+							   struct v4l2_mbus_framefmt *fmt)
 {
 	struct v4l2_subdev_format sd_fmt;
 	struct v4l2_mbus_framefmt *mbus_fmt = &sd_fmt.format;
@@ -979,41 +1057,45 @@ static int __subdev_set_format(struct cal_ctx *ctx,
 	*mbus_fmt = *fmt;
 
 	ret = v4l2_subdev_call(ctx->sensor, pad, set_fmt, NULL, &sd_fmt);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ctx_dbg(1, ctx, "%s %dx%d code:%04X\n", __func__,
-		fmt->width, fmt->height, fmt->code);
+			fmt->width, fmt->height, fmt->code);
 
 	return 0;
 }
 
 static int cal_calc_format_size(struct cal_ctx *ctx,
-				const struct cal_fmt *fmt,
-				struct v4l2_format *f)
+								const struct cal_fmt *fmt,
+								struct v4l2_format *f)
 {
-	if (!fmt) {
+	if (!fmt)
+	{
 		ctx_dbg(3, ctx, "No cal_fmt provided!\n");
 		return -EINVAL;
 	}
 
 	v4l_bound_align_image(&f->fmt.pix.width, 48, MAX_WIDTH, 2,
-			      &f->fmt.pix.height, 32, MAX_HEIGHT, 0, 0);
+						  &f->fmt.pix.height, 32, MAX_HEIGHT, 0, 0);
 	f->fmt.pix.bytesperline = bytes_per_line(f->fmt.pix.width,
-						 fmt->depth >> 3);
+							  fmt->depth >> 3);
 	f->fmt.pix.sizeimage = f->fmt.pix.height *
-			       f->fmt.pix.bytesperline;
+						   f->fmt.pix.bytesperline;
 
 	ctx_dbg(3, ctx, "%s: fourcc: %s size: %dx%d bpl:%d img_size:%d\n",
-		__func__, fourcc_to_str(f->fmt.pix.pixelformat),
-		f->fmt.pix.width, f->fmt.pix.height,
-		f->fmt.pix.bytesperline, f->fmt.pix.sizeimage);
+			__func__, fourcc_to_str(f->fmt.pix.pixelformat),
+			f->fmt.pix.width, f->fmt.pix.height,
+			f->fmt.pix.bytesperline, f->fmt.pix.sizeimage);
 
 	return 0;
 }
 
 static int cal_g_fmt_vid_cap(struct file *file, void *priv,
-			     struct v4l2_format *f)
+							 struct v4l2_format *f)
 {
 	struct cal_ctx *ctx = video_drvdata(file);
 
@@ -1023,7 +1105,7 @@ static int cal_g_fmt_vid_cap(struct file *file, void *priv,
 }
 
 static int cal_try_fmt_vid_cap(struct file *file, void *priv,
-			       struct v4l2_format *f)
+							   struct v4l2_format *f)
 {
 	struct cal_ctx *ctx = video_drvdata(file);
 	const struct cal_fmt *fmt;
@@ -1031,9 +1113,11 @@ static int cal_try_fmt_vid_cap(struct file *file, void *priv,
 	int ret, found;
 
 	fmt = find_format_by_pix(ctx, f->fmt.pix.pixelformat);
-	if (!fmt) {
+
+	if (!fmt)
+	{
 		ctx_dbg(3, ctx, "Fourcc format (0x%08x) not found.\n",
-			f->fmt.pix.pixelformat);
+				f->fmt.pix.pixelformat);
 
 		/* Just get the first one enumerated */
 		fmt = ctx->active_fmt[0];
@@ -1048,26 +1132,35 @@ static int cal_try_fmt_vid_cap(struct file *file, void *priv,
 	fse.pad = 0;
 	fse.code = fmt->code;
 	fse.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-	for (fse.index = 0; ; fse.index++) {
+
+	for (fse.index = 0; ; fse.index++)
+	{
 		ret = v4l2_subdev_call(ctx->sensor, pad, enum_frame_size,
-				       NULL, &fse);
+							   NULL, &fse);
+
 		if (ret)
+		{
 			break;
+		}
 
 		if ((f->fmt.pix.width == fse.max_width) &&
-		    (f->fmt.pix.height == fse.max_height)) {
+			(f->fmt.pix.height == fse.max_height))
+		{
 			found = true;
 			break;
-		} else if ((f->fmt.pix.width >= fse.min_width) &&
-			 (f->fmt.pix.width <= fse.max_width) &&
-			 (f->fmt.pix.height >= fse.min_height) &&
-			 (f->fmt.pix.height <= fse.max_height)) {
+		}
+		else if ((f->fmt.pix.width >= fse.min_width) &&
+				 (f->fmt.pix.width <= fse.max_width) &&
+				 (f->fmt.pix.height >= fse.min_height) &&
+				 (f->fmt.pix.height <= fse.max_height))
+		{
 			found = true;
 			break;
 		}
 	}
 
-	if (!found) {
+	if (!found)
+	{
 		/* use existing values as default */
 		f->fmt.pix.width = ctx->v_fmt.fmt.pix.width;
 		f->fmt.pix.height =  ctx->v_fmt.fmt.pix.height;
@@ -1082,7 +1175,7 @@ static int cal_try_fmt_vid_cap(struct file *file, void *priv,
 }
 
 static int cal_s_fmt_vid_cap(struct file *file, void *priv,
-			     struct v4l2_format *f)
+							 struct v4l2_format *f)
 {
 	struct cal_ctx *ctx = video_drvdata(file);
 	struct vb2_queue *q = &ctx->vb_vidq;
@@ -1090,28 +1183,36 @@ static int cal_s_fmt_vid_cap(struct file *file, void *priv,
 	struct v4l2_mbus_framefmt mbus_fmt;
 	int ret;
 
-	if (vb2_is_busy(q)) {
+	if (vb2_is_busy(q))
+	{
 		ctx_dbg(3, ctx, "%s device busy\n", __func__);
 		return -EBUSY;
 	}
 
 	ret = cal_try_fmt_vid_cap(file, priv, f);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	fmt = find_format_by_pix(ctx, f->fmt.pix.pixelformat);
 
 	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, fmt->code);
 
 	ret = __subdev_set_format(ctx, &mbus_fmt);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Just double check nothing has gone wrong */
-	if (mbus_fmt.code != fmt->code) {
+	if (mbus_fmt.code != fmt->code)
+	{
 		ctx_dbg(3, ctx,
-			"%s subdev changed format on us, this should not happen\n",
-			__func__);
+				"%s subdev changed format on us, this should not happen\n",
+				__func__);
 		return -EINVAL;
 	}
 
@@ -1127,7 +1228,7 @@ static int cal_s_fmt_vid_cap(struct file *file, void *priv,
 }
 
 static int cal_enum_framesizes(struct file *file, void *fh,
-			       struct v4l2_frmsizeenum *fsize)
+							   struct v4l2_frmsizeenum *fsize)
 {
 	struct cal_ctx *ctx = video_drvdata(file);
 	const struct cal_fmt *fmt;
@@ -1136,9 +1237,11 @@ static int cal_enum_framesizes(struct file *file, void *fh,
 
 	/* check for valid format */
 	fmt = find_format_by_pix(ctx, fsize->pixel_format);
-	if (!fmt) {
+
+	if (!fmt)
+	{
 		ctx_dbg(3, ctx, "Invalid pixel code: %x\n",
-			fsize->pixel_format);
+				fsize->pixel_format);
 		return -EINVAL;
 	}
 
@@ -1147,12 +1250,15 @@ static int cal_enum_framesizes(struct file *file, void *fh,
 	fse.code = fmt->code;
 
 	ret = v4l2_subdev_call(ctx->sensor, pad, enum_frame_size, NULL, &fse);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ctx_dbg(1, ctx, "%s: index: %d code: %x W:[%d,%d] H:[%d,%d]\n",
-		__func__, fse.index, fse.code, fse.min_width, fse.max_width,
-		fse.min_height, fse.max_height);
+			__func__, fse.index, fse.code, fse.min_width, fse.max_width,
+			fse.min_height, fse.max_height);
 
 	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
 	fsize->discrete.width = fse.max_width;
@@ -1162,10 +1268,12 @@ static int cal_enum_framesizes(struct file *file, void *fh,
 }
 
 static int cal_enum_input(struct file *file, void *priv,
-			  struct v4l2_input *inp)
+						  struct v4l2_input *inp)
 {
 	if (inp->index >= CAL_NUM_INPUT)
+	{
 		return -EINVAL;
+	}
 
 	inp->type = V4L2_INPUT_TYPE_CAMERA;
 	sprintf(inp->name, "Camera %u", inp->index);
@@ -1185,7 +1293,9 @@ static int cal_s_input(struct file *file, void *priv, unsigned int i)
 	struct cal_ctx *ctx = video_drvdata(file);
 
 	if (i >= CAL_NUM_INPUT)
+	{
 		return -EINVAL;
+	}
 
 	ctx->input = i;
 	return 0;
@@ -1193,11 +1303,12 @@ static int cal_s_input(struct file *file, void *priv, unsigned int i)
 
 /* timeperframe is arbitrary and continuous */
 static int cal_enum_frameintervals(struct file *file, void *priv,
-				   struct v4l2_frmivalenum *fival)
+								   struct v4l2_frmivalenum *fival)
 {
 	struct cal_ctx *ctx = video_drvdata(file);
 	const struct cal_fmt *fmt;
-	struct v4l2_subdev_frame_interval_enum fie = {
+	struct v4l2_subdev_frame_interval_enum fie =
+	{
 		.index = fival->index,
 		.width = fival->width,
 		.height = fival->height,
@@ -1206,14 +1317,21 @@ static int cal_enum_frameintervals(struct file *file, void *priv,
 	int ret;
 
 	fmt = find_format_by_pix(ctx, fival->pixel_format);
+
 	if (!fmt)
+	{
 		return -EINVAL;
+	}
 
 	fie.code = fmt->code;
 	ret = v4l2_subdev_call(ctx->sensor, pad, enum_frame_interval,
-			       NULL, &fie);
+						   NULL, &fie);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
 	fival->discrete = fie.interval;
 
@@ -1224,18 +1342,24 @@ static int cal_enum_frameintervals(struct file *file, void *priv,
  * Videobuf operations
  */
 static int cal_queue_setup(struct vb2_queue *vq,
-			   unsigned int *nbuffers, unsigned int *nplanes,
-			   unsigned int sizes[], struct device *alloc_devs[])
+						   unsigned int *nbuffers, unsigned int *nplanes,
+						   unsigned int sizes[], struct device *alloc_devs[])
 {
 	struct cal_ctx *ctx = vb2_get_drv_priv(vq);
 	unsigned size = ctx->v_fmt.fmt.pix.sizeimage;
 
 	if (vq->num_buffers + *nbuffers < 3)
+	{
 		*nbuffers = 3 - vq->num_buffers;
+	}
 
-	if (*nplanes) {
+	if (*nplanes)
+	{
 		if (sizes[0] < size)
+		{
 			return -EINVAL;
+		}
+
 		size = sizes[0];
 	}
 
@@ -1251,17 +1375,21 @@ static int cal_buffer_prepare(struct vb2_buffer *vb)
 {
 	struct cal_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
 	struct cal_buffer *buf = container_of(vb, struct cal_buffer,
-					      vb.vb2_buf);
+										  vb.vb2_buf);
 	unsigned long size;
 
 	if (WARN_ON(!ctx->fmt))
+	{
 		return -EINVAL;
+	}
 
 	size = ctx->v_fmt.fmt.pix.sizeimage;
-	if (vb2_plane_size(vb, 0) < size) {
+
+	if (vb2_plane_size(vb, 0) < size)
+	{
 		ctx_err(ctx,
-			"data will not fit into plane (%lu < %lu)\n",
-			vb2_plane_size(vb, 0), size);
+				"data will not fit into plane (%lu < %lu)\n",
+				vb2_plane_size(vb, 0), size);
 		return -EINVAL;
 	}
 
@@ -1273,7 +1401,7 @@ static void cal_buffer_queue(struct vb2_buffer *vb)
 {
 	struct cal_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
 	struct cal_buffer *buf = container_of(vb, struct cal_buffer,
-					      vb.vb2_buf);
+										  vb.vb2_buf);
 	struct cal_dmaqueue *vidq = &ctx->vidq;
 	unsigned long flags = 0;
 
@@ -1293,7 +1421,9 @@ static int cal_start_streaming(struct vb2_queue *vq, unsigned int count)
 	int ret;
 
 	spin_lock_irqsave(&ctx->slock, flags);
-	if (list_empty(&dma_q->active)) {
+
+	if (list_empty(&dma_q->active))
+	{
 		spin_unlock_irqrestore(&ctx->slock, flags);
 		ctx_dbg(3, ctx, "buffer queue is empty\n");
 		return -EIO;
@@ -1309,8 +1439,11 @@ static int cal_start_streaming(struct vb2_queue *vq, unsigned int count)
 	ctx->sequence = 0;
 
 	ret = cal_get_external_info(ctx);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	cal_runtime_get(ctx->dev);
 
@@ -1326,19 +1459,24 @@ static int cal_start_streaming(struct vb2_queue *vq, unsigned int count)
 	csi2_ppi_enable(ctx);
 
 	ret = v4l2_subdev_call(ctx->sensor, video, s_stream, 1);
-	if (ret) {
+
+	if (ret)
+	{
 		ctx_err(ctx, "stream on failed in subdev\n");
 		cal_runtime_put(ctx->dev);
 		goto err;
 	}
 
 	if (debug >= 4)
+	{
 		cal_quickdump_regs(ctx->dev);
+	}
 
 	return 0;
 
 err:
-	list_for_each_entry_safe(buf, tmp, &dma_q->active, list) {
+	list_for_each_entry_safe(buf, tmp, &dma_q->active, list)
+	{
 		list_del(&buf->list);
 		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_QUEUED);
 	}
@@ -1353,25 +1491,32 @@ static void cal_stop_streaming(struct vb2_queue *vq)
 	unsigned long flags;
 
 	if (v4l2_subdev_call(ctx->sensor, video, s_stream, 0))
+	{
 		ctx_err(ctx, "stream off failed in subdev\n");
+	}
 
 	csi2_ppi_disable(ctx);
 	disable_irqs(ctx);
 
 	/* Release all active buffers */
 	spin_lock_irqsave(&ctx->slock, flags);
-	list_for_each_entry_safe(buf, tmp, &dma_q->active, list) {
+	list_for_each_entry_safe(buf, tmp, &dma_q->active, list)
+	{
 		list_del(&buf->list);
 		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
 	}
 
-	if (ctx->cur_frm == ctx->next_frm) {
+	if (ctx->cur_frm == ctx->next_frm)
+	{
 		vb2_buffer_done(&ctx->cur_frm->vb.vb2_buf, VB2_BUF_STATE_ERROR);
-	} else {
+	}
+	else
+	{
 		vb2_buffer_done(&ctx->cur_frm->vb.vb2_buf, VB2_BUF_STATE_ERROR);
 		vb2_buffer_done(&ctx->next_frm->vb.vb2_buf,
-				VB2_BUF_STATE_ERROR);
+						VB2_BUF_STATE_ERROR);
 	}
+
 	ctx->cur_frm = NULL;
 	ctx->next_frm = NULL;
 	spin_unlock_irqrestore(&ctx->slock, flags);
@@ -1379,7 +1524,8 @@ static void cal_stop_streaming(struct vb2_queue *vq)
 	cal_runtime_put(ctx->dev);
 }
 
-static const struct vb2_ops cal_video_qops = {
+static const struct vb2_ops cal_video_qops =
+{
 	.queue_setup		= cal_queue_setup,
 	.buf_prepare		= cal_buffer_prepare,
 	.buf_queue		= cal_buffer_queue,
@@ -1389,7 +1535,8 @@ static const struct vb2_ops cal_video_qops = {
 	.wait_finish		= vb2_ops_wait_finish,
 };
 
-static const struct v4l2_file_operations cal_fops = {
+static const struct v4l2_file_operations cal_fops =
+{
 	.owner		= THIS_MODULE,
 	.open           = v4l2_fh_open,
 	.release        = vb2_fop_release,
@@ -1399,7 +1546,8 @@ static const struct v4l2_file_operations cal_fops = {
 	.mmap           = vb2_fop_mmap,
 };
 
-static const struct v4l2_ioctl_ops cal_ioctl_ops = {
+static const struct v4l2_ioctl_ops cal_ioctl_ops =
+{
 	.vidioc_querycap      = cal_querycap,
 	.vidioc_enum_fmt_vid_cap  = cal_enum_fmt_vid_cap,
 	.vidioc_g_fmt_vid_cap     = cal_g_fmt_vid_cap,
@@ -1423,7 +1571,8 @@ static const struct v4l2_ioctl_ops cal_ioctl_ops = {
 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
 };
 
-static struct video_device cal_videodev = {
+static struct video_device cal_videodev =
+{
 	.name		= CAL_MODULE_NAME,
 	.fops		= &cal_fops,
 	.ioctl_ops	= &cal_ioctl_ops,
@@ -1438,17 +1587,18 @@ static struct video_device cal_videodev = {
 static int cal_complete_ctx(struct cal_ctx *ctx);
 
 static int cal_async_bound(struct v4l2_async_notifier *notifier,
-			   struct v4l2_subdev *subdev,
-			   struct v4l2_async_subdev *asd)
+						   struct v4l2_subdev *subdev,
+						   struct v4l2_async_subdev *asd)
 {
 	struct cal_ctx *ctx = notifier_to_ctx(notifier);
 	struct v4l2_subdev_mbus_code_enum mbus_code;
 	int ret = 0;
 	int i, j, k;
 
-	if (ctx->sensor) {
+	if (ctx->sensor)
+	{
 		ctx_info(ctx, "Rejecting subdev %s (Already set!!)",
-			 subdev->name);
+				 subdev->name);
 		return 0;
 	}
 
@@ -1457,37 +1607,45 @@ static int cal_async_bound(struct v4l2_async_notifier *notifier,
 
 	/* Enumerate sub device formats and enable all matching local formats */
 	ctx->num_active_fmt = 0;
-	for (j = 0, i = 0; ret != -EINVAL; ++j) {
+
+	for (j = 0, i = 0; ret != -EINVAL; ++j)
+	{
 		struct cal_fmt *fmt;
 
 		memset(&mbus_code, 0, sizeof(mbus_code));
 		mbus_code.index = j;
 		ret = v4l2_subdev_call(subdev, pad, enum_mbus_code,
-				       NULL, &mbus_code);
+							   NULL, &mbus_code);
+
 		if (ret)
+		{
 			continue;
+		}
 
 		ctx_dbg(2, ctx,
-			"subdev %s: code: %04x idx: %d\n",
-			subdev->name, mbus_code.code, j);
+				"subdev %s: code: %04x idx: %d\n",
+				subdev->name, mbus_code.code, j);
 
-		for (k = 0; k < ARRAY_SIZE(cal_formats); k++) {
+		for (k = 0; k < ARRAY_SIZE(cal_formats); k++)
+		{
 			fmt = &cal_formats[k];
 
-			if (mbus_code.code == fmt->code) {
+			if (mbus_code.code == fmt->code)
+			{
 				ctx->active_fmt[i] = fmt;
 				ctx_dbg(2, ctx,
-					"matched fourcc: %s: code: %04x idx: %d\n",
-					fourcc_to_str(fmt->fourcc),
-					fmt->code, i);
+						"matched fourcc: %s: code: %04x idx: %d\n",
+						fourcc_to_str(fmt->fourcc),
+						fmt->code, i);
 				ctx->num_active_fmt = ++i;
 			}
 		}
 	}
 
-	if (i == 0) {
+	if (i == 0)
+	{
 		ctx_err(ctx, "No suitable format reported by subdev %s\n",
-			subdev->name);
+				subdev->name);
 		return -EINVAL;
 	}
 
@@ -1504,13 +1662,18 @@ static int cal_async_complete(struct v4l2_async_notifier *notifier)
 	int ret;
 
 	ret = __subdev_get_format(ctx, &mbus_fmt);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	fmt = find_format_by_code(ctx, mbus_fmt.code);
-	if (!fmt) {
+
+	if (!fmt)
+	{
 		ctx_dbg(3, ctx, "mbus code format (0x%08x) not found.\n",
-			mbus_fmt.code);
+				mbus_fmt.code);
 		return -EINVAL;
 	}
 
@@ -1552,8 +1715,11 @@ static int cal_complete_ctx(struct cal_ctx *ctx)
 	q->dev = ctx->v4l2_dev.dev;
 
 	ret = vb2_queue_init(q);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* init video dma queues */
 	INIT_LIST_HEAD(&ctx->vidq.active);
@@ -1571,53 +1737,72 @@ static int cal_complete_ctx(struct cal_ctx *ctx)
 	video_set_drvdata(vfd, ctx);
 
 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, video_nr);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	v4l2_info(&ctx->v4l2_dev, "V4L2 device registered as %s\n",
-		  video_device_node_name(vfd));
+			  video_device_node_name(vfd));
 
 	return 0;
 }
 
 static struct device_node *
 of_get_next_port(const struct device_node *parent,
-		 struct device_node *prev)
+				 struct device_node *prev)
 {
 	struct device_node *port = NULL;
 
 	if (!parent)
+	{
 		return NULL;
+	}
 
-	if (!prev) {
+	if (!prev)
+	{
 		struct device_node *ports;
 		/*
 		 * It's the first call, we have to find a port subnode
 		 * within this node or within an optional 'ports' node.
 		 */
 		ports = of_get_child_by_name(parent, "ports");
+
 		if (ports)
+		{
 			parent = ports;
+		}
 
 		port = of_get_child_by_name(parent, "port");
 
 		/* release the 'ports' node */
 		of_node_put(ports);
-	} else {
+	}
+	else
+	{
 		struct device_node *ports;
 
 		ports = of_get_parent(prev);
-		if (!ports)
-			return NULL;
 
-		do {
+		if (!ports)
+		{
+			return NULL;
+		}
+
+		do
+		{
 			port = of_get_next_child(ports, prev);
-			if (!port) {
+
+			if (!port)
+			{
 				of_node_put(ports);
 				return NULL;
 			}
+
 			prev = port;
-		} while (of_node_cmp(port->name, "port") != 0);
+		}
+		while (of_node_cmp(port->name, "port") != 0);
 	}
 
 	return port;
@@ -1625,19 +1810,27 @@ of_get_next_port(const struct device_node *parent,
 
 static struct device_node *
 of_get_next_endpoint(const struct device_node *parent,
-		     struct device_node *prev)
+					 struct device_node *prev)
 {
 	struct device_node *ep = NULL;
 
 	if (!parent)
+	{
 		return NULL;
+	}
 
-	do {
+	do
+	{
 		ep = of_get_next_child(parent, prev);
+
 		if (!ep)
+		{
 			return NULL;
+		}
+
 		prev = ep;
-	} while (of_node_cmp(ep->name, "endpoint") != 0);
+	}
+	while (of_node_cmp(ep->name, "endpoint") != 0);
 
 	return ep;
 }
@@ -1646,7 +1839,7 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
 {
 	struct platform_device *pdev = ctx->dev->pdev;
 	struct device_node *ep_node, *port, *remote_ep,
-			*sensor_node, *parent;
+			   *sensor_node, *parent;
 	struct v4l2_of_endpoint *endpoint;
 	struct v4l2_async_subdev *asd;
 	u32 regval = 0;
@@ -1664,57 +1857,73 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
 	ret = -EINVAL;
 
 	ctx_dbg(3, ctx, "Scanning Port node for csi2 port: %d\n", inst);
-	for (index = 0; index < CAL_NUM_CSI2_PORTS; index++) {
+
+	for (index = 0; index < CAL_NUM_CSI2_PORTS; index++)
+	{
 		port = of_get_next_port(parent, port);
-		if (!port) {
+
+		if (!port)
+		{
 			ctx_dbg(1, ctx, "No port node found for csi2 port:%d\n",
-				index);
+					index);
 			goto cleanup_exit;
 		}
 
 		/* Match the slice number with <REG> */
 		of_property_read_u32(port, "reg", &regval);
 		ctx_dbg(3, ctx, "port:%d inst:%d <reg>:%d\n",
-			index, inst, regval);
-		if ((regval == inst) && (index == inst)) {
+				index, inst, regval);
+
+		if ((regval == inst) && (index == inst))
+		{
 			found_port = 1;
 			break;
 		}
 	}
 
-	if (!found_port) {
+	if (!found_port)
+	{
 		ctx_dbg(1, ctx, "No port node matches csi2 port:%d\n",
-			inst);
+				inst);
 		goto cleanup_exit;
 	}
 
 	ctx_dbg(3, ctx, "Scanning sub-device for csi2 port: %d\n",
-		inst);
+			inst);
 
 	ep_node = of_get_next_endpoint(port, ep_node);
-	if (!ep_node) {
+
+	if (!ep_node)
+	{
 		ctx_dbg(3, ctx, "can't get next endpoint\n");
 		goto cleanup_exit;
 	}
 
 	sensor_node = of_graph_get_remote_port_parent(ep_node);
-	if (!sensor_node) {
+
+	if (!sensor_node)
+	{
 		ctx_dbg(3, ctx, "can't get remote parent\n");
 		goto cleanup_exit;
 	}
+
 	asd->match_type = V4L2_ASYNC_MATCH_OF;
 	asd->match.of.node = sensor_node;
 
 	remote_ep = of_parse_phandle(ep_node, "remote-endpoint", 0);
-	if (!remote_ep) {
+
+	if (!remote_ep)
+	{
 		ctx_dbg(3, ctx, "can't get remote-endpoint\n");
 		goto cleanup_exit;
 	}
+
 	v4l2_of_parse_endpoint(remote_ep, endpoint);
 
-	if (endpoint->bus_type != V4L2_MBUS_CSI2) {
+	if (endpoint->bus_type != V4L2_MBUS_CSI2)
+	{
 		ctx_err(ctx, "Port:%d sub-device %s is not a CSI2 device\n",
-			inst, sensor_node->name);
+				inst, sensor_node->name);
 		goto cleanup_exit;
 	}
 
@@ -1726,15 +1935,17 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
 	ctx_dbg(3, ctx, "flags=0x%08x\n", endpoint->bus.mipi_csi2.flags);
 	ctx_dbg(3, ctx, "clock_lane=%d\n", endpoint->bus.mipi_csi2.clock_lane);
 	ctx_dbg(3, ctx, "num_data_lanes=%d\n",
-		endpoint->bus.mipi_csi2.num_data_lanes);
+			endpoint->bus.mipi_csi2.num_data_lanes);
 	ctx_dbg(3, ctx, "data_lanes= <\n");
+
 	for (lane = 0; lane < endpoint->bus.mipi_csi2.num_data_lanes; lane++)
 		ctx_dbg(3, ctx, "\t%d\n",
-			endpoint->bus.mipi_csi2.data_lanes[lane]);
+				endpoint->bus.mipi_csi2.data_lanes[lane]);
+
 	ctx_dbg(3, ctx, "\t>\n");
 
 	ctx_dbg(1, ctx, "Port: %d found sub-device %s\n",
-		inst, sensor_node->name);
+			inst, sensor_node->name);
 
 	ctx->asd_list[0] = asd;
 	ctx->notifier.subdevs = ctx->asd_list;
@@ -1742,21 +1953,35 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
 	ctx->notifier.bound = cal_async_bound;
 	ctx->notifier.complete = cal_async_complete;
 	ret = v4l2_async_notifier_register(&ctx->v4l2_dev,
-					   &ctx->notifier);
-	if (ret) {
+									   &ctx->notifier);
+
+	if (ret)
+	{
 		ctx_err(ctx, "Error registering async notifier\n");
 		ret = -EINVAL;
 	}
 
 cleanup_exit:
+
 	if (!remote_ep)
+	{
 		of_node_put(remote_ep);
+	}
+
 	if (!sensor_node)
+	{
 		of_node_put(sensor_node);
+	}
+
 	if (!ep_node)
+	{
 		of_node_put(ep_node);
+	}
+
 	if (!port)
+	{
 		of_node_put(port);
+	}
 
 	return ret;
 }
@@ -1768,24 +1993,33 @@ static struct cal_ctx *cal_create_instance(struct cal_dev *dev, int inst)
 	int ret;
 
 	ctx = devm_kzalloc(&dev->pdev->dev, sizeof(*ctx), GFP_KERNEL);
+
 	if (!ctx)
+	{
 		return NULL;
+	}
 
 	/* save the cal_dev * for future ref */
 	ctx->dev = dev;
 
 	snprintf(ctx->v4l2_dev.name, sizeof(ctx->v4l2_dev.name),
-		 "%s-%03d", CAL_MODULE_NAME, inst);
+			 "%s-%03d", CAL_MODULE_NAME, inst);
 	ret = v4l2_device_register(&dev->pdev->dev, &ctx->v4l2_dev);
+
 	if (ret)
+	{
 		goto err_exit;
+	}
 
 	hdl = &ctx->ctrl_handler;
 	ret = v4l2_ctrl_handler_init(hdl, 11);
-	if (ret) {
+
+	if (ret)
+	{
 		ctx_err(ctx, "Failed to init ctrl handler\n");
 		goto unreg_dev;
 	}
+
 	ctx->v4l2_dev.ctrl_handler = hdl;
 
 	/* Make sure Camera Core H/W register area is available */
@@ -1795,10 +2029,13 @@ static struct cal_ctx *cal_create_instance(struct cal_dev *dev, int inst)
 	ctx->csi2_port = inst + 1;
 
 	ret = of_cal_create_instance(ctx, inst);
-	if (ret) {
+
+	if (ret)
+	{
 		ret = -EINVAL;
 		goto free_hdl;
 	}
+
 	return ctx;
 
 free_hdl:
@@ -1816,52 +2053,72 @@ static int cal_probe(struct platform_device *pdev)
 	int irq;
 
 	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	/* set pseudo v4l2 device name so we can use v4l2_printk */
 	strlcpy(dev->v4l2_dev.name, CAL_MODULE_NAME,
-		sizeof(dev->v4l2_dev.name));
+			sizeof(dev->v4l2_dev.name));
 
 	/* save pdev pointer */
 	dev->pdev = pdev;
 
 	dev->res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
-						"cal_top");
+											"cal_top");
 	dev->base = devm_ioremap_resource(&pdev->dev, dev->res);
+
 	if (IS_ERR(dev->base))
+	{
 		return PTR_ERR(dev->base);
+	}
 
 	cal_dbg(1, dev, "ioresource %s at %pa - %pa\n",
-		dev->res->name, &dev->res->start, &dev->res->end);
+			dev->res->name, &dev->res->start, &dev->res->end);
 
 	irq = platform_get_irq(pdev, 0);
 	cal_dbg(1, dev, "got irq# %d\n", irq);
 	ret = devm_request_irq(&pdev->dev, irq, cal_irq, 0, CAL_MODULE_NAME,
-			       dev);
+						   dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	platform_set_drvdata(pdev, dev);
 
 	dev->cm = cm_create(dev);
+
 	if (IS_ERR(dev->cm))
+	{
 		return PTR_ERR(dev->cm);
+	}
 
 	dev->cc[0] = cc_create(dev, 0);
+
 	if (IS_ERR(dev->cc[0]))
+	{
 		return PTR_ERR(dev->cc[0]);
+	}
 
 	dev->cc[1] = cc_create(dev, 1);
+
 	if (IS_ERR(dev->cc[1]))
+	{
 		return PTR_ERR(dev->cc[1]);
+	}
 
 	dev->ctx[0] = NULL;
 	dev->ctx[1] = NULL;
 
 	dev->ctx[0] = cal_create_instance(dev, 0);
 	dev->ctx[1] = cal_create_instance(dev, 1);
-	if (!dev->ctx[0] && !dev->ctx[1]) {
+
+	if (!dev->ctx[0] && !dev->ctx[1])
+	{
 		cal_err(dev, "Neither port is configured, no point in staying up\n");
 		return -ENODEV;
 	}
@@ -1869,8 +2126,11 @@ static int cal_probe(struct platform_device *pdev)
 	pm_runtime_enable(&pdev->dev);
 
 	ret = cal_runtime_get(dev);
+
 	if (ret)
+	{
 		goto runtime_disable;
+	}
 
 	/* Just check we can actually access the module */
 	cal_get_hwinfo(dev);
@@ -1895,11 +2155,14 @@ static int cal_remove(struct platform_device *pdev)
 
 	cal_runtime_get(dev);
 
-	for (i = 0; i < CAL_NUM_CONTEXT; i++) {
+	for (i = 0; i < CAL_NUM_CONTEXT; i++)
+	{
 		ctx = dev->ctx[i];
-		if (ctx) {
+
+		if (ctx)
+		{
 			ctx_dbg(1, ctx, "unregistering %s\n",
-				video_device_node_name(&ctx->vdev));
+					video_device_node_name(&ctx->vdev));
 			camerarx_phy_disable(ctx);
 			v4l2_async_notifier_unregister(&ctx->notifier);
 			v4l2_ctrl_handler_free(&ctx->ctrl_handler);
@@ -1915,14 +2178,16 @@ static int cal_remove(struct platform_device *pdev)
 }
 
 #if defined(CONFIG_OF)
-static const struct of_device_id cal_of_match[] = {
+static const struct of_device_id cal_of_match[] =
+{
 	{ .compatible = "ti,dra72-cal", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, cal_of_match);
 #endif
 
-static struct platform_driver cal_pdrv = {
+static struct platform_driver cal_pdrv =
+{
 	.probe		= cal_probe,
 	.remove		= cal_remove,
 	.driver		= {

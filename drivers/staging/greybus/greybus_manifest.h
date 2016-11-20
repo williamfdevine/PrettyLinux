@@ -13,7 +13,8 @@
 #ifndef __GREYBUS_MANIFEST_H
 #define __GREYBUS_MANIFEST_H
 
-enum greybus_descriptor_type {
+enum greybus_descriptor_type
+{
 	GREYBUS_TYPE_INVALID		= 0x00,
 	GREYBUS_TYPE_INTERFACE		= 0x01,
 	GREYBUS_TYPE_STRING		= 0x02,
@@ -21,7 +22,8 @@ enum greybus_descriptor_type {
 	GREYBUS_TYPE_CPORT		= 0x04,
 };
 
-enum greybus_protocol {
+enum greybus_protocol
+{
 	GREYBUS_PROTOCOL_CONTROL	= 0x00,
 	/* 0x01 is unused */
 	GREYBUS_PROTOCOL_GPIO		= 0x02,
@@ -49,12 +51,13 @@ enum greybus_protocol {
 	GREYBUS_PROTOCOL_FW_MANAGEMENT	= 0x18,
 	GREYBUS_PROTOCOL_AUTHENTICATION	= 0x19,
 	GREYBUS_PROTOCOL_LOG		= 0x1a,
-		/* ... */
+	/* ... */
 	GREYBUS_PROTOCOL_RAW		= 0xfe,
 	GREYBUS_PROTOCOL_VENDOR		= 0xff,
 };
 
-enum greybus_class_type {
+enum greybus_class_type
+{
 	GREYBUS_CLASS_CONTROL		= 0x00,
 	/* 0x01 is unused */
 	/* 0x02 is unused */
@@ -79,12 +82,13 @@ enum greybus_class_type {
 	GREYBUS_CLASS_BOOTROM		= 0x15,
 	GREYBUS_CLASS_FW_MANAGEMENT	= 0x16,
 	GREYBUS_CLASS_LOG		= 0x17,
-		/* ... */
+	/* ... */
 	GREYBUS_CLASS_RAW		= 0xfe,
 	GREYBUS_CLASS_VENDOR		= 0xff,
 };
 
-enum {
+enum
+{
 	GREYBUS_INTERFACE_FEATURE_TIMESYNC = BIT(0),
 };
 
@@ -93,7 +97,8 @@ enum {
  * size of the descriptor will be rounded up to a multiple of 4
  * bytes, by padding the string with 0x00 bytes if necessary.
  */
-struct greybus_descriptor_string {
+struct greybus_descriptor_string
+{
 	__u8	length;
 	__u8	id;
 	__u8	string[0];
@@ -103,7 +108,8 @@ struct greybus_descriptor_string {
  * An interface descriptor describes information about an interface as a whole,
  * *not* the functions within it.
  */
-struct greybus_descriptor_interface {
+struct greybus_descriptor_interface
+{
 	__u8	vendor_stringid;
 	__u8	product_stringid;
 	__u8	features;
@@ -129,7 +135,8 @@ struct greybus_descriptor_interface {
  * 'enum greybus_class_type'.
  *
  */
-struct greybus_descriptor_bundle {
+struct greybus_descriptor_bundle
+{
 	__u8	id;	/* interface-relative id (0..) */
 	__u8	class;
 	__u8	pad[2];
@@ -141,21 +148,25 @@ struct greybus_descriptor_bundle {
  * address the CPort.  The protocol id defines the format of messages
  * exchanged using the CPort.
  */
-struct greybus_descriptor_cport {
+struct greybus_descriptor_cport
+{
 	__le16	id;
 	__u8	bundle;
 	__u8	protocol_id;	/* enum greybus_protocol */
 } __packed;
 
-struct greybus_descriptor_header {
+struct greybus_descriptor_header
+{
 	__le16	size;
 	__u8	type;		/* enum greybus_descriptor_type */
 	__u8	pad;
 } __packed;
 
-struct greybus_descriptor {
+struct greybus_descriptor
+{
 	struct greybus_descriptor_header		header;
-	union {
+	union
+	{
 		struct greybus_descriptor_string	string;
 		struct greybus_descriptor_interface	interface;
 		struct greybus_descriptor_bundle	bundle;
@@ -163,13 +174,15 @@ struct greybus_descriptor {
 	};
 } __packed;
 
-struct greybus_manifest_header {
+struct greybus_manifest_header
+{
 	__le16	size;
 	__u8	version_major;
 	__u8	version_minor;
 } __packed;
 
-struct greybus_manifest {
+struct greybus_manifest
+{
 	struct greybus_manifest_header		header;
 	struct greybus_descriptor		descriptors[0];
 } __packed;

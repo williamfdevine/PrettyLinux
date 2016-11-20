@@ -25,7 +25,8 @@
  * For CPU clock domains that do not have a DIV1 register, the @div1 member
  * value is not used.
  */
-struct exynos_cpuclk_cfg_data {
+struct exynos_cpuclk_cfg_data
+{
 	unsigned long	prate;
 	unsigned long	div0;
 	unsigned long	div1;
@@ -47,7 +48,8 @@ struct exynos_cpuclk_cfg_data {
  * This structure holds information required for programming the CPU clock for
  * various clock speeds.
  */
-struct exynos_cpuclk {
+struct exynos_cpuclk
+{
 	struct clk_hw				hw;
 	struct clk				*alt_parent;
 	void __iomem				*ctrl_base;
@@ -57,19 +59,19 @@ struct exynos_cpuclk {
 	struct notifier_block			clk_nb;
 	unsigned long				flags;
 
-/* The CPU clock registers have DIV1 configuration register */
+	/* The CPU clock registers have DIV1 configuration register */
 #define CLK_CPU_HAS_DIV1		(1 << 0)
-/* When ALT parent is active, debug clocks need safe divider values */
+	/* When ALT parent is active, debug clocks need safe divider values */
 #define CLK_CPU_NEEDS_DEBUG_ALT_DIV	(1 << 1)
-/* The CPU clock registers have Exynos5433-compatible layout */
+	/* The CPU clock registers have Exynos5433-compatible layout */
 #define CLK_CPU_HAS_E5433_REGS_LAYOUT	(1 << 2)
 };
 
 extern int __init exynos_register_cpu_clock(struct samsung_clk_provider *ctx,
-			unsigned int lookup_id, const char *name,
-			const char *parent, const char *alt_parent,
-			unsigned long offset,
-			const struct exynos_cpuclk_cfg_data *cfg,
-			unsigned long num_cfgs, unsigned long flags);
+		unsigned int lookup_id, const char *name,
+		const char *parent, const char *alt_parent,
+		unsigned long offset,
+		const struct exynos_cpuclk_cfg_data *cfg,
+		unsigned long num_cfgs, unsigned long flags);
 
 #endif /* __SAMSUNG_CLK_CPU_H */

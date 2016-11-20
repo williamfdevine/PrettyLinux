@@ -64,31 +64,34 @@ int radeon_vce_init(struct radeon_device *rdev)
 
 	INIT_DELAYED_WORK(&rdev->vce.idle_work, radeon_vce_idle_work_handler);
 
-	switch (rdev->family) {
-	case CHIP_TAHITI:
-	case CHIP_PITCAIRN:
-	case CHIP_VERDE:
-	case CHIP_OLAND:
-	case CHIP_ARUBA:
-		fw_name = FIRMWARE_TAHITI;
-		break;
+	switch (rdev->family)
+	{
+		case CHIP_TAHITI:
+		case CHIP_PITCAIRN:
+		case CHIP_VERDE:
+		case CHIP_OLAND:
+		case CHIP_ARUBA:
+			fw_name = FIRMWARE_TAHITI;
+			break;
 
-	case CHIP_BONAIRE:
-	case CHIP_KAVERI:
-	case CHIP_KABINI:
-	case CHIP_HAWAII:
-	case CHIP_MULLINS:
-		fw_name = FIRMWARE_BONAIRE;
-		break;
+		case CHIP_BONAIRE:
+		case CHIP_KAVERI:
+		case CHIP_KABINI:
+		case CHIP_HAWAII:
+		case CHIP_MULLINS:
+			fw_name = FIRMWARE_BONAIRE;
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
 	r = request_firmware(&rdev->vce_fw, fw_name, rdev->dev);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(rdev->dev, "radeon_vce: Can't load firmware \"%s\"\n",
-			fw_name);
+				fw_name);
 		return r;
 	}
 
@@ -96,74 +99,104 @@ int radeon_vce_init(struct radeon_device *rdev)
 
 	size = rdev->vce_fw->size - strlen(fw_version) - 9;
 	c = rdev->vce_fw->data;
-	for (;size > 0; --size, ++c)
+
+	for (; size > 0; --size, ++c)
 		if (strncmp(c, fw_version, strlen(fw_version)) == 0)
+		{
 			break;
+		}
 
 	if (size == 0)
+	{
 		return -EINVAL;
+	}
 
 	c += strlen(fw_version);
+
 	if (sscanf(c, "%2hhd.%2hhd.%2hhd]", &start, &mid, &end) != 3)
+	{
 		return -EINVAL;
+	}
 
 	/* search for feedback version */
 
 	size = rdev->vce_fw->size - strlen(fb_version) - 3;
 	c = rdev->vce_fw->data;
-	for (;size > 0; --size, ++c)
+
+	for (; size > 0; --size, ++c)
 		if (strncmp(c, fb_version, strlen(fb_version)) == 0)
+		{
 			break;
+		}
 
 	if (size == 0)
+	{
 		return -EINVAL;
+	}
 
 	c += strlen(fb_version);
+
 	if (sscanf(c, "%2u]", &rdev->vce.fb_version) != 1)
+	{
 		return -EINVAL;
+	}
 
 	DRM_INFO("Found VCE firmware/feedback version %hhd.%hhd.%hhd / %d!\n",
-		 start, mid, end, rdev->vce.fb_version);
+			 start, mid, end, rdev->vce.fb_version);
 
 	rdev->vce.fw_version = (start << 24) | (mid << 16) | (end << 8);
 
 	/* we can only work with this fw version for now */
 	if ((rdev->vce.fw_version != ((40 << 24) | (2 << 16) | (2 << 8))) &&
-	    (rdev->vce.fw_version != ((50 << 24) | (0 << 16) | (1 << 8))) &&
-	    (rdev->vce.fw_version != ((50 << 24) | (1 << 16) | (2 << 8))))
+		(rdev->vce.fw_version != ((50 << 24) | (0 << 16) | (1 << 8))) &&
+		(rdev->vce.fw_version != ((50 << 24) | (1 << 16) | (2 << 8))))
+	{
 		return -EINVAL;
+	}
 
 	/* allocate firmware, stack and heap BO */
 
 	if (rdev->family < CHIP_BONAIRE)
+	{
 		size = vce_v1_0_bo_size(rdev);
+	}
 	else
+	{
 		size = vce_v2_0_bo_size(rdev);
+	}
+
 	r = radeon_bo_create(rdev, size, PAGE_SIZE, true,
-			     RADEON_GEM_DOMAIN_VRAM, 0, NULL, NULL,
-			     &rdev->vce.vcpu_bo);
-	if (r) {
+						 RADEON_GEM_DOMAIN_VRAM, 0, NULL, NULL,
+						 &rdev->vce.vcpu_bo);
+
+	if (r)
+	{
 		dev_err(rdev->dev, "(%d) failed to allocate VCE bo\n", r);
 		return r;
 	}
 
 	r = radeon_bo_reserve(rdev->vce.vcpu_bo, false);
-	if (r) {
+
+	if (r)
+	{
 		radeon_bo_unref(&rdev->vce.vcpu_bo);
 		dev_err(rdev->dev, "(%d) failed to reserve VCE bo\n", r);
 		return r;
 	}
 
 	r = radeon_bo_pin(rdev->vce.vcpu_bo, RADEON_GEM_DOMAIN_VRAM,
-			  &rdev->vce.gpu_addr);
+					  &rdev->vce.gpu_addr);
 	radeon_bo_unreserve(rdev->vce.vcpu_bo);
-	if (r) {
+
+	if (r)
+	{
 		radeon_bo_unref(&rdev->vce.vcpu_bo);
 		dev_err(rdev->dev, "(%d) VCE bo pin failed\n", r);
 		return r;
 	}
 
-	for (i = 0; i < RADEON_MAX_VCE_HANDLES; ++i) {
+	for (i = 0; i < RADEON_MAX_VCE_HANDLES; ++i)
+	{
 		atomic_set(&rdev->vce.handles[i], 0);
 		rdev->vce.filp[i] = NULL;
 	}
@@ -181,7 +214,9 @@ int radeon_vce_init(struct radeon_device *rdev)
 void radeon_vce_fini(struct radeon_device *rdev)
 {
 	if (rdev->vce.vcpu_bo == NULL)
+	{
 		return;
+	}
 
 	radeon_bo_unref(&rdev->vce.vcpu_bo);
 
@@ -199,14 +234,20 @@ int radeon_vce_suspend(struct radeon_device *rdev)
 	int i;
 
 	if (rdev->vce.vcpu_bo == NULL)
+	{
 		return 0;
+	}
 
 	for (i = 0; i < RADEON_MAX_VCE_HANDLES; ++i)
 		if (atomic_read(&rdev->vce.handles[i]))
+		{
 			break;
+		}
 
 	if (i == RADEON_MAX_VCE_HANDLES)
+	{
 		return 0;
+	}
 
 	/* TODO: suspending running encoding sessions isn't supported */
 	return -EINVAL;
@@ -224,26 +265,37 @@ int radeon_vce_resume(struct radeon_device *rdev)
 	int r;
 
 	if (rdev->vce.vcpu_bo == NULL)
+	{
 		return -EINVAL;
+	}
 
 	r = radeon_bo_reserve(rdev->vce.vcpu_bo, false);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(rdev->dev, "(%d) failed to reserve VCE bo\n", r);
 		return r;
 	}
 
 	r = radeon_bo_kmap(rdev->vce.vcpu_bo, &cpu_addr);
-	if (r) {
+
+	if (r)
+	{
 		radeon_bo_unreserve(rdev->vce.vcpu_bo);
 		dev_err(rdev->dev, "(%d) VCE map failed\n", r);
 		return r;
 	}
 
 	memset(cpu_addr, 0, radeon_bo_size(rdev->vce.vcpu_bo));
+
 	if (rdev->family < CHIP_BONAIRE)
+	{
 		r = vce_v1_0_load_fw(rdev, cpu_addr);
+	}
 	else
+	{
 		memcpy(cpu_addr, rdev->vce_fw->data, rdev->vce_fw->size);
+	}
 
 	radeon_bo_kunmap(rdev->vce.vcpu_bo);
 
@@ -265,15 +317,21 @@ static void radeon_vce_idle_work_handler(struct work_struct *work)
 		container_of(work, struct radeon_device, vce.idle_work.work);
 
 	if ((radeon_fence_count_emitted(rdev, TN_RING_TYPE_VCE1_INDEX) == 0) &&
-	    (radeon_fence_count_emitted(rdev, TN_RING_TYPE_VCE2_INDEX) == 0)) {
-		if ((rdev->pm.pm_method == PM_METHOD_DPM) && rdev->pm.dpm_enabled) {
+		(radeon_fence_count_emitted(rdev, TN_RING_TYPE_VCE2_INDEX) == 0))
+	{
+		if ((rdev->pm.pm_method == PM_METHOD_DPM) && rdev->pm.dpm_enabled)
+		{
 			radeon_dpm_enable_vce(rdev, false);
-		} else {
+		}
+		else
+		{
 			radeon_set_vce_clocks(rdev, 0, 0);
 		}
-	} else {
+	}
+	else
+	{
 		schedule_delayed_work(&rdev->vce.idle_work,
-				      msecs_to_jiffies(VCE_IDLE_TIMEOUT_MS));
+							  msecs_to_jiffies(VCE_IDLE_TIMEOUT_MS));
 	}
 }
 
@@ -289,17 +347,22 @@ void radeon_vce_note_usage(struct radeon_device *rdev)
 	bool streams_changed = false;
 	bool set_clocks = !cancel_delayed_work_sync(&rdev->vce.idle_work);
 	set_clocks &= schedule_delayed_work(&rdev->vce.idle_work,
-					    msecs_to_jiffies(VCE_IDLE_TIMEOUT_MS));
+										msecs_to_jiffies(VCE_IDLE_TIMEOUT_MS));
 
-	if ((rdev->pm.pm_method == PM_METHOD_DPM) && rdev->pm.dpm_enabled) {
+	if ((rdev->pm.pm_method == PM_METHOD_DPM) && rdev->pm.dpm_enabled)
+	{
 		/* XXX figure out if the streams changed */
 		streams_changed = false;
 	}
 
-	if (set_clocks || streams_changed) {
-		if ((rdev->pm.pm_method == PM_METHOD_DPM) && rdev->pm.dpm_enabled) {
+	if (set_clocks || streams_changed)
+	{
+		if ((rdev->pm.pm_method == PM_METHOD_DPM) && rdev->pm.dpm_enabled)
+		{
 			radeon_dpm_enable_vce(rdev, true);
-		} else {
+		}
+		else
+		{
 			radeon_set_vce_clocks(rdev, 53300, 40000);
 		}
 	}
@@ -316,17 +379,25 @@ void radeon_vce_note_usage(struct radeon_device *rdev)
 void radeon_vce_free_handles(struct radeon_device *rdev, struct drm_file *filp)
 {
 	int i, r;
-	for (i = 0; i < RADEON_MAX_VCE_HANDLES; ++i) {
+
+	for (i = 0; i < RADEON_MAX_VCE_HANDLES; ++i)
+	{
 		uint32_t handle = atomic_read(&rdev->vce.handles[i]);
+
 		if (!handle || rdev->vce.filp[i] != filp)
+		{
 			continue;
+		}
 
 		radeon_vce_note_usage(rdev);
 
 		r = radeon_vce_get_destroy_msg(rdev, TN_RING_TYPE_VCE1_INDEX,
-					       handle, NULL);
+									   handle, NULL);
+
 		if (r)
+		{
 			DRM_ERROR("Error destroying VCE handle (%d)!\n", r);
+		}
 
 		rdev->vce.filp[i] = NULL;
 		atomic_set(&rdev->vce.handles[i], 0);
@@ -344,7 +415,7 @@ void radeon_vce_free_handles(struct radeon_device *rdev, struct drm_file *filp)
  * Open up a stream for HW test
  */
 int radeon_vce_get_create_msg(struct radeon_device *rdev, int ring,
-			      uint32_t handle, struct radeon_fence **fence)
+							  uint32_t handle, struct radeon_fence **fence)
 {
 	const unsigned ib_size_dw = 1024;
 	struct radeon_ib ib;
@@ -352,7 +423,9 @@ int radeon_vce_get_create_msg(struct radeon_device *rdev, int ring,
 	int i, r;
 
 	r = radeon_ib_get(rdev, ring, &ib, NULL, ib_size_dw * 4);
-	if (r) {
+
+	if (r)
+	{
 		DRM_ERROR("radeon: failed to get ib (%d).\n", r);
 		return r;
 	}
@@ -385,15 +458,21 @@ int radeon_vce_get_create_msg(struct radeon_device *rdev, int ring,
 	ib.ptr[ib.length_dw++] = cpu_to_le32(0x00000001);
 
 	for (i = ib.length_dw; i < ib_size_dw; ++i)
+	{
 		ib.ptr[i] = cpu_to_le32(0x0);
+	}
 
 	r = radeon_ib_schedule(rdev, &ib, NULL, false);
-	if (r) {
+
+	if (r)
+	{
 		DRM_ERROR("radeon: failed to schedule ib (%d).\n", r);
 	}
 
 	if (fence)
+	{
 		*fence = radeon_fence_ref(ib.fence);
+	}
 
 	radeon_ib_free(rdev, &ib);
 
@@ -411,7 +490,7 @@ int radeon_vce_get_create_msg(struct radeon_device *rdev, int ring,
  * Close up a stream for HW test or if userspace failed to do so
  */
 int radeon_vce_get_destroy_msg(struct radeon_device *rdev, int ring,
-			       uint32_t handle, struct radeon_fence **fence)
+							   uint32_t handle, struct radeon_fence **fence)
 {
 	const unsigned ib_size_dw = 1024;
 	struct radeon_ib ib;
@@ -419,7 +498,9 @@ int radeon_vce_get_destroy_msg(struct radeon_device *rdev, int ring,
 	int i, r;
 
 	r = radeon_ib_get(rdev, ring, &ib, NULL, ib_size_dw * 4);
-	if (r) {
+
+	if (r)
+	{
 		DRM_ERROR("radeon: failed to get ib (%d).\n", r);
 		return r;
 	}
@@ -442,15 +523,21 @@ int radeon_vce_get_destroy_msg(struct radeon_device *rdev, int ring,
 	ib.ptr[ib.length_dw++] = cpu_to_le32(0x02000001); /* destroy cmd */
 
 	for (i = ib.length_dw; i < ib_size_dw; ++i)
+	{
 		ib.ptr[i] = cpu_to_le32(0x0);
+	}
 
 	r = radeon_ib_schedule(rdev, &ib, NULL, false);
-	if (r) {
+
+	if (r)
+	{
 		DRM_ERROR("radeon: failed to schedule ib (%d).\n", r);
 	}
 
 	if (fence)
+	{
 		*fence = radeon_fence_ref(ib.fence);
+	}
 
 	radeon_ib_free(rdev, &ib);
 
@@ -468,7 +555,7 @@ int radeon_vce_get_destroy_msg(struct radeon_device *rdev, int ring,
  * Patch relocation inside command stream with real buffer address
  */
 int radeon_vce_cs_reloc(struct radeon_cs_parser *p, int lo, int hi,
-			unsigned size)
+						unsigned size)
 {
 	struct radeon_cs_chunk *relocs_chunk;
 	struct radeon_bo_list *reloc;
@@ -479,9 +566,10 @@ int radeon_vce_cs_reloc(struct radeon_cs_parser *p, int lo, int hi,
 	offset = radeon_get_ib_value(p, lo);
 	idx = radeon_get_ib_value(p, hi);
 
-	if (idx >= relocs_chunk->length_dw) {
+	if (idx >= relocs_chunk->length_dw)
+	{
 		DRM_ERROR("Relocs at %d after relocations chunk end %d !\n",
-			  idx, relocs_chunk->length_dw);
+				  idx, relocs_chunk->length_dw);
 		return -EINVAL;
 	}
 
@@ -493,13 +581,16 @@ int radeon_vce_cs_reloc(struct radeon_cs_parser *p, int lo, int hi,
 	p->ib.ptr[lo] = start & 0xFFFFFFFF;
 	p->ib.ptr[hi] = start >> 32;
 
-	if (end <= start) {
+	if (end <= start)
+	{
 		DRM_ERROR("invalid reloc offset %llX!\n", offset);
 		return -EINVAL;
 	}
-	if ((end - start) < size) {
+
+	if ((end - start) < size)
+	{
 		DRM_ERROR("buffer to small (%d / %d)!\n",
-			(unsigned)(end - start), size);
+				  (unsigned)(end - start), size);
 		return -EINVAL;
 	}
 
@@ -517,26 +608,32 @@ int radeon_vce_cs_reloc(struct radeon_cs_parser *p, int lo, int hi,
  * we we don't have another free session index.
  */
 static int radeon_vce_validate_handle(struct radeon_cs_parser *p,
-				      uint32_t handle, bool *allocated)
+									  uint32_t handle, bool *allocated)
 {
 	unsigned i;
 
 	*allocated = false;
 
 	/* validate the handle */
-	for (i = 0; i < RADEON_MAX_VCE_HANDLES; ++i) {
-		if (atomic_read(&p->rdev->vce.handles[i]) == handle) {
-			if (p->rdev->vce.filp[i] != p->filp) {
+	for (i = 0; i < RADEON_MAX_VCE_HANDLES; ++i)
+	{
+		if (atomic_read(&p->rdev->vce.handles[i]) == handle)
+		{
+			if (p->rdev->vce.filp[i] != p->filp)
+			{
 				DRM_ERROR("VCE handle collision detected!\n");
 				return -EINVAL;
 			}
+
 			return i;
 		}
 	}
 
 	/* handle not found try to alloc a new one */
-	for (i = 0; i < RADEON_MAX_VCE_HANDLES; ++i) {
-		if (!atomic_cmpxchg(&p->rdev->vce.handles[i], 0, handle)) {
+	for (i = 0; i < RADEON_MAX_VCE_HANDLES; ++i)
+	{
+		if (!atomic_cmpxchg(&p->rdev->vce.handles[i], 0, handle))
+		{
 			p->rdev->vce.filp[i] = p->filp;
 			p->rdev->vce.img_size[i] = 0;
 			*allocated = true;
@@ -562,101 +659,131 @@ int radeon_vce_cs_parse(struct radeon_cs_parser *p)
 	uint32_t *size = &tmp;
 	int i, r = 0;
 
-	while (p->idx < p->chunk_ib->length_dw) {
+	while (p->idx < p->chunk_ib->length_dw)
+	{
 		uint32_t len = radeon_get_ib_value(p, p->idx);
 		uint32_t cmd = radeon_get_ib_value(p, p->idx + 1);
 
-		if ((len < 8) || (len & 3)) {
+		if ((len < 8) || (len & 3))
+		{
 			DRM_ERROR("invalid VCE command length (%d)!\n", len);
 			r = -EINVAL;
 			goto out;
 		}
 
-		if (destroyed) {
+		if (destroyed)
+		{
 			DRM_ERROR("No other command allowed after destroy!\n");
 			r = -EINVAL;
 			goto out;
 		}
 
-		switch (cmd) {
-		case 0x00000001: // session
-			handle = radeon_get_ib_value(p, p->idx + 2);
-			session_idx = radeon_vce_validate_handle(p, handle,
-								 &allocated);
-			if (session_idx < 0)
-				return session_idx;
-			size = &p->rdev->vce.img_size[session_idx];
-			break;
+		switch (cmd)
+		{
+			case 0x00000001: // session
+				handle = radeon_get_ib_value(p, p->idx + 2);
+				session_idx = radeon_vce_validate_handle(p, handle,
+							  &allocated);
 
-		case 0x00000002: // task info
-			break;
+				if (session_idx < 0)
+				{
+					return session_idx;
+				}
 
-		case 0x01000001: // create
-			created = true;
-			if (!allocated) {
-				DRM_ERROR("Handle already in use!\n");
+				size = &p->rdev->vce.img_size[session_idx];
+				break;
+
+			case 0x00000002: // task info
+				break;
+
+			case 0x01000001: // create
+				created = true;
+
+				if (!allocated)
+				{
+					DRM_ERROR("Handle already in use!\n");
+					r = -EINVAL;
+					goto out;
+				}
+
+				*size = radeon_get_ib_value(p, p->idx + 8) *
+						radeon_get_ib_value(p, p->idx + 10) *
+						8 * 3 / 2;
+				break;
+
+			case 0x04000001: // config extension
+			case 0x04000002: // pic control
+			case 0x04000005: // rate control
+			case 0x04000007: // motion estimation
+			case 0x04000008: // rdo
+			case 0x04000009: // vui
+				break;
+
+			case 0x03000001: // encode
+				r = radeon_vce_cs_reloc(p, p->idx + 10, p->idx + 9,
+										*size);
+
+				if (r)
+				{
+					goto out;
+				}
+
+				r = radeon_vce_cs_reloc(p, p->idx + 12, p->idx + 11,
+										*size / 3);
+
+				if (r)
+				{
+					goto out;
+				}
+
+				break;
+
+			case 0x02000001: // destroy
+				destroyed = true;
+				break;
+
+			case 0x05000001: // context buffer
+				r = radeon_vce_cs_reloc(p, p->idx + 3, p->idx + 2,
+										*size * 2);
+
+				if (r)
+				{
+					goto out;
+				}
+
+				break;
+
+			case 0x05000004: // video bitstream buffer
+				tmp = radeon_get_ib_value(p, p->idx + 4);
+				r = radeon_vce_cs_reloc(p, p->idx + 3, p->idx + 2,
+										tmp);
+
+				if (r)
+				{
+					goto out;
+				}
+
+				break;
+
+			case 0x05000005: // feedback buffer
+				r = radeon_vce_cs_reloc(p, p->idx + 3, p->idx + 2,
+										4096);
+
+				if (r)
+				{
+					goto out;
+				}
+
+				break;
+
+			default:
+				DRM_ERROR("invalid VCE command (0x%x)!\n", cmd);
 				r = -EINVAL;
 				goto out;
-			}
-
-			*size = radeon_get_ib_value(p, p->idx + 8) *
-				radeon_get_ib_value(p, p->idx + 10) *
-				8 * 3 / 2;
-			break;
-
-		case 0x04000001: // config extension
-		case 0x04000002: // pic control
-		case 0x04000005: // rate control
-		case 0x04000007: // motion estimation
-		case 0x04000008: // rdo
-		case 0x04000009: // vui
-			break;
-
-		case 0x03000001: // encode
-			r = radeon_vce_cs_reloc(p, p->idx + 10, p->idx + 9,
-						*size);
-			if (r)
-				goto out;
-
-			r = radeon_vce_cs_reloc(p, p->idx + 12, p->idx + 11,
-						*size / 3);
-			if (r)
-				goto out;
-			break;
-
-		case 0x02000001: // destroy
-			destroyed = true;
-			break;
-
-		case 0x05000001: // context buffer
-			r = radeon_vce_cs_reloc(p, p->idx + 3, p->idx + 2,
-						*size * 2);
-			if (r)
-				goto out;
-			break;
-
-		case 0x05000004: // video bitstream buffer
-			tmp = radeon_get_ib_value(p, p->idx + 4);
-			r = radeon_vce_cs_reloc(p, p->idx + 3, p->idx + 2,
-						tmp);
-			if (r)
-				goto out;
-			break;
-
-		case 0x05000005: // feedback buffer
-			r = radeon_vce_cs_reloc(p, p->idx + 3, p->idx + 2,
-						4096);
-			if (r)
-				goto out;
-			break;
-
-		default:
-			DRM_ERROR("invalid VCE command (0x%x)!\n", cmd);
-			r = -EINVAL;
-			goto out;
 		}
 
-		if (session_idx == -1) {
+		if (session_idx == -1)
+		{
 			DRM_ERROR("no session command at start of IB\n");
 			r = -EINVAL;
 			goto out;
@@ -665,19 +792,24 @@ int radeon_vce_cs_parse(struct radeon_cs_parser *p)
 		p->idx += len / 4;
 	}
 
-	if (allocated && !created) {
+	if (allocated && !created)
+	{
 		DRM_ERROR("New session without create command!\n");
 		r = -ENOENT;
 	}
 
 out:
-	if ((!r && destroyed) || (r && allocated)) {
+
+	if ((!r && destroyed) || (r && allocated))
+	{
 		/*
 		 * IB contains a destroy msg or we have allocated an
 		 * handle and got an error, anyway free the handle
 		 */
 		for (i = 0; i < RADEON_MAX_VCE_HANDLES; ++i)
+		{
 			atomic_cmpxchg(&p->rdev->vce.handles[i], handle, 0);
+		}
 	}
 
 	return r;
@@ -693,9 +825,9 @@ out:
  *
  */
 bool radeon_vce_semaphore_emit(struct radeon_device *rdev,
-			       struct radeon_ring *ring,
-			       struct radeon_semaphore *semaphore,
-			       bool emit_wait)
+							   struct radeon_ring *ring,
+							   struct radeon_semaphore *semaphore,
+							   bool emit_wait)
 {
 	uint64_t addr = semaphore->gpu_addr;
 
@@ -703,8 +835,11 @@ bool radeon_vce_semaphore_emit(struct radeon_device *rdev,
 	radeon_ring_write(ring, cpu_to_le32((addr >> 3) & 0x000FFFFF));
 	radeon_ring_write(ring, cpu_to_le32((addr >> 23) & 0x000FFFFF));
 	radeon_ring_write(ring, cpu_to_le32(0x01003000 | (emit_wait ? 1 : 0)));
+
 	if (!emit_wait)
+	{
 		radeon_ring_write(ring, cpu_to_le32(VCE_CMD_END));
+	}
 
 	return true;
 }
@@ -733,7 +868,7 @@ void radeon_vce_ib_execute(struct radeon_device *rdev, struct radeon_ib *ib)
  *
  */
 void radeon_vce_fence_emit(struct radeon_device *rdev,
-			   struct radeon_fence *fence)
+						   struct radeon_fence *fence)
 {
 	struct radeon_ring *ring = &rdev->ring[fence->ring];
 	uint64_t addr = rdev->fence_drv[fence->ring].gpu_addr;
@@ -760,26 +895,36 @@ int radeon_vce_ring_test(struct radeon_device *rdev, struct radeon_ring *ring)
 	int r;
 
 	r = radeon_ring_lock(rdev, ring, 16);
-	if (r) {
+
+	if (r)
+	{
 		DRM_ERROR("radeon: vce failed to lock ring %d (%d).\n",
-			  ring->idx, r);
+				  ring->idx, r);
 		return r;
 	}
+
 	radeon_ring_write(ring, cpu_to_le32(VCE_CMD_END));
 	radeon_ring_unlock_commit(rdev, ring, false);
 
-	for (i = 0; i < rdev->usec_timeout; i++) {
+	for (i = 0; i < rdev->usec_timeout; i++)
+	{
 		if (vce_v1_0_get_rptr(rdev, ring) != rptr)
+		{
 			break;
+		}
+
 		DRM_UDELAY(1);
 	}
 
-	if (i < rdev->usec_timeout) {
+	if (i < rdev->usec_timeout)
+	{
 		DRM_INFO("ring test on %d succeeded in %d usecs\n",
-			 ring->idx, i);
-	} else {
+				 ring->idx, i);
+	}
+	else
+	{
 		DRM_ERROR("radeon: ring %d test failed\n",
-			 ring->idx);
+				  ring->idx);
 		r = -ETIMEDOUT;
 	}
 
@@ -799,28 +944,39 @@ int radeon_vce_ib_test(struct radeon_device *rdev, struct radeon_ring *ring)
 	int r;
 
 	r = radeon_vce_get_create_msg(rdev, ring->idx, 1, NULL);
-	if (r) {
+
+	if (r)
+	{
 		DRM_ERROR("radeon: failed to get create msg (%d).\n", r);
 		goto error;
 	}
 
 	r = radeon_vce_get_destroy_msg(rdev, ring->idx, 1, &fence);
-	if (r) {
+
+	if (r)
+	{
 		DRM_ERROR("radeon: failed to get destroy ib (%d).\n", r);
 		goto error;
 	}
 
 	r = radeon_fence_wait_timeout(fence, false, usecs_to_jiffies(
-		RADEON_USEC_IB_TEST_TIMEOUT));
-	if (r < 0) {
+									  RADEON_USEC_IB_TEST_TIMEOUT));
+
+	if (r < 0)
+	{
 		DRM_ERROR("radeon: fence wait failed (%d).\n", r);
-	} else if (r == 0) {
+	}
+	else if (r == 0)
+	{
 		DRM_ERROR("radeon: fence wait timed out.\n");
 		r = -ETIMEDOUT;
-	} else {
+	}
+	else
+	{
 		DRM_INFO("ib test on ring %d succeeded\n", ring->idx);
 		r = 0;
 	}
+
 error:
 	radeon_fence_unref(&fence);
 	return r;

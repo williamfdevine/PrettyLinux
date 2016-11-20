@@ -61,13 +61,15 @@
  */
 #define PMAG_AA_ONBOARD_FBMEM_OFFSET	0x200000
 
-struct aafb_par {
+struct aafb_par
+{
 	void __iomem *mmio;
 	struct bt455_regs __iomem *bt455;
 	struct bt431_regs __iomem *bt431;
 };
 
-static struct fb_var_screeninfo aafb_defined = {
+static struct fb_var_screeninfo aafb_defined =
+{
 	.xres		= 1280,
 	.yres		= 1024,
 	.xres_virtual	= 2048,
@@ -90,7 +92,8 @@ static struct fb_var_screeninfo aafb_defined = {
 	.vmode		= FB_VMODE_NONINTERLACED,
 };
 
-static struct fb_fix_screeninfo aafb_fix = {
+static struct fb_fix_screeninfo aafb_fix =
+{
 	.id		= "PMAG-AA",
 	.smem_len	= (2048 * 1024),
 	.type		= FB_TYPE_PACKED_PIXELS,
@@ -106,18 +109,23 @@ static int aafb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 	struct aafb_par *par = info->par;
 
 	if (cursor->image.height > BT431_CURSOR_SIZE ||
-	    cursor->image.width > BT431_CURSOR_SIZE) {
+		cursor->image.width > BT431_CURSOR_SIZE)
+	{
 		bt431_erase_cursor(par->bt431);
 		return -EINVAL;
 	}
 
 	if (!cursor->enable)
+	{
 		bt431_erase_cursor(par->bt431);
+	}
 
 	if (cursor->set & FB_CUR_SETPOS)
 		bt431_position_cursor(par->bt431,
-				      cursor->image.dx, cursor->image.dy);
-	if (cursor->set & FB_CUR_SETCMAP) {
+							  cursor->image.dx, cursor->image.dy);
+
+	if (cursor->set & FB_CUR_SETCMAP)
+	{
 		u8 fg = cursor->image.fg_color ? 0xf : 0x0;
 		u8 bg = cursor->image.bg_color ? 0xf : 0x0;
 
@@ -125,13 +133,16 @@ static int aafb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 		bt455_write_cmap_next(par->bt455, bg);
 		bt455_write_ovly_next(par->bt455, fg);
 	}
+
 	if (cursor->set & (FB_CUR_SETSIZE | FB_CUR_SETSHAPE | FB_CUR_SETIMAGE))
 		bt431_set_cursor(par->bt431,
-				 cursor->image.data, cursor->mask, cursor->rop,
-				 cursor->image.width, cursor->image.height);
+						 cursor->image.data, cursor->mask, cursor->rop,
+						 cursor->image.width, cursor->image.height);
 
 	if (cursor->enable)
+	{
 		bt431_enable_cursor(par->bt431);
+	}
 
 	return 0;
 }
@@ -147,7 +158,8 @@ static int aafb_blank(int blank, struct fb_info *info)
 	return 0;
 }
 
-static struct fb_ops aafb_ops = {
+static struct fb_ops aafb_ops =
+{
 	.owner		= THIS_MODULE,
 	.fb_blank	= aafb_blank,
 	.fb_fillrect	= cfb_fillrect,
@@ -165,7 +177,9 @@ static int pmagaafb_probe(struct device *dev)
 	int err;
 
 	info = framebuffer_alloc(sizeof(struct aafb_par), dev);
-	if (!info) {
+
+	if (!info)
+	{
 		printk(KERN_ERR "%s: Cannot allocate memory\n", dev_name(dev));
 		return -ENOMEM;
 	}
@@ -181,9 +195,11 @@ static int pmagaafb_probe(struct device *dev)
 	/* Request the I/O MEM resource. */
 	start = tdev->resource.start;
 	len = tdev->resource.end - start + 1;
-	if (!request_mem_region(start, len, dev_name(dev))) {
+
+	if (!request_mem_region(start, len, dev_name(dev)))
+	{
 		printk(KERN_ERR "%s: Cannot reserve FB region\n",
-		       dev_name(dev));
+			   dev_name(dev));
 		err = -EBUSY;
 		goto err_alloc;
 	}
@@ -191,23 +207,29 @@ static int pmagaafb_probe(struct device *dev)
 	/* MMIO mapping setup. */
 	info->fix.mmio_start = start + PMAG_AA_BT455_OFFSET;
 	par->mmio = ioremap_nocache(info->fix.mmio_start, info->fix.mmio_len);
-	if (!par->mmio) {
+
+	if (!par->mmio)
+	{
 		printk(KERN_ERR "%s: Cannot map MMIO\n", dev_name(dev));
 		err = -ENOMEM;
 		goto err_resource;
 	}
+
 	par->bt455 = par->mmio - PMAG_AA_BT455_OFFSET + PMAG_AA_BT455_OFFSET;
 	par->bt431 = par->mmio - PMAG_AA_BT455_OFFSET + PMAG_AA_BT431_OFFSET;
 
 	/* Frame buffer mapping setup. */
 	info->fix.smem_start = start + PMAG_AA_ONBOARD_FBMEM_OFFSET;
 	info->screen_base = ioremap_nocache(info->fix.smem_start,
-					    info->fix.smem_len);
-	if (!info->screen_base) {
+										info->fix.smem_len);
+
+	if (!info->screen_base)
+	{
 		printk(KERN_ERR "%s: Cannot map FB\n", dev_name(dev));
 		err = -ENOMEM;
 		goto err_mmio_map;
 	}
+
 	info->screen_size = info->fix.smem_len;
 
 	/* Init colormap. */
@@ -219,16 +241,18 @@ static int pmagaafb_probe(struct device *dev)
 	bt431_init_cursor(par->bt431);
 
 	err = register_framebuffer(info);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		printk(KERN_ERR "%s: Cannot register framebuffer\n",
-		       dev_name(dev));
+			   dev_name(dev));
 		goto err_smem_map;
 	}
 
 	get_device(dev);
 
 	pr_info("fb%d: %s frame buffer device at %s\n",
-		info->node, info->fix.id, dev_name(dev));
+			info->node, info->fix.id, dev_name(dev));
 
 	return 0;
 
@@ -268,13 +292,15 @@ static int __exit pmagaafb_remove(struct device *dev)
 /*
  * Initialise the framebuffer.
  */
-static const struct tc_device_id pmagaafb_tc_table[] = {
+static const struct tc_device_id pmagaafb_tc_table[] =
+{
 	{ "DEC     ", "PMAG-AA " },
 	{ }
 };
 MODULE_DEVICE_TABLE(tc, pmagaafb_tc_table);
 
-static struct tc_driver pmagaafb_driver = {
+static struct tc_driver pmagaafb_driver =
+{
 	.id_table	= pmagaafb_tc_table,
 	.driver		= {
 		.name	= "pmagaafb",
@@ -287,8 +313,12 @@ static struct tc_driver pmagaafb_driver = {
 static int __init pmagaafb_init(void)
 {
 #ifndef MODULE
+
 	if (fb_get_options("pmagaafb", NULL))
+	{
 		return -ENXIO;
+	}
+
 #endif
 	return tc_register_driver(&pmagaafb_driver);
 }

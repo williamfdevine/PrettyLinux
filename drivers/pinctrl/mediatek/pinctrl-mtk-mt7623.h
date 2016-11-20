@@ -17,7 +17,8 @@
 #include <linux/pinctrl/pinctrl.h>
 #include "pinctrl-mtk-common.h"
 
-static const struct mtk_desc_pin mtk_pins_mt7623[] = {
+static const struct mtk_desc_pin mtk_pins_mt7623[] =
+{
 	MTK_PIN(
 		PINCTRL_PIN(0, "PWRAP_SPI0_MI"),
 		"J20", "mt7623",

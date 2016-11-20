@@ -38,10 +38,10 @@ void nfs_fscache_get_client_cookie(struct nfs_client *clp)
 {
 	/* create a cache index for looking up filehandles */
 	clp->fscache = fscache_acquire_cookie(nfs_fscache_netfs.primary_index,
-					      &nfs_fscache_server_index_def,
-					      clp, true);
+										  &nfs_fscache_server_index_def,
+										  clp, true);
 	dfprintk(FSCACHE, "NFS: get client cookie (0x%p/0x%p)\n",
-		 clp, clp->fscache);
+			 clp, clp->fscache);
 }
 
 /*
@@ -50,7 +50,7 @@ void nfs_fscache_get_client_cookie(struct nfs_client *clp)
 void nfs_fscache_release_client_cookie(struct nfs_client *clp)
 {
 	dfprintk(FSCACHE, "NFS: releasing client cookie (0x%p/0x%p)\n",
-		 clp, clp->fscache);
+			 clp, clp->fscache);
 
 	fscache_relinquish_cookie(clp->fscache, 0);
 	clp->fscache = NULL;
@@ -71,14 +71,18 @@ void nfs_fscache_get_super_cookie(struct super_block *sb, const char *uniq, int 
 	struct rb_node **p, *parent;
 	int diff;
 
-	if (!uniq) {
+	if (!uniq)
+	{
 		uniq = "";
 		ulen = 1;
 	}
 
 	key = kzalloc(sizeof(*key) + ulen, GFP_KERNEL);
+
 	if (!key)
+	{
 		return;
+	}
 
 	key->nfs_client = nfss->nfs_client;
 	key->key.super.s_flags = sb->s_flags & NFS_MS_MASK;
@@ -98,36 +102,59 @@ void nfs_fscache_get_super_cookie(struct super_block *sb, const char *uniq, int 
 	spin_lock(&nfs_fscache_keys_lock);
 	p = &nfs_fscache_keys.rb_node;
 	parent = NULL;
-	while (*p) {
+
+	while (*p)
+	{
 		parent = *p;
 		xkey = rb_entry(parent, struct nfs_fscache_key, node);
 
 		if (key->nfs_client < xkey->nfs_client)
+		{
 			goto go_left;
+		}
+
 		if (key->nfs_client > xkey->nfs_client)
+		{
 			goto go_right;
+		}
 
 		diff = memcmp(&key->key, &xkey->key, sizeof(key->key));
+
 		if (diff < 0)
+		{
 			goto go_left;
+		}
+
 		if (diff > 0)
+		{
 			goto go_right;
+		}
 
 		if (key->key.uniq_len == 0)
+		{
 			goto non_unique;
+		}
+
 		diff = memcmp(key->key.uniquifier,
-			      xkey->key.uniquifier,
-			      key->key.uniq_len);
+					  xkey->key.uniquifier,
+					  key->key.uniq_len);
+
 		if (diff < 0)
+		{
 			goto go_left;
+		}
+
 		if (diff > 0)
+		{
 			goto go_right;
+		}
+
 		goto non_unique;
 
-	go_left:
+go_left:
 		p = &(*p)->rb_left;
 		continue;
-	go_right:
+go_right:
 		p = &(*p)->rb_right;
 	}
 
@@ -138,10 +165,10 @@ void nfs_fscache_get_super_cookie(struct super_block *sb, const char *uniq, int 
 
 	/* create a cache index for looking up filehandles */
 	nfss->fscache = fscache_acquire_cookie(nfss->nfs_client->fscache,
-					       &nfs_fscache_super_index_def,
-					       nfss, true);
+										   &nfs_fscache_super_index_def,
+										   nfss, true);
 	dfprintk(FSCACHE, "NFS: get superblock cookie (0x%p/0x%p)\n",
-		 nfss, nfss->fscache);
+			 nfss, nfss->fscache);
 	return;
 
 non_unique:
@@ -150,7 +177,7 @@ non_unique:
 	nfss->fscache_key = NULL;
 	nfss->fscache = NULL;
 	printk(KERN_WARNING "NFS:"
-	       " Cache request denied due to non-unique superblock keys\n");
+		   " Cache request denied due to non-unique superblock keys\n");
 }
 
 /*
@@ -161,12 +188,13 @@ void nfs_fscache_release_super_cookie(struct super_block *sb)
 	struct nfs_server *nfss = NFS_SB(sb);
 
 	dfprintk(FSCACHE, "NFS: releasing superblock cookie (0x%p/0x%p)\n",
-		 nfss, nfss->fscache);
+			 nfss, nfss->fscache);
 
 	fscache_relinquish_cookie(nfss->fscache, 0);
 	nfss->fscache = NULL;
 
-	if (nfss->fscache_key) {
+	if (nfss->fscache_key)
+	{
 		spin_lock(&nfs_fscache_keys_lock);
 		rb_erase(&nfss->fscache_key->node, &nfs_fscache_keys);
 		spin_unlock(&nfs_fscache_keys_lock);
@@ -183,11 +211,15 @@ void nfs_fscache_init_inode(struct inode *inode)
 	struct nfs_inode *nfsi = NFS_I(inode);
 
 	nfsi->fscache = NULL;
+
 	if (!S_ISREG(inode->i_mode))
+	{
 		return;
+	}
+
 	nfsi->fscache = fscache_acquire_cookie(NFS_SB(inode->i_sb)->fscache,
-					       &nfs_fscache_inode_object_def,
-					       nfsi, false);
+										   &nfs_fscache_inode_object_def,
+										   nfsi, false);
 }
 
 /*
@@ -236,18 +268,26 @@ void nfs_fscache_open_file(struct inode *inode, struct file *filp)
 	struct fscache_cookie *cookie = nfs_i_fscache(inode);
 
 	if (!fscache_cookie_valid(cookie))
+	{
 		return;
+	}
 
-	if (inode_is_open_for_write(inode)) {
+	if (inode_is_open_for_write(inode))
+	{
 		dfprintk(FSCACHE, "NFS: nfsi 0x%p disabling cache\n", nfsi);
 		clear_bit(NFS_INO_FSCACHE, &nfsi->flags);
 		fscache_disable_cookie(cookie, true);
 		fscache_uncache_all_inode_pages(cookie, inode);
-	} else {
+	}
+	else
+	{
 		dfprintk(FSCACHE, "NFS: nfsi 0x%p enabling cache\n", nfsi);
 		fscache_enable_cookie(cookie, nfs_fscache_can_enable, inode);
+
 		if (fscache_cookie_enabled(cookie))
+		{
 			set_bit(NFS_INO_FSCACHE, &NFS_I(inode)->flags);
+		}
 	}
 }
 EXPORT_SYMBOL_GPL(nfs_fscache_open_file);
@@ -259,18 +299,21 @@ EXPORT_SYMBOL_GPL(nfs_fscache_open_file);
  */
 int nfs_fscache_release_page(struct page *page, gfp_t gfp)
 {
-	if (PageFsCache(page)) {
+	if (PageFsCache(page))
+	{
 		struct fscache_cookie *cookie = nfs_i_fscache(page->mapping->host);
 
 		BUG_ON(!cookie);
 		dfprintk(FSCACHE, "NFS: fscache releasepage (0x%p/0x%p/0x%p)\n",
-			 cookie, page, NFS_I(page->mapping->host));
+				 cookie, page, NFS_I(page->mapping->host));
 
 		if (!fscache_maybe_release_page(cookie, page, gfp))
+		{
 			return 0;
+		}
 
 		nfs_inc_fscache_stats(page->mapping->host,
-				      NFSIOS_FSCACHE_PAGES_UNCACHED);
+							  NFSIOS_FSCACHE_PAGES_UNCACHED);
 	}
 
 	return 1;
@@ -287,14 +330,14 @@ void __nfs_fscache_invalidate_page(struct page *page, struct inode *inode)
 	BUG_ON(!cookie);
 
 	dfprintk(FSCACHE, "NFS: fscache invalidatepage (0x%p/0x%p/0x%p)\n",
-		 cookie, page, NFS_I(inode));
+			 cookie, page, NFS_I(inode));
 
 	fscache_wait_on_page_write(cookie, page);
 
 	BUG_ON(!PageLocked(page));
 	fscache_uncache_page(cookie, page);
 	nfs_inc_fscache_stats(page->mapping->host,
-			      NFSIOS_FSCACHE_PAGES_UNCACHED);
+						  NFSIOS_FSCACHE_PAGES_UNCACHED);
 }
 
 /*
@@ -302,22 +345,28 @@ void __nfs_fscache_invalidate_page(struct page *page, struct inode *inode)
  * - Called in process (keventd) context.
  */
 static void nfs_readpage_from_fscache_complete(struct page *page,
-					       void *context,
-					       int error)
+		void *context,
+		int error)
 {
 	dfprintk(FSCACHE,
-		 "NFS: readpage_from_fscache_complete (0x%p/0x%p/%d)\n",
-		 page, context, error);
+			 "NFS: readpage_from_fscache_complete (0x%p/0x%p/%d)\n",
+			 page, context, error);
 
 	/* if the read completes with an error, we just unlock the page and let
 	 * the VM reissue the readpage */
-	if (!error) {
+	if (!error)
+	{
 		SetPageUptodate(page);
 		unlock_page(page);
-	} else {
+	}
+	else
+	{
 		error = nfs_readpage_async(context, page->mapping->host, page);
+
 		if (error)
+		{
 			unlock_page(page);
+		}
 	}
 }
 
@@ -325,38 +374,40 @@ static void nfs_readpage_from_fscache_complete(struct page *page,
  * Retrieve a page from fscache
  */
 int __nfs_readpage_from_fscache(struct nfs_open_context *ctx,
-				struct inode *inode, struct page *page)
+								struct inode *inode, struct page *page)
 {
 	int ret;
 
 	dfprintk(FSCACHE,
-		 "NFS: readpage_from_fscache(fsc:%p/p:%p(i:%lx f:%lx)/0x%p)\n",
-		 nfs_i_fscache(inode), page, page->index, page->flags, inode);
+			 "NFS: readpage_from_fscache(fsc:%p/p:%p(i:%lx f:%lx)/0x%p)\n",
+			 nfs_i_fscache(inode), page, page->index, page->flags, inode);
 
 	ret = fscache_read_or_alloc_page(nfs_i_fscache(inode),
-					 page,
-					 nfs_readpage_from_fscache_complete,
-					 ctx,
-					 GFP_KERNEL);
+									 page,
+									 nfs_readpage_from_fscache_complete,
+									 ctx,
+									 GFP_KERNEL);
 
-	switch (ret) {
-	case 0: /* read BIO submitted (page in fscache) */
-		dfprintk(FSCACHE,
-			 "NFS:    readpage_from_fscache: BIO submitted\n");
-		nfs_inc_fscache_stats(inode, NFSIOS_FSCACHE_PAGES_READ_OK);
-		return ret;
+	switch (ret)
+	{
+		case 0: /* read BIO submitted (page in fscache) */
+			dfprintk(FSCACHE,
+					 "NFS:    readpage_from_fscache: BIO submitted\n");
+			nfs_inc_fscache_stats(inode, NFSIOS_FSCACHE_PAGES_READ_OK);
+			return ret;
 
-	case -ENOBUFS: /* inode not in cache */
-	case -ENODATA: /* page not in cache */
-		nfs_inc_fscache_stats(inode, NFSIOS_FSCACHE_PAGES_READ_FAIL);
-		dfprintk(FSCACHE,
-			 "NFS:    readpage_from_fscache %d\n", ret);
-		return 1;
+		case -ENOBUFS: /* inode not in cache */
+		case -ENODATA: /* page not in cache */
+			nfs_inc_fscache_stats(inode, NFSIOS_FSCACHE_PAGES_READ_FAIL);
+			dfprintk(FSCACHE,
+					 "NFS:    readpage_from_fscache %d\n", ret);
+			return 1;
 
-	default:
-		dfprintk(FSCACHE, "NFS:    readpage_from_fscache %d\n", ret);
-		nfs_inc_fscache_stats(inode, NFSIOS_FSCACHE_PAGES_READ_FAIL);
+		default:
+			dfprintk(FSCACHE, "NFS:    readpage_from_fscache %d\n", ret);
+			nfs_inc_fscache_stats(inode, NFSIOS_FSCACHE_PAGES_READ_FAIL);
 	}
+
 	return ret;
 }
 
@@ -364,47 +415,50 @@ int __nfs_readpage_from_fscache(struct nfs_open_context *ctx,
  * Retrieve a set of pages from fscache
  */
 int __nfs_readpages_from_fscache(struct nfs_open_context *ctx,
-				 struct inode *inode,
-				 struct address_space *mapping,
-				 struct list_head *pages,
-				 unsigned *nr_pages)
+								 struct inode *inode,
+								 struct address_space *mapping,
+								 struct list_head *pages,
+								 unsigned *nr_pages)
 {
 	unsigned npages = *nr_pages;
 	int ret;
 
 	dfprintk(FSCACHE, "NFS: nfs_getpages_from_fscache (0x%p/%u/0x%p)\n",
-		 nfs_i_fscache(inode), npages, inode);
+			 nfs_i_fscache(inode), npages, inode);
 
 	ret = fscache_read_or_alloc_pages(nfs_i_fscache(inode),
-					  mapping, pages, nr_pages,
-					  nfs_readpage_from_fscache_complete,
-					  ctx,
-					  mapping_gfp_mask(mapping));
+									  mapping, pages, nr_pages,
+									  nfs_readpage_from_fscache_complete,
+									  ctx,
+									  mapping_gfp_mask(mapping));
+
 	if (*nr_pages < npages)
 		nfs_add_fscache_stats(inode, NFSIOS_FSCACHE_PAGES_READ_OK,
-				      npages);
+							  npages);
+
 	if (*nr_pages > 0)
 		nfs_add_fscache_stats(inode, NFSIOS_FSCACHE_PAGES_READ_FAIL,
-				      *nr_pages);
+							  *nr_pages);
 
-	switch (ret) {
-	case 0: /* read submitted to the cache for all pages */
-		BUG_ON(!list_empty(pages));
-		BUG_ON(*nr_pages != 0);
-		dfprintk(FSCACHE,
-			 "NFS: nfs_getpages_from_fscache: submitted\n");
+	switch (ret)
+	{
+		case 0: /* read submitted to the cache for all pages */
+			BUG_ON(!list_empty(pages));
+			BUG_ON(*nr_pages != 0);
+			dfprintk(FSCACHE,
+					 "NFS: nfs_getpages_from_fscache: submitted\n");
 
-		return ret;
+			return ret;
 
-	case -ENOBUFS: /* some pages aren't cached and can't be */
-	case -ENODATA: /* some pages aren't cached */
-		dfprintk(FSCACHE,
-			 "NFS: nfs_getpages_from_fscache: no page: %d\n", ret);
-		return 1;
+		case -ENOBUFS: /* some pages aren't cached and can't be */
+		case -ENODATA: /* some pages aren't cached */
+			dfprintk(FSCACHE,
+					 "NFS: nfs_getpages_from_fscache: no page: %d\n", ret);
+			return 1;
 
-	default:
-		dfprintk(FSCACHE,
-			 "NFS: nfs_getpages_from_fscache: ret  %d\n", ret);
+		default:
+			dfprintk(FSCACHE,
+					 "NFS: nfs_getpages_from_fscache: ret  %d\n", ret);
 	}
 
 	return ret;
@@ -419,21 +473,24 @@ void __nfs_readpage_to_fscache(struct inode *inode, struct page *page, int sync)
 	int ret;
 
 	dfprintk(FSCACHE,
-		 "NFS: readpage_to_fscache(fsc:%p/p:%p(i:%lx f:%lx)/%d)\n",
-		 nfs_i_fscache(inode), page, page->index, page->flags, sync);
+			 "NFS: readpage_to_fscache(fsc:%p/p:%p(i:%lx f:%lx)/%d)\n",
+			 nfs_i_fscache(inode), page, page->index, page->flags, sync);
 
 	ret = fscache_write_page(nfs_i_fscache(inode), page, GFP_KERNEL);
 	dfprintk(FSCACHE,
-		 "NFS:     readpage_to_fscache: p:%p(i:%lu f:%lx) ret %d\n",
-		 page, page->index, page->flags, ret);
+			 "NFS:     readpage_to_fscache: p:%p(i:%lu f:%lx) ret %d\n",
+			 page, page->index, page->flags, ret);
 
-	if (ret != 0) {
+	if (ret != 0)
+	{
 		fscache_uncache_page(nfs_i_fscache(inode), page);
 		nfs_inc_fscache_stats(inode,
-				      NFSIOS_FSCACHE_PAGES_WRITTEN_FAIL);
+							  NFSIOS_FSCACHE_PAGES_WRITTEN_FAIL);
 		nfs_inc_fscache_stats(inode, NFSIOS_FSCACHE_PAGES_UNCACHED);
-	} else {
+	}
+	else
+	{
 		nfs_inc_fscache_stats(inode,
-				      NFSIOS_FSCACHE_PAGES_WRITTEN_OK);
+							  NFSIOS_FSCACHE_PAGES_WRITTEN_OK);
 	}
 }

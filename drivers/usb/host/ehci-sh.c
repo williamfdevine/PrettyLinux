@@ -13,7 +13,8 @@
 #include <linux/clk.h>
 #include <linux/platform_data/ehci-sh.h>
 
-struct ehci_sh_priv {
+struct ehci_sh_priv
+{
 	struct clk *iclk, *fclk;
 	struct usb_hcd *hcd;
 };
@@ -27,7 +28,8 @@ static int ehci_sh_reset(struct usb_hcd *hcd)
 	return ehci_setup(hcd);
 }
 
-static const struct hc_driver ehci_sh_hc_driver = {
+static const struct hc_driver ehci_sh_hc_driver =
+{
 	.description			= hcd_name,
 	.product_desc			= "SuperH EHCI",
 	.hcd_priv_size			= sizeof(struct ehci_hcd),
@@ -84,13 +86,17 @@ static int ehci_hcd_sh_probe(struct platform_device *pdev)
 	int irq, ret;
 
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		dev_err(&pdev->dev,
-			"Found HC with no IRQ. Check %s setup!\n",
-			dev_name(&pdev->dev));
+				"Found HC with no IRQ. Check %s setup!\n",
+				dev_name(&pdev->dev));
 		ret = -ENODEV;
 		goto fail_create_hcd;
 	}
@@ -99,48 +105,66 @@ static int ehci_hcd_sh_probe(struct platform_device *pdev)
 
 	/* initialize hcd */
 	hcd = usb_create_hcd(&ehci_sh_hc_driver, &pdev->dev,
-			     dev_name(&pdev->dev));
-	if (!hcd) {
+						 dev_name(&pdev->dev));
+
+	if (!hcd)
+	{
 		ret = -ENOMEM;
 		goto fail_create_hcd;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	hcd->regs = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(hcd->regs)) {
+
+	if (IS_ERR(hcd->regs))
+	{
 		ret = PTR_ERR(hcd->regs);
 		goto fail_request_resource;
 	}
+
 	hcd->rsrc_start = res->start;
 	hcd->rsrc_len = resource_size(res);
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(struct ehci_sh_priv),
-			    GFP_KERNEL);
-	if (!priv) {
+						GFP_KERNEL);
+
+	if (!priv)
+	{
 		ret = -ENOMEM;
 		goto fail_request_resource;
 	}
 
 	/* These are optional, we don't care if they fail */
 	priv->fclk = devm_clk_get(&pdev->dev, "usb_fck");
+
 	if (IS_ERR(priv->fclk))
+	{
 		priv->fclk = NULL;
+	}
 
 	priv->iclk = devm_clk_get(&pdev->dev, "usb_ick");
+
 	if (IS_ERR(priv->iclk))
+	{
 		priv->iclk = NULL;
+	}
 
 	clk_enable(priv->fclk);
 	clk_enable(priv->iclk);
 
 	if (pdata && pdata->phy_init)
+	{
 		pdata->phy_init();
+	}
 
 	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		dev_err(&pdev->dev, "Failed to add hcd");
 		goto fail_add_hcd;
 	}
+
 	device_wakeup_enable(hcd->self.controller);
 
 	priv->hcd = hcd;
@@ -180,10 +204,13 @@ static void ehci_hcd_sh_shutdown(struct platform_device *pdev)
 	struct usb_hcd *hcd = priv->hcd;
 
 	if (hcd->driver->shutdown)
+	{
 		hcd->driver->shutdown(hcd);
+	}
 }
 
-static struct platform_driver ehci_hcd_sh_driver = {
+static struct platform_driver ehci_hcd_sh_driver =
+{
 	.probe		= ehci_hcd_sh_probe,
 	.remove		= ehci_hcd_sh_remove,
 	.shutdown	= ehci_hcd_sh_shutdown,

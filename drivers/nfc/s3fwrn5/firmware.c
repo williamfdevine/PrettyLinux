@@ -25,7 +25,8 @@
 #include "s3fwrn5.h"
 #include "firmware.h"
 
-struct s3fwrn5_fw_version {
+struct s3fwrn5_fw_version
+{
 	__u8 major;
 	__u8 build1;
 	__u8 build2;
@@ -33,7 +34,7 @@ struct s3fwrn5_fw_version {
 };
 
 static int s3fwrn5_fw_send_msg(struct s3fwrn5_fw_info *fw_info,
-	struct sk_buff *msg, struct sk_buff **rsp)
+							   struct sk_buff *msg, struct sk_buff **rsp)
 {
 	struct s3fwrn5_info *info =
 		container_of(fw_info, struct s3fwrn5_info, fw_info);
@@ -42,18 +43,28 @@ static int s3fwrn5_fw_send_msg(struct s3fwrn5_fw_info *fw_info,
 	reinit_completion(&fw_info->completion);
 
 	ret = s3fwrn5_write(info, msg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = wait_for_completion_interruptible_timeout(
-		&fw_info->completion, msecs_to_jiffies(1000));
+			  &fw_info->completion, msecs_to_jiffies(1000));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 	else if (ret == 0)
+	{
 		return -ENXIO;
+	}
 
 	if (!fw_info->rsp)
+	{
 		return -EINVAL;
+	}
 
 	*rsp = fw_info->rsp;
 	fw_info->rsp = NULL;
@@ -62,7 +73,7 @@ static int s3fwrn5_fw_send_msg(struct s3fwrn5_fw_info *fw_info,
 }
 
 static int s3fwrn5_fw_prep_msg(struct s3fwrn5_fw_info *fw_info,
-	struct sk_buff **msg, u8 type, u8 code, const void *data, u16 len)
+							   struct sk_buff **msg, u8 type, u8 code, const void *data, u16 len)
 {
 	struct s3fwrn5_fw_header hdr;
 	struct sk_buff *skb;
@@ -73,12 +84,18 @@ static int s3fwrn5_fw_prep_msg(struct s3fwrn5_fw_info *fw_info,
 	hdr.len = len;
 
 	skb = alloc_skb(S3FWRN5_FW_HDR_SIZE + len, GFP_KERNEL);
+
 	if (!skb)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(skb_put(skb, S3FWRN5_FW_HDR_SIZE), &hdr, S3FWRN5_FW_HDR_SIZE);
+
 	if (len)
+	{
 		memcpy(skb_put(skb, len), data, len);
+	}
 
 	*msg = skb;
 
@@ -86,7 +103,7 @@ static int s3fwrn5_fw_prep_msg(struct s3fwrn5_fw_info *fw_info,
 }
 
 static int s3fwrn5_fw_get_bootinfo(struct s3fwrn5_fw_info *fw_info,
-	struct s3fwrn5_fw_cmd_get_bootinfo_rsp *bootinfo)
+								   struct s3fwrn5_fw_cmd_get_bootinfo_rsp *bootinfo)
 {
 	struct sk_buff *msg, *rsp = NULL;
 	struct s3fwrn5_fw_header *hdr;
@@ -95,17 +112,25 @@ static int s3fwrn5_fw_get_bootinfo(struct s3fwrn5_fw_info *fw_info,
 	/* Send GET_BOOTINFO command */
 
 	ret = s3fwrn5_fw_prep_msg(fw_info, &msg, S3FWRN5_FW_MSG_CMD,
-		S3FWRN5_FW_CMD_GET_BOOTINFO, NULL, 0);
+							  S3FWRN5_FW_CMD_GET_BOOTINFO, NULL, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = s3fwrn5_fw_send_msg(fw_info, msg, &rsp);
 	kfree_skb(msg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	hdr = (struct s3fwrn5_fw_header *) rsp->data;
-	if (hdr->code != S3FWRN5_FW_RET_SUCCESS) {
+
+	if (hdr->code != S3FWRN5_FW_RET_SUCCESS)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
@@ -118,8 +143,8 @@ out:
 }
 
 static int s3fwrn5_fw_enter_update_mode(struct s3fwrn5_fw_info *fw_info,
-	const void *hash_data, u16 hash_size,
-	const void *sig_data, u16 sig_size)
+										const void *hash_data, u16 hash_size,
+										const void *sig_data, u16 sig_size)
 {
 	struct s3fwrn5_fw_cmd_enter_updatemode args;
 	struct sk_buff *msg, *rsp = NULL;
@@ -132,17 +157,25 @@ static int s3fwrn5_fw_enter_update_mode(struct s3fwrn5_fw_info *fw_info,
 	args.signature_size = sig_size;
 
 	ret = s3fwrn5_fw_prep_msg(fw_info, &msg, S3FWRN5_FW_MSG_CMD,
-		S3FWRN5_FW_CMD_ENTER_UPDATE_MODE, &args, sizeof(args));
+							  S3FWRN5_FW_CMD_ENTER_UPDATE_MODE, &args, sizeof(args));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = s3fwrn5_fw_send_msg(fw_info, msg, &rsp);
 	kfree_skb(msg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	hdr = (struct s3fwrn5_fw_header *) rsp->data;
-	if (hdr->code != S3FWRN5_FW_RET_SUCCESS) {
+
+	if (hdr->code != S3FWRN5_FW_RET_SUCCESS)
+	{
 		ret = -EPROTO;
 		goto out;
 	}
@@ -152,17 +185,25 @@ static int s3fwrn5_fw_enter_update_mode(struct s3fwrn5_fw_info *fw_info,
 	/* Send hashcode data */
 
 	ret = s3fwrn5_fw_prep_msg(fw_info, &msg, S3FWRN5_FW_MSG_DATA, 0,
-		hash_data, hash_size);
+							  hash_data, hash_size);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = s3fwrn5_fw_send_msg(fw_info, msg, &rsp);
 	kfree_skb(msg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	hdr = (struct s3fwrn5_fw_header *) rsp->data;
-	if (hdr->code != S3FWRN5_FW_RET_SUCCESS) {
+
+	if (hdr->code != S3FWRN5_FW_RET_SUCCESS)
+	{
 		ret = -EPROTO;
 		goto out;
 	}
@@ -172,18 +213,27 @@ static int s3fwrn5_fw_enter_update_mode(struct s3fwrn5_fw_info *fw_info,
 	/* Send signature data */
 
 	ret = s3fwrn5_fw_prep_msg(fw_info, &msg, S3FWRN5_FW_MSG_DATA, 0,
-		sig_data, sig_size);
+							  sig_data, sig_size);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = s3fwrn5_fw_send_msg(fw_info, msg, &rsp);
 	kfree_skb(msg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	hdr = (struct s3fwrn5_fw_header *) rsp->data;
+
 	if (hdr->code != S3FWRN5_FW_RET_SUCCESS)
+	{
 		ret = -EPROTO;
+	}
 
 out:
 	kfree_skb(rsp);
@@ -191,7 +241,7 @@ out:
 }
 
 static int s3fwrn5_fw_update_sector(struct s3fwrn5_fw_info *fw_info,
-	u32 base_addr, const void *data)
+									u32 base_addr, const void *data)
 {
 	struct s3fwrn5_fw_cmd_update_sector args;
 	struct sk_buff *msg, *rsp = NULL;
@@ -203,17 +253,25 @@ static int s3fwrn5_fw_update_sector(struct s3fwrn5_fw_info *fw_info,
 	args.base_address = base_addr;
 
 	ret = s3fwrn5_fw_prep_msg(fw_info, &msg, S3FWRN5_FW_MSG_CMD,
-		S3FWRN5_FW_CMD_UPDATE_SECTOR, &args, sizeof(args));
+							  S3FWRN5_FW_CMD_UPDATE_SECTOR, &args, sizeof(args));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = s3fwrn5_fw_send_msg(fw_info, msg, &rsp);
 	kfree_skb(msg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	hdr = (struct s3fwrn5_fw_header *) rsp->data;
-	if (hdr->code != S3FWRN5_FW_RET_SUCCESS) {
+
+	if (hdr->code != S3FWRN5_FW_RET_SUCCESS)
+	{
 		ret = -EPROTO;
 		goto err;
 	}
@@ -222,19 +280,28 @@ static int s3fwrn5_fw_update_sector(struct s3fwrn5_fw_info *fw_info,
 
 	/* Send data split into 256-byte packets */
 
-	for (i = 0; i < 16; ++i) {
+	for (i = 0; i < 16; ++i)
+	{
 		ret = s3fwrn5_fw_prep_msg(fw_info, &msg,
-			S3FWRN5_FW_MSG_DATA, 0, data+256*i, 256);
+								  S3FWRN5_FW_MSG_DATA, 0, data + 256 * i, 256);
+
 		if (ret < 0)
+		{
 			break;
+		}
 
 		ret = s3fwrn5_fw_send_msg(fw_info, msg, &rsp);
 		kfree_skb(msg);
+
 		if (ret < 0)
+		{
 			break;
+		}
 
 		hdr = (struct s3fwrn5_fw_header *) rsp->data;
-		if (hdr->code != S3FWRN5_FW_RET_SUCCESS) {
+
+		if (hdr->code != S3FWRN5_FW_RET_SUCCESS)
+		{
 			ret = -EPROTO;
 			goto err;
 		}
@@ -258,18 +325,27 @@ static int s3fwrn5_fw_complete_update_mode(struct s3fwrn5_fw_info *fw_info)
 	/* Send COMPLETE_UPDATE_MODE command */
 
 	ret = s3fwrn5_fw_prep_msg(fw_info, &msg, S3FWRN5_FW_MSG_CMD,
-		S3FWRN5_FW_CMD_COMPLETE_UPDATE_MODE, NULL, 0);
+							  S3FWRN5_FW_CMD_COMPLETE_UPDATE_MODE, NULL, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = s3fwrn5_fw_send_msg(fw_info, msg, &rsp);
 	kfree_skb(msg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	hdr = (struct s3fwrn5_fw_header *) rsp->data;
+
 	if (hdr->code != S3FWRN5_FW_RET_SUCCESS)
+	{
 		ret = -EPROTO;
+	}
 
 	kfree_skb(rsp);
 
@@ -300,12 +376,17 @@ static int s3fwrn5_fw_request_firmware(struct s3fwrn5_fw_info *fw_info)
 	int ret;
 
 	ret = request_firmware(&fw->fw, fw_info->fw_name,
-		&fw_info->ndev->nfc_dev->dev);
+						   &fw_info->ndev->nfc_dev->dev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (fw->fw->size < S3FWRN5_FW_IMAGE_HEADER_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	memcpy(fw->date, fw->fw->data + 0x00, 12);
 	fw->date[12] = '\0';
@@ -336,10 +417,12 @@ static int s3fwrn5_fw_get_base_addr(
 	struct s3fwrn5_fw_cmd_get_bootinfo_rsp *bootinfo, u32 *base_addr)
 {
 	int i;
-	struct {
+	struct
+	{
 		u8 version[4];
 		u32 base_addr;
-	} match[] = {
+	} match[] =
+	{
 		{{0x05, 0x00, 0x00, 0x00}, 0x00005000},
 		{{0x05, 0x00, 0x00, 0x01}, 0x00003000},
 		{{0x05, 0x00, 0x00, 0x02}, 0x00003000},
@@ -350,7 +433,8 @@ static int s3fwrn5_fw_get_base_addr(
 	for (i = 0; i < ARRAY_SIZE(match); ++i)
 		if (bootinfo->hw_version[0] == match[i].version[0] &&
 			bootinfo->hw_version[1] == match[i].version[1] &&
-			bootinfo->hw_version[3] == match[i].version[3]) {
+			bootinfo->hw_version[3] == match[i].version[3])
+		{
 			*base_addr = match[i].base_addr;
 			return 0;
 		}
@@ -372,36 +456,42 @@ int s3fwrn5_fw_setup(struct s3fwrn5_fw_info *fw_info)
 	/* Get firmware data */
 
 	ret = s3fwrn5_fw_request_firmware(fw_info);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&fw_info->ndev->nfc_dev->dev,
-			"Failed to get fw file, ret=%02x\n", ret);
+				"Failed to get fw file, ret=%02x\n", ret);
 		return ret;
 	}
 
 	/* Get bootloader info */
 
 	ret = s3fwrn5_fw_get_bootinfo(fw_info, &bootinfo);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&fw_info->ndev->nfc_dev->dev,
-			"Failed to get bootinfo, ret=%02x\n", ret);
+				"Failed to get bootinfo, ret=%02x\n", ret);
 		goto err;
 	}
 
 	/* Match hardware version to obtain firmware base address */
 
 	ret = s3fwrn5_fw_get_base_addr(&bootinfo, &fw_info->base_addr);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&fw_info->ndev->nfc_dev->dev,
-			"Unknown hardware version\n");
+				"Unknown hardware version\n");
 		goto err;
 	}
 
 	fw_info->sector_size = bootinfo.sector_size;
 
 	fw_info->sig_size = s3fwrn5_fw_is_custom(&bootinfo) ?
-		fw_info->fw.custom_sig_size : fw_info->fw.sig_size;
+						fw_info->fw.custom_sig_size : fw_info->fw.sig_size;
 	fw_info->sig = s3fwrn5_fw_is_custom(&bootinfo) ?
-		fw_info->fw.custom_sig : fw_info->fw.sig;
+				   fw_info->fw.custom_sig : fw_info->fw.sig;
 
 	return 0;
 
@@ -416,11 +506,19 @@ bool s3fwrn5_fw_check_version(struct s3fwrn5_fw_info *fw_info, u32 version)
 	struct s3fwrn5_fw_version *old = (void *) &version;
 
 	if (new->major > old->major)
+	{
 		return true;
+	}
+
 	if (new->build1 > old->build1)
+	{
 		return true;
+	}
+
 	if (new->build2 > old->build2)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -438,10 +536,12 @@ int s3fwrn5_fw_download(struct s3fwrn5_fw_info *fw_info)
 	/* Compute SHA of firmware data */
 
 	tfm = crypto_alloc_shash("sha1", 0, 0);
-	if (IS_ERR(tfm)) {
+
+	if (IS_ERR(tfm))
+	{
 		ret = PTR_ERR(tfm);
 		dev_err(&fw_info->ndev->nfc_dev->dev,
-			"Cannot allocate shash (code=%d)\n", ret);
+				"Cannot allocate shash (code=%d)\n", ret);
 		goto out;
 	}
 
@@ -452,49 +552,58 @@ int s3fwrn5_fw_download(struct s3fwrn5_fw_info *fw_info)
 		desc->flags = CRYPTO_TFM_REQ_MAY_SLEEP;
 
 		ret = crypto_shash_digest(desc, fw->image, image_size,
-					  hash_data);
+								  hash_data);
 		shash_desc_zero(desc);
 	}
 
 	crypto_free_shash(tfm);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&fw_info->ndev->nfc_dev->dev,
-			"Cannot compute hash (code=%d)\n", ret);
+				"Cannot compute hash (code=%d)\n", ret);
 		goto out;
 	}
 
 	/* Firmware update process */
 
 	dev_info(&fw_info->ndev->nfc_dev->dev,
-		"Firmware update: %s\n", fw_info->fw_name);
+			 "Firmware update: %s\n", fw_info->fw_name);
 
 	ret = s3fwrn5_fw_enter_update_mode(fw_info, hash_data,
-		SHA1_DIGEST_SIZE, fw_info->sig, fw_info->sig_size);
-	if (ret < 0) {
+									   SHA1_DIGEST_SIZE, fw_info->sig, fw_info->sig_size);
+
+	if (ret < 0)
+	{
 		dev_err(&fw_info->ndev->nfc_dev->dev,
-			"Unable to enter update mode\n");
+				"Unable to enter update mode\n");
 		goto out;
 	}
 
-	for (off = 0; off < image_size; off += fw_info->sector_size) {
+	for (off = 0; off < image_size; off += fw_info->sector_size)
+	{
 		ret = s3fwrn5_fw_update_sector(fw_info,
-			fw_info->base_addr + off, fw->image + off);
-		if (ret < 0) {
+									   fw_info->base_addr + off, fw->image + off);
+
+		if (ret < 0)
+		{
 			dev_err(&fw_info->ndev->nfc_dev->dev,
-				"Firmware update error (code=%d)\n", ret);
+					"Firmware update error (code=%d)\n", ret);
 			goto out;
 		}
 	}
 
 	ret = s3fwrn5_fw_complete_update_mode(fw_info);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&fw_info->ndev->nfc_dev->dev,
-			"Unable to complete update mode\n");
+				"Unable to complete update mode\n");
 		goto out;
 	}
 
 	dev_info(&fw_info->ndev->nfc_dev->dev,
-		"Firmware update: success\n");
+			 "Firmware update: success\n");
 
 out:
 	return ret;

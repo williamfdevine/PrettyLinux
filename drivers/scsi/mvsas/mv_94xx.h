@@ -30,7 +30,8 @@
 
 #define MAX_LINK_RATE		SAS_LINK_RATE_6_0_GBPS
 
-enum VANIR_REVISION_ID {
+enum VANIR_REVISION_ID
+{
 	VANIR_A0_REV		= 0xA0,
 	VANIR_B0_REV		= 0x01,
 	VANIR_C0_REV		= 0x02,
@@ -38,11 +39,13 @@ enum VANIR_REVISION_ID {
 	VANIR_C2_REV		= 0xC2,
 };
 
-enum host_registers {
+enum host_registers
+{
 	MVS_HST_CHIP_CONFIG	= 0x10104,	/* chip configuration */
 };
 
-enum hw_registers {
+enum hw_registers
+{
 	MVS_GBL_CTL		= 0x04,  /* global control */
 	MVS_GBL_INT_STAT	= 0x00,  /* global irq status */
 	MVS_GBL_PI		= 0x0C,  /* ports implemented bitmask */
@@ -85,30 +88,30 @@ enum hw_registers {
 	MVS_CMD_DATA		= 0x174, /* Command register port (data) */
 	MVS_MEM_PARITY_ERR	= 0x178, /* Memory parity error */
 
-					 /* ports 1-3 follow after this */
+	/* ports 1-3 follow after this */
 	MVS_P0_INT_STAT		= 0x180, /* port0 interrupt status */
 	MVS_P0_INT_MASK		= 0x184, /* port0 interrupt mask */
-					 /* ports 5-7 follow after this */
+	/* ports 5-7 follow after this */
 	MVS_P4_INT_STAT		= 0x1A0, /* Port4 interrupt status */
 	MVS_P4_INT_MASK		= 0x1A4, /* Port4 interrupt enable mask */
 
-					 /* ports 1-3 follow after this */
+	/* ports 1-3 follow after this */
 	MVS_P0_SER_CTLSTAT	= 0x1D0, /* port0 serial control/status */
-					 /* ports 5-7 follow after this */
+	/* ports 5-7 follow after this */
 	MVS_P4_SER_CTLSTAT	= 0x1E0, /* port4 serial control/status */
 
-					 /* ports 1-3 follow after this */
+	/* ports 1-3 follow after this */
 	MVS_P0_CFG_ADDR		= 0x200, /* port0 phy register address */
 	MVS_P0_CFG_DATA		= 0x204, /* port0 phy register data */
-					 /* ports 5-7 follow after this */
+	/* ports 5-7 follow after this */
 	MVS_P4_CFG_ADDR		= 0x220, /* Port4 config address */
 	MVS_P4_CFG_DATA		= 0x224, /* Port4 config data */
 
-					 /* phys 1-3 follow after this */
+	/* phys 1-3 follow after this */
 	MVS_P0_VSR_ADDR		= 0x250, /* phy0 VSR address */
 	MVS_P0_VSR_DATA		= 0x254, /* phy0 VSR data */
-					 /* phys 1-3 follow after this */
-					 /* multiplexing */
+	/* phys 1-3 follow after this */
+	/* multiplexing */
 	MVS_P4_VSR_ADDR 	= 0x250, /* phy4 VSR address */
 	MVS_P4_VSR_DATA 	= 0x254, /* phy4 VSR data */
 	MVS_PA_VSR_ADDR		= 0x290, /* All port VSR addr */
@@ -116,7 +119,8 @@ enum hw_registers {
 	MVS_COMMAND_ACTIVE	= 0x300,
 };
 
-enum pci_cfg_registers {
+enum pci_cfg_registers
+{
 	PCR_PHY_CTL		= 0x40,
 	PCR_PHY_CTL2		= 0x90,
 	PCR_DEV_CTRL		= 0x78,
@@ -124,7 +128,8 @@ enum pci_cfg_registers {
 };
 
 /*  SAS/SATA Vendor Specific Port Registers */
-enum sas_sata_vsp_regs {
+enum sas_sata_vsp_regs
+{
 	VSR_PHY_STAT		= 0x00 * 4, /* Phy Interrupt Status */
 	VSR_PHY_MODE1		= 0x01 * 4, /* phy Interrupt Enable */
 	VSR_PHY_MODE2		= 0x02 * 4, /* Phy Configuration */
@@ -144,15 +149,17 @@ enum sas_sata_vsp_regs {
 	VSR_REF_CLOCK_CRTL	= 0x1A0,
 };
 
-enum chip_register_bits {
+enum chip_register_bits
+{
 	PHY_MIN_SPP_PHYS_LINK_RATE_MASK = (0x7 << 8),
 	PHY_MAX_SPP_PHYS_LINK_RATE_MASK = (0x7 << 12),
 	PHY_NEG_SPP_PHYS_LINK_RATE_MASK_OFFSET = (16),
 	PHY_NEG_SPP_PHYS_LINK_RATE_MASK =
-			(0x3 << PHY_NEG_SPP_PHYS_LINK_RATE_MASK_OFFSET),
+		(0x3 << PHY_NEG_SPP_PHYS_LINK_RATE_MASK_OFFSET),
 };
 
-enum pci_interrupt_cause {
+enum pci_interrupt_cause
+{
 	/*  MAIN_IRQ_CAUSE (R10200) Bits*/
 	MVS_IRQ_COM_IN_I2O_IOP0        = (1 << 0),
 	MVS_IRQ_COM_IN_I2O_IOP1        = (1 << 1),
@@ -185,21 +192,23 @@ enum pci_interrupt_cause {
 	MVS_IRQ_PCIE_ERR               = (1 << 31),
 };
 
-union reg_phy_cfg {
+union reg_phy_cfg
+{
 	u32 v;
-	struct {
-		u32 phy_reset:1;
-		u32 sas_support:1;
-		u32 sata_support:1;
-		u32 sata_host_mode:1;
+	struct
+	{
+		u32 phy_reset: 1;
+		u32 sas_support: 1;
+		u32 sata_support: 1;
+		u32 sata_host_mode: 1;
 		/*
 		 * bit 2: 6Gbps support
 		 * bit 1: 3Gbps support
 		 * bit 0: 1.5Gbps support
 		 */
-		u32 speed_support:3;
-		u32 snw_3_support:1;
-		u32 tx_lnk_parity:1;
+		u32 speed_support: 3;
+		u32 snw_3_support: 1;
+		u32 tx_lnk_parity: 1;
 		/*
 		 * bit 5: G1 (1.5Gbps) Without SSC
 		 * bit 4: G1 (1.5Gbps) with SSC
@@ -208,42 +217,45 @@ union reg_phy_cfg {
 		 * bit 1: G3 (6.0Gbps) without SSC
 		 * bit 0: G3 (6.0Gbps) with SSC
 		 */
-		u32 tx_spt_phs_lnk_rate:6;
+		u32 tx_spt_phs_lnk_rate: 6;
 		/* 8h: 1.5Gbps 9h: 3Gbps Ah: 6Gbps */
-		u32 tx_lgcl_lnk_rate:4;
-		u32 tx_ssc_type:1;
-		u32 sata_spin_up_spt:1;
-		u32 sata_spin_up_en:1;
-		u32 bypass_oob:1;
-		u32 disable_phy:1;
-		u32 rsvd:8;
+		u32 tx_lgcl_lnk_rate: 4;
+		u32 tx_ssc_type: 1;
+		u32 sata_spin_up_spt: 1;
+		u32 sata_spin_up_en: 1;
+		u32 bypass_oob: 1;
+		u32 disable_phy: 1;
+		u32 rsvd: 8;
 	} u;
 };
 
 #define MAX_SG_ENTRY		255
 
-struct mvs_prd_imt {
+struct mvs_prd_imt
+{
 #ifndef __BIG_ENDIAN
-	__le32			len:22;
-	u8			_r_a:2;
-	u8			misc_ctl:4;
-	u8			inter_sel:4;
+	__le32			len: 22;
+	u8			_r_a: 2;
+	u8			misc_ctl: 4;
+	u8			inter_sel: 4;
 #else
-	u32			inter_sel:4;
-	u32			misc_ctl:4;
-	u32			_r_a:2;
-	u32			len:22;
+	u32			inter_sel: 4;
+	u32			misc_ctl: 4;
+	u32			_r_a: 2;
+	u32			len: 22;
 #endif
 };
 
-struct mvs_prd {
+struct mvs_prd
+{
 	/* 64-bit buffer address */
 	__le64			addr;
 	/* 22-bit length */
 	__le32			im_len;
 } __attribute__ ((packed));
 
-enum sgpio_registers {
+enum sgpio_registers
+{
 	MVS_SGPIO_HOST_OFFSET	= 0x100,	/* offset between hosts */
 
 	MVS_SGPIO_CFG0	= 0xc200,
@@ -266,11 +278,11 @@ enum sgpio_registers {
 	MVS_SGPIO_CFG1_HIB_SHIFT	= 12,	/* B on time */
 	MVS_SGPIO_CFG1_MAXACTON_SHIFT	= 16,	/* max activity on time */
 
-		/* force activity off time */
+	/* force activity off time */
 	MVS_SGPIO_CFG1_FORCEACTOFF_SHIFT	= 20,
-		/* stretch activity on time */
+	/* stretch activity on time */
 	MVS_SGPIO_CFG1_STRCHACTON_SHIFT	= 24,
-		/* stretch activiity off time */
+	/* stretch activiity off time */
 	MVS_SGPIO_CFG1_STRCHACTOFF_SHIFT	= 28,
 
 
@@ -290,7 +302,8 @@ enum sgpio_registers {
 	MVS_SGPIO_DCTRL_ACT_SHIFT	= 5,
 };
 
-enum sgpio_led_status {
+enum sgpio_led_status
+{
 	LED_OFF	= 0,
 	LED_ON	= 1,
 	LED_BLINKA	= 2,
@@ -302,19 +315,20 @@ enum sgpio_led_status {
 };
 
 #define DEFAULT_SGPIO_BITS ((LED_BLINKA_SOF << \
-				MVS_SGPIO_DCTRL_ACT_SHIFT) << (8 * 3) | \
-			(LED_BLINKA_SOF << \
-				MVS_SGPIO_DCTRL_ACT_SHIFT) << (8 * 2) | \
-			(LED_BLINKA_SOF << \
-				MVS_SGPIO_DCTRL_ACT_SHIFT) << (8 * 1) | \
-			(LED_BLINKA_SOF << \
-				MVS_SGPIO_DCTRL_ACT_SHIFT) << (8 * 0))
+							 MVS_SGPIO_DCTRL_ACT_SHIFT) << (8 * 3) | \
+							(LED_BLINKA_SOF << \
+							 MVS_SGPIO_DCTRL_ACT_SHIFT) << (8 * 2) | \
+							(LED_BLINKA_SOF << \
+							 MVS_SGPIO_DCTRL_ACT_SHIFT) << (8 * 1) | \
+							(LED_BLINKA_SOF << \
+							 MVS_SGPIO_DCTRL_ACT_SHIFT) << (8 * 0))
 
 /*
  * these registers are accessed through port vendor
  * specific address/data registers
  */
-enum sas_sata_phy_regs {
+enum sas_sata_phy_regs
+{
 	GENERATION_1_SETTING		= 0x118,
 	GENERATION_1_2_SETTING		= 0x11C,
 	GENERATION_2_3_SETTING		= 0x120,
@@ -338,11 +352,11 @@ mv_ffc64(u64 v)
 
 #define r_reg_set_enable(i) \
 	(((i) > 31) ? mr32(MVS_STP_REG_SET_1) : \
-	mr32(MVS_STP_REG_SET_0))
+	 mr32(MVS_STP_REG_SET_0))
 
 #define w_reg_set_enable(i, tmp) \
 	(((i) > 31) ? mw32(MVS_STP_REG_SET_1, tmp) : \
-	mw32(MVS_STP_REG_SET_0, tmp))
+	 mw32(MVS_STP_REG_SET_0, tmp))
 
 extern const struct mvs_dispatch mvs_94xx_dispatch;
 #endif

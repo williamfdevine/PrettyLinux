@@ -41,22 +41,36 @@ int snd_oss_info_register(int dev, int num, char *string)
 	char *x;
 
 	if (snd_BUG_ON(dev < 0 || dev >= SNDRV_OSS_INFO_DEV_COUNT))
+	{
 		return -ENXIO;
+	}
+
 	if (snd_BUG_ON(num < 0 || num >= SNDRV_CARDS))
+	{
 		return -ENXIO;
+	}
+
 	mutex_lock(&strings);
-	if (string == NULL) {
-		if ((x = snd_sndstat_strings[num][dev]) != NULL) {
+
+	if (string == NULL)
+	{
+		if ((x = snd_sndstat_strings[num][dev]) != NULL)
+		{
 			kfree(x);
 			x = NULL;
 		}
-	} else {
+	}
+	else
+	{
 		x = kstrdup(string, GFP_KERNEL);
-		if (x == NULL) {
+
+		if (x == NULL)
+		{
 			mutex_unlock(&strings);
 			return -ENOMEM;
 		}
 	}
+
 	snd_sndstat_strings[num][dev] = x;
 	mutex_unlock(&strings);
 	return 0;
@@ -71,32 +85,43 @@ static int snd_sndstat_show_strings(struct snd_info_buffer *buf, char *id, int d
 
 	snd_iprintf(buf, "\n%s:", id);
 	mutex_lock(&strings);
-	for (idx = 0; idx < SNDRV_CARDS; idx++) {
+
+	for (idx = 0; idx < SNDRV_CARDS; idx++)
+	{
 		str = snd_sndstat_strings[idx][dev];
-		if (str) {
-			if (ok < 0) {
+
+		if (str)
+		{
+			if (ok < 0)
+			{
 				snd_iprintf(buf, "\n");
 				ok++;
 			}
+
 			snd_iprintf(buf, "%i: %s\n", idx, str);
 		}
 	}
+
 	mutex_unlock(&strings);
+
 	if (ok < 0)
+	{
 		snd_iprintf(buf, " NOT ENABLED IN CONFIG\n");
+	}
+
 	return ok;
 }
 
 static void snd_sndstat_proc_read(struct snd_info_entry *entry,
-				  struct snd_info_buffer *buffer)
+								  struct snd_info_buffer *buffer)
 {
 	snd_iprintf(buffer, "Sound Driver:3.8.1a-980706 (ALSA emulation code)\n");
 	snd_iprintf(buffer, "Kernel: %s %s %s %s %s\n",
-		    init_utsname()->sysname,
-		    init_utsname()->nodename,
-		    init_utsname()->release,
-		    init_utsname()->version,
-		    init_utsname()->machine);
+				init_utsname()->sysname,
+				init_utsname()->nodename,
+				init_utsname()->release,
+				init_utsname()->version,
+				init_utsname()->machine);
 	snd_iprintf(buffer, "Config options: 0\n");
 	snd_iprintf(buffer, "\nInstalled drivers: \n");
 	snd_iprintf(buffer, "Type 10: ALSA emulation\n");
@@ -115,9 +140,13 @@ int __init snd_info_minor_register(void)
 
 	memset(snd_sndstat_strings, 0, sizeof(snd_sndstat_strings));
 	entry = snd_info_create_module_entry(THIS_MODULE, "sndstat",
-					     snd_oss_root);
+										 snd_oss_root);
+
 	if (!entry)
+	{
 		return -ENOMEM;
+	}
+
 	entry->c.text.read = snd_sndstat_proc_read;
 	return snd_info_register(entry); /* freed in error path */
 }

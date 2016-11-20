@@ -10,7 +10,8 @@
  */
 
 #define DTMF_NPOINTS 205        /* Number of samples for DTMF recognition */
-typedef struct adpcm_state {
+typedef struct adpcm_state
+{
 	int a;
 	int d;
 	int word;
@@ -18,14 +19,16 @@ typedef struct adpcm_state {
 	int nbits;
 } adpcm_state;
 
-typedef struct dtmf_state {
+typedef struct dtmf_state
+{
 	char last;
 	char llast;
 	int idx;
 	int buf[DTMF_NPOINTS];
 } dtmf_state;
 
-typedef struct silence_state {
+typedef struct silence_state
+{
 	int state;
 	unsigned int idx;
 } silence_state;

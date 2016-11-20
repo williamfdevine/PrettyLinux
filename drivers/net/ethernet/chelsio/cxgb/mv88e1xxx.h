@@ -3,14 +3,14 @@
 #define CHELSIO_MV8E1XXX_H
 
 #ifndef BMCR_SPEED1000
-# define BMCR_SPEED1000 0x40
+	#define BMCR_SPEED1000 0x40
 #endif
 
 #ifndef ADVERTISE_PAUSE
-# define ADVERTISE_PAUSE 0x400
+	#define ADVERTISE_PAUSE 0x400
 #endif
 #ifndef ADVERTISE_PAUSE_ASYM
-# define ADVERTISE_PAUSE_ASYM 0x800
+	#define ADVERTISE_PAUSE_ASYM 0x800
 #endif
 
 /* Gigabit MII registers */

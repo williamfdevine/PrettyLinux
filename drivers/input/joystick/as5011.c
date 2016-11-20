@@ -71,7 +71,8 @@ MODULE_LICENSE("GPL");
 #define AS5011_FUZZ	8
 #define AS5011_FLAT	40
 
-struct as5011_device {
+struct as5011_device
+{
 	struct input_dev *input_dev;
 	struct i2c_client *i2c_client;
 	unsigned int button_gpio;
@@ -80,11 +81,12 @@ struct as5011_device {
 };
 
 static int as5011_i2c_write(struct i2c_client *client,
-			    uint8_t aregaddr,
-			    uint8_t avalue)
+							uint8_t aregaddr,
+							uint8_t avalue)
 {
 	uint8_t data[2] = { aregaddr, avalue };
-	struct i2c_msg msg = {
+	struct i2c_msg msg =
+	{
 		.addr = client->addr,
 		.flags = I2C_M_IGNORE_NAK,
 		.len = 2,
@@ -97,10 +99,11 @@ static int as5011_i2c_write(struct i2c_client *client,
 }
 
 static int as5011_i2c_read(struct i2c_client *client,
-			   uint8_t aregaddr, signed char *value)
+						   uint8_t aregaddr, signed char *value)
 {
 	uint8_t data[2] = { aregaddr };
-	struct i2c_msg msg_set[2] = {
+	struct i2c_msg msg_set[2] =
+	{
 		{
 			.addr = client->addr,
 			.flags = I2C_M_REV_DIR_ADDR,
@@ -117,8 +120,11 @@ static int as5011_i2c_read(struct i2c_client *client,
 	int error;
 
 	error = i2c_transfer(client->adapter, msg_set, 2);
+
 	if (error < 0)
+	{
 		return error;
+	}
 
 	*value = data[0] & 0x80 ? -1 * (1 + ~data[0]) : data[0];
 	return 0;
@@ -142,12 +148,18 @@ static irqreturn_t as5011_axis_interrupt(int irq, void *dev_id)
 	signed char x, y;
 
 	error = as5011_i2c_read(as5011->i2c_client, AS5011_X_RES_INT, &x);
+
 	if (error < 0)
+	{
 		goto out;
+	}
 
 	error = as5011_i2c_read(as5011->i2c_client, AS5011_Y_RES_INT, &y);
+
 	if (error < 0)
+	{
 		goto out;
+	}
 
 	input_report_abs(as5011->input_dev, ABS_X, x);
 	input_report_abs(as5011->input_dev, ABS_Y, y);
@@ -158,7 +170,7 @@ out:
 }
 
 static int as5011_configure_chip(struct as5011_device *as5011,
-				const struct as5011_platform_data *plat_dat)
+								 const struct as5011_platform_data *plat_dat)
 {
 	struct i2c_client *client = as5011->i2c_client;
 	int error;
@@ -166,8 +178,10 @@ static int as5011_configure_chip(struct as5011_device *as5011,
 
 	/* chip soft reset */
 	error = as5011_i2c_write(client, AS5011_CTRL1,
-				 AS5011_CTRL1_SOFT_RST);
-	if (error < 0) {
+							 AS5011_CTRL1_SOFT_RST);
+
+	if (error < 0)
+	{
 		dev_err(&client->dev, "Soft reset failed\n");
 		return error;
 	}
@@ -175,49 +189,63 @@ static int as5011_configure_chip(struct as5011_device *as5011,
 	mdelay(10);
 
 	error = as5011_i2c_write(client, AS5011_CTRL1,
-				 AS5011_CTRL1_LP_PULSED |
-				 AS5011_CTRL1_LP_ACTIVE |
-				 AS5011_CTRL1_INT_ACT_EN);
-	if (error < 0) {
+							 AS5011_CTRL1_LP_PULSED |
+							 AS5011_CTRL1_LP_ACTIVE |
+							 AS5011_CTRL1_INT_ACT_EN);
+
+	if (error < 0)
+	{
 		dev_err(&client->dev, "Power config failed\n");
 		return error;
 	}
 
 	error = as5011_i2c_write(client, AS5011_CTRL2,
-				 AS5011_CTRL2_INV_SPINNING);
-	if (error < 0) {
+							 AS5011_CTRL2_INV_SPINNING);
+
+	if (error < 0)
+	{
 		dev_err(&client->dev, "Can't invert spinning\n");
 		return error;
 	}
 
 	/* write threshold */
 	error = as5011_i2c_write(client, AS5011_XP, plat_dat->xp);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		dev_err(&client->dev, "Can't write threshold\n");
 		return error;
 	}
 
 	error = as5011_i2c_write(client, AS5011_XN, plat_dat->xn);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		dev_err(&client->dev, "Can't write threshold\n");
 		return error;
 	}
 
 	error = as5011_i2c_write(client, AS5011_YP, plat_dat->yp);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		dev_err(&client->dev, "Can't write threshold\n");
 		return error;
 	}
 
 	error = as5011_i2c_write(client, AS5011_YN, plat_dat->yn);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		dev_err(&client->dev, "Can't write threshold\n");
 		return error;
 	}
 
 	/* to free irq gpio in chip */
 	error = as5011_i2c_read(client, AS5011_X_RES_INT, &value);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		dev_err(&client->dev, "Can't read i2c X resolution value\n");
 		return error;
 	}
@@ -226,7 +254,7 @@ static int as5011_configure_chip(struct as5011_device *as5011,
 }
 
 static int as5011_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	const struct as5011_platform_data *plat_data;
 	struct as5011_device *as5011;
@@ -235,27 +263,34 @@ static int as5011_probe(struct i2c_client *client,
 	int error;
 
 	plat_data = dev_get_platdata(&client->dev);
-	if (!plat_data)
-		return -EINVAL;
 
-	if (!plat_data->axis_irq) {
+	if (!plat_data)
+	{
+		return -EINVAL;
+	}
+
+	if (!plat_data->axis_irq)
+	{
 		dev_err(&client->dev, "No axis IRQ?\n");
 		return -EINVAL;
 	}
 
 	if (!i2c_check_functionality(client->adapter,
-				     I2C_FUNC_NOSTART |
-				     I2C_FUNC_PROTOCOL_MANGLING)) {
+								 I2C_FUNC_NOSTART |
+								 I2C_FUNC_PROTOCOL_MANGLING))
+	{
 		dev_err(&client->dev,
-			"need i2c bus that supports protocol mangling\n");
+				"need i2c bus that supports protocol mangling\n");
 		return -ENODEV;
 	}
 
 	as5011 = kmalloc(sizeof(struct as5011_device), GFP_KERNEL);
 	input_dev = input_allocate_device();
-	if (!as5011 || !input_dev) {
+
+	if (!as5011 || !input_dev)
+	{
 		dev_err(&client->dev,
-			"Can't allocate memory for device structure\n");
+				"Can't allocate memory for device structure\n");
 		error = -ENOMEM;
 		goto err_free_mem;
 	}
@@ -274,20 +309,24 @@ static int as5011_probe(struct i2c_client *client,
 	__set_bit(BTN_JOYSTICK, input_dev->keybit);
 
 	input_set_abs_params(input_dev, ABS_X,
-		AS5011_MIN_AXIS, AS5011_MAX_AXIS, AS5011_FUZZ, AS5011_FLAT);
+						 AS5011_MIN_AXIS, AS5011_MAX_AXIS, AS5011_FUZZ, AS5011_FLAT);
 	input_set_abs_params(as5011->input_dev, ABS_Y,
-		AS5011_MIN_AXIS, AS5011_MAX_AXIS, AS5011_FUZZ, AS5011_FLAT);
+						 AS5011_MIN_AXIS, AS5011_MAX_AXIS, AS5011_FUZZ, AS5011_FLAT);
 
 	error = gpio_request(as5011->button_gpio, "AS5011 button");
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		dev_err(&client->dev, "Failed to request button gpio\n");
 		goto err_free_mem;
 	}
 
 	irq = gpio_to_irq(as5011->button_gpio);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&client->dev,
-			"Failed to get irq number for button gpio\n");
+				"Failed to get irq number for button gpio\n");
 		error = irq;
 		goto err_free_button_gpio;
 	}
@@ -295,32 +334,41 @@ static int as5011_probe(struct i2c_client *client,
 	as5011->button_irq = irq;
 
 	error = request_threaded_irq(as5011->button_irq,
-				     NULL, as5011_button_interrupt,
-				     IRQF_TRIGGER_RISING |
-					IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-				     "as5011_button", as5011);
-	if (error < 0) {
+								 NULL, as5011_button_interrupt,
+								 IRQF_TRIGGER_RISING |
+								 IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+								 "as5011_button", as5011);
+
+	if (error < 0)
+	{
 		dev_err(&client->dev,
-			"Can't allocate button irq %d\n", as5011->button_irq);
+				"Can't allocate button irq %d\n", as5011->button_irq);
 		goto err_free_button_gpio;
 	}
 
 	error = as5011_configure_chip(as5011, plat_data);
+
 	if (error)
+	{
 		goto err_free_button_irq;
+	}
 
 	error = request_threaded_irq(as5011->axis_irq, NULL,
-				     as5011_axis_interrupt,
-				     plat_data->axis_irqflags | IRQF_ONESHOT,
-				     "as5011_joystick", as5011);
-	if (error) {
+								 as5011_axis_interrupt,
+								 plat_data->axis_irqflags | IRQF_ONESHOT,
+								 "as5011_joystick", as5011);
+
+	if (error)
+	{
 		dev_err(&client->dev,
-			"Can't allocate axis irq %d\n", plat_data->axis_irq);
+				"Can't allocate axis irq %d\n", plat_data->axis_irq);
 		goto err_free_button_irq;
 	}
 
 	error = input_register_device(as5011->input_dev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&client->dev, "Failed to register input device\n");
 		goto err_free_axis_irq;
 	}
@@ -356,13 +404,15 @@ static int as5011_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id as5011_id[] = {
+static const struct i2c_device_id as5011_id[] =
+{
 	{ MODULE_DEVICE_ALIAS, 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, as5011_id);
 
-static struct i2c_driver as5011_driver = {
+static struct i2c_driver as5011_driver =
+{
 	.driver = {
 		.name = "as5011",
 	},

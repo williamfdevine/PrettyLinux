@@ -36,8 +36,11 @@ int sync_with_child(union pipe read_pipe, union pipe write_pipe)
 
 	FAIL_IF(write(write_pipe.write_fd, &c, 1) != 1);
 	FAIL_IF(read(read_pipe.read_fd, &c, 1) != 1);
+
 	if (c != CHILD_TOKEN) /* sometimes expected */
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -74,15 +77,20 @@ int wait_for_child(pid_t child_pid)
 {
 	int rc;
 
-	if (waitpid(child_pid, &rc, 0) == -1) {
+	if (waitpid(child_pid, &rc, 0) == -1)
+	{
 		perror("waitpid");
 		return 1;
 	}
 
 	if (WIFEXITED(rc))
+	{
 		rc = WEXITSTATUS(rc);
+	}
 	else
-		rc = 1; /* Signal or other */
+	{
+		rc = 1;    /* Signal or other */
+	}
 
 	return rc;
 }
@@ -108,7 +116,7 @@ static int eat_cpu_child(union pipe read_pipe, union pipe write_pipe)
 	wait_for_parent(read_pipe);
 
 	/* Soak up cpu forever */
-	while (1) i++;
+	while (1) { i++; }
 
 	return 0;
 }
@@ -124,16 +132,24 @@ pid_t eat_cpu(int (test_function)(void))
 	FAIL_IF(bind_to_cpu(cpu));
 
 	if (pipe(read_pipe.fds) == -1)
+	{
 		return -1;
+	}
 
 	if (pipe(write_pipe.fds) == -1)
+	{
 		return -1;
+	}
 
 	pid = fork();
-	if (pid == 0)
-		exit(eat_cpu_child(write_pipe, read_pipe));
 
-	if (sync_with_child(read_pipe, write_pipe)) {
+	if (pid == 0)
+	{
+		exit(eat_cpu_child(write_pipe, read_pipe));
+	}
+
+	if (sync_with_child(read_pipe, write_pipe))
+	{
 		rc = -1;
 		goto out;
 	}
@@ -157,29 +173,41 @@ int parse_proc_maps(void)
 	int rc;
 
 	f = fopen("/proc/self/maps", "r");
-	if (!f) {
+
+	if (!f)
+	{
 		perror("fopen");
 		return -1;
 	}
 
-	do {
+	do
+	{
 		/* This skips line with no executable which is what we want */
 		rc = fscanf(f, "%lx-%lx %*c%*c%c%*c %*x %*d:%*d %*d %127s\n",
-			    &start, &end, &execute, name);
+					&start, &end, &execute, name);
+
 		if (rc <= 0)
+		{
 			break;
+		}
 
 		if (execute != 'x')
+		{
 			continue;
+		}
 
-		if (strstr(name, "libc")) {
+		if (strstr(name, "libc"))
+		{
 			libc.first = start;
 			libc.last = end - 1;
-		} else if (strstr(name, "[vdso]")) {
+		}
+		else if (strstr(name, "[vdso]"))
+		{
 			vdso.first = start;
 			vdso.last = end - 1;
 		}
-	} while(1);
+	}
+	while (1);
 
 	fclose(f);
 
@@ -198,25 +226,31 @@ bool require_paranoia_below(int level)
 	rc = -1;
 
 	f = fopen(PARANOID_PATH, "r");
-	if (!f) {
+
+	if (!f)
+	{
 		perror("fopen");
 		goto out;
 	}
 
-	if (!fgets(buf, sizeof(buf), f)) {
+	if (!fgets(buf, sizeof(buf), f))
+	{
 		printf("Couldn't read " PARANOID_PATH "?\n");
 		goto out_close;
 	}
 
 	current = strtol(buf, &end, 10);
 
-	if (end == buf) {
+	if (end == buf)
+	{
 		printf("Couldn't parse " PARANOID_PATH "?\n");
 		goto out_close;
 	}
 
 	if (current >= level)
+	{
 		goto out_close;
+	}
 
 	rc = 0;
 out_close:

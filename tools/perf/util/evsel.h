@@ -17,7 +17,8 @@ struct perf_evsel;
  * Per fd, to map back from PERF_SAMPLE_ID to evsel, only used when there are
  * more than one entry in the evlist.
  */
-struct perf_sample_id {
+struct perf_sample_id
+{
 	struct hlist_node 	node;
 	u64		 	id;
 	struct perf_evsel	*evsel;
@@ -37,7 +38,8 @@ struct cgroup_sel;
  * It is allocated within event parsing and attached to
  * perf_evsel::config_terms list head.
 */
-enum {
+enum
+{
 	PERF_EVSEL__CONFIG_TERM_PERIOD,
 	PERF_EVSEL__CONFIG_TERM_FREQ,
 	PERF_EVSEL__CONFIG_TERM_TIME,
@@ -50,10 +52,12 @@ enum {
 	PERF_EVSEL__CONFIG_TERM_MAX,
 };
 
-struct perf_evsel_config_term {
+struct perf_evsel_config_term
+{
 	struct list_head	list;
 	int	type;
-	union {
+	union
+	{
 		u64	period;
 		u64	freq;
 		bool	time;
@@ -82,7 +86,8 @@ struct perf_evsel_config_term {
  *          is used there is an id sample appended to non-sample events
  * @priv:   And what is in its containing unnamed union are tool specific
  */
-struct perf_evsel {
+struct perf_evsel
+{
 	struct list_head	node;
 	struct perf_evlist	*evlist;
 	struct perf_event_attr	attr;
@@ -130,7 +135,8 @@ struct perf_evsel {
 	int			bpf_fd;
 };
 
-union u64_swap {
+union u64_swap
+{
 	u64 val64;
 	u32 val32[2];
 };
@@ -151,14 +157,14 @@ static inline int perf_evsel__nr_cpus(struct perf_evsel *evsel)
 }
 
 void perf_counts_values__scale(struct perf_counts_values *count,
-			       bool scale, s8 *pscaled);
+							   bool scale, s8 *pscaled);
 
 void perf_evsel__compute_deltas(struct perf_evsel *evsel, int cpu, int thread,
-				struct perf_counts_values *count);
+								struct perf_counts_values *count);
 
 int perf_evsel__object_config(size_t object_size,
-			      int (*init)(struct perf_evsel *evsel),
-			      void (*fini)(struct perf_evsel *evsel));
+							  int (*init)(struct perf_evsel *evsel),
+							  void (*fini)(struct perf_evsel *evsel));
 
 struct perf_evsel *perf_evsel__new_idx(struct perf_event_attr *attr, int idx);
 
@@ -182,18 +188,18 @@ struct perf_evsel *perf_evsel__new_cycles(void);
 struct event_format *event_format__new(const char *sys, const char *name);
 
 void perf_evsel__init(struct perf_evsel *evsel,
-		      struct perf_event_attr *attr, int idx);
+					  struct perf_event_attr *attr, int idx);
 void perf_evsel__exit(struct perf_evsel *evsel);
 void perf_evsel__delete(struct perf_evsel *evsel);
 
 struct callchain_param;
 
 void perf_evsel__config(struct perf_evsel *evsel,
-			struct record_opts *opts,
-			struct callchain_param *callchain);
+						struct record_opts *opts,
+						struct callchain_param *callchain);
 void perf_evsel__config_callchain(struct perf_evsel *evsel,
-				  struct record_opts *opts,
-				  struct callchain_param *callchain);
+								  struct record_opts *opts,
+								  struct callchain_param *callchain);
 
 int __perf_evsel__sample_size(u64 sample_type);
 void perf_evsel__calc_id_pos(struct perf_evsel *evsel);
@@ -203,15 +209,15 @@ bool perf_evsel__is_cache_op_valid(u8 type, u8 op);
 #define PERF_EVSEL__MAX_ALIASES 8
 
 extern const char *perf_evsel__hw_cache[PERF_COUNT_HW_CACHE_MAX]
-				       [PERF_EVSEL__MAX_ALIASES];
+[PERF_EVSEL__MAX_ALIASES];
 extern const char *perf_evsel__hw_cache_op[PERF_COUNT_HW_CACHE_OP_MAX]
-					  [PERF_EVSEL__MAX_ALIASES];
+[PERF_EVSEL__MAX_ALIASES];
 extern const char *perf_evsel__hw_cache_result[PERF_COUNT_HW_CACHE_RESULT_MAX]
-					      [PERF_EVSEL__MAX_ALIASES];
+[PERF_EVSEL__MAX_ALIASES];
 extern const char *perf_evsel__hw_names[PERF_COUNT_HW_MAX];
 extern const char *perf_evsel__sw_names[PERF_COUNT_SW_MAX];
 int __perf_evsel__hw_cache_type_op_res_name(u8 type, u8 op, u8 result,
-					    char *bf, size_t size);
+		char *bf, size_t size);
 const char *perf_evsel__name(struct perf_evsel *evsel);
 
 const char *perf_evsel__group_name(struct perf_evsel *evsel);
@@ -221,9 +227,9 @@ int perf_evsel__alloc_id(struct perf_evsel *evsel, int ncpus, int nthreads);
 void perf_evsel__close_fd(struct perf_evsel *evsel, int ncpus, int nthreads);
 
 void __perf_evsel__set_sample_bit(struct perf_evsel *evsel,
-				  enum perf_event_sample_format bit);
+								  enum perf_event_sample_format bit);
 void __perf_evsel__reset_sample_bit(struct perf_evsel *evsel,
-				    enum perf_event_sample_format bit);
+									enum perf_event_sample_format bit);
 
 #define perf_evsel__set_sample_bit(evsel, bit) \
 	__perf_evsel__set_sample_bit(evsel, PERF_SAMPLE_##bit)
@@ -232,35 +238,35 @@ void __perf_evsel__reset_sample_bit(struct perf_evsel *evsel,
 	__perf_evsel__reset_sample_bit(evsel, PERF_SAMPLE_##bit)
 
 void perf_evsel__set_sample_id(struct perf_evsel *evsel,
-			       bool use_sample_identifier);
+							   bool use_sample_identifier);
 
 int perf_evsel__set_filter(struct perf_evsel *evsel, const char *filter);
 int perf_evsel__append_tp_filter(struct perf_evsel *evsel, const char *filter);
 int perf_evsel__append_addr_filter(struct perf_evsel *evsel,
-				   const char *filter);
+								   const char *filter);
 int perf_evsel__apply_filter(struct perf_evsel *evsel, int ncpus, int nthreads,
-			     const char *filter);
+							 const char *filter);
 int perf_evsel__enable(struct perf_evsel *evsel);
 int perf_evsel__disable(struct perf_evsel *evsel);
 
 int perf_evsel__open_per_cpu(struct perf_evsel *evsel,
-			     struct cpu_map *cpus);
+							 struct cpu_map *cpus);
 int perf_evsel__open_per_thread(struct perf_evsel *evsel,
-				struct thread_map *threads);
+								struct thread_map *threads);
 int perf_evsel__open(struct perf_evsel *evsel, struct cpu_map *cpus,
-		     struct thread_map *threads);
+					 struct thread_map *threads);
 void perf_evsel__close(struct perf_evsel *evsel, int ncpus, int nthreads);
 
 struct perf_sample;
 
 void *perf_evsel__rawptr(struct perf_evsel *evsel, struct perf_sample *sample,
-			 const char *name);
+						 const char *name);
 u64 perf_evsel__intval(struct perf_evsel *evsel, struct perf_sample *sample,
-		       const char *name);
+					   const char *name);
 
 static inline char *perf_evsel__strval(struct perf_evsel *evsel,
-				       struct perf_sample *sample,
-				       const char *name)
+									   struct perf_sample *sample,
+									   const char *name)
 {
 	return perf_evsel__rawptr(evsel, sample, name);
 }
@@ -276,10 +282,10 @@ struct format_field *perf_evsel__field(struct perf_evsel *evsel, const char *nam
 	 evsel->attr.config == PERF_COUNT_##c)
 
 static inline bool perf_evsel__match2(struct perf_evsel *e1,
-				      struct perf_evsel *e2)
+									  struct perf_evsel *e2)
 {
 	return (e1->attr.type == e2->attr.type) &&
-	       (e1->attr.config == e2->attr.config);
+		   (e1->attr.config == e2->attr.config);
 }
 
 #define perf_evsel__cmp(a, b)			\
@@ -289,10 +295,10 @@ static inline bool perf_evsel__match2(struct perf_evsel *e1,
 	 (a)->attr.config == (b)->attr.config)
 
 int perf_evsel__read(struct perf_evsel *evsel, int cpu, int thread,
-		     struct perf_counts_values *count);
+					 struct perf_counts_values *count);
 
 int __perf_evsel__read_on_cpu(struct perf_evsel *evsel,
-			      int cpu, int thread, bool scale);
+							  int cpu, int thread, bool scale);
 
 /**
  * perf_evsel__read_on_cpu - Read out the results on a CPU and thread
@@ -302,7 +308,7 @@ int __perf_evsel__read_on_cpu(struct perf_evsel *evsel,
  * @thread - thread of interest
  */
 static inline int perf_evsel__read_on_cpu(struct perf_evsel *evsel,
-					  int cpu, int thread)
+		int cpu, int thread)
 {
 	return __perf_evsel__read_on_cpu(evsel, cpu, thread, false);
 }
@@ -315,13 +321,13 @@ static inline int perf_evsel__read_on_cpu(struct perf_evsel *evsel,
  * @thread - thread of interest
  */
 static inline int perf_evsel__read_on_cpu_scaled(struct perf_evsel *evsel,
-						 int cpu, int thread)
+		int cpu, int thread)
 {
 	return __perf_evsel__read_on_cpu(evsel, cpu, thread, true);
 }
 
 int perf_evsel__parse_sample(struct perf_evsel *evsel, union perf_event *event,
-			     struct perf_sample *sample);
+							 struct perf_sample *sample);
 
 static inline struct perf_evsel *perf_evsel__next(struct perf_evsel *evsel)
 {
@@ -356,7 +362,9 @@ static inline bool perf_evsel__is_group_leader(const struct perf_evsel *evsel)
 static inline bool perf_evsel__is_group_event(struct perf_evsel *evsel)
 {
 	if (!symbol_conf.event_group)
+	{
 		return false;
+	}
 
 	return perf_evsel__is_group_leader(evsel) && evsel->nr_members > 1;
 }
@@ -368,10 +376,11 @@ static inline bool perf_evsel__is_bpf_output(struct perf_evsel *evsel)
 	struct perf_event_attr *attr = &evsel->attr;
 
 	return (attr->config == PERF_COUNT_SW_BPF_OUTPUT) &&
-		(attr->type == PERF_TYPE_SOFTWARE);
+		   (attr->type == PERF_TYPE_SOFTWARE);
 }
 
-struct perf_attr_details {
+struct perf_attr_details
+{
 	bool freq;
 	bool verbose;
 	bool event_group;
@@ -380,7 +389,7 @@ struct perf_attr_details {
 };
 
 int perf_evsel__fprintf(struct perf_evsel *evsel,
-			struct perf_attr_details *details, FILE *fp);
+						struct perf_attr_details *details, FILE *fp);
 
 #define EVSEL__PRINT_IP			(1<<0)
 #define EVSEL__PRINT_SYM		(1<<1)
@@ -393,17 +402,17 @@ int perf_evsel__fprintf(struct perf_evsel *evsel,
 struct callchain_cursor;
 
 int sample__fprintf_callchain(struct perf_sample *sample, int left_alignment,
-			      unsigned int print_opts,
-			      struct callchain_cursor *cursor, FILE *fp);
+							  unsigned int print_opts,
+							  struct callchain_cursor *cursor, FILE *fp);
 
 int sample__fprintf_sym(struct perf_sample *sample, struct addr_location *al,
-			int left_alignment, unsigned int print_opts,
-			struct callchain_cursor *cursor, FILE *fp);
+						int left_alignment, unsigned int print_opts,
+						struct callchain_cursor *cursor, FILE *fp);
 
 bool perf_evsel__fallback(struct perf_evsel *evsel, int err,
-			  char *msg, size_t msgsize);
+						  char *msg, size_t msgsize);
 int perf_evsel__open_strerror(struct perf_evsel *evsel, struct target *target,
-			      int err, char *msg, size_t size);
+							  int err, char *msg, size_t size);
 
 static inline int perf_evsel__group_idx(struct perf_evsel *evsel)
 {
@@ -411,9 +420,9 @@ static inline int perf_evsel__group_idx(struct perf_evsel *evsel)
 }
 
 #define for_each_group_member(_evsel, _leader) 					\
-for ((_evsel) = list_entry((_leader)->node.next, struct perf_evsel, node); 	\
-     (_evsel) && (_evsel)->leader == (_leader);					\
-     (_evsel) = list_entry((_evsel)->node.next, struct perf_evsel, node))
+	for ((_evsel) = list_entry((_leader)->node.next, struct perf_evsel, node); 	\
+		 (_evsel) && (_evsel)->leader == (_leader);					\
+		 (_evsel) = list_entry((_evsel)->node.next, struct perf_evsel, node))
 
 static inline bool perf_evsel__has_branch_callstack(const struct perf_evsel *evsel)
 {
@@ -423,7 +432,7 @@ static inline bool perf_evsel__has_branch_callstack(const struct perf_evsel *evs
 typedef int (*attr__fprintf_f)(FILE *, const char *, const char *, void *);
 
 int perf_event_attr__fprintf(FILE *fp, struct perf_event_attr *attr,
-			     attr__fprintf_f attr__fprintf, void *priv);
+							 attr__fprintf_f attr__fprintf, void *priv);
 
 char *perf_evsel__env_arch(struct perf_evsel *evsel);
 

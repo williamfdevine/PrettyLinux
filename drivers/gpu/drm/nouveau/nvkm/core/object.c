@@ -29,16 +29,22 @@ int
 nvkm_object_mthd(struct nvkm_object *object, u32 mthd, void *data, u32 size)
 {
 	if (likely(object->func->mthd))
+	{
 		return object->func->mthd(object, mthd, data, size);
+	}
+
 	return -ENODEV;
 }
 
 int
 nvkm_object_ntfy(struct nvkm_object *object, u32 mthd,
-		 struct nvkm_event **pevent)
+				 struct nvkm_event **pevent)
 {
 	if (likely(object->func->ntfy))
+	{
 		return object->func->ntfy(object, mthd, pevent);
+	}
+
 	return -ENODEV;
 }
 
@@ -46,7 +52,10 @@ int
 nvkm_object_map(struct nvkm_object *object, u64 *addr, u32 *size)
 {
 	if (likely(object->func->map))
+	{
 		return object->func->map(object, addr, size);
+	}
+
 	return -ENODEV;
 }
 
@@ -54,7 +63,10 @@ int
 nvkm_object_rd08(struct nvkm_object *object, u64 addr, u8 *data)
 {
 	if (likely(object->func->rd08))
+	{
 		return object->func->rd08(object, addr, data);
+	}
+
 	return -ENODEV;
 }
 
@@ -62,7 +74,10 @@ int
 nvkm_object_rd16(struct nvkm_object *object, u64 addr, u16 *data)
 {
 	if (likely(object->func->rd16))
+	{
 		return object->func->rd16(object, addr, data);
+	}
+
 	return -ENODEV;
 }
 
@@ -70,7 +85,10 @@ int
 nvkm_object_rd32(struct nvkm_object *object, u64 addr, u32 *data)
 {
 	if (likely(object->func->rd32))
+	{
 		return object->func->rd32(object, addr, data);
+	}
+
 	return -ENODEV;
 }
 
@@ -78,7 +96,10 @@ int
 nvkm_object_wr08(struct nvkm_object *object, u64 addr, u8 data)
 {
 	if (likely(object->func->wr08))
+	{
 		return object->func->wr08(object, addr, data);
+	}
+
 	return -ENODEV;
 }
 
@@ -86,7 +107,10 @@ int
 nvkm_object_wr16(struct nvkm_object *object, u64 addr, u16 data)
 {
 	if (likely(object->func->wr16))
+	{
 		return object->func->wr16(object, addr, data);
+	}
+
 	return -ENODEV;
 }
 
@@ -94,16 +118,22 @@ int
 nvkm_object_wr32(struct nvkm_object *object, u64 addr, u32 data)
 {
 	if (likely(object->func->wr32))
+	{
 		return object->func->wr32(object, addr, data);
+	}
+
 	return -ENODEV;
 }
 
 int
 nvkm_object_bind(struct nvkm_object *object, struct nvkm_gpuobj *gpuobj,
-		 int align, struct nvkm_gpuobj **pgpuobj)
+				 int align, struct nvkm_gpuobj **pgpuobj)
 {
 	if (object->func->bind)
+	{
 		return object->func->bind(object, gpuobj, align, pgpuobj);
+	}
+
 	return -ENODEV;
 }
 
@@ -117,19 +147,30 @@ nvkm_object_fini(struct nvkm_object *object, bool suspend)
 
 	nvif_debug(object, "%s children...\n", action);
 	time = ktime_to_us(ktime_get());
-	list_for_each_entry(child, &object->tree, head) {
+	list_for_each_entry(child, &object->tree, head)
+	{
 		ret = nvkm_object_fini(child, suspend);
+
 		if (ret && suspend)
+		{
 			goto fail_child;
+		}
 	}
 
 	nvif_debug(object, "%s running...\n", action);
-	if (object->func->fini) {
+
+	if (object->func->fini)
+	{
 		ret = object->func->fini(object, suspend);
-		if (ret) {
+
+		if (ret)
+		{
 			nvif_error(object, "%s failed with %d\n", action, ret);
+
 			if (suspend)
+			{
 				goto fail;
+			}
 		}
 	}
 
@@ -138,13 +179,20 @@ nvkm_object_fini(struct nvkm_object *object, bool suspend)
 	return 0;
 
 fail:
-	if (object->func->init) {
+
+	if (object->func->init)
+	{
 		int rret = object->func->init(object);
+
 		if (rret)
+		{
 			nvif_fatal(object, "failed to restart, %d\n", rret);
+		}
 	}
+
 fail_child:
-	list_for_each_entry_continue_reverse(child, &object->tree, head) {
+	list_for_each_entry_continue_reverse(child, &object->tree, head)
+	{
 		nvkm_object_init(child);
 	}
 	return ret;
@@ -159,17 +207,26 @@ nvkm_object_init(struct nvkm_object *object)
 
 	nvif_debug(object, "init running...\n");
 	time = ktime_to_us(ktime_get());
-	if (object->func->init) {
+
+	if (object->func->init)
+	{
 		ret = object->func->init(object);
+
 		if (ret)
+		{
 			goto fail;
+		}
 	}
 
 	nvif_debug(object, "init children...\n");
-	list_for_each_entry(child, &object->tree, head) {
+	list_for_each_entry(child, &object->tree, head)
+	{
 		ret = nvkm_object_init(child);
+
 		if (ret)
+		{
 			goto fail_child;
+		}
 	}
 
 	time = ktime_to_us(ktime_get()) - time;
@@ -178,11 +235,15 @@ nvkm_object_init(struct nvkm_object *object)
 
 fail_child:
 	list_for_each_entry_continue_reverse(child, &object->tree, head)
-		nvkm_object_fini(child, false);
+	nvkm_object_fini(child, false);
 fail:
 	nvif_error(object, "init failed with %d\n", ret);
+
 	if (object->func->fini)
+	{
 		object->func->fini(object, false);
+	}
+
 	return ret;
 }
 
@@ -195,13 +256,18 @@ nvkm_object_dtor(struct nvkm_object *object)
 
 	nvif_debug(object, "destroy children...\n");
 	time = ktime_to_us(ktime_get());
-	list_for_each_entry_safe(child, ctemp, &object->tree, head) {
+	list_for_each_entry_safe(child, ctemp, &object->tree, head)
+	{
 		nvkm_object_del(&child);
 	}
 
 	nvif_debug(object, "destroy running...\n");
+
 	if (object->func->dtor)
+	{
 		data = object->func->dtor(object);
+	}
+
 	nvkm_engine_unref(&object->engine);
 	time = ktime_to_us(ktime_get()) - time;
 	nvif_debug(object, "destroy completed in %lldus...\n", time);
@@ -212,7 +278,9 @@ void
 nvkm_object_del(struct nvkm_object **pobject)
 {
 	struct nvkm_object *object = *pobject;
-	if (object && !WARN_ON(!object->func)) {
+
+	if (object && !WARN_ON(!object->func))
+	{
 		*pobject = nvkm_object_dtor(object);
 		nvkm_client_remove(object->client, object);
 		list_del(&object->head);
@@ -223,7 +291,7 @@ nvkm_object_del(struct nvkm_object **pobject)
 
 void
 nvkm_object_ctor(const struct nvkm_object_func *func,
-		 const struct nvkm_oclass *oclass, struct nvkm_object *object)
+				 const struct nvkm_oclass *oclass, struct nvkm_object *object)
 {
 	object->func = func;
 	object->client = oclass->client;
@@ -238,27 +306,33 @@ nvkm_object_ctor(const struct nvkm_object_func *func,
 
 int
 nvkm_object_new_(const struct nvkm_object_func *func,
-		 const struct nvkm_oclass *oclass, void *data, u32 size,
-		 struct nvkm_object **pobject)
+				 const struct nvkm_oclass *oclass, void *data, u32 size,
+				 struct nvkm_object **pobject)
 {
-	if (size == 0) {
+	if (size == 0)
+	{
 		if (!(*pobject = kzalloc(sizeof(**pobject), GFP_KERNEL)))
+		{
 			return -ENOMEM;
+		}
+
 		nvkm_object_ctor(func, oclass, *pobject);
 		return 0;
 	}
+
 	return -ENOSYS;
 }
 
 static const struct nvkm_object_func
-nvkm_object_func = {
+	nvkm_object_func =
+{
 };
 
 int
 nvkm_object_new(const struct nvkm_oclass *oclass, void *data, u32 size,
-		struct nvkm_object **pobject)
+				struct nvkm_object **pobject)
 {
 	const struct nvkm_object_func *func =
-		oclass->base.func ? oclass->base.func : &nvkm_object_func;
+			oclass->base.func ? oclass->base.func : &nvkm_object_func;
 	return nvkm_object_new_(func, oclass, data, size, pobject);
 }

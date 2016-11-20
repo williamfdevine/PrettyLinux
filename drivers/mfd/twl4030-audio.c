@@ -38,13 +38,15 @@
 
 static struct platform_device *twl4030_audio_dev;
 
-struct twl4030_audio_resource {
+struct twl4030_audio_resource
+{
 	int request_count;
 	u8 reg;
 	u8 mask;
 };
 
-struct twl4030_audio {
+struct twl4030_audio
+{
 	unsigned int audio_mclk;
 	struct mutex mutex;
 	struct twl4030_audio_resource resource[TWL4030_AUDIO_RES_MAX];
@@ -61,15 +63,19 @@ static int twl4030_audio_set_resource(enum twl4030_audio_res id, int enable)
 	u8 val;
 
 	twl_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &val,
-			audio->resource[id].reg);
+					audio->resource[id].reg);
 
 	if (enable)
+	{
 		val |= audio->resource[id].mask;
+	}
 	else
+	{
 		val &= ~audio->resource[id].mask;
+	}
 
 	twl_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE,
-					val, audio->resource[id].reg);
+					 val, audio->resource[id].reg);
 
 	return val;
 }
@@ -80,7 +86,7 @@ static inline int twl4030_audio_get_resource(enum twl4030_audio_res id)
 	u8 val;
 
 	twl_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &val,
-			audio->resource[id].reg);
+					audio->resource[id].reg);
 
 	return val;
 }
@@ -94,18 +100,24 @@ int twl4030_audio_enable_resource(enum twl4030_audio_res id)
 	struct twl4030_audio *audio = platform_get_drvdata(twl4030_audio_dev);
 	int val;
 
-	if (id >= TWL4030_AUDIO_RES_MAX) {
+	if (id >= TWL4030_AUDIO_RES_MAX)
+	{
 		dev_err(&twl4030_audio_dev->dev,
 				"Invalid resource ID (%u)\n", id);
 		return -EINVAL;
 	}
 
 	mutex_lock(&audio->mutex);
+
 	if (!audio->resource[id].request_count)
 		/* Resource was disabled, enable it */
+	{
 		val = twl4030_audio_set_resource(id, 1);
+	}
 	else
+	{
 		val = twl4030_audio_get_resource(id);
+	}
 
 	audio->resource[id].request_count++;
 	mutex_unlock(&audio->mutex);
@@ -123,26 +135,34 @@ int twl4030_audio_disable_resource(enum twl4030_audio_res id)
 	struct twl4030_audio *audio = platform_get_drvdata(twl4030_audio_dev);
 	int val;
 
-	if (id >= TWL4030_AUDIO_RES_MAX) {
+	if (id >= TWL4030_AUDIO_RES_MAX)
+	{
 		dev_err(&twl4030_audio_dev->dev,
 				"Invalid resource ID (%u)\n", id);
 		return -EINVAL;
 	}
 
 	mutex_lock(&audio->mutex);
-	if (!audio->resource[id].request_count) {
+
+	if (!audio->resource[id].request_count)
+	{
 		dev_err(&twl4030_audio_dev->dev,
-			"Resource has been disabled already (%u)\n", id);
+				"Resource has been disabled already (%u)\n", id);
 		mutex_unlock(&audio->mutex);
 		return -EPERM;
 	}
+
 	audio->resource[id].request_count--;
 
 	if (!audio->resource[id].request_count)
 		/* Resource can be disabled now */
+	{
 		val = twl4030_audio_set_resource(id, 0);
+	}
 	else
+	{
 		val = twl4030_audio_get_resource(id);
+	}
 
 	mutex_unlock(&audio->mutex);
 
@@ -159,27 +179,35 @@ unsigned int twl4030_audio_get_mclk(void)
 EXPORT_SYMBOL_GPL(twl4030_audio_get_mclk);
 
 static bool twl4030_audio_has_codec(struct twl4030_audio_data *pdata,
-			      struct device_node *node)
+									struct device_node *node)
 {
 	if (pdata && pdata->codec)
+	{
 		return true;
+	}
 
 	if (of_find_node_by_name(node, "codec"))
+	{
 		return true;
+	}
 
 	return false;
 }
 
 static bool twl4030_audio_has_vibra(struct twl4030_audio_data *pdata,
-			      struct device_node *node)
+									struct device_node *node)
 {
 	int vibra;
 
 	if (pdata && pdata->vibra)
+	{
 		return true;
+	}
 
 	if (!of_property_read_u32(node, "ti,enable-vibra", &vibra) && vibra)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -193,34 +221,43 @@ static int twl4030_audio_probe(struct platform_device *pdev)
 	int ret, childs = 0;
 	u8 val;
 
-	if (!pdata && !node) {
+	if (!pdata && !node)
+	{
 		dev_err(&pdev->dev, "Platform data is missing\n");
 		return -EINVAL;
 	}
 
 	audio = devm_kzalloc(&pdev->dev, sizeof(struct twl4030_audio),
-			     GFP_KERNEL);
+						 GFP_KERNEL);
+
 	if (!audio)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&audio->mutex);
 	audio->audio_mclk = twl_get_hfclk_rate();
 
 	/* Configure APLL_INFREQ and disable APLL if enabled */
-	switch (audio->audio_mclk) {
-	case 19200000:
-		val = TWL4030_APLL_INFREQ_19200KHZ;
-		break;
-	case 26000000:
-		val = TWL4030_APLL_INFREQ_26000KHZ;
-		break;
-	case 38400000:
-		val = TWL4030_APLL_INFREQ_38400KHZ;
-		break;
-	default:
-		dev_err(&pdev->dev, "Invalid audio_mclk\n");
-		return -EINVAL;
+	switch (audio->audio_mclk)
+	{
+		case 19200000:
+			val = TWL4030_APLL_INFREQ_19200KHZ;
+			break;
+
+		case 26000000:
+			val = TWL4030_APLL_INFREQ_26000KHZ;
+			break;
+
+		case 38400000:
+			val = TWL4030_APLL_INFREQ_38400KHZ;
+			break;
+
+		default:
+			dev_err(&pdev->dev, "Invalid audio_mclk\n");
+			return -EINVAL;
 	}
+
 	twl_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE, val, TWL4030_REG_APLL_CTL);
 
 	/* Codec power */
@@ -231,22 +268,31 @@ static int twl4030_audio_probe(struct platform_device *pdev)
 	audio->resource[TWL4030_AUDIO_RES_APLL].reg = TWL4030_REG_APLL_CTL;
 	audio->resource[TWL4030_AUDIO_RES_APLL].mask = TWL4030_APLL_EN;
 
-	if (twl4030_audio_has_codec(pdata, node)) {
+	if (twl4030_audio_has_codec(pdata, node))
+	{
 		cell = &audio->cells[childs];
 		cell->name = "twl4030-codec";
-		if (pdata) {
+
+		if (pdata)
+		{
 			cell->platform_data = pdata->codec;
 			cell->pdata_size = sizeof(*pdata->codec);
 		}
+
 		childs++;
 	}
-	if (twl4030_audio_has_vibra(pdata, node)) {
+
+	if (twl4030_audio_has_vibra(pdata, node))
+	{
 		cell = &audio->cells[childs];
 		cell->name = "twl4030-vibra";
-		if (pdata) {
+
+		if (pdata)
+		{
 			cell->platform_data = pdata->vibra;
 			cell->pdata_size = sizeof(*pdata->vibra);
 		}
+
 		childs++;
 	}
 
@@ -255,14 +301,17 @@ static int twl4030_audio_probe(struct platform_device *pdev)
 
 	if (childs)
 		ret = mfd_add_devices(&pdev->dev, pdev->id, audio->cells,
-				      childs, NULL, 0, NULL);
-	else {
+							  childs, NULL, 0, NULL);
+	else
+	{
 		dev_err(&pdev->dev, "No platform data found for childs\n");
 		ret = -ENODEV;
 	}
 
 	if (ret)
+	{
 		twl4030_audio_dev = NULL;
+	}
 
 	return ret;
 }
@@ -275,13 +324,15 @@ static int twl4030_audio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id twl4030_audio_of_match[] = {
+static const struct of_device_id twl4030_audio_of_match[] =
+{
 	{.compatible = "ti,twl4030-audio", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, twl4030_audio_of_match);
 
-static struct platform_driver twl4030_audio_driver = {
+static struct platform_driver twl4030_audio_driver =
+{
 	.driver		= {
 		.name	= "twl4030-audio",
 		.of_match_table = twl4030_audio_of_match,

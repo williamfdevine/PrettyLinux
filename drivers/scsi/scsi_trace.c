@@ -38,7 +38,7 @@ scsi_trace_rw6(struct trace_seq *p, unsigned char *cdb, int len)
 	txlen = cdb[4];
 
 	trace_seq_printf(p, "lba=%llu txlen=%llu",
-			 (unsigned long long)lba, (unsigned long long)txlen);
+					 (unsigned long long)lba, (unsigned long long)txlen);
 	trace_seq_putc(p, 0);
 
 	return ret;
@@ -58,11 +58,13 @@ scsi_trace_rw10(struct trace_seq *p, unsigned char *cdb, int len)
 	txlen |=  cdb[8];
 
 	trace_seq_printf(p, "lba=%llu txlen=%llu protect=%u",
-			 (unsigned long long)lba, (unsigned long long)txlen,
-			 cdb[1] >> 5);
+					 (unsigned long long)lba, (unsigned long long)txlen,
+					 cdb[1] >> 5);
 
 	if (cdb[0] == WRITE_SAME)
+	{
 		trace_seq_printf(p, " unmap=%u", cdb[1] >> 3 & 1);
+	}
 
 	trace_seq_putc(p, 0);
 
@@ -85,8 +87,8 @@ scsi_trace_rw12(struct trace_seq *p, unsigned char *cdb, int len)
 	txlen |=  cdb[9];
 
 	trace_seq_printf(p, "lba=%llu txlen=%llu protect=%u",
-			 (unsigned long long)lba, (unsigned long long)txlen,
-			 cdb[1] >> 5);
+					 (unsigned long long)lba, (unsigned long long)txlen,
+					 cdb[1] >> 5);
 	trace_seq_putc(p, 0);
 
 	return ret;
@@ -112,11 +114,13 @@ scsi_trace_rw16(struct trace_seq *p, unsigned char *cdb, int len)
 	txlen |=  cdb[13];
 
 	trace_seq_printf(p, "lba=%llu txlen=%llu protect=%u",
-			 (unsigned long long)lba, (unsigned long long)txlen,
-			 cdb[1] >> 5);
+					 (unsigned long long)lba, (unsigned long long)txlen,
+					 cdb[1] >> 5);
 
 	if (cdb[0] == WRITE_SAME_16)
+	{
 		trace_seq_printf(p, " unmap=%u", cdb[1] >> 3 & 1);
+	}
 
 	trace_seq_putc(p, 0);
 
@@ -130,22 +134,27 @@ scsi_trace_rw32(struct trace_seq *p, unsigned char *cdb, int len)
 	sector_t lba = 0, txlen = 0;
 	u32 ei_lbrt = 0;
 
-	switch (SERVICE_ACTION32(cdb)) {
-	case READ_32:
-		cmd = "READ";
-		break;
-	case VERIFY_32:
-		cmd = "VERIFY";
-		break;
-	case WRITE_32:
-		cmd = "WRITE";
-		break;
-	case WRITE_SAME_32:
-		cmd = "WRITE_SAME";
-		break;
-	default:
-		trace_seq_puts(p, "UNKNOWN");
-		goto out;
+	switch (SERVICE_ACTION32(cdb))
+	{
+		case READ_32:
+			cmd = "READ";
+			break;
+
+		case VERIFY_32:
+			cmd = "VERIFY";
+			break;
+
+		case WRITE_32:
+			cmd = "WRITE";
+			break;
+
+		case WRITE_SAME_32:
+			cmd = "WRITE_SAME";
+			break;
+
+		default:
+			trace_seq_puts(p, "UNKNOWN");
+			goto out;
 	}
 
 	lba |= ((u64)cdb[12] << 56);
@@ -166,11 +175,13 @@ scsi_trace_rw32(struct trace_seq *p, unsigned char *cdb, int len)
 	txlen |=  cdb[31];
 
 	trace_seq_printf(p, "%s_32 lba=%llu txlen=%llu protect=%u ei_lbrt=%u",
-			 cmd, (unsigned long long)lba,
-			 (unsigned long long)txlen, cdb[10] >> 5, ei_lbrt);
+					 cmd, (unsigned long long)lba,
+					 (unsigned long long)txlen, cdb[10] >> 5, ei_lbrt);
 
 	if (SERVICE_ACTION32(cdb) == WRITE_SAME_32)
+	{
 		trace_seq_printf(p, " unmap=%u", cdb[10] >> 3 & 1);
+	}
 
 out:
 	trace_seq_putc(p, 0);
@@ -197,16 +208,19 @@ scsi_trace_service_action_in(struct trace_seq *p, unsigned char *cdb, int len)
 	sector_t lba = 0;
 	u32 alloc_len = 0;
 
-	switch (SERVICE_ACTION16(cdb)) {
-	case SAI_READ_CAPACITY_16:
-		cmd = "READ_CAPACITY_16";
-		break;
-	case SAI_GET_LBA_STATUS:
-		cmd = "GET_LBA_STATUS";
-		break;
-	default:
-		trace_seq_puts(p, "UNKNOWN");
-		goto out;
+	switch (SERVICE_ACTION16(cdb))
+	{
+		case SAI_READ_CAPACITY_16:
+			cmd = "READ_CAPACITY_16";
+			break;
+
+		case SAI_GET_LBA_STATUS:
+			cmd = "GET_LBA_STATUS";
+			break;
+
+		default:
+			trace_seq_puts(p, "UNKNOWN");
+			goto out;
 	}
 
 	lba |= ((u64)cdb[2] << 56);
@@ -223,7 +237,7 @@ scsi_trace_service_action_in(struct trace_seq *p, unsigned char *cdb, int len)
 	alloc_len |=  cdb[13];
 
 	trace_seq_printf(p, "%s lba=%llu alloc_len=%u", cmd,
-			 (unsigned long long)lba, alloc_len);
+					 (unsigned long long)lba, alloc_len);
 
 out:
 	trace_seq_putc(p, 0);
@@ -237,34 +251,43 @@ scsi_trace_maintenance_in(struct trace_seq *p, unsigned char *cdb, int len)
 	const char *ret = trace_seq_buffer_ptr(p), *cmd;
 	u32 alloc_len;
 
-	switch (SERVICE_ACTION16(cdb)) {
-	case MI_REPORT_IDENTIFYING_INFORMATION:
-		cmd = "REPORT_IDENTIFYING_INFORMATION";
-		break;
-	case MI_REPORT_TARGET_PGS:
-		cmd = "REPORT_TARGET_PORT_GROUPS";
-		break;
-	case MI_REPORT_ALIASES:
-		cmd = "REPORT_ALIASES";
-		break;
-	case MI_REPORT_SUPPORTED_OPERATION_CODES:
-		cmd = "REPORT_SUPPORTED_OPERATION_CODES";
-		break;
-	case MI_REPORT_SUPPORTED_TASK_MANAGEMENT_FUNCTIONS:
-		cmd = "REPORT_SUPPORTED_TASK_MANAGEMENT_FUNCTIONS";
-		break;
-	case MI_REPORT_PRIORITY:
-		cmd = "REPORT_PRIORITY";
-		break;
-	case MI_REPORT_TIMESTAMP:
-		cmd = "REPORT_TIMESTAMP";
-		break;
-	case MI_MANAGEMENT_PROTOCOL_IN:
-		cmd = "MANAGEMENT_PROTOCOL_IN";
-		break;
-	default:
-		trace_seq_puts(p, "UNKNOWN");
-		goto out;
+	switch (SERVICE_ACTION16(cdb))
+	{
+		case MI_REPORT_IDENTIFYING_INFORMATION:
+			cmd = "REPORT_IDENTIFYING_INFORMATION";
+			break;
+
+		case MI_REPORT_TARGET_PGS:
+			cmd = "REPORT_TARGET_PORT_GROUPS";
+			break;
+
+		case MI_REPORT_ALIASES:
+			cmd = "REPORT_ALIASES";
+			break;
+
+		case MI_REPORT_SUPPORTED_OPERATION_CODES:
+			cmd = "REPORT_SUPPORTED_OPERATION_CODES";
+			break;
+
+		case MI_REPORT_SUPPORTED_TASK_MANAGEMENT_FUNCTIONS:
+			cmd = "REPORT_SUPPORTED_TASK_MANAGEMENT_FUNCTIONS";
+			break;
+
+		case MI_REPORT_PRIORITY:
+			cmd = "REPORT_PRIORITY";
+			break;
+
+		case MI_REPORT_TIMESTAMP:
+			cmd = "REPORT_TIMESTAMP";
+			break;
+
+		case MI_MANAGEMENT_PROTOCOL_IN:
+			cmd = "MANAGEMENT_PROTOCOL_IN";
+			break;
+
+		default:
+			trace_seq_puts(p, "UNKNOWN");
+			goto out;
 	}
 
 	alloc_len = get_unaligned_be32(&cdb[6]);
@@ -283,28 +306,35 @@ scsi_trace_maintenance_out(struct trace_seq *p, unsigned char *cdb, int len)
 	const char *ret = trace_seq_buffer_ptr(p), *cmd;
 	u32 alloc_len;
 
-	switch (SERVICE_ACTION16(cdb)) {
-	case MO_SET_IDENTIFYING_INFORMATION:
-		cmd = "SET_IDENTIFYING_INFORMATION";
-		break;
-	case MO_SET_TARGET_PGS:
-		cmd = "SET_TARGET_PORT_GROUPS";
-		break;
-	case MO_CHANGE_ALIASES:
-		cmd = "CHANGE_ALIASES";
-		break;
-	case MO_SET_PRIORITY:
-		cmd = "SET_PRIORITY";
-		break;
-	case MO_SET_TIMESTAMP:
-		cmd = "SET_TIMESTAMP";
-		break;
-	case MO_MANAGEMENT_PROTOCOL_OUT:
-		cmd = "MANAGEMENT_PROTOCOL_OUT";
-		break;
-	default:
-		trace_seq_puts(p, "UNKNOWN");
-		goto out;
+	switch (SERVICE_ACTION16(cdb))
+	{
+		case MO_SET_IDENTIFYING_INFORMATION:
+			cmd = "SET_IDENTIFYING_INFORMATION";
+			break;
+
+		case MO_SET_TARGET_PGS:
+			cmd = "SET_TARGET_PORT_GROUPS";
+			break;
+
+		case MO_CHANGE_ALIASES:
+			cmd = "CHANGE_ALIASES";
+			break;
+
+		case MO_SET_PRIORITY:
+			cmd = "SET_PRIORITY";
+			break;
+
+		case MO_SET_TIMESTAMP:
+			cmd = "SET_TIMESTAMP";
+			break;
+
+		case MO_MANAGEMENT_PROTOCOL_OUT:
+			cmd = "MANAGEMENT_PROTOCOL_OUT";
+			break;
+
+		default:
+			trace_seq_puts(p, "UNKNOWN");
+			goto out;
 	}
 
 	alloc_len = get_unaligned_be32(&cdb[6]);
@@ -325,13 +355,15 @@ scsi_trace_zbc_in(struct trace_seq *p, unsigned char *cdb, int len)
 	u32 alloc_len;
 	u8 options;
 
-	switch (SERVICE_ACTION16(cdb)) {
-	case ZI_REPORT_ZONES:
-		cmd = "REPORT_ZONES";
-		break;
-	default:
-		trace_seq_puts(p, "UNKNOWN");
-		goto out;
+	switch (SERVICE_ACTION16(cdb))
+	{
+		case ZI_REPORT_ZONES:
+			cmd = "REPORT_ZONES";
+			break;
+
+		default:
+			trace_seq_puts(p, "UNKNOWN");
+			goto out;
 	}
 
 	zone_id = get_unaligned_be64(&cdb[2]);
@@ -339,8 +371,8 @@ scsi_trace_zbc_in(struct trace_seq *p, unsigned char *cdb, int len)
 	options = cdb[14] & 0x3f;
 
 	trace_seq_printf(p, "%s zone=%llu alloc_len=%u options=%u partial=%u",
-			 cmd, (unsigned long long)zone_id, alloc_len,
-			 options, (cdb[14] >> 7) & 1);
+					 cmd, (unsigned long long)zone_id, alloc_len,
+					 options, (cdb[14] >> 7) & 1);
 
 out:
 	trace_seq_putc(p, 0);
@@ -354,28 +386,33 @@ scsi_trace_zbc_out(struct trace_seq *p, unsigned char *cdb, int len)
 	const char *ret = trace_seq_buffer_ptr(p), *cmd;
 	u64 zone_id;
 
-	switch (SERVICE_ACTION16(cdb)) {
-	case ZO_CLOSE_ZONE:
-		cmd = "CLOSE_ZONE";
-		break;
-	case ZO_FINISH_ZONE:
-		cmd = "FINISH_ZONE";
-		break;
-	case ZO_OPEN_ZONE:
-		cmd = "OPEN_ZONE";
-		break;
-	case ZO_RESET_WRITE_POINTER:
-		cmd = "RESET_WRITE_POINTER";
-		break;
-	default:
-		trace_seq_puts(p, "UNKNOWN");
-		goto out;
+	switch (SERVICE_ACTION16(cdb))
+	{
+		case ZO_CLOSE_ZONE:
+			cmd = "CLOSE_ZONE";
+			break;
+
+		case ZO_FINISH_ZONE:
+			cmd = "FINISH_ZONE";
+			break;
+
+		case ZO_OPEN_ZONE:
+			cmd = "OPEN_ZONE";
+			break;
+
+		case ZO_RESET_WRITE_POINTER:
+			cmd = "RESET_WRITE_POINTER";
+			break;
+
+		default:
+			trace_seq_puts(p, "UNKNOWN");
+			goto out;
 	}
 
 	zone_id = get_unaligned_be64(&cdb[2]);
 
 	trace_seq_printf(p, "%s zone=%llu all=%u", cmd,
-			 (unsigned long long)zone_id, cdb[14] & 1);
+					 (unsigned long long)zone_id, cdb[14] & 1);
 
 out:
 	trace_seq_putc(p, 0);
@@ -386,14 +423,16 @@ out:
 static const char *
 scsi_trace_varlen(struct trace_seq *p, unsigned char *cdb, int len)
 {
-	switch (SERVICE_ACTION32(cdb)) {
-	case READ_32:
-	case VERIFY_32:
-	case WRITE_32:
-	case WRITE_SAME_32:
-		return scsi_trace_rw32(p, cdb, len);
-	default:
-		return scsi_trace_misc(p, cdb, len);
+	switch (SERVICE_ACTION32(cdb))
+	{
+		case READ_32:
+		case VERIFY_32:
+		case WRITE_32:
+		case WRITE_SAME_32:
+			return scsi_trace_rw32(p, cdb, len);
+
+		default:
+			return scsi_trace_misc(p, cdb, len);
 	}
 }
 
@@ -411,39 +450,51 @@ scsi_trace_misc(struct trace_seq *p, unsigned char *cdb, int len)
 const char *
 scsi_trace_parse_cdb(struct trace_seq *p, unsigned char *cdb, int len)
 {
-	switch (cdb[0]) {
-	case READ_6:
-	case WRITE_6:
-		return scsi_trace_rw6(p, cdb, len);
-	case READ_10:
-	case VERIFY:
-	case WRITE_10:
-	case WRITE_SAME:
-		return scsi_trace_rw10(p, cdb, len);
-	case READ_12:
-	case VERIFY_12:
-	case WRITE_12:
-		return scsi_trace_rw12(p, cdb, len);
-	case READ_16:
-	case VERIFY_16:
-	case WRITE_16:
-	case WRITE_SAME_16:
-		return scsi_trace_rw16(p, cdb, len);
-	case UNMAP:
-		return scsi_trace_unmap(p, cdb, len);
-	case SERVICE_ACTION_IN_16:
-		return scsi_trace_service_action_in(p, cdb, len);
-	case VARIABLE_LENGTH_CMD:
-		return scsi_trace_varlen(p, cdb, len);
-	case MAINTENANCE_IN:
-		return scsi_trace_maintenance_in(p, cdb, len);
-	case MAINTENANCE_OUT:
-		return scsi_trace_maintenance_out(p, cdb, len);
-	case ZBC_IN:
-		return scsi_trace_zbc_in(p, cdb, len);
-	case ZBC_OUT:
-		return scsi_trace_zbc_out(p, cdb, len);
-	default:
-		return scsi_trace_misc(p, cdb, len);
+	switch (cdb[0])
+	{
+		case READ_6:
+		case WRITE_6:
+			return scsi_trace_rw6(p, cdb, len);
+
+		case READ_10:
+		case VERIFY:
+		case WRITE_10:
+		case WRITE_SAME:
+			return scsi_trace_rw10(p, cdb, len);
+
+		case READ_12:
+		case VERIFY_12:
+		case WRITE_12:
+			return scsi_trace_rw12(p, cdb, len);
+
+		case READ_16:
+		case VERIFY_16:
+		case WRITE_16:
+		case WRITE_SAME_16:
+			return scsi_trace_rw16(p, cdb, len);
+
+		case UNMAP:
+			return scsi_trace_unmap(p, cdb, len);
+
+		case SERVICE_ACTION_IN_16:
+			return scsi_trace_service_action_in(p, cdb, len);
+
+		case VARIABLE_LENGTH_CMD:
+			return scsi_trace_varlen(p, cdb, len);
+
+		case MAINTENANCE_IN:
+			return scsi_trace_maintenance_in(p, cdb, len);
+
+		case MAINTENANCE_OUT:
+			return scsi_trace_maintenance_out(p, cdb, len);
+
+		case ZBC_IN:
+			return scsi_trace_zbc_in(p, cdb, len);
+
+		case ZBC_OUT:
+			return scsi_trace_zbc_out(p, cdb, len);
+
+		default:
+			return scsi_trace_misc(p, cdb, len);
 	}
 }

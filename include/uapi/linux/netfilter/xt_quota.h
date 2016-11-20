@@ -3,14 +3,16 @@
 
 #include <linux/types.h>
 
-enum xt_quota_flags {
+enum xt_quota_flags
+{
 	XT_QUOTA_INVERT		= 0x1,
 };
 #define XT_QUOTA_MASK		0x1
 
 struct xt_quota_priv;
 
-struct xt_quota_info {
+struct xt_quota_info
+{
 	__u32 flags;
 	__u32 pad;
 	__aligned_u64 quota;

@@ -27,7 +27,8 @@ static __latent_entropy void blk_done_softirq(struct softirq_action *h)
 	list_replace_init(cpu_list, &local_list);
 	local_irq_enable();
 
-	while (!list_empty(&local_list)) {
+	while (!list_empty(&local_list))
+	{
 		struct request *rq;
 
 		rq = list_entry(local_list.next, struct request, ipi_list);
@@ -48,7 +49,9 @@ static void trigger_softirq(void *data)
 	list_add_tail(&rq->ipi_list, list);
 
 	if (list->next == &rq->ipi_list)
+	{
 		raise_softirq_irqoff(BLOCK_SOFTIRQ);
+	}
 
 	local_irq_restore(flags);
 }
@@ -58,7 +61,8 @@ static void trigger_softirq(void *data)
  */
 static int raise_blk_irq(int cpu, struct request *rq)
 {
-	if (cpu_online(cpu)) {
+	if (cpu_online(cpu))
+	{
 		struct call_single_data *data = &rq->csd;
 
 		data->func = trigger_softirq;
@@ -86,7 +90,7 @@ static int blk_softirq_cpu_dead(unsigned int cpu)
 	 */
 	local_irq_disable();
 	list_splice_init(&per_cpu(blk_cpu_done, cpu),
-			 this_cpu_ptr(&blk_cpu_done));
+					 this_cpu_ptr(&blk_cpu_done));
 	raise_softirq_irqoff(BLOCK_SOFTIRQ);
 	local_irq_enable();
 
@@ -108,12 +112,19 @@ void __blk_complete_request(struct request *req)
 	/*
 	 * Select completion CPU
 	 */
-	if (req->cpu != -1) {
+	if (req->cpu != -1)
+	{
 		ccpu = req->cpu;
+
 		if (!test_bit(QUEUE_FLAG_SAME_FORCE, &q->queue_flags))
+		{
 			shared = cpus_share_cache(cpu, ccpu);
-	} else
+		}
+	}
+	else
+	{
 		ccpu = cpu;
+	}
 
 	/*
 	 * If current CPU and requested CPU share a cache, run the softirq on
@@ -123,7 +134,8 @@ void __blk_complete_request(struct request *req)
 	 * support multiple interrupts, so current CPU is unique actually. This
 	 * avoids IPI sending from current CPU to the first CPU of a group.
 	 */
-	if (ccpu == cpu || shared) {
+	if (ccpu == cpu || shared)
+	{
 		struct list_head *list;
 do_local:
 		list = this_cpu_ptr(&blk_cpu_done);
@@ -136,9 +148,14 @@ do_local:
 		 * hasn't run yet.
 		 */
 		if (list->next == &req->ipi_list)
+		{
 			raise_softirq_irqoff(BLOCK_SOFTIRQ);
-	} else if (raise_blk_irq(ccpu, req))
+		}
+	}
+	else if (raise_blk_irq(ccpu, req))
+	{
 		goto do_local;
+	}
 
 	local_irq_restore(flags);
 }
@@ -157,9 +174,14 @@ do_local:
 void blk_complete_request(struct request *req)
 {
 	if (unlikely(blk_should_fake_timeout(req->q)))
+	{
 		return;
+	}
+
 	if (!blk_mark_rq_complete(req))
+	{
 		__blk_complete_request(req);
+	}
 }
 EXPORT_SYMBOL(blk_complete_request);
 
@@ -168,12 +190,12 @@ static __init int blk_softirq_init(void)
 	int i;
 
 	for_each_possible_cpu(i)
-		INIT_LIST_HEAD(&per_cpu(blk_cpu_done, i));
+	INIT_LIST_HEAD(&per_cpu(blk_cpu_done, i));
 
 	open_softirq(BLOCK_SOFTIRQ, blk_done_softirq);
 	cpuhp_setup_state_nocalls(CPUHP_BLOCK_SOFTIRQ_DEAD,
-				  "block/softirq:dead", NULL,
-				  blk_softirq_cpu_dead);
+							  "block/softirq:dead", NULL,
+							  blk_softirq_cpu_dead);
 	return 0;
 }
 subsys_initcall(blk_softirq_init);

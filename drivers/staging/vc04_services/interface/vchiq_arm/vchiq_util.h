@@ -56,7 +56,8 @@
 
 #include "vchiq_if.h"
 
-typedef struct {
+typedef struct
+{
 	int size;
 	int read;
 	int write;

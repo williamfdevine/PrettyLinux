@@ -40,7 +40,8 @@
  *  system. One for each response order- Unordered, ordered
  *  and 1 for noresponse entries on each instruction queue.
  */
-struct octeon_response_list {
+struct octeon_response_list
+{
 	/** List structure to add delete pending entries to */
 	struct list_head head;
 
@@ -52,7 +53,8 @@ struct octeon_response_list {
 
 /** The type of response list.
  */
-enum {
+enum
+{
 	OCTEON_ORDERED_LIST = 0,
 	OCTEON_UNORDERED_NONBLOCKING_LIST = 1,
 	OCTEON_UNORDERED_BLOCKING_LIST = 2,
@@ -60,7 +62,8 @@ enum {
 };
 
 /** Response Order values for a Octeon Request. */
-enum {
+enum
+{
 	OCTEON_RESP_ORDERED = 0,
 	OCTEON_RESP_UNORDERED = 1,
 	OCTEON_RESP_NORESPONSE = 2
@@ -103,7 +106,8 @@ enum {
  * response for request failed to arrive before a time-out period or if
  * the request processing * got interrupted due to a signal respectively.
  */
-enum {
+enum
+{
 	OCTEON_REQUEST_DONE = (DRIVER_ERROR_NONE),
 	OCTEON_REQUEST_PENDING = (DRIVER_ERROR_REQ_PENDING),
 	OCTEON_REQUEST_TIMEOUT = (DRIVER_ERROR_REQ_TIMEOUT),
@@ -135,6 +139,6 @@ void octeon_delete_response_list(struct octeon_device *octeon_dev);
  * @return 1 if the ordered list is empty, 0 otherwise.
  */
 int lio_process_ordered_list(struct octeon_device *octeon_dev,
-			     u32 force_quit);
+							 u32 force_quit);
 
 #endif

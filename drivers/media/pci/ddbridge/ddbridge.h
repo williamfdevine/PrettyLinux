@@ -48,7 +48,8 @@
 #define DDB_MAX_INPUT   8
 #define DDB_MAX_OUTPUT  4
 
-struct ddb_info {
+struct ddb_info
+{
 	int   type;
 #define DDB_NONE         0
 #define DDB_OCTOPUS      1
@@ -70,7 +71,8 @@ struct ddb_info {
 struct ddb;
 struct ddb_port;
 
-struct ddb_input {
+struct ddb_input
+{
 	struct ddb_port       *port;
 	u32                    nr;
 	int                    attached;
@@ -101,7 +103,8 @@ struct ddb_input {
 	int (*gate_ctrl)(struct dvb_frontend *, int);
 };
 
-struct ddb_output {
+struct ddb_output
+{
 	struct ddb_port       *port;
 	u32                    nr;
 	dma_addr_t             pbuf[OUTPUT_DMA_MAX_BUFS];
@@ -120,7 +123,8 @@ struct ddb_output {
 	struct dvb_device     *dev;
 };
 
-struct ddb_i2c {
+struct ddb_i2c
+{
 	struct ddb            *dev;
 	u32                    nr;
 	struct i2c_adapter     adap;
@@ -132,7 +136,8 @@ struct ddb_i2c {
 	wait_queue_head_t      wq;
 };
 
-struct ddb_port {
+struct ddb_port
+{
 	struct ddb            *dev;
 	u32                    nr;
 	struct ddb_i2c        *i2c;
@@ -154,7 +159,8 @@ struct ddb_port {
 	struct dvb_ca_en50221 *en;
 };
 
-struct ddb {
+struct ddb
+{
 	struct pci_dev        *pdev;
 	unsigned char __iomem *regs;
 	struct ddb_port        port[DDB_MAX_PORT];
@@ -173,7 +179,7 @@ struct ddb {
 /****************************************************************************/
 
 #define ddbwritel(_val, _adr)        writel((_val), \
-				     dev->regs+(_adr))
+		dev->regs+(_adr))
 #define ddbreadl(_adr)               readl(dev->regs+(_adr))
 #define ddbcpyto(_adr, _src, _count) memcpy_toio(dev->regs+(_adr), (_src), (_count))
 #define ddbcpyfrom(_dst, _adr, _count) memcpy_fromio((_dst), dev->regs+(_adr), (_count))

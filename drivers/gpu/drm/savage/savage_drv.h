@@ -51,19 +51,22 @@
  *       actually used
  */
 
-typedef struct drm_savage_age {
+typedef struct drm_savage_age
+{
 	uint16_t event;
 	unsigned int wrap;
 } drm_savage_age_t;
 
-typedef struct drm_savage_buf_priv {
+typedef struct drm_savage_buf_priv
+{
 	struct drm_savage_buf_priv *next;
 	struct drm_savage_buf_priv *prev;
 	drm_savage_age_t age;
 	struct drm_buf *buf;
 } drm_savage_buf_priv_t;
 
-typedef struct drm_savage_dma_page {
+typedef struct drm_savage_dma_page
+{
 	drm_savage_age_t age;
 	unsigned int used, flushed;
 } drm_savage_dma_page_t;
@@ -74,17 +77,21 @@ typedef struct drm_savage_dma_page {
 #define SAVAGE_FAKE_DMA_SIZE (SAVAGE_DMA_PAGE_SIZE*4*4)
 
 /* interesting bits of hardware state that are saved in dev_priv */
-typedef union {
-	struct drm_savage_common_state {
+typedef union
+{
+	struct drm_savage_common_state
+	{
 		uint32_t vbaddr;
 	} common;
-	struct {
+	struct
+	{
 		unsigned char pad[sizeof(struct drm_savage_common_state)];
 		uint32_t texctrl, texaddr;
 		uint32_t scstart, new_scstart;
 		uint32_t scend, new_scend;
 	} s3d;
-	struct {
+	struct
+	{
 		unsigned char pad[sizeof(struct drm_savage_common_state)];
 		uint32_t texdescr, texaddr0, texaddr1;
 		uint32_t drawctrl0, new_drawctrl0;
@@ -93,7 +100,8 @@ typedef union {
 } drm_savage_state_t;
 
 /* these chip tags should match the ones in the 2D driver in savage_regs.h. */
-enum savage_family {
+enum savage_family
+{
 	S3_UNKNOWN = 0,
 	S3_SAVAGE3D,
 	S3_SAVAGE_MX,
@@ -112,21 +120,22 @@ extern int savage_max_ioctl;
 #define S3_SAVAGE3D_SERIES(chip)  ((chip>=S3_SAVAGE3D) && (chip<=S3_SAVAGE_MX))
 
 #define S3_SAVAGE4_SERIES(chip)  ((chip==S3_SAVAGE4)            \
-                                  || (chip==S3_PROSAVAGE)       \
-                                  || (chip==S3_TWISTER)         \
-                                  || (chip==S3_PROSAVAGEDDR))
+								  || (chip==S3_PROSAVAGE)       \
+								  || (chip==S3_TWISTER)         \
+								  || (chip==S3_PROSAVAGEDDR))
 
 #define	S3_SAVAGE_MOBILE_SERIES(chip)	((chip==S3_SAVAGE_MX) || (chip==S3_SUPERSAVAGE))
 
 #define S3_SAVAGE_SERIES(chip)    ((chip>=S3_SAVAGE3D) && (chip<=S3_SAVAGE2000))
 
 #define S3_MOBILE_TWISTER_SERIES(chip)   ((chip==S3_TWISTER)    \
-                                          ||(chip==S3_PROSAVAGEDDR))
+		||(chip==S3_PROSAVAGEDDR))
 
 /* flags */
 #define SAVAGE_IS_AGP 1
 
-typedef struct drm_savage_private {
+typedef struct drm_savage_private
+{
 	drm_savage_sarea_t *sarea_priv;
 
 	drm_savage_buf_priv_t head, tail;
@@ -186,13 +195,13 @@ typedef struct drm_savage_private {
 	unsigned int waiting;
 
 	/* config/hardware-dependent function pointers */
-	int (*wait_fifo) (struct drm_savage_private * dev_priv, unsigned int n);
-	int (*wait_evnt) (struct drm_savage_private * dev_priv, uint16_t e);
+	int (*wait_fifo) (struct drm_savage_private *dev_priv, unsigned int n);
+	int (*wait_evnt) (struct drm_savage_private *dev_priv, uint16_t e);
 	/* Err, there is a macro wait_event in include/linux/wait.h.
 	 * Avoid unwanted macro expansion. */
-	void (*emit_clip_rect) (struct drm_savage_private * dev_priv,
-				const struct drm_clip_rect * pbox);
-	void (*dma_flush) (struct drm_savage_private * dev_priv);
+	void (*emit_clip_rect) (struct drm_savage_private *dev_priv,
+							const struct drm_clip_rect *pbox);
+	void (*dma_flush) (struct drm_savage_private *dev_priv);
 } drm_savage_private_t;
 
 /* ioctls */
@@ -200,25 +209,25 @@ extern int savage_bci_cmdbuf(struct drm_device *dev, void *data, struct drm_file
 extern int savage_bci_buffers(struct drm_device *dev, void *data, struct drm_file *file_priv);
 
 /* BCI functions */
-extern uint16_t savage_bci_emit_event(drm_savage_private_t * dev_priv,
-				      unsigned int flags);
-extern void savage_freelist_put(struct drm_device * dev, struct drm_buf * buf);
-extern void savage_dma_reset(drm_savage_private_t * dev_priv);
-extern void savage_dma_wait(drm_savage_private_t * dev_priv, unsigned int page);
-extern uint32_t *savage_dma_alloc(drm_savage_private_t * dev_priv,
-				  unsigned int n);
+extern uint16_t savage_bci_emit_event(drm_savage_private_t *dev_priv,
+									  unsigned int flags);
+extern void savage_freelist_put(struct drm_device *dev, struct drm_buf *buf);
+extern void savage_dma_reset(drm_savage_private_t *dev_priv);
+extern void savage_dma_wait(drm_savage_private_t *dev_priv, unsigned int page);
+extern uint32_t *savage_dma_alloc(drm_savage_private_t *dev_priv,
+								  unsigned int n);
 extern int savage_driver_load(struct drm_device *dev, unsigned long chipset);
 extern int savage_driver_firstopen(struct drm_device *dev);
 extern void savage_driver_lastclose(struct drm_device *dev);
 extern int savage_driver_unload(struct drm_device *dev);
 extern void savage_reclaim_buffers(struct drm_device *dev,
-				   struct drm_file *file_priv);
+								   struct drm_file *file_priv);
 
 /* state functions */
-extern void savage_emit_clip_rect_s3d(drm_savage_private_t * dev_priv,
-				      const struct drm_clip_rect * pbox);
-extern void savage_emit_clip_rect_s4(drm_savage_private_t * dev_priv,
-				     const struct drm_clip_rect * pbox);
+extern void savage_emit_clip_rect_s3d(drm_savage_private_t *dev_priv,
+									  const struct drm_clip_rect *pbox);
+extern void savage_emit_clip_rect_s4(drm_savage_private_t *dev_priv,
+									 const struct drm_clip_rect *pbox);
 
 #define SAVAGE_FB_SIZE_S3	0x01000000	/*  16MB */
 #define SAVAGE_FB_SIZE_S4	0x02000000	/*  32MB */
@@ -446,37 +455,37 @@ extern void savage_emit_clip_rect_s4(drm_savage_private_t * dev_priv,
 #define BCI_LINE_STEPS(diag, axi)    (((axi) << 16) | ((diag) & 0xFFFF))
 #define BCI_LINE_MISC(maj, ym, xp, yp, err) \
 	(((maj) & 0x1FFF) | \
-	((ym) ? 1<<13 : 0) | \
-	((xp) ? 1<<14 : 0) | \
-	((yp) ? 1<<15 : 0) | \
-	((err) << 16))
+	 ((ym) ? 1<<13 : 0) | \
+	 ((xp) ? 1<<14 : 0) | \
+	 ((yp) ? 1<<15 : 0) | \
+	 ((err) << 16))
 
 /*
  * common commands
  */
 #define BCI_SET_REGISTERS( first, n )			\
 	BCI_WRITE(BCI_CMD_SET_REGISTER |		\
-		  ((uint32_t)(n) & 0xff) << 16 |	\
-		  ((uint32_t)(first) & 0xffff))
+			  ((uint32_t)(n) & 0xff) << 16 |	\
+			  ((uint32_t)(first) & 0xffff))
 #define DMA_SET_REGISTERS( first, n )			\
 	DMA_WRITE(BCI_CMD_SET_REGISTER |		\
-		  ((uint32_t)(n) & 0xff) << 16 |	\
-		  ((uint32_t)(first) & 0xffff))
+			  ((uint32_t)(n) & 0xff) << 16 |	\
+			  ((uint32_t)(first) & 0xffff))
 
 #define BCI_DRAW_PRIMITIVE(n, type, skip)         \
-        BCI_WRITE(BCI_CMD_DRAW_PRIM | (type) | (skip) | \
-		  ((n) << 16))
+	BCI_WRITE(BCI_CMD_DRAW_PRIM | (type) | (skip) | \
+			  ((n) << 16))
 #define DMA_DRAW_PRIMITIVE(n, type, skip)         \
-        DMA_WRITE(BCI_CMD_DRAW_PRIM | (type) | (skip) | \
-		  ((n) << 16))
+	DMA_WRITE(BCI_CMD_DRAW_PRIM | (type) | (skip) | \
+			  ((n) << 16))
 
 #define BCI_DRAW_INDICES_S3D(n, type, i0)         \
-        BCI_WRITE(BCI_CMD_DRAW_INDEXED_PRIM | (type) |  \
-		  ((n) << 16) | (i0))
+	BCI_WRITE(BCI_CMD_DRAW_INDEXED_PRIM | (type) |  \
+			  ((n) << 16) | (i0))
 
 #define BCI_DRAW_INDICES_S4(n, type, skip)        \
-        BCI_WRITE(BCI_CMD_DRAW_INDEXED_PRIM | (type) |  \
-                  (skip) | ((n) << 16))
+	BCI_WRITE(BCI_CMD_DRAW_INDEXED_PRIM | (type) |  \
+			  (skip) | ((n) << 16))
 
 #define BCI_DMA(n)	\
 	BCI_WRITE(BCI_CMD_DMA | (((n) >> 1) - 1))
@@ -495,9 +504,9 @@ extern void savage_emit_clip_rect_s4(drm_savage_private_t * dev_priv,
 #define BCI_LOCALS    volatile uint32_t *bci_ptr;
 
 #define BEGIN_BCI( n ) do {			\
-	dev_priv->wait_fifo(dev_priv, (n));	\
-	bci_ptr = dev_priv->bci_ptr;		\
-} while(0)
+		dev_priv->wait_fifo(dev_priv, (n));	\
+		bci_ptr = dev_priv->bci_ptr;		\
+	} while(0)
 
 #define BCI_WRITE( val ) *bci_ptr++ = (uint32_t)(val)
 
@@ -509,40 +518,40 @@ extern void savage_emit_clip_rect_s4(drm_savage_private_t * dev_priv,
 #define DMA_LOCALS   uint32_t *dma_ptr;
 
 #define BEGIN_DMA( n ) do {						\
-	unsigned int cur = dev_priv->current_dma_page;			\
-	unsigned int rest = SAVAGE_DMA_PAGE_SIZE -			\
-		dev_priv->dma_pages[cur].used;				\
-	if ((n) > rest) {						\
-		dma_ptr = savage_dma_alloc(dev_priv, (n));		\
-	} else { /* fast path for small allocations */			\
-		dma_ptr = (uint32_t *)dev_priv->cmd_dma->handle +	\
-			cur * SAVAGE_DMA_PAGE_SIZE +			\
-			dev_priv->dma_pages[cur].used;			\
-		if (dev_priv->dma_pages[cur].used == 0)			\
-			savage_dma_wait(dev_priv, cur);			\
-		dev_priv->dma_pages[cur].used += (n);			\
-	}								\
-} while(0)
+		unsigned int cur = dev_priv->current_dma_page;			\
+		unsigned int rest = SAVAGE_DMA_PAGE_SIZE -			\
+							dev_priv->dma_pages[cur].used;				\
+		if ((n) > rest) {						\
+			dma_ptr = savage_dma_alloc(dev_priv, (n));		\
+		} else { /* fast path for small allocations */			\
+			dma_ptr = (uint32_t *)dev_priv->cmd_dma->handle +	\
+					  cur * SAVAGE_DMA_PAGE_SIZE +			\
+					  dev_priv->dma_pages[cur].used;			\
+			if (dev_priv->dma_pages[cur].used == 0)			\
+				savage_dma_wait(dev_priv, cur);			\
+			dev_priv->dma_pages[cur].used += (n);			\
+		}								\
+	} while(0)
 
 #define DMA_WRITE( val ) *dma_ptr++ = (uint32_t)(val)
 
 #define DMA_COPY(src, n) do {					\
-	memcpy(dma_ptr, (src), (n)*4);				\
-	dma_ptr += n;						\
-} while(0)
+		memcpy(dma_ptr, (src), (n)*4);				\
+		dma_ptr += n;						\
+	} while(0)
 
 #if SAVAGE_DMA_DEBUG
 #define DMA_COMMIT() do {						\
-	unsigned int cur = dev_priv->current_dma_page;			\
-	uint32_t *expected = (uint32_t *)dev_priv->cmd_dma->handle +	\
-			cur * SAVAGE_DMA_PAGE_SIZE +			\
-			dev_priv->dma_pages[cur].used;			\
-	if (dma_ptr != expected) {					\
-		DRM_ERROR("DMA allocation and use don't match: "	\
-			  "%p != %p\n", expected, dma_ptr);		\
-		savage_dma_reset(dev_priv);				\
-	}								\
-} while(0)
+		unsigned int cur = dev_priv->current_dma_page;			\
+		uint32_t *expected = (uint32_t *)dev_priv->cmd_dma->handle +	\
+							 cur * SAVAGE_DMA_PAGE_SIZE +			\
+							 dev_priv->dma_pages[cur].used;			\
+		if (dma_ptr != expected) {					\
+			DRM_ERROR("DMA allocation and use don't match: "	\
+					  "%p != %p\n", expected, dma_ptr);		\
+			savage_dma_reset(dev_priv);				\
+		}								\
+	} while(0)
 #else
 #define DMA_COMMIT() do {/* nothing */} while(0)
 #endif
@@ -553,20 +562,20 @@ extern void savage_emit_clip_rect_s4(drm_savage_private_t * dev_priv,
  */
 
 #define UPDATE_EVENT_COUNTER( ) do {			\
-	if (dev_priv->status_ptr) {			\
-		uint16_t count;				\
-		/* coordinate with Xserver */		\
-		count = dev_priv->status_ptr[1023];	\
-		if (count < dev_priv->event_counter)	\
-			dev_priv->event_wrap++;		\
-		dev_priv->event_counter = count;	\
-	}						\
-} while(0)
+		if (dev_priv->status_ptr) {			\
+			uint16_t count;				\
+			/* coordinate with Xserver */		\
+			count = dev_priv->status_ptr[1023];	\
+			if (count < dev_priv->event_counter)	\
+				dev_priv->event_wrap++;		\
+			dev_priv->event_counter = count;	\
+		}						\
+	} while(0)
 
 #define SET_AGE( age, e, w ) do {	\
-	(age)->event = e;		\
-	(age)->wrap = w;		\
-} while(0)
+		(age)->event = e;		\
+		(age)->wrap = w;		\
+	} while(0)
 
 #define TEST_AGE( age, e, w )				\
 	( (age)->wrap < (w) || ( (age)->wrap == (w) && (age)->event <= (e) ) )

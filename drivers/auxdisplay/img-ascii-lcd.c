@@ -28,7 +28,8 @@ struct img_ascii_lcd_ctx;
  * @external_regmap: true if registers are in a system controller, else false
  * @update: function called to update the LCD
  */
-struct img_ascii_lcd_config {
+struct img_ascii_lcd_config
+{
 	unsigned int num_chars;
 	bool external_regmap;
 	void (*update)(struct img_ascii_lcd_ctx *ctx);
@@ -48,9 +49,11 @@ struct img_ascii_lcd_config {
  * @timer: timer used to implement scrolling
  * @curr: the string currently displayed on the LCD
  */
-struct img_ascii_lcd_ctx {
+struct img_ascii_lcd_ctx
+{
 	struct platform_device *pdev;
-	union {
+	union
+	{
 		void __iomem *base;
 		struct regmap *regmap;
 	};
@@ -85,7 +88,8 @@ static void boston_update(struct img_ascii_lcd_ctx *ctx)
 #endif
 }
 
-static struct img_ascii_lcd_config boston_config = {
+static struct img_ascii_lcd_config boston_config =
+{
 	.num_chars = 8,
 	.update = boston_update,
 };
@@ -99,18 +103,25 @@ static void malta_update(struct img_ascii_lcd_ctx *ctx)
 	unsigned int i;
 	int err;
 
-	for (i = 0; i < ctx->cfg->num_chars; i++) {
+	for (i = 0; i < ctx->cfg->num_chars; i++)
+	{
 		err = regmap_write(ctx->regmap,
-				   ctx->offset + (i * 8), ctx->curr[i]);
+						   ctx->offset + (i * 8), ctx->curr[i]);
+
 		if (err)
+		{
 			break;
+		}
 	}
 
 	if (unlikely(err))
+	{
 		pr_err_ratelimited("Failed to update LCD display: %d\n", err);
+	}
 }
 
-static struct img_ascii_lcd_config malta_config = {
+static struct img_ascii_lcd_config malta_config =
+{
 	.num_chars = 8,
 	.external_regmap = true,
 	.update = malta_update,
@@ -120,7 +131,8 @@ static struct img_ascii_lcd_config malta_config = {
  * MIPS SEAD3 development board
  */
 
-enum {
+enum
+{
 	SEAD3_REG_LCD_CTRL		= 0x00,
 #define SEAD3_REG_LCD_CTRL_SETDRAM	BIT(7)
 	SEAD3_REG_LCD_DATA		= 0x08,
@@ -135,13 +147,18 @@ static int sead3_wait_sm_idle(struct img_ascii_lcd_ctx *ctx)
 	unsigned int status;
 	int err;
 
-	do {
+	do
+	{
 		err = regmap_read(ctx->regmap,
-				  ctx->offset + SEAD3_REG_CPLD_STATUS,
-				  &status);
+						  ctx->offset + SEAD3_REG_CPLD_STATUS,
+						  &status);
+
 		if (err)
+		{
 			return err;
-	} while (status & SEAD3_REG_CPLD_STATUS_BUSY);
+		}
+	}
+	while (status & SEAD3_REG_CPLD_STATUS_BUSY);
 
 	return 0;
 
@@ -153,26 +170,40 @@ static int sead3_wait_lcd_idle(struct img_ascii_lcd_ctx *ctx)
 	int err;
 
 	err = sead3_wait_sm_idle(ctx);
-	if (err)
-		return err;
 
-	do {
+	if (err)
+	{
+		return err;
+	}
+
+	do
+	{
 		err = regmap_read(ctx->regmap,
-				  ctx->offset + SEAD3_REG_LCD_CTRL,
-				  &cpld_data);
+						  ctx->offset + SEAD3_REG_LCD_CTRL,
+						  &cpld_data);
+
 		if (err)
+		{
 			return err;
+		}
 
 		err = sead3_wait_sm_idle(ctx);
+
 		if (err)
+		{
 			return err;
+		}
 
 		err = regmap_read(ctx->regmap,
-				  ctx->offset + SEAD3_REG_CPLD_DATA,
-				  &cpld_data);
+						  ctx->offset + SEAD3_REG_CPLD_DATA,
+						  &cpld_data);
+
 		if (err)
+		{
 			return err;
-	} while (cpld_data & SEAD3_REG_CPLD_DATA_BUSY);
+		}
+	}
+	while (cpld_data & SEAD3_REG_CPLD_DATA_BUSY);
 
 	return 0;
 }
@@ -182,39 +213,56 @@ static void sead3_update(struct img_ascii_lcd_ctx *ctx)
 	unsigned int i;
 	int err;
 
-	for (i = 0; i < ctx->cfg->num_chars; i++) {
+	for (i = 0; i < ctx->cfg->num_chars; i++)
+	{
 		err = sead3_wait_lcd_idle(ctx);
+
 		if (err)
+		{
 			break;
+		}
 
 		err = regmap_write(ctx->regmap,
-				   ctx->offset + SEAD3_REG_LCD_CTRL,
-				   SEAD3_REG_LCD_CTRL_SETDRAM | i);
+						   ctx->offset + SEAD3_REG_LCD_CTRL,
+						   SEAD3_REG_LCD_CTRL_SETDRAM | i);
+
 		if (err)
+		{
 			break;
+		}
 
 		err = sead3_wait_lcd_idle(ctx);
+
 		if (err)
+		{
 			break;
+		}
 
 		err = regmap_write(ctx->regmap,
-				   ctx->offset + SEAD3_REG_LCD_DATA,
-				   ctx->curr[i]);
+						   ctx->offset + SEAD3_REG_LCD_DATA,
+						   ctx->curr[i]);
+
 		if (err)
+		{
 			break;
+		}
 	}
 
 	if (unlikely(err))
+	{
 		pr_err_ratelimited("Failed to update LCD display: %d\n", err);
+	}
 }
 
-static struct img_ascii_lcd_config sead3_config = {
+static struct img_ascii_lcd_config sead3_config =
+{
 	.num_chars = 16,
 	.external_regmap = true,
 	.update = sead3_update,
 };
 
-static const struct of_device_id img_ascii_lcd_matches[] = {
+static const struct of_device_id img_ascii_lcd_matches[] =
+{
 	{ .compatible = "img,boston-lcd", .data = &boston_config },
 	{ .compatible = "mti,malta-lcd", .data = &malta_config },
 	{ .compatible = "mti,sead3-lcd", .data = &sead3_config },
@@ -234,10 +282,13 @@ static void img_ascii_lcd_scroll(unsigned long arg)
 	unsigned int num_chars = ctx->cfg->num_chars;
 
 	/* update the current message string */
-	for (i = 0; i < num_chars;) {
+	for (i = 0; i < num_chars;)
+	{
 		/* copy as many characters from the string as possible */
 		for (; i < num_chars && ch < ctx->message_len; i++, ch++)
+		{
 			ctx->curr[i] = ctx->message[ch];
+		}
 
 		/* wrap around to the start of the string */
 		ch = 0;
@@ -252,7 +303,9 @@ static void img_ascii_lcd_scroll(unsigned long arg)
 
 	/* rearm the timer */
 	if (ctx->message_len > ctx->cfg->num_chars)
+	{
 		mod_timer(&ctx->timer, jiffies + ctx->scroll_rate);
+	}
 }
 
 /**
@@ -268,7 +321,7 @@ static void img_ascii_lcd_scroll(unsigned long arg)
  * Return: 0 on success, -ENOMEM on memory allocation failure
  */
 static int img_ascii_lcd_display(struct img_ascii_lcd_ctx *ctx,
-			     const char *msg, ssize_t count)
+								 const char *msg, ssize_t count)
 {
 	char *new_msg;
 
@@ -276,21 +329,30 @@ static int img_ascii_lcd_display(struct img_ascii_lcd_ctx *ctx,
 	del_timer_sync(&ctx->timer);
 
 	if (count == -1)
+	{
 		count = strlen(msg);
+	}
 
 	/* if the string ends with a newline, trim it */
 	if (msg[count - 1] == '\n')
+	{
 		count--;
+	}
 
 	new_msg = devm_kmalloc(&ctx->pdev->dev, count + 1, GFP_KERNEL);
+
 	if (!new_msg)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(new_msg, msg, count);
 	new_msg[count] = 0;
 
 	if (ctx->message)
+	{
 		devm_kfree(&ctx->pdev->dev, ctx->message);
+	}
 
 	ctx->message = new_msg;
 	ctx->message_len = count;
@@ -314,7 +376,7 @@ static int img_ascii_lcd_display(struct img_ascii_lcd_ctx *ctx,
  * Return: the number of characters written to @buf
  */
 static ssize_t message_show(struct device *dev, struct device_attribute *attr,
-			    char *buf)
+							char *buf)
 {
 	struct img_ascii_lcd_ctx *ctx = dev_get_drvdata(dev);
 
@@ -333,13 +395,13 @@ static ssize_t message_show(struct device *dev, struct device_attribute *attr,
  * Return: the size of the message on success, else -ERRNO
  */
 static ssize_t message_store(struct device *dev, struct device_attribute *attr,
-			     const char *buf, size_t count)
+							 const char *buf, size_t count)
 {
 	struct img_ascii_lcd_ctx *ctx = dev_get_drvdata(dev);
 	int err;
 
 	err = img_ascii_lcd_display(ctx, buf, count);
-	return err ?: count;
+	return err ? : count;
 }
 
 static DEVICE_ATTR_RW(message);
@@ -362,28 +424,45 @@ static int img_ascii_lcd_probe(struct platform_device *pdev)
 	int err;
 
 	match = of_match_device(img_ascii_lcd_matches, &pdev->dev);
+
 	if (!match)
+	{
 		return -ENODEV;
+	}
 
 	cfg = match->data;
 	ctx = devm_kzalloc(&pdev->dev, sizeof(*ctx) + cfg->num_chars,
-			   GFP_KERNEL);
-	if (!ctx)
-		return -ENOMEM;
+					   GFP_KERNEL);
 
-	if (cfg->external_regmap) {
+	if (!ctx)
+	{
+		return -ENOMEM;
+	}
+
+	if (cfg->external_regmap)
+	{
 		ctx->regmap = syscon_node_to_regmap(pdev->dev.parent->of_node);
+
 		if (IS_ERR(ctx->regmap))
+		{
 			return PTR_ERR(ctx->regmap);
+		}
 
 		if (of_property_read_u32(pdev->dev.of_node, "offset",
-					 &ctx->offset))
+								 &ctx->offset))
+		{
 			return -EINVAL;
-	} else {
+		}
+	}
+	else
+	{
 		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 		ctx->base = devm_ioremap_resource(&pdev->dev, res);
+
 		if (IS_ERR(ctx->base))
+		{
 			return PTR_ERR(ctx->base);
+		}
 	}
 
 	ctx->pdev = pdev;
@@ -401,12 +480,18 @@ static int img_ascii_lcd_probe(struct platform_device *pdev)
 
 	/* display a default message */
 	err = img_ascii_lcd_display(ctx, "Linux " UTS_RELEASE "       ", -1);
+
 	if (err)
+	{
 		goto out_del_timer;
+	}
 
 	err = device_create_file(&pdev->dev, &dev_attr_message);
+
 	if (err)
+	{
 		goto out_del_timer;
+	}
 
 	return 0;
 out_del_timer:
@@ -432,7 +517,8 @@ static int img_ascii_lcd_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver img_ascii_lcd_driver = {
+static struct platform_driver img_ascii_lcd_driver =
+{
 	.driver = {
 		.name		= "img-ascii-lcd",
 		.of_match_table	= img_ascii_lcd_matches,

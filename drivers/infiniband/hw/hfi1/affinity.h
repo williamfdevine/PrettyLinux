@@ -49,7 +49,8 @@
 
 #include "hfi.h"
 
-enum irq_type {
+enum irq_type
+{
 	IRQ_SDMA,
 	IRQ_RCVCTXT,
 	IRQ_GENERAL,
@@ -57,20 +58,23 @@ enum irq_type {
 };
 
 /* Can be used for both memory and cpu */
-enum affinity_flags {
+enum affinity_flags
+{
 	AFF_AUTO,
 	AFF_NUMA_LOCAL,
 	AFF_DEV_LOCAL,
 	AFF_IRQ_LOCAL
 };
 
-struct cpu_mask_set {
+struct cpu_mask_set
+{
 	struct cpumask mask;
 	struct cpumask used;
 	uint gen;
 };
 
-struct hfi1_affinity {
+struct hfi1_affinity
+{
 	struct cpu_mask_set def_intr;
 	struct cpu_mask_set rcv_intr;
 	struct cpumask real_cpu_mask;
@@ -102,7 +106,8 @@ int hfi1_get_proc_affinity(int);
 /* Release a CPU used by a user process. */
 void hfi1_put_proc_affinity(int);
 
-struct hfi1_affinity_node {
+struct hfi1_affinity_node
+{
 	int node;
 	struct cpu_mask_set def_intr;
 	struct cpu_mask_set rcv_intr;
@@ -110,7 +115,8 @@ struct hfi1_affinity_node {
 	struct list_head list;
 };
 
-struct hfi1_affinity_node_list {
+struct hfi1_affinity_node_list
+{
 	struct list_head list;
 	struct cpumask real_cpu_mask;
 	struct cpu_mask_set proc;

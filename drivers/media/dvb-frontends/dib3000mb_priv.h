@@ -25,10 +25,10 @@
 	{ err("while sending 0x%04x to 0x%04x.",val,reg); return -EREMOTEIO; }
 
 #define wr_foreach(a,v) { int i; \
-	if (sizeof(a) != sizeof(v)) \
-		err("sizeof: %zu %zu is different",sizeof(a),sizeof(v));\
-	for (i=0; i < sizeof(a)/sizeof(u16); i++) \
-		wr(a[i],v[i]); \
+		if (sizeof(a) != sizeof(v)) \
+			err("sizeof: %zu %zu is different",sizeof(a),sizeof(v));\
+		for (i=0; i < sizeof(a)/sizeof(u16); i++) \
+			wr(a[i],v[i]); \
 	}
 
 #define set_or(reg,val) wr(reg,rd(reg) | val)
@@ -38,7 +38,7 @@
 /* debug */
 
 #define dprintk(level,args...) \
-    do { if ((debug & level)) { printk(args); } } while (0)
+	do { if ((debug & level)) { printk(args); } } while (0)
 
 /* mask for enabling a specific pid for the pid_filter */
 #define DIB3000_ACTIVATE_PID_FILTERING	(0x2000)
@@ -88,10 +88,11 @@
 #define DIB3000P_DEVICE_ID				(0x3002)
 
 /* frontend state */
-struct dib3000_state {
-	struct i2c_adapter* i2c;
+struct dib3000_state
+{
+	struct i2c_adapter *i2c;
 
-/* configuration settings */
+	/* configuration settings */
 	struct dib3000_config config;
 
 	struct dvb_frontend frontend;
@@ -134,8 +135,9 @@ struct dib3000_state {
 #define DIB3000MB_DDS_FREQ_LSB				(  8990)
 
 /* timing frequency (carrier spacing) */
-static u16 dib3000mb_reg_timing_freq[] = { 8,9 };
-static u16 dib3000mb_timing_freq[][2] = {
+static u16 dib3000mb_reg_timing_freq[] = { 8, 9 };
+static u16 dib3000mb_timing_freq[][2] =
+{
 	{ 126 , 48873 }, /* 6 MHz */
 	{ 147 , 57019 }, /* 7 MHz */
 	{ 168 , 65164 }, /* 8 MHz */
@@ -144,16 +146,18 @@ static u16 dib3000mb_timing_freq[][2] = {
 /* impulse noise parameter */
 /* 36 ??? */
 
-static u16 dib3000mb_reg_impulse_noise[] = { 10,11,12,15,36 };
+static u16 dib3000mb_reg_impulse_noise[] = { 10, 11, 12, 15, 36 };
 
-enum dib3000mb_impulse_noise_type {
+enum dib3000mb_impulse_noise_type
+{
 	DIB3000MB_IMPNOISE_OFF,
 	DIB3000MB_IMPNOISE_MOBILE,
 	DIB3000MB_IMPNOISE_FIXED,
 	DIB3000MB_IMPNOISE_DEFAULT
 };
 
-static u16 dib3000mb_impulse_noise_values[][5] = {
+static u16 dib3000mb_impulse_noise_values[][5] =
+{
 	{ 0x0000, 0x0004, 0x0014, 0x01ff, 0x0399 }, /* off */
 	{ 0x0001, 0x0004, 0x0014, 0x01ff, 0x037b }, /* mobile */
 	{ 0x0001, 0x0004, 0x0020, 0x01bd, 0x0399 }, /* fixed */
@@ -167,31 +171,34 @@ static u16 dib3000mb_impulse_noise_values[][5] = {
  */
 
 /* also from 16 to 18 */
-static u16 dib3000mb_reg_agc_gain[] = {
-	19,20,21,22,23,24,25,26,27,28,29,30,31,32
+static u16 dib3000mb_reg_agc_gain[] =
+{
+	19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32
 };
 
 static u16 dib3000mb_default_agc_gain[] =
-	{ 0x0001, 52429,   623, 128, 166, 195, 61,   /* RF ??? */
-	  0x0001, 53766, 38011,   0,  90,  33, 23 }; /* IF ??? */
+{
+	0x0001, 52429,   623, 128, 166, 195, 61,   /* RF ??? */
+	0x0001, 53766, 38011,   0,  90,  33, 23
+}; /* IF ??? */
 
 /* phase noise */
 /* 36 is set when setting the impulse noise */
-static u16 dib3000mb_reg_phase_noise[] = { 33,34,35,37,38 };
+static u16 dib3000mb_reg_phase_noise[] = { 33, 34, 35, 37, 38 };
 
 static u16 dib3000mb_default_noise_phase[] = { 2, 544, 0, 5, 4 };
 
 /* lock duration */
-static u16 dib3000mb_reg_lock_duration[] = { 39,40 };
+static u16 dib3000mb_reg_lock_duration[] = { 39, 40 };
 static u16 dib3000mb_default_lock_duration[] = { 135, 135 };
 
 /* AGC loop bandwidth */
-static u16 dib3000mb_reg_agc_bandwidth[] = { 43,44,45,46,47,48,49,50 };
+static u16 dib3000mb_reg_agc_bandwidth[] = { 43, 44, 45, 46, 47, 48, 49, 50 };
 
 static u16 dib3000mb_agc_bandwidth_low[]  =
-	{ 2088, 10, 2088, 10, 3448, 5, 3448, 5 };
+{ 2088, 10, 2088, 10, 3448, 5, 3448, 5 };
 static u16 dib3000mb_agc_bandwidth_high[] =
-	{ 2349,  5, 2349,  5, 2586, 2, 2586, 2 };
+{ 2349,  5, 2349,  5, 2586, 2, 2586, 2 };
 
 /*
  * lock0 definition (coff_lock)
@@ -222,15 +229,15 @@ static u16 dib3000mb_agc_bandwidth_high[] =
 #define DIB3000MB_REG_SEQ				(    54)
 
 /* bandwidth */
-static u16 dib3000mb_reg_bandwidth[] = { 55,56,57,58,59,60,61,62,63,64,65,66,67 };
+static u16 dib3000mb_reg_bandwidth[] = { 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67 };
 static u16 dib3000mb_bandwidth_6mhz[] =
-	{ 0, 33, 53312, 112, 46635, 563, 36565, 0, 1000, 0, 1010, 1, 45264 };
+{ 0, 33, 53312, 112, 46635, 563, 36565, 0, 1000, 0, 1010, 1, 45264 };
 
 static u16 dib3000mb_bandwidth_7mhz[] =
-	{ 0, 28, 64421,  96, 39973, 483,  3255, 0, 1000, 0, 1010, 1, 45264 };
+{ 0, 28, 64421,  96, 39973, 483,  3255, 0, 1000, 0, 1010, 1, 45264 };
 
 static u16 dib3000mb_bandwidth_8mhz[] =
-	{ 0, 25, 23600,  84, 34976, 422, 43808, 0, 1000, 0, 1010, 1, 45264 };
+{ 0, 25, 23600,  84, 34976, 422, 43808, 0, 1000, 0, 1010, 1, 45264 };
 
 #define DIB3000MB_REG_UNK_68				(    68)
 #define DIB3000MB_UNK_68						(     0)
@@ -375,21 +382,23 @@ static u16 dib3000mb_bandwidth_8mhz[] =
 #define DIB3000MB_IRQ_EVENT_MASK				(     0)
 
 /* filter coefficients */
-static u16 dib3000mb_reg_filter_coeffs[] = {
+static u16 dib3000mb_reg_filter_coeffs[] =
+{
 	171, 172, 173, 174, 175, 176, 177, 178,
 	179, 180, 181, 182, 183, 184, 185, 186,
 	188, 189, 190, 191, 192, 194
 };
 
-static u16 dib3000mb_filter_coeffs[] = {
-	 226,  160,   29,
-	 979,  998,   19,
-	  22, 1019, 1006,
+static u16 dib3000mb_filter_coeffs[] =
+{
+	226,  160,   29,
+	979,  998,   19,
+	22, 1019, 1006,
 	1022,   12,    6,
 	1017, 1017,    3,
-	   6,       1019,
+	6,       1019,
 	1021,    2,    3,
-	   1,          0,
+	1,          0,
 };
 
 /*

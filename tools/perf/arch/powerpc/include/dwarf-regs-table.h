@@ -8,7 +8,8 @@
  */
 #define REG_DWARFNUM_NAME(reg, idx)	[idx] = "%" #reg
 
-static const char * const powerpc_regstr_tbl[] = {
+static const char *const powerpc_regstr_tbl[] =
+{
 	"%gpr0", "%gpr1", "%gpr2", "%gpr3", "%gpr4",
 	"%gpr5", "%gpr6", "%gpr7", "%gpr8", "%gpr9",
 	"%gpr10", "%gpr11", "%gpr12", "%gpr13", "%gpr14",

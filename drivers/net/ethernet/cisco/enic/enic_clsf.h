@@ -14,7 +14,7 @@ struct enic_rfs_fltr_node *htbl_fltr_search(struct enic *enic, u16 fltr_id);
 
 #ifdef CONFIG_RFS_ACCEL
 int enic_rx_flow_steer(struct net_device *dev, const struct sk_buff *skb,
-		       u16 rxq_index, u32 flow_id);
+					   u16 rxq_index, u32 flow_id);
 void enic_flow_may_expire(unsigned long data);
 
 static inline void enic_rfs_timer_start(struct enic *enic)
@@ -22,7 +22,7 @@ static inline void enic_rfs_timer_start(struct enic *enic)
 	init_timer(&enic->rfs_h.rfs_may_expire);
 	enic->rfs_h.rfs_may_expire.function = enic_flow_may_expire;
 	enic->rfs_h.rfs_may_expire.data = (unsigned long)enic;
-	mod_timer(&enic->rfs_h.rfs_may_expire, jiffies + HZ/4);
+	mod_timer(&enic->rfs_h.rfs_may_expire, jiffies + HZ / 4);
 }
 
 static inline void enic_rfs_timer_stop(struct enic *enic)

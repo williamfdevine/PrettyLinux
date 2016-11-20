@@ -45,7 +45,8 @@
 #define CARL9170FW_API_MIN_VER		1
 #define CARL9170FW_API_MAX_VER		1
 
-enum carl9170_cmd_oids {
+enum carl9170_cmd_oids
+{
 	CARL9170_CMD_RREG		= 0x00,
 	CARL9170_CMD_WREG		= 0x01,
 	CARL9170_CMD_ECHO		= 0x02,
@@ -72,13 +73,13 @@ enum carl9170_cmd_oids {
 	/* Asychronous command flag */
 	CARL9170_CMD_ASYNC_FLAG		= 0x40,
 	CARL9170_CMD_WREG_ASYNC		= (CARL9170_CMD_WREG |
-					   CARL9170_CMD_ASYNC_FLAG),
+								   CARL9170_CMD_ASYNC_FLAG),
 	CARL9170_CMD_REBOOT_ASYNC	= (CARL9170_CMD_REBOOT |
-					   CARL9170_CMD_ASYNC_FLAG),
+								   CARL9170_CMD_ASYNC_FLAG),
 	CARL9170_CMD_BCN_CTRL_ASYNC	= (CARL9170_CMD_BCN_CTRL |
-					   CARL9170_CMD_ASYNC_FLAG),
+								   CARL9170_CMD_ASYNC_FLAG),
 	CARL9170_CMD_PSM_ASYNC		= (CARL9170_CMD_PSM |
-					   CARL9170_CMD_ASYNC_FLAG),
+								   CARL9170_CMD_ASYNC_FLAG),
 
 	/* responses and traps */
 	CARL9170_RSP_FLAG		= 0xc0,
@@ -94,7 +95,8 @@ enum carl9170_cmd_oids {
 	CARL9170_RSP_BOOT		= 0xcf,
 };
 
-struct carl9170_set_key_cmd {
+struct carl9170_set_key_cmd
+{
 	__le16		user;
 	__le16		keyId;
 	__le16		type;
@@ -103,28 +105,34 @@ struct carl9170_set_key_cmd {
 } __packed __aligned(4);
 #define CARL9170_SET_KEY_CMD_SIZE		28
 
-struct carl9170_disable_key_cmd {
+struct carl9170_disable_key_cmd
+{
 	__le16		user;
 	__le16		padding;
 } __packed __aligned(4);
 #define CARL9170_DISABLE_KEY_CMD_SIZE		4
 
-struct carl9170_u32_list {
+struct carl9170_u32_list
+{
 	u32	vals[0];
 } __packed;
 
-struct carl9170_reg_list {
+struct carl9170_reg_list
+{
 	__le32		regs[0];
 } __packed;
 
-struct carl9170_write_reg {
-	struct {
+struct carl9170_write_reg
+{
+	struct
+	{
 		__le32		addr;
 		__le32		val;
 	} regs[0] __packed;
 } __packed;
 
-struct carl9170_write_reg_byte {
+struct carl9170_write_reg_byte
+{
 	__le32	addr;
 	__le32  count;
 	u8	val[0];
@@ -135,7 +143,8 @@ struct carl9170_write_reg_byte {
 #define	CARL9170FW_PHY_HT_EXT_CHAN_OFF		0x3
 #define	CARL9170FW_PHY_HT_EXT_CHAN_OFF_S	2
 
-struct carl9170_rf_init {
+struct carl9170_rf_init
+{
 	__le32		freq;
 	u8		ht_settings;
 	u8		padding2[3];
@@ -147,7 +156,8 @@ struct carl9170_rf_init {
 } __packed;
 #define CARL9170_RF_INIT_SIZE		28
 
-struct carl9170_rf_init_result {
+struct carl9170_rf_init_result
+{
 	__le32		ret;		/* AR9170_PHY_REG_AGC_CONTROL */
 } __packed;
 #define	CARL9170_RF_INIT_RESULT_SIZE	4
@@ -158,7 +168,8 @@ struct carl9170_rf_init_result {
 #define	CARL9170_PSM_COUNTER		0xfff
 #define	CARL9170_PSM_COUNTER_S		0
 
-struct carl9170_psm {
+struct carl9170_psm
+{
 	__le32		state;
 } __packed;
 #define CARL9170_PSM_SIZE		4
@@ -171,7 +182,8 @@ struct carl9170_psm {
  * because someone people think it's the exact
  * opposite way, so watch out!)
  */
-struct carl9170_rx_filter_cmd {
+struct carl9170_rx_filter_cmd
+{
 	__le32		rx_filter;
 } __packed;
 #define CARL9170_RX_FILTER_CMD_SIZE	4
@@ -186,7 +198,8 @@ struct carl9170_rx_filter_cmd {
 #define CARL9170_RX_FILTER_DATA		0x80
 #define CARL9170_RX_FILTER_EVERYTHING	(~0)
 
-struct carl9170_bcn_ctrl_cmd {
+struct carl9170_bcn_ctrl_cmd
+{
 	__le32		vif_id;
 	__le32		mode;
 	__le32		bcn_addr;
@@ -197,7 +210,8 @@ struct carl9170_bcn_ctrl_cmd {
 #define CARL9170_BCN_CTRL_DRAIN	0
 #define CARL9170_BCN_CTRL_CAB_TRIGGER	1
 
-struct carl9170_wol_cmd {
+struct carl9170_wol_cmd
+{
 	__le32		flags;
 	u8		mac[6];
 	u8		bssid[6];
@@ -212,9 +226,12 @@ struct carl9170_wol_cmd {
 #define CARL9170_WOL_DISCONNECT		1
 #define CARL9170_WOL_MAGIC_PKT		2
 
-struct carl9170_cmd_head {
-	union {
-		struct {
+struct carl9170_cmd_head
+{
+	union
+	{
+		struct
+		{
 			u8	len;
 			u8	cmd;
 			u8	seq;
@@ -225,9 +242,11 @@ struct carl9170_cmd_head {
 	} __packed;
 } __packed;
 
-struct carl9170_cmd {
+struct carl9170_cmd
+{
 	struct carl9170_cmd_head hdr;
-	union {
+	union
+	{
 		struct carl9170_set_key_cmd	setkey;
 		struct carl9170_disable_key_cmd	disablekey;
 		struct carl9170_u32_list	echo;
@@ -257,20 +276,22 @@ struct carl9170_cmd {
  * Both structs [carl9170_tx_status and _carl9170_tx_status]
  * need to be "bit for bit" in sync.
  */
-struct carl9170_tx_status {
+struct carl9170_tx_status
+{
 	/*
 	 * Beware of compiler bugs in all gcc pre 4.4!
 	 */
 
 	u8 cookie;
-	u8 queue:2;
-	u8 rix:2;
-	u8 tries:3;
-	u8 success:1;
+	u8 queue: 2;
+	u8 rix: 2;
+	u8 tries: 3;
+	u8 success: 1;
 } __packed;
 #endif /* __CARL9170FW__ */
 
-struct _carl9170_tx_status {
+struct _carl9170_tx_status
+{
 	/*
 	 * This version should be immune to all alignment bugs.
 	 */
@@ -281,7 +302,7 @@ struct _carl9170_tx_status {
 #define CARL9170_TX_STATUS_SIZE		2
 
 #define	CARL9170_RSP_TX_STATUS_NUM	(CARL9170_MAX_CMD_PAYLOAD_LEN /	\
-					 sizeof(struct _carl9170_tx_status))
+									 sizeof(struct _carl9170_tx_status))
 
 #define	CARL9170_TX_MAX_RATE_TRIES	7
 
@@ -290,20 +311,24 @@ struct _carl9170_tx_status {
 #define	CARL9170_ERR_MAGIC		"ERR:"
 #define	CARL9170_BUG_MAGIC		"BUG:"
 
-struct carl9170_gpio {
+struct carl9170_gpio
+{
 	__le32 gpio;
 } __packed;
 #define CARL9170_GPIO_SIZE		4
 
-struct carl9170_tsf_rsp {
-	union {
+struct carl9170_tsf_rsp
+{
+	union
+	{
 		__le32 tsf[2];
 		__le64 tsf_64;
 	} __packed;
 } __packed;
 #define CARL9170_TSF_RSP_SIZE		8
 
-struct carl9170_tally_rsp {
+struct carl9170_tally_rsp
+{
 	__le32 active;
 	__le32 cca;
 	__le32 tx_time;
@@ -312,10 +337,12 @@ struct carl9170_tally_rsp {
 	__le32 tick;
 } __packed;
 
-struct carl9170_rsp {
+struct carl9170_rsp
+{
 	struct carl9170_cmd_head hdr;
 
-	union {
+	union
+	{
 		struct carl9170_rf_init_result	rf_init_res;
 		struct carl9170_u32_list	rreg_res;
 		struct carl9170_u32_list	echo;

@@ -31,7 +31,8 @@
 #define EMCA_BUG \
 	"Can not request iomem region <0x%016llx-0x%016llx> - eMCA disabled\n"
 
-struct extlog_l1_head {
+struct extlog_l1_head
+{
 	u32 ver;	/* Header Version */
 	u32 hdr_len;	/* Header Length */
 	u64 total_len;	/* entire L1 Directory length including this header */
@@ -80,32 +81,43 @@ static struct acpi_hest_generic_status *extlog_elog_entry_check(int cpu, int ban
 	WARN_ON(cpu < 0);
 	idx = ELOG_IDX(cpu, bank);
 	data = ELOG_ENTRY_DATA(idx);
+
 	if ((data & ELOG_ENTRY_VALID) == 0)
+	{
 		return NULL;
+	}
 
 	data &= EXT_ELOG_ENTRY_MASK;
 	estatus = (struct acpi_hest_generic_status *)ELOG_ENTRY_ADDR(data);
 
 	/* if no valid data in elog entry, just return */
 	if (estatus->block_status == 0)
+	{
 		return NULL;
+	}
 
 	return estatus;
 }
 
 static void __print_extlog_rcd(const char *pfx,
-			       struct acpi_hest_generic_status *estatus, int cpu)
+							   struct acpi_hest_generic_status *estatus, int cpu)
 {
 	static atomic_t seqno;
 	unsigned int curr_seqno;
 	char pfx_seq[64];
 
-	if (!pfx) {
+	if (!pfx)
+	{
 		if (estatus->error_severity <= CPER_SEV_CORRECTED)
+		{
 			pfx = KERN_INFO;
+		}
 		else
+		{
 			pfx = KERN_ERR;
+		}
 	}
+
 	curr_seqno = atomic_inc_return(&seqno);
 	snprintf(pfx_seq, sizeof(pfx_seq), "%s{%u}", pfx, curr_seqno);
 	printk("%s""Hardware error detected on CPU%d\n", pfx_seq, cpu);
@@ -113,19 +125,25 @@ static void __print_extlog_rcd(const char *pfx,
 }
 
 static int print_extlog_rcd(const char *pfx,
-			    struct acpi_hest_generic_status *estatus, int cpu)
+							struct acpi_hest_generic_status *estatus, int cpu)
 {
 	/* Not more than 2 messages every 5 seconds */
-	static DEFINE_RATELIMIT_STATE(ratelimit_corrected, 5*HZ, 2);
-	static DEFINE_RATELIMIT_STATE(ratelimit_uncorrected, 5*HZ, 2);
+	static DEFINE_RATELIMIT_STATE(ratelimit_corrected, 5 * HZ, 2);
+	static DEFINE_RATELIMIT_STATE(ratelimit_uncorrected, 5 * HZ, 2);
 	struct ratelimit_state *ratelimit;
 
 	if (estatus->error_severity == CPER_SEV_CORRECTED ||
-	    (estatus->error_severity == CPER_SEV_INFORMATIONAL))
+		(estatus->error_severity == CPER_SEV_INFORMATIONAL))
+	{
 		ratelimit = &ratelimit_corrected;
+	}
 	else
+	{
 		ratelimit = &ratelimit_uncorrected;
-	if (__ratelimit(ratelimit)) {
+	}
+
+	if (__ratelimit(ratelimit))
+	{
 		__print_extlog_rcd(pfx, estatus, cpu);
 		return 0;
 	}
@@ -134,7 +152,7 @@ static int print_extlog_rcd(const char *pfx,
 }
 
 static int extlog_print(struct notifier_block *nb, unsigned long val,
-			void *data)
+						void *data)
 {
 	struct mce *mce = (struct mce *)data;
 	int	bank = mce->bank;
@@ -147,8 +165,11 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
 	static u32 err_seq;
 
 	estatus = extlog_elog_entry_check(cpu, bank);
+
 	if (estatus == NULL)
+	{
 		return NOTIFY_DONE;
+	}
 
 	memcpy(elog_buf, (void *)estatus, ELOG_ENTRY_LEN);
 	/* clear record status to enable BIOS to update it again */
@@ -156,7 +177,8 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
 
 	tmp = (struct acpi_hest_generic_status *)elog_buf;
 
-	if (!ras_userspace_consumers()) {
+	if (!ras_userspace_consumers())
+	{
 		print_extlog_rcd(NULL, tmp, cpu);
 		goto out;
 	}
@@ -164,16 +186,26 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
 	/* log event via trace */
 	err_seq++;
 	gdata = (struct acpi_hest_generic_data *)(tmp + 1);
+
 	if (gdata->validation_bits & CPER_SEC_VALID_FRU_ID)
+	{
 		fru_id = (uuid_le *)gdata->fru_id;
+	}
+
 	if (gdata->validation_bits & CPER_SEC_VALID_FRU_TEXT)
+	{
 		fru_text = gdata->fru_text;
+	}
+
 	sec_type = (uuid_le *)gdata->section_type;
-	if (!uuid_le_cmp(*sec_type, CPER_SEC_PLATFORM_MEM)) {
+
+	if (!uuid_le_cmp(*sec_type, CPER_SEC_PLATFORM_MEM))
+	{
 		struct cper_sec_mem_err *mem = (void *)(gdata + 1);
+
 		if (gdata->error_data_length >= sizeof(*mem))
 			trace_extlog_mem_event(mem, err_seq, fru_id, fru_text,
-					       (u8)gdata->error_severity);
+								   (u8)gdata->error_severity);
 	}
 
 out:
@@ -189,28 +221,40 @@ static bool __init extlog_get_l1addr(void)
 	acpi_str_to_uuid(extlog_dsm_uuid, uuid);
 
 	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
+	{
 		return false;
+	}
+
 	if (!acpi_check_dsm(handle, uuid, EXTLOG_DSM_REV, 1 << EXTLOG_FN_ADDR))
+	{
 		return false;
+	}
+
 	obj = acpi_evaluate_dsm_typed(handle, uuid, EXTLOG_DSM_REV,
-				      EXTLOG_FN_ADDR, NULL, ACPI_TYPE_INTEGER);
-	if (!obj) {
+								  EXTLOG_FN_ADDR, NULL, ACPI_TYPE_INTEGER);
+
+	if (!obj)
+	{
 		return false;
-	} else {
+	}
+	else
+	{
 		l1_dirbase = obj->integer.value;
 		ACPI_FREE(obj);
 	}
 
 	/* Spec says L1 directory must be 4K aligned, bail out if it isn't */
-	if (l1_dirbase & ((1 << 12) - 1)) {
+	if (l1_dirbase & ((1 << 12) - 1))
+	{
 		pr_warn(FW_BUG "L1 Directory is invalid at physical %llx\n",
-			l1_dirbase);
+				l1_dirbase);
 		return false;
 	}
 
 	return true;
 }
-static struct notifier_block extlog_mce_dec = {
+static struct notifier_block extlog_mce_dec =
+{
 	.notifier_call	= extlog_print,
 };
 
@@ -226,9 +270,12 @@ static int __init extlog_init(void)
 	rdmsrl(MSR_IA32_MCG_CAP, cap);
 
 	if (!(cap & MCG_ELOG_P) || !extlog_get_l1addr())
+	{
 		return -ENODEV;
+	}
 
-	if (get_edac_report_status() == EDAC_REPORTING_FORCE) {
+	if (get_edac_report_status() == EDAC_REPORTING_FORCE)
+	{
 		pr_warn("Not loading eMCA, error reporting force-enabled through EDAC.\n");
 		return -EPERM;
 	}
@@ -237,10 +284,12 @@ static int __init extlog_init(void)
 	/* get L1 header to fetch necessary information */
 	l1_hdr_size = sizeof(struct extlog_l1_head);
 	r = request_mem_region(l1_dirbase, l1_hdr_size, "L1 DIR HDR");
-	if (!r) {
+
+	if (!r)
+	{
 		pr_warn(FW_BUG EMCA_BUG,
-			(unsigned long long)l1_dirbase,
-			(unsigned long long)l1_dirbase + l1_hdr_size);
+				(unsigned long long)l1_dirbase,
+				(unsigned long long)l1_dirbase + l1_hdr_size);
 		goto err;
 	}
 
@@ -255,30 +304,39 @@ static int __init extlog_init(void)
 
 	/* remap L1 header again based on completed information */
 	r = request_mem_region(l1_dirbase, l1_size, "L1 Table");
-	if (!r) {
+
+	if (!r)
+	{
 		pr_warn(FW_BUG EMCA_BUG,
-			(unsigned long long)l1_dirbase,
-			(unsigned long long)l1_dirbase + l1_size);
+				(unsigned long long)l1_dirbase,
+				(unsigned long long)l1_dirbase + l1_size);
 		goto err;
 	}
+
 	extlog_l1_addr = acpi_os_map_iomem(l1_dirbase, l1_size);
 	l1_entry_base = (u64 *)((u8 *)extlog_l1_addr + l1_hdr_size);
 
 	/* remap elog table */
 	r = request_mem_region(elog_base, elog_size, "Elog Table");
-	if (!r) {
+
+	if (!r)
+	{
 		pr_warn(FW_BUG EMCA_BUG,
-			(unsigned long long)elog_base,
-			(unsigned long long)elog_base + elog_size);
+				(unsigned long long)elog_base,
+				(unsigned long long)elog_base + elog_size);
 		goto err_release_l1_dir;
 	}
+
 	elog_addr = acpi_os_map_iomem(elog_base, elog_size);
 
 	rc = -ENOMEM;
 	/* allocate buffer to save elog record */
 	elog_buf = kmalloc(ELOG_ENTRY_LEN, GFP_KERNEL);
+
 	if (elog_buf == NULL)
+	{
 		goto err_release_elog;
+	}
 
 	/*
 	 * eMCA event report method has higher priority than EDAC method,
@@ -293,12 +351,20 @@ static int __init extlog_init(void)
 	return 0;
 
 err_release_elog:
+
 	if (elog_addr)
+	{
 		acpi_os_unmap_iomem(elog_addr, elog_size);
+	}
+
 	release_mem_region(elog_base, elog_size);
 err_release_l1_dir:
+
 	if (extlog_l1_addr)
+	{
 		acpi_os_unmap_iomem(extlog_l1_addr, l1_size);
+	}
+
 	release_mem_region(l1_dirbase, l1_size);
 err:
 	pr_warn(FW_BUG "Extended error log disabled because of problems parsing f/w tables\n");
@@ -310,10 +376,17 @@ static void __exit extlog_exit(void)
 	set_edac_report_status(old_edac_report_status);
 	mce_unregister_decode_chain(&extlog_mce_dec);
 	((struct extlog_l1_head *)extlog_l1_addr)->flags &= ~FLAG_OS_OPTIN;
+
 	if (extlog_l1_addr)
+	{
 		acpi_os_unmap_iomem(extlog_l1_addr, l1_size);
+	}
+
 	if (elog_addr)
+	{
 		acpi_os_unmap_iomem(elog_addr, elog_size);
+	}
+
 	release_mem_region(elog_base, elog_size);
 	release_mem_region(l1_dirbase, l1_size);
 	kfree(elog_buf);

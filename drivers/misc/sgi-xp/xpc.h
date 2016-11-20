@@ -83,7 +83,8 @@
  * Note: Until 'ts_jiffies' is set non-zero, the partition XPC code has not been
  *       initialized.
  */
-struct xpc_rsvd_page {
+struct xpc_rsvd_page
+{
 	u64 SAL_signature;	/* SAL: unique signature */
 	u64 SAL_version;	/* SAL: version */
 	short SAL_partid;	/* SAL: partition ID */
@@ -91,11 +92,14 @@ struct xpc_rsvd_page {
 	u8 version;
 	u8 pad1[3];		/* align to next u64 in 1st 64-byte cacheline */
 	unsigned long ts_jiffies; /* timestamp when rsvd pg was setup by XPC */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			unsigned long vars_pa;	/* phys addr */
 		} sn2;
-		struct {
+		struct
+		{
 			unsigned long heartbeat_gpa; /* phys addr */
 			unsigned long activate_gru_mq_desc_gpa; /* phys addr */
 		} uv;
@@ -120,7 +124,8 @@ struct xpc_rsvd_page {
  * reflected by incrementing either the major or minor version numbers
  * of struct xpc_vars.
  */
-struct xpc_vars_sn2 {
+struct xpc_vars_sn2
+{
 	u8 version;
 	u64 heartbeat;
 	DECLARE_BITMAP(heartbeating_to_mask, XP_MAX_NPARTITIONS_SN2);
@@ -144,7 +149,8 @@ struct xpc_vars_sn2 {
  * this array crosses a 128-byte cacheline boundary. As it is now, each entry
  * occupies 64-bytes.
  */
-struct xpc_vars_part_sn2 {
+struct xpc_vars_part_sn2
+{
 	u64 magic;
 
 	unsigned long openclose_args_pa; /* phys addr of open and close args */
@@ -178,12 +184,12 @@ struct xpc_vars_part_sn2 {
 #define XPC_RP_VARS_SIZE	L1_CACHE_ALIGN(sizeof(struct xpc_vars_sn2))
 
 #define XPC_RP_PART_NASIDS(_rp) ((unsigned long *)((u8 *)(_rp) + \
-				 XPC_RP_HEADER_SIZE))
+								 XPC_RP_HEADER_SIZE))
 #define XPC_RP_MACH_NASIDS(_rp) (XPC_RP_PART_NASIDS(_rp) + \
-				 xpc_nasid_mask_nlongs)
+								 xpc_nasid_mask_nlongs)
 #define XPC_RP_VARS(_rp)	((struct xpc_vars_sn2 *) \
-				 (XPC_RP_MACH_NASIDS(_rp) + \
-				  xpc_nasid_mask_nlongs))
+							 (XPC_RP_MACH_NASIDS(_rp) + \
+							  xpc_nasid_mask_nlongs))
 
 
 /*
@@ -191,7 +197,8 @@ struct xpc_vars_part_sn2 {
  * will be periodically read by other partitions to determine whether this
  * XPC is still 'alive'.
  */
-struct xpc_heartbeat_uv {
+struct xpc_heartbeat_uv
+{
 	unsigned long value;
 	unsigned long offline;	/* if 0, heartbeat should be changing */
 };
@@ -199,7 +206,8 @@ struct xpc_heartbeat_uv {
 /*
  * Info pertinent to a GRU message queue using a watch list for irq generation.
  */
-struct xpc_gru_mq_uv {
+struct xpc_gru_mq_uv
+{
 	void *address;		/* address of GRU message queue */
 	unsigned int order;	/* size of GRU message queue as a power of 2 */
 	int irq;		/* irq raised when message is received in mq */
@@ -214,7 +222,8 @@ struct xpc_gru_mq_uv {
  * The activate_mq is used to send/receive GRU messages that affect XPC's
  * partition active state and channel state. This is uv only.
  */
-struct xpc_activate_mq_msghdr_uv {
+struct xpc_activate_mq_msghdr_uv
+{
 	unsigned int gru_msg_hdr; /* FOR GRU INTERNAL USE ONLY */
 	short partid;		/* sender's partid */
 	u8 act_state;		/* sender's act_state at time msg sent */
@@ -237,41 +246,48 @@ struct xpc_activate_mq_msghdr_uv {
 #define XPC_ACTIVATE_MQ_MSG_MARK_ENGAGED_UV		8
 #define XPC_ACTIVATE_MQ_MSG_MARK_DISENGAGED_UV		9
 
-struct xpc_activate_mq_msg_uv {
+struct xpc_activate_mq_msg_uv
+{
 	struct xpc_activate_mq_msghdr_uv hdr;
 };
 
-struct xpc_activate_mq_msg_activate_req_uv {
+struct xpc_activate_mq_msg_activate_req_uv
+{
 	struct xpc_activate_mq_msghdr_uv hdr;
 	unsigned long rp_gpa;
 	unsigned long heartbeat_gpa;
 	unsigned long activate_gru_mq_desc_gpa;
 };
 
-struct xpc_activate_mq_msg_deactivate_req_uv {
+struct xpc_activate_mq_msg_deactivate_req_uv
+{
 	struct xpc_activate_mq_msghdr_uv hdr;
 	enum xp_retval reason;
 };
 
-struct xpc_activate_mq_msg_chctl_closerequest_uv {
+struct xpc_activate_mq_msg_chctl_closerequest_uv
+{
 	struct xpc_activate_mq_msghdr_uv hdr;
 	short ch_number;
 	enum xp_retval reason;
 };
 
-struct xpc_activate_mq_msg_chctl_closereply_uv {
+struct xpc_activate_mq_msg_chctl_closereply_uv
+{
 	struct xpc_activate_mq_msghdr_uv hdr;
 	short ch_number;
 };
 
-struct xpc_activate_mq_msg_chctl_openrequest_uv {
+struct xpc_activate_mq_msg_chctl_openrequest_uv
+{
 	struct xpc_activate_mq_msghdr_uv hdr;
 	short ch_number;
 	short entry_size;	/* size of notify_mq's GRU messages */
 	short local_nentries;	/* ??? Is this needed? What is? */
 };
 
-struct xpc_activate_mq_msg_chctl_openreply_uv {
+struct xpc_activate_mq_msg_chctl_openreply_uv
+{
 	struct xpc_activate_mq_msghdr_uv hdr;
 	short ch_number;
 	short remote_nentries;	/* ??? Is this needed? What is? */
@@ -279,7 +295,8 @@ struct xpc_activate_mq_msg_chctl_openreply_uv {
 	unsigned long notify_gru_mq_desc_gpa;
 };
 
-struct xpc_activate_mq_msg_chctl_opencomplete_uv {
+struct xpc_activate_mq_msg_chctl_opencomplete_uv
+{
 	struct xpc_activate_mq_msghdr_uv hdr;
 	short ch_number;
 };
@@ -291,8 +308,8 @@ struct xpc_activate_mq_msg_chctl_opencomplete_uv {
  * the passed argument.
  */
 #define XPC_PACK_ARGS(_arg1, _arg2) \
-			((((u64)_arg1) & 0xffffffff) | \
-			((((u64)_arg2) & 0xffffffff) << 32))
+	((((u64)_arg1) & 0xffffffff) | \
+	 ((((u64)_arg2) & 0xffffffff) << 32))
 
 #define XPC_UNPACK_ARG1(_args)	(((u64)_args) & 0xffffffff)
 #define XPC_UNPACK_ARG2(_args)	((((u64)_args) >> 32) & 0xffffffff)
@@ -300,19 +317,21 @@ struct xpc_activate_mq_msg_chctl_opencomplete_uv {
 /*
  * Define a Get/Put value pair (pointers) used with a message queue.
  */
-struct xpc_gp_sn2 {
+struct xpc_gp_sn2
+{
 	s64 get;		/* Get value */
 	s64 put;		/* Put value */
 };
 
 #define XPC_GP_SIZE \
-		L1_CACHE_ALIGN(sizeof(struct xpc_gp_sn2) * XPC_MAX_NCHANNELS)
+	L1_CACHE_ALIGN(sizeof(struct xpc_gp_sn2) * XPC_MAX_NCHANNELS)
 
 /*
  * Define a structure that contains arguments associated with opening and
  * closing a channel.
  */
-struct xpc_openclose_args {
+struct xpc_openclose_args
+{
 	u16 reason;		/* reason why channel is closing */
 	u16 entry_size;		/* sizeof each message entry */
 	u16 remote_nentries;	/* #of message entries in remote msg queue */
@@ -321,19 +340,21 @@ struct xpc_openclose_args {
 };
 
 #define XPC_OPENCLOSE_ARGS_SIZE \
-	      L1_CACHE_ALIGN(sizeof(struct xpc_openclose_args) * \
-	      XPC_MAX_NCHANNELS)
+	L1_CACHE_ALIGN(sizeof(struct xpc_openclose_args) * \
+				   XPC_MAX_NCHANNELS)
 
 
 /*
  * Structures to define a fifo singly-linked list.
  */
 
-struct xpc_fifo_entry_uv {
+struct xpc_fifo_entry_uv
+{
 	struct xpc_fifo_entry_uv *next;
 };
 
-struct xpc_fifo_head_uv {
+struct xpc_fifo_head_uv
+{
 	struct xpc_fifo_entry_uv *first;
 	struct xpc_fifo_entry_uv *last;
 	spinlock_t lock;
@@ -350,7 +371,8 @@ struct xpc_fifo_head_uv {
  * cacheline sized multiple in order to facilitate the BTE transfer of messages
  * from one message queue to another.
  */
-struct xpc_msg_sn2 {
+struct xpc_msg_sn2
+{
 	u8 flags;		/* FOR XPC INTERNAL USE ONLY */
 	u8 reserved[7];		/* FOR XPC INTERNAL USE ONLY */
 	s64 number;		/* FOR XPC INTERNAL USE ONLY */
@@ -374,8 +396,10 @@ struct xpc_msg_sn2 {
  * or 2 GRU_CACHE_LINE_BYTES in length.
  */
 
-struct xpc_notify_mq_msghdr_uv {
-	union {
+struct xpc_notify_mq_msghdr_uv
+{
+	union
+	{
 		unsigned int gru_msg_hdr;	/* FOR GRU INTERNAL USE ONLY */
 		struct xpc_fifo_entry_uv next;	/* FOR XPC INTERNAL USE ONLY */
 	} u;
@@ -385,7 +409,8 @@ struct xpc_notify_mq_msghdr_uv {
 	unsigned int msg_slot_number;	/* FOR XPC INTERNAL USE ONLY */
 };
 
-struct xpc_notify_mq_msg_uv {
+struct xpc_notify_mq_msg_uv
+{
 	struct xpc_notify_mq_msghdr_uv hdr;
 	unsigned long payload;
 };
@@ -396,7 +421,8 @@ struct xpc_notify_mq_msg_uv {
  * This is used to notify a message's sender that their message was received
  * and consumed by the intended recipient.
  */
-struct xpc_notify_sn2 {
+struct xpc_notify_sn2
+{
 	u8 type;		/* type of notification */
 
 	/* the following two fields are only used if type == XPC_N_CALL */
@@ -412,7 +438,8 @@ struct xpc_notify_sn2 {
  * Define uv's version of the notify entry. It additionally is used to allocate
  * a msg slot on the remote partition into which is copied a sent message.
  */
-struct xpc_send_msg_slot_uv {
+struct xpc_send_msg_slot_uv
+{
 	struct xpc_fifo_entry_uv next;
 	unsigned int msg_slot_number;
 	xpc_notify_func func;	/* user's notify function */
@@ -502,17 +529,18 @@ struct xpc_send_msg_slot_uv {
  *	messages.
  */
 
-struct xpc_channel_sn2 {
+struct xpc_channel_sn2
+{
 	struct xpc_openclose_args *local_openclose_args; /* args passed on */
-					     /* opening or closing of channel */
+	/* opening or closing of channel */
 
 	void *local_msgqueue_base;	/* base address of kmalloc'd space */
 	struct xpc_msg_sn2 *local_msgqueue;	/* local message queue */
 	void *remote_msgqueue_base;	/* base address of kmalloc'd space */
 	struct xpc_msg_sn2 *remote_msgqueue; /* cached copy of remote */
-					   /* partition's local message queue */
+	/* partition's local message queue */
 	unsigned long remote_msgqueue_pa; /* phys addr of remote partition's */
-					  /* local message queue */
+	/* local message queue */
 
 	struct xpc_notify_sn2 *notify_queue;/* notify queue for messages sent */
 
@@ -527,19 +555,21 @@ struct xpc_channel_sn2 {
 	struct mutex msg_to_pull_mutex;	/* next msg to pull serialization */
 };
 
-struct xpc_channel_uv {
+struct xpc_channel_uv
+{
 	void *cached_notify_gru_mq_desc; /* remote partition's notify mq's */
-					 /* gru mq descriptor */
+	/* gru mq descriptor */
 
 	struct xpc_send_msg_slot_uv *send_msg_slots;
 	void *recv_msg_slots;	/* each slot will hold a xpc_notify_mq_msg_uv */
-				/* structure plus the user's payload */
+	/* structure plus the user's payload */
 
 	struct xpc_fifo_head_uv msg_slot_free_list;
 	struct xpc_fifo_head_uv recv_msg_list;	/* deliverable payloads */
 };
 
-struct xpc_channel {
+struct xpc_channel
+{
 	short partid;		/* ID of remote partition connected */
 	spinlock_t lock;	/* lock for updating this structure */
 	unsigned int flags;	/* general flags */
@@ -559,7 +589,7 @@ struct xpc_channel {
 	wait_queue_head_t msg_allocate_wq;	/* msg allocation wait queue */
 
 	u8 delayed_chctl_flags;	/* chctl flags received, but delayed */
-				/* action until channel disconnected */
+	/* action until channel disconnected */
 
 	atomic_t n_to_notify;	/* #of msg senders to notify */
 
@@ -578,7 +608,8 @@ struct xpc_channel {
 
 	wait_queue_head_t idle_wq;	/* idle kthread wait queue */
 
-	union {
+	union
+	{
 		struct xpc_channel_sn2 sn2;
 		struct xpc_channel_uv uv;
 	} sn;
@@ -599,7 +630,7 @@ struct xpc_channel {
 #define	XPC_C_SETUP		0x00000080 /* channel's msgqueues are alloc'd */
 #define	XPC_C_CONNECTEDCALLOUT	0x00000100     /* connected callout initiated */
 #define	XPC_C_CONNECTEDCALLOUT_MADE \
-				0x00000200     /* connected callout completed */
+	0x00000200     /* connected callout completed */
 #define	XPC_C_CONNECTED		0x00000400	/* local channel is connected */
 #define	XPC_C_CONNECTING	0x00000800	/* channel is being connected */
 
@@ -611,9 +642,9 @@ struct xpc_channel {
 #define	XPC_C_DISCONNECTED	0x00010000	/* channel is disconnected */
 #define	XPC_C_DISCONNECTING	0x00020000   /* channel is being disconnected */
 #define	XPC_C_DISCONNECTINGCALLOUT \
-				0x00040000 /* disconnecting callout initiated */
+	0x00040000 /* disconnecting callout initiated */
 #define	XPC_C_DISCONNECTINGCALLOUT_MADE \
-				0x00080000 /* disconnecting callout completed */
+	0x00080000 /* disconnecting callout completed */
 #define	XPC_C_WDISCONNECT	0x00100000  /* waiting for channel disconnect */
 
 /*
@@ -623,7 +654,8 @@ struct xpc_channel {
  * can have one or more of the chctl flags set in it.
  */
 
-union xpc_channel_ctl_flags {
+union xpc_channel_ctl_flags
+{
 	u64 all_flags;
 	u8 flags[XPC_MAX_NCHANNELS];
 };
@@ -637,9 +669,9 @@ union xpc_channel_ctl_flags {
 #define	XPC_CHCTL_MSGREQUEST	0x20
 
 #define XPC_OPENCLOSE_CHCTL_FLAGS \
-			(XPC_CHCTL_CLOSEREQUEST | XPC_CHCTL_CLOSEREPLY | \
-			 XPC_CHCTL_OPENREQUEST | XPC_CHCTL_OPENREPLY | \
-			 XPC_CHCTL_OPENCOMPLETE)
+	(XPC_CHCTL_CLOSEREQUEST | XPC_CHCTL_CLOSEREPLY | \
+	 XPC_CHCTL_OPENREQUEST | XPC_CHCTL_OPENREPLY | \
+	 XPC_CHCTL_OPENCOMPLETE)
 #define XPC_MSG_CHCTL_FLAGS	XPC_CHCTL_MSGREQUEST
 
 static inline int
@@ -647,10 +679,14 @@ xpc_any_openclose_chctl_flags_set(union xpc_channel_ctl_flags *chctl)
 {
 	int ch_number;
 
-	for (ch_number = 0; ch_number < XPC_MAX_NCHANNELS; ch_number++) {
+	for (ch_number = 0; ch_number < XPC_MAX_NCHANNELS; ch_number++)
+	{
 		if (chctl->flags[ch_number] & XPC_OPENCLOSE_CHCTL_FLAGS)
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 
@@ -659,10 +695,14 @@ xpc_any_msg_chctl_flags_set(union xpc_channel_ctl_flags *chctl)
 {
 	int ch_number;
 
-	for (ch_number = 0; ch_number < XPC_MAX_NCHANNELS; ch_number++) {
+	for (ch_number = 0; ch_number < XPC_MAX_NCHANNELS; ch_number++)
+	{
 		if (chctl->flags[ch_number] & XPC_MSG_CHCTL_FLAGS)
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 
@@ -672,7 +712,8 @@ xpc_any_msg_chctl_flags_set(union xpc_channel_ctl_flags *chctl)
  * represents itself).
  */
 
-struct xpc_partition_sn2 {
+struct xpc_partition_sn2
+{
 	unsigned long remote_amos_page_pa; /* paddr of partition's amos page */
 	int activate_IRQ_nasid;	/* active partition's act/deact nasid */
 	int activate_IRQ_phys_cpuid;	/* active part's act/deact phys cpuid */
@@ -685,9 +726,9 @@ struct xpc_partition_sn2 {
 	struct xpc_gp_sn2 *local_GPs;	/* local Get/Put values */
 	void *remote_GPs_base;	/* base address of kmalloc'd space */
 	struct xpc_gp_sn2 *remote_GPs;	/* copy of remote partition's local */
-					/* Get/Put values */
+	/* Get/Put values */
 	unsigned long remote_GPs_pa; /* phys addr of remote partition's local */
-				     /* Get/Put values */
+	/* Get/Put values */
 
 	void *local_openclose_args_base;   /* base address of kmalloc'd space */
 	struct xpc_openclose_args *local_openclose_args;      /* local's args */
@@ -703,15 +744,16 @@ struct xpc_partition_sn2 {
 	struct timer_list dropped_notify_IRQ_timer;	/* dropped IRQ timer */
 };
 
-struct xpc_partition_uv {
+struct xpc_partition_uv
+{
 	unsigned long heartbeat_gpa; /* phys addr of partition's heartbeat */
 	struct xpc_heartbeat_uv cached_heartbeat; /* cached copy of */
-						  /* partition's heartbeat */
+	/* partition's heartbeat */
 	unsigned long activate_gru_mq_desc_gpa;	/* phys addr of parititon's */
-						/* activate mq's gru mq */
-						/* descriptor */
+	/* activate mq's gru mq */
+	/* descriptor */
 	void *cached_activate_gru_mq_desc; /* cached copy of partition's */
-					   /* activate mq's gru mq descriptor */
+	/* activate mq's gru mq descriptor */
 	struct mutex cached_activate_gru_mq_desc_mutex;
 	spinlock_t flags_lock;	/* protect updating of flags */
 	unsigned int flags;	/* general flags */
@@ -731,7 +773,8 @@ struct xpc_partition_uv {
 #define XPC_P_ASR_REACTIVATE_UV		0x02
 #define XPC_P_ASR_DEACTIVATE_UV		0x03
 
-struct xpc_partition {
+struct xpc_partition
+{
 
 	/* XPC HB infrastructure */
 
@@ -766,26 +809,28 @@ struct xpc_partition {
 
 	void *remote_openclose_args_base;  /* base address of kmalloc'd space */
 	struct xpc_openclose_args *remote_openclose_args; /* copy of remote's */
-							  /* args */
+	/* args */
 
 	/* channel manager related fields */
 
 	atomic_t channel_mgr_requests;	/* #of requests to activate chan mgr */
 	wait_queue_head_t channel_mgr_wq;	/* channel mgr's wait queue */
 
-	union {
+	union
+	{
 		struct xpc_partition_sn2 sn2;
 		struct xpc_partition_uv uv;
 	} sn;
 
 } ____cacheline_aligned;
 
-struct xpc_arch_operations {
+struct xpc_arch_operations
+{
 	int (*setup_partitions) (void);
 	void (*teardown_partitions) (void);
 	void (*process_activate_IRQ_rcvd) (void);
 	enum xp_retval (*get_partition_rsvd_page_pa)
-		(void *, u64 *, unsigned long *, size_t *);
+	(void *, u64 *, unsigned long *, size_t *);
 	int (*setup_rsvd_page) (struct xpc_rsvd_page *);
 
 	void (*allow_hb) (short);
@@ -799,7 +844,7 @@ struct xpc_arch_operations {
 	enum xp_retval (*get_remote_heartbeat) (struct xpc_partition *);
 
 	void (*request_partition_activation) (struct xpc_rsvd_page *,
-						 unsigned long, int);
+										  unsigned long, int);
 	void (*request_partition_reactivation) (struct xpc_partition *);
 	void (*request_partition_deactivation) (struct xpc_partition *);
 	void (*cancel_partition_deactivation_request) (struct xpc_partition *);
@@ -817,7 +862,7 @@ struct xpc_arch_operations {
 	void (*process_msg_chctl_flags) (struct xpc_partition *, int);
 
 	enum xp_retval (*save_remote_msgqueue_pa) (struct xpc_channel *,
-						      unsigned long);
+			unsigned long);
 
 	enum xp_retval (*setup_msg_structures) (struct xpc_channel *);
 	void (*teardown_msg_structures) (struct xpc_channel *);
@@ -830,7 +875,7 @@ struct xpc_arch_operations {
 
 	int (*n_of_deliverable_payloads) (struct xpc_channel *);
 	enum xp_retval (*send_payload) (struct xpc_channel *, u32, void *,
-					   u16, u8, xpc_notify_func, void *);
+									u16, u8, xpc_notify_func, void *);
 	void *(*get_deliverable_payload) (struct xpc_channel *);
 	void (*received_payload) (struct xpc_channel *, void *);
 	void (*notify_senders_of_disconnect) (struct xpc_channel *);
@@ -845,7 +890,7 @@ struct xpc_arch_operations {
 #define XPC_P_AS_DEACTIVATING	0x04	/* partition deactivation initiated */
 
 #define XPC_DEACTIVATE_PARTITION(_p, _reason) \
-			xpc_deactivate_partition(__LINE__, (_p), (_reason))
+	xpc_deactivate_partition(__LINE__, (_p), (_reason))
 
 /* struct xpc_partition setup_state values */
 
@@ -911,10 +956,10 @@ extern enum xp_retval xpc_mark_partition_active(struct xpc_partition *);
 extern void xpc_mark_partition_inactive(struct xpc_partition *);
 extern void xpc_discovery(void);
 extern enum xp_retval xpc_get_remote_rp(int, unsigned long *,
-					struct xpc_rsvd_page *,
-					unsigned long *);
+										struct xpc_rsvd_page *,
+										unsigned long *);
 extern void xpc_deactivate_partition(const int, struct xpc_partition *,
-				     enum xp_retval);
+									 enum xp_retval);
 extern enum xp_retval xpc_initiate_partid_to_nasids(short, void *);
 
 /* found in xpc_channel.c */
@@ -923,13 +968,13 @@ extern void xpc_initiate_disconnect(int);
 extern enum xp_retval xpc_allocate_msg_wait(struct xpc_channel *);
 extern enum xp_retval xpc_initiate_send(short, int, u32, void *, u16);
 extern enum xp_retval xpc_initiate_send_notify(short, int, u32, void *, u16,
-					       xpc_notify_func, void *);
+		xpc_notify_func, void *);
 extern void xpc_initiate_received(short, int, void *);
 extern void xpc_process_sent_chctl_flags(struct xpc_partition *);
 extern void xpc_connected_callout(struct xpc_channel *);
 extern void xpc_deliver_payload(struct xpc_channel *);
 extern void xpc_disconnect_channel(const int, struct xpc_channel *,
-				   enum xp_retval, unsigned long *);
+								   enum xp_retval, unsigned long *);
 extern void xpc_disconnect_callout(struct xpc_channel *, enum xp_retval);
 extern void xpc_partition_going_down(struct xpc_partition *, enum xp_retval);
 
@@ -937,7 +982,9 @@ static inline void
 xpc_wakeup_channel_mgr(struct xpc_partition *part)
 {
 	if (atomic_inc_return(&part->channel_mgr_requests) == 1)
+	{
 		wake_up(&part->channel_mgr_wq);
+	}
 }
 
 /*
@@ -956,12 +1003,15 @@ xpc_msgqueue_deref(struct xpc_channel *ch)
 	s32 refs = atomic_dec_return(&ch->references);
 
 	DBUG_ON(refs < 0);
+
 	if (refs == 0)
+	{
 		xpc_wakeup_channel_mgr(&xpc_partitions[ch->partid]);
+	}
 }
 
 #define XPC_DISCONNECT_CHANNEL(_ch, _reason, _irqflgs) \
-		xpc_disconnect_channel(__LINE__, _ch, _reason, _irqflgs)
+	xpc_disconnect_channel(__LINE__, _ch, _reason, _irqflgs)
 
 /*
  * These two inlines are used to keep us from tearing down a partition's
@@ -973,8 +1023,11 @@ xpc_part_deref(struct xpc_partition *part)
 	s32 refs = atomic_dec_return(&part->references);
 
 	DBUG_ON(refs < 0);
+
 	if (refs == 0 && part->setup_state == XPC_P_SS_WTEARDOWN)
+	{
 		wake_up(&part->teardown_wq);
+	}
 }
 
 static inline int
@@ -984,8 +1037,11 @@ xpc_part_ref(struct xpc_partition *part)
 
 	atomic_inc(&part->references);
 	setup = (part->setup_state == XPC_P_SS_SETUP);
+
 	if (!setup)
+	{
 		xpc_part_deref(part);
+	}
 
 	return setup;
 }

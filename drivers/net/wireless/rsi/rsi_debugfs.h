@@ -31,13 +31,15 @@ static inline void rsi_remove_dbgfs(struct rsi_hw *adapter)
 	return;
 }
 #else
-struct rsi_dbg_files {
+struct rsi_dbg_files
+{
 	const char *name;
 	umode_t perms;
 	const struct file_operations fops;
 };
 
-struct rsi_debugfs {
+struct rsi_debugfs
+{
 	struct dentry *subdir;
 	struct rsi_dbg_ops *dfs_get_ops;
 	struct dentry *rsi_files[MAX_DEBUGFS_ENTRIES];

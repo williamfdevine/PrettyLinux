@@ -15,10 +15,11 @@
 
 #define TBD 0
 
-struct XENA_dev_config {
-/* Convention: mHAL_XXX is mask, vHAL_XXX is value */
+struct XENA_dev_config
+{
+	/* Convention: mHAL_XXX is mask, vHAL_XXX is value */
 
-/* General Control-Status Registers */
+	/* General Control-Status Registers */
 	u64 general_int_status;
 #define GEN_INTR_TXPIC             s2BIT(0)
 #define GEN_INTR_TXDMA             s2BIT(1)
@@ -32,24 +33,24 @@ struct XENA_dev_config {
 #define GEN_INTR_RXXGXS            s2BIT(36)
 #define GEN_INTR_RXTRAFFIC         s2BIT(40)
 #define GEN_ERROR_INTR             GEN_INTR_TXPIC | GEN_INTR_RXPIC | \
-                                   GEN_INTR_TXDMA | GEN_INTR_RXDMA | \
-                                   GEN_INTR_TXMAC | GEN_INTR_RXMAC | \
-                                   GEN_INTR_TXXGXS| GEN_INTR_RXXGXS| \
-                                   GEN_INTR_MC
+	GEN_INTR_TXDMA | GEN_INTR_RXDMA | \
+	GEN_INTR_TXMAC | GEN_INTR_RXMAC | \
+	GEN_INTR_TXXGXS| GEN_INTR_RXXGXS| \
+	GEN_INTR_MC
 
 	u64 general_int_mask;
 
 	u8 unused0[0x100 - 0x10];
 
 	u64 sw_reset;
-/* XGXS must be removed from reset only once. */
+	/* XGXS must be removed from reset only once. */
 #define SW_RESET_XENA              vBIT(0xA5,0,8)
 #define SW_RESET_FLASH             vBIT(0xA5,8,8)
 #define SW_RESET_EOI               vBIT(0xA5,16,8)
 #define SW_RESET_ALL               (SW_RESET_XENA     |   \
-                                    SW_RESET_FLASH    |   \
-                                    SW_RESET_EOI)
-/* The SW_RESET register must read this value after a successful reset. */
+									SW_RESET_FLASH    |   \
+									SW_RESET_EOI)
+	/* The SW_RESET register must read this value after a successful reset. */
 #define	SW_RESET_RAW_VAL			0xA5000000
 
 
@@ -86,11 +87,11 @@ struct XENA_dev_config {
 #define SERR_SOURCE_MC                  s2BIT(4)
 #define SERR_SOURCE_XGXS                s2BIT(5)
 #define	SERR_SOURCE_ANY			(SERR_SOURCE_PIC	| \
-					SERR_SOURCE_TXDMA	| \
-					SERR_SOURCE_RXDMA	| \
-					SERR_SOURCE_MAC		| \
-					SERR_SOURCE_MC		| \
-					SERR_SOURCE_XGXS)
+								 SERR_SOURCE_TXDMA	| \
+								 SERR_SOURCE_RXDMA	| \
+								 SERR_SOURCE_MAC		| \
+								 SERR_SOURCE_MC		| \
+								 SERR_SOURCE_XGXS)
 
 	u64 pci_mode;
 #define	GET_PCI_MODE(val)		((val & vBIT(0xF, 0, 4)) >> 60)
@@ -108,7 +109,7 @@ struct XENA_dev_config {
 
 	u8 unused_0[0x800 - 0x128];
 
-/* PCI-X Controller registers */
+	/* PCI-X Controller registers */
 	u64 pic_int_status;
 	u64 pic_int_mask;
 #define PIC_INT_TX                     s2BIT(0)
@@ -133,11 +134,11 @@ struct XENA_dev_config {
 #define PCIX_INT_REG_RRC_TX_REQ_FSM_SERR       s2BIT(23)
 #define PCIX_INT_REG_INI_RX_FSM_SERR           s2BIT(48)
 #define PCIX_INT_REG_RA_RX_FSM_SERR            s2BIT(50)
-/*
-#define PCIX_INT_REG_WRC_RX_SEND_FSM_SERR      s2BIT(52)
-#define PCIX_INT_REG_RRC_RX_REQ_FSM_SERR       s2BIT(54)
-#define PCIX_INT_REG_RRC_RX_SPLIT_FSM_SERR     s2BIT(58)
-*/
+	/*
+	#define PCIX_INT_REG_WRC_RX_SEND_FSM_SERR      s2BIT(52)
+	#define PCIX_INT_REG_RRC_RX_REQ_FSM_SERR       s2BIT(54)
+	#define PCIX_INT_REG_RRC_RX_SPLIT_FSM_SERR     s2BIT(58)
+	*/
 	u64 txpic_alarms;
 	u64 rxpic_int_reg;
 	u64 rxpic_int_mask;
@@ -186,7 +187,7 @@ struct XENA_dev_config {
 #define RX_TRAFFIC_INT_n(n)                    s2BIT(n)
 	u64 rx_traffic_mask;
 
-/* PIC Control registers */
+	/* PIC Control registers */
 	u64 pic_control;
 #define PIC_CNTL_RX_ALARM_MAP_1                s2BIT(0)
 #define PIC_CNTL_SHARED_SPLITS(n)              vBIT(n,11,5)
@@ -310,7 +311,7 @@ struct XENA_dev_config {
 
 	u8 unused7_2[0x800 - 0x248];
 
-/* TxDMA registers */
+	/* TxDMA registers */
 	u64 txdma_int_status;
 	u64 txdma_int_mask;
 #define TXDMA_PFC_INT                  s2BIT(0)
@@ -386,10 +387,10 @@ struct XENA_dev_config {
 
 	u8 unused8[0x100 - 0xB8];
 
-/* TxDMA arbiter */
+	/* TxDMA arbiter */
 	u64 tx_dma_wrap_stat;
 
-/* Tx FIFO controller */
+	/* Tx FIFO controller */
 #define X_MAX_FIFOS                        8
 #define X_FIFO_MAX_LEN                     0x1FFF	/*8191 */
 	u64 tx_fifo_partition_0;
@@ -453,7 +454,7 @@ struct XENA_dev_config {
 #define TTI_DATA2_MEM_TX_UFC_C(n)          vBIT(n,32,16)
 #define TTI_DATA2_MEM_TX_UFC_D(n)          vBIT(n,48,16)
 
-/* Tx Protocol assist */
+	/* Tx Protocol assist */
 	u64 tx_pa_cfg;
 #define TX_PA_CFG_IGNORE_FRM_ERR           s2BIT(1)
 #define TX_PA_CFG_IGNORE_SNAP_OUI          s2BIT(2)
@@ -461,7 +462,7 @@ struct XENA_dev_config {
 #define	TX_PA_CFG_IGNORE_L2_ERR			   s2BIT(6)
 #define RX_PA_CFG_STRIP_VLAN_TAG		s2BIT(15)
 
-/* Recent add, used only debug purposes. */
+	/* Recent add, used only debug purposes. */
 	u64 pcc_enable;
 
 	u8 unused9[0x700 - 0x178];
@@ -470,7 +471,7 @@ struct XENA_dev_config {
 
 	u8 unused10[0x1800 - 0x1708];
 
-/* RxDMA Registers */
+	/* RxDMA Registers */
 	u64 rxdma_int_status;
 	u64 rxdma_int_mask;
 #define RXDMA_INT_RC_INT_M             s2BIT(0)
@@ -530,7 +531,7 @@ struct XENA_dev_config {
 
 	u8 unused11[0x100 - 0x88];
 
-/* DMA arbiter */
+	/* DMA arbiter */
 	u64 rx_queue_priority;
 #define RX_QUEUE_0_PRIORITY(val)       vBIT(val,5,3)
 #define RX_QUEUE_1_PRIORITY(val)       vBIT(val,13,3)
@@ -595,7 +596,7 @@ struct XENA_dev_config {
 #define PRC_ALARM_ACTION_RR_R7_STOP            s2BIT(59)
 #define PRC_ALARM_ACTION_RW_R7_STOP            s2BIT(63)
 
-/* Receive traffic interrupts */
+	/* Receive traffic interrupts */
 	u64 rti_command_mem;
 #define RTI_CMD_MEM_WE                          s2BIT(7)
 #define RTI_CMD_MEM_STROBE                      s2BIT(15)
@@ -634,7 +635,7 @@ struct XENA_dev_config {
 
 	u8 unused13[0x2000 - 0x1f08];
 
-/* Media Access Controller Register */
+	/* Media Access Controller Register */
 	u64 mac_int_status;
 	u64 mac_int_mask;
 #define MAC_INT_STATUS_TMAC_INT            s2BIT(0)
@@ -673,11 +674,11 @@ struct XENA_dev_config {
 #define RMAC_LINK_STATE_CHANGE_INT		s2BIT(31)
 #define RMAC_RX_SM_ERR				s2BIT(39)
 #define RMAC_SINGLE_ECC_ERR			(s2BIT(5) | s2BIT(6) | s2BIT(7) |\
-						s2BIT(8)  | s2BIT(9) | s2BIT(10)|\
-						s2BIT(11))
+									 s2BIT(8)  | s2BIT(9) | s2BIT(10)|\
+									 s2BIT(11))
 #define RMAC_DOUBLE_ECC_ERR			(s2BIT(13) | s2BIT(14) | s2BIT(15) |\
-						s2BIT(16)  | s2BIT(17) | s2BIT(18)|\
-						s2BIT(19))
+									 s2BIT(16)  | s2BIT(17) | s2BIT(18)|\
+									 s2BIT(19))
 	u64 mac_rmac_err_mask;
 	u64 mac_rmac_err_alarm;
 
@@ -745,13 +746,13 @@ struct XENA_dev_config {
 
 	u8 unused15[0x8];
 
-/*
-        u64 rmac_addr_cfg;
-#define RMAC_ADDR_UCASTn_EN(n)     mBIT(0)_n(n)
-#define RMAC_ADDR_MCASTn_EN(n)     mBIT(0)_n(n)
-#define RMAC_ADDR_BCAST_EN         vBIT(0)_48
-#define RMAC_ADDR_ALL_ADDR_EN      vBIT(0)_49
-*/
+	/*
+	        u64 rmac_addr_cfg;
+	#define RMAC_ADDR_UCASTn_EN(n)     mBIT(0)_n(n)
+	#define RMAC_ADDR_MCASTn_EN(n)     mBIT(0)_n(n)
+	#define RMAC_ADDR_BCAST_EN         vBIT(0)_48
+	#define RMAC_ADDR_ALL_ADDR_EN      vBIT(0)_49
+	*/
 	u64 tmac_ipg_cfg;
 
 	u64 rmac_pause_cfg;
@@ -776,11 +777,11 @@ struct XENA_dev_config {
 #define MAC_RX_LINK_UTIL_VAL( n )  vBIT(n,40,4)
 
 #define MAC_LINK_UTIL_DISABLE      MAC_TX_LINK_UTIL_DISABLE | \
-                                   MAC_RX_LINK_UTIL_DISABLE
+	MAC_RX_LINK_UTIL_DISABLE
 
 	u64 rmac_invalid_ipg;
 
-/* rx traffic steering */
+	/* rx traffic steering */
 #define	MAC_RTS_FRM_LEN_SET(len)	vBIT(len,2,14)
 	u64 rts_frm_len_n[8];
 
@@ -823,7 +824,7 @@ struct XENA_dev_config {
 
 	u8 unused17[0x2800 - 0x2708];
 
-/* memory controller registers */
+	/* memory controller registers */
 	u64 mc_int_status;
 #define MC_INT_STATUS_MC_INT               s2BIT(0)
 	u64 mc_int_mask;
@@ -838,16 +839,16 @@ struct XENA_dev_config {
 #define MC_ERR_REG_MIRI_CRI_ERR_1          s2BIT(23)
 #define MC_ERR_REG_SM_ERR                  s2BIT(31)
 #define MC_ERR_REG_ECC_ALL_SNG		   (s2BIT(2) | s2BIT(3) | s2BIT(4) | s2BIT(5) |\
-					s2BIT(17) | s2BIT(19))
+										s2BIT(17) | s2BIT(19))
 #define MC_ERR_REG_ECC_ALL_DBL		   (s2BIT(10) | s2BIT(11) | s2BIT(12) |\
-					s2BIT(13) | s2BIT(18) | s2BIT(20))
+										s2BIT(13) | s2BIT(18) | s2BIT(20))
 #define PLL_LOCK_N			s2BIT(39)
 	u64 mc_err_mask;
 	u64 mc_err_alarm;
 
 	u8 unused18[0x100 - 0x28];
 
-/* MC configuration */
+	/* MC configuration */
 	u64 rx_queue_cfg;
 #define RX_QUEUE_CFG_Q0_SZ(n)              vBIT(n,0,8)
 #define RX_QUEUE_CFG_Q1_SZ(n)              vBIT(n,8,8)
@@ -904,7 +905,7 @@ struct XENA_dev_config {
 
 	u8 unused26[0x3000 - 0x2f08];
 
-/* XGXG */
+	/* XGXG */
 	/* XGXS control registers */
 
 	u64 xgxs_int_status;

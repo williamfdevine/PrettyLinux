@@ -22,7 +22,8 @@
 #ifndef _ATOMIC_H
 #define _ATOMIC_H
 
-typedef struct {
+typedef struct
+{
 	volatile int val;
 } atomic_t;
 

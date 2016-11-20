@@ -49,10 +49,13 @@
 #define ASIV_LENGTH_ATS		96  /* New specification with ATS field */
 #define ASV_LENGTH		64
 
-struct ddcb {
-	union {
+struct ddcb
+{
+	union
+	{
 		__be32 icrc_hsi_shi_32;	/* iCRC, Hardware/SW interlock */
-		struct {
+		struct
+		{
 			__be16	icrc_16;
 			u8	hsi;
 			u8	shi;
@@ -71,8 +74,10 @@ struct ddcb {
 
 	__be64 fwiv_64;		/* Firmware Invariant. */
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__be64 ats_64;  /* Address Translation Spec */
 			u8     asiv[ASIV_LENGTH_ATS]; /* New ASIV */
 		} n;
@@ -97,7 +102,8 @@ struct ddcb {
 	__be32 obdc_32;		/* Outbound Data Count (* 256) */
 
 	__be64 rsvd_SLH_64;	/* Reserved for hardware */
-	union {			/* private data for driver */
+	union  			/* private data for driver */
+	{
 		u8	priv[8];
 		__be64	priv_64;
 	};
@@ -179,7 +185,8 @@ struct ddcb {
  * list to describe the memory it works on. Always 8 sg_entry's form
  * a block.
  */
-struct sg_entry {
+struct sg_entry
+{
 	__be64 target_addr;
 	__be32 len;
 	__be32 flags;

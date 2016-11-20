@@ -11,7 +11,8 @@
 /*
  * states of the device statemachine
  */
-enum dev_state {
+enum dev_state
+{
 	DEV_STATE_NOT_OPER,
 	DEV_STATE_SENSE_PGID,
 	DEV_STATE_SENSE_ID,
@@ -37,7 +38,8 @@ enum dev_state {
 /*
  * asynchronous events of the device statemachine
  */
-enum dev_event {
+enum dev_event
+{
 	DEV_EVENT_NOTOPER,
 	DEV_EVENT_INTERRUPT,
 	DEV_EVENT_TIMEOUT,
@@ -59,13 +61,19 @@ dev_fsm_event(struct ccw_device *cdev, enum dev_event dev_event)
 {
 	int state = cdev->private->state;
 
-	if (dev_event == DEV_EVENT_INTERRUPT) {
+	if (dev_event == DEV_EVENT_INTERRUPT)
+	{
 		if (state == DEV_STATE_ONLINE)
+		{
 			inc_irq_stat(cdev->private->int_class);
+		}
 		else if (state != DEV_STATE_CMFCHANGE &&
-			 state != DEV_STATE_CMFUPDATE)
+				 state != DEV_STATE_CMFUPDATE)
+		{
 			inc_irq_stat(IRQIO_CIO);
+		}
 	}
+
 	dev_jumptable[state][dev_event](cdev, dev_event);
 }
 
@@ -76,9 +84,9 @@ static inline int
 dev_fsm_final_state(struct ccw_device *cdev)
 {
 	return (cdev->private->state == DEV_STATE_NOT_OPER ||
-		cdev->private->state == DEV_STATE_OFFLINE ||
-		cdev->private->state == DEV_STATE_ONLINE ||
-		cdev->private->state == DEV_STATE_BOXED);
+			cdev->private->state == DEV_STATE_OFFLINE ||
+			cdev->private->state == DEV_STATE_ONLINE ||
+			cdev->private->state == DEV_STATE_BOXED);
 }
 
 int __init io_subchannel_init(void);

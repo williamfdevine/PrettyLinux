@@ -60,30 +60,42 @@ static inline int ksft_exit_fail(void)
 
 char *clockstring(int clockid)
 {
-	switch (clockid) {
-	case CLOCK_REALTIME:
-		return "CLOCK_REALTIME";
-	case CLOCK_MONOTONIC:
-		return "CLOCK_MONOTONIC";
-	case CLOCK_PROCESS_CPUTIME_ID:
-		return "CLOCK_PROCESS_CPUTIME_ID";
-	case CLOCK_THREAD_CPUTIME_ID:
-		return "CLOCK_THREAD_CPUTIME_ID";
-	case CLOCK_MONOTONIC_RAW:
-		return "CLOCK_MONOTONIC_RAW";
-	case CLOCK_REALTIME_COARSE:
-		return "CLOCK_REALTIME_COARSE";
-	case CLOCK_MONOTONIC_COARSE:
-		return "CLOCK_MONOTONIC_COARSE";
-	case CLOCK_BOOTTIME:
-		return "CLOCK_BOOTTIME";
-	case CLOCK_REALTIME_ALARM:
-		return "CLOCK_REALTIME_ALARM";
-	case CLOCK_BOOTTIME_ALARM:
-		return "CLOCK_BOOTTIME_ALARM";
-	case CLOCK_TAI:
-		return "CLOCK_TAI";
+	switch (clockid)
+	{
+		case CLOCK_REALTIME:
+			return "CLOCK_REALTIME";
+
+		case CLOCK_MONOTONIC:
+			return "CLOCK_MONOTONIC";
+
+		case CLOCK_PROCESS_CPUTIME_ID:
+			return "CLOCK_PROCESS_CPUTIME_ID";
+
+		case CLOCK_THREAD_CPUTIME_ID:
+			return "CLOCK_THREAD_CPUTIME_ID";
+
+		case CLOCK_MONOTONIC_RAW:
+			return "CLOCK_MONOTONIC_RAW";
+
+		case CLOCK_REALTIME_COARSE:
+			return "CLOCK_REALTIME_COARSE";
+
+		case CLOCK_MONOTONIC_COARSE:
+			return "CLOCK_MONOTONIC_COARSE";
+
+		case CLOCK_BOOTTIME:
+			return "CLOCK_BOOTTIME";
+
+		case CLOCK_REALTIME_ALARM:
+			return "CLOCK_REALTIME_ALARM";
+
+		case CLOCK_BOOTTIME_ALARM:
+			return "CLOCK_BOOTTIME_ALARM";
+
+		case CLOCK_TAI:
+			return "CLOCK_TAI";
 	};
+
 	return "UNKNOWN_CLOCKID";
 }
 
@@ -91,21 +103,33 @@ char *clockstring(int clockid)
 static inline int in_order(struct timespec a, struct timespec b)
 {
 	if (a.tv_sec < b.tv_sec)
+	{
 		return 1;
+	}
+
 	if (a.tv_sec > b.tv_sec)
+	{
 		return 0;
+	}
+
 	if (a.tv_nsec > b.tv_nsec)
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
 struct timespec timespec_add(struct timespec ts, unsigned long long ns)
 {
 	ts.tv_nsec += ns;
-	while (ts.tv_nsec >= NSEC_PER_SEC) {
+
+	while (ts.tv_nsec >= NSEC_PER_SEC)
+	{
 		ts.tv_nsec -= NSEC_PER_SEC;
 		ts.tv_sec++;
 	}
+
 	return ts;
 }
 
@@ -115,15 +139,23 @@ int nanosleep_test(int clockid, long long ns)
 
 	/* First check abs time */
 	if (clock_gettime(clockid, &now))
+	{
 		return UNSUPPORTED;
+	}
+
 	target = timespec_add(now, ns);
 
 	if (clock_nanosleep(clockid, TIMER_ABSTIME, &target, NULL))
+	{
 		return UNSUPPORTED;
+	}
+
 	clock_gettime(clockid, &now);
 
 	if (!in_order(target, now))
+	{
 		return -1;
+	}
 
 	/* Second check reltime */
 	clock_gettime(clockid, &now);
@@ -135,7 +167,10 @@ int nanosleep_test(int clockid, long long ns)
 	clock_gettime(clockid, &now);
 
 	if (!in_order(target, now))
+	{
 		return -1;
+	}
+
 	return 0;
 }
 
@@ -144,32 +179,44 @@ int main(int argc, char **argv)
 	long long length;
 	int clockid, ret;
 
-	for (clockid = CLOCK_REALTIME; clockid < NR_CLOCKIDS; clockid++) {
+	for (clockid = CLOCK_REALTIME; clockid < NR_CLOCKIDS; clockid++)
+	{
 
 		/* Skip cputime clockids since nanosleep won't increment cputime */
 		if (clockid == CLOCK_PROCESS_CPUTIME_ID ||
-				clockid == CLOCK_THREAD_CPUTIME_ID ||
-				clockid == CLOCK_HWSPECIFIC)
+			clockid == CLOCK_THREAD_CPUTIME_ID ||
+			clockid == CLOCK_HWSPECIFIC)
+		{
 			continue;
+		}
 
 		printf("Nanosleep %-31s ", clockstring(clockid));
 
 		length = 10;
-		while (length <= (NSEC_PER_SEC * 10)) {
+
+		while (length <= (NSEC_PER_SEC * 10))
+		{
 			ret = nanosleep_test(clockid, length);
-			if (ret == UNSUPPORTED) {
+
+			if (ret == UNSUPPORTED)
+			{
 				printf("[UNSUPPORTED]\n");
 				goto next;
 			}
-			if (ret < 0) {
+
+			if (ret < 0)
+			{
 				printf("[FAILED]\n");
 				return ksft_exit_fail();
 			}
+
 			length *= 100;
 		}
+
 		printf("[OK]\n");
 next:
 		ret = 0;
 	}
+
 	return ksft_exit_pass();
 }

@@ -45,7 +45,8 @@ static int debug;
 #define DS3000_SAMPLE_RATE 96000 /* in kHz */
 
 /* Register values to initialise the demod in DVB-S mode */
-static u8 ds3000_dvbs_init_tab[] = {
+static u8 ds3000_dvbs_init_tab[] =
+{
 	0x23, 0x05,
 	0x08, 0x03,
 	0x0c, 0x00,
@@ -130,7 +131,8 @@ static u8 ds3000_dvbs_init_tab[] = {
 };
 
 /* Register values to initialise the demod in DVB-S2 mode */
-static u8 ds3000_dvbs2_init_tab[] = {
+static u8 ds3000_dvbs2_init_tab[] =
+{
 	0x23, 0x0f,
 	0x08, 0x07,
 	0x0c, 0x00,
@@ -229,7 +231,8 @@ static u8 ds3000_dvbs2_init_tab[] = {
 	0xb8, 0x00,
 };
 
-struct ds3000_state {
+struct ds3000_state
+{
 	struct i2c_adapter *i2c;
 	const struct ds3000_config *config;
 	struct dvb_frontend frontend;
@@ -241,15 +244,18 @@ static int ds3000_writereg(struct ds3000_state *state, int reg, int data)
 {
 	u8 buf[] = { reg, data };
 	struct i2c_msg msg = { .addr = state->config->demod_address,
-		.flags = 0, .buf = buf, .len = 2 };
+			   .flags = 0, .buf = buf, .len = 2
+	};
 	int err;
 
 	dprintk("%s: write reg 0x%02x, value 0x%02x\n", __func__, reg, data);
 
 	err = i2c_transfer(state->i2c, &msg, 1);
-	if (err != 1) {
+
+	if (err != 1)
+	{
 		printk(KERN_ERR "%s: writereg error(err == %i, reg == 0x%02x,"
-			 " value == 0x%02x)\n", __func__, err, reg, data);
+			   " value == 0x%02x)\n", __func__, err, reg, data);
 		return -EREMOTEIO;
 	}
 
@@ -261,23 +267,29 @@ static int ds3000_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
 	struct ds3000_state *state = fe->demodulator_priv;
 
 	if (enable)
+	{
 		ds3000_writereg(state, 0x03, 0x12);
+	}
 	else
+	{
 		ds3000_writereg(state, 0x03, 0x02);
+	}
 
 	return 0;
 }
 
 /* I2C write for 8k firmware load */
 static int ds3000_writeFW(struct ds3000_state *state, int reg,
-				const u8 *data, u16 len)
+						  const u8 *data, u16 len)
 {
 	int i, ret = 0;
 	struct i2c_msg msg;
 	u8 *buf;
 
 	buf = kmalloc(33, GFP_KERNEL);
-	if (buf == NULL) {
+
+	if (buf == NULL)
+	{
 		printk(KERN_ERR "Unable to kmalloc\n");
 		return -ENOMEM;
 	}
@@ -289,19 +301,23 @@ static int ds3000_writeFW(struct ds3000_state *state, int reg,
 	msg.buf = buf;
 	msg.len = 33;
 
-	for (i = 0; i < len; i += 32) {
+	for (i = 0; i < len; i += 32)
+	{
 		memcpy(buf + 1, data + i, 32);
 
 		dprintk("%s: write reg 0x%02x, len = %d\n", __func__, reg, len);
 
 		ret = i2c_transfer(state->i2c, &msg, 1);
-		if (ret != 1) {
+
+		if (ret != 1)
+		{
 			printk(KERN_ERR "%s: write error(err == %i, "
-				"reg == 0x%02x\n", __func__, ret, reg);
+				   "reg == 0x%02x\n", __func__, ret, reg);
 			ret = -EREMOTEIO;
 			goto error;
 		}
 	}
+
 	ret = 0;
 
 error:
@@ -315,7 +331,8 @@ static int ds3000_readreg(struct ds3000_state *state, u8 reg)
 	int ret;
 	u8 b0[] = { reg };
 	u8 b1[] = { 0 };
-	struct i2c_msg msg[] = {
+	struct i2c_msg msg[] =
+	{
 		{
 			.addr = state->config->demod_address,
 			.flags = 0,
@@ -331,7 +348,8 @@ static int ds3000_readreg(struct ds3000_state *state, u8 reg)
 
 	ret = i2c_transfer(state->i2c, msg, 2);
 
-	if (ret != 2) {
+	if (ret != 2)
+	{
 		printk(KERN_ERR "%s: reg=0x%x(error=%d)\n", __func__, reg, ret);
 		return ret;
 	}
@@ -342,7 +360,7 @@ static int ds3000_readreg(struct ds3000_state *state, u8 reg)
 }
 
 static int ds3000_load_firmware(struct dvb_frontend *fe,
-					const struct firmware *fw);
+								const struct firmware *fw);
 
 static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
 {
@@ -353,25 +371,33 @@ static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
 	dprintk("%s()\n", __func__);
 
 	ret = ds3000_readreg(state, 0xb2);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Load firmware */
 	/* request the firmware, this will block until someone uploads it */
 	printk(KERN_INFO "%s: Waiting for firmware upload (%s)...\n", __func__,
-				DS3000_DEFAULT_FIRMWARE);
+		   DS3000_DEFAULT_FIRMWARE);
 	ret = request_firmware(&fw, DS3000_DEFAULT_FIRMWARE,
-				state->i2c->dev.parent);
+						   state->i2c->dev.parent);
 	printk(KERN_INFO "%s: Waiting for firmware upload(2)...\n", __func__);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "%s: No firmware uploaded (timeout or file not "
-				"found?)\n", __func__);
+			   "found?)\n", __func__);
 		return ret;
 	}
 
 	ret = ds3000_load_firmware(fe, fw);
+
 	if (ret)
+	{
 		printk("%s: Writing firmware to device failed\n", __func__);
+	}
 
 	release_firmware(fw);
 
@@ -382,7 +408,7 @@ static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
 }
 
 static int ds3000_load_firmware(struct dvb_frontend *fe,
-					const struct firmware *fw)
+								const struct firmware *fw)
 {
 	struct ds3000_state *state = fe->demodulator_priv;
 	int ret = 0;
@@ -405,7 +431,7 @@ static int ds3000_load_firmware(struct dvb_frontend *fe,
 }
 
 static int ds3000_set_voltage(struct dvb_frontend *fe,
-			      enum fe_sec_voltage voltage)
+							  enum fe_sec_voltage voltage)
 {
 	struct ds3000_state *state = fe->demodulator_priv;
 	u8 data;
@@ -415,16 +441,19 @@ static int ds3000_set_voltage(struct dvb_frontend *fe,
 	data = ds3000_readreg(state, 0xa2);
 	data |= 0x03; /* bit0 V/H, bit1 off/on */
 
-	switch (voltage) {
-	case SEC_VOLTAGE_18:
-		data &= ~0x03;
-		break;
-	case SEC_VOLTAGE_13:
-		data &= ~0x03;
-		data |= 0x01;
-		break;
-	case SEC_VOLTAGE_OFF:
-		break;
+	switch (voltage)
+	{
+		case SEC_VOLTAGE_18:
+			data &= ~0x03;
+			break;
+
+		case SEC_VOLTAGE_13:
+			data &= ~0x03;
+			data |= 0x01;
+			break;
+
+		case SEC_VOLTAGE_OFF:
+			break;
 	}
 
 	ds3000_writereg(state, 0xa2, data);
@@ -440,29 +469,36 @@ static int ds3000_read_status(struct dvb_frontend *fe, enum fe_status *status)
 
 	*status = 0;
 
-	switch (c->delivery_system) {
-	case SYS_DVBS:
-		lock = ds3000_readreg(state, 0xd1);
-		if ((lock & 0x07) == 0x07)
-			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
-				FE_HAS_VITERBI | FE_HAS_SYNC |
-				FE_HAS_LOCK;
+	switch (c->delivery_system)
+	{
+		case SYS_DVBS:
+			lock = ds3000_readreg(state, 0xd1);
 
-		break;
-	case SYS_DVBS2:
-		lock = ds3000_readreg(state, 0x0d);
-		if ((lock & 0x8f) == 0x8f)
-			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
-				FE_HAS_VITERBI | FE_HAS_SYNC |
-				FE_HAS_LOCK;
+			if ((lock & 0x07) == 0x07)
+				*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
+						  FE_HAS_VITERBI | FE_HAS_SYNC |
+						  FE_HAS_LOCK;
 
-		break;
-	default:
-		return -EINVAL;
+			break;
+
+		case SYS_DVBS2:
+			lock = ds3000_readreg(state, 0x0d);
+
+			if ((lock & 0x8f) == 0x8f)
+				*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
+						  FE_HAS_VITERBI | FE_HAS_SYNC |
+						  FE_HAS_LOCK;
+
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	if (state->config->set_lock_led)
+	{
 		state->config->set_lock_led(fe, *status == 0 ? 0 : 1);
+	}
 
 	dprintk("%s: status = 0x%02x\n", __func__, lock);
 
@@ -470,7 +506,7 @@ static int ds3000_read_status(struct dvb_frontend *fe, enum fe_status *status)
 }
 
 /* read DS3000 BER value */
-static int ds3000_read_ber(struct dvb_frontend *fe, u32* ber)
+static int ds3000_read_ber(struct dvb_frontend *fe, u32 *ber)
 {
 	struct ds3000_state *state = fe->demodulator_priv;
 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
@@ -479,66 +515,83 @@ static int ds3000_read_ber(struct dvb_frontend *fe, u32* ber)
 
 	dprintk("%s()\n", __func__);
 
-	switch (c->delivery_system) {
-	case SYS_DVBS:
-		/* set the number of bytes checked during
-		BER estimation */
-		ds3000_writereg(state, 0xf9, 0x04);
-		/* read BER estimation status */
-		data = ds3000_readreg(state, 0xf8);
-		/* check if BER estimation is ready */
-		if ((data & 0x10) == 0) {
-			/* this is the number of error bits,
-			to calculate the bit error rate
-			divide to 8388608 */
-			*ber = (ds3000_readreg(state, 0xf7) << 8) |
-				ds3000_readreg(state, 0xf6);
-			/* start counting error bits */
-			/* need to be set twice
-			otherwise it fails sometimes */
-			data |= 0x10;
-			ds3000_writereg(state, 0xf8, data);
-			ds3000_writereg(state, 0xf8, data);
-		} else
-			/* used to indicate that BER estimation
-			is not ready, i.e. BER is unknown */
-			*ber = 0xffffffff;
-		break;
-	case SYS_DVBS2:
-		/* read the number of LPDC decoded frames */
-		lpdc_frames = (ds3000_readreg(state, 0xd7) << 16) |
-				(ds3000_readreg(state, 0xd6) << 8) |
-				ds3000_readreg(state, 0xd5);
-		/* read the number of packets with bad CRC */
-		ber_reading = (ds3000_readreg(state, 0xf8) << 8) |
-				ds3000_readreg(state, 0xf7);
-		if (lpdc_frames > 750) {
-			/* clear LPDC frame counters */
-			ds3000_writereg(state, 0xd1, 0x01);
-			/* clear bad packets counter */
-			ds3000_writereg(state, 0xf9, 0x01);
-			/* enable bad packets counter */
-			ds3000_writereg(state, 0xf9, 0x00);
-			/* enable LPDC frame counters */
-			ds3000_writereg(state, 0xd1, 0x00);
-			*ber = ber_reading;
-		} else
-			/* used to indicate that BER estimation is not ready,
-			i.e. BER is unknown */
-			*ber = 0xffffffff;
-		break;
-	default:
-		return -EINVAL;
+	switch (c->delivery_system)
+	{
+		case SYS_DVBS:
+			/* set the number of bytes checked during
+			BER estimation */
+			ds3000_writereg(state, 0xf9, 0x04);
+			/* read BER estimation status */
+			data = ds3000_readreg(state, 0xf8);
+
+			/* check if BER estimation is ready */
+			if ((data & 0x10) == 0)
+			{
+				/* this is the number of error bits,
+				to calculate the bit error rate
+				divide to 8388608 */
+				*ber = (ds3000_readreg(state, 0xf7) << 8) |
+					   ds3000_readreg(state, 0xf6);
+				/* start counting error bits */
+				/* need to be set twice
+				otherwise it fails sometimes */
+				data |= 0x10;
+				ds3000_writereg(state, 0xf8, data);
+				ds3000_writereg(state, 0xf8, data);
+			}
+			else
+				/* used to indicate that BER estimation
+				is not ready, i.e. BER is unknown */
+			{
+				*ber = 0xffffffff;
+			}
+
+			break;
+
+		case SYS_DVBS2:
+			/* read the number of LPDC decoded frames */
+			lpdc_frames = (ds3000_readreg(state, 0xd7) << 16) |
+						  (ds3000_readreg(state, 0xd6) << 8) |
+						  ds3000_readreg(state, 0xd5);
+			/* read the number of packets with bad CRC */
+			ber_reading = (ds3000_readreg(state, 0xf8) << 8) |
+						  ds3000_readreg(state, 0xf7);
+
+			if (lpdc_frames > 750)
+			{
+				/* clear LPDC frame counters */
+				ds3000_writereg(state, 0xd1, 0x01);
+				/* clear bad packets counter */
+				ds3000_writereg(state, 0xf9, 0x01);
+				/* enable bad packets counter */
+				ds3000_writereg(state, 0xf9, 0x00);
+				/* enable LPDC frame counters */
+				ds3000_writereg(state, 0xd1, 0x00);
+				*ber = ber_reading;
+			}
+			else
+				/* used to indicate that BER estimation is not ready,
+				i.e. BER is unknown */
+			{
+				*ber = 0xffffffff;
+			}
+
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
 static int ds3000_read_signal_strength(struct dvb_frontend *fe,
-						u16 *signal_strength)
+									   u16 *signal_strength)
 {
 	if (fe->ops.tuner_ops.get_rf_strength)
+	{
 		fe->ops.tuner_ops.get_rf_strength(fe, signal_strength);
+	}
 
 	return 0;
 }
@@ -550,12 +603,14 @@ static int ds3000_read_snr(struct dvb_frontend *fe, u16 *snr)
 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
 	u8 snr_reading, snr_value;
 	u32 dvbs2_signal_reading, dvbs2_noise_reading, tmp;
-	static const u16 dvbs_snr_tab[] = { /* 20 x Table (rounded up) */
+	static const u16 dvbs_snr_tab[] =   /* 20 x Table (rounded up) */
+	{
 		0x0000, 0x1b13, 0x2aea, 0x3627, 0x3ede, 0x45fe, 0x4c03,
 		0x513a, 0x55d4, 0x59f2, 0x5dab, 0x6111, 0x6431, 0x6717,
 		0x69c9, 0x6c4e, 0x6eac, 0x70e8, 0x7304, 0x7505
 	};
-	static const u16 dvbs2_snr_tab[] = { /* 80 x Table (rounded up) */
+	static const u16 dvbs2_snr_tab[] =   /* 80 x Table (rounded up) */
+	{
 		0x0000, 0x0bc2, 0x12a3, 0x1785, 0x1b4e, 0x1e65, 0x2103,
 		0x2347, 0x2546, 0x2710, 0x28ae, 0x2a28, 0x2b83, 0x2cc5,
 		0x2df1, 0x2f09, 0x3010, 0x3109, 0x31f4, 0x32d2, 0x33a6,
@@ -572,58 +627,86 @@ static int ds3000_read_snr(struct dvb_frontend *fe, u16 *snr)
 
 	dprintk("%s()\n", __func__);
 
-	switch (c->delivery_system) {
-	case SYS_DVBS:
-		snr_reading = ds3000_readreg(state, 0xff);
-		snr_reading /= 8;
-		if (snr_reading == 0)
-			*snr = 0x0000;
-		else {
-			if (snr_reading > 20)
-				snr_reading = 20;
-			snr_value = dvbs_snr_tab[snr_reading - 1] * 10 / 23026;
-			/* cook the value to be suitable for szap-s2
-			human readable output */
-			*snr = snr_value * 8 * 655;
-		}
-		dprintk("%s: raw / cooked = 0x%02x / 0x%04x\n", __func__,
-				snr_reading, *snr);
-		break;
-	case SYS_DVBS2:
-		dvbs2_noise_reading = (ds3000_readreg(state, 0x8c) & 0x3f) +
-				(ds3000_readreg(state, 0x8d) << 4);
-		dvbs2_signal_reading = ds3000_readreg(state, 0x8e);
-		tmp = dvbs2_signal_reading * dvbs2_signal_reading >> 1;
-		if (tmp == 0) {
-			*snr = 0x0000;
-			return 0;
-		}
-		if (dvbs2_noise_reading == 0) {
-			snr_value = 0x0013;
-			/* cook the value to be suitable for szap-s2
-			human readable output */
-			*snr = 0xffff;
-			return 0;
-		}
-		if (tmp > dvbs2_noise_reading) {
-			snr_reading = tmp / dvbs2_noise_reading;
-			if (snr_reading > 80)
-				snr_reading = 80;
-			snr_value = dvbs2_snr_tab[snr_reading - 1] / 1000;
-			/* cook the value to be suitable for szap-s2
-			human readable output */
-			*snr = snr_value * 5 * 655;
-		} else {
-			snr_reading = dvbs2_noise_reading / tmp;
-			if (snr_reading > 80)
-				snr_reading = 80;
-			*snr = -(dvbs2_snr_tab[snr_reading - 1] / 1000);
-		}
-		dprintk("%s: raw / cooked = 0x%02x / 0x%04x\n", __func__,
-				snr_reading, *snr);
-		break;
-	default:
-		return -EINVAL;
+	switch (c->delivery_system)
+	{
+		case SYS_DVBS:
+			snr_reading = ds3000_readreg(state, 0xff);
+			snr_reading /= 8;
+
+			if (snr_reading == 0)
+			{
+				*snr = 0x0000;
+			}
+			else
+			{
+				if (snr_reading > 20)
+				{
+					snr_reading = 20;
+				}
+
+				snr_value = dvbs_snr_tab[snr_reading - 1] * 10 / 23026;
+				/* cook the value to be suitable for szap-s2
+				human readable output */
+				*snr = snr_value * 8 * 655;
+			}
+
+			dprintk("%s: raw / cooked = 0x%02x / 0x%04x\n", __func__,
+					snr_reading, *snr);
+			break;
+
+		case SYS_DVBS2:
+			dvbs2_noise_reading = (ds3000_readreg(state, 0x8c) & 0x3f) +
+								  (ds3000_readreg(state, 0x8d) << 4);
+			dvbs2_signal_reading = ds3000_readreg(state, 0x8e);
+			tmp = dvbs2_signal_reading * dvbs2_signal_reading >> 1;
+
+			if (tmp == 0)
+			{
+				*snr = 0x0000;
+				return 0;
+			}
+
+			if (dvbs2_noise_reading == 0)
+			{
+				snr_value = 0x0013;
+				/* cook the value to be suitable for szap-s2
+				human readable output */
+				*snr = 0xffff;
+				return 0;
+			}
+
+			if (tmp > dvbs2_noise_reading)
+			{
+				snr_reading = tmp / dvbs2_noise_reading;
+
+				if (snr_reading > 80)
+				{
+					snr_reading = 80;
+				}
+
+				snr_value = dvbs2_snr_tab[snr_reading - 1] / 1000;
+				/* cook the value to be suitable for szap-s2
+				human readable output */
+				*snr = snr_value * 5 * 655;
+			}
+			else
+			{
+				snr_reading = dvbs2_noise_reading / tmp;
+
+				if (snr_reading > 80)
+				{
+					snr_reading = 80;
+				}
+
+				*snr = -(dvbs2_snr_tab[snr_reading - 1] / 1000);
+			}
+
+			dprintk("%s: raw / cooked = 0x%02x / 0x%04x\n", __func__,
+					snr_reading, *snr);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -639,29 +722,38 @@ static int ds3000_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
 
 	dprintk("%s()\n", __func__);
 
-	switch (c->delivery_system) {
-	case SYS_DVBS:
-		*ucblocks = (ds3000_readreg(state, 0xf5) << 8) |
-				ds3000_readreg(state, 0xf4);
-		data = ds3000_readreg(state, 0xf8);
-		/* clear packet counters */
-		data &= ~0x20;
-		ds3000_writereg(state, 0xf8, data);
-		/* enable packet counters */
-		data |= 0x20;
-		ds3000_writereg(state, 0xf8, data);
-		break;
-	case SYS_DVBS2:
-		_ucblocks = (ds3000_readreg(state, 0xe2) << 8) |
-				ds3000_readreg(state, 0xe1);
-		if (_ucblocks > state->prevUCBS2)
-			*ucblocks = _ucblocks - state->prevUCBS2;
-		else
-			*ucblocks = state->prevUCBS2 - _ucblocks;
-		state->prevUCBS2 = _ucblocks;
-		break;
-	default:
-		return -EINVAL;
+	switch (c->delivery_system)
+	{
+		case SYS_DVBS:
+			*ucblocks = (ds3000_readreg(state, 0xf5) << 8) |
+						ds3000_readreg(state, 0xf4);
+			data = ds3000_readreg(state, 0xf8);
+			/* clear packet counters */
+			data &= ~0x20;
+			ds3000_writereg(state, 0xf8, data);
+			/* enable packet counters */
+			data |= 0x20;
+			ds3000_writereg(state, 0xf8, data);
+			break;
+
+		case SYS_DVBS2:
+			_ucblocks = (ds3000_readreg(state, 0xe2) << 8) |
+						ds3000_readreg(state, 0xe1);
+
+			if (_ucblocks > state->prevUCBS2)
+			{
+				*ucblocks = _ucblocks - state->prevUCBS2;
+			}
+			else
+			{
+				*ucblocks = state->prevUCBS2 - _ucblocks;
+			}
+
+			state->prevUCBS2 = _ucblocks;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -673,7 +765,9 @@ static int ds3000_set_tone(struct dvb_frontend *fe, enum fe_sec_tone_mode tone)
 	u8 data;
 
 	dprintk("%s(%d)\n", __func__, tone);
-	if ((tone != SEC_TONE_ON) && (tone != SEC_TONE_OFF)) {
+
+	if ((tone != SEC_TONE_ON) && (tone != SEC_TONE_OFF))
+	{
 		printk(KERN_ERR "%s: Invalid, tone=%d\n", __func__, tone);
 		return -EINVAL;
 	}
@@ -682,27 +776,29 @@ static int ds3000_set_tone(struct dvb_frontend *fe, enum fe_sec_tone_mode tone)
 	data &= ~0xc0;
 	ds3000_writereg(state, 0xa2, data);
 
-	switch (tone) {
-	case SEC_TONE_ON:
-		dprintk("%s: setting tone on\n", __func__);
-		data = ds3000_readreg(state, 0xa1);
-		data &= ~0x43;
-		data |= 0x04;
-		ds3000_writereg(state, 0xa1, data);
-		break;
-	case SEC_TONE_OFF:
-		dprintk("%s: setting tone off\n", __func__);
-		data = ds3000_readreg(state, 0xa2);
-		data |= 0x80;
-		ds3000_writereg(state, 0xa2, data);
-		break;
+	switch (tone)
+	{
+		case SEC_TONE_ON:
+			dprintk("%s: setting tone on\n", __func__);
+			data = ds3000_readreg(state, 0xa1);
+			data &= ~0x43;
+			data |= 0x04;
+			ds3000_writereg(state, 0xa1, data);
+			break;
+
+		case SEC_TONE_OFF:
+			dprintk("%s: setting tone off\n", __func__);
+			data = ds3000_readreg(state, 0xa2);
+			data |= 0x80;
+			ds3000_writereg(state, 0xa2, data);
+			break;
 	}
 
 	return 0;
 }
 
 static int ds3000_send_diseqc_msg(struct dvb_frontend *fe,
-				struct dvb_diseqc_master_cmd *d)
+								  struct dvb_diseqc_master_cmd *d)
 {
 	struct ds3000_state *state = fe->demodulator_priv;
 	int i;
@@ -710,10 +806,15 @@ static int ds3000_send_diseqc_msg(struct dvb_frontend *fe,
 
 	/* Dump DiSEqC message */
 	dprintk("%s(", __func__);
-	for (i = 0 ; i < d->msg_len;) {
+
+	for (i = 0 ; i < d->msg_len;)
+	{
 		dprintk("0x%02x", d->msg[i]);
+
 		if (++i < d->msg_len)
+		{
 			dprintk(", ");
+		}
 	}
 
 	/* enable DiSEqC message send pin */
@@ -723,7 +824,9 @@ static int ds3000_send_diseqc_msg(struct dvb_frontend *fe,
 
 	/* DiSEqC message */
 	for (i = 0; i < d->msg_len; i++)
+	{
 		ds3000_writereg(state, 0xa3 + i, d->msg[i]);
+	}
 
 	data = ds3000_readreg(state, 0xa1);
 	/* clear DiSEqC message length and status,
@@ -735,15 +838,21 @@ static int ds3000_send_diseqc_msg(struct dvb_frontend *fe,
 	ds3000_writereg(state, 0xa1, data);
 
 	/* wait up to 150ms for DiSEqC transmission to complete */
-	for (i = 0; i < 15; i++) {
+	for (i = 0; i < 15; i++)
+	{
 		data = ds3000_readreg(state, 0xa1);
+
 		if ((data & 0x40) == 0)
+		{
 			break;
+		}
+
 		msleep(10);
 	}
 
 	/* DiSEqC timeout after 150ms */
-	if (i == 15) {
+	if (i == 15)
+	{
 		data = ds3000_readreg(state, 0xa1);
 		data &= ~0x80;
 		data |= 0x40;
@@ -767,7 +876,7 @@ static int ds3000_send_diseqc_msg(struct dvb_frontend *fe,
 
 /* Send DiSEqC burst */
 static int ds3000_diseqc_send_burst(struct dvb_frontend *fe,
-				    enum fe_sec_mini_cmd burst)
+									enum fe_sec_mini_cmd burst)
 {
 	struct ds3000_state *state = fe->demodulator_priv;
 	int i;
@@ -782,22 +891,35 @@ static int ds3000_diseqc_send_burst(struct dvb_frontend *fe,
 	/* DiSEqC burst */
 	if (burst == SEC_MINI_A)
 		/* Unmodulated tone burst */
+	{
 		ds3000_writereg(state, 0xa1, 0x02);
+	}
 	else if (burst == SEC_MINI_B)
 		/* Modulated tone burst */
+	{
 		ds3000_writereg(state, 0xa1, 0x01);
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	msleep(13);
-	for (i = 0; i < 5; i++) {
+
+	for (i = 0; i < 5; i++)
+	{
 		data = ds3000_readreg(state, 0xa1);
+
 		if ((data & 0x40) == 0)
+		{
 			break;
+		}
+
 		msleep(1);
 	}
 
-	if (i == 5) {
+	if (i == 5)
+	{
 		data = ds3000_readreg(state, 0xa1);
 		data &= ~0x80;
 		data |= 0x40;
@@ -824,7 +946,9 @@ static void ds3000_release(struct dvb_frontend *fe)
 	struct ds3000_state *state = fe->demodulator_priv;
 
 	if (state->config->set_lock_led)
+	{
 		state->config->set_lock_led(fe, 0);
+	}
 
 	dprintk("%s\n", __func__);
 	kfree(state);
@@ -833,7 +957,7 @@ static void ds3000_release(struct dvb_frontend *fe)
 static struct dvb_frontend_ops ds3000_ops;
 
 struct dvb_frontend *ds3000_attach(const struct ds3000_config *config,
-				    struct i2c_adapter *i2c)
+								   struct i2c_adapter *i2c)
 {
 	struct ds3000_state *state = NULL;
 	int ret;
@@ -842,7 +966,9 @@ struct dvb_frontend *ds3000_attach(const struct ds3000_config *config,
 
 	/* allocate memory for the internal state */
 	state = kzalloc(sizeof(struct ds3000_state), GFP_KERNEL);
-	if (state == NULL) {
+
+	if (state == NULL)
+	{
 		printk(KERN_ERR "Unable to kmalloc\n");
 		goto error2;
 	}
@@ -853,17 +979,19 @@ struct dvb_frontend *ds3000_attach(const struct ds3000_config *config,
 
 	/* check if the demod is present */
 	ret = ds3000_readreg(state, 0x00) & 0xfe;
-	if (ret != 0xe0) {
+
+	if (ret != 0xe0)
+	{
 		printk(KERN_ERR "Invalid probe, probably not a DS3000\n");
 		goto error3;
 	}
 
 	printk(KERN_INFO "DS3000 chip version: %d.%d attached.\n",
-			ds3000_readreg(state, 0x02),
-			ds3000_readreg(state, 0x01));
+		   ds3000_readreg(state, 0x02),
+		   ds3000_readreg(state, 0x01));
 
 	memcpy(&state->frontend.ops, &ds3000_ops,
-			sizeof(struct dvb_frontend_ops));
+		   sizeof(struct dvb_frontend_ops));
 	state->frontend.demodulator_priv = state;
 
 	/*
@@ -882,7 +1010,7 @@ error2:
 EXPORT_SYMBOL(ds3000_attach);
 
 static int ds3000_set_carrier_offset(struct dvb_frontend *fe,
-					s32 carrier_offset_khz)
+									 s32 carrier_offset_khz)
 {
 	struct ds3000_state *state = fe->demodulator_priv;
 	s32 tmp;
@@ -892,7 +1020,9 @@ static int ds3000_set_carrier_offset(struct dvb_frontend *fe,
 	tmp = (2 * tmp + DS3000_SAMPLE_RATE) / (2 * DS3000_SAMPLE_RATE);
 
 	if (tmp < 0)
+	{
 		tmp += 65536;
+	}
 
 	ds3000_writereg(state, 0x5f, tmp >> 8);
 	ds3000_writereg(state, 0x5e, tmp & 0xff);
@@ -914,10 +1044,15 @@ static int ds3000_set_frontend(struct dvb_frontend *fe)
 	dprintk("%s() ", __func__);
 
 	if (state->config->set_ts_params)
+	{
 		state->config->set_ts_params(fe, 0);
+	}
+
 	/* Tune */
 	if (fe->ops.tuner_ops.set_params)
+	{
 		fe->ops.tuner_ops.set_params(fe);
+	}
 
 	/* ds3000 global reset */
 	ds3000_writereg(state, 0x07, 0x80);
@@ -927,31 +1062,43 @@ static int ds3000_set_frontend(struct dvb_frontend *fe)
 	/* ds3000 software reset */
 	ds3000_writereg(state, 0x00, 0x01);
 
-	switch (c->delivery_system) {
-	case SYS_DVBS:
-		/* initialise the demod in DVB-S mode */
-		for (i = 0; i < sizeof(ds3000_dvbs_init_tab); i += 2)
-			ds3000_writereg(state,
-				ds3000_dvbs_init_tab[i],
-				ds3000_dvbs_init_tab[i + 1]);
-		value = ds3000_readreg(state, 0xfe);
-		value &= 0xc0;
-		value |= 0x1b;
-		ds3000_writereg(state, 0xfe, value);
-		break;
-	case SYS_DVBS2:
-		/* initialise the demod in DVB-S2 mode */
-		for (i = 0; i < sizeof(ds3000_dvbs2_init_tab); i += 2)
-			ds3000_writereg(state,
-				ds3000_dvbs2_init_tab[i],
-				ds3000_dvbs2_init_tab[i + 1]);
-		if (c->symbol_rate >= 30000000)
-			ds3000_writereg(state, 0xfe, 0x54);
-		else
-			ds3000_writereg(state, 0xfe, 0x98);
-		break;
-	default:
-		return -EINVAL;
+	switch (c->delivery_system)
+	{
+		case SYS_DVBS:
+
+			/* initialise the demod in DVB-S mode */
+			for (i = 0; i < sizeof(ds3000_dvbs_init_tab); i += 2)
+				ds3000_writereg(state,
+								ds3000_dvbs_init_tab[i],
+								ds3000_dvbs_init_tab[i + 1]);
+
+			value = ds3000_readreg(state, 0xfe);
+			value &= 0xc0;
+			value |= 0x1b;
+			ds3000_writereg(state, 0xfe, value);
+			break;
+
+		case SYS_DVBS2:
+
+			/* initialise the demod in DVB-S2 mode */
+			for (i = 0; i < sizeof(ds3000_dvbs2_init_tab); i += 2)
+				ds3000_writereg(state,
+								ds3000_dvbs2_init_tab[i],
+								ds3000_dvbs2_init_tab[i + 1]);
+
+			if (c->symbol_rate >= 30000000)
+			{
+				ds3000_writereg(state, 0xfe, 0x54);
+			}
+			else
+			{
+				ds3000_writereg(state, 0xfe, 0x98);
+			}
+
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* enable 27MHz clock output */
@@ -960,7 +1107,8 @@ static int ds3000_set_frontend(struct dvb_frontend *fe)
 	ds3000_writereg(state, 0x25, 0x8a);
 
 	if ((c->symbol_rate < ds3000_ops.info.symbol_rate_min) ||
-			(c->symbol_rate > ds3000_ops.info.symbol_rate_max)) {
+		(c->symbol_rate > ds3000_ops.info.symbol_rate_max))
+	{
 		dprintk("%s() symbol_rate %u out of range (%u ... %u)\n",
 				__func__, c->symbol_rate,
 				ds3000_ops.info.symbol_rate_min,
@@ -969,29 +1117,44 @@ static int ds3000_set_frontend(struct dvb_frontend *fe)
 	}
 
 	/* enhance symbol rate performance */
-	if ((c->symbol_rate / 1000) <= 5000) {
+	if ((c->symbol_rate / 1000) <= 5000)
+	{
 		value = 29777 / (c->symbol_rate / 1000) + 1;
+
 		if (value % 2 != 0)
+		{
 			value++;
+		}
+
 		ds3000_writereg(state, 0xc3, 0x0d);
 		ds3000_writereg(state, 0xc8, value);
 		ds3000_writereg(state, 0xc4, 0x10);
 		ds3000_writereg(state, 0xc7, 0x0e);
-	} else if ((c->symbol_rate / 1000) <= 10000) {
+	}
+	else if ((c->symbol_rate / 1000) <= 10000)
+	{
 		value = 92166 / (c->symbol_rate / 1000) + 1;
+
 		if (value % 2 != 0)
+		{
 			value++;
+		}
+
 		ds3000_writereg(state, 0xc3, 0x07);
 		ds3000_writereg(state, 0xc8, value);
 		ds3000_writereg(state, 0xc4, 0x09);
 		ds3000_writereg(state, 0xc7, 0x12);
-	} else if ((c->symbol_rate / 1000) <= 20000) {
+	}
+	else if ((c->symbol_rate / 1000) <= 20000)
+	{
 		value = 64516 / (c->symbol_rate / 1000) + 1;
 		ds3000_writereg(state, 0xc3, value);
 		ds3000_writereg(state, 0xc8, 0x0e);
 		ds3000_writereg(state, 0xc4, 0x07);
 		ds3000_writereg(state, 0xc7, 0x18);
-	} else {
+	}
+	else
+	{
 		value = 129032 / (c->symbol_rate / 1000) + 1;
 		ds3000_writereg(state, 0xc3, value);
 		ds3000_writereg(state, 0xc8, 0x0a);
@@ -1001,7 +1164,7 @@ static int ds3000_set_frontend(struct dvb_frontend *fe)
 
 	/* normalized symbol rate rounded to the closest integer */
 	value = (((c->symbol_rate / 1000) << 16) +
-			(DS3000_SAMPLE_RATE / 2)) / DS3000_SAMPLE_RATE;
+			 (DS3000_SAMPLE_RATE / 2)) / DS3000_SAMPLE_RATE;
 	ds3000_writereg(state, 0x61, value & 0x00ff);
 	ds3000_writereg(state, 0x62, (value & 0xff00) >> 8);
 
@@ -1017,15 +1180,18 @@ static int ds3000_set_frontend(struct dvb_frontend *fe)
 	ds3000_writereg(state, 0xfd, 0x42);
 	ds3000_writereg(state, 0x08, 0x07);*/
 
-	if (state->config->ci_mode) {
-		switch (c->delivery_system) {
-		case SYS_DVBS:
-		default:
-			ds3000_writereg(state, 0xfd, 0x80);
-		break;
-		case SYS_DVBS2:
-			ds3000_writereg(state, 0xfd, 0x01);
-			break;
+	if (state->config->ci_mode)
+	{
+		switch (c->delivery_system)
+		{
+			case SYS_DVBS:
+			default:
+				ds3000_writereg(state, 0xfd, 0x80);
+				break;
+
+			case SYS_DVBS2:
+				ds3000_writereg(state, 0xfd, 0x01);
+				break;
 		}
 	}
 
@@ -1034,16 +1200,21 @@ static int ds3000_set_frontend(struct dvb_frontend *fe)
 	/* start ds3000 build-in uC */
 	ds3000_writereg(state, 0xb2, 0x00);
 
-	if (fe->ops.tuner_ops.get_frequency) {
+	if (fe->ops.tuner_ops.get_frequency)
+	{
 		fe->ops.tuner_ops.get_frequency(fe, &frequency);
 		offset_khz = frequency - c->frequency;
 		ds3000_set_carrier_offset(fe, offset_khz);
 	}
 
-	for (i = 0; i < 30 ; i++) {
+	for (i = 0; i < 30 ; i++)
+	{
 		ds3000_read_status(fe, &status);
+
 		if (status & FE_HAS_LOCK)
+		{
 			break;
+		}
 
 		msleep(10);
 	}
@@ -1052,15 +1223,19 @@ static int ds3000_set_frontend(struct dvb_frontend *fe)
 }
 
 static int ds3000_tune(struct dvb_frontend *fe,
-			bool re_tune,
-			unsigned int mode_flags,
-			unsigned int *delay,
-			enum fe_status *status)
+					   bool re_tune,
+					   unsigned int mode_flags,
+					   unsigned int *delay,
+					   enum fe_status *status)
 {
-	if (re_tune) {
+	if (re_tune)
+	{
 		int ret = ds3000_set_frontend(fe);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	*delay = HZ / 5;
@@ -1073,7 +1248,9 @@ static enum dvbfe_algo ds3000_get_algo(struct dvb_frontend *fe)
 	struct ds3000_state *state = fe->demodulator_priv;
 
 	if (state->config->set_lock_led)
+	{
 		state->config->set_lock_led(fe, 0);
+	}
 
 	dprintk("%s()\n", __func__);
 	return DVBFE_ALGO_HW;
@@ -1096,7 +1273,9 @@ static int ds3000_initfe(struct dvb_frontend *fe)
 
 	/* Load the firmware if required */
 	ret = ds3000_firmware_ondemand(fe);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		printk(KERN_ERR "%s: Unable initialize firmware\n", __func__);
 		return ret;
 	}
@@ -1104,7 +1283,8 @@ static int ds3000_initfe(struct dvb_frontend *fe)
 	return 0;
 }
 
-static struct dvb_frontend_ops ds3000_ops = {
+static struct dvb_frontend_ops ds3000_ops =
+{
 	.delsys = { SYS_DVBS, SYS_DVBS2 },
 	.info = {
 		.name = "Montage Technology DS3000",
@@ -1115,11 +1295,11 @@ static struct dvb_frontend_ops ds3000_ops = {
 		.symbol_rate_min = 1000000,
 		.symbol_rate_max = 45000000,
 		.caps = FE_CAN_INVERSION_AUTO |
-			FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
-			FE_CAN_FEC_4_5 | FE_CAN_FEC_5_6 | FE_CAN_FEC_6_7 |
-			FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
-			FE_CAN_2G_MODULATION |
-			FE_CAN_QPSK | FE_CAN_RECOVER
+		FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
+		FE_CAN_FEC_4_5 | FE_CAN_FEC_5_6 | FE_CAN_FEC_6_7 |
+		FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
+		FE_CAN_2G_MODULATION |
+		FE_CAN_QPSK | FE_CAN_RECOVER
 	},
 
 	.release = ds3000_release,
@@ -1145,7 +1325,7 @@ module_param(debug, int, 0644);
 MODULE_PARM_DESC(debug, "Activates frontend debugging (default:0)");
 
 MODULE_DESCRIPTION("DVB Frontend module for Montage Technology "
-			"DS3000 hardware");
+				   "DS3000 hardware");
 MODULE_AUTHOR("Konstantin Dimitrov <kosio.dimitrov@gmail.com>");
 MODULE_LICENSE("GPL");
 MODULE_FIRMWARE(DS3000_DEFAULT_FIRMWARE);

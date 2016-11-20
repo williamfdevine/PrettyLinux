@@ -134,7 +134,8 @@
 /*
  * Transmit descriptor, aligned to 16 bytes
  */
-struct ftmac100_txdes {
+struct ftmac100_txdes
+{
 	unsigned int	txdes0;
 	unsigned int	txdes1;
 	unsigned int	txdes2;	/* TXBUF_BADR */
@@ -155,7 +156,8 @@ struct ftmac100_txdes {
 /*
  * Receive descriptor, aligned to 16 bytes
  */
-struct ftmac100_rxdes {
+struct ftmac100_rxdes
+{
 	unsigned int	rxdes0;
 	unsigned int	rxdes1;
 	unsigned int	rxdes2;	/* RXBUF_BADR */

@@ -26,7 +26,8 @@
 #include "eventmgr.h"
 
 int pem_init_event_action_chains(struct pp_eventmgr *eventmgr);
-int pem_excute_event_chain(struct pp_eventmgr *eventmgr, const struct action_chain *event_chain, struct pem_event_data *event_data);
+int pem_excute_event_chain(struct pp_eventmgr *eventmgr, const struct action_chain *event_chain,
+						   struct pem_event_data *event_data);
 const struct action_chain *pem_get_suspend_action_chain(struct pp_eventmgr *eventmgr);
 const struct action_chain *pem_get_initialize_action_chain(struct pp_eventmgr *eventmgr);
 const struct action_chain *pem_get_uninitialize_action_chain(struct pp_eventmgr *eventmgr);

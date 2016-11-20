@@ -59,19 +59,19 @@ MODULE_LICENSE("GPL");
 #define INPORT_RESET		0x80
 
 #ifdef CONFIG_MOUSE_ATIXL
-#define INPORT_NAME		"ATI XL Mouse"
-#define INPORT_VENDOR		0x0002
-#define INPORT_SPEED_30HZ	0x01
-#define INPORT_SPEED_50HZ	0x02
-#define INPORT_SPEED_100HZ	0x03
-#define INPORT_SPEED_200HZ	0x04
-#define INPORT_MODE_BASE	INPORT_SPEED_100HZ
-#define INPORT_MODE_IRQ		0x08
+	#define INPORT_NAME		"ATI XL Mouse"
+	#define INPORT_VENDOR		0x0002
+	#define INPORT_SPEED_30HZ	0x01
+	#define INPORT_SPEED_50HZ	0x02
+	#define INPORT_SPEED_100HZ	0x03
+	#define INPORT_SPEED_200HZ	0x04
+	#define INPORT_MODE_BASE	INPORT_SPEED_100HZ
+	#define INPORT_MODE_IRQ		0x08
 #else
-#define INPORT_NAME		"Microsoft InPort Mouse"
-#define INPORT_VENDOR		0x0001
-#define INPORT_MODE_BASE	0x10
-#define INPORT_MODE_IRQ		0x01
+	#define INPORT_NAME		"Microsoft InPort Mouse"
+	#define INPORT_VENDOR		0x0001
+	#define INPORT_MODE_BASE	0x10
+	#define INPORT_MODE_IRQ		0x01
 #endif
 #define INPORT_MODE_HOLD	0x20
 
@@ -113,7 +113,10 @@ static irqreturn_t inport_interrupt(int irq, void *dev_id)
 static int inport_open(struct input_dev *dev)
 {
 	if (request_irq(inport_irq, inport_interrupt, 0, "inport", NULL))
+	{
 		return -EBUSY;
+	}
+
 	outb(INPORT_REG_MODE, INPORT_CONTROL_PORT);
 	outb(INPORT_MODE_IRQ | INPORT_MODE_BASE, INPORT_DATA_PORT);
 
@@ -132,7 +135,8 @@ static int __init inport_init(void)
 	unsigned char a, b, c;
 	int err;
 
-	if (!request_region(INPORT_BASE, INPORT_EXTENT, "inport")) {
+	if (!request_region(INPORT_BASE, INPORT_EXTENT, "inport"))
+	{
 		printk(KERN_ERR "inport.c: Can't allocate ports at %#x\n", INPORT_BASE);
 		return -EBUSY;
 	}
@@ -140,14 +144,18 @@ static int __init inport_init(void)
 	a = inb(INPORT_SIGNATURE_PORT);
 	b = inb(INPORT_SIGNATURE_PORT);
 	c = inb(INPORT_SIGNATURE_PORT);
-	if (a == b || a != c) {
+
+	if (a == b || a != c)
+	{
 		printk(KERN_INFO "inport.c: Didn't find InPort mouse at %#x\n", INPORT_BASE);
 		err = -ENODEV;
 		goto err_release_region;
 	}
 
 	inport_dev = input_allocate_device();
-	if (!inport_dev) {
+
+	if (!inport_dev)
+	{
 		printk(KERN_ERR "inport.c: Not enough memory for input device\n");
 		err = -ENOMEM;
 		goto err_release_region;
@@ -162,7 +170,7 @@ static int __init inport_init(void)
 
 	inport_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REL);
 	inport_dev->keybit[BIT_WORD(BTN_LEFT)] = BIT_MASK(BTN_LEFT) |
-		BIT_MASK(BTN_MIDDLE) | BIT_MASK(BTN_RIGHT);
+			BIT_MASK(BTN_MIDDLE) | BIT_MASK(BTN_RIGHT);
 	inport_dev->relbit[0] = BIT_MASK(REL_X) | BIT_MASK(REL_Y);
 
 	inport_dev->open  = inport_open;
@@ -173,14 +181,17 @@ static int __init inport_init(void)
 	outb(INPORT_MODE_BASE, INPORT_DATA_PORT);
 
 	err = input_register_device(inport_dev);
+
 	if (err)
+	{
 		goto err_free_dev;
+	}
 
 	return 0;
 
- err_free_dev:
+err_free_dev:
 	input_free_device(inport_dev);
- err_release_region:
+err_release_region:
 	release_region(INPORT_BASE, INPORT_EXTENT);
 
 	return err;

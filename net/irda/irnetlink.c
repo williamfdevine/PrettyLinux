@@ -24,7 +24,8 @@
 
 
 
-static struct genl_family irda_nl_family = {
+static struct genl_family irda_nl_family =
+{
 	.id = GENL_ID_GENERATE,
 	.name = IRDA_NL_NAME,
 	.hdrsize = 0,
@@ -32,12 +33,14 @@ static struct genl_family irda_nl_family = {
 	.maxattr = IRDA_NL_CMD_MAX,
 };
 
-static struct net_device * ifname_to_netdev(struct net *net, struct genl_info *info)
+static struct net_device *ifname_to_netdev(struct net *net, struct genl_info *info)
 {
-	char * ifname;
+	char *ifname;
 
 	if (!info->attrs[IRDA_NL_ATTR_IFNAME])
+	{
 		return NULL;
+	}
 
 	ifname = nla_data(info->attrs[IRDA_NL_ATTR_IFNAME]);
 
@@ -48,23 +51,30 @@ static struct net_device * ifname_to_netdev(struct net *net, struct genl_info *i
 
 static int irda_nl_set_mode(struct sk_buff *skb, struct genl_info *info)
 {
-	struct net_device * dev;
-	struct irlap_cb * irlap;
+	struct net_device *dev;
+	struct irlap_cb *irlap;
 	u32 mode;
 
 	if (!info->attrs[IRDA_NL_ATTR_MODE])
+	{
 		return -EINVAL;
+	}
 
 	mode = nla_get_u32(info->attrs[IRDA_NL_ATTR_MODE]);
 
 	pr_debug("%s(): Switching to mode: %d\n", __func__, mode);
 
 	dev = ifname_to_netdev(&init_net, info);
+
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	irlap = (struct irlap_cb *)dev->atalk_ptr;
-	if (!irlap) {
+
+	if (!irlap)
+	{
 		dev_put(dev);
 		return -ENODEV;
 	}
@@ -78,60 +88,77 @@ static int irda_nl_set_mode(struct sk_buff *skb, struct genl_info *info)
 
 static int irda_nl_get_mode(struct sk_buff *skb, struct genl_info *info)
 {
-	struct net_device * dev;
-	struct irlap_cb * irlap;
+	struct net_device *dev;
+	struct irlap_cb *irlap;
 	struct sk_buff *msg;
 	void *hdr;
 	int ret = -ENOBUFS;
 
 	dev = ifname_to_netdev(&init_net, info);
+
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
-	if (!msg) {
+
+	if (!msg)
+	{
 		dev_put(dev);
 		return -ENOMEM;
 	}
 
 	irlap = (struct irlap_cb *)dev->atalk_ptr;
-	if (!irlap) {
+
+	if (!irlap)
+	{
 		ret = -ENODEV;
 		goto err_out;
 	}
 
 	hdr = genlmsg_put(msg, info->snd_portid, info->snd_seq,
-			  &irda_nl_family, 0,  IRDA_NL_CMD_GET_MODE);
-	if (hdr == NULL) {
+					  &irda_nl_family, 0,  IRDA_NL_CMD_GET_MODE);
+
+	if (hdr == NULL)
+	{
 		ret = -EMSGSIZE;
 		goto err_out;
 	}
 
-	if(nla_put_string(msg, IRDA_NL_ATTR_IFNAME,
-			  dev->name))
+	if (nla_put_string(msg, IRDA_NL_ATTR_IFNAME,
+					   dev->name))
+	{
 		goto err_out;
+	}
 
-	if(nla_put_u32(msg, IRDA_NL_ATTR_MODE, irlap->mode))
+	if (nla_put_u32(msg, IRDA_NL_ATTR_MODE, irlap->mode))
+	{
 		goto err_out;
+	}
 
 	genlmsg_end(msg, hdr);
 
 	return genlmsg_reply(msg, info);
 
- err_out:
+err_out:
 	nlmsg_free(msg);
 	dev_put(dev);
 
 	return ret;
 }
 
-static const struct nla_policy irda_nl_policy[IRDA_NL_ATTR_MAX + 1] = {
-	[IRDA_NL_ATTR_IFNAME] = { .type = NLA_NUL_STRING,
-				  .len = IFNAMSIZ-1 },
+static const struct nla_policy irda_nl_policy[IRDA_NL_ATTR_MAX + 1] =
+{
+	[IRDA_NL_ATTR_IFNAME] = {
+		.type = NLA_NUL_STRING,
+		.len = IFNAMSIZ - 1
+	},
 	[IRDA_NL_ATTR_MODE] = { .type = NLA_U32 },
 };
 
-static const struct genl_ops irda_nl_ops[] = {
+static const struct genl_ops irda_nl_ops[] =
+{
 	{
 		.cmd = IRDA_NL_CMD_SET_MODE,
 		.doit = irda_nl_set_mode,

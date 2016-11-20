@@ -33,13 +33,14 @@
 #define SCSI_TRANSPORT_MSG		NLMSG_MIN_TYPE + 1
 
 /* SCSI Transport Broadcast Groups */
-	/* leaving groups 0 and 1 unassigned */
+/* leaving groups 0 and 1 unassigned */
 #define SCSI_NL_GRP_FC_EVENTS		(1<<2)		/* Group 2 */
 #define SCSI_NL_GRP_CNT			3
 
 
 /* SCSI_TRANSPORT_MSG event message header */
-struct scsi_nl_hdr {
+struct scsi_nl_hdr
+{
 	uint8_t version;
 	uint8_t transport;
 	uint16_t magic;
@@ -63,9 +64,9 @@ struct scsi_nl_hdr {
 /*
  * GENERIC SCSI scsi_nl_hdr->msgtype Values
  */
-	/* kernel -> user */
+/* kernel -> user */
 #define SCSI_NL_SHOST_VENDOR			0x0001
-	/* user -> kernel */
+/* user -> kernel */
 /* SCSI_NL_SHOST_VENDOR msgtype is kernel->user and user->kernel */
 
 
@@ -87,7 +88,8 @@ struct scsi_nl_hdr {
  * Note: When specifying vendor_id, be sure to read the Vendor Type and ID
  *   formatting requirements specified below
  */
-struct scsi_nl_host_vendor_msg {
+struct scsi_nl_host_vendor_msg
+{
 	struct scsi_nl_hdr snlh;		/* must be 1st element ! */
 	uint64_t vendor_id;
 	uint16_t host_no;
@@ -112,11 +114,11 @@ struct scsi_nl_host_vendor_msg {
 
 #define INIT_SCSI_NL_HDR(hdr, t, mtype, mlen)			\
 	{							\
-	(hdr)->version = SCSI_NL_VERSION;			\
-	(hdr)->transport = t;					\
-	(hdr)->magic = SCSI_NL_MAGIC;				\
-	(hdr)->msgtype = mtype;					\
-	(hdr)->msglen = mlen;					\
+		(hdr)->version = SCSI_NL_VERSION;			\
+		(hdr)->transport = t;					\
+		(hdr)->magic = SCSI_NL_MAGIC;				\
+		(hdr)->msgtype = mtype;					\
+		(hdr)->msglen = mlen;					\
 	}
 
 #endif /* SCSI_NETLINK_H */

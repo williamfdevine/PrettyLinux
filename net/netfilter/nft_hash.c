@@ -17,18 +17,19 @@
 #include <net/netfilter/nf_tables_core.h>
 #include <linux/jhash.h>
 
-struct nft_hash {
-	enum nft_registers      sreg:8;
-	enum nft_registers      dreg:8;
-	u8			len;
-	u32			modulus;
-	u32			seed;
-	u32			offset;
-};
+struct nft_hash
+{
+	enum nft_registers      sreg : 8;
+		enum nft_registers      dreg : 8;
+		u8			len;
+		u32			modulus;
+		u32			seed;
+		u32			offset;
+	};
 
-static void nft_hash_eval(const struct nft_expr *expr,
-			  struct nft_regs *regs,
-			  const struct nft_pktinfo *pkt)
+	static void nft_hash_eval(const struct nft_expr *expr,
+							  struct nft_regs *regs,
+							  const struct nft_pktinfo *pkt)
 {
 	struct nft_hash *priv = nft_expr_priv(expr);
 	const void *data = &regs->data[priv->sreg];
@@ -38,7 +39,8 @@ static void nft_hash_eval(const struct nft_expr *expr,
 	regs->data[priv->dreg] = h + priv->offset;
 }
 
-static const struct nla_policy nft_hash_policy[NFTA_HASH_MAX + 1] = {
+static const struct nla_policy nft_hash_policy[NFTA_HASH_MAX + 1] =
+{
 	[NFTA_HASH_SREG]	= { .type = NLA_U32 },
 	[NFTA_HASH_DREG]	= { .type = NLA_U32 },
 	[NFTA_HASH_LEN]		= { .type = NLA_U32 },
@@ -48,63 +50,93 @@ static const struct nla_policy nft_hash_policy[NFTA_HASH_MAX + 1] = {
 };
 
 static int nft_hash_init(const struct nft_ctx *ctx,
-			 const struct nft_expr *expr,
-			 const struct nlattr * const tb[])
+						 const struct nft_expr *expr,
+						 const struct nlattr *const tb[])
 {
 	struct nft_hash *priv = nft_expr_priv(expr);
 	u32 len;
 
 	if (!tb[NFTA_HASH_SREG] ||
-	    !tb[NFTA_HASH_DREG] ||
-	    !tb[NFTA_HASH_LEN]  ||
-	    !tb[NFTA_HASH_SEED] ||
-	    !tb[NFTA_HASH_MODULUS])
+		!tb[NFTA_HASH_DREG] ||
+		!tb[NFTA_HASH_LEN]  ||
+		!tb[NFTA_HASH_SEED] ||
+		!tb[NFTA_HASH_MODULUS])
+	{
 		return -EINVAL;
+	}
 
 	if (tb[NFTA_HASH_OFFSET])
+	{
 		priv->offset = ntohl(nla_get_be32(tb[NFTA_HASH_OFFSET]));
+	}
 
 	priv->sreg = nft_parse_register(tb[NFTA_HASH_SREG]);
 	priv->dreg = nft_parse_register(tb[NFTA_HASH_DREG]);
 
 	len = ntohl(nla_get_be32(tb[NFTA_HASH_LEN]));
+
 	if (len == 0 || len > U8_MAX)
+	{
 		return -ERANGE;
+	}
 
 	priv->len = len;
 
 	priv->modulus = ntohl(nla_get_be32(tb[NFTA_HASH_MODULUS]));
+
 	if (priv->modulus <= 1)
+	{
 		return -ERANGE;
+	}
 
 	if (priv->offset + priv->modulus - 1 < priv->offset)
+	{
 		return -EOVERFLOW;
+	}
 
 	priv->seed = ntohl(nla_get_be32(tb[NFTA_HASH_SEED]));
 
 	return nft_validate_register_load(priv->sreg, len) &&
-	       nft_validate_register_store(ctx, priv->dreg, NULL,
-					   NFT_DATA_VALUE, sizeof(u32));
+		   nft_validate_register_store(ctx, priv->dreg, NULL,
+									   NFT_DATA_VALUE, sizeof(u32));
 }
 
 static int nft_hash_dump(struct sk_buff *skb,
-			 const struct nft_expr *expr)
+						 const struct nft_expr *expr)
 {
 	const struct nft_hash *priv = nft_expr_priv(expr);
 
 	if (nft_dump_register(skb, NFTA_HASH_SREG, priv->sreg))
+	{
 		goto nla_put_failure;
+	}
+
 	if (nft_dump_register(skb, NFTA_HASH_DREG, priv->dreg))
+	{
 		goto nla_put_failure;
+	}
+
 	if (nla_put_be32(skb, NFTA_HASH_LEN, htonl(priv->len)))
+	{
 		goto nla_put_failure;
+	}
+
 	if (nla_put_be32(skb, NFTA_HASH_MODULUS, htonl(priv->modulus)))
+	{
 		goto nla_put_failure;
+	}
+
 	if (nla_put_be32(skb, NFTA_HASH_SEED, htonl(priv->seed)))
+	{
 		goto nla_put_failure;
+	}
+
 	if (priv->offset != 0)
 		if (nla_put_be32(skb, NFTA_HASH_OFFSET, htonl(priv->offset)))
+		{
 			goto nla_put_failure;
+		}
+
 	return 0;
 
 nla_put_failure:
@@ -112,7 +144,8 @@ nla_put_failure:
 }
 
 static struct nft_expr_type nft_hash_type;
-static const struct nft_expr_ops nft_hash_ops = {
+static const struct nft_expr_ops nft_hash_ops =
+{
 	.type		= &nft_hash_type,
 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_hash)),
 	.eval		= nft_hash_eval,
@@ -120,7 +153,8 @@ static const struct nft_expr_ops nft_hash_ops = {
 	.dump		= nft_hash_dump,
 };
 
-static struct nft_expr_type nft_hash_type __read_mostly = {
+static struct nft_expr_type nft_hash_type __read_mostly =
+{
 	.name		= "hash",
 	.ops		= &nft_hash_ops,
 	.policy		= nft_hash_policy,

@@ -51,7 +51,7 @@
  */
 
 #ifdef __OPTIMIZE__
- #error "The CPU Jitter random number generator must not be compiled with optimizations. See documentation. Use the compiler switch -O0 for compiling jitterentropy.c."
+	#error "The CPU Jitter random number generator must not be compiled with optimizations. See documentation. Use the compiler switch -O0 for compiling jitterentropy.c."
 #endif
 
 typedef	unsigned long long	__u64;
@@ -60,7 +60,8 @@ typedef	unsigned int		__u32;
 #define NULL    ((void *) 0)
 
 /* The entropy pool */
-struct rand_data {
+struct rand_data
+{
 	/* all data values that are vital to maintain the security
 	 * of the RNG are marked as SENSITIVE. A user must not
 	 * access that information while the RNG executes its loops to
@@ -71,10 +72,10 @@ struct rand_data {
 #define DATA_SIZE_BITS ((sizeof(__u64)) * 8)
 	__u64 last_delta;	/* SENSITIVE stuck test */
 	__s64 last_delta2;	/* SENSITIVE stuck test */
-	unsigned int stuck:1;	/* Time measurement stuck */
+	unsigned int stuck: 1;	/* Time measurement stuck */
 	unsigned int osr;	/* Oversample rate */
-	unsigned int stir:1;		/* Post-processing stirring */
-	unsigned int disable_unbias:1;	/* Deactivate Von-Neuman unbias */
+	unsigned int stir: 1;		/* Post-processing stirring */
+	unsigned int disable_unbias: 1;	/* Deactivate Von-Neuman unbias */
 #define JENT_MEMORY_BLOCKS 64
 #define JENT_MEMORY_BLOCKSIZE 32
 #define JENT_MEMORY_ACCESSLOOPS 128
@@ -131,25 +132,30 @@ void jent_memcpy(void *dest, const void *src, unsigned int n);
  * @return Newly calculated loop counter
  */
 static __u64 jent_loop_shuffle(struct rand_data *ec,
-			       unsigned int bits, unsigned int min)
+							   unsigned int bits, unsigned int min)
 {
 	__u64 time = 0;
 	__u64 shuffle = 0;
 	unsigned int i = 0;
-	unsigned int mask = (1<<bits) - 1;
+	unsigned int mask = (1 << bits) - 1;
 
 	jent_get_nstime(&time);
+
 	/*
 	 * mix the current state of the random number into the shuffle
 	 * calculation to balance that shuffle a bit more
 	 */
 	if (ec)
+	{
 		time ^= ec->data;
+	}
+
 	/*
 	 * we fold the time value as much as possible to ensure that as many
 	 * bits of the time stamp are included as possible
 	 */
-	for (i = 0; (DATA_SIZE_BITS / bits) > i; i++) {
+	for (i = 0; (DATA_SIZE_BITS / bits) > i; i++)
+	{
 		shuffle ^= time & mask;
 		time = time >> bits;
 	}
@@ -158,7 +164,7 @@ static __u64 jent_loop_shuffle(struct rand_data *ec,
 	 * We add a lower boundary value to ensure we have a minimum
 	 * RNG loop count.
 	 */
-	return (shuffle + (1<<min));
+	return (shuffle + (1 << min));
 }
 
 /***************************************************************************
@@ -200,7 +206,7 @@ static __u64 jent_loop_shuffle(struct rand_data *ec,
  * @return Number of loops the folding operation is performed
  */
 static __u64 jent_fold_time(struct rand_data *ec, __u64 time,
-			    __u64 *folded, __u64 loop_cnt)
+							__u64 *folded, __u64 loop_cnt)
 {
 	unsigned int i;
 	__u64 j = 0;
@@ -215,16 +221,23 @@ static __u64 jent_fold_time(struct rand_data *ec, __u64 time,
 	 * needed during runtime
 	 */
 	if (loop_cnt)
+	{
 		fold_loop_cnt = loop_cnt;
-	for (j = 0; j < fold_loop_cnt; j++) {
+	}
+
+	for (j = 0; j < fold_loop_cnt; j++)
+	{
 		new = 0;
-		for (i = 1; (DATA_SIZE_BITS) >= i; i++) {
+
+		for (i = 1; (DATA_SIZE_BITS) >= i; i++)
+		{
 			__u64 tmp = time << (DATA_SIZE_BITS - i);
 
 			tmp = tmp >> (DATA_SIZE_BITS - 1);
 			new ^= tmp;
 		}
 	}
+
 	*folded = new;
 	return fold_loop_cnt;
 }
@@ -267,7 +280,10 @@ static unsigned int jent_memaccess(struct rand_data *ec, __u64 loop_cnt)
 		jent_loop_shuffle(ec, MAX_ACC_LOOP_BIT, MIN_ACC_LOOP_BIT);
 
 	if (NULL == ec || NULL == ec->mem)
+	{
 		return 0;
+	}
+
 	wrap = ec->memblocksize * ec->memblocks;
 
 	/*
@@ -275,9 +291,12 @@ static unsigned int jent_memaccess(struct rand_data *ec, __u64 loop_cnt)
 	 * needed during runtime
 	 */
 	if (loop_cnt)
+	{
 		acc_loop_cnt = loop_cnt;
+	}
 
-	for (i = 0; i < (ec->memaccessloops + acc_loop_cnt); i++) {
+	for (i = 0; i < (ec->memaccessloops + acc_loop_cnt); i++)
+	{
 		tmpval = ec->mem + ec->memlocation;
 		/*
 		 * memory access: just add 1 to one byte,
@@ -293,6 +312,7 @@ static unsigned int jent_memaccess(struct rand_data *ec, __u64 loop_cnt)
 		ec->memlocation = ec->memlocation + ec->memblocksize - 1;
 		ec->memlocation = ec->memlocation % wrap;
 	}
+
 	return i;
 }
 
@@ -325,7 +345,9 @@ static void jent_stuck(struct rand_data *ec, __u64 current_delta)
 	ec->last_delta2 = delta2;
 
 	if (!current_delta || !delta2 || !delta3)
+	{
 		ec->stuck = 1;
+	}
 }
 
 /**
@@ -388,17 +410,26 @@ static __u64 jent_measure_jitter(struct rand_data *ec)
  */
 static __u64 jent_unbiased_bit(struct rand_data *entropy_collector)
 {
-	do {
+	do
+	{
 		__u64 a = jent_measure_jitter(entropy_collector);
 		__u64 b = jent_measure_jitter(entropy_collector);
 
 		if (a == b)
+		{
 			continue;
+		}
+
 		if (1 == a)
+		{
 			return 1;
+		}
 		else
+		{
 			return 0;
-	} while (1);
+		}
+	}
+	while (1);
 }
 
 /**
@@ -424,7 +455,8 @@ static void jent_stir_pool(struct rand_data *entropy_collector)
 	 * to shut up GCC on 32 bit, we have to initialize the 64 variable
 	 * with two 32 bit variables
 	 */
-	union c {
+	union c
+	{
 		__u64 u64;
 		__u32 u32[2];
 	};
@@ -453,15 +485,20 @@ static void jent_stir_pool(struct rand_data *entropy_collector)
 	mixer.u32[1] = 0x98badcfe;
 	mixer.u32[0] = 0x10325476;
 
-	for (i = 0; i < DATA_SIZE_BITS; i++) {
+	for (i = 0; i < DATA_SIZE_BITS; i++)
+	{
 		/*
 		 * get the i-th bit of the input random number and only XOR
 		 * the constant into the mixer value when that bit is set
 		 */
 		if ((entropy_collector->data >> i) & 1)
+		{
 			mixer.u64 ^= constant.u64;
+		}
+
 		mixer.u64 = jent_rol64(mixer.u64, 1);
 	}
+
 	entropy_collector->data ^= mixer.u64;
 }
 
@@ -479,16 +516,22 @@ static void jent_gen_entropy(struct rand_data *ec)
 	/* priming of the ->prev_time value */
 	jent_measure_jitter(ec);
 
-	while (1) {
+	while (1)
+	{
 		__u64 data = 0;
 
 		if (ec->disable_unbias == 1)
+		{
 			data = jent_measure_jitter(ec);
+		}
 		else
+		{
 			data = jent_unbiased_bit(ec);
+		}
 
 		/* enforcement of the jent_stuck test */
-		if (ec->stuck) {
+		if (ec->stuck)
+		{
 			/*
 			 * We only mix in the bit considered not appropriate
 			 * without the LSFR. The reason is that if we apply
@@ -528,10 +571,15 @@ static void jent_gen_entropy(struct rand_data *ec)
 		 * oversampling rate requested by the caller
 		 */
 		if (++k >= (DATA_SIZE_BITS * ec->osr))
+		{
 			break;
+		}
 	}
+
 	if (ec->stir)
+	{
 		jent_stir_pool(ec);
+	}
 }
 
 /**
@@ -545,16 +593,21 @@ static void jent_gen_entropy(struct rand_data *ec)
 static void jent_fips_test(struct rand_data *ec)
 {
 	if (!jent_fips_enabled())
+	{
 		return;
+	}
 
 	/* prime the FIPS test */
-	if (!ec->old_data) {
+	if (!ec->old_data)
+	{
 		ec->old_data = ec->data;
 		jent_gen_entropy(ec);
 	}
 
 	if (ec->data == ec->old_data)
+	{
 		jent_panic("jitterentropy: Duplicate output detected\n");
+	}
 
 	ec->old_data = ec->data;
 }
@@ -582,22 +635,31 @@ static void jent_fips_test(struct rand_data *ec)
  *	-1	entropy_collector is NULL
  */
 int jent_read_entropy(struct rand_data *ec, unsigned char *data,
-		      unsigned int len)
+					  unsigned int len)
 {
 	unsigned char *p = data;
 
 	if (!ec)
+	{
 		return -1;
+	}
 
-	while (0 < len) {
+	while (0 < len)
+	{
 		unsigned int tocopy;
 
 		jent_gen_entropy(ec);
 		jent_fips_test(ec);
+
 		if ((DATA_SIZE_BITS / 8) < len)
+		{
 			tocopy = (DATA_SIZE_BITS / 8);
+		}
 		else
+		{
 			tocopy = len;
+		}
+
 		jent_memcpy(p, &ec->data, tocopy);
 
 		len -= tocopy;
@@ -612,23 +674,30 @@ int jent_read_entropy(struct rand_data *ec, unsigned char *data,
  ***************************************************************************/
 
 struct rand_data *jent_entropy_collector_alloc(unsigned int osr,
-					       unsigned int flags)
+		unsigned int flags)
 {
 	struct rand_data *entropy_collector;
 
 	entropy_collector = jent_zalloc(sizeof(struct rand_data));
-	if (!entropy_collector)
-		return NULL;
 
-	if (!(flags & JENT_DISABLE_MEMORY_ACCESS)) {
+	if (!entropy_collector)
+	{
+		return NULL;
+	}
+
+	if (!(flags & JENT_DISABLE_MEMORY_ACCESS))
+	{
 		/* Allocate memory for adding variations based on memory
 		 * access
 		 */
 		entropy_collector->mem = jent_zalloc(JENT_MEMORY_SIZE);
-		if (!entropy_collector->mem) {
+
+		if (!entropy_collector->mem)
+		{
 			jent_zfree(entropy_collector);
 			return NULL;
 		}
+
 		entropy_collector->memblocksize = JENT_MEMORY_BLOCKSIZE;
 		entropy_collector->memblocks = JENT_MEMORY_BLOCKS;
 		entropy_collector->memaccessloops = JENT_MEMORY_ACCESSLOOPS;
@@ -636,14 +705,23 @@ struct rand_data *jent_entropy_collector_alloc(unsigned int osr,
 
 	/* verify and set the oversampling rate */
 	if (0 == osr)
-		osr = 1; /* minimum sampling rate is 1 */
+	{
+		osr = 1;    /* minimum sampling rate is 1 */
+	}
+
 	entropy_collector->osr = osr;
 
 	entropy_collector->stir = 1;
+
 	if (flags & JENT_DISABLE_STIR)
+	{
 		entropy_collector->stir = 0;
+	}
+
 	if (flags & JENT_DISABLE_UNBIAS)
+	{
 		entropy_collector->disable_unbias = 1;
+	}
 
 	/* fill the data pad with non-zero values */
 	jent_gen_entropy(entropy_collector);
@@ -692,7 +770,9 @@ int jent_entropy_init(void)
 	 */
 #define TESTLOOPCOUNT 300
 #define CLEARCACHE 100
-	for (i = 0; (TESTLOOPCOUNT + CLEARCACHE) > i; i++) {
+
+	for (i = 0; (TESTLOOPCOUNT + CLEARCACHE) > i; i++)
+	{
 		__u64 time = 0;
 		__u64 time2 = 0;
 		__u64 folded = 0;
@@ -700,20 +780,26 @@ int jent_entropy_init(void)
 		unsigned int lowdelta = 0;
 
 		jent_get_nstime(&time);
-		jent_fold_time(NULL, time, &folded, 1<<MIN_FOLD_LOOP_BIT);
+		jent_fold_time(NULL, time, &folded, 1 << MIN_FOLD_LOOP_BIT);
 		jent_get_nstime(&time2);
 
 		/* test whether timer works */
 		if (!time || !time2)
+		{
 			return JENT_ENOTIME;
+		}
+
 		delta = time2 - time;
+
 		/*
 		 * test whether timer is fine grained enough to provide
 		 * delta even when called shortly after each other -- this
 		 * implies that we also have a high resolution timer
 		 */
 		if (!delta)
+		{
 			return JENT_ECOARSETIME;
+		}
 
 		/*
 		 * up to here we did not modify any variable that will be
@@ -723,19 +809,26 @@ int jent_entropy_init(void)
 		 * measurements.
 		 */
 		if (CLEARCACHE > i)
+		{
 			continue;
+		}
 
 		/* test whether we have an increasing timer */
 		if (!(time2 > time))
+		{
 			time_backwards++;
+		}
 
 		/*
 		 * Avoid modulo of 64 bit integer to allow code to compile
 		 * on 32 bit architectures.
 		 */
 		lowdelta = time2 - time;
+
 		if (!(lowdelta % 100))
+		{
 			count_mod++;
+		}
 
 		/*
 		 * ensure that we have a varying delta timer which is necessary
@@ -743,14 +836,23 @@ int jent_entropy_init(void)
 		 * only after the first loop is executed as we need to prime
 		 * the old_data value
 		 */
-		if (i) {
+		if (i)
+		{
 			if (delta != old_delta)
+			{
 				count_var++;
+			}
+
 			if (delta > old_delta)
+			{
 				delta_sum += (delta - old_delta);
+			}
 			else
+			{
 				delta_sum += (old_delta - delta);
+			}
 		}
+
 		old_delta = delta;
 	}
 
@@ -762,10 +864,15 @@ int jent_entropy_init(void)
 	 * performed during our test run.
 	 */
 	if (3 < time_backwards)
+	{
 		return JENT_ENOMONOTONIC;
+	}
+
 	/* Error if the time variances are always identical */
 	if (!delta_sum)
+	{
 		return JENT_EVARVAR;
+	}
 
 	/*
 	 * Variations of deltas of time must on average be larger
@@ -773,15 +880,19 @@ int jent_entropy_init(void)
 	 * implied with 1 is preserved
 	 */
 	if (delta_sum <= 1)
+	{
 		return JENT_EMINVARVAR;
+	}
 
 	/*
 	 * Ensure that we have variations in the time stamp below 10 for at
 	 * least 10% of all checks -- on some platforms, the counter
 	 * increments in multiples of 100, but not always
 	 */
-	if ((TESTLOOPCOUNT/10 * 9) < count_mod)
+	if ((TESTLOOPCOUNT / 10 * 9) < count_mod)
+	{
 		return JENT_ECOARSETIME;
+	}
 
 	return 0;
 }

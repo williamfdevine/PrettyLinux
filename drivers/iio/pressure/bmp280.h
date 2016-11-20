@@ -102,10 +102,10 @@ extern const struct regmap_config bmp280_regmap_config;
 
 /* Probe called from different transports */
 int bmp280_common_probe(struct device *dev,
-			struct regmap *regmap,
-			unsigned int chip,
-			const char *name,
-			int irq);
+						struct regmap *regmap,
+						unsigned int chip,
+						const char *name,
+						int irq);
 int bmp280_common_remove(struct device *dev);
 
 /* PM ops */

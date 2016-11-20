@@ -49,7 +49,8 @@
 #define SN_EQUAL(a, b)	(a == b)
 #define REORDER_WAIT_TIME	30 /* (ms)*/
 
-struct recv_stat {
+struct recv_stat
+{
 	unsigned int rxdw0;
 	unsigned int rxdw1;
 	unsigned int rxdw2;
@@ -58,7 +59,8 @@ struct recv_stat {
 	unsigned int rxdw5;
 };
 
-struct phy_cck_rx_status {
+struct phy_cck_rx_status
+{
 	/* For CCK rate descriptor. This is a unsigned 8:1 variable.
 	 * LSB bit present 0.5. And MSB 7 bts present a signed value.
 	 * Range from -64~+63.5.
@@ -68,7 +70,8 @@ struct phy_cck_rx_status {
 	u8	cck_agc_rpt;
 };
 
-struct phy_stat {
+struct phy_stat
+{
 	unsigned int phydw0;
 	unsigned int phydw1;
 	unsigned int phydw2;
@@ -91,13 +94,15 @@ struct phy_stat {
 #define PHY_STAT_SIGEVM_SHT 25
 #define PHY_STAT_MAX_EX_PWR_SHT 26
 
-union recvstat {
+union recvstat
+{
 	struct recv_stat recv_stat;
-	unsigned int value[RXDESC_SIZE>>2];
+	unsigned int value[RXDESC_SIZE >> 2];
 };
 
 
-struct recv_buf {
+struct recv_buf
+{
 	struct list_head list;
 	spinlock_t recvbuf_lock;
 	u32	ref_cnt;
@@ -123,7 +128,8 @@ struct recv_buf {
  *	end   ----->
  *	len = (unsigned int )(tail - data);
  */
-struct recv_frame_hdr {
+struct recv_frame_hdr
+{
 	struct list_head list;
 	_pkt	*pkt;
 	_pkt *pkt_newalloc;
@@ -141,8 +147,10 @@ struct recv_frame_hdr {
 	struct recv_reorder_ctrl *preorder_ctrl;
 };
 
-union recv_frame {
-	union {
+union recv_frame
+{
+	union
+	{
 		struct list_head list;
 		struct recv_frame_hdr hdr;
 	} u;

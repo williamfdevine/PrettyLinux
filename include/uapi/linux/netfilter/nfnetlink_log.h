@@ -8,31 +8,36 @@
 #include <linux/types.h>
 #include <linux/netfilter/nfnetlink.h>
 
-enum nfulnl_msg_types {
+enum nfulnl_msg_types
+{
 	NFULNL_MSG_PACKET,		/* packet from kernel to userspace */
 	NFULNL_MSG_CONFIG,		/* connect to a particular queue */
 
 	NFULNL_MSG_MAX
 };
 
-struct nfulnl_msg_packet_hdr {
+struct nfulnl_msg_packet_hdr
+{
 	__be16		hw_protocol;	/* hw protocol (network order) */
 	__u8	hook;		/* netfilter hook */
 	__u8	_pad;
 };
 
-struct nfulnl_msg_packet_hw {
+struct nfulnl_msg_packet_hw
+{
 	__be16		hw_addrlen;
 	__u16	_pad;
 	__u8	hw_addr[8];
 };
 
-struct nfulnl_msg_packet_timestamp {
+struct nfulnl_msg_packet_timestamp
+{
 	__aligned_be64	sec;
 	__aligned_be64	usec;
 };
 
-enum nfulnl_attr_type {
+enum nfulnl_attr_type
+{
 	NFULA_UNSPEC,
 	NFULA_PACKET_HDR,
 	NFULA_MARK,			/* __u32 nfmark */
@@ -58,7 +63,8 @@ enum nfulnl_attr_type {
 };
 #define NFULA_MAX (__NFULA_MAX - 1)
 
-enum nfulnl_msg_config_cmds {
+enum nfulnl_msg_config_cmds
+{
 	NFULNL_CFG_CMD_NONE,
 	NFULNL_CFG_CMD_BIND,
 	NFULNL_CFG_CMD_UNBIND,
@@ -66,17 +72,20 @@ enum nfulnl_msg_config_cmds {
 	NFULNL_CFG_CMD_PF_UNBIND,
 };
 
-struct nfulnl_msg_config_cmd {
+struct nfulnl_msg_config_cmd
+{
 	__u8	command;	/* nfulnl_msg_config_cmds */
 } __attribute__ ((packed));
 
-struct nfulnl_msg_config_mode {
+struct nfulnl_msg_config_mode
+{
 	__be32		copy_range;
 	__u8	copy_mode;
 	__u8	_pad;
 } __attribute__ ((packed));
 
-enum nfulnl_attr_config {
+enum nfulnl_attr_config
+{
 	NFULA_CFG_UNSPEC,
 	NFULA_CFG_CMD,			/* nfulnl_msg_config_cmd */
 	NFULA_CFG_MODE,			/* nfulnl_msg_config_mode */

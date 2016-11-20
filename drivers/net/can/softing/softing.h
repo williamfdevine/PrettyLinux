@@ -16,11 +16,13 @@
 
 struct softing;
 
-struct softing_priv {
+struct softing_priv
+{
 	struct can_priv can; /* must be the first member! */
 	struct net_device *netdev;
 	struct softing *card;
-	struct {
+	struct
+	{
 		int pending;
 		/* variables which hold the circular buffer */
 		int echo_put;
@@ -33,7 +35,8 @@ struct softing_priv {
 };
 #define netdev2softing(netdev)	((struct softing_priv *)netdev_priv(netdev))
 
-struct softing {
+struct softing
+{
 	const struct softing_platform_data *pdat;
 	struct platform_device *pdev;
 	struct net_device *net[2];
@@ -41,19 +44,22 @@ struct softing {
 	ktime_t ts_ref;
 	ktime_t ts_overflow; /* timestamp overflow value, in ktime */
 
-	struct {
+	struct
+	{
 		/* indication of firmware status */
 		int up;
 		/* protection of the 'up' variable */
 		struct mutex lock;
 	} fw;
-	struct {
+	struct
+	{
 		int nr;
 		int requested;
 		int svc_count;
 		unsigned int dpram_position;
 	} irq;
-	struct {
+	struct
+	{
 		int pending;
 		int last_bus;
 		/*
@@ -64,7 +70,8 @@ struct softing {
 	__iomem uint8_t *dpram;
 	unsigned long dpram_phys;
 	unsigned long dpram_size;
-	struct {
+	struct
+	{
 		uint16_t fw_version, hw_version, license, serial;
 		uint16_t chip[2];
 		unsigned int freq; /* remote cpu's operating frequency */
@@ -78,11 +85,11 @@ ktime_t softing_raw2ktime(struct softing *card, u32 raw);
 int softing_chip_poweron(struct softing *card);
 
 int softing_bootloader_command(struct softing *card, int16_t cmd,
-			       const char *msg);
+							   const char *msg);
 
 /* Load firmware after reset */
 int softing_load_fw(const char *file, struct softing *card,
-		    __iomem uint8_t *virt, unsigned int size, int offset);
+					__iomem uint8_t *virt, unsigned int size, int offset);
 
 /* Load final application firmware after bootloader */
 int softing_load_app_fw(const char *file, struct softing *card);
@@ -98,12 +105,12 @@ int softing_startstop(struct net_device *netdev, int up);
 
 /* netif_rx() */
 int softing_netdev_rx(struct net_device *netdev, const struct can_frame *msg,
-		      ktime_t ktime);
+					  ktime_t ktime);
 
 /* SOFTING DPRAM mappings */
 #define DPRAM_RX		0x0000
-	#define DPRAM_RX_SIZE	32
-	#define DPRAM_RX_CNT	16
+#define DPRAM_RX_SIZE	32
+#define DPRAM_RX_CNT	16
 #define DPRAM_RX_RD		0x0201	/* uint8_t */
 #define DPRAM_RX_WR		0x0205	/* uint8_t */
 #define DPRAM_RX_LOST		0x0207	/* uint8_t */
@@ -129,8 +136,8 @@ int softing_netdev_rx(struct net_device *netdev, const struct can_frame *msg,
 #define DPRAM_TX_FIFO_LEVEL	0x0366	/* uint16_t */
 
 #define DPRAM_TX		0x0400	/* uint16_t */
-	#define DPRAM_TX_SIZE	16
-	#define DPRAM_TX_CNT	32
+#define DPRAM_TX_SIZE	16
+#define DPRAM_TX_CNT	32
 #define DPRAM_TX_RD		0x0601	/* uint8_t */
 #define DPRAM_TX_WR		0x0605	/* uint8_t */
 

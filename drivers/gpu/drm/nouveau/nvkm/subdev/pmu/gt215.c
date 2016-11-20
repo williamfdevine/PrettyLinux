@@ -33,7 +33,8 @@ gt215_pmu_reset(struct nvkm_pmu *pmu)
 }
 
 static const struct nvkm_pmu_func
-gt215_pmu = {
+	gt215_pmu =
+{
 	.reset = gt215_pmu_reset,
 	.code.data = gt215_pmu_code,
 	.code.size = sizeof(gt215_pmu_code),

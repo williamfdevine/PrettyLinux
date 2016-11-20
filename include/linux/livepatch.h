@@ -28,7 +28,8 @@
 
 #include <asm/livepatch.h>
 
-enum klp_state {
+enum klp_state
+{
 	KLP_DISABLED,
 	KLP_ENABLED
 };
@@ -44,7 +45,8 @@ enum klp_state {
  * @state:	tracks function-level patch application state
  * @stack_node:	list node for klp_ops func_stack list
  */
-struct klp_func {
+struct klp_func
+{
 	/* external */
 	const char *old_name;
 	void *new_func;
@@ -73,7 +75,8 @@ struct klp_func {
  * 		(NULL for vmlinux)
  * @state:	tracks object-level patch application state
  */
-struct klp_object {
+struct klp_object
+{
 	/* external */
 	const char *name;
 	struct klp_func *funcs;
@@ -92,7 +95,8 @@ struct klp_object {
  * @kobj:	kobject for sysfs resources
  * @state:	tracks patch-level application state
  */
-struct klp_patch {
+struct klp_patch
+{
 	/* external */
 	struct module *mod;
 	struct klp_object *objs;
@@ -108,8 +112,8 @@ struct klp_patch {
 
 #define klp_for_each_func(obj, func) \
 	for (func = obj->funcs; \
-	     func->old_name || func->new_func || func->old_sympos; \
-	     func++)
+		 func->old_name || func->new_func || func->old_sympos; \
+		 func++)
 
 int klp_register_patch(struct klp_patch *);
 int klp_unregister_patch(struct klp_patch *);
@@ -117,7 +121,7 @@ int klp_enable_patch(struct klp_patch *);
 int klp_disable_patch(struct klp_patch *);
 
 void arch_klp_init_object_loaded(struct klp_patch *patch,
-				 struct klp_object *obj);
+								 struct klp_object *obj);
 
 /* Called from the module loader during module coming/going states */
 int klp_module_coming(struct module *mod);

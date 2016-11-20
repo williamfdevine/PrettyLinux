@@ -54,7 +54,8 @@
 #define KVM_ARM_FIQ_lr		fiq_regs[6]
 #define KVM_ARM_FIQ_spsr	fiq_regs[7]
 
-struct kvm_regs {
+struct kvm_regs
+{
 	struct pt_regs usr_regs;	/* R0_usr - R14_usr, PC, CPSR */
 	unsigned long svc_regs[3];	/* SP_svc, LR_svc, SPSR_svc */
 	unsigned long abt_regs[3];	/* SP_abt, LR_abt, SPSR_abt */
@@ -87,27 +88,34 @@ struct kvm_regs {
 #define KVM_ARM_VCPU_POWER_OFF		0 /* CPU is started in OFF state */
 #define KVM_ARM_VCPU_PSCI_0_2		1 /* CPU uses PSCI v0.2 */
 
-struct kvm_vcpu_init {
+struct kvm_vcpu_init
+{
 	__u32 target;
 	__u32 features[7];
 };
 
-struct kvm_sregs {
+struct kvm_sregs
+{
 };
 
-struct kvm_fpu {
+struct kvm_fpu
+{
 };
 
-struct kvm_guest_debug_arch {
+struct kvm_guest_debug_arch
+{
 };
 
-struct kvm_debug_exit_arch {
+struct kvm_debug_exit_arch
+{
 };
 
-struct kvm_sync_regs {
+struct kvm_sync_regs
+{
 };
 
-struct kvm_arch_memory_slot {
+struct kvm_arch_memory_slot
+{
 };
 
 /* If you need to interpret the index values, here is the key: */
@@ -127,10 +135,10 @@ struct kvm_arch_memory_slot {
 
 #define __ARM_CP15_REG(op1,crn,crm,op2) \
 	(KVM_REG_ARM | (15 << KVM_REG_ARM_COPROC_SHIFT) | \
-	ARM_CP15_REG_SHIFT_MASK(op1, OPC1) | \
-	ARM_CP15_REG_SHIFT_MASK(crn, 32_CRN) | \
-	ARM_CP15_REG_SHIFT_MASK(crm, CRM) | \
-	ARM_CP15_REG_SHIFT_MASK(op2, 32_OPC2))
+	 ARM_CP15_REG_SHIFT_MASK(op1, OPC1) | \
+	 ARM_CP15_REG_SHIFT_MASK(crn, 32_CRN) | \
+	 ARM_CP15_REG_SHIFT_MASK(crm, CRM) | \
+	 ARM_CP15_REG_SHIFT_MASK(op2, 32_OPC2))
 
 #define ARM_CP15_REG32(...) (__ARM_CP15_REG(__VA_ARGS__) | KVM_REG_SIZE_U32)
 
@@ -201,7 +209,7 @@ struct kvm_arch_memory_slot {
  * userland. The highest SPI number can be set via KVM_DEV_ARM_VGIC_GRP_NR_IRQS.
  */
 #ifndef __KERNEL__
-#define KVM_ARM_IRQ_GIC_MAX		127
+	#define KVM_ARM_IRQ_GIC_MAX		127
 #endif
 
 /* One single KVM irqchip, ie. the VGIC */

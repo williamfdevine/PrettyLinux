@@ -50,28 +50,33 @@
 static int ehci_xilinx_port_handed_over(struct usb_hcd *hcd, int portnum)
 {
 	dev_warn(hcd->self.controller, "port %d cannot be enabled\n", portnum);
-	if (hcd->has_tt) {
+
+	if (hcd->has_tt)
+	{
 		dev_warn(hcd->self.controller,
-			"Maybe you have connected a low speed device?\n");
+				 "Maybe you have connected a low speed device?\n");
 
 		dev_warn(hcd->self.controller,
-			"We do not support low speed devices\n");
-	} else {
+				 "We do not support low speed devices\n");
+	}
+	else
+	{
 		dev_warn(hcd->self.controller,
-			"Maybe your device is not a high speed device?\n");
+				 "Maybe your device is not a high speed device?\n");
 		dev_warn(hcd->self.controller,
-			"The USB host controller does not support full speed "
-			"nor low speed devices\n");
+				 "The USB host controller does not support full speed "
+				 "nor low speed devices\n");
 		dev_warn(hcd->self.controller,
-			"You can reconfigure the host controller to have "
-			"full speed support\n");
+				 "You can reconfigure the host controller to have "
+				 "full speed support\n");
 	}
 
 	return 0;
 }
 
 
-static const struct hc_driver ehci_xilinx_of_hc_driver = {
+static const struct hc_driver ehci_xilinx_of_hc_driver =
+{
 	.description		= hcd_name,
 	.product_desc		= "OF EHCI",
 	.hcd_priv_size		= sizeof(struct ehci_hcd),
@@ -138,32 +143,44 @@ static int ehci_hcd_xilinx_of_probe(struct platform_device *op)
 	int *value;
 
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	dev_dbg(&op->dev, "initializing XILINX-OF USB Controller\n");
 
 	rv = of_address_to_resource(dn, 0, &res);
+
 	if (rv)
+	{
 		return rv;
+	}
 
 	hcd = usb_create_hcd(&ehci_xilinx_of_hc_driver, &op->dev,
-				"XILINX-OF USB");
+						 "XILINX-OF USB");
+
 	if (!hcd)
+	{
 		return -ENOMEM;
+	}
 
 	hcd->rsrc_start = res.start;
 	hcd->rsrc_len = resource_size(&res);
 
 	irq = irq_of_parse_and_map(dn, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		dev_err(&op->dev, "%s: irq_of_parse_and_map failed\n",
-			__FILE__);
+				__FILE__);
 		rv = -EBUSY;
 		goto err_irq;
 	}
 
 	hcd->regs = devm_ioremap_resource(&op->dev, &res);
-	if (IS_ERR(hcd->regs)) {
+
+	if (IS_ERR(hcd->regs))
+	{
 		rv = PTR_ERR(hcd->regs);
 		goto err_irq;
 	}
@@ -179,12 +196,16 @@ static int ehci_hcd_xilinx_of_probe(struct platform_device *op)
 	/* Check whether the FS support option is selected in the hardware.
 	 */
 	value = (int *)of_get_property(dn, "xlnx,support-usb-fs", NULL);
-	if (value && (*value == 1)) {
+
+	if (value && (*value == 1))
+	{
 		ehci_dbg(ehci, "USB host controller supports FS devices\n");
 		hcd->has_tt = 1;
-	} else {
+	}
+	else
+	{
 		ehci_dbg(ehci,
-			"USB host controller is HS only\n");
+				 "USB host controller is HS only\n");
 		hcd->has_tt = 0;
 	}
 
@@ -193,7 +214,9 @@ static int ehci_hcd_xilinx_of_probe(struct platform_device *op)
 	ehci->caps = hcd->regs + 0x100;
 
 	rv = usb_add_hcd(hcd, irq, 0);
-	if (rv == 0) {
+
+	if (rv == 0)
+	{
 		device_wakeup_enable(hcd->self.controller);
 		return 0;
 	}
@@ -224,13 +247,15 @@ static int ehci_hcd_xilinx_of_remove(struct platform_device *op)
 	return 0;
 }
 
-static const struct of_device_id ehci_hcd_xilinx_of_match[] = {
-		{.compatible = "xlnx,xps-usb-host-1.00.a",},
+static const struct of_device_id ehci_hcd_xilinx_of_match[] =
+{
+	{.compatible = "xlnx,xps-usb-host-1.00.a",},
 	{},
 };
 MODULE_DEVICE_TABLE(of, ehci_hcd_xilinx_of_match);
 
-static struct platform_driver ehci_hcd_xilinx_of_driver = {
+static struct platform_driver ehci_hcd_xilinx_of_driver =
+{
 	.probe		= ehci_hcd_xilinx_of_probe,
 	.remove		= ehci_hcd_xilinx_of_remove,
 	.shutdown	= usb_hcd_platform_shutdown,

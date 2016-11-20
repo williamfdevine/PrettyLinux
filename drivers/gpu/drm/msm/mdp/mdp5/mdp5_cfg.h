@@ -35,28 +35,33 @@ typedef DECLARE_BITMAP(mdp5_smp_state_t, MAX_SMP_BLOCKS);
 	int count; \
 	uint32_t base[MAX_BASES]
 
-struct mdp5_sub_block {
+struct mdp5_sub_block
+{
 	MDP5_SUB_BLOCK_DEFINITION;
 };
 
-struct mdp5_lm_block {
+struct mdp5_lm_block
+{
 	MDP5_SUB_BLOCK_DEFINITION;
 	uint32_t nb_stages;		/* number of stages per blender */
 	uint32_t max_width;		/* Maximum output resolution */
 	uint32_t max_height;
 };
 
-struct mdp5_pipe_block {
+struct mdp5_pipe_block
+{
 	MDP5_SUB_BLOCK_DEFINITION;
 	uint32_t caps;			/* pipe capabilities */
 };
 
-struct mdp5_ctl_block {
+struct mdp5_ctl_block
+{
 	MDP5_SUB_BLOCK_DEFINITION;
 	uint32_t flush_hw_mask;		/* FLUSH register's hardware mask */
 };
 
-struct mdp5_smp_block {
+struct mdp5_smp_block
+{
 	int mmb_count;			/* number of SMP MMBs */
 	int mmb_size;			/* MMB: size in bytes */
 	uint32_t clients[MAX_CLIENTS];	/* SMP port allocation /pipe */
@@ -64,19 +69,22 @@ struct mdp5_smp_block {
 	uint8_t reserved[MAX_CLIENTS];	/* # of MMBs allocated per client */
 };
 
-struct mdp5_mdp_block {
+struct mdp5_mdp_block
+{
 	MDP5_SUB_BLOCK_DEFINITION;
 	uint32_t caps;			/* MDP capabilities: MDP_CAP_xxx bits */
 };
 
 #define MDP5_INTF_NUM_MAX	5
 
-struct mdp5_intf_block {
+struct mdp5_intf_block
+{
 	uint32_t base[MAX_BASES];
 	u32 connect[MDP5_INTF_NUM_MAX]; /* array of enum mdp5_intf_type */
 };
 
-struct mdp5_cfg_hw {
+struct mdp5_cfg_hw
+{
 	char  *name;
 
 	struct mdp5_mdp_block mdp;
@@ -97,11 +105,13 @@ struct mdp5_cfg_hw {
 };
 
 /* platform config data (ie. from DT, or pdata) */
-struct mdp5_cfg_platform {
+struct mdp5_cfg_platform
+{
 	struct iommu_domain *iommu;
 };
 
-struct mdp5_cfg {
+struct mdp5_cfg
+{
 	const struct mdp5_cfg_hw *hw;
 	struct mdp5_cfg_platform platform;
 };
@@ -114,11 +124,11 @@ struct mdp5_cfg *mdp5_cfg_get_config(struct mdp5_cfg_handler *cfg_hnd);
 int mdp5_cfg_get_hw_rev(struct mdp5_cfg_handler *cfg_hnd);
 
 #define mdp5_cfg_intf_is_virtual(intf_type) ({	\
-	typeof(intf_type) __val = (intf_type);	\
-	(__val) >= INTF_VIRTUAL ? true : false; })
+		typeof(intf_type) __val = (intf_type);	\
+		(__val) >= INTF_VIRTUAL ? true : false; })
 
 struct mdp5_cfg_handler *mdp5_cfg_init(struct mdp5_kms *mdp5_kms,
-		uint32_t major, uint32_t minor);
+									   uint32_t major, uint32_t minor);
 void mdp5_cfg_destroy(struct mdp5_cfg_handler *cfg_hnd);
 
 #endif /* __MDP5_CFG_H__ */

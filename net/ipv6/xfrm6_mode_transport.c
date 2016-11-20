@@ -48,18 +48,21 @@ static int xfrm6_transport_input(struct xfrm_state *x, struct sk_buff *skb)
 {
 	int ihl = skb->data - skb_transport_header(skb);
 
-	if (skb->transport_header != skb->network_header) {
+	if (skb->transport_header != skb->network_header)
+	{
 		memmove(skb_transport_header(skb),
-			skb_network_header(skb), ihl);
+				skb_network_header(skb), ihl);
 		skb->network_header = skb->transport_header;
 	}
+
 	ipv6_hdr(skb)->payload_len = htons(skb->len + ihl -
-					   sizeof(struct ipv6hdr));
+									   sizeof(struct ipv6hdr));
 	skb_reset_transport_header(skb);
 	return 0;
 }
 
-static struct xfrm_mode xfrm6_transport_mode = {
+static struct xfrm_mode xfrm6_transport_mode =
+{
 	.input = xfrm6_transport_input,
 	.output = xfrm6_transport_output,
 	.owner = THIS_MODULE,

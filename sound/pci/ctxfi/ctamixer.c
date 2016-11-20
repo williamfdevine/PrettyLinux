@@ -49,7 +49,8 @@ static int amixer_output_slot(const struct rsc *rsc)
 	return (amixer_index(rsc) << 4) + 0x4;
 }
 
-static const struct rsc_ops amixer_basic_rsc_ops = {
+static const struct rsc_ops amixer_basic_rsc_ops =
+{
 	.master		= amixer_master,
 	.next_conj	= amixer_next_conj,
 	.index		= amixer_index,
@@ -63,11 +64,14 @@ static int amixer_set_input(struct amixer *amixer, struct rsc *rsc)
 	hw = amixer->rsc.hw;
 	hw->amixer_set_mode(amixer->rsc.ctrl_blk, AMIXER_Y_IMMEDIATE);
 	amixer->input = rsc;
+
 	if (!rsc)
+	{
 		hw->amixer_set_x(amixer->rsc.ctrl_blk, BLANK_SLOT);
+	}
 	else
 		hw->amixer_set_x(amixer->rsc.ctrl_blk,
-					rsc->ops->output_slot(rsc));
+						 rsc->ops->output_slot(rsc));
 
 	return 0;
 }
@@ -99,12 +103,16 @@ static int amixer_set_sum(struct amixer *amixer, struct sum *sum)
 
 	hw = amixer->rsc.hw;
 	amixer->sum = sum;
-	if (!sum) {
+
+	if (!sum)
+	{
 		hw->amixer_set_se(amixer->rsc.ctrl_blk, 0);
-	} else {
+	}
+	else
+	{
 		hw->amixer_set_se(amixer->rsc.ctrl_blk, 1);
 		hw->amixer_set_sadr(amixer->rsc.ctrl_blk,
-					sum->rsc.ops->index(&sum->rsc));
+							sum->rsc.ops->index(&sum->rsc));
 	}
 
 	return 0;
@@ -124,34 +132,51 @@ static int amixer_commit_write(struct amixer *amixer)
 
 	/* Program master and conjugate resources */
 	amixer->rsc.ops->master(&amixer->rsc);
+
 	if (input)
+	{
 		input->ops->master(input);
+	}
 
 	if (sum)
+	{
 		sum->rsc.ops->master(&sum->rsc);
+	}
 
-	for (i = 0; i < amixer->rsc.msr; i++) {
+	for (i = 0; i < amixer->rsc.msr; i++)
+	{
 		hw->amixer_set_dirty_all(amixer->rsc.ctrl_blk);
-		if (input) {
+
+		if (input)
+		{
 			hw->amixer_set_x(amixer->rsc.ctrl_blk,
-						input->ops->output_slot(input));
+							 input->ops->output_slot(input));
 			input->ops->next_conj(input);
 		}
-		if (sum) {
+
+		if (sum)
+		{
 			hw->amixer_set_sadr(amixer->rsc.ctrl_blk,
-						sum->rsc.ops->index(&sum->rsc));
+								sum->rsc.ops->index(&sum->rsc));
 			sum->rsc.ops->next_conj(&sum->rsc);
 		}
+
 		index = amixer->rsc.ops->output_slot(&amixer->rsc);
 		hw->amixer_commit_write(hw, index, amixer->rsc.ctrl_blk);
 		amixer->rsc.ops->next_conj(&amixer->rsc);
 	}
+
 	amixer->rsc.ops->master(&amixer->rsc);
+
 	if (input)
+	{
 		input->ops->master(input);
+	}
 
 	if (sum)
+	{
 		sum->rsc.ops->master(&sum->rsc);
+	}
 
 	return 0;
 }
@@ -177,7 +202,7 @@ static int amixer_get_y(struct amixer *amixer)
 }
 
 static int amixer_setup(struct amixer *amixer, struct rsc *input,
-			unsigned int scale, struct sum *sum)
+						unsigned int scale, struct sum *sum)
 {
 	amixer_set_input(amixer, input);
 	amixer_set_y(amixer, scale);
@@ -186,7 +211,8 @@ static int amixer_setup(struct amixer *amixer, struct rsc *input,
 	return 0;
 }
 
-static const struct amixer_rsc_ops amixer_ops = {
+static const struct amixer_rsc_ops amixer_ops =
+{
 	.set_input		= amixer_set_input,
 	.set_invalid_squash	= amixer_set_invalid_squash,
 	.set_scale		= amixer_set_y,
@@ -198,15 +224,18 @@ static const struct amixer_rsc_ops amixer_ops = {
 };
 
 static int amixer_rsc_init(struct amixer *amixer,
-			   const struct amixer_desc *desc,
-			   struct amixer_mgr *mgr)
+						   const struct amixer_desc *desc,
+						   struct amixer_mgr *mgr)
 {
 	int err;
 
 	err = rsc_init(&amixer->rsc, amixer->idx[0],
-			AMIXER, desc->msr, mgr->mgr.hw);
+				   AMIXER, desc->msr, mgr->mgr.hw);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Set amixer specific operations */
 	amixer->rsc.ops = &amixer_basic_rsc_ops;
@@ -230,8 +259,8 @@ static int amixer_rsc_uninit(struct amixer *amixer)
 }
 
 static int get_amixer_rsc(struct amixer_mgr *mgr,
-			  const struct amixer_desc *desc,
-			  struct amixer **ramixer)
+						  const struct amixer_desc *desc,
+						  struct amixer **ramixer)
 {
 	int err, i;
 	unsigned int idx;
@@ -242,30 +271,44 @@ static int get_amixer_rsc(struct amixer_mgr *mgr,
 
 	/* Allocate mem for amixer resource */
 	amixer = kzalloc(sizeof(*amixer), GFP_KERNEL);
+
 	if (!amixer)
+	{
 		return -ENOMEM;
+	}
 
 	/* Check whether there are sufficient
 	 * amixer resources to meet request. */
 	err = 0;
 	spin_lock_irqsave(&mgr->mgr_lock, flags);
-	for (i = 0; i < desc->msr; i++) {
+
+	for (i = 0; i < desc->msr; i++)
+	{
 		err = mgr_get_resource(&mgr->mgr, 1, &idx);
+
 		if (err)
+		{
 			break;
+		}
 
 		amixer->idx[i] = idx;
 	}
+
 	spin_unlock_irqrestore(&mgr->mgr_lock, flags);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(mgr->card->dev,
-			"Can't meet AMIXER resource request!\n");
+				"Can't meet AMIXER resource request!\n");
 		goto error;
 	}
 
 	err = amixer_rsc_init(amixer, desc, mgr);
+
 	if (err)
+	{
 		goto error;
+	}
 
 	*ramixer = amixer;
 
@@ -273,8 +316,11 @@ static int get_amixer_rsc(struct amixer_mgr *mgr,
 
 error:
 	spin_lock_irqsave(&mgr->mgr_lock, flags);
+
 	for (i--; i >= 0; i--)
+	{
 		mgr_put_resource(&mgr->mgr, 1, amixer->idx[i]);
+	}
 
 	spin_unlock_irqrestore(&mgr->mgr_lock, flags);
 	kfree(amixer);
@@ -287,8 +333,11 @@ static int put_amixer_rsc(struct amixer_mgr *mgr, struct amixer *amixer)
 	int i;
 
 	spin_lock_irqsave(&mgr->mgr_lock, flags);
+
 	for (i = 0; i < amixer->rsc.msr; i++)
+	{
 		mgr_put_resource(&mgr->mgr, 1, amixer->idx[i]);
+	}
 
 	spin_unlock_irqrestore(&mgr->mgr_lock, flags);
 	amixer_rsc_uninit(amixer);
@@ -304,12 +353,18 @@ int amixer_mgr_create(struct hw *hw, struct amixer_mgr **ramixer_mgr)
 
 	*ramixer_mgr = NULL;
 	amixer_mgr = kzalloc(sizeof(*amixer_mgr), GFP_KERNEL);
+
 	if (!amixer_mgr)
+	{
 		return -ENOMEM;
+	}
 
 	err = rsc_mgr_init(&amixer_mgr->mgr, AMIXER, AMIXER_RESOURCE_NUM, hw);
+
 	if (err)
+	{
 		goto error;
+	}
 
 	spin_lock_init(&amixer_mgr->mgr_lock);
 
@@ -357,7 +412,8 @@ static int sum_output_slot(const struct rsc *rsc)
 	return (sum_index(rsc) << 4) + 0xc;
 }
 
-static const struct rsc_ops sum_basic_rsc_ops = {
+static const struct rsc_ops sum_basic_rsc_ops =
+{
 	.master		= sum_master,
 	.next_conj	= sum_next_conj,
 	.index		= sum_index,
@@ -365,14 +421,17 @@ static const struct rsc_ops sum_basic_rsc_ops = {
 };
 
 static int sum_rsc_init(struct sum *sum,
-			const struct sum_desc *desc,
-			struct sum_mgr *mgr)
+						const struct sum_desc *desc,
+						struct sum_mgr *mgr)
 {
 	int err;
 
 	err = rsc_init(&sum->rsc, sum->idx[0], SUM, desc->msr, mgr->mgr.hw);
+
 	if (err)
+	{
 		return err;
+	}
 
 	sum->rsc.ops = &sum_basic_rsc_ops;
 
@@ -386,8 +445,8 @@ static int sum_rsc_uninit(struct sum *sum)
 }
 
 static int get_sum_rsc(struct sum_mgr *mgr,
-		       const struct sum_desc *desc,
-		       struct sum **rsum)
+					   const struct sum_desc *desc,
+					   struct sum **rsum)
 {
 	int err, i;
 	unsigned int idx;
@@ -398,29 +457,43 @@ static int get_sum_rsc(struct sum_mgr *mgr,
 
 	/* Allocate mem for sum resource */
 	sum = kzalloc(sizeof(*sum), GFP_KERNEL);
+
 	if (!sum)
+	{
 		return -ENOMEM;
+	}
 
 	/* Check whether there are sufficient sum resources to meet request. */
 	err = 0;
 	spin_lock_irqsave(&mgr->mgr_lock, flags);
-	for (i = 0; i < desc->msr; i++) {
+
+	for (i = 0; i < desc->msr; i++)
+	{
 		err = mgr_get_resource(&mgr->mgr, 1, &idx);
+
 		if (err)
+		{
 			break;
+		}
 
 		sum->idx[i] = idx;
 	}
+
 	spin_unlock_irqrestore(&mgr->mgr_lock, flags);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(mgr->card->dev,
-			"Can't meet SUM resource request!\n");
+				"Can't meet SUM resource request!\n");
 		goto error;
 	}
 
 	err = sum_rsc_init(sum, desc, mgr);
+
 	if (err)
+	{
 		goto error;
+	}
 
 	*rsum = sum;
 
@@ -428,8 +501,11 @@ static int get_sum_rsc(struct sum_mgr *mgr,
 
 error:
 	spin_lock_irqsave(&mgr->mgr_lock, flags);
+
 	for (i--; i >= 0; i--)
+	{
 		mgr_put_resource(&mgr->mgr, 1, sum->idx[i]);
+	}
 
 	spin_unlock_irqrestore(&mgr->mgr_lock, flags);
 	kfree(sum);
@@ -442,8 +518,11 @@ static int put_sum_rsc(struct sum_mgr *mgr, struct sum *sum)
 	int i;
 
 	spin_lock_irqsave(&mgr->mgr_lock, flags);
+
 	for (i = 0; i < sum->rsc.msr; i++)
+	{
 		mgr_put_resource(&mgr->mgr, 1, sum->idx[i]);
+	}
 
 	spin_unlock_irqrestore(&mgr->mgr_lock, flags);
 	sum_rsc_uninit(sum);
@@ -459,12 +538,18 @@ int sum_mgr_create(struct hw *hw, struct sum_mgr **rsum_mgr)
 
 	*rsum_mgr = NULL;
 	sum_mgr = kzalloc(sizeof(*sum_mgr), GFP_KERNEL);
+
 	if (!sum_mgr)
+	{
 		return -ENOMEM;
+	}
 
 	err = rsc_mgr_init(&sum_mgr->mgr, SUM, SUM_RESOURCE_NUM, hw);
+
 	if (err)
+	{
 		goto error;
+	}
 
 	spin_lock_init(&sum_mgr->mgr_lock);
 

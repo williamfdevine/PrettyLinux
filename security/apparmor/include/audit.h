@@ -27,7 +27,8 @@ struct aa_profile;
 
 extern const char *const audit_mode_names[];
 #define AUDIT_MAX_INDEX 5
-enum audit_mode {
+enum audit_mode
+{
 	AUDIT_NORMAL,		/* follow normal auditing of accesses */
 	AUDIT_QUIET_DENIED,	/* quiet all denied access messages */
 	AUDIT_QUIET,		/* quiet all messages */
@@ -35,7 +36,8 @@ enum audit_mode {
 	AUDIT_ALL		/* audit all accesses */
 };
 
-enum audit_type {
+enum audit_type
+{
 	AUDIT_APPARMOR_AUDIT,
 	AUDIT_APPARMOR_ALLOWED,
 	AUDIT_APPARMOR_DENIED,
@@ -47,7 +49,8 @@ enum audit_type {
 };
 
 extern const char *const op_table[];
-enum aa_ops {
+enum aa_ops
+{
 	OP_NULL,
 
 	OP_SYSCTL,
@@ -102,24 +105,29 @@ enum aa_ops {
 };
 
 
-struct apparmor_audit_data {
+struct apparmor_audit_data
+{
 	int error;
 	int op;
 	int type;
 	void *profile;
 	const char *name;
 	const char *info;
-	union {
+	union
+	{
 		void *target;
-		struct {
+		struct
+		{
 			long pos;
 			void *target;
 		} iface;
-		struct {
+		struct
+		{
 			int rlim;
 			unsigned long max;
 		} rlim;
-		struct {
+		struct
+		{
 			const char *target;
 			u32 request;
 			u32 denied;
@@ -132,15 +140,18 @@ struct apparmor_audit_data {
 #define aad apparmor_audit_data
 
 void aa_audit_msg(int type, struct common_audit_data *sa,
-		  void (*cb) (struct audit_buffer *, void *));
+				  void (*cb) (struct audit_buffer *, void *));
 int aa_audit(int type, struct aa_profile *profile, gfp_t gfp,
-	     struct common_audit_data *sa,
-	     void (*cb) (struct audit_buffer *, void *));
+			 struct common_audit_data *sa,
+			 void (*cb) (struct audit_buffer *, void *));
 
 static inline int complain_error(int error)
 {
 	if (error == -EPERM || error == -EACCES)
+	{
 		return 0;
+	}
+
 	return error;
 }
 

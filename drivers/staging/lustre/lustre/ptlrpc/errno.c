@@ -40,7 +40,8 @@
  * EDEADLK or an EDEADLOCK.  Therefore, all existing references to EDEADLOCK
  * that need to be transferred on wire have been replaced with EDEADLK.
  */
-static int lustre_errno_hton_mapping[] = {
+static int lustre_errno_hton_mapping[] =
+{
 	[EPERM]			= LUSTRE_EPERM,
 	[ENOENT]		= LUSTRE_ENOENT,
 	[ESRCH]			= LUSTRE_ESRCH,
@@ -186,7 +187,8 @@ static int lustre_errno_hton_mapping[] = {
 	[EIOCBQUEUED]		= LUSTRE_EIOCBQUEUED,
 };
 
-static int lustre_errno_ntoh_mapping[] = {
+static int lustre_errno_ntoh_mapping[] =
+{
 	[LUSTRE_EPERM]			= EPERM,
 	[LUSTRE_ENOENT]			= ENOENT,
 	[LUSTRE_ESRCH]			= ESRCH,
@@ -336,13 +338,21 @@ unsigned int lustre_errno_hton(unsigned int h)
 {
 	unsigned int n;
 
-	if (h == 0) {
+	if (h == 0)
+	{
 		n = 0;
-	} else if (h < ARRAY_SIZE(lustre_errno_hton_mapping)) {
+	}
+	else if (h < ARRAY_SIZE(lustre_errno_hton_mapping))
+	{
 		n = lustre_errno_hton_mapping[h];
+
 		if (n == 0)
+		{
 			goto generic;
-	} else {
+		}
+	}
+	else
+	{
 generic:
 		/*
 		 * A generic errno is better than the unknown one that could
@@ -359,13 +369,21 @@ unsigned int lustre_errno_ntoh(unsigned int n)
 {
 	unsigned int h;
 
-	if (n == 0) {
+	if (n == 0)
+	{
 		h = 0;
-	} else if (n < ARRAY_SIZE(lustre_errno_ntoh_mapping)) {
+	}
+	else if (n < ARRAY_SIZE(lustre_errno_ntoh_mapping))
+	{
 		h = lustre_errno_ntoh_mapping[n];
+
 		if (h == 0)
+		{
 			goto generic;
-	} else {
+		}
+	}
+	else
+	{
 generic:
 		/*
 		 * Similar to the situation in lustre_errno_hton(), an unknown

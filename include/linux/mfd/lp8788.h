@@ -39,7 +39,8 @@
 #define LP8788_BATT_IRQ		"BATT_IRQ"
 #define LP8788_ALM_IRQ		"ALARM_IRQ"
 
-enum lp8788_int_id {
+enum lp8788_int_id
+{
 	/* interrup register 1 : Addr 00h */
 	LP8788_INT_TSDL,
 	LP8788_INT_TSDH,
@@ -70,14 +71,16 @@ enum lp8788_int_id {
 	LP8788_INT_MAX = 24,
 };
 
-enum lp8788_dvs_sel {
+enum lp8788_dvs_sel
+{
 	DVS_SEL_V0,
 	DVS_SEL_V1,
 	DVS_SEL_V2,
 	DVS_SEL_V3,
 };
 
-enum lp8788_ext_ldo_en_id {
+enum lp8788_ext_ldo_en_id
+{
 	EN_ALDO1,
 	EN_ALDO234,
 	EN_ALDO5,
@@ -87,23 +90,27 @@ enum lp8788_ext_ldo_en_id {
 	EN_LDOS_MAX,
 };
 
-enum lp8788_charger_event {
+enum lp8788_charger_event
+{
 	NO_CHARGER,
 	CHARGER_DETECTED,
 };
 
-enum lp8788_bl_ctrl_mode {
+enum lp8788_bl_ctrl_mode
+{
 	LP8788_BL_REGISTER_ONLY,
 	LP8788_BL_COMB_PWM_BASED,	/* PWM + I2C, changed by PWM input */
 	LP8788_BL_COMB_REGISTER_BASED,	/* PWM + I2C, changed by I2C */
 };
 
-enum lp8788_bl_dim_mode {
+enum lp8788_bl_dim_mode
+{
 	LP8788_DIM_EXPONENTIAL,
 	LP8788_DIM_LINEAR,
 };
 
-enum lp8788_bl_full_scale_current {
+enum lp8788_bl_full_scale_current
+{
 	LP8788_FULLSCALE_5000uA,
 	LP8788_FULLSCALE_8500uA,
 	LP8788_FULLSCALE_1200uA,
@@ -114,7 +121,8 @@ enum lp8788_bl_full_scale_current {
 	LP8788_FULLSCALE_2950uA,
 };
 
-enum lp8788_bl_ramp_step {
+enum lp8788_bl_ramp_step
+{
 	LP8788_RAMP_8us,
 	LP8788_RAMP_1024us,
 	LP8788_RAMP_2048us,
@@ -125,24 +133,28 @@ enum lp8788_bl_ramp_step {
 	LP8788_RAMP_65538us,
 };
 
-enum lp8788_isink_scale {
+enum lp8788_isink_scale
+{
 	LP8788_ISINK_SCALE_100mA,
 	LP8788_ISINK_SCALE_120mA,
 };
 
-enum lp8788_isink_number {
+enum lp8788_isink_number
+{
 	LP8788_ISINK_1,
 	LP8788_ISINK_2,
 	LP8788_ISINK_3,
 };
 
-enum lp8788_alarm_sel {
+enum lp8788_alarm_sel
+{
 	LP8788_ALARM_1,
 	LP8788_ALARM_2,
 	LP8788_ALARM_MAX,
 };
 
-enum lp8788_adc_id {
+enum lp8788_adc_id
+{
 	LPADC_VBATT_5P5,
 	LPADC_VIN_CHG,
 	LPADC_IBATT,
@@ -166,7 +178,8 @@ struct lp8788;
  * @gpio         : gpio pin number for dvs control
  * @vsel         : dvs selector for buck v1 register
  */
-struct lp8788_buck1_dvs {
+struct lp8788_buck1_dvs
+{
 	int gpio;
 	enum lp8788_dvs_sel vsel;
 };
@@ -176,7 +189,8 @@ struct lp8788_buck1_dvs {
  * @gpio         : two gpio pin numbers are used for dvs
  * @vsel         : dvs selector for buck v2 register
  */
-struct lp8788_buck2_dvs {
+struct lp8788_buck2_dvs
+{
 	int gpio[LP8788_NUM_BUCK2_DVS];
 	enum lp8788_dvs_sel vsel;
 };
@@ -190,7 +204,8 @@ struct lp8788_buck2_dvs {
  * @gpio         : gpio number which is used for enabling ldos
  * @init_state   : initial gpio state (ex. GPIOF_OUT_INIT_LOW)
  */
-struct lp8788_ldo_enable_pin {
+struct lp8788_ldo_enable_pin
+{
 	int gpio;
 	int init_state;
 };
@@ -200,7 +215,8 @@ struct lp8788_ldo_enable_pin {
  * @addr         : charging control register address (range : 0x11 ~ 0x1C)
  * @val          : charging parameter value
  */
-struct lp8788_chg_param {
+struct lp8788_chg_param
+{
 	u8 addr;
 	u8 val;
 };
@@ -214,14 +230,15 @@ struct lp8788_chg_param {
  * @num_chg_params    : numbers of charging parameters
  * @charger_event     : the charger event can be reported to the platform side
  */
-struct lp8788_charger_platform_data {
+struct lp8788_charger_platform_data
+{
 	const char *adc_vbatt;
 	const char *adc_batt_temp;
 	unsigned int max_vbatt_mv;
 	struct lp8788_chg_param *chg_params;
 	int num_chg_params;
 	void (*charger_event) (struct lp8788 *lp,
-				enum lp8788_charger_event event);
+						   enum lp8788_charger_event event);
 };
 
 /*
@@ -237,7 +254,8 @@ struct lp8788_charger_platform_data {
  * @period_ns             : platform specific pwm period value. unit is nano.
 			    Only valid when bl_mode is LP8788_BL_COMB_PWM_BASED
  */
-struct lp8788_backlight_platform_data {
+struct lp8788_backlight_platform_data
+{
 	char *name;
 	int initial_brightness;
 	enum lp8788_bl_ctrl_mode bl_mode;
@@ -256,7 +274,8 @@ struct lp8788_backlight_platform_data {
  * @num          : current sink number
  * @iout_code    : current output value (Addr 9Ah ~ 9Bh)
  */
-struct lp8788_led_platform_data {
+struct lp8788_led_platform_data
+{
 	char *name;
 	enum lp8788_isink_scale scale;
 	enum lp8788_isink_number num;
@@ -271,7 +290,8 @@ struct lp8788_led_platform_data {
  * @iout_code    : current output value (Addr 9Ah ~ 9Bh)
  * @pwm_code     : PWM code value (Addr 9Ch ~ 9Eh)
  */
-struct lp8788_vib_platform_data {
+struct lp8788_vib_platform_data
+{
 	char *name;
 	enum lp8788_isink_scale scale;
 	enum lp8788_isink_number num;
@@ -296,7 +316,8 @@ struct lp8788_vib_platform_data {
  * @vib_pdata    : configurable data for vibrator driver
  * @adc_pdata    : iio map data for adc driver
  */
-struct lp8788_platform_data {
+struct lp8788_platform_data
+{
 	/* general system information */
 	int (*init_func) (struct lp8788 *lp);
 
@@ -333,7 +354,8 @@ struct lp8788_platform_data {
  * @irq          : pin number of IRQ_N
  * @pdata        : lp8788 platform specific data
  */
-struct lp8788 {
+struct lp8788
+{
 	struct device *dev;
 	struct regmap *regmap;
 	struct irq_domain *irqdm;

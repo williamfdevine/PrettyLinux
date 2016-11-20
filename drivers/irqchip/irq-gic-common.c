@@ -35,18 +35,22 @@ void gic_set_kvm_info(const struct gic_kvm_info *info)
 }
 
 void gic_enable_quirks(u32 iidr, const struct gic_quirk *quirks,
-		void *data)
+					   void *data)
 {
-	for (; quirks->desc; quirks++) {
+	for (; quirks->desc; quirks++)
+	{
 		if (quirks->iidr != (quirks->mask & iidr))
+		{
 			continue;
+		}
+
 		quirks->init(data);
 		pr_info("GIC: enabling workaround for %s\n", quirks->desc);
 	}
 }
 
 int gic_configure_irq(unsigned int irq, unsigned int type,
-		       void __iomem *base, void (*sync_access)(void))
+					  void __iomem *base, void (*sync_access)(void))
 {
 	u32 confmask = 0x2 << ((irq % 16) * 2);
 	u32 confoff = (irq / 16) * 4;
@@ -58,14 +62,21 @@ int gic_configure_irq(unsigned int irq, unsigned int type,
 	 * for "irq", depending on "type".
 	 */
 	val = oldval = readl_relaxed(base + GIC_DIST_CONFIG + confoff);
+
 	if (type & IRQ_TYPE_LEVEL_MASK)
+	{
 		val &= ~confmask;
+	}
 	else if (type & IRQ_TYPE_EDGE_BOTH)
+	{
 		val |= confmask;
+	}
 
 	/* If the current configuration is the same, then we are done */
 	if (val == oldval)
+	{
 		return 0;
+	}
 
 	/*
 	 * Write back the new configuration, and possibly re-enable
@@ -76,22 +87,28 @@ int gic_configure_irq(unsigned int irq, unsigned int type,
 	 * non-secure mode, and hence it may not be catastrophic.
 	 */
 	writel_relaxed(val, base + GIC_DIST_CONFIG + confoff);
-	if (readl_relaxed(base + GIC_DIST_CONFIG + confoff) != val) {
+
+	if (readl_relaxed(base + GIC_DIST_CONFIG + confoff) != val)
+	{
 		if (WARN_ON(irq >= 32))
+		{
 			ret = -EINVAL;
+		}
 		else
 			pr_warn("GIC: PPI%d is secure or misconfigured\n",
-				irq - 16);
+					irq - 16);
 	}
 
 	if (sync_access)
+	{
 		sync_access();
+	}
 
 	return ret;
 }
 
 void gic_dist_config(void __iomem *base, int gic_irqs,
-		     void (*sync_access)(void))
+					 void (*sync_access)(void))
 {
 	unsigned int i;
 
@@ -100,27 +117,32 @@ void gic_dist_config(void __iomem *base, int gic_irqs,
 	 */
 	for (i = 32; i < gic_irqs; i += 16)
 		writel_relaxed(GICD_INT_ACTLOW_LVLTRIG,
-					base + GIC_DIST_CONFIG + i / 4);
+					   base + GIC_DIST_CONFIG + i / 4);
 
 	/*
 	 * Set priority on all global interrupts.
 	 */
 	for (i = 32; i < gic_irqs; i += 4)
+	{
 		writel_relaxed(GICD_INT_DEF_PRI_X4, base + GIC_DIST_PRI + i);
+	}
 
 	/*
 	 * Deactivate and disable all SPIs. Leave the PPI and SGIs
 	 * alone as they are in the redistributor registers on GICv3.
 	 */
-	for (i = 32; i < gic_irqs; i += 32) {
+	for (i = 32; i < gic_irqs; i += 32)
+	{
 		writel_relaxed(GICD_INT_EN_CLR_X32,
-			       base + GIC_DIST_ACTIVE_CLEAR + i / 8);
+					   base + GIC_DIST_ACTIVE_CLEAR + i / 8);
 		writel_relaxed(GICD_INT_EN_CLR_X32,
-			       base + GIC_DIST_ENABLE_CLEAR + i / 8);
+					   base + GIC_DIST_ENABLE_CLEAR + i / 8);
 	}
 
 	if (sync_access)
+	{
 		sync_access();
+	}
 }
 
 void gic_cpu_config(void __iomem *base, void (*sync_access)(void))
@@ -141,8 +163,10 @@ void gic_cpu_config(void __iomem *base, void (*sync_access)(void))
 	 */
 	for (i = 0; i < 32; i += 4)
 		writel_relaxed(GICD_INT_DEF_PRI_X4,
-					base + GIC_DIST_PRI + i * 4 / 4);
+					   base + GIC_DIST_PRI + i * 4 / 4);
 
 	if (sync_access)
+	{
 		sync_access();
+	}
 }

@@ -30,6 +30,6 @@ extern struct list_head dlm_domains;
 
 int dlm_shutting_down(struct dlm_ctxt *dlm);
 void dlm_fire_domain_eviction_callbacks(struct dlm_ctxt *dlm,
-					int node_num);
+										int node_num);
 
 #endif

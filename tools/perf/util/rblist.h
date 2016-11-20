@@ -18,7 +18,8 @@
  * };
  */
 
-struct rblist {
+struct rblist
+{
 	struct rb_root entries;
 	unsigned int   nr_entries;
 

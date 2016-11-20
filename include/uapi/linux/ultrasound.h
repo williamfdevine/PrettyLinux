@@ -73,12 +73,12 @@
  */
 
 #define _GUS_CMD(chn, voice, cmd, p1, p2) \
-					{_SEQ_NEEDBUF(8); _seqbuf[_seqbufptr] = SEQ_PRIVATE;\
-					_seqbuf[_seqbufptr+1] = (chn); _seqbuf[_seqbufptr+2] = cmd;\
-					_seqbuf[_seqbufptr+3] = voice;\
-					*(unsigned short*)&_seqbuf[_seqbufptr+4] = p1;\
-					*(unsigned short*)&_seqbuf[_seqbufptr+6] = p2;\
-					_SEQ_ADVBUF(8);}
+	{_SEQ_NEEDBUF(8); _seqbuf[_seqbufptr] = SEQ_PRIVATE;\
+		_seqbuf[_seqbufptr+1] = (chn); _seqbuf[_seqbufptr+2] = cmd;\
+		_seqbuf[_seqbufptr+3] = voice;\
+		*(unsigned short*)&_seqbuf[_seqbufptr+4] = p1;\
+		*(unsigned short*)&_seqbuf[_seqbufptr+6] = p2;\
+		_SEQ_ADVBUF(8);}
 
 #define GUS_NUMVOICES(chn, p1)			_GUS_CMD(chn, 0, _GUS_NUMVOICES, (p1), 0)
 #define GUS_VOICESAMPLE(chn, voice, p1)		_GUS_CMD(chn, voice, _GUS_VOICESAMPLE, (p1), 0)	/* OBSOLETE */
@@ -88,7 +88,7 @@
 #define GUS_VOICEMODE(chn, voice, p1)		_GUS_CMD(chn, voice, _GUS_VOICEMODE, (p1), 0)
 #define GUS_VOICEBALA(chn, voice, p1)		_GUS_CMD(chn, voice, _GUS_VOICEBALA, (p1), 0)
 #define GUS_VOICEFREQ(chn, voice, p)		_GUS_CMD(chn, voice, _GUS_VOICEFREQ, \
-							(p) & 0xffff, ((p) >> 16) & 0xffff)
+		(p) & 0xffff, ((p) >> 16) & 0xffff)
 #define GUS_VOICEVOL(chn, voice, p1)		_GUS_CMD(chn, voice, _GUS_VOICEVOL, (p1), 0)
 #define GUS_VOICEVOL2(chn, voice, p1)		_GUS_CMD(chn, voice, _GUS_VOICEVOL2, (p1), 0)
 #define GUS_RAMPRANGE(chn, voice, low, high)	_GUS_CMD(chn, voice, _GUS_RAMPRANGE, (low), (high))
@@ -98,6 +98,6 @@
 #define GUS_RAMPOFF(chn, voice)			_GUS_CMD(chn, voice, _GUS_RAMPOFF, 0, 0)
 #define GUS_VOLUME_SCALE(chn, voice, p1, p2)	_GUS_CMD(chn, voice, _GUS_VOLUME_SCALE, (p1), (p2))
 #define GUS_VOICE_POS(chn, voice, p)		_GUS_CMD(chn, voice, _GUS_VOICE_POS, \
-							(p) & 0xffff, ((p) >> 16) & 0xffff)
+		(p) & 0xffff, ((p) >> 16) & 0xffff)
 
 #endif

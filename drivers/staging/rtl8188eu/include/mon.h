@@ -31,6 +31,6 @@ void rtl88eu_mon_deinit(struct net_device *dev);
 
 void rtl88eu_mon_recv_hook(struct net_device *dev, struct recv_frame *frame);
 void rtl88eu_mon_xmit_hook(struct net_device *dev, struct xmit_frame *frame,
-			   uint frag_len);
+						   uint frag_len);
 
 #endif /* _MON_H_ */

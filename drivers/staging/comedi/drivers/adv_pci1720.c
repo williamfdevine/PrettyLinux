@@ -67,7 +67,8 @@
 #define PCI1720_SYNC_CTRL_SC0		BIT(0)
 #define PCI1720_BOARDID_REG		0x14
 
-static const struct comedi_lrange pci1720_ao_range = {
+static const struct comedi_lrange pci1720_ao_range =
+{
 	4, {
 		UNI_RANGE(5),
 		UNI_RANGE(10),
@@ -77,9 +78,9 @@ static const struct comedi_lrange pci1720_ao_range = {
 };
 
 static int pci1720_ao_insn_write(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int range = CR_RANGE(insn->chanspec);
@@ -93,7 +94,9 @@ static int pci1720_ao_insn_write(struct comedi_device *dev,
 	outb(val, dev->iobase + PCI1720_AO_RANGE_REG);
 
 	val = s->readback[chan];
-	for (i = 0; i < insn->n; i++) {
+
+	for (i = 0; i < insn->n; i++)
+	{
 		val = data[i];
 
 		outb(val & 0xff, dev->iobase + PCI1720_AO_LSB_REG(chan));
@@ -109,9 +112,9 @@ static int pci1720_ao_insn_write(struct comedi_device *dev,
 }
 
 static int pci1720_di_insn_bits(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	data[1] = inb(dev->iobase + PCI1720_BOARDID_REG);
 
@@ -119,20 +122,27 @@ static int pci1720_di_insn_bits(struct comedi_device *dev,
 }
 
 static int pci1720_auto_attach(struct comedi_device *dev,
-			       unsigned long context)
+							   unsigned long context)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	struct comedi_subdevice *s;
 	int ret;
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	dev->iobase = pci_resource_start(pcidev, 2);
 
 	ret = comedi_alloc_subdevices(dev, 2);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Analog Output subdevice */
 	s = &dev->subdevices[0];
@@ -144,8 +154,11 @@ static int pci1720_auto_attach(struct comedi_device *dev,
 	s->insn_write	= pci1720_ao_insn_write;
 
 	ret = comedi_alloc_subdev_readback(s);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Digital Input subdevice (BoardID SW1) */
 	s = &dev->subdevices[1];
@@ -162,7 +175,8 @@ static int pci1720_auto_attach(struct comedi_device *dev,
 	return 0;
 }
 
-static struct comedi_driver adv_pci1720_driver = {
+static struct comedi_driver adv_pci1720_driver =
+{
 	.driver_name	= "adv_pci1720",
 	.module		= THIS_MODULE,
 	.auto_attach	= pci1720_auto_attach,
@@ -170,19 +184,21 @@ static struct comedi_driver adv_pci1720_driver = {
 };
 
 static int adv_pci1720_pci_probe(struct pci_dev *dev,
-				 const struct pci_device_id *id)
+								 const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &adv_pci1720_driver,
-				      id->driver_data);
+								  id->driver_data);
 }
 
-static const struct pci_device_id adv_pci1720_pci_table[] = {
+static const struct pci_device_id adv_pci1720_pci_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_ADVANTECH, 0x1720) },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, adv_pci1720_pci_table);
 
-static struct pci_driver adv_pci1720_pci_driver = {
+static struct pci_driver adv_pci1720_pci_driver =
+{
 	.name		= "adv_pci1720",
 	.id_table	= adv_pci1720_pci_table,
 	.probe		= adv_pci1720_pci_probe,

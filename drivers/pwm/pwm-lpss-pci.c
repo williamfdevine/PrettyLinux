@@ -18,20 +18,26 @@
 #include "pwm-lpss.h"
 
 static int pwm_lpss_probe_pci(struct pci_dev *pdev,
-			      const struct pci_device_id *id)
+							  const struct pci_device_id *id)
 {
 	const struct pwm_lpss_boardinfo *info;
 	struct pwm_lpss_chip *lpwm;
 	int err;
 
 	err = pcim_enable_device(pdev);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	info = (struct pwm_lpss_boardinfo *)id->driver_data;
 	lpwm = pwm_lpss_probe(&pdev->dev, &pdev->resource[0], info);
+
 	if (IS_ERR(lpwm))
+	{
 		return PTR_ERR(lpwm);
+	}
 
 	pci_set_drvdata(pdev, lpwm);
 
@@ -67,25 +73,28 @@ static int pwm_lpss_runtime_resume_pci(struct device *dev)
 }
 #endif
 
-static const struct dev_pm_ops pwm_lpss_pci_pm = {
+static const struct dev_pm_ops pwm_lpss_pci_pm =
+{
 	SET_RUNTIME_PM_OPS(pwm_lpss_runtime_suspend_pci,
-			   pwm_lpss_runtime_resume_pci, NULL)
+	pwm_lpss_runtime_resume_pci, NULL)
 };
 
-static const struct pci_device_id pwm_lpss_pci_ids[] = {
-	{ PCI_VDEVICE(INTEL, 0x0ac8), (unsigned long)&pwm_lpss_bxt_info},
-	{ PCI_VDEVICE(INTEL, 0x0f08), (unsigned long)&pwm_lpss_byt_info},
-	{ PCI_VDEVICE(INTEL, 0x0f09), (unsigned long)&pwm_lpss_byt_info},
-	{ PCI_VDEVICE(INTEL, 0x11a5), (unsigned long)&pwm_lpss_bxt_info},
-	{ PCI_VDEVICE(INTEL, 0x1ac8), (unsigned long)&pwm_lpss_bxt_info},
-	{ PCI_VDEVICE(INTEL, 0x2288), (unsigned long)&pwm_lpss_bsw_info},
-	{ PCI_VDEVICE(INTEL, 0x2289), (unsigned long)&pwm_lpss_bsw_info},
-	{ PCI_VDEVICE(INTEL, 0x5ac8), (unsigned long)&pwm_lpss_bxt_info},
+static const struct pci_device_id pwm_lpss_pci_ids[] =
+{
+	{ PCI_VDEVICE(INTEL, 0x0ac8), (unsigned long) &pwm_lpss_bxt_info},
+	{ PCI_VDEVICE(INTEL, 0x0f08), (unsigned long) &pwm_lpss_byt_info},
+	{ PCI_VDEVICE(INTEL, 0x0f09), (unsigned long) &pwm_lpss_byt_info},
+	{ PCI_VDEVICE(INTEL, 0x11a5), (unsigned long) &pwm_lpss_bxt_info},
+	{ PCI_VDEVICE(INTEL, 0x1ac8), (unsigned long) &pwm_lpss_bxt_info},
+	{ PCI_VDEVICE(INTEL, 0x2288), (unsigned long) &pwm_lpss_bsw_info},
+	{ PCI_VDEVICE(INTEL, 0x2289), (unsigned long) &pwm_lpss_bsw_info},
+	{ PCI_VDEVICE(INTEL, 0x5ac8), (unsigned long) &pwm_lpss_bxt_info},
 	{ },
 };
 MODULE_DEVICE_TABLE(pci, pwm_lpss_pci_ids);
 
-static struct pci_driver pwm_lpss_driver_pci = {
+static struct pci_driver pwm_lpss_driver_pci =
+{
 	.name = "pwm-lpss",
 	.id_table = pwm_lpss_pci_ids,
 	.probe = pwm_lpss_probe_pci,

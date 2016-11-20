@@ -53,7 +53,8 @@
 #define FM10K_RX_BUFFER_WRITE	16	/* Must be power of 2 */
 
 #define FM10K_MAX_STATIONS	63
-struct fm10k_l2_accel {
+struct fm10k_l2_accel
+{
 	int size;
 	u16 count;
 	u16 dglort;
@@ -61,7 +62,8 @@ struct fm10k_l2_accel {
 	struct net_device *macvlan[0];
 };
 
-enum fm10k_ring_state_t {
+enum fm10k_ring_state_t
+{
 	__FM10K_TX_DETECT_HANG,
 	__FM10K_HANG_CHECK_ARMED,
 	__FM10K_TX_XPS_INIT_DONE,
@@ -74,7 +76,8 @@ enum fm10k_ring_state_t {
 #define clear_check_for_tx_hang(ring) \
 	clear_bit(__FM10K_TX_DETECT_HANG, &(ring)->state)
 
-struct fm10k_tx_buffer {
+struct fm10k_tx_buffer
+{
 	struct fm10k_tx_desc *next_to_watch;
 	struct sk_buff *skb;
 	unsigned int bytecount;
@@ -84,18 +87,21 @@ struct fm10k_tx_buffer {
 	DEFINE_DMA_UNMAP_LEN(len);
 };
 
-struct fm10k_rx_buffer {
+struct fm10k_rx_buffer
+{
 	dma_addr_t dma;
 	struct page *page;
 	u32 page_offset;
 };
 
-struct fm10k_queue_stats {
+struct fm10k_queue_stats
+{
 	u64 packets;
 	u64 bytes;
 };
 
-struct fm10k_tx_queue_stats {
+struct fm10k_tx_queue_stats
+{
 	u64 restart_queue;
 	u64 csum_err;
 	u64 tx_busy;
@@ -103,7 +109,8 @@ struct fm10k_tx_queue_stats {
 	u64 csum_good;
 };
 
-struct fm10k_rx_queue_stats {
+struct fm10k_rx_queue_stats
+{
 	u64 alloc_failed;
 	u64 csum_err;
 	u64 errors;
@@ -115,13 +122,15 @@ struct fm10k_rx_queue_stats {
 	u64 length_errors;
 };
 
-struct fm10k_ring {
+struct fm10k_ring
+{
 	struct fm10k_q_vector *q_vector;/* backpointer to host q_vector */
 	struct net_device *netdev;	/* netdev ring belongs to */
 	struct device *dev;		/* device for DMA mapping */
 	struct fm10k_l2_accel __rcu *l2_accel;	/* L2 acceleration list */
 	void *desc;			/* descriptor ring memory */
-	union {
+	union
+	{
 		struct fm10k_tx_buffer *tx_buffer;
 		struct fm10k_rx_buffer *rx_buffer;
 	};
@@ -146,18 +155,21 @@ struct fm10k_ring {
 
 	struct fm10k_queue_stats stats;
 	struct u64_stats_sync syncp;
-	union {
+	union
+	{
 		/* Tx */
 		struct fm10k_tx_queue_stats tx_stats;
 		/* Rx */
-		struct {
+		struct
+		{
 			struct fm10k_rx_queue_stats rx_stats;
 			struct sk_buff *skb;
 		};
 	};
 } ____cacheline_internodealigned_in_smp;
 
-struct fm10k_ring_container {
+struct fm10k_ring_container
+{
 	struct fm10k_ring *ring;	/* pointer to linked list of rings */
 	unsigned int total_bytes;	/* total bytes processed this int */
 	unsigned int total_packets;	/* total packets processed this int */
@@ -190,18 +202,20 @@ static inline struct netdev_queue *txring_txq(const struct fm10k_ring *ring)
 
 #define MAX_Q_VECTORS 256
 #define MIN_Q_VECTORS	1
-enum fm10k_non_q_vectors {
+enum fm10k_non_q_vectors
+{
 	FM10K_MBX_VECTOR,
 #define NON_Q_VECTORS_VF NON_Q_VECTORS_PF
 	NON_Q_VECTORS_PF
 };
 
 #define NON_Q_VECTORS(hw)	(((hw)->mac.type == fm10k_mac_pf) ? \
-						NON_Q_VECTORS_PF : \
-						NON_Q_VECTORS_VF)
+							 NON_Q_VECTORS_PF : \
+							 NON_Q_VECTORS_VF)
 #define MIN_MSIX_COUNT(hw)	(MIN_Q_VECTORS + NON_Q_VECTORS(hw))
 
-struct fm10k_q_vector {
+struct fm10k_q_vector
+{
 	struct fm10k_intfc *interface;
 	u32 __iomem *itr;	/* pointer to ITR register for this vector */
 	u16 v_idx;		/* index of q_vector within interface array */
@@ -220,27 +234,31 @@ struct fm10k_q_vector {
 	struct fm10k_ring ring[0] ____cacheline_internodealigned_in_smp;
 };
 
-enum fm10k_ring_f_enum {
+enum fm10k_ring_f_enum
+{
 	RING_F_RSS,
 	RING_F_QOS,
 	RING_F_ARRAY_SIZE  /* must be last in enum set */
 };
 
-struct fm10k_ring_feature {
+struct fm10k_ring_feature
+{
 	u16 limit;	/* upper limit on feature indices */
 	u16 indices;	/* current value of indices */
 	u16 mask;	/* Mask used for feature to ring mapping */
 	u16 offset;	/* offset to start of feature */
 };
 
-struct fm10k_iov_data {
+struct fm10k_iov_data
+{
 	unsigned int		num_vfs;
 	unsigned int		next_vf_mbx;
 	struct rcu_head		rcu;
 	struct fm10k_vf_info	vf_info[0];
 };
 
-struct fm10k_udp_port {
+struct fm10k_udp_port
+{
 	struct list_head	list;
 	sa_family_t		sa_family;
 	__be16			port;
@@ -249,7 +267,8 @@ struct fm10k_udp_port {
 /* one work queue for entire driver */
 extern struct workqueue_struct *fm10k_workqueue;
 
-struct fm10k_intfc {
+struct fm10k_intfc
+{
 	unsigned long active_vlans[BITS_TO_LONGS(VLAN_N_VID)];
 	struct net_device *netdev;
 	struct fm10k_l2_accel *l2_accel; /* pointer to L2 acceleration list */
@@ -354,7 +373,8 @@ struct fm10k_intfc {
 	u16 vid;
 };
 
-enum fm10k_state_t {
+enum fm10k_state_t
+{
 	__FM10K_RESETTING,
 	__FM10K_DOWN,
 	__FM10K_SERVICE_SCHED,
@@ -370,7 +390,9 @@ static inline void fm10k_mbx_lock(struct fm10k_intfc *interface)
 	 * such as ndo_set_rx_mode may be made in atomic context
 	 */
 	while (test_and_set_bit(__FM10K_MBX_LOCK, &interface->state))
+	{
 		udelay(20);
+	}
 }
 
 static inline void fm10k_mbx_unlock(struct fm10k_intfc *interface)
@@ -387,7 +409,7 @@ static inline int fm10k_mbx_trylock(struct fm10k_intfc *interface)
 
 /* fm10k_test_staterr - test bits in Rx descriptor status and error fields */
 static inline __le32 fm10k_test_staterr(union fm10k_rx_desc *rx_desc,
-					const u32 stat_err_bits)
+										const u32 stat_err_bits)
 {
 	return rx_desc->d.staterr & cpu_to_le32(stat_err_bits);
 }
@@ -403,7 +425,7 @@ static inline u16 fm10k_desc_unused(struct fm10k_ring *ring)
 #define FM10K_TX_DESC(R, i)	\
 	(&(((struct fm10k_tx_desc *)((R)->desc))[i]))
 #define FM10K_RX_DESC(R, i)	\
-	 (&(((union fm10k_rx_desc *)((R)->desc))[i]))
+	(&(((union fm10k_rx_desc *)((R)->desc))[i]))
 
 #define FM10K_MAX_TXD_PWR	14
 #define FM10K_MAX_DATA_PER_TXD	(1u << FM10K_MAX_TXD_PWR)
@@ -412,7 +434,8 @@ static inline u16 fm10k_desc_unused(struct fm10k_ring *ring)
 #define TXD_USE_COUNT(S)	DIV_ROUND_UP((S), FM10K_MAX_DATA_PER_TXD)
 #define DESC_NEEDED	(MAX_SKB_FRAGS + 4)
 
-enum fm10k_tx_flags {
+enum fm10k_tx_flags
+{
 	/* Tx offload flags */
 	FM10K_TX_FLAGS_CSUM	= 0x01,
 };
@@ -422,15 +445,18 @@ enum fm10k_tx_flags {
  * from the actual ftag header to allow for a single bswap to take care
  * of placing all of the values in network order
  */
-union fm10k_ftag_info {
+union fm10k_ftag_info
+{
 	__le64 ftag;
-	struct {
+	struct
+	{
 		/* dglort and sglort combined into a single 32bit desc read */
 		__le32 glort;
 		/* upper 16 bits of VLAN are reserved 0 for swpri_type_user */
 		__le32 vlan;
 	} d;
-	struct {
+	struct
+	{
 		__le16 dglort;
 		__le16 sglort;
 		__le16 vlan;
@@ -438,8 +464,10 @@ union fm10k_ftag_info {
 	} w;
 };
 
-struct fm10k_cb {
-	union {
+struct fm10k_cb
+{
+	union
+	{
 		__le64 tstamp;
 		unsigned long ts_tx_timeout;
 	};
@@ -455,7 +483,7 @@ int fm10k_init_queueing_scheme(struct fm10k_intfc *interface);
 void fm10k_clear_queueing_scheme(struct fm10k_intfc *interface);
 __be16 fm10k_tx_encap_offload(struct sk_buff *skb);
 netdev_tx_t fm10k_xmit_frame_ring(struct sk_buff *skb,
-				  struct fm10k_ring *tx_ring);
+								  struct fm10k_ring *tx_ring);
 void fm10k_tx_timeout_reset(struct fm10k_intfc *interface);
 u64 fm10k_get_tx_pending(struct fm10k_ring *ring, bool in_sw);
 bool fm10k_check_tx_hang(struct fm10k_ring *tx_ring);
@@ -474,7 +502,7 @@ void fm10k_update_stats(struct fm10k_intfc *interface);
 void fm10k_service_event_schedule(struct fm10k_intfc *interface);
 void fm10k_update_rx_drop_en(struct fm10k_intfc *interface);
 #ifdef CONFIG_NET_POLL_CONTROLLER
-void fm10k_netpoll(struct net_device *netdev);
+	void fm10k_netpoll(struct net_device *netdev);
 #endif
 
 /* Netdev */
@@ -486,7 +514,7 @@ void fm10k_free_tx_resources(struct fm10k_ring *);
 void fm10k_clean_all_rx_rings(struct fm10k_intfc *);
 void fm10k_clean_all_tx_rings(struct fm10k_intfc *);
 void fm10k_unmap_and_free_tx_resource(struct fm10k_ring *,
-				      struct fm10k_tx_buffer *);
+									  struct fm10k_tx_buffer *);
 void fm10k_restore_rx_state(struct fm10k_intfc *);
 void fm10k_reset_rx_state(struct fm10k_intfc *);
 int fm10k_setup_tc(struct net_device *dev, u8 tc);
@@ -507,11 +535,11 @@ int fm10k_iov_configure(struct pci_dev *pdev, int num_vfs);
 s32 fm10k_iov_update_pvid(struct fm10k_intfc *interface, u16 glort, u16 pvid);
 int fm10k_ndo_set_vf_mac(struct net_device *netdev, int vf_idx, u8 *mac);
 int fm10k_ndo_set_vf_vlan(struct net_device *netdev,
-			  int vf_idx, u16 vid, u8 qos, __be16 vlan_proto);
+						  int vf_idx, u16 vid, u8 qos, __be16 vlan_proto);
 int fm10k_ndo_set_vf_bw(struct net_device *netdev, int vf_idx, int rate,
-			int unused);
+						int unused);
 int fm10k_ndo_get_vf_config(struct net_device *netdev,
-			    int vf_idx, struct ifla_vf_info *ivi);
+							int vf_idx, struct ifla_vf_info *ivi);
 
 /* DebugFS */
 #ifdef CONFIG_DEBUG_FS

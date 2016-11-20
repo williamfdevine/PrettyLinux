@@ -16,18 +16,19 @@
 #include <linux/spinlock.h>
 #include <linux/types.h>
 
-struct stm32_reset_data {
+struct stm32_reset_data
+{
 	spinlock_t			lock;
 	void __iomem			*membase;
 	struct reset_controller_dev	rcdev;
 };
 
 static int stm32_reset_assert(struct reset_controller_dev *rcdev,
-			      unsigned long id)
+							  unsigned long id)
 {
 	struct stm32_reset_data *data = container_of(rcdev,
-						     struct stm32_reset_data,
-						     rcdev);
+									struct stm32_reset_data,
+									rcdev);
 	int bank = id / BITS_PER_LONG;
 	int offset = id % BITS_PER_LONG;
 	unsigned long flags;
@@ -44,11 +45,11 @@ static int stm32_reset_assert(struct reset_controller_dev *rcdev,
 }
 
 static int stm32_reset_deassert(struct reset_controller_dev *rcdev,
-				unsigned long id)
+								unsigned long id)
 {
 	struct stm32_reset_data *data = container_of(rcdev,
-						     struct stm32_reset_data,
-						     rcdev);
+									struct stm32_reset_data,
+									rcdev);
 	int bank = id / BITS_PER_LONG;
 	int offset = id % BITS_PER_LONG;
 	unsigned long flags;
@@ -64,14 +65,16 @@ static int stm32_reset_deassert(struct reset_controller_dev *rcdev,
 	return 0;
 }
 
-static const struct reset_control_ops stm32_reset_ops = {
+static const struct reset_control_ops stm32_reset_ops =
+{
 	.assert		= stm32_reset_assert,
 	.deassert	= stm32_reset_deassert,
 };
 
-static const struct of_device_id stm32_reset_dt_ids[] = {
-	 { .compatible = "st,stm32-rcc", },
-	 { /* sentinel */ },
+static const struct of_device_id stm32_reset_dt_ids[] =
+{
+	{ .compatible = "st,stm32-rcc", },
+	{ /* sentinel */ },
 };
 
 static int stm32_reset_probe(struct platform_device *pdev)
@@ -80,13 +83,19 @@ static int stm32_reset_probe(struct platform_device *pdev)
 	struct resource *res;
 
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	data->membase = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(data->membase))
+	{
 		return PTR_ERR(data->membase);
+	}
 
 	spin_lock_init(&data->lock);
 
@@ -98,7 +107,8 @@ static int stm32_reset_probe(struct platform_device *pdev)
 	return devm_reset_controller_register(&pdev->dev, &data->rcdev);
 }
 
-static struct platform_driver stm32_reset_driver = {
+static struct platform_driver stm32_reset_driver =
+{
 	.probe	= stm32_reset_probe,
 	.driver = {
 		.name		= "stm32-rcc-reset",

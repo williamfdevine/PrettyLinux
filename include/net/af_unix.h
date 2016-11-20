@@ -20,14 +20,16 @@ extern unsigned int unix_tot_inflight;
 extern spinlock_t unix_table_lock;
 extern struct hlist_head unix_socket_table[2 * UNIX_HASH_SIZE];
 
-struct unix_address {
+struct unix_address
+{
 	atomic_t	refcnt;
 	int		len;
 	unsigned int	hash;
 	struct sockaddr_un name[0];
 };
 
-struct unix_skb_parms {
+struct unix_skb_parms
+{
 	struct pid		*pid;		/* Skb credentials	*/
 	kuid_t			uid;
 	kgid_t			gid;
@@ -43,11 +45,12 @@ struct unix_skb_parms {
 #define unix_state_lock(s)	spin_lock(&unix_sk(s)->lock)
 #define unix_state_unlock(s)	spin_unlock(&unix_sk(s)->lock)
 #define unix_state_lock_nested(s) \
-				spin_lock_nested(&unix_sk(s)->lock, \
-				SINGLE_DEPTH_NESTING)
+	spin_lock_nested(&unix_sk(s)->lock, \
+					 SINGLE_DEPTH_NESTING)
 
 /* The AF_UNIX socket */
-struct unix_sock {
+struct unix_sock
+{
 	/* WARNING: sk has to be the first member */
 	struct sock		sk;
 	struct unix_address     *addr;

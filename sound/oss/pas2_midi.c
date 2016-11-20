@@ -24,7 +24,7 @@ extern spinlock_t pas_lock;
 static int      midi_busy, input_opened;
 static int      my_dev;
 
-int pas2_mididev=-1;
+int pas2_mididev = -1;
 
 static unsigned char tmp_queue[256];
 static volatile int qlen;
@@ -33,9 +33,9 @@ static volatile unsigned char qhead, qtail;
 static void     (*midi_input_intr) (int dev, unsigned char data);
 
 static int pas_midi_open(int dev, int mode,
-	      void            (*input) (int dev, unsigned char data),
-	      void            (*output) (int dev)
-)
+						 void            (*input) (int dev, unsigned char data),
+						 void            (*output) (int dev)
+						)
 {
 	int             err;
 	unsigned long   flags;
@@ -43,13 +43,15 @@ static int pas_midi_open(int dev, int mode,
 
 
 	if (midi_busy)
+	{
 		return -EBUSY;
+	}
 
 	/*
 	 * Reset input and output FIFO pointers
 	 */
 	pas_write(0x20 | 0x40,
-		  0x178b);
+			  0x178b);
 
 	spin_lock_irqsave(&pas_lock, flags);
 
@@ -58,6 +60,7 @@ static int pas_midi_open(int dev, int mode,
 		spin_unlock_irqrestore(&pas_lock, flags);
 		return err;
 	}
+
 	/*
 	 * Enable input available and output FIFO empty interrupts
 	 */
@@ -71,10 +74,12 @@ static int pas_midi_open(int dev, int mode,
 		ctrl |= 0x04;	/* Enable input */
 		input_opened = 1;
 	}
+
 	if (mode == OPEN_WRITE || mode == OPEN_READWRITE)
 	{
 		ctrl |= 0x08 | 0x10;	/* Enable output */
 	}
+
 	pas_write(ctrl, 0x178b);
 
 	/*
@@ -117,7 +122,9 @@ static int dump_to_midi(unsigned char midi_byte)
 	 */
 
 	if (fifo_space < 2 && fifo_space != 0)	/* Full (almost) */
-		return 0;	/* Ask upper layers to retry after some time */
+	{
+		return 0;    /* Ask upper layers to retry after some time */
+	}
 
 	pas_write(midi_byte, 0x178A);
 
@@ -149,14 +156,18 @@ static int pas_midi_out(int dev, unsigned char midi_byte)
 
 	if (!qlen)
 		if (dump_to_midi(midi_byte))
+		{
 			return 1;
+		}
 
 	/*
 	 *	Put to the local queue
 	 */
 
 	if (qlen >= 256)
-		return 0;	/* Local queue full */
+	{
+		return 0;    /* Local queue full */
+	}
 
 	spin_lock_irqsave(&pas_lock, flags);
 
@@ -216,6 +227,7 @@ void __init pas_midi_init(void)
 		printk(KERN_WARNING "pas_midi_init: Too many midi devices detected\n");
 		return;
 	}
+
 	std_midi_synth.midi_dev = my_dev = dev;
 	midi_devs[dev] = &pas_midi_operations;
 	pas2_mididev = dev;
@@ -232,16 +244,23 @@ void pas_midi_interrupt(void)
 	if (stat & 0x04)	/* Input data available */
 	{
 		incount = pas_read(0x1B89) & 0x0f;	/* Input FIFO size */
+
 		if (!incount)
+		{
 			incount = 16;
+		}
 
 		for (i = 0; i < incount; i++)
 			if (input_opened)
 			{
 				midi_input_intr(my_dev, pas_read(0x178A));
-			} else
-				pas_read(0x178A);	/* Flush */
+			}
+			else
+			{
+				pas_read(0x178A);    /* Flush */
+			}
 	}
+
 	if (stat & (0x08 | 0x10))
 	{
 		spin_lock(&pas_lock);/* called in irq context */
@@ -254,9 +273,11 @@ void pas_midi_interrupt(void)
 
 		spin_unlock(&pas_lock);
 	}
+
 	if (stat & 0x40)
 	{
 		printk(KERN_WARNING "MIDI output overrun %x,%x\n", pas_read(0x1B89), stat);
 	}
+
 	pas_write(stat, 0x1B88);	/* Acknowledge interrupts */
 }

@@ -47,7 +47,7 @@
 #define to_meson_clk_pll(_hw) container_of(_hw, struct meson_clk_pll, hw)
 
 static unsigned long meson_clk_pll_recalc_rate(struct clk_hw *hw,
-						unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct meson_clk_pll *pll = to_meson_clk_pll(hw);
 	struct parm *p;
@@ -69,34 +69,44 @@ static unsigned long meson_clk_pll_recalc_rate(struct clk_hw *hw,
 	od = PARM_GET(p->width, p->shift, reg);
 
 	p = &pll->od2;
-	if (p->width) {
+
+	if (p->width)
+	{
 		reg = readl(pll->base + p->reg_off);
 		od2 = PARM_GET(p->width, p->shift, reg);
 	}
 
 	p = &pll->frac;
-	if (p->width) {
+
+	if (p->width)
+	{
 		reg = readl(pll->base + p->reg_off);
 		frac = PARM_GET(p->width, p->shift, reg);
 		rate_mhz = (parent_rate_mhz * m + \
-				(parent_rate_mhz * frac >> 12)) * 2 / n;
+					(parent_rate_mhz * frac >> 12)) * 2 / n;
 		rate_mhz = rate_mhz >> od >> od2;
-	} else
+	}
+	else
+	{
 		rate_mhz = (parent_rate_mhz * m / n) >> od >> od2;
+	}
 
 	return rate_mhz * 1000000;
 }
 
 static long meson_clk_pll_round_rate(struct clk_hw *hw, unsigned long rate,
-				     unsigned long *parent_rate)
+									 unsigned long *parent_rate)
 {
 	struct meson_clk_pll *pll = to_meson_clk_pll(hw);
 	const struct pll_rate_table *rate_table = pll->rate_table;
 	int i;
 
-	for (i = 0; i < pll->rate_count; i++) {
+	for (i = 0; i < pll->rate_count; i++)
+	{
 		if (rate <= rate_table[i].rate)
+		{
 			return rate_table[i].rate;
+		}
 	}
 
 	/* else return the smallest value */
@@ -104,36 +114,45 @@ static long meson_clk_pll_round_rate(struct clk_hw *hw, unsigned long rate,
 }
 
 static const struct pll_rate_table *meson_clk_get_pll_settings(struct meson_clk_pll *pll,
-							       unsigned long rate)
+		unsigned long rate)
 {
 	const struct pll_rate_table *rate_table = pll->rate_table;
 	int i;
 
-	for (i = 0; i < pll->rate_count; i++) {
+	for (i = 0; i < pll->rate_count; i++)
+	{
 		if (rate == rate_table[i].rate)
+		{
 			return &rate_table[i];
+		}
 	}
+
 	return NULL;
 }
 
 static int meson_clk_pll_wait_lock(struct meson_clk_pll *pll,
-				   struct parm *p_n)
+								   struct parm *p_n)
 {
 	int delay = 24000000;
 	u32 reg;
 
-	while (delay > 0) {
+	while (delay > 0)
+	{
 		reg = readl(pll->base + p_n->reg_off);
 
 		if (reg & MESON_PLL_LOCK)
+		{
 			return 0;
+		}
+
 		delay--;
 	}
+
 	return -ETIMEDOUT;
 }
 
 static int meson_clk_pll_set_rate(struct clk_hw *hw, unsigned long rate,
-				  unsigned long parent_rate)
+								  unsigned long parent_rate)
 {
 	struct meson_clk_pll *pll = to_meson_clk_pll(hw);
 	struct parm *p;
@@ -143,13 +162,18 @@ static int meson_clk_pll_set_rate(struct clk_hw *hw, unsigned long rate,
 	u32 reg;
 
 	if (parent_rate == 0 || rate == 0)
+	{
 		return -EINVAL;
+	}
 
 	old_rate = rate;
 
 	rate_set = meson_clk_get_pll_settings(pll, rate);
+
 	if (!rate_set)
+	{
 		return -EINVAL;
+	}
 
 	/* PLL reset */
 	p = &pll->n;
@@ -170,14 +194,18 @@ static int meson_clk_pll_set_rate(struct clk_hw *hw, unsigned long rate,
 	writel(reg, pll->base + p->reg_off);
 
 	p = &pll->od2;
-	if (p->width) {
+
+	if (p->width)
+	{
 		reg = readl(pll->base + p->reg_off);
 		reg = PARM_SET(p->width, p->shift, reg, rate_set->od2);
 		writel(reg, pll->base + p->reg_off);
 	}
 
 	p = &pll->frac;
-	if (p->width) {
+
+	if (p->width)
+	{
 		reg = readl(pll->base + p->reg_off);
 		reg = PARM_SET(p->width, p->shift, reg, rate_set->frac);
 		writel(reg, pll->base + p->reg_off);
@@ -185,21 +213,25 @@ static int meson_clk_pll_set_rate(struct clk_hw *hw, unsigned long rate,
 
 	p = &pll->n;
 	ret = meson_clk_pll_wait_lock(pll, p);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_warn("%s: pll did not lock, trying to restore old rate %lu\n",
-			__func__, old_rate);
+				__func__, old_rate);
 		meson_clk_pll_set_rate(hw, old_rate, parent_rate);
 	}
 
 	return ret;
 }
 
-const struct clk_ops meson_clk_pll_ops = {
+const struct clk_ops meson_clk_pll_ops =
+{
 	.recalc_rate	= meson_clk_pll_recalc_rate,
 	.round_rate	= meson_clk_pll_round_rate,
 	.set_rate	= meson_clk_pll_set_rate,
 };
 
-const struct clk_ops meson_clk_pll_ro_ops = {
+const struct clk_ops meson_clk_pll_ro_ops =
+{
 	.recalc_rate	= meson_clk_pll_recalc_rate,
 };

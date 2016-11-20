@@ -311,7 +311,8 @@
 #define TSI108_TX_OWN	(1 << 31)	/* Set if the device owns the descriptor */
 
 /* Note: the descriptor layouts assume big-endian byte order. */
-typedef struct {
+typedef struct
+{
 	u32 buf0;
 	u32 buf1;		/* Base address of buffer */
 	u32 next0;		/* Address of next descriptor, if any */
@@ -338,7 +339,8 @@ typedef struct {
 
 #define TSI108_RX_SKB_SIZE 1536		/* The RX skb length */
 
-typedef struct {
+typedef struct
+{
 	u32 buf0;		/* Base address of buffer */
 	u32 buf1;		/* Base address of buffer */
 	u32 next0;		/* Address of next descriptor, if any */

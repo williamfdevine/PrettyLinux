@@ -152,11 +152,11 @@
 #define DSPTOPC_BASED(w)	(((w) - DSP_BASE_ADDR) * 2)
 
 #ifdef SLOWIO
-#define msnd_outb			outb_p
-#define msnd_inb			inb_p
+	#define msnd_outb			outb_p
+	#define msnd_inb			inb_p
 #else
-#define msnd_outb			outb
-#define msnd_inb			inb
+	#define msnd_outb			outb
+	#define msnd_inb			inb
 #endif
 
 /* JobQueueStruct */
@@ -181,16 +181,18 @@ typedef u8			BYTE;
 typedef u16			USHORT;
 typedef u16			WORD;
 typedef u32			DWORD;
-typedef void __iomem *		LPDAQD;
+typedef void __iomem 		*LPDAQD;
 
 /* Generic FIFO */
-typedef struct {
+typedef struct
+{
 	size_t n, len;
 	char *data;
 	int head, tail;
 } msnd_fifo;
 
-typedef struct multisound_dev {
+typedef struct multisound_dev
+{
 	/* Linux device info */
 	char *name;
 	int dsp_minor, mixer_minor;
@@ -251,7 +253,7 @@ typedef struct multisound_dev {
 } multisound_dev_t;
 
 #ifndef mdelay
-#  define mdelay(a)		udelay((a) * 1000)
+	#define mdelay(a)		udelay((a) * 1000)
 #endif
 
 int				msnd_register(multisound_dev_t *dev);
@@ -270,7 +272,7 @@ int				msnd_fifo_read(msnd_fifo *f, char *buf, size_t len);
 
 int				msnd_send_dsp_cmd(multisound_dev_t *dev, BYTE cmd);
 int				msnd_send_word(multisound_dev_t *dev, unsigned char high,
-					       unsigned char mid, unsigned char low);
+							   unsigned char mid, unsigned char low);
 int				msnd_upload_host(multisound_dev_t *dev, char *bin, int len);
 int				msnd_enable_irq(multisound_dev_t *dev);
 int				msnd_disable_irq(multisound_dev_t *dev);

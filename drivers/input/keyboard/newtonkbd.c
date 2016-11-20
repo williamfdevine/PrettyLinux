@@ -40,7 +40,8 @@ MODULE_LICENSE("GPL");
 #define NKBD_KEY	0x7f
 #define NKBD_PRESS	0x80
 
-static unsigned char nkbd_keycode[128] = {
+static unsigned char nkbd_keycode[128] =
+{
 	KEY_A, KEY_S, KEY_D, KEY_F, KEY_H, KEY_G, KEY_Z, KEY_X,
 	KEY_C, KEY_V, 0, KEY_B, KEY_Q, KEY_W, KEY_E, KEY_R,
 	KEY_Y, KEY_T, KEY_1, KEY_2, KEY_3, KEY_4, KEY_6, KEY_5,
@@ -56,7 +57,8 @@ static unsigned char nkbd_keycode[128] = {
 	KEY_LEFT, KEY_RIGHT, KEY_DOWN, KEY_UP, 0
 };
 
-struct nkbd {
+struct nkbd
+{
 	unsigned char keycode[128];
 	struct input_dev *dev;
 	struct serio *serio;
@@ -64,18 +66,22 @@ struct nkbd {
 };
 
 static irqreturn_t nkbd_interrupt(struct serio *serio,
-		unsigned char data, unsigned int flags)
+								  unsigned char data, unsigned int flags)
 {
 	struct nkbd *nkbd = serio_get_drvdata(serio);
 
 	/* invalid scan codes are probably the init sequence, so we ignore them */
-	if (nkbd->keycode[data & NKBD_KEY]) {
+	if (nkbd->keycode[data & NKBD_KEY])
+	{
 		input_report_key(nkbd->dev, nkbd->keycode[data & NKBD_KEY], data & NKBD_PRESS);
 		input_sync(nkbd->dev);
 	}
 
 	else if (data == 0xe7) /* end of init sequence */
+	{
 		printk(KERN_INFO "input: %s on %s\n", nkbd->dev->name, serio->phys);
+	}
+
 	return IRQ_HANDLED;
 
 }
@@ -89,8 +95,11 @@ static int nkbd_connect(struct serio *serio, struct serio_driver *drv)
 
 	nkbd = kzalloc(sizeof(struct nkbd), GFP_KERNEL);
 	input_dev = input_allocate_device();
+
 	if (!nkbd || !input_dev)
+	{
 		goto fail1;
+	}
 
 	nkbd->serio = serio;
 	nkbd->dev = input_dev;
@@ -109,25 +118,35 @@ static int nkbd_connect(struct serio *serio, struct serio_driver *drv)
 	input_dev->keycode = nkbd->keycode;
 	input_dev->keycodesize = sizeof(unsigned char);
 	input_dev->keycodemax = ARRAY_SIZE(nkbd_keycode);
+
 	for (i = 0; i < 128; i++)
+	{
 		set_bit(nkbd->keycode[i], input_dev->keybit);
+	}
+
 	clear_bit(0, input_dev->keybit);
 
 	serio_set_drvdata(serio, nkbd);
 
 	err = serio_open(serio, drv);
+
 	if (err)
+	{
 		goto fail2;
+	}
 
 	err = input_register_device(nkbd->dev);
+
 	if (err)
+	{
 		goto fail3;
+	}
 
 	return 0;
 
- fail3:	serio_close(serio);
- fail2:	serio_set_drvdata(serio, NULL);
- fail1:	input_free_device(input_dev);
+fail3:	serio_close(serio);
+fail2:	serio_set_drvdata(serio, NULL);
+fail1:	input_free_device(input_dev);
 	kfree(nkbd);
 	return err;
 }
@@ -142,7 +161,8 @@ static void nkbd_disconnect(struct serio *serio)
 	kfree(nkbd);
 }
 
-static struct serio_device_id nkbd_serio_ids[] = {
+static struct serio_device_id nkbd_serio_ids[] =
+{
 	{
 		.type	= SERIO_RS232,
 		.proto	= SERIO_NEWTON,
@@ -154,7 +174,8 @@ static struct serio_device_id nkbd_serio_ids[] = {
 
 MODULE_DEVICE_TABLE(serio, nkbd_serio_ids);
 
-static struct serio_driver nkbd_drv = {
+static struct serio_driver nkbd_drv =
+{
 	.driver		= {
 		.name	= "newtonkbd",
 	},

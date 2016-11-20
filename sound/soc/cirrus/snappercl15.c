@@ -25,37 +25,46 @@
 #define CODEC_CLOCK 5644800
 
 static int snappercl15_hw_params(struct snd_pcm_substream *substream,
-				 struct snd_pcm_hw_params *params)
+								 struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
 	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
 	int err;
 
-	err = snd_soc_dai_set_sysclk(codec_dai, 0, CODEC_CLOCK, 
-				     SND_SOC_CLOCK_IN);
-	if (err)
-		return err;
+	err = snd_soc_dai_set_sysclk(codec_dai, 0, CODEC_CLOCK,
+								 SND_SOC_CLOCK_IN);
 
-	err = snd_soc_dai_set_sysclk(cpu_dai, 0, CODEC_CLOCK, 
-				     SND_SOC_CLOCK_OUT);
 	if (err)
+	{
 		return err;
+	}
+
+	err = snd_soc_dai_set_sysclk(cpu_dai, 0, CODEC_CLOCK,
+								 SND_SOC_CLOCK_OUT);
+
+	if (err)
+	{
+		return err;
+	}
 
 	return 0;
 }
 
-static struct snd_soc_ops snappercl15_ops = {
+static struct snd_soc_ops snappercl15_ops =
+{
 	.hw_params	= snappercl15_hw_params,
 };
 
-static const struct snd_soc_dapm_widget tlv320aic23_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget tlv320aic23_dapm_widgets[] =
+{
 	SND_SOC_DAPM_HP("Headphone Jack", NULL),
 	SND_SOC_DAPM_LINE("Line In", NULL),
 	SND_SOC_DAPM_MIC("Mic Jack", NULL),
 };
 
-static const struct snd_soc_dapm_route audio_map[] = {
+static const struct snd_soc_dapm_route audio_map[] =
+{
 	{"Headphone Jack", NULL, "LHPOUT"},
 	{"Headphone Jack", NULL, "RHPOUT"},
 
@@ -65,7 +74,8 @@ static const struct snd_soc_dapm_route audio_map[] = {
 	{"MICIN", NULL, "Mic Jack"},
 };
 
-static struct snd_soc_dai_link snappercl15_dai = {
+static struct snd_soc_dai_link snappercl15_dai =
+{
 	.name		= "tlv320aic23",
 	.stream_name	= "AIC23",
 	.cpu_dai_name	= "ep93xx-i2s",
@@ -73,11 +83,12 @@ static struct snd_soc_dai_link snappercl15_dai = {
 	.codec_name	= "tlv320aic23-codec.0-001a",
 	.platform_name	= "ep93xx-i2s",
 	.dai_fmt	= SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_IF |
-			  SND_SOC_DAIFMT_CBS_CFS,
+	SND_SOC_DAIFMT_CBS_CFS,
 	.ops		= &snappercl15_ops,
 };
 
-static struct snd_soc_card snd_soc_snappercl15 = {
+static struct snd_soc_card snd_soc_snappercl15 =
+{
 	.name		= "Snapper CL15",
 	.owner		= THIS_MODULE,
 	.dai_link	= &snappercl15_dai,
@@ -95,15 +106,20 @@ static int snappercl15_probe(struct platform_device *pdev)
 	int ret;
 
 	ret = ep93xx_i2s_acquire();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	card->dev = &pdev->dev;
 
 	ret = snd_soc_register_card(card);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
-			ret);
+				ret);
 		ep93xx_i2s_release();
 	}
 
@@ -120,7 +136,8 @@ static int snappercl15_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver snappercl15_driver = {
+static struct platform_driver snappercl15_driver =
+{
 	.driver		= {
 		.name	= "snappercl15-audio",
 	},

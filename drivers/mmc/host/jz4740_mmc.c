@@ -107,19 +107,22 @@
 
 #define JZ_MMC_CLK_RATE 24000000
 
-enum jz4740_mmc_state {
+enum jz4740_mmc_state
+{
 	JZ4740_MMC_STATE_READ_RESPONSE,
 	JZ4740_MMC_STATE_TRANSFER_DATA,
 	JZ4740_MMC_STATE_SEND_STOP,
 	JZ4740_MMC_STATE_DONE,
 };
 
-struct jz4740_mmc_host_next {
+struct jz4740_mmc_host_next
+{
 	int sg_len;
 	s32 cookie;
 };
 
-struct jz4740_mmc_host {
+struct jz4740_mmc_host
+{
 	struct mmc_host *mmc;
 	struct platform_device *pdev;
 	struct jz4740_mmc_platform_data *pdata;
@@ -152,10 +155,10 @@ struct jz4740_mmc_host {
 	bool use_dma;
 	int sg_len;
 
-/* The DMA trigger level is 8 words, that is to say, the DMA read
- * trigger is when data words in MSC_RXFIFO is >= 8 and the DMA write
- * trigger is when data words in MSC_TXFIFO is < 8.
- */
+	/* The DMA trigger level is 8 words, that is to say, the DMA read
+	 * trigger is when data words in MSC_RXFIFO is >= 8 and the DMA write
+	 * trigger is when data words in MSC_TXFIFO is < 8.
+	 */
 #define JZ4740_MMC_FIFO_HALF_SIZE 8
 };
 
@@ -165,7 +168,9 @@ struct jz4740_mmc_host {
 static void jz4740_mmc_release_dma_channels(struct jz4740_mmc_host *host)
 {
 	if (!host->use_dma)
+	{
 		return;
+	}
 
 	dma_release_channel(host->dma_tx);
 	dma_release_channel(host->dma_rx);
@@ -179,13 +184,17 @@ static int jz4740_mmc_acquire_dma_channels(struct jz4740_mmc_host *host)
 	dma_cap_set(DMA_SLAVE, mask);
 
 	host->dma_tx = dma_request_channel(mask, NULL, host);
-	if (!host->dma_tx) {
+
+	if (!host->dma_tx)
+	{
 		dev_err(mmc_dev(host->mmc), "Failed to get dma_tx channel\n");
 		return -ENODEV;
 	}
 
 	host->dma_rx = dma_request_channel(mask, NULL, host);
-	if (!host->dma_rx) {
+
+	if (!host->dma_rx)
+	{
 		dev_err(mmc_dev(host->mmc), "Failed to get dma_rx channel\n");
 		goto free_master_write;
 	}
@@ -206,13 +215,13 @@ static inline int jz4740_mmc_get_dma_dir(struct mmc_data *data)
 }
 
 static inline struct dma_chan *jz4740_mmc_get_dma_chan(struct jz4740_mmc_host *host,
-						       struct mmc_data *data)
+		struct mmc_data *data)
 {
 	return (data->flags & MMC_DATA_READ) ? host->dma_rx : host->dma_tx;
 }
 
 static void jz4740_mmc_dma_unmap(struct jz4740_mmc_host *host,
-				 struct mmc_data *data)
+								 struct mmc_data *data)
 {
 	struct dma_chan *chan = jz4740_mmc_get_dma_chan(host, data);
 	enum dma_data_direction dir = jz4740_mmc_get_dma_dir(data);
@@ -222,70 +231,83 @@ static void jz4740_mmc_dma_unmap(struct jz4740_mmc_host *host,
 
 /* Prepares DMA data for current/next transfer, returns non-zero on failure */
 static int jz4740_mmc_prepare_dma_data(struct jz4740_mmc_host *host,
-				       struct mmc_data *data,
-				       struct jz4740_mmc_host_next *next,
-				       struct dma_chan *chan)
+									   struct mmc_data *data,
+									   struct jz4740_mmc_host_next *next,
+									   struct dma_chan *chan)
 {
 	struct jz4740_mmc_host_next *next_data = &host->next_data;
 	enum dma_data_direction dir = jz4740_mmc_get_dma_dir(data);
 	int sg_len;
 
 	if (!next && data->host_cookie &&
-	    data->host_cookie != host->next_data.cookie) {
+		data->host_cookie != host->next_data.cookie)
+	{
 		dev_warn(mmc_dev(host->mmc),
-			 "[%s] invalid cookie: data->host_cookie %d host->next_data.cookie %d\n",
-			 __func__,
-			 data->host_cookie,
-			 host->next_data.cookie);
+				 "[%s] invalid cookie: data->host_cookie %d host->next_data.cookie %d\n",
+				 __func__,
+				 data->host_cookie,
+				 host->next_data.cookie);
 		data->host_cookie = 0;
 	}
 
 	/* Check if next job is already prepared */
-	if (next || data->host_cookie != host->next_data.cookie) {
+	if (next || data->host_cookie != host->next_data.cookie)
+	{
 		sg_len = dma_map_sg(chan->device->dev,
-				    data->sg,
-				    data->sg_len,
-				    dir);
+							data->sg,
+							data->sg_len,
+							dir);
 
-	} else {
+	}
+	else
+	{
 		sg_len = next_data->sg_len;
 		next_data->sg_len = 0;
 	}
 
-	if (sg_len <= 0) {
+	if (sg_len <= 0)
+	{
 		dev_err(mmc_dev(host->mmc),
-			"Failed to map scatterlist for DMA operation\n");
+				"Failed to map scatterlist for DMA operation\n");
 		return -EINVAL;
 	}
 
-	if (next) {
+	if (next)
+	{
 		next->sg_len = sg_len;
 		data->host_cookie = ++next->cookie < 0 ? 1 : next->cookie;
-	} else
+	}
+	else
+	{
 		host->sg_len = sg_len;
+	}
 
 	return 0;
 }
 
 static int jz4740_mmc_start_dma_transfer(struct jz4740_mmc_host *host,
-					 struct mmc_data *data)
+		struct mmc_data *data)
 {
 	int ret;
 	struct dma_chan *chan;
 	struct dma_async_tx_descriptor *desc;
-	struct dma_slave_config conf = {
+	struct dma_slave_config conf =
+	{
 		.src_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES,
 		.dst_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES,
 		.src_maxburst = JZ4740_MMC_FIFO_HALF_SIZE,
 		.dst_maxburst = JZ4740_MMC_FIFO_HALF_SIZE,
 	};
 
-	if (data->flags & MMC_DATA_WRITE) {
+	if (data->flags & MMC_DATA_WRITE)
+	{
 		conf.direction = DMA_MEM_TO_DEV;
 		conf.dst_addr = host->mem_res->start + JZ_REG_MMC_TXFIFO;
 		conf.slave_id = JZ4740_DMA_TYPE_MMC_TRANSMIT;
 		chan = host->dma_tx;
-	} else {
+	}
+	else
+	{
 		conf.direction = DMA_DEV_TO_MEM;
 		conf.src_addr = host->mem_res->start + JZ_REG_MMC_RXFIFO;
 		conf.slave_id = JZ4740_DMA_TYPE_MMC_RECEIVE;
@@ -293,19 +315,24 @@ static int jz4740_mmc_start_dma_transfer(struct jz4740_mmc_host *host,
 	}
 
 	ret = jz4740_mmc_prepare_dma_data(host, data, NULL, chan);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dmaengine_slave_config(chan, &conf);
 	desc = dmaengine_prep_slave_sg(chan,
-				       data->sg,
-				       host->sg_len,
-				       conf.direction,
-				       DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
-	if (!desc) {
+								   data->sg,
+								   host->sg_len,
+								   conf.direction,
+								   DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+
+	if (!desc)
+	{
 		dev_err(mmc_dev(host->mmc),
-			"Failed to allocate DMA %s descriptor",
-			 conf.direction == DMA_MEM_TO_DEV ? "TX" : "RX");
+				"Failed to allocate DMA %s descriptor",
+				conf.direction == DMA_MEM_TO_DEV ? "TX" : "RX");
 		goto dma_unmap;
 	}
 
@@ -320,8 +347,8 @@ dma_unmap:
 }
 
 static void jz4740_mmc_pre_request(struct mmc_host *mmc,
-				   struct mmc_request *mrq,
-				   bool is_first_req)
+								   struct mmc_request *mrq,
+								   bool is_first_req)
 {
 	struct jz4740_mmc_host *host = mmc_priv(mmc);
 	struct mmc_data *data = mrq->data;
@@ -329,27 +356,32 @@ static void jz4740_mmc_pre_request(struct mmc_host *mmc,
 
 	BUG_ON(data->host_cookie);
 
-	if (host->use_dma) {
+	if (host->use_dma)
+	{
 		struct dma_chan *chan = jz4740_mmc_get_dma_chan(host, data);
 
 		if (jz4740_mmc_prepare_dma_data(host, data, next_data, chan))
+		{
 			data->host_cookie = 0;
+		}
 	}
 }
 
 static void jz4740_mmc_post_request(struct mmc_host *mmc,
-				    struct mmc_request *mrq,
-				    int err)
+									struct mmc_request *mrq,
+									int err)
 {
 	struct jz4740_mmc_host *host = mmc_priv(mmc);
 	struct mmc_data *data = mrq->data;
 
-	if (host->use_dma && data->host_cookie) {
+	if (host->use_dma && data->host_cookie)
+	{
 		jz4740_mmc_dma_unmap(host, data);
 		data->host_cookie = 0;
 	}
 
-	if (err) {
+	if (err)
+	{
 		struct dma_chan *chan = jz4740_mmc_get_dma_chan(host, data);
 
 		dmaengine_terminate_all(chan);
@@ -359,27 +391,35 @@ static void jz4740_mmc_post_request(struct mmc_host *mmc,
 /*----------------------------------------------------------------------------*/
 
 static void jz4740_mmc_set_irq_enabled(struct jz4740_mmc_host *host,
-	unsigned int irq, bool enabled)
+									   unsigned int irq, bool enabled)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&host->lock, flags);
+
 	if (enabled)
+	{
 		host->irq_mask &= ~irq;
+	}
 	else
+	{
 		host->irq_mask |= irq;
+	}
+
 	spin_unlock_irqrestore(&host->lock, flags);
 
 	writew(host->irq_mask, host->base + JZ_REG_MMC_IMASK);
 }
 
 static void jz4740_mmc_clock_enable(struct jz4740_mmc_host *host,
-	bool start_transfer)
+									bool start_transfer)
 {
 	uint16_t val = JZ_MMC_STRPCL_CLOCK_START;
 
 	if (start_transfer)
+	{
 		val |= JZ_MMC_STRPCL_START_OP;
+	}
 
 	writew(val, host->base + JZ_REG_MMC_STRPCL);
 }
@@ -390,9 +430,12 @@ static void jz4740_mmc_clock_disable(struct jz4740_mmc_host *host)
 	unsigned int timeout = 1000;
 
 	writew(JZ_MMC_STRPCL_CLOCK_STOP, host->base + JZ_REG_MMC_STRPCL);
-	do {
+
+	do
+	{
 		status = readl(host->base + JZ_REG_MMC_STATUS);
-	} while (status & JZ_MMC_STATUS_CLK_EN && --timeout);
+	}
+	while (status & JZ_MMC_STATUS_CLK_EN && --timeout);
 }
 
 static void jz4740_mmc_reset(struct jz4740_mmc_host *host)
@@ -402,9 +445,12 @@ static void jz4740_mmc_reset(struct jz4740_mmc_host *host)
 
 	writew(JZ_MMC_STRPCL_RESET, host->base + JZ_REG_MMC_STRPCL);
 	udelay(10);
-	do {
+
+	do
+	{
 		status = readl(host->base + JZ_REG_MMC_STATUS);
-	} while (status & JZ_MMC_STATUS_IS_RESETTING && --timeout);
+	}
+	while (status & JZ_MMC_STATUS_IS_RESETTING && --timeout);
 }
 
 static void jz4740_mmc_request_done(struct jz4740_mmc_host *host)
@@ -418,18 +464,21 @@ static void jz4740_mmc_request_done(struct jz4740_mmc_host *host)
 }
 
 static unsigned int jz4740_mmc_poll_irq(struct jz4740_mmc_host *host,
-	unsigned int irq)
+										unsigned int irq)
 {
 	unsigned int timeout = 0x800;
 	uint16_t status;
 
-	do {
+	do
+	{
 		status = readw(host->base + JZ_REG_MMC_IREG);
-	} while (!(status & irq) && --timeout);
+	}
+	while (!(status & irq) && --timeout);
 
-	if (timeout == 0) {
+	if (timeout == 0)
+	{
 		set_bit(0, &host->waiting);
-		mod_timer(&host->timeout_timer, jiffies + 5*HZ);
+		mod_timer(&host->timeout_timer, jiffies + 5 * HZ);
 		jz4740_mmc_set_irq_enabled(host, irq, true);
 		return true;
 	}
@@ -438,24 +487,34 @@ static unsigned int jz4740_mmc_poll_irq(struct jz4740_mmc_host *host,
 }
 
 static void jz4740_mmc_transfer_check_state(struct jz4740_mmc_host *host,
-	struct mmc_data *data)
+		struct mmc_data *data)
 {
 	int status;
 
 	status = readl(host->base + JZ_REG_MMC_STATUS);
-	if (status & JZ_MMC_STATUS_WRITE_ERROR_MASK) {
-		if (status & (JZ_MMC_STATUS_TIMEOUT_WRITE)) {
+
+	if (status & JZ_MMC_STATUS_WRITE_ERROR_MASK)
+	{
+		if (status & (JZ_MMC_STATUS_TIMEOUT_WRITE))
+		{
 			host->req->cmd->error = -ETIMEDOUT;
 			data->error = -ETIMEDOUT;
-		} else {
+		}
+		else
+		{
 			host->req->cmd->error = -EIO;
 			data->error = -EIO;
 		}
-	} else if (status & JZ_MMC_STATUS_READ_ERROR_MASK) {
-		if (status & (JZ_MMC_STATUS_TIMEOUT_READ)) {
+	}
+	else if (status & JZ_MMC_STATUS_READ_ERROR_MASK)
+	{
+		if (status & (JZ_MMC_STATUS_TIMEOUT_READ))
+		{
 			host->req->cmd->error = -ETIMEDOUT;
 			data->error = -ETIMEDOUT;
-		} else {
+		}
+		else
+		{
 			host->req->cmd->error = -EIO;
 			data->error = -EIO;
 		}
@@ -463,7 +522,7 @@ static void jz4740_mmc_transfer_check_state(struct jz4740_mmc_host *host,
 }
 
 static bool jz4740_mmc_write_data(struct jz4740_mmc_host *host,
-	struct mmc_data *data)
+								  struct mmc_data *data)
 {
 	struct sg_mapping_iter *miter = &host->miter;
 	void __iomem *fifo_addr = host->base + JZ_REG_MMC_TXFIFO;
@@ -471,15 +530,21 @@ static bool jz4740_mmc_write_data(struct jz4740_mmc_host *host,
 	bool timeout;
 	size_t i, j;
 
-	while (sg_miter_next(miter)) {
+	while (sg_miter_next(miter))
+	{
 		buf = miter->addr;
 		i = miter->length / 4;
 		j = i / 8;
 		i = i & 0x7;
-		while (j) {
+
+		while (j)
+		{
 			timeout = jz4740_mmc_poll_irq(host, JZ_MMC_IRQ_TXFIFO_WR_REQ);
+
 			if (unlikely(timeout))
+			{
 				goto poll_timeout;
+			}
 
 			writel(buf[0], fifo_addr);
 			writel(buf[1], fifo_addr);
@@ -492,19 +557,27 @@ static bool jz4740_mmc_write_data(struct jz4740_mmc_host *host,
 			buf += 8;
 			--j;
 		}
-		if (unlikely(i)) {
-			timeout = jz4740_mmc_poll_irq(host, JZ_MMC_IRQ_TXFIFO_WR_REQ);
-			if (unlikely(timeout))
-				goto poll_timeout;
 
-			while (i) {
+		if (unlikely(i))
+		{
+			timeout = jz4740_mmc_poll_irq(host, JZ_MMC_IRQ_TXFIFO_WR_REQ);
+
+			if (unlikely(timeout))
+			{
+				goto poll_timeout;
+			}
+
+			while (i)
+			{
 				writel(*buf, fifo_addr);
 				++buf;
 				--i;
 			}
 		}
+
 		data->bytes_xfered += miter->length;
 	}
+
 	sg_miter_stop(miter);
 
 	return false;
@@ -518,7 +591,7 @@ poll_timeout:
 }
 
 static bool jz4740_mmc_read_data(struct jz4740_mmc_host *host,
-				struct mmc_data *data)
+								 struct mmc_data *data)
 {
 	struct sg_mapping_iter *miter = &host->miter;
 	void __iomem *fifo_addr = host->base + JZ_REG_MMC_RXFIFO;
@@ -528,15 +601,21 @@ static bool jz4740_mmc_read_data(struct jz4740_mmc_host *host,
 	size_t i, j;
 	unsigned int timeout;
 
-	while (sg_miter_next(miter)) {
+	while (sg_miter_next(miter))
+	{
 		buf = miter->addr;
 		i = miter->length;
 		j = i / 32;
 		i = i & 0x1f;
-		while (j) {
+
+		while (j)
+		{
 			timeout = jz4740_mmc_poll_irq(host, JZ_MMC_IRQ_RXFIFO_RD_REQ);
+
 			if (unlikely(timeout))
+			{
 				goto poll_timeout;
+			}
 
 			buf[0] = readl(fifo_addr);
 			buf[1] = readl(fifo_addr);
@@ -551,33 +630,44 @@ static bool jz4740_mmc_read_data(struct jz4740_mmc_host *host,
 			--j;
 		}
 
-		if (unlikely(i)) {
+		if (unlikely(i))
+		{
 			timeout = jz4740_mmc_poll_irq(host, JZ_MMC_IRQ_RXFIFO_RD_REQ);
-			if (unlikely(timeout))
-				goto poll_timeout;
 
-			while (i >= 4) {
+			if (unlikely(timeout))
+			{
+				goto poll_timeout;
+			}
+
+			while (i >= 4)
+			{
 				*buf++ = readl(fifo_addr);
 				i -= 4;
 			}
-			if (unlikely(i > 0)) {
+
+			if (unlikely(i > 0))
+			{
 				d = readl(fifo_addr);
 				memcpy(buf, &d, i);
 			}
 		}
+
 		data->bytes_xfered += miter->length;
 
 		/* This can go away once MIPS implements
 		 * flush_kernel_dcache_page */
 		flush_dcache_page(miter->page);
 	}
+
 	sg_miter_stop(miter);
 
 	/* For whatever reason there is sometime one word more in the fifo then
 	 * requested */
 	timeout = 1000;
 	status = readl(host->base + JZ_REG_MMC_STATUS);
-	while (!(status & JZ_MMC_STATUS_DATA_FIFO_EMPTY) && --timeout) {
+
+	while (!(status & JZ_MMC_STATUS_DATA_FIFO_EMPTY) && --timeout)
+	{
 		d = readl(fifo_addr);
 		status = readl(host->base + JZ_REG_MMC_STATUS);
 	}
@@ -597,7 +687,9 @@ static void jz4740_mmc_timeout(unsigned long data)
 	struct jz4740_mmc_host *host = (struct jz4740_mmc_host *)data;
 
 	if (!test_and_clear_bit(0, &host->waiting))
+	{
 		return;
+	}
 
 	jz4740_mmc_set_irq_enabled(host, JZ_MMC_IRQ_END_CMD_RES, false);
 
@@ -606,22 +698,27 @@ static void jz4740_mmc_timeout(unsigned long data)
 }
 
 static void jz4740_mmc_read_response(struct jz4740_mmc_host *host,
-	struct mmc_command *cmd)
+									 struct mmc_command *cmd)
 {
 	int i;
 	uint16_t tmp;
 	void __iomem *fifo_addr = host->base + JZ_REG_MMC_RESP_FIFO;
 
-	if (cmd->flags & MMC_RSP_136) {
+	if (cmd->flags & MMC_RSP_136)
+	{
 		tmp = readw(fifo_addr);
-		for (i = 0; i < 4; ++i) {
+
+		for (i = 0; i < 4; ++i)
+		{
 			cmd->resp[i] = tmp << 24;
 			tmp = readw(fifo_addr);
 			cmd->resp[i] |= tmp << 8;
 			tmp = readw(fifo_addr);
 			cmd->resp[i] |= tmp >> 8;
 		}
-	} else {
+	}
+	else
+	{
 		cmd->resp[0] = readw(fifo_addr) << 24;
 		cmd->resp[0] |= readw(fifo_addr) << 8;
 		cmd->resp[0] |= readw(fifo_addr) & 0xff;
@@ -629,7 +726,7 @@ static void jz4740_mmc_read_response(struct jz4740_mmc_host *host,
 }
 
 static void jz4740_mmc_send_command(struct jz4740_mmc_host *host,
-	struct mmc_command *cmd)
+									struct mmc_command *cmd)
 {
 	uint32_t cmdat = host->cmdat;
 
@@ -639,29 +736,42 @@ static void jz4740_mmc_send_command(struct jz4740_mmc_host *host,
 	host->cmd = cmd;
 
 	if (cmd->flags & MMC_RSP_BUSY)
+	{
 		cmdat |= JZ_MMC_CMDAT_BUSY;
-
-	switch (mmc_resp_type(cmd)) {
-	case MMC_RSP_R1B:
-	case MMC_RSP_R1:
-		cmdat |= JZ_MMC_CMDAT_RSP_R1;
-		break;
-	case MMC_RSP_R2:
-		cmdat |= JZ_MMC_CMDAT_RSP_R2;
-		break;
-	case MMC_RSP_R3:
-		cmdat |= JZ_MMC_CMDAT_RSP_R3;
-		break;
-	default:
-		break;
 	}
 
-	if (cmd->data) {
+	switch (mmc_resp_type(cmd))
+	{
+		case MMC_RSP_R1B:
+		case MMC_RSP_R1:
+			cmdat |= JZ_MMC_CMDAT_RSP_R1;
+			break;
+
+		case MMC_RSP_R2:
+			cmdat |= JZ_MMC_CMDAT_RSP_R2;
+			break;
+
+		case MMC_RSP_R3:
+			cmdat |= JZ_MMC_CMDAT_RSP_R3;
+			break;
+
+		default:
+			break;
+	}
+
+	if (cmd->data)
+	{
 		cmdat |= JZ_MMC_CMDAT_DATA_EN;
+
 		if (cmd->data->flags & MMC_DATA_WRITE)
+		{
 			cmdat |= JZ_MMC_CMDAT_WRITE;
+		}
+
 		if (host->use_dma)
+		{
 			cmdat |= JZ_MMC_CMDAT_DMA_EN;
+		}
 
 		writew(cmd->data->blksz, host->base + JZ_REG_MMC_BLKLEN);
 		writew(cmd->data->blocks, host->base + JZ_REG_MMC_NOB);
@@ -681,9 +791,13 @@ static void jz_mmc_prepare_data_transfer(struct jz4740_mmc_host *host)
 	int direction;
 
 	if (data->flags & MMC_DATA_READ)
+	{
 		direction = SG_MITER_TO_SG;
+	}
 	else
+	{
 		direction = SG_MITER_FROM_SG;
+	}
 
 	sg_miter_start(&host->miter, data->sg, data->sg_len, direction);
 }
@@ -698,72 +812,97 @@ static irqreturn_t jz_mmc_irq_worker(int irq, void *devid)
 	bool timeout = false;
 
 	if (cmd->error)
+	{
 		host->state = JZ4740_MMC_STATE_DONE;
+	}
 
-	switch (host->state) {
-	case JZ4740_MMC_STATE_READ_RESPONSE:
-		if (cmd->flags & MMC_RSP_PRESENT)
-			jz4740_mmc_read_response(host, cmd);
+	switch (host->state)
+	{
+		case JZ4740_MMC_STATE_READ_RESPONSE:
+			if (cmd->flags & MMC_RSP_PRESENT)
+			{
+				jz4740_mmc_read_response(host, cmd);
+			}
 
-		if (!data)
-			break;
-
-		jz_mmc_prepare_data_transfer(host);
-
-	case JZ4740_MMC_STATE_TRANSFER_DATA:
-		if (host->use_dma) {
-			/* Use DMA if enabled.
-			 * Data transfer direction is defined later by
-			 * relying on data flags in
-			 * jz4740_mmc_prepare_dma_data() and
-			 * jz4740_mmc_start_dma_transfer().
-			 */
-			timeout = jz4740_mmc_start_dma_transfer(host, data);
-			data->bytes_xfered = data->blocks * data->blksz;
-		} else if (data->flags & MMC_DATA_READ)
-			/* Use PIO if DMA is not enabled.
-			 * Data transfer direction was defined before
-			 * by relying on data flags in
-			 * jz_mmc_prepare_data_transfer().
-			 */
-			timeout = jz4740_mmc_read_data(host, data);
-		else
-			timeout = jz4740_mmc_write_data(host, data);
-
-		if (unlikely(timeout)) {
-			host->state = JZ4740_MMC_STATE_TRANSFER_DATA;
-			break;
-		}
-
-		jz4740_mmc_transfer_check_state(host, data);
-
-		timeout = jz4740_mmc_poll_irq(host, JZ_MMC_IRQ_DATA_TRAN_DONE);
-		if (unlikely(timeout)) {
-			host->state = JZ4740_MMC_STATE_SEND_STOP;
-			break;
-		}
-		writew(JZ_MMC_IRQ_DATA_TRAN_DONE, host->base + JZ_REG_MMC_IREG);
-
-	case JZ4740_MMC_STATE_SEND_STOP:
-		if (!req->stop)
-			break;
-
-		jz4740_mmc_send_command(host, req->stop);
-
-		if (mmc_resp_type(req->stop) & MMC_RSP_BUSY) {
-			timeout = jz4740_mmc_poll_irq(host,
-						      JZ_MMC_IRQ_PRG_DONE);
-			if (timeout) {
-				host->state = JZ4740_MMC_STATE_DONE;
+			if (!data)
+			{
 				break;
 			}
-		}
-	case JZ4740_MMC_STATE_DONE:
-		break;
+
+			jz_mmc_prepare_data_transfer(host);
+
+		case JZ4740_MMC_STATE_TRANSFER_DATA:
+			if (host->use_dma)
+			{
+				/* Use DMA if enabled.
+				 * Data transfer direction is defined later by
+				 * relying on data flags in
+				 * jz4740_mmc_prepare_dma_data() and
+				 * jz4740_mmc_start_dma_transfer().
+				 */
+				timeout = jz4740_mmc_start_dma_transfer(host, data);
+				data->bytes_xfered = data->blocks * data->blksz;
+			}
+			else if (data->flags & MMC_DATA_READ)
+				/* Use PIO if DMA is not enabled.
+				 * Data transfer direction was defined before
+				 * by relying on data flags in
+				 * jz_mmc_prepare_data_transfer().
+				 */
+			{
+				timeout = jz4740_mmc_read_data(host, data);
+			}
+			else
+			{
+				timeout = jz4740_mmc_write_data(host, data);
+			}
+
+			if (unlikely(timeout))
+			{
+				host->state = JZ4740_MMC_STATE_TRANSFER_DATA;
+				break;
+			}
+
+			jz4740_mmc_transfer_check_state(host, data);
+
+			timeout = jz4740_mmc_poll_irq(host, JZ_MMC_IRQ_DATA_TRAN_DONE);
+
+			if (unlikely(timeout))
+			{
+				host->state = JZ4740_MMC_STATE_SEND_STOP;
+				break;
+			}
+
+			writew(JZ_MMC_IRQ_DATA_TRAN_DONE, host->base + JZ_REG_MMC_IREG);
+
+		case JZ4740_MMC_STATE_SEND_STOP:
+			if (!req->stop)
+			{
+				break;
+			}
+
+			jz4740_mmc_send_command(host, req->stop);
+
+			if (mmc_resp_type(req->stop) & MMC_RSP_BUSY)
+			{
+				timeout = jz4740_mmc_poll_irq(host,
+											  JZ_MMC_IRQ_PRG_DONE);
+
+				if (timeout)
+				{
+					host->state = JZ4740_MMC_STATE_DONE;
+					break;
+				}
+			}
+
+		case JZ4740_MMC_STATE_DONE:
+			break;
 	}
 
 	if (!timeout)
+	{
 		jz4740_mmc_request_done(host);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -780,32 +919,45 @@ static irqreturn_t jz_mmc_irq(int irq, void *devid)
 	irq_reg &= ~host->irq_mask;
 
 	tmp &= ~(JZ_MMC_IRQ_TXFIFO_WR_REQ | JZ_MMC_IRQ_RXFIFO_RD_REQ |
-		JZ_MMC_IRQ_PRG_DONE | JZ_MMC_IRQ_DATA_TRAN_DONE);
+			 JZ_MMC_IRQ_PRG_DONE | JZ_MMC_IRQ_DATA_TRAN_DONE);
 
 	if (tmp != irq_reg)
+	{
 		writew(tmp & ~irq_reg, host->base + JZ_REG_MMC_IREG);
+	}
 
-	if (irq_reg & JZ_MMC_IRQ_SDIO) {
+	if (irq_reg & JZ_MMC_IRQ_SDIO)
+	{
 		writew(JZ_MMC_IRQ_SDIO, host->base + JZ_REG_MMC_IREG);
 		mmc_signal_sdio_irq(host->mmc);
 		irq_reg &= ~JZ_MMC_IRQ_SDIO;
 	}
 
-	if (host->req && cmd && irq_reg) {
-		if (test_and_clear_bit(0, &host->waiting)) {
+	if (host->req && cmd && irq_reg)
+	{
+		if (test_and_clear_bit(0, &host->waiting))
+		{
 			del_timer(&host->timeout_timer);
 
 			status = readl(host->base + JZ_REG_MMC_STATUS);
 
-			if (status & JZ_MMC_STATUS_TIMEOUT_RES) {
-					cmd->error = -ETIMEDOUT;
-			} else if (status & JZ_MMC_STATUS_CRC_RES_ERR) {
-					cmd->error = -EIO;
-			} else if (status & (JZ_MMC_STATUS_CRC_READ_ERROR |
-				    JZ_MMC_STATUS_CRC_WRITE_ERROR)) {
-					if (cmd->data)
-							cmd->data->error = -EIO;
-					cmd->error = -EIO;
+			if (status & JZ_MMC_STATUS_TIMEOUT_RES)
+			{
+				cmd->error = -ETIMEDOUT;
+			}
+			else if (status & JZ_MMC_STATUS_CRC_RES_ERR)
+			{
+				cmd->error = -EIO;
+			}
+			else if (status & (JZ_MMC_STATUS_CRC_READ_ERROR |
+							   JZ_MMC_STATUS_CRC_WRITE_ERROR))
+			{
+				if (cmd->data)
+				{
+					cmd->data->error = -EIO;
+				}
+
+				cmd->error = -EIO;
 			}
 
 			jz4740_mmc_set_irq_enabled(host, irq_reg, false);
@@ -828,7 +980,8 @@ static int jz4740_mmc_set_clock_rate(struct jz4740_mmc_host *host, int rate)
 
 	real_rate = clk_get_rate(host->clk);
 
-	while (real_rate > rate && div < 7) {
+	while (real_rate > rate && div < 7)
+	{
 		++div;
 		real_rate >>= 1;
 	}
@@ -850,44 +1003,56 @@ static void jz4740_mmc_request(struct mmc_host *mmc, struct mmc_request *req)
 
 	host->state = JZ4740_MMC_STATE_READ_RESPONSE;
 	set_bit(0, &host->waiting);
-	mod_timer(&host->timeout_timer, jiffies + 5*HZ);
+	mod_timer(&host->timeout_timer, jiffies + 5 * HZ);
 	jz4740_mmc_send_command(host, req->cmd);
 }
 
 static void jz4740_mmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 {
 	struct jz4740_mmc_host *host = mmc_priv(mmc);
-	if (ios->clock)
-		jz4740_mmc_set_clock_rate(host, ios->clock);
 
-	switch (ios->power_mode) {
-	case MMC_POWER_UP:
-		jz4740_mmc_reset(host);
-		if (gpio_is_valid(host->pdata->gpio_power))
-			gpio_set_value(host->pdata->gpio_power,
-					!host->pdata->power_active_low);
-		host->cmdat |= JZ_MMC_CMDAT_INIT;
-		clk_prepare_enable(host->clk);
-		break;
-	case MMC_POWER_ON:
-		break;
-	default:
-		if (gpio_is_valid(host->pdata->gpio_power))
-			gpio_set_value(host->pdata->gpio_power,
-					host->pdata->power_active_low);
-		clk_disable_unprepare(host->clk);
-		break;
+	if (ios->clock)
+	{
+		jz4740_mmc_set_clock_rate(host, ios->clock);
 	}
 
-	switch (ios->bus_width) {
-	case MMC_BUS_WIDTH_1:
-		host->cmdat &= ~JZ_MMC_CMDAT_BUS_WIDTH_4BIT;
-		break;
-	case MMC_BUS_WIDTH_4:
-		host->cmdat |= JZ_MMC_CMDAT_BUS_WIDTH_4BIT;
-		break;
-	default:
-		break;
+	switch (ios->power_mode)
+	{
+		case MMC_POWER_UP:
+			jz4740_mmc_reset(host);
+
+			if (gpio_is_valid(host->pdata->gpio_power))
+				gpio_set_value(host->pdata->gpio_power,
+							   !host->pdata->power_active_low);
+
+			host->cmdat |= JZ_MMC_CMDAT_INIT;
+			clk_prepare_enable(host->clk);
+			break;
+
+		case MMC_POWER_ON:
+			break;
+
+		default:
+			if (gpio_is_valid(host->pdata->gpio_power))
+				gpio_set_value(host->pdata->gpio_power,
+							   host->pdata->power_active_low);
+
+			clk_disable_unprepare(host->clk);
+			break;
+	}
+
+	switch (ios->bus_width)
+	{
+		case MMC_BUS_WIDTH_1:
+			host->cmdat &= ~JZ_MMC_CMDAT_BUS_WIDTH_4BIT;
+			break;
+
+		case MMC_BUS_WIDTH_4:
+			host->cmdat |= JZ_MMC_CMDAT_BUS_WIDTH_4BIT;
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -897,7 +1062,8 @@ static void jz4740_mmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
 	jz4740_mmc_set_irq_enabled(host, JZ_MMC_IRQ_SDIO, enable);
 }
 
-static const struct mmc_host_ops jz4740_mmc_ops = {
+static const struct mmc_host_ops jz4740_mmc_ops =
+{
 	.request	= jz4740_mmc_request,
 	.pre_req	= jz4740_mmc_pre_request,
 	.post_req	= jz4740_mmc_post_request,
@@ -907,7 +1073,8 @@ static const struct mmc_host_ops jz4740_mmc_ops = {
 	.enable_sdio_irq = jz4740_mmc_enable_sdio_irq,
 };
 
-static const struct jz_gpio_bulk_request jz4740_mmc_pins[] = {
+static const struct jz_gpio_bulk_request jz4740_mmc_pins[] =
+{
 	JZ_GPIO_BULK_PIN(MSC_CMD),
 	JZ_GPIO_BULK_PIN(MSC_CLK),
 	JZ_GPIO_BULK_PIN(MSC_DATA0),
@@ -917,55 +1084,78 @@ static const struct jz_gpio_bulk_request jz4740_mmc_pins[] = {
 };
 
 static int jz4740_mmc_request_gpio(struct device *dev, int gpio,
-	const char *name, bool output, int value)
+								   const char *name, bool output, int value)
 {
 	int ret;
 
 	if (!gpio_is_valid(gpio))
+	{
 		return 0;
+	}
 
 	ret = gpio_request(gpio, name);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to request %s gpio: %d\n", name, ret);
 		return ret;
 	}
 
 	if (output)
+	{
 		gpio_direction_output(gpio, value);
+	}
 	else
+	{
 		gpio_direction_input(gpio);
+	}
 
 	return 0;
 }
 
 static int jz4740_mmc_request_gpios(struct mmc_host *mmc,
-	struct platform_device *pdev)
+									struct platform_device *pdev)
 {
 	struct jz4740_mmc_platform_data *pdata = pdev->dev.platform_data;
 	int ret = 0;
 
 	if (!pdata)
+	{
 		return 0;
-
-	if (!pdata->card_detect_active_low)
-		mmc->caps2 |= MMC_CAP2_CD_ACTIVE_HIGH;
-	if (!pdata->read_only_active_low)
-		mmc->caps2 |= MMC_CAP2_RO_ACTIVE_HIGH;
-
-	if (gpio_is_valid(pdata->gpio_card_detect)) {
-		ret = mmc_gpio_request_cd(mmc, pdata->gpio_card_detect, 0);
-		if (ret)
-			return ret;
 	}
 
-	if (gpio_is_valid(pdata->gpio_read_only)) {
-		ret = mmc_gpio_request_ro(mmc, pdata->gpio_read_only);
+	if (!pdata->card_detect_active_low)
+	{
+		mmc->caps2 |= MMC_CAP2_CD_ACTIVE_HIGH;
+	}
+
+	if (!pdata->read_only_active_low)
+	{
+		mmc->caps2 |= MMC_CAP2_RO_ACTIVE_HIGH;
+	}
+
+	if (gpio_is_valid(pdata->gpio_card_detect))
+	{
+		ret = mmc_gpio_request_cd(mmc, pdata->gpio_card_detect, 0);
+
 		if (ret)
+		{
 			return ret;
+		}
+	}
+
+	if (gpio_is_valid(pdata->gpio_read_only))
+	{
+		ret = mmc_gpio_request_ro(mmc, pdata->gpio_read_only);
+
+		if (ret)
+		{
+			return ret;
+		}
 	}
 
 	return jz4740_mmc_request_gpio(&pdev->dev, pdata->gpio_power,
-			"MMC read only", true, pdata->power_active_low);
+								   "MMC read only", true, pdata->power_active_low);
 }
 
 static void jz4740_mmc_free_gpios(struct platform_device *pdev)
@@ -973,22 +1163,29 @@ static void jz4740_mmc_free_gpios(struct platform_device *pdev)
 	struct jz4740_mmc_platform_data *pdata = pdev->dev.platform_data;
 
 	if (!pdata)
+	{
 		return;
+	}
 
 	if (gpio_is_valid(pdata->gpio_power))
+	{
 		gpio_free(pdata->gpio_power);
+	}
 }
 
 static inline size_t jz4740_mmc_num_pins(struct jz4740_mmc_host *host)
 {
 	size_t num_pins = ARRAY_SIZE(jz4740_mmc_pins);
+
 	if (host->pdata && host->pdata->data_1bit)
+	{
 		num_pins -= 3;
+	}
 
 	return num_pins;
 }
 
-static int jz4740_mmc_probe(struct platform_device* pdev)
+static int jz4740_mmc_probe(struct platform_device *pdev)
 {
 	int ret;
 	struct mmc_host *mmc;
@@ -998,7 +1195,9 @@ static int jz4740_mmc_probe(struct platform_device* pdev)
 	pdata = pdev->dev.platform_data;
 
 	mmc = mmc_alloc_host(sizeof(struct jz4740_mmc_host), &pdev->dev);
-	if (!mmc) {
+
+	if (!mmc)
+	{
 		dev_err(&pdev->dev, "Failed to alloc mmc host structure\n");
 		return -ENOMEM;
 	}
@@ -1007,14 +1206,18 @@ static int jz4740_mmc_probe(struct platform_device* pdev)
 	host->pdata = pdata;
 
 	host->irq = platform_get_irq(pdev, 0);
-	if (host->irq < 0) {
+
+	if (host->irq < 0)
+	{
 		ret = host->irq;
 		dev_err(&pdev->dev, "Failed to get platform irq: %d\n", ret);
 		goto err_free_host;
 	}
 
 	host->clk = devm_clk_get(&pdev->dev, "mmc");
-	if (IS_ERR(host->clk)) {
+
+	if (IS_ERR(host->clk))
+	{
 		ret = PTR_ERR(host->clk);
 		dev_err(&pdev->dev, "Failed to get mmc clock\n");
 		goto err_free_host;
@@ -1022,21 +1225,28 @@ static int jz4740_mmc_probe(struct platform_device* pdev)
 
 	host->mem_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	host->base = devm_ioremap_resource(&pdev->dev, host->mem_res);
-	if (IS_ERR(host->base)) {
+
+	if (IS_ERR(host->base))
+	{
 		ret = PTR_ERR(host->base);
 		dev_err(&pdev->dev, "Failed to ioremap base memory\n");
 		goto err_free_host;
 	}
 
 	ret = jz_gpio_bulk_request(jz4740_mmc_pins, jz4740_mmc_num_pins(host));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to request mmc pins: %d\n", ret);
 		goto err_free_host;
 	}
 
 	ret = jz4740_mmc_request_gpios(mmc, pdev);
+
 	if (ret)
+	{
 		goto err_gpio_bulk_free;
+	}
 
 	mmc->ops = &jz4740_mmc_ops;
 	mmc->f_min = JZ_MMC_CLK_RATE / 128;
@@ -1058,8 +1268,10 @@ static int jz4740_mmc_probe(struct platform_device* pdev)
 	host->irq_mask = 0xffff;
 
 	ret = request_threaded_irq(host->irq, jz_mmc_irq, jz_mmc_irq_worker, 0,
-			dev_name(&pdev->dev), host);
-	if (ret) {
+							   dev_name(&pdev->dev), host);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to request irq: %d\n", ret);
 		goto err_free_gpios;
 	}
@@ -1067,24 +1279,29 @@ static int jz4740_mmc_probe(struct platform_device* pdev)
 	jz4740_mmc_reset(host);
 	jz4740_mmc_clock_disable(host);
 	setup_timer(&host->timeout_timer, jz4740_mmc_timeout,
-			(unsigned long)host);
+				(unsigned long)host);
 
 	host->use_dma = true;
+
 	if (host->use_dma && jz4740_mmc_acquire_dma_channels(host) != 0)
+	{
 		host->use_dma = false;
+	}
 
 	platform_set_drvdata(pdev, host);
 	ret = mmc_add_host(mmc);
 
-	if (ret) {
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to add mmc host: %d\n", ret);
 		goto err_free_irq;
 	}
+
 	dev_info(&pdev->dev, "JZ SD/MMC card driver registered\n");
 
 	dev_info(&pdev->dev, "Using %s, %d-bit mode\n",
-		 host->use_dma ? "DMA" : "PIO",
-		 (mmc->caps & MMC_CAP_4_BIT_DATA) ? 4 : 1);
+			 host->use_dma ? "DMA" : "PIO",
+			 (mmc->caps & MMC_CAP_4_BIT_DATA) ? 4 : 1);
 
 	return 0;
 
@@ -1093,8 +1310,12 @@ err_free_irq:
 err_free_gpios:
 	jz4740_mmc_free_gpios(pdev);
 err_gpio_bulk_free:
+
 	if (host->use_dma)
+	{
 		jz4740_mmc_release_dma_channels(host);
+	}
+
 	jz_gpio_bulk_free(jz4740_mmc_pins, jz4740_mmc_num_pins(host));
 err_free_host:
 	mmc_free_host(mmc);
@@ -1118,7 +1339,9 @@ static int jz4740_mmc_remove(struct platform_device *pdev)
 	jz_gpio_bulk_free(jz4740_mmc_pins, jz4740_mmc_num_pins(host));
 
 	if (host->use_dma)
+	{
 		jz4740_mmc_release_dma_channels(host);
+	}
 
 	mmc_free_host(host->mmc);
 
@@ -1146,13 +1369,14 @@ static int jz4740_mmc_resume(struct device *dev)
 }
 
 static SIMPLE_DEV_PM_OPS(jz4740_mmc_pm_ops, jz4740_mmc_suspend,
-	jz4740_mmc_resume);
+						 jz4740_mmc_resume);
 #define JZ4740_MMC_PM_OPS (&jz4740_mmc_pm_ops)
 #else
 #define JZ4740_MMC_PM_OPS NULL
 #endif
 
-static struct platform_driver jz4740_mmc_driver = {
+static struct platform_driver jz4740_mmc_driver =
+{
 	.probe = jz4740_mmc_probe,
 	.remove = jz4740_mmc_remove,
 	.driver = {

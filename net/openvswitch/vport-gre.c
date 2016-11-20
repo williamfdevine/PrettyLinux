@@ -57,19 +57,26 @@ static struct vport *gre_tnl_create(const struct vport_parms *parms)
 	int err;
 
 	vport = ovs_vport_alloc(0, &ovs_gre_vport_ops, parms);
+
 	if (IS_ERR(vport))
+	{
 		return vport;
+	}
 
 	rtnl_lock();
 	dev = gretap_fb_dev_create(net, parms->name, NET_NAME_USER);
-	if (IS_ERR(dev)) {
+
+	if (IS_ERR(dev))
+	{
 		rtnl_unlock();
 		ovs_vport_free(vport);
 		return ERR_CAST(dev);
 	}
 
 	err = dev_change_flags(dev, dev->flags | IFF_UP);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		rtnl_delete_link(dev);
 		rtnl_unlock();
 		ovs_vport_free(vport);
@@ -85,13 +92,17 @@ static struct vport *gre_create(const struct vport_parms *parms)
 	struct vport *vport;
 
 	vport = gre_tnl_create(parms);
+
 	if (IS_ERR(vport))
+	{
 		return vport;
+	}
 
 	return ovs_netdev_link(vport, parms->name);
 }
 
-static struct vport_ops ovs_gre_vport_ops = {
+static struct vport_ops ovs_gre_vport_ops =
+{
 	.type		= OVS_VPORT_TYPE_GRE,
 	.create		= gre_create,
 	.send		= dev_queue_xmit,

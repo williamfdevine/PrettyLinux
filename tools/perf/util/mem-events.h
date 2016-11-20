@@ -3,7 +3,8 @@
 
 #include <stdbool.h>
 
-struct perf_mem_event {
+struct perf_mem_event
+{
 	bool		record;
 	bool		supported;
 	const char	*tag;
@@ -11,7 +12,8 @@ struct perf_mem_event {
 	const char	*sysfs_name;
 };
 
-enum {
+enum
+{
 	PERF_MEM_EVENTS__LOAD,
 	PERF_MEM_EVENTS__STORE,
 	PERF_MEM_EVENTS__MAX,

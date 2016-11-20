@@ -30,7 +30,8 @@ extern const struct brcms_c_rateset cck_rates;
 extern const struct brcms_c_rateset gphy_legacy_rates;
 extern const struct brcms_c_rateset rate_limit_1_2;
 
-struct brcms_mcs_info {
+struct brcms_mcs_info
+{
 	/* phy rate in kbps [20Mhz] */
 	u32 phy_rate_20;
 	/* phy rate in kbps [40Mhz] */
@@ -60,13 +61,20 @@ static inline u8 mcs_2_txstreams(u8 mcs)
 
 static inline uint mcs_2_rate(u8 mcs, bool is40, bool sgi)
 {
-	if (sgi) {
+	if (sgi)
+	{
 		if (is40)
+		{
 			return mcs_table[mcs].phy_rate_40_sgi;
+		}
+
 		return mcs_table[mcs].phy_rate_20_sgi;
 	}
+
 	if (is40)
+	{
 		return mcs_table[mcs].phy_rate_40;
+	}
 
 	return mcs_table[mcs].phy_rate_20;
 }
@@ -143,7 +151,8 @@ static inline uint rspec2rate(u32 rspec)
 {
 	if (rspec & RSPEC_MIMORATE)
 		return mcs_2_rate(rspec & RSPEC_RATE_MASK, rspec_is40mhz(rspec),
-				  rspec_issgi(rspec));
+						  rspec_issgi(rspec));
+
 	return rspec & RSPEC_RATE_MASK;
 }
 
@@ -175,7 +184,7 @@ static inline bool is_mcs_rate(u32 ratespec)
 static inline bool is_ofdm_rate(u32 ratespec)
 {
 	return !is_mcs_rate(ratespec) &&
-	       (rate_info[ratespec & RSPEC_RATE_MASK] & BRCMS_RATE_FLAG);
+		   (rate_info[ratespec & RSPEC_RATE_MASK] & BRCMS_RATE_FLAG);
 }
 
 static inline bool is_cck_rate(u32 ratespec)
@@ -183,8 +192,8 @@ static inline bool is_cck_rate(u32 ratespec)
 	u32 rate = (ratespec & BRCMS_RATE_MASK);
 
 	return !is_mcs_rate(ratespec) && (
-			rate == BRCM_RATE_1M || rate == BRCM_RATE_2M ||
-			rate == BRCM_RATE_5M5 || rate == BRCM_RATE_11M);
+			   rate == BRCM_RATE_1M || rate == BRCM_RATE_2M ||
+			   rate == BRCM_RATE_5M5 || rate == BRCM_RATE_11M);
 }
 
 static inline bool is_single_stream(u8 mcs)
@@ -206,7 +215,7 @@ static inline u8 ofdm_phy2mac_rate(u8 rlpt)
 
 static inline u8 cck_phy2mac_rate(u8 signal)
 {
-	return signal/5;
+	return signal / 5;
 }
 
 /* Rates specified in brcms_c_rateset_filter() */
@@ -217,23 +226,23 @@ static inline u8 cck_phy2mac_rate(u8 signal)
 /* sanitize, and sort a rateset with the basic bit(s) preserved, validate
  * rateset */
 bool brcms_c_rate_hwrs_filter_sort_validate(struct brcms_c_rateset *rs,
-					    const struct brcms_c_rateset *hw_rs,
-					    bool check_brate, u8 txstreams);
+		const struct brcms_c_rateset *hw_rs,
+		bool check_brate, u8 txstreams);
 /* copy rateset src to dst as-is (no masking or sorting) */
 void brcms_c_rateset_copy(const struct brcms_c_rateset *src,
-			  struct brcms_c_rateset *dst);
+						  struct brcms_c_rateset *dst);
 
 /* would be nice to have these documented ... */
 u32 brcms_c_compute_rspec(struct d11rxhdr *rxh, u8 *plcp);
 
 void brcms_c_rateset_filter(struct brcms_c_rateset *src,
-			    struct brcms_c_rateset *dst, bool basic_only,
-			    u8 rates, uint xmask, bool mcsallow);
+							struct brcms_c_rateset *dst, bool basic_only,
+							u8 rates, uint xmask, bool mcsallow);
 
 void brcms_c_rateset_default(struct brcms_c_rateset *rs_tgt,
-			     const struct brcms_c_rateset *rs_hw, uint phy_type,
-			     int bandtype, bool cck_only, uint rate_mask,
-			     bool mcsallow, u8 bw, u8 txstreams);
+							 const struct brcms_c_rateset *rs_hw, uint phy_type,
+							 int bandtype, bool cck_only, uint rate_mask,
+							 bool mcsallow, u8 bw, u8 txstreams);
 
 s16 brcms_c_rate_legacy_phyctl(uint rate);
 

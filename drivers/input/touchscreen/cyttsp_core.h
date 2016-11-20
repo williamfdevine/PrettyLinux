@@ -40,13 +40,15 @@
 
 #define CY_NUM_RETRY		16 /* max number of retries for read ops */
 
-struct cyttsp_tch {
+struct cyttsp_tch
+{
 	__be16 x, y;
 	u8 z;
 } __packed;
 
 /* TrueTouch Standard Product Gen3 interface definition */
-struct cyttsp_xydata {
+struct cyttsp_xydata
+{
 	u8 hst_mode;
 	u8 tt_mode;
 	u8 tt_stat;
@@ -65,7 +67,8 @@ struct cyttsp_xydata {
 
 
 /* TTSP System Information interface definition */
-struct cyttsp_sysinfo_data {
+struct cyttsp_sysinfo_data
+{
 	u8 hst_mode;
 	u8 mfg_stat;
 	u8 mfg_cmd;
@@ -89,7 +92,8 @@ struct cyttsp_sysinfo_data {
 
 /* TTSP Bootloader Register Map interface definition */
 #define CY_BL_CHKSUM_OK 0x01
-struct cyttsp_bootloader_data {
+struct cyttsp_bootloader_data
+{
 	u8 bl_file;
 	u8 bl_status;
 	u8 bl_error;
@@ -110,21 +114,24 @@ struct cyttsp_bootloader_data {
 
 struct cyttsp;
 
-struct cyttsp_bus_ops {
+struct cyttsp_bus_ops
+{
 	u16 bustype;
 	int (*write)(struct device *dev, u8 *xfer_buf, u16 addr, u8 length,
-			const void *values);
+				 const void *values);
 	int (*read)(struct device *dev, u8 *xfer_buf, u16 addr, u8 length,
-			void *values);
+				void *values);
 };
 
-enum cyttsp_state {
+enum cyttsp_state
+{
 	CY_IDLE_STATE,
 	CY_ACTIVE_STATE,
 	CY_BL_STATE,
 };
 
-struct cyttsp {
+struct cyttsp
+{
 	struct device *dev;
 	int irq;
 	struct input_dev *input;
@@ -149,12 +156,12 @@ struct cyttsp {
 };
 
 struct cyttsp *cyttsp_probe(const struct cyttsp_bus_ops *bus_ops,
-			    struct device *dev, int irq, size_t xfer_buf_size);
+							struct device *dev, int irq, size_t xfer_buf_size);
 
 int cyttsp_i2c_write_block_data(struct device *dev, u8 *xfer_buf, u16 addr,
-		u8 length, const void *values);
+								u8 length, const void *values);
 int cyttsp_i2c_read_block_data(struct device *dev, u8 *xfer_buf, u16 addr,
-		u8 length, void *values);
+							   u8 length, void *values);
 extern const struct dev_pm_ops cyttsp_pm_ops;
 
 #endif /* __CYTTSP_CORE_H__ */

@@ -16,7 +16,7 @@
 #include <asm/unaligned.h>
 
 typedef void (sha512_block_fn)(struct sha512_state *sst, u8 const *src,
-			       int blocks);
+							   int blocks);
 
 static inline int sha384_base_init(struct shash_desc *desc)
 {
@@ -53,21 +53,26 @@ static inline int sha512_base_init(struct shash_desc *desc)
 }
 
 static inline int sha512_base_do_update(struct shash_desc *desc,
-					const u8 *data,
-					unsigned int len,
-					sha512_block_fn *block_fn)
+										const u8 *data,
+										unsigned int len,
+										sha512_block_fn *block_fn)
 {
 	struct sha512_state *sctx = shash_desc_ctx(desc);
 	unsigned int partial = sctx->count[0] % SHA512_BLOCK_SIZE;
 
 	sctx->count[0] += len;
-	if (sctx->count[0] < len)
-		sctx->count[1]++;
 
-	if (unlikely((partial + len) >= SHA512_BLOCK_SIZE)) {
+	if (sctx->count[0] < len)
+	{
+		sctx->count[1]++;
+	}
+
+	if (unlikely((partial + len) >= SHA512_BLOCK_SIZE))
+	{
 		int blocks;
 
-		if (partial) {
+		if (partial)
+		{
 			int p = SHA512_BLOCK_SIZE - partial;
 
 			memcpy(sctx->buf + partial, data, p);
@@ -80,20 +85,25 @@ static inline int sha512_base_do_update(struct shash_desc *desc,
 		blocks = len / SHA512_BLOCK_SIZE;
 		len %= SHA512_BLOCK_SIZE;
 
-		if (blocks) {
+		if (blocks)
+		{
 			block_fn(sctx, data, blocks);
 			data += blocks * SHA512_BLOCK_SIZE;
 		}
+
 		partial = 0;
 	}
+
 	if (len)
+	{
 		memcpy(sctx->buf + partial, data, len);
+	}
 
 	return 0;
 }
 
 static inline int sha512_base_do_finalize(struct shash_desc *desc,
-					  sha512_block_fn *block_fn)
+		sha512_block_fn *block_fn)
 {
 	const int bit_offset = SHA512_BLOCK_SIZE - sizeof(__be64[2]);
 	struct sha512_state *sctx = shash_desc_ctx(desc);
@@ -101,7 +111,9 @@ static inline int sha512_base_do_finalize(struct shash_desc *desc,
 	unsigned int partial = sctx->count[0] % SHA512_BLOCK_SIZE;
 
 	sctx->buf[partial++] = 0x80;
-	if (partial > bit_offset) {
+
+	if (partial > bit_offset)
+	{
 		memset(sctx->buf + partial, 0x0, SHA512_BLOCK_SIZE - partial);
 		partial = 0;
 
@@ -124,8 +136,10 @@ static inline int sha512_base_finish(struct shash_desc *desc, u8 *out)
 	int i;
 
 	for (i = 0; digest_size > 0; i++, digest_size -= sizeof(__be64))
+	{
 		put_unaligned_be64(sctx->state[i], digest++);
+	}
 
-	*sctx = (struct sha512_state){};
+	*sctx = (struct sha512_state) {};
 	return 0;
 }

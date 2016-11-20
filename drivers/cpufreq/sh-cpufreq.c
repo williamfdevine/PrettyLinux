@@ -39,8 +39,8 @@ static unsigned int sh_cpufreq_get(unsigned int cpu)
  * Here we notify other drivers of the proposed change and the final change.
  */
 static int sh_cpufreq_target(struct cpufreq_policy *policy,
-			     unsigned int target_freq,
-			     unsigned int relation)
+							 unsigned int target_freq,
+							 unsigned int relation)
 {
 	unsigned int cpu = policy->cpu;
 	struct clk *cpuclk = &per_cpu(sh_cpuclk, cpu);
@@ -60,7 +60,9 @@ static int sh_cpufreq_target(struct cpufreq_policy *policy,
 	freq = clk_round_rate(cpuclk, target_freq * 1000);
 
 	if (freq < (policy->min * 1000) || freq > (policy->max * 1000))
+	{
 		return -EINVAL;
+	}
 
 	dev_dbg(dev, "requested frequency %u Hz\n", target_freq * 1000);
 
@@ -84,8 +86,11 @@ static int sh_cpufreq_verify(struct cpufreq_policy *policy)
 	struct cpufreq_frequency_table *freq_table;
 
 	freq_table = cpuclk->nr_freqs ? cpuclk->freq_table : NULL;
+
 	if (freq_table)
+	{
 		return cpufreq_frequency_table_verify(policy, freq_table);
+	}
 
 	cpufreq_verify_within_cpu_limits(policy);
 
@@ -106,34 +111,43 @@ static int sh_cpufreq_cpu_init(struct cpufreq_policy *policy)
 	dev = get_cpu_device(cpu);
 
 	cpuclk = clk_get(dev, "cpu_clk");
-	if (IS_ERR(cpuclk)) {
+
+	if (IS_ERR(cpuclk))
+	{
 		dev_err(dev, "couldn't get CPU clk\n");
 		return PTR_ERR(cpuclk);
 	}
 
 	freq_table = cpuclk->nr_freqs ? cpuclk->freq_table : NULL;
-	if (freq_table) {
+
+	if (freq_table)
+	{
 		int result;
 
 		result = cpufreq_table_validate_and_show(policy, freq_table);
+
 		if (result)
+		{
 			return result;
-	} else {
+		}
+	}
+	else
+	{
 		dev_notice(dev, "no frequency table found, falling back "
-			   "to rate rounding.\n");
+				   "to rate rounding.\n");
 
 		policy->min = policy->cpuinfo.min_freq =
-			(clk_round_rate(cpuclk, 1) + 500) / 1000;
+						  (clk_round_rate(cpuclk, 1) + 500) / 1000;
 		policy->max = policy->cpuinfo.max_freq =
-			(clk_round_rate(cpuclk, ~0UL) + 500) / 1000;
+						  (clk_round_rate(cpuclk, ~0UL) + 500) / 1000;
 	}
 
 	policy->cpuinfo.transition_latency = CPUFREQ_ETERNAL;
 
 	dev_info(dev, "CPU Frequencies - Minimum %u.%03u MHz, "
-	       "Maximum %u.%03u MHz.\n",
-	       policy->min / 1000, policy->min % 1000,
-	       policy->max / 1000, policy->max % 1000);
+			 "Maximum %u.%03u MHz.\n",
+			 policy->min / 1000, policy->min % 1000,
+			 policy->max / 1000, policy->max % 1000);
 
 	return 0;
 }
@@ -148,7 +162,8 @@ static int sh_cpufreq_cpu_exit(struct cpufreq_policy *policy)
 	return 0;
 }
 
-static struct cpufreq_driver sh_cpufreq_driver = {
+static struct cpufreq_driver sh_cpufreq_driver =
+{
 	.name		= "sh",
 	.get		= sh_cpufreq_get,
 	.target		= sh_cpufreq_target,

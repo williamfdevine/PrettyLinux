@@ -18,7 +18,8 @@
 #ifndef	__XFS_LOG_H__
 #define __XFS_LOG_H__
 
-struct xfs_log_vec {
+struct xfs_log_vec
+{
 	struct xfs_log_vec	*lv_next;	/* next lv in build list */
 	int			lv_niovecs;	/* number of iovecs in lv */
 	struct xfs_log_iovec	*lv_iovecp;	/* iovec array */
@@ -33,14 +34,17 @@ struct xfs_log_vec {
 
 static inline void *
 xlog_prepare_iovec(struct xfs_log_vec *lv, struct xfs_log_iovec **vecp,
-		uint type)
+				   uint type)
 {
 	struct xfs_log_iovec *vec = *vecp;
 
-	if (vec) {
+	if (vec)
+	{
 		ASSERT(vec - lv->lv_iovecp < lv->lv_niovecs);
 		vec++;
-	} else {
+	}
+	else
+	{
 		vec = &lv->lv_iovecp[0];
 	}
 
@@ -73,7 +77,7 @@ xlog_finish_iovec(struct xfs_log_vec *lv, struct xfs_log_iovec *vec, int len)
 
 static inline void *
 xlog_copy_iovec(struct xfs_log_vec *lv, struct xfs_log_iovec **vecp,
-		uint type, void *data, int len)
+				uint type, void *data, int len)
 {
 	void *buf;
 
@@ -87,7 +91,8 @@ xlog_copy_iovec(struct xfs_log_vec *lv, struct xfs_log_iovec **vecp,
  * Structure used to pass callback function and the function's argument
  * to the log manager.
  */
-typedef struct xfs_log_callback {
+typedef struct xfs_log_callback
+{
 	struct xfs_log_callback	*cb_next;
 	void			(*cb_func)(void *, int);
 	void			*cb_arg;
@@ -100,10 +105,14 @@ typedef struct xfs_log_callback {
 static inline xfs_lsn_t	_lsn_cmp(xfs_lsn_t lsn1, xfs_lsn_t lsn2)
 {
 	if (CYCLE_LSN(lsn1) != CYCLE_LSN(lsn2))
-		return (CYCLE_LSN(lsn1)<CYCLE_LSN(lsn2))? -999 : 999;
+	{
+		return (CYCLE_LSN(lsn1) < CYCLE_LSN(lsn2)) ? -999 : 999;
+	}
 
 	if (BLOCK_LSN(lsn1) != BLOCK_LSN(lsn2))
-		return (BLOCK_LSN(lsn1)<BLOCK_LSN(lsn2))? -999 : 999;
+	{
+		return (BLOCK_LSN(lsn1) < BLOCK_LSN(lsn2)) ? -999 : 999;
+	}
 
 	return 0;
 }
@@ -127,41 +136,41 @@ struct xfs_trans;
 struct xfs_log_callback;
 
 xfs_lsn_t xfs_log_done(struct xfs_mount *mp,
-		       struct xlog_ticket *ticket,
-		       struct xlog_in_core **iclog,
-		       bool regrant);
+					   struct xlog_ticket *ticket,
+					   struct xlog_in_core **iclog,
+					   bool regrant);
 int	  _xfs_log_force(struct xfs_mount *mp,
-			 uint		flags,
-			 int		*log_forced);
+					 uint		flags,
+					 int		*log_forced);
 void	  xfs_log_force(struct xfs_mount	*mp,
-			uint			flags);
+						uint			flags);
 int	  _xfs_log_force_lsn(struct xfs_mount *mp,
-			     xfs_lsn_t		lsn,
-			     uint		flags,
-			     int		*log_forced);
+						 xfs_lsn_t		lsn,
+						 uint		flags,
+						 int		*log_forced);
 void	  xfs_log_force_lsn(struct xfs_mount	*mp,
-			    xfs_lsn_t		lsn,
-			    uint		flags);
+							xfs_lsn_t		lsn,
+							uint		flags);
 int	  xfs_log_mount(struct xfs_mount	*mp,
-			struct xfs_buftarg	*log_target,
-			xfs_daddr_t		start_block,
-			int		 	num_bblocks);
+					struct xfs_buftarg	*log_target,
+					xfs_daddr_t		start_block,
+					int		 	num_bblocks);
 int	  xfs_log_mount_finish(struct xfs_mount *mp);
 int	xfs_log_mount_cancel(struct xfs_mount *);
 xfs_lsn_t xlog_assign_tail_lsn(struct xfs_mount *mp);
 xfs_lsn_t xlog_assign_tail_lsn_locked(struct xfs_mount *mp);
 void	  xfs_log_space_wake(struct xfs_mount *mp);
 int	  xfs_log_notify(struct xfs_mount	*mp,
-			 struct xlog_in_core	*iclog,
-			 struct xfs_log_callback *callback_entry);
+					 struct xlog_in_core	*iclog,
+					 struct xfs_log_callback *callback_entry);
 int	  xfs_log_release_iclog(struct xfs_mount *mp,
-			 struct xlog_in_core	 *iclog);
+							struct xlog_in_core	 *iclog);
 int	  xfs_log_reserve(struct xfs_mount *mp,
-			  int		   length,
-			  int		   count,
-			  struct xlog_ticket **ticket,
-			  __uint8_t	   clientid,
-			  bool		   permanent);
+					  int		   length,
+					  int		   count,
+					  struct xlog_ticket **ticket,
+					  __uint8_t	   clientid,
+					  bool		   permanent);
 int	  xfs_log_regrant(struct xfs_mount *mp, struct xlog_ticket *tic);
 void      xfs_log_unmount(struct xfs_mount *mp);
 int	  xfs_log_force_umount(struct xfs_mount *mp, int logerror);
@@ -170,7 +179,7 @@ struct xlog_ticket *xfs_log_ticket_get(struct xlog_ticket *ticket);
 void	  xfs_log_ticket_put(struct xlog_ticket *ticket);
 
 void	xfs_log_commit_cil(struct xfs_mount *mp, struct xfs_trans *tp,
-				xfs_lsn_t *commit_lsn, bool regrant);
+						   xfs_lsn_t *commit_lsn, bool regrant);
 bool	xfs_log_item_in_current_chkpt(struct xfs_log_item *lip);
 
 void	xfs_log_work_queue(struct xfs_mount *mp);

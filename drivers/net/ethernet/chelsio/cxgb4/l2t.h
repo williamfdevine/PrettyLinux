@@ -43,7 +43,8 @@
 
 enum { L2T_SIZE = 4096 };     /* # of L2T entries */
 
-enum {
+enum
+{
 	L2T_STATE_VALID,      /* entry is up to date */
 	L2T_STATE_STALE,      /* entry may be used but needs revalidation */
 	L2T_STATE_RESOLVING,  /* entry needs address resolution */
@@ -70,7 +71,8 @@ struct cpl_l2t_write_rpl;
  * pointer.  Finally, each node is a bucket of a hash table, pointing to the
  * first element in its chain through its first pointer.
  */
-struct l2t_entry {
+struct l2t_entry
+{
 	u16 state;                  /* entry state */
 	u16 idx;                    /* entry index within in-memory table */
 	u32 addr[4];                /* next hop IP or IPv6 address */
@@ -93,7 +95,8 @@ typedef void (*arp_err_handler_t)(void *handle, struct sk_buff *skb);
 /*
  * Callback stored in an skb to handle address resolution failure.
  */
-struct l2t_skb_cb {
+struct l2t_skb_cb
+{
 	void *handle;
 	arp_err_handler_t arp_err_handler;
 };
@@ -101,7 +104,7 @@ struct l2t_skb_cb {
 #define L2T_SKB_CB(skb) ((struct l2t_skb_cb *)(skb)->cb)
 
 static inline void t4_set_arp_err_handler(struct sk_buff *skb, void *handle,
-					  arp_err_handler_t handler)
+		arp_err_handler_t handler)
 {
 	L2T_SKB_CB(skb)->handle = handle;
 	L2T_SKB_CB(skb)->arp_err_handler = handler;
@@ -109,17 +112,17 @@ static inline void t4_set_arp_err_handler(struct sk_buff *skb, void *handle,
 
 void cxgb4_l2t_release(struct l2t_entry *e);
 int cxgb4_l2t_send(struct net_device *dev, struct sk_buff *skb,
-		   struct l2t_entry *e);
+				   struct l2t_entry *e);
 struct l2t_entry *cxgb4_l2t_get(struct l2t_data *d, struct neighbour *neigh,
-				const struct net_device *physdev,
-				unsigned int priority);
+								const struct net_device *physdev,
+								unsigned int priority);
 u64 cxgb4_select_ntuple(struct net_device *dev,
-			const struct l2t_entry *l2t);
+						const struct l2t_entry *l2t);
 struct l2t_entry *cxgb4_l2t_alloc_switching(struct net_device *dev, u16 vlan,
-					    u8 port, u8 *dmac);
+		u8 port, u8 *dmac);
 void t4_l2t_update(struct adapter *adap, struct neighbour *neigh);
 struct l2t_entry *t4_l2t_alloc_switching(struct adapter *adap, u16 vlan,
-					 u8 port, u8 *dmac);
+		u8 port, u8 *dmac);
 struct l2t_data *t4_init_l2t(unsigned int l2t_start, unsigned int l2t_end);
 void do_l2t_write_rpl(struct adapter *p, const struct cpl_l2t_write_rpl *rpl);
 

@@ -67,12 +67,14 @@
 #define IPC_SST_PERIOD_ELAPSED	0x97
 
 /* IPC messages between host and ADSP */
-struct sst_byt_address_info {
+struct sst_byt_address_info
+{
 	u32 addr;
 	u32 size;
 } __packed;
 
-struct sst_byt_str_type {
+struct sst_byt_str_type
+{
 	u8 codec_type;
 	u8 str_type;
 	u8 operation;
@@ -82,7 +84,8 @@ struct sst_byt_str_type {
 	u16 result;
 } __packed;
 
-struct sst_byt_pcm_params {
+struct sst_byt_pcm_params
+{
 	u8 num_chan;
 	u8 pcm_wd_sz;
 	u8 use_offload_path;
@@ -91,29 +94,34 @@ struct sst_byt_pcm_params {
 	u8 channel_map[8];
 } __packed;
 
-struct sst_byt_frames_info {
+struct sst_byt_frames_info
+{
 	u16 num_entries;
 	u16 rsrvd;
 	u32 frag_size;
 	struct sst_byt_address_info ring_buf_info[8];
 } __packed;
 
-struct sst_byt_alloc_params {
+struct sst_byt_alloc_params
+{
 	struct sst_byt_str_type str_type;
 	struct sst_byt_pcm_params pcm_params;
 	struct sst_byt_frames_info frame_info;
 } __packed;
 
-struct sst_byt_alloc_response {
+struct sst_byt_alloc_response
+{
 	struct sst_byt_str_type str_type;
 	u8 reserved[88];
 } __packed;
 
-struct sst_byt_start_stream_params {
+struct sst_byt_start_stream_params
+{
 	u32 byte_offset;
 } __packed;
 
-struct sst_byt_tstamp {
+struct sst_byt_tstamp
+{
 	u64 ring_buffer_counter;
 	u64 hardware_counter;
 	u64 frames_decoded;
@@ -123,19 +131,22 @@ struct sst_byt_tstamp {
 	u32 channel_peak[8];
 } __packed;
 
-struct sst_byt_fw_version {
+struct sst_byt_fw_version
+{
 	u8 build;
 	u8 minor;
 	u8 major;
 	u8 type;
 } __packed;
 
-struct sst_byt_fw_build_info {
+struct sst_byt_fw_build_info
+{
 	u8 date[16];
 	u8 time[16];
 } __packed;
 
-struct sst_byt_fw_init {
+struct sst_byt_fw_init
+{
 	struct sst_byt_fw_version fw_version;
 	struct sst_byt_fw_build_info build_info;
 	u16 result;
@@ -147,7 +158,8 @@ struct sst_byt_stream;
 struct sst_byt;
 
 /* stream infomation */
-struct sst_byt_stream {
+struct sst_byt_stream
+{
 	struct list_head node;
 
 	/* configuration */
@@ -166,7 +178,8 @@ struct sst_byt_stream {
 };
 
 /* SST Baytrail IPC data */
-struct sst_byt {
+struct sst_byt
+{
 	struct device *dev;
 	struct sst_dsp *dsp;
 
@@ -185,8 +198,8 @@ struct sst_byt {
 static inline u64 sst_byt_header(int msg_id, int data, bool large, int str_id)
 {
 	return IPC_HEADER_MSG_ID(msg_id) | IPC_HEADER_STR_ID(str_id) |
-	       IPC_HEADER_LARGE(large) | IPC_HEADER_DATA(data) |
-	       SST_BYT_IPCX_BUSY;
+		   IPC_HEADER_LARGE(large) | IPC_HEADER_DATA(data) |
+		   SST_BYT_IPCX_BUSY;
 }
 
 static inline u16 sst_byt_header_msg_id(u64 header)
@@ -205,13 +218,16 @@ static inline u16 sst_byt_header_data(u64 header)
 }
 
 static struct sst_byt_stream *sst_byt_get_stream(struct sst_byt *byt,
-						 int stream_id)
+		int stream_id)
 {
 	struct sst_byt_stream *stream;
 
-	list_for_each_entry(stream, &byt->stream_list, node) {
+	list_for_each_entry(stream, &byt->stream_list, node)
+	{
 		if (stream->str_id == stream_id)
+		{
 			return stream;
+		}
 	}
 
 	return NULL;
@@ -225,19 +241,24 @@ static void sst_byt_stream_update(struct sst_byt *byt, struct ipc_message *msg)
 	u8 stream_msg = sst_byt_header_msg_id(header);
 
 	stream = sst_byt_get_stream(byt, stream_id);
-	if (stream == NULL)
-		return;
 
-	switch (stream_msg) {
-	case IPC_IA_DROP_STREAM:
-	case IPC_IA_PAUSE_STREAM:
-	case IPC_IA_FREE_STREAM:
-		stream->running = false;
-		break;
-	case IPC_IA_START_STREAM:
-	case IPC_IA_RESUME_STREAM:
-		stream->running = true;
-		break;
+	if (stream == NULL)
+	{
+		return;
+	}
+
+	switch (stream_msg)
+	{
+		case IPC_IA_DROP_STREAM:
+		case IPC_IA_PAUSE_STREAM:
+		case IPC_IA_FREE_STREAM:
+			stream->running = false;
+			break;
+
+		case IPC_IA_START_STREAM:
+		case IPC_IA_RESUME_STREAM:
+			stream->running = true;
+			break;
 	}
 }
 
@@ -246,10 +267,14 @@ static int sst_byt_process_reply(struct sst_byt *byt, u64 header)
 	struct ipc_message *msg;
 
 	msg = sst_ipc_reply_find_msg(&byt->ipc, header);
-	if (msg == NULL)
-		return 1;
 
-	if (header & IPC_HEADER_LARGE(true)) {
+	if (msg == NULL)
+	{
+		return 1;
+	}
+
+	if (header & IPC_HEADER_LARGE(true))
+	{
 		msg->rx_size = sst_byt_header_data(header);
 		sst_dsp_inbox_read(byt->dsp, msg->rx_data, msg->rx_size);
 	}
@@ -273,7 +298,7 @@ static void sst_byt_fw_ready(struct sst_byt *byt, u64 header)
 }
 
 static int sst_byt_process_notification(struct sst_byt *byt,
-					unsigned long *flags)
+										unsigned long *flags)
 {
 	struct sst_dsp *sst = byt->dsp;
 	struct sst_byt_stream *stream;
@@ -284,19 +309,24 @@ static int sst_byt_process_notification(struct sst_byt *byt,
 	header = sst_dsp_shim_read64_unlocked(sst, SST_IPCD);
 	msg_id = sst_byt_header_msg_id(header);
 
-	switch (msg_id) {
-	case IPC_SST_PERIOD_ELAPSED:
-		stream_id = sst_byt_header_str_id(header);
-		stream = sst_byt_get_stream(byt, stream_id);
-		if (stream && stream->running && stream->notify_position) {
-			spin_unlock_irqrestore(&sst->spinlock, *flags);
-			stream->notify_position(stream, stream->pdata);
-			spin_lock_irqsave(&sst->spinlock, *flags);
-		}
-		break;
-	case IPC_IA_FW_INIT_CMPLT:
-		sst_byt_fw_ready(byt, header);
-		break;
+	switch (msg_id)
+	{
+		case IPC_SST_PERIOD_ELAPSED:
+			stream_id = sst_byt_header_str_id(header);
+			stream = sst_byt_get_stream(byt, stream_id);
+
+			if (stream && stream->running && stream->notify_position)
+			{
+				spin_unlock_irqrestore(&sst->spinlock, *flags);
+				stream->notify_position(stream, stream->pdata);
+				spin_lock_irqsave(&sst->spinlock, *flags);
+			}
+
+			break;
+
+		case IPC_IA_FW_INIT_CMPLT:
+			sst_byt_fw_ready(byt, header);
+			break;
 	}
 
 	return handled;
@@ -313,26 +343,32 @@ static irqreturn_t sst_byt_irq_thread(int irq, void *context)
 	spin_lock_irqsave(&sst->spinlock, flags);
 
 	header = sst_dsp_shim_read64_unlocked(sst, SST_IPCD);
-	if (header & SST_BYT_IPCD_BUSY) {
-		if (header & IPC_NOTIFICATION) {
+
+	if (header & SST_BYT_IPCD_BUSY)
+	{
+		if (header & IPC_NOTIFICATION)
+		{
 			/* message from ADSP */
 			sst_byt_process_notification(byt, &flags);
-		} else {
+		}
+		else
+		{
 			/* reply from ADSP */
 			sst_byt_process_reply(byt, header);
 		}
+
 		/*
 		 * clear IPCD BUSY bit and set DONE bit. Tell DSP we have
 		 * processed the message and can accept new. Clear data part
 		 * of the header
 		 */
 		sst_dsp_shim_update_bits64_unlocked(sst, SST_IPCD,
-			SST_BYT_IPCD_DONE | SST_BYT_IPCD_BUSY |
-			IPC_HEADER_DATA(IPC_HEADER_DATA_MASK),
-			SST_BYT_IPCD_DONE);
+											SST_BYT_IPCD_DONE | SST_BYT_IPCD_BUSY |
+											IPC_HEADER_DATA(IPC_HEADER_DATA_MASK),
+											SST_BYT_IPCD_DONE);
 		/* unmask message request interrupts */
 		sst_dsp_shim_update_bits64_unlocked(sst, SST_IMRX,
-			SST_BYT_IMRX_REQUEST, 0);
+											SST_BYT_IMRX_REQUEST, 0);
 	}
 
 	spin_unlock_irqrestore(&sst->spinlock, flags);
@@ -345,16 +381,19 @@ static irqreturn_t sst_byt_irq_thread(int irq, void *context)
 
 /* stream API */
 struct sst_byt_stream *sst_byt_stream_new(struct sst_byt *byt, int id,
-	u32 (*notify_position)(struct sst_byt_stream *stream, void *data),
-	void *data)
+		u32 (*notify_position)(struct sst_byt_stream *stream, void *data),
+		void *data)
 {
 	struct sst_byt_stream *stream;
 	struct sst_dsp *sst = byt->dsp;
 	unsigned long flags;
 
 	stream = kzalloc(sizeof(*stream), GFP_KERNEL);
+
 	if (stream == NULL)
+	{
 		return NULL;
+	}
 
 	spin_lock_irqsave(&sst->spinlock, flags);
 	list_add(&stream->node, &byt->stream_list);
@@ -368,21 +407,21 @@ struct sst_byt_stream *sst_byt_stream_new(struct sst_byt *byt, int id,
 }
 
 int sst_byt_stream_set_bits(struct sst_byt *byt, struct sst_byt_stream *stream,
-			    int bits)
+							int bits)
 {
 	stream->request.pcm_params.pcm_wd_sz = bits;
 	return 0;
 }
 
 int sst_byt_stream_set_channels(struct sst_byt *byt,
-				struct sst_byt_stream *stream, u8 channels)
+								struct sst_byt_stream *stream, u8 channels)
 {
 	stream->request.pcm_params.num_chan = channels;
 	return 0;
 }
 
 int sst_byt_stream_set_rate(struct sst_byt *byt, struct sst_byt_stream *stream,
-			    unsigned int rate)
+							unsigned int rate)
 {
 	stream->request.pcm_params.sfreq = rate;
 	return 0;
@@ -390,7 +429,7 @@ int sst_byt_stream_set_rate(struct sst_byt *byt, struct sst_byt_stream *stream,
 
 /* stream sonfiguration */
 int sst_byt_stream_type(struct sst_byt *byt, struct sst_byt_stream *stream,
-			int codec_type, int stream_type, int operation)
+						int codec_type, int stream_type, int operation)
 {
 	stream->request.str_type.codec_type = codec_type;
 	stream->request.str_type.str_type = stream_type;
@@ -401,7 +440,7 @@ int sst_byt_stream_type(struct sst_byt *byt, struct sst_byt_stream *stream,
 }
 
 int sst_byt_stream_buffer(struct sst_byt *byt, struct sst_byt_stream *stream,
-			  uint32_t buffer_addr, uint32_t buffer_size)
+						  uint32_t buffer_addr, uint32_t buffer_size)
 {
 	stream->request.frame_info.num_entries = 1;
 	stream->request.frame_info.ring_buf_info[0].addr = buffer_addr;
@@ -423,12 +462,14 @@ int sst_byt_stream_commit(struct sst_byt *byt, struct sst_byt_stream *stream)
 	int ret;
 
 	header = sst_byt_header(IPC_IA_ALLOC_STREAM,
-				sizeof(*str_req) + sizeof(u32),
-				true, stream->str_id);
+							sizeof(*str_req) + sizeof(u32),
+							true, stream->str_id);
 	ret = sst_ipc_tx_message_wait(&byt->ipc, header, str_req,
-				      sizeof(*str_req),
-				      reply, sizeof(*reply));
-	if (ret < 0) {
+								  sizeof(*str_req),
+								  reply, sizeof(*reply));
+
+	if (ret < 0)
+	{
 		dev_err(byt->dev, "ipc: error stream commit failed\n");
 		return ret;
 	}
@@ -446,13 +487,17 @@ int sst_byt_stream_free(struct sst_byt *byt, struct sst_byt_stream *stream)
 	unsigned long flags;
 
 	if (!stream->commited)
+	{
 		goto out;
+	}
 
 	header = sst_byt_header(IPC_IA_FREE_STREAM, 0, false, stream->str_id);
 	ret = sst_ipc_tx_message_wait(&byt->ipc, header, NULL, 0, NULL, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(byt->dev, "ipc: free stream %d failed\n",
-			stream->str_id);
+				stream->str_id);
 		return -EAGAIN;
 	}
 
@@ -467,22 +512,23 @@ out:
 }
 
 static int sst_byt_stream_operations(struct sst_byt *byt, int type,
-				     int stream_id, int wait)
+									 int stream_id, int wait)
 {
 	u64 header;
 
 	header = sst_byt_header(type, 0, false, stream_id);
+
 	if (wait)
 		return sst_ipc_tx_message_wait(&byt->ipc, header, NULL,
-						0, NULL, 0);
+									   0, NULL, 0);
 	else
 		return sst_ipc_tx_message_nowait(&byt->ipc, header,
-						NULL, 0);
+										 NULL, 0);
 }
 
 /* stream ALSA trigger operations */
 int sst_byt_stream_start(struct sst_byt *byt, struct sst_byt_stream *stream,
-			 u32 start_offset)
+						 u32 start_offset)
 {
 	struct sst_byt_start_stream_params start_stream;
 	void *tx_msg;
@@ -492,15 +538,16 @@ int sst_byt_stream_start(struct sst_byt *byt, struct sst_byt_stream *stream,
 
 	start_stream.byte_offset = start_offset;
 	header = sst_byt_header(IPC_IA_START_STREAM,
-				sizeof(start_stream) + sizeof(u32),
-				true, stream->str_id);
+							sizeof(start_stream) + sizeof(u32),
+							true, stream->str_id);
 	tx_msg = &start_stream;
 	size = sizeof(start_stream);
 
 	ret = sst_ipc_tx_message_nowait(&byt->ipc, header, tx_msg, size);
+
 	if (ret < 0)
 		dev_err(byt->dev, "ipc: error failed to start stream %d\n",
-			stream->str_id);
+				stream->str_id);
 
 	return ret;
 }
@@ -511,13 +558,17 @@ int sst_byt_stream_stop(struct sst_byt *byt, struct sst_byt_stream *stream)
 
 	/* don't stop streams that are not commited */
 	if (!stream->commited)
+	{
 		return 0;
+	}
 
 	ret = sst_byt_stream_operations(byt, IPC_IA_DROP_STREAM,
-					stream->str_id, 0);
+									stream->str_id, 0);
+
 	if (ret < 0)
 		dev_err(byt->dev, "ipc: error failed to stop stream %d\n",
-			stream->str_id);
+				stream->str_id);
+
 	return ret;
 }
 
@@ -526,10 +577,11 @@ int sst_byt_stream_pause(struct sst_byt *byt, struct sst_byt_stream *stream)
 	int ret;
 
 	ret = sst_byt_stream_operations(byt, IPC_IA_PAUSE_STREAM,
-					stream->str_id, 0);
+									stream->str_id, 0);
+
 	if (ret < 0)
 		dev_err(byt->dev, "ipc: error failed to pause stream %d\n",
-			stream->str_id);
+				stream->str_id);
 
 	return ret;
 }
@@ -539,16 +591,17 @@ int sst_byt_stream_resume(struct sst_byt *byt, struct sst_byt_stream *stream)
 	int ret;
 
 	ret = sst_byt_stream_operations(byt, IPC_IA_RESUME_STREAM,
-					stream->str_id, 0);
+									stream->str_id, 0);
+
 	if (ret < 0)
 		dev_err(byt->dev, "ipc: error failed to resume stream %d\n",
-			stream->str_id);
+				stream->str_id);
 
 	return ret;
 }
 
 int sst_byt_get_dsp_position(struct sst_byt *byt,
-			     struct sst_byt_stream *stream, int buffer_size)
+							 struct sst_byt_stream *stream, int buffer_size)
 {
 	struct sst_dsp *sst = byt->dsp;
 	struct sst_byt_tstamp fw_tstamp;
@@ -557,7 +610,7 @@ int sst_byt_get_dsp_position(struct sst_byt *byt,
 
 	tstamp_offset = SST_BYT_TIMESTAMP_OFFSET + str_id * sizeof(fw_tstamp);
 	memcpy_fromio(&fw_tstamp,
-		      sst->addr.lpe + tstamp_offset, sizeof(fw_tstamp));
+				  sst->addr.lpe + tstamp_offset, sizeof(fw_tstamp));
 
 	return do_div(fw_tstamp.ring_buffer_counter, buffer_size);
 }
@@ -567,7 +620,8 @@ struct sst_dsp *sst_byt_get_dsp(struct sst_byt *byt)
 	return byt->dsp;
 }
 
-static struct sst_dsp_device byt_dev = {
+static struct sst_dsp_device byt_dev =
+{
 	.thread = sst_byt_irq_thread,
 	.ops = &sst_byt_ops,
 };
@@ -598,7 +652,9 @@ int sst_byt_dsp_boot(struct device *dev, struct sst_pdata *pdata)
 	sst_dsp_reset(byt->dsp);
 
 	ret = sst_fw_reload(byt->fw);
-	if (ret <  0) {
+
+	if (ret <  0)
+	{
 		dev_err(dev, "error: failed to reload firmware\n");
 		return ret;
 	}
@@ -620,8 +676,10 @@ int sst_byt_dsp_wait_for_ready(struct device *dev, struct sst_pdata *pdata)
 	dev_dbg(byt->dev, "wait for dsp reboot\n");
 
 	err = wait_event_timeout(byt->boot_wait, byt->boot_complete,
-				 msecs_to_jiffies(IPC_BOOT_MSECS));
-	if (err == 0) {
+							 msecs_to_jiffies(IPC_BOOT_MSECS));
+
+	if (err == 0)
+	{
 		dev_err(byt->dev, "ipc: error DSP boot timeout\n");
 		return -EIO;
 	}
@@ -634,7 +692,9 @@ EXPORT_SYMBOL_GPL(sst_byt_dsp_wait_for_ready);
 static void byt_tx_msg(struct sst_generic_ipc *ipc, struct ipc_message *msg)
 {
 	if (msg->header & IPC_HEADER_LARGE(true))
+	{
 		sst_dsp_outbox_write(ipc->dsp, msg->tx_data, msg->tx_size);
+	}
 
 	sst_dsp_shim_write64_unlocked(ipc->dsp, SST_IPCX, msg->header);
 }
@@ -650,15 +710,15 @@ static void byt_shim_dbg(struct sst_generic_ipc *ipc, const char *text)
 	imrx = sst_dsp_shim_read64_unlocked(sst, SST_IMRX);
 
 	dev_err(ipc->dev,
-		"ipc: --%s-- ipcx 0x%llx isr 0x%llx ipcd 0x%llx imrx 0x%llx\n",
-		text, ipcx, isr, ipcd, imrx);
+			"ipc: --%s-- ipcx 0x%llx isr 0x%llx ipcd 0x%llx imrx 0x%llx\n",
+			text, ipcx, isr, ipcd, imrx);
 }
 
 static void byt_tx_data_copy(struct ipc_message *msg, char *tx_data,
-	size_t tx_size)
+							 size_t tx_size)
 {
 	/* msg content = lower 32-bit of the header + data */
-	*(u32 *)msg->tx_data = (u32)(msg->header & (u32)-1);
+	*(u32 *)msg->tx_data = (u32)(msg->header & (u32) - 1);
 	memcpy(msg->tx_data + sizeof(u32), tx_data, tx_size);
 	msg->tx_size += sizeof(u32);
 }
@@ -667,7 +727,7 @@ static u64 byt_reply_msg_match(u64 header, u64 *mask)
 {
 	/* match reply to message sent based on msg and stream IDs */
 	*mask = IPC_HEADER_MSG_ID_MASK |
-	       IPC_HEADER_STR_ID_MASK << IPC_HEADER_STR_ID_SHIFT;
+			IPC_HEADER_STR_ID_MASK << IPC_HEADER_STR_ID_SHIFT;
 	header &= *mask;
 
 	return header;
@@ -692,8 +752,11 @@ int sst_byt_dsp_init(struct device *dev, struct sst_pdata *pdata)
 	dev_dbg(dev, "initialising Byt DSP IPC\n");
 
 	byt = devm_kzalloc(dev, sizeof(*byt), GFP_KERNEL);
+
 	if (byt == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	byt->dev = dev;
 
@@ -708,8 +771,11 @@ int sst_byt_dsp_init(struct device *dev, struct sst_pdata *pdata)
 	ipc->rx_data_max_size = IPC_MAX_MAILBOX_BYTES;
 
 	err = sst_ipc_init(ipc);
+
 	if (err != 0)
+	{
 		goto ipc_init_err;
+	}
 
 	INIT_LIST_HEAD(&byt->stream_list);
 	init_waitqueue_head(&byt->boot_wait);
@@ -717,7 +783,9 @@ int sst_byt_dsp_init(struct device *dev, struct sst_pdata *pdata)
 
 	/* init SST shim */
 	byt->dsp = sst_dsp_new(dev, &byt_dev, pdata);
-	if (byt->dsp == NULL) {
+
+	if (byt->dsp == NULL)
+	{
 		err = -ENODEV;
 		goto dsp_new_err;
 	}
@@ -728,7 +796,9 @@ int sst_byt_dsp_init(struct device *dev, struct sst_pdata *pdata)
 	sst_dsp_reset(byt->dsp);
 
 	byt_sst_fw = sst_fw_new(byt->dsp, pdata->fw, byt);
-	if (byt_sst_fw  == NULL) {
+
+	if (byt_sst_fw  == NULL)
+	{
 		err = -ENODEV;
 		dev_err(dev, "error: failed to load firmware\n");
 		goto fw_err;
@@ -737,8 +807,10 @@ int sst_byt_dsp_init(struct device *dev, struct sst_pdata *pdata)
 	/* wait for DSP boot completion */
 	sst_dsp_boot(byt->dsp);
 	err = wait_event_timeout(byt->boot_wait, byt->boot_complete,
-				 msecs_to_jiffies(IPC_BOOT_MSECS));
-	if (err == 0) {
+							 msecs_to_jiffies(IPC_BOOT_MSECS));
+
+	if (err == 0)
+	{
 		err = -EIO;
 		dev_err(byt->dev, "ipc: error DSP boot timeout\n");
 		goto boot_err;
@@ -747,11 +819,11 @@ int sst_byt_dsp_init(struct device *dev, struct sst_pdata *pdata)
 	/* show firmware information */
 	sst_dsp_inbox_read(byt->dsp, &init, sizeof(init));
 	dev_info(byt->dev, "FW version: %02x.%02x.%02x.%02x\n",
-		 init.fw_version.major, init.fw_version.minor,
-		 init.fw_version.build, init.fw_version.type);
+			 init.fw_version.major, init.fw_version.minor,
+			 init.fw_version.build, init.fw_version.type);
 	dev_info(byt->dev, "Build type: %x\n", init.fw_version.type);
 	dev_info(byt->dev, "Build date: %s %s\n",
-		 init.build_info.date, init.build_info.time);
+			 init.build_info.date, init.build_info.time);
 
 	pdata->dsp = byt;
 	byt->fw = byt_sst_fw;

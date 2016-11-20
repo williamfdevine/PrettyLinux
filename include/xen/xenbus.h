@@ -60,12 +60,13 @@ struct xenbus_watch
 
 	/* Callback (executed in a process context with no locks held). */
 	void (*callback)(struct xenbus_watch *,
-			 const char **vec, unsigned int len);
+					 const char **vec, unsigned int len);
 };
 
 
 /* A xenbus device. */
-struct xenbus_device {
+struct xenbus_device
+{
 	const char *devicetype;
 	const char *nodename;
 	const char *otherend;
@@ -89,13 +90,14 @@ struct xenbus_device_id
 };
 
 /* A xenbus driver. */
-struct xenbus_driver {
+struct xenbus_driver
+{
 	const char *name;       /* defaults to ids[0].devicetype */
 	const struct xenbus_device_id *ids;
 	int (*probe)(struct xenbus_device *dev,
-		     const struct xenbus_device_id *id);
+				 const struct xenbus_device_id *id);
 	void (*otherend_changed)(struct xenbus_device *dev,
-				 enum xenbus_state backend_state);
+							 enum xenbus_state backend_state);
 	int (*remove)(struct xenbus_device *dev);
 	int (*suspend)(struct xenbus_device *dev);
 	int (*resume)(struct xenbus_device *dev);
@@ -111,11 +113,11 @@ static inline struct xenbus_driver *to_xenbus_driver(struct device_driver *drv)
 }
 
 int __must_check __xenbus_register_frontend(struct xenbus_driver *drv,
-					    struct module *owner,
-					    const char *mod_name);
+		struct module *owner,
+		const char *mod_name);
 int __must_check __xenbus_register_backend(struct xenbus_driver *drv,
-					   struct module *owner,
-					   const char *mod_name);
+		struct module *owner,
+		const char *mod_name);
 
 #define xenbus_register_frontend(drv) \
 	__xenbus_register_frontend(drv, THIS_MODULE, KBUILD_MODNAME)
@@ -133,15 +135,15 @@ struct xenbus_transaction
 #define XBT_NIL ((struct xenbus_transaction) { 0 })
 
 char **xenbus_directory(struct xenbus_transaction t,
-			const char *dir, const char *node, unsigned int *num);
+						const char *dir, const char *node, unsigned int *num);
 void *xenbus_read(struct xenbus_transaction t,
-		  const char *dir, const char *node, unsigned int *len);
+				  const char *dir, const char *node, unsigned int *len);
 int xenbus_write(struct xenbus_transaction t,
-		 const char *dir, const char *node, const char *string);
+				 const char *dir, const char *node, const char *string);
 int xenbus_mkdir(struct xenbus_transaction t,
-		 const char *dir, const char *node);
+				 const char *dir, const char *node);
 int xenbus_exists(struct xenbus_transaction t,
-		  const char *dir, const char *node);
+				  const char *dir, const char *node);
 int xenbus_rm(struct xenbus_transaction t, const char *dir, const char *node);
 int xenbus_transaction_start(struct xenbus_transaction *t);
 int xenbus_transaction_end(struct xenbus_transaction t, int abort);
@@ -149,12 +151,12 @@ int xenbus_transaction_end(struct xenbus_transaction t, int abort);
 /* Single read and scanf: returns -errno or num scanned if > 0. */
 __scanf(4, 5)
 int xenbus_scanf(struct xenbus_transaction t,
-		 const char *dir, const char *node, const char *fmt, ...);
+				 const char *dir, const char *node, const char *fmt, ...);
 
 /* Single printf and write: returns -errno or 0. */
 __printf(4, 5)
 int xenbus_printf(struct xenbus_transaction t,
-		  const char *dir, const char *node, const char *fmt, ...);
+				  const char *dir, const char *node, const char *fmt, ...);
 
 /* Generic read function: NULL-terminated triples of name,
  * sprintf-style type string, and pointer. Returns 0 or errno.*/
@@ -183,39 +185,39 @@ void xenbus_probe(struct work_struct *);
 void xenbus_suspend_cancel(void);
 
 #define XENBUS_IS_ERR_READ(str) ({			\
-	if (!IS_ERR(str) && strlen(str) == 0) {		\
-		kfree(str);				\
-		str = ERR_PTR(-ERANGE);			\
-	}						\
-	IS_ERR(str);					\
-})
+		if (!IS_ERR(str) && strlen(str) == 0) {		\
+			kfree(str);				\
+			str = ERR_PTR(-ERANGE);			\
+		}						\
+		IS_ERR(str);					\
+	})
 
 #define XENBUS_EXIST_ERR(err) ((err) == -ENOENT || (err) == -ERANGE)
 
 int xenbus_watch_path(struct xenbus_device *dev, const char *path,
-		      struct xenbus_watch *watch,
-		      void (*callback)(struct xenbus_watch *,
-				       const char **, unsigned int));
+					  struct xenbus_watch *watch,
+					  void (*callback)(struct xenbus_watch *,
+									   const char **, unsigned int));
 __printf(4, 5)
 int xenbus_watch_pathfmt(struct xenbus_device *dev, struct xenbus_watch *watch,
-			 void (*callback)(struct xenbus_watch *,
-					  const char **, unsigned int),
-			 const char *pathfmt, ...);
+						 void (*callback)(struct xenbus_watch *,
+								 const char **, unsigned int),
+						 const char *pathfmt, ...);
 
 int xenbus_switch_state(struct xenbus_device *dev, enum xenbus_state new_state);
 int xenbus_grant_ring(struct xenbus_device *dev, void *vaddr,
-		      unsigned int nr_pages, grant_ref_t *grefs);
+					  unsigned int nr_pages, grant_ref_t *grefs);
 int xenbus_map_ring_valloc(struct xenbus_device *dev, grant_ref_t *gnt_refs,
-			   unsigned int nr_grefs, void **vaddr);
+						   unsigned int nr_grefs, void **vaddr);
 int xenbus_map_ring(struct xenbus_device *dev,
-		    grant_ref_t *gnt_refs, unsigned int nr_grefs,
-		    grant_handle_t *handles, unsigned long *vaddrs,
-		    bool *leaked);
+					grant_ref_t *gnt_refs, unsigned int nr_grefs,
+					grant_handle_t *handles, unsigned long *vaddrs,
+					bool *leaked);
 
 int xenbus_unmap_ring_vfree(struct xenbus_device *dev, void *vaddr);
 int xenbus_unmap_ring(struct xenbus_device *dev,
-		      grant_handle_t *handles, unsigned int nr_handles,
-		      unsigned long *vaddrs);
+					  grant_handle_t *handles, unsigned int nr_handles,
+					  unsigned long *vaddrs);
 
 int xenbus_alloc_evtchn(struct xenbus_device *dev, int *port);
 int xenbus_free_evtchn(struct xenbus_device *dev, int port);

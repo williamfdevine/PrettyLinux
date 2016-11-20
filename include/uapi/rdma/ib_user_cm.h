@@ -39,7 +39,8 @@
 
 #define IB_USER_CM_ABI_VERSION 5
 
-enum {
+enum
+{
 	IB_USER_CM_CMD_CREATE_ID,
 	IB_USER_CM_CMD_DESTROY_ID,
 	IB_USER_CM_CMD_ATTR_ID,
@@ -65,70 +66,82 @@ enum {
 /*
  * command ABI structures.
  */
-struct ib_ucm_cmd_hdr {
+struct ib_ucm_cmd_hdr
+{
 	__u32 cmd;
 	__u16 in;
 	__u16 out;
 };
 
-struct ib_ucm_create_id {
+struct ib_ucm_create_id
+{
 	__u64 uid;
 	__u64 response;
 };
 
-struct ib_ucm_create_id_resp {
+struct ib_ucm_create_id_resp
+{
 	__u32 id;
 };
 
-struct ib_ucm_destroy_id {
+struct ib_ucm_destroy_id
+{
 	__u64 response;
 	__u32 id;
 	__u32 reserved;
 };
 
-struct ib_ucm_destroy_id_resp {
+struct ib_ucm_destroy_id_resp
+{
 	__u32 events_reported;
 };
 
-struct ib_ucm_attr_id {
+struct ib_ucm_attr_id
+{
 	__u64 response;
 	__u32 id;
 	__u32 reserved;
 };
 
-struct ib_ucm_attr_id_resp {
+struct ib_ucm_attr_id_resp
+{
 	__be64 service_id;
 	__be64 service_mask;
 	__be32 local_id;
 	__be32 remote_id;
 };
 
-struct ib_ucm_init_qp_attr {
+struct ib_ucm_init_qp_attr
+{
 	__u64 response;
 	__u32 id;
 	__u32 qp_state;
 };
 
-struct ib_ucm_listen {
+struct ib_ucm_listen
+{
 	__be64 service_id;
 	__be64 service_mask;
 	__u32 id;
 	__u32 reserved;
 };
 
-struct ib_ucm_notify {
+struct ib_ucm_notify
+{
 	__u32 id;
 	__u32 event;
 };
 
-struct ib_ucm_private_data {
+struct ib_ucm_private_data
+{
 	__u64 data;
 	__u32 id;
 	__u8  len;
 	__u8  reserved[3];
 };
 
-struct ib_ucm_req {
+struct ib_ucm_req
+{
 	__u32 id;
 	__u32 qpn;
 	__u32 qp_type;
@@ -151,7 +164,8 @@ struct ib_ucm_req {
 	__u8  reserved[5];
 };
 
-struct ib_ucm_rep {
+struct ib_ucm_rep
+{
 	__u64 uid;
 	__u64 data;
 	__u32 id;
@@ -168,7 +182,8 @@ struct ib_ucm_rep {
 	__u8  reserved[4];
 };
 
-struct ib_ucm_info {
+struct ib_ucm_info
+{
 	__u32 id;
 	__u32 status;
 	__u64 info;
@@ -178,7 +193,8 @@ struct ib_ucm_info {
 	__u8  reserved[6];
 };
 
-struct ib_ucm_mra {
+struct ib_ucm_mra
+{
 	__u64 data;
 	__u32 id;
 	__u8  len;
@@ -186,7 +202,8 @@ struct ib_ucm_mra {
 	__u8  reserved[2];
 };
 
-struct ib_ucm_lap {
+struct ib_ucm_lap
+{
 	__u64 path;
 	__u64 data;
 	__u32 id;
@@ -194,7 +211,8 @@ struct ib_ucm_lap {
 	__u8  reserved[3];
 };
 
-struct ib_ucm_sidr_req {
+struct ib_ucm_sidr_req
+{
 	__u32 id;
 	__u32 timeout;
 	__be64 sid;
@@ -206,7 +224,8 @@ struct ib_ucm_sidr_req {
 	__u8  reserved[4];
 };
 
-struct ib_ucm_sidr_rep {
+struct ib_ucm_sidr_rep
+{
 	__u32 id;
 	__u32 qpn;
 	__u32 qkey;
@@ -220,7 +239,8 @@ struct ib_ucm_sidr_rep {
 /*
  * event notification ABI structures.
  */
-struct ib_ucm_event_get {
+struct ib_ucm_event_get
+{
 	__u64 response;
 	__u64 data;
 	__u64 info;
@@ -229,7 +249,8 @@ struct ib_ucm_event_get {
 	__u8  reserved[6];
 };
 
-struct ib_ucm_req_event_resp {
+struct ib_ucm_req_event_resp
+{
 	struct ib_user_path_rec primary_path;
 	struct ib_user_path_rec alternate_path;
 	__be64                 remote_ca_guid;
@@ -249,7 +270,8 @@ struct ib_ucm_req_event_resp {
 	__u8  reserved[7];
 };
 
-struct ib_ucm_rep_event_resp {
+struct ib_ucm_rep_event_resp
+{
 	__be64 remote_ca_guid;
 	__u32 remote_qkey;
 	__u32 remote_qpn;
@@ -264,32 +286,38 @@ struct ib_ucm_rep_event_resp {
 	__u8  reserved[5];
 };
 
-struct ib_ucm_rej_event_resp {
+struct ib_ucm_rej_event_resp
+{
 	__u32 reason;
 	/* ari in ib_ucm_event_get info field. */
 };
 
-struct ib_ucm_mra_event_resp {
+struct ib_ucm_mra_event_resp
+{
 	__u8  timeout;
 	__u8  reserved[3];
 };
 
-struct ib_ucm_lap_event_resp {
+struct ib_ucm_lap_event_resp
+{
 	struct ib_user_path_rec path;
 };
 
-struct ib_ucm_apr_event_resp {
+struct ib_ucm_apr_event_resp
+{
 	__u32 status;
 	/* apr info in ib_ucm_event_get info field. */
 };
 
-struct ib_ucm_sidr_req_event_resp {
+struct ib_ucm_sidr_req_event_resp
+{
 	__u16 pkey;
 	__u8  port;
 	__u8  reserved;
 };
 
-struct ib_ucm_sidr_rep_event_resp {
+struct ib_ucm_sidr_rep_event_resp
+{
 	__u32 status;
 	__u32 qkey;
 	__u32 qpn;
@@ -301,13 +329,15 @@ struct ib_ucm_sidr_rep_event_resp {
 #define IB_UCM_PRES_PRIMARY   0x04
 #define IB_UCM_PRES_ALTERNATE 0x08
 
-struct ib_ucm_event_resp {
+struct ib_ucm_event_resp
+{
 	__u64 uid;
 	__u32 id;
 	__u32 event;
 	__u32 present;
 	__u32 reserved;
-	union {
+	union
+	{
 		struct ib_ucm_req_event_resp req_resp;
 		struct ib_ucm_rep_event_resp rep_resp;
 		struct ib_ucm_rej_event_resp rej_resp;

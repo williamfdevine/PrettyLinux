@@ -30,24 +30,25 @@
 #include "sun4i_tcon.h"
 
 static void sun4i_crtc_atomic_begin(struct drm_crtc *crtc,
-				    struct drm_crtc_state *old_state)
+									struct drm_crtc_state *old_state)
 {
 	struct sun4i_crtc *scrtc = drm_crtc_to_sun4i_crtc(crtc);
 	struct drm_device *dev = crtc->dev;
 	unsigned long flags;
 
-	if (crtc->state->event) {
+	if (crtc->state->event)
+	{
 		WARN_ON(drm_crtc_vblank_get(crtc) != 0);
 
 		spin_lock_irqsave(&dev->event_lock, flags);
 		scrtc->event = crtc->state->event;
 		spin_unlock_irqrestore(&dev->event_lock, flags);
 		crtc->state->event = NULL;
-	 }
+	}
 }
 
 static void sun4i_crtc_atomic_flush(struct drm_crtc *crtc,
-				    struct drm_crtc_state *old_state)
+									struct drm_crtc_state *old_state)
 {
 	struct sun4i_crtc *scrtc = drm_crtc_to_sun4i_crtc(crtc);
 	struct sun4i_drv *drv = scrtc->drv;
@@ -57,14 +58,21 @@ static void sun4i_crtc_atomic_flush(struct drm_crtc *crtc,
 
 	sun4i_backend_commit(drv->backend);
 
-	if (event) {
+	if (event)
+	{
 		crtc->state->event = NULL;
 
 		spin_lock_irq(&crtc->dev->event_lock);
+
 		if (drm_crtc_vblank_get(crtc) == 0)
+		{
 			drm_crtc_arm_vblank_event(crtc, event);
+		}
 		else
+		{
 			drm_crtc_send_vblank_event(crtc, event);
+		}
+
 		spin_unlock_irq(&crtc->dev->event_lock);
 	}
 }
@@ -78,7 +86,8 @@ static void sun4i_crtc_disable(struct drm_crtc *crtc)
 
 	sun4i_tcon_disable(drv->tcon);
 
-	if (crtc->state->event && !crtc->state->active) {
+	if (crtc->state->event && !crtc->state->active)
+	{
 		spin_lock_irq(&crtc->dev->event_lock);
 		drm_crtc_send_vblank_event(crtc, crtc->state->event);
 		spin_unlock_irq(&crtc->dev->event_lock);
@@ -97,14 +106,16 @@ static void sun4i_crtc_enable(struct drm_crtc *crtc)
 	sun4i_tcon_enable(drv->tcon);
 }
 
-static const struct drm_crtc_helper_funcs sun4i_crtc_helper_funcs = {
+static const struct drm_crtc_helper_funcs sun4i_crtc_helper_funcs =
+{
 	.atomic_begin	= sun4i_crtc_atomic_begin,
 	.atomic_flush	= sun4i_crtc_atomic_flush,
 	.disable	= sun4i_crtc_disable,
 	.enable		= sun4i_crtc_enable,
 };
 
-static const struct drm_crtc_funcs sun4i_crtc_funcs = {
+static const struct drm_crtc_funcs sun4i_crtc_funcs =
+{
 	.atomic_destroy_state	= drm_atomic_helper_crtc_destroy_state,
 	.atomic_duplicate_state	= drm_atomic_helper_crtc_duplicate_state,
 	.destroy		= drm_crtc_cleanup,
@@ -120,16 +131,22 @@ struct sun4i_crtc *sun4i_crtc_init(struct drm_device *drm)
 	int ret;
 
 	scrtc = devm_kzalloc(drm->dev, sizeof(*scrtc), GFP_KERNEL);
+
 	if (!scrtc)
+	{
 		return NULL;
+	}
+
 	scrtc->drv = drv;
 
 	ret = drm_crtc_init_with_planes(drm, &scrtc->crtc,
-					drv->primary,
-					NULL,
-					&sun4i_crtc_funcs,
-					NULL);
-	if (ret) {
+									drv->primary,
+									NULL,
+									&sun4i_crtc_funcs,
+									NULL);
+
+	if (ret)
+	{
 		dev_err(drm->dev, "Couldn't init DRM CRTC\n");
 		return NULL;
 	}

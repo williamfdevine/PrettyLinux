@@ -44,30 +44,38 @@ static int ams_delta_lcd;
 
 static int ams_delta_lcd_set_power(struct lcd_device *dev, int power)
 {
-	if (power == FB_BLANK_UNBLANK) {
-		if (!(ams_delta_lcd & AMS_DELTA_LCD_POWER)) {
+	if (power == FB_BLANK_UNBLANK)
+	{
+		if (!(ams_delta_lcd & AMS_DELTA_LCD_POWER))
+		{
 			omap_writeb(ams_delta_lcd & AMS_DELTA_MAX_CONTRAST,
-					OMAP_PWL_ENABLE);
+						OMAP_PWL_ENABLE);
 			omap_writeb(1, OMAP_PWL_CLK_ENABLE);
 			ams_delta_lcd |= AMS_DELTA_LCD_POWER;
 		}
-	} else {
-		if (ams_delta_lcd & AMS_DELTA_LCD_POWER) {
+	}
+	else
+	{
+		if (ams_delta_lcd & AMS_DELTA_LCD_POWER)
+		{
 			omap_writeb(0, OMAP_PWL_ENABLE);
 			omap_writeb(0, OMAP_PWL_CLK_ENABLE);
 			ams_delta_lcd &= ~AMS_DELTA_LCD_POWER;
 		}
 	}
+
 	return 0;
 }
 
 static int ams_delta_lcd_set_contrast(struct lcd_device *dev, int value)
 {
-	if ((value >= 0) && (value <= AMS_DELTA_MAX_CONTRAST)) {
+	if ((value >= 0) && (value <= AMS_DELTA_MAX_CONTRAST))
+	{
 		omap_writeb(value, OMAP_PWL_ENABLE);
 		ams_delta_lcd &= ~AMS_DELTA_MAX_CONTRAST;
 		ams_delta_lcd |= value;
 	}
+
 	return 0;
 }
 
@@ -75,20 +83,27 @@ static int ams_delta_lcd_set_contrast(struct lcd_device *dev, int value)
 static int ams_delta_lcd_get_power(struct lcd_device *dev)
 {
 	if (ams_delta_lcd & AMS_DELTA_LCD_POWER)
+	{
 		return FB_BLANK_UNBLANK;
+	}
 	else
+	{
 		return FB_BLANK_POWERDOWN;
+	}
 }
 
 static int ams_delta_lcd_get_contrast(struct lcd_device *dev)
 {
 	if (!(ams_delta_lcd & AMS_DELTA_LCD_POWER))
+	{
 		return 0;
+	}
 
 	return ams_delta_lcd & AMS_DELTA_MAX_CONTRAST;
 }
 
-static struct lcd_ops ams_delta_lcd_ops = {
+static struct lcd_ops ams_delta_lcd_ops =
+{
 	.get_power = ams_delta_lcd_get_power,
 	.set_power = ams_delta_lcd_set_power,
 	.get_contrast = ams_delta_lcd_get_contrast,
@@ -99,7 +114,8 @@ static struct lcd_ops ams_delta_lcd_ops = {
 
 /* omapfb panel section */
 
-static const struct gpio _gpios[] = {
+static const struct gpio _gpios[] =
+{
 	{
 		.gpio	= AMS_DELTA_GPIO_PIN_LCD_VBLEN,
 		.flags	= GPIOF_OUT_INIT_LOW,
@@ -113,7 +129,7 @@ static const struct gpio _gpios[] = {
 };
 
 static int ams_delta_panel_init(struct lcd_panel *panel,
-		struct omapfb_device *fbdev)
+								struct omapfb_device *fbdev)
 {
 	return gpio_request_array(_gpios, ARRAY_SIZE(_gpios));
 }
@@ -141,7 +157,8 @@ static unsigned long ams_delta_panel_get_caps(struct lcd_panel *panel)
 	return 0;
 }
 
-static struct lcd_panel ams_delta_panel = {
+static struct lcd_panel ams_delta_panel =
+{
 	.name		= "ams-delta",
 	.config		= 0,
 
@@ -176,9 +193,10 @@ static int ams_delta_panel_probe(struct platform_device *pdev)
 	int ret;
 
 	lcd_device = lcd_device_register("omapfb", &pdev->dev, NULL,
-						&ams_delta_lcd_ops);
+									 &ams_delta_lcd_ops);
 
-	if (IS_ERR(lcd_device)) {
+	if (IS_ERR(lcd_device))
+	{
 		ret = PTR_ERR(lcd_device);
 		dev_err(&pdev->dev, "failed to register device\n");
 		return ret;
@@ -201,7 +219,7 @@ static int ams_delta_panel_remove(struct platform_device *pdev)
 }
 
 static int ams_delta_panel_suspend(struct platform_device *pdev,
-		pm_message_t mesg)
+								   pm_message_t mesg)
 {
 	return 0;
 }
@@ -211,7 +229,8 @@ static int ams_delta_panel_resume(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ams_delta_panel_driver = {
+static struct platform_driver ams_delta_panel_driver =
+{
 	.probe		= ams_delta_panel_probe,
 	.remove		= ams_delta_panel_remove,
 	.suspend	= ams_delta_panel_suspend,

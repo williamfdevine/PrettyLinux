@@ -70,7 +70,7 @@
 #define IS_CMAC(flags)			(flags & QCE_HASH_AES_CMAC)
 #define IS_SHA(flags)			(IS_SHA1(flags) || IS_SHA256(flags))
 #define IS_SHA_HMAC(flags)		\
-		(IS_SHA1_HMAC(flags) || IS_SHA256_HMAC(flags))
+	(IS_SHA1_HMAC(flags) || IS_SHA256_HMAC(flags))
 
 #define IS_CBC(mode)			(mode & QCE_MODE_CBC)
 #define IS_ECB(mode)			(mode & QCE_MODE_ECB)
@@ -81,12 +81,14 @@
 #define IS_ENCRYPT(dir)			(dir & QCE_ENCRYPT)
 #define IS_DECRYPT(dir)			(dir & QCE_DECRYPT)
 
-struct qce_alg_template {
+struct qce_alg_template
+{
 	struct list_head entry;
 	u32 crypto_alg_type;
 	unsigned long alg_flags;
 	const u32 *std_iv;
-	union {
+	union
+	{
 		struct crypto_alg crypto;
 		struct ahash_alg ahash;
 	} alg;
@@ -97,6 +99,6 @@ void qce_cpu_to_be32p_array(__be32 *dst, const u8 *src, unsigned int len);
 int qce_check_status(struct qce_device *qce, u32 *status);
 void qce_get_version(struct qce_device *qce, u32 *major, u32 *minor, u32 *step);
 int qce_start(struct crypto_async_request *async_req, u32 type, u32 totallen,
-	      u32 offset);
+			  u32 offset);
 
 #endif /* _COMMON_H_ */

@@ -33,7 +33,8 @@
 #include "runlist.h"
 #include "volume.h"
 
-typedef enum {
+typedef enum
+{
 	FIRST_ZONE	= 0,	/* For sanity checking. */
 	MFT_ZONE	= 0,	/* Allocate from $MFT zone. */
 	DATA_ZONE	= 1,	/* Allocate from $DATA zone. */
@@ -46,7 +47,7 @@ extern runlist_element *ntfs_cluster_alloc(ntfs_volume *vol,
 		const bool is_extension);
 
 extern s64 __ntfs_cluster_free(ntfs_inode *ni, const VCN start_vcn,
-		s64 count, ntfs_attr_search_ctx *ctx, const bool is_rollback);
+							   s64 count, ntfs_attr_search_ctx *ctx, const bool is_rollback);
 
 /**
  * ntfs_cluster_free - free clusters on an ntfs volume
@@ -105,7 +106,7 @@ extern s64 __ntfs_cluster_free(ntfs_inode *ni, const VCN start_vcn,
  *	      and it will be left mapped on return.
  */
 static inline s64 ntfs_cluster_free(ntfs_inode *ni, const VCN start_vcn,
-		s64 count, ntfs_attr_search_ctx *ctx)
+									s64 count, ntfs_attr_search_ctx *ctx)
 {
 	return __ntfs_cluster_free(ni, start_vcn, count, ctx, false);
 }

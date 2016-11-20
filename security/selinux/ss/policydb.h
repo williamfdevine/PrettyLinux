@@ -42,31 +42,34 @@
  */
 
 /* Permission attributes */
-struct perm_datum {
+struct perm_datum
+{
 	u32 value;		/* permission bit + 1 */
 };
 
 /* Attributes of a common prefix for access vectors */
-struct common_datum {
+struct common_datum
+{
 	u32 value;			/* internal common value */
 	struct symtab permissions;	/* common permissions */
 };
 
 /* Class attributes */
-struct class_datum {
+struct class_datum
+{
 	u32 value;			/* class value */
 	char *comkey;			/* common name */
 	struct common_datum *comdatum;	/* common datum */
 	struct symtab permissions;	/* class-specific permission symbol table */
 	struct constraint_node *constraints;	/* constraints on class permissions */
 	struct constraint_node *validatetrans;	/* special transition rules */
-/* Options how a new object user, role, and type should be decided */
+	/* Options how a new object user, role, and type should be decided */
 #define DEFAULT_SOURCE         1
 #define DEFAULT_TARGET         2
 	char default_user;
 	char default_role;
 	char default_type;
-/* Options how a new object range should be decided */
+	/* Options how a new object range should be decided */
 #define DEFAULT_SOURCE_LOW     1
 #define DEFAULT_SOURCE_HIGH    2
 #define DEFAULT_SOURCE_LOW_HIGH        3
@@ -77,14 +80,16 @@ struct class_datum {
 };
 
 /* Role attributes */
-struct role_datum {
+struct role_datum
+{
 	u32 value;			/* internal role value */
 	u32 bounds;			/* boundary of role */
 	struct ebitmap dominates;	/* set of roles dominated by this role */
 	struct ebitmap types;		/* set of authorized types for role */
 };
 
-struct role_trans {
+struct role_trans
+{
 	u32 role;		/* current role */
 	u32 type;		/* program executable type, or new object type */
 	u32 tclass;		/* process class, or new object class */
@@ -92,25 +97,29 @@ struct role_trans {
 	struct role_trans *next;
 };
 
-struct filename_trans {
+struct filename_trans
+{
 	u32 stype;		/* current process */
 	u32 ttype;		/* parent dir context */
 	u16 tclass;		/* class of new object */
 	const char *name;	/* last path component */
 };
 
-struct filename_trans_datum {
+struct filename_trans_datum
+{
 	u32 otype;		/* expected of new object */
 };
 
-struct role_allow {
+struct role_allow
+{
 	u32 role;		/* current role */
 	u32 new_role;		/* new role */
 	struct role_allow *next;
 };
 
 /* Type attributes */
-struct type_datum {
+struct type_datum
+{
 	u32 value;		/* internal type value */
 	u32 bounds;		/* boundary of type */
 	unsigned char primary;	/* primary name? */
@@ -118,7 +127,8 @@ struct type_datum {
 };
 
 /* User attributes */
-struct user_datum {
+struct user_datum
+{
 	u32 value;			/* internal user value */
 	u32 bounds;			/* bounds of user */
 	struct ebitmap roles;		/* set of authorized roles for user */
@@ -128,25 +138,29 @@ struct user_datum {
 
 
 /* Sensitivity attributes */
-struct level_datum {
+struct level_datum
+{
 	struct mls_level *level;	/* sensitivity and associated categories */
 	unsigned char isalias;	/* is this sensitivity an alias for another? */
 };
 
 /* Category attributes */
-struct cat_datum {
+struct cat_datum
+{
 	u32 value;		/* internal category bit + 1 */
 	unsigned char isalias;  /* is this category an alias for another? */
 };
 
-struct range_trans {
+struct range_trans
+{
 	u32 source_type;
 	u32 target_type;
 	u32 target_class;
 };
 
 /* Boolean data type */
-struct cond_bool_datum {
+struct cond_bool_datum
+{
 	__u32 value;		/* internal type value */
 	int state;
 };
@@ -158,7 +172,8 @@ struct cond_node;
  * policy source. This is not used by the kernel policy but allows
  * utilities such as audit2allow to determine constraint denials.
  */
-struct type_set {
+struct type_set
+{
 	struct ebitmap types;
 	struct ebitmap negset;
 	u32 flags;
@@ -171,24 +186,30 @@ struct type_set {
  * relevant data for one such entry.  Entries of the same kind
  * (e.g. all initial SIDs) are linked together into a list.
  */
-struct ocontext {
-	union {
+struct ocontext
+{
+	union
+	{
 		char *name;	/* name of initial SID, fs, netif, fstype, path */
-		struct {
+		struct
+		{
 			u8 protocol;
 			u16 low_port;
 			u16 high_port;
 		} port;		/* TCP or UDP port information */
-		struct {
+		struct
+		{
 			u32 addr;
 			u32 mask;
 		} node;		/* node information */
-		struct {
+		struct
+		{
 			u32 addr[4];
 			u32 mask[4];
 		} node6;        /* IPv6 node information */
 	} u;
-	union {
+	union
+	{
 		u32 sclass;  /* security class for genfs */
 		u32 behavior;  /* labeling behavior for fs_use */
 	} v;
@@ -197,7 +218,8 @@ struct ocontext {
 	struct ocontext *next;
 };
 
-struct genfs {
+struct genfs
+{
 	char *fstype;
 	struct ocontext *head;
 	struct genfs *next;
@@ -225,7 +247,8 @@ struct genfs {
 #define OCON_NUM   7
 
 /* The policy database */
-struct policydb {
+struct policydb
+{
 	int mls_enabled;
 
 	/* symbol tables */
@@ -324,12 +347,14 @@ extern int policydb_write(struct policydb *p, void *fp);
 #define POLICYDB_MAGIC SELINUX_MAGIC
 #define POLICYDB_STRING "SE Linux"
 
-struct policy_file {
+struct policy_file
+{
 	char *data;
 	size_t len;
 };
 
-struct policy_data {
+struct policy_data
+{
 	struct policydb *p;
 	void *fp;
 };
@@ -337,7 +362,9 @@ struct policy_data {
 static inline int next_entry(void *buf, struct policy_file *fp, size_t bytes)
 {
 	if (bytes > fp->len)
+	{
 		return -EINVAL;
+	}
 
 	memcpy(buf, fp->data, bytes);
 	fp->data += bytes;

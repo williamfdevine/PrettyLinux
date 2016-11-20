@@ -37,7 +37,7 @@
 #define FLEX_MR_OPMODE_OFFSET	(0)  /* Operating Mode */
 #define FLEX_MR_OPMODE_MASK	(0x3 << FLEX_MR_OPMODE_OFFSET)
 #define FLEX_MR_OPMODE(opmode)	(((opmode) << FLEX_MR_OPMODE_OFFSET) &	\
-				 FLEX_MR_OPMODE_MASK)
+								 FLEX_MR_OPMODE_MASK)
 
 
 static int atmel_flexcom_probe(struct platform_device *pdev)
@@ -50,25 +50,39 @@ static int atmel_flexcom_probe(struct platform_device *pdev)
 	int err;
 
 	err = of_property_read_u32(np, "atmel,flexcom-mode", &opmode);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (opmode < ATMEL_FLEXCOM_MODE_USART ||
-	    opmode > ATMEL_FLEXCOM_MODE_TWI)
+		opmode > ATMEL_FLEXCOM_MODE_TWI)
+	{
 		return -EINVAL;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(clk))
+	{
 		return PTR_ERR(clk);
+	}
 
 	err = clk_prepare_enable(clk);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/*
 	 * Set the Operating Mode in the Mode Register: only the selected device
@@ -83,13 +97,15 @@ static int atmel_flexcom_probe(struct platform_device *pdev)
 	return of_platform_populate(np, NULL, NULL, &pdev->dev);
 }
 
-static const struct of_device_id atmel_flexcom_of_match[] = {
+static const struct of_device_id atmel_flexcom_of_match[] =
+{
 	{ .compatible = "atmel,sama5d2-flexcom" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, atmel_flexcom_of_match);
 
-static struct platform_driver atmel_flexcom_driver = {
+static struct platform_driver atmel_flexcom_driver =
+{
 	.probe	= atmel_flexcom_probe,
 	.driver	= {
 		.name		= "atmel_flexcom",

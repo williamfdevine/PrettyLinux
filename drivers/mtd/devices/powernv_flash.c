@@ -36,19 +36,21 @@
  * backed by OPAL calls
  */
 
-struct powernv_flash {
+struct powernv_flash
+{
 	struct mtd_info	mtd;
 	u32 id;
 };
 
-enum flash_op {
+enum flash_op
+{
 	FLASH_OP_READ,
 	FLASH_OP_WRITE,
 	FLASH_OP_ERASE,
 };
 
 static int powernv_flash_async_op(struct mtd_info *mtd, enum flash_op op,
-		loff_t offset, size_t len, size_t *retlen, u_char *buf)
+								  loff_t offset, size_t len, size_t *retlen, u_char *buf)
 {
 	struct powernv_flash *info = (struct powernv_flash *)mtd->priv;
 	struct device *dev = &mtd->dev;
@@ -60,28 +62,37 @@ static int powernv_flash_async_op(struct mtd_info *mtd, enum flash_op op,
 			__func__, op, offset, len);
 
 	token = opal_async_get_token_interruptible();
-	if (token < 0) {
+
+	if (token < 0)
+	{
 		if (token != -ERESTARTSYS)
+		{
 			dev_err(dev, "Failed to get an async token\n");
+		}
 
 		return token;
 	}
 
-	switch (op) {
-	case FLASH_OP_READ:
-		rc = opal_flash_read(info->id, offset, __pa(buf), len, token);
-		break;
-	case FLASH_OP_WRITE:
-		rc = opal_flash_write(info->id, offset, __pa(buf), len, token);
-		break;
-	case FLASH_OP_ERASE:
-		rc = opal_flash_erase(info->id, offset, len, token);
-		break;
-	default:
-		BUG_ON(1);
+	switch (op)
+	{
+		case FLASH_OP_READ:
+			rc = opal_flash_read(info->id, offset, __pa(buf), len, token);
+			break;
+
+		case FLASH_OP_WRITE:
+			rc = opal_flash_write(info->id, offset, __pa(buf), len, token);
+			break;
+
+		case FLASH_OP_ERASE:
+			rc = opal_flash_erase(info->id, offset, len, token);
+			break;
+
+		default:
+			BUG_ON(1);
 	}
 
-	if (rc != OPAL_ASYNC_COMPLETION) {
+	if (rc != OPAL_ASYNC_COMPLETION)
+	{
 		dev_err(dev, "opal_flash_async_op(op=%d) failed (rc %d)\n",
 				op, rc);
 		opal_async_release_token(token);
@@ -90,17 +101,26 @@ static int powernv_flash_async_op(struct mtd_info *mtd, enum flash_op op,
 
 	rc = opal_async_wait_response(token, &msg);
 	opal_async_release_token(token);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(dev, "opal async wait failed (rc %d)\n", rc);
 		return -EIO;
 	}
 
 	rc = opal_get_async_rc(msg);
-	if (rc == OPAL_SUCCESS) {
+
+	if (rc == OPAL_SUCCESS)
+	{
 		rc = 0;
+
 		if (retlen)
+		{
 			*retlen = len;
-	} else {
+		}
+	}
+	else
+	{
 		rc = -EIO;
 	}
 
@@ -117,10 +137,10 @@ static int powernv_flash_async_op(struct mtd_info *mtd, enum flash_op op,
  * Returns 0 if read successful, or -ERRNO if an error occurred
  */
 static int powernv_flash_read(struct mtd_info *mtd, loff_t from, size_t len,
-	     size_t *retlen, u_char *buf)
+							  size_t *retlen, u_char *buf)
 {
 	return powernv_flash_async_op(mtd, FLASH_OP_READ, from,
-			len, retlen, buf);
+								  len, retlen, buf);
 }
 
 /**
@@ -133,10 +153,10 @@ static int powernv_flash_read(struct mtd_info *mtd, loff_t from, size_t len,
  * Returns 0 if write successful, -ERRNO if error occurred
  */
 static int powernv_flash_write(struct mtd_info *mtd, loff_t to, size_t len,
-		     size_t *retlen, const u_char *buf)
+							   size_t *retlen, const u_char *buf)
 {
 	return powernv_flash_async_op(mtd, FLASH_OP_WRITE, to,
-			len, retlen, (u_char *)buf);
+								  len, retlen, (u_char *)buf);
 }
 
 /**
@@ -152,14 +172,18 @@ static int powernv_flash_erase(struct mtd_info *mtd, struct erase_info *erase)
 
 	/* todo: register our own notifier to do a true async implementation */
 	rc =  powernv_flash_async_op(mtd, FLASH_OP_ERASE, erase->addr,
-			erase->len, NULL, NULL);
+								 erase->len, NULL, NULL);
 
-	if (rc) {
+	if (rc)
+	{
 		erase->fail_addr = erase->addr;
 		erase->state = MTD_ERASE_FAILED;
-	} else {
+	}
+	else
+	{
 		erase->state = MTD_ERASE_DONE;
 	}
+
 	mtd_erase_callback(erase);
 	return rc;
 }
@@ -177,14 +201,18 @@ static int powernv_flash_set_driver_info(struct device *dev,
 	int rc;
 
 	rc = of_property_read_u32(dev->of_node, "ibm,flash-block-size",
-			&erase_size);
-	if (rc) {
+							  &erase_size);
+
+	if (rc)
+	{
 		dev_err(dev, "couldn't get resource block size information\n");
 		return rc;
 	}
 
 	rc = of_property_read_u64(dev->of_node, "reg", &size);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(dev, "couldn't get resource size information\n");
 		return rc;
 	}
@@ -220,21 +248,29 @@ static int powernv_flash_probe(struct platform_device *pdev)
 	int ret;
 
 	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
-	if (!data) {
+
+	if (!data)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
+
 	data->mtd.priv = data;
 
 	ret = of_property_read_u32(dev->of_node, "ibm,opal-id", &(data->id));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "no device property 'ibm,opal-id'\n");
 		goto out;
 	}
 
 	ret = powernv_flash_set_driver_info(dev, &data->mtd);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	dev_set_drvdata(dev, data);
 
@@ -263,12 +299,14 @@ static int powernv_flash_release(struct platform_device *pdev)
 	return mtd_device_unregister(&(data->mtd));
 }
 
-static const struct of_device_id powernv_flash_match[] = {
+static const struct of_device_id powernv_flash_match[] =
+{
 	{ .compatible = "ibm,opal-flash" },
 	{}
 };
 
-static struct platform_driver powernv_flash_driver = {
+static struct platform_driver powernv_flash_driver =
+{
 	.driver		= {
 		.name		= "powernv_flash",
 		.of_match_table	= powernv_flash_match,

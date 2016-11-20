@@ -9,11 +9,11 @@
  * Fedora6.
  */
 #ifndef le16toh
-# if __BYTE_ORDER == __LITTLE_ENDIAN
-#  define le16toh(x) (x)
-# else
-#  define le16toh(x) __bswap_16 (x)
-# endif
+	#if __BYTE_ORDER == __LITTLE_ENDIAN
+		#define le16toh(x) (x)
+	#else
+		#define le16toh(x) __bswap_16 (x)
+	#endif
 #endif
 
 
@@ -27,16 +27,16 @@ process___le16_to_cpup(struct trace_seq *s, unsigned long long *args)
 int PEVENT_PLUGIN_LOADER(struct pevent *pevent)
 {
 	pevent_register_print_function(pevent,
-				       process___le16_to_cpup,
-				       PEVENT_FUNC_ARG_INT,
-				       "__le16_to_cpup",
-				       PEVENT_FUNC_ARG_PTR,
-				       PEVENT_FUNC_ARG_VOID);
+								   process___le16_to_cpup,
+								   PEVENT_FUNC_ARG_INT,
+								   "__le16_to_cpup",
+								   PEVENT_FUNC_ARG_PTR,
+								   PEVENT_FUNC_ARG_VOID);
 	return 0;
 }
 
 void PEVENT_PLUGIN_UNLOADER(struct pevent *pevent)
 {
 	pevent_unregister_print_function(pevent, process___le16_to_cpup,
-					 "__le16_to_cpup");
+									 "__le16_to_cpup");
 }

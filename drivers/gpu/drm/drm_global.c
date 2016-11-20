@@ -33,7 +33,8 @@
 #include <linux/module.h>
 #include <drm/drm_global.h>
 
-struct drm_global_item {
+struct drm_global_item
+{
 	struct mutex mutex;
 	void *object;
 	int refcount;
@@ -45,7 +46,8 @@ void drm_global_init(void)
 {
 	int i;
 
-	for (i = 0; i < DRM_GLOBAL_NUM; ++i) {
+	for (i = 0; i < DRM_GLOBAL_NUM; ++i)
+	{
 		struct drm_global_item *item = &glob[i];
 		mutex_init(&item->mutex);
 		item->object = NULL;
@@ -56,7 +58,9 @@ void drm_global_init(void)
 void drm_global_release(void)
 {
 	int i;
-	for (i = 0; i < DRM_GLOBAL_NUM; ++i) {
+
+	for (i = 0; i < DRM_GLOBAL_NUM; ++i)
+	{
 		struct drm_global_item *item = &glob[i];
 		BUG_ON(item->object != NULL);
 		BUG_ON(item->refcount != 0);
@@ -69,18 +73,28 @@ int drm_global_item_ref(struct drm_global_reference *ref)
 	struct drm_global_item *item = &glob[ref->global_type];
 
 	mutex_lock(&item->mutex);
-	if (item->refcount == 0) {
+
+	if (item->refcount == 0)
+	{
 		ref->object = kzalloc(ref->size, GFP_KERNEL);
-		if (unlikely(ref->object == NULL)) {
+
+		if (unlikely(ref->object == NULL))
+		{
 			ret = -ENOMEM;
 			goto error_unlock;
 		}
+
 		ret = ref->init(ref);
+
 		if (unlikely(ret != 0))
+		{
 			goto error_free;
+		}
 
 		item->object = ref->object;
-	} else {
+	}
+	else
+	{
 		ref->object = item->object;
 	}
 
@@ -104,10 +118,13 @@ void drm_global_item_unref(struct drm_global_reference *ref)
 	mutex_lock(&item->mutex);
 	BUG_ON(item->refcount == 0);
 	BUG_ON(ref->object != item->object);
-	if (--item->refcount == 0) {
+
+	if (--item->refcount == 0)
+	{
 		ref->release(ref);
 		item->object = NULL;
 	}
+
 	mutex_unlock(&item->mutex);
 }
 EXPORT_SYMBOL(drm_global_item_unref);

@@ -59,14 +59,18 @@ static irqreturn_t sa1100_rtc_interrupt(int irq, void *dev_id)
 	rtsr = readl_relaxed(info->rtsr);
 	/* clear interrupt sources */
 	writel_relaxed(0, info->rtsr);
+
 	/* Fix for a nasty initialization problem the in SA11xx RTSR register.
 	 * See also the comments in sa1100_rtc_probe(). */
-	if (rtsr & (RTSR_ALE | RTSR_HZE)) {
+	if (rtsr & (RTSR_ALE | RTSR_HZE))
+	{
 		/* This is the original code, before there was the if test
 		 * above. This code does not clear interrupts that were not
 		 * enabled. */
 		writel_relaxed((RTSR_AL | RTSR_HZ) & (rtsr >> 2), info->rtsr);
-	} else {
+	}
+	else
+	{
 		/* For some reason, it is possible to enter this routine
 		 * without interruptions enabled, it has been tested with
 		 * several units (Bug in SA11xx chip?).
@@ -79,14 +83,22 @@ static irqreturn_t sa1100_rtc_interrupt(int irq, void *dev_id)
 
 	/* clear alarm interrupt if it has occurred */
 	if (rtsr & RTSR_AL)
+	{
 		rtsr &= ~RTSR_ALE;
+	}
+
 	writel_relaxed(rtsr & (RTSR_ALE | RTSR_HZE), info->rtsr);
 
 	/* update irq data & counter */
 	if (rtsr & RTSR_AL)
+	{
 		events |= RTC_AF | RTC_IRQF;
+	}
+
 	if (rtsr & RTSR_HZ)
+	{
 		events |= RTC_UF | RTC_IRQF;
+	}
 
 	rtc_update_irq(rtc, 1, events);
 
@@ -102,23 +114,29 @@ static int sa1100_rtc_open(struct device *dev)
 	int ret;
 
 	ret = request_irq(info->irq_1hz, sa1100_rtc_interrupt, 0, "rtc 1Hz", dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "IRQ %d already in use.\n", info->irq_1hz);
 		goto fail_ui;
 	}
+
 	ret = request_irq(info->irq_alarm, sa1100_rtc_interrupt, 0, "rtc Alrm", dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "IRQ %d already in use.\n", info->irq_alarm);
 		goto fail_ai;
 	}
+
 	rtc->max_user_freq = RTC_FREQ;
 	rtc_irq_set_freq(rtc, NULL, RTC_FREQ);
 
 	return 0;
 
- fail_ai:
+fail_ai:
 	free_irq(info->irq_1hz, dev);
- fail_ui:
+fail_ui:
 	clk_disable_unprepare(info->clk);
 	return ret;
 }
@@ -142,10 +160,16 @@ static int sa1100_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
 
 	spin_lock_irq(&info->lock);
 	rtsr = readl_relaxed(info->rtsr);
+
 	if (enabled)
+	{
 		rtsr |= RTSR_ALE;
+	}
 	else
+	{
 		rtsr &= ~RTSR_ALE;
+	}
+
 	writel_relaxed(rtsr, info->rtsr);
 	spin_unlock_irq(&info->lock);
 	return 0;
@@ -166,8 +190,12 @@ static int sa1100_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	int ret;
 
 	ret = rtc_tm_to_time(tm, &time);
+
 	if (ret == 0)
+	{
 		writel_relaxed(time, info->rcnr);
+	}
+
 	return ret;
 }
 
@@ -190,15 +218,25 @@ static int sa1100_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 
 	spin_lock_irq(&info->lock);
 	ret = rtc_tm_to_time(&alrm->time, &time);
+
 	if (ret != 0)
+	{
 		goto out;
+	}
+
 	writel_relaxed(readl_relaxed(info->rtsr) &
-		(RTSR_HZE | RTSR_ALE | RTSR_AL), info->rtsr);
+				   (RTSR_HZE | RTSR_ALE | RTSR_AL), info->rtsr);
 	writel_relaxed(time, info->rtar);
+
 	if (alrm->enabled)
+	{
 		writel_relaxed(readl_relaxed(info->rtsr) | RTSR_ALE, info->rtsr);
+	}
 	else
+	{
 		writel_relaxed(readl_relaxed(info->rtsr) & ~RTSR_ALE, info->rtsr);
+	}
+
 out:
 	spin_unlock_irq(&info->lock);
 
@@ -215,7 +253,8 @@ static int sa1100_rtc_proc(struct device *dev, struct seq_file *seq)
 	return 0;
 }
 
-static const struct rtc_class_ops sa1100_rtc_ops = {
+static const struct rtc_class_ops sa1100_rtc_ops =
+{
 	.open = sa1100_rtc_open,
 	.release = sa1100_rtc_release,
 	.read_time = sa1100_rtc_read_time,
@@ -234,14 +273,20 @@ int sa1100_rtc_init(struct platform_device *pdev, struct sa1100_rtc *info)
 	spin_lock_init(&info->lock);
 
 	info->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(info->clk)) {
+
+	if (IS_ERR(info->clk))
+	{
 		dev_err(&pdev->dev, "failed to find rtc clock source\n");
 		return PTR_ERR(info->clk);
 	}
 
 	ret = clk_prepare_enable(info->clk);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	/*
 	 * According to the manual we should be able to let RTTR be zero
 	 * and then a default diviser for a 32.768KHz clock is used.
@@ -249,20 +294,24 @@ int sa1100_rtc_init(struct platform_device *pdev, struct sa1100_rtc *info)
 	 * If the clock divider is uninitialized then reset it to the
 	 * default value to get the 1Hz clock.
 	 */
-	if (readl_relaxed(info->rttr) == 0) {
+	if (readl_relaxed(info->rttr) == 0)
+	{
 		writel_relaxed(RTC_DEF_DIVIDER + (RTC_DEF_TRIM << 16), info->rttr);
 		dev_warn(&pdev->dev, "warning: "
-			"initializing default clock divider/trim value\n");
+				 "initializing default clock divider/trim value\n");
 		/* The current RTC value probably doesn't make sense either */
 		writel_relaxed(0, info->rcnr);
 	}
 
 	rtc = devm_rtc_device_register(&pdev->dev, pdev->name, &sa1100_rtc_ops,
-					THIS_MODULE);
-	if (IS_ERR(rtc)) {
+								   THIS_MODULE);
+
+	if (IS_ERR(rtc))
+	{
 		clk_disable_unprepare(info->clk);
 		return PTR_ERR(rtc);
 	}
+
 	info->rtc = rtc;
 
 	/* Fix for a nasty initialization problem the in SA11xx RTSR register.
@@ -302,27 +351,40 @@ static int sa1100_rtc_probe(struct platform_device *pdev)
 
 	irq_1hz = platform_get_irq_byname(pdev, "rtc 1Hz");
 	irq_alarm = platform_get_irq_byname(pdev, "rtc alarm");
+
 	if (irq_1hz < 0 || irq_alarm < 0)
+	{
 		return -ENODEV;
+	}
 
 	info = devm_kzalloc(&pdev->dev, sizeof(struct sa1100_rtc), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
+
 	info->irq_1hz = irq_1hz;
 	info->irq_alarm = irq_alarm;
 
 	iores = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(&pdev->dev, iores);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	if (IS_ENABLED(CONFIG_ARCH_SA1100) ||
-	    of_device_is_compatible(pdev->dev.of_node, "mrvl,sa1100-rtc")) {
+		of_device_is_compatible(pdev->dev.of_node, "mrvl,sa1100-rtc"))
+	{
 		info->rcnr = base + 0x04;
 		info->rtsr = base + 0x10;
 		info->rtar = base + 0x00;
 		info->rttr = base + 0x08;
-	} else {
+	}
+	else
+	{
 		info->rcnr = base + 0x0;
 		info->rtsr = base + 0x8;
 		info->rtar = base + 0x4;
@@ -340,7 +402,9 @@ static int sa1100_rtc_remove(struct platform_device *pdev)
 	struct sa1100_rtc *info = platform_get_drvdata(pdev);
 
 	if (info)
+	{
 		clk_disable_unprepare(info->clk);
+	}
 
 	return 0;
 }
@@ -349,25 +413,34 @@ static int sa1100_rtc_remove(struct platform_device *pdev)
 static int sa1100_rtc_suspend(struct device *dev)
 {
 	struct sa1100_rtc *info = dev_get_drvdata(dev);
+
 	if (device_may_wakeup(dev))
+	{
 		enable_irq_wake(info->irq_alarm);
+	}
+
 	return 0;
 }
 
 static int sa1100_rtc_resume(struct device *dev)
 {
 	struct sa1100_rtc *info = dev_get_drvdata(dev);
+
 	if (device_may_wakeup(dev))
+	{
 		disable_irq_wake(info->irq_alarm);
+	}
+
 	return 0;
 }
 #endif
 
 static SIMPLE_DEV_PM_OPS(sa1100_rtc_pm_ops, sa1100_rtc_suspend,
-			sa1100_rtc_resume);
+						 sa1100_rtc_resume);
 
 #ifdef CONFIG_OF
-static const struct of_device_id sa1100_rtc_dt_ids[] = {
+static const struct of_device_id sa1100_rtc_dt_ids[] =
+{
 	{ .compatible = "mrvl,sa1100-rtc", },
 	{ .compatible = "mrvl,mmp-rtc", },
 	{}
@@ -375,7 +448,8 @@ static const struct of_device_id sa1100_rtc_dt_ids[] = {
 MODULE_DEVICE_TABLE(of, sa1100_rtc_dt_ids);
 #endif
 
-static struct platform_driver sa1100_rtc_driver = {
+static struct platform_driver sa1100_rtc_driver =
+{
 	.probe		= sa1100_rtc_probe,
 	.remove		= sa1100_rtc_remove,
 	.driver		= {

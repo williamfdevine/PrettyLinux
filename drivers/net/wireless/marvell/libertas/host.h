@@ -180,7 +180,8 @@
 #define SNMP_MIB_OID_11H_ENABLE                 0x000A
 
 /* Define action or option for CMD_BT_ACCESS */
-enum cmd_bt_access_opts {
+enum cmd_bt_access_opts
+{
 	/* The bt commands start at 5 instead of 1 because the old dft commands
 	 * are mapped to 1-4.  These old commands are no longer maintained and
 	 * should not be called.
@@ -194,7 +195,8 @@ enum cmd_bt_access_opts {
 };
 
 /* Define action or option for CMD_FWT_ACCESS */
-enum cmd_fwt_access_opts {
+enum cmd_fwt_access_opts
+{
 	CMD_ACT_FWT_ACCESS_ADD = 1,
 	CMD_ACT_FWT_ACCESS_DEL,
 	CMD_ACT_FWT_ACCESS_LOOKUP,
@@ -207,7 +209,8 @@ enum cmd_fwt_access_opts {
 };
 
 /* Define action or option for CMD_802_11_HOST_SLEEP_CFG */
-enum cmd_wol_cfg_opts {
+enum cmd_wol_cfg_opts
+{
 	CMD_ACT_ACTION_NONE = 0,
 	CMD_ACT_SET_WOL_RULE,
 	CMD_ACT_GET_WOL_RULE,
@@ -215,7 +218,8 @@ enum cmd_wol_cfg_opts {
 };
 
 /* Define action or option for CMD_MESH_ACCESS */
-enum cmd_mesh_access_opts {
+enum cmd_mesh_access_opts
+{
 	CMD_ACT_MESH_GET_TTL = 1,
 	CMD_ACT_MESH_SET_TTL,
 	CMD_ACT_MESH_GET_STATS,
@@ -235,14 +239,16 @@ enum cmd_mesh_access_opts {
 };
 
 /* Define actions and types for CMD_MESH_CONFIG */
-enum cmd_mesh_config_actions {
+enum cmd_mesh_config_actions
+{
 	CMD_ACT_MESH_CONFIG_STOP = 0,
 	CMD_ACT_MESH_CONFIG_START,
 	CMD_ACT_MESH_CONFIG_SET,
 	CMD_ACT_MESH_CONFIG_GET,
 };
 
-enum cmd_mesh_config_types {
+enum cmd_mesh_config_types
+{
 	CMD_TYPE_MESH_SET_BOOTFLAG = 1,
 	CMD_TYPE_MESH_SET_BOOTTIME,
 	CMD_TYPE_MESH_SET_DEF_CHANNEL,
@@ -288,12 +294,15 @@ enum cmd_mesh_config_types {
 /* 802.11-related definitions */
 
 /* TxPD descriptor */
-struct txpd {
+struct txpd
+{
 	/* union to cope up with later FW revisions */
-	union {
+	union
+	{
 		/* Current Tx packet status */
 		__le32 tx_status;
-		struct {
+		struct
+		{
 			/* BSS type: client, AP, etc. */
 			u8 bss_type;
 			/* BSS number */
@@ -322,12 +331,15 @@ struct txpd {
 } __packed;
 
 /* RxPD Descriptor */
-struct rxpd {
+struct rxpd
+{
 	/* union to cope up with later FW revisions */
-	union {
+	union
+	{
 		/* Current Rx packet status */
 		__le16 status;
-		struct {
+		struct
+		{
 			/* BSS type: client, AP, etc. */
 			u8 bss_type;
 			/* BSS number */
@@ -361,7 +373,8 @@ struct rxpd {
 	u8 reserved[3];
 } __packed;
 
-struct cmd_header {
+struct cmd_header
+{
 	__le16 command;
 	__le16 size;
 	__le16 seqnum;
@@ -369,7 +382,8 @@ struct cmd_header {
 } __packed;
 
 /* Generic structure to hold all key types. */
-struct enc_key {
+struct enc_key
+{
 	u16 len;
 	u16 flags;  /* KEY_INFO_* from defs.h */
 	u16 type; /* KEY_TYPE_* from defs.h */
@@ -377,21 +391,24 @@ struct enc_key {
 };
 
 /* lbs_offset_value */
-struct lbs_offset_value {
+struct lbs_offset_value
+{
 	u32 offset;
 	u32 value;
 } __packed;
 
 #define MAX_11D_TRIPLETS	83
 
-struct mrvl_ie_domain_param_set {
+struct mrvl_ie_domain_param_set
+{
 	struct mrvl_ie_header header;
 
 	u8 country_code[IEEE80211_COUNTRY_STRING_LEN];
 	struct ieee80211_country_ie_triplet triplet[MAX_11D_TRIPLETS];
 } __packed;
 
-struct cmd_ds_802_11d_domain_info {
+struct cmd_ds_802_11d_domain_info
+{
 	struct cmd_header hdr;
 
 	__le16 action;
@@ -402,7 +419,8 @@ struct cmd_ds_802_11d_domain_info {
  * Define data structure for CMD_GET_HW_SPEC
  * This structure defines the response for the GET_HW_SPEC command
  */
-struct cmd_ds_get_hw_spec {
+struct cmd_ds_get_hw_spec
+{
 	struct cmd_header hdr;
 
 	/* HW Interface version number */
@@ -437,7 +455,8 @@ struct cmd_ds_get_hw_spec {
 	__le32 fwcapinfo;
 } __packed;
 
-struct cmd_ds_802_11_subscribe_event {
+struct cmd_ds_802_11_subscribe_event
+{
 	struct cmd_header hdr;
 
 	__le16 action;
@@ -455,7 +474,8 @@ struct cmd_ds_802_11_subscribe_event {
  * This scan handle Country Information IE(802.11d compliant)
  * Define data structure for CMD_802_11_SCAN
  */
-struct cmd_ds_802_11_scan {
+struct cmd_ds_802_11_scan
+{
 	struct cmd_header hdr;
 
 	uint8_t bsstype;
@@ -463,7 +483,8 @@ struct cmd_ds_802_11_scan {
 	uint8_t tlvbuffer[0];
 } __packed;
 
-struct cmd_ds_802_11_scan_rsp {
+struct cmd_ds_802_11_scan_rsp
+{
 	struct cmd_header hdr;
 
 	__le16 bssdescriptsize;
@@ -471,7 +492,8 @@ struct cmd_ds_802_11_scan_rsp {
 	uint8_t bssdesc_and_tlvbuffer[0];
 } __packed;
 
-struct cmd_ds_802_11_get_log {
+struct cmd_ds_802_11_get_log
+{
 	struct cmd_header hdr;
 
 	__le32 mcasttxframe;
@@ -489,20 +511,23 @@ struct cmd_ds_802_11_get_log {
 	__le32 wepundecryptable;
 } __packed;
 
-struct cmd_ds_mac_control {
+struct cmd_ds_mac_control
+{
 	struct cmd_header hdr;
 	__le16 action;
 	u16 reserved;
 } __packed;
 
-struct cmd_ds_mac_multicast_adr {
+struct cmd_ds_mac_multicast_adr
+{
 	struct cmd_header hdr;
 	__le16 action;
 	__le16 nr_of_adrs;
 	u8 maclist[ETH_ALEN * MRVDRV_MAX_MULTICAST_LIST_SIZE];
 } __packed;
 
-struct cmd_ds_802_11_authenticate {
+struct cmd_ds_802_11_authenticate
+{
 	struct cmd_header hdr;
 
 	u8 bssid[ETH_ALEN];
@@ -510,14 +535,16 @@ struct cmd_ds_802_11_authenticate {
 	u8 reserved[10];
 } __packed;
 
-struct cmd_ds_802_11_deauthenticate {
+struct cmd_ds_802_11_deauthenticate
+{
 	struct cmd_header hdr;
 
 	u8 macaddr[ETH_ALEN];
 	__le16 reasoncode;
 } __packed;
 
-struct cmd_ds_802_11_associate {
+struct cmd_ds_802_11_associate
+{
 	struct cmd_header hdr;
 
 	u8 bssid[6];
@@ -528,7 +555,8 @@ struct cmd_ds_802_11_associate {
 	u8 iebuf[512];    /* Enough for required and most optional IEs */
 } __packed;
 
-struct cmd_ds_802_11_associate_response {
+struct cmd_ds_802_11_associate_response
+{
 	struct cmd_header hdr;
 
 	__le16 capability;
@@ -537,7 +565,8 @@ struct cmd_ds_802_11_associate_response {
 	u8 iebuf[512];
 } __packed;
 
-struct cmd_ds_802_11_set_wep {
+struct cmd_ds_802_11_set_wep
+{
 	struct cmd_header hdr;
 
 	/* ACT_ADD, ACT_REMOVE or ACT_ENABLE */
@@ -551,7 +580,8 @@ struct cmd_ds_802_11_set_wep {
 	uint8_t keymaterial[4][16];
 } __packed;
 
-struct cmd_ds_802_11_snmp_mib {
+struct cmd_ds_802_11_snmp_mib
+{
 	struct cmd_header hdr;
 
 	__le16 action;
@@ -560,25 +590,29 @@ struct cmd_ds_802_11_snmp_mib {
 	u8 value[128];
 } __packed;
 
-struct cmd_ds_reg_access {
+struct cmd_ds_reg_access
+{
 	struct cmd_header hdr;
 
 	__le16 action;
 	__le16 offset;
-	union {
+	union
+	{
 		u8 bbp_rf;  /* for BBP and RF registers */
 		__le32 mac; /* for MAC registers */
 	} value;
 } __packed;
 
-struct cmd_ds_802_11_radio_control {
+struct cmd_ds_802_11_radio_control
+{
 	struct cmd_header hdr;
 
 	__le16 action;
 	__le16 control;
 } __packed;
 
-struct cmd_ds_802_11_beacon_control {
+struct cmd_ds_802_11_beacon_control
+{
 	struct cmd_header hdr;
 
 	__le16 action;
@@ -586,7 +620,8 @@ struct cmd_ds_802_11_beacon_control {
 	__le16 beacon_period;
 } __packed;
 
-struct cmd_ds_802_11_sleep_params {
+struct cmd_ds_802_11_sleep_params
+{
 	struct cmd_header hdr;
 
 	/* ACT_GET/ACT_SET */
@@ -611,7 +646,8 @@ struct cmd_ds_802_11_sleep_params {
 	__le16 reserved;
 } __packed;
 
-struct cmd_ds_802_11_rf_channel {
+struct cmd_ds_802_11_rf_channel
+{
 	struct cmd_header hdr;
 
 	__le16 action;
@@ -621,7 +657,8 @@ struct cmd_ds_802_11_rf_channel {
 	u8 channellist[32]; /* unused */
 } __packed;
 
-struct cmd_ds_802_11_rssi {
+struct cmd_ds_802_11_rssi
+{
 	struct cmd_header hdr;
 
 	/*
@@ -639,14 +676,16 @@ struct cmd_ds_802_11_rssi {
 	__le16 avg_nf;   /* average noise floor weighted by N from request */
 } __packed;
 
-struct cmd_ds_802_11_mac_address {
+struct cmd_ds_802_11_mac_address
+{
 	struct cmd_header hdr;
 
 	__le16 action;
 	u8 macadd[ETH_ALEN];
 } __packed;
 
-struct cmd_ds_802_11_rf_tx_power {
+struct cmd_ds_802_11_rf_tx_power
+{
 	struct cmd_header hdr;
 
 	__le16 action;
@@ -656,28 +695,32 @@ struct cmd_ds_802_11_rf_tx_power {
 } __packed;
 
 /* MONITOR_MODE only exists in OLPC v5 firmware */
-struct cmd_ds_802_11_monitor_mode {
+struct cmd_ds_802_11_monitor_mode
+{
 	struct cmd_header hdr;
 
 	__le16 action;
 	__le16 mode;
 } __packed;
 
-struct cmd_ds_set_boot2_ver {
+struct cmd_ds_set_boot2_ver
+{
 	struct cmd_header hdr;
 
 	__le16 action;
 	__le16 version;
 } __packed;
 
-struct cmd_ds_802_11_fw_wake_method {
+struct cmd_ds_802_11_fw_wake_method
+{
 	struct cmd_header hdr;
 
 	__le16 action;
 	__le16 method;
 } __packed;
 
-struct cmd_ds_802_11_ps_mode {
+struct cmd_ds_802_11_ps_mode
+{
 	struct cmd_header hdr;
 
 	__le16 action;
@@ -712,7 +755,8 @@ struct cmd_ds_802_11_ps_mode {
 	__le16 adhoc_awake_period;
 } __packed;
 
-struct cmd_confirm_sleep {
+struct cmd_confirm_sleep
+{
 	struct cmd_header hdr;
 
 	__le16 action;
@@ -722,7 +766,8 @@ struct cmd_confirm_sleep {
 	__le16 locallisteninterval;
 } __packed;
 
-struct cmd_ds_802_11_data_rate {
+struct cmd_ds_802_11_data_rate
+{
 	struct cmd_header hdr;
 
 	__le16 action;
@@ -730,14 +775,16 @@ struct cmd_ds_802_11_data_rate {
 	u8 rates[MAX_RATES];
 } __packed;
 
-struct cmd_ds_802_11_rate_adapt_rateset {
+struct cmd_ds_802_11_rate_adapt_rateset
+{
 	struct cmd_header hdr;
 	__le16 action;
 	__le16 enablehwauto;
 	__le16 bitmap;
 } __packed;
 
-struct cmd_ds_802_11_ad_hoc_start {
+struct cmd_ds_802_11_ad_hoc_start
+{
 	struct cmd_header hdr;
 
 	u8 ssid[IEEE80211_MAX_SSID_LEN];
@@ -754,14 +801,16 @@ struct cmd_ds_802_11_ad_hoc_start {
 	u8 tlv_memory_size_pad[100];
 } __packed;
 
-struct cmd_ds_802_11_ad_hoc_result {
+struct cmd_ds_802_11_ad_hoc_result
+{
 	struct cmd_header hdr;
 
 	u8 pad[3];
 	u8 bssid[ETH_ALEN];
 } __packed;
 
-struct adhoc_bssdesc {
+struct adhoc_bssdesc
+{
 	u8 bssid[ETH_ALEN];
 	u8 ssid[IEEE80211_MAX_SSID_LEN];
 	u8 type;
@@ -783,7 +832,8 @@ struct adhoc_bssdesc {
 	 */
 } __packed;
 
-struct cmd_ds_802_11_ad_hoc_join {
+struct cmd_ds_802_11_ad_hoc_join
+{
 	struct cmd_header hdr;
 
 	struct adhoc_bssdesc bss;
@@ -791,18 +841,21 @@ struct cmd_ds_802_11_ad_hoc_join {
 	__le16 probedelay;    /* Reserved on v9 and later */
 } __packed;
 
-struct cmd_ds_802_11_ad_hoc_stop {
+struct cmd_ds_802_11_ad_hoc_stop
+{
 	struct cmd_header hdr;
 } __packed;
 
-struct cmd_ds_802_11_enable_rsn {
+struct cmd_ds_802_11_enable_rsn
+{
 	struct cmd_header hdr;
 
 	__le16 action;
 	__le16 enable;
 } __packed;
 
-struct MrvlIEtype_keyParamSet {
+struct MrvlIEtype_keyParamSet
+{
 	/* type ID */
 	__le16 type;
 
@@ -824,7 +877,8 @@ struct MrvlIEtype_keyParamSet {
 
 #define MAX_WOL_RULES 		16
 
-struct host_wol_rule {
+struct host_wol_rule
+{
 	uint8_t rule_no;
 	uint8_t rule_ops;
 	__le16 sig_offset;
@@ -834,7 +888,8 @@ struct host_wol_rule {
 	__be32 signature;
 } __packed;
 
-struct wol_config {
+struct wol_config
+{
 	uint8_t action;
 	uint8_t pattern;
 	uint8_t no_rules_in_cmd;
@@ -842,7 +897,8 @@ struct wol_config {
 	struct host_wol_rule rule[MAX_WOL_RULES];
 } __packed;
 
-struct cmd_ds_host_sleep {
+struct cmd_ds_host_sleep
+{
 	struct cmd_header hdr;
 	__le32 criteria;
 	uint8_t gpio;
@@ -852,14 +908,16 @@ struct cmd_ds_host_sleep {
 
 
 
-struct cmd_ds_802_11_key_material {
+struct cmd_ds_802_11_key_material
+{
 	struct cmd_header hdr;
 
 	__le16 action;
 	struct MrvlIEtype_keyParamSet keyParamSet[2];
 } __packed;
 
-struct cmd_ds_802_11_eeprom_access {
+struct cmd_ds_802_11_eeprom_access
+{
 	struct cmd_header hdr;
 	__le16 action;
 	__le16 offset;
@@ -869,7 +927,8 @@ struct cmd_ds_802_11_eeprom_access {
 	u8 value[LBS_EEPROM_READ_LEN];
 } __packed;
 
-struct cmd_ds_802_11_tpc_cfg {
+struct cmd_ds_802_11_tpc_cfg
+{
 	struct cmd_header hdr;
 
 	__le16 action;
@@ -881,7 +940,8 @@ struct cmd_ds_802_11_tpc_cfg {
 } __packed;
 
 
-struct cmd_ds_802_11_pa_cfg {
+struct cmd_ds_802_11_pa_cfg
+{
 	struct cmd_header hdr;
 
 	__le16 action;
@@ -892,7 +952,8 @@ struct cmd_ds_802_11_pa_cfg {
 } __packed;
 
 
-struct cmd_ds_802_11_led_ctrl {
+struct cmd_ds_802_11_led_ctrl
+{
 	struct cmd_header hdr;
 
 	__le16 action;
@@ -901,31 +962,38 @@ struct cmd_ds_802_11_led_ctrl {
 } __packed;
 
 /* Automatic Frequency Control */
-struct cmd_ds_802_11_afc {
+struct cmd_ds_802_11_afc
+{
 	struct cmd_header hdr;
 
 	__le16 afc_auto;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__le16 threshold;
 			__le16 period;
 		};
-		struct {
+		struct
+		{
 			__le16 timing_offset; /* signed */
 			__le16 carrier_offset; /* signed */
 		};
 	};
 } __packed;
 
-struct cmd_tx_rate_query {
+struct cmd_tx_rate_query
+{
 	__le16 txrate;
 } __packed;
 
-struct cmd_ds_get_tsf {
+struct cmd_ds_get_tsf
+{
 	__le64 tsfvalue;
 } __packed;
 
-struct cmd_ds_bt_access {
+struct cmd_ds_bt_access
+{
 	struct cmd_header hdr;
 
 	__le16 action;
@@ -934,7 +1002,8 @@ struct cmd_ds_bt_access {
 	u8 addr2[ETH_ALEN];
 } __packed;
 
-struct cmd_ds_fwt_access {
+struct cmd_ds_fwt_access
+{
 	struct cmd_header hdr;
 
 	__le16 action;
@@ -956,7 +1025,8 @@ struct cmd_ds_fwt_access {
 	u8 prec[ETH_ALEN];
 } __packed;
 
-struct cmd_ds_mesh_config {
+struct cmd_ds_mesh_config
+{
 	struct cmd_header hdr;
 
 	__le16 action;
@@ -966,7 +1036,8 @@ struct cmd_ds_mesh_config {
 	u8 data[128];	/* last position reserved */
 } __packed;
 
-struct cmd_ds_mesh_access {
+struct cmd_ds_mesh_access
+{
 	struct cmd_header hdr;
 
 	__le16 action;

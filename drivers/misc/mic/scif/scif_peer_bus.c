@@ -24,7 +24,8 @@ dev_to_scif_peer(struct device *dev)
 	return container_of(dev, struct scif_peer_dev, dev);
 }
 
-struct bus_type scif_peer_bus = {
+struct bus_type scif_peer_bus =
+{
 	.name  = "scif_peer_bus",
 };
 
@@ -43,7 +44,9 @@ static int scif_peer_initialize_device(struct scif_dev *scifdev)
 	int ret;
 
 	spdev = kzalloc(sizeof(*spdev), GFP_KERNEL);
-	if (!spdev) {
+
+	if (!spdev)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
@@ -65,7 +68,7 @@ static int scif_peer_initialize_device(struct scif_dev *scifdev)
 	return 0;
 err:
 	dev_err(&scifdev->sdev->dev,
-		"dnode %d: initialize_device rc %d\n", scifdev->node, ret);
+			"dnode %d: initialize_device rc %d\n", scifdev->node, ret);
 	return ret;
 }
 
@@ -77,22 +80,27 @@ static int scif_peer_add_device(struct scif_dev *scifdev)
 
 	ret = device_add(&spdev->dev);
 	put_device(&spdev->dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&scifdev->sdev->dev,
-			"dnode %d: peer device_add failed\n", scifdev->node);
+				"dnode %d: peer device_add failed\n", scifdev->node);
 		goto put_spdev;
 	}
 
 	scnprintf(pool_name, sizeof(pool_name), "scif-%d", spdev->dnode);
 	scifdev->signal_pool = dmam_pool_create(pool_name, &scifdev->sdev->dev,
-						sizeof(struct scif_status), 1,
-						0);
-	if (!scifdev->signal_pool) {
+											sizeof(struct scif_status), 1,
+											0);
+
+	if (!scifdev->signal_pool)
+	{
 		dev_err(&scifdev->sdev->dev,
-			"dnode %d: dmam_pool_create failed\n", scifdev->node);
+				"dnode %d: dmam_pool_create failed\n", scifdev->node);
 		ret = -ENOMEM;
 		goto del_spdev;
 	}
+
 	dev_dbg(&spdev->dev, "Added peer dnode %d\n", spdev->dnode);
 	return 0;
 del_spdev:
@@ -111,7 +119,7 @@ put_spdev:
 void scif_add_peer_device(struct work_struct *work)
 {
 	struct scif_dev *scifdev = container_of(work, struct scif_dev,
-						peer_add_work);
+											peer_add_work);
 
 	scif_peer_add_device(scifdev);
 }
@@ -134,8 +142,12 @@ void scif_peer_register_device(struct scif_dev *scifdev)
 
 	mutex_lock(&scifdev->lock);
 	ret = scif_peer_initialize_device(scifdev);
+
 	if (ret)
+	{
 		goto exit;
+	}
+
 	schedule_work(&scifdev->peer_add_work);
 exit:
 	mutex_unlock(&scifdev->lock);
@@ -154,7 +166,9 @@ int scif_peer_unregister_device(struct scif_dev *scifdev)
 	 * can be called simultaneously from multiple threads
 	 */
 	spdev = rcu_dereference(scifdev->spdev);
-	if (!spdev) {
+
+	if (!spdev)
+	{
 		mutex_unlock(&scifdev->lock);
 		return -ENODEV;
 	}

@@ -163,13 +163,13 @@
 
 /* Reserved bits for NOR flash interrupt mask and clear register */
 #define		TUSB_INT_MASK_RESERVED_BITS	(TUSB_INT_MASK_RESERVED_17 | \
-						TUSB_INT_MASK_RESERVED_13 | \
-						TUSB_INT_MASK_RESERVED_8)
+		TUSB_INT_MASK_RESERVED_13 | \
+		TUSB_INT_MASK_RESERVED_8)
 
 /* Reserved bits for NOR flash interrupt status register */
 #define		TUSB_INT_SRC_RESERVED_BITS	(TUSB_INT_SRC_RESERVED_26 | \
-						TUSB_INT_SRC_RESERVED_18 | \
-						TUSB_INT_SRC_RESERVED_10)
+		TUSB_INT_SRC_RESERVED_18 | \
+		TUSB_INT_SRC_RESERVED_10)
 
 #define TUSB_GPIO_REV			(TUSB_SYS_REG_BASE + 0x080)
 #define TUSB_GPIO_CONF			(TUSB_SYS_REG_BASE + 0x084)

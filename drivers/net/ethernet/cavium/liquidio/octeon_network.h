@@ -31,19 +31,22 @@
 #define LIO_MAX_MTU_SIZE (OCTNET_MAX_FRM_SIZE - OCTNET_FRM_HEADER_SIZE)
 #define LIO_MIN_MTU_SIZE 68
 
-struct oct_nic_stats_resp {
+struct oct_nic_stats_resp
+{
 	u64     rh;
 	struct oct_link_stats stats;
 	u64     status;
 };
 
-struct oct_nic_stats_ctrl {
+struct oct_nic_stats_ctrl
+{
 	struct completion complete;
 	struct net_device *netdev;
 };
 
 /** LiquidIO per-interface network private data */
-struct lio {
+struct lio
+{
 	/** State of the interface. Rx/Tx happens only in the RUNNING state.  */
 	atomic_t ifstate;
 
@@ -170,24 +173,30 @@ void liquidio_set_ethtool_ops(struct net_device *netdev);
 
 static inline void
 *recv_buffer_alloc(struct octeon_device *oct,
-		   struct octeon_skb_page_info *pg_info)
+				   struct octeon_skb_page_info *pg_info)
 {
 	struct page *page;
 	struct sk_buff *skb;
 	struct octeon_skb_page_info *skb_pg_info;
 
 	page = alloc_page(GFP_ATOMIC | __GFP_COLD);
+
 	if (unlikely(!page))
+	{
 		return NULL;
+	}
 
 	skb = dev_alloc_skb(MIN_SKB_SIZE + SKB_ADJ);
-	if (unlikely(!skb)) {
+
+	if (unlikely(!skb))
+	{
 		__free_page(page);
 		pg_info->page = NULL;
 		return NULL;
 	}
 
-	if ((unsigned long)skb->data & SKB_ADJ_MASK) {
+	if ((unsigned long)skb->data & SKB_ADJ_MASK)
+	{
 		u32 r = SKB_ADJ - ((unsigned long)skb->data & SKB_ADJ_MASK);
 
 		skb_reserve(skb, r);
@@ -196,10 +205,11 @@ static inline void
 	skb_pg_info = ((struct octeon_skb_page_info *)(skb->cb));
 	/* Get DMA info */
 	pg_info->dma = dma_map_page(&oct->pci_dev->dev, page, 0,
-				    PAGE_SIZE, DMA_FROM_DEVICE);
+								PAGE_SIZE, DMA_FROM_DEVICE);
 
 	/* Mapping failed!! */
-	if (dma_mapping_error(&oct->pci_dev->dev, pg_info->dma)) {
+	if (dma_mapping_error(&oct->pci_dev->dev, pg_info->dma))
+	{
 		__free_page(page);
 		dev_kfree_skb_any((struct sk_buff *)skb);
 		pg_info->page = NULL;
@@ -222,10 +232,14 @@ static inline void
 	struct octeon_skb_page_info *skb_pg_info;
 
 	skb = dev_alloc_skb(size + SKB_ADJ);
-	if (unlikely(!skb))
-		return NULL;
 
-	if ((unsigned long)skb->data & SKB_ADJ_MASK) {
+	if (unlikely(!skb))
+	{
+		return NULL;
+	}
+
+	if ((unsigned long)skb->data & SKB_ADJ_MASK)
+	{
 		u32 r = SKB_ADJ - ((unsigned long)skb->data & SKB_ADJ_MASK);
 
 		skb_reserve(skb, r);
@@ -244,17 +258,19 @@ recv_buffer_recycle(struct octeon_device *oct, void *buf)
 {
 	struct octeon_skb_page_info *pg_info = buf;
 
-	if (!pg_info->page) {
+	if (!pg_info->page)
+	{
 		dev_err(&oct->pci_dev->dev, "%s: pg_info->page NULL\n",
-			__func__);
+				__func__);
 		return -ENOMEM;
 	}
 
 	if (unlikely(page_count(pg_info->page) != 1) ||
-	    unlikely(page_to_nid(pg_info->page)	!= numa_node_id())) {
+		unlikely(page_to_nid(pg_info->page)	!= numa_node_id()))
+	{
 		dma_unmap_page(&oct->pci_dev->dev,
-			       pg_info->dma, (PAGE_SIZE << 0),
-			       DMA_FROM_DEVICE);
+					   pg_info->dma, (PAGE_SIZE << 0),
+					   DMA_FROM_DEVICE);
 		pg_info->dma = 0;
 		pg_info->page = NULL;
 		pg_info->page_offset = 0;
@@ -263,9 +279,14 @@ recv_buffer_recycle(struct octeon_device *oct, void *buf)
 
 	/* Flip to other half of the buffer */
 	if (pg_info->page_offset == 0)
+	{
 		pg_info->page_offset = LIO_RXBUFFER_SZ;
+	}
 	else
+	{
 		pg_info->page_offset = 0;
+	}
+
 	page_ref_inc(pg_info->page);
 
 	return 0;
@@ -278,14 +299,17 @@ static inline void
 	struct sk_buff *skb;
 
 	skb = dev_alloc_skb(MIN_SKB_SIZE + SKB_ADJ);
-	if (unlikely(!skb)) {
+
+	if (unlikely(!skb))
+	{
 		dma_unmap_page(&oct->pci_dev->dev,
-			       pg_info->dma, (PAGE_SIZE << 0),
-			       DMA_FROM_DEVICE);
+					   pg_info->dma, (PAGE_SIZE << 0),
+					   DMA_FROM_DEVICE);
 		return NULL;
 	}
 
-	if ((unsigned long)skb->data & SKB_ADJ_MASK) {
+	if ((unsigned long)skb->data & SKB_ADJ_MASK)
+	{
 		u32 r = SKB_ADJ - ((unsigned long)skb->data & SKB_ADJ_MASK);
 
 		skb_reserve(skb, r);
@@ -310,7 +334,9 @@ recv_buffer_destroy(void *buffer, struct octeon_skb_page_info *pg_info)
 	pg_info->page_offset = 0;
 
 	if (skb)
+	{
 		dev_kfree_skb_any(skb);
+	}
 }
 
 static inline void recv_buffer_free(void *buffer)
@@ -320,7 +346,8 @@ static inline void recv_buffer_free(void *buffer)
 
 	pg_info = ((struct octeon_skb_page_info *)(skb->cb));
 
-	if (pg_info->page) {
+	if (pg_info->page)
+	{
 		put_page(pg_info->page);
 		pg_info->dma = 0;
 		pg_info->page = NULL;
@@ -365,7 +392,7 @@ lio_map_ring_info(struct octeon_droq *droq, u32 i)
 	struct octeon_device *oct = droq->oct_dev;
 
 	dma_addr = dma_map_single(&oct->pci_dev->dev, &droq->info_list[i],
-				  OCT_DROQ_INFO_SIZE, DMA_FROM_DEVICE);
+							  OCT_DROQ_INFO_SIZE, DMA_FROM_DEVICE);
 
 	WARN_ON(dma_mapping_error(&oct->pci_dev->dev, dma_addr));
 
@@ -374,7 +401,7 @@ lio_map_ring_info(struct octeon_droq *droq, u32 i)
 
 static inline void
 lio_unmap_ring_info(struct pci_dev *pci_dev,
-		    u64 info_ptr, u32 size)
+					u64 info_ptr, u32 size)
 {
 	dma_unmap_single(&pci_dev->dev, info_ptr, size, DMA_FROM_DEVICE);
 }
@@ -388,18 +415,23 @@ lio_map_ring(void *buf)
 	struct octeon_skb_page_info *pg_info;
 
 	pg_info = ((struct octeon_skb_page_info *)(skb->cb));
-	if (!pg_info->page) {
+
+	if (!pg_info->page)
+	{
 		pr_err("%s: pg_info->page NULL\n", __func__);
 		WARN_ON(1);
 	}
 
 	/* Get DMA info */
 	dma_addr = pg_info->dma;
-	if (!pg_info->dma) {
+
+	if (!pg_info->dma)
+	{
 		pr_err("%s: ERROR it should be already available\n",
-		       __func__);
+			   __func__);
 		WARN_ON(1);
 	}
+
 	dma_addr += pg_info->page_offset;
 
 	return (u64)dma_addr;
@@ -407,12 +439,12 @@ lio_map_ring(void *buf)
 
 static inline void
 lio_unmap_ring(struct pci_dev *pci_dev,
-	       u64 buf_ptr)
+			   u64 buf_ptr)
 
 {
 	dma_unmap_page(&pci_dev->dev,
-		       buf_ptr, (PAGE_SIZE << 0),
-		       DMA_FROM_DEVICE);
+				   buf_ptr, (PAGE_SIZE << 0),
+				   DMA_FROM_DEVICE);
 }
 
 static inline void *octeon_fast_packet_alloc(u32 size)
@@ -421,12 +453,12 @@ static inline void *octeon_fast_packet_alloc(u32 size)
 }
 
 static inline void octeon_fast_packet_next(struct octeon_droq *droq,
-					   struct sk_buff *nicbuf,
-					   int copy_len,
-					   int idx)
+		struct sk_buff *nicbuf,
+		int copy_len,
+		int idx)
 {
 	memcpy(skb_put(nicbuf, copy_len),
-	       get_rbd(droq->recv_buf_list[idx].buffer), copy_len);
+		   get_rbd(droq->recv_buf_list[idx].buffer), copy_len);
 }
 
 #endif

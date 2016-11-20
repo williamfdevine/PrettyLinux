@@ -35,7 +35,8 @@ MODULE_PARM_DESC(major, "Major device number");
 
 #define MAX_PINS 32		/* 64 later, when known ok */
 
-struct nsc_gpio_ops scx200_gpio_ops = {
+struct nsc_gpio_ops scx200_gpio_ops =
+{
 	.owner		= THIS_MODULE,
 	.gpio_config	= scx200_gpio_configure,
 	.gpio_dump	= nsc_gpio_dump,
@@ -52,7 +53,10 @@ static int scx200_gpio_open(struct inode *inode, struct file *file)
 	file->private_data = &scx200_gpio_ops;
 
 	if (m >= MAX_PINS)
+	{
 		return -EINVAL;
+	}
+
 	return nonseekable_open(inode, file);
 }
 
@@ -61,7 +65,8 @@ static int scx200_gpio_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static const struct file_operations scx200_gpio_fileops = {
+static const struct file_operations scx200_gpio_fileops =
+{
 	.owner   = THIS_MODULE,
 	.write   = nsc_gpio_write,
 	.read    = nsc_gpio_read,
@@ -77,31 +82,43 @@ static int __init scx200_gpio_init(void)
 	int rc;
 	dev_t devid;
 
-	if (!scx200_gpio_present()) {
+	if (!scx200_gpio_present())
+	{
 		printk(KERN_ERR DRVNAME ": no SCx200 gpio present\n");
 		return -ENODEV;
 	}
 
 	/* support dev_dbg() with pdev->dev */
 	pdev = platform_device_alloc(DRVNAME, 0);
+
 	if (!pdev)
+	{
 		return -ENOMEM;
+	}
 
 	rc = platform_device_add(pdev);
+
 	if (rc)
+	{
 		goto undo_malloc;
+	}
 
 	/* nsc_gpio uses dev_dbg(), so needs this */
 	scx200_gpio_ops.dev = &pdev->dev;
 
-	if (major) {
+	if (major)
+	{
 		devid = MKDEV(major, 0);
 		rc = register_chrdev_region(devid, MAX_PINS, "scx200_gpio");
-	} else {
+	}
+	else
+	{
 		rc = alloc_chrdev_region(&devid, 0, MAX_PINS, "scx200_gpio");
 		major = MAJOR(devid);
 	}
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dev_err(&pdev->dev, "SCx200 chrdev_region err: %d\n", rc);
 		goto undo_platform_device_add;
 	}

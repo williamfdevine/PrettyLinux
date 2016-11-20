@@ -13,7 +13,8 @@
 
 struct spi_device;
 
-struct libertas_spi_platform_data {
+struct libertas_spi_platform_data
+{
 	/* There are two ways to read data from the WLAN module's SPI
 	 * interface. Setting 0 or 1 here controls which one is used.
 	 *

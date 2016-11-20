@@ -11,7 +11,7 @@ extern struct timezone sys_tz;
 #define TIME_T_MAX	(time_t)((1UL << ((sizeof(time_t) << 3) - 1)) - 1)
 
 static inline int timespec_equal(const struct timespec *a,
-                                 const struct timespec *b)
+								 const struct timespec *b)
 {
 	return (a->tv_sec == b->tv_sec) && (a->tv_nsec == b->tv_nsec);
 }
@@ -24,32 +24,44 @@ static inline int timespec_equal(const struct timespec *a,
 static inline int timespec_compare(const struct timespec *lhs, const struct timespec *rhs)
 {
 	if (lhs->tv_sec < rhs->tv_sec)
+	{
 		return -1;
+	}
+
 	if (lhs->tv_sec > rhs->tv_sec)
+	{
 		return 1;
+	}
+
 	return lhs->tv_nsec - rhs->tv_nsec;
 }
 
 static inline int timeval_compare(const struct timeval *lhs, const struct timeval *rhs)
 {
 	if (lhs->tv_sec < rhs->tv_sec)
+	{
 		return -1;
+	}
+
 	if (lhs->tv_sec > rhs->tv_sec)
+	{
 		return 1;
+	}
+
 	return lhs->tv_usec - rhs->tv_usec;
 }
 
 extern time64_t mktime64(const unsigned int year, const unsigned int mon,
-			const unsigned int day, const unsigned int hour,
-			const unsigned int min, const unsigned int sec);
+						 const unsigned int day, const unsigned int hour,
+						 const unsigned int min, const unsigned int sec);
 
 /**
  * Deprecated. Use mktime64().
  */
 static inline unsigned long mktime(const unsigned int year,
-			const unsigned int mon, const unsigned int day,
-			const unsigned int hour, const unsigned int min,
-			const unsigned int sec)
+								   const unsigned int mon, const unsigned int day,
+								   const unsigned int hour, const unsigned int min,
+								   const unsigned int sec)
 {
 	return mktime64(year, mon, day, hour, min, sec);
 }
@@ -62,15 +74,15 @@ extern void set_normalized_timespec(struct timespec *ts, time_t sec, s64 nsec);
  * smaller then either of the arguments.
  */
 extern struct timespec timespec_add_safe(const struct timespec lhs,
-					 const struct timespec rhs);
+		const struct timespec rhs);
 
 
 static inline struct timespec timespec_add(struct timespec lhs,
-						struct timespec rhs)
+		struct timespec rhs)
 {
 	struct timespec ts_delta;
 	set_normalized_timespec(&ts_delta, lhs.tv_sec + rhs.tv_sec,
-				lhs.tv_nsec + rhs.tv_nsec);
+							lhs.tv_nsec + rhs.tv_nsec);
 	return ts_delta;
 }
 
@@ -78,11 +90,11 @@ static inline struct timespec timespec_add(struct timespec lhs,
  * sub = lhs - rhs, in normalized form
  */
 static inline struct timespec timespec_sub(struct timespec lhs,
-						struct timespec rhs)
+		struct timespec rhs)
 {
 	struct timespec ts_delta;
 	set_normalized_timespec(&ts_delta, lhs.tv_sec - rhs.tv_sec,
-				lhs.tv_nsec - rhs.tv_nsec);
+							lhs.tv_nsec - rhs.tv_nsec);
 	return ts_delta;
 }
 
@@ -93,20 +105,32 @@ static inline bool timespec_valid(const struct timespec *ts)
 {
 	/* Dates before 1970 are bogus */
 	if (ts->tv_sec < 0)
+	{
 		return false;
+	}
+
 	/* Can't have more nanoseconds then a second */
 	if ((unsigned long)ts->tv_nsec >= NSEC_PER_SEC)
+	{
 		return false;
+	}
+
 	return true;
 }
 
 static inline bool timespec_valid_strict(const struct timespec *ts)
 {
 	if (!timespec_valid(ts))
+	{
 		return false;
+	}
+
 	/* Disallow values that could overflow ktime_t */
 	if ((unsigned long long)ts->tv_sec >= KTIME_SEC_MAX)
+	{
 		return false;
+	}
+
 	return true;
 }
 
@@ -114,11 +138,15 @@ static inline bool timeval_valid(const struct timeval *tv)
 {
 	/* Dates before 1970 are bogus */
 	if (tv->tv_sec < 0)
+	{
 		return false;
+	}
 
 	/* Can't have more microseconds then a second */
 	if (tv->tv_usec < 0 || tv->tv_usec >= USEC_PER_SEC)
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -137,7 +165,10 @@ static inline bool timeval_inject_offset_valid(const struct timeval *tv)
 
 	/* Can't have more microseconds then a second */
 	if (tv->tv_usec < 0 || tv->tv_usec >= USEC_PER_SEC)
+	{
 		return false;
+	}
+
 	return true;
 }
 
@@ -147,7 +178,10 @@ static inline bool timespec_inject_offset_valid(const struct timespec *ts)
 
 	/* Can't have more nanoseconds then a second */
 	if (ts->tv_nsec < 0 || ts->tv_nsec >= NSEC_PER_SEC)
+	{
 		return false;
+	}
+
 	return true;
 }
 
@@ -164,12 +198,12 @@ static inline bool timespec_inject_offset_valid(const struct timespec *ts)
  * finer then tick granular time.
  */
 #ifdef CONFIG_ARCH_USES_GETTIMEOFFSET
-extern u32 (*arch_gettimeoffset)(void);
+	extern u32 (*arch_gettimeoffset)(void);
 #endif
 
 struct itimerval;
 extern int do_setitimer(int which, struct itimerval *value,
-			struct itimerval *ovalue);
+						struct itimerval *ovalue);
 extern int do_getitimer(int which, struct itimerval *value);
 
 extern unsigned int alarm_setitimer(unsigned int seconds);
@@ -183,7 +217,8 @@ extern void do_sys_times(struct tms *);
  * Similar to the struct tm in userspace <time.h>, but it needs to be here so
  * that the kernel source is self contained.
  */
-struct tm {
+struct tm
+{
 	/*
 	 * the number of seconds after the minute, normally in the range
 	 * 0 to 59, but can be up to 60 to allow for leap seconds
@@ -242,7 +277,7 @@ static inline s64 timespec_to_ns(const struct timespec *ts)
 static inline s64 timeval_to_ns(const struct timeval *tv)
 {
 	return ((s64) tv->tv_sec * NSEC_PER_SEC) +
-		tv->tv_usec * NSEC_PER_USEC;
+		   tv->tv_usec * NSEC_PER_USEC;
 }
 
 /**

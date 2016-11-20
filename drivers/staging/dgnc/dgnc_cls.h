@@ -35,7 +35,8 @@
  * msr     : WR MSG - Modem Status Reg
  * spr     : WR SPR - Scratch pad Reg
  */
-struct cls_uart_struct {
+struct cls_uart_struct
+{
 	u8 txrx;
 	u8 ier;
 	u8 isr_fcr;

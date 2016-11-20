@@ -18,29 +18,35 @@
 /* EBT_ACCEPT means the frame will be bridged
  * EBT_DROP means the frame will be routed
  */
-static struct ebt_entries initial_chain = {
+static struct ebt_entries initial_chain =
+{
 	.name		= "BROUTING",
 	.policy		= EBT_ACCEPT,
 };
 
-static struct ebt_replace_kernel initial_table = {
+static struct ebt_replace_kernel initial_table =
+{
 	.name		= "broute",
 	.valid_hooks	= 1 << NF_BR_BROUTING,
 	.entries_size	= sizeof(struct ebt_entries),
 	.hook_entry	= {
 		[NF_BR_BROUTING]	= &initial_chain,
 	},
-	.entries	= (char *)&initial_chain,
+	.entries	= (char *) &initial_chain,
 };
 
 static int check(const struct ebt_table_info *info, unsigned int valid_hooks)
 {
 	if (valid_hooks & ~(1 << NF_BR_BROUTING))
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
-static const struct ebt_table broute_table = {
+static const struct ebt_table broute_table =
+{
 	.name		= "broute",
 	.table		= &initial_table,
 	.valid_hooks	= 1 << NF_BR_BROUTING,
@@ -54,12 +60,16 @@ static int ebt_broute(struct sk_buff *skb)
 	int ret;
 
 	nf_hook_state_init(&state, NULL, NF_BR_BROUTING, INT_MIN,
-			   NFPROTO_BRIDGE, skb->dev, NULL, NULL,
-			   dev_net(skb->dev), NULL);
+					   NFPROTO_BRIDGE, skb->dev, NULL, NULL,
+					   dev_net(skb->dev), NULL);
 
 	ret = ebt_do_table(skb, &state, state.net->xt.broute_table);
+
 	if (ret == NF_DROP)
-		return 1; /* route it */
+	{
+		return 1;    /* route it */
+	}
+
 	return 0; /* bridge it */
 }
 
@@ -74,7 +84,8 @@ static void __net_exit broute_net_exit(struct net *net)
 	ebt_unregister_table(net, net->xt.broute_table);
 }
 
-static struct pernet_operations broute_net_ops = {
+static struct pernet_operations broute_net_ops =
+{
 	.init = broute_net_init,
 	.exit = broute_net_exit,
 };
@@ -84,11 +95,15 @@ static int __init ebtable_broute_init(void)
 	int ret;
 
 	ret = register_pernet_subsys(&broute_net_ops);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	/* see br_input.c */
 	RCU_INIT_POINTER(br_should_route_hook,
-			   (br_should_route_hook_t *)ebt_broute);
+					 (br_should_route_hook_t *)ebt_broute);
 	return 0;
 }
 

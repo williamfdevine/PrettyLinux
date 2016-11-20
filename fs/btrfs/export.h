@@ -5,7 +5,8 @@
 
 extern const struct export_operations btrfs_export_ops;
 
-struct btrfs_fid {
+struct btrfs_fid
+{
 	u64 objectid;
 	u64 root_objectid;
 	u32 gen;

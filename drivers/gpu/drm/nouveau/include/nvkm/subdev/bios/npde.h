@@ -1,6 +1,7 @@
 #ifndef __NVBIOS_NPDE_H__
 #define __NVBIOS_NPDE_H__
-struct nvbios_npdeT {
+struct nvbios_npdeT
+{
 	u32 image_size;
 	bool last;
 };

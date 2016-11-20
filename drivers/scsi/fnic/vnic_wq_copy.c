@@ -34,28 +34,34 @@ int vnic_wq_copy_disable(struct vnic_wq_copy *wq)
 	iowrite32(0, &wq->ctrl->enable);
 
 	/* Wait for HW to ACK disable request */
-	for (wait = 0; wait < 100; wait++) {
+	for (wait = 0; wait < 100; wait++)
+	{
 		if (!(ioread32(&wq->ctrl->running)))
+		{
 			return 0;
+		}
+
 		udelay(1);
 	}
 
 	printk(KERN_ERR "Failed to disable Copy WQ[%d],"
-	       " fetch index=%d, posted_index=%d\n",
-	       wq->index, ioread32(&wq->ctrl->fetch_index),
-	       ioread32(&wq->ctrl->posted_index));
+		   " fetch index=%d, posted_index=%d\n",
+		   wq->index, ioread32(&wq->ctrl->fetch_index),
+		   ioread32(&wq->ctrl->posted_index));
 
 	return -ENODEV;
 }
 
 void vnic_wq_copy_clean(struct vnic_wq_copy *wq,
-	void (*q_clean)(struct vnic_wq_copy *wq,
-	struct fcpio_host_req *wq_desc))
+						void (*q_clean)(struct vnic_wq_copy *wq,
+										struct fcpio_host_req *wq_desc))
 {
 	BUG_ON(ioread32(&wq->ctrl->enable));
 
 	if (vnic_wq_copy_desc_in_use(wq))
+	{
 		vnic_wq_copy_service(wq, -1, q_clean);
+	}
 
 	wq->to_use_index = wq->to_clean_index = 0;
 
@@ -76,8 +82,8 @@ void vnic_wq_copy_free(struct vnic_wq_copy *wq)
 }
 
 int vnic_wq_copy_alloc(struct vnic_dev *vdev, struct vnic_wq_copy *wq,
-		       unsigned int index, unsigned int desc_count,
-		       unsigned int desc_size)
+					   unsigned int index, unsigned int desc_count,
+					   unsigned int desc_size)
 {
 	int err;
 
@@ -85,7 +91,9 @@ int vnic_wq_copy_alloc(struct vnic_dev *vdev, struct vnic_wq_copy *wq,
 	wq->vdev = vdev;
 	wq->to_use_index = wq->to_clean_index = 0;
 	wq->ctrl = vnic_dev_get_res(vdev, RES_TYPE_WQ, index);
-	if (!wq->ctrl) {
+
+	if (!wq->ctrl)
+	{
 		printk(KERN_ERR "Failed to hook COPY WQ[%d] resource\n", index);
 		return -EINVAL;
 	}
@@ -93,15 +101,18 @@ int vnic_wq_copy_alloc(struct vnic_dev *vdev, struct vnic_wq_copy *wq,
 	vnic_wq_copy_disable(wq);
 
 	err = vnic_dev_alloc_desc_ring(vdev, &wq->ring, desc_count, desc_size);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return 0;
 }
 
 void vnic_wq_copy_init(struct vnic_wq_copy *wq, unsigned int cq_index,
-	unsigned int error_interrupt_enable,
-	unsigned int error_interrupt_offset)
+					   unsigned int error_interrupt_enable,
+					   unsigned int error_interrupt_offset)
 {
 	u64 paddr;
 

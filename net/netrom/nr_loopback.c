@@ -34,14 +34,17 @@ int nr_loopback_queue(struct sk_buff *skb)
 {
 	struct sk_buff *skbn;
 
-	if ((skbn = alloc_skb(skb->len, GFP_ATOMIC)) != NULL) {
+	if ((skbn = alloc_skb(skb->len, GFP_ATOMIC)) != NULL)
+	{
 		skb_copy_from_linear_data(skb, skb_put(skbn, skb->len), skb->len);
 		skb_reset_transport_header(skbn);
 
 		skb_queue_tail(&loopback_queue, skbn);
 
 		if (!nr_loopback_running())
+		{
 			mod_timer(&loopback_timer, jiffies + 10);
+		}
 	}
 
 	kfree_skb(skb);
@@ -54,19 +57,26 @@ static void nr_loopback_timer(unsigned long param)
 	ax25_address *nr_dest;
 	struct net_device *dev;
 
-	if ((skb = skb_dequeue(&loopback_queue)) != NULL) {
+	if ((skb = skb_dequeue(&loopback_queue)) != NULL)
+	{
 		nr_dest = (ax25_address *)(skb->data + 7);
 
 		dev = nr_dev_get(nr_dest);
 
 		if (dev == NULL || nr_rx_frame(skb, dev) == 0)
+		{
 			kfree_skb(skb);
+		}
 
 		if (dev != NULL)
+		{
 			dev_put(dev);
+		}
 
 		if (!skb_queue_empty(&loopback_queue) && !nr_loopback_running())
+		{
 			mod_timer(&loopback_timer, jiffies + 10);
+		}
 	}
 }
 

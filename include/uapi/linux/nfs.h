@@ -41,7 +41,8 @@
  * Error codes that have a `--' in the v2 column are not part of the
  * standard, but seem to be widely used nevertheless.
  */
- enum nfs_stat {
+enum nfs_stat
+{
 	NFS_OK = 0,			/* v2 v3 v4 */
 	NFSERR_PERM = 1,		/* v2 v3 v4 */
 	NFSERR_NOENT = 2,		/* v2 v3 v4 */
@@ -90,7 +91,7 @@
 	NFSERR_STALE_CLIENTID = 10022,	/*       v4 */
 	NFSERR_STALE_STATEID = 10023,   /*       v4 */
 	NFSERR_OLD_STATEID = 10024,     /*       v4 */
-	NFSERR_BAD_STATEID = 10025,     /*       v4 */  
+	NFSERR_BAD_STATEID = 10025,     /*       v4 */
 	NFSERR_BAD_SEQID = 10026,	/*       v4 */
 	NFSERR_NOT_SAME = 10027,	/*       v4 */
 	NFSERR_LOCK_RANGE = 10028,	/*       v4 */
@@ -118,7 +119,8 @@
 
 /* NFSv2 file types - beware, these are not the same in NFSv3 */
 
-enum nfs_ftype {
+enum nfs_ftype
+{
 	NFNON = 0,
 	NFREG = 1,
 	NFDIR = 2,

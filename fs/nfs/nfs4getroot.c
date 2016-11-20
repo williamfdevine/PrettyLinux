@@ -17,20 +17,26 @@ int nfs4_get_rootfh(struct nfs_server *server, struct nfs_fh *mntfh, bool auth_p
 	dprintk("--> nfs4_get_rootfh()\n");
 
 	fsinfo.fattr = nfs_alloc_fattr();
+
 	if (fsinfo.fattr == NULL)
+	{
 		goto out;
+	}
 
 	/* Start by getting the root filehandle from the server */
 	ret = nfs4_proc_get_rootfh(server, mntfh, &fsinfo, auth_probe);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dprintk("nfs4_get_rootfh: getroot error = %d\n", -ret);
 		goto out;
 	}
 
 	if (!(fsinfo.fattr->valid & NFS_ATTR_FATTR_TYPE)
-			|| !S_ISDIR(fsinfo.fattr->mode)) {
+		|| !S_ISDIR(fsinfo.fattr->mode))
+	{
 		printk(KERN_ERR "nfs4_get_rootfh:"
-		       " getroot encountered non-directory\n");
+			   " getroot encountered non-directory\n");
 		ret = -ENOTDIR;
 		goto out;
 	}

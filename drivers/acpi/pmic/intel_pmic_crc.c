@@ -24,7 +24,8 @@
 
 #define PMIC_A0LOCK_REG		0xc5
 
-static struct pmic_table power_table[] = {
+static struct pmic_table power_table[] =
+{
 	{
 		.address = 0x24,
 		.reg = 0x66,
@@ -37,7 +38,8 @@ static struct pmic_table power_table[] = {
 	},
 };
 
-static struct pmic_table thermal_table[] = {
+static struct pmic_table thermal_table[] =
+{
 	{
 		.address = 0x00,
 		.reg = 0x75
@@ -89,34 +91,44 @@ static struct pmic_table thermal_table[] = {
 };
 
 static int intel_crc_pmic_get_power(struct regmap *regmap, int reg,
-				    int bit, u64 *value)
+									int bit, u64 *value)
 {
 	int data;
 
 	if (regmap_read(regmap, reg, &data))
+	{
 		return -EIO;
+	}
 
 	*value = (data & PWR_SOURCE_SELECT) && (data & BIT(bit)) ? 1 : 0;
 	return 0;
 }
 
 static int intel_crc_pmic_update_power(struct regmap *regmap, int reg,
-				       int bit, bool on)
+									   int bit, bool on)
 {
 	int data;
 
 	if (regmap_read(regmap, reg, &data))
+	{
 		return -EIO;
+	}
 
-	if (on) {
+	if (on)
+	{
 		data |= PWR_SOURCE_SELECT | BIT(bit);
-	} else {
+	}
+	else
+	{
 		data &= ~BIT(bit);
 		data |= PWR_SOURCE_SELECT;
 	}
 
 	if (regmap_write(regmap, reg, data))
+	{
 		return -EIO;
+	}
+
 	return 0;
 }
 
@@ -129,8 +141,10 @@ static int intel_crc_pmic_get_raw_temp(struct regmap *regmap, int reg)
 	 * and 2bits in reg-1: bit0,1
 	 */
 	if (regmap_read(regmap, reg, &temp_l) ||
-	    regmap_read(regmap, reg - 1, &temp_h))
+		regmap_read(regmap, reg - 1, &temp_h))
+	{
 		return -EIO;
+	}
 
 	return temp_l | (temp_h & 0x3) << 8;
 }
@@ -138,43 +152,55 @@ static int intel_crc_pmic_get_raw_temp(struct regmap *regmap, int reg)
 static int intel_crc_pmic_update_aux(struct regmap *regmap, int reg, int raw)
 {
 	return regmap_write(regmap, reg, raw) ||
-		regmap_update_bits(regmap, reg - 1, 0x3, raw >> 8) ? -EIO : 0;
+		   regmap_update_bits(regmap, reg - 1, 0x3, raw >> 8) ? -EIO : 0;
 }
 
 static int intel_crc_pmic_get_policy(struct regmap *regmap,
-					int reg, int bit, u64 *value)
+									 int reg, int bit, u64 *value)
 {
 	int pen;
 
 	if (regmap_read(regmap, reg, &pen))
+	{
 		return -EIO;
+	}
+
 	*value = pen >> 7;
 	return 0;
 }
 
 static int intel_crc_pmic_update_policy(struct regmap *regmap,
-					int reg, int bit, int enable)
+										int reg, int bit, int enable)
 {
 	int alert0;
 
 	/* Update to policy enable bit requires unlocking a0lock */
 	if (regmap_read(regmap, PMIC_A0LOCK_REG, &alert0))
+	{
 		return -EIO;
+	}
 
 	if (regmap_update_bits(regmap, PMIC_A0LOCK_REG, 0x01, 0))
+	{
 		return -EIO;
+	}
 
 	if (regmap_update_bits(regmap, reg, 0x80, enable << 7))
+	{
 		return -EIO;
+	}
 
 	/* restore alert0 */
 	if (regmap_write(regmap, PMIC_A0LOCK_REG, alert0))
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
 
-static struct intel_pmic_opregion_data intel_crc_pmic_opregion_data = {
+static struct intel_pmic_opregion_data intel_crc_pmic_opregion_data =
+{
 	.get_power	= intel_crc_pmic_get_power,
 	.update_power	= intel_crc_pmic_update_power,
 	.get_raw_temp	= intel_crc_pmic_get_raw_temp,
@@ -182,7 +208,7 @@ static struct intel_pmic_opregion_data intel_crc_pmic_opregion_data = {
 	.get_policy	= intel_crc_pmic_get_policy,
 	.update_policy	= intel_crc_pmic_update_policy,
 	.power_table	= power_table,
-	.power_table_count= ARRAY_SIZE(power_table),
+	.power_table_count = ARRAY_SIZE(power_table),
 	.thermal_table	= thermal_table,
 	.thermal_table_count = ARRAY_SIZE(thermal_table),
 };
@@ -195,7 +221,8 @@ static int intel_crc_pmic_opregion_probe(struct platform_device *pdev)
 			&intel_crc_pmic_opregion_data);
 }
 
-static struct platform_driver intel_crc_pmic_opregion_driver = {
+static struct platform_driver intel_crc_pmic_opregion_driver =
+{
 	.probe = intel_crc_pmic_opregion_probe,
 	.driver = {
 		.name = "crystal_cove_pmic",

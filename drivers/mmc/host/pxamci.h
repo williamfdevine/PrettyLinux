@@ -69,9 +69,9 @@
 #define DATA_TRAN_DONE		(1 << 0)
 
 #if defined(CONFIG_PXA27x) || defined(CONFIG_PXA3xx)
-#define MMC_I_MASK_ALL          0x00001fff
+	#define MMC_I_MASK_ALL          0x00001fff
 #else
-#define MMC_I_MASK_ALL          0x0000007f
+	#define MMC_I_MASK_ALL          0x0000007f
 #endif
 
 #define MMC_I_REG	0x002c

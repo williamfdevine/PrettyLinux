@@ -4,10 +4,10 @@
 #include "debug.h"
 
 #define __pr(func, fmt, ...)	\
-do {				\
-	if ((func))		\
-		(func)("libapi: " fmt, ##__VA_ARGS__); \
-} while (0)
+	do {				\
+		if ((func))		\
+			(func)("libapi: " fmt, ##__VA_ARGS__); \
+	} while (0)
 
 extern libapi_print_fn_t __pr_warning;
 extern libapi_print_fn_t __pr_info;

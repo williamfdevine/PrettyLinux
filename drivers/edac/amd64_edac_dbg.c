@@ -1,14 +1,14 @@
 #include "amd64_edac.h"
 
 #define EDAC_DCT_ATTR_SHOW(reg)						\
-static ssize_t amd64_##reg##_show(struct device *dev,			\
-			       struct device_attribute *mattr,		\
-			       char *data)				\
-{									\
-	struct mem_ctl_info *mci = to_mci(dev);				\
-	struct amd64_pvt *pvt = mci->pvt_info;				\
+	static ssize_t amd64_##reg##_show(struct device *dev,			\
+									  struct device_attribute *mattr,		\
+									  char *data)				\
+	{									\
+		struct mem_ctl_info *mci = to_mci(dev);				\
+		struct amd64_pvt *pvt = mci->pvt_info;				\
 		return sprintf(data, "0x%016llx\n", (u64)pvt->reg);	\
-}
+	}
 
 EDAC_DCT_ATTR_SHOW(dhar);
 EDAC_DCT_ATTR_SHOW(dbam0);
@@ -16,8 +16,8 @@ EDAC_DCT_ATTR_SHOW(top_mem);
 EDAC_DCT_ATTR_SHOW(top_mem2);
 
 static ssize_t amd64_hole_show(struct device *dev,
-			       struct device_attribute *mattr,
-			       char *data)
+							   struct device_attribute *mattr,
+							   char *data)
 {
 	struct mem_ctl_info *mci = to_mci(dev);
 
@@ -28,7 +28,7 @@ static ssize_t amd64_hole_show(struct device *dev,
 	amd64_get_dram_hole_info(mci, &hole_base, &hole_offset, &hole_size);
 
 	return sprintf(data, "%llx %llx %llx\n", hole_base, hole_offset,
-						 hole_size);
+				   hole_size);
 }
 
 /*
@@ -40,7 +40,8 @@ static DEVICE_ATTR(topmem, S_IRUGO, amd64_top_mem_show, NULL);
 static DEVICE_ATTR(topmem2, S_IRUGO, amd64_top_mem2_show, NULL);
 static DEVICE_ATTR(dram_hole, S_IRUGO, amd64_hole_show, NULL);
 
-static struct attribute *amd64_edac_dbg_attrs[] = {
+static struct attribute *amd64_edac_dbg_attrs[] =
+{
 	&dev_attr_dhar.attr,
 	&dev_attr_dbam.attr,
 	&dev_attr_topmem.attr,
@@ -49,6 +50,7 @@ static struct attribute *amd64_edac_dbg_attrs[] = {
 	NULL
 };
 
-const struct attribute_group amd64_edac_dbg_group = {
+const struct attribute_group amd64_edac_dbg_group =
+{
 	.attrs = amd64_edac_dbg_attrs,
 };

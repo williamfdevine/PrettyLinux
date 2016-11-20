@@ -17,14 +17,16 @@
 #include <linux/firmware.h>
 #include <cypress_firmware.h>
 
-struct fw_config {
+struct fw_config
+{
 	u16 vendor;
 	u16 product;
-	const char * const fw_name1;
-	const char * const fw_name2;
+	const char *const fw_name1;
+	const char *const fw_name2;
 };
 
-static struct fw_config fw_configs[] = {
+static struct fw_config fw_configs[] =
+{
 	{ 0x1943, 0xa250, "go7007/s2250-1.fw", "go7007/s2250-2.fw" },
 	{ 0x093b, 0xa002, "go7007/px-m402u.fw", NULL },
 	{ 0x093b, 0xa004, "go7007/px-tv402u.fw", NULL },
@@ -40,7 +42,7 @@ MODULE_FIRMWARE("go7007/lr192.fw");
 MODULE_FIRMWARE("go7007/wis-startrek.fw");
 
 static int go7007_loader_probe(struct usb_interface *interface,
-				const struct usb_device_id *id)
+							   const struct usb_device_id *id)
 {
 	struct usb_device *usbdev;
 	const struct firmware *fw;
@@ -50,10 +52,14 @@ static int go7007_loader_probe(struct usb_interface *interface,
 	int i;
 
 	usbdev = usb_get_dev(interface_to_usbdev(interface));
-	if (!usbdev)
-		goto failed2;
 
-	if (usbdev->descriptor.bNumConfigurations != 1) {
+	if (!usbdev)
+	{
+		goto failed2;
+	}
+
+	if (usbdev->descriptor.bNumConfigurations != 1)
+	{
 		dev_err(&interface->dev, "can't handle multiple config\n");
 		goto failed2;
 	}
@@ -63,44 +69,59 @@ static int go7007_loader_probe(struct usb_interface *interface,
 
 	for (i = 0; fw_configs[i].fw_name1; i++)
 		if (fw_configs[i].vendor == vendor &&
-		    fw_configs[i].product == product)
+			fw_configs[i].product == product)
+		{
 			break;
+		}
 
 	/* Should never happen */
 	if (fw_configs[i].fw_name1 == NULL)
+	{
 		goto failed2;
+	}
 
 	fw1 = fw_configs[i].fw_name1;
 	fw2 = fw_configs[i].fw_name2;
 
 	dev_info(&interface->dev, "loading firmware %s\n", fw1);
 
-	if (request_firmware(&fw, fw1, &usbdev->dev)) {
+	if (request_firmware(&fw, fw1, &usbdev->dev))
+	{
 		dev_err(&interface->dev,
-			"unable to load firmware from file \"%s\"\n", fw1);
+				"unable to load firmware from file \"%s\"\n", fw1);
 		goto failed2;
 	}
+
 	ret = cypress_load_firmware(usbdev, fw, CYPRESS_FX2);
 	release_firmware(fw);
-	if (0 != ret) {
+
+	if (0 != ret)
+	{
 		dev_err(&interface->dev, "loader download failed\n");
 		goto failed2;
 	}
 
 	if (fw2 == NULL)
+	{
 		return 0;
+	}
 
-	if (request_firmware(&fw, fw2, &usbdev->dev)) {
+	if (request_firmware(&fw, fw2, &usbdev->dev))
+	{
 		dev_err(&interface->dev,
-			"unable to load firmware from file \"%s\"\n", fw2);
+				"unable to load firmware from file \"%s\"\n", fw2);
 		goto failed2;
 	}
+
 	ret = cypress_load_firmware(usbdev, fw, CYPRESS_FX2);
 	release_firmware(fw);
-	if (0 != ret) {
+
+	if (0 != ret)
+	{
 		dev_err(&interface->dev, "firmware download failed\n");
 		goto failed2;
 	}
+
 	return 0;
 
 failed2:
@@ -116,7 +137,8 @@ static void go7007_loader_disconnect(struct usb_interface *interface)
 	usb_set_intfdata(interface, NULL);
 }
 
-static const struct usb_device_id go7007_loader_ids[] = {
+static const struct usb_device_id go7007_loader_ids[] =
+{
 	{ USB_DEVICE(0x1943, 0xa250) },
 	{ USB_DEVICE(0x093b, 0xa002) },
 	{ USB_DEVICE(0x093b, 0xa004) },
@@ -127,7 +149,8 @@ static const struct usb_device_id go7007_loader_ids[] = {
 
 MODULE_DEVICE_TABLE(usb, go7007_loader_ids);
 
-static struct usb_driver go7007_loader_driver = {
+static struct usb_driver go7007_loader_driver =
+{
 	.name		= "go7007-loader",
 	.probe		= go7007_loader_probe,
 	.disconnect	= go7007_loader_disconnect,

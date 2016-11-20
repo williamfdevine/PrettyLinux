@@ -33,12 +33,14 @@
 
 #define DRV_NAME "tegra-snd-wm9712"
 
-struct tegra_wm9712 {
+struct tegra_wm9712
+{
 	struct platform_device *codec;
 	struct tegra_asoc_utils_data util_data;
 };
 
-static const struct snd_soc_dapm_widget tegra_wm9712_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget tegra_wm9712_dapm_widgets[] =
+{
 	SND_SOC_DAPM_HP("Headphone", NULL),
 	SND_SOC_DAPM_LINE("LineIn", NULL),
 	SND_SOC_DAPM_MIC("Mic", NULL),
@@ -49,7 +51,8 @@ static int tegra_wm9712_init(struct snd_soc_pcm_runtime *rtd)
 	return snd_soc_dapm_force_enable_pin(&rtd->card->dapm, "Mic Bias");
 }
 
-static struct snd_soc_dai_link tegra_wm9712_dai = {
+static struct snd_soc_dai_link tegra_wm9712_dai =
+{
 	.name = "AC97 HiFi",
 	.stream_name = "AC97 HiFi",
 	.codec_dai_name = "wm9712-hifi",
@@ -57,7 +60,8 @@ static struct snd_soc_dai_link tegra_wm9712_dai = {
 	.init = tegra_wm9712_init,
 };
 
-static struct snd_soc_card snd_soc_tegra_wm9712 = {
+static struct snd_soc_card snd_soc_tegra_wm9712 =
+{
 	.name = "tegra-wm9712",
 	.owner = THIS_MODULE,
 	.dai_link = &tegra_wm9712_dai,
@@ -76,8 +80,10 @@ static int tegra_wm9712_driver_probe(struct platform_device *pdev)
 	int ret;
 
 	machine = devm_kzalloc(&pdev->dev, sizeof(struct tegra_wm9712),
-			       GFP_KERNEL);
-	if (!machine) {
+						   GFP_KERNEL);
+
+	if (!machine)
+	{
 		dev_err(&pdev->dev, "Can't allocate tegra_wm9712 struct\n");
 		return -ENOMEM;
 	}
@@ -87,28 +93,41 @@ static int tegra_wm9712_driver_probe(struct platform_device *pdev)
 	snd_soc_card_set_drvdata(card, machine);
 
 	machine->codec = platform_device_alloc("wm9712-codec", -1);
-	if (!machine->codec) {
+
+	if (!machine->codec)
+	{
 		dev_err(&pdev->dev, "Can't allocate wm9712 platform device\n");
 		return -ENOMEM;
 	}
 
 	ret = platform_device_add(machine->codec);
+
 	if (ret)
+	{
 		goto codec_put;
+	}
 
 	ret = snd_soc_of_parse_card_name(card, "nvidia,model");
+
 	if (ret)
+	{
 		goto codec_unregister;
+	}
 
 	ret = snd_soc_of_parse_audio_routing(card, "nvidia,audio-routing");
+
 	if (ret)
+	{
 		goto codec_unregister;
+	}
 
 	tegra_wm9712_dai.cpu_of_node = of_parse_phandle(np,
-				       "nvidia,ac97-controller", 0);
-	if (!tegra_wm9712_dai.cpu_of_node) {
+								   "nvidia,ac97-controller", 0);
+
+	if (!tegra_wm9712_dai.cpu_of_node)
+	{
 		dev_err(&pdev->dev,
-			"Property 'nvidia,ac97-controller' missing or invalid\n");
+				"Property 'nvidia,ac97-controller' missing or invalid\n");
 		ret = -EINVAL;
 		goto codec_unregister;
 	}
@@ -116,17 +135,25 @@ static int tegra_wm9712_driver_probe(struct platform_device *pdev)
 	tegra_wm9712_dai.platform_of_node = tegra_wm9712_dai.cpu_of_node;
 
 	ret = tegra_asoc_utils_init(&machine->util_data, &pdev->dev);
+
 	if (ret)
+	{
 		goto codec_unregister;
+	}
 
 	ret = tegra_asoc_utils_set_ac97_rate(&machine->util_data);
+
 	if (ret)
+	{
 		goto asoc_utils_fini;
+	}
 
 	ret = snd_soc_register_card(card);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n",
-			ret);
+				ret);
 		goto asoc_utils_fini;
 	}
 
@@ -155,12 +182,14 @@ static int tegra_wm9712_driver_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id tegra_wm9712_of_match[] = {
+static const struct of_device_id tegra_wm9712_of_match[] =
+{
 	{ .compatible = "nvidia,tegra-audio-wm9712", },
 	{},
 };
 
-static struct platform_driver tegra_wm9712_driver = {
+static struct platform_driver tegra_wm9712_driver =
+{
 	.driver = {
 		.name = DRV_NAME,
 		.pm = &snd_soc_pm_ops,

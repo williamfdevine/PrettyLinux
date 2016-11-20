@@ -30,46 +30,50 @@ static inline u32 host1x_class_host_wait_syncpt(
 	unsigned indx, unsigned threshold)
 {
 	return host1x_uclass_wait_syncpt_indx_f(indx)
-		| host1x_uclass_wait_syncpt_thresh_f(threshold);
+		   | host1x_uclass_wait_syncpt_thresh_f(threshold);
 }
 
 static inline u32 host1x_class_host_load_syncpt_base(
 	unsigned indx, unsigned threshold)
 {
 	return host1x_uclass_load_syncpt_base_base_indx_f(indx)
-		| host1x_uclass_load_syncpt_base_value_f(threshold);
+		   | host1x_uclass_load_syncpt_base_value_f(threshold);
 }
 
 static inline u32 host1x_class_host_wait_syncpt_base(
 	unsigned indx, unsigned base_indx, unsigned offset)
 {
 	return host1x_uclass_wait_syncpt_base_indx_f(indx)
-		| host1x_uclass_wait_syncpt_base_base_indx_f(base_indx)
-		| host1x_uclass_wait_syncpt_base_offset_f(offset);
+		   | host1x_uclass_wait_syncpt_base_base_indx_f(base_indx)
+		   | host1x_uclass_wait_syncpt_base_offset_f(offset);
 }
 
 static inline u32 host1x_class_host_incr_syncpt_base(
 	unsigned base_indx, unsigned offset)
 {
 	return host1x_uclass_incr_syncpt_base_base_indx_f(base_indx)
-		| host1x_uclass_incr_syncpt_base_offset_f(offset);
+		   | host1x_uclass_incr_syncpt_base_offset_f(offset);
 }
 
 static inline u32 host1x_class_host_incr_syncpt(
 	unsigned cond, unsigned indx)
 {
 	return host1x_uclass_incr_syncpt_cond_f(cond)
-		| host1x_uclass_incr_syncpt_indx_f(indx);
+		   | host1x_uclass_incr_syncpt_indx_f(indx);
 }
 
 static inline u32 host1x_class_host_indoff_reg_write(
 	unsigned mod_id, unsigned offset, bool auto_inc)
 {
 	u32 v = host1x_uclass_indoff_indbe_f(0xf)
-		| host1x_uclass_indoff_indmodid_f(mod_id)
-		| host1x_uclass_indoff_indroffset_f(offset);
+			| host1x_uclass_indoff_indmodid_f(mod_id)
+			| host1x_uclass_indoff_indroffset_f(offset);
+
 	if (auto_inc)
+	{
 		v |= host1x_uclass_indoff_autoinc_f(1);
+	}
+
 	return v;
 }
 
@@ -77,10 +81,14 @@ static inline u32 host1x_class_host_indoff_reg_read(
 	unsigned mod_id, unsigned offset, bool auto_inc)
 {
 	u32 v = host1x_uclass_indoff_indmodid_f(mod_id)
-		| host1x_uclass_indoff_indroffset_f(offset)
-		| host1x_uclass_indoff_rwn_read_v();
+			| host1x_uclass_indoff_indroffset_f(offset)
+			| host1x_uclass_indoff_rwn_read_v();
+
 	if (auto_inc)
+	{
 		v |= host1x_uclass_indoff_autoinc_f(1);
+	}
+
 	return v;
 }
 
@@ -115,7 +123,7 @@ static inline u32 host1x_opcode_imm(unsigned offset, unsigned value)
 static inline u32 host1x_opcode_imm_incr_syncpt(unsigned cond, unsigned indx)
 {
 	return host1x_opcode_imm(host1x_uclass_incr_syncpt_r(),
-		host1x_class_host_incr_syncpt(cond, indx));
+							 host1x_class_host_incr_syncpt(cond, indx));
 }
 
 static inline u32 host1x_opcode_restart(unsigned address)

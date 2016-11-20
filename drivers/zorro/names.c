@@ -15,13 +15,15 @@
 #include <linux/zorro.h>
 
 
-struct zorro_prod_info {
+struct zorro_prod_info
+{
 	__u16 prod;
 	unsigned short seen;
 	const char *name;
 };
 
-struct zorro_manuf_info {
+struct zorro_manuf_info
+{
 	__u16 manuf;
 	unsigned short nr;
 	const char *name;
@@ -45,7 +47,8 @@ struct zorro_manuf_info {
 #define PRODUCT( manuf, prod, name )	{ 0x##prod, 0, __prodstr_##manuf##prod },
 #include "devlist.h"
 
-static struct zorro_manuf_info __initdata zorro_manuf_list[] = {
+static struct zorro_manuf_info __initdata zorro_manuf_list[] =
+{
 #define MANUF( manuf, name )		{ 0x##manuf, ARRAY_SIZE(__prods_##manuf), __manufstr_##manuf, __prods_##manuf },
 #define ENDMANUF()
 #define PRODUCT( manuf, prod, name )
@@ -60,23 +63,33 @@ void __init zorro_name_device(struct zorro_dev *dev)
 	int i = MANUFS;
 	char *name = dev->name;
 
-	do {
+	do
+	{
 		if (manuf_p->manuf == ZORRO_MANUF(dev->id))
+		{
 			goto match_manuf;
+		}
+
 		manuf_p++;
-	} while (--i);
+	}
+	while (--i);
 
 	/* Couldn't find either the manufacturer nor the product */
 	return;
 
-	match_manuf: {
+match_manuf:
+	{
 		struct zorro_prod_info *prod_p = manuf_p->prods;
 		int i = manuf_p->nr;
 
-		while (i > 0) {
+		while (i > 0)
+		{
 			if (prod_p->prod ==
-			    ((ZORRO_PROD(dev->id)<<8) | ZORRO_EPC(dev->id)))
+				((ZORRO_PROD(dev->id) << 8) | ZORRO_EPC(dev->id)))
+			{
 				goto match_prod;
+			}
+
 			prod_p++;
 			i--;
 		}
@@ -86,12 +99,16 @@ void __init zorro_name_device(struct zorro_dev *dev)
 		return;
 
 		/* Full match */
-		match_prod: {
+match_prod:
+		{
 			char *n = name + sprintf(name, "%s %s", manuf_p->name, prod_p->name);
 			int nr = prod_p->seen + 1;
 			prod_p->seen = nr;
+
 			if (nr > 1)
+			{
 				sprintf(n, " (#%d)", nr);
+			}
 		}
 	}
 }

@@ -20,7 +20,8 @@
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 
-struct bcm_ns_usb2 {
+struct bcm_ns_usb2
+{
 	struct device *dev;
 	struct clk *ref_clk;
 	struct phy *phy;
@@ -36,13 +37,17 @@ static int bcm_ns_usb2_phy_init(struct phy *phy)
 	int err = 0;
 
 	err = clk_prepare_enable(usb2->ref_clk);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(dev, "Failed to prepare ref clock: %d\n", err);
 		goto err_out;
 	}
 
 	ref_clk_rate = clk_get_rate(usb2->ref_clk);
-	if (!ref_clk_rate) {
+
+	if (!ref_clk_rate)
+	{
 		dev_err(dev, "Failed to get ref clock rate\n");
 		err = -EINVAL;
 		goto err_clk_off;
@@ -50,11 +55,14 @@ static int bcm_ns_usb2_phy_init(struct phy *phy)
 
 	usb2ctl = readl(dmu + BCMA_DMU_CRU_USB2_CONTROL);
 
-	if (usb2ctl & BCMA_DMU_CRU_USB2_CONTROL_USB_PLL_PDIV_MASK) {
+	if (usb2ctl & BCMA_DMU_CRU_USB2_CONTROL_USB_PLL_PDIV_MASK)
+	{
 		usb_pll_pdiv = usb2ctl;
 		usb_pll_pdiv &= BCMA_DMU_CRU_USB2_CONTROL_USB_PLL_PDIV_MASK;
 		usb_pll_pdiv >>= BCMA_DMU_CRU_USB2_CONTROL_USB_PLL_PDIV_SHIFT;
-	} else {
+	}
+	else
+	{
 		usb_pll_pdiv = 1 << 3;
 	}
 
@@ -78,7 +86,8 @@ err_out:
 	return err;
 }
 
-static const struct phy_ops ops = {
+static const struct phy_ops ops =
+{
 	.init		= bcm_ns_usb2_phy_init,
 	.owner		= THIS_MODULE,
 };
@@ -91,26 +100,37 @@ static int bcm_ns_usb2_probe(struct platform_device *pdev)
 	struct phy_provider *phy_provider;
 
 	usb2 = devm_kzalloc(&pdev->dev, sizeof(*usb2), GFP_KERNEL);
+
 	if (!usb2)
+	{
 		return -ENOMEM;
+	}
+
 	usb2->dev = dev;
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dmu");
 	usb2->dmu = devm_ioremap_resource(dev, res);
-	if (IS_ERR(usb2->dmu)) {
+
+	if (IS_ERR(usb2->dmu))
+	{
 		dev_err(dev, "Failed to map DMU regs\n");
 		return PTR_ERR(usb2->dmu);
 	}
 
 	usb2->ref_clk = devm_clk_get(dev, "phy-ref-clk");
-	if (IS_ERR(usb2->ref_clk)) {
+
+	if (IS_ERR(usb2->ref_clk))
+	{
 		dev_err(dev, "Clock not defined\n");
 		return PTR_ERR(usb2->ref_clk);
 	}
 
 	usb2->phy = devm_phy_create(dev, NULL, &ops);
+
 	if (IS_ERR(usb2->phy))
+	{
 		return PTR_ERR(usb2->phy);
+	}
 
 	phy_set_drvdata(usb2->phy, usb2);
 	platform_set_drvdata(pdev, usb2);
@@ -119,13 +139,15 @@ static int bcm_ns_usb2_probe(struct platform_device *pdev)
 	return PTR_ERR_OR_ZERO(phy_provider);
 }
 
-static const struct of_device_id bcm_ns_usb2_id_table[] = {
+static const struct of_device_id bcm_ns_usb2_id_table[] =
+{
 	{ .compatible = "brcm,ns-usb2-phy", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, bcm_ns_usb2_id_table);
 
-static struct platform_driver bcm_ns_usb2_driver = {
+static struct platform_driver bcm_ns_usb2_driver =
+{
 	.probe		= bcm_ns_usb2_probe,
 	.driver = {
 		.name = "bcm_ns_usb2",

@@ -41,7 +41,9 @@ static void rts5229_fetch_vendor_settings(struct rtsx_pcr *pcr)
 	pcr_dbg(pcr, "Cfg 0x%x: 0x%x\n", PCR_SETTING_REG1, reg);
 
 	if (!rtsx_vendor_setting_valid(reg))
+	{
 		return;
+	}
 
 	pcr->aspm_en = rtsx_reg_to_aspm(reg);
 	pcr->sd30_drive_sel_1v8 =
@@ -77,7 +79,7 @@ static int rts5229_extra_init_hw(struct rtsx_pcr *pcr)
 	rtsx_pci_add_cmd(pcr, WRITE_REG_CMD, OLT_LED_CTL, 0x0F, 0x02);
 	/* Configure driving */
 	rtsx_pci_add_cmd(pcr, WRITE_REG_CMD, SD30_DRIVE_SEL,
-			0xFF, pcr->sd30_drive_sel_3v3);
+					 0xFF, pcr->sd30_drive_sel_3v3);
 
 	return rtsx_pci_send_cmd(pcr, 100);
 }
@@ -114,21 +116,24 @@ static int rts5229_card_power_on(struct rtsx_pcr *pcr, int card)
 
 	rtsx_pci_init_cmd(pcr);
 	rtsx_pci_add_cmd(pcr, WRITE_REG_CMD, CARD_PWR_CTL,
-			SD_POWER_MASK, SD_PARTIAL_POWER_ON);
+					 SD_POWER_MASK, SD_PARTIAL_POWER_ON);
 	rtsx_pci_add_cmd(pcr, WRITE_REG_CMD, PWR_GATE_CTRL,
-			LDO3318_PWR_MASK, 0x02);
+					 LDO3318_PWR_MASK, 0x02);
 	err = rtsx_pci_send_cmd(pcr, 100);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* To avoid too large in-rush current */
 	udelay(150);
 
 	rtsx_pci_init_cmd(pcr);
 	rtsx_pci_add_cmd(pcr, WRITE_REG_CMD, CARD_PWR_CTL,
-			SD_POWER_MASK, SD_POWER_ON);
+					 SD_POWER_MASK, SD_POWER_ON);
 	rtsx_pci_add_cmd(pcr, WRITE_REG_CMD, PWR_GATE_CTRL,
-			LDO3318_PWR_MASK, 0x06);
+					 LDO3318_PWR_MASK, 0x06);
 	return rtsx_pci_send_cmd(pcr, 100);
 }
 
@@ -136,10 +141,10 @@ static int rts5229_card_power_off(struct rtsx_pcr *pcr, int card)
 {
 	rtsx_pci_init_cmd(pcr);
 	rtsx_pci_add_cmd(pcr, WRITE_REG_CMD, CARD_PWR_CTL,
-			SD_POWER_MASK | PMOS_STRG_MASK,
-			SD_POWER_OFF | PMOS_STRG_400mA);
+					 SD_POWER_MASK | PMOS_STRG_MASK,
+					 SD_POWER_OFF | PMOS_STRG_400mA);
 	rtsx_pci_add_cmd(pcr, WRITE_REG_CMD, PWR_GATE_CTRL,
-			LDO3318_PWR_MASK, 0x00);
+					 LDO3318_PWR_MASK, 0x00);
 	return rtsx_pci_send_cmd(pcr, 100);
 }
 
@@ -147,30 +152,50 @@ static int rts5229_switch_output_voltage(struct rtsx_pcr *pcr, u8 voltage)
 {
 	int err;
 
-	if (voltage == OUTPUT_3V3) {
+	if (voltage == OUTPUT_3V3)
+	{
 		err = rtsx_pci_write_register(pcr,
-				SD30_DRIVE_SEL, 0x07, pcr->sd30_drive_sel_3v3);
+									  SD30_DRIVE_SEL, 0x07, pcr->sd30_drive_sel_3v3);
+
 		if (err < 0)
+		{
 			return err;
+		}
+
 		err = rtsx_pci_write_phy_register(pcr, 0x08, 0x4FC0 | 0x24);
+
 		if (err < 0)
+		{
 			return err;
-	} else if (voltage == OUTPUT_1V8) {
+		}
+	}
+	else if (voltage == OUTPUT_1V8)
+	{
 		err = rtsx_pci_write_register(pcr,
-				SD30_DRIVE_SEL, 0x07, pcr->sd30_drive_sel_1v8);
+									  SD30_DRIVE_SEL, 0x07, pcr->sd30_drive_sel_1v8);
+
 		if (err < 0)
+		{
 			return err;
+		}
+
 		err = rtsx_pci_write_phy_register(pcr, 0x08, 0x4C40 | 0x24);
+
 		if (err < 0)
+		{
 			return err;
-	} else {
+		}
+	}
+	else
+	{
 		return -EINVAL;
 	}
 
 	return 0;
 }
 
-static const struct pcr_ops rts5229_pcr_ops = {
+static const struct pcr_ops rts5229_pcr_ops =
+{
 	.fetch_vendor_settings = rts5229_fetch_vendor_settings,
 	.extra_init_hw = rts5229_extra_init_hw,
 	.optimize_phy = rts5229_optimize_phy,
@@ -193,14 +218,16 @@ static const struct pcr_ops rts5229_pcr_ops = {
  *     SD_CMD      ==> pull up
  *     SD_CLK      ==> pull down
  */
-static const u32 rts5229_sd_pull_ctl_enable_tbl1[] = {
+static const u32 rts5229_sd_pull_ctl_enable_tbl1[] =
+{
 	RTSX_REG_PAIR(CARD_PULL_CTL2, 0xAA),
 	RTSX_REG_PAIR(CARD_PULL_CTL3, 0xE9),
 	0,
 };
 
 /* For RTS5229 version C */
-static const u32 rts5229_sd_pull_ctl_enable_tbl2[] = {
+static const u32 rts5229_sd_pull_ctl_enable_tbl2[] =
+{
 	RTSX_REG_PAIR(CARD_PULL_CTL2, 0xAA),
 	RTSX_REG_PAIR(CARD_PULL_CTL3, 0xD9),
 	0,
@@ -213,14 +240,16 @@ static const u32 rts5229_sd_pull_ctl_enable_tbl2[] = {
  *     SD_CMD      ==> pull down
  *     SD_CLK      ==> pull down
  */
-static const u32 rts5229_sd_pull_ctl_disable_tbl1[] = {
+static const u32 rts5229_sd_pull_ctl_disable_tbl1[] =
+{
 	RTSX_REG_PAIR(CARD_PULL_CTL2, 0x55),
 	RTSX_REG_PAIR(CARD_PULL_CTL3, 0xD5),
 	0,
 };
 
 /* For RTS5229 version C */
-static const u32 rts5229_sd_pull_ctl_disable_tbl2[] = {
+static const u32 rts5229_sd_pull_ctl_disable_tbl2[] =
+{
 	RTSX_REG_PAIR(CARD_PULL_CTL2, 0x55),
 	RTSX_REG_PAIR(CARD_PULL_CTL3, 0xE5),
 	0,
@@ -230,7 +259,8 @@ static const u32 rts5229_sd_pull_ctl_disable_tbl2[] = {
  *     MS CD       ==> pull up
  *     others      ==> pull down
  */
-static const u32 rts5229_ms_pull_ctl_enable_tbl[] = {
+static const u32 rts5229_ms_pull_ctl_enable_tbl[] =
+{
 	RTSX_REG_PAIR(CARD_PULL_CTL5, 0x55),
 	RTSX_REG_PAIR(CARD_PULL_CTL6, 0x15),
 	0,
@@ -240,7 +270,8 @@ static const u32 rts5229_ms_pull_ctl_enable_tbl[] = {
  *     MS CD       ==> pull up
  *     others      ==> pull down
  */
-static const u32 rts5229_ms_pull_ctl_disable_tbl[] = {
+static const u32 rts5229_ms_pull_ctl_disable_tbl[] =
+{
 	RTSX_REG_PAIR(CARD_PULL_CTL5, 0x55),
 	RTSX_REG_PAIR(CARD_PULL_CTL6, 0x15),
 	0,
@@ -261,13 +292,18 @@ void rts5229_init_params(struct rtsx_pcr *pcr)
 	pcr->rx_initial_phase = SET_CLOCK_PHASE(30, 6, 6);
 
 	pcr->ic_version = rts5229_get_ic_version(pcr);
-	if (pcr->ic_version == IC_VER_C) {
+
+	if (pcr->ic_version == IC_VER_C)
+	{
 		pcr->sd_pull_ctl_enable_tbl = rts5229_sd_pull_ctl_enable_tbl2;
 		pcr->sd_pull_ctl_disable_tbl = rts5229_sd_pull_ctl_disable_tbl2;
-	} else {
+	}
+	else
+	{
 		pcr->sd_pull_ctl_enable_tbl = rts5229_sd_pull_ctl_enable_tbl1;
 		pcr->sd_pull_ctl_disable_tbl = rts5229_sd_pull_ctl_disable_tbl1;
 	}
+
 	pcr->ms_pull_ctl_enable_tbl = rts5229_ms_pull_ctl_enable_tbl;
 	pcr->ms_pull_ctl_disable_tbl = rts5229_ms_pull_ctl_disable_tbl;
 }

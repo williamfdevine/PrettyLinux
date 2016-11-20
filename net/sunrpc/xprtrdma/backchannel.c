@@ -12,13 +12,13 @@
 #include "xprt_rdma.h"
 
 #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
-# define RPCDBG_FACILITY	RPCDBG_TRANS
+	#define RPCDBG_FACILITY	RPCDBG_TRANS
 #endif
 
 #undef RPCRDMA_BACKCHANNEL_DEBUG
 
 static void rpcrdma_bc_free_rqst(struct rpcrdma_xprt *r_xprt,
-				 struct rpc_rqst *rqst)
+								 struct rpc_rqst *rqst)
 {
 	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
 	struct rpcrdma_req *req = rpcr_to_rdmar(rqst);
@@ -33,27 +33,39 @@ static void rpcrdma_bc_free_rqst(struct rpcrdma_xprt *r_xprt,
 }
 
 static int rpcrdma_bc_setup_rqst(struct rpcrdma_xprt *r_xprt,
-				 struct rpc_rqst *rqst)
+								 struct rpc_rqst *rqst)
 {
 	struct rpcrdma_regbuf *rb;
 	struct rpcrdma_req *req;
 	size_t size;
 
 	req = rpcrdma_create_req(r_xprt);
+
 	if (IS_ERR(req))
+	{
 		return PTR_ERR(req);
+	}
+
 	req->rl_backchannel = true;
 
 	rb = rpcrdma_alloc_regbuf(RPCRDMA_HDRBUF_SIZE,
-				  DMA_TO_DEVICE, GFP_KERNEL);
+							  DMA_TO_DEVICE, GFP_KERNEL);
+
 	if (IS_ERR(rb))
+	{
 		goto out_fail;
+	}
+
 	req->rl_rdmabuf = rb;
 
 	size = r_xprt->rx_data.inline_rsize;
 	rb = rpcrdma_alloc_regbuf(size, DMA_TO_DEVICE, GFP_KERNEL);
+
 	if (IS_ERR(rb))
+	{
 		goto out_fail;
+	}
+
 	req->rl_sendbuf = rb;
 	xdr_buf_init(&rqst->rq_snd_buf, rb->rg_base, size);
 	rpcrdma_set_xprtdata(rqst, req);
@@ -69,16 +81,19 @@ out_fail:
  * transport is destroyed.
  */
 static int rpcrdma_bc_setup_reps(struct rpcrdma_xprt *r_xprt,
-				 unsigned int count)
+								 unsigned int count)
 {
 	struct rpcrdma_rep *rep;
 	int rc = 0;
 
-	while (count--) {
+	while (count--)
+	{
 		rep = rpcrdma_create_rep(r_xprt);
-		if (IS_ERR(rep)) {
+
+		if (IS_ERR(rep))
+		{
 			pr_err("RPC:       %s: reply buffer alloc failed\n",
-			       __func__);
+				   __func__);
 			rc = PTR_ERR(rep);
 			break;
 		}
@@ -114,15 +129,21 @@ int xprt_rdma_bc_setup(struct rpc_xprt *xprt, unsigned int reqs)
 	 * always an rpc_rqst available as soon as a reply is sent.
 	 */
 	if (reqs > RPCRDMA_BACKWARD_WRS >> 1)
+	{
 		goto out_err;
+	}
 
-	for (i = 0; i < (reqs << 1); i++) {
+	for (i = 0; i < (reqs << 1); i++)
+	{
 		rqst = kzalloc(sizeof(*rqst), GFP_KERNEL);
-		if (!rqst) {
+
+		if (!rqst)
+		{
 			pr_err("RPC:       %s: Failed to create bc rpc_rqst\n",
-			       __func__);
+				   __func__);
 			goto out_free;
 		}
+
 		dprintk("RPC:       %s: new rqst %p\n", __func__, rqst);
 
 		rqst->rq_xprt = &r_xprt->rx_xprt;
@@ -130,7 +151,9 @@ int xprt_rdma_bc_setup(struct rpc_xprt *xprt, unsigned int reqs)
 		INIT_LIST_HEAD(&rqst->rq_bc_list);
 
 		if (rpcrdma_bc_setup_rqst(r_xprt, rqst))
+		{
 			goto out_free;
+		}
 
 		spin_lock_bh(&xprt->bc_pa_lock);
 		list_add(&rqst->rq_bc_pa_list, &xprt->bc_pa_list);
@@ -138,12 +161,18 @@ int xprt_rdma_bc_setup(struct rpc_xprt *xprt, unsigned int reqs)
 	}
 
 	rc = rpcrdma_bc_setup_reps(r_xprt, reqs);
+
 	if (rc)
+	{
 		goto out_free;
+	}
 
 	rc = rpcrdma_ep_post_extra_recv(r_xprt, reqs);
+
 	if (rc)
+	{
 		goto out_free;
+	}
 
 	buffer->rb_bc_srv_max_requests = reqs;
 	request_module("svcrdma");
@@ -173,8 +202,12 @@ int xprt_rdma_bc_up(struct svc_serv *serv, struct net *net)
 	int ret;
 
 	ret = svc_create_xprt(serv, "rdma-bc", net, PF_INET, 0, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return 0;
 }
 
@@ -211,15 +244,18 @@ int rpcrdma_bc_marshal_reply(struct rpc_rqst *rqst)
 	headerp->rm_xid = rqst->rq_xid;
 	headerp->rm_vers = rpcrdma_version;
 	headerp->rm_credit =
-			cpu_to_be32(r_xprt->rx_buf.rb_bc_srv_max_requests);
+		cpu_to_be32(r_xprt->rx_buf.rb_bc_srv_max_requests);
 	headerp->rm_type = rdma_msg;
 	headerp->rm_body.rm_chunks[0] = xdr_zero;
 	headerp->rm_body.rm_chunks[1] = xdr_zero;
 	headerp->rm_body.rm_chunks[2] = xdr_zero;
 
 	if (!rpcrdma_prepare_send_sges(&r_xprt->rx_ia, req, RPCRDMA_HDRLEN_MIN,
-				       &rqst->rq_snd_buf, rpcrdma_noch))
+								   &rqst->rq_snd_buf, rpcrdma_noch))
+	{
 		return -EIO;
+	}
+
 	return 0;
 }
 
@@ -234,7 +270,8 @@ void xprt_rdma_bc_destroy(struct rpc_xprt *xprt, unsigned int reqs)
 	struct rpc_rqst *rqst, *tmp;
 
 	spin_lock_bh(&xprt->bc_pa_lock);
-	list_for_each_entry_safe(rqst, tmp, &xprt->bc_pa_list, rq_bc_pa_list) {
+	list_for_each_entry_safe(rqst, tmp, &xprt->bc_pa_list, rq_bc_pa_list)
+	{
 		list_del(&rqst->rq_bc_pa_list);
 		spin_unlock_bh(&xprt->bc_pa_lock);
 
@@ -254,7 +291,7 @@ void xprt_rdma_bc_free_rqst(struct rpc_rqst *rqst)
 	struct rpc_xprt *xprt = rqst->rq_xprt;
 
 	dprintk("RPC:       %s: freeing rqst %p (req %p)\n",
-		__func__, rqst, rpcr_to_rdmar(rqst));
+			__func__, rqst, rpcr_to_rdmar(rqst));
 
 	smp_mb__before_atomic();
 	WARN_ON_ONCE(!test_bit(RPC_BC_PA_IN_USE, &rqst->rq_bc_pa_state));
@@ -281,7 +318,7 @@ void xprt_rdma_bc_free_rqst(struct rpc_rqst *rqst)
  *      No replay detection is done at the transport level
  */
 void rpcrdma_bc_receive_call(struct rpcrdma_xprt *r_xprt,
-			     struct rpcrdma_rep *rep)
+							 struct rpcrdma_rep *rep)
 {
 	struct rpc_xprt *xprt = &r_xprt->rx_xprt;
 	struct rpcrdma_msg *headerp;
@@ -295,7 +332,7 @@ void rpcrdma_bc_receive_call(struct rpcrdma_xprt *r_xprt,
 	headerp = rdmab_to_msg(rep->rr_rdmabuf);
 #ifdef RPCRDMA_BACKCHANNEL_DEBUG
 	pr_info("RPC:       %s: callback XID %08x, length=%u\n",
-		__func__, be32_to_cpu(headerp->rm_xid), rep->rr_len);
+			__func__, be32_to_cpu(headerp->rm_xid), rep->rr_len);
 	pr_info("RPC:       %s: %*ph\n", __func__, rep->rr_len, headerp);
 #endif
 
@@ -306,18 +343,24 @@ void rpcrdma_bc_receive_call(struct rpcrdma_xprt *r_xprt,
 	 * are some bytes beyond the RPC/RDMA header.
 	 */
 	if (rep->rr_len < RPCRDMA_HDRLEN_MIN + 24)
+	{
 		goto out_short;
+	}
+
 	p = (__be32 *)((unsigned char *)headerp + RPCRDMA_HDRLEN_MIN);
 	size = rep->rr_len - RPCRDMA_HDRLEN_MIN;
 
 	/* Grab a free bc rqst */
 	spin_lock(&xprt->bc_pa_lock);
-	if (list_empty(&xprt->bc_pa_list)) {
+
+	if (list_empty(&xprt->bc_pa_list))
+	{
 		spin_unlock(&xprt->bc_pa_lock);
 		goto out_overflow;
 	}
+
 	rqst = list_first_entry(&xprt->bc_pa_list,
-				struct rpc_rqst, rq_bc_pa_list);
+							struct rpc_rqst, rq_bc_pa_list);
 	list_del(&rqst->rq_bc_pa_list);
 	spin_unlock(&xprt->bc_pa_lock);
 	dprintk("RPC:       %s: using rqst %p\n", __func__, rqst);
@@ -343,7 +386,7 @@ void rpcrdma_bc_receive_call(struct rpcrdma_xprt *r_xprt,
 	 */
 	req = rpcr_to_rdmar(rqst);
 	dprintk("RPC:       %s: attaching rep %p to req %p\n",
-		__func__, rep, req);
+			__func__, rep, req);
 	req->rl_reply = rep;
 
 	/* Defeat the retransmit detection logic in send_request */
@@ -372,8 +415,10 @@ out_short:
 	pr_warn("RPC/RDMA short backward direction call\n");
 
 	if (rpcrdma_ep_post_recv(&r_xprt->rx_ia, rep))
+	{
 		xprt_disconnect_done(xprt);
+	}
 	else
 		pr_warn("RPC:       %s: reposting rep %p\n",
-			__func__, rep);
+				__func__, rep);
 }

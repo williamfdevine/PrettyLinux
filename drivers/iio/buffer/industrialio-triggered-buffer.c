@@ -1,11 +1,11 @@
- /*
- * Copyright (c) 2012 Analog Devices, Inc.
- *  Author: Lars-Peter Clausen <lars@metafoo.de>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+/*
+* Copyright (c) 2012 Analog Devices, Inc.
+*  Author: Lars-Peter Clausen <lars@metafoo.de>
+*
+* This program is free software; you can redistribute it and/or modify it
+* under the terms of the GNU General Public License version 2 as published by
+* the Free Software Foundation.
+*/
 
 #include <linux/kernel.h>
 #include <linux/export.h>
@@ -16,7 +16,8 @@
 #include <linux/iio/triggered_buffer.h>
 #include <linux/iio/trigger_consumer.h>
 
-static const struct iio_buffer_setup_ops iio_triggered_buffer_setup_ops = {
+static const struct iio_buffer_setup_ops iio_triggered_buffer_setup_ops =
+{
 	.postenable = &iio_triggered_buffer_postenable,
 	.predisable = &iio_triggered_buffer_predisable,
 };
@@ -42,15 +43,17 @@ static const struct iio_buffer_setup_ops iio_triggered_buffer_setup_ops = {
  * iio_triggered_buffer_cleanup().
  */
 int iio_triggered_buffer_setup(struct iio_dev *indio_dev,
-	irqreturn_t (*h)(int irq, void *p),
-	irqreturn_t (*thread)(int irq, void *p),
-	const struct iio_buffer_setup_ops *setup_ops)
+							   irqreturn_t (*h)(int irq, void *p),
+							   irqreturn_t (*thread)(int irq, void *p),
+							   const struct iio_buffer_setup_ops *setup_ops)
 {
 	struct iio_buffer *buffer;
 	int ret;
 
 	buffer = iio_kfifo_allocate();
-	if (!buffer) {
+
+	if (!buffer)
+	{
 		ret = -ENOMEM;
 		goto error_ret;
 	}
@@ -58,22 +61,28 @@ int iio_triggered_buffer_setup(struct iio_dev *indio_dev,
 	iio_device_attach_buffer(indio_dev, buffer);
 
 	indio_dev->pollfunc = iio_alloc_pollfunc(h,
-						 thread,
-						 IRQF_ONESHOT,
-						 indio_dev,
-						 "%s_consumer%d",
-						 indio_dev->name,
-						 indio_dev->id);
-	if (indio_dev->pollfunc == NULL) {
+						  thread,
+						  IRQF_ONESHOT,
+						  indio_dev,
+						  "%s_consumer%d",
+						  indio_dev->name,
+						  indio_dev->id);
+
+	if (indio_dev->pollfunc == NULL)
+	{
 		ret = -ENOMEM;
 		goto error_kfifo_free;
 	}
 
 	/* Ring buffer functions - here trigger setup related */
 	if (setup_ops)
+	{
 		indio_dev->setup_ops = setup_ops;
+	}
 	else
+	{
 		indio_dev->setup_ops = &iio_triggered_buffer_setup_ops;
+	}
 
 	/* Flag that polled ring buffering is possible */
 	indio_dev->modes |= INDIO_BUFFER_TRIGGERED;
@@ -104,38 +113,46 @@ static void devm_iio_triggered_buffer_clean(struct device *dev, void *res)
 }
 
 int devm_iio_triggered_buffer_setup(struct device *dev,
-				    struct iio_dev *indio_dev,
-				    irqreturn_t (*h)(int irq, void *p),
-				    irqreturn_t (*thread)(int irq, void *p),
-				    const struct iio_buffer_setup_ops *ops)
+									struct iio_dev *indio_dev,
+									irqreturn_t (*h)(int irq, void *p),
+									irqreturn_t (*thread)(int irq, void *p),
+									const struct iio_buffer_setup_ops *ops)
 {
 	struct iio_dev **ptr;
 	int ret;
 
 	ptr = devres_alloc(devm_iio_triggered_buffer_clean, sizeof(*ptr),
-			   GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!ptr)
+	{
 		return -ENOMEM;
+	}
 
 	*ptr = indio_dev;
 
 	ret = iio_triggered_buffer_setup(indio_dev, h, thread, ops);
+
 	if (!ret)
+	{
 		devres_add(dev, ptr);
+	}
 	else
+	{
 		devres_free(ptr);
+	}
 
 	return ret;
 }
 EXPORT_SYMBOL_GPL(devm_iio_triggered_buffer_setup);
 
 void devm_iio_triggered_buffer_cleanup(struct device *dev,
-				       struct iio_dev *indio_dev)
+									   struct iio_dev *indio_dev)
 {
 	int rc;
 
 	rc = devres_release(dev, devm_iio_triggered_buffer_clean,
-			    devm_iio_device_match, indio_dev);
+						devm_iio_device_match, indio_dev);
 	WARN_ON(rc);
 }
 EXPORT_SYMBOL_GPL(devm_iio_triggered_buffer_cleanup);

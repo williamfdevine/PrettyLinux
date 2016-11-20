@@ -62,7 +62,8 @@
  * @TPS6105X_MODE_VOLTAGE: this instance is used as a voltage regulator and
  *	will register to the regulator framework
  */
-enum tps6105x_mode {
+enum tps6105x_mode
+{
 	TPS6105X_MODE_SHUTDOWN,
 	TPS6105X_MODE_TORCH,
 	TPS6105X_MODE_TORCH_FLASH,
@@ -76,7 +77,8 @@ enum tps6105x_mode {
  * @regulator_data: initialization data for the voltage
  *	regulator if used as a voltage source
  */
-struct tps6105x_platform_data {
+struct tps6105x_platform_data
+{
 	enum tps6105x_mode mode;
 	struct regulator_init_data *regulator_data;
 };
@@ -87,7 +89,8 @@ struct tps6105x_platform_data {
  * @regulator: regulator device if used in voltage mode
  * @regmap: used for i2c communcation on accessing registers
  */
-struct tps6105x {
+struct tps6105x
+{
 	struct tps6105x_platform_data *pdata;
 	struct i2c_client	*client;
 	struct regulator_dev	*regulator;

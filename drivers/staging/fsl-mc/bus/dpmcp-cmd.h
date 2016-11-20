@@ -53,15 +53,18 @@
 #define DPMCP_CMDID_GET_IRQ_MASK			0x015
 #define DPMCP_CMDID_GET_IRQ_STATUS			0x016
 
-struct dpmcp_cmd_open {
+struct dpmcp_cmd_open
+{
 	__le32 dpmcp_id;
 };
 
-struct dpmcp_cmd_create {
+struct dpmcp_cmd_create
+{
 	__le32 portal_id;
 };
 
-struct dpmcp_cmd_set_irq {
+struct dpmcp_cmd_set_irq
+{
 	/* cmd word 0 */
 	u8 irq_index;
 	u8 pad[3];
@@ -72,12 +75,14 @@ struct dpmcp_cmd_set_irq {
 	__le32 irq_num;
 };
 
-struct dpmcp_cmd_get_irq {
+struct dpmcp_cmd_get_irq
+{
 	__le32 pad;
 	u8 irq_index;
 };
 
-struct dpmcp_rsp_get_irq {
+struct dpmcp_rsp_get_irq
+{
 	/* cmd word 0 */
 	__le32 irq_val;
 	__le32 pad;
@@ -90,45 +95,54 @@ struct dpmcp_rsp_get_irq {
 
 #define DPMCP_ENABLE		0x1
 
-struct dpmcp_cmd_set_irq_enable {
+struct dpmcp_cmd_set_irq_enable
+{
 	u8 enable;
 	u8 pad[3];
 	u8 irq_index;
 };
 
-struct dpmcp_cmd_get_irq_enable {
+struct dpmcp_cmd_get_irq_enable
+{
 	__le32 pad;
 	u8 irq_index;
 };
 
-struct dpmcp_rsp_get_irq_enable {
+struct dpmcp_rsp_get_irq_enable
+{
 	u8 enabled;
 };
 
-struct dpmcp_cmd_set_irq_mask {
+struct dpmcp_cmd_set_irq_mask
+{
 	__le32 mask;
 	u8 irq_index;
 };
 
-struct dpmcp_cmd_get_irq_mask {
+struct dpmcp_cmd_get_irq_mask
+{
 	__le32 pad;
 	u8 irq_index;
 };
 
-struct dpmcp_rsp_get_irq_mask {
+struct dpmcp_rsp_get_irq_mask
+{
 	__le32 mask;
 };
 
-struct dpmcp_cmd_get_irq_status {
+struct dpmcp_cmd_get_irq_status
+{
 	__le32 status;
 	u8 irq_index;
 };
 
-struct dpmcp_rsp_get_irq_status {
+struct dpmcp_rsp_get_irq_status
+{
 	__le32 status;
 };
 
-struct dpmcp_rsp_get_attributes {
+struct dpmcp_rsp_get_attributes
+{
 	/* response word 0 */
 	__le32 pad;
 	__le32 id;

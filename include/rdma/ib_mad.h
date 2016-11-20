@@ -144,7 +144,8 @@
 #define IB_NOTICE_PROD_ROUTER		cpu_to_be16(3)
 #define IB_NOTICE_PROD_CLASS_MGR	cpu_to_be16(4)
 
-enum {
+enum
+{
 	IB_MGMT_MAD_HDR = 24,
 	IB_MGMT_MAD_DATA = 232,
 	IB_MGMT_RMPP_HDR = 36,
@@ -161,7 +162,8 @@ enum {
 	OPA_MGMT_MAD_SIZE = IB_MGMT_MAD_HDR + OPA_MGMT_MAD_DATA,
 };
 
-struct ib_mad_hdr {
+struct ib_mad_hdr
+{
 	u8	base_version;
 	u8	mgmt_class;
 	u8	class_version;
@@ -174,7 +176,8 @@ struct ib_mad_hdr {
 	__be32	attr_mod;
 };
 
-struct ib_rmpp_hdr {
+struct ib_rmpp_hdr
+{
 	u8	rmpp_version;
 	u8	rmpp_type;
 	u8	rmpp_rtime_flags;
@@ -193,43 +196,50 @@ typedef u64 __bitwise ib_sa_comp_mask;
  * lay them out wrong otherwise.  (And unfortunately they are sent on
  * the wire so we can't change the layout)
  */
-struct ib_sa_hdr {
+struct ib_sa_hdr
+{
 	__be64			sm_key;
 	__be16			attr_offset;
 	__be16			reserved;
 	ib_sa_comp_mask		comp_mask;
 } __attribute__ ((packed));
 
-struct ib_mad {
+struct ib_mad
+{
 	struct ib_mad_hdr	mad_hdr;
 	u8			data[IB_MGMT_MAD_DATA];
 };
 
-struct opa_mad {
+struct opa_mad
+{
 	struct ib_mad_hdr	mad_hdr;
 	u8			data[OPA_MGMT_MAD_DATA];
 };
 
-struct ib_rmpp_mad {
+struct ib_rmpp_mad
+{
 	struct ib_mad_hdr	mad_hdr;
 	struct ib_rmpp_hdr	rmpp_hdr;
 	u8			data[IB_MGMT_RMPP_DATA];
 };
 
-struct opa_rmpp_mad {
+struct opa_rmpp_mad
+{
 	struct ib_mad_hdr	mad_hdr;
 	struct ib_rmpp_hdr	rmpp_hdr;
 	u8			data[OPA_MGMT_RMPP_DATA];
 };
 
-struct ib_sa_mad {
+struct ib_sa_mad
+{
 	struct ib_mad_hdr	mad_hdr;
 	struct ib_rmpp_hdr	rmpp_hdr;
 	struct ib_sa_hdr	sa_hdr;
 	u8			data[IB_MGMT_SA_DATA];
 } __attribute__ ((packed));
 
-struct ib_vendor_mad {
+struct ib_vendor_mad
+{
 	struct ib_mad_hdr	mad_hdr;
 	struct ib_rmpp_hdr	rmpp_hdr;
 	u8			reserved;
@@ -242,11 +252,12 @@ struct ib_vendor_mad {
 #define IB_CLASS_PORT_INFO_RESP_TIME_MASK	0x1F
 #define IB_CLASS_PORT_INFO_RESP_TIME_FIELD_SIZE 5
 
-struct ib_class_port_info {
+struct ib_class_port_info
+{
 	u8			base_version;
 	u8			class_version;
 	__be16			capability_mask;
-	  /* 27 bits for cap_mask2, 5 bits for resp_time */
+	/* 27 bits for cap_mask2, 5 bits for resp_time */
 	__be32			cap_mask2_resp_time;
 	u8			redirect_gid[16];
 	__be32			redirect_tcslfl;
@@ -270,7 +281,7 @@ struct ib_class_port_info {
 static inline u8 ib_get_cpi_resp_time(struct ib_class_port_info *cpi)
 {
 	return (u8)(be32_to_cpu(cpi->cap_mask2_resp_time) &
-		    IB_CLASS_PORT_INFO_RESP_TIME_MASK);
+				IB_CLASS_PORT_INFO_RESP_TIME_MASK);
 }
 
 /**
@@ -280,7 +291,7 @@ static inline u8 ib_get_cpi_resp_time(struct ib_class_port_info *cpi)
  * @rtime: The response time to set.
  */
 static inline void ib_set_cpi_resp_time(struct ib_class_port_info *cpi,
-					u8 rtime)
+										u8 rtime)
 {
 	cpi->cap_mask2_resp_time =
 		(cpi->cap_mask2_resp_time &
@@ -296,7 +307,7 @@ static inline void ib_set_cpi_resp_time(struct ib_class_port_info *cpi,
 static inline u32 ib_get_cpi_capmask2(struct ib_class_port_info *cpi)
 {
 	return (be32_to_cpu(cpi->cap_mask2_resp_time) >>
-		IB_CLASS_PORT_INFO_RESP_TIME_FIELD_SIZE);
+			IB_CLASS_PORT_INFO_RESP_TIME_FIELD_SIZE);
 }
 
 /**
@@ -306,16 +317,17 @@ static inline u32 ib_get_cpi_capmask2(struct ib_class_port_info *cpi)
  * @capmask2: The capmask2 to set.
  */
 static inline void ib_set_cpi_capmask2(struct ib_class_port_info *cpi,
-				       u32 capmask2)
+									   u32 capmask2)
 {
 	cpi->cap_mask2_resp_time =
 		(cpi->cap_mask2_resp_time &
 		 cpu_to_be32(IB_CLASS_PORT_INFO_RESP_TIME_MASK)) |
 		cpu_to_be32(capmask2 <<
-			    IB_CLASS_PORT_INFO_RESP_TIME_FIELD_SIZE);
+					IB_CLASS_PORT_INFO_RESP_TIME_FIELD_SIZE);
 }
 
-struct ib_mad_notice_attr {
+struct ib_mad_notice_attr
+{
 	u8 generic_type;
 	u8 prod_type_msb;
 	__be16 prod_type_lsb;
@@ -323,18 +335,22 @@ struct ib_mad_notice_attr {
 	__be16 issuer_lid;
 	__be16 toggle_count;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u8	details[54];
 		} raw_data;
 
-		struct {
+		struct
+		{
 			__be16	reserved;
 			__be16	lid;		/* where violation happened */
 			u8	port_num;	/* where violation happened */
 		} __packed ntc_129_131;
 
-		struct {
+		struct
+		{
 			__be16	reserved;
 			__be16	lid;		/* LID where change occurred */
 			u8	reserved2;
@@ -344,14 +360,16 @@ struct ib_mad_notice_attr {
 			u8	change_flags;	/* low 3 bits only */
 		} __packed ntc_144;
 
-		struct {
+		struct
+		{
 			__be16	reserved;
 			__be16	lid;		/* lid where sys guid changed */
 			__be16	reserved2;
 			__be64	new_sys_guid;
 		} __packed ntc_145;
 
-		struct {
+		struct
+		{
 			__be16	reserved;
 			__be16	lid;
 			__be16	dr_slid;
@@ -365,7 +383,8 @@ struct ib_mad_notice_attr {
 			u8	dr_rtn_path[30];
 		} __packed ntc_256;
 
-		struct {
+		struct
+		{
 			__be16		reserved;
 			__be16		lid1;
 			__be16		lid2;
@@ -405,7 +424,8 @@ struct ib_mad_notice_attr {
  * exception of any RMPP header.  Additional segment buffer space allocated
  * beyond data_len is padding.
  */
-struct ib_mad_send_buf {
+struct ib_mad_send_buf
+{
 	struct ib_mad_send_buf	*next;
 	void			*mad;
 	struct ib_mad_agent	*mad_agent;
@@ -462,7 +482,7 @@ static inline void ib_set_rmpp_resptime(struct ib_rmpp_hdr *rmpp_hdr, u8 rtime)
 static inline void ib_set_rmpp_flags(struct ib_rmpp_hdr *rmpp_hdr, u8 flags)
 {
 	rmpp_hdr->rmpp_rtime_flags = (rmpp_hdr->rmpp_rtime_flags & 0xF8) |
-				     (flags & 0x7);
+								 (flags & 0x7);
 }
 
 struct ib_mad_agent;
@@ -475,7 +495,7 @@ struct ib_mad_recv_wc;
  * @mad_send_wc: Send work completion information on the sent MAD.
  */
 typedef void (*ib_mad_send_handler)(struct ib_mad_agent *mad_agent,
-				    struct ib_mad_send_wc *mad_send_wc);
+									struct ib_mad_send_wc *mad_send_wc);
 
 /**
  * ib_mad_snoop_handler - Callback handler for snooping sent MADs.
@@ -488,8 +508,8 @@ typedef void (*ib_mad_send_handler)(struct ib_mad_agent *mad_agent,
  * or @mad_send_wc.
  */
 typedef void (*ib_mad_snoop_handler)(struct ib_mad_agent *mad_agent,
-				     struct ib_mad_send_buf *send_buf,
-				     struct ib_mad_send_wc *mad_send_wc);
+									 struct ib_mad_send_buf *send_buf,
+									 struct ib_mad_send_wc *mad_send_wc);
 
 /**
  * ib_mad_recv_handler - callback handler for a received MAD.
@@ -504,8 +524,8 @@ typedef void (*ib_mad_snoop_handler)(struct ib_mad_agent *mad_agent,
  * modify the data referenced by @mad_recv_wc.
  */
 typedef void (*ib_mad_recv_handler)(struct ib_mad_agent *mad_agent,
-				    struct ib_mad_send_buf *send_buf,
-				    struct ib_mad_recv_wc *mad_recv_wc);
+									struct ib_mad_send_buf *send_buf,
+									struct ib_mad_recv_wc *mad_recv_wc);
 
 /**
  * ib_mad_agent - Used to track MAD registration with the access layer.
@@ -523,10 +543,12 @@ typedef void (*ib_mad_recv_handler)(struct ib_mad_agent *mad_agent,
  * @port_num: Port number on which QP is registered
  * @rmpp_version: If set, indicates the RMPP version used by this agent.
  */
-enum {
+enum
+{
 	IB_MAD_USER_RMPP = IB_USER_MAD_USER_RMPP,
 };
-struct ib_mad_agent {
+struct ib_mad_agent
+{
 	struct ib_device	*device;
 	struct ib_qp		*qp;
 	ib_mad_recv_handler	recv_handler;
@@ -546,7 +568,8 @@ struct ib_mad_agent {
  * @vendor_err: Optional vendor error information returned with a failed
  *   request.
  */
-struct ib_mad_send_wc {
+struct ib_mad_send_wc
+{
 	struct ib_mad_send_buf	*send_buf;
 	enum ib_wc_status	status;
 	u32			vendor_err;
@@ -560,10 +583,12 @@ struct ib_mad_send_wc {
  *   valid.
  * @mad: References the start of the received MAD.
  */
-struct ib_mad_recv_buf {
+struct ib_mad_recv_buf
+{
 	struct list_head	list;
 	struct ib_grh		*grh;
-	union {
+	union
+	{
 		struct ib_mad	*mad;
 		struct opa_mad	*opa_mad;
 	};
@@ -580,7 +605,8 @@ struct ib_mad_recv_buf {
  * For received response, the wr_id contains a pointer to the ib_mad_send_buf
  *   for the corresponding send request.
  */
-struct ib_mad_recv_wc {
+struct ib_mad_recv_wc
+{
 	struct ib_wc		*wc;
 	struct ib_mad_recv_buf	recv_buf;
 	struct list_head	rmpp_list;
@@ -601,7 +627,8 @@ struct ib_mad_recv_wc {
  *   where @method_mask = 1.
  *
  */
-struct ib_mad_reg_req {
+struct ib_mad_reg_req
+{
 	u8	mgmt_class;
 	u8	mgmt_class_version;
 	u8	oui[3];
@@ -628,23 +655,24 @@ struct ib_mad_reg_req {
  * @registration_flags: Registration flags to set for this agent
  */
 struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
-					   u8 port_num,
-					   enum ib_qp_type qp_type,
-					   struct ib_mad_reg_req *mad_reg_req,
-					   u8 rmpp_version,
-					   ib_mad_send_handler send_handler,
-					   ib_mad_recv_handler recv_handler,
-					   void *context,
-					   u32 registration_flags);
+		u8 port_num,
+		enum ib_qp_type qp_type,
+		struct ib_mad_reg_req *mad_reg_req,
+		u8 rmpp_version,
+		ib_mad_send_handler send_handler,
+		ib_mad_recv_handler recv_handler,
+		void *context,
+		u32 registration_flags);
 
-enum ib_mad_snoop_flags {
+enum ib_mad_snoop_flags
+{
 	/*IB_MAD_SNOOP_POSTED_SENDS	   = 1,*/
 	/*IB_MAD_SNOOP_RMPP_SENDS	   = (1<<1),*/
-	IB_MAD_SNOOP_SEND_COMPLETIONS	   = (1<<2),
+	IB_MAD_SNOOP_SEND_COMPLETIONS	   = (1 << 2),
 	/*IB_MAD_SNOOP_RMPP_SEND_COMPLETIONS = (1<<3),*/
-	IB_MAD_SNOOP_RECVS		   = (1<<4)
-	/*IB_MAD_SNOOP_RMPP_RECVS	   = (1<<5),*/
-	/*IB_MAD_SNOOP_REDIRECTED_QPS	   = (1<<6)*/
+	IB_MAD_SNOOP_RECVS		   = (1 << 4)
+								 /*IB_MAD_SNOOP_RMPP_RECVS	   = (1<<5),*/
+								 /*IB_MAD_SNOOP_REDIRECTED_QPS	   = (1<<6)*/
 };
 
 /**
@@ -659,12 +687,12 @@ enum ib_mad_snoop_flags {
  * @context: User specified context associated with the registration.
  */
 struct ib_mad_agent *ib_register_mad_snoop(struct ib_device *device,
-					   u8 port_num,
-					   enum ib_qp_type qp_type,
-					   int mad_snoop_flags,
-					   ib_mad_snoop_handler snoop_handler,
-					   ib_mad_recv_handler recv_handler,
-					   void *context);
+		u8 port_num,
+		enum ib_qp_type qp_type,
+		int mad_snoop_flags,
+		ib_mad_snoop_handler snoop_handler,
+		ib_mad_recv_handler recv_handler,
+		void *context);
 
 /**
  * ib_unregister_mad_agent - Unregisters a client from using MAD services.
@@ -695,7 +723,7 @@ int ib_unregister_mad_agent(struct ib_mad_agent *mad_agent);
  * specified in network-byte order.
  */
 int ib_post_send_mad(struct ib_mad_send_buf *send_buf,
-		     struct ib_mad_send_buf **bad_send_buf);
+					 struct ib_mad_send_buf **bad_send_buf);
 
 
 /**
@@ -716,7 +744,7 @@ void ib_free_recv_mad(struct ib_mad_recv_wc *mad_recv_wc);
  * ib_mad_send_handler.
  */
 void ib_cancel_mad(struct ib_mad_agent *mad_agent,
-		   struct ib_mad_send_buf *send_buf);
+				   struct ib_mad_send_buf *send_buf);
 
 /**
  * ib_modify_mad - Modifies an outstanding send MAD operation.
@@ -728,7 +756,7 @@ void ib_cancel_mad(struct ib_mad_agent *mad_agent,
  * value.
  */
 int ib_modify_mad(struct ib_mad_agent *mad_agent,
-		  struct ib_mad_send_buf *send_buf, u32 timeout_ms);
+				  struct ib_mad_send_buf *send_buf, u32 timeout_ms);
 
 /**
  * ib_redirect_mad_qp - Registers a QP for MAD services.
@@ -747,10 +775,10 @@ int ib_modify_mad(struct ib_mad_agent *mad_agent,
  * MADs on the specified QP by calling ib_mad_post_send.
  */
 struct ib_mad_agent *ib_redirect_mad_qp(struct ib_qp *qp,
-					u8 rmpp_version,
-					ib_mad_send_handler send_handler,
-					ib_mad_recv_handler recv_handler,
-					void *context);
+										u8 rmpp_version,
+										ib_mad_send_handler send_handler,
+										ib_mad_recv_handler recv_handler,
+										void *context);
 
 /**
  * ib_process_mad_wc - Processes a work completion associated with a
@@ -768,7 +796,7 @@ struct ib_mad_agent *ib_redirect_mad_qp(struct ib_qp *qp,
  * with its corresponding request.
  */
 int ib_process_mad_wc(struct ib_mad_agent *mad_agent,
-		      struct ib_wc *wc);
+					  struct ib_wc *wc);
 
 /**
  * ib_create_send_mad - Allocate and initialize a data buffer and work request
@@ -798,11 +826,11 @@ int ib_process_mad_wc(struct ib_mad_agent *mad_agent,
  * If @rmpp_active is set, the RMPP header will be initialized for sending.
  */
 struct ib_mad_send_buf *ib_create_send_mad(struct ib_mad_agent *mad_agent,
-					   u32 remote_qpn, u16 pkey_index,
-					   int rmpp_active,
-					   int hdr_len, int data_len,
-					   gfp_t gfp_mask,
-					   u8 base_version);
+		u32 remote_qpn, u16 pkey_index,
+		int rmpp_active,
+		int hdr_len, int data_len,
+		gfp_t gfp_mask,
+		u8 base_version);
 
 /**
  * ib_is_mad_class_rmpp - returns whether given management class

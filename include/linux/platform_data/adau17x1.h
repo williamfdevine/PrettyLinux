@@ -15,7 +15,8 @@
  * @ADAU17X1_MICBIAS_0_90_AVDD: 0.9 * AVDD
  * @ADAU17X1_MICBIAS_0_65_AVDD: 0.65 * AVDD
  */
-enum adau17x1_micbias_voltage {
+enum adau17x1_micbias_voltage
+{
 	ADAU17X1_MICBIAS_0_90_AVDD = 0,
 	ADAU17X1_MICBIAS_0_65_AVDD = 1,
 };
@@ -28,7 +29,8 @@ enum adau17x1_micbias_voltage {
  * @ADAU1761_DIGMIC_JACKDET_PIN_MODE_JACKDETECT: Configure the pin for jack
  *  insertion detection.
  */
-enum adau1761_digmic_jackdet_pin_mode {
+enum adau1761_digmic_jackdet_pin_mode
+{
 	ADAU1761_DIGMIC_JACKDET_PIN_MODE_NONE,
 	ADAU1761_DIGMIC_JACKDET_PIN_MODE_DIGMIC,
 	ADAU1761_DIGMIC_JACKDET_PIN_MODE_JACKDETECT,
@@ -41,7 +43,8 @@ enum adau1761_digmic_jackdet_pin_mode {
  * @ADAU1761_JACKDETECT_DEBOUNCE_20MS: 20 milliseconds
  * @ADAU1761_JACKDETECT_DEBOUNCE_40MS: 40 milliseconds
  */
-enum adau1761_jackdetect_debounce_time {
+enum adau1761_jackdetect_debounce_time
+{
 	ADAU1761_JACKDETECT_DEBOUNCE_5MS = 0,
 	ADAU1761_JACKDETECT_DEBOUNCE_10MS = 1,
 	ADAU1761_JACKDETECT_DEBOUNCE_20MS = 2,
@@ -54,7 +57,8 @@ enum adau1761_jackdetect_debounce_time {
  * @ADAU1761_OUTPUT_MODE_HEADPHONE_CAPLESS: Capless headphone output
  * @ADAU1761_OUTPUT_MODE_LINE: Line output
  */
-enum adau1761_output_mode {
+enum adau1761_output_mode
+{
 	ADAU1761_OUTPUT_MODE_HEADPHONE,
 	ADAU1761_OUTPUT_MODE_HEADPHONE_CAPLESS,
 	ADAU1761_OUTPUT_MODE_LINE,
@@ -74,7 +78,8 @@ enum adau1761_output_mode {
  *  Othwise it will be active high.
  * @micbias_voltage: Microphone voltage bias
  */
-struct adau1761_platform_data {
+struct adau1761_platform_data
+{
 	bool input_differential;
 	enum adau1761_output_mode lineout_mode;
 	enum adau1761_output_mode headphone_mode;
@@ -97,7 +102,8 @@ struct adau1761_platform_data {
  *  of analog microphone pins.
  * @micbias_voltage: Microphone voltage bias
  */
-struct adau1781_platform_data {
+struct adau1781_platform_data
+{
 	bool left_input_differential;
 	bool right_input_differential;
 

@@ -17,7 +17,8 @@
    Igor M. Liplianin <liplianin@me.by>
  */
 
-static struct rc_map_table dm1105_nec[] = {
+static struct rc_map_table dm1105_nec[] =
+{
 	{ 0x0a, KEY_POWER2},		/* power */
 	{ 0x0c, KEY_MUTE},		/* mute */
 	{ 0x11, KEY_1},
@@ -51,7 +52,8 @@ static struct rc_map_table dm1105_nec[] = {
 	{ 0x1b, KEY_B},			/* recall */
 };
 
-static struct rc_map_list dm1105_nec_map = {
+static struct rc_map_list dm1105_nec_map =
+{
 	.map = {
 		.scan    = dm1105_nec,
 		.size    = ARRAY_SIZE(dm1105_nec),

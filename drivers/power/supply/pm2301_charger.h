@@ -290,65 +290,75 @@
 #define PM2XXX_ANTI_OVERSHOOT_DIS	0X0
 #define PM2XXX_ANTI_OVERSHOOT_EN	0X1
 
-enum pm2xxx_reg_int1 {
+enum pm2xxx_reg_int1
+{
 	PM2XXX_INT1_ITVBATDISCONNECT	= 0x02,
 	PM2XXX_INT1_ITVBATLOWR		= 0x04,
 	PM2XXX_INT1_ITVBATLOWF		= 0x08,
 };
 
-enum pm2xxx_mask_reg_int1 {
+enum pm2xxx_mask_reg_int1
+{
 	PM2XXX_INT1_M_ITVBATDISCONNECT	= 0x02,
 	PM2XXX_INT1_M_ITVBATLOWR	= 0x04,
 	PM2XXX_INT1_M_ITVBATLOWF	= 0x08,
 };
 
-enum pm2xxx_source_reg_int1 {
+enum pm2xxx_source_reg_int1
+{
 	PM2XXX_INT1_S_ITVBATDISCONNECT	= 0x02,
 	PM2XXX_INT1_S_ITVBATLOWR	= 0x04,
 	PM2XXX_INT1_S_ITVBATLOWF	= 0x08,
 };
 
-enum pm2xxx_reg_int2 {
+enum pm2xxx_reg_int2
+{
 	PM2XXX_INT2_ITVPWR2PLUG		= 0x01,
 	PM2XXX_INT2_ITVPWR2UNPLUG	= 0x02,
 	PM2XXX_INT2_ITVPWR1PLUG		= 0x04,
 	PM2XXX_INT2_ITVPWR1UNPLUG	= 0x08,
 };
 
-enum pm2xxx_mask_reg_int2 {
+enum pm2xxx_mask_reg_int2
+{
 	PM2XXX_INT2_M_ITVPWR2PLUG	= 0x01,
 	PM2XXX_INT2_M_ITVPWR2UNPLUG	= 0x02,
 	PM2XXX_INT2_M_ITVPWR1PLUG	= 0x04,
 	PM2XXX_INT2_M_ITVPWR1UNPLUG	= 0x08,
 };
 
-enum pm2xxx_source_reg_int2 {
+enum pm2xxx_source_reg_int2
+{
 	PM2XXX_INT2_S_ITVPWR2PLUG	= 0x03,
 	PM2XXX_INT2_S_ITVPWR1PLUG	= 0x0c,
 };
 
-enum pm2xxx_reg_int3 {
+enum pm2xxx_reg_int3
+{
 	PM2XXX_INT3_ITCHPRECHARGEWD	= 0x01,
 	PM2XXX_INT3_ITCHCCWD		= 0x02,
 	PM2XXX_INT3_ITCHCVWD		= 0x04,
 	PM2XXX_INT3_ITAUTOTIMEOUTWD	= 0x08,
 };
 
-enum pm2xxx_mask_reg_int3 {
+enum pm2xxx_mask_reg_int3
+{
 	PM2XXX_INT3_M_ITCHPRECHARGEWD	= 0x01,
 	PM2XXX_INT3_M_ITCHCCWD		= 0x02,
 	PM2XXX_INT3_M_ITCHCVWD		= 0x04,
 	PM2XXX_INT3_M_ITAUTOTIMEOUTWD	= 0x08,
 };
 
-enum pm2xxx_source_reg_int3 {
+enum pm2xxx_source_reg_int3
+{
 	PM2XXX_INT3_S_ITCHPRECHARGEWD	= 0x01,
 	PM2XXX_INT3_S_ITCHCCWD		= 0x02,
 	PM2XXX_INT3_S_ITCHCVWD		= 0x04,
 	PM2XXX_INT3_S_ITAUTOTIMEOUTWD	= 0x08,
 };
 
-enum pm2xxx_reg_int4 {
+enum pm2xxx_reg_int4
+{
 	PM2XXX_INT4_ITBATTEMPCOLD	= 0x01,
 	PM2XXX_INT4_ITBATTEMPHOT	= 0x02,
 	PM2XXX_INT4_ITVPWR2OVV		= 0x04,
@@ -359,7 +369,8 @@ enum pm2xxx_reg_int4 {
 	PM2XXX_INT4_ITCVPHASE		= 0x80,
 };
 
-enum pm2xxx_mask_reg_int4 {
+enum pm2xxx_mask_reg_int4
+{
 	PM2XXX_INT4_M_ITBATTEMPCOLD	= 0x01,
 	PM2XXX_INT4_M_ITBATTEMPHOT	= 0x02,
 	PM2XXX_INT4_M_ITVPWR2OVV	= 0x04,
@@ -370,7 +381,8 @@ enum pm2xxx_mask_reg_int4 {
 	PM2XXX_INT4_M_ITCVPHASE		= 0x80,
 };
 
-enum pm2xxx_source_reg_int4 {
+enum pm2xxx_source_reg_int4
+{
 	PM2XXX_INT4_S_ITBATTEMPCOLD	= 0x01,
 	PM2XXX_INT4_S_ITBATTEMPHOT	= 0x02,
 	PM2XXX_INT4_S_ITVPWR2OVV	= 0x04,
@@ -381,7 +393,8 @@ enum pm2xxx_source_reg_int4 {
 	PM2XXX_INT4_S_ITCVPHASE		= 0x80,
 };
 
-enum pm2xxx_reg_int5 {
+enum pm2xxx_reg_int5
+{
 	PM2XXX_INT5_ITTHERMALSHUTDOWNRISE	= 0x01,
 	PM2XXX_INT5_ITTHERMALSHUTDOWNFALL	= 0x02,
 	PM2XXX_INT5_ITTHERMALWARNINGRISE	= 0x04,
@@ -389,7 +402,8 @@ enum pm2xxx_reg_int5 {
 	PM2XXX_INT5_ITVSYSTEMOVV		= 0x10,
 };
 
-enum pm2xxx_mask_reg_int5 {
+enum pm2xxx_mask_reg_int5
+{
 	PM2XXX_INT5_M_ITTHERMALSHUTDOWNRISE	= 0x01,
 	PM2XXX_INT5_M_ITTHERMALSHUTDOWNFALL	= 0x02,
 	PM2XXX_INT5_M_ITTHERMALWARNINGRISE	= 0x04,
@@ -397,7 +411,8 @@ enum pm2xxx_mask_reg_int5 {
 	PM2XXX_INT5_M_ITVSYSTEMOVV		= 0x10,
 };
 
-enum pm2xxx_source_reg_int5 {
+enum pm2xxx_source_reg_int5
+{
 	PM2XXX_INT5_S_ITTHERMALSHUTDOWNRISE	= 0x01,
 	PM2XXX_INT5_S_ITTHERMALSHUTDOWNFALL	= 0x02,
 	PM2XXX_INT5_S_ITTHERMALWARNINGRISE	= 0x04,
@@ -405,7 +420,8 @@ enum pm2xxx_source_reg_int5 {
 	PM2XXX_INT5_S_ITVSYSTEMOVV		= 0x10,
 };
 
-enum pm2xxx_reg_int6 {
+enum pm2xxx_reg_int6
+{
 	PM2XXX_INT6_ITVPWR2DROP		= 0x01,
 	PM2XXX_INT6_ITVPWR1DROP		= 0x02,
 	PM2XXX_INT6_ITVPWR2VALIDRISE	= 0x04,
@@ -414,7 +430,8 @@ enum pm2xxx_reg_int6 {
 	PM2XXX_INT6_ITVPWR1VALIDFALL	= 0x20,
 };
 
-enum pm2xxx_mask_reg_int6 {
+enum pm2xxx_mask_reg_int6
+{
 	PM2XXX_INT6_M_ITVPWR2DROP	= 0x01,
 	PM2XXX_INT6_M_ITVPWR1DROP	= 0x02,
 	PM2XXX_INT6_M_ITVPWR2VALIDRISE	= 0x04,
@@ -423,7 +440,8 @@ enum pm2xxx_mask_reg_int6 {
 	PM2XXX_INT6_M_ITVPWR1VALIDFALL	= 0x20,
 };
 
-enum pm2xxx_source_reg_int6 {
+enum pm2xxx_source_reg_int6
+{
 	PM2XXX_INT6_S_ITVPWR2DROP	= 0x01,
 	PM2XXX_INT6_S_ITVPWR1DROP	= 0x02,
 	PM2XXX_INT6_S_ITVPWR2VALIDRISE	= 0x04,
@@ -432,36 +450,42 @@ enum pm2xxx_source_reg_int6 {
 	PM2XXX_INT6_S_ITVPWR1VALIDFALL	= 0x20,
 };
 
-struct pm2xxx_charger_info {
+struct pm2xxx_charger_info
+{
 	int charger_connected;
 	int charger_online;
 	int cv_active;
 	bool wd_expired;
 };
 
-struct pm2xxx_charger_event_flags {
+struct pm2xxx_charger_event_flags
+{
 	bool mainextchnotok;
 	bool main_thermal_prot;
 	bool ovv;
 	bool chgwdexp;
 };
 
-struct pm2xxx_interrupts {
+struct pm2xxx_interrupts
+{
 	u8 reg[PM2XXX_NUM_INT_REG];
 	int (*handler[PM2XXX_NUM_INT_REG])(void *, int);
 };
 
-struct pm2xxx_config {
+struct pm2xxx_config
+{
 	struct i2c_client *pm2xxx_i2c;
 	struct i2c_device_id *pm2xxx_id;
 };
 
-struct pm2xxx_irq {
+struct pm2xxx_irq
+{
 	char *name;
 	irqreturn_t (*isr)(int irq, void *data);
 };
 
-struct pm2xxx_charger {
+struct pm2xxx_charger
+{
 	struct device *dev;
 	u8 chip_id;
 	bool vddadc_en_ac;

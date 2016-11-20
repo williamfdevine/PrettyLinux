@@ -43,7 +43,8 @@
 #define LIBCFS_IOCTL_VERSION	0x0001000a
 #define LIBCFS_IOCTL_VERSION2	0x0001000b
 
-struct libcfs_ioctl_hdr {
+struct libcfs_ioctl_hdr
+{
 	__u32 ioc_len;
 	__u32 ioc_version;
 };
@@ -51,7 +52,8 @@ struct libcfs_ioctl_hdr {
 /** max size to copy from userspace */
 #define LIBCFS_IOC_DATA_MAX	(128 * 1024)
 
-struct libcfs_ioctl_data {
+struct libcfs_ioctl_data
+{
 	struct libcfs_ioctl_hdr ioc_hdr;
 
 	__u64 ioc_nid;
@@ -75,7 +77,8 @@ struct libcfs_ioctl_data {
 	char ioc_bulk[0];
 };
 
-struct libcfs_debug_ioctl_data {
+struct libcfs_debug_ioctl_data
+{
 	struct libcfs_ioctl_hdr hdr;
 	unsigned int subs;
 	unsigned int debug;

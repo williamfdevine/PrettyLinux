@@ -38,7 +38,8 @@ static int sti_drm_fps_get(void *data, u64 *val)
 	unsigned int i = 0;
 
 	*val = 0;
-	list_for_each_entry(p, &drm_dev->mode_config.plane_list, head) {
+	list_for_each_entry(p, &drm_dev->mode_config.plane_list, head)
+	{
 		struct sti_plane *plane = to_sti_plane(p);
 
 		*val |= plane->fps_info.output << i;
@@ -54,7 +55,8 @@ static int sti_drm_fps_set(void *data, u64 val)
 	struct drm_plane *p;
 	unsigned int i = 0;
 
-	list_for_each_entry(p, &drm_dev->mode_config.plane_list, head) {
+	list_for_each_entry(p, &drm_dev->mode_config.plane_list, head)
+	{
 		struct sti_plane *plane = to_sti_plane(p);
 
 		plane->fps_info.output = (val >> i) & 1;
@@ -65,7 +67,7 @@ static int sti_drm_fps_set(void *data, u64 val)
 }
 
 DEFINE_SIMPLE_ATTRIBUTE(sti_drm_fps_fops,
-			sti_drm_fps_get, sti_drm_fps_set, "%llu\n");
+						sti_drm_fps_get, sti_drm_fps_set, "%llu\n");
 
 static int sti_drm_fps_dbg_show(struct seq_file *s, void *data)
 {
@@ -73,36 +75,43 @@ static int sti_drm_fps_dbg_show(struct seq_file *s, void *data)
 	struct drm_device *dev = node->minor->dev;
 	struct drm_plane *p;
 
-	list_for_each_entry(p, &dev->mode_config.plane_list, head) {
+	list_for_each_entry(p, &dev->mode_config.plane_list, head)
+	{
 		struct sti_plane *plane = to_sti_plane(p);
 
 		seq_printf(s, "%s%s\n",
-			   plane->fps_info.fps_str,
-			   plane->fps_info.fips_str);
+				   plane->fps_info.fps_str,
+				   plane->fps_info.fips_str);
 	}
 
 	return 0;
 }
 
-static struct drm_info_list sti_drm_dbg_list[] = {
+static struct drm_info_list sti_drm_dbg_list[] =
+{
 	{"fps_get", sti_drm_fps_dbg_show, 0},
 };
 
 static int sti_drm_debugfs_create(struct dentry *root,
-				  struct drm_minor *minor,
-				  const char *name,
-				  const struct file_operations *fops)
+								  struct drm_minor *minor,
+								  const char *name,
+								  const struct file_operations *fops)
 {
 	struct drm_device *dev = minor->dev;
 	struct drm_info_node *node;
 	struct dentry *ent;
 
 	ent = debugfs_create_file(name, S_IRUGO | S_IWUSR, root, dev, fops);
+
 	if (IS_ERR(ent))
+	{
 		return PTR_ERR(ent);
+	}
 
 	node = kmalloc(sizeof(*node), GFP_KERNEL);
-	if (!node) {
+
+	if (!node)
+	{
 		debugfs_remove(ent);
 		return -ENOMEM;
 	}
@@ -123,15 +132,21 @@ static int sti_drm_dbg_init(struct drm_minor *minor)
 	int ret;
 
 	ret = drm_debugfs_create_files(sti_drm_dbg_list,
-				       ARRAY_SIZE(sti_drm_dbg_list),
-				       minor->debugfs_root, minor);
+								   ARRAY_SIZE(sti_drm_dbg_list),
+								   minor->debugfs_root, minor);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = sti_drm_debugfs_create(minor->debugfs_root, minor, "fps_show",
-				     &sti_drm_fps_fops);
+								 &sti_drm_fps_fops);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	DRM_INFO("%s: debugfs installed\n", DRIVER_NAME);
 	return 0;
@@ -143,21 +158,21 @@ err:
 static void sti_drm_dbg_cleanup(struct drm_minor *minor)
 {
 	drm_debugfs_remove_files(sti_drm_dbg_list,
-				 ARRAY_SIZE(sti_drm_dbg_list), minor);
+							 ARRAY_SIZE(sti_drm_dbg_list), minor);
 
 	drm_debugfs_remove_files((struct drm_info_list *)&sti_drm_fps_fops,
-				 1, minor);
+							 1, minor);
 }
 
 static void sti_atomic_schedule(struct sti_private *private,
-				struct drm_atomic_state *state)
+								struct drm_atomic_state *state)
 {
 	private->commit.state = state;
 	schedule_work(&private->commit.work);
 }
 
 static void sti_atomic_complete(struct sti_private *private,
-				struct drm_atomic_state *state)
+								struct drm_atomic_state *state)
 {
 	struct drm_device *drm = private->drm_dev;
 
@@ -190,40 +205,52 @@ static void sti_atomic_complete(struct sti_private *private,
 static void sti_atomic_work(struct work_struct *work)
 {
 	struct sti_private *private = container_of(work,
-			struct sti_private, commit.work);
+								  struct sti_private, commit.work);
 
 	sti_atomic_complete(private, private->commit.state);
 }
 
 static int sti_atomic_check(struct drm_device *dev,
-			    struct drm_atomic_state *state)
+							struct drm_atomic_state *state)
 {
 	int ret;
 
 	ret = drm_atomic_helper_check_modeset(dev, state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = drm_atomic_normalize_zpos(dev, state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = drm_atomic_helper_check_planes(dev, state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return ret;
 }
 
 static int sti_atomic_commit(struct drm_device *drm,
-			     struct drm_atomic_state *state, bool nonblock)
+							 struct drm_atomic_state *state, bool nonblock)
 {
 	struct sti_private *private = drm->dev_private;
 	int err;
 
 	err = drm_atomic_helper_prepare_planes(drm, state);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* serialize outstanding nonblocking commits */
 	mutex_lock(&private->commit.lock);
@@ -238,9 +265,13 @@ static int sti_atomic_commit(struct drm_device *drm,
 	drm_atomic_helper_swap_state(state, true);
 
 	if (nonblock)
+	{
 		sti_atomic_schedule(private, state);
+	}
 	else
+	{
 		sti_atomic_complete(private, state);
+	}
 
 	mutex_unlock(&private->commit.lock);
 	return 0;
@@ -251,21 +282,28 @@ static void sti_output_poll_changed(struct drm_device *ddev)
 	struct sti_private *private = ddev->dev_private;
 
 	if (!ddev->mode_config.num_connector)
+	{
 		return;
+	}
 
-	if (private->fbdev) {
+	if (private->fbdev)
+	{
 		drm_fbdev_cma_hotplug_event(private->fbdev);
 		return;
 	}
 
 	private->fbdev = drm_fbdev_cma_init(ddev, 32,
-					    ddev->mode_config.num_crtc,
-					    ddev->mode_config.num_connector);
+										ddev->mode_config.num_crtc,
+										ddev->mode_config.num_connector);
+
 	if (IS_ERR(private->fbdev))
+	{
 		private->fbdev = NULL;
+	}
 }
 
-static const struct drm_mode_config_funcs sti_mode_config_funcs = {
+static const struct drm_mode_config_funcs sti_mode_config_funcs =
+{
 	.fb_create = drm_fb_cma_create,
 	.output_poll_changed = sti_output_poll_changed,
 	.atomic_check = sti_atomic_check,
@@ -288,7 +326,8 @@ static void sti_mode_config_init(struct drm_device *dev)
 	dev->mode_config.funcs = &sti_mode_config_funcs;
 }
 
-static const struct file_operations sti_driver_fops = {
+static const struct file_operations sti_driver_fops =
+{
 	.owner = THIS_MODULE,
 	.open = drm_open,
 	.mmap = drm_gem_cma_mmap,
@@ -301,9 +340,10 @@ static const struct file_operations sti_driver_fops = {
 	.release = drm_release,
 };
 
-static struct drm_driver sti_driver = {
+static struct drm_driver sti_driver =
+{
 	.driver_features = DRIVER_MODESET |
-	    DRIVER_GEM | DRIVER_PRIME | DRIVER_ATOMIC,
+	DRIVER_GEM | DRIVER_PRIME | DRIVER_ATOMIC,
 	.gem_free_object_unlocked = drm_gem_cma_free_object,
 	.gem_vm_ops = &drm_gem_cma_vm_ops,
 	.dumb_create = drm_gem_cma_dumb_create,
@@ -345,8 +385,11 @@ static int sti_init(struct drm_device *ddev)
 	struct sti_private *private;
 
 	private = kzalloc(sizeof(*private), GFP_KERNEL);
+
 	if (!private)
+	{
 		return -ENOMEM;
+	}
 
 	ddev->dev_private = (void *)private;
 	dev_set_drvdata(ddev->dev, ddev);
@@ -368,7 +411,8 @@ static void sti_cleanup(struct drm_device *ddev)
 {
 	struct sti_private *private = ddev->dev_private;
 
-	if (private->fbdev) {
+	if (private->fbdev)
+	{
 		drm_fbdev_cma_fini(private->fbdev);
 		private->fbdev = NULL;
 	}
@@ -385,22 +429,34 @@ static int sti_bind(struct device *dev)
 	int ret;
 
 	ddev = drm_dev_alloc(&sti_driver, dev);
+
 	if (IS_ERR(ddev))
+	{
 		return PTR_ERR(ddev);
+	}
 
 	ddev->platformdev = to_platform_device(dev);
 
 	ret = sti_init(ddev);
+
 	if (ret)
+	{
 		goto err_drm_dev_unref;
+	}
 
 	ret = component_bind_all(ddev->dev, ddev);
+
 	if (ret)
+	{
 		goto err_cleanup;
+	}
 
 	ret = drm_dev_register(ddev, 0);
+
 	if (ret)
+	{
 		goto err_register;
+	}
 
 	drm_mode_config_reset(ddev);
 
@@ -424,7 +480,8 @@ static void sti_unbind(struct device *dev)
 	drm_dev_unref(ddev);
 }
 
-static const struct component_master_ops sti_ops = {
+static const struct component_master_ops sti_ops =
+{
 	.bind = sti_bind,
 	.unbind = sti_unbind,
 };
@@ -442,7 +499,8 @@ static int sti_platform_probe(struct platform_device *pdev)
 
 	child_np = of_get_next_available_child(node, NULL);
 
-	while (child_np) {
+	while (child_np)
+	{
 		component_match_add(dev, &match, compare_of, child_np);
 		of_node_put(child_np);
 		child_np = of_get_next_available_child(node, child_np);
@@ -459,13 +517,15 @@ static int sti_platform_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id sti_dt_ids[] = {
+static const struct of_device_id sti_dt_ids[] =
+{
 	{ .compatible = "st,sti-display-subsystem", },
 	{ /* end node */ },
 };
 MODULE_DEVICE_TABLE(of, sti_dt_ids);
 
-static struct platform_driver sti_platform_driver = {
+static struct platform_driver sti_platform_driver =
+{
 	.probe = sti_platform_probe,
 	.remove = sti_platform_remove,
 	.driver = {
@@ -474,7 +534,8 @@ static struct platform_driver sti_platform_driver = {
 	},
 };
 
-static struct platform_driver * const drivers[] = {
+static struct platform_driver *const drivers[] =
+{
 	&sti_tvout_driver,
 	&sti_vtac_driver,
 	&sti_hqvdp_driver,

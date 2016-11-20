@@ -24,12 +24,14 @@ struct vsp1_rwpf;
 
 #define BRU_PAD_SINK(n)				(n)
 
-struct vsp1_bru {
+struct vsp1_bru
+{
 	struct vsp1_entity entity;
 
 	struct v4l2_ctrl_handler ctrls;
 
-	struct {
+	struct
+	{
 		struct vsp1_rwpf *rpf;
 	} inputs[VSP1_MAX_RPF];
 

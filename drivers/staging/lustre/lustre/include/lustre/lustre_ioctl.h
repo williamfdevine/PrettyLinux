@@ -33,20 +33,21 @@
 #include "lustre_idl.h"
 
 #ifdef __KERNEL__
-# include <linux/ioctl.h>
-# include <linux/string.h>
-# include "../obd_support.h"
+	#include <linux/ioctl.h>
+	#include <linux/string.h>
+	#include "../obd_support.h"
 #else /* __KERNEL__ */
-# include <malloc.h>
-# include <string.h>
-#include <libcfs/util/ioctl.h>
+	#include <malloc.h>
+	#include <string.h>
+	#include <libcfs/util/ioctl.h>
 #endif /* !__KERNEL__ */
 
 #if !defined(__KERNEL__) && !defined(LUSTRE_UTILS)
-# error This file is for Lustre internal use only.
+	# error This file is for Lustre internal use only.
 #endif
 
-enum md_echo_cmd {
+enum md_echo_cmd
+{
 	ECHO_MD_CREATE		= 1, /* Open/Create file on MDT */
 	ECHO_MD_MKDIR		= 2, /* Mkdir on MDT */
 	ECHO_MD_DESTROY		= 3, /* Unlink file on MDT */
@@ -67,19 +68,23 @@ enum md_echo_cmd {
 #define OBD_DEV_BY_DEVNAME	0xffffd0de
 #define OBD_MAX_IOCTL_BUFFER	CONFIG_LUSTRE_OBD_MAX_IOCTL_BUFFER
 
-struct obd_ioctl_data {
+struct obd_ioctl_data
+{
 	__u32		ioc_len;
 	__u32		ioc_version;
 
-	union {
+	union
+	{
 		__u64	ioc_cookie;
 		__u64	ioc_u64_1;
 	};
-	union {
+	union
+	{
 		__u32	ioc_conn1;
 		__u32	ioc_u32_1;
 	};
-	union {
+	union
+	{
 		__u32	ioc_conn2;
 		__u32	ioc_u32_2;
 	};
@@ -115,7 +120,8 @@ struct obd_ioctl_data {
 	char		ioc_bulk[0];
 };
 
-struct obd_ioctl_hdr {
+struct obd_ioctl_hdr
+{
 	__u32		ioc_len;
 	__u32		ioc_version;
 };
@@ -134,74 +140,88 @@ static inline __u32 obd_ioctl_packlen(struct obd_ioctl_data *data)
 
 static inline int obd_ioctl_is_invalid(struct obd_ioctl_data *data)
 {
-	if (data->ioc_len > (1 << 30)) {
+	if (data->ioc_len > (1 << 30))
+	{
 		CERROR("OBD ioctl: ioc_len larger than 1<<30\n");
 		return 1;
 	}
 
-	if (data->ioc_inllen1 > (1 << 30)) {
+	if (data->ioc_inllen1 > (1 << 30))
+	{
 		CERROR("OBD ioctl: ioc_inllen1 larger than 1<<30\n");
 		return 1;
 	}
 
-	if (data->ioc_inllen2 > (1 << 30)) {
+	if (data->ioc_inllen2 > (1 << 30))
+	{
 		CERROR("OBD ioctl: ioc_inllen2 larger than 1<<30\n");
 		return 1;
 	}
 
-	if (data->ioc_inllen3 > (1 << 30)) {
+	if (data->ioc_inllen3 > (1 << 30))
+	{
 		CERROR("OBD ioctl: ioc_inllen3 larger than 1<<30\n");
 		return 1;
 	}
 
-	if (data->ioc_inllen4 > (1 << 30)) {
+	if (data->ioc_inllen4 > (1 << 30))
+	{
 		CERROR("OBD ioctl: ioc_inllen4 larger than 1<<30\n");
 		return 1;
 	}
 
-	if (data->ioc_inlbuf1 && !data->ioc_inllen1) {
+	if (data->ioc_inlbuf1 && !data->ioc_inllen1)
+	{
 		CERROR("OBD ioctl: inlbuf1 pointer but 0 length\n");
 		return 1;
 	}
 
-	if (data->ioc_inlbuf2 && !data->ioc_inllen2) {
+	if (data->ioc_inlbuf2 && !data->ioc_inllen2)
+	{
 		CERROR("OBD ioctl: inlbuf2 pointer but 0 length\n");
 		return 1;
 	}
 
-	if (data->ioc_inlbuf3 && !data->ioc_inllen3) {
+	if (data->ioc_inlbuf3 && !data->ioc_inllen3)
+	{
 		CERROR("OBD ioctl: inlbuf3 pointer but 0 length\n");
 		return 1;
 	}
 
-	if (data->ioc_inlbuf4 && !data->ioc_inllen4) {
+	if (data->ioc_inlbuf4 && !data->ioc_inllen4)
+	{
 		CERROR("OBD ioctl: inlbuf4 pointer but 0 length\n");
 		return 1;
 	}
 
-	if (data->ioc_pbuf1 && !data->ioc_plen1) {
+	if (data->ioc_pbuf1 && !data->ioc_plen1)
+	{
 		CERROR("OBD ioctl: pbuf1 pointer but 0 length\n");
 		return 1;
 	}
 
-	if (data->ioc_pbuf2 && !data->ioc_plen2) {
+	if (data->ioc_pbuf2 && !data->ioc_plen2)
+	{
 		CERROR("OBD ioctl: pbuf2 pointer but 0 length\n");
 		return 1;
 	}
 
-	if (!data->ioc_pbuf1 && data->ioc_plen1) {
+	if (!data->ioc_pbuf1 && data->ioc_plen1)
+	{
 		CERROR("OBD ioctl: plen1 set but NULL pointer\n");
 		return 1;
 	}
 
-	if (!data->ioc_pbuf2 && data->ioc_plen2) {
+	if (!data->ioc_pbuf2 && data->ioc_plen2)
+	{
 		CERROR("OBD ioctl: plen2 set but NULL pointer\n");
 		return 1;
 	}
 
-	if (obd_ioctl_packlen(data) > data->ioc_len) {
+	if (obd_ioctl_packlen(data) > data->ioc_len)
+	{
 		CERROR("OBD ioctl: packlen exceeds ioc_len (%d > %d)\n",
-		       obd_ioctl_packlen(data), data->ioc_len);
+			   obd_ioctl_packlen(data), data->ioc_len);
 		return 1;
 	}
 
@@ -221,7 +241,7 @@ static inline void obd_ioctl_freedata(char *buf, size_t len)
 #else /* __KERNEL__ */
 
 static inline int obd_ioctl_pack(struct obd_ioctl_data *data, char **pbuf,
-				 int max_len)
+								 int max_len)
 {
 	char *ptr;
 	struct obd_ioctl_data *overlay;
@@ -229,37 +249,52 @@ static inline int obd_ioctl_pack(struct obd_ioctl_data *data, char **pbuf,
 	data->ioc_len = obd_ioctl_packlen(data);
 	data->ioc_version = OBD_IOCTL_VERSION;
 
-	if (*pbuf && data->ioc_len > max_len) {
+	if (*pbuf && data->ioc_len > max_len)
+	{
 		fprintf(stderr, "pbuf = %p, ioc_len = %u, max_len = %d\n",
-			*pbuf, data->ioc_len, max_len);
+				*pbuf, data->ioc_len, max_len);
 		return -EINVAL;
 	}
 
 	if (!*pbuf)
+	{
 		*pbuf = malloc(data->ioc_len);
+	}
 
 	if (!*pbuf)
+	{
 		return -ENOMEM;
+	}
 
 	overlay = (struct obd_ioctl_data *)*pbuf;
 	memcpy(*pbuf, data, sizeof(*data));
 
 	ptr = overlay->ioc_bulk;
+
 	if (data->ioc_inlbuf1)
+	{
 		LOGL(data->ioc_inlbuf1, data->ioc_inllen1, ptr);
+	}
 
 	if (data->ioc_inlbuf2)
+	{
 		LOGL(data->ioc_inlbuf2, data->ioc_inllen2, ptr);
+	}
 
 	if (data->ioc_inlbuf3)
+	{
 		LOGL(data->ioc_inlbuf3, data->ioc_inllen3, ptr);
+	}
 
 	if (data->ioc_inlbuf4)
+	{
 		LOGL(data->ioc_inlbuf4, data->ioc_inllen4, ptr);
+	}
 
-	if (obd_ioctl_is_invalid(overlay)) {
+	if (obd_ioctl_is_invalid(overlay))
+	{
 		fprintf(stderr, "invalid ioctl data: ioc_len = %u, max_len = %d\n",
-			data->ioc_len, max_len);
+				data->ioc_len, max_len);
 		return -EINVAL;
 	}
 
@@ -273,7 +308,9 @@ obd_ioctl_unpack(struct obd_ioctl_data *data, char *pbuf, int max_len)
 	struct obd_ioctl_data *overlay;
 
 	if (!pbuf)
+	{
 		return 1;
+	}
 
 	overlay = (struct obd_ioctl_data *)pbuf;
 
@@ -286,17 +323,26 @@ obd_ioctl_unpack(struct obd_ioctl_data *data, char *pbuf, int max_len)
 	memcpy(data, pbuf, sizeof(*data));
 
 	ptr = overlay->ioc_bulk;
+
 	if (data->ioc_inlbuf1)
+	{
 		LOGU(data->ioc_inlbuf1, data->ioc_inllen1, ptr);
+	}
 
 	if (data->ioc_inlbuf2)
+	{
 		LOGU(data->ioc_inlbuf2, data->ioc_inllen2, ptr);
+	}
 
 	if (data->ioc_inlbuf3)
+	{
 		LOGU(data->ioc_inlbuf3, data->ioc_inllen3, ptr);
+	}
 
 	if (data->ioc_inlbuf4)
+	{
 		LOGU(data->ioc_inlbuf4, data->ioc_inllen4, ptr);
+	}
 
 	return 0;
 }

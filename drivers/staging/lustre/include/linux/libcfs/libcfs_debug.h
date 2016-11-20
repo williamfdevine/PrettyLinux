@@ -62,7 +62,8 @@ extern unsigned int libcfs_panic_on_lbug;
 /**
  * Format for debug message headers
  */
-struct ptldebug_header {
+struct ptldebug_header
+{
 	__u32 ph_len;
 	__u32 ph_flags;
 	__u32 ph_subsys;
@@ -115,10 +116,10 @@ struct ptldebug_header {
 #define S_FLD		0x80000000 /* b_new_cmd */
 
 #define LIBCFS_DEBUG_SUBSYS_NAMES {					\
-	"undefined", "mdc", "mds", "osc", "ost", "class", "log",	\
-	"llite", "rpc", "mgmt", "lnet", "lnd", "pinger", "filter", "",	\
-	"echo", "ldlm", "lov", "lquota", "osd", "lfsck", "", "", "lmv",	\
-	"", "sec", "gss", "", "mgc", "mgs", "fid", "fld", NULL }
+		"undefined", "mdc", "mds", "osc", "ost", "class", "log",	\
+		"llite", "rpc", "mgmt", "lnet", "lnd", "pinger", "filter", "",	\
+		"echo", "ldlm", "lov", "lquota", "osd", "lfsck", "", "", "lmv",	\
+		"", "sec", "gss", "", "mgc", "mgs", "fid", "fld", NULL }
 
 /* Debugging masks (32 bits, non-overlapping) */
 #define D_TRACE		0x00000001 /* ENTRY/EXIT markers */
@@ -153,28 +154,30 @@ struct ptldebug_header {
 #define D_HSM		0x20000000
 
 #define LIBCFS_DEBUG_MASKS_NAMES {					\
-	"trace", "inode", "super", "ext2", "malloc", "cache", "info",	\
-	"ioctl", "neterror", "net", "warning", "buffs", "other",	\
-	"dentry", "nettrace", "page", "dlmtrace", "error", "emerg",	\
-	"ha", "rpctrace", "vfstrace", "reada", "mmap", "config",	\
-	"console", "quota", "sec", "lfsck", "hsm", NULL }
+		"trace", "inode", "super", "ext2", "malloc", "cache", "info",	\
+		"ioctl", "neterror", "net", "warning", "buffs", "other",	\
+		"dentry", "nettrace", "page", "dlmtrace", "error", "emerg",	\
+		"ha", "rpctrace", "vfstrace", "reada", "mmap", "config",	\
+		"console", "quota", "sec", "lfsck", "hsm", NULL }
 
 #define D_CANTMASK   (D_ERROR | D_EMERG | D_WARNING | D_CONSOLE)
 
 #ifndef DEBUG_SUBSYSTEM
-# define DEBUG_SUBSYSTEM S_UNDEFINED
+	#define DEBUG_SUBSYSTEM S_UNDEFINED
 #endif
 
 #define CDEBUG_DEFAULT_MAX_DELAY (cfs_time_seconds(600))	 /* jiffies */
 #define CDEBUG_DEFAULT_MIN_DELAY ((cfs_time_seconds(1) + 1) / 2) /* jiffies */
 #define CDEBUG_DEFAULT_BACKOFF   2
-struct cfs_debug_limit_state {
+struct cfs_debug_limit_state
+{
 	unsigned long   cdls_next;
 	unsigned int cdls_delay;
 	int	     cdls_count;
 };
 
-struct libcfs_debug_msg_data {
+struct libcfs_debug_msg_data
+{
 	const char *msg_file;
 	const char *msg_fn;
 	int	    msg_subsys;
@@ -184,22 +187,22 @@ struct libcfs_debug_msg_data {
 };
 
 #define LIBCFS_DEBUG_MSG_DATA_INIT(data, mask, cdls)		\
-do {								\
-	(data)->msg_subsys = DEBUG_SUBSYSTEM;			\
-	(data)->msg_file   = __FILE__;				\
-	(data)->msg_fn     = __func__;				\
-	(data)->msg_line   = __LINE__;				\
-	(data)->msg_cdls   = (cdls);				\
-	(data)->msg_mask   = (mask);				\
-} while (0)
+	do {								\
+		(data)->msg_subsys = DEBUG_SUBSYSTEM;			\
+		(data)->msg_file   = __FILE__;				\
+		(data)->msg_fn     = __func__;				\
+		(data)->msg_line   = __LINE__;				\
+		(data)->msg_cdls   = (cdls);				\
+		(data)->msg_mask   = (mask);				\
+	} while (0)
 
 #define LIBCFS_DEBUG_MSG_DATA_DECL(dataname, mask, cdls)	\
 	static struct libcfs_debug_msg_data dataname = {	\
-	       .msg_subsys = DEBUG_SUBSYSTEM,			\
-	       .msg_file   = __FILE__,				\
-	       .msg_fn     = __func__,				\
-	       .msg_line   = __LINE__,				\
-	       .msg_cdls   = (cdls)	 };			\
+		.msg_subsys = DEBUG_SUBSYSTEM,			\
+					  .msg_file   = __FILE__,				\
+									.msg_fn     = __func__,				\
+											.msg_line   = __LINE__,				\
+													.msg_cdls   = (cdls)	 };			\
 	dataname.msg_mask   = (mask)
 
 /**
@@ -208,29 +211,29 @@ do {								\
 static inline int cfs_cdebug_show(unsigned int mask, unsigned int subsystem)
 {
 	return mask & D_CANTMASK ||
-		((libcfs_debug & mask) && (libcfs_subsystem_debug & subsystem));
+		   ((libcfs_debug & mask) && (libcfs_subsystem_debug & subsystem));
 }
 
 #define __CDEBUG(cdls, mask, format, ...)				\
-do {									\
-	static struct libcfs_debug_msg_data msgdata;			\
-									\
-	CFS_CHECK_STACK(&msgdata, mask, cdls);				\
-									\
-	if (cfs_cdebug_show(mask, DEBUG_SUBSYSTEM)) {			\
-		LIBCFS_DEBUG_MSG_DATA_INIT(&msgdata, mask, cdls);	\
-		libcfs_debug_msg(&msgdata, format, ## __VA_ARGS__);	\
-	}								\
-} while (0)
+	do {									\
+		static struct libcfs_debug_msg_data msgdata;			\
+		\
+		CFS_CHECK_STACK(&msgdata, mask, cdls);				\
+		\
+		if (cfs_cdebug_show(mask, DEBUG_SUBSYSTEM)) {			\
+			LIBCFS_DEBUG_MSG_DATA_INIT(&msgdata, mask, cdls);	\
+			libcfs_debug_msg(&msgdata, format, ## __VA_ARGS__);	\
+		}								\
+	} while (0)
 
 #define CDEBUG(mask, format, ...) __CDEBUG(NULL, mask, format, ## __VA_ARGS__)
 
 #define CDEBUG_LIMIT(mask, format, ...)					\
-do {									\
-	static struct cfs_debug_limit_state cdls;			\
-									\
-	__CDEBUG(&cdls, mask, format, ## __VA_ARGS__);			\
-} while (0)
+	do {									\
+		static struct cfs_debug_limit_state cdls;			\
+		\
+		__CDEBUG(&cdls, mask, format, ## __VA_ARGS__);			\
+	} while (0)
 
 #define CWARN(format, ...)	CDEBUG_LIMIT(D_WARNING, format, ## __VA_ARGS__)
 #define CERROR(format, ...)	CDEBUG_LIMIT(D_ERROR, format, ## __VA_ARGS__)
@@ -241,25 +244,25 @@ do {									\
 #define LCONSOLE_INFO(format, ...)  CDEBUG_LIMIT(D_CONSOLE, format, ## __VA_ARGS__)
 #define LCONSOLE_WARN(format, ...)  CDEBUG_LIMIT(D_CONSOLE | D_WARNING, format, ## __VA_ARGS__)
 #define LCONSOLE_ERROR_MSG(errnum, format, ...) CDEBUG_LIMIT(D_CONSOLE | D_ERROR, \
-			   "%x-%x: " format, errnum, LERRCHKSUM(errnum), ## __VA_ARGS__)
+		"%x-%x: " format, errnum, LERRCHKSUM(errnum), ## __VA_ARGS__)
 #define LCONSOLE_ERROR(format, ...) LCONSOLE_ERROR_MSG(0x00, format, ## __VA_ARGS__)
 
 #define LCONSOLE_EMERG(format, ...) CDEBUG(D_CONSOLE | D_EMERG, format, ## __VA_ARGS__)
 
 int libcfs_debug_msg(struct libcfs_debug_msg_data *msgdata,
-		     const char *format1, ...)
-	__printf(2, 3);
+					 const char *format1, ...)
+__printf(2, 3);
 
 int libcfs_debug_vmsg2(struct libcfs_debug_msg_data *msgdata,
-		       const char *format1,
-		       va_list args, const char *format2, ...)
-	__printf(4, 5);
+					   const char *format1,
+					   va_list args, const char *format2, ...)
+__printf(4, 5);
 
 /* other external symbols that tracefile provides: */
 int cfs_trace_copyin_string(char *knl_buffer, int knl_buffer_nob,
-			    const char __user *usr_buffer, int usr_buffer_nob);
+							const char __user *usr_buffer, int usr_buffer_nob);
 int cfs_trace_copyout_string(char __user *usr_buffer, int usr_buffer_nob,
-			     const char *knl_buffer, char *append);
+							 const char *knl_buffer, char *append);
 
 #define LIBCFS_DEBUG_FILE_PATH_DEFAULT "/tmp/lustre-log"
 

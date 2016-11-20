@@ -22,7 +22,7 @@
 /* Get the contents of the entropy pool.  (Superuser only.) */
 #define RNDGETPOOL	_IOR( 'R', 0x02, int [2] )
 
-/* 
+/*
  * Write bytes into the entropy pool and add to the entropy count.
  * (Superuser only.)
  */
@@ -34,7 +34,8 @@
 /* Clear the entropy pool and associated counters.  (Superuser only.) */
 #define RNDCLEARPOOL	_IO( 'R', 0x06 )
 
-struct rand_pool_info {
+struct rand_pool_info
+{
 	int	entropy_count;
 	int	buf_size;
 	__u32	buf[0];

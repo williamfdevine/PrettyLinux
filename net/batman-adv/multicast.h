@@ -31,7 +31,8 @@ struct sk_buff;
  *  BATMAN unicast routing protocol)
  * @BATADV_FORW_NONE: don't forward, drop it
  */
-enum batadv_forw_mode {
+enum batadv_forw_mode
+{
 	BATADV_FORW_ALL,
 	BATADV_FORW_SINGLE,
 	BATADV_FORW_NONE,
@@ -43,7 +44,7 @@ void batadv_mcast_mla_update(struct batadv_priv *bat_priv);
 
 enum batadv_forw_mode
 batadv_mcast_forw_mode(struct batadv_priv *bat_priv, struct sk_buff *skb,
-		       struct batadv_orig_node **mcast_single_orig);
+					   struct batadv_orig_node **mcast_single_orig);
 
 void batadv_mcast_init(struct batadv_priv *bat_priv);
 
@@ -61,7 +62,7 @@ static inline void batadv_mcast_mla_update(struct batadv_priv *bat_priv)
 
 static inline enum batadv_forw_mode
 batadv_mcast_forw_mode(struct batadv_priv *bat_priv, struct sk_buff *skb,
-		       struct batadv_orig_node **mcast_single_orig)
+					   struct batadv_orig_node **mcast_single_orig)
 {
 	return BATADV_FORW_ALL;
 }

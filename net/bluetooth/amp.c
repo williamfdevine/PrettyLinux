@@ -24,7 +24,7 @@
 void amp_ctrl_get(struct amp_ctrl *ctrl)
 {
 	BT_DBG("ctrl %p orig refcnt %d", ctrl,
-	       atomic_read(&ctrl->kref.refcount));
+		   atomic_read(&ctrl->kref.refcount));
 
 	kref_get(&ctrl->kref);
 }
@@ -42,7 +42,7 @@ static void amp_ctrl_destroy(struct kref *kref)
 int amp_ctrl_put(struct amp_ctrl *ctrl)
 {
 	BT_DBG("ctrl %p orig refcnt %d", ctrl,
-	       atomic_read(&ctrl->kref.refcount));
+		   atomic_read(&ctrl->kref.refcount));
 
 	return kref_put(&ctrl->kref, &amp_ctrl_destroy);
 }
@@ -52,8 +52,11 @@ struct amp_ctrl *amp_ctrl_add(struct amp_mgr *mgr, u8 id)
 	struct amp_ctrl *ctrl;
 
 	ctrl = kzalloc(sizeof(*ctrl), GFP_KERNEL);
+
 	if (!ctrl)
+	{
 		return NULL;
+	}
 
 	kref_init(&ctrl->kref);
 	ctrl->id = id;
@@ -74,7 +77,8 @@ void amp_ctrl_list_flush(struct amp_mgr *mgr)
 	BT_DBG("mgr %p", mgr);
 
 	mutex_lock(&mgr->amp_ctrls_lock);
-	list_for_each_entry_safe(ctrl, n, &mgr->amp_ctrls, list) {
+	list_for_each_entry_safe(ctrl, n, &mgr->amp_ctrls, list)
+	{
 		list_del(&ctrl->list);
 		amp_ctrl_put(ctrl);
 	}
@@ -88,8 +92,10 @@ struct amp_ctrl *amp_ctrl_lookup(struct amp_mgr *mgr, u8 id)
 	BT_DBG("mgr %p id %d", mgr, id);
 
 	mutex_lock(&mgr->amp_ctrls_lock);
-	list_for_each_entry(ctrl, &mgr->amp_ctrls, list) {
-		if (ctrl->id == id) {
+	list_for_each_entry(ctrl, &mgr->amp_ctrls, list)
+	{
+		if (ctrl->id == id)
+		{
 			amp_ctrl_get(ctrl);
 			mutex_unlock(&mgr->amp_ctrls_lock);
 			return ctrl;
@@ -104,21 +110,26 @@ struct amp_ctrl *amp_ctrl_lookup(struct amp_mgr *mgr, u8 id)
 static u8 __next_handle(struct amp_mgr *mgr)
 {
 	if (++mgr->handle == 0)
+	{
 		mgr->handle = 1;
+	}
 
 	return mgr->handle;
 }
 
 struct hci_conn *phylink_add(struct hci_dev *hdev, struct amp_mgr *mgr,
-			     u8 remote_id, bool out)
+							 u8 remote_id, bool out)
 {
 	bdaddr_t *dst = &mgr->l2cap_conn->hcon->dst;
 	struct hci_conn *hcon;
 	u8 role = out ? HCI_ROLE_MASTER : HCI_ROLE_SLAVE;
 
 	hcon = hci_conn_add(hdev, AMP_LINK, dst, role);
+
 	if (!hcon)
+	{
 		return NULL;
+	}
 
 	BT_DBG("hcon %p dst %pMR", hcon, dst);
 
@@ -139,23 +150,31 @@ static int hmac_sha256(u8 *key, u8 ksize, char *plaintext, u8 psize, u8 *output)
 	int ret;
 
 	if (!ksize)
+	{
 		return -EINVAL;
+	}
 
 	tfm = crypto_alloc_shash("hmac(sha256)", 0, 0);
-	if (IS_ERR(tfm)) {
+
+	if (IS_ERR(tfm))
+	{
 		BT_DBG("crypto_alloc_ahash failed: err %ld", PTR_ERR(tfm));
 		return PTR_ERR(tfm);
 	}
 
 	ret = crypto_shash_setkey(tfm, key, ksize);
-	if (ret) {
+
+	if (ret)
+	{
 		BT_DBG("crypto_ahash_setkey failed: err %d", ret);
 		goto failed;
 	}
 
 	shash = kzalloc(sizeof(*shash) + crypto_shash_descsize(tfm),
-			GFP_KERNEL);
-	if (!shash) {
+					GFP_KERNEL);
+
+	if (!shash)
+	{
 		ret = -ENOMEM;
 		goto failed;
 	}
@@ -181,12 +200,15 @@ int phylink_gen_key(struct hci_conn *conn, u8 *data, u8 *len, u8 *type)
 	int err;
 
 	if (!hci_conn_check_link_mode(conn))
+	{
 		return -EACCES;
+	}
 
 	BT_DBG("conn %p key_type %d", conn, conn->key_type);
 
 	/* Legacy key */
-	if (conn->key_type < 3) {
+	if (conn->key_type < 3)
+	{
 		BT_ERR("Legacy key type %d", conn->key_type);
 		return -EACCES;
 	}
@@ -195,7 +217,9 @@ int phylink_gen_key(struct hci_conn *conn, u8 *data, u8 *len, u8 *type)
 	*len = HCI_AMP_LINK_KEY_SIZE;
 
 	key = hci_find_link_key(hdev, &conn->dst);
-	if (!key) {
+
+	if (!key)
+	{
 		BT_DBG("No Link key for conn %p dst %pMR", conn, &conn->dst);
 		return -EACCES;
 	}
@@ -206,12 +230,15 @@ int phylink_gen_key(struct hci_conn *conn, u8 *data, u8 *len, u8 *type)
 
 	/* Derive Generic AMP Link Key (gamp) */
 	err = hmac_sha256(keybuf, HCI_AMP_LINK_KEY_SIZE, "gamp", 4, gamp_key);
-	if (err) {
+
+	if (err)
+	{
 		BT_ERR("Could not derive Generic AMP Key: err %d", err);
 		return err;
 	}
 
-	if (conn->key_type == HCI_LK_DEBUG_COMBINATION) {
+	if (conn->key_type == HCI_LK_DEBUG_COMBINATION)
+	{
 		BT_DBG("Use Generic AMP Key (gamp)");
 		memcpy(data, gamp_key, HCI_AMP_LINK_KEY_SIZE);
 		return err;
@@ -222,7 +249,7 @@ int phylink_gen_key(struct hci_conn *conn, u8 *data, u8 *len, u8 *type)
 }
 
 static void read_local_amp_assoc_complete(struct hci_dev *hdev, u8 status,
-					  u16 opcode, struct sk_buff *skb)
+		u16 opcode, struct sk_buff *skb)
 {
 	struct hci_rp_read_local_amp_assoc *rp = (void *)skb->data;
 	struct amp_assoc *assoc = &hdev->loc_assoc;
@@ -231,12 +258,15 @@ static void read_local_amp_assoc_complete(struct hci_dev *hdev, u8 status,
 	BT_DBG("%s status 0x%2.2x", hdev->name, rp->status);
 
 	if (rp->status)
+	{
 		goto send_rsp;
+	}
 
 	frag_len = skb->len - sizeof(*rp);
 	rem_len = __le16_to_cpu(rp->rem_len);
 
-	if (rem_len > frag_len) {
+	if (rem_len > frag_len)
+	{
 		BT_DBG("frag_len %zu rem_len %zu", frag_len, rem_len);
 
 		memcpy(assoc->data + assoc->offset, rp->frag, frag_len);
@@ -274,8 +304,11 @@ void amp_read_loc_assoc_frag(struct hci_dev *hdev, u8 phy_handle)
 	hci_req_init(&req, hdev);
 	hci_req_add(&req, HCI_OP_READ_LOCAL_AMP_ASSOC, sizeof(cp), &cp);
 	err = hci_req_run_skb(&req, read_local_amp_assoc_complete);
+
 	if (err < 0)
+	{
 		a2mp_send_getampassoc_rsp(hdev, A2MP_STATUS_INVALID_CTRL_ID);
+	}
 }
 
 void amp_read_loc_assoc(struct hci_dev *hdev, struct amp_mgr *mgr)
@@ -293,12 +326,15 @@ void amp_read_loc_assoc(struct hci_dev *hdev, struct amp_mgr *mgr)
 	hci_req_init(&req, hdev);
 	hci_req_add(&req, HCI_OP_READ_LOCAL_AMP_ASSOC, sizeof(cp), &cp);
 	hci_req_run_skb(&req, read_local_amp_assoc_complete);
+
 	if (err < 0)
+	{
 		a2mp_send_getampassoc_rsp(hdev, A2MP_STATUS_INVALID_CTRL_ID);
+	}
 }
 
 void amp_read_loc_assoc_final_data(struct hci_dev *hdev,
-				   struct hci_conn *hcon)
+								   struct hci_conn *hcon)
 {
 	struct hci_cp_read_local_amp_assoc cp;
 	struct amp_mgr *mgr = hcon->amp_mgr;
@@ -315,27 +351,32 @@ void amp_read_loc_assoc_final_data(struct hci_dev *hdev,
 	hci_req_init(&req, hdev);
 	hci_req_add(&req, HCI_OP_READ_LOCAL_AMP_ASSOC, sizeof(cp), &cp);
 	hci_req_run_skb(&req, read_local_amp_assoc_complete);
+
 	if (err < 0)
+	{
 		a2mp_send_getampassoc_rsp(hdev, A2MP_STATUS_INVALID_CTRL_ID);
+	}
 }
 
 static void write_remote_amp_assoc_complete(struct hci_dev *hdev, u8 status,
-					    u16 opcode, struct sk_buff *skb)
+		u16 opcode, struct sk_buff *skb)
 {
 	struct hci_rp_write_remote_amp_assoc *rp = (void *)skb->data;
 
 	BT_DBG("%s status 0x%2.2x phy_handle 0x%2.2x",
-	       hdev->name, rp->status, rp->phy_handle);
+		   hdev->name, rp->status, rp->phy_handle);
 
 	if (rp->status)
+	{
 		return;
+	}
 
 	amp_write_rem_assoc_continue(hdev, rp->phy_handle);
 }
 
 /* Write AMP Assoc data fragments, returns true with last fragment written*/
 static bool amp_write_rem_assoc_frag(struct hci_dev *hdev,
-				     struct hci_conn *hcon)
+									 struct hci_conn *hcon)
 {
 	struct hci_cp_write_remote_amp_assoc *cp;
 	struct amp_mgr *mgr = hcon->amp_mgr;
@@ -344,10 +385,14 @@ static bool amp_write_rem_assoc_frag(struct hci_dev *hdev,
 	u16 frag_len, len;
 
 	ctrl = amp_ctrl_lookup(mgr, hcon->remote_id);
-	if (!ctrl)
-		return false;
 
-	if (!ctrl->assoc_rem_len) {
+	if (!ctrl)
+	{
+		return false;
+	}
+
+	if (!ctrl->assoc_rem_len)
+	{
 		BT_DBG("all fragments are written");
 		ctrl->assoc_rem_len = ctrl->assoc_len;
 		ctrl->assoc_len_so_far = 0;
@@ -360,13 +405,15 @@ static bool amp_write_rem_assoc_frag(struct hci_dev *hdev,
 	len = frag_len + sizeof(*cp);
 
 	cp = kzalloc(len, GFP_KERNEL);
-	if (!cp) {
+
+	if (!cp)
+	{
 		amp_ctrl_put(ctrl);
 		return false;
 	}
 
 	BT_DBG("hcon %p ctrl %p frag_len %u assoc_len %u rem_len %u",
-	       hcon, ctrl, frag_len, ctrl->assoc_len, ctrl->assoc_rem_len);
+		   hcon, ctrl, frag_len, ctrl->assoc_len, ctrl->assoc_rem_len);
 
 	cp->phy_handle = hcon->handle;
 	cp->len_so_far = cpu_to_le16(ctrl->assoc_len_so_far);
@@ -394,12 +441,17 @@ void amp_write_rem_assoc_continue(struct hci_dev *hdev, u8 handle)
 	BT_DBG("%s phy handle 0x%2.2x", hdev->name, handle);
 
 	hcon = hci_conn_hash_lookup_handle(hdev, handle);
+
 	if (!hcon)
+	{
 		return;
+	}
 
 	/* Send A2MP create phylink rsp when all fragments are written */
 	if (amp_write_rem_assoc_frag(hdev, hcon))
+	{
 		a2mp_send_create_phy_link_rsp(hdev, 0);
+	}
 }
 
 void amp_write_remote_assoc(struct hci_dev *hdev, u8 handle)
@@ -409,8 +461,11 @@ void amp_write_remote_assoc(struct hci_dev *hdev, u8 handle)
 	BT_DBG("%s phy handle 0x%2.2x", hdev->name, handle);
 
 	hcon = hci_conn_hash_lookup_handle(hdev, handle);
+
 	if (!hcon)
+	{
 		return;
+	}
 
 	BT_DBG("%s phy handle 0x%2.2x hcon %p", hdev->name, handle, hcon);
 
@@ -418,25 +473,34 @@ void amp_write_remote_assoc(struct hci_dev *hdev, u8 handle)
 }
 
 static void create_phylink_complete(struct hci_dev *hdev, u8 status,
-				    u16 opcode)
+									u16 opcode)
 {
 	struct hci_cp_create_phy_link *cp;
 
 	BT_DBG("%s status 0x%2.2x", hdev->name, status);
 
 	cp = hci_sent_cmd_data(hdev, HCI_OP_CREATE_PHY_LINK);
+
 	if (!cp)
+	{
 		return;
+	}
 
 	hci_dev_lock(hdev);
 
-	if (status) {
+	if (status)
+	{
 		struct hci_conn *hcon;
 
 		hcon = hci_conn_hash_lookup_handle(hdev, cp->phy_handle);
+
 		if (hcon)
+		{
 			hci_conn_del(hcon);
-	} else {
+		}
+	}
+	else
+	{
 		amp_write_remote_assoc(hdev, cp->phy_handle);
 	}
 
@@ -444,7 +508,7 @@ static void create_phylink_complete(struct hci_dev *hdev, u8 status,
 }
 
 void amp_create_phylink(struct hci_dev *hdev, struct amp_mgr *mgr,
-			struct hci_conn *hcon)
+						struct hci_conn *hcon)
 {
 	struct hci_cp_create_phy_link cp;
 	struct hci_request req;
@@ -452,10 +516,11 @@ void amp_create_phylink(struct hci_dev *hdev, struct amp_mgr *mgr,
 	cp.phy_handle = hcon->handle;
 
 	BT_DBG("%s hcon %p phy handle 0x%2.2x", hdev->name, hcon,
-	       hcon->handle);
+		   hcon->handle);
 
 	if (phylink_gen_key(mgr->l2cap_conn->hcon, cp.key, &cp.key_len,
-			    &cp.key_type)) {
+						&cp.key_type))
+	{
 		BT_DBG("Cannot create link key");
 		return;
 	}
@@ -466,24 +531,29 @@ void amp_create_phylink(struct hci_dev *hdev, struct amp_mgr *mgr,
 }
 
 static void accept_phylink_complete(struct hci_dev *hdev, u8 status,
-				    u16 opcode)
+									u16 opcode)
 {
 	struct hci_cp_accept_phy_link *cp;
 
 	BT_DBG("%s status 0x%2.2x", hdev->name, status);
 
 	if (status)
+	{
 		return;
+	}
 
 	cp = hci_sent_cmd_data(hdev, HCI_OP_ACCEPT_PHY_LINK);
+
 	if (!cp)
+	{
 		return;
+	}
 
 	amp_write_remote_assoc(hdev, cp->phy_handle);
 }
 
 void amp_accept_phylink(struct hci_dev *hdev, struct amp_mgr *mgr,
-			struct hci_conn *hcon)
+						struct hci_conn *hcon)
 {
 	struct hci_cp_accept_phy_link cp;
 	struct hci_request req;
@@ -491,10 +561,11 @@ void amp_accept_phylink(struct hci_dev *hdev, struct amp_mgr *mgr,
 	cp.phy_handle = hcon->handle;
 
 	BT_DBG("%s hcon %p phy handle 0x%2.2x", hdev->name, hcon,
-	       hcon->handle);
+		   hcon->handle);
 
 	if (phylink_gen_key(mgr->l2cap_conn->hcon, cp.key, &cp.key_len,
-			    &cp.key_type)) {
+						&cp.key_type))
+	{
 		BT_DBG("Cannot create link key");
 		return;
 	}
@@ -513,7 +584,9 @@ void amp_physical_cfm(struct hci_conn *bredr_hcon, struct hci_conn *hs_hcon)
 	BT_DBG("bredr_hcon %p hs_hcon %p mgr %p", bredr_hcon, hs_hcon, mgr);
 
 	if (!bredr_hdev || !mgr || !mgr->bredr_chan)
+	{
 		return;
+	}
 
 	bredr_chan = mgr->bredr_chan;
 
@@ -539,14 +612,19 @@ void amp_create_logical_link(struct l2cap_chan *chan)
 	struct hci_dev *hdev;
 
 	BT_DBG("chan %p hs_hcon %p dst %pMR", chan, hs_hcon,
-	       &chan->conn->hcon->dst);
+		   &chan->conn->hcon->dst);
 
 	if (!hs_hcon)
+	{
 		return;
+	}
 
 	hdev = hci_dev_hold(chan->hs_hcon->hdev);
+
 	if (!hdev)
+	{
 		return;
+	}
 
 	cp.phy_handle = hs_hcon->handle;
 
@@ -566,10 +644,10 @@ void amp_create_logical_link(struct l2cap_chan *chan)
 
 	if (hs_hcon->out)
 		hci_send_cmd(hdev, HCI_OP_CREATE_LOGICAL_LINK, sizeof(cp),
-			     &cp);
+					 &cp);
 	else
 		hci_send_cmd(hdev, HCI_OP_ACCEPT_LOGICAL_LINK, sizeof(cp),
-			     &cp);
+					 &cp);
 
 	hci_dev_put(hdev);
 }
@@ -579,7 +657,8 @@ void amp_disconnect_logical_link(struct hci_chan *hchan)
 	struct hci_conn *hcon = hchan->conn;
 	struct hci_cp_disconn_logical_link cp;
 
-	if (hcon->state != BT_CONNECTED) {
+	if (hcon->state != BT_CONNECTED)
+	{
 		BT_DBG("hchan %p not connected", hchan);
 		return;
 	}

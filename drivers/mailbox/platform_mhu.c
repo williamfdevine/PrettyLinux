@@ -38,13 +38,15 @@
 
 #define MHU_CHANS	3
 
-struct platform_mhu_link {
+struct platform_mhu_link
+{
 	int irq;
 	void __iomem *tx_reg;
 	void __iomem *rx_reg;
 };
 
-struct platform_mhu {
+struct platform_mhu
+{
 	void __iomem *base;
 	struct platform_mhu_link mlink[MHU_CHANS];
 	struct mbox_chan chan[MHU_CHANS];
@@ -58,8 +60,11 @@ static irqreturn_t platform_mhu_rx_interrupt(int irq, void *p)
 	u32 val;
 
 	val = readl_relaxed(mlink->rx_reg + INTR_STAT_OFS);
+
 	if (!val)
+	{
 		return IRQ_NONE;
+	}
 
 	mbox_chan_received_data(chan, (void *)&val);
 
@@ -96,10 +101,12 @@ static int platform_mhu_startup(struct mbox_chan *chan)
 	writel_relaxed(val, mlink->tx_reg + INTR_CLR_OFS);
 
 	ret = request_irq(mlink->irq, platform_mhu_rx_interrupt,
-			  IRQF_SHARED, "platform_mhu_link", chan);
-	if (ret) {
+					  IRQF_SHARED, "platform_mhu_link", chan);
+
+	if (ret)
+	{
 		dev_err(chan->mbox->dev,
-			"Unable to acquire IRQ %d\n", mlink->irq);
+				"Unable to acquire IRQ %d\n", mlink->irq);
 		return ret;
 	}
 
@@ -113,7 +120,8 @@ static void platform_mhu_shutdown(struct mbox_chan *chan)
 	free_irq(mlink->irq, chan);
 }
 
-static const struct mbox_chan_ops platform_mhu_ops = {
+static const struct mbox_chan_ops platform_mhu_ops =
+{
 	.send_data = platform_mhu_send_data,
 	.startup = platform_mhu_startup,
 	.shutdown = platform_mhu_shutdown,
@@ -126,29 +134,39 @@ static int platform_mhu_probe(struct platform_device *pdev)
 	struct platform_mhu *mhu;
 	struct device *dev = &pdev->dev;
 	struct resource *res;
-	int platform_mhu_reg[MHU_CHANS] = {
+	int platform_mhu_reg[MHU_CHANS] =
+	{
 		MHU_SEC_OFFSET, MHU_LP_OFFSET, MHU_HP_OFFSET
 	};
 
 	/* Allocate memory for device */
 	mhu = devm_kzalloc(dev, sizeof(*mhu), GFP_KERNEL);
+
 	if (!mhu)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mhu->base = devm_ioremap_resource(dev, res);
-	if (IS_ERR(mhu->base)) {
+
+	if (IS_ERR(mhu->base))
+	{
 		dev_err(dev, "ioremap failed\n");
 		return PTR_ERR(mhu->base);
 	}
 
-	for (i = 0; i < MHU_CHANS; i++) {
+	for (i = 0; i < MHU_CHANS; i++)
+	{
 		mhu->chan[i].con_priv = &mhu->mlink[i];
 		mhu->mlink[i].irq = platform_get_irq(pdev, i);
-		if (mhu->mlink[i].irq < 0) {
+
+		if (mhu->mlink[i].irq < 0)
+		{
 			dev_err(dev, "failed to get irq%d\n", i);
 			return mhu->mlink[i].irq;
 		}
+
 		mhu->mlink[i].rx_reg = mhu->base + platform_mhu_reg[i];
 		mhu->mlink[i].tx_reg = mhu->mlink[i].rx_reg + TX_REG_OFFSET;
 	}
@@ -164,7 +182,9 @@ static int platform_mhu_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, mhu);
 
 	err = mbox_controller_register(&mhu->mbox);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "Failed to register mailboxes %d\n", err);
 		return err;
 	}
@@ -182,13 +202,15 @@ static int platform_mhu_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id platform_mhu_dt_ids[] = {
+static const struct of_device_id platform_mhu_dt_ids[] =
+{
 	{ .compatible = "amlogic,meson-gxbb-mhu", },
 	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(of, platform_mhu_dt_ids);
 
-static struct platform_driver platform_mhu_driver = {
+static struct platform_driver platform_mhu_driver =
+{
 	.probe	= platform_mhu_probe,
 	.remove	= platform_mhu_remove,
 	.driver = {

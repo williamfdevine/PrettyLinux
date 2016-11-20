@@ -32,7 +32,8 @@
 struct xfs_mount;
 struct xfs_trans;
 
-enum {
+enum
+{
 	XFS_QLOWSP_1_PCNT = 0,
 	XFS_QLOWSP_3_PCNT,
 	XFS_QLOWSP_5_PCNT,
@@ -42,11 +43,12 @@ enum {
 /*
  * The incore dquot structure
  */
-typedef struct xfs_dquot {
+typedef struct xfs_dquot
+{
 	uint		 dq_flags;	/* various flags (XFS_DQ_*) */
 	struct list_head q_lru;		/* global free list of dquots */
-	struct xfs_mount*q_mount;	/* filesystem this relates to */
-	struct xfs_trans*q_transp;	/* trans this belongs to currently */
+	struct xfs_mount *q_mount;	/* filesystem this relates to */
+	struct xfs_trans *q_transp;	/* trans this belongs to currently */
 	uint		 q_nrefs;	/* # active refs from inodes */
 	xfs_daddr_t	 q_blkno;	/* blkno of dquot buffer */
 	int		 q_bufoffset;	/* off of dq in buffer (# dquots) */
@@ -71,7 +73,8 @@ typedef struct xfs_dquot {
  *	XFS_QLOCK_NORMAL is the implicit default,
  * 	XFS_QLOCK_NESTED is the dquot with the higher id in xfs_dqlock2
  */
-enum {
+enum
+{
 	XFS_QLOCK_NORMAL = 0,
 	XFS_QLOCK_NESTED,
 };
@@ -113,29 +116,37 @@ static inline void xfs_dqunlock(struct xfs_dquot *dqp)
 
 static inline int xfs_this_quota_on(struct xfs_mount *mp, int type)
 {
-	switch (type & XFS_DQ_ALLTYPES) {
-	case XFS_DQ_USER:
-		return XFS_IS_UQUOTA_ON(mp);
-	case XFS_DQ_GROUP:
-		return XFS_IS_GQUOTA_ON(mp);
-	case XFS_DQ_PROJ:
-		return XFS_IS_PQUOTA_ON(mp);
-	default:
-		return 0;
+	switch (type & XFS_DQ_ALLTYPES)
+	{
+		case XFS_DQ_USER:
+			return XFS_IS_UQUOTA_ON(mp);
+
+		case XFS_DQ_GROUP:
+			return XFS_IS_GQUOTA_ON(mp);
+
+		case XFS_DQ_PROJ:
+			return XFS_IS_PQUOTA_ON(mp);
+
+		default:
+			return 0;
 	}
 }
 
 static inline xfs_dquot_t *xfs_inode_dquot(struct xfs_inode *ip, int type)
 {
-	switch (type & XFS_DQ_ALLTYPES) {
-	case XFS_DQ_USER:
-		return ip->i_udquot;
-	case XFS_DQ_GROUP:
-		return ip->i_gdquot;
-	case XFS_DQ_PROJ:
-		return ip->i_pdquot;
-	default:
-		return NULL;
+	switch (type & XFS_DQ_ALLTYPES)
+	{
+		case XFS_DQ_USER:
+			return ip->i_udquot;
+
+		case XFS_DQ_GROUP:
+			return ip->i_gdquot;
+
+		case XFS_DQ_PROJ:
+			return ip->i_pdquot;
+
+		default:
+			return NULL;
 	}
 }
 
@@ -148,8 +159,11 @@ static inline bool xfs_dquot_lowsp(struct xfs_dquot *dqp)
 	int64_t freesp;
 
 	freesp = be64_to_cpu(dqp->q_core.d_blk_hardlimit) - dqp->q_res_bcount;
+
 	if (freesp < dqp->q_low_space[XFS_QLOWSP_1_PCNT])
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -161,16 +175,16 @@ static inline bool xfs_dquot_lowsp(struct xfs_dquot *dqp)
 #define XFS_QM_ISGDQ(dqp)	((dqp)->dq_flags & XFS_DQ_GROUP)
 
 extern int		xfs_qm_dqread(struct xfs_mount *, xfs_dqid_t, uint,
-					uint, struct xfs_dquot	**);
+							  uint, struct xfs_dquot **);
 extern void		xfs_qm_dqdestroy(xfs_dquot_t *);
 extern int		xfs_qm_dqflush(struct xfs_dquot *, struct xfs_buf **);
 extern void		xfs_qm_dqunpin_wait(xfs_dquot_t *);
 extern void		xfs_qm_adjust_dqtimers(xfs_mount_t *,
-					xfs_disk_dquot_t *);
+									   xfs_disk_dquot_t *);
 extern void		xfs_qm_adjust_dqlimits(struct xfs_mount *,
-					       struct xfs_dquot *);
+									   struct xfs_dquot *);
 extern int		xfs_qm_dqget(xfs_mount_t *, xfs_inode_t *,
-					xfs_dqid_t, uint, uint, xfs_dquot_t **);
+							 xfs_dqid_t, uint, uint, xfs_dquot_t **);
 extern void		xfs_qm_dqput(xfs_dquot_t *);
 
 extern void		xfs_dqlock2(struct xfs_dquot *, struct xfs_dquot *);

@@ -21,7 +21,8 @@
 
 static int superhyway_devices;
 
-static struct device superhyway_bus_device = {
+static struct device superhyway_bus_device =
+{
 	.init_name = "superhyway",
 };
 
@@ -51,23 +52,30 @@ static void superhyway_device_release(struct device *dev)
  * that any new modules are properly discovered and subsequently registered.
  */
 int superhyway_add_device(unsigned long base, struct superhyway_device *sdev,
-			  struct superhyway_bus *bus)
+						  struct superhyway_bus *bus)
 {
 	struct superhyway_device *dev = sdev;
 
-	if (!dev) {
+	if (!dev)
+	{
 		dev = kzalloc(sizeof(struct superhyway_device), GFP_KERNEL);
+
 		if (!dev)
+		{
 			return -ENOMEM;
+		}
 
 	}
 
 	dev->bus = bus;
 	superhyway_read_vcr(dev, base, &dev->vcr);
 
-	if (!dev->resource) {
+	if (!dev->resource)
+	{
 		dev->resource = kzalloc(sizeof(struct resource), GFP_KERNEL);
-		if (!dev->resource) {
+
+		if (!dev->resource)
+		{
 			kfree(dev);
 			return -ENOMEM;
 		}
@@ -91,12 +99,13 @@ int superhyway_add_device(unsigned long base, struct superhyway_device *sdev,
 }
 
 int superhyway_add_devices(struct superhyway_bus *bus,
-			   struct superhyway_device **devices,
-			   int nr_devices)
+						   struct superhyway_device **devices,
+						   int nr_devices)
 {
 	int i, ret = 0;
 
-	for (i = 0; i < nr_devices; i++) {
+	for (i = 0; i < nr_devices; i++)
+	{
 		struct superhyway_device *dev = devices[i];
 		ret |= superhyway_add_device(dev->resource[0].start, dev, bus);
 	}
@@ -110,11 +119,16 @@ static int __init superhyway_init(void)
 	int ret;
 
 	ret = device_register(&superhyway_bus_device);
+
 	if (unlikely(ret))
+	{
 		return ret;
+	}
 
 	for (bus = superhyway_channels; bus->ops; bus++)
+	{
 		ret |= superhyway_scan_bus(bus);
+	}
 
 	return ret;
 }
@@ -122,11 +136,14 @@ postcore_initcall(superhyway_init);
 
 static const struct superhyway_device_id *
 superhyway_match_id(const struct superhyway_device_id *ids,
-		    struct superhyway_device *dev)
+					struct superhyway_device *dev)
 {
-	while (ids->id) {
+	while (ids->id)
+	{
 		if (ids->id == dev->id.id)
+		{
 			return ids;
+		}
 
 		ids++;
 	}
@@ -139,12 +156,16 @@ static int superhyway_device_probe(struct device *dev)
 	struct superhyway_device *shyway_dev = to_superhyway_device(dev);
 	struct superhyway_driver *shyway_drv = to_superhyway_driver(dev->driver);
 
-	if (shyway_drv && shyway_drv->probe) {
+	if (shyway_drv && shyway_drv->probe)
+	{
 		const struct superhyway_device_id *id;
 
 		id = superhyway_match_id(shyway_drv->id_table, shyway_dev);
+
 		if (id)
+		{
 			return shyway_drv->probe(shyway_dev, id);
+		}
 	}
 
 	return -ENODEV;
@@ -155,7 +176,8 @@ static int superhyway_device_remove(struct device *dev)
 	struct superhyway_device *shyway_dev = to_superhyway_device(dev);
 	struct superhyway_driver *shyway_drv = to_superhyway_driver(dev->driver);
 
-	if (shyway_drv && shyway_drv->remove) {
+	if (shyway_drv && shyway_drv->remove)
+	{
 		shyway_drv->remove(shyway_dev);
 		return 0;
 	}
@@ -198,14 +220,20 @@ static int superhyway_bus_match(struct device *dev, struct device_driver *drv)
 	const struct superhyway_device_id *ids = shyway_drv->id_table;
 
 	if (!ids)
+	{
 		return -EINVAL;
+	}
+
 	if (superhyway_match_id(ids, shyway_dev))
+	{
 		return 1;
+	}
 
 	return -ENODEV;
 }
 
-struct bus_type superhyway_bus_type = {
+struct bus_type superhyway_bus_type =
+{
 	.name		= "superhyway",
 	.match		= superhyway_bus_match,
 #ifdef CONFIG_SYSFS

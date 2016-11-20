@@ -18,14 +18,23 @@ logical_chip_type_t sm750_get_chip_type(void)
 	physicalRev = revId750;
 
 	if (physicalID == 0x718)
+	{
 		chip = SM718;
-	else if (physicalID == 0x750) {
+	}
+	else if (physicalID == 0x750)
+	{
 		chip = SM750;
+
 		/* SM750 and SM750LE are different in their revision ID only. */
 		if (physicalRev == SM750LE_REVISION_ID)
+		{
 			chip = SM750LE;
-	} else
+		}
+	}
+	else
+	{
 		chip = SM_UNKNOWN;
+	}
 
 	return chip;
 }
@@ -36,7 +45,9 @@ static unsigned int get_mxclk_freq(void)
 	unsigned int M, N, OD, POD;
 
 	if (sm750_get_chip_type() == SM750LE)
+	{
 		return MHz(130);
+	}
 
 	pll_reg = PEEK32(MXCLK_PLL_CTRL);
 	M = (pll_reg & PLL_CTRL_M_MASK) >> PLL_CTRL_M_SHIFT;
@@ -59,9 +70,12 @@ static void setChipClock(unsigned int frequency)
 
 	/* Cheok_0509: For SM750LE, the chip clock is fixed. Nothing to set. */
 	if (sm750_get_chip_type() == SM750LE)
+	{
 		return;
+	}
 
-	if (frequency) {
+	if (frequency)
+	{
 		/*
 		* Set up PLL, a structure to hold the value to be set in clocks.
 		*/
@@ -89,35 +103,45 @@ static void setMemoryClock(unsigned int frequency)
 	 * Nothing to set.
 	 */
 	if (sm750_get_chip_type() == SM750LE)
+	{
 		return;
+	}
 
-	if (frequency) {
+	if (frequency)
+	{
 		/*
 		 * Set the frequency to the maximum frequency
 		 * that the DDR Memory can take which is 336MHz.
 		 */
 		if (frequency > MHz(336))
+		{
 			frequency = MHz(336);
+		}
 
 		/* Calculate the divisor */
 		divisor = DIV_ROUND_CLOSEST(get_mxclk_freq(), frequency);
 
 		/* Set the corresponding divisor in the register. */
 		reg = PEEK32(CURRENT_GATE) & ~CURRENT_GATE_M2XCLK_MASK;
-		switch (divisor) {
-		default:
-		case 1:
-			reg |= CURRENT_GATE_M2XCLK_DIV_1;
-			break;
-		case 2:
-			reg |= CURRENT_GATE_M2XCLK_DIV_2;
-			break;
-		case 3:
-			reg |= CURRENT_GATE_M2XCLK_DIV_3;
-			break;
-		case 4:
-			reg |= CURRENT_GATE_M2XCLK_DIV_4;
-			break;
+
+		switch (divisor)
+		{
+			default:
+			case 1:
+				reg |= CURRENT_GATE_M2XCLK_DIV_1;
+				break;
+
+			case 2:
+				reg |= CURRENT_GATE_M2XCLK_DIV_2;
+				break;
+
+			case 3:
+				reg |= CURRENT_GATE_M2XCLK_DIV_3;
+				break;
+
+			case 4:
+				reg |= CURRENT_GATE_M2XCLK_DIV_4;
+				break;
 		}
 
 		setCurrentGate(reg);
@@ -140,38 +164,48 @@ static void setMasterClock(unsigned int frequency)
 	 * Nothing to set.
 	 */
 	if (sm750_get_chip_type() == SM750LE)
+	{
 		return;
+	}
 
-	if (frequency) {
+	if (frequency)
+	{
 		/* Set the frequency to the maximum frequency
 		 * that the SM750 engine can run, which is about 190 MHz.
 		 */
 		if (frequency > MHz(190))
+		{
 			frequency = MHz(190);
+		}
 
 		/* Calculate the divisor */
 		divisor = DIV_ROUND_CLOSEST(get_mxclk_freq(), frequency);
 
 		/* Set the corresponding divisor in the register. */
 		reg = PEEK32(CURRENT_GATE) & ~CURRENT_GATE_MCLK_MASK;
-		switch (divisor) {
-		default:
-		case 3:
-			reg |= CURRENT_GATE_MCLK_DIV_3;
-			break;
-		case 4:
-			reg |= CURRENT_GATE_MCLK_DIV_4;
-			break;
-		case 6:
-			reg |= CURRENT_GATE_MCLK_DIV_6;
-			break;
-		case 8:
-			reg |= CURRENT_GATE_MCLK_DIV_8;
-			break;
+
+		switch (divisor)
+		{
+			default:
+			case 3:
+				reg |= CURRENT_GATE_MCLK_DIV_3;
+				break;
+
+			case 4:
+				reg |= CURRENT_GATE_MCLK_DIV_4;
+				break;
+
+			case 6:
+				reg |= CURRENT_GATE_MCLK_DIV_6;
+				break;
+
+			case 8:
+				reg |= CURRENT_GATE_MCLK_DIV_8;
+				break;
 		}
 
 		setCurrentGate(reg);
-		}
+	}
 }
 
 unsigned int ddk750_getVMSize(void)
@@ -181,7 +215,9 @@ unsigned int ddk750_getVMSize(void)
 
 	/* sm750le only use 64 mb memory*/
 	if (sm750_get_chip_type() == SM750LE)
+	{
 		return SZ_64M;
+	}
 
 	/* for 750,always use power mode0*/
 	reg = PEEK32(MODE0_GATE);
@@ -190,19 +226,26 @@ unsigned int ddk750_getVMSize(void)
 
 	/* get frame buffer size from GPIO */
 	reg = PEEK32(MISC_CTRL) & MISC_CTRL_LOCALMEM_SIZE_MASK;
-	switch (reg) {
-	case MISC_CTRL_LOCALMEM_SIZE_8M:
-		data = SZ_8M;  break; /* 8  Mega byte */
-	case MISC_CTRL_LOCALMEM_SIZE_16M:
-		data = SZ_16M; break; /* 16 Mega byte */
-	case MISC_CTRL_LOCALMEM_SIZE_32M:
-		data = SZ_32M; break; /* 32 Mega byte */
-	case MISC_CTRL_LOCALMEM_SIZE_64M:
-		data = SZ_64M; break; /* 64 Mega byte */
-	default:
-		data = 0;
-		break;
+
+	switch (reg)
+	{
+		case MISC_CTRL_LOCALMEM_SIZE_8M:
+			data = SZ_8M;  break; /* 8  Mega byte */
+
+		case MISC_CTRL_LOCALMEM_SIZE_16M:
+			data = SZ_16M; break; /* 16 Mega byte */
+
+		case MISC_CTRL_LOCALMEM_SIZE_32M:
+			data = SZ_32M; break; /* 32 Mega byte */
+
+		case MISC_CTRL_LOCALMEM_SIZE_64M:
+			data = SZ_64M; break; /* 64 Mega byte */
+
+		default:
+			data = 0;
+			break;
 	}
+
 	return data;
 }
 
@@ -211,7 +254,10 @@ int ddk750_initHw(initchip_param_t *pInitParam)
 	unsigned int reg;
 
 	if (pInitParam->powerMode != 0)
+	{
 		pInitParam->powerMode = 0;
+	}
+
 	setPowerMode(pInitParam->powerMode);
 
 	/* Enable display power gate & LOCALMEM power gate*/
@@ -219,12 +265,15 @@ int ddk750_initHw(initchip_param_t *pInitParam)
 	reg |= (CURRENT_GATE_DISPLAY | CURRENT_GATE_LOCALMEM);
 	setCurrentGate(reg);
 
-	if (sm750_get_chip_type() != SM750LE) {
+	if (sm750_get_chip_type() != SM750LE)
+	{
 		/*	set panel pll and graphic mode via mmio_88 */
 		reg = PEEK32(VGA_CONFIGURATION);
 		reg |= (VGA_CONFIGURATION_PLL | VGA_CONFIGURATION_MODE);
 		POKE32(VGA_CONFIGURATION, reg);
-	} else {
+	}
+	else
+	{
 #if defined(__i386__) || defined(__x86_64__)
 		/* set graphic mode via IO method */
 		outb_p(0x88, 0x3d4);
@@ -247,7 +296,8 @@ int ddk750_initHw(initchip_param_t *pInitParam)
 	 * the system might hang when sw accesses the memory.
 	 * The memory should be resetted after changing the MXCLK.
 	 */
-	if (pInitParam->resetMemory == 1) {
+	if (pInitParam->resetMemory == 1)
+	{
 		reg = PEEK32(MISC_CTRL);
 		reg &= ~MISC_CTRL_LOCALMEM_RESET;
 		POKE32(MISC_CTRL, reg);
@@ -256,7 +306,8 @@ int ddk750_initHw(initchip_param_t *pInitParam)
 		POKE32(MISC_CTRL, reg);
 	}
 
-	if (pInitParam->setAllEngOff == 1) {
+	if (pInitParam->setAllEngOff == 1)
+	{
 		enable2DEngine(0);
 
 		/* Disable Overlay, if a former application left it on */
@@ -318,7 +369,8 @@ unsigned int calcPllValue(unsigned int request_orig, pll_value_t *pll)
 	const int max_OD = 3;
 	int max_d = 6;
 
-	if (sm750_get_chip_type() == SM750LE) {
+	if (sm750_get_chip_type() == SM750LE)
+	{
 		/* SM750LE don't have
 		 * programmable PLL and M/N values to work on.
 		 * Just return the requested clock.
@@ -335,9 +387,12 @@ unsigned int calcPllValue(unsigned int request_orig, pll_value_t *pll)
 	 * no POD provided, so need be treated differently
 	 */
 	if (pll->clockType == MXCLK_PLL)
+	{
 		max_d = 3;
+	}
 
-	for (N = 15; N > 1; N--) {
+	for (N = 15; N > 1; N--)
+	{
 		/* RN will not exceed maximum long
 		 * if @request <= 285 MHZ (for 32bit cpu)
 		 */
@@ -346,23 +401,32 @@ unsigned int calcPllValue(unsigned int request_orig, pll_value_t *pll)
 		rem = RN % input;/* rem always small than 14318181 */
 		fl_quo = (rem * 10000 / input);
 
-		for (d = max_d; d >= 0; d--) {
+		for (d = max_d; d >= 0; d--)
+		{
 			X = BIT(d);
 			M = quo * X;
 			M += fl_quo * X / 10000;
 			/* round step */
 			M += (fl_quo * X % 10000) > 5000 ? 1 : 0;
-			if (M < 256 && M > 0) {
+
+			if (M < 256 && M > 0)
+			{
 				unsigned int diff;
 
 				tmpClock = pll->inputFreq * M / N / X;
 				diff = abs(tmpClock - request_orig);
-				if (diff < mini_diff) {
+
+				if (diff < mini_diff)
+				{
 					pll->M = M;
 					pll->N = N;
 					pll->POD = 0;
+
 					if (d > max_OD)
+					{
 						pll->POD = d - max_OD;
+					}
+
 					pll->OD = d - pll->POD;
 					mini_diff = diff;
 					ret = tmpClock;
@@ -370,6 +434,7 @@ unsigned int calcPllValue(unsigned int request_orig, pll_value_t *pll)
 			}
 		}
 	}
+
 	return ret;
 }
 
@@ -391,11 +456,11 @@ unsigned int formatPllReg(pll_value_t *pPLL)
 	 */
 	reg = PLL_CTRL_POWER |
 #ifndef VALIDATION_CHIP
-		((POD << PLL_CTRL_POD_SHIFT) & PLL_CTRL_POD_MASK) |
+		  ((POD << PLL_CTRL_POD_SHIFT) & PLL_CTRL_POD_MASK) |
 #endif
-		((OD << PLL_CTRL_OD_SHIFT) & PLL_CTRL_OD_MASK) |
-		((N << PLL_CTRL_N_SHIFT) & PLL_CTRL_N_MASK) |
-		((M << PLL_CTRL_M_SHIFT) & PLL_CTRL_M_MASK);
+		  ((OD << PLL_CTRL_OD_SHIFT) & PLL_CTRL_OD_MASK) |
+		  ((N << PLL_CTRL_N_SHIFT) & PLL_CTRL_N_MASK) |
+		  ((M << PLL_CTRL_M_SHIFT) & PLL_CTRL_M_MASK);
 
 	return reg;
 }

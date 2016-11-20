@@ -19,7 +19,7 @@ struct iio_map;
  * @map:	array of mappings specifying association of channel with client
  */
 int iio_map_array_register(struct iio_dev *indio_dev,
-			   struct iio_map *map);
+						   struct iio_map *map);
 
 /**
  * iio_map_array_unregister() - tell the core to remove consumer mappings for

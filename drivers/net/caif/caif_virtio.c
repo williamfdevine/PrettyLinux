@@ -45,7 +45,8 @@ MODULE_DESCRIPTION("Virtio CAIF Driver");
  *	  We use this to put descriptor back on the used ring. USHRT_MAX is
  *	  used to indicate invalid head-id.
  */
-struct cfv_napi_context {
+struct cfv_napi_context
+{
 	struct vringh_kiov riov;
 	unsigned short head;
 };
@@ -60,7 +61,8 @@ struct cfv_napi_context {
  * @tx_flow_on:		Number of flow on (TX)
  * @tx_kicks:		Number of TX kicks
  */
-struct cfv_stats {
+struct cfv_stats
+{
 	u32 rx_napi_complete;
 	u32 rx_napi_resched;
 	u32 rx_nomem;
@@ -98,7 +100,8 @@ struct cfv_stats {
  * @stats:       Statistics exposed in sysfs
  * @debugfs:    Debugfs dentry for statistic counters
  */
-struct cfv_info {
+struct cfv_info
+{
 	struct caif_dev_common cfdev;
 	struct virtio_device *vdev;
 	struct vringh *vr_rx;
@@ -131,7 +134,8 @@ struct cfv_info {
  * @dma_handle: handle to allocated dma device memory area
  * @vaddr:	virtual address mapping to allocated memory area
  */
-struct buf_info {
+struct buf_info
+{
 	size_t size;
 	u8 *vaddr;
 };
@@ -148,9 +152,12 @@ static void cfv_release_cb(struct virtqueue *vq_tx)
 static void free_buf_info(struct cfv_info *cfv, struct buf_info *buf_info)
 {
 	if (!buf_info)
+	{
 		return;
+	}
+
 	gen_pool_free(cfv->genpool, (unsigned long) buf_info->vaddr,
-		      buf_info->size);
+				  buf_info->size);
 	kfree(buf_info);
 }
 
@@ -164,7 +171,8 @@ static void cfv_release_used_buf(struct virtqueue *vq_tx)
 
 	BUG_ON(vq_tx != cfv->vq_tx);
 
-	for (;;) {
+	for (;;)
+	{
 		unsigned int len;
 		struct buf_info *buf_info;
 
@@ -175,7 +183,9 @@ static void cfv_release_used_buf(struct virtqueue *vq_tx)
 
 		/* Stop looping if there are no more buffers to free */
 		if (!buf_info)
+		{
 			break;
+		}
 
 		free_buf_info(cfv, buf_info);
 
@@ -184,16 +194,19 @@ static void cfv_release_used_buf(struct virtqueue *vq_tx)
 		 * re-establish memory reserved and open up tx queues.
 		 */
 		if (cfv->vq_tx->num_free <= cfv->watermark_tx)
+		{
 			continue;
+		}
 
 		/* Re-establish memory reserve */
 		if (cfv->reserved_mem == 0 && cfv->genpool)
 			cfv->reserved_mem =
 				gen_pool_alloc(cfv->genpool,
-					       cfv->reserved_size);
+							   cfv->reserved_size);
 
 		/* Open up the tx queues */
-		if (cfv->reserved_mem) {
+		if (cfv->reserved_mem)
+		{
 			cfv->watermark_tx =
 				virtqueue_get_vring_size(cfv->vq_tx);
 			netif_tx_wake_all_queues(cfv->ndev);
@@ -202,10 +215,12 @@ static void cfv_release_used_buf(struct virtqueue *vq_tx)
 			 */
 			virtqueue_disable_cb(cfv->vq_tx);
 			++cfv->stats.tx_flow_on;
-		} else {
+		}
+		else
+		{
 			/* if no memory reserve, wait for more free slots */
 			WARN_ON(cfv->watermark_tx >
-			       virtqueue_get_vring_size(cfv->vq_tx));
+					virtqueue_get_vring_size(cfv->vq_tx));
 			cfv->watermark_tx +=
 				virtqueue_get_vring_size(cfv->vq_tx) / 4;
 		}
@@ -214,19 +229,21 @@ static void cfv_release_used_buf(struct virtqueue *vq_tx)
 
 /* Allocate a SKB and copy packet data to it */
 static struct sk_buff *cfv_alloc_and_copy_skb(int *err,
-					      struct cfv_info *cfv,
-					      u8 *frm, u32 frm_len)
+		struct cfv_info *cfv,
+		u8 *frm, u32 frm_len)
 {
 	struct sk_buff *skb;
 	u32 cfpkt_len, pad_len;
 
 	*err = 0;
+
 	/* Verify that packet size with down-link header and mtu size */
-	if (frm_len > cfv->mru || frm_len <= cfv->rx_hr + cfv->rx_tr) {
+	if (frm_len > cfv->mru || frm_len <= cfv->rx_hr + cfv->rx_tr)
+	{
 		netdev_err(cfv->ndev,
-			   "Invalid frmlen:%u  mtu:%u hr:%d tr:%d\n",
-			   frm_len, cfv->mru,  cfv->rx_hr,
-			   cfv->rx_tr);
+				   "Invalid frmlen:%u  mtu:%u hr:%d tr:%d\n",
+				   frm_len, cfv->mru,  cfv->rx_hr,
+				   cfv->rx_tr);
 		*err = -EPROTO;
 		return NULL;
 	}
@@ -235,7 +252,9 @@ static struct sk_buff *cfv_alloc_and_copy_skb(int *err,
 	pad_len = (unsigned long)(frm + cfv->rx_hr) & (IP_HDR_ALIGN - 1);
 
 	skb = netdev_alloc_skb(cfv->ndev, frm_len + pad_len);
-	if (!skb) {
+
+	if (!skb)
+	{
 		*err = -ENOMEM;
 		return NULL;
 	}
@@ -257,38 +276,46 @@ static int cfv_rx_poll(struct napi_struct *napi, int quota)
 	struct vringh_kiov *riov = &cfv->ctx.riov;
 	unsigned int skb_len;
 
-	do {
+	do
+	{
 		skb = NULL;
 
 		/* Put the previous iovec back on the used ring and
 		 * fetch a new iovec if we have processed all elements.
 		 */
-		if (riov->i == riov->used) {
-			if (cfv->ctx.head != USHRT_MAX) {
+		if (riov->i == riov->used)
+		{
+			if (cfv->ctx.head != USHRT_MAX)
+			{
 				vringh_complete_kern(cfv->vr_rx,
-						     cfv->ctx.head,
-						     0);
+									 cfv->ctx.head,
+									 0);
 				cfv->ctx.head = USHRT_MAX;
 			}
 
 			err = vringh_getdesc_kern(
-				cfv->vr_rx,
-				riov,
-				NULL,
-				&cfv->ctx.head,
-				GFP_ATOMIC);
+					  cfv->vr_rx,
+					  riov,
+					  NULL,
+					  &cfv->ctx.head,
+					  GFP_ATOMIC);
 
 			if (err <= 0)
+			{
 				goto exit;
+			}
 		}
 
 		buf = phys_to_virt((unsigned long) riov->iov[riov->i].iov_base);
 		/* TODO: Add check on valid buffer address */
 
 		skb = cfv_alloc_and_copy_skb(&err, cfv, buf,
-					     riov->iov[riov->i].iov_len);
+									 riov->iov[riov->i].iov_len);
+
 		if (unlikely(err))
+		{
 			goto exit;
+		}
 
 		/* Push received packet up the stack. */
 		skb_len = skb->len;
@@ -296,54 +323,69 @@ static int cfv_rx_poll(struct napi_struct *napi, int quota)
 		skb_reset_mac_header(skb);
 		skb->dev = cfv->ndev;
 		err = netif_receive_skb(skb);
-		if (unlikely(err)) {
+
+		if (unlikely(err))
+		{
 			++cfv->ndev->stats.rx_dropped;
-		} else {
+		}
+		else
+		{
 			++cfv->ndev->stats.rx_packets;
 			cfv->ndev->stats.rx_bytes += skb_len;
 		}
 
 		++riov->i;
 		++rxcnt;
-	} while (rxcnt < quota);
+	}
+	while (rxcnt < quota);
 
 	++cfv->stats.rx_napi_resched;
 	goto out;
 
 exit:
-	switch (err) {
-	case 0:
-		++cfv->stats.rx_napi_complete;
 
-		/* Really out of patckets? (stolen from virtio_net)*/
-		napi_complete(napi);
-		if (unlikely(!vringh_notify_enable_kern(cfv->vr_rx)) &&
-		    napi_schedule_prep(napi)) {
+	switch (err)
+	{
+		case 0:
+			++cfv->stats.rx_napi_complete;
+
+			/* Really out of patckets? (stolen from virtio_net)*/
+			napi_complete(napi);
+
+			if (unlikely(!vringh_notify_enable_kern(cfv->vr_rx)) &&
+				napi_schedule_prep(napi))
+			{
+				vringh_notify_disable_kern(cfv->vr_rx);
+				__napi_schedule(napi);
+			}
+
+			break;
+
+		case -ENOMEM:
+			++cfv->stats.rx_nomem;
+			dev_kfree_skb(skb);
+			/* Stop NAPI poll on OOM, we hope to be polled later */
+			napi_complete(napi);
+			vringh_notify_enable_kern(cfv->vr_rx);
+			break;
+
+		default:
+			/* We're doomed, any modem fault is fatal */
+			netdev_warn(cfv->ndev, "Bad ring, disable device\n");
+			cfv->ndev->stats.rx_dropped = riov->used - riov->i;
+			napi_complete(napi);
 			vringh_notify_disable_kern(cfv->vr_rx);
-			__napi_schedule(napi);
-		}
-		break;
-
-	case -ENOMEM:
-		++cfv->stats.rx_nomem;
-		dev_kfree_skb(skb);
-		/* Stop NAPI poll on OOM, we hope to be polled later */
-		napi_complete(napi);
-		vringh_notify_enable_kern(cfv->vr_rx);
-		break;
-
-	default:
-		/* We're doomed, any modem fault is fatal */
-		netdev_warn(cfv->ndev, "Bad ring, disable device\n");
-		cfv->ndev->stats.rx_dropped = riov->used - riov->i;
-		napi_complete(napi);
-		vringh_notify_disable_kern(cfv->vr_rx);
-		netif_carrier_off(cfv->ndev);
-		break;
+			netif_carrier_off(cfv->ndev);
+			break;
 	}
+
 out:
+
 	if (rxcnt && vringh_need_notify_kern(cfv->vr_rx) > 0)
+	{
 		vringh_notify(cfv->vr_rx);
+	}
+
 	return rxcnt;
 }
 
@@ -360,13 +402,16 @@ static void cfv_destroy_genpool(struct cfv_info *cfv)
 {
 	if (cfv->alloc_addr)
 		dma_free_coherent(cfv->vdev->dev.parent->parent,
-				  cfv->allocsz, cfv->alloc_addr,
-				  cfv->alloc_dma);
+						  cfv->allocsz, cfv->alloc_addr,
+						  cfv->alloc_dma);
 
 	if (!cfv->genpool)
+	{
 		return;
+	}
+
 	gen_pool_free(cfv->genpool,  cfv->reserved_mem,
-		      cfv->reserved_size);
+				  cfv->reserved_size);
 	gen_pool_destroy(cfv->genpool);
 	cfv->genpool = NULL;
 }
@@ -382,47 +427,63 @@ static int cfv_create_genpool(struct cfv_info *cfv)
 	 */
 	err = -ENOMEM;
 	cfv->allocsz = (virtqueue_get_vring_size(cfv->vq_tx) *
-			(ETH_DATA_LEN + cfv->tx_hr + cfv->tx_tr) * 11)/10;
-	if (cfv->allocsz <= (num_possible_cpus() + 1) * cfv->ndev->mtu)
-		return -EINVAL;
+					(ETH_DATA_LEN + cfv->tx_hr + cfv->tx_tr) * 11) / 10;
 
-	for (;;) {
-		if (cfv->allocsz <= num_possible_cpus() * cfv->ndev->mtu) {
+	if (cfv->allocsz <= (num_possible_cpus() + 1) * cfv->ndev->mtu)
+	{
+		return -EINVAL;
+	}
+
+	for (;;)
+	{
+		if (cfv->allocsz <= num_possible_cpus() * cfv->ndev->mtu)
+		{
 			netdev_info(cfv->ndev, "Not enough device memory\n");
 			return -ENOMEM;
 		}
 
 		cfv->alloc_addr = dma_alloc_coherent(
-						cfv->vdev->dev.parent->parent,
-						cfv->allocsz, &cfv->alloc_dma,
-						GFP_ATOMIC);
+							  cfv->vdev->dev.parent->parent,
+							  cfv->allocsz, &cfv->alloc_dma,
+							  GFP_ATOMIC);
+
 		if (cfv->alloc_addr)
+		{
 			break;
+		}
 
 		cfv->allocsz = (cfv->allocsz * 3) >> 2;
 	}
 
 	netdev_dbg(cfv->ndev, "Allocated %zd bytes from dma-memory\n",
-		   cfv->allocsz);
+			   cfv->allocsz);
 
 	/* Allocate on 128 bytes boundaries (1 << 7)*/
 	cfv->genpool = gen_pool_create(7, -1);
+
 	if (!cfv->genpool)
+	{
 		goto err;
+	}
 
 	err = gen_pool_add_virt(cfv->genpool, (unsigned long)cfv->alloc_addr,
-				(phys_addr_t)virt_to_phys(cfv->alloc_addr),
-				cfv->allocsz, -1);
+							(phys_addr_t)virt_to_phys(cfv->alloc_addr),
+							cfv->allocsz, -1);
+
 	if (err)
+	{
 		goto err;
+	}
 
 	/* Reserve some memory for low memory situations. If we hit the roof
 	 * in the memory pool, we stop TX flow and release the reserve.
 	 */
 	cfv->reserved_size = num_possible_cpus() * cfv->ndev->mtu;
 	cfv->reserved_mem = gen_pool_alloc(cfv->genpool,
-					   cfv->reserved_size);
-	if (!cfv->reserved_mem) {
+									   cfv->reserved_size);
+
+	if (!cfv->reserved_mem)
+	{
 		err = -ENOMEM;
 		goto err;
 	}
@@ -440,7 +501,9 @@ static int cfv_netdev_open(struct net_device *netdev)
 	struct cfv_info *cfv = netdev_priv(netdev);
 
 	if (cfv_create_genpool(cfv))
+	{
 		return -ENOMEM;
+	}
 
 	netif_carrier_on(netdev);
 	napi_enable(&cfv->napi);
@@ -466,8 +529,12 @@ static int cfv_netdev_close(struct net_device *netdev)
 	/* Release any TX buffers on both used and avilable rings */
 	cfv_release_used_buf(cfv->vq_tx);
 	spin_lock_irqsave(&cfv->tx_lock, flags);
+
 	while ((buf_info = virtqueue_detach_unused_buf(cfv->vq_tx)))
+	{
 		free_buf_info(cfv, buf_info);
+	}
+
 	spin_unlock_irqrestore(&cfv->tx_lock, flags);
 
 	/* Release all dma allocated memory and destroy the pool */
@@ -477,25 +544,31 @@ static int cfv_netdev_close(struct net_device *netdev)
 
 /* Allocate a buffer in dma-memory and copy skb to it */
 static struct buf_info *cfv_alloc_and_copy_to_shm(struct cfv_info *cfv,
-						       struct sk_buff *skb,
-						       struct scatterlist *sg)
+		struct sk_buff *skb,
+		struct scatterlist *sg)
 {
 	struct caif_payload_info *info = (void *)&skb->cb;
 	struct buf_info *buf_info = NULL;
 	u8 pad_len, hdr_ofs;
 
 	if (!cfv->genpool)
+	{
 		goto err;
+	}
 
-	if (unlikely(cfv->tx_hr + skb->len + cfv->tx_tr > cfv->mtu)) {
+	if (unlikely(cfv->tx_hr + skb->len + cfv->tx_tr > cfv->mtu))
+	{
 		netdev_warn(cfv->ndev, "Invalid packet len (%d > %d)\n",
-			    cfv->tx_hr + skb->len + cfv->tx_tr, cfv->mtu);
+					cfv->tx_hr + skb->len + cfv->tx_tr, cfv->mtu);
 		goto err;
 	}
 
 	buf_info = kmalloc(sizeof(struct buf_info), GFP_ATOMIC);
+
 	if (unlikely(!buf_info))
+	{
 		goto err;
+	}
 
 	/* Make the IP header aligned in tbe buffer */
 	hdr_ofs = cfv->tx_hr + info->hdr_len;
@@ -504,13 +577,16 @@ static struct buf_info *cfv_alloc_and_copy_to_shm(struct cfv_info *cfv,
 
 	/* allocate dma memory buffer */
 	buf_info->vaddr = (void *)gen_pool_alloc(cfv->genpool, buf_info->size);
+
 	if (unlikely(!buf_info->vaddr))
+	{
 		goto err;
+	}
 
 	/* copy skbuf contents to send buffer */
 	skb_copy_bits(skb, 0, buf_info->vaddr + cfv->tx_hr + pad_len, skb->len);
 	sg_init_one(sg, buf_info->vaddr + pad_len,
-		    skb->len + cfv->tx_hr + cfv->rx_hr);
+				skb->len + cfv->tx_hr + cfv->rx_hr);
 
 	return buf_info;
 err:
@@ -537,7 +613,8 @@ static int cfv_netdev_tx(struct sk_buff *skb, struct net_device *netdev)
 	 *
 	 * Flow-on is triggered when sufficient buffers are freed
 	 */
-	if (unlikely(cfv->vq_tx->num_free <= num_present_cpus())) {
+	if (unlikely(cfv->vq_tx->num_free <= num_present_cpus()))
+	{
 		flow_off = true;
 		cfv->stats.tx_full_ring++;
 	}
@@ -546,19 +623,23 @@ static int cfv_netdev_tx(struct sk_buff *skb, struct net_device *netdev)
 	 * allocation.
 	 */
 	buf_info = cfv_alloc_and_copy_to_shm(cfv, skb, &sg);
-	if (unlikely(!buf_info)) {
+
+	if (unlikely(!buf_info))
+	{
 		cfv->stats.tx_no_mem++;
 		flow_off = true;
 
-		if (cfv->reserved_mem && cfv->genpool) {
+		if (cfv->reserved_mem && cfv->genpool)
+		{
 			gen_pool_free(cfv->genpool,  cfv->reserved_mem,
-				      cfv->reserved_size);
+						  cfv->reserved_size);
 			cfv->reserved_mem = 0;
 			buf_info = cfv_alloc_and_copy_to_shm(cfv, skb, &sg);
 		}
 	}
 
-	if (unlikely(flow_off)) {
+	if (unlikely(flow_off))
+	{
 		/* Turn flow on when a 1/4 of the descriptors are released */
 		cfv->watermark_tx = virtqueue_get_vring_size(cfv->vq_tx) / 4;
 		/* Enable notifications of recycled TX buffers */
@@ -566,17 +647,20 @@ static int cfv_netdev_tx(struct sk_buff *skb, struct net_device *netdev)
 		netif_tx_stop_all_queues(netdev);
 	}
 
-	if (unlikely(!buf_info)) {
+	if (unlikely(!buf_info))
+	{
 		/* If the memory reserve does it's job, this shouldn't happen */
 		netdev_warn(cfv->ndev, "Out of gen_pool memory\n");
 		goto err;
 	}
 
 	ret = virtqueue_add_outbuf(cfv->vq_tx, &sg, 1, buf_info, GFP_ATOMIC);
-	if (unlikely((ret < 0))) {
+
+	if (unlikely((ret < 0)))
+	{
 		/* If flow control works, this shouldn't happen */
 		netdev_warn(cfv->ndev, "Failed adding buffer to TX vring:%d\n",
-			    ret);
+					ret);
 		goto err;
 	}
 
@@ -604,7 +688,8 @@ static void cfv_tx_release_tasklet(unsigned long drv)
 	cfv_release_used_buf(cfv->vq_tx);
 }
 
-static const struct net_device_ops cfv_netdev_ops = {
+static const struct net_device_ops cfv_netdev_ops =
+{
 	.ndo_open = cfv_netdev_open,
 	.ndo_stop = cfv_netdev_close,
 	.ndo_start_xmit = cfv_netdev_tx,
@@ -627,24 +712,26 @@ static inline void debugfs_init(struct cfv_info *cfv)
 		debugfs_create_dir(netdev_name(cfv->ndev), NULL);
 
 	if (IS_ERR(cfv->debugfs))
+	{
 		return;
+	}
 
 	debugfs_create_u32("rx-napi-complete", S_IRUSR, cfv->debugfs,
-			   &cfv->stats.rx_napi_complete);
+					   &cfv->stats.rx_napi_complete);
 	debugfs_create_u32("rx-napi-resched", S_IRUSR, cfv->debugfs,
-			   &cfv->stats.rx_napi_resched);
+					   &cfv->stats.rx_napi_resched);
 	debugfs_create_u32("rx-nomem", S_IRUSR, cfv->debugfs,
-			   &cfv->stats.rx_nomem);
+					   &cfv->stats.rx_nomem);
 	debugfs_create_u32("rx-kicks", S_IRUSR, cfv->debugfs,
-			   &cfv->stats.rx_kicks);
+					   &cfv->stats.rx_kicks);
 	debugfs_create_u32("tx-full-ring", S_IRUSR, cfv->debugfs,
-			   &cfv->stats.tx_full_ring);
+					   &cfv->stats.tx_full_ring);
 	debugfs_create_u32("tx-no-mem", S_IRUSR, cfv->debugfs,
-			   &cfv->stats.tx_no_mem);
+					   &cfv->stats.tx_no_mem);
 	debugfs_create_u32("tx-kicks", S_IRUSR, cfv->debugfs,
-			   &cfv->stats.tx_kicks);
+					   &cfv->stats.tx_kicks);
 	debugfs_create_u32("tx-flow-on", S_IRUSR, cfv->debugfs,
-			   &cfv->stats.tx_flow_on);
+					   &cfv->stats.tx_flow_on);
 }
 
 /* Setup CAIF for the a virtio device */
@@ -659,9 +746,12 @@ static int cfv_probe(struct virtio_device *vdev)
 	int err = -EINVAL;
 
 	netdev = alloc_netdev(sizeof(struct cfv_info), cfv_netdev_name,
-			      NET_NAME_UNKNOWN, cfv_netdev_setup);
+						  NET_NAME_UNKNOWN, cfv_netdev_setup);
+
 	if (!netdev)
+	{
 		return -ENOMEM;
+	}
 
 	cfv = netdev_priv(netdev);
 	cfv->vdev = vdev;
@@ -671,33 +761,45 @@ static int cfv_probe(struct virtio_device *vdev)
 
 	/* Get the RX virtio ring. This is a "host side vring". */
 	err = -ENODEV;
+
 	if (!vdev->vringh_config || !vdev->vringh_config->find_vrhs)
+	{
 		goto err;
+	}
 
 	err = vdev->vringh_config->find_vrhs(vdev, 1, &cfv->vr_rx, &vrh_cbs);
+
 	if (err)
+	{
 		goto err;
+	}
 
 	/* Get the TX virtio ring. This is a "guest side vring". */
 	err = vdev->config->find_vqs(vdev, 1, &cfv->vq_tx, &vq_cbs, &names);
+
 	if (err)
+	{
 		goto err;
+	}
 
 	/* Get the CAIF configuration from virtio config space, if available */
-	if (vdev->config->get) {
+	if (vdev->config->get)
+	{
 		virtio_cread(vdev, struct virtio_caif_transf_config, headroom,
-			     &cfv->tx_hr);
+					 &cfv->tx_hr);
 		virtio_cread(vdev, struct virtio_caif_transf_config, headroom,
-			     &cfv->rx_hr);
+					 &cfv->rx_hr);
 		virtio_cread(vdev, struct virtio_caif_transf_config, tailroom,
-			     &cfv->tx_tr);
+					 &cfv->tx_tr);
 		virtio_cread(vdev, struct virtio_caif_transf_config, tailroom,
-			     &cfv->rx_tr);
+					 &cfv->rx_tr);
 		virtio_cread(vdev, struct virtio_caif_transf_config, mtu,
-			     &cfv->mtu);
+					 &cfv->mtu);
 		virtio_cread(vdev, struct virtio_caif_transf_config, mtu,
-			     &cfv->mru);
-	} else {
+					 &cfv->mru);
+	}
+	else
+	{
 		cfv->tx_hr = CFV_DEF_HEADROOM;
 		cfv->rx_hr = CFV_DEF_HEADROOM;
 		cfv->tx_tr = CFV_DEF_TAILROOM;
@@ -721,15 +823,17 @@ static int cfv_probe(struct virtio_device *vdev)
 	netif_napi_add(netdev, &cfv->napi, cfv_rx_poll, CFV_DEFAULT_QUOTA);
 
 	tasklet_init(&cfv->tx_release_tasklet,
-		     cfv_tx_release_tasklet,
-		     (unsigned long)cfv);
+				 cfv_tx_release_tasklet,
+				 (unsigned long)cfv);
 
 	/* Carrier is off until netdevice is opened */
 	netif_carrier_off(netdev);
 
 	/* register Netdev */
 	err = register_netdev(netdev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&vdev->dev, "Unable to register netdev (%d)\n", err);
 		goto err;
 	}
@@ -741,9 +845,15 @@ err:
 	netdev_warn(cfv->ndev, "CAIF Virtio probe failed:%d\n", err);
 
 	if (cfv->vr_rx)
+	{
 		vdev->vringh_config->del_vrhs(cfv->vdev);
+	}
+
 	if (cfv->vdev)
+	{
 		vdev->config->del_vqs(cfv->vdev);
+	}
+
 	free_netdev(netdev);
 	return err;
 }
@@ -767,15 +877,18 @@ static void cfv_remove(struct virtio_device *vdev)
 	unregister_netdev(cfv->ndev);
 }
 
-static struct virtio_device_id id_table[] = {
+static struct virtio_device_id id_table[] =
+{
 	{ VIRTIO_ID_CAIF, VIRTIO_DEV_ANY_ID },
 	{ 0 },
 };
 
-static unsigned int features[] = {
+static unsigned int features[] =
+{
 };
 
-static struct virtio_driver caif_virtio_driver = {
+static struct virtio_driver caif_virtio_driver =
+{
 	.feature_table		= features,
 	.feature_table_size	= ARRAY_SIZE(features),
 	.driver.name		= KBUILD_MODNAME,

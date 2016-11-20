@@ -1,28 +1,31 @@
 #include <fcntl.h>
 
 #ifndef LOCK_MAND
-#define LOCK_MAND	 32
+	#define LOCK_MAND	 32
 #endif
 
 #ifndef LOCK_READ
-#define LOCK_READ	 64
+	#define LOCK_READ	 64
 #endif
 
 #ifndef LOCK_WRITE
-#define LOCK_WRITE	128
+	#define LOCK_WRITE	128
 #endif
 
 #ifndef LOCK_RW
-#define LOCK_RW		192
+	#define LOCK_RW		192
 #endif
 
 static size_t syscall_arg__scnprintf_flock(char *bf, size_t size,
-					   struct syscall_arg *arg)
+		struct syscall_arg *arg)
 {
 	int printed = 0, op = arg->val;
 
 	if (op == 0)
+	{
 		return scnprintf(bf, size, "NONE");
+	}
+
 #define	P_CMD(cmd) \
 	if ((op & LOCK_##cmd) == LOCK_##cmd) { \
 		printed += scnprintf(bf + printed, size - printed, "%s%s", printed ? "|" : "", #cmd); \
@@ -40,7 +43,9 @@ static size_t syscall_arg__scnprintf_flock(char *bf, size_t size,
 #undef P_OP
 
 	if (op)
+	{
 		printed += scnprintf(bf + printed, size - printed, "%s%#x", printed ? "|" : "", op);
+	}
 
 	return printed;
 }

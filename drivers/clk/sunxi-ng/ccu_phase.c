@@ -27,27 +27,41 @@ static int ccu_phase_get_phase(struct clk_hw *hw)
 	delay &= (1 << phase->width) - 1;
 
 	if (!delay)
+	{
 		return 180;
+	}
 
 	/* Get our parent clock, it's the one that can adjust its rate */
 	parent = clk_hw_get_parent(hw);
+
 	if (!parent)
+	{
 		return -EINVAL;
+	}
 
 	/* And its rate */
 	parent_rate = clk_hw_get_rate(parent);
+
 	if (!parent_rate)
+	{
 		return -EINVAL;
+	}
 
 	/* Now, get our parent's parent (most likely some PLL) */
 	grandparent = clk_hw_get_parent(parent);
+
 	if (!grandparent)
+	{
 		return -EINVAL;
+	}
 
 	/* And its rate */
 	grandparent_rate = clk_hw_get_rate(grandparent);
+
 	if (!grandparent_rate)
+	{
 		return -EINVAL;
+	}
 
 	/* Get our parent clock divider */
 	parent_div = grandparent_rate / parent_rate;
@@ -67,25 +81,38 @@ static int ccu_phase_set_phase(struct clk_hw *hw, int degrees)
 
 	/* Get our parent clock, it's the one that can adjust its rate */
 	parent = clk_hw_get_parent(hw);
+
 	if (!parent)
+	{
 		return -EINVAL;
+	}
 
 	/* And its rate */
 	parent_rate = clk_hw_get_rate(parent);
+
 	if (!parent_rate)
+	{
 		return -EINVAL;
+	}
 
 	/* Now, get our parent's parent (most likely some PLL) */
 	grandparent = clk_hw_get_parent(parent);
+
 	if (!grandparent)
+	{
 		return -EINVAL;
+	}
 
 	/* And its rate */
 	grandparent_rate = clk_hw_get_rate(grandparent);
-	if (!grandparent_rate)
-		return -EINVAL;
 
-	if (degrees != 180) {
+	if (!grandparent_rate)
+	{
+		return -EINVAL;
+	}
+
+	if (degrees != 180)
+	{
 		u16 step, parent_div;
 
 		/* Get our parent divider */
@@ -106,7 +133,9 @@ static int ccu_phase_set_phase(struct clk_hw *hw, int degrees)
 		 */
 		step = DIV_ROUND_CLOSEST(360, parent_div);
 		delay = DIV_ROUND_CLOSEST(degrees, step);
-	} else {
+	}
+	else
+	{
 		delay = 0;
 	}
 
@@ -114,13 +143,14 @@ static int ccu_phase_set_phase(struct clk_hw *hw, int degrees)
 	reg = readl(phase->common.base + phase->common.reg);
 	reg &= ~GENMASK(phase->width + phase->shift - 1, phase->shift);
 	writel(reg | (delay << phase->shift),
-	       phase->common.base + phase->common.reg);
+		   phase->common.base + phase->common.reg);
 	spin_unlock_irqrestore(phase->common.lock, flags);
 
 	return 0;
 }
 
-const struct clk_ops ccu_phase_ops = {
+const struct clk_ops ccu_phase_ops =
+{
 	.get_phase	= ccu_phase_get_phase,
 	.set_phase	= ccu_phase_set_phase,
 };

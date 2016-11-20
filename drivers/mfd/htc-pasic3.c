@@ -21,7 +21,8 @@
 #include <linux/mfd/htc-pasic3.h>
 #include <linux/slab.h>
 
-struct pasic3_data {
+struct pasic3_data
+{
 	void __iomem *mapping;
 	unsigned int bus_shift;
 };
@@ -65,7 +66,8 @@ EXPORT_SYMBOL(pasic3_read_register); /* for leds-pasic3 */
  * LEDs
  */
 
-static struct mfd_cell led_cell __initdata = {
+static struct mfd_cell led_cell __initdata =
+{
 	.name = "leds-pasic3",
 };
 
@@ -97,12 +99,14 @@ static int ds1wm_disable(struct platform_device *pdev)
 	return 0;
 }
 
-static struct ds1wm_driver_data ds1wm_pdata = {
+static struct ds1wm_driver_data ds1wm_pdata =
+{
 	.active_high = 0,
 	.reset_recover_delay = 1,
 };
 
-static struct resource ds1wm_resources[] __initdata = {
+static struct resource ds1wm_resources[] __initdata =
+{
 	[0] = {
 		.start  = 0,
 		.flags  = IORESOURCE_MEM,
@@ -114,7 +118,8 @@ static struct resource ds1wm_resources[] __initdata = {
 	},
 };
 
-static const struct mfd_cell ds1wm_cell __initconst = {
+static const struct mfd_cell ds1wm_cell __initconst =
+{
 	.name          = "ds1wm",
 	.enable        = ds1wm_enable,
 	.disable       = ds1wm_disable,
@@ -134,27 +139,39 @@ static int __init pasic3_probe(struct platform_device *pdev)
 	int irq = 0;
 
 	r = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-	if (r) {
+
+	if (r)
+	{
 		ds1wm_resources[1].flags = IORESOURCE_IRQ | (r->flags &
-			(IORESOURCE_IRQ_HIGHEDGE | IORESOURCE_IRQ_LOWEDGE));
+								   (IORESOURCE_IRQ_HIGHEDGE | IORESOURCE_IRQ_LOWEDGE));
 		irq = r->start;
 	}
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!r)
+	{
 		return -ENXIO;
+	}
 
 	if (!request_mem_region(r->start, resource_size(r), "pasic3"))
+	{
 		return -EBUSY;
+	}
 
 	asic = devm_kzalloc(dev, sizeof(struct pasic3_data), GFP_KERNEL);
+
 	if (!asic)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, asic);
 
 	asic->mapping = ioremap(r->start, resource_size(r));
-	if (!asic->mapping) {
+
+	if (!asic->mapping)
+	{
 		dev_err(dev, "couldn't ioremap PASIC3\n");
 		return -ENOMEM;
 	}
@@ -162,23 +179,31 @@ static int __init pasic3_probe(struct platform_device *pdev)
 	/* calculate bus shift from mem resource */
 	asic->bus_shift = (resource_size(r) - 5) >> 3;
 
-	if (pdata && pdata->clock_rate) {
+	if (pdata && pdata->clock_rate)
+	{
 		ds1wm_pdata.clock_rate = pdata->clock_rate;
 		/* the first 5 PASIC3 registers control the DS1WM */
 		ds1wm_resources[0].end = (5 << asic->bus_shift) - 1;
 		ret = mfd_add_devices(&pdev->dev, pdev->id,
-				      &ds1wm_cell, 1, r, irq, NULL);
+							  &ds1wm_cell, 1, r, irq, NULL);
+
 		if (ret < 0)
+		{
 			dev_warn(dev, "failed to register DS1WM\n");
+		}
 	}
 
-	if (pdata && pdata->led_pdata) {
+	if (pdata && pdata->led_pdata)
+	{
 		led_cell.platform_data = pdata->led_pdata;
 		led_cell.pdata_size = sizeof(struct pasic3_leds_machinfo);
 		ret = mfd_add_devices(&pdev->dev, pdev->id, &led_cell, 1, r,
-				      0, NULL);
+							  0, NULL);
+
 		if (ret < 0)
+		{
 			dev_warn(dev, "failed to register LED device\n");
+		}
 	}
 
 	return 0;
@@ -199,7 +224,8 @@ static int pasic3_remove(struct platform_device *pdev)
 
 MODULE_ALIAS("platform:pasic3");
 
-static struct platform_driver pasic3_driver = {
+static struct platform_driver pasic3_driver =
+{
 	.driver		= {
 		.name	= "pasic3",
 	},

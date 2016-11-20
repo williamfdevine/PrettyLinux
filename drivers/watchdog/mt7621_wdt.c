@@ -39,8 +39,8 @@ static struct reset_control *mt7621_wdt_reset;
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-		 "Watchdog cannot be stopped once started (default="
-		 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 static inline void rt_wdt_w32(unsigned reg, u32 val)
 {
@@ -100,17 +100,21 @@ static int mt7621_wdt_stop(struct watchdog_device *w)
 static int mt7621_wdt_bootcause(void)
 {
 	if (rt_sysc_r32(SYSC_RSTSTAT) & WDT_RST_CAUSE)
+	{
 		return WDIOF_CARDRESET;
+	}
 
 	return 0;
 }
 
-static struct watchdog_info mt7621_wdt_info = {
+static struct watchdog_info mt7621_wdt_info =
+{
 	.identity = "Mediatek Watchdog",
 	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE,
 };
 
-static struct watchdog_ops mt7621_wdt_ops = {
+static struct watchdog_ops mt7621_wdt_ops =
+{
 	.owner = THIS_MODULE,
 	.start = mt7621_wdt_start,
 	.stop = mt7621_wdt_stop,
@@ -118,7 +122,8 @@ static struct watchdog_ops mt7621_wdt_ops = {
 	.set_timeout = mt7621_wdt_set_timeout,
 };
 
-static struct watchdog_device mt7621_wdt_dev = {
+static struct watchdog_device mt7621_wdt_dev =
+{
 	.info = &mt7621_wdt_info,
 	.ops = &mt7621_wdt_ops,
 	.min_timeout = 1,
@@ -132,17 +137,23 @@ static int mt7621_wdt_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mt7621_wdt_base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(mt7621_wdt_base))
+	{
 		return PTR_ERR(mt7621_wdt_base);
+	}
 
 	mt7621_wdt_reset = devm_reset_control_get(&pdev->dev, NULL);
+
 	if (!IS_ERR(mt7621_wdt_reset))
+	{
 		reset_control_deassert(mt7621_wdt_reset);
+	}
 
 	mt7621_wdt_dev.bootstatus = mt7621_wdt_bootcause();
 
 	watchdog_init_timeout(&mt7621_wdt_dev, mt7621_wdt_dev.max_timeout,
-			      &pdev->dev);
+						  &pdev->dev);
 	watchdog_set_nowayout(&mt7621_wdt_dev, nowayout);
 
 	ret = watchdog_register_device(&mt7621_wdt_dev);
@@ -162,13 +173,15 @@ static void mt7621_wdt_shutdown(struct platform_device *pdev)
 	mt7621_wdt_stop(&mt7621_wdt_dev);
 }
 
-static const struct of_device_id mt7621_wdt_match[] = {
+static const struct of_device_id mt7621_wdt_match[] =
+{
 	{ .compatible = "mediatek,mt7621-wdt" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, mt7621_wdt_match);
 
-static struct platform_driver mt7621_wdt_driver = {
+static struct platform_driver mt7621_wdt_driver =
+{
 	.probe		= mt7621_wdt_probe,
 	.remove		= mt7621_wdt_remove,
 	.shutdown	= mt7621_wdt_shutdown,

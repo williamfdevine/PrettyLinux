@@ -34,7 +34,8 @@ MODULE_ALIAS("wmi:"MXM_WMMX_GUID);
 #define MXM_WMMX_FUNC_MXDS 0x5344584D /* "MXDS" */
 #define MXM_WMMX_FUNC_MXMX 0x53445344 /* "MXMX" */
 
-struct mxds_args {
+struct mxds_args
+{
 	u32 func;
 	u32 args;
 	u32 xarg;
@@ -42,7 +43,8 @@ struct mxds_args {
 
 int mxm_wmi_call_mxds(int adapter)
 {
-	struct mxds_args args = {
+	struct mxds_args args =
+	{
 		.func = MXM_WMMX_FUNC_MXDS,
 		.args = 0,
 		.xarg = 1,
@@ -54,20 +56,23 @@ int mxm_wmi_call_mxds(int adapter)
 	printk("calling mux switch %d\n", adapter);
 
 	status = wmi_evaluate_method(MXM_WMMX_GUID, 0x1, adapter, &input,
-				     &output);
+								 &output);
 
 	if (ACPI_FAILURE(status))
+	{
 		return status;
+	}
 
 	printk("mux switched %d\n", status);
 	return 0;
-			    
+
 }
 EXPORT_SYMBOL_GPL(mxm_wmi_call_mxds);
 
 int mxm_wmi_call_mxmx(int adapter)
 {
-	struct mxds_args args = {
+	struct mxds_args args =
+	{
 		.func = MXM_WMMX_FUNC_MXMX,
 		.args = 0,
 		.xarg = 1,
@@ -79,14 +84,16 @@ int mxm_wmi_call_mxmx(int adapter)
 	printk("calling mux switch %d\n", adapter);
 
 	status = wmi_evaluate_method(MXM_WMMX_GUID, 0x1, adapter, &input,
-				     &output);
+								 &output);
 
 	if (ACPI_FAILURE(status))
+	{
 		return status;
+	}
 
 	printk("mux mutex set switched %d\n", status);
 	return 0;
-			    
+
 }
 EXPORT_SYMBOL_GPL(mxm_wmi_call_mxmx);
 

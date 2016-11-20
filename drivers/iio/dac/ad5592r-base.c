@@ -32,14 +32,20 @@ static int ad5592r_gpio_get(struct gpio_chip *chip, unsigned offset)
 	mutex_lock(&st->gpio_lock);
 
 	if (st->gpio_out & BIT(offset))
+	{
 		val = st->gpio_val;
+	}
 	else
+	{
 		ret = st->ops->gpio_read(st, &val);
+	}
 
 	mutex_unlock(&st->gpio_lock);
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return !!(val & BIT(offset));
 }
@@ -51,9 +57,13 @@ static void ad5592r_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 	mutex_lock(&st->gpio_lock);
 
 	if (value)
+	{
 		st->gpio_val |= BIT(offset);
+	}
 	else
+	{
 		st->gpio_val &= ~BIT(offset);
+	}
 
 	st->ops->reg_write(st, AD5592R_REG_GPIO_SET, st->gpio_val);
 
@@ -71,8 +81,11 @@ static int ad5592r_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
 	st->gpio_in |= BIT(offset);
 
 	ret = st->ops->reg_write(st, AD5592R_REG_GPIO_OUT_EN, st->gpio_out);
+
 	if (ret < 0)
+	{
 		goto err_unlock;
+	}
 
 	ret = st->ops->reg_write(st, AD5592R_REG_GPIO_IN_EN, st->gpio_in);
 
@@ -83,7 +96,7 @@ err_unlock:
 }
 
 static int ad5592r_gpio_direction_output(struct gpio_chip *chip,
-					 unsigned offset, int value)
+		unsigned offset, int value)
 {
 	struct ad5592r_state *st = gpiochip_get_data(chip);
 	int ret;
@@ -91,20 +104,30 @@ static int ad5592r_gpio_direction_output(struct gpio_chip *chip,
 	mutex_lock(&st->gpio_lock);
 
 	if (value)
+	{
 		st->gpio_val |= BIT(offset);
+	}
 	else
+	{
 		st->gpio_val &= ~BIT(offset);
+	}
 
 	st->gpio_in &= ~BIT(offset);
 	st->gpio_out |= BIT(offset);
 
 	ret = st->ops->reg_write(st, AD5592R_REG_GPIO_SET, st->gpio_val);
+
 	if (ret < 0)
+	{
 		goto err_unlock;
+	}
 
 	ret = st->ops->reg_write(st, AD5592R_REG_GPIO_OUT_EN, st->gpio_out);
+
 	if (ret < 0)
+	{
 		goto err_unlock;
+	}
 
 	ret = st->ops->reg_write(st, AD5592R_REG_GPIO_IN_EN, st->gpio_in);
 
@@ -118,9 +141,10 @@ static int ad5592r_gpio_request(struct gpio_chip *chip, unsigned offset)
 {
 	struct ad5592r_state *st = gpiochip_get_data(chip);
 
-	if (!(st->gpio_map & BIT(offset))) {
+	if (!(st->gpio_map & BIT(offset)))
+	{
 		dev_err(st->dev, "GPIO %d is reserved by alternate function\n",
-			offset);
+				offset);
 		return -ENODEV;
 	}
 
@@ -130,7 +154,9 @@ static int ad5592r_gpio_request(struct gpio_chip *chip, unsigned offset)
 static int ad5592r_gpio_init(struct ad5592r_state *st)
 {
 	if (!st->gpio_map)
+	{
 		return 0;
+	}
 
 	st->gpiochip.label = dev_name(st->dev);
 	st->gpiochip.base = -1;
@@ -152,7 +178,9 @@ static int ad5592r_gpio_init(struct ad5592r_state *st)
 static void ad5592r_gpio_cleanup(struct ad5592r_state *st)
 {
 	if (st->gpio_map)
+	{
 		gpiochip_remove(&st->gpiochip);
+	}
 }
 
 static int ad5592r_reset(struct ad5592r_state *st)
@@ -161,13 +189,19 @@ static int ad5592r_reset(struct ad5592r_state *st)
 	struct iio_dev *iio_dev = iio_priv_to_dev(st);
 
 	gpio = devm_gpiod_get_optional(st->dev, "reset", GPIOD_OUT_LOW);
-	if (IS_ERR(gpio))
-		return PTR_ERR(gpio);
 
-	if (gpio) {
+	if (IS_ERR(gpio))
+	{
+		return PTR_ERR(gpio);
+	}
+
+	if (gpio)
+	{
 		udelay(1);
 		gpiod_set_value(gpio, 1);
-	} else {
+	}
+	else
+	{
 		mutex_lock(&iio_dev->mlock);
 		/* Writing this magic value resets the device */
 		st->ops->reg_write(st, AD5592R_REG_RESET, 0xdac);
@@ -183,13 +217,19 @@ static int ad5592r_get_vref(struct ad5592r_state *st)
 {
 	int ret;
 
-	if (st->reg) {
+	if (st->reg)
+	{
 		ret = regulator_get_voltage(st->reg);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		return ret / 1000;
-	} else {
+	}
+	else
+	{
 		return 2500;
 	}
 }
@@ -203,49 +243,54 @@ static int ad5592r_set_channel_modes(struct ad5592r_state *st)
 	u8 pulldown = 0, tristate = 0, dac = 0, adc = 0;
 	u16 read_back;
 
-	for (i = 0; i < st->num_channels; i++) {
-		switch (st->channel_modes[i]) {
-		case CH_MODE_DAC:
-			dac |= BIT(i);
-			break;
+	for (i = 0; i < st->num_channels; i++)
+	{
+		switch (st->channel_modes[i])
+		{
+			case CH_MODE_DAC:
+				dac |= BIT(i);
+				break;
 
-		case CH_MODE_ADC:
-			adc |= BIT(i);
-			break;
+			case CH_MODE_ADC:
+				adc |= BIT(i);
+				break;
 
-		case CH_MODE_DAC_AND_ADC:
-			dac |= BIT(i);
-			adc |= BIT(i);
-			break;
+			case CH_MODE_DAC_AND_ADC:
+				dac |= BIT(i);
+				adc |= BIT(i);
+				break;
 
-		case CH_MODE_GPIO:
-			st->gpio_map |= BIT(i);
-			st->gpio_in |= BIT(i); /* Default to input */
-			break;
+			case CH_MODE_GPIO:
+				st->gpio_map |= BIT(i);
+				st->gpio_in |= BIT(i); /* Default to input */
+				break;
 
-		case CH_MODE_UNUSED:
+			case CH_MODE_UNUSED:
+
 			/* fall-through */
-		default:
-			switch (st->channel_offstate[i]) {
-			case CH_OFFSTATE_OUT_TRISTATE:
-				tristate |= BIT(i);
-				break;
-
-			case CH_OFFSTATE_OUT_LOW:
-				st->gpio_out |= BIT(i);
-				break;
-
-			case CH_OFFSTATE_OUT_HIGH:
-				st->gpio_out |= BIT(i);
-				st->gpio_val |= BIT(i);
-				break;
-
-			case CH_OFFSTATE_PULLDOWN:
-				/* fall-through */
 			default:
-				pulldown |= BIT(i);
-				break;
-			}
+				switch (st->channel_offstate[i])
+				{
+					case CH_OFFSTATE_OUT_TRISTATE:
+						tristate |= BIT(i);
+						break;
+
+					case CH_OFFSTATE_OUT_LOW:
+						st->gpio_out |= BIT(i);
+						break;
+
+					case CH_OFFSTATE_OUT_HIGH:
+						st->gpio_out |= BIT(i);
+						st->gpio_val |= BIT(i);
+						break;
+
+					case CH_OFFSTATE_PULLDOWN:
+
+					/* fall-through */
+					default:
+						pulldown |= BIT(i);
+						break;
+				}
 		}
 	}
 
@@ -253,38 +298,62 @@ static int ad5592r_set_channel_modes(struct ad5592r_state *st)
 
 	/* Pull down unused pins to GND */
 	ret = ops->reg_write(st, AD5592R_REG_PULLDOWN, pulldown);
+
 	if (ret)
+	{
 		goto err_unlock;
+	}
 
 	ret = ops->reg_write(st, AD5592R_REG_TRISTATE, tristate);
+
 	if (ret)
+	{
 		goto err_unlock;
+	}
 
 	/* Configure pins that we use */
 	ret = ops->reg_write(st, AD5592R_REG_DAC_EN, dac);
+
 	if (ret)
+	{
 		goto err_unlock;
+	}
 
 	ret = ops->reg_write(st, AD5592R_REG_ADC_EN, adc);
+
 	if (ret)
+	{
 		goto err_unlock;
+	}
 
 	ret = ops->reg_write(st, AD5592R_REG_GPIO_SET, st->gpio_val);
+
 	if (ret)
+	{
 		goto err_unlock;
+	}
 
 	ret = ops->reg_write(st, AD5592R_REG_GPIO_OUT_EN, st->gpio_out);
+
 	if (ret)
+	{
 		goto err_unlock;
+	}
 
 	ret = ops->reg_write(st, AD5592R_REG_GPIO_IN_EN, st->gpio_in);
+
 	if (ret)
+	{
 		goto err_unlock;
+	}
 
 	/* Verify that we can read back at least one register */
 	ret = ops->reg_read(st, AD5592R_REG_ADC_EN, &read_back);
+
 	if (!ret && (read_back & 0xff) != adc)
+	{
 		ret = -EIO;
+	}
 
 err_unlock:
 	mutex_unlock(&iio_dev->mlock);
@@ -296,159 +365,205 @@ static int ad5592r_reset_channel_modes(struct ad5592r_state *st)
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(st->channel_modes); i++)
+	{
 		st->channel_modes[i] = CH_MODE_UNUSED;
+	}
 
 	return ad5592r_set_channel_modes(st);
 }
 
 static int ad5592r_write_raw(struct iio_dev *iio_dev,
-	struct iio_chan_spec const *chan, int val, int val2, long mask)
+							 struct iio_chan_spec const *chan, int val, int val2, long mask)
 {
 	struct ad5592r_state *st = iio_priv(iio_dev);
 	int ret;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
 
-		if (val >= (1 << chan->scan_type.realbits) || val < 0)
-			return -EINVAL;
-
-		if (!chan->output)
-			return -EINVAL;
-
-		mutex_lock(&iio_dev->mlock);
-		ret = st->ops->write_dac(st, chan->channel, val);
-		if (!ret)
-			st->cached_dac[chan->channel] = val;
-		mutex_unlock(&iio_dev->mlock);
-		return ret;
-	case IIO_CHAN_INFO_SCALE:
-		if (chan->type == IIO_VOLTAGE) {
-			bool gain;
-
-			if (val == st->scale_avail[0][0] &&
-				val2 == st->scale_avail[0][1])
-				gain = false;
-			else if (val == st->scale_avail[1][0] &&
-				 val2 == st->scale_avail[1][1])
-				gain = true;
-			else
+			if (val >= (1 << chan->scan_type.realbits) || val < 0)
+			{
 				return -EINVAL;
+			}
+
+			if (!chan->output)
+			{
+				return -EINVAL;
+			}
 
 			mutex_lock(&iio_dev->mlock);
+			ret = st->ops->write_dac(st, chan->channel, val);
 
-			ret = st->ops->reg_read(st, AD5592R_REG_CTRL,
-						&st->cached_gp_ctrl);
-			if (ret < 0) {
+			if (!ret)
+			{
+				st->cached_dac[chan->channel] = val;
+			}
+
+			mutex_unlock(&iio_dev->mlock);
+			return ret;
+
+		case IIO_CHAN_INFO_SCALE:
+			if (chan->type == IIO_VOLTAGE)
+			{
+				bool gain;
+
+				if (val == st->scale_avail[0][0] &&
+					val2 == st->scale_avail[0][1])
+				{
+					gain = false;
+				}
+				else if (val == st->scale_avail[1][0] &&
+						 val2 == st->scale_avail[1][1])
+				{
+					gain = true;
+				}
+				else
+				{
+					return -EINVAL;
+				}
+
+				mutex_lock(&iio_dev->mlock);
+
+				ret = st->ops->reg_read(st, AD5592R_REG_CTRL,
+										&st->cached_gp_ctrl);
+
+				if (ret < 0)
+				{
+					mutex_unlock(&iio_dev->mlock);
+					return ret;
+				}
+
+				if (chan->output)
+				{
+					if (gain)
+						st->cached_gp_ctrl |=
+							AD5592R_REG_CTRL_DAC_RANGE;
+					else
+						st->cached_gp_ctrl &=
+							~AD5592R_REG_CTRL_DAC_RANGE;
+				}
+				else
+				{
+					if (gain)
+						st->cached_gp_ctrl |=
+							AD5592R_REG_CTRL_ADC_RANGE;
+					else
+						st->cached_gp_ctrl &=
+							~AD5592R_REG_CTRL_ADC_RANGE;
+				}
+
+				ret = st->ops->reg_write(st, AD5592R_REG_CTRL,
+										 st->cached_gp_ctrl);
 				mutex_unlock(&iio_dev->mlock);
+
 				return ret;
 			}
 
-			if (chan->output) {
-				if (gain)
-					st->cached_gp_ctrl |=
-						AD5592R_REG_CTRL_DAC_RANGE;
-				else
-					st->cached_gp_ctrl &=
-						~AD5592R_REG_CTRL_DAC_RANGE;
-			} else {
-				if (gain)
-					st->cached_gp_ctrl |=
-						AD5592R_REG_CTRL_ADC_RANGE;
-				else
-					st->cached_gp_ctrl &=
-						~AD5592R_REG_CTRL_ADC_RANGE;
-			}
+			break;
 
-			ret = st->ops->reg_write(st, AD5592R_REG_CTRL,
-						 st->cached_gp_ctrl);
-			mutex_unlock(&iio_dev->mlock);
-
-			return ret;
-		}
-		break;
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
 static int ad5592r_read_raw(struct iio_dev *iio_dev,
-			   struct iio_chan_spec const *chan,
-			   int *val, int *val2, long m)
+							struct iio_chan_spec const *chan,
+							int *val, int *val2, long m)
 {
 	struct ad5592r_state *st = iio_priv(iio_dev);
 	u16 read_val;
 	int ret;
 
-	switch (m) {
-	case IIO_CHAN_INFO_RAW:
-		mutex_lock(&iio_dev->mlock);
+	switch (m)
+	{
+		case IIO_CHAN_INFO_RAW:
+			mutex_lock(&iio_dev->mlock);
 
-		if (!chan->output) {
-			ret = st->ops->read_adc(st, chan->channel, &read_val);
-			if (ret)
-				goto unlock;
+			if (!chan->output)
+			{
+				ret = st->ops->read_adc(st, chan->channel, &read_val);
 
-			if ((read_val >> 12 & 0x7) != (chan->channel & 0x7)) {
-				dev_err(st->dev, "Error while reading channel %u\n",
-						chan->channel);
-				ret = -EIO;
-				goto unlock;
+				if (ret)
+				{
+					goto unlock;
+				}
+
+				if ((read_val >> 12 & 0x7) != (chan->channel & 0x7))
+				{
+					dev_err(st->dev, "Error while reading channel %u\n",
+							chan->channel);
+					ret = -EIO;
+					goto unlock;
+				}
+
+				read_val &= GENMASK(11, 0);
+
+			}
+			else
+			{
+				read_val = st->cached_dac[chan->channel];
 			}
 
-			read_val &= GENMASK(11, 0);
+			dev_dbg(st->dev, "Channel %u read: 0x%04hX\n",
+					chan->channel, read_val);
 
-		} else {
-			read_val = st->cached_dac[chan->channel];
-		}
+			*val = (int) read_val;
+			ret = IIO_VAL_INT;
+			break;
 
-		dev_dbg(st->dev, "Channel %u read: 0x%04hX\n",
-				chan->channel, read_val);
+		case IIO_CHAN_INFO_SCALE:
+			*val = ad5592r_get_vref(st);
 
-		*val = (int) read_val;
-		ret = IIO_VAL_INT;
-		break;
-	case IIO_CHAN_INFO_SCALE:
-		*val = ad5592r_get_vref(st);
+			if (chan->type == IIO_TEMP)
+			{
+				s64 tmp = *val * (3767897513LL / 25LL);
+				*val = div_s64_rem(tmp, 1000000000LL, val2);
 
-		if (chan->type == IIO_TEMP) {
-			s64 tmp = *val * (3767897513LL / 25LL);
-			*val = div_s64_rem(tmp, 1000000000LL, val2);
+				ret = IIO_VAL_INT_PLUS_MICRO;
+			}
+			else
+			{
+				int mult;
 
-			ret = IIO_VAL_INT_PLUS_MICRO;
-		} else {
-			int mult;
+				mutex_lock(&iio_dev->mlock);
+
+				if (chan->output)
+					mult = !!(st->cached_gp_ctrl &
+							  AD5592R_REG_CTRL_DAC_RANGE);
+				else
+					mult = !!(st->cached_gp_ctrl &
+							  AD5592R_REG_CTRL_ADC_RANGE);
+
+				*val *= ++mult;
+
+				*val2 = chan->scan_type.realbits;
+				ret = IIO_VAL_FRACTIONAL_LOG2;
+			}
+
+			break;
+
+		case IIO_CHAN_INFO_OFFSET:
+			ret = ad5592r_get_vref(st);
 
 			mutex_lock(&iio_dev->mlock);
 
-			if (chan->output)
-				mult = !!(st->cached_gp_ctrl &
-					AD5592R_REG_CTRL_DAC_RANGE);
+			if (st->cached_gp_ctrl & AD5592R_REG_CTRL_ADC_RANGE)
+			{
+				*val = (-34365 * 25) / ret;
+			}
 			else
-				mult = !!(st->cached_gp_ctrl &
-					AD5592R_REG_CTRL_ADC_RANGE);
+			{
+				*val = (-75365 * 25) / ret;
+			}
 
-			*val *= ++mult;
+			ret =  IIO_VAL_INT;
+			break;
 
-			*val2 = chan->scan_type.realbits;
-			ret = IIO_VAL_FRACTIONAL_LOG2;
-		}
-		break;
-	case IIO_CHAN_INFO_OFFSET:
-		ret = ad5592r_get_vref(st);
-
-		mutex_lock(&iio_dev->mlock);
-
-		if (st->cached_gp_ctrl & AD5592R_REG_CTRL_ADC_RANGE)
-			*val = (-34365 * 25) / ret;
-		else
-			*val = (-75365 * 25) / ret;
-		ret =  IIO_VAL_INT;
-		break;
-	default:
-		ret = -EINVAL;
+		default:
+			ret = -EINVAL;
 	}
 
 unlock:
@@ -457,20 +572,22 @@ unlock:
 }
 
 static int ad5592r_write_raw_get_fmt(struct iio_dev *indio_dev,
-				 struct iio_chan_spec const *chan, long mask)
+									 struct iio_chan_spec const *chan, long mask)
 {
-	switch (mask) {
-	case IIO_CHAN_INFO_SCALE:
-		return IIO_VAL_INT_PLUS_NANO;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_SCALE:
+			return IIO_VAL_INT_PLUS_NANO;
 
-	default:
-		return IIO_VAL_INT_PLUS_MICRO;
+		default:
+			return IIO_VAL_INT_PLUS_MICRO;
 	}
 
 	return -EINVAL;
 }
 
-static const struct iio_info ad5592r_info = {
+static const struct iio_info ad5592r_info =
+{
 	.read_raw = ad5592r_read_raw,
 	.write_raw = ad5592r_write_raw,
 	.write_raw_get_fmt = ad5592r_write_raw_get_fmt,
@@ -478,28 +595,29 @@ static const struct iio_info ad5592r_info = {
 };
 
 static ssize_t ad5592r_show_scale_available(struct iio_dev *iio_dev,
-					   uintptr_t private,
-					   const struct iio_chan_spec *chan,
-					   char *buf)
+		uintptr_t private,
+		const struct iio_chan_spec *chan,
+		char *buf)
 {
 	struct ad5592r_state *st = iio_priv(iio_dev);
 
 	return sprintf(buf, "%d.%09u %d.%09u\n",
-		st->scale_avail[0][0], st->scale_avail[0][1],
-		st->scale_avail[1][0], st->scale_avail[1][1]);
+				   st->scale_avail[0][0], st->scale_avail[0][1],
+				   st->scale_avail[1][0], st->scale_avail[1][1]);
 }
 
-static struct iio_chan_spec_ext_info ad5592r_ext_info[] = {
+static struct iio_chan_spec_ext_info ad5592r_ext_info[] =
+{
 	{
-	 .name = "scale_available",
-	 .read = ad5592r_show_scale_available,
-	 .shared = true,
-	 },
+		.name = "scale_available",
+		.read = ad5592r_show_scale_available,
+		.shared = true,
+	},
 	{},
 };
 
 static void ad5592r_setup_channel(struct iio_dev *iio_dev,
-		struct iio_chan_spec *chan, bool output, unsigned id)
+								  struct iio_chan_spec *chan, bool output, unsigned id)
 {
 	chan->type = IIO_VOLTAGE;
 	chan->indexed = 1;
@@ -516,65 +634,80 @@ static void ad5592r_setup_channel(struct iio_dev *iio_dev,
 static int ad5592r_alloc_channels(struct ad5592r_state *st)
 {
 	unsigned i, curr_channel = 0,
-		 num_channels = st->num_channels;
+				num_channels = st->num_channels;
 	struct iio_dev *iio_dev = iio_priv_to_dev(st);
 	struct iio_chan_spec *channels;
 	struct fwnode_handle *child;
 	u32 reg, tmp;
 	int ret;
 
-	device_for_each_child_node(st->dev, child) {
+	device_for_each_child_node(st->dev, child)
+	{
 		ret = fwnode_property_read_u32(child, "reg", &reg);
+
 		if (ret || reg >= ARRAY_SIZE(st->channel_modes))
+		{
 			continue;
+		}
 
 		ret = fwnode_property_read_u32(child, "adi,mode", &tmp);
+
 		if (!ret)
+		{
 			st->channel_modes[reg] = tmp;
+		}
 
 		fwnode_property_read_u32(child, "adi,off-state", &tmp);
+
 		if (!ret)
+		{
 			st->channel_offstate[reg] = tmp;
+		}
 	}
 
 	channels = devm_kzalloc(st->dev,
-			(1 + 2 * num_channels) * sizeof(*channels), GFP_KERNEL);
+							(1 + 2 * num_channels) * sizeof(*channels), GFP_KERNEL);
+
 	if (!channels)
+	{
 		return -ENOMEM;
+	}
 
-	for (i = 0; i < num_channels; i++) {
-		switch (st->channel_modes[i]) {
-		case CH_MODE_DAC:
-			ad5592r_setup_channel(iio_dev, &channels[curr_channel],
-					true, i);
-			curr_channel++;
-			break;
+	for (i = 0; i < num_channels; i++)
+	{
+		switch (st->channel_modes[i])
+		{
+			case CH_MODE_DAC:
+				ad5592r_setup_channel(iio_dev, &channels[curr_channel],
+									  true, i);
+				curr_channel++;
+				break;
 
-		case CH_MODE_ADC:
-			ad5592r_setup_channel(iio_dev, &channels[curr_channel],
-					false, i);
-			curr_channel++;
-			break;
+			case CH_MODE_ADC:
+				ad5592r_setup_channel(iio_dev, &channels[curr_channel],
+									  false, i);
+				curr_channel++;
+				break;
 
-		case CH_MODE_DAC_AND_ADC:
-			ad5592r_setup_channel(iio_dev, &channels[curr_channel],
-					true, i);
-			curr_channel++;
-			ad5592r_setup_channel(iio_dev, &channels[curr_channel],
-					false, i);
-			curr_channel++;
-			break;
+			case CH_MODE_DAC_AND_ADC:
+				ad5592r_setup_channel(iio_dev, &channels[curr_channel],
+									  true, i);
+				curr_channel++;
+				ad5592r_setup_channel(iio_dev, &channels[curr_channel],
+									  false, i);
+				curr_channel++;
+				break;
 
-		default:
-			continue;
+			default:
+				continue;
 		}
 	}
 
 	channels[curr_channel].type = IIO_TEMP;
 	channels[curr_channel].channel = 8;
 	channels[curr_channel].info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |
-				   BIT(IIO_CHAN_INFO_SCALE) |
-				   BIT(IIO_CHAN_INFO_OFFSET);
+			BIT(IIO_CHAN_INFO_SCALE) |
+			BIT(IIO_CHAN_INFO_OFFSET);
 	curr_channel++;
 
 	iio_dev->num_channels = curr_channel;
@@ -594,15 +727,18 @@ static void ad5592r_init_scales(struct ad5592r_state *st, int vref_mV)
 }
 
 int ad5592r_probe(struct device *dev, const char *name,
-		const struct ad5592r_rw_ops *ops)
+				  const struct ad5592r_rw_ops *ops)
 {
 	struct iio_dev *iio_dev;
 	struct ad5592r_state *st;
 	int ret;
 
 	iio_dev = devm_iio_device_alloc(dev, sizeof(*st));
+
 	if (!iio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	st = iio_priv(iio_dev);
 	st->dev = dev;
@@ -611,15 +747,24 @@ int ad5592r_probe(struct device *dev, const char *name,
 	dev_set_drvdata(dev, iio_dev);
 
 	st->reg = devm_regulator_get_optional(dev, "vref");
-	if (IS_ERR(st->reg)) {
+
+	if (IS_ERR(st->reg))
+	{
 		if ((PTR_ERR(st->reg) != -ENODEV) && dev->of_node)
+		{
 			return PTR_ERR(st->reg);
+		}
 
 		st->reg = NULL;
-	} else {
+	}
+	else
+	{
 		ret = regulator_enable(st->reg);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	iio_dev->dev.parent = dev;
@@ -630,29 +775,47 @@ int ad5592r_probe(struct device *dev, const char *name,
 	ad5592r_init_scales(st, ad5592r_get_vref(st));
 
 	ret = ad5592r_reset(st);
+
 	if (ret)
+	{
 		goto error_disable_reg;
+	}
 
 	ret = ops->reg_write(st, AD5592R_REG_PD,
-		     (st->reg == NULL) ? AD5592R_REG_PD_EN_REF : 0);
+						 (st->reg == NULL) ? AD5592R_REG_PD_EN_REF : 0);
+
 	if (ret)
+	{
 		goto error_disable_reg;
+	}
 
 	ret = ad5592r_alloc_channels(st);
+
 	if (ret)
+	{
 		goto error_disable_reg;
+	}
 
 	ret = ad5592r_set_channel_modes(st);
+
 	if (ret)
+	{
 		goto error_reset_ch_modes;
+	}
 
 	ret = iio_device_register(iio_dev);
+
 	if (ret)
+	{
 		goto error_reset_ch_modes;
+	}
 
 	ret = ad5592r_gpio_init(st);
+
 	if (ret)
+	{
 		goto error_dev_unregister;
+	}
 
 	return 0;
 
@@ -663,8 +826,11 @@ error_reset_ch_modes:
 	ad5592r_reset_channel_modes(st);
 
 error_disable_reg:
+
 	if (st->reg)
+	{
 		regulator_disable(st->reg);
+	}
 
 	return ret;
 }
@@ -680,7 +846,9 @@ int ad5592r_remove(struct device *dev)
 	ad5592r_gpio_cleanup(st);
 
 	if (st->reg)
+	{
 		regulator_disable(st->reg);
+	}
 
 	return 0;
 }

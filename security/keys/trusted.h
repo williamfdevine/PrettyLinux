@@ -16,21 +16,24 @@
 #define LOAD32N(buffer, offset)	(*(uint32_t *)&buffer[offset])
 #define LOAD16(buffer, offset)	(ntohs(*(uint16_t *)&buffer[offset]))
 
-struct tpm_buf {
+struct tpm_buf
+{
 	int len;
 	unsigned char data[MAX_BUF_SIZE];
 };
 
 #define INIT_BUF(tb) (tb->len = 0)
 
-struct osapsess {
+struct osapsess
+{
 	uint32_t handle;
 	unsigned char secret[SHA1_DIGEST_SIZE];
 	unsigned char enonce[TPM_NONCE_SIZE];
 };
 
 /* discrete values, but have to store in uint16_t for TPM use */
-enum {
+enum
+{
 	SEAL_keytype = 1,
 	SRK_keytype = 4
 };
@@ -45,30 +48,30 @@ static inline void dump_options(struct trusted_key_options *o)
 	pr_info("trusted_key: pcrlock %d\n", o->pcrlock);
 	pr_info("trusted_key: pcrinfo %d\n", o->pcrinfo_len);
 	print_hex_dump(KERN_INFO, "pcrinfo ", DUMP_PREFIX_NONE,
-		       16, 1, o->pcrinfo, o->pcrinfo_len, 0);
+				   16, 1, o->pcrinfo, o->pcrinfo_len, 0);
 }
 
 static inline void dump_payload(struct trusted_key_payload *p)
 {
 	pr_info("trusted_key: key_len %d\n", p->key_len);
 	print_hex_dump(KERN_INFO, "key ", DUMP_PREFIX_NONE,
-		       16, 1, p->key, p->key_len, 0);
+				   16, 1, p->key, p->key_len, 0);
 	pr_info("trusted_key: bloblen %d\n", p->blob_len);
 	print_hex_dump(KERN_INFO, "blob ", DUMP_PREFIX_NONE,
-		       16, 1, p->blob, p->blob_len, 0);
+				   16, 1, p->blob, p->blob_len, 0);
 	pr_info("trusted_key: migratable %d\n", p->migratable);
 }
 
 static inline void dump_sess(struct osapsess *s)
 {
 	print_hex_dump(KERN_INFO, "trusted-key: handle ", DUMP_PREFIX_NONE,
-		       16, 1, &s->handle, 4, 0);
+				   16, 1, &s->handle, 4, 0);
 	pr_info("trusted-key: secret:\n");
 	print_hex_dump(KERN_INFO, "", DUMP_PREFIX_NONE,
-		       16, 1, &s->secret, SHA1_DIGEST_SIZE, 0);
+				   16, 1, &s->secret, SHA1_DIGEST_SIZE, 0);
 	pr_info("trusted-key: enonce:\n");
 	print_hex_dump(KERN_INFO, "", DUMP_PREFIX_NONE,
-		       16, 1, &s->enonce, SHA1_DIGEST_SIZE, 0);
+				   16, 1, &s->enonce, SHA1_DIGEST_SIZE, 0);
 }
 
 static inline void dump_tpm_buf(unsigned char *buf)
@@ -115,7 +118,7 @@ static inline void store32(struct tpm_buf *buf, const uint32_t value)
 }
 
 static inline void storebytes(struct tpm_buf *buf, const unsigned char *in,
-			      const int len)
+							  const int len)
 {
 	memcpy(buf->data + buf->len, in, len);
 	buf->len += len;

@@ -1,4 +1,4 @@
-/* 
+/*
  *  Copyright 10/16/2005 Tilman Kranz <tilde@tk-sls.de>
  *  Creative Audio MIDI, for the CA0106 Driver
  *  Version: 0.0.1
@@ -29,7 +29,8 @@
 #define CA_MIDI_MODE_INPUT	MPU401_MODE_INPUT
 #define CA_MIDI_MODE_OUTPUT	MPU401_MODE_OUTPUT
 
-struct snd_ca_midi {
+struct snd_ca_midi
+{
 
 	struct snd_rawmidi *rmidi;
 	struct snd_rawmidi_substream *substream_input;
@@ -46,8 +47,8 @@ struct snd_ca_midi {
 	unsigned int midi_mode;
 	int port;
 	int tx_enable, rx_enable;
-	int ipr_tx, ipr_rx;            
-	
+	int ipr_tx, ipr_rx;
+
 	int input_avail, output_ready;
 	int ack, reset, enter_uart;
 

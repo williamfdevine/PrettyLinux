@@ -22,7 +22,8 @@
 
 #include "ts3a227e.h"
 
-struct ts3a227e {
+struct ts3a227e
+{
 	struct device *dev;
 	struct regmap *regmap;
 	struct snd_soc_jack *jack;
@@ -33,7 +34,8 @@ struct ts3a227e {
 };
 
 /* Button values to be reported on the jack */
-static const int ts3a227e_buttons[] = {
+static const int ts3a227e_buttons[] =
+{
 	SND_JACK_BTN_0,
 	SND_JACK_BTN_1,
 	SND_JACK_BTN_2,
@@ -42,11 +44,11 @@ static const int ts3a227e_buttons[] = {
 
 #define TS3A227E_NUM_BUTTONS 4
 #define TS3A227E_JACK_MASK (SND_JACK_HEADPHONE | \
-			    SND_JACK_MICROPHONE | \
-			    SND_JACK_BTN_0 | \
-			    SND_JACK_BTN_1 | \
-			    SND_JACK_BTN_2 | \
-			    SND_JACK_BTN_3)
+							SND_JACK_MICROPHONE | \
+							SND_JACK_BTN_0 | \
+							SND_JACK_BTN_1 | \
+							SND_JACK_BTN_2 | \
+							SND_JACK_BTN_3)
 
 /* TS3A227E registers */
 #define TS3A227E_REG_DEVICE_ID		0x00
@@ -94,7 +96,8 @@ static const int ts3a227e_buttons[] = {
 #define JACK_INSERTED 0x08
 #define EITHER_MIC_MASK (TYPE_4_POLE_OMTP | TYPE_4_POLE_STANDARD)
 
-static const struct reg_default ts3a227e_reg_defaults[] = {
+static const struct reg_default ts3a227e_reg_defaults[] =
+{
 	{ TS3A227E_REG_DEVICE_ID, 0x10 },
 	{ TS3A227E_REG_INTERRUPT, 0x00 },
 	{ TS3A227E_REG_KP_INTERRUPT, 0x00 },
@@ -115,34 +118,40 @@ static const struct reg_default ts3a227e_reg_defaults[] = {
 
 static bool ts3a227e_readable_reg(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case TS3A227E_REG_DEVICE_ID ... TS3A227E_REG_KP_THRESHOLD_3:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case TS3A227E_REG_DEVICE_ID ... TS3A227E_REG_KP_THRESHOLD_3:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
 static bool ts3a227e_writeable_reg(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case TS3A227E_REG_INTERRUPT_DISABLE ... TS3A227E_REG_SWITCH_CONTROL_2:
-	case TS3A227E_REG_KP_THRESHOLD_1 ... TS3A227E_REG_KP_THRESHOLD_3:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case TS3A227E_REG_INTERRUPT_DISABLE ... TS3A227E_REG_SWITCH_CONTROL_2:
+		case TS3A227E_REG_KP_THRESHOLD_1 ... TS3A227E_REG_KP_THRESHOLD_3:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
 static bool ts3a227e_volatile_reg(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case TS3A227E_REG_INTERRUPT ... TS3A227E_REG_INTERRUPT_DISABLE:
-	case TS3A227E_REG_SETTING_2:
-	case TS3A227E_REG_SWITCH_STATUS_1 ... TS3A227E_REG_ADC_OUTPUT:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case TS3A227E_REG_INTERRUPT ... TS3A227E_REG_INTERRUPT_DISABLE:
+		case TS3A227E_REG_SETTING_2:
+		case TS3A227E_REG_SWITCH_STATUS_1 ... TS3A227E_REG_ADC_OUTPUT:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
@@ -152,16 +161,28 @@ static void ts3a227e_jack_report(struct ts3a227e *ts3a227e)
 	int report = 0;
 
 	if (!ts3a227e->jack)
+	{
 		return;
+	}
 
 	if (ts3a227e->plugged)
+	{
 		report = SND_JACK_HEADPHONE;
-	if (ts3a227e->mic_present)
-		report |= SND_JACK_MICROPHONE;
-	for (i = 0; i < TS3A227E_NUM_BUTTONS; i++) {
-		if (ts3a227e->buttons_held & (1 << i))
-			report |= ts3a227e_buttons[i];
 	}
+
+	if (ts3a227e->mic_present)
+	{
+		report |= SND_JACK_MICROPHONE;
+	}
+
+	for (i = 0; i < TS3A227E_NUM_BUTTONS; i++)
+	{
+		if (ts3a227e->buttons_held & (1 << i))
+		{
+			report |= ts3a227e_buttons[i];
+		}
+	}
+
 	snd_soc_jack_report(ts3a227e->jack, report, TS3A227E_JACK_MASK);
 }
 
@@ -174,14 +195,17 @@ static void ts3a227e_new_jack_state(struct ts3a227e *ts3a227e, unsigned acc_reg)
 
 	ts3a227e->plugged = plugged;
 
-	if (mic_present != ts3a227e->mic_present) {
+	if (mic_present != ts3a227e->mic_present)
+	{
 		ts3a227e->mic_present = mic_present;
 		ts3a227e->buttons_held = 0;
-		if (mic_present) {
+
+		if (mic_present)
+		{
 			/* Enable key press detection. */
 			regmap_update_bits(ts3a227e->regmap,
-					   TS3A227E_REG_SETTING_2,
-					   KP_ENABLE, KP_ENABLE);
+							   TS3A227E_REG_SETTING_2,
+							   KP_ENABLE, KP_ENABLE);
 		}
 	}
 }
@@ -196,28 +220,39 @@ static irqreturn_t ts3a227e_interrupt(int irq, void *data)
 
 	/* Check for plug/unplug. */
 	ret = regmap_read(regmap, TS3A227E_REG_INTERRUPT, &int_reg);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to clear interrupt ret=%d\n", ret);
 		return IRQ_NONE;
 	}
 
-	if (int_reg & (DETECTION_COMPLETE_EVENT | INS_REM_EVENT)) {
+	if (int_reg & (DETECTION_COMPLETE_EVENT | INS_REM_EVENT))
+	{
 		regmap_read(regmap, TS3A227E_REG_ACCESSORY_STATUS, &acc_reg);
 		ts3a227e_new_jack_state(ts3a227e, acc_reg);
 	}
 
 	/* Report any key events. */
 	ret = regmap_read(regmap, TS3A227E_REG_KP_INTERRUPT, &kp_int_reg);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to clear key interrupt ret=%d\n", ret);
 		return IRQ_NONE;
 	}
 
-	for (i = 0; i < TS3A227E_NUM_BUTTONS; i++) {
+	for (i = 0; i < TS3A227E_NUM_BUTTONS; i++)
+	{
 		if (kp_int_reg & PRESS_MASK(i))
+		{
 			ts3a227e->buttons_held |= (1 << i);
+		}
+
 		if (kp_int_reg & RELEASE_MASK(i))
+		{
 			ts3a227e->buttons_held &= ~(1 << i);
+		}
 	}
 
 	ts3a227e_jack_report(ts3a227e);
@@ -236,7 +271,7 @@ static irqreturn_t ts3a227e_interrupt(int irq, void *data)
  * reporting.
  */
 int ts3a227e_enable_jack_detect(struct snd_soc_component *component,
-				struct snd_soc_jack *jack)
+								struct snd_soc_jack *jack)
 {
 	struct ts3a227e *ts3a227e = snd_soc_component_get_drvdata(component);
 
@@ -254,7 +289,8 @@ EXPORT_SYMBOL_GPL(ts3a227e_enable_jack_detect);
 
 static struct snd_soc_component_driver ts3a227e_soc_driver;
 
-static const struct regmap_config ts3a227e_regmap_config = {
+static const struct regmap_config ts3a227e_regmap_config =
+{
 	.val_bits = 8,
 	.reg_bits = 8,
 
@@ -269,23 +305,25 @@ static const struct regmap_config ts3a227e_regmap_config = {
 };
 
 static int ts3a227e_parse_device_property(struct ts3a227e *ts3a227e,
-				struct device *dev)
+		struct device *dev)
 {
 	u32 micbias;
 	int err;
 
 	err = device_property_read_u32(dev, "ti,micbias", &micbias);
-	if (!err) {
+
+	if (!err)
+	{
 		regmap_update_bits(ts3a227e->regmap, TS3A227E_REG_SETTING_3,
-			MICBIAS_SETTING_MASK,
-			(micbias & 0x07) << MICBIAS_SETTING_SFT);
+						   MICBIAS_SETTING_MASK,
+						   (micbias & 0x07) << MICBIAS_SETTING_SFT);
 	}
 
 	return 0;
 }
 
 static int ts3a227e_i2c_probe(struct i2c_client *i2c,
-			      const struct i2c_device_id *id)
+							  const struct i2c_device_id *id)
 {
 	struct ts3a227e *ts3a227e;
 	struct device *dev = &i2c->dev;
@@ -293,40 +331,53 @@ static int ts3a227e_i2c_probe(struct i2c_client *i2c,
 	unsigned int acc_reg;
 
 	ts3a227e = devm_kzalloc(&i2c->dev, sizeof(*ts3a227e), GFP_KERNEL);
+
 	if (ts3a227e == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(i2c, ts3a227e);
 	ts3a227e->dev = dev;
 	ts3a227e->irq = i2c->irq;
 
 	ts3a227e->regmap = devm_regmap_init_i2c(i2c, &ts3a227e_regmap_config);
+
 	if (IS_ERR(ts3a227e->regmap))
+	{
 		return PTR_ERR(ts3a227e->regmap);
+	}
 
 	ret = ts3a227e_parse_device_property(ts3a227e, dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to parse device property: %d\n", ret);
 		return ret;
 	}
 
 	ret = devm_request_threaded_irq(dev, i2c->irq, NULL, ts3a227e_interrupt,
-					IRQF_TRIGGER_LOW | IRQF_ONESHOT,
-					"TS3A227E", ts3a227e);
-	if (ret) {
+									IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+									"TS3A227E", ts3a227e);
+
+	if (ret)
+	{
 		dev_err(dev, "Cannot request irq %d (%d)\n", i2c->irq, ret);
 		return ret;
 	}
 
 	ret = devm_snd_soc_register_component(&i2c->dev, &ts3a227e_soc_driver,
-					      NULL, 0);
+										  NULL, 0);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Enable interrupts except for ADC complete. */
 	regmap_update_bits(ts3a227e->regmap, TS3A227E_REG_INTERRUPT_DISABLE,
-			   INTB_DISABLE | ADC_COMPLETE_INT_DISABLE,
-			   ADC_COMPLETE_INT_DISABLE);
+					   INTB_DISABLE | ADC_COMPLETE_INT_DISABLE,
+					   ADC_COMPLETE_INT_DISABLE);
 
 	/* Read jack status because chip might not trigger interrupt at boot. */
 	regmap_read(ts3a227e->regmap, TS3A227E_REG_ACCESSORY_STATUS, &acc_reg);
@@ -358,23 +409,27 @@ static int ts3a227e_resume(struct device *dev)
 }
 #endif
 
-static const struct dev_pm_ops ts3a227e_pm = {
+static const struct dev_pm_ops ts3a227e_pm =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(ts3a227e_suspend, ts3a227e_resume)
 };
 
-static const struct i2c_device_id ts3a227e_i2c_ids[] = {
+static const struct i2c_device_id ts3a227e_i2c_ids[] =
+{
 	{ "ts3a227e", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, ts3a227e_i2c_ids);
 
-static const struct of_device_id ts3a227e_of_match[] = {
+static const struct of_device_id ts3a227e_of_match[] =
+{
 	{ .compatible = "ti,ts3a227e", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, ts3a227e_of_match);
 
-static struct i2c_driver ts3a227e_driver = {
+static struct i2c_driver ts3a227e_driver =
+{
 	.driver = {
 		.name = "ts3a227e",
 		.pm = &ts3a227e_pm,

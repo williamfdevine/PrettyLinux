@@ -24,17 +24,22 @@
 #include "priv.h"
 
 static const struct nvkm_subdev_func
-gm200_ibus = {
+	gm200_ibus =
+{
 	.intr = gk104_ibus_intr,
 };
 
 int
 gm200_ibus_new(struct nvkm_device *device, int index,
-	       struct nvkm_subdev **pibus)
+			   struct nvkm_subdev **pibus)
 {
 	struct nvkm_subdev *ibus;
+
 	if (!(ibus = *pibus = kzalloc(sizeof(*ibus), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	nvkm_subdev_ctor(&gm200_ibus, device, index, ibus);
 	return 0;
 }

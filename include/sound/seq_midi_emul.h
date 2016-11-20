@@ -29,29 +29,30 @@
  * channel.  All drivers for hardware that does not understand midi
  * directly will probably need to use this structure.
  */
-struct snd_midi_channel {
-	void *private;		/* A back pointer to driver data */
-	int  number;		/* The channel number */
-	int  client;		/* The client associated with this channel */
-	int  port;		/* The port associated with this channel */
+struct snd_midi_channel
+{
+		void *private;		/* A back pointer to driver data */
+		int  number;		/* The channel number */
+		int  client;		/* The client associated with this channel */
+		int  port;		/* The port associated with this channel */
 
-	unsigned char midi_mode;	/* GM, GS, XG etc */
-	unsigned int 
-		drum_channel:1,		/* Drum channel */
-		param_type:1		/* RPN/NRPN */
-		;
+		unsigned char midi_mode;	/* GM, GS, XG etc */
+		unsigned int
+		drum_channel: 1,		/* Drum channel */
+					  param_type: 1		/* RPN/NRPN */
+					  ;
 
-	unsigned char midi_aftertouch;	/* Aftertouch (key pressure) */
-	unsigned char midi_pressure;	/* Channel pressure */
-	unsigned char midi_program;	/* Instrument number */
-	short midi_pitchbend;		/* Pitch bend amount */
+		unsigned char midi_aftertouch;	/* Aftertouch (key pressure) */
+		unsigned char midi_pressure;	/* Channel pressure */
+		unsigned char midi_program;	/* Instrument number */
+		short midi_pitchbend;		/* Pitch bend amount */
 
-	unsigned char control[128];	/* Current value of all controls */
-	unsigned char note[128];	/* Current status for all notes */
+		unsigned char control[128];	/* Current value of all controls */
+		unsigned char note[128];	/* Current status for all notes */
 
-	short gm_rpn_pitch_bend_range;	/* Pitch bend range */
-	short gm_rpn_fine_tuning; 	/* Master fine tuning */
-	short gm_rpn_coarse_tuning;	/* Master coarse tuning */
+		short gm_rpn_pitch_bend_range;	/* Pitch bend range */
+		short gm_rpn_fine_tuning; 	/* Master fine tuning */
+		short gm_rpn_coarse_tuning;	/* Master coarse tuning */
 
 };
 
@@ -64,7 +65,8 @@ struct snd_midi_channel {
  * A driver that had no need for snd_midi_channel could still use the
  * channel set type if it wished with the channel array null.
  */
-struct snd_midi_channel_set {
+struct snd_midi_channel_set
+{
 	void *private_data;		/* Driver data */
 	int  client;			/* Client for this port */
 	int  port;			/* The port number */
@@ -79,16 +81,17 @@ struct snd_midi_channel_set {
 
 };
 
-struct snd_midi_op {
+struct snd_midi_op
+{
 	void (*note_on)(void *private_data, int note, int vel, struct snd_midi_channel *chan);
-	void (*note_off)(void *private_data,int note, int vel, struct snd_midi_channel *chan); /* release note */
+	void (*note_off)(void *private_data, int note, int vel, struct snd_midi_channel *chan); /* release note */
 	void (*key_press)(void *private_data, int note, int vel, struct snd_midi_channel *chan);
 	void (*note_terminate)(void *private_data, int note, struct snd_midi_channel *chan); /* terminate note immediately */
 	void (*control)(void *private_data, int type, struct snd_midi_channel *chan);
 	void (*nrpn)(void *private_data, struct snd_midi_channel *chan,
-		     struct snd_midi_channel_set *chset);
+				 struct snd_midi_channel_set *chset);
 	void (*sysex)(void *private_data, unsigned char *buf, int len, int parsed,
-		      struct snd_midi_channel_set *chset);
+				  struct snd_midi_channel_set *chset);
 };
 
 /*
@@ -169,27 +172,28 @@ struct snd_midi_op {
 #define SNDRV_MIDI_NOTE_ON		0x01
 #define SNDRV_MIDI_NOTE_RELEASED		0x02
 #define SNDRV_MIDI_NOTE_SOSTENUTO		0x04
- 
+
 #define SNDRV_MIDI_PARAM_TYPE_REGISTERED		0
 #define SNDRV_MIDI_PARAM_TYPE_NONREGISTERED	1
 
 /* SYSEX parse flag */
-enum {
+enum
+{
 	SNDRV_MIDI_SYSEX_NOT_PARSED = 0,
-	SNDRV_MIDI_SYSEX_GM_ON,	
-	SNDRV_MIDI_SYSEX_GS_ON,	
-	SNDRV_MIDI_SYSEX_GS_RESET,	
+	SNDRV_MIDI_SYSEX_GM_ON,
+	SNDRV_MIDI_SYSEX_GS_ON,
+	SNDRV_MIDI_SYSEX_GS_RESET,
 	SNDRV_MIDI_SYSEX_GS_CHORUS_MODE,
 	SNDRV_MIDI_SYSEX_GS_REVERB_MODE,
 	SNDRV_MIDI_SYSEX_GS_MASTER_VOLUME,
 	SNDRV_MIDI_SYSEX_GS_PROGRAM,
 	SNDRV_MIDI_SYSEX_GS_DRUM_CHANNEL,
-	SNDRV_MIDI_SYSEX_XG_ON,	
+	SNDRV_MIDI_SYSEX_XG_ON,
 };
 
 /* Prototypes for midi_process.c */
 void snd_midi_process_event(struct snd_midi_op *ops, struct snd_seq_event *ev,
-			    struct snd_midi_channel_set *chanset);
+							struct snd_midi_channel_set *chanset);
 void snd_midi_channel_set_clear(struct snd_midi_channel_set *chset);
 struct snd_midi_channel_set *snd_midi_channel_alloc_set(int n);
 void snd_midi_channel_free_set(struct snd_midi_channel_set *chset);

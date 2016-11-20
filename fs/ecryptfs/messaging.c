@@ -53,18 +53,23 @@ static int ecryptfs_acquire_free_msg_ctx(struct ecryptfs_msg_ctx **msg_ctx)
 	struct list_head *p;
 	int rc;
 
-	if (list_empty(&ecryptfs_msg_ctx_free_list)) {
+	if (list_empty(&ecryptfs_msg_ctx_free_list))
+	{
 		printk(KERN_WARNING "%s: The eCryptfs free "
-		       "context list is empty.  It may be helpful to "
-		       "specify the ecryptfs_message_buf_len "
-		       "parameter to be greater than the current "
-		       "value of [%d]\n", __func__, ecryptfs_message_buf_len);
+			   "context list is empty.  It may be helpful to "
+			   "specify the ecryptfs_message_buf_len "
+			   "parameter to be greater than the current "
+			   "value of [%d]\n", __func__, ecryptfs_message_buf_len);
 		rc = -ENOMEM;
 		goto out;
 	}
-	list_for_each(p, &ecryptfs_msg_ctx_free_list) {
+
+	list_for_each(p, &ecryptfs_msg_ctx_free_list)
+	{
 		*msg_ctx = list_entry(p, struct ecryptfs_msg_ctx, node);
-		if (mutex_trylock(&(*msg_ctx)->mux)) {
+
+		if (mutex_trylock(&(*msg_ctx)->mux))
+		{
 			(*msg_ctx)->task = current;
 			rc = 0;
 			goto out;
@@ -117,9 +122,11 @@ int ecryptfs_find_daemon_by_euid(struct ecryptfs_daemon **daemon)
 	int rc;
 
 	hlist_for_each_entry(*daemon,
-			    &ecryptfs_daemon_hash[ecryptfs_current_euid_hash()],
-			    euid_chain) {
-		if (uid_eq((*daemon)->file->f_cred->euid, current_euid())) {
+						 &ecryptfs_daemon_hash[ecryptfs_current_euid_hash()],
+						 euid_chain)
+	{
+		if (uid_eq((*daemon)->file->f_cred->euid, current_euid()))
+		{
 			rc = 0;
 			goto out;
 		}
@@ -145,19 +152,22 @@ ecryptfs_spawn_daemon(struct ecryptfs_daemon **daemon, struct file *file)
 	int rc = 0;
 
 	(*daemon) = kzalloc(sizeof(**daemon), GFP_KERNEL);
-	if (!(*daemon)) {
+
+	if (!(*daemon))
+	{
 		rc = -ENOMEM;
 		printk(KERN_ERR "%s: Failed to allocate [%zd] bytes of "
-		       "GFP_KERNEL memory\n", __func__, sizeof(**daemon));
+			   "GFP_KERNEL memory\n", __func__, sizeof(**daemon));
 		goto out;
 	}
+
 	(*daemon)->file = file;
 	mutex_init(&(*daemon)->mux);
 	INIT_LIST_HEAD(&(*daemon)->msg_ctx_out_queue);
 	init_waitqueue_head(&(*daemon)->wait);
 	(*daemon)->num_queued_msg_ctx = 0;
 	hlist_add_head(&(*daemon)->euid_chain,
-		       &ecryptfs_daemon_hash[ecryptfs_current_euid_hash()]);
+				   &ecryptfs_daemon_hash[ecryptfs_current_euid_hash()]);
 out:
 	return rc;
 }
@@ -174,18 +184,22 @@ int ecryptfs_exorcise_daemon(struct ecryptfs_daemon *daemon)
 	int rc = 0;
 
 	mutex_lock(&daemon->mux);
+
 	if ((daemon->flags & ECRYPTFS_DAEMON_IN_READ)
-	    || (daemon->flags & ECRYPTFS_DAEMON_IN_POLL)) {
+		|| (daemon->flags & ECRYPTFS_DAEMON_IN_POLL))
+	{
 		rc = -EBUSY;
 		mutex_unlock(&daemon->mux);
 		goto out;
 	}
+
 	list_for_each_entry_safe(msg_ctx, msg_ctx_tmp,
-				 &daemon->msg_ctx_out_queue, daemon_out_list) {
+							 &daemon->msg_ctx_out_queue, daemon_out_list)
+	{
 		list_del(&msg_ctx->daemon_out_list);
 		daemon->num_queued_msg_ctx--;
 		printk(KERN_WARNING "%s: Warning: dropping message that is in "
-		       "the out queue of a dying daemon\n", __func__);
+			   "the out queue of a dying daemon\n", __func__);
 		ecryptfs_msg_ctx_alloc_to_free(msg_ctx);
 	}
 	hlist_del(&daemon->euid_chain);
@@ -218,42 +232,52 @@ out:
  * Returns zero on success; non-zero otherwise
  */
 int ecryptfs_process_response(struct ecryptfs_daemon *daemon,
-			      struct ecryptfs_message *msg, u32 seq)
+							  struct ecryptfs_message *msg, u32 seq)
 {
 	struct ecryptfs_msg_ctx *msg_ctx;
 	size_t msg_size;
 	int rc;
 
-	if (msg->index >= ecryptfs_message_buf_len) {
+	if (msg->index >= ecryptfs_message_buf_len)
+	{
 		rc = -EINVAL;
 		printk(KERN_ERR "%s: Attempt to reference "
-		       "context buffer at index [%d]; maximum "
-		       "allowable is [%d]\n", __func__, msg->index,
-		       (ecryptfs_message_buf_len - 1));
+			   "context buffer at index [%d]; maximum "
+			   "allowable is [%d]\n", __func__, msg->index,
+			   (ecryptfs_message_buf_len - 1));
 		goto out;
 	}
+
 	msg_ctx = &ecryptfs_msg_ctx_arr[msg->index];
 	mutex_lock(&msg_ctx->mux);
-	if (msg_ctx->state != ECRYPTFS_MSG_CTX_STATE_PENDING) {
+
+	if (msg_ctx->state != ECRYPTFS_MSG_CTX_STATE_PENDING)
+	{
 		rc = -EINVAL;
 		printk(KERN_WARNING "%s: Desired context element is not "
-		       "pending a response\n", __func__);
+			   "pending a response\n", __func__);
 		goto unlock;
-	} else if (msg_ctx->counter != seq) {
+	}
+	else if (msg_ctx->counter != seq)
+	{
 		rc = -EINVAL;
 		printk(KERN_WARNING "%s: Invalid message sequence; "
-		       "expected [%d]; received [%d]\n", __func__,
-		       msg_ctx->counter, seq);
+			   "expected [%d]; received [%d]\n", __func__,
+			   msg_ctx->counter, seq);
 		goto unlock;
 	}
+
 	msg_size = (sizeof(*msg) + msg->data_len);
 	msg_ctx->msg = kmemdup(msg, msg_size, GFP_KERNEL);
-	if (!msg_ctx->msg) {
+
+	if (!msg_ctx->msg)
+	{
 		rc = -ENOMEM;
 		printk(KERN_ERR "%s: Failed to allocate [%zd] bytes of "
-		       "GFP_KERNEL memory\n", __func__, msg_size);
+			   "GFP_KERNEL memory\n", __func__, msg_size);
 		goto unlock;
 	}
+
 	msg_ctx->state = ECRYPTFS_MSG_CTX_STATE_DONE;
 	wake_up_process(msg_ctx->task);
 	rc = 0;
@@ -275,32 +299,40 @@ out:
  */
 static int
 ecryptfs_send_message_locked(char *data, int data_len, u8 msg_type,
-			     struct ecryptfs_msg_ctx **msg_ctx)
+							 struct ecryptfs_msg_ctx **msg_ctx)
 {
 	struct ecryptfs_daemon *daemon;
 	int rc;
 
 	rc = ecryptfs_find_daemon_by_euid(&daemon);
-	if (rc) {
+
+	if (rc)
+	{
 		rc = -ENOTCONN;
 		goto out;
 	}
+
 	mutex_lock(&ecryptfs_msg_ctx_lists_mux);
 	rc = ecryptfs_acquire_free_msg_ctx(msg_ctx);
-	if (rc) {
+
+	if (rc)
+	{
 		mutex_unlock(&ecryptfs_msg_ctx_lists_mux);
 		printk(KERN_WARNING "%s: Could not claim a free "
-		       "context element\n", __func__);
+			   "context element\n", __func__);
 		goto out;
 	}
+
 	ecryptfs_msg_ctx_free_to_alloc(*msg_ctx);
 	mutex_unlock(&(*msg_ctx)->mux);
 	mutex_unlock(&ecryptfs_msg_ctx_lists_mux);
 	rc = ecryptfs_send_miscdev(data, data_len, *msg_ctx, msg_type, 0,
-				   daemon);
+							   daemon);
+
 	if (rc)
 		printk(KERN_ERR "%s: Error attempting to send message to "
-		       "userspace daemon; rc = [%d]\n", __func__, rc);
+			   "userspace daemon; rc = [%d]\n", __func__, rc);
+
 out:
 	return rc;
 }
@@ -316,13 +348,13 @@ out:
  * Returns zero on success; non-zero otherwise
  */
 int ecryptfs_send_message(char *data, int data_len,
-			  struct ecryptfs_msg_ctx **msg_ctx)
+						  struct ecryptfs_msg_ctx **msg_ctx)
 {
 	int rc;
 
 	mutex_lock(&ecryptfs_daemon_hash_mux);
 	rc = ecryptfs_send_message_locked(data, data_len, ECRYPTFS_MSG_REQUEST,
-					  msg_ctx);
+									  msg_ctx);
 	mutex_unlock(&ecryptfs_daemon_hash_mux);
 	return rc;
 }
@@ -339,7 +371,7 @@ int ecryptfs_send_message(char *data, int data_len,
  * error occurs. Callee must free @msg on success.
  */
 int ecryptfs_wait_for_response(struct ecryptfs_msg_ctx *msg_ctx,
-			       struct ecryptfs_message **msg)
+							   struct ecryptfs_message **msg)
 {
 	signed long timeout = ecryptfs_message_wait_timeout * HZ;
 	int rc = 0;
@@ -348,17 +380,24 @@ sleep:
 	timeout = schedule_timeout_interruptible(timeout);
 	mutex_lock(&ecryptfs_msg_ctx_lists_mux);
 	mutex_lock(&msg_ctx->mux);
-	if (msg_ctx->state != ECRYPTFS_MSG_CTX_STATE_DONE) {
-		if (timeout) {
+
+	if (msg_ctx->state != ECRYPTFS_MSG_CTX_STATE_DONE)
+	{
+		if (timeout)
+		{
 			mutex_unlock(&msg_ctx->mux);
 			mutex_unlock(&ecryptfs_msg_ctx_lists_mux);
 			goto sleep;
 		}
+
 		rc = -ENOMSG;
-	} else {
+	}
+	else
+	{
 		*msg = msg_ctx->msg;
 		msg_ctx->msg = NULL;
 	}
+
 	ecryptfs_msg_ctx_alloc_to_free(msg_ctx);
 	mutex_unlock(&msg_ctx->mux);
 	mutex_unlock(&ecryptfs_msg_ctx_lists_mux);
@@ -370,41 +409,58 @@ int __init ecryptfs_init_messaging(void)
 	int i;
 	int rc = 0;
 
-	if (ecryptfs_number_of_users > ECRYPTFS_MAX_NUM_USERS) {
+	if (ecryptfs_number_of_users > ECRYPTFS_MAX_NUM_USERS)
+	{
 		ecryptfs_number_of_users = ECRYPTFS_MAX_NUM_USERS;
 		printk(KERN_WARNING "%s: Specified number of users is "
-		       "too large, defaulting to [%d] users\n", __func__,
-		       ecryptfs_number_of_users);
+			   "too large, defaulting to [%d] users\n", __func__,
+			   ecryptfs_number_of_users);
 	}
+
 	mutex_init(&ecryptfs_daemon_hash_mux);
 	mutex_lock(&ecryptfs_daemon_hash_mux);
 	ecryptfs_hash_bits = 1;
+
 	while (ecryptfs_number_of_users >> ecryptfs_hash_bits)
+	{
 		ecryptfs_hash_bits++;
+	}
+
 	ecryptfs_daemon_hash = kmalloc((sizeof(struct hlist_head)
-					* (1 << ecryptfs_hash_bits)),
-				       GFP_KERNEL);
-	if (!ecryptfs_daemon_hash) {
+									* (1 << ecryptfs_hash_bits)),
+								   GFP_KERNEL);
+
+	if (!ecryptfs_daemon_hash)
+	{
 		rc = -ENOMEM;
 		printk(KERN_ERR "%s: Failed to allocate memory\n", __func__);
 		mutex_unlock(&ecryptfs_daemon_hash_mux);
 		goto out;
 	}
+
 	for (i = 0; i < (1 << ecryptfs_hash_bits); i++)
+	{
 		INIT_HLIST_HEAD(&ecryptfs_daemon_hash[i]);
+	}
+
 	mutex_unlock(&ecryptfs_daemon_hash_mux);
 	ecryptfs_msg_ctx_arr = kmalloc((sizeof(struct ecryptfs_msg_ctx)
-					* ecryptfs_message_buf_len),
-				       GFP_KERNEL);
-	if (!ecryptfs_msg_ctx_arr) {
+									* ecryptfs_message_buf_len),
+								   GFP_KERNEL);
+
+	if (!ecryptfs_msg_ctx_arr)
+	{
 		rc = -ENOMEM;
 		printk(KERN_ERR "%s: Failed to allocate memory\n", __func__);
 		goto out;
 	}
+
 	mutex_init(&ecryptfs_msg_ctx_lists_mux);
 	mutex_lock(&ecryptfs_msg_ctx_lists_mux);
 	ecryptfs_msg_counter = 0;
-	for (i = 0; i < ecryptfs_message_buf_len; i++) {
+
+	for (i = 0; i < ecryptfs_message_buf_len; i++)
+	{
 		INIT_LIST_HEAD(&ecryptfs_msg_ctx_arr[i].node);
 		INIT_LIST_HEAD(&ecryptfs_msg_ctx_arr[i].daemon_out_list);
 		mutex_init(&ecryptfs_msg_ctx_arr[i].mux);
@@ -415,54 +471,71 @@ int __init ecryptfs_init_messaging(void)
 		ecryptfs_msg_ctx_arr[i].task = NULL;
 		ecryptfs_msg_ctx_arr[i].msg = NULL;
 		list_add_tail(&ecryptfs_msg_ctx_arr[i].node,
-			      &ecryptfs_msg_ctx_free_list);
+					  &ecryptfs_msg_ctx_free_list);
 		mutex_unlock(&ecryptfs_msg_ctx_arr[i].mux);
 	}
+
 	mutex_unlock(&ecryptfs_msg_ctx_lists_mux);
 	rc = ecryptfs_init_ecryptfs_miscdev();
+
 	if (rc)
+	{
 		ecryptfs_release_messaging();
+	}
+
 out:
 	return rc;
 }
 
 void ecryptfs_release_messaging(void)
 {
-	if (ecryptfs_msg_ctx_arr) {
+	if (ecryptfs_msg_ctx_arr)
+	{
 		int i;
 
 		mutex_lock(&ecryptfs_msg_ctx_lists_mux);
-		for (i = 0; i < ecryptfs_message_buf_len; i++) {
+
+		for (i = 0; i < ecryptfs_message_buf_len; i++)
+		{
 			mutex_lock(&ecryptfs_msg_ctx_arr[i].mux);
 			kfree(ecryptfs_msg_ctx_arr[i].msg);
 			mutex_unlock(&ecryptfs_msg_ctx_arr[i].mux);
 		}
+
 		kfree(ecryptfs_msg_ctx_arr);
 		mutex_unlock(&ecryptfs_msg_ctx_lists_mux);
 	}
-	if (ecryptfs_daemon_hash) {
+
+	if (ecryptfs_daemon_hash)
+	{
 		struct ecryptfs_daemon *daemon;
 		int i;
 
 		mutex_lock(&ecryptfs_daemon_hash_mux);
-		for (i = 0; i < (1 << ecryptfs_hash_bits); i++) {
+
+		for (i = 0; i < (1 << ecryptfs_hash_bits); i++)
+		{
 			int rc;
 
 			hlist_for_each_entry(daemon,
-					     &ecryptfs_daemon_hash[i],
-					     euid_chain) {
+								 &ecryptfs_daemon_hash[i],
+								 euid_chain)
+			{
 				rc = ecryptfs_exorcise_daemon(daemon);
+
 				if (rc)
 					printk(KERN_ERR "%s: Error whilst "
-					       "attempting to destroy daemon; "
-					       "rc = [%d]. Dazed and confused, "
-					       "but trying to continue.\n",
-					       __func__, rc);
+						   "attempting to destroy daemon; "
+						   "rc = [%d]. Dazed and confused, "
+						   "but trying to continue.\n",
+						   __func__, rc);
 			}
 		}
+
 		kfree(ecryptfs_daemon_hash);
 		mutex_unlock(&ecryptfs_daemon_hash_mux);
 	}
+
 	ecryptfs_destroy_ecryptfs_miscdev();
 	return;
 }

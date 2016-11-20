@@ -37,7 +37,8 @@
 #define EDL_TAG_ID_HCI			(17)
 #define EDL_TAG_ID_DEEP_SLEEP		(27)
 
-enum qca_bardrate {
+enum qca_bardrate
+{
 	QCA_BAUDRATE_115200 	= 0,
 	QCA_BAUDRATE_57600,
 	QCA_BAUDRATE_38400,
@@ -61,35 +62,41 @@ enum qca_bardrate {
 	QCA_BAUDRATE_RESERVED
 };
 
-enum rome_tlv_type {
+enum rome_tlv_type
+{
 	TLV_TYPE_PATCH = 1,
 	TLV_TYPE_NVM
 };
 
-struct rome_config {
+struct rome_config
+{
 	u8 type;
 	char fwname[64];
 	uint8_t user_baud_rate;
 };
 
-struct edl_event_hdr {
+struct edl_event_hdr
+{
 	__u8 cresp;
 	__u8 rtype;
 	__u8 data[0];
 } __packed;
 
-struct rome_version {
+struct rome_version
+{
 	__le32 product_id;
 	__le16 patch_ver;
 	__le16 rome_ver;
 	__le32 soc_id;
 } __packed;
 
-struct tlv_seg_resp {
+struct tlv_seg_resp
+{
 	__u8 result;
 } __packed;
 
-struct tlv_type_patch {
+struct tlv_type_patch
+{
 	__le32 total_size;
 	__le32 data_length;
 	__u8   format_version;
@@ -102,7 +109,8 @@ struct tlv_type_patch {
 	__le32 entry;
 } __packed;
 
-struct tlv_type_nvm {
+struct tlv_type_nvm
+{
 	__le16 tag_id;
 	__le16 tag_len;
 	__le32 reserve1;
@@ -110,7 +118,8 @@ struct tlv_type_nvm {
 	__u8   data[0];
 } __packed;
 
-struct tlv_type_hdr {
+struct tlv_type_hdr
+{
 	__le32 type_len;
 	__u8   data[0];
 } __packed;

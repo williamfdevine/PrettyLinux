@@ -64,7 +64,8 @@
 enum diag_state { UNUSED = 0, OPENED, INIT, READY };
 
 /* State for an individual client. PID so children cannot abuse handshake */
-static struct qib_diag_client {
+static struct qib_diag_client
+{
 	struct qib_diag_client *next;
 	struct qib_devdata *dd;
 	pid_t pid;
@@ -80,19 +81,26 @@ static struct qib_diag_client *get_client(struct qib_devdata *dd)
 	struct qib_diag_client *dc;
 
 	dc = client_pool;
+
 	if (dc)
 		/* got from pool remove it and use */
+	{
 		client_pool = dc->next;
+	}
 	else
 		/* None in pool, alloc and init */
+	{
 		dc = kmalloc(sizeof(*dc), GFP_KERNEL);
+	}
 
-	if (dc) {
+	if (dc)
+	{
 		dc->next = NULL;
 		dc->dd = dd;
 		dc->pid = current->pid;
 		dc->state = OPENED;
 	}
+
 	return dc;
 }
 
@@ -105,21 +113,31 @@ static void return_client(struct qib_diag_client *dc)
 	struct qib_diag_client *tdc, *rdc;
 
 	rdc = NULL;
-	if (dc == dd->diag_client) {
+
+	if (dc == dd->diag_client)
+	{
 		dd->diag_client = dc->next;
 		rdc = dc;
-	} else {
+	}
+	else
+	{
 		tdc = dc->dd->diag_client;
-		while (tdc) {
-			if (dc == tdc->next) {
+
+		while (tdc)
+		{
+			if (dc == tdc->next)
+			{
 				tdc->next = dc->next;
 				rdc = dc;
 				break;
 			}
+
 			tdc = tdc->next;
 		}
 	}
-	if (rdc) {
+
+	if (rdc)
+	{
 		rdc->state = UNUSED;
 		rdc->dd = NULL;
 		rdc->pid = 0;
@@ -131,11 +149,12 @@ static void return_client(struct qib_diag_client *dc)
 static int qib_diag_open(struct inode *in, struct file *fp);
 static int qib_diag_release(struct inode *in, struct file *fp);
 static ssize_t qib_diag_read(struct file *fp, char __user *data,
-			     size_t count, loff_t *off);
+							 size_t count, loff_t *off);
 static ssize_t qib_diag_write(struct file *fp, const char __user *data,
-			      size_t count, loff_t *off);
+							  size_t count, loff_t *off);
 
-static const struct file_operations diag_file_ops = {
+static const struct file_operations diag_file_ops =
+{
 	.owner = THIS_MODULE,
 	.write = qib_diag_write,
 	.read = qib_diag_read,
@@ -149,9 +168,10 @@ static struct cdev *diagpkt_cdev;
 static struct device *diagpkt_device;
 
 static ssize_t qib_diagpkt_write(struct file *fp, const char __user *data,
-				 size_t count, loff_t *off);
+								 size_t count, loff_t *off);
 
-static const struct file_operations diagpkt_file_ops = {
+static const struct file_operations diagpkt_file_ops =
+{
 	.owner = THIS_MODULE,
 	.write = qib_diagpkt_write,
 	.llseek = noop_llseek,
@@ -162,18 +182,22 @@ int qib_diag_add(struct qib_devdata *dd)
 	char name[16];
 	int ret = 0;
 
-	if (atomic_inc_return(&diagpkt_count) == 1) {
+	if (atomic_inc_return(&diagpkt_count) == 1)
+	{
 		ret = qib_cdev_init(QIB_DIAGPKT_MINOR, "ipath_diagpkt",
-				    &diagpkt_file_ops, &diagpkt_cdev,
-				    &diagpkt_device);
+							&diagpkt_file_ops, &diagpkt_cdev,
+							&diagpkt_device);
+
 		if (ret)
+		{
 			goto done;
+		}
 	}
 
 	snprintf(name, sizeof(name), "ipath_diag%d", dd->unit);
 	ret = qib_cdev_init(QIB_DIAG_MINOR_BASE + dd->unit, name,
-			    &diag_file_ops, &dd->diag_cdev,
-			    &dd->diag_device);
+						&diag_file_ops, &dd->diag_cdev,
+						&dd->diag_device);
 done:
 	return ret;
 }
@@ -185,7 +209,9 @@ void qib_diag_remove(struct qib_devdata *dd)
 	struct qib_diag_client *dc;
 
 	if (atomic_dec_and_test(&diagpkt_count))
+	{
 		qib_cdev_cleanup(&diagpkt_cdev, &diagpkt_device);
+	}
 
 	qib_cdev_cleanup(&dd->diag_cdev, &dd->diag_device);
 
@@ -194,14 +220,18 @@ void qib_diag_remove(struct qib_devdata *dd)
 	 * as we are "guaranteed" that no clients are still open
 	 */
 	while (dd->diag_client)
+	{
 		return_client(dd->diag_client);
+	}
 
 	/* Now clean up all unused client structs */
-	while (client_pool) {
+	while (client_pool)
+	{
 		dc = client_pool;
 		client_pool = dc->next;
 		kfree(dc);
 	}
+
 	/* Clean up observer list */
 	qib_unregister_observers(dd);
 }
@@ -232,7 +262,7 @@ void qib_diag_remove(struct qib_devdata *dd)
  * Returns 0 if the offset is not mapped.
  */
 static u32 __iomem *qib_remap_ioaddr32(struct qib_devdata *dd, u32 offset,
-				       u32 *cntp)
+									   u32 *cntp)
 {
 	u32 kreglen;
 	u32 snd_bottom, snd_lim = 0;
@@ -243,7 +273,9 @@ static u32 __iomem *qib_remap_ioaddr32(struct qib_devdata *dd, u32 offset,
 
 	/* First, simplest case, offset is within the first map. */
 	kreglen = (dd->kregend - dd->kregbase) * sizeof(u64);
-	if (offset < kreglen) {
+
+	if (offset < kreglen)
+	{
 		map = krb32 + (offset / sizeof(u32));
 		cnt = kreglen - offset;
 		goto mapped;
@@ -254,14 +286,20 @@ static u32 __iomem *qib_remap_ioaddr32(struct qib_devdata *dd, u32 offset,
 	 * and a cheap check because if they are not in the first map
 	 * they are last in chip.
 	 */
-	if (dd->userbase) {
+	if (dd->userbase)
+	{
 		/* If user regs mapped, they are after send, so set limit. */
 		u32 ulim = (dd->cfgctxts * dd->ureg_align) + dd->uregbase;
 
 		if (!dd->piovl15base)
+		{
 			snd_lim = dd->uregbase;
+		}
+
 		krb32 = (u32 __iomem *)dd->userbase;
-		if (offset >= dd->uregbase && offset < ulim) {
+
+		if (offset >= dd->uregbase && offset < ulim)
+		{
 			map = krb32 + (offset - dd->uregbase) / sizeof(u32);
 			cnt = ulim - offset;
 			goto mapped;
@@ -279,47 +317,66 @@ static u32 __iomem *qib_remap_ioaddr32(struct qib_devdata *dd, u32 offset,
 	 */
 	/* Assume 2K buffers are first. */
 	snd_bottom = dd->pio2k_bufbase;
-	if (snd_lim == 0) {
+
+	if (snd_lim == 0)
+	{
 		u32 tot2k = dd->piobcnt2k * ALIGN(dd->piosize2k, dd->palign);
 
 		snd_lim = snd_bottom + tot2k;
 	}
+
 	/* If 4k buffers exist, account for them by bumping
 	 * appropriate limit.
 	 */
 	tot4k = dd->piobcnt4k * dd->align4k;
 	offs4k = dd->piobufbase >> 32;
-	if (dd->piobcnt4k) {
+
+	if (dd->piobcnt4k)
+	{
 		if (snd_bottom > offs4k)
+		{
 			snd_bottom = offs4k;
-		else {
+		}
+		else
+		{
 			/* 4k above 2k. Bump snd_lim, if needed*/
 			if (!dd->userbase || dd->piovl15base)
+			{
 				snd_lim = offs4k + tot4k;
+			}
 		}
 	}
+
 	/*
 	 * Judgement call: can we ignore the space between SendBuffs and
 	 * UserRegs, where we would like to see vl15 buffs, but not more?
 	 */
-	if (offset >= snd_bottom && offset < snd_lim) {
+	if (offset >= snd_bottom && offset < snd_lim)
+	{
 		offset -= snd_bottom;
 		map = (u32 __iomem *)dd->piobase + (offset / sizeof(u32));
 		cnt = snd_lim - offset;
 	}
 
-	if (!map && offs4k && dd->piovl15base) {
+	if (!map && offs4k && dd->piovl15base)
+	{
 		snd_lim = offs4k + tot4k + 2 * dd->align4k;
-		if (offset >= (offs4k + tot4k) && offset < snd_lim) {
+
+		if (offset >= (offs4k + tot4k) && offset < snd_lim)
+		{
 			map = (u32 __iomem *)dd->piovl15base +
-				((offset - (offs4k + tot4k)) / sizeof(u32));
+				  ((offset - (offs4k + tot4k)) / sizeof(u32));
 			cnt = snd_lim - offset;
 		}
 	}
 
 mapped:
+
 	if (cntp)
+	{
 		*cntp = cnt;
+	}
+
 	return map;
 }
 
@@ -337,7 +394,7 @@ mapped:
  * NOTE:  This assumes the chip address is 64-bit aligned.
  */
 static int qib_read_umem64(struct qib_devdata *dd, void __user *uaddr,
-			   u32 regoffs, size_t count)
+						   u32 regoffs, size_t count)
 {
 	const u64 __iomem *reg_addr;
 	const u64 __iomem *reg_end;
@@ -345,25 +402,35 @@ static int qib_read_umem64(struct qib_devdata *dd, void __user *uaddr,
 	int ret;
 
 	reg_addr = (const u64 __iomem *)qib_remap_ioaddr32(dd, regoffs, &limit);
-	if (reg_addr == NULL || limit == 0 || !(dd->flags & QIB_PRESENT)) {
+
+	if (reg_addr == NULL || limit == 0 || !(dd->flags & QIB_PRESENT))
+	{
 		ret = -EINVAL;
 		goto bail;
 	}
+
 	if (count >= limit)
+	{
 		count = limit;
+	}
+
 	reg_end = reg_addr + (count / sizeof(u64));
 
 	/* not very efficient, but it works for now */
-	while (reg_addr < reg_end) {
+	while (reg_addr < reg_end)
+	{
 		u64 data = readq(reg_addr);
 
-		if (copy_to_user(uaddr, &data, sizeof(u64))) {
+		if (copy_to_user(uaddr, &data, sizeof(u64)))
+		{
 			ret = -EFAULT;
 			goto bail;
 		}
+
 		reg_addr++;
 		uaddr += sizeof(u64);
 	}
+
 	ret = 0;
 bail:
 	return ret;
@@ -381,7 +448,7 @@ bail:
  */
 
 static int qib_write_umem64(struct qib_devdata *dd, u32 regoffs,
-			    const void __user *uaddr, size_t count)
+							const void __user *uaddr, size_t count)
 {
 	u64 __iomem *reg_addr;
 	const u64 __iomem *reg_end;
@@ -389,27 +456,37 @@ static int qib_write_umem64(struct qib_devdata *dd, u32 regoffs,
 	int ret;
 
 	reg_addr = (u64 __iomem *)qib_remap_ioaddr32(dd, regoffs, &limit);
-	if (reg_addr == NULL || limit == 0 || !(dd->flags & QIB_PRESENT)) {
+
+	if (reg_addr == NULL || limit == 0 || !(dd->flags & QIB_PRESENT))
+	{
 		ret = -EINVAL;
 		goto bail;
 	}
+
 	if (count >= limit)
+	{
 		count = limit;
+	}
+
 	reg_end = reg_addr + (count / sizeof(u64));
 
 	/* not very efficient, but it works for now */
-	while (reg_addr < reg_end) {
+	while (reg_addr < reg_end)
+	{
 		u64 data;
 
-		if (copy_from_user(&data, uaddr, sizeof(data))) {
+		if (copy_from_user(&data, uaddr, sizeof(data)))
+		{
 			ret = -EFAULT;
 			goto bail;
 		}
+
 		writeq(data, reg_addr);
 
 		reg_addr++;
 		uaddr += sizeof(u64);
 	}
+
 	ret = 0;
 bail:
 	return ret;
@@ -426,7 +503,7 @@ bail:
  * support 32 bit reads; usually a single dword.
  */
 static int qib_read_umem32(struct qib_devdata *dd, void __user *uaddr,
-			   u32 regoffs, size_t count)
+						   u32 regoffs, size_t count)
 {
 	const u32 __iomem *reg_addr;
 	const u32 __iomem *reg_end;
@@ -434,19 +511,27 @@ static int qib_read_umem32(struct qib_devdata *dd, void __user *uaddr,
 	int ret;
 
 	reg_addr = qib_remap_ioaddr32(dd, regoffs, &limit);
-	if (reg_addr == NULL || limit == 0 || !(dd->flags & QIB_PRESENT)) {
+
+	if (reg_addr == NULL || limit == 0 || !(dd->flags & QIB_PRESENT))
+	{
 		ret = -EINVAL;
 		goto bail;
 	}
+
 	if (count >= limit)
+	{
 		count = limit;
+	}
+
 	reg_end = reg_addr + (count / sizeof(u32));
 
 	/* not very efficient, but it works for now */
-	while (reg_addr < reg_end) {
+	while (reg_addr < reg_end)
+	{
 		u32 data = readl(reg_addr);
 
-		if (copy_to_user(uaddr, &data, sizeof(data))) {
+		if (copy_to_user(uaddr, &data, sizeof(data)))
+		{
 			ret = -EFAULT;
 			goto bail;
 		}
@@ -455,6 +540,7 @@ static int qib_read_umem32(struct qib_devdata *dd, void __user *uaddr,
 		uaddr += sizeof(u32);
 
 	}
+
 	ret = 0;
 bail:
 	return ret;
@@ -472,7 +558,7 @@ bail:
  */
 
 static int qib_write_umem32(struct qib_devdata *dd, u32 regoffs,
-			    const void __user *uaddr, size_t count)
+							const void __user *uaddr, size_t count)
 {
 	u32 __iomem *reg_addr;
 	const u32 __iomem *reg_end;
@@ -480,26 +566,36 @@ static int qib_write_umem32(struct qib_devdata *dd, u32 regoffs,
 	int ret;
 
 	reg_addr = qib_remap_ioaddr32(dd, regoffs, &limit);
-	if (reg_addr == NULL || limit == 0 || !(dd->flags & QIB_PRESENT)) {
+
+	if (reg_addr == NULL || limit == 0 || !(dd->flags & QIB_PRESENT))
+	{
 		ret = -EINVAL;
 		goto bail;
 	}
+
 	if (count >= limit)
+	{
 		count = limit;
+	}
+
 	reg_end = reg_addr + (count / sizeof(u32));
 
-	while (reg_addr < reg_end) {
+	while (reg_addr < reg_end)
+	{
 		u32 data;
 
-		if (copy_from_user(&data, uaddr, sizeof(data))) {
+		if (copy_from_user(&data, uaddr, sizeof(data)))
+		{
 			ret = -EFAULT;
 			goto bail;
 		}
+
 		writel(data, reg_addr);
 
 		reg_addr++;
 		uaddr += sizeof(u32);
 	}
+
 	ret = 0;
 bail:
 	return ret;
@@ -517,16 +613,20 @@ static int qib_diag_open(struct inode *in, struct file *fp)
 	dd = qib_lookup(unit);
 
 	if (dd == NULL || !(dd->flags & QIB_PRESENT) ||
-	    !dd->kregbase) {
+		!dd->kregbase)
+	{
 		ret = -ENODEV;
 		goto bail;
 	}
 
 	dc = get_client(dd);
-	if (!dc) {
+
+	if (!dc)
+	{
 		ret = -ENOMEM;
 		goto bail;
 	}
+
 	dc->next = dd->diag_client;
 	dd->diag_client = dc;
 	fp->private_data = dc;
@@ -545,8 +645,8 @@ bail:
  * @off: unused by this code
  */
 static ssize_t qib_diagpkt_write(struct file *fp,
-				 const char __user *data,
-				 size_t count, loff_t *off)
+								 const char __user *data,
+								 size_t count, loff_t *off)
 {
 	u32 __iomem *piobuf;
 	u32 plen, pbufn, maxlen_reserve;
@@ -556,41 +656,54 @@ static ssize_t qib_diagpkt_write(struct file *fp,
 	struct qib_pportdata *ppd;
 	ssize_t ret = 0;
 
-	if (count != sizeof(dp)) {
+	if (count != sizeof(dp))
+	{
 		ret = -EINVAL;
 		goto bail;
 	}
-	if (copy_from_user(&dp, data, sizeof(dp))) {
+
+	if (copy_from_user(&dp, data, sizeof(dp)))
+	{
 		ret = -EFAULT;
 		goto bail;
 	}
 
 	dd = qib_lookup(dp.unit);
-	if (!dd || !(dd->flags & QIB_PRESENT) || !dd->kregbase) {
+
+	if (!dd || !(dd->flags & QIB_PRESENT) || !dd->kregbase)
+	{
 		ret = -ENODEV;
 		goto bail;
 	}
-	if (!(dd->flags & QIB_INITTED)) {
+
+	if (!(dd->flags & QIB_INITTED))
+	{
 		/* no hardware, freeze, etc. */
 		ret = -ENODEV;
 		goto bail;
 	}
 
-	if (dp.version != _DIAG_XPKT_VERS) {
+	if (dp.version != _DIAG_XPKT_VERS)
+	{
 		qib_dev_err(dd, "Invalid version %u for diagpkt_write\n",
-			    dp.version);
+					dp.version);
 		ret = -EINVAL;
 		goto bail;
 	}
+
 	/* send count must be an exact number of dwords */
-	if (dp.len & 3) {
+	if (dp.len & 3)
+	{
 		ret = -EINVAL;
 		goto bail;
 	}
-	if (!dp.port || dp.port > dd->num_pports) {
+
+	if (!dp.port || dp.port > dd->num_pports)
+	{
 		ret = -EINVAL;
 		goto bail;
 	}
+
 	ppd = &dd->pport[dp.port - 1];
 
 	/*
@@ -600,7 +713,9 @@ static ssize_t qib_diagpkt_write(struct file *fp,
 	 * ICRC which gets tacked on later.
 	 */
 	maxlen_reserve = 2 * sizeof(u32);
-	if (dp.len > ppd->ibmaxlen - maxlen_reserve) {
+
+	if (dp.len > ppd->ibmaxlen - maxlen_reserve)
+	{
 		ret = -EINVAL;
 		goto bail;
 	}
@@ -608,16 +723,19 @@ static ssize_t qib_diagpkt_write(struct file *fp,
 	plen = sizeof(u32) + dp.len;
 
 	tmpbuf = vmalloc(plen);
-	if (!tmpbuf) {
+
+	if (!tmpbuf)
+	{
 		qib_devinfo(dd->pcidev,
-			"Unable to allocate tmp buffer, failing\n");
+					"Unable to allocate tmp buffer, failing\n");
 		ret = -ENOMEM;
 		goto bail;
 	}
 
 	if (copy_from_user(tmpbuf,
-			   (const void __user *) (unsigned long) dp.data,
-			   dp.len)) {
+					   (const void __user *) (unsigned long) dp.data,
+					   dp.len))
+	{
 		ret = -EFAULT;
 		goto bail;
 	}
@@ -625,13 +743,18 @@ static ssize_t qib_diagpkt_write(struct file *fp,
 	plen >>= 2;             /* in dwords */
 
 	if (dp.pbc_wd == 0)
+	{
 		dp.pbc_wd = plen;
+	}
 
 	piobuf = dd->f_getsendbuf(ppd, dp.pbc_wd, &pbufn);
-	if (!piobuf) {
+
+	if (!piobuf)
+	{
 		ret = -EBUSY;
 		goto bail;
 	}
+
 	/* disarm it just to be extra sure */
 	dd->f_sendctrl(dd->pport, QIB_SENDCTRL_DISARM_BUF(pbufn));
 
@@ -639,20 +762,26 @@ static ssize_t qib_diagpkt_write(struct file *fp,
 	dd->f_txchk_change(dd, pbufn, 1, TXCHK_CHG_TYPE_DIS1, NULL);
 
 	writeq(dp.pbc_wd, piobuf);
+
 	/*
 	 * Copy all but the trigger word, then flush, so it's written
 	 * to chip before trigger word, then write trigger word, then
 	 * flush again, so packet is sent.
 	 */
-	if (dd->flags & QIB_PIO_FLUSH_WC) {
+	if (dd->flags & QIB_PIO_FLUSH_WC)
+	{
 		qib_flush_wc();
 		qib_pio_copy(piobuf + 2, tmpbuf, plen - 1);
 		qib_flush_wc();
 		__raw_writel(tmpbuf[plen - 1], piobuf + plen + 1);
-	} else
+	}
+	else
+	{
 		qib_pio_copy(piobuf + 2, tmpbuf, plen);
+	}
 
-	if (dd->flags & QIB_USE_SPCL_TRIG) {
+	if (dd->flags & QIB_USE_SPCL_TRIG)
+	{
 		u32 spcl_off = (pbufn >= dd->piobcnt2k) ? 2047 : 1023;
 
 		qib_flush_wc();
@@ -688,21 +817,27 @@ static int qib_diag_release(struct inode *in, struct file *fp)
  * Chip-specific code calls to register its interest in
  * a specific range.
  */
-struct diag_observer_list_elt {
+struct diag_observer_list_elt
+{
 	struct diag_observer_list_elt *next;
 	const struct diag_observer *op;
 };
 
 int qib_register_observer(struct qib_devdata *dd,
-			  const struct diag_observer *op)
+						  const struct diag_observer *op)
 {
 	struct diag_observer_list_elt *olp;
 	unsigned long flags;
 
 	if (!dd || !op)
+	{
 		return -EINVAL;
+	}
+
 	olp = vmalloc(sizeof(*olp));
-	if (!olp) {
+
+	if (!olp)
+	{
 		pr_err("vmalloc for observer failed\n");
 		return -ENOMEM;
 	}
@@ -724,7 +859,9 @@ static void qib_unregister_observers(struct qib_devdata *dd)
 
 	spin_lock_irqsave(&dd->qib_diag_trans_lock, flags);
 	olp = dd->diag_observer_list;
-	while (olp) {
+
+	while (olp)
+	{
 		/* Pop one observer, let go of lock */
 		dd->diag_observer_list = olp->next;
 		spin_unlock_irqrestore(&dd->qib_diag_trans_lock, flags);
@@ -733,6 +870,7 @@ static void qib_unregister_observers(struct qib_devdata *dd)
 		spin_lock_irqsave(&dd->qib_diag_trans_lock, flags);
 		olp = dd->diag_observer_list;
 	}
+
 	spin_unlock_irqrestore(&dd->qib_diag_trans_lock, flags);
 }
 
@@ -742,33 +880,43 @@ static void qib_unregister_observers(struct qib_devdata *dd)
  * lock held.
  */
 static const struct diag_observer *diag_get_observer(struct qib_devdata *dd,
-						     u32 addr)
+		u32 addr)
 {
 	struct diag_observer_list_elt *olp;
 	const struct diag_observer *op = NULL;
 
 	olp = dd->diag_observer_list;
-	while (olp) {
+
+	while (olp)
+	{
 		op = olp->op;
+
 		if (addr >= op->bottom && addr <= op->top)
+		{
 			break;
+		}
+
 		olp = olp->next;
 	}
+
 	if (!olp)
+	{
 		op = NULL;
+	}
 
 	return op;
 }
 
 static ssize_t qib_diag_read(struct file *fp, char __user *data,
-			     size_t count, loff_t *off)
+							 size_t count, loff_t *off)
 {
 	struct qib_diag_client *dc = fp->private_data;
 	struct qib_devdata *dd = dc->dd;
 	void __iomem *kreg_base;
 	ssize_t ret;
 
-	if (dc->pid != current->pid) {
+	if (dc->pid != current->pid)
+	{
 		ret = -EPERM;
 		goto bail;
 	}
@@ -776,13 +924,20 @@ static ssize_t qib_diag_read(struct file *fp, char __user *data,
 	kreg_base = dd->kregbase;
 
 	if (count == 0)
+	{
 		ret = 0;
+	}
 	else if ((count % 4) || (*off % 4))
 		/* address or length is not 32-bit aligned, hence invalid */
+	{
 		ret = -EINVAL;
+	}
 	else if (dc->state < READY && (*off || count != 8))
-		ret = -EINVAL;  /* prevent cat /dev/qib_diag* */
-	else {
+	{
+		ret = -EINVAL;    /* prevent cat /dev/qib_diag* */
+	}
+	else
+	{
 		unsigned long flags;
 		u64 data64 = 0;
 		int use_32;
@@ -797,55 +952,71 @@ static ssize_t qib_diag_read(struct file *fp, char __user *data,
 		 * via observer, currently.
 		 */
 		op = diag_get_observer(dd, *off);
-		if (op) {
+
+		if (op)
+		{
 			u32 offset = *off;
 
 			ret = op->hook(dd, op, offset, &data64, 0, use_32);
 		}
+
 		/*
 		 * We need to release lock before any copy_to_user(),
 		 * whether implicit in qib_read_umem* or explicit below.
 		 */
 		spin_unlock_irqrestore(&dd->qib_diag_trans_lock, flags);
-		if (!op) {
+
+		if (!op)
+		{
 			if (use_32)
 				/*
 				 * Address or length is not 64-bit aligned;
 				 * do 32-bit rd
 				 */
-				ret = qib_read_umem32(dd, data, (u32) *off,
-						      count);
+				ret = qib_read_umem32(dd, data, (u32) * off,
+									  count);
 			else
-				ret = qib_read_umem64(dd, data, (u32) *off,
-						      count);
-		} else if (ret == count) {
+				ret = qib_read_umem64(dd, data, (u32) * off,
+									  count);
+		}
+		else if (ret == count)
+		{
 			/* Below finishes case where observer existed */
 			ret = copy_to_user(data, &data64, use_32 ?
-					   sizeof(u32) : sizeof(u64));
+							   sizeof(u32) : sizeof(u64));
+
 			if (ret)
+			{
 				ret = -EFAULT;
+			}
 		}
 	}
 
-	if (ret >= 0) {
+	if (ret >= 0)
+	{
 		*off += count;
 		ret = count;
+
 		if (dc->state == OPENED)
+		{
 			dc->state = INIT;
+		}
 	}
+
 bail:
 	return ret;
 }
 
 static ssize_t qib_diag_write(struct file *fp, const char __user *data,
-			      size_t count, loff_t *off)
+							  size_t count, loff_t *off)
 {
 	struct qib_diag_client *dc = fp->private_data;
 	struct qib_devdata *dd = dc->dd;
 	void __iomem *kreg_base;
 	ssize_t ret;
 
-	if (dc->pid != current->pid) {
+	if (dc->pid != current->pid)
+	{
 		ret = -EPERM;
 		goto bail;
 	}
@@ -853,15 +1024,22 @@ static ssize_t qib_diag_write(struct file *fp, const char __user *data,
 	kreg_base = dd->kregbase;
 
 	if (count == 0)
+	{
 		ret = 0;
+	}
 	else if ((count % 4) || (*off % 4))
 		/* address or length is not 32-bit aligned, hence invalid */
+	{
 		ret = -EINVAL;
+	}
 	else if (dc->state < READY &&
-		((*off || count != 8) || dc->state != INIT))
+			 ((*off || count != 8) || dc->state != INIT))
 		/* No writes except second-step of init seq */
-		ret = -EINVAL;  /* before any other write allowed */
-	else {
+	{
+		ret = -EINVAL;    /* before any other write allowed */
+	}
+	else
+	{
 		unsigned long flags;
 		const struct diag_observer *op = NULL;
 		int use_32 =  (count % 8) || (*off % 8);
@@ -874,43 +1052,55 @@ static ssize_t qib_diag_write(struct file *fp, const char __user *data,
 		 * to make "diag transaction" meaningful when we
 		 * cannot do a copy_from_user while holding the lock.
 		 */
-		if (count == 4 || count == 8) {
+		if (count == 4 || count == 8)
+		{
 			u64 data64;
 			u32 offset = *off;
 
 			ret = copy_from_user(&data64, data, count);
-			if (ret) {
+
+			if (ret)
+			{
 				ret = -EFAULT;
 				goto bail;
 			}
+
 			spin_lock_irqsave(&dd->qib_diag_trans_lock, flags);
 			op = diag_get_observer(dd, *off);
+
 			if (op)
 				ret = op->hook(dd, op, offset, &data64, ~0Ull,
-					       use_32);
+							   use_32);
+
 			spin_unlock_irqrestore(&dd->qib_diag_trans_lock, flags);
 		}
 
-		if (!op) {
+		if (!op)
+		{
 			if (use_32)
 				/*
 				 * Address or length is not 64-bit aligned;
 				 * do 32-bit write
 				 */
-				ret = qib_write_umem32(dd, (u32) *off, data,
-						       count);
+				ret = qib_write_umem32(dd, (u32) * off, data,
+									   count);
 			else
-				ret = qib_write_umem64(dd, (u32) *off, data,
-						       count);
+				ret = qib_write_umem64(dd, (u32) * off, data,
+									   count);
 		}
 	}
 
-	if (ret >= 0) {
+	if (ret >= 0)
+	{
 		*off += count;
 		ret = count;
+
 		if (dc->state == INIT)
-			dc->state = READY; /* all read/write OK now */
+		{
+			dc->state = READY;    /* all read/write OK now */
+		}
 	}
+
 bail:
 	return ret;
 }

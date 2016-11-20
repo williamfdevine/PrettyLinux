@@ -35,7 +35,8 @@
 #include <media/v4l2-ctrls.h>
 #include <media/v4l2-fh.h>
 
-struct zoran_sync {
+struct zoran_sync
+{
 	unsigned long frame;	/* number of buffer that has been free'd */
 	unsigned long length;	/* number of code bytes in buffer (capture only) */
 	unsigned long seq;	/* frame sequence number */
@@ -61,11 +62,11 @@ struct zoran_sync {
 #define BUZ_MAX_INPUT       16
 
 #if VIDEO_MAX_FRAME <= 32
-#   define   V4L_MAX_FRAME   32
+	#define   V4L_MAX_FRAME   32
 #elif VIDEO_MAX_FRAME <= 64
-#   define   V4L_MAX_FRAME   64
+	#define   V4L_MAX_FRAME   64
 #else
-#   error   "Too many video frame buffers to handle"
+	#   error   "Too many video frame buffers to handle"
 #endif
 #define   V4L_MASK_FRAME   (V4L_MAX_FRAME - 1)
 
@@ -73,7 +74,8 @@ struct zoran_sync {
 
 #include "zr36057.h"
 
-enum card_type {
+enum card_type
+{
 	UNKNOWN = -1,
 
 	/* Pinnacle/Miro */
@@ -97,7 +99,8 @@ enum card_type {
 	NUM_CARDS
 };
 
-enum zoran_codec_mode {
+enum zoran_codec_mode
+{
 	BUZ_MODE_IDLE,		/* nothing going on */
 	BUZ_MODE_MOTION_COMPRESS,	/* grabbing frames */
 	BUZ_MODE_MOTION_DECOMPRESS,	/* playing frames */
@@ -105,21 +108,24 @@ enum zoran_codec_mode {
 	BUZ_MODE_STILL_DECOMPRESS	/* still frame conversion */
 };
 
-enum zoran_buffer_state {
+enum zoran_buffer_state
+{
 	BUZ_STATE_USER,		/* buffer is owned by application */
 	BUZ_STATE_PEND,		/* buffer is queued in pend[] ready to feed to I/O */
 	BUZ_STATE_DMA,		/* buffer is queued in dma[] for I/O */
 	BUZ_STATE_DONE		/* buffer is ready to return to application */
 };
 
-enum zoran_map_mode {
+enum zoran_map_mode
+{
 	ZORAN_MAP_MODE_RAW,
 	ZORAN_MAP_MODE_JPG_REC,
 #define ZORAN_MAP_MODE_JPG ZORAN_MAP_MODE_JPG_REC
 	ZORAN_MAP_MODE_JPG_PLAY,
 };
 
-enum gpio_type {
+enum gpio_type
+{
 	ZR_GPIO_JPEG_SLEEP = 0,
 	ZR_GPIO_JPEG_RESET,
 	ZR_GPIO_JPEG_FRAME,
@@ -131,13 +137,15 @@ enum gpio_type {
 	ZR_GPIO_MAX,
 };
 
-enum gpcs_type {
+enum gpcs_type
+{
 	GPCS_JPEG_RESET = 0,
 	GPCS_JPEG_START,
 	GPCS_MAX,
 };
 
-struct zoran_format {
+struct zoran_format
+{
 	char *name;
 	__u32 fourcc;
 	int colorspace;
@@ -152,7 +160,8 @@ struct zoran_format {
 #define ZORAN_FORMAT_PLAYBACK	1<<3
 
 /* overlay-settings */
-struct zoran_overlay_settings {
+struct zoran_overlay_settings
+{
 	int is_set;
 	int x, y, width, height;	/* position */
 	int clipcount;		/* position and number of clips */
@@ -160,13 +169,15 @@ struct zoran_overlay_settings {
 };
 
 /* v4l-capture settings */
-struct zoran_v4l_settings {
+struct zoran_v4l_settings
+{
 	int width, height, bytesperline;	/* capture size */
 	const struct zoran_format *format;	/* capture format */
 };
 
 /* jpg-capture/-playback settings */
-struct zoran_jpg_settings {
+struct zoran_jpg_settings
+{
 	int decimation;		/* this bit is used to set everything to default */
 	int HorDcm, VerDcm, TmpDcm;	/* capture decimation settings (TmpDcm=1 means both fields) */
 	int field_per_buff, odd_even;	/* field-settings (odd_even=1 (+TmpDcm=1) means top-field-first) */
@@ -176,21 +187,26 @@ struct zoran_jpg_settings {
 
 struct zoran_fh;
 
-struct zoran_mapping {
+struct zoran_mapping
+{
 	struct zoran_fh *fh;
 	atomic_t count;
 };
 
-struct zoran_buffer {
+struct zoran_buffer
+{
 	struct zoran_mapping *map;
 	enum zoran_buffer_state state;	/* state: unused/pending/dma/done */
 	struct zoran_sync bs;		/* DONE: info to return to application */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__le32 *frag_tab;	/* addresses of frag table */
 			u32 frag_tab_bus;	/* same value cached to save time in ISR */
 		} jpg;
-		struct {
+		struct
+		{
 			char *fbuffer;		/* virtual address of frame buffer */
 			unsigned long fbuffer_phys;/* physical address of frame buffer */
 			unsigned long fbuffer_bus;/* bus address of frame buffer */
@@ -198,14 +214,16 @@ struct zoran_buffer {
 	};
 };
 
-enum zoran_lock_activity {
+enum zoran_lock_activity
+{
 	ZORAN_FREE,		/* free for use */
 	ZORAN_ACTIVE,		/* active but unlocked */
 	ZORAN_LOCKED,		/* locked */
 };
 
 /* buffer collections */
-struct zoran_buffer_col {
+struct zoran_buffer_col
+{
 	enum zoran_lock_activity active;	/* feature currently in use? */
 	unsigned int num_buffers, buffer_size;
 	struct zoran_buffer buffer[MAX_FRAME];	/* buffers */
@@ -217,7 +235,8 @@ struct zoran_buffer_col {
 struct zoran;
 
 /* zoran_fh contains per-open() settings */
-struct zoran_fh {
+struct zoran_fh
+{
 	struct v4l2_fh fh;
 	struct zoran *zr;
 
@@ -233,7 +252,8 @@ struct zoran_fh {
 	struct zoran_jpg_settings jpg_settings;	/* structure with a lot of things to play with */
 };
 
-struct card_info {
+struct card_info
+{
 	enum card_type type;
 	char name[32];
 	const char *i2c_decoder;	/* i2c decoder device */
@@ -244,7 +264,8 @@ struct card_info {
 	u16 audio_chip;					/* audio type */
 
 	int inputs;		/* number of video inputs */
-	struct input {
+	struct input
+	{
 		int muxsel;
 		char name[32];
 	} input[BUZ_MAX_INPUT];
@@ -266,10 +287,11 @@ struct card_info {
 	/* avs6eyes mux setting */
 	u8 input_mux;
 
-	void (*init) (struct zoran * zr);
+	void (*init) (struct zoran *zr);
 };
 
-struct zoran {
+struct zoran
+{
 	struct v4l2_device v4l2_dev;
 	struct v4l2_ctrl_handler hdl;
 	struct video_device *video_dev;

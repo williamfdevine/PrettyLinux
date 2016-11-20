@@ -31,7 +31,8 @@
 #define ES1688_HW_1688		0x0002
 #define ES1688_HW_UNDEF	0x0003
 
-struct snd_es1688 {
+struct snd_es1688
+{
 	unsigned long port;		/* port of ESS chip */
 	struct resource *res_port;
 	unsigned long mpu_port;		/* MPU-401 port of ESS chip */
@@ -108,13 +109,13 @@ struct snd_es1688 {
 void snd_es1688_mixer_write(struct snd_es1688 *chip, unsigned char reg, unsigned char data);
 
 int snd_es1688_create(struct snd_card *card,
-		      struct snd_es1688 *chip,
-		      unsigned long port,
-		      unsigned long mpu_port,
-		      int irq,
-		      int mpu_irq,
-		      int dma8,
-		      unsigned short hardware);
+					  struct snd_es1688 *chip,
+					  unsigned long port,
+					  unsigned long mpu_port,
+					  int irq,
+					  int mpu_irq,
+					  int dma8,
+					  unsigned short hardware);
 int snd_es1688_pcm(struct snd_card *card, struct snd_es1688 *chip, int device);
 int snd_es1688_mixer(struct snd_card *card, struct snd_es1688 *chip);
 int snd_es1688_reset(struct snd_es1688 *chip);

@@ -2,19 +2,21 @@
 #define USBUSX2Y_H
 #include "../usbaudio.h"
 #include "../midi.h"
-#include "usbus428ctldefs.h" 
+#include "usbus428ctldefs.h"
 
-#define NRURBS	        2	
+#define NRURBS	        2
 
 
 #define URBS_AsyncSeq 10
 #define URB_DataLen_AsyncSeq 32
-struct snd_usX2Y_AsyncSeq {
+struct snd_usX2Y_AsyncSeq
+{
 	struct urb	*urb[URBS_AsyncSeq];
 	char		*buffer;
 };
 
-struct snd_usX2Y_urbSeq {
+struct snd_usX2Y_urbSeq
+{
 	int	submitted;
 	int	len;
 	struct urb	*urb[0];
@@ -22,7 +24,8 @@ struct snd_usX2Y_urbSeq {
 
 #include "usx2yhwdeppcm.h"
 
-struct usX2Ydev {
+struct usX2Ydev
+{
 	struct usb_device	*dev;
 	int			card_index;
 	int			stride;
@@ -34,7 +37,7 @@ struct usX2Ydev {
 	wait_queue_head_t	In04WaitQueue;
 	struct snd_usX2Y_AsyncSeq	AS04;
 	unsigned int		rate,
-				format;
+				   format;
 	int			chip_status;
 	struct mutex		pcm_mutex;
 	struct us428ctls_sharedmem	*us428ctls_sharedmem;
@@ -42,7 +45,7 @@ struct usX2Ydev {
 	wait_queue_head_t	us428ctls_wait_queue_head;
 	struct snd_usX2Y_hwdep_pcm_shm	*hwdep_pcm_shm;
 	struct snd_usX2Y_substream	*subs[4];
-	struct snd_usX2Y_substream	* volatile  prepare_subs;
+	struct snd_usX2Y_substream	 *volatile  prepare_subs;
 	wait_queue_head_t	prepare_wait_queue;
 	struct list_head	midi_list;
 	struct list_head	pcm_list;
@@ -50,11 +53,12 @@ struct usX2Ydev {
 };
 
 
-struct snd_usX2Y_substream {
+struct snd_usX2Y_substream
+{
 	struct usX2Ydev	*usX2Y;
 	struct snd_pcm_substream *pcm_substream;
 
-	int			endpoint;		
+	int			endpoint;
 	unsigned int		maxpacksize;		/* max packet size in bytes */
 
 	atomic_t		state;

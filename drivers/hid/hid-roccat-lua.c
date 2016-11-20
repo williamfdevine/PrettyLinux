@@ -27,8 +27,8 @@
 #include "hid-roccat-lua.h"
 
 static ssize_t lua_sysfs_read(struct file *fp, struct kobject *kobj,
-		char *buf, loff_t off, size_t count,
-		size_t real_size, uint command)
+							  char *buf, loff_t off, size_t count,
+							  size_t real_size, uint command)
 {
 	struct device *dev = kobj_to_dev(kobj);
 	struct lua_device *lua = hid_get_drvdata(dev_get_drvdata(dev));
@@ -36,10 +36,14 @@ static ssize_t lua_sysfs_read(struct file *fp, struct kobject *kobj,
 	int retval;
 
 	if (off >= real_size)
+	{
 		return 0;
+	}
 
 	if (off != 0 || count != real_size)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&lua->lua_lock);
 	retval = roccat_common2_receive(usb_dev, command, buf, real_size);
@@ -49,8 +53,8 @@ static ssize_t lua_sysfs_read(struct file *fp, struct kobject *kobj,
 }
 
 static ssize_t lua_sysfs_write(struct file *fp, struct kobject *kobj,
-		void const *buf, loff_t off, size_t count,
-		size_t real_size, uint command)
+							   void const *buf, loff_t off, size_t count,
+							   size_t real_size, uint command)
 {
 	struct device *dev = kobj_to_dev(kobj);
 	struct lua_device *lua = hid_get_drvdata(dev_get_drvdata(dev));
@@ -58,7 +62,9 @@ static ssize_t lua_sysfs_write(struct file *fp, struct kobject *kobj,
 	int retval;
 
 	if (off != 0 || count != real_size)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&lua->lua_lock);
 	retval = roccat_common2_send(usb_dev, command, buf, real_size);
@@ -68,32 +74,32 @@ static ssize_t lua_sysfs_write(struct file *fp, struct kobject *kobj,
 }
 
 #define LUA_SYSFS_W(thingy, THINGY) \
-static ssize_t lua_sysfs_write_ ## thingy(struct file *fp, \
-		struct kobject *kobj, struct bin_attribute *attr, \
-		char *buf, loff_t off, size_t count) \
-{ \
-	return lua_sysfs_write(fp, kobj, buf, off, count, \
-			LUA_SIZE_ ## THINGY, LUA_COMMAND_ ## THINGY); \
-}
+	static ssize_t lua_sysfs_write_ ## thingy(struct file *fp, \
+			struct kobject *kobj, struct bin_attribute *attr, \
+			char *buf, loff_t off, size_t count) \
+	{ \
+		return lua_sysfs_write(fp, kobj, buf, off, count, \
+							   LUA_SIZE_ ## THINGY, LUA_COMMAND_ ## THINGY); \
+	}
 
 #define LUA_SYSFS_R(thingy, THINGY) \
-static ssize_t lua_sysfs_read_ ## thingy(struct file *fp, \
-		struct kobject *kobj, struct bin_attribute *attr, \
-		char *buf, loff_t off, size_t count) \
-{ \
-	return lua_sysfs_read(fp, kobj, buf, off, count, \
-			LUA_SIZE_ ## THINGY, LUA_COMMAND_ ## THINGY); \
-}
+	static ssize_t lua_sysfs_read_ ## thingy(struct file *fp, \
+			struct kobject *kobj, struct bin_attribute *attr, \
+			char *buf, loff_t off, size_t count) \
+	{ \
+		return lua_sysfs_read(fp, kobj, buf, off, count, \
+							  LUA_SIZE_ ## THINGY, LUA_COMMAND_ ## THINGY); \
+	}
 
 #define LUA_BIN_ATTRIBUTE_RW(thingy, THINGY) \
-LUA_SYSFS_W(thingy, THINGY) \
-LUA_SYSFS_R(thingy, THINGY) \
-static struct bin_attribute lua_ ## thingy ## _attr = { \
-	.attr = { .name = #thingy, .mode = 0660 }, \
-	.size = LUA_SIZE_ ## THINGY, \
-	.read = lua_sysfs_read_ ## thingy, \
-	.write = lua_sysfs_write_ ## thingy \
-};
+	LUA_SYSFS_W(thingy, THINGY) \
+	LUA_SYSFS_R(thingy, THINGY) \
+	static struct bin_attribute lua_ ## thingy ## _attr = { \
+		.attr = { .name = #thingy, .mode = 0660 }, \
+				.size = LUA_SIZE_ ## THINGY, \
+						.read = lua_sysfs_read_ ## thingy, \
+								.write = lua_sysfs_write_ ## thingy \
+	};
 
 LUA_BIN_ATTRIBUTE_RW(control, CONTROL)
 
@@ -108,7 +114,7 @@ static void lua_remove_sysfs_attributes(struct usb_interface *intf)
 }
 
 static int lua_init_lua_device_struct(struct usb_device *usb_dev,
-		struct lua_device *lua)
+									  struct lua_device *lua)
 {
 	mutex_init(&lua->lua_lock);
 
@@ -123,20 +129,27 @@ static int lua_init_specials(struct hid_device *hdev)
 	int retval;
 
 	lua = kzalloc(sizeof(*lua), GFP_KERNEL);
-	if (!lua) {
+
+	if (!lua)
+	{
 		hid_err(hdev, "can't alloc device descriptor\n");
 		return -ENOMEM;
 	}
+
 	hid_set_drvdata(hdev, lua);
 
 	retval = lua_init_lua_device_struct(usb_dev, lua);
-	if (retval) {
+
+	if (retval)
+	{
 		hid_err(hdev, "couldn't init struct lua_device\n");
 		goto exit;
 	}
 
 	retval = lua_create_sysfs_attributes(intf);
-	if (retval) {
+
+	if (retval)
+	{
 		hid_err(hdev, "cannot create sysfs files\n");
 		goto exit;
 	}
@@ -159,24 +172,30 @@ static void lua_remove_specials(struct hid_device *hdev)
 }
 
 static int lua_probe(struct hid_device *hdev,
-		const struct hid_device_id *id)
+					 const struct hid_device_id *id)
 {
 	int retval;
 
 	retval = hid_parse(hdev);
-	if (retval) {
+
+	if (retval)
+	{
 		hid_err(hdev, "parse failed\n");
 		goto exit;
 	}
 
 	retval = hid_hw_start(hdev, HID_CONNECT_DEFAULT);
-	if (retval) {
+
+	if (retval)
+	{
 		hid_err(hdev, "hw start failed\n");
 		goto exit;
 	}
 
 	retval = lua_init_specials(hdev);
-	if (retval) {
+
+	if (retval)
+	{
 		hid_err(hdev, "couldn't install mouse\n");
 		goto exit_stop;
 	}
@@ -195,18 +214,20 @@ static void lua_remove(struct hid_device *hdev)
 	hid_hw_stop(hdev);
 }
 
-static const struct hid_device_id lua_devices[] = {
+static const struct hid_device_id lua_devices[] =
+{
 	{ HID_USB_DEVICE(USB_VENDOR_ID_ROCCAT, USB_DEVICE_ID_ROCCAT_LUA) },
 	{ }
 };
 
 MODULE_DEVICE_TABLE(hid, lua_devices);
 
-static struct hid_driver lua_driver = {
-		.name = "lua",
-		.id_table = lua_devices,
-		.probe = lua_probe,
-		.remove = lua_remove
+static struct hid_driver lua_driver =
+{
+	.name = "lua",
+	.id_table = lua_devices,
+	.probe = lua_probe,
+	.remove = lua_remove
 };
 module_hid_driver(lua_driver);
 

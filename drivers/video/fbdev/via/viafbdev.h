@@ -40,7 +40,8 @@
 
 #define VIAFB_NUM_I2C		5
 
-struct viafb_shared {
+struct viafb_shared
+{
 	u32 iga1_devices;
 	u32 iga2_devices;
 
@@ -64,12 +65,13 @@ struct viafb_shared {
 	u32 cursor_vram_addr;
 	u32 vq_vram_addr;	/* virtual queue address in video ram */
 	int (*hw_bitblt)(void __iomem *engine, u8 op, u32 width, u32 height,
-		u8 dst_bpp, u32 dst_addr, u32 dst_pitch, u32 dst_x, u32 dst_y,
-		u32 *src_mem, u32 src_addr, u32 src_pitch, u32 src_x, u32 src_y,
-		u32 fg_color, u32 bg_color, u8 fill_rop);
+					 u8 dst_bpp, u32 dst_addr, u32 dst_pitch, u32 dst_x, u32 dst_y,
+					 u32 *src_mem, u32 src_addr, u32 src_pitch, u32 src_x, u32 src_y,
+					 u32 fg_color, u32 bg_color, u8 fill_rop);
 };
 
-struct viafb_par {
+struct viafb_par
+{
 	u8 depth;
 	u32 vram_addr;
 
@@ -97,11 +99,11 @@ extern int viafb_DVI_ON;
 extern int viafb_hotplug;
 
 u8 viafb_gpio_i2c_read_lvds(struct lvds_setting_information
-	*plvds_setting_info, struct lvds_chip_information
-	*plvds_chip_info, u8 index);
+							*plvds_setting_info, struct lvds_chip_information
+							*plvds_chip_info, u8 index);
 void viafb_gpio_i2c_write_mask_lvds(struct lvds_setting_information
-			      *plvds_setting_info, struct lvds_chip_information
-			      *plvds_chip_info, struct IODATA io_data);
+									*plvds_setting_info, struct lvds_chip_information
+									*plvds_chip_info, struct IODATA io_data);
 int via_fb_pci_probe(struct viafb_dev *vdev);
 void via_fb_pci_remove(struct pci_dev *pdev);
 /* Temporary */

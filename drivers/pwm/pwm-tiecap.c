@@ -38,13 +38,15 @@
 #define ECCTL2_SYNC_SEL_DISA	(BIT(7) | BIT(6))
 #define ECCTL2_TSCTR_FREERUN	BIT(4)
 
-struct ecap_context {
+struct ecap_context
+{
 	u32	cap3;
 	u32	cap4;
 	u16	ecctl2;
 };
 
-struct ecap_pwm_chip {
+struct ecap_pwm_chip
+{
 	struct pwm_chip	chip;
 	unsigned int	clk_rate;
 	void __iomem	*mmio_base;
@@ -61,7 +63,7 @@ static inline struct ecap_pwm_chip *to_ecap_pwm_chip(struct pwm_chip *chip)
  * duty_ns   = 10^9 * duty_cycles / PWM_CLK_RATE
  */
 static int ecap_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
-		int duty_ns, int period_ns)
+						   int duty_ns, int period_ns)
 {
 	struct ecap_pwm_chip *pc = to_ecap_pwm_chip(chip);
 	unsigned long long c;
@@ -69,17 +71,22 @@ static int ecap_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	unsigned int reg_val;
 
 	if (period_ns > NSEC_PER_SEC)
+	{
 		return -ERANGE;
+	}
 
 	c = pc->clk_rate;
 	c = c * period_ns;
 	do_div(c, NSEC_PER_SEC);
 	period_cycles = (unsigned long)c;
 
-	if (period_cycles < 1) {
+	if (period_cycles < 1)
+	{
 		period_cycles = 1;
 		duty_cycles = 1;
-	} else {
+	}
+	else
+	{
 		c = pc->clk_rate;
 		c = c * duty_ns;
 		do_div(c, NSEC_PER_SEC);
@@ -95,11 +102,14 @@ static int ecap_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 
 	writew(reg_val, pc->mmio_base + ECCTL2);
 
-	if (!pwm_is_enabled(pwm)) {
+	if (!pwm_is_enabled(pwm))
+	{
 		/* Update active registers if not running */
 		writel(duty_cycles, pc->mmio_base + CAP2);
 		writel(period_cycles, pc->mmio_base + CAP1);
-	} else {
+	}
+	else
+	{
 		/*
 		 * Update shadow registers to configure period and
 		 * compare values. This helps current PWM period to
@@ -109,7 +119,8 @@ static int ecap_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 		writel(period_cycles, pc->mmio_base + CAP3);
 	}
 
-	if (!pwm_is_enabled(pwm)) {
+	if (!pwm_is_enabled(pwm))
+	{
 		reg_val = readw(pc->mmio_base + ECCTL2);
 		/* Disable APWM mode to put APWM output Low */
 		reg_val &= ~ECCTL2_APWM_MODE;
@@ -121,19 +132,24 @@ static int ecap_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 }
 
 static int ecap_pwm_set_polarity(struct pwm_chip *chip, struct pwm_device *pwm,
-		enum pwm_polarity polarity)
+								 enum pwm_polarity polarity)
 {
 	struct ecap_pwm_chip *pc = to_ecap_pwm_chip(chip);
 	unsigned short reg_val;
 
 	pm_runtime_get_sync(pc->chip.dev);
 	reg_val = readw(pc->mmio_base + ECCTL2);
+
 	if (polarity == PWM_POLARITY_INVERSED)
 		/* Duty cycle defines LOW period of PWM */
+	{
 		reg_val |= ECCTL2_APWM_POL_LOW;
+	}
 	else
 		/* Duty cycle defines HIGH period of PWM */
+	{
 		reg_val &= ~ECCTL2_APWM_POL_LOW;
+	}
 
 	writew(reg_val, pc->mmio_base + ECCTL2);
 	pm_runtime_put_sync(pc->chip.dev);
@@ -177,13 +193,15 @@ static void ecap_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 
 static void ecap_pwm_free(struct pwm_chip *chip, struct pwm_device *pwm)
 {
-	if (pwm_is_enabled(pwm)) {
+	if (pwm_is_enabled(pwm))
+	{
 		dev_warn(chip->dev, "Removing PWM device without disabling\n");
 		pm_runtime_put_sync(chip->dev);
 	}
 }
 
-static const struct pwm_ops ecap_pwm_ops = {
+static const struct pwm_ops ecap_pwm_ops =
+{
 	.free		= ecap_pwm_free,
 	.config		= ecap_pwm_config,
 	.set_polarity	= ecap_pwm_set_polarity,
@@ -192,7 +210,8 @@ static const struct pwm_ops ecap_pwm_ops = {
 	.owner		= THIS_MODULE,
 };
 
-static const struct of_device_id ecap_of_match[] = {
+static const struct of_device_id ecap_of_match[] =
+{
 	{ .compatible	= "ti,am3352-ecap" },
 	{ .compatible	= "ti,am33xx-ecap" },
 	{},
@@ -208,24 +227,33 @@ static int ecap_pwm_probe(struct platform_device *pdev)
 	struct ecap_pwm_chip *pc;
 
 	pc = devm_kzalloc(&pdev->dev, sizeof(*pc), GFP_KERNEL);
+
 	if (!pc)
+	{
 		return -ENOMEM;
+	}
 
 	clk = devm_clk_get(&pdev->dev, "fck");
-	if (IS_ERR(clk)) {
-		if (of_device_is_compatible(np, "ti,am33xx-ecap")) {
+
+	if (IS_ERR(clk))
+	{
+		if (of_device_is_compatible(np, "ti,am33xx-ecap"))
+		{
 			dev_warn(&pdev->dev, "Binding is obsolete.\n");
 			clk = devm_clk_get(pdev->dev.parent, "fck");
 		}
 	}
 
-	if (IS_ERR(clk)) {
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "failed to get clock\n");
 		return PTR_ERR(clk);
 	}
 
 	pc->clk_rate = clk_get_rate(clk);
-	if (!pc->clk_rate) {
+
+	if (!pc->clk_rate)
+	{
 		dev_err(&pdev->dev, "failed to get clock rate\n");
 		return -EINVAL;
 	}
@@ -239,11 +267,16 @@ static int ecap_pwm_probe(struct platform_device *pdev)
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	pc->mmio_base = devm_ioremap_resource(&pdev->dev, r);
+
 	if (IS_ERR(pc->mmio_base))
+	{
 		return PTR_ERR(pc->mmio_base);
+	}
 
 	ret = pwmchip_add(&pc->chip);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "pwmchip_add() failed: %d\n", ret);
 		return ret;
 	}
@@ -288,7 +321,9 @@ static int ecap_pwm_suspend(struct device *dev)
 
 	/* Disable explicitly if PWM is running */
 	if (pwm_is_enabled(pwm))
+	{
 		pm_runtime_put_sync(dev);
+	}
 
 	return 0;
 }
@@ -300,7 +335,9 @@ static int ecap_pwm_resume(struct device *dev)
 
 	/* Enable explicitly if PWM was running */
 	if (pwm_is_enabled(pwm))
+	{
 		pm_runtime_get_sync(dev);
+	}
 
 	ecap_pwm_restore_context(pc);
 	return 0;
@@ -309,7 +346,8 @@ static int ecap_pwm_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(ecap_pwm_pm_ops, ecap_pwm_suspend, ecap_pwm_resume);
 
-static struct platform_driver ecap_pwm_driver = {
+static struct platform_driver ecap_pwm_driver =
+{
 	.driver = {
 		.name	= "ecap",
 		.of_match_table = ecap_of_match,

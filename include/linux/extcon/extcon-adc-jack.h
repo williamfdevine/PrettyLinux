@@ -32,7 +32,8 @@
  * Note that you don't need to describe condition for "no cable attached"
  * because when no adc_jack_cond is met, state = 0 is automatically chosen.
  */
-struct adc_jack_cond {
+struct adc_jack_cond
+{
 	unsigned int id;
 	u32 min_adc;
 	u32 max_adc;
@@ -55,7 +56,8 @@ struct adc_jack_cond {
  *			is rounded-off by jiffies.
  * @wakeup_source:	flag to wake up the system for extcon events.
  */
-struct adc_jack_pdata {
+struct adc_jack_pdata
+{
 	const char *name;
 	const char *consumer_channel;
 

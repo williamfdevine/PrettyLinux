@@ -39,7 +39,7 @@ static int should_authenticate(struct ceph_auth_client *ac)
 }
 
 static int ceph_auth_none_build_authorizer(struct ceph_auth_client *ac,
-					   struct ceph_none_authorizer *au)
+		struct ceph_none_authorizer *au)
 {
 	void *p = au->buf;
 	void *const end = p + sizeof(au->buf);
@@ -47,8 +47,11 @@ static int ceph_auth_none_build_authorizer(struct ceph_auth_client *ac,
 
 	ceph_encode_8_safe(&p, end, 1, e_range);
 	ret = ceph_auth_entity_name_encode(ac->name, &p, end);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ceph_encode_64_safe(&p, end, ac->global_id, e_range);
 	au->buf_len = p - (void *)au->buf;
@@ -69,7 +72,7 @@ static int build_request(struct ceph_auth_client *ac, void *buf, void *end)
  * authenticate state, so nothing happens here.
  */
 static int handle_reply(struct ceph_auth_client *ac, int result,
-			void *buf, void *end)
+						void *buf, void *end)
 {
 	struct ceph_auth_none_info *xi = ac->private;
 
@@ -94,13 +97,18 @@ static int ceph_auth_none_create_authorizer(
 	int ret;
 
 	au = kmalloc(sizeof(*au), GFP_NOFS);
+
 	if (!au)
+	{
 		return -ENOMEM;
+	}
 
 	au->base.destroy = ceph_auth_none_destroy_authorizer;
 
 	ret = ceph_auth_none_build_authorizer(ac, au);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(au);
 		return ret;
 	}
@@ -114,7 +122,8 @@ static int ceph_auth_none_create_authorizer(
 	return 0;
 }
 
-static const struct ceph_auth_client_ops ceph_auth_none_ops = {
+static const struct ceph_auth_client_ops ceph_auth_none_ops =
+{
 	.name = "none",
 	.reset = reset,
 	.destroy = destroy,
@@ -131,8 +140,11 @@ int ceph_auth_none_init(struct ceph_auth_client *ac)
 
 	dout("ceph_auth_none_init %p\n", ac);
 	xi = kzalloc(sizeof(*xi), GFP_NOFS);
+
 	if (!xi)
+	{
 		return -ENOMEM;
+	}
 
 	xi->starting = true;
 

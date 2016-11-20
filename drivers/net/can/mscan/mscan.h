@@ -45,16 +45,16 @@
 
 /* Use the MPC5XXX MSCAN variant? */
 #ifdef CONFIG_PPC
-#define MSCAN_FOR_MPC5XXX
+	#define MSCAN_FOR_MPC5XXX
 #endif
 
 #ifdef MSCAN_FOR_MPC5XXX
-#define MSCAN_CLKSRC_BUS	0
-#define MSCAN_CLKSRC_XTAL	MSCAN_CLKSRC
-#define MSCAN_CLKSRC_IPS	MSCAN_CLKSRC
+	#define MSCAN_CLKSRC_BUS	0
+	#define MSCAN_CLKSRC_XTAL	MSCAN_CLKSRC
+	#define MSCAN_CLKSRC_IPS	MSCAN_CLKSRC
 #else
-#define MSCAN_CLKSRC_BUS	MSCAN_CLKSRC
-#define MSCAN_CLKSRC_XTAL	0
+	#define MSCAN_CLKSRC_BUS	MSCAN_CLKSRC
+	#define MSCAN_CLKSRC_XTAL	0
 #endif
 
 /* MSCAN receiver flag register (CANRFLG) bits */
@@ -72,7 +72,7 @@
 #define MSCAN_STAT_MSK		(MSCAN_RSTAT_MSK | MSCAN_TSTAT_MSK)
 
 #define MSCAN_STATE_BUS_OFF	(MSCAN_RSTAT1 | MSCAN_RSTAT0 | \
-				 MSCAN_TSTAT1 | MSCAN_TSTAT0)
+							 MSCAN_TSTAT1 | MSCAN_TSTAT0)
 #define MSCAN_STATE_TX(canrflg)	(((canrflg)&MSCAN_TSTAT_MSK)>>2)
 #define MSCAN_STATE_RX(canrflg)	(((canrflg)&MSCAN_RSTAT_MSK)>>4)
 #define MSCAN_STATE_ACTIVE	0
@@ -139,15 +139,16 @@
 #define MSCAN_EFF_FLAGS		0x18	/* IDE + SRR */
 
 #ifdef MSCAN_FOR_MPC5XXX
-#define _MSCAN_RESERVED_(n, num) u8 _res##n[num]
-#define _MSCAN_RESERVED_DSR_SIZE	2
+	#define _MSCAN_RESERVED_(n, num) u8 _res##n[num]
+	#define _MSCAN_RESERVED_DSR_SIZE	2
 #else
-#define _MSCAN_RESERVED_(n, num)
-#define _MSCAN_RESERVED_DSR_SIZE	0
+	#define _MSCAN_RESERVED_(n, num)
+	#define _MSCAN_RESERVED_DSR_SIZE	0
 #endif
 
 /* Structure of the hardware registers */
-struct mscan_regs {
+struct mscan_regs
+{
 	/* (see doc S12MSCANV3/D)		  MPC5200    MSCAN */
 	u8 canctl0;				/* + 0x00     0x00 */
 	u8 canctl1;				/* + 0x01     0x01 */
@@ -189,7 +190,8 @@ struct mscan_regs {
 	_MSCAN_RESERVED_(15, 2);		/* + 0x3a          */
 	u16 canidmr7_6;				/* + 0x3c     0x1e */
 	_MSCAN_RESERVED_(16, 2);		/* + 0x3e          */
-	struct {
+	struct
+	{
 		u16 idr1_0;			/* + 0x40     0x20 */
 		_MSCAN_RESERVED_(17, 2);	/* + 0x42          */
 		u16 idr3_2;			/* + 0x44     0x22 */
@@ -208,7 +210,8 @@ struct mscan_regs {
 		u16 time;			/* + 0x5c     0x2e */
 	} rx;
 	_MSCAN_RESERVED_(24, 2);		/* + 0x5e          */
-	struct {
+	struct
+	{
 		u16 idr1_0;			/* + 0x60     0x30 */
 		_MSCAN_RESERVED_(25, 2);	/* + 0x62          */
 		u16 idr3_2;			/* + 0x64     0x32 */
@@ -239,11 +242,12 @@ struct mscan_regs {
 #define MSCAN_SET_MODE_RETRIES	255
 #define MSCAN_ECHO_SKB_MAX	3
 #define MSCAN_RX_INTS_ENABLE	(MSCAN_OVRIE | MSCAN_RXFIE | MSCAN_CSCIE | \
-				 MSCAN_RSTATE1 | MSCAN_RSTATE0 | \
-				 MSCAN_TSTATE1 | MSCAN_TSTATE0)
+								 MSCAN_RSTATE1 | MSCAN_RSTATE0 | \
+								 MSCAN_TSTATE1 | MSCAN_TSTATE0)
 
 /* MSCAN type variants */
-enum {
+enum
+{
 	MSCAN_TYPE_MPC5200,
 	MSCAN_TYPE_MPC5121
 };
@@ -259,11 +263,11 @@ enum {
 
 #define BTR0_SET_BRP(brp)	(((brp) - 1) & BTR0_BRP_MASK)
 #define BTR0_SET_SJW(sjw)	((((sjw) - 1) << BTR0_SJW_SHIFT) & \
-				 BTR0_SJW_MASK)
+							 BTR0_SJW_MASK)
 
 #define BTR1_SET_TSEG1(tseg1)	(((tseg1) - 1) &  BTR1_TSEG1_MASK)
 #define BTR1_SET_TSEG2(tseg2)	((((tseg2) - 1) << BTR1_TSEG2_SHIFT) & \
-				 BTR1_TSEG2_MASK)
+								 BTR1_TSEG2_MASK)
 #define BTR1_SET_SAM(sam)	((sam) ? 1 << BTR1_SAM_SHIFT : 0)
 
 #define F_RX_PROGRESS	0
@@ -272,13 +276,15 @@ enum {
 
 #define TX_QUEUE_SIZE	3
 
-struct tx_queue_entry {
+struct tx_queue_entry
+{
 	struct list_head list;
 	u8 mask;
 	u8 id;
 };
 
-struct mscan_priv {
+struct mscan_priv
+{
 	struct can_priv can;	/* must be the first member */
 	unsigned int type; 	/* MSCAN type variants */
 	unsigned long flags;

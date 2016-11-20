@@ -14,7 +14,8 @@
 
 extern void mfp_set_groupg(struct device *dev, const char *subname);
 
-struct nuc900_spi_info {
+struct nuc900_spi_info
+{
 	unsigned int num_cs;
 	unsigned int lsb;
 	unsigned int txneg;
@@ -26,7 +27,8 @@ struct nuc900_spi_info {
 	int bus_num;
 };
 
-struct nuc900_spi_chip {
+struct nuc900_spi_chip
+{
 	unsigned char bits_per_word;
 };
 

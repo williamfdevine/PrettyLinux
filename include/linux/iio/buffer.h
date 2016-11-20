@@ -51,11 +51,12 @@ struct iio_buffer;
  * small proportion of these functions.  The core code 'should' cope fine with
  * any of them not existing.
  **/
-struct iio_buffer_access_funcs {
+struct iio_buffer_access_funcs
+{
 	int (*store_to)(struct iio_buffer *buffer, const void *data);
 	int (*read_first_n)(struct iio_buffer *buffer,
-			    size_t n,
-			    char __user *buf);
+						size_t n,
+						char __user *buf);
 	size_t (*data_available)(struct iio_buffer *buffer);
 
 	int (*request_update)(struct iio_buffer *buffer);
@@ -95,7 +96,8 @@ struct iio_buffer_access_funcs {
  * @ref:		[INTERN] reference count of the buffer.
  * @watermark:		[INTERN] number of datums to wait for poll/read.
  */
-struct iio_buffer {
+struct iio_buffer
+{
 	int					length;
 	int					bytes_per_datum;
 	struct attribute_group			*scan_el_attrs;
@@ -124,8 +126,8 @@ struct iio_buffer {
  * Note this will tear down the all buffering and build it up again
  */
 int iio_update_buffers(struct iio_dev *indio_dev,
-		       struct iio_buffer *insert_buffer,
-		       struct iio_buffer *remove_buffer);
+					   struct iio_buffer *insert_buffer,
+					   struct iio_buffer *remove_buffer);
 
 /**
  * iio_buffer_init() - Initialize the buffer structure
@@ -134,7 +136,7 @@ int iio_update_buffers(struct iio_dev *indio_dev,
 void iio_buffer_init(struct iio_buffer *buffer);
 
 int iio_scan_mask_query(struct iio_dev *indio_dev,
-			struct iio_buffer *buffer, int bit);
+						struct iio_buffer *buffer, int bit);
 
 /**
  * iio_push_to_buffers() - push to a registered buffer.
@@ -158,9 +160,10 @@ int iio_push_to_buffers(struct iio_dev *indio_dev, const void *data);
  * Returns 0 on success, a negative error code otherwise.
  */
 static inline int iio_push_to_buffers_with_timestamp(struct iio_dev *indio_dev,
-	void *data, int64_t timestamp)
+		void *data, int64_t timestamp)
 {
-	if (indio_dev->scan_timestamp) {
+	if (indio_dev->scan_timestamp)
+	{
 		size_t ts_offset = indio_dev->scan_bytes / sizeof(int64_t) - 1;
 		((int64_t *)data)[ts_offset] = timestamp;
 	}
@@ -171,7 +174,7 @@ static inline int iio_push_to_buffers_with_timestamp(struct iio_dev *indio_dev,
 int iio_update_demux(struct iio_dev *indio_dev);
 
 bool iio_validate_scan_mask_onehot(struct iio_dev *indio_dev,
-	const unsigned long *mask);
+								   const unsigned long *mask);
 
 struct iio_buffer *iio_buffer_get(struct iio_buffer *buffer);
 void iio_buffer_put(struct iio_buffer *buffer);
@@ -186,7 +189,7 @@ void iio_buffer_put(struct iio_buffer *buffer);
  * most once per device.
  */
 static inline void iio_device_attach_buffer(struct iio_dev *indio_dev,
-	struct iio_buffer *buffer)
+		struct iio_buffer *buffer)
 {
 	indio_dev->buffer = iio_buffer_get(buffer);
 }

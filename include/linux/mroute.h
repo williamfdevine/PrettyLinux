@@ -19,13 +19,13 @@ int ipmr_compat_ioctl(struct sock *sk, unsigned int cmd, void __user *arg);
 int ip_mr_init(void);
 #else
 static inline int ip_mroute_setsockopt(struct sock *sock, int optname,
-				       char __user *optval, unsigned int optlen)
+									   char __user *optval, unsigned int optlen)
 {
 	return -ENOPROTOOPT;
 }
 
 static inline int ip_mroute_getsockopt(struct sock *sock, int optname,
-				       char __user *optval, int __user *optlen)
+									   char __user *optval, int __user *optlen)
 {
 	return -ENOPROTOOPT;
 }
@@ -46,14 +46,15 @@ static inline int ip_mroute_opt(int opt)
 }
 #endif
 
-struct vif_device {
+struct vif_device
+{
 	struct net_device 	*dev;			/* Device we are using */
-	unsigned long	bytes_in,bytes_out;
-	unsigned long	pkt_in,pkt_out;		/* Statistics 			*/
+	unsigned long	bytes_in, bytes_out;
+	unsigned long	pkt_in, pkt_out;		/* Statistics 			*/
 	unsigned long	rate_limit;		/* Traffic shaping (NI) 	*/
 	unsigned char	threshold;		/* TTL threshold 		*/
 	unsigned short	flags;			/* Control flags 		*/
-	__be32		local,remote;		/* Addresses(remote for tunnels)*/
+	__be32		local, remote;		/* Addresses(remote for tunnels)*/
 	int		link;			/* Physical interface index	*/
 };
 
@@ -62,7 +63,8 @@ struct vif_device {
 #define VIF_EXISTS(_mrt, _idx) ((_mrt)->vif_table[_idx].dev != NULL)
 #define MFC_LINES 64
 
-struct mr_table {
+struct mr_table
+{
 	struct list_head	list;
 	possible_net_t		net;
 	u32			id;
@@ -81,23 +83,28 @@ struct mr_table {
 /* mfc_flags:
  * MFC_STATIC - the entry was added statically (not by a routing daemon)
  */
-enum {
+enum
+{
 	MFC_STATIC = BIT(0),
 };
 
-struct mfc_cache {
+struct mfc_cache
+{
 	struct list_head list;
 	__be32 mfc_mcastgrp;			/* Group the entry belongs to 	*/
 	__be32 mfc_origin;			/* Source of packet 		*/
 	vifi_t mfc_parent;			/* Source interface		*/
 	int mfc_flags;				/* Flags on line		*/
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			unsigned long expires;
 			struct sk_buff_head unresolved;	/* Unresolved buffers		*/
 		} unres;
-		struct {
+		struct
+		{
 			unsigned long last_assert;
 			int minvif;
 			int maxvif;
@@ -112,13 +119,13 @@ struct mfc_cache {
 };
 
 #ifdef __BIG_ENDIAN
-#define MFC_HASH(a,b)	(((((__force u32)(__be32)a)>>24)^(((__force u32)(__be32)b)>>26))&(MFC_LINES-1))
+	#define MFC_HASH(a,b)	(((((__force u32)(__be32)a)>>24)^(((__force u32)(__be32)b)>>26))&(MFC_LINES-1))
 #else
-#define MFC_HASH(a,b)	((((__force u32)(__be32)a)^(((__force u32)(__be32)b)>>2))&(MFC_LINES-1))
+	#define MFC_HASH(a,b)	((((__force u32)(__be32)a)^(((__force u32)(__be32)b)>>2))&(MFC_LINES-1))
 #endif
 
 struct rtmsg;
 int ipmr_get_route(struct net *net, struct sk_buff *skb,
-		   __be32 saddr, __be32 daddr,
-		   struct rtmsg *rtm, int nowait, u32 portid);
+				   __be32 saddr, __be32 daddr,
+				   struct rtmsg *rtm, int nowait, u32 portid);
 #endif

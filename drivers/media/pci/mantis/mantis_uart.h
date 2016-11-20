@@ -36,7 +36,8 @@
 #define MANTIS_UART_PARITY_ERR		(1 << 1)
 #define MANTIS_UART_RXTHRESH_INT	(1 << 0)
 
-enum mantis_baud {
+enum mantis_baud
+{
 	MANTIS_BAUD_9600	= 0,
 	MANTIS_BAUD_19200,
 	MANTIS_BAUD_38400,
@@ -44,7 +45,8 @@ enum mantis_baud {
 	MANTIS_BAUD_115200
 };
 
-enum mantis_parity {
+enum mantis_parity
+{
 	MANTIS_PARITY_NONE	= 0,
 	MANTIS_PARITY_EVEN,
 	MANTIS_PARITY_ODD,

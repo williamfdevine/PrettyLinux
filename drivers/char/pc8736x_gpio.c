@@ -96,13 +96,19 @@ static int pc8736x_superio_present(void)
 	/* try the 2 possible values, read a hardware reg to verify */
 	superio_cmd = SIO_BASE1;
 	id = superio_inb(SIO_SID);
+
 	if (id == SIO_SID_PC87365 || id == SIO_SID_PC87366)
+	{
 		return superio_cmd;
+	}
 
 	superio_cmd = SIO_BASE2;
 	id = superio_inb(SIO_SID);
+
 	if (id == SIO_SID_PC87365 || id == SIO_SID_PC87366)
+	{
 		return superio_cmd;
+	}
 
 	return 0;
 }
@@ -118,11 +124,11 @@ static void select_pin(unsigned iminor)
 	/* select GPIO port/pin from device minor number */
 	device_select(SIO_GPIO_UNIT);
 	superio_outb(SIO_GPIO_PIN_SELECT,
-		     ((iminor << 1) & 0xF0) | (iminor & 0x7));
+				 ((iminor << 1) & 0xF0) | (iminor & 0x7));
 }
 
 static inline u32 pc8736x_gpio_configure_fn(unsigned index, u32 mask, u32 bits,
-					    u32 func_slct)
+		u32 func_slct)
 {
 	u32 config, new_config;
 
@@ -146,7 +152,7 @@ static inline u32 pc8736x_gpio_configure_fn(unsigned index, u32 mask, u32 bits,
 static u32 pc8736x_gpio_configure(unsigned index, u32 mask, u32 bits)
 {
 	return pc8736x_gpio_configure_fn(index, mask, bits,
-					 SIO_GPIO_PIN_CONFIG);
+									 SIO_GPIO_PIN_CONFIG);
 }
 
 static int pc8736x_gpio_get(unsigned minor)
@@ -160,8 +166,8 @@ static int pc8736x_gpio_get(unsigned minor)
 	val &= 1;
 
 	dev_dbg(&pdev->dev, "_gpio_get(%d from %x bit %d) == val %d\n",
-		minor, pc8736x_gpio_base + port_offset[port] + PORT_IN, bit,
-		val);
+			minor, pc8736x_gpio_base + port_offset[port] + PORT_IN, bit,
+			val);
 
 	return val;
 }
@@ -176,13 +182,13 @@ static void pc8736x_gpio_set(unsigned minor, int val)
 	curval = inb_p(pc8736x_gpio_base + port_offset[port] + PORT_OUT);
 
 	dev_dbg(&pdev->dev, "addr:%x cur:%x bit-pos:%d cur-bit:%x + new:%d -> bit-new:%d\n",
-		pc8736x_gpio_base + port_offset[port] + PORT_OUT,
-		curval, bit, (curval & ~(1 << bit)), val, (val << bit));
+			pc8736x_gpio_base + port_offset[port] + PORT_OUT,
+			curval, bit, (curval & ~(1 << bit)), val, (val << bit));
 
 	val = (curval & ~(1 << bit)) | (val << bit);
 
 	dev_dbg(&pdev->dev, "gpio_set(minor:%d port:%d bit:%d)"
-		" %2x -> %2x\n", minor, port, bit, curval, val);
+			" %2x -> %2x\n", minor, port, bit, curval, val);
 
 	outb_p(val, pc8736x_gpio_base + port_offset[port] + PORT_OUT);
 
@@ -207,7 +213,8 @@ static void pc8736x_gpio_change(unsigned index)
 	pc8736x_gpio_set(index, !pc8736x_gpio_current(index));
 }
 
-static struct nsc_gpio_ops pc8736x_gpio_ops = {
+static struct nsc_gpio_ops pc8736x_gpio_ops =
+{
 	.owner		= THIS_MODULE,
 	.gpio_config	= pc8736x_gpio_configure,
 	.gpio_dump	= nsc_gpio_dump,
@@ -225,11 +232,15 @@ static int pc8736x_gpio_open(struct inode *inode, struct file *file)
 	dev_dbg(&pdev->dev, "open %d\n", m);
 
 	if (m >= PC8736X_GPIO_CT)
+	{
 		return -EINVAL;
+	}
+
 	return nonseekable_open(inode, file);
 }
 
-static const struct file_operations pc8736x_gpio_fileops = {
+static const struct file_operations pc8736x_gpio_fileops =
+{
 	.owner	= THIS_MODULE,
 	.open	= pc8736x_gpio_open,
 	.write	= nsc_gpio_write,
@@ -244,8 +255,8 @@ static void __init pc8736x_init_shadow(void)
 	/* read the current values driven on the GPIO signals */
 	for (port = 0; port < 4; ++port)
 		pc8736x_gpio_shadow[port]
-		    = inb_p(pc8736x_gpio_base + port_offset[port]
-			    + PORT_OUT);
+			= inb_p(pc8736x_gpio_base + port_offset[port]
+					+ PORT_OUT);
 
 }
 
@@ -257,34 +268,47 @@ static int __init pc8736x_gpio_init(void)
 	dev_t devid;
 
 	pdev = platform_device_alloc(DEVNAME, 0);
+
 	if (!pdev)
+	{
 		return -ENOMEM;
+	}
 
 	rc = platform_device_add(pdev);
-	if (rc) {
+
+	if (rc)
+	{
 		rc = -ENODEV;
 		goto undo_platform_dev_alloc;
 	}
+
 	dev_info(&pdev->dev, "NatSemi pc8736x GPIO Driver Initializing\n");
 
-	if (!pc8736x_superio_present()) {
+	if (!pc8736x_superio_present())
+	{
 		rc = -ENODEV;
 		dev_err(&pdev->dev, "no device found\n");
 		goto undo_platform_dev_add;
 	}
+
 	pc8736x_gpio_ops.dev = &pdev->dev;
 
 	/* Verify that chip and it's GPIO unit are both enabled.
 	   My BIOS does this, so I take minimum action here
 	 */
 	rc = superio_inb(SIO_CF1);
-	if (!(rc & 0x01)) {
+
+	if (!(rc & 0x01))
+	{
 		rc = -ENODEV;
 		dev_err(&pdev->dev, "device not enabled\n");
 		goto undo_platform_dev_add;
 	}
+
 	device_select(SIO_GPIO_UNIT);
-	if (!superio_inb(SIO_UNIT_ACT)) {
+
+	if (!superio_inb(SIO_UNIT_ACT))
+	{
 		rc = -ENODEV;
 		dev_err(&pdev->dev, "GPIO unit not enabled\n");
 		goto undo_platform_dev_add;
@@ -292,29 +316,37 @@ static int __init pc8736x_gpio_init(void)
 
 	/* read the GPIO unit base addr that chip responds to */
 	pc8736x_gpio_base = (superio_inb(SIO_BASE_HADDR) << 8
-			     | superio_inb(SIO_BASE_LADDR));
+						 | superio_inb(SIO_BASE_LADDR));
 
-	if (!request_region(pc8736x_gpio_base, PC8736X_GPIO_RANGE, DEVNAME)) {
+	if (!request_region(pc8736x_gpio_base, PC8736X_GPIO_RANGE, DEVNAME))
+	{
 		rc = -ENODEV;
 		dev_err(&pdev->dev, "GPIO ioport %x busy\n",
-			pc8736x_gpio_base);
+				pc8736x_gpio_base);
 		goto undo_platform_dev_add;
 	}
+
 	dev_info(&pdev->dev, "GPIO ioport %x reserved\n", pc8736x_gpio_base);
 
-	if (major) {
+	if (major)
+	{
 		devid = MKDEV(major, 0);
 		rc = register_chrdev_region(devid, PC8736X_GPIO_CT, DEVNAME);
-	} else {
+	}
+	else
+	{
 		rc = alloc_chrdev_region(&devid, 0, PC8736X_GPIO_CT, DEVNAME);
 		major = MAJOR(devid);
 	}
 
-	if (rc < 0) {
+	if (rc < 0)
+	{
 		dev_err(&pdev->dev, "register-chrdev failed: %d\n", rc);
 		goto undo_request_region;
 	}
-	if (!major) {
+
+	if (!major)
+	{
 		major = rc;
 		dev_dbg(&pdev->dev, "got dynamic major %d\n", major);
 	}
@@ -342,7 +374,7 @@ static void __exit pc8736x_gpio_cleanup(void)
 	dev_dbg(&pdev->dev, "cleanup\n");
 
 	cdev_del(&pc8736x_gpio_cdev);
-	unregister_chrdev_region(MKDEV(major,0), PC8736X_GPIO_CT);
+	unregister_chrdev_region(MKDEV(major, 0), PC8736X_GPIO_CT);
 	release_region(pc8736x_gpio_base, PC8736X_GPIO_RANGE);
 
 	platform_device_unregister(pdev);

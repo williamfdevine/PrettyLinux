@@ -31,7 +31,8 @@
 #include <linux/of.h>
 #include <asm/unaligned.h>
 
-struct goodix_ts_data {
+struct goodix_ts_data
+{
 	struct i2c_client *client;
 	struct input_dev *input_dev;
 	int abs_x_max;
@@ -76,7 +77,8 @@ struct goodix_ts_data {
 #define MAX_CONTACTS_LOC	5
 #define TRIGGER_LOC		6
 
-static const unsigned long goodix_irq_flags[] = {
+static const unsigned long goodix_irq_flags[] =
+{
 	IRQ_TYPE_EDGE_RISING,
 	IRQ_TYPE_EDGE_FALLING,
 	IRQ_TYPE_LEVEL_LOW,
@@ -87,7 +89,8 @@ static const unsigned long goodix_irq_flags[] = {
  * Those tablets have their coordinates origin at the bottom right
  * of the tablet, as if rotated 180 degrees
  */
-static const struct dmi_system_id rotated_screen[] = {
+static const struct dmi_system_id rotated_screen[] =
+{
 #if defined(CONFIG_DMI) && defined(CONFIG_X86)
 	{
 		.ident = "WinBook TW100",
@@ -116,7 +119,7 @@ static const struct dmi_system_id rotated_screen[] = {
  * @len: length of the buffer to write
  */
 static int goodix_i2c_read(struct i2c_client *client,
-			   u16 reg, u8 *buf, int len)
+						   u16 reg, u8 *buf, int len)
 {
 	struct i2c_msg msgs[2];
 	u16 wbuf = cpu_to_be16(reg);
@@ -145,15 +148,18 @@ static int goodix_i2c_read(struct i2c_client *client,
  * @len: length of the buffer to write
  */
 static int goodix_i2c_write(struct i2c_client *client, u16 reg, const u8 *buf,
-			    unsigned len)
+							unsigned len)
 {
 	u8 *addr_buf;
 	struct i2c_msg msg;
 	int ret;
 
 	addr_buf = kmalloc(len + 2, GFP_KERNEL);
+
 	if (!addr_buf)
+	{
 		return -ENOMEM;
+	}
 
 	addr_buf[0] = reg >> 8;
 	addr_buf[1] = reg & 0xFF;
@@ -176,20 +182,21 @@ static int goodix_i2c_write_u8(struct i2c_client *client, u16 reg, u8 value)
 
 static int goodix_get_cfg_len(u16 id)
 {
-	switch (id) {
-	case 911:
-	case 9271:
-	case 9110:
-	case 927:
-	case 928:
-		return GOODIX_CONFIG_911_LENGTH;
+	switch (id)
+	{
+		case 911:
+		case 9271:
+		case 9110:
+		case 927:
+		case 928:
+			return GOODIX_CONFIG_911_LENGTH;
 
-	case 912:
-	case 967:
-		return GOODIX_CONFIG_967_LENGTH;
+		case 912:
+		case 967:
+			return GOODIX_CONFIG_967_LENGTH;
 
-	default:
-		return GOODIX_CONFIG_MAX_LENGTH;
+		default:
+			return GOODIX_CONFIG_MAX_LENGTH;
 	}
 }
 
@@ -199,28 +206,39 @@ static int goodix_ts_read_input_report(struct goodix_ts_data *ts, u8 *data)
 	int error;
 
 	error = goodix_i2c_read(ts->client, GOODIX_READ_COOR_ADDR, data,
-				GOODIX_CONTACT_SIZE + 1);
-	if (error) {
+							GOODIX_CONTACT_SIZE + 1);
+
+	if (error)
+	{
 		dev_err(&ts->client->dev, "I2C transfer error: %d\n", error);
 		return error;
 	}
 
 	if (!(data[0] & 0x80))
+	{
 		return -EAGAIN;
+	}
 
 	touch_num = data[0] & 0x0f;
-	if (touch_num > ts->max_touch_num)
-		return -EPROTO;
 
-	if (touch_num > 1) {
+	if (touch_num > ts->max_touch_num)
+	{
+		return -EPROTO;
+	}
+
+	if (touch_num > 1)
+	{
 		data += 1 + GOODIX_CONTACT_SIZE;
 		error = goodix_i2c_read(ts->client,
-					GOODIX_READ_COOR_ADDR +
-						1 + GOODIX_CONTACT_SIZE,
-					data,
-					GOODIX_CONTACT_SIZE * (touch_num - 1));
+								GOODIX_READ_COOR_ADDR +
+								1 + GOODIX_CONTACT_SIZE,
+								data,
+								GOODIX_CONTACT_SIZE * (touch_num - 1));
+
 		if (error)
+		{
 			return error;
+		}
 	}
 
 	return touch_num;
@@ -235,11 +253,19 @@ static void goodix_ts_report_touch(struct goodix_ts_data *ts, u8 *coor_data)
 
 	/* Inversions have to happen before axis swapping */
 	if (ts->inverted_x)
+	{
 		input_x = ts->abs_x_max - input_x;
+	}
+
 	if (ts->inverted_y)
+	{
 		input_y = ts->abs_y_max - input_y;
+	}
+
 	if (ts->swapped_x_y)
+	{
 		swap(input_x, input_y);
+	}
 
 	input_mt_slot(ts->input_dev, id);
 	input_mt_report_slot_state(ts->input_dev, MT_TOOL_FINGER, true);
@@ -264,12 +290,15 @@ static void goodix_process_events(struct goodix_ts_data *ts)
 	int i;
 
 	touch_num = goodix_ts_read_input_report(ts, point_data);
+
 	if (touch_num < 0)
+	{
 		return;
+	}
 
 	for (i = 0; i < touch_num; i++)
 		goodix_ts_report_touch(ts,
-				&point_data[1 + GOODIX_CONTACT_SIZE * i]);
+							   &point_data[1 + GOODIX_CONTACT_SIZE * i]);
 
 	input_mt_sync_frame(ts->input_dev);
 	input_sync(ts->input_dev);
@@ -288,7 +317,9 @@ static irqreturn_t goodix_ts_irq_handler(int irq, void *dev_id)
 	goodix_process_events(ts);
 
 	if (goodix_i2c_write_u8(ts->client, GOODIX_READ_COOR_ADDR, 0) < 0)
+	{
 		dev_err(&ts->client->dev, "I2C write end_cmd error\n");
+	}
 
 	return IRQ_HANDLED;
 }
@@ -301,8 +332,8 @@ static void goodix_free_irq(struct goodix_ts_data *ts)
 static int goodix_request_irq(struct goodix_ts_data *ts)
 {
 	return devm_request_threaded_irq(&ts->client->dev, ts->client->irq,
-					 NULL, goodix_ts_irq_handler,
-					 ts->irq_flags, ts->client->name, ts);
+									 NULL, goodix_ts_irq_handler,
+									 ts->irq_flags, ts->client->name, ts);
 }
 
 /**
@@ -312,30 +343,38 @@ static int goodix_request_irq(struct goodix_ts_data *ts)
  * @cfg: firmware config data
  */
 static int goodix_check_cfg(struct goodix_ts_data *ts,
-			    const struct firmware *cfg)
+							const struct firmware *cfg)
 {
 	int i, raw_cfg_len;
 	u8 check_sum = 0;
 
-	if (cfg->size > GOODIX_CONFIG_MAX_LENGTH) {
+	if (cfg->size > GOODIX_CONFIG_MAX_LENGTH)
+	{
 		dev_err(&ts->client->dev,
-			"The length of the config fw is not correct");
+				"The length of the config fw is not correct");
 		return -EINVAL;
 	}
 
 	raw_cfg_len = cfg->size - 2;
+
 	for (i = 0; i < raw_cfg_len; i++)
+	{
 		check_sum += cfg->data[i];
+	}
+
 	check_sum = (~check_sum) + 1;
-	if (check_sum != cfg->data[raw_cfg_len]) {
+
+	if (check_sum != cfg->data[raw_cfg_len])
+	{
 		dev_err(&ts->client->dev,
-			"The checksum of the config fw is not correct");
+				"The checksum of the config fw is not correct");
 		return -EINVAL;
 	}
 
-	if (cfg->data[raw_cfg_len + 1] != 1) {
+	if (cfg->data[raw_cfg_len + 1] != 1)
+	{
 		dev_err(&ts->client->dev,
-			"Config fw must have Config_Fresh register set");
+				"Config fw must have Config_Fresh register set");
 		return -EINVAL;
 	}
 
@@ -349,21 +388,27 @@ static int goodix_check_cfg(struct goodix_ts_data *ts,
  * @cfg: config firmware to write to device
  */
 static int goodix_send_cfg(struct goodix_ts_data *ts,
-			   const struct firmware *cfg)
+						   const struct firmware *cfg)
 {
 	int error;
 
 	error = goodix_check_cfg(ts, cfg);
-	if (error)
-		return error;
 
-	error = goodix_i2c_write(ts->client, GOODIX_REG_CONFIG_DATA, cfg->data,
-				 cfg->size);
-	if (error) {
-		dev_err(&ts->client->dev, "Failed to write config data: %d",
-			error);
+	if (error)
+	{
 		return error;
 	}
+
+	error = goodix_i2c_write(ts->client, GOODIX_REG_CONFIG_DATA, cfg->data,
+							 cfg->size);
+
+	if (error)
+	{
+		dev_err(&ts->client->dev, "Failed to write config data: %d",
+				error);
+		return error;
+	}
+
 	dev_dbg(&ts->client->dev, "Config sent successfully.");
 
 	/* Let the firmware reconfigure itself, so sleep for 10ms */
@@ -377,14 +422,20 @@ static int goodix_int_sync(struct goodix_ts_data *ts)
 	int error;
 
 	error = gpiod_direction_output(ts->gpiod_int, 0);
+
 	if (error)
+	{
 		return error;
+	}
 
 	msleep(50);				/* T5: 50ms */
 
 	error = gpiod_direction_input(ts->gpiod_int);
+
 	if (error)
+	{
 		return error;
+	}
 
 	return 0;
 }
@@ -400,32 +451,47 @@ static int goodix_reset(struct goodix_ts_data *ts)
 
 	/* begin select I2C slave addr */
 	error = gpiod_direction_output(ts->gpiod_rst, 0);
+
 	if (error)
+	{
 		return error;
+	}
 
 	msleep(20);				/* T2: > 10ms */
 
 	/* HIGH: 0x28/0x29, LOW: 0xBA/0xBB */
 	error = gpiod_direction_output(ts->gpiod_int, ts->client->addr == 0x14);
+
 	if (error)
+	{
 		return error;
+	}
 
 	usleep_range(100, 2000);		/* T3: > 100us */
 
 	error = gpiod_direction_output(ts->gpiod_rst, 1);
+
 	if (error)
+	{
 		return error;
+	}
 
 	usleep_range(6000, 10000);		/* T4: > 5ms */
 
 	/* end select I2C slave addr */
 	error = gpiod_direction_input(ts->gpiod_rst);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = goodix_int_sync(ts);
+
 	if (error)
+	{
 		return error;
+	}
 
 	return 0;
 }
@@ -442,16 +508,23 @@ static int goodix_get_gpio_config(struct goodix_ts_data *ts)
 	struct gpio_desc *gpiod;
 
 	if (!ts->client)
+	{
 		return -EINVAL;
+	}
+
 	dev = &ts->client->dev;
 
 	/* Get the interrupt GPIO pin number */
 	gpiod = devm_gpiod_get_optional(dev, GOODIX_GPIO_INT_NAME, GPIOD_IN);
-	if (IS_ERR(gpiod)) {
+
+	if (IS_ERR(gpiod))
+	{
 		error = PTR_ERR(gpiod);
+
 		if (error != -EPROBE_DEFER)
 			dev_dbg(dev, "Failed to get %s GPIO: %d\n",
-				GOODIX_GPIO_INT_NAME, error);
+					GOODIX_GPIO_INT_NAME, error);
+
 		return error;
 	}
 
@@ -459,11 +532,15 @@ static int goodix_get_gpio_config(struct goodix_ts_data *ts)
 
 	/* Get the reset line GPIO pin number */
 	gpiod = devm_gpiod_get_optional(dev, GOODIX_GPIO_RST_NAME, GPIOD_IN);
-	if (IS_ERR(gpiod)) {
+
+	if (IS_ERR(gpiod))
+	{
 		error = PTR_ERR(gpiod);
+
 		if (error != -EPROBE_DEFER)
 			dev_dbg(dev, "Failed to get %s GPIO: %d\n",
-				GOODIX_GPIO_RST_NAME, error);
+					GOODIX_GPIO_RST_NAME, error);
+
 		return error;
 	}
 
@@ -485,15 +562,21 @@ static void goodix_read_config(struct goodix_ts_data *ts)
 	int error;
 
 	error = goodix_i2c_read(ts->client, GOODIX_REG_CONFIG_DATA,
-				config, ts->cfg_len);
-	if (error) {
+							config, ts->cfg_len);
+
+	if (error)
+	{
 		dev_warn(&ts->client->dev,
-			 "Error reading config (%d), using defaults\n",
-			 error);
+				 "Error reading config (%d), using defaults\n",
+				 error);
 		ts->abs_x_max = GOODIX_MAX_WIDTH;
 		ts->abs_y_max = GOODIX_MAX_HEIGHT;
+
 		if (ts->swapped_x_y)
+		{
 			swap(ts->abs_x_max, ts->abs_y_max);
+		}
+
 		ts->int_trigger_type = GOODIX_INT_TRIGGER;
 		ts->max_touch_num = GOODIX_MAX_CONTACTS;
 		return;
@@ -501,25 +584,36 @@ static void goodix_read_config(struct goodix_ts_data *ts)
 
 	ts->abs_x_max = get_unaligned_le16(&config[RESOLUTION_LOC]);
 	ts->abs_y_max = get_unaligned_le16(&config[RESOLUTION_LOC + 2]);
+
 	if (ts->swapped_x_y)
+	{
 		swap(ts->abs_x_max, ts->abs_y_max);
+	}
+
 	ts->int_trigger_type = config[TRIGGER_LOC] & 0x03;
 	ts->max_touch_num = config[MAX_CONTACTS_LOC] & 0x0f;
-	if (!ts->abs_x_max || !ts->abs_y_max || !ts->max_touch_num) {
+
+	if (!ts->abs_x_max || !ts->abs_y_max || !ts->max_touch_num)
+	{
 		dev_err(&ts->client->dev,
-			"Invalid config, using defaults\n");
+				"Invalid config, using defaults\n");
 		ts->abs_x_max = GOODIX_MAX_WIDTH;
 		ts->abs_y_max = GOODIX_MAX_HEIGHT;
+
 		if (ts->swapped_x_y)
+		{
 			swap(ts->abs_x_max, ts->abs_y_max);
+		}
+
 		ts->max_touch_num = GOODIX_MAX_CONTACTS;
 	}
 
-	if (dmi_check_system(rotated_screen)) {
+	if (dmi_check_system(rotated_screen))
+	{
 		ts->inverted_x = true;
 		ts->inverted_y = true;
 		dev_dbg(&ts->client->dev,
-			 "Applying '180 degrees rotated screen' quirk\n");
+				"Applying '180 degrees rotated screen' quirk\n");
 	}
 }
 
@@ -535,20 +629,25 @@ static int goodix_read_version(struct goodix_ts_data *ts)
 	char id_str[5];
 
 	error = goodix_i2c_read(ts->client, GOODIX_REG_ID, buf, sizeof(buf));
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&ts->client->dev, "read version failed: %d\n", error);
 		return error;
 	}
 
 	memcpy(id_str, buf, 4);
 	id_str[4] = 0;
+
 	if (kstrtou16(id_str, 10, &ts->id))
+	{
 		ts->id = 0x1001;
+	}
 
 	ts->version = get_unaligned_le16(&buf[4]);
 
 	dev_info(&ts->client->dev, "ID %d, version: %04x\n", ts->id,
-		 ts->version);
+			 ts->version);
 
 	return 0;
 }
@@ -564,14 +663,18 @@ static int goodix_i2c_test(struct i2c_client *client)
 	int error;
 	u8 test;
 
-	while (retry++ < 2) {
+	while (retry++ < 2)
+	{
 		error = goodix_i2c_read(client, GOODIX_REG_CONFIG_DATA,
-					&test, 1);
+								&test, 1);
+
 		if (!error)
+		{
 			return 0;
+		}
 
 		dev_err(&client->dev, "i2c test failed attempt %d: %d\n",
-			retry, error);
+				retry, error);
 		msleep(20);
 	}
 
@@ -590,20 +693,22 @@ static int goodix_request_input_dev(struct goodix_ts_data *ts)
 	int error;
 
 	ts->input_dev = devm_input_allocate_device(&ts->client->dev);
-	if (!ts->input_dev) {
+
+	if (!ts->input_dev)
+	{
 		dev_err(&ts->client->dev, "Failed to allocate input device.");
 		return -ENOMEM;
 	}
 
 	input_set_abs_params(ts->input_dev, ABS_MT_POSITION_X,
-			     0, ts->abs_x_max, 0, 0);
+						 0, ts->abs_x_max, 0, 0);
 	input_set_abs_params(ts->input_dev, ABS_MT_POSITION_Y,
-			     0, ts->abs_y_max, 0, 0);
+						 0, ts->abs_y_max, 0, 0);
 	input_set_abs_params(ts->input_dev, ABS_MT_WIDTH_MAJOR, 0, 255, 0, 0);
 	input_set_abs_params(ts->input_dev, ABS_MT_TOUCH_MAJOR, 0, 255, 0, 0);
 
 	input_mt_init_slots(ts->input_dev, ts->max_touch_num,
-			    INPUT_MT_DIRECT | INPUT_MT_DROP_UNUSED);
+						INPUT_MT_DIRECT | INPUT_MT_DROP_UNUSED);
 
 	ts->input_dev->name = "Goodix Capacitive TouchScreen";
 	ts->input_dev->phys = "input/ts";
@@ -613,9 +718,11 @@ static int goodix_request_input_dev(struct goodix_ts_data *ts)
 	ts->input_dev->id.version = ts->version;
 
 	error = input_register_device(ts->input_dev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&ts->client->dev,
-			"Failed to register input device: %d", error);
+				"Failed to register input device: %d", error);
 		return error;
 	}
 
@@ -637,21 +744,26 @@ static int goodix_configure_dev(struct goodix_ts_data *ts)
 	int error;
 
 	ts->swapped_x_y = device_property_read_bool(&ts->client->dev,
-						    "touchscreen-swapped-x-y");
+					  "touchscreen-swapped-x-y");
 	ts->inverted_x = device_property_read_bool(&ts->client->dev,
-						   "touchscreen-inverted-x");
+					 "touchscreen-inverted-x");
 	ts->inverted_y = device_property_read_bool(&ts->client->dev,
-						   "touchscreen-inverted-y");
+					 "touchscreen-inverted-y");
 
 	goodix_read_config(ts);
 
 	error = goodix_request_input_dev(ts);
+
 	if (error)
+	{
 		return error;
+	}
 
 	ts->irq_flags = goodix_irq_flags[ts->int_trigger_type] | IRQF_ONESHOT;
 	error = goodix_request_irq(ts);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&ts->client->dev, "request IRQ failed: %d\n", error);
 		return error;
 	}
@@ -672,11 +784,15 @@ static void goodix_config_cb(const struct firmware *cfg, void *ctx)
 	struct goodix_ts_data *ts = ctx;
 	int error;
 
-	if (cfg) {
+	if (cfg)
+	{
 		/* send device configuration to the firmware */
 		error = goodix_send_cfg(ts, cfg);
+
 		if (error)
+		{
 			goto err_release_cfg;
+		}
 	}
 
 	goodix_configure_dev(ts);
@@ -687,75 +803,100 @@ err_release_cfg:
 }
 
 static int goodix_ts_probe(struct i2c_client *client,
-			   const struct i2c_device_id *id)
+						   const struct i2c_device_id *id)
 {
 	struct goodix_ts_data *ts;
 	int error;
 
 	dev_dbg(&client->dev, "I2C Address: 0x%02x\n", client->addr);
 
-	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		dev_err(&client->dev, "I2C check functionality failed.\n");
 		return -ENXIO;
 	}
 
 	ts = devm_kzalloc(&client->dev, sizeof(*ts), GFP_KERNEL);
+
 	if (!ts)
+	{
 		return -ENOMEM;
+	}
 
 	ts->client = client;
 	i2c_set_clientdata(client, ts);
 	init_completion(&ts->firmware_loading_complete);
 
 	error = goodix_get_gpio_config(ts);
-	if (error)
-		return error;
 
-	if (ts->gpiod_int && ts->gpiod_rst) {
+	if (error)
+	{
+		return error;
+	}
+
+	if (ts->gpiod_int && ts->gpiod_rst)
+	{
 		/* reset the controller */
 		error = goodix_reset(ts);
-		if (error) {
+
+		if (error)
+		{
 			dev_err(&client->dev, "Controller reset failed.\n");
 			return error;
 		}
 	}
 
 	error = goodix_i2c_test(client);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&client->dev, "I2C communication failure: %d\n", error);
 		return error;
 	}
 
 	error = goodix_read_version(ts);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&client->dev, "Read version failed.\n");
 		return error;
 	}
 
 	ts->cfg_len = goodix_get_cfg_len(ts->id);
 
-	if (ts->gpiod_int && ts->gpiod_rst) {
+	if (ts->gpiod_int && ts->gpiod_rst)
+	{
 		/* update device config */
 		ts->cfg_name = devm_kasprintf(&client->dev, GFP_KERNEL,
-					      "goodix_%d_cfg.bin", ts->id);
+									  "goodix_%d_cfg.bin", ts->id);
+
 		if (!ts->cfg_name)
+		{
 			return -ENOMEM;
+		}
 
 		error = request_firmware_nowait(THIS_MODULE, true, ts->cfg_name,
-						&client->dev, GFP_KERNEL, ts,
-						goodix_config_cb);
-		if (error) {
+										&client->dev, GFP_KERNEL, ts,
+										goodix_config_cb);
+
+		if (error)
+		{
 			dev_err(&client->dev,
-				"Failed to invoke firmware loader: %d\n",
-				error);
+					"Failed to invoke firmware loader: %d\n",
+					error);
 			return error;
 		}
 
 		return 0;
-	} else {
+	}
+	else
+	{
 		error = goodix_configure_dev(ts);
+
 		if (error)
+		{
 			return error;
+		}
 	}
 
 	return 0;
@@ -766,7 +907,9 @@ static int goodix_ts_remove(struct i2c_client *client)
 	struct goodix_ts_data *ts = i2c_get_clientdata(client);
 
 	if (ts->gpiod_int && ts->gpiod_rst)
+	{
 		wait_for_completion(&ts->firmware_loading_complete);
+	}
 
 	return 0;
 }
@@ -779,7 +922,9 @@ static int __maybe_unused goodix_suspend(struct device *dev)
 
 	/* We need gpio pins to suspend/resume */
 	if (!ts->gpiod_int || !ts->gpiod_rst)
+	{
 		return 0;
+	}
 
 	wait_for_completion(&ts->firmware_loading_complete);
 
@@ -788,7 +933,9 @@ static int __maybe_unused goodix_suspend(struct device *dev)
 
 	/* Output LOW on the INT pin for 5 ms */
 	error = gpiod_direction_output(ts->gpiod_int, 0);
-	if (error) {
+
+	if (error)
+	{
 		goodix_request_irq(ts);
 		return error;
 	}
@@ -796,8 +943,10 @@ static int __maybe_unused goodix_suspend(struct device *dev)
 	usleep_range(5000, 6000);
 
 	error = goodix_i2c_write_u8(ts->client, GOODIX_REG_COMMAND,
-				    GOODIX_CMD_SCREEN_OFF);
-	if (error) {
+								GOODIX_CMD_SCREEN_OFF);
+
+	if (error)
+	{
 		dev_err(&ts->client->dev, "Screen off command failed\n");
 		gpiod_direction_input(ts->gpiod_int);
 		goodix_request_irq(ts);
@@ -820,39 +969,52 @@ static int __maybe_unused goodix_resume(struct device *dev)
 	int error;
 
 	if (!ts->gpiod_int || !ts->gpiod_rst)
+	{
 		return 0;
+	}
 
 	/*
 	 * Exit sleep mode by outputting HIGH level to INT pin
 	 * for 2ms~5ms.
 	 */
 	error = gpiod_direction_output(ts->gpiod_int, 1);
+
 	if (error)
+	{
 		return error;
+	}
 
 	usleep_range(2000, 5000);
 
 	error = goodix_int_sync(ts);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = goodix_request_irq(ts);
+
 	if (error)
+	{
 		return error;
+	}
 
 	return 0;
 }
 
 static SIMPLE_DEV_PM_OPS(goodix_pm_ops, goodix_suspend, goodix_resume);
 
-static const struct i2c_device_id goodix_ts_id[] = {
+static const struct i2c_device_id goodix_ts_id[] =
+{
 	{ "GDIX1001:00", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, goodix_ts_id);
 
 #ifdef CONFIG_ACPI
-static const struct acpi_device_id goodix_acpi_match[] = {
+static const struct acpi_device_id goodix_acpi_match[] =
+{
 	{ "GDIX1001", 0 },
 	{ }
 };
@@ -860,7 +1022,8 @@ MODULE_DEVICE_TABLE(acpi, goodix_acpi_match);
 #endif
 
 #ifdef CONFIG_OF
-static const struct of_device_id goodix_of_match[] = {
+static const struct of_device_id goodix_of_match[] =
+{
 	{ .compatible = "goodix,gt911" },
 	{ .compatible = "goodix,gt9110" },
 	{ .compatible = "goodix,gt912" },
@@ -873,7 +1036,8 @@ static const struct of_device_id goodix_of_match[] = {
 MODULE_DEVICE_TABLE(of, goodix_of_match);
 #endif
 
-static struct i2c_driver goodix_ts_driver = {
+static struct i2c_driver goodix_ts_driver =
+{
 	.probe = goodix_ts_probe,
 	.remove = goodix_ts_remove,
 	.id_table = goodix_ts_id,

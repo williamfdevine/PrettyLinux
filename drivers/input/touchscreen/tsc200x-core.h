@@ -34,10 +34,10 @@
 #define TSC200X_CFR0_RESOLUTION12	0x2000
 #define TSC200X_CFR0_PENMODE		0x8000
 #define TSC200X_CFR0_INITVALUE		(TSC200X_CFR0_STABTIME_1MS    | \
-					 TSC200X_CFR0_CLOCK_1MHZ      | \
-					 TSC200X_CFR0_RESOLUTION12    | \
-					 TSC200X_CFR0_PRECHARGE_276US | \
-					 TSC200X_CFR0_PENMODE)
+									 TSC200X_CFR0_CLOCK_1MHZ      | \
+									 TSC200X_CFR0_RESOLUTION12    | \
+									 TSC200X_CFR0_PRECHARGE_276US | \
+									 TSC200X_CFR0_PENMODE)
 
 /* bits common to both read and write of configuration register 0 */
 #define	TSC200X_CFR0_RW_MASK		0x3fff
@@ -53,10 +53,10 @@
 #define TSC200X_CFR2_AVG_7		0x0800
 #define TSC200X_CFR2_MEDIUM_15		0x3000
 #define TSC200X_CFR2_INITVALUE		(TSC200X_CFR2_MAVE_X	| \
-					 TSC200X_CFR2_MAVE_Y	| \
-					 TSC200X_CFR2_MAVE_Z	| \
-					 TSC200X_CFR2_MEDIUM_15	| \
-					 TSC200X_CFR2_AVG_7)
+									 TSC200X_CFR2_MAVE_Y	| \
+									 TSC200X_CFR2_MAVE_Z	| \
+									 TSC200X_CFR2_MEDIUM_15	| \
+									 TSC200X_CFR2_AVG_7)
 
 #define MAX_12BIT			0xfff
 #define TSC200X_DEF_X_FUZZ		4
@@ -71,8 +71,8 @@ extern const struct regmap_config tsc200x_regmap_config;
 extern const struct dev_pm_ops tsc200x_pm_ops;
 
 int tsc200x_probe(struct device *dev, int irq, const struct input_id *tsc_id,
-		  struct regmap *regmap,
-		  int (*tsc200x_cmd)(struct device *dev, u8 cmd));
+				  struct regmap *regmap,
+				  int (*tsc200x_cmd)(struct device *dev, u8 cmd));
 int tsc200x_remove(struct device *dev);
 
 #endif

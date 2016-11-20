@@ -44,7 +44,8 @@ int pcxhr_load_dsp_binary(struct pcxhr_mgr *mgr, const struct firmware *dsp);
 #define PCXHR_SIZE_MAX_STATUS		16
 #define PCXHR_SIZE_MAX_LONG_STATUS	256
 
-struct pcxhr_rmh {
+struct pcxhr_rmh
+{
 	u16	cmd_len;		/* length of the command to send (WORDs) */
 	u16	stat_len;		/* length of the status received (WORDs) */
 	u16	dsp_stat;		/* status type, RMP_SSIZE_XXX */
@@ -53,7 +54,8 @@ struct pcxhr_rmh {
 	u32	stat[PCXHR_SIZE_MAX_STATUS];
 };
 
-enum {
+enum
+{
 	CMD_VERSION,			/* cmd_len = 2	stat_len = 1 */
 	CMD_SUPPORTED,			/* cmd_len = 1	stat_len = 4 */
 	CMD_TEST_IT,			/* cmd_len = 1	stat_len = 1 */
@@ -95,8 +97,8 @@ enum {
  */
 void pcxhr_init_rmh(struct pcxhr_rmh *rmh, int cmd);
 
-void pcxhr_set_pipe_cmd_params(struct pcxhr_rmh* rmh, int capture, unsigned int param1,
-			       unsigned int param2, unsigned int param3);
+void pcxhr_set_pipe_cmd_params(struct pcxhr_rmh *rmh, int capture, unsigned int param1,
+							   unsigned int param2, unsigned int param3);
 
 #define DSP_EXT_CMD_SET(x) (x->dsp_version > 0x012800)
 
@@ -151,7 +153,7 @@ int pcxhr_send_msg(struct pcxhr_mgr *mgr, struct pcxhr_rmh *rmh);
 int pcxhr_set_pipe_state(struct pcxhr_mgr *mgr, int playback_mask, int capture_mask, int start);
 
 int pcxhr_write_io_num_reg_cont(struct pcxhr_mgr *mgr, unsigned int mask,
-				unsigned int value, int *changed);
+								unsigned int value, int *changed);
 
 /* codec parameters */
 #define CS8416_RUN		0x200401

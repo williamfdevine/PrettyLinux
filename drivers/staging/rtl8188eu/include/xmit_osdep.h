@@ -18,7 +18,8 @@
 #include <osdep_service.h>
 #include <drv_types.h>
 
-struct pkt_file {
+struct pkt_file
+{
 	struct sk_buff *pkt;
 	size_t pkt_len;	 /* the remainder length of the open_file */
 	unsigned char *cur_buffer;
@@ -40,9 +41,9 @@ int rtw_xmit_entry(struct sk_buff *pkt, struct  net_device *pnetdev);
 void rtw_os_xmit_schedule(struct adapter *padapter);
 
 int rtw_os_xmit_resource_alloc(struct adapter *padapter,
-			       struct xmit_buf *pxmitbuf, u32 alloc_sz);
+							   struct xmit_buf *pxmitbuf, u32 alloc_sz);
 void rtw_os_xmit_resource_free(struct adapter *padapter,
-			       struct xmit_buf *pxmitbuf, u32 free_sz);
+							   struct xmit_buf *pxmitbuf, u32 free_sz);
 
 uint rtw_remainder_len(struct pkt_file *pfile);
 void _rtw_open_pktfile(struct sk_buff *pkt, struct pkt_file *pfile);
@@ -51,6 +52,6 @@ int rtw_endofpktfile(struct pkt_file *pfile);
 
 void rtw_os_pkt_complete(struct adapter *padapter, struct sk_buff *pkt);
 void rtw_os_xmit_complete(struct adapter *padapter,
-			  struct xmit_frame *pxframe);
+						  struct xmit_frame *pxframe);
 
 #endif /* __XMIT_OSDEP_H_ */

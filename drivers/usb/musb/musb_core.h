@@ -78,7 +78,8 @@ struct musb_ep;
 #define is_peripheral_active(m)		(!(m)->is_host)
 #define is_host_active(m)		((m)->is_host)
 
-enum {
+enum
+{
 	MUSB_PORT_MODE_HOST	= 1,
 	MUSB_PORT_MODE_GADGET,
 	MUSB_PORT_MODE_DUAL_ROLE,
@@ -87,15 +88,16 @@ enum {
 /****************************** CONSTANTS ********************************/
 
 #ifndef MUSB_C_NUM_EPS
-#define MUSB_C_NUM_EPS ((u8)16)
+	#define MUSB_C_NUM_EPS ((u8)16)
 #endif
 
 #ifndef MUSB_MAX_END0_PACKET
-#define MUSB_MAX_END0_PACKET ((u16)MUSB_EP0_FIFOSIZE)
+	#define MUSB_MAX_END0_PACKET ((u16)MUSB_EP0_FIFOSIZE)
 #endif
 
 /* host side ep0 states */
-enum musb_h_ep0_state {
+enum musb_h_ep0_state
+{
 	MUSB_EP0_IDLE,
 	MUSB_EP0_START,			/* expect ack of setup */
 	MUSB_EP0_IN,			/* expect IN DATA */
@@ -104,7 +106,8 @@ enum musb_h_ep0_state {
 } __attribute__ ((packed));
 
 /* peripheral side ep0 states */
-enum musb_g_ep0_state {
+enum musb_g_ep0_state
+{
 	MUSB_EP0_STAGE_IDLE,		/* idle, waiting for SETUP */
 	MUSB_EP0_STAGE_SETUP,		/* received SETUP */
 	MUSB_EP0_STAGE_TX,		/* IN data */
@@ -170,7 +173,8 @@ struct musb_io;
  * @post_root_reset_end: called after the root usb port reset flag gets cleared
  * @phy_callback: optional callback function for the phy to call
  */
-struct musb_platform_ops {
+struct musb_platform_ops
+{
 
 #define MUSB_DMA_UX500		BIT(6)
 #define MUSB_DMA_CPPI41		BIT(5)
@@ -201,7 +205,7 @@ struct musb_platform_ops {
 	void	(*read_fifo)(struct musb_hw_ep *hw_ep, u16 len, u8 *buf);
 	void	(*write_fifo)(struct musb_hw_ep *hw_ep, u16 len, const u8 *buf);
 	struct dma_controller *
-		(*dma_init) (struct musb *musb, void __iomem *base);
+	(*dma_init) (struct musb *musb, void __iomem *base);
 	void	(*dma_exit)(struct dma_controller *c);
 	int	(*set_mode)(struct musb *musb, u8 mode);
 	void	(*try_idle)(struct musb *musb, unsigned long timeout);
@@ -211,8 +215,8 @@ struct musb_platform_ops {
 	void	(*set_vbus)(struct musb *musb, int on);
 
 	int	(*adjust_channel_params)(struct dma_channel *channel,
-				u16 packet_sz, u8 *mode,
-				dma_addr_t *dma_addr, u32 *len);
+								 u16 packet_sz, u8 *mode,
+								 dma_addr_t *dma_addr, u32 *len);
 	void	(*pre_root_reset_end)(struct musb *musb);
 	void	(*post_root_reset_end)(struct musb *musb);
 	int	(*phy_callback)(enum musb_vbus_id_status status);
@@ -223,7 +227,8 @@ struct musb_platform_ops {
  *
  * Ordered slightly for better cacheline locality.
  */
-struct musb_hw_ep {
+struct musb_hw_ep
+{
 	struct musb		*musb;
 	void __iomem		*fifo;
 	void __iomem		*regs;
@@ -274,7 +279,8 @@ static inline struct musb_request *next_out_request(struct musb_hw_ep *hw_ep)
 	return next_request(&hw_ep->ep_out);
 }
 
-struct musb_csr_regs {
+struct musb_csr_regs
+{
 	/* FIFO registers */
 	u16 txmaxp, txcsr, rxmaxp, rxcsr;
 	u16 rxfifoadd, txfifoadd;
@@ -284,7 +290,8 @@ struct musb_csr_regs {
 	u8 rxfunaddr, rxhubaddr, rxhubport;
 };
 
-struct musb_context_registers {
+struct musb_context_registers
+{
 
 	u8 power;
 	u8 intrusbe;
@@ -300,7 +307,8 @@ struct musb_context_registers {
 /*
  * struct musb - Driver instance data.
  */
-struct musb {
+struct musb
+{
 	/* device lock */
 	spinlock_t		lock;
 
@@ -317,7 +325,7 @@ struct musb {
 
 	u16			intrrxe;
 	u16			intrtxe;
-/* this hub status bit is reserved by USB 2.0 and not seen by usbcore */
+	/* this hub status bit is reserved by USB 2.0 and not seen by usbcore */
 #define MUSB_PORT_STAT_RESUME	(1 << 31)
 
 	u32			port1_status;
@@ -363,7 +371,7 @@ struct musb {
 	struct phy		*phy;
 
 	int nIrq;
-	unsigned		irq_wake:1;
+	unsigned		irq_wake: 1;
 
 	struct musb_hw_ep	 endpoints[MUSB_C_NUM_EPS];
 #define control_ep		endpoints
@@ -386,39 +394,39 @@ struct musb {
 	unsigned long		idle_timeout;	/* Next timeout in jiffies */
 
 	/* active means connected and not suspended */
-	unsigned		is_active:1;
+	unsigned		is_active: 1;
 
-	unsigned is_multipoint:1;
+	unsigned is_multipoint: 1;
 
-	unsigned		hb_iso_rx:1;	/* high bandwidth iso rx? */
-	unsigned		hb_iso_tx:1;	/* high bandwidth iso tx? */
-	unsigned		dyn_fifo:1;	/* dynamic FIFO supported? */
+	unsigned		hb_iso_rx: 1;	/* high bandwidth iso rx? */
+	unsigned		hb_iso_tx: 1;	/* high bandwidth iso tx? */
+	unsigned		dyn_fifo: 1;	/* dynamic FIFO supported? */
 
-	unsigned		bulk_split:1;
+	unsigned		bulk_split: 1;
 #define	can_bulk_split(musb,type) \
 	(((type) == USB_ENDPOINT_XFER_BULK) && (musb)->bulk_split)
 
-	unsigned		bulk_combine:1;
+	unsigned		bulk_combine: 1;
 #define	can_bulk_combine(musb,type) \
 	(((type) == USB_ENDPOINT_XFER_BULK) && (musb)->bulk_combine)
 
 	/* is_suspended means USB B_PERIPHERAL suspend */
-	unsigned		is_suspended:1;
-	unsigned		need_finish_resume :1;
+	unsigned		is_suspended: 1;
+	unsigned		need_finish_resume : 1;
 
 	/* may_wakeup means remote wakeup is enabled */
-	unsigned		may_wakeup:1;
+	unsigned		may_wakeup: 1;
 
 	/* is_self_powered is reported in device status and the
 	 * config descriptor.  is_bus_powered means B_PERIPHERAL
 	 * draws some VBUS current; both can be true.
 	 */
-	unsigned		is_self_powered:1;
-	unsigned		is_bus_powered:1;
+	unsigned		is_self_powered: 1;
+	unsigned		is_bus_powered: 1;
 
-	unsigned		set_address:1;
-	unsigned		test_mode:1;
-	unsigned		softconnect:1;
+	unsigned		set_address: 1;
+	unsigned		test_mode: 1;
+	unsigned		softconnect: 1;
 
 	u8			address;
 	u8			test_mode_nr;
@@ -439,7 +447,7 @@ struct musb {
 	 * We added this flag to forcefully disable double
 	 * buffering until we get it working.
 	 */
-	unsigned                double_buffer_not_ok:1;
+	unsigned                double_buffer_not_ok: 1;
 
 	const struct musb_hdrc_config *config;
 
@@ -459,18 +467,22 @@ static inline struct musb *gadget_to_musb(struct usb_gadget *g)
 
 #ifdef CONFIG_BLACKFIN
 static inline int musb_read_fifosize(struct musb *musb,
-		struct musb_hw_ep *hw_ep, u8 epnum)
+									 struct musb_hw_ep *hw_ep, u8 epnum)
 {
 	musb->nr_endpoints++;
 	musb->epmask |= (1 << epnum);
 
-	if (epnum < 5) {
+	if (epnum < 5)
+	{
 		hw_ep->max_packet_sz_tx = 128;
 		hw_ep->max_packet_sz_rx = 128;
-	} else {
+	}
+	else
+	{
 		hw_ep->max_packet_sz_tx = 1024;
 		hw_ep->max_packet_sz_rx = 1024;
 	}
+
 	hw_ep->is_shared_fifo = false;
 
 	return 0;
@@ -486,16 +498,19 @@ static inline void musb_configure_ep0(struct musb *musb)
 #else
 
 static inline int musb_read_fifosize(struct musb *musb,
-		struct musb_hw_ep *hw_ep, u8 epnum)
+									 struct musb_hw_ep *hw_ep, u8 epnum)
 {
 	void __iomem *mbase = musb->mregs;
 	u8 reg = 0;
 
 	/* read from core using indexed model */
 	reg = musb_readb(mbase, musb->io.ep_offset(epnum, MUSB_FIFOSIZE));
+
 	/* 0's returned when no more endpoints */
 	if (!reg)
+	{
 		return -ENODEV;
+	}
 
 	musb->nr_endpoints++;
 	musb->epmask |= (1 << epnum);
@@ -503,11 +518,14 @@ static inline int musb_read_fifosize(struct musb *musb,
 	hw_ep->max_packet_sz_tx = 1 << (reg & 0x0f);
 
 	/* shared TX/RX FIFO? */
-	if ((reg & 0xf0) == 0xf0) {
+	if ((reg & 0xf0) == 0xf0)
+	{
 		hw_ep->max_packet_sz_rx = hw_ep->max_packet_sz_tx;
 		hw_ep->is_shared_fifo = true;
 		return 0;
-	} else {
+	}
+	else
+	{
 		hw_ep->max_packet_sz_rx = 1 << ((reg & 0xf0) >> 4);
 		hw_ep->is_shared_fifo = false;
 	}
@@ -543,25 +561,33 @@ extern void musb_hnp_stop(struct musb *musb);
 static inline void musb_platform_set_vbus(struct musb *musb, int is_on)
 {
 	if (musb->ops->set_vbus)
+	{
 		musb->ops->set_vbus(musb, is_on);
+	}
 }
 
 static inline void musb_platform_enable(struct musb *musb)
 {
 	if (musb->ops->enable)
+	{
 		musb->ops->enable(musb);
+	}
 }
 
 static inline void musb_platform_disable(struct musb *musb)
 {
 	if (musb->ops->disable)
+	{
 		musb->ops->disable(musb);
+	}
 }
 
 static inline int musb_platform_set_mode(struct musb *musb, u8 mode)
 {
 	if (!musb->ops->set_mode)
+	{
 		return 0;
+	}
 
 	return musb->ops->set_mode(musb, mode);
 }
@@ -570,13 +596,17 @@ static inline void musb_platform_try_idle(struct musb *musb,
 		unsigned long timeout)
 {
 	if (musb->ops->try_idle)
+	{
 		musb->ops->try_idle(musb, timeout);
+	}
 }
 
 static inline int  musb_platform_recover(struct musb *musb)
 {
 	if (!musb->ops->recover)
+	{
 		return 0;
+	}
 
 	return musb->ops->recover(musb);
 }
@@ -584,7 +614,9 @@ static inline int  musb_platform_recover(struct musb *musb)
 static inline int musb_platform_get_vbus_status(struct musb *musb)
 {
 	if (!musb->ops->vbus_status)
+	{
 		return -EINVAL;
+	}
 
 	return musb->ops->vbus_status(musb);
 }
@@ -592,7 +624,9 @@ static inline int musb_platform_get_vbus_status(struct musb *musb)
 static inline int musb_platform_init(struct musb *musb)
 {
 	if (!musb->ops->init)
+	{
 		return -EINVAL;
+	}
 
 	return musb->ops->init(musb);
 }
@@ -600,7 +634,9 @@ static inline int musb_platform_init(struct musb *musb)
 static inline int musb_platform_exit(struct musb *musb)
 {
 	if (!musb->ops->exit)
+	{
 		return -EINVAL;
+	}
 
 	return musb->ops->exit(musb);
 }
@@ -608,13 +644,17 @@ static inline int musb_platform_exit(struct musb *musb)
 static inline void musb_platform_pre_root_reset_end(struct musb *musb)
 {
 	if (musb->ops->pre_root_reset_end)
+	{
 		musb->ops->pre_root_reset_end(musb);
+	}
 }
 
 static inline void musb_platform_post_root_reset_end(struct musb *musb)
 {
 	if (musb->ops->post_root_reset_end)
+	{
 		musb->ops->post_root_reset_end(musb);
+	}
 }
 
 #endif	/* __MUSB_CORE_H__ */

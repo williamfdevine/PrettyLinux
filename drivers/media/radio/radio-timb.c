@@ -30,7 +30,8 @@
 
 #define DRIVER_NAME "timb-radio"
 
-struct timbradio {
+struct timbradio
+{
 	struct timb_radio_platform_data	pdata;
 	struct v4l2_subdev	*sd_tuner;
 	struct v4l2_subdev	*sd_dsp;
@@ -41,7 +42,7 @@ struct timbradio {
 
 
 static int timbradio_vidioc_querycap(struct file *file, void  *priv,
-	struct v4l2_capability *v)
+									 struct v4l2_capability *v)
 {
 	strlcpy(v->driver, DRIVER_NAME, sizeof(v->driver));
 	strlcpy(v->card, "Timberdale Radio", sizeof(v->card));
@@ -52,34 +53,35 @@ static int timbradio_vidioc_querycap(struct file *file, void  *priv,
 }
 
 static int timbradio_vidioc_g_tuner(struct file *file, void *priv,
-	struct v4l2_tuner *v)
+									struct v4l2_tuner *v)
 {
 	struct timbradio *tr = video_drvdata(file);
 	return v4l2_subdev_call(tr->sd_tuner, tuner, g_tuner, v);
 }
 
 static int timbradio_vidioc_s_tuner(struct file *file, void *priv,
-	const struct v4l2_tuner *v)
+									const struct v4l2_tuner *v)
 {
 	struct timbradio *tr = video_drvdata(file);
 	return v4l2_subdev_call(tr->sd_tuner, tuner, s_tuner, v);
 }
 
 static int timbradio_vidioc_s_frequency(struct file *file, void *priv,
-	const struct v4l2_frequency *f)
+										const struct v4l2_frequency *f)
 {
 	struct timbradio *tr = video_drvdata(file);
 	return v4l2_subdev_call(tr->sd_tuner, tuner, s_frequency, f);
 }
 
 static int timbradio_vidioc_g_frequency(struct file *file, void *priv,
-	struct v4l2_frequency *f)
+										struct v4l2_frequency *f)
 {
 	struct timbradio *tr = video_drvdata(file);
 	return v4l2_subdev_call(tr->sd_tuner, tuner, g_frequency, f);
 }
 
-static const struct v4l2_ioctl_ops timbradio_ioctl_ops = {
+static const struct v4l2_ioctl_ops timbradio_ioctl_ops =
+{
 	.vidioc_querycap	= timbradio_vidioc_querycap,
 	.vidioc_g_tuner		= timbradio_vidioc_g_tuner,
 	.vidioc_s_tuner		= timbradio_vidioc_s_tuner,
@@ -90,7 +92,8 @@ static const struct v4l2_ioctl_ops timbradio_ioctl_ops = {
 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
 };
 
-static const struct v4l2_file_operations timbradio_fops = {
+static const struct v4l2_file_operations timbradio_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= v4l2_fh_open,
 	.release	= v4l2_fh_release,
@@ -104,14 +107,17 @@ static int timbradio_probe(struct platform_device *pdev)
 	struct timbradio *tr;
 	int err;
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		dev_err(&pdev->dev, "Platform data missing\n");
 		err = -EINVAL;
 		goto err;
 	}
 
 	tr = devm_kzalloc(&pdev->dev, sizeof(*tr), GFP_KERNEL);
-	if (!tr) {
+
+	if (!tr)
+	{
 		err = -ENOMEM;
 		goto err;
 	}
@@ -120,7 +126,7 @@ static int timbradio_probe(struct platform_device *pdev)
 	mutex_init(&tr->lock);
 
 	strlcpy(tr->video_dev.name, "Timberdale Radio",
-		sizeof(tr->video_dev.name));
+			sizeof(tr->video_dev.name));
 	tr->video_dev.fops = &timbradio_fops;
 	tr->video_dev.ioctl_ops = &timbradio_ioctl_ops;
 	tr->video_dev.release = video_device_release_empty;
@@ -129,16 +135,21 @@ static int timbradio_probe(struct platform_device *pdev)
 
 	strlcpy(tr->v4l2_dev.name, DRIVER_NAME, sizeof(tr->v4l2_dev.name));
 	err = v4l2_device_register(NULL, &tr->v4l2_dev);
+
 	if (err)
+	{
 		goto err;
+	}
 
 	tr->video_dev.v4l2_dev = &tr->v4l2_dev;
 
 	tr->sd_tuner = v4l2_i2c_new_subdev_board(&tr->v4l2_dev,
-		i2c_get_adapter(pdata->i2c_adapter), pdata->tuner, NULL);
+				   i2c_get_adapter(pdata->i2c_adapter), pdata->tuner, NULL);
 	tr->sd_dsp = v4l2_i2c_new_subdev_board(&tr->v4l2_dev,
-		i2c_get_adapter(pdata->i2c_adapter), pdata->dsp, NULL);
-	if (tr->sd_tuner == NULL || tr->sd_dsp == NULL) {
+										   i2c_get_adapter(pdata->i2c_adapter), pdata->dsp, NULL);
+
+	if (tr->sd_tuner == NULL || tr->sd_dsp == NULL)
+	{
 		err = -ENODEV;
 		goto err_video_req;
 	}
@@ -146,7 +157,9 @@ static int timbradio_probe(struct platform_device *pdev)
 	tr->v4l2_dev.ctrl_handler = tr->sd_dsp->ctrl_handler;
 
 	err = video_register_device(&tr->video_dev, VFL_TYPE_RADIO, -1);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Error reg video\n");
 		goto err_video_req;
 	}
@@ -173,7 +186,8 @@ static int timbradio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver timbradio_platform_driver = {
+static struct platform_driver timbradio_platform_driver =
+{
 	.driver = {
 		.name	= DRIVER_NAME,
 	},

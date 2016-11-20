@@ -23,7 +23,8 @@
 #include <linux/clk.h>
 #include <linux/regmap.h>
 
-enum {
+enum
+{
 	MT8173_AFE_MEMIF_DL1,
 	MT8173_AFE_MEMIF_DL2,
 	MT8173_AFE_MEMIF_VUL,
@@ -45,7 +46,8 @@ enum {
 	MT8173_AFE_IO_HDMI,
 };
 
-enum {
+enum
+{
 	MT8173_AFE_IRQ_DL1,
 	MT8173_AFE_IRQ_DL2,
 	MT8173_AFE_IRQ_VUL,
@@ -56,7 +58,8 @@ enum {
 	MT8173_AFE_IRQ_NUM,
 };
 
-enum {
+enum
+{
 	MT8173_CLK_INFRASYS_AUD,
 	MT8173_CLK_TOP_PDN_AUD,
 	MT8173_CLK_TOP_PDN_AUD_BUS,

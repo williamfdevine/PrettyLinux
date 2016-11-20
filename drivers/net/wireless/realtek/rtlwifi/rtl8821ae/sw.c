@@ -118,47 +118,47 @@ int rtl8821ae_init_sw_vars(struct ieee80211_hw *hw)
 	rtlpriv->rtlhal.macphymode = SINGLEMAC_SINGLEPHY;
 
 	rtlpci->receive_config = (RCR_APPFCS	|
-				RCR_APP_MIC		|
-				RCR_APP_ICV		|
-				RCR_APP_PHYST_RXFF	|
-				RCR_NONQOS_VHT		|
-				RCR_HTC_LOC_CTRL	|
-				RCR_AMF			|
-				RCR_ACF			|
-			/*This bit controls the PS-Poll packet filter.*/
-				RCR_ADF			|
-				RCR_AICV		|
-				RCR_ACRC32		|
-				RCR_AB			|
-				RCR_AM			|
-				RCR_APM			|
-				0);
+							  RCR_APP_MIC		|
+							  RCR_APP_ICV		|
+							  RCR_APP_PHYST_RXFF	|
+							  RCR_NONQOS_VHT		|
+							  RCR_HTC_LOC_CTRL	|
+							  RCR_AMF			|
+							  RCR_ACF			|
+							  /*This bit controls the PS-Poll packet filter.*/
+							  RCR_ADF			|
+							  RCR_AICV		|
+							  RCR_ACRC32		|
+							  RCR_AB			|
+							  RCR_AM			|
+							  RCR_APM			|
+							  0);
 
 	rtlpci->irq_mask[0] =
-	     (u32)(IMR_PSTIMEOUT			|
-				IMR_GTINT3		|
-				IMR_HSISR_IND_ON_INT	|
-				IMR_C2HCMD		|
-				IMR_HIGHDOK		|
-				IMR_MGNTDOK		|
-				IMR_BKDOK		|
-				IMR_BEDOK		|
-				IMR_VIDOK		|
-				IMR_VODOK		|
-				IMR_RDU			|
-				IMR_ROK			|
-				0);
+		(u32)(IMR_PSTIMEOUT			|
+			  IMR_GTINT3		|
+			  IMR_HSISR_IND_ON_INT	|
+			  IMR_C2HCMD		|
+			  IMR_HIGHDOK		|
+			  IMR_MGNTDOK		|
+			  IMR_BKDOK		|
+			  IMR_BEDOK		|
+			  IMR_VIDOK		|
+			  IMR_VODOK		|
+			  IMR_RDU			|
+			  IMR_ROK			|
+			  0);
 
 	rtlpci->irq_mask[1]	=
-		 (u32)(IMR_RXFOVW |
-				IMR_TXFOVW |
-				0);
+		(u32)(IMR_RXFOVW |
+			  IMR_TXFOVW |
+			  0);
 	rtlpci->sys_irq_mask = (u32)(HSIMR_PDN_INT_EN	|
-				      HSIMR_RON_INT_EN	|
-				      0);
+								 HSIMR_RON_INT_EN	|
+								 0);
 	/* for WOWLAN */
 	rtlpriv->psc.wo_wlan_mode = WAKE_ON_MAGIC_PACKET |
-				    WAKE_ON_PATTERN_MATCH;
+								WAKE_ON_PATTERN_MATCH;
 
 	/* for debug level */
 	rtlpriv->dbg.global_debuglevel = rtlpriv->cfg->mod_params->debug;
@@ -172,8 +172,12 @@ int rtl8821ae_init_sw_vars(struct ieee80211_hw *hw)
 		rtlpriv->cfg->mod_params->sw_crypto;
 	rtlpriv->cfg->mod_params->disable_watchdog =
 		rtlpriv->cfg->mod_params->disable_watchdog;
+
 	if (rtlpriv->cfg->mod_params->disable_watchdog)
+	{
 		pr_info("watchdog disabled\n");
+	}
+
 	rtlpriv->psc.reg_fwctrl_lps = 3;
 	rtlpriv->psc.reg_max_lps_awakeintvl = 5;
 
@@ -183,30 +187,44 @@ int rtl8821ae_init_sw_vars(struct ieee80211_hw *hw)
 	rtl8821ae_init_aspm_vars(hw);
 
 	if (rtlpriv->psc.reg_fwctrl_lps == 1)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_MIN_MODE;
+	}
 	else if (rtlpriv->psc.reg_fwctrl_lps == 2)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_MAX_MODE;
+	}
 	else if (rtlpriv->psc.reg_fwctrl_lps == 3)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_DTIM_MODE;
+	}
 
 	/* for firmware buf */
 	rtlpriv->rtlhal.pfirmware = vzalloc(0x8000);
-	if (!rtlpriv->rtlhal.pfirmware) {
+
+	if (!rtlpriv->rtlhal.pfirmware)
+	{
 		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-			 "Can't alloc buffer for fw.\n");
-		return 1;
-	}
-	rtlpriv->rtlhal.wowlan_firmware = vzalloc(0x8000);
-	if (!rtlpriv->rtlhal.wowlan_firmware) {
-		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-			 "Can't alloc buffer for wowlan fw.\n");
+				 "Can't alloc buffer for fw.\n");
 		return 1;
 	}
 
-	if (rtlhal->hw_type == HARDWARE_TYPE_RTL8812AE) {
+	rtlpriv->rtlhal.wowlan_firmware = vzalloc(0x8000);
+
+	if (!rtlpriv->rtlhal.wowlan_firmware)
+	{
+		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
+				 "Can't alloc buffer for wowlan fw.\n");
+		return 1;
+	}
+
+	if (rtlhal->hw_type == HARDWARE_TYPE_RTL8812AE)
+	{
 		fw_name = "rtlwifi/rtl8812aefw.bin";
 		wowlan_fw_name = "rtlwifi/rtl8812aefw_wowlan.bin";
-	} else {
+	}
+	else
+	{
 		fw_name = "rtlwifi/rtl8821aefw.bin";
 		wowlan_fw_name = "rtlwifi/rtl8821aefw_wowlan.bin";
 	}
@@ -215,24 +233,30 @@ int rtl8821ae_init_sw_vars(struct ieee80211_hw *hw)
 	/*load normal firmware*/
 	pr_info("Using firmware %s\n", fw_name);
 	err = request_firmware_nowait(THIS_MODULE, 1, fw_name,
-				      rtlpriv->io.dev, GFP_KERNEL, hw,
-				      rtl_fw_cb);
-	if (err) {
+								  rtlpriv->io.dev, GFP_KERNEL, hw,
+								  rtl_fw_cb);
+
+	if (err)
+	{
 		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-			 "Failed to request normal firmware!\n");
+				 "Failed to request normal firmware!\n");
 		return 1;
 	}
+
 	/*load wowlan firmware*/
 	pr_info("Using firmware %s\n", wowlan_fw_name);
 	err = request_firmware_nowait(THIS_MODULE, 1,
-				      wowlan_fw_name,
-				      rtlpriv->io.dev, GFP_KERNEL, hw,
-				      rtl_wowlan_fw_cb);
-	if (err) {
+								  wowlan_fw_name,
+								  rtlpriv->io.dev, GFP_KERNEL, hw,
+								  rtl_wowlan_fw_cb);
+
+	if (err)
+	{
 		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-			 "Failed to request wowlan firmware!\n");
+				 "Failed to request wowlan firmware!\n");
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -240,15 +264,20 @@ void rtl8821ae_deinit_sw_vars(struct ieee80211_hw *hw)
 {
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
 
-	if (rtlpriv->rtlhal.pfirmware) {
+	if (rtlpriv->rtlhal.pfirmware)
+	{
 		vfree(rtlpriv->rtlhal.pfirmware);
 		rtlpriv->rtlhal.pfirmware = NULL;
 	}
+
 #if (USE_SPECIFIC_FW_TO_SUPPORT_WOWLAN == 1)
-	if (rtlpriv->rtlhal.wowlan_firmware) {
+
+	if (rtlpriv->rtlhal.wowlan_firmware)
+	{
 		vfree(rtlpriv->rtlhal.wowlan_firmware);
 		rtlpriv->rtlhal.wowlan_firmware = NULL;
 	}
+
 #endif
 }
 
@@ -258,7 +287,8 @@ bool rtl8821ae_get_btc_status(void)
 	return true;
 }
 
-static struct rtl_hal_ops rtl8821ae_hal_ops = {
+static struct rtl_hal_ops rtl8821ae_hal_ops =
+{
 	.init_sw_vars = rtl8821ae_init_sw_vars,
 	.deinit_sw_vars = rtl8821ae_deinit_sw_vars,
 	.read_eeprom_info = rtl8821ae_read_eeprom_info,
@@ -306,7 +336,8 @@ static struct rtl_hal_ops rtl8821ae_hal_ops = {
 	.add_wowlan_pattern = rtl8821ae_add_wowlan_pattern,
 };
 
-static struct rtl_mod_params rtl8821ae_mod_params = {
+static struct rtl_mod_params rtl8821ae_mod_params =
+{
 	.sw_crypto = false,
 	.inactiveps = true,
 	.swctrl_lps = false,
@@ -317,7 +348,8 @@ static struct rtl_mod_params rtl8821ae_mod_params = {
 	.disable_watchdog = 0,
 };
 
-static const struct rtl_hal_cfg rtl8821ae_hal_cfg = {
+static const struct rtl_hal_cfg rtl8821ae_hal_cfg =
+{
 	.bar_id = 2,
 	.write_readback = true,
 	.name = "rtl8821ae_pci",
@@ -366,7 +398,7 @@ static const struct rtl_hal_cfg rtl8821ae_hal_cfg = {
 	.maps[RTL_IMR_BCNDMAINT3] = IMR_BCNDMAINT3,
 	.maps[RTL_IMR_BCNDMAINT2] = IMR_BCNDMAINT2,
 	.maps[RTL_IMR_BCNDMAINT1] = IMR_BCNDMAINT1,
-/*	.maps[RTL_IMR_BCNDOK8] = IMR_BCNDOK8,     */   /*need check*/
+	/*	.maps[RTL_IMR_BCNDOK8] = IMR_BCNDOK8,     */   /*need check*/
 	.maps[RTL_IMR_BCNDOK7] = IMR_BCNDOK7,
 	.maps[RTL_IMR_BCNDOK6] = IMR_BCNDOK6,
 	.maps[RTL_IMR_BCNDOK5] = IMR_BCNDOK5,
@@ -374,8 +406,8 @@ static const struct rtl_hal_cfg rtl8821ae_hal_cfg = {
 	.maps[RTL_IMR_BCNDOK3] = IMR_BCNDOK3,
 	.maps[RTL_IMR_BCNDOK2] = IMR_BCNDOK2,
 	.maps[RTL_IMR_BCNDOK1] = IMR_BCNDOK1,
-/*	.maps[RTL_IMR_TIMEOUT2] = IMR_TIMEOUT2,*/
-/*	.maps[RTL_IMR_TIMEOUT1] = IMR_TIMEOUT1,*/
+	/*	.maps[RTL_IMR_TIMEOUT2] = IMR_TIMEOUT2,*/
+	/*	.maps[RTL_IMR_TIMEOUT1] = IMR_TIMEOUT1,*/
 
 	.maps[RTL_IMR_TXFOVW] = IMR_TXFOVW,
 	.maps[RTL_IMR_PSTIMEOUT] = IMR_PSTIMEOUT,
@@ -420,7 +452,8 @@ static const struct rtl_hal_cfg rtl8821ae_hal_cfg = {
 	.maps[RTL_RC_VHT_RATE_2SS_MCS9] = DESC_RATEVHT2SS_MCS9,
 };
 
-static struct pci_device_id rtl8821ae_pci_ids[] = {
+static struct pci_device_id rtl8821ae_pci_ids[] =
+{
 	{RTL_PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8812, rtl8821ae_hal_cfg)},
 	{RTL_PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8821, rtl8821ae_hal_cfg)},
 	{},
@@ -440,7 +473,7 @@ module_param_named(swlps, rtl8821ae_mod_params.swctrl_lps, bool, 0444);
 module_param_named(fwlps, rtl8821ae_mod_params.fwctrl_lps, bool, 0444);
 module_param_named(msi, rtl8821ae_mod_params.msi_support, bool, 0444);
 module_param_named(disable_watchdog, rtl8821ae_mod_params.disable_watchdog,
-		   bool, 0444);
+				   bool, 0444);
 module_param_named(int_clear, rtl8821ae_mod_params.int_clear, bool, 0444);
 MODULE_PARM_DESC(swenc, "Set to 1 for software crypto (default 0)\n");
 MODULE_PARM_DESC(ips, "Set to 0 to not use link power save (default 1)\n");
@@ -453,7 +486,8 @@ MODULE_PARM_DESC(int_clear, "Set to 0 to disable interrupt clear before set (def
 
 static SIMPLE_DEV_PM_OPS(rtlwifi_pm_ops, rtl_pci_suspend, rtl_pci_resume);
 
-static struct pci_driver rtl8821ae_driver = {
+static struct pci_driver rtl8821ae_driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = rtl8821ae_pci_ids,
 	.probe = rtl_pci_probe,

@@ -27,10 +27,13 @@
 
 #include "testmode_i.h"
 
-static const struct nla_policy ath10k_tm_policy[ATH10K_TM_ATTR_MAX + 1] = {
+static const struct nla_policy ath10k_tm_policy[ATH10K_TM_ATTR_MAX + 1] =
+{
 	[ATH10K_TM_ATTR_CMD]		= { .type = NLA_U32 },
-	[ATH10K_TM_ATTR_DATA]		= { .type = NLA_BINARY,
-					    .len = ATH10K_TM_DATA_MAX_LEN },
+	[ATH10K_TM_ATTR_DATA]		= {
+		.type = NLA_BINARY,
+		.len = ATH10K_TM_DATA_MAX_LEN
+	},
 	[ATH10K_TM_ATTR_WMI_CMDID]	= { .type = NLA_U32 },
 	[ATH10K_TM_ATTR_VERSION_MAJOR]	= { .type = NLA_U32 },
 	[ATH10K_TM_ATTR_VERSION_MINOR]	= { .type = NLA_U32 },
@@ -46,14 +49,15 @@ bool ath10k_tm_event_wmi(struct ath10k *ar, u32 cmd_id, struct sk_buff *skb)
 	int ret;
 
 	ath10k_dbg(ar, ATH10K_DBG_TESTMODE,
-		   "testmode event wmi cmd_id %d skb %pK skb->len %d\n",
-		   cmd_id, skb, skb->len);
+			   "testmode event wmi cmd_id %d skb %pK skb->len %d\n",
+			   cmd_id, skb, skb->len);
 
 	ath10k_dbg_dump(ar, ATH10K_DBG_TESTMODE, NULL, "", skb->data, skb->len);
 
 	spin_lock_bh(&ar->data_lock);
 
-	if (!ar->testmode.utf_monitor) {
+	if (!ar->testmode.utf_monitor)
+	{
 		consumed = false;
 		goto out;
 	}
@@ -65,37 +69,45 @@ bool ath10k_tm_event_wmi(struct ath10k *ar, u32 cmd_id, struct sk_buff *skb)
 	consumed = true;
 
 	nl_skb = cfg80211_testmode_alloc_event_skb(ar->hw->wiphy,
-						   2 * sizeof(u32) + skb->len,
-						   GFP_ATOMIC);
-	if (!nl_skb) {
+			 2 * sizeof(u32) + skb->len,
+			 GFP_ATOMIC);
+
+	if (!nl_skb)
+	{
 		ath10k_warn(ar,
-			    "failed to allocate skb for testmode wmi event\n");
+					"failed to allocate skb for testmode wmi event\n");
 		goto out;
 	}
 
 	ret = nla_put_u32(nl_skb, ATH10K_TM_ATTR_CMD, ATH10K_TM_CMD_WMI);
-	if (ret) {
+
+	if (ret)
+	{
 		ath10k_warn(ar,
-			    "failed to to put testmode wmi event cmd attribute: %d\n",
-			    ret);
+					"failed to to put testmode wmi event cmd attribute: %d\n",
+					ret);
 		kfree_skb(nl_skb);
 		goto out;
 	}
 
 	ret = nla_put_u32(nl_skb, ATH10K_TM_ATTR_WMI_CMDID, cmd_id);
-	if (ret) {
+
+	if (ret)
+	{
 		ath10k_warn(ar,
-			    "failed to to put testmode wmi even cmd_id: %d\n",
-			    ret);
+					"failed to to put testmode wmi even cmd_id: %d\n",
+					ret);
 		kfree_skb(nl_skb);
 		goto out;
 	}
 
 	ret = nla_put(nl_skb, ATH10K_TM_ATTR_DATA, skb->len, skb->data);
-	if (ret) {
+
+	if (ret)
+	{
 		ath10k_warn(ar,
-			    "failed to copy skb to testmode wmi event: %d\n",
-			    ret);
+					"failed to copy skb to testmode wmi event: %d\n",
+					ret);
 		kfree_skb(nl_skb);
 		goto out;
 	}
@@ -114,25 +126,32 @@ static int ath10k_tm_cmd_get_version(struct ath10k *ar, struct nlattr *tb[])
 	int ret;
 
 	ath10k_dbg(ar, ATH10K_DBG_TESTMODE,
-		   "testmode cmd get version_major %d version_minor %d\n",
-		   ATH10K_TESTMODE_VERSION_MAJOR,
-		   ATH10K_TESTMODE_VERSION_MINOR);
+			   "testmode cmd get version_major %d version_minor %d\n",
+			   ATH10K_TESTMODE_VERSION_MAJOR,
+			   ATH10K_TESTMODE_VERSION_MINOR);
 
 	skb = cfg80211_testmode_alloc_reply_skb(ar->hw->wiphy,
-						nla_total_size(sizeof(u32)));
+											nla_total_size(sizeof(u32)));
+
 	if (!skb)
+	{
 		return -ENOMEM;
+	}
 
 	ret = nla_put_u32(skb, ATH10K_TM_ATTR_VERSION_MAJOR,
-			  ATH10K_TESTMODE_VERSION_MAJOR);
-	if (ret) {
+					  ATH10K_TESTMODE_VERSION_MAJOR);
+
+	if (ret)
+	{
 		kfree_skb(skb);
 		return ret;
 	}
 
 	ret = nla_put_u32(skb, ATH10K_TM_ATTR_VERSION_MINOR,
-			  ATH10K_TESTMODE_VERSION_MINOR);
-	if (ret) {
+					  ATH10K_TESTMODE_VERSION_MINOR);
+
+	if (ret)
+	{
 		kfree_skb(skb);
 		return ret;
 	}
@@ -141,19 +160,21 @@ static int ath10k_tm_cmd_get_version(struct ath10k *ar, struct nlattr *tb[])
 }
 
 static int ath10k_tm_fetch_utf_firmware_api_1(struct ath10k *ar,
-					      struct ath10k_fw_file *fw_file)
+		struct ath10k_fw_file *fw_file)
 {
 	char filename[100];
 	int ret;
 
 	snprintf(filename, sizeof(filename), "%s/%s",
-		 ar->hw_params.fw.dir, ATH10K_FW_UTF_FILE);
+			 ar->hw_params.fw.dir, ATH10K_FW_UTF_FILE);
 
 	/* load utf firmware image */
 	ret = request_firmware(&fw_file->firmware, filename, ar->dev);
-	if (ret) {
+
+	if (ret)
+	{
 		ath10k_warn(ar, "failed to retrieve utf firmware '%s': %d\n",
-			    filename, ret);
+					filename, ret);
 		return ret;
 	}
 
@@ -177,14 +198,18 @@ static int ath10k_tm_fetch_firmware(struct ath10k *ar)
 	int ret;
 
 	ret = ath10k_core_fetch_firmware_api_n(ar, ATH10K_FW_UTF_API2_FILE,
-					       &ar->testmode.utf_mode_fw.fw_file);
-	if (ret == 0) {
+										   &ar->testmode.utf_mode_fw.fw_file);
+
+	if (ret == 0)
+	{
 		ath10k_dbg(ar, ATH10K_DBG_TESTMODE, "testmode using fw utf api 2");
 		goto out;
 	}
 
 	ret = ath10k_tm_fetch_utf_firmware_api_1(ar, &ar->testmode.utf_mode_fw.fw_file);
-	if (ret) {
+
+	if (ret)
+	{
 		ath10k_err(ar, "failed to fetch utf firmware binary: %d", ret);
 		return ret;
 	}
@@ -200,7 +225,8 @@ out:
 	utf_mode_fw->board_data = ar->normal_mode_fw.board_data;
 	utf_mode_fw->board_len = ar->normal_mode_fw.board_len;
 
-	if (!utf_mode_fw->fw_file.otp_data) {
+	if (!utf_mode_fw->fw_file.otp_data)
+	{
 		ath10k_info(ar, "utf.bin didn't contain otp binary, taking it from the normal mode firmware");
 		utf_mode_fw->fw_file.otp_data = ar->normal_mode_fw.fw_file.otp_data;
 		utf_mode_fw->fw_file.otp_len = ar->normal_mode_fw.fw_file.otp_len;
@@ -218,37 +244,45 @@ static int ath10k_tm_cmd_utf_start(struct ath10k *ar, struct nlattr *tb[])
 
 	mutex_lock(&ar->conf_mutex);
 
-	if (ar->state == ATH10K_STATE_UTF) {
+	if (ar->state == ATH10K_STATE_UTF)
+	{
 		ret = -EALREADY;
 		goto err;
 	}
 
 	/* start utf only when the driver is not in use  */
-	if (ar->state != ATH10K_STATE_OFF) {
+	if (ar->state != ATH10K_STATE_OFF)
+	{
 		ret = -EBUSY;
 		goto err;
 	}
 
-	if (WARN_ON(ar->testmode.utf_mode_fw.fw_file.firmware != NULL)) {
+	if (WARN_ON(ar->testmode.utf_mode_fw.fw_file.firmware != NULL))
+	{
 		/* utf image is already downloaded, it shouldn't be */
 		ret = -EEXIST;
 		goto err;
 	}
 
 	ret = ath10k_tm_fetch_firmware(ar);
-	if (ret) {
+
+	if (ret)
+	{
 		ath10k_err(ar, "failed to fetch UTF firmware: %d", ret);
 		goto err;
 	}
 
 	if (ar->testmode.utf_mode_fw.fw_file.codeswap_data &&
-	    ar->testmode.utf_mode_fw.fw_file.codeswap_len) {
+		ar->testmode.utf_mode_fw.fw_file.codeswap_len)
+	{
 		ret = ath10k_swap_code_seg_init(ar,
-						&ar->testmode.utf_mode_fw.fw_file);
-		if (ret) {
+										&ar->testmode.utf_mode_fw.fw_file);
+
+		if (ret)
+		{
 			ath10k_warn(ar,
-				    "failed to init utf code swap segment: %d\n",
-				    ret);
+						"failed to init utf code swap segment: %d\n",
+						ret);
 			goto err_release_utf_mode_fw;
 		}
 	}
@@ -258,18 +292,22 @@ static int ath10k_tm_cmd_utf_start(struct ath10k *ar, struct nlattr *tb[])
 	spin_unlock_bh(&ar->data_lock);
 
 	ath10k_dbg(ar, ATH10K_DBG_TESTMODE, "testmode wmi version %d\n",
-		   ar->testmode.utf_mode_fw.fw_file.wmi_op_version);
+			   ar->testmode.utf_mode_fw.fw_file.wmi_op_version);
 
 	ret = ath10k_hif_power_up(ar);
-	if (ret) {
+
+	if (ret)
+	{
 		ath10k_err(ar, "failed to power up hif (testmode): %d\n", ret);
 		ar->state = ATH10K_STATE_OFF;
 		goto err_release_utf_mode_fw;
 	}
 
 	ret = ath10k_core_start(ar, ATH10K_FIRMWARE_MODE_UTF,
-				&ar->testmode.utf_mode_fw);
-	if (ret) {
+							&ar->testmode.utf_mode_fw);
+
+	if (ret)
+	{
 		ath10k_err(ar, "failed to start core (testmode): %d\n", ret);
 		ar->state = ATH10K_STATE_OFF;
 		goto err_power_down;
@@ -278,9 +316,13 @@ static int ath10k_tm_cmd_utf_start(struct ath10k *ar, struct nlattr *tb[])
 	ar->state = ATH10K_STATE_UTF;
 
 	if (strlen(ar->testmode.utf_mode_fw.fw_file.fw_version) > 0)
+	{
 		ver = ar->testmode.utf_mode_fw.fw_file.fw_version;
+	}
 	else
+	{
 		ver = "API 1";
+	}
 
 	ath10k_info(ar, "UTF firmware %s started\n", ver);
 
@@ -292,10 +334,11 @@ err_power_down:
 	ath10k_hif_power_down(ar);
 
 err_release_utf_mode_fw:
+
 	if (ar->testmode.utf_mode_fw.fw_file.codeswap_data &&
-	    ar->testmode.utf_mode_fw.fw_file.codeswap_len)
+		ar->testmode.utf_mode_fw.fw_file.codeswap_len)
 		ath10k_swap_code_seg_release(ar,
-					     &ar->testmode.utf_mode_fw.fw_file);
+									 &ar->testmode.utf_mode_fw.fw_file);
 
 	release_firmware(ar->testmode.utf_mode_fw.fw_file.firmware);
 	ar->testmode.utf_mode_fw.fw_file.firmware = NULL;
@@ -320,9 +363,9 @@ static void __ath10k_tm_cmd_utf_stop(struct ath10k *ar)
 	spin_unlock_bh(&ar->data_lock);
 
 	if (ar->testmode.utf_mode_fw.fw_file.codeswap_data &&
-	    ar->testmode.utf_mode_fw.fw_file.codeswap_len)
+		ar->testmode.utf_mode_fw.fw_file.codeswap_len)
 		ath10k_swap_code_seg_release(ar,
-					     &ar->testmode.utf_mode_fw.fw_file);
+									 &ar->testmode.utf_mode_fw.fw_file);
 
 	release_firmware(ar->testmode.utf_mode_fw.fw_file.firmware);
 	ar->testmode.utf_mode_fw.fw_file.firmware = NULL;
@@ -338,7 +381,8 @@ static int ath10k_tm_cmd_utf_stop(struct ath10k *ar, struct nlattr *tb[])
 
 	mutex_lock(&ar->conf_mutex);
 
-	if (ar->state != ATH10K_STATE_UTF) {
+	if (ar->state != ATH10K_STATE_UTF)
+	{
 		ret = -ENETDOWN;
 		goto out;
 	}
@@ -363,17 +407,20 @@ static int ath10k_tm_cmd_wmi(struct ath10k *ar, struct nlattr *tb[])
 
 	mutex_lock(&ar->conf_mutex);
 
-	if (ar->state != ATH10K_STATE_UTF) {
+	if (ar->state != ATH10K_STATE_UTF)
+	{
 		ret = -ENETDOWN;
 		goto out;
 	}
 
-	if (!tb[ATH10K_TM_ATTR_DATA]) {
+	if (!tb[ATH10K_TM_ATTR_DATA])
+	{
 		ret = -EINVAL;
 		goto out;
 	}
 
-	if (!tb[ATH10K_TM_ATTR_WMI_CMDID]) {
+	if (!tb[ATH10K_TM_ATTR_WMI_CMDID])
+	{
 		ret = -EINVAL;
 		goto out;
 	}
@@ -383,13 +430,15 @@ static int ath10k_tm_cmd_wmi(struct ath10k *ar, struct nlattr *tb[])
 	cmd_id = nla_get_u32(tb[ATH10K_TM_ATTR_WMI_CMDID]);
 
 	ath10k_dbg(ar, ATH10K_DBG_TESTMODE,
-		   "testmode cmd wmi cmd_id %d buf %pK buf_len %d\n",
-		   cmd_id, buf, buf_len);
+			   "testmode cmd wmi cmd_id %d buf %pK buf_len %d\n",
+			   cmd_id, buf, buf_len);
 
 	ath10k_dbg_dump(ar, ATH10K_DBG_TESTMODE, NULL, "", buf, buf_len);
 
 	skb = ath10k_wmi_alloc_skb(ar, buf_len);
-	if (!skb) {
+
+	if (!skb)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
@@ -397,9 +446,11 @@ static int ath10k_tm_cmd_wmi(struct ath10k *ar, struct nlattr *tb[])
 	memcpy(skb->data, buf, buf_len);
 
 	ret = ath10k_wmi_cmd_send(ar, skb, cmd_id);
-	if (ret) {
+
+	if (ret)
+	{
 		ath10k_warn(ar, "failed to transmit wmi command (testmode): %d\n",
-			    ret);
+					ret);
 		goto out;
 	}
 
@@ -411,31 +462,41 @@ out:
 }
 
 int ath10k_tm_cmd(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-		  void *data, int len)
+				  void *data, int len)
 {
 	struct ath10k *ar = hw->priv;
 	struct nlattr *tb[ATH10K_TM_ATTR_MAX + 1];
 	int ret;
 
 	ret = nla_parse(tb, ATH10K_TM_ATTR_MAX, data, len,
-			ath10k_tm_policy);
+					ath10k_tm_policy);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (!tb[ATH10K_TM_ATTR_CMD])
+	{
 		return -EINVAL;
+	}
 
-	switch (nla_get_u32(tb[ATH10K_TM_ATTR_CMD])) {
-	case ATH10K_TM_CMD_GET_VERSION:
-		return ath10k_tm_cmd_get_version(ar, tb);
-	case ATH10K_TM_CMD_UTF_START:
-		return ath10k_tm_cmd_utf_start(ar, tb);
-	case ATH10K_TM_CMD_UTF_STOP:
-		return ath10k_tm_cmd_utf_stop(ar, tb);
-	case ATH10K_TM_CMD_WMI:
-		return ath10k_tm_cmd_wmi(ar, tb);
-	default:
-		return -EOPNOTSUPP;
+	switch (nla_get_u32(tb[ATH10K_TM_ATTR_CMD]))
+	{
+		case ATH10K_TM_CMD_GET_VERSION:
+			return ath10k_tm_cmd_get_version(ar, tb);
+
+		case ATH10K_TM_CMD_UTF_START:
+			return ath10k_tm_cmd_utf_start(ar, tb);
+
+		case ATH10K_TM_CMD_UTF_STOP:
+			return ath10k_tm_cmd_utf_stop(ar, tb);
+
+		case ATH10K_TM_CMD_WMI:
+			return ath10k_tm_cmd_wmi(ar, tb);
+
+		default:
+			return -EOPNOTSUPP;
 	}
 }
 
@@ -443,7 +504,8 @@ void ath10k_testmode_destroy(struct ath10k *ar)
 {
 	mutex_lock(&ar->conf_mutex);
 
-	if (ar->state != ATH10K_STATE_UTF) {
+	if (ar->state != ATH10K_STATE_UTF)
+	{
 		/* utf firmware is not running, nothing to do */
 		goto out;
 	}

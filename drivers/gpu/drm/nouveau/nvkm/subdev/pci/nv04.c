@@ -45,7 +45,8 @@ nv04_pci_wr32(struct nvkm_pci *pci, u16 addr, u32 data)
 }
 
 static const struct nvkm_pci_func
-nv04_pci_func = {
+	nv04_pci_func =
+{
 	.rd32 = nv04_pci_rd32,
 	.wr08 = nv04_pci_wr08,
 	.wr32 = nv04_pci_wr32,

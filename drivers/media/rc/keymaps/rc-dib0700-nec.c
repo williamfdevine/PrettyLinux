@@ -18,7 +18,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table dib0700_nec_table[] = {
+static struct rc_map_table dib0700_nec_table[] =
+{
 	/* Key codes for the Pixelview SBTVD remote */
 	{ 0x866b13, KEY_MUTE },
 	{ 0x866b12, KEY_POWER },
@@ -99,7 +100,8 @@ static struct rc_map_table dib0700_nec_table[] = {
 	{ 0x4542, KEY_SELECT }, /* Select video input, 'Select' for Teletext */
 };
 
-static struct rc_map_list dib0700_nec_map = {
+static struct rc_map_list dib0700_nec_map =
+{
 	.map = {
 		.scan    = dib0700_nec_table,
 		.size    = ARRAY_SIZE(dib0700_nec_table),

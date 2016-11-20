@@ -411,14 +411,14 @@
 /** Macros to determine SPROM presence based on Chip-Status register. */
 #define SSB_CHIPCO_CHST_4312_SPROM_PRESENT(status) \
 	((status & SSB_CHIPCO_CHST_4325_SPROM_OTP_SEL) != \
-		SSB_CHIPCO_CHST_4325_OTP_SEL)
+	 SSB_CHIPCO_CHST_4325_OTP_SEL)
 #define SSB_CHIPCO_CHST_4322_SPROM_PRESENT(status) \
 	(status & SSB_CHIPCO_CHST_4322_SPROM_EXISTS)
 #define SSB_CHIPCO_CHST_4325_SPROM_PRESENT(status) \
 	(((status & SSB_CHIPCO_CHST_4325_SPROM_OTP_SEL) != \
-		SSB_CHIPCO_CHST_4325_DEFCIS_SEL) && \
+	  SSB_CHIPCO_CHST_4325_DEFCIS_SEL) && \
 	 ((status & SSB_CHIPCO_CHST_4325_SPROM_OTP_SEL) != \
-		SSB_CHIPCO_CHST_4325_OTP_SEL))
+	  SSB_CHIPCO_CHST_4325_OTP_SEL))
 
 
 
@@ -580,12 +580,14 @@ struct ssb_serial_port;
 /* Data for the PMU, if available.
  * Check availability with ((struct ssb_chipcommon)->capabilities & SSB_CHIPCO_CAP_PMU)
  */
-struct ssb_chipcommon_pmu {
+struct ssb_chipcommon_pmu
+{
 	u8 rev;			/* PMU revision */
 	u32 crystalfreq;	/* The active crystal frequency (in kHz) */
 };
 
-struct ssb_chipcommon {
+struct ssb_chipcommon
+{
 	struct ssb_device *dev;
 	u32 capabilities;
 	u32 status;
@@ -607,11 +609,11 @@ static inline bool ssb_chipco_available(struct ssb_chipcommon *cc)
 #define chipco_write32(cc, offset, val)	ssb_write32((cc)->dev, offset, val)
 
 #define chipco_mask32(cc, offset, mask) \
-		chipco_write32(cc, offset, chipco_read32(cc, offset) & (mask))
+	chipco_write32(cc, offset, chipco_read32(cc, offset) & (mask))
 #define chipco_set32(cc, offset, set) \
-		chipco_write32(cc, offset, chipco_read32(cc, offset) | (set))
+	chipco_write32(cc, offset, chipco_read32(cc, offset) | (set))
 #define chipco_maskset32(cc, offset, mask, set) \
-		chipco_write32(cc, offset, (chipco_read32(cc, offset) & (mask)) | (set))
+	chipco_write32(cc, offset, (chipco_read32(cc, offset) & (mask)) | (set))
 
 extern void ssb_chipcommon_init(struct ssb_chipcommon *cc);
 
@@ -619,20 +621,21 @@ extern void ssb_chipco_suspend(struct ssb_chipcommon *cc);
 extern void ssb_chipco_resume(struct ssb_chipcommon *cc);
 
 extern void ssb_chipco_get_clockcpu(struct ssb_chipcommon *cc,
-                                    u32 *plltype, u32 *n, u32 *m);
+									u32 *plltype, u32 *n, u32 *m);
 extern void ssb_chipco_get_clockcontrol(struct ssb_chipcommon *cc,
-					u32 *plltype, u32 *n, u32 *m);
+										u32 *plltype, u32 *n, u32 *m);
 extern void ssb_chipco_timing_init(struct ssb_chipcommon *cc,
-				   unsigned long ns_per_cycle);
+								   unsigned long ns_per_cycle);
 
-enum ssb_clkmode {
+enum ssb_clkmode
+{
 	SSB_CLKMODE_SLOW,
 	SSB_CLKMODE_FAST,
 	SSB_CLKMODE_DYNAMIC,
 };
 
 extern void ssb_chipco_set_clockmode(struct ssb_chipcommon *cc,
-				     enum ssb_clkmode mode);
+									 enum ssb_clkmode mode);
 
 extern u32 ssb_chipco_watchdog_timer_set(struct ssb_chipcommon *cc, u32 ticks);
 
@@ -652,13 +655,14 @@ u32 ssb_chipco_gpio_pulldown(struct ssb_chipcommon *cc, u32 mask, u32 value);
 
 #ifdef CONFIG_SSB_SERIAL
 extern int ssb_chipco_serial_init(struct ssb_chipcommon *cc,
-				  struct ssb_serial_port *ports);
+								  struct ssb_serial_port *ports);
 #endif /* CONFIG_SSB_SERIAL */
 
 /* PMU support */
 extern void ssb_pmu_init(struct ssb_chipcommon *cc);
 
-enum ssb_pmu_ldo_volt_id {
+enum ssb_pmu_ldo_volt_id
+{
 	LDO_PAREF = 0,
 	LDO_VOLT1,
 	LDO_VOLT2,
@@ -666,7 +670,7 @@ enum ssb_pmu_ldo_volt_id {
 };
 
 void ssb_pmu_set_ldo_voltage(struct ssb_chipcommon *cc,
-			     enum ssb_pmu_ldo_volt_id id, u32 voltage);
+							 enum ssb_pmu_ldo_volt_id id, u32 voltage);
 void ssb_pmu_set_ldo_paref(struct ssb_chipcommon *cc, bool on);
 void ssb_pmu_spuravoid_pllupdate(struct ssb_chipcommon *cc, int spuravoid);
 

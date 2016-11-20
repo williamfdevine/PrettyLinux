@@ -54,7 +54,8 @@
  *	3-254	reserved
  *	255	vendor specific
  */
-struct ieee_ets {
+struct ieee_ets
+{
 	__u8	willing;
 	__u8	ets_cap;
 	__u8	cbs;
@@ -74,11 +75,13 @@ struct ieee_ets {
  *
  * @tc_maxrate: maximal tc tx bandwidth indexed by traffic class
  */
-struct ieee_maxrate {
+struct ieee_maxrate
+{
 	__u64	tc_maxrate[IEEE_8021QAZ_MAX_TCS];
 };
 
-enum dcbnl_cndd_states {
+enum dcbnl_cndd_states
+{
 	DCB_CNDD_RESET = 0,
 	DCB_CNDD_EDGE,
 	DCB_CNDD_INTERIOR,
@@ -115,7 +118,8 @@ enum dcbnl_cndd_states {
  *		       flows.
  */
 
-struct ieee_qcn {
+struct ieee_qcn
+{
 	__u8 rpg_enable[IEEE_8021QAZ_MAX_TCS];
 	__u32 rppp_max_rps[IEEE_8021QAZ_MAX_TCS];
 	__u32 rpg_time_reset[IEEE_8021QAZ_MAX_TCS];
@@ -137,7 +141,8 @@ struct ieee_qcn {
  *@rppp_created_rps: number of active RPs(flows) that react to CNMs
  */
 
-struct ieee_qcn_stats {
+struct ieee_qcn_stats
+{
 	__u64 rppp_rp_centiseconds[IEEE_8021QAZ_MAX_TCS];
 	__u32 rppp_created_rps[IEEE_8021QAZ_MAX_TCS];
 };
@@ -153,7 +158,8 @@ struct ieee_qcn_stats {
  * @requests: count of the sent pfc frames
  * @indications: count of the received pfc frames
  */
-struct ieee_pfc {
+struct ieee_pfc
+{
 	__u8	pfc_cap;
 	__u8	pfc_en;
 	__u8	mbc;
@@ -176,7 +182,8 @@ struct ieee_pfc {
  * @pg_bw: bandwidth percentage for each priority group
  * @prio_pg: priority to PG mapping indexed by priority
  */
-struct cee_pg {
+struct cee_pg
+{
 	__u8    willing;
 	__u8    error;
 	__u8    pg_en;
@@ -193,7 +200,8 @@ struct cee_pg {
  * @pfc_en: bitmap indicating pfc enabled traffic classes
  * @tcs_supported: number of traffic classes supported
  */
-struct cee_pfc {
+struct cee_pfc
+{
 	__u8    willing;
 	__u8    error;
 	__u8    pfc_en;
@@ -228,7 +236,8 @@ struct cee_pfc {
  *	1	Well known port number over TCP or UDP
  *	2-3	Reserved
  */
-struct dcb_app {
+struct dcb_app
+{
 	__u8	selector;
 	__u8	priority;
 	__u16	protocol;
@@ -243,12 +252,14 @@ struct dcb_app {
  * In addition to this information the full peer APP tlv also contains
  * a table of 'app_count' APP objects defined above.
  */
-struct dcb_peer_app_info {
+struct dcb_peer_app_info
+{
 	__u8	willing;
 	__u8	error;
 };
 
-struct dcbmsg {
+struct dcbmsg
+{
 	__u8               dcb_family;
 	__u8               cmd;
 	__u16              dcb_pad;
@@ -285,7 +296,8 @@ struct dcbmsg {
  * @DCB_CMD_CEE_GET: get CEE aggregated configuration
  * @DCB_CMD_IEEE_DEL: delete IEEE 802.1Qaz configuration
  */
-enum dcbnl_commands {
+enum dcbnl_commands
+{
 	DCB_CMD_UNDEFINED,
 
 	DCB_CMD_GSTATE,
@@ -353,7 +365,8 @@ enum dcbnl_commands {
  * @DCB_ATTR_FEATCFG: DCBX features flags (NLA_NESTED)
  * @DCB_ATTR_CEE: CEE std supported attributes (NLA_NESTED)
  */
-enum dcbnl_attrs {
+enum dcbnl_attrs
+{
 	DCB_ATTR_UNDEFINED,
 
 	DCB_ATTR_IFNAME,
@@ -393,7 +406,8 @@ enum dcbnl_attrs {
  * @DCB_ATTR_IEEE_PEER_PFC: peer PFC configuration - get only
  * @DCB_ATTR_IEEE_PEER_APP: peer APP tlv - get only
  */
-enum ieee_attrs {
+enum ieee_attrs
+{
 	DCB_ATTR_IEEE_UNSPEC,
 	DCB_ATTR_IEEE_ETS,
 	DCB_ATTR_IEEE_PFC,
@@ -408,7 +422,8 @@ enum ieee_attrs {
 };
 #define DCB_ATTR_IEEE_MAX (__DCB_ATTR_IEEE_MAX - 1)
 
-enum ieee_attrs_app {
+enum ieee_attrs_app
+{
 	DCB_ATTR_IEEE_APP_UNSPEC,
 	DCB_ATTR_IEEE_APP,
 	__DCB_ATTR_IEEE_APP_MAX
@@ -430,7 +445,8 @@ enum ieee_attrs_app {
  *
  * An aggregated collection of the cee std negotiated parameters.
  */
-enum cee_attrs {
+enum cee_attrs
+{
 	DCB_ATTR_CEE_UNSPEC,
 	DCB_ATTR_CEE_PEER_PG,
 	DCB_ATTR_CEE_PEER_PFC,
@@ -444,7 +460,8 @@ enum cee_attrs {
 };
 #define DCB_ATTR_CEE_MAX (__DCB_ATTR_CEE_MAX - 1)
 
-enum peer_app_attr {
+enum peer_app_attr
+{
 	DCB_ATTR_CEE_PEER_APP_UNSPEC,
 	DCB_ATTR_CEE_PEER_APP_INFO,
 	DCB_ATTR_CEE_PEER_APP,
@@ -452,7 +469,8 @@ enum peer_app_attr {
 };
 #define DCB_ATTR_CEE_PEER_APP_MAX (__DCB_ATTR_CEE_PEER_APP_MAX - 1)
 
-enum cee_attrs_app {
+enum cee_attrs_app
+{
 	DCB_ATTR_CEE_APP_UNSPEC,
 	DCB_ATTR_CEE_APP,
 	__DCB_ATTR_CEE_APP_MAX
@@ -475,7 +493,8 @@ enum cee_attrs_app {
  * @DCB_PFC_UP_ATTR_ALL: apply to all priority flow control attrs (NLA_FLAG)
  *
  */
-enum dcbnl_pfc_up_attrs {
+enum dcbnl_pfc_up_attrs
+{
 	DCB_PFC_UP_ATTR_UNDEFINED,
 
 	DCB_PFC_UP_ATTR_0,
@@ -518,7 +537,8 @@ enum dcbnl_pfc_up_attrs {
  * @DCB_PG_ATTR_BW_ID_ALL: apply to all priority groups (NLA_FLAG)
  *
  */
-enum dcbnl_pg_attrs {
+enum dcbnl_pg_attrs
+{
 	DCB_PG_ATTR_UNDEFINED,
 
 	DCB_PG_ATTR_TC_0,
@@ -567,7 +587,8 @@ enum dcbnl_pg_attrs {
  * @DCB_TC_ATTR_PARAM_ALL: (NLA_FLAG) all traffic class parameters
  *
  */
-enum dcbnl_tc_attrs {
+enum dcbnl_tc_attrs
+{
 	DCB_TC_ATTR_PARAM_UNDEFINED,
 
 	DCB_TC_ATTR_PARAM_PGID,
@@ -601,7 +622,8 @@ enum dcbnl_tc_attrs {
  * @DCB_CAP_ATTR_DCBX: (NLA_U8) device supports DCBX engine
  *
  */
-enum dcbnl_cap_attrs {
+enum dcbnl_cap_attrs
+{
 	DCB_CAP_ATTR_UNDEFINED,
 	DCB_CAP_ATTR_ALL,
 	DCB_CAP_ATTR_PG,
@@ -659,7 +681,8 @@ enum dcbnl_cap_attrs {
  * @DCB_NUMTCS_ATTR_PFC: (NLA_U8) number of traffic classes which can
  *                                support priority flow control
  */
-enum dcbnl_numtcs_attrs {
+enum dcbnl_numtcs_attrs
+{
 	DCB_NUMTCS_ATTR_UNDEFINED,
 	DCB_NUMTCS_ATTR_ALL,
 	DCB_NUMTCS_ATTR_PG,
@@ -669,7 +692,8 @@ enum dcbnl_numtcs_attrs {
 	DCB_NUMTCS_ATTR_MAX = __DCB_NUMTCS_ATTR_ENUM_MAX - 1,
 };
 
-enum dcbnl_bcn_attrs{
+enum dcbnl_bcn_attrs
+{
 	DCB_BCN_ATTR_UNDEFINED = 0,
 
 	DCB_BCN_ATTR_RP_0,
@@ -709,13 +733,15 @@ enum dcbnl_bcn_attrs{
  * @DCB_ATTR_UNDEFINED: value used to indicate an attribute is not supported
  *
  */
-enum dcb_general_attr_values {
+enum dcb_general_attr_values
+{
 	DCB_ATTR_VALUE_UNDEFINED = 0xff
 };
 
 #define DCB_APP_IDTYPE_ETHTYPE	0x00
 #define DCB_APP_IDTYPE_PORTNUM	0x01
-enum dcbnl_app_attrs {
+enum dcbnl_app_attrs
+{
 	DCB_APP_ATTR_UNDEFINED,
 
 	DCB_APP_ATTR_IDTYPE,
@@ -741,7 +767,8 @@ enum dcbnl_app_attrs {
 #define DCB_FEATCFG_ENABLE	0x02	/* enable feature */
 #define DCB_FEATCFG_WILLING	0x04	/* feature is willing */
 #define DCB_FEATCFG_ADVERTISE	0x08	/* advertise feature */
-enum dcbnl_featcfg_attrs {
+enum dcbnl_featcfg_attrs
+{
 	DCB_FEATCFG_ATTR_UNDEFINED,
 	DCB_FEATCFG_ATTR_ALL,
 	DCB_FEATCFG_ATTR_PG,

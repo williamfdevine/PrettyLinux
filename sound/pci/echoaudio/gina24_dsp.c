@@ -42,11 +42,14 @@ static int init_hw(struct echoaudio *chip, u16 device_id, u16 subdevice_id)
 	int err;
 
 	if (snd_BUG_ON((subdevice_id & 0xfff0) != GINA24))
+	{
 		return -ENODEV;
+	}
 
-	if ((err = init_dsp_comm_page(chip))) {
+	if ((err = init_dsp_comm_page(chip)))
+	{
 		dev_err(chip->card->dev,
-			"init_hw - could not initialize DSP comm page\n");
+				"init_hw - could not initialize DSP comm page\n");
 		return err;
 	}
 
@@ -59,13 +62,16 @@ static int init_hw(struct echoaudio *chip, u16 device_id, u16 subdevice_id)
 		ECHO_CLOCK_BIT_ADAT;
 
 	/* Gina24 comes in both '301 and '361 flavors */
-	if (chip->device_id == DEVICE_ID_56361) {
+	if (chip->device_id == DEVICE_ID_56361)
+	{
 		chip->dsp_code_to_load = FW_GINA24_361_DSP;
 		chip->digital_modes =
 			ECHOCAPS_HAS_DIGITAL_MODE_SPDIF_RCA |
 			ECHOCAPS_HAS_DIGITAL_MODE_SPDIF_OPTICAL |
 			ECHOCAPS_HAS_DIGITAL_MODE_ADAT;
-	} else {
+	}
+	else
+	{
 		chip->dsp_code_to_load = FW_GINA24_301_DSP;
 		chip->digital_modes =
 			ECHOCAPS_HAS_DIGITAL_MODE_SPDIF_RCA |
@@ -75,7 +81,10 @@ static int init_hw(struct echoaudio *chip, u16 device_id, u16 subdevice_id)
 	}
 
 	if ((err = load_firmware(chip)) < 0)
+	{
 		return err;
+	}
+
 	chip->bad_board = false;
 
 	return err;
@@ -104,13 +113,19 @@ static u32 detect_input_clocks(const struct echoaudio *chip)
 	clock_bits = ECHO_CLOCK_BIT_INTERNAL;
 
 	if (clocks_from_dsp & GML_CLOCK_DETECT_BIT_SPDIF)
+	{
 		clock_bits |= ECHO_CLOCK_BIT_SPDIF;
+	}
 
 	if (clocks_from_dsp & GML_CLOCK_DETECT_BIT_ADAT)
+	{
 		clock_bits |= ECHO_CLOCK_BIT_ADAT;
+	}
 
 	if (clocks_from_dsp & GML_CLOCK_DETECT_BIT_ESYNC)
+	{
 		clock_bits |= ECHO_CLOCK_BIT_ESYNC | ECHO_CLOCK_BIT_ESYNC96;
+	}
 
 	return clock_bits;
 }
@@ -126,20 +141,29 @@ static int load_asic(struct echoaudio *chip)
 	short asic;
 
 	if (chip->asic_loaded)
+	{
 		return 1;
+	}
 
 	/* Give the DSP a few milliseconds to settle down */
 	mdelay(10);
 
 	/* Pick the correct ASIC for '301 or '361 Gina24 */
 	if (chip->device_id == DEVICE_ID_56361)
+	{
 		asic = FW_GINA24_361_ASIC;
+	}
 	else
+	{
 		asic = FW_GINA24_301_ASIC;
+	}
 
 	err = load_asic_generic(chip, DSP_FNC_LOAD_GINA24_ASIC, asic);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	chip->asic_code = asic;
 
@@ -150,10 +174,12 @@ static int load_asic(struct echoaudio *chip)
 
 	/* Set up the control register if the load succeeded -
 	   48 kHz, internal clock, S/PDIF RCA mode */
-	if (!err) {
+	if (!err)
+	{
 		control_reg = GML_CONVERTER_ENABLE | GML_48KHZ;
 		err = write_control_reg(chip, control_reg, true);
 	}
+
 	return err;
 }
 
@@ -164,13 +190,16 @@ static int set_sample_rate(struct echoaudio *chip, u32 rate)
 	u32 control_reg, clock;
 
 	if (snd_BUG_ON(rate >= 50000 &&
-		       chip->digital_mode == DIGITAL_MODE_ADAT))
+				   chip->digital_mode == DIGITAL_MODE_ADAT))
+	{
 		return -EINVAL;
+	}
 
 	/* Only set the clock for internal mode. */
-	if (chip->input_clock != ECHO_CLOCK_INTERNAL) {
+	if (chip->input_clock != ECHO_CLOCK_INTERNAL)
+	{
 		dev_warn(chip->card->dev,
-			 "Cannot set sample rate - clock not set to CLK_CLOCKININTERNAL\n");
+				 "Cannot set sample rate - clock not set to CLK_CLOCKININTERNAL\n");
 		/* Save the rate anyhow */
 		chip->comm_page->sample_rate = cpu_to_le32(rate);
 		chip->sample_rate = rate;
@@ -182,42 +211,56 @@ static int set_sample_rate(struct echoaudio *chip, u32 rate)
 	control_reg = le32_to_cpu(chip->comm_page->control_register);
 	control_reg &= GML_CLOCK_CLEAR_MASK & GML_SPDIF_RATE_CLEAR_MASK;
 
-	switch (rate) {
-	case 96000:
-		clock = GML_96KHZ;
-		break;
-	case 88200:
-		clock = GML_88KHZ;
-		break;
-	case 48000:
-		clock = GML_48KHZ | GML_SPDIF_SAMPLE_RATE1;
-		break;
-	case 44100:
-		clock = GML_44KHZ;
-		/* Professional mode ? */
-		if (control_reg & GML_SPDIF_PRO_MODE)
-			clock |= GML_SPDIF_SAMPLE_RATE0;
-		break;
-	case 32000:
-		clock = GML_32KHZ | GML_SPDIF_SAMPLE_RATE0 |
-			GML_SPDIF_SAMPLE_RATE1;
-		break;
-	case 22050:
-		clock = GML_22KHZ;
-		break;
-	case 16000:
-		clock = GML_16KHZ;
-		break;
-	case 11025:
-		clock = GML_11KHZ;
-		break;
-	case 8000:
-		clock = GML_8KHZ;
-		break;
-	default:
-		dev_err(chip->card->dev,
-			"set_sample_rate: %d invalid!\n", rate);
-		return -EINVAL;
+	switch (rate)
+	{
+		case 96000:
+			clock = GML_96KHZ;
+			break;
+
+		case 88200:
+			clock = GML_88KHZ;
+			break;
+
+		case 48000:
+			clock = GML_48KHZ | GML_SPDIF_SAMPLE_RATE1;
+			break;
+
+		case 44100:
+			clock = GML_44KHZ;
+
+			/* Professional mode ? */
+			if (control_reg & GML_SPDIF_PRO_MODE)
+			{
+				clock |= GML_SPDIF_SAMPLE_RATE0;
+			}
+
+			break;
+
+		case 32000:
+			clock = GML_32KHZ | GML_SPDIF_SAMPLE_RATE0 |
+					GML_SPDIF_SAMPLE_RATE1;
+			break;
+
+		case 22050:
+			clock = GML_22KHZ;
+			break;
+
+		case 16000:
+			clock = GML_16KHZ;
+			break;
+
+		case 11025:
+			clock = GML_11KHZ;
+			break;
+
+		case 8000:
+			clock = GML_8KHZ;
+			break;
+
+		default:
+			dev_err(chip->card->dev,
+					"set_sample_rate: %d invalid!\n", rate);
+			return -EINVAL;
 	}
 
 	control_reg |= clock;
@@ -238,39 +281,57 @@ static int set_input_clock(struct echoaudio *chip, u16 clock)
 
 	/* Mask off the clock select bits */
 	control_reg = le32_to_cpu(chip->comm_page->control_register) &
-		GML_CLOCK_CLEAR_MASK;
+				  GML_CLOCK_CLEAR_MASK;
 	clocks_from_dsp = le32_to_cpu(chip->comm_page->status_clocks);
 
-	switch (clock) {
-	case ECHO_CLOCK_INTERNAL:
-		chip->input_clock = ECHO_CLOCK_INTERNAL;
-		return set_sample_rate(chip, chip->sample_rate);
-	case ECHO_CLOCK_SPDIF:
-		if (chip->digital_mode == DIGITAL_MODE_ADAT)
-			return -EAGAIN;
-		control_reg |= GML_SPDIF_CLOCK;
-		if (clocks_from_dsp & GML_CLOCK_DETECT_BIT_SPDIF96)
-			control_reg |= GML_DOUBLE_SPEED_MODE;
-		else
+	switch (clock)
+	{
+		case ECHO_CLOCK_INTERNAL:
+			chip->input_clock = ECHO_CLOCK_INTERNAL;
+			return set_sample_rate(chip, chip->sample_rate);
+
+		case ECHO_CLOCK_SPDIF:
+			if (chip->digital_mode == DIGITAL_MODE_ADAT)
+			{
+				return -EAGAIN;
+			}
+
+			control_reg |= GML_SPDIF_CLOCK;
+
+			if (clocks_from_dsp & GML_CLOCK_DETECT_BIT_SPDIF96)
+			{
+				control_reg |= GML_DOUBLE_SPEED_MODE;
+			}
+			else
+			{
+				control_reg &= ~GML_DOUBLE_SPEED_MODE;
+			}
+
+			break;
+
+		case ECHO_CLOCK_ADAT:
+			if (chip->digital_mode != DIGITAL_MODE_ADAT)
+			{
+				return -EAGAIN;
+			}
+
+			control_reg |= GML_ADAT_CLOCK;
 			control_reg &= ~GML_DOUBLE_SPEED_MODE;
-		break;
-	case ECHO_CLOCK_ADAT:
-		if (chip->digital_mode != DIGITAL_MODE_ADAT)
-			return -EAGAIN;
-		control_reg |= GML_ADAT_CLOCK;
-		control_reg &= ~GML_DOUBLE_SPEED_MODE;
-		break;
-	case ECHO_CLOCK_ESYNC:
-		control_reg |= GML_ESYNC_CLOCK;
-		control_reg &= ~GML_DOUBLE_SPEED_MODE;
-		break;
-	case ECHO_CLOCK_ESYNC96:
-		control_reg |= GML_ESYNC_CLOCK | GML_DOUBLE_SPEED_MODE;
-		break;
-	default:
-		dev_err(chip->card->dev,
-			"Input clock 0x%x not supported for Gina24\n", clock);
-		return -EINVAL;
+			break;
+
+		case ECHO_CLOCK_ESYNC:
+			control_reg |= GML_ESYNC_CLOCK;
+			control_reg &= ~GML_DOUBLE_SPEED_MODE;
+			break;
+
+		case ECHO_CLOCK_ESYNC96:
+			control_reg |= GML_ESYNC_CLOCK | GML_DOUBLE_SPEED_MODE;
+			break;
+
+		default:
+			dev_err(chip->card->dev,
+					"Input clock 0x%x not supported for Gina24\n", clock);
+			return -EINVAL;
 	}
 
 	chip->input_clock = clock;
@@ -286,26 +347,37 @@ static int dsp_set_digital_mode(struct echoaudio *chip, u8 mode)
 
 	/* Set clock to "internal" if it's not compatible with the new mode */
 	incompatible_clock = false;
-	switch (mode) {
-	case DIGITAL_MODE_SPDIF_OPTICAL:
-	case DIGITAL_MODE_SPDIF_CDROM:
-	case DIGITAL_MODE_SPDIF_RCA:
-		if (chip->input_clock == ECHO_CLOCK_ADAT)
-			incompatible_clock = true;
-		break;
-	case DIGITAL_MODE_ADAT:
-		if (chip->input_clock == ECHO_CLOCK_SPDIF)
-			incompatible_clock = true;
-		break;
-	default:
-		dev_err(chip->card->dev,
-			"Digital mode not supported: %d\n", mode);
-		return -EINVAL;
+
+	switch (mode)
+	{
+		case DIGITAL_MODE_SPDIF_OPTICAL:
+		case DIGITAL_MODE_SPDIF_CDROM:
+		case DIGITAL_MODE_SPDIF_RCA:
+			if (chip->input_clock == ECHO_CLOCK_ADAT)
+			{
+				incompatible_clock = true;
+			}
+
+			break;
+
+		case DIGITAL_MODE_ADAT:
+			if (chip->input_clock == ECHO_CLOCK_SPDIF)
+			{
+				incompatible_clock = true;
+			}
+
+			break;
+
+		default:
+			dev_err(chip->card->dev,
+					"Digital mode not supported: %d\n", mode);
+			return -EINVAL;
 	}
 
 	spin_lock_irq(&chip->lock);
 
-	if (incompatible_clock) {	/* Switch to 48KHz, internal */
+	if (incompatible_clock)  	/* Switch to 48KHz, internal */
+	{
 		chip->sample_rate = 48000;
 		set_input_clock(chip, ECHO_CLOCK_INTERNAL);
 	}
@@ -315,31 +387,43 @@ static int dsp_set_digital_mode(struct echoaudio *chip, u8 mode)
 	control_reg &= GML_DIGITAL_MODE_CLEAR_MASK;
 
 	/* Tweak the control reg */
-	switch (mode) {
-	case DIGITAL_MODE_SPDIF_OPTICAL:
-		control_reg |= GML_SPDIF_OPTICAL_MODE;
-		break;
-	case DIGITAL_MODE_SPDIF_CDROM:
-		/* '361 Gina24 cards do not have the S/PDIF CD-ROM mode */
-		if (chip->device_id == DEVICE_ID_56301)
-			control_reg |= GML_SPDIF_CDROM_MODE;
-		break;
-	case DIGITAL_MODE_SPDIF_RCA:
-		/* GML_SPDIF_OPTICAL_MODE bit cleared */
-		break;
-	case DIGITAL_MODE_ADAT:
-		control_reg |= GML_ADAT_MODE;
-		control_reg &= ~GML_DOUBLE_SPEED_MODE;
-		break;
+	switch (mode)
+	{
+		case DIGITAL_MODE_SPDIF_OPTICAL:
+			control_reg |= GML_SPDIF_OPTICAL_MODE;
+			break;
+
+		case DIGITAL_MODE_SPDIF_CDROM:
+
+			/* '361 Gina24 cards do not have the S/PDIF CD-ROM mode */
+			if (chip->device_id == DEVICE_ID_56301)
+			{
+				control_reg |= GML_SPDIF_CDROM_MODE;
+			}
+
+			break;
+
+		case DIGITAL_MODE_SPDIF_RCA:
+			/* GML_SPDIF_OPTICAL_MODE bit cleared */
+			break;
+
+		case DIGITAL_MODE_ADAT:
+			control_reg |= GML_ADAT_MODE;
+			control_reg &= ~GML_DOUBLE_SPEED_MODE;
+			break;
 	}
 
 	err = write_control_reg(chip, control_reg, true);
 	spin_unlock_irq(&chip->lock);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	chip->digital_mode = mode;
 
 	dev_dbg(chip->card->dev,
-		"set_digital_mode to %d\n", chip->digital_mode);
+			"set_digital_mode to %d\n", chip->digital_mode);
 	return incompatible_clock;
 }

@@ -46,26 +46,27 @@
  * verbosity and tracing which will be output to the system logs.
  */
 
-enum p9_debug_flags {
-	P9_DEBUG_ERROR = 	(1<<0),
-	P9_DEBUG_9P = 		(1<<2),
-	P9_DEBUG_VFS =		(1<<3),
-	P9_DEBUG_CONV =		(1<<4),
-	P9_DEBUG_MUX =		(1<<5),
-	P9_DEBUG_TRANS =	(1<<6),
-	P9_DEBUG_SLABS =      	(1<<7),
-	P9_DEBUG_FCALL =	(1<<8),
-	P9_DEBUG_FID =		(1<<9),
-	P9_DEBUG_PKT =		(1<<10),
-	P9_DEBUG_FSC =		(1<<11),
-	P9_DEBUG_VPKT =		(1<<12),
+enum p9_debug_flags
+{
+	P9_DEBUG_ERROR = 	(1 << 0),
+	P9_DEBUG_9P = 		(1 << 2),
+	P9_DEBUG_VFS =		(1 << 3),
+	P9_DEBUG_CONV =		(1 << 4),
+	P9_DEBUG_MUX =		(1 << 5),
+	P9_DEBUG_TRANS =	(1 << 6),
+	P9_DEBUG_SLABS =      	(1 << 7),
+	P9_DEBUG_FCALL =	(1 << 8),
+	P9_DEBUG_FID =		(1 << 9),
+	P9_DEBUG_PKT =		(1 << 10),
+	P9_DEBUG_FSC =		(1 << 11),
+	P9_DEBUG_VPKT =		(1 << 12),
 };
 
 #ifdef CONFIG_NET_9P_DEBUG
 extern unsigned int p9_debug_level;
 __printf(3, 4)
 void _p9_debug(enum p9_debug_flags level, const char *func,
-	       const char *fmt, ...);
+			   const char *fmt, ...);
 #define p9_debug(level, fmt, ...)			\
 	_p9_debug(level, __func__, fmt, ##__VA_ARGS__)
 #else
@@ -127,7 +128,8 @@ void _p9_debug(enum p9_debug_flags level, const char *func,
  * See Also: http://plan9.bell-labs.com/sys/man/5/INDEX.html
  */
 
-enum p9_msg_t {
+enum p9_msg_t
+{
 	P9_TLERROR = 6,
 	P9_RLERROR,
 	P9_TSTATFS = 8,
@@ -220,7 +222,8 @@ enum p9_msg_t {
  * See Also: http://plan9.bell-labs.com/magic/man2html/2/open
  */
 
-enum p9_open_mode_t {
+enum p9_open_mode_t
+{
 	P9_OREAD = 0x00,
 	P9_OWRITE = 0x01,
 	P9_ORDWR = 0x02,
@@ -253,14 +256,15 @@ enum p9_open_mode_t {
  *
  * See Also: http://plan9.bell-labs.com/magic/man2html/2/stat
  */
-enum p9_perm_t {
+enum p9_perm_t
+{
 	P9_DMDIR = 0x80000000,
 	P9_DMAPPEND = 0x40000000,
 	P9_DMEXCL = 0x20000000,
 	P9_DMMOUNT = 0x10000000,
 	P9_DMAUTH = 0x08000000,
 	P9_DMTMP = 0x04000000,
-/* 9P2000.u extensions */
+	/* 9P2000.u extensions */
 	P9_DMSYMLINK = 0x02000000,
 	P9_DMLINK = 0x01000000,
 	P9_DMDEVICE = 0x00800000,
@@ -319,7 +323,8 @@ enum p9_perm_t {
  *
  * See Also: http://plan9.bell-labs.com/magic/man2html/2/stat
  */
-enum p9_qid_t {
+enum p9_qid_t
+{
 	P9_QTDIR = 0x80,
 	P9_QTAPPEND = 0x40,
 	P9_QTEXCL = 0x20,
@@ -365,7 +370,8 @@ enum p9_qid_t {
  * See Also://plan9.bell-labs.com/magic/man2html/2/stat
  */
 
-struct p9_qid {
+struct p9_qid
+{
 	u8 type;
 	u32 version;
 	u64 path;
@@ -393,7 +399,8 @@ struct p9_qid {
  * See Also: http://plan9.bell-labs.com/magic/man2html/2/stat
  */
 
-struct p9_wstat {
+struct p9_wstat
+{
 	u16 size;
 	u16 type;
 	u32 dev;
@@ -412,7 +419,8 @@ struct p9_wstat {
 	kuid_t n_muid;		/* 9p2000.u extensions */
 };
 
-struct p9_stat_dotl {
+struct p9_stat_dotl
+{
 	u64 st_result_mask;
 	struct p9_qid qid;
 	u32 st_mode;
@@ -468,7 +476,8 @@ struct p9_stat_dotl {
  * @mtime_nsec: Last modification time, nanoseconds
  */
 
-struct p9_iattr_dotl {
+struct p9_iattr_dotl
+{
 	u32 valid;
 	u32 mode;
 	kuid_t uid;
@@ -497,7 +506,8 @@ struct p9_iattr_dotl {
  * @client_id - client id
  */
 
-struct p9_flock {
+struct p9_flock
+{
 	u8 type;
 	u32 flags;
 	u64 start;
@@ -514,7 +524,8 @@ struct p9_flock {
  * @client_id - client id
  */
 
-struct p9_getlock {
+struct p9_getlock
+{
 	u8 type;
 	u64 start;
 	u64 length;
@@ -522,7 +533,8 @@ struct p9_getlock {
 	char *client_id;
 };
 
-struct p9_rstatfs {
+struct p9_rstatfs
+{
 	u32 type;
 	u32 bsize;
 	u64 blocks;
@@ -550,7 +562,8 @@ struct p9_rstatfs {
  * See Also: http://plan9.bell-labs.com/magic/man2html/2/fcall
  */
 
-struct p9_fcall {
+struct p9_fcall
+{
 	u32 size;
 	u8 id;
 	u16 tag;

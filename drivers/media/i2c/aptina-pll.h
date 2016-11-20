@@ -21,7 +21,8 @@
 #ifndef __APTINA_PLL_H
 #define __APTINA_PLL_H
 
-struct aptina_pll {
+struct aptina_pll
+{
 	unsigned int ext_clock;
 	unsigned int pix_clock;
 
@@ -30,7 +31,8 @@ struct aptina_pll {
 	unsigned int p1;
 };
 
-struct aptina_pll_limits {
+struct aptina_pll_limits
+{
 	unsigned int ext_clock_min;
 	unsigned int ext_clock_max;
 	unsigned int int_clock_min;
@@ -50,7 +52,7 @@ struct aptina_pll_limits {
 struct device;
 
 int aptina_pll_calculate(struct device *dev,
-			 const struct aptina_pll_limits *limits,
-			 struct aptina_pll *pll);
+						 const struct aptina_pll_limits *limits,
+						 struct aptina_pll *pll);
 
 #endif /* __APTINA_PLL_H */

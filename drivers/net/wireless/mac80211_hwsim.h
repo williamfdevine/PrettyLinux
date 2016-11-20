@@ -22,7 +22,8 @@
  * @HWSIM_TX_STAT_ACK: Frame was acknowledged
  *
  */
-enum hwsim_tx_control_flags {
+enum hwsim_tx_control_flags
+{
 	HWSIM_TX_CTL_REQ_TX_STATUS		= BIT(0),
 	HWSIM_TX_CTL_NO_ACK			= BIT(1),
 	HWSIM_TX_STAT_ACK			= BIT(2),
@@ -73,7 +74,8 @@ enum hwsim_tx_control_flags {
  *	%HWSIM_ATTR_RADIO_ID
  * @__HWSIM_CMD_MAX: enum limit
  */
-enum {
+enum
+{
 	HWSIM_CMD_UNSPEC,
 	HWSIM_CMD_REGISTER,
 	HWSIM_CMD_FRAME,
@@ -127,7 +129,8 @@ enum {
  */
 
 
-enum {
+enum
+{
 	HWSIM_ATTR_UNSPEC,
 	HWSIM_ATTR_ADDR_RECEIVER,
 	HWSIM_ATTR_ADDR_TRANSMITTER,
@@ -166,7 +169,8 @@ enum {
  * always report the rate and number of retries used.
  *
  */
-struct hwsim_tx_rate {
+struct hwsim_tx_rate
+{
 	s8 idx;
 	u8 count;
 } __packed;

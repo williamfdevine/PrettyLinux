@@ -85,7 +85,8 @@ static void isp_save_ctx(struct isp_device *isp);
 
 static void isp_restore_ctx(struct isp_device *isp);
 
-static const struct isp_res_mapping isp_res_maps[] = {
+static const struct isp_res_mapping isp_res_maps[] =
+{
 	{
 		.isp_rev = ISP_REVISION_2_0,
 		.offset = {
@@ -129,7 +130,8 @@ static const struct isp_res_mapping isp_res_maps[] = {
 };
 
 /* Structure for saving/restoring ISP module registers */
-static struct isp_reg isp_reg_list[] = {
+static struct isp_reg isp_reg_list[] =
+{
 	{OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG, 0},
 	{OMAP3_ISP_IOMEM_MAIN, ISP_CTRL, 0},
 	{OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL, 0},
@@ -160,17 +162,19 @@ void omap3isp_flush(struct isp_device *isp)
 
 static void isp_xclk_update(struct isp_xclk *xclk, u32 divider)
 {
-	switch (xclk->id) {
-	case ISP_XCLK_A:
-		isp_reg_clr_set(xclk->isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL,
-				ISPTCTRL_CTRL_DIVA_MASK,
-				divider << ISPTCTRL_CTRL_DIVA_SHIFT);
-		break;
-	case ISP_XCLK_B:
-		isp_reg_clr_set(xclk->isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL,
-				ISPTCTRL_CTRL_DIVB_MASK,
-				divider << ISPTCTRL_CTRL_DIVB_SHIFT);
-		break;
+	switch (xclk->id)
+	{
+		case ISP_XCLK_A:
+			isp_reg_clr_set(xclk->isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL,
+							ISPTCTRL_CTRL_DIVA_MASK,
+							divider << ISPTCTRL_CTRL_DIVA_SHIFT);
+			break;
+
+		case ISP_XCLK_B:
+			isp_reg_clr_set(xclk->isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL,
+							ISPTCTRL_CTRL_DIVB_MASK,
+							divider << ISPTCTRL_CTRL_DIVB_SHIFT);
+			break;
 	}
 }
 
@@ -215,7 +219,7 @@ static void isp_xclk_disable(struct clk_hw *hw)
 }
 
 static unsigned long isp_xclk_recalc_rate(struct clk_hw *hw,
-					  unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct isp_xclk *xclk = to_isp_xclk(hw);
 
@@ -226,31 +230,37 @@ static u32 isp_xclk_calc_divider(unsigned long *rate, unsigned long parent_rate)
 {
 	u32 divider;
 
-	if (*rate >= parent_rate) {
+	if (*rate >= parent_rate)
+	{
 		*rate = parent_rate;
 		return ISPTCTRL_CTRL_DIV_BYPASS;
 	}
 
 	if (*rate == 0)
+	{
 		*rate = 1;
+	}
 
 	divider = DIV_ROUND_CLOSEST(parent_rate, *rate);
+
 	if (divider >= ISPTCTRL_CTRL_DIV_BYPASS)
+	{
 		divider = ISPTCTRL_CTRL_DIV_BYPASS - 1;
+	}
 
 	*rate = parent_rate / divider;
 	return divider;
 }
 
 static long isp_xclk_round_rate(struct clk_hw *hw, unsigned long rate,
-				unsigned long *parent_rate)
+								unsigned long *parent_rate)
 {
 	isp_xclk_calc_divider(&rate, *parent_rate);
 	return rate;
 }
 
 static int isp_xclk_set_rate(struct clk_hw *hw, unsigned long rate,
-			     unsigned long parent_rate)
+							 unsigned long parent_rate)
 {
 	struct isp_xclk *xclk = to_isp_xclk(hw);
 	unsigned long flags;
@@ -261,17 +271,21 @@ static int isp_xclk_set_rate(struct clk_hw *hw, unsigned long rate,
 	spin_lock_irqsave(&xclk->lock, flags);
 
 	xclk->divider = divider;
+
 	if (xclk->enabled)
+	{
 		isp_xclk_update(xclk, divider);
+	}
 
 	spin_unlock_irqrestore(&xclk->lock, flags);
 
 	dev_dbg(xclk->isp->dev, "%s: cam_xclk%c set to %lu Hz (div %u)\n",
-		__func__, xclk->id == ISP_XCLK_A ? 'a' : 'b', rate, divider);
+			__func__, xclk->id == ISP_XCLK_A ? 'a' : 'b', rate, divider);
 	return 0;
 }
 
-static const struct clk_ops isp_xclk_ops = {
+static const struct clk_ops isp_xclk_ops =
+{
 	.prepare = isp_xclk_prepare,
 	.unprepare = isp_xclk_unprepare,
 	.enable = isp_xclk_enable,
@@ -283,7 +297,8 @@ static const struct clk_ops isp_xclk_ops = {
 
 static const char *isp_xclk_parent_name = "cam_mclk";
 
-static const struct clk_init_data isp_xclk_init_data = {
+static const struct clk_init_data isp_xclk_init_data =
+{
 	.name = "cam_xclk",
 	.ops = &isp_xclk_ops,
 	.parent_names = &isp_xclk_parent_name,
@@ -296,7 +311,9 @@ static struct clk *isp_xclk_src_get(struct of_phandle_args *clkspec, void *data)
 	struct isp_device *isp = data;
 
 	if (idx >= ARRAY_SIZE(isp->xclks))
+	{
 		return ERR_PTR(-ENOENT);
+	}
 
 	return isp->xclks[idx].clk;
 }
@@ -308,9 +325,12 @@ static int isp_xclk_init(struct isp_device *isp)
 	unsigned int i;
 
 	for (i = 0; i < ARRAY_SIZE(isp->xclks); ++i)
+	{
 		isp->xclks[i].clk = ERR_PTR(-EINVAL);
+	}
 
-	for (i = 0; i < ARRAY_SIZE(isp->xclks); ++i) {
+	for (i = 0; i < ARRAY_SIZE(isp->xclks); ++i)
+	{
 		struct isp_xclk *xclk = &isp->xclks[i];
 
 		xclk->isp = isp;
@@ -331,12 +351,17 @@ static int isp_xclk_init(struct isp_device *isp)
 		 * reference on this module through clk_get().
 		 */
 		xclk->clk = clk_register(NULL, &xclk->hw);
+
 		if (IS_ERR(xclk->clk))
+		{
 			return PTR_ERR(xclk->clk);
+		}
 	}
 
 	if (np)
+	{
 		of_clk_add_provider(np, isp_xclk_src_get, isp);
+	}
 
 	return 0;
 }
@@ -347,13 +372,18 @@ static void isp_xclk_cleanup(struct isp_device *isp)
 	unsigned int i;
 
 	if (np)
+	{
 		of_clk_del_provider(np);
+	}
 
-	for (i = 0; i < ARRAY_SIZE(isp->xclks); ++i) {
+	for (i = 0; i < ARRAY_SIZE(isp->xclks); ++i)
+	{
 		struct isp_xclk *xclk = &isp->xclks[i];
 
 		if (!IS_ERR(xclk->clk))
+		{
 			clk_unregister(xclk->clk);
+		}
 	}
 }
 
@@ -368,17 +398,17 @@ static void isp_xclk_cleanup(struct isp_device *isp)
 static void isp_enable_interrupts(struct isp_device *isp)
 {
 	static const u32 irq = IRQ0ENABLE_CSIA_IRQ
-			     | IRQ0ENABLE_CSIB_IRQ
-			     | IRQ0ENABLE_CCDC_LSC_PREF_ERR_IRQ
-			     | IRQ0ENABLE_CCDC_LSC_DONE_IRQ
-			     | IRQ0ENABLE_CCDC_VD0_IRQ
-			     | IRQ0ENABLE_CCDC_VD1_IRQ
-			     | IRQ0ENABLE_HS_VS_IRQ
-			     | IRQ0ENABLE_HIST_DONE_IRQ
-			     | IRQ0ENABLE_H3A_AWB_DONE_IRQ
-			     | IRQ0ENABLE_H3A_AF_DONE_IRQ
-			     | IRQ0ENABLE_PRV_DONE_IRQ
-			     | IRQ0ENABLE_RSZ_DONE_IRQ;
+						   | IRQ0ENABLE_CSIB_IRQ
+						   | IRQ0ENABLE_CCDC_LSC_PREF_ERR_IRQ
+						   | IRQ0ENABLE_CCDC_LSC_DONE_IRQ
+						   | IRQ0ENABLE_CCDC_VD0_IRQ
+						   | IRQ0ENABLE_CCDC_VD1_IRQ
+						   | IRQ0ENABLE_HS_VS_IRQ
+						   | IRQ0ENABLE_HIST_DONE_IRQ
+						   | IRQ0ENABLE_H3A_AWB_DONE_IRQ
+						   | IRQ0ENABLE_H3A_AF_DONE_IRQ
+						   | IRQ0ENABLE_PRV_DONE_IRQ
+						   | IRQ0ENABLE_RSZ_DONE_IRQ;
 
 	isp_reg_writel(isp, irq, OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS);
 	isp_reg_writel(isp, irq, OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE);
@@ -408,17 +438,17 @@ static void isp_disable_interrupts(struct isp_device *isp)
 static void isp_core_init(struct isp_device *isp, int idle)
 {
 	isp_reg_writel(isp,
-		       ((idle ? ISP_SYSCONFIG_MIDLEMODE_SMARTSTANDBY :
-				ISP_SYSCONFIG_MIDLEMODE_FORCESTANDBY) <<
-			ISP_SYSCONFIG_MIDLEMODE_SHIFT) |
-			((isp->revision == ISP_REVISION_15_0) ?
-			  ISP_SYSCONFIG_AUTOIDLE : 0),
-		       OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG);
+				   ((idle ? ISP_SYSCONFIG_MIDLEMODE_SMARTSTANDBY :
+					 ISP_SYSCONFIG_MIDLEMODE_FORCESTANDBY) <<
+					ISP_SYSCONFIG_MIDLEMODE_SHIFT) |
+				   ((isp->revision == ISP_REVISION_15_0) ?
+					ISP_SYSCONFIG_AUTOIDLE : 0),
+				   OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG);
 
 	isp_reg_writel(isp,
-		       (isp->autoidle ? ISPCTRL_SBL_AUTOIDLE : 0) |
-		       ISPCTRL_SYNC_DETECT_VSRISE,
-		       OMAP3_ISP_IOMEM_MAIN, ISP_CTRL);
+				   (isp->autoidle ? ISPCTRL_SBL_AUTOIDLE : 0) |
+				   ISPCTRL_SYNC_DETECT_VSRISE,
+				   OMAP3_ISP_IOMEM_MAIN, ISP_CTRL);
 }
 
 /*
@@ -433,9 +463,9 @@ static void isp_core_init(struct isp_device *isp, int idle)
  * and the ISP platform data.
  */
 void omap3isp_configure_bridge(struct isp_device *isp,
-			       enum ccdc_input_entity input,
-			       const struct isp_parallel_cfg *parcfg,
-			       unsigned int shift, unsigned int bridge)
+							   enum ccdc_input_entity input,
+							   const struct isp_parallel_cfg *parcfg,
+							   unsigned int shift, unsigned int bridge)
 {
 	u32 ispctrl_val;
 
@@ -446,30 +476,31 @@ void omap3isp_configure_bridge(struct isp_device *isp,
 	ispctrl_val &= ~ISPCTRL_PAR_BRIDGE_MASK;
 	ispctrl_val |= bridge;
 
-	switch (input) {
-	case CCDC_INPUT_PARALLEL:
-		ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_PARALLEL;
-		ispctrl_val |= parcfg->clk_pol << ISPCTRL_PAR_CLK_POL_SHIFT;
-		shift += parcfg->data_lane_shift;
-		break;
+	switch (input)
+	{
+		case CCDC_INPUT_PARALLEL:
+			ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_PARALLEL;
+			ispctrl_val |= parcfg->clk_pol << ISPCTRL_PAR_CLK_POL_SHIFT;
+			shift += parcfg->data_lane_shift;
+			break;
 
-	case CCDC_INPUT_CSI2A:
-		ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_CSIA;
-		break;
+		case CCDC_INPUT_CSI2A:
+			ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_CSIA;
+			break;
 
-	case CCDC_INPUT_CCP2B:
-		ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_CSIB;
-		break;
+		case CCDC_INPUT_CCP2B:
+			ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_CSIB;
+			break;
 
-	case CCDC_INPUT_CSI2C:
-		ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_CSIC;
-		break;
+		case CCDC_INPUT_CSI2C:
+			ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_CSIC;
+			break;
 
-	default:
-		return;
+		default:
+			return;
 	}
 
-	ispctrl_val |= ((shift/2) << ISPCTRL_SHIFT_SHIFT) & ISPCTRL_SHIFT_MASK;
+	ispctrl_val |= ((shift / 2) << ISPCTRL_SHIFT_SHIFT) & ISPCTRL_SHIFT_MASK;
 
 	isp_reg_writel(isp, ispctrl_val, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL);
 }
@@ -477,17 +508,19 @@ void omap3isp_configure_bridge(struct isp_device *isp,
 void omap3isp_hist_dma_done(struct isp_device *isp)
 {
 	if (omap3isp_ccdc_busy(&isp->isp_ccdc) ||
-	    omap3isp_stat_pcr_busy(&isp->isp_hist)) {
+		omap3isp_stat_pcr_busy(&isp->isp_hist))
+	{
 		/* Histogram cannot be enabled in this frame anymore */
 		atomic_set(&isp->isp_hist.buf_err, 1);
 		dev_dbg(isp->dev, "hist: Out of synchronization with "
-				  "CCDC. Ignoring next buffer.\n");
+				"CCDC. Ignoring next buffer.\n");
 	}
 }
 
 static inline void isp_isr_dbg(struct isp_device *isp, u32 irqstatus)
 {
-	static const char *name[] = {
+	static const char *name[] =
+	{
 		"CSIA_IRQ",
 		"res1",
 		"res2",
@@ -525,10 +558,14 @@ static inline void isp_isr_dbg(struct isp_device *isp, u32 irqstatus)
 
 	dev_dbg(isp->dev, "ISP IRQ: ");
 
-	for (i = 0; i < ARRAY_SIZE(name); i++) {
+	for (i = 0; i < ARRAY_SIZE(name); i++)
+	{
 		if ((1 << i) & irqstatus)
+		{
 			printk(KERN_CONT "%s ", name[i]);
+		}
 	}
+
 	printk(KERN_CONT "\n");
 }
 
@@ -547,46 +584,72 @@ static void isp_isr_sbl(struct isp_device *isp)
 	sbl_pcr &= ~ISPSBL_PCR_CCDCPRV_2_RSZ_OVF;
 
 	if (sbl_pcr)
+	{
 		dev_dbg(dev, "SBL overflow (PCR = 0x%08x)\n", sbl_pcr);
+	}
 
-	if (sbl_pcr & ISPSBL_PCR_CSIB_WBL_OVF) {
+	if (sbl_pcr & ISPSBL_PCR_CSIB_WBL_OVF)
+	{
 		pipe = to_isp_pipeline(&isp->isp_ccp2.subdev.entity);
+
 		if (pipe != NULL)
+		{
 			pipe->error = true;
+		}
 	}
 
-	if (sbl_pcr & ISPSBL_PCR_CSIA_WBL_OVF) {
+	if (sbl_pcr & ISPSBL_PCR_CSIA_WBL_OVF)
+	{
 		pipe = to_isp_pipeline(&isp->isp_csi2a.subdev.entity);
+
 		if (pipe != NULL)
+		{
 			pipe->error = true;
+		}
 	}
 
-	if (sbl_pcr & ISPSBL_PCR_CCDC_WBL_OVF) {
+	if (sbl_pcr & ISPSBL_PCR_CCDC_WBL_OVF)
+	{
 		pipe = to_isp_pipeline(&isp->isp_ccdc.subdev.entity);
+
 		if (pipe != NULL)
+		{
 			pipe->error = true;
+		}
 	}
 
-	if (sbl_pcr & ISPSBL_PCR_PRV_WBL_OVF) {
+	if (sbl_pcr & ISPSBL_PCR_PRV_WBL_OVF)
+	{
 		pipe = to_isp_pipeline(&isp->isp_prev.subdev.entity);
+
 		if (pipe != NULL)
+		{
 			pipe->error = true;
+		}
 	}
 
 	if (sbl_pcr & (ISPSBL_PCR_RSZ1_WBL_OVF
-		       | ISPSBL_PCR_RSZ2_WBL_OVF
-		       | ISPSBL_PCR_RSZ3_WBL_OVF
-		       | ISPSBL_PCR_RSZ4_WBL_OVF)) {
+				   | ISPSBL_PCR_RSZ2_WBL_OVF
+				   | ISPSBL_PCR_RSZ3_WBL_OVF
+				   | ISPSBL_PCR_RSZ4_WBL_OVF))
+	{
 		pipe = to_isp_pipeline(&isp->isp_res.subdev.entity);
+
 		if (pipe != NULL)
+		{
 			pipe->error = true;
+		}
 	}
 
 	if (sbl_pcr & ISPSBL_PCR_H3A_AF_WBL_OVF)
+	{
 		omap3isp_stat_sbl_overflow(&isp->isp_af);
+	}
 
 	if (sbl_pcr & ISPSBL_PCR_H3A_AEAWB_WBL_OVF)
+	{
 		omap3isp_stat_sbl_overflow(&isp->isp_aewb);
+	}
 }
 
 /*
@@ -599,10 +662,10 @@ static void isp_isr_sbl(struct isp_device *isp)
 static irqreturn_t isp_isr(int irq, void *_isp)
 {
 	static const u32 ccdc_events = IRQ0STATUS_CCDC_LSC_PREF_ERR_IRQ |
-				       IRQ0STATUS_CCDC_LSC_DONE_IRQ |
-				       IRQ0STATUS_CCDC_VD0_IRQ |
-				       IRQ0STATUS_CCDC_VD1_IRQ |
-				       IRQ0STATUS_HS_VS_IRQ;
+								   IRQ0STATUS_CCDC_LSC_DONE_IRQ |
+								   IRQ0STATUS_CCDC_VD0_IRQ |
+								   IRQ0STATUS_CCDC_VD1_IRQ |
+								   IRQ0STATUS_HS_VS_IRQ;
 	struct isp_device *isp = _isp;
 	u32 irqstatus;
 
@@ -612,41 +675,66 @@ static irqreturn_t isp_isr(int irq, void *_isp)
 	isp_isr_sbl(isp);
 
 	if (irqstatus & IRQ0STATUS_CSIA_IRQ)
+	{
 		omap3isp_csi2_isr(&isp->isp_csi2a);
+	}
 
 	if (irqstatus & IRQ0STATUS_CSIB_IRQ)
+	{
 		omap3isp_ccp2_isr(&isp->isp_ccp2);
+	}
 
-	if (irqstatus & IRQ0STATUS_CCDC_VD0_IRQ) {
+	if (irqstatus & IRQ0STATUS_CCDC_VD0_IRQ)
+	{
 		if (isp->isp_ccdc.output & CCDC_OUTPUT_PREVIEW)
+		{
 			omap3isp_preview_isr_frame_sync(&isp->isp_prev);
+		}
+
 		if (isp->isp_ccdc.output & CCDC_OUTPUT_RESIZER)
+		{
 			omap3isp_resizer_isr_frame_sync(&isp->isp_res);
+		}
+
 		omap3isp_stat_isr_frame_sync(&isp->isp_aewb);
 		omap3isp_stat_isr_frame_sync(&isp->isp_af);
 		omap3isp_stat_isr_frame_sync(&isp->isp_hist);
 	}
 
 	if (irqstatus & ccdc_events)
+	{
 		omap3isp_ccdc_isr(&isp->isp_ccdc, irqstatus & ccdc_events);
+	}
 
-	if (irqstatus & IRQ0STATUS_PRV_DONE_IRQ) {
+	if (irqstatus & IRQ0STATUS_PRV_DONE_IRQ)
+	{
 		if (isp->isp_prev.output & PREVIEW_OUTPUT_RESIZER)
+		{
 			omap3isp_resizer_isr_frame_sync(&isp->isp_res);
+		}
+
 		omap3isp_preview_isr(&isp->isp_prev);
 	}
 
 	if (irqstatus & IRQ0STATUS_RSZ_DONE_IRQ)
+	{
 		omap3isp_resizer_isr(&isp->isp_res);
+	}
 
 	if (irqstatus & IRQ0STATUS_H3A_AWB_DONE_IRQ)
+	{
 		omap3isp_stat_isr(&isp->isp_aewb);
+	}
 
 	if (irqstatus & IRQ0STATUS_H3A_AF_DONE_IRQ)
+	{
 		omap3isp_stat_isr(&isp->isp_af);
+	}
 
 	if (irqstatus & IRQ0STATUS_HIST_DONE_IRQ)
+	{
 		omap3isp_stat_isr(&isp->isp_hist);
+	}
 
 	omap3isp_flush(isp);
 
@@ -657,7 +745,8 @@ static irqreturn_t isp_isr(int irq, void *_isp)
 	return IRQ_HANDLED;
 }
 
-static const struct media_device_ops isp_media_ops = {
+static const struct media_device_ops isp_media_ops =
+{
 	.link_notify = v4l2_pipeline_link_notify,
 };
 
@@ -677,7 +766,7 @@ static const struct media_device_ops isp_media_ops = {
  * operation otherwise.
  */
 static int isp_pipeline_enable(struct isp_pipeline *pipe,
-			       enum isp_pipeline_stream_state mode)
+							   enum isp_pipeline_stream_state mode)
 {
 	struct isp_device *isp = pipe->output->isp;
 	struct media_entity *entity;
@@ -692,7 +781,9 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
 	 * would then likely fail to stop, making the problem worse).
 	 */
 	if (media_entity_enum_intersects(&pipe->ent_enum, &isp->crashed))
+	{
 		return -EIO;
+	}
 
 	spin_lock_irqsave(&pipe->lock, flags);
 	pipe->state &= ~(ISP_PIPELINE_IDLE_INPUT | ISP_PIPELINE_IDLE_OUTPUT);
@@ -701,29 +792,41 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
 	pipe->do_propagation = false;
 
 	entity = &pipe->output->video.entity;
-	while (1) {
+
+	while (1)
+	{
 		pad = &entity->pads[0];
+
 		if (!(pad->flags & MEDIA_PAD_FL_SINK))
+		{
 			break;
+		}
 
 		pad = media_entity_remote_pad(pad);
+
 		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+		{
 			break;
+		}
 
 		entity = pad->entity;
 		subdev = media_entity_to_v4l2_subdev(entity);
 
 		ret = v4l2_subdev_call(subdev, video, s_stream, mode);
-		if (ret < 0 && ret != -ENOIOCTLCMD)
-			return ret;
 
-		if (subdev == &isp->isp_ccdc.subdev) {
+		if (ret < 0 && ret != -ENOIOCTLCMD)
+		{
+			return ret;
+		}
+
+		if (subdev == &isp->isp_ccdc.subdev)
+		{
 			v4l2_subdev_call(&isp->isp_aewb.subdev, video,
-					s_stream, mode);
+							 s_stream, mode);
 			v4l2_subdev_call(&isp->isp_af.subdev, video,
-					s_stream, mode);
+							 s_stream, mode);
 			v4l2_subdev_call(&isp->isp_hist.subdev, video,
-					s_stream, mode);
+							 s_stream, mode);
 			pipe->do_propagation = true;
 		}
 	}
@@ -744,21 +847,24 @@ static int isp_pipeline_wait_preview(struct isp_device *isp)
 static int isp_pipeline_wait_ccdc(struct isp_device *isp)
 {
 	return omap3isp_stat_busy(&isp->isp_af)
-	    || omap3isp_stat_busy(&isp->isp_aewb)
-	    || omap3isp_stat_busy(&isp->isp_hist)
-	    || omap3isp_ccdc_busy(&isp->isp_ccdc);
+		   || omap3isp_stat_busy(&isp->isp_aewb)
+		   || omap3isp_stat_busy(&isp->isp_hist)
+		   || omap3isp_ccdc_busy(&isp->isp_ccdc);
 }
 
 #define ISP_STOP_TIMEOUT	msecs_to_jiffies(1000)
 
 static int isp_pipeline_wait(struct isp_device *isp,
-			     int(*busy)(struct isp_device *isp))
+							 int(*busy)(struct isp_device *isp))
 {
 	unsigned long timeout = jiffies + ISP_STOP_TIMEOUT;
 
-	while (!time_after(jiffies, timeout)) {
+	while (!time_after(jiffies, timeout))
+	{
 		if (!busy(isp))
+		{
 			return 0;
+		}
 	}
 
 	return 1;
@@ -790,35 +896,50 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
 	 * never stop since they may not get a full frame from CCDC.
 	 */
 	entity = &pipe->output->video.entity;
-	while (1) {
+
+	while (1)
+	{
 		pad = &entity->pads[0];
+
 		if (!(pad->flags & MEDIA_PAD_FL_SINK))
+		{
 			break;
+		}
 
 		pad = media_entity_remote_pad(pad);
+
 		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+		{
 			break;
+		}
 
 		entity = pad->entity;
 		subdev = media_entity_to_v4l2_subdev(entity);
 
-		if (subdev == &isp->isp_ccdc.subdev) {
+		if (subdev == &isp->isp_ccdc.subdev)
+		{
 			v4l2_subdev_call(&isp->isp_aewb.subdev,
-					 video, s_stream, 0);
+							 video, s_stream, 0);
 			v4l2_subdev_call(&isp->isp_af.subdev,
-					 video, s_stream, 0);
+							 video, s_stream, 0);
 			v4l2_subdev_call(&isp->isp_hist.subdev,
-					 video, s_stream, 0);
+							 video, s_stream, 0);
 		}
 
 		ret = v4l2_subdev_call(subdev, video, s_stream, 0);
 
 		if (subdev == &isp->isp_res.subdev)
+		{
 			ret |= isp_pipeline_wait(isp, isp_pipeline_wait_resizer);
+		}
 		else if (subdev == &isp->isp_prev.subdev)
+		{
 			ret |= isp_pipeline_wait(isp, isp_pipeline_wait_preview);
+		}
 		else if (subdev == &isp->isp_ccdc.subdev)
+		{
 			ret |= isp_pipeline_wait(isp, isp_pipeline_wait_ccdc);
+		}
 
 		/* Handle stop failures. An entity that fails to stop can
 		 * usually just be restarted. Flag the stop failure nonetheless
@@ -832,12 +953,15 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
 		 * accessed. Mark it as crashed to prevent pipelines including
 		 * it from being started.
 		 */
-		if (ret) {
+		if (ret)
+		{
 			dev_info(isp->dev, "Unable to stop %s\n", subdev->name);
 			isp->stop_failure = true;
+
 			if (subdev == &isp->isp_prev.subdev)
 				media_entity_enum_set(&isp->crashed,
-						      &subdev->entity);
+									  &subdev->entity);
+
 			failure = -ETIMEDOUT;
 		}
 	}
@@ -858,17 +982,23 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
  * fails, except when stopping the pipeline.
  */
 int omap3isp_pipeline_set_stream(struct isp_pipeline *pipe,
-				 enum isp_pipeline_stream_state state)
+								 enum isp_pipeline_stream_state state)
 {
 	int ret;
 
 	if (state == ISP_PIPELINE_STREAM_STOPPED)
+	{
 		ret = isp_pipeline_disable(pipe);
+	}
 	else
+	{
 		ret = isp_pipeline_enable(pipe, state);
+	}
 
 	if (ret == 0 || state == ISP_PIPELINE_STREAM_STOPPED)
+	{
 		pipe->stream_state = state;
+	}
 
 	return ret;
 }
@@ -885,9 +1015,14 @@ int omap3isp_pipeline_set_stream(struct isp_pipeline *pipe,
 void omap3isp_pipeline_cancel_stream(struct isp_pipeline *pipe)
 {
 	if (pipe->input)
+	{
 		omap3isp_video_cancel_stream(pipe->input);
+	}
+
 	if (pipe->output)
+	{
 		omap3isp_video_cancel_stream(pipe->output);
+	}
 }
 
 /*
@@ -901,8 +1036,12 @@ static void isp_pipeline_resume(struct isp_pipeline *pipe)
 	int singleshot = pipe->stream_state == ISP_PIPELINE_STREAM_SINGLESHOT;
 
 	omap3isp_video_resume(pipe->output, !singleshot);
+
 	if (singleshot)
+	{
 		omap3isp_video_resume(pipe->input, 0);
+	}
+
 	isp_pipeline_enable(pipe, pipe->stream_state);
 }
 
@@ -932,10 +1071,17 @@ static int isp_pipeline_is_last(struct media_entity *me)
 	struct media_pad *pad;
 
 	if (!me->pipe)
+	{
 		return 0;
+	}
+
 	pipe = to_isp_pipeline(me);
+
 	if (pipe->stream_state == ISP_PIPELINE_STREAM_STOPPED)
+	{
 		return 0;
+	}
+
 	pad = media_entity_remote_pad(&pipe->output->pad);
 	return pad->entity == me;
 }
@@ -951,7 +1097,9 @@ static int isp_pipeline_is_last(struct media_entity *me)
 static void isp_suspend_module_pipeline(struct media_entity *me)
 {
 	if (isp_pipeline_is_last(me))
+	{
 		isp_pipeline_suspend(to_isp_pipeline(me));
+	}
 }
 
 /*
@@ -965,7 +1113,9 @@ static void isp_suspend_module_pipeline(struct media_entity *me)
 static void isp_resume_module_pipeline(struct media_entity *me)
 {
 	if (isp_pipeline_is_last(me))
+	{
 		isp_pipeline_resume(to_isp_pipeline(me));
+	}
 }
 
 /*
@@ -989,16 +1139,20 @@ static int isp_suspend_modules(struct isp_device *isp)
 	isp_suspend_module_pipeline(&isp->isp_ccp2.subdev.entity);
 
 	timeout = jiffies + ISP_STOP_TIMEOUT;
+
 	while (omap3isp_stat_busy(&isp->isp_af)
-	    || omap3isp_stat_busy(&isp->isp_aewb)
-	    || omap3isp_stat_busy(&isp->isp_hist)
-	    || omap3isp_preview_busy(&isp->isp_prev)
-	    || omap3isp_resizer_busy(&isp->isp_res)
-	    || omap3isp_ccdc_busy(&isp->isp_ccdc)) {
-		if (time_after(jiffies, timeout)) {
+		   || omap3isp_stat_busy(&isp->isp_aewb)
+		   || omap3isp_stat_busy(&isp->isp_hist)
+		   || omap3isp_preview_busy(&isp->isp_prev)
+		   || omap3isp_resizer_busy(&isp->isp_res)
+		   || omap3isp_ccdc_busy(&isp->isp_ccdc))
+	{
+		if (time_after(jiffies, timeout))
+		{
 			dev_info(isp->dev, "can't stop modules.\n");
 			return 1;
 		}
+
 		msleep(1);
 	}
 
@@ -1030,15 +1184,19 @@ static int isp_reset(struct isp_device *isp)
 	unsigned long timeout = 0;
 
 	isp_reg_writel(isp,
-		       isp_reg_readl(isp, OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG)
-		       | ISP_SYSCONFIG_SOFTRESET,
-		       OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG);
+				   isp_reg_readl(isp, OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG)
+				   | ISP_SYSCONFIG_SOFTRESET,
+				   OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG);
+
 	while (!(isp_reg_readl(isp, OMAP3_ISP_IOMEM_MAIN,
-			       ISP_SYSSTATUS) & 0x1)) {
-		if (timeout++ > 10000) {
+						   ISP_SYSSTATUS) & 0x1))
+	{
+		if (timeout++ > 10000)
+		{
 			dev_alert(isp->dev, "cannot reset ISP\n");
 			return -ETIMEDOUT;
 		}
+
 		udelay(1);
 	}
 
@@ -1059,7 +1217,9 @@ isp_save_context(struct isp_device *isp, struct isp_reg *reg_list)
 	struct isp_reg *next = reg_list;
 
 	for (; next->reg != ISP_TOK_TERM; next++)
+	{
 		next->val = isp_reg_readl(isp, next->mmio_range, next->reg);
+	}
 }
 
 /*
@@ -1074,7 +1234,9 @@ isp_restore_context(struct isp_device *isp, struct isp_reg *reg_list)
 	struct isp_reg *next = reg_list;
 
 	for (; next->reg != ISP_TOK_TERM; next++)
+	{
 		isp_reg_writel(isp, next->val, next->mmio_range, next->reg);
+	}
 }
 
 /*
@@ -1109,14 +1271,14 @@ static void isp_restore_ctx(struct isp_device *isp)
  * SBL resources management
  */
 #define OMAP3_ISP_SBL_READ	(OMAP3_ISP_SBL_CSI1_READ | \
-				 OMAP3_ISP_SBL_CCDC_LSC_READ | \
-				 OMAP3_ISP_SBL_PREVIEW_READ | \
-				 OMAP3_ISP_SBL_RESIZER_READ)
+							 OMAP3_ISP_SBL_CCDC_LSC_READ | \
+							 OMAP3_ISP_SBL_PREVIEW_READ | \
+							 OMAP3_ISP_SBL_RESIZER_READ)
 #define OMAP3_ISP_SBL_WRITE	(OMAP3_ISP_SBL_CSI1_WRITE | \
-				 OMAP3_ISP_SBL_CSI2A_WRITE | \
-				 OMAP3_ISP_SBL_CSI2C_WRITE | \
-				 OMAP3_ISP_SBL_CCDC_WRITE | \
-				 OMAP3_ISP_SBL_PREVIEW_WRITE)
+							 OMAP3_ISP_SBL_CSI2A_WRITE | \
+							 OMAP3_ISP_SBL_CSI2C_WRITE | \
+							 OMAP3_ISP_SBL_CCDC_WRITE | \
+							 OMAP3_ISP_SBL_PREVIEW_WRITE)
 
 void omap3isp_sbl_enable(struct isp_device *isp, enum isp_sbl_resource res)
 {
@@ -1125,22 +1287,34 @@ void omap3isp_sbl_enable(struct isp_device *isp, enum isp_sbl_resource res)
 	isp->sbl_resources |= res;
 
 	if (isp->sbl_resources & OMAP3_ISP_SBL_CSI1_READ)
+	{
 		sbl |= ISPCTRL_SBL_SHARED_RPORTA;
+	}
 
 	if (isp->sbl_resources & OMAP3_ISP_SBL_CCDC_LSC_READ)
+	{
 		sbl |= ISPCTRL_SBL_SHARED_RPORTB;
+	}
 
 	if (isp->sbl_resources & OMAP3_ISP_SBL_CSI2C_WRITE)
+	{
 		sbl |= ISPCTRL_SBL_SHARED_WPORTC;
+	}
 
 	if (isp->sbl_resources & OMAP3_ISP_SBL_RESIZER_WRITE)
+	{
 		sbl |= ISPCTRL_SBL_WR0_RAM_EN;
+	}
 
 	if (isp->sbl_resources & OMAP3_ISP_SBL_WRITE)
+	{
 		sbl |= ISPCTRL_SBL_WR1_RAM_EN;
+	}
 
 	if (isp->sbl_resources & OMAP3_ISP_SBL_READ)
+	{
 		sbl |= ISPCTRL_SBL_RD_RAM_EN;
+	}
 
 	isp_reg_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL, sbl);
 }
@@ -1152,22 +1326,34 @@ void omap3isp_sbl_disable(struct isp_device *isp, enum isp_sbl_resource res)
 	isp->sbl_resources &= ~res;
 
 	if (!(isp->sbl_resources & OMAP3_ISP_SBL_CSI1_READ))
+	{
 		sbl |= ISPCTRL_SBL_SHARED_RPORTA;
+	}
 
 	if (!(isp->sbl_resources & OMAP3_ISP_SBL_CCDC_LSC_READ))
+	{
 		sbl |= ISPCTRL_SBL_SHARED_RPORTB;
+	}
 
 	if (!(isp->sbl_resources & OMAP3_ISP_SBL_CSI2C_WRITE))
+	{
 		sbl |= ISPCTRL_SBL_SHARED_WPORTC;
+	}
 
 	if (!(isp->sbl_resources & OMAP3_ISP_SBL_RESIZER_WRITE))
+	{
 		sbl |= ISPCTRL_SBL_WR0_RAM_EN;
+	}
 
 	if (!(isp->sbl_resources & OMAP3_ISP_SBL_WRITE))
+	{
 		sbl |= ISPCTRL_SBL_WR1_RAM_EN;
+	}
 
 	if (!(isp->sbl_resources & OMAP3_ISP_SBL_READ))
+	{
 		sbl |= ISPCTRL_SBL_RD_RAM_EN;
+	}
 
 	isp_reg_clr(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL, sbl);
 }
@@ -1182,14 +1368,16 @@ void omap3isp_sbl_disable(struct isp_device *isp, enum isp_sbl_resource res)
  * yes, makes the caller to sleep while waiting for such event.
  */
 int omap3isp_module_sync_idle(struct media_entity *me, wait_queue_head_t *wait,
-			      atomic_t *stopping)
+							  atomic_t *stopping)
 {
 	struct isp_pipeline *pipe = to_isp_pipeline(me);
 
 	if (pipe->stream_state == ISP_PIPELINE_STREAM_STOPPED ||
-	    (pipe->stream_state == ISP_PIPELINE_STREAM_SINGLESHOT &&
-	     !isp_pipeline_ready(pipe)))
+		(pipe->stream_state == ISP_PIPELINE_STREAM_SINGLESHOT &&
+		 !isp_pipeline_ready(pipe)))
+	{
 		return 0;
+	}
 
 	/*
 	 * atomic_set() doesn't include memory barrier on ARM platform for SMP
@@ -1207,19 +1395,25 @@ int omap3isp_module_sync_idle(struct media_entity *me, wait_queue_head_t *wait,
 	 * will still be set to warn next submodule caller's interrupt the
 	 * module wants to be idle.
 	 */
-	if (isp_pipeline_is_last(me)) {
+	if (isp_pipeline_is_last(me))
+	{
 		struct isp_video *video = pipe->output;
 		unsigned long flags;
 		spin_lock_irqsave(&video->irqlock, flags);
-		if (video->dmaqueue_flags & ISP_VIDEO_DMAQUEUE_UNDERRUN) {
+
+		if (video->dmaqueue_flags & ISP_VIDEO_DMAQUEUE_UNDERRUN)
+		{
 			spin_unlock_irqrestore(&video->irqlock, flags);
 			atomic_set(stopping, 0);
 			smp_mb();
 			return 0;
 		}
+
 		spin_unlock_irqrestore(&video->irqlock, flags);
+
 		if (!wait_event_timeout(*wait, !atomic_read(stopping),
-					msecs_to_jiffies(1000))) {
+								msecs_to_jiffies(1000)))
+		{
 			atomic_set(stopping, 0);
 			smp_mb();
 			return -ETIMEDOUT;
@@ -1239,9 +1433,10 @@ int omap3isp_module_sync_idle(struct media_entity *me, wait_queue_head_t *wait,
  * Returns 1 if it was stopping or 0 otherwise.
  */
 int omap3isp_module_sync_is_stopping(wait_queue_head_t *wait,
-				     atomic_t *stopping)
+									 atomic_t *stopping)
 {
-	if (atomic_cmpxchg(stopping, 1, 0)) {
+	if (atomic_cmpxchg(stopping, 1, 0))
+	{
 		wake_up(wait);
 		return 1;
 	}
@@ -1254,10 +1449,10 @@ int omap3isp_module_sync_is_stopping(wait_queue_head_t *wait,
  */
 
 #define ISPCTRL_CLKS_MASK	(ISPCTRL_H3A_CLK_EN | \
-				 ISPCTRL_HIST_CLK_EN | \
-				 ISPCTRL_RSZ_CLK_EN | \
-				 (ISPCTRL_CCDC_CLK_EN | ISPCTRL_CCDC_RAM_EN) | \
-				 (ISPCTRL_PREV_CLK_EN | ISPCTRL_PREV_RAM_EN))
+							 ISPCTRL_HIST_CLK_EN | \
+							 ISPCTRL_RSZ_CLK_EN | \
+							 (ISPCTRL_CCDC_CLK_EN | ISPCTRL_CCDC_RAM_EN) | \
+							 (ISPCTRL_PREV_CLK_EN | ISPCTRL_PREV_RAM_EN))
 
 static void __isp_subclk_update(struct isp_device *isp)
 {
@@ -1265,30 +1460,40 @@ static void __isp_subclk_update(struct isp_device *isp)
 
 	/* AEWB and AF share the same clock. */
 	if (isp->subclk_resources &
-	    (OMAP3_ISP_SUBCLK_AEWB | OMAP3_ISP_SUBCLK_AF))
+		(OMAP3_ISP_SUBCLK_AEWB | OMAP3_ISP_SUBCLK_AF))
+	{
 		clk |= ISPCTRL_H3A_CLK_EN;
+	}
 
 	if (isp->subclk_resources & OMAP3_ISP_SUBCLK_HIST)
+	{
 		clk |= ISPCTRL_HIST_CLK_EN;
+	}
 
 	if (isp->subclk_resources & OMAP3_ISP_SUBCLK_RESIZER)
+	{
 		clk |= ISPCTRL_RSZ_CLK_EN;
+	}
 
 	/* NOTE: For CCDC & Preview submodules, we need to affect internal
 	 *       RAM as well.
 	 */
 	if (isp->subclk_resources & OMAP3_ISP_SUBCLK_CCDC)
+	{
 		clk |= ISPCTRL_CCDC_CLK_EN | ISPCTRL_CCDC_RAM_EN;
+	}
 
 	if (isp->subclk_resources & OMAP3_ISP_SUBCLK_PREVIEW)
+	{
 		clk |= ISPCTRL_PREV_CLK_EN | ISPCTRL_PREV_RAM_EN;
+	}
 
 	isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL,
-			ISPCTRL_CLKS_MASK, clk);
+					ISPCTRL_CLKS_MASK, clk);
 }
 
 void omap3isp_subclk_enable(struct isp_device *isp,
-			    enum isp_subclk_resource res)
+							enum isp_subclk_resource res)
 {
 	isp->subclk_resources |= res;
 
@@ -1296,7 +1501,7 @@ void omap3isp_subclk_enable(struct isp_device *isp,
 }
 
 void omap3isp_subclk_disable(struct isp_device *isp,
-			     enum isp_subclk_resource res)
+							 enum isp_subclk_resource res)
 {
 	isp->subclk_resources &= ~res;
 
@@ -1316,30 +1521,44 @@ static int isp_enable_clocks(struct isp_device *isp)
 	unsigned long rate;
 
 	r = clk_prepare_enable(isp->clock[ISP_CLK_CAM_ICK]);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(isp->dev, "failed to enable cam_ick clock\n");
 		goto out_clk_enable_ick;
 	}
+
 	r = clk_set_rate(isp->clock[ISP_CLK_CAM_MCLK], CM_CAM_MCLK_HZ);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(isp->dev, "clk_set_rate for cam_mclk failed\n");
 		goto out_clk_enable_mclk;
 	}
+
 	r = clk_prepare_enable(isp->clock[ISP_CLK_CAM_MCLK]);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(isp->dev, "failed to enable cam_mclk clock\n");
 		goto out_clk_enable_mclk;
 	}
+
 	rate = clk_get_rate(isp->clock[ISP_CLK_CAM_MCLK]);
+
 	if (rate != CM_CAM_MCLK_HZ)
 		dev_warn(isp->dev, "unexpected cam_mclk rate:\n"
-				   " expected : %d\n"
-				   " actual   : %ld\n", CM_CAM_MCLK_HZ, rate);
+				 " expected : %d\n"
+				 " actual   : %ld\n", CM_CAM_MCLK_HZ, rate);
+
 	r = clk_prepare_enable(isp->clock[ISP_CLK_CSI2_FCK]);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(isp->dev, "failed to enable csi2_fck clock\n");
 		goto out_clk_enable_csi2_fclk;
 	}
+
 	return 0;
 
 out_clk_enable_csi2_fclk:
@@ -1361,7 +1580,8 @@ static void isp_disable_clocks(struct isp_device *isp)
 	clk_disable_unprepare(isp->clock[ISP_CLK_CSI2_FCK]);
 }
 
-static const char *isp_clocks[] = {
+static const char *isp_clocks[] =
+{
 	"cam_ick",
 	"cam_mclk",
 	"csi2_96m_fck",
@@ -1373,9 +1593,12 @@ static int isp_get_clocks(struct isp_device *isp)
 	struct clk *clk;
 	unsigned int i;
 
-	for (i = 0; i < ARRAY_SIZE(isp_clocks); ++i) {
+	for (i = 0; i < ARRAY_SIZE(isp_clocks); ++i)
+	{
 		clk = devm_clk_get(isp->dev, isp_clocks[i]);
-		if (IS_ERR(clk)) {
+
+		if (IS_ERR(clk))
+		{
 			dev_err(isp->dev, "clk_get %s failed\n", isp_clocks[i]);
 			return PTR_ERR(clk);
 		}
@@ -1401,27 +1624,41 @@ static struct isp_device *__omap3isp_get(struct isp_device *isp, bool irq)
 	struct isp_device *__isp = isp;
 
 	if (isp == NULL)
+	{
 		return NULL;
+	}
 
 	mutex_lock(&isp->isp_mutex);
-	if (isp->ref_count > 0)
-		goto out;
 
-	if (isp_enable_clocks(isp) < 0) {
+	if (isp->ref_count > 0)
+	{
+		goto out;
+	}
+
+	if (isp_enable_clocks(isp) < 0)
+	{
 		__isp = NULL;
 		goto out;
 	}
 
 	/* We don't want to restore context before saving it! */
 	if (isp->has_context)
+	{
 		isp_restore_ctx(isp);
+	}
 
 	if (irq)
+	{
 		isp_enable_interrupts(isp);
+	}
 
 out:
+
 	if (__isp != NULL)
+	{
 		isp->ref_count++;
+	}
+
 	mutex_unlock(&isp->isp_mutex);
 
 	return __isp;
@@ -1441,24 +1678,35 @@ struct isp_device *omap3isp_get(struct isp_device *isp)
 static void __omap3isp_put(struct isp_device *isp, bool save_ctx)
 {
 	if (isp == NULL)
+	{
 		return;
+	}
 
 	mutex_lock(&isp->isp_mutex);
 	BUG_ON(isp->ref_count == 0);
-	if (--isp->ref_count == 0) {
+
+	if (--isp->ref_count == 0)
+	{
 		isp_disable_interrupts(isp);
-		if (save_ctx) {
+
+		if (save_ctx)
+		{
 			isp_save_ctx(isp);
 			isp->has_context = 1;
 		}
+
 		/* Reset the ISP if an entity has failed to stop. This is the
 		 * only way to recover from such conditions.
 		 */
 		if (!media_entity_enum_empty(&isp->crashed) ||
-		    isp->stop_failure)
+			isp->stop_failure)
+		{
 			isp_reset(isp);
+		}
+
 		isp_disable_clocks(isp);
 	}
+
 	mutex_unlock(&isp->isp_mutex);
 }
 
@@ -1477,10 +1725,10 @@ void omap3isp_put(struct isp_device *isp)
  */
 #define ISP_PRINT_REGISTER(isp, name)\
 	dev_dbg(isp->dev, "###ISP " #name "=0x%08x\n", \
-		isp_reg_readl(isp, OMAP3_ISP_IOMEM_MAIN, ISP_##name))
+			isp_reg_readl(isp, OMAP3_ISP_IOMEM_MAIN, ISP_##name))
 #define SBL_PRINT_REGISTER(isp, name)\
 	dev_dbg(isp->dev, "###SBL " #name "=0x%08x\n", \
-		isp_reg_readl(isp, OMAP3_ISP_IOMEM_SBL, ISPSBL_##name))
+			isp_reg_readl(isp, OMAP3_ISP_IOMEM_SBL, ISPSBL_##name))
 
 void omap3isp_print_status(struct isp_device *isp)
 {
@@ -1535,13 +1783,18 @@ static int isp_pm_prepare(struct device *dev)
 	WARN_ON(mutex_is_locked(&isp->isp_mutex));
 
 	if (isp->ref_count == 0)
+	{
 		return 0;
+	}
 
 	reset = isp_suspend_modules(isp);
 	isp_disable_interrupts(isp);
 	isp_save_ctx(isp);
+
 	if (reset)
+	{
 		isp_reset(isp);
+	}
 
 	return 0;
 }
@@ -1553,7 +1806,9 @@ static int isp_pm_suspend(struct device *dev)
 	WARN_ON(mutex_is_locked(&isp->isp_mutex));
 
 	if (isp->ref_count)
+	{
 		isp_disable_clocks(isp);
+	}
 
 	return 0;
 }
@@ -1563,7 +1818,9 @@ static int isp_pm_resume(struct device *dev)
 	struct isp_device *isp = dev_get_drvdata(dev);
 
 	if (isp->ref_count == 0)
+	{
 		return 0;
+	}
 
 	return isp_enable_clocks(isp);
 }
@@ -1573,7 +1830,9 @@ static void isp_pm_complete(struct device *dev)
 	struct isp_device *isp = dev_get_drvdata(dev);
 
 	if (isp->ref_count == 0)
+	{
 		return;
+	}
 
 	isp_restore_ctx(isp);
 	isp_enable_interrupts(isp);
@@ -1619,36 +1878,37 @@ static int isp_link_entity(
 	 * serial sensors are connected to the CSI2a, CCP2b or CSI2c
 	 * receiver through CSIPHY1 or CSIPHY2.
 	 */
-	switch (interface) {
-	case ISP_INTERFACE_PARALLEL:
-		input = &isp->isp_ccdc.subdev.entity;
-		pad = CCDC_PAD_SINK;
-		flags = 0;
-		break;
+	switch (interface)
+	{
+		case ISP_INTERFACE_PARALLEL:
+			input = &isp->isp_ccdc.subdev.entity;
+			pad = CCDC_PAD_SINK;
+			flags = 0;
+			break;
 
-	case ISP_INTERFACE_CSI2A_PHY2:
-		input = &isp->isp_csi2a.subdev.entity;
-		pad = CSI2_PAD_SINK;
-		flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
-		break;
+		case ISP_INTERFACE_CSI2A_PHY2:
+			input = &isp->isp_csi2a.subdev.entity;
+			pad = CSI2_PAD_SINK;
+			flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
+			break;
 
-	case ISP_INTERFACE_CCP2B_PHY1:
-	case ISP_INTERFACE_CCP2B_PHY2:
-		input = &isp->isp_ccp2.subdev.entity;
-		pad = CCP2_PAD_SINK;
-		flags = 0;
-		break;
+		case ISP_INTERFACE_CCP2B_PHY1:
+		case ISP_INTERFACE_CCP2B_PHY2:
+			input = &isp->isp_ccp2.subdev.entity;
+			pad = CCP2_PAD_SINK;
+			flags = 0;
+			break;
 
-	case ISP_INTERFACE_CSI2C_PHY1:
-		input = &isp->isp_csi2c.subdev.entity;
-		pad = CSI2_PAD_SINK;
-		flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
-		break;
+		case ISP_INTERFACE_CSI2C_PHY1:
+			input = &isp->isp_csi2c.subdev.entity;
+			pad = CSI2_PAD_SINK;
+			flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
+			break;
 
-	default:
-		dev_err(isp->dev, "%s: invalid interface type %u\n", __func__,
-			interface);
-		return -EINVAL;
+		default:
+			dev_err(isp->dev, "%s: invalid interface type %u\n", __func__,
+					interface);
+			return -EINVAL;
 	}
 
 	/*
@@ -1657,19 +1917,25 @@ static int isp_link_entity(
 	 * in such a case. Check this by ensuring the num_pads is
 	 * non-zero.
 	 */
-	if (!input->num_pads) {
+	if (!input->num_pads)
+	{
 		dev_err(isp->dev, "%s: invalid input %u\n", entity->name,
-			interface);
+				interface);
 		return -EINVAL;
 	}
 
-	for (i = 0; i < entity->num_pads; i++) {
+	for (i = 0; i < entity->num_pads; i++)
+	{
 		if (entity->pads[i].flags & MEDIA_PAD_FL_SOURCE)
+		{
 			break;
+		}
 	}
-	if (i == entity->num_pads) {
+
+	if (i == entity->num_pads)
+	{
 		dev_err(isp->dev, "%s: no source pad in external entity\n",
-			__func__);
+				__func__);
 		return -EINVAL;
 	}
 
@@ -1682,56 +1948,85 @@ static int isp_register_entities(struct isp_device *isp)
 
 	isp->media_dev.dev = isp->dev;
 	strlcpy(isp->media_dev.model, "TI OMAP3 ISP",
-		sizeof(isp->media_dev.model));
+			sizeof(isp->media_dev.model));
 	isp->media_dev.hw_revision = isp->revision;
 	isp->media_dev.ops = &isp_media_ops;
 	media_device_init(&isp->media_dev);
 
 	isp->v4l2_dev.mdev = &isp->media_dev;
 	ret = v4l2_device_register(isp->dev, &isp->v4l2_dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(isp->dev, "%s: V4L2 device registration failed (%d)\n",
-			__func__, ret);
+				__func__, ret);
 		goto done;
 	}
 
 	/* Register internal entities */
 	ret = omap3isp_ccp2_register_entities(&isp->isp_ccp2, &isp->v4l2_dev);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	ret = omap3isp_csi2_register_entities(&isp->isp_csi2a, &isp->v4l2_dev);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	ret = omap3isp_ccdc_register_entities(&isp->isp_ccdc, &isp->v4l2_dev);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	ret = omap3isp_preview_register_entities(&isp->isp_prev,
-						 &isp->v4l2_dev);
+			&isp->v4l2_dev);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	ret = omap3isp_resizer_register_entities(&isp->isp_res, &isp->v4l2_dev);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	ret = omap3isp_stat_register_entities(&isp->isp_aewb, &isp->v4l2_dev);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	ret = omap3isp_stat_register_entities(&isp->isp_af, &isp->v4l2_dev);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	ret = omap3isp_stat_register_entities(&isp->isp_hist, &isp->v4l2_dev);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 done:
+
 	if (ret < 0)
+	{
 		isp_unregister_entities(isp);
+	}
 
 	return ret;
 }
@@ -1751,99 +2046,143 @@ static int isp_create_links(struct isp_device *isp)
 
 	/* Create links between entities and video nodes. */
 	ret = media_create_pad_link(
-			&isp->isp_csi2a.subdev.entity, CSI2_PAD_SOURCE,
-			&isp->isp_csi2a.video_out.video.entity, 0, 0);
+			  &isp->isp_csi2a.subdev.entity, CSI2_PAD_SOURCE,
+			  &isp->isp_csi2a.video_out.video.entity, 0, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = media_create_pad_link(
-			&isp->isp_ccp2.video_in.video.entity, 0,
-			&isp->isp_ccp2.subdev.entity, CCP2_PAD_SINK, 0);
+			  &isp->isp_ccp2.video_in.video.entity, 0,
+			  &isp->isp_ccp2.subdev.entity, CCP2_PAD_SINK, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = media_create_pad_link(
-			&isp->isp_ccdc.subdev.entity, CCDC_PAD_SOURCE_OF,
-			&isp->isp_ccdc.video_out.video.entity, 0, 0);
+			  &isp->isp_ccdc.subdev.entity, CCDC_PAD_SOURCE_OF,
+			  &isp->isp_ccdc.video_out.video.entity, 0, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = media_create_pad_link(
-			&isp->isp_prev.video_in.video.entity, 0,
-			&isp->isp_prev.subdev.entity, PREV_PAD_SINK, 0);
+			  &isp->isp_prev.video_in.video.entity, 0,
+			  &isp->isp_prev.subdev.entity, PREV_PAD_SINK, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = media_create_pad_link(
-			&isp->isp_prev.subdev.entity, PREV_PAD_SOURCE,
-			&isp->isp_prev.video_out.video.entity, 0, 0);
+			  &isp->isp_prev.subdev.entity, PREV_PAD_SOURCE,
+			  &isp->isp_prev.video_out.video.entity, 0, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = media_create_pad_link(
-			&isp->isp_res.video_in.video.entity, 0,
-			&isp->isp_res.subdev.entity, RESZ_PAD_SINK, 0);
+			  &isp->isp_res.video_in.video.entity, 0,
+			  &isp->isp_res.subdev.entity, RESZ_PAD_SINK, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = media_create_pad_link(
-			&isp->isp_res.subdev.entity, RESZ_PAD_SOURCE,
-			&isp->isp_res.video_out.video.entity, 0, 0);
+			  &isp->isp_res.subdev.entity, RESZ_PAD_SOURCE,
+			  &isp->isp_res.video_out.video.entity, 0, 0);
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Create links between entities. */
 	ret = media_create_pad_link(
-			&isp->isp_csi2a.subdev.entity, CSI2_PAD_SOURCE,
-			&isp->isp_ccdc.subdev.entity, CCDC_PAD_SINK, 0);
+			  &isp->isp_csi2a.subdev.entity, CSI2_PAD_SOURCE,
+			  &isp->isp_ccdc.subdev.entity, CCDC_PAD_SINK, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = media_create_pad_link(
-			&isp->isp_ccp2.subdev.entity, CCP2_PAD_SOURCE,
-			&isp->isp_ccdc.subdev.entity, CCDC_PAD_SINK, 0);
+			  &isp->isp_ccp2.subdev.entity, CCP2_PAD_SOURCE,
+			  &isp->isp_ccdc.subdev.entity, CCDC_PAD_SINK, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = media_create_pad_link(
-			&isp->isp_ccdc.subdev.entity, CCDC_PAD_SOURCE_VP,
-			&isp->isp_prev.subdev.entity, PREV_PAD_SINK, 0);
+			  &isp->isp_ccdc.subdev.entity, CCDC_PAD_SOURCE_VP,
+			  &isp->isp_prev.subdev.entity, PREV_PAD_SINK, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = media_create_pad_link(
-			&isp->isp_ccdc.subdev.entity, CCDC_PAD_SOURCE_OF,
-			&isp->isp_res.subdev.entity, RESZ_PAD_SINK, 0);
+			  &isp->isp_ccdc.subdev.entity, CCDC_PAD_SOURCE_OF,
+			  &isp->isp_res.subdev.entity, RESZ_PAD_SINK, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = media_create_pad_link(
-			&isp->isp_prev.subdev.entity, PREV_PAD_SOURCE,
-			&isp->isp_res.subdev.entity, RESZ_PAD_SINK, 0);
+			  &isp->isp_prev.subdev.entity, PREV_PAD_SOURCE,
+			  &isp->isp_res.subdev.entity, RESZ_PAD_SINK, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = media_create_pad_link(
-			&isp->isp_ccdc.subdev.entity, CCDC_PAD_SOURCE_VP,
-			&isp->isp_aewb.subdev.entity, 0,
-			MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE);
+			  &isp->isp_ccdc.subdev.entity, CCDC_PAD_SOURCE_VP,
+			  &isp->isp_aewb.subdev.entity, 0,
+			  MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = media_create_pad_link(
-			&isp->isp_ccdc.subdev.entity, CCDC_PAD_SOURCE_VP,
-			&isp->isp_af.subdev.entity, 0,
-			MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE);
+			  &isp->isp_ccdc.subdev.entity, CCDC_PAD_SOURCE_VP,
+			  &isp->isp_af.subdev.entity, 0,
+			  MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = media_create_pad_link(
-			&isp->isp_ccdc.subdev.entity, CCDC_PAD_SOURCE_VP,
-			&isp->isp_hist.subdev.entity, 0,
-			MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE);
+			  &isp->isp_ccdc.subdev.entity, CCDC_PAD_SOURCE_VP,
+			  &isp->isp_hist.subdev.entity, 0,
+			  MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -1865,55 +2204,73 @@ static int isp_initialize_modules(struct isp_device *isp)
 	int ret;
 
 	ret = omap3isp_csiphy_init(isp);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(isp->dev, "CSI PHY initialization failed\n");
 		goto error_csiphy;
 	}
 
 	ret = omap3isp_csi2_init(isp);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(isp->dev, "CSI2 initialization failed\n");
 		goto error_csi2;
 	}
 
 	ret = omap3isp_ccp2_init(isp);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(isp->dev, "CCP2 initialization failed\n");
 		goto error_ccp2;
 	}
 
 	ret = omap3isp_ccdc_init(isp);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(isp->dev, "CCDC initialization failed\n");
 		goto error_ccdc;
 	}
 
 	ret = omap3isp_preview_init(isp);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(isp->dev, "Preview initialization failed\n");
 		goto error_preview;
 	}
 
 	ret = omap3isp_resizer_init(isp);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(isp->dev, "Resizer initialization failed\n");
 		goto error_resizer;
 	}
 
 	ret = omap3isp_hist_init(isp);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(isp->dev, "Histogram initialization failed\n");
 		goto error_hist;
 	}
 
 	ret = omap3isp_h3a_aewb_init(isp);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(isp->dev, "H3A AEWB initialization failed\n");
 		goto error_h3a_aewb;
 	}
 
 	ret = omap3isp_h3a_af_init(isp);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(isp->dev, "H3A AF initialization failed\n");
 		goto error_h3a_af;
 	}
@@ -1954,7 +2311,9 @@ static int isp_attach_iommu(struct isp_device *isp)
 
 	/* Create a device group and add the device to it. */
 	group = iommu_group_alloc();
-	if (IS_ERR(group)) {
+
+	if (IS_ERR(group))
+	{
 		dev_err(isp->dev, "failed to allocate IOMMU group\n");
 		return PTR_ERR(group);
 	}
@@ -1962,7 +2321,8 @@ static int isp_attach_iommu(struct isp_device *isp)
 	ret = iommu_group_add_device(group, isp->dev);
 	iommu_group_put(group);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		dev_err(isp->dev, "failed to add device to IPMMU group\n");
 		return ret;
 	}
@@ -1972,7 +2332,9 @@ static int isp_attach_iommu(struct isp_device *isp)
 	 * VAs. This will allocate a corresponding IOMMU domain.
 	 */
 	mapping = arm_iommu_create_mapping(&platform_bus_type, SZ_1G, SZ_2G);
-	if (IS_ERR(mapping)) {
+
+	if (IS_ERR(mapping))
+	{
 		dev_err(isp->dev, "failed to create ARM IOMMU mapping\n");
 		ret = PTR_ERR(mapping);
 		goto error;
@@ -1982,7 +2344,9 @@ static int isp_attach_iommu(struct isp_device *isp)
 
 	/* Attach the ARM VA mapping to the device. */
 	ret = arm_iommu_attach_device(isp->dev, mapping);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(isp->dev, "failed to attach device to VA mapping\n");
 		goto error;
 	}
@@ -2018,14 +2382,15 @@ static int isp_remove(struct platform_device *pdev)
 	return 0;
 }
 
-enum isp_of_phy {
+enum isp_of_phy
+{
 	ISP_OF_PHY_PARALLEL = 0,
 	ISP_OF_PHY_CSIPHY1,
 	ISP_OF_PHY_CSIPHY2,
 };
 
 static int isp_of_parse_node(struct device *dev, struct device_node *node,
-			     struct isp_async_subdev *isd)
+							 struct isp_async_subdev *isd)
 {
 	struct isp_bus_cfg *buscfg = &isd->bus;
 	struct v4l2_of_endpoint vep;
@@ -2033,105 +2398,123 @@ static int isp_of_parse_node(struct device *dev, struct device_node *node,
 	int ret;
 
 	ret = v4l2_of_parse_endpoint(node, &vep);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dev_dbg(dev, "parsing endpoint %s, interface %u\n", node->full_name,
-		vep.base.port);
+			vep.base.port);
 
-	switch (vep.base.port) {
-	case ISP_OF_PHY_PARALLEL:
-		buscfg->interface = ISP_INTERFACE_PARALLEL;
-		buscfg->bus.parallel.data_lane_shift =
-			vep.bus.parallel.data_shift;
-		buscfg->bus.parallel.clk_pol =
-			!!(vep.bus.parallel.flags
-			   & V4L2_MBUS_PCLK_SAMPLE_FALLING);
-		buscfg->bus.parallel.hs_pol =
-			!!(vep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
-		buscfg->bus.parallel.vs_pol =
-			!!(vep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
-		buscfg->bus.parallel.fld_pol =
-			!!(vep.bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
-		buscfg->bus.parallel.data_pol =
-			!!(vep.bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
-		break;
+	switch (vep.base.port)
+	{
+		case ISP_OF_PHY_PARALLEL:
+			buscfg->interface = ISP_INTERFACE_PARALLEL;
+			buscfg->bus.parallel.data_lane_shift =
+				vep.bus.parallel.data_shift;
+			buscfg->bus.parallel.clk_pol =
+				!!(vep.bus.parallel.flags
+				   & V4L2_MBUS_PCLK_SAMPLE_FALLING);
+			buscfg->bus.parallel.hs_pol =
+				!!(vep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
+			buscfg->bus.parallel.vs_pol =
+				!!(vep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
+			buscfg->bus.parallel.fld_pol =
+				!!(vep.bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
+			buscfg->bus.parallel.data_pol =
+				!!(vep.bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
+			break;
 
-	case ISP_OF_PHY_CSIPHY1:
-	case ISP_OF_PHY_CSIPHY2:
-		/* FIXME: always assume CSI-2 for now. */
-		switch (vep.base.port) {
 		case ISP_OF_PHY_CSIPHY1:
-			buscfg->interface = ISP_INTERFACE_CSI2C_PHY1;
-			break;
 		case ISP_OF_PHY_CSIPHY2:
-			buscfg->interface = ISP_INTERFACE_CSI2A_PHY2;
+
+			/* FIXME: always assume CSI-2 for now. */
+			switch (vep.base.port)
+			{
+				case ISP_OF_PHY_CSIPHY1:
+					buscfg->interface = ISP_INTERFACE_CSI2C_PHY1;
+					break;
+
+				case ISP_OF_PHY_CSIPHY2:
+					buscfg->interface = ISP_INTERFACE_CSI2A_PHY2;
+					break;
+			}
+
+			buscfg->bus.csi2.lanecfg.clk.pos = vep.bus.mipi_csi2.clock_lane;
+			buscfg->bus.csi2.lanecfg.clk.pol =
+				vep.bus.mipi_csi2.lane_polarities[0];
+			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+					buscfg->bus.csi2.lanecfg.clk.pol,
+					buscfg->bus.csi2.lanecfg.clk.pos);
+
+			for (i = 0; i < ISP_CSIPHY2_NUM_DATA_LANES; i++)
+			{
+				buscfg->bus.csi2.lanecfg.data[i].pos =
+					vep.bus.mipi_csi2.data_lanes[i];
+				buscfg->bus.csi2.lanecfg.data[i].pol =
+					vep.bus.mipi_csi2.lane_polarities[i + 1];
+				dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
+						buscfg->bus.csi2.lanecfg.data[i].pol,
+						buscfg->bus.csi2.lanecfg.data[i].pos);
+			}
+
+			/*
+			 * FIXME: now we assume the CRC is always there.
+			 * Implement a way to obtain this information from the
+			 * sensor. Frame descriptors, perhaps?
+			 */
+			buscfg->bus.csi2.crc = 1;
 			break;
-		}
-		buscfg->bus.csi2.lanecfg.clk.pos = vep.bus.mipi_csi2.clock_lane;
-		buscfg->bus.csi2.lanecfg.clk.pol =
-			vep.bus.mipi_csi2.lane_polarities[0];
-		dev_dbg(dev, "clock lane polarity %u, pos %u\n",
-			buscfg->bus.csi2.lanecfg.clk.pol,
-			buscfg->bus.csi2.lanecfg.clk.pos);
 
-		for (i = 0; i < ISP_CSIPHY2_NUM_DATA_LANES; i++) {
-			buscfg->bus.csi2.lanecfg.data[i].pos =
-				vep.bus.mipi_csi2.data_lanes[i];
-			buscfg->bus.csi2.lanecfg.data[i].pol =
-				vep.bus.mipi_csi2.lane_polarities[i + 1];
-			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
-				buscfg->bus.csi2.lanecfg.data[i].pol,
-				buscfg->bus.csi2.lanecfg.data[i].pos);
-		}
-
-		/*
-		 * FIXME: now we assume the CRC is always there.
-		 * Implement a way to obtain this information from the
-		 * sensor. Frame descriptors, perhaps?
-		 */
-		buscfg->bus.csi2.crc = 1;
-		break;
-
-	default:
-		dev_warn(dev, "%s: invalid interface %u\n", node->full_name,
-			 vep.base.port);
-		break;
+		default:
+			dev_warn(dev, "%s: invalid interface %u\n", node->full_name,
+					 vep.base.port);
+			break;
 	}
 
 	return 0;
 }
 
 static int isp_of_parse_nodes(struct device *dev,
-			      struct v4l2_async_notifier *notifier)
+							  struct v4l2_async_notifier *notifier)
 {
 	struct device_node *node = NULL;
 
 	notifier->subdevs = devm_kcalloc(
-		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
+							dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
+
 	if (!notifier->subdevs)
+	{
 		return -ENOMEM;
+	}
 
 	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
-	       (node = of_graph_get_next_endpoint(dev->of_node, node))) {
+		   (node = of_graph_get_next_endpoint(dev->of_node, node)))
+	{
 		struct isp_async_subdev *isd;
 
 		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
-		if (!isd) {
+
+		if (!isd)
+		{
 			of_node_put(node);
 			return -ENOMEM;
 		}
 
 		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
 
-		if (isp_of_parse_node(dev, node, isd)) {
+		if (isp_of_parse_node(dev, node, isd))
+		{
 			of_node_put(node);
 			return -EINVAL;
 		}
 
 		isd->asd.match.of.node = of_graph_get_remote_port_parent(node);
 		of_node_put(node);
-		if (!isd->asd.match.of.node) {
+
+		if (!isd->asd.match.of.node)
+		{
 			dev_warn(dev, "bad remote port parent\n");
 			return -EINVAL;
 		}
@@ -2144,8 +2527,8 @@ static int isp_of_parse_nodes(struct device *dev,
 }
 
 static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
-				     struct v4l2_subdev *subdev,
-				     struct v4l2_async_subdev *asd)
+									 struct v4l2_subdev *subdev,
+									 struct v4l2_async_subdev *asd)
 {
 	struct isp_async_subdev *isd =
 		container_of(asd, struct isp_async_subdev, asd);
@@ -2159,29 +2542,40 @@ static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
 static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
 {
 	struct isp_device *isp = container_of(async, struct isp_device,
-					      notifier);
+										  notifier);
 	struct v4l2_device *v4l2_dev = &isp->v4l2_dev;
 	struct v4l2_subdev *sd;
 	struct isp_bus_cfg *bus;
 	int ret;
 
 	ret = media_entity_enum_init(&isp->crashed, &isp->media_dev);
-	if (ret)
-		return ret;
 
-	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	list_for_each_entry(sd, &v4l2_dev->subdevs, list)
+	{
 		/* Only try to link entities whose interface was set on bound */
-		if (sd->host_priv) {
+		if (sd->host_priv)
+		{
 			bus = (struct isp_bus_cfg *)sd->host_priv;
 			ret = isp_link_entity(isp, &sd->entity, bus->interface);
+
 			if (ret < 0)
+			{
 				return ret;
+			}
 		}
 	}
 
 	ret = v4l2_device_register_subdev_nodes(&isp->v4l2_dev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return media_device_register(&isp->media_dev);
 }
@@ -2205,29 +2599,43 @@ static int isp_probe(struct platform_device *pdev)
 	int i, m;
 
 	isp = devm_kzalloc(&pdev->dev, sizeof(*isp), GFP_KERNEL);
-	if (!isp) {
+
+	if (!isp)
+	{
 		dev_err(&pdev->dev, "could not allocate memory\n");
 		return -ENOMEM;
 	}
 
 	ret = of_property_read_u32(pdev->dev.of_node, "ti,phy-type",
-				   &isp->phy_type);
+							   &isp->phy_type);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	isp->syscon = syscon_regmap_lookup_by_phandle(pdev->dev.of_node,
-						      "syscon");
+				  "syscon");
+
 	if (IS_ERR(isp->syscon))
+	{
 		return PTR_ERR(isp->syscon);
+	}
 
 	ret = of_property_read_u32_index(pdev->dev.of_node, "syscon", 1,
-					 &isp->syscon_offset);
+									 &isp->syscon_offset);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = isp_of_parse_nodes(&pdev->dev, &isp->notifier);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	isp->autoidle = autoidle;
 
@@ -2238,8 +2646,11 @@ static int isp_probe(struct platform_device *pdev)
 	isp->ref_count = 0;
 
 	ret = dma_coerce_mask_and_coherent(isp->dev, DMA_BIT_MASK(32));
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	platform_set_drvdata(pdev, isp);
 
@@ -2257,51 +2668,71 @@ static int isp_probe(struct platform_device *pdev)
 	 * ISP revision specific portions a little later in the
 	 * function.
 	 */
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		unsigned int map_idx = i ? OMAP3_ISP_IOMEM_CSI2A_REGS1 : 0;
 
 		mem = platform_get_resource(pdev, IORESOURCE_MEM, i);
 		isp->mmio_base[map_idx] =
 			devm_ioremap_resource(isp->dev, mem);
+
 		if (IS_ERR(isp->mmio_base[map_idx]))
+		{
 			return PTR_ERR(isp->mmio_base[map_idx]);
+		}
 	}
 
 	ret = isp_get_clocks(isp);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	ret = clk_enable(isp->clock[ISP_CLK_CAM_ICK]);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	isp->revision = isp_reg_readl(isp, OMAP3_ISP_IOMEM_MAIN, ISP_REVISION);
 	dev_info(isp->dev, "Revision %d.%d found\n",
-		 (isp->revision & 0xf0) >> 4, isp->revision & 0x0f);
+			 (isp->revision & 0xf0) >> 4, isp->revision & 0x0f);
 
 	clk_disable(isp->clock[ISP_CLK_CAM_ICK]);
 
-	if (__omap3isp_get(isp, false) == NULL) {
+	if (__omap3isp_get(isp, false) == NULL)
+	{
 		ret = -ENODEV;
 		goto error;
 	}
 
 	ret = isp_reset(isp);
+
 	if (ret < 0)
+	{
 		goto error_isp;
+	}
 
 	ret = isp_xclk_init(isp);
+
 	if (ret < 0)
+	{
 		goto error_isp;
+	}
 
 	/* Memory resources */
 	for (m = 0; m < ARRAY_SIZE(isp_res_maps); m++)
 		if (isp->revision == isp_res_maps[m].isp_rev)
+		{
 			break;
+		}
 
-	if (m == ARRAY_SIZE(isp_res_maps)) {
+	if (m == ARRAY_SIZE(isp_res_maps))
+	{
 		dev_err(isp->dev, "No resource map found for ISP rev %d.%d\n",
-			(isp->revision & 0xf0) >> 4, isp->revision & 0xf);
+				(isp->revision & 0xf0) >> 4, isp->revision & 0xf);
 		ret = -ENODEV;
 		goto error_isp;
 	}
@@ -2320,22 +2751,28 @@ static int isp_probe(struct platform_device *pdev)
 
 	/* IOMMU */
 	ret = isp_attach_iommu(isp);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "unable to attach to IOMMU\n");
 		goto error_isp;
 	}
 
 	/* Interrupt */
 	ret = platform_get_irq(pdev, 0);
-	if (ret <= 0) {
+
+	if (ret <= 0)
+	{
 		dev_err(isp->dev, "No IRQ resource\n");
 		ret = -ENODEV;
 		goto error_iommu;
 	}
+
 	isp->irq_num = ret;
 
 	if (devm_request_irq(isp->dev, isp->irq_num, isp_isr, IRQF_SHARED,
-			     "OMAP3 ISP", isp)) {
+						 "OMAP3 ISP", isp))
+	{
 		dev_err(isp->dev, "Unable to request IRQ\n");
 		ret = -EINVAL;
 		goto error_iommu;
@@ -2343,23 +2780,35 @@ static int isp_probe(struct platform_device *pdev)
 
 	/* Entities */
 	ret = isp_initialize_modules(isp);
+
 	if (ret < 0)
+	{
 		goto error_iommu;
+	}
 
 	ret = isp_register_entities(isp);
+
 	if (ret < 0)
+	{
 		goto error_modules;
+	}
 
 	ret = isp_create_links(isp);
+
 	if (ret < 0)
+	{
 		goto error_register_entities;
+	}
 
 	isp->notifier.bound = isp_subdev_notifier_bound;
 	isp->notifier.complete = isp_subdev_notifier_complete;
 
 	ret = v4l2_async_notifier_register(&isp->v4l2_dev, &isp->notifier);
+
 	if (ret)
+	{
 		goto error_register_entities;
+	}
 
 	isp_core_init(isp, 1);
 	omap3isp_put(isp);
@@ -2381,26 +2830,30 @@ error:
 	return ret;
 }
 
-static const struct dev_pm_ops omap3isp_pm_ops = {
+static const struct dev_pm_ops omap3isp_pm_ops =
+{
 	.prepare = isp_pm_prepare,
 	.suspend = isp_pm_suspend,
 	.resume = isp_pm_resume,
 	.complete = isp_pm_complete,
 };
 
-static struct platform_device_id omap3isp_id_table[] = {
+static struct platform_device_id omap3isp_id_table[] =
+{
 	{ "omap3isp", 0 },
 	{ },
 };
 MODULE_DEVICE_TABLE(platform, omap3isp_id_table);
 
-static const struct of_device_id omap3isp_of_table[] = {
+static const struct of_device_id omap3isp_of_table[] =
+{
 	{ .compatible = "ti,omap3-isp" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, omap3isp_of_table);
 
-static struct platform_driver omap3isp_driver = {
+static struct platform_driver omap3isp_driver =
+{
 	.probe = isp_probe,
 	.remove = isp_remove,
 	.id_table = omap3isp_id_table,

@@ -19,12 +19,12 @@
 #define _NET_BATMAN_ADV_MAIN_H_
 
 #define BATADV_DRIVER_AUTHOR "Marek Lindner <mareklindner@neomailbox.ch>, " \
-			     "Simon Wunderlich <sw@simonwunderlich.de>"
+	"Simon Wunderlich <sw@simonwunderlich.de>"
 #define BATADV_DRIVER_DESC   "B.A.T.M.A.N. advanced"
 #define BATADV_DRIVER_DEVICE "batman-adv"
 
 #ifndef BATADV_SOURCE_VERSION
-#define BATADV_SOURCE_VERSION "2016.4"
+	#define BATADV_SOURCE_VERSION "2016.4"
 #endif
 
 /* B.A.T.M.A.N. parameters */
@@ -139,7 +139,8 @@
  */
 #define BATADV_TP_MAX_NUM 5
 
-enum batadv_mesh_state {
+enum batadv_mesh_state
+{
 	BATADV_MESH_INACTIVE,
 	BATADV_MESH_ACTIVE,
 	BATADV_MESH_DEACTIVATING,
@@ -148,14 +149,16 @@ enum batadv_mesh_state {
 #define BATADV_BCAST_QUEUE_LEN		256
 #define BATADV_BATMAN_QUEUE_LEN	256
 
-enum batadv_uev_action {
+enum batadv_uev_action
+{
 	BATADV_UEV_ADD = 0,
 	BATADV_UEV_DEL,
 	BATADV_UEV_CHANGE,
 	BATADV_UEV_LOOPDETECT,
 };
 
-enum batadv_uev_type {
+enum batadv_uev_type
+{
 	BATADV_UEV_GW = 0,
 	BATADV_UEV_BLA,
 };
@@ -176,7 +179,7 @@ enum batadv_uev_type {
 
 /* Debug Messages */
 #ifdef pr_fmt
-#undef pr_fmt
+	#undef pr_fmt
 #endif
 /* Append 'batman-adv: ' before kernel messages */
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -201,7 +204,7 @@ struct seq_file;
 struct sk_buff;
 
 #define BATADV_PRINT_VID(vid) ((vid & BATADV_VLAN_HAS_TAG) ? \
-			       (int)(vid & VLAN_VID_MASK) : -1)
+							   (int)(vid & VLAN_VID_MASK) : -1)
 
 extern struct list_head batadv_hardif_list;
 
@@ -216,12 +219,12 @@ batadv_seq_print_text_primary_if_get(struct seq_file *seq);
 int batadv_max_header_len(void);
 void batadv_skb_set_priority(struct sk_buff *skb, int offset);
 int batadv_batman_skb_recv(struct sk_buff *skb, struct net_device *dev,
-			   struct packet_type *ptype,
-			   struct net_device *orig_dev);
+						   struct packet_type *ptype,
+						   struct net_device *orig_dev);
 int
 batadv_recv_handler_register(u8 packet_type,
-			     int (*recv_handler)(struct sk_buff *,
-						 struct batadv_hard_iface *));
+							 int (*recv_handler)(struct sk_buff *,
+									 struct batadv_hard_iface *));
 void batadv_recv_handler_unregister(u8 packet_type);
 __be32 batadv_skb_crc32(struct sk_buff *skb, u8 *payload_ptr);
 
@@ -248,7 +251,7 @@ static inline bool batadv_compare_eth(const void *data1, const void *data2)
  * Return: true if current time is after timestamp + timeout
  */
 static inline bool batadv_has_timed_out(unsigned long timestamp,
-					unsigned int timeout)
+										unsigned int timeout)
 {
 	return time_is_before_jiffies(timestamp + msecs_to_jiffies(timeout));
 }
@@ -269,15 +272,15 @@ static inline bool batadv_has_timed_out(unsigned long timestamp,
  *  - after adding more than 127 to the starting value - it is a successor
  */
 #define batadv_seq_before(x, y) ({typeof(x)_d1 = (x); \
-				 typeof(y)_d2 = (y); \
-				 typeof(x)_dummy = (_d1 - _d2); \
-				 (void)(&_d1 == &_d2); \
-				 _dummy > batadv_smallest_signed_int(_dummy); })
+		typeof(y)_d2 = (y); \
+		typeof(x)_dummy = (_d1 - _d2); \
+		(void)(&_d1 == &_d2); \
+		_dummy > batadv_smallest_signed_int(_dummy); })
 #define batadv_seq_after(x, y) batadv_seq_before(y, x)
 
 /* Stop preemption on local cpu while incrementing the counter */
 static inline void batadv_add_counter(struct batadv_priv *bat_priv, size_t idx,
-				      size_t count)
+									  size_t count)
 {
 	this_cpu_add(bat_priv->bat_counters[idx], count);
 }
@@ -296,7 +299,8 @@ static inline u64 batadv_sum_counter(struct batadv_priv *bat_priv,  size_t idx)
 	u64 *counters, sum = 0;
 	int cpu;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		counters = per_cpu_ptr(bat_priv->bat_counters, cpu);
 		sum += counters[idx];
 	}

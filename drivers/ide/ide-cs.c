@@ -59,7 +59,8 @@ MODULE_LICENSE("Dual MPL/GPL");
 
 /*====================================================================*/
 
-typedef struct ide_info_t {
+typedef struct ide_info_t
+{
 	struct pcmcia_device	*p_dev;
 	struct ide_host		*host;
 	int			ndev;
@@ -72,40 +73,45 @@ static void ide_detach(struct pcmcia_device *p_dev);
 
 static int ide_probe(struct pcmcia_device *link)
 {
-    ide_info_t *info;
+	ide_info_t *info;
 
-    dev_dbg(&link->dev, "ide_attach()\n");
+	dev_dbg(&link->dev, "ide_attach()\n");
 
-    /* Create new ide device */
-    info = kzalloc(sizeof(*info), GFP_KERNEL);
-    if (!info)
-	return -ENOMEM;
+	/* Create new ide device */
+	info = kzalloc(sizeof(*info), GFP_KERNEL);
 
-    info->p_dev = link;
-    link->priv = info;
+	if (!info)
+	{
+		return -ENOMEM;
+	}
 
-    link->config_flags |= CONF_ENABLE_IRQ | CONF_AUTO_SET_IO |
-	    CONF_AUTO_SET_VPP | CONF_AUTO_CHECK_VCC;
+	info->p_dev = link;
+	link->priv = info;
 
-    return ide_config(link);
+	link->config_flags |= CONF_ENABLE_IRQ | CONF_AUTO_SET_IO |
+						  CONF_AUTO_SET_VPP | CONF_AUTO_CHECK_VCC;
+
+	return ide_config(link);
 } /* ide_attach */
 
 static void ide_detach(struct pcmcia_device *link)
 {
-    ide_info_t *info = link->priv;
+	ide_info_t *info = link->priv;
 
-    dev_dbg(&link->dev, "ide_detach(0x%p)\n", link);
+	dev_dbg(&link->dev, "ide_detach(0x%p)\n", link);
 
-    ide_release(link);
+	ide_release(link);
 
-    kfree(info);
+	kfree(info);
 } /* ide_detach */
 
-static const struct ide_port_ops idecs_port_ops = {
+static const struct ide_port_ops idecs_port_ops =
+{
 	.quirkproc		= ide_undecoded_slave,
 };
 
-static const struct ide_port_info idecs_port_info = {
+static const struct ide_port_info idecs_port_info =
+{
 	.port_ops		= &idecs_port_ops,
 	.host_flags		= IDE_HFLAG_NO_DMA,
 	.irq_flags		= IRQF_SHARED,
@@ -113,54 +119,65 @@ static const struct ide_port_info idecs_port_info = {
 };
 
 static struct ide_host *idecs_register(unsigned long io, unsigned long ctl,
-				unsigned long irq, struct pcmcia_device *handle)
+									   unsigned long irq, struct pcmcia_device *handle)
 {
-    struct ide_host *host;
-    ide_hwif_t *hwif;
-    int i, rc;
-    struct ide_hw hw, *hws[] = { &hw };
+	struct ide_host *host;
+	ide_hwif_t *hwif;
+	int i, rc;
+	struct ide_hw hw, *hws[] = { &hw };
 
-    if (!request_region(io, 8, DRV_NAME)) {
-	printk(KERN_ERR "%s: I/O resource 0x%lX-0x%lX not free.\n",
-			DRV_NAME, io, io + 7);
-	return NULL;
-    }
+	if (!request_region(io, 8, DRV_NAME))
+	{
+		printk(KERN_ERR "%s: I/O resource 0x%lX-0x%lX not free.\n",
+			   DRV_NAME, io, io + 7);
+		return NULL;
+	}
 
-    if (!request_region(ctl, 1, DRV_NAME)) {
-	printk(KERN_ERR "%s: I/O resource 0x%lX not free.\n",
-			DRV_NAME, ctl);
-	release_region(io, 8);
-	return NULL;
-    }
+	if (!request_region(ctl, 1, DRV_NAME))
+	{
+		printk(KERN_ERR "%s: I/O resource 0x%lX not free.\n",
+			   DRV_NAME, ctl);
+		release_region(io, 8);
+		return NULL;
+	}
 
-    memset(&hw, 0, sizeof(hw));
-    ide_std_init_ports(&hw, io, ctl);
-    hw.irq = irq;
-    hw.dev = &handle->dev;
+	memset(&hw, 0, sizeof(hw));
+	ide_std_init_ports(&hw, io, ctl);
+	hw.irq = irq;
+	hw.dev = &handle->dev;
 
-    rc = ide_host_add(&idecs_port_info, hws, 1, &host);
-    if (rc)
-	goto out_release;
+	rc = ide_host_add(&idecs_port_info, hws, 1, &host);
 
-    hwif = host->ports[0];
+	if (rc)
+	{
+		goto out_release;
+	}
 
-    if (hwif->present)
+	hwif = host->ports[0];
+
+	if (hwif->present)
+	{
+		return host;
+	}
+
+	/* retry registration in case device is still spinning up */
+	for (i = 0; i < 10; i++)
+	{
+		msleep(100);
+		ide_port_scan(hwif);
+
+		if (hwif->present)
+		{
+			return host;
+		}
+	}
+
 	return host;
 
-    /* retry registration in case device is still spinning up */
-    for (i = 0; i < 10; i++) {
-	msleep(100);
-	ide_port_scan(hwif);
-	if (hwif->present)
-	    return host;
-    }
-
-    return host;
-
 out_release:
-    release_region(ctl, 1);
-    release_region(io, 8);
-    return NULL;
+	release_region(ctl, 1);
+	release_region(io, 8);
+	return NULL;
 }
 
 static int pcmcia_check_one_config(struct pcmcia_device *pdev, void *priv_data)
@@ -168,19 +185,26 @@ static int pcmcia_check_one_config(struct pcmcia_device *pdev, void *priv_data)
 	int *is_kme = priv_data;
 
 	if ((pdev->resource[0]->flags & IO_DATA_PATH_WIDTH)
-	    != IO_DATA_PATH_WIDTH_8) {
+		!= IO_DATA_PATH_WIDTH_8)
+	{
 		pdev->resource[0]->flags &= ~IO_DATA_PATH_WIDTH;
 		pdev->resource[0]->flags |= IO_DATA_PATH_WIDTH_AUTO;
 	}
+
 	pdev->resource[1]->flags &= ~IO_DATA_PATH_WIDTH;
 	pdev->resource[1]->flags |= IO_DATA_PATH_WIDTH_8;
 
-	if (pdev->resource[1]->end) {
+	if (pdev->resource[1]->end)
+	{
 		pdev->resource[0]->end = 8;
 		pdev->resource[1]->end = (*is_kme) ? 2 : 1;
-	} else {
+	}
+	else
+	{
 		if (pdev->resource[0]->end < 16)
+		{
 			return -ENODEV;
+		}
 	}
 
 	return pcmcia_request_io(pdev);
@@ -188,91 +212,114 @@ static int pcmcia_check_one_config(struct pcmcia_device *pdev, void *priv_data)
 
 static int ide_config(struct pcmcia_device *link)
 {
-    ide_info_t *info = link->priv;
-    int ret = 0, is_kme = 0;
-    unsigned long io_base, ctl_base;
-    struct ide_host *host;
+	ide_info_t *info = link->priv;
+	int ret = 0, is_kme = 0;
+	unsigned long io_base, ctl_base;
+	struct ide_host *host;
 
-    dev_dbg(&link->dev, "ide_config(0x%p)\n", link);
+	dev_dbg(&link->dev, "ide_config(0x%p)\n", link);
 
-    is_kme = ((link->manf_id == MANFID_KME) &&
-	      ((link->card_id == PRODID_KME_KXLC005_A) ||
-	       (link->card_id == PRODID_KME_KXLC005_B)));
+	is_kme = ((link->manf_id == MANFID_KME) &&
+			  ((link->card_id == PRODID_KME_KXLC005_A) ||
+			   (link->card_id == PRODID_KME_KXLC005_B)));
 
-    if (pcmcia_loop_config(link, pcmcia_check_one_config, &is_kme)) {
-	    link->config_flags &= ~CONF_AUTO_CHECK_VCC;
-	    if (pcmcia_loop_config(link, pcmcia_check_one_config, &is_kme))
-		    goto failed; /* No suitable config found */
-    }
-    io_base = link->resource[0]->start;
-    if (link->resource[1]->end)
-	    ctl_base = link->resource[1]->start;
-    else
-	    ctl_base = link->resource[0]->start + 0x0e;
+	if (pcmcia_loop_config(link, pcmcia_check_one_config, &is_kme))
+	{
+		link->config_flags &= ~CONF_AUTO_CHECK_VCC;
 
-    if (!link->irq)
-	    goto failed;
+		if (pcmcia_loop_config(link, pcmcia_check_one_config, &is_kme))
+		{
+			goto failed;    /* No suitable config found */
+		}
+	}
 
-    ret = pcmcia_enable_device(link);
-    if (ret)
-	    goto failed;
+	io_base = link->resource[0]->start;
 
-    /* disable drive interrupts during IDE probe */
-    outb(0x02, ctl_base);
+	if (link->resource[1]->end)
+	{
+		ctl_base = link->resource[1]->start;
+	}
+	else
+	{
+		ctl_base = link->resource[0]->start + 0x0e;
+	}
 
-    /* special setup for KXLC005 card */
-    if (is_kme)
-	outb(0x81, ctl_base+1);
+	if (!link->irq)
+	{
+		goto failed;
+	}
 
-     host = idecs_register(io_base, ctl_base, link->irq, link);
-     if (host == NULL && resource_size(link->resource[0]) == 0x20) {
-	    outb(0x02, ctl_base + 0x10);
-	    host = idecs_register(io_base + 0x10, ctl_base + 0x10,
-				  link->irq, link);
-    }
+	ret = pcmcia_enable_device(link);
 
-    if (host == NULL)
-	goto failed;
+	if (ret)
+	{
+		goto failed;
+	}
 
-    info->ndev = 1;
-    info->host = host;
-    dev_info(&link->dev, "ide-cs: hd%c: Vpp = %d.%d\n",
-	    'a' + host->ports[0]->index * 2,
-	    link->vpp / 10, link->vpp % 10);
+	/* disable drive interrupts during IDE probe */
+	outb(0x02, ctl_base);
 
-    return 0;
+	/* special setup for KXLC005 card */
+	if (is_kme)
+	{
+		outb(0x81, ctl_base + 1);
+	}
+
+	host = idecs_register(io_base, ctl_base, link->irq, link);
+
+	if (host == NULL && resource_size(link->resource[0]) == 0x20)
+	{
+		outb(0x02, ctl_base + 0x10);
+		host = idecs_register(io_base + 0x10, ctl_base + 0x10,
+							  link->irq, link);
+	}
+
+	if (host == NULL)
+	{
+		goto failed;
+	}
+
+	info->ndev = 1;
+	info->host = host;
+	dev_info(&link->dev, "ide-cs: hd%c: Vpp = %d.%d\n",
+			 'a' + host->ports[0]->index * 2,
+			 link->vpp / 10, link->vpp % 10);
+
+	return 0;
 
 failed:
-    ide_release(link);
-    return -ENODEV;
+	ide_release(link);
+	return -ENODEV;
 } /* ide_config */
 
 static void ide_release(struct pcmcia_device *link)
 {
-    ide_info_t *info = link->priv;
-    struct ide_host *host = info->host;
+	ide_info_t *info = link->priv;
+	struct ide_host *host = info->host;
 
-    dev_dbg(&link->dev, "ide_release(0x%p)\n", link);
+	dev_dbg(&link->dev, "ide_release(0x%p)\n", link);
 
-    if (info->ndev) {
-	ide_hwif_t *hwif = host->ports[0];
-	unsigned long data_addr, ctl_addr;
+	if (info->ndev)
+	{
+		ide_hwif_t *hwif = host->ports[0];
+		unsigned long data_addr, ctl_addr;
 
-	data_addr = hwif->io_ports.data_addr;
-	ctl_addr = hwif->io_ports.ctl_addr;
+		data_addr = hwif->io_ports.data_addr;
+		ctl_addr = hwif->io_ports.ctl_addr;
 
-	ide_host_remove(host);
-	info->ndev = 0;
+		ide_host_remove(host);
+		info->ndev = 0;
 
-	release_region(ctl_addr, 1);
-	release_region(data_addr, 8);
-    }
+		release_region(ctl_addr, 1);
+		release_region(data_addr, 8);
+	}
 
-    pcmcia_disable_device(link);
+	pcmcia_disable_device(link);
 } /* ide_release */
 
 
-static const struct pcmcia_device_id ide_ids[] = {
+static const struct pcmcia_device_id ide_ids[] =
+{
 	PCMCIA_DEVICE_FUNC_ID(4),
 	PCMCIA_DEVICE_MANF_CARD(0x0000, 0x0000),	/* Corsair */
 	PCMCIA_DEVICE_MANF_CARD(0x0007, 0x0000),	/* Hitachi */
@@ -342,7 +389,8 @@ static const struct pcmcia_device_id ide_ids[] = {
 };
 MODULE_DEVICE_TABLE(pcmcia, ide_ids);
 
-static struct pcmcia_driver ide_cs_driver = {
+static struct pcmcia_driver ide_cs_driver =
+{
 	.owner		= THIS_MODULE,
 	.name		= "ide-cs",
 	.probe		= ide_probe,

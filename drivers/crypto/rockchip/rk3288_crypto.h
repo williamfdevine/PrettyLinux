@@ -176,11 +176,12 @@
 #define RK_CRYPTO_HASH_DOUT_7		0x01a8
 
 #define CRYPTO_READ(dev, offset)		  \
-		readl_relaxed(((dev)->reg + (offset)))
+	readl_relaxed(((dev)->reg + (offset)))
 #define CRYPTO_WRITE(dev, offset, val)	  \
-		writel_relaxed((val), ((dev)->reg + (offset)))
+	writel_relaxed((val), ((dev)->reg + (offset)))
 
-struct rk_crypto_info {
+struct rk_crypto_info
+{
 	struct device			*dev;
 	struct clk			*aclk;
 	struct clk			*hclk;
@@ -217,37 +218,43 @@ struct rk_crypto_info {
 	int (*enable_clk)(struct rk_crypto_info *dev);
 	void (*disable_clk)(struct rk_crypto_info *dev);
 	int (*load_data)(struct rk_crypto_info *dev,
-			 struct scatterlist *sg_src,
-			 struct scatterlist *sg_dst);
+					 struct scatterlist *sg_src,
+					 struct scatterlist *sg_dst);
 	void (*unload_data)(struct rk_crypto_info *dev);
 };
 
 /* the private variable of hash */
-struct rk_ahash_ctx {
+struct rk_ahash_ctx
+{
 	struct rk_crypto_info		*dev;
 	/* for fallback */
 	struct crypto_ahash		*fallback_tfm;
 };
 
 /* the privete variable of hash for fallback */
-struct rk_ahash_rctx {
+struct rk_ahash_rctx
+{
 	struct ahash_request		fallback_req;
 };
 
 /* the private variable of cipher */
-struct rk_cipher_ctx {
+struct rk_cipher_ctx
+{
 	struct rk_crypto_info		*dev;
 	unsigned int			keylen;
 };
 
-enum alg_type {
+enum alg_type
+{
 	ALG_TYPE_HASH,
 	ALG_TYPE_CIPHER,
 };
 
-struct rk_crypto_tmp {
+struct rk_crypto_tmp
+{
 	struct rk_crypto_info		*dev;
-	union {
+	union
+	{
 		struct crypto_alg	crypto;
 		struct ahash_alg	hash;
 	} alg;

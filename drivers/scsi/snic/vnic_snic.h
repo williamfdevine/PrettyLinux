@@ -37,7 +37,8 @@
 #define VNIC_SNIC_LUNS_PER_TARGET_MAX       1024
 
 /* Device-specific region: scsi configuration */
-struct vnic_snic_config {
+struct vnic_snic_config
+{
 	u32 flags;
 	u32 wq_enet_desc_count;
 	u32 io_throttle_count;

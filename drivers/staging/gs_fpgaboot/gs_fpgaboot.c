@@ -30,9 +30,11 @@
 #define DEVICE_NAME "device"
 #define CLASS_NAME  "fpgaboot"
 
-static u8 bits_magic[] = {
+static u8 bits_magic[] =
+{
 	0x0, 0x9, 0xf, 0xf0, 0xf, 0xf0,
-	0xf, 0xf0, 0xf, 0xf0, 0x0, 0x0, 0x1};
+	0xf, 0xf0, 0xf, 0xf0, 0x0, 0x0, 0x1
+};
 
 /* fake device for request_firmware */
 static struct platform_device	*firmware_pdev;
@@ -75,7 +77,8 @@ static int readlength_bitstream(char *bitdata, int *lendata, int *offset)
 	read_bitstream(bitdata, tbuf, offset, 1);
 
 	/* make sure it is section 'e' */
-	if (tbuf[0] != 'e') {
+	if (tbuf[0] != 'e')
+	{
 		pr_err("error: length section is not 'e', but %c\n", tbuf[0]);
 		return -1;
 	}
@@ -84,7 +87,7 @@ static int readlength_bitstream(char *bitdata, int *lendata, int *offset)
 	read_bitstream(bitdata, tbuf, offset, 4);
 
 	*lendata = tbuf[0] << 24 | tbuf[1] << 16 |
-		tbuf[2] << 8 | tbuf[3];
+			   tbuf[2] << 8 | tbuf[3];
 
 	return 0;
 }
@@ -99,10 +102,13 @@ static int readmagic_bitstream(char *bitdata, int *offset)
 
 	read_bitstream(bitdata, buf, offset, 13);
 	r = memcmp(buf, bits_magic, 13);
-	if (r) {
+
+	if (r)
+	{
 		pr_err("error: corrupted header");
 		return -1;
 	}
+
 	pr_info("bitstream file magic number Ok\n");
 
 	*offset = 13;	/* magic length */
@@ -151,14 +157,16 @@ static int gs_read_image(struct fpgaimage *fimage)
 
 	img_fmt = get_imageformat(fimage);
 
-	switch (img_fmt) {
-	case f_bit:
-		pr_info("image is bitstream format\n");
-		gs_read_bitstream(fimage);
-		break;
-	default:
-		pr_err("unsupported fpga image format\n");
-		return -1;
+	switch (img_fmt)
+	{
+		case f_bit:
+			pr_info("image is bitstream format\n");
+			gs_read_bitstream(fimage);
+			break;
+
+		default:
+			pr_err("unsupported fpga image format\n");
+			return -1;
 	}
 
 	gs_print_header(fimage);
@@ -173,7 +181,9 @@ static int gs_load_image(struct fpgaimage *fimage, char *fw_file)
 	pr_info("load fpgaimage %s\n", fw_file);
 
 	err = request_firmware(&fimage->fw_entry, fw_file, &firmware_pdev->dev);
-	if (err != 0) {
+
+	if (err != 0)
+	{
 		pr_err("firmware %s is missing, cannot continue.\n", fw_file);
 		return err;
 	}
@@ -192,11 +202,13 @@ static int gs_download_image(struct fpgaimage *fimage, enum wbus bus_bytes)
 
 #ifdef DEBUG_FPGA
 	print_hex_dump_bytes("bitfile sample: ", DUMP_PREFIX_OFFSET,
-			     bitdata, 0x100);
+						 bitdata, 0x100);
 #endif /* DEBUG_FPGA */
-	if (!xl_supported_prog_bus_width(bus_bytes)) {
+
+	if (!xl_supported_prog_bus_width(bus_bytes))
+	{
 		pr_err("unsupported program bus width %d\n",
-		       bus_bytes);
+			   bus_bytes);
 		return -1;
 	}
 
@@ -217,24 +229,30 @@ static int gs_download_image(struct fpgaimage *fimage, enum wbus bus_bytes)
 	pr_info("device init done\n");
 
 	for (i = 0; i < size; i += bus_bytes)
+	{
 		xl_shift_bytes_out(bus_bytes, bitdata + i);
+	}
 
 	pr_info("program done\n");
 
 	/* Check INIT_B */
-	if (xl_get_init_b() == 0) {
+	if (xl_get_init_b() == 0)
+	{
 		pr_err("init_b 0\n");
 		return -1;
 	}
 
-	while (xl_get_done_b() == 0) {
-		if (cnt++ > MAX_WAIT_DONE) {
+	while (xl_get_done_b() == 0)
+	{
+		if (cnt++ > MAX_WAIT_DONE)
+		{
 			pr_err("init_B %d\n", xl_get_init_b());
 			break;
 		}
 	}
 
-	if (cnt > MAX_WAIT_DONE) {
+	if (cnt > MAX_WAIT_DONE)
+	{
 		pr_err("fpga download fail\n");
 		return -1;
 	}
@@ -272,7 +290,7 @@ static int gs_set_download_method(struct fpgaimage *fimage)
 static int init_driver(void)
 {
 	firmware_pdev = platform_device_register_simple("fpgaboot", -1,
-							NULL, 0);
+					NULL, 0);
 	return PTR_ERR_OR_ZERO(firmware_pdev);
 }
 
@@ -282,35 +300,48 @@ static int gs_fpgaboot(void)
 	struct fpgaimage	*fimage;
 
 	fimage = kmalloc(sizeof(*fimage), GFP_KERNEL);
+
 	if (!fimage)
+	{
 		return -ENOMEM;
+	}
 
 	err = gs_load_image(fimage, file);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("gs_load_image error\n");
 		goto err_out1;
 	}
 
 	err = gs_read_image(fimage);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("gs_read_image error\n");
 		goto err_out2;
 	}
 
 	err = gs_set_download_method(fimage);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("gs_set_download_method error\n");
 		goto err_out2;
 	}
 
 	err = gs_download_image(fimage, bus_2byte);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("gs_download_image error\n");
 		goto err_out2;
 	}
 
 	err = gs_release_image(fimage);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("gs_release_image error\n");
 		goto err_out1;
 	}
@@ -320,8 +351,12 @@ static int gs_fpgaboot(void)
 
 err_out2:
 	err = gs_release_image(fimage);
+
 	if (err)
+	{
 		pr_err("gs_release_image error\n");
+	}
+
 err_out1:
 	kfree(fimage);
 
@@ -337,19 +372,25 @@ static int __init gs_fpgaboot_init(void)
 	pr_info("FPGA image file name: %s\n", file);
 
 	err = init_driver();
-	if (err) {
+
+	if (err)
+	{
 		pr_err("FPGA DRIVER INIT FAIL!!\n");
 		return err;
 	}
 
 	err = xl_init_io();
-	if (err) {
+
+	if (err)
+	{
 		pr_err("GPIO INIT FAIL!!\n");
 		goto errout;
 	}
 
 	err = gs_fpgaboot();
-	if (err) {
+
+	if (err)
+	{
 		pr_err("FPGA DOWNLOAD FAIL!!\n");
 		goto errout;
 	}

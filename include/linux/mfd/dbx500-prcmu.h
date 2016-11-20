@@ -19,7 +19,8 @@
 #define DBX540_PRCMU_FW_VERSION_OFFSET 0xA8
 
 /* PRCMU Wakeup defines */
-enum prcmu_wakeup_index {
+enum prcmu_wakeup_index
+{
 	PRCMU_WAKEUP_INDEX_RTC,
 	PRCMU_WAKEUP_INDEX_RTT0,
 	PRCMU_WAKEUP_INDEX_RTT1,
@@ -102,7 +103,8 @@ enum prcmu_wakeup_index {
  * @PRCMU_WDOG_CPU1: use first CPU timer only
  * @PRCMU_WDOG_CPU2: use second CPU timer conly
  */
-enum prcmu_wdog_id {
+enum prcmu_wdog_id
+{
 	PRCMU_WDOG_ALL = 0x00,
 	PRCMU_WDOG_CPU1 = 0x01,
 	PRCMU_WDOG_CPU2 = 0x02,
@@ -116,7 +118,8 @@ enum prcmu_wdog_id {
  * @APE_50_OPP: 50%
  * @APE_50_PARTLY_25_OPP: 50%, except some clocks at 25%.
  */
-enum ape_opp {
+enum ape_opp
+{
 	APE_OPP_INIT = 0x00,
 	APE_NO_CHANGE = 0x01,
 	APE_100_OPP = 0x02,
@@ -134,7 +137,8 @@ enum ape_opp {
  * @ARM_MAX_FREQ100OPP: Set max opp if available, else 100
  * @ARM_EXTCLK: The new ARM operating point is armExtClk
  */
-enum arm_opp {
+enum arm_opp
+{
 	ARM_OPP_INIT = 0x00,
 	ARM_NO_CHANGE = 0x01,
 	ARM_100_OPP = 0x02,
@@ -150,7 +154,8 @@ enum arm_opp {
  * @DDR_50_OPP: The new DDR operating point is ddr50opp
  * @DDR_25_OPP: The new DDR operating point is ddr25opp
  */
-enum ddr_opp {
+enum ddr_opp
+{
 	DDR_100_OPP = 0x00,
 	DDR_50_OPP = 0x01,
 	DDR_25_OPP = 0x02,
@@ -169,7 +174,8 @@ enum ddr_opp {
  * @DDR_PWR_STATE_OFFLOWLAT:
  * @DDR_PWR_STATE_OFFHIGHLAT:
  */
-enum ddr_pwrst {
+enum ddr_pwrst
+{
 	DDR_PWR_STATE_UNCHANGED     = 0x00,
 	DDR_PWR_STATE_ON            = 0x01,
 	DDR_PWR_STATE_OFFLOWLAT     = 0x02,
@@ -200,7 +206,8 @@ enum ddr_pwrst {
 #define PRCMU_FW_PROJECT_L8580		96
 
 #define PRCMU_FW_PROJECT_NAME_LEN	20
-struct prcmu_fw_version {
+struct prcmu_fw_version
+{
 	u32 project; /* Notice, project shifted with 8 on ux540 */
 	u8 api_version;
 	u8 func_version;
@@ -218,10 +225,10 @@ static inline void prcmu_early_init(u32 phy_base, u32 size)
 }
 
 static inline int prcmu_set_power_state(u8 state, bool keep_ulp_clk,
-		bool keep_ap_pll)
+										bool keep_ap_pll)
 {
 	return db8500_prcmu_set_power_state(state, keep_ulp_clk,
-		keep_ap_pll);
+										keep_ap_pll);
 }
 
 static inline u8 prcmu_get_power_state_result(void)
@@ -405,7 +412,7 @@ static inline int prcmu_config_a9wdog(u8 num, bool sleep_auto_off)
 static inline void prcmu_early_init(u32 phy_base, u32 size) {}
 
 static inline int prcmu_set_power_state(u8 state, bool keep_ulp_clk,
-	bool keep_ap_pll)
+										bool keep_ap_pll)
 {
 	return 0;
 }
@@ -430,7 +437,7 @@ static inline int prcmu_abb_write(u8 slave, u8 reg, u8 *value, u8 size)
 }
 
 static inline int prcmu_abb_write_masked(u8 slave, u8 reg, u8 *value, u8 *mask,
-	u8 size)
+		u8 size)
 {
 	return -ENOSYS;
 }
@@ -595,9 +602,9 @@ int prcmu_qos_add_requirement(int pm_qos_class, char *name, s32 value);
 int prcmu_qos_update_requirement(int pm_qos_class, char *name, s32 new_value);
 void prcmu_qos_remove_requirement(int pm_qos_class, char *name);
 int prcmu_qos_add_notifier(int prcmu_qos_class,
-			   struct notifier_block *notifier);
+						   struct notifier_block *notifier);
 int prcmu_qos_remove_notifier(int prcmu_qos_class,
-			      struct notifier_block *notifier);
+							  struct notifier_block *notifier);
 
 #else
 
@@ -616,13 +623,13 @@ static inline int prcmu_qos_requirement(int prcmu_qos_class)
 }
 
 static inline int prcmu_qos_add_requirement(int prcmu_qos_class,
-					    char *name, s32 value)
+		char *name, s32 value)
 {
 	return 0;
 }
 
 static inline int prcmu_qos_update_requirement(int prcmu_qos_class,
-					       char *name, s32 new_value)
+		char *name, s32 new_value)
 {
 	return 0;
 }
@@ -632,12 +639,12 @@ static inline void prcmu_qos_remove_requirement(int prcmu_qos_class, char *name)
 }
 
 static inline int prcmu_qos_add_notifier(int prcmu_qos_class,
-					 struct notifier_block *notifier)
+		struct notifier_block *notifier)
 {
 	return 0;
 }
 static inline int prcmu_qos_remove_notifier(int prcmu_qos_class,
-					    struct notifier_block *notifier)
+		struct notifier_block *notifier)
 {
 	return 0;
 }

@@ -36,10 +36,11 @@
 #define UUID_NFIT_DIMM_N_MSFT "1ee68b36-d4bd-4a1a-9a16-4f8e53d46e05"
 
 #define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
-		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
-		| ACPI_NFIT_MEM_NOT_ARMED)
+								   | ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
+								   | ACPI_NFIT_MEM_NOT_ARMED)
 
-enum nfit_uuids {
+enum nfit_uuids
+{
 	/* for simplicity alias the uuid index with the family id */
 	NFIT_DEV_DIMM = NVDIMM_FAMILY_INTEL,
 	NFIT_DEV_DIMM_N_HPE1 = NVDIMM_FAMILY_HPE1,
@@ -65,7 +66,8 @@ enum nfit_uuids {
 #define NFIT_FIC_BLK cpu_to_le16(0x201) /* block-addressable non-energy backed */
 #define NFIT_FIC_BYTEN cpu_to_le16(0x301) /* byte-addressable non-energy backed */
 
-enum {
+enum
+{
 	NFIT_BLK_READ_FLUSH = 1,
 	NFIT_BLK_DCR_LATCH = 2,
 	NFIT_ARS_STATUS_DONE = 0,
@@ -78,50 +80,59 @@ enum {
 	NFIT_ARS_TIMEOUT = 90,
 };
 
-enum nfit_root_notifiers {
+enum nfit_root_notifiers
+{
 	NFIT_NOTIFY_UPDATE = 0x80,
 };
 
-enum nfit_dimm_notifiers {
+enum nfit_dimm_notifiers
+{
 	NFIT_NOTIFY_DIMM_HEALTH = 0x81,
 };
 
-struct nfit_spa {
+struct nfit_spa
+{
 	struct list_head list;
 	struct nd_region *nd_region;
-	unsigned int ars_required:1;
+	unsigned int ars_required: 1;
 	u32 clear_err_unit;
 	u32 max_ars;
 	struct acpi_nfit_system_address spa[0];
 };
 
-struct nfit_dcr {
+struct nfit_dcr
+{
 	struct list_head list;
 	struct acpi_nfit_control_region dcr[0];
 };
 
-struct nfit_bdw {
+struct nfit_bdw
+{
 	struct list_head list;
 	struct acpi_nfit_data_region bdw[0];
 };
 
-struct nfit_idt {
+struct nfit_idt
+{
 	struct list_head list;
 	struct acpi_nfit_interleave idt[0];
 };
 
-struct nfit_flush {
+struct nfit_flush
+{
 	struct list_head list;
 	struct acpi_nfit_flush_address flush[0];
 };
 
-struct nfit_memdev {
+struct nfit_memdev
+{
 	struct list_head list;
 	struct acpi_nfit_memory_map memdev[0];
 };
 
 /* assembled tables for a given dimm/memory-device */
-struct nfit_mem {
+struct nfit_mem
+{
 	struct nvdimm *nvdimm;
 	struct acpi_nfit_memory_map *memdev_dcr;
 	struct acpi_nfit_memory_map *memdev_pmem;
@@ -142,7 +153,8 @@ struct nfit_mem {
 	int family;
 };
 
-struct acpi_nfit_desc {
+struct acpi_nfit_desc
+{
 	struct nvdimm_bus_descriptor nd_desc;
 	struct acpi_table_header acpi_header;
 	struct mutex init_mutex;
@@ -162,32 +174,38 @@ struct acpi_nfit_desc {
 	struct kernfs_node *scrub_count_state;
 	unsigned int scrub_count;
 	unsigned int scrub_mode;
-	unsigned int cancel:1;
+	unsigned int cancel: 1;
 	unsigned long dimm_cmd_force_en;
 	unsigned long bus_cmd_force_en;
 	int (*blk_do_io)(struct nd_blk_region *ndbr, resource_size_t dpa,
-			void *iobuf, u64 len, int rw);
+					 void *iobuf, u64 len, int rw);
 };
 
-enum scrub_mode {
+enum scrub_mode
+{
 	HW_ERROR_SCRUB_OFF,
 	HW_ERROR_SCRUB_ON,
 };
 
-enum nd_blk_mmio_selector {
+enum nd_blk_mmio_selector
+{
 	BDW,
 	DCR,
 };
 
-struct nd_blk_addr {
-	union {
+struct nd_blk_addr
+{
+	union
+	{
 		void __iomem *base;
 		void *aperture;
 	};
 };
 
-struct nfit_blk {
-	struct nfit_blk_mmio {
+struct nfit_blk
+{
+	struct nfit_blk_mmio
+	{
 		struct nd_blk_addr addr;
 		u64 size;
 		u64 base_offset;
@@ -223,15 +241,18 @@ static inline void nfit_mce_unregister(void)
 int nfit_spa_type(struct acpi_nfit_system_address *spa);
 
 static inline struct acpi_nfit_memory_map *__to_nfit_memdev(
-		struct nfit_mem *nfit_mem)
+	struct nfit_mem *nfit_mem)
 {
 	if (nfit_mem->memdev_dcr)
+	{
 		return nfit_mem->memdev_dcr;
+	}
+
 	return nfit_mem->memdev_pmem;
 }
 
 static inline struct acpi_nfit_desc *to_acpi_desc(
-		struct nvdimm_bus_descriptor *nd_desc)
+	struct nvdimm_bus_descriptor *nd_desc)
 {
 	return container_of(nd_desc, struct acpi_nfit_desc, nd_desc);
 }

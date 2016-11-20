@@ -52,7 +52,8 @@
 /*
  * Events of the channel statemachine(s) for ctc and ctcmpc
  */
-enum ctc_ch_events {
+enum ctc_ch_events
+{
 	/*
 	 * Events, representing return code of
 	 * I/O operations (ccw_device_start, ccw_device_halt et al.)
@@ -114,7 +115,8 @@ enum ctc_ch_events {
 /*
  * States of the channel statemachine(s) for ctc and ctcmpc.
  */
-enum ctc_ch_states {
+enum ctc_ch_states
+{
 	/*
 	 * Channel not assigned to any device,
 	 * initial state, direction invalid
@@ -195,7 +197,8 @@ extern int mpc_ch_fsm_len;
 /*
  * States of the device interface statemachine.
  */
-enum dev_states {
+enum dev_states
+{
 	DEV_STATE_STOPPED,
 	DEV_STATE_STARTWAIT_RXTX,
 	DEV_STATE_STARTWAIT_RX,
@@ -216,7 +219,8 @@ extern const char *dev_state_names[];
  * Events of the device interface statemachine.
  * ctcm and ctcmpc
  */
-enum dev_events {
+enum dev_events
+{
 	DEV_EVENT_START,
 	DEV_EVENT_STOP,
 	DEV_EVENT_RXUP,
@@ -323,7 +327,8 @@ MPCG_STATE_READY	      Ready for Data Transfer.
 
 */
 
-enum mpcg_events {
+enum mpcg_events
+{
 	MPCG_EVENT_INOP,
 	MPCG_EVENT_DISCONC,
 	MPCG_EVENT_XID0DO,
@@ -335,7 +340,8 @@ enum mpcg_events {
 	MPCG_NR_EVENTS,
 };
 
-enum mpcg_states {
+enum mpcg_states
+{
 	MPCG_STATE_RESET,
 	MPCG_STATE_INOP,
 	MPCG_STATE_XID2INITW,

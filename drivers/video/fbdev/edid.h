@@ -1,11 +1,11 @@
-/* 
+/*
  * drivers/video/edid.h - EDID/DDC Header
  *
  * Based on:
  *   1. XFree86 4.3.0, edid.h
  *      Copyright 1998 by Egbert Eich <Egbert.Eich@Physik.TU-Darmstadt.DE>
- * 
- *   2. John Fremlin <vii@users.sourceforge.net> and 
+ *
+ *   2. John Fremlin <vii@users.sourceforge.net> and
  *      Ani Joshi <ajoshi@unixbox.com>
  *
  * DDC is a Trademark of VESA (Video Electronics Standard Association).
@@ -58,16 +58,16 @@
 #define DESCRIPTOR_DATA				5
 
 #define UPPER_NIBBLE( x ) \
-        (((128|64|32|16) & (x)) >> 4)
+	(((128|64|32|16) & (x)) >> 4)
 
 #define LOWER_NIBBLE( x ) \
-        ((1|2|4|8) & (x))
+	((1|2|4|8) & (x))
 
 #define COMBINE_HI_8LO( hi, lo ) \
-        ( (((unsigned)hi) << 8) | (unsigned)lo )
+	( (((unsigned)hi) << 8) | (unsigned)lo )
 
 #define COMBINE_HI_4LO( hi, lo ) \
-        ( (((unsigned)hi) << 4) | (unsigned)lo )
+	( (((unsigned)hi) << 4) | (unsigned)lo )
 
 #define PIXEL_CLOCK_LO     (unsigned)block[ 0 ]
 #define PIXEL_CLOCK_HI     (unsigned)block[ 1 ]

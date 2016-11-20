@@ -11,7 +11,8 @@
 struct page;
 struct kmem_cache;
 
-typedef enum {
+typedef enum
+{
 	GFP_KERNEL,
 	GFP_ATOMIC,
 	__GFP_HIGHMEM,
@@ -38,14 +39,14 @@ typedef __u8  u8;
 typedef __s8  s8;
 
 #ifdef __CHECKER__
-#define __bitwise__ __attribute__((bitwise))
+	#define __bitwise__ __attribute__((bitwise))
 #else
-#define __bitwise__
+	#define __bitwise__
 #endif
 #ifdef __CHECK_ENDIAN__
-#define __bitwise __bitwise__
+	#define __bitwise __bitwise__
 #else
-#define __bitwise
+	#define __bitwise
 #endif
 
 #define __force
@@ -60,24 +61,28 @@ typedef __u32 __bitwise __be32;
 typedef __u64 __bitwise __le64;
 typedef __u64 __bitwise __be64;
 
-typedef struct {
+typedef struct
+{
 	int counter;
 } atomic_t;
 
 #ifndef __aligned_u64
-# define __aligned_u64 __u64 __attribute__((aligned(8)))
+	#define __aligned_u64 __u64 __attribute__((aligned(8)))
 #endif
 
-struct list_head {
+struct list_head
+{
 	struct list_head *next, *prev;
 };
 
-struct hlist_head {
+struct hlist_head
+{
 	struct hlist_node *first;
 };
 
-struct hlist_node {
-	struct hlist_node *next, **pprev;
+struct hlist_node
+{
+	struct hlist_node *next, * *pprev;
 };
 
 #endif /* _TOOLS_LINUX_TYPES_H_ */

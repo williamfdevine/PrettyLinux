@@ -169,7 +169,8 @@ struct clk;
 struct device;
 struct drm_device;
 
-struct fsl_dcu_soc_data {
+struct fsl_dcu_soc_data
+{
 	const char *name;
 	/*total layer number*/
 	unsigned int total_layer;
@@ -178,7 +179,8 @@ struct fsl_dcu_soc_data {
 	unsigned int layer_regs;
 };
 
-struct fsl_dcu_drm_device {
+struct fsl_dcu_drm_device
+{
 	struct device *dev;
 	struct device_node *np;
 	struct regmap *regmap;

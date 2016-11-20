@@ -34,7 +34,7 @@
 #define __LIBCFS_LINUX_LIBCFS_H__
 
 #ifndef __LIBCFS_LIBCFS_H__
-#error Do not #include this file directly. #include <linux/libcfs/libcfs.h> instead
+	#error Do not #include this file directly. #include <linux/libcfs/libcfs.h> instead
 #endif
 
 #include <linux/bitops.h>
@@ -86,28 +86,28 @@
 #if !defined(__x86_64__)
 # ifdef __ia64__
 #  define CDEBUG_STACK() (THREAD_SIZE -				 \
-			  ((unsigned long)__builtin_dwarf_cfa() &       \
-			   (THREAD_SIZE - 1)))
+						  ((unsigned long)__builtin_dwarf_cfa() &       \
+						   (THREAD_SIZE - 1)))
 # else
 #  define CDEBUG_STACK() (THREAD_SIZE -				 \
-			  ((unsigned long)__builtin_frame_address(0) &  \
-			   (THREAD_SIZE - 1)))
+						  ((unsigned long)__builtin_frame_address(0) &  \
+						   (THREAD_SIZE - 1)))
 # endif /* __ia64__ */
 
 #define __CHECK_STACK(msgdata, mask, cdls)			      \
-do {								    \
-	if (unlikely(CDEBUG_STACK() > libcfs_stack)) {		  \
-		LIBCFS_DEBUG_MSG_DATA_INIT(msgdata, D_WARNING, NULL);   \
-		libcfs_stack = CDEBUG_STACK();			  \
-		libcfs_debug_msg(msgdata,			       \
-				 "maximum lustre stack %lu\n",	  \
-				 CDEBUG_STACK());		       \
-		(msgdata)->msg_mask = mask;			     \
-		(msgdata)->msg_cdls = cdls;			     \
-		dump_stack();					   \
-	      /*panic("LBUG");*/					\
-	}							       \
-} while (0)
+	do {								    \
+		if (unlikely(CDEBUG_STACK() > libcfs_stack)) {		  \
+			LIBCFS_DEBUG_MSG_DATA_INIT(msgdata, D_WARNING, NULL);   \
+			libcfs_stack = CDEBUG_STACK();			  \
+			libcfs_debug_msg(msgdata,			       \
+							 "maximum lustre stack %lu\n",	  \
+							 CDEBUG_STACK());		       \
+			(msgdata)->msg_mask = mask;			     \
+			(msgdata)->msg_cdls = cdls;			     \
+			dump_stack();					   \
+			/*panic("LBUG");*/					\
+		}							       \
+	} while (0)
 #define CFS_CHECK_STACK(msgdata, mask, cdls)  __CHECK_STACK(msgdata, mask, cdls)
 #else /* __x86_64__ */
 #define CFS_CHECK_STACK(msgdata, mask, cdls) do {} while (0)
@@ -130,7 +130,7 @@ typedef unsigned long ulong_ptr_t;
 typedef long long_ptr_t;
 
 #ifndef WITH_WATCHDOG
-#define WITH_WATCHDOG
+	#define WITH_WATCHDOG
 #endif
 
 #endif /* _LINUX_LIBCFS_H */

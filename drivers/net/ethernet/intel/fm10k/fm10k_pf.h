@@ -28,7 +28,8 @@ bool fm10k_glort_valid_pf(struct fm10k_hw *hw, u16 glort);
 u16 fm10k_queues_per_pool(struct fm10k_hw *hw);
 u16 fm10k_vf_queue_index(struct fm10k_hw *hw, u16 vf_idx);
 
-enum fm10k_pf_tlv_msg_id_v1 {
+enum fm10k_pf_tlv_msg_id_v1
+{
 	FM10K_PF_MSG_ID_TEST			= 0x000, /* msg ID reserved */
 	FM10K_PF_MSG_ID_XCAST_MODES		= 0x001,
 	FM10K_PF_MSG_ID_UPDATE_MAC_FWD_RULE	= 0x002,
@@ -44,7 +45,8 @@ enum fm10k_pf_tlv_msg_id_v1 {
 	FM10K_PF_MSG_ID_SET_FLOW_STATE		= 0x505,
 };
 
-enum fm10k_pf_tlv_attr_id_v1 {
+enum fm10k_pf_tlv_attr_id_v1
+{
 	FM10K_PF_ATTR_ID_ERR			= 0x00,
 	FM10K_PF_ATTR_ID_LPORT_MAP		= 0x01,
 	FM10K_PF_ATTR_ID_XCAST_MODE		= 0x02,
@@ -78,7 +80,8 @@ enum fm10k_pf_tlv_attr_id_v1 {
  * up correctly as per their TLV definition.
  */
 
-struct fm10k_mac_update {
+struct fm10k_mac_update
+{
 	__le32	mac_lower;
 	__le16	mac_upper;
 	__le16	vlan;
@@ -87,12 +90,14 @@ struct fm10k_mac_update {
 	u8	action;
 } __aligned(4) __packed;
 
-struct fm10k_global_table_data {
+struct fm10k_global_table_data
+{
 	__le32	used;
 	__le32	avail;
 } __aligned(4) __packed;
 
-struct fm10k_swapi_error {
+struct fm10k_swapi_error
+{
 	__le32				status;
 	struct fm10k_global_table_data	mac;
 	struct fm10k_global_table_data	nexthop;
@@ -103,11 +108,11 @@ s32 fm10k_msg_lport_map_pf(struct fm10k_hw *, u32 **, struct fm10k_mbx_info *);
 extern const struct fm10k_tlv_attr fm10k_lport_map_msg_attr[];
 #define FM10K_PF_MSG_LPORT_MAP_HANDLER(func) \
 	FM10K_MSG_HANDLER(FM10K_PF_MSG_ID_LPORT_MAP, \
-			  fm10k_lport_map_msg_attr, func)
+					  fm10k_lport_map_msg_attr, func)
 extern const struct fm10k_tlv_attr fm10k_update_pvid_msg_attr[];
 #define FM10K_PF_MSG_UPDATE_PVID_HANDLER(func) \
 	FM10K_MSG_HANDLER(FM10K_PF_MSG_ID_UPDATE_PVID, \
-			  fm10k_update_pvid_msg_attr, func)
+					  fm10k_update_pvid_msg_attr, func)
 
 s32 fm10k_msg_err_pf(struct fm10k_hw *, u32 **, struct fm10k_mbx_info *);
 extern const struct fm10k_tlv_attr fm10k_err_msg_attr[];
@@ -116,9 +121,9 @@ extern const struct fm10k_tlv_attr fm10k_err_msg_attr[];
 
 s32 fm10k_iov_msg_msix_pf(struct fm10k_hw *, u32 **, struct fm10k_mbx_info *);
 s32 fm10k_iov_msg_mac_vlan_pf(struct fm10k_hw *, u32 **,
-			      struct fm10k_mbx_info *);
+							  struct fm10k_mbx_info *);
 s32 fm10k_iov_msg_lport_state_pf(struct fm10k_hw *, u32 **,
-				 struct fm10k_mbx_info *);
+								 struct fm10k_mbx_info *);
 
 extern const struct fm10k_info fm10k_pf_info;
 #endif /* _FM10K_PF_H */

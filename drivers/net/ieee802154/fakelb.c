@@ -35,7 +35,8 @@ static DEFINE_MUTEX(fakelb_phys_lock);
 static LIST_HEAD(fakelb_ifup_phys);
 static DEFINE_RWLOCK(fakelb_ifup_phys_lock);
 
-struct fakelb_phy {
+struct fakelb_phy
+{
 	struct ieee802154_hw *hw;
 
 	u8 page;
@@ -72,16 +73,22 @@ static int fakelb_hw_xmit(struct ieee802154_hw *hw, struct sk_buff *skb)
 
 	read_lock_bh(&fakelb_ifup_phys_lock);
 	WARN_ON(current_phy->suspended);
-	list_for_each_entry(phy, &fakelb_ifup_phys, list_ifup) {
+	list_for_each_entry(phy, &fakelb_ifup_phys, list_ifup)
+	{
 		if (current_phy == phy)
+		{
 			continue;
+		}
 
 		if (current_phy->page == phy->page &&
-		    current_phy->channel == phy->channel) {
+			current_phy->channel == phy->channel)
+		{
 			struct sk_buff *newskb = pskb_copy(skb, GFP_ATOMIC);
 
 			if (newskb)
+			{
 				ieee802154_rx_irqsafe(phy->hw, newskb, 0xcc);
+			}
 		}
 	}
 	read_unlock_bh(&fakelb_ifup_phys_lock);
@@ -118,7 +125,8 @@ fakelb_set_promiscuous_mode(struct ieee802154_hw *hw, const bool on)
 	return 0;
 }
 
-static const struct ieee802154_ops fakelb_ops = {
+static const struct ieee802154_ops fakelb_ops =
+{
 	.owner = THIS_MODULE,
 	.xmit_async = fakelb_hw_xmit,
 	.ed = fakelb_hw_ed,
@@ -139,8 +147,11 @@ static int fakelb_add_one(struct device *dev)
 	int err;
 
 	hw = ieee802154_alloc_hw(sizeof(*phy), &fakelb_ops);
+
 	if (!hw)
+	{
 		return -ENOMEM;
+	}
 
 	phy = hw->priv;
 	phy->hw = hw;
@@ -185,8 +196,11 @@ static int fakelb_add_one(struct device *dev)
 	hw->parent = dev;
 
 	err = ieee802154_register_hw(hw);
+
 	if (err)
+	{
 		goto err_reg;
+	}
 
 	mutex_lock(&fakelb_phys_lock);
 	list_add_tail(&phy->list, &fakelb_phys);
@@ -212,10 +226,14 @@ static int fakelb_probe(struct platform_device *pdev)
 	struct fakelb_phy *phy, *tmp;
 	int err, i;
 
-	for (i = 0; i < numlbs; i++) {
+	for (i = 0; i < numlbs; i++)
+	{
 		err = fakelb_add_one(&pdev->dev);
+
 		if (err < 0)
+		{
 			goto err_slave;
+		}
 	}
 
 	dev_info(&pdev->dev, "added ieee802154 hardware\n");
@@ -224,7 +242,7 @@ static int fakelb_probe(struct platform_device *pdev)
 err_slave:
 	mutex_lock(&fakelb_phys_lock);
 	list_for_each_entry_safe(phy, tmp, &fakelb_phys, list)
-		fakelb_del(phy);
+	fakelb_del(phy);
 	mutex_unlock(&fakelb_phys_lock);
 	return err;
 }
@@ -235,25 +253,26 @@ static int fakelb_remove(struct platform_device *pdev)
 
 	mutex_lock(&fakelb_phys_lock);
 	list_for_each_entry_safe(phy, tmp, &fakelb_phys, list)
-		fakelb_del(phy);
+	fakelb_del(phy);
 	mutex_unlock(&fakelb_phys_lock);
 	return 0;
 }
 
 static struct platform_device *ieee802154fake_dev;
 
-static struct platform_driver ieee802154fake_driver = {
+static struct platform_driver ieee802154fake_driver =
+{
 	.probe = fakelb_probe,
 	.remove = fakelb_remove,
 	.driver = {
-			.name = "ieee802154fakelb",
+		.name = "ieee802154fakelb",
 	},
 };
 
 static __init int fakelb_init_module(void)
 {
 	ieee802154fake_dev = platform_device_register_simple(
-			     "ieee802154fakelb", -1, NULL, 0);
+							 "ieee802154fakelb", -1, NULL, 0);
 	return platform_driver_register(&ieee802154fake_driver);
 }
 

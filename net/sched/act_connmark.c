@@ -34,7 +34,7 @@ static int connmark_net_id;
 static struct tc_action_ops act_connmark_ops;
 
 static int tcf_connmark(struct sk_buff *skb, const struct tc_action *a,
-			struct tcf_result *res)
+						struct tcf_result *res)
 {
 	const struct nf_conntrack_tuple_hash *thash;
 	struct nf_conntrack_tuple tuple;
@@ -48,22 +48,33 @@ static int tcf_connmark(struct sk_buff *skb, const struct tc_action *a,
 	tcf_lastuse_update(&ca->tcf_tm);
 	bstats_update(&ca->tcf_bstats, skb);
 
-	if (skb->protocol == htons(ETH_P_IP)) {
+	if (skb->protocol == htons(ETH_P_IP))
+	{
 		if (skb->len < sizeof(struct iphdr))
+		{
 			goto out;
+		}
 
 		proto = NFPROTO_IPV4;
-	} else if (skb->protocol == htons(ETH_P_IPV6)) {
+	}
+	else if (skb->protocol == htons(ETH_P_IPV6))
+	{
 		if (skb->len < sizeof(struct ipv6hdr))
+		{
 			goto out;
+		}
 
 		proto = NFPROTO_IPV6;
-	} else {
+	}
+	else
+	{
 		goto out;
 	}
 
 	c = nf_ct_get(skb, &ctinfo);
-	if (c) {
+
+	if (c)
+	{
 		skb->mark = c->mark;
 		/* using overlimits stats to count how many packets marked */
 		ca->tcf_qstats.overlimits++;
@@ -71,15 +82,20 @@ static int tcf_connmark(struct sk_buff *skb, const struct tc_action *a,
 	}
 
 	if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb),
-			       proto, ca->net, &tuple))
+						   proto, ca->net, &tuple))
+	{
 		goto out;
+	}
 
 	zone.id = ca->zone;
 	zone.dir = NF_CT_DEFAULT_ZONE_DIR;
 
 	thash = nf_conntrack_find_get(ca->net, &zone, &tuple);
+
 	if (!thash)
+	{
 		goto out;
+	}
 
 	c = nf_ct_tuplehash_to_ctrack(thash);
 	/* using overlimits stats to count how many packets marked */
@@ -92,13 +108,14 @@ out:
 	return ca->tcf_action;
 }
 
-static const struct nla_policy connmark_policy[TCA_CONNMARK_MAX + 1] = {
+static const struct nla_policy connmark_policy[TCA_CONNMARK_MAX + 1] =
+{
 	[TCA_CONNMARK_PARMS] = { .len = sizeof(struct tc_connmark) },
 };
 
 static int tcf_connmark_init(struct net *net, struct nlattr *nla,
-			     struct nlattr *est, struct tc_action **a,
-			     int ovr, int bind)
+							 struct nlattr *est, struct tc_action **a,
+							 int ovr, int bind)
 {
 	struct tc_action_net *tn = net_generic(net, connmark_net_id);
 	struct nlattr *tb[TCA_CONNMARK_MAX + 1];
@@ -107,19 +124,28 @@ static int tcf_connmark_init(struct net *net, struct nlattr *nla,
 	int ret = 0;
 
 	if (!nla)
+	{
 		return -EINVAL;
+	}
 
 	ret = nla_parse_nested(tb, TCA_CONNMARK_MAX, nla, connmark_policy);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	parm = nla_data(tb[TCA_CONNMARK_PARMS]);
 
-	if (!tcf_hash_check(tn, parm->index, a, bind)) {
+	if (!tcf_hash_check(tn, parm->index, a, bind))
+	{
 		ret = tcf_hash_create(tn, parm->index, est, a,
-				      &act_connmark_ops, bind, false);
+							  &act_connmark_ops, bind, false);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		ci = to_connmark(*a);
 		ci->tcf_action = parm->action;
@@ -128,13 +154,23 @@ static int tcf_connmark_init(struct net *net, struct nlattr *nla,
 
 		tcf_hash_insert(tn, *a);
 		ret = ACT_P_CREATED;
-	} else {
+	}
+	else
+	{
 		ci = to_connmark(*a);
+
 		if (bind)
+		{
 			return 0;
+		}
+
 		tcf_hash_release(*a, bind);
+
 		if (!ovr)
+		{
 			return -EEXIST;
+		}
+
 		/* replacing action and zone */
 		ci->tcf_action = parm->action;
 		ci->zone = parm->zone;
@@ -144,12 +180,13 @@ static int tcf_connmark_init(struct net *net, struct nlattr *nla,
 }
 
 static inline int tcf_connmark_dump(struct sk_buff *skb, struct tc_action *a,
-				    int bind, int ref)
+									int bind, int ref)
 {
 	unsigned char *b = skb_tail_pointer(skb);
 	struct tcf_connmark_info *ci = to_connmark(a);
 
-	struct tc_connmark opt = {
+	struct tc_connmark opt =
+	{
 		.index   = ci->tcf_index,
 		.refcnt  = ci->tcf_refcnt - ref,
 		.bindcnt = ci->tcf_bindcnt - bind,
@@ -159,12 +196,17 @@ static inline int tcf_connmark_dump(struct sk_buff *skb, struct tc_action *a,
 	struct tcf_t t;
 
 	if (nla_put(skb, TCA_CONNMARK_PARMS, sizeof(opt), &opt))
+	{
 		goto nla_put_failure;
+	}
 
 	tcf_tm_dump(&t, &ci->tcf_tm);
+
 	if (nla_put_64bit(skb, TCA_CONNMARK_TM, sizeof(t), &t,
-			  TCA_CONNMARK_PAD))
+					  TCA_CONNMARK_PAD))
+	{
 		goto nla_put_failure;
+	}
 
 	return skb->len;
 nla_put_failure:
@@ -173,8 +215,8 @@ nla_put_failure:
 }
 
 static int tcf_connmark_walker(struct net *net, struct sk_buff *skb,
-			       struct netlink_callback *cb, int type,
-			       const struct tc_action_ops *ops)
+							   struct netlink_callback *cb, int type,
+							   const struct tc_action_ops *ops)
 {
 	struct tc_action_net *tn = net_generic(net, connmark_net_id);
 
@@ -188,7 +230,8 @@ static int tcf_connmark_search(struct net *net, struct tc_action **a, u32 index)
 	return tcf_hash_search(tn, a, index);
 }
 
-static struct tc_action_ops act_connmark_ops = {
+static struct tc_action_ops act_connmark_ops =
+{
 	.kind		=	"connmark",
 	.type		=	TCA_ACT_CONNMARK,
 	.owner		=	THIS_MODULE,
@@ -214,7 +257,8 @@ static void __net_exit connmark_exit_net(struct net *net)
 	tc_action_net_exit(tn);
 }
 
-static struct pernet_operations connmark_net_ops = {
+static struct pernet_operations connmark_net_ops =
+{
 	.init = connmark_init_net,
 	.exit = connmark_exit_net,
 	.id   = &connmark_net_id,

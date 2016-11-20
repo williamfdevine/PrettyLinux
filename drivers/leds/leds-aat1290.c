@@ -46,7 +46,8 @@
 #define AAT1290_MM_CURRENT_SCALE_SIZE	15
 
 
-struct aat1290_led_config_data {
+struct aat1290_led_config_data
+{
 	/* maximum LED current in movie mode */
 	u32 max_mm_current;
 	/* maximum LED current in flash mode */
@@ -59,7 +60,8 @@ struct aat1290_led_config_data {
 	enum led_brightness max_brightness;
 };
 
-struct aat1290_led {
+struct aat1290_led
+{
 	/* platform device data */
 	struct platform_device *pdev;
 	/* secures access to the device */
@@ -84,13 +86,13 @@ struct aat1290_led {
 };
 
 static struct aat1290_led *fled_cdev_to_led(
-				struct led_classdev_flash *fled_cdev)
+	struct led_classdev_flash *fled_cdev)
 {
 	return container_of(fled_cdev, struct aat1290_led, fled_cdev);
 }
 
 static struct led_classdev_flash *led_cdev_to_fled_cdev(
-				struct led_classdev *led_cdev)
+	struct led_classdev *led_cdev)
 {
 	return container_of(led_cdev, struct led_classdev_flash, led_cdev);
 }
@@ -105,7 +107,8 @@ static void aat1290_as2cwire_write(struct aat1290_led *led, int addr, int value)
 	udelay(AAT1290_FLEN_OFF_DELAY_TIME_US);
 
 	/* write address */
-	for (i = 0; i < addr; ++i) {
+	for (i = 0; i < addr; ++i)
+	{
 		udelay(AAT1290_EN_SET_TICK_TIME_US);
 		gpiod_direction_output(led->gpio_en_set, 0);
 		udelay(AAT1290_EN_SET_TICK_TIME_US);
@@ -115,7 +118,8 @@ static void aat1290_as2cwire_write(struct aat1290_led *led, int addr, int value)
 	usleep_range(AAT1290_LATCH_TIME_MIN_US, AAT1290_LATCH_TIME_MAX_US);
 
 	/* write data */
-	for (i = 0; i < value; ++i) {
+	for (i = 0; i < value; ++i)
+	{
 		udelay(AAT1290_EN_SET_TICK_TIME_US);
 		gpiod_direction_output(led->gpio_en_set, 0);
 		udelay(AAT1290_EN_SET_TICK_TIME_US);
@@ -126,43 +130,47 @@ static void aat1290_as2cwire_write(struct aat1290_led *led, int addr, int value)
 }
 
 static void aat1290_set_flash_safety_timer(struct aat1290_led *led,
-					unsigned int micro_sec)
+		unsigned int micro_sec)
 {
 	struct led_classdev_flash *fled_cdev = &led->fled_cdev;
 	struct led_flash_setting *flash_tm = &fled_cdev->timeout;
 	int flash_tm_reg = AAT1290_FLASH_TM_NUM_LEVELS -
-				(micro_sec / flash_tm->step) + 1;
+					   (micro_sec / flash_tm->step) + 1;
 
 	aat1290_as2cwire_write(led, AAT1290_FLASH_SAFETY_TIMER_ADDR,
-							flash_tm_reg);
+						   flash_tm_reg);
 }
 
 /* LED subsystem callbacks */
 
 static int aat1290_led_brightness_set(struct led_classdev *led_cdev,
-					enum led_brightness brightness)
+									  enum led_brightness brightness)
 {
 	struct led_classdev_flash *fled_cdev = led_cdev_to_fled_cdev(led_cdev);
 	struct aat1290_led *led = fled_cdev_to_led(fled_cdev);
 
 	mutex_lock(&led->lock);
 
-	if (brightness == 0) {
+	if (brightness == 0)
+	{
 		gpiod_direction_output(led->gpio_fl_en, 0);
 		gpiod_direction_output(led->gpio_en_set, 0);
 		led->movie_mode = false;
-	} else {
-		if (!led->movie_mode) {
+	}
+	else
+	{
+		if (!led->movie_mode)
+		{
 			aat1290_as2cwire_write(led,
-				AAT1290_MM_CURRENT_RATIO_ADDR,
-				AAT1290_MM_TO_FL_1_92);
+								   AAT1290_MM_CURRENT_RATIO_ADDR,
+								   AAT1290_MM_TO_FL_1_92);
 			led->movie_mode = true;
 		}
 
 		aat1290_as2cwire_write(led, AAT1290_MOVIE_MODE_CURRENT_ADDR,
-				AAT1290_MAX_MM_CURR_PERCENT_0 - brightness);
+							   AAT1290_MAX_MM_CURR_PERCENT_0 - brightness);
 		aat1290_as2cwire_write(led, AAT1290_MOVIE_MODE_CONFIG_ADDR,
-				AAT1290_MOVIE_MODE_ON);
+							   AAT1290_MOVIE_MODE_ON);
 	}
 
 	mutex_unlock(&led->lock);
@@ -171,7 +179,7 @@ static int aat1290_led_brightness_set(struct led_classdev *led_cdev,
 }
 
 static int aat1290_led_flash_strobe_set(struct led_classdev_flash *fled_cdev,
-					 bool state)
+										bool state)
 
 {
 	struct aat1290_led *led = fled_cdev_to_led(fled_cdev);
@@ -180,10 +188,13 @@ static int aat1290_led_flash_strobe_set(struct led_classdev_flash *fled_cdev,
 
 	mutex_lock(&led->lock);
 
-	if (state) {
+	if (state)
+	{
 		aat1290_set_flash_safety_timer(led, timeout->val);
 		gpiod_direction_output(led->gpio_fl_en, 1);
-	} else {
+	}
+	else
+	{
 		gpiod_direction_output(led->gpio_fl_en, 0);
 		gpiod_direction_output(led->gpio_en_set, 0);
 	}
@@ -203,7 +214,7 @@ static int aat1290_led_flash_strobe_set(struct led_classdev_flash *fled_cdev,
 }
 
 static int aat1290_led_flash_timeout_set(struct led_classdev_flash *fled_cdev,
-						u32 timeout)
+		u32 timeout)
 {
 	/*
 	 * Don't do anything - flash timeout is cached in the led-class-flash
@@ -215,8 +226,8 @@ static int aat1290_led_flash_timeout_set(struct led_classdev_flash *fled_cdev,
 }
 
 static int aat1290_led_parse_dt(struct aat1290_led *led,
-			struct aat1290_led_config_data *cfg,
-			struct device_node **sub_node)
+								struct aat1290_led_config_data *cfg,
+								struct device_node **sub_node)
 {
 	struct led_classdev *led_cdev = &led->fled_cdev.led_cdev;
 	struct device *dev = &led->pdev->dev;
@@ -227,14 +238,18 @@ static int aat1290_led_parse_dt(struct aat1290_led *led,
 	int ret = 0;
 
 	led->gpio_fl_en = devm_gpiod_get(dev, "flen", GPIOD_ASIS);
-	if (IS_ERR(led->gpio_fl_en)) {
+
+	if (IS_ERR(led->gpio_fl_en))
+	{
 		ret = PTR_ERR(led->gpio_fl_en);
 		dev_err(dev, "Unable to claim gpio \"flen\".\n");
 		return ret;
 	}
 
 	led->gpio_en_set = devm_gpiod_get(dev, "enset", GPIOD_ASIS);
-	if (IS_ERR(led->gpio_en_set)) {
+
+	if (IS_ERR(led->gpio_en_set))
+	{
 		ret = PTR_ERR(led->gpio_en_set);
 		dev_err(dev, "Unable to claim gpio \"enset\".\n");
 		return ret;
@@ -242,47 +257,59 @@ static int aat1290_led_parse_dt(struct aat1290_led *led,
 
 #if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
 	pinctrl = devm_pinctrl_get_select_default(&led->pdev->dev);
-	if (IS_ERR(pinctrl)) {
+
+	if (IS_ERR(pinctrl))
+	{
 		cfg->has_external_strobe = false;
 		dev_info(dev,
-			 "No support for external strobe detected.\n");
-	} else {
+				 "No support for external strobe detected.\n");
+	}
+	else
+	{
 		cfg->has_external_strobe = true;
 	}
+
 #endif
 
 	child_node = of_get_next_available_child(dev->of_node, NULL);
-	if (!child_node) {
+
+	if (!child_node)
+	{
 		dev_err(dev, "No DT child node found for connected LED.\n");
 		return -EINVAL;
 	}
 
 	led_cdev->name = of_get_property(child_node, "label", NULL) ? :
-						child_node->name;
+					 child_node->name;
 
 	ret = of_property_read_u32(child_node, "led-max-microamp",
-				&cfg->max_mm_current);
+							   &cfg->max_mm_current);
+
 	/*
 	 * led-max-microamp will default to 1/20 of flash-max-microamp
 	 * in case it is missing.
 	 */
 	if (ret < 0)
 		dev_warn(dev,
-			"led-max-microamp DT property missing\n");
+				 "led-max-microamp DT property missing\n");
 
 	ret = of_property_read_u32(child_node, "flash-max-microamp",
-				&cfg->max_flash_current);
-	if (ret < 0) {
+							   &cfg->max_flash_current);
+
+	if (ret < 0)
+	{
 		dev_err(dev,
-			"flash-max-microamp DT property missing\n");
+				"flash-max-microamp DT property missing\n");
 		goto err_parse_dt;
 	}
 
 	ret = of_property_read_u32(child_node, "flash-max-timeout-us",
-				&cfg->max_flash_tm);
-	if (ret < 0) {
+							   &cfg->max_flash_tm);
+
+	if (ret < 0)
+	{
 		dev_err(dev,
-			"flash-max-timeout-us DT property missing\n");
+				"flash-max-timeout-us DT property missing\n");
 		goto err_parse_dt;
 	}
 
@@ -295,16 +322,22 @@ err_parse_dt:
 }
 
 static void aat1290_led_validate_mm_current(struct aat1290_led *led,
-					struct aat1290_led_config_data *cfg)
+		struct aat1290_led_config_data *cfg)
 {
 	int i, b = 0, e = AAT1290_MM_CURRENT_SCALE_SIZE;
 
-	while (e - b > 1) {
+	while (e - b > 1)
+	{
 		i = b + (e - b) / 2;
+
 		if (cfg->max_mm_current < led->mm_current_scale[i])
+		{
 			e = i;
+		}
 		else
+		{
 			b = i;
+		}
 	}
 
 	cfg->max_mm_current = led->mm_current_scale[b];
@@ -312,42 +345,53 @@ static void aat1290_led_validate_mm_current(struct aat1290_led *led,
 }
 
 static int init_mm_current_scale(struct aat1290_led *led,
-			struct aat1290_led_config_data *cfg)
+								 struct aat1290_led_config_data *cfg)
 {
 	int max_mm_current_percent[] = { 20, 22, 25, 28, 32, 36, 40, 45, 50, 56,
-						63, 71, 79, 89, 100 };
+									 63, 71, 79, 89, 100
+								   };
 	int i, max_mm_current =
-			AAT1290_MAX_MM_CURRENT(cfg->max_flash_current);
+		AAT1290_MAX_MM_CURRENT(cfg->max_flash_current);
 
 	led->mm_current_scale = devm_kzalloc(&led->pdev->dev,
-					sizeof(max_mm_current_percent),
-					GFP_KERNEL);
+										 sizeof(max_mm_current_percent),
+										 GFP_KERNEL);
+
 	if (!led->mm_current_scale)
+	{
 		return -ENOMEM;
+	}
 
 	for (i = 0; i < AAT1290_MM_CURRENT_SCALE_SIZE; ++i)
 		led->mm_current_scale[i] = max_mm_current *
-					  max_mm_current_percent[i] / 100;
+								   max_mm_current_percent[i] / 100;
 
 	return 0;
 }
 
 static int aat1290_led_get_configuration(struct aat1290_led *led,
-					struct aat1290_led_config_data *cfg,
-					struct device_node **sub_node)
+		struct aat1290_led_config_data *cfg,
+		struct device_node **sub_node)
 {
 	int ret;
 
 	ret = aat1290_led_parse_dt(led, cfg, sub_node);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	/*
 	 * Init non-linear movie mode current scale basing
 	 * on the max flash current from led configuration.
 	 */
 	ret = init_mm_current_scale(led, cfg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	aat1290_led_validate_mm_current(led, cfg);
 
@@ -360,7 +404,7 @@ static int aat1290_led_get_configuration(struct aat1290_led *led,
 }
 
 static void aat1290_init_flash_timeout(struct aat1290_led *led,
-				struct aat1290_led_config_data *cfg)
+									   struct aat1290_led_config_data *cfg)
 {
 	struct led_classdev_flash *fled_cdev = &led->fled_cdev;
 	struct led_flash_setting *setting;
@@ -375,8 +419,8 @@ static void aat1290_init_flash_timeout(struct aat1290_led *led,
 
 #if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
 static enum led_brightness aat1290_intensity_to_brightness(
-					struct v4l2_flash *v4l2_flash,
-					s32 intensity)
+	struct v4l2_flash *v4l2_flash,
+	s32 intensity)
 {
 	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
 	struct aat1290_led *led = fled_cdev_to_led(fled_cdev);
@@ -384,13 +428,15 @@ static enum led_brightness aat1290_intensity_to_brightness(
 
 	for (i = AAT1290_MM_CURRENT_SCALE_SIZE - 1; i >= 0; --i)
 		if (intensity >= led->mm_current_scale[i])
+		{
 			return i + 1;
+		}
 
 	return 1;
 }
 
 static s32 aat1290_brightness_to_intensity(struct v4l2_flash *v4l2_flash,
-					enum led_brightness brightness)
+		enum led_brightness brightness)
 {
 	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
 	struct aat1290_led *led = fled_cdev_to_led(fled_cdev);
@@ -399,7 +445,7 @@ static s32 aat1290_brightness_to_intensity(struct v4l2_flash *v4l2_flash,
 }
 
 static int aat1290_led_external_strobe_set(struct v4l2_flash *v4l2_flash,
-						bool enable)
+		bool enable)
 {
 	struct aat1290_led *led = fled_cdev_to_led(v4l2_flash->fled_cdev);
 	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
@@ -413,8 +459,10 @@ static int aat1290_led_external_strobe_set(struct v4l2_flash *v4l2_flash,
 	led_cdev->brightness = 0;
 
 	pinctrl = devm_pinctrl_get_select(&led->pdev->dev,
-						enable ? "isp" : "host");
-	if (IS_ERR(pinctrl)) {
+									  enable ? "isp" : "host");
+
+	if (IS_ERR(pinctrl))
+	{
 		dev_warn(&led->pdev->dev, "Unable to switch strobe source.\n");
 		return PTR_ERR(pinctrl);
 	}
@@ -423,14 +471,14 @@ static int aat1290_led_external_strobe_set(struct v4l2_flash *v4l2_flash,
 }
 
 static void aat1290_init_v4l2_flash_config(struct aat1290_led *led,
-					struct aat1290_led_config_data *led_cfg,
-					struct v4l2_flash_config *v4l2_sd_cfg)
+		struct aat1290_led_config_data *led_cfg,
+		struct v4l2_flash_config *v4l2_sd_cfg)
 {
 	struct led_classdev *led_cdev = &led->fled_cdev.led_cdev;
 	struct led_flash_setting *s;
 
 	strlcpy(v4l2_sd_cfg->dev_name, led_cdev->name,
-		sizeof(v4l2_sd_cfg->dev_name));
+			sizeof(v4l2_sd_cfg->dev_name));
 
 	s = &v4l2_sd_cfg->torch_intensity;
 	s->min = led->mm_current_scale[0];
@@ -441,21 +489,23 @@ static void aat1290_init_v4l2_flash_config(struct aat1290_led *led,
 	v4l2_sd_cfg->has_external_strobe = led_cfg->has_external_strobe;
 }
 
-static const struct v4l2_flash_ops v4l2_flash_ops = {
+static const struct v4l2_flash_ops v4l2_flash_ops =
+{
 	.external_strobe_set = aat1290_led_external_strobe_set,
 	.intensity_to_led_brightness = aat1290_intensity_to_brightness,
 	.led_brightness_to_intensity = aat1290_brightness_to_intensity,
 };
 #else
 static inline void aat1290_init_v4l2_flash_config(struct aat1290_led *led,
-				struct aat1290_led_config_data *led_cfg,
-				struct v4l2_flash_config *v4l2_sd_cfg)
+		struct aat1290_led_config_data *led_cfg,
+		struct v4l2_flash_config *v4l2_sd_cfg)
 {
 }
 static const struct v4l2_flash_ops v4l2_flash_ops;
 #endif
 
-static const struct led_flash_ops flash_ops = {
+static const struct led_flash_ops flash_ops =
+{
 	.strobe_set = aat1290_led_flash_strobe_set,
 	.timeout_set = aat1290_led_flash_timeout_set,
 };
@@ -472,8 +522,11 @@ static int aat1290_led_probe(struct platform_device *pdev)
 	int ret;
 
 	led = devm_kzalloc(dev, sizeof(*led), GFP_KERNEL);
+
 	if (!led)
+	{
 		return -ENOMEM;
+	}
 
 	led->pdev = pdev;
 	platform_set_drvdata(pdev, led);
@@ -483,8 +536,11 @@ static int aat1290_led_probe(struct platform_device *pdev)
 	led_cdev = &fled_cdev->led_cdev;
 
 	ret = aat1290_led_get_configuration(led, &led_cfg, &sub_node);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	mutex_init(&led->lock);
 
@@ -497,15 +553,20 @@ static int aat1290_led_probe(struct platform_device *pdev)
 
 	/* Register LED Flash class device */
 	ret = led_classdev_flash_register(&pdev->dev, fled_cdev);
+
 	if (ret < 0)
+	{
 		goto err_flash_register;
+	}
 
 	aat1290_init_v4l2_flash_config(led, &led_cfg, &v4l2_sd_cfg);
 
 	/* Create V4L2 Flash subdev. */
 	led->v4l2_flash = v4l2_flash_init(dev, sub_node, fled_cdev, NULL,
-					  &v4l2_flash_ops, &v4l2_sd_cfg);
-	if (IS_ERR(led->v4l2_flash)) {
+									  &v4l2_flash_ops, &v4l2_sd_cfg);
+
+	if (IS_ERR(led->v4l2_flash))
+	{
 		ret = PTR_ERR(led->v4l2_flash);
 		goto error_v4l2_flash_init;
 	}
@@ -532,13 +593,15 @@ static int aat1290_led_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id aat1290_led_dt_match[] = {
+static const struct of_device_id aat1290_led_dt_match[] =
+{
 	{ .compatible = "skyworks,aat1290" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, aat1290_led_dt_match);
 
-static struct platform_driver aat1290_led_driver = {
+static struct platform_driver aat1290_led_driver =
+{
 	.probe		= aat1290_led_probe,
 	.remove		= aat1290_led_remove,
 	.driver		= {

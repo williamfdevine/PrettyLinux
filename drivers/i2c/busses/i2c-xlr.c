@@ -73,13 +73,15 @@ static inline u32 xlr_i2c_rdreg(u32 __iomem *base, unsigned int reg)
 
 #define XLR_I2C_FLAG_IRQ	1
 
-struct xlr_i2c_config {
+struct xlr_i2c_config
+{
 	u32 flags;		/* optional feature support */
 	u32 status_busy;	/* value of STATUS[0] when busy */
 	u32 cfg_extra;		/* extra CFG bits to set */
 };
 
-struct xlr_i2c_private {
+struct xlr_i2c_private
+{
 	struct i2c_adapter adap;
 	u32 __iomem *iobase;
 	int irq;
@@ -106,9 +108,12 @@ static int xlr_i2c_wait(struct xlr_i2c_private *priv, unsigned long timeout)
 	int t;
 
 	t = wait_event_timeout(priv->wait, xlr_i2c_idle(priv),
-				msecs_to_jiffies(timeout));
+						   msecs_to_jiffies(timeout));
+
 	if (!t)
+	{
 		return -ETIMEDOUT;
+	}
 
 	status = xlr_i2c_rdreg(priv->iobase, XLR_I2C_STATUS);
 
@@ -121,7 +126,7 @@ static void xlr_i2c_tx_irq(struct xlr_i2c_private *priv, u32 status)
 
 	if (status & XLR_I2C_SDOEMPTY)
 		xlr_i2c_wreg(priv->iobase, XLR_I2C_DATAOUT,
-				msg->buf[priv->pos++]);
+					 msg->buf[priv->pos++]);
 }
 
 static void xlr_i2c_rx_irq(struct xlr_i2c_private *priv, u32 status)
@@ -140,31 +145,43 @@ static irqreturn_t xlr_i2c_irq(int irq, void *dev_id)
 	u32 int_stat, status;
 
 	int_stat = xlr_i2c_rdreg(priv->iobase, XLR_I2C_INT_STAT);
+
 	if (!int_stat)
+	{
 		return IRQ_NONE;
+	}
 
 	xlr_i2c_wreg(priv->iobase, XLR_I2C_INT_STAT, int_stat);
 
 	if (!msg)
+	{
 		return IRQ_HANDLED;
+	}
 
 	status = xlr_i2c_rdreg(priv->iobase, XLR_I2C_STATUS);
 
-	if (priv->pos < msg->len) {
+	if (priv->pos < msg->len)
+	{
 		if (msg->flags & I2C_M_RD)
+		{
 			xlr_i2c_rx_irq(priv, status);
+		}
 		else
+		{
 			xlr_i2c_tx_irq(priv, status);
+		}
 	}
 
 	if (!xlr_i2c_busy(priv, status))
+	{
 		wake_up(&priv->wait);
+	}
 
 	return IRQ_HANDLED;
 }
 
 static int xlr_i2c_tx(struct xlr_i2c_private *priv,  u16 len,
-	u8 *buf, u16 addr)
+					  u8 *buf, u16 addr)
 {
 	struct i2c_adapter *adap = &priv->adap;
 	unsigned long timeout, stoptime, checktime;
@@ -174,23 +191,28 @@ static int xlr_i2c_tx(struct xlr_i2c_private *priv,  u16 len,
 	u32 xfer;
 
 	if (!len)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	offset = buf[0];
 	xlr_i2c_wreg(priv->iobase, XLR_I2C_ADDR, offset);
 	xlr_i2c_wreg(priv->iobase, XLR_I2C_DEVADDR, addr);
 	xlr_i2c_wreg(priv->iobase, XLR_I2C_CFG,
-			XLR_I2C_CFG_ADDR | priv->cfg->cfg_extra);
+				 XLR_I2C_CFG_ADDR | priv->cfg->cfg_extra);
 
 	timeout = msecs_to_jiffies(XLR_I2C_TIMEOUT);
 	stoptime = jiffies + timeout;
 	timedout = 0;
 
-	if (len == 1) {
+	if (len == 1)
+	{
 		xlr_i2c_wreg(priv->iobase, XLR_I2C_BYTECNT, len - 1);
 		xfer = XLR_I2C_STARTXFR_ND;
 		pos = 1;
-	} else {
+	}
+	else
+	{
 		xlr_i2c_wreg(priv->iobase, XLR_I2C_BYTECNT, len - 2);
 		xlr_i2c_wreg(priv->iobase, XLR_I2C_DATAOUT, buf[1]);
 		xfer = XLR_I2C_STARTXFR_WR;
@@ -204,32 +226,46 @@ retry:
 	xlr_i2c_wreg(priv->iobase, XLR_I2C_STARTXFR, xfer);
 
 	if (priv->irq > 0)
+	{
 		return xlr_i2c_wait(priv, XLR_I2C_TIMEOUT * len);
+	}
 
-	while (!timedout) {
+	while (!timedout)
+	{
 		checktime = jiffies;
 		i2c_status = xlr_i2c_rdreg(priv->iobase, XLR_I2C_STATUS);
 
-		if ((i2c_status & XLR_I2C_SDOEMPTY) && pos < len) {
+		if ((i2c_status & XLR_I2C_SDOEMPTY) && pos < len)
+		{
 			xlr_i2c_wreg(priv->iobase, XLR_I2C_DATAOUT, buf[pos++]);
 
 			/* reset timeout on successful xmit */
 			stoptime = jiffies + timeout;
 		}
+
 		timedout = time_after(checktime, stoptime);
 
-		if (i2c_status & XLR_I2C_ARB_STARTERR) {
+		if (i2c_status & XLR_I2C_ARB_STARTERR)
+		{
 			if (timedout)
+			{
 				break;
+			}
+
 			goto retry;
 		}
 
 		if (i2c_status & XLR_I2C_ACK_ERR)
+		{
 			return -EIO;
+		}
 
 		if (!xlr_i2c_busy(priv, i2c_status) && pos >= len)
+		{
 			return 0;
+		}
 	}
+
 	dev_err(&adap->dev, "I2C transmit timeout\n");
 	return -ETIMEDOUT;
 }
@@ -242,10 +278,12 @@ static int xlr_i2c_rx(struct xlr_i2c_private *priv, u16 len, u8 *buf, u16 addr)
 	int nbytes, timedout;
 
 	if (!len)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	xlr_i2c_wreg(priv->iobase, XLR_I2C_CFG,
-			XLR_I2C_CFG_NOADDR | priv->cfg->cfg_extra);
+				 XLR_I2C_CFG_NOADDR | priv->cfg->cfg_extra);
 	xlr_i2c_wreg(priv->iobase, XLR_I2C_BYTECNT, len - 1);
 	xlr_i2c_wreg(priv->iobase, XLR_I2C_DEVADDR, addr);
 
@@ -259,14 +297,21 @@ retry:
 	xlr_i2c_wreg(priv->iobase, XLR_I2C_STARTXFR, XLR_I2C_STARTXFR_RD);
 
 	if (priv->irq > 0)
+	{
 		return xlr_i2c_wait(priv, XLR_I2C_TIMEOUT * len);
+	}
 
-	while (!timedout) {
+	while (!timedout)
+	{
 		checktime = jiffies;
 		i2c_status = xlr_i2c_rdreg(priv->iobase, XLR_I2C_STATUS);
-		if (i2c_status & XLR_I2C_RXRDY) {
+
+		if (i2c_status & XLR_I2C_RXRDY)
+		{
 			if (nbytes >= len)
-				return -EIO;	/* should not happen */
+			{
+				return -EIO;    /* should not happen */
+			}
 
 			buf[nbytes++] =
 				xlr_i2c_rdreg(priv->iobase, XLR_I2C_DATAIN);
@@ -276,17 +321,26 @@ retry:
 		}
 
 		timedout = time_after(checktime, stoptime);
-		if (i2c_status & XLR_I2C_ARB_STARTERR) {
+
+		if (i2c_status & XLR_I2C_ARB_STARTERR)
+		{
 			if (timedout)
+			{
 				break;
+			}
+
 			goto retry;
 		}
 
 		if (i2c_status & XLR_I2C_ACK_ERR)
+		{
 			return -EIO;
+		}
 
 		if (!xlr_i2c_busy(priv, i2c_status))
+		{
 			return 0;
+		}
 	}
 
 	dev_err(&adap->dev, "I2C receive timeout\n");
@@ -294,7 +348,7 @@ retry:
 }
 
 static int xlr_i2c_xfer(struct i2c_adapter *adap,
-	struct i2c_msg *msgs, int num)
+						struct i2c_msg *msgs, int num)
 {
 	struct i2c_msg *msg;
 	int i;
@@ -302,26 +356,35 @@ static int xlr_i2c_xfer(struct i2c_adapter *adap,
 	struct xlr_i2c_private *priv = i2c_get_adapdata(adap);
 
 	ret = clk_enable(priv->clk);
+
 	if (ret)
+	{
 		return ret;
-
-	if (priv->irq)
-		xlr_i2c_wreg(priv->iobase, XLR_I2C_INT_EN, 0xf);
-
-
-	for (i = 0; ret == 0 && i < num; i++) {
-		msg = &msgs[i];
-		priv->msg = msg;
-		if (msg->flags & I2C_M_RD)
-			ret = xlr_i2c_rx(priv, msg->len, &msg->buf[0],
-					msg->addr);
-		else
-			ret = xlr_i2c_tx(priv, msg->len, &msg->buf[0],
-					msg->addr);
 	}
 
 	if (priv->irq)
+	{
+		xlr_i2c_wreg(priv->iobase, XLR_I2C_INT_EN, 0xf);
+	}
+
+
+	for (i = 0; ret == 0 && i < num; i++)
+	{
+		msg = &msgs[i];
+		priv->msg = msg;
+
+		if (msg->flags & I2C_M_RD)
+			ret = xlr_i2c_rx(priv, msg->len, &msg->buf[0],
+							 msg->addr);
+		else
+			ret = xlr_i2c_tx(priv, msg->len, &msg->buf[0],
+							 msg->addr);
+	}
+
+	if (priv->irq)
+	{
 		xlr_i2c_wreg(priv->iobase, XLR_I2C_INT_EN, 0);
+	}
 
 	clk_disable(priv->clk);
 	priv->msg = NULL;
@@ -335,23 +398,27 @@ static u32 xlr_func(struct i2c_adapter *adap)
 	return (I2C_FUNC_SMBUS_EMUL & ~I2C_FUNC_SMBUS_QUICK) | I2C_FUNC_I2C;
 }
 
-static struct i2c_algorithm xlr_i2c_algo = {
+static struct i2c_algorithm xlr_i2c_algo =
+{
 	.master_xfer	= xlr_i2c_xfer,
 	.functionality	= xlr_func,
 };
 
-static const struct xlr_i2c_config xlr_i2c_config_default = {
+static const struct xlr_i2c_config xlr_i2c_config_default =
+{
 	.status_busy	= XLR_I2C_BUS_BUSY,
 	.cfg_extra	= 0,
 };
 
-static const struct xlr_i2c_config xlr_i2c_config_tangox = {
+static const struct xlr_i2c_config xlr_i2c_config_tangox =
+{
 	.flags		= XLR_I2C_FLAG_IRQ,
 	.status_busy	= 0,
 	.cfg_extra	= 1 << 8,
 };
 
-static const struct of_device_id xlr_i2c_dt_ids[] = {
+static const struct of_device_id xlr_i2c_dt_ids[] =
+{
 	{
 		.compatible	= "sigma,smp8642-i2c",
 		.data		= &xlr_i2c_config_tangox,
@@ -373,46 +440,68 @@ static int xlr_i2c_probe(struct platform_device *pdev)
 	int ret;
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	match = of_match_device(xlr_i2c_dt_ids, &pdev->dev);
+
 	if (match)
+	{
 		priv->cfg = match->data;
+	}
 	else
+	{
 		priv->cfg = &xlr_i2c_config_default;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->iobase = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(priv->iobase))
+	{
 		return PTR_ERR(priv->iobase);
+	}
 
 	irq = platform_get_irq(pdev, 0);
 
-	if (irq > 0 && (priv->cfg->flags & XLR_I2C_FLAG_IRQ)) {
+	if (irq > 0 && (priv->cfg->flags & XLR_I2C_FLAG_IRQ))
+	{
 		priv->irq = irq;
 
 		xlr_i2c_wreg(priv->iobase, XLR_I2C_INT_EN, 0);
 		xlr_i2c_wreg(priv->iobase, XLR_I2C_INT_STAT, 0xf);
 
 		ret = devm_request_irq(&pdev->dev, priv->irq, xlr_i2c_irq,
-					IRQF_SHARED, dev_name(&pdev->dev),
-					priv);
+							   IRQF_SHARED, dev_name(&pdev->dev),
+							   priv);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		init_waitqueue_head(&priv->wait);
 	}
 
 	if (of_property_read_u32(pdev->dev.of_node, "clock-frequency",
-				 &busfreq))
+							 &busfreq))
+	{
 		busfreq = 100000;
+	}
 
 	clk = devm_clk_get(&pdev->dev, NULL);
-	if (!IS_ERR(clk)) {
+
+	if (!IS_ERR(clk))
+	{
 		ret = clk_prepare_enable(clk);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		clk_rate = clk_get_rate(clk);
 		clk_div = DIV_ROUND_UP(clk_rate, 2 * busfreq);
@@ -433,8 +522,11 @@ static int xlr_i2c_probe(struct platform_device *pdev)
 
 	i2c_set_adapdata(&priv->adap, priv);
 	ret = i2c_add_numbered_adapter(&priv->adap);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	platform_set_drvdata(pdev, priv);
 	dev_info(&priv->adap.dev, "Added I2C Bus.\n");
@@ -452,7 +544,8 @@ static int xlr_i2c_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver xlr_i2c_driver = {
+static struct platform_driver xlr_i2c_driver =
+{
 	.probe  = xlr_i2c_probe,
 	.remove = xlr_i2c_remove,
 	.driver = {

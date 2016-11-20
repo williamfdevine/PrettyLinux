@@ -43,7 +43,8 @@ static bool flip_y;
 module_param(flip_y, bool, 0644);
 MODULE_PARM_DESC(flip_y, "flip y coordinate");
 
-struct eeti_ts_priv {
+struct eeti_ts_priv
+{
 	struct i2c_client *client;
 	struct input_dev *input;
 	struct work_struct work;
@@ -75,17 +76,22 @@ static void eeti_ts_read(struct work_struct *work)
 	mutex_lock(&priv->mutex);
 
 	while (eeti_ts_irq_active(priv) && --to)
+	{
 		i2c_master_recv(priv->client, buf, sizeof(buf));
+	}
 
-	if (!to) {
+	if (!to)
+	{
 		dev_err(&priv->client->dev,
-			"unable to clear IRQ - line stuck?\n");
+				"unable to clear IRQ - line stuck?\n");
 		goto out;
 	}
 
 	/* drop non-report packets */
 	if (!(buf[0] & 0x80))
+	{
 		goto out;
+	}
 
 	pressed = buf[0] & REPORT_BIT_PRESSED;
 	res = REPORT_RES_BITS(buf[0] & (REPORT_BIT_AD0 | REPORT_BIT_AD1));
@@ -97,13 +103,19 @@ static void eeti_ts_read(struct work_struct *work)
 	y >>= res - EETI_TS_BITDEPTH;
 
 	if (flip_x)
+	{
 		x = EETI_MAXVAL - x;
+	}
 
 	if (flip_y)
+	{
 		y = EETI_MAXVAL - y;
+	}
 
 	if (buf[0] & REPORT_BIT_HAS_PRESSURE)
+	{
 		input_report_abs(priv->input, ABS_PRESSURE, buf[5]);
+	}
 
 	input_report_abs(priv->input, ABS_X, x);
 	input_report_abs(priv->input, ABS_Y, y);
@@ -118,7 +130,7 @@ static irqreturn_t eeti_ts_isr(int irq, void *dev_id)
 {
 	struct eeti_ts_priv *priv = dev_id;
 
-	 /* postpone I2C transactions as we are atomic */
+	/* postpone I2C transactions as we are atomic */
 	schedule_work(&priv->work);
 
 	return IRQ_HANDLED;
@@ -155,7 +167,7 @@ static void eeti_ts_close(struct input_dev *dev)
 }
 
 static int eeti_ts_probe(struct i2c_client *client,
-				   const struct i2c_device_id *idp)
+						 const struct i2c_device_id *idp)
 {
 	struct eeti_ts_platform_data *pdata = dev_get_platdata(&client->dev);
 	struct eeti_ts_priv *priv;
@@ -171,7 +183,9 @@ static int eeti_ts_probe(struct i2c_client *client,
 	 */
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-	if (!priv) {
+
+	if (!priv)
+	{
 		dev_err(&client->dev, "failed to allocate driver data\n");
 		goto err0;
 	}
@@ -179,7 +193,8 @@ static int eeti_ts_probe(struct i2c_client *client,
 	mutex_init(&priv->mutex);
 	input = input_allocate_device();
 
-	if (!input) {
+	if (!input)
+	{
 		dev_err(&client->dev, "Failed to allocate input device.\n");
 		goto err1;
 	}
@@ -203,25 +218,33 @@ static int eeti_ts_probe(struct i2c_client *client,
 	priv->irq = gpio_to_irq(pdata->irq_gpio);
 
 	err = gpio_request_one(pdata->irq_gpio, GPIOF_IN, client->name);
+
 	if (err < 0)
+	{
 		goto err1;
+	}
 
 	priv->irq_active_high = pdata->irq_active_high;
 
 	irq_flags = priv->irq_active_high ?
-		IRQF_TRIGGER_RISING : IRQF_TRIGGER_FALLING;
+				IRQF_TRIGGER_RISING : IRQF_TRIGGER_FALLING;
 
 	INIT_WORK(&priv->work, eeti_ts_read);
 	i2c_set_clientdata(client, priv);
 	input_set_drvdata(input, priv);
 
 	err = input_register_device(input);
+
 	if (err)
+	{
 		goto err2;
+	}
 
 	err = request_irq(priv->irq, eeti_ts_isr, irq_flags,
-			  client->name, priv);
-	if (err) {
+					  client->name, priv);
+
+	if (err)
+	{
 		dev_err(&client->dev, "Unable to request touchscreen IRQ.\n");
 		goto err3;
 	}
@@ -273,12 +296,16 @@ static int __maybe_unused eeti_ts_suspend(struct device *dev)
 	mutex_lock(&input_dev->mutex);
 
 	if (input_dev->users)
+	{
 		eeti_ts_stop(priv);
+	}
 
 	mutex_unlock(&input_dev->mutex);
 
 	if (device_may_wakeup(&client->dev))
+	{
 		enable_irq_wake(priv->irq);
+	}
 
 	return 0;
 }
@@ -290,12 +317,16 @@ static int __maybe_unused eeti_ts_resume(struct device *dev)
 	struct input_dev *input_dev = priv->input;
 
 	if (device_may_wakeup(&client->dev))
+	{
 		disable_irq_wake(priv->irq);
+	}
 
 	mutex_lock(&input_dev->mutex);
 
 	if (input_dev->users)
+	{
 		eeti_ts_start(priv);
+	}
 
 	mutex_unlock(&input_dev->mutex);
 
@@ -304,13 +335,15 @@ static int __maybe_unused eeti_ts_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(eeti_ts_pm, eeti_ts_suspend, eeti_ts_resume);
 
-static const struct i2c_device_id eeti_ts_id[] = {
+static const struct i2c_device_id eeti_ts_id[] =
+{
 	{ "eeti_ts", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, eeti_ts_id);
 
-static struct i2c_driver eeti_ts_driver = {
+static struct i2c_driver eeti_ts_driver =
+{
 	.driver = {
 		.name = "eeti_ts",
 		.pm = &eeti_ts_pm,

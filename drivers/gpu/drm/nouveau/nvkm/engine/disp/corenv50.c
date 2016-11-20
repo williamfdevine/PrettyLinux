@@ -33,12 +33,13 @@
 
 int
 nv50_disp_core_new(const struct nv50_disp_dmac_func *func,
-		   const struct nv50_disp_chan_mthd *mthd,
-		   struct nv50_disp_root *root, int chid,
-		   const struct nvkm_oclass *oclass, void *data, u32 size,
-		   struct nvkm_object **pobject)
+				   const struct nv50_disp_chan_mthd *mthd,
+				   struct nv50_disp_root *root, int chid,
+				   const struct nvkm_oclass *oclass, void *data, u32 size,
+				   struct nvkm_object **pobject)
 {
-	union {
+	union
+	{
 		struct nv50_disp_core_channel_dma_v0 v0;
 	} *args = data;
 	struct nvkm_object *parent = oclass->parent;
@@ -46,20 +47,26 @@ nv50_disp_core_new(const struct nv50_disp_dmac_func *func,
 	int ret = -ENOSYS;
 
 	nvif_ioctl(parent, "create disp core channel dma size %d\n", size);
-	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false))) {
+
+	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false)))
+	{
 		nvif_ioctl(parent, "create disp core channel dma vers %d "
 				   "pushbuf %016llx\n",
-			   args->v0.version, args->v0.pushbuf);
+				   args->v0.version, args->v0.pushbuf);
 		push = args->v0.pushbuf;
-	} else
+	}
+	else
+	{
 		return ret;
+	}
 
 	return nv50_disp_dmac_new_(func, mthd, root, chid, 0,
-				   push, oclass, pobject);
+							   push, oclass, pobject);
 }
 
 const struct nv50_disp_mthd_list
-nv50_disp_core_mthd_base = {
+	nv50_disp_core_mthd_base =
+{
 	.mthd = 0x0000,
 	.addr = 0x000000,
 	.data = {
@@ -72,7 +79,8 @@ nv50_disp_core_mthd_base = {
 };
 
 static const struct nv50_disp_mthd_list
-nv50_disp_core_mthd_dac = {
+	nv50_disp_core_mthd_dac =
+{
 	.mthd = 0x0080,
 	.addr = 0x000008,
 	.data = {
@@ -84,7 +92,8 @@ nv50_disp_core_mthd_dac = {
 };
 
 const struct nv50_disp_mthd_list
-nv50_disp_core_mthd_sor = {
+	nv50_disp_core_mthd_sor =
+{
 	.mthd = 0x0040,
 	.addr = 0x000008,
 	.data = {
@@ -94,7 +103,8 @@ nv50_disp_core_mthd_sor = {
 };
 
 const struct nv50_disp_mthd_list
-nv50_disp_core_mthd_pior = {
+	nv50_disp_core_mthd_pior =
+{
 	.mthd = 0x0040,
 	.addr = 0x000008,
 	.data = {
@@ -104,7 +114,8 @@ nv50_disp_core_mthd_pior = {
 };
 
 static const struct nv50_disp_mthd_list
-nv50_disp_core_mthd_head = {
+	nv50_disp_core_mthd_head =
+{
 	.mthd = 0x0400,
 	.addr = 0x000540,
 	.data = {
@@ -151,7 +162,8 @@ nv50_disp_core_mthd_head = {
 };
 
 static const struct nv50_disp_chan_mthd
-nv50_disp_core_chan_mthd = {
+	nv50_disp_core_chan_mthd =
+{
 	.name = "Core",
 	.addr = 0x000000,
 	.prev = 0x000004,
@@ -175,13 +187,15 @@ nv50_disp_core_fini(struct nv50_disp_dmac *chan)
 	/* deactivate channel */
 	nvkm_mask(device, 0x610200, 0x00000010, 0x00000000);
 	nvkm_mask(device, 0x610200, 0x00000003, 0x00000000);
+
 	if (nvkm_msec(device, 2000,
-		if (!(nvkm_rd32(device, 0x610200) & 0x001e0000))
-			break;
-	) < 0) {
-		nvkm_error(subdev, "core fini: %08x\n",
-			   nvkm_rd32(device, 0x610200));
-	}
+				  if (!(nvkm_rd32(device, 0x610200) & 0x001e0000))
+					  break;
+					 ) < 0)
+		{
+			nvkm_error(subdev, "core fini: %08x\n",
+					   nvkm_rd32(device, 0x610200));
+		}
 
 	/* disable error reporting and completion notifications */
 	nvkm_mask(device, 0x610028, 0x00010001, 0x00000000);
@@ -199,9 +213,14 @@ nv50_disp_core_init(struct nv50_disp_dmac *chan)
 
 	/* attempt to unstick channel from some unknown state */
 	if ((nvkm_rd32(device, 0x610200) & 0x009f0000) == 0x00020000)
+	{
 		nvkm_mask(device, 0x610200, 0x00800000, 0x00800000);
+	}
+
 	if ((nvkm_rd32(device, 0x610200) & 0x003f0000) == 0x00030000)
+	{
 		nvkm_mask(device, 0x610200, 0x00600000, 0x00600000);
+	}
 
 	/* initialise channel for dma command submission */
 	nvkm_wr32(device, 0x610204, chan->push);
@@ -213,26 +232,29 @@ nv50_disp_core_init(struct nv50_disp_dmac *chan)
 
 	/* wait for it to go inactive */
 	if (nvkm_msec(device, 2000,
-		if (!(nvkm_rd32(device, 0x610200) & 0x80000000))
-			break;
-	) < 0) {
-		nvkm_error(subdev, "core init: %08x\n",
-			   nvkm_rd32(device, 0x610200));
-		return -EBUSY;
-	}
+				  if (!(nvkm_rd32(device, 0x610200) & 0x80000000))
+					  break;
+					 ) < 0)
+		{
+			nvkm_error(subdev, "core init: %08x\n",
+					   nvkm_rd32(device, 0x610200));
+			return -EBUSY;
+		}
 
 	return 0;
 }
 
 const struct nv50_disp_dmac_func
-nv50_disp_core_func = {
+	nv50_disp_core_func =
+{
 	.init = nv50_disp_core_init,
 	.fini = nv50_disp_core_fini,
 	.bind = nv50_disp_dmac_bind,
 };
 
 const struct nv50_disp_dmac_oclass
-nv50_disp_core_oclass = {
+	nv50_disp_core_oclass =
+{
 	.base.oclass = NV50_DISP_CORE_CHANNEL_DMA,
 	.base.minver = 0,
 	.base.maxver = 0,

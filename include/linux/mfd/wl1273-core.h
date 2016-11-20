@@ -210,12 +210,12 @@
 #define WL1273_IS2_RATE		(0xf << 12)
 
 #define WL1273_I2S_DEF_MODE	(WL1273_IS2_WIDTH_32 | \
-				 WL1273_IS2_FORMAT_STD | \
-				 WL1273_IS2_MASTER | \
-				 WL1273_IS2_TRI_AFTER_SENDING | \
-				 WL1273_IS2_SDOWS_RR | \
-				 WL1273_IS2_TRI_OPT | \
-				 WL1273_IS2_RATE_48K)
+							 WL1273_IS2_FORMAT_STD | \
+							 WL1273_IS2_MASTER | \
+							 WL1273_IS2_TRI_AFTER_SENDING | \
+							 WL1273_IS2_SDOWS_RR | \
+							 WL1273_IS2_TRI_OPT | \
+							 WL1273_IS2_RATE_48K)
 
 #define SCHAR_MIN (-128)
 #define SCHAR_MAX 127
@@ -244,7 +244,8 @@
 
 #define RDS_BLOCK_SIZE	3
 
-struct wl1273_fm_platform_data {
+struct wl1273_fm_platform_data
+{
 	int (*request_resources) (struct i2c_client *client);
 	void (*free_resources) (void);
 	void (*enable) (void);
@@ -267,7 +268,8 @@ struct wl1273_fm_platform_data {
 #define WL1273_BAND_TX_LOW	76000
 #define WL1273_BAND_TX_HIGH	108000
 
-struct wl1273_core {
+struct wl1273_core
+{
 	struct mfd_cell cells[WL1273_FM_CORE_CELLS];
 	struct wl1273_fm_platform_data *pdata;
 

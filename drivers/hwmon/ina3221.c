@@ -44,7 +44,8 @@
 
 #define INA3221_RSHUNT_DEFAULT		10000
 
-enum ina3221_fields {
+enum ina3221_fields
+{
 	/* Configuration */
 	F_RST,
 
@@ -56,7 +57,8 @@ enum ina3221_fields {
 	F_MAX_FIELDS
 };
 
-static const struct reg_field ina3221_reg_fields[] = {
+static const struct reg_field ina3221_reg_fields[] =
+{
 	[F_RST] = REG_FIELD(INA3221_CONFIG, 15, 15),
 
 	[F_WF3] = REG_FIELD(INA3221_MASK_ENABLE, 3, 3),
@@ -67,14 +69,16 @@ static const struct reg_field ina3221_reg_fields[] = {
 	[F_CF1] = REG_FIELD(INA3221_MASK_ENABLE, 9, 9),
 };
 
-enum ina3221_channels {
+enum ina3221_channels
+{
 	INA3221_CHANNEL1,
 	INA3221_CHANNEL2,
 	INA3221_CHANNEL3,
 	INA3221_NUM_CHANNELS
 };
 
-static const unsigned int register_channel[] = {
+static const unsigned int register_channel[] =
+{
 	[INA3221_SHUNT1] = INA3221_CHANNEL1,
 	[INA3221_SHUNT2] = INA3221_CHANNEL2,
 	[INA3221_SHUNT3] = INA3221_CHANNEL3,
@@ -92,21 +96,25 @@ static const unsigned int register_channel[] = {
  * @fields: Register fields of the device
  * @shunt_resistors: Array of resistor values per channel
  */
-struct ina3221_data {
+struct ina3221_data
+{
 	struct regmap *regmap;
 	struct regmap_field *fields[F_MAX_FIELDS];
 	int shunt_resistors[INA3221_NUM_CHANNELS];
 };
 
 static int ina3221_read_value(struct ina3221_data *ina, unsigned int reg,
-			      int *val)
+							  int *val)
 {
 	unsigned int regval;
 	int ret;
 
 	ret = regmap_read(ina->regmap, reg, &regval);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	*val = sign_extend32(regval >> 3, 12);
 
@@ -114,8 +122,8 @@ static int ina3221_read_value(struct ina3221_data *ina, unsigned int reg,
 }
 
 static ssize_t ina3221_show_bus_voltage(struct device *dev,
-					struct device_attribute *attr,
-					char *buf)
+										struct device_attribute *attr,
+										char *buf)
 {
 	struct sensor_device_attribute *sd_attr = to_sensor_dev_attr(attr);
 	struct ina3221_data *ina = dev_get_drvdata(dev);
@@ -123,8 +131,11 @@ static ssize_t ina3221_show_bus_voltage(struct device *dev,
 	int val, voltage_mv, ret;
 
 	ret = ina3221_read_value(ina, reg, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	voltage_mv = val * 8;
 
@@ -132,8 +143,8 @@ static ssize_t ina3221_show_bus_voltage(struct device *dev,
 }
 
 static ssize_t ina3221_show_shunt_voltage(struct device *dev,
-					  struct device_attribute *attr,
-					  char *buf)
+		struct device_attribute *attr,
+		char *buf)
 {
 	struct sensor_device_attribute *sd_attr = to_sensor_dev_attr(attr);
 	struct ina3221_data *ina = dev_get_drvdata(dev);
@@ -141,15 +152,19 @@ static ssize_t ina3221_show_shunt_voltage(struct device *dev,
 	int val, voltage_uv, ret;
 
 	ret = ina3221_read_value(ina, reg, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	voltage_uv = val * 40;
 
 	return snprintf(buf, PAGE_SIZE, "%d\n", voltage_uv);
 }
 
 static ssize_t ina3221_show_current(struct device *dev,
-				    struct device_attribute *attr, char *buf)
+									struct device_attribute *attr, char *buf)
 {
 	struct sensor_device_attribute *sd_attr = to_sensor_dev_attr(attr);
 	struct ina3221_data *ina = dev_get_drvdata(dev);
@@ -159,8 +174,12 @@ static ssize_t ina3221_show_current(struct device *dev,
 	int val, current_ma, voltage_nv, ret;
 
 	ret = ina3221_read_value(ina, reg, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	voltage_nv = val * 40000;
 
 	current_ma = DIV_ROUND_CLOSEST(voltage_nv, resistance_uo);
@@ -169,8 +188,8 @@ static ssize_t ina3221_show_current(struct device *dev,
 }
 
 static ssize_t ina3221_set_current(struct device *dev,
-				   struct device_attribute *attr,
-				   const char *buf, size_t count)
+								   struct device_attribute *attr,
+								   const char *buf, size_t count)
 {
 	struct sensor_device_attribute *sd_attr = to_sensor_dev_attr(attr);
 	struct ina3221_data *ina = dev_get_drvdata(dev);
@@ -180,13 +199,16 @@ static ssize_t ina3221_set_current(struct device *dev,
 	int val, current_ma, voltage_uv, ret;
 
 	ret = kstrtoint(buf, 0, &current_ma);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* clamp current */
 	current_ma = clamp_val(current_ma,
-			       INT_MIN / resistance_uo,
-			       INT_MAX / resistance_uo);
+						   INT_MIN / resistance_uo,
+						   INT_MAX / resistance_uo);
 
 	voltage_uv = DIV_ROUND_CLOSEST(current_ma * resistance_uo, 1000);
 
@@ -197,14 +219,17 @@ static ssize_t ina3221_set_current(struct device *dev,
 	val = DIV_ROUND_CLOSEST(voltage_uv, 5) & 0xfff8;
 
 	ret = regmap_write(ina->regmap, reg, val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return count;
 }
 
 static ssize_t ina3221_show_shunt(struct device *dev,
-				  struct device_attribute *attr, char *buf)
+								  struct device_attribute *attr, char *buf)
 {
 	struct sensor_device_attribute *sd_attr = to_sensor_dev_attr(attr);
 	struct ina3221_data *ina = dev_get_drvdata(dev);
@@ -217,8 +242,8 @@ static ssize_t ina3221_show_shunt(struct device *dev,
 }
 
 static ssize_t ina3221_set_shunt(struct device *dev,
-				 struct device_attribute *attr,
-				 const char *buf, size_t count)
+								 struct device_attribute *attr,
+								 const char *buf, size_t count)
 {
 	struct sensor_device_attribute *sd_attr = to_sensor_dev_attr(attr);
 	struct ina3221_data *ina = dev_get_drvdata(dev);
@@ -227,8 +252,11 @@ static ssize_t ina3221_set_shunt(struct device *dev,
 	int ret;
 
 	ret = kstrtoint(buf, 0, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	val = clamp_val(val, 1, INT_MAX);
 
@@ -238,7 +266,7 @@ static ssize_t ina3221_set_shunt(struct device *dev,
 }
 
 static ssize_t ina3221_show_alert(struct device *dev,
-				  struct device_attribute *attr, char *buf)
+								  struct device_attribute *attr, char *buf)
 {
 	struct sensor_device_attribute *sd_attr = to_sensor_dev_attr(attr);
 	struct ina3221_data *ina = dev_get_drvdata(dev);
@@ -247,77 +275,81 @@ static ssize_t ina3221_show_alert(struct device *dev,
 	int ret;
 
 	ret = regmap_field_read(ina->fields[field], &regval);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return snprintf(buf, PAGE_SIZE, "%d\n", regval);
 }
 
 /* bus voltage */
 static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO,
-		ina3221_show_bus_voltage, NULL, INA3221_BUS1);
+						  ina3221_show_bus_voltage, NULL, INA3221_BUS1);
 static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO,
-		ina3221_show_bus_voltage, NULL, INA3221_BUS2);
+						  ina3221_show_bus_voltage, NULL, INA3221_BUS2);
 static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO,
-		ina3221_show_bus_voltage, NULL, INA3221_BUS3);
+						  ina3221_show_bus_voltage, NULL, INA3221_BUS3);
 
 /* calculated current */
 static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO,
-		ina3221_show_current, NULL, INA3221_SHUNT1);
+						  ina3221_show_current, NULL, INA3221_SHUNT1);
 static SENSOR_DEVICE_ATTR(curr2_input, S_IRUGO,
-		ina3221_show_current, NULL, INA3221_SHUNT2);
+						  ina3221_show_current, NULL, INA3221_SHUNT2);
 static SENSOR_DEVICE_ATTR(curr3_input, S_IRUGO,
-		ina3221_show_current, NULL, INA3221_SHUNT3);
+						  ina3221_show_current, NULL, INA3221_SHUNT3);
 
 /* shunt resistance */
 static SENSOR_DEVICE_ATTR(shunt1_resistor, S_IRUGO | S_IWUSR,
-		ina3221_show_shunt, ina3221_set_shunt, INA3221_CHANNEL1);
+						  ina3221_show_shunt, ina3221_set_shunt, INA3221_CHANNEL1);
 static SENSOR_DEVICE_ATTR(shunt2_resistor, S_IRUGO | S_IWUSR,
-		ina3221_show_shunt, ina3221_set_shunt, INA3221_CHANNEL2);
+						  ina3221_show_shunt, ina3221_set_shunt, INA3221_CHANNEL2);
 static SENSOR_DEVICE_ATTR(shunt3_resistor, S_IRUGO | S_IWUSR,
-		ina3221_show_shunt, ina3221_set_shunt, INA3221_CHANNEL3);
+						  ina3221_show_shunt, ina3221_set_shunt, INA3221_CHANNEL3);
 
 /* critical current */
 static SENSOR_DEVICE_ATTR(curr1_crit, S_IRUGO | S_IWUSR,
-		ina3221_show_current, ina3221_set_current, INA3221_CRIT1);
+						  ina3221_show_current, ina3221_set_current, INA3221_CRIT1);
 static SENSOR_DEVICE_ATTR(curr2_crit, S_IRUGO | S_IWUSR,
-		ina3221_show_current, ina3221_set_current, INA3221_CRIT2);
+						  ina3221_show_current, ina3221_set_current, INA3221_CRIT2);
 static SENSOR_DEVICE_ATTR(curr3_crit, S_IRUGO | S_IWUSR,
-		ina3221_show_current, ina3221_set_current, INA3221_CRIT3);
+						  ina3221_show_current, ina3221_set_current, INA3221_CRIT3);
 
 /* critical current alert */
 static SENSOR_DEVICE_ATTR(curr1_crit_alarm, S_IRUGO,
-		ina3221_show_alert, NULL, F_CF1);
+						  ina3221_show_alert, NULL, F_CF1);
 static SENSOR_DEVICE_ATTR(curr2_crit_alarm, S_IRUGO,
-		ina3221_show_alert, NULL, F_CF2);
+						  ina3221_show_alert, NULL, F_CF2);
 static SENSOR_DEVICE_ATTR(curr3_crit_alarm, S_IRUGO,
-		ina3221_show_alert, NULL, F_CF3);
+						  ina3221_show_alert, NULL, F_CF3);
 
 /* warning current */
 static SENSOR_DEVICE_ATTR(curr1_max, S_IRUGO | S_IWUSR,
-		ina3221_show_current, ina3221_set_current, INA3221_WARN1);
+						  ina3221_show_current, ina3221_set_current, INA3221_WARN1);
 static SENSOR_DEVICE_ATTR(curr2_max, S_IRUGO | S_IWUSR,
-		ina3221_show_current, ina3221_set_current, INA3221_WARN2);
+						  ina3221_show_current, ina3221_set_current, INA3221_WARN2);
 static SENSOR_DEVICE_ATTR(curr3_max, S_IRUGO | S_IWUSR,
-		ina3221_show_current, ina3221_set_current, INA3221_WARN3);
+						  ina3221_show_current, ina3221_set_current, INA3221_WARN3);
 
 /* warning current alert */
 static SENSOR_DEVICE_ATTR(curr1_max_alarm, S_IRUGO,
-		ina3221_show_alert, NULL, F_WF1);
+						  ina3221_show_alert, NULL, F_WF1);
 static SENSOR_DEVICE_ATTR(curr2_max_alarm, S_IRUGO,
-		ina3221_show_alert, NULL, F_WF2);
+						  ina3221_show_alert, NULL, F_WF2);
 static SENSOR_DEVICE_ATTR(curr3_max_alarm, S_IRUGO,
-		ina3221_show_alert, NULL, F_WF3);
+						  ina3221_show_alert, NULL, F_WF3);
 
 /* shunt voltage */
 static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO,
-		ina3221_show_shunt_voltage, NULL, INA3221_SHUNT1);
+						  ina3221_show_shunt_voltage, NULL, INA3221_SHUNT1);
 static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO,
-		ina3221_show_shunt_voltage, NULL, INA3221_SHUNT2);
+						  ina3221_show_shunt_voltage, NULL, INA3221_SHUNT2);
 static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO,
-		ina3221_show_shunt_voltage, NULL, INA3221_SHUNT3);
+						  ina3221_show_shunt_voltage, NULL, INA3221_SHUNT3);
 
-static struct attribute *ina3221_attrs[] = {
+static struct attribute *ina3221_attrs[] =
+{
 	/* channel 1 */
 	&sensor_dev_attr_in1_input.dev_attr.attr,
 	&sensor_dev_attr_curr1_input.dev_attr.attr,
@@ -352,17 +384,20 @@ static struct attribute *ina3221_attrs[] = {
 };
 ATTRIBUTE_GROUPS(ina3221);
 
-static const struct regmap_range ina3221_yes_ranges[] = {
+static const struct regmap_range ina3221_yes_ranges[] =
+{
 	regmap_reg_range(INA3221_SHUNT1, INA3221_BUS3),
 	regmap_reg_range(INA3221_MASK_ENABLE, INA3221_MASK_ENABLE),
 };
 
-static const struct regmap_access_table ina3221_volatile_table = {
+static const struct regmap_access_table ina3221_volatile_table =
+{
 	.yes_ranges = ina3221_yes_ranges,
 	.n_yes_ranges = ARRAY_SIZE(ina3221_yes_ranges),
 };
 
-static const struct regmap_config ina3221_regmap_config = {
+static const struct regmap_config ina3221_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 16,
 
@@ -371,7 +406,7 @@ static const struct regmap_config ina3221_regmap_config = {
 };
 
 static int ina3221_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
 	struct ina3221_data *ina;
@@ -379,38 +414,52 @@ static int ina3221_probe(struct i2c_client *client,
 	int i, ret;
 
 	ina = devm_kzalloc(dev, sizeof(*ina), GFP_KERNEL);
+
 	if (!ina)
+	{
 		return -ENOMEM;
+	}
 
 	ina->regmap = devm_regmap_init_i2c(client, &ina3221_regmap_config);
-	if (IS_ERR(ina->regmap)) {
+
+	if (IS_ERR(ina->regmap))
+	{
 		dev_err(dev, "Unable to allocate register map\n");
 		return PTR_ERR(ina->regmap);
 	}
 
-	for (i = 0; i < F_MAX_FIELDS; i++) {
+	for (i = 0; i < F_MAX_FIELDS; i++)
+	{
 		ina->fields[i] = devm_regmap_field_alloc(dev,
-							 ina->regmap,
-							 ina3221_reg_fields[i]);
-		if (IS_ERR(ina->fields[i])) {
+						 ina->regmap,
+						 ina3221_reg_fields[i]);
+
+		if (IS_ERR(ina->fields[i]))
+		{
 			dev_err(dev, "Unable to allocate regmap fields\n");
 			return PTR_ERR(ina->fields[i]);
 		}
 	}
 
 	for (i = 0; i < INA3221_NUM_CHANNELS; i++)
+	{
 		ina->shunt_resistors[i] = INA3221_RSHUNT_DEFAULT;
+	}
 
 	ret = regmap_field_write(ina->fields[F_RST], true);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Unable to reset device\n");
 		return ret;
 	}
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev,
-							   client->name,
-							   ina, ina3221_groups);
-	if (IS_ERR(hwmon_dev)) {
+				client->name,
+				ina, ina3221_groups);
+
+	if (IS_ERR(hwmon_dev))
+	{
 		dev_err(dev, "Unable to register hwmon device\n");
 		return PTR_ERR(hwmon_dev);
 	}
@@ -418,19 +467,22 @@ static int ina3221_probe(struct i2c_client *client,
 	return 0;
 }
 
-static const struct of_device_id ina3221_of_match_table[] = {
+static const struct of_device_id ina3221_of_match_table[] =
+{
 	{ .compatible = "ti,ina3221", },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, ina3221_of_match_table);
 
-static const struct i2c_device_id ina3221_ids[] = {
+static const struct i2c_device_id ina3221_ids[] =
+{
 	{ "ina3221", 0 },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(i2c, ina3221_ids);
 
-static struct i2c_driver ina3221_i2c_driver = {
+static struct i2c_driver ina3221_i2c_driver =
+{
 	.probe = ina3221_probe,
 	.driver = {
 		.name = INA3221_DRIVER_NAME,

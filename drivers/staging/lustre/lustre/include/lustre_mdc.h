@@ -75,7 +75,8 @@ struct obd_device;
  * in-flight requests from a single client.  This limitation could be
  * overcome by allowing multiple slots per client in the last_rcvd file.
  */
-struct mdc_rpc_lock {
+struct mdc_rpc_lock
+{
 	/** Lock protecting in-flight RPC concurrency. */
 	struct mutex		rpcl_mutex;
 	/** Intent associated with currently executing request. */
@@ -93,11 +94,13 @@ static inline void mdc_init_rpc_lock(struct mdc_rpc_lock *lck)
 }
 
 static inline void mdc_get_rpc_lock(struct mdc_rpc_lock *lck,
-				    struct lookup_intent *it)
+									struct lookup_intent *it)
 {
 	if (it && (it->it_op == IT_GETATTR || it->it_op == IT_LOOKUP ||
-		   it->it_op == IT_LAYOUT || it->it_op == IT_READDIR))
+			   it->it_op == IT_LAYOUT || it->it_op == IT_READDIR))
+	{
 		return;
+	}
 
 	/* This would normally block until the existing request finishes.
 	 * If fail_loc is set it will block until the regular request is
@@ -106,10 +109,11 @@ static inline void mdc_get_rpc_lock(struct mdc_rpc_lock *lck,
 	 * Only when all fake requests are finished can normal requests
 	 * be sent, to ensure they are recoverable again.
 	 */
- again:
+again:
 	mutex_lock(&lck->rpcl_mutex);
 
-	if (CFS_FAIL_CHECK_QUIET(OBD_FAIL_MDC_RPCS_SEM)) {
+	if (CFS_FAIL_CHECK_QUIET(OBD_FAIL_MDC_RPCS_SEM))
+	{
 		lck->rpcl_it = MDC_FAKE_RPCL_IT;
 		lck->rpcl_fakes++;
 		mutex_unlock(&lck->rpcl_mutex);
@@ -122,7 +126,8 @@ static inline void mdc_get_rpc_lock(struct mdc_rpc_lock *lck,
 	 * in this extremely rare case, just have low overhead in
 	 * the common case when it isn't true.
 	 */
-	while (unlikely(lck->rpcl_it == MDC_FAKE_RPCL_IT)) {
+	while (unlikely(lck->rpcl_it == MDC_FAKE_RPCL_IT))
+	{
 		mutex_unlock(&lck->rpcl_mutex);
 		schedule_timeout(cfs_time_seconds(1) / 4);
 		goto again;
@@ -133,22 +138,29 @@ static inline void mdc_get_rpc_lock(struct mdc_rpc_lock *lck,
 }
 
 static inline void mdc_put_rpc_lock(struct mdc_rpc_lock *lck,
-				    struct lookup_intent *it)
+									struct lookup_intent *it)
 {
 	if (it && (it->it_op == IT_GETATTR || it->it_op == IT_LOOKUP ||
-		   it->it_op == IT_LAYOUT || it->it_op == IT_READDIR))
+			   it->it_op == IT_LAYOUT || it->it_op == IT_READDIR))
+	{
 		return;
+	}
 
-	if (lck->rpcl_it == MDC_FAKE_RPCL_IT) { /* OBD_FAIL_MDC_RPCS_SEM */
+	if (lck->rpcl_it == MDC_FAKE_RPCL_IT)   /* OBD_FAIL_MDC_RPCS_SEM */
+	{
 		mutex_lock(&lck->rpcl_mutex);
 
 		LASSERTF(lck->rpcl_fakes > 0, "%d\n", lck->rpcl_fakes);
 		lck->rpcl_fakes--;
 
 		if (lck->rpcl_fakes == 0)
+		{
 			lck->rpcl_it = NULL;
+		}
 
-	} else {
+	}
+	else
+	{
 		LASSERTF(it == lck->rpcl_it, "%p != %p\n", it, lck->rpcl_it);
 		lck->rpcl_it = NULL;
 	}
@@ -172,24 +184,29 @@ static inline void mdc_put_rpc_lock(struct mdc_rpc_lock *lck,
  *
  */
 static inline void mdc_update_max_ea_from_body(struct obd_export *exp,
-					       struct mdt_body *body)
+		struct mdt_body *body)
 {
-	if (body->mbo_valid & OBD_MD_FLMODEASIZE) {
+	if (body->mbo_valid & OBD_MD_FLMODEASIZE)
+	{
 		struct client_obd *cli = &exp->exp_obd->u.cli;
 		u32 def_cookiesize, def_easize;
 
 		if (cli->cl_max_mds_easize < body->mbo_max_mdsize)
+		{
 			cli->cl_max_mds_easize = body->mbo_max_mdsize;
+		}
 
 		def_easize = min_t(__u32, body->mbo_max_mdsize,
-				   OBD_MAX_DEFAULT_EA_SIZE);
+						   OBD_MAX_DEFAULT_EA_SIZE);
 		cli->cl_default_mds_easize = def_easize;
 
 		if (cli->cl_max_mds_cookiesize < body->mbo_max_cookiesize)
+		{
 			cli->cl_max_mds_cookiesize = body->mbo_max_cookiesize;
+		}
 
 		def_cookiesize = min_t(__u32, body->mbo_max_cookiesize,
-				       OBD_MAX_DEFAULT_COOKIE_SIZE);
+							   OBD_MAX_DEFAULT_COOKIE_SIZE);
 		cli->cl_default_mds_cookiesize = def_cookiesize;
 	}
 }
@@ -205,7 +222,9 @@ static inline bool cl_is_lov_delay_create(unsigned int flags)
 static inline void cl_lov_delay_create_clear(unsigned int *flags)
 {
 	if ((*flags & O_LOV_DELAY_CREATE) == O_LOV_DELAY_CREATE)
+	{
 		*flags &= ~O_LOV_DELAY_CREATE;
+	}
 }
 
 /** @} mdc */

@@ -3,7 +3,8 @@
 #include <linux/kref.h>
 #include <linux/rwsem.h>
 
-struct autogroup {
+struct autogroup
+{
 	/*
 	 * reference doesn't mean how many thread attach to this
 	 * autogroup now. It just stands for the number of task
@@ -32,7 +33,9 @@ autogroup_task_group(struct task_struct *p, struct task_group *tg)
 	int enabled = READ_ONCE(sysctl_sched_autogroup_enabled);
 
 	if (enabled && task_wants_autogroup(p, tg))
+	{
 		return p->signal->autogroup->tg;
+	}
 
 	return tg;
 }

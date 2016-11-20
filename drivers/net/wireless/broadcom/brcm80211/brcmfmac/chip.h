@@ -19,7 +19,7 @@
 #include <linux/types.h>
 
 #define CORE_CC_REG(base, field) \
-		(base + offsetof(struct chipcregs, field))
+	(base + offsetof(struct chipcregs, field))
 
 /**
  * struct brcmf_chip - chip level information.
@@ -35,7 +35,8 @@
  * @srsize: amount of retention RAM on chip.
  * @name: string representation of the chip identifier.
  */
-struct brcmf_chip {
+struct brcmf_chip
+{
 	u32 chip;
 	u32 chiprev;
 	u32 cc_caps;
@@ -55,7 +56,8 @@ struct brcmf_chip {
  * @rev: core revision.
  * @base: base address of core register space.
  */
-struct brcmf_core {
+struct brcmf_core
+{
 	u16 id;
 	u16 rev;
 	u32 base;
@@ -71,7 +73,8 @@ struct brcmf_core {
  * @active: chip becomes active.
  *	The callback should use the provided @rstvec when non-zero.
  */
-struct brcmf_buscore_ops {
+struct brcmf_buscore_ops
+{
 	u32 (*read32)(void *ctx, u32 addr);
 	void (*write32)(void *ctx, u32 addr, u32 value);
 	int (*prepare)(void *ctx);
@@ -81,7 +84,7 @@ struct brcmf_buscore_ops {
 };
 
 struct brcmf_chip *brcmf_chip_attach(void *ctx,
-				     const struct brcmf_buscore_ops *ops);
+									 const struct brcmf_buscore_ops *ops);
 void brcmf_chip_detach(struct brcmf_chip *chip);
 struct brcmf_core *brcmf_chip_get_core(struct brcmf_chip *chip, u16 coreid);
 struct brcmf_core *brcmf_chip_get_chipcommon(struct brcmf_chip *chip);
@@ -89,7 +92,7 @@ struct brcmf_core *brcmf_chip_get_pmu(struct brcmf_chip *pub);
 bool brcmf_chip_iscoreup(struct brcmf_core *core);
 void brcmf_chip_coredisable(struct brcmf_core *core, u32 prereset, u32 reset);
 void brcmf_chip_resetcore(struct brcmf_core *core, u32 prereset, u32 reset,
-			  u32 postreset);
+						  u32 postreset);
 void brcmf_chip_set_passive(struct brcmf_chip *ci);
 bool brcmf_chip_set_active(struct brcmf_chip *ci, u32 rstvec);
 bool brcmf_chip_sr_capable(struct brcmf_chip *pub);

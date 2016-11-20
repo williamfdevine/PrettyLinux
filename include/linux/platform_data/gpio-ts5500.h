@@ -19,7 +19,8 @@
  *		If you need a bidirectional line which can trigger an IRQ, you
  *		may strap it with an in/out pin. This flag indicates this case.
  */
-struct ts5500_dio_platform_data {
+struct ts5500_dio_platform_data
+{
 	int base;
 	bool strap;
 };

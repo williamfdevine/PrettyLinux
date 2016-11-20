@@ -11,7 +11,8 @@
 /*
  * This structure is used to hold the arguments that are used when loading binaries.
  */
-struct linux_binprm {
+struct linux_binprm
+{
 	char buf[BINPRM_BUF_SIZE];
 #ifdef CONFIG_MMU
 	struct vm_area_struct *vma;
@@ -23,22 +24,22 @@ struct linux_binprm {
 	struct mm_struct *mm;
 	unsigned long p; /* current top of mem */
 	unsigned int
-		cred_prepared:1,/* true if creds already prepared (multiple
+	cred_prepared: 1,/* true if creds already prepared (multiple
 				 * preps happen for interpreters) */
-		cap_effective:1;/* true if has elevated effective capabilities,
+				   cap_effective: 1;/* true if has elevated effective capabilities,
 				 * false if not; except for init which inherits
 				 * its parent's caps anyway */
 #ifdef __alpha__
-	unsigned int taso:1;
+	unsigned int taso: 1;
 #endif
 	unsigned int recursion_depth; /* only for search_binary_handler() */
-	struct file * file;
+	struct file *file;
 	struct cred *cred;	/* new credentials */
 	int unsafe;		/* how unsafe this exec is (mask of LSM_UNSAFE_*) */
 	unsigned int per_clear;	/* bits to clear in current->personality */
 	int argc, envc;
-	const char * filename;	/* Name of binary as seen by procps */
-	const char * interp;	/* Name of the binary really executed. Most
+	const char *filename;	/* Name of binary as seen by procps */
+	const char *interp;	/* Name of the binary really executed. Most
 				   of the time same as filename, but could be
 				   different for binfmt_{misc,script} */
 	unsigned interp_flags;
@@ -58,7 +59,8 @@ struct linux_binprm {
 #define BINPRM_FLAGS_PATH_INACCESSIBLE (1 << BINPRM_FLAGS_PATH_INACCESSIBLE_BIT)
 
 /* Function parameter for binfmt->coredump */
-struct coredump_params {
+struct coredump_params
+{
 	const siginfo_t *siginfo;
 	struct pt_regs *regs;
 	struct file *file;
@@ -72,7 +74,8 @@ struct coredump_params {
  * This structure defines the functions that are used to load the binary formats that
  * linux accepts.
  */
-struct linux_binfmt {
+struct linux_binfmt
+{
 	struct list_head lh;
 	struct module *module;
 	int (*load_binary)(struct linux_binprm *);
@@ -99,8 +102,8 @@ extern void unregister_binfmt(struct linux_binfmt *);
 extern int prepare_binprm(struct linux_binprm *);
 extern int __must_check remove_arg_zero(struct linux_binprm *);
 extern int search_binary_handler(struct linux_binprm *);
-extern int flush_old_exec(struct linux_binprm * bprm);
-extern void setup_new_exec(struct linux_binprm * bprm);
+extern int flush_old_exec(struct linux_binprm *bprm);
+extern void setup_new_exec(struct linux_binprm *bprm);
 extern void would_dump(struct linux_binprm *, struct file *);
 
 extern int suid_dumpable;
@@ -110,14 +113,14 @@ extern int suid_dumpable;
 #define EXSTACK_DISABLE_X 1	/* Disable executable stacks */
 #define EXSTACK_ENABLE_X  2	/* Enable executable stacks */
 
-extern int setup_arg_pages(struct linux_binprm * bprm,
-			   unsigned long stack_top,
-			   int executable_stack);
+extern int setup_arg_pages(struct linux_binprm *bprm,
+						   unsigned long stack_top,
+						   int executable_stack);
 extern int transfer_args_to_stack(struct linux_binprm *bprm,
-				  unsigned long *sp_location);
+								  unsigned long *sp_location);
 extern int bprm_change_interp(char *interp, struct linux_binprm *bprm);
 extern int copy_strings_kernel(int argc, const char *const *argv,
-			       struct linux_binprm *bprm);
+							   struct linux_binprm *bprm);
 extern int prepare_bprm_creds(struct linux_binprm *bprm);
 extern void install_exec_creds(struct linux_binprm *bprm);
 extern void set_binfmt(struct linux_binfmt *new);

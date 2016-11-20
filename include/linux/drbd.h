@@ -28,25 +28,25 @@
 #include <asm/types.h>
 
 #ifdef __KERNEL__
-#include <linux/types.h>
-#include <asm/byteorder.h>
+	#include <linux/types.h>
+	#include <asm/byteorder.h>
 #else
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <limits.h>
+	#include <sys/types.h>
+	#include <sys/wait.h>
+	#include <limits.h>
 
-/* Although the Linux source code makes a difference between
-   generic endianness and the bitfields' endianness, there is no
-   architecture as of Linux-2.6.24-rc4 where the bitfields' endianness
-   does not match the generic endianness. */
+	/* Although the Linux source code makes a difference between
+	generic endianness and the bitfields' endianness, there is no
+	architecture as of Linux-2.6.24-rc4 where the bitfields' endianness
+	does not match the generic endianness. */
 
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-#define __LITTLE_ENDIAN_BITFIELD
-#elif __BYTE_ORDER == __BIG_ENDIAN
-#define __BIG_ENDIAN_BITFIELD
-#else
-# error "sorry, weird endianness on this box"
-#endif
+	#if __BYTE_ORDER == __LITTLE_ENDIAN
+		#define __LITTLE_ENDIAN_BITFIELD
+	#elif __BYTE_ORDER == __BIG_ENDIAN
+		#define __BIG_ENDIAN_BITFIELD
+	#else
+		# error "sorry, weird endianness on this box"
+	#endif
 
 #endif
 
@@ -57,26 +57,30 @@ extern const char *drbd_buildtag(void);
 #define PRO_VERSION_MAX 101
 
 
-enum drbd_io_error_p {
+enum drbd_io_error_p
+{
 	EP_PASS_ON, /* FIXME should the better be named "Ignore"? */
 	EP_CALL_HELPER,
 	EP_DETACH
 };
 
-enum drbd_fencing_p {
+enum drbd_fencing_p
+{
 	FP_NOT_AVAIL = -1, /* Not a policy */
 	FP_DONT_CARE = 0,
 	FP_RESOURCE,
 	FP_STONITH
 };
 
-enum drbd_disconnect_p {
+enum drbd_disconnect_p
+{
 	DP_RECONNECT,
 	DP_DROP_NET_CONF,
 	DP_FREEZE_IO
 };
 
-enum drbd_after_sb_p {
+enum drbd_after_sb_p
+{
 	ASB_DISCONNECT,
 	ASB_DISCARD_YOUNGER_PRI,
 	ASB_DISCARD_OLDER_PRI,
@@ -90,18 +94,21 @@ enum drbd_after_sb_p {
 	ASB_VIOLENTLY
 };
 
-enum drbd_on_no_data {
+enum drbd_on_no_data
+{
 	OND_IO_ERROR,
 	OND_SUSPEND_IO
 };
 
-enum drbd_on_congestion {
+enum drbd_on_congestion
+{
 	OC_BLOCK,
 	OC_PULL_AHEAD,
 	OC_DISCONNECT,
 };
 
-enum drbd_read_balancing {
+enum drbd_read_balancing
+{
 	RB_PREFER_LOCAL,
 	RB_PREFER_REMOTE,
 	RB_ROUND_ROBIN,
@@ -116,7 +123,8 @@ enum drbd_read_balancing {
 };
 
 /* KEEP the order, do not delete or insert. Only append. */
-enum drbd_ret_code {
+enum drbd_ret_code
+{
 	ERR_CODE_BASE		= 100,
 	NO_ERROR		= 101,
 	ERR_LOCAL_ADDR		= 102,
@@ -158,7 +166,7 @@ enum drbd_ret_code {
 	ERR_CSUMS_ALG_ND	= 145, /* DRBD 8.2 only */
 	ERR_VERIFY_ALG		= 146, /* DRBD 8.2 only */
 	ERR_VERIFY_ALG_ND	= 147, /* DRBD 8.2 only */
-	ERR_CSUMS_RESYNC_RUNNING= 148, /* DRBD 8.2 only */
+	ERR_CSUMS_RESYNC_RUNNING = 148, /* DRBD 8.2 only */
 	ERR_VERIFY_RUNNING	= 149, /* DRBD 8.2 only */
 	ERR_DATA_NOT_CURRENT	= 150,
 	ERR_CONNECTED		= 151, /* DRBD 8.3 only */
@@ -189,7 +197,8 @@ enum drbd_ret_code {
 #define DRBD_PROT_B   2
 #define DRBD_PROT_C   3
 
-enum drbd_role {
+enum drbd_role
+{
 	R_UNKNOWN = 0,
 	R_PRIMARY = 1,     /* role */
 	R_SECONDARY = 2,   /* role */
@@ -201,7 +210,8 @@ enum drbd_role {
  * that there is no socket!
  * >=C_WF_REPORT_PARAMS ==> There is a socket
  */
-enum drbd_conns {
+enum drbd_conns
+{
 	C_STANDALONE,
 	C_DISCONNECTING,  /* Temporal state on the way to StandAlone. */
 	C_UNCONNECTED,    /* >= C_UNCONNECTED -> inc_net() succeeds */
@@ -240,11 +250,12 @@ enum drbd_conns {
 	C_MASK = 31
 };
 
-enum drbd_disk_state {
+enum drbd_disk_state
+{
 	D_DISKLESS,
 	D_ATTACHING,      /* In the process of reading the meta-data */
 	D_FAILED,         /* Becomes D_DISKLESS as soon as we told it the peer */
-			  /* when >= D_FAILED it is legal to access mdev->ldev */
+	/* when >= D_FAILED it is legal to access mdev->ldev */
 	D_NEGOTIATING,    /* Late attaching state, we need to talk to the peer */
 	D_INCONSISTENT,
 	D_OUTDATED,
@@ -254,42 +265,44 @@ enum drbd_disk_state {
 	D_MASK = 15
 };
 
-union drbd_state {
-/* According to gcc's docs is the ...
- * The order of allocation of bit-fields within a unit (C90 6.5.2.1, C99 6.7.2.1).
- * Determined by ABI.
- * pointed out by Maxim Uvarov q<muvarov@ru.mvista.com>
- * even though we transmit as "cpu_to_be32(state)",
- * the offsets of the bitfields still need to be swapped
- * on different endianness.
- */
-	struct {
+union drbd_state
+{
+	/* According to gcc's docs is the ...
+	 * The order of allocation of bit-fields within a unit (C90 6.5.2.1, C99 6.7.2.1).
+	 * Determined by ABI.
+	 * pointed out by Maxim Uvarov q<muvarov@ru.mvista.com>
+	 * even though we transmit as "cpu_to_be32(state)",
+	 * the offsets of the bitfields still need to be swapped
+	 * on different endianness.
+	 */
+	struct
+	{
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-		unsigned role:2 ;   /* 3/4	 primary/secondary/unknown */
-		unsigned peer:2 ;   /* 3/4	 primary/secondary/unknown */
-		unsigned conn:5 ;   /* 17/32	 cstates */
-		unsigned disk:4 ;   /* 8/16	 from D_DISKLESS to D_UP_TO_DATE */
-		unsigned pdsk:4 ;   /* 8/16	 from D_DISKLESS to D_UP_TO_DATE */
-		unsigned susp:1 ;   /* 2/2	 IO suspended no/yes (by user) */
-		unsigned aftr_isp:1 ; /* isp .. imposed sync pause */
-		unsigned peer_isp:1 ;
-		unsigned user_isp:1 ;
-		unsigned susp_nod:1 ; /* IO suspended because no data */
-		unsigned susp_fen:1 ; /* IO suspended because fence peer handler runs*/
-		unsigned _pad:9;   /* 0	 unused */
+		unsigned role: 2 ;  /* 3/4	 primary/secondary/unknown */
+		unsigned peer: 2 ;  /* 3/4	 primary/secondary/unknown */
+		unsigned conn: 5 ;  /* 17/32	 cstates */
+		unsigned disk: 4 ;  /* 8/16	 from D_DISKLESS to D_UP_TO_DATE */
+		unsigned pdsk: 4 ;  /* 8/16	 from D_DISKLESS to D_UP_TO_DATE */
+		unsigned susp: 1 ;  /* 2/2	 IO suspended no/yes (by user) */
+		unsigned aftr_isp: 1 ; /* isp .. imposed sync pause */
+		unsigned peer_isp: 1 ;
+		unsigned user_isp: 1 ;
+		unsigned susp_nod: 1 ; /* IO suspended because no data */
+		unsigned susp_fen: 1 ; /* IO suspended because fence peer handler runs*/
+		unsigned _pad: 9;  /* 0	 unused */
 #elif defined(__BIG_ENDIAN_BITFIELD)
-		unsigned _pad:9;
-		unsigned susp_fen:1 ;
-		unsigned susp_nod:1 ;
-		unsigned user_isp:1 ;
-		unsigned peer_isp:1 ;
-		unsigned aftr_isp:1 ; /* isp .. imposed sync pause */
-		unsigned susp:1 ;   /* 2/2	 IO suspended  no/yes */
-		unsigned pdsk:4 ;   /* 8/16	 from D_DISKLESS to D_UP_TO_DATE */
-		unsigned disk:4 ;   /* 8/16	 from D_DISKLESS to D_UP_TO_DATE */
-		unsigned conn:5 ;   /* 17/32	 cstates */
-		unsigned peer:2 ;   /* 3/4	 primary/secondary/unknown */
-		unsigned role:2 ;   /* 3/4	 primary/secondary/unknown */
+		unsigned _pad: 9;
+		unsigned susp_fen: 1 ;
+		unsigned susp_nod: 1 ;
+		unsigned user_isp: 1 ;
+		unsigned peer_isp: 1 ;
+		unsigned aftr_isp: 1 ; /* isp .. imposed sync pause */
+		unsigned susp: 1 ;  /* 2/2	 IO suspended  no/yes */
+		unsigned pdsk: 4 ;  /* 8/16	 from D_DISKLESS to D_UP_TO_DATE */
+		unsigned disk: 4 ;  /* 8/16	 from D_DISKLESS to D_UP_TO_DATE */
+		unsigned conn: 5 ;  /* 17/32	 cstates */
+		unsigned peer: 2 ;  /* 3/4	 primary/secondary/unknown */
+		unsigned role: 2 ;  /* 3/4	 primary/secondary/unknown */
 #else
 # error "this endianness is not supported"
 #endif
@@ -297,7 +310,8 @@ union drbd_state {
 	unsigned int i;
 };
 
-enum drbd_state_rv {
+enum drbd_state_rv
+{
 	SS_CW_NO_NEED = 4,
 	SS_CW_SUCCESS = 3,
 	SS_NOTHING_TO_DO = 2,
@@ -340,7 +354,8 @@ enum drbd_state_rv {
 
 #define MAX_PEERS 32
 
-enum drbd_uuid_index {
+enum drbd_uuid_index
+{
 	UI_CURRENT,
 	UI_BITMAP,
 	UI_HISTORY_START,
@@ -352,13 +367,15 @@ enum drbd_uuid_index {
 
 #define HISTORY_UUIDS MAX_PEERS
 
-enum drbd_timeout_flag {
+enum drbd_timeout_flag
+{
 	UT_DEFAULT      = 0,
 	UT_DEGRADED     = 1,
 	UT_PEER_OUTDATED = 2,
 };
 
-enum drbd_notification_type {
+enum drbd_notification_type
+{
 	NOTIFY_EXISTS,
 	NOTIFY_CREATE,
 	NOTIFY_CHANGE,
@@ -370,7 +387,8 @@ enum drbd_notification_type {
 	NOTIFY_FLAGS = NOTIFY_CONTINUES,
 };
 
-enum drbd_peer_state {
+enum drbd_peer_state
+{
 	P_INCONSISTENT = 3,
 	P_OUTDATED = 4,
 	P_DOWN = 5,
@@ -380,7 +398,8 @@ enum drbd_peer_state {
 
 #define UUID_JUST_CREATED ((__u64)4)
 
-enum write_ordering_e {
+enum write_ordering_e
+{
 	WO_NONE,
 	WO_DRAIN_IO,
 	WO_BDEV_FLUSH,

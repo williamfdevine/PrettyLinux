@@ -72,14 +72,16 @@
 #define MEASURE_Y_TAG			(1 << MEASURE_TAG_OFFSET)
 
 /* These are the state of touch event state machine */
-enum {
+enum
+{
 	EVENT_INIT,
 	EVENT_MIDDLE,
 	EVENT_RELEASE,
 	EVENT_FIFO_END
 };
 
-struct max11801_data {
+struct max11801_data
+{
 	struct i2c_client		*client;
 	struct input_dev		*input_dev;
 };
@@ -107,50 +109,59 @@ static irqreturn_t max11801_ts_interrupt(int irq, void *dev_id)
 
 	status = read_register(data->client, GENERNAL_STATUS_REG);
 
-	if (status & (MAX11801_FIFO_INT | MAX11801_FIFO_OVERFLOW)) {
+	if (status & (MAX11801_FIFO_INT | MAX11801_FIFO_OVERFLOW))
+	{
 		status = read_register(data->client, GENERNAL_STATUS_REG);
 
 		ret = i2c_smbus_read_i2c_block_data(client, FIFO_RD_CMD,
-						    XY_BUFSIZE, buf);
+											XY_BUFSIZE, buf);
 
 		/*
 		 * We should get 4 bytes buffer that contains X,Y
 		 * and event tag
 		 */
 		if (ret < XY_BUFSIZE)
+		{
 			goto out;
+		}
 
-		for (i = 0; i < XY_BUFSIZE; i += XY_BUFSIZE / 2) {
+		for (i = 0; i < XY_BUFSIZE; i += XY_BUFSIZE / 2)
+		{
 			if ((buf[i + 1] & MEASURE_TAG_MASK) == MEASURE_X_TAG)
 				x = (buf[i] << XY_BUF_OFFSET) +
-				    (buf[i + 1] >> XY_BUF_OFFSET);
+					(buf[i + 1] >> XY_BUF_OFFSET);
 			else if ((buf[i + 1] & MEASURE_TAG_MASK) == MEASURE_Y_TAG)
 				y = (buf[i] << XY_BUF_OFFSET) +
-				    (buf[i + 1] >> XY_BUF_OFFSET);
+					(buf[i + 1] >> XY_BUF_OFFSET);
 		}
 
 		if ((buf[1] & EVENT_TAG_MASK) != (buf[3] & EVENT_TAG_MASK))
+		{
 			goto out;
+		}
 
-		switch (buf[1] & EVENT_TAG_MASK) {
-		case EVENT_INIT:
+		switch (buf[1] & EVENT_TAG_MASK)
+		{
+			case EVENT_INIT:
+
 			/* fall through */
-		case EVENT_MIDDLE:
-			input_report_abs(data->input_dev, ABS_X, x);
-			input_report_abs(data->input_dev, ABS_Y, y);
-			input_event(data->input_dev, EV_KEY, BTN_TOUCH, 1);
-			input_sync(data->input_dev);
-			break;
+			case EVENT_MIDDLE:
+				input_report_abs(data->input_dev, ABS_X, x);
+				input_report_abs(data->input_dev, ABS_Y, y);
+				input_event(data->input_dev, EV_KEY, BTN_TOUCH, 1);
+				input_sync(data->input_dev);
+				break;
 
-		case EVENT_RELEASE:
-			input_event(data->input_dev, EV_KEY, BTN_TOUCH, 0);
-			input_sync(data->input_dev);
-			break;
+			case EVENT_RELEASE:
+				input_event(data->input_dev, EV_KEY, BTN_TOUCH, 0);
+				input_sync(data->input_dev);
+				break;
 
-		case EVENT_FIFO_END:
-			break;
+			case EVENT_FIFO_END:
+				break;
 		}
 	}
+
 out:
 	return IRQ_HANDLED;
 }
@@ -174,7 +185,7 @@ static void max11801_ts_phy_init(struct max11801_data *data)
 }
 
 static int max11801_ts_probe(struct i2c_client *client,
-				       const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	struct max11801_data *data;
 	struct input_dev *input_dev;
@@ -182,7 +193,9 @@ static int max11801_ts_probe(struct i2c_client *client,
 
 	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
 	input_dev = devm_input_allocate_device(&client->dev);
-	if (!data || !input_dev) {
+
+	if (!data || !input_dev)
+	{
 		dev_err(&client->dev, "Failed to allocate memory\n");
 		return -ENOMEM;
 	}
@@ -204,29 +217,36 @@ static int max11801_ts_probe(struct i2c_client *client,
 	max11801_ts_phy_init(data);
 
 	error = devm_request_threaded_irq(&client->dev, client->irq, NULL,
-					  max11801_ts_interrupt,
-					  IRQF_TRIGGER_LOW | IRQF_ONESHOT,
-					  "max11801_ts", data);
-	if (error) {
+									  max11801_ts_interrupt,
+									  IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+									  "max11801_ts", data);
+
+	if (error)
+	{
 		dev_err(&client->dev, "Failed to register interrupt\n");
 		return error;
 	}
 
 	error = input_register_device(data->input_dev);
+
 	if (error)
+	{
 		return error;
+	}
 
 	i2c_set_clientdata(client, data);
 	return 0;
 }
 
-static const struct i2c_device_id max11801_ts_id[] = {
+static const struct i2c_device_id max11801_ts_id[] =
+{
 	{"max11801", 0},
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, max11801_ts_id);
 
-static struct i2c_driver max11801_ts_driver = {
+static struct i2c_driver max11801_ts_driver =
+{
 	.driver = {
 		.name	= "max11801_ts",
 	},

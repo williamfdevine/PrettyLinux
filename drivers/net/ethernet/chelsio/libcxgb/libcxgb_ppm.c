@@ -68,14 +68,17 @@ int cxgbi_ppm_find_page_index(struct cxgbi_ppm *ppm, unsigned long pgsz)
 	struct cxgbi_tag_format *tformat = &ppm->tformat;
 	int i;
 
-	for (i = 0; i < DDP_PGIDX_MAX; i++) {
+	for (i = 0; i < DDP_PGIDX_MAX; i++)
+	{
 		if (pgsz == 1UL << (DDP_PGSZ_BASE_SHIFT +
-					 tformat->pgsz_order[i])) {
+							tformat->pgsz_order[i]))
+		{
 			pr_debug("%s: %s ppm, pgsz %lu -> idx %d.\n",
-				 __func__, ppm->ndev->name, pgsz, i);
+					 __func__, ppm->ndev->name, pgsz, i);
 			return i;
 		}
 	}
+
 	pr_info("ippm: ddp page size %lu not supported.\n", pgsz);
 	return DDP_PGIDX_MAX;
 }
@@ -83,10 +86,10 @@ int cxgbi_ppm_find_page_index(struct cxgbi_ppm *ppm, unsigned long pgsz)
 /* DDP setup & teardown
  */
 static int ppm_find_unused_entries(unsigned long *bmap,
-				   unsigned int max_ppods,
-				   unsigned int start,
-				   unsigned int nr,
-				   unsigned int align_mask)
+								   unsigned int max_ppods,
+								   unsigned int start,
+								   unsigned int nr,
+								   unsigned int align_mask)
 {
 	unsigned long i;
 
@@ -94,16 +97,19 @@ static int ppm_find_unused_entries(unsigned long *bmap,
 
 	if (unlikely(i >= max_ppods) && (start > nr))
 		i = bitmap_find_next_zero_area(bmap, max_ppods, 0, start - 1,
-					       align_mask);
+									   align_mask);
+
 	if (unlikely(i >= max_ppods))
+	{
 		return -ENOSPC;
+	}
 
 	bitmap_set(bmap, i, nr);
 	return (int)i;
 }
 
 static void ppm_mark_entries(struct cxgbi_ppm *ppm, int i, int count,
-			     unsigned long caller_data)
+							 unsigned long caller_data)
 {
 	struct cxgbi_ppod_data *pdata = ppm->ppod_data + i;
 
@@ -111,13 +117,17 @@ static void ppm_mark_entries(struct cxgbi_ppm *ppm, int i, int count,
 	pdata->npods = count;
 
 	if (pdata->color == ((1 << PPOD_IDX_SHIFT) - 1))
+	{
 		pdata->color = 0;
+	}
 	else
+	{
 		pdata->color++;
+	}
 }
 
 static int ppm_get_cpu_entries(struct cxgbi_ppm *ppm, unsigned int count,
-			       unsigned long caller_data)
+							   unsigned long caller_data)
 {
 	struct cxgbi_ppm_pool *pool;
 	unsigned int cpu;
@@ -129,22 +139,27 @@ static int ppm_get_cpu_entries(struct cxgbi_ppm *ppm, unsigned int count,
 	put_cpu();
 
 	i = ppm_find_unused_entries(pool->bmap, ppm->pool_index_max,
-				    pool->next, count, 0);
-	if (i < 0) {
+								pool->next, count, 0);
+
+	if (i < 0)
+	{
 		pool->next = 0;
 		spin_unlock_bh(&pool->lock);
 		return -ENOSPC;
 	}
 
 	pool->next = i + count;
+
 	if (pool->next >= ppm->pool_index_max)
+	{
 		pool->next = 0;
+	}
 
 	spin_unlock_bh(&pool->lock);
 
 	pr_debug("%s: cpu %u, idx %d + %d (%d), next %u.\n",
-		 __func__, cpu, i, count, i + cpu * ppm->pool_index_max,
-		pool->next);
+			 __func__, cpu, i, count, i + cpu * ppm->pool_index_max,
+			 pool->next);
 
 	i += cpu * ppm->pool_index_max;
 	ppm_mark_entries(ppm, i, count, caller_data);
@@ -153,30 +168,35 @@ static int ppm_get_cpu_entries(struct cxgbi_ppm *ppm, unsigned int count,
 }
 
 static int ppm_get_entries(struct cxgbi_ppm *ppm, unsigned int count,
-			   unsigned long caller_data)
+						   unsigned long caller_data)
 {
 	int i;
 
 	spin_lock_bh(&ppm->map_lock);
 	i = ppm_find_unused_entries(ppm->ppod_bmap, ppm->bmap_index_max,
-				    ppm->next, count, 0);
-	if (i < 0) {
+								ppm->next, count, 0);
+
+	if (i < 0)
+	{
 		ppm->next = 0;
 		spin_unlock_bh(&ppm->map_lock);
 		pr_debug("ippm: NO suitable entries %u available.\n",
-			 count);
+				 count);
 		return -ENOSPC;
 	}
 
 	ppm->next = i + count;
+
 	if (ppm->next >= ppm->bmap_index_max)
+	{
 		ppm->next = 0;
+	}
 
 	spin_unlock_bh(&ppm->map_lock);
 
 	pr_debug("%s: idx %d + %d (%d), next %u, caller_data 0x%lx.\n",
-		 __func__, i, count, i + ppm->pool_rsvd, ppm->next,
-		 caller_data);
+			 __func__, i, count, i + ppm->pool_rsvd, ppm->next,
+			 caller_data);
 
 	i += ppm->pool_rsvd;
 	ppm_mark_entries(ppm, i, count, caller_data);
@@ -188,7 +208,8 @@ static void ppm_unmark_entries(struct cxgbi_ppm *ppm, int i, int count)
 {
 	pr_debug("%s: idx %d + %d.\n", __func__, i, count);
 
-	if (i < ppm->pool_rsvd) {
+	if (i < ppm->pool_rsvd)
+	{
 		unsigned int cpu;
 		struct cxgbi_ppm_pool *pool;
 
@@ -200,19 +221,27 @@ static void ppm_unmark_entries(struct cxgbi_ppm *ppm, int i, int count)
 		bitmap_clear(pool->bmap, i, count);
 
 		if (i < pool->next)
+		{
 			pool->next = i;
+		}
+
 		spin_unlock_bh(&pool->lock);
 
 		pr_debug("%s: cpu %u, idx %d, next %u.\n",
-			 __func__, cpu, i, pool->next);
-	} else {
+				 __func__, cpu, i, pool->next);
+	}
+	else
+	{
 		spin_lock_bh(&ppm->map_lock);
 
 		i -= ppm->pool_rsvd;
 		bitmap_clear(ppm->ppod_bmap, i, count);
 
 		if (i < ppm->next)
+		{
 			ppm->next = i;
+		}
+
 		spin_unlock_bh(&ppm->map_lock);
 
 		pr_debug("%s: idx %d, next %u.\n", __func__, i, ppm->next);
@@ -223,13 +252,16 @@ void cxgbi_ppm_ppod_release(struct cxgbi_ppm *ppm, u32 idx)
 {
 	struct cxgbi_ppod_data *pdata;
 
-	if (idx >= ppm->ppmax) {
+	if (idx >= ppm->ppmax)
+	{
 		pr_warn("ippm: idx too big %u > %u.\n", idx, ppm->ppmax);
 		return;
 	}
 
 	pdata = ppm->ppod_data + idx;
-	if (!pdata->npods) {
+
+	if (!pdata->npods)
+	{
 		pr_warn("ippm: idx %u, npods 0.\n", idx);
 		return;
 	}
@@ -240,8 +272,8 @@ void cxgbi_ppm_ppod_release(struct cxgbi_ppm *ppm, u32 idx)
 EXPORT_SYMBOL(cxgbi_ppm_ppod_release);
 
 int cxgbi_ppm_ppods_reserve(struct cxgbi_ppm *ppm, unsigned short nr_pages,
-			    u32 per_tag_pg_idx, u32 *ppod_idx,
-			    u32 *ddp_tag, unsigned long caller_data)
+							u32 per_tag_pg_idx, u32 *ppod_idx,
+							u32 *ddp_tag, unsigned long caller_data)
 {
 	struct cxgbi_ppod_data *pdata;
 	unsigned int npods;
@@ -250,20 +282,27 @@ int cxgbi_ppm_ppods_reserve(struct cxgbi_ppm *ppm, unsigned short nr_pages,
 	u32 tag;
 
 	npods = (nr_pages + PPOD_PAGES_MAX - 1) >> PPOD_PAGES_SHIFT;
-	if (!npods) {
+
+	if (!npods)
+	{
 		pr_warn("%s: pages %u -> npods %u, full.\n",
-			__func__, nr_pages, npods);
+				__func__, nr_pages, npods);
 		return -EINVAL;
 	}
 
 	/* grab from cpu pool first */
 	idx = ppm_get_cpu_entries(ppm, npods, caller_data);
+
 	/* try the general pool */
 	if (idx < 0)
+	{
 		idx = ppm_get_entries(ppm, npods, caller_data);
-	if (idx < 0) {
+	}
+
+	if (idx < 0)
+	{
 		pr_debug("ippm: pages %u, nospc %u, nxt %u, 0x%lx.\n",
-			 nr_pages, npods, ppm->next, caller_data);
+				 nr_pages, npods, ppm->next, caller_data);
 		return idx;
 	}
 
@@ -273,22 +312,24 @@ int cxgbi_ppm_ppods_reserve(struct cxgbi_ppm *ppm, unsigned short nr_pages,
 	tag = cxgbi_ppm_make_ddp_tag(hwidx, pdata->color);
 
 	if (per_tag_pg_idx)
+	{
 		tag |= (per_tag_pg_idx << 30) & 0xC0000000;
+	}
 
 	*ppod_idx = idx;
 	*ddp_tag = tag;
 
 	pr_debug("ippm: sg %u, tag 0x%x(%u,%u), data 0x%lx.\n",
-		 nr_pages, tag, idx, npods, caller_data);
+			 nr_pages, tag, idx, npods, caller_data);
 
 	return npods;
 }
 EXPORT_SYMBOL(cxgbi_ppm_ppods_reserve);
 
 void cxgbi_ppm_make_ppod_hdr(struct cxgbi_ppm *ppm, u32 tag,
-			     unsigned int tid, unsigned int offset,
-			     unsigned int length,
-			     struct cxgbi_pagepod_hdr *hdr)
+							 unsigned int tid, unsigned int offset,
+							 unsigned int length,
+							 struct cxgbi_pagepod_hdr *hdr)
 {
 	/* The ddp tag in pagepod should be with bit 31:30 set to 0.
 	 * The ddp Tag on the wire should be with non-zero 31:30 to the peer
@@ -303,7 +344,7 @@ void cxgbi_ppm_make_ppod_hdr(struct cxgbi_ppm *ppm, u32 tag,
 	hdr->page_offset = htonl(offset);
 
 	pr_debug("ippm: tag 0x%x, tid 0x%x, xfer %u, off %u.\n",
-		 tag, tid, length, offset);
+			 tag, tid, length, offset);
 }
 EXPORT_SYMBOL(cxgbi_ppm_make_ppod_hdr);
 
@@ -315,10 +356,10 @@ static void ppm_free(struct cxgbi_ppm *ppm)
 static void ppm_destroy(struct kref *kref)
 {
 	struct cxgbi_ppm *ppm = container_of(kref,
-					     struct cxgbi_ppm,
-					     refcnt);
+										 struct cxgbi_ppm,
+										 refcnt);
 	pr_info("ippm: kref 0, destroy %s ppm 0x%p.\n",
-		ppm->ndev->name, ppm);
+			ppm->ndev->name, ppm);
 
 	*ppm->ppm_pp = NULL;
 
@@ -328,18 +369,20 @@ static void ppm_destroy(struct kref *kref)
 
 int cxgbi_ppm_release(struct cxgbi_ppm *ppm)
 {
-	if (ppm) {
+	if (ppm)
+	{
 		int rv;
 
 		rv = kref_put(&ppm->refcnt, ppm_destroy);
 		return rv;
 	}
+
 	return 1;
 }
 EXPORT_SYMBOL(cxgbi_ppm_release);
 
 static struct cxgbi_ppm_pool *ppm_alloc_cpu_pool(unsigned int *total,
-						 unsigned int *pcpu_ppmax)
+		unsigned int *pcpu_ppmax)
 {
 	struct cxgbi_ppm_pool *pools;
 	unsigned int ppmax = (*total) / num_possible_cpus();
@@ -351,7 +394,9 @@ static struct cxgbi_ppm_pool *ppm_alloc_cpu_pool(unsigned int *total,
 
 	/* make sure per cpu pool fits into PCPU_MIN_UNIT_SIZE */
 	if (ppmax > max)
+	{
 		ppmax = max;
+	}
 
 	/* pool size must be multiple of unsigned long */
 	bmap = BITS_TO_LONGS(ppmax);
@@ -361,9 +406,12 @@ static struct cxgbi_ppm_pool *ppm_alloc_cpu_pool(unsigned int *total,
 	pools = __alloc_percpu(alloc_sz, __alignof__(struct cxgbi_ppm_pool));
 
 	if (!pools)
+	{
 		return NULL;
+	}
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		struct cxgbi_ppm_pool *ppool = per_cpu_ptr(pools, cpu);
 
 		memset(ppool, 0, alloc_sz);
@@ -378,12 +426,12 @@ static struct cxgbi_ppm_pool *ppm_alloc_cpu_pool(unsigned int *total,
 }
 
 int cxgbi_ppm_init(void **ppm_pp, struct net_device *ndev,
-		   struct pci_dev *pdev, void *lldev,
-		   struct cxgbi_tag_format *tformat,
-		   unsigned int ppmax,
-		   unsigned int llimit,
-		   unsigned int start,
-		   unsigned int reserve_factor)
+				   struct pci_dev *pdev, void *lldev,
+				   struct cxgbi_tag_format *tformat,
+				   unsigned int ppmax,
+				   unsigned int llimit,
+				   unsigned int start,
+				   unsigned int reserve_factor)
 {
 	struct cxgbi_ppm *ppm = (struct cxgbi_ppm *)(*ppm_pp);
 	struct cxgbi_ppm_pool *pool = NULL;
@@ -392,42 +440,48 @@ int cxgbi_ppm_init(void **ppm_pp, struct net_device *ndev,
 	unsigned int alloc_sz;
 	unsigned int ppod_bmap_size;
 
-	if (ppm) {
+	if (ppm)
+	{
 		pr_info("ippm: %s, ppm 0x%p,0x%p already initialized, %u/%u.\n",
-			ndev->name, ppm_pp, ppm, ppm->ppmax, ppmax);
+				ndev->name, ppm_pp, ppm, ppm->ppmax, ppmax);
 		kref_get(&ppm->refcnt);
 		return 1;
 	}
 
-	if (reserve_factor) {
+	if (reserve_factor)
+	{
 		ppmax_pool = ppmax / reserve_factor;
 		pool = ppm_alloc_cpu_pool(&ppmax_pool, &pool_index_max);
 
 		pr_debug("%s: ppmax %u, cpu total %u, per cpu %u.\n",
-			 ndev->name, ppmax, ppmax_pool, pool_index_max);
+				 ndev->name, ppmax, ppmax_pool, pool_index_max);
 	}
 
 	ppod_bmap_size = BITS_TO_LONGS(ppmax - ppmax_pool);
 	alloc_sz = sizeof(struct cxgbi_ppm) +
-			ppmax * (sizeof(struct cxgbi_ppod_data)) +
-			ppod_bmap_size * sizeof(unsigned long);
+			   ppmax * (sizeof(struct cxgbi_ppod_data)) +
+			   ppod_bmap_size * sizeof(unsigned long);
 
 	ppm = vmalloc(alloc_sz);
+
 	if (!ppm)
+	{
 		goto release_ppm_pool;
+	}
 
 	memset(ppm, 0, alloc_sz);
 
 	ppm->ppod_bmap = (unsigned long *)(&ppm->ppod_data[ppmax]);
 
-	if ((ppod_bmap_size >> 3) > (ppmax - ppmax_pool)) {
+	if ((ppod_bmap_size >> 3) > (ppmax - ppmax_pool))
+	{
 		unsigned int start = ppmax - ppmax_pool;
 		unsigned int end = ppod_bmap_size >> 3;
 
 		bitmap_set(ppm->ppod_bmap, ppmax, end - start);
 		pr_info("%s: %u - %u < %u * 8, mask extra bits %u, %u.\n",
-			__func__, ppmax, ppmax_pool, ppod_bmap_size, start,
-			end);
+				__func__, ppmax, ppmax_pool, ppod_bmap_size, start,
+				end);
 	}
 
 	spin_lock_init(&ppm->map_lock);
@@ -443,7 +497,7 @@ int cxgbi_ppm_init(void **ppm_pp, struct net_device *ndev,
 	ppm->next = 0;
 	ppm->llimit = llimit;
 	ppm->base_idx = start > llimit ?
-			(start - llimit + 1) >> PPOD_SIZE_SHIFT : 0;
+					(start - llimit + 1) >> PPOD_SIZE_SHIFT : 0;
 	ppm->bmap_index_max = ppmax - ppmax_pool;
 
 	ppm->pool = pool;
@@ -451,24 +505,26 @@ int cxgbi_ppm_init(void **ppm_pp, struct net_device *ndev,
 	ppm->pool_index_max = pool_index_max;
 
 	/* check one more time */
-	if (*ppm_pp) {
+	if (*ppm_pp)
+	{
 		ppm_free(ppm);
 		ppm = (struct cxgbi_ppm *)(*ppm_pp);
 
 		pr_info("ippm: %s, ppm 0x%p,0x%p already initialized, %u/%u.\n",
-			ndev->name, ppm_pp, *ppm_pp, ppm->ppmax, ppmax);
+				ndev->name, ppm_pp, *ppm_pp, ppm->ppmax, ppmax);
 
 		kref_get(&ppm->refcnt);
 		return 1;
 	}
+
 	*ppm_pp = ppm;
 
 	ppm->tformat.pgsz_idx_dflt = cxgbi_ppm_find_page_index(ppm, PAGE_SIZE);
 
 	pr_info("ippm %s: ppm 0x%p, 0x%p, base %u/%u, pg %lu,%u, rsvd %u,%u.\n",
-		ndev->name, ppm_pp, ppm, ppm->base_idx, ppm->ppmax, PAGE_SIZE,
-		ppm->tformat.pgsz_idx_dflt, ppm->pool_rsvd,
-		ppm->pool_index_max);
+			ndev->name, ppm_pp, ppm, ppm->base_idx, ppm->ppmax, PAGE_SIZE,
+			ppm->tformat.pgsz_idx_dflt, ppm->pool_rsvd,
+			ppm->pool_index_max);
 
 	return 0;
 
@@ -483,10 +539,12 @@ unsigned int cxgbi_tagmask_set(unsigned int ppmax)
 	unsigned int bits = fls(ppmax);
 
 	if (bits > PPOD_IDX_MAX_SIZE)
+	{
 		bits = PPOD_IDX_MAX_SIZE;
+	}
 
 	pr_info("ippm: ppmax %u/0x%x -> bits %u, tagmask 0x%x.\n",
-		ppmax, ppmax, bits, 1 << (bits + PPOD_IDX_SHIFT));
+			ppmax, ppmax, bits, 1 << (bits + PPOD_IDX_SHIFT));
 
 	return 1 << (bits + PPOD_IDX_SHIFT);
 }

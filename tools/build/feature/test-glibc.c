@@ -1,10 +1,10 @@
 #include <stdlib.h>
 
 #if !defined(__UCLIBC__)
-#include <gnu/libc-version.h>
+	#include <gnu/libc-version.h>
 #else
-#define XSTR(s) STR(s)
-#define STR(s) #s
+	#define XSTR(s) STR(s)
+	#define STR(s) #s
 #endif
 
 int main(void)

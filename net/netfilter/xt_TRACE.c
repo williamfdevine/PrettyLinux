@@ -28,7 +28,8 @@ trace_tg(struct sk_buff *skb, const struct xt_action_param *par)
 	return XT_CONTINUE;
 }
 
-static struct xt_target trace_tg_reg __read_mostly = {
+static struct xt_target trace_tg_reg __read_mostly =
+{
 	.name		= "TRACE",
 	.revision	= 0,
 	.family		= NFPROTO_UNSPEC,

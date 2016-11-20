@@ -13,7 +13,8 @@
 
 #include "mc.h"
 
-static const struct tegra_mc_client tegra30_mc_clients[] = {
+static const struct tegra_mc_client tegra30_mc_clients[] =
+{
 	{
 		.id = 0x00,
 		.name = "ptcr",
@@ -915,7 +916,8 @@ static const struct tegra_mc_client tegra30_mc_clients[] = {
 	},
 };
 
-static const struct tegra_smmu_swgroup tegra30_swgroups[] = {
+static const struct tegra_smmu_swgroup tegra30_swgroups[] =
+{
 	{ .name = "dc",   .swgroup = TEGRA_SWGROUP_DC,   .reg = 0x240 },
 	{ .name = "dcb",  .swgroup = TEGRA_SWGROUP_DCB,  .reg = 0x244 },
 	{ .name = "epp",  .swgroup = TEGRA_SWGROUP_EPP,  .reg = 0x248 },
@@ -934,7 +936,8 @@ static const struct tegra_smmu_swgroup tegra30_swgroups[] = {
 	{ .name = "isp",  .swgroup = TEGRA_SWGROUP_ISP,  .reg = 0x258 },
 };
 
-static const struct tegra_smmu_soc tegra30_smmu_soc = {
+static const struct tegra_smmu_soc tegra30_smmu_soc =
+{
 	.clients = tegra30_mc_clients,
 	.num_clients = ARRAY_SIZE(tegra30_mc_clients),
 	.swgroups = tegra30_swgroups,
@@ -945,7 +948,8 @@ static const struct tegra_smmu_soc tegra30_smmu_soc = {
 	.num_asids = 4,
 };
 
-const struct tegra_mc_soc tegra30_mc_soc = {
+const struct tegra_mc_soc tegra30_mc_soc =
+{
 	.clients = tegra30_mc_clients,
 	.num_clients = ARRAY_SIZE(tegra30_mc_clients),
 	.num_address_bits = 32,

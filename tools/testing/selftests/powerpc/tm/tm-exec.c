@@ -64,7 +64,9 @@ int main(int argc, char *argv[])
 	path = argv[0];
 
 	if (argc > 1 && strcmp(argv[1], "--child") == 0)
+	{
 		return after_exec();
+	}
 
 	return test_harness(test_exec, "tm_exec");
 }

@@ -1369,10 +1369,10 @@
 #define FMT_DYNAMIC_EXP_CNTL                 0x6fb4
 #       define FMT_DYNAMIC_EXP_EN            (1 << 0)
 #       define FMT_DYNAMIC_EXP_MODE          (1 << 4)
-        /* 0 = 10bit -> 12bit, 1 = 8bit -> 12bit */
+/* 0 = 10bit -> 12bit, 1 = 8bit -> 12bit */
 #define FMT_CONTROL                          0x6fb8
 #       define FMT_PIXEL_ENCODING            (1 << 16)
-        /* 0 = RGB 4:4:4 or YCbCr 4:4:4, 1 = YCbCr 4:2:2 */
+/* 0 = RGB 4:4:4 or YCbCr 4:4:4, 1 = YCbCr 4:2:2 */
 #define FMT_BIT_DEPTH_CONTROL                0x6fc8
 #       define FMT_TRUNCATE_EN               (1 << 0)
 #       define FMT_TRUNCATE_DEPTH            (1 << 4)
@@ -1414,8 +1414,8 @@
 
 /* async DMA packets */
 #define DMA_PACKET(cmd, sub_cmd, n) ((((cmd) & 0xF) << 28) |    \
-                                    (((sub_cmd) & 0xFF) << 20) |\
-                                    (((n) & 0xFFFFF) << 0))
+									 (((sub_cmd) & 0xFF) << 20) |\
+									 (((n) & 0xFFFFF) << 0))
 #define GET_DMA_CMD(h) (((h) & 0xf0000000) >> 28)
 #define GET_DMA_COUNT(h) ((h) & 0x000fffff)
 #define GET_DMA_SUB_CMD(h) (((h) & 0x0ff00000) >> 20)
@@ -1532,8 +1532,8 @@
  * PM4
  */
 #define PACKET0(reg, n)	((RADEON_PACKET_TYPE0 << 30) |			\
-			 (((reg) >> 2) & 0xFFFF) |			\
-			 ((n) & 0x3FFF) << 16)
+						 (((reg) >> 2) & 0xFFFF) |			\
+						 ((n) & 0x3FFF) << 16)
 #define CP_PACKET2			0x80000000
 #define		PACKET2_PAD_SHIFT		0
 #define		PACKET2_PAD_MASK		(0x3fffffff << 0)
@@ -1541,8 +1541,8 @@
 #define PACKET2(v)	(CP_PACKET2 | REG_SET(PACKET2_PAD, (v)))
 
 #define PACKET3(op, n)	((RADEON_PACKET_TYPE3 << 30) |			\
-			 (((op) & 0xFF) << 8) |				\
-			 ((n) & 0x3FFF) << 16)
+						 (((op) & 0xFF) << 8) |				\
+						 ((n) & 0x3FFF) << 16)
 
 /* Packet 3 types */
 #define	PACKET3_NOP					0x10
@@ -1588,41 +1588,41 @@
  * 6. COMMAND [29:22] | BYTE_COUNT [20:0]
  */
 #              define PACKET3_CP_DMA_DST_SEL(x)    ((x) << 20)
-                /* 0 - DST_ADDR
-		 * 1 - GDS
-		 */
+/* 0 - DST_ADDR
+* 1 - GDS
+	 */
 #              define PACKET3_CP_DMA_ENGINE(x)     ((x) << 27)
-                /* 0 - ME
-		 * 1 - PFP
-		 */
+/* 0 - ME
+* 1 - PFP
+	 */
 #              define PACKET3_CP_DMA_SRC_SEL(x)    ((x) << 29)
-                /* 0 - SRC_ADDR
-		 * 1 - GDS
-		 * 2 - DATA
-		 */
+/* 0 - SRC_ADDR
+* 1 - GDS
+	 * 2 - DATA
+	 */
 #              define PACKET3_CP_DMA_CP_SYNC       (1 << 31)
 /* COMMAND */
 #              define PACKET3_CP_DMA_DIS_WC        (1 << 21)
 #              define PACKET3_CP_DMA_CMD_SRC_SWAP(x) ((x) << 22)
-                /* 0 - none
-		 * 1 - 8 in 16
-		 * 2 - 8 in 32
-		 * 3 - 8 in 64
-		 */
+/* 0 - none
+* 1 - 8 in 16
+	 * 2 - 8 in 32
+	 * 3 - 8 in 64
+	 */
 #              define PACKET3_CP_DMA_CMD_DST_SWAP(x) ((x) << 24)
-                /* 0 - none
-		 * 1 - 8 in 16
-		 * 2 - 8 in 32
-		 * 3 - 8 in 64
-		 */
+/* 0 - none
+* 1 - 8 in 16
+	 * 2 - 8 in 32
+	 * 3 - 8 in 64
+	 */
 #              define PACKET3_CP_DMA_CMD_SAS       (1 << 26)
-                /* 0 - memory
-		 * 1 - register
-		 */
+/* 0 - memory
+* 1 - register
+	 */
 #              define PACKET3_CP_DMA_CMD_DAS       (1 << 27)
-                /* 0 - memory
-		 * 1 - register
-		 */
+/* 0 - memory
+* 1 - register
+	 */
 #              define PACKET3_CP_DMA_CMD_SAIC      (1 << 28)
 #              define PACKET3_CP_DMA_CMD_DAIC      (1 << 29)
 #define	PACKET3_PFP_SYNC_ME				0x42

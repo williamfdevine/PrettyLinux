@@ -101,7 +101,8 @@ void rose_start_idletimer(struct sock *sk)
 
 	del_timer(&rose->idletimer);
 
-	if (rose->idle > 0) {
+	if (rose->idle > 0)
+	{
 		rose->idletimer.data     = (unsigned long)sk;
 		rose->idletimer.function = &rose_idletimer_expiry;
 		rose->idletimer.expires  = jiffies + rose->idle;
@@ -131,32 +132,40 @@ static void rose_heartbeat_expiry(unsigned long param)
 	struct rose_sock *rose = rose_sk(sk);
 
 	bh_lock_sock(sk);
-	switch (rose->state) {
-	case ROSE_STATE_0:
-		/* Magic here: If we listen() and a new link dies before it
-		   is accepted() it isn't 'dead' so doesn't get removed. */
-		if (sock_flag(sk, SOCK_DESTROY) ||
-		    (sk->sk_state == TCP_LISTEN && sock_flag(sk, SOCK_DEAD))) {
-			bh_unlock_sock(sk);
-			rose_destroy_socket(sk);
-			return;
-		}
-		break;
 
-	case ROSE_STATE_3:
-		/*
-		 * Check for the state of the receive buffer.
-		 */
-		if (atomic_read(&sk->sk_rmem_alloc) < (sk->sk_rcvbuf / 2) &&
-		    (rose->condition & ROSE_COND_OWN_RX_BUSY)) {
-			rose->condition &= ~ROSE_COND_OWN_RX_BUSY;
-			rose->condition &= ~ROSE_COND_ACK_PENDING;
-			rose->vl         = rose->vr;
-			rose_write_internal(sk, ROSE_RR);
-			rose_stop_timer(sk);	/* HB */
+	switch (rose->state)
+	{
+		case ROSE_STATE_0:
+
+			/* Magic here: If we listen() and a new link dies before it
+			   is accepted() it isn't 'dead' so doesn't get removed. */
+			if (sock_flag(sk, SOCK_DESTROY) ||
+				(sk->sk_state == TCP_LISTEN && sock_flag(sk, SOCK_DEAD)))
+			{
+				bh_unlock_sock(sk);
+				rose_destroy_socket(sk);
+				return;
+			}
+
 			break;
-		}
-		break;
+
+		case ROSE_STATE_3:
+
+			/*
+			 * Check for the state of the receive buffer.
+			 */
+			if (atomic_read(&sk->sk_rmem_alloc) < (sk->sk_rcvbuf / 2) &&
+				(rose->condition & ROSE_COND_OWN_RX_BUSY))
+			{
+				rose->condition &= ~ROSE_COND_OWN_RX_BUSY;
+				rose->condition &= ~ROSE_COND_ACK_PENDING;
+				rose->vl         = rose->vr;
+				rose_write_internal(sk, ROSE_RR);
+				rose_stop_timer(sk);	/* HB */
+				break;
+			}
+
+			break;
 	}
 
 	rose_start_heartbeat(sk);
@@ -169,26 +178,31 @@ static void rose_timer_expiry(unsigned long param)
 	struct rose_sock *rose = rose_sk(sk);
 
 	bh_lock_sock(sk);
-	switch (rose->state) {
-	case ROSE_STATE_1:	/* T1 */
-	case ROSE_STATE_4:	/* T2 */
-		rose_write_internal(sk, ROSE_CLEAR_REQUEST);
-		rose->state = ROSE_STATE_2;
-		rose_start_t3timer(sk);
-		break;
 
-	case ROSE_STATE_2:	/* T3 */
-		rose->neighbour->use--;
-		rose_disconnect(sk, ETIMEDOUT, -1, -1);
-		break;
+	switch (rose->state)
+	{
+		case ROSE_STATE_1:	/* T1 */
+		case ROSE_STATE_4:	/* T2 */
+			rose_write_internal(sk, ROSE_CLEAR_REQUEST);
+			rose->state = ROSE_STATE_2;
+			rose_start_t3timer(sk);
+			break;
 
-	case ROSE_STATE_3:	/* HB */
-		if (rose->condition & ROSE_COND_ACK_PENDING) {
-			rose->condition &= ~ROSE_COND_ACK_PENDING;
-			rose_enquiry_response(sk);
-		}
-		break;
+		case ROSE_STATE_2:	/* T3 */
+			rose->neighbour->use--;
+			rose_disconnect(sk, ETIMEDOUT, -1, -1);
+			break;
+
+		case ROSE_STATE_3:	/* HB */
+			if (rose->condition & ROSE_COND_ACK_PENDING)
+			{
+				rose->condition &= ~ROSE_COND_ACK_PENDING;
+				rose_enquiry_response(sk);
+			}
+
+			break;
 	}
+
 	bh_unlock_sock(sk);
 }
 
@@ -208,9 +222,11 @@ static void rose_idletimer_expiry(unsigned long param)
 	sk->sk_err       = 0;
 	sk->sk_shutdown |= SEND_SHUTDOWN;
 
-	if (!sock_flag(sk, SOCK_DEAD)) {
+	if (!sock_flag(sk, SOCK_DEAD))
+	{
 		sk->sk_state_change(sk);
 		sock_set_flag(sk, SOCK_DEAD);
 	}
+
 	bh_unlock_sock(sk);
 }

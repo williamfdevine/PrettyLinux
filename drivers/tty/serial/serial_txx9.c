@@ -16,7 +16,7 @@
  */
 
 #if defined(CONFIG_SERIAL_TXX9_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
-#define SUPPORT_SYSRQ
+	#define SUPPORT_SYSRQ
 #endif
 
 #include <linux/module.h>
@@ -39,15 +39,15 @@ static char *serial_name = "TX39/49 Serial driver";
 #define PASS_LIMIT	256
 
 #if !defined(CONFIG_SERIAL_TXX9_STDSERIAL)
-/* "ttyS" is used for standard serial driver */
-#define TXX9_TTY_NAME "ttyTX"
-#define TXX9_TTY_MINOR_START	196
-#define TXX9_TTY_MAJOR	204
+	/* "ttyS" is used for standard serial driver */
+	#define TXX9_TTY_NAME "ttyTX"
+	#define TXX9_TTY_MINOR_START	196
+	#define TXX9_TTY_MAJOR	204
 #else
-/* acts like standard serial driver */
-#define TXX9_TTY_NAME "ttyS"
-#define TXX9_TTY_MINOR_START	64
-#define TXX9_TTY_MAJOR	TTY_MAJOR
+	/* acts like standard serial driver */
+	#define TXX9_TTY_NAME "ttyS"
+	#define TXX9_TTY_MINOR_START	64
+	#define TXX9_TTY_MAJOR	TTY_MAJOR
 #endif
 
 /* flag aliases */
@@ -55,8 +55,8 @@ static char *serial_name = "TX39/49 Serial driver";
 #define UPF_TXX9_USE_SCLK	UPF_MAGIC_MULTIPLIER
 
 #ifdef CONFIG_PCI
-/* support for Toshiba TC86C001 SIO */
-#define ENABLE_SERIAL_TXX9_PCI
+	/* support for Toshiba TC86C001 SIO */
+	#define ENABLE_SERIAL_TXX9_PCI
 #endif
 
 /*
@@ -64,7 +64,8 @@ static char *serial_name = "TX39/49 Serial driver";
  */
 #define UART_NR  CONFIG_SERIAL_TXX9_NR_UARTS
 
-struct uart_txx9_port {
+struct uart_txx9_port
+{
 	struct uart_port	port;
 	/* No additional info for now */
 };
@@ -172,24 +173,28 @@ struct uart_txx9_port {
 
 static inline unsigned int sio_in(struct uart_txx9_port *up, int offset)
 {
-	switch (up->port.iotype) {
-	default:
-		return __raw_readl(up->port.membase + offset);
-	case UPIO_PORT:
-		return inl(up->port.iobase + offset);
+	switch (up->port.iotype)
+	{
+		default:
+			return __raw_readl(up->port.membase + offset);
+
+		case UPIO_PORT:
+			return inl(up->port.iobase + offset);
 	}
 }
 
 static inline void
 sio_out(struct uart_txx9_port *up, int offset, int value)
 {
-	switch (up->port.iotype) {
-	default:
-		__raw_writel(value, up->port.membase + offset);
-		break;
-	case UPIO_PORT:
-		outl(value, up->port.iobase + offset);
-		break;
+	switch (up->port.iotype)
+	{
+		default:
+			__raw_writel(value, up->port.membase + offset);
+			break;
+
+		case UPIO_PORT:
+			outl(value, up->port.iobase + offset);
+			break;
 	}
 }
 
@@ -208,16 +213,27 @@ static inline void
 sio_quot_set(struct uart_txx9_port *up, int quot)
 {
 	quot >>= 1;
+
 	if (quot < 256)
+	{
 		sio_out(up, TXX9_SIBGR, quot | TXX9_SIBGR_BCLK_T0);
+	}
 	else if (quot < (256 << 2))
+	{
 		sio_out(up, TXX9_SIBGR, (quot >> 2) | TXX9_SIBGR_BCLK_T2);
+	}
 	else if (quot < (256 << 4))
+	{
 		sio_out(up, TXX9_SIBGR, (quot >> 4) | TXX9_SIBGR_BCLK_T4);
+	}
 	else if (quot < (256 << 6))
+	{
 		sio_out(up, TXX9_SIBGR, (quot >> 6) | TXX9_SIBGR_BCLK_T6);
+	}
 	else
+	{
 		sio_out(up, TXX9_SIBGR, 0xff | TXX9_SIBGR_BCLK_T6);
+	}
 }
 
 static struct uart_txx9_port *to_uart_txx9_port(struct uart_port *port)
@@ -253,16 +269,20 @@ static void serial_txx9_initialize(struct uart_port *port)
 	 * immediately after soft reset causes bus error. */
 	mmiowb();
 	udelay(1);
+
 	while ((sio_in(up, TXX9_SIFCR) & TXX9_SIFCR_SWRST) && --tmout)
+	{
 		udelay(1);
+	}
+
 	/* TX Int by FIFO Empty, RX Int by Receiving 1 char. */
 	sio_set(up, TXX9_SIFCR,
-		TXX9_SIFCR_TDIL_MAX | TXX9_SIFCR_RDIL_1);
+			TXX9_SIFCR_TDIL_MAX | TXX9_SIFCR_RDIL_1);
 	/* initial settings */
 	sio_out(up, TXX9_SILCR,
-		TXX9_SILCR_UMODE_8BIT | TXX9_SILCR_USBL_1BIT |
-		((up->port.flags & UPF_TXX9_USE_SCLK) ?
-		 TXX9_SILCR_SCS_SCLK_BG : TXX9_SILCR_SCS_IMCLK_BG));
+			TXX9_SILCR_UMODE_8BIT | TXX9_SILCR_USBL_1BIT |
+			((up->port.flags & UPF_TXX9_USE_SCLK) ?
+			 TXX9_SILCR_SCS_SCLK_BG : TXX9_SILCR_SCS_IMCLK_BG));
 	sio_quot_set(up, uart_get_divisor(port, 9600));
 	sio_out(up, TXX9_SIFLCR, TXX9_SIFLCR_RTSTL_MAX /* 15 */);
 	sio_out(up, TXX9_SIDICR, 0);
@@ -277,7 +297,8 @@ receive_chars(struct uart_txx9_port *up, unsigned int *status)
 	char flag;
 	unsigned int next_ignore_status_mask;
 
-	do {
+	do
+	{
 		ch = sio_in(up, TXX9_SIRFIFO);
 		flag = TTY_NORMAL;
 		up->port.icount.rx++;
@@ -285,14 +306,18 @@ receive_chars(struct uart_txx9_port *up, unsigned int *status)
 		/* mask out RFDN_MASK bit added by previous overrun */
 		next_ignore_status_mask =
 			up->port.ignore_status_mask & ~TXX9_SIDISR_RFDN_MASK;
+
 		if (unlikely(disr & (TXX9_SIDISR_UBRK | TXX9_SIDISR_UPER |
-				     TXX9_SIDISR_UFER | TXX9_SIDISR_UOER))) {
+							 TXX9_SIDISR_UFER | TXX9_SIDISR_UOER)))
+		{
 			/*
 			 * For statistics only
 			 */
-			if (disr & TXX9_SIDISR_UBRK) {
+			if (disr & TXX9_SIDISR_UBRK)
+			{
 				disr &= ~(TXX9_SIDISR_UFER | TXX9_SIDISR_UPER);
 				up->port.icount.brk++;
+
 				/*
 				 * We do the SysRQ and SAK checking
 				 * here because otherwise the break
@@ -300,12 +325,21 @@ receive_chars(struct uart_txx9_port *up, unsigned int *status)
 				 * or read_status_mask.
 				 */
 				if (uart_handle_break(&up->port))
+				{
 					goto ignore_char;
-			} else if (disr & TXX9_SIDISR_UPER)
+				}
+			}
+			else if (disr & TXX9_SIDISR_UPER)
+			{
 				up->port.icount.parity++;
+			}
 			else if (disr & TXX9_SIDISR_UFER)
+			{
 				up->port.icount.frame++;
-			if (disr & TXX9_SIDISR_UOER) {
+			}
+
+			if (disr & TXX9_SIDISR_UOER)
+			{
 				up->port.icount.overrun++;
 				/*
 				 * The receiver read buffer still hold
@@ -322,22 +356,33 @@ receive_chars(struct uart_txx9_port *up, unsigned int *status)
 			 */
 			disr &= up->port.read_status_mask;
 
-			if (disr & TXX9_SIDISR_UBRK) {
+			if (disr & TXX9_SIDISR_UBRK)
+			{
 				flag = TTY_BREAK;
-			} else if (disr & TXX9_SIDISR_UPER)
+			}
+			else if (disr & TXX9_SIDISR_UPER)
+			{
 				flag = TTY_PARITY;
+			}
 			else if (disr & TXX9_SIDISR_UFER)
+			{
 				flag = TTY_FRAME;
+			}
 		}
+
 		if (uart_handle_sysrq_char(&up->port, ch))
+		{
 			goto ignore_char;
+		}
 
 		uart_insert_char(&up->port, disr, TXX9_SIDISR_UOER, ch, flag);
 
-	ignore_char:
+ignore_char:
 		up->port.ignore_status_mask = next_ignore_status_mask;
 		disr = sio_in(up, TXX9_SIDISR);
-	} while (!(disr & TXX9_SIDISR_UVALID) && (max_count-- > 0));
+	}
+	while (!(disr & TXX9_SIDISR_UVALID) && (max_count-- > 0));
+
 	spin_unlock(&up->port.lock);
 	tty_flip_buffer_push(&up->port.state->port);
 	spin_lock(&up->port.lock);
@@ -349,31 +394,44 @@ static inline void transmit_chars(struct uart_txx9_port *up)
 	struct circ_buf *xmit = &up->port.state->xmit;
 	int count;
 
-	if (up->port.x_char) {
+	if (up->port.x_char)
+	{
 		sio_out(up, TXX9_SITFIFO, up->port.x_char);
 		up->port.icount.tx++;
 		up->port.x_char = 0;
 		return;
 	}
-	if (uart_circ_empty(xmit) || uart_tx_stopped(&up->port)) {
+
+	if (uart_circ_empty(xmit) || uart_tx_stopped(&up->port))
+	{
 		serial_txx9_stop_tx(&up->port);
 		return;
 	}
 
 	count = TXX9_SIO_TX_FIFO;
-	do {
+
+	do
+	{
 		sio_out(up, TXX9_SITFIFO, xmit->buf[xmit->tail]);
 		xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE - 1);
 		up->port.icount.tx++;
+
 		if (uart_circ_empty(xmit))
+		{
 			break;
-	} while (--count > 0);
+		}
+	}
+	while (--count > 0);
 
 	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
+	{
 		uart_write_wakeup(&up->port);
+	}
 
 	if (uart_circ_empty(xmit))
+	{
 		serial_txx9_stop_tx(&up->port);
+	}
 }
 
 static irqreturn_t serial_txx9_interrupt(int irq, void *dev_id)
@@ -382,29 +440,43 @@ static irqreturn_t serial_txx9_interrupt(int irq, void *dev_id)
 	struct uart_txx9_port *up = dev_id;
 	unsigned int status;
 
-	while (1) {
+	while (1)
+	{
 		spin_lock(&up->port.lock);
 		status = sio_in(up, TXX9_SIDISR);
+
 		if (!(sio_in(up, TXX9_SIDICR) & TXX9_SIDICR_TIE))
+		{
 			status &= ~TXX9_SIDISR_TDIS;
+		}
+
 		if (!(status & (TXX9_SIDISR_TDIS | TXX9_SIDISR_RDIS |
-				TXX9_SIDISR_TOUT))) {
+						TXX9_SIDISR_TOUT)))
+		{
 			spin_unlock(&up->port.lock);
 			break;
 		}
 
 		if (status & TXX9_SIDISR_RDIS)
+		{
 			receive_chars(up, &status);
+		}
+
 		if (status & TXX9_SIDISR_TDIS)
+		{
 			transmit_chars(up);
+		}
+
 		/* Clear TX/RX Int. Status */
 		sio_mask(up, TXX9_SIDISR,
-			 TXX9_SIDISR_TDIS | TXX9_SIDISR_RDIS |
-			 TXX9_SIDISR_TOUT);
+				 TXX9_SIDISR_TDIS | TXX9_SIDISR_RDIS |
+				 TXX9_SIDISR_TOUT);
 		spin_unlock(&up->port.lock);
 
 		if (pass_counter++ > PASS_LIMIT)
+		{
 			break;
+		}
 	}
 
 	return pass_counter ? IRQ_HANDLED : IRQ_NONE;
@@ -441,9 +513,13 @@ static void serial_txx9_set_mctrl(struct uart_port *port, unsigned int mctrl)
 	struct uart_txx9_port *up = to_uart_txx9_port(port);
 
 	if (mctrl & TIOCM_RTS)
+	{
 		sio_mask(up, TXX9_SIFLCR, TXX9_SIFLCR_RTSSC);
+	}
 	else
+	{
 		sio_set(up, TXX9_SIFLCR, TXX9_SIFLCR_RTSSC);
+	}
 }
 
 static void serial_txx9_break_ctl(struct uart_port *port, int break_state)
@@ -452,10 +528,16 @@ static void serial_txx9_break_ctl(struct uart_port *port, int break_state)
 	unsigned long flags;
 
 	spin_lock_irqsave(&up->port.lock, flags);
+
 	if (break_state == -1)
+	{
 		sio_set(up, TXX9_SIFLCR, TXX9_SIFLCR_TBRK);
+	}
 	else
+	{
 		sio_mask(up, TXX9_SIFLCR, TXX9_SIFLCR_TBRK);
+	}
+
 	spin_unlock_irqrestore(&up->port.lock, flags);
 }
 
@@ -469,15 +551,21 @@ static void wait_for_xmitr(struct uart_txx9_port *up)
 
 	/* Wait up to 10ms for the character(s) to be sent. */
 	while (--tmout &&
-	       !(sio_in(up, TXX9_SICISR) & TXX9_SICISR_TXALS))
+		   !(sio_in(up, TXX9_SICISR) & TXX9_SICISR_TXALS))
+	{
 		udelay(1);
+	}
 
 	/* Wait up to 1s for flow control if necessary */
-	if (up->port.flags & UPF_CONS_FLOW) {
+	if (up->port.flags & UPF_CONS_FLOW)
+	{
 		tmout = 1000000;
+
 		while (--tmout &&
-		       (sio_in(up, TXX9_SICISR) & TXX9_SICISR_CTSS))
+			   (sio_in(up, TXX9_SICISR) & TXX9_SICISR_CTSS))
+		{
 			udelay(1);
+		}
 	}
 }
 #endif
@@ -553,10 +641,10 @@ static int serial_txx9_startup(struct uart_port *port)
 	 * (they will be reenabled in set_termios())
 	 */
 	sio_set(up, TXX9_SIFCR,
-		TXX9_SIFCR_TFRST | TXX9_SIFCR_RFRST | TXX9_SIFCR_FRSTE);
+			TXX9_SIFCR_TFRST | TXX9_SIFCR_RFRST | TXX9_SIFCR_FRSTE);
 	/* clear reset */
 	sio_mask(up, TXX9_SIFCR,
-		 TXX9_SIFCR_TFRST | TXX9_SIFCR_RFRST | TXX9_SIFCR_FRSTE);
+			 TXX9_SIFCR_TFRST | TXX9_SIFCR_RFRST | TXX9_SIFCR_FRSTE);
 	sio_out(up, TXX9_SIDICR, 0);
 
 	/*
@@ -565,9 +653,12 @@ static int serial_txx9_startup(struct uart_port *port)
 	sio_out(up, TXX9_SIDISR, 0);
 
 	retval = request_irq(up->port.irq, serial_txx9_interrupt,
-			     IRQF_SHARED, "serial_txx9", up);
+						 IRQF_SHARED, "serial_txx9", up);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	/*
 	 * Now, initialize the UART
@@ -607,17 +698,20 @@ static void serial_txx9_shutdown(struct uart_port *port)
 	sio_mask(up, TXX9_SIFLCR, TXX9_SIFLCR_TBRK);
 
 #ifdef CONFIG_SERIAL_TXX9_CONSOLE
-	if (up->port.cons && up->port.line == up->port.cons->index) {
+
+	if (up->port.cons && up->port.line == up->port.cons->index)
+	{
 		free_irq(up->port.irq, up);
 		return;
 	}
+
 #endif
 	/* reset FIFOs */
 	sio_set(up, TXX9_SIFCR,
-		TXX9_SIFCR_TFRST | TXX9_SIFCR_RFRST | TXX9_SIFCR_FRSTE);
+			TXX9_SIFCR_TFRST | TXX9_SIFCR_RFRST | TXX9_SIFCR_FRSTE);
 	/* clear reset */
 	sio_mask(up, TXX9_SIFCR,
-		 TXX9_SIFCR_TFRST | TXX9_SIFCR_RFRST | TXX9_SIFCR_FRSTE);
+			 TXX9_SIFCR_TFRST | TXX9_SIFCR_RFRST | TXX9_SIFCR_FRSTE);
 
 	/* Disable RX/TX */
 	sio_set(up, TXX9_SIFLCR, TXX9_SIFLCR_RSDE | TXX9_SIFLCR_TSDE);
@@ -627,7 +721,7 @@ static void serial_txx9_shutdown(struct uart_port *port)
 
 static void
 serial_txx9_set_termios(struct uart_port *port, struct ktermios *termios,
-		       struct ktermios *old)
+						struct ktermios *old)
 {
 	struct uart_txx9_port *up = to_uart_txx9_port(port);
 	unsigned int cval, fcr = 0;
@@ -643,33 +737,48 @@ serial_txx9_set_termios(struct uart_port *port, struct ktermios *termios,
 	cval = sio_in(up, TXX9_SILCR);
 	/* byte size and parity */
 	cval &= ~TXX9_SILCR_UMODE_MASK;
-	switch (termios->c_cflag & CSIZE) {
-	case CS7:
-		cval |= TXX9_SILCR_UMODE_7BIT;
-		break;
-	default:
-	case CS5:	/* not supported */
-	case CS6:	/* not supported */
-	case CS8:
-		cval |= TXX9_SILCR_UMODE_8BIT;
-		break;
+
+	switch (termios->c_cflag & CSIZE)
+	{
+		case CS7:
+			cval |= TXX9_SILCR_UMODE_7BIT;
+			break;
+
+		default:
+		case CS5:	/* not supported */
+		case CS6:	/* not supported */
+		case CS8:
+			cval |= TXX9_SILCR_UMODE_8BIT;
+			break;
 	}
 
 	cval &= ~TXX9_SILCR_USBL_MASK;
+
 	if (termios->c_cflag & CSTOPB)
+	{
 		cval |= TXX9_SILCR_USBL_2BIT;
+	}
 	else
+	{
 		cval |= TXX9_SILCR_USBL_1BIT;
+	}
+
 	cval &= ~(TXX9_SILCR_UPEN | TXX9_SILCR_UEPS);
+
 	if (termios->c_cflag & PARENB)
+	{
 		cval |= TXX9_SILCR_UPEN;
+	}
+
 	if (!(termios->c_cflag & PARODD))
+	{
 		cval |= TXX9_SILCR_UEPS;
+	}
 
 	/*
 	 * Ask the core to calculate the divisor for us.
 	 */
-	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk/16/2);
+	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk / 16 / 2);
 	quot = uart_get_divisor(port, baud);
 
 	/* Set up FIFOs */
@@ -688,42 +797,61 @@ serial_txx9_set_termios(struct uart_port *port, struct ktermios *termios,
 	uart_update_timeout(port, termios->c_cflag, baud);
 
 	up->port.read_status_mask = TXX9_SIDISR_UOER |
-		TXX9_SIDISR_TDIS | TXX9_SIDISR_RDIS;
+								TXX9_SIDISR_TDIS | TXX9_SIDISR_RDIS;
+
 	if (termios->c_iflag & INPCK)
+	{
 		up->port.read_status_mask |= TXX9_SIDISR_UFER | TXX9_SIDISR_UPER;
+	}
+
 	if (termios->c_iflag & (IGNBRK | BRKINT | PARMRK))
+	{
 		up->port.read_status_mask |= TXX9_SIDISR_UBRK;
+	}
 
 	/*
 	 * Characteres to ignore
 	 */
 	up->port.ignore_status_mask = 0;
+
 	if (termios->c_iflag & IGNPAR)
+	{
 		up->port.ignore_status_mask |= TXX9_SIDISR_UPER | TXX9_SIDISR_UFER;
-	if (termios->c_iflag & IGNBRK) {
+	}
+
+	if (termios->c_iflag & IGNBRK)
+	{
 		up->port.ignore_status_mask |= TXX9_SIDISR_UBRK;
+
 		/*
 		 * If we're ignoring parity and break indicators,
 		 * ignore overruns too (for real raw support).
 		 */
 		if (termios->c_iflag & IGNPAR)
+		{
 			up->port.ignore_status_mask |= TXX9_SIDISR_UOER;
+		}
 	}
 
 	/*
 	 * ignore all characters if CREAD is not set
 	 */
 	if ((termios->c_cflag & CREAD) == 0)
+	{
 		up->port.ignore_status_mask |= TXX9_SIDISR_RDIS;
+	}
 
 	/* CTS flow control flag */
 	if ((termios->c_cflag & CRTSCTS) &&
-	    (up->port.flags & UPF_TXX9_HAVE_CTS_LINE)) {
+		(up->port.flags & UPF_TXX9_HAVE_CTS_LINE))
+	{
 		sio_set(up, TXX9_SIFLCR,
-			TXX9_SIFLCR_RCS | TXX9_SIFLCR_TES);
-	} else {
+				TXX9_SIFLCR_RCS | TXX9_SIFLCR_TES);
+	}
+	else
+	{
 		sio_mask(up, TXX9_SIFLCR,
-			 TXX9_SIFLCR_RCS | TXX9_SIFLCR_TES);
+				 TXX9_SIFLCR_RCS | TXX9_SIFLCR_TES);
 	}
 
 	sio_out(up, TXX9_SILCR, cval);
@@ -736,7 +864,7 @@ serial_txx9_set_termios(struct uart_port *port, struct ktermios *termios,
 
 static void
 serial_txx9_pm(struct uart_port *port, unsigned int state,
-	      unsigned int oldstate)
+			   unsigned int oldstate)
 {
 	/*
 	 * If oldstate was -1 this is called from
@@ -747,7 +875,9 @@ serial_txx9_pm(struct uart_port *port, unsigned int state,
 	 * serial console settings.
 	 */
 	if (state == 0 && oldstate != -1)
+	{
 		serial_txx9_initialize(port);
+	}
 }
 
 static int serial_txx9_request_resource(struct uart_txx9_port *up)
@@ -755,30 +885,42 @@ static int serial_txx9_request_resource(struct uart_txx9_port *up)
 	unsigned int size = TXX9_REGION_SIZE;
 	int ret = 0;
 
-	switch (up->port.iotype) {
-	default:
-		if (!up->port.mapbase)
-			break;
-
-		if (!request_mem_region(up->port.mapbase, size, "serial_txx9")) {
-			ret = -EBUSY;
-			break;
-		}
-
-		if (up->port.flags & UPF_IOREMAP) {
-			up->port.membase = ioremap(up->port.mapbase, size);
-			if (!up->port.membase) {
-				release_mem_region(up->port.mapbase, size);
-				ret = -ENOMEM;
+	switch (up->port.iotype)
+	{
+		default:
+			if (!up->port.mapbase)
+			{
+				break;
 			}
-		}
-		break;
 
-	case UPIO_PORT:
-		if (!request_region(up->port.iobase, size, "serial_txx9"))
-			ret = -EBUSY;
-		break;
+			if (!request_mem_region(up->port.mapbase, size, "serial_txx9"))
+			{
+				ret = -EBUSY;
+				break;
+			}
+
+			if (up->port.flags & UPF_IOREMAP)
+			{
+				up->port.membase = ioremap(up->port.mapbase, size);
+
+				if (!up->port.membase)
+				{
+					release_mem_region(up->port.mapbase, size);
+					ret = -ENOMEM;
+				}
+			}
+
+			break;
+
+		case UPIO_PORT:
+			if (!request_region(up->port.iobase, size, "serial_txx9"))
+			{
+				ret = -EBUSY;
+			}
+
+			break;
 	}
+
 	return ret;
 }
 
@@ -786,22 +928,26 @@ static void serial_txx9_release_resource(struct uart_txx9_port *up)
 {
 	unsigned int size = TXX9_REGION_SIZE;
 
-	switch (up->port.iotype) {
-	default:
-		if (!up->port.mapbase)
+	switch (up->port.iotype)
+	{
+		default:
+			if (!up->port.mapbase)
+			{
+				break;
+			}
+
+			if (up->port.flags & UPF_IOREMAP)
+			{
+				iounmap(up->port.membase);
+				up->port.membase = NULL;
+			}
+
+			release_mem_region(up->port.mapbase, size);
 			break;
 
-		if (up->port.flags & UPF_IOREMAP) {
-			iounmap(up->port.membase);
-			up->port.membase = NULL;
-		}
-
-		release_mem_region(up->port.mapbase, size);
-		break;
-
-	case UPIO_PORT:
-		release_region(up->port.iobase, size);
-		break;
+		case UPIO_PORT:
+			release_region(up->port.iobase, size);
+			break;
 	}
 }
 
@@ -827,14 +973,22 @@ static void serial_txx9_config_port(struct uart_port *port, int uflags)
 	 * tells us whether we can probe for the type of port.
 	 */
 	ret = serial_txx9_request_resource(up);
+
 	if (ret < 0)
+	{
 		return;
+	}
+
 	port->type = PORT_TXX9;
 	up->port.fifosize = TXX9_SIO_TX_FIFO;
 
 #ifdef CONFIG_SERIAL_TXX9_CONSOLE
+
 	if (up->port.line == up->port.cons->index)
+	{
 		return;
+	}
+
 #endif
 	serial_txx9_initialize(port);
 }
@@ -845,7 +999,8 @@ serial_txx9_type(struct uart_port *port)
 	return "txx9";
 }
 
-static struct uart_ops serial_txx9_pops = {
+static struct uart_ops serial_txx9_pops =
+{
 	.tx_empty	= serial_txx9_tx_empty,
 	.set_mctrl	= serial_txx9_set_mctrl,
 	.get_mctrl	= serial_txx9_get_mctrl,
@@ -870,18 +1025,22 @@ static struct uart_ops serial_txx9_pops = {
 static struct uart_txx9_port serial_txx9_ports[UART_NR];
 
 static void __init serial_txx9_register_ports(struct uart_driver *drv,
-					      struct device *dev)
+		struct device *dev)
 {
 	int i;
 
-	for (i = 0; i < UART_NR; i++) {
+	for (i = 0; i < UART_NR; i++)
+	{
 		struct uart_txx9_port *up = &serial_txx9_ports[i];
 
 		up->port.line = i;
 		up->port.ops = &serial_txx9_pops;
 		up->port.dev = dev;
+
 		if (up->port.iobase || up->port.mapbase)
+		{
 			uart_add_one_port(drv, &up->port);
+		}
 	}
 }
 
@@ -916,8 +1075,11 @@ serial_txx9_console_write(struct console *co, const char *s, unsigned int count)
 	 *	Disable flow-control if enabled (and unnecessary)
 	 */
 	flcr = sio_in(up, TXX9_SIFLCR);
+
 	if (!(up->port.flags & UPF_CONS_FLOW) && (flcr & TXX9_SIFLCR_TES))
+	{
 		sio_out(up, TXX9_SIFLCR, flcr & ~TXX9_SIFLCR_TES);
+	}
 
 	uart_console_write(&up->port, s, count, serial_txx9_console_putchar);
 
@@ -945,22 +1107,31 @@ static int __init serial_txx9_console_setup(struct console *co, char *options)
 	 * console support.
 	 */
 	if (co->index >= UART_NR)
+	{
 		co->index = 0;
+	}
+
 	up = &serial_txx9_ports[co->index];
 	port = &up->port;
+
 	if (!port->ops)
+	{
 		return -ENODEV;
+	}
 
 	serial_txx9_initialize(&up->port);
 
 	if (options)
+	{
 		uart_parse_options(options, &baud, &parity, &bits, &flow);
+	}
 
 	return uart_set_options(port, co, baud, parity, bits, flow);
 }
 
 static struct uart_driver serial_txx9_reg;
-static struct console serial_txx9_console = {
+static struct console serial_txx9_console =
+{
 	.name		= TXX9_TTY_NAME,
 	.write		= serial_txx9_console_write,
 	.device		= uart_console_device,
@@ -982,7 +1153,8 @@ console_initcall(serial_txx9_console_init);
 #define SERIAL_TXX9_CONSOLE	NULL
 #endif
 
-static struct uart_driver serial_txx9_reg = {
+static struct uart_driver serial_txx9_reg =
+{
 	.owner			= THIS_MODULE,
 	.driver_name		= "serial_txx9",
 	.dev_name		= TXX9_TTY_NAME,
@@ -995,7 +1167,9 @@ static struct uart_driver serial_txx9_reg = {
 int __init early_serial_txx9_setup(struct uart_port *port)
 {
 	if (port->line >= ARRAY_SIZE(serial_txx9_ports))
+	{
 		return -ENODEV;
+	}
 
 	serial_txx9_ports[port->line].port = *port;
 	serial_txx9_ports[port->line].port.ops = &serial_txx9_pops;
@@ -1024,36 +1198,56 @@ static int serial_txx9_register_port(struct uart_port *port)
 	int ret = -ENOSPC;
 
 	mutex_lock(&serial_txx9_mutex);
-	for (i = 0; i < UART_NR; i++) {
+
+	for (i = 0; i < UART_NR; i++)
+	{
 		uart = &serial_txx9_ports[i];
-		if (uart_match_port(&uart->port, port)) {
+
+		if (uart_match_port(&uart->port, port))
+		{
 			uart_remove_one_port(&serial_txx9_reg, &uart->port);
 			break;
 		}
 	}
-	if (i == UART_NR) {
+
+	if (i == UART_NR)
+	{
 		/* Find unused port */
-		for (i = 0; i < UART_NR; i++) {
+		for (i = 0; i < UART_NR; i++)
+		{
 			uart = &serial_txx9_ports[i];
+
 			if (!(uart->port.iobase || uart->port.mapbase))
+			{
 				break;
+			}
 		}
 	}
-	if (i < UART_NR) {
+
+	if (i < UART_NR)
+	{
 		uart->port.iobase = port->iobase;
 		uart->port.membase = port->membase;
 		uart->port.irq      = port->irq;
 		uart->port.uartclk  = port->uartclk;
 		uart->port.iotype   = port->iotype;
 		uart->port.flags    = port->flags
-			| UPF_BOOT_AUTOCONF | UPF_FIXED_PORT;
+							  | UPF_BOOT_AUTOCONF | UPF_FIXED_PORT;
 		uart->port.mapbase  = port->mapbase;
+
 		if (port->dev)
+		{
 			uart->port.dev = port->dev;
+		}
+
 		ret = uart_add_one_port(&serial_txx9_reg, &uart->port);
+
 		if (ret == 0)
+		{
 			ret = uart->port.line;
+		}
 	}
+
 	mutex_unlock(&serial_txx9_mutex);
 	return ret;
 }
@@ -1090,7 +1284,9 @@ static int serial_txx9_probe(struct platform_device *dev)
 	int ret, i;
 
 	memset(&port, 0, sizeof(struct uart_port));
-	for (i = 0; p && p->uartclk != 0; p++, i++) {
+
+	for (i = 0; p && p->uartclk != 0; p++, i++)
+	{
 		port.iobase	= p->iobase;
 		port.membase	= p->membase;
 		port.irq	= p->irq;
@@ -1100,13 +1296,16 @@ static int serial_txx9_probe(struct platform_device *dev)
 		port.mapbase	= p->mapbase;
 		port.dev	= &dev->dev;
 		ret = serial_txx9_register_port(&port);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(&dev->dev, "unable to register port at index %d "
-				"(IO%lx MEM%llx IRQ%d): %d\n", i,
-				p->iobase, (unsigned long long)p->mapbase,
-				p->irq, ret);
+					"(IO%lx MEM%llx IRQ%d): %d\n", i,
+					p->iobase, (unsigned long long)p->mapbase,
+					p->irq, ret);
 		}
 	}
+
 	return 0;
 }
 
@@ -1117,12 +1316,16 @@ static int serial_txx9_remove(struct platform_device *dev)
 {
 	int i;
 
-	for (i = 0; i < UART_NR; i++) {
+	for (i = 0; i < UART_NR; i++)
+	{
 		struct uart_txx9_port *up = &serial_txx9_ports[i];
 
 		if (up->port.dev == &dev->dev)
+		{
 			serial_txx9_unregister_port(i);
+		}
 	}
+
 	return 0;
 }
 
@@ -1131,11 +1334,14 @@ static int serial_txx9_suspend(struct platform_device *dev, pm_message_t state)
 {
 	int i;
 
-	for (i = 0; i < UART_NR; i++) {
+	for (i = 0; i < UART_NR; i++)
+	{
 		struct uart_txx9_port *up = &serial_txx9_ports[i];
 
 		if (up->port.type != PORT_UNKNOWN && up->port.dev == &dev->dev)
+		{
 			uart_suspend_port(&serial_txx9_reg, &up->port);
+		}
 	}
 
 	return 0;
@@ -1145,18 +1351,22 @@ static int serial_txx9_resume(struct platform_device *dev)
 {
 	int i;
 
-	for (i = 0; i < UART_NR; i++) {
+	for (i = 0; i < UART_NR; i++)
+	{
 		struct uart_txx9_port *up = &serial_txx9_ports[i];
 
 		if (up->port.type != PORT_UNKNOWN && up->port.dev == &dev->dev)
+		{
 			uart_resume_port(&serial_txx9_reg, &up->port);
+		}
 	}
 
 	return 0;
 }
 #endif
 
-static struct platform_driver serial_txx9_plat_driver = {
+static struct platform_driver serial_txx9_plat_driver =
+{
 	.probe		= serial_txx9_probe,
 	.remove		= serial_txx9_remove,
 #ifdef CONFIG_PM
@@ -1181,8 +1391,11 @@ pciserial_txx9_init_one(struct pci_dev *dev, const struct pci_device_id *ent)
 	int rc;
 
 	rc = pci_enable_device(dev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	memset(&port, 0, sizeof(port));
 	port.ops = &serial_txx9_pops;
@@ -1193,11 +1406,14 @@ pciserial_txx9_init_one(struct pci_dev *dev, const struct pci_device_id *ent)
 	port.iobase = pci_resource_start(dev, 1);
 	port.dev = &dev->dev;
 	line = serial_txx9_register_port(&port);
-	if (line < 0) {
+
+	if (line < 0)
+	{
 		printk(KERN_WARNING "Couldn't register serial port %s: %d\n", pci_name(dev), line);
 		pci_disable_device(dev);
 		return line;
 	}
+
 	pci_set_drvdata(dev, &serial_txx9_ports[line]);
 
 	return 0;
@@ -1207,7 +1423,8 @@ static void pciserial_txx9_remove_one(struct pci_dev *dev)
 {
 	struct uart_txx9_port *up = pci_get_drvdata(dev);
 
-	if (up) {
+	if (up)
+	{
 		serial_txx9_unregister_port(up->port.line);
 		pci_disable_device(dev);
 	}
@@ -1219,7 +1436,10 @@ static int pciserial_txx9_suspend_one(struct pci_dev *dev, pm_message_t state)
 	struct uart_txx9_port *up = pci_get_drvdata(dev);
 
 	if (up)
+	{
 		uart_suspend_port(&serial_txx9_reg, &up->port);
+	}
+
 	pci_save_state(dev);
 	pci_set_power_state(dev, pci_choose_state(dev, state));
 	return 0;
@@ -1231,18 +1451,24 @@ static int pciserial_txx9_resume_one(struct pci_dev *dev)
 
 	pci_set_power_state(dev, PCI_D0);
 	pci_restore_state(dev);
+
 	if (up)
+	{
 		uart_resume_port(&serial_txx9_reg, &up->port);
+	}
+
 	return 0;
 }
 #endif
 
-static const struct pci_device_id serial_txx9_pci_tbl[] = {
+static const struct pci_device_id serial_txx9_pci_tbl[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_TOSHIBA_2, PCI_DEVICE_ID_TOSHIBA_TC86C001_MISC) },
 	{ 0, }
 };
 
-static struct pci_driver serial_txx9_pci_driver = {
+static struct pci_driver serial_txx9_pci_driver =
+{
 	.name		= "serial_txx9",
 	.probe		= pciserial_txx9_init_one,
 	.remove		= pciserial_txx9_remove_one,
@@ -1262,42 +1488,56 @@ static int __init serial_txx9_init(void)
 {
 	int ret;
 
- 	printk(KERN_INFO "%s version %s\n", serial_name, serial_version);
+	printk(KERN_INFO "%s version %s\n", serial_name, serial_version);
 
 	ret = uart_register_driver(&serial_txx9_reg);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	serial_txx9_plat_devs = platform_device_alloc("serial_txx9", -1);
-	if (!serial_txx9_plat_devs) {
+
+	if (!serial_txx9_plat_devs)
+	{
 		ret = -ENOMEM;
 		goto unreg_uart_drv;
 	}
 
 	ret = platform_device_add(serial_txx9_plat_devs);
+
 	if (ret)
+	{
 		goto put_dev;
+	}
 
 	serial_txx9_register_ports(&serial_txx9_reg,
-				   &serial_txx9_plat_devs->dev);
+							   &serial_txx9_plat_devs->dev);
 
 	ret = platform_driver_register(&serial_txx9_plat_driver);
+
 	if (ret)
+	{
 		goto del_dev;
+	}
 
 #ifdef ENABLE_SERIAL_TXX9_PCI
 	ret = pci_register_driver(&serial_txx9_pci_driver);
 #endif
-	if (ret == 0)
-		goto out;
 
- del_dev:
+	if (ret == 0)
+	{
+		goto out;
+	}
+
+del_dev:
 	platform_device_del(serial_txx9_plat_devs);
- put_dev:
+put_dev:
 	platform_device_put(serial_txx9_plat_devs);
- unreg_uart_drv:
+unreg_uart_drv:
 	uart_unregister_driver(&serial_txx9_reg);
- out:
+out:
 	return ret;
 }
 
@@ -1310,10 +1550,15 @@ static void __exit serial_txx9_exit(void)
 #endif
 	platform_driver_unregister(&serial_txx9_plat_driver);
 	platform_device_unregister(serial_txx9_plat_devs);
-	for (i = 0; i < UART_NR; i++) {
+
+	for (i = 0; i < UART_NR; i++)
+	{
 		struct uart_txx9_port *up = &serial_txx9_ports[i];
+
 		if (up->port.iobase || up->port.mapbase)
+		{
 			uart_remove_one_port(&serial_txx9_reg, &up->port);
+		}
 	}
 
 	uart_unregister_driver(&serial_txx9_reg);

@@ -34,8 +34,8 @@ static inline struct optimistic_spin_node *decode_cpu(int encoded_cpu_val)
  */
 static inline struct optimistic_spin_node *
 osq_wait_next(struct optimistic_spin_queue *lock,
-	      struct optimistic_spin_node *node,
-	      struct optimistic_spin_node *prev)
+			  struct optimistic_spin_node *node,
+			  struct optimistic_spin_node *prev)
 {
 	struct optimistic_spin_node *next = NULL;
 	int curr = encode_cpu(smp_processor_id());
@@ -48,9 +48,11 @@ osq_wait_next(struct optimistic_spin_queue *lock,
 	 */
 	old = prev ? prev->cpu : OSQ_UNLOCKED_VAL;
 
-	for (;;) {
+	for (;;)
+	{
 		if (atomic_read(&lock->tail) == curr &&
-		    atomic_cmpxchg_acquire(&lock->tail, curr, old) == curr) {
+			atomic_cmpxchg_acquire(&lock->tail, curr, old) == curr)
+		{
 			/*
 			 * We were the last queued, we moved @lock back. @prev
 			 * will now observe @lock and will complete its
@@ -69,10 +71,14 @@ osq_wait_next(struct optimistic_spin_queue *lock,
 		 * wait for either @lock to point to us, through its Step-B, or
 		 * wait for a new @node->next from its Step-C.
 		 */
-		if (node->next) {
+		if (node->next)
+		{
 			next = xchg(&node->next, NULL);
+
 			if (next)
+			{
 				break;
+			}
 		}
 
 		cpu_relax_lowlatency();
@@ -99,8 +105,11 @@ bool osq_lock(struct optimistic_spin_queue *lock)
 	 * the lock tail.
 	 */
 	old = atomic_xchg(&lock->tail, curr);
+
 	if (old == OSQ_UNLOCKED_VAL)
+	{
 		return true;
+	}
 
 	prev = decode_cpu(old);
 	node->prev = prev;
@@ -115,15 +124,19 @@ bool osq_lock(struct optimistic_spin_queue *lock)
 	 * cmpxchg in an attempt to undo our queueing.
 	 */
 
-	while (!READ_ONCE(node->locked)) {
+	while (!READ_ONCE(node->locked))
+	{
 		/*
 		 * If we need to reschedule bail... so we can block.
 		 */
 		if (need_resched())
+		{
 			goto unqueue;
+		}
 
 		cpu_relax_lowlatency();
 	}
+
 	return true;
 
 unqueue:
@@ -135,10 +148,13 @@ unqueue:
 	 * (or later).
 	 */
 
-	for (;;) {
+	for (;;)
+	{
 		if (prev->next == node &&
-		    cmpxchg(&prev->next, node, NULL) == node)
+			cmpxchg(&prev->next, node, NULL) == node)
+		{
 			break;
+		}
 
 		/*
 		 * We can only fail the cmpxchg() racing against an unlock(),
@@ -146,7 +162,9 @@ unqueue:
 		 * true.
 		 */
 		if (smp_load_acquire(&node->locked))
+		{
 			return true;
+		}
 
 		cpu_relax_lowlatency();
 
@@ -165,8 +183,11 @@ unqueue:
 	 */
 
 	next = osq_wait_next(lock, node, prev);
+
 	if (!next)
+	{
 		return false;
+	}
 
 	/*
 	 * Step - C -- unlink
@@ -191,20 +212,27 @@ void osq_unlock(struct optimistic_spin_queue *lock)
 	 * Fast path for the uncontended case.
 	 */
 	if (likely(atomic_cmpxchg_release(&lock->tail, curr,
-					  OSQ_UNLOCKED_VAL) == curr))
+									  OSQ_UNLOCKED_VAL) == curr))
+	{
 		return;
+	}
 
 	/*
 	 * Second most likely case.
 	 */
 	node = this_cpu_ptr(&osq_node);
 	next = xchg(&node->next, NULL);
-	if (next) {
+
+	if (next)
+	{
 		WRITE_ONCE(next->locked, 1);
 		return;
 	}
 
 	next = osq_wait_next(lock, node, NULL);
+
 	if (next)
+	{
 		WRITE_ONCE(next->locked, 1);
+	}
 }

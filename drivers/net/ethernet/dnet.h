@@ -178,7 +178,8 @@
 /*
  * Hardware-collected statistics.
  */
-struct dnet_stats {
+struct dnet_stats
+{
 	u32 rx_pkt_ignr;
 	u32 rx_len_chk_err;
 	u32 rx_lng_frm;
@@ -205,7 +206,8 @@ struct dnet_stats {
 	u32 tx_byte;
 };
 
-struct dnet {
+struct dnet
+{
 	void __iomem			*regs;
 	spinlock_t			lock;
 	struct platform_device		*pdev;

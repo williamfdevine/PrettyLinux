@@ -27,7 +27,8 @@
 #include <core/memory.h>
 #include <core/ramht.h>
 
-struct nv04_instmem {
+struct nv04_instmem
+{
 	struct nvkm_instmem base;
 	struct nvkm_mm heap;
 };
@@ -37,7 +38,8 @@ struct nv04_instmem {
  *****************************************************************************/
 #define nv04_instobj(p) container_of((p), struct nv04_instobj, memory)
 
-struct nv04_instobj {
+struct nv04_instobj
+{
 	struct nvkm_memory memory;
 	struct nv04_instmem *imem;
 	struct nvkm_mm_node *node;
@@ -101,7 +103,8 @@ nv04_instobj_dtor(struct nvkm_memory *memory)
 }
 
 static const struct nvkm_memory_func
-nv04_instobj_func = {
+	nv04_instobj_func =
+{
 	.dtor = nv04_instobj_dtor,
 	.target = nv04_instobj_target,
 	.size = nv04_instobj_size,
@@ -114,14 +117,17 @@ nv04_instobj_func = {
 
 static int
 nv04_instobj_new(struct nvkm_instmem *base, u32 size, u32 align, bool zero,
-		 struct nvkm_memory **pmemory)
+				 struct nvkm_memory **pmemory)
 {
 	struct nv04_instmem *imem = nv04_instmem(base);
 	struct nv04_instobj *iobj;
 	int ret;
 
 	if (!(iobj = kzalloc(sizeof(*iobj), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pmemory = &iobj->memory;
 
 	nvkm_memory_ctor(&nv04_instobj_func, &iobj->memory);
@@ -129,7 +135,7 @@ nv04_instobj_new(struct nvkm_instmem *base, u32 size, u32 align, bool zero,
 
 	mutex_lock(&imem->base.subdev.mutex);
 	ret = nvkm_mm_head(&imem->heap, 0, 1, size, size,
-			   align ? align : 1, &iobj->node);
+					   align ? align : 1, &iobj->node);
 	mutex_unlock(&imem->base.subdev.mutex);
 	return ret;
 }
@@ -161,31 +167,46 @@ nv04_instmem_oneinit(struct nvkm_instmem *base)
 	imem->base.reserved = 512 * 1024;
 
 	ret = nvkm_mm_init(&imem->heap, 0, imem->base.reserved, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* 0x00000-0x10000: reserve for probable vbios image */
 	ret = nvkm_memory_new(device, NVKM_MEM_TARGET_INST, 0x10000, 0, false,
-			      &imem->base.vbios);
+						  &imem->base.vbios);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* 0x10000-0x18000: reserve for RAMHT */
 	ret = nvkm_ramht_new(device, 0x08000, 0, NULL, &imem->base.ramht);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* 0x18000-0x18800: reserve for RAMFC (enough for 32 nv30 channels) */
 	ret = nvkm_memory_new(device, NVKM_MEM_TARGET_INST, 0x00800, 0, true,
-			      &imem->base.ramfc);
+						  &imem->base.ramfc);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* 0x18800-0x18a00: reserve for RAMRO */
 	ret = nvkm_memory_new(device, NVKM_MEM_TARGET_INST, 0x00200, 0, false,
-			      &imem->base.ramro);
+						  &imem->base.ramro);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -203,7 +224,8 @@ nv04_instmem_dtor(struct nvkm_instmem *base)
 }
 
 static const struct nvkm_instmem_func
-nv04_instmem = {
+	nv04_instmem =
+{
 	.dtor = nv04_instmem_dtor,
 	.oneinit = nv04_instmem_oneinit,
 	.rd32 = nv04_instmem_rd32,
@@ -215,12 +237,15 @@ nv04_instmem = {
 
 int
 nv04_instmem_new(struct nvkm_device *device, int index,
-		 struct nvkm_instmem **pimem)
+				 struct nvkm_instmem **pimem)
 {
 	struct nv04_instmem *imem;
 
 	if (!(imem = kzalloc(sizeof(*imem), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	nvkm_instmem_ctor(&nv04_instmem, device, index, &imem->base);
 	*pimem = &imem->base;
 	return 0;

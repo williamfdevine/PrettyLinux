@@ -53,7 +53,8 @@
 #define IDMAP_STATUS_LOOKUPFAIL 0x04
 #define IDMAP_STATUS_SUCCESS    0x08
 
-struct idmap_msg {
+struct idmap_msg
+{
 	__u8  im_type;
 	__u8  im_conv;
 	char  im_name[IDMAP_NAMESZ];

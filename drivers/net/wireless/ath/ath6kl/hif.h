@@ -37,7 +37,7 @@
 
 #define MANUFACTURER_ID_AR6003_BASE        0x300
 #define MANUFACTURER_ID_AR6004_BASE        0x400
-    /* SDIO manufacturer ID and Codes */
+/* SDIO manufacturer ID and Codes */
 #define MANUFACTURER_ID_ATH6KL_BASE_MASK     0xFF00
 #define MANUFACTURER_CODE                  0x271	/* Atheros */
 
@@ -73,7 +73,8 @@
 
 #define ATH6KL_HIF_COMMUNICATION_TIMEOUT	1000
 
-struct bus_request {
+struct bus_request
+{
 	struct list_head list;
 
 	/* request data */
@@ -168,13 +169,15 @@ struct bus_request {
 	(HIF_READ | HIF_SYNCHRONOUS |					\
 	 HIF_BLOCK_BASIS | HIF_FIXED_ADDRESS)
 
-struct hif_scatter_item {
+struct hif_scatter_item
+{
 	u8 *buf;
 	int len;
 	struct htc_packet *packet;
 };
 
-struct hif_scatter_req {
+struct hif_scatter_req
+{
 	struct list_head list;
 	/* address for the read/write operation */
 	u32 addr;
@@ -202,7 +205,8 @@ struct hif_scatter_req {
 	struct hif_scatter_item scat_list[0];
 };
 
-struct ath6kl_irq_proc_registers {
+struct ath6kl_irq_proc_registers
+{
 	u8 host_int_status;
 	u8 cpu_int_status;
 	u8 error_int_status;
@@ -215,14 +219,16 @@ struct ath6kl_irq_proc_registers {
 	__le32 rx_gmbox_lkahd_alias[2];
 } __packed;
 
-struct ath6kl_irq_enable_reg {
+struct ath6kl_irq_enable_reg
+{
 	u8 int_status_en;
 	u8 cpu_int_status_en;
 	u8 err_int_status_en;
 	u8 cntr_int_status_en;
 } __packed;
 
-struct ath6kl_device {
+struct ath6kl_device
+{
 	/* protects irq_proc_reg and irq_en_reg below */
 	spinlock_t lock;
 	struct ath6kl_irq_proc_registers irq_proc_reg;
@@ -231,21 +237,22 @@ struct ath6kl_device {
 	struct ath6kl *ar;
 };
 
-struct ath6kl_hif_ops {
+struct ath6kl_hif_ops
+{
 	int (*read_write_sync)(struct ath6kl *ar, u32 addr, u8 *buf,
-			       u32 len, u32 request);
+						   u32 len, u32 request);
 	int (*write_async)(struct ath6kl *ar, u32 address, u8 *buffer,
-			   u32 length, u32 request, struct htc_packet *packet);
+					   u32 length, u32 request, struct htc_packet *packet);
 
 	void (*irq_enable)(struct ath6kl *ar);
 	void (*irq_disable)(struct ath6kl *ar);
 
 	struct hif_scatter_req *(*scatter_req_get)(struct ath6kl *ar);
 	void (*scatter_req_add)(struct ath6kl *ar,
-				struct hif_scatter_req *s_req);
+							struct hif_scatter_req *s_req);
 	int (*enable_scatter)(struct ath6kl *ar);
 	int (*scat_req_rw) (struct ath6kl *ar,
-			    struct hif_scatter_req *scat_req);
+						struct hif_scatter_req *scat_req);
 	void (*cleanup_scatter)(struct ath6kl *ar);
 	int (*suspend)(struct ath6kl *ar, struct cfg80211_wowlan *wow);
 	int (*resume)(struct ath6kl *ar);
@@ -257,10 +264,10 @@ struct ath6kl_hif_ops {
 	int (*power_off)(struct ath6kl *ar);
 	void (*stop)(struct ath6kl *ar);
 	int (*pipe_send)(struct ath6kl *ar, u8 pipe, struct sk_buff *hdr_buf,
-			 struct sk_buff *buf);
+					 struct sk_buff *buf);
 	void (*pipe_get_default)(struct ath6kl *ar, u8 *pipe_ul, u8 *pipe_dl);
 	int (*pipe_map_service)(struct ath6kl *ar, u16 service_id, u8 *pipe_ul,
-				u8 *pipe_dl);
+							u8 *pipe_dl);
 	u16 (*pipe_get_free_queue_number)(struct ath6kl *ar, u8 pipe);
 };
 
@@ -268,7 +275,7 @@ int ath6kl_hif_setup(struct ath6kl_device *dev);
 int ath6kl_hif_unmask_intrs(struct ath6kl_device *dev);
 int ath6kl_hif_mask_intrs(struct ath6kl_device *dev);
 int ath6kl_hif_poll_mboxmsg_rx(struct ath6kl_device *dev,
-			       u32 *lk_ahd, int timeout);
+							   u32 *lk_ahd, int timeout);
 int ath6kl_hif_rx_control(struct ath6kl_device *dev, bool enable_rx);
 int ath6kl_hif_disable_intrs(struct ath6kl_device *dev);
 
@@ -277,6 +284,6 @@ int ath6kl_hif_intr_bh_handler(struct ath6kl *ar);
 
 /* Scatter Function and Definitions */
 int ath6kl_hif_submit_scat_req(struct ath6kl_device *dev,
-			       struct hif_scatter_req *scat_req, bool read);
+							   struct hif_scatter_req *scat_req, bool read);
 
 #endif

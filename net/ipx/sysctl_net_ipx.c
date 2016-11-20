@@ -12,10 +12,11 @@
 #include <net/ipx.h>
 
 #ifndef CONFIG_SYSCTL
-#error This file should not be compiled without CONFIG_SYSCTL defined
+	#error This file should not be compiled without CONFIG_SYSCTL defined
 #endif
 
-static struct ctl_table ipx_table[] = {
+static struct ctl_table ipx_table[] =
+{
 	{
 		.procname	= "ipx_pprop_broadcasting",
 		.data		= &sysctl_ipx_pprop_broadcasting,

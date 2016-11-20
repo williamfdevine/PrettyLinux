@@ -40,7 +40,7 @@
 #include <net/iw_handler.h>	// new driver API
 
 #ifdef CONFIG_IPW2100_MONITOR
-#include <net/ieee80211_radiotap.h>
+	#include <net/ieee80211_radiotap.h>
 #endif
 
 #include <linux/workqueue.h>
@@ -130,7 +130,8 @@ struct ipw2100_rx_packet;
 #define IPW_DEBUG_STATE(f, a...) IPW_DEBUG(IPW_DL_STATE | IPW_DL_ASSOC | IPW_DL_INFO, f, ## a)
 #define IPW_DEBUG_ASSOC(f, a...) IPW_DEBUG(IPW_DL_ASSOC | IPW_DL_INFO, f, ## a)
 
-enum {
+enum
+{
 	IPW_HW_STATE_DISABLED = 1,
 	IPW_HW_STATE_ENABLED = 0
 };
@@ -146,18 +147,22 @@ extern const char *band_str[];
 #define NUMBER_OF_BDS_TO_LEAVE_FOR_COMMANDS	1
 
 #define REQUIRED_SPACE_IN_RING_FOR_COMMAND_PACKET \
-    (IPW_BD_QUEUE_W_R_MIN_SPARE + NUMBER_OF_BD_PER_COMMAND_PACKET)
+	(IPW_BD_QUEUE_W_R_MIN_SPARE + NUMBER_OF_BD_PER_COMMAND_PACKET)
 
-struct bd_status {
-	union {
-		struct {
-			u8 nlf:1, txType:2, intEnabled:1, reserved:4;
+struct bd_status
+{
+	union
+	{
+		struct
+		{
+			u8 nlf: 1, txType: 2, intEnabled: 1, reserved: 4;
 		} fields;
 		u8 field;
 	} info;
 } __packed;
 
-struct ipw2100_bd {
+struct ipw2100_bd
+{
 	u32 host_addr;
 	u32 buf_length;
 	struct bd_status status;
@@ -176,7 +181,8 @@ struct ipw2100_bd {
 #define IPW_BD_STATUS_TX_FRAME_802_11	         0x04
 #define IPW_BD_STATUS_TX_INTERRUPT_ENABLE	 0x08
 
-struct ipw2100_bd_queue {
+struct ipw2100_bd_queue
+{
 	/* driver (virtual) pointer to queue */
 	struct ipw2100_bd *drv;
 
@@ -215,7 +221,8 @@ struct ipw2100_bd_queue {
 
 #define IPW2100_RSSI_TO_DBM (-98)
 
-struct ipw2100_status {
+struct ipw2100_status
+{
 	u32 frame_size;
 	u16 status_fields;
 	u8 flags;
@@ -225,7 +232,8 @@ struct ipw2100_status {
 	u8 rssi;
 } __packed;
 
-struct ipw2100_status_queue {
+struct ipw2100_status_queue
+{
 	/* driver (virtual) pointer to queue */
 	struct ipw2100_status *drv;
 
@@ -245,9 +253,11 @@ struct ipw2100_status_queue {
 
 #define IPW_MAX_VAR_IE_LEN ((HOST_COMMAND_PARAMS_REG_LEN - 4) * sizeof(u32))
 
-struct ipw2100_wpa_assoc_frame {
+struct ipw2100_wpa_assoc_frame
+{
 	u16 fixed_ie_mask;
-	struct {
+	struct
+	{
 		u16 capab_info;
 		u16 listen_interval;
 		u8 current_ap[ETH_ALEN];
@@ -264,7 +274,8 @@ struct ipw2100_wpa_assoc_frame {
  * @struct _tx_cmd - HWCommand
  * @brief H/W command structure.
  */
-struct ipw2100_cmd_header {
+struct ipw2100_cmd_header
+{
 	u32 host_command_reg;
 	u32 host_command_reg1;
 	u32 sequence;
@@ -286,7 +297,8 @@ struct ipw2100_cmd_header {
 	u32 *ordinal2_ptr;
 } __packed;
 
-struct ipw2100_data_header {
+struct ipw2100_data_header
+{
 	u32 host_command_reg;
 	u32 host_command_reg1;
 	u8 encrypted;		// BOOLEAN in win! TRUE if frame is enc by driver
@@ -301,7 +313,8 @@ struct ipw2100_data_header {
 } __packed;
 
 /* Host command data structure */
-struct host_command {
+struct host_command
+{
 	u32 host_command;	// COMMAND ID
 	u32 host_command1;	// COMMAND ID
 	u32 host_command_sequence;	// UNIQUE COMMAND NUMBER (ID)
@@ -309,7 +322,8 @@ struct host_command {
 	u32 host_command_parameters[HOST_COMMAND_PARAMS_REG_LEN];	// COMMAND PARAMETERS
 } __packed;
 
-typedef enum {
+typedef enum
+{
 	POWER_ON_RESET,
 	EXIT_POWER_DOWN_RESET,
 	SW_RESET,
@@ -317,21 +331,26 @@ typedef enum {
 	SW_RE_INIT
 } ipw2100_reset_event;
 
-enum {
+enum
+{
 	COMMAND = 0xCAFE,
 	DATA,
 	RX
 };
 
-struct ipw2100_tx_packet {
+struct ipw2100_tx_packet
+{
 	int type;
 	int index;
-	union {
-		struct {	/* COMMAND */
+	union
+	{
+		struct  	/* COMMAND */
+		{
 			struct ipw2100_cmd_header *cmd;
 			dma_addr_t cmd_phys;
 		} c_struct;
-		struct {	/* DATA */
+		struct  	/* DATA */
+		{
 			struct ipw2100_data_header *data;
 			dma_addr_t data_phys;
 			struct libipw_txb *txb;
@@ -342,7 +361,8 @@ struct ipw2100_tx_packet {
 	struct list_head list;
 };
 
-struct ipw2100_rx_packet {
+struct ipw2100_rx_packet
+{
 	struct ipw2100_rx *rxp;
 	dma_addr_t dma_addr;
 	int jiffy_start;
@@ -360,7 +380,8 @@ struct ipw2100_rx_packet {
 #define	DEFAULT_SHORT_RETRY_LIMIT 7U
 #define	DEFAULT_LONG_RETRY_LIMIT  4U
 
-struct ipw2100_ordinals {
+struct ipw2100_ordinals
+{
 	u32 table1_addr;
 	u32 table2_addr;
 	u32 table1_size;
@@ -368,7 +389,8 @@ struct ipw2100_ordinals {
 };
 
 /* Host Notification header */
-struct ipw2100_notification {
+struct ipw2100_notification
+{
 	u32 hnhdr_subtype;	/* type of host notification */
 	u32 hnhdr_size;		/* size in bytes of data
 				   or number of entries, if table.
@@ -393,30 +415,32 @@ struct ipw2100_notification {
 #define IPW_AUTH_LEAP	  	2
 #define IPW_AUTH_LEAP_CISCO_ID	0x80
 
-struct statistic {
+struct statistic
+{
 	int value;
 	int hi;
 	int lo;
 };
 
 #define INIT_STAT(x) do {  \
-  (x)->value = (x)->hi = 0; \
-  (x)->lo = 0x7fffffff; \
-} while (0)
+		(x)->value = (x)->hi = 0; \
+		(x)->lo = 0x7fffffff; \
+	} while (0)
 #define SET_STAT(x,y) do { \
-  (x)->value = y; \
-  if ((x)->value > (x)->hi) (x)->hi = (x)->value; \
-  if ((x)->value < (x)->lo) (x)->lo = (x)->value; \
-} while (0)
+		(x)->value = y; \
+		if ((x)->value > (x)->hi) (x)->hi = (x)->value; \
+		if ((x)->value < (x)->lo) (x)->lo = (x)->value; \
+	} while (0)
 #define INC_STAT(x) do { if (++(x)->value > (x)->hi) (x)->hi = (x)->value; } \
-while (0)
+	while (0)
 #define DEC_STAT(x) do { if (--(x)->value < (x)->lo) (x)->lo = (x)->value; } \
-while (0)
+	while (0)
 
 #define IPW2100_ERROR_QUEUE 5
 
 /* Power management code: enable or disable? */
-enum {
+enum
+{
 #ifdef CONFIG_PM
 	IPW2100_PM_DISABLED = 0,
 	PM_STATE_SIZE = 16,
@@ -472,13 +496,14 @@ enum {
 #define CFG_ADHOC_CREATE        (1<<8)
 #define CFG_PASSIVE_SCAN        (1<<10)
 #ifdef CONFIG_IPW2100_MONITOR
-#define CFG_CRC_CHECK           (1<<11)
+	#define CFG_CRC_CHECK           (1<<11)
 #endif
 
 #define CAP_SHARED_KEY          (1<<0)	/* Off = OPEN */
 #define CAP_PRIVACY_ON          (1<<1)	/* Off = No privacy */
 
-struct ipw2100_priv {
+struct ipw2100_priv
+{
 	void __iomem *ioaddr;
 
 	int stop_hang_check;	/* Set 1 when shutting down to kill hang_check */
@@ -687,10 +712,10 @@ struct ipw2100_priv {
 #define IPW_MEM_HOST_SHARED_TX_QUEUE_READ_INDEX       (IPW_MEM_SRAM_HOST_SHARED_LOWER_BOUND + 0x80)
 
 #define IPW_MEM_HOST_SHARED_RX_WRITE_INDEX \
-    (IPW_MEM_SRAM_HOST_INTERRUPT_AREA_LOWER_BOUND + 0x20)
+	(IPW_MEM_SRAM_HOST_INTERRUPT_AREA_LOWER_BOUND + 0x20)
 
 #define IPW_MEM_HOST_SHARED_TX_QUEUE_WRITE_INDEX \
-    (IPW_MEM_SRAM_HOST_INTERRUPT_AREA_LOWER_BOUND)
+	(IPW_MEM_SRAM_HOST_INTERRUPT_AREA_LOWER_BOUND)
 
 #define IPW_MEM_HOST_SHARED_ORDINALS_TABLE_1   (IPW_MEM_SRAM_HOST_SHARED_LOWER_BOUND + 0x180)
 #define IPW_MEM_HOST_SHARED_ORDINALS_TABLE_2   (IPW_MEM_SRAM_HOST_SHARED_LOWER_BOUND + 0x184)
@@ -785,19 +810,21 @@ struct ipw2100_priv {
 #define IPW_MIN_ACCEPTABLE_RX_FRAME_LENGTH	60
 #define IPW_MAX_ACCEPTABLE_RX_FRAME_LENGTH \
 	(IPW_MAX_ACCEPTABLE_TX_FRAME_LENGTH + IPW_HEADER_802_11_SIZE - \
-        sizeof(struct ethhdr))
+	 sizeof(struct ethhdr))
 
 #define IPW_802_11_FCS_LENGTH 4
 #define IPW_RX_NIC_BUFFER_LENGTH \
-        (IPW_MAX_802_11_PAYLOAD_LENGTH + IPW_HEADER_802_11_SIZE + \
-		IPW_802_11_FCS_LENGTH)
+	(IPW_MAX_802_11_PAYLOAD_LENGTH + IPW_HEADER_802_11_SIZE + \
+	 IPW_802_11_FCS_LENGTH)
 
 #define IPW_802_11_PAYLOAD_OFFSET \
-        (sizeof(struct libipw_hdr_3addr) + \
-         sizeof(struct libipw_snap_hdr))
+	(sizeof(struct libipw_hdr_3addr) + \
+	 sizeof(struct libipw_snap_hdr))
 
-struct ipw2100_rx {
-	union {
+struct ipw2100_rx
+{
+	union
+	{
 		unsigned char payload[IPW_RX_NIC_BUFFER_LENGTH];
 		struct libipw_hdr_4addr header;
 		u32 status;
@@ -875,15 +902,16 @@ struct ipw2100_rx {
 #define IPW_ORD_TAB_1_ENTRY_SIZE		sizeof(u32)
 
 #define IS_ORDINAL_TABLE_ONE(mgr,id) \
-    ((id >= IPW_START_ORD_TAB_1) && (id < mgr->table1_size))
+	((id >= IPW_START_ORD_TAB_1) && (id < mgr->table1_size))
 #define IS_ORDINAL_TABLE_TWO(mgr,id) \
-    ((id >= IPW_START_ORD_TAB_2) && (id < (mgr->table2_size + IPW_START_ORD_TAB_2)))
+	((id >= IPW_START_ORD_TAB_2) && (id < (mgr->table2_size + IPW_START_ORD_TAB_2)))
 
 #define BSS_ID_LENGTH               6
 
 // Fixed size data: Ordinal Table 1
-typedef enum _ORDINAL_TABLE_1 {	// NS - means Not Supported by FW
-// Transmit statistics
+typedef enum _ORDINAL_TABLE_1  	// NS - means Not Supported by FW
+{
+	// Transmit statistics
 	IPW_ORD_STAT_TX_HOST_REQUESTS = 1,	// # of requested Host Tx's (MSDU)
 	IPW_ORD_STAT_TX_HOST_COMPLETE,	// # of successful Host Tx's (MSDU)
 	IPW_ORD_STAT_TX_DIR_DATA,	// # of successful Directed Tx's (MSDU)
@@ -994,7 +1022,7 @@ typedef enum _ORDINAL_TABLE_1 {	// NS - means Not Supported by FW
 	IPW_ORD_STAT_RX_BAD_SSID,	//NS // Bad SSID (unused)
 	IPW_ORD_STAT_RX_ICV_ERRORS,	// # of ICV errors during decryption
 
-// PSP Statistics
+	// PSP Statistics
 	IPW_ORD_STAT_PSP_SUSPENSION = 137,	// # of times adapter suspended
 	IPW_ORD_STAT_PSP_BCN_TIMEOUT,	// # of beacon timeout
 	IPW_ORD_STAT_PSP_POLL_TIMEOUT,	// # of poll response timeouts
@@ -1003,7 +1031,7 @@ typedef enum _ORDINAL_TABLE_1 {	// NS - means Not Supported by FW
 	IPW_ORD_STAT_PSP_RX_TIMS,	// # of PSP TIMs received
 	IPW_ORD_STAT_PSP_STATION_ID,	// PSP Station ID
 
-// Association and roaming
+	// Association and roaming
 	IPW_ORD_LAST_ASSN_TIME = 147,	// RTC time of last association
 	IPW_ORD_STAT_PERCENT_MISSED_BCNS,	// current calculation of % missed beacons
 	IPW_ORD_STAT_PERCENT_RETRIES,	// current calculation of % missed tx retries
@@ -1036,7 +1064,7 @@ typedef enum _ORDINAL_TABLE_1 {	// NS - means Not Supported by FW
 	IPW_ORD_STAT_AUTH_RESP_FAIL,	// # of times authentication response failed
 	IPW_ORD_STATION_TABLE_CNT,	// # of entries in association table
 
-// Other statistics
+	// Other statistics
 	IPW_ORD_RSSI_AVG_CURR = 173,	// Current avg RSSI
 	IPW_ORD_STEST_RESULTS_CURR,	//NS // Current self test results word
 	IPW_ORD_STEST_RESULTS_CUM,	//NS // Cummulative self test results word
@@ -1045,9 +1073,9 @@ typedef enum _ORDINAL_TABLE_1 {	// NS - means Not Supported by FW
 	IPW_ORD_POWER_MGMT_INDEX,	//NS //
 	IPW_ORD_COUNTRY_CODE,	// IEEE country code as recv'd from beacon
 	IPW_ORD_COUNTRY_CHANNELS,	// channels supported by country
-// IPW_ORD_COUNTRY_CHANNELS:
-// For 11b the lower 2-byte are used for channels from 1-14
-//   and the higher 2-byte are not used.
+	// IPW_ORD_COUNTRY_CHANNELS:
+	// For 11b the lower 2-byte are used for channels from 1-14
+	//   and the higher 2-byte are not used.
 	IPW_ORD_RESET_CNT,	// # of adapter resets (warm)
 	IPW_ORD_BEACON_INTERVAL,	// Beacon interval
 
@@ -1089,7 +1117,8 @@ typedef enum _ORDINAL_TABLE_1 {	// NS - means Not Supported by FW
 // Variable length data:
 #define IPW_FIRST_VARIABLE_LENGTH_ORDINAL   1001
 
-typedef enum _ORDINAL_TABLE_2 {	// NS - means Not Supported by FW
+typedef enum _ORDINAL_TABLE_2  	// NS - means Not Supported by FW
+{
 	IPW_ORD_STAT_BASE = 1000,	// contains number of variable ORDs
 	IPW_ORD_STAT_ADAPTER_MAC = 1001,	// 6 bytes: our adapter MAC address
 	IPW_ORD_STAT_PREFERRED_BSSID = 1002,	// 6 bytes: BSSID of the preferred AP
@@ -1114,7 +1143,7 @@ typedef enum _ORDINAL_TABLE_2 {	// NS - means Not Supported by FW
 #define IPW_LAST_VARIABLE_LENGTH_ORDINAL   1018
 
 #ifndef WIRELESS_SPY
-#define WIRELESS_SPY		// enable iwspy support
+	#define WIRELESS_SPY		// enable iwspy support
 #endif
 
 #define IPW_HOST_FW_SHARED_AREA0 	0x0002f200
@@ -1132,19 +1161,22 @@ typedef enum _ORDINAL_TABLE_2 {	// NS - means Not Supported by FW
 #define IPW_HOST_FW_INTERRUPT_AREA 	0x0002ff80
 #define IPW_HOST_FW_INTERRUPT_AREA_END 	0x00030000	// 0x80 bytes
 
-struct ipw2100_fw_chunk {
+struct ipw2100_fw_chunk
+{
 	unsigned char *buf;
 	long len;
 	long pos;
 	struct list_head list;
 };
 
-struct ipw2100_fw_chunk_set {
+struct ipw2100_fw_chunk_set
+{
 	const void *data;
 	unsigned long size;
 };
 
-struct ipw2100_fw {
+struct ipw2100_fw
+{
 	int version;
 	struct ipw2100_fw_chunk_set fw;
 	struct ipw2100_fw_chunk_set uc;

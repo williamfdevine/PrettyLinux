@@ -78,7 +78,8 @@
 #define SUN6I_TXDATA_REG		0x200
 #define SUN6I_RXDATA_REG		0x300
 
-struct sun6i_spi {
+struct sun6i_spi
+{
 	struct spi_master	*master;
 	void __iomem		*base_addr;
 	struct clk		*hclk;
@@ -113,12 +114,18 @@ static inline void sun6i_spi_drain_fifo(struct sun6i_spi *sspi, int len)
 	cnt = reg >> SUN6I_FIFO_STA_RF_CNT_BITS;
 
 	if (len > cnt)
+	{
 		len = cnt;
+	}
 
-	while (len--) {
+	while (len--)
+	{
 		byte = readb(sspi->base_addr + SUN6I_RXDATA_REG);
+
 		if (sspi->rx_buf)
+		{
 			*sspi->rx_buf++ = byte;
+		}
 	}
 }
 
@@ -127,9 +134,12 @@ static inline void sun6i_spi_fill_fifo(struct sun6i_spi *sspi, int len)
 	u8 byte;
 
 	if (len > sspi->len)
+	{
 		len = sspi->len;
+	}
 
-	while (len--) {
+	while (len--)
+	{
 		byte = sspi->tx_buf ? *sspi->tx_buf++ : 0;
 		writeb(byte, sspi->base_addr + SUN6I_TXDATA_REG);
 		sspi->len--;
@@ -146,9 +156,13 @@ static void sun6i_spi_set_cs(struct spi_device *spi, bool enable)
 	reg |= SUN6I_TFR_CTL_CS(spi->chip_select);
 
 	if (enable)
+	{
 		reg |= SUN6I_TFR_CTL_CS_LEVEL;
+	}
 	else
+	{
 		reg &= ~SUN6I_TFR_CTL_CS_LEVEL;
+	}
 
 	sun6i_spi_write(sspi, SUN6I_TFR_CTL_REG, reg);
 }
@@ -159,8 +173,8 @@ static size_t sun6i_spi_max_transfer_size(struct spi_device *spi)
 }
 
 static int sun6i_spi_transfer_one(struct spi_master *master,
-				  struct spi_device *spi,
-				  struct spi_transfer *tfr)
+								  struct spi_device *spi,
+								  struct spi_transfer *tfr)
 {
 	struct sun6i_spi *sspi = spi_master_get_devdata(master);
 	unsigned int mclk_rate, div, timeout;
@@ -171,7 +185,9 @@ static int sun6i_spi_transfer_one(struct spi_master *master,
 
 	/* We don't support transfer larger than the FIFO */
 	if (tfr->len > SUN6I_FIFO_DEPTH)
+	{
 		return -EINVAL;
+	}
 
 	reinit_completion(&sspi->done);
 	sspi->tx_buf = tfr->tx_buf;
@@ -183,7 +199,7 @@ static int sun6i_spi_transfer_one(struct spi_master *master,
 
 	/* Reset FIFO */
 	sun6i_spi_write(sspi, SUN6I_FIFO_CTL_REG,
-			SUN6I_FIFO_CTL_RF_RST | SUN6I_FIFO_CTL_TF_RST);
+					SUN6I_FIFO_CTL_RF_RST | SUN6I_FIFO_CTL_TF_RST);
 
 	/*
 	 * Setup the transfer control register: Chip Select,
@@ -192,28 +208,44 @@ static int sun6i_spi_transfer_one(struct spi_master *master,
 	reg = sun6i_spi_read(sspi, SUN6I_TFR_CTL_REG);
 
 	if (spi->mode & SPI_CPOL)
+	{
 		reg |= SUN6I_TFR_CTL_CPOL;
+	}
 	else
+	{
 		reg &= ~SUN6I_TFR_CTL_CPOL;
+	}
 
 	if (spi->mode & SPI_CPHA)
+	{
 		reg |= SUN6I_TFR_CTL_CPHA;
+	}
 	else
+	{
 		reg &= ~SUN6I_TFR_CTL_CPHA;
+	}
 
 	if (spi->mode & SPI_LSB_FIRST)
+	{
 		reg |= SUN6I_TFR_CTL_FBS;
+	}
 	else
+	{
 		reg &= ~SUN6I_TFR_CTL_FBS;
+	}
 
 	/*
 	 * If it's a TX only transfer, we don't want to fill the RX
 	 * FIFO with bogus data
 	 */
 	if (sspi->rx_buf)
+	{
 		reg &= ~SUN6I_TFR_CTL_DHB;
+	}
 	else
+	{
 		reg |= SUN6I_TFR_CTL_DHB;
+	}
 
 	/* We want to control the chip select manually */
 	reg |= SUN6I_TFR_CTL_CS_MANUAL;
@@ -222,7 +254,9 @@ static int sun6i_spi_transfer_one(struct spi_master *master,
 
 	/* Ensure that we have a parent clock fast enough */
 	mclk_rate = clk_get_rate(sspi->mclk);
-	if (mclk_rate < (2 * tfr->speed_hz)) {
+
+	if (mclk_rate < (2 * tfr->speed_hz))
+	{
 		clk_set_rate(sspi->mclk, 2 * tfr->speed_hz);
 		mclk_rate = clk_get_rate(sspi->mclk);
 	}
@@ -242,12 +276,18 @@ static int sun6i_spi_transfer_one(struct spi_master *master,
 	 * frequency, fall back to CDR1.
 	 */
 	div = mclk_rate / (2 * tfr->speed_hz);
-	if (div <= (SUN6I_CLK_CTL_CDR2_MASK + 1)) {
+
+	if (div <= (SUN6I_CLK_CTL_CDR2_MASK + 1))
+	{
 		if (div > 0)
+		{
 			div--;
+		}
 
 		reg = SUN6I_CLK_CTL_CDR2(div) | SUN6I_CLK_CTL_DRS;
-	} else {
+	}
+	else
+	{
 		div = ilog2(mclk_rate) - ilog2(tfr->speed_hz);
 		reg = SUN6I_CLK_CTL_CDR1(div);
 	}
@@ -256,13 +296,15 @@ static int sun6i_spi_transfer_one(struct spi_master *master,
 
 	/* Setup the transfer now... */
 	if (sspi->tx_buf)
+	{
 		tx_len = tfr->len;
+	}
 
 	/* Setup the counters */
 	sun6i_spi_write(sspi, SUN6I_BURST_CNT_REG, SUN6I_BURST_CNT(tfr->len));
 	sun6i_spi_write(sspi, SUN6I_XMIT_CNT_REG, SUN6I_XMIT_CNT(tx_len));
 	sun6i_spi_write(sspi, SUN6I_BURST_CTL_CNT_REG,
-			SUN6I_BURST_CTL_CNT_STC(tx_len));
+					SUN6I_BURST_CTL_CNT_STC(tx_len));
 
 	/* Fill the TX FIFO */
 	sun6i_spi_fill_fifo(sspi, SUN6I_FIFO_DEPTH);
@@ -277,13 +319,15 @@ static int sun6i_spi_transfer_one(struct spi_master *master,
 	tx_time = max(tfr->len * 8 * 2 / (tfr->speed_hz / 1000), 100U);
 	start = jiffies;
 	timeout = wait_for_completion_timeout(&sspi->done,
-					      msecs_to_jiffies(tx_time));
+										  msecs_to_jiffies(tx_time));
 	end = jiffies;
-	if (!timeout) {
+
+	if (!timeout)
+	{
 		dev_warn(&master->dev,
-			 "%s: timeout transferring %u bytes@%iHz for %i(%i)ms",
-			 dev_name(&spi->dev), tfr->len, tfr->speed_hz,
-			 jiffies_to_msecs(end - start), tx_time);
+				 "%s: timeout transferring %u bytes@%iHz for %i(%i)ms",
+				 dev_name(&spi->dev), tfr->len, tfr->speed_hz,
+				 jiffies_to_msecs(end - start), tx_time);
 		ret = -ETIMEDOUT;
 		goto out;
 	}
@@ -302,7 +346,8 @@ static irqreturn_t sun6i_spi_handler(int irq, void *dev_id)
 	u32 status = sun6i_spi_read(sspi, SUN6I_INT_STA_REG);
 
 	/* Transfer complete */
-	if (status & SUN6I_INT_CTL_TC) {
+	if (status & SUN6I_INT_CTL_TC)
+	{
 		sun6i_spi_write(sspi, SUN6I_INT_STA_REG, SUN6I_INT_CTL_TC);
 		complete(&sspi->done);
 		return IRQ_HANDLED;
@@ -318,25 +363,31 @@ static int sun6i_spi_runtime_resume(struct device *dev)
 	int ret;
 
 	ret = clk_prepare_enable(sspi->hclk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Couldn't enable AHB clock\n");
 		goto out;
 	}
 
 	ret = clk_prepare_enable(sspi->mclk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Couldn't enable module clock\n");
 		goto err;
 	}
 
 	ret = reset_control_deassert(sspi->rstc);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Couldn't deassert the device from reset\n");
 		goto err2;
 	}
 
 	sun6i_spi_write(sspi, SUN6I_GBL_CTL_REG,
-			SUN6I_GBL_CTL_BUS_ENABLE | SUN6I_GBL_CTL_MASTER | SUN6I_GBL_CTL_TP);
+					SUN6I_GBL_CTL_BUS_ENABLE | SUN6I_GBL_CTL_MASTER | SUN6I_GBL_CTL_TP);
 
 	return 0;
 
@@ -368,7 +419,9 @@ static int sun6i_spi_probe(struct platform_device *pdev)
 	int ret = 0, irq;
 
 	master = spi_alloc_master(&pdev->dev, sizeof(struct sun6i_spi));
-	if (!master) {
+
+	if (!master)
+	{
 		dev_err(&pdev->dev, "Unable to allocate SPI Master\n");
 		return -ENOMEM;
 	}
@@ -378,21 +431,27 @@ static int sun6i_spi_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	sspi->base_addr = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(sspi->base_addr)) {
+
+	if (IS_ERR(sspi->base_addr))
+	{
 		ret = PTR_ERR(sspi->base_addr);
 		goto err_free_master;
 	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "No spi IRQ specified\n");
 		ret = -ENXIO;
 		goto err_free_master;
 	}
 
 	ret = devm_request_irq(&pdev->dev, irq, sun6i_spi_handler,
-			       0, "sun6i-spi", sspi);
-	if (ret) {
+						   0, "sun6i-spi", sspi);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Cannot request IRQ\n");
 		goto err_free_master;
 	}
@@ -410,14 +469,18 @@ static int sun6i_spi_probe(struct platform_device *pdev)
 	master->max_transfer_size = sun6i_spi_max_transfer_size;
 
 	sspi->hclk = devm_clk_get(&pdev->dev, "ahb");
-	if (IS_ERR(sspi->hclk)) {
+
+	if (IS_ERR(sspi->hclk))
+	{
 		dev_err(&pdev->dev, "Unable to acquire AHB clock\n");
 		ret = PTR_ERR(sspi->hclk);
 		goto err_free_master;
 	}
 
 	sspi->mclk = devm_clk_get(&pdev->dev, "mod");
-	if (IS_ERR(sspi->mclk)) {
+
+	if (IS_ERR(sspi->mclk))
+	{
 		dev_err(&pdev->dev, "Unable to acquire module clock\n");
 		ret = PTR_ERR(sspi->mclk);
 		goto err_free_master;
@@ -426,7 +489,9 @@ static int sun6i_spi_probe(struct platform_device *pdev)
 	init_completion(&sspi->done);
 
 	sspi->rstc = devm_reset_control_get(&pdev->dev, NULL);
-	if (IS_ERR(sspi->rstc)) {
+
+	if (IS_ERR(sspi->rstc))
+	{
 		dev_err(&pdev->dev, "Couldn't get reset controller\n");
 		ret = PTR_ERR(sspi->rstc);
 		goto err_free_master;
@@ -437,7 +502,9 @@ static int sun6i_spi_probe(struct platform_device *pdev)
 	 * device woken up, even if runtime_pm is disabled
 	 */
 	ret = sun6i_spi_runtime_resume(&pdev->dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Couldn't resume the device\n");
 		goto err_free_master;
 	}
@@ -447,7 +514,9 @@ static int sun6i_spi_probe(struct platform_device *pdev)
 	pm_runtime_idle(&pdev->dev);
 
 	ret = devm_spi_register_master(&pdev->dev, master);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "cannot register SPI master\n");
 		goto err_pm_disable;
 	}
@@ -469,18 +538,21 @@ static int sun6i_spi_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id sun6i_spi_match[] = {
+static const struct of_device_id sun6i_spi_match[] =
+{
 	{ .compatible = "allwinner,sun6i-a31-spi", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, sun6i_spi_match);
 
-static const struct dev_pm_ops sun6i_spi_pm_ops = {
+static const struct dev_pm_ops sun6i_spi_pm_ops =
+{
 	.runtime_resume		= sun6i_spi_runtime_resume,
 	.runtime_suspend	= sun6i_spi_runtime_suspend,
 };
 
-static struct platform_driver sun6i_spi_driver = {
+static struct platform_driver sun6i_spi_driver =
+{
 	.probe	= sun6i_spi_probe,
 	.remove	= sun6i_spi_remove,
 	.driver	= {

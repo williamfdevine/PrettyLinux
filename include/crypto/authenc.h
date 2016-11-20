@@ -14,16 +14,19 @@
 
 #include <linux/types.h>
 
-enum {
+enum
+{
 	CRYPTO_AUTHENC_KEYA_UNSPEC,
 	CRYPTO_AUTHENC_KEYA_PARAM,
 };
 
-struct crypto_authenc_key_param {
+struct crypto_authenc_key_param
+{
 	__be32 enckeylen;
 };
 
-struct crypto_authenc_keys {
+struct crypto_authenc_keys
+{
 	const u8 *authkey;
 	const u8 *enckey;
 
@@ -32,6 +35,6 @@ struct crypto_authenc_keys {
 };
 
 int crypto_authenc_extractkeys(struct crypto_authenc_keys *keys, const u8 *key,
-			       unsigned int keylen);
+							   unsigned int keylen);
 
 #endif	/* _CRYPTO_AUTHENC_H */

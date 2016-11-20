@@ -44,7 +44,8 @@
 #define FAKE_MAX_SLAVE		8	/* Max Slave Windows */
 
 /* Structures to hold information normally held in device registers */
-struct fake_slave_window {
+struct fake_slave_window
+{
 	int enabled;
 	unsigned long long vme_base;
 	unsigned long long size;
@@ -53,7 +54,8 @@ struct fake_slave_window {
 	u32 cycle;
 };
 
-struct fake_master_window {
+struct fake_master_window
+{
 	int enabled;
 	unsigned long long vme_base;
 	unsigned long long size;
@@ -63,7 +65,8 @@ struct fake_master_window {
 };
 
 /* Structure used to hold driver specific information */
-struct fake_driver {
+struct fake_driver
+{
 	struct vme_bridge *parent;
 	struct fake_slave_window slaves[FAKE_MAX_SLAVE];
 	struct fake_master_window masters[FAKE_MAX_MASTER];
@@ -109,7 +112,7 @@ static void fake_VIRQ_tasklet(unsigned long data)
  * Configure VME interrupt
  */
 static void fake_irq_set(struct vme_bridge *fake_bridge, int level,
-		int state, int sync)
+						 int state, int sync)
 {
 	/* Nothing to do */
 }
@@ -129,7 +132,7 @@ static dma_addr_t fake_ptr_to_pci(void *addr)
  * interrupt to be acked.
  */
 static int fake_irq_generate(struct vme_bridge *fake_bridge, int level,
-		int statid)
+							 int statid)
 {
 	struct fake_driver *bridge;
 
@@ -156,8 +159,8 @@ static int fake_irq_generate(struct vme_bridge *fake_bridge, int level,
  * Initialize a slave window with the requested attributes.
  */
 static int fake_slave_set(struct vme_slave_resource *image, int enabled,
-		unsigned long long vme_base, unsigned long long size,
-		dma_addr_t buf_base, u32 aspace, u32 cycle)
+						  unsigned long long vme_base, unsigned long long size,
+						  dma_addr_t buf_base, u32 aspace, u32 cycle)
 {
 	unsigned int i, granularity = 0;
 	unsigned long long vme_bound;
@@ -169,27 +172,32 @@ static int fake_slave_set(struct vme_slave_resource *image, int enabled,
 
 	i = image->number;
 
-	switch (aspace) {
-	case VME_A16:
-		granularity = 0x10;
-		break;
-	case VME_A24:
-		granularity = 0x1000;
-		break;
-	case VME_A32:
-		granularity = 0x10000;
-		break;
-	case VME_A64:
-		granularity = 0x10000;
-		break;
-	case VME_CRCSR:
-	case VME_USER1:
-	case VME_USER2:
-	case VME_USER3:
-	case VME_USER4:
-	default:
-		pr_err("Invalid address space\n");
-		return -EINVAL;
+	switch (aspace)
+	{
+		case VME_A16:
+			granularity = 0x10;
+			break;
+
+		case VME_A24:
+			granularity = 0x1000;
+			break;
+
+		case VME_A32:
+			granularity = 0x10000;
+			break;
+
+		case VME_A64:
+			granularity = 0x10000;
+			break;
+
+		case VME_CRCSR:
+		case VME_USER1:
+		case VME_USER2:
+		case VME_USER3:
+		case VME_USER4:
+		default:
+			pr_err("Invalid address space\n");
+			return -EINVAL;
 	}
 
 	/*
@@ -198,11 +206,14 @@ static int fake_slave_set(struct vme_slave_resource *image, int enabled,
 	 */
 	vme_bound = vme_base + size - granularity;
 
-	if (vme_base & (granularity - 1)) {
+	if (vme_base & (granularity - 1))
+	{
 		pr_err("Invalid VME base alignment\n");
 		return -EINVAL;
 	}
-	if (vme_bound & (granularity - 1)) {
+
+	if (vme_bound & (granularity - 1))
+	{
 		pr_err("Invalid VME bound alignment\n");
 		return -EINVAL;
 	}
@@ -225,8 +236,8 @@ static int fake_slave_set(struct vme_slave_resource *image, int enabled,
  * Get slave window configuration.
  */
 static int fake_slave_get(struct vme_slave_resource *image, int *enabled,
-		unsigned long long *vme_base, unsigned long long *size,
-		dma_addr_t *buf_base, u32 *aspace, u32 *cycle)
+						  unsigned long long *vme_base, unsigned long long *size,
+						  dma_addr_t *buf_base, u32 *aspace, u32 *cycle)
 {
 	unsigned int i;
 	struct fake_driver *bridge;
@@ -253,8 +264,8 @@ static int fake_slave_get(struct vme_slave_resource *image, int *enabled,
  * Set the attributes of an outbound window.
  */
 static int fake_master_set(struct vme_master_resource *image, int enabled,
-		unsigned long long vme_base, unsigned long long size,
-		u32 aspace, u32 cycle, u32 dwidth)
+						   unsigned long long vme_base, unsigned long long size,
+						   u32 aspace, u32 cycle, u32 dwidth)
 {
 	int retval = 0;
 	unsigned int i;
@@ -266,52 +277,59 @@ static int fake_master_set(struct vme_master_resource *image, int enabled,
 	bridge = fake_bridge->driver_priv;
 
 	/* Verify input data */
-	if (vme_base & 0xFFFF) {
+	if (vme_base & 0xFFFF)
+	{
 		pr_err("Invalid VME Window alignment\n");
 		retval = -EINVAL;
 		goto err_window;
 	}
 
-	if (size & 0xFFFF) {
+	if (size & 0xFFFF)
+	{
 		pr_err("Invalid size alignment\n");
 		retval = -EINVAL;
 		goto err_window;
 	}
 
-	if ((size == 0) && (enabled != 0)) {
+	if ((size == 0) && (enabled != 0))
+	{
 		pr_err("Size must be non-zero for enabled windows\n");
 		retval = -EINVAL;
 		goto err_window;
 	}
 
 	/* Setup data width */
-	switch (dwidth) {
-	case VME_D8:
-	case VME_D16:
-	case VME_D32:
-		break;
-	default:
-		pr_err("Invalid data width\n");
-		retval = -EINVAL;
-		goto err_dwidth;
+	switch (dwidth)
+	{
+		case VME_D8:
+		case VME_D16:
+		case VME_D32:
+			break;
+
+		default:
+			pr_err("Invalid data width\n");
+			retval = -EINVAL;
+			goto err_dwidth;
 	}
 
 	/* Setup address space */
-	switch (aspace) {
-	case VME_A16:
-	case VME_A24:
-	case VME_A32:
-	case VME_A64:
-	case VME_CRCSR:
-	case VME_USER1:
-	case VME_USER2:
-	case VME_USER3:
-	case VME_USER4:
-		break;
-	default:
-		pr_err("Invalid address space\n");
-		retval = -EINVAL;
-		goto err_aspace;
+	switch (aspace)
+	{
+		case VME_A16:
+		case VME_A24:
+		case VME_A32:
+		case VME_A64:
+		case VME_CRCSR:
+		case VME_USER1:
+		case VME_USER2:
+		case VME_USER3:
+		case VME_USER4:
+			break;
+
+		default:
+			pr_err("Invalid address space\n");
+			retval = -EINVAL;
+			goto err_aspace;
 	}
 
 	spin_lock(&image->lock);
@@ -340,8 +358,8 @@ err_window:
  * Set the attributes of an outbound window.
  */
 static int __fake_master_get(struct vme_master_resource *image, int *enabled,
-		unsigned long long *vme_base, unsigned long long *size,
-		u32 *aspace, u32 *cycle, u32 *dwidth)
+							 unsigned long long *vme_base, unsigned long long *size,
+							 u32 *aspace, u32 *cycle, u32 *dwidth)
 {
 	unsigned int i;
 	struct fake_driver *bridge;
@@ -362,15 +380,15 @@ static int __fake_master_get(struct vme_master_resource *image, int *enabled,
 
 
 static int fake_master_get(struct vme_master_resource *image, int *enabled,
-		unsigned long long *vme_base, unsigned long long *size,
-		u32 *aspace, u32 *cycle, u32 *dwidth)
+						   unsigned long long *vme_base, unsigned long long *size,
+						   u32 *aspace, u32 *cycle, u32 *dwidth)
 {
 	int retval;
 
 	spin_lock(&image->lock);
 
 	retval = __fake_master_get(image, enabled, vme_base, size, aspace,
-			cycle, dwidth);
+							   cycle, dwidth);
 
 	spin_unlock(&image->lock);
 
@@ -379,7 +397,7 @@ static int fake_master_get(struct vme_master_resource *image, int *enabled,
 
 
 static void fake_lm_check(struct fake_driver *bridge, unsigned long long addr,
-			  u32 aspace, u32 cycle)
+						  u32 aspace, u32 cycle)
 {
 	struct vme_bridge *fake_bridge;
 	unsigned long long lm_base;
@@ -392,23 +410,29 @@ static void fake_lm_check(struct fake_driver *bridge, unsigned long long addr,
 	fake_bridge = bridge->parent;
 
 	/* Loop through each location monitor resource */
-	list_for_each_safe(pos, n, &fake_bridge->lm_resources) {
+	list_for_each_safe(pos, n, &fake_bridge->lm_resources)
+	{
 		lm = list_entry(pos, struct vme_lm_resource, list);
 
 		/* If disabled, we're done */
 		if (bridge->lm_enabled == 0)
+		{
 			return;
+		}
 
 		lm_base = bridge->lm_base;
 		lm_aspace = bridge->lm_aspace;
 		lm_cycle = bridge->lm_cycle;
 
 		/* First make sure that the cycle and address space match */
-		if ((lm_aspace == aspace) && (lm_cycle == cycle)) {
-			for (i = 0; i < lm->monitors; i++) {
+		if ((lm_aspace == aspace) && (lm_cycle == cycle))
+		{
+			for (i = 0; i < lm->monitors; i++)
+			{
 				/* Each location monitor covers 8 bytes */
 				if (((lm_base + (8 * i)) <= addr) &&
-				    ((lm_base + (8 * i) + 8) > addr)) {
+					((lm_base + (8 * i) + 8) > addr))
+				{
 					if (bridge->lm_callback[i] != NULL)
 						bridge->lm_callback[i](
 							bridge->lm_data[i]);
@@ -419,24 +443,30 @@ static void fake_lm_check(struct fake_driver *bridge, unsigned long long addr,
 }
 
 static u8 fake_vmeread8(struct fake_driver *bridge, unsigned long long addr,
-		u32 aspace, u32 cycle)
+						u32 aspace, u32 cycle)
 {
 	u8 retval = 0xff;
 	int i;
 	unsigned long long start, end, offset;
 	u8 *loc;
 
-	for (i = 0; i < FAKE_MAX_SLAVE; i++) {
+	for (i = 0; i < FAKE_MAX_SLAVE; i++)
+	{
 		start = bridge->slaves[i].vme_base;
 		end = bridge->slaves[i].vme_base + bridge->slaves[i].size;
 
 		if (aspace != bridge->slaves[i].aspace)
+		{
 			continue;
+		}
 
 		if (cycle != bridge->slaves[i].cycle)
+		{
 			continue;
+		}
 
-		if ((addr >= start) && (addr < end)) {
+		if ((addr >= start) && (addr < end))
+		{
 			offset = addr - bridge->slaves[i].vme_base;
 			loc = (u8 *)(bridge->slaves[i].buf_base + offset);
 			retval = *loc;
@@ -451,24 +481,30 @@ static u8 fake_vmeread8(struct fake_driver *bridge, unsigned long long addr,
 }
 
 static u16 fake_vmeread16(struct fake_driver *bridge, unsigned long long addr,
-		u32 aspace, u32 cycle)
+						  u32 aspace, u32 cycle)
 {
 	u16 retval = 0xffff;
 	int i;
 	unsigned long long start, end, offset;
 	u16 *loc;
 
-	for (i = 0; i < FAKE_MAX_SLAVE; i++) {
+	for (i = 0; i < FAKE_MAX_SLAVE; i++)
+	{
 		if (aspace != bridge->slaves[i].aspace)
+		{
 			continue;
+		}
 
 		if (cycle != bridge->slaves[i].cycle)
+		{
 			continue;
+		}
 
 		start = bridge->slaves[i].vme_base;
 		end = bridge->slaves[i].vme_base + bridge->slaves[i].size;
 
-		if ((addr >= start) && ((addr + 1) < end)) {
+		if ((addr >= start) && ((addr + 1) < end))
+		{
 			offset = addr - bridge->slaves[i].vme_base;
 			loc = (u16 *)(bridge->slaves[i].buf_base + offset);
 			retval = *loc;
@@ -483,24 +519,30 @@ static u16 fake_vmeread16(struct fake_driver *bridge, unsigned long long addr,
 }
 
 static u32 fake_vmeread32(struct fake_driver *bridge, unsigned long long addr,
-		u32 aspace, u32 cycle)
+						  u32 aspace, u32 cycle)
 {
 	u32 retval = 0xffffffff;
 	int i;
 	unsigned long long start, end, offset;
 	u32 *loc;
 
-	for (i = 0; i < FAKE_MAX_SLAVE; i++) {
+	for (i = 0; i < FAKE_MAX_SLAVE; i++)
+	{
 		if (aspace != bridge->slaves[i].aspace)
+		{
 			continue;
+		}
 
 		if (cycle != bridge->slaves[i].cycle)
+		{
 			continue;
+		}
 
 		start = bridge->slaves[i].vme_base;
 		end = bridge->slaves[i].vme_base + bridge->slaves[i].size;
 
-		if ((addr >= start) && ((addr + 3) < end)) {
+		if ((addr >= start) && ((addr + 3) < end))
+		{
 			offset = addr - bridge->slaves[i].vme_base;
 			loc = (u32 *)(bridge->slaves[i].buf_base + offset);
 			retval = *loc;
@@ -515,7 +557,7 @@ static u32 fake_vmeread32(struct fake_driver *bridge, unsigned long long addr,
 }
 
 static ssize_t fake_master_read(struct vme_master_resource *image, void *buf,
-		size_t count, loff_t offset)
+								size_t count, loff_t offset)
 {
 	int retval;
 	u32 aspace, cycle, dwidth;
@@ -547,61 +589,86 @@ static ssize_t fake_master_read(struct vme_master_resource *image, void *buf,
 	 * automatically for non-aligned addresses, so we don't want the
 	 * overhead of needlessly forcing small transfers for the entire cycle.
 	 */
-	if (addr & 0x1) {
+	if (addr & 0x1)
+	{
 		*(u8 *)buf = fake_vmeread8(priv, addr, aspace, cycle);
 		done += 1;
+
 		if (done == count)
+		{
 			goto out;
+		}
 	}
-	if ((dwidth == VME_D16) || (dwidth == VME_D32)) {
-		if ((addr + done) & 0x2) {
-			if ((count - done) < 2) {
+
+	if ((dwidth == VME_D16) || (dwidth == VME_D32))
+	{
+		if ((addr + done) & 0x2)
+		{
+			if ((count - done) < 2)
+			{
 				*(u8 *)(buf + done) = fake_vmeread8(priv,
-						addr + done, aspace, cycle);
+													addr + done, aspace, cycle);
 				done += 1;
 				goto out;
-			} else {
+			}
+			else
+			{
 				*(u16 *)(buf + done) = fake_vmeread16(priv,
-						addr + done, aspace, cycle);
+													  addr + done, aspace, cycle);
 				done += 2;
 			}
 		}
 	}
 
-	if (dwidth == VME_D32) {
+	if (dwidth == VME_D32)
+	{
 		count32 = (count - done) & ~0x3;
-		while (done < count32) {
+
+		while (done < count32)
+		{
 			*(u32 *)(buf + done) = fake_vmeread32(priv, addr + done,
-					aspace, cycle);
+												  aspace, cycle);
 			done += 4;
 		}
-	} else if (dwidth == VME_D16) {
+	}
+	else if (dwidth == VME_D16)
+	{
 		count32 = (count - done) & ~0x3;
-		while (done < count32) {
+
+		while (done < count32)
+		{
 			*(u16 *)(buf + done) = fake_vmeread16(priv, addr + done,
-					aspace, cycle);
+												  aspace, cycle);
 			done += 2;
 		}
-	} else if (dwidth == VME_D8) {
+	}
+	else if (dwidth == VME_D8)
+	{
 		count32 = (count - done);
-		while (done < count32) {
+
+		while (done < count32)
+		{
 			*(u8 *)(buf + done) = fake_vmeread8(priv, addr + done,
-					aspace, cycle);
+												aspace, cycle);
 			done += 1;
 		}
 
 	}
 
-	if ((dwidth == VME_D16) || (dwidth == VME_D32)) {
-		if ((count - done) & 0x2) {
+	if ((dwidth == VME_D16) || (dwidth == VME_D32))
+	{
+		if ((count - done) & 0x2)
+		{
 			*(u16 *)(buf + done) = fake_vmeread16(priv, addr + done,
-					aspace, cycle);
+												  aspace, cycle);
 			done += 2;
 		}
 	}
-	if ((count - done) & 0x1) {
+
+	if ((count - done) & 0x1)
+	{
 		*(u8 *)(buf + done) = fake_vmeread8(priv, addr + done, aspace,
-				cycle);
+											cycle);
 		done += 1;
 	}
 
@@ -614,23 +681,29 @@ out:
 }
 
 static void fake_vmewrite8(struct fake_driver *bridge, u8 *buf,
-			   unsigned long long addr, u32 aspace, u32 cycle)
+						   unsigned long long addr, u32 aspace, u32 cycle)
 {
 	int i;
 	unsigned long long start, end, offset;
 	u8 *loc;
 
-	for (i = 0; i < FAKE_MAX_SLAVE; i++) {
+	for (i = 0; i < FAKE_MAX_SLAVE; i++)
+	{
 		if (aspace != bridge->slaves[i].aspace)
+		{
 			continue;
+		}
 
 		if (cycle != bridge->slaves[i].cycle)
+		{
 			continue;
+		}
 
 		start = bridge->slaves[i].vme_base;
 		end = bridge->slaves[i].vme_base + bridge->slaves[i].size;
 
-		if ((addr >= start) && (addr < end)) {
+		if ((addr >= start) && (addr < end))
+		{
 			offset = addr - bridge->slaves[i].vme_base;
 			loc = (u8 *)((void *)bridge->slaves[i].buf_base + offset);
 			*loc = *buf;
@@ -644,23 +717,29 @@ static void fake_vmewrite8(struct fake_driver *bridge, u8 *buf,
 }
 
 static void fake_vmewrite16(struct fake_driver *bridge, u16 *buf,
-			    unsigned long long addr, u32 aspace, u32 cycle)
+							unsigned long long addr, u32 aspace, u32 cycle)
 {
 	int i;
 	unsigned long long start, end, offset;
 	u16 *loc;
 
-	for (i = 0; i < FAKE_MAX_SLAVE; i++) {
+	for (i = 0; i < FAKE_MAX_SLAVE; i++)
+	{
 		if (aspace != bridge->slaves[i].aspace)
+		{
 			continue;
+		}
 
 		if (cycle != bridge->slaves[i].cycle)
+		{
 			continue;
+		}
 
 		start = bridge->slaves[i].vme_base;
 		end = bridge->slaves[i].vme_base + bridge->slaves[i].size;
 
-		if ((addr >= start) && ((addr + 1) < end)) {
+		if ((addr >= start) && ((addr + 1) < end))
+		{
 			offset = addr - bridge->slaves[i].vme_base;
 			loc = (u16 *)((void *)bridge->slaves[i].buf_base + offset);
 			*loc = *buf;
@@ -674,23 +753,29 @@ static void fake_vmewrite16(struct fake_driver *bridge, u16 *buf,
 }
 
 static void fake_vmewrite32(struct fake_driver *bridge, u32 *buf,
-			    unsigned long long addr, u32 aspace, u32 cycle)
+							unsigned long long addr, u32 aspace, u32 cycle)
 {
 	int i;
 	unsigned long long start, end, offset;
 	u32 *loc;
 
-	for (i = 0; i < FAKE_MAX_SLAVE; i++) {
+	for (i = 0; i < FAKE_MAX_SLAVE; i++)
+	{
 		if (aspace != bridge->slaves[i].aspace)
+		{
 			continue;
+		}
 
 		if (cycle != bridge->slaves[i].cycle)
+		{
 			continue;
+		}
 
 		start = bridge->slaves[i].vme_base;
 		end = bridge->slaves[i].vme_base + bridge->slaves[i].size;
 
-		if ((addr >= start) && ((addr + 3) < end)) {
+		if ((addr >= start) && ((addr + 3) < end))
+		{
 			offset = addr - bridge->slaves[i].vme_base;
 			loc = (u32 *)((void *)bridge->slaves[i].buf_base + offset);
 			*loc = *buf;
@@ -704,7 +789,7 @@ static void fake_vmewrite32(struct fake_driver *bridge, u32 *buf,
 }
 
 static ssize_t fake_master_write(struct vme_master_resource *image, void *buf,
-		size_t count, loff_t offset)
+								 size_t count, loff_t offset)
 {
 	int retval = 0;
 	u32 aspace, cycle, dwidth;
@@ -732,63 +817,86 @@ static ssize_t fake_master_write(struct vme_master_resource *image, void *buf,
 	/* Here we apply for the same strategy we do in master_read
 	 * function in order to assure the correct cycles.
 	 */
-	if (addr & 0x1) {
+	if (addr & 0x1)
+	{
 		fake_vmewrite8(bridge, (u8 *)buf, addr, aspace, cycle);
 		done += 1;
+
 		if (done == count)
+		{
 			goto out;
+		}
 	}
 
-	if ((dwidth == VME_D16) || (dwidth == VME_D32)) {
-		if ((addr + done) & 0x2) {
-			if ((count - done) < 2) {
+	if ((dwidth == VME_D16) || (dwidth == VME_D32))
+	{
+		if ((addr + done) & 0x2)
+		{
+			if ((count - done) < 2)
+			{
 				fake_vmewrite8(bridge, (u8 *)(buf + done),
-						addr + done, aspace, cycle);
+							   addr + done, aspace, cycle);
 				done += 1;
 				goto out;
-			} else {
+			}
+			else
+			{
 				fake_vmewrite16(bridge, (u16 *)(buf + done),
-						addr + done, aspace, cycle);
+								addr + done, aspace, cycle);
 				done += 2;
 			}
 		}
 	}
 
-	if (dwidth == VME_D32) {
+	if (dwidth == VME_D32)
+	{
 		count32 = (count - done) & ~0x3;
-		while (done < count32) {
+
+		while (done < count32)
+		{
 			fake_vmewrite32(bridge, (u32 *)(buf + done),
-					addr + done, aspace, cycle);
+							addr + done, aspace, cycle);
 			done += 4;
 		}
-	} else if (dwidth == VME_D16) {
+	}
+	else if (dwidth == VME_D16)
+	{
 		count32 = (count - done) & ~0x3;
-		while (done < count32) {
+
+		while (done < count32)
+		{
 			fake_vmewrite16(bridge, (u16 *)(buf + done),
-					addr + done, aspace, cycle);
+							addr + done, aspace, cycle);
 			done += 2;
 		}
-	} else if (dwidth == VME_D8) {
+	}
+	else if (dwidth == VME_D8)
+	{
 		count32 = (count - done);
-		while (done < count32) {
+
+		while (done < count32)
+		{
 			fake_vmewrite8(bridge, (u8 *)(buf + done), addr + done,
-					aspace, cycle);
+						   aspace, cycle);
 			done += 1;
 		}
 
 	}
 
-	if ((dwidth == VME_D16) || (dwidth == VME_D32)) {
-		if ((count - done) & 0x2) {
+	if ((dwidth == VME_D16) || (dwidth == VME_D32))
+	{
+		if ((count - done) & 0x2)
+		{
 			fake_vmewrite16(bridge, (u16 *)(buf + done),
-					addr + done, aspace, cycle);
+							addr + done, aspace, cycle);
 			done += 2;
 		}
 	}
 
-	if ((count - done) & 0x1) {
+	if ((count - done) & 0x1)
+	{
 		fake_vmewrite8(bridge, (u8 *)(buf + done), addr + done, aspace,
-				cycle);
+					   cycle);
 		done += 1;
 	}
 
@@ -806,8 +914,8 @@ out:
  * Requires a previously configured master window, returns final value.
  */
 static unsigned int fake_master_rmw(struct vme_master_resource *image,
-		unsigned int mask, unsigned int compare, unsigned int swap,
-		loff_t offset)
+									unsigned int mask, unsigned int compare, unsigned int swap,
+									loff_t offset)
 {
 	u32 tmp, base;
 	u32 aspace, cycle;
@@ -830,7 +938,8 @@ static unsigned int fake_master_rmw(struct vme_master_resource *image,
 	tmp = fake_vmeread32(bridge, base + offset, aspace, cycle);
 
 	/* Perform check */
-	if ((tmp && mask) == (compare && mask)) {
+	if ((tmp && mask) == (compare && mask))
+	{
 		tmp = tmp | (mask | swap);
 		tmp = tmp & (~mask | swap);
 
@@ -852,7 +961,7 @@ static unsigned int fake_master_rmw(struct vme_master_resource *image,
  * callback is attached and disabled when the last callback is removed.
  */
 static int fake_lm_set(struct vme_lm_resource *lm, unsigned long long lm_base,
-		u32 aspace, u32 cycle)
+					   u32 aspace, u32 cycle)
 {
 	int i;
 	struct vme_bridge *fake_bridge;
@@ -865,24 +974,28 @@ static int fake_lm_set(struct vme_lm_resource *lm, unsigned long long lm_base,
 	mutex_lock(&lm->mtx);
 
 	/* If we already have a callback attached, we can't move it! */
-	for (i = 0; i < lm->monitors; i++) {
-		if (bridge->lm_callback[i] != NULL) {
+	for (i = 0; i < lm->monitors; i++)
+	{
+		if (bridge->lm_callback[i] != NULL)
+		{
 			mutex_unlock(&lm->mtx);
 			pr_err("Location monitor callback attached, can't reset\n");
 			return -EBUSY;
 		}
 	}
 
-	switch (aspace) {
-	case VME_A16:
-	case VME_A24:
-	case VME_A32:
-	case VME_A64:
-		break;
-	default:
-		mutex_unlock(&lm->mtx);
-		pr_err("Invalid address space\n");
-		return -EINVAL;
+	switch (aspace)
+	{
+		case VME_A16:
+		case VME_A24:
+		case VME_A32:
+		case VME_A64:
+			break;
+
+		default:
+			mutex_unlock(&lm->mtx);
+			pr_err("Invalid address space\n");
+			return -EINVAL;
 	}
 
 	bridge->lm_base = lm_base;
@@ -898,7 +1011,7 @@ static int fake_lm_set(struct vme_lm_resource *lm, unsigned long long lm_base,
  * or disabled.
  */
 static int fake_lm_get(struct vme_lm_resource *lm,
-		unsigned long long *lm_base, u32 *aspace, u32 *cycle)
+					   unsigned long long *lm_base, u32 *aspace, u32 *cycle)
 {
 	struct fake_driver *bridge;
 
@@ -921,7 +1034,7 @@ static int fake_lm_get(struct vme_lm_resource *lm,
  * Callback will be passed the monitor triggered.
  */
 static int fake_lm_attach(struct vme_lm_resource *lm, int monitor,
-		void (*callback)(void *), void *data)
+						  void (*callback)(void *), void *data)
 {
 	struct vme_bridge *fake_bridge;
 	struct fake_driver *bridge;
@@ -933,14 +1046,16 @@ static int fake_lm_attach(struct vme_lm_resource *lm, int monitor,
 	mutex_lock(&lm->mtx);
 
 	/* Ensure that the location monitor is configured - need PGM or DATA */
-	if (bridge->lm_cycle == 0) {
+	if (bridge->lm_cycle == 0)
+	{
 		mutex_unlock(&lm->mtx);
 		pr_err("Location monitor not properly configured\n");
 		return -EINVAL;
 	}
 
 	/* Check that a callback isn't already attached */
-	if (bridge->lm_callback[monitor] != NULL) {
+	if (bridge->lm_callback[monitor] != NULL)
+	{
 		mutex_unlock(&lm->mtx);
 		pr_err("Existing callback attached\n");
 		return -EBUSY;
@@ -977,13 +1092,19 @@ static int fake_lm_detach(struct vme_lm_resource *lm, int monitor)
 
 	/* If all location monitors disabled, disable global Location Monitor */
 	tmp = 0;
-	for (i = 0; i < lm->monitors; i++) {
+
+	for (i = 0; i < lm->monitors; i++)
+	{
 		if (bridge->lm_callback[i] != NULL)
+		{
 			tmp = 1;
+		}
 	}
 
 	if (tmp == 0)
+	{
 		bridge->lm_enabled = 0;
+	}
 
 	mutex_unlock(&lm->mtx);
 
@@ -999,23 +1120,25 @@ static int fake_slot_get(struct vme_bridge *fake_bridge)
 }
 
 static void *fake_alloc_consistent(struct device *parent, size_t size,
-		dma_addr_t *dma)
+								   dma_addr_t *dma)
 {
 	void *alloc = kmalloc(size, GFP_KERNEL);
 
 	if (alloc != NULL)
+	{
 		*dma = fake_ptr_to_pci(alloc);
+	}
 
 	return alloc;
 }
 
 static void fake_free_consistent(struct device *parent, size_t size,
-		void *vaddr, dma_addr_t dma)
+								 void *vaddr, dma_addr_t dma)
 {
 	kfree(vaddr);
-/*
-	dma_free_coherent(parent, size, vaddr, dma);
-*/
+	/*
+		dma_free_coherent(parent, size, vaddr, dma);
+	*/
 }
 
 /*
@@ -1039,8 +1162,11 @@ static int fake_crcsr_init(struct vme_bridge *fake_bridge)
 	/* Allocate mem for CR/CSR image */
 	bridge->crcsr_kernel = kzalloc(VME_CRCSR_BUF_SIZE, GFP_KERNEL);
 	bridge->crcsr_bus = fake_ptr_to_pci(bridge->crcsr_kernel);
+
 	if (bridge->crcsr_kernel == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	vstat = fake_slot_get(fake_bridge);
 
@@ -1076,13 +1202,17 @@ static int __init fake_init(void)
 	 * dynamically allocate this so we get one per device.
 	 */
 	fake_bridge = kzalloc(sizeof(struct vme_bridge), GFP_KERNEL);
-	if (fake_bridge == NULL) {
+
+	if (fake_bridge == NULL)
+	{
 		retval = -ENOMEM;
 		goto err_struct;
 	}
 
 	fake_device = kzalloc(sizeof(struct fake_driver), GFP_KERNEL);
-	if (fake_device == NULL) {
+
+	if (fake_device == NULL)
+	{
 		retval = -ENOMEM;
 		goto err_driver;
 	}
@@ -1097,69 +1227,82 @@ static int __init fake_init(void)
 	mutex_init(&fake_device->vme_int);
 	mutex_init(&fake_bridge->irq_mtx);
 	tasklet_init(&fake_device->int_tasklet, fake_VIRQ_tasklet,
-			(unsigned long) fake_bridge);
+				 (unsigned long) fake_bridge);
 
 	strcpy(fake_bridge->name, driver_name);
 
 	/* Add master windows to list */
 	INIT_LIST_HEAD(&fake_bridge->master_resources);
-	for (i = 0; i < FAKE_MAX_MASTER; i++) {
+
+	for (i = 0; i < FAKE_MAX_MASTER; i++)
+	{
 		master_image = kmalloc(sizeof(struct vme_master_resource),
-				GFP_KERNEL);
-		if (master_image == NULL) {
+							   GFP_KERNEL);
+
+		if (master_image == NULL)
+		{
 			retval = -ENOMEM;
 			goto err_master;
 		}
+
 		master_image->parent = fake_bridge;
 		spin_lock_init(&master_image->lock);
 		master_image->locked = 0;
 		master_image->number = i;
 		master_image->address_attr = VME_A16 | VME_A24 | VME_A32 |
-			VME_A64;
+									 VME_A64;
 		master_image->cycle_attr = VME_SCT | VME_BLT | VME_MBLT |
-			VME_2eVME | VME_2eSST | VME_2eSSTB | VME_2eSST160 |
-			VME_2eSST267 | VME_2eSST320 | VME_SUPER | VME_USER |
-			VME_PROG | VME_DATA;
+								   VME_2eVME | VME_2eSST | VME_2eSSTB | VME_2eSST160 |
+								   VME_2eSST267 | VME_2eSST320 | VME_SUPER | VME_USER |
+								   VME_PROG | VME_DATA;
 		master_image->width_attr = VME_D16 | VME_D32;
 		memset(&master_image->bus_resource, 0,
-				sizeof(struct resource));
+			   sizeof(struct resource));
 		master_image->kern_base  = NULL;
 		list_add_tail(&master_image->list,
-				&fake_bridge->master_resources);
+					  &fake_bridge->master_resources);
 	}
 
 	/* Add slave windows to list */
 	INIT_LIST_HEAD(&fake_bridge->slave_resources);
-	for (i = 0; i < FAKE_MAX_SLAVE; i++) {
+
+	for (i = 0; i < FAKE_MAX_SLAVE; i++)
+	{
 		slave_image = kmalloc(sizeof(struct vme_slave_resource),
-				GFP_KERNEL);
-		if (slave_image == NULL) {
+							  GFP_KERNEL);
+
+		if (slave_image == NULL)
+		{
 			retval = -ENOMEM;
 			goto err_slave;
 		}
+
 		slave_image->parent = fake_bridge;
 		mutex_init(&slave_image->mtx);
 		slave_image->locked = 0;
 		slave_image->number = i;
 		slave_image->address_attr = VME_A16 | VME_A24 | VME_A32 |
-			VME_A64 | VME_CRCSR | VME_USER1 | VME_USER2 |
-			VME_USER3 | VME_USER4;
+									VME_A64 | VME_CRCSR | VME_USER1 | VME_USER2 |
+									VME_USER3 | VME_USER4;
 		slave_image->cycle_attr = VME_SCT | VME_BLT | VME_MBLT |
-			VME_2eVME | VME_2eSST | VME_2eSSTB | VME_2eSST160 |
-			VME_2eSST267 | VME_2eSST320 | VME_SUPER | VME_USER |
-			VME_PROG | VME_DATA;
+								  VME_2eVME | VME_2eSST | VME_2eSSTB | VME_2eSST160 |
+								  VME_2eSST267 | VME_2eSST320 | VME_SUPER | VME_USER |
+								  VME_PROG | VME_DATA;
 		list_add_tail(&slave_image->list,
-				&fake_bridge->slave_resources);
+					  &fake_bridge->slave_resources);
 	}
 
 	/* Add location monitor to list */
 	INIT_LIST_HEAD(&fake_bridge->lm_resources);
 	lm = kmalloc(sizeof(struct vme_lm_resource), GFP_KERNEL);
-	if (lm == NULL) {
+
+	if (lm == NULL)
+	{
 		pr_err("Failed to allocate memory for location monitor resource structure\n");
 		retval = -ENOMEM;
 		goto err_lm;
 	}
+
 	lm->parent = fake_bridge;
 	mutex_init(&lm->mtx);
 	lm->locked = 0;
@@ -1190,13 +1333,17 @@ static int __init fake_init(void)
 	pr_info("VME geographical address is set to %d\n", geoid);
 
 	retval = fake_crcsr_init(fake_bridge);
-	if (retval) {
+
+	if (retval)
+	{
 		pr_err("CR/CSR configuration failed.\n");
 		goto err_crcsr;
 	}
 
 	retval = vme_register_bridge(fake_bridge);
-	if (retval != 0) {
+
+	if (retval != 0)
+	{
 		pr_err("Chip Registration failed.\n");
 		goto err_reg;
 	}
@@ -1210,23 +1357,26 @@ err_reg:
 err_crcsr:
 err_lm:
 	/* resources are stored in link list */
-	list_for_each_safe(pos, n, &fake_bridge->lm_resources) {
+	list_for_each_safe(pos, n, &fake_bridge->lm_resources)
+	{
 		lm = list_entry(pos, struct vme_lm_resource, list);
 		list_del(pos);
 		kfree(lm);
 	}
 err_slave:
 	/* resources are stored in link list */
-	list_for_each_safe(pos, n, &fake_bridge->slave_resources) {
+	list_for_each_safe(pos, n, &fake_bridge->slave_resources)
+	{
 		slave_image = list_entry(pos, struct vme_slave_resource, list);
 		list_del(pos);
 		kfree(slave_image);
 	}
 err_master:
 	/* resources are stored in link list */
-	list_for_each_safe(pos, n, &fake_bridge->master_resources) {
+	list_for_each_safe(pos, n, &fake_bridge->master_resources)
+	{
 		master_image = list_entry(pos, struct vme_master_resource,
-				list);
+								  list);
 		list_del(pos);
 		kfree(master_image);
 	}
@@ -1260,10 +1410,14 @@ static void __exit fake_exit(void)
 	 *  Shutdown all inbound and outbound windows.
 	 */
 	for (i = 0; i < FAKE_MAX_MASTER; i++)
+	{
 		bridge->masters[i].enabled = 0;
+	}
 
 	for (i = 0; i < FAKE_MAX_SLAVE; i++)
+	{
 		bridge->slaves[i].enabled = 0;
+	}
 
 	/*
 	 *  Shutdown Location monitor.
@@ -1274,16 +1428,18 @@ static void __exit fake_exit(void)
 
 	fake_crcsr_exit(fake_bridge);
 	/* resources are stored in link list */
-	list_for_each_safe(pos, tmplist, &fake_bridge->slave_resources) {
+	list_for_each_safe(pos, tmplist, &fake_bridge->slave_resources)
+	{
 		slave_image = list_entry(pos, struct vme_slave_resource, list);
 		list_del(pos);
 		kfree(slave_image);
 	}
 
 	/* resources are stored in link list */
-	list_for_each_safe(pos, tmplist, &fake_bridge->master_resources) {
+	list_for_each_safe(pos, tmplist, &fake_bridge->master_resources)
+	{
 		master_image = list_entry(pos, struct vme_master_resource,
-				list);
+								  list);
 		list_del(pos);
 		kfree(master_image);
 	}

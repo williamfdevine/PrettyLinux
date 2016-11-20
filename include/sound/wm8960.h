@@ -15,7 +15,8 @@
 #define WM8960_DRES_150R 3
 #define WM8960_DRES_MAX  3
 
-struct wm8960_data {
+struct wm8960_data
+{
 	bool capless;  /* Headphone outputs configured in capless mode */
 
 	bool shared_lrclk;  /* DAC and ADC LRCLKs are wired together */

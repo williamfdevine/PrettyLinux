@@ -44,9 +44,15 @@ static int __init cmp_fake_mem(const void *x1, const void *x2)
 	const struct efi_mem_range *m2 = x2;
 
 	if (m1->range.start < m2->range.start)
+	{
 		return -1;
+	}
+
 	if (m1->range.start > m2->range.start)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -59,11 +65,15 @@ void __init efi_fake_memmap(void)
 	int i;
 
 	if (!nr_fake_mem)
+	{
 		return;
+	}
 
 	/* count up the number of EFI memory descriptor */
-	for (i = 0; i < nr_fake_mem; i++) {
-		for_each_efi_memory_desc(md) {
+	for (i = 0; i < nr_fake_mem; i++)
+	{
+		for_each_efi_memory_desc(md)
+		{
 			struct range *r = &fake_mems[i].range;
 
 			new_nr_map += efi_memmap_split_count(md, r);
@@ -72,20 +82,27 @@ void __init efi_fake_memmap(void)
 
 	/* allocate memory for new EFI memmap */
 	new_memmap_phy = memblock_alloc(efi.memmap.desc_size * new_nr_map,
-					PAGE_SIZE);
+									PAGE_SIZE);
+
 	if (!new_memmap_phy)
+	{
 		return;
+	}
 
 	/* create new EFI memmap */
 	new_memmap = early_memremap(new_memmap_phy,
-				    efi.memmap.desc_size * new_nr_map);
-	if (!new_memmap) {
+								efi.memmap.desc_size * new_nr_map);
+
+	if (!new_memmap)
+	{
 		memblock_free(new_memmap_phy, efi.memmap.desc_size * new_nr_map);
 		return;
 	}
 
 	for (i = 0; i < nr_fake_mem; i++)
+	{
 		efi_memmap_insert(&efi.memmap, new_memmap, &fake_mems[i]);
+	}
 
 	/* swap into new EFI memmap */
 	early_memunmap(new_memmap, efi.memmap.desc_size * new_nr_map);
@@ -102,22 +119,36 @@ static int __init setup_fake_mem(char *p)
 	int i;
 
 	if (!p)
+	{
 		return -EINVAL;
+	}
 
-	while (*p != '\0') {
+	while (*p != '\0')
+	{
 		mem_size = memparse(p, &p);
+
 		if (*p == '@')
-			start = memparse(p+1, &p);
+		{
+			start = memparse(p + 1, &p);
+		}
 		else
+		{
 			break;
+		}
 
 		if (*p == ':')
-			attribute = simple_strtoull(p+1, &p, 0);
+		{
+			attribute = simple_strtoull(p + 1, &p, 0);
+		}
 		else
+		{
 			break;
+		}
 
 		if (nr_fake_mem >= EFI_MAX_FAKEMEM)
+		{
 			break;
+		}
 
 		fake_mems[nr_fake_mem].range.start = start;
 		fake_mems[nr_fake_mem].range.end = start + mem_size - 1;
@@ -125,16 +156,18 @@ static int __init setup_fake_mem(char *p)
 		nr_fake_mem++;
 
 		if (*p == ',')
+		{
 			p++;
+		}
 	}
 
 	sort(fake_mems, nr_fake_mem, sizeof(struct efi_mem_range),
-	     cmp_fake_mem, NULL);
+		 cmp_fake_mem, NULL);
 
 	for (i = 0; i < nr_fake_mem; i++)
 		pr_info("efi_fake_mem: add attr=0x%016llx to [mem 0x%016llx-0x%016llx]",
-			fake_mems[i].attribute, fake_mems[i].range.start,
-			fake_mems[i].range.end);
+				fake_mems[i].attribute, fake_mems[i].range.start,
+				fake_mems[i].range.end);
 
 	return *p == '\0' ? 0 : -EINVAL;
 }

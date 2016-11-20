@@ -50,29 +50,34 @@
 #define DRV_NAME "ahci-seattle"
 
 static ssize_t seattle_transmit_led_message(struct ata_port *ap, u32 state,
-					    ssize_t size);
+		ssize_t size);
 
-struct seattle_plat_data {
+struct seattle_plat_data
+{
 	void __iomem *sgpio_ctrl;
 };
 
-static struct ata_port_operations ahci_port_ops = {
+static struct ata_port_operations ahci_port_ops =
+{
 	.inherits		= &ahci_ops,
 };
 
-static const struct ata_port_info ahci_port_info = {
+static const struct ata_port_info ahci_port_info =
+{
 	.flags		= AHCI_FLAG_COMMON,
 	.pio_mask	= ATA_PIO4,
 	.udma_mask	= ATA_UDMA6,
 	.port_ops	= &ahci_port_ops,
 };
 
-static struct ata_port_operations ahci_seattle_ops = {
+static struct ata_port_operations ahci_seattle_ops =
+{
 	.inherits		= &ahci_ops,
 	.transmit_led_message   = seattle_transmit_led_message,
 };
 
-static const struct ata_port_info ahci_port_seattle_info = {
+static const struct ata_port_info ahci_port_seattle_info =
+{
 	.flags		= AHCI_FLAG_COMMON | ATA_FLAG_EM | ATA_FLAG_SW_ACTIVITY,
 	.link_flags	= ATA_LFLAG_SW_ACTIVITY,
 	.pio_mask	= ATA_PIO4,
@@ -80,12 +85,13 @@ static const struct ata_port_info ahci_port_seattle_info = {
 	.port_ops	= &ahci_seattle_ops,
 };
 
-static struct scsi_host_template ahci_platform_sht = {
+static struct scsi_host_template ahci_platform_sht =
+{
 	AHCI_SHT(DRV_NAME),
 };
 
 static ssize_t seattle_transmit_led_message(struct ata_port *ap, u32 state,
-					    ssize_t size)
+		ssize_t size)
 {
 	struct ahci_host_priv *hpriv = ap->host->private_data;
 	struct ahci_port_priv *pp = ap->private_data;
@@ -97,25 +103,42 @@ static ssize_t seattle_transmit_led_message(struct ata_port *ap, u32 state,
 
 	/* get the slot number from the message */
 	pmp = (state & EM_MSG_LED_PMP_SLOT) >> 8;
+
 	if (pmp >= EM_MAX_SLOTS)
+	{
 		return -EINVAL;
+	}
+
 	emp = &pp->em_priv[pmp];
 
 	val = ioread32(plat_data->sgpio_ctrl);
+
 	if (state & ACTIVITY_MASK)
+	{
 		val |= 1 << ACTIVITY_BIT_POS((ap->port_no));
+	}
 	else
+	{
 		val &= ~(1 << ACTIVITY_BIT_POS((ap->port_no)));
+	}
 
 	if (state & LOCATE_MASK)
+	{
 		val |= 1 << LOCATE_BIT_POS((ap->port_no));
+	}
 	else
+	{
 		val &= ~(1 << LOCATE_BIT_POS((ap->port_no)));
+	}
 
 	if (state & FAULT_MASK)
+	{
 		val |= 1 << FAULT_BIT_POS((ap->port_no));
+	}
 	else
+	{
 		val &= ~(1 << FAULT_BIT_POS((ap->port_no)));
+	}
 
 	iowrite32(val, plat_data->sgpio_ctrl);
 
@@ -130,25 +153,33 @@ static ssize_t seattle_transmit_led_message(struct ata_port *ap, u32 state,
 }
 
 static const struct ata_port_info *ahci_seattle_get_port_info(
-		struct platform_device *pdev, struct ahci_host_priv *hpriv)
+	struct platform_device *pdev, struct ahci_host_priv *hpriv)
 {
 	struct device *dev = &pdev->dev;
 	struct seattle_plat_data *plat_data;
 	u32 val;
 
 	plat_data = devm_kzalloc(dev, sizeof(*plat_data), GFP_KERNEL);
+
 	if (!plat_data)
+	{
 		return &ahci_port_info;
+	}
 
 	plat_data->sgpio_ctrl = devm_ioremap_resource(dev,
-			      platform_get_resource(pdev, IORESOURCE_MEM, 1));
+							platform_get_resource(pdev, IORESOURCE_MEM, 1));
+
 	if (IS_ERR(plat_data->sgpio_ctrl))
+	{
 		return &ahci_port_info;
+	}
 
 	val = ioread32(plat_data->sgpio_ctrl);
 
 	if (!(val & 0xf))
+	{
 		return &ahci_port_info;
+	}
 
 	hpriv->em_loc = 0;
 	hpriv->em_buf_sz = 4;
@@ -165,18 +196,27 @@ static int ahci_seattle_probe(struct platform_device *pdev)
 	struct ahci_host_priv *hpriv;
 
 	hpriv = ahci_platform_get_resources(pdev);
+
 	if (IS_ERR(hpriv))
+	{
 		return PTR_ERR(hpriv);
+	}
 
 	rc = ahci_platform_enable_resources(hpriv);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = ahci_platform_init_host(pdev, hpriv,
-				     ahci_seattle_get_port_info(pdev, hpriv),
-				     &ahci_platform_sht);
+								 ahci_seattle_get_port_info(pdev, hpriv),
+								 &ahci_platform_sht);
+
 	if (rc)
+	{
 		goto disable_resources;
+	}
 
 	return 0;
 disable_resources:
@@ -185,15 +225,17 @@ disable_resources:
 }
 
 static SIMPLE_DEV_PM_OPS(ahci_pm_ops, ahci_platform_suspend,
-			 ahci_platform_resume);
+						 ahci_platform_resume);
 
-static const struct acpi_device_id ahci_acpi_match[] = {
+static const struct acpi_device_id ahci_acpi_match[] =
+{
 	{ "AMDI0600", 0 },
 	{}
 };
 MODULE_DEVICE_TABLE(acpi, ahci_acpi_match);
 
-static struct platform_driver ahci_seattle_driver = {
+static struct platform_driver ahci_seattle_driver =
+{
 	.probe = ahci_seattle_probe,
 	.remove = ata_platform_remove_one,
 	.driver = {

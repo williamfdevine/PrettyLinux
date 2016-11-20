@@ -11,7 +11,8 @@
  * Registers in the 53C94 controller.
  */
 
-struct mac53c94_regs {
+struct mac53c94_regs
+{
 	unsigned char	count_lo;
 	char pad0[15];
 	unsigned char	count_mid;

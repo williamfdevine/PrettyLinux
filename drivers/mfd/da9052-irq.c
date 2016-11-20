@@ -35,7 +35,8 @@
 #define DA9052_IRQ_MASK_POS_7		0x40
 #define DA9052_IRQ_MASK_POS_8		0x80
 
-static const struct regmap_irq da9052_irqs[] = {
+static const struct regmap_irq da9052_irqs[] =
+{
 	[DA9052_IRQ_DCIN] = {
 		.reg_offset = 0,
 		.mask = DA9052_IRQ_MASK_POS_1,
@@ -166,7 +167,8 @@ static const struct regmap_irq da9052_irqs[] = {
 	},
 };
 
-static const struct regmap_irq_chip da9052_regmap_irq_chip = {
+static const struct regmap_irq_chip da9052_regmap_irq_chip =
+{
 	.name = "da9052_irq",
 	.status_base = DA9052_EVENT_A_REG,
 	.mask_base = DA9052_IRQ_MASK_A_REG,
@@ -184,8 +186,11 @@ static int da9052_map_irq(struct da9052 *da9052, int irq)
 int da9052_enable_irq(struct da9052 *da9052, int irq)
 {
 	irq = da9052_map_irq(da9052, irq);
+
 	if (irq < 0)
+	{
 		return irq;
+	}
 
 	enable_irq(irq);
 
@@ -196,8 +201,11 @@ EXPORT_SYMBOL_GPL(da9052_enable_irq);
 int da9052_disable_irq(struct da9052 *da9052, int irq)
 {
 	irq = da9052_map_irq(da9052, irq);
+
 	if (irq < 0)
+	{
 		return irq;
+	}
 
 	disable_irq(irq);
 
@@ -208,8 +216,11 @@ EXPORT_SYMBOL_GPL(da9052_disable_irq);
 int da9052_disable_irq_nosync(struct da9052 *da9052, int irq)
 {
 	irq = da9052_map_irq(da9052, irq);
+
 	if (irq < 0)
+	{
 		return irq;
+	}
 
 	disable_irq_nosync(irq);
 
@@ -218,23 +229,29 @@ int da9052_disable_irq_nosync(struct da9052 *da9052, int irq)
 EXPORT_SYMBOL_GPL(da9052_disable_irq_nosync);
 
 int da9052_request_irq(struct da9052 *da9052, int irq, char *name,
-			   irq_handler_t handler, void *data)
+					   irq_handler_t handler, void *data)
 {
 	irq = da9052_map_irq(da9052, irq);
+
 	if (irq < 0)
+	{
 		return irq;
+	}
 
 	return request_threaded_irq(irq, NULL, handler,
-				     IRQF_TRIGGER_LOW | IRQF_ONESHOT,
-				     name, data);
+								IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+								name, data);
 }
 EXPORT_SYMBOL_GPL(da9052_request_irq);
 
 void da9052_free_irq(struct da9052 *da9052, int irq, void *data)
 {
 	irq = da9052_map_irq(da9052, irq);
+
 	if (irq < 0)
+	{
 		return;
+	}
 
 	free_irq(irq, data);
 }
@@ -254,10 +271,12 @@ int da9052_irq_init(struct da9052 *da9052)
 	int ret;
 
 	ret = regmap_add_irq_chip(da9052->regmap, da9052->chip_irq,
-				  IRQF_TRIGGER_LOW | IRQF_ONESHOT,
-				  -1, &da9052_regmap_irq_chip,
-				  &da9052->irq_data);
-	if (ret < 0) {
+							  IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+							  -1, &da9052_regmap_irq_chip,
+							  &da9052->irq_data);
+
+	if (ret < 0)
+	{
 		dev_err(da9052->dev, "regmap_add_irq_chip failed: %d\n", ret);
 		goto regmap_err;
 	}
@@ -265,9 +284,10 @@ int da9052_irq_init(struct da9052 *da9052)
 	enable_irq_wake(da9052->chip_irq);
 
 	ret = da9052_request_irq(da9052, DA9052_IRQ_ADC_EOM, "adc-irq",
-			    da9052_auxadc_irq, da9052);
+							 da9052_auxadc_irq, da9052);
 
-	if (ret != 0) {
+	if (ret != 0)
+	{
 		dev_err(da9052->dev, "DA9052_IRQ_ADC_EOM failed: %d\n", ret);
 		goto request_irq_err;
 	}

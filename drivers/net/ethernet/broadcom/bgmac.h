@@ -218,9 +218,9 @@
 #define BGMAC_BCMA_IOST_ATTACHED		0x00000800
 
 #define BGMAC_NUM_MIB_TX_REGS	\
-		(((BGMAC_TX_Q3_OCTETS_HIGH - BGMAC_TX_GOOD_OCTETS) / 4) + 1)
+	(((BGMAC_TX_Q3_OCTETS_HIGH - BGMAC_TX_GOOD_OCTETS) / 4) + 1)
 #define BGMAC_NUM_MIB_RX_REGS	\
-		(((BGMAC_RX_UNI_PKTS - BGMAC_RX_GOOD_OCTETS) / 4) + 1)
+	(((BGMAC_RX_UNI_PKTS - BGMAC_RX_GOOD_OCTETS) / 4) + 1)
 
 #define BGMAC_DMA_TX_CTL			0x00
 #define  BGMAC_DMA_TX_ENABLE			0x00000001
@@ -348,11 +348,11 @@
 #define BGMAC_RX_HEADER_LEN			28		/* Last 24 bytes are unused. Well... */
 #define BGMAC_RX_FRAME_OFFSET			30		/* There are 2 unused bytes between header and real data */
 #define BGMAC_RX_BUF_OFFSET			(NET_SKB_PAD + NET_IP_ALIGN - \
-						 BGMAC_RX_FRAME_OFFSET)
+									 BGMAC_RX_FRAME_OFFSET)
 #define BGMAC_RX_MAX_FRAME_SIZE			1536		/* Copied from b44/tg3 */
 #define BGMAC_RX_BUF_SIZE			(BGMAC_RX_FRAME_OFFSET + BGMAC_RX_MAX_FRAME_SIZE)
 #define BGMAC_RX_ALLOC_SIZE			(SKB_DATA_ALIGN(BGMAC_RX_BUF_SIZE + BGMAC_RX_BUF_OFFSET) + \
-						 SKB_DATA_ALIGN(sizeof(struct skb_shared_info)))
+									 SKB_DATA_ALIGN(sizeof(struct skb_shared_info)))
 
 #define BGMAC_BFL_ENETROBO			0x0010		/* has ephy roboswitch spi */
 #define BGMAC_BFL_ENETADM			0x0080		/* has ADMtek switch */
@@ -410,22 +410,26 @@
 #define BGMAC_FEAT_CC4_IF_SW_TYPE_RGMII	BIT(18)
 #define BGMAC_FEAT_CC7_IF_TYPE_RGMII	BIT(19)
 
-struct bgmac_slot_info {
-	union {
+struct bgmac_slot_info
+{
+	union
+	{
 		struct sk_buff *skb;
 		void *buf;
 	};
 	dma_addr_t dma_addr;
 };
 
-struct bgmac_dma_desc {
+struct bgmac_dma_desc
+{
 	__le32 ctl0;
 	__le32 ctl1;
 	__le32 addr_low;
 	__le32 addr_high;
 } __packed;
 
-enum bgmac_dma_ring_type {
+enum bgmac_dma_ring_type
+{
 	BGMAC_DMA_RING_TX,
 	BGMAC_DMA_RING_RX,
 };
@@ -439,7 +443,8 @@ enum bgmac_dma_ring_type {
  * the one containing data that can be read. If @start equals @end the ring is
  * empty.
  */
-struct bgmac_dma_ring {
+struct bgmac_dma_ring
+{
 	u32 start;
 	u32 end;
 
@@ -452,19 +457,24 @@ struct bgmac_dma_ring {
 	struct bgmac_slot_info slots[BGMAC_RX_RING_SLOTS];
 };
 
-struct bgmac_rx_header {
+struct bgmac_rx_header
+{
 	__le16 len;
 	__le16 flags;
 	__le16 pad[12];
 };
 
-struct bgmac {
-	union {
-		struct {
+struct bgmac
+{
+	union
+	{
+		struct
+		{
 			void *base;
 			void *idm_base;
 		} plat;
-		struct {
+		struct
+		{
 			struct bcma_device *core;
 			/* Reference to CMN core for BCM4706 */
 			struct bcma_device *cmn;
@@ -509,10 +519,10 @@ struct bgmac {
 	bool (*clk_enabled)(struct bgmac *bgmac);
 	void (*clk_enable)(struct bgmac *bgmac, u32 flags);
 	void (*cco_ctl_maskset)(struct bgmac *bgmac, u32 offset, u32 mask,
-				u32 set);
+							u32 set);
 	u32 (*get_bus_clock)(struct bgmac *bgmac);
 	void (*cmn_maskset32)(struct bgmac *bgmac, u16 offset, u32 mask,
-			      u32 set);
+						  u32 set);
 };
 
 int bgmac_enet_probe(struct bgmac *info);
@@ -552,7 +562,7 @@ static inline void bgmac_clk_enable(struct bgmac *bgmac, u32 flags)
 }
 
 static inline void bgmac_cco_ctl_maskset(struct bgmac *bgmac, u32 offset,
-					 u32 mask, u32 set)
+		u32 mask, u32 set)
 {
 	bgmac->cco_ctl_maskset(bgmac, offset, mask, set);
 }
@@ -563,13 +573,13 @@ static inline u32 bgmac_get_bus_clock(struct bgmac *bgmac)
 }
 
 static inline void bgmac_cmn_maskset32(struct bgmac *bgmac, u16 offset,
-				       u32 mask, u32 set)
+									   u32 mask, u32 set)
 {
 	bgmac->cmn_maskset32(bgmac, offset, mask, set);
 }
 
 static inline void bgmac_maskset(struct bgmac *bgmac, u16 offset, u32 mask,
-				   u32 set)
+								 u32 set)
 {
 	bgmac_write(bgmac, offset, (bgmac_read(bgmac, offset) & mask) | set);
 }

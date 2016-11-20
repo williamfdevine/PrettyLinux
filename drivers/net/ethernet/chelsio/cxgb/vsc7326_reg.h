@@ -196,7 +196,8 @@
 /* reg below */
 /* pn = port number, 0-a, a = 10GbE */
 
-enum {
+enum
+{
 	RxInBytes		= 0x00,	// # Rx in octets
 	RxSymbolCarrier		= 0x01,	// Frames w/ symbol errors
 	RxPause			= 0x02,	// # pause frames received

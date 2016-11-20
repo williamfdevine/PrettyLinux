@@ -27,7 +27,8 @@ typedef void (*bfa_cee_get_attr_cbfn_t) (void *dev, enum bfa_status status);
 typedef void (*bfa_cee_get_stats_cbfn_t) (void *dev, enum bfa_status status);
 typedef void (*bfa_cee_reset_stats_cbfn_t) (void *dev, enum bfa_status status);
 
-struct bfa_cee_cbfn {
+struct bfa_cee_cbfn
+{
 	bfa_cee_get_attr_cbfn_t    get_attr_cbfn;
 	void *get_attr_cbarg;
 	bfa_cee_get_stats_cbfn_t   get_stats_cbfn;
@@ -36,7 +37,8 @@ struct bfa_cee_cbfn {
 	void *reset_stats_cbarg;
 };
 
-struct bfa_cee {
+struct bfa_cee
+{
 	void *dev;
 	bool get_attr_pending;
 	bool get_stats_pending;
@@ -58,9 +60,9 @@ struct bfa_cee {
 
 u32 bfa_nw_cee_meminfo(void);
 void bfa_nw_cee_mem_claim(struct bfa_cee *cee, u8 *dma_kva,
-	u64 dma_pa);
+						  u64 dma_pa);
 void bfa_nw_cee_attach(struct bfa_cee *cee, struct bfa_ioc *ioc, void *dev);
 enum bfa_status bfa_nw_cee_get_attr(struct bfa_cee *cee,
-				struct bfa_cee_attr *attr,
-				bfa_cee_get_attr_cbfn_t cbfn, void *cbarg);
+									struct bfa_cee_attr *attr,
+									bfa_cee_get_attr_cbfn_t cbfn, void *cbarg);
 #endif /* __BFA_CEE_H__ */

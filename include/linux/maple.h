@@ -7,7 +7,8 @@ struct device;
 extern struct bus_type maple_bus_type;
 
 /* Maple Bus command and response codes */
-enum maple_code {
+enum maple_code
+{
 	MAPLE_RESPONSE_FILEERR =	-5,
 	MAPLE_RESPONSE_AGAIN,	/* retransmit */
 	MAPLE_RESPONSE_BADCMD,
@@ -30,7 +31,8 @@ enum maple_code {
 	MAPLE_COMMAND_MICCONTROL
 };
 
-enum maple_file_errors {
+enum maple_file_errors
+{
 	MAPLE_FILEERR_INVALID_PARTITION =	0x01000000,
 	MAPLE_FILEERR_PHASE_ERROR =		0x02000000,
 	MAPLE_FILEERR_INVALID_BLOCK =		0x04000000,
@@ -39,12 +41,14 @@ enum maple_file_errors {
 	MAPLE_FILEERR_BAD_CRC = 		0x20000000
 };
 
-struct maple_buffer {
+struct maple_buffer
+{
 	char bufx[0x400];
 	void *buf;
 };
 
-struct mapleq {
+struct mapleq
+{
 	struct list_head list;
 	struct maple_device *dev;
 	struct maple_buffer *recvbuf;
@@ -53,7 +57,8 @@ struct mapleq {
 	enum maple_code command;
 };
 
-struct maple_devinfo {
+struct maple_devinfo
+{
 	unsigned long function;
 	unsigned long function_data[3];
 	unsigned char area_code;
@@ -64,10 +69,11 @@ struct maple_devinfo {
 	unsigned short max_power;
 };
 
-struct maple_device {
+struct maple_device
+{
 	struct maple_driver *driver;
 	struct mapleq *mq;
-	void (*callback) (struct mapleq * mq);
+	void (*callback) (struct mapleq *mq);
 	void (*fileerr_handler)(struct maple_device *mdev, void *recvbuf);
 	int (*can_unload)(struct maple_device *mdev);
 	unsigned long when, interval, function;
@@ -80,20 +86,21 @@ struct maple_device {
 	struct device dev;
 };
 
-struct maple_driver {
+struct maple_driver
+{
 	unsigned long function;
 	struct device_driver drv;
 };
 
 void maple_getcond_callback(struct maple_device *dev,
-			    void (*callback) (struct mapleq * mq),
-			    unsigned long interval,
-			    unsigned long function);
+							void (*callback) (struct mapleq *mq),
+							unsigned long interval,
+							unsigned long function);
 int maple_driver_register(struct maple_driver *);
 void maple_driver_unregister(struct maple_driver *);
 
 int maple_add_packet(struct maple_device *mdev, u32 function,
-	u32 command, u32 length, void *data);
+					 u32 command, u32 length, void *data);
 void maple_clear_dev(struct maple_device *mdev);
 
 #define to_maple_dev(n) container_of(n, struct maple_device, dev)

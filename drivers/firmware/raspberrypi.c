@@ -21,7 +21,8 @@
 #define MBOX_DATA28(msg)		((msg) & ~0xf)
 #define MBOX_CHAN_PROPERTY		8
 
-struct rpi_firmware {
+struct rpi_firmware
+{
 	struct mbox_client cl;
 	struct mbox_chan *chan; /* The property channel. */
 	struct completion c;
@@ -51,12 +52,17 @@ rpi_firmware_transaction(struct rpi_firmware *fw, u32 chan, u32 data)
 	mutex_lock(&transaction_lock);
 	reinit_completion(&fw->c);
 	ret = mbox_send_message(fw->chan, &message);
-	if (ret >= 0) {
+
+	if (ret >= 0)
+	{
 		wait_for_completion(&fw->c);
 		ret = 0;
-	} else {
+	}
+	else
+	{
 		dev_err(fw->cl.dev, "mbox_send_message returned %d\n", ret);
 	}
+
 	mutex_unlock(&transaction_lock);
 
 	return ret;
@@ -77,7 +83,7 @@ rpi_firmware_transaction(struct rpi_firmware *fw, u32 chan, u32 data)
  * structure.
  */
 int rpi_firmware_property_list(struct rpi_firmware *fw,
-			       void *data, size_t tag_size)
+							   void *data, size_t tag_size)
 {
 	size_t size = tag_size + 12;
 	u32 *buf;
@@ -86,12 +92,17 @@ int rpi_firmware_property_list(struct rpi_firmware *fw,
 
 	/* Packets are processed a dword at a time. */
 	if (size & 3)
+	{
 		return -EINVAL;
+	}
 
 	buf = dma_alloc_coherent(fw->cl.dev, PAGE_ALIGN(size), &bus_addr,
-				 GFP_ATOMIC);
+							 GFP_ATOMIC);
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	/* The firmware will error out without parsing in this case. */
 	WARN_ON(size >= 1024 * 1024);
@@ -106,14 +117,16 @@ int rpi_firmware_property_list(struct rpi_firmware *fw,
 
 	rmb();
 	memcpy(data, &buf[2], tag_size);
-	if (ret == 0 && buf[1] != RPI_FIRMWARE_STATUS_SUCCESS) {
+
+	if (ret == 0 && buf[1] != RPI_FIRMWARE_STATUS_SUCCESS)
+	{
 		/*
 		 * The tag name here might not be the one causing the
 		 * error, if there were multiple tags in the request.
 		 * But single-tag is the most common, so go with it.
 		 */
 		dev_err(fw->cl.dev, "Request 0x%08x returned status 0x%08x\n",
-			buf[2], buf[1]);
+				buf[2], buf[1]);
 		ret = -EINVAL;
 	}
 
@@ -138,7 +151,7 @@ EXPORT_SYMBOL_GPL(rpi_firmware_property_list);
  * boilerplate in property calls.
  */
 int rpi_firmware_property(struct rpi_firmware *fw,
-			  u32 tag, void *tag_data, size_t buf_size)
+						  u32 tag, void *tag_data, size_t buf_size)
 {
 	/* Single tags are very small (generally 8 bytes), so the
 	 * stack should be safe.
@@ -152,12 +165,12 @@ int rpi_firmware_property(struct rpi_firmware *fw,
 	header->buf_size = buf_size;
 	header->req_resp_size = 0;
 	memcpy(data + sizeof(struct rpi_firmware_property_tag_header),
-	       tag_data, buf_size);
+		   tag_data, buf_size);
 
 	ret = rpi_firmware_property_list(fw, &data, sizeof(data));
 	memcpy(tag_data,
-	       data + sizeof(struct rpi_firmware_property_tag_header),
-	       buf_size);
+		   data + sizeof(struct rpi_firmware_property_tag_header),
+		   buf_size);
 
 	return ret;
 }
@@ -168,18 +181,19 @@ rpi_firmware_print_firmware_revision(struct rpi_firmware *fw)
 {
 	u32 packet;
 	int ret = rpi_firmware_property(fw,
-					RPI_FIRMWARE_GET_FIRMWARE_REVISION,
-					&packet, sizeof(packet));
+									RPI_FIRMWARE_GET_FIRMWARE_REVISION,
+									&packet, sizeof(packet));
 
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		struct tm tm;
 
 		time_to_tm(packet, 0, &tm);
 
 		dev_info(fw->cl.dev,
-			 "Attached to firmware from %04ld-%02d-%02d %02d:%02d\n",
-			 tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
-			 tm.tm_hour, tm.tm_min);
+				 "Attached to firmware from %04ld-%02d-%02d %02d:%02d\n",
+				 tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+				 tm.tm_hour, tm.tm_min);
 	}
 }
 
@@ -189,18 +203,27 @@ static int rpi_firmware_probe(struct platform_device *pdev)
 	struct rpi_firmware *fw;
 
 	fw = devm_kzalloc(dev, sizeof(*fw), GFP_KERNEL);
+
 	if (!fw)
+	{
 		return -ENOMEM;
+	}
 
 	fw->cl.dev = dev;
 	fw->cl.rx_callback = response_callback;
 	fw->cl.tx_block = true;
 
 	fw->chan = mbox_request_channel(&fw->cl, 0);
-	if (IS_ERR(fw->chan)) {
+
+	if (IS_ERR(fw->chan))
+	{
 		int ret = PTR_ERR(fw->chan);
+
 		if (ret != -EPROBE_DEFER)
+		{
 			dev_err(dev, "Failed to get mbox channel: %d\n", ret);
+		}
+
 		return ret;
 	}
 
@@ -233,19 +256,23 @@ struct rpi_firmware *rpi_firmware_get(struct device_node *firmware_node)
 	struct platform_device *pdev = of_find_device_by_node(firmware_node);
 
 	if (!pdev)
+	{
 		return NULL;
+	}
 
 	return platform_get_drvdata(pdev);
 }
 EXPORT_SYMBOL_GPL(rpi_firmware_get);
 
-static const struct of_device_id rpi_firmware_of_match[] = {
+static const struct of_device_id rpi_firmware_of_match[] =
+{
 	{ .compatible = "raspberrypi,bcm2835-firmware", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, rpi_firmware_of_match);
 
-static struct platform_driver rpi_firmware_driver = {
+static struct platform_driver rpi_firmware_driver =
+{
 	.driver = {
 		.name = "raspberrypi-firmware",
 		.of_match_table = rpi_firmware_of_match,

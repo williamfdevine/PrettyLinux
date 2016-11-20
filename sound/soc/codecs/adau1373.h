@@ -1,7 +1,8 @@
 #ifndef __ADAU1373_H__
 #define __ADAU1373_H__
 
-enum adau1373_pll_src {
+enum adau1373_pll_src
+{
 	ADAU1373_PLL_SRC_MCLK1 = 0,
 	ADAU1373_PLL_SRC_BCLK1 = 1,
 	ADAU1373_PLL_SRC_BCLK2 = 2,
@@ -16,12 +17,14 @@ enum adau1373_pll_src {
 	ADAU1373_PLL_SRC_MCLK2 = 11,
 };
 
-enum adau1373_pll {
+enum adau1373_pll
+{
 	ADAU1373_PLL1 = 0,
 	ADAU1373_PLL2 = 1,
 };
 
-enum adau1373_clk_src {
+enum adau1373_clk_src
+{
 	ADAU1373_CLK_SRC_PLL1 = 0,
 	ADAU1373_CLK_SRC_PLL2 = 1,
 };

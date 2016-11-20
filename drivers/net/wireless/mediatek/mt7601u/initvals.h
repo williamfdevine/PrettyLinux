@@ -15,7 +15,8 @@
 #ifndef __MT7601U_INITVALS_H
 #define __MT7601U_INITVALS_H
 
-static const struct mt76_reg_pair bbp_common_vals[] = {
+static const struct mt76_reg_pair bbp_common_vals[] =
+{
 	{  65,	0x2c },
 	{  66,	0x38 },
 	{  68,	0x0b },
@@ -34,7 +35,8 @@ static const struct mt76_reg_pair bbp_common_vals[] = {
 	{ 106,	0x35 },
 };
 
-static const struct mt76_reg_pair bbp_chip_vals[] = {
+static const struct mt76_reg_pair bbp_chip_vals[] =
+{
 	{   1, 0x04 },	{   4, 0x40 },	{  20, 0x06 },	{  31, 0x08 },
 	/* CCK Tx Control */
 	{ 178, 0xff },
@@ -112,7 +114,8 @@ static const struct mt76_reg_pair bbp_chip_vals[] = {
 	{ 196, 0x5a },
 };
 
-static const struct mt76_reg_pair mac_common_vals[] = {
+static const struct mt76_reg_pair mac_common_vals[] =
+{
 	{ MT_LEGACY_BASIC_RATE,		0x0000013f },
 	{ MT_HT_BASIC_RATE,		0x00008003 },
 	{ MT_MAC_SYS_CTRL,		0x00000000 },
@@ -141,7 +144,8 @@ static const struct mt76_reg_pair mac_common_vals[] = {
 	{ MT_PWR_PIN_CFG,		0x00000000 },
 };
 
-static const struct mt76_reg_pair mac_chip_vals[] = {
+static const struct mt76_reg_pair mac_chip_vals[] =
+{
 	{ MT_TSO_CTRL,			0x00006050 },
 	{ MT_BCN_OFFSET(0),		0x18100800 },
 	{ MT_BCN_OFFSET(1),		0x38302820 },

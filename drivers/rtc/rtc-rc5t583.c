@@ -27,7 +27,8 @@
 #include <linux/interrupt.h>
 #include <linux/mfd/rc5t583.h>
 
-struct rc5t583_rtc {
+struct rc5t583_rtc
+{
 	struct rtc_device	*rtc;
 	/* To store the list of enabled interrupts, during system suspend */
 	u32 irqen;
@@ -54,7 +55,7 @@ static int rc5t583_rtc_alarm_irq_enable(struct device *dev, unsigned enabled)
 	val = enabled ? SET_YAL : 0;
 
 	return regmap_update_bits(rc5t583->regmap, RC5T583_RTC_CTL1, SET_YAL,
-		val);
+							  val);
 }
 
 /*
@@ -73,8 +74,10 @@ static int rc5t583_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	int ret;
 
 	ret = regmap_bulk_read(rc5t583->regmap, RC5T583_RTC_SEC, rtc_data,
-		NUM_TIME_REGS);
-	if (ret < 0) {
+						   NUM_TIME_REGS);
+
+	if (ret < 0)
+	{
 		dev_err(dev, "RTC read time failed with err:%d\n", ret);
 		return ret;
 	}
@@ -105,8 +108,10 @@ static int rc5t583_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	rtc_data[6] = bin2bcd(tm->tm_year - 100);
 
 	ret = regmap_bulk_write(rc5t583->regmap, RC5T583_RTC_SEC, rtc_data,
-		NUM_TIME_REGS);
-	if (ret < 0) {
+							NUM_TIME_REGS);
+
+	if (ret < 0)
+	{
 		dev_err(dev, "RTC set time failed with error %d\n", ret);
 		return ret;
 	}
@@ -122,8 +127,10 @@ static int rc5t583_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
 	int ret;
 
 	ret = regmap_bulk_read(rc5t583->regmap, RC5T583_RTC_AY_MIN, alarm_data,
-		NUM_YAL_REGS);
-	if (ret < 0) {
+						   NUM_YAL_REGS);
+
+	if (ret < 0)
+	{
 		dev_err(dev, "rtc_read_alarm error %d\n", ret);
 		return ret;
 	}
@@ -136,12 +143,17 @@ static int rc5t583_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
 	alm->time.tm_year = bcd2bin(alarm_data[4]) + 100;
 
 	ret = regmap_read(rc5t583->regmap, RC5T583_RTC_CTL1, &interrupt_enable);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* check if YALE is set */
 	if (interrupt_enable & SET_YAL)
+	{
 		alm->enabled = 1;
+	}
 
 	return ret;
 }
@@ -153,8 +165,11 @@ static int rc5t583_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
 	int ret;
 
 	ret = rc5t583_rtc_alarm_irq_enable(dev, 0);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	alarm_data[0] = bin2bcd(alm->time.tm_min);
 	alarm_data[1] = bin2bcd(alm->time.tm_hour);
@@ -163,14 +178,18 @@ static int rc5t583_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
 	alarm_data[4] = bin2bcd(alm->time.tm_year - 100);
 
 	ret = regmap_bulk_write(rc5t583->regmap, RC5T583_RTC_AY_MIN, alarm_data,
-		NUM_YAL_REGS);
-	if (ret) {
+							NUM_YAL_REGS);
+
+	if (ret)
+	{
 		dev_err(dev, "rtc_set_alarm error %d\n", ret);
 		return ret;
 	}
 
 	if (alm->enabled)
+	{
 		ret = rc5t583_rtc_alarm_irq_enable(dev, 1);
+	}
 
 	return ret;
 }
@@ -185,18 +204,25 @@ static irqreturn_t rc5t583_rtc_interrupt(int irq, void *rtc)
 	u32 rtc_reg;
 
 	ret = regmap_read(rc5t583->regmap, RC5T583_RTC_CTL2, &rtc_reg);
-	if (ret < 0)
-		return IRQ_NONE;
 
-	if (rtc_reg & GET_YAL_STATUS) {
+	if (ret < 0)
+	{
+		return IRQ_NONE;
+	}
+
+	if (rtc_reg & GET_YAL_STATUS)
+	{
 		events = RTC_IRQF | RTC_AF;
 		/* clear pending Y-alarm interrupt bit */
 		rtc_reg &= ~GET_YAL_STATUS;
 	}
 
 	ret = regmap_write(rc5t583->regmap, RC5T583_RTC_CTL2, rtc_reg);
+
 	if (ret)
+	{
 		return IRQ_NONE;
+	}
 
 	/* Notify RTC core on event */
 	rtc_update_irq(rc5t583_rtc->rtc, 1, events);
@@ -204,7 +230,8 @@ static irqreturn_t rc5t583_rtc_interrupt(int irq, void *rtc)
 	return IRQ_HANDLED;
 }
 
-static const struct rtc_class_ops rc5t583_rtc_ops = {
+static const struct rtc_class_ops rc5t583_rtc_ops =
+{
 	.read_time	= rc5t583_rtc_read_time,
 	.set_time	= rc5t583_rtc_set_time,
 	.read_alarm	= rc5t583_rtc_read_alarm,
@@ -221,45 +248,60 @@ static int rc5t583_rtc_probe(struct platform_device *pdev)
 	int irq;
 
 	ricoh_rtc = devm_kzalloc(&pdev->dev, sizeof(struct rc5t583_rtc),
-			GFP_KERNEL);
+							 GFP_KERNEL);
+
 	if (!ricoh_rtc)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, ricoh_rtc);
 
 	/* Clear pending interrupts */
 	ret = regmap_write(rc5t583->regmap, RC5T583_RTC_CTL2, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* clear RTC Adjust register */
 	ret = regmap_write(rc5t583->regmap, RC5T583_RTC_ADJ, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "unable to program rtc_adjust reg\n");
 		return -EBUSY;
 	}
 
 	pmic_plat_data = dev_get_platdata(rc5t583->dev);
 	irq = pmic_plat_data->irq_base;
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		dev_warn(&pdev->dev, "Wake up is not possible as irq = %d\n",
-			irq);
+				 irq);
 		return ret;
 	}
 
 	irq += RC5T583_IRQ_YALE;
 	ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
-		rc5t583_rtc_interrupt, IRQF_TRIGGER_LOW,
-		"rtc-rc5t583", &pdev->dev);
-	if (ret < 0) {
+									rc5t583_rtc_interrupt, IRQF_TRIGGER_LOW,
+									"rtc-rc5t583", &pdev->dev);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "IRQ is not free.\n");
 		return ret;
 	}
+
 	device_init_wakeup(&pdev->dev, 1);
 
 	ricoh_rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
-		&rc5t583_rtc_ops, THIS_MODULE);
-	if (IS_ERR(ricoh_rtc->rtc)) {
+					 &rc5t583_rtc_ops, THIS_MODULE);
+
+	if (IS_ERR(ricoh_rtc->rtc))
+	{
 		ret = PTR_ERR(ricoh_rtc->rtc);
 		dev_err(&pdev->dev, "RTC device register: err %d\n", ret);
 		return ret;
@@ -289,7 +331,7 @@ static int rc5t583_rtc_suspend(struct device *dev)
 
 	/* Store current list of enabled interrupts*/
 	ret = regmap_read(rc5t583->regmap, RC5T583_RTC_CTL1,
-		&rc5t583_rtc->irqen);
+					  &rc5t583_rtc->irqen);
 	return ret;
 }
 
@@ -300,14 +342,15 @@ static int rc5t583_rtc_resume(struct device *dev)
 
 	/* Restore list of enabled interrupts before suspend */
 	return regmap_write(rc5t583->regmap, RC5T583_RTC_CTL1,
-		rc5t583_rtc->irqen);
+						rc5t583_rtc->irqen);
 }
 #endif
 
 static SIMPLE_DEV_PM_OPS(rc5t583_rtc_pm_ops, rc5t583_rtc_suspend,
-			rc5t583_rtc_resume);
+						 rc5t583_rtc_resume);
 
-static struct platform_driver rc5t583_rtc_driver = {
+static struct platform_driver rc5t583_rtc_driver =
+{
 	.probe		= rc5t583_rtc_probe,
 	.remove		= rc5t583_rtc_remove,
 	.driver		= {

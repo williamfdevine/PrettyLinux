@@ -49,10 +49,10 @@ MODULE_VERSION("1.0.0");
  */
 
 #ifndef CONFIG_RADIO_GEMTEK_PORT
-#define CONFIG_RADIO_GEMTEK_PORT -1
+	#define CONFIG_RADIO_GEMTEK_PORT -1
 #endif
 #ifndef CONFIG_RADIO_GEMTEK_PROBE
-#define CONFIG_RADIO_GEMTEK_PROBE 1
+	#define CONFIG_RADIO_GEMTEK_PROBE 1
 #endif
 
 #define GEMTEK_MAX 4
@@ -60,7 +60,8 @@ MODULE_VERSION("1.0.0");
 static bool probe = CONFIG_RADIO_GEMTEK_PROBE;
 static bool hardmute;
 static int io[GEMTEK_MAX] = { [0] = CONFIG_RADIO_GEMTEK_PORT,
-			      [1 ... (GEMTEK_MAX - 1)] = -1 };
+							  [1 ... (GEMTEK_MAX - 1)] = -1
+							};
 static int radio_nr[GEMTEK_MAX]	= { [0 ... (GEMTEK_MAX - 1)] = -1 };
 
 module_param(probe, bool, 0444);
@@ -68,13 +69,13 @@ MODULE_PARM_DESC(probe, "Enable automatic device probing.");
 
 module_param(hardmute, bool, 0644);
 MODULE_PARM_DESC(hardmute, "Enable 'hard muting' by shutting down PLL, may "
-	 "reduce static noise.");
+				 "reduce static noise.");
 
 module_param_array(io, int, NULL, 0444);
 MODULE_PARM_DESC(io, "Force I/O ports for the GemTek Radio card if automatic "
-	 "probing is disabled or fails. The most common I/O ports are: 0x20c "
-	 "0x30c, 0x24c or 0x34c (0x20c, 0x248 and 0x28c have been reported to "
-	 "work for the combined sound/radiocard).");
+				 "probing is disabled or fails. The most common I/O ports are: 0x20c "
+				 "0x30c, 0x24c or 0x34c (0x20c, 0x248 and 0x28c have been reported to "
+				 "work for the combined sound/radiocard).");
 
 module_param_array(radio_nr, int, NULL, 0444);
 MODULE_PARM_DESC(radio_nr, "Radio device numbers");
@@ -100,7 +101,8 @@ MODULE_PARM_DESC(radio_nr, "Radio device numbers");
 #define SHORT_DELAY 5		/* usec */
 #define LONG_DELAY 75		/* usec */
 
-struct gemtek {
+struct gemtek
+{
 	struct radio_isa_card isa;
 	bool muted;
 	u32 bu2614data;
@@ -129,7 +131,7 @@ struct gemtek {
 #define BU2614_TEST_SHIFT	(BU2614_FMUN_BITS + BU2614_FMUN_SHIFT)
 
 #define MKMASK(field)	(((1<<BU2614_##field##_BITS) - 1) << \
-			BU2614_##field##_SHIFT)
+						 BU2614_##field##_SHIFT)
 #define BU2614_PORT_MASK	MKMASK(PORT)
 #define BU2614_FREQ_MASK	MKMASK(FREQ)
 #define BU2614_VOID_MASK	MKMASK(VOID)
@@ -145,7 +147,7 @@ struct gemtek {
  * Set data which will be sent to BU2614FS.
  */
 #define gemtek_bu2614_set(dev, field, data) ((dev)->bu2614data = \
-	((dev)->bu2614data & ~field##_MASK) | ((data) << field##_SHIFT))
+		((dev)->bu2614data & ~field##_MASK) | ((data) << field##_SHIFT))
 
 /*
  * Transmit settings to BU2614FS over GemTek IC.
@@ -160,7 +162,8 @@ static void gemtek_bu2614_transmit(struct gemtek *gt)
 	outb_p(mute | GEMTEK_CE | GEMTEK_DA | GEMTEK_CK, isa->io);
 	udelay(LONG_DELAY);
 
-	for (i = 0, q = gt->bu2614data; i < 32; i++, q >>= 1) {
+	for (i = 0, q = gt->bu2614data; i < 32; i++, q >>= 1)
+	{
 		bit = (q & 1) ? GEMTEK_DA : 0;
 		outb_p(mute | GEMTEK_CE | bit, isa->io);
 		udelay(SHORT_DELAY);
@@ -185,7 +188,10 @@ static struct radio_isa_card *gemtek_alloc(void)
 	struct gemtek *gt = kzalloc(sizeof(*gt), GFP_KERNEL);
 
 	if (gt)
+	{
 		gt->muted = true;
+	}
+
 	return gt ? &gt->isa : NULL;
 }
 
@@ -197,7 +203,9 @@ static int gemtek_s_frequency(struct radio_isa_card *isa, u32 freq)
 	struct gemtek *gt = container_of(isa, struct gemtek, isa);
 
 	if (hardmute && gt->muted)
+	{
 		return 0;
+	}
 
 	gemtek_bu2614_set(gt, BU2614_PORT, 0);
 	gemtek_bu2614_set(gt, BU2614_FMES, 0);
@@ -220,9 +228,13 @@ static int gemtek_s_mute_volume(struct radio_isa_card *isa, bool mute, int vol)
 	int i;
 
 	gt->muted = mute;
-	if (hardmute) {
+
+	if (hardmute)
+	{
 		if (!mute)
+		{
 			return gemtek_s_frequency(isa, isa->freq);
+		}
 
 		/* Turn off PLL, disable data output */
 		gemtek_bu2614_set(gt, BU2614_PORT, 0);
@@ -248,7 +260,10 @@ static int gemtek_s_mute_volume(struct radio_isa_card *isa, bool mute, int vol)
 static u32 gemtek_g_rxsubchans(struct radio_isa_card *isa)
 {
 	if (inb_p(isa->io) & GEMTEK_NS)
+	{
 		return V4L2_TUNER_SUB_MONO;
+	}
+
 	return V4L2_TUNER_SUB_STEREO;
 }
 
@@ -260,21 +275,27 @@ static bool gemtek_probe(struct radio_isa_card *isa, int io)
 	int i, q;
 
 	q = inb_p(io);	/* Read bus contents before probing. */
+
 	/* Try to turn on CE, CK and DA respectively and check if card responds
 	   properly. */
-	for (i = 0; i < 3; ++i) {
+	for (i = 0; i < 3; ++i)
+	{
 		outb_p(1 << i, io);
 		udelay(SHORT_DELAY);
 
 		if ((inb_p(io) & ~GEMTEK_NS) != (0x17 | (1 << (i + 5))))
+		{
 			return false;
+		}
 	}
+
 	outb_p(q >> 5, io);	/* Write bus contents back. */
 	udelay(SHORT_DELAY);
 	return true;
 }
 
-static const struct radio_isa_ops gemtek_ops = {
+static const struct radio_isa_ops gemtek_ops =
+{
 	.alloc = gemtek_alloc,
 	.probe = gemtek_probe,
 	.s_mute_volume = gemtek_s_mute_volume,
@@ -285,7 +306,8 @@ static const struct radio_isa_ops gemtek_ops = {
 static const int gemtek_ioports[] = { 0x20c, 0x30c, 0x24c, 0x34c, 0x248, 0x28c };
 
 #ifdef CONFIG_PNP
-static struct pnp_device_id gemtek_pnp_devices[] = {
+static struct pnp_device_id gemtek_pnp_devices[] =
+{
 	/* AOpen FX-3D/Pro Radio */
 	{.id = "ADS7183", .driver_data = 0},
 	{.id = ""}
@@ -294,7 +316,8 @@ static struct pnp_device_id gemtek_pnp_devices[] = {
 MODULE_DEVICE_TABLE(pnp, gemtek_pnp_devices);
 #endif
 
-static struct radio_isa_driver gemtek_driver = {
+static struct radio_isa_driver gemtek_driver =
+{
 	.driver = {
 		.match		= radio_isa_match,
 		.probe		= radio_isa_probe,

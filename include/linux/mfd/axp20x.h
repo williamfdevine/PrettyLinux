@@ -13,7 +13,8 @@
 
 #include <linux/regmap.h>
 
-enum {
+enum
+{
 	AXP152_ID = 0,
 	AXP202_ID,
 	AXP209_ID,
@@ -255,7 +256,8 @@ enum {
 #define AXP288_FG_TUNE5             0xed
 
 /* Regulators IDs */
-enum {
+enum
+{
 	AXP20X_LDO1 = 0,
 	AXP20X_LDO2,
 	AXP20X_LDO3,
@@ -266,7 +268,8 @@ enum {
 	AXP20X_REG_ID_MAX,
 };
 
-enum {
+enum
+{
 	AXP22X_DCDC1 = 0,
 	AXP22X_DCDC2,
 	AXP22X_DCDC3,
@@ -290,7 +293,8 @@ enum {
 	AXP22X_REG_ID_MAX,
 };
 
-enum {
+enum
+{
 	AXP806_DCDCA = 0,
 	AXP806_DCDCB,
 	AXP806_DCDCC,
@@ -310,7 +314,8 @@ enum {
 	AXP806_REG_ID_MAX,
 };
 
-enum {
+enum
+{
 	AXP809_DCDC1 = 0,
 	AXP809_DCDC2,
 	AXP809_DCDC3,
@@ -334,7 +339,8 @@ enum {
 };
 
 /* IRQs */
-enum {
+enum
+{
 	AXP152_IRQ_LDO0IN_CONNECT = 1,
 	AXP152_IRQ_LDO0IN_REMOVAL,
 	AXP152_IRQ_ALDO0IN_CONNECT,
@@ -354,7 +360,8 @@ enum {
 	AXP152_IRQ_GPIO0_INPUT,
 };
 
-enum {
+enum
+{
 	AXP20X_IRQ_ACIN_OVER_V = 1,
 	AXP20X_IRQ_ACIN_PLUGIN,
 	AXP20X_IRQ_ACIN_REMOVAL,
@@ -394,7 +401,8 @@ enum {
 	AXP20X_IRQ_GPIO0_INPUT,
 };
 
-enum axp22x_irqs {
+enum axp22x_irqs
+{
 	AXP22X_IRQ_ACIN_OVER_V = 1,
 	AXP22X_IRQ_ACIN_PLUGIN,
 	AXP22X_IRQ_ACIN_REMOVAL,
@@ -422,7 +430,8 @@ enum axp22x_irqs {
 	AXP22X_IRQ_GPIO0_INPUT,
 };
 
-enum axp288_irqs {
+enum axp288_irqs
+{
 	AXP288_IRQ_VBUS_FALL     = 2,
 	AXP288_IRQ_VBUS_RISE,
 	AXP288_IRQ_OV,
@@ -459,7 +468,8 @@ enum axp288_irqs {
 	AXP288_IRQ_BC_USB_CHNG,
 };
 
-enum axp806_irqs {
+enum axp806_irqs
+{
 	AXP806_IRQ_DIE_TEMP_HIGH_LV1,
 	AXP806_IRQ_DIE_TEMP_HIGH_LV2,
 	AXP806_IRQ_DCDCA_V_LOW,
@@ -474,7 +484,8 @@ enum axp806_irqs {
 	AXP806_IRQ_PWROK_RISE,
 };
 
-enum axp809_irqs {
+enum axp809_irqs
+{
 	AXP809_IRQ_ACIN_OVER_V = 1,
 	AXP809_IRQ_ACIN_PLUGIN,
 	AXP809_IRQ_ACIN_REMOVAL,
@@ -514,7 +525,8 @@ enum axp809_irqs {
 #define AXP288_GP_ADC_H		0x5a
 #define AXP288_GP_ADC_L		0x5b
 
-struct axp20x_dev {
+struct axp20x_dev
+{
 	struct device			*dev;
 	int				irq;
 	struct regmap			*regmap;
@@ -532,7 +544,8 @@ struct axp20x_dev {
 #define PD_DEF_MIN_TEMP			0
 #define PD_DEF_MAX_TEMP			55
 
-struct axp20x_fg_pdata {
+struct axp20x_fg_pdata
+{
 	char battid[BATTID_LEN + 1];
 	int design_cap;
 	int min_volt;
@@ -548,34 +561,42 @@ struct axp20x_fg_pdata {
 	int thermistor_curve[MAX_THERM_CURVE_SIZE][2];
 };
 
-struct axp20x_chrg_pdata {
+struct axp20x_chrg_pdata
+{
 	int max_cc;
 	int max_cv;
 	int def_cc;
 	int def_cv;
 };
 
-struct axp288_extcon_pdata {
+struct axp288_extcon_pdata
+{
 	/* GPIO pin control to switch D+/D- lines b/w PMIC and SOC */
 	struct gpio_desc *gpio_mux_cntl;
 };
 
 /* generic helper function for reading 9-16 bit wide regs */
 static inline int axp20x_read_variable_width(struct regmap *regmap,
-	unsigned int reg, unsigned int width)
+		unsigned int reg, unsigned int width)
 {
 	unsigned int reg_val, result;
 	int err;
 
 	err = regmap_read(regmap, reg, &reg_val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	result = reg_val << (width - 8);
 
 	err = regmap_read(regmap, reg + 1, &reg_val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	result |= reg_val;
 

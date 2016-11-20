@@ -37,7 +37,9 @@
 static void snd_cobalt_card_free(struct snd_cobalt_card *cobsc)
 {
 	if (cobsc == NULL)
+	{
 		return;
+	}
 
 	cobsc->s->alsa = NULL;
 
@@ -47,19 +49,25 @@ static void snd_cobalt_card_free(struct snd_cobalt_card *cobsc)
 static void snd_cobalt_card_private_free(struct snd_card *sc)
 {
 	if (sc == NULL)
+	{
 		return;
+	}
+
 	snd_cobalt_card_free(sc->private_data);
 	sc->private_data = NULL;
 	sc->private_free = NULL;
 }
 
 static int snd_cobalt_card_create(struct cobalt_stream *s,
-				       struct snd_card *sc,
-				       struct snd_cobalt_card **cobsc)
+								  struct snd_card *sc,
+								  struct snd_cobalt_card **cobsc)
 {
 	*cobsc = kzalloc(sizeof(struct snd_cobalt_card), GFP_KERNEL);
+
 	if (*cobsc == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	(*cobsc)->s = s;
 	(*cobsc)->sc = sc;
@@ -81,12 +89,12 @@ static int snd_cobalt_card_set_names(struct snd_cobalt_card *cobsc)
 
 	/* sc->shortname is a symlink in /proc/asound: COBALT-M -> cardN */
 	snprintf(sc->shortname,  sizeof(sc->shortname), "cobalt-%d-%d",
-		 cobalt->instance, s->video_channel);
+			 cobalt->instance, s->video_channel);
 
 	/* sc->longname is read from /proc/asound/cards */
 	snprintf(sc->longname, sizeof(sc->longname),
-		 "Cobalt %d HDMI %d",
-		 cobalt->instance, s->video_channel);
+			 "Cobalt %d HDMI %d",
+			 cobalt->instance, s->video_channel);
 
 	return 0;
 }
@@ -105,17 +113,21 @@ int cobalt_alsa_init(struct cobalt_stream *s)
 
 	/* (2) Create a card instance */
 	ret = snd_card_new(&cobalt->pci_dev->dev, SNDRV_DEFAULT_IDX1,
-			   SNDRV_DEFAULT_STR1, THIS_MODULE, 0, &sc);
-	if (ret) {
+					   SNDRV_DEFAULT_STR1, THIS_MODULE, 0, &sc);
+
+	if (ret)
+	{
 		cobalt_err("snd_card_new() failed with err %d\n", ret);
 		goto err_exit;
 	}
 
 	/* (3) Create a main component */
 	ret = snd_cobalt_card_create(s, sc, &cobsc);
-	if (ret) {
+
+	if (ret)
+	{
 		cobalt_err("snd_cobalt_card_create() failed with err %d\n",
-			   ret);
+				   ret);
 		goto err_exit_free;
 	}
 
@@ -123,11 +135,14 @@ int cobalt_alsa_init(struct cobalt_stream *s)
 	snd_cobalt_card_set_names(cobsc);
 
 	ret = snd_cobalt_pcm_create(cobsc);
-	if (ret) {
+
+	if (ret)
+	{
 		cobalt_err("snd_cobalt_pcm_create() failed with err %d\n",
-			   ret);
+				   ret);
 		goto err_exit_free;
 	}
+
 	/* FIXME - proc files */
 
 	/* (7) Set the driver data and return 0 */
@@ -136,7 +151,9 @@ int cobalt_alsa_init(struct cobalt_stream *s)
 
 	/* (6) Register the card instance */
 	ret = snd_card_register(sc);
-	if (ret) {
+
+	if (ret)
+	{
 		s->alsa = NULL;
 		cobalt_err("snd_card_register() failed with err %d\n", ret);
 		goto err_exit_free;
@@ -145,8 +162,12 @@ int cobalt_alsa_init(struct cobalt_stream *s)
 	return 0;
 
 err_exit_free:
+
 	if (sc != NULL)
+	{
 		snd_card_free(sc);
+	}
+
 	kfree(cobsc);
 err_exit:
 	return ret;
@@ -157,6 +178,9 @@ void cobalt_alsa_exit(struct cobalt_stream *s)
 	struct snd_cobalt_card *cobsc = s->alsa;
 
 	if (cobsc)
+	{
 		snd_card_free(cobsc->sc);
+	}
+
 	s->alsa = NULL;
 }

@@ -42,7 +42,8 @@
 #define KVM_REG_SIZE(id)						\
 	(1U << (((id) & KVM_REG_SIZE_MASK) >> KVM_REG_SIZE_SHIFT))
 
-struct kvm_regs {
+struct kvm_regs
+{
 	struct user_pt_regs regs;	/* sp = sp_el0 */
 
 	__u64	sp_el1;
@@ -98,15 +99,18 @@ struct kvm_regs {
 #define KVM_ARM_VCPU_PSCI_0_2		2 /* CPU uses PSCI v0.2 */
 #define KVM_ARM_VCPU_PMU_V3		3 /* Support guest PMUv3 */
 
-struct kvm_vcpu_init {
+struct kvm_vcpu_init
+{
 	__u32 target;
 	__u32 features[7];
 };
 
-struct kvm_sregs {
+struct kvm_sregs
+{
 };
 
-struct kvm_fpu {
+struct kvm_fpu
+{
 };
 
 /*
@@ -123,14 +127,16 @@ struct kvm_fpu {
  * change the userspace ABI.
  */
 #define KVM_ARM_MAX_DBG_REGS 16
-struct kvm_guest_debug_arch {
+struct kvm_guest_debug_arch
+{
 	__u64 dbg_bcr[KVM_ARM_MAX_DBG_REGS];
 	__u64 dbg_bvr[KVM_ARM_MAX_DBG_REGS];
 	__u64 dbg_wcr[KVM_ARM_MAX_DBG_REGS];
 	__u64 dbg_wvr[KVM_ARM_MAX_DBG_REGS];
 };
 
-struct kvm_debug_exit_arch {
+struct kvm_debug_exit_arch
+{
 	__u32 hsr;
 	__u64 far;	/* used for watchpoints */
 };
@@ -142,10 +148,12 @@ struct kvm_debug_exit_arch {
 #define KVM_GUESTDBG_USE_SW_BP		(1 << 16)
 #define KVM_GUESTDBG_USE_HW		(1 << 17)
 
-struct kvm_sync_regs {
+struct kvm_sync_regs
+{
 };
 
-struct kvm_arch_memory_slot {
+struct kvm_arch_memory_slot
+{
 };
 
 /* If you need to interpret the index values, here is the key: */
@@ -179,15 +187,15 @@ struct kvm_arch_memory_slot {
 
 #define ARM64_SYS_REG_SHIFT_MASK(x,n) \
 	(((x) << KVM_REG_ARM64_SYSREG_ ## n ## _SHIFT) & \
-	KVM_REG_ARM64_SYSREG_ ## n ## _MASK)
+	 KVM_REG_ARM64_SYSREG_ ## n ## _MASK)
 
 #define __ARM64_SYS_REG(op0,op1,crn,crm,op2) \
 	(KVM_REG_ARM64 | KVM_REG_ARM64_SYSREG | \
-	ARM64_SYS_REG_SHIFT_MASK(op0, OP0) | \
-	ARM64_SYS_REG_SHIFT_MASK(op1, OP1) | \
-	ARM64_SYS_REG_SHIFT_MASK(crn, CRN) | \
-	ARM64_SYS_REG_SHIFT_MASK(crm, CRM) | \
-	ARM64_SYS_REG_SHIFT_MASK(op2, OP2))
+	 ARM64_SYS_REG_SHIFT_MASK(op0, OP0) | \
+	 ARM64_SYS_REG_SHIFT_MASK(op1, OP1) | \
+	 ARM64_SYS_REG_SHIFT_MASK(crn, CRN) | \
+	 ARM64_SYS_REG_SHIFT_MASK(crm, CRM) | \
+	 ARM64_SYS_REG_SHIFT_MASK(op2, OP2))
 
 #define ARM64_SYS_REG(...) (__ARM64_SYS_REG(__VA_ARGS__) | KVM_REG_SIZE_U64)
 
@@ -235,7 +243,7 @@ struct kvm_arch_memory_slot {
  * userland. The highest SPI number can be set via KVM_DEV_ARM_VGIC_GRP_NR_IRQS.
  */
 #ifndef __KERNEL__
-#define KVM_ARM_IRQ_GIC_MAX		127
+	#define KVM_ARM_IRQ_GIC_MAX		127
 #endif
 
 /* One single KVM irqchip, ie. the VGIC */

@@ -27,7 +27,8 @@
 #define SMSC_BANK(offs)      ((offs) >> 3)
 #define SMSC_BIT(offs)       (1u << ((offs) & 0x7))
 
-struct smsc {
+struct smsc
+{
 	struct device *dev;
 	struct i2c_client *i2c_clients[SMSC_NUM_CLIENTS];
 	struct regmap *regmap;
@@ -40,7 +41,7 @@ struct smsc_gpio;
 struct smsc_keypad;
 
 static inline int smsc_read(struct device *child, unsigned int reg,
-	unsigned int *dest)
+							unsigned int *dest)
 {
 	struct smsc     *smsc = dev_get_drvdata(child->parent);
 
@@ -48,7 +49,7 @@ static inline int smsc_read(struct device *child, unsigned int reg,
 }
 
 static inline int smsc_write(struct device *child, unsigned int reg,
-	unsigned int value)
+							 unsigned int value)
 {
 	struct smsc     *smsc = dev_get_drvdata(child->parent);
 

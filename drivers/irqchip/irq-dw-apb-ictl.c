@@ -34,11 +34,13 @@ static void dw_apb_ictl_handler(struct irq_desc *desc)
 
 	chained_irq_enter(chip, desc);
 
-	for (n = 0; n < d->revmap_size; n += 32) {
+	for (n = 0; n < d->revmap_size; n += 32)
+	{
 		struct irq_chip_generic *gc = irq_get_domain_generic_chip(d, n);
 		u32 stat = readl_relaxed(gc->reg_base + APB_INT_FINALSTATUS_L);
 
-		while (stat) {
+		while (stat)
+		{
 			u32 hwirq = ffs(stat) - 1;
 			u32 virq = irq_find_mapping(d, gc->irq_base + hwirq);
 
@@ -66,7 +68,7 @@ static void dw_apb_ictl_resume(struct irq_data *d)
 #endif /* CONFIG_PM */
 
 static int __init dw_apb_ictl_init(struct device_node *np,
-				   struct device_node *parent)
+								   struct device_node *parent)
 {
 	unsigned int clr = IRQ_NOREQUEST | IRQ_NOPROBE | IRQ_NOAUTOEN;
 	struct resource r;
@@ -78,24 +80,31 @@ static int __init dw_apb_ictl_init(struct device_node *np,
 
 	/* Map the parent interrupt for the chained handler */
 	irq = irq_of_parse_and_map(np, 0);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		pr_err("%s: unable to parse irq\n", np->full_name);
 		return -EINVAL;
 	}
 
 	ret = of_address_to_resource(np, 0, &r);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s: unable to get resource\n", np->full_name);
 		return ret;
 	}
 
-	if (!request_mem_region(r.start, resource_size(&r), np->full_name)) {
+	if (!request_mem_region(r.start, resource_size(&r), np->full_name))
+	{
 		pr_err("%s: unable to request mem region\n", np->full_name);
 		return -ENOMEM;
 	}
 
 	iobase = ioremap(r.start, resource_size(&r));
-	if (!iobase) {
+
+	if (!iobase)
+	{
 		pr_err("%s: unable to map resource\n", np->full_name);
 		ret = -ENOMEM;
 		goto err_release;
@@ -115,28 +124,38 @@ static int __init dw_apb_ictl_init(struct device_node *np,
 	writel_relaxed(~0, iobase + APB_INT_ENABLE_H);
 
 	reg = readl_relaxed(iobase + APB_INT_ENABLE_H);
+
 	if (reg)
+	{
 		nrirqs = 32 + fls(reg);
+	}
 	else
+	{
 		nrirqs = fls(readl_relaxed(iobase + APB_INT_ENABLE_L));
+	}
 
 	domain = irq_domain_add_linear(np, nrirqs,
-				       &irq_generic_chip_ops, NULL);
-	if (!domain) {
+								   &irq_generic_chip_ops, NULL);
+
+	if (!domain)
+	{
 		pr_err("%s: unable to add irq domain\n", np->full_name);
 		ret = -ENOMEM;
 		goto err_unmap;
 	}
 
 	ret = irq_alloc_domain_generic_chips(domain, 32, 1, np->name,
-					     handle_level_irq, clr, 0,
-					     IRQ_GC_INIT_MASK_CACHE);
-	if (ret) {
+										 handle_level_irq, clr, 0,
+										 IRQ_GC_INIT_MASK_CACHE);
+
+	if (ret)
+	{
 		pr_err("%s: unable to alloc irq domain gc\n", np->full_name);
 		goto err_unmap;
 	}
 
-	for (i = 0; i < DIV_ROUND_UP(nrirqs, 32); i++) {
+	for (i = 0; i < DIV_ROUND_UP(nrirqs, 32); i++)
+	{
 		gc = irq_get_domain_generic_chip(domain, i * 32);
 		gc->reg_base = iobase + i * APB_INT_BASE_OFFSET;
 		gc->chip_types[0].regs.mask = APB_INT_MASK_L;
@@ -157,4 +176,4 @@ err_release:
 	return ret;
 }
 IRQCHIP_DECLARE(dw_apb_ictl,
-		"snps,dw-apb-ictl", dw_apb_ictl_init);
+				"snps,dw-apb-ictl", dw_apb_ictl_init);

@@ -17,7 +17,8 @@
 #include <linux/types.h>
 #include <linux/power_supply.h>
 
-enum {
+enum
+{
 	/* use the default compensation method */
 	SMB347_SOFT_TEMP_COMPENSATE_DEFAULT = -1,
 
@@ -33,7 +34,8 @@ enum {
  * Charging enable can be controlled by software (via i2c) by
  * smb347-charger driver or by EN pin (active low/high).
  */
-enum smb347_chg_enable {
+enum smb347_chg_enable
+{
 	SMB347_CHG_ENABLE_SW,
 	SMB347_CHG_ENABLE_PIN_ACTIVE_LOW,
 	SMB347_CHG_ENABLE_PIN_ACTIVE_HIGH,
@@ -90,7 +92,8 @@ enum smb347_chg_enable {
  * factory programmed default will be used. For soft/hard temperature
  * values, pass in %SMB347_TEMP_USE_DEFAULT instead.
  */
-struct smb347_charger_platform_data {
+struct smb347_charger_platform_data
+{
 	struct power_supply_info battery_info;
 	unsigned int	max_charge_current;
 	unsigned int	max_charge_voltage;

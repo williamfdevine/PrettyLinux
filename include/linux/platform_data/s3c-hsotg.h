@@ -17,7 +17,8 @@
 
 struct platform_device;
 
-enum dwc2_hsotg_dmamode {
+enum dwc2_hsotg_dmamode
+{
 	S3C_HSOTG_DMA_NONE,	/* do not use DMA at-all */
 	S3C_HSOTG_DMA_ONLY,	/* always use DMA */
 	S3C_HSOTG_DMA_DRV,	/* DMA is chosen by driver */
@@ -28,9 +29,10 @@ enum dwc2_hsotg_dmamode {
  * @dma: Whether to use DMA or not.
  * @is_osc: The clock source is an oscillator, not a crystal
  */
-struct dwc2_hsotg_plat {
+struct dwc2_hsotg_plat
+{
 	enum dwc2_hsotg_dmamode	dma;
-	unsigned int		is_osc:1;
+	unsigned int		is_osc: 1;
 	int                     phy_type;
 
 	int (*phy_init)(struct platform_device *pdev, int type);

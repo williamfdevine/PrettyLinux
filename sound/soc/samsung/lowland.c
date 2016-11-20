@@ -24,7 +24,8 @@
 static struct snd_soc_jack lowland_headset;
 
 /* Headset jack detection DAPM pins */
-static struct snd_soc_jack_pin lowland_headset_pins[] = {
+static struct snd_soc_jack_pin lowland_headset_pins[] =
+{
 	{
 		.pin = "Headphone",
 		.mask = SND_JACK_HEADPHONE | SND_JACK_LINEOUT,
@@ -41,27 +42,34 @@ static int lowland_wm5100_init(struct snd_soc_pcm_runtime *rtd)
 	int ret;
 
 	ret = snd_soc_codec_set_sysclk(codec, WM5100_CLK_SYSCLK,
-				       WM5100_CLKSRC_MCLK1, MCLK1_RATE,
-				       SND_SOC_CLOCK_IN);
-	if (ret < 0) {
+								   WM5100_CLKSRC_MCLK1, MCLK1_RATE,
+								   SND_SOC_CLOCK_IN);
+
+	if (ret < 0)
+	{
 		pr_err("Failed to set SYSCLK clock source: %d\n", ret);
 		return ret;
 	}
 
 	/* Clock OPCLK, used by the other audio components. */
 	ret = snd_soc_codec_set_sysclk(codec, WM5100_CLK_OPCLK, 0,
-				       CLKOUT_RATE, 0);
-	if (ret < 0) {
+								   CLKOUT_RATE, 0);
+
+	if (ret < 0)
+	{
 		pr_err("Failed to set OPCLK rate: %d\n", ret);
 		return ret;
 	}
 
 	ret = snd_soc_card_jack_new(rtd->card, "Headset", SND_JACK_LINEOUT |
-				    SND_JACK_HEADSET | SND_JACK_BTN_0,
-				    &lowland_headset, lowland_headset_pins,
-				    ARRAY_SIZE(lowland_headset_pins));
+								SND_JACK_HEADSET | SND_JACK_BTN_0,
+								&lowland_headset, lowland_headset_pins,
+								ARRAY_SIZE(lowland_headset_pins));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	wm5100_detect(codec, &lowland_headset);
 
@@ -76,10 +84,11 @@ static int lowland_wm9081_init(struct snd_soc_pcm_runtime *rtd)
 
 	/* At any time the WM9081 is active it will have this clock */
 	return snd_soc_codec_set_sysclk(codec, WM9081_SYSCLK_MCLK, 0,
-					CLKOUT_RATE, 0);
+									CLKOUT_RATE, 0);
 }
 
-static const struct snd_soc_pcm_stream sub_params = {
+static const struct snd_soc_pcm_stream sub_params =
+{
 	.formats = SNDRV_PCM_FMTBIT_S32_LE,
 	.rate_min = 44100,
 	.rate_max = 44100,
@@ -87,7 +96,8 @@ static const struct snd_soc_pcm_stream sub_params = {
 	.channels_max = 2,
 };
 
-static struct snd_soc_dai_link lowland_dai[] = {
+static struct snd_soc_dai_link lowland_dai[] =
+{
 	{
 		.name = "CPU",
 		.stream_name = "CPU",
@@ -96,7 +106,7 @@ static struct snd_soc_dai_link lowland_dai[] = {
 		.platform_name = "samsung-i2s.0",
 		.codec_name = "wm5100.1-001a",
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
-				SND_SOC_DAIFMT_CBM_CFM,
+		SND_SOC_DAIFMT_CBM_CFM,
 		.init = lowland_wm5100_init,
 	},
 	{
@@ -106,7 +116,7 @@ static struct snd_soc_dai_link lowland_dai[] = {
 		.codec_dai_name = "wm1250-ev1",
 		.codec_name = "wm1250-ev1.1-0027",
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
-				SND_SOC_DAIFMT_CBM_CFM,
+		SND_SOC_DAIFMT_CBM_CFM,
 		.ignore_suspend = 1,
 	},
 	{
@@ -116,21 +126,23 @@ static struct snd_soc_dai_link lowland_dai[] = {
 		.codec_dai_name = "wm9081-hifi",
 		.codec_name = "wm9081.1-006c",
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
-				SND_SOC_DAIFMT_CBM_CFM,
+		SND_SOC_DAIFMT_CBM_CFM,
 		.ignore_suspend = 1,
 		.params = &sub_params,
 		.init = lowland_wm9081_init,
 	},
 };
 
-static struct snd_soc_codec_conf lowland_codec_conf[] = {
+static struct snd_soc_codec_conf lowland_codec_conf[] =
+{
 	{
 		.dev_name = "wm9081.1-006c",
 		.name_prefix = "Sub",
 	},
 };
 
-static const struct snd_kcontrol_new controls[] = {
+static const struct snd_kcontrol_new controls[] =
+{
 	SOC_DAPM_PIN_SWITCH("Main Speaker"),
 	SOC_DAPM_PIN_SWITCH("Main DMIC"),
 	SOC_DAPM_PIN_SWITCH("Main AMIC"),
@@ -139,7 +151,8 @@ static const struct snd_kcontrol_new controls[] = {
 	SOC_DAPM_PIN_SWITCH("Headphone"),
 };
 
-static struct snd_soc_dapm_widget widgets[] = {
+static struct snd_soc_dapm_widget widgets[] =
+{
 	SND_SOC_DAPM_HP("Headphone", NULL),
 	SND_SOC_DAPM_MIC("Headset Mic", NULL),
 
@@ -149,7 +162,8 @@ static struct snd_soc_dapm_widget widgets[] = {
 	SND_SOC_DAPM_MIC("Main DMIC", NULL),
 };
 
-static struct snd_soc_dapm_route audio_paths[] = {
+static struct snd_soc_dapm_route audio_paths[] =
+{
 	{ "Sub IN1", NULL, "HPOUT2L" },
 	{ "Sub IN2", NULL, "HPOUT2R" },
 
@@ -158,7 +172,8 @@ static struct snd_soc_dapm_route audio_paths[] = {
 	{ "Main Speaker", NULL, "SPKDAT1" },
 };
 
-static struct snd_soc_card lowland = {
+static struct snd_soc_card lowland =
+{
 	.name = "Lowland",
 	.owner = THIS_MODULE,
 	.dai_link = lowland_dai,
@@ -182,14 +197,16 @@ static int lowland_probe(struct platform_device *pdev)
 	card->dev = &pdev->dev;
 
 	ret = devm_snd_soc_register_card(&pdev->dev, card);
+
 	if (ret)
 		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
-			ret);
+				ret);
 
 	return ret;
 }
 
-static struct platform_driver lowland_driver = {
+static struct platform_driver lowland_driver =
+{
 	.driver = {
 		.name = "lowland",
 		.pm = &snd_soc_pm_ops,

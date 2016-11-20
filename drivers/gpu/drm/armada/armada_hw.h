@@ -16,7 +16,8 @@
  *  LCD_SPU_DMA_PITCH_UV, LCD_SPU_DMA_OVSA_HPXL_VLN,
  *  LCD_SPU_DMA_HPXL_VLN, LCD_SPU_DZM_HPXL_VLN, LCD_SPU_DMA_CTRL0
  */
-enum {
+enum
+{
 	LCD_SPU_ADV_REG			= 0x0084,	/* Armada 510 */
 	LCD_SPU_DMA_START_ADDR_Y0	= 0x00c0,
 	LCD_SPU_DMA_START_ADDR_U0	= 0x00c4,
@@ -77,7 +78,8 @@ enum {
 };
 
 /* For LCD_SPU_ADV_REG */
-enum {
+enum
+{
 	ADV_VSYNC_L_OFF	= 0xfff << 20,
 	ADV_GRACOLORKEY	= 1 << 19,
 	ADV_VIDCOLORKEY	= 1 << 18,
@@ -88,7 +90,8 @@ enum {
 	ADV_VSYNC_H_OFF	= 0xfff << 0,
 };
 
-enum {
+enum
+{
 	CFG_565		= 0,
 	CFG_1555	= 1,
 	CFG_888PACK	= 2,
@@ -106,7 +109,8 @@ enum {
 };
 
 /* For LCD_SPU_DMA_CTRL0 */
-enum {
+enum
+{
 	CFG_NOBLENDING	= 1 << 31,
 	CFG_GAMMA_ENA	= 1 << 30,
 	CFG_CBSH_ENA	= 1 << 29,
@@ -131,7 +135,8 @@ enum {
 	CFG_DMA_ENA	= 1 << 0,
 };
 
-enum {
+enum
+{
 	CKMODE_DISABLE	= 0,
 	CKMODE_Y	= 1,
 	CKMODE_U	= 2,
@@ -143,7 +148,8 @@ enum {
 };
 
 /* For LCD_SPU_DMA_CTRL1 */
-enum {
+enum
+{
 	CFG_FRAME_TRIG		= 1 << 31,
 	CFG_VSYNC_INV		= 1 << 27,
 	CFG_CKMODE_MASK		= 0x7 << 24,
@@ -164,7 +170,8 @@ enum {
 };
 
 /* For LCD_SPU_SRAM_CTRL */
-enum {
+enum
+{
 	SRAM_READ	= 0 << 14,
 	SRAM_WRITE	= 2 << 14,
 	SRAM_INIT	= 3 << 14,
@@ -178,7 +185,8 @@ enum {
 };
 
 /* For LCD_SPU_SRAM_PARA1 */
-enum {
+enum
+{
 	CFG_CSB_256x32	= 1 << 15,	/* cursor */
 	CFG_CSB_256x24	= 1 << 14,	/* palette */
 	CFG_CSB_256x8	= 1 << 13,	/* gamma */
@@ -194,7 +202,8 @@ enum {
 };
 
 /* For LCD_CFG_SCLK_DIV */
-enum {
+enum
+{
 	/* Armada 510 */
 	SCLK_510_AXI		= 0x0 << 30,
 	SCLK_510_EXTCLK0	= 0x1 << 30,
@@ -214,7 +223,8 @@ enum {
 };
 
 /* For LCD_SPU_DUMB_CTRL */
-enum {
+enum
+{
 	DUMB16_RGB565_0	= 0x0 << 28,
 	DUMB16_RGB565_1	= 0x1 << 28,
 	DUMB18_RGB666_0	= 0x2 << 28,
@@ -236,7 +246,8 @@ enum {
 };
 
 /* For LCD_SPU_IOPAD_CONTROL */
-enum {
+enum
+{
 	CFG_VSCALE_LN_EN	= 3 << 18,
 	CFG_GRA_VM_ENA		= 1 << 15,
 	CFG_DMA_VM_ENA		= 1 << 13,
@@ -261,7 +272,8 @@ enum {
 #define IOPAD_DUMB24                0x0
 
 /* For LCD_SPU_IRQ_ENA */
-enum {
+enum
+{
 	DMA_FRAME_IRQ0_ENA	= 1 << 31,
 	DMA_FRAME_IRQ1_ENA	= 1 << 30,
 	DMA_FRAME_IRQ_ENA	= DMA_FRAME_IRQ0_ENA | DMA_FRAME_IRQ1_ENA,
@@ -282,7 +294,8 @@ enum {
 };
 
 /* For LCD_SPU_IRQ_ISR */
-enum {
+enum
+{
 	DMA_FRAME_IRQ0		= 1 << 31,
 	DMA_FRAME_IRQ1		= 1 << 30,
 	DMA_FRAME_IRQ		= DMA_FRAME_IRQ0 | DMA_FRAME_IRQ1,

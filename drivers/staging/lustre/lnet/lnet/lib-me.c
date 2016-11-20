@@ -70,10 +70,10 @@
  */
 int
 LNetMEAttach(unsigned int portal,
-	     lnet_process_id_t match_id,
-	     __u64 match_bits, __u64 ignore_bits,
-	     lnet_unlink_t unlink, lnet_ins_pos_t pos,
-	     lnet_handle_me_t *handle)
+			 lnet_process_id_t match_id,
+			 __u64 match_bits, __u64 ignore_bits,
+			 lnet_unlink_t unlink, lnet_ins_pos_t pos,
+			 lnet_handle_me_t *handle)
 {
 	struct lnet_match_table *mtable;
 	struct lnet_me *me;
@@ -82,16 +82,24 @@ LNetMEAttach(unsigned int portal,
 	LASSERT(the_lnet.ln_refcount > 0);
 
 	if ((int)portal >= the_lnet.ln_nportals)
+	{
 		return -EINVAL;
+	}
 
 	mtable = lnet_mt_of_attach(portal, match_id,
-				   match_bits, ignore_bits, pos);
+							   match_bits, ignore_bits, pos);
+
 	if (!mtable) /* can't match portal type */
+	{
 		return -EPERM;
+	}
 
 	me = lnet_me_alloc();
+
 	if (!me)
+	{
 		return -ENOMEM;
+	}
 
 	lnet_res_lock(mtable->mt_cpt);
 
@@ -103,17 +111,27 @@ LNetMEAttach(unsigned int portal,
 	me->me_md = NULL;
 
 	lnet_res_lh_initialize(the_lnet.ln_me_containers[mtable->mt_cpt],
-			       &me->me_lh);
+						   &me->me_lh);
+
 	if (ignore_bits)
+	{
 		head = &mtable->mt_mhash[LNET_MT_HASH_IGNORE];
+	}
 	else
+	{
 		head = lnet_mt_match_head(mtable, match_id, match_bits);
+	}
 
 	me->me_pos = head - &mtable->mt_mhash[0];
+
 	if (pos == LNET_INS_AFTER || pos == LNET_INS_LOCAL)
+	{
 		list_add_tail(&me->me_list, head);
+	}
 	else
+	{
 		list_add(&me->me_list, head);
+	}
 
 	lnet_me2handle(handle, me);
 
@@ -141,10 +159,10 @@ EXPORT_SYMBOL(LNetMEAttach);
  */
 int
 LNetMEInsert(lnet_handle_me_t current_meh,
-	     lnet_process_id_t match_id,
-	     __u64 match_bits, __u64 ignore_bits,
-	     lnet_unlink_t unlink, lnet_ins_pos_t pos,
-	     lnet_handle_me_t *handle)
+			 lnet_process_id_t match_id,
+			 __u64 match_bits, __u64 ignore_bits,
+			 lnet_unlink_t unlink, lnet_ins_pos_t pos,
+			 lnet_handle_me_t *handle)
 {
 	struct lnet_me *current_me;
 	struct lnet_me *new_me;
@@ -154,18 +172,25 @@ LNetMEInsert(lnet_handle_me_t current_meh,
 	LASSERT(the_lnet.ln_refcount > 0);
 
 	if (pos == LNET_INS_LOCAL)
+	{
 		return -EPERM;
+	}
 
 	new_me = lnet_me_alloc();
+
 	if (!new_me)
+	{
 		return -ENOMEM;
+	}
 
 	cpt = lnet_cpt_of_cookie(current_meh.cookie);
 
 	lnet_res_lock(cpt);
 
 	current_me = lnet_handle2me(&current_meh);
-	if (!current_me) {
+
+	if (!current_me)
+	{
 		lnet_me_free(new_me);
 
 		lnet_res_unlock(cpt);
@@ -175,7 +200,9 @@ LNetMEInsert(lnet_handle_me_t current_meh,
 	LASSERT(current_me->me_portal < the_lnet.ln_nportals);
 
 	ptl = the_lnet.ln_portals[current_me->me_portal];
-	if (lnet_ptl_is_unique(ptl)) {
+
+	if (lnet_ptl_is_unique(ptl))
+	{
 		/* nosense to insertion on unique portal */
 		lnet_me_free(new_me);
 		lnet_res_unlock(cpt);
@@ -193,9 +220,13 @@ LNetMEInsert(lnet_handle_me_t current_meh,
 	lnet_res_lh_initialize(the_lnet.ln_me_containers[cpt], &new_me->me_lh);
 
 	if (pos == LNET_INS_AFTER)
+	{
 		list_add(&new_me->me_list, &current_me->me_list);
+	}
 	else
+	{
 		list_add_tail(&new_me->me_list, &current_me->me_list);
+	}
 
 	lnet_me2handle(handle, new_me);
 
@@ -233,15 +264,21 @@ LNetMEUnlink(lnet_handle_me_t meh)
 	lnet_res_lock(cpt);
 
 	me = lnet_handle2me(&meh);
-	if (!me) {
+
+	if (!me)
+	{
 		lnet_res_unlock(cpt);
 		return -ENOENT;
 	}
 
 	md = me->me_md;
-	if (md) {
+
+	if (md)
+	{
 		md->md_flags |= LNET_MD_FLAG_ABORTED;
-		if (md->md_eq && !md->md_refcount) {
+
+		if (md->md_eq && !md->md_refcount)
+		{
 			lnet_build_unlink_event(md, &ev);
 			lnet_eq_enqueue_event(md->md_eq, &ev);
 		}
@@ -260,7 +297,8 @@ lnet_me_unlink(lnet_me_t *me)
 {
 	list_del(&me->me_list);
 
-	if (me->me_md) {
+	if (me->me_md)
+	{
 		lnet_libmd_t *md = me->me_md;
 
 		/* detach MD from portal of this ME */
@@ -277,15 +315,15 @@ static void
 lib_me_dump(lnet_me_t *me)
 {
 	CWARN("Match Entry %p (%#llx)\n", me,
-	      me->me_lh.lh_cookie);
+		  me->me_lh.lh_cookie);
 
 	CWARN("\tMatch/Ignore\t= %016lx / %016lx\n",
-	      me->me_match_bits, me->me_ignore_bits);
+		  me->me_match_bits, me->me_ignore_bits);
 
 	CWARN("\tMD\t= %p\n", me->md);
 	CWARN("\tprev\t= %p\n",
-	      list_entry(me->me_list.prev, lnet_me_t, me_list));
+		  list_entry(me->me_list.prev, lnet_me_t, me_list));
 	CWARN("\tnext\t= %p\n",
-	      list_entry(me->me_list.next, lnet_me_t, me_list));
+		  list_entry(me->me_list.next, lnet_me_t, me_list));
 }
 #endif

@@ -32,12 +32,14 @@
 #define SMU8_PSMS_PER_CU 4
 #define SMU8_CACS_PER_CU 4
 
-struct SMU8_GfxCuPgScoreboard {
-    uint8_t Enabled;
-    uint8_t spare[3];
+struct SMU8_GfxCuPgScoreboard
+{
+	uint8_t Enabled;
+	uint8_t spare[3];
 };
 
-struct SMU8_Port80MonitorTable {
+struct SMU8_Port80MonitorTable
+{
 	uint32_t MmioAddress;
 	uint32_t MemoryBaseHi;
 	uint32_t MemoryBaseLo;
@@ -63,7 +65,8 @@ struct SMU8_Port80MonitorTable {
 #define NUM_ECLK_LEVELS     8
 #define NUM_ACLK_LEVELS     8
 
-struct SMU8_Fusion_ClkLevel {
+struct SMU8_Fusion_ClkLevel
+{
 	uint8_t		GnbVid;
 	uint8_t		GfxVid;
 	uint8_t		DfsDid;
@@ -72,7 +75,8 @@ struct SMU8_Fusion_ClkLevel {
 	uint32_t	Frequency;
 };
 
-struct SMU8_Fusion_SclkBreakdownTable {
+struct SMU8_Fusion_SclkBreakdownTable
+{
 	struct SMU8_Fusion_ClkLevel ClkLevel[NUM_SCLK_LEVELS];
 	struct SMU8_Fusion_ClkLevel DpmOffLevel;
 	/* SMU8_Fusion_ClkLevel PwrOffLevel; */
@@ -80,15 +84,17 @@ struct SMU8_Fusion_SclkBreakdownTable {
 	uint32_t    MaxSclkIndex;
 };
 
-struct SMU8_Fusion_LclkBreakdownTable {
+struct SMU8_Fusion_LclkBreakdownTable
+{
 	struct SMU8_Fusion_ClkLevel ClkLevel[NUM_LCLK_LEVELS];
 	struct SMU8_Fusion_ClkLevel DpmOffLevel;
-    /* SMU8_Fusion_ClkLevel PwrOffLevel; */
+	/* SMU8_Fusion_ClkLevel PwrOffLevel; */
 	uint32_t    LclkValidMask;
 	uint32_t    MaxLclkIndex;
 };
 
-struct SMU8_Fusion_EclkBreakdownTable {
+struct SMU8_Fusion_EclkBreakdownTable
+{
 	struct SMU8_Fusion_ClkLevel ClkLevel[NUM_ECLK_LEVELS];
 	struct SMU8_Fusion_ClkLevel DpmOffLevel;
 	struct SMU8_Fusion_ClkLevel PwrOffLevel;
@@ -96,7 +102,8 @@ struct SMU8_Fusion_EclkBreakdownTable {
 	uint32_t    MaxEclkIndex;
 };
 
-struct SMU8_Fusion_VclkBreakdownTable {
+struct SMU8_Fusion_VclkBreakdownTable
+{
 	struct SMU8_Fusion_ClkLevel ClkLevel[NUM_UVD_LEVELS];
 	struct SMU8_Fusion_ClkLevel DpmOffLevel;
 	struct SMU8_Fusion_ClkLevel PwrOffLevel;
@@ -104,7 +111,8 @@ struct SMU8_Fusion_VclkBreakdownTable {
 	uint32_t    MaxVclkIndex;
 };
 
-struct SMU8_Fusion_DclkBreakdownTable {
+struct SMU8_Fusion_DclkBreakdownTable
+{
 	struct SMU8_Fusion_ClkLevel ClkLevel[NUM_UVD_LEVELS];
 	struct SMU8_Fusion_ClkLevel DpmOffLevel;
 	struct SMU8_Fusion_ClkLevel PwrOffLevel;
@@ -112,7 +120,8 @@ struct SMU8_Fusion_DclkBreakdownTable {
 	uint32_t    MaxDclkIndex;
 };
 
-struct SMU8_Fusion_AclkBreakdownTable {
+struct SMU8_Fusion_AclkBreakdownTable
+{
 	struct SMU8_Fusion_ClkLevel ClkLevel[NUM_ACLK_LEVELS];
 	struct SMU8_Fusion_ClkLevel DpmOffLevel;
 	struct SMU8_Fusion_ClkLevel PwrOffLevel;
@@ -121,7 +130,8 @@ struct SMU8_Fusion_AclkBreakdownTable {
 };
 
 
-struct SMU8_Fusion_ClkTable {
+struct SMU8_Fusion_ClkTable
+{
 	struct SMU8_Fusion_SclkBreakdownTable SclkBreakdownTable;
 	struct SMU8_Fusion_LclkBreakdownTable LclkBreakdownTable;
 	struct SMU8_Fusion_EclkBreakdownTable EclkBreakdownTable;

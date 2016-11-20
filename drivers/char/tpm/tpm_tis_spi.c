@@ -44,7 +44,8 @@
 
 #define MAX_SPI_FRAMESIZE 64
 
-struct tpm_tis_spi_phy {
+struct tpm_tis_spi_phy
+{
 	struct tpm_tis_data priv;
 	struct spi_device *spi_device;
 
@@ -58,19 +59,22 @@ static inline struct tpm_tis_spi_phy *to_tpm_tis_spi_phy(struct tpm_tis_data *da
 }
 
 static int tpm_tis_spi_read_bytes(struct tpm_tis_data *data, u32 addr,
-				  u16 len, u8 *result)
+								  u16 len, u8 *result)
 {
 	struct tpm_tis_spi_phy *phy = to_tpm_tis_spi_phy(data);
 	int ret, i;
 	struct spi_message m;
-	struct spi_transfer spi_xfer = {
+	struct spi_transfer spi_xfer =
+	{
 		.tx_buf = phy->tx_buf,
 		.rx_buf = phy->rx_buf,
 		.len = 4,
 	};
 
 	if (len > MAX_SPI_FRAMESIZE)
+	{
 		return -ENOMEM;
+	}
 
 	phy->tx_buf[0] = 0x80 | (len - 1);
 	phy->tx_buf[1] = 0xd4;
@@ -83,8 +87,11 @@ static int tpm_tis_spi_read_bytes(struct tpm_tis_data *data, u32 addr,
 
 	spi_bus_lock(phy->spi_device->master);
 	ret = spi_sync_locked(phy->spi_device, &m);
+
 	if (ret < 0)
+	{
 		goto exit;
+	}
 
 	memset(phy->tx_buf, 0, len);
 
@@ -93,13 +100,17 @@ static int tpm_tis_spi_read_bytes(struct tpm_tis_data *data, u32 addr,
 	 * present, a pull-up on MISO means that the SB controller sees a 1,
 	 * and will latch in 0xFF on the read.
 	 */
-	for (i = 0; (phy->rx_buf[0] & 0x01) == 0 && i < TPM_RETRY; i++) {
+	for (i = 0; (phy->rx_buf[0] & 0x01) == 0 && i < TPM_RETRY; i++)
+	{
 		spi_xfer.len = 1;
 		spi_message_init(&m);
 		spi_message_add_tail(&spi_xfer, &m);
 		ret = spi_sync_locked(phy->spi_device, &m);
+
 		if (ret < 0)
+		{
 			goto exit;
+		}
 	}
 
 	spi_xfer.cs_change = 0;
@@ -116,19 +127,22 @@ exit:
 }
 
 static int tpm_tis_spi_write_bytes(struct tpm_tis_data *data, u32 addr,
-				   u16 len, u8 *value)
+								   u16 len, u8 *value)
 {
 	struct tpm_tis_spi_phy *phy = to_tpm_tis_spi_phy(data);
 	int ret, i;
 	struct spi_message m;
-	struct spi_transfer spi_xfer = {
+	struct spi_transfer spi_xfer =
+	{
 		.tx_buf = phy->tx_buf,
 		.rx_buf = phy->rx_buf,
 		.len = 4,
 	};
 
 	if (len > MAX_SPI_FRAMESIZE)
+	{
 		return -ENOMEM;
+	}
 
 	phy->tx_buf[0] = len - 1;
 	phy->tx_buf[1] = 0xd4;
@@ -141,8 +155,11 @@ static int tpm_tis_spi_write_bytes(struct tpm_tis_data *data, u32 addr,
 
 	spi_bus_lock(phy->spi_device->master);
 	ret = spi_sync_locked(phy->spi_device, &m);
+
 	if (ret < 0)
+	{
 		goto exit;
+	}
 
 	memset(phy->tx_buf, 0, len);
 
@@ -151,13 +168,17 @@ static int tpm_tis_spi_write_bytes(struct tpm_tis_data *data, u32 addr,
 	 * present, a pull-up on MISO means that the SB controller sees a 1,
 	 * and will latch in 0xFF on the read.
 	 */
-	for (i = 0; (phy->rx_buf[0] & 0x01) == 0 && i < TPM_RETRY; i++) {
+	for (i = 0; (phy->rx_buf[0] & 0x01) == 0 && i < TPM_RETRY; i++)
+	{
 		spi_xfer.len = 1;
 		spi_message_init(&m);
 		spi_message_add_tail(&spi_xfer, &m);
 		ret = spi_sync_locked(phy->spi_device, &m);
+
 		if (ret < 0)
+		{
 			goto exit;
+		}
 	}
 
 	spi_xfer.len = len;
@@ -178,8 +199,12 @@ static int tpm_tis_spi_read16(struct tpm_tis_data *data, u32 addr, u16 *result)
 	int rc;
 
 	rc = data->phy_ops->read_bytes(data, addr, sizeof(u16), (u8 *)result);
+
 	if (!rc)
+	{
 		*result = le16_to_cpu(*result);
+	}
+
 	return rc;
 }
 
@@ -188,8 +213,12 @@ static int tpm_tis_spi_read32(struct tpm_tis_data *data, u32 addr, u32 *result)
 	int rc;
 
 	rc = data->phy_ops->read_bytes(data, addr, sizeof(u32), (u8 *)result);
+
 	if (!rc)
+	{
 		*result = le32_to_cpu(*result);
+	}
+
 	return rc;
 }
 
@@ -197,10 +226,11 @@ static int tpm_tis_spi_write32(struct tpm_tis_data *data, u32 addr, u32 value)
 {
 	value = cpu_to_le32(value);
 	return data->phy_ops->write_bytes(data, addr, sizeof(u32),
-					   (u8 *)&value);
+									  (u8 *)&value);
 }
 
-static const struct tpm_tis_phy_ops tpm_spi_phy_ops = {
+static const struct tpm_tis_phy_ops tpm_spi_phy_ops =
+{
 	.read_bytes = tpm_tis_spi_read_bytes,
 	.write_bytes = tpm_tis_spi_write_bytes,
 	.read16 = tpm_tis_spi_read16,
@@ -213,14 +243,17 @@ static int tpm_tis_spi_probe(struct spi_device *dev)
 	struct tpm_tis_spi_phy *phy;
 
 	phy = devm_kzalloc(&dev->dev, sizeof(struct tpm_tis_spi_phy),
-			   GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!phy)
+	{
 		return -ENOMEM;
+	}
 
 	phy->spi_device = dev;
 
 	return tpm_tis_core_init(&dev->dev, &phy->priv, -1, &tpm_spi_phy_ops,
-				 NULL);
+							 NULL);
 }
 
 static SIMPLE_DEV_PM_OPS(tpm_tis_pm, tpm_pm_suspend, tpm_tis_resume);
@@ -234,13 +267,15 @@ static int tpm_tis_spi_remove(struct spi_device *dev)
 	return 0;
 }
 
-static const struct spi_device_id tpm_tis_spi_id[] = {
+static const struct spi_device_id tpm_tis_spi_id[] =
+{
 	{"tpm_tis_spi", 0},
 	{}
 };
 MODULE_DEVICE_TABLE(spi, tpm_tis_spi_id);
 
-static const struct of_device_id of_tis_spi_match[] = {
+static const struct of_device_id of_tis_spi_match[] =
+{
 	{ .compatible = "st,st33htpm-spi", },
 	{ .compatible = "infineon,slb9670", },
 	{ .compatible = "tcg,tpm_tis-spi", },
@@ -248,13 +283,15 @@ static const struct of_device_id of_tis_spi_match[] = {
 };
 MODULE_DEVICE_TABLE(of, of_tis_spi_match);
 
-static const struct acpi_device_id acpi_tis_spi_match[] = {
+static const struct acpi_device_id acpi_tis_spi_match[] =
+{
 	{"SMO0768", 0},
 	{}
 };
 MODULE_DEVICE_TABLE(acpi, acpi_tis_spi_match);
 
-static struct spi_driver tpm_tis_spi_driver = {
+static struct spi_driver tpm_tis_spi_driver =
+{
 	.driver = {
 		.owner = THIS_MODULE,
 		.name = "tpm_tis_spi",

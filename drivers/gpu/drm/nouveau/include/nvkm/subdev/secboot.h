@@ -25,7 +25,8 @@
 
 #include <core/subdev.h>
 
-enum nvkm_secboot_falcon {
+enum nvkm_secboot_falcon
+{
 	NVKM_SECBOOT_FALCON_PMU	= 0,
 	NVKM_SECBOOT_FALCON_RESERVED = 1,
 	NVKM_SECBOOT_FALCON_FECS = 2,
@@ -39,7 +40,8 @@ enum nvkm_secboot_falcon {
  * @irq_mask:		IRQ mask of the falcon performing secure boot
  * @enable_mask:	enable mask of the falcon performing secure boot
 */
-struct nvkm_secboot {
+struct nvkm_secboot
+{
 	const struct nvkm_secboot_func *func;
 	struct nvkm_subdev subdev;
 

@@ -82,9 +82,11 @@ acpi_status ACPI_INIT_FUNCTION acpi_load_tables(void)
 	 * their customized default region handlers.
 	 */
 	status = acpi_ev_install_region_handlers();
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status,
-				"During Region initialization"));
+						"During Region initialization"));
 		return_ACPI_STATUS(status);
 	}
 
@@ -94,17 +96,20 @@ acpi_status ACPI_INIT_FUNCTION acpi_load_tables(void)
 
 	/* Don't let single failures abort the load */
 
-	if (status == AE_CTRL_TERMINATE) {
+	if (status == AE_CTRL_TERMINATE)
+	{
 		status = AE_OK;
 	}
 
-	if (ACPI_FAILURE(status)) {
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status,
-				"While loading namespace from ACPI tables"));
+						"While loading namespace from ACPI tables"));
 	}
 
 	if (acpi_gbl_parse_table_as_term_list
-	    || !acpi_gbl_group_module_level_code) {
+		|| !acpi_gbl_group_module_level_code)
+	{
 		/*
 		 * Initialize the objects that remain uninitialized. This
 		 * runs the executable AML that may be part of the
@@ -112,7 +117,9 @@ acpi_status ACPI_INIT_FUNCTION acpi_load_tables(void)
 		 * operation_regions, buffer_fields, Buffers, and Packages.
 		 */
 		status = acpi_ns_initialize_objects();
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return_ACPI_STATUS(status);
 		}
 	}
@@ -155,8 +162,9 @@ acpi_status acpi_tb_load_namespace(void)
 	table = &acpi_gbl_root_table_list.tables[acpi_gbl_dsdt_index];
 
 	if (!acpi_gbl_root_table_list.current_table_count ||
-	    !ACPI_COMPARE_NAME(table->signature.ascii, ACPI_SIG_DSDT) ||
-	    ACPI_FAILURE(acpi_tb_validate_table(table))) {
+		!ACPI_COMPARE_NAME(table->signature.ascii, ACPI_SIG_DSDT) ||
+		ACPI_FAILURE(acpi_tb_validate_table(table)))
+	{
 		status = AE_NO_ACPI_TABLES;
 		goto unlock_and_exit;
 	}
@@ -175,9 +183,12 @@ acpi_status acpi_tb_load_namespace(void)
 	 * DSDT, creating the need for this option. Default is FALSE, do not copy
 	 * the DSDT.
 	 */
-	if (acpi_gbl_copy_dsdt_locally) {
+	if (acpi_gbl_copy_dsdt_locally)
+	{
 		new_dsdt = acpi_tb_copy_dsdt(acpi_gbl_dsdt_index);
-		if (new_dsdt) {
+
+		if (new_dsdt)
+		{
 			acpi_gbl_DSDT = new_dsdt;
 		}
 	}
@@ -187,32 +198,38 @@ acpi_status acpi_tb_load_namespace(void)
 	 * and/or replacement of the DSDT from outside the OS.
 	 */
 	memcpy(&acpi_gbl_original_dsdt_header, acpi_gbl_DSDT,
-	       sizeof(struct acpi_table_header));
+		   sizeof(struct acpi_table_header));
 
 	/* Load and parse tables */
 
 	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
 	status = acpi_ns_load_table(acpi_gbl_dsdt_index, acpi_gbl_root_node);
 	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status, "[DSDT] table load failed"));
 		tables_failed++;
-	} else {
+	}
+	else
+	{
 		tables_loaded++;
 	}
 
 	/* Load any SSDT or PSDT tables. Note: Loop leaves tables locked */
 
-	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; ++i) {
+	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; ++i)
+	{
 		table = &acpi_gbl_root_table_list.tables[i];
 
 		if (!acpi_gbl_root_table_list.tables[i].address ||
-		    (!ACPI_COMPARE_NAME(table->signature.ascii, ACPI_SIG_SSDT)
-		     && !ACPI_COMPARE_NAME(table->signature.ascii,
-					   ACPI_SIG_PSDT)
-		     && !ACPI_COMPARE_NAME(table->signature.ascii,
-					   ACPI_SIG_OSDT))
-		    || ACPI_FAILURE(acpi_tb_validate_table(table))) {
+			(!ACPI_COMPARE_NAME(table->signature.ascii, ACPI_SIG_SSDT)
+			 && !ACPI_COMPARE_NAME(table->signature.ascii,
+								   ACPI_SIG_PSDT)
+			 && !ACPI_COMPARE_NAME(table->signature.ascii,
+								   ACPI_SIG_OSDT))
+			|| ACPI_FAILURE(acpi_tb_validate_table(table)))
+		{
 			continue;
 		}
 
@@ -221,29 +238,36 @@ acpi_status acpi_tb_load_namespace(void)
 		(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
 		status = acpi_ns_load_table(i, acpi_gbl_root_node);
 		(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			ACPI_EXCEPTION((AE_INFO, status,
-					"(%4.4s:%8.8s) while loading table",
-					table->signature.ascii,
-					table->pointer->oem_table_id));
+							"(%4.4s:%8.8s) while loading table",
+							table->signature.ascii,
+							table->pointer->oem_table_id));
 
 			tables_failed++;
 
 			ACPI_DEBUG_PRINT_RAW((ACPI_DB_INIT,
-					      "Table [%4.4s:%8.8s] (id FF) - Table namespace load failed\n\n",
-					      table->signature.ascii,
-					      table->pointer->oem_table_id));
-		} else {
+								  "Table [%4.4s:%8.8s] (id FF) - Table namespace load failed\n\n",
+								  table->signature.ascii,
+								  table->pointer->oem_table_id));
+		}
+		else
+		{
 			tables_loaded++;
 		}
 	}
 
-	if (!tables_failed) {
+	if (!tables_failed)
+	{
 		ACPI_INFO(("%u ACPI AML tables successfully acquired and loaded\n", tables_loaded));
-	} else {
+	}
+	else
+	{
 		ACPI_ERROR((AE_INFO,
-			    "%u table load failures, %u successful",
-			    tables_failed, tables_loaded));
+					"%u table load failures, %u successful",
+					tables_failed, tables_loaded));
 
 		/* Indicate at least one failure */
 
@@ -280,14 +304,17 @@ acpi_install_table(acpi_physical_address address, u8 physical)
 
 	ACPI_FUNCTION_TRACE(acpi_install_table);
 
-	if (physical) {
+	if (physical)
+	{
 		flags = ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL;
-	} else {
+	}
+	else
+	{
 		flags = ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL;
 	}
 
 	status = acpi_tb_install_standard_table(address, flags,
-						FALSE, FALSE, &table_index);
+											FALSE, FALSE, &table_index);
 
 	return_ACPI_STATUS(status);
 }
@@ -319,7 +346,8 @@ acpi_status acpi_load_table(struct acpi_table_header *table)
 
 	/* Parameter validation */
 
-	if (!table) {
+	if (!table)
+	{
 		return_ACPI_STATUS(AE_BAD_PARAMETER);
 	}
 
@@ -327,9 +355,9 @@ acpi_status acpi_load_table(struct acpi_table_header *table)
 
 	ACPI_INFO(("Host-directed Dynamic ACPI Table Load:"));
 	status =
-	    acpi_tb_install_and_load_table(table, ACPI_PTR_TO_PHYSADDR(table),
-					   ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL,
-					   FALSE, &table_index);
+		acpi_tb_install_and_load_table(table, ACPI_PTR_TO_PHYSADDR(table),
+									   ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL,
+									   FALSE, &table_index);
 	return_ACPI_STATUS(status);
 }
 
@@ -353,7 +381,7 @@ ACPI_EXPORT_SYMBOL(acpi_load_table)
 acpi_status acpi_unload_parent_table(acpi_handle object)
 {
 	struct acpi_namespace_node *node =
-	    ACPI_CAST_PTR(struct acpi_namespace_node, object);
+		ACPI_CAST_PTR(struct acpi_namespace_node, object);
 	acpi_status status = AE_NOT_EXIST;
 	acpi_owner_id owner_id;
 	u32 i;
@@ -362,7 +390,8 @@ acpi_status acpi_unload_parent_table(acpi_handle object)
 
 	/* Parameter validation */
 
-	if (!object) {
+	if (!object)
+	{
 		return_ACPI_STATUS(AE_BAD_PARAMETER);
 	}
 
@@ -371,7 +400,9 @@ acpi_status acpi_unload_parent_table(acpi_handle object)
 	 * However, this could change in the future.
 	 */
 	owner_id = node->owner_id;
-	if (!owner_id) {
+
+	if (!owner_id)
+	{
 
 		/* owner_id==0 means DSDT is the owner. DSDT cannot be unloaded */
 
@@ -381,14 +412,18 @@ acpi_status acpi_unload_parent_table(acpi_handle object)
 	/* Must acquire the table lock during this operation */
 
 	status = acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
 	/* Find the table in the global table list */
 
-	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; i++) {
-		if (owner_id != acpi_gbl_root_table_list.tables[i].owner_id) {
+	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; i++)
+	{
+		if (owner_id != acpi_gbl_root_table_list.tables[i].owner_id)
+		{
 			continue;
 		}
 
@@ -399,8 +434,9 @@ acpi_status acpi_unload_parent_table(acpi_handle object)
 		 * that can create namespace objects.
 		 */
 		if (ACPI_COMPARE_NAME
-		    (acpi_gbl_root_table_list.tables[i].signature.ascii,
-		     ACPI_SIG_DSDT)) {
+			(acpi_gbl_root_table_list.tables[i].signature.ascii,
+			 ACPI_SIG_DSDT))
+		{
 			status = AE_TYPE;
 			break;
 		}
@@ -408,7 +444,9 @@ acpi_status acpi_unload_parent_table(acpi_handle object)
 		/* Ensure the table is actually loaded */
 
 		(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
-		if (!acpi_tb_is_table_loaded(i)) {
+
+		if (!acpi_tb_is_table_loaded(i))
+		{
 			status = AE_NOT_EXIST;
 			(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
 			break;
@@ -416,11 +454,12 @@ acpi_status acpi_unload_parent_table(acpi_handle object)
 
 		/* Invoke table handler if present */
 
-		if (acpi_gbl_table_handler) {
+		if (acpi_gbl_table_handler)
+		{
 			(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_UNLOAD,
-						     acpi_gbl_root_table_list.
-						     tables[i].pointer,
-						     acpi_gbl_table_handler_context);
+										 acpi_gbl_root_table_list.
+										 tables[i].pointer,
+										 acpi_gbl_table_handler_context);
 		}
 
 		/*
@@ -430,7 +469,9 @@ acpi_status acpi_unload_parent_table(acpi_handle object)
 		 * by an ID, not simply a position within the hierarchy.
 		 */
 		status = acpi_tb_delete_namespace_by_owner(i);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			break;
 		}
 

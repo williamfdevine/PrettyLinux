@@ -15,45 +15,47 @@
 static int raid6_has_ssse3(void)
 {
 	return boot_cpu_has(X86_FEATURE_XMM) &&
-		boot_cpu_has(X86_FEATURE_XMM2) &&
-		boot_cpu_has(X86_FEATURE_SSSE3);
+		   boot_cpu_has(X86_FEATURE_XMM2) &&
+		   boot_cpu_has(X86_FEATURE_SSSE3);
 }
 
 static void raid6_2data_recov_ssse3(int disks, size_t bytes, int faila,
-		int failb, void **ptrs)
+									int failb, void **ptrs)
 {
 	u8 *p, *q, *dp, *dq;
 	const u8 *pbmul;	/* P multiplier table for B data */
 	const u8 *qmul;		/* Q multiplier table (for both) */
-	static const u8 __aligned(16) x0f[16] = {
-		 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f,
-		 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f};
+	static const u8 __aligned(16) x0f[16] =
+	{
+		0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f,
+		0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f
+	};
 
-	p = (u8 *)ptrs[disks-2];
-	q = (u8 *)ptrs[disks-1];
+	p = (u8 *)ptrs[disks - 2];
+	q = (u8 *)ptrs[disks - 1];
 
 	/* Compute syndrome with zero for the missing data pages
 	   Use the dead data pages as temporary storage for
 	   delta p and delta q */
 	dp = (u8 *)ptrs[faila];
 	ptrs[faila] = (void *)raid6_empty_zero_page;
-	ptrs[disks-2] = dp;
+	ptrs[disks - 2] = dp;
 	dq = (u8 *)ptrs[failb];
 	ptrs[failb] = (void *)raid6_empty_zero_page;
-	ptrs[disks-1] = dq;
+	ptrs[disks - 1] = dq;
 
 	raid6_call.gen_syndrome(disks, bytes, ptrs);
 
 	/* Restore pointer table */
 	ptrs[faila]   = dp;
 	ptrs[failb]   = dq;
-	ptrs[disks-2] = p;
-	ptrs[disks-1] = q;
+	ptrs[disks - 2] = p;
+	ptrs[disks - 1] = q;
 
 	/* Now, pick the proper data tables */
-	pbmul = raid6_vgfmul[raid6_gfexi[failb-faila]];
+	pbmul = raid6_vgfmul[raid6_gfexi[failb - faila]];
 	qmul  = raid6_vgfmul[raid6_gfinv[raid6_gfexp[faila] ^
-		raid6_gfexp[failb]]];
+									 raid6_gfexp[failb]]];
 
 	kernel_fpu_begin();
 
@@ -66,7 +68,8 @@ static void raid6_2data_recov_ssse3(int disks, size_t bytes, int faila,
 #endif
 
 	/* Now do it... */
-	while (bytes) {
+	while (bytes)
+	{
 #ifdef CONFIG_X86_64
 		/* xmm6, xmm14, xmm15 */
 
@@ -195,28 +198,30 @@ static void raid6_2data_recov_ssse3(int disks, size_t bytes, int faila,
 
 
 static void raid6_datap_recov_ssse3(int disks, size_t bytes, int faila,
-		void **ptrs)
+									void **ptrs)
 {
 	u8 *p, *q, *dq;
 	const u8 *qmul;		/* Q multiplier table */
-	static const u8 __aligned(16) x0f[16] = {
-		 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f,
-		 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f};
+	static const u8 __aligned(16) x0f[16] =
+	{
+		0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f,
+		0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f
+	};
 
-	p = (u8 *)ptrs[disks-2];
-	q = (u8 *)ptrs[disks-1];
+	p = (u8 *)ptrs[disks - 2];
+	q = (u8 *)ptrs[disks - 1];
 
 	/* Compute syndrome with zero for the missing data page
 	   Use the dead data page as temporary storage for delta q */
 	dq = (u8 *)ptrs[faila];
 	ptrs[faila] = (void *)raid6_empty_zero_page;
-	ptrs[disks-1] = dq;
+	ptrs[disks - 1] = dq;
 
 	raid6_call.gen_syndrome(disks, bytes, ptrs);
 
 	/* Restore pointer table */
 	ptrs[faila]   = dq;
-	ptrs[disks-1] = q;
+	ptrs[disks - 1] = q;
 
 	/* Now, pick the proper data tables */
 	qmul  = raid6_vgfmul[raid6_gfinv[raid6_gfexp[faila]]];
@@ -225,7 +230,8 @@ static void raid6_datap_recov_ssse3(int disks, size_t bytes, int faila,
 
 	asm volatile("movdqa %0, %%xmm7" : : "m" (x0f[0]));
 
-	while (bytes) {
+	while (bytes)
+	{
 #ifdef CONFIG_X86_64
 		asm volatile("movdqa %0, %%xmm3" : : "m" (dq[0]));
 		asm volatile("movdqa %0, %%xmm4" : : "m" (dq[16]));
@@ -321,7 +327,8 @@ static void raid6_datap_recov_ssse3(int disks, size_t bytes, int faila,
 	kernel_fpu_end();
 }
 
-const struct raid6_recov_calls raid6_recov_ssse3 = {
+const struct raid6_recov_calls raid6_recov_ssse3 =
+{
 	.data2 = raid6_2data_recov_ssse3,
 	.datap = raid6_datap_recov_ssse3,
 	.valid = raid6_has_ssse3,

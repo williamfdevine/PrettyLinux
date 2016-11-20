@@ -65,9 +65,9 @@
 #define DRV_DESCRIPTION	"Intel(R) Wireless WiFi 4965 driver for Linux"
 
 #ifdef CONFIG_IWLEGACY_DEBUG
-#define VD "d"
+	#define VD "d"
 #else
-#define VD
+	#define VD
 #endif
 
 #define DRV_VERSION     IWLWIFI_VERSION VD
@@ -81,17 +81,22 @@ MODULE_ALIAS("iwl4965");
 void
 il4965_check_abort_status(struct il_priv *il, u8 frame_count, u32 status)
 {
-	if (frame_count == 1 && status == TX_STATUS_FAIL_RFKILL_FLUSH) {
+	if (frame_count == 1 && status == TX_STATUS_FAIL_RFKILL_FLUSH)
+	{
 		IL_ERR("Tx flush command to flush out all frames\n");
+
 		if (!test_bit(S_EXIT_PENDING, &il->status))
+		{
 			queue_work(il->workqueue, &il->tx_flush);
+		}
 	}
 }
 
 /*
  * EEPROM
  */
-struct il_mod_params il4965_mod_params = {
+struct il_mod_params il4965_mod_params =
+{
 	.restart_fw = 1,
 	/* the rest are 0 by default */
 };
@@ -104,22 +109,28 @@ il4965_rx_queue_reset(struct il_priv *il, struct il_rx_queue *rxq)
 	spin_lock_irqsave(&rxq->lock, flags);
 	INIT_LIST_HEAD(&rxq->rx_free);
 	INIT_LIST_HEAD(&rxq->rx_used);
+
 	/* Fill the rx_used queue with _all_ of the Rx buffers */
-	for (i = 0; i < RX_FREE_BUFFERS + RX_QUEUE_SIZE; i++) {
+	for (i = 0; i < RX_FREE_BUFFERS + RX_QUEUE_SIZE; i++)
+	{
 		/* In the reset function, these buffers may have been allocated
 		 * to an SKB, so we need to unmap and free potential storage */
-		if (rxq->pool[i].page != NULL) {
+		if (rxq->pool[i].page != NULL)
+		{
 			pci_unmap_page(il->pci_dev, rxq->pool[i].page_dma,
-				       PAGE_SIZE << il->hw_params.rx_page_order,
-				       PCI_DMA_FROMDEVICE);
+						   PAGE_SIZE << il->hw_params.rx_page_order,
+						   PCI_DMA_FROMDEVICE);
 			__il_free_pages(il, rxq->pool[i].page);
 			rxq->pool[i].page = NULL;
 		}
+
 		list_add_tail(&rxq->pool[i].list, &rxq->rx_used);
 	}
 
 	for (i = 0; i < RX_QUEUE_SIZE; i++)
+	{
 		rxq->queue[i] = NULL;
+	}
 
 	/* Set us so that we have processed and used all buffers, but have
 	 * not restocked the Rx queue with fresh buffers */
@@ -137,9 +148,13 @@ il4965_rx_init(struct il_priv *il, struct il_rx_queue *rxq)
 	u32 rb_timeout = 0;
 
 	if (il->cfg->mod_params->amsdu_size_8K)
+	{
 		rb_size = FH49_RCSR_RX_CONFIG_REG_VAL_RB_SIZE_8K;
+	}
 	else
+	{
 		rb_size = FH49_RCSR_RX_CONFIG_REG_VAL_RB_SIZE_4K;
+	}
 
 	/* Stop Rx DMA */
 	il_wr(il, FH49_MEM_RCSR_CHNL0_CONFIG_REG, 0);
@@ -160,12 +175,12 @@ il4965_rx_init(struct il_priv *il, struct il_rx_queue *rxq)
 	 * 256 RBDs
 	 */
 	il_wr(il, FH49_MEM_RCSR_CHNL0_CONFIG_REG,
-	      FH49_RCSR_RX_CONFIG_CHNL_EN_ENABLE_VAL |
-	      FH49_RCSR_CHNL0_RX_CONFIG_IRQ_DEST_INT_HOST_VAL |
-	      FH49_RCSR_CHNL0_RX_CONFIG_SINGLE_FRAME_MSK |
-	      rb_size |
-	      (rb_timeout << FH49_RCSR_RX_CONFIG_REG_IRQ_RBTH_POS) |
-	      (rfdnlog << FH49_RCSR_RX_CONFIG_RBDCB_SIZE_POS));
+		  FH49_RCSR_RX_CONFIG_CHNL_EN_ENABLE_VAL |
+		  FH49_RCSR_CHNL0_RX_CONFIG_IRQ_DEST_INT_HOST_VAL |
+		  FH49_RCSR_CHNL0_RX_CONFIG_SINGLE_FRAME_MSK |
+		  rb_size |
+		  (rb_timeout << FH49_RCSR_RX_CONFIG_REG_IRQ_RBTH_POS) |
+		  (rfdnlog << FH49_RCSR_RX_CONFIG_RBDCB_SIZE_POS));
 
 	/* Set interrupt coalescing timer to default (2048 usecs) */
 	il_write8(il, CSR_INT_COALESCING, IL_HOST_INT_TIMEOUT_DEF);
@@ -176,19 +191,19 @@ il4965_rx_init(struct il_priv *il, struct il_rx_queue *rxq)
 static void
 il4965_set_pwr_vmain(struct il_priv *il)
 {
-/*
- * (for documentation purposes)
- * to set power to V_AUX, do:
+	/*
+	 * (for documentation purposes)
+	 * to set power to V_AUX, do:
 
-		if (pci_pme_capable(il->pci_dev, PCI_D3cold))
-			il_set_bits_mask_prph(il, APMG_PS_CTRL_REG,
-					       APMG_PS_CTRL_VAL_PWR_SRC_VAUX,
-					       ~APMG_PS_CTRL_MSK_PWR_SRC);
- */
+			if (pci_pme_capable(il->pci_dev, PCI_D3cold))
+				il_set_bits_mask_prph(il, APMG_PS_CTRL_REG,
+						       APMG_PS_CTRL_VAL_PWR_SRC_VAUX,
+						       ~APMG_PS_CTRL_MSK_PWR_SRC);
+	 */
 
 	il_set_bits_mask_prph(il, APMG_PS_CTRL_REG,
-			      APMG_PS_CTRL_VAL_PWR_SRC_VMAIN,
-			      ~APMG_PS_CTRL_MSK_PWR_SRC);
+						  APMG_PS_CTRL_VAL_PWR_SRC_VMAIN,
+						  ~APMG_PS_CTRL_MSK_PWR_SRC);
 }
 
 int
@@ -208,14 +223,20 @@ il4965_hw_nic_init(struct il_priv *il)
 	il4965_nic_config(il);
 
 	/* Allocate the RX queue, or reset if it is already allocated */
-	if (!rxq->bd) {
+	if (!rxq->bd)
+	{
 		ret = il_rx_queue_alloc(il);
-		if (ret) {
+
+		if (ret)
+		{
 			IL_ERR("Unable to initialize Rx queue\n");
 			return -ENOMEM;
 		}
-	} else
+	}
+	else
+	{
 		il4965_rx_queue_reset(il, rxq);
+	}
 
 	il4965_rx_replenish(il);
 
@@ -229,12 +250,19 @@ il4965_hw_nic_init(struct il_priv *il)
 	spin_unlock_irqrestore(&il->lock, flags);
 
 	/* Allocate or reset and init all Tx and Command queues */
-	if (!il->txq) {
+	if (!il->txq)
+	{
 		ret = il4965_txq_ctx_alloc(il);
+
 		if (ret)
+		{
 			return ret;
-	} else
+		}
+	}
+	else
+	{
 		il4965_txq_ctx_reset(il);
+	}
 
 	set_bit(S_INIT, &il->status);
 
@@ -270,7 +298,9 @@ il4965_rx_queue_restock(struct il_priv *il)
 	unsigned long flags;
 
 	spin_lock_irqsave(&rxq->lock, flags);
-	while (il_rx_queue_space(rxq) > 0 && rxq->free_count) {
+
+	while (il_rx_queue_space(rxq) > 0 && rxq->free_count)
+	{
 		/* The overwritten rxb must be a used one */
 		rxb = rxq->queue[rxq->write];
 		BUG_ON(rxb && rxb->page);
@@ -282,20 +312,25 @@ il4965_rx_queue_restock(struct il_priv *il)
 
 		/* Point to Rx buffer via next RBD in circular buffer */
 		rxq->bd[rxq->write] =
-		    il4965_dma_addr2rbd_ptr(il, rxb->page_dma);
+			il4965_dma_addr2rbd_ptr(il, rxb->page_dma);
 		rxq->queue[rxq->write] = rxb;
 		rxq->write = (rxq->write + 1) & RX_QUEUE_MASK;
 		rxq->free_count--;
 	}
+
 	spin_unlock_irqrestore(&rxq->lock, flags);
+
 	/* If the pre-allocated buffer pool is dropping low, schedule to
 	 * refill it */
 	if (rxq->free_count <= RX_LOW_WATERMARK)
+	{
 		queue_work(il->workqueue, &il->rx_replenish);
+	}
 
 	/* If we've added more space for the firmware to place data, tell it.
 	 * Increment device's write pointer in multiples of 8. */
-	if (rxq->write_actual != (rxq->write & ~0x7)) {
+	if (rxq->write_actual != (rxq->write & ~0x7))
+	{
 		spin_lock_irqsave(&rxq->lock, flags);
 		rxq->need_update = 1;
 		spin_unlock_irqrestore(&rxq->lock, flags);
@@ -322,34 +357,45 @@ il4965_rx_allocate(struct il_priv *il, gfp_t priority)
 	unsigned long flags;
 	gfp_t gfp_mask = priority;
 
-	while (1) {
+	while (1)
+	{
 		spin_lock_irqsave(&rxq->lock, flags);
-		if (list_empty(&rxq->rx_used)) {
+
+		if (list_empty(&rxq->rx_used))
+		{
 			spin_unlock_irqrestore(&rxq->lock, flags);
 			return;
 		}
+
 		spin_unlock_irqrestore(&rxq->lock, flags);
 
 		if (rxq->free_count > RX_LOW_WATERMARK)
+		{
 			gfp_mask |= __GFP_NOWARN;
+		}
 
 		if (il->hw_params.rx_page_order > 0)
+		{
 			gfp_mask |= __GFP_COMP;
+		}
 
 		/* Alloc a new receive buffer */
 		page = alloc_pages(gfp_mask, il->hw_params.rx_page_order);
-		if (!page) {
+
+		if (!page)
+		{
 			if (net_ratelimit())
 				D_INFO("alloc_pages failed, " "order: %d\n",
-				       il->hw_params.rx_page_order);
+					   il->hw_params.rx_page_order);
 
 			if (rxq->free_count <= RX_LOW_WATERMARK &&
-			    net_ratelimit())
+				net_ratelimit())
 				IL_ERR("Failed to alloc_pages with %s. "
-				       "Only %u free buffers remaining.\n",
-				       priority ==
-				       GFP_ATOMIC ? "GFP_ATOMIC" : "GFP_KERNEL",
-				       rxq->free_count);
+					   "Only %u free buffers remaining.\n",
+					   priority ==
+					   GFP_ATOMIC ? "GFP_ATOMIC" : "GFP_KERNEL",
+					   rxq->free_count);
+
 			/* We don't reschedule replenish work here -- we will
 			 * call the restock method and if it still needs
 			 * more buffers it will schedule replenish */
@@ -358,21 +404,24 @@ il4965_rx_allocate(struct il_priv *il, gfp_t priority)
 
 		/* Get physical address of the RB */
 		page_dma =
-		    pci_map_page(il->pci_dev, page, 0,
-				 PAGE_SIZE << il->hw_params.rx_page_order,
-				 PCI_DMA_FROMDEVICE);
-		if (unlikely(pci_dma_mapping_error(il->pci_dev, page_dma))) {
+			pci_map_page(il->pci_dev, page, 0,
+						 PAGE_SIZE << il->hw_params.rx_page_order,
+						 PCI_DMA_FROMDEVICE);
+
+		if (unlikely(pci_dma_mapping_error(il->pci_dev, page_dma)))
+		{
 			__free_pages(page, il->hw_params.rx_page_order);
 			break;
 		}
 
 		spin_lock_irqsave(&rxq->lock, flags);
 
-		if (list_empty(&rxq->rx_used)) {
+		if (list_empty(&rxq->rx_used))
+		{
 			spin_unlock_irqrestore(&rxq->lock, flags);
 			pci_unmap_page(il->pci_dev, page_dma,
-				       PAGE_SIZE << il->hw_params.rx_page_order,
-				       PCI_DMA_FROMDEVICE);
+						   PAGE_SIZE << il->hw_params.rx_page_order,
+						   PCI_DMA_FROMDEVICE);
 			__free_pages(page, il->hw_params.rx_page_order);
 			return;
 		}
@@ -422,20 +471,23 @@ void
 il4965_rx_queue_free(struct il_priv *il, struct il_rx_queue *rxq)
 {
 	int i;
-	for (i = 0; i < RX_QUEUE_SIZE + RX_FREE_BUFFERS; i++) {
-		if (rxq->pool[i].page != NULL) {
+
+	for (i = 0; i < RX_QUEUE_SIZE + RX_FREE_BUFFERS; i++)
+	{
+		if (rxq->pool[i].page != NULL)
+		{
 			pci_unmap_page(il->pci_dev, rxq->pool[i].page_dma,
-				       PAGE_SIZE << il->hw_params.rx_page_order,
-				       PCI_DMA_FROMDEVICE);
+						   PAGE_SIZE << il->hw_params.rx_page_order,
+						   PCI_DMA_FROMDEVICE);
 			__il_free_pages(il, rxq->pool[i].page);
 			rxq->pool[i].page = NULL;
 		}
 	}
 
 	dma_free_coherent(&il->pci_dev->dev, 4 * RX_QUEUE_SIZE, rxq->bd,
-			  rxq->bd_dma);
+					  rxq->bd_dma);
 	dma_free_coherent(&il->pci_dev->dev, sizeof(struct il_rb_status),
-			  rxq->rb_stts, rxq->rb_stts_dma);
+					  rxq->rb_stts, rxq->rb_stts_dma);
 	rxq->bd = NULL;
 	rxq->rb_stts = NULL;
 }
@@ -447,11 +499,14 @@ il4965_rxq_stop(struct il_priv *il)
 
 	_il_wr(il, FH49_MEM_RCSR_CHNL0_CONFIG_REG, 0);
 	ret = _il_poll_bit(il, FH49_MEM_RSSR_RX_STATUS_REG,
-			   FH49_RSSR_CHNL0_RX_STATUS_CHNL_IDLE,
-			   FH49_RSSR_CHNL0_RX_STATUS_CHNL_IDLE,
-			   1000);
+					   FH49_RSSR_CHNL0_RX_STATUS_CHNL_IDLE,
+					   FH49_RSSR_CHNL0_RX_STATUS_CHNL_IDLE,
+					   1000);
+
 	if (ret < 0)
+	{
 		IL_ERR("Can't stop Rx DMA.\n");
+	}
 
 	return 0;
 }
@@ -463,16 +518,24 @@ il4965_hwrate_to_mac80211_idx(u32 rate_n_flags, enum nl80211_band band)
 	int band_offset = 0;
 
 	/* HT rate format: mac80211 wants an MCS number, which is just LSB */
-	if (rate_n_flags & RATE_MCS_HT_MSK) {
+	if (rate_n_flags & RATE_MCS_HT_MSK)
+	{
 		idx = (rate_n_flags & 0xff);
 		return idx;
 		/* Legacy rate format, search for match in table */
-	} else {
+	}
+	else
+	{
 		if (band == NL80211_BAND_5GHZ)
+		{
 			band_offset = IL_FIRST_OFDM_RATE;
+		}
+
 		for (idx = band_offset; idx < RATE_COUNT_LEGACY; idx++)
 			if (il_rates[idx].plcp == (rate_n_flags & 0xFF))
+			{
 				return idx - band_offset;
+			}
 	}
 
 	return -1;
@@ -484,14 +547,14 @@ il4965_calc_rssi(struct il_priv *il, struct il_rx_phy_res *rx_resp)
 	/* data from PHY/DSP regarding signal strength, etc.,
 	 *   contents are always there, not configurable by host.  */
 	struct il4965_rx_non_cfg_phy *ncphy =
-	    (struct il4965_rx_non_cfg_phy *)rx_resp->non_cfg_phy_buf;
+		(struct il4965_rx_non_cfg_phy *)rx_resp->non_cfg_phy_buf;
 	u32 agc =
-	    (le16_to_cpu(ncphy->agc_info) & IL49_AGC_DB_MASK) >>
-	    IL49_AGC_DB_POS;
+		(le16_to_cpu(ncphy->agc_info) & IL49_AGC_DB_MASK) >>
+		IL49_AGC_DB_POS;
 
 	u32 valid_antennae =
-	    (le16_to_cpu(rx_resp->phy_flags) & IL49_RX_PHY_FLAGS_ANTENNAE_MASK)
-	    >> IL49_RX_PHY_FLAGS_ANTENNAE_OFFSET;
+		(le16_to_cpu(rx_resp->phy_flags) & IL49_RX_PHY_FLAGS_ANTENNAE_MASK)
+		>> IL49_RX_PHY_FLAGS_ANTENNAE_OFFSET;
 	u8 max_rssi = 0;
 	u32 i;
 
@@ -502,11 +565,13 @@ il4965_calc_rssi(struct il_priv *il, struct il_rx_phy_res *rx_resp)
 	 * AGC value (see below) will provide the "interesting" info. */
 	for (i = 0; i < 3; i++)
 		if (valid_antennae & (1 << i))
+		{
 			max_rssi = max(ncphy->rssi_info[i << 1], max_rssi);
+		}
 
 	D_STATS("Rssi In A %d B %d C %d Max %d AGC dB %d\n",
-		ncphy->rssi_info[0], ncphy->rssi_info[2], ncphy->rssi_info[4],
-		max_rssi, agc);
+			ncphy->rssi_info[0], ncphy->rssi_info[2], ncphy->rssi_info[4],
+			max_rssi, agc);
 
 	/* dBm = max_rssi dB - agc dB - constant.
 	 * Higher AGC (higher radio gain) means lower signal. */
@@ -519,53 +584,72 @@ il4965_translate_rx_status(struct il_priv *il, u32 decrypt_in)
 	u32 decrypt_out = 0;
 
 	if ((decrypt_in & RX_RES_STATUS_STATION_FOUND) ==
-	    RX_RES_STATUS_STATION_FOUND)
+		RX_RES_STATUS_STATION_FOUND)
 		decrypt_out |=
-		    (RX_RES_STATUS_STATION_FOUND |
-		     RX_RES_STATUS_NO_STATION_INFO_MISMATCH);
+			(RX_RES_STATUS_STATION_FOUND |
+			 RX_RES_STATUS_NO_STATION_INFO_MISMATCH);
 
 	decrypt_out |= (decrypt_in & RX_RES_STATUS_SEC_TYPE_MSK);
 
 	/* packet was not encrypted */
 	if ((decrypt_in & RX_RES_STATUS_SEC_TYPE_MSK) ==
-	    RX_RES_STATUS_SEC_TYPE_NONE)
+		RX_RES_STATUS_SEC_TYPE_NONE)
+	{
 		return decrypt_out;
+	}
 
 	/* packet was encrypted with unknown alg */
 	if ((decrypt_in & RX_RES_STATUS_SEC_TYPE_MSK) ==
-	    RX_RES_STATUS_SEC_TYPE_ERR)
+		RX_RES_STATUS_SEC_TYPE_ERR)
+	{
 		return decrypt_out;
+	}
 
 	/* decryption was not done in HW */
 	if ((decrypt_in & RX_MPDU_RES_STATUS_DEC_DONE_MSK) !=
-	    RX_MPDU_RES_STATUS_DEC_DONE_MSK)
+		RX_MPDU_RES_STATUS_DEC_DONE_MSK)
+	{
 		return decrypt_out;
+	}
 
-	switch (decrypt_in & RX_RES_STATUS_SEC_TYPE_MSK) {
+	switch (decrypt_in & RX_RES_STATUS_SEC_TYPE_MSK)
+	{
 
-	case RX_RES_STATUS_SEC_TYPE_CCMP:
-		/* alg is CCM: check MIC only */
-		if (!(decrypt_in & RX_MPDU_RES_STATUS_MIC_OK))
-			/* Bad MIC */
-			decrypt_out |= RX_RES_STATUS_BAD_ICV_MIC;
-		else
-			decrypt_out |= RX_RES_STATUS_DECRYPT_OK;
+		case RX_RES_STATUS_SEC_TYPE_CCMP:
 
-		break;
+			/* alg is CCM: check MIC only */
+			if (!(decrypt_in & RX_MPDU_RES_STATUS_MIC_OK))
+				/* Bad MIC */
+			{
+				decrypt_out |= RX_RES_STATUS_BAD_ICV_MIC;
+			}
+			else
+			{
+				decrypt_out |= RX_RES_STATUS_DECRYPT_OK;
+			}
 
-	case RX_RES_STATUS_SEC_TYPE_TKIP:
-		if (!(decrypt_in & RX_MPDU_RES_STATUS_TTAK_OK)) {
-			/* Bad TTAK */
-			decrypt_out |= RX_RES_STATUS_BAD_KEY_TTAK;
 			break;
-		}
+
+		case RX_RES_STATUS_SEC_TYPE_TKIP:
+			if (!(decrypt_in & RX_MPDU_RES_STATUS_TTAK_OK))
+			{
+				/* Bad TTAK */
+				decrypt_out |= RX_RES_STATUS_BAD_KEY_TTAK;
+				break;
+			}
+
 		/* fall through if TTAK OK */
-	default:
-		if (!(decrypt_in & RX_MPDU_RES_STATUS_ICV_OK))
-			decrypt_out |= RX_RES_STATUS_BAD_ICV_MIC;
-		else
-			decrypt_out |= RX_RES_STATUS_DECRYPT_OK;
-		break;
+		default:
+			if (!(decrypt_in & RX_MPDU_RES_STATUS_ICV_OK))
+			{
+				decrypt_out |= RX_RES_STATUS_BAD_ICV_MIC;
+			}
+			else
+			{
+				decrypt_out |= RX_RES_STATUS_DECRYPT_OK;
+			}
+
+			break;
 	}
 
 	D_RX("decrypt_in:0x%x  decrypt_out = 0x%x\n", decrypt_in, decrypt_out);
@@ -577,39 +661,48 @@ il4965_translate_rx_status(struct il_priv *il, u32 decrypt_in)
 
 static void
 il4965_pass_packet_to_mac80211(struct il_priv *il, struct ieee80211_hdr *hdr,
-			       u32 len, u32 ampdu_status, struct il_rx_buf *rxb,
-			       struct ieee80211_rx_status *stats)
+							   u32 len, u32 ampdu_status, struct il_rx_buf *rxb,
+							   struct ieee80211_rx_status *stats)
 {
 	struct sk_buff *skb;
 	__le16 fc = hdr->frame_control;
 
 	/* We only process data packets if the interface is open */
-	if (unlikely(!il->is_open)) {
+	if (unlikely(!il->is_open))
+	{
 		D_DROP("Dropping packet while interface is not open.\n");
 		return;
 	}
 
-	if (unlikely(test_bit(IL_STOP_REASON_PASSIVE, &il->stop_reason))) {
+	if (unlikely(test_bit(IL_STOP_REASON_PASSIVE, &il->stop_reason)))
+	{
 		il_wake_queues_by_reason(il, IL_STOP_REASON_PASSIVE);
 		D_INFO("Woke queues - frame received on passive channel\n");
 	}
 
 	/* In case of HW accelerated crypto and bad decryption, drop */
 	if (!il->cfg->mod_params->sw_crypto &&
-	    il_set_decrypted_flag(il, hdr, ampdu_status, stats))
+		il_set_decrypted_flag(il, hdr, ampdu_status, stats))
+	{
 		return;
+	}
 
 	skb = dev_alloc_skb(SMALL_PACKET_SIZE);
-	if (!skb) {
+
+	if (!skb)
+	{
 		IL_ERR("dev_alloc_skb failed\n");
 		return;
 	}
 
-	if (len <= SMALL_PACKET_SIZE) {
+	if (len <= SMALL_PACKET_SIZE)
+	{
 		memcpy(skb_put(skb, len), hdr, len);
-	} else {
+	}
+	else
+	{
 		skb_add_rx_frag(skb, 0, rxb->page, (void *)hdr - rxb_addr(rxb),
-				len, PAGE_SIZE << il->hw_params.rx_page_order);
+						len, PAGE_SIZE << il->hw_params.rx_page_order);
 		il->alloc_rxb_page--;
 		rxb->page = NULL;
 	}
@@ -644,39 +737,46 @@ il4965_hdl_rx(struct il_priv *il, struct il_rx_buf *rxb)
 	 * Here we set up local variables depending on which command is
 	 * received.
 	 */
-	if (pkt->hdr.cmd == N_RX) {
+	if (pkt->hdr.cmd == N_RX)
+	{
 		phy_res = (struct il_rx_phy_res *)pkt->u.raw;
 		header =
-		    (struct ieee80211_hdr *)(pkt->u.raw + sizeof(*phy_res) +
-					     phy_res->cfg_phy_cnt);
+			(struct ieee80211_hdr *)(pkt->u.raw + sizeof(*phy_res) +
+									 phy_res->cfg_phy_cnt);
 
 		len = le16_to_cpu(phy_res->byte_count);
 		rx_pkt_status =
-		    *(__le32 *) (pkt->u.raw + sizeof(*phy_res) +
-				 phy_res->cfg_phy_cnt + len);
+			*(__le32 *) (pkt->u.raw + sizeof(*phy_res) +
+						 phy_res->cfg_phy_cnt + len);
 		ampdu_status = le32_to_cpu(rx_pkt_status);
-	} else {
-		if (!il->_4965.last_phy_res_valid) {
+	}
+	else
+	{
+		if (!il->_4965.last_phy_res_valid)
+		{
 			IL_ERR("MPDU frame without cached PHY data\n");
 			return;
 		}
+
 		phy_res = &il->_4965.last_phy_res;
 		amsdu = (struct il_rx_mpdu_res_start *)pkt->u.raw;
 		header = (struct ieee80211_hdr *)(pkt->u.raw + sizeof(*amsdu));
 		len = le16_to_cpu(amsdu->byte_count);
 		rx_pkt_status = *(__le32 *) (pkt->u.raw + sizeof(*amsdu) + len);
 		ampdu_status =
-		    il4965_translate_rx_status(il, le32_to_cpu(rx_pkt_status));
+			il4965_translate_rx_status(il, le32_to_cpu(rx_pkt_status));
 	}
 
-	if ((unlikely(phy_res->cfg_phy_cnt > 20))) {
+	if ((unlikely(phy_res->cfg_phy_cnt > 20)))
+	{
 		D_DROP("dsp size out of range [0,20]: %d\n",
-		       phy_res->cfg_phy_cnt);
+			   phy_res->cfg_phy_cnt);
 		return;
 	}
 
 	if (!(rx_pkt_status & RX_RES_STATUS_NO_CRC32_ERROR) ||
-	    !(rx_pkt_status & RX_RES_STATUS_NO_RXE_OVERFLOW)) {
+		!(rx_pkt_status & RX_RES_STATUS_NO_RXE_OVERFLOW))
+	{
 		D_RX("Bad CRC or FIFO: 0x%08X.\n", le32_to_cpu(rx_pkt_status));
 		return;
 	}
@@ -687,14 +787,14 @@ il4965_hdl_rx(struct il_priv *il, struct il_rx_buf *rxb)
 	/* rx_status carries information about the packet to mac80211 */
 	rx_status.mactime = le64_to_cpu(phy_res->timestamp);
 	rx_status.band =
-	    (phy_res->
-	     phy_flags & RX_RES_PHY_FLAGS_BAND_24_MSK) ? NL80211_BAND_2GHZ :
-	    NL80211_BAND_5GHZ;
+		(phy_res->
+		 phy_flags & RX_RES_PHY_FLAGS_BAND_24_MSK) ? NL80211_BAND_2GHZ :
+		NL80211_BAND_5GHZ;
 	rx_status.freq =
-	    ieee80211_channel_to_frequency(le16_to_cpu(phy_res->channel),
-					   rx_status.band);
+		ieee80211_channel_to_frequency(le16_to_cpu(phy_res->channel),
+									   rx_status.band);
 	rx_status.rate_idx =
-	    il4965_hwrate_to_mac80211_idx(rate_n_flags, rx_status.band);
+		il4965_hwrate_to_mac80211_idx(rate_n_flags, rx_status.band);
 	rx_status.flag = 0;
 
 	/* TSF isn't reliable. In order to allow smooth user experience,
@@ -707,7 +807,7 @@ il4965_hdl_rx(struct il_priv *il, struct il_rx_buf *rxb)
 	rx_status.signal = il4965_calc_rssi(il, phy_res);
 
 	D_STATS("Rssi %d, TSF %llu\n", rx_status.signal,
-		(unsigned long long)rx_status.mactime);
+			(unsigned long long)rx_status.mactime);
 
 	/*
 	 * "antenna number"
@@ -723,22 +823,33 @@ il4965_hdl_rx(struct il_priv *il, struct il_rx_buf *rxb)
 	 * as a bitmask.
 	 */
 	rx_status.antenna =
-	    (le16_to_cpu(phy_res->phy_flags) & RX_RES_PHY_FLAGS_ANTENNA_MSK) >>
-	    RX_RES_PHY_FLAGS_ANTENNA_POS;
+		(le16_to_cpu(phy_res->phy_flags) & RX_RES_PHY_FLAGS_ANTENNA_MSK) >>
+		RX_RES_PHY_FLAGS_ANTENNA_POS;
 
 	/* set the preamble flag if appropriate */
 	if (phy_res->phy_flags & RX_RES_PHY_FLAGS_SHORT_PREAMBLE_MSK)
+	{
 		rx_status.flag |= RX_FLAG_SHORTPRE;
+	}
 
 	/* Set up the HT phy flags */
 	if (rate_n_flags & RATE_MCS_HT_MSK)
+	{
 		rx_status.flag |= RX_FLAG_HT;
-	if (rate_n_flags & RATE_MCS_HT40_MSK)
-		rx_status.flag |= RX_FLAG_40MHZ;
-	if (rate_n_flags & RATE_MCS_SGI_MSK)
-		rx_status.flag |= RX_FLAG_SHORT_GI;
+	}
 
-	if (phy_res->phy_flags & RX_RES_PHY_FLAGS_AGG_MSK) {
+	if (rate_n_flags & RATE_MCS_HT40_MSK)
+	{
+		rx_status.flag |= RX_FLAG_40MHZ;
+	}
+
+	if (rate_n_flags & RATE_MCS_SGI_MSK)
+	{
+		rx_status.flag |= RX_FLAG_SHORT_GI;
+	}
+
+	if (phy_res->phy_flags & RX_RES_PHY_FLAGS_AGG_MSK)
+	{
 		/* We know which subframes of an A-MPDU belong
 		 * together since we get a single PHY response
 		 * from the firmware for all of them.
@@ -749,7 +860,7 @@ il4965_hdl_rx(struct il_priv *il, struct il_rx_buf *rxb)
 	}
 
 	il4965_pass_packet_to_mac80211(il, header, len, ampdu_status, rxb,
-				       &rx_status);
+								   &rx_status);
 }
 
 /* Cache phy data (Rx signal strength, etc) for HT frame (N_RX_PHY).
@@ -761,13 +872,13 @@ il4965_hdl_rx_phy(struct il_priv *il, struct il_rx_buf *rxb)
 	il->_4965.last_phy_res_valid = true;
 	il->_4965.ampdu_ref++;
 	memcpy(&il->_4965.last_phy_res, pkt->u.raw,
-	       sizeof(struct il_rx_phy_res));
+		   sizeof(struct il_rx_phy_res));
 }
 
 static int
 il4965_get_channels_for_scan(struct il_priv *il, struct ieee80211_vif *vif,
-			     enum nl80211_band band, u8 is_active,
-			     u8 n_probes, struct il_scan_channel *scan_ch)
+							 enum nl80211_band band, u8 is_active,
+							 u8 n_probes, struct il_scan_channel *scan_ch)
 {
 	struct ieee80211_channel *chan;
 	const struct ieee80211_supported_band *sband;
@@ -778,39 +889,55 @@ il4965_get_channels_for_scan(struct il_priv *il, struct ieee80211_vif *vif,
 	u16 channel;
 
 	sband = il_get_hw_mode(il, band);
+
 	if (!sband)
+	{
 		return 0;
+	}
 
 	active_dwell = il_get_active_dwell_time(il, band, n_probes);
 	passive_dwell = il_get_passive_dwell_time(il, band, vif);
 
 	if (passive_dwell <= active_dwell)
+	{
 		passive_dwell = active_dwell + 1;
+	}
 
-	for (i = 0, added = 0; i < il->scan_request->n_channels; i++) {
+	for (i = 0, added = 0; i < il->scan_request->n_channels; i++)
+	{
 		chan = il->scan_request->channels[i];
 
 		if (chan->band != band)
+		{
 			continue;
+		}
 
 		channel = chan->hw_value;
 		scan_ch->channel = cpu_to_le16(channel);
 
 		ch_info = il_get_channel_info(il, band, channel);
-		if (!il_is_channel_valid(ch_info)) {
+
+		if (!il_is_channel_valid(ch_info))
+		{
 			D_SCAN("Channel %d is INVALID for this band.\n",
-			       channel);
+				   channel);
 			continue;
 		}
 
 		if (!is_active || il_is_channel_passive(ch_info) ||
-		    (chan->flags & IEEE80211_CHAN_NO_IR))
+			(chan->flags & IEEE80211_CHAN_NO_IR))
+		{
 			scan_ch->type = SCAN_CHANNEL_TYPE_PASSIVE;
+		}
 		else
+		{
 			scan_ch->type = SCAN_CHANNEL_TYPE_ACTIVE;
+		}
 
 		if (n_probes)
+		{
 			scan_ch->type |= IL_SCAN_PROBE_MASK(n_probes);
+		}
 
 		scan_ch->active_dwell = cpu_to_le16(active_dwell);
 		scan_ch->passive_dwell = cpu_to_le16(passive_dwell);
@@ -823,17 +950,21 @@ il4965_get_channels_for_scan(struct il_priv *il, struct ieee80211_vif *vif,
 		 * scan_ch->tx_gain = ((1 << 5) | (2 << 3)) | 3;
 		 */
 		if (band == NL80211_BAND_5GHZ)
+		{
 			scan_ch->tx_gain = ((1 << 5) | (3 << 3)) | 3;
+		}
 		else
+		{
 			scan_ch->tx_gain = ((1 << 5) | (5 << 3));
+		}
 
 		D_SCAN("Scanning ch=%d prob=0x%X [%s %d]\n", channel,
-		       le32_to_cpu(scan_ch->type),
-		       (scan_ch->
-			type & SCAN_CHANNEL_TYPE_ACTIVE) ? "ACTIVE" : "PASSIVE",
-		       (scan_ch->
-			type & SCAN_CHANNEL_TYPE_ACTIVE) ? active_dwell :
-		       passive_dwell);
+			   le32_to_cpu(scan_ch->type),
+			   (scan_ch->
+				type & SCAN_CHANNEL_TYPE_ACTIVE) ? "ACTIVE" : "PASSIVE",
+			   (scan_ch->
+				type & SCAN_CHANNEL_TYPE_ACTIVE) ? active_dwell :
+			   passive_dwell);
 
 		scan_ch++;
 		added++;
@@ -849,9 +980,12 @@ il4965_toggle_tx_ant(struct il_priv *il, u8 *ant, u8 valid)
 	int i;
 	u8 ind = *ant;
 
-	for (i = 0; i < RATE_ANT_NUM - 1; i++) {
+	for (i = 0; i < RATE_ANT_NUM - 1; i++)
+	{
 		ind = (ind + 1) < RATE_ANT_NUM ? ind + 1 : 0;
-		if (valid & BIT(ind)) {
+
+		if (valid & BIT(ind))
+		{
 			*ant = ind;
 			return;
 		}
@@ -861,7 +995,8 @@ il4965_toggle_tx_ant(struct il_priv *il, u8 *ant, u8 valid)
 int
 il4965_request_scan(struct il_priv *il, struct ieee80211_vif *vif)
 {
-	struct il_host_cmd cmd = {
+	struct il_host_cmd cmd =
+	{
 		.id = C_SCAN,
 		.len = sizeof(struct il_scan_cmd),
 		.flags = CMD_SIZE_HUGE,
@@ -882,22 +1017,27 @@ il4965_request_scan(struct il_priv *il, struct ieee80211_vif *vif)
 
 	lockdep_assert_held(&il->mutex);
 
-	if (!il->scan_cmd) {
+	if (!il->scan_cmd)
+	{
 		il->scan_cmd =
-		    kmalloc(sizeof(struct il_scan_cmd) + IL_MAX_SCAN_SIZE,
-			    GFP_KERNEL);
-		if (!il->scan_cmd) {
+			kmalloc(sizeof(struct il_scan_cmd) + IL_MAX_SCAN_SIZE,
+					GFP_KERNEL);
+
+		if (!il->scan_cmd)
+		{
 			D_SCAN("fail to allocate memory for scan\n");
 			return -ENOMEM;
 		}
 	}
+
 	scan = il->scan_cmd;
 	memset(scan, 0, sizeof(struct il_scan_cmd) + IL_MAX_SCAN_SIZE);
 
 	scan->quiet_plcp_th = IL_PLCP_QUIET_THRESH;
 	scan->quiet_time = IL_ACTIVE_QUIET_TIME;
 
-	if (il_is_any_associated(il)) {
+	if (il_is_any_associated(il))
+	{
 		u16 interval;
 		u32 extra;
 		u32 suspend_time = 100;
@@ -908,60 +1048,81 @@ il4965_request_scan(struct il_priv *il, struct ieee80211_vif *vif)
 
 		scan->suspend_time = 0;
 		scan->max_out_time = cpu_to_le32(200 * 1024);
+
 		if (!interval)
+		{
 			interval = suspend_time;
+		}
 
 		extra = (suspend_time / interval) << 22;
 		scan_suspend_time =
-		    (extra | ((suspend_time % interval) * 1024));
+			(extra | ((suspend_time % interval) * 1024));
 		scan->suspend_time = cpu_to_le32(scan_suspend_time);
 		D_SCAN("suspend_time 0x%X beacon interval %d\n",
-		       scan_suspend_time, interval);
+			   scan_suspend_time, interval);
 	}
 
-	if (il->scan_request->n_ssids) {
+	if (il->scan_request->n_ssids)
+	{
 		int i, p = 0;
 		D_SCAN("Kicking off active scan\n");
-		for (i = 0; i < il->scan_request->n_ssids; i++) {
+
+		for (i = 0; i < il->scan_request->n_ssids; i++)
+		{
 			/* always does wildcard anyway */
 			if (!il->scan_request->ssids[i].ssid_len)
+			{
 				continue;
+			}
+
 			scan->direct_scan[p].id = WLAN_EID_SSID;
 			scan->direct_scan[p].len =
-			    il->scan_request->ssids[i].ssid_len;
+				il->scan_request->ssids[i].ssid_len;
 			memcpy(scan->direct_scan[p].ssid,
-			       il->scan_request->ssids[i].ssid,
-			       il->scan_request->ssids[i].ssid_len);
+				   il->scan_request->ssids[i].ssid,
+				   il->scan_request->ssids[i].ssid_len);
 			n_probes++;
 			p++;
 		}
+
 		is_active = true;
-	} else
+	}
+	else
+	{
 		D_SCAN("Start passive scan.\n");
+	}
 
 	scan->tx_cmd.tx_flags = TX_CMD_FLG_SEQ_CTL_MSK;
 	scan->tx_cmd.sta_id = il->hw_params.bcast_id;
 	scan->tx_cmd.stop_time.life_time = TX_CMD_LIFE_TIME_INFINITE;
 
-	switch (il->scan_band) {
-	case NL80211_BAND_2GHZ:
-		scan->flags = RXON_FLG_BAND_24G_MSK | RXON_FLG_AUTO_DETECT_MSK;
-		chan_mod =
-		    le32_to_cpu(il->active.flags & RXON_FLG_CHANNEL_MODE_MSK) >>
-		    RXON_FLG_CHANNEL_MODE_POS;
-		if (chan_mod == CHANNEL_MODE_PURE_40) {
+	switch (il->scan_band)
+	{
+		case NL80211_BAND_2GHZ:
+			scan->flags = RXON_FLG_BAND_24G_MSK | RXON_FLG_AUTO_DETECT_MSK;
+			chan_mod =
+				le32_to_cpu(il->active.flags & RXON_FLG_CHANNEL_MODE_MSK) >>
+				RXON_FLG_CHANNEL_MODE_POS;
+
+			if (chan_mod == CHANNEL_MODE_PURE_40)
+			{
+				rate = RATE_6M_PLCP;
+			}
+			else
+			{
+				rate = RATE_1M_PLCP;
+				rate_flags = RATE_MCS_CCK_MSK;
+			}
+
+			break;
+
+		case NL80211_BAND_5GHZ:
 			rate = RATE_6M_PLCP;
-		} else {
-			rate = RATE_1M_PLCP;
-			rate_flags = RATE_MCS_CCK_MSK;
-		}
-		break;
-	case NL80211_BAND_5GHZ:
-		rate = RATE_6M_PLCP;
-		break;
-	default:
-		IL_WARN("Invalid scan band\n");
-		return -EIO;
+			break;
+
+		default:
+			IL_WARN("Invalid scan band\n");
+			return -EIO;
 	}
 
 	/*
@@ -982,27 +1143,33 @@ il4965_request_scan(struct il_priv *il, struct ieee80211_vif *vif)
 	 * here instead of IL_GOOD_CRC_TH_DISABLED.
 	 */
 	scan->good_CRC_th =
-	    is_active ? IL_GOOD_CRC_TH_DEFAULT : IL_GOOD_CRC_TH_NEVER;
+		is_active ? IL_GOOD_CRC_TH_DEFAULT : IL_GOOD_CRC_TH_NEVER;
 
 	band = il->scan_band;
 
 	if (il->cfg->scan_rx_antennas[band])
+	{
 		rx_ant = il->cfg->scan_rx_antennas[band];
+	}
 
 	il4965_toggle_tx_ant(il, &il->scan_tx_ant[band], scan_tx_antennas);
 	rate_flags |= BIT(il->scan_tx_ant[band]) << RATE_MCS_ANT_POS;
 	scan->tx_cmd.rate_n_flags = cpu_to_le32(rate | rate_flags);
 
 	/* In power save mode use one chain, otherwise use all chains */
-	if (test_bit(S_POWER_PMI, &il->status)) {
+	if (test_bit(S_POWER_PMI, &il->status))
+	{
 		/* rx_ant has been set to all valid chains previously */
 		active_chains =
-		    rx_ant & ((u8) (il->chain_noise_data.active_chains));
+			rx_ant & ((u8) (il->chain_noise_data.active_chains));
+
 		if (!active_chains)
+		{
 			active_chains = rx_ant;
+		}
 
 		D_SCAN("chain_noise_data.active_chains: %u\n",
-		       il->chain_noise_data.active_chains);
+			   il->chain_noise_data.active_chains);
 
 		rx_ant = il4965_first_antenna(active_chains);
 	}
@@ -1015,49 +1182,55 @@ il4965_request_scan(struct il_priv *il, struct ieee80211_vif *vif)
 	scan->rx_chain = cpu_to_le16(rx_chain);
 
 	cmd_len =
-	    il_fill_probe_req(il, (struct ieee80211_mgmt *)scan->data,
-			      vif->addr, il->scan_request->ie,
-			      il->scan_request->ie_len,
-			      IL_MAX_SCAN_SIZE - sizeof(*scan));
+		il_fill_probe_req(il, (struct ieee80211_mgmt *)scan->data,
+						  vif->addr, il->scan_request->ie,
+						  il->scan_request->ie_len,
+						  IL_MAX_SCAN_SIZE - sizeof(*scan));
 	scan->tx_cmd.len = cpu_to_le16(cmd_len);
 
 	scan->filter_flags |=
-	    (RXON_FILTER_ACCEPT_GRP_MSK | RXON_FILTER_BCON_AWARE_MSK);
+		(RXON_FILTER_ACCEPT_GRP_MSK | RXON_FILTER_BCON_AWARE_MSK);
 
 	scan->channel_count =
-	    il4965_get_channels_for_scan(il, vif, band, is_active, n_probes,
-					 (void *)&scan->data[cmd_len]);
-	if (scan->channel_count == 0) {
+		il4965_get_channels_for_scan(il, vif, band, is_active, n_probes,
+									 (void *)&scan->data[cmd_len]);
+
+	if (scan->channel_count == 0)
+	{
 		D_SCAN("channel count %d\n", scan->channel_count);
 		return -EIO;
 	}
 
 	cmd.len +=
-	    le16_to_cpu(scan->tx_cmd.len) +
-	    scan->channel_count * sizeof(struct il_scan_channel);
+		le16_to_cpu(scan->tx_cmd.len) +
+		scan->channel_count * sizeof(struct il_scan_channel);
 	cmd.data = scan;
 	scan->len = cpu_to_le16(cmd.len);
 
 	set_bit(S_SCAN_HW, &il->status);
 
 	ret = il_send_cmd_sync(il, &cmd);
+
 	if (ret)
+	{
 		clear_bit(S_SCAN_HW, &il->status);
+	}
 
 	return ret;
 }
 
 int
 il4965_manage_ibss_station(struct il_priv *il, struct ieee80211_vif *vif,
-			   bool add)
+						   bool add)
 {
 	struct il_vif_priv *vif_priv = (void *)vif->drv_priv;
 
 	if (add)
 		return il4965_add_bssid_station(il, vif->bss_conf.bssid,
-						&vif_priv->ibss_bssid_sta_id);
+										&vif_priv->ibss_bssid_sta_id);
+
 	return il_remove_station(il, vif_priv->ibss_bssid_sta_id,
-				 vif->bss_conf.bssid);
+							 vif->bss_conf.bssid);
 }
 
 void
@@ -1066,10 +1239,13 @@ il4965_free_tfds_in_queue(struct il_priv *il, int sta_id, int tid, int freed)
 	lockdep_assert_held(&il->sta_lock);
 
 	if (il->stations[sta_id].tid[tid].tfds_in_queue >= freed)
+	{
 		il->stations[sta_id].tid[tid].tfds_in_queue -= freed;
-	else {
+	}
+	else
+	{
 		D_TX("free more than tfds_in_queue (%u:%d)\n",
-		     il->stations[sta_id].tid[tid].tfds_in_queue, freed);
+			 il->stations[sta_id].tid[tid].tfds_in_queue, freed);
 		il->stations[sta_id].tid[tid].tfds_in_queue = 0;
 	}
 }
@@ -1080,7 +1256,7 @@ static bool
 il4965_is_single_rx_stream(struct il_priv *il)
 {
 	return il->current_ht_config.smps == IEEE80211_SMPS_STATIC ||
-	    il->current_ht_config.single_chain_sufficient;
+		   il->current_ht_config.single_chain_sufficient;
 }
 
 #define IL_NUM_RX_CHAINS_MULTIPLE	3
@@ -1103,9 +1279,13 @@ il4965_get_active_rx_chain_count(struct il_priv *il)
 {
 	/* # of Rx chains to use when expecting MIMO. */
 	if (il4965_is_single_rx_stream(il))
+	{
 		return IL_NUM_RX_CHAINS_SINGLE;
+	}
 	else
+	{
 		return IL_NUM_RX_CHAINS_MULTIPLE;
+	}
 }
 
 /*
@@ -1116,15 +1296,18 @@ static int
 il4965_get_idle_rx_chain_count(struct il_priv *il, int active_cnt)
 {
 	/* # Rx chains when idling, depending on SMPS mode */
-	switch (il->current_ht_config.smps) {
-	case IEEE80211_SMPS_STATIC:
-	case IEEE80211_SMPS_DYNAMIC:
-		return IL_NUM_IDLE_CHAINS_SINGLE;
-	case IEEE80211_SMPS_OFF:
-		return active_cnt;
-	default:
-		WARN(1, "invalid SMPS mode %d", il->current_ht_config.smps);
-		return active_cnt;
+	switch (il->current_ht_config.smps)
+	{
+		case IEEE80211_SMPS_STATIC:
+		case IEEE80211_SMPS_DYNAMIC:
+			return IL_NUM_IDLE_CHAINS_SINGLE;
+
+		case IEEE80211_SMPS_OFF:
+			return active_cnt;
+
+		default:
+			WARN(1, "invalid SMPS mode %d", il->current_ht_config.smps);
+			return active_cnt;
 	}
 }
 
@@ -1160,9 +1343,13 @@ il4965_set_rxon_chain(struct il_priv *il)
 	 * Just after first association, il4965_chain_noise_calibration()
 	 *    checks which antennas actually *are* connected. */
 	if (il->chain_noise_data.active_chains)
+	{
 		active_chains = il->chain_noise_data.active_chains;
+	}
 	else
+	{
 		active_chains = il->hw_params.valid_rx_ant;
+	}
 
 	rx_chain = active_chains << RXON_RX_CHAIN_VALID_POS;
 
@@ -1174,11 +1361,16 @@ il4965_set_rxon_chain(struct il_priv *il)
 	 * and chain noise calibration
 	 */
 	valid_rx_cnt = il4965_count_chain_bitmap(active_chains);
+
 	if (valid_rx_cnt < active_rx_cnt)
+	{
 		active_rx_cnt = valid_rx_cnt;
+	}
 
 	if (valid_rx_cnt < idle_rx_cnt)
+	{
 		idle_rx_cnt = valid_rx_cnt;
+	}
 
 	rx_chain |= active_rx_cnt << RXON_RX_CHAIN_MIMO_CNT_POS;
 	rx_chain |= idle_rx_cnt << RXON_RX_CHAIN_CNT_POS;
@@ -1186,32 +1378,38 @@ il4965_set_rxon_chain(struct il_priv *il)
 	il->staging.rx_chain = cpu_to_le16(rx_chain);
 
 	if (!is_single && active_rx_cnt >= IL_NUM_RX_CHAINS_SINGLE && is_cam)
+	{
 		il->staging.rx_chain |= RXON_RX_CHAIN_MIMO_FORCE_MSK;
+	}
 	else
+	{
 		il->staging.rx_chain &= ~RXON_RX_CHAIN_MIMO_FORCE_MSK;
+	}
 
 	D_ASSOC("rx_chain=0x%X active=%d idle=%d\n", il->staging.rx_chain,
-		active_rx_cnt, idle_rx_cnt);
+			active_rx_cnt, idle_rx_cnt);
 
 	WARN_ON(active_rx_cnt == 0 || idle_rx_cnt == 0 ||
-		active_rx_cnt < idle_rx_cnt);
+			active_rx_cnt < idle_rx_cnt);
 }
 
 static const char *
 il4965_get_fh_string(int cmd)
 {
-	switch (cmd) {
-		IL_CMD(FH49_RSCSR_CHNL0_STTS_WPTR_REG);
-		IL_CMD(FH49_RSCSR_CHNL0_RBDCB_BASE_REG);
-		IL_CMD(FH49_RSCSR_CHNL0_WPTR);
-		IL_CMD(FH49_MEM_RCSR_CHNL0_CONFIG_REG);
-		IL_CMD(FH49_MEM_RSSR_SHARED_CTRL_REG);
-		IL_CMD(FH49_MEM_RSSR_RX_STATUS_REG);
-		IL_CMD(FH49_MEM_RSSR_RX_ENABLE_ERR_IRQ2DRV);
-		IL_CMD(FH49_TSSR_TX_STATUS_REG);
-		IL_CMD(FH49_TSSR_TX_ERROR_REG);
-	default:
-		return "UNKNOWN";
+	switch (cmd)
+	{
+			IL_CMD(FH49_RSCSR_CHNL0_STTS_WPTR_REG);
+			IL_CMD(FH49_RSCSR_CHNL0_RBDCB_BASE_REG);
+			IL_CMD(FH49_RSCSR_CHNL0_WPTR);
+			IL_CMD(FH49_MEM_RCSR_CHNL0_CONFIG_REG);
+			IL_CMD(FH49_MEM_RSSR_SHARED_CTRL_REG);
+			IL_CMD(FH49_MEM_RSSR_RX_STATUS_REG);
+			IL_CMD(FH49_MEM_RSSR_RX_ENABLE_ERR_IRQ2DRV);
+			IL_CMD(FH49_TSSR_TX_STATUS_REG);
+			IL_CMD(FH49_TSSR_TX_ERROR_REG);
+
+		default:
+			return "UNKNOWN";
 	}
 }
 
@@ -1223,7 +1421,8 @@ il4965_dump_fh(struct il_priv *il, char **buf, bool display)
 	int pos = 0;
 	size_t bufsz = 0;
 #endif
-	static const u32 fh_tbl[] = {
+	static const u32 fh_tbl[] =
+	{
 		FH49_RSCSR_CHNL0_STTS_WPTR_REG,
 		FH49_RSCSR_CHNL0_RBDCB_BASE_REG,
 		FH49_RSCSR_CHNL0_WPTR,
@@ -1235,28 +1434,41 @@ il4965_dump_fh(struct il_priv *il, char **buf, bool display)
 		FH49_TSSR_TX_ERROR_REG
 	};
 #ifdef CONFIG_IWLEGACY_DEBUG
-	if (display) {
+
+	if (display)
+	{
 		bufsz = ARRAY_SIZE(fh_tbl) * 48 + 40;
 		*buf = kmalloc(bufsz, GFP_KERNEL);
+
 		if (!*buf)
+		{
 			return -ENOMEM;
-		pos +=
-		    scnprintf(*buf + pos, bufsz - pos, "FH register values:\n");
-		for (i = 0; i < ARRAY_SIZE(fh_tbl); i++) {
-			pos +=
-			    scnprintf(*buf + pos, bufsz - pos,
-				      "  %34s: 0X%08x\n",
-				      il4965_get_fh_string(fh_tbl[i]),
-				      il_rd(il, fh_tbl[i]));
 		}
+
+		pos +=
+			scnprintf(*buf + pos, bufsz - pos, "FH register values:\n");
+
+		for (i = 0; i < ARRAY_SIZE(fh_tbl); i++)
+		{
+			pos +=
+				scnprintf(*buf + pos, bufsz - pos,
+						  "  %34s: 0X%08x\n",
+						  il4965_get_fh_string(fh_tbl[i]),
+						  il_rd(il, fh_tbl[i]));
+		}
+
 		return pos;
 	}
+
 #endif
 	IL_ERR("FH register values:\n");
-	for (i = 0; i < ARRAY_SIZE(fh_tbl); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(fh_tbl); i++)
+	{
 		IL_ERR("  %34s: 0X%08x\n", il4965_get_fh_string(fh_tbl[i]),
-		       il_rd(il, fh_tbl[i]));
+			   il_rd(il, fh_tbl[i]));
 	}
+
 	return 0;
 }
 
@@ -1267,15 +1479,20 @@ il4965_hdl_missed_beacon(struct il_priv *il, struct il_rx_buf *rxb)
 	struct il_missed_beacon_notif *missed_beacon;
 
 	missed_beacon = &pkt->u.missed_beacon;
+
 	if (le32_to_cpu(missed_beacon->consecutive_missed_beacons) >
-	    il->missed_beacon_threshold) {
+		il->missed_beacon_threshold)
+	{
 		D_CALIB("missed bcn cnsq %d totl %d rcd %d expctd %d\n",
-			le32_to_cpu(missed_beacon->consecutive_missed_beacons),
-			le32_to_cpu(missed_beacon->total_missed_becons),
-			le32_to_cpu(missed_beacon->num_recvd_beacons),
-			le32_to_cpu(missed_beacon->num_expected_beacons));
+				le32_to_cpu(missed_beacon->consecutive_missed_beacons),
+				le32_to_cpu(missed_beacon->total_missed_becons),
+				le32_to_cpu(missed_beacon->num_recvd_beacons),
+				le32_to_cpu(missed_beacon->num_expected_beacons));
+
 		if (!test_bit(S_SCANNING, &il->status))
+		{
 			il4965_init_sensitivity(il);
+		}
 	}
 }
 
@@ -1293,33 +1510,42 @@ il4965_rx_calc_noise(struct il_priv *il)
 
 	rx_info = &(il->_4965.stats.rx.general);
 	bcn_silence_a =
-	    le32_to_cpu(rx_info->beacon_silence_rssi_a) & IN_BAND_FILTER;
+		le32_to_cpu(rx_info->beacon_silence_rssi_a) & IN_BAND_FILTER;
 	bcn_silence_b =
-	    le32_to_cpu(rx_info->beacon_silence_rssi_b) & IN_BAND_FILTER;
+		le32_to_cpu(rx_info->beacon_silence_rssi_b) & IN_BAND_FILTER;
 	bcn_silence_c =
-	    le32_to_cpu(rx_info->beacon_silence_rssi_c) & IN_BAND_FILTER;
+		le32_to_cpu(rx_info->beacon_silence_rssi_c) & IN_BAND_FILTER;
 
-	if (bcn_silence_a) {
+	if (bcn_silence_a)
+	{
 		total_silence += bcn_silence_a;
 		num_active_rx++;
 	}
-	if (bcn_silence_b) {
+
+	if (bcn_silence_b)
+	{
 		total_silence += bcn_silence_b;
 		num_active_rx++;
 	}
-	if (bcn_silence_c) {
+
+	if (bcn_silence_c)
+	{
 		total_silence += bcn_silence_c;
 		num_active_rx++;
 	}
 
 	/* Average among active antennas */
 	if (num_active_rx)
+	{
 		last_rx_noise = (total_silence / num_active_rx) - 107;
+	}
 	else
+	{
 		last_rx_noise = IL_NOISE_MEAS_NOT_AVAILABLE;
+	}
 
 	D_CALIB("inband silence a %u, b %u, c %u, dBm %d\n", bcn_silence_a,
-		bcn_silence_b, bcn_silence_c, last_rx_noise);
+			bcn_silence_b, bcn_silence_c, last_rx_noise);
 }
 
 #ifdef CONFIG_IWLEGACY_DEBUGFS
@@ -1329,7 +1555,7 @@ il4965_rx_calc_noise(struct il_priv *il)
  *  the case of counters roll-over.
  */
 static void
-il4965_accumulative_stats(struct il_priv *il, __le32 * stats)
+il4965_accumulative_stats(struct il_priv *il, __le32 *stats)
 {
 	int i, size;
 	__le32 *prev_stats;
@@ -1349,15 +1575,20 @@ il4965_accumulative_stats(struct il_priv *il, __le32 * stats)
 	max_delta = (u32 *) &il->_4965.max_delta;
 
 	for (i = sizeof(__le32); i < size;
-	     i +=
-	     sizeof(__le32), stats++, prev_stats++, delta++, max_delta++,
-	     accum_stats++) {
-		if (le32_to_cpu(*stats) > le32_to_cpu(*prev_stats)) {
+		 i +=
+			 sizeof(__le32), stats++, prev_stats++, delta++, max_delta++,
+		 accum_stats++)
+	{
+		if (le32_to_cpu(*stats) > le32_to_cpu(*prev_stats))
+		{
 			*delta =
-			    (le32_to_cpu(*stats) - le32_to_cpu(*prev_stats));
+				(le32_to_cpu(*stats) - le32_to_cpu(*prev_stats));
 			*accum_stats += *delta;
+
 			if (*delta > *max_delta)
+			{
 				*max_delta = *delta;
+			}
 		}
 	}
 
@@ -1375,14 +1606,14 @@ il4965_hdl_stats(struct il_priv *il, struct il_rx_buf *rxb)
 	struct il_rx_pkt *pkt = rxb_addr(rxb);
 
 	D_RX("Statistics notification received (%d vs %d).\n",
-	     (int)sizeof(struct il_notif_stats),
-	     le32_to_cpu(pkt->len_n_flags) & IL_RX_FRAME_SIZE_MSK);
+		 (int)sizeof(struct il_notif_stats),
+		 le32_to_cpu(pkt->len_n_flags) & IL_RX_FRAME_SIZE_MSK);
 
 	change =
-	    ((il->_4965.stats.general.common.temperature !=
-	      pkt->u.stats.general.common.temperature) ||
-	     ((il->_4965.stats.flag & STATS_REPLY_FLG_HT40_MODE_MSK) !=
-	      (pkt->u.stats.flag & STATS_REPLY_FLG_HT40_MODE_MSK)));
+		((il->_4965.stats.general.common.temperature !=
+		  pkt->u.stats.general.common.temperature) ||
+		 ((il->_4965.stats.flag & STATS_REPLY_FLG_HT40_MODE_MSK) !=
+		  (pkt->u.stats.flag & STATS_REPLY_FLG_HT40_MODE_MSK)));
 #ifdef CONFIG_IWLEGACY_DEBUGFS
 	il4965_accumulative_stats(il, (__le32 *) &pkt->u.stats);
 #endif
@@ -1397,16 +1628,19 @@ il4965_hdl_stats(struct il_priv *il, struct il_rx_buf *rxb)
 	 * we get a thermal update even if the uCode doesn't give us one
 	 */
 	mod_timer(&il->stats_periodic,
-		  jiffies + msecs_to_jiffies(recalib_seconds * 1000));
+			  jiffies + msecs_to_jiffies(recalib_seconds * 1000));
 
 	if (unlikely(!test_bit(S_SCANNING, &il->status)) &&
-	    (pkt->hdr.cmd == N_STATS)) {
+		(pkt->hdr.cmd == N_STATS))
+	{
 		il4965_rx_calc_noise(il);
 		queue_work(il->workqueue, &il->run_time_calib_work);
 	}
 
 	if (change)
+	{
 		il4965_temperature_calib(il);
+	}
 }
 
 static void
@@ -1414,16 +1648,18 @@ il4965_hdl_c_stats(struct il_priv *il, struct il_rx_buf *rxb)
 {
 	struct il_rx_pkt *pkt = rxb_addr(rxb);
 
-	if (le32_to_cpu(pkt->u.stats.flag) & UCODE_STATS_CLEAR_MSK) {
+	if (le32_to_cpu(pkt->u.stats.flag) & UCODE_STATS_CLEAR_MSK)
+	{
 #ifdef CONFIG_IWLEGACY_DEBUGFS
 		memset(&il->_4965.accum_stats, 0,
-		       sizeof(struct il_notif_stats));
+			   sizeof(struct il_notif_stats));
 		memset(&il->_4965.delta_stats, 0,
-		       sizeof(struct il_notif_stats));
+			   sizeof(struct il_notif_stats));
 		memset(&il->_4965.max_delta, 0, sizeof(struct il_notif_stats));
 #endif
 		D_RX("Statistics have been cleared\n");
 	}
+
 	il4965_hdl_stats(il, rxb);
 }
 
@@ -1454,7 +1690,8 @@ il4965_hdl_c_stats(struct il_priv *il, struct il_rx_buf *rxb)
  * mapping.
  */
 
-static const u8 tid_to_ac[] = {
+static const u8 tid_to_ac[] =
+{
 	IEEE80211_AC_BE,
 	IEEE80211_AC_BK,
 	IEEE80211_AC_BK,
@@ -1469,7 +1706,9 @@ static inline int
 il4965_get_ac_from_tid(u16 tid)
 {
 	if (likely(tid < ARRAY_SIZE(tid_to_ac)))
+	{
 		return tid_to_ac[tid];
+	}
 
 	/* no support for TIDs 8-15 yet */
 	return -EINVAL;
@@ -1478,7 +1717,8 @@ il4965_get_ac_from_tid(u16 tid)
 static inline int
 il4965_get_fifo_from_tid(u16 tid)
 {
-	const u8 ac_to_fifo[] = {
+	const u8 ac_to_fifo[] =
+	{
 		IL_TX_FIFO_VO,
 		IL_TX_FIFO_VI,
 		IL_TX_FIFO_BE,
@@ -1486,7 +1726,9 @@ il4965_get_fifo_from_tid(u16 tid)
 	};
 
 	if (likely(tid < ARRAY_SIZE(tid_to_ac)))
+	{
 		return ac_to_fifo[tid_to_ac[tid]];
+	}
 
 	/* no support for TIDs 8-15 yet */
 	return -EINVAL;
@@ -1497,50 +1739,76 @@ il4965_get_fifo_from_tid(u16 tid)
  */
 static void
 il4965_tx_cmd_build_basic(struct il_priv *il, struct sk_buff *skb,
-			  struct il_tx_cmd *tx_cmd,
-			  struct ieee80211_tx_info *info,
-			  struct ieee80211_hdr *hdr, u8 std_id)
+						  struct il_tx_cmd *tx_cmd,
+						  struct ieee80211_tx_info *info,
+						  struct ieee80211_hdr *hdr, u8 std_id)
 {
 	__le16 fc = hdr->frame_control;
 	__le32 tx_flags = tx_cmd->tx_flags;
 
 	tx_cmd->stop_time.life_time = TX_CMD_LIFE_TIME_INFINITE;
-	if (!(info->flags & IEEE80211_TX_CTL_NO_ACK)) {
+
+	if (!(info->flags & IEEE80211_TX_CTL_NO_ACK))
+	{
 		tx_flags |= TX_CMD_FLG_ACK_MSK;
+
 		if (ieee80211_is_mgmt(fc))
+		{
 			tx_flags |= TX_CMD_FLG_SEQ_CTL_MSK;
+		}
+
 		if (ieee80211_is_probe_resp(fc) &&
-		    !(le16_to_cpu(hdr->seq_ctrl) & 0xf))
+			!(le16_to_cpu(hdr->seq_ctrl) & 0xf))
+		{
 			tx_flags |= TX_CMD_FLG_TSF_MSK;
-	} else {
+		}
+	}
+	else
+	{
 		tx_flags &= (~TX_CMD_FLG_ACK_MSK);
 		tx_flags |= TX_CMD_FLG_SEQ_CTL_MSK;
 	}
 
 	if (ieee80211_is_back_req(fc))
+	{
 		tx_flags |= TX_CMD_FLG_ACK_MSK | TX_CMD_FLG_IMM_BA_RSP_MASK;
+	}
 
 	tx_cmd->sta_id = std_id;
-	if (ieee80211_has_morefrags(fc))
-		tx_flags |= TX_CMD_FLG_MORE_FRAG_MSK;
 
-	if (ieee80211_is_data_qos(fc)) {
+	if (ieee80211_has_morefrags(fc))
+	{
+		tx_flags |= TX_CMD_FLG_MORE_FRAG_MSK;
+	}
+
+	if (ieee80211_is_data_qos(fc))
+	{
 		u8 *qc = ieee80211_get_qos_ctl(hdr);
 		tx_cmd->tid_tspec = qc[0] & 0xf;
 		tx_flags &= ~TX_CMD_FLG_SEQ_CTL_MSK;
-	} else {
+	}
+	else
+	{
 		tx_flags |= TX_CMD_FLG_SEQ_CTL_MSK;
 	}
 
 	il_tx_cmd_protection(il, info, fc, &tx_flags);
 
 	tx_flags &= ~(TX_CMD_FLG_ANT_SEL_MSK);
-	if (ieee80211_is_mgmt(fc)) {
+
+	if (ieee80211_is_mgmt(fc))
+	{
 		if (ieee80211_is_assoc_req(fc) || ieee80211_is_reassoc_req(fc))
+		{
 			tx_cmd->timeout.pm_frame_timeout = cpu_to_le16(3);
+		}
 		else
+		{
 			tx_cmd->timeout.pm_frame_timeout = cpu_to_le16(2);
-	} else {
+		}
+	}
+	else
+	{
 		tx_cmd->timeout.pm_frame_timeout = 0;
 	}
 
@@ -1551,10 +1819,10 @@ il4965_tx_cmd_build_basic(struct il_priv *il, struct sk_buff *skb,
 
 static void
 il4965_tx_cmd_build_rate(struct il_priv *il,
-			 struct il_tx_cmd *tx_cmd,
-			 struct ieee80211_tx_info *info,
-			 struct ieee80211_sta *sta,
-			 __le16 fc)
+						 struct il_tx_cmd *tx_cmd,
+						 struct ieee80211_tx_info *info,
+						 struct ieee80211_sta *sta,
+						 __le16 fc)
 {
 	const u8 rts_retry_limit = 60;
 	u32 rate_flags;
@@ -1564,16 +1832,22 @@ il4965_tx_cmd_build_rate(struct il_priv *il,
 
 	/* Set retry limit on DATA packets and Probe Responses */
 	if (ieee80211_is_probe_resp(fc))
+	{
 		data_retry_limit = 3;
+	}
 	else
+	{
 		data_retry_limit = IL4965_DEFAULT_TX_RETRY;
+	}
+
 	tx_cmd->data_retry_limit = data_retry_limit;
 	/* Set retry limit on RTS packets */
 	tx_cmd->rts_retry_limit = min(data_retry_limit, rts_retry_limit);
 
 	/* DATA packets will use the uCode station table for rate/antenna
 	 * selection */
-	if (ieee80211_is_data(fc)) {
+	if (ieee80211_is_data(fc))
+	{
 		tx_cmd->initial_rate_idx = 0;
 		tx_cmd->tx_flags |= TX_CMD_FLG_STA_RATE_MSK;
 		return;
@@ -1586,12 +1860,19 @@ il4965_tx_cmd_build_rate(struct il_priv *il,
 	 * idx is invalid.
 	 */
 	rate_idx = info->control.rates[0].idx;
+
 	if ((info->control.rates[0].flags & IEEE80211_TX_RC_MCS) || rate_idx < 0
-	    || rate_idx > RATE_COUNT_LEGACY)
+		|| rate_idx > RATE_COUNT_LEGACY)
+	{
 		rate_idx = rate_lowest_index(&il->bands[info->band], sta);
+	}
+
 	/* For 5 GHZ band, remap mac80211 rate indices into driver indices */
 	if (info->band == NL80211_BAND_5GHZ)
+	{
 		rate_idx += IL_FIRST_OFDM_RATE;
+	}
+
 	/* Get PLCP rate for tx_cmd->rate_n_flags */
 	rate_plcp = il_rates[rate_idx].plcp;
 	/* Zero out flags for this packet */
@@ -1599,7 +1880,9 @@ il4965_tx_cmd_build_rate(struct il_priv *il,
 
 	/* Set CCK flag as needed */
 	if (rate_idx >= IL_FIRST_CCK_RATE && rate_idx <= IL_LAST_CCK_RATE)
+	{
 		rate_flags |= RATE_MCS_CCK_MSK;
+	}
 
 	/* Set up antennas */
 	il4965_toggle_tx_ant(il, &il->mgmt_tx_ant, il->hw_params.valid_tx_ant);
@@ -1611,43 +1894,49 @@ il4965_tx_cmd_build_rate(struct il_priv *il,
 
 static void
 il4965_tx_cmd_build_hwcrypto(struct il_priv *il, struct ieee80211_tx_info *info,
-			     struct il_tx_cmd *tx_cmd, struct sk_buff *skb_frag,
-			     int sta_id)
+							 struct il_tx_cmd *tx_cmd, struct sk_buff *skb_frag,
+							 int sta_id)
 {
 	struct ieee80211_key_conf *keyconf = info->control.hw_key;
 
-	switch (keyconf->cipher) {
-	case WLAN_CIPHER_SUITE_CCMP:
-		tx_cmd->sec_ctl = TX_CMD_SEC_CCM;
-		memcpy(tx_cmd->key, keyconf->key, keyconf->keylen);
-		if (info->flags & IEEE80211_TX_CTL_AMPDU)
-			tx_cmd->tx_flags |= TX_CMD_FLG_AGG_CCMP_MSK;
-		D_TX("tx_cmd with AES hwcrypto\n");
-		break;
+	switch (keyconf->cipher)
+	{
+		case WLAN_CIPHER_SUITE_CCMP:
+			tx_cmd->sec_ctl = TX_CMD_SEC_CCM;
+			memcpy(tx_cmd->key, keyconf->key, keyconf->keylen);
 
-	case WLAN_CIPHER_SUITE_TKIP:
-		tx_cmd->sec_ctl = TX_CMD_SEC_TKIP;
-		ieee80211_get_tkip_p2k(keyconf, skb_frag, tx_cmd->key);
-		D_TX("tx_cmd with tkip hwcrypto\n");
-		break;
+			if (info->flags & IEEE80211_TX_CTL_AMPDU)
+			{
+				tx_cmd->tx_flags |= TX_CMD_FLG_AGG_CCMP_MSK;
+			}
 
-	case WLAN_CIPHER_SUITE_WEP104:
-		tx_cmd->sec_ctl |= TX_CMD_SEC_KEY128;
+			D_TX("tx_cmd with AES hwcrypto\n");
+			break;
+
+		case WLAN_CIPHER_SUITE_TKIP:
+			tx_cmd->sec_ctl = TX_CMD_SEC_TKIP;
+			ieee80211_get_tkip_p2k(keyconf, skb_frag, tx_cmd->key);
+			D_TX("tx_cmd with tkip hwcrypto\n");
+			break;
+
+		case WLAN_CIPHER_SUITE_WEP104:
+			tx_cmd->sec_ctl |= TX_CMD_SEC_KEY128;
+
 		/* fall through */
-	case WLAN_CIPHER_SUITE_WEP40:
-		tx_cmd->sec_ctl |=
-		    (TX_CMD_SEC_WEP | (keyconf->keyidx & TX_CMD_SEC_MSK) <<
-		     TX_CMD_SEC_SHIFT);
+		case WLAN_CIPHER_SUITE_WEP40:
+			tx_cmd->sec_ctl |=
+				(TX_CMD_SEC_WEP | (keyconf->keyidx & TX_CMD_SEC_MSK) <<
+				 TX_CMD_SEC_SHIFT);
 
-		memcpy(&tx_cmd->key[3], keyconf->key, keyconf->keylen);
+			memcpy(&tx_cmd->key[3], keyconf->key, keyconf->keylen);
 
-		D_TX("Configuring packet for WEP encryption " "with key %d\n",
-		     keyconf->keyidx);
-		break;
+			D_TX("Configuring packet for WEP encryption " "with key %d\n",
+				 keyconf->keyidx);
+			break;
 
-	default:
-		IL_ERR("Unknown encode cipher %x\n", keyconf->cipher);
-		break;
+		default:
+			IL_ERR("Unknown encode cipher %x\n", keyconf->cipher);
+			break;
 	}
 }
 
@@ -1656,8 +1945,8 @@ il4965_tx_cmd_build_hwcrypto(struct il_priv *il, struct ieee80211_tx_info *info,
  */
 int
 il4965_tx_skb(struct il_priv *il,
-	      struct ieee80211_sta *sta,
-	      struct sk_buff *skb)
+			  struct ieee80211_sta *sta,
+			  struct sk_buff *skb)
 {
 	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)skb->data;
 	struct ieee80211_tx_info *info = IEEE80211_SKB_CB(skb);
@@ -1683,7 +1972,9 @@ il4965_tx_skb(struct il_priv *il,
 	bool is_agg = false;
 
 	spin_lock_irqsave(&il->lock, flags);
-	if (il_is_rfkill(il)) {
+
+	if (il_is_rfkill(il))
+	{
 		D_DROP("Dropping - RF KILL\n");
 		goto drop_unlock;
 	}
@@ -1691,24 +1982,36 @@ il4965_tx_skb(struct il_priv *il,
 	fc = hdr->frame_control;
 
 #ifdef CONFIG_IWLEGACY_DEBUG
+
 	if (ieee80211_is_auth(fc))
+	{
 		D_TX("Sending AUTH frame\n");
+	}
 	else if (ieee80211_is_assoc_req(fc))
+	{
 		D_TX("Sending ASSOC frame\n");
+	}
 	else if (ieee80211_is_reassoc_req(fc))
+	{
 		D_TX("Sending REASSOC frame\n");
+	}
+
 #endif
 
 	hdr_len = ieee80211_hdrlen(fc);
 
 	/* For management frames use broadcast id to do not break aggregation */
 	if (!ieee80211_is_data(fc))
+	{
 		sta_id = il->hw_params.bcast_id;
-	else {
+	}
+	else
+	{
 		/* Find idx into station table for destination station */
 		sta_id = il_sta_id_or_broadcast(il, sta);
 
-		if (sta_id == IL_INVALID_STATION) {
+		if (sta_id == IL_INVALID_STATION)
+		{
 			D_DROP("Dropping - INVALID STATION: %pM\n", hdr->addr1);
 			goto drop_unlock;
 		}
@@ -1717,10 +2020,13 @@ il4965_tx_skb(struct il_priv *il,
 	D_TX("station Id %d\n", sta_id);
 
 	if (sta)
+	{
 		sta_priv = (void *)sta->drv_priv;
+	}
 
 	if (sta_priv && sta_priv->asleep &&
-	    (info->flags & IEEE80211_TX_CTL_NO_PS_BUFFER)) {
+		(info->flags & IEEE80211_TX_CTL_NO_PS_BUFFER))
+	{
 		/*
 		 * This sends an asynchronous command to the device,
 		 * but we can rely on it being processed before the
@@ -1742,22 +2048,28 @@ il4965_tx_skb(struct il_priv *il,
 	/* irqs already disabled/saved above when locking il->lock */
 	spin_lock(&il->sta_lock);
 
-	if (ieee80211_is_data_qos(fc)) {
+	if (ieee80211_is_data_qos(fc))
+	{
 		qc = ieee80211_get_qos_ctl(hdr);
 		tid = qc[0] & IEEE80211_QOS_CTL_TID_MASK;
-		if (WARN_ON_ONCE(tid >= MAX_TID_COUNT)) {
+
+		if (WARN_ON_ONCE(tid >= MAX_TID_COUNT))
+		{
 			spin_unlock(&il->sta_lock);
 			goto drop_unlock;
 		}
+
 		seq_number = il->stations[sta_id].tid[tid].seq_number;
 		seq_number &= IEEE80211_SCTL_SEQ;
 		hdr->seq_ctrl =
-		    hdr->seq_ctrl & cpu_to_le16(IEEE80211_SCTL_FRAG);
+			hdr->seq_ctrl & cpu_to_le16(IEEE80211_SCTL_FRAG);
 		hdr->seq_ctrl |= cpu_to_le16(seq_number);
 		seq_number += 0x10;
+
 		/* aggregation is on for this <sta,tid> */
 		if (info->flags & IEEE80211_TX_CTL_AMPDU &&
-		    il->stations[sta_id].tid[tid].agg.state == IL_AGG_ON) {
+			il->stations[sta_id].tid[tid].agg.state == IL_AGG_ON)
+		{
 			txq_id = il->stations[sta_id].tid[tid].agg.txq_id;
 			is_agg = true;
 		}
@@ -1766,15 +2078,20 @@ il4965_tx_skb(struct il_priv *il,
 	txq = &il->txq[txq_id];
 	q = &txq->q;
 
-	if (unlikely(il_queue_space(q) < q->high_mark)) {
+	if (unlikely(il_queue_space(q) < q->high_mark))
+	{
 		spin_unlock(&il->sta_lock);
 		goto drop_unlock;
 	}
 
-	if (ieee80211_is_data_qos(fc)) {
+	if (ieee80211_is_data_qos(fc))
+	{
 		il->stations[sta_id].tid[tid].tfds_in_queue++;
+
 		if (!ieee80211_has_morefrags(fc))
+		{
 			il->stations[sta_id].tid[tid].seq_number = seq_number;
+		}
 	}
 
 	spin_unlock(&il->sta_lock);
@@ -1796,8 +2113,8 @@ il4965_tx_skb(struct il_priv *il,
 	 */
 	out_cmd->hdr.cmd = C_TX;
 	out_cmd->hdr.sequence =
-	    cpu_to_le16((u16)
-			(QUEUE_TO_SEQ(txq_id) | IDX_TO_SEQ(q->write_ptr)));
+		cpu_to_le16((u16)
+					(QUEUE_TO_SEQ(txq_id) | IDX_TO_SEQ(q->write_ptr)));
 
 	/* Copy MAC header from skb into command buffer */
 	memcpy(tx_cmd->hdr, hdr, hdr_len);
@@ -1806,7 +2123,9 @@ il4965_tx_skb(struct il_priv *il,
 	tx_cmd->len = cpu_to_le16((u16) skb->len);
 
 	if (info->control.hw_key)
+	{
 		il4965_tx_cmd_build_hwcrypto(il, info, tx_cmd, skb, sta_id);
+	}
 
 	/* TODO need this for burst mode later on */
 	il4965_tx_cmd_build_basic(il, skb, tx_cmd, info, hdr, sta_id);
@@ -1827,25 +2146,35 @@ il4965_tx_skb(struct il_priv *il,
 
 	/* Tell NIC about any 2-byte padding after MAC header */
 	if (firstlen != len)
+	{
 		tx_cmd->tx_flags |= TX_CMD_FLG_MH_PAD_MSK;
+	}
 
 	/* Physical address of this Tx command's header (not MAC header!),
 	 * within command buffer array. */
 	txcmd_phys =
-	    pci_map_single(il->pci_dev, &out_cmd->hdr, firstlen,
-			   PCI_DMA_BIDIRECTIONAL);
+		pci_map_single(il->pci_dev, &out_cmd->hdr, firstlen,
+					   PCI_DMA_BIDIRECTIONAL);
+
 	if (unlikely(pci_dma_mapping_error(il->pci_dev, txcmd_phys)))
+	{
 		goto drop_unlock;
+	}
 
 	/* Set up TFD's 2nd entry to point directly to remainder of skb,
 	 * if any (802.11 null frames have no payload). */
 	secondlen = skb->len - hdr_len;
-	if (secondlen > 0) {
+
+	if (secondlen > 0)
+	{
 		phys_addr =
-		    pci_map_single(il->pci_dev, skb->data + hdr_len, secondlen,
-				   PCI_DMA_TODEVICE);
+			pci_map_single(il->pci_dev, skb->data + hdr_len, secondlen,
+						   PCI_DMA_TODEVICE);
+
 		if (unlikely(pci_dma_mapping_error(il->pci_dev, phys_addr)))
+		{
 			goto drop_unlock;
+		}
 	}
 
 	/* Add buffer containing Tx command and MAC(!) header to TFD's
@@ -1853,24 +2182,28 @@ il4965_tx_skb(struct il_priv *il,
 	il->ops->txq_attach_buf_to_tfd(il, txq, txcmd_phys, firstlen, 1, 0);
 	dma_unmap_addr_set(out_meta, mapping, txcmd_phys);
 	dma_unmap_len_set(out_meta, len, firstlen);
+
 	if (secondlen)
 		il->ops->txq_attach_buf_to_tfd(il, txq, phys_addr, secondlen,
-					       0, 0);
+									   0, 0);
 
-	if (!ieee80211_has_morefrags(hdr->frame_control)) {
+	if (!ieee80211_has_morefrags(hdr->frame_control))
+	{
 		txq->need_update = 1;
-	} else {
+	}
+	else
+	{
 		wait_write_ptr = 1;
 		txq->need_update = 0;
 	}
 
 	scratch_phys =
-	    txcmd_phys + sizeof(struct il_cmd_header) +
-	    offsetof(struct il_tx_cmd, scratch);
+		txcmd_phys + sizeof(struct il_cmd_header) +
+		offsetof(struct il_tx_cmd, scratch);
 
 	/* take back ownership of DMA buffer to enable update */
 	pci_dma_sync_single_for_cpu(il->pci_dev, txcmd_phys, firstlen,
-				    PCI_DMA_BIDIRECTIONAL);
+								PCI_DMA_BIDIRECTIONAL);
 	tx_cmd->dram_lsb_ptr = cpu_to_le32(scratch_phys);
 	tx_cmd->dram_msb_ptr = il_get_dma_hi_addr(scratch_phys);
 
@@ -1883,10 +2216,12 @@ il4965_tx_skb(struct il_priv *il,
 
 	/* Set up entry for this TFD in Tx byte-count array */
 	if (info->flags & IEEE80211_TX_CTL_AMPDU)
+	{
 		il->ops->txq_update_byte_cnt_tbl(il, txq, le16_to_cpu(tx_cmd->len));
+	}
 
 	pci_dma_sync_single_for_device(il->pci_dev, txcmd_phys, firstlen,
-				       PCI_DMA_BIDIRECTIONAL);
+								   PCI_DMA_BIDIRECTIONAL);
 
 	/* Tell device the write idx *just past* this latest filled TFD */
 	q->write_ptr = il_queue_inc_wrap(q->write_ptr, q->n_bd);
@@ -1908,15 +2243,21 @@ il4965_tx_skb(struct il_priv *il,
 	 * goes to sleep.
 	 */
 	if (sta_priv && sta_priv->client && !is_agg)
+	{
 		atomic_inc(&sta_priv->pending_frames);
+	}
 
-	if (il_queue_space(q) < q->high_mark && il->mac80211_registered) {
-		if (wait_write_ptr) {
+	if (il_queue_space(q) < q->high_mark && il->mac80211_registered)
+	{
+		if (wait_write_ptr)
+		{
 			spin_lock_irqsave(&il->lock, flags);
 			txq->need_update = 1;
 			il_txq_update_write_ptr(il, txq);
 			spin_unlock_irqrestore(&il->lock, flags);
-		} else {
+		}
+		else
+		{
 			il_stop_queue(il, txq);
 		}
 	}
@@ -1932,9 +2273,13 @@ static inline int
 il4965_alloc_dma_ptr(struct il_priv *il, struct il_dma_ptr *ptr, size_t size)
 {
 	ptr->addr = dma_alloc_coherent(&il->pci_dev->dev, size, &ptr->dma,
-				       GFP_KERNEL);
+								   GFP_KERNEL);
+
 	if (!ptr->addr)
+	{
 		return -ENOMEM;
+	}
+
 	ptr->size = size;
 	return 0;
 }
@@ -1943,7 +2288,9 @@ static inline void
 il4965_free_dma_ptr(struct il_priv *il, struct il_dma_ptr *ptr)
 {
 	if (unlikely(!ptr->addr))
+	{
 		return;
+	}
 
 	dma_free_coherent(&il->pci_dev->dev, ptr->size, ptr->addr, ptr->dma);
 	memset(ptr, 0, sizeof(*ptr));
@@ -1960,13 +2307,19 @@ il4965_hw_txq_ctx_free(struct il_priv *il)
 	int txq_id;
 
 	/* Tx queues */
-	if (il->txq) {
+	if (il->txq)
+	{
 		for (txq_id = 0; txq_id < il->hw_params.max_txq_num; txq_id++)
 			if (txq_id == il->cmd_queue)
+			{
 				il_cmd_queue_free(il);
+			}
 			else
+			{
 				il_tx_queue_free(il, txq_id);
+			}
 	}
+
 	il4965_free_dma_ptr(il, &il->kw);
 
 	il4965_free_dma_ptr(il, &il->scd_bc_tbls);
@@ -1992,23 +2345,31 @@ il4965_txq_ctx_alloc(struct il_priv *il)
 	il4965_hw_txq_ctx_free(il);
 
 	ret =
-	    il4965_alloc_dma_ptr(il, &il->scd_bc_tbls,
-				 il->hw_params.scd_bc_tbls_size);
-	if (ret) {
+		il4965_alloc_dma_ptr(il, &il->scd_bc_tbls,
+							 il->hw_params.scd_bc_tbls_size);
+
+	if (ret)
+	{
 		IL_ERR("Scheduler BC Table allocation failed\n");
 		goto error_bc_tbls;
 	}
+
 	/* Alloc keep-warm buffer */
 	ret = il4965_alloc_dma_ptr(il, &il->kw, IL_KW_SIZE);
-	if (ret) {
+
+	if (ret)
+	{
 		IL_ERR("Keep Warm allocation failed\n");
 		goto error_kw;
 	}
 
 	/* allocate tx queue structure */
 	ret = il_alloc_txq_mem(il);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	spin_lock_irqsave(&il->lock, flags);
 
@@ -2021,9 +2382,12 @@ il4965_txq_ctx_alloc(struct il_priv *il)
 	spin_unlock_irqrestore(&il->lock, flags);
 
 	/* Alloc and init all Tx queues, including the command queue (#4/#9) */
-	for (txq_id = 0; txq_id < il->hw_params.max_txq_num; txq_id++) {
+	for (txq_id = 0; txq_id < il->hw_params.max_txq_num; txq_id++)
+	{
 		ret = il_tx_queue_init(il, txq_id);
-		if (ret) {
+
+		if (ret)
+		{
 			IL_ERR("Tx %d queue init failed\n", txq_id);
 			goto error;
 		}
@@ -2057,7 +2421,9 @@ il4965_txq_ctx_reset(struct il_priv *il)
 
 	/* Alloc and init all Tx queues, including the command queue (#4) */
 	for (txq_id = 0; txq_id < il->hw_params.max_txq_num; txq_id++)
+	{
 		il_tx_queue_reset(il, txq_id);
+	}
 }
 
 static void
@@ -2066,14 +2432,20 @@ il4965_txq_ctx_unmap(struct il_priv *il)
 	int txq_id;
 
 	if (!il->txq)
+	{
 		return;
+	}
 
 	/* Unmap DMA from host system and free skb's */
 	for (txq_id = 0; txq_id < il->hw_params.max_txq_num; txq_id++)
 		if (txq_id == il->cmd_queue)
+		{
 			il_cmd_queue_unmap(il);
+		}
 		else
+		{
 			il_tx_queue_unmap(il, txq_id);
+		}
 }
 
 /**
@@ -2087,16 +2459,18 @@ il4965_txq_ctx_stop(struct il_priv *il)
 	_il_wr_prph(il, IL49_SCD_TXFACT, 0);
 
 	/* Stop each Tx DMA channel, and wait for it to be idle */
-	for (ch = 0; ch < il->hw_params.dma_chnl_num; ch++) {
+	for (ch = 0; ch < il->hw_params.dma_chnl_num; ch++)
+	{
 		_il_wr(il, FH49_TCSR_CHNL_TX_CONFIG_REG(ch), 0x0);
 		ret =
-		    _il_poll_bit(il, FH49_TSSR_TX_STATUS_REG,
-				 FH49_TSSR_TX_STATUS_REG_MSK_CHNL_IDLE(ch),
-				 FH49_TSSR_TX_STATUS_REG_MSK_CHNL_IDLE(ch),
-				 1000);
+			_il_poll_bit(il, FH49_TSSR_TX_STATUS_REG,
+						 FH49_TSSR_TX_STATUS_REG_MSK_CHNL_IDLE(ch),
+						 FH49_TSSR_TX_STATUS_REG_MSK_CHNL_IDLE(ch),
+						 1000);
+
 		if (ret < 0)
 			IL_ERR("Timeout stopping DMA channel %d [0x%08x]",
-			       ch, _il_rd(il, FH49_TSSR_TX_STATUS_REG));
+				   ch, _il_rd(il, FH49_TSSR_TX_STATUS_REG));
 	}
 }
 
@@ -2113,7 +2487,10 @@ il4965_txq_ctx_activate_free(struct il_priv *il)
 
 	for (txq_id = 0; txq_id < il->hw_params.max_txq_num; txq_id++)
 		if (!test_and_set_bit(txq_id, &il->txq_ctx_active_msk))
+		{
 			return txq_id;
+		}
+
 	return -1;
 }
 
@@ -2126,8 +2503,8 @@ il4965_tx_queue_stop_scheduler(struct il_priv *il, u16 txq_id)
 	/* Simply stop the queue, but don't change any configuration;
 	 * the SCD_ACT_EN bit is the write-enable mask for the ACTIVE bit. */
 	il_wr_prph(il, IL49_SCD_QUEUE_STATUS_BITS(txq_id),
-		   (0 << IL49_SCD_QUEUE_STTS_REG_POS_ACTIVE) |
-		   (1 << IL49_SCD_QUEUE_STTS_REG_POS_SCD_ACT_EN));
+			   (0 << IL49_SCD_QUEUE_STTS_REG_POS_ACTIVE) |
+			   (1 << IL49_SCD_QUEUE_STTS_REG_POS_SCD_ACT_EN));
 }
 
 /**
@@ -2143,14 +2520,18 @@ il4965_tx_queue_set_q2ratid(struct il_priv *il, u16 ra_tid, u16 txq_id)
 	scd_q2ratid = ra_tid & IL_SCD_QUEUE_RA_TID_MAP_RATID_MSK;
 
 	tbl_dw_addr =
-	    il->scd_base_addr + IL49_SCD_TRANSLATE_TBL_OFFSET_QUEUE(txq_id);
+		il->scd_base_addr + IL49_SCD_TRANSLATE_TBL_OFFSET_QUEUE(txq_id);
 
 	tbl_dw = il_read_targ_mem(il, tbl_dw_addr);
 
 	if (txq_id & 0x1)
+	{
 		tbl_dw = (scd_q2ratid << 16) | (tbl_dw & 0x0000FFFF);
+	}
 	else
+	{
 		tbl_dw = scd_q2ratid | (tbl_dw & 0xFFFF0000);
+	}
 
 	il_write_targ_mem(il, tbl_dw_addr, tbl_dw);
 
@@ -2165,19 +2546,20 @@ il4965_tx_queue_set_q2ratid(struct il_priv *il, u16 ra_tid, u16 txq_id)
  */
 static int
 il4965_txq_agg_enable(struct il_priv *il, int txq_id, int tx_fifo, int sta_id,
-		      int tid, u16 ssn_idx)
+					  int tid, u16 ssn_idx)
 {
 	unsigned long flags;
 	u16 ra_tid;
 	int ret;
 
 	if ((IL49_FIRST_AMPDU_QUEUE > txq_id) ||
-	    (IL49_FIRST_AMPDU_QUEUE +
-	     il->cfg->num_of_ampdu_queues <= txq_id)) {
+		(IL49_FIRST_AMPDU_QUEUE +
+		 il->cfg->num_of_ampdu_queues <= txq_id))
+	{
 		IL_WARN("queue number out of range: %d, must be %d to %d\n",
-			txq_id, IL49_FIRST_AMPDU_QUEUE,
-			IL49_FIRST_AMPDU_QUEUE +
-			il->cfg->num_of_ampdu_queues - 1);
+				txq_id, IL49_FIRST_AMPDU_QUEUE,
+				IL49_FIRST_AMPDU_QUEUE +
+				il->cfg->num_of_ampdu_queues - 1);
 		return -EINVAL;
 	}
 
@@ -2185,8 +2567,11 @@ il4965_txq_agg_enable(struct il_priv *il, int txq_id, int tx_fifo, int sta_id,
 
 	/* Modify device's station table to Tx this TID */
 	ret = il4965_sta_tx_modify_enable_tid(il, sta_id, tid);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	spin_lock_irqsave(&il->lock, flags);
 
@@ -2207,17 +2592,17 @@ il4965_txq_agg_enable(struct il_priv *il, int txq_id, int tx_fifo, int sta_id,
 
 	/* Set up Tx win size and frame limit for this queue */
 	il_write_targ_mem(il,
-			  il->scd_base_addr +
-			  IL49_SCD_CONTEXT_QUEUE_OFFSET(txq_id),
-			  (SCD_WIN_SIZE << IL49_SCD_QUEUE_CTX_REG1_WIN_SIZE_POS)
-			  & IL49_SCD_QUEUE_CTX_REG1_WIN_SIZE_MSK);
+					  il->scd_base_addr +
+					  IL49_SCD_CONTEXT_QUEUE_OFFSET(txq_id),
+					  (SCD_WIN_SIZE << IL49_SCD_QUEUE_CTX_REG1_WIN_SIZE_POS)
+					  & IL49_SCD_QUEUE_CTX_REG1_WIN_SIZE_MSK);
 
 	il_write_targ_mem(il,
-			  il->scd_base_addr +
-			  IL49_SCD_CONTEXT_QUEUE_OFFSET(txq_id) + sizeof(u32),
-			  (SCD_FRAME_LIMIT <<
-			   IL49_SCD_QUEUE_CTX_REG2_FRAME_LIMIT_POS) &
-			  IL49_SCD_QUEUE_CTX_REG2_FRAME_LIMIT_MSK);
+					  il->scd_base_addr +
+					  IL49_SCD_CONTEXT_QUEUE_OFFSET(txq_id) + sizeof(u32),
+					  (SCD_FRAME_LIMIT <<
+					   IL49_SCD_QUEUE_CTX_REG2_FRAME_LIMIT_POS) &
+					  IL49_SCD_QUEUE_CTX_REG2_FRAME_LIMIT_MSK);
 
 	il_set_bits_prph(il, IL49_SCD_INTERRUPT_MASK, (1 << txq_id));
 
@@ -2231,7 +2616,7 @@ il4965_txq_agg_enable(struct il_priv *il, int txq_id, int tx_fifo, int sta_id,
 
 int
 il4965_tx_agg_start(struct il_priv *il, struct ieee80211_vif *vif,
-		    struct ieee80211_sta *sta, u16 tid, u16 * ssn)
+					struct ieee80211_sta *sta, u16 tid, u16 *ssn)
 {
 	int sta_id;
 	int tx_fifo;
@@ -2242,26 +2627,37 @@ il4965_tx_agg_start(struct il_priv *il, struct ieee80211_vif *vif,
 
 	/* FIXME: warning if tx fifo not found ? */
 	tx_fifo = il4965_get_fifo_from_tid(tid);
+
 	if (unlikely(tx_fifo < 0))
+	{
 		return tx_fifo;
+	}
 
 	D_HT("%s on ra = %pM tid = %d\n", __func__, sta->addr, tid);
 
 	sta_id = il_sta_id(sta);
-	if (sta_id == IL_INVALID_STATION) {
+
+	if (sta_id == IL_INVALID_STATION)
+	{
 		IL_ERR("Start AGG on invalid station\n");
 		return -ENXIO;
 	}
-	if (unlikely(tid >= MAX_TID_COUNT))
-		return -EINVAL;
 
-	if (il->stations[sta_id].tid[tid].agg.state != IL_AGG_OFF) {
+	if (unlikely(tid >= MAX_TID_COUNT))
+	{
+		return -EINVAL;
+	}
+
+	if (il->stations[sta_id].tid[tid].agg.state != IL_AGG_OFF)
+	{
 		IL_ERR("Start AGG when state is not IL_AGG_OFF !\n");
 		return -ENXIO;
 	}
 
 	txq_id = il4965_txq_ctx_activate_free(il);
-	if (txq_id == -1) {
+
+	if (txq_id == -1)
+	{
 		IL_ERR("No free aggregation queue available\n");
 		return -ENXIO;
 	}
@@ -2274,20 +2670,28 @@ il4965_tx_agg_start(struct il_priv *il, struct ieee80211_vif *vif,
 	spin_unlock_irqrestore(&il->sta_lock, flags);
 
 	ret = il4965_txq_agg_enable(il, txq_id, tx_fifo, sta_id, tid, *ssn);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	spin_lock_irqsave(&il->sta_lock, flags);
 	tid_data = &il->stations[sta_id].tid[tid];
-	if (tid_data->tfds_in_queue == 0) {
+
+	if (tid_data->tfds_in_queue == 0)
+	{
 		D_HT("HW queue is empty\n");
 		tid_data->agg.state = IL_AGG_ON;
 		ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
-	} else {
+	}
+	else
+	{
 		D_HT("HW queue is NOT empty: %d packets in HW queue\n",
-		     tid_data->tfds_in_queue);
+			 tid_data->tfds_in_queue);
 		tid_data->agg.state = IL_EMPTYING_HW_QUEUE_ADDBA;
 	}
+
 	spin_unlock_irqrestore(&il->sta_lock, flags);
 	return ret;
 }
@@ -2300,12 +2704,13 @@ static int
 il4965_txq_agg_disable(struct il_priv *il, u16 txq_id, u16 ssn_idx, u8 tx_fifo)
 {
 	if ((IL49_FIRST_AMPDU_QUEUE > txq_id) ||
-	    (IL49_FIRST_AMPDU_QUEUE +
-	     il->cfg->num_of_ampdu_queues <= txq_id)) {
+		(IL49_FIRST_AMPDU_QUEUE +
+		 il->cfg->num_of_ampdu_queues <= txq_id))
+	{
 		IL_WARN("queue number out of range: %d, must be %d to %d\n",
-			txq_id, IL49_FIRST_AMPDU_QUEUE,
-			IL49_FIRST_AMPDU_QUEUE +
-			il->cfg->num_of_ampdu_queues - 1);
+				txq_id, IL49_FIRST_AMPDU_QUEUE,
+				IL49_FIRST_AMPDU_QUEUE +
+				il->cfg->num_of_ampdu_queues - 1);
 		return -EINVAL;
 	}
 
@@ -2327,7 +2732,7 @@ il4965_txq_agg_disable(struct il_priv *il, u16 txq_id, u16 ssn_idx, u8 tx_fifo)
 
 int
 il4965_tx_agg_stop(struct il_priv *il, struct ieee80211_vif *vif,
-		   struct ieee80211_sta *sta, u16 tid)
+				   struct ieee80211_sta *sta, u16 tid)
 {
 	int tx_fifo_id, txq_id, sta_id, ssn;
 	struct il_tid_data *tid_data;
@@ -2336,12 +2741,16 @@ il4965_tx_agg_stop(struct il_priv *il, struct ieee80211_vif *vif,
 
 	/* FIXME: warning if tx_fifo_id not found ? */
 	tx_fifo_id = il4965_get_fifo_from_tid(tid);
+
 	if (unlikely(tx_fifo_id < 0))
+	{
 		return tx_fifo_id;
+	}
 
 	sta_id = il_sta_id(sta);
 
-	if (sta_id == IL_INVALID_STATION) {
+	if (sta_id == IL_INVALID_STATION)
+	{
 		IL_ERR("Invalid station for AGG tid %d\n", tid);
 		return -ENXIO;
 	}
@@ -2352,30 +2761,34 @@ il4965_tx_agg_stop(struct il_priv *il, struct ieee80211_vif *vif,
 	ssn = (tid_data->seq_number & IEEE80211_SCTL_SEQ) >> 4;
 	txq_id = tid_data->agg.txq_id;
 
-	switch (il->stations[sta_id].tid[tid].agg.state) {
-	case IL_EMPTYING_HW_QUEUE_ADDBA:
-		/*
-		 * This can happen if the peer stops aggregation
-		 * again before we've had a chance to drain the
-		 * queue we selected previously, i.e. before the
-		 * session was really started completely.
-		 */
-		D_HT("AGG stop before setup done\n");
-		goto turn_off;
-	case IL_AGG_ON:
-		break;
-	default:
-		IL_WARN("Stopping AGG while state not ON or starting\n");
+	switch (il->stations[sta_id].tid[tid].agg.state)
+	{
+		case IL_EMPTYING_HW_QUEUE_ADDBA:
+			/*
+			 * This can happen if the peer stops aggregation
+			 * again before we've had a chance to drain the
+			 * queue we selected previously, i.e. before the
+			 * session was really started completely.
+			 */
+			D_HT("AGG stop before setup done\n");
+			goto turn_off;
+
+		case IL_AGG_ON:
+			break;
+
+		default:
+			IL_WARN("Stopping AGG while state not ON or starting\n");
 	}
 
 	write_ptr = il->txq[txq_id].q.write_ptr;
 	read_ptr = il->txq[txq_id].q.read_ptr;
 
 	/* The queue is not empty */
-	if (write_ptr != read_ptr) {
+	if (write_ptr != read_ptr)
+	{
 		D_HT("Stopping a non empty AGG HW QUEUE\n");
 		il->stations[sta_id].tid[tid].agg.state =
-		    IL_EMPTYING_HW_QUEUE_DELBA;
+			IL_EMPTYING_HW_QUEUE_DELBA;
 		spin_unlock_irqrestore(&il->sta_lock, flags);
 		return 0;
 	}
@@ -2412,28 +2825,36 @@ il4965_txq_check_empty(struct il_priv *il, int sta_id, u8 tid, int txq_id)
 
 	lockdep_assert_held(&il->sta_lock);
 
-	switch (il->stations[sta_id].tid[tid].agg.state) {
-	case IL_EMPTYING_HW_QUEUE_DELBA:
-		/* We are reclaiming the last packet of the */
-		/* aggregated HW queue */
-		if (txq_id == tid_data->agg.txq_id &&
-		    q->read_ptr == q->write_ptr) {
-			u16 ssn = IEEE80211_SEQ_TO_SN(tid_data->seq_number);
-			int tx_fifo = il4965_get_fifo_from_tid(tid);
-			D_HT("HW queue empty: continue DELBA flow\n");
-			il4965_txq_agg_disable(il, txq_id, ssn, tx_fifo);
-			tid_data->agg.state = IL_AGG_OFF;
-			ieee80211_stop_tx_ba_cb_irqsafe(il->vif, addr, tid);
-		}
-		break;
-	case IL_EMPTYING_HW_QUEUE_ADDBA:
-		/* We are reclaiming the last packet of the queue */
-		if (tid_data->tfds_in_queue == 0) {
-			D_HT("HW queue empty: continue ADDBA flow\n");
-			tid_data->agg.state = IL_AGG_ON;
-			ieee80211_start_tx_ba_cb_irqsafe(il->vif, addr, tid);
-		}
-		break;
+	switch (il->stations[sta_id].tid[tid].agg.state)
+	{
+		case IL_EMPTYING_HW_QUEUE_DELBA:
+
+			/* We are reclaiming the last packet of the */
+			/* aggregated HW queue */
+			if (txq_id == tid_data->agg.txq_id &&
+				q->read_ptr == q->write_ptr)
+			{
+				u16 ssn = IEEE80211_SEQ_TO_SN(tid_data->seq_number);
+				int tx_fifo = il4965_get_fifo_from_tid(tid);
+				D_HT("HW queue empty: continue DELBA flow\n");
+				il4965_txq_agg_disable(il, txq_id, ssn, tx_fifo);
+				tid_data->agg.state = IL_AGG_OFF;
+				ieee80211_stop_tx_ba_cb_irqsafe(il->vif, addr, tid);
+			}
+
+			break;
+
+		case IL_EMPTYING_HW_QUEUE_ADDBA:
+
+			/* We are reclaiming the last packet of the queue */
+			if (tid_data->tfds_in_queue == 0)
+			{
+				D_HT("HW queue empty: continue ADDBA flow\n");
+				tid_data->agg.state = IL_AGG_ON;
+				ieee80211_start_tx_ba_cb_irqsafe(il->vif, addr, tid);
+			}
+
+			break;
 	}
 
 	return 0;
@@ -2447,13 +2868,19 @@ il4965_non_agg_tx_status(struct il_priv *il, const u8 *addr1)
 
 	rcu_read_lock();
 	sta = ieee80211_find_sta(il->vif, addr1);
-	if (sta) {
+
+	if (sta)
+	{
 		sta_priv = (void *)sta->drv_priv;
+
 		/* avoid atomic ops if this isn't a client */
 		if (sta_priv->client &&
-		    atomic_dec_return(&sta_priv->pending_frames) == 0)
+			atomic_dec_return(&sta_priv->pending_frames) == 0)
+		{
 			ieee80211_sta_block_awake(il->hw, sta, false);
+		}
 	}
+
 	rcu_read_unlock();
 }
 
@@ -2463,7 +2890,9 @@ il4965_tx_status(struct il_priv *il, struct sk_buff *skb, bool is_agg)
 	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)skb->data;
 
 	if (!is_agg)
+	{
 		il4965_non_agg_tx_status(il, hdr->addr1);
+	}
 
 	ieee80211_tx_status_irqsafe(il->hw, skb);
 }
@@ -2477,30 +2906,38 @@ il4965_tx_queue_reclaim(struct il_priv *il, int txq_id, int idx)
 	struct ieee80211_hdr *hdr;
 	struct sk_buff *skb;
 
-	if (idx >= q->n_bd || il_queue_used(q, idx) == 0) {
+	if (idx >= q->n_bd || il_queue_used(q, idx) == 0)
+	{
 		IL_ERR("Read idx for DMA queue txq id (%d), idx %d, "
-		       "is out of range [0-%d] %d %d.\n", txq_id, idx, q->n_bd,
-		       q->write_ptr, q->read_ptr);
+			   "is out of range [0-%d] %d %d.\n", txq_id, idx, q->n_bd,
+			   q->write_ptr, q->read_ptr);
 		return 0;
 	}
 
 	for (idx = il_queue_inc_wrap(idx, q->n_bd); q->read_ptr != idx;
-	     q->read_ptr = il_queue_inc_wrap(q->read_ptr, q->n_bd)) {
+		 q->read_ptr = il_queue_inc_wrap(q->read_ptr, q->n_bd))
+	{
 
 		skb = txq->skbs[txq->q.read_ptr];
 
 		if (WARN_ON_ONCE(skb == NULL))
+		{
 			continue;
+		}
 
 		hdr = (struct ieee80211_hdr *) skb->data;
+
 		if (ieee80211_is_data_qos(hdr->frame_control))
+		{
 			nfreed++;
+		}
 
 		il4965_tx_status(il, skb, txq_id >= IL4965_FIRST_AMPDU_QUEUE);
 
 		txq->skbs[txq->q.read_ptr] = NULL;
 		il->ops->txq_free_tfd(il, txq);
 	}
+
 	return nfreed;
 }
 
@@ -2512,7 +2949,7 @@ il4965_tx_queue_reclaim(struct il_priv *il, int txq_id, int idx)
  */
 static int
 il4965_tx_status_reply_compressed_ba(struct il_priv *il, struct il_ht_agg *agg,
-				     struct il_compressed_ba_resp *ba_resp)
+									 struct il_compressed_ba_resp *ba_resp)
 {
 	int i, sh, ack;
 	u16 seq_ctl = le16_to_cpu(ba_resp->seq_ctl);
@@ -2521,9 +2958,13 @@ il4965_tx_status_reply_compressed_ba(struct il_priv *il, struct il_ht_agg *agg,
 	struct ieee80211_tx_info *info;
 	u64 bitmap, sent_bitmap;
 
-	if (unlikely(!agg->wait_for_ba)) {
+	if (unlikely(!agg->wait_for_ba))
+	{
 		if (unlikely(ba_resp->bitmap))
+		{
 			IL_ERR("Received BA when not expected\n");
+		}
+
 		return -EINVAL;
 	}
 
@@ -2533,10 +2974,14 @@ il4965_tx_status_reply_compressed_ba(struct il_priv *il, struct il_ht_agg *agg,
 
 	/* Calculate shift to align block-ack bits with our Tx win bits */
 	sh = agg->start_idx - SEQ_TO_IDX(seq_ctl >> 4);
-	if (sh < 0)		/* tbw something is wrong with indices */
-		sh += 0x100;
 
-	if (agg->frame_count > (64 - sh)) {
+	if (sh < 0)		/* tbw something is wrong with indices */
+	{
+		sh += 0x100;
+	}
+
+	if (agg->frame_count > (64 - sh))
+	{
 		D_TX_REPLY("more frames than bitmap size");
 		return -1;
 	}
@@ -2551,11 +2996,13 @@ il4965_tx_status_reply_compressed_ba(struct il_priv *il, struct il_ht_agg *agg,
 	/* For each frame attempted in aggregation,
 	 * update driver's record of tx frame's status. */
 	i = 0;
-	while (sent_bitmap) {
+
+	while (sent_bitmap)
+	{
 		ack = sent_bitmap & 1ULL;
 		successes += ack;
 		D_TX_REPLY("%s ON i=%d idx=%d raw=%d\n", ack ? "ACK" : "NACK",
-			   i, (agg->start_idx + i) & 0xff, agg->start_idx + i);
+				   i, (agg->start_idx + i) & 0xff, agg->start_idx + i);
 		sent_bitmap >>= 1;
 		++i;
 	}
@@ -2589,15 +3036,21 @@ il4965_find_station(struct il_priv *il, const u8 *addr)
 	unsigned long flags;
 
 	if (il->iw_mode == NL80211_IFTYPE_ADHOC)
+	{
 		start = IL_STA_ID;
+	}
 
 	if (is_broadcast_ether_addr(addr))
+	{
 		return il->hw_params.bcast_id;
+	}
 
 	spin_lock_irqsave(&il->sta_lock, flags);
+
 	for (i = start; i < il->hw_params.max_stations; i++)
 		if (il->stations[i].used &&
-		    ether_addr_equal(il->stations[i].sta.sta.addr, addr)) {
+			ether_addr_equal(il->stations[i].sta.sta.addr, addr))
+		{
 			ret = i;
 			goto out;
 		}
@@ -2605,19 +3058,22 @@ il4965_find_station(struct il_priv *il, const u8 *addr)
 	D_ASSOC("can not find STA %pM total %d\n", addr, il->num_stations);
 
 out:
+
 	/*
 	 * It may be possible that more commands interacting with stations
 	 * arrive before we completed processing the adding of
 	 * station
 	 */
 	if (ret != IL_INVALID_STATION &&
-	    (!(il->stations[ret].used & IL_STA_UCODE_ACTIVE) ||
-	     ((il->stations[ret].used & IL_STA_UCODE_ACTIVE) &&
-	      (il->stations[ret].used & IL_STA_UCODE_INPROGRESS)))) {
+		(!(il->stations[ret].used & IL_STA_UCODE_ACTIVE) ||
+		 ((il->stations[ret].used & IL_STA_UCODE_ACTIVE) &&
+		  (il->stations[ret].used & IL_STA_UCODE_INPROGRESS))))
+	{
 		IL_ERR("Requested station info for sta %d before ready.\n",
-		       ret);
+			   ret);
 		ret = IL_INVALID_STATION;
 	}
+
 	spin_unlock_irqrestore(&il->sta_lock, flags);
 	return ret;
 }
@@ -2626,8 +3082,11 @@ static int
 il4965_get_ra_sta_id(struct il_priv *il, struct ieee80211_hdr *hdr)
 {
 	if (il->iw_mode == NL80211_IFTYPE_STATION)
+	{
 		return IL_AP_ID;
-	else {
+	}
+	else
+	{
 		u8 *da = ieee80211_get_DA(hdr);
 
 		return il4965_find_station(il, da);
@@ -2638,7 +3097,7 @@ static inline u32
 il4965_get_scd_ssn(struct il4965_tx_resp *tx_resp)
 {
 	return le32_to_cpup(&tx_resp->u.status +
-			    tx_resp->frame_count) & IEEE80211_MAX_SN;
+						tx_resp->frame_count) & IEEE80211_MAX_SN;
 }
 
 static inline u32
@@ -2646,14 +3105,17 @@ il4965_tx_status_to_mac80211(u32 status)
 {
 	status &= TX_STATUS_MSK;
 
-	switch (status) {
-	case TX_STATUS_SUCCESS:
-	case TX_STATUS_DIRECT_DONE:
-		return IEEE80211_TX_STAT_ACK;
-	case TX_STATUS_FAIL_DEST_PS:
-		return IEEE80211_TX_STAT_TX_FILTERED;
-	default:
-		return 0;
+	switch (status)
+	{
+		case TX_STATUS_SUCCESS:
+		case TX_STATUS_DIRECT_DONE:
+			return IEEE80211_TX_STAT_ACK;
+
+		case TX_STATUS_FAIL_DEST_PS:
+			return IEEE80211_TX_STAT_TX_FILTERED;
+
+		default:
+			return 0;
 	}
 }
 
@@ -2662,8 +3124,8 @@ il4965_tx_status_to_mac80211(u32 status)
  */
 static int
 il4965_tx_status_reply_tx(struct il_priv *il, struct il_ht_agg *agg,
-			  struct il4965_tx_resp *tx_resp, int txq_id,
-			  u16 start_idx)
+						  struct il4965_tx_resp *tx_resp, int txq_id,
+						  u16 start_idx)
 {
 	u16 status;
 	struct agg_tx_status *frame_status = tx_resp->u.agg_status;
@@ -2672,8 +3134,11 @@ il4965_tx_status_reply_tx(struct il_priv *il, struct il_ht_agg *agg,
 	u32 rate_n_flags = le32_to_cpu(tx_resp->rate_n_flags);
 	int i, sh, idx;
 	u16 seq;
+
 	if (agg->wait_for_ba)
+	{
 		D_TX_REPLY("got tx response w/o block-ack\n");
+	}
 
 	agg->frame_count = tx_resp->frame_count;
 	agg->start_idx = start_idx;
@@ -2681,13 +3146,14 @@ il4965_tx_status_reply_tx(struct il_priv *il, struct il_ht_agg *agg,
 	agg->bitmap = 0;
 
 	/* num frames attempted by Tx command */
-	if (agg->frame_count == 1) {
+	if (agg->frame_count == 1)
+	{
 		/* Only one frame was attempted; no block-ack will arrive */
 		status = le16_to_cpu(frame_status[0].status);
 		idx = start_idx;
 
 		D_TX_REPLY("FrameCnt = %d, StartIdx=%d idx=%d\n",
-			   agg->frame_count, agg->start_idx, idx);
+				   agg->frame_count, agg->start_idx, idx);
 
 		info = IEEE80211_SKB_CB(il->txq[txq_id].skbs[idx]);
 		info->status.rates[0].count = tx_resp->failure_frame + 1;
@@ -2696,18 +3162,21 @@ il4965_tx_status_reply_tx(struct il_priv *il, struct il_ht_agg *agg,
 		il4965_hwrate_to_tx_control(il, rate_n_flags, info);
 
 		D_TX_REPLY("1 Frame 0x%x failure :%d\n", status & 0xff,
-			   tx_resp->failure_frame);
+				   tx_resp->failure_frame);
 		D_TX_REPLY("Rate Info rate_n_flags=%x\n", rate_n_flags);
 
 		agg->wait_for_ba = 0;
-	} else {
+	}
+	else
+	{
 		/* Two or more frames were attempted; expect block-ack */
 		u64 bitmap = 0;
 		int start = agg->start_idx;
 		struct sk_buff *skb;
 
 		/* Construct bit-map of pending frames within Tx win */
-		for (i = 0; i < agg->frame_count; i++) {
+		for (i = 0; i < agg->frame_count; i++)
+		{
 			u16 sc;
 			status = le16_to_cpu(frame_status[i].status);
 			seq = le16_to_cpu(frame_status[i].sequence);
@@ -2715,57 +3184,75 @@ il4965_tx_status_reply_tx(struct il_priv *il, struct il_ht_agg *agg,
 			txq_id = SEQ_TO_QUEUE(seq);
 
 			if (status &
-			    (AGG_TX_STATE_FEW_BYTES_MSK |
-			     AGG_TX_STATE_ABORT_MSK))
+				(AGG_TX_STATE_FEW_BYTES_MSK |
+				 AGG_TX_STATE_ABORT_MSK))
+			{
 				continue;
+			}
 
 			D_TX_REPLY("FrameCnt = %d, txq_id=%d idx=%d\n",
-				   agg->frame_count, txq_id, idx);
+					   agg->frame_count, txq_id, idx);
 
 			skb = il->txq[txq_id].skbs[idx];
+
 			if (WARN_ON_ONCE(skb == NULL))
+			{
 				return -1;
+			}
+
 			hdr = (struct ieee80211_hdr *) skb->data;
 
 			sc = le16_to_cpu(hdr->seq_ctrl);
-			if (idx != (IEEE80211_SEQ_TO_SN(sc) & 0xff)) {
+
+			if (idx != (IEEE80211_SEQ_TO_SN(sc) & 0xff))
+			{
 				IL_ERR("BUG_ON idx doesn't match seq control"
-				       " idx=%d, seq_idx=%d, seq=%d\n", idx,
-				       IEEE80211_SEQ_TO_SN(sc), hdr->seq_ctrl);
+					   " idx=%d, seq_idx=%d, seq=%d\n", idx,
+					   IEEE80211_SEQ_TO_SN(sc), hdr->seq_ctrl);
 				return -1;
 			}
 
 			D_TX_REPLY("AGG Frame i=%d idx %d seq=%d\n", i, idx,
-				   IEEE80211_SEQ_TO_SN(sc));
+					   IEEE80211_SEQ_TO_SN(sc));
 
 			sh = idx - start;
-			if (sh > 64) {
+
+			if (sh > 64)
+			{
 				sh = (start - idx) + 0xff;
 				bitmap = bitmap << sh;
 				sh = 0;
 				start = idx;
-			} else if (sh < -64)
+			}
+			else if (sh < -64)
+			{
 				sh = 0xff - (start - idx);
-			else if (sh < 0) {
+			}
+			else if (sh < 0)
+			{
 				sh = start - idx;
 				start = idx;
 				bitmap = bitmap << sh;
 				sh = 0;
 			}
+
 			bitmap |= 1ULL << sh;
 			D_TX_REPLY("start=%d bitmap=0x%llx\n", start,
-				   (unsigned long long)bitmap);
+					   (unsigned long long)bitmap);
 		}
 
 		agg->bitmap = bitmap;
 		agg->start_idx = start;
 		D_TX_REPLY("Frames %d start_idx=%d bitmap=0x%llx\n",
-			   agg->frame_count, agg->start_idx,
-			   (unsigned long long)agg->bitmap);
+				   agg->frame_count, agg->start_idx,
+				   (unsigned long long)agg->bitmap);
 
 		if (bitmap)
+		{
 			agg->wait_for_ba = 1;
+		}
 	}
+
 	return 0;
 }
 
@@ -2791,10 +3278,11 @@ il4965_hdl_tx(struct il_priv *il, struct il_rx_buf *rxb)
 	u8 *qc = NULL;
 	unsigned long flags;
 
-	if (idx >= txq->q.n_bd || il_queue_used(&txq->q, idx) == 0) {
+	if (idx >= txq->q.n_bd || il_queue_used(&txq->q, idx) == 0)
+	{
 		IL_ERR("Read idx for DMA queue txq_id (%d) idx %d "
-		       "is out of range [0-%d] %d %d\n", txq_id, idx,
-		       txq->q.n_bd, txq->q.write_ptr, txq->q.read_ptr);
+			   "is out of range [0-%d] %d %d\n", txq_id, idx,
+			   txq->q.n_bd, txq->q.write_ptr, txq->q.read_ptr);
 		return;
 	}
 
@@ -2805,13 +3293,17 @@ il4965_hdl_tx(struct il_priv *il, struct il_rx_buf *rxb)
 	memset(&info->status, 0, sizeof(info->status));
 
 	hdr = (struct ieee80211_hdr *) skb->data;
-	if (ieee80211_is_data_qos(hdr->frame_control)) {
+
+	if (ieee80211_is_data_qos(hdr->frame_control))
+	{
 		qc = ieee80211_get_qos_ctl(hdr);
 		tid = qc[0] & 0xf;
 	}
 
 	sta_id = il4965_get_ra_sta_id(il, hdr);
-	if (txq->sched_retry && unlikely(sta_id == IL_INVALID_STATION)) {
+
+	if (txq->sched_retry && unlikely(sta_id == IL_INVALID_STATION))
+	{
 		IL_ERR("Station not known\n");
 		return;
 	}
@@ -2824,13 +3316,16 @@ il4965_hdl_tx(struct il_priv *il, struct il_rx_buf *rxb)
 	 * il4965_pass_packet_to_mac80211 or in il_mac_bss_info_changed.
 	 */
 	if (unlikely((status & TX_STATUS_MSK) == TX_STATUS_FAIL_PASSIVE_NO_RX) &&
-	    il->iw_mode == NL80211_IFTYPE_STATION) {
+		il->iw_mode == NL80211_IFTYPE_STATION)
+	{
 		il_stop_queues_by_reason(il, IL_STOP_REASON_PASSIVE);
 		D_INFO("Stopped queues - RX waiting on passive channel\n");
 	}
 
 	spin_lock_irqsave(&il->sta_lock, flags);
-	if (txq->sched_retry) {
+
+	if (txq->sched_retry)
+	{
 		const u32 scd_ssn = il4965_get_scd_ssn(tx_resp);
 		struct il_ht_agg *agg = NULL;
 		WARN_ON(!qc);
@@ -2841,48 +3336,66 @@ il4965_hdl_tx(struct il_priv *il, struct il_rx_buf *rxb)
 
 		/* check if BAR is needed */
 		if (tx_resp->frame_count == 1 &&
-		    !il4965_is_tx_success(status))
+			!il4965_is_tx_success(status))
+		{
 			info->flags |= IEEE80211_TX_STAT_AMPDU_NO_BACK;
+		}
 
-		if (txq->q.read_ptr != (scd_ssn & 0xff)) {
+		if (txq->q.read_ptr != (scd_ssn & 0xff))
+		{
 			idx = il_queue_dec_wrap(scd_ssn & 0xff, txq->q.n_bd);
 			D_TX_REPLY("Retry scheduler reclaim scd_ssn "
-				   "%d idx %d\n", scd_ssn, idx);
+					   "%d idx %d\n", scd_ssn, idx);
 			freed = il4965_tx_queue_reclaim(il, txq_id, idx);
+
 			if (qc)
 				il4965_free_tfds_in_queue(il, sta_id, tid,
-							  freed);
+										  freed);
 
 			if (il->mac80211_registered &&
-			    il_queue_space(&txq->q) > txq->q.low_mark &&
-			    agg->state != IL_EMPTYING_HW_QUEUE_DELBA)
+				il_queue_space(&txq->q) > txq->q.low_mark &&
+				agg->state != IL_EMPTYING_HW_QUEUE_DELBA)
+			{
 				il_wake_queue(il, txq);
+			}
 		}
-	} else {
+	}
+	else
+	{
 		info->status.rates[0].count = tx_resp->failure_frame + 1;
 		info->flags |= il4965_tx_status_to_mac80211(status);
 		il4965_hwrate_to_tx_control(il,
-					    le32_to_cpu(tx_resp->rate_n_flags),
-					    info);
+									le32_to_cpu(tx_resp->rate_n_flags),
+									info);
 
 		D_TX_REPLY("TXQ %d status %s (0x%08x) "
-			   "rate_n_flags 0x%x retries %d\n", txq_id,
-			   il4965_get_tx_fail_reason(status), status,
-			   le32_to_cpu(tx_resp->rate_n_flags),
-			   tx_resp->failure_frame);
+				   "rate_n_flags 0x%x retries %d\n", txq_id,
+				   il4965_get_tx_fail_reason(status), status,
+				   le32_to_cpu(tx_resp->rate_n_flags),
+				   tx_resp->failure_frame);
 
 		freed = il4965_tx_queue_reclaim(il, txq_id, idx);
+
 		if (qc && likely(sta_id != IL_INVALID_STATION))
+		{
 			il4965_free_tfds_in_queue(il, sta_id, tid, freed);
+		}
 		else if (sta_id == IL_INVALID_STATION)
+		{
 			D_TX_REPLY("Station not known\n");
+		}
 
 		if (il->mac80211_registered &&
-		    il_queue_space(&txq->q) > txq->q.low_mark)
+			il_queue_space(&txq->q) > txq->q.low_mark)
+		{
 			il_wake_queue(il, txq);
+		}
 	}
+
 	if (qc && likely(sta_id != IL_INVALID_STATION))
+	{
 		il4965_txq_check_empty(il, sta_id, tid, txq_id);
+	}
 
 	il4965_check_abort_status(il, tx_resp->frame_count, status);
 
@@ -2894,22 +3407,38 @@ il4965_hdl_tx(struct il_priv *il, struct il_rx_buf *rxb)
  */
 void
 il4965_hwrate_to_tx_control(struct il_priv *il, u32 rate_n_flags,
-			    struct ieee80211_tx_info *info)
+							struct ieee80211_tx_info *info)
 {
 	struct ieee80211_tx_rate *r = &info->status.rates[0];
 
 	info->status.antenna =
-	    ((rate_n_flags & RATE_MCS_ANT_ABC_MSK) >> RATE_MCS_ANT_POS);
+		((rate_n_flags & RATE_MCS_ANT_ABC_MSK) >> RATE_MCS_ANT_POS);
+
 	if (rate_n_flags & RATE_MCS_HT_MSK)
+	{
 		r->flags |= IEEE80211_TX_RC_MCS;
+	}
+
 	if (rate_n_flags & RATE_MCS_GF_MSK)
+	{
 		r->flags |= IEEE80211_TX_RC_GREEN_FIELD;
+	}
+
 	if (rate_n_flags & RATE_MCS_HT40_MSK)
+	{
 		r->flags |= IEEE80211_TX_RC_40_MHZ_WIDTH;
+	}
+
 	if (rate_n_flags & RATE_MCS_DUP_MSK)
+	{
 		r->flags |= IEEE80211_TX_RC_DUP_DATA;
+	}
+
 	if (rate_n_flags & RATE_MCS_SGI_MSK)
+	{
 		r->flags |= IEEE80211_TX_RC_SHORT_GI;
+	}
+
 	r->idx = il4965_hwrate_to_mac80211_idx(rate_n_flags, info->band);
 }
 
@@ -2938,7 +3467,8 @@ il4965_hdl_compressed_ba(struct il_priv *il, struct il_rx_buf *rxb)
 	 * (in Tx queue's circular buffer) of first TFD/frame in win */
 	u16 ba_resp_scd_ssn = le16_to_cpu(ba_resp->scd_ssn);
 
-	if (scd_flow >= il->hw_params.max_txq_num) {
+	if (scd_flow >= il->hw_params.max_txq_num)
+	{
 		IL_ERR("BUG_ON scd_flow is bigger than number of queues\n");
 		return;
 	}
@@ -2947,7 +3477,9 @@ il4965_hdl_compressed_ba(struct il_priv *il, struct il_rx_buf *rxb)
 	sta_id = ba_resp->sta_id;
 	tid = ba_resp->tid;
 	agg = &il->stations[sta_id].tid[tid].agg;
-	if (unlikely(agg->txq_id != scd_flow)) {
+
+	if (unlikely(agg->txq_id != scd_flow))
+	{
 		/*
 		 * FIXME: this is a uCode bug which need to be addressed,
 		 * log the information and return for now!
@@ -2955,7 +3487,7 @@ il4965_hdl_compressed_ba(struct il_priv *il, struct il_rx_buf *rxb)
 		 * not to fill the syslog, don't enable the logging by default
 		 */
 		D_TX_REPLY("BA scd_flow %d does not match txq_id %d\n",
-			   scd_flow, agg->txq_id);
+				   scd_flow, agg->txq_id);
 		return;
 	}
 
@@ -2965,14 +3497,14 @@ il4965_hdl_compressed_ba(struct il_priv *il, struct il_rx_buf *rxb)
 	spin_lock_irqsave(&il->sta_lock, flags);
 
 	D_TX_REPLY("N_COMPRESSED_BA [%d] Received from %pM, " "sta_id = %d\n",
-		   agg->wait_for_ba, (u8 *) &ba_resp->sta_addr_lo32,
-		   ba_resp->sta_id);
+			   agg->wait_for_ba, (u8 *) &ba_resp->sta_addr_lo32,
+			   ba_resp->sta_id);
 	D_TX_REPLY("TID = %d, SeqCtl = %d, bitmap = 0x%llx," "scd_flow = "
-		   "%d, scd_ssn = %d\n", ba_resp->tid, ba_resp->seq_ctl,
-		   (unsigned long long)le64_to_cpu(ba_resp->bitmap),
-		   ba_resp->scd_flow, ba_resp->scd_ssn);
+			   "%d, scd_ssn = %d\n", ba_resp->tid, ba_resp->seq_ctl,
+			   (unsigned long long)le64_to_cpu(ba_resp->bitmap),
+			   ba_resp->scd_flow, ba_resp->scd_ssn);
 	D_TX_REPLY("DAT start_idx = %d, bitmap = 0x%llx\n", agg->start_idx,
-		   (unsigned long long)agg->bitmap);
+			   (unsigned long long)agg->bitmap);
 
 	/* Update driver's record of ACK vs. not for each frame in win */
 	il4965_tx_status_reply_compressed_ba(il, agg, ba_resp);
@@ -2980,15 +3512,18 @@ il4965_hdl_compressed_ba(struct il_priv *il, struct il_rx_buf *rxb)
 	/* Release all TFDs before the SSN, i.e. all TFDs in front of
 	 * block-ack win (we assume that they've been successfully
 	 * transmitted ... if not, it's too late anyway). */
-	if (txq->q.read_ptr != (ba_resp_scd_ssn & 0xff)) {
+	if (txq->q.read_ptr != (ba_resp_scd_ssn & 0xff))
+	{
 		/* calculate mac80211 ampdu sw queue to wake */
 		int freed = il4965_tx_queue_reclaim(il, scd_flow, idx);
 		il4965_free_tfds_in_queue(il, sta_id, tid, freed);
 
 		if (il_queue_space(&txq->q) > txq->q.low_mark &&
-		    il->mac80211_registered &&
-		    agg->state != IL_EMPTYING_HW_QUEUE_DELBA)
+			il->mac80211_registered &&
+			agg->state != IL_EMPTYING_HW_QUEUE_DELBA)
+		{
 			il_wake_queue(il, txq);
+		}
 
 		il4965_txq_check_empty(il, sta_id, tid, scd_flow);
 	}
@@ -3003,30 +3538,31 @@ il4965_get_tx_fail_reason(u32 status)
 #define TX_STATUS_FAIL(x) case TX_STATUS_FAIL_ ## x: return #x
 #define TX_STATUS_POSTPONE(x) case TX_STATUS_POSTPONE_ ## x: return #x
 
-	switch (status & TX_STATUS_MSK) {
-	case TX_STATUS_SUCCESS:
-		return "SUCCESS";
-		TX_STATUS_POSTPONE(DELAY);
-		TX_STATUS_POSTPONE(FEW_BYTES);
-		TX_STATUS_POSTPONE(QUIET_PERIOD);
-		TX_STATUS_POSTPONE(CALC_TTAK);
-		TX_STATUS_FAIL(INTERNAL_CROSSED_RETRY);
-		TX_STATUS_FAIL(SHORT_LIMIT);
-		TX_STATUS_FAIL(LONG_LIMIT);
-		TX_STATUS_FAIL(FIFO_UNDERRUN);
-		TX_STATUS_FAIL(DRAIN_FLOW);
-		TX_STATUS_FAIL(RFKILL_FLUSH);
-		TX_STATUS_FAIL(LIFE_EXPIRE);
-		TX_STATUS_FAIL(DEST_PS);
-		TX_STATUS_FAIL(HOST_ABORTED);
-		TX_STATUS_FAIL(BT_RETRY);
-		TX_STATUS_FAIL(STA_INVALID);
-		TX_STATUS_FAIL(FRAG_DROPPED);
-		TX_STATUS_FAIL(TID_DISABLE);
-		TX_STATUS_FAIL(FIFO_FLUSHED);
-		TX_STATUS_FAIL(INSUFFICIENT_CF_POLL);
-		TX_STATUS_FAIL(PASSIVE_NO_RX);
-		TX_STATUS_FAIL(NO_BEACON_ON_RADAR);
+	switch (status & TX_STATUS_MSK)
+	{
+		case TX_STATUS_SUCCESS:
+			return "SUCCESS";
+			TX_STATUS_POSTPONE(DELAY);
+			TX_STATUS_POSTPONE(FEW_BYTES);
+			TX_STATUS_POSTPONE(QUIET_PERIOD);
+			TX_STATUS_POSTPONE(CALC_TTAK);
+			TX_STATUS_FAIL(INTERNAL_CROSSED_RETRY);
+			TX_STATUS_FAIL(SHORT_LIMIT);
+			TX_STATUS_FAIL(LONG_LIMIT);
+			TX_STATUS_FAIL(FIFO_UNDERRUN);
+			TX_STATUS_FAIL(DRAIN_FLOW);
+			TX_STATUS_FAIL(RFKILL_FLUSH);
+			TX_STATUS_FAIL(LIFE_EXPIRE);
+			TX_STATUS_FAIL(DEST_PS);
+			TX_STATUS_FAIL(HOST_ABORTED);
+			TX_STATUS_FAIL(BT_RETRY);
+			TX_STATUS_FAIL(STA_INVALID);
+			TX_STATUS_FAIL(FRAG_DROPPED);
+			TX_STATUS_FAIL(TID_DISABLE);
+			TX_STATUS_FAIL(FIFO_FLUSHED);
+			TX_STATUS_FAIL(INSUFFICIENT_CF_POLL);
+			TX_STATUS_FAIL(PASSIVE_NO_RX);
+			TX_STATUS_FAIL(NO_BEACON_ON_RADAR);
 	}
 
 	return "UNKNOWN";
@@ -3045,43 +3581,59 @@ il4965_sta_alloc_lq(struct il_priv *il, u8 sta_id)
 	__le32 rate_n_flags;
 
 	link_cmd = kzalloc(sizeof(struct il_link_quality_cmd), GFP_KERNEL);
-	if (!link_cmd) {
+
+	if (!link_cmd)
+	{
 		IL_ERR("Unable to allocate memory for LQ cmd.\n");
 		return NULL;
 	}
+
 	/* Set up the rate scaling to start at selected rate, fall back
 	 * all the way down to 1M in IEEE order, and then spin on 1M */
 	if (il->band == NL80211_BAND_5GHZ)
+	{
 		r = RATE_6M_IDX;
+	}
 	else
+	{
 		r = RATE_1M_IDX;
+	}
 
 	if (r >= IL_FIRST_CCK_RATE && r <= IL_LAST_CCK_RATE)
+	{
 		rate_flags |= RATE_MCS_CCK_MSK;
+	}
 
 	rate_flags |=
-	    il4965_first_antenna(il->hw_params.
-				 valid_tx_ant) << RATE_MCS_ANT_POS;
+		il4965_first_antenna(il->hw_params.
+							 valid_tx_ant) << RATE_MCS_ANT_POS;
 	rate_n_flags = cpu_to_le32(il_rates[r].plcp | rate_flags);
+
 	for (i = 0; i < LINK_QUAL_MAX_RETRY_NUM; i++)
+	{
 		link_cmd->rs_table[i].rate_n_flags = rate_n_flags;
+	}
 
 	link_cmd->general_params.single_stream_ant_msk =
-	    il4965_first_antenna(il->hw_params.valid_tx_ant);
+		il4965_first_antenna(il->hw_params.valid_tx_ant);
 
 	link_cmd->general_params.dual_stream_ant_msk =
-	    il->hw_params.valid_tx_ant & ~il4965_first_antenna(il->hw_params.
-							       valid_tx_ant);
-	if (!link_cmd->general_params.dual_stream_ant_msk) {
+		il->hw_params.valid_tx_ant & ~il4965_first_antenna(il->hw_params.
+				valid_tx_ant);
+
+	if (!link_cmd->general_params.dual_stream_ant_msk)
+	{
 		link_cmd->general_params.dual_stream_ant_msk = ANT_AB;
-	} else if (il4965_num_of_ant(il->hw_params.valid_tx_ant) == 2) {
+	}
+	else if (il4965_num_of_ant(il->hw_params.valid_tx_ant) == 2)
+	{
 		link_cmd->general_params.dual_stream_ant_msk =
-		    il->hw_params.valid_tx_ant;
+			il->hw_params.valid_tx_ant;
 	}
 
 	link_cmd->agg_params.agg_dis_start_th = LINK_QUAL_AGG_DISABLE_START_DEF;
 	link_cmd->agg_params.agg_time_limit =
-	    cpu_to_le16(LINK_QUAL_AGG_TIME_LIMIT_DEF);
+		cpu_to_le16(LINK_QUAL_AGG_TIME_LIMIT_DEF);
 
 	link_cmd->sta_id = sta_id;
 
@@ -3102,16 +3654,22 @@ il4965_add_bssid_station(struct il_priv *il, const u8 *addr, u8 *sta_id_r)
 	unsigned long flags;
 
 	if (sta_id_r)
+	{
 		*sta_id_r = IL_INVALID_STATION;
+	}
 
 	ret = il_add_station_common(il, addr, 0, NULL, &sta_id);
-	if (ret) {
+
+	if (ret)
+	{
 		IL_ERR("Unable to add station %pM\n", addr);
 		return ret;
 	}
 
 	if (sta_id_r)
+	{
 		*sta_id_r = sta_id;
+	}
 
 	spin_lock_irqsave(&il->sta_lock, flags);
 	il->stations[sta_id].used |= IL_STA_LOCAL;
@@ -3119,15 +3677,20 @@ il4965_add_bssid_station(struct il_priv *il, const u8 *addr, u8 *sta_id_r)
 
 	/* Set up default rate scaling table in device's station table */
 	link_cmd = il4965_sta_alloc_lq(il, sta_id);
-	if (!link_cmd) {
+
+	if (!link_cmd)
+	{
 		IL_ERR("Unable to initialize rate scaling for station %pM.\n",
-		       addr);
+			   addr);
 		return -ENOMEM;
 	}
 
 	ret = il_send_lq_cmd(il, link_cmd, CMD_SYNC, true);
+
 	if (ret)
+	{
 		IL_ERR("Link quality command failed (%d)\n", ret);
+	}
 
 	spin_lock_irqsave(&il->sta_lock, flags);
 	il->stations[sta_id].lq = link_cmd;
@@ -3141,10 +3704,11 @@ il4965_static_wepkey_cmd(struct il_priv *il, bool send_if_empty)
 {
 	int i;
 	u8 buff[sizeof(struct il_wep_cmd) +
-		sizeof(struct il_wep_key) * WEP_KEYS_MAX];
+			sizeof(struct il_wep_key) * WEP_KEYS_MAX];
 	struct il_wep_cmd *wep_cmd = (struct il_wep_cmd *)buff;
 	size_t cmd_size = sizeof(struct il_wep_cmd);
-	struct il_host_cmd cmd = {
+	struct il_host_cmd cmd =
+	{
 		.id = C_WEPKEY,
 		.data = wep_cmd,
 		.flags = CMD_SYNC,
@@ -3154,17 +3718,23 @@ il4965_static_wepkey_cmd(struct il_priv *il, bool send_if_empty)
 	might_sleep();
 
 	memset(wep_cmd, 0,
-	       cmd_size + (sizeof(struct il_wep_key) * WEP_KEYS_MAX));
+		   cmd_size + (sizeof(struct il_wep_key) * WEP_KEYS_MAX));
 
-	for (i = 0; i < WEP_KEYS_MAX; i++) {
+	for (i = 0; i < WEP_KEYS_MAX; i++)
+	{
 		u8 key_size = il->_4965.wep_keys[i].key_size;
 
 		wep_cmd->key[i].key_idx = i;
-		if (key_size) {
+
+		if (key_size)
+		{
 			wep_cmd->key[i].key_offset = i;
 			not_empty = true;
-		} else
+		}
+		else
+		{
 			wep_cmd->key[i].key_offset = WEP_INVALID_OFFSET;
+		}
 
 		wep_cmd->key[i].key_size = key_size;
 		memcpy(&wep_cmd->key[i].key[3], il->_4965.wep_keys[i].key, key_size);
@@ -3177,9 +3747,13 @@ il4965_static_wepkey_cmd(struct il_priv *il, bool send_if_empty)
 	cmd.len = cmd_size;
 
 	if (not_empty || send_if_empty)
+	{
 		return il_send_cmd(il, &cmd);
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 int
@@ -3192,7 +3766,7 @@ il4965_restore_default_wep_keys(struct il_priv *il)
 
 int
 il4965_remove_default_wep_key(struct il_priv *il,
-			      struct ieee80211_key_conf *keyconf)
+							  struct ieee80211_key_conf *keyconf)
 {
 	int ret;
 	int idx = keyconf->keyidx;
@@ -3202,11 +3776,14 @@ il4965_remove_default_wep_key(struct il_priv *il,
 	D_WEP("Removing default WEP key: idx=%d\n", idx);
 
 	memset(&il->_4965.wep_keys[idx], 0, sizeof(struct il_wep_key));
-	if (il_is_rfkill(il)) {
+
+	if (il_is_rfkill(il))
+	{
 		D_WEP("Not sending C_WEPKEY command due to RFKILL.\n");
 		/* but keys in device are clear anyway so return success */
 		return 0;
 	}
+
 	ret = il4965_static_wepkey_cmd(il, 1);
 	D_WEP("Remove default WEP key: idx=%d ret=%d\n", idx, ret);
 
@@ -3215,7 +3792,7 @@ il4965_remove_default_wep_key(struct il_priv *il,
 
 int
 il4965_set_default_wep_key(struct il_priv *il,
-			   struct ieee80211_key_conf *keyconf)
+						   struct ieee80211_key_conf *keyconf)
 {
 	int ret;
 	int len = keyconf->keylen;
@@ -3223,7 +3800,8 @@ il4965_set_default_wep_key(struct il_priv *il,
 
 	lockdep_assert_held(&il->mutex);
 
-	if (len != WEP_KEY_LEN_128 && len != WEP_KEY_LEN_64) {
+	if (len != WEP_KEY_LEN_128 && len != WEP_KEY_LEN_64)
+	{
 		D_WEP("Bad WEP key length %d\n", keyconf->keylen);
 		return -EINVAL;
 	}
@@ -3243,7 +3821,7 @@ il4965_set_default_wep_key(struct il_priv *il,
 
 static int
 il4965_set_wep_dynamic_key_info(struct il_priv *il,
-				struct ieee80211_key_conf *keyconf, u8 sta_id)
+								struct ieee80211_key_conf *keyconf, u8 sta_id)
 {
 	unsigned long flags;
 	__le16 key_flags = 0;
@@ -3258,10 +3836,14 @@ il4965_set_wep_dynamic_key_info(struct il_priv *il,
 	key_flags &= ~STA_KEY_FLG_INVALID;
 
 	if (keyconf->keylen == WEP_KEY_LEN_128)
+	{
 		key_flags |= STA_KEY_FLG_KEY_SIZE_MSK;
+	}
 
 	if (sta_id == il->hw_params.bcast_id)
+	{
 		key_flags |= STA_KEY_MULTICAST_MSK;
+	}
 
 	spin_lock_irqsave(&il->sta_lock, flags);
 
@@ -3272,24 +3854,25 @@ il4965_set_wep_dynamic_key_info(struct il_priv *il,
 	memcpy(il->stations[sta_id].keyinfo.key, keyconf->key, keyconf->keylen);
 
 	memcpy(&il->stations[sta_id].sta.key.key[3], keyconf->key,
-	       keyconf->keylen);
+		   keyconf->keylen);
 
 	if ((il->stations[sta_id].sta.key.
-	     key_flags & STA_KEY_FLG_ENCRYPT_MSK) == STA_KEY_FLG_NO_ENC)
+		 key_flags & STA_KEY_FLG_ENCRYPT_MSK) == STA_KEY_FLG_NO_ENC)
 		il->stations[sta_id].sta.key.key_offset =
-		    il_get_free_ucode_key_idx(il);
+			il_get_free_ucode_key_idx(il);
+
 	/* else, we are overriding an existing key => no need to allocated room
 	 * in uCode. */
 
 	WARN(il->stations[sta_id].sta.key.key_offset == WEP_INVALID_OFFSET,
-	     "no space for a new key");
+		 "no space for a new key");
 
 	il->stations[sta_id].sta.key.key_flags = key_flags;
 	il->stations[sta_id].sta.sta.modify_mask = STA_MODIFY_KEY_MASK;
 	il->stations[sta_id].sta.mode = STA_CONTROL_MODIFY_MSK;
 
 	memcpy(&sta_cmd, &il->stations[sta_id].sta,
-	       sizeof(struct il_addsta_cmd));
+		   sizeof(struct il_addsta_cmd));
 	spin_unlock_irqrestore(&il->sta_lock, flags);
 
 	return il_send_add_sta(il, &sta_cmd, CMD_SYNC);
@@ -3297,7 +3880,7 @@ il4965_set_wep_dynamic_key_info(struct il_priv *il,
 
 static int
 il4965_set_ccmp_dynamic_key_info(struct il_priv *il,
-				 struct ieee80211_key_conf *keyconf, u8 sta_id)
+								 struct ieee80211_key_conf *keyconf, u8 sta_id)
 {
 	unsigned long flags;
 	__le16 key_flags = 0;
@@ -3310,7 +3893,9 @@ il4965_set_ccmp_dynamic_key_info(struct il_priv *il,
 	key_flags &= ~STA_KEY_FLG_INVALID;
 
 	if (sta_id == il->hw_params.bcast_id)
+	{
 		key_flags |= STA_KEY_MULTICAST_MSK;
+	}
 
 	keyconf->flags |= IEEE80211_KEY_FLAG_GENERATE_IV;
 
@@ -3323,21 +3908,22 @@ il4965_set_ccmp_dynamic_key_info(struct il_priv *il,
 	memcpy(il->stations[sta_id].sta.key.key, keyconf->key, keyconf->keylen);
 
 	if ((il->stations[sta_id].sta.key.
-	     key_flags & STA_KEY_FLG_ENCRYPT_MSK) == STA_KEY_FLG_NO_ENC)
+		 key_flags & STA_KEY_FLG_ENCRYPT_MSK) == STA_KEY_FLG_NO_ENC)
 		il->stations[sta_id].sta.key.key_offset =
-		    il_get_free_ucode_key_idx(il);
+			il_get_free_ucode_key_idx(il);
+
 	/* else, we are overriding an existing key => no need to allocated room
 	 * in uCode. */
 
 	WARN(il->stations[sta_id].sta.key.key_offset == WEP_INVALID_OFFSET,
-	     "no space for a new key");
+		 "no space for a new key");
 
 	il->stations[sta_id].sta.key.key_flags = key_flags;
 	il->stations[sta_id].sta.sta.modify_mask = STA_MODIFY_KEY_MASK;
 	il->stations[sta_id].sta.mode = STA_CONTROL_MODIFY_MSK;
 
 	memcpy(&sta_cmd, &il->stations[sta_id].sta,
-	       sizeof(struct il_addsta_cmd));
+		   sizeof(struct il_addsta_cmd));
 	spin_unlock_irqrestore(&il->sta_lock, flags);
 
 	return il_send_add_sta(il, &sta_cmd, CMD_SYNC);
@@ -3345,7 +3931,7 @@ il4965_set_ccmp_dynamic_key_info(struct il_priv *il,
 
 static int
 il4965_set_tkip_dynamic_key_info(struct il_priv *il,
-				 struct ieee80211_key_conf *keyconf, u8 sta_id)
+								 struct ieee80211_key_conf *keyconf, u8 sta_id)
 {
 	unsigned long flags;
 	int ret = 0;
@@ -3356,7 +3942,9 @@ il4965_set_tkip_dynamic_key_info(struct il_priv *il,
 	key_flags &= ~STA_KEY_FLG_INVALID;
 
 	if (sta_id == il->hw_params.bcast_id)
+	{
 		key_flags |= STA_KEY_MULTICAST_MSK;
+	}
 
 	keyconf->flags |= IEEE80211_KEY_FLAG_GENERATE_IV;
 	keyconf->flags |= IEEE80211_KEY_FLAG_GENERATE_MMIC;
@@ -3367,14 +3955,15 @@ il4965_set_tkip_dynamic_key_info(struct il_priv *il,
 	il->stations[sta_id].keyinfo.keylen = 16;
 
 	if ((il->stations[sta_id].sta.key.
-	     key_flags & STA_KEY_FLG_ENCRYPT_MSK) == STA_KEY_FLG_NO_ENC)
+		 key_flags & STA_KEY_FLG_ENCRYPT_MSK) == STA_KEY_FLG_NO_ENC)
 		il->stations[sta_id].sta.key.key_offset =
-		    il_get_free_ucode_key_idx(il);
+			il_get_free_ucode_key_idx(il);
+
 	/* else, we are overriding an existing key => no need to allocated room
 	 * in uCode. */
 
 	WARN(il->stations[sta_id].sta.key.key_offset == WEP_INVALID_OFFSET,
-	     "no space for a new key");
+		 "no space for a new key");
 
 	il->stations[sta_id].sta.key.key_flags = key_flags;
 
@@ -3390,21 +3979,25 @@ il4965_set_tkip_dynamic_key_info(struct il_priv *il,
 
 void
 il4965_update_tkip_key(struct il_priv *il, struct ieee80211_key_conf *keyconf,
-		       struct ieee80211_sta *sta, u32 iv32, u16 *phase1key)
+					   struct ieee80211_sta *sta, u32 iv32, u16 *phase1key)
 {
 	u8 sta_id;
 	unsigned long flags;
 	int i;
 
-	if (il_scan_cancel(il)) {
+	if (il_scan_cancel(il))
+	{
 		/* cancel scan failed, just live w/ bad key and rely
 		   briefly on SW decryption */
 		return;
 	}
 
 	sta_id = il_sta_id_or_broadcast(il, sta);
+
 	if (sta_id == IL_INVALID_STATION)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&il->sta_lock, flags);
 
@@ -3412,7 +4005,7 @@ il4965_update_tkip_key(struct il_priv *il, struct ieee80211_key_conf *keyconf,
 
 	for (i = 0; i < 5; i++)
 		il->stations[sta_id].sta.key.tkip_rx_ttak[i] =
-		    cpu_to_le16(phase1key[i]);
+			cpu_to_le16(phase1key[i]);
 
 	il->stations[sta_id].sta.sta.modify_mask = STA_MODIFY_KEY_MASK;
 	il->stations[sta_id].sta.mode = STA_CONTROL_MODIFY_MSK;
@@ -3424,7 +4017,7 @@ il4965_update_tkip_key(struct il_priv *il, struct ieee80211_key_conf *keyconf,
 
 int
 il4965_remove_dynamic_key(struct il_priv *il,
-			  struct ieee80211_key_conf *keyconf, u8 sta_id)
+						  struct ieee80211_key_conf *keyconf, u8 sta_id)
 {
 	unsigned long flags;
 	u16 key_flags;
@@ -3441,7 +4034,8 @@ il4965_remove_dynamic_key(struct il_priv *il,
 
 	D_WEP("Remove dynamic key: idx=%d sta=%d\n", keyconf->keyidx, sta_id);
 
-	if (keyconf->keyidx != keyidx) {
+	if (keyconf->keyidx != keyidx)
+	{
 		/* We need to remove a key with idx different that the one
 		 * in the uCode. This means that the key we need to remove has
 		 * been replaced by another one with different idx.
@@ -3451,33 +4045,37 @@ il4965_remove_dynamic_key(struct il_priv *il,
 		return 0;
 	}
 
-	if (il->stations[sta_id].sta.key.key_flags & STA_KEY_FLG_INVALID) {
+	if (il->stations[sta_id].sta.key.key_flags & STA_KEY_FLG_INVALID)
+	{
 		IL_WARN("Removing wrong key %d 0x%x\n", keyconf->keyidx,
-			key_flags);
+				key_flags);
 		spin_unlock_irqrestore(&il->sta_lock, flags);
 		return 0;
 	}
 
 	if (!test_and_clear_bit
-	    (il->stations[sta_id].sta.key.key_offset, &il->ucode_key_table))
+		(il->stations[sta_id].sta.key.key_offset, &il->ucode_key_table))
 		IL_ERR("idx %d not used in uCode key table.\n",
-		       il->stations[sta_id].sta.key.key_offset);
+			   il->stations[sta_id].sta.key.key_offset);
+
 	memset(&il->stations[sta_id].keyinfo, 0, sizeof(struct il_hw_key));
 	memset(&il->stations[sta_id].sta.key, 0, sizeof(struct il4965_keyinfo));
 	il->stations[sta_id].sta.key.key_flags =
-	    STA_KEY_FLG_NO_ENC | STA_KEY_FLG_INVALID;
+		STA_KEY_FLG_NO_ENC | STA_KEY_FLG_INVALID;
 	il->stations[sta_id].sta.key.key_offset = keyconf->hw_key_idx;
 	il->stations[sta_id].sta.sta.modify_mask = STA_MODIFY_KEY_MASK;
 	il->stations[sta_id].sta.mode = STA_CONTROL_MODIFY_MSK;
 
-	if (il_is_rfkill(il)) {
+	if (il_is_rfkill(il))
+	{
 		D_WEP
-		    ("Not sending C_ADD_STA command because RFKILL enabled.\n");
+		("Not sending C_ADD_STA command because RFKILL enabled.\n");
 		spin_unlock_irqrestore(&il->sta_lock, flags);
 		return 0;
 	}
+
 	memcpy(&sta_cmd, &il->stations[sta_id].sta,
-	       sizeof(struct il_addsta_cmd));
+		   sizeof(struct il_addsta_cmd));
 	spin_unlock_irqrestore(&il->sta_lock, flags);
 
 	return il_send_add_sta(il, &sta_cmd, CMD_SYNC);
@@ -3485,7 +4083,7 @@ il4965_remove_dynamic_key(struct il_priv *il,
 
 int
 il4965_set_dynamic_key(struct il_priv *il, struct ieee80211_key_conf *keyconf,
-		       u8 sta_id)
+					   u8 sta_id)
 {
 	int ret;
 
@@ -3494,27 +4092,31 @@ il4965_set_dynamic_key(struct il_priv *il, struct ieee80211_key_conf *keyconf,
 	il->_4965.key_mapping_keys++;
 	keyconf->hw_key_idx = HW_KEY_DYNAMIC;
 
-	switch (keyconf->cipher) {
-	case WLAN_CIPHER_SUITE_CCMP:
-		ret =
-		    il4965_set_ccmp_dynamic_key_info(il, keyconf, sta_id);
-		break;
-	case WLAN_CIPHER_SUITE_TKIP:
-		ret =
-		    il4965_set_tkip_dynamic_key_info(il, keyconf, sta_id);
-		break;
-	case WLAN_CIPHER_SUITE_WEP40:
-	case WLAN_CIPHER_SUITE_WEP104:
-		ret = il4965_set_wep_dynamic_key_info(il, keyconf, sta_id);
-		break;
-	default:
-		IL_ERR("Unknown alg: %s cipher = %x\n", __func__,
-		       keyconf->cipher);
-		ret = -EINVAL;
+	switch (keyconf->cipher)
+	{
+		case WLAN_CIPHER_SUITE_CCMP:
+			ret =
+				il4965_set_ccmp_dynamic_key_info(il, keyconf, sta_id);
+			break;
+
+		case WLAN_CIPHER_SUITE_TKIP:
+			ret =
+				il4965_set_tkip_dynamic_key_info(il, keyconf, sta_id);
+			break;
+
+		case WLAN_CIPHER_SUITE_WEP40:
+		case WLAN_CIPHER_SUITE_WEP104:
+			ret = il4965_set_wep_dynamic_key_info(il, keyconf, sta_id);
+			break;
+
+		default:
+			IL_ERR("Unknown alg: %s cipher = %x\n", __func__,
+				   keyconf->cipher);
+			ret = -EINVAL;
 	}
 
 	D_WEP("Set dynamic key: cipher=%x len=%d idx=%d sta=%d ret=%d\n",
-	      keyconf->cipher, keyconf->keylen, keyconf->keyidx, sta_id, ret);
+		  keyconf->cipher, keyconf->keylen, keyconf->keyidx, sta_id, ret);
 
 	return ret;
 }
@@ -3535,7 +4137,9 @@ il4965_alloc_bcast_station(struct il_priv *il)
 
 	spin_lock_irqsave(&il->sta_lock, flags);
 	sta_id = il_prep_station(il, il_bcast_addr, false, NULL);
-	if (sta_id == IL_INVALID_STATION) {
+
+	if (sta_id == IL_INVALID_STATION)
+	{
 		IL_ERR("Unable to prepare broadcast station\n");
 		spin_unlock_irqrestore(&il->sta_lock, flags);
 
@@ -3547,9 +4151,11 @@ il4965_alloc_bcast_station(struct il_priv *il)
 	spin_unlock_irqrestore(&il->sta_lock, flags);
 
 	link_cmd = il4965_sta_alloc_lq(il, sta_id);
-	if (!link_cmd) {
+
+	if (!link_cmd)
+	{
 		IL_ERR
-		    ("Unable to initialize rate scaling for bcast station.\n");
+		("Unable to initialize rate scaling for bcast station.\n");
 		return -ENOMEM;
 	}
 
@@ -3574,16 +4180,24 @@ il4965_update_bcast_station(struct il_priv *il)
 	u8 sta_id = il->hw_params.bcast_id;
 
 	link_cmd = il4965_sta_alloc_lq(il, sta_id);
-	if (!link_cmd) {
+
+	if (!link_cmd)
+	{
 		IL_ERR("Unable to initialize rate scaling for bcast sta.\n");
 		return -ENOMEM;
 	}
 
 	spin_lock_irqsave(&il->sta_lock, flags);
+
 	if (il->stations[sta_id].lq)
+	{
 		kfree(il->stations[sta_id].lq);
+	}
 	else
+	{
 		D_INFO("Bcast sta rate scaling has not been initialized.\n");
+	}
+
 	il->stations[sta_id].lq = link_cmd;
 	spin_unlock_irqrestore(&il->sta_lock, flags);
 
@@ -3613,7 +4227,7 @@ il4965_sta_tx_modify_enable_tid(struct il_priv *il, int sta_id, int tid)
 	il->stations[sta_id].sta.tid_disable_tx &= cpu_to_le16(~(1 << tid));
 	il->stations[sta_id].sta.mode = STA_CONTROL_MODIFY_MSK;
 	memcpy(&sta_cmd, &il->stations[sta_id].sta,
-	       sizeof(struct il_addsta_cmd));
+		   sizeof(struct il_addsta_cmd));
 	spin_unlock_irqrestore(&il->sta_lock, flags);
 
 	return il_send_add_sta(il, &sta_cmd, CMD_SYNC);
@@ -3621,7 +4235,7 @@ il4965_sta_tx_modify_enable_tid(struct il_priv *il, int sta_id, int tid)
 
 int
 il4965_sta_rx_agg_start(struct il_priv *il, struct ieee80211_sta *sta, int tid,
-			u16 ssn)
+						u16 ssn)
 {
 	unsigned long flags;
 	int sta_id;
@@ -3630,8 +4244,11 @@ il4965_sta_rx_agg_start(struct il_priv *il, struct ieee80211_sta *sta, int tid,
 	lockdep_assert_held(&il->mutex);
 
 	sta_id = il_sta_id(sta);
+
 	if (sta_id == IL_INVALID_STATION)
+	{
 		return -ENXIO;
+	}
 
 	spin_lock_irqsave(&il->sta_lock, flags);
 	il->stations[sta_id].sta.station_flags_msk = 0;
@@ -3640,7 +4257,7 @@ il4965_sta_rx_agg_start(struct il_priv *il, struct ieee80211_sta *sta, int tid,
 	il->stations[sta_id].sta.add_immediate_ba_ssn = cpu_to_le16(ssn);
 	il->stations[sta_id].sta.mode = STA_CONTROL_MODIFY_MSK;
 	memcpy(&sta_cmd, &il->stations[sta_id].sta,
-	       sizeof(struct il_addsta_cmd));
+		   sizeof(struct il_addsta_cmd));
 	spin_unlock_irqrestore(&il->sta_lock, flags);
 
 	return il_send_add_sta(il, &sta_cmd, CMD_SYNC);
@@ -3656,7 +4273,9 @@ il4965_sta_rx_agg_stop(struct il_priv *il, struct ieee80211_sta *sta, int tid)
 	lockdep_assert_held(&il->mutex);
 
 	sta_id = il_sta_id(sta);
-	if (sta_id == IL_INVALID_STATION) {
+
+	if (sta_id == IL_INVALID_STATION)
+	{
 		IL_ERR("Invalid station for AGG tid %d\n", tid);
 		return -ENXIO;
 	}
@@ -3667,7 +4286,7 @@ il4965_sta_rx_agg_stop(struct il_priv *il, struct ieee80211_sta *sta, int tid)
 	il->stations[sta_id].sta.remove_immediate_ba_tid = (u8) tid;
 	il->stations[sta_id].sta.mode = STA_CONTROL_MODIFY_MSK;
 	memcpy(&sta_cmd, &il->stations[sta_id].sta,
-	       sizeof(struct il_addsta_cmd));
+		   sizeof(struct il_addsta_cmd));
 	spin_unlock_irqrestore(&il->sta_lock, flags);
 
 	return il_send_add_sta(il, &sta_cmd, CMD_SYNC);
@@ -3682,7 +4301,7 @@ il4965_sta_modify_sleep_tx_count(struct il_priv *il, int sta_id, int cnt)
 	il->stations[sta_id].sta.station_flags |= STA_FLG_PWR_SAVE_MSK;
 	il->stations[sta_id].sta.station_flags_msk = STA_FLG_PWR_SAVE_MSK;
 	il->stations[sta_id].sta.sta.modify_mask =
-	    STA_MODIFY_SLEEP_TX_COUNT_MSK;
+		STA_MODIFY_SLEEP_TX_COUNT_MSK;
 	il->stations[sta_id].sta.sleep_tx_count = cpu_to_le16(cnt);
 	il->stations[sta_id].sta.mode = STA_CONTROL_MODIFY_MSK;
 	il_send_add_sta(il, &il->stations[sta_id].sta, CMD_ASYNC);
@@ -3693,10 +4312,14 @@ il4965_sta_modify_sleep_tx_count(struct il_priv *il, int sta_id, int cnt)
 void
 il4965_update_chain_flags(struct il_priv *il)
 {
-	if (il->ops->set_rxon_chain) {
+	if (il->ops->set_rxon_chain)
+	{
 		il->ops->set_rxon_chain(il);
+
 		if (il->active.rx_chain != il->staging.rx_chain)
+		{
 			il_commit_rxon(il);
+		}
 	}
 }
 
@@ -3707,16 +4330,18 @@ il4965_clear_free_frames(struct il_priv *il)
 
 	D_INFO("%d frames on pre-allocated heap on clear.\n", il->frames_count);
 
-	while (!list_empty(&il->free_frames)) {
+	while (!list_empty(&il->free_frames))
+	{
 		element = il->free_frames.next;
 		list_del(element);
 		kfree(list_entry(element, struct il_frame, list));
 		il->frames_count--;
 	}
 
-	if (il->frames_count) {
+	if (il->frames_count)
+	{
 		IL_WARN("%d frames still in use.  Did we lose one?\n",
-			il->frames_count);
+				il->frames_count);
 		il->frames_count = 0;
 	}
 }
@@ -3726,9 +4351,13 @@ il4965_get_free_frame(struct il_priv *il)
 {
 	struct il_frame *frame;
 	struct list_head *element;
-	if (list_empty(&il->free_frames)) {
+
+	if (list_empty(&il->free_frames))
+	{
 		frame = kzalloc(sizeof(*frame), GFP_KERNEL);
-		if (!frame) {
+
+		if (!frame)
+		{
 			IL_ERR("Could not allocate frame!\n");
 			return NULL;
 		}
@@ -3751,15 +4380,19 @@ il4965_free_frame(struct il_priv *il, struct il_frame *frame)
 
 static u32
 il4965_fill_beacon_frame(struct il_priv *il, struct ieee80211_hdr *hdr,
-			 int left)
+						 int left)
 {
 	lockdep_assert_held(&il->mutex);
 
 	if (!il->beacon_skb)
+	{
 		return 0;
+	}
 
 	if (il->beacon_skb->len > left)
+	{
 		return 0;
+	}
 
 	memcpy(hdr, il->beacon_skb->data, il->beacon_skb->len);
 
@@ -3769,8 +4402,8 @@ il4965_fill_beacon_frame(struct il_priv *il, struct ieee80211_hdr *hdr,
 /* Parse the beacon frame to find the TIM element and set tim_idx & tim_size */
 static void
 il4965_set_beacon_tim(struct il_priv *il,
-		      struct il_tx_beacon_cmd *tx_beacon_cmd, u8 * beacon,
-		      u32 frame_size)
+					  struct il_tx_beacon_cmd *tx_beacon_cmd, u8 *beacon,
+					  u32 frame_size)
 {
 	u16 tim_idx;
 	struct ieee80211_mgmt *mgmt = (struct ieee80211_mgmt *)beacon;
@@ -3783,15 +4416,21 @@ il4965_set_beacon_tim(struct il_priv *il,
 
 	/* Parse variable-length elements of beacon to find WLAN_EID_TIM */
 	while ((tim_idx < (frame_size - 2)) &&
-	       (beacon[tim_idx] != WLAN_EID_TIM))
+		   (beacon[tim_idx] != WLAN_EID_TIM))
+	{
 		tim_idx += beacon[tim_idx + 1] + 2;
+	}
 
 	/* If TIM field was found, set variables */
-	if ((tim_idx < (frame_size - 1)) && (beacon[tim_idx] == WLAN_EID_TIM)) {
+	if ((tim_idx < (frame_size - 1)) && (beacon[tim_idx] == WLAN_EID_TIM))
+	{
 		tx_beacon_cmd->tim_idx = cpu_to_le16(tim_idx);
 		tx_beacon_cmd->tim_size = beacon[tim_idx + 1];
-	} else
+	}
+	else
+	{
 		IL_WARN("Unable to find TIM Element in beacon\n");
+	}
 }
 
 static unsigned int
@@ -3808,7 +4447,8 @@ il4965_hw_get_beacon_cmd(struct il_priv *il, struct il_frame *frame)
 
 	lockdep_assert_held(&il->mutex);
 
-	if (!il->beacon_enabled) {
+	if (!il->beacon_enabled)
+	{
 		IL_ERR("Trying to build beacon without beaconing enabled\n");
 		return 0;
 	}
@@ -3819,31 +4459,41 @@ il4965_hw_get_beacon_cmd(struct il_priv *il, struct il_frame *frame)
 
 	/* Set up TX beacon contents */
 	frame_size =
-	    il4965_fill_beacon_frame(il, tx_beacon_cmd->frame,
-				     sizeof(frame->u) - sizeof(*tx_beacon_cmd));
+		il4965_fill_beacon_frame(il, tx_beacon_cmd->frame,
+								 sizeof(frame->u) - sizeof(*tx_beacon_cmd));
+
 	if (WARN_ON_ONCE(frame_size > MAX_MPDU_SIZE))
+	{
 		return 0;
+	}
+
 	if (!frame_size)
+	{
 		return 0;
+	}
 
 	/* Set up TX command fields */
 	tx_beacon_cmd->tx.len = cpu_to_le16((u16) frame_size);
 	tx_beacon_cmd->tx.sta_id = il->hw_params.bcast_id;
 	tx_beacon_cmd->tx.stop_time.life_time = TX_CMD_LIFE_TIME_INFINITE;
 	tx_beacon_cmd->tx.tx_flags =
-	    TX_CMD_FLG_SEQ_CTL_MSK | TX_CMD_FLG_TSF_MSK |
-	    TX_CMD_FLG_STA_RATE_MSK;
+		TX_CMD_FLG_SEQ_CTL_MSK | TX_CMD_FLG_TSF_MSK |
+		TX_CMD_FLG_STA_RATE_MSK;
 
 	/* Set up TX beacon command fields */
 	il4965_set_beacon_tim(il, tx_beacon_cmd, (u8 *) tx_beacon_cmd->frame,
-			      frame_size);
+						  frame_size);
 
 	/* Set up packet rate and flags */
 	rate = il_get_lowest_plcp(il);
 	il4965_toggle_tx_ant(il, &il->mgmt_tx_ant, il->hw_params.valid_tx_ant);
 	rate_flags = BIT(il->mgmt_tx_ant) << RATE_MCS_ANT_POS;
+
 	if ((rate >= IL_FIRST_CCK_RATE) && (rate <= IL_LAST_CCK_RATE))
+	{
 		rate_flags |= RATE_MCS_CCK_MSK;
+	}
+
 	tx_beacon_cmd->tx.rate_n_flags = cpu_to_le32(rate | rate_flags);
 
 	return sizeof(*tx_beacon_cmd) + frame_size;
@@ -3857,14 +4507,18 @@ il4965_send_beacon_cmd(struct il_priv *il)
 	int rc;
 
 	frame = il4965_get_free_frame(il);
-	if (!frame) {
+
+	if (!frame)
+	{
 		IL_ERR("Could not obtain free frame buffer for beacon "
-		       "command.\n");
+			   "command.\n");
 		return -ENOMEM;
 	}
 
 	frame_size = il4965_hw_get_beacon_cmd(il, frame);
-	if (!frame_size) {
+
+	if (!frame_size)
+	{
 		IL_ERR("Error configuring the beacon command\n");
 		il4965_free_frame(il, frame);
 		return -EINVAL;
@@ -3883,10 +4537,11 @@ il4965_tfd_tb_get_addr(struct il_tfd *tfd, u8 idx)
 	struct il_tfd_tb *tb = &tfd->tbs[idx];
 
 	dma_addr_t addr = get_unaligned_le32(&tb->lo);
+
 	if (sizeof(dma_addr_t) > sizeof(u32))
 		addr |=
-		    ((dma_addr_t) (le16_to_cpu(tb->hi_n_len) & 0xF) << 16) <<
-		    16;
+			((dma_addr_t) (le16_to_cpu(tb->hi_n_len) & 0xF) << 16) <<
+			16;
 
 	return addr;
 }
@@ -3906,8 +4561,11 @@ il4965_tfd_set_tb(struct il_tfd *tfd, u8 idx, dma_addr_t addr, u16 len)
 	u16 hi_n_len = len << 4;
 
 	put_unaligned_le32(addr, &tb->lo);
+
 	if (sizeof(dma_addr_t) > sizeof(u32))
+	{
 		hi_n_len |= ((addr >> 16) >> 16) & 0xF;
+	}
 
 	tb->hi_n_len = cpu_to_le16(hi_n_len);
 
@@ -3943,7 +4601,8 @@ il4965_hw_txq_free_tfd(struct il_priv *il, struct il_tx_queue *txq)
 	/* Sanity check on number of chunks */
 	num_tbs = il4965_tfd_get_num_tbs(tfd);
 
-	if (num_tbs >= IL_NUM_OF_TBS) {
+	if (num_tbs >= IL_NUM_OF_TBS)
+	{
 		IL_ERR("Too many chunks: %i\n", num_tbs);
 		/* @todo issue fatal error, it is quite serious situation */
 		return;
@@ -3952,21 +4611,23 @@ il4965_hw_txq_free_tfd(struct il_priv *il, struct il_tx_queue *txq)
 	/* Unmap tx_cmd */
 	if (num_tbs)
 		pci_unmap_single(dev, dma_unmap_addr(&txq->meta[idx], mapping),
-				 dma_unmap_len(&txq->meta[idx], len),
-				 PCI_DMA_BIDIRECTIONAL);
+						 dma_unmap_len(&txq->meta[idx], len),
+						 PCI_DMA_BIDIRECTIONAL);
 
 	/* Unmap chunks, if any. */
 	for (i = 1; i < num_tbs; i++)
 		pci_unmap_single(dev, il4965_tfd_tb_get_addr(tfd, i),
-				 il4965_tfd_tb_get_len(tfd, i),
-				 PCI_DMA_TODEVICE);
+						 il4965_tfd_tb_get_len(tfd, i),
+						 PCI_DMA_TODEVICE);
 
 	/* free SKB */
-	if (txq->skbs) {
+	if (txq->skbs)
+	{
 		struct sk_buff *skb = txq->skbs[txq->q.read_ptr];
 
 		/* can be called from irqs-disabled context */
-		if (skb) {
+		if (skb)
+		{
 			dev_kfree_skb_any(skb);
 			txq->skbs[txq->q.read_ptr] = NULL;
 		}
@@ -3975,7 +4636,7 @@ il4965_hw_txq_free_tfd(struct il_priv *il, struct il_tx_queue *txq)
 
 int
 il4965_hw_txq_attach_buf_to_tfd(struct il_priv *il, struct il_tx_queue *txq,
-				dma_addr_t addr, u16 len, u8 reset, u8 pad)
+								dma_addr_t addr, u16 len, u8 reset, u8 pad)
 {
 	struct il_queue *q;
 	struct il_tfd *tfd, *tfd_tmp;
@@ -3986,20 +4647,26 @@ il4965_hw_txq_attach_buf_to_tfd(struct il_priv *il, struct il_tx_queue *txq,
 	tfd = &tfd_tmp[q->write_ptr];
 
 	if (reset)
+	{
 		memset(tfd, 0, sizeof(*tfd));
+	}
 
 	num_tbs = il4965_tfd_get_num_tbs(tfd);
 
 	/* Each TFD can point to a maximum 20 Tx buffers */
-	if (num_tbs >= IL_NUM_OF_TBS) {
+	if (num_tbs >= IL_NUM_OF_TBS)
+	{
 		IL_ERR("Error can not send more than %d chunks\n",
-		       IL_NUM_OF_TBS);
+			   IL_NUM_OF_TBS);
 		return -EINVAL;
 	}
 
 	BUG_ON(addr & ~DMA_BIT_MASK(36));
+
 	if (unlikely(addr & ~IL_TX_DMA_MASK))
+	{
 		IL_ERR("Unaligned address = %llx\n", (unsigned long long)addr);
+	}
 
 	il4965_tfd_set_tb(tfd, num_tbs, addr, len);
 
@@ -4039,26 +4706,33 @@ il4965_hdl_alive(struct il_priv *il, struct il_rx_buf *rxb)
 	palive = &pkt->u.alive_frame;
 
 	D_INFO("Alive ucode status 0x%08X revision " "0x%01X 0x%01X\n",
-	       palive->is_valid, palive->ver_type, palive->ver_subtype);
+		   palive->is_valid, palive->ver_type, palive->ver_subtype);
 
-	if (palive->ver_subtype == INITIALIZE_SUBTYPE) {
+	if (palive->ver_subtype == INITIALIZE_SUBTYPE)
+	{
 		D_INFO("Initialization Alive received.\n");
 		memcpy(&il->card_alive_init, &pkt->u.alive_frame,
-		       sizeof(struct il_init_alive_resp));
+			   sizeof(struct il_init_alive_resp));
 		pwork = &il->init_alive_start;
-	} else {
+	}
+	else
+	{
 		D_INFO("Runtime Alive received.\n");
 		memcpy(&il->card_alive, &pkt->u.alive_frame,
-		       sizeof(struct il_alive_resp));
+			   sizeof(struct il_alive_resp));
 		pwork = &il->alive_start;
 	}
 
 	/* We delay the ALIVE response by 5ms to
 	 * give the HW RF Kill time to activate... */
 	if (palive->is_valid == UCODE_VALID_OK)
+	{
 		queue_delayed_work(il->workqueue, pwork, msecs_to_jiffies(5));
+	}
 	else
+	{
 		IL_WARN("uCode did not respond OK.\n");
+	}
 }
 
 /**
@@ -4077,11 +4751,15 @@ il4965_bg_stats_periodic(unsigned long data)
 	struct il_priv *il = (struct il_priv *)data;
 
 	if (test_bit(S_EXIT_PENDING, &il->status))
+	{
 		return;
+	}
 
 	/* dont send host command if rf-kill is on */
 	if (!il_is_ready_rf(il))
+	{
 		return;
+	}
 
 	il_send_stats_request(il, CMD_ASYNC, false);
 }
@@ -4091,15 +4769,15 @@ il4965_hdl_beacon(struct il_priv *il, struct il_rx_buf *rxb)
 {
 	struct il_rx_pkt *pkt = rxb_addr(rxb);
 	struct il4965_beacon_notif *beacon =
-	    (struct il4965_beacon_notif *)pkt->u.raw;
+		(struct il4965_beacon_notif *)pkt->u.raw;
 #ifdef CONFIG_IWLEGACY_DEBUG
 	u8 rate = il4965_hw_get_rate(beacon->beacon_notify_hdr.rate_n_flags);
 
 	D_RX("beacon status %x retries %d iss %d tsf:0x%.8x%.8x rate %d\n",
-	     le32_to_cpu(beacon->beacon_notify_hdr.u.status) & TX_STATUS_MSK,
-	     beacon->beacon_notify_hdr.failure_frame,
-	     le32_to_cpu(beacon->ibss_mgr_status),
-	     le32_to_cpu(beacon->high_tsf), le32_to_cpu(beacon->low_tsf), rate);
+		 le32_to_cpu(beacon->beacon_notify_hdr.u.status) & TX_STATUS_MSK,
+		 beacon->beacon_notify_hdr.failure_frame,
+		 le32_to_cpu(beacon->ibss_mgr_status),
+		 le32_to_cpu(beacon->high_tsf), le32_to_cpu(beacon->low_tsf), rate);
 #endif
 	il->ibss_manager = le32_to_cpu(beacon->ibss_mgr_status);
 }
@@ -4112,15 +4790,21 @@ il4965_perform_ct_kill_task(struct il_priv *il)
 	D_POWER("Stop all queues\n");
 
 	if (il->mac80211_registered)
+	{
 		ieee80211_stop_queues(il->hw);
+	}
 
 	_il_wr(il, CSR_UCODE_DRV_GP1_SET,
-	       CSR_UCODE_DRV_GP1_REG_BIT_CT_KILL_EXIT);
+		   CSR_UCODE_DRV_GP1_REG_BIT_CT_KILL_EXIT);
 	_il_rd(il, CSR_UCODE_DRV_GP1);
 
 	spin_lock_irqsave(&il->reg_lock, flags);
+
 	if (likely(_il_grab_nic_access(il)))
+	{
 		_il_release_nic_access(il);
+	}
+
 	spin_unlock_irqrestore(&il->reg_lock, flags);
 }
 
@@ -4134,42 +4818,54 @@ il4965_hdl_card_state(struct il_priv *il, struct il_rx_buf *rxb)
 	unsigned long status = il->status;
 
 	D_RF_KILL("Card state received: HW:%s SW:%s CT:%s\n",
-		  (flags & HW_CARD_DISABLED) ? "Kill" : "On",
-		  (flags & SW_CARD_DISABLED) ? "Kill" : "On",
-		  (flags & CT_CARD_DISABLED) ? "Reached" : "Not reached");
+			  (flags & HW_CARD_DISABLED) ? "Kill" : "On",
+			  (flags & SW_CARD_DISABLED) ? "Kill" : "On",
+			  (flags & CT_CARD_DISABLED) ? "Reached" : "Not reached");
 
-	if (flags & (SW_CARD_DISABLED | HW_CARD_DISABLED | CT_CARD_DISABLED)) {
+	if (flags & (SW_CARD_DISABLED | HW_CARD_DISABLED | CT_CARD_DISABLED))
+	{
 
 		_il_wr(il, CSR_UCODE_DRV_GP1_SET,
-		       CSR_UCODE_DRV_GP1_BIT_CMD_BLOCKED);
+			   CSR_UCODE_DRV_GP1_BIT_CMD_BLOCKED);
 
 		il_wr(il, HBUS_TARG_MBX_C, HBUS_TARG_MBX_C_REG_BIT_CMD_BLOCKED);
 
-		if (!(flags & RXON_CARD_DISABLED)) {
+		if (!(flags & RXON_CARD_DISABLED))
+		{
 			_il_wr(il, CSR_UCODE_DRV_GP1_CLR,
-			       CSR_UCODE_DRV_GP1_BIT_CMD_BLOCKED);
+				   CSR_UCODE_DRV_GP1_BIT_CMD_BLOCKED);
 			il_wr(il, HBUS_TARG_MBX_C,
-			      HBUS_TARG_MBX_C_REG_BIT_CMD_BLOCKED);
+				  HBUS_TARG_MBX_C_REG_BIT_CMD_BLOCKED);
 		}
 	}
 
 	if (flags & CT_CARD_DISABLED)
+	{
 		il4965_perform_ct_kill_task(il);
+	}
 
 	if (flags & HW_CARD_DISABLED)
+	{
 		set_bit(S_RFKILL, &il->status);
+	}
 	else
+	{
 		clear_bit(S_RFKILL, &il->status);
+	}
 
 	if (!(flags & RXON_CARD_DISABLED))
+	{
 		il_scan_cancel(il);
+	}
 
 	if ((test_bit(S_RFKILL, &status) !=
-	     test_bit(S_RFKILL, &il->status)))
+		 test_bit(S_RFKILL, &il->status)))
 		wiphy_rfkill_set_hw_state(il->hw->wiphy,
-					  test_bit(S_RFKILL, &il->status));
+								  test_bit(S_RFKILL, &il->status));
 	else
+	{
 		wake_up(&il->wait_command_queue);
+	}
 }
 
 /**
@@ -4243,17 +4939,25 @@ il4965_rx_handle(struct il_priv *il)
 
 	/* Rx interrupt, but nothing sent from uCode */
 	if (i == r)
+	{
 		D_RX("r = %d, i = %d\n", r, i);
+	}
 
 	/* calculate total frames need to be restock after handling RX */
 	total_empty = r - rxq->write_actual;
+
 	if (total_empty < 0)
+	{
 		total_empty += RX_QUEUE_SIZE;
+	}
 
 	if (total_empty > (RX_QUEUE_SIZE / 2))
+	{
 		fill_rx = 1;
+	}
 
-	while (i != r) {
+	while (i != r)
+	{
 		int len;
 
 		rxb = rxq->queue[i];
@@ -4266,8 +4970,8 @@ il4965_rx_handle(struct il_priv *il)
 		rxq->queue[i] = NULL;
 
 		pci_unmap_page(il->pci_dev, rxb->page_dma,
-			       PAGE_SIZE << il->hw_params.rx_page_order,
-			       PCI_DMA_FROMDEVICE);
+					   PAGE_SIZE << il->hw_params.rx_page_order,
+					   PCI_DMA_FROMDEVICE);
 		pkt = rxb_addr(rxb);
 
 		len = le32_to_cpu(pkt->len_n_flags) & IL_RX_FRAME_SIZE_MSK;
@@ -4278,15 +4982,18 @@ il4965_rx_handle(struct il_priv *il)
 		/* Based on type of command response or notification,
 		 *   handle those that need handling via function in
 		 *   handlers table.  See il4965_setup_handlers() */
-		if (il->handlers[pkt->hdr.cmd]) {
+		if (il->handlers[pkt->hdr.cmd])
+		{
 			D_RX("r = %d, i = %d, %s, 0x%02x\n", r, i,
-			     il_get_cmd_string(pkt->hdr.cmd), pkt->hdr.cmd);
+				 il_get_cmd_string(pkt->hdr.cmd), pkt->hdr.cmd);
 			il->isr_stats.handlers[pkt->hdr.cmd]++;
 			il->handlers[pkt->hdr.cmd] (il, rxb);
-		} else {
+		}
+		else
+		{
 			/* No handling needed */
 			D_RX("r %d i %d No handler needed for %s, 0x%02x\n", r,
-			     i, il_get_cmd_string(pkt->hdr.cmd), pkt->hdr.cmd);
+				 i, il_get_cmd_string(pkt->hdr.cmd), pkt->hdr.cmd);
 		}
 
 		/*
@@ -4296,46 +5003,63 @@ il4965_rx_handle(struct il_priv *il)
 		 * already taken or freed the pages.
 		 */
 
-		if (reclaim) {
+		if (reclaim)
+		{
 			/* Invoke any callbacks, transfer the buffer to caller,
 			 * and fire off the (possibly) blocking il_send_cmd()
 			 * as we reclaim the driver command queue */
 			if (rxb->page)
+			{
 				il_tx_cmd_complete(il, rxb);
+			}
 			else
+			{
 				IL_WARN("Claim null rxb?\n");
+			}
 		}
 
 		/* Reuse the page if possible. For notification packets and
 		 * SKBs that fail to Rx correctly, add them back into the
 		 * rx_free list for reuse later. */
 		spin_lock_irqsave(&rxq->lock, flags);
-		if (rxb->page != NULL) {
+
+		if (rxb->page != NULL)
+		{
 			rxb->page_dma =
-			    pci_map_page(il->pci_dev, rxb->page, 0,
-					 PAGE_SIZE << il->hw_params.
-					 rx_page_order, PCI_DMA_FROMDEVICE);
+				pci_map_page(il->pci_dev, rxb->page, 0,
+							 PAGE_SIZE << il->hw_params.
+							 rx_page_order, PCI_DMA_FROMDEVICE);
 
 			if (unlikely(pci_dma_mapping_error(il->pci_dev,
-							   rxb->page_dma))) {
+											   rxb->page_dma)))
+			{
 				__il_free_pages(il, rxb->page);
 				rxb->page = NULL;
 				list_add_tail(&rxb->list, &rxq->rx_used);
-			} else {
+			}
+			else
+			{
 				list_add_tail(&rxb->list, &rxq->rx_free);
 				rxq->free_count++;
 			}
-		} else
+		}
+		else
+		{
 			list_add_tail(&rxb->list, &rxq->rx_used);
+		}
 
 		spin_unlock_irqrestore(&rxq->lock, flags);
 
 		i = (i + 1) & RX_QUEUE_MASK;
+
 		/* If there are a lot of unused frames,
 		 * restock the Rx queue so ucode wont assert. */
-		if (fill_rx) {
+		if (fill_rx)
+		{
 			count++;
-			if (count >= 8) {
+
+			if (count >= 8)
+			{
 				rxq->read = i;
 				il4965_rx_replenish_now(il);
 				count = 0;
@@ -4345,10 +5069,15 @@ il4965_rx_handle(struct il_priv *il)
 
 	/* Backtrack one entry */
 	rxq->read = i;
+
 	if (fill_rx)
+	{
 		il4965_rx_replenish_now(il);
+	}
 	else
+	{
 		il4965_rx_queue_restock(il);
+	}
 }
 
 /* call this function to flush any scheduled tasklet */
@@ -4386,12 +5115,15 @@ il4965_irq_tasklet(struct il_priv *il)
 	_il_wr(il, CSR_FH_INT_STATUS, inta_fh);
 
 #ifdef CONFIG_IWLEGACY_DEBUG
-	if (il_get_debug_level(il) & IL_DL_ISR) {
+
+	if (il_get_debug_level(il) & IL_DL_ISR)
+	{
 		/* just for debug */
 		inta_mask = _il_rd(il, CSR_INT_MASK);
 		D_ISR("inta 0x%08x, enabled 0x%08x, fh 0x%08x\n", inta,
-		      inta_mask, inta_fh);
+			  inta_mask, inta_fh);
 	}
+
 #endif
 
 	spin_unlock_irqrestore(&il->lock, flags);
@@ -4401,12 +5133,18 @@ il4965_irq_tasklet(struct il_priv *il)
 	 * we've discovered, even if FH interrupt came in just after
 	 * reading CSR_INT. */
 	if (inta_fh & CSR49_FH_INT_RX_MASK)
+	{
 		inta |= CSR_INT_BIT_FH_RX;
+	}
+
 	if (inta_fh & CSR49_FH_INT_TX_MASK)
+	{
 		inta |= CSR_INT_BIT_FH_TX;
+	}
 
 	/* Now service all interrupt bits discovered above. */
-	if (inta & CSR_INT_BIT_HW_ERR) {
+	if (inta & CSR_INT_BIT_HW_ERR)
+	{
 		IL_ERR("Hardware error detected.  Restarting.\n");
 
 		/* Tell the device to stop sending interrupts */
@@ -4419,34 +5157,43 @@ il4965_irq_tasklet(struct il_priv *il)
 
 		return;
 	}
+
 #ifdef CONFIG_IWLEGACY_DEBUG
-	if (il_get_debug_level(il) & (IL_DL_ISR)) {
+
+	if (il_get_debug_level(il) & (IL_DL_ISR))
+	{
 		/* NIC fires this, but we don't use it, redundant with WAKEUP */
-		if (inta & CSR_INT_BIT_SCD) {
+		if (inta & CSR_INT_BIT_SCD)
+		{
 			D_ISR("Scheduler finished to transmit "
-			      "the frame/frames.\n");
+				  "the frame/frames.\n");
 			il->isr_stats.sch++;
 		}
 
 		/* Alive notification via Rx interrupt will do the real work */
-		if (inta & CSR_INT_BIT_ALIVE) {
+		if (inta & CSR_INT_BIT_ALIVE)
+		{
 			D_ISR("Alive interrupt\n");
 			il->isr_stats.alive++;
 		}
 	}
+
 #endif
 	/* Safely ignore these bits for debug checks below */
 	inta &= ~(CSR_INT_BIT_SCD | CSR_INT_BIT_ALIVE);
 
 	/* HW RF KILL switch toggled */
-	if (inta & CSR_INT_BIT_RF_KILL) {
+	if (inta & CSR_INT_BIT_RF_KILL)
+	{
 		int hw_rf_kill = 0;
 
 		if (!(_il_rd(il, CSR_GP_CNTRL) & CSR_GP_CNTRL_REG_FLAG_HW_RF_KILL_SW))
+		{
 			hw_rf_kill = 1;
+		}
 
 		IL_WARN("RF_KILL bit toggled to %s.\n",
-			hw_rf_kill ? "disable radio" : "enable radio");
+				hw_rf_kill ? "disable radio" : "enable radio");
 
 		il->isr_stats.rfkill++;
 
@@ -4455,28 +5202,34 @@ il4965_irq_tasklet(struct il_priv *il)
 		 * is killed. Hence update the killswitch state here. The
 		 * rfkill handler will care about restarting if needed.
 		 */
-		if (hw_rf_kill) {
+		if (hw_rf_kill)
+		{
 			set_bit(S_RFKILL, &il->status);
-		} else {
+		}
+		else
+		{
 			clear_bit(S_RFKILL, &il->status);
 			il_force_reset(il, true);
 		}
+
 		wiphy_rfkill_set_hw_state(il->hw->wiphy, hw_rf_kill);
 
 		handled |= CSR_INT_BIT_RF_KILL;
 	}
 
 	/* Chip got too hot and stopped itself */
-	if (inta & CSR_INT_BIT_CT_KILL) {
+	if (inta & CSR_INT_BIT_CT_KILL)
+	{
 		IL_ERR("Microcode CT kill error detected.\n");
 		il->isr_stats.ctkill++;
 		handled |= CSR_INT_BIT_CT_KILL;
 	}
 
 	/* Error detected by uCode */
-	if (inta & CSR_INT_BIT_SW_ERR) {
+	if (inta & CSR_INT_BIT_SW_ERR)
+	{
 		IL_ERR("Microcode SW error detected. " " Restarting 0x%X.\n",
-		       inta);
+			   inta);
 		il->isr_stats.sw++;
 		il_irq_handle_error(il);
 		handled |= CSR_INT_BIT_SW_ERR;
@@ -4487,11 +5240,16 @@ il4965_irq_tasklet(struct il_priv *il)
 	 * Tell device about any new tx or host commands enqueued,
 	 * and about any Rx buffers made available while asleep.
 	 */
-	if (inta & CSR_INT_BIT_WAKEUP) {
+	if (inta & CSR_INT_BIT_WAKEUP)
+	{
 		D_ISR("Wakeup interrupt\n");
 		il_rx_queue_update_write_ptr(il, &il->rxq);
+
 		for (i = 0; i < il->hw_params.max_txq_num; i++)
+		{
 			il_txq_update_write_ptr(il, &il->txq[i]);
+		}
+
 		il->isr_stats.wakeup++;
 		handled |= CSR_INT_BIT_WAKEUP;
 	}
@@ -4499,14 +5257,16 @@ il4965_irq_tasklet(struct il_priv *il)
 	/* All uCode command responses, including Tx command responses,
 	 * Rx "responses" (frame-received notification), and other
 	 * notifications from uCode come through here*/
-	if (inta & (CSR_INT_BIT_FH_RX | CSR_INT_BIT_SW_RX)) {
+	if (inta & (CSR_INT_BIT_FH_RX | CSR_INT_BIT_SW_RX))
+	{
 		il4965_rx_handle(il);
 		il->isr_stats.rx++;
 		handled |= (CSR_INT_BIT_FH_RX | CSR_INT_BIT_SW_RX);
 	}
 
 	/* This "Tx" DMA channel is used only for loading uCode */
-	if (inta & CSR_INT_BIT_FH_TX) {
+	if (inta & CSR_INT_BIT_FH_TX)
+	{
 		D_ISR("uCode load interrupt\n");
 		il->isr_stats.tx++;
 		handled |= CSR_INT_BIT_FH_TX;
@@ -4515,33 +5275,42 @@ il4965_irq_tasklet(struct il_priv *il)
 		wake_up(&il->wait_command_queue);
 	}
 
-	if (inta & ~handled) {
+	if (inta & ~handled)
+	{
 		IL_ERR("Unhandled INTA bits 0x%08x\n", inta & ~handled);
 		il->isr_stats.unhandled++;
 	}
 
-	if (inta & ~(il->inta_mask)) {
+	if (inta & ~(il->inta_mask))
+	{
 		IL_WARN("Disabled INTA bits 0x%08x were pending\n",
-			inta & ~il->inta_mask);
+				inta & ~il->inta_mask);
 		IL_WARN("   with FH49_INT = 0x%08x\n", inta_fh);
 	}
 
 	/* Re-enable all interrupts */
 	/* only Re-enable if disabled by irq */
 	if (test_bit(S_INT_ENABLED, &il->status))
+	{
 		il_enable_interrupts(il);
+	}
 	/* Re-enable RF_KILL if it occurred */
 	else if (handled & CSR_INT_BIT_RF_KILL)
+	{
 		il_enable_rfkill_int(il);
+	}
 
 #ifdef CONFIG_IWLEGACY_DEBUG
-	if (il_get_debug_level(il) & (IL_DL_ISR)) {
+
+	if (il_get_debug_level(il) & (IL_DL_ISR))
+	{
 		inta = _il_rd(il, CSR_INT);
 		inta_mask = _il_rd(il, CSR_INT_MASK);
 		inta_fh = _il_rd(il, CSR_FH_INT_STATUS);
 		D_ISR("End inta 0x%08x, enabled 0x%08x, fh 0x%08x, "
-		      "flags 0x%08lx\n", inta, inta_mask, inta_fh, flags);
+			  "flags 0x%08lx\n", inta, inta_mask, inta_fh, flags);
 	}
+
 #endif
 }
 
@@ -4566,7 +5335,7 @@ il4965_irq_tasklet(struct il_priv *il)
  */
 static ssize_t
 il4965_show_debug_level(struct device *d, struct device_attribute *attr,
-			char *buf)
+						char *buf)
 {
 	struct il_priv *il = dev_get_drvdata(d);
 	return sprintf(buf, "0x%08X\n", il_get_debug_level(il));
@@ -4574,34 +5343,41 @@ il4965_show_debug_level(struct device *d, struct device_attribute *attr,
 
 static ssize_t
 il4965_store_debug_level(struct device *d, struct device_attribute *attr,
-			 const char *buf, size_t count)
+						 const char *buf, size_t count)
 {
 	struct il_priv *il = dev_get_drvdata(d);
 	unsigned long val;
 	int ret;
 
 	ret = kstrtoul(buf, 0, &val);
+
 	if (ret)
+	{
 		IL_ERR("%s is not in hex or decimal form.\n", buf);
+	}
 	else
+	{
 		il->debug_level = val;
+	}
 
 	return strnlen(buf, count);
 }
 
 static DEVICE_ATTR(debug_level, S_IWUSR | S_IRUGO, il4965_show_debug_level,
-		   il4965_store_debug_level);
+				   il4965_store_debug_level);
 
 #endif /* CONFIG_IWLEGACY_DEBUG */
 
 static ssize_t
 il4965_show_temperature(struct device *d, struct device_attribute *attr,
-			char *buf)
+						char *buf)
 {
 	struct il_priv *il = dev_get_drvdata(d);
 
 	if (!il_is_alive(il))
+	{
 		return -EAGAIN;
+	}
 
 	return sprintf(buf, "%d\n", il->temperature);
 }
@@ -4614,36 +5390,51 @@ il4965_show_tx_power(struct device *d, struct device_attribute *attr, char *buf)
 	struct il_priv *il = dev_get_drvdata(d);
 
 	if (!il_is_ready_rf(il))
+	{
 		return sprintf(buf, "off\n");
+	}
 	else
+	{
 		return sprintf(buf, "%d\n", il->tx_power_user_lmt);
+	}
 }
 
 static ssize_t
 il4965_store_tx_power(struct device *d, struct device_attribute *attr,
-		      const char *buf, size_t count)
+					  const char *buf, size_t count)
 {
 	struct il_priv *il = dev_get_drvdata(d);
 	unsigned long val;
 	int ret;
 
 	ret = kstrtoul(buf, 10, &val);
+
 	if (ret)
+	{
 		IL_INFO("%s is not in decimal form.\n", buf);
-	else {
-		ret = il_set_tx_power(il, val, false);
-		if (ret)
-			IL_ERR("failed setting tx power (0x%08x).\n", ret);
-		else
-			ret = count;
 	}
+	else
+	{
+		ret = il_set_tx_power(il, val, false);
+
+		if (ret)
+		{
+			IL_ERR("failed setting tx power (0x%08x).\n", ret);
+		}
+		else
+		{
+			ret = count;
+		}
+	}
+
 	return ret;
 }
 
 static DEVICE_ATTR(tx_power, S_IWUSR | S_IRUGO, il4965_show_tx_power,
-		   il4965_store_tx_power);
+				   il4965_store_tx_power);
 
-static struct attribute *il_sysfs_entries[] = {
+static struct attribute *il_sysfs_entries[] =
+{
 	&dev_attr_temperature.attr,
 	&dev_attr_tx_power.attr,
 #ifdef CONFIG_IWLEGACY_DEBUG
@@ -4652,7 +5443,8 @@ static struct attribute *il_sysfs_entries[] = {
 	NULL
 };
 
-static struct attribute_group il_attribute_group = {
+static struct attribute_group il_attribute_group =
+{
 	.name = NULL,		/* put in device directory */
 	.attrs = il_sysfs_entries,
 };
@@ -4682,7 +5474,7 @@ il4965_nic_start(struct il_priv *il)
 }
 
 static void il4965_ucode_callback(const struct firmware *ucode_raw,
-				  void *context);
+								  void *context);
 static int il4965_mac_setup_register(struct il_priv *il, u32 max_probe_length);
 
 static int __must_check
@@ -4691,15 +5483,19 @@ il4965_request_firmware(struct il_priv *il, bool first)
 	const char *name_pre = il->cfg->fw_name_pre;
 	char tag[8];
 
-	if (first) {
+	if (first)
+	{
 		il->fw_idx = il->cfg->ucode_api_max;
 		sprintf(tag, "%d", il->fw_idx);
-	} else {
+	}
+	else
+	{
 		il->fw_idx--;
 		sprintf(tag, "%d", il->fw_idx);
 	}
 
-	if (il->fw_idx < il->cfg->ucode_api_min) {
+	if (il->fw_idx < il->cfg->ucode_api_min)
+	{
 		IL_ERR("no suitable firmware found!\n");
 		return -ENOENT;
 	}
@@ -4709,18 +5505,19 @@ il4965_request_firmware(struct il_priv *il, bool first)
 	D_INFO("attempting to load firmware '%s'\n", il->firmware_name);
 
 	return request_firmware_nowait(THIS_MODULE, 1, il->firmware_name,
-				       &il->pci_dev->dev, GFP_KERNEL, il,
-				       il4965_ucode_callback);
+								   &il->pci_dev->dev, GFP_KERNEL, il,
+								   il4965_ucode_callback);
 }
 
-struct il4965_firmware_pieces {
+struct il4965_firmware_pieces
+{
 	const void *inst, *data, *init, *init_data, *boot;
 	size_t inst_size, data_size, init_size, init_data_size, boot_size;
 };
 
 static int
 il4965_load_firmware(struct il_priv *il, const struct firmware *ucode_raw,
-		     struct il4965_firmware_pieces *pieces)
+					 struct il4965_firmware_pieces *pieces)
 {
 	struct il_ucode_header *ucode = (void *)ucode_raw->data;
 	u32 api_ver, hdr_size;
@@ -4729,32 +5526,37 @@ il4965_load_firmware(struct il_priv *il, const struct firmware *ucode_raw,
 	il->ucode_ver = le32_to_cpu(ucode->ver);
 	api_ver = IL_UCODE_API(il->ucode_ver);
 
-	switch (api_ver) {
-	default:
-	case 0:
-	case 1:
-	case 2:
-		hdr_size = 24;
-		if (ucode_raw->size < hdr_size) {
-			IL_ERR("File size too small!\n");
-			return -EINVAL;
-		}
-		pieces->inst_size = le32_to_cpu(ucode->v1.inst_size);
-		pieces->data_size = le32_to_cpu(ucode->v1.data_size);
-		pieces->init_size = le32_to_cpu(ucode->v1.init_size);
-		pieces->init_data_size = le32_to_cpu(ucode->v1.init_data_size);
-		pieces->boot_size = le32_to_cpu(ucode->v1.boot_size);
-		src = ucode->v1.data;
-		break;
+	switch (api_ver)
+	{
+		default:
+		case 0:
+		case 1:
+		case 2:
+			hdr_size = 24;
+
+			if (ucode_raw->size < hdr_size)
+			{
+				IL_ERR("File size too small!\n");
+				return -EINVAL;
+			}
+
+			pieces->inst_size = le32_to_cpu(ucode->v1.inst_size);
+			pieces->data_size = le32_to_cpu(ucode->v1.data_size);
+			pieces->init_size = le32_to_cpu(ucode->v1.init_size);
+			pieces->init_data_size = le32_to_cpu(ucode->v1.init_data_size);
+			pieces->boot_size = le32_to_cpu(ucode->v1.boot_size);
+			src = ucode->v1.data;
+			break;
 	}
 
 	/* Verify size of file vs. image size info in file's header */
 	if (ucode_raw->size !=
-	    hdr_size + pieces->inst_size + pieces->data_size +
-	    pieces->init_size + pieces->init_data_size + pieces->boot_size) {
+		hdr_size + pieces->inst_size + pieces->data_size +
+		pieces->init_size + pieces->init_data_size + pieces->boot_size)
+	{
 
 		IL_ERR("uCode file size %d does not match expected size\n",
-		       (int)ucode_raw->size);
+			   (int)ucode_raw->size);
 		return -EINVAL;
 	}
 
@@ -4791,22 +5593,25 @@ il4965_ucode_callback(const struct firmware *ucode_raw, void *context)
 
 	u32 max_probe_length = 200;
 	u32 standard_phy_calibration_size =
-	    IL_DEFAULT_STANDARD_PHY_CALIBRATE_TBL_SIZE;
+		IL_DEFAULT_STANDARD_PHY_CALIBRATE_TBL_SIZE;
 
 	memset(&pieces, 0, sizeof(pieces));
 
-	if (!ucode_raw) {
+	if (!ucode_raw)
+	{
 		if (il->fw_idx <= il->cfg->ucode_api_max)
 			IL_ERR("request for firmware file '%s' failed.\n",
-			       il->firmware_name);
+				   il->firmware_name);
+
 		goto try_again;
 	}
 
 	D_INFO("Loaded firmware file '%s' (%zd bytes).\n", il->firmware_name,
-	       ucode_raw->size);
+		   ucode_raw->size);
 
 	/* Make sure that we got at least the API version number */
-	if (ucode_raw->size < 4) {
+	if (ucode_raw->size < 4)
+	{
 		IL_ERR("File size way too small!\n");
 		goto try_again;
 	}
@@ -4817,7 +5622,9 @@ il4965_ucode_callback(const struct firmware *ucode_raw, void *context)
 	err = il4965_load_firmware(il, ucode_raw, &pieces);
 
 	if (err)
+	{
 		goto try_again;
+	}
 
 	api_ver = IL_UCODE_API(il->ucode_ver);
 
@@ -4826,27 +5633,28 @@ il4965_ucode_callback(const struct firmware *ucode_raw, void *context)
 	 * firmware filename ... but we don't check for that and only rely
 	 * on the API version read from firmware header from here on forward
 	 */
-	if (api_ver < api_min || api_ver > api_max) {
+	if (api_ver < api_min || api_ver > api_max)
+	{
 		IL_ERR("Driver unable to support your firmware API. "
-		       "Driver supports v%u, firmware is v%u.\n", api_max,
-		       api_ver);
+			   "Driver supports v%u, firmware is v%u.\n", api_max,
+			   api_ver);
 		goto try_again;
 	}
 
 	if (api_ver != api_max)
 		IL_ERR("Firmware has old API version. Expected v%u, "
-		       "got v%u. New firmware can be obtained "
-		       "from http://www.intellinuxwireless.org.\n", api_max,
-		       api_ver);
+			   "got v%u. New firmware can be obtained "
+			   "from http://www.intellinuxwireless.org.\n", api_max,
+			   api_ver);
 
 	IL_INFO("loaded firmware version %u.%u.%u.%u\n",
-		IL_UCODE_MAJOR(il->ucode_ver), IL_UCODE_MINOR(il->ucode_ver),
-		IL_UCODE_API(il->ucode_ver), IL_UCODE_SERIAL(il->ucode_ver));
+			IL_UCODE_MAJOR(il->ucode_ver), IL_UCODE_MINOR(il->ucode_ver),
+			IL_UCODE_API(il->ucode_ver), IL_UCODE_SERIAL(il->ucode_ver));
 
 	snprintf(il->hw->wiphy->fw_version, sizeof(il->hw->wiphy->fw_version),
-		 "%u.%u.%u.%u", IL_UCODE_MAJOR(il->ucode_ver),
-		 IL_UCODE_MINOR(il->ucode_ver), IL_UCODE_API(il->ucode_ver),
-		 IL_UCODE_SERIAL(il->ucode_ver));
+			 "%u.%u.%u.%u", IL_UCODE_MAJOR(il->ucode_ver),
+			 IL_UCODE_MINOR(il->ucode_ver), IL_UCODE_API(il->ucode_ver),
+			 IL_UCODE_SERIAL(il->ucode_ver));
 
 	/*
 	 * For any of the failures below (before allocating pci memory)
@@ -4862,33 +5670,38 @@ il4965_ucode_callback(const struct firmware *ucode_raw, void *context)
 	D_INFO("f/w package hdr boot inst size = %Zd\n", pieces.boot_size);
 
 	/* Verify that uCode images will fit in card's SRAM */
-	if (pieces.inst_size > il->hw_params.max_inst_size) {
+	if (pieces.inst_size > il->hw_params.max_inst_size)
+	{
 		IL_ERR("uCode instr len %Zd too large to fit in\n",
-		       pieces.inst_size);
+			   pieces.inst_size);
 		goto try_again;
 	}
 
-	if (pieces.data_size > il->hw_params.max_data_size) {
+	if (pieces.data_size > il->hw_params.max_data_size)
+	{
 		IL_ERR("uCode data len %Zd too large to fit in\n",
-		       pieces.data_size);
+			   pieces.data_size);
 		goto try_again;
 	}
 
-	if (pieces.init_size > il->hw_params.max_inst_size) {
+	if (pieces.init_size > il->hw_params.max_inst_size)
+	{
 		IL_ERR("uCode init instr len %Zd too large to fit in\n",
-		       pieces.init_size);
+			   pieces.init_size);
 		goto try_again;
 	}
 
-	if (pieces.init_data_size > il->hw_params.max_data_size) {
+	if (pieces.init_data_size > il->hw_params.max_data_size)
+	{
 		IL_ERR("uCode init data len %Zd too large to fit in\n",
-		       pieces.init_data_size);
+			   pieces.init_data_size);
 		goto try_again;
 	}
 
-	if (pieces.boot_size > il->hw_params.max_bsm_size) {
+	if (pieces.boot_size > il->hw_params.max_bsm_size)
+	{
 		IL_ERR("uCode boot instr len %Zd too large to fit in\n",
-		       pieces.boot_size);
+			   pieces.boot_size);
 		goto try_again;
 	}
 
@@ -4907,11 +5720,14 @@ il4965_ucode_callback(const struct firmware *ucode_raw, void *context)
 	il_alloc_fw_desc(il->pci_dev, &il->ucode_data_backup);
 
 	if (!il->ucode_code.v_addr || !il->ucode_data.v_addr ||
-	    !il->ucode_data_backup.v_addr)
+		!il->ucode_data_backup.v_addr)
+	{
 		goto err_pci_alloc;
+	}
 
 	/* Initialization instructions and data */
-	if (pieces.init_size && pieces.init_data_size) {
+	if (pieces.init_size && pieces.init_data_size)
+	{
 		il->ucode_init.len = pieces.init_size;
 		il_alloc_fw_desc(il->pci_dev, &il->ucode_init);
 
@@ -4919,16 +5735,21 @@ il4965_ucode_callback(const struct firmware *ucode_raw, void *context)
 		il_alloc_fw_desc(il->pci_dev, &il->ucode_init_data);
 
 		if (!il->ucode_init.v_addr || !il->ucode_init_data.v_addr)
+		{
 			goto err_pci_alloc;
+		}
 	}
 
 	/* Bootstrap (instructions only, no data) */
-	if (pieces.boot_size) {
+	if (pieces.boot_size)
+	{
 		il->ucode_boot.len = pieces.boot_size;
 		il_alloc_fw_desc(il->pci_dev, &il->ucode_boot);
 
 		if (!il->ucode_boot.v_addr)
+		{
 			goto err_pci_alloc;
+		}
 	}
 
 	/* Now that we can no longer fail, copy information */
@@ -4939,39 +5760,41 @@ il4965_ucode_callback(const struct firmware *ucode_raw, void *context)
 
 	/* Runtime instructions (first block of data in file) */
 	D_INFO("Copying (but not loading) uCode instr len %Zd\n",
-	       pieces.inst_size);
+		   pieces.inst_size);
 	memcpy(il->ucode_code.v_addr, pieces.inst, pieces.inst_size);
 
 	D_INFO("uCode instr buf vaddr = 0x%p, paddr = 0x%08x\n",
-	       il->ucode_code.v_addr, (u32) il->ucode_code.p_addr);
+		   il->ucode_code.v_addr, (u32) il->ucode_code.p_addr);
 
 	/*
 	 * Runtime data
 	 * NOTE:  Copy into backup buffer will be done in il_up()
 	 */
 	D_INFO("Copying (but not loading) uCode data len %Zd\n",
-	       pieces.data_size);
+		   pieces.data_size);
 	memcpy(il->ucode_data.v_addr, pieces.data, pieces.data_size);
 	memcpy(il->ucode_data_backup.v_addr, pieces.data, pieces.data_size);
 
 	/* Initialization instructions */
-	if (pieces.init_size) {
+	if (pieces.init_size)
+	{
 		D_INFO("Copying (but not loading) init instr len %Zd\n",
-		       pieces.init_size);
+			   pieces.init_size);
 		memcpy(il->ucode_init.v_addr, pieces.init, pieces.init_size);
 	}
 
 	/* Initialization data */
-	if (pieces.init_data_size) {
+	if (pieces.init_data_size)
+	{
 		D_INFO("Copying (but not loading) init data len %Zd\n",
-		       pieces.init_data_size);
+			   pieces.init_data_size);
 		memcpy(il->ucode_init_data.v_addr, pieces.init_data,
-		       pieces.init_data_size);
+			   pieces.init_data_size);
 	}
 
 	/* Bootstrap instructions */
 	D_INFO("Copying (but not loading) boot instr len %Zd\n",
-	       pieces.boot_size);
+		   pieces.boot_size);
 	memcpy(il->ucode_boot.v_addr, pieces.boot, pieces.boot_size);
 
 	/*
@@ -4979,9 +5802,9 @@ il4965_ucode_callback(const struct firmware *ucode_raw, void *context)
 	 * base on the size of standard phy calibration commands table size
 	 */
 	il->_4965.phy_calib_chain_noise_reset_cmd =
-	    standard_phy_calibration_size;
+		standard_phy_calibration_size;
 	il->_4965.phy_calib_chain_noise_gain_cmd =
-	    standard_phy_calibration_size + 1;
+		standard_phy_calibration_size + 1;
 
 	/**************************************************
 	 * This is still part of probe() in a sense...
@@ -4989,16 +5812,22 @@ il4965_ucode_callback(const struct firmware *ucode_raw, void *context)
 	 * 9. Setup and register with mac80211 and debugfs
 	 **************************************************/
 	err = il4965_mac_setup_register(il, max_probe_length);
+
 	if (err)
+	{
 		goto out_unbind;
+	}
 
 	err = il_dbgfs_register(il, DRV_NAME);
+
 	if (err)
 		IL_ERR("failed to create debugfs files. Ignoring error: %d\n",
-		       err);
+			   err);
 
 	err = sysfs_create_group(&il->pci_dev->dev.kobj, &il_attribute_group);
-	if (err) {
+
+	if (err)
+	{
 		IL_ERR("failed to create sysfs device attributes\n");
 		goto out_unbind;
 	}
@@ -5009,9 +5838,13 @@ il4965_ucode_callback(const struct firmware *ucode_raw, void *context)
 	return;
 
 try_again:
+
 	/* try next, if any */
 	if (il4965_request_firmware(il, false))
+	{
 		goto out_unbind;
+	}
+
 	release_firmware(ucode_raw);
 	return;
 
@@ -5024,7 +5857,8 @@ out_unbind:
 	release_firmware(ucode_raw);
 }
 
-static const char *const desc_lookup_text[] = {
+static const char *const desc_lookup_text[] =
+{
 	"OK",
 	"FAIL",
 	"BAD_PARAM",
@@ -5055,27 +5889,46 @@ static const char *const desc_lookup_text[] = {
 	"DEBUG_3",
 };
 
-static struct {
+static struct
+{
 	char *name;
 	u8 num;
-} advanced_lookup[] = {
+} advanced_lookup[] =
+{
 	{
-	"NMI_INTERRUPT_WDG", 0x34}, {
-	"SYSASSERT", 0x35}, {
-	"UCODE_VERSION_MISMATCH", 0x37}, {
-	"BAD_COMMAND", 0x38}, {
-	"NMI_INTERRUPT_DATA_ACTION_PT", 0x3C}, {
-	"FATAL_ERROR", 0x3D}, {
-	"NMI_TRM_HW_ERR", 0x46}, {
-	"NMI_INTERRUPT_TRM", 0x4C}, {
-	"NMI_INTERRUPT_BREAK_POINT", 0x54}, {
-	"NMI_INTERRUPT_WDG_RXF_FULL", 0x5C}, {
-	"NMI_INTERRUPT_WDG_NO_RBD_RXF_FULL", 0x64}, {
-	"NMI_INTERRUPT_HOST", 0x66}, {
-	"NMI_INTERRUPT_ACTION_PT", 0x7C}, {
-	"NMI_INTERRUPT_UNKNOWN", 0x84}, {
-	"NMI_INTERRUPT_INST_ACTION_PT", 0x86}, {
-"ADVANCED_SYSASSERT", 0},};
+		"NMI_INTERRUPT_WDG", 0x34
+	}, {
+		"SYSASSERT", 0x35
+	}, {
+		"UCODE_VERSION_MISMATCH", 0x37
+	}, {
+		"BAD_COMMAND", 0x38
+	}, {
+		"NMI_INTERRUPT_DATA_ACTION_PT", 0x3C
+	}, {
+		"FATAL_ERROR", 0x3D
+	}, {
+		"NMI_TRM_HW_ERR", 0x46
+	}, {
+		"NMI_INTERRUPT_TRM", 0x4C
+	}, {
+		"NMI_INTERRUPT_BREAK_POINT", 0x54
+	}, {
+		"NMI_INTERRUPT_WDG_RXF_FULL", 0x5C
+	}, {
+		"NMI_INTERRUPT_WDG_NO_RBD_RXF_FULL", 0x64
+	}, {
+		"NMI_INTERRUPT_HOST", 0x66
+	}, {
+		"NMI_INTERRUPT_ACTION_PT", 0x7C
+	}, {
+		"NMI_INTERRUPT_UNKNOWN", 0x84
+	}, {
+		"NMI_INTERRUPT_INST_ACTION_PT", 0x86
+	}, {
+		"ADVANCED_SYSASSERT", 0
+	},
+};
 
 static const char *
 il4965_desc_lookup(u32 num)
@@ -5084,13 +5937,20 @@ il4965_desc_lookup(u32 num)
 	int max = ARRAY_SIZE(desc_lookup_text);
 
 	if (num < max)
+	{
 		return desc_lookup_text[num];
+	}
 
 	max = ARRAY_SIZE(advanced_lookup) - 1;
-	for (i = 0; i < max; i++) {
+
+	for (i = 0; i < max; i++)
+	{
 		if (advanced_lookup[i].num == num)
+		{
 			break;
+		}
 	}
+
 	return advanced_lookup[i].name;
 }
 
@@ -5106,19 +5966,25 @@ il4965_dump_nic_error_log(struct il_priv *il)
 	u32 pc, hcmd;
 
 	if (il->ucode_type == UCODE_INIT)
+	{
 		base = le32_to_cpu(il->card_alive_init.error_event_table_ptr);
+	}
 	else
+	{
 		base = le32_to_cpu(il->card_alive.error_event_table_ptr);
+	}
 
-	if (!il->ops->is_valid_rtc_data_addr(base)) {
+	if (!il->ops->is_valid_rtc_data_addr(base))
+	{
 		IL_ERR("Not valid error log pointer 0x%08X for %s uCode\n",
-		       base, (il->ucode_type == UCODE_INIT) ? "Init" : "RT");
+			   base, (il->ucode_type == UCODE_INIT) ? "Init" : "RT");
 		return;
 	}
 
 	count = il_read_targ_mem(il, base);
 
-	if (ERROR_START_OFFSET <= count * ERROR_ELEM_SIZE) {
+	if (ERROR_START_OFFSET <= count * ERROR_ELEM_SIZE)
+	{
 		IL_ERR("Start IWL Error Log Dump:\n");
 		IL_ERR("Status: 0x%08lX, count: %d\n", il->status, count);
 	}
@@ -5137,12 +6003,12 @@ il4965_dump_nic_error_log(struct il_priv *il)
 	hcmd = il_read_targ_mem(il, base + 22 * sizeof(u32));
 
 	IL_ERR("Desc                                  Time       "
-	       "data1      data2      line\n");
+		   "data1      data2      line\n");
 	IL_ERR("%-28s (0x%04X) %010u 0x%08X 0x%08X %u\n",
-	       il4965_desc_lookup(desc), desc, time, data1, data2, line);
+		   il4965_desc_lookup(desc), desc, time, data1, data2, line);
 	IL_ERR("pc      blink1  blink2  ilink1  ilink2  hcmd\n");
 	IL_ERR("0x%05X 0x%05X 0x%05X 0x%05X 0x%05X 0x%05X\n", pc, blink1,
-	       blink2, ilink1, ilink2, hcmd);
+		   blink2, ilink1, ilink2, hcmd);
 }
 
 static void
@@ -5154,22 +6020,26 @@ il4965_rf_kill_ct_config(struct il_priv *il)
 
 	spin_lock_irqsave(&il->lock, flags);
 	_il_wr(il, CSR_UCODE_DRV_GP1_CLR,
-	       CSR_UCODE_DRV_GP1_REG_BIT_CT_KILL_EXIT);
+		   CSR_UCODE_DRV_GP1_REG_BIT_CT_KILL_EXIT);
 	spin_unlock_irqrestore(&il->lock, flags);
 
 	cmd.critical_temperature_R =
-	    cpu_to_le32(il->hw_params.ct_kill_threshold);
+		cpu_to_le32(il->hw_params.ct_kill_threshold);
 
 	ret = il_send_cmd_pdu(il, C_CT_KILL_CONFIG, sizeof(cmd), &cmd);
+
 	if (ret)
+	{
 		IL_ERR("C_CT_KILL_CONFIG failed\n");
+	}
 	else
 		D_INFO("C_CT_KILL_CONFIG " "succeeded, "
-		       "critical temperature is %d\n",
-		       il->hw_params.ct_kill_threshold);
+			   "critical temperature is %d\n",
+			   il->hw_params.ct_kill_threshold);
 }
 
-static const s8 default_queue_to_tx_fifo[] = {
+static const s8 default_queue_to_tx_fifo[] =
+{
 	IL_TX_FIFO_VO,
 	IL_TX_FIFO_VI,
 	IL_TX_FIFO_BE,
@@ -5194,16 +6064,25 @@ il4965_alive_notify(struct il_priv *il)
 	/* Clear 4965's internal Tx Scheduler data base */
 	il->scd_base_addr = il_rd_prph(il, IL49_SCD_SRAM_BASE_ADDR);
 	a = il->scd_base_addr + IL49_SCD_CONTEXT_DATA_OFFSET;
+
 	for (; a < il->scd_base_addr + IL49_SCD_TX_STTS_BITMAP_OFFSET; a += 4)
+	{
 		il_write_targ_mem(il, a, 0);
+	}
+
 	for (; a < il->scd_base_addr + IL49_SCD_TRANSLATE_TBL_OFFSET; a += 4)
+	{
 		il_write_targ_mem(il, a, 0);
+	}
+
 	for (;
-	     a <
-	     il->scd_base_addr +
-	     IL49_SCD_TRANSLATE_TBL_OFFSET_QUEUE(il->hw_params.max_txq_num);
-	     a += 4)
+		 a <
+		 il->scd_base_addr +
+		 IL49_SCD_TRANSLATE_TBL_OFFSET_QUEUE(il->hw_params.max_txq_num);
+		 a += 4)
+	{
 		il_write_targ_mem(il, a, 0);
+	}
 
 	/* Tel 4965 where to find Tx byte count tables */
 	il_wr_prph(il, IL49_SCD_DRAM_BASE_ADDR, il->scd_bc_tbls.dma >> 10);
@@ -5211,19 +6090,20 @@ il4965_alive_notify(struct il_priv *il)
 	/* Enable DMA channel */
 	for (chan = 0; chan < FH49_TCSR_CHNL_NUM; chan++)
 		il_wr(il, FH49_TCSR_CHNL_TX_CONFIG_REG(chan),
-		      FH49_TCSR_TX_CONFIG_REG_VAL_DMA_CHNL_ENABLE |
-		      FH49_TCSR_TX_CONFIG_REG_VAL_DMA_CREDIT_ENABLE);
+			  FH49_TCSR_TX_CONFIG_REG_VAL_DMA_CHNL_ENABLE |
+			  FH49_TCSR_TX_CONFIG_REG_VAL_DMA_CREDIT_ENABLE);
 
 	/* Update FH chicken bits */
 	reg_val = il_rd(il, FH49_TX_CHICKEN_BITS_REG);
 	il_wr(il, FH49_TX_CHICKEN_BITS_REG,
-	      reg_val | FH49_TX_CHICKEN_BITS_SCD_AUTO_RETRY_EN);
+		  reg_val | FH49_TX_CHICKEN_BITS_SCD_AUTO_RETRY_EN);
 
 	/* Disable chain mode for all queues */
 	il_wr_prph(il, IL49_SCD_QUEUECHAIN_SEL, 0);
 
 	/* Initialize each Tx queue (including the command queue) */
-	for (i = 0; i < il->hw_params.max_txq_num; i++) {
+	for (i = 0; i < il->hw_params.max_txq_num; i++)
+	{
 
 		/* TFD circular buffer read/write idxes */
 		il_wr_prph(il, IL49_SCD_QUEUE_RDPTR(i), 0);
@@ -5231,24 +6111,25 @@ il4965_alive_notify(struct il_priv *il)
 
 		/* Max Tx Window size for Scheduler-ACK mode */
 		il_write_targ_mem(il,
-				  il->scd_base_addr +
-				  IL49_SCD_CONTEXT_QUEUE_OFFSET(i),
-				  (SCD_WIN_SIZE <<
-				   IL49_SCD_QUEUE_CTX_REG1_WIN_SIZE_POS) &
-				  IL49_SCD_QUEUE_CTX_REG1_WIN_SIZE_MSK);
+						  il->scd_base_addr +
+						  IL49_SCD_CONTEXT_QUEUE_OFFSET(i),
+						  (SCD_WIN_SIZE <<
+						   IL49_SCD_QUEUE_CTX_REG1_WIN_SIZE_POS) &
+						  IL49_SCD_QUEUE_CTX_REG1_WIN_SIZE_MSK);
 
 		/* Frame limit */
 		il_write_targ_mem(il,
-				  il->scd_base_addr +
-				  IL49_SCD_CONTEXT_QUEUE_OFFSET(i) +
-				  sizeof(u32),
-				  (SCD_FRAME_LIMIT <<
-				   IL49_SCD_QUEUE_CTX_REG2_FRAME_LIMIT_POS) &
-				  IL49_SCD_QUEUE_CTX_REG2_FRAME_LIMIT_MSK);
+						  il->scd_base_addr +
+						  IL49_SCD_CONTEXT_QUEUE_OFFSET(i) +
+						  sizeof(u32),
+						  (SCD_FRAME_LIMIT <<
+						   IL49_SCD_QUEUE_CTX_REG2_FRAME_LIMIT_POS) &
+						  IL49_SCD_QUEUE_CTX_REG2_FRAME_LIMIT_MSK);
 
 	}
+
 	il_wr_prph(il, IL49_SCD_INTERRUPT_MASK,
-		   (1 << il->hw_params.max_txq_num) - 1);
+			   (1 << il->hw_params.max_txq_num) - 1);
 
 	/* Activate all Tx DMA/FIFO channels */
 	il4965_txq_set_sched(il, IL_MASK(0, 6));
@@ -5257,21 +6138,27 @@ il4965_alive_notify(struct il_priv *il)
 
 	/* make sure all queue are not stopped */
 	memset(&il->queue_stopped[0], 0, sizeof(il->queue_stopped));
+
 	for (i = 0; i < 4; i++)
+	{
 		atomic_set(&il->queue_stop_count[i], 0);
+	}
 
 	/* reset to 0 to enable all the queue first */
 	il->txq_ctx_active_msk = 0;
 	/* Map each Tx/cmd queue to its corresponding fifo */
 	BUILD_BUG_ON(ARRAY_SIZE(default_queue_to_tx_fifo) != 7);
 
-	for (i = 0; i < ARRAY_SIZE(default_queue_to_tx_fifo); i++) {
+	for (i = 0; i < ARRAY_SIZE(default_queue_to_tx_fifo); i++)
+	{
 		int ac = default_queue_to_tx_fifo[i];
 
 		il_txq_ctx_activate(il, i);
 
 		if (ac == IL_TX_FIFO_UNUSED)
+		{
 			continue;
+		}
 
 		il4965_tx_queue_set_status(il, &il->txq[i], ac, 0);
 	}
@@ -5293,7 +6180,8 @@ il4965_alive_start(struct il_priv *il)
 
 	D_INFO("Runtime Alive received.\n");
 
-	if (il->card_alive.is_valid != UCODE_VALID_OK) {
+	if (il->card_alive.is_valid != UCODE_VALID_OK)
+	{
 		/* We had an error bringing up the hardware, so take it
 		 * all the way back down so we can try again */
 		D_INFO("Alive failed.\n");
@@ -5303,7 +6191,8 @@ il4965_alive_start(struct il_priv *il)
 	/* Initialize uCode has loaded Runtime uCode ... verify inst image.
 	 * This is a paranoid check, because we would not have gotten the
 	 * "runtime" alive if code weren't properly loaded.  */
-	if (il4965_verify_ucode(il)) {
+	if (il4965_verify_ucode(il))
+	{
 		/* Runtime instruction load was bad;
 		 * take it all the way back down so we can try again */
 		D_INFO("Bad runtime uCode load.\n");
@@ -5311,7 +6200,9 @@ il4965_alive_start(struct il_priv *il)
 	}
 
 	ret = il4965_alive_notify(il);
-	if (ret) {
+
+	if (ret)
+	{
 		IL_WARN("Could not complete ALIVE transition [ntf]: %d\n", ret);
 		goto restart;
 	}
@@ -5323,7 +6214,9 @@ il4965_alive_start(struct il_priv *il)
 	il_setup_watchdog(il);
 
 	if (il_is_rfkill(il))
+	{
 		return;
+	}
 
 	ieee80211_wake_queues(il->hw);
 
@@ -5332,18 +6225,23 @@ il4965_alive_start(struct il_priv *il)
 	il_power_update_mode(il, true);
 	D_INFO("Updated power mode\n");
 
-	if (il_is_associated(il)) {
+	if (il_is_associated(il))
+	{
 		struct il_rxon_cmd *active_rxon =
-		    (struct il_rxon_cmd *)&il->active;
+			(struct il_rxon_cmd *)&il->active;
 		/* apply any changes in staging */
 		il->staging.filter_flags |= RXON_FILTER_ASSOC_MSK;
 		active_rxon->filter_flags &= ~RXON_FILTER_ASSOC_MSK;
-	} else {
+	}
+	else
+	{
 		/* Initialize our rx_config data */
 		il_connection_init_rx_config(il);
 
 		if (il->ops->set_rxon_chain)
+		{
 			il->ops->set_rxon_chain(il);
+		}
 	}
 
 	/* Configure bluetooth coexistence if enabled */
@@ -5410,7 +6308,9 @@ __il4965_down(struct il_priv *il)
 	/* Wipe out the EXIT_PENDING status bit if we are not actually
 	 * exiting the module */
 	if (!exit_pending)
+	{
 		clear_bit(S_EXIT_PENDING, &il->status);
+	}
 
 	/* stop and reset the on-board processor */
 	_il_wr(il, CSR_RESET, CSR_RESET_REG_FLAG_NEVO_RESET);
@@ -5422,25 +6322,28 @@ __il4965_down(struct il_priv *il)
 	il4965_synchronize_irq(il);
 
 	if (il->mac80211_registered)
+	{
 		ieee80211_stop_queues(il->hw);
+	}
 
 	/* If we have not previously called il_init() then
 	 * clear all bits but the RF Kill bit and return */
-	if (!il_is_init(il)) {
+	if (!il_is_init(il))
+	{
 		il->status =
-		    test_bit(S_RFKILL, &il->status) << S_RFKILL |
-		    test_bit(S_GEO_CONFIGURED, &il->status) << S_GEO_CONFIGURED |
-		    test_bit(S_EXIT_PENDING, &il->status) << S_EXIT_PENDING;
+			test_bit(S_RFKILL, &il->status) << S_RFKILL |
+			test_bit(S_GEO_CONFIGURED, &il->status) << S_GEO_CONFIGURED |
+			test_bit(S_EXIT_PENDING, &il->status) << S_EXIT_PENDING;
 		goto exit;
 	}
 
 	/* ...otherwise clear out all the status bits but the RF Kill
 	 * bit and continue taking the NIC down. */
 	il->status &=
-	    test_bit(S_RFKILL, &il->status) << S_RFKILL |
-	    test_bit(S_GEO_CONFIGURED, &il->status) << S_GEO_CONFIGURED |
-	    test_bit(S_FW_ERROR, &il->status) << S_FW_ERROR |
-	    test_bit(S_EXIT_PENDING, &il->status) << S_EXIT_PENDING;
+		test_bit(S_RFKILL, &il->status) << S_RFKILL |
+		test_bit(S_GEO_CONFIGURED, &il->status) << S_GEO_CONFIGURED |
+		test_bit(S_FW_ERROR, &il->status) << S_FW_ERROR |
+		test_bit(S_EXIT_PENDING, &il->status) << S_EXIT_PENDING;
 
 	/*
 	 * We disabled and synchronized interrupt, and priv->mutex is taken, so
@@ -5490,15 +6393,18 @@ il4965_set_hw_ready(struct il_priv *il)
 	int ret;
 
 	il_set_bit(il, CSR_HW_IF_CONFIG_REG,
-		   CSR_HW_IF_CONFIG_REG_BIT_NIC_READY);
+			   CSR_HW_IF_CONFIG_REG_BIT_NIC_READY);
 
 	/* See if we got it */
 	ret = _il_poll_bit(il, CSR_HW_IF_CONFIG_REG,
-			   CSR_HW_IF_CONFIG_REG_BIT_NIC_READY,
-			   CSR_HW_IF_CONFIG_REG_BIT_NIC_READY,
-			   100);
+					   CSR_HW_IF_CONFIG_REG_BIT_NIC_READY,
+					   CSR_HW_IF_CONFIG_REG_BIT_NIC_READY,
+					   100);
+
 	if (ret >= 0)
+	{
 		il->hw_ready = true;
+	}
 
 	D_INFO("hardware %s ready\n", (il->hw_ready) ? "" : "not");
 }
@@ -5511,20 +6417,25 @@ il4965_prepare_card_hw(struct il_priv *il)
 	il->hw_ready = false;
 
 	il4965_set_hw_ready(il);
+
 	if (il->hw_ready)
+	{
 		return;
+	}
 
 	/* If HW is not ready, prepare the conditions to check again */
 	il_set_bit(il, CSR_HW_IF_CONFIG_REG, CSR_HW_IF_CONFIG_REG_PREPARE);
 
 	ret =
-	    _il_poll_bit(il, CSR_HW_IF_CONFIG_REG,
-			 ~CSR_HW_IF_CONFIG_REG_BIT_NIC_PREPARE_DONE,
-			 CSR_HW_IF_CONFIG_REG_BIT_NIC_PREPARE_DONE, 150000);
+		_il_poll_bit(il, CSR_HW_IF_CONFIG_REG,
+					 ~CSR_HW_IF_CONFIG_REG_BIT_NIC_PREPARE_DONE,
+					 CSR_HW_IF_CONFIG_REG_BIT_NIC_PREPARE_DONE, 150000);
 
 	/* HW should be ready by now, check again. */
 	if (ret != -ETIMEDOUT)
+	{
 		il4965_set_hw_ready(il);
+	}
 }
 
 #define MAX_HW_RESTARTS 5
@@ -5535,24 +6446,30 @@ __il4965_up(struct il_priv *il)
 	int i;
 	int ret;
 
-	if (test_bit(S_EXIT_PENDING, &il->status)) {
+	if (test_bit(S_EXIT_PENDING, &il->status))
+	{
 		IL_WARN("Exit pending; will not bring the NIC up\n");
 		return -EIO;
 	}
 
-	if (!il->ucode_data_backup.v_addr || !il->ucode_data.v_addr) {
+	if (!il->ucode_data_backup.v_addr || !il->ucode_data.v_addr)
+	{
 		IL_ERR("ucode not available for device bringup\n");
 		return -EIO;
 	}
 
 	ret = il4965_alloc_bcast_station(il);
-	if (ret) {
+
+	if (ret)
+	{
 		il_dealloc_bcast_stations(il);
 		return ret;
 	}
 
 	il4965_prepare_card_hw(il);
-	if (!il->hw_ready) {
+
+	if (!il->hw_ready)
+	{
 		il_dealloc_bcast_stations(il);
 		IL_ERR("HW not ready\n");
 		return -EIO;
@@ -5560,8 +6477,11 @@ __il4965_up(struct il_priv *il)
 
 	/* If platform's RF_KILL switch is NOT set to KILL */
 	if (_il_rd(il, CSR_GP_CNTRL) & CSR_GP_CNTRL_REG_FLAG_HW_RF_KILL_SW)
+	{
 		clear_bit(S_RFKILL, &il->status);
-	else {
+	}
+	else
+	{
 		set_bit(S_RFKILL, &il->status);
 		wiphy_rfkill_set_hw_state(il->hw->wiphy, true);
 
@@ -5577,7 +6497,9 @@ __il4965_up(struct il_priv *il)
 	il->cmd_queue = IL_DEFAULT_CMD_QUEUE_NUM;
 
 	ret = il4965_hw_nic_init(il);
-	if (ret) {
+
+	if (ret)
+	{
 		IL_ERR("Unable to init nic\n");
 		il_dealloc_bcast_stations(il);
 		return ret;
@@ -5599,16 +6521,18 @@ __il4965_up(struct il_priv *il)
 	 * This will be used to initialize the on-board processor's
 	 * data SRAM for a clean start when the runtime program first loads. */
 	memcpy(il->ucode_data_backup.v_addr, il->ucode_data.v_addr,
-	       il->ucode_data.len);
+		   il->ucode_data.len);
 
-	for (i = 0; i < MAX_HW_RESTARTS; i++) {
+	for (i = 0; i < MAX_HW_RESTARTS; i++)
+	{
 
 		/* load bootstrap state machine,
 		 * load bootstrap program into processor's memory,
 		 * prepare to load the "initialize" uCode */
 		ret = il->ops->load_ucode(il);
 
-		if (ret) {
+		if (ret)
+		{
 			IL_ERR("Unable to set up bootstrap uCode: %d\n", ret);
 			continue;
 		}
@@ -5641,11 +6565,14 @@ static void
 il4965_bg_init_alive_start(struct work_struct *data)
 {
 	struct il_priv *il =
-	    container_of(data, struct il_priv, init_alive_start.work);
+		container_of(data, struct il_priv, init_alive_start.work);
 
 	mutex_lock(&il->mutex);
+
 	if (test_bit(S_EXIT_PENDING, &il->status))
+	{
 		goto out;
+	}
 
 	il->ops->init_alive_start(il);
 out:
@@ -5656,11 +6583,14 @@ static void
 il4965_bg_alive_start(struct work_struct *data)
 {
 	struct il_priv *il =
-	    container_of(data, struct il_priv, alive_start.work);
+		container_of(data, struct il_priv, alive_start.work);
 
 	mutex_lock(&il->mutex);
+
 	if (test_bit(S_EXIT_PENDING, &il->status))
+	{
 		goto out;
+	}
 
 	il4965_alive_start(il);
 out:
@@ -5671,17 +6601,19 @@ static void
 il4965_bg_run_time_calib_work(struct work_struct *work)
 {
 	struct il_priv *il = container_of(work, struct il_priv,
-					  run_time_calib_work);
+									  run_time_calib_work);
 
 	mutex_lock(&il->mutex);
 
 	if (test_bit(S_EXIT_PENDING, &il->status) ||
-	    test_bit(S_SCANNING, &il->status)) {
+		test_bit(S_SCANNING, &il->status))
+	{
 		mutex_unlock(&il->mutex);
 		return;
 	}
 
-	if (il->start_calib) {
+	if (il->start_calib)
+	{
 		il4965_chain_noise_calibration(il, (void *)&il->_4965.stats);
 		il4965_sensitivity_calibration(il, (void *)&il->_4965.stats);
 	}
@@ -5695,9 +6627,12 @@ il4965_bg_restart(struct work_struct *data)
 	struct il_priv *il = container_of(data, struct il_priv, restart);
 
 	if (test_bit(S_EXIT_PENDING, &il->status))
+	{
 		return;
+	}
 
-	if (test_and_clear_bit(S_FW_ERROR, &il->status)) {
+	if (test_and_clear_bit(S_FW_ERROR, &il->status))
+	{
 		mutex_lock(&il->mutex);
 		il->is_open = 0;
 
@@ -5706,11 +6641,15 @@ il4965_bg_restart(struct work_struct *data)
 		mutex_unlock(&il->mutex);
 		il4965_cancel_deferred_work(il);
 		ieee80211_restart_hw(il->hw);
-	} else {
+	}
+	else
+	{
 		il4965_down(il);
 
 		mutex_lock(&il->mutex);
-		if (test_bit(S_EXIT_PENDING, &il->status)) {
+
+		if (test_bit(S_EXIT_PENDING, &il->status))
+		{
 			mutex_unlock(&il->mutex);
 			return;
 		}
@@ -5726,7 +6665,9 @@ il4965_bg_rx_replenish(struct work_struct *data)
 	struct il_priv *il = container_of(data, struct il_priv, rx_replenish);
 
 	if (test_bit(S_EXIT_PENDING, &il->status))
+	{
 		return;
+	}
 
 	mutex_lock(&il->mutex);
 	il4965_rx_replenish(il);
@@ -5761,19 +6702,20 @@ il4965_mac_setup_register(struct il_priv *il, u32 max_probe_length)
 	ieee80211_hw_set(hw, NEED_DTIM_BEFORE_ASSOC);
 	ieee80211_hw_set(hw, SIGNAL_DBM);
 	ieee80211_hw_set(hw, AMPDU_AGGREGATION);
+
 	if (il->cfg->sku & IL_SKU_N)
 		hw->wiphy->features |= NL80211_FEATURE_DYNAMIC_SMPS |
-				       NL80211_FEATURE_STATIC_SMPS;
+							   NL80211_FEATURE_STATIC_SMPS;
 
 	hw->sta_data_size = sizeof(struct il_station_priv);
 	hw->vif_data_size = sizeof(struct il_vif_priv);
 
 	hw->wiphy->interface_modes =
-	    BIT(NL80211_IFTYPE_STATION) | BIT(NL80211_IFTYPE_ADHOC);
+		BIT(NL80211_IFTYPE_STATION) | BIT(NL80211_IFTYPE_ADHOC);
 
 	hw->wiphy->flags |= WIPHY_FLAG_IBSS_RSN;
 	hw->wiphy->regulatory_flags |= REGULATORY_CUSTOM_REG |
-				       REGULATORY_DISABLE_BEACON_HINTS;
+								   REGULATORY_DISABLE_BEACON_HINTS;
 
 	/*
 	 * For now, disable PS by default because it affects
@@ -5792,18 +6734,22 @@ il4965_mac_setup_register(struct il_priv *il, u32 max_probe_length)
 
 	if (il->bands[NL80211_BAND_2GHZ].n_channels)
 		il->hw->wiphy->bands[NL80211_BAND_2GHZ] =
-		    &il->bands[NL80211_BAND_2GHZ];
+			&il->bands[NL80211_BAND_2GHZ];
+
 	if (il->bands[NL80211_BAND_5GHZ].n_channels)
 		il->hw->wiphy->bands[NL80211_BAND_5GHZ] =
-		    &il->bands[NL80211_BAND_5GHZ];
+			&il->bands[NL80211_BAND_5GHZ];
 
 	il_leds_init(il);
 
 	ret = ieee80211_register_hw(il->hw);
-	if (ret) {
+
+	if (ret)
+	{
 		IL_ERR("Failed to register hw (error %d)\n", ret);
 		return ret;
 	}
+
 	il->mac80211_registered = 1;
 
 	return 0;
@@ -5823,22 +6769,29 @@ il4965_mac_start(struct ieee80211_hw *hw)
 	mutex_unlock(&il->mutex);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (il_is_rfkill(il))
+	{
 		goto out;
+	}
 
 	D_INFO("Start UP work done.\n");
 
 	/* Wait for START_ALIVE from Run Time ucode. Otherwise callbacks from
 	 * mac80211 will not be run successfully. */
 	ret = wait_event_timeout(il->wait_command_queue,
-				 test_bit(S_READY, &il->status),
-				 UCODE_READY_TIMEOUT);
-	if (!ret) {
-		if (!test_bit(S_READY, &il->status)) {
+							 test_bit(S_READY, &il->status),
+							 UCODE_READY_TIMEOUT);
+
+	if (!ret)
+	{
+		if (!test_bit(S_READY, &il->status))
+		{
 			IL_ERR("START_ALIVE timeout after %dms.\n",
-				jiffies_to_msecs(UCODE_READY_TIMEOUT));
+				   jiffies_to_msecs(UCODE_READY_TIMEOUT));
 			return -ETIMEDOUT;
 		}
 	}
@@ -5859,7 +6812,9 @@ il4965_mac_stop(struct ieee80211_hw *hw)
 	D_MAC80211("enter\n");
 
 	if (!il->is_open)
+	{
 		return;
+	}
 
 	il->is_open = 0;
 
@@ -5877,26 +6832,28 @@ il4965_mac_stop(struct ieee80211_hw *hw)
 
 void
 il4965_mac_tx(struct ieee80211_hw *hw,
-	      struct ieee80211_tx_control *control,
-	      struct sk_buff *skb)
+			  struct ieee80211_tx_control *control,
+			  struct sk_buff *skb)
 {
 	struct il_priv *il = hw->priv;
 
 	D_MACDUMP("enter\n");
 
 	D_TX("dev->xmit(%d bytes) at rate 0x%02x\n", skb->len,
-	     ieee80211_get_tx_rate(hw, IEEE80211_SKB_CB(skb))->bitrate);
+		 ieee80211_get_tx_rate(hw, IEEE80211_SKB_CB(skb))->bitrate);
 
 	if (il4965_tx_skb(il, control->sta, skb))
+	{
 		dev_kfree_skb_any(skb);
+	}
 
 	D_MACDUMP("leave\n");
 }
 
 void
 il4965_mac_update_tkip_key(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-			   struct ieee80211_key_conf *keyconf,
-			   struct ieee80211_sta *sta, u32 iv32, u16 * phase1key)
+						   struct ieee80211_key_conf *keyconf,
+						   struct ieee80211_sta *sta, u32 iv32, u16 *phase1key)
 {
 	struct il_priv *il = hw->priv;
 
@@ -5909,8 +6866,8 @@ il4965_mac_update_tkip_key(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 
 int
 il4965_mac_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
-		   struct ieee80211_vif *vif, struct ieee80211_sta *sta,
-		   struct ieee80211_key_conf *key)
+				   struct ieee80211_vif *vif, struct ieee80211_sta *sta,
+				   struct ieee80211_key_conf *key)
 {
 	struct il_priv *il = hw->priv;
 	int ret;
@@ -5919,7 +6876,8 @@ il4965_mac_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
 
 	D_MAC80211("enter\n");
 
-	if (il->cfg->mod_params->sw_crypto) {
+	if (il->cfg->mod_params->sw_crypto)
+	{
 		D_MAC80211("leave - hwcrypto disabled\n");
 		return -EOPNOTSUPP;
 	}
@@ -5929,14 +6887,18 @@ il4965_mac_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
 	 * hardware will then not attempt to decrypt the frames.
 	 */
 	if (vif->type == NL80211_IFTYPE_ADHOC &&
-	    !(key->flags & IEEE80211_KEY_FLAG_PAIRWISE)) {
+		!(key->flags & IEEE80211_KEY_FLAG_PAIRWISE))
+	{
 		D_MAC80211("leave - ad-hoc group key\n");
 		return -EOPNOTSUPP;
 	}
 
 	sta_id = il_sta_id_or_broadcast(il, sta);
+
 	if (sta_id == IL_INVALID_STATION)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&il->mutex);
 	il_scan_cancel_timeout(il, 100);
@@ -5948,33 +6910,47 @@ il4965_mac_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
 	 * In legacy wep mode, we use another host command to the uCode.
 	 */
 	if ((key->cipher == WLAN_CIPHER_SUITE_WEP40 ||
-	     key->cipher == WLAN_CIPHER_SUITE_WEP104) && !sta) {
+		 key->cipher == WLAN_CIPHER_SUITE_WEP104) && !sta)
+	{
 		if (cmd == SET_KEY)
+		{
 			is_default_wep_key = !il->_4965.key_mapping_keys;
+		}
 		else
 			is_default_wep_key =
-			    (key->hw_key_idx == HW_KEY_DEFAULT);
+				(key->hw_key_idx == HW_KEY_DEFAULT);
 	}
 
-	switch (cmd) {
-	case SET_KEY:
-		if (is_default_wep_key)
-			ret = il4965_set_default_wep_key(il, key);
-		else
-			ret = il4965_set_dynamic_key(il, key, sta_id);
+	switch (cmd)
+	{
+		case SET_KEY:
+			if (is_default_wep_key)
+			{
+				ret = il4965_set_default_wep_key(il, key);
+			}
+			else
+			{
+				ret = il4965_set_dynamic_key(il, key, sta_id);
+			}
 
-		D_MAC80211("enable hwcrypto key\n");
-		break;
-	case DISABLE_KEY:
-		if (is_default_wep_key)
-			ret = il4965_remove_default_wep_key(il, key);
-		else
-			ret = il4965_remove_dynamic_key(il, key, sta_id);
+			D_MAC80211("enable hwcrypto key\n");
+			break;
 
-		D_MAC80211("disable hwcrypto key\n");
-		break;
-	default:
-		ret = -EINVAL;
+		case DISABLE_KEY:
+			if (is_default_wep_key)
+			{
+				ret = il4965_remove_default_wep_key(il, key);
+			}
+			else
+			{
+				ret = il4965_remove_dynamic_key(il, key, sta_id);
+			}
+
+			D_MAC80211("disable hwcrypto key\n");
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	mutex_unlock(&il->mutex);
@@ -5985,7 +6961,7 @@ il4965_mac_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
 
 int
 il4965_mac_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-			struct ieee80211_ampdu_params *params)
+						struct ieee80211_ampdu_params *params)
 {
 	struct il_priv *il = hw->priv;
 	int ret = -EINVAL;
@@ -5997,37 +6973,53 @@ il4965_mac_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	D_HT("A-MPDU action on addr %pM tid %d\n", sta->addr, tid);
 
 	if (!(il->cfg->sku & IL_SKU_N))
+	{
 		return -EACCES;
+	}
 
 	mutex_lock(&il->mutex);
 
-	switch (action) {
-	case IEEE80211_AMPDU_RX_START:
-		D_HT("start Rx\n");
-		ret = il4965_sta_rx_agg_start(il, sta, tid, *ssn);
-		break;
-	case IEEE80211_AMPDU_RX_STOP:
-		D_HT("stop Rx\n");
-		ret = il4965_sta_rx_agg_stop(il, sta, tid);
-		if (test_bit(S_EXIT_PENDING, &il->status))
+	switch (action)
+	{
+		case IEEE80211_AMPDU_RX_START:
+			D_HT("start Rx\n");
+			ret = il4965_sta_rx_agg_start(il, sta, tid, *ssn);
+			break;
+
+		case IEEE80211_AMPDU_RX_STOP:
+			D_HT("stop Rx\n");
+			ret = il4965_sta_rx_agg_stop(il, sta, tid);
+
+			if (test_bit(S_EXIT_PENDING, &il->status))
+			{
+				ret = 0;
+			}
+
+			break;
+
+		case IEEE80211_AMPDU_TX_START:
+			D_HT("start Tx\n");
+			ret = il4965_tx_agg_start(il, vif, sta, tid, ssn);
+			break;
+
+		case IEEE80211_AMPDU_TX_STOP_CONT:
+		case IEEE80211_AMPDU_TX_STOP_FLUSH:
+		case IEEE80211_AMPDU_TX_STOP_FLUSH_CONT:
+			D_HT("stop Tx\n");
+			ret = il4965_tx_agg_stop(il, vif, sta, tid);
+
+			if (test_bit(S_EXIT_PENDING, &il->status))
+			{
+				ret = 0;
+			}
+
+			break;
+
+		case IEEE80211_AMPDU_TX_OPERATIONAL:
 			ret = 0;
-		break;
-	case IEEE80211_AMPDU_TX_START:
-		D_HT("start Tx\n");
-		ret = il4965_tx_agg_start(il, vif, sta, tid, ssn);
-		break;
-	case IEEE80211_AMPDU_TX_STOP_CONT:
-	case IEEE80211_AMPDU_TX_STOP_FLUSH:
-	case IEEE80211_AMPDU_TX_STOP_FLUSH_CONT:
-		D_HT("stop Tx\n");
-		ret = il4965_tx_agg_stop(il, vif, sta, tid);
-		if (test_bit(S_EXIT_PENDING, &il->status))
-			ret = 0;
-		break;
-	case IEEE80211_AMPDU_TX_OPERATIONAL:
-		ret = 0;
-		break;
+			break;
 	}
+
 	mutex_unlock(&il->mutex);
 
 	return ret;
@@ -6035,7 +7027,7 @@ il4965_mac_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 
 int
 il4965_mac_sta_add(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-		   struct ieee80211_sta *sta)
+				   struct ieee80211_sta *sta)
 {
 	struct il_priv *il = hw->priv;
 	struct il_station_priv *sta_priv = (void *)sta->drv_priv;
@@ -6051,8 +7043,10 @@ il4965_mac_sta_add(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	atomic_set(&sta_priv->pending_frames, 0);
 
 	ret =
-	    il_add_station_common(il, sta->addr, is_ap, sta, &sta_id);
-	if (ret) {
+		il_add_station_common(il, sta->addr, is_ap, sta, &sta_id);
+
+	if (ret)
+	{
 		IL_ERR("Unable to add station %pM (%d)\n", sta->addr, ret);
 		/* Should we return success if return code is EEXIST ? */
 		mutex_unlock(&il->mutex);
@@ -6071,7 +7065,7 @@ il4965_mac_sta_add(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 
 void
 il4965_mac_channel_switch(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-			  struct ieee80211_channel_switch *ch_switch)
+						  struct ieee80211_channel_switch *ch_switch)
 {
 	struct il_priv *il = hw->priv;
 	const struct il_channel_info *ch_info;
@@ -6085,25 +7079,38 @@ il4965_mac_channel_switch(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	mutex_lock(&il->mutex);
 
 	if (il_is_rfkill(il))
+	{
 		goto out;
+	}
 
 	if (test_bit(S_EXIT_PENDING, &il->status) ||
-	    test_bit(S_SCANNING, &il->status) ||
-	    test_bit(S_CHANNEL_SWITCH_PENDING, &il->status))
+		test_bit(S_SCANNING, &il->status) ||
+		test_bit(S_CHANNEL_SWITCH_PENDING, &il->status))
+	{
 		goto out;
+	}
 
 	if (!il_is_associated(il))
+	{
 		goto out;
+	}
 
 	if (!il->ops->set_channel_switch)
+	{
 		goto out;
+	}
 
 	ch = channel->hw_value;
+
 	if (le16_to_cpu(il->active.channel) == ch)
+	{
 		goto out;
+	}
 
 	ch_info = il_get_channel_info(il, channel->band, ch);
-	if (!il_is_channel_valid(ch_info)) {
+
+	if (!il_is_channel_valid(ch_info))
+	{
 		D_MAC80211("invalid channel\n");
 		goto out;
 	}
@@ -6113,24 +7120,29 @@ il4965_mac_channel_switch(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	il->current_ht_config.smps = conf->smps_mode;
 
 	/* Configure HT40 channels */
-	switch (cfg80211_get_chandef_type(&ch_switch->chandef)) {
-	case NL80211_CHAN_NO_HT:
-	case NL80211_CHAN_HT20:
-		il->ht.is_40mhz = false;
-		il->ht.extension_chan_offset = IEEE80211_HT_PARAM_CHA_SEC_NONE;
-		break;
-	case NL80211_CHAN_HT40MINUS:
-		il->ht.extension_chan_offset = IEEE80211_HT_PARAM_CHA_SEC_BELOW;
-		il->ht.is_40mhz = true;
-		break;
-	case NL80211_CHAN_HT40PLUS:
-		il->ht.extension_chan_offset = IEEE80211_HT_PARAM_CHA_SEC_ABOVE;
-		il->ht.is_40mhz = true;
-		break;
+	switch (cfg80211_get_chandef_type(&ch_switch->chandef))
+	{
+		case NL80211_CHAN_NO_HT:
+		case NL80211_CHAN_HT20:
+			il->ht.is_40mhz = false;
+			il->ht.extension_chan_offset = IEEE80211_HT_PARAM_CHA_SEC_NONE;
+			break;
+
+		case NL80211_CHAN_HT40MINUS:
+			il->ht.extension_chan_offset = IEEE80211_HT_PARAM_CHA_SEC_BELOW;
+			il->ht.is_40mhz = true;
+			break;
+
+		case NL80211_CHAN_HT40PLUS:
+			il->ht.extension_chan_offset = IEEE80211_HT_PARAM_CHA_SEC_ABOVE;
+			il->ht.is_40mhz = true;
+			break;
 	}
 
 	if ((le16_to_cpu(il->staging.channel) != ch))
+	{
 		il->staging.flags = 0;
+	}
 
 	il_set_rxon_channel(il, channel);
 	il_set_rxon_ht(il, ht_conf);
@@ -6145,7 +7157,9 @@ il4965_mac_channel_switch(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	 */
 	set_bit(S_CHANNEL_SWITCH_PENDING, &il->status);
 	il->switch_channel = cpu_to_le16(ch);
-	if (il->ops->set_channel_switch(il, ch_switch)) {
+
+	if (il->ops->set_channel_switch(il, ch_switch))
+	{
 		clear_bit(S_CHANNEL_SWITCH_PENDING, &il->status);
 		il->switch_channel = 0;
 		ieee80211_chswitch_done(il->vif, false);
@@ -6158,20 +7172,20 @@ out:
 
 void
 il4965_configure_filter(struct ieee80211_hw *hw, unsigned int changed_flags,
-			unsigned int *total_flags, u64 multicast)
+						unsigned int *total_flags, u64 multicast)
 {
 	struct il_priv *il = hw->priv;
 	__le32 filter_or = 0, filter_nand = 0;
 
 #define CHK(test, flag)	do { \
-	if (*total_flags & (test))		\
-		filter_or |= (flag);		\
-	else					\
-		filter_nand |= (flag);		\
+		if (*total_flags & (test))		\
+			filter_or |= (flag);		\
+		else					\
+			filter_nand |= (flag);		\
 	} while (0)
 
 	D_MAC80211("Enter: changed: 0x%x, total: 0x%x\n", changed_flags,
-		   *total_flags);
+			   *total_flags);
 
 	CHK(FIF_OTHER_BSS, RXON_FILTER_PROMISC_MSK);
 	/* Setting _just_ RXON_FILTER_CTL2HOST_MSK causes FH errors */
@@ -6199,8 +7213,8 @@ il4965_configure_filter(struct ieee80211_hw *hw, unsigned int changed_flags,
 	 * filters into the device.
 	 */
 	*total_flags &=
-	    FIF_OTHER_BSS | FIF_ALLMULTI |
-	    FIF_BCN_PRBRESP_PROMISC | FIF_CONTROL;
+		FIF_OTHER_BSS | FIF_ALLMULTI |
+		FIF_BCN_PRBRESP_PROMISC | FIF_CONTROL;
 }
 
 /*****************************************************************************
@@ -6213,7 +7227,7 @@ static void
 il4965_bg_txpower_work(struct work_struct *work)
 {
 	struct il_priv *il = container_of(work, struct il_priv,
-					  txpower_work);
+									  txpower_work);
 
 	mutex_lock(&il->mutex);
 
@@ -6222,8 +7236,10 @@ il4965_bg_txpower_work(struct work_struct *work)
 	 * kick off another scheduled work to compensate for
 	 * any temperature delta we missed here. */
 	if (test_bit(S_EXIT_PENDING, &il->status) ||
-	    test_bit(S_SCANNING, &il->status))
+		test_bit(S_SCANNING, &il->status))
+	{
 		goto out;
+	}
 
 	/* Regardless of if we are associated, we must reconfigure the
 	 * TX power since frames can be sent on non-radar channels while
@@ -6255,13 +7271,13 @@ il4965_setup_deferred_work(struct il_priv *il)
 	INIT_WORK(&il->txpower_work, il4965_bg_txpower_work);
 
 	setup_timer(&il->stats_periodic, il4965_bg_stats_periodic,
-		    (unsigned long)il);
+				(unsigned long)il);
 
 	setup_timer(&il->watchdog, il_bg_watchdog, (unsigned long)il);
 
 	tasklet_init(&il->irq_tasklet,
-		     (void (*)(unsigned long))il4965_irq_tasklet,
-		     (unsigned long)il);
+				 (void (*)(unsigned long))il4965_irq_tasklet,
+				 (unsigned long)il);
 }
 
 static void
@@ -6282,18 +7298,21 @@ il4965_init_hw_rates(struct il_priv *il, struct ieee80211_rate *rates)
 {
 	int i;
 
-	for (i = 0; i < RATE_COUNT_LEGACY; i++) {
+	for (i = 0; i < RATE_COUNT_LEGACY; i++)
+	{
 		rates[i].bitrate = il_rates[i].ieee * 5;
 		rates[i].hw_value = i;	/* Rate scaling will work on idxes */
 		rates[i].hw_value_short = i;
 		rates[i].flags = 0;
-		if ((i >= IL_FIRST_CCK_RATE) && (i <= IL_LAST_CCK_RATE)) {
+
+		if ((i >= IL_FIRST_CCK_RATE) && (i <= IL_LAST_CCK_RATE))
+		{
 			/*
 			 * If CCK != 1M then set short preamble rate flag.
 			 */
 			rates[i].flags |=
-			    (il_rates[i].plcp ==
-			     RATE_1M_PLCP) ? 0 : IEEE80211_RATE_SHORT_PREAMBLE;
+				(il_rates[i].plcp ==
+				 RATE_1M_PLCP) ? 0 : IEEE80211_RATE_SHORT_PREAMBLE;
 		}
 	}
 }
@@ -6310,7 +7329,7 @@ il4965_set_wr_ptrs(struct il_priv *il, int txq_id, u32 idx)
 
 void
 il4965_tx_queue_set_status(struct il_priv *il, struct il_tx_queue *txq,
-			   int tx_fifo_id, int scd_retry)
+						   int tx_fifo_id, int scd_retry)
 {
 	int txq_id = txq->q.id;
 
@@ -6319,19 +7338,20 @@ il4965_tx_queue_set_status(struct il_priv *il, struct il_tx_queue *txq,
 
 	/* Set up and activate */
 	il_wr_prph(il, IL49_SCD_QUEUE_STATUS_BITS(txq_id),
-		   (active << IL49_SCD_QUEUE_STTS_REG_POS_ACTIVE) |
-		   (tx_fifo_id << IL49_SCD_QUEUE_STTS_REG_POS_TXF) |
-		   (scd_retry << IL49_SCD_QUEUE_STTS_REG_POS_WSL) |
-		   (scd_retry << IL49_SCD_QUEUE_STTS_REG_POS_SCD_ACK) |
-		   IL49_SCD_QUEUE_STTS_REG_MSK);
+			   (active << IL49_SCD_QUEUE_STTS_REG_POS_ACTIVE) |
+			   (tx_fifo_id << IL49_SCD_QUEUE_STTS_REG_POS_TXF) |
+			   (scd_retry << IL49_SCD_QUEUE_STTS_REG_POS_WSL) |
+			   (scd_retry << IL49_SCD_QUEUE_STTS_REG_POS_SCD_ACK) |
+			   IL49_SCD_QUEUE_STTS_REG_MSK);
 
 	txq->sched_retry = scd_retry;
 
 	D_INFO("%s %s Queue %d on AC %d\n", active ? "Activate" : "Deactivate",
-	       scd_retry ? "BA" : "AC", txq_id, tx_fifo_id);
+		   scd_retry ? "BA" : "AC", txq_id, tx_fifo_id);
 }
 
-static const struct ieee80211_ops il4965_mac_ops = {
+static const struct ieee80211_ops il4965_mac_ops =
+{
 	.tx = il4965_mac_tx,
 	.start = il4965_mac_start,
 	.stop = il4965_mac_stop,
@@ -6379,21 +7399,28 @@ il4965_init_drv(struct il_priv *il)
 
 	/* Choose which receivers/antennas to use */
 	if (il->ops->set_rxon_chain)
+	{
 		il->ops->set_rxon_chain(il);
+	}
 
 	il_init_scan_params(il);
 
 	ret = il_init_channel_map(il);
-	if (ret) {
+
+	if (ret)
+	{
 		IL_ERR("initializing regulatory failed: %d\n", ret);
 		goto err;
 	}
 
 	ret = il_init_geos(il);
-	if (ret) {
+
+	if (ret)
+	{
 		IL_ERR("initializing geos failed: %d\n", ret);
 		goto err_free_channel_map;
 	}
+
 	il4965_init_hw_rates(il, il->ieee_rates);
 
 	return 0;
@@ -6421,7 +7448,8 @@ il4965_hw_detect(struct il_priv *il)
 	D_INFO("HW Revision ID = 0x%X\n", il->rev_id);
 }
 
-static const struct il_sensitivity_ranges il4965_sensitivity = {
+static const struct il_sensitivity_ranges il4965_sensitivity =
+{
 	.min_nrg_cck = 97,
 	.max_nrg_cck = 0,	/* not used, set to 0 */
 
@@ -6454,26 +7482,33 @@ il4965_set_hw_params(struct il_priv *il)
 	il->hw_params.bcast_id = IL4965_BROADCAST_ID;
 	il->hw_params.max_rxq_size = RX_QUEUE_SIZE;
 	il->hw_params.max_rxq_log = RX_QUEUE_SIZE_LOG;
+
 	if (il->cfg->mod_params->amsdu_size_8K)
+	{
 		il->hw_params.rx_page_order = get_order(IL_RX_BUF_SIZE_8K);
+	}
 	else
+	{
 		il->hw_params.rx_page_order = get_order(IL_RX_BUF_SIZE_4K);
+	}
 
 	il->hw_params.max_beacon_itrvl = IL_MAX_UCODE_BEACON_INTERVAL;
 
 	if (il->cfg->mod_params->disable_11n)
+	{
 		il->cfg->sku &= ~IL_SKU_N;
+	}
 
 	if (il->cfg->mod_params->num_of_queues >= IL_MIN_NUM_QUEUES &&
-	    il->cfg->mod_params->num_of_queues <= IL49_NUM_QUEUES)
+		il->cfg->mod_params->num_of_queues <= IL49_NUM_QUEUES)
 		il->cfg->num_of_queues =
-		    il->cfg->mod_params->num_of_queues;
+			il->cfg->mod_params->num_of_queues;
 
 	il->hw_params.max_txq_num = il->cfg->num_of_queues;
 	il->hw_params.dma_chnl_num = FH49_TCSR_CHNL_NUM;
 	il->hw_params.scd_bc_tbls_size =
-	    il->cfg->num_of_queues *
-	    sizeof(struct il4965_scd_bc_tbl);
+		il->cfg->num_of_queues *
+		sizeof(struct il4965_scd_bc_tbl);
 
 	il->hw_params.tfd_size = sizeof(struct il_tfd);
 	il->hw_params.max_stations = IL4965_STATION_COUNT;
@@ -6490,7 +7525,7 @@ il4965_set_hw_params(struct il_priv *il)
 	il->hw_params.valid_rx_ant = il->cfg->valid_rx_ant;
 
 	il->hw_params.ct_kill_threshold =
-	   CELSIUS_TO_KELVIN(CT_KILL_THRESHOLD_LEGACY);
+		CELSIUS_TO_KELVIN(CT_KILL_THRESHOLD_LEGACY);
 
 	il->hw_params.sens = &il4965_sensitivity;
 	il->hw_params.beacon_time_tsf_bits = IL4965_EXT_BEACON_TIME_POS;
@@ -6511,10 +7546,13 @@ il4965_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	 ************************/
 
 	hw = ieee80211_alloc_hw(sizeof(struct il_priv), &il4965_mac_ops);
-	if (!hw) {
+
+	if (!hw)
+	{
 		err = -ENOMEM;
 		goto out;
 	}
+
 	il = hw->priv;
 	il->hw = hw;
 	SET_IEEE80211_DEV(hw, &pdev->dev);
@@ -6532,10 +7570,11 @@ il4965_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	 * 2. Initializing PCI bus
 	 **************************/
 	pci_disable_link_state(pdev,
-			       PCIE_LINK_STATE_L0S | PCIE_LINK_STATE_L1 |
-			       PCIE_LINK_STATE_CLKPM);
+						   PCIE_LINK_STATE_L0S | PCIE_LINK_STATE_L1 |
+						   PCIE_LINK_STATE_CLKPM);
 
-	if (pci_enable_device(pdev)) {
+	if (pci_enable_device(pdev))
+	{
 		err = -ENODEV;
 		goto out_ieee80211_free_hw;
 	}
@@ -6543,23 +7582,34 @@ il4965_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	pci_set_master(pdev);
 
 	err = pci_set_dma_mask(pdev, DMA_BIT_MASK(36));
+
 	if (!err)
+	{
 		err = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(36));
-	if (err) {
+	}
+
+	if (err)
+	{
 		err = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
+
 		if (!err)
 			err =
-			    pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
+				pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
+
 		/* both attempts failed: */
-		if (err) {
+		if (err)
+		{
 			IL_WARN("No suitable DMA available.\n");
 			goto out_pci_disable_device;
 		}
 	}
 
 	err = pci_request_regions(pdev, DRV_NAME);
+
 	if (err)
+	{
 		goto out_pci_disable_device;
+	}
 
 	pci_set_drvdata(pdev, il);
 
@@ -6567,13 +7617,15 @@ il4965_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	 * 3. Read REV register
 	 ***********************/
 	il->hw_base = pci_ioremap_bar(pdev, 0);
-	if (!il->hw_base) {
+
+	if (!il->hw_base)
+	{
 		err = -ENODEV;
 		goto out_pci_release_regions;
 	}
 
 	D_INFO("pci_resource_len = 0x%08llx\n",
-	       (unsigned long long)pci_resource_len(pdev, 0));
+		   (unsigned long long)pci_resource_len(pdev, 0));
 	D_INFO("pci_resource_base = %p\n", il->hw_base);
 
 	/* these spin locks will be used in apm_ops.init and EEPROM access
@@ -6597,7 +7649,9 @@ il4965_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	pci_write_config_byte(pdev, PCI_CFG_RETRY_TIMEOUT, 0x00);
 
 	il4965_prepare_card_hw(il);
-	if (!il->hw_ready) {
+
+	if (!il->hw_ready)
+	{
 		IL_WARN("Failed, HW not ready\n");
 		err = -EIO;
 		goto out_iounmap;
@@ -6608,13 +7662,19 @@ il4965_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	 *****************/
 	/* Read the EEPROM */
 	err = il_eeprom_init(il);
-	if (err) {
+
+	if (err)
+	{
 		IL_ERR("Unable to init EEPROM\n");
 		goto out_iounmap;
 	}
+
 	err = il4965_eeprom_check_version(il);
+
 	if (err)
+	{
 		goto out_free_eeprom;
+	}
 
 	/* extract MAC Address */
 	il4965_eeprom_get_mac(il, il->addresses[0].addr);
@@ -6632,8 +7692,12 @@ il4965_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	 *******************/
 
 	err = il4965_init_drv(il);
+
 	if (err)
+	{
 		goto out_free_eeprom;
+	}
+
 	/* At this point both hw and il are initialized. */
 
 	/********************
@@ -6646,7 +7710,9 @@ il4965_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	pci_enable_msi(il->pci_dev);
 
 	err = request_irq(il->pci_dev->irq, il_isr, IRQF_SHARED, DRV_NAME, il);
-	if (err) {
+
+	if (err)
+	{
 		IL_ERR("Error allocating IRQ %d\n", il->pci_dev->irq);
 		goto out_disable_msi;
 	}
@@ -6660,7 +7726,9 @@ il4965_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	/* enable rfkill interrupt: hw bug w/a */
 	pci_read_config_word(il->pci_dev, PCI_COMMAND, &pci_cmd);
-	if (pci_cmd & PCI_COMMAND_INTX_DISABLE) {
+
+	if (pci_cmd & PCI_COMMAND_INTX_DISABLE)
+	{
 		pci_cmd &= ~PCI_COMMAND_INTX_DISABLE;
 		pci_write_config_word(il->pci_dev, PCI_COMMAND, pci_cmd);
 	}
@@ -6669,20 +7737,27 @@ il4965_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	/* If platform's RF_KILL switch is NOT set to KILL */
 	if (_il_rd(il, CSR_GP_CNTRL) & CSR_GP_CNTRL_REG_FLAG_HW_RF_KILL_SW)
+	{
 		clear_bit(S_RFKILL, &il->status);
+	}
 	else
+	{
 		set_bit(S_RFKILL, &il->status);
+	}
 
 	wiphy_rfkill_set_hw_state(il->hw->wiphy,
-				  test_bit(S_RFKILL, &il->status));
+							  test_bit(S_RFKILL, &il->status));
 
 	il_power_initialize(il);
 
 	init_completion(&il->_4965.firmware_loading_complete);
 
 	err = il4965_request_firmware(il, true);
+
 	if (err)
+	{
 		goto out_destroy_workqueue;
+	}
 
 	return 0;
 
@@ -6714,7 +7789,9 @@ il4965_pci_remove(struct pci_dev *pdev)
 	unsigned long flags;
 
 	if (!il)
+	{
 		return;
+	}
 
 	wait_for_completion(&il->_4965.firmware_loading_complete);
 
@@ -6731,10 +7808,13 @@ il4965_pci_remove(struct pci_dev *pdev)
 
 	il_leds_exit(il);
 
-	if (il->mac80211_registered) {
+	if (il->mac80211_registered)
+	{
 		ieee80211_unregister_hw(il->hw);
 		il->mac80211_registered = 0;
-	} else {
+	}
+	else
+	{
 		il4965_down(il);
 	}
 
@@ -6759,7 +7839,10 @@ il4965_pci_remove(struct pci_dev *pdev)
 	il4965_dealloc_ucode_pci(il);
 
 	if (il->rxq.bd)
+	{
 		il4965_rx_queue_free(il, &il->rxq);
+	}
+
 	il4965_hw_txq_ctx_free(il);
 
 	il_eeprom_free(il);
@@ -6803,14 +7886,16 @@ il4965_txq_set_sched(struct il_priv *il, u32 mask)
  *****************************************************************************/
 
 /* Hardware specific file defines the PCI IDs table for that hardware module */
-static const struct pci_device_id il4965_hw_card_ids[] = {
+static const struct pci_device_id il4965_hw_card_ids[] =
+{
 	{IL_PCI_DEVICE(0x4229, PCI_ANY_ID, il4965_cfg)},
 	{IL_PCI_DEVICE(0x4230, PCI_ANY_ID, il4965_cfg)},
 	{0}
 };
 MODULE_DEVICE_TABLE(pci, il4965_hw_card_ids);
 
-static struct pci_driver il4965_driver = {
+static struct pci_driver il4965_driver =
+{
 	.name = DRV_NAME,
 	.id_table = il4965_hw_card_ids,
 	.probe = il4965_pci_probe,
@@ -6827,13 +7912,17 @@ il4965_init(void)
 	pr_info(DRV_COPYRIGHT "\n");
 
 	ret = il4965_rate_control_register();
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Unable to register rate control algorithm: %d\n", ret);
 		return ret;
 	}
 
 	ret = pci_register_driver(&il4965_driver);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Unable to initialize PCI module\n");
 		goto error_register;
 	}
@@ -6856,8 +7945,8 @@ module_exit(il4965_exit);
 module_init(il4965_init);
 
 #ifdef CONFIG_IWLEGACY_DEBUG
-module_param_named(debug, il_debug_level, uint, S_IRUGO | S_IWUSR);
-MODULE_PARM_DESC(debug, "debug output mask");
+	module_param_named(debug, il_debug_level, uint, S_IRUGO | S_IWUSR);
+	MODULE_PARM_DESC(debug, "debug output mask");
 #endif
 
 module_param_named(swcrypto, il4965_mod_params.sw_crypto, int, S_IRUGO);
@@ -6867,7 +7956,7 @@ MODULE_PARM_DESC(queues_num, "number of hw queues.");
 module_param_named(11n_disable, il4965_mod_params.disable_11n, int, S_IRUGO);
 MODULE_PARM_DESC(11n_disable, "disable 11n functionality");
 module_param_named(amsdu_size_8K, il4965_mod_params.amsdu_size_8K, int,
-		   S_IRUGO);
+				   S_IRUGO);
 MODULE_PARM_DESC(amsdu_size_8K, "enable 8K amsdu size (default 0 [disabled])");
 module_param_named(fw_restart, il4965_mod_params.restart_fw, int, S_IRUGO);
 MODULE_PARM_DESC(fw_restart, "restart firmware in case of error");

@@ -34,12 +34,13 @@
 #include "cyttsp4_core.h"
 
 int cyttsp_i2c_read_block_data(struct device *dev, u8 *xfer_buf,
-				      u16 addr, u8 length, void *values)
+							   u16 addr, u8 length, void *values)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	u8 client_addr = client->addr | ((addr >> 8) & 0x1);
 	u8 addr_lo = addr & 0xFF;
-	struct i2c_msg msgs[] = {
+	struct i2c_msg msgs[] =
+	{
 		{
 			.addr = client_addr,
 			.flags = 0,
@@ -56,20 +57,24 @@ int cyttsp_i2c_read_block_data(struct device *dev, u8 *xfer_buf,
 	int retval;
 
 	retval = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
+
 	if (retval < 0)
+	{
 		return retval;
+	}
 
 	return retval != ARRAY_SIZE(msgs) ? -EIO : 0;
 }
 EXPORT_SYMBOL_GPL(cyttsp_i2c_read_block_data);
 
 int cyttsp_i2c_write_block_data(struct device *dev, u8 *xfer_buf,
-				       u16 addr, u8 length, const void *values)
+								u16 addr, u8 length, const void *values)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	u8 client_addr = client->addr | ((addr >> 8) & 0x1);
 	u8 addr_lo = addr & 0xFF;
-	struct i2c_msg msgs[] = {
+	struct i2c_msg msgs[] =
+	{
 		{
 			.addr = client_addr,
 			.flags = 0,
@@ -83,8 +88,11 @@ int cyttsp_i2c_write_block_data(struct device *dev, u8 *xfer_buf,
 	memcpy(&xfer_buf[1], values, length);
 
 	retval = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
+
 	if (retval < 0)
+	{
 		return retval;
+	}
 
 	return retval != ARRAY_SIZE(msgs) ? -EIO : 0;
 }

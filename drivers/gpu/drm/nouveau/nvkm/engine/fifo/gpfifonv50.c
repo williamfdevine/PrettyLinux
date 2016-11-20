@@ -32,10 +32,11 @@
 
 static int
 nv50_fifo_gpfifo_new(struct nvkm_fifo *base, const struct nvkm_oclass *oclass,
-		     void *data, u32 size, struct nvkm_object **pobject)
+					 void *data, u32 size, struct nvkm_object **pobject)
 {
 	struct nvkm_object *parent = oclass->parent;
-	union {
+	union
+	{
 		struct nv50_channel_gpfifo_v0 v0;
 	} *args = data;
 	struct nv50_fifo *fifo = nv50_fifo(base);
@@ -44,25 +45,39 @@ nv50_fifo_gpfifo_new(struct nvkm_fifo *base, const struct nvkm_oclass *oclass,
 	int ret = -ENOSYS;
 
 	nvif_ioctl(parent, "create channel gpfifo size %d\n", size);
-	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false))) {
+
+	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false)))
+	{
 		nvif_ioctl(parent, "create channel gpfifo vers %d vm %llx "
 				   "pushbuf %llx ioffset %016llx "
 				   "ilength %08x\n",
-			   args->v0.version, args->v0.vm, args->v0.pushbuf,
-			   args->v0.ioffset, args->v0.ilength);
+				   args->v0.version, args->v0.vm, args->v0.pushbuf,
+				   args->v0.ioffset, args->v0.ilength);
+
 		if (!args->v0.pushbuf)
+		{
 			return -EINVAL;
-	} else
+		}
+	}
+	else
+	{
 		return ret;
+	}
 
 	if (!(chan = kzalloc(sizeof(*chan), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pobject = &chan->base.object;
 
 	ret = nv50_fifo_chan_ctor(fifo, args->v0.vm, args->v0.pushbuf,
-				  oclass, chan);
+							  oclass, chan);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	args->v0.chid = chan->base.chid;
 	ioffset = args->v0.ioffset;
@@ -78,14 +93,15 @@ nv50_fifo_gpfifo_new(struct nvkm_fifo *base, const struct nvkm_oclass *oclass,
 	nvkm_wo32(chan->ramfc, 0x78, 0x00000000);
 	nvkm_wo32(chan->ramfc, 0x7c, 0x30000001);
 	nvkm_wo32(chan->ramfc, 0x80, ((chan->ramht->bits - 9) << 27) |
-				     (4 << 24) /* SEARCH_FULL */ |
-				     (chan->ramht->gpuobj->node->offset >> 4));
+			  (4 << 24) /* SEARCH_FULL */ |
+			  (chan->ramht->gpuobj->node->offset >> 4));
 	nvkm_done(chan->ramfc);
 	return 0;
 }
 
 const struct nvkm_fifo_chan_oclass
-nv50_fifo_gpfifo_oclass = {
+	nv50_fifo_gpfifo_oclass =
+{
 	.base.oclass = NV50_CHANNEL_GPFIFO,
 	.base.minver = 0,
 	.base.maxver = 0,

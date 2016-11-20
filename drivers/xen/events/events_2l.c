@@ -91,8 +91,11 @@ static void evtchn_2l_unmask(unsigned port)
 	BUG_ON(!irqs_disabled());
 
 	if (unlikely((cpu != cpu_from_evtchn(port))))
+	{
 		do_hypercall = 1;
-	else {
+	}
+	else
+	{
 		/*
 		 * Need to clear the mask before checking pending to
 		 * avoid a race with an event becoming pending.
@@ -104,7 +107,8 @@ static void evtchn_2l_unmask(unsigned port)
 		sync_clear_bit(port, BM(&s->evtchn_mask[0]));
 		evtchn_pending = sync_test_bit(port, BM(&s->evtchn_pending[0]));
 
-		if (unlikely(evtchn_pending && xen_hvm_domain())) {
+		if (unlikely(evtchn_pending && xen_hvm_domain()))
+		{
 			sync_set_bit(port, BM(&s->evtchn_mask[0]));
 			do_hypercall = 1;
 		}
@@ -113,10 +117,13 @@ static void evtchn_2l_unmask(unsigned port)
 	/* Slow path (hypercall) if this is a non-local port or if this is
 	 * an hvm domain and an event is pending (hvm domains don't have
 	 * their own implementation of irq_enable). */
-	if (do_hypercall) {
+	if (do_hypercall)
+	{
 		struct evtchn_unmask unmask = { .port = port };
 		(void)HYPERVISOR_event_channel_op(EVTCHNOP_unmask, &unmask);
-	} else {
+	}
+	else
+	{
 		struct vcpu_info *vcpu_info = __this_cpu_read(xen_vcpu);
 
 		/*
@@ -125,9 +132,11 @@ static void evtchn_2l_unmask(unsigned port)
 		 * the interrupt edge' if the channel is masked.
 		 */
 		if (evtchn_pending &&
-		    !sync_test_and_set_bit(port / BITS_PER_EVTCHN_WORD,
-					   BM(&vcpu_info->evtchn_pending_sel)))
+			!sync_test_and_set_bit(port / BITS_PER_EVTCHN_WORD,
+								   BM(&vcpu_info->evtchn_pending_sel)))
+		{
 			vcpu_info->evtchn_upcall_pending = 1;
+		}
 	}
 
 	put_cpu();
@@ -142,12 +151,12 @@ static DEFINE_PER_CPU(unsigned int, current_bit_idx);
 #define MASK_LSBS(w, i) (w & ((~((xen_ulong_t)0UL)) << i))
 
 static inline xen_ulong_t active_evtchns(unsigned int cpu,
-					 struct shared_info *sh,
-					 unsigned int idx)
+		struct shared_info *sh,
+		unsigned int idx)
 {
 	return sh->evtchn_pending[idx] &
-		per_cpu(cpu_evtchn_mask, cpu)[idx] &
-		~sh->evtchn_mask[idx];
+		   per_cpu(cpu_evtchn_mask, cpu)[idx] &
+		   ~sh->evtchn_mask[idx];
 }
 
 /*
@@ -171,12 +180,17 @@ static void evtchn_2l_handle_events(unsigned cpu)
 
 	/* Timer interrupt has highest priority. */
 	irq = irq_from_virq(cpu, VIRQ_TIMER);
-	if (irq != -1) {
+
+	if (irq != -1)
+	{
 		unsigned int evtchn = evtchn_from_irq(irq);
 		word_idx = evtchn / BITS_PER_LONG;
 		bit_idx = evtchn % BITS_PER_LONG;
+
 		if (active_evtchns(cpu, s, word_idx) & (1ULL << bit_idx))
+		{
 			generic_handle_irq(irq);
+		}
 	}
 
 	/*
@@ -191,7 +205,8 @@ static void evtchn_2l_handle_events(unsigned cpu)
 
 	word_idx = start_word_idx;
 
-	for (i = 0; pending_words != 0; i++) {
+	for (i = 0; pending_words != 0; i++)
+	{
 		xen_ulong_t words;
 
 		words = MASK_LSBS(pending_words, word_idx);
@@ -199,15 +214,18 @@ static void evtchn_2l_handle_events(unsigned cpu)
 		/*
 		 * If we masked out all events, wrap to beginning.
 		 */
-		if (words == 0) {
+		if (words == 0)
+		{
 			word_idx = 0;
 			bit_idx = 0;
 			continue;
 		}
+
 		word_idx = EVTCHN_FIRST_BIT(words);
 
 		pending_bits = active_evtchns(cpu, s, word_idx);
 		bit_idx = 0; /* usually scan entire word from start */
+
 		/*
 		 * We scan the starting word in two parts.
 		 *
@@ -220,12 +238,16 @@ static void evtchn_2l_handle_events(unsigned cpu)
 		 * pending again it would just be scanned on
 		 * the next loop anyway.
 		 */
-		if (word_idx == start_word_idx) {
+		if (word_idx == start_word_idx)
+		{
 			if (i == 0)
+			{
 				bit_idx = start_bit_idx;
+			}
 		}
 
-		do {
+		do
+		{
 			xen_ulong_t bits;
 			int port;
 
@@ -233,7 +255,9 @@ static void evtchn_2l_handle_events(unsigned cpu)
 
 			/* If we masked out all events, move on. */
 			if (bits == 0)
+			{
 				break;
+			}
 
 			bit_idx = EVTCHN_FIRST_BIT(bits);
 
@@ -242,20 +266,25 @@ static void evtchn_2l_handle_events(unsigned cpu)
 			irq = get_evtchn_to_irq(port);
 
 			if (irq != -1)
+			{
 				generic_handle_irq(irq);
+			}
 
 			bit_idx = (bit_idx + 1) % BITS_PER_EVTCHN_WORD;
 
 			/* Next caller starts at last processed + 1 */
 			__this_cpu_write(current_word_idx,
-					 bit_idx ? word_idx :
-					 (word_idx+1) % BITS_PER_EVTCHN_WORD);
+							 bit_idx ? word_idx :
+							 (word_idx + 1) % BITS_PER_EVTCHN_WORD);
 			__this_cpu_write(current_bit_idx, bit_idx);
-		} while (bit_idx != 0);
+		}
+		while (bit_idx != 0);
 
 		/* Scan start_l1i twice; all others once. */
 		if ((word_idx != start_word_idx) || (i != 0))
+		{
 			pending_words &= ~(1UL << word_idx);
+		}
 
 		word_idx = (word_idx + 1) % BITS_PER_EVTCHN_WORD;
 	}
@@ -275,68 +304,79 @@ irqreturn_t xen_debug_interrupt(int irq, void *dev_id)
 
 	printk("\nvcpu %d\n  ", cpu);
 
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		int pending;
 		v = per_cpu(xen_vcpu, i);
 		pending = (get_irq_regs() && i == cpu)
-			? xen_irqs_disabled(get_irq_regs())
-			: v->evtchn_upcall_mask;
+				  ? xen_irqs_disabled(get_irq_regs())
+				  : v->evtchn_upcall_mask;
 		printk("%d: masked=%d pending=%d event_sel %0*"PRI_xen_ulong"\n  ", i,
-		       pending, v->evtchn_upcall_pending,
-		       (int)(sizeof(v->evtchn_pending_sel)*2),
-		       v->evtchn_pending_sel);
+			   pending, v->evtchn_upcall_pending,
+			   (int)(sizeof(v->evtchn_pending_sel) * 2),
+			   v->evtchn_pending_sel);
 	}
 	v = per_cpu(xen_vcpu, cpu);
 
 	printk("\npending:\n   ");
-	for (i = ARRAY_SIZE(sh->evtchn_pending)-1; i >= 0; i--)
+
+	for (i = ARRAY_SIZE(sh->evtchn_pending) - 1; i >= 0; i--)
 		printk("%0*"PRI_xen_ulong"%s",
-		       (int)sizeof(sh->evtchn_pending[0])*2,
-		       sh->evtchn_pending[i],
-		       i % 8 == 0 ? "\n   " : " ");
+			   (int)sizeof(sh->evtchn_pending[0]) * 2,
+			   sh->evtchn_pending[i],
+			   i % 8 == 0 ? "\n   " : " ");
+
 	printk("\nglobal mask:\n   ");
-	for (i = ARRAY_SIZE(sh->evtchn_mask)-1; i >= 0; i--)
+
+	for (i = ARRAY_SIZE(sh->evtchn_mask) - 1; i >= 0; i--)
 		printk("%0*"PRI_xen_ulong"%s",
-		       (int)(sizeof(sh->evtchn_mask[0])*2),
-		       sh->evtchn_mask[i],
-		       i % 8 == 0 ? "\n   " : " ");
+			   (int)(sizeof(sh->evtchn_mask[0]) * 2),
+			   sh->evtchn_mask[i],
+			   i % 8 == 0 ? "\n   " : " ");
 
 	printk("\nglobally unmasked:\n   ");
-	for (i = ARRAY_SIZE(sh->evtchn_mask)-1; i >= 0; i--)
+
+	for (i = ARRAY_SIZE(sh->evtchn_mask) - 1; i >= 0; i--)
 		printk("%0*"PRI_xen_ulong"%s",
-		       (int)(sizeof(sh->evtchn_mask[0])*2),
-		       sh->evtchn_pending[i] & ~sh->evtchn_mask[i],
-		       i % 8 == 0 ? "\n   " : " ");
+			   (int)(sizeof(sh->evtchn_mask[0]) * 2),
+			   sh->evtchn_pending[i] & ~sh->evtchn_mask[i],
+			   i % 8 == 0 ? "\n   " : " ");
 
 	printk("\nlocal cpu%d mask:\n   ", cpu);
-	for (i = (EVTCHN_2L_NR_CHANNELS/BITS_PER_EVTCHN_WORD)-1; i >= 0; i--)
-		printk("%0*"PRI_xen_ulong"%s", (int)(sizeof(cpu_evtchn[0])*2),
-		       cpu_evtchn[i],
-		       i % 8 == 0 ? "\n   " : " ");
+
+	for (i = (EVTCHN_2L_NR_CHANNELS / BITS_PER_EVTCHN_WORD) - 1; i >= 0; i--)
+		printk("%0*"PRI_xen_ulong"%s", (int)(sizeof(cpu_evtchn[0]) * 2),
+			   cpu_evtchn[i],
+			   i % 8 == 0 ? "\n   " : " ");
 
 	printk("\nlocally unmasked:\n   ");
-	for (i = ARRAY_SIZE(sh->evtchn_mask)-1; i >= 0; i--) {
+
+	for (i = ARRAY_SIZE(sh->evtchn_mask) - 1; i >= 0; i--)
+	{
 		xen_ulong_t pending = sh->evtchn_pending[i]
-			& ~sh->evtchn_mask[i]
-			& cpu_evtchn[i];
+							  & ~sh->evtchn_mask[i]
+							  & cpu_evtchn[i];
 		printk("%0*"PRI_xen_ulong"%s",
-		       (int)(sizeof(sh->evtchn_mask[0])*2),
-		       pending, i % 8 == 0 ? "\n   " : " ");
+			   (int)(sizeof(sh->evtchn_mask[0]) * 2),
+			   pending, i % 8 == 0 ? "\n   " : " ");
 	}
 
 	printk("\npending list:\n");
-	for (i = 0; i < EVTCHN_2L_NR_CHANNELS; i++) {
-		if (sync_test_bit(i, BM(sh->evtchn_pending))) {
+
+	for (i = 0; i < EVTCHN_2L_NR_CHANNELS; i++)
+	{
+		if (sync_test_bit(i, BM(sh->evtchn_pending)))
+		{
 			int word_idx = i / BITS_PER_EVTCHN_WORD;
 			printk("  %d: event %d -> irq %d%s%s%s\n",
-			       cpu_from_evtchn(i), i,
-			       get_evtchn_to_irq(i),
-			       sync_test_bit(word_idx, BM(&v->evtchn_pending_sel))
-			       ? "" : " l2-clear",
-			       !sync_test_bit(i, BM(sh->evtchn_mask))
-			       ? "" : " globally-masked",
-			       sync_test_bit(i, BM(cpu_evtchn))
-			       ? "" : " locally-masked");
+				   cpu_from_evtchn(i), i,
+				   get_evtchn_to_irq(i),
+				   sync_test_bit(word_idx, BM(&v->evtchn_pending_sel))
+				   ? "" : " l2-clear",
+				   !sync_test_bit(i, BM(sh->evtchn_mask))
+				   ? "" : " globally-masked",
+				   sync_test_bit(i, BM(cpu_evtchn))
+				   ? "" : " locally-masked");
 		}
 	}
 
@@ -350,11 +390,12 @@ static void evtchn_2l_resume(void)
 	int i;
 
 	for_each_online_cpu(i)
-		memset(per_cpu(cpu_evtchn_mask, i), 0, sizeof(xen_ulong_t) *
-				EVTCHN_2L_NR_CHANNELS/BITS_PER_EVTCHN_WORD);
+	memset(per_cpu(cpu_evtchn_mask, i), 0, sizeof(xen_ulong_t) *
+		   EVTCHN_2L_NR_CHANNELS / BITS_PER_EVTCHN_WORD);
 }
 
-static const struct evtchn_ops evtchn_ops_2l = {
+static const struct evtchn_ops evtchn_ops_2l =
+{
 	.max_channels      = evtchn_2l_max_channels,
 	.nr_channels       = evtchn_2l_max_channels,
 	.bind_to_cpu       = evtchn_2l_bind_to_cpu,

@@ -22,7 +22,8 @@
  * reinit_completion(), and macros DECLARE_COMPLETION(),
  * DECLARE_COMPLETION_ONSTACK().
  */
-struct completion {
+struct completion
+{
 	unsigned int done;
 	wait_queue_head_t wait;
 };
@@ -93,9 +94,9 @@ extern void wait_for_completion_io(struct completion *);
 extern int wait_for_completion_interruptible(struct completion *x);
 extern int wait_for_completion_killable(struct completion *x);
 extern unsigned long wait_for_completion_timeout(struct completion *x,
-						   unsigned long timeout);
+		unsigned long timeout);
 extern unsigned long wait_for_completion_io_timeout(struct completion *x,
-						    unsigned long timeout);
+		unsigned long timeout);
 extern long wait_for_completion_interruptible_timeout(
 	struct completion *x, unsigned long timeout);
 extern long wait_for_completion_killable_timeout(

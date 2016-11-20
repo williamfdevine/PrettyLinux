@@ -51,19 +51,21 @@ static int heartbeat = -1;		/* module parameter (seconds) */
 
 struct orion_watchdog;
 
-struct orion_watchdog_data {
+struct orion_watchdog_data
+{
 	int wdt_counter_offset;
 	int wdt_enable_bit;
 	int rstout_enable_bit;
 	int rstout_mask_bit;
 	int (*clock_init)(struct platform_device *,
-			  struct orion_watchdog *);
+					  struct orion_watchdog *);
 	int (*enabled)(struct orion_watchdog *);
 	int (*start)(struct watchdog_device *);
 	int (*stop)(struct watchdog_device *);
 };
 
-struct orion_watchdog {
+struct orion_watchdog
+{
 	struct watchdog_device wdt;
 	void __iomem *reg;
 	void __iomem *rstout;
@@ -74,15 +76,21 @@ struct orion_watchdog {
 };
 
 static int orion_wdt_clock_init(struct platform_device *pdev,
-				struct orion_watchdog *dev)
+								struct orion_watchdog *dev)
 {
 	int ret;
 
 	dev->clk = clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(dev->clk))
+	{
 		return PTR_ERR(dev->clk);
+	}
+
 	ret = clk_prepare_enable(dev->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		clk_put(dev->clk);
 		return ret;
 	}
@@ -92,44 +100,54 @@ static int orion_wdt_clock_init(struct platform_device *pdev,
 }
 
 static int armada370_wdt_clock_init(struct platform_device *pdev,
-				    struct orion_watchdog *dev)
+									struct orion_watchdog *dev)
 {
 	int ret;
 
 	dev->clk = clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(dev->clk))
+	{
 		return PTR_ERR(dev->clk);
+	}
+
 	ret = clk_prepare_enable(dev->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		clk_put(dev->clk);
 		return ret;
 	}
 
 	/* Setup watchdog input clock */
 	atomic_io_modify(dev->reg + TIMER_CTRL,
-			WDT_A370_RATIO_MASK(WDT_A370_RATIO_SHIFT),
-			WDT_A370_RATIO_MASK(WDT_A370_RATIO_SHIFT));
+					 WDT_A370_RATIO_MASK(WDT_A370_RATIO_SHIFT),
+					 WDT_A370_RATIO_MASK(WDT_A370_RATIO_SHIFT));
 
 	dev->clk_rate = clk_get_rate(dev->clk) / WDT_A370_RATIO;
 	return 0;
 }
 
 static int armada375_wdt_clock_init(struct platform_device *pdev,
-				    struct orion_watchdog *dev)
+									struct orion_watchdog *dev)
 {
 	int ret;
 
 	dev->clk = of_clk_get_by_name(pdev->dev.of_node, "fixed");
-	if (!IS_ERR(dev->clk)) {
+
+	if (!IS_ERR(dev->clk))
+	{
 		ret = clk_prepare_enable(dev->clk);
-		if (ret) {
+
+		if (ret)
+		{
 			clk_put(dev->clk);
 			return ret;
 		}
 
 		atomic_io_modify(dev->reg + TIMER_CTRL,
-				WDT_AXP_FIXED_ENABLE_BIT,
-				WDT_AXP_FIXED_ENABLE_BIT);
+						 WDT_AXP_FIXED_ENABLE_BIT,
+						 WDT_AXP_FIXED_ENABLE_BIT);
 		dev->clk_rate = clk_get_rate(dev->clk);
 
 		return 0;
@@ -137,41 +155,52 @@ static int armada375_wdt_clock_init(struct platform_device *pdev,
 
 	/* Mandatory fallback for proper devicetree backward compatibility */
 	dev->clk = clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(dev->clk))
+	{
 		return PTR_ERR(dev->clk);
+	}
 
 	ret = clk_prepare_enable(dev->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		clk_put(dev->clk);
 		return ret;
 	}
 
 	atomic_io_modify(dev->reg + TIMER_CTRL,
-			WDT_A370_RATIO_MASK(WDT_A370_RATIO_SHIFT),
-			WDT_A370_RATIO_MASK(WDT_A370_RATIO_SHIFT));
+					 WDT_A370_RATIO_MASK(WDT_A370_RATIO_SHIFT),
+					 WDT_A370_RATIO_MASK(WDT_A370_RATIO_SHIFT));
 	dev->clk_rate = clk_get_rate(dev->clk) / WDT_A370_RATIO;
 
 	return 0;
 }
 
 static int armadaxp_wdt_clock_init(struct platform_device *pdev,
-				   struct orion_watchdog *dev)
+								   struct orion_watchdog *dev)
 {
 	int ret;
 
 	dev->clk = of_clk_get_by_name(pdev->dev.of_node, "fixed");
+
 	if (IS_ERR(dev->clk))
+	{
 		return PTR_ERR(dev->clk);
+	}
+
 	ret = clk_prepare_enable(dev->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		clk_put(dev->clk);
 		return ret;
 	}
 
 	/* Enable the fixed watchdog clock input */
 	atomic_io_modify(dev->reg + TIMER_CTRL,
-			 WDT_AXP_FIXED_ENABLE_BIT,
-			 WDT_AXP_FIXED_ENABLE_BIT);
+					 WDT_AXP_FIXED_ENABLE_BIT,
+					 WDT_AXP_FIXED_ENABLE_BIT);
 
 	dev->clk_rate = clk_get_rate(dev->clk);
 	return 0;
@@ -182,7 +211,7 @@ static int orion_wdt_ping(struct watchdog_device *wdt_dev)
 	struct orion_watchdog *dev = watchdog_get_drvdata(wdt_dev);
 	/* Reload watchdog duration */
 	writel(dev->clk_rate * wdt_dev->timeout,
-	       dev->reg + dev->data->wdt_counter_offset);
+		   dev->reg + dev->data->wdt_counter_offset);
 	return 0;
 }
 
@@ -193,14 +222,14 @@ static int armada375_start(struct watchdog_device *wdt_dev)
 
 	/* Set watchdog duration */
 	writel(dev->clk_rate * wdt_dev->timeout,
-	       dev->reg + dev->data->wdt_counter_offset);
+		   dev->reg + dev->data->wdt_counter_offset);
 
 	/* Clear the watchdog expiration bit */
 	atomic_io_modify(dev->reg + TIMER_A370_STATUS, WDT_A370_EXPIRED, 0);
 
 	/* Enable watchdog timer */
 	atomic_io_modify(dev->reg + TIMER_CTRL, dev->data->wdt_enable_bit,
-						dev->data->wdt_enable_bit);
+					 dev->data->wdt_enable_bit);
 
 	/* Enable reset on watchdog */
 	reg = readl(dev->rstout);
@@ -218,14 +247,14 @@ static int armada370_start(struct watchdog_device *wdt_dev)
 
 	/* Set watchdog duration */
 	writel(dev->clk_rate * wdt_dev->timeout,
-	       dev->reg + dev->data->wdt_counter_offset);
+		   dev->reg + dev->data->wdt_counter_offset);
 
 	/* Clear the watchdog expiration bit */
 	atomic_io_modify(dev->reg + TIMER_A370_STATUS, WDT_A370_EXPIRED, 0);
 
 	/* Enable watchdog timer */
 	atomic_io_modify(dev->reg + TIMER_CTRL, dev->data->wdt_enable_bit,
-						dev->data->wdt_enable_bit);
+					 dev->data->wdt_enable_bit);
 
 	/* Enable reset on watchdog */
 	reg = readl(dev->rstout);
@@ -240,15 +269,15 @@ static int orion_start(struct watchdog_device *wdt_dev)
 
 	/* Set watchdog duration */
 	writel(dev->clk_rate * wdt_dev->timeout,
-	       dev->reg + dev->data->wdt_counter_offset);
+		   dev->reg + dev->data->wdt_counter_offset);
 
 	/* Enable watchdog timer */
 	atomic_io_modify(dev->reg + TIMER_CTRL, dev->data->wdt_enable_bit,
-						dev->data->wdt_enable_bit);
+					 dev->data->wdt_enable_bit);
 
 	/* Enable reset on watchdog */
 	atomic_io_modify(dev->rstout, dev->data->rstout_enable_bit,
-				      dev->data->rstout_enable_bit);
+					 dev->data->rstout_enable_bit);
 
 	return 0;
 }
@@ -281,7 +310,7 @@ static int armada375_stop(struct watchdog_device *wdt_dev)
 
 	/* Disable reset on watchdog */
 	atomic_io_modify(dev->rstout_mask, dev->data->rstout_mask_bit,
-					   dev->data->rstout_mask_bit);
+					 dev->data->rstout_mask_bit);
 	reg = readl(dev->rstout);
 	reg &= ~dev->data->rstout_enable_bit;
 	writel(reg, dev->rstout);
@@ -350,18 +379,20 @@ static unsigned int orion_wdt_get_timeleft(struct watchdog_device *wdt_dev)
 }
 
 static int orion_wdt_set_timeout(struct watchdog_device *wdt_dev,
-				 unsigned int timeout)
+								 unsigned int timeout)
 {
 	wdt_dev->timeout = timeout;
 	return 0;
 }
 
-static const struct watchdog_info orion_wdt_info = {
+static const struct watchdog_info orion_wdt_info =
+{
 	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE,
 	.identity = "Orion Watchdog",
 };
 
-static const struct watchdog_ops orion_wdt_ops = {
+static const struct watchdog_ops orion_wdt_ops =
+{
 	.owner = THIS_MODULE,
 	.start = orion_wdt_start,
 	.stop = orion_wdt_stop,
@@ -383,15 +414,16 @@ static irqreturn_t orion_wdt_irq(int irq, void *devid)
  * is missing from the devicetree.
  */
 static void __iomem *orion_wdt_ioremap_rstout(struct platform_device *pdev,
-					      phys_addr_t internal_regs)
+		phys_addr_t internal_regs)
 {
 	struct resource *res;
 	phys_addr_t rstout;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+
 	if (res)
 		return devm_ioremap(&pdev->dev, res->start,
-				    resource_size(res));
+							resource_size(res));
 
 	rstout = internal_regs + ORION_RSTOUT_MASK_OFFSET;
 
@@ -399,7 +431,8 @@ static void __iomem *orion_wdt_ioremap_rstout(struct platform_device *pdev,
 	return devm_ioremap(&pdev->dev, rstout, 0x4);
 }
 
-static const struct orion_watchdog_data orion_data = {
+static const struct orion_watchdog_data orion_data =
+{
 	.rstout_enable_bit = BIT(1),
 	.wdt_enable_bit = BIT(4),
 	.wdt_counter_offset = 0x24,
@@ -409,7 +442,8 @@ static const struct orion_watchdog_data orion_data = {
 	.stop = orion_stop,
 };
 
-static const struct orion_watchdog_data armada370_data = {
+static const struct orion_watchdog_data armada370_data =
+{
 	.rstout_enable_bit = BIT(8),
 	.wdt_enable_bit = BIT(8),
 	.wdt_counter_offset = 0x34,
@@ -419,7 +453,8 @@ static const struct orion_watchdog_data armada370_data = {
 	.stop = armada370_stop,
 };
 
-static const struct orion_watchdog_data armadaxp_data = {
+static const struct orion_watchdog_data armadaxp_data =
+{
 	.rstout_enable_bit = BIT(8),
 	.wdt_enable_bit = BIT(8),
 	.wdt_counter_offset = 0x34,
@@ -429,7 +464,8 @@ static const struct orion_watchdog_data armadaxp_data = {
 	.stop = armada370_stop,
 };
 
-static const struct orion_watchdog_data armada375_data = {
+static const struct orion_watchdog_data armada375_data =
+{
 	.rstout_enable_bit = BIT(8),
 	.rstout_mask_bit = BIT(10),
 	.wdt_enable_bit = BIT(8),
@@ -440,7 +476,8 @@ static const struct orion_watchdog_data armada375_data = {
 	.stop = armada375_stop,
 };
 
-static const struct orion_watchdog_data armada380_data = {
+static const struct orion_watchdog_data armada380_data =
+{
 	.rstout_enable_bit = BIT(8),
 	.rstout_mask_bit = BIT(10),
 	.wdt_enable_bit = BIT(8),
@@ -451,7 +488,8 @@ static const struct orion_watchdog_data armada380_data = {
 	.stop = armada375_stop,
 };
 
-static const struct of_device_id orion_wdt_of_match_table[] = {
+static const struct of_device_id orion_wdt_of_match_table[] =
+{
 	{
 		.compatible = "marvell,orion-wdt",
 		.data = &orion_data,
@@ -477,54 +515,84 @@ static const struct of_device_id orion_wdt_of_match_table[] = {
 MODULE_DEVICE_TABLE(of, orion_wdt_of_match_table);
 
 static int orion_wdt_get_regs(struct platform_device *pdev,
-			      struct orion_watchdog *dev)
+							  struct orion_watchdog *dev)
 {
 	struct device_node *node = pdev->dev.of_node;
 	struct resource *res;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		return -ENODEV;
+	}
+
 	dev->reg = devm_ioremap(&pdev->dev, res->start,
-				resource_size(res));
+							resource_size(res));
+
 	if (!dev->reg)
+	{
 		return -ENOMEM;
+	}
 
 	/* Each supported compatible has some RSTOUT register quirk */
-	if (of_device_is_compatible(node, "marvell,orion-wdt")) {
+	if (of_device_is_compatible(node, "marvell,orion-wdt"))
+	{
 
 		dev->rstout = orion_wdt_ioremap_rstout(pdev, res->start &
-						       INTERNAL_REGS_MASK);
+											   INTERNAL_REGS_MASK);
+
 		if (!dev->rstout)
+		{
 			return -ENODEV;
+		}
 
-	} else if (of_device_is_compatible(node, "marvell,armada-370-wdt") ||
-		   of_device_is_compatible(node, "marvell,armada-xp-wdt")) {
-
-		/* Dedicated RSTOUT register, can be requested. */
-		res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-		dev->rstout = devm_ioremap_resource(&pdev->dev, res);
-		if (IS_ERR(dev->rstout))
-			return PTR_ERR(dev->rstout);
-
-	} else if (of_device_is_compatible(node, "marvell,armada-375-wdt") ||
-		   of_device_is_compatible(node, "marvell,armada-380-wdt")) {
+	}
+	else if (of_device_is_compatible(node, "marvell,armada-370-wdt") ||
+			 of_device_is_compatible(node, "marvell,armada-xp-wdt"))
+	{
 
 		/* Dedicated RSTOUT register, can be requested. */
 		res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 		dev->rstout = devm_ioremap_resource(&pdev->dev, res);
+
 		if (IS_ERR(dev->rstout))
+		{
 			return PTR_ERR(dev->rstout);
+		}
+
+	}
+	else if (of_device_is_compatible(node, "marvell,armada-375-wdt") ||
+			 of_device_is_compatible(node, "marvell,armada-380-wdt"))
+	{
+
+		/* Dedicated RSTOUT register, can be requested. */
+		res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+		dev->rstout = devm_ioremap_resource(&pdev->dev, res);
+
+		if (IS_ERR(dev->rstout))
+		{
+			return PTR_ERR(dev->rstout);
+		}
 
 		res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
-		if (!res)
-			return -ENODEV;
-		dev->rstout_mask = devm_ioremap(&pdev->dev, res->start,
-						resource_size(res));
-		if (!dev->rstout_mask)
-			return -ENOMEM;
 
-	} else {
+		if (!res)
+		{
+			return -ENODEV;
+		}
+
+		dev->rstout_mask = devm_ioremap(&pdev->dev, res->start,
+										resource_size(res));
+
+		if (!dev->rstout_mask)
+		{
+			return -ENOMEM;
+		}
+
+	}
+	else
+	{
 		return -ENODEV;
 	}
 
@@ -539,14 +607,20 @@ static int orion_wdt_probe(struct platform_device *pdev)
 	int ret, irq;
 
 	dev = devm_kzalloc(&pdev->dev, sizeof(struct orion_watchdog),
-			   GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	match = of_match_device(orion_wdt_of_match_table, &pdev->dev);
+
 	if (!match)
 		/* Default legacy match */
+	{
 		match = &orion_wdt_of_match_table[0];
+	}
 
 	dev->wdt.info = &orion_wdt_info;
 	dev->wdt.ops = &orion_wdt_ops;
@@ -554,11 +628,16 @@ static int orion_wdt_probe(struct platform_device *pdev)
 	dev->data = match->data;
 
 	ret = orion_wdt_get_regs(pdev, dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = dev->data->clock_init(pdev, dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "cannot initialize clock\n");
 		return ret;
 	}
@@ -580,18 +659,24 @@ static int orion_wdt_probe(struct platform_device *pdev)
 	 * set a running watchdog before booting the kernel.
 	 */
 	if (!orion_wdt_enabled(&dev->wdt))
+	{
 		orion_wdt_stop(&dev->wdt);
+	}
 
 	/* Request the IRQ only after the watchdog is disabled */
 	irq = platform_get_irq(pdev, 0);
-	if (irq > 0) {
+
+	if (irq > 0)
+	{
 		/*
 		 * Not all supported platforms specify an interrupt for the
 		 * watchdog, so let's make it optional.
 		 */
 		ret = devm_request_irq(&pdev->dev, irq, orion_wdt_irq, 0,
-				       pdev->name, dev);
-		if (ret < 0) {
+							   pdev->name, dev);
+
+		if (ret < 0)
+		{
 			dev_err(&pdev->dev, "failed to request IRQ\n");
 			goto disable_clk;
 		}
@@ -599,11 +684,14 @@ static int orion_wdt_probe(struct platform_device *pdev)
 
 	watchdog_set_nowayout(&dev->wdt, nowayout);
 	ret = watchdog_register_device(&dev->wdt);
+
 	if (ret)
+	{
 		goto disable_clk;
+	}
 
 	pr_info("Initial timeout %d sec%s\n",
-		dev->wdt.timeout, nowayout ? ", nowayout" : "");
+			dev->wdt.timeout, nowayout ? ", nowayout" : "");
 	return 0;
 
 disable_clk:
@@ -629,7 +717,8 @@ static void orion_wdt_shutdown(struct platform_device *pdev)
 	orion_wdt_stop(wdt_dev);
 }
 
-static struct platform_driver orion_wdt_driver = {
+static struct platform_driver orion_wdt_driver =
+{
 	.probe		= orion_wdt_probe,
 	.remove		= orion_wdt_remove,
 	.shutdown	= orion_wdt_shutdown,
@@ -649,7 +738,7 @@ MODULE_PARM_DESC(heartbeat, "Initial watchdog heartbeat in seconds");
 
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default="
-				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform:orion_wdt");

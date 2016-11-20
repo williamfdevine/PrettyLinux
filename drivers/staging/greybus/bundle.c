@@ -11,7 +11,7 @@
 #include "greybus_trace.h"
 
 static ssize_t bundle_class_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	struct gb_bundle *bundle = to_gb_bundle(dev);
 
@@ -20,7 +20,7 @@ static ssize_t bundle_class_show(struct device *dev,
 static DEVICE_ATTR_RO(bundle_class);
 
 static ssize_t bundle_id_show(struct device *dev,
-			      struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	struct gb_bundle *bundle = to_gb_bundle(dev);
 
@@ -29,25 +29,30 @@ static ssize_t bundle_id_show(struct device *dev,
 static DEVICE_ATTR_RO(bundle_id);
 
 static ssize_t state_show(struct device *dev, struct device_attribute *attr,
-			  char *buf)
+						  char *buf)
 {
 	struct gb_bundle *bundle = to_gb_bundle(dev);
 
 	if (bundle->state == NULL)
+	{
 		return sprintf(buf, "\n");
+	}
 
 	return sprintf(buf, "%s\n", bundle->state);
 }
 
 static ssize_t state_store(struct device *dev, struct device_attribute *attr,
-			   const char *buf, size_t size)
+						   const char *buf, size_t size)
 {
 	struct gb_bundle *bundle = to_gb_bundle(dev);
 
 	kfree(bundle->state);
 	bundle->state = kstrdup(buf, GFP_KERNEL);
+
 	if (!bundle->state)
+	{
 		return -ENOMEM;
+	}
 
 	/* Tell userspace that the file contents changed */
 	sysfs_notify(&bundle->dev.kobj, NULL, "state");
@@ -56,7 +61,8 @@ static ssize_t state_store(struct device *dev, struct device_attribute *attr,
 }
 static DEVICE_ATTR_RW(state);
 
-static struct attribute *bundle_attrs[] = {
+static struct attribute *bundle_attrs[] =
+{
 	&dev_attr_bundle_class.attr,
 	&dev_attr_bundle_id.attr,
 	&dev_attr_state.attr,
@@ -66,13 +72,16 @@ static struct attribute *bundle_attrs[] = {
 ATTRIBUTE_GROUPS(bundle);
 
 static struct gb_bundle *gb_bundle_find(struct gb_interface *intf,
-							u8 bundle_id)
+										u8 bundle_id)
 {
 	struct gb_bundle *bundle;
 
-	list_for_each_entry(bundle, &intf->bundles, links) {
+	list_for_each_entry(bundle, &intf->bundles, links)
+	{
 		if (bundle->id == bundle_id)
+		{
 			return bundle;
+		}
 	}
 
 	return NULL;
@@ -95,7 +104,7 @@ static void gb_bundle_disable_all_connections(struct gb_bundle *bundle)
 	struct gb_connection *connection;
 
 	list_for_each_entry(connection, &bundle->connections, bundle_links)
-		gb_connection_disable(connection);
+	gb_connection_disable(connection);
 }
 
 static void gb_bundle_enable_all_connections(struct gb_bundle *bundle)
@@ -103,7 +112,7 @@ static void gb_bundle_enable_all_connections(struct gb_bundle *bundle)
 	struct gb_connection *connection;
 
 	list_for_each_entry(connection, &bundle->connections, bundle_links)
-		gb_connection_enable(connection);
+	gb_connection_enable(connection);
 }
 
 static int gb_bundle_suspend(struct device *dev)
@@ -112,20 +121,32 @@ static int gb_bundle_suspend(struct device *dev)
 	const struct dev_pm_ops *pm = dev->driver->pm;
 	int ret;
 
-	if (pm && pm->runtime_suspend) {
+	if (pm && pm->runtime_suspend)
+	{
 		ret = pm->runtime_suspend(&bundle->dev);
+
 		if (ret)
+		{
 			return ret;
-	} else {
+		}
+	}
+	else
+	{
 		gb_bundle_disable_all_connections(bundle);
 	}
 
 	ret = gb_control_bundle_suspend(bundle->intf->control, bundle->id);
-	if (ret) {
+
+	if (ret)
+	{
 		if (pm && pm->runtime_resume)
+		{
 			ret = pm->runtime_resume(dev);
+		}
 		else
+		{
 			gb_bundle_enable_all_connections(bundle);
+		}
 
 		return ret;
 	}
@@ -140,14 +161,23 @@ static int gb_bundle_resume(struct device *dev)
 	int ret;
 
 	ret = gb_control_bundle_resume(bundle->intf->control, bundle->id);
-	if (ret)
-		return ret;
 
-	if (pm && pm->runtime_resume) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (pm && pm->runtime_resume)
+	{
 		ret = pm->runtime_resume(dev);
+
 		if (ret)
+		{
 			return ret;
-	} else {
+		}
+	}
+	else
+	{
 		gb_bundle_enable_all_connections(bundle);
 	}
 
@@ -163,11 +193,13 @@ static int gb_bundle_idle(struct device *dev)
 }
 #endif
 
-static const struct dev_pm_ops gb_bundle_pm_ops = {
+static const struct dev_pm_ops gb_bundle_pm_ops =
+{
 	SET_RUNTIME_PM_OPS(gb_bundle_suspend, gb_bundle_resume, gb_bundle_idle)
 };
 
-struct device_type greybus_bundle_type = {
+struct device_type greybus_bundle_type =
+{
 	.name =		"greybus_bundle",
 	.release =	gb_bundle_release,
 	.pm =		&gb_bundle_pm_ops,
@@ -179,11 +211,12 @@ struct device_type greybus_bundle_type = {
  * pointer if a failure occurs due to memory exhaustion.
  */
 struct gb_bundle *gb_bundle_create(struct gb_interface *intf, u8 bundle_id,
-				   u8 class)
+								   u8 class)
 {
 	struct gb_bundle *bundle;
 
-	if (bundle_id == BUNDLE_ID_NONE) {
+	if (bundle_id == BUNDLE_ID_NONE)
+	{
 		dev_err(&intf->dev, "can't use bundle id %u\n", bundle_id);
 		return NULL;
 	}
@@ -193,14 +226,18 @@ struct gb_bundle *gb_bundle_create(struct gb_interface *intf, u8 bundle_id,
 	 * these serially, so there's no need to worry about keeping
 	 * the interface bundle list locked here.
 	 */
-	if (gb_bundle_find(intf, bundle_id)) {
+	if (gb_bundle_find(intf, bundle_id))
+	{
 		dev_err(&intf->dev, "duplicate bundle id %u\n", bundle_id);
 		return NULL;
 	}
 
 	bundle = kzalloc(sizeof(*bundle), GFP_KERNEL);
+
 	if (!bundle)
+	{
 		return NULL;
+	}
 
 	bundle->intf = intf;
 	bundle->id = bundle_id;
@@ -227,7 +264,9 @@ int gb_bundle_add(struct gb_bundle *bundle)
 	int ret;
 
 	ret = device_add(&bundle->dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&bundle->dev, "failed to register bundle: %d\n", ret);
 		return ret;
 	}
@@ -245,7 +284,9 @@ void gb_bundle_destroy(struct gb_bundle *bundle)
 	trace_gb_bundle_destroy(bundle);
 
 	if (device_is_registered(&bundle->dev))
+	{
 		device_del(&bundle->dev);
+	}
 
 	list_del(&bundle->links);
 

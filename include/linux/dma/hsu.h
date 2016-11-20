@@ -28,7 +28,8 @@ struct hsu_dma;
  * @hsu:		 struct hsu_dma that is filed by ->probe()
  * @pdata:		 platform data for the DMA controller if provided
  */
-struct hsu_dma_chip {
+struct hsu_dma_chip
+{
 	struct device			*dev;
 	int				irq;
 	void __iomem			*regs;
@@ -40,7 +41,7 @@ struct hsu_dma_chip {
 #if IS_ENABLED(CONFIG_HSU_DMA)
 /* Export to the internal users */
 int hsu_dma_get_status(struct hsu_dma_chip *chip, unsigned short nr,
-		       u32 *status);
+					   u32 *status);
 int hsu_dma_do_irq(struct hsu_dma_chip *chip, unsigned short nr, u32 status);
 
 /* Export to the platform drivers */
@@ -48,12 +49,12 @@ int hsu_dma_probe(struct hsu_dma_chip *chip);
 int hsu_dma_remove(struct hsu_dma_chip *chip);
 #else
 static inline int hsu_dma_get_status(struct hsu_dma_chip *chip,
-				     unsigned short nr, u32 *status)
+									 unsigned short nr, u32 *status)
 {
 	return 0;
 }
 static inline int hsu_dma_do_irq(struct hsu_dma_chip *chip, unsigned short nr,
-				 u32 status)
+								 u32 status)
 {
 	return 0;
 }

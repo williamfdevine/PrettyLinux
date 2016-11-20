@@ -26,7 +26,8 @@
 #define	DA9063_REG_EVENT_C_OFFSET	2
 #define	DA9063_REG_EVENT_D_OFFSET	3
 
-static const struct regmap_irq da9063_irqs[] = {
+static const struct regmap_irq da9063_irqs[] =
+{
 	/* DA9063 event A register */
 	[DA9063_IRQ_ONKEY] = {
 		.reg_offset = DA9063_REG_EVENT_A_OFFSET,
@@ -149,7 +150,8 @@ static const struct regmap_irq da9063_irqs[] = {
 	},
 };
 
-static const struct regmap_irq_chip da9063_irq_chip = {
+static const struct regmap_irq_chip da9063_irq_chip =
+{
 	.name = "da9063-irq",
 	.irqs = da9063_irqs,
 	.num_irqs = DA9063_NUM_IRQ,
@@ -165,16 +167,19 @@ int da9063_irq_init(struct da9063 *da9063)
 {
 	int ret;
 
-	if (!da9063->chip_irq) {
+	if (!da9063->chip_irq)
+	{
 		dev_err(da9063->dev, "No IRQ configured\n");
 		return -EINVAL;
 	}
 
 	ret = regmap_add_irq_chip(da9063->regmap, da9063->chip_irq,
-			IRQF_TRIGGER_LOW | IRQF_ONESHOT | IRQF_SHARED,
-			da9063->irq_base, &da9063_irq_chip,
-			&da9063->regmap_irq);
-	if (ret) {
+							  IRQF_TRIGGER_LOW | IRQF_ONESHOT | IRQF_SHARED,
+							  da9063->irq_base, &da9063_irq_chip,
+							  &da9063->regmap_irq);
+
+	if (ret)
+	{
 		dev_err(da9063->dev, "Failed to reguest IRQ %d: %d\n",
 				da9063->chip_irq, ret);
 		return ret;

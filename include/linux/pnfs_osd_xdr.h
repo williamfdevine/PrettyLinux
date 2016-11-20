@@ -48,7 +48,8 @@
 
 /* Layout Structure */
 
-enum pnfs_osd_raid_algorithm4 {
+enum pnfs_osd_raid_algorithm4
+{
 	PNFS_OSD_RAID_0		= 1,
 	PNFS_OSD_RAID_4		= 2,
 	PNFS_OSD_RAID_5		= 3,
@@ -64,7 +65,8 @@ enum pnfs_osd_raid_algorithm4 {
  *       pnfs_osd_raid_algorithm4    odm_raid_algorithm;
  *   };
  */
-struct pnfs_osd_data_map {
+struct pnfs_osd_data_map
+{
 	u32	odm_num_comps;
 	u64	odm_stripe_unit;
 	u32	odm_group_width;
@@ -79,7 +81,8 @@ struct pnfs_osd_data_map {
  *       uint64_t        oid_object_id;
  *   };
  */
-struct pnfs_osd_objid {
+struct pnfs_osd_objid
+{
 	struct nfs4_deviceid	oid_device_id;
 	u64			oid_partition_id;
 	u64			oid_object_id;
@@ -95,18 +98,21 @@ struct pnfs_osd_objid {
 #define _DEVID_HI(oid_device_id) \
 	(unsigned long long)be64_to_cpup(((__be64 *)(oid_device_id)->data) + 1)
 
-enum pnfs_osd_version {
+enum pnfs_osd_version
+{
 	PNFS_OSD_MISSING              = 0,
 	PNFS_OSD_VERSION_1            = 1,
 	PNFS_OSD_VERSION_2            = 2
 };
 
-struct pnfs_osd_opaque_cred {
+struct pnfs_osd_opaque_cred
+{
 	u32 cred_len;
 	void *cred;
 };
 
-enum pnfs_osd_cap_key_sec {
+enum pnfs_osd_cap_key_sec
+{
 	PNFS_OSD_CAP_KEY_SEC_NONE     = 0,
 	PNFS_OSD_CAP_KEY_SEC_SSV      = 1,
 };
@@ -119,7 +125,8 @@ enum pnfs_osd_cap_key_sec {
  *       opaque                  oc_capability<>;
  *   };
  */
-struct pnfs_osd_object_cred {
+struct pnfs_osd_object_cred
+{
 	struct pnfs_osd_objid		oc_object_id;
 	u32				oc_osd_version;
 	u32				oc_cap_key_sec;
@@ -133,7 +140,8 @@ struct pnfs_osd_object_cred {
  *       pnfs_osd_object_cred4   olo_components<>;
  *   };
  */
-struct pnfs_osd_layout {
+struct pnfs_osd_layout
+{
 	struct pnfs_osd_data_map	olo_map;
 	u32				olo_comps_index;
 	u32				olo_num_comps;
@@ -141,7 +149,8 @@ struct pnfs_osd_layout {
 };
 
 /* Device Address */
-enum pnfs_osd_targetid_type {
+enum pnfs_osd_targetid_type
+{
 	OBJ_TARGET_ANON = 1,
 	OBJ_TARGET_SCSI_NAME = 2,
 	OBJ_TARGET_SCSI_DEVICE_ID = 3,
@@ -174,7 +183,8 @@ enum pnfs_osd_targetid_type {
  *       opaque                  oda_osdname<>;
  *   };
  */
-struct pnfs_osd_targetid {
+struct pnfs_osd_targetid
+{
 	u32				oti_type;
 	struct nfs4_string		oti_scsi_device_id;
 };
@@ -185,17 +195,20 @@ struct pnfs_osd_targetid {
  *       string r_addr<>;     // universal address
  *   };
  */
-struct pnfs_osd_net_addr {
+struct pnfs_osd_net_addr
+{
 	struct nfs4_string	r_netid;
 	struct nfs4_string	r_addr;
 };
 
-struct pnfs_osd_targetaddr {
+struct pnfs_osd_targetaddr
+{
 	u32				ota_available;
 	struct pnfs_osd_net_addr	ota_netaddr;
 };
 
-struct pnfs_osd_deviceaddr {
+struct pnfs_osd_deviceaddr
+{
 	struct pnfs_osd_targetid	oda_targetid;
 	struct pnfs_osd_targetaddr	oda_targetaddr;
 	u8				oda_lun[8];
@@ -218,7 +231,8 @@ struct pnfs_osd_deviceaddr {
  *       bool                        olu_ioerr_flag;
  *   };
  */
-struct pnfs_osd_layoutupdate {
+struct pnfs_osd_layoutupdate
+{
 	u32	dsu_valid;
 	s64	dsu_delta;
 	u32	olu_ioerr_flag;
@@ -226,7 +240,8 @@ struct pnfs_osd_layoutupdate {
 
 /* LAYOUTRETURN: I/O Rrror Report */
 
-enum pnfs_osd_errno {
+enum pnfs_osd_errno
+{
 	PNFS_OSD_ERR_EIO		= 1,
 	PNFS_OSD_ERR_NOT_FOUND		= 2,
 	PNFS_OSD_ERR_NO_SPACE		= 3,
@@ -244,7 +259,8 @@ enum pnfs_osd_errno {
  *       pnfs_osd_errno4     oer_errno;
  *   };
  */
-struct pnfs_osd_ioerr {
+struct pnfs_osd_ioerr
+{
 	struct pnfs_osd_objid	oer_component;
 	u64			oer_comp_offset;
 	u64			oer_comp_length;
@@ -285,17 +301,18 @@ struct pnfs_osd_ioerr {
  *		goto err;
  */
 
-struct pnfs_osd_xdr_decode_layout_iter {
+struct pnfs_osd_xdr_decode_layout_iter
+{
 	unsigned total_comps;
 	unsigned decoded_comps;
 };
 
 extern int pnfs_osd_xdr_decode_layout_map(struct pnfs_osd_layout *layout,
-	struct pnfs_osd_xdr_decode_layout_iter *iter, struct xdr_stream *xdr);
+		struct pnfs_osd_xdr_decode_layout_iter *iter, struct xdr_stream *xdr);
 
 extern bool pnfs_osd_xdr_decode_layout_comp(struct pnfs_osd_object_cred *comp,
-	struct pnfs_osd_xdr_decode_layout_iter *iter, struct xdr_stream *xdr,
-	int *err);
+		struct pnfs_osd_xdr_decode_layout_iter *iter, struct xdr_stream *xdr,
+		int *err);
 
 /* Device Info helpers */
 
@@ -308,7 +325,7 @@ extern void pnfs_osd_xdr_decode_deviceaddr(
 /* layoutupdate (layout_commit) xdr helpers */
 extern int
 pnfs_osd_xdr_encode_layoutupdate(struct xdr_stream *xdr,
-				 struct pnfs_osd_layoutupdate *lou);
+								 struct pnfs_osd_layoutupdate *lou);
 
 /* osd_ioerror encoding (layout_return) */
 extern __be32 *pnfs_osd_xdr_ioerr_reserve_space(struct xdr_stream *xdr);

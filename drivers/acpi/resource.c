@@ -55,28 +55,34 @@ static bool acpi_dev_resource_len_valid(u64 start, u64 end, u64 len, bool io)
 	 * descriptor, so remove check of 'reslen == len' to avoid regression.
 	 */
 	if (len && reslen && start <= end)
+	{
 		return true;
+	}
 
 	pr_debug("ACPI: invalid or unassigned resource %s [%016llx - %016llx] length [%016llx]\n",
-		io ? "io" : "mem", start, end, len);
+			 io ? "io" : "mem", start, end, len);
 
 	return false;
 }
 
 static void acpi_dev_memresource_flags(struct resource *res, u64 len,
-				       u8 write_protect)
+									   u8 write_protect)
 {
 	res->flags = IORESOURCE_MEM;
 
 	if (!acpi_dev_resource_len_valid(res->start, res->end, len, false))
+	{
 		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
+	}
 
 	if (write_protect == ACPI_READ_WRITE_MEMORY)
+	{
 		res->flags |= IORESOURCE_MEM_WRITEABLE;
+	}
 }
 
 static void acpi_dev_get_memresource(struct resource *res, u64 start, u64 len,
-				     u8 write_protect)
+									 u8 write_protect)
 {
 	res->start = start;
 	res->end = start + len - 1;
@@ -103,28 +109,32 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
 	struct acpi_resource_memory32 *memory32;
 	struct acpi_resource_fixed_memory32 *fixed_memory32;
 
-	switch (ares->type) {
-	case ACPI_RESOURCE_TYPE_MEMORY24:
-		memory24 = &ares->data.memory24;
-		acpi_dev_get_memresource(res, memory24->minimum << 8,
-					 memory24->address_length << 8,
-					 memory24->write_protect);
-		break;
-	case ACPI_RESOURCE_TYPE_MEMORY32:
-		memory32 = &ares->data.memory32;
-		acpi_dev_get_memresource(res, memory32->minimum,
-					 memory32->address_length,
-					 memory32->write_protect);
-		break;
-	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
-		fixed_memory32 = &ares->data.fixed_memory32;
-		acpi_dev_get_memresource(res, fixed_memory32->address,
-					 fixed_memory32->address_length,
-					 fixed_memory32->write_protect);
-		break;
-	default:
-		res->flags = 0;
-		return false;
+	switch (ares->type)
+	{
+		case ACPI_RESOURCE_TYPE_MEMORY24:
+			memory24 = &ares->data.memory24;
+			acpi_dev_get_memresource(res, memory24->minimum << 8,
+									 memory24->address_length << 8,
+									 memory24->write_protect);
+			break;
+
+		case ACPI_RESOURCE_TYPE_MEMORY32:
+			memory32 = &ares->data.memory32;
+			acpi_dev_get_memresource(res, memory32->minimum,
+									 memory32->address_length,
+									 memory32->write_protect);
+			break;
+
+		case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+			fixed_memory32 = &ares->data.fixed_memory32;
+			acpi_dev_get_memresource(res, fixed_memory32->address,
+									 fixed_memory32->address_length,
+									 fixed_memory32->write_protect);
+			break;
+
+		default:
+			res->flags = 0;
+			return false;
 	}
 
 	return !(res->flags & IORESOURCE_DISABLED);
@@ -132,24 +142,33 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
 EXPORT_SYMBOL_GPL(acpi_dev_resource_memory);
 
 static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
-				      u8 io_decode, u8 translation_type)
+									  u8 io_decode, u8 translation_type)
 {
 	res->flags = IORESOURCE_IO;
 
 	if (!acpi_dev_resource_len_valid(res->start, res->end, len, true))
+	{
 		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
+	}
 
 	if (!acpi_iospace_resource_valid(res))
+	{
 		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
+	}
 
 	if (io_decode == ACPI_DECODE_16)
+	{
 		res->flags |= IORESOURCE_IO_16BIT_ADDR;
+	}
+
 	if (translation_type == ACPI_SPARSE_TRANSLATION)
+	{
 		res->flags |= IORESOURCE_IO_SPARSE;
+	}
 }
 
 static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
-				    u8 io_decode)
+									u8 io_decode)
 {
 	res->start = start;
 	res->end = start + len - 1;
@@ -175,22 +194,25 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
 	struct acpi_resource_io *io;
 	struct acpi_resource_fixed_io *fixed_io;
 
-	switch (ares->type) {
-	case ACPI_RESOURCE_TYPE_IO:
-		io = &ares->data.io;
-		acpi_dev_get_ioresource(res, io->minimum,
-					io->address_length,
-					io->io_decode);
-		break;
-	case ACPI_RESOURCE_TYPE_FIXED_IO:
-		fixed_io = &ares->data.fixed_io;
-		acpi_dev_get_ioresource(res, fixed_io->address,
-					fixed_io->address_length,
-					ACPI_DECODE_10);
-		break;
-	default:
-		res->flags = 0;
-		return false;
+	switch (ares->type)
+	{
+		case ACPI_RESOURCE_TYPE_IO:
+			io = &ares->data.io;
+			acpi_dev_get_ioresource(res, io->minimum,
+									io->address_length,
+									io->io_decode);
+			break;
+
+		case ACPI_RESOURCE_TYPE_FIXED_IO:
+			fixed_io = &ares->data.fixed_io;
+			acpi_dev_get_ioresource(res, fixed_io->address,
+									fixed_io->address_length,
+									ACPI_DECODE_10);
+			break;
+
+		default:
+			res->flags = 0;
+			return false;
 	}
 
 	return !(res->flags & IORESOURCE_DISABLED);
@@ -198,8 +220,8 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
 EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
 
 static bool acpi_decode_space(struct resource_win *win,
-			      struct acpi_resource_address *addr,
-			      struct acpi_address64_attribute *attr)
+							  struct acpi_resource_address *addr,
+							  struct acpi_address64_attribute *attr)
 {
 	u8 iodec = attr->granularity == 0xfff ? ACPI_DECODE_10 : ACPI_DECODE_16;
 	bool wp = addr->info.mem.write_protect;
@@ -212,9 +234,9 @@ static bool acpi_decode_space(struct resource_win *win,
 	 * 6.4.3.5 Address Space Resource Descriptors.
 	 */
 	if ((addr->min_address_fixed != addr->max_address_fixed && len) ||
-	    (addr->min_address_fixed && addr->max_address_fixed && !len))
+		(addr->min_address_fixed && addr->max_address_fixed && !len))
 		pr_debug("ACPI: Invalid address space min_addr_fix %d, max_addr_fix %d, len %llx\n",
-			 addr->min_address_fixed, addr->max_address_fixed, len);
+				 addr->min_address_fixed, addr->max_address_fixed, len);
 
 	/*
 	 * For bridges that translate addresses across the bridge,
@@ -224,43 +246,56 @@ static bool acpi_decode_space(struct resource_win *win,
 	 * Translation offset bits.
 	 */
 	if (addr->producer_consumer == ACPI_PRODUCER)
+	{
 		offset = attr->translation_offset;
+	}
 	else if (attr->translation_offset)
 		pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
-			 attr->translation_offset);
+				 attr->translation_offset);
+
 	start = attr->minimum + offset;
 	end = attr->maximum + offset;
 
 	win->offset = offset;
 	res->start = start;
 	res->end = end;
+
 	if (sizeof(resource_size_t) < sizeof(u64) &&
-	    (offset != win->offset || start != res->start || end != res->end)) {
+		(offset != win->offset || start != res->start || end != res->end))
+	{
 		pr_warn("acpi resource window ([%#llx-%#llx] ignored, not CPU addressable)\n",
-			attr->minimum, attr->maximum);
+				attr->minimum, attr->maximum);
 		return false;
 	}
 
-	switch (addr->resource_type) {
-	case ACPI_MEMORY_RANGE:
-		acpi_dev_memresource_flags(res, len, wp);
-		break;
-	case ACPI_IO_RANGE:
-		acpi_dev_ioresource_flags(res, len, iodec,
-					  addr->info.io.translation_type);
-		break;
-	case ACPI_BUS_NUMBER_RANGE:
-		res->flags = IORESOURCE_BUS;
-		break;
-	default:
-		return false;
+	switch (addr->resource_type)
+	{
+		case ACPI_MEMORY_RANGE:
+			acpi_dev_memresource_flags(res, len, wp);
+			break;
+
+		case ACPI_IO_RANGE:
+			acpi_dev_ioresource_flags(res, len, iodec,
+									  addr->info.io.translation_type);
+			break;
+
+		case ACPI_BUS_NUMBER_RANGE:
+			res->flags = IORESOURCE_BUS;
+			break;
+
+		default:
+			return false;
 	}
 
 	if (addr->producer_consumer == ACPI_PRODUCER)
+	{
 		res->flags |= IORESOURCE_WINDOW;
+	}
 
 	if (addr->info.mem.caching == ACPI_PREFETCHABLE_MEMORY)
+	{
 		res->flags |= IORESOURCE_PREFETCH;
+	}
 
 	return !(res->flags & IORESOURCE_DISABLED);
 }
@@ -281,16 +316,19 @@ static bool acpi_decode_space(struct resource_win *win,
  * 3) true: valid assigned resource
  */
 bool acpi_dev_resource_address_space(struct acpi_resource *ares,
-				     struct resource_win *win)
+									 struct resource_win *win)
 {
 	struct acpi_resource_address64 addr;
 
 	win->res.flags = 0;
+
 	if (ACPI_FAILURE(acpi_resource_to_address64(ares, &addr)))
+	{
 		return false;
+	}
 
 	return acpi_decode_space(win, (struct acpi_resource_address *)&addr,
-				 &addr.address);
+							 &addr.address);
 }
 EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space);
 
@@ -310,18 +348,21 @@ EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space);
  * 3) true: valid assigned resource
  */
 bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
-					 struct resource_win *win)
+		struct resource_win *win)
 {
 	struct acpi_resource_extended_address64 *ext_addr;
 
 	win->res.flags = 0;
+
 	if (ares->type != ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64)
+	{
 		return false;
+	}
 
 	ext_addr = &ares->data.ext_address64;
 
 	return acpi_decode_space(win, (struct acpi_resource_address *)ext_addr,
-				 &ext_addr->address);
+							 &ext_addr->address);
 }
 EXPORT_SYMBOL_GPL(acpi_dev_resource_ext_address_space);
 
@@ -337,13 +378,15 @@ unsigned long acpi_dev_irq_flags(u8 triggering, u8 polarity, u8 shareable)
 
 	if (triggering == ACPI_LEVEL_SENSITIVE)
 		flags = polarity == ACPI_ACTIVE_LOW ?
-			IORESOURCE_IRQ_LOWLEVEL : IORESOURCE_IRQ_HIGHLEVEL;
+				IORESOURCE_IRQ_LOWLEVEL : IORESOURCE_IRQ_HIGHLEVEL;
 	else
 		flags = polarity == ACPI_ACTIVE_LOW ?
-			IORESOURCE_IRQ_LOWEDGE : IORESOURCE_IRQ_HIGHEDGE;
+				IORESOURCE_IRQ_LOWEDGE : IORESOURCE_IRQ_HIGHEDGE;
 
 	if (shareable == ACPI_SHARED)
+	{
 		flags |= IORESOURCE_IRQ_SHAREABLE;
+	}
 
 	return flags | IORESOURCE_IRQ;
 }
@@ -356,20 +399,26 @@ EXPORT_SYMBOL_GPL(acpi_dev_irq_flags);
  */
 unsigned int acpi_dev_get_irq_type(int triggering, int polarity)
 {
-	switch (polarity) {
-	case ACPI_ACTIVE_LOW:
-		return triggering == ACPI_EDGE_SENSITIVE ?
-		       IRQ_TYPE_EDGE_FALLING :
-		       IRQ_TYPE_LEVEL_LOW;
-	case ACPI_ACTIVE_HIGH:
-		return triggering == ACPI_EDGE_SENSITIVE ?
-		       IRQ_TYPE_EDGE_RISING :
-		       IRQ_TYPE_LEVEL_HIGH;
-	case ACPI_ACTIVE_BOTH:
-		if (triggering == ACPI_EDGE_SENSITIVE)
-			return IRQ_TYPE_EDGE_BOTH;
-	default:
-		return IRQ_TYPE_NONE;
+	switch (polarity)
+	{
+		case ACPI_ACTIVE_LOW:
+			return triggering == ACPI_EDGE_SENSITIVE ?
+				   IRQ_TYPE_EDGE_FALLING :
+				   IRQ_TYPE_LEVEL_LOW;
+
+		case ACPI_ACTIVE_HIGH:
+			return triggering == ACPI_EDGE_SENSITIVE ?
+				   IRQ_TYPE_EDGE_RISING :
+				   IRQ_TYPE_LEVEL_HIGH;
+
+		case ACPI_ACTIVE_BOTH:
+			if (triggering == ACPI_EDGE_SENSITIVE)
+			{
+				return IRQ_TYPE_EDGE_BOTH;
+			}
+
+		default:
+			return IRQ_TYPE_NONE;
 	}
 }
 EXPORT_SYMBOL_GPL(acpi_dev_get_irq_type);
@@ -382,12 +431,13 @@ static void acpi_dev_irqresource_disabled(struct resource *res, u32 gsi)
 }
 
 static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
-				     u8 triggering, u8 polarity, u8 shareable,
-				     bool legacy)
+									 u8 triggering, u8 polarity, u8 shareable,
+									 bool legacy)
 {
 	int irq, p, t;
 
-	if (!valid_IRQ(gsi)) {
+	if (!valid_IRQ(gsi))
+	{
 		acpi_dev_irqresource_disabled(res, gsi);
 		return;
 	}
@@ -402,13 +452,15 @@ static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
 	 * using extended IRQ descriptors we take the IRQ configuration
 	 * from _CRS directly.
 	 */
-	if (legacy && !acpi_get_override_irq(gsi, &t, &p)) {
+	if (legacy && !acpi_get_override_irq(gsi, &t, &p))
+	{
 		u8 trig = t ? ACPI_LEVEL_SENSITIVE : ACPI_EDGE_SENSITIVE;
 		u8 pol = p ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
 
-		if (triggering != trig || polarity != pol) {
+		if (triggering != trig || polarity != pol)
+		{
 			pr_warning("ACPI: IRQ %d override to %s, %s\n", gsi,
-				   t ? "level" : "edge", p ? "low" : "high");
+					   t ? "level" : "edge", p ? "low" : "high");
 			triggering = trig;
 			polarity = pol;
 		}
@@ -416,10 +468,14 @@ static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
 
 	res->flags = acpi_dev_irq_flags(triggering, polarity, shareable);
 	irq = acpi_register_gsi(NULL, gsi, triggering, polarity);
-	if (irq >= 0) {
+
+	if (irq >= 0)
+	{
 		res->start = irq;
 		res->end = irq;
-	} else {
+	}
+	else
+	{
 		acpi_dev_irqresource_disabled(res, gsi);
 	}
 }
@@ -444,39 +500,48 @@ static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
  * 3) true: valid assigned resource
  */
 bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
-				 struct resource *res)
+								 struct resource *res)
 {
 	struct acpi_resource_irq *irq;
 	struct acpi_resource_extended_irq *ext_irq;
 
-	switch (ares->type) {
-	case ACPI_RESOURCE_TYPE_IRQ:
-		/*
-		 * Per spec, only one interrupt per descriptor is allowed in
-		 * _CRS, but some firmware violates this, so parse them all.
-		 */
-		irq = &ares->data.irq;
-		if (index >= irq->interrupt_count) {
-			acpi_dev_irqresource_disabled(res, 0);
+	switch (ares->type)
+	{
+		case ACPI_RESOURCE_TYPE_IRQ:
+			/*
+			 * Per spec, only one interrupt per descriptor is allowed in
+			 * _CRS, but some firmware violates this, so parse them all.
+			 */
+			irq = &ares->data.irq;
+
+			if (index >= irq->interrupt_count)
+			{
+				acpi_dev_irqresource_disabled(res, 0);
+				return false;
+			}
+
+			acpi_dev_get_irqresource(res, irq->interrupts[index],
+									 irq->triggering, irq->polarity,
+									 irq->sharable, true);
+			break;
+
+		case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+			ext_irq = &ares->data.extended_irq;
+
+			if (index >= ext_irq->interrupt_count)
+			{
+				acpi_dev_irqresource_disabled(res, 0);
+				return false;
+			}
+
+			acpi_dev_get_irqresource(res, ext_irq->interrupts[index],
+									 ext_irq->triggering, ext_irq->polarity,
+									 ext_irq->sharable, false);
+			break;
+
+		default:
+			res->flags = 0;
 			return false;
-		}
-		acpi_dev_get_irqresource(res, irq->interrupts[index],
-					 irq->triggering, irq->polarity,
-					 irq->sharable, true);
-		break;
-	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
-		ext_irq = &ares->data.extended_irq;
-		if (index >= ext_irq->interrupt_count) {
-			acpi_dev_irqresource_disabled(res, 0);
-			return false;
-		}
-		acpi_dev_get_irqresource(res, ext_irq->interrupts[index],
-					 ext_irq->triggering, ext_irq->polarity,
-					 ext_irq->sharable, false);
-		break;
-	default:
-		res->flags = 0;
-		return false;
 	}
 
 	return true;
@@ -493,7 +558,8 @@ void acpi_dev_free_resource_list(struct list_head *list)
 }
 EXPORT_SYMBOL_GPL(acpi_dev_free_resource_list);
 
-struct res_proc_context {
+struct res_proc_context
+{
 	struct list_head *list;
 	int (*preproc)(struct acpi_resource *, void *);
 	void *preproc_data;
@@ -502,15 +568,18 @@ struct res_proc_context {
 };
 
 static acpi_status acpi_dev_new_resource_entry(struct resource_win *win,
-					       struct res_proc_context *c)
+		struct res_proc_context *c)
 {
 	struct resource_entry *rentry;
 
 	rentry = resource_list_create_entry(NULL, 0);
-	if (!rentry) {
+
+	if (!rentry)
+	{
 		c->error = -ENOMEM;
 		return AE_NO_MEMORY;
 	}
+
 	*rentry->res = win->res;
 	rentry->offset = win->offset;
 	resource_list_add_tail(rentry, c->list);
@@ -519,21 +588,26 @@ static acpi_status acpi_dev_new_resource_entry(struct resource_win *win,
 }
 
 static acpi_status acpi_dev_process_resource(struct acpi_resource *ares,
-					     void *context)
+		void *context)
 {
 	struct res_proc_context *c = context;
 	struct resource_win win;
 	struct resource *res = &win.res;
 	int i;
 
-	if (c->preproc) {
+	if (c->preproc)
+	{
 		int ret;
 
 		ret = c->preproc(ares, c->preproc_data);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			c->error = ret;
 			return AE_CTRL_TERMINATE;
-		} else if (ret > 0) {
+		}
+		else if (ret > 0)
+		{
 			return AE_OK;
 		}
 	}
@@ -541,17 +615,23 @@ static acpi_status acpi_dev_process_resource(struct acpi_resource *ares,
 	memset(&win, 0, sizeof(win));
 
 	if (acpi_dev_resource_memory(ares, res)
-	    || acpi_dev_resource_io(ares, res)
-	    || acpi_dev_resource_address_space(ares, &win)
-	    || acpi_dev_resource_ext_address_space(ares, &win))
+		|| acpi_dev_resource_io(ares, res)
+		|| acpi_dev_resource_address_space(ares, &win)
+		|| acpi_dev_resource_ext_address_space(ares, &win))
+	{
 		return acpi_dev_new_resource_entry(&win, c);
+	}
 
-	for (i = 0; acpi_dev_resource_interrupt(ares, i, res); i++) {
+	for (i = 0; acpi_dev_resource_interrupt(ares, i, res); i++)
+	{
 		acpi_status status;
 
 		status = acpi_dev_new_resource_entry(&win, c);
+
 		if (ACPI_FAILURE(status))
+		{
 			return status;
+		}
 	}
 
 	return AE_OK;
@@ -582,17 +662,21 @@ static acpi_status acpi_dev_process_resource(struct acpi_resource *ares,
  * code reflecting the error condition is returned otherwise.
  */
 int acpi_dev_get_resources(struct acpi_device *adev, struct list_head *list,
-			   int (*preproc)(struct acpi_resource *, void *),
-			   void *preproc_data)
+						   int (*preproc)(struct acpi_resource *, void *),
+						   void *preproc_data)
 {
 	struct res_proc_context c;
 	acpi_status status;
 
 	if (!adev || !adev->handle || !list_empty(list))
+	{
 		return -EINVAL;
+	}
 
 	if (!acpi_has_method(adev->handle, METHOD_NAME__CRS))
+	{
 		return 0;
+	}
 
 	c.list = list;
 	c.preproc = preproc;
@@ -600,8 +684,10 @@ int acpi_dev_get_resources(struct acpi_device *adev, struct list_head *list,
 	c.count = 0;
 	c.error = 0;
 	status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
-				     acpi_dev_process_resource, &c);
-	if (ACPI_FAILURE(status)) {
+								 acpi_dev_process_resource, &c);
+
+	if (ACPI_FAILURE(status))
+	{
 		acpi_dev_free_resource_list(list);
 		return c.error ? c.error : -EIO;
 	}
@@ -620,45 +706,59 @@ EXPORT_SYMBOL_GPL(acpi_dev_get_resources);
  * ACPI resource objects according to resource types.
  */
 int acpi_dev_filter_resource_type(struct acpi_resource *ares,
-				  unsigned long types)
+								  unsigned long types)
 {
 	unsigned long type = 0;
 
-	switch (ares->type) {
-	case ACPI_RESOURCE_TYPE_MEMORY24:
-	case ACPI_RESOURCE_TYPE_MEMORY32:
-	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
-		type = IORESOURCE_MEM;
-		break;
-	case ACPI_RESOURCE_TYPE_IO:
-	case ACPI_RESOURCE_TYPE_FIXED_IO:
-		type = IORESOURCE_IO;
-		break;
-	case ACPI_RESOURCE_TYPE_IRQ:
-	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
-		type = IORESOURCE_IRQ;
-		break;
-	case ACPI_RESOURCE_TYPE_DMA:
-	case ACPI_RESOURCE_TYPE_FIXED_DMA:
-		type = IORESOURCE_DMA;
-		break;
-	case ACPI_RESOURCE_TYPE_GENERIC_REGISTER:
-		type = IORESOURCE_REG;
-		break;
-	case ACPI_RESOURCE_TYPE_ADDRESS16:
-	case ACPI_RESOURCE_TYPE_ADDRESS32:
-	case ACPI_RESOURCE_TYPE_ADDRESS64:
-	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
-		if (ares->data.address.resource_type == ACPI_MEMORY_RANGE)
+	switch (ares->type)
+	{
+		case ACPI_RESOURCE_TYPE_MEMORY24:
+		case ACPI_RESOURCE_TYPE_MEMORY32:
+		case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
 			type = IORESOURCE_MEM;
-		else if (ares->data.address.resource_type == ACPI_IO_RANGE)
+			break;
+
+		case ACPI_RESOURCE_TYPE_IO:
+		case ACPI_RESOURCE_TYPE_FIXED_IO:
 			type = IORESOURCE_IO;
-		else if (ares->data.address.resource_type ==
-			 ACPI_BUS_NUMBER_RANGE)
-			type = IORESOURCE_BUS;
-		break;
-	default:
-		break;
+			break;
+
+		case ACPI_RESOURCE_TYPE_IRQ:
+		case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+			type = IORESOURCE_IRQ;
+			break;
+
+		case ACPI_RESOURCE_TYPE_DMA:
+		case ACPI_RESOURCE_TYPE_FIXED_DMA:
+			type = IORESOURCE_DMA;
+			break;
+
+		case ACPI_RESOURCE_TYPE_GENERIC_REGISTER:
+			type = IORESOURCE_REG;
+			break;
+
+		case ACPI_RESOURCE_TYPE_ADDRESS16:
+		case ACPI_RESOURCE_TYPE_ADDRESS32:
+		case ACPI_RESOURCE_TYPE_ADDRESS64:
+		case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
+			if (ares->data.address.resource_type == ACPI_MEMORY_RANGE)
+			{
+				type = IORESOURCE_MEM;
+			}
+			else if (ares->data.address.resource_type == ACPI_IO_RANGE)
+			{
+				type = IORESOURCE_IO;
+			}
+			else if (ares->data.address.resource_type ==
+					 ACPI_BUS_NUMBER_RANGE)
+			{
+				type = IORESOURCE_BUS;
+			}
+
+			break;
+
+		default:
+			break;
 	}
 
 	return (type & types) ? 0 : 1;

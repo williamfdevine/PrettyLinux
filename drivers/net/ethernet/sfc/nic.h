@@ -17,7 +17,8 @@
 #include "efx.h"
 #include "mcdi.h"
 
-enum {
+enum
+{
 	EFX_REV_FALCON_A0 = 0,
 	EFX_REV_FALCON_A1 = 1,
 	EFX_REV_FALCON_B0 = 2,
@@ -40,10 +41,10 @@ static inline bool efx_nic_is_dual_func(struct efx_nic *efx)
 
 /* Read the current event from the event queue */
 static inline efx_qword_t *efx_event(struct efx_channel *channel,
-				     unsigned int index)
+									 unsigned int index)
 {
 	return ((efx_qword_t *) (channel->eventq.buf.addr)) +
-		(index & channel->eventq_mask);
+		   (index & channel->eventq_mask);
 }
 
 /* See if an event is present
@@ -59,7 +60,7 @@ static inline efx_qword_t *efx_event(struct efx_channel *channel,
 static inline int efx_event_present(efx_qword_t *event)
 {
 	return !(EFX_DWORD_IS_ALL_ONES(event->dword[0]) |
-		  EFX_DWORD_IS_ALL_ONES(event->dword[1]));
+			 EFX_DWORD_IS_ALL_ONES(event->dword[1]));
 }
 
 /* Returns a pointer to the specified transmit descriptor in the TX
@@ -75,21 +76,27 @@ efx_tx_desc(struct efx_tx_queue *tx_queue, unsigned int index)
 static struct efx_tx_queue *efx_tx_queue_partner(struct efx_tx_queue *tx_queue)
 {
 	if (tx_queue->queue & EFX_TXQ_TYPE_OFFLOAD)
+	{
 		return tx_queue - EFX_TXQ_TYPE_OFFLOAD;
+	}
 	else
+	{
 		return tx_queue + EFX_TXQ_TYPE_OFFLOAD;
+	}
 }
 
 /* Report whether this TX queue would be empty for the given write_count.
  * May return false negative.
  */
 static inline bool __efx_nic_tx_is_empty(struct efx_tx_queue *tx_queue,
-					 unsigned int write_count)
+		unsigned int write_count)
 {
 	unsigned int empty_read_count = ACCESS_ONCE(tx_queue->empty_read_count);
 
 	if (empty_read_count == 0)
+	{
 		return false;
+	}
 
 	return ((empty_read_count ^ write_count) & ~EFX_EMPTY_COUNT_VALID) == 0;
 }
@@ -104,8 +111,8 @@ static inline bool efx_nic_may_tx_pio(struct efx_tx_queue *tx_queue)
 {
 	struct efx_tx_queue *partner = efx_tx_queue_partner(tx_queue);
 	return tx_queue->piobuf &&
-	       __efx_nic_tx_is_empty(tx_queue, tx_queue->insert_count) &&
-	       __efx_nic_tx_is_empty(partner, partner->insert_count);
+		   __efx_nic_tx_is_empty(tx_queue, tx_queue->insert_count) &&
+		   __efx_nic_tx_is_empty(partner, partner->insert_count);
 }
 
 /* Decide whether to push a TX descriptor to the NIC vs merely writing
@@ -117,7 +124,7 @@ static inline bool efx_nic_may_tx_pio(struct efx_tx_queue *tx_queue)
  * NIC's view of the tx queue.
  */
 static inline bool efx_nic_may_push_tx_desc(struct efx_tx_queue *tx_queue,
-					    unsigned int write_count)
+		unsigned int write_count)
 {
 	bool was_empty = __efx_nic_tx_is_empty(tx_queue, write_count);
 
@@ -132,7 +139,8 @@ efx_rx_desc(struct efx_rx_queue *rx_queue, unsigned int index)
 	return ((efx_qword_t *) (rx_queue->rxd.buf.addr)) + index;
 }
 
-enum {
+enum
+{
 	PHY_TYPE_NONE = 0,
 	PHY_TYPE_TXC43128 = 1,
 	PHY_TYPE_88E1111 = 2,
@@ -155,7 +163,8 @@ enum {
 #define EFX_BUF_SIZE	EFX_PAGE_SIZE
 
 /* NIC-generic software stats */
-enum {
+enum
+{
 	GENERIC_STAT_rx_noskb_drops,
 	GENERIC_STAT_rx_nodesc_trunc,
 	GENERIC_STAT_COUNT
@@ -170,7 +179,8 @@ enum {
  * @set_id_led: Set state of identifying LED or revert to automatic function
  * @monitor: Board-specific health check function
  */
-struct falcon_board_type {
+struct falcon_board_type
+{
 	u8 id;
 	int (*init) (struct efx_nic *nic);
 	void (*init_phy) (struct efx_nic *efx);
@@ -189,7 +199,8 @@ struct falcon_board_type {
  * @hwmon_client: I2C client for hardware monitor
  * @ioexp_client: I2C client for power/port control
  */
-struct falcon_board {
+struct falcon_board
+{
 	const struct falcon_board_type *type;
 	int major;
 	int minor;
@@ -215,11 +226,12 @@ struct falcon_board {
  * @block_size:		Write block size (in bytes).
  *	Write commands are limited to blocks with this size and alignment.
  */
-struct falcon_spi_device {
+struct falcon_spi_device
+{
 	int device_id;
 	unsigned int size;
 	unsigned int addr_len;
-	unsigned int munge_address:1;
+	unsigned int munge_address: 1;
 	u8 erase_command;
 	unsigned int erase_size;
 	unsigned int block_size;
@@ -230,7 +242,8 @@ static inline bool falcon_spi_present(const struct falcon_spi_device *spi)
 	return spi->size != 0;
 }
 
-enum {
+enum
+{
 	FALCON_STAT_tx_bytes = GENERIC_STAT_COUNT,
 	FALCON_STAT_tx_packets,
 	FALCON_STAT_tx_pause,
@@ -295,7 +308,8 @@ enum {
  * @mdio_lock: MDIO bus lock
  * @xmac_poll_required: XMAC link state needs polling
  */
-struct falcon_nic_data {
+struct falcon_nic_data
+{
 	struct pci_dev *pci_dev2;
 	struct falcon_board board;
 	u64 stats[FALCON_STAT_COUNT];
@@ -315,7 +329,8 @@ static inline struct falcon_board *falcon_board(struct efx_nic *efx)
 	return &data->board;
 }
 
-enum {
+enum
+{
 	SIENA_STAT_tx_bytes = GENERIC_STAT_COUNT,
 	SIENA_STAT_tx_good_bytes,
 	SIENA_STAT_tx_bad_bytes,
@@ -390,7 +405,8 @@ enum {
  * @local_lock: Mutex protecting %local_addr_list and %local_page_list.
  * @peer_work: Work item to broadcast peer addresses to VMs.
  */
-struct siena_nic_data {
+struct siena_nic_data
+{
 	struct efx_nic *efx;
 	int wol_filter_id;
 	u64 stats[SIENA_STAT_COUNT];
@@ -406,7 +422,8 @@ struct siena_nic_data {
 #endif
 };
 
-enum {
+enum
+{
 	EF10_STAT_port_tx_bytes = GENERIC_STAT_COUNT,
 	EF10_STAT_port_tx_packets,
 	EF10_STAT_port_tx_pause,
@@ -526,7 +543,8 @@ enum {
  * @vlan_list: List of VLANs added over the interface. Serialised by vlan_lock.
  * @vlan_lock: Lock to serialize access to vlan_list.
  */
-struct efx_ef10_nic_data {
+struct efx_ef10_nic_data
+{
 	struct efx_buffer mcdi_buf;
 	u16 warm_boot_count;
 	unsigned int vi_base;
@@ -575,19 +593,21 @@ void efx_ptp_get_ts_info(struct efx_nic *efx, struct ethtool_ts_info *ts_info);
 bool efx_ptp_is_ptp_tx(struct efx_nic *efx, struct sk_buff *skb);
 int efx_ptp_get_mode(struct efx_nic *efx);
 int efx_ptp_change_mode(struct efx_nic *efx, bool enable_wanted,
-			unsigned int new_mode);
+						unsigned int new_mode);
 int efx_ptp_tx(struct efx_nic *efx, struct sk_buff *skb);
 void efx_ptp_event(struct efx_nic *efx, efx_qword_t *ev);
 size_t efx_ptp_describe_stats(struct efx_nic *efx, u8 *strings);
 size_t efx_ptp_update_stats(struct efx_nic *efx, u64 *stats);
 void efx_time_sync_event(struct efx_channel *channel, efx_qword_t *ev);
 void __efx_rx_skb_attach_timestamp(struct efx_channel *channel,
-				   struct sk_buff *skb);
+								   struct sk_buff *skb);
 static inline void efx_rx_skb_attach_timestamp(struct efx_channel *channel,
-					       struct sk_buff *skb)
+		struct sk_buff *skb)
 {
 	if (channel->sync_events_state == SYNC_EVENTS_VALID)
+	{
 		__efx_rx_skb_attach_timestamp(channel, skb);
+	}
 }
 void efx_ptp_start_datapath(struct efx_nic *efx);
 void efx_ptp_stop_datapath(struct efx_nic *efx);
@@ -701,26 +721,26 @@ void efx_farch_filter_table_restore(struct efx_nic *efx);
 void efx_farch_filter_table_remove(struct efx_nic *efx);
 void efx_farch_filter_update_rx_scatter(struct efx_nic *efx);
 s32 efx_farch_filter_insert(struct efx_nic *efx, struct efx_filter_spec *spec,
-			    bool replace);
+							bool replace);
 int efx_farch_filter_remove_safe(struct efx_nic *efx,
-				 enum efx_filter_priority priority,
-				 u32 filter_id);
+								 enum efx_filter_priority priority,
+								 u32 filter_id);
 int efx_farch_filter_get_safe(struct efx_nic *efx,
-			      enum efx_filter_priority priority, u32 filter_id,
-			      struct efx_filter_spec *);
+							  enum efx_filter_priority priority, u32 filter_id,
+							  struct efx_filter_spec *);
 int efx_farch_filter_clear_rx(struct efx_nic *efx,
-			      enum efx_filter_priority priority);
+							  enum efx_filter_priority priority);
 u32 efx_farch_filter_count_rx_used(struct efx_nic *efx,
-				   enum efx_filter_priority priority);
+								   enum efx_filter_priority priority);
 u32 efx_farch_filter_get_rx_id_limit(struct efx_nic *efx);
 s32 efx_farch_filter_get_rx_ids(struct efx_nic *efx,
-				enum efx_filter_priority priority, u32 *buf,
-				u32 size);
+								enum efx_filter_priority priority, u32 *buf,
+								u32 size);
 #ifdef CONFIG_RFS_ACCEL
 s32 efx_farch_filter_rfs_insert(struct efx_nic *efx,
-				struct efx_filter_spec *spec);
+								struct efx_filter_spec *spec);
 bool efx_farch_filter_rfs_expire_one(struct efx_nic *efx, u32 flow_id,
-				     unsigned int index);
+									 unsigned int index);
 #endif
 void efx_farch_filter_sync_rx_mode(struct efx_nic *efx);
 
@@ -741,7 +761,9 @@ bool efx_nic_event_present(struct efx_channel *channel);
 static inline void efx_update_diff_stat(u64 *stat, u64 diff)
 {
 	if ((s64)(diff - *stat) > 0)
+	{
 		*stat = diff;
+	}
 }
 
 /* Interrupts */
@@ -781,31 +803,32 @@ void efx_ef10_handle_drain_event(struct efx_nic *efx);
 void efx_farch_rx_push_indir_table(struct efx_nic *efx);
 
 int efx_nic_alloc_buffer(struct efx_nic *efx, struct efx_buffer *buffer,
-			 unsigned int len, gfp_t gfp_flags);
+						 unsigned int len, gfp_t gfp_flags);
 void efx_nic_free_buffer(struct efx_nic *efx, struct efx_buffer *buffer);
 
 /* Tests */
-struct efx_farch_register_test {
+struct efx_farch_register_test
+{
 	unsigned address;
 	efx_oword_t mask;
 };
 int efx_farch_test_registers(struct efx_nic *efx,
-			     const struct efx_farch_register_test *regs,
-			     size_t n_regs);
+							 const struct efx_farch_register_test *regs,
+							 size_t n_regs);
 
 size_t efx_nic_get_regs_len(struct efx_nic *efx);
 void efx_nic_get_regs(struct efx_nic *efx, void *buf);
 
 size_t efx_nic_describe_stats(const struct efx_hw_stat_desc *desc, size_t count,
-			      const unsigned long *mask, u8 *names);
+							  const unsigned long *mask, u8 *names);
 void efx_nic_update_stats(const struct efx_hw_stat_desc *desc, size_t count,
-			  const unsigned long *mask, u64 *stats,
-			  const void *dma_buf, bool accumulate);
+						  const unsigned long *mask, u64 *stats,
+						  const void *dma_buf, bool accumulate);
 void efx_nic_fix_nodesc_drop_stat(struct efx_nic *efx, u64 *stat);
 
 #define EFX_MAX_FLUSH_TIME 5000
 
 void efx_farch_generate_event(struct efx_nic *efx, unsigned int evq,
-			      efx_qword_t *event);
+							  efx_qword_t *event);
 
 #endif /* EFX_NIC_H */

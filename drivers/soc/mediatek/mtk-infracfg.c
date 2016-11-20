@@ -39,17 +39,26 @@ int mtk_infracfg_set_bus_protection(struct regmap *infracfg, u32 mask)
 
 	expired = jiffies + HZ;
 
-	while (1) {
+	while (1)
+	{
 		ret = regmap_read(infracfg, INFRA_TOPAXI_PROTECTSTA1, &val);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		if ((val & mask) == mask)
+		{
 			break;
+		}
 
 		cpu_relax();
+
 		if (time_after(jiffies, expired))
+		{
 			return -EIO;
+		}
 	}
 
 	return 0;
@@ -72,19 +81,28 @@ int mtk_infracfg_clear_bus_protection(struct regmap *infracfg, u32 mask)
 
 	expired = jiffies + HZ;
 
-	while (1) {
+	while (1)
+	{
 		u32 val;
 
 		ret = regmap_read(infracfg, INFRA_TOPAXI_PROTECTSTA1, &val);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		if (!(val & mask))
+		{
 			break;
+		}
 
 		cpu_relax();
+
 		if (time_after(jiffies, expired))
+		{
 			return -EIO;
+		}
 	}
 
 	return 0;

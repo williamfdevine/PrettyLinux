@@ -38,8 +38,11 @@ static inline int rt2x00link_get_avg_rssi(struct ewma_rssi *ewma)
 	unsigned long avg;
 
 	avg = ewma_rssi_read(ewma);
+
 	if (avg)
+	{
 		return -avg;
+	}
 
 	return DEFAULT_RSSI;
 }
@@ -49,7 +52,9 @@ static int rt2x00link_antenna_get_link_rssi(struct rt2x00_dev *rt2x00dev)
 	struct link_ant *ant = &rt2x00dev->link.ant;
 
 	if (rt2x00dev->link.qual.rx_success)
+	{
 		return rt2x00link_get_avg_rssi(&ant->rssi_ant);
+	}
 
 	return DEFAULT_RSSI;
 }
@@ -59,12 +64,15 @@ static int rt2x00link_antenna_get_rssi_history(struct rt2x00_dev *rt2x00dev)
 	struct link_ant *ant = &rt2x00dev->link.ant;
 
 	if (ant->rssi_history)
+	{
 		return ant->rssi_history;
+	}
+
 	return DEFAULT_RSSI;
 }
 
 static void rt2x00link_antenna_update_rssi_history(struct rt2x00_dev *rt2x00dev,
-						   int rssi)
+		int rssi)
 {
 	struct link_ant *ant = &rt2x00dev->link.ant;
 	ant->rssi_history = rssi;
@@ -99,19 +107,24 @@ static void rt2x00lib_antenna_diversity_sample(struct rt2x00_dev *rt2x00dev)
 	 * performance, just create a good starting point
 	 * for the history and we are done.
 	 */
-	if (sample_current >= sample_other) {
+	if (sample_current >= sample_other)
+	{
 		rt2x00link_antenna_update_rssi_history(rt2x00dev,
-			sample_current);
+											   sample_current);
 		return;
 	}
 
 	other_antenna = (ant->active.rx == ANTENNA_A) ? ANTENNA_B : ANTENNA_A;
 
 	if (ant->flags & ANTENNA_RX_DIVERSITY)
+	{
 		new_ant.rx = other_antenna;
+	}
 
 	if (ant->flags & ANTENNA_TX_DIVERSITY)
+	{
 		new_ant.tx = other_antenna;
+	}
 
 	rt2x00lib_config_antenna(rt2x00dev, new_ant);
 }
@@ -143,15 +156,21 @@ static void rt2x00lib_antenna_diversity_eval(struct rt2x00_dev *rt2x00dev)
 	 * comparison between the 2 antennas.
 	 */
 	if (abs(rssi_curr - rssi_old) < 5)
+	{
 		return;
+	}
 
 	ant->flags |= ANTENNA_MODE_SAMPLE;
 
 	if (ant->flags & ANTENNA_RX_DIVERSITY)
+	{
 		new_ant.rx = (new_ant.rx == ANTENNA_A) ? ANTENNA_B : ANTENNA_A;
+	}
 
 	if (ant->flags & ANTENNA_TX_DIVERSITY)
+	{
 		new_ant.tx = (new_ant.tx == ANTENNA_A) ? ANTENNA_B : ANTENNA_A;
+	}
 
 	rt2x00lib_config_antenna(rt2x00dev, new_ant);
 }
@@ -165,7 +184,8 @@ static bool rt2x00lib_antenna_diversity(struct rt2x00_dev *rt2x00dev)
 	 * either the TX or RX antenna (or both).
 	 */
 	if (!(ant->flags & ANTENNA_RX_DIVERSITY) &&
-	    !(ant->flags & ANTENNA_TX_DIVERSITY)) {
+		!(ant->flags & ANTENNA_TX_DIVERSITY))
+	{
 		ant->flags = 0;
 		return true;
 	}
@@ -176,10 +196,13 @@ static bool rt2x00lib_antenna_diversity(struct rt2x00_dev *rt2x00dev)
 	 * the data. The latter should only be performed once
 	 * every 2 seconds.
 	 */
-	if (ant->flags & ANTENNA_MODE_SAMPLE) {
+	if (ant->flags & ANTENNA_MODE_SAMPLE)
+	{
 		rt2x00lib_antenna_diversity_sample(rt2x00dev);
 		return true;
-	} else if (rt2x00dev->link.count & 1) {
+	}
+	else if (rt2x00dev->link.count & 1)
+	{
 		rt2x00lib_antenna_diversity_eval(rt2x00dev);
 		return true;
 	}
@@ -188,8 +211,8 @@ static bool rt2x00lib_antenna_diversity(struct rt2x00_dev *rt2x00dev)
 }
 
 void rt2x00link_update_stats(struct rt2x00_dev *rt2x00dev,
-			     struct sk_buff *skb,
-			     struct rxdone_entry_desc *rxdesc)
+							 struct sk_buff *skb,
+							 struct rxdone_entry_desc *rxdesc)
 {
 	struct link *link = &rt2x00dev->link;
 	struct link_qual *qual = &rt2x00dev->link.qual;
@@ -200,7 +223,9 @@ void rt2x00link_update_stats(struct rt2x00_dev *rt2x00dev,
 	 * No need to update the stats for !=STA interfaces
 	 */
 	if (!rt2x00dev->intf_sta_count)
+	{
 		return;
+	}
 
 	/*
 	 * Frame was received successfully since non-succesfull
@@ -214,8 +239,10 @@ void rt2x00link_update_stats(struct rt2x00_dev *rt2x00dev,
 	 * associated with.
 	 */
 	if (!ieee80211_is_beacon(hdr->frame_control) ||
-	    !(rxdesc->dev_flags & RXDONE_MY_BSS))
+		!(rxdesc->dev_flags & RXDONE_MY_BSS))
+	{
 		return;
+	}
 
 	/*
 	 * Update global RSSI
@@ -239,7 +266,9 @@ void rt2x00link_start_tuner(struct rt2x00_dev *rt2x00dev)
 	 * should never have to work with link tuners.
 	 */
 	if (!rt2x00dev->intf_sta_count)
+	{
 		return;
+	}
 
 	/**
 	 * While scanning, link tuning is disabled. By default
@@ -248,13 +277,15 @@ void rt2x00link_start_tuner(struct rt2x00_dev *rt2x00dev)
 	 * during the scan.
 	 */
 	if (test_bit(DEVICE_STATE_SCANNING, &rt2x00dev->flags))
+	{
 		return;
+	}
 
 	rt2x00link_reset_tuner(rt2x00dev, false);
 
 	if (test_bit(DEVICE_STATE_PRESENT, &rt2x00dev->flags))
 		ieee80211_queue_delayed_work(rt2x00dev->hw,
-					     &link->work, LINK_TUNE_INTERVAL);
+									 &link->work, LINK_TUNE_INTERVAL);
 }
 
 void rt2x00link_stop_tuner(struct rt2x00_dev *rt2x00dev)
@@ -268,7 +299,9 @@ void rt2x00link_reset_tuner(struct rt2x00_dev *rt2x00dev, bool antenna)
 	u8 vgc_level = qual->vgc_level_reg;
 
 	if (!test_bit(DEVICE_STATE_ENABLED_RADIO, &rt2x00dev->flags))
+	{
 		return;
+	}
 
 	/*
 	 * Reset link information.
@@ -295,7 +328,9 @@ void rt2x00link_reset_tuner(struct rt2x00_dev *rt2x00dev, bool antenna)
 	rt2x00dev->ops->lib->reset_tuner(rt2x00dev, qual);
 
 	if (antenna)
+	{
 		rt2x00link_antenna_reset(rt2x00dev);
+	}
 }
 
 static void rt2x00link_reset_qual(struct rt2x00_dev *rt2x00dev)
@@ -311,7 +346,7 @@ static void rt2x00link_reset_qual(struct rt2x00_dev *rt2x00dev)
 static void rt2x00link_tuner(struct work_struct *work)
 {
 	struct rt2x00_dev *rt2x00dev =
-	    container_of(work, struct rt2x00_dev, link.work.work);
+		container_of(work, struct rt2x00_dev, link.work.work);
 	struct link *link = &rt2x00dev->link;
 	struct link_qual *qual = &rt2x00dev->link.qual;
 
@@ -320,8 +355,10 @@ static void rt2x00link_tuner(struct work_struct *work)
 	 * immediately cease all link tuning.
 	 */
 	if (!test_bit(DEVICE_STATE_ENABLED_RADIO, &rt2x00dev->flags) ||
-	    test_bit(DEVICE_STATE_SCANNING, &rt2x00dev->flags))
+		test_bit(DEVICE_STATE_SCANNING, &rt2x00dev->flags))
+	{
 		return;
+	}
 
 	/*
 	 * Update statistics.
@@ -336,9 +373,13 @@ static void rt2x00link_tuner(struct work_struct *work)
 	 * must fallback to the default RSSI value.
 	 */
 	if (!qual->rx_success)
+	{
 		qual->rssi = DEFAULT_RSSI;
+	}
 	else
+	{
 		qual->rssi = rt2x00link_get_avg_rssi(&link->avg_rssi);
+	}
 
 	/*
 	 * Check if link tuning is supported by the hardware, some hardware
@@ -346,7 +387,9 @@ static void rt2x00link_tuner(struct work_struct *work)
 	 * the feature from the EEPROM.
 	 */
 	if (rt2x00_has_cap_link_tuning(rt2x00dev))
+	{
 		rt2x00dev->ops->lib->link_tuner(rt2x00dev, qual, link->count);
+	}
 
 	/*
 	 * Send a signal to the led to update the led signal strength.
@@ -359,7 +402,9 @@ static void rt2x00link_tuner(struct work_struct *work)
 	 * statistics will be reset.
 	 */
 	if (rt2x00lib_antenna_diversity(rt2x00dev))
+	{
 		rt2x00link_reset_qual(rt2x00dev);
+	}
 
 	/*
 	 * Increase tuner counter, and reschedule the next link tuner run.
@@ -368,7 +413,7 @@ static void rt2x00link_tuner(struct work_struct *work)
 
 	if (test_bit(DEVICE_STATE_PRESENT, &rt2x00dev->flags))
 		ieee80211_queue_delayed_work(rt2x00dev->hw,
-					     &link->work, LINK_TUNE_INTERVAL);
+									 &link->work, LINK_TUNE_INTERVAL);
 }
 
 void rt2x00link_start_watchdog(struct rt2x00_dev *rt2x00dev)
@@ -376,10 +421,10 @@ void rt2x00link_start_watchdog(struct rt2x00_dev *rt2x00dev)
 	struct link *link = &rt2x00dev->link;
 
 	if (test_bit(DEVICE_STATE_PRESENT, &rt2x00dev->flags) &&
-	    rt2x00dev->ops->lib->watchdog)
+		rt2x00dev->ops->lib->watchdog)
 		ieee80211_queue_delayed_work(rt2x00dev->hw,
-					     &link->watchdog_work,
-					     WATCHDOG_INTERVAL);
+									 &link->watchdog_work,
+									 WATCHDOG_INTERVAL);
 }
 
 void rt2x00link_stop_watchdog(struct rt2x00_dev *rt2x00dev)
@@ -390,7 +435,7 @@ void rt2x00link_stop_watchdog(struct rt2x00_dev *rt2x00dev)
 static void rt2x00link_watchdog(struct work_struct *work)
 {
 	struct rt2x00_dev *rt2x00dev =
-	    container_of(work, struct rt2x00_dev, link.watchdog_work.work);
+		container_of(work, struct rt2x00_dev, link.watchdog_work.work);
 	struct link *link = &rt2x00dev->link;
 
 	/*
@@ -398,14 +443,16 @@ static void rt2x00link_watchdog(struct work_struct *work)
 	 * immediately cease the watchdog monitoring.
 	 */
 	if (!test_bit(DEVICE_STATE_ENABLED_RADIO, &rt2x00dev->flags))
+	{
 		return;
+	}
 
 	rt2x00dev->ops->lib->watchdog(rt2x00dev);
 
 	if (test_bit(DEVICE_STATE_PRESENT, &rt2x00dev->flags))
 		ieee80211_queue_delayed_work(rt2x00dev->hw,
-					     &link->watchdog_work,
-					     WATCHDOG_INTERVAL);
+									 &link->watchdog_work,
+									 WATCHDOG_INTERVAL);
 }
 
 void rt2x00link_start_agc(struct rt2x00_dev *rt2x00dev)
@@ -413,10 +460,10 @@ void rt2x00link_start_agc(struct rt2x00_dev *rt2x00dev)
 	struct link *link = &rt2x00dev->link;
 
 	if (test_bit(DEVICE_STATE_PRESENT, &rt2x00dev->flags) &&
-	    rt2x00dev->ops->lib->gain_calibration)
+		rt2x00dev->ops->lib->gain_calibration)
 		ieee80211_queue_delayed_work(rt2x00dev->hw,
-					     &link->agc_work,
-					     AGC_INTERVAL);
+									 &link->agc_work,
+									 AGC_INTERVAL);
 }
 
 void rt2x00link_start_vcocal(struct rt2x00_dev *rt2x00dev)
@@ -424,10 +471,10 @@ void rt2x00link_start_vcocal(struct rt2x00_dev *rt2x00dev)
 	struct link *link = &rt2x00dev->link;
 
 	if (test_bit(DEVICE_STATE_PRESENT, &rt2x00dev->flags) &&
-	    rt2x00dev->ops->lib->vco_calibration)
+		rt2x00dev->ops->lib->vco_calibration)
 		ieee80211_queue_delayed_work(rt2x00dev->hw,
-					     &link->vco_work,
-					     VCO_INTERVAL);
+									 &link->vco_work,
+									 VCO_INTERVAL);
 }
 
 void rt2x00link_stop_agc(struct rt2x00_dev *rt2x00dev)
@@ -443,7 +490,7 @@ void rt2x00link_stop_vcocal(struct rt2x00_dev *rt2x00dev)
 static void rt2x00link_agc(struct work_struct *work)
 {
 	struct rt2x00_dev *rt2x00dev =
-	    container_of(work, struct rt2x00_dev, link.agc_work.work);
+		container_of(work, struct rt2x00_dev, link.agc_work.work);
 	struct link *link = &rt2x00dev->link;
 
 	/*
@@ -451,20 +498,22 @@ static void rt2x00link_agc(struct work_struct *work)
 	 * immediately cease the watchdog monitoring.
 	 */
 	if (!test_bit(DEVICE_STATE_ENABLED_RADIO, &rt2x00dev->flags))
+	{
 		return;
+	}
 
 	rt2x00dev->ops->lib->gain_calibration(rt2x00dev);
 
 	if (test_bit(DEVICE_STATE_PRESENT, &rt2x00dev->flags))
 		ieee80211_queue_delayed_work(rt2x00dev->hw,
-					     &link->agc_work,
-					     AGC_INTERVAL);
+									 &link->agc_work,
+									 AGC_INTERVAL);
 }
 
 static void rt2x00link_vcocal(struct work_struct *work)
 {
 	struct rt2x00_dev *rt2x00dev =
-	    container_of(work, struct rt2x00_dev, link.vco_work.work);
+		container_of(work, struct rt2x00_dev, link.vco_work.work);
 	struct link *link = &rt2x00dev->link;
 
 	/*
@@ -472,21 +521,27 @@ static void rt2x00link_vcocal(struct work_struct *work)
 	 * immediately cease the VCO calibration.
 	 */
 	if (!test_bit(DEVICE_STATE_ENABLED_RADIO, &rt2x00dev->flags))
+	{
 		return;
+	}
 
 	rt2x00dev->ops->lib->vco_calibration(rt2x00dev);
 
 	if (test_bit(DEVICE_STATE_PRESENT, &rt2x00dev->flags))
 		ieee80211_queue_delayed_work(rt2x00dev->hw,
-					     &link->vco_work,
-					     VCO_INTERVAL);
+									 &link->vco_work,
+									 VCO_INTERVAL);
 }
 
 void rt2x00link_register(struct rt2x00_dev *rt2x00dev)
 {
 	INIT_DELAYED_WORK(&rt2x00dev->link.agc_work, rt2x00link_agc);
+
 	if (rt2x00_has_cap_vco_recalibration(rt2x00dev))
+	{
 		INIT_DELAYED_WORK(&rt2x00dev->link.vco_work, rt2x00link_vcocal);
+	}
+
 	INIT_DELAYED_WORK(&rt2x00dev->link.watchdog_work, rt2x00link_watchdog);
 	INIT_DELAYED_WORK(&rt2x00dev->link.work, rt2x00link_tuner);
 }

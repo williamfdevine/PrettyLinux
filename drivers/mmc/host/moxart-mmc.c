@@ -93,10 +93,10 @@
 #define RSP_CRC_FAIL		BIT(0)
 
 #define MASK_RSP		(RSP_TIMEOUT | RSP_CRC_FAIL | \
-				 RSP_CRC_OK  | CARD_DETECT  | CMD_SENT)
+						 RSP_CRC_OK  | CARD_DETECT  | CMD_SENT)
 
 #define MASK_DATA		(DATA_CRC_OK   | DATA_END | \
-				 DATA_CRC_FAIL | DATA_TIMEOUT)
+						 DATA_CRC_FAIL | DATA_TIMEOUT)
 
 #define MASK_INTR_PIO		(FIFO_URUN | FIFO_ORUN | CARD_CHANGE)
 
@@ -119,7 +119,8 @@
 #define MIN_POWER		(MMC_VDD_360 - SD_POWER_MASK)
 #define MAX_RETRIES		500000
 
-struct moxart_host {
+struct moxart_host
+{
 	spinlock_t			lock;
 
 	void __iomem			*base;
@@ -149,14 +150,16 @@ struct moxart_host {
 };
 
 static inline void moxart_init_sg(struct moxart_host *host,
-				  struct mmc_data *data)
+								  struct mmc_data *data)
 {
 	host->cur_sg = data->sg;
 	host->num_sg = data->sg_len;
 	host->data_remain = host->cur_sg->length;
 
 	if (host->data_remain > host->data_len)
+	{
 		host->data_remain = host->data_len;
+	}
 }
 
 static inline int moxart_next_sg(struct moxart_host *host)
@@ -167,81 +170,108 @@ static inline int moxart_next_sg(struct moxart_host *host)
 	host->cur_sg++;
 	host->num_sg--;
 
-	if (host->num_sg > 0) {
+	if (host->num_sg > 0)
+	{
 		host->data_remain = host->cur_sg->length;
 		remain = host->data_len - data->bytes_xfered;
+
 		if (remain > 0 && remain < host->data_remain)
+		{
 			host->data_remain = remain;
+		}
 	}
 
 	return host->num_sg;
 }
 
 static int moxart_wait_for_status(struct moxart_host *host,
-				  u32 mask, u32 *status)
+								  u32 mask, u32 *status)
 {
 	int ret = -ETIMEDOUT;
 	u32 i;
 
-	for (i = 0; i < MAX_RETRIES; i++) {
+	for (i = 0; i < MAX_RETRIES; i++)
+	{
 		*status = readl(host->base + REG_STATUS);
-		if (!(*status & mask)) {
+
+		if (!(*status & mask))
+		{
 			udelay(5);
 			continue;
 		}
+
 		writel(*status & mask, host->base + REG_CLEAR);
 		ret = 0;
 		break;
 	}
 
 	if (ret)
+	{
 		dev_err(mmc_dev(host->mmc), "timed out waiting for status\n");
+	}
 
 	return ret;
 }
 
 
 static void moxart_send_command(struct moxart_host *host,
-	struct mmc_command *cmd)
+								struct mmc_command *cmd)
 {
 	u32 status, cmdctrl;
 
 	writel(RSP_TIMEOUT  | RSP_CRC_OK |
-	       RSP_CRC_FAIL | CMD_SENT, host->base + REG_CLEAR);
+		   RSP_CRC_FAIL | CMD_SENT, host->base + REG_CLEAR);
 	writel(cmd->arg, host->base + REG_ARGUMENT);
 
 	cmdctrl = cmd->opcode & CMD_IDX_MASK;
+
 	if (cmdctrl == SD_APP_SET_BUS_WIDTH    || cmdctrl == SD_APP_OP_COND   ||
-	    cmdctrl == SD_APP_SEND_SCR         || cmdctrl == SD_APP_SD_STATUS ||
-	    cmdctrl == SD_APP_SEND_NUM_WR_BLKS)
+		cmdctrl == SD_APP_SEND_SCR         || cmdctrl == SD_APP_SD_STATUS ||
+		cmdctrl == SD_APP_SEND_NUM_WR_BLKS)
+	{
 		cmdctrl |= CMD_APP_CMD;
+	}
 
 	if (cmd->flags & MMC_RSP_PRESENT)
+	{
 		cmdctrl |= CMD_NEED_RSP;
+	}
 
 	if (cmd->flags & MMC_RSP_136)
+	{
 		cmdctrl |= CMD_LONG_RSP;
+	}
 
 	writel(cmdctrl | CMD_EN, host->base + REG_COMMAND);
 
 	if (moxart_wait_for_status(host, MASK_RSP, &status) == -ETIMEDOUT)
+	{
 		cmd->error = -ETIMEDOUT;
+	}
 
-	if (status & RSP_TIMEOUT) {
+	if (status & RSP_TIMEOUT)
+	{
 		cmd->error = -ETIMEDOUT;
 		return;
 	}
-	if (status & RSP_CRC_FAIL) {
+
+	if (status & RSP_CRC_FAIL)
+	{
 		cmd->error = -EIO;
 		return;
 	}
-	if (status & RSP_CRC_OK) {
-		if (cmd->flags & MMC_RSP_136) {
+
+	if (status & RSP_CRC_OK)
+	{
+		if (cmd->flags & MMC_RSP_136)
+		{
 			cmd->resp[3] = readl(host->base + REG_RESPONSE0);
 			cmd->resp[2] = readl(host->base + REG_RESPONSE1);
 			cmd->resp[1] = readl(host->base + REG_RESPONSE2);
 			cmd->resp[0] = readl(host->base + REG_RESPONSE3);
-		} else {
+		}
+		else
+		{
 			cmd->resp[0] = readl(host->base + REG_RESPONSE0);
 		}
 	}
@@ -262,31 +292,40 @@ static void moxart_transfer_dma(struct mmc_data *data, struct moxart_host *host)
 	struct dma_chan *dma_chan;
 
 	if (host->data_len == data->bytes_xfered)
+	{
 		return;
+	}
 
-	if (data->flags & MMC_DATA_WRITE) {
+	if (data->flags & MMC_DATA_WRITE)
+	{
 		dma_chan = host->dma_chan_tx;
 		dir_data = DMA_TO_DEVICE;
 		dir_slave = DMA_MEM_TO_DEV;
-	} else {
+	}
+	else
+	{
 		dma_chan = host->dma_chan_rx;
 		dir_data = DMA_FROM_DEVICE;
 		dir_slave = DMA_DEV_TO_MEM;
 	}
 
 	len = dma_map_sg(dma_chan->device->dev, data->sg,
-			 data->sg_len, dir_data);
+					 data->sg_len, dir_data);
 
-	if (len > 0) {
+	if (len > 0)
+	{
 		desc = dmaengine_prep_slave_sg(dma_chan, data->sg,
-					       len, dir_slave,
-					       DMA_PREP_INTERRUPT |
-					       DMA_CTRL_ACK);
-	} else {
+									   len, dir_slave,
+									   DMA_PREP_INTERRUPT |
+									   DMA_CTRL_ACK);
+	}
+	else
+	{
 		dev_err(mmc_dev(host->mmc), "dma_map_sg returned zero length\n");
 	}
 
-	if (desc) {
+	if (desc)
+	{
 		host->tx_desc = desc;
 		desc->callback = moxart_dma_complete;
 		desc->callback_param = host;
@@ -297,11 +336,11 @@ static void moxart_transfer_dma(struct mmc_data *data, struct moxart_host *host)
 	data->bytes_xfered += host->data_remain;
 
 	dma_time = wait_for_completion_interruptible_timeout(
-		   &host->dma_complete, host->timeout);
+				   &host->dma_complete, host->timeout);
 
 	dma_unmap_sg(dma_chan->device->dev,
-		     data->sg, data->sg_len,
-		     dir_data);
+				 data->sg, data->sg_len,
+				 dir_data);
 }
 
 
@@ -311,46 +350,62 @@ static void moxart_transfer_pio(struct moxart_host *host)
 	u32 *sgp, len = 0, remain, status;
 
 	if (host->data_len == data->bytes_xfered)
+	{
 		return;
+	}
 
 	sgp = sg_virt(host->cur_sg);
 	remain = host->data_remain;
 
-	if (data->flags & MMC_DATA_WRITE) {
-		while (remain > 0) {
+	if (data->flags & MMC_DATA_WRITE)
+	{
+		while (remain > 0)
+		{
 			if (moxart_wait_for_status(host, FIFO_URUN, &status)
-			     == -ETIMEDOUT) {
+				== -ETIMEDOUT)
+			{
 				data->error = -ETIMEDOUT;
 				complete(&host->pio_complete);
 				return;
 			}
-			for (len = 0; len < remain && len < host->fifo_width;) {
+
+			for (len = 0; len < remain && len < host->fifo_width;)
+			{
 				iowrite32(*sgp, host->base + REG_DATA_WINDOW);
 				sgp++;
 				len += 4;
 			}
+
 			remain -= len;
 		}
 
-	} else {
-		while (remain > 0) {
+	}
+	else
+	{
+		while (remain > 0)
+		{
 			if (moxart_wait_for_status(host, FIFO_ORUN, &status)
-			    == -ETIMEDOUT) {
+				== -ETIMEDOUT)
+			{
 				data->error = -ETIMEDOUT;
 				complete(&host->pio_complete);
 				return;
 			}
-			for (len = 0; len < remain && len < host->fifo_width;) {
+
+			for (len = 0; len < remain && len < host->fifo_width;)
+			{
 				/* SCR data must be read in big endian. */
 				if (data->mrq->cmd->opcode == SD_APP_SEND_SCR)
 					*sgp = ioread32be(host->base +
-							  REG_DATA_WINDOW);
+									  REG_DATA_WINDOW);
 				else
 					*sgp = ioread32(host->base +
-							REG_DATA_WINDOW);
+									REG_DATA_WINDOW);
+
 				sgp++;
 				len += 4;
 			}
+
 			remain -= len;
 		}
 	}
@@ -359,9 +414,13 @@ static void moxart_transfer_pio(struct moxart_host *host)
 	host->data_remain = remain;
 
 	if (host->data_len != data->bytes_xfered)
+	{
 		moxart_next_sg(host);
+	}
 	else
+	{
 		complete(&host->pio_complete);
+	}
 }
 
 static void moxart_prepare_data(struct moxart_host *host)
@@ -371,7 +430,9 @@ static void moxart_prepare_data(struct moxart_host *host)
 	int blksz_bits;
 
 	if (!data)
+	{
 		return;
+	}
 
 	host->data_len = data->blocks * data->blksz;
 	blksz_bits = ffs(data->blksz) - 1;
@@ -382,10 +443,14 @@ static void moxart_prepare_data(struct moxart_host *host)
 	datactrl = DCR_DATA_EN | (blksz_bits & DCR_BLK_SIZE);
 
 	if (data->flags & MMC_DATA_WRITE)
+	{
 		datactrl |= DCR_DATA_WRITE;
+	}
 
 	if ((host->data_len > host->fifo_width) && host->have_dma)
+	{
 		datactrl |= DCR_DMA_EN;
+	}
 
 	writel(DCR_DATA_FIFO_RESET, host->base + REG_DATA_CONTROL);
 	writel(MASK_DATA | FIFO_URUN | FIFO_ORUN, host->base + REG_CLEAR);
@@ -408,7 +473,8 @@ static void moxart_request(struct mmc_host *mmc, struct mmc_request *mrq)
 
 	host->mrq = mrq;
 
-	if (readl(host->base + REG_STATUS) & CARD_DETECT) {
+	if (readl(host->base + REG_STATUS) & CARD_DETECT)
+	{
 		mrq->cmd->error = -ETIMEDOUT;
 		goto request_done;
 	}
@@ -416,8 +482,10 @@ static void moxart_request(struct mmc_host *mmc, struct mmc_request *mrq)
 	moxart_prepare_data(host);
 	moxart_send_command(host, host->mrq->cmd);
 
-	if (mrq->cmd->data) {
-		if ((host->data_len > host->fifo_width) && host->have_dma) {
+	if (mrq->cmd->data)
+	{
+		if ((host->data_len > host->fifo_width) && host->have_dma)
+		{
 
 			writel(CARD_CHANGE, host->base + REG_INTERRUPT_MASK);
 
@@ -426,7 +494,9 @@ static void moxart_request(struct mmc_host *mmc, struct mmc_request *mrq)
 			moxart_transfer_dma(mrq->cmd->data, host);
 
 			spin_lock_irqsave(&host->lock, flags);
-		} else {
+		}
+		else
+		{
 
 			writel(MASK_INTR_PIO, host->base + REG_INTERRUPT_MASK);
 
@@ -434,28 +504,34 @@ static void moxart_request(struct mmc_host *mmc, struct mmc_request *mrq)
 
 			/* PIO transfers start from interrupt. */
 			pio_time = wait_for_completion_interruptible_timeout(
-				   &host->pio_complete, host->timeout);
+						   &host->pio_complete, host->timeout);
 
 			spin_lock_irqsave(&host->lock, flags);
 		}
 
-		if (host->is_removed) {
+		if (host->is_removed)
+		{
 			dev_err(mmc_dev(host->mmc), "card removed\n");
 			mrq->cmd->error = -ETIMEDOUT;
 			goto request_done;
 		}
 
 		if (moxart_wait_for_status(host, MASK_DATA, &status)
-		    == -ETIMEDOUT) {
+			== -ETIMEDOUT)
+		{
 			mrq->cmd->data->error = -ETIMEDOUT;
 			goto request_done;
 		}
 
 		if (status & DATA_CRC_FAIL)
+		{
 			mrq->cmd->data->error = -ETIMEDOUT;
+		}
 
 		if (mrq->cmd->data->stop)
+		{
 			moxart_send_command(host, mrq->cmd->data->stop);
+		}
 	}
 
 request_done:
@@ -472,19 +548,27 @@ static irqreturn_t moxart_irq(int irq, void *devid)
 	spin_lock_irqsave(&host->lock, flags);
 
 	status = readl(host->base + REG_STATUS);
-	if (status & CARD_CHANGE) {
+
+	if (status & CARD_CHANGE)
+	{
 		host->is_removed = status & CARD_DETECT;
-		if (host->is_removed && host->have_dma) {
+
+		if (host->is_removed && host->have_dma)
+		{
 			dmaengine_terminate_all(host->dma_chan_tx);
 			dmaengine_terminate_all(host->dma_chan_rx);
 		}
+
 		host->mrq = NULL;
 		writel(MASK_INTR_PIO, host->base + REG_CLEAR);
 		writel(CARD_CHANGE, host->base + REG_INTERRUPT_MASK);
 		mmc_detect_change(host->mmc, 0);
 	}
+
 	if (status & (FIFO_ORUN | FIFO_URUN) && host->mrq)
+	{
 		moxart_transfer_pio(host);
+	}
 
 	spin_unlock_irqrestore(&host->lock, flags);
 
@@ -500,41 +584,60 @@ static void moxart_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 
 	spin_lock_irqsave(&host->lock, flags);
 
-	if (ios->clock) {
-		for (div = 0; div < CLK_DIV_MASK; ++div) {
+	if (ios->clock)
+	{
+		for (div = 0; div < CLK_DIV_MASK; ++div)
+		{
 			if (ios->clock >= host->sysclk / (2 * (div + 1)))
+			{
 				break;
+			}
 		}
+
 		ctrl = CLK_SD | div;
 		host->rate = host->sysclk / (2 * (div + 1));
+
 		if (host->rate > host->sysclk)
+		{
 			ctrl |= CLK_HISPD;
+		}
+
 		writel(ctrl, host->base + REG_CLOCK_CONTROL);
 	}
 
-	if (ios->power_mode == MMC_POWER_OFF) {
+	if (ios->power_mode == MMC_POWER_OFF)
+	{
 		writel(readl(host->base + REG_POWER_CONTROL) & ~SD_POWER_ON,
-		       host->base + REG_POWER_CONTROL);
-	} else {
+			   host->base + REG_POWER_CONTROL);
+	}
+	else
+	{
 		if (ios->vdd < MIN_POWER)
+		{
 			power = 0;
+		}
 		else
+		{
 			power = ios->vdd - MIN_POWER;
+		}
 
 		writel(SD_POWER_ON | (u32) power,
-		       host->base + REG_POWER_CONTROL);
+			   host->base + REG_POWER_CONTROL);
 	}
 
-	switch (ios->bus_width) {
-	case MMC_BUS_WIDTH_4:
-		writel(BUS_WIDTH_4, host->base + REG_BUS_WIDTH);
-		break;
-	case MMC_BUS_WIDTH_8:
-		writel(BUS_WIDTH_8, host->base + REG_BUS_WIDTH);
-		break;
-	default:
-		writel(BUS_WIDTH_1, host->base + REG_BUS_WIDTH);
-		break;
+	switch (ios->bus_width)
+	{
+		case MMC_BUS_WIDTH_4:
+			writel(BUS_WIDTH_4, host->base + REG_BUS_WIDTH);
+			break;
+
+		case MMC_BUS_WIDTH_8:
+			writel(BUS_WIDTH_8, host->base + REG_BUS_WIDTH);
+			break;
+
+		default:
+			writel(BUS_WIDTH_1, host->base + REG_BUS_WIDTH);
+			break;
 	}
 
 	spin_unlock_irqrestore(&host->lock, flags);
@@ -548,7 +651,8 @@ static int moxart_get_ro(struct mmc_host *mmc)
 	return !!(readl(host->base + REG_STATUS) & WRITE_PROT);
 }
 
-static struct mmc_host_ops moxart_ops = {
+static struct mmc_host_ops moxart_ops =
+{
 	.request = moxart_request,
 	.set_ios = moxart_set_ios,
 	.get_ro = moxart_get_ro,
@@ -568,40 +672,53 @@ static int moxart_probe(struct platform_device *pdev)
 	u32 i;
 
 	mmc = mmc_alloc_host(sizeof(struct moxart_host), dev);
-	if (!mmc) {
+
+	if (!mmc)
+	{
 		dev_err(dev, "mmc_alloc_host failed\n");
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	ret = of_address_to_resource(node, 0, &res_mmc);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "of_address_to_resource failed\n");
 		goto out;
 	}
 
 	irq = irq_of_parse_and_map(node, 0);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		dev_err(dev, "irq_of_parse_and_map failed\n");
 		ret = -EINVAL;
 		goto out;
 	}
 
 	clk = devm_clk_get(dev, NULL);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		ret = PTR_ERR(clk);
 		goto out;
 	}
 
 	reg_mmc = devm_ioremap_resource(dev, &res_mmc);
-	if (IS_ERR(reg_mmc)) {
+
+	if (IS_ERR(reg_mmc))
+	{
 		ret = PTR_ERR(reg_mmc);
 		goto out;
 	}
 
 	ret = mmc_of_parse(mmc);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	host = mmc_priv(mmc);
 	host->mmc = mmc;
@@ -620,17 +737,22 @@ static int moxart_probe(struct platform_device *pdev)
 	mmc->f_min = DIV_ROUND_CLOSEST(host->sysclk, CLK_DIV_MASK * 2);
 	mmc->ocr_avail = 0xffff00;	/* Support 2.0v - 3.6v power. */
 
-	if (IS_ERR(host->dma_chan_tx) || IS_ERR(host->dma_chan_rx)) {
+	if (IS_ERR(host->dma_chan_tx) || IS_ERR(host->dma_chan_rx))
+	{
 		if (PTR_ERR(host->dma_chan_tx) == -EPROBE_DEFER ||
-		    PTR_ERR(host->dma_chan_rx) == -EPROBE_DEFER) {
+			PTR_ERR(host->dma_chan_rx) == -EPROBE_DEFER)
+		{
 			ret = -EPROBE_DEFER;
 			goto out;
 		}
+
 		dev_dbg(dev, "PIO mode transfer enabled\n");
 		host->have_dma = false;
-	} else {
+	}
+	else
+	{
 		dev_dbg(dev, "DMA channels found (%p,%p)\n",
-			 host->dma_chan_tx, host->dma_chan_rx);
+				host->dma_chan_tx, host->dma_chan_rx);
 		host->have_dma = true;
 
 		cfg.src_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
@@ -647,29 +769,40 @@ static int moxart_probe(struct platform_device *pdev)
 		dmaengine_slave_config(host->dma_chan_rx, &cfg);
 	}
 
-	switch ((readl(host->base + REG_BUS_WIDTH) >> 3) & 3) {
-	case 1:
-		mmc->caps |= MMC_CAP_4_BIT_DATA;
-		break;
-	case 2:
-		mmc->caps |= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA;
-		break;
-	default:
-		break;
+	switch ((readl(host->base + REG_BUS_WIDTH) >> 3) & 3)
+	{
+		case 1:
+			mmc->caps |= MMC_CAP_4_BIT_DATA;
+			break;
+
+		case 2:
+			mmc->caps |= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA;
+			break;
+
+		default:
+			break;
 	}
 
 	writel(0, host->base + REG_INTERRUPT_MASK);
 
 	writel(CMD_SDC_RESET, host->base + REG_COMMAND);
-	for (i = 0; i < MAX_RETRIES; i++) {
+
+	for (i = 0; i < MAX_RETRIES; i++)
+	{
 		if (!(readl(host->base + REG_COMMAND) & CMD_SDC_RESET))
+		{
 			break;
+		}
+
 		udelay(5);
 	}
 
 	ret = devm_request_irq(dev, irq, moxart_irq, 0, "moxart-mmc", host);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	dev_set_drvdata(dev, mmc);
 	mmc_add_host(mmc);
@@ -679,8 +812,12 @@ static int moxart_probe(struct platform_device *pdev)
 	return 0;
 
 out:
+
 	if (mmc)
+	{
 		mmc_free_host(mmc);
+	}
+
 	return ret;
 }
 
@@ -691,30 +828,40 @@ static int moxart_remove(struct platform_device *pdev)
 
 	dev_set_drvdata(&pdev->dev, NULL);
 
-	if (mmc) {
+	if (mmc)
+	{
 		if (!IS_ERR(host->dma_chan_tx))
+		{
 			dma_release_channel(host->dma_chan_tx);
+		}
+
 		if (!IS_ERR(host->dma_chan_rx))
+		{
 			dma_release_channel(host->dma_chan_rx);
+		}
+
 		mmc_remove_host(mmc);
 		mmc_free_host(mmc);
 
 		writel(0, host->base + REG_INTERRUPT_MASK);
 		writel(0, host->base + REG_POWER_CONTROL);
 		writel(readl(host->base + REG_CLOCK_CONTROL) | CLK_OFF,
-		       host->base + REG_CLOCK_CONTROL);
+			   host->base + REG_CLOCK_CONTROL);
 	}
+
 	return 0;
 }
 
-static const struct of_device_id moxart_mmc_match[] = {
+static const struct of_device_id moxart_mmc_match[] =
+{
 	{ .compatible = "moxa,moxart-mmc" },
 	{ .compatible = "faraday,ftsdc010" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, moxart_mmc_match);
 
-static struct platform_driver moxart_mmc_driver = {
+static struct platform_driver moxart_mmc_driver =
+{
 	.probe      = moxart_probe,
 	.remove     = moxart_remove,
 	.driver     = {

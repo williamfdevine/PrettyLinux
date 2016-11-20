@@ -44,7 +44,8 @@
  *    86:  Reply from a Type 6 Request (see PCICC/PCIXCC/CEX2C-RELATED STRUCTS)
  *
  */
-struct error_hdr {
+struct error_hdr
+{
 	unsigned char reserved1;	/* 0x00			*/
 	unsigned char type;		/* 0x82 or 0x88		*/
 	unsigned char reserved2[2];	/* 0x0000		*/
@@ -88,55 +89,59 @@ struct error_hdr {
 #define REP88_ERROR_OPERAND_EVEN_MOD 0x85	/* CEX2A	*/
 
 static inline int convert_error(struct zcrypt_device *zdev,
-				struct ap_message *reply)
+								struct ap_message *reply)
 {
 	struct error_hdr *ehdr = reply->message;
 
-	switch (ehdr->reply_code) {
-	case REP82_ERROR_OPERAND_INVALID:
-	case REP82_ERROR_OPERAND_SIZE:
-	case REP82_ERROR_EVEN_MOD_IN_OPND:
-	case REP88_ERROR_MESSAGE_MALFORMD:
-	//   REP88_ERROR_INVALID_KEY		// '82' CEX2A
-	//   REP88_ERROR_OPERAND		// '84' CEX2A
-	//   REP88_ERROR_OPERAND_EVEN_MOD	// '85' CEX2A
-		/* Invalid input data. */
-		return -EINVAL;
-	case REP82_ERROR_MESSAGE_TYPE:
-	//   REP88_ERROR_MESSAGE_TYPE		// '20' CEX2A
-		/*
-		 * To sent a message of the wrong type is a bug in the
-		 * device driver. Send error msg, disable the device
-		 * and then repeat the request.
-		 */
-		atomic_set(&zcrypt_rescan_req, 1);
-		zdev->online = 0;
-		pr_err("Cryptographic device %x failed and was set offline\n",
-		       AP_QID_DEVICE(zdev->ap_dev->qid));
-		ZCRYPT_DBF_DEV(DBF_ERR, zdev, "dev%04xo%drc%d",
-			AP_QID_DEVICE(zdev->ap_dev->qid), zdev->online,
-			ehdr->reply_code);
-		return -EAGAIN;
-	case REP82_ERROR_TRANSPORT_FAIL:
-	case REP82_ERROR_MACHINE_FAILURE:
-	//   REP88_ERROR_MODULE_FAILURE		// '10' CEX2A
-		/* If a card fails disable it and repeat the request. */
-		atomic_set(&zcrypt_rescan_req, 1);
-		zdev->online = 0;
-		pr_err("Cryptographic device %x failed and was set offline\n",
-		       AP_QID_DEVICE(zdev->ap_dev->qid));
-		ZCRYPT_DBF_DEV(DBF_ERR, zdev, "dev%04xo%drc%d",
-			AP_QID_DEVICE(zdev->ap_dev->qid), zdev->online,
-			ehdr->reply_code);
-		return -EAGAIN;
-	default:
-		zdev->online = 0;
-		pr_err("Cryptographic device %x failed and was set offline\n",
-		       AP_QID_DEVICE(zdev->ap_dev->qid));
-		ZCRYPT_DBF_DEV(DBF_ERR, zdev, "dev%04xo%drc%d",
-			AP_QID_DEVICE(zdev->ap_dev->qid), zdev->online,
-			ehdr->reply_code);
-		return -EAGAIN;	/* repeat the request on a different device. */
+	switch (ehdr->reply_code)
+	{
+		case REP82_ERROR_OPERAND_INVALID:
+		case REP82_ERROR_OPERAND_SIZE:
+		case REP82_ERROR_EVEN_MOD_IN_OPND:
+		case REP88_ERROR_MESSAGE_MALFORMD:
+			//   REP88_ERROR_INVALID_KEY		// '82' CEX2A
+			//   REP88_ERROR_OPERAND		// '84' CEX2A
+			//   REP88_ERROR_OPERAND_EVEN_MOD	// '85' CEX2A
+			/* Invalid input data. */
+			return -EINVAL;
+
+		case REP82_ERROR_MESSAGE_TYPE:
+			//   REP88_ERROR_MESSAGE_TYPE		// '20' CEX2A
+			/*
+			 * To sent a message of the wrong type is a bug in the
+			 * device driver. Send error msg, disable the device
+			 * and then repeat the request.
+			 */
+			atomic_set(&zcrypt_rescan_req, 1);
+			zdev->online = 0;
+			pr_err("Cryptographic device %x failed and was set offline\n",
+				   AP_QID_DEVICE(zdev->ap_dev->qid));
+			ZCRYPT_DBF_DEV(DBF_ERR, zdev, "dev%04xo%drc%d",
+						   AP_QID_DEVICE(zdev->ap_dev->qid), zdev->online,
+						   ehdr->reply_code);
+			return -EAGAIN;
+
+		case REP82_ERROR_TRANSPORT_FAIL:
+		case REP82_ERROR_MACHINE_FAILURE:
+			//   REP88_ERROR_MODULE_FAILURE		// '10' CEX2A
+			/* If a card fails disable it and repeat the request. */
+			atomic_set(&zcrypt_rescan_req, 1);
+			zdev->online = 0;
+			pr_err("Cryptographic device %x failed and was set offline\n",
+				   AP_QID_DEVICE(zdev->ap_dev->qid));
+			ZCRYPT_DBF_DEV(DBF_ERR, zdev, "dev%04xo%drc%d",
+						   AP_QID_DEVICE(zdev->ap_dev->qid), zdev->online,
+						   ehdr->reply_code);
+			return -EAGAIN;
+
+		default:
+			zdev->online = 0;
+			pr_err("Cryptographic device %x failed and was set offline\n",
+				   AP_QID_DEVICE(zdev->ap_dev->qid));
+			ZCRYPT_DBF_DEV(DBF_ERR, zdev, "dev%04xo%drc%d",
+						   AP_QID_DEVICE(zdev->ap_dev->qid), zdev->online,
+						   ehdr->reply_code);
+			return -EAGAIN;	/* repeat the request on a different device. */
 	}
 }
 

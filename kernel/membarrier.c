@@ -52,15 +52,24 @@
 SYSCALL_DEFINE2(membarrier, int, cmd, int, flags)
 {
 	if (unlikely(flags))
+	{
 		return -EINVAL;
-	switch (cmd) {
-	case MEMBARRIER_CMD_QUERY:
-		return MEMBARRIER_CMD_BITMASK;
-	case MEMBARRIER_CMD_SHARED:
-		if (num_online_cpus() > 1)
-			synchronize_sched();
-		return 0;
-	default:
-		return -EINVAL;
+	}
+
+	switch (cmd)
+	{
+		case MEMBARRIER_CMD_QUERY:
+			return MEMBARRIER_CMD_BITMASK;
+
+		case MEMBARRIER_CMD_SHARED:
+			if (num_online_cpus() > 1)
+			{
+				synchronize_sched();
+			}
+
+			return 0;
+
+		default:
+			return -EINVAL;
 	}
 }

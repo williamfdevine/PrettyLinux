@@ -47,7 +47,8 @@
 /**
  * DMA buffer.
  */
-struct drm_buf {
+struct drm_buf
+{
 	int idx;		       /**< Index into master buflist */
 	int total;		       /**< Buffer size */
 	int order;		       /**< log-base-2(total) */
@@ -61,7 +62,8 @@ struct drm_buf {
 	struct drm_file *file_priv;    /**< Private of holding file descr */
 	int context;		       /**< Kernel queue for this buffer */
 	int while_locked;	       /**< Dispatch this buffer while locked */
-	enum {
+	enum
+	{
 		DRM_LIST_NONE = 0,
 		DRM_LIST_FREE = 1,
 		DRM_LIST_WAIT = 2,
@@ -74,7 +76,8 @@ struct drm_buf {
 	void *dev_private;		 /**< Per-buffer private storage */
 };
 
-typedef struct drm_dma_handle {
+typedef struct drm_dma_handle
+{
 	dma_addr_t busaddr;
 	void *vaddr;
 	size_t size;
@@ -83,7 +86,8 @@ typedef struct drm_dma_handle {
 /**
  * Buffer entry.  There is one of this for each buffer size order.
  */
-struct drm_buf_entry {
+struct drm_buf_entry
+{
 	int buf_size;			/**< size */
 	int buf_count;			/**< number of buffers */
 	struct drm_buf *buflist;		/**< buffer list */
@@ -98,7 +102,8 @@ struct drm_buf_entry {
 /**
  * DMA data.
  */
-struct drm_device_dma {
+struct drm_device_dma
+{
 
 	struct drm_buf_entry bufs[DRM_MAX_ORDER + 1];	/**< buffers, grouped by their size order */
 	int buf_count;			/**< total number of buffers */
@@ -107,7 +112,8 @@ struct drm_device_dma {
 	int page_count;			/**< number of pages */
 	unsigned long *pagelist;	/**< page list */
 	unsigned long byte_count;
-	enum {
+	enum
+	{
 		_DRM_DMA_USE_AGP = 0x01,
 		_DRM_DMA_USE_SG = 0x02,
 		_DRM_DMA_USE_FB = 0x04,
@@ -119,7 +125,8 @@ struct drm_device_dma {
 /**
  * Scatter-gather memory.
  */
-struct drm_sg_mem {
+struct drm_sg_mem
+{
 	unsigned long handle;
 	void *virtual;
 	int pages;
@@ -130,13 +137,14 @@ struct drm_sg_mem {
 /**
  * Kernel side of a mapping
  */
-struct drm_local_map {
+struct drm_local_map
+{
 	resource_size_t offset;	 /**< Requested physical address (0 for SAREA)*/
 	unsigned long size;	 /**< Requested physical size (bytes) */
 	enum drm_map_type type;	 /**< Type of memory to map */
 	enum drm_map_flags flags;	 /**< Flags */
 	void *handle;		 /**< User-space: "Handle" to pass to mmap() */
-				 /**< Kernel-space: kernel-virtual address */
+	/**< Kernel-space: kernel-virtual address */
 	int mtrr;		 /**< MTRR slot used */
 };
 
@@ -145,7 +153,8 @@ typedef struct drm_local_map drm_local_map_t;
 /**
  * Mappings list
  */
-struct drm_map_list {
+struct drm_map_list
+{
 	struct list_head head;		/**< list head */
 	struct drm_hash_item hash;
 	struct drm_local_map *map;	/**< mapping */
@@ -154,12 +163,12 @@ struct drm_map_list {
 };
 
 int drm_legacy_addmap(struct drm_device *d, resource_size_t offset,
-		      unsigned int size, enum drm_map_type type,
-		      enum drm_map_flags flags, struct drm_local_map **map_p);
+					  unsigned int size, enum drm_map_type type,
+					  enum drm_map_flags flags, struct drm_local_map **map_p);
 void drm_legacy_rmmap(struct drm_device *d, struct drm_local_map *map);
 int drm_legacy_rmmap_locked(struct drm_device *d, struct drm_local_map *map);
 void drm_legacy_master_rmmaps(struct drm_device *dev,
-			      struct drm_master *master);
+							  struct drm_master *master);
 struct drm_local_map *drm_legacy_getsarea(struct drm_device *dev);
 int drm_legacy_mmap(struct file *filp, struct vm_area_struct *vma);
 
@@ -173,21 +182,21 @@ int drm_legacy_addbufs_pci(struct drm_device *d, struct drm_buf_desc *req);
  * \param filp file pointer of the caller.
  */
 #define LOCK_TEST_WITH_RETURN( dev, _file_priv )				\
-do {										\
-	if (!_DRM_LOCK_IS_HELD(_file_priv->master->lock.hw_lock->lock) ||	\
-	    _file_priv->master->lock.file_priv != _file_priv)	{		\
-		DRM_ERROR( "%s called without lock held, held  %d owner %p %p\n",\
-			   __func__, _DRM_LOCK_IS_HELD(_file_priv->master->lock.hw_lock->lock),\
-			   _file_priv->master->lock.file_priv, _file_priv);	\
-		return -EINVAL;							\
-	}									\
-} while (0)
+	do {										\
+		if (!_DRM_LOCK_IS_HELD(_file_priv->master->lock.hw_lock->lock) ||	\
+			_file_priv->master->lock.file_priv != _file_priv)	{		\
+			DRM_ERROR( "%s called without lock held, held  %d owner %p %p\n",\
+					   __func__, _DRM_LOCK_IS_HELD(_file_priv->master->lock.hw_lock->lock),\
+					   _file_priv->master->lock.file_priv, _file_priv);	\
+			return -EINVAL;							\
+		}									\
+	} while (0)
 
 void drm_legacy_idlelock_take(struct drm_lock_data *lock);
 void drm_legacy_idlelock_release(struct drm_lock_data *lock);
 
 /* drm_pci.c dma alloc wrappers */
-void __drm_legacy_pci_free(struct drm_device *dev, drm_dma_handle_t * dmah);
+void __drm_legacy_pci_free(struct drm_device *dev, drm_dma_handle_t *dmah);
 
 /* drm_memory.c */
 void drm_legacy_ioremap(struct drm_local_map *map, struct drm_device *dev);
@@ -195,12 +204,16 @@ void drm_legacy_ioremap_wc(struct drm_local_map *map, struct drm_device *dev);
 void drm_legacy_ioremapfree(struct drm_local_map *map, struct drm_device *dev);
 
 static __inline__ struct drm_local_map *drm_legacy_findmap(struct drm_device *dev,
-							   unsigned int token)
+		unsigned int token)
 {
 	struct drm_map_list *_entry;
 	list_for_each_entry(_entry, &dev->maplist, head)
-	    if (_entry->user_token == token)
+
+	if (_entry->user_token == token)
+	{
 		return _entry->map;
+	}
+
 	return NULL;
 }
 

@@ -38,7 +38,8 @@
 
 #include "mlx4.h"
 
-struct mlx4_device_context {
+struct mlx4_device_context
+{
 	struct list_head	list;
 	struct list_head	bond_list;
 	struct mlx4_interface  *intf;
@@ -53,21 +54,31 @@ static void mlx4_add_device(struct mlx4_interface *intf, struct mlx4_priv *priv)
 {
 	struct mlx4_device_context *dev_ctx;
 
-	dev_ctx = kmalloc(sizeof *dev_ctx, GFP_KERNEL);
+	dev_ctx = kmalloc(sizeof * dev_ctx, GFP_KERNEL);
+
 	if (!dev_ctx)
+	{
 		return;
+	}
 
 	dev_ctx->intf    = intf;
 	dev_ctx->context = intf->add(&priv->dev);
 
-	if (dev_ctx->context) {
+	if (dev_ctx->context)
+	{
 		spin_lock_irq(&priv->ctx_lock);
 		list_add_tail(&dev_ctx->list, &priv->ctx_list);
 		spin_unlock_irq(&priv->ctx_lock);
+
 		if (intf->activate)
+		{
 			intf->activate(&priv->dev, dev_ctx->context);
-	} else
+		}
+	}
+	else
+	{
 		kfree(dev_ctx);
+	}
 
 }
 
@@ -76,15 +87,17 @@ static void mlx4_remove_device(struct mlx4_interface *intf, struct mlx4_priv *pr
 	struct mlx4_device_context *dev_ctx;
 
 	list_for_each_entry(dev_ctx, &priv->ctx_list, list)
-		if (dev_ctx->intf == intf) {
-			spin_lock_irq(&priv->ctx_lock);
-			list_del(&dev_ctx->list);
-			spin_unlock_irq(&priv->ctx_lock);
 
-			intf->remove(&priv->dev, dev_ctx->context);
-			kfree(dev_ctx);
-			return;
-		}
+	if (dev_ctx->intf == intf)
+	{
+		spin_lock_irq(&priv->ctx_lock);
+		list_del(&dev_ctx->list);
+		spin_unlock_irq(&priv->ctx_lock);
+
+		intf->remove(&priv->dev, dev_ctx->context);
+		kfree(dev_ctx);
+		return;
+	}
 }
 
 int mlx4_register_interface(struct mlx4_interface *intf)
@@ -92,17 +105,22 @@ int mlx4_register_interface(struct mlx4_interface *intf)
 	struct mlx4_priv *priv;
 
 	if (!intf->add || !intf->remove)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&intf_mutex);
 
 	list_add_tail(&intf->list, &intf_list);
-	list_for_each_entry(priv, &dev_list, dev_list) {
-		if (mlx4_is_mfunc(&priv->dev) && (intf->flags & MLX4_INTFF_BONDING)) {
+	list_for_each_entry(priv, &dev_list, dev_list)
+	{
+		if (mlx4_is_mfunc(&priv->dev) && (intf->flags & MLX4_INTFF_BONDING))
+		{
 			mlx4_dbg(&priv->dev,
-				 "SRIOV, disabling HA mode for intf proto %d\n", intf->protocol);
+					 "SRIOV, disabling HA mode for intf proto %d\n", intf->protocol);
 			intf->flags &= ~MLX4_INTFF_BONDING;
 		}
+
 		mlx4_add_device(intf, priv);
 	}
 
@@ -119,7 +137,7 @@ void mlx4_unregister_interface(struct mlx4_interface *intf)
 	mutex_lock(&intf_mutex);
 
 	list_for_each_entry(priv, &dev_list, dev_list)
-		mlx4_remove_device(intf, priv);
+	mlx4_remove_device(intf, priv);
 
 	list_del(&intf->list);
 
@@ -136,35 +154,49 @@ int mlx4_do_bond(struct mlx4_dev *dev, bool enable)
 	LIST_HEAD(bond_list);
 
 	if (!(dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_PORT_REMAP))
+	{
 		return -ENOTSUPP;
+	}
 
 	ret = mlx4_disable_rx_port_check(dev, enable);
-	if (ret) {
+
+	if (ret)
+	{
 		mlx4_err(dev, "Fail to %s rx port check\n",
-			 enable ? "enable" : "disable");
+				 enable ? "enable" : "disable");
 		return ret;
 	}
-	if (enable) {
+
+	if (enable)
+	{
 		dev->flags |= MLX4_FLAG_BONDED;
-	} else {
+	}
+	else
+	{
 		ret = mlx4_virt2phy_port_map(dev, 1, 2);
-		if (ret) {
+
+		if (ret)
+		{
 			mlx4_err(dev, "Fail to reset port map\n");
 			return ret;
 		}
+
 		dev->flags &= ~MLX4_FLAG_BONDED;
 	}
 
 	spin_lock_irqsave(&priv->ctx_lock, flags);
-	list_for_each_entry_safe(dev_ctx, temp_dev_ctx, &priv->ctx_list, list) {
-		if (dev_ctx->intf->flags & MLX4_INTFF_BONDING) {
+	list_for_each_entry_safe(dev_ctx, temp_dev_ctx, &priv->ctx_list, list)
+	{
+		if (dev_ctx->intf->flags & MLX4_INTFF_BONDING)
+		{
 			list_add_tail(&dev_ctx->bond_list, &bond_list);
 			list_del(&dev_ctx->list);
 		}
 	}
 	spin_unlock_irqrestore(&priv->ctx_lock, flags);
 
-	list_for_each_entry(dev_ctx, &bond_list, bond_list) {
+	list_for_each_entry(dev_ctx, &bond_list, bond_list)
+	{
 		dev_ctx->intf->remove(dev, dev_ctx->context);
 		dev_ctx->context =  dev_ctx->intf->add(dev);
 
@@ -173,14 +205,14 @@ int mlx4_do_bond(struct mlx4_dev *dev, bool enable)
 		spin_unlock_irqrestore(&priv->ctx_lock, flags);
 
 		mlx4_dbg(dev, "Inrerface for protocol %d restarted with when bonded mode is %s\n",
-			 dev_ctx->intf->protocol, enable ?
-			 "enabled" : "disabled");
+				 dev_ctx->intf->protocol, enable ?
+				 "enabled" : "disabled");
 	}
 	return 0;
 }
 
 void mlx4_dispatch_event(struct mlx4_dev *dev, enum mlx4_dev_event type,
-			 unsigned long param)
+						 unsigned long param)
 {
 	struct mlx4_priv *priv = mlx4_priv(dev);
 	struct mlx4_device_context *dev_ctx;
@@ -189,8 +221,11 @@ void mlx4_dispatch_event(struct mlx4_dev *dev, enum mlx4_dev_event type,
 	spin_lock_irqsave(&priv->ctx_lock, flags);
 
 	list_for_each_entry(dev_ctx, &priv->ctx_list, list)
-		if (dev_ctx->intf->event)
-			dev_ctx->intf->event(dev, dev_ctx->context, type, param);
+
+	if (dev_ctx->intf->event)
+	{
+		dev_ctx->intf->event(dev, dev_ctx->context, type, param);
+	}
 
 	spin_unlock_irqrestore(&priv->ctx_lock, flags);
 }
@@ -205,7 +240,7 @@ int mlx4_register_device(struct mlx4_dev *dev)
 	dev->persist->interface_state |= MLX4_INTERFACE_STATE_UP;
 	list_add_tail(&priv->dev_list, &dev_list);
 	list_for_each_entry(intf, &intf_list, list)
-		mlx4_add_device(intf, priv);
+	mlx4_add_device(intf, priv);
 
 	mutex_unlock(&intf_mutex);
 	mlx4_start_catas_poll(dev);
@@ -219,13 +254,15 @@ void mlx4_unregister_device(struct mlx4_dev *dev)
 	struct mlx4_interface *intf;
 
 	if (!(dev->persist->interface_state & MLX4_INTERFACE_STATE_UP))
+	{
 		return;
+	}
 
 	mlx4_stop_catas_poll(dev);
 	mutex_lock(&intf_mutex);
 
 	list_for_each_entry(intf, &intf_list, list)
-		mlx4_remove_device(intf, priv);
+	mlx4_remove_device(intf, priv);
 
 	list_del(&priv->dev_list);
 	dev->persist->interface_state &= ~MLX4_INTERFACE_STATE_UP;
@@ -243,10 +280,12 @@ void *mlx4_get_protocol_dev(struct mlx4_dev *dev, enum mlx4_protocol proto, int 
 	spin_lock_irqsave(&priv->ctx_lock, flags);
 
 	list_for_each_entry(dev_ctx, &priv->ctx_list, list)
-		if (dev_ctx->intf->protocol == proto && dev_ctx->intf->get_dev) {
-			result = dev_ctx->intf->get_dev(dev, dev_ctx->context, port);
-			break;
-		}
+
+	if (dev_ctx->intf->protocol == proto && dev_ctx->intf->get_dev)
+	{
+		result = dev_ctx->intf->get_dev(dev, dev_ctx->context, port);
+		break;
+	}
 
 	spin_unlock_irqrestore(&priv->ctx_lock, flags);
 

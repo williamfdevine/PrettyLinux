@@ -57,13 +57,13 @@
 #define BIT_31	0x80000000
 
 #if MEMORY_MAPPED_IO
-#define RD_REG_WORD(addr)		readw_relaxed(addr)
-#define RD_REG_WORD_dmasync(addr)	readw(addr)
-#define WRT_REG_WORD(addr, data)	writew(data, addr)
+	#define RD_REG_WORD(addr)		readw_relaxed(addr)
+	#define RD_REG_WORD_dmasync(addr)	readw(addr)
+	#define WRT_REG_WORD(addr, data)	writew(data, addr)
 #else				/* MEMORY_MAPPED_IO */
-#define RD_REG_WORD(addr)		inw((unsigned long)addr)
-#define RD_REG_WORD_dmasync(addr)	RD_REG_WORD(addr)
-#define WRT_REG_WORD(addr, data)	outw(data, (unsigned long)addr)
+	#define RD_REG_WORD(addr)		inw((unsigned long)addr)
+	#define RD_REG_WORD_dmasync(addr)	RD_REG_WORD(addr)
+	#define WRT_REG_WORD(addr, data)	outw(data, (unsigned long)addr)
 #endif				/* MEMORY_MAPPED_IO */
 
 /*
@@ -89,7 +89,7 @@
 /* Maximum outstanding commands in ISP queues */
 #define MAX_OUTSTANDING_COMMANDS	512
 #define COMPLETED_HANDLE		((unsigned char *) \
-					(MAX_OUTSTANDING_COMMANDS + 2))
+								 (MAX_OUTSTANDING_COMMANDS + 2))
 
 /* ISP request and response entry counts (37-65535) */
 #define REQUEST_ENTRY_CNT		255 /* Number of request entries. */
@@ -99,7 +99,8 @@
  * SCSI Request Block structure  (sp)  that is placed
  * on cmd->SCp location of every I/O
  */
-struct srb {
+struct srb
+{
 	struct list_head list;		/* (8/16) LU queue */
 	struct scsi_cmnd *cmd;	/* (4/8) SCSI command block */
 	/* NOTE: the sp->cmd will be NULL when this completion is
@@ -121,7 +122,8 @@ struct srb {
 /*
  *  ISP I/O Register Set structure definitions.
  */
-struct device_reg {
+struct device_reg
+{
 	uint16_t id_l;		/* ID low */
 	uint16_t id_h;		/* ID high */
 	uint16_t cfg_0;		/* Configuration 0 */
@@ -160,15 +162,15 @@ struct device_reg {
 	uint16_t flash_address;	/* Flash BIOS address */
 
 	uint16_t unused_1[0x06];
-	
+
 	/* cdma_* and ddma_* are 1040 only */
 	uint16_t cdma_cfg;
 #define CDMA_CONF_SENAB  BIT_3	/* SXP to DMA Data enable */
 #define CDMA_CONF_RIRQ   BIT_2	/* RISC interrupt enable */
 #define CDMA_CONF_BENAB  BIT_1	/* Bus burst enable */
 #define CDMA_CONF_DIR    BIT_0	/* DMA direction (0=fifo->host 1=host->fifo) */
-	uint16_t cdma_ctrl; 
-	uint16_t cdma_status;   
+	uint16_t cdma_ctrl;
+	uint16_t cdma_status;
 	uint16_t cdma_fifo_status;
 	uint16_t cdma_count;
 	uint16_t cdma_reserved;
@@ -185,14 +187,14 @@ struct device_reg {
 #define DDMA_CONF_BENAB  BIT_1	/* Bus burst enable */
 #define DDMA_CONF_DIR    BIT_0	/* DMA direction (0=fifo->host 1=host->fifo) */
 	uint16_t ddma_ctrl;
-	uint16_t ddma_status; 
+	uint16_t ddma_status;
 	uint16_t ddma_fifo_status;
 	uint16_t ddma_xfer_count_low;
 	uint16_t ddma_xfer_count_high;
 	uint16_t ddma_addr_count_0;
 	uint16_t ddma_addr_count_1;
 	uint16_t ddma_addr_count_2;
-	uint16_t ddma_addr_count_3; 
+	uint16_t ddma_addr_count_3;
 
 	uint16_t unused_3[0x0e];
 
@@ -339,36 +341,40 @@ struct device_reg {
 /*
  *  QLogic ISP1280/ISP12160 NVRAM structure definition.
  */
-struct nvram {
+struct nvram
+{
 	uint8_t id0;		/* 0 */
 	uint8_t id1;		/* 1 */
 	uint8_t id2;		/* 2 */
 	uint8_t id3;		/* 3 */
 	uint8_t version;	/* 4 */
 
-	struct {
-		uint8_t bios_configuration_mode:2;
-		uint8_t bios_disable:1;
-		uint8_t selectable_scsi_boot_enable:1;
-		uint8_t cd_rom_boot_enable:1;
-		uint8_t disable_loading_risc_code:1;
-		uint8_t enable_64bit_addressing:1;
-		uint8_t unused_7:1;
+	struct
+	{
+		uint8_t bios_configuration_mode: 2;
+		uint8_t bios_disable: 1;
+		uint8_t selectable_scsi_boot_enable: 1;
+		uint8_t cd_rom_boot_enable: 1;
+		uint8_t disable_loading_risc_code: 1;
+		uint8_t enable_64bit_addressing: 1;
+		uint8_t unused_7: 1;
 	} cntr_flags_1;		/* 5 */
 
-	struct {
-		uint8_t boot_lun_number:5;
-		uint8_t scsi_bus_number:1;
-		uint8_t unused_6:1;
-		uint8_t unused_7:1;
+	struct
+	{
+		uint8_t boot_lun_number: 5;
+		uint8_t scsi_bus_number: 1;
+		uint8_t unused_6: 1;
+		uint8_t unused_7: 1;
 	} cntr_flags_2l;	/* 7 */
 
-	struct {
-		uint8_t boot_target_number:4;
-		uint8_t unused_12:1;
-		uint8_t unused_13:1;
-		uint8_t unused_14:1;
-		uint8_t unused_15:1;
+	struct
+	{
+		uint8_t boot_target_number: 4;
+		uint8_t unused_12: 1;
+		uint8_t unused_13: 1;
+		uint8_t unused_14: 1;
+		uint8_t unused_15: 1;
 	} cntr_flags_2h;	/* 8 */
 
 	uint16_t unused_8;	/* 8, 9 */
@@ -376,70 +382,77 @@ struct nvram {
 	uint16_t unused_12;	/* 12, 13 */
 	uint16_t unused_14;	/* 14, 15 */
 
-	struct {
-		uint8_t reserved:2;
-		uint8_t burst_enable:1;
-		uint8_t reserved_1:1;
-		uint8_t fifo_threshold:4;
+	struct
+	{
+		uint8_t reserved: 2;
+		uint8_t burst_enable: 1;
+		uint8_t reserved_1: 1;
+		uint8_t fifo_threshold: 4;
 	} isp_config;		/* 16 */
 
 	/* Termination
 	 * 0 = Disable, 1 = high only, 3 = Auto term
 	 */
-	struct {
-		uint8_t scsi_bus_1_control:2;
-		uint8_t scsi_bus_0_control:2;
-		uint8_t unused_0:1;
-		uint8_t unused_1:1;
-		uint8_t unused_2:1;
-		uint8_t auto_term_support:1;
+	struct
+	{
+		uint8_t scsi_bus_1_control: 2;
+		uint8_t scsi_bus_0_control: 2;
+		uint8_t unused_0: 1;
+		uint8_t unused_1: 1;
+		uint8_t unused_2: 1;
+		uint8_t auto_term_support: 1;
 	} termination;		/* 17 */
 
 	uint16_t isp_parameter;	/* 18, 19 */
 
-	union {
+	union
+	{
 		uint16_t w;
-		struct {
-			uint16_t enable_fast_posting:1;
-			uint16_t report_lvd_bus_transition:1;
-			uint16_t unused_2:1;
-			uint16_t unused_3:1;
-			uint16_t disable_iosbs_with_bus_reset_status:1;
-			uint16_t disable_synchronous_backoff:1;
-			uint16_t unused_6:1;
-			uint16_t synchronous_backoff_reporting:1;
-			uint16_t disable_reselection_fairness:1;
-			uint16_t unused_9:1;
-			uint16_t unused_10:1;
-			uint16_t unused_11:1;
-			uint16_t unused_12:1;
-			uint16_t unused_13:1;
-			uint16_t unused_14:1;
-			uint16_t unused_15:1;
+		struct
+		{
+			uint16_t enable_fast_posting: 1;
+			uint16_t report_lvd_bus_transition: 1;
+			uint16_t unused_2: 1;
+			uint16_t unused_3: 1;
+			uint16_t disable_iosbs_with_bus_reset_status: 1;
+			uint16_t disable_synchronous_backoff: 1;
+			uint16_t unused_6: 1;
+			uint16_t synchronous_backoff_reporting: 1;
+			uint16_t disable_reselection_fairness: 1;
+			uint16_t unused_9: 1;
+			uint16_t unused_10: 1;
+			uint16_t unused_11: 1;
+			uint16_t unused_12: 1;
+			uint16_t unused_13: 1;
+			uint16_t unused_14: 1;
+			uint16_t unused_15: 1;
 		} f;
 	} firmware_feature;	/* 20, 21 */
 
 	uint16_t unused_22;	/* 22, 23 */
 
-	struct {
-		struct {
-			uint8_t initiator_id:4;
-			uint8_t scsi_reset_disable:1;
-			uint8_t scsi_bus_size:1;
-			uint8_t scsi_bus_type:1;
-			uint8_t unused_7:1;
+	struct
+	{
+		struct
+		{
+			uint8_t initiator_id: 4;
+			uint8_t scsi_reset_disable: 1;
+			uint8_t scsi_bus_size: 1;
+			uint8_t scsi_bus_type: 1;
+			uint8_t unused_7: 1;
 		} config_1;	/* 24 */
 
 		uint8_t bus_reset_delay;	/* 25 */
 		uint8_t retry_count;	/* 26 */
 		uint8_t retry_delay;	/* 27 */
 
-		struct {
-			uint8_t async_data_setup_time:4;
-			uint8_t req_ack_active_negation:1;
-			uint8_t data_line_active_negation:1;
-			uint8_t unused_6:1;
-			uint8_t unused_7:1;
+		struct
+		{
+			uint8_t async_data_setup_time: 4;
+			uint8_t req_ack_active_negation: 1;
+			uint8_t data_line_active_negation: 1;
+			uint8_t unused_6: 1;
+			uint8_t unused_7: 1;
 		} config_2;	/* 28 */
 
 		uint8_t unused_29;	/* 29 */
@@ -451,44 +464,51 @@ struct nvram {
 		uint16_t unused_36;	/* 36, 37 */
 		uint16_t unused_38;	/* 38, 39 */
 
-		struct {
-			struct {
-				uint8_t renegotiate_on_error:1;
-				uint8_t stop_queue_on_check:1;
-				uint8_t auto_request_sense:1;
-				uint8_t tag_queuing:1;
-				uint8_t enable_sync:1;
-				uint8_t enable_wide:1;
-				uint8_t parity_checking:1;
-				uint8_t disconnect_allowed:1;
+		struct
+		{
+			struct
+			{
+				uint8_t renegotiate_on_error: 1;
+				uint8_t stop_queue_on_check: 1;
+				uint8_t auto_request_sense: 1;
+				uint8_t tag_queuing: 1;
+				uint8_t enable_sync: 1;
+				uint8_t enable_wide: 1;
+				uint8_t parity_checking: 1;
+				uint8_t disconnect_allowed: 1;
 			} parameter;	/* 40 */
 
 			uint8_t execution_throttle;	/* 41 */
 			uint8_t sync_period;	/* 42 */
 
-			union {		/* 43 */
+			union  		/* 43 */
+			{
 				uint8_t flags_43;
-				struct {
-					uint8_t sync_offset:4;
-					uint8_t device_enable:1;
-					uint8_t lun_disable:1;
-					uint8_t unused_6:1;
-					uint8_t unused_7:1;
+				struct
+				{
+					uint8_t sync_offset: 4;
+					uint8_t device_enable: 1;
+					uint8_t lun_disable: 1;
+					uint8_t unused_6: 1;
+					uint8_t unused_7: 1;
 				} flags1x80;
-				struct {
-					uint8_t sync_offset:5;
-					uint8_t device_enable:1;
-					uint8_t unused_6:1;
-					uint8_t unused_7:1;
+				struct
+				{
+					uint8_t sync_offset: 5;
+					uint8_t device_enable: 1;
+					uint8_t unused_6: 1;
+					uint8_t unused_7: 1;
 				} flags1x160;
 			} flags;
-			union {	/* PPR flags for the 1x160 controllers */
+			union  	/* PPR flags for the 1x160 controllers */
+			{
 				uint8_t unused_44;
-				struct {
-					uint8_t ppr_options:4;
-					uint8_t ppr_bus_width:2;
-					uint8_t unused_8:1;
-					uint8_t enable_ppr:1;
+				struct
+				{
+					uint8_t ppr_options: 4;
+					uint8_t ppr_bus_width: 2;
+					uint8_t unused_8: 1;
+					uint8_t enable_ppr: 1;
 				} flags;	/* 44 */
 			} ppr_1x160;
 			uint8_t unused_45;	/* 45 */
@@ -499,7 +519,8 @@ struct nvram {
 
 	uint16_t subsystem_id[2];	/* 250, 251, 252, 253 */
 
-	union {				/* 254 */
+	union  				/* 254 */
+	{
 		uint8_t unused_254;
 		uint8_t system_id_pointer;
 	} sysid_1x160;
@@ -511,7 +532,8 @@ struct nvram {
  * ISP queue - command entry structure definition.
  */
 #define MAX_CMDSZ	12		/* SCSI maximum CDB size. */
-struct cmd_entry {
+struct cmd_entry
+{
 	uint8_t entry_type;		/* Entry type. */
 #define COMMAND_TYPE    1		/* Command entry */
 	uint8_t entry_count;		/* Entry count. */
@@ -539,7 +561,8 @@ struct cmd_entry {
 /*
  * ISP queue - continuation entry structure definition.
  */
-struct cont_entry {
+struct cont_entry
+{
 	uint8_t entry_type;		/* Entry type. */
 #define CONTINUE_TYPE   2		/* Continuation entry. */
 	uint8_t entry_count;		/* Entry count. */
@@ -565,7 +588,8 @@ struct cont_entry {
 /*
  * ISP queue - status entry structure definition.
  */
-struct response {
+struct response
+{
 	uint8_t entry_type;	/* Entry type. */
 #define STATUS_TYPE     3	/* Status entry. */
 	uint8_t entry_count;	/* Entry count. */
@@ -597,7 +621,8 @@ struct response {
 /*
  * ISP queue - marker entry structure definition.
  */
-struct mrk_entry {
+struct mrk_entry
+{
 	uint8_t entry_type;	/* Entry type. */
 #define MARKER_TYPE     4	/* Marker entry. */
 	uint8_t entry_count;	/* Entry count. */
@@ -618,7 +643,8 @@ struct mrk_entry {
  *
  * Unused by the driver!
  */
-struct ecmd_entry {
+struct ecmd_entry
+{
 	uint8_t entry_type;	/* Entry type. */
 #define EXTENDED_CMD_TYPE  5	/* Extended command entry. */
 	uint8_t entry_count;	/* Entry count. */
@@ -638,7 +664,8 @@ struct ecmd_entry {
 /*
  * ISP queue - 64-Bit addressing, command entry structure definition.
  */
-typedef struct {
+typedef struct
+{
 	uint8_t entry_type;	/* Entry type. */
 #define COMMAND_A64_TYPE 9	/* Command A64 entry */
 	uint8_t entry_count;	/* Entry count. */
@@ -663,7 +690,8 @@ typedef struct {
 /*
  * ISP queue - 64-Bit addressing, continuation entry structure definition.
  */
-struct cont_a64_entry {
+struct cont_a64_entry
+{
 	uint8_t entry_type;	/* Entry type. */
 #define CONTINUE_A64_TYPE 0xA	/* Continuation A64 entry. */
 	uint8_t entry_count;	/* Entry count. */
@@ -684,7 +712,8 @@ struct cont_a64_entry {
 /*
  * ISP queue - enable LUN entry structure definition.
  */
-struct elun_entry {
+struct elun_entry
+{
 	uint8_t entry_type;	/* Entry type. */
 #define ENABLE_LUN_TYPE 0xB	/* Enable LUN entry. */
 	uint8_t entry_count;	/* Entry count. */
@@ -712,7 +741,8 @@ struct elun_entry {
  *
  * Unused by the driver!
  */
-struct modify_lun_entry {
+struct modify_lun_entry
+{
 	uint8_t entry_type;	/* Entry type. */
 #define MODIFY_LUN_TYPE 0xC	/* Modify LUN entry. */
 	uint8_t entry_count;	/* Entry count. */
@@ -737,7 +767,8 @@ struct modify_lun_entry {
 /*
  * ISP queue - immediate notify entry structure definition.
  */
-struct notify_entry {
+struct notify_entry
+{
 	uint8_t entry_type;	/* Entry type. */
 #define IMMED_NOTIFY_TYPE 0xD	/* Immediate notify entry. */
 	uint8_t entry_count;	/* Entry count. */
@@ -763,7 +794,8 @@ struct notify_entry {
 /*
  * ISP queue - notify acknowledge entry structure definition.
  */
-struct nack_entry {
+struct nack_entry
+{
 	uint8_t entry_type;	/* Entry type. */
 #define NOTIFY_ACK_TYPE 0xE	/* Notify acknowledge entry. */
 	uint8_t entry_count;	/* Entry count. */
@@ -784,7 +816,8 @@ struct nack_entry {
 /*
  * ISP queue - Accept Target I/O (ATIO) entry structure definition.
  */
-struct atio_entry {
+struct atio_entry
+{
 	uint8_t entry_type;	/* Entry type. */
 #define ACCEPT_TGT_IO_TYPE 6	/* Accept target I/O entry. */
 	uint8_t entry_count;	/* Entry count. */
@@ -807,7 +840,8 @@ struct atio_entry {
 /*
  * ISP queue - Continue Target I/O (CTIO) entry structure definition.
  */
-struct ctio_entry {
+struct ctio_entry
+{
 	uint8_t entry_type;	/* Entry type. */
 #define CONTINUE_TGT_IO_TYPE 7	/* CTIO entry */
 	uint8_t entry_count;	/* Entry count. */
@@ -840,7 +874,8 @@ struct ctio_entry {
 /*
  * ISP queue - CTIO returned entry structure definition.
  */
-struct ctio_ret_entry {
+struct ctio_ret_entry
+{
 	uint8_t entry_type;	/* Entry type. */
 #define CTIO_RET_TYPE   7	/* CTIO return entry */
 	uint8_t entry_count;	/* Entry count. */
@@ -870,7 +905,8 @@ struct ctio_ret_entry {
 /*
  * ISP queue - CTIO A64 entry structure definition.
  */
-struct ctio_a64_entry {
+struct ctio_a64_entry
+{
 	uint8_t entry_type;	/* Entry type. */
 #define CTIO_A64_TYPE 0xF	/* CTIO A64 entry */
 	uint8_t entry_count;	/* Entry count. */
@@ -900,7 +936,8 @@ struct ctio_a64_entry {
 /*
  * ISP queue - CTIO returned entry structure definition.
  */
-struct ctio_a64_ret_entry {
+struct ctio_a64_ret_entry
+{
 	uint8_t entry_type;	/* Entry type. */
 #define CTIO_A64_RET_TYPE 0xF	/* CTIO A64 returned entry */
 	uint8_t entry_count;	/* Entry count. */
@@ -972,9 +1009,9 @@ struct ctio_a64_ret_entry {
  */
 #define OF_ENABLE_TAG       BIT_1	/* Tagged queue action enable */
 #define OF_DATA_IN          BIT_6	/* Data in to initiator */
-					/*  (data from target to initiator) */
+/*  (data from target to initiator) */
 #define OF_DATA_OUT         BIT_7	/* Data out from initiator */
-					/*  (data from initiator to target) */
+/*  (data from initiator to target) */
 #define OF_NO_DATA          (BIT_7 | BIT_6)
 #define OF_DISC_DISABLED    BIT_15	/* Disconnects disabled */
 #define OF_DISABLE_SDP      BIT_24	/* Disable sending save data ptr */
@@ -986,7 +1023,8 @@ struct ctio_a64_ret_entry {
 /*
  * BUS parameters/settings structure - UNUSED
  */
-struct bus_param {
+struct bus_param
+{
 	uint8_t id;		/* Host adapter SCSI id */
 	uint8_t bus_reset_delay;	/* SCSI bus reset delay. */
 	uint8_t failed_reset_count;	/* number of time reset failed */
@@ -995,17 +1033,18 @@ struct bus_param {
 	uint16_t lun_disables;	/* LUN disable bits. */
 	uint16_t qtag_enables;	/* Tag queue enables. */
 	uint16_t hiwat;		/* High water mark per device. */
-	uint8_t reset_marker:1;
-	uint8_t disable_scsi_reset:1;
-	uint8_t scsi_bus_dead:1;	/* SCSI Bus is Dead, when 5 back to back resets failed */
+	uint8_t reset_marker: 1;
+	uint8_t disable_scsi_reset: 1;
+	uint8_t scsi_bus_dead: 1;	/* SCSI Bus is Dead, when 5 back to back resets failed */
 };
 
 
-struct qla_driver_setup {
-	uint32_t no_sync:1;
-	uint32_t no_wide:1;
-	uint32_t no_ppr:1;
-	uint32_t no_nvram:1;
+struct qla_driver_setup
+{
+	uint32_t no_sync: 1;
+	uint32_t no_wide: 1;
+	uint32_t no_ppr: 1;
+	uint32_t no_nvram: 1;
 	uint16_t sync_mask;
 	uint16_t wide_mask;
 	uint16_t ppr_mask;
@@ -1015,7 +1054,8 @@ struct qla_driver_setup {
 /*
  * Linux Host Adapter structure
  */
-struct scsi_qla_host {
+struct scsi_qla_host
+{
 	/* Linux adapter configuration data */
 	struct Scsi_Host *host;	/* pointer to host data */
 	struct scsi_qla_host *next;
@@ -1056,15 +1096,16 @@ struct scsi_qla_host {
 
 	struct completion *mailbox_wait;
 
-	volatile struct {
-		uint32_t online:1;			/* 0 */
-		uint32_t reset_marker:1;		/* 1 */
-		uint32_t disable_host_adapter:1;	/* 2 */
-		uint32_t reset_active:1;		/* 3 */
-		uint32_t abort_isp_active:1;		/* 4 */
-		uint32_t disable_risc_code_load:1;	/* 5 */
+	volatile struct
+	{
+		uint32_t online: 1;			/* 0 */
+		uint32_t reset_marker: 1;		/* 1 */
+		uint32_t disable_host_adapter: 1;	/* 2 */
+		uint32_t reset_active: 1;		/* 3 */
+		uint32_t abort_isp_active: 1;		/* 4 */
+		uint32_t disable_risc_code_load: 1;	/* 5 */
 #ifdef __ia64__
-		uint32_t use_pci_vchannel:1;
+		uint32_t use_pci_vchannel: 1;
 #endif
 	} flags;
 

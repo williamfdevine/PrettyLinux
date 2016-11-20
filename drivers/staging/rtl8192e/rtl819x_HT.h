@@ -19,38 +19,41 @@
 
 #define sHTCLng	4
 
-enum ht_channel_width {
+enum ht_channel_width
+{
 	HT_CHANNEL_WIDTH_20 = 0,
 	HT_CHANNEL_WIDTH_20_40 = 1,
 };
 
-enum ht_extchnl_offset {
+enum ht_extchnl_offset
+{
 	HT_EXTCHNL_OFFSET_NO_EXT = 0,
 	HT_EXTCHNL_OFFSET_UPPER = 1,
 	HT_EXTCHNL_OFFSET_NO_DEF = 2,
 	HT_EXTCHNL_OFFSET_LOWER = 3,
 };
 
-struct ht_capab_ele {
+struct ht_capab_ele
+{
 
-	u8	AdvCoding:1;
-	u8	ChlWidth:1;
-	u8	MimoPwrSave:2;
-	u8	GreenField:1;
-	u8	ShortGI20Mhz:1;
-	u8	ShortGI40Mhz:1;
-	u8	TxSTBC:1;
-	u8	RxSTBC:2;
-	u8	DelayBA:1;
-	u8	MaxAMSDUSize:1;
-	u8	DssCCk:1;
-	u8	PSMP:1;
-	u8	Rsvd1:1;
-	u8	LSigTxopProtect:1;
+	u8	AdvCoding: 1;
+	u8	ChlWidth: 1;
+	u8	MimoPwrSave: 2;
+	u8	GreenField: 1;
+	u8	ShortGI20Mhz: 1;
+	u8	ShortGI40Mhz: 1;
+	u8	TxSTBC: 1;
+	u8	RxSTBC: 2;
+	u8	DelayBA: 1;
+	u8	MaxAMSDUSize: 1;
+	u8	DssCCk: 1;
+	u8	PSMP: 1;
+	u8	Rsvd1: 1;
+	u8	LSigTxopProtect: 1;
 
-	u8	MaxRxAMPDUFactor:2;
-	u8	MPDUDensity:3;
-	u8	Rsvd2:3;
+	u8	MaxRxAMPDUFactor: 2;
+	u8	MPDUDensity: 3;
+	u8	Rsvd2: 3;
 
 	u8	MCS[16];
 
@@ -64,46 +67,50 @@ struct ht_capab_ele {
 } __packed;
 
 
-struct ht_info_ele {
+struct ht_info_ele
+{
 	u8	ControlChl;
 
-	u8	ExtChlOffset:2;
-	u8	RecommemdedTxWidth:1;
-	u8	RIFS:1;
-	u8	PSMPAccessOnly:1;
-	u8	SrvIntGranularity:3;
+	u8	ExtChlOffset: 2;
+	u8	RecommemdedTxWidth: 1;
+	u8	RIFS: 1;
+	u8	PSMPAccessOnly: 1;
+	u8	SrvIntGranularity: 3;
 
-	u8	OptMode:2;
-	u8	NonGFDevPresent:1;
-	u8	Revd1:5;
-	u8	Revd2:8;
+	u8	OptMode: 2;
+	u8	NonGFDevPresent: 1;
+	u8	Revd1: 5;
+	u8	Revd2: 8;
 
-	u8	Rsvd3:6;
-	u8	DualBeacon:1;
-	u8	DualCTSProtect:1;
+	u8	Rsvd3: 6;
+	u8	DualBeacon: 1;
+	u8	DualCTSProtect: 1;
 
-	u8	SecondaryBeacon:1;
-	u8	LSigTxopProtectFull:1;
-	u8	PcoActive:1;
-	u8	PcoPhase:1;
-	u8	Rsvd4:4;
+	u8	SecondaryBeacon: 1;
+	u8	LSigTxopProtectFull: 1;
+	u8	PcoActive: 1;
+	u8	PcoPhase: 1;
+	u8	Rsvd4: 4;
 
 	u8	BasicMSC[16];
 } __packed;
 
-enum ht_spec_ver {
+enum ht_spec_ver
+{
 	HT_SPEC_VER_IEEE = 0,
 	HT_SPEC_VER_EWC = 1,
 };
 
-enum ht_aggre_mode {
+enum ht_aggre_mode
+{
 	HT_AGG_AUTO = 0,
 	HT_AGG_FORCE_ENABLE = 1,
 	HT_AGG_FORCE_DISABLE = 2,
 };
 
 
-struct rt_hi_throughput {
+struct rt_hi_throughput
+{
 	u8				bEnableHT;
 	u8				bCurrentHTSupport;
 
@@ -186,7 +193,8 @@ struct rt_hi_throughput {
 	u8				bAcceptAddbaReq;
 } __packed;
 
-struct bss_ht {
+struct bss_ht
+{
 
 	u8				bdSupportHT;
 
@@ -211,14 +219,16 @@ extern u8 MCS_FILTER_1SS[16];
 #define	RATE_ADPT_2SS_MASK		0xF0
 #define	RATE_ADPT_MCS32_MASK		0x01
 
-enum ht_aggre_size {
+enum ht_aggre_size
+{
 	HT_AGG_SIZE_8K = 0,
 	HT_AGG_SIZE_16K = 1,
 	HT_AGG_SIZE_32K = 2,
 	HT_AGG_SIZE_64K = 3,
 };
 
-enum ht_iot_peer {
+enum ht_iot_peer
+{
 	HT_IOT_PEER_UNKNOWN = 0,
 	HT_IOT_PEER_REALTEK = 1,
 	HT_IOT_PEER_REALTEK_92SE = 2,
@@ -233,7 +243,8 @@ enum ht_iot_peer {
 	HT_IOT_PEER_MAX = 11,
 };
 
-enum ht_iot_action {
+enum ht_iot_action
+{
 	HT_IOT_ACT_TX_USE_AMSDU_4K = 0x00000001,
 	HT_IOT_ACT_TX_USE_AMSDU_8K = 0x00000002,
 	HT_IOT_ACT_DISABLE_MCS14 = 0x00000004,
@@ -268,13 +279,15 @@ enum ht_iot_action {
 
 };
 
-enum ht_iot_rafunc {
+enum ht_iot_rafunc
+{
 	HT_IOT_RAFUNC_DISABLE_ALL = 0x00,
 	HT_IOT_RAFUNC_PEER_1R = 0x01,
 	HT_IOT_RAFUNC_TX_AMSDU = 0x02,
 };
 
-enum rt_ht_capability {
+enum rt_ht_capability
+{
 	RT_HT_CAP_USE_TURBO_AGGR = 0x01,
 	RT_HT_CAP_USE_LONG_PREAMBLE = 0x02,
 	RT_HT_CAP_USE_AMPDU = 0x04,

@@ -1,11 +1,11 @@
 /*
  * Hash: Hash algorithms under the crypto API
- * 
+ *
  * Copyright (c) 2008 Herbert Xu <herbert@gondor.apana.org.au>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option) 
+ * Software Foundation; either version 2 of the License, or (at your option)
  * any later version.
  *
  */
@@ -44,14 +44,16 @@ struct crypto_ahash;
  *	  The hash_alg_common data structure now adds the hash-specific
  *	  information.
  */
-struct hash_alg_common {
+struct hash_alg_common
+{
 	unsigned int digestsize;
 	unsigned int statesize;
 
 	struct crypto_alg base;
 };
 
-struct ahash_request {
+struct ahash_request
+{
 	struct crypto_async_request base;
 
 	unsigned int nbytes;
@@ -66,7 +68,7 @@ struct ahash_request {
 
 #define AHASH_REQUEST_ON_STACK(name, ahash) \
 	char __##name##_desc[sizeof(struct ahash_request) + \
-		crypto_ahash_reqsize(ahash)] CRYPTO_MINALIGN_ATTR; \
+						 crypto_ahash_reqsize(ahash)] CRYPTO_MINALIGN_ATTR; \
 	struct ahash_request *name = (void *)__##name##_desc
 
 /**
@@ -126,7 +128,8 @@ struct ahash_request {
  *	    data processing happens at this point.
  * @halg: see struct hash_alg_common
  */
-struct ahash_alg {
+struct ahash_alg
+{
 	int (*init)(struct ahash_request *req);
 	int (*update)(struct ahash_request *req);
 	int (*final)(struct ahash_request *req);
@@ -135,12 +138,13 @@ struct ahash_alg {
 	int (*export)(struct ahash_request *req, void *out);
 	int (*import)(struct ahash_request *req, const void *in);
 	int (*setkey)(struct crypto_ahash *tfm, const u8 *key,
-		      unsigned int keylen);
+				  unsigned int keylen);
 
 	struct hash_alg_common halg;
 };
 
-struct shash_desc {
+struct shash_desc
+{
 	struct crypto_shash *tfm;
 	u32 flags;
 
@@ -149,7 +153,7 @@ struct shash_desc {
 
 #define SHASH_DESC_ON_STACK(shash, ctx)				  \
 	char __##shash##_desc[sizeof(struct shash_desc) +	  \
-		crypto_shash_descsize(ctx)] CRYPTO_MINALIGN_ATTR; \
+						  crypto_shash_descsize(ctx)] CRYPTO_MINALIGN_ATTR; \
 	struct shash_desc *shash = (struct shash_desc *)__##shash##_desc
 
 /**
@@ -169,31 +173,33 @@ struct shash_desc {
  *	      shash_desc.__ctx
  * @base: internally used
  */
-struct shash_alg {
+struct shash_alg
+{
 	int (*init)(struct shash_desc *desc);
 	int (*update)(struct shash_desc *desc, const u8 *data,
-		      unsigned int len);
+				  unsigned int len);
 	int (*final)(struct shash_desc *desc, u8 *out);
 	int (*finup)(struct shash_desc *desc, const u8 *data,
-		     unsigned int len, u8 *out);
+				 unsigned int len, u8 *out);
 	int (*digest)(struct shash_desc *desc, const u8 *data,
-		      unsigned int len, u8 *out);
+				  unsigned int len, u8 *out);
 	int (*export)(struct shash_desc *desc, void *out);
 	int (*import)(struct shash_desc *desc, const void *in);
 	int (*setkey)(struct crypto_shash *tfm, const u8 *key,
-		      unsigned int keylen);
+				  unsigned int keylen);
 
 	unsigned int descsize;
 
 	/* These fields must match hash_alg_common. */
 	unsigned int digestsize
-		__attribute__ ((aligned(__alignof__(struct hash_alg_common))));
+	__attribute__ ((aligned(__alignof__(struct hash_alg_common))));
 	unsigned int statesize;
 
 	struct crypto_alg base;
 };
 
-struct crypto_ahash {
+struct crypto_ahash
+{
 	int (*init)(struct ahash_request *req);
 	int (*update)(struct ahash_request *req);
 	int (*final)(struct ahash_request *req);
@@ -202,14 +208,15 @@ struct crypto_ahash {
 	int (*export)(struct ahash_request *req, void *out);
 	int (*import)(struct ahash_request *req, const void *in);
 	int (*setkey)(struct crypto_ahash *tfm, const u8 *key,
-		      unsigned int keylen);
+				  unsigned int keylen);
 
 	unsigned int reqsize;
 	bool has_setkey;
 	struct crypto_tfm base;
 };
 
-struct crypto_shash {
+struct crypto_shash
+{
 	unsigned int descsize;
 	struct crypto_tfm base;
 };
@@ -244,7 +251,7 @@ static inline struct crypto_ahash *__crypto_ahash_cast(struct crypto_tfm *tfm)
  *	   of an error, PTR_ERR() returns the error code.
  */
 struct crypto_ahash *crypto_alloc_ahash(const char *alg_name, u32 type,
-					u32 mask);
+										u32 mask);
 
 static inline struct crypto_tfm *crypto_ahash_tfm(struct crypto_ahash *tfm)
 {
@@ -397,7 +404,7 @@ static inline void *ahash_request_ctx(struct ahash_request *req)
  * Return: 0 if the setting of the key was successful; < 0 if an error occurred
  */
 int crypto_ahash_setkey(struct crypto_ahash *tfm, const u8 *key,
-			unsigned int keylen);
+						unsigned int keylen);
 
 static inline bool crypto_ahash_has_setkey(struct crypto_ahash *tfm)
 {
@@ -532,7 +539,7 @@ static inline int crypto_ahash_update(struct ahash_request *req)
  * data structure with a different one.
  */
 static inline void ahash_request_set_tfm(struct ahash_request *req,
-					 struct crypto_ahash *tfm)
+		struct crypto_ahash *tfm)
 {
 	req->base.tfm = crypto_ahash_tfm(tfm);
 }
@@ -555,10 +562,12 @@ static inline struct ahash_request *ahash_request_alloc(
 	struct ahash_request *req;
 
 	req = kmalloc(sizeof(struct ahash_request) +
-		      crypto_ahash_reqsize(tfm), gfp);
+				  crypto_ahash_reqsize(tfm), gfp);
 
 	if (likely(req))
+	{
 		ahash_request_set_tfm(req, tfm);
+	}
 
 	return req;
 }
@@ -575,7 +584,7 @@ static inline void ahash_request_free(struct ahash_request *req)
 static inline void ahash_request_zero(struct ahash_request *req)
 {
 	memzero_explicit(req, sizeof(*req) +
-			      crypto_ahash_reqsize(crypto_ahash_reqtfm(req)));
+					 crypto_ahash_reqsize(crypto_ahash_reqtfm(req)));
 }
 
 static inline struct ahash_request *ahash_request_cast(
@@ -610,9 +619,9 @@ static inline struct ahash_request *ahash_request_cast(
  *	void callback_function(struct crypto_async_request *req, int error)
  */
 static inline void ahash_request_set_callback(struct ahash_request *req,
-					      u32 flags,
-					      crypto_completion_t compl,
-					      void *data)
+		u32 flags,
+		crypto_completion_t compl,
+		void *data)
 {
 	req->base.complete = compl;
 	req->base.data = data;
@@ -633,8 +642,8 @@ static inline void ahash_request_set_callback(struct ahash_request *req,
  * be calculated for.
  */
 static inline void ahash_request_set_crypt(struct ahash_request *req,
-					   struct scatterlist *src, u8 *result,
-					   unsigned int nbytes)
+		struct scatterlist *src, u8 *result,
+		unsigned int nbytes)
 {
 	req->src = src;
 	req->nbytes = nbytes;
@@ -669,7 +678,7 @@ static inline void ahash_request_set_crypt(struct ahash_request *req,
  *	   of an error, PTR_ERR() returns the error code.
  */
 struct crypto_shash *crypto_alloc_shash(const char *alg_name, u32 type,
-					u32 mask);
+										u32 mask);
 
 static inline struct crypto_tfm *crypto_shash_tfm(struct crypto_shash *tfm)
 {
@@ -797,7 +806,7 @@ static inline void *shash_desc_ctx(struct shash_desc *desc)
  * Return: 0 if the setting of the key was successful; < 0 if an error occurred
  */
 int crypto_shash_setkey(struct crypto_shash *tfm, const u8 *key,
-			unsigned int keylen);
+						unsigned int keylen);
 
 /**
  * crypto_shash_digest() - calculate message digest for buffer
@@ -814,7 +823,7 @@ int crypto_shash_setkey(struct crypto_shash *tfm, const u8 *key,
  *	   occurred
  */
 int crypto_shash_digest(struct shash_desc *desc, const u8 *data,
-			unsigned int len, u8 *out);
+						unsigned int len, u8 *out);
 
 /**
  * crypto_shash_export() - extract operational state for message digest
@@ -876,7 +885,7 @@ static inline int crypto_shash_init(struct shash_desc *desc)
  *	   occurred
  */
 int crypto_shash_update(struct shash_desc *desc, const u8 *data,
-			unsigned int len);
+						unsigned int len);
 
 /**
  * crypto_shash_final() - calculate message digest
@@ -908,12 +917,12 @@ int crypto_shash_final(struct shash_desc *desc, u8 *out);
  *	   occurred
  */
 int crypto_shash_finup(struct shash_desc *desc, const u8 *data,
-		       unsigned int len, u8 *out);
+					   unsigned int len, u8 *out);
 
 static inline void shash_desc_zero(struct shash_desc *desc)
 {
 	memzero_explicit(desc,
-			 sizeof(*desc) + crypto_shash_descsize(desc->tfm));
+					 sizeof(*desc) + crypto_shash_descsize(desc->tfm));
 }
 
 #endif	/* _CRYPTO_HASH_H */

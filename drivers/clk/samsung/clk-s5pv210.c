@@ -68,7 +68,8 @@
 #define OM_STAT			0xe100
 
 /* IDs of PLLs available on S5PV210/S5P6442 SoCs */
-enum {
+enum
+{
 	apll,
 	mpll,
 	epll,
@@ -76,7 +77,8 @@ enum {
 };
 
 /* IDs of external clocks (used for legacy boards) */
-enum {
+enum
+{
 	xxti,
 	xusbxti,
 };
@@ -87,7 +89,8 @@ static void __iomem *reg_base;
 static struct samsung_clk_reg_dump *s5pv210_clk_dump;
 
 /* List of registers that need to be preserved across suspend/resume. */
-static unsigned long s5pv210_clk_regs[] __initdata = {
+static unsigned long s5pv210_clk_regs[] __initdata =
+{
 	CLK_SRC0,
 	CLK_SRC1,
 	CLK_SRC2,
@@ -135,17 +138,18 @@ static unsigned long s5pv210_clk_regs[] __initdata = {
 static int s5pv210_clk_suspend(void)
 {
 	samsung_clk_save(reg_base, s5pv210_clk_dump,
-				ARRAY_SIZE(s5pv210_clk_regs));
+					 ARRAY_SIZE(s5pv210_clk_regs));
 	return 0;
 }
 
 static void s5pv210_clk_resume(void)
 {
 	samsung_clk_restore(reg_base, s5pv210_clk_dump,
-				ARRAY_SIZE(s5pv210_clk_regs));
+						ARRAY_SIZE(s5pv210_clk_regs));
 }
 
-static struct syscore_ops s5pv210_clk_syscore_ops = {
+static struct syscore_ops s5pv210_clk_syscore_ops =
+{
 	.suspend = s5pv210_clk_suspend,
 	.resume = s5pv210_clk_resume,
 };
@@ -154,8 +158,10 @@ static void s5pv210_clk_sleep_init(void)
 {
 	s5pv210_clk_dump =
 		samsung_clk_alloc_reg_dump(s5pv210_clk_regs,
-					   ARRAY_SIZE(s5pv210_clk_regs));
-	if (!s5pv210_clk_dump) {
+								   ARRAY_SIZE(s5pv210_clk_regs));
+
+	if (!s5pv210_clk_dump)
+	{
 		pr_warn("%s: Failed to allocate sleep save data\n", __func__);
 		return;
 	}
@@ -167,44 +173,52 @@ static inline void s5pv210_clk_sleep_init(void) { }
 #endif
 
 /* Mux parent lists. */
-static const char *const fin_pll_p[] __initconst = {
+static const char *const fin_pll_p[] __initconst =
+{
 	"xxti",
 	"xusbxti"
 };
 
-static const char *const mout_apll_p[] __initconst = {
+static const char *const mout_apll_p[] __initconst =
+{
 	"fin_pll",
 	"fout_apll"
 };
 
-static const char *const mout_mpll_p[] __initconst = {
+static const char *const mout_mpll_p[] __initconst =
+{
 	"fin_pll",
 	"fout_mpll"
 };
 
-static const char *const mout_epll_p[] __initconst = {
+static const char *const mout_epll_p[] __initconst =
+{
 	"fin_pll",
 	"fout_epll"
 };
 
-static const char *const mout_vpllsrc_p[] __initconst = {
+static const char *const mout_vpllsrc_p[] __initconst =
+{
 	"fin_pll",
 	"sclk_hdmi27m"
 };
 
-static const char *const mout_vpll_p[] __initconst = {
+static const char *const mout_vpll_p[] __initconst =
+{
 	"mout_vpllsrc",
 	"fout_vpll"
 };
 
-static const char *const mout_group1_p[] __initconst = {
+static const char *const mout_group1_p[] __initconst =
+{
 	"dout_a2m",
 	"mout_mpll",
 	"mout_epll",
 	"mout_vpll"
 };
 
-static const char *const mout_group2_p[] __initconst = {
+static const char *const mout_group2_p[] __initconst =
+{
 	"xxti",
 	"xusbxti",
 	"sclk_hdmi27m",
@@ -216,7 +230,8 @@ static const char *const mout_group2_p[] __initconst = {
 	"mout_vpll",
 };
 
-static const char *const mout_audio0_p[] __initconst = {
+static const char *const mout_audio0_p[] __initconst =
+{
 	"xxti",
 	"pcmcdclk0",
 	"sclk_hdmi27m",
@@ -228,7 +243,8 @@ static const char *const mout_audio0_p[] __initconst = {
 	"mout_vpll",
 };
 
-static const char *const mout_audio1_p[] __initconst = {
+static const char *const mout_audio1_p[] __initconst =
+{
 	"i2scdclk1",
 	"pcmcdclk1",
 	"sclk_hdmi27m",
@@ -240,7 +256,8 @@ static const char *const mout_audio1_p[] __initconst = {
 	"mout_vpll",
 };
 
-static const char *const mout_audio2_p[] __initconst = {
+static const char *const mout_audio2_p[] __initconst =
+{
 	"i2scdclk2",
 	"pcmcdclk2",
 	"sclk_hdmi27m",
@@ -252,63 +269,75 @@ static const char *const mout_audio2_p[] __initconst = {
 	"mout_vpll",
 };
 
-static const char *const mout_spdif_p[] __initconst = {
+static const char *const mout_spdif_p[] __initconst =
+{
 	"dout_audio0",
 	"dout_audio1",
 	"dout_audio3",
 };
 
-static const char *const mout_group3_p[] __initconst = {
+static const char *const mout_group3_p[] __initconst =
+{
 	"mout_apll",
 	"mout_mpll"
 };
 
-static const char *const mout_group4_p[] __initconst = {
+static const char *const mout_group4_p[] __initconst =
+{
 	"mout_mpll",
 	"dout_a2m"
 };
 
-static const char *const mout_flash_p[] __initconst = {
+static const char *const mout_flash_p[] __initconst =
+{
 	"dout_hclkd",
 	"dout_hclkp"
 };
 
-static const char *const mout_dac_p[] __initconst = {
+static const char *const mout_dac_p[] __initconst =
+{
 	"mout_vpll",
 	"sclk_hdmiphy"
 };
 
-static const char *const mout_hdmi_p[] __initconst = {
+static const char *const mout_hdmi_p[] __initconst =
+{
 	"sclk_hdmiphy",
 	"dout_tblk"
 };
 
-static const char *const mout_mixer_p[] __initconst = {
+static const char *const mout_mixer_p[] __initconst =
+{
 	"mout_dac",
 	"mout_hdmi"
 };
 
-static const char *const mout_vpll_6442_p[] __initconst = {
+static const char *const mout_vpll_6442_p[] __initconst =
+{
 	"fin_pll",
 	"fout_vpll"
 };
 
-static const char *const mout_mixer_6442_p[] __initconst = {
+static const char *const mout_mixer_6442_p[] __initconst =
+{
 	"mout_vpll",
 	"dout_mixer"
 };
 
-static const char *const mout_d0sync_6442_p[] __initconst = {
+static const char *const mout_d0sync_6442_p[] __initconst =
+{
 	"mout_dsys",
 	"div_apll"
 };
 
-static const char *const mout_d1sync_6442_p[] __initconst = {
+static const char *const mout_d1sync_6442_p[] __initconst =
+{
 	"mout_psys",
 	"div_apll"
 };
 
-static const char *const mout_group2_6442_p[] __initconst = {
+static const char *const mout_group2_6442_p[] __initconst =
+{
 	"fin_pll",
 	"none",
 	"none",
@@ -320,7 +349,8 @@ static const char *const mout_group2_6442_p[] __initconst = {
 	"mout_vpll",
 };
 
-static const char *const mout_audio0_6442_p[] __initconst = {
+static const char *const mout_audio0_6442_p[] __initconst =
+{
 	"fin_pll",
 	"pcmcdclk0",
 	"none",
@@ -332,7 +362,8 @@ static const char *const mout_audio0_6442_p[] __initconst = {
 	"mout_vpll",
 };
 
-static const char *const mout_audio1_6442_p[] __initconst = {
+static const char *const mout_audio1_6442_p[] __initconst =
+{
 	"i2scdclk1",
 	"pcmcdclk1",
 	"none",
@@ -345,7 +376,8 @@ static const char *const mout_audio1_6442_p[] __initconst = {
 	"fin_pll",
 };
 
-static const char *const mout_clksel_p[] __initconst = {
+static const char *const mout_clksel_p[] __initconst =
+{
 	"fout_apll_clkout",
 	"fout_mpll_clkout",
 	"fout_epll",
@@ -368,7 +400,8 @@ static const char *const mout_clksel_p[] __initconst = {
 	"div_dclk"
 };
 
-static const char *const mout_clksel_6442_p[] __initconst = {
+static const char *const mout_clksel_6442_p[] __initconst =
+{
 	"fout_apll_clkout",
 	"fout_mpll_clkout",
 	"fout_epll",
@@ -391,7 +424,8 @@ static const char *const mout_clksel_6442_p[] __initconst = {
 	"div_dclk"
 };
 
-static const char *const mout_clkout_p[] __initconst = {
+static const char *const mout_clkout_p[] __initconst =
+{
 	"dout_clkout",
 	"none",
 	"xxti",
@@ -399,20 +433,23 @@ static const char *const mout_clkout_p[] __initconst = {
 };
 
 /* Common fixed factor clocks. */
-static const struct samsung_fixed_factor_clock ffactor_clks[] __initconst = {
+static const struct samsung_fixed_factor_clock ffactor_clks[] __initconst =
+{
 	FFACTOR(FOUT_APLL_CLKOUT, "fout_apll_clkout", "fout_apll", 1, 4, 0),
 	FFACTOR(FOUT_MPLL_CLKOUT, "fout_mpll_clkout", "fout_mpll", 1, 2, 0),
 	FFACTOR(DOUT_APLL_CLKOUT, "dout_apll_clkout", "dout_apll", 1, 4, 0),
 };
 
 /* PLL input mux (fin_pll), which needs to be registered before PLLs. */
-static const struct samsung_mux_clock early_mux_clks[] __initconst = {
+static const struct samsung_mux_clock early_mux_clks[] __initconst =
+{
 	MUX_F(FIN_PLL, "fin_pll", fin_pll_p, OM_STAT, 0, 1,
-					CLK_MUX_READ_ONLY, 0),
+	CLK_MUX_READ_ONLY, 0),
 };
 
 /* Common clock muxes. */
-static const struct samsung_mux_clock mux_clks[] __initconst = {
+static const struct samsung_mux_clock mux_clks[] __initconst =
+{
 	MUX(MOUT_FLASH, "mout_flash", mout_flash_p, CLK_SRC0, 28, 1),
 	MUX(MOUT_PSYS, "mout_psys", mout_group4_p, CLK_SRC0, 24, 1),
 	MUX(MOUT_DSYS, "mout_dsys", mout_group4_p, CLK_SRC0, 20, 1),
@@ -425,7 +462,8 @@ static const struct samsung_mux_clock mux_clks[] __initconst = {
 };
 
 /* S5PV210-specific clock muxes. */
-static const struct samsung_mux_clock s5pv210_mux_clks[] __initconst = {
+static const struct samsung_mux_clock s5pv210_mux_clks[] __initconst =
+{
 	MUX(MOUT_VPLL, "mout_vpll", mout_vpll_p, CLK_SRC0, 12, 1),
 
 	MUX(MOUT_VPLLSRC, "mout_vpllsrc", mout_vpllsrc_p, CLK_SRC1, 28, 1),
@@ -470,7 +508,8 @@ static const struct samsung_mux_clock s5pv210_mux_clks[] __initconst = {
 };
 
 /* S5P6442-specific clock muxes. */
-static const struct samsung_mux_clock s5p6442_mux_clks[] __initconst = {
+static const struct samsung_mux_clock s5p6442_mux_clks[] __initconst =
+{
 	MUX(MOUT_VPLL, "mout_vpll", mout_vpll_6442_p, CLK_SRC0, 12, 1),
 
 	MUX(MOUT_FIMD, "mout_fimd", mout_group2_6442_p, CLK_SRC1, 20, 4),
@@ -502,7 +541,8 @@ static const struct samsung_mux_clock s5p6442_mux_clks[] __initconst = {
 };
 
 /* S5PV210-specific fixed rate clocks generated inside the SoC. */
-static const struct samsung_fixed_rate_clock s5pv210_frate_clks[] __initconst = {
+static const struct samsung_fixed_rate_clock s5pv210_frate_clks[] __initconst =
+{
 	FRATE(SCLK_HDMI27M, "sclk_hdmi27m", NULL, 0, 27000000),
 	FRATE(SCLK_HDMIPHY, "sclk_hdmiphy", NULL, 0, 27000000),
 	FRATE(SCLK_USBPHY0, "sclk_usbphy0", NULL, 0, 48000000),
@@ -510,12 +550,14 @@ static const struct samsung_fixed_rate_clock s5pv210_frate_clks[] __initconst = 
 };
 
 /* S5P6442-specific fixed rate clocks generated inside the SoC. */
-static const struct samsung_fixed_rate_clock s5p6442_frate_clks[] __initconst = {
+static const struct samsung_fixed_rate_clock s5p6442_frate_clks[] __initconst =
+{
 	FRATE(SCLK_USBPHY0, "sclk_usbphy0", NULL, 0, 30000000),
 };
 
 /* Common clock dividers. */
-static const struct samsung_div_clock div_clks[] __initconst = {
+static const struct samsung_div_clock div_clks[] __initconst =
+{
 	DIV(DOUT_PCLKP, "dout_pclkp", "dout_hclkp", CLK_DIV0, 28, 3),
 	DIV(DOUT_PCLKD, "dout_pclkd", "dout_hclkd", CLK_DIV0, 20, 3),
 	DIV(DOUT_A2M, "dout_a2m", "mout_apll", CLK_DIV0, 4, 3),
@@ -547,7 +589,8 @@ static const struct samsung_div_clock div_clks[] __initconst = {
 };
 
 /* S5PV210-specific clock dividers. */
-static const struct samsung_div_clock s5pv210_div_clks[] __initconst = {
+static const struct samsung_div_clock s5pv210_div_clks[] __initconst =
+{
 	DIV(DOUT_HCLKP, "dout_hclkp", "mout_psys", CLK_DIV0, 24, 4),
 	DIV(DOUT_HCLKD, "dout_hclkd", "mout_dsys", CLK_DIV0, 16, 4),
 	DIV(DOUT_PCLKM, "dout_pclkm", "dout_hclkm", CLK_DIV0, 12, 3),
@@ -576,7 +619,8 @@ static const struct samsung_div_clock s5pv210_div_clks[] __initconst = {
 };
 
 /* S5P6442-specific clock dividers. */
-static const struct samsung_div_clock s5p6442_div_clks[] __initconst = {
+static const struct samsung_div_clock s5p6442_div_clks[] __initconst =
+{
 	DIV(DOUT_HCLKP, "dout_hclkp", "mout_d1sync", CLK_DIV0, 24, 4),
 	DIV(DOUT_HCLKD, "dout_hclkd", "mout_d0sync", CLK_DIV0, 16, 4),
 
@@ -584,7 +628,8 @@ static const struct samsung_div_clock s5p6442_div_clks[] __initconst = {
 };
 
 /* Common clock gates. */
-static const struct samsung_gate_clock gate_clks[] __initconst = {
+static const struct samsung_gate_clock gate_clks[] __initconst =
+{
 	GATE(CLK_ROTATOR, "rotator", "dout_hclkd", CLK_GATE_IP0, 29, 0, 0),
 	GATE(CLK_FIMC2, "fimc2", "dout_hclkd", CLK_GATE_IP0, 26, 0, 0),
 	GATE(CLK_FIMC1, "fimc1", "dout_hclkd", CLK_GATE_IP0, 25, 0, 0),
@@ -627,44 +672,45 @@ static const struct samsung_gate_clock gate_clks[] __initconst = {
 	GATE(CLK_CHIPID, "chipid", "dout_pclkp", CLK_GATE_IP4, 0, 0, 0),
 
 	GATE(SCLK_AUDIO1, "sclk_audio1", "dout_audio1", CLK_SRC_MASK0, 25,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_AUDIO0, "sclk_audio0", "dout_audio0", CLK_SRC_MASK0, 24,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_PWM, "sclk_pwm", "dout_pwm", CLK_SRC_MASK0, 19,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_SPI0, "sclk_spi0", "dout_spi0", CLK_SRC_MASK0, 16,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_UART2, "sclk_uart2", "dout_uart2", CLK_SRC_MASK0, 14,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_UART1, "sclk_uart1", "dout_uart1", CLK_SRC_MASK0, 13,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_UART0, "sclk_uart0", "dout_uart0", CLK_SRC_MASK0, 12,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_MMC2, "sclk_mmc2", "dout_mmc2", CLK_SRC_MASK0, 10,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_MMC1, "sclk_mmc1", "dout_mmc1", CLK_SRC_MASK0, 9,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_MMC0, "sclk_mmc0", "dout_mmc0", CLK_SRC_MASK0, 8,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_FIMD, "sclk_fimd", "dout_fimd", CLK_SRC_MASK0, 5,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_CAM1, "sclk_cam1", "dout_cam1", CLK_SRC_MASK0, 4,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_CAM0, "sclk_cam0", "dout_cam0", CLK_SRC_MASK0, 3,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_MIXER, "sclk_mixer", "mout_mixer", CLK_SRC_MASK0, 1,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 
 	GATE(SCLK_FIMC2, "sclk_fimc2", "dout_fimc2", CLK_SRC_MASK1, 4,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_FIMC1, "sclk_fimc1", "dout_fimc1", CLK_SRC_MASK1, 3,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_FIMC0, "sclk_fimc0", "dout_fimc0", CLK_SRC_MASK1, 2,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 };
 
 /* S5PV210-specific clock gates. */
-static const struct samsung_gate_clock s5pv210_gate_clks[] __initconst = {
+static const struct samsung_gate_clock s5pv210_gate_clks[] __initconst =
+{
 	GATE(CLK_CSIS, "clk_csis", "dout_hclkd", CLK_GATE_IP0, 31, 0, 0),
 	GATE(CLK_MFC, "mfc", "dout_hclkm", CLK_GATE_IP0, 16, 0, 0),
 	GATE(CLK_G2D, "g2d", "dout_hclkd", CLK_GATE_IP0, 12, 0, 0),
@@ -692,7 +738,7 @@ static const struct samsung_gate_clock s5pv210_gate_clks[] __initconst = {
 	GATE(CLK_UART3, "uart3", "dout_pclkp", CLK_GATE_IP3, 20, 0, 0),
 	GATE(CLK_SPI1, "spi1", "dout_pclkp", CLK_GATE_IP3, 13, 0, 0),
 	GATE(CLK_I2C_HDMI_PHY, "i2c_hdmi_phy", "dout_pclkd",
-			CLK_GATE_IP3, 11, 0, 0),
+	CLK_GATE_IP3, 11, 0, 0),
 	GATE(CLK_I2C1, "i2c1", "dout_pclkd", CLK_GATE_IP3, 10, 0, 0),
 	GATE(CLK_I2S2, "i2s2", "dout_pclkp", CLK_GATE_IP3, 6, 0, 0),
 	GATE(CLK_AC97, "ac97", "dout_pclkp", CLK_GATE_IP3, 1, 0, 0),
@@ -708,25 +754,26 @@ static const struct samsung_gate_clock s5pv210_gate_clks[] __initconst = {
 	GATE(CLK_JPEG, "jpeg", "dout_hclkd", CLK_GATE_IP5, 29, 0, 0),
 
 	GATE(SCLK_SPDIF, "sclk_spdif", "mout_spdif", CLK_SRC_MASK0, 27,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_AUDIO2, "sclk_audio2", "dout_audio2", CLK_SRC_MASK0, 26,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_SPI1, "sclk_spi1", "dout_spi1", CLK_SRC_MASK0, 17,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_UART3, "sclk_uart3", "dout_uart3", CLK_SRC_MASK0, 15,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_MMC3, "sclk_mmc3", "dout_mmc3", CLK_SRC_MASK0, 11,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_CSIS, "sclk_csis", "dout_csis", CLK_SRC_MASK0, 6,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_DAC, "sclk_dac", "mout_dac", CLK_SRC_MASK0, 2,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 	GATE(SCLK_HDMI, "sclk_hdmi", "mout_hdmi", CLK_SRC_MASK0, 0,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 };
 
 /* S5P6442-specific clock gates. */
-static const struct samsung_gate_clock s5p6442_gate_clks[] __initconst = {
+static const struct samsung_gate_clock s5p6442_gate_clks[] __initconst =
+{
 	GATE(CLK_JPEG, "jpeg", "dout_hclkd", CLK_GATE_IP0, 28, 0, 0),
 	GATE(CLK_MFC, "mfc", "dout_hclkd", CLK_GATE_IP0, 16, 0, 0),
 	GATE(CLK_G2D, "g2d", "dout_hclkd", CLK_GATE_IP0, 12, 0, 0),
@@ -739,77 +786,83 @@ static const struct samsung_gate_clock s5p6442_gate_clks[] __initconst = {
 	GATE(CLK_I2C1, "i2c1", "dout_pclkp", CLK_GATE_IP3, 8, 0, 0),
 
 	GATE(SCLK_DAC, "sclk_dac", "mout_vpll", CLK_SRC_MASK0, 2,
-			CLK_SET_RATE_PARENT, 0),
+	CLK_SET_RATE_PARENT, 0),
 };
 
 /*
  * Clock aliases for legacy clkdev look-up.
  * NOTE: Needed only to support legacy board files.
  */
-static const struct samsung_clock_alias s5pv210_aliases[] __initconst = {
+static const struct samsung_clock_alias s5pv210_aliases[] __initconst =
+{
 	ALIAS(DOUT_APLL, NULL, "armclk"),
 	ALIAS(DOUT_HCLKM, NULL, "hclk_msys"),
 	ALIAS(MOUT_DMC0, NULL, "sclk_dmc0"),
 };
 
 /* S5PV210-specific PLLs. */
-static const struct samsung_pll_clock s5pv210_pll_clks[] __initconst = {
+static const struct samsung_pll_clock s5pv210_pll_clks[] __initconst =
+{
 	[apll] = PLL(pll_4508, FOUT_APLL, "fout_apll", "fin_pll",
-						APLL_LOCK, APLL_CON0, NULL),
+	APLL_LOCK, APLL_CON0, NULL),
 	[mpll] = PLL(pll_4502, FOUT_MPLL, "fout_mpll", "fin_pll",
-						MPLL_LOCK, MPLL_CON, NULL),
+	MPLL_LOCK, MPLL_CON, NULL),
 	[epll] = PLL(pll_4600, FOUT_EPLL, "fout_epll", "fin_pll",
-						EPLL_LOCK, EPLL_CON0, NULL),
+	EPLL_LOCK, EPLL_CON0, NULL),
 	[vpll] = PLL(pll_4502, FOUT_VPLL, "fout_vpll", "mout_vpllsrc",
-						VPLL_LOCK, VPLL_CON, NULL),
+	VPLL_LOCK, VPLL_CON, NULL),
 };
 
 /* S5P6442-specific PLLs. */
-static const struct samsung_pll_clock s5p6442_pll_clks[] __initconst = {
+static const struct samsung_pll_clock s5p6442_pll_clks[] __initconst =
+{
 	[apll] = PLL(pll_4502, FOUT_APLL, "fout_apll", "fin_pll",
-						APLL_LOCK, APLL_CON0, NULL),
+	APLL_LOCK, APLL_CON0, NULL),
 	[mpll] = PLL(pll_4502, FOUT_MPLL, "fout_mpll", "fin_pll",
-						MPLL_LOCK, MPLL_CON, NULL),
+	MPLL_LOCK, MPLL_CON, NULL),
 	[epll] = PLL(pll_4500, FOUT_EPLL, "fout_epll", "fin_pll",
-						EPLL_LOCK, EPLL_CON0, NULL),
+	EPLL_LOCK, EPLL_CON0, NULL),
 	[vpll] = PLL(pll_4500, FOUT_VPLL, "fout_vpll", "fin_pll",
-						VPLL_LOCK, VPLL_CON, NULL),
+	VPLL_LOCK, VPLL_CON, NULL),
 };
 
 static void __init __s5pv210_clk_init(struct device_node *np,
-				      unsigned long xxti_f,
-				      unsigned long xusbxti_f,
-				      bool is_s5p6442)
+									  unsigned long xxti_f,
+									  unsigned long xusbxti_f,
+									  bool is_s5p6442)
 {
 	struct samsung_clk_provider *ctx;
 
 	ctx = samsung_clk_init(np, reg_base, NR_CLKS);
 
 	samsung_clk_register_mux(ctx, early_mux_clks,
-					ARRAY_SIZE(early_mux_clks));
+							 ARRAY_SIZE(early_mux_clks));
 
-	if (is_s5p6442) {
+	if (is_s5p6442)
+	{
 		samsung_clk_register_fixed_rate(ctx, s5p6442_frate_clks,
-			ARRAY_SIZE(s5p6442_frate_clks));
+										ARRAY_SIZE(s5p6442_frate_clks));
 		samsung_clk_register_pll(ctx, s5p6442_pll_clks,
-			ARRAY_SIZE(s5p6442_pll_clks), reg_base);
+								 ARRAY_SIZE(s5p6442_pll_clks), reg_base);
 		samsung_clk_register_mux(ctx, s5p6442_mux_clks,
-				ARRAY_SIZE(s5p6442_mux_clks));
+								 ARRAY_SIZE(s5p6442_mux_clks));
 		samsung_clk_register_div(ctx, s5p6442_div_clks,
-				ARRAY_SIZE(s5p6442_div_clks));
+								 ARRAY_SIZE(s5p6442_div_clks));
 		samsung_clk_register_gate(ctx, s5p6442_gate_clks,
-				ARRAY_SIZE(s5p6442_gate_clks));
-	} else {
+								  ARRAY_SIZE(s5p6442_gate_clks));
+	}
+	else
+	{
 		samsung_clk_register_fixed_rate(ctx, s5pv210_frate_clks,
-			ARRAY_SIZE(s5pv210_frate_clks));
+										ARRAY_SIZE(s5pv210_frate_clks));
 		samsung_clk_register_pll(ctx, s5pv210_pll_clks,
-			ARRAY_SIZE(s5pv210_pll_clks), reg_base);
+								 ARRAY_SIZE(s5pv210_pll_clks), reg_base);
 		samsung_clk_register_mux(ctx, s5pv210_mux_clks,
-				ARRAY_SIZE(s5pv210_mux_clks));
+								 ARRAY_SIZE(s5pv210_mux_clks));
 		samsung_clk_register_div(ctx, s5pv210_div_clks,
-				ARRAY_SIZE(s5pv210_div_clks));
+								 ARRAY_SIZE(s5pv210_div_clks));
 		samsung_clk_register_gate(ctx, s5pv210_gate_clks,
-				ARRAY_SIZE(s5pv210_gate_clks));
+								  ARRAY_SIZE(s5pv210_gate_clks));
 	}
 
 	samsung_clk_register_mux(ctx, mux_clks, ARRAY_SIZE(mux_clks));
@@ -817,27 +870,30 @@ static void __init __s5pv210_clk_init(struct device_node *np,
 	samsung_clk_register_gate(ctx, gate_clks, ARRAY_SIZE(gate_clks));
 
 	samsung_clk_register_fixed_factor(ctx, ffactor_clks,
-						ARRAY_SIZE(ffactor_clks));
+									  ARRAY_SIZE(ffactor_clks));
 
 	samsung_clk_register_alias(ctx, s5pv210_aliases,
-						ARRAY_SIZE(s5pv210_aliases));
+							   ARRAY_SIZE(s5pv210_aliases));
 
 	s5pv210_clk_sleep_init();
 
 	samsung_clk_of_add_provider(np, ctx);
 
 	pr_info("%s clocks: mout_apll = %ld, mout_mpll = %ld\n"
-		"\tmout_epll = %ld, mout_vpll = %ld\n",
-		is_s5p6442 ? "S5P6442" : "S5PV210",
-		_get_rate("mout_apll"), _get_rate("mout_mpll"),
-		_get_rate("mout_epll"), _get_rate("mout_vpll"));
+			"\tmout_epll = %ld, mout_vpll = %ld\n",
+			is_s5p6442 ? "S5P6442" : "S5PV210",
+			_get_rate("mout_apll"), _get_rate("mout_mpll"),
+			_get_rate("mout_epll"), _get_rate("mout_vpll"));
 }
 
 static void __init s5pv210_clk_dt_init(struct device_node *np)
 {
 	reg_base = of_iomap(np, 0);
+
 	if (!reg_base)
+	{
 		panic("%s: failed to map registers\n", __func__);
+	}
 
 	__s5pv210_clk_init(np, 0, 0, false);
 }
@@ -846,8 +902,11 @@ CLK_OF_DECLARE(s5pv210_clk, "samsung,s5pv210-clock", s5pv210_clk_dt_init);
 static void __init s5p6442_clk_dt_init(struct device_node *np)
 {
 	reg_base = of_iomap(np, 0);
+
 	if (!reg_base)
+	{
 		panic("%s: failed to map registers\n", __func__);
+	}
 
 	__s5pv210_clk_init(np, 0, 0, true);
 }

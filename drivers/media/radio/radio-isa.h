@@ -33,14 +33,16 @@ struct radio_isa_driver;
 struct radio_isa_ops;
 
 /* Core structure for radio ISA cards */
-struct radio_isa_card {
+struct radio_isa_card
+{
 	const struct radio_isa_driver *drv;
 	struct v4l2_device v4l2_dev;
 	struct v4l2_ctrl_handler hdl;
 	struct video_device vdev;
 	struct mutex lock;
 	const struct radio_isa_ops *ops;
-	struct {	/* mute/volume cluster */
+	struct  	/* mute/volume cluster */
+	{
 		struct v4l2_ctrl *mute;
 		struct v4l2_ctrl *volume;
 	};
@@ -53,7 +55,8 @@ struct radio_isa_card {
 	u32 freq;
 };
 
-struct radio_isa_ops {
+struct radio_isa_ops
+{
 	/* Allocate and initialize a radio_isa_card struct */
 	struct radio_isa_card *(*alloc)(void);
 	/* Probe whether a card is present at the given port */
@@ -75,7 +78,8 @@ struct radio_isa_ops {
 };
 
 /* Top level structure needed to instantiate the cards */
-struct radio_isa_driver {
+struct radio_isa_driver
+{
 	struct isa_driver driver;
 #ifdef CONFIG_PNP
 	struct pnp_driver pnp_driver;
@@ -107,7 +111,7 @@ int radio_isa_probe(struct device *pdev, unsigned int dev);
 int radio_isa_remove(struct device *pdev, unsigned int dev);
 #ifdef CONFIG_PNP
 int radio_isa_pnp_probe(struct pnp_dev *dev,
-			const struct pnp_device_id *dev_id);
+						const struct pnp_device_id *dev_id);
 void radio_isa_pnp_remove(struct pnp_dev *dev);
 #endif
 

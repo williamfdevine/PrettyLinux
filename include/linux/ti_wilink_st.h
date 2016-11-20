@@ -31,7 +31,8 @@
  * enum proto-type - The protocol on WiLink chips which share a
  *	common physical interface like UART.
  */
-enum proto_type {
+enum proto_type
+{
 	ST_BT,
 	ST_FM,
 	ST_GPS,
@@ -67,7 +68,8 @@ enum proto_type {
  * @reserve: the number of bytes ST needs to reserve in the skb being
  *	prepared for the protocol driver.
  */
-struct st_proto_s {
+struct st_proto_s
+{
 	enum proto_type type;
 	long (*recv) (void *, struct sk_buff *);
 	unsigned char (*match_packet) (const unsigned char *data);
@@ -140,7 +142,8 @@ extern long st_unregister(struct st_proto_s *);
  * @kim_data: reference to the parent encapsulating structure.
  *
  */
-struct st_data_s {
+struct st_data_s
+{
 	unsigned long st_state;
 	struct sk_buff *tx_skb;
 #define ST_TX_SENDING	1
@@ -171,7 +174,7 @@ int st_get_uart_wr_room(struct st_data_s *st_gdata);
  * point this to tty->driver->write or tty->ops->write
  * depending upon the kernel version
  */
-int st_int_write(struct st_data_s*, const unsigned char*, int);
+int st_int_write(struct st_data_s *, const unsigned char *, int);
 
 /**
  * st_write -
@@ -195,8 +198,8 @@ void st_kim_ref(struct st_data_s **, int);
 
 #define GPS_STUB_TEST
 #ifdef GPS_STUB_TEST
-int gps_chrdrv_stub_write(const unsigned char*, int);
-void gps_chrdrv_stub_init(void);
+	int gps_chrdrv_stub_write(const unsigned char *, int);
+	void gps_chrdrv_stub_init(void);
 #endif
 
 /*
@@ -210,7 +213,7 @@ void gps_chrdrv_stub_init(void);
 #define CMD_RESP_TIME	800
 #define CMD_WR_TIME	5000
 #define MAKEWORD(a, b)  ((unsigned short)(((unsigned char)(a)) \
-	| ((unsigned short)((unsigned char)(b))) << 8))
+						 | ((unsigned short)((unsigned char)(b))) << 8))
 
 #define GPIO_HIGH 1
 #define GPIO_LOW  0
@@ -224,7 +227,8 @@ void gps_chrdrv_stub_init(void);
 /**
  * struct chip_version - save the chip version
  */
-struct chip_version {
+struct chip_version
+{
 	unsigned short full;
 	unsigned short chip;
 	unsigned short min_ver;
@@ -256,7 +260,8 @@ struct chip_version {
  * @version: chip version available via a sysfs entry.
  *
  */
-struct kim_data_s {
+struct kim_data_s
+{
 	long uim_pid;
 	struct platform_device *kim_pdev;
 	struct completion kim_rcvd, ldisc_installed;
@@ -304,7 +309,8 @@ void st_kim_recv(void *, const unsigned char *, long);
  *	Each such action needs to be parsed by the KIM and
  *	relevant procedure to be called.
  */
-struct bts_header {
+struct bts_header
+{
 	u32 magic;
 	u32 version;
 	u8 future[24];
@@ -315,27 +321,32 @@ struct bts_header {
  * struct bts_action - Each .bts action has its own type of
  *	data.
  */
-struct bts_action {
+struct bts_action
+{
 	u16 type;
 	u16 size;
 	u8 data[0];
 } __attribute__ ((packed));
 
-struct bts_action_send {
+struct bts_action_send
+{
 	u8 data[0];
 } __attribute__ ((packed));
 
-struct bts_action_wait {
+struct bts_action_wait
+{
 	u32 msec;
 	u32 size;
 	u8 data[0];
 } __attribute__ ((packed));
 
-struct bts_action_delay {
+struct bts_action_delay
+{
 	u32 msec;
 } __attribute__ ((packed));
 
-struct bts_action_serial {
+struct bts_action_serial
+{
 	u32 baud;
 	u32 flow_control;
 } __attribute__ ((packed));
@@ -346,7 +357,8 @@ struct bts_action_serial {
  *	needs to be ignored, since UIM would do that
  *	when it receives request from KIM for ldisc installation.
  */
-struct hci_command {
+struct hci_command
+{
 	u8 prefix;
 	u16 opcode;
 	u8 plen;
@@ -400,7 +412,8 @@ void st_ll_wakeup(struct st_data_s *);
  * at net/bluetooth/
  */
 
-struct fm_event_hdr {
+struct fm_event_hdr
+{
 	u8 plen;
 } __attribute__ ((packed));
 
@@ -409,7 +422,8 @@ struct fm_event_hdr {
 #define ST_FM_CH8_PKT 0x8
 
 /* gps stuff */
-struct gps_event_hdr {
+struct gps_event_hdr
+{
 	u8 opcode;
 	u16 plen;
 } __attribute__ ((packed));
@@ -436,7 +450,8 @@ struct gps_event_hdr {
  *	asleep or run host faster when chip awake etc..
  *
  */
-struct ti_st_plat_data {
+struct ti_st_plat_data
+{
 	u32 nshutdown_gpio;
 	unsigned char dev_name[UART_DEV_NAME_LEN]; /* uart name */
 	u32 flow_cntrl; /* flow control flag */

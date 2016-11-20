@@ -52,7 +52,8 @@
 
 #define AR9003TXC_CONST(_ds) ((const struct ar9003_txc *) _ds)
 
-struct ar9003_rxs {
+struct ar9003_rxs
+{
 	u32 ds_info;
 	u32 status1;
 	u32 status2;
@@ -68,7 +69,8 @@ struct ar9003_rxs {
 } __packed __aligned(4);
 
 /* Transmit Control Descriptor */
-struct ar9003_txc {
+struct ar9003_txc
+{
 	u32 info;   /* descriptor information */
 	u32 link;   /* link pointer */
 	u32 data0;  /* data pointer to 1st buffer */
@@ -96,7 +98,8 @@ struct ar9003_txc {
 	u32 pad[8]; /* pad to cache line (128 bytes/32 dwords) */
 } __packed __aligned(4);
 
-struct ar9003_txs {
+struct ar9003_txs
+{
 	u32 ds_info;
 	u32 status1;
 	u32 status2;
@@ -111,13 +114,13 @@ struct ar9003_txs {
 void ar9003_hw_attach_mac_ops(struct ath_hw *hw);
 void ath9k_hw_set_rx_bufsize(struct ath_hw *ah, u16 buf_size);
 void ath9k_hw_addrxbuf_edma(struct ath_hw *ah, u32 rxdp,
-			    enum ath9k_rx_qtype qtype);
+							enum ath9k_rx_qtype qtype);
 
 int ath9k_hw_process_rxdesc_edma(struct ath_hw *ah,
-				 struct ath_rx_status *rxs,
-				 void *buf_addr);
+								 struct ath_rx_status *rxs,
+								 void *buf_addr);
 void ath9k_hw_reset_txstatus_ring(struct ath_hw *ah);
 void ath9k_hw_setup_statusring(struct ath_hw *ah, void *ts_start,
-			       u32 ts_paddr_start,
-			       u16 size);
+							   u32 ts_paddr_start,
+							   u16 size);
 #endif

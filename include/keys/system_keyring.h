@@ -17,8 +17,8 @@
 #ifdef CONFIG_SYSTEM_TRUSTED_KEYRING
 
 extern int restrict_link_by_builtin_trusted(struct key *keyring,
-					    const struct key_type *type,
-					    const union key_payload *payload);
+		const struct key_type *type,
+		const union key_payload *payload);
 
 #else
 #define restrict_link_by_builtin_trusted restrict_link_reject

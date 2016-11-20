@@ -3,7 +3,8 @@
 
 #include <unistd.h>
 
-enum {
+enum
+{
 	ERR_RUN_COMMAND_FORK = 10000,
 	ERR_RUN_COMMAND_EXEC,
 	ERR_RUN_COMMAND_PIPE,
@@ -14,7 +15,8 @@ enum {
 };
 #define IS_RUN_COMMAND_ERR(x) (-(x) >= ERR_RUN_COMMAND_FORK)
 
-struct child_process {
+struct child_process
+{
 	const char **argv;
 	pid_t pid;
 	/*
@@ -40,11 +42,11 @@ struct child_process {
 	int err;
 	const char *dir;
 	const char *const *env;
-	unsigned no_stdin:1;
-	unsigned no_stdout:1;
-	unsigned no_stderr:1;
-	unsigned exec_cmd:1; /* if this is to be external sub-command */
-	unsigned stdout_to_stderr:1;
+	unsigned no_stdin: 1;
+	unsigned no_stdout: 1;
+	unsigned no_stderr: 1;
+	unsigned exec_cmd: 1; /* if this is to be external sub-command */
+	unsigned stdout_to_stderr: 1;
 	void (*preexec_cb)(void);
 };
 

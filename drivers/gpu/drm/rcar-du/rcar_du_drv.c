@@ -35,7 +35,8 @@
  * Device Information
  */
 
-static const struct rcar_du_device_info rcar_du_r8a7779_info = {
+static const struct rcar_du_device_info rcar_du_r8a7779_info =
+{
 	.gen = 2,
 	.features = 0,
 	.num_crtcs = 2,
@@ -57,10 +58,11 @@ static const struct rcar_du_device_info rcar_du_r8a7779_info = {
 	.num_lvds = 0,
 };
 
-static const struct rcar_du_device_info rcar_du_r8a7790_info = {
+static const struct rcar_du_device_info rcar_du_r8a7790_info =
+{
 	.gen = 2,
 	.features = RCAR_DU_FEATURE_CRTC_IRQ_CLOCK
-		  | RCAR_DU_FEATURE_EXT_CTRL_REGS,
+	| RCAR_DU_FEATURE_EXT_CTRL_REGS,
 	.quirks = RCAR_DU_QUIRK_ALIGN_128B | RCAR_DU_QUIRK_LVDS_LANES,
 	.num_crtcs = 3,
 	.routes = {
@@ -87,10 +89,11 @@ static const struct rcar_du_device_info rcar_du_r8a7790_info = {
 };
 
 /* M2-W (r8a7791) and M2-N (r8a7793) are identical */
-static const struct rcar_du_device_info rcar_du_r8a7791_info = {
+static const struct rcar_du_device_info rcar_du_r8a7791_info =
+{
 	.gen = 2,
 	.features = RCAR_DU_FEATURE_CRTC_IRQ_CLOCK
-		  | RCAR_DU_FEATURE_EXT_CTRL_REGS,
+	| RCAR_DU_FEATURE_EXT_CTRL_REGS,
 	.num_crtcs = 2,
 	.routes = {
 		/* R8A779[13] has one RGB output, one LVDS output and one
@@ -110,10 +113,11 @@ static const struct rcar_du_device_info rcar_du_r8a7791_info = {
 	.num_lvds = 1,
 };
 
-static const struct rcar_du_device_info rcar_du_r8a7794_info = {
+static const struct rcar_du_device_info rcar_du_r8a7794_info =
+{
 	.gen = 2,
 	.features = RCAR_DU_FEATURE_CRTC_IRQ_CLOCK
-		  | RCAR_DU_FEATURE_EXT_CTRL_REGS,
+	| RCAR_DU_FEATURE_EXT_CTRL_REGS,
 	.num_crtcs = 2,
 	.routes = {
 		/* R8A7794 has two RGB outputs and one (currently unsupported)
@@ -133,11 +137,12 @@ static const struct rcar_du_device_info rcar_du_r8a7794_info = {
 	.num_lvds = 0,
 };
 
-static const struct rcar_du_device_info rcar_du_r8a7795_info = {
+static const struct rcar_du_device_info rcar_du_r8a7795_info =
+{
 	.gen = 3,
 	.features = RCAR_DU_FEATURE_CRTC_IRQ_CLOCK
-		  | RCAR_DU_FEATURE_EXT_CTRL_REGS
-		  | RCAR_DU_FEATURE_VSP1_SOURCE,
+	| RCAR_DU_FEATURE_EXT_CTRL_REGS
+	| RCAR_DU_FEATURE_VSP1_SOURCE,
 	.num_crtcs = 4,
 	.routes = {
 		/* R8A7795 has one RGB output, one LVDS output and two
@@ -157,7 +162,8 @@ static const struct rcar_du_device_info rcar_du_r8a7795_info = {
 	.num_lvds = 1,
 };
 
-static const struct of_device_id rcar_du_of_table[] = {
+static const struct of_device_id rcar_du_of_table[] =
+{
 	{ .compatible = "renesas,du-r8a7779", .data = &rcar_du_r8a7779_info },
 	{ .compatible = "renesas,du-r8a7790", .data = &rcar_du_r8a7790_info },
 	{ .compatible = "renesas,du-r8a7791", .data = &rcar_du_r8a7791_info },
@@ -196,7 +202,8 @@ static void rcar_du_disable_vblank(struct drm_device *dev, unsigned int pipe)
 	rcar_du_crtc_enable_vblank(&rcdu->crtcs[pipe], false);
 }
 
-static const struct file_operations rcar_du_fops = {
+static const struct file_operations rcar_du_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= drm_open,
 	.release	= drm_release,
@@ -210,9 +217,10 @@ static const struct file_operations rcar_du_fops = {
 	.mmap		= drm_gem_cma_mmap,
 };
 
-static struct drm_driver rcar_du_driver = {
+static struct drm_driver rcar_du_driver =
+{
 	.driver_features	= DRIVER_GEM | DRIVER_MODESET | DRIVER_PRIME
-				| DRIVER_ATOMIC,
+	| DRIVER_ATOMIC,
 	.lastclose		= rcar_du_lastclose,
 	.get_vblank_counter	= drm_vblank_no_hw_counter,
 	.enable_vblank		= rcar_du_enable_vblank,
@@ -265,7 +273,8 @@ static int rcar_du_pm_resume(struct device *dev)
 }
 #endif
 
-static const struct dev_pm_ops rcar_du_pm_ops = {
+static const struct dev_pm_ops rcar_du_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(rcar_du_pm_suspend, rcar_du_pm_resume)
 };
 
@@ -281,7 +290,9 @@ static int rcar_du_remove(struct platform_device *pdev)
 	drm_dev_unregister(ddev);
 
 	if (rcdu->fbdev)
+	{
 		drm_fbdev_cma_fini(rcdu->fbdev);
+	}
 
 	drm_kms_helper_poll_fini(ddev);
 	drm_mode_config_cleanup(ddev);
@@ -300,15 +311,19 @@ static int rcar_du_probe(struct platform_device *pdev)
 	struct resource *mem;
 	int ret;
 
-	if (np == NULL) {
+	if (np == NULL)
+	{
 		dev_err(&pdev->dev, "no device tree node\n");
 		return -ENODEV;
 	}
 
 	/* Allocate and initialize the DRM and R-Car device structures. */
 	rcdu = devm_kzalloc(&pdev->dev, sizeof(*rcdu), GFP_KERNEL);
+
 	if (rcdu == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	init_waitqueue_head(&rcdu->commit.wait);
 
@@ -316,8 +331,11 @@ static int rcar_du_probe(struct platform_device *pdev)
 	rcdu->info = of_match_device(rcar_du_of_table, rcdu->dev)->data;
 
 	ddev = drm_dev_alloc(&rcar_du_driver, &pdev->dev);
+
 	if (IS_ERR(ddev))
+	{
 		return PTR_ERR(ddev);
+	}
 
 	rcdu->ddev = ddev;
 	ddev->dev_private = rcdu;
@@ -327,7 +345,9 @@ static int rcar_du_probe(struct platform_device *pdev)
 	/* I/O resources */
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	rcdu->mmio = devm_ioremap_resource(&pdev->dev, mem);
-	if (IS_ERR(rcdu->mmio)) {
+
+	if (IS_ERR(rcdu->mmio))
+	{
 		ret = PTR_ERR(rcdu->mmio);
 		goto error;
 	}
@@ -336,15 +356,21 @@ static int rcar_du_probe(struct platform_device *pdev)
 	 * disabled for all CRTCs.
 	 */
 	ret = drm_vblank_init(ddev, (1 << rcdu->info->num_crtcs) - 1);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	/* DRM/KMS objects */
 	ret = rcar_du_modeset_init(rcdu);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		if (ret != -EPROBE_DEFER)
 			dev_err(&pdev->dev,
-				"failed to initialize DRM/KMS (%d)\n", ret);
+					"failed to initialize DRM/KMS (%d)\n", ret);
+
 		goto error;
 	}
 
@@ -354,8 +380,11 @@ static int rcar_du_probe(struct platform_device *pdev)
 	 * sysfs.
 	 */
 	ret = drm_dev_register(ddev, 0);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	DRM_INFO("Device %s probed\n", dev_name(&pdev->dev));
 
@@ -367,7 +396,8 @@ error:
 	return ret;
 }
 
-static struct platform_driver rcar_du_platform_driver = {
+static struct platform_driver rcar_du_platform_driver =
+{
 	.probe		= rcar_du_probe,
 	.remove		= rcar_du_remove,
 	.driver		= {

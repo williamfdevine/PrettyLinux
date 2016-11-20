@@ -40,20 +40,23 @@ xt_cluster_hash_ipv6(const void *ip, const struct xt_cluster_match_info *info)
 
 static inline u_int32_t
 xt_cluster_hash(const struct nf_conn *ct,
-		const struct xt_cluster_match_info *info)
+				const struct xt_cluster_match_info *info)
 {
 	u_int32_t hash = 0;
 
-	switch(nf_ct_l3num(ct)) {
-	case AF_INET:
-		hash = xt_cluster_hash_ipv4(nf_ct_orig_ipv4_src(ct), info);
-		break;
-	case AF_INET6:
-		hash = xt_cluster_hash_ipv6(nf_ct_orig_ipv6_src(ct), info);
-		break;
-	default:
-		WARN_ON(1);
-		break;
+	switch (nf_ct_l3num(ct))
+	{
+		case AF_INET:
+			hash = xt_cluster_hash_ipv4(nf_ct_orig_ipv4_src(ct), info);
+			break;
+
+		case AF_INET6:
+			hash = xt_cluster_hash_ipv6(nf_ct_orig_ipv6_src(ct), info);
+			break;
+
+		default:
+			WARN_ON(1);
+			break;
 	}
 
 	return reciprocal_scale(hash, info->total_nodes);
@@ -71,18 +74,22 @@ xt_cluster_is_multicast_addr(const struct sk_buff *skb, u_int8_t family)
 {
 	bool is_multicast = false;
 
-	switch(family) {
-	case NFPROTO_IPV4:
-		is_multicast = ipv4_is_multicast(ip_hdr(skb)->daddr);
-		break;
-	case NFPROTO_IPV6:
-		is_multicast =
-			xt_cluster_ipv6_is_multicast(&ipv6_hdr(skb)->daddr);
-		break;
-	default:
-		WARN_ON(1);
-		break;
+	switch (family)
+	{
+		case NFPROTO_IPV4:
+			is_multicast = ipv4_is_multicast(ip_hdr(skb)->daddr);
+			break;
+
+		case NFPROTO_IPV6:
+			is_multicast =
+				xt_cluster_ipv6_is_multicast(&ipv6_hdr(skb)->daddr);
+			break;
+
+		default:
+			WARN_ON(1);
+			break;
 	}
+
 	return is_multicast;
 }
 
@@ -113,45 +120,60 @@ xt_cluster_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	 * because we would need to add a PKTTYPE target for this sole purpose.
 	 */
 	if (!xt_cluster_is_multicast_addr(skb, par->family) &&
-	    skb->pkt_type == PACKET_MULTICAST) {
-	    	pskb->pkt_type = PACKET_HOST;
+		skb->pkt_type == PACKET_MULTICAST)
+	{
+		pskb->pkt_type = PACKET_HOST;
 	}
 
 	ct = nf_ct_get(skb, &ctinfo);
+
 	if (ct == NULL)
+	{
 		return false;
+	}
 
 	if (nf_ct_is_untracked(ct))
+	{
 		return false;
+	}
 
 	if (ct->master)
+	{
 		hash = xt_cluster_hash(ct->master, info);
+	}
 	else
+	{
 		hash = xt_cluster_hash(ct, info);
+	}
 
 	return !!((1 << hash) & info->node_mask) ^
-	       !!(info->flags & XT_CLUSTER_F_INV);
+		   !!(info->flags & XT_CLUSTER_F_INV);
 }
 
 static int xt_cluster_mt_checkentry(const struct xt_mtchk_param *par)
 {
 	struct xt_cluster_match_info *info = par->matchinfo;
 
-	if (info->total_nodes > XT_CLUSTER_NODES_MAX) {
+	if (info->total_nodes > XT_CLUSTER_NODES_MAX)
+	{
 		pr_info("you have exceeded the maximum "
-			"number of cluster nodes (%u > %u)\n",
-			info->total_nodes, XT_CLUSTER_NODES_MAX);
+				"number of cluster nodes (%u > %u)\n",
+				info->total_nodes, XT_CLUSTER_NODES_MAX);
 		return -EINVAL;
 	}
-	if (info->node_mask >= (1ULL << info->total_nodes)) {
+
+	if (info->node_mask >= (1ULL << info->total_nodes))
+	{
 		pr_info("this node mask cannot be "
-			"higher than the total number of nodes\n");
+				"higher than the total number of nodes\n");
 		return -EDOM;
 	}
+
 	return 0;
 }
 
-static struct xt_match xt_cluster_match __read_mostly = {
+static struct xt_match xt_cluster_match __read_mostly =
+{
 	.name		= "cluster",
 	.family		= NFPROTO_UNSPEC,
 	.match		= xt_cluster_mt,

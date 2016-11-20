@@ -40,14 +40,16 @@
 #define MAX_AREA	0xff
 #define MAX_FINGERS	2
 
-struct st1232_ts_finger {
+struct st1232_ts_finger
+{
 	u16 x;
 	u16 y;
 	u8 t;
 	bool is_valid;
 };
 
-struct st1232_ts_data {
+struct st1232_ts_data
+{
 	struct i2c_client *client;
 	struct input_dev *input_dev;
 	struct st1232_ts_finger finger[MAX_FINGERS];
@@ -77,21 +79,26 @@ static int st1232_ts_read_data(struct st1232_ts_data *ts)
 	msg[1].buf = buf;
 
 	error = i2c_transfer(client->adapter, msg, 2);
+
 	if (error < 0)
+	{
 		return error;
+	}
 
 	/* get "valid" bits */
 	finger[0].is_valid = buf[2] >> 7;
 	finger[1].is_valid = buf[5] >> 7;
 
 	/* get xy coordinate */
-	if (finger[0].is_valid) {
+	if (finger[0].is_valid)
+	{
 		finger[0].x = ((buf[2] & 0x0070) << 4) | buf[3];
 		finger[0].y = ((buf[2] & 0x0007) << 8) | buf[4];
 		finger[0].t = buf[8];
 	}
 
-	if (finger[1].is_valid) {
+	if (finger[1].is_valid)
+	{
 		finger[1].x = ((buf[5] & 0x0070) << 4) | buf[6];
 		finger[1].y = ((buf[5] & 0x0007) << 8) | buf[7];
 		finger[1].t = buf[9];
@@ -109,13 +116,19 @@ static irqreturn_t st1232_ts_irq_handler(int irq, void *dev_id)
 	int i, ret;
 
 	ret = st1232_ts_read_data(ts);
+
 	if (ret < 0)
+	{
 		goto end;
+	}
 
 	/* multi touch protocol */
-	for (i = 0; i < MAX_FINGERS; i++) {
+	for (i = 0; i < MAX_FINGERS; i++)
+	{
 		if (!finger[i].is_valid)
+		{
 			continue;
+		}
 
 		input_report_abs(input_dev, ABS_MT_TOUCH_MAJOR, finger[i].t);
 		input_report_abs(input_dev, ABS_MT_POSITION_X, finger[i].x);
@@ -125,17 +138,22 @@ static irqreturn_t st1232_ts_irq_handler(int irq, void *dev_id)
 	}
 
 	/* SYN_MT_REPORT only if no contact */
-	if (!count) {
+	if (!count)
+	{
 		input_mt_sync(input_dev);
-		if (ts->low_latency_req.dev) {
+
+		if (ts->low_latency_req.dev)
+		{
 			dev_pm_qos_remove_request(&ts->low_latency_req);
 			ts->low_latency_req.dev = NULL;
 		}
-	} else if (!ts->low_latency_req.dev) {
+	}
+	else if (!ts->low_latency_req.dev)
+	{
 		/* First contact, request 100 us latency. */
 		dev_pm_qos_add_ancestor_request(&ts->client->dev,
-						&ts->low_latency_req,
-						DEV_PM_QOS_RESUME_LATENCY, 100);
+										&ts->low_latency_req,
+										DEV_PM_QOS_RESUME_LATENCY, 100);
 	}
 
 	/* SYN_REPORT */
@@ -148,52 +166,71 @@ end:
 static void st1232_ts_power(struct st1232_ts_data *ts, bool poweron)
 {
 	if (gpio_is_valid(ts->reset_gpio))
+	{
 		gpio_direction_output(ts->reset_gpio, poweron);
+	}
 }
 
 static int st1232_ts_probe(struct i2c_client *client,
-					const struct i2c_device_id *id)
+						   const struct i2c_device_id *id)
 {
 	struct st1232_ts_data *ts;
 	struct st1232_pdata *pdata = dev_get_platdata(&client->dev);
 	struct input_dev *input_dev;
 	int error;
 
-	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		dev_err(&client->dev, "need I2C_FUNC_I2C\n");
 		return -EIO;
 	}
 
-	if (!client->irq) {
+	if (!client->irq)
+	{
 		dev_err(&client->dev, "no IRQ?\n");
 		return -EINVAL;
 	}
 
 	ts = devm_kzalloc(&client->dev, sizeof(*ts), GFP_KERNEL);
+
 	if (!ts)
+	{
 		return -ENOMEM;
+	}
 
 	input_dev = devm_input_allocate_device(&client->dev);
+
 	if (!input_dev)
+	{
 		return -ENOMEM;
+	}
 
 	ts->client = client;
 	ts->input_dev = input_dev;
 
 	if (pdata)
+	{
 		ts->reset_gpio = pdata->reset_gpio;
+	}
 	else if (client->dev.of_node)
+	{
 		ts->reset_gpio = of_get_gpio(client->dev.of_node, 0);
+	}
 	else
+	{
 		ts->reset_gpio = -ENODEV;
+	}
 
-	if (gpio_is_valid(ts->reset_gpio)) {
+	if (gpio_is_valid(ts->reset_gpio))
+	{
 		error = devm_gpio_request(&client->dev, ts->reset_gpio, NULL);
-		if (error) {
+
+		if (error)
+		{
 			dev_err(&client->dev,
-				"Unable to request GPIO pin %d.\n",
-				ts->reset_gpio);
-				return error;
+					"Unable to request GPIO pin %d.\n",
+					ts->reset_gpio);
+			return error;
 		}
 	}
 
@@ -212,18 +249,22 @@ static int st1232_ts_probe(struct i2c_client *client,
 	input_set_abs_params(input_dev, ABS_MT_POSITION_Y, MIN_Y, MAX_Y, 0, 0);
 
 	error = devm_request_threaded_irq(&client->dev, client->irq,
-					  NULL, st1232_ts_irq_handler,
-					  IRQF_ONESHOT,
-					  client->name, ts);
-	if (error) {
+									  NULL, st1232_ts_irq_handler,
+									  IRQF_ONESHOT,
+									  client->name, ts);
+
+	if (error)
+	{
 		dev_err(&client->dev, "Failed to register interrupt\n");
 		return error;
 	}
 
 	error = input_register_device(ts->input_dev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&client->dev, "Unable to register %s input device\n",
-			input_dev->name);
+				input_dev->name);
 		return error;
 	}
 
@@ -248,9 +289,12 @@ static int __maybe_unused st1232_ts_suspend(struct device *dev)
 	struct i2c_client *client = to_i2c_client(dev);
 	struct st1232_ts_data *ts = i2c_get_clientdata(client);
 
-	if (device_may_wakeup(&client->dev)) {
+	if (device_may_wakeup(&client->dev))
+	{
 		enable_irq_wake(client->irq);
-	} else {
+	}
+	else
+	{
 		disable_irq(client->irq);
 		st1232_ts_power(ts, false);
 	}
@@ -263,9 +307,12 @@ static int __maybe_unused st1232_ts_resume(struct device *dev)
 	struct i2c_client *client = to_i2c_client(dev);
 	struct st1232_ts_data *ts = i2c_get_clientdata(client);
 
-	if (device_may_wakeup(&client->dev)) {
+	if (device_may_wakeup(&client->dev))
+	{
 		disable_irq_wake(client->irq);
-	} else {
+	}
+	else
+	{
 		st1232_ts_power(ts, true);
 		enable_irq(client->irq);
 	}
@@ -274,23 +321,26 @@ static int __maybe_unused st1232_ts_resume(struct device *dev)
 }
 
 static SIMPLE_DEV_PM_OPS(st1232_ts_pm_ops,
-			 st1232_ts_suspend, st1232_ts_resume);
+						 st1232_ts_suspend, st1232_ts_resume);
 
-static const struct i2c_device_id st1232_ts_id[] = {
+static const struct i2c_device_id st1232_ts_id[] =
+{
 	{ ST1232_TS_NAME, 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, st1232_ts_id);
 
 #ifdef CONFIG_OF
-static const struct of_device_id st1232_ts_dt_ids[] = {
+static const struct of_device_id st1232_ts_dt_ids[] =
+{
 	{ .compatible = "sitronix,st1232", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, st1232_ts_dt_ids);
 #endif
 
-static struct i2c_driver st1232_ts_driver = {
+static struct i2c_driver st1232_ts_driver =
+{
 	.probe		= st1232_ts_probe,
 	.remove		= st1232_ts_remove,
 	.id_table	= st1232_ts_id,

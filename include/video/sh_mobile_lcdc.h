@@ -101,7 +101,8 @@
 #define _LDDRAR			0x904
 #define LDDRAR_RA		(1 << 0)
 
-enum {
+enum
+{
 	RGB8	= LDMT1R_MIFTYP_RGB8,	/* 24bpp, 8:8:8 */
 	RGB9	= LDMT1R_MIFTYP_RGB9,	/* 18bpp, 9:9 */
 	RGB12A	= LDMT1R_MIFTYP_RGB12A,	/* 24bpp, 12:12 */
@@ -124,8 +125,9 @@ enum {
 };
 
 enum { LCDC_CHAN_DISABLED = 0,
-       LCDC_CHAN_MAINLCD,
-       LCDC_CHAN_SUBLCD };
+	   LCDC_CHAN_MAINLCD,
+	   LCDC_CHAN_SUBLCD
+	 };
 
 enum { LCDC_CLK_BUS, LCDC_CLK_PERIPHERAL, LCDC_CLK_EXTERNAL };
 
@@ -135,43 +137,49 @@ enum { LCDC_CLK_BUS, LCDC_CLK_PERIPHERAL, LCDC_CLK_EXTERNAL };
 #define LCDC_FLAGS_HSCNT (1 << 3) /* Disable HSYNC during VBLANK */
 #define LCDC_FLAGS_DWCNT (1 << 4) /* Disable dotclock during blanking */
 
-struct sh_mobile_lcdc_sys_bus_cfg {
+struct sh_mobile_lcdc_sys_bus_cfg
+{
 	unsigned long ldmt2r;
 	unsigned long ldmt3r;
 	unsigned long deferred_io_msec;
 };
 
-struct sh_mobile_lcdc_sys_bus_ops {
+struct sh_mobile_lcdc_sys_bus_ops
+{
 	void (*write_index)(void *handle, unsigned long data);
 	void (*write_data)(void *handle, unsigned long data);
 	unsigned long (*read_data)(void *handle);
 };
 
-struct sh_mobile_lcdc_panel_cfg {
+struct sh_mobile_lcdc_panel_cfg
+{
 	unsigned long width;		/* Panel width in mm */
 	unsigned long height;		/* Panel height in mm */
 	int (*setup_sys)(void *sys_ops_handle,
-			 struct sh_mobile_lcdc_sys_bus_ops *sys_ops);
+					 struct sh_mobile_lcdc_sys_bus_ops *sys_ops);
 	void (*start_transfer)(void *sys_ops_handle,
-			       struct sh_mobile_lcdc_sys_bus_ops *sys_ops);
+						   struct sh_mobile_lcdc_sys_bus_ops *sys_ops);
 	void (*display_on)(void);
 	void (*display_off)(void);
 };
 
 /* backlight info */
-struct sh_mobile_lcdc_bl_info {
+struct sh_mobile_lcdc_bl_info
+{
 	const char *name;
 	int max_brightness;
 	int (*set_brightness)(int brightness);
 };
 
-struct sh_mobile_lcdc_overlay_cfg {
+struct sh_mobile_lcdc_overlay_cfg
+{
 	int fourcc;
 	unsigned int max_xres;
 	unsigned int max_yres;
 };
 
-struct sh_mobile_lcdc_chan_cfg {
+struct sh_mobile_lcdc_chan_cfg
+{
 	int chan;
 	int fourcc;
 	int colorspace;
@@ -188,7 +196,8 @@ struct sh_mobile_lcdc_chan_cfg {
 	struct platform_device *tx_dev;	/* HDMI/DSI transmitter device */
 };
 
-struct sh_mobile_lcdc_info {
+struct sh_mobile_lcdc_info
+{
 	int clock_source;
 	struct sh_mobile_lcdc_chan_cfg ch[2];
 	struct sh_mobile_lcdc_overlay_cfg overlays[4];

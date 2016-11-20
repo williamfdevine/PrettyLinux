@@ -20,13 +20,14 @@ struct abx500_temp;
  * @show_label: hwmon attribute label
  * @is_visible: is attribute visible
  */
-struct abx500_temp_ops {
+struct abx500_temp_ops
+{
 	int (*read_sensor)(struct abx500_temp *, u8, int *);
 	int (*irq_handler)(int, struct abx500_temp *);
 	ssize_t (*show_name)(struct device *,
-			struct device_attribute *, char *);
+						 struct device_attribute *, char *);
 	ssize_t (*show_label) (struct device *,
-			struct device_attribute *, char *);
+						   struct device_attribute *, char *);
 	int (*is_visible)(struct attribute *, int);
 };
 
@@ -47,7 +48,8 @@ struct abx500_temp_ops {
  * @monitored_sensors: number of monitored sensors
  * @plat_data: private usage, usually points to platform specific data
  */
-struct abx500_temp {
+struct abx500_temp
+{
 	struct platform_device *pdev;
 	struct device *hwmon_dev;
 	struct abx500_temp_ops ops;

@@ -20,7 +20,8 @@
 
 struct platform_device;
 
-struct wkup_m3_platform_data {
+struct wkup_m3_platform_data
+{
 	const char *reset_name;
 
 	int (*assert_reset)(struct platform_device *pdev, const char *name);

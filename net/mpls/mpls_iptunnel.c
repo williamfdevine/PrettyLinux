@@ -27,7 +27,8 @@
 #include <linux/mpls_iptunnel.h>
 #include "internal.h"
 
-static const struct nla_policy mpls_iptunnel_policy[MPLS_IPTUNNEL_MAX + 1] = {
+static const struct nla_policy mpls_iptunnel_policy[MPLS_IPTUNNEL_MAX + 1] =
+{
 	[MPLS_IPTUNNEL_DST]	= { .type = NLA_U32 },
 };
 
@@ -54,13 +55,18 @@ static int mpls_xmit(struct sk_buff *skb)
 	unsigned int ttl;
 
 	/* Obtain the ttl */
-	if (dst->ops->family == AF_INET) {
+	if (dst->ops->family == AF_INET)
+	{
 		ttl = ip_hdr(skb)->ttl;
 		rt = (struct rtable *)dst;
-	} else if (dst->ops->family == AF_INET6) {
+	}
+	else if (dst->ops->family == AF_INET6)
+	{
 		ttl = ipv6_hdr(skb)->hop_limit;
 		rt6 = (struct rt6_info *)dst;
-	} else {
+	}
+	else
+	{
 		goto drop;
 	}
 
@@ -68,9 +74,12 @@ static int mpls_xmit(struct sk_buff *skb)
 
 	/* Find the output device */
 	out_dev = dst->dev;
+
 	if (!mpls_output_possible(out_dev) ||
-	    !dst->lwtstate || skb_warn_if_lro(skb))
+		!dst->lwtstate || skb_warn_if_lro(skb))
+	{
 		goto drop;
+	}
 
 	skb_forward_csum(skb);
 
@@ -79,16 +88,24 @@ static int mpls_xmit(struct sk_buff *skb)
 	/* Verify the destination can hold the packet */
 	new_header_size = mpls_encap_size(tun_encap_info);
 	mtu = mpls_dev_mtu(out_dev);
+
 	if (mpls_pkt_too_big(skb, mtu - new_header_size))
+	{
 		goto drop;
+	}
 
 	hh_len = LL_RESERVED_SPACE(out_dev);
+
 	if (!out_dev->header_ops)
+	{
 		hh_len = 0;
+	}
 
 	/* Ensure there is enough space for the headers in the skb */
 	if (skb_cow(skb, hh_len + new_header_size))
+	{
 		goto drop;
+	}
 
 	skb_set_inner_protocol(skb, skb->protocol);
 	skb_reset_inner_network_header(skb);
@@ -103,21 +120,24 @@ static int mpls_xmit(struct sk_buff *skb)
 	/* Push the new labels */
 	hdr = mpls_hdr(skb);
 	bos = true;
-	for (i = tun_encap_info->labels - 1; i >= 0; i--) {
+
+	for (i = tun_encap_info->labels - 1; i >= 0; i--)
+	{
 		hdr[i] = mpls_entry_encode(tun_encap_info->label[i],
-					   ttl, 0, bos);
+								   ttl, 0, bos);
 		bos = false;
 	}
 
 	if (rt)
 		err = neigh_xmit(NEIGH_ARP_TABLE, out_dev, &rt->rt_gateway,
-				 skb);
+						 skb);
 	else if (rt6)
 		err = neigh_xmit(NEIGH_ND_TABLE, out_dev, &rt6->rt6i_gateway,
-				 skb);
+						 skb);
+
 	if (err)
 		net_dbg_ratelimited("%s: packet transmission failed: %d\n",
-				    __func__, err);
+							__func__, err);
 
 	return LWTUNNEL_XMIT_DONE;
 
@@ -127,8 +147,8 @@ drop:
 }
 
 static int mpls_build_state(struct net_device *dev, struct nlattr *nla,
-			    unsigned int family, const void *cfg,
-			    struct lwtunnel_state **ts)
+							unsigned int family, const void *cfg,
+							struct lwtunnel_state **ts)
 {
 	struct mpls_iptunnel_encap *tun_encap_info;
 	struct nlattr *tb[MPLS_IPTUNNEL_MAX + 1];
@@ -137,25 +157,37 @@ static int mpls_build_state(struct net_device *dev, struct nlattr *nla,
 	int ret;
 
 	ret = nla_parse_nested(tb, MPLS_IPTUNNEL_MAX, nla,
-			       mpls_iptunnel_policy);
+						   mpls_iptunnel_policy);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (!tb[MPLS_IPTUNNEL_DST])
+	{
 		return -EINVAL;
+	}
 
 	tun_encap_info_len = sizeof(*tun_encap_info);
 
 	newts = lwtunnel_state_alloc(tun_encap_info_len);
+
 	if (!newts)
+	{
 		return -ENOMEM;
+	}
 
 	newts->len = tun_encap_info_len;
 	tun_encap_info = mpls_lwtunnel_encap(newts);
 	ret = nla_get_labels(tb[MPLS_IPTUNNEL_DST], MAX_NEW_LABELS,
-			     &tun_encap_info->labels, tun_encap_info->label);
+						 &tun_encap_info->labels, tun_encap_info->label);
+
 	if (ret)
+	{
 		goto errout;
+	}
+
 	newts->type = LWTUNNEL_ENCAP_MPLS;
 	newts->flags |= LWTUNNEL_STATE_XMIT_REDIRECT;
 	newts->headroom = mpls_encap_size(tun_encap_info);
@@ -172,15 +204,17 @@ errout:
 }
 
 static int mpls_fill_encap_info(struct sk_buff *skb,
-				struct lwtunnel_state *lwtstate)
+								struct lwtunnel_state *lwtstate)
 {
 	struct mpls_iptunnel_encap *tun_encap_info;
-	
+
 	tun_encap_info = mpls_lwtunnel_encap(lwtstate);
 
 	if (nla_put_labels(skb, MPLS_IPTUNNEL_DST, tun_encap_info->labels,
-			   tun_encap_info->label))
+					   tun_encap_info->label))
+	{
 		goto nla_put_failure;
+	}
 
 	return 0;
 
@@ -204,15 +238,21 @@ static int mpls_encap_cmp(struct lwtunnel_state *a, struct lwtunnel_state *b)
 	int l;
 
 	if (a_hdr->labels != b_hdr->labels)
+	{
 		return 1;
+	}
 
 	for (l = 0; l < MAX_NEW_LABELS; l++)
 		if (a_hdr->label[l] != b_hdr->label[l])
+		{
 			return 1;
+		}
+
 	return 0;
 }
 
-static const struct lwtunnel_encap_ops mpls_iptun_ops = {
+static const struct lwtunnel_encap_ops mpls_iptun_ops =
+{
 	.build_state = mpls_build_state,
 	.xmit = mpls_xmit,
 	.fill_encap = mpls_fill_encap_info,

@@ -17,7 +17,7 @@
 #include <asm/hardware/sa1111.h>
 
 #ifndef CONFIG_SA1111
-#error "This file is SA-1111 bus glue.  CONFIG_SA1111 must be defined."
+	#error "This file is SA-1111 bus glue.  CONFIG_SA1111 must be defined."
 #endif
 
 #define USB_STATUS	0x0118
@@ -45,11 +45,11 @@ static void dump_hci_status(struct usb_hcd *hcd, const char *label)
 	unsigned long status = sa1111_readl(hcd->regs + USB_STATUS);
 
 	printk(KERN_DEBUG "%s USB_STATUS = { %s%s%s%s%s}\n", label,
-	     ((status & USB_STATUS_IRQHCIRMTWKUP) ? "IRQHCIRMTWKUP " : ""),
-	     ((status & USB_STATUS_IRQHCIBUFFACC) ? "IRQHCIBUFFACC " : ""),
-	     ((status & USB_STATUS_NIRQHCIM) ? "" : "IRQHCIM "),
-	     ((status & USB_STATUS_NHCIMFCLR) ? "" : "HCIMFCLR "),
-	     ((status & USB_STATUS_USBPWRSENSE) ? "USBPWRSENSE " : ""));
+		   ((status & USB_STATUS_IRQHCIRMTWKUP) ? "IRQHCIRMTWKUP " : ""),
+		   ((status & USB_STATUS_IRQHCIBUFFACC) ? "IRQHCIBUFFACC " : ""),
+		   ((status & USB_STATUS_NIRQHCIM) ? "" : "IRQHCIM "),
+		   ((status & USB_STATUS_NHCIMFCLR) ? "" : "HCIMFCLR "),
+		   ((status & USB_STATUS_USBPWRSENSE) ? "USBPWRSENSE " : ""));
 }
 #endif
 
@@ -67,14 +67,18 @@ static int ohci_sa1111_start(struct usb_hcd *hcd)
 	int ret;
 
 	ret = ohci_run(ohci);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		ohci_err(ohci, "can't start\n");
 		ohci_stop(hcd);
 	}
+
 	return ret;
 }
 
-static const struct hc_driver ohci_sa1111_hc_driver = {
+static const struct hc_driver ohci_sa1111_hc_driver =
+{
 	.description =		hcd_name,
 	.product_desc =		"SA-1111 OHCI",
 	.hcd_priv_size =	sizeof(struct ohci_hcd),
@@ -125,24 +129,28 @@ static int sa1111_start_hc(struct sa1111_dev *dev)
 	dev_dbg(&dev->dev, "starting SA-1111 OHCI USB Controller\n");
 
 	if (machine_is_xp860() ||
-	    machine_is_assabet() ||
-	    machine_is_pfs168() ||
-	    machine_is_badge4())
+		machine_is_assabet() ||
+		machine_is_pfs168() ||
+		machine_is_badge4())
+	{
 		usb_rst = USB_RESET_PWRSENSELOW | USB_RESET_PWRCTRLLOW;
+	}
 
 	/*
 	 * Configure the power sense and control lines.  Place the USB
 	 * host controller in reset.
 	 */
 	sa1111_writel(usb_rst | USB_RESET_FORCEIFRESET | USB_RESET_FORCEHCRESET,
-		      dev->mapbase + USB_RESET);
+				  dev->mapbase + USB_RESET);
 
 	/*
 	 * Now, carefully enable the USB clock, and take
 	 * the USB host controller out of reset.
 	 */
 	ret = sa1111_enable_device(dev);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		udelay(11);
 		sa1111_writel(usb_rst, dev->mapbase + USB_RESET);
 	}
@@ -161,7 +169,7 @@ static void sa1111_stop_hc(struct sa1111_dev *dev)
 	 */
 	usb_rst = sa1111_readl(dev->mapbase + USB_RESET);
 	sa1111_writel(usb_rst | USB_RESET_FORCEIFRESET | USB_RESET_FORCEHCRESET,
-		      dev->mapbase + USB_RESET);
+				  dev->mapbase + USB_RESET);
 
 	/*
 	 * Stop the USB clock.
@@ -181,7 +189,9 @@ static int ohci_hcd_sa1111_probe(struct sa1111_dev *dev)
 	int ret;
 
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * We don't call dma_set_mask_and_coherent() here because the
@@ -190,13 +200,17 @@ static int ohci_hcd_sa1111_probe(struct sa1111_dev *dev)
 	 */
 
 	hcd = usb_create_hcd(&ohci_sa1111_hc_driver, &dev->dev, "sa1111");
+
 	if (!hcd)
+	{
 		return -ENOMEM;
+	}
 
 	hcd->rsrc_start = dev->res.start;
 	hcd->rsrc_len = resource_size(&dev->res);
 
-	if (!request_mem_region(hcd->rsrc_start, hcd->rsrc_len, hcd_name)) {
+	if (!request_mem_region(hcd->rsrc_start, hcd->rsrc_len, hcd_name))
+	{
 		dev_dbg(&dev->dev, "request_mem_region failed\n");
 		ret = -EBUSY;
 		goto err1;
@@ -205,19 +219,24 @@ static int ohci_hcd_sa1111_probe(struct sa1111_dev *dev)
 	hcd->regs = dev->mapbase;
 
 	ret = sa1111_start_hc(dev);
+
 	if (ret)
+	{
 		goto err2;
+	}
 
 	ret = usb_add_hcd(hcd, dev->irq[1], 0);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		device_wakeup_enable(hcd->self.controller);
 		return ret;
 	}
 
 	sa1111_stop_hc(dev);
- err2:
+err2:
 	release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
- err1:
+err1:
 	usb_put_hcd(hcd);
 	return ret;
 }
@@ -245,13 +264,15 @@ static void ohci_hcd_sa1111_shutdown(struct sa1111_dev *dev)
 {
 	struct usb_hcd *hcd = sa1111_get_drvdata(dev);
 
-	if (test_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags)) {
+	if (test_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags))
+	{
 		hcd->driver->shutdown(hcd);
 		sa1111_stop_hc(dev);
 	}
 }
 
-static struct sa1111_driver ohci_hcd_sa1111_driver = {
+static struct sa1111_driver ohci_hcd_sa1111_driver =
+{
 	.drv = {
 		.name	= "sa1111-ohci",
 		.owner	= THIS_MODULE,

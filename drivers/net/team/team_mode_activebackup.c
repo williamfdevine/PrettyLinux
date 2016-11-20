@@ -17,7 +17,8 @@
 #include <net/rtnetlink.h>
 #include <linux/if_team.h>
 
-struct ab_priv {
+struct ab_priv
+{
 	struct team_port __rcu *active_port;
 	struct team_option_inst_info *ap_opt_inst_info;
 };
@@ -28,12 +29,17 @@ static struct ab_priv *ab_priv(struct team *team)
 }
 
 static rx_handler_result_t ab_receive(struct team *team, struct team_port *port,
-				      struct sk_buff *skb) {
+									  struct sk_buff *skb)
+{
 	struct team_port *active_port;
 
 	active_port = rcu_dereference(ab_priv(team)->active_port);
+
 	if (active_port != port)
+	{
 		return RX_HANDLER_EXACT;
+	}
+
 	return RX_HANDLER_ANOTHER;
 }
 
@@ -42,10 +48,17 @@ static bool ab_transmit(struct team *team, struct sk_buff *skb)
 	struct team_port *active_port;
 
 	active_port = rcu_dereference_bh(ab_priv(team)->active_port);
+
 	if (unlikely(!active_port))
+	{
 		goto drop;
+	}
+
 	if (team_dev_queue_xmit(team, active_port, skb))
+	{
 		return false;
+	}
+
 	return true;
 
 drop:
@@ -55,14 +68,15 @@ drop:
 
 static void ab_port_leave(struct team *team, struct team_port *port)
 {
-	if (ab_priv(team)->active_port == port) {
+	if (ab_priv(team)->active_port == port)
+	{
 		RCU_INIT_POINTER(ab_priv(team)->active_port, NULL);
 		team_option_inst_set_change(ab_priv(team)->ap_opt_inst_info);
 	}
 }
 
 static int ab_active_port_init(struct team *team,
-			       struct team_option_inst_info *info)
+							   struct team_option_inst_info *info)
 {
 	ab_priv(team)->ap_opt_inst_info = info;
 	return 0;
@@ -73,11 +87,17 @@ static int ab_active_port_get(struct team *team, struct team_gsetter_ctx *ctx)
 	struct team_port *active_port;
 
 	active_port = rcu_dereference_protected(ab_priv(team)->active_port,
-						lockdep_is_held(&team->lock));
+											lockdep_is_held(&team->lock));
+
 	if (active_port)
+	{
 		ctx->data.u32_val = active_port->dev->ifindex;
+	}
 	else
+	{
 		ctx->data.u32_val = 0;
+	}
+
 	return 0;
 }
 
@@ -85,8 +105,10 @@ static int ab_active_port_set(struct team *team, struct team_gsetter_ctx *ctx)
 {
 	struct team_port *port;
 
-	list_for_each_entry(port, &team->port_list, list) {
-		if (port->dev->ifindex == ctx->data.u32_val) {
+	list_for_each_entry(port, &team->port_list, list)
+	{
+		if (port->dev->ifindex == ctx->data.u32_val)
+		{
 			rcu_assign_pointer(ab_priv(team)->active_port, port);
 			return 0;
 		}
@@ -94,7 +116,8 @@ static int ab_active_port_set(struct team *team, struct team_gsetter_ctx *ctx)
 	return -ENOENT;
 }
 
-static const struct team_option ab_options[] = {
+static const struct team_option ab_options[] =
+{
 	{
 		.name = "activeport",
 		.type = TEAM_OPTION_TYPE_U32,
@@ -114,7 +137,8 @@ static void ab_exit(struct team *team)
 	team_options_unregister(team, ab_options, ARRAY_SIZE(ab_options));
 }
 
-static const struct team_mode_ops ab_mode_ops = {
+static const struct team_mode_ops ab_mode_ops =
+{
 	.init			= ab_init,
 	.exit			= ab_exit,
 	.receive		= ab_receive,
@@ -122,7 +146,8 @@ static const struct team_mode_ops ab_mode_ops = {
 	.port_leave		= ab_port_leave,
 };
 
-static const struct team_mode ab_mode = {
+static const struct team_mode ab_mode =
+{
 	.kind		= "activebackup",
 	.owner		= THIS_MODULE,
 	.priv_size	= sizeof(struct ab_priv),

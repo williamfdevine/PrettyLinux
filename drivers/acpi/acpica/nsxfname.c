@@ -55,8 +55,8 @@ ACPI_MODULE_NAME("nsxfname")
 
 /* Local prototypes */
 static char *acpi_ns_copy_device_id(struct acpi_pnp_device_id *dest,
-				    struct acpi_pnp_device_id *source,
-				    char *string_area);
+									struct acpi_pnp_device_id *source,
+									char *string_area);
 
 /******************************************************************************
  *
@@ -78,7 +78,7 @@ static char *acpi_ns_copy_device_id(struct acpi_pnp_device_id *dest,
 
 acpi_status
 acpi_get_handle(acpi_handle parent,
-		acpi_string pathname, acpi_handle *ret_handle)
+				acpi_string pathname, acpi_handle *ret_handle)
 {
 	acpi_status status;
 	struct acpi_namespace_node *node = NULL;
@@ -88,15 +88,19 @@ acpi_get_handle(acpi_handle parent,
 
 	/* Parameter Validation */
 
-	if (!ret_handle || !pathname) {
+	if (!ret_handle || !pathname)
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
 	/* Convert a parent handle to a prefix node */
 
-	if (parent) {
+	if (parent)
+	{
 		prefix_node = acpi_ns_validate_handle(parent);
-		if (!prefix_node) {
+
+		if (!prefix_node)
+		{
 			return (AE_BAD_PARAMETER);
 		}
 	}
@@ -108,18 +112,22 @@ acpi_get_handle(acpi_handle parent,
 	 *
 	 * Error for <null Parent + relative path>
 	 */
-	if (ACPI_IS_ROOT_PREFIX(pathname[0])) {
+	if (ACPI_IS_ROOT_PREFIX(pathname[0]))
+	{
 
 		/* Pathname is fully qualified (starts with '\') */
 
 		/* Special case for root-only, since we can't search for it */
 
-		if (!strcmp(pathname, ACPI_NS_ROOT_PATH)) {
+		if (!strcmp(pathname, ACPI_NS_ROOT_PATH))
+		{
 			*ret_handle =
-			    ACPI_CAST_PTR(acpi_handle, acpi_gbl_root_node);
+				ACPI_CAST_PTR(acpi_handle, acpi_gbl_root_node);
 			return (AE_OK);
 		}
-	} else if (!prefix_node) {
+	}
+	else if (!prefix_node)
+	{
 
 		/* Relative path with null prefix is disallowed */
 
@@ -129,8 +137,10 @@ acpi_get_handle(acpi_handle parent,
 	/* Find the Node and convert to a handle */
 
 	status =
-	    acpi_ns_get_node(prefix_node, pathname, ACPI_NS_NO_UPSEARCH, &node);
-	if (ACPI_SUCCESS(status)) {
+		acpi_ns_get_node(prefix_node, pathname, ACPI_NS_NO_UPSEARCH, &node);
+
+	if (ACPI_SUCCESS(status))
+	{
 		*ret_handle = ACPI_CAST_PTR(acpi_handle, node);
 	}
 
@@ -163,24 +173,28 @@ acpi_get_name(acpi_handle handle, u32 name_type, struct acpi_buffer *buffer)
 
 	/* Parameter validation */
 
-	if (name_type > ACPI_NAME_TYPE_MAX) {
+	if (name_type > ACPI_NAME_TYPE_MAX)
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
 	status = acpi_ut_validate_buffer(buffer);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
 	if (name_type == ACPI_FULL_PATHNAME ||
-	    name_type == ACPI_FULL_PATHNAME_NO_TRAILING) {
+		name_type == ACPI_FULL_PATHNAME_NO_TRAILING)
+	{
 
 		/* Get the full pathname (From the namespace root) */
 
 		status = acpi_ns_handle_to_pathname(handle, buffer,
-						    name_type ==
-						    ACPI_FULL_PATHNAME ? FALSE :
-						    TRUE);
+											name_type ==
+											ACPI_FULL_PATHNAME ? FALSE :
+											TRUE);
 		return (status);
 	}
 
@@ -189,12 +203,16 @@ acpi_get_name(acpi_handle handle, u32 name_type, struct acpi_buffer *buffer)
 	 * Validate handle and convert to a namespace Node
 	 */
 	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
 	node = acpi_ns_validate_handle(handle);
-	if (!node) {
+
+	if (!node)
+	{
 		status = AE_BAD_PARAMETER;
 		goto unlock_and_exit;
 	}
@@ -202,7 +220,9 @@ acpi_get_name(acpi_handle handle, u32 name_type, struct acpi_buffer *buffer)
 	/* Validate/Allocate/Clear caller buffer */
 
 	status = acpi_ut_initialize_buffer(buffer, ACPI_PATH_SEGMENT_LENGTH);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		goto unlock_and_exit;
 	}
 
@@ -235,8 +255,8 @@ ACPI_EXPORT_SYMBOL(acpi_get_name)
  *
  ******************************************************************************/
 static char *acpi_ns_copy_device_id(struct acpi_pnp_device_id *dest,
-				    struct acpi_pnp_device_id *source,
-				    char *string_area)
+									struct acpi_pnp_device_id *source,
+									char *string_area)
 {
 	/* Create the destination PNP_DEVICE_ID */
 
@@ -278,7 +298,7 @@ static char *acpi_ns_copy_device_id(struct acpi_pnp_device_id *dest,
 
 acpi_status
 acpi_get_object_info(acpi_handle handle,
-		     struct acpi_device_info **return_buffer)
+					 struct acpi_device_info **return_buffer)
 {
 	struct acpi_namespace_node *node;
 	struct acpi_device_info *info;
@@ -297,17 +317,22 @@ acpi_get_object_info(acpi_handle handle,
 
 	/* Parameter validation */
 
-	if (!handle || !return_buffer) {
+	if (!handle || !return_buffer)
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
 	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
 	node = acpi_ns_validate_handle(handle);
-	if (!node) {
+
+	if (!node)
+	{
 		(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
 		return (AE_BAD_PARAMETER);
 	}
@@ -318,16 +343,20 @@ acpi_get_object_info(acpi_handle handle,
 	type = node->type;
 	name = node->name.integer;
 
-	if (node->type == ACPI_TYPE_METHOD) {
+	if (node->type == ACPI_TYPE_METHOD)
+	{
 		param_count = node->object->method.param_count;
 	}
 
 	status = acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
-	if ((type == ACPI_TYPE_DEVICE) || (type == ACPI_TYPE_PROCESSOR)) {
+	if ((type == ACPI_TYPE_DEVICE) || (type == ACPI_TYPE_PROCESSOR))
+	{
 		/*
 		 * Get extra info for ACPI Device/Processor objects only:
 		 * Run the Device _HID, _UID, _CLS, and _CID methods.
@@ -340,7 +369,9 @@ acpi_get_object_info(acpi_handle handle,
 		/* Execute the Device._HID method */
 
 		status = acpi_ut_execute_HID(node, &hid);
-		if (ACPI_SUCCESS(status)) {
+
+		if (ACPI_SUCCESS(status))
+		{
 			info_size += hid->length;
 			valid |= ACPI_VALID_HID;
 		}
@@ -348,7 +379,9 @@ acpi_get_object_info(acpi_handle handle,
 		/* Execute the Device._UID method */
 
 		status = acpi_ut_execute_UID(node, &uid);
-		if (ACPI_SUCCESS(status)) {
+
+		if (ACPI_SUCCESS(status))
+		{
 			info_size += uid->length;
 			valid |= ACPI_VALID_UID;
 		}
@@ -356,20 +389,24 @@ acpi_get_object_info(acpi_handle handle,
 		/* Execute the Device._CID method */
 
 		status = acpi_ut_execute_CID(node, &cid_list);
-		if (ACPI_SUCCESS(status)) {
+
+		if (ACPI_SUCCESS(status))
+		{
 
 			/* Add size of CID strings and CID pointer array */
 
 			info_size +=
-			    (cid_list->list_size -
-			     sizeof(struct acpi_pnp_device_id_list));
+				(cid_list->list_size -
+				 sizeof(struct acpi_pnp_device_id_list));
 			valid |= ACPI_VALID_CID;
 		}
 
 		/* Execute the Device._CLS method */
 
 		status = acpi_ut_execute_CLS(node, &cls);
-		if (ACPI_SUCCESS(status)) {
+
+		if (ACPI_SUCCESS(status))
+		{
 			info_size += cls->length;
 			valid |= ACPI_VALID_CLS;
 		}
@@ -380,14 +417,17 @@ acpi_get_object_info(acpi_handle handle,
 	 * return buffer
 	 */
 	info = ACPI_ALLOCATE_ZEROED(info_size);
-	if (!info) {
+
+	if (!info)
+	{
 		status = AE_NO_MEMORY;
 		goto cleanup;
 	}
 
 	/* Get the fixed-length data */
 
-	if ((type == ACPI_TYPE_DEVICE) || (type == ACPI_TYPE_PROCESSOR)) {
+	if ((type == ACPI_TYPE_DEVICE) || (type == ACPI_TYPE_PROCESSOR))
+	{
 		/*
 		 * Get extra info for ACPI Device/Processor objects only:
 		 * Run the _STA, _ADR and, sx_w, and _sx_d methods.
@@ -405,35 +445,43 @@ acpi_get_object_info(acpi_handle handle,
 		/* Execute the Device._STA method */
 
 		status = acpi_ut_execute_STA(node, &info->current_status);
-		if (ACPI_SUCCESS(status)) {
+
+		if (ACPI_SUCCESS(status))
+		{
 			valid |= ACPI_VALID_STA;
 		}
 
 		/* Execute the Device._ADR method */
 
 		status = acpi_ut_evaluate_numeric_object(METHOD_NAME__ADR, node,
-							 &info->address);
-		if (ACPI_SUCCESS(status)) {
+				 &info->address);
+
+		if (ACPI_SUCCESS(status))
+		{
 			valid |= ACPI_VALID_ADR;
 		}
 
 		/* Execute the Device._sx_w methods */
 
 		status = acpi_ut_execute_power_methods(node,
-						       acpi_gbl_lowest_dstate_names,
-						       ACPI_NUM_sx_w_METHODS,
-						       info->lowest_dstates);
-		if (ACPI_SUCCESS(status)) {
+											   acpi_gbl_lowest_dstate_names,
+											   ACPI_NUM_sx_w_METHODS,
+											   info->lowest_dstates);
+
+		if (ACPI_SUCCESS(status))
+		{
 			valid |= ACPI_VALID_SXWS;
 		}
 
 		/* Execute the Device._sx_d methods */
 
 		status = acpi_ut_execute_power_methods(node,
-						       acpi_gbl_highest_dstate_names,
-						       ACPI_NUM_sx_d_METHODS,
-						       info->highest_dstates);
-		if (ACPI_SUCCESS(status)) {
+											   acpi_gbl_highest_dstate_names,
+											   ACPI_NUM_sx_d_METHODS,
+											   info->highest_dstates);
+
+		if (ACPI_SUCCESS(status))
+		{
 			valid |= ACPI_VALID_SXDS;
 		}
 	}
@@ -443,13 +491,15 @@ acpi_get_object_info(acpi_handle handle,
 	 * Point to the end of the base struct acpi_device_info structure.
 	 */
 	next_id_string = ACPI_CAST_PTR(char, info->compatible_id_list.ids);
-	if (cid_list) {
+
+	if (cid_list)
+	{
 
 		/* Point past the CID PNP_DEVICE_ID array */
 
 		next_id_string +=
-		    ((acpi_size)cid_list->count *
-		     sizeof(struct acpi_pnp_device_id));
+			((acpi_size)cid_list->count *
+			 sizeof(struct acpi_pnp_device_id));
 	}
 
 	/*
@@ -458,41 +508,48 @@ acpi_get_object_info(acpi_handle handle,
 	 *
 	 * For HID and CID, check if the ID is a PCI Root Bridge.
 	 */
-	if (hid) {
+	if (hid)
+	{
 		next_id_string = acpi_ns_copy_device_id(&info->hardware_id,
-							hid, next_id_string);
+												hid, next_id_string);
 
-		if (acpi_ut_is_pci_root_bridge(hid->string)) {
+		if (acpi_ut_is_pci_root_bridge(hid->string))
+		{
 			info->flags |= ACPI_PCI_ROOT_BRIDGE;
 		}
 	}
 
-	if (uid) {
+	if (uid)
+	{
 		next_id_string = acpi_ns_copy_device_id(&info->unique_id,
-							uid, next_id_string);
+												uid, next_id_string);
 	}
 
-	if (cid_list) {
+	if (cid_list)
+	{
 		info->compatible_id_list.count = cid_list->count;
 		info->compatible_id_list.list_size = cid_list->list_size;
 
 		/* Copy each CID */
 
-		for (i = 0; i < cid_list->count; i++) {
+		for (i = 0; i < cid_list->count; i++)
+		{
 			next_id_string =
-			    acpi_ns_copy_device_id(&info->compatible_id_list.
-						   ids[i], &cid_list->ids[i],
-						   next_id_string);
+				acpi_ns_copy_device_id(&info->compatible_id_list.
+									   ids[i], &cid_list->ids[i],
+									   next_id_string);
 
-			if (acpi_ut_is_pci_root_bridge(cid_list->ids[i].string)) {
+			if (acpi_ut_is_pci_root_bridge(cid_list->ids[i].string))
+			{
 				info->flags |= ACPI_PCI_ROOT_BRIDGE;
 			}
 		}
 	}
 
-	if (cls) {
+	if (cls)
+	{
 		next_id_string = acpi_ns_copy_device_id(&info->class_code,
-							cls, next_id_string);
+												cls, next_id_string);
 	}
 
 	/* Copy the fixed-length data */
@@ -507,18 +564,27 @@ acpi_get_object_info(acpi_handle handle,
 	status = AE_OK;
 
 cleanup:
-	if (hid) {
+
+	if (hid)
+	{
 		ACPI_FREE(hid);
 	}
-	if (uid) {
+
+	if (uid)
+	{
 		ACPI_FREE(uid);
 	}
-	if (cid_list) {
+
+	if (cid_list)
+	{
 		ACPI_FREE(cid_list);
 	}
-	if (cls) {
+
+	if (cls)
+	{
 		ACPI_FREE(cls);
 	}
+
 	return (status);
 }
 
@@ -541,7 +607,7 @@ ACPI_EXPORT_SYMBOL(acpi_get_object_info)
 acpi_status acpi_install_method(u8 *buffer)
 {
 	struct acpi_table_header *table =
-	    ACPI_CAST_PTR(struct acpi_table_header, buffer);
+		ACPI_CAST_PTR(struct acpi_table_header, buffer);
 	u8 *aml_buffer;
 	u8 *aml_start;
 	char *path;
@@ -555,14 +621,16 @@ acpi_status acpi_install_method(u8 *buffer)
 
 	/* Parameter validation */
 
-	if (!buffer) {
+	if (!buffer)
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
 	/* Table must be a DSDT or SSDT */
 
 	if (!ACPI_COMPARE_NAME(table->signature, ACPI_SIG_DSDT) &&
-	    !ACPI_COMPARE_NAME(table->signature, ACPI_SIG_SSDT)) {
+		!ACPI_COMPARE_NAME(table->signature, ACPI_SIG_SSDT))
+	{
 		return (AE_BAD_HEADER);
 	}
 
@@ -570,7 +638,9 @@ acpi_status acpi_install_method(u8 *buffer)
 
 	parser_state.aml = buffer + sizeof(struct acpi_table_header);
 	opcode = acpi_ps_peek_opcode(&parser_state);
-	if (opcode != AML_METHOD_OP) {
+
+	if (opcode != AML_METHOD_OP)
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
@@ -589,12 +659,16 @@ acpi_status acpi_install_method(u8 *buffer)
 	 * node from the namespace if we cannot allocate memory.
 	 */
 	aml_buffer = ACPI_ALLOCATE(aml_length);
-	if (!aml_buffer) {
+
+	if (!aml_buffer)
+	{
 		return (AE_NO_MEMORY);
 	}
 
 	method_obj = acpi_ut_create_internal_object(ACPI_TYPE_METHOD);
-	if (!method_obj) {
+
+	if (!method_obj)
+	{
 		ACPI_FREE(aml_buffer);
 		return (AE_NO_MEMORY);
 	}
@@ -602,27 +676,32 @@ acpi_status acpi_install_method(u8 *buffer)
 	/* Lock namespace for acpi_ns_lookup, we may be creating a new node */
 
 	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		goto error_exit;
 	}
 
 	/* The lookup either returns an existing node or creates a new one */
 
 	status =
-	    acpi_ns_lookup(NULL, path, ACPI_TYPE_METHOD, ACPI_IMODE_LOAD_PASS1,
-			   ACPI_NS_DONT_OPEN_SCOPE | ACPI_NS_ERROR_IF_FOUND,
-			   NULL, &node);
+		acpi_ns_lookup(NULL, path, ACPI_TYPE_METHOD, ACPI_IMODE_LOAD_PASS1,
+					   ACPI_NS_DONT_OPEN_SCOPE | ACPI_NS_ERROR_IF_FOUND,
+					   NULL, &node);
 
 	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
 
-	if (ACPI_FAILURE(status)) {	/* ns_lookup */
-		if (status != AE_ALREADY_EXISTS) {
+	if (ACPI_FAILURE(status))  	/* ns_lookup */
+	{
+		if (status != AE_ALREADY_EXISTS)
+		{
 			goto error_exit;
 		}
 
 		/* Node existed previously, make sure it is a method node */
 
-		if (node->type != ACPI_TYPE_METHOD) {
+		if (node->type != ACPI_TYPE_METHOD)
+		{
 			status = AE_TYPE;
 			goto error_exit;
 		}
@@ -638,13 +717,14 @@ acpi_status acpi_install_method(u8 *buffer)
 	method_obj->method.aml_length = aml_length;
 
 	method_obj->method.param_count = (u8)
-	    (method_flags & AML_METHOD_ARG_COUNT);
+									 (method_flags & AML_METHOD_ARG_COUNT);
 
-	if (method_flags & AML_METHOD_SERIALIZED) {
+	if (method_flags & AML_METHOD_SERIALIZED)
+	{
 		method_obj->method.info_flags = ACPI_METHOD_SERIALIZED;
 
 		method_obj->method.sync_level = (u8)
-		    ((method_flags & AML_METHOD_SYNC_LEVEL) >> 4);
+										((method_flags & AML_METHOD_SYNC_LEVEL) >> 4);
 	}
 
 	/*

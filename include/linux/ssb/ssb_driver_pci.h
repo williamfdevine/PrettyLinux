@@ -80,18 +80,19 @@ struct pci_dev;
 #define SSB_PCICORE_BFL_NOPCI		0x00000400 /* Board leaves PCI floating */
 
 
-struct ssb_pcicore {
+struct ssb_pcicore
+{
 	struct ssb_device *dev;
-	u8 setup_done:1;
-	u8 hostmode:1;
-	u8 cardbusmode:1;
+	u8 setup_done: 1;
+	u8 hostmode: 1;
+	u8 cardbusmode: 1;
 };
 
 extern void ssb_pcicore_init(struct ssb_pcicore *pc);
 
 /* Enable IRQ routing for a specific device */
 extern int ssb_pcicore_dev_irqvecs_enable(struct ssb_pcicore *pc,
-					  struct ssb_device *dev);
+		struct ssb_device *dev);
 
 int ssb_pcicore_plat_dev_init(struct pci_dev *d);
 int ssb_pcicore_pcibios_map_irq(const struct pci_dev *dev, u8 slot, u8 pin);
@@ -100,7 +101,8 @@ int ssb_pcicore_pcibios_map_irq(const struct pci_dev *dev, u8 slot, u8 pin);
 #else /* CONFIG_SSB_DRIVER_PCICORE */
 
 
-struct ssb_pcicore {
+struct ssb_pcicore
+{
 };
 
 static inline
@@ -110,7 +112,7 @@ void ssb_pcicore_init(struct ssb_pcicore *pc)
 
 static inline
 int ssb_pcicore_dev_irqvecs_enable(struct ssb_pcicore *pc,
-				   struct ssb_device *dev)
+								   struct ssb_device *dev)
 {
 	return 0;
 }

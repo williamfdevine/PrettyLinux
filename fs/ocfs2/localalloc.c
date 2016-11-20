@@ -51,29 +51,29 @@
 static u32 ocfs2_local_alloc_count_bits(struct ocfs2_dinode *alloc);
 
 static int ocfs2_local_alloc_find_clear_bits(struct ocfs2_super *osb,
-					     struct ocfs2_dinode *alloc,
-					     u32 *numbits,
-					     struct ocfs2_alloc_reservation *resv);
+		struct ocfs2_dinode *alloc,
+		u32 *numbits,
+		struct ocfs2_alloc_reservation *resv);
 
 static void ocfs2_clear_local_alloc(struct ocfs2_dinode *alloc);
 
 static int ocfs2_sync_local_to_main(struct ocfs2_super *osb,
-				    handle_t *handle,
-				    struct ocfs2_dinode *alloc,
-				    struct inode *main_bm_inode,
-				    struct buffer_head *main_bm_bh);
+									handle_t *handle,
+									struct ocfs2_dinode *alloc,
+									struct inode *main_bm_inode,
+									struct buffer_head *main_bm_bh);
 
 static int ocfs2_local_alloc_reserve_for_window(struct ocfs2_super *osb,
-						struct ocfs2_alloc_context **ac,
-						struct inode **bitmap_inode,
-						struct buffer_head **bitmap_bh);
+		struct ocfs2_alloc_context **ac,
+		struct inode **bitmap_inode,
+		struct buffer_head **bitmap_bh);
 
 static int ocfs2_local_alloc_new_window(struct ocfs2_super *osb,
-					handle_t *handle,
-					struct ocfs2_alloc_context *ac);
+										handle_t *handle,
+										struct ocfs2_alloc_context *ac);
 
 static int ocfs2_local_alloc_slide_window(struct ocfs2_super *osb,
-					  struct inode *local_alloc_inode);
+		struct inode *local_alloc_inode);
 
 /*
  * ocfs2_la_default_mb() - determine a default size, in megabytes of
@@ -123,7 +123,7 @@ unsigned int ocfs2_la_default_mb(struct ocfs2_super *osb)
 	struct super_block *sb = osb->sb;
 
 	gd_mb = ocfs2_clusters_to_megabytes(osb->sb,
-		8 * ocfs2_group_bitmap_size(sb, 0, osb->s_feature_incompat));
+										8 * ocfs2_group_bitmap_size(sb, 0, osb->s_feature_incompat));
 
 	/*
 	 * This takes care of files systems with very small group
@@ -131,8 +131,10 @@ unsigned int ocfs2_la_default_mb(struct ocfs2_super *osb)
 	 * than 16K and also 1k blocksize with 4k cluster size.
 	 */
 	if ((sb->s_blocksize == 512 && osb->s_clustersize <= 8192)
-	    || (sb->s_blocksize == 1024 && osb->s_clustersize == 4096))
+		|| (sb->s_blocksize == 1024 && osb->s_clustersize == 4096))
+	{
 		return OCFS2_LA_OLD_DEFAULT;
+	}
 
 	/*
 	 * Leave enough room for some block groups and make the final
@@ -146,7 +148,8 @@ unsigned int ocfs2_la_default_mb(struct ocfs2_super *osb)
 	/*
 	 * Keep window sizes down to a reasonable default
 	 */
-	if (la_mb > OCFS2_LA_MAX_DEFAULT_MB) {
+	if (la_mb > OCFS2_LA_MAX_DEFAULT_MB)
+	{
 		/*
 		 * Some clustersize / blocksize combinations will have
 		 * given us a larger than OCFS2_LA_MAX_DEFAULT_MB
@@ -166,12 +169,17 @@ unsigned int ocfs2_la_default_mb(struct ocfs2_super *osb)
 		 * OCFS2_LA_MAX_DEFAULT_MB windows.
 		 */
 		if (gd_mb > (2 * OCFS2_LA_MAX_DEFAULT_MB))
+		{
 			la_mb = 256;
-		else {
+		}
+		else
+		{
 			unsigned int gd_mult = gd_mb;
 
 			while (gd_mult > 256)
+			{
 				gd_mult = gd_mult >> 1;
+			}
 
 			la_mb = gd_mult;
 		}
@@ -179,15 +187,21 @@ unsigned int ocfs2_la_default_mb(struct ocfs2_super *osb)
 
 	megs_per_slot = osb->osb_clusters_at_boot / osb->max_slots;
 	megs_per_slot = ocfs2_clusters_to_megabytes(osb->sb, megs_per_slot);
+
 	/* Too many nodes, too few disk clusters. */
 	if (megs_per_slot < la_mb)
+	{
 		la_mb = megs_per_slot;
+	}
 
 	/* We can't store more bits than we can in a block. */
 	la_max_mb = ocfs2_clusters_to_megabytes(osb->sb,
-						ocfs2_local_alloc_size(sb) * 8);
+											ocfs2_local_alloc_size(sb) * 8);
+
 	if (la_mb > la_max_mb)
+	{
 		la_mb = la_max_mb;
+	}
 
 	return la_mb;
 }
@@ -199,19 +213,24 @@ void ocfs2_la_set_sizes(struct ocfs2_super *osb, int requested_mb)
 	unsigned int la_max_mb;
 
 	la_max_mb = ocfs2_clusters_to_megabytes(sb,
-						ocfs2_local_alloc_size(sb) * 8);
+											ocfs2_local_alloc_size(sb) * 8);
 
 	trace_ocfs2_la_set_sizes(requested_mb, la_max_mb, la_default_mb);
 
-	if (requested_mb == -1) {
+	if (requested_mb == -1)
+	{
 		/* No user request - use defaults */
 		osb->local_alloc_default_bits =
 			ocfs2_megabytes_to_clusters(sb, la_default_mb);
-	} else if (requested_mb > la_max_mb) {
+	}
+	else if (requested_mb > la_max_mb)
+	{
 		/* Request is too big, we give the maximum available */
 		osb->local_alloc_default_bits =
 			ocfs2_megabytes_to_clusters(sb, la_max_mb);
-	} else {
+	}
+	else
+	{
 		osb->local_alloc_default_bits =
 			ocfs2_megabytes_to_clusters(sb, requested_mb);
 	}
@@ -222,19 +241,22 @@ void ocfs2_la_set_sizes(struct ocfs2_super *osb, int requested_mb)
 static inline int ocfs2_la_state_enabled(struct ocfs2_super *osb)
 {
 	return (osb->local_alloc_state == OCFS2_LA_THROTTLED ||
-		osb->local_alloc_state == OCFS2_LA_ENABLED);
+			osb->local_alloc_state == OCFS2_LA_ENABLED);
 }
 
 void ocfs2_local_alloc_seen_free_bits(struct ocfs2_super *osb,
-				      unsigned int num_clusters)
+									  unsigned int num_clusters)
 {
 	spin_lock(&osb->osb_lock);
+
 	if (osb->local_alloc_state == OCFS2_LA_DISABLED ||
-	    osb->local_alloc_state == OCFS2_LA_THROTTLED)
-		if (num_clusters >= osb->local_alloc_default_bits) {
+		osb->local_alloc_state == OCFS2_LA_THROTTLED)
+		if (num_clusters >= osb->local_alloc_default_bits)
+		{
 			cancel_delayed_work(&osb->la_enable_wq);
 			osb->local_alloc_state = OCFS2_LA_ENABLED;
 		}
+
 	spin_unlock(&osb->osb_lock);
 }
 
@@ -242,7 +264,7 @@ void ocfs2_la_enable_worker(struct work_struct *work)
 {
 	struct ocfs2_super *osb =
 		container_of(work, struct ocfs2_super,
-			     la_enable_wq.work);
+					 la_enable_wq.work);
 	spin_lock(&osb->osb_lock);
 	osb->local_alloc_state = OCFS2_LA_ENABLED;
 	spin_unlock(&osb->osb_lock);
@@ -264,19 +286,23 @@ int ocfs2_alloc_should_use_local(struct ocfs2_super *osb, u64 bits)
 	la_bits = osb->local_alloc_bits;
 
 	if (!ocfs2_la_state_enabled(osb))
+	{
 		goto bail;
+	}
 
 	/* la_bits should be at least twice the size (in clusters) of
 	 * a new block group. We want to be sure block group
 	 * allocations go through the local alloc, so allow an
 	 * allocation to take up to half the bitmap. */
 	if (bits > (la_bits / 2))
+	{
 		goto bail;
+	}
 
 	ret = 1;
 bail:
 	trace_ocfs2_alloc_should_use_local(
-	     (unsigned long long)bits, osb->local_alloc_state, la_bits, ret);
+		(unsigned long long)bits, osb->local_alloc_state, la_bits, ret);
 	spin_unlock(&osb->osb_lock);
 	return ret;
 }
@@ -291,29 +317,36 @@ int ocfs2_load_local_alloc(struct ocfs2_super *osb)
 	struct ocfs2_local_alloc *la;
 
 	if (osb->local_alloc_bits == 0)
+	{
 		goto bail;
+	}
 
-	if (osb->local_alloc_bits >= osb->bitmap_cpg) {
+	if (osb->local_alloc_bits >= osb->bitmap_cpg)
+	{
 		mlog(ML_NOTICE, "Requested local alloc window %d is larger "
-		     "than max possible %u. Using defaults.\n",
-		     osb->local_alloc_bits, (osb->bitmap_cpg - 1));
+			 "than max possible %u. Using defaults.\n",
+			 osb->local_alloc_bits, (osb->bitmap_cpg - 1));
 		osb->local_alloc_bits =
 			ocfs2_megabytes_to_clusters(osb->sb,
-						    ocfs2_la_default_mb(osb));
+										ocfs2_la_default_mb(osb));
 	}
 
 	/* read the alloc off disk */
 	inode = ocfs2_get_system_file_inode(osb, LOCAL_ALLOC_SYSTEM_INODE,
-					    osb->slot_num);
-	if (!inode) {
+										osb->slot_num);
+
+	if (!inode)
+	{
 		status = -EINVAL;
 		mlog_errno(status);
 		goto bail;
 	}
 
 	status = ocfs2_read_inode_block_full(inode, &alloc_bh,
-					     OCFS2_BH_IGNORE_CACHE);
-	if (status < 0) {
+										 OCFS2_BH_IGNORE_CACHE);
+
+	if (status < 0)
+	{
 		mlog_errno(status);
 		goto bail;
 	}
@@ -322,17 +355,19 @@ int ocfs2_load_local_alloc(struct ocfs2_super *osb)
 	la = OCFS2_LOCAL_ALLOC(alloc);
 
 	if (!(le32_to_cpu(alloc->i_flags) &
-	    (OCFS2_LOCAL_ALLOC_FL|OCFS2_BITMAP_FL))) {
+		  (OCFS2_LOCAL_ALLOC_FL | OCFS2_BITMAP_FL)))
+	{
 		mlog(ML_ERROR, "Invalid local alloc inode, %llu\n",
-		     (unsigned long long)OCFS2_I(inode)->ip_blkno);
+			 (unsigned long long)OCFS2_I(inode)->ip_blkno);
 		status = -EINVAL;
 		goto bail;
 	}
 
 	if ((la->la_size == 0) ||
-	    (le16_to_cpu(la->la_size) > ocfs2_local_alloc_size(inode->i_sb))) {
+		(le16_to_cpu(la->la_size) > ocfs2_local_alloc_size(inode->i_sb)))
+	{
 		mlog(ML_ERROR, "Local alloc size is invalid (la_size = %u)\n",
-		     le16_to_cpu(la->la_size));
+			 le16_to_cpu(la->la_size));
 		status = -EINVAL;
 		goto bail;
 	}
@@ -343,27 +378,34 @@ int ocfs2_load_local_alloc(struct ocfs2_super *osb)
 	/* hopefully the local alloc has always been recovered before
 	 * we load it. */
 	if (num_used
-	    || alloc->id1.bitmap1.i_used
-	    || alloc->id1.bitmap1.i_total
-	    || la->la_bm_off)
+		|| alloc->id1.bitmap1.i_used
+		|| alloc->id1.bitmap1.i_total
+		|| la->la_bm_off)
 		mlog(ML_ERROR, "Local alloc hasn't been recovered!\n"
-		     "found = %u, set = %u, taken = %u, off = %u\n",
-		     num_used, le32_to_cpu(alloc->id1.bitmap1.i_used),
-		     le32_to_cpu(alloc->id1.bitmap1.i_total),
-		     OCFS2_LOCAL_ALLOC(alloc)->la_bm_off);
+			 "found = %u, set = %u, taken = %u, off = %u\n",
+			 num_used, le32_to_cpu(alloc->id1.bitmap1.i_used),
+			 le32_to_cpu(alloc->id1.bitmap1.i_total),
+			 OCFS2_LOCAL_ALLOC(alloc)->la_bm_off);
 
 	osb->local_alloc_bh = alloc_bh;
 	osb->local_alloc_state = OCFS2_LA_ENABLED;
 
 bail:
+
 	if (status < 0)
+	{
 		brelse(alloc_bh);
+	}
+
 	iput(inode);
 
 	trace_ocfs2_load_local_alloc(osb->local_alloc_bits);
 
 	if (status)
+	{
 		mlog_errno(status);
+	}
+
 	return status;
 }
 
@@ -389,13 +431,17 @@ void ocfs2_shutdown_local_alloc(struct ocfs2_super *osb)
 	flush_workqueue(osb->ocfs2_wq);
 
 	if (osb->local_alloc_state == OCFS2_LA_UNUSED)
+	{
 		goto out;
+	}
 
 	local_alloc_inode =
 		ocfs2_get_system_file_inode(osb,
-					    LOCAL_ALLOC_SYSTEM_INODE,
-					    osb->slot_num);
-	if (!local_alloc_inode) {
+									LOCAL_ALLOC_SYSTEM_INODE,
+									osb->slot_num);
+
+	if (!local_alloc_inode)
+	{
 		status = -ENOENT;
 		mlog_errno(status);
 		goto out;
@@ -406,9 +452,11 @@ void ocfs2_shutdown_local_alloc(struct ocfs2_super *osb)
 	ocfs2_resmap_uninit(&osb->osb_la_resmap);
 
 	main_bm_inode = ocfs2_get_system_file_inode(osb,
-						    GLOBAL_BITMAP_SYSTEM_INODE,
-						    OCFS2_INVALID_SLOT);
-	if (!main_bm_inode) {
+					GLOBAL_BITMAP_SYSTEM_INODE,
+					OCFS2_INVALID_SLOT);
+
+	if (!main_bm_inode)
+	{
 		status = -EINVAL;
 		mlog_errno(status);
 		goto out;
@@ -417,14 +465,18 @@ void ocfs2_shutdown_local_alloc(struct ocfs2_super *osb)
 	inode_lock(main_bm_inode);
 
 	status = ocfs2_inode_lock(main_bm_inode, &main_bm_bh, 1);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		mlog_errno(status);
 		goto out_mutex;
 	}
 
 	/* WINDOW_MOVE_CREDITS is a bit heavy... */
 	handle = ocfs2_start_trans(osb, OCFS2_WINDOW_MOVE_CREDITS);
-	if (IS_ERR(handle)) {
+
+	if (IS_ERR(handle))
+	{
 		mlog_errno(PTR_ERR(handle));
 		handle = NULL;
 		goto out_unlock;
@@ -434,15 +486,20 @@ void ocfs2_shutdown_local_alloc(struct ocfs2_super *osb)
 	alloc = (struct ocfs2_dinode *) bh->b_data;
 
 	alloc_copy = kmalloc(bh->b_size, GFP_NOFS);
-	if (!alloc_copy) {
+
+	if (!alloc_copy)
+	{
 		status = -ENOMEM;
 		goto out_commit;
 	}
+
 	memcpy(alloc_copy, alloc, bh->b_size);
 
 	status = ocfs2_journal_access_di(handle, INODE_CACHE(local_alloc_inode),
-					 bh, OCFS2_JOURNAL_ACCESS_WRITE);
-	if (status < 0) {
+									 bh, OCFS2_JOURNAL_ACCESS_WRITE);
+
+	if (status < 0)
+	{
 		mlog_errno(status);
 		goto out_commit;
 	}
@@ -455,9 +512,12 @@ void ocfs2_shutdown_local_alloc(struct ocfs2_super *osb)
 	osb->local_alloc_state = OCFS2_LA_UNUSED;
 
 	status = ocfs2_sync_local_to_main(osb, handle, alloc_copy,
-					  main_bm_inode, main_bm_bh);
+									  main_bm_inode, main_bm_bh);
+
 	if (status < 0)
+	{
 		mlog_errno(status);
+	}
 
 out_commit:
 	ocfs2_commit_trans(osb, handle);
@@ -485,8 +545,8 @@ out:
  * caller to process with ocfs2_complete_local_alloc_recovery
  */
 int ocfs2_begin_local_alloc_recovery(struct ocfs2_super *osb,
-				     int slot_num,
-				     struct ocfs2_dinode **alloc_copy)
+									 int slot_num,
+									 struct ocfs2_dinode **alloc_copy)
 {
 	int status = 0;
 	struct buffer_head *alloc_bh = NULL;
@@ -498,9 +558,11 @@ int ocfs2_begin_local_alloc_recovery(struct ocfs2_super *osb,
 	*alloc_copy = NULL;
 
 	inode = ocfs2_get_system_file_inode(osb,
-					    LOCAL_ALLOC_SYSTEM_INODE,
-					    slot_num);
-	if (!inode) {
+										LOCAL_ALLOC_SYSTEM_INODE,
+										slot_num);
+
+	if (!inode)
+	{
 		status = -EINVAL;
 		mlog_errno(status);
 		goto bail;
@@ -509,17 +571,22 @@ int ocfs2_begin_local_alloc_recovery(struct ocfs2_super *osb,
 	inode_lock(inode);
 
 	status = ocfs2_read_inode_block_full(inode, &alloc_bh,
-					     OCFS2_BH_IGNORE_CACHE);
-	if (status < 0) {
+										 OCFS2_BH_IGNORE_CACHE);
+
+	if (status < 0)
+	{
 		mlog_errno(status);
 		goto bail;
 	}
 
 	*alloc_copy = kmalloc(alloc_bh->b_size, GFP_KERNEL);
-	if (!(*alloc_copy)) {
+
+	if (!(*alloc_copy))
+	{
 		status = -ENOMEM;
 		goto bail;
 	}
+
 	memcpy((*alloc_copy), alloc_bh->b_data, alloc_bh->b_size);
 
 	alloc = (struct ocfs2_dinode *) alloc_bh->b_data;
@@ -527,24 +594,33 @@ int ocfs2_begin_local_alloc_recovery(struct ocfs2_super *osb,
 
 	ocfs2_compute_meta_ecc(osb->sb, alloc_bh->b_data, &alloc->i_check);
 	status = ocfs2_write_block(osb, alloc_bh, INODE_CACHE(inode));
+
 	if (status < 0)
+	{
 		mlog_errno(status);
+	}
 
 bail:
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		kfree(*alloc_copy);
 		*alloc_copy = NULL;
 	}
 
 	brelse(alloc_bh);
 
-	if (inode) {
+	if (inode)
+	{
 		inode_unlock(inode);
 		iput(inode);
 	}
 
 	if (status)
+	{
 		mlog_errno(status);
+	}
+
 	return status;
 }
 
@@ -555,7 +631,7 @@ bail:
  * main bitmap.
  */
 int ocfs2_complete_local_alloc_recovery(struct ocfs2_super *osb,
-					struct ocfs2_dinode *alloc)
+										struct ocfs2_dinode *alloc)
 {
 	int status;
 	handle_t *handle;
@@ -563,9 +639,11 @@ int ocfs2_complete_local_alloc_recovery(struct ocfs2_super *osb,
 	struct inode *main_bm_inode;
 
 	main_bm_inode = ocfs2_get_system_file_inode(osb,
-						    GLOBAL_BITMAP_SYSTEM_INODE,
-						    OCFS2_INVALID_SLOT);
-	if (!main_bm_inode) {
+					GLOBAL_BITMAP_SYSTEM_INODE,
+					OCFS2_INVALID_SLOT);
+
+	if (!main_bm_inode)
+	{
 		status = -EINVAL;
 		mlog_errno(status);
 		goto out;
@@ -574,13 +652,17 @@ int ocfs2_complete_local_alloc_recovery(struct ocfs2_super *osb,
 	inode_lock(main_bm_inode);
 
 	status = ocfs2_inode_lock(main_bm_inode, &main_bm_bh, 1);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		mlog_errno(status);
 		goto out_mutex;
 	}
 
 	handle = ocfs2_start_trans(osb, OCFS2_WINDOW_MOVE_CREDITS);
-	if (IS_ERR(handle)) {
+
+	if (IS_ERR(handle))
+	{
 		status = PTR_ERR(handle);
 		handle = NULL;
 		mlog_errno(status);
@@ -591,9 +673,12 @@ int ocfs2_complete_local_alloc_recovery(struct ocfs2_super *osb,
 	handle->h_sync = 1;
 
 	status = ocfs2_sync_local_to_main(osb, handle, alloc,
-					  main_bm_inode, main_bm_bh);
+									  main_bm_inode, main_bm_bh);
+
 	if (status < 0)
+	{
 		mlog_errno(status);
+	}
 
 	ocfs2_commit_trans(osb, handle);
 
@@ -608,10 +693,17 @@ out_mutex:
 	iput(main_bm_inode);
 
 out:
+
 	if (!status)
+	{
 		ocfs2_init_steal_slots(osb);
+	}
+
 	if (status)
+	{
 		mlog_errno(status);
+	}
+
 	return status;
 }
 
@@ -623,8 +715,8 @@ out:
  * our own in order to shift windows.
  */
 int ocfs2_reserve_local_alloc_bits(struct ocfs2_super *osb,
-				   u32 bits_wanted,
-				   struct ocfs2_alloc_context *ac)
+								   u32 bits_wanted,
+								   struct ocfs2_alloc_context *ac)
 {
 	int status;
 	struct ocfs2_dinode *alloc;
@@ -635,9 +727,11 @@ int ocfs2_reserve_local_alloc_bits(struct ocfs2_super *osb,
 
 	local_alloc_inode =
 		ocfs2_get_system_file_inode(osb,
-					    LOCAL_ALLOC_SYSTEM_INODE,
-					    osb->slot_num);
-	if (!local_alloc_inode) {
+									LOCAL_ALLOC_SYSTEM_INODE,
+									osb->slot_num);
+
+	if (!local_alloc_inode)
+	{
 		status = -ENOENT;
 		mlog_errno(status);
 		goto bail;
@@ -650,37 +744,50 @@ int ocfs2_reserve_local_alloc_bits(struct ocfs2_super *osb,
 	 * another process may have changed them while holding i_mutex.
 	 */
 	spin_lock(&osb->osb_lock);
+
 	if (!ocfs2_la_state_enabled(osb) ||
-	    (bits_wanted > osb->local_alloc_bits)) {
+		(bits_wanted > osb->local_alloc_bits))
+	{
 		spin_unlock(&osb->osb_lock);
 		status = -ENOSPC;
 		goto bail;
 	}
+
 	spin_unlock(&osb->osb_lock);
 
 	alloc = (struct ocfs2_dinode *) osb->local_alloc_bh->b_data;
 
 #ifdef CONFIG_OCFS2_DEBUG_FS
+
 	if (le32_to_cpu(alloc->id1.bitmap1.i_used) !=
-	    ocfs2_local_alloc_count_bits(alloc)) {
+		ocfs2_local_alloc_count_bits(alloc))
+	{
 		ocfs2_error(osb->sb, "local alloc inode %llu says it has %u used bits, but a count shows %u\n",
-			    (unsigned long long)le64_to_cpu(alloc->i_blkno),
-			    le32_to_cpu(alloc->id1.bitmap1.i_used),
-			    ocfs2_local_alloc_count_bits(alloc));
+					(unsigned long long)le64_to_cpu(alloc->i_blkno),
+					le32_to_cpu(alloc->id1.bitmap1.i_used),
+					ocfs2_local_alloc_count_bits(alloc));
 		status = -EIO;
 		goto bail;
 	}
+
 #endif
 
 	free_bits = le32_to_cpu(alloc->id1.bitmap1.i_total) -
-		le32_to_cpu(alloc->id1.bitmap1.i_used);
-	if (bits_wanted > free_bits) {
+				le32_to_cpu(alloc->id1.bitmap1.i_used);
+
+	if (bits_wanted > free_bits)
+	{
 		/* uhoh, window change time. */
 		status =
 			ocfs2_local_alloc_slide_window(osb, local_alloc_inode);
-		if (status < 0) {
+
+		if (status < 0)
+		{
 			if (status != -ENOSPC)
+			{
 				mlog_errno(status);
+			}
+
 			goto bail;
 		}
 
@@ -691,13 +798,19 @@ int ocfs2_reserve_local_alloc_bits(struct ocfs2_super *osb,
 		 * here and return -ENOSPC if necessary.
 		 */
 		status = -ENOSPC;
+
 		if (!ocfs2_la_state_enabled(osb))
+		{
 			goto bail;
+		}
 
 		free_bits = le32_to_cpu(alloc->id1.bitmap1.i_total) -
-			le32_to_cpu(alloc->id1.bitmap1.i_used);
+					le32_to_cpu(alloc->id1.bitmap1.i_used);
+
 		if (bits_wanted > free_bits)
+		{
 			goto bail;
+		}
 	}
 
 	ac->ac_inode = local_alloc_inode;
@@ -708,7 +821,9 @@ int ocfs2_reserve_local_alloc_bits(struct ocfs2_super *osb,
 	ac->ac_bh = osb->local_alloc_bh;
 	status = 0;
 bail:
-	if (status < 0 && local_alloc_inode) {
+
+	if (status < 0 && local_alloc_inode)
+	{
 		inode_unlock(local_alloc_inode);
 		iput(local_alloc_inode);
 	}
@@ -718,16 +833,19 @@ bail:
 		bits_wanted, osb->slot_num, status);
 
 	if (status)
+	{
 		mlog_errno(status);
+	}
+
 	return status;
 }
 
 int ocfs2_claim_local_alloc_bits(struct ocfs2_super *osb,
-				 handle_t *handle,
-				 struct ocfs2_alloc_context *ac,
-				 u32 bits_wanted,
-				 u32 *bit_off,
-				 u32 *num_bits)
+								 handle_t *handle,
+								 struct ocfs2_alloc_context *ac,
+								 u32 bits_wanted,
+								 u32 *bit_off,
+								 u32 *num_bits)
 {
 	int status, start;
 	struct inode *local_alloc_inode;
@@ -742,8 +860,10 @@ int ocfs2_claim_local_alloc_bits(struct ocfs2_super *osb,
 	la = OCFS2_LOCAL_ALLOC(alloc);
 
 	start = ocfs2_local_alloc_find_clear_bits(osb, alloc, &bits_wanted,
-						  ac->ac_resv);
-	if (start == -1) {
+			ac->ac_resv);
+
+	if (start == -1)
+	{
 		/* TODO: Shouldn't we just BUG here? */
 		status = -ENOSPC;
 		mlog_errno(status);
@@ -755,34 +875,42 @@ int ocfs2_claim_local_alloc_bits(struct ocfs2_super *osb,
 	*num_bits = bits_wanted;
 
 	status = ocfs2_journal_access_di(handle,
-					 INODE_CACHE(local_alloc_inode),
-					 osb->local_alloc_bh,
-					 OCFS2_JOURNAL_ACCESS_WRITE);
-	if (status < 0) {
+									 INODE_CACHE(local_alloc_inode),
+									 osb->local_alloc_bh,
+									 OCFS2_JOURNAL_ACCESS_WRITE);
+
+	if (status < 0)
+	{
 		mlog_errno(status);
 		goto bail;
 	}
 
 	ocfs2_resmap_claimed_bits(&osb->osb_la_resmap, ac->ac_resv, start,
-				  bits_wanted);
+							  bits_wanted);
 
-	while(bits_wanted--)
+	while (bits_wanted--)
+	{
 		ocfs2_set_bit(start++, bitmap);
+	}
 
 	le32_add_cpu(&alloc->id1.bitmap1.i_used, *num_bits);
 	ocfs2_journal_dirty(handle, osb->local_alloc_bh);
 
 bail:
+
 	if (status)
+	{
 		mlog_errno(status);
+	}
+
 	return status;
 }
 
 int ocfs2_free_local_alloc_bits(struct ocfs2_super *osb,
-				handle_t *handle,
-				struct ocfs2_alloc_context *ac,
-				u32 bit_off,
-				u32 num_bits)
+								handle_t *handle,
+								struct ocfs2_alloc_context *ac,
+								u32 bit_off,
+								u32 num_bits)
 {
 	int status, start;
 	u32 clear_bits;
@@ -802,16 +930,20 @@ int ocfs2_free_local_alloc_bits(struct ocfs2_super *osb,
 	clear_bits = num_bits;
 
 	status = ocfs2_journal_access_di(handle,
-			INODE_CACHE(local_alloc_inode),
-			osb->local_alloc_bh,
-			OCFS2_JOURNAL_ACCESS_WRITE);
-	if (status < 0) {
+									 INODE_CACHE(local_alloc_inode),
+									 osb->local_alloc_bh,
+									 OCFS2_JOURNAL_ACCESS_WRITE);
+
+	if (status < 0)
+	{
 		mlog_errno(status);
 		goto bail;
 	}
 
 	while (clear_bits--)
+	{
 		ocfs2_clear_bit(start++, bitmap);
+	}
 
 	le32_add_cpu(&alloc->id1.bitmap1.i_used, -num_bits);
 	ocfs2_journal_dirty(handle, osb->local_alloc_bh);
@@ -832,9 +964,9 @@ static u32 ocfs2_local_alloc_count_bits(struct ocfs2_dinode *alloc)
 }
 
 static int ocfs2_local_alloc_find_clear_bits(struct ocfs2_super *osb,
-				     struct ocfs2_dinode *alloc,
-				     u32 *numbits,
-				     struct ocfs2_alloc_reservation *resv)
+		struct ocfs2_dinode *alloc,
+		u32 *numbits,
+		struct ocfs2_alloc_reservation *resv)
 {
 	int numfound = 0, bitoff, left, startoff, lastzero;
 	int local_resv = 0;
@@ -842,12 +974,14 @@ static int ocfs2_local_alloc_find_clear_bits(struct ocfs2_super *osb,
 	void *bitmap = NULL;
 	struct ocfs2_reservation_map *resmap = &osb->osb_la_resmap;
 
-	if (!alloc->id1.bitmap1.i_total) {
+	if (!alloc->id1.bitmap1.i_total)
+	{
 		bitoff = -1;
 		goto bail;
 	}
 
-	if (!resv) {
+	if (!resv)
+	{
 		local_resv = 1;
 		ocfs2_resv_init_once(&r);
 		ocfs2_resv_set_type(&r, OCFS2_RESV_FLAG_TMP);
@@ -855,9 +989,14 @@ static int ocfs2_local_alloc_find_clear_bits(struct ocfs2_super *osb,
 	}
 
 	numfound = *numbits;
-	if (ocfs2_resmap_resv_bits(resmap, resv, &bitoff, &numfound) == 0) {
+
+	if (ocfs2_resmap_resv_bits(resmap, resv, &bitoff, &numfound) == 0)
+	{
 		if (numfound < *numbits)
+		{
 			*numbits = numfound;
+		}
+
 		goto bail;
 	}
 
@@ -876,27 +1015,36 @@ static int ocfs2_local_alloc_find_clear_bits(struct ocfs2_super *osb,
 	numfound = bitoff = startoff = 0;
 	lastzero = -1;
 	left = le32_to_cpu(alloc->id1.bitmap1.i_total);
-	while ((bitoff = ocfs2_find_next_zero_bit(bitmap, left, startoff)) != -1) {
-		if (bitoff == left) {
+
+	while ((bitoff = ocfs2_find_next_zero_bit(bitmap, left, startoff)) != -1)
+	{
+		if (bitoff == left)
+		{
 			/* mlog(0, "bitoff (%d) == left", bitoff); */
 			break;
 		}
+
 		/* mlog(0, "Found a zero: bitoff = %d, startoff = %d, "
 		   "numfound = %d\n", bitoff, startoff, numfound);*/
 
 		/* Ok, we found a zero bit... is it contig. or do we
 		 * start over?*/
-		if (bitoff == startoff) {
+		if (bitoff == startoff)
+		{
 			/* we found a zero */
 			numfound++;
 			startoff++;
-		} else {
+		}
+		else
+		{
 			/* got a zero after some ones */
 			numfound = 1;
-			startoff = bitoff+1;
+			startoff = bitoff + 1;
 		}
+
 		/* we got everything we needed */
-		if (numfound == *numbits) {
+		if (numfound == *numbits)
+		{
 			/* mlog(0, "Found it all!\n"); */
 			break;
 		}
@@ -905,17 +1053,24 @@ static int ocfs2_local_alloc_find_clear_bits(struct ocfs2_super *osb,
 	trace_ocfs2_local_alloc_find_clear_bits_search_bitmap(bitoff, numfound);
 
 	if (numfound == *numbits)
+	{
 		bitoff = startoff - numfound;
+	}
 	else
+	{
 		bitoff = -1;
+	}
 
 bail:
+
 	if (local_resv)
+	{
 		ocfs2_resv_discard(resmap, resv);
+	}
 
 	trace_ocfs2_local_alloc_find_clear_bits(*numbits,
-		le32_to_cpu(alloc->id1.bitmap1.i_total),
-		bitoff, numfound);
+											le32_to_cpu(alloc->id1.bitmap1.i_total),
+											bitoff, numfound);
 
 	return bitoff;
 }
@@ -928,23 +1083,29 @@ static void ocfs2_clear_local_alloc(struct ocfs2_dinode *alloc)
 	alloc->id1.bitmap1.i_total = 0;
 	alloc->id1.bitmap1.i_used = 0;
 	la->la_bm_off = 0;
-	for(i = 0; i < le16_to_cpu(la->la_size); i++)
+
+	for (i = 0; i < le16_to_cpu(la->la_size); i++)
+	{
 		la->la_bitmap[i] = 0;
+	}
 }
 
 #if 0
 /* turn this on and uncomment below to aid debugging window shifts. */
 static void ocfs2_verify_zero_bits(unsigned long *bitmap,
-				   unsigned int start,
-				   unsigned int count)
+								   unsigned int start,
+								   unsigned int count)
 {
 	unsigned int tmp = count;
-	while(tmp--) {
-		if (ocfs2_test_bit(start + tmp, bitmap)) {
+
+	while (tmp--)
+	{
+		if (ocfs2_test_bit(start + tmp, bitmap))
+		{
 			printk("ocfs2_verify_zero_bits: start = %u, count = "
-			       "%u\n", start, count);
+				   "%u\n", start, count);
 			printk("ocfs2_verify_zero_bits: bit %u is set!",
-			       start + tmp);
+				   start + tmp);
 			BUG();
 		}
 	}
@@ -958,10 +1119,10 @@ static void ocfs2_verify_zero_bits(unsigned long *bitmap,
  * passed is used for caching.
  */
 static int ocfs2_sync_local_to_main(struct ocfs2_super *osb,
-				    handle_t *handle,
-				    struct ocfs2_dinode *alloc,
-				    struct inode *main_bm_inode,
-				    struct buffer_head *main_bm_bh)
+									handle_t *handle,
+									struct ocfs2_dinode *alloc,
+									struct inode *main_bm_inode,
+									struct buffer_head *main_bm_bh)
 {
 	int status = 0;
 	int bit_off, left, count, start;
@@ -971,63 +1132,80 @@ static int ocfs2_sync_local_to_main(struct ocfs2_super *osb,
 	struct ocfs2_local_alloc *la = OCFS2_LOCAL_ALLOC(alloc);
 
 	trace_ocfs2_sync_local_to_main(
-	     le32_to_cpu(alloc->id1.bitmap1.i_total),
-	     le32_to_cpu(alloc->id1.bitmap1.i_used));
+		le32_to_cpu(alloc->id1.bitmap1.i_total),
+		le32_to_cpu(alloc->id1.bitmap1.i_used));
 
-	if (!alloc->id1.bitmap1.i_total) {
+	if (!alloc->id1.bitmap1.i_total)
+	{
 		goto bail;
 	}
 
 	if (le32_to_cpu(alloc->id1.bitmap1.i_used) ==
-	    le32_to_cpu(alloc->id1.bitmap1.i_total)) {
+		le32_to_cpu(alloc->id1.bitmap1.i_total))
+	{
 		goto bail;
 	}
 
 	la_start_blk = ocfs2_clusters_to_blocks(osb->sb,
-						le32_to_cpu(la->la_bm_off));
+											le32_to_cpu(la->la_bm_off));
 	bitmap = la->la_bitmap;
 	start = count = bit_off = 0;
 	left = le32_to_cpu(alloc->id1.bitmap1.i_total);
 
 	while ((bit_off = ocfs2_find_next_zero_bit(bitmap, left, start))
-	       != -1) {
-		if ((bit_off < left) && (bit_off == start)) {
+		   != -1)
+	{
+		if ((bit_off < left) && (bit_off == start))
+		{
 			count++;
 			start++;
 			continue;
 		}
-		if (count) {
+
+		if (count)
+		{
 			blkno = la_start_blk +
-				ocfs2_clusters_to_blocks(osb->sb,
-							 start - count);
+					ocfs2_clusters_to_blocks(osb->sb,
+											 start - count);
 
 			trace_ocfs2_sync_local_to_main_free(
-			     count, start - count,
-			     (unsigned long long)la_start_blk,
-			     (unsigned long long)blkno);
+				count, start - count,
+				(unsigned long long)la_start_blk,
+				(unsigned long long)blkno);
 
 			status = ocfs2_release_clusters(handle,
-							main_bm_inode,
-							main_bm_bh, blkno,
-							count);
-			if (status < 0) {
+											main_bm_inode,
+											main_bm_bh, blkno,
+											count);
+
+			if (status < 0)
+			{
 				mlog_errno(status);
 				goto bail;
 			}
 		}
+
 		if (bit_off >= left)
+		{
 			break;
+		}
+
 		count = 1;
 		start = bit_off + 1;
 	}
 
 bail:
+
 	if (status)
+	{
 		mlog_errno(status);
+	}
+
 	return status;
 }
 
-enum ocfs2_la_event {
+enum ocfs2_la_event
+{
 	OCFS2_LA_EVENT_SLIDE,		/* Normal window slide. */
 	OCFS2_LA_EVENT_FRAGMENTED,	/* The global bitmap has
 					 * enough bits theoretically
@@ -1050,13 +1228,15 @@ enum ocfs2_la_event {
  * be ignored by some paths.
  */
 static int ocfs2_recalc_la_window(struct ocfs2_super *osb,
-				  enum ocfs2_la_event event)
+								  enum ocfs2_la_event event)
 {
 	unsigned int bits;
 	int state;
 
 	spin_lock(&osb->osb_lock);
-	if (osb->local_alloc_state == OCFS2_LA_DISABLED) {
+
+	if (osb->local_alloc_state == OCFS2_LA_DISABLED)
+	{
 		WARN_ON_ONCE(osb->local_alloc_state == OCFS2_LA_DISABLED);
 		goto out_unlock;
 	}
@@ -1065,14 +1245,17 @@ static int ocfs2_recalc_la_window(struct ocfs2_super *osb,
 	 * ENOSPC and fragmentation are treated similarly for now.
 	 */
 	if (event == OCFS2_LA_EVENT_ENOSPC ||
-	    event == OCFS2_LA_EVENT_FRAGMENTED) {
+		event == OCFS2_LA_EVENT_FRAGMENTED)
+	{
 		/*
 		 * We ran out of contiguous space in the primary
 		 * bitmap. Drastically reduce the number of bits used
 		 * by local alloc until we have to disable it.
 		 */
 		bits = osb->local_alloc_bits >> 1;
-		if (bits > ocfs2_megabytes_to_clusters(osb->sb, 1)) {
+
+		if (bits > ocfs2_megabytes_to_clusters(osb->sb, 1))
+		{
 			/*
 			 * By setting state to THROTTLED, we'll keep
 			 * the number of local alloc bits used down
@@ -1082,11 +1265,14 @@ static int ocfs2_recalc_la_window(struct ocfs2_super *osb,
 			 */
 			osb->local_alloc_state = OCFS2_LA_THROTTLED;
 			osb->local_alloc_bits = bits;
-		} else {
+		}
+		else
+		{
 			osb->local_alloc_state = OCFS2_LA_DISABLED;
 		}
+
 		queue_delayed_work(osb->ocfs2_wq, &osb->la_enable_wq,
-				   OCFS2_LA_ENABLE_INTERVAL);
+						   OCFS2_LA_ENABLE_INTERVAL);
 		goto out_unlock;
 	}
 
@@ -1097,7 +1283,9 @@ static int ocfs2_recalc_la_window(struct ocfs2_super *osb,
 	 * low space.
 	 */
 	if (osb->local_alloc_state != OCFS2_LA_THROTTLED)
+	{
 		osb->local_alloc_bits = osb->local_alloc_default_bits;
+	}
 
 out_unlock:
 	state = osb->local_alloc_state;
@@ -1107,14 +1295,16 @@ out_unlock:
 }
 
 static int ocfs2_local_alloc_reserve_for_window(struct ocfs2_super *osb,
-						struct ocfs2_alloc_context **ac,
-						struct inode **bitmap_inode,
-						struct buffer_head **bitmap_bh)
+		struct ocfs2_alloc_context **ac,
+		struct inode **bitmap_inode,
+		struct buffer_head **bitmap_bh)
 {
 	int status;
 
 	*ac = kzalloc(sizeof(struct ocfs2_alloc_context), GFP_KERNEL);
-	if (!(*ac)) {
+
+	if (!(*ac))
+	{
 		status = -ENOMEM;
 		mlog_errno(status);
 		goto bail;
@@ -1123,16 +1313,22 @@ static int ocfs2_local_alloc_reserve_for_window(struct ocfs2_super *osb,
 retry_enospc:
 	(*ac)->ac_bits_wanted = osb->local_alloc_bits;
 	status = ocfs2_reserve_cluster_bitmap_bits(osb, *ac);
-	if (status == -ENOSPC) {
+
+	if (status == -ENOSPC)
+	{
 		if (ocfs2_recalc_la_window(osb, OCFS2_LA_EVENT_ENOSPC) ==
-		    OCFS2_LA_DISABLED)
+			OCFS2_LA_DISABLED)
+		{
 			goto bail;
+		}
 
 		ocfs2_free_ac_resource(*ac);
 		memset(*ac, 0, sizeof(struct ocfs2_alloc_context));
 		goto retry_enospc;
 	}
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		mlog_errno(status);
 		goto bail;
 	}
@@ -1143,13 +1339,18 @@ retry_enospc:
 	get_bh(*bitmap_bh);
 	status = 0;
 bail:
-	if ((status < 0) && *ac) {
+
+	if ((status < 0) && *ac)
+	{
 		ocfs2_free_alloc_context(*ac);
 		*ac = NULL;
 	}
 
 	if (status)
+	{
 		mlog_errno(status);
+	}
+
 	return status;
 }
 
@@ -1157,8 +1358,8 @@ bail:
  * pass it the bitmap lock in lock_bh if you have it.
  */
 static int ocfs2_local_alloc_new_window(struct ocfs2_super *osb,
-					handle_t *handle,
-					struct ocfs2_alloc_context *ac)
+										handle_t *handle,
+										struct ocfs2_alloc_context *ac)
 {
 	int status = 0;
 	u32 cluster_off, cluster_count;
@@ -1181,39 +1382,54 @@ static int ocfs2_local_alloc_new_window(struct ocfs2_super *osb,
 	 * everything up nicely, so there's no reason why we can't use
 	 * the more specific cluster api to claim bits. */
 	status = ocfs2_claim_clusters(handle, ac, osb->local_alloc_bits,
-				      &cluster_off, &cluster_count);
-	if (status == -ENOSPC) {
+								  &cluster_off, &cluster_count);
+
+	if (status == -ENOSPC)
+	{
 retry_enospc:
+
 		/*
 		 * Note: We could also try syncing the journal here to
 		 * allow use of any free bits which the current
 		 * transaction can't give us access to. --Mark
 		 */
 		if (ocfs2_recalc_la_window(osb, OCFS2_LA_EVENT_FRAGMENTED) ==
-		    OCFS2_LA_DISABLED)
+			OCFS2_LA_DISABLED)
+		{
 			goto bail;
+		}
 
 		ac->ac_bits_wanted = osb->local_alloc_bits;
 		status = ocfs2_claim_clusters(handle, ac,
-					      osb->local_alloc_bits,
-					      &cluster_off,
-					      &cluster_count);
+									  osb->local_alloc_bits,
+									  &cluster_off,
+									  &cluster_count);
+
 		if (status == -ENOSPC)
+		{
 			goto retry_enospc;
+		}
+
 		/*
 		 * We only shrunk the *minimum* number of in our
 		 * request - it's entirely possible that the allocator
 		 * might give us more than we asked for.
 		 */
-		if (status == 0) {
+		if (status == 0)
+		{
 			spin_lock(&osb->osb_lock);
 			osb->local_alloc_bits = cluster_count;
 			spin_unlock(&osb->osb_lock);
 		}
 	}
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		if (status != -ENOSPC)
+		{
 			mlog_errno(status);
+		}
+
 		goto bail;
 	}
 
@@ -1227,25 +1443,29 @@ retry_enospc:
 	 * la_bits_set before setting the bits in the main bitmap. */
 	alloc->id1.bitmap1.i_used = 0;
 	memset(OCFS2_LOCAL_ALLOC(alloc)->la_bitmap, 0,
-	       le16_to_cpu(la->la_size));
+		   le16_to_cpu(la->la_size));
 
 	ocfs2_resmap_restart(&osb->osb_la_resmap, cluster_count,
-			     OCFS2_LOCAL_ALLOC(alloc)->la_bitmap);
+						 OCFS2_LOCAL_ALLOC(alloc)->la_bitmap);
 
 	trace_ocfs2_local_alloc_new_window_result(
 		OCFS2_LOCAL_ALLOC(alloc)->la_bm_off,
 		le32_to_cpu(alloc->id1.bitmap1.i_total));
 
 bail:
+
 	if (status)
+	{
 		mlog_errno(status);
+	}
+
 	return status;
 }
 
 /* Note that we do *NOT* lock the local alloc inode here as
  * it's been locked already for us. */
 static int ocfs2_local_alloc_slide_window(struct ocfs2_super *osb,
-					  struct inode *local_alloc_inode)
+		struct inode *local_alloc_inode)
 {
 	int status = 0;
 	struct buffer_head *main_bm_bh = NULL;
@@ -1259,17 +1479,24 @@ static int ocfs2_local_alloc_slide_window(struct ocfs2_super *osb,
 
 	/* This will lock the main bitmap for us. */
 	status = ocfs2_local_alloc_reserve_for_window(osb,
-						      &ac,
-						      &main_bm_inode,
-						      &main_bm_bh);
-	if (status < 0) {
+			 &ac,
+			 &main_bm_inode,
+			 &main_bm_bh);
+
+	if (status < 0)
+	{
 		if (status != -ENOSPC)
+		{
 			mlog_errno(status);
+		}
+
 		goto bail;
 	}
 
 	handle = ocfs2_start_trans(osb, OCFS2_WINDOW_MOVE_CREDITS);
-	if (IS_ERR(handle)) {
+
+	if (IS_ERR(handle))
+	{
 		status = PTR_ERR(handle);
 		handle = NULL;
 		mlog_errno(status);
@@ -1284,18 +1511,23 @@ static int ocfs2_local_alloc_slide_window(struct ocfs2_super *osb,
 	 * bits. Make a copy so the sync function knows which bits to
 	 * free. */
 	alloc_copy = kmalloc(osb->local_alloc_bh->b_size, GFP_NOFS);
-	if (!alloc_copy) {
+
+	if (!alloc_copy)
+	{
 		status = -ENOMEM;
 		mlog_errno(status);
 		goto bail;
 	}
+
 	memcpy(alloc_copy, alloc, osb->local_alloc_bh->b_size);
 
 	status = ocfs2_journal_access_di(handle,
-					 INODE_CACHE(local_alloc_inode),
-					 osb->local_alloc_bh,
-					 OCFS2_JOURNAL_ACCESS_WRITE);
-	if (status < 0) {
+									 INODE_CACHE(local_alloc_inode),
+									 osb->local_alloc_bh,
+									 OCFS2_JOURNAL_ACCESS_WRITE);
+
+	if (status < 0)
+	{
 		mlog_errno(status);
 		goto bail;
 	}
@@ -1304,24 +1536,34 @@ static int ocfs2_local_alloc_slide_window(struct ocfs2_super *osb,
 	ocfs2_journal_dirty(handle, osb->local_alloc_bh);
 
 	status = ocfs2_sync_local_to_main(osb, handle, alloc_copy,
-					  main_bm_inode, main_bm_bh);
-	if (status < 0) {
+									  main_bm_inode, main_bm_bh);
+
+	if (status < 0)
+	{
 		mlog_errno(status);
 		goto bail;
 	}
 
 	status = ocfs2_local_alloc_new_window(osb, handle, ac);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		if (status != -ENOSPC)
+		{
 			mlog_errno(status);
+		}
+
 		goto bail;
 	}
 
 	atomic_inc(&osb->alloc_stats.moves);
 
 bail:
+
 	if (handle)
+	{
 		ocfs2_commit_trans(osb, handle);
+	}
 
 	brelse(main_bm_bh);
 
@@ -1329,10 +1571,15 @@ bail:
 	kfree(alloc_copy);
 
 	if (ac)
+	{
 		ocfs2_free_alloc_context(ac);
+	}
 
 	if (status)
+	{
 		mlog_errno(status);
+	}
+
 	return status;
 }
 

@@ -37,7 +37,8 @@ static noinline unsigned char *do_usercopy_stack_callee(int value)
 	int i;
 
 	/* Exercise stack to avoid everything living in registers. */
-	for (i = 0; i < sizeof(buf); i++) {
+	for (i = 0; i < sizeof(buf); i++)
+	{
 		buf[i] = value & 0xff;
 	}
 
@@ -53,57 +54,77 @@ static noinline void do_usercopy_stack(bool to_user, bool bad_frame)
 
 	/* Exercise stack to avoid everything living in registers. */
 	for (i = 0; i < sizeof(good_stack); i++)
+	{
 		good_stack[i] = test_text[i % sizeof(test_text)];
+	}
 
 	/* This is a pointer to outside our current stack frame. */
-	if (bad_frame) {
+	if (bad_frame)
+	{
 		bad_stack = do_usercopy_stack_callee((uintptr_t)&bad_stack);
-	} else {
+	}
+	else
+	{
 		/* Put start address just inside stack. */
 		bad_stack = task_stack_page(current) + THREAD_SIZE;
 		bad_stack -= sizeof(unsigned long);
 	}
 
 	user_addr = vm_mmap(NULL, 0, PAGE_SIZE,
-			    PROT_READ | PROT_WRITE | PROT_EXEC,
-			    MAP_ANONYMOUS | MAP_PRIVATE, 0);
-	if (user_addr >= TASK_SIZE) {
+						PROT_READ | PROT_WRITE | PROT_EXEC,
+						MAP_ANONYMOUS | MAP_PRIVATE, 0);
+
+	if (user_addr >= TASK_SIZE)
+	{
 		pr_warn("Failed to allocate user memory\n");
 		return;
 	}
 
-	if (to_user) {
+	if (to_user)
+	{
 		pr_info("attempting good copy_to_user of local stack\n");
+
 		if (copy_to_user((void __user *)user_addr, good_stack,
-				 unconst + sizeof(good_stack))) {
+						 unconst + sizeof(good_stack)))
+		{
 			pr_warn("copy_to_user failed unexpectedly?!\n");
 			goto free_user;
 		}
 
 		pr_info("attempting bad copy_to_user of distant stack\n");
+
 		if (copy_to_user((void __user *)user_addr, bad_stack,
-				 unconst + sizeof(good_stack))) {
+						 unconst + sizeof(good_stack)))
+		{
 			pr_warn("copy_to_user failed, but lacked Oops\n");
 			goto free_user;
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		 * There isn't a safe way to not be protected by usercopy
 		 * if we're going to write to another thread's stack.
 		 */
 		if (!bad_frame)
+		{
 			goto free_user;
+		}
 
 		pr_info("attempting good copy_from_user of local stack\n");
+
 		if (copy_from_user(good_stack, (void __user *)user_addr,
-				   unconst + sizeof(good_stack))) {
+						   unconst + sizeof(good_stack)))
+		{
 			pr_warn("copy_from_user failed unexpectedly?!\n");
 			goto free_user;
 		}
 
 		pr_info("attempting bad copy_from_user of distant stack\n");
+
 		if (copy_from_user(bad_stack, (void __user *)user_addr,
-				   unconst + sizeof(good_stack))) {
+						   unconst + sizeof(good_stack)))
+		{
 			pr_warn("copy_from_user failed, but lacked Oops\n");
 			goto free_user;
 		}
@@ -121,15 +142,19 @@ static void do_usercopy_heap_size(bool to_user)
 
 	one = kmalloc(size, GFP_KERNEL);
 	two = kmalloc(size, GFP_KERNEL);
-	if (!one || !two) {
+
+	if (!one || !two)
+	{
 		pr_warn("Failed to allocate kernel memory\n");
 		goto free_kernel;
 	}
 
 	user_addr = vm_mmap(NULL, 0, PAGE_SIZE,
-			    PROT_READ | PROT_WRITE | PROT_EXEC,
-			    MAP_ANONYMOUS | MAP_PRIVATE, 0);
-	if (user_addr >= TASK_SIZE) {
+						PROT_READ | PROT_WRITE | PROT_EXEC,
+						MAP_ANONYMOUS | MAP_PRIVATE, 0);
+
+	if (user_addr >= TASK_SIZE)
+	{
 		pr_warn("Failed to allocate user memory\n");
 		goto free_kernel;
 	}
@@ -137,27 +162,38 @@ static void do_usercopy_heap_size(bool to_user)
 	memset(one, 'A', size);
 	memset(two, 'B', size);
 
-	if (to_user) {
+	if (to_user)
+	{
 		pr_info("attempting good copy_to_user of correct size\n");
-		if (copy_to_user((void __user *)user_addr, one, size)) {
+
+		if (copy_to_user((void __user *)user_addr, one, size))
+		{
 			pr_warn("copy_to_user failed unexpectedly?!\n");
 			goto free_user;
 		}
 
 		pr_info("attempting bad copy_to_user of too large size\n");
-		if (copy_to_user((void __user *)user_addr, one, 2 * size)) {
+
+		if (copy_to_user((void __user *)user_addr, one, 2 * size))
+		{
 			pr_warn("copy_to_user failed, but lacked Oops\n");
 			goto free_user;
 		}
-	} else {
+	}
+	else
+	{
 		pr_info("attempting good copy_from_user of correct size\n");
-		if (copy_from_user(one, (void __user *)user_addr, size)) {
+
+		if (copy_from_user(one, (void __user *)user_addr, size))
+		{
 			pr_warn("copy_from_user failed unexpectedly?!\n");
 			goto free_user;
 		}
 
 		pr_info("attempting bad copy_from_user of too large size\n");
-		if (copy_from_user(one, (void __user *)user_addr, 2 * size)) {
+
+		if (copy_from_user(one, (void __user *)user_addr, 2 * size))
+		{
 			pr_warn("copy_from_user failed, but lacked Oops\n");
 			goto free_user;
 		}
@@ -177,7 +213,8 @@ static void do_usercopy_heap_flag(bool to_user)
 	unsigned char *bad_buf = NULL;
 
 	/* Make sure cache was prepared. */
-	if (!bad_cache) {
+	if (!bad_cache)
+	{
 		pr_warn("Failed to allocate kernel cache\n");
 		return;
 	}
@@ -188,16 +225,20 @@ static void do_usercopy_heap_flag(bool to_user)
 	 */
 	good_buf = kmalloc(cache_size, GFP_KERNEL);
 	bad_buf = kmem_cache_alloc(bad_cache, GFP_KERNEL);
-	if (!good_buf || !bad_buf) {
+
+	if (!good_buf || !bad_buf)
+	{
 		pr_warn("Failed to allocate buffers from caches\n");
 		goto free_alloc;
 	}
 
 	/* Allocate user memory we'll poke at. */
 	user_addr = vm_mmap(NULL, 0, PAGE_SIZE,
-			    PROT_READ | PROT_WRITE | PROT_EXEC,
-			    MAP_ANONYMOUS | MAP_PRIVATE, 0);
-	if (user_addr >= TASK_SIZE) {
+						PROT_READ | PROT_WRITE | PROT_EXEC,
+						MAP_ANONYMOUS | MAP_PRIVATE, 0);
+
+	if (user_addr >= TASK_SIZE)
+	{
 		pr_warn("Failed to allocate user memory\n");
 		goto free_alloc;
 	}
@@ -205,31 +246,42 @@ static void do_usercopy_heap_flag(bool to_user)
 	memset(good_buf, 'A', cache_size);
 	memset(bad_buf, 'B', cache_size);
 
-	if (to_user) {
+	if (to_user)
+	{
 		pr_info("attempting good copy_to_user with SLAB_USERCOPY\n");
+
 		if (copy_to_user((void __user *)user_addr, good_buf,
-				 cache_size)) {
+						 cache_size))
+		{
 			pr_warn("copy_to_user failed unexpectedly?!\n");
 			goto free_user;
 		}
 
 		pr_info("attempting bad copy_to_user w/o SLAB_USERCOPY\n");
+
 		if (copy_to_user((void __user *)user_addr, bad_buf,
-				 cache_size)) {
+						 cache_size))
+		{
 			pr_warn("copy_to_user failed, but lacked Oops\n");
 			goto free_user;
 		}
-	} else {
+	}
+	else
+	{
 		pr_info("attempting good copy_from_user with SLAB_USERCOPY\n");
+
 		if (copy_from_user(good_buf, (void __user *)user_addr,
-				   cache_size)) {
+						   cache_size))
+		{
 			pr_warn("copy_from_user failed unexpectedly?!\n");
 			goto free_user;
 		}
 
 		pr_info("attempting bad copy_from_user w/o SLAB_USERCOPY\n");
+
 		if (copy_from_user(bad_buf, (void __user *)user_addr,
-				   cache_size)) {
+						   cache_size))
+		{
 			pr_warn("copy_from_user failed, but lacked Oops\n");
 			goto free_user;
 		}
@@ -238,8 +290,12 @@ static void do_usercopy_heap_flag(bool to_user)
 free_user:
 	vm_munmap(user_addr, PAGE_SIZE);
 free_alloc:
+
 	if (bad_buf)
+	{
 		kmem_cache_free(bad_cache, bad_buf);
+	}
+
 	kfree(good_buf);
 }
 
@@ -284,23 +340,29 @@ void lkdtm_USERCOPY_KERNEL(void)
 	unsigned long user_addr;
 
 	user_addr = vm_mmap(NULL, 0, PAGE_SIZE,
-			    PROT_READ | PROT_WRITE | PROT_EXEC,
-			    MAP_ANONYMOUS | MAP_PRIVATE, 0);
-	if (user_addr >= TASK_SIZE) {
+						PROT_READ | PROT_WRITE | PROT_EXEC,
+						MAP_ANONYMOUS | MAP_PRIVATE, 0);
+
+	if (user_addr >= TASK_SIZE)
+	{
 		pr_warn("Failed to allocate user memory\n");
 		return;
 	}
 
 	pr_info("attempting good copy_to_user from kernel rodata\n");
+
 	if (copy_to_user((void __user *)user_addr, test_text,
-			 unconst + sizeof(test_text))) {
+					 unconst + sizeof(test_text)))
+	{
 		pr_warn("copy_to_user failed unexpectedly?!\n");
 		goto free_user;
 	}
 
 	pr_info("attempting bad copy_to_user from kernel text\n");
+
 	if (copy_to_user((void __user *)user_addr, vm_mmap,
-			 unconst + PAGE_SIZE)) {
+					 unconst + PAGE_SIZE))
+	{
 		pr_warn("copy_to_user failed, but lacked Oops\n");
 		goto free_user;
 	}
@@ -313,7 +375,7 @@ void __init lkdtm_usercopy_init(void)
 {
 	/* Prepare cache that lacks SLAB_USERCOPY flag. */
 	bad_cache = kmem_cache_create("lkdtm-no-usercopy", cache_size, 0,
-				      0, NULL);
+								  0, NULL);
 }
 
 void __exit lkdtm_usercopy_exit(void)

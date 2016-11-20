@@ -11,16 +11,17 @@
 #ifndef __CLK_RENESAS_CPG_MSSR_H__
 #define __CLK_RENESAS_CPG_MSSR_H__
 
-    /*
-     * Definitions of CPG Core Clocks
-     *
-     * These include:
-     *   - Clock outputs exported to DT
-     *   - External input clocks
-     *   - Internal CPG clocks
-     */
+/*
+ * Definitions of CPG Core Clocks
+ *
+ * These include:
+ *   - Clock outputs exported to DT
+ *   - External input clocks
+ *   - Internal CPG clocks
+ */
 
-struct cpg_core_clk {
+struct cpg_core_clk
+{
 	/* Common */
 	const char *name;
 	unsigned int id;
@@ -32,7 +33,8 @@ struct cpg_core_clk {
 	unsigned int offset;
 };
 
-enum clk_types {
+enum clk_types
+{
 	/* Generic */
 	CLK_TYPE_IN,		/* External Clock Input */
 	CLK_TYPE_FF,		/* Fixed Factor Clock */
@@ -57,11 +59,12 @@ enum clk_types {
 #define DEF_DIV6_RO(_name, _id, _parent, _offset, _div)	\
 	DEF_BASE(_name, _id, CLK_TYPE_DIV6_RO, _parent, .offset = _offset, .div = _div, .mult = 1)
 
-    /*
-     * Definitions of Module Clocks
-     */
+/*
+ * Definitions of Module Clocks
+ */
 
-struct mssr_mod_clk {
+struct mssr_mod_clk
+{
 	const char *name;
 	unsigned int id;
 	unsigned int parent;	/* Add MOD_CLK_BASE for Module Clocks */
@@ -78,31 +81,32 @@ struct mssr_mod_clk {
 
 struct device_node;
 
-    /**
-     * SoC-specific CPG/MSSR Description
-     *
-     * @core_clks: Array of Core Clock definitions
-     * @num_core_clks: Number of entries in core_clks[]
-     * @last_dt_core_clk: ID of the last Core Clock exported to DT
-     * @num_total_core_clks: Total number of Core Clocks (exported + internal)
-     *
-     * @mod_clks: Array of Module Clock definitions
-     * @num_mod_clks: Number of entries in mod_clks[]
-     * @num_hw_mod_clks: Number of Module Clocks supported by the hardware
-     *
-     * @crit_mod_clks: Array with Module Clock IDs of critical clocks that
-     *                 should not be disabled without a knowledgeable driver
-     * @num_crit_mod_clks: Number of entries in crit_mod_clks[]
-     *
-     * @core_pm_clks: Array with IDs of Core Clocks that are suitable for Power
-     *                Management, in addition to Module Clocks
-     * @num_core_pm_clks: Number of entries in core_pm_clks[]
-     *
-     * @init: Optional callback to perform SoC-specific initialization
-     * @cpg_clk_register: Optional callback to handle special Core Clock types
-     */
+/**
+ * SoC-specific CPG/MSSR Description
+ *
+ * @core_clks: Array of Core Clock definitions
+ * @num_core_clks: Number of entries in core_clks[]
+ * @last_dt_core_clk: ID of the last Core Clock exported to DT
+ * @num_total_core_clks: Total number of Core Clocks (exported + internal)
+ *
+ * @mod_clks: Array of Module Clock definitions
+ * @num_mod_clks: Number of entries in mod_clks[]
+ * @num_hw_mod_clks: Number of Module Clocks supported by the hardware
+ *
+ * @crit_mod_clks: Array with Module Clock IDs of critical clocks that
+ *                 should not be disabled without a knowledgeable driver
+ * @num_crit_mod_clks: Number of entries in crit_mod_clks[]
+ *
+ * @core_pm_clks: Array with IDs of Core Clocks that are suitable for Power
+ *                Management, in addition to Module Clocks
+ * @num_core_pm_clks: Number of entries in core_pm_clks[]
+ *
+ * @init: Optional callback to perform SoC-specific initialization
+ * @cpg_clk_register: Optional callback to handle special Core Clock types
+ */
 
-struct cpg_mssr_info {
+struct cpg_mssr_info
+{
 	/* Core Clocks */
 	const struct cpg_core_clk *core_clks;
 	unsigned int num_core_clks;
@@ -125,9 +129,9 @@ struct cpg_mssr_info {
 	/* Callbacks */
 	int (*init)(struct device *dev);
 	struct clk *(*cpg_clk_register)(struct device *dev,
-					const struct cpg_core_clk *core,
-					const struct cpg_mssr_info *info,
-					struct clk **clks, void __iomem *base);
+									const struct cpg_core_clk *core,
+									const struct cpg_mssr_info *info,
+									struct clk **clks, void __iomem *base);
 };
 
 extern const struct cpg_mssr_info r8a7795_cpg_mssr_info;

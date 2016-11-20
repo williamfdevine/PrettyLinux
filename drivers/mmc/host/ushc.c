@@ -23,7 +23,8 @@
 #include <linux/dma-mapping.h>
 #include <linux/mmc/host.h>
 
-enum ushc_request {
+enum ushc_request
+{
 	USHC_GET_CAPS  = 0x00,
 	USHC_HOST_CTRL = 0x01,
 	USHC_PWR_CTRL  = 0x02,
@@ -33,7 +34,8 @@ enum ushc_request {
 	USHC_RESET     = 0x06,
 };
 
-enum ushc_request_type {
+enum ushc_request_type
+{
 	USHC_GET_CAPS_TYPE  = USB_DIR_IN  | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
 	USHC_HOST_CTRL_TYPE = USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
 	USHC_PWR_CTRL_TYPE  = USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
@@ -64,7 +66,8 @@ enum ushc_request_type {
 #define USHC_READ_RESP_ERR_CMD     (1 << 0)
 #define USHC_READ_RESP_ERR_MASK    0x0f
 
-struct ushc_cbw {
+struct ushc_cbw
+{
 	__u8 signature;
 	__u8 cmd_idx;
 	__le16 block_size;
@@ -73,7 +76,8 @@ struct ushc_cbw {
 
 #define USHC_CBW_SIGNATURE 'C'
 
-struct ushc_csw {
+struct ushc_csw
+{
 	__u8 signature;
 	__u8 status;
 	__le32 response;
@@ -81,7 +85,8 @@ struct ushc_csw {
 
 #define USHC_CSW_SIGNATURE 'S'
 
-struct ushc_int_data {
+struct ushc_int_data
+{
 	u8 status;
 	u8 reserved[3];
 };
@@ -90,7 +95,8 @@ struct ushc_int_data {
 #define USHC_INT_STATUS_CARD_PRESENT (1 << 0)
 
 
-struct ushc_data {
+struct ushc_data
+{
 	struct usb_device *usb_dev;
 	struct mmc_host *mmc;
 
@@ -123,8 +129,8 @@ static void data_callback(struct urb *urb);
 static int ushc_hw_reset(struct ushc_data *ushc)
 {
 	return usb_control_msg(ushc->usb_dev, usb_sndctrlpipe(ushc->usb_dev, 0),
-			       USHC_RESET, USHC_RESET_TYPE,
-			       0, 0, NULL, 0, 100);
+						   USHC_RESET, USHC_RESET_TYPE,
+						   0, 0, NULL, 0, 100);
 }
 
 static int ushc_hw_get_caps(struct ushc_data *ushc)
@@ -133,15 +139,20 @@ static int ushc_hw_get_caps(struct ushc_data *ushc)
 	int version;
 
 	ret = usb_control_msg(ushc->usb_dev, usb_rcvctrlpipe(ushc->usb_dev, 0),
-			      USHC_GET_CAPS, USHC_GET_CAPS_TYPE,
-			      0, 0, &ushc->caps, sizeof(ushc->caps), 100);
+						  USHC_GET_CAPS, USHC_GET_CAPS_TYPE,
+						  0, 0, &ushc->caps, sizeof(ushc->caps), 100);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ushc->caps = le32_to_cpu(ushc->caps);
 
 	version = ushc->caps & USHC_GET_CAPS_VERSION_MASK;
-	if (version != 0x02) {
+
+	if (version != 0x02)
+	{
 		dev_err(&ushc->usb_dev->dev, "controller version %d is not supported\n", version);
 		return -EINVAL;
 	}
@@ -156,10 +167,14 @@ static int ushc_hw_set_host_ctrl(struct ushc_data *ushc, u16 mask, u16 val)
 
 	host_ctrl = (ushc->host_ctrl & ~mask) | val;
 	ret = usb_control_msg(ushc->usb_dev, usb_sndctrlpipe(ushc->usb_dev, 0),
-			      USHC_HOST_CTRL, USHC_HOST_CTRL_TYPE,
-			      host_ctrl, 0, NULL, 0, 100);
+						  USHC_HOST_CTRL, USHC_HOST_CTRL_TYPE,
+						  host_ctrl, 0, NULL, 0, 100);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	ushc->host_ctrl = host_ctrl;
 	return 0;
 }
@@ -170,7 +185,9 @@ static void int_callback(struct urb *urb)
 	u8 status, last_status;
 
 	if (urb->status < 0)
+	{
 		return;
+	}
 
 	status = ushc->int_data->status;
 	last_status = ushc->last_status;
@@ -185,16 +202,22 @@ static void int_callback(struct urb *urb)
 	 */
 
 	if (!test_and_clear_bit(IGNORE_NEXT_INT, &ushc->flags)
-	    && test_bit(INT_EN, &ushc->flags)
-	    && status & USHC_INT_STATUS_SDIO_INT) {
+		&& test_bit(INT_EN, &ushc->flags)
+		&& status & USHC_INT_STATUS_SDIO_INT)
+	{
 		mmc_signal_sdio_irq(ushc->mmc);
 	}
 
 	if ((status ^ last_status) & USHC_INT_STATUS_CARD_PRESENT)
+	{
 		mmc_detect_change(ushc->mmc, msecs_to_jiffies(100));
+	}
 
 	if (!test_bit(INT_EN, &ushc->flags))
+	{
 		set_bit(IGNORE_NEXT_INT, &ushc->flags);
+	}
+
 	usb_submit_urb(ushc->int_urb, GFP_ATOMIC);
 }
 
@@ -202,7 +225,8 @@ static void cbw_callback(struct urb *urb)
 {
 	struct ushc_data *ushc = urb->context;
 
-	if (urb->status != 0) {
+	if (urb->status != 0)
+	{
 		usb_unlink_urb(ushc->data_urb);
 		usb_unlink_urb(ushc->csw_urb);
 	}
@@ -213,7 +237,9 @@ static void data_callback(struct urb *urb)
 	struct ushc_data *ushc = urb->context;
 
 	if (urb->status != 0)
+	{
 		usb_unlink_urb(ushc->csw_urb);
+	}
 }
 
 static void csw_callback(struct urb *urb)
@@ -224,22 +250,39 @@ static void csw_callback(struct urb *urb)
 
 	status = ushc->csw->status;
 
-	if (urb->status != 0) {
+	if (urb->status != 0)
+	{
 		req->cmd->error = urb->status;
-	} else if (status & USHC_READ_RESP_ERR_CMD) {
-		if (status & USHC_READ_RESP_ERR_CRC)
-			req->cmd->error = -EIO;
-		else
-			req->cmd->error = -ETIMEDOUT;
 	}
-	if (req->data) {
-		if (status & USHC_READ_RESP_ERR_DAT) {
+	else if (status & USHC_READ_RESP_ERR_CMD)
+	{
+		if (status & USHC_READ_RESP_ERR_CRC)
+		{
+			req->cmd->error = -EIO;
+		}
+		else
+		{
+			req->cmd->error = -ETIMEDOUT;
+		}
+	}
+
+	if (req->data)
+	{
+		if (status & USHC_READ_RESP_ERR_DAT)
+		{
 			if (status & USHC_READ_RESP_ERR_CRC)
+			{
 				req->data->error = -EIO;
+			}
 			else
+			{
 				req->data->error = -ETIMEDOUT;
+			}
+
 			req->data->bytes_xfered = 0;
-		} else {
+		}
+		else
+		{
 			req->data->bytes_xfered = req->data->blksz * req->data->blocks;
 		}
 	}
@@ -257,20 +300,23 @@ static void ushc_request(struct mmc_host *mmc, struct mmc_request *req)
 
 	spin_lock_irqsave(&ushc->lock, flags);
 
-	if (test_bit(DISCONNECTED, &ushc->flags)) {
+	if (test_bit(DISCONNECTED, &ushc->flags))
+	{
 		ret = -ENODEV;
 		goto out;
 	}
 
 	/* Version 2 firmware doesn't support the R2 response format. */
-	if (req->cmd->flags & MMC_RSP_136) {
+	if (req->cmd->flags & MMC_RSP_136)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
 
 	/* The Astoria's data FIFOs don't work with clock speeds < 5MHz so
 	   limit commands with data to 6MHz or more. */
-	if (req->data && ushc->clock_freq < 6000000) {
+	if (req->data && ushc->clock_freq < 6000000)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
@@ -279,42 +325,64 @@ static void ushc_request(struct mmc_host *mmc, struct mmc_request *req)
 
 	/* Start cmd with CBW. */
 	ushc->cbw->cmd_idx = cpu_to_le16(req->cmd->opcode);
+
 	if (req->data)
+	{
 		ushc->cbw->block_size = cpu_to_le16(req->data->blksz);
+	}
 	else
+	{
 		ushc->cbw->block_size = 0;
+	}
+
 	ushc->cbw->arg = cpu_to_le32(req->cmd->arg);
 
 	ret = usb_submit_urb(ushc->cbw_urb, GFP_ATOMIC);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	/* Submit data (if any). */
-	if (req->data) {
+	if (req->data)
+	{
 		struct mmc_data *data = req->data;
 		int pipe;
 
 		if (data->flags & MMC_DATA_READ)
+		{
 			pipe = usb_rcvbulkpipe(ushc->usb_dev, 6);
+		}
 		else
+		{
 			pipe = usb_sndbulkpipe(ushc->usb_dev, 2);
+		}
 
 		usb_fill_bulk_urb(ushc->data_urb, ushc->usb_dev, pipe,
-				  sg_virt(data->sg), data->sg->length,
-				  data_callback, ushc);
+						  sg_virt(data->sg), data->sg->length,
+						  data_callback, ushc);
 		ret = usb_submit_urb(ushc->data_urb, GFP_ATOMIC);
+
 		if (ret < 0)
+		{
 			goto out;
+		}
 	}
 
 	/* Submit CSW. */
 	ret = usb_submit_urb(ushc->csw_urb, GFP_ATOMIC);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 out:
 	spin_unlock_irqrestore(&ushc->lock, flags);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		usb_unlink_urb(ushc->cbw_urb);
 		usb_unlink_urb(ushc->data_urb);
 		req->cmd->error = ret;
@@ -326,27 +394,30 @@ static int ushc_set_power(struct ushc_data *ushc, unsigned char power_mode)
 {
 	u16 voltage;
 
-	switch (power_mode) {
-	case MMC_POWER_OFF:
-		voltage = USHC_PWR_CTRL_OFF;
-		break;
-	case MMC_POWER_UP:
-	case MMC_POWER_ON:
-		voltage = USHC_PWR_CTRL_3V3;
-		break;
-	default:
-		return -EINVAL;
+	switch (power_mode)
+	{
+		case MMC_POWER_OFF:
+			voltage = USHC_PWR_CTRL_OFF;
+			break;
+
+		case MMC_POWER_UP:
+		case MMC_POWER_ON:
+			voltage = USHC_PWR_CTRL_3V3;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return usb_control_msg(ushc->usb_dev, usb_sndctrlpipe(ushc->usb_dev, 0),
-			       USHC_PWR_CTRL, USHC_PWR_CTRL_TYPE,
-			       voltage, 0, NULL, 0, 100);
+						   USHC_PWR_CTRL, USHC_PWR_CTRL_TYPE,
+						   voltage, 0, NULL, 0, 100);
 }
 
 static int ushc_set_bus_width(struct ushc_data *ushc, int bus_width)
 {
 	return ushc_hw_set_host_ctrl(ushc, USHC_HOST_CTRL_4BIT,
-				     bus_width == 4 ? USHC_HOST_CTRL_4BIT : 0);
+								 bus_width == 4 ? USHC_HOST_CTRL_4BIT : 0);
 }
 
 static int ushc_set_bus_freq(struct ushc_data *ushc, int clk, bool enable_hs)
@@ -355,18 +426,26 @@ static int ushc_set_bus_freq(struct ushc_data *ushc, int clk, bool enable_hs)
 
 	/* Hardware can't detect interrupts while the clock is off. */
 	if (clk == 0)
+	{
 		clk = 400000;
+	}
 
 	ret = ushc_hw_set_host_ctrl(ushc, USHC_HOST_CTRL_HIGH_SPD,
-				    enable_hs ? USHC_HOST_CTRL_HIGH_SPD : 0);
+								enable_hs ? USHC_HOST_CTRL_HIGH_SPD : 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = usb_control_msg(ushc->usb_dev, usb_sndctrlpipe(ushc->usb_dev, 0),
-			      USHC_CLK_FREQ, USHC_CLK_FREQ_TYPE,
-			      clk & 0xffff, (clk >> 16) & 0xffff, NULL, 0, 100);
+						  USHC_CLK_FREQ, USHC_CLK_FREQ_TYPE,
+						  clk & 0xffff, (clk >> 16) & 0xffff, NULL, 0, 100);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ushc->clock_freq = clk;
 	return 0;
@@ -393,9 +472,13 @@ static void ushc_enable_sdio_irq(struct mmc_host *mmc, int enable)
 	struct ushc_data *ushc = mmc_priv(mmc);
 
 	if (enable)
+	{
 		set_bit(INT_EN, &ushc->flags);
+	}
 	else
+	{
 		clear_bit(INT_EN, &ushc->flags);
+	}
 }
 
 static void ushc_clean_up(struct ushc_data *ushc)
@@ -412,7 +495,8 @@ static void ushc_clean_up(struct ushc_data *ushc)
 	mmc_free_host(ushc->mmc);
 }
 
-static const struct mmc_host_ops ushc_ops = {
+static const struct mmc_host_ops ushc_ops =
+{
 	.request         = ushc_request,
 	.set_ios         = ushc_set_ios,
 	.get_cd          = ushc_get_cd,
@@ -427,8 +511,12 @@ static int ushc_probe(struct usb_interface *intf, const struct usb_device_id *id
 	int ret;
 
 	mmc = mmc_alloc_host(sizeof(struct ushc_data), &intf->dev);
+
 	if (mmc == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	ushc = mmc_priv(mmc);
 	usb_set_intfdata(intf, ushc);
 
@@ -438,13 +526,19 @@ static int ushc_probe(struct usb_interface *intf, const struct usb_device_id *id
 	spin_lock_init(&ushc->lock);
 
 	ret = ushc_hw_reset(ushc);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	/* Read capabilities. */
 	ret = ushc_hw_get_caps(ushc);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	mmc->ops = &ushc_ops;
 
@@ -454,71 +548,96 @@ static int ushc_probe(struct usb_interface *intf, const struct usb_device_id *id
 	mmc->caps = MMC_CAP_4_BIT_DATA | MMC_CAP_SDIO_IRQ;
 	mmc->caps |= (ushc->caps & USHC_GET_CAPS_HIGH_SPD) ? MMC_CAP_SD_HIGHSPEED : 0;
 
-	mmc->max_seg_size  = 512*511;
+	mmc->max_seg_size  = 512 * 511;
 	mmc->max_segs      = 1;
-	mmc->max_req_size  = 512*511;
+	mmc->max_req_size  = 512 * 511;
 	mmc->max_blk_size  = 512;
 	mmc->max_blk_count = 511;
 
 	ushc->int_urb = usb_alloc_urb(0, GFP_KERNEL);
-	if (ushc->int_urb == NULL) {
+
+	if (ushc->int_urb == NULL)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
+
 	ushc->int_data = kzalloc(sizeof(struct ushc_int_data), GFP_KERNEL);
-	if (ushc->int_data == NULL) {
+
+	if (ushc->int_data == NULL)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
+
 	usb_fill_int_urb(ushc->int_urb, ushc->usb_dev,
-			 usb_rcvintpipe(usb_dev,
-					intf->cur_altsetting->endpoint[0].desc.bEndpointAddress),
-			 ushc->int_data, sizeof(struct ushc_int_data),
-			 int_callback, ushc,
-			 intf->cur_altsetting->endpoint[0].desc.bInterval);
+					 usb_rcvintpipe(usb_dev,
+									intf->cur_altsetting->endpoint[0].desc.bEndpointAddress),
+					 ushc->int_data, sizeof(struct ushc_int_data),
+					 int_callback, ushc,
+					 intf->cur_altsetting->endpoint[0].desc.bInterval);
 
 	ushc->cbw_urb = usb_alloc_urb(0, GFP_KERNEL);
-	if (ushc->cbw_urb == NULL) {
+
+	if (ushc->cbw_urb == NULL)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
+
 	ushc->cbw = kzalloc(sizeof(struct ushc_cbw), GFP_KERNEL);
-	if (ushc->cbw == NULL) {
+
+	if (ushc->cbw == NULL)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
+
 	ushc->cbw->signature = USHC_CBW_SIGNATURE;
 
 	usb_fill_bulk_urb(ushc->cbw_urb, ushc->usb_dev, usb_sndbulkpipe(usb_dev, 2),
-			  ushc->cbw, sizeof(struct ushc_cbw),
-			  cbw_callback, ushc);
+					  ushc->cbw, sizeof(struct ushc_cbw),
+					  cbw_callback, ushc);
 
 	ushc->data_urb = usb_alloc_urb(0, GFP_KERNEL);
-	if (ushc->data_urb == NULL) {
+
+	if (ushc->data_urb == NULL)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
 
 	ushc->csw_urb = usb_alloc_urb(0, GFP_KERNEL);
-	if (ushc->csw_urb == NULL) {
+
+	if (ushc->csw_urb == NULL)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
+
 	ushc->csw = kzalloc(sizeof(struct ushc_csw), GFP_KERNEL);
-	if (ushc->csw == NULL) {
+
+	if (ushc->csw == NULL)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
+
 	usb_fill_bulk_urb(ushc->csw_urb, ushc->usb_dev, usb_rcvbulkpipe(usb_dev, 6),
-			  ushc->csw, sizeof(struct ushc_csw),
-			  csw_callback, ushc);
+					  ushc->csw, sizeof(struct ushc_csw),
+					  csw_callback, ushc);
 
 	ret = mmc_add_host(ushc->mmc);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = usb_submit_urb(ushc->int_urb, GFP_KERNEL);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		mmc_remove_host(ushc->mmc);
 		goto err;
 	}
@@ -548,14 +667,16 @@ static void ushc_disconnect(struct usb_interface *intf)
 	ushc_clean_up(ushc);
 }
 
-static struct usb_device_id ushc_id_table[] = {
+static struct usb_device_id ushc_id_table[] =
+{
 	/* CSR USB SD Host Controller */
 	{ USB_DEVICE(0x0a12, 0x5d10) },
 	{ },
 };
 MODULE_DEVICE_TABLE(usb, ushc_id_table);
 
-static struct usb_driver ushc_driver = {
+static struct usb_driver ushc_driver =
+{
 	.name       = "ushc",
 	.id_table   = ushc_id_table,
 	.probe      = ushc_probe,

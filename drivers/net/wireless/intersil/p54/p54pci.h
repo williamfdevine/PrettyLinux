@@ -44,14 +44,16 @@
 #define ISL38XX_CTRL_STAT_STARTHALTED		0x40000000
 #define ISL38XX_CTRL_STAT_HOST_OVERRIDE		0x80000000
 
-struct p54p_csr {
+struct p54p_csr
+{
 	__le32 dev_int;
 	u8 unused_1[12];
 	__le32 int_ident;
 	__le32 int_ack;
 	__le32 int_enable;
 	u8 unused_2[4];
-	union {
+	union
+	{
 		__le32 ring_control_base;
 		__le32 gen_purp_com[2];
 	};
@@ -70,14 +72,16 @@ struct p54p_csr {
 
 /* usb backend only needs the register defines above */
 #ifndef P54USB_H
-struct p54p_desc {
+struct p54p_desc
+{
 	__le32 host_addr;
 	__le32 device_addr;
 	__le16 len;
 	__le16 flags;
 } __packed;
 
-struct p54p_ring_control {
+struct p54p_ring_control
+{
 	__le32 host_idx[4];
 	__le32 device_idx[4];
 	struct p54p_desc rx_data[8];
@@ -89,7 +93,8 @@ struct p54p_ring_control {
 #define P54P_READ(r) (__force __le32)__raw_readl(&priv->map->r)
 #define P54P_WRITE(r, val) __raw_writel((__force u32)(__le32)(val), &priv->map->r)
 
-struct p54p_priv {
+struct p54p_priv
+{
 	struct p54_common common;
 	struct pci_dev *pdev;
 	struct p54p_csr __iomem *map;

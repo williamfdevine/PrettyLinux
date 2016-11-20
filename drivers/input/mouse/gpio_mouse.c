@@ -27,13 +27,15 @@ static void gpio_mouse_scan(struct input_polled_dev *dev)
 
 	if (gpio->bleft >= 0)
 		input_report_key(input, BTN_LEFT,
-				gpio_get_value(gpio->bleft) ^ gpio->polarity);
+						 gpio_get_value(gpio->bleft) ^ gpio->polarity);
+
 	if (gpio->bmiddle >= 0)
 		input_report_key(input, BTN_MIDDLE,
-				gpio_get_value(gpio->bmiddle) ^ gpio->polarity);
+						 gpio_get_value(gpio->bmiddle) ^ gpio->polarity);
+
 	if (gpio->bright >= 0)
 		input_report_key(input, BTN_RIGHT,
-				gpio_get_value(gpio->bright) ^ gpio->polarity);
+						 gpio_get_value(gpio->bright) ^ gpio->polarity);
 
 	x = (gpio_get_value(gpio->right) ^ gpio->polarity)
 		- (gpio_get_value(gpio->left) ^ gpio->polarity);
@@ -53,39 +55,50 @@ static int gpio_mouse_probe(struct platform_device *pdev)
 	int pin, i;
 	int error;
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		dev_err(&pdev->dev, "no platform data\n");
 		error = -ENXIO;
 		goto out;
 	}
 
-	if (pdata->scan_ms < 0) {
+	if (pdata->scan_ms < 0)
+	{
 		dev_err(&pdev->dev, "invalid scan time\n");
 		error = -EINVAL;
 		goto out;
 	}
 
-	for (i = 0; i < GPIO_MOUSE_PIN_MAX; i++) {
+	for (i = 0; i < GPIO_MOUSE_PIN_MAX; i++)
+	{
 		pin = pdata->pins[i];
 
-		if (pin < 0) {
+		if (pin < 0)
+		{
 
-			if (i <= GPIO_MOUSE_PIN_RIGHT) {
+			if (i <= GPIO_MOUSE_PIN_RIGHT)
+			{
 				/* Mouse direction is required. */
 				dev_err(&pdev->dev,
-					"missing GPIO for directions\n");
+						"missing GPIO for directions\n");
 				error = -EINVAL;
 				goto out_free_gpios;
 			}
 
 			if (i == GPIO_MOUSE_PIN_BLEFT)
+			{
 				dev_dbg(&pdev->dev, "no left button defined\n");
+			}
 
-		} else {
+		}
+		else
+		{
 			error = gpio_request(pin, "gpio_mouse");
-			if (error) {
+
+			if (error)
+			{
 				dev_err(&pdev->dev, "fail %d pin (%d idx)\n",
-					pin, i);
+						pin, i);
 				goto out_free_gpios;
 			}
 
@@ -94,7 +107,9 @@ static int gpio_mouse_probe(struct platform_device *pdev)
 	}
 
 	input_poll = input_allocate_polled_device();
-	if (!input_poll) {
+
+	if (!input_poll)
+	{
 		dev_err(&pdev->dev, "not enough memory for input device\n");
 		error = -ENOMEM;
 		goto out_free_gpios;
@@ -114,15 +129,26 @@ static int gpio_mouse_probe(struct platform_device *pdev)
 
 	input_set_capability(input, EV_REL, REL_X);
 	input_set_capability(input, EV_REL, REL_Y);
+
 	if (pdata->bleft >= 0)
+	{
 		input_set_capability(input, EV_KEY, BTN_LEFT);
+	}
+
 	if (pdata->bmiddle >= 0)
+	{
 		input_set_capability(input, EV_KEY, BTN_MIDDLE);
+	}
+
 	if (pdata->bright >= 0)
+	{
 		input_set_capability(input, EV_KEY, BTN_RIGHT);
+	}
 
 	error = input_register_polled_device(input_poll);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "could not register input device\n");
 		goto out_free_polldev;
 	}
@@ -135,16 +161,22 @@ static int gpio_mouse_probe(struct platform_device *pdev)
 
 	return 0;
 
- out_free_polldev:
+out_free_polldev:
 	input_free_polled_device(input_poll);
 
- out_free_gpios:
-	while (--i >= 0) {
+out_free_gpios:
+
+	while (--i >= 0)
+	{
 		pin = pdata->pins[i];
+
 		if (pin)
+		{
 			gpio_free(pin);
+		}
 	}
- out:
+
+out:
 	return error;
 }
 
@@ -157,16 +189,21 @@ static int gpio_mouse_remove(struct platform_device *pdev)
 	input_unregister_polled_device(input);
 	input_free_polled_device(input);
 
-	for (i = 0; i < GPIO_MOUSE_PIN_MAX; i++) {
+	for (i = 0; i < GPIO_MOUSE_PIN_MAX; i++)
+	{
 		pin = pdata->pins[i];
+
 		if (pin >= 0)
+		{
 			gpio_free(pin);
+		}
 	}
 
 	return 0;
 }
 
-static struct platform_driver gpio_mouse_device_driver = {
+static struct platform_driver gpio_mouse_device_driver =
+{
 	.probe		= gpio_mouse_probe,
 	.remove		= gpio_mouse_remove,
 	.driver		= {

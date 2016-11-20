@@ -37,7 +37,7 @@ void sun4i_tcon_disable(struct sun4i_tcon *tcon)
 
 	/* Disable the TCON */
 	regmap_update_bits(tcon->regs, SUN4I_TCON_GCTL_REG,
-			   SUN4I_TCON_GCTL_TCON_ENABLE, 0);
+					   SUN4I_TCON_GCTL_TCON_ENABLE, 0);
 }
 EXPORT_SYMBOL(sun4i_tcon_disable);
 
@@ -47,24 +47,25 @@ void sun4i_tcon_enable(struct sun4i_tcon *tcon)
 
 	/* Enable the TCON */
 	regmap_update_bits(tcon->regs, SUN4I_TCON_GCTL_REG,
-			   SUN4I_TCON_GCTL_TCON_ENABLE,
-			   SUN4I_TCON_GCTL_TCON_ENABLE);
+					   SUN4I_TCON_GCTL_TCON_ENABLE,
+					   SUN4I_TCON_GCTL_TCON_ENABLE);
 }
 EXPORT_SYMBOL(sun4i_tcon_enable);
 
 void sun4i_tcon_channel_disable(struct sun4i_tcon *tcon, int channel)
 {
 	/* Disable the TCON's channel */
-	if (channel == 0) {
+	if (channel == 0)
+	{
 		regmap_update_bits(tcon->regs, SUN4I_TCON0_CTL_REG,
-				   SUN4I_TCON0_CTL_TCON_ENABLE, 0);
+						   SUN4I_TCON0_CTL_TCON_ENABLE, 0);
 		clk_disable_unprepare(tcon->dclk);
 		return;
 	}
 
 	WARN_ON(!tcon->has_channel_1);
 	regmap_update_bits(tcon->regs, SUN4I_TCON1_CTL_REG,
-			   SUN4I_TCON1_CTL_TCON_ENABLE, 0);
+					   SUN4I_TCON1_CTL_TCON_ENABLE, 0);
 	clk_disable_unprepare(tcon->sclk1);
 }
 EXPORT_SYMBOL(sun4i_tcon_channel_disable);
@@ -72,18 +73,19 @@ EXPORT_SYMBOL(sun4i_tcon_channel_disable);
 void sun4i_tcon_channel_enable(struct sun4i_tcon *tcon, int channel)
 {
 	/* Enable the TCON's channel */
-	if (channel == 0) {
+	if (channel == 0)
+	{
 		regmap_update_bits(tcon->regs, SUN4I_TCON0_CTL_REG,
-				   SUN4I_TCON0_CTL_TCON_ENABLE,
-				   SUN4I_TCON0_CTL_TCON_ENABLE);
+						   SUN4I_TCON0_CTL_TCON_ENABLE,
+						   SUN4I_TCON0_CTL_TCON_ENABLE);
 		clk_prepare_enable(tcon->dclk);
 		return;
 	}
 
 	WARN_ON(!tcon->has_channel_1);
 	regmap_update_bits(tcon->regs, SUN4I_TCON1_CTL_REG,
-			   SUN4I_TCON1_CTL_TCON_ENABLE,
-			   SUN4I_TCON1_CTL_TCON_ENABLE);
+					   SUN4I_TCON1_CTL_TCON_ENABLE,
+					   SUN4I_TCON1_CTL_TCON_ENABLE);
 	clk_prepare_enable(tcon->sclk1);
 }
 EXPORT_SYMBOL(sun4i_tcon_channel_enable);
@@ -95,25 +97,31 @@ void sun4i_tcon_enable_vblank(struct sun4i_tcon *tcon, bool enable)
 	DRM_DEBUG_DRIVER("%sabling VBLANK interrupt\n", enable ? "En" : "Dis");
 
 	mask = SUN4I_TCON_GINT0_VBLANK_ENABLE(0) |
-	       SUN4I_TCON_GINT0_VBLANK_ENABLE(1);
+		   SUN4I_TCON_GINT0_VBLANK_ENABLE(1);
 
 	if (enable)
+	{
 		val = mask;
+	}
 
 	regmap_update_bits(tcon->regs, SUN4I_TCON_GINT0_REG, mask, val);
 }
 EXPORT_SYMBOL(sun4i_tcon_enable_vblank);
 
 static int sun4i_tcon_get_clk_delay(struct drm_display_mode *mode,
-				    int channel)
+									int channel)
 {
 	int delay = mode->vtotal - mode->vdisplay;
 
 	if (mode->flags & DRM_MODE_FLAG_INTERLACE)
+	{
 		delay /= 2;
+	}
 
 	if (channel == 1)
+	{
 		delay -= 2;
+	}
 
 	delay = min(delay, 30);
 
@@ -123,7 +131,7 @@ static int sun4i_tcon_get_clk_delay(struct drm_display_mode *mode,
 }
 
 void sun4i_tcon0_mode_set(struct sun4i_tcon *tcon,
-			  struct drm_display_mode *mode)
+						  struct drm_display_mode *mode)
 {
 	unsigned int bp, hsync, vsync;
 	u8 clk_delay;
@@ -132,13 +140,13 @@ void sun4i_tcon0_mode_set(struct sun4i_tcon *tcon,
 	/* Adjust clock delay */
 	clk_delay = sun4i_tcon_get_clk_delay(mode, 0);
 	regmap_update_bits(tcon->regs, SUN4I_TCON0_CTL_REG,
-			   SUN4I_TCON0_CTL_CLK_DELAY_MASK,
-			   SUN4I_TCON0_CTL_CLK_DELAY(clk_delay));
+					   SUN4I_TCON0_CTL_CLK_DELAY_MASK,
+					   SUN4I_TCON0_CTL_CLK_DELAY(clk_delay));
 
 	/* Set the resolution */
 	regmap_write(tcon->regs, SUN4I_TCON0_BASIC0_REG,
-		     SUN4I_TCON0_BASIC0_X(mode->crtc_hdisplay) |
-		     SUN4I_TCON0_BASIC0_Y(mode->crtc_vdisplay));
+				 SUN4I_TCON0_BASIC0_X(mode->crtc_hdisplay) |
+				 SUN4I_TCON0_BASIC0_Y(mode->crtc_vdisplay));
 
 	/*
 	 * This is called a backporch in the register documentation,
@@ -146,12 +154,12 @@ void sun4i_tcon0_mode_set(struct sun4i_tcon *tcon,
 	 */
 	bp = mode->crtc_htotal - mode->crtc_hsync_start;
 	DRM_DEBUG_DRIVER("Setting horizontal total %d, backporch %d\n",
-			 mode->crtc_htotal, bp);
+					 mode->crtc_htotal, bp);
 
 	/* Set horizontal display timings */
 	regmap_write(tcon->regs, SUN4I_TCON0_BASIC1_REG,
-		     SUN4I_TCON0_BASIC1_H_TOTAL(mode->crtc_htotal) |
-		     SUN4I_TCON0_BASIC1_H_BACKPORCH(bp));
+				 SUN4I_TCON0_BASIC1_H_TOTAL(mode->crtc_htotal) |
+				 SUN4I_TCON0_BASIC1_H_BACKPORCH(bp));
 
 	/*
 	 * This is called a backporch in the register documentation,
@@ -159,36 +167,40 @@ void sun4i_tcon0_mode_set(struct sun4i_tcon *tcon,
 	 */
 	bp = mode->crtc_vtotal - mode->crtc_vsync_start;
 	DRM_DEBUG_DRIVER("Setting vertical total %d, backporch %d\n",
-			 mode->crtc_vtotal, bp);
+					 mode->crtc_vtotal, bp);
 
 	/* Set vertical display timings */
 	regmap_write(tcon->regs, SUN4I_TCON0_BASIC2_REG,
-		     SUN4I_TCON0_BASIC2_V_TOTAL(mode->crtc_vtotal) |
-		     SUN4I_TCON0_BASIC2_V_BACKPORCH(bp));
+				 SUN4I_TCON0_BASIC2_V_TOTAL(mode->crtc_vtotal) |
+				 SUN4I_TCON0_BASIC2_V_BACKPORCH(bp));
 
 	/* Set Hsync and Vsync length */
 	hsync = mode->crtc_hsync_end - mode->crtc_hsync_start;
 	vsync = mode->crtc_vsync_end - mode->crtc_vsync_start;
 	DRM_DEBUG_DRIVER("Setting HSYNC %d, VSYNC %d\n", hsync, vsync);
 	regmap_write(tcon->regs, SUN4I_TCON0_BASIC3_REG,
-		     SUN4I_TCON0_BASIC3_V_SYNC(vsync) |
-		     SUN4I_TCON0_BASIC3_H_SYNC(hsync));
+				 SUN4I_TCON0_BASIC3_V_SYNC(vsync) |
+				 SUN4I_TCON0_BASIC3_H_SYNC(hsync));
 
 	/* Setup the polarity of the various signals */
 	if (!(mode->flags & DRM_MODE_FLAG_PHSYNC))
+	{
 		val |= SUN4I_TCON0_IO_POL_HSYNC_POSITIVE;
+	}
 
 	if (!(mode->flags & DRM_MODE_FLAG_PVSYNC))
+	{
 		val |= SUN4I_TCON0_IO_POL_VSYNC_POSITIVE;
+	}
 
 	regmap_update_bits(tcon->regs, SUN4I_TCON0_IO_POL_REG,
-			   SUN4I_TCON0_IO_POL_HSYNC_POSITIVE | SUN4I_TCON0_IO_POL_VSYNC_POSITIVE,
-			   val);
+					   SUN4I_TCON0_IO_POL_HSYNC_POSITIVE | SUN4I_TCON0_IO_POL_VSYNC_POSITIVE,
+					   val);
 
 	/* Map output pins to channel 0 */
 	regmap_update_bits(tcon->regs, SUN4I_TCON_GCTL_REG,
-			   SUN4I_TCON_GCTL_IOMAP_MASK,
-			   SUN4I_TCON_GCTL_IOMAP_TCON0);
+					   SUN4I_TCON_GCTL_IOMAP_MASK,
+					   SUN4I_TCON_GCTL_IOMAP_TCON0);
 
 	/* Enable the output on the pins */
 	regmap_write(tcon->regs, SUN4I_TCON0_IO_TRI_REG, 0);
@@ -196,7 +208,7 @@ void sun4i_tcon0_mode_set(struct sun4i_tcon *tcon,
 EXPORT_SYMBOL(sun4i_tcon0_mode_set);
 
 void sun4i_tcon1_mode_set(struct sun4i_tcon *tcon,
-			  struct drm_display_mode *mode)
+						  struct drm_display_mode *mode)
 {
 	unsigned int bp, hsync, vsync;
 	u8 clk_delay;
@@ -207,81 +219,91 @@ void sun4i_tcon1_mode_set(struct sun4i_tcon *tcon,
 	/* Adjust clock delay */
 	clk_delay = sun4i_tcon_get_clk_delay(mode, 1);
 	regmap_update_bits(tcon->regs, SUN4I_TCON1_CTL_REG,
-			   SUN4I_TCON1_CTL_CLK_DELAY_MASK,
-			   SUN4I_TCON1_CTL_CLK_DELAY(clk_delay));
+					   SUN4I_TCON1_CTL_CLK_DELAY_MASK,
+					   SUN4I_TCON1_CTL_CLK_DELAY(clk_delay));
 
 	/* Set interlaced mode */
 	if (mode->flags & DRM_MODE_FLAG_INTERLACE)
+	{
 		val = SUN4I_TCON1_CTL_INTERLACE_ENABLE;
+	}
 	else
+	{
 		val = 0;
+	}
+
 	regmap_update_bits(tcon->regs, SUN4I_TCON1_CTL_REG,
-			   SUN4I_TCON1_CTL_INTERLACE_ENABLE,
-			   val);
+					   SUN4I_TCON1_CTL_INTERLACE_ENABLE,
+					   val);
 
 	/* Set the input resolution */
 	regmap_write(tcon->regs, SUN4I_TCON1_BASIC0_REG,
-		     SUN4I_TCON1_BASIC0_X(mode->crtc_hdisplay) |
-		     SUN4I_TCON1_BASIC0_Y(mode->crtc_vdisplay));
+				 SUN4I_TCON1_BASIC0_X(mode->crtc_hdisplay) |
+				 SUN4I_TCON1_BASIC0_Y(mode->crtc_vdisplay));
 
 	/* Set the upscaling resolution */
 	regmap_write(tcon->regs, SUN4I_TCON1_BASIC1_REG,
-		     SUN4I_TCON1_BASIC1_X(mode->crtc_hdisplay) |
-		     SUN4I_TCON1_BASIC1_Y(mode->crtc_vdisplay));
+				 SUN4I_TCON1_BASIC1_X(mode->crtc_hdisplay) |
+				 SUN4I_TCON1_BASIC1_Y(mode->crtc_vdisplay));
 
 	/* Set the output resolution */
 	regmap_write(tcon->regs, SUN4I_TCON1_BASIC2_REG,
-		     SUN4I_TCON1_BASIC2_X(mode->crtc_hdisplay) |
-		     SUN4I_TCON1_BASIC2_Y(mode->crtc_vdisplay));
+				 SUN4I_TCON1_BASIC2_X(mode->crtc_hdisplay) |
+				 SUN4I_TCON1_BASIC2_Y(mode->crtc_vdisplay));
 
 	/* Set horizontal display timings */
 	bp = mode->crtc_htotal - mode->crtc_hsync_end;
 	DRM_DEBUG_DRIVER("Setting horizontal total %d, backporch %d\n",
-			 mode->htotal, bp);
+					 mode->htotal, bp);
 	regmap_write(tcon->regs, SUN4I_TCON1_BASIC3_REG,
-		     SUN4I_TCON1_BASIC3_H_TOTAL(mode->crtc_htotal) |
-		     SUN4I_TCON1_BASIC3_H_BACKPORCH(bp));
+				 SUN4I_TCON1_BASIC3_H_TOTAL(mode->crtc_htotal) |
+				 SUN4I_TCON1_BASIC3_H_BACKPORCH(bp));
 
 	/* Set vertical display timings */
 	bp = mode->crtc_vtotal - mode->crtc_vsync_end;
 	DRM_DEBUG_DRIVER("Setting vertical total %d, backporch %d\n",
-			 mode->vtotal, bp);
+					 mode->vtotal, bp);
 	regmap_write(tcon->regs, SUN4I_TCON1_BASIC4_REG,
-		     SUN4I_TCON1_BASIC4_V_TOTAL(mode->vtotal) |
-		     SUN4I_TCON1_BASIC4_V_BACKPORCH(bp));
+				 SUN4I_TCON1_BASIC4_V_TOTAL(mode->vtotal) |
+				 SUN4I_TCON1_BASIC4_V_BACKPORCH(bp));
 
 	/* Set Hsync and Vsync length */
 	hsync = mode->crtc_hsync_end - mode->crtc_hsync_start;
 	vsync = mode->crtc_vsync_end - mode->crtc_vsync_start;
 	DRM_DEBUG_DRIVER("Setting HSYNC %d, VSYNC %d\n", hsync, vsync);
 	regmap_write(tcon->regs, SUN4I_TCON1_BASIC5_REG,
-		     SUN4I_TCON1_BASIC5_V_SYNC(vsync) |
-		     SUN4I_TCON1_BASIC5_H_SYNC(hsync));
+				 SUN4I_TCON1_BASIC5_V_SYNC(vsync) |
+				 SUN4I_TCON1_BASIC5_H_SYNC(hsync));
 
 	/* Map output pins to channel 1 */
 	regmap_update_bits(tcon->regs, SUN4I_TCON_GCTL_REG,
-			   SUN4I_TCON_GCTL_IOMAP_MASK,
-			   SUN4I_TCON_GCTL_IOMAP_TCON1);
+					   SUN4I_TCON_GCTL_IOMAP_MASK,
+					   SUN4I_TCON_GCTL_IOMAP_TCON1);
 
 	/*
 	 * FIXME: Undocumented bits
 	 */
 	if (tcon->has_mux)
+	{
 		regmap_write(tcon->regs, SUN4I_TCON_MUX_CTRL_REG, 1);
+	}
 }
 EXPORT_SYMBOL(sun4i_tcon1_mode_set);
 
 static void sun4i_tcon_finish_page_flip(struct drm_device *dev,
-					struct sun4i_crtc *scrtc)
+										struct sun4i_crtc *scrtc)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&dev->event_lock, flags);
-	if (scrtc->event) {
+
+	if (scrtc->event)
+	{
 		drm_crtc_send_vblank_event(&scrtc->crtc, scrtc->event);
 		drm_crtc_vblank_put(&scrtc->crtc);
 		scrtc->event = NULL;
 	}
+
 	spin_unlock_irqrestore(&dev->event_lock, flags);
 }
 
@@ -296,40 +318,50 @@ static irqreturn_t sun4i_tcon_handler(int irq, void *private)
 	regmap_read(tcon->regs, SUN4I_TCON_GINT0_REG, &status);
 
 	if (!(status & (SUN4I_TCON_GINT0_VBLANK_INT(0) |
-			SUN4I_TCON_GINT0_VBLANK_INT(1))))
+					SUN4I_TCON_GINT0_VBLANK_INT(1))))
+	{
 		return IRQ_NONE;
+	}
 
 	drm_crtc_handle_vblank(&scrtc->crtc);
 	sun4i_tcon_finish_page_flip(drm, scrtc);
 
 	/* Acknowledge the interrupt */
 	regmap_update_bits(tcon->regs, SUN4I_TCON_GINT0_REG,
-			   SUN4I_TCON_GINT0_VBLANK_INT(0) |
-			   SUN4I_TCON_GINT0_VBLANK_INT(1),
-			   0);
+					   SUN4I_TCON_GINT0_VBLANK_INT(0) |
+					   SUN4I_TCON_GINT0_VBLANK_INT(1),
+					   0);
 
 	return IRQ_HANDLED;
 }
 
 static int sun4i_tcon_init_clocks(struct device *dev,
-				  struct sun4i_tcon *tcon)
+								  struct sun4i_tcon *tcon)
 {
 	tcon->clk = devm_clk_get(dev, "ahb");
-	if (IS_ERR(tcon->clk)) {
+
+	if (IS_ERR(tcon->clk))
+	{
 		dev_err(dev, "Couldn't get the TCON bus clock\n");
 		return PTR_ERR(tcon->clk);
 	}
+
 	clk_prepare_enable(tcon->clk);
 
 	tcon->sclk0 = devm_clk_get(dev, "tcon-ch0");
-	if (IS_ERR(tcon->sclk0)) {
+
+	if (IS_ERR(tcon->sclk0))
+	{
 		dev_err(dev, "Couldn't get the TCON channel 0 clock\n");
 		return PTR_ERR(tcon->sclk0);
 	}
 
-	if (tcon->has_channel_1) {
+	if (tcon->has_channel_1)
+	{
 		tcon->sclk1 = devm_clk_get(dev, "tcon-ch1");
-		if (IS_ERR(tcon->sclk1)) {
+
+		if (IS_ERR(tcon->sclk1))
+		{
 			dev_err(dev, "Couldn't get the TCON channel 1 clock\n");
 			return PTR_ERR(tcon->sclk1);
 		}
@@ -345,20 +377,24 @@ static void sun4i_tcon_free_clocks(struct sun4i_tcon *tcon)
 }
 
 static int sun4i_tcon_init_irq(struct device *dev,
-			       struct sun4i_tcon *tcon)
+							   struct sun4i_tcon *tcon)
 {
 	struct platform_device *pdev = to_platform_device(dev);
 	int irq, ret;
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(dev, "Couldn't retrieve the TCON interrupt\n");
 		return irq;
 	}
 
 	ret = devm_request_irq(dev, irq, sun4i_tcon_handler, 0,
-			       dev_name(dev), tcon);
-	if (ret) {
+						   dev_name(dev), tcon);
+
+	if (ret)
+	{
 		dev_err(dev, "Couldn't request the IRQ\n");
 		return ret;
 	}
@@ -366,7 +402,8 @@ static int sun4i_tcon_init_irq(struct device *dev,
 	return 0;
 }
 
-static struct regmap_config sun4i_tcon_regmap_config = {
+static struct regmap_config sun4i_tcon_regmap_config =
+{
 	.reg_bits	= 32,
 	.val_bits	= 32,
 	.reg_stride	= 4,
@@ -374,7 +411,7 @@ static struct regmap_config sun4i_tcon_regmap_config = {
 };
 
 static int sun4i_tcon_init_regmap(struct device *dev,
-				  struct sun4i_tcon *tcon)
+								  struct sun4i_tcon *tcon)
 {
 	struct platform_device *pdev = to_platform_device(dev);
 	struct resource *res;
@@ -382,12 +419,17 @@ static int sun4i_tcon_init_regmap(struct device *dev,
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	regs = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(regs))
+	{
 		return PTR_ERR(regs);
+	}
 
 	tcon->regs = devm_regmap_init_mmio(dev, regs,
-					   &sun4i_tcon_regmap_config);
-	if (IS_ERR(tcon->regs)) {
+									   &sun4i_tcon_regmap_config);
+
+	if (IS_ERR(tcon->regs))
+	{
 		dev_err(dev, "Couldn't create the TCON regmap\n");
 		return PTR_ERR(tcon->regs);
 	}
@@ -416,26 +458,33 @@ struct drm_panel *sun4i_tcon_find_panel(struct device_node *node)
 	 * Our first output is the RGB interface where the panel will
 	 * be connected.
 	 */
-	for_each_child_of_node(port, child) {
+	for_each_child_of_node(port, child)
+	{
 		u32 reg;
 
 		of_property_read_u32(child, "reg", &reg);
+
 		if (reg == 0)
+		{
 			end_node = child;
+		}
 	}
 
-	if (!end_node) {
+	if (!end_node)
+	{
 		DRM_DEBUG_DRIVER("Missing panel endpoint\n");
 		return ERR_PTR(-ENODEV);
 	}
 
 	remote = of_graph_get_remote_port_parent(end_node);
-	if (!remote) {
+
+	if (!remote)
+	{
 		DRM_DEBUG_DRIVER("Unable to parse remote node\n");
 		return ERR_PTR(-EINVAL);
 	}
 
-	return of_drm_find_panel(remote) ?: ERR_PTR(-EPROBE_DEFER);
+	return of_drm_find_panel(remote) ? : ERR_PTR(-EPROBE_DEFER);
 }
 
 struct drm_bridge *sun4i_tcon_find_bridge(struct device_node *node)
@@ -450,30 +499,37 @@ struct drm_bridge *sun4i_tcon_find_bridge(struct device_node *node)
 	 * Our first output is the RGB interface where the panel will
 	 * be connected.
 	 */
-	for_each_child_of_node(port, child) {
+	for_each_child_of_node(port, child)
+	{
 		u32 reg;
 
 		of_property_read_u32(child, "reg", &reg);
+
 		if (reg == 0)
+		{
 			end_node = child;
+		}
 	}
 
-	if (!end_node) {
+	if (!end_node)
+	{
 		DRM_DEBUG_DRIVER("Missing bridge endpoint\n");
 		return ERR_PTR(-ENODEV);
 	}
 
 	remote = of_graph_get_remote_port_parent(end_node);
-	if (!remote) {
+
+	if (!remote)
+	{
 		DRM_DEBUG_DRIVER("Enable to parse remote node\n");
 		return ERR_PTR(-EINVAL);
 	}
 
-	return of_drm_find_bridge(remote) ?: ERR_PTR(-EPROBE_DEFER);
+	return of_drm_find_bridge(remote) ? : ERR_PTR(-EPROBE_DEFER);
 }
 
 static int sun4i_tcon_bind(struct device *dev, struct device *master,
-			   void *data)
+						   void *data)
 {
 	struct drm_device *drm = data;
 	struct sun4i_drv *drv = drm->dev_private;
@@ -481,58 +537,80 @@ static int sun4i_tcon_bind(struct device *dev, struct device *master,
 	int ret;
 
 	tcon = devm_kzalloc(dev, sizeof(*tcon), GFP_KERNEL);
+
 	if (!tcon)
+	{
 		return -ENOMEM;
+	}
+
 	dev_set_drvdata(dev, tcon);
 	drv->tcon = tcon;
 	tcon->drm = drm;
 	tcon->dev = dev;
 
-	if (of_device_is_compatible(dev->of_node, "allwinner,sun5i-a13-tcon")) {
+	if (of_device_is_compatible(dev->of_node, "allwinner,sun5i-a13-tcon"))
+	{
 		tcon->has_mux = true;
 		tcon->has_channel_1 = true;
-	} else {
+	}
+	else
+	{
 		tcon->has_mux = false;
 		tcon->has_channel_1 = false;
 	}
 
 	tcon->lcd_rst = devm_reset_control_get(dev, "lcd");
-	if (IS_ERR(tcon->lcd_rst)) {
+
+	if (IS_ERR(tcon->lcd_rst))
+	{
 		dev_err(dev, "Couldn't get our reset line\n");
 		return PTR_ERR(tcon->lcd_rst);
 	}
 
 	/* Make sure our TCON is reset */
 	if (!reset_control_status(tcon->lcd_rst))
+	{
 		reset_control_assert(tcon->lcd_rst);
+	}
 
 	ret = reset_control_deassert(tcon->lcd_rst);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Couldn't deassert our reset line\n");
 		return ret;
 	}
 
 	ret = sun4i_tcon_init_regmap(dev, tcon);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Couldn't init our TCON regmap\n");
 		goto err_assert_reset;
 	}
 
 	ret = sun4i_tcon_init_clocks(dev, tcon);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Couldn't init our TCON clocks\n");
 		goto err_assert_reset;
 	}
 
 	ret = sun4i_tcon_init_irq(dev, tcon);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Couldn't init our TCON interrupts\n");
 		goto err_free_clocks;
 	}
 
 	ret = sun4i_rgb_init(drm);
+
 	if (ret < 0)
+	{
 		goto err_free_clocks;
+	}
 
 	return 0;
 
@@ -544,14 +622,15 @@ err_assert_reset:
 }
 
 static void sun4i_tcon_unbind(struct device *dev, struct device *master,
-			      void *data)
+							  void *data)
 {
 	struct sun4i_tcon *tcon = dev_get_drvdata(dev);
 
 	sun4i_tcon_free_clocks(tcon);
 }
 
-static struct component_ops sun4i_tcon_ops = {
+static struct component_ops sun4i_tcon_ops =
+{
 	.bind	= sun4i_tcon_bind,
 	.unbind	= sun4i_tcon_unbind,
 };
@@ -573,7 +652,8 @@ static int sun4i_tcon_probe(struct platform_device *pdev)
 	 * If we don't have a panel endpoint, just go on
 	 */
 	if ((PTR_ERR(panel) == -EPROBE_DEFER) &&
-	    (PTR_ERR(bridge) == -EPROBE_DEFER)) {
+		(PTR_ERR(bridge) == -EPROBE_DEFER))
+	{
 		DRM_DEBUG_DRIVER("Still waiting for our panel/bridge. Deferring...\n");
 		return -EPROBE_DEFER;
 	}
@@ -588,14 +668,16 @@ static int sun4i_tcon_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id sun4i_tcon_of_table[] = {
+static const struct of_device_id sun4i_tcon_of_table[] =
+{
 	{ .compatible = "allwinner,sun5i-a13-tcon" },
 	{ .compatible = "allwinner,sun8i-a33-tcon" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, sun4i_tcon_of_table);
 
-static struct platform_driver sun4i_tcon_platform_driver = {
+static struct platform_driver sun4i_tcon_platform_driver =
+{
 	.probe		= sun4i_tcon_probe,
 	.remove		= sun4i_tcon_remove,
 	.driver		= {

@@ -2,7 +2,8 @@
 #define __LINUX_PMIC_DA903X_H
 
 /* Unified sub device IDs for DA9030/DA9034/DA9035 */
-enum {
+enum
+{
 	DA9030_ID_LED_1,
 	DA9030_ID_LED_2,
 	DA9030_ID_LED_3,
@@ -90,20 +91,23 @@ enum {
 #define DA9034_LED_RAMP		(1 << 7)
 
 /* DA9034 touch screen platform data */
-struct da9034_touch_pdata {
+struct da9034_touch_pdata
+{
 	int	interval_ms;	/* sampling interval while pen down */
 	int	x_inverted;
 	int	y_inverted;
 };
 
-struct da9034_backlight_pdata {
+struct da9034_backlight_pdata
+{
 	int	output_current;	/* output current of WLED, from 0-31 (in mA) */
 };
 
 /* DA9030 battery charger data */
 struct power_supply_info;
 
-struct da9030_battery_info {
+struct da9030_battery_info
+{
 	/* battery parameters */
 	struct power_supply_info *battery_info;
 
@@ -137,13 +141,15 @@ struct da9030_battery_info {
 	void (*battery_critical)(void);
 };
 
-struct da903x_subdev_info {
+struct da903x_subdev_info
+{
 	int		id;
 	const char	*name;
 	void		*platform_data;
 };
 
-struct da903x_platform_data {
+struct da903x_platform_data
+{
 	int num_subdevs;
 	struct da903x_subdev_info *subdevs;
 };
@@ -201,9 +207,9 @@ struct da903x_platform_data {
 #define DA9034_EVENT_WATCHDOG		(1 << 27)
 
 extern int da903x_register_notifier(struct device *dev,
-		struct notifier_block *nb, unsigned int events);
+									struct notifier_block *nb, unsigned int events);
 extern int da903x_unregister_notifier(struct device *dev,
-		struct notifier_block *nb, unsigned int events);
+									  struct notifier_block *nb, unsigned int events);
 
 /* Status Query Interface */
 #define DA9030_STATUS_ONKEY		(1 << 0)

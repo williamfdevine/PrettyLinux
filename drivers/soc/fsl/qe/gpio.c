@@ -25,7 +25,8 @@
 #include <linux/export.h>
 #include <soc/fsl/qe/qe.h>
 
-struct qe_gpio_chip {
+struct qe_gpio_chip
+{
 	struct of_mm_gpio_chip mm_gc;
 	spinlock_t lock;
 
@@ -74,9 +75,13 @@ static void qe_gpio_set(struct gpio_chip *gc, unsigned int gpio, int val)
 	spin_lock_irqsave(&qe_gc->lock, flags);
 
 	if (val)
+	{
 		qe_gc->cpdata |= pin_mask;
+	}
 	else
+	{
 		qe_gc->cpdata &= ~pin_mask;
+	}
 
 	out_be32(&regs->cpdata, qe_gc->cpdata);
 
@@ -115,7 +120,8 @@ static int qe_gpio_dir_out(struct gpio_chip *gc, unsigned int gpio, int val)
 	return 0;
 }
 
-struct qe_pin {
+struct qe_pin
+{
 	/*
 	 * The qe_gpio_chip name is unfortunate, we should change that to
 	 * something like qe_pio_controller. Someday.
@@ -143,19 +149,29 @@ struct qe_pin *qe_pin_request(struct device_node *np, int index)
 	unsigned long flags;
 
 	qe_pin = kzalloc(sizeof(*qe_pin), GFP_KERNEL);
-	if (!qe_pin) {
+
+	if (!qe_pin)
+	{
 		pr_debug("%s: can't allocate memory\n", __func__);
 		return ERR_PTR(-ENOMEM);
 	}
 
 	err = of_get_gpio(np, index);
-	if (err < 0)
-		goto err0;
-	gc = gpio_to_chip(err);
-	if (WARN_ON(!gc))
-		goto err0;
 
-	if (!of_device_is_compatible(gc->of_node, "fsl,mpc8323-qe-pario-bank")) {
+	if (err < 0)
+	{
+		goto err0;
+	}
+
+	gc = gpio_to_chip(err);
+
+	if (WARN_ON(!gc))
+	{
+		goto err0;
+	}
+
+	if (!of_device_is_compatible(gc->of_node, "fsl,mpc8323-qe-pario-bank"))
+	{
 		pr_debug("%s: tried to get a non-qe pin\n", __func__);
 		err = -EINVAL;
 		goto err0;
@@ -167,18 +183,25 @@ struct qe_pin *qe_pin_request(struct device_node *np, int index)
 	spin_lock_irqsave(&qe_gc->lock, flags);
 
 	err -= gc->base;
-	if (test_and_set_bit(QE_PIN_REQUESTED, &qe_gc->pin_flags[err]) == 0) {
+
+	if (test_and_set_bit(QE_PIN_REQUESTED, &qe_gc->pin_flags[err]) == 0)
+	{
 		qe_pin->controller = qe_gc;
 		qe_pin->num = err;
 		err = 0;
-	} else {
+	}
+	else
+	{
 		err = -EBUSY;
 	}
 
 	spin_unlock_irqrestore(&qe_gc->lock, flags);
 
 	if (!err)
+	{
 		return qe_pin;
+	}
+
 err0:
 	kfree(qe_pin);
 	pr_debug("%s failed with status %d\n", __func__, err);
@@ -229,18 +252,25 @@ void qe_pin_set_dedicated(struct qe_pin *qe_pin)
 
 	spin_lock_irqsave(&qe_gc->lock, flags);
 
-	if (second_reg) {
+	if (second_reg)
+	{
 		clrsetbits_be32(&regs->cpdir2, mask2, sregs->cpdir2 & mask2);
 		clrsetbits_be32(&regs->cppar2, mask2, sregs->cppar2 & mask2);
-	} else {
+	}
+	else
+	{
 		clrsetbits_be32(&regs->cpdir1, mask2, sregs->cpdir1 & mask2);
 		clrsetbits_be32(&regs->cppar1, mask2, sregs->cppar1 & mask2);
 	}
 
 	if (sregs->cpdata & mask1)
+	{
 		qe_gc->cpdata |= mask1;
+	}
 	else
+	{
 		qe_gc->cpdata &= ~mask1;
+	}
 
 	out_be32(&regs->cpdata, qe_gc->cpdata);
 	clrsetbits_be32(&regs->cpodr, mask1, sregs->cpodr & mask1);
@@ -275,14 +305,17 @@ static int __init qe_add_gpiochips(void)
 {
 	struct device_node *np;
 
-	for_each_compatible_node(np, NULL, "fsl,mpc8323-qe-pario-bank") {
+	for_each_compatible_node(np, NULL, "fsl,mpc8323-qe-pario-bank")
+	{
 		int ret;
 		struct qe_gpio_chip *qe_gc;
 		struct of_mm_gpio_chip *mm_gc;
 		struct gpio_chip *gc;
 
 		qe_gc = kzalloc(sizeof(*qe_gc), GFP_KERNEL);
-		if (!qe_gc) {
+
+		if (!qe_gc)
+		{
 			ret = -ENOMEM;
 			goto err;
 		}
@@ -300,12 +333,16 @@ static int __init qe_add_gpiochips(void)
 		gc->set = qe_gpio_set;
 
 		ret = of_mm_gpiochip_add_data(np, mm_gc, qe_gc);
+
 		if (ret)
+		{
 			goto err;
+		}
+
 		continue;
 err:
 		pr_err("%s: registration failed with status %d\n",
-		       np->full_name, ret);
+			   np->full_name, ret);
 		kfree(qe_gc);
 		/* try others anyway */
 	}

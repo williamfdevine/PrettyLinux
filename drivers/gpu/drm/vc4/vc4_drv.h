@@ -9,7 +9,8 @@
 #include "drmP.h"
 #include "drm_gem_cma_helper.h"
 
-struct vc4_dev {
+struct vc4_dev
+{
 	struct drm_device *dev;
 
 	struct vc4_hdmi *hdmi;
@@ -26,7 +27,8 @@ struct vc4_dev {
 	 * unreferenced by all other users (refcounts of 0!) but not
 	 * yet freed, so we can do cheap allocations.
 	 */
-	struct vc4_bo_cache {
+	struct vc4_bo_cache
+	{
 		/* Array of list heads for entries in the BO cache,
 		 * based on number of pages, so we can do O(1) lookups
 		 * in the cache when allocating.
@@ -43,7 +45,8 @@ struct vc4_dev {
 		struct timer_list time_timer;
 	} bo_cache;
 
-	struct vc4_bo_stats {
+	struct vc4_bo_stats
+	{
 		u32 num_allocated;
 		u32 size_allocated;
 		u32 num_cached;
@@ -105,7 +108,8 @@ struct vc4_dev {
 	/* Mutex controlling the power refcount. */
 	struct mutex power_lock;
 
-	struct {
+	struct
+	{
 		struct timer_list timer;
 		struct work_struct reset_work;
 	} hangcheck;
@@ -119,7 +123,8 @@ to_vc4_dev(struct drm_device *dev)
 	return (struct vc4_dev *)dev->dev_private;
 }
 
-struct vc4_bo {
+struct vc4_bo
+{
 	struct drm_gem_cma_object base;
 
 	/* seqno of the last job to render using this BO. */
@@ -155,19 +160,22 @@ to_vc4_bo(struct drm_gem_object *bo)
 	return (struct vc4_bo *)bo;
 }
 
-struct vc4_seqno_cb {
+struct vc4_seqno_cb
+{
 	struct work_struct work;
 	uint64_t seqno;
 	void (*func)(struct vc4_seqno_cb *cb);
 };
 
-struct vc4_v3d {
+struct vc4_v3d
+{
 	struct vc4_dev *vc4;
 	struct platform_device *pdev;
 	void __iomem *regs;
 };
 
-struct vc4_hvs {
+struct vc4_hvs
+{
 	struct platform_device *pdev;
 	void __iomem *regs;
 	u32 __iomem *dlist;
@@ -183,7 +191,8 @@ struct vc4_hvs {
 	struct drm_mm_node mitchell_netravali_filter;
 };
 
-struct vc4_plane {
+struct vc4_plane
+{
 	struct drm_plane base;
 };
 
@@ -193,7 +202,8 @@ to_vc4_plane(struct drm_plane *plane)
 	return (struct vc4_plane *)plane;
 }
 
-enum vc4_encoder_type {
+enum vc4_encoder_type
+{
 	VC4_ENCODER_TYPE_HDMI,
 	VC4_ENCODER_TYPE_VEC,
 	VC4_ENCODER_TYPE_DSI0,
@@ -202,7 +212,8 @@ enum vc4_encoder_type {
 	VC4_ENCODER_TYPE_DPI,
 };
 
-struct vc4_encoder {
+struct vc4_encoder
+{
 	struct drm_encoder base;
 	enum vc4_encoder_type type;
 	u32 clock_select;
@@ -219,7 +230,8 @@ to_vc4_encoder(struct drm_encoder *encoder)
 #define HVS_READ(offset) readl(vc4->hvs->regs + offset)
 #define HVS_WRITE(offset, val) writel(val, vc4->hvs->regs + offset)
 
-struct vc4_exec_info {
+struct vc4_exec_info
+{
 	/* Sequence number for this bin/render job. */
 	uint64_t seqno;
 
@@ -271,7 +283,8 @@ struct vc4_exec_info {
 	 * it's expected to be found at.  It gets read in from the
 	 * command lists.
 	 */
-	struct vc4_shader_state {
+	struct vc4_shader_state
+	{
 		uint32_t addr;
 		/* Maximum vertex index referenced by any primitive using this
 		 * shader state.
@@ -325,23 +338,26 @@ static inline struct vc4_exec_info *
 vc4_first_bin_job(struct vc4_dev *vc4)
 {
 	return list_first_entry_or_null(&vc4->bin_job_list,
-					struct vc4_exec_info, head);
+									struct vc4_exec_info, head);
 }
 
 static inline struct vc4_exec_info *
 vc4_first_render_job(struct vc4_dev *vc4)
 {
 	return list_first_entry_or_null(&vc4->render_job_list,
-					struct vc4_exec_info, head);
+									struct vc4_exec_info, head);
 }
 
 static inline struct vc4_exec_info *
 vc4_last_render_job(struct vc4_dev *vc4)
 {
 	if (list_empty(&vc4->render_job_list))
+	{
 		return NULL;
+	}
+
 	return list_last_entry(&vc4->render_job_list,
-			       struct vc4_exec_info, head);
+						   struct vc4_exec_info, head);
 }
 
 /**
@@ -358,7 +374,8 @@ vc4_last_render_job(struct vc4_dev *vc4)
  * See the VC4 3D architecture guide page 41 ("Texture and Memory Lookup Unit
  * Setup") for definitions of the texture parameters.
  */
-struct vc4_texture_sample_info {
+struct vc4_texture_sample_info
+{
 	bool is_direct;
 	uint32_t p_offset[4];
 };
@@ -373,7 +390,8 @@ struct vc4_texture_sample_info {
  * and validate the shader state record's uniforms that define the texture
  * samples.
  */
-struct vc4_validated_shader_info {
+struct vc4_validated_shader_info
+{
 	uint32_t uniforms_size;
 	uint32_t uniforms_src_size;
 	uint32_t num_texture_samples;
@@ -392,22 +410,22 @@ struct vc4_validated_shader_info {
  * we've never had a chance to check the condition before the timeout.
  */
 #define _wait_for(COND, MS, W) ({ \
-	unsigned long timeout__ = jiffies + msecs_to_jiffies(MS) + 1;	\
-	int ret__ = 0;							\
-	while (!(COND)) {						\
-		if (time_after(jiffies, timeout__)) {			\
-			if (!(COND))					\
-				ret__ = -ETIMEDOUT;			\
-			break;						\
-		}							\
-		if (W && drm_can_sleep())  {				\
-			msleep(W);					\
-		} else {						\
-			cpu_relax();					\
-		}							\
-	}								\
-	ret__;								\
-})
+		unsigned long timeout__ = jiffies + msecs_to_jiffies(MS) + 1;	\
+		int ret__ = 0;							\
+		while (!(COND)) {						\
+			if (time_after(jiffies, timeout__)) {			\
+				if (!(COND))					\
+					ret__ = -ETIMEDOUT;			\
+				break;						\
+			}							\
+			if (W && drm_can_sleep())  {				\
+				msleep(W);					\
+			} else {						\
+				cpu_relax();					\
+			}							\
+		}								\
+		ret__;								\
+	})
 
 #define wait_for(COND, MS) _wait_for(COND, MS, 1)
 
@@ -415,20 +433,20 @@ struct vc4_validated_shader_info {
 struct drm_gem_object *vc4_create_object(struct drm_device *dev, size_t size);
 void vc4_free_object(struct drm_gem_object *gem_obj);
 struct vc4_bo *vc4_bo_create(struct drm_device *dev, size_t size,
-			     bool from_cache);
+							 bool from_cache);
 int vc4_dumb_create(struct drm_file *file_priv,
-		    struct drm_device *dev,
-		    struct drm_mode_create_dumb *args);
+					struct drm_device *dev,
+					struct drm_mode_create_dumb *args);
 struct dma_buf *vc4_prime_export(struct drm_device *dev,
-				 struct drm_gem_object *obj, int flags);
+								 struct drm_gem_object *obj, int flags);
 int vc4_create_bo_ioctl(struct drm_device *dev, void *data,
-			struct drm_file *file_priv);
+						struct drm_file *file_priv);
 int vc4_create_shader_bo_ioctl(struct drm_device *dev, void *data,
-			       struct drm_file *file_priv);
+							   struct drm_file *file_priv);
 int vc4_mmap_bo_ioctl(struct drm_device *dev, void *data,
-		      struct drm_file *file_priv);
+					  struct drm_file *file_priv);
 int vc4_get_hang_state_ioctl(struct drm_device *dev, void *data,
-			     struct drm_file *file_priv);
+							 struct drm_file *file_priv);
 int vc4_mmap(struct file *filp, struct vm_area_struct *vma);
 int vc4_prime_mmap(struct drm_gem_object *obj, struct vm_area_struct *vma);
 void *vc4_prime_vmap(struct drm_gem_object *obj);
@@ -442,12 +460,12 @@ int vc4_enable_vblank(struct drm_device *dev, unsigned int crtc_id);
 void vc4_disable_vblank(struct drm_device *dev, unsigned int crtc_id);
 int vc4_crtc_debugfs_regs(struct seq_file *m, void *arg);
 int vc4_crtc_get_scanoutpos(struct drm_device *dev, unsigned int crtc_id,
-			    unsigned int flags, int *vpos, int *hpos,
-			    ktime_t *stime, ktime_t *etime,
-			    const struct drm_display_mode *mode);
+							unsigned int flags, int *vpos, int *hpos,
+							ktime_t *stime, ktime_t *etime,
+							const struct drm_display_mode *mode);
 int vc4_crtc_get_vblank_timestamp(struct drm_device *dev, unsigned int crtc_id,
-				  int *max_error, struct timeval *vblank_time,
-				  unsigned flags);
+								  int *max_error, struct timeval *vblank_time,
+								  unsigned flags);
 
 /* vc4_debugfs.c */
 int vc4_debugfs_init(struct drm_minor *minor);
@@ -464,20 +482,20 @@ int vc4_dpi_debugfs_regs(struct seq_file *m, void *unused);
 void vc4_gem_init(struct drm_device *dev);
 void vc4_gem_destroy(struct drm_device *dev);
 int vc4_submit_cl_ioctl(struct drm_device *dev, void *data,
-			struct drm_file *file_priv);
+						struct drm_file *file_priv);
 int vc4_wait_seqno_ioctl(struct drm_device *dev, void *data,
-			 struct drm_file *file_priv);
+						 struct drm_file *file_priv);
 int vc4_wait_bo_ioctl(struct drm_device *dev, void *data,
-		      struct drm_file *file_priv);
+					  struct drm_file *file_priv);
 void vc4_submit_next_bin_job(struct drm_device *dev);
 void vc4_submit_next_render_job(struct drm_device *dev);
 void vc4_move_job_to_render(struct drm_device *dev, struct vc4_exec_info *exec);
 int vc4_wait_for_seqno(struct drm_device *dev, uint64_t seqno,
-		       uint64_t timeout_ns, bool interruptible);
+					   uint64_t timeout_ns, bool interruptible);
 void vc4_job_handle_completed(struct vc4_dev *vc4);
 int vc4_queue_seqno_cb(struct drm_device *dev,
-		       struct vc4_seqno_cb *cb, uint64_t seqno,
-		       void (*func)(struct vc4_seqno_cb *cb));
+					   struct vc4_seqno_cb *cb, uint64_t seqno,
+					   void (*func)(struct vc4_seqno_cb *cb));
 
 /* vc4_hdmi.c */
 extern struct platform_driver vc4_hdmi_driver;
@@ -500,11 +518,11 @@ int vc4_kms_load(struct drm_device *dev);
 
 /* vc4_plane.c */
 struct drm_plane *vc4_plane_init(struct drm_device *dev,
-				 enum drm_plane_type type);
+								 enum drm_plane_type type);
 u32 vc4_plane_write_dlist(struct drm_plane *plane, u32 __iomem *dlist);
 u32 vc4_plane_dlist_size(const struct drm_plane_state *state);
 void vc4_plane_async_set_fb(struct drm_plane *plane,
-			    struct drm_framebuffer *fb);
+							struct drm_framebuffer *fb);
 
 /* vc4_v3d.c */
 extern struct platform_driver vc4_v3d_driver;
@@ -514,22 +532,22 @@ int vc4_v3d_debugfs_regs(struct seq_file *m, void *unused);
 /* vc4_validate.c */
 int
 vc4_validate_bin_cl(struct drm_device *dev,
-		    void *validated,
-		    void *unvalidated,
-		    struct vc4_exec_info *exec);
+					void *validated,
+					void *unvalidated,
+					struct vc4_exec_info *exec);
 
 int
 vc4_validate_shader_recs(struct drm_device *dev, struct vc4_exec_info *exec);
 
 struct drm_gem_cma_object *vc4_use_bo(struct vc4_exec_info *exec,
-				      uint32_t hindex);
+									  uint32_t hindex);
 
 int vc4_get_rcl(struct drm_device *dev, struct vc4_exec_info *exec);
 
 bool vc4_check_tex_size(struct vc4_exec_info *exec,
-			struct drm_gem_cma_object *fbo,
-			uint32_t offset, uint8_t tiling_format,
-			uint32_t width, uint32_t height, uint8_t cpp);
+						struct drm_gem_cma_object *fbo,
+						uint32_t offset, uint8_t tiling_format,
+						uint32_t width, uint32_t height, uint8_t cpp);
 
 /* vc4_validate_shader.c */
 struct vc4_validated_shader_info *

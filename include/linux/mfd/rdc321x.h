@@ -14,12 +14,14 @@
 
 #define RDC321X_NUM_GPIO	59
 
-struct rdc321x_gpio_pdata {
+struct rdc321x_gpio_pdata
+{
 	struct pci_dev *sb_pdev;
 	unsigned max_gpios;
 };
 
-struct rdc321x_wdt_pdata {
+struct rdc321x_wdt_pdata
+{
 	struct pci_dev *sb_pdev;
 };
 

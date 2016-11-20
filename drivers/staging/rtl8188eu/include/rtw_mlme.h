@@ -59,7 +59,8 @@
 #define _FW_LINKED			WIFI_ASOC_STATE
 #define _FW_UNDER_SURVEY	WIFI_SITE_MONITOR
 
-enum dot11AuthAlgrthmNum {
+enum dot11AuthAlgrthmNum
+{
 	dot11AuthAlgrthm_Open = 0, /* open system */
 	dot11AuthAlgrthm_Shared,
 	dot11AuthAlgrthm_8021X,
@@ -69,21 +70,23 @@ enum dot11AuthAlgrthmNum {
 };
 
 /*  Scan type including active and passive scan. */
-enum rt_scan_type {
+enum rt_scan_type
+{
 	SCAN_PASSIVE,
 	SCAN_ACTIVE,
 	SCAN_MIX,
 };
 
-enum SCAN_RESULT_TYPE {
+enum SCAN_RESULT_TYPE
+{
 	SCAN_RESULT_P2P_ONLY = 0,	/* Will return all the P2P devices. */
 	SCAN_RESULT_ALL = 1,		/* Will return all the scanned device,
 					 * include AP. */
 	SCAN_RESULT_WFD_TYPE = 2	/* Will just return the correct WFD
 					 * device. */
-					/* If this device is Miracast sink
-					 * device, it will just return all the
-					 * Miracast source devices. */
+						   /* If this device is Miracast sink
+						    * device, it will just return all the
+						    * Miracast source devices. */
 };
 
 /*
@@ -101,7 +104,8 @@ SHALL not lock up more than one lock at a time!
 #define traffic_threshold	10
 #define	traffic_scan_period	500
 
-struct rt_link_detect {
+struct rt_link_detect
+{
 	u32	NumTxOkInPeriod;
 	u32	NumRxOkInPeriod;
 	u32	NumRxUnicastOkInPeriod;
@@ -115,13 +119,15 @@ struct rt_link_detect {
 				       * to Tx traffic. */
 };
 
-struct profile_info {
+struct profile_info
+{
 	u8	ssidlen;
 	u8	ssid[WLAN_SSID_MAXLEN];
 	u8	peermac[ETH_ALEN];
 };
 
-struct tx_invite_req_info {
+struct tx_invite_req_info
+{
 	u8	token;
 	u8	benable;
 	u8	go_ssid[WLAN_SSID_MAXLEN];
@@ -133,12 +139,14 @@ struct tx_invite_req_info {
 	u8	peer_ch;	/* The listen channel for peer P2P device */
 };
 
-struct tx_invite_resp_info {
+struct tx_invite_resp_info
+{
 	u8	token;	/* Used to record the dialog token of p2p invitation
 			 * request frame. */
 };
 
-struct tx_provdisc_req_info {
+struct tx_provdisc_req_info
+{
 	u16	wps_config_method_request;	/* Used when sending the
 						 * provisioning request frame*/
 	u16	peer_channel_num[2];		/* The channel number which the
@@ -155,33 +163,38 @@ struct tx_provdisc_req_info {
  * information */
 /* The UI must know this information to know which config method the
  * remote p2p device needs. */
-struct rx_provdisc_req_info {
+struct rx_provdisc_req_info
+{
 	u8	peerDevAddr[ETH_ALEN];		/* Peer device address */
 	u8	strconfig_method_desc_of_prov_disc_req[4];	/* description
 			* for the config method located in the provisioning
 			* discovery request frame. */
 };
 
-struct tx_nego_req_info {
+struct tx_nego_req_info
+{
 	u16	peer_channel_num[2];	/* The channel number. */
 	u8	peerDevAddr[ETH_ALEN];	/* Peer device address */
 	u8	benable;		/* This negotiation request frame is
 					 * trigger to send or not */
 };
 
-struct group_id_info {
+struct group_id_info
+{
 	u8	go_device_addr[ETH_ALEN];	/* The GO's device address of
 						 * this P2P group */
 	u8	ssid[WLAN_SSID_MAXLEN];	/* The SSID of this P2P group */
 };
 
-struct scan_limit_info {
+struct scan_limit_info
+{
 	u8	scan_op_ch_only;	/* When this flag is set, the driver
 					 * should only scan the op. channel */
 	u8	operation_ch[2];	/* Store the op. chan of invitation */
 };
 
-struct wifidirect_info {
+struct wifidirect_info
+{
 	struct adapter *padapter;
 	struct timer_list find_phase_timer;
 	struct timer_list restore_p2p_state_timer;
@@ -248,25 +261,25 @@ struct wifidirect_info {
 	/*	0: disable */
 	/*	1: enable */
 	u8 wfd_tdls_enable; /* Flag to enable or disable the TDLS by WFD Sigma*/
-			    /* 0: disable */
-			    /*	1: enable */
+	/* 0: disable */
+	/*	1: enable */
 	u8 wfd_tdls_weaksec; /* Flag to enable or disable the weak security
 			      * function for TDLS by WFD Sigma */
-			     /* 0: disable */
-			     /* In this case, the driver can't issue the tdsl
-			      * setup request frame. */
-			     /*	1: enable */
-			     /* In this case, the driver can issue the tdls
-			      * setup request frame */
-			     /*	even the current security is weak security. */
+	/* 0: disable */
+	/* In this case, the driver can't issue the tdsl
+	 * setup request frame. */
+	/*	1: enable */
+	/* In this case, the driver can issue the tdls
+	 * setup request frame */
+	/*	even the current security is weak security. */
 
 	/* This field will store the WPS value (PIN value or PBC) that UI had
 	 * got from the user. */
 	enum	P2P_WPSINFO ui_got_wps_info;
 	u16 supported_wps_cm;	/* This field describes the WPS config method
 				 * which this driver supported. */
-				/* The value should be the combination of config
-				 * method defined in page104 of WPS v2.0 spec.*/
+	/* The value should be the combination of config
+	 * method defined in page104 of WPS v2.0 spec.*/
 	/* This field will contain the length of body of P2P Channel List
 	 * attribute of group negotiation response frame. */
 	uint channel_list_attr_len;
@@ -292,7 +305,8 @@ struct wifidirect_info {
 	u32 noa_start_time[P2P_MAX_NOA_NUM];
 };
 
-struct mlme_priv {
+struct mlme_priv
+{
 	spinlock_t lock;
 	int fw_state;	/* shall we protect this variable? maybe not necessarily... */
 	u8 bScanInProcess;
@@ -390,7 +404,8 @@ struct mlme_priv {
 
 #ifdef CONFIG_88EU_AP_MODE
 
-struct hostapd_priv {
+struct hostapd_priv
+{
 	struct adapter *padapter;
 };
 
@@ -421,11 +436,12 @@ int rtw_init_mlme_priv(struct adapter *adapter);
 void rtw_free_mlme_priv(struct mlme_priv *pmlmepriv);
 int rtw_select_and_join_from_scanned_queue(struct mlme_priv *pmlmepriv);
 int rtw_set_key(struct adapter *adapter, struct security_priv *psecuritypriv,
-		int keyid, u8 set_tx);
+				int keyid, u8 set_tx);
 int rtw_set_auth(struct adapter *adapter, struct security_priv *psecuritypriv);
 
 static inline u8 *get_bssid(struct mlme_priv *pmlmepriv)
-{	/* if sta_mode:pmlmepriv->cur_network.network.MacAddress=> bssid */
+{
+	/* if sta_mode:pmlmepriv->cur_network.network.MacAddress=> bssid */
 	/*  if adhoc_mode:pmlmepriv->cur_network.network.MacAddress=> ibss mac address */
 	return pmlmepriv->cur_network.network.MacAddress;
 }
@@ -433,7 +449,9 @@ static inline u8 *get_bssid(struct mlme_priv *pmlmepriv)
 static inline int check_fwstate(struct mlme_priv *pmlmepriv, int state)
 {
 	if (pmlmepriv->fw_state & state)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -453,17 +471,23 @@ static inline int get_fwstate(struct mlme_priv *pmlmepriv)
 static inline void set_fwstate(struct mlme_priv *pmlmepriv, int state)
 {
 	pmlmepriv->fw_state |= state;
+
 	/* FOR HW integration */
 	if (_FW_UNDER_SURVEY == state)
+	{
 		pmlmepriv->bScanInProcess = true;
+	}
 }
 
 static inline void _clr_fwstate_(struct mlme_priv *pmlmepriv, int state)
 {
 	pmlmepriv->fw_state &= ~state;
+
 	/* FOR HW integration */
 	if (_FW_UNDER_SURVEY == state)
+	{
 		pmlmepriv->bScanInProcess = false;
+	}
 }
 
 /*
@@ -473,8 +497,12 @@ static inline void _clr_fwstate_(struct mlme_priv *pmlmepriv, int state)
 static inline void clr_fwstate(struct mlme_priv *pmlmepriv, int state)
 {
 	spin_lock_bh(&pmlmepriv->lock);
+
 	if (check_fwstate(pmlmepriv, state) == true)
+	{
 		pmlmepriv->fw_state ^= state;
+	}
+
 	spin_unlock_bh(&pmlmepriv->lock);
 }
 
@@ -487,9 +515,9 @@ static inline void clr_fwstate_ex(struct mlme_priv *pmlmepriv, int state)
 
 u16 rtw_get_capability(struct wlan_bssid_ex *bss);
 void rtw_update_scanned_network(struct adapter *adapter,
-				struct wlan_bssid_ex *target);
+								struct wlan_bssid_ex *target);
 void rtw_disconnect_hdl_under_linked(struct adapter *adapter,
-				     struct sta_info *psta, u8 free_assoc);
+									 struct sta_info *psta, u8 free_assoc);
 void rtw_generate_random_ibss(u8 *pibss);
 struct wlan_network *rtw_find_network(struct __queue *scanned_queue, u8 *addr);
 struct wlan_network *rtw_get_oldest_wlan_network(struct __queue *scanned_queue);
@@ -502,9 +530,9 @@ void rtw_indicate_scan_done(struct adapter *padapter, bool aborted);
 void rtw_scan_abort(struct adapter *adapter);
 
 int rtw_restruct_sec_ie(struct adapter *adapter, u8 *in_ie, u8 *out_ie,
-			uint in_len);
+						uint in_len);
 int rtw_restruct_wmm_ie(struct adapter *adapter, u8 *in_ie, u8 *out_ie,
-		        uint in_len, uint initial_out_len);
+						uint in_len, uint initial_out_len);
 void rtw_init_registrypriv_dev_network(struct adapter *adapter);
 
 void rtw_update_registrypriv_dev_network(struct adapter *adapter);
@@ -525,7 +553,7 @@ void rtw_free_mlme_priv_ie_data(struct mlme_priv *pmlmepriv);
 struct wlan_network *_rtw_alloc_network(struct mlme_priv *pmlmepriv);
 
 void _rtw_free_network_nolock(struct mlme_priv *pmlmepriv,
-			      struct wlan_network *pnetwork);
+							  struct wlan_network *pnetwork);
 
 int rtw_if_up(struct adapter *padapter);
 
@@ -535,10 +563,10 @@ u8 *rtw_get_beacon_interval_from_ie(u8 *ie);
 void rtw_joinbss_reset(struct adapter *padapter);
 
 unsigned int rtw_restructure_ht_ie(struct adapter *padapter, u8 *in_ie,
-				   u8 *out_ie, uint in_len, uint *pout_len);
+								   u8 *out_ie, uint in_len, uint *pout_len);
 void rtw_update_ht_cap(struct adapter *padapter, u8 *pie, uint ie_len);
 void rtw_issue_addbareq_cmd(struct adapter *padapter,
-			    struct xmit_frame *pxmitframe);
+							struct xmit_frame *pxmitframe);
 
 int rtw_is_same_ibss(struct adapter *adapter, struct wlan_network *pnetwork);
 int is_same_network(struct wlan_bssid_ex *src, struct wlan_bssid_ex *dst);

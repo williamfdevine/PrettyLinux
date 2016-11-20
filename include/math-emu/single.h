@@ -26,7 +26,7 @@
 #define    __MATH_EMU_SINGLE_H__
 
 #if _FP_W_TYPE_SIZE < 32
-#error "Here's a nickel kid.  Go buy yourself a real computer."
+	#error "Here's a nickel kid.  Go buy yourself a real computer."
 #endif
 
 #define _FP_FRACBITS_S		24
@@ -45,18 +45,19 @@
 
 union _FP_UNION_S
 {
-  float flt;
-  struct {
+	float flt;
+	struct
+	{
 #if __BYTE_ORDER == __BIG_ENDIAN
-    unsigned sign : 1;
-    unsigned exp  : _FP_EXPBITS_S;
-    unsigned frac : _FP_FRACBITS_S - (_FP_IMPLBIT_S != 0);
+		unsigned sign : 1;
+unsigned exp  : _FP_EXPBITS_S;
+unsigned frac : _FP_FRACBITS_S - (_FP_IMPLBIT_S != 0);
 #else
-    unsigned frac : _FP_FRACBITS_S - (_FP_IMPLBIT_S != 0);
-    unsigned exp  : _FP_EXPBITS_S;
-    unsigned sign : 1;
+unsigned frac : _FP_FRACBITS_S - (_FP_IMPLBIT_S != 0);
+unsigned exp  : _FP_EXPBITS_S;
+		unsigned sign : 1;
 #endif
-  } bits __attribute__((packed));
+	} bits __attribute__((packed));
 };
 
 #define FP_DECL_S(X)		_FP_DECL(1,X)
@@ -64,35 +65,35 @@ union _FP_UNION_S
 #define FP_UNPACK_RAW_SP(X,val)	_FP_UNPACK_RAW_1_P(S,X,val)
 #define FP_PACK_RAW_S(val,X)	_FP_PACK_RAW_1(S,val,X)
 #define FP_PACK_RAW_SP(val,X)		\
-  do {					\
-    if (!FP_INHIBIT_RESULTS)		\
-      _FP_PACK_RAW_1_P(S,val,X);	\
-  } while (0)
+	do {					\
+		if (!FP_INHIBIT_RESULTS)		\
+			_FP_PACK_RAW_1_P(S,val,X);	\
+	} while (0)
 
 #define FP_UNPACK_S(X,val)		\
-  do {					\
-    _FP_UNPACK_RAW_1(S,X,val);		\
-    _FP_UNPACK_CANONICAL(S,1,X);	\
-  } while (0)
+	do {					\
+		_FP_UNPACK_RAW_1(S,X,val);		\
+		_FP_UNPACK_CANONICAL(S,1,X);	\
+	} while (0)
 
 #define FP_UNPACK_SP(X,val)		\
-  do {					\
-    _FP_UNPACK_RAW_1_P(S,X,val);	\
-    _FP_UNPACK_CANONICAL(S,1,X);	\
-  } while (0)
+	do {					\
+		_FP_UNPACK_RAW_1_P(S,X,val);	\
+		_FP_UNPACK_CANONICAL(S,1,X);	\
+	} while (0)
 
 #define FP_PACK_S(val,X)		\
-  do {					\
-    _FP_PACK_CANONICAL(S,1,X);		\
-    _FP_PACK_RAW_1(S,val,X);		\
-  } while (0)
+	do {					\
+		_FP_PACK_CANONICAL(S,1,X);		\
+		_FP_PACK_RAW_1(S,val,X);		\
+	} while (0)
 
 #define FP_PACK_SP(val,X)		\
-  do {					\
-    _FP_PACK_CANONICAL(S,1,X);		\
-    if (!FP_INHIBIT_RESULTS)		\
-      _FP_PACK_RAW_1_P(S,val,X);	\
-  } while (0)
+	do {					\
+		_FP_PACK_CANONICAL(S,1,X);		\
+		if (!FP_INHIBIT_RESULTS)		\
+			_FP_PACK_RAW_1_P(S,val,X);	\
+	} while (0)
 
 #define FP_ISSIGNAN_S(X)		_FP_ISSIGNAN(S,1,X)
 #define FP_NEG_S(R,X)			_FP_NEG(S,1,R,X)

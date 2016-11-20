@@ -27,7 +27,8 @@
 
 #include <trace/events/ext4.h>
 
-typedef struct {
+typedef struct
+{
 	__le32	*p;
 	__le32	key;
 	struct buffer_head *bh;
@@ -71,42 +72,55 @@ static inline void add_chain(Indirect *p, struct buffer_head *bh, __le32 *v)
  */
 
 static int ext4_block_to_path(struct inode *inode,
-			      ext4_lblk_t i_block,
-			      ext4_lblk_t offsets[4], int *boundary)
+							  ext4_lblk_t i_block,
+							  ext4_lblk_t offsets[4], int *boundary)
 {
 	int ptrs = EXT4_ADDR_PER_BLOCK(inode->i_sb);
 	int ptrs_bits = EXT4_ADDR_PER_BLOCK_BITS(inode->i_sb);
 	const long direct_blocks = EXT4_NDIR_BLOCKS,
-		indirect_blocks = ptrs,
-		double_blocks = (1 << (ptrs_bits * 2));
+			   indirect_blocks = ptrs,
+			   double_blocks = (1 << (ptrs_bits * 2));
 	int n = 0;
 	int final = 0;
 
-	if (i_block < direct_blocks) {
+	if (i_block < direct_blocks)
+	{
 		offsets[n++] = i_block;
 		final = direct_blocks;
-	} else if ((i_block -= direct_blocks) < indirect_blocks) {
+	}
+	else if ((i_block -= direct_blocks) < indirect_blocks)
+	{
 		offsets[n++] = EXT4_IND_BLOCK;
 		offsets[n++] = i_block;
 		final = ptrs;
-	} else if ((i_block -= indirect_blocks) < double_blocks) {
+	}
+	else if ((i_block -= indirect_blocks) < double_blocks)
+	{
 		offsets[n++] = EXT4_DIND_BLOCK;
 		offsets[n++] = i_block >> ptrs_bits;
 		offsets[n++] = i_block & (ptrs - 1);
 		final = ptrs;
-	} else if (((i_block -= double_blocks) >> (ptrs_bits * 2)) < ptrs) {
+	}
+	else if (((i_block -= double_blocks) >> (ptrs_bits * 2)) < ptrs)
+	{
 		offsets[n++] = EXT4_TIND_BLOCK;
 		offsets[n++] = i_block >> (ptrs_bits * 2);
 		offsets[n++] = (i_block >> ptrs_bits) & (ptrs - 1);
 		offsets[n++] = i_block & (ptrs - 1);
 		final = ptrs;
-	} else {
-		ext4_warning(inode->i_sb, "block %lu > max in inode %lu",
-			     i_block + direct_blocks +
-			     indirect_blocks + double_blocks, inode->i_ino);
 	}
+	else
+	{
+		ext4_warning(inode->i_sb, "block %lu > max in inode %lu",
+					 i_block + direct_blocks +
+					 indirect_blocks + double_blocks, inode->i_ino);
+	}
+
 	if (boundary)
+	{
 		*boundary = final - 1 - (i_block & (ptrs - 1));
+	}
+
 	return n;
 }
 
@@ -141,8 +155,8 @@ static int ext4_block_to_path(struct inode *inode,
  *      down_read(&EXT4_I(inode)->i_data_sem)
  */
 static Indirect *ext4_get_branch(struct inode *inode, int depth,
-				 ext4_lblk_t  *offsets,
-				 Indirect chain[4], int *err)
+								 ext4_lblk_t  *offsets,
+								 Indirect chain[4], int *err)
 {
 	struct super_block *sb = inode->i_sb;
 	Indirect *p = chain;
@@ -152,32 +166,47 @@ static Indirect *ext4_get_branch(struct inode *inode, int depth,
 	*err = 0;
 	/* i_data is not going away, no lock needed */
 	add_chain(chain, NULL, EXT4_I(inode)->i_data + *offsets);
+
 	if (!p->key)
+	{
 		goto no_block;
-	while (--depth) {
+	}
+
+	while (--depth)
+	{
 		bh = sb_getblk(sb, le32_to_cpu(p->key));
-		if (unlikely(!bh)) {
+
+		if (unlikely(!bh))
+		{
 			ret = -ENOMEM;
 			goto failure;
 		}
 
-		if (!bh_uptodate_or_lock(bh)) {
-			if (bh_submit_read(bh) < 0) {
+		if (!bh_uptodate_or_lock(bh))
+		{
+			if (bh_submit_read(bh) < 0)
+			{
 				put_bh(bh);
 				goto failure;
 			}
+
 			/* validate block references */
-			if (ext4_check_indirect_blockref(inode, bh)) {
+			if (ext4_check_indirect_blockref(inode, bh))
+			{
 				put_bh(bh);
 				goto failure;
 			}
 		}
 
 		add_chain(++p, bh, (__le32 *)bh->b_data + *++offsets);
+
 		/* Reader: end */
 		if (!p->key)
+		{
 			goto no_block;
+		}
 	}
+
 	return NULL;
 
 failure:
@@ -213,14 +242,19 @@ static ext4_fsblk_t ext4_find_near(struct inode *inode, Indirect *ind)
 	__le32 *p;
 
 	/* Try to find previous block */
-	for (p = ind->p - 1; p >= start; p--) {
+	for (p = ind->p - 1; p >= start; p--)
+	{
 		if (*p)
+		{
 			return le32_to_cpu(*p);
+		}
 	}
 
 	/* No such thing, so let's try location of indirect block */
 	if (ind->bh)
+	{
 		return ind->bh->b_blocknr;
+	}
 
 	/*
 	 * It is going to be referred to from the inode itself? OK, just put it
@@ -241,7 +275,7 @@ static ext4_fsblk_t ext4_find_near(struct inode *inode, Indirect *ind)
  *	to 32 bits.
  */
 static ext4_fsblk_t ext4_find_goal(struct inode *inode, ext4_lblk_t block,
-				   Indirect *partial)
+								   Indirect *partial)
 {
 	ext4_fsblk_t goal;
 
@@ -267,7 +301,7 @@ static ext4_fsblk_t ext4_find_goal(struct inode *inode, ext4_lblk_t block,
  *	direct and indirect blocks.
  */
 static int ext4_blks_to_allocate(Indirect *branch, int k, unsigned int blks,
-				 int blocks_to_boundary)
+								 int blocks_to_boundary)
 {
 	unsigned int count = 0;
 
@@ -275,20 +309,29 @@ static int ext4_blks_to_allocate(Indirect *branch, int k, unsigned int blks,
 	 * Simple case, [t,d]Indirect block(s) has not allocated yet
 	 * then it's clear blocks on that path have not allocated
 	 */
-	if (k > 0) {
+	if (k > 0)
+	{
 		/* right now we don't handle cross boundary allocation */
 		if (blks < blocks_to_boundary + 1)
+		{
 			count += blks;
+		}
 		else
+		{
 			count += blocks_to_boundary + 1;
+		}
+
 		return count;
 	}
 
 	count++;
+
 	while (count < blks && count <= blocks_to_boundary &&
-		le32_to_cpu(*(branch[0].p + count)) == 0) {
+		   le32_to_cpu(*(branch[0].p + count)) == 0)
+	{
 		count++;
 	}
+
 	return count;
 }
 
@@ -320,40 +363,54 @@ static int ext4_blks_to_allocate(Indirect *branch, int k, unsigned int blks,
  *	as described above and return 0.
  */
 static int ext4_alloc_branch(handle_t *handle,
-			     struct ext4_allocation_request *ar,
-			     int indirect_blks, ext4_lblk_t *offsets,
-			     Indirect *branch)
+							 struct ext4_allocation_request *ar,
+							 int indirect_blks, ext4_lblk_t *offsets,
+							 Indirect *branch)
 {
-	struct buffer_head *		bh;
+	struct buffer_head 		*bh;
 	ext4_fsblk_t			b, new_blocks[4];
 	__le32				*p;
 	int				i, j, err, len = 1;
 
-	for (i = 0; i <= indirect_blks; i++) {
-		if (i == indirect_blks) {
+	for (i = 0; i <= indirect_blks; i++)
+	{
+		if (i == indirect_blks)
+		{
 			new_blocks[i] = ext4_mb_new_blocks(handle, ar, &err);
-		} else
+		}
+		else
 			ar->goal = new_blocks[i] = ext4_new_meta_blocks(handle,
-					ar->inode, ar->goal,
-					ar->flags & EXT4_MB_DELALLOC_RESERVED,
-					NULL, &err);
-		if (err) {
+									   ar->inode, ar->goal,
+									   ar->flags & EXT4_MB_DELALLOC_RESERVED,
+									   NULL, &err);
+
+		if (err)
+		{
 			i--;
 			goto failed;
 		}
-		branch[i].key = cpu_to_le32(new_blocks[i]);
-		if (i == 0)
-			continue;
 
-		bh = branch[i].bh = sb_getblk(ar->inode->i_sb, new_blocks[i-1]);
-		if (unlikely(!bh)) {
+		branch[i].key = cpu_to_le32(new_blocks[i]);
+
+		if (i == 0)
+		{
+			continue;
+		}
+
+		bh = branch[i].bh = sb_getblk(ar->inode->i_sb, new_blocks[i - 1]);
+
+		if (unlikely(!bh))
+		{
 			err = -ENOMEM;
 			goto failed;
 		}
+
 		lock_buffer(bh);
 		BUFFER_TRACE(bh, "call get_create_access");
 		err = ext4_journal_get_create_access(handle, bh);
-		if (err) {
+
+		if (err)
+		{
 			unlock_buffer(bh);
 			goto failed;
 		}
@@ -363,9 +420,14 @@ static int ext4_alloc_branch(handle_t *handle,
 		b = new_blocks[i];
 
 		if (i == indirect_blks)
+		{
 			len = ar->len;
+		}
+
 		for (j = 0; j < len; j++)
+		{
 			*p++ = cpu_to_le32(b++);
+		}
 
 		BUFFER_TRACE(bh, "marking uptodate");
 		set_buffer_uptodate(bh);
@@ -373,12 +435,18 @@ static int ext4_alloc_branch(handle_t *handle,
 
 		BUFFER_TRACE(bh, "call ext4_handle_dirty_metadata");
 		err = ext4_handle_dirty_metadata(handle, ar->inode, bh);
+
 		if (err)
+		{
 			goto failed;
+		}
 	}
+
 	return 0;
 failed:
-	for (; i >= 0; i--) {
+
+	for (; i >= 0; i--)
+	{
 		/*
 		 * We want to ext4_forget() only freshly allocated indirect
 		 * blocks.  Buffer for new_blocks[i-1] is at branch[i].bh and
@@ -387,10 +455,12 @@ failed:
 		 */
 		if (i > 0 && i != indirect_blks && branch[i].bh)
 			ext4_forget(handle, 1, ar->inode, branch[i].bh,
-				    branch[i].bh->b_blocknr);
+						branch[i].bh->b_blocknr);
+
 		ext4_free_blocks(handle, ar->inode, NULL, new_blocks[i],
-				 (i == indirect_blks) ? ar->len : 1, 0);
+						 (i == indirect_blks) ? ar->len : 1, 0);
 	}
+
 	return err;
 }
 
@@ -410,8 +480,8 @@ failed:
  * chain to new block and return 0.
  */
 static int ext4_splice_branch(handle_t *handle,
-			      struct ext4_allocation_request *ar,
-			      Indirect *where, int num)
+							  struct ext4_allocation_request *ar,
+							  Indirect *where, int num)
 {
 	int i;
 	int err = 0;
@@ -422,12 +492,17 @@ static int ext4_splice_branch(handle_t *handle,
 	 * inode) then we need to get write access to the [td]indirect block
 	 * before the splice.
 	 */
-	if (where->bh) {
+	if (where->bh)
+	{
 		BUFFER_TRACE(where->bh, "get_write_access");
 		err = ext4_journal_get_write_access(handle, where->bh);
+
 		if (err)
+		{
 			goto err_out;
+		}
 	}
+
 	/* That's it */
 
 	*where->p = where->key;
@@ -436,15 +511,20 @@ static int ext4_splice_branch(handle_t *handle,
 	 * Update the host buffer_head or inode to point to more just allocated
 	 * direct blocks blocks
 	 */
-	if (num == 0 && ar->len > 1) {
+	if (num == 0 && ar->len > 1)
+	{
 		current_block = le32_to_cpu(where->key) + 1;
+
 		for (i = 1; i < ar->len; i++)
+		{
 			*(where->p + i) = cpu_to_le32(current_block++);
+		}
 	}
 
 	/* We are done with atomic stuff, now do the rest of housekeeping */
 	/* had we spliced it onto indirect block? */
-	if (where->bh) {
+	if (where->bh)
+	{
 		/*
 		 * If we spliced it onto an indirect block, we haven't
 		 * altered the inode.  Note however that if it is being spliced
@@ -456,29 +536,38 @@ static int ext4_splice_branch(handle_t *handle,
 		jbd_debug(5, "splicing indirect only\n");
 		BUFFER_TRACE(where->bh, "call ext4_handle_dirty_metadata");
 		err = ext4_handle_dirty_metadata(handle, ar->inode, where->bh);
+
 		if (err)
+		{
 			goto err_out;
-	} else {
+		}
+	}
+	else
+	{
 		/*
 		 * OK, we spliced it into the inode itself on a direct block.
 		 */
 		ext4_mark_inode_dirty(handle, ar->inode);
 		jbd_debug(5, "splicing direct\n");
 	}
+
 	return err;
 
 err_out:
-	for (i = 1; i <= num; i++) {
+
+	for (i = 1; i <= num; i++)
+	{
 		/*
 		 * branch[i].bh is newly allocated, so there is no
 		 * need to revoke the block, which is why we don't
 		 * need to set EXT4_FREE_BLOCKS_METADATA.
 		 */
 		ext4_free_blocks(handle, ar->inode, where[i].bh, 0, 1,
-				 EXT4_FREE_BLOCKS_FORGET);
+						 EXT4_FREE_BLOCKS_FORGET);
 	}
+
 	ext4_free_blocks(handle, ar->inode, NULL, le32_to_cpu(where[num].key),
-			 ar->len, 0);
+					 ar->len, 0);
 
 	return err;
 }
@@ -512,8 +601,8 @@ err_out:
  * blocks.
  */
 int ext4_ind_map_blocks(handle_t *handle, struct inode *inode,
-			struct ext4_map_blocks *map,
-			int flags)
+						struct ext4_map_blocks *map,
+						int flags)
 {
 	struct ext4_allocation_request ar;
 	int err = -EIO;
@@ -530,40 +619,55 @@ int ext4_ind_map_blocks(handle_t *handle, struct inode *inode,
 	J_ASSERT(!(ext4_test_inode_flag(inode, EXT4_INODE_EXTENTS)));
 	J_ASSERT(handle != NULL || (flags & EXT4_GET_BLOCKS_CREATE) == 0);
 	depth = ext4_block_to_path(inode, map->m_lblk, offsets,
-				   &blocks_to_boundary);
+							   &blocks_to_boundary);
 
 	if (depth == 0)
+	{
 		goto out;
+	}
 
 	partial = ext4_get_branch(inode, depth, offsets, chain, &err);
 
 	/* Simplest case - block found, no allocation needed */
-	if (!partial) {
+	if (!partial)
+	{
 		first_block = le32_to_cpu(chain[depth - 1].key);
 		count++;
+
 		/*map more blocks*/
-		while (count < map->m_len && count <= blocks_to_boundary) {
+		while (count < map->m_len && count <= blocks_to_boundary)
+		{
 			ext4_fsblk_t blk;
 
-			blk = le32_to_cpu(*(chain[depth-1].p + count));
+			blk = le32_to_cpu(*(chain[depth - 1].p + count));
 
 			if (blk == first_block + count)
+			{
 				count++;
+			}
 			else
+			{
 				break;
+			}
 		}
+
 		goto got_it;
 	}
 
 	/* Next simple case - plain lookup failed */
-	if ((flags & EXT4_GET_BLOCKS_CREATE) == 0) {
+	if ((flags & EXT4_GET_BLOCKS_CREATE) == 0)
+	{
 		unsigned epb = inode->i_sb->s_blocksize / sizeof(u32);
 		int i;
 
 		/* Count number blocks in a subtree under 'partial' */
 		count = 1;
+
 		for (i = 0; partial + i != chain + depth - 1; i++)
+		{
 			count *= epb;
+		}
+
 		/* Fill in size of a hole we found */
 		map->m_pblk = 0;
 		map->m_len = min_t(unsigned int, map->m_len, count);
@@ -572,14 +676,17 @@ int ext4_ind_map_blocks(handle_t *handle, struct inode *inode,
 
 	/* Failed read of indirect block */
 	if (err == -EIO)
+	{
 		goto cleanup;
+	}
 
 	/*
 	 * Okay, we need to do block allocation.
 	*/
-	if (ext4_has_feature_bigalloc(inode->i_sb)) {
+	if (ext4_has_feature_bigalloc(inode->i_sb))
+	{
 		EXT4_ERROR_INODE(inode, "Can't allocate blocks for "
-				 "non-extent mapped inodes with bigalloc");
+						 "non-extent mapped inodes with bigalloc");
 		return -EFSCORRUPTED;
 	}
 
@@ -587,12 +694,21 @@ int ext4_ind_map_blocks(handle_t *handle, struct inode *inode,
 	memset(&ar, 0, sizeof(ar));
 	ar.inode = inode;
 	ar.logical = map->m_lblk;
+
 	if (S_ISREG(inode->i_mode))
+	{
 		ar.flags = EXT4_MB_HINT_DATA;
+	}
+
 	if (flags & EXT4_GET_BLOCKS_DELALLOC_RESERVE)
+	{
 		ar.flags |= EXT4_MB_DELALLOC_RESERVED;
+	}
+
 	if (flags & EXT4_GET_BLOCKS_METADATA_NOFAIL)
+	{
 		ar.flags |= EXT4_MB_USE_RESERVED;
+	}
 
 	ar.goal = ext4_find_goal(inode, map->m_lblk, partial);
 
@@ -604,13 +720,13 @@ int ext4_ind_map_blocks(handle_t *handle, struct inode *inode,
 	 * direct blocks to allocate for this branch.
 	 */
 	ar.len = ext4_blks_to_allocate(partial, indirect_blks,
-				       map->m_len, blocks_to_boundary);
+								   map->m_len, blocks_to_boundary);
 
 	/*
 	 * Block out ext4_truncate while we alter the tree
 	 */
 	err = ext4_alloc_branch(handle, &ar, indirect_blks,
-				offsets + (partial - chain), partial);
+							offsets + (partial - chain), partial);
 
 	/*
 	 * The ext4_splice_branch call will free and forget any buffers
@@ -620,9 +736,14 @@ int ext4_ind_map_blocks(handle_t *handle, struct inode *inode,
 	 * may need to return -EAGAIN upwards in the worst case.  --sct
 	 */
 	if (!err)
+	{
 		err = ext4_splice_branch(handle, &ar, partial, indirect_blks);
+	}
+
 	if (err)
+	{
 		goto cleanup;
+	}
 
 	map->m_flags |= EXT4_MAP_NEW;
 
@@ -630,19 +751,26 @@ int ext4_ind_map_blocks(handle_t *handle, struct inode *inode,
 	count = ar.len;
 got_it:
 	map->m_flags |= EXT4_MAP_MAPPED;
-	map->m_pblk = le32_to_cpu(chain[depth-1].key);
+	map->m_pblk = le32_to_cpu(chain[depth - 1].key);
 	map->m_len = count;
+
 	if (count > blocks_to_boundary)
+	{
 		map->m_flags |= EXT4_MAP_BOUNDARY;
+	}
+
 	err = count;
 	/* Clean up and exit */
 	partial = chain + depth - 1;	/* the whole chain */
 cleanup:
-	while (partial > chain) {
+
+	while (partial > chain)
+	{
 		BUFFER_TRACE(partial->bh, "call brelse");
 		brelse(partial->bh);
 		partial--;
 	}
+
 out:
 	trace_ext4_ind_map_blocks_exit(inode, flags, map, err);
 	return err;
@@ -659,15 +787,19 @@ int ext4_ind_calc_metadata_amount(struct inode *inode, sector_t lblock)
 	int blk_bits;
 
 	if (lblock < EXT4_NDIR_BLOCKS)
+	{
 		return 0;
+	}
 
 	lblock -= EXT4_NDIR_BLOCKS;
 
 	if (ei->i_da_metadata_calc_len &&
-	    (lblock & dind_mask) == ei->i_da_metadata_calc_last_lblock) {
+		(lblock & dind_mask) == ei->i_da_metadata_calc_last_lblock)
+	{
 		ei->i_da_metadata_calc_len++;
 		return 0;
 	}
+
 	ei->i_da_metadata_calc_last_lblock = lblock & dind_mask;
 	ei->i_da_metadata_calc_len = 1;
 	blk_bits = order_base_2(lblock);
@@ -703,11 +835,20 @@ int ext4_ind_trans_blocks(struct inode *inode, int nrblocks)
 static int try_to_extend_transaction(handle_t *handle, struct inode *inode)
 {
 	if (!ext4_handle_valid(handle))
+	{
 		return 0;
-	if (ext4_handle_has_enough_credits(handle, EXT4_RESERVE_TRANS_BLOCKS+1))
+	}
+
+	if (ext4_handle_has_enough_credits(handle, EXT4_RESERVE_TRANS_BLOCKS + 1))
+	{
 		return 0;
+	}
+
 	if (!ext4_journal_extend(handle, ext4_blocks_for_truncate(inode)))
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
@@ -720,7 +861,10 @@ static inline int all_zeroes(__le32 *p, __le32 *q)
 {
 	while (p < q)
 		if (*p++)
+		{
 			return 0;
+		}
+
 	return 1;
 }
 
@@ -760,50 +904,66 @@ static inline int all_zeroes(__le32 *p, __le32 *q)
  *			(no partially truncated stuff there).  */
 
 static Indirect *ext4_find_shared(struct inode *inode, int depth,
-				  ext4_lblk_t offsets[4], Indirect chain[4],
-				  __le32 *top)
+								  ext4_lblk_t offsets[4], Indirect chain[4],
+								  __le32 *top)
 {
 	Indirect *partial, *p;
 	int k, err;
 
 	*top = 0;
+
 	/* Make k index the deepest non-null offset + 1 */
-	for (k = depth; k > 1 && !offsets[k-1]; k--)
+	for (k = depth; k > 1 && !offsets[k - 1]; k--)
 		;
+
 	partial = ext4_get_branch(inode, k, offsets, chain, &err);
+
 	/* Writer: pointers */
 	if (!partial)
-		partial = chain + k-1;
+	{
+		partial = chain + k - 1;
+	}
+
 	/*
 	 * If the branch acquired continuation since we've looked at it -
 	 * fine, it should all survive and (new) top doesn't belong to us.
 	 */
 	if (!partial->key && *partial->p)
 		/* Writer: end */
+	{
 		goto no_top;
+	}
+
 	for (p = partial; (p > chain) && all_zeroes((__le32 *) p->bh->b_data, p->p); p--)
 		;
+
 	/*
 	 * OK, we've found the last block that must survive. The rest of our
 	 * branch should be detached before unlocking. However, if that rest
 	 * of branch is all ours and does not grow immediately from the inode
 	 * it's easier to cheat and just decrement partial->p.
 	 */
-	if (p == chain + k - 1 && p > chain) {
+	if (p == chain + k - 1 && p > chain)
+	{
 		p->p--;
-	} else {
+	}
+	else
+	{
 		*top = *p->p;
 		/* Nope, don't do this in ext4.  Must leave the tree intact */
 #if 0
 		*p->p = 0;
 #endif
 	}
+
 	/* Writer: end */
 
-	while (partial > p) {
+	while (partial > p)
+	{
 		brelse(partial->bh);
 		partial--;
 	}
+
 no_top:
 	return partial;
 }
@@ -820,52 +980,77 @@ no_top:
  * and < 0 on fatal error.
  */
 static int ext4_clear_blocks(handle_t *handle, struct inode *inode,
-			     struct buffer_head *bh,
-			     ext4_fsblk_t block_to_free,
-			     unsigned long count, __le32 *first,
-			     __le32 *last)
+							 struct buffer_head *bh,
+							 ext4_fsblk_t block_to_free,
+							 unsigned long count, __le32 *first,
+							 __le32 *last)
 {
 	__le32 *p;
 	int	flags = EXT4_FREE_BLOCKS_VALIDATED;
 	int	err;
 
 	if (S_ISDIR(inode->i_mode) || S_ISLNK(inode->i_mode))
+	{
 		flags |= EXT4_FREE_BLOCKS_FORGET | EXT4_FREE_BLOCKS_METADATA;
+	}
 	else if (ext4_should_journal_data(inode))
+	{
 		flags |= EXT4_FREE_BLOCKS_FORGET;
+	}
 
 	if (!ext4_data_block_valid(EXT4_SB(inode->i_sb), block_to_free,
-				   count)) {
+							   count))
+	{
 		EXT4_ERROR_INODE(inode, "attempt to clear invalid "
-				 "blocks %llu len %lu",
-				 (unsigned long long) block_to_free, count);
+						 "blocks %llu len %lu",
+						 (unsigned long long) block_to_free, count);
 		return 1;
 	}
 
-	if (try_to_extend_transaction(handle, inode)) {
-		if (bh) {
+	if (try_to_extend_transaction(handle, inode))
+	{
+		if (bh)
+		{
 			BUFFER_TRACE(bh, "call ext4_handle_dirty_metadata");
 			err = ext4_handle_dirty_metadata(handle, inode, bh);
+
 			if (unlikely(err))
+			{
 				goto out_err;
+			}
 		}
+
 		err = ext4_mark_inode_dirty(handle, inode);
+
 		if (unlikely(err))
+		{
 			goto out_err;
+		}
+
 		err = ext4_truncate_restart_trans(handle, inode,
-					ext4_blocks_for_truncate(inode));
+										  ext4_blocks_for_truncate(inode));
+
 		if (unlikely(err))
+		{
 			goto out_err;
-		if (bh) {
+		}
+
+		if (bh)
+		{
 			BUFFER_TRACE(bh, "retaking write access");
 			err = ext4_journal_get_write_access(handle, bh);
+
 			if (unlikely(err))
+			{
 				goto out_err;
+			}
 		}
 	}
 
 	for (p = first; p < last; p++)
+	{
 		*p = 0;
+	}
 
 	ext4_free_blocks(handle, inode, NULL, block_to_free, count, flags);
 	return 0;
@@ -894,8 +1079,8 @@ out_err:
  * block pointers.
  */
 static void ext4_free_data(handle_t *handle, struct inode *inode,
-			   struct buffer_head *this_bh,
-			   __le32 *first, __le32 *last)
+						   struct buffer_head *this_bh,
+						   __le32 *first, __le32 *last)
 {
 	ext4_fsblk_t block_to_free = 0;    /* Starting block # of a run */
 	unsigned long count = 0;	    /* Number of blocks in the run */
@@ -907,31 +1092,47 @@ static void ext4_free_data(handle_t *handle, struct inode *inode,
 					       for current block */
 	int err = 0;
 
-	if (this_bh) {				/* For indirect block */
+	if (this_bh)  				/* For indirect block */
+	{
 		BUFFER_TRACE(this_bh, "get_write_access");
 		err = ext4_journal_get_write_access(handle, this_bh);
+
 		/* Important: if we can't update the indirect pointers
 		 * to the blocks, we can't free them. */
 		if (err)
+		{
 			return;
+		}
 	}
 
-	for (p = first; p < last; p++) {
+	for (p = first; p < last; p++)
+	{
 		nr = le32_to_cpu(*p);
-		if (nr) {
+
+		if (nr)
+		{
 			/* accumulate blocks to free if they're contiguous */
-			if (count == 0) {
+			if (count == 0)
+			{
 				block_to_free = nr;
 				block_to_free_p = p;
 				count = 1;
-			} else if (nr == block_to_free + count) {
+			}
+			else if (nr == block_to_free + count)
+			{
 				count++;
-			} else {
+			}
+			else
+			{
 				err = ext4_clear_blocks(handle, inode, this_bh,
-						        block_to_free, count,
-						        block_to_free_p, p);
+										block_to_free, count,
+										block_to_free_p, p);
+
 				if (err)
+				{
 					break;
+				}
+
 				block_to_free = nr;
 				block_to_free_p = p;
 				count = 1;
@@ -941,12 +1142,16 @@ static void ext4_free_data(handle_t *handle, struct inode *inode,
 
 	if (!err && count > 0)
 		err = ext4_clear_blocks(handle, inode, this_bh, block_to_free,
-					count, block_to_free_p, p);
+								count, block_to_free_p, p);
+
 	if (err < 0)
 		/* fatal error */
+	{
 		return;
+	}
 
-	if (this_bh) {
+	if (this_bh)
+	{
 		BUFFER_TRACE(this_bh, "call ext4_handle_dirty_metadata");
 
 		/*
@@ -956,12 +1161,14 @@ static void ext4_free_data(handle_t *handle, struct inode *inode,
 		 * the block was cleared. Check for this instead of OOPSing.
 		 */
 		if ((EXT4_JOURNAL(inode) == NULL) || bh2jh(this_bh))
+		{
 			ext4_handle_dirty_metadata(handle, inode, this_bh);
+		}
 		else
 			EXT4_ERROR_INODE(inode,
-					 "circular indirect block detected at "
-					 "block %llu",
-				(unsigned long long) this_bh->b_blocknr);
+							 "circular indirect block detected at "
+							 "block %llu",
+							 (unsigned long long) this_bh->b_blocknr);
 	}
 }
 
@@ -979,30 +1186,39 @@ static void ext4_free_data(handle_t *handle, struct inode *inode,
  *	appropriately.
  */
 static void ext4_free_branches(handle_t *handle, struct inode *inode,
-			       struct buffer_head *parent_bh,
-			       __le32 *first, __le32 *last, int depth)
+							   struct buffer_head *parent_bh,
+							   __le32 *first, __le32 *last, int depth)
 {
 	ext4_fsblk_t nr;
 	__le32 *p;
 
 	if (ext4_handle_is_aborted(handle))
+	{
 		return;
+	}
 
-	if (depth--) {
+	if (depth--)
+	{
 		struct buffer_head *bh;
 		int addr_per_block = EXT4_ADDR_PER_BLOCK(inode->i_sb);
 		p = last;
-		while (--p >= first) {
+
+		while (--p >= first)
+		{
 			nr = le32_to_cpu(*p);
+
 			if (!nr)
-				continue;		/* A hole */
+			{
+				continue;    /* A hole */
+			}
 
 			if (!ext4_data_block_valid(EXT4_SB(inode->i_sb),
-						   nr, 1)) {
+									   nr, 1))
+			{
 				EXT4_ERROR_INODE(inode,
-						 "invalid indirect mapped "
-						 "block %lu (level %d)",
-						 (unsigned long) nr, depth);
+								 "invalid indirect mapped "
+								 "block %lu (level %d)",
+								 (unsigned long) nr, depth);
 				break;
 			}
 
@@ -1013,18 +1229,19 @@ static void ext4_free_branches(handle_t *handle, struct inode *inode,
 			 * A read failure? Report error and clear slot
 			 * (should be rare).
 			 */
-			if (!bh) {
+			if (!bh)
+			{
 				EXT4_ERROR_INODE_BLOCK(inode, nr,
-						       "Read failure");
+									   "Read failure");
 				continue;
 			}
 
 			/* This zaps the entire block.  Bottom up. */
 			BUFFER_TRACE(bh, "free child branches");
 			ext4_free_branches(handle, inode, bh,
-					(__le32 *) bh->b_data,
-					(__le32 *) bh->b_data + addr_per_block,
-					depth);
+							   (__le32 *) bh->b_data,
+							   (__le32 *) bh->b_data + addr_per_block,
+							   depth);
 			brelse(bh);
 
 			/*
@@ -1044,11 +1261,15 @@ static void ext4_free_branches(handle_t *handle, struct inode *inode,
 			 * rather than leaking blocks.
 			 */
 			if (ext4_handle_is_aborted(handle))
+			{
 				return;
-			if (try_to_extend_transaction(handle, inode)) {
+			}
+
+			if (try_to_extend_transaction(handle, inode))
+			{
 				ext4_mark_inode_dirty(handle, inode);
 				ext4_truncate_restart_trans(handle, inode,
-					    ext4_blocks_for_truncate(inode));
+											ext4_blocks_for_truncate(inode));
 			}
 
 			/*
@@ -1063,27 +1284,32 @@ static void ext4_free_branches(handle_t *handle, struct inode *inode,
 			 * actually freed.
 			 */
 			ext4_free_blocks(handle, inode, NULL, nr, 1,
-					 EXT4_FREE_BLOCKS_METADATA|
-					 EXT4_FREE_BLOCKS_FORGET);
+							 EXT4_FREE_BLOCKS_METADATA |
+							 EXT4_FREE_BLOCKS_FORGET);
 
-			if (parent_bh) {
+			if (parent_bh)
+			{
 				/*
 				 * The block which we have just freed is
 				 * pointed to by an indirect block: journal it
 				 */
 				BUFFER_TRACE(parent_bh, "get_write_access");
+
 				if (!ext4_journal_get_write_access(handle,
-								   parent_bh)){
+												   parent_bh))
+				{
 					*p = 0;
 					BUFFER_TRACE(parent_bh,
-					"call ext4_handle_dirty_metadata");
+								 "call ext4_handle_dirty_metadata");
 					ext4_handle_dirty_metadata(handle,
-								   inode,
-								   parent_bh);
+											   inode,
+											   parent_bh);
 				}
 			}
 		}
-	} else {
+	}
+	else
+	{
 		/* We have reached the bottom of the tree. */
 		BUFFER_TRACE(parent_bh, "free data blocks");
 		ext4_free_data(handle, inode, parent_bh, first, last);
@@ -1103,15 +1329,19 @@ void ext4_ind_truncate(handle_t *handle, struct inode *inode)
 	ext4_lblk_t last_block, max_block;
 	unsigned blocksize = inode->i_sb->s_blocksize;
 
-	last_block = (inode->i_size + blocksize-1)
-					>> EXT4_BLOCK_SIZE_BITS(inode->i_sb);
-	max_block = (EXT4_SB(inode->i_sb)->s_bitmap_maxbytes + blocksize-1)
-					>> EXT4_BLOCK_SIZE_BITS(inode->i_sb);
+	last_block = (inode->i_size + blocksize - 1)
+				 >> EXT4_BLOCK_SIZE_BITS(inode->i_sb);
+	max_block = (EXT4_SB(inode->i_sb)->s_bitmap_maxbytes + blocksize - 1)
+				>> EXT4_BLOCK_SIZE_BITS(inode->i_sb);
 
-	if (last_block != max_block) {
+	if (last_block != max_block)
+	{
 		n = ext4_block_to_path(inode, last_block, offsets, NULL);
+
 		if (n == 0)
+		{
 			return;
+		}
 	}
 
 	ext4_es_remove_extent(inode, last_block, EXT_MAX_BLOCKS - last_block);
@@ -1125,70 +1355,92 @@ void ext4_ind_truncate(handle_t *handle, struct inode *inode)
 	 */
 	ei->i_disksize = inode->i_size;
 
-	if (last_block == max_block) {
+	if (last_block == max_block)
+	{
 		/*
 		 * It is unnecessary to free any data blocks if last_block is
 		 * equal to the indirect block limit.
 		 */
 		return;
-	} else if (n == 1) {		/* direct blocks */
-		ext4_free_data(handle, inode, NULL, i_data+offsets[0],
-			       i_data + EXT4_NDIR_BLOCKS);
+	}
+	else if (n == 1)  		/* direct blocks */
+	{
+		ext4_free_data(handle, inode, NULL, i_data + offsets[0],
+					   i_data + EXT4_NDIR_BLOCKS);
 		goto do_indirects;
 	}
 
 	partial = ext4_find_shared(inode, n, offsets, chain, &nr);
+
 	/* Kill the top of shared branch (not detached) */
-	if (nr) {
-		if (partial == chain) {
+	if (nr)
+	{
+		if (partial == chain)
+		{
 			/* Shared branch grows from the inode */
 			ext4_free_branches(handle, inode, NULL,
-					   &nr, &nr+1, (chain+n-1) - partial);
+							   &nr, &nr + 1, (chain + n - 1) - partial);
 			*partial->p = 0;
 			/*
 			 * We mark the inode dirty prior to restart,
 			 * and prior to stop.  No need for it here.
 			 */
-		} else {
+		}
+		else
+		{
 			/* Shared branch grows from an indirect block */
 			BUFFER_TRACE(partial->bh, "get_write_access");
 			ext4_free_branches(handle, inode, partial->bh,
-					partial->p,
-					partial->p+1, (chain+n-1) - partial);
+							   partial->p,
+							   partial->p + 1, (chain + n - 1) - partial);
 		}
 	}
+
 	/* Clear the ends of indirect blocks on the shared branch */
-	while (partial > chain) {
+	while (partial > chain)
+	{
 		ext4_free_branches(handle, inode, partial->bh, partial->p + 1,
-				   (__le32*)partial->bh->b_data+addr_per_block,
-				   (chain+n-1) - partial);
+						   (__le32 *)partial->bh->b_data + addr_per_block,
+						   (chain + n - 1) - partial);
 		BUFFER_TRACE(partial->bh, "call brelse");
 		brelse(partial->bh);
 		partial--;
 	}
+
 do_indirects:
+
 	/* Kill the remaining (whole) subtrees */
-	switch (offsets[0]) {
-	default:
-		nr = i_data[EXT4_IND_BLOCK];
-		if (nr) {
-			ext4_free_branches(handle, inode, NULL, &nr, &nr+1, 1);
-			i_data[EXT4_IND_BLOCK] = 0;
-		}
-	case EXT4_IND_BLOCK:
-		nr = i_data[EXT4_DIND_BLOCK];
-		if (nr) {
-			ext4_free_branches(handle, inode, NULL, &nr, &nr+1, 2);
-			i_data[EXT4_DIND_BLOCK] = 0;
-		}
-	case EXT4_DIND_BLOCK:
-		nr = i_data[EXT4_TIND_BLOCK];
-		if (nr) {
-			ext4_free_branches(handle, inode, NULL, &nr, &nr+1, 3);
-			i_data[EXT4_TIND_BLOCK] = 0;
-		}
-	case EXT4_TIND_BLOCK:
-		;
+	switch (offsets[0])
+	{
+		default:
+			nr = i_data[EXT4_IND_BLOCK];
+
+			if (nr)
+			{
+				ext4_free_branches(handle, inode, NULL, &nr, &nr + 1, 1);
+				i_data[EXT4_IND_BLOCK] = 0;
+			}
+
+		case EXT4_IND_BLOCK:
+			nr = i_data[EXT4_DIND_BLOCK];
+
+			if (nr)
+			{
+				ext4_free_branches(handle, inode, NULL, &nr, &nr + 1, 2);
+				i_data[EXT4_DIND_BLOCK] = 0;
+			}
+
+		case EXT4_DIND_BLOCK:
+			nr = i_data[EXT4_TIND_BLOCK];
+
+			if (nr)
+			{
+				ext4_free_branches(handle, inode, NULL, &nr, &nr + 1, 3);
+				i_data[EXT4_TIND_BLOCK] = 0;
+			}
+
+		case EXT4_TIND_BLOCK:
+			;
 	}
 }
 
@@ -1203,7 +1455,7 @@ do_indirects:
  *	range). This is used by ext4_punch_hole().
  */
 int ext4_ind_remove_space(handle_t *handle, struct inode *inode,
-			  ext4_lblk_t start, ext4_lblk_t end)
+						  ext4_lblk_t start, ext4_lblk_t end)
 {
 	struct ext4_inode_info *ei = EXT4_I(inode);
 	__le32 *i_data = ei->i_data;
@@ -1216,24 +1468,33 @@ int ext4_ind_remove_space(handle_t *handle, struct inode *inode,
 	int n = 0, n2 = 0;
 	unsigned blocksize = inode->i_sb->s_blocksize;
 
-	max_block = (EXT4_SB(inode->i_sb)->s_bitmap_maxbytes + blocksize-1)
-					>> EXT4_BLOCK_SIZE_BITS(inode->i_sb);
+	max_block = (EXT4_SB(inode->i_sb)->s_bitmap_maxbytes + blocksize - 1)
+				>> EXT4_BLOCK_SIZE_BITS(inode->i_sb);
+
 	if (end >= max_block)
+	{
 		end = max_block;
+	}
+
 	if ((start >= end) || (start > max_block))
+	{
 		return 0;
+	}
 
 	n = ext4_block_to_path(inode, start, offsets, NULL);
 	n2 = ext4_block_to_path(inode, end, offsets2, NULL);
 
 	BUG_ON(n > n2);
 
-	if ((n == 1) && (n == n2)) {
+	if ((n == 1) && (n == n2))
+	{
 		/* We're punching only within direct block range */
 		ext4_free_data(handle, inode, NULL, i_data + offsets[0],
-			       i_data + offsets2[0]);
+					   i_data + offsets2[0]);
 		return 0;
-	} else if (n2 > n) {
+	}
+	else if (n2 > n)
+	{
 		/*
 		 * Start and end are on a different levels so we're going to
 		 * free partial block at start, and partial block at end of
@@ -1241,30 +1502,36 @@ int ext4_ind_remove_space(handle_t *handle, struct inode *inode,
 		 * do_indirects label will take care of that.
 		 */
 
-		if (n == 1) {
+		if (n == 1)
+		{
 			/*
 			 * Start is at the direct block level, free
 			 * everything to the end of the level.
 			 */
 			ext4_free_data(handle, inode, NULL, i_data + offsets[0],
-				       i_data + EXT4_NDIR_BLOCKS);
+						   i_data + EXT4_NDIR_BLOCKS);
 			goto end_range;
 		}
 
 
 		partial = ext4_find_shared(inode, n, offsets, chain, &nr);
-		if (nr) {
-			if (partial == chain) {
+
+		if (nr)
+		{
+			if (partial == chain)
+			{
 				/* Shared branch grows from the inode */
 				ext4_free_branches(handle, inode, NULL,
-					   &nr, &nr+1, (chain+n-1) - partial);
+								   &nr, &nr + 1, (chain + n - 1) - partial);
 				*partial->p = 0;
-			} else {
+			}
+			else
+			{
 				/* Shared branch grows from an indirect block */
 				BUFFER_TRACE(partial->bh, "get_write_access");
 				ext4_free_branches(handle, inode, partial->bh,
-					partial->p,
-					partial->p+1, (chain+n-1) - partial);
+								   partial->p,
+								   partial->p + 1, (chain + n - 1) - partial);
 			}
 		}
 
@@ -1272,11 +1539,12 @@ int ext4_ind_remove_space(handle_t *handle, struct inode *inode,
 		 * Clear the ends of indirect blocks on the shared branch
 		 * at the start of the range
 		 */
-		while (partial > chain) {
+		while (partial > chain)
+		{
 			ext4_free_branches(handle, inode, partial->bh,
-				partial->p + 1,
-				(__le32 *)partial->bh->b_data+addr_per_block,
-				(chain+n-1) - partial);
+							   partial->p + 1,
+							   (__le32 *)partial->bh->b_data + addr_per_block,
+							   (chain + n - 1) - partial);
 			BUFFER_TRACE(partial->bh, "call brelse");
 			brelse(partial->bh);
 			partial--;
@@ -1284,8 +1552,11 @@ int ext4_ind_remove_space(handle_t *handle, struct inode *inode,
 
 end_range:
 		partial2 = ext4_find_shared(inode, n2, offsets2, chain2, &nr2);
-		if (nr2) {
-			if (partial2 == chain2) {
+
+		if (nr2)
+		{
+			if (partial2 == chain2)
+			{
 				/*
 				 * Remember, end is exclusive so here we're at
 				 * the start of the next level we're not going
@@ -1294,7 +1565,9 @@ end_range:
 				 */
 				goto do_indirects;
 			}
-		} else {
+		}
+		else
+		{
 			/*
 			 * ext4_find_shared returns Indirect structure which
 			 * points to the last element which should not be
@@ -1308,15 +1581,17 @@ end_range:
 		 * Clear the ends of indirect blocks on the shared branch
 		 * at the end of the range
 		 */
-		while (partial2 > chain2) {
+		while (partial2 > chain2)
+		{
 			ext4_free_branches(handle, inode, partial2->bh,
-					   (__le32 *)partial2->bh->b_data,
-					   partial2->p,
-					   (chain2+n2-1) - partial2);
+							   (__le32 *)partial2->bh->b_data,
+							   partial2->p,
+							   (chain2 + n2 - 1) - partial2);
 			BUFFER_TRACE(partial2->bh, "call brelse");
 			brelse(partial2->bh);
 			partial2--;
 		}
+
 		goto do_indirects;
 	}
 
@@ -1325,37 +1600,45 @@ end_range:
 	partial2 = ext4_find_shared(inode, n2, offsets2, chain2, &nr2);
 
 	/* Free top, but only if partial2 isn't its subtree. */
-	if (nr) {
+	if (nr)
+	{
 		int level = min(partial - chain, partial2 - chain2);
 		int i;
 		int subtree = 1;
 
-		for (i = 0; i <= level; i++) {
-			if (offsets[i] != offsets2[i]) {
+		for (i = 0; i <= level; i++)
+		{
+			if (offsets[i] != offsets2[i])
+			{
 				subtree = 0;
 				break;
 			}
 		}
 
-		if (!subtree) {
-			if (partial == chain) {
+		if (!subtree)
+		{
+			if (partial == chain)
+			{
 				/* Shared branch grows from the inode */
 				ext4_free_branches(handle, inode, NULL,
-						   &nr, &nr+1,
-						   (chain+n-1) - partial);
+								   &nr, &nr + 1,
+								   (chain + n - 1) - partial);
 				*partial->p = 0;
-			} else {
+			}
+			else
+			{
 				/* Shared branch grows from an indirect block */
 				BUFFER_TRACE(partial->bh, "get_write_access");
 				ext4_free_branches(handle, inode, partial->bh,
-						   partial->p,
-						   partial->p+1,
-						   (chain+n-1) - partial);
+								   partial->p,
+								   partial->p + 1,
+								   (chain + n - 1) - partial);
 			}
 		}
 	}
 
-	if (!nr2) {
+	if (!nr2)
+	{
 		/*
 		 * ext4_find_shared returns Indirect structure which
 		 * points to the last element which should not be
@@ -1365,20 +1648,22 @@ end_range:
 		partial2->p++;
 	}
 
-	while (partial > chain || partial2 > chain2) {
-		int depth = (chain+n-1) - partial;
-		int depth2 = (chain2+n2-1) - partial2;
+	while (partial > chain || partial2 > chain2)
+	{
+		int depth = (chain + n - 1) - partial;
+		int depth2 = (chain2 + n2 - 1) - partial2;
 
 		if (partial > chain && partial2 > chain2 &&
-		    partial->bh->b_blocknr == partial2->bh->b_blocknr) {
+			partial->bh->b_blocknr == partial2->bh->b_blocknr)
+		{
 			/*
 			 * We've converged on the same block. Clear the range,
 			 * then we're done.
 			 */
 			ext4_free_branches(handle, inode, partial->bh,
-					   partial->p + 1,
-					   partial2->p,
-					   (chain+n-1) - partial);
+							   partial->p + 1,
+							   partial2->p,
+							   (chain + n - 1) - partial);
 			BUFFER_TRACE(partial->bh, "call brelse");
 			brelse(partial->bh);
 			BUFFER_TRACE(partial2->bh, "call brelse");
@@ -1393,56 +1678,81 @@ end_range:
 		 * them in step with each other until we converge on the same
 		 * block.
 		 */
-		if (partial > chain && depth <= depth2) {
+		if (partial > chain && depth <= depth2)
+		{
 			ext4_free_branches(handle, inode, partial->bh,
-					   partial->p + 1,
-					   (__le32 *)partial->bh->b_data+addr_per_block,
-					   (chain+n-1) - partial);
+							   partial->p + 1,
+							   (__le32 *)partial->bh->b_data + addr_per_block,
+							   (chain + n - 1) - partial);
 			BUFFER_TRACE(partial->bh, "call brelse");
 			brelse(partial->bh);
 			partial--;
 		}
-		if (partial2 > chain2 && depth2 <= depth) {
+
+		if (partial2 > chain2 && depth2 <= depth)
+		{
 			ext4_free_branches(handle, inode, partial2->bh,
-					   (__le32 *)partial2->bh->b_data,
-					   partial2->p,
-					   (chain2+n2-1) - partial2);
+							   (__le32 *)partial2->bh->b_data,
+							   partial2->p,
+							   (chain2 + n2 - 1) - partial2);
 			BUFFER_TRACE(partial2->bh, "call brelse");
 			brelse(partial2->bh);
 			partial2--;
 		}
 	}
+
 	return 0;
 
 do_indirects:
+
 	/* Kill the remaining (whole) subtrees */
-	switch (offsets[0]) {
-	default:
-		if (++n >= n2)
-			return 0;
-		nr = i_data[EXT4_IND_BLOCK];
-		if (nr) {
-			ext4_free_branches(handle, inode, NULL, &nr, &nr+1, 1);
-			i_data[EXT4_IND_BLOCK] = 0;
-		}
-	case EXT4_IND_BLOCK:
-		if (++n >= n2)
-			return 0;
-		nr = i_data[EXT4_DIND_BLOCK];
-		if (nr) {
-			ext4_free_branches(handle, inode, NULL, &nr, &nr+1, 2);
-			i_data[EXT4_DIND_BLOCK] = 0;
-		}
-	case EXT4_DIND_BLOCK:
-		if (++n >= n2)
-			return 0;
-		nr = i_data[EXT4_TIND_BLOCK];
-		if (nr) {
-			ext4_free_branches(handle, inode, NULL, &nr, &nr+1, 3);
-			i_data[EXT4_TIND_BLOCK] = 0;
-		}
-	case EXT4_TIND_BLOCK:
-		;
+	switch (offsets[0])
+	{
+		default:
+			if (++n >= n2)
+			{
+				return 0;
+			}
+
+			nr = i_data[EXT4_IND_BLOCK];
+
+			if (nr)
+			{
+				ext4_free_branches(handle, inode, NULL, &nr, &nr + 1, 1);
+				i_data[EXT4_IND_BLOCK] = 0;
+			}
+
+		case EXT4_IND_BLOCK:
+			if (++n >= n2)
+			{
+				return 0;
+			}
+
+			nr = i_data[EXT4_DIND_BLOCK];
+
+			if (nr)
+			{
+				ext4_free_branches(handle, inode, NULL, &nr, &nr + 1, 2);
+				i_data[EXT4_DIND_BLOCK] = 0;
+			}
+
+		case EXT4_DIND_BLOCK:
+			if (++n >= n2)
+			{
+				return 0;
+			}
+
+			nr = i_data[EXT4_TIND_BLOCK];
+
+			if (nr)
+			{
+				ext4_free_branches(handle, inode, NULL, &nr, &nr + 1, 3);
+				i_data[EXT4_TIND_BLOCK] = 0;
+			}
+
+		case EXT4_TIND_BLOCK:
+			;
 	}
+
 	return 0;
 }

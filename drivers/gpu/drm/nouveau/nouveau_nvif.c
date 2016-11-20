@@ -79,26 +79,33 @@ nvkm_client_driver_fini(void *priv)
 static int
 nvkm_client_ntfy(const void *header, u32 length, const void *data, u32 size)
 {
-	const union {
+	const union
+	{
 		struct nvif_notify_req_v0 v0;
 	} *args = header;
 	u8 route;
 
-	if (length == sizeof(args->v0) && args->v0.version == 0) {
+	if (length == sizeof(args->v0) && args->v0.version == 0)
+	{
 		route = args->v0.route;
-	} else {
+	}
+	else
+	{
 		WARN_ON(1);
 		return NVKM_NOTIFY_DROP;
 	}
 
-	switch (route) {
-	case NVDRM_NOTIFY_NVIF:
-		return nvif_notify(header, length, data, size);
-	case NVDRM_NOTIFY_USIF:
-		return usif_notify(header, length, data, size);
-	default:
-		WARN_ON(1);
-		break;
+	switch (route)
+	{
+		case NVDRM_NOTIFY_NVIF:
+			return nvif_notify(header, length, data, size);
+
+		case NVDRM_NOTIFY_USIF:
+			return usif_notify(header, length, data, size);
+
+		default:
+			WARN_ON(1);
+			break;
 	}
 
 	return NVKM_NOTIFY_DROP;
@@ -106,22 +113,26 @@ nvkm_client_ntfy(const void *header, u32 length, const void *data, u32 size)
 
 static int
 nvkm_client_driver_init(const char *name, u64 device, const char *cfg,
-			const char *dbg, void **ppriv)
+						const char *dbg, void **ppriv)
 {
 	struct nvkm_client *client;
 	int ret;
 
 	ret = nvkm_client_new(name, device, cfg, dbg, &client);
 	*ppriv = client;
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	client->ntfy = nvkm_client_ntfy;
 	return 0;
 }
 
 const struct nvif_driver
-nvif_driver_nvkm = {
+	nvif_driver_nvkm =
+{
 	.name = "nvkm",
 	.init = nvkm_client_driver_init,
 	.fini = nvkm_client_driver_fini,

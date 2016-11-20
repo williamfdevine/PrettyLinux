@@ -74,18 +74,18 @@ MODULE_PARM_DESC(debug, "Debug level (0-4)");
 /* read and write functions */
 static u8
 zr36060_read (struct zr36060 *ptr,
-	      u16             reg)
+			  u16             reg)
 {
 	u8 value = 0;
 
 	// just in case something is wrong...
 	if (ptr->codec->master_data->readreg)
 		value = (ptr->codec->master_data->readreg(ptr->codec,
-							  reg)) & 0xff;
+				 reg)) & 0xff;
 	else
 		dprintk(1,
-			KERN_ERR "%s: invalid I/O setup, nothing read!\n",
-			ptr->name);
+				KERN_ERR "%s: invalid I/O setup, nothing read!\n",
+				ptr->name);
 
 	//dprintk(4, "%s: reading from 0x%04x: %02x\n",ptr->name,reg,value);
 
@@ -94,20 +94,22 @@ zr36060_read (struct zr36060 *ptr,
 
 static void
 zr36060_write(struct zr36060 *ptr,
-	      u16             reg,
-	      u8              value)
+			  u16             reg,
+			  u8              value)
 {
 	//dprintk(4, "%s: writing 0x%02x to 0x%04x\n",ptr->name,value,reg);
 	dprintk(4, "0x%02x @0x%04x\n", value, reg);
 
 	// just in case something is wrong...
 	if (ptr->codec->master_data->writereg)
+	{
 		ptr->codec->master_data->writereg(ptr->codec, reg, value);
+	}
 	else
 		dprintk(1,
-			KERN_ERR
-			"%s: invalid I/O setup, nothing written!\n",
-			ptr->name);
+				KERN_ERR
+				"%s: invalid I/O setup, nothing written!\n",
+				ptr->name);
 }
 
 /* =========================================================================
@@ -137,7 +139,7 @@ static u16
 zr36060_read_scalefactor (struct zr36060 *ptr)
 {
 	ptr->scalefact = (zr36060_read(ptr, ZR060_SF_HI) << 8) |
-			 (zr36060_read(ptr, ZR060_SF_LO) & 0xFF);
+					 (zr36060_read(ptr, ZR060_SF_LO) & 0xFF);
 
 	/* leave 0 selected for an eventually GO from master */
 	zr36060_read(ptr, 0);
@@ -155,12 +157,15 @@ zr36060_wait_end (struct zr36060 *ptr)
 {
 	int i = 0;
 
-	while (zr36060_read_status(ptr) & ZR060_CFSR_Busy) {
+	while (zr36060_read_status(ptr) & ZR060_CFSR_Busy)
+	{
 		udelay(1);
-		if (i++ > 200000) {	// 200ms, there is for sure something wrong!!!
+
+		if (i++ > 200000)  	// 200ms, there is for sure something wrong!!!
+		{
 			dprintk(1,
-				"%s: timeout at wait_end (last status: 0x%02x)\n",
-				ptr->name, ptr->status);
+					"%s: timeout at wait_end (last status: 0x%02x)\n",
+					ptr->name, ptr->status);
 			break;
 		}
 	}
@@ -176,20 +181,23 @@ static int
 zr36060_basic_test (struct zr36060 *ptr)
 {
 	if ((zr36060_read(ptr, ZR060_IDR_DEV) != 0x33) &&
-	    (zr36060_read(ptr, ZR060_IDR_REV) != 0x01)) {
+		(zr36060_read(ptr, ZR060_IDR_REV) != 0x01))
+	{
 		dprintk(1,
-			KERN_ERR
-			"%s: attach failed, can't connect to jpeg processor!\n",
-			ptr->name);
+				KERN_ERR
+				"%s: attach failed, can't connect to jpeg processor!\n",
+				ptr->name);
 		return -ENXIO;
 	}
 
 	zr36060_wait_end(ptr);
-	if (ptr->status & ZR060_CFSR_Busy) {
+
+	if (ptr->status & ZR060_CFSR_Busy)
+	{
 		dprintk(1,
-			KERN_ERR
-			"%s: attach failed, jpeg processor failed (end flag)!\n",
-			ptr->name);
+				KERN_ERR
+				"%s: attach failed, jpeg processor failed (end flag)!\n",
+				ptr->name);
 		return -EBUSY;
 	}
 
@@ -204,15 +212,17 @@ zr36060_basic_test (struct zr36060 *ptr)
 
 static int
 zr36060_pushit (struct zr36060 *ptr,
-		u16             startreg,
-		u16             len,
-		const char     *data)
+				u16             startreg,
+				u16             len,
+				const char     *data)
 {
 	int i = 0;
 
 	dprintk(4, "%s: write data block to 0x%04x (len=%d)\n", ptr->name,
-		startreg, len);
-	while (i < len) {
+			startreg, len);
+
+	while (i < len)
+	{
 		zr36060_write(ptr, startreg++, data[i++]);
 	}
 
@@ -230,7 +240,8 @@ zr36060_pushit (struct zr36060 *ptr,
    it and initialize from there, as e.g. the linux zr36057/60 driver does it.
    ========================================================================= */
 
-static const char zr36060_dqt[0x86] = {
+static const char zr36060_dqt[0x86] =
+{
 	0xff, 0xdb,		//Marker: DQT
 	0x00, 0x84,		//Length: 2*65+2
 	0x00,			//Pq,Tq first table
@@ -253,7 +264,8 @@ static const char zr36060_dqt[0x86] = {
 	0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63
 };
 
-static const char zr36060_dht[0x1a4] = {
+static const char zr36060_dht[0x1a4] =
+{
 	0xff, 0xc4,		//Marker: DHT
 	0x01, 0xa2,		//Length: 2*AC, 2*DC
 	0x00,			//DC first table
@@ -340,7 +352,7 @@ zr36060_set_sof (struct zr36060 *ptr)
 	int i;
 
 	dprintk(3, "%s: write SOF (%dx%d, %d components)\n", ptr->name,
-		ptr->width, ptr->height, NO_OF_COMPONENTS);
+			ptr->width, ptr->height, NO_OF_COMPONENTS);
 	sof_data[0] = 0xff;
 	sof_data[1] = 0xc0;
 	sof_data[2] = 0x00;
@@ -351,14 +363,17 @@ zr36060_set_sof (struct zr36060 *ptr)
 	sof_data[7] = (ptr->width) >> 8;
 	sof_data[8] = (ptr->width) & 0xff;
 	sof_data[9] = NO_OF_COMPONENTS;
-	for (i = 0; i < NO_OF_COMPONENTS; i++) {
+
+	for (i = 0; i < NO_OF_COMPONENTS; i++)
+	{
 		sof_data[10 + (i * 3)] = i;	// index identifier
 		sof_data[11 + (i * 3)] = (ptr->h_samp_ratio[i] << 4) |
-					 (ptr->v_samp_ratio[i]); // sampling ratios
+								 (ptr->v_samp_ratio[i]); // sampling ratios
 		sof_data[12 + (i * 3)] = zr36060_tq[i];	// Q table selection
 	}
+
 	return zr36060_pushit(ptr, ZR060_SOF_IDX,
-			      (3 * NO_OF_COMPONENTS) + 10, sof_data);
+						  (3 * NO_OF_COMPONENTS) + 10, sof_data);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -378,17 +393,20 @@ zr36060_set_sos (struct zr36060 *ptr)
 	sos_data[2] = 0x00;
 	sos_data[3] = 2 + 1 + (2 * NO_OF_COMPONENTS) + 3;
 	sos_data[4] = NO_OF_COMPONENTS;
-	for (i = 0; i < NO_OF_COMPONENTS; i++) {
+
+	for (i = 0; i < NO_OF_COMPONENTS; i++)
+	{
 		sos_data[5 + (i * 2)] = i;	// index
 		sos_data[6 + (i * 2)] = (zr36060_td[i] << 4) |
-					zr36060_ta[i]; // AC/DC tbl.sel.
+								zr36060_ta[i]; // AC/DC tbl.sel.
 	}
+
 	sos_data[2 + 1 + (2 * NO_OF_COMPONENTS) + 2] = 00;	// scan start
 	sos_data[2 + 1 + (2 * NO_OF_COMPONENTS) + 3] = 0x3f;
 	sos_data[2 + 1 + (2 * NO_OF_COMPONENTS) + 4] = 00;
 	return zr36060_pushit(ptr, ZR060_SOS_IDX,
-			      4 + 1 + (2 * NO_OF_COMPONENTS) + 3,
-			      sos_data);
+						  4 + 1 + (2 * NO_OF_COMPONENTS) + 3,
+						  sos_data);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -424,7 +442,8 @@ zr36060_init (struct zr36060 *ptr)
 	int sum = 0;
 	long bitcnt, tmp;
 
-	if (ptr->mode == CODEC_DO_COMPRESSION) {
+	if (ptr->mode == CODEC_DO_COMPRESSION)
+	{
 		dprintk(2, "%s: COMPRESSION SETUP\n", ptr->name);
 
 		zr36060_write(ptr, ZR060_LOAD, ZR060_LOAD_SyncRst);
@@ -435,8 +454,8 @@ zr36060_init (struct zr36060 *ptr)
 		/* Compression with or without variable scale factor */
 		/*FIXME: What about ptr->bitrate_ctrl? */
 		zr36060_write(ptr, ZR060_CMR,
-			      ZR060_CMR_Comp | ZR060_CMR_Pass2 |
-			      ZR060_CMR_BRB);
+					  ZR060_CMR_Comp | ZR060_CMR_Pass2 |
+					  ZR060_CMR_BRB);
 
 		/* Must be zero */
 		zr36060_write(ptr, ZR060_MBZ, 0x00);
@@ -462,23 +481,23 @@ zr36060_init (struct zr36060 *ptr)
 		/* setup the fixed jpeg tables - maybe variable, though -
 		 * (see table init section above) */
 		sum +=
-		    zr36060_pushit(ptr, ZR060_DQT_IDX, sizeof(zr36060_dqt),
-				   zr36060_dqt);
+			zr36060_pushit(ptr, ZR060_DQT_IDX, sizeof(zr36060_dqt),
+						   zr36060_dqt);
 		sum +=
-		    zr36060_pushit(ptr, ZR060_DHT_IDX, sizeof(zr36060_dht),
-				   zr36060_dht);
+			zr36060_pushit(ptr, ZR060_DHT_IDX, sizeof(zr36060_dht),
+						   zr36060_dht);
 		zr36060_write(ptr, ZR060_APP_IDX, 0xff);
 		zr36060_write(ptr, ZR060_APP_IDX + 1, 0xe0 + ptr->app.appn);
 		zr36060_write(ptr, ZR060_APP_IDX + 2, 0x00);
 		zr36060_write(ptr, ZR060_APP_IDX + 3, ptr->app.len + 2);
 		sum += zr36060_pushit(ptr, ZR060_APP_IDX + 4, 60,
-				      ptr->app.data) + 4;
+							  ptr->app.data) + 4;
 		zr36060_write(ptr, ZR060_COM_IDX, 0xff);
 		zr36060_write(ptr, ZR060_COM_IDX + 1, 0xfe);
 		zr36060_write(ptr, ZR060_COM_IDX + 2, 0x00);
 		zr36060_write(ptr, ZR060_COM_IDX + 3, ptr->com.len + 2);
 		sum += zr36060_pushit(ptr, ZR060_COM_IDX + 4, 60,
-				      ptr->com.data) + 4;
+							  ptr->com.data) + 4;
 
 		/* setup misc. data for compression (target code sizes) */
 
@@ -488,8 +507,8 @@ zr36060_init (struct zr36060 *ptr)
 
 		tmp = bitcnt >> 16;
 		dprintk(3,
-			"%s: code: csize=%d, tot=%d, bit=%ld, highbits=%ld\n",
-			ptr->name, sum, ptr->real_code_vol, bitcnt, tmp);
+				"%s: code: csize=%d, tot=%d, bit=%ld, highbits=%ld\n",
+				ptr->name, sum, ptr->real_code_vol, bitcnt, tmp);
 		zr36060_write(ptr, ZR060_TCV_NET_HI, tmp >> 8);
 		zr36060_write(ptr, ZR060_TCV_NET_MH, tmp & 0xff);
 		tmp = bitcnt & 0xffff;
@@ -501,7 +520,7 @@ zr36060_init (struct zr36060 *ptr)
 
 		tmp = bitcnt >> 16;
 		dprintk(3, "%s: code: nettobit=%ld, highnettobits=%ld\n",
-			ptr->name, bitcnt, tmp);
+				ptr->name, bitcnt, tmp);
 		zr36060_write(ptr, ZR060_TCV_DATA_HI, tmp >> 8);
 		zr36060_write(ptr, ZR060_TCV_DATA_MH, tmp & 0xff);
 		tmp = bitcnt & 0xffff;
@@ -510,15 +529,17 @@ zr36060_init (struct zr36060 *ptr)
 
 		/* JPEG markers to be included in the compressed stream */
 		zr36060_write(ptr, ZR060_MER,
-			      ZR060_MER_DQT | ZR060_MER_DHT |
-			      ((ptr->com.len > 0) ? ZR060_MER_Com : 0) |
-			      ((ptr->app.len > 0) ? ZR060_MER_App : 0));
+					  ZR060_MER_DQT | ZR060_MER_DHT |
+					  ((ptr->com.len > 0) ? ZR060_MER_Com : 0) |
+					  ((ptr->app.len > 0) ? ZR060_MER_App : 0));
 
 		/* Setup the Video Frontend */
 		/* Limit pixel range to 16..235 as per CCIR-601 */
 		zr36060_write(ptr, ZR060_VCR, ZR060_VCR_Range);
 
-	} else {
+	}
+	else
+	{
 		dprintk(2, "%s: EXPANSION SETUP\n", ptr->name);
 
 		zr36060_write(ptr, ZR060_LOAD, ZR060_LOAD_SyncRst);
@@ -543,7 +564,7 @@ zr36060_init (struct zr36060 *ptr)
 		/* setup the fixed jpeg tables - maybe variable, though -
 		 * (see table init section above) */
 		zr36060_pushit(ptr, ZR060_DHT_IDX, sizeof(zr36060_dht),
-			       zr36060_dht);
+					   zr36060_dht);
 
 		/* Setup the Video Frontend */
 		//zr36060_write(ptr, ZR060_VCR, ZR060_VCR_FIExt);
@@ -553,12 +574,13 @@ zr36060_init (struct zr36060 *ptr)
 
 	/* Load the tables */
 	zr36060_write(ptr, ZR060_LOAD,
-		      ZR060_LOAD_SyncRst | ZR060_LOAD_Load);
+				  ZR060_LOAD_SyncRst | ZR060_LOAD_Load);
 	zr36060_wait_end(ptr);
 	dprintk(2, "%s: Status after table preload: 0x%02x\n", ptr->name,
-		ptr->status);
+			ptr->status);
 
-	if (ptr->status & ZR060_CFSR_Busy) {
+	if (ptr->status & ZR060_CFSR_Busy)
+	{
 		dprintk(1, KERN_ERR "%s: init aborted!\n", ptr->name);
 		return;		// something is wrong, its timed out!!!!
 	}
@@ -574,14 +596,16 @@ zr36060_init (struct zr36060 *ptr)
    this should be the last call from the master before starting processing */
 static int
 zr36060_set_mode (struct videocodec *codec,
-		  int                mode)
+				  int                mode)
 {
 	struct zr36060 *ptr = (struct zr36060 *) codec->data;
 
 	dprintk(2, "%s: set_mode %d call\n", ptr->name, mode);
 
 	if ((mode != CODEC_DO_EXPANSION) && (mode != CODEC_DO_COMPRESSION))
+	{
 		return -EINVAL;
+	}
 
 	ptr->mode = mode;
 	zr36060_init(ptr);
@@ -592,16 +616,16 @@ zr36060_set_mode (struct videocodec *codec,
 /* set picture size (norm is ignored as the codec doesn't know about it) */
 static int
 zr36060_set_video (struct videocodec   *codec,
-		   struct tvnorm       *norm,
-		   struct vfe_settings *cap,
-		   struct vfe_polarity *pol)
+				   struct tvnorm       *norm,
+				   struct vfe_settings *cap,
+				   struct vfe_polarity *pol)
 {
 	struct zr36060 *ptr = (struct zr36060 *) codec->data;
 	u32 reg;
 	int size;
 
 	dprintk(2, "%s: set_video %d/%d-%dx%d (%%%d) call\n", ptr->name,
-		cap->x, cap->y, cap->width, cap->height, cap->decimation);
+			cap->x, cap->y, cap->width, cap->height, cap->decimation);
 
 	/* if () return -EINVAL;
 	 * trust the master driver that it knows what it does - so
@@ -617,39 +641,43 @@ zr36060_set_video (struct videocodec   *codec,
 	 * left unchanged here - in accordance with datasheet).
 	*/
 	reg = (!pol->vsync_pol ? ZR060_VPR_VSPol : 0)
-	    | (!pol->hsync_pol ? ZR060_VPR_HSPol : 0)
-	    | (pol->field_pol ? ZR060_VPR_FIPol : 0)
-	    | (pol->blank_pol ? ZR060_VPR_BLPol : 0)
-	    | (pol->subimg_pol ? ZR060_VPR_SImgPol : 0)
-	    | (pol->poe_pol ? ZR060_VPR_PoePol : 0)
-	    | (pol->pvalid_pol ? ZR060_VPR_PValPol : 0)
-	    | (pol->vclk_pol ? ZR060_VPR_VCLKPol : 0);
+		  | (!pol->hsync_pol ? ZR060_VPR_HSPol : 0)
+		  | (pol->field_pol ? ZR060_VPR_FIPol : 0)
+		  | (pol->blank_pol ? ZR060_VPR_BLPol : 0)
+		  | (pol->subimg_pol ? ZR060_VPR_SImgPol : 0)
+		  | (pol->poe_pol ? ZR060_VPR_PoePol : 0)
+		  | (pol->pvalid_pol ? ZR060_VPR_PValPol : 0)
+		  | (pol->vclk_pol ? ZR060_VPR_VCLKPol : 0);
 	zr36060_write(ptr, ZR060_VPR, reg);
 
 	reg = 0;
-	switch (cap->decimation & 0xff) {
-	default:
-	case 1:
-		break;
 
-	case 2:
-		reg |= ZR060_SR_HScale2;
-		break;
+	switch (cap->decimation & 0xff)
+	{
+		default:
+		case 1:
+			break;
 
-	case 4:
-		reg |= ZR060_SR_HScale4;
-		break;
+		case 2:
+			reg |= ZR060_SR_HScale2;
+			break;
+
+		case 4:
+			reg |= ZR060_SR_HScale4;
+			break;
 	}
 
-	switch (cap->decimation >> 8) {
-	default:
-	case 1:
-		break;
+	switch (cap->decimation >> 8)
+	{
+		default:
+		case 1:
+			break;
 
-	case 2:
-		reg |= ZR060_SR_VScale;
-		break;
+		case 2:
+			reg |= ZR060_SR_VScale;
+			break;
 	}
+
 	zr36060_write(ptr, ZR060_SR, reg);
 
 	zr36060_write(ptr, ZR060_BCR_Y, 0x00);
@@ -670,7 +698,7 @@ zr36060_set_video (struct videocodec   *codec,
 	zr36060_write(ptr, ZR060_SGR_VSYNC, reg);
 
 	//reg   = 30 - 1;               /* HsyncSize */
-///*CP*/        reg = (zr->params.norm == 1 ? 57 : 68);
+	///*CP*/        reg = (zr->params.norm == 1 ? 57 : 68);
 	reg = 68;
 	zr36060_write(ptr, ZR060_SGR_HSYNC, reg);
 
@@ -731,12 +759,18 @@ zr36060_set_video (struct videocodec   *codec,
 	 * buz can't handle more at decimation=1... Use low_bitrate if
 	 * you have a Buz, unless you know what you're doing */
 	size = size * cap->quality / (low_bitrate ? 400 : 200);
+
 	/* Lower limit (arbitrary, 1 KB) */
 	if (size < 8192)
+	{
 		size = 8192;
+	}
+
 	/* Upper limit: 7/8 of the code buffers */
 	if (size > ptr->total_code_vol * 7)
+	{
 		size = ptr->total_code_vol * 7;
+	}
 
 	ptr->real_code_vol = size >> 3;	/* in bytes */
 
@@ -752,114 +786,151 @@ zr36060_set_video (struct videocodec   *codec,
 /* additional control functions */
 static int
 zr36060_control (struct videocodec *codec,
-		 int                type,
-		 int                size,
-		 void              *data)
+				 int                type,
+				 int                size,
+				 void              *data)
 {
 	struct zr36060 *ptr = (struct zr36060 *) codec->data;
 	int *ival = (int *) data;
 
 	dprintk(2, "%s: control %d call with %d byte\n", ptr->name, type,
-		size);
+			size);
 
-	switch (type) {
-	case CODEC_G_STATUS:	/* get last status */
-		if (size != sizeof(int))
-			return -EFAULT;
-		zr36060_read_status(ptr);
-		*ival = ptr->status;
-		break;
+	switch (type)
+	{
+		case CODEC_G_STATUS:	/* get last status */
+			if (size != sizeof(int))
+			{
+				return -EFAULT;
+			}
 
-	case CODEC_G_CODEC_MODE:
-		if (size != sizeof(int))
-			return -EFAULT;
-		*ival = CODEC_MODE_BJPG;
-		break;
+			zr36060_read_status(ptr);
+			*ival = ptr->status;
+			break;
 
-	case CODEC_S_CODEC_MODE:
-		if (size != sizeof(int))
-			return -EFAULT;
-		if (*ival != CODEC_MODE_BJPG)
+		case CODEC_G_CODEC_MODE:
+			if (size != sizeof(int))
+			{
+				return -EFAULT;
+			}
+
+			*ival = CODEC_MODE_BJPG;
+			break;
+
+		case CODEC_S_CODEC_MODE:
+			if (size != sizeof(int))
+			{
+				return -EFAULT;
+			}
+
+			if (*ival != CODEC_MODE_BJPG)
+			{
+				return -EINVAL;
+			}
+
+			/* not needed, do nothing */
+			return 0;
+
+		case CODEC_G_VFE:
+		case CODEC_S_VFE:
+			/* not needed, do nothing */
+			return 0;
+
+		case CODEC_S_MMAP:
+			/* not available, give an error */
+			return -ENXIO;
+
+		case CODEC_G_JPEG_TDS_BYTE:	/* get target volume in byte */
+			if (size != sizeof(int))
+			{
+				return -EFAULT;
+			}
+
+			*ival = ptr->total_code_vol;
+			break;
+
+		case CODEC_S_JPEG_TDS_BYTE:	/* get target volume in byte */
+			if (size != sizeof(int))
+			{
+				return -EFAULT;
+			}
+
+			ptr->total_code_vol = *ival;
+			ptr->real_code_vol = (ptr->total_code_vol * 6) >> 3;
+			break;
+
+		case CODEC_G_JPEG_SCALE:	/* get scaling factor */
+			if (size != sizeof(int))
+			{
+				return -EFAULT;
+			}
+
+			*ival = zr36060_read_scalefactor(ptr);
+			break;
+
+		case CODEC_S_JPEG_SCALE:	/* set scaling factor */
+			if (size != sizeof(int))
+			{
+				return -EFAULT;
+			}
+
+			ptr->scalefact = *ival;
+			break;
+
+		case CODEC_G_JPEG_APP_DATA:  	/* get appn marker data */
+			{
+				struct jpeg_app_marker *app = data;
+
+				if (size != sizeof(struct jpeg_app_marker))
+				{
+					return -EFAULT;
+				}
+
+				*app = ptr->app;
+				break;
+			}
+
+		case CODEC_S_JPEG_APP_DATA:  	/* set appn marker data */
+			{
+				struct jpeg_app_marker *app = data;
+
+				if (size != sizeof(struct jpeg_app_marker))
+				{
+					return -EFAULT;
+				}
+
+				ptr->app = *app;
+				break;
+			}
+
+		case CODEC_G_JPEG_COM_DATA:  	/* get comment marker data */
+			{
+				struct jpeg_com_marker *com = data;
+
+				if (size != sizeof(struct jpeg_com_marker))
+				{
+					return -EFAULT;
+				}
+
+				*com = ptr->com;
+				break;
+			}
+
+		case CODEC_S_JPEG_COM_DATA:  	/* set comment marker data */
+			{
+				struct jpeg_com_marker *com = data;
+
+				if (size != sizeof(struct jpeg_com_marker))
+				{
+					return -EFAULT;
+				}
+
+				ptr->com = *com;
+				break;
+			}
+
+		default:
 			return -EINVAL;
-		/* not needed, do nothing */
-		return 0;
-
-	case CODEC_G_VFE:
-	case CODEC_S_VFE:
-		/* not needed, do nothing */
-		return 0;
-
-	case CODEC_S_MMAP:
-		/* not available, give an error */
-		return -ENXIO;
-
-	case CODEC_G_JPEG_TDS_BYTE:	/* get target volume in byte */
-		if (size != sizeof(int))
-			return -EFAULT;
-		*ival = ptr->total_code_vol;
-		break;
-
-	case CODEC_S_JPEG_TDS_BYTE:	/* get target volume in byte */
-		if (size != sizeof(int))
-			return -EFAULT;
-		ptr->total_code_vol = *ival;
-		ptr->real_code_vol = (ptr->total_code_vol * 6) >> 3;
-		break;
-
-	case CODEC_G_JPEG_SCALE:	/* get scaling factor */
-		if (size != sizeof(int))
-			return -EFAULT;
-		*ival = zr36060_read_scalefactor(ptr);
-		break;
-
-	case CODEC_S_JPEG_SCALE:	/* set scaling factor */
-		if (size != sizeof(int))
-			return -EFAULT;
-		ptr->scalefact = *ival;
-		break;
-
-	case CODEC_G_JPEG_APP_DATA: {	/* get appn marker data */
-		struct jpeg_app_marker *app = data;
-
-		if (size != sizeof(struct jpeg_app_marker))
-			return -EFAULT;
-
-		*app = ptr->app;
-		break;
-	}
-
-	case CODEC_S_JPEG_APP_DATA: {	/* set appn marker data */
-		struct jpeg_app_marker *app = data;
-
-		if (size != sizeof(struct jpeg_app_marker))
-			return -EFAULT;
-
-		ptr->app = *app;
-		break;
-	}
-
-	case CODEC_G_JPEG_COM_DATA: {	/* get comment marker data */
-		struct jpeg_com_marker *com = data;
-
-		if (size != sizeof(struct jpeg_com_marker))
-			return -EFAULT;
-
-		*com = ptr->com;
-		break;
-	}
-
-	case CODEC_S_JPEG_COM_DATA: {	/* set comment marker data */
-		struct jpeg_com_marker *com = data;
-
-		if (size != sizeof(struct jpeg_com_marker))
-			return -EFAULT;
-
-		ptr->com = *com;
-		break;
-	}
-
-	default:
-		return -EINVAL;
 	}
 
 	return size;
@@ -876,11 +947,12 @@ zr36060_unset (struct videocodec *codec)
 {
 	struct zr36060 *ptr = codec->data;
 
-	if (ptr) {
+	if (ptr)
+	{
 		/* do wee need some codec deinit here, too ???? */
 
 		dprintk(1, "%s: finished codec #%d\n", ptr->name,
-			ptr->num);
+				ptr->num);
 		kfree(ptr);
 		codec->data = NULL;
 
@@ -907,31 +979,38 @@ zr36060_setup (struct videocodec *codec)
 	int res;
 
 	dprintk(2, "zr36060: initializing MJPEG subsystem #%d.\n",
-		zr36060_codecs);
+			zr36060_codecs);
 
-	if (zr36060_codecs == MAX_CODECS) {
+	if (zr36060_codecs == MAX_CODECS)
+	{
 		dprintk(1,
-			KERN_ERR "zr36060: Can't attach more codecs!\n");
+				KERN_ERR "zr36060: Can't attach more codecs!\n");
 		return -ENOSPC;
 	}
+
 	//mem structure init
 	codec->data = ptr = kzalloc(sizeof(struct zr36060), GFP_KERNEL);
-	if (NULL == ptr) {
+
+	if (NULL == ptr)
+	{
 		dprintk(1, KERN_ERR "zr36060: Can't get enough memory!\n");
 		return -ENOMEM;
 	}
 
 	snprintf(ptr->name, sizeof(ptr->name), "zr36060[%d]",
-		 zr36060_codecs);
+			 zr36060_codecs);
 	ptr->num = zr36060_codecs++;
 	ptr->codec = codec;
 
 	//testing
 	res = zr36060_basic_test(ptr);
-	if (res < 0) {
+
+	if (res < 0)
+	{
 		zr36060_unset(codec);
 		return res;
 	}
+
 	//final setup
 	memcpy(ptr->h_samp_ratio, zr36060_decimation_h, 8);
 	memcpy(ptr->v_samp_ratio, zr36060_decimation_v, 8);
@@ -955,18 +1034,19 @@ zr36060_setup (struct videocodec *codec)
 	zr36060_init(ptr);
 
 	dprintk(1, KERN_INFO "%s: codec attached and running\n",
-		ptr->name);
+			ptr->name);
 
 	return 0;
 }
 
-static const struct videocodec zr36060_codec = {
+static const struct videocodec zr36060_codec =
+{
 	.owner = THIS_MODULE,
 	.name = "zr36060",
 	.magic = 0L,		// magic not used
 	.flags =
-	    CODEC_FLAG_JPEG | CODEC_FLAG_HARDWARE | CODEC_FLAG_ENCODER |
-	    CODEC_FLAG_DECODER | CODEC_FLAG_VFE,
+	CODEC_FLAG_JPEG | CODEC_FLAG_HARDWARE | CODEC_FLAG_ENCODER |
+	CODEC_FLAG_DECODER | CODEC_FLAG_VFE,
 	.type = CODEC_TYPE_ZR36060,
 	.setup = zr36060_setup,	// functionality
 	.unset = zr36060_unset,
@@ -991,10 +1071,11 @@ zr36060_init_module (void)
 static void __exit
 zr36060_cleanup_module (void)
 {
-	if (zr36060_codecs) {
+	if (zr36060_codecs)
+	{
 		dprintk(1,
-			"zr36060: something's wrong - %d codecs left somehow.\n",
-			zr36060_codecs);
+				"zr36060: something's wrong - %d codecs left somehow.\n",
+				zr36060_codecs);
 	}
 
 	/* however, we can't just stay alive */
@@ -1006,5 +1087,5 @@ module_exit(zr36060_cleanup_module);
 
 MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@skynet.be>");
 MODULE_DESCRIPTION("Driver module for ZR36060 jpeg processors "
-		   ZR060_VERSION);
+				   ZR060_VERSION);
 MODULE_LICENSE("GPL");

@@ -46,32 +46,32 @@ static inline bool have_hwcap2(unsigned long ftr2)
 
 /* Yes, this is evil */
 #define FAIL_IF(x)						\
-do {								\
-	if ((x)) {						\
-		fprintf(stderr,					\
-		"[FAIL] Test FAILED on line %d\n", __LINE__);	\
-		return 1;					\
-	}							\
-} while (0)
+	do {								\
+		if ((x)) {						\
+			fprintf(stderr,					\
+					"[FAIL] Test FAILED on line %d\n", __LINE__);	\
+			return 1;					\
+		}							\
+	} while (0)
 
 /* The test harness uses this, yes it's gross */
 #define MAGIC_SKIP_RETURN_VALUE	99
 
 #define SKIP_IF(x)						\
-do {								\
-	if ((x)) {						\
-		fprintf(stderr,					\
-		"[SKIP] Test skipped on line %d\n", __LINE__);	\
-		return MAGIC_SKIP_RETURN_VALUE;			\
-	}							\
-} while (0)
+	do {								\
+		if ((x)) {						\
+			fprintf(stderr,					\
+					"[SKIP] Test skipped on line %d\n", __LINE__);	\
+			return MAGIC_SKIP_RETURN_VALUE;			\
+		}							\
+	} while (0)
 
 #define _str(s) #s
 #define str(s) _str(s)
 
 /* POWER9 feature */
 #ifndef PPC_FEATURE2_ARCH_3_00
-#define PPC_FEATURE2_ARCH_3_00 0x00800000
+	#define PPC_FEATURE2_ARCH_3_00 0x00800000
 #endif
 
 #endif /* _SELFTESTS_POWERPC_UTILS_H */

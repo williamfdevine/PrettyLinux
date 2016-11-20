@@ -17,12 +17,14 @@
 #define XT_DSCP_MAX	0x3f	/* 00111111 */
 
 /* match info */
-struct xt_dscp_info {
+struct xt_dscp_info
+{
 	__u8 dscp;
 	__u8 invert;
 };
 
-struct xt_tos_match_info {
+struct xt_tos_match_info
+{
 	__u8 tos_mask;
 	__u8 tos_value;
 	__u8 invert;

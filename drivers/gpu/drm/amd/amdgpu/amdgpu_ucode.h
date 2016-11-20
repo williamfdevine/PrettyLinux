@@ -23,7 +23,8 @@
 #ifndef __AMDGPU_UCODE_H__
 #define __AMDGPU_UCODE_H__
 
-struct common_firmware_header {
+struct common_firmware_header
+{
 	uint32_t size_bytes; /* size of the entire header+image(s) in bytes */
 	uint32_t header_size_bytes; /* size of just the header in bytes */
 	uint16_t header_version_major; /* header version */
@@ -37,20 +38,23 @@ struct common_firmware_header {
 };
 
 /* version_major=1, version_minor=0 */
-struct mc_firmware_header_v1_0 {
+struct mc_firmware_header_v1_0
+{
 	struct common_firmware_header header;
 	uint32_t io_debug_size_bytes; /* size of debug array in dwords */
 	uint32_t io_debug_array_offset_bytes; /* payload offset from the start of the header */
 };
 
 /* version_major=1, version_minor=0 */
-struct smc_firmware_header_v1_0 {
+struct smc_firmware_header_v1_0
+{
 	struct common_firmware_header header;
 	uint32_t ucode_start_addr;
 };
 
 /* version_major=1, version_minor=0 */
-struct gfx_firmware_header_v1_0 {
+struct gfx_firmware_header_v1_0
+{
 	struct common_firmware_header header;
 	uint32_t ucode_feature_version;
 	uint32_t jt_offset; /* jt location */
@@ -58,7 +62,8 @@ struct gfx_firmware_header_v1_0 {
 };
 
 /* version_major=1, version_minor=0 */
-struct rlc_firmware_header_v1_0 {
+struct rlc_firmware_header_v1_0
+{
 	struct common_firmware_header header;
 	uint32_t ucode_feature_version;
 	uint32_t save_and_restore_offset;
@@ -68,7 +73,8 @@ struct rlc_firmware_header_v1_0 {
 };
 
 /* version_major=2, version_minor=0 */
-struct rlc_firmware_header_v2_0 {
+struct rlc_firmware_header_v2_0
+{
 	struct common_firmware_header header;
 	uint32_t ucode_feature_version;
 	uint32_t jt_offset; /* jt location */
@@ -91,7 +97,8 @@ struct rlc_firmware_header_v2_0 {
 };
 
 /* version_major=1, version_minor=0 */
-struct sdma_firmware_header_v1_0 {
+struct sdma_firmware_header_v1_0
+{
 	struct common_firmware_header header;
 	uint32_t ucode_feature_version;
 	uint32_t ucode_change_version;
@@ -100,13 +107,15 @@ struct sdma_firmware_header_v1_0 {
 };
 
 /* version_major=1, version_minor=1 */
-struct sdma_firmware_header_v1_1 {
+struct sdma_firmware_header_v1_1
+{
 	struct sdma_firmware_header_v1_0 v1_0;
 	uint32_t digest_size;
 };
 
 /* header is fixed size */
-union amdgpu_firmware_header {
+union amdgpu_firmware_header
+{
 	struct common_firmware_header common;
 	struct mc_firmware_header_v1_0 mc;
 	struct smc_firmware_header_v1_0 smc;
@@ -121,7 +130,8 @@ union amdgpu_firmware_header {
 /*
  * fw loading support
  */
-enum AMDGPU_UCODE_ID {
+enum AMDGPU_UCODE_ID
+{
 	AMDGPU_UCODE_ID_SDMA0 = 0,
 	AMDGPU_UCODE_ID_SDMA1,
 	AMDGPU_UCODE_ID_CP_CE,
@@ -134,7 +144,8 @@ enum AMDGPU_UCODE_ID {
 };
 
 /* engine firmware status */
-enum AMDGPU_UCODE_STATUS {
+enum AMDGPU_UCODE_STATUS
+{
 	AMDGPU_UCODE_STATUS_INVALID,
 	AMDGPU_UCODE_STATUS_NOT_LOADED,
 	AMDGPU_UCODE_STATUS_LOADED,
@@ -151,7 +162,8 @@ enum AMDGPU_UCODE_STATUS {
 #define AMDGPU_CPRLC_UCODE_LOADED	0x00000100
 
 /* amdgpu firmware info */
-struct amdgpu_firmware_info {
+struct amdgpu_firmware_info
+{
 	/* ucode ID */
 	enum AMDGPU_UCODE_ID ucode_id;
 	/* request_firmware */
@@ -169,7 +181,7 @@ void amdgpu_ucode_print_rlc_hdr(const struct common_firmware_header *hdr);
 void amdgpu_ucode_print_sdma_hdr(const struct common_firmware_header *hdr);
 int amdgpu_ucode_validate(const struct firmware *fw);
 bool amdgpu_ucode_hdr_version(union amdgpu_firmware_header *hdr,
-				uint16_t hdr_major, uint16_t hdr_minor);
+							  uint16_t hdr_major, uint16_t hdr_minor);
 int amdgpu_ucode_init_bo(struct amdgpu_device *adev);
 int amdgpu_ucode_fini_bo(struct amdgpu_device *adev);
 

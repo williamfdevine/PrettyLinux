@@ -69,24 +69,25 @@
 static int debug;
 
 #define dprintk(level, arg...) do {    \
-	if (level <= debug)            \
-		printk(arg);    \
+		if (level <= debug)            \
+			printk(arg);    \
 	} while (0)
 
 #define TUNER_REGS_NUM          104
 #define INITCTRL_NUM            40
 
 #ifdef _MXL_PRODUCTION
-#define CHCTRL_NUM              39
+	#define CHCTRL_NUM              39
 #else
-#define CHCTRL_NUM              36
+	#define CHCTRL_NUM              36
 #endif
 
 #define MXLCTRL_NUM             189
 #define MASTER_CONTROL_ADDR     9
 
 /* Enumeration of Master Control Register State */
-enum master_control_state {
+enum master_control_state
+{
 	MC_LOAD_START = 1,
 	MC_POWER_DOWN,
 	MC_SYNTH_RESET,
@@ -94,7 +95,8 @@ enum master_control_state {
 };
 
 /* Enumeration of MXL5005 Tuner Modulation Type */
-enum {
+enum
+{
 	MXL_DEFAULT_MODULATION = 0,
 	MXL_DVBT,
 	MXL_ATSC,
@@ -104,12 +106,14 @@ enum {
 };
 
 /* MXL5005 Tuner Register Struct */
-struct TunerReg {
+struct TunerReg
+{
 	u16 Reg_Num;	/* Tuner Register Address */
 	u16 Reg_Val;	/* Current sw programmed value waiting to be written */
 };
 
-enum {
+enum
+{
 	/* Initialization Control Names */
 	DN_IQTN_AMP_CUT = 1,       /* 1 */
 	BB_MODE,                   /* 2 */
@@ -215,14 +219,16 @@ enum {
 #define MXL5005S_BB_DLPF_BANDSEL_LSB		3
 
 /* Standard modes */
-enum {
+enum
+{
 	MXL5005S_STANDARD_DVBT,
 	MXL5005S_STANDARD_ATSC,
 };
 #define MXL5005S_STANDARD_MODE_NUM		2
 
 /* Bandwidth modes */
-enum {
+enum
+{
 	MXL5005S_BANDWIDTH_6MHZ = 6000000,
 	MXL5005S_BANDWIDTH_7MHZ = 7000000,
 	MXL5005S_BANDWIDTH_8MHZ = 8000000,
@@ -230,7 +236,8 @@ enum {
 #define MXL5005S_BANDWIDTH_MODE_NUM		3
 
 /* MXL5005 Tuner Control Struct */
-struct TunerControl {
+struct TunerControl
+{
 	u16 Ctrl_Num;	/* Control Number */
 	u16 size;	/* Number of bits to represent Value */
 	u16 addr[25];	/* Array of Tuner Register Address for each bit pos */
@@ -239,7 +246,8 @@ struct TunerControl {
 };
 
 /* MXL5005 Tuner Struct */
-struct mxl5005s_state {
+struct mxl5005s_state
+{
 	u8	Mode;		/* 0: Analog Mode ; 1: Digital Mode */
 	u8	IF_Mode;	/* for Analog Mode, 0: zero IF; 1: low IF */
 	u32	Chan_Bandwidth;	/* filter  channel bandwidth (6, 7, 8) */
@@ -299,28 +307,28 @@ static u16 MXL_GetMasterControl(u8 *MasterReg, int state);
 static u16 MXL_ControlWrite(struct dvb_frontend *fe, u16 ControlNum, u32 value);
 static u16 MXL_ControlRead(struct dvb_frontend *fe, u16 controlNum, u32 *value);
 static void MXL_RegWriteBit(struct dvb_frontend *fe, u8 address, u8 bit,
-	u8 bitVal);
+							u8 bitVal);
 static u16 MXL_GetCHRegister(struct dvb_frontend *fe, u8 *RegNum,
-	u8 *RegVal, int *count);
+							 u8 *RegVal, int *count);
 static u32 MXL_Ceiling(u32 value, u32 resolution);
 static u16 MXL_RegRead(struct dvb_frontend *fe, u8 RegNum, u8 *RegVal);
 static u16 MXL_ControlWrite_Group(struct dvb_frontend *fe, u16 controlNum,
-	u32 value, u16 controlGroup);
+								  u32 value, u16 controlGroup);
 static u16 MXL_SetGPIO(struct dvb_frontend *fe, u8 GPIO_Num, u8 GPIO_Val);
 static u16 MXL_GetInitRegister(struct dvb_frontend *fe, u8 *RegNum,
-	u8 *RegVal, int *count);
+							   u8 *RegVal, int *count);
 static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq);
 static void MXL_SynthIFLO_Calc(struct dvb_frontend *fe);
 static void MXL_SynthRFTGLO_Calc(struct dvb_frontend *fe);
 static u16 MXL_GetCHRegister_ZeroIF(struct dvb_frontend *fe, u8 *RegNum,
-	u8 *RegVal, int *count);
+									u8 *RegVal, int *count);
 static int mxl5005s_writeregs(struct dvb_frontend *fe, u8 *addrtable,
-	u8 *datatable, u8 len);
+							  u8 *datatable, u8 len);
 static u16 MXL_IFSynthInit(struct dvb_frontend *fe);
 static int mxl5005s_AssignTunerMode(struct dvb_frontend *fe, u32 mod_type,
-	u32 bandwidth);
+									u32 bandwidth);
 static int mxl5005s_reconfigure(struct dvb_frontend *fe, u32 mod_type,
-	u32 bandwidth);
+								u32 bandwidth);
 
 /* ----------------------------------------------------------------
  * Begin: Custom code salvaged from the Realtek driver.
@@ -368,7 +376,7 @@ static int mxl5005s_SetRfFreqHz(struct dvb_frontend *fe, unsigned long RfFreqHz)
 	MXL_GetMasterControl(&MasterControlByte, MC_LOAD_START);
 	AddrTable[TableLen] = MASTER_CONTROL_ADDR ;
 	ByteTable[TableLen] = MasterControlByte |
-		state->config->AgcMasterByte;
+						  state->config->AgcMasterByte;
 	TableLen += 1;
 
 	mxl5005s_writeregs(fe, AddrTable, ByteTable, TableLen);
@@ -384,7 +392,7 @@ static int mxl5005s_SetRfFreqHz(struct dvb_frontend *fe, unsigned long RfFreqHz)
 	MXL_GetMasterControl(&MasterControlByte, MC_LOAD_START);
 	AddrTable[TableLen] = MASTER_CONTROL_ADDR ;
 	ByteTable[TableLen] = MasterControlByte |
-		state->config->AgcMasterByte ;
+						  state->config->AgcMasterByte ;
 	TableLen += 1;
 
 	mxl5005s_writeregs(fe, AddrTable, ByteTable, TableLen);
@@ -1669,27 +1677,27 @@ static void InitTunerControls(struct dvb_frontend *fe)
 }
 
 static u16 MXL5005_TunerConfig(struct dvb_frontend *fe,
-	u8	Mode,		/* 0: Analog Mode ; 1: Digital Mode */
-	u8	IF_mode,	/* for Analog Mode, 0: zero IF; 1: low IF */
-	u32	Bandwidth,	/* filter  channel bandwidth (6, 7, 8) */
-	u32	IF_out,		/* Desired IF Out Frequency */
-	u32	Fxtal,		/* XTAL Frequency */
-	u8	AGC_Mode,	/* AGC Mode - Dual AGC: 0, Single AGC: 1 */
-	u16	TOP,		/* 0: Dual AGC; Value: take over point */
-	u16	IF_OUT_LOAD,	/* IF Out Load Resistor (200 / 300 Ohms) */
-	u8	CLOCK_OUT, 	/* 0: turn off clk out; 1: turn on clock out */
-	u8	DIV_OUT,	/* 0: Div-1; 1: Div-4 */
-	u8	CAPSELECT, 	/* 0: disable On-Chip pulling cap; 1: enable */
-	u8	EN_RSSI, 	/* 0: disable RSSI; 1: enable RSSI */
+							   u8	Mode,		/* 0: Analog Mode ; 1: Digital Mode */
+							   u8	IF_mode,	/* for Analog Mode, 0: zero IF; 1: low IF */
+							   u32	Bandwidth,	/* filter  channel bandwidth (6, 7, 8) */
+							   u32	IF_out,		/* Desired IF Out Frequency */
+							   u32	Fxtal,		/* XTAL Frequency */
+							   u8	AGC_Mode,	/* AGC Mode - Dual AGC: 0, Single AGC: 1 */
+							   u16	TOP,		/* 0: Dual AGC; Value: take over point */
+							   u16	IF_OUT_LOAD,	/* IF Out Load Resistor (200 / 300 Ohms) */
+							   u8	CLOCK_OUT, 	/* 0: turn off clk out; 1: turn on clock out */
+							   u8	DIV_OUT,	/* 0: Div-1; 1: Div-4 */
+							   u8	CAPSELECT, 	/* 0: disable On-Chip pulling cap; 1: enable */
+							   u8	EN_RSSI, 	/* 0: disable RSSI; 1: enable RSSI */
 
-	/* Modulation Type; */
-	/* 0 - Default;	1 - DVB-T; 2 - ATSC; 3 - QAM; 4 - Analog Cable */
-	u8	Mod_Type,
+							   /* Modulation Type; */
+							   /* 0 - Default;	1 - DVB-T; 2 - ATSC; 3 - QAM; 4 - Analog Cable */
+							   u8	Mod_Type,
 
-	/* Tracking Filter */
-	/* 0 - Default; 1 - Off; 2 - Type C; 3 - Type C-H */
-	u8	TF_Type
-	)
+							   /* Tracking Filter */
+							   /* 0 - Default; 1 - Off; 2 - Type C; 3 - Type C-H */
+							   u8	TF_Type
+							  )
 {
 	struct mxl5005s_state *state = fe->tuner_priv;
 
@@ -1720,13 +1728,21 @@ static u16 MXL5005_TunerConfig(struct dvb_frontend *fe,
 static void MXL_SynthIFLO_Calc(struct dvb_frontend *fe)
 {
 	struct mxl5005s_state *state = fe->tuner_priv;
+
 	if (state->Mode == 1) /* Digital Mode */
+	{
 		state->IF_LO = state->IF_OUT;
-	else /* Analog Mode */ {
+	}
+	else /* Analog Mode */
+	{
 		if (state->IF_Mode == 0) /* Analog Zero IF mode */
+		{
 			state->IF_LO = state->IF_OUT + 400000;
+		}
 		else /* Analog Low IF mode */
-			state->IF_LO = state->IF_OUT + state->Chan_Bandwidth/2;
+		{
+			state->IF_LO = state->IF_OUT + state->Chan_Bandwidth / 2;
+		}
 	}
 }
 
@@ -1734,19 +1750,25 @@ static void MXL_SynthRFTGLO_Calc(struct dvb_frontend *fe)
 {
 	struct mxl5005s_state *state = fe->tuner_priv;
 
-	if (state->Mode == 1) /* Digital Mode */ {
-			/* remove 20.48MHz setting for 2.6.10 */
-			state->RF_LO = state->RF_IN;
-			/* change for 2.6.6 */
-			state->TG_LO = state->RF_IN - 750000;
-	} else /* Analog Mode */ {
-		if (state->IF_Mode == 0) /* Analog Zero IF mode */ {
+	if (state->Mode == 1) /* Digital Mode */
+	{
+		/* remove 20.48MHz setting for 2.6.10 */
+		state->RF_LO = state->RF_IN;
+		/* change for 2.6.6 */
+		state->TG_LO = state->RF_IN - 750000;
+	}
+	else /* Analog Mode */
+	{
+		if (state->IF_Mode == 0) /* Analog Zero IF mode */
+		{
 			state->RF_LO = state->RF_IN - 400000;
 			state->TG_LO = state->RF_IN - 1750000;
-		} else /* Analog Low IF mode */ {
-			state->RF_LO = state->RF_IN - state->Chan_Bandwidth/2;
+		}
+		else /* Analog Low IF mode */
+		{
+			state->RF_LO = state->RF_IN - state->Chan_Bandwidth / 2;
 			state->TG_LO = state->RF_IN -
-				state->Chan_Bandwidth + 500000;
+						   state->Chan_Bandwidth + 500000;
 		}
 	}
 }
@@ -1781,103 +1803,149 @@ static u16 MXL_BlockInit(struct dvb_frontend *fe)
 	status += MXL_ControlWrite(fe, BB_INITSTATE_DLPF_TUNE, 0);
 
 	/* Initialize Low-Pass Filter */
-	if (state->Mode) { /* Digital Mode */
-		switch (state->Chan_Bandwidth) {
-		case 8000000:
-			status += MXL_ControlWrite(fe, BB_DLPF_BANDSEL, 0);
-			break;
-		case 7000000:
-			status += MXL_ControlWrite(fe, BB_DLPF_BANDSEL, 2);
-			break;
-		case 6000000:
-			status += MXL_ControlWrite(fe,
-					BB_DLPF_BANDSEL, 3);
-			break;
+	if (state->Mode)   /* Digital Mode */
+	{
+		switch (state->Chan_Bandwidth)
+		{
+			case 8000000:
+				status += MXL_ControlWrite(fe, BB_DLPF_BANDSEL, 0);
+				break;
+
+			case 7000000:
+				status += MXL_ControlWrite(fe, BB_DLPF_BANDSEL, 2);
+				break;
+
+			case 6000000:
+				status += MXL_ControlWrite(fe,
+										   BB_DLPF_BANDSEL, 3);
+				break;
 		}
-	} else { /* Analog Mode */
-		switch (state->Chan_Bandwidth) {
-		case 8000000:	/* Low Zero */
-			status += MXL_ControlWrite(fe, BB_ALPF_BANDSELECT,
-					(state->IF_Mode ? 0 : 3));
-			break;
-		case 7000000:
-			status += MXL_ControlWrite(fe, BB_ALPF_BANDSELECT,
-					(state->IF_Mode ? 1 : 4));
-			break;
-		case 6000000:
-			status += MXL_ControlWrite(fe, BB_ALPF_BANDSELECT,
-					(state->IF_Mode ? 2 : 5));
-			break;
+	}
+	else     /* Analog Mode */
+	{
+		switch (state->Chan_Bandwidth)
+		{
+			case 8000000:	/* Low Zero */
+				status += MXL_ControlWrite(fe, BB_ALPF_BANDSELECT,
+										   (state->IF_Mode ? 0 : 3));
+				break;
+
+			case 7000000:
+				status += MXL_ControlWrite(fe, BB_ALPF_BANDSELECT,
+										   (state->IF_Mode ? 1 : 4));
+				break;
+
+			case 6000000:
+				status += MXL_ControlWrite(fe, BB_ALPF_BANDSELECT,
+										   (state->IF_Mode ? 2 : 5));
+				break;
 		}
 	}
 
 	/* Charge Pump Control Dig  Ana */
 	status += MXL_ControlWrite(fe, RFSYN_CHP_GAIN, state->Mode ? 5 : 8);
 	status += MXL_ControlWrite(fe,
-		RFSYN_EN_CHP_HIGAIN, state->Mode ? 1 : 1);
+							   RFSYN_EN_CHP_HIGAIN, state->Mode ? 1 : 1);
 	status += MXL_ControlWrite(fe, EN_CHP_LIN_B, state->Mode ? 0 : 0);
 
 	/* AGC TOP Control */
-	if (state->AGC_Mode == 0) /* Dual AGC */ {
+	if (state->AGC_Mode == 0) /* Dual AGC */
+	{
 		status += MXL_ControlWrite(fe, AGC_IF, 15);
 		status += MXL_ControlWrite(fe, AGC_RF, 15);
-	} else /*  Single AGC Mode Dig  Ana */
+	}
+	else   /*  Single AGC Mode Dig  Ana */
+	{
 		status += MXL_ControlWrite(fe, AGC_RF, state->Mode ? 15 : 12);
+	}
 
 	if (state->TOP == 55) /* TOP == 5.5 */
+	{
 		status += MXL_ControlWrite(fe, AGC_IF, 0x0);
+	}
 
 	if (state->TOP == 72) /* TOP == 7.2 */
+	{
 		status += MXL_ControlWrite(fe, AGC_IF, 0x1);
+	}
 
 	if (state->TOP == 92) /* TOP == 9.2 */
+	{
 		status += MXL_ControlWrite(fe, AGC_IF, 0x2);
+	}
 
 	if (state->TOP == 110) /* TOP == 11.0 */
+	{
 		status += MXL_ControlWrite(fe, AGC_IF, 0x3);
+	}
 
 	if (state->TOP == 129) /* TOP == 12.9 */
+	{
 		status += MXL_ControlWrite(fe, AGC_IF, 0x4);
+	}
 
 	if (state->TOP == 147) /* TOP == 14.7 */
+	{
 		status += MXL_ControlWrite(fe, AGC_IF, 0x5);
+	}
 
 	if (state->TOP == 168) /* TOP == 16.8 */
+	{
 		status += MXL_ControlWrite(fe, AGC_IF, 0x6);
+	}
 
 	if (state->TOP == 194) /* TOP == 19.4 */
+	{
 		status += MXL_ControlWrite(fe, AGC_IF, 0x7);
+	}
 
 	if (state->TOP == 212) /* TOP == 21.2 */
+	{
 		status += MXL_ControlWrite(fe, AGC_IF, 0x9);
+	}
 
 	if (state->TOP == 232) /* TOP == 23.2 */
+	{
 		status += MXL_ControlWrite(fe, AGC_IF, 0xA);
+	}
 
 	if (state->TOP == 252) /* TOP == 25.2 */
+	{
 		status += MXL_ControlWrite(fe, AGC_IF, 0xB);
+	}
 
 	if (state->TOP == 271) /* TOP == 27.1 */
+	{
 		status += MXL_ControlWrite(fe, AGC_IF, 0xC);
+	}
 
 	if (state->TOP == 292) /* TOP == 29.2 */
+	{
 		status += MXL_ControlWrite(fe, AGC_IF, 0xD);
+	}
 
 	if (state->TOP == 317) /* TOP == 31.7 */
+	{
 		status += MXL_ControlWrite(fe, AGC_IF, 0xE);
+	}
 
 	if (state->TOP == 349) /* TOP == 34.9 */
+	{
 		status += MXL_ControlWrite(fe, AGC_IF, 0xF);
+	}
 
 	/* IF Synthesizer Control */
 	status += MXL_IFSynthInit(fe);
 
 	/* IF UpConverter Control */
-	if (state->IF_OUT_LOAD == 200) {
+	if (state->IF_OUT_LOAD == 200)
+	{
 		status += MXL_ControlWrite(fe, DRV_RES_SEL, 6);
 		status += MXL_ControlWrite(fe, I_DRIVER, 2);
 	}
-	if (state->IF_OUT_LOAD == 300) {
+
+	if (state->IF_OUT_LOAD == 300)
+	{
 		status += MXL_ControlWrite(fe, DRV_RES_SEL, 4);
 		status += MXL_ControlWrite(fe, I_DRIVER, 1);
 	}
@@ -1885,34 +1953,45 @@ static u16 MXL_BlockInit(struct dvb_frontend *fe)
 	/* Anti-Alias Filtering Control
 	 * initialise Anti-Aliasing Filter
 	 */
-	if (state->Mode) { /* Digital Mode */
-		if (state->IF_OUT >= 4000000UL && state->IF_OUT <= 6280000UL) {
+	if (state->Mode)   /* Digital Mode */
+	{
+		if (state->IF_OUT >= 4000000UL && state->IF_OUT <= 6280000UL)
+		{
 			status += MXL_ControlWrite(fe, EN_AAF, 1);
 			status += MXL_ControlWrite(fe, EN_3P, 1);
 			status += MXL_ControlWrite(fe, EN_AUX_3P, 1);
 			status += MXL_ControlWrite(fe, SEL_AAF_BAND, 0);
 		}
+
 		if ((state->IF_OUT == 36125000UL) ||
-			(state->IF_OUT == 36150000UL)) {
+			(state->IF_OUT == 36150000UL))
+		{
 			status += MXL_ControlWrite(fe, EN_AAF, 1);
 			status += MXL_ControlWrite(fe, EN_3P, 1);
 			status += MXL_ControlWrite(fe, EN_AUX_3P, 1);
 			status += MXL_ControlWrite(fe, SEL_AAF_BAND, 1);
 		}
-		if (state->IF_OUT > 36150000UL) {
+
+		if (state->IF_OUT > 36150000UL)
+		{
 			status += MXL_ControlWrite(fe, EN_AAF, 0);
 			status += MXL_ControlWrite(fe, EN_3P, 1);
 			status += MXL_ControlWrite(fe, EN_AUX_3P, 1);
 			status += MXL_ControlWrite(fe, SEL_AAF_BAND, 1);
 		}
-	} else { /* Analog Mode */
-		if (state->IF_OUT >= 4000000UL && state->IF_OUT <= 5000000UL) {
+	}
+	else     /* Analog Mode */
+	{
+		if (state->IF_OUT >= 4000000UL && state->IF_OUT <= 5000000UL)
+		{
 			status += MXL_ControlWrite(fe, EN_AAF, 1);
 			status += MXL_ControlWrite(fe, EN_3P, 1);
 			status += MXL_ControlWrite(fe, EN_AUX_3P, 1);
 			status += MXL_ControlWrite(fe, SEL_AAF_BAND, 0);
 		}
-		if (state->IF_OUT > 5000000UL) {
+
+		if (state->IF_OUT > 5000000UL)
+		{
 			status += MXL_ControlWrite(fe, EN_AAF, 0);
 			status += MXL_ControlWrite(fe, EN_3P, 0);
 			status += MXL_ControlWrite(fe, EN_AUX_3P, 0);
@@ -1922,47 +2001,75 @@ static u16 MXL_BlockInit(struct dvb_frontend *fe)
 
 	/* Demod Clock Out */
 	if (state->CLOCK_OUT)
+	{
 		status += MXL_ControlWrite(fe, SEQ_ENCLK16_CLK_OUT, 1);
+	}
 	else
+	{
 		status += MXL_ControlWrite(fe, SEQ_ENCLK16_CLK_OUT, 0);
+	}
 
 	if (state->DIV_OUT == 1)
+	{
 		status += MXL_ControlWrite(fe, SEQ_SEL4_16B, 1);
+	}
+
 	if (state->DIV_OUT == 0)
+	{
 		status += MXL_ControlWrite(fe, SEQ_SEL4_16B, 0);
+	}
 
 	/* Crystal Control */
 	if (state->CAPSELECT)
+	{
 		status += MXL_ControlWrite(fe, XTAL_CAPSELECT, 1);
+	}
 	else
+	{
 		status += MXL_ControlWrite(fe, XTAL_CAPSELECT, 0);
+	}
 
 	if (state->Fxtal >= 12000000UL && state->Fxtal <= 16000000UL)
+	{
 		status += MXL_ControlWrite(fe, IF_SEL_DBL, 1);
+	}
+
 	if (state->Fxtal > 16000000UL && state->Fxtal <= 32000000UL)
+	{
 		status += MXL_ControlWrite(fe, IF_SEL_DBL, 0);
+	}
 
 	if (state->Fxtal >= 12000000UL && state->Fxtal <= 22000000UL)
+	{
 		status += MXL_ControlWrite(fe, RFSYN_R_DIV, 3);
+	}
+
 	if (state->Fxtal > 22000000UL && state->Fxtal <= 32000000UL)
+	{
 		status += MXL_ControlWrite(fe, RFSYN_R_DIV, 0);
+	}
 
 	/* Misc Controls */
 	if (state->Mode == 0 && state->IF_Mode == 1) /* Analog LowIF mode */
+	{
 		status += MXL_ControlWrite(fe, SEQ_EXTIQFSMPULSE, 0);
+	}
 	else
+	{
 		status += MXL_ControlWrite(fe, SEQ_EXTIQFSMPULSE, 1);
+	}
 
 	/* status += MXL_ControlRead(fe, IF_DIVVAL, &IF_DIVVAL_Val); */
 
 	/* Set TG_R_DIV */
 	status += MXL_ControlWrite(fe, TG_R_DIV,
-		MXL_Ceiling(state->Fxtal, 1000000));
+							   MXL_Ceiling(state->Fxtal, 1000000));
 
 	/* Apply Default value to BB_INITSTATE_DLPF_TUNE */
 
 	/* RSSI Control */
-	if (state->EN_RSSI) {
+	if (state->EN_RSSI)
+	{
 		status += MXL_ControlWrite(fe, SEQ_EXTSYNTHCALIF, 1);
 		status += MXL_ControlWrite(fe, SEQ_EXTDCCAL, 1);
 		status += MXL_ControlWrite(fe, AGC_EN_RSSI, 1);
@@ -1981,7 +2088,8 @@ static u16 MXL_BlockInit(struct dvb_frontend *fe)
 	/* Modulation type bit settings
 	 * Override the control values preset
 	 */
-	if (state->Mod_Type == MXL_DVBT) /* DVB-T Mode */ {
+	if (state->Mod_Type == MXL_DVBT) /* DVB-T Mode */
+	{
 		state->AGC_Mode = 1; /* Single AGC Mode */
 
 		/* Enable RSSI */
@@ -1998,13 +2106,20 @@ static u16 MXL_BlockInit(struct dvb_frontend *fe)
 		/* TOP point */
 		status += MXL_ControlWrite(fe, RFA_FLR, 2);
 		status += MXL_ControlWrite(fe, RFA_CEIL, 13);
+
 		if (state->IF_OUT <= 6280000UL)	/* Low IF */
+		{
 			status += MXL_ControlWrite(fe, BB_IQSWAP, 0);
+		}
 		else /* High IF */
+		{
 			status += MXL_ControlWrite(fe, BB_IQSWAP, 1);
+		}
 
 	}
-	if (state->Mod_Type == MXL_ATSC) /* ATSC Mode */ {
+
+	if (state->Mod_Type == MXL_ATSC) /* ATSC Mode */
+	{
 		state->AGC_Mode = 1;	/* Single AGC Mode */
 
 		/* Enable RSSI */
@@ -2026,11 +2141,17 @@ static u16 MXL_BlockInit(struct dvb_frontend *fe)
 		status += MXL_ControlWrite(fe, RFSYN_CHP_GAIN, 5);
 
 		if (state->IF_OUT <= 6280000UL)	/* Low IF */
+		{
 			status += MXL_ControlWrite(fe, BB_IQSWAP, 0);
+		}
 		else /* High IF */
+		{
 			status += MXL_ControlWrite(fe, BB_IQSWAP, 1);
+		}
 	}
-	if (state->Mod_Type == MXL_QAM) /* QAM Mode */ {
+
+	if (state->Mod_Type == MXL_QAM) /* QAM Mode */
+	{
 		state->Mode = MXL_DIGITAL_MODE;
 
 		/* state->AGC_Mode = 1; */ /* Single AGC Mode */
@@ -2049,13 +2170,20 @@ static u16 MXL_BlockInit(struct dvb_frontend *fe)
 		status += MXL_ControlWrite(fe, RFSYN_CHP_GAIN, 3);
 
 		if (state->IF_OUT <= 6280000UL)	/* Low IF */
+		{
 			status += MXL_ControlWrite(fe, BB_IQSWAP, 0);
+		}
 		else /* High IF */
+		{
 			status += MXL_ControlWrite(fe, BB_IQSWAP, 1);
+		}
+
 		status += MXL_ControlWrite(fe, RFSYN_CHP_GAIN, 2);
 
 	}
-	if (state->Mod_Type == MXL_ANALOG_CABLE) {
+
+	if (state->Mod_Type == MXL_ANALOG_CABLE)
+	{
 		/* Analog Cable Mode */
 		/* state->Mode = MXL_DIGITAL_MODE; */
 
@@ -2072,7 +2200,8 @@ static u16 MXL_BlockInit(struct dvb_frontend *fe)
 		status += MXL_ControlWrite(fe, BB_IQSWAP, 1);
 	}
 
-	if (state->Mod_Type == MXL_ANALOG_OTA) {
+	if (state->Mod_Type == MXL_ANALOG_OTA)
+	{
 		/* Analog OTA Terrestrial mode add for 2.6.7 */
 		/* state->Mode = MXL_ANALOG_MODE; */
 
@@ -2091,7 +2220,8 @@ static u16 MXL_BlockInit(struct dvb_frontend *fe)
 	}
 
 	/* RSSI disable */
-	if (state->EN_RSSI == 0) {
+	if (state->EN_RSSI == 0)
+	{
 		status += MXL_ControlWrite(fe, SEQ_EXTSYNTHCALIF, 1);
 		status += MXL_ControlWrite(fe, SEQ_EXTDCCAL, 1);
 		status += MXL_ControlWrite(fe, AGC_EN_RSSI, 0);
@@ -2111,195 +2241,269 @@ static u16 MXL_IFSynthInit(struct dvb_frontend *fe)
 	Kdbl = 2 ;
 
 	if (state->Fxtal >= 12000000UL && state->Fxtal <= 16000000UL)
+	{
 		Kdbl = 2 ;
+	}
+
 	if (state->Fxtal > 16000000UL && state->Fxtal <= 32000000UL)
+	{
 		Kdbl = 1 ;
+	}
 
 	/* IF Synthesizer Control */
-	if (state->Mode == 0 && state->IF_Mode == 1) /* Analog Low IF mode */ {
-		if (state->IF_LO == 41000000UL) {
+	if (state->Mode == 0 && state->IF_Mode == 1) /* Analog Low IF mode */
+	{
+		if (state->IF_LO == 41000000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x08);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x0C);
 			Fref = 328000000UL ;
 		}
-		if (state->IF_LO == 47000000UL) {
+
+		if (state->IF_LO == 47000000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x08);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 376000000UL ;
 		}
-		if (state->IF_LO == 54000000UL) {
+
+		if (state->IF_LO == 54000000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x10);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x0C);
 			Fref = 324000000UL ;
 		}
-		if (state->IF_LO == 60000000UL) {
+
+		if (state->IF_LO == 60000000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x10);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 360000000UL ;
 		}
-		if (state->IF_LO == 39250000UL) {
+
+		if (state->IF_LO == 39250000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x08);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x0C);
 			Fref = 314000000UL ;
 		}
-		if (state->IF_LO == 39650000UL) {
+
+		if (state->IF_LO == 39650000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x08);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x0C);
 			Fref = 317200000UL ;
 		}
-		if (state->IF_LO == 40150000UL) {
+
+		if (state->IF_LO == 40150000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x08);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x0C);
 			Fref = 321200000UL ;
 		}
-		if (state->IF_LO == 40650000UL) {
+
+		if (state->IF_LO == 40650000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x08);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x0C);
 			Fref = 325200000UL ;
 		}
 	}
 
-	if (state->Mode || (state->Mode == 0 && state->IF_Mode == 0)) {
-		if (state->IF_LO == 57000000UL) {
+	if (state->Mode || (state->Mode == 0 && state->IF_Mode == 0))
+	{
+		if (state->IF_LO == 57000000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x10);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 342000000UL ;
 		}
-		if (state->IF_LO == 44000000UL) {
+
+		if (state->IF_LO == 44000000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x08);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 352000000UL ;
 		}
-		if (state->IF_LO == 43750000UL) {
+
+		if (state->IF_LO == 43750000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x08);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 350000000UL ;
 		}
-		if (state->IF_LO == 36650000UL) {
+
+		if (state->IF_LO == 36650000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x04);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 366500000UL ;
 		}
-		if (state->IF_LO == 36150000UL) {
+
+		if (state->IF_LO == 36150000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x04);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 361500000UL ;
 		}
-		if (state->IF_LO == 36000000UL) {
+
+		if (state->IF_LO == 36000000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x04);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 360000000UL ;
 		}
-		if (state->IF_LO == 35250000UL) {
+
+		if (state->IF_LO == 35250000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x04);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 352500000UL ;
 		}
-		if (state->IF_LO == 34750000UL) {
+
+		if (state->IF_LO == 34750000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x04);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 347500000UL ;
 		}
-		if (state->IF_LO == 6280000UL) {
+
+		if (state->IF_LO == 6280000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x07);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 376800000UL ;
 		}
-		if (state->IF_LO == 5000000UL) {
+
+		if (state->IF_LO == 5000000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x09);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 360000000UL ;
 		}
-		if (state->IF_LO == 4500000UL) {
+
+		if (state->IF_LO == 4500000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x06);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 360000000UL ;
 		}
-		if (state->IF_LO == 4570000UL) {
+
+		if (state->IF_LO == 4570000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x06);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 365600000UL ;
 		}
-		if (state->IF_LO == 4000000UL) {
+
+		if (state->IF_LO == 4000000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x05);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 360000000UL ;
 		}
-		if (state->IF_LO == 57400000UL) {
+
+		if (state->IF_LO == 57400000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x10);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 344400000UL ;
 		}
-		if (state->IF_LO == 44400000UL) {
+
+		if (state->IF_LO == 44400000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x08);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 355200000UL ;
 		}
-		if (state->IF_LO == 44150000UL) {
+
+		if (state->IF_LO == 44150000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x08);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 353200000UL ;
 		}
-		if (state->IF_LO == 37050000UL) {
+
+		if (state->IF_LO == 37050000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x04);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 370500000UL ;
 		}
-		if (state->IF_LO == 36550000UL) {
+
+		if (state->IF_LO == 36550000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x04);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 365500000UL ;
 		}
-		if (state->IF_LO == 36125000UL) {
+
+		if (state->IF_LO == 36125000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x04);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 361250000UL ;
 		}
-		if (state->IF_LO == 6000000UL) {
+
+		if (state->IF_LO == 6000000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x07);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 360000000UL ;
 		}
-		if (state->IF_LO == 5400000UL) {
+
+		if (state->IF_LO == 5400000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x07);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x0C);
 			Fref = 324000000UL ;
 		}
-		if (state->IF_LO == 5380000UL) {
+
+		if (state->IF_LO == 5380000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x07);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x0C);
 			Fref = 322800000UL ;
 		}
-		if (state->IF_LO == 5200000UL) {
+
+		if (state->IF_LO == 5200000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x09);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 374400000UL ;
 		}
-		if (state->IF_LO == 4900000UL) {
+
+		if (state->IF_LO == 4900000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x09);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 352800000UL ;
 		}
-		if (state->IF_LO == 4400000UL) {
+
+		if (state->IF_LO == 4400000UL)
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x06);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 352000000UL ;
 		}
-		if (state->IF_LO == 4063000UL)  /* add for 2.6.8 */ {
+
+		if (state->IF_LO == 4063000UL)  /* add for 2.6.8 */
+		{
 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x05);
 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 			Fref = 365670000UL ;
 		}
 	}
+
 	/* CHCAL_INT_MOD_IF */
 	/* CHCAL_FRAC_MOD_IF */
-	intModVal = Fref / (state->Fxtal * Kdbl/2);
+	intModVal = Fref / (state->Fxtal * Kdbl / 2);
 	status += MXL_ControlWrite(fe, CHCAL_INT_MOD_IF, intModVal);
 
-	fracModVal = (2<<15)*(Fref/1000 - (state->Fxtal/1000 * Kdbl/2) *
-		intModVal);
+	fracModVal = (2 << 15) * (Fref / 1000 - (state->Fxtal / 1000 * Kdbl / 2) *
+							  intModVal);
 
-	fracModVal = fracModVal / ((state->Fxtal * Kdbl/2)/1000);
+	fracModVal = fracModVal / ((state->Fxtal * Kdbl / 2) / 1000);
 	status += MXL_ControlWrite(fe, CHCAL_FRAC_MOD_IF, fracModVal);
 
 	return status ;
@@ -2323,9 +2527,14 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 	MXL_SynthRFTGLO_Calc(fe);
 
 	if (state->Fxtal >= 12000000UL && state->Fxtal <= 22000000UL)
+	{
 		Kdbl_RF = 2;
+	}
+
 	if (state->Fxtal > 22000000 && state->Fxtal <= 32000000)
+	{
 		Kdbl_RF = 1;
+	}
 
 	/* Downconverter Controls
 	 * Look-Up Table Implementation for:
@@ -2337,123 +2546,172 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 	 *  Change the boundary reference from RF_IN to RF_LO
 	 */
 	if (state->RF_LO < 40000000UL)
+	{
 		return -1;
+	}
 
-	if (state->RF_LO >= 40000000UL && state->RF_LO <= 75000000UL) {
+	if (state->RF_LO >= 40000000UL && state->RF_LO <= 75000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_POLY,              2);
 		status += MXL_ControlWrite(fe, DN_RFGAIN,            3);
 		status += MXL_ControlWrite(fe, DN_CAP_RFLPF,         423);
 		status += MXL_ControlWrite(fe, DN_EN_VHFUHFBAR,      1);
 		status += MXL_ControlWrite(fe, DN_GAIN_ADJUST,       1);
 	}
-	if (state->RF_LO > 75000000UL && state->RF_LO <= 100000000UL) {
+
+	if (state->RF_LO > 75000000UL && state->RF_LO <= 100000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_POLY,              3);
 		status += MXL_ControlWrite(fe, DN_RFGAIN,            3);
 		status += MXL_ControlWrite(fe, DN_CAP_RFLPF,         222);
 		status += MXL_ControlWrite(fe, DN_EN_VHFUHFBAR,      1);
 		status += MXL_ControlWrite(fe, DN_GAIN_ADJUST,       1);
 	}
-	if (state->RF_LO > 100000000UL && state->RF_LO <= 150000000UL) {
+
+	if (state->RF_LO > 100000000UL && state->RF_LO <= 150000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_POLY,              3);
 		status += MXL_ControlWrite(fe, DN_RFGAIN,            3);
 		status += MXL_ControlWrite(fe, DN_CAP_RFLPF,         147);
 		status += MXL_ControlWrite(fe, DN_EN_VHFUHFBAR,      1);
 		status += MXL_ControlWrite(fe, DN_GAIN_ADJUST,       2);
 	}
-	if (state->RF_LO > 150000000UL && state->RF_LO <= 200000000UL) {
+
+	if (state->RF_LO > 150000000UL && state->RF_LO <= 200000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_POLY,              3);
 		status += MXL_ControlWrite(fe, DN_RFGAIN,            3);
 		status += MXL_ControlWrite(fe, DN_CAP_RFLPF,         9);
 		status += MXL_ControlWrite(fe, DN_EN_VHFUHFBAR,      1);
 		status += MXL_ControlWrite(fe, DN_GAIN_ADJUST,       2);
 	}
-	if (state->RF_LO > 200000000UL && state->RF_LO <= 300000000UL) {
+
+	if (state->RF_LO > 200000000UL && state->RF_LO <= 300000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_POLY,              3);
 		status += MXL_ControlWrite(fe, DN_RFGAIN,            3);
 		status += MXL_ControlWrite(fe, DN_CAP_RFLPF,         0);
 		status += MXL_ControlWrite(fe, DN_EN_VHFUHFBAR,      1);
 		status += MXL_ControlWrite(fe, DN_GAIN_ADJUST,       3);
 	}
-	if (state->RF_LO > 300000000UL && state->RF_LO <= 650000000UL) {
+
+	if (state->RF_LO > 300000000UL && state->RF_LO <= 650000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_POLY,              3);
 		status += MXL_ControlWrite(fe, DN_RFGAIN,            1);
 		status += MXL_ControlWrite(fe, DN_CAP_RFLPF,         0);
 		status += MXL_ControlWrite(fe, DN_EN_VHFUHFBAR,      0);
 		status += MXL_ControlWrite(fe, DN_GAIN_ADJUST,       3);
 	}
-	if (state->RF_LO > 650000000UL && state->RF_LO <= 900000000UL) {
+
+	if (state->RF_LO > 650000000UL && state->RF_LO <= 900000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_POLY,              3);
 		status += MXL_ControlWrite(fe, DN_RFGAIN,            2);
 		status += MXL_ControlWrite(fe, DN_CAP_RFLPF,         0);
 		status += MXL_ControlWrite(fe, DN_EN_VHFUHFBAR,      0);
 		status += MXL_ControlWrite(fe, DN_GAIN_ADJUST,       3);
 	}
+
 	if (state->RF_LO > 900000000UL)
+	{
 		return -1;
+	}
 
 	/*	DN_IQTNBUF_AMP */
 	/*	DN_IQTNGNBFBIAS_BST */
-	if (state->RF_LO >= 40000000UL && state->RF_LO <= 75000000UL) {
+	if (state->RF_LO >= 40000000UL && state->RF_LO <= 75000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_IQTNBUF_AMP,       1);
 		status += MXL_ControlWrite(fe, DN_IQTNGNBFBIAS_BST,  0);
 	}
-	if (state->RF_LO > 75000000UL && state->RF_LO <= 100000000UL) {
+
+	if (state->RF_LO > 75000000UL && state->RF_LO <= 100000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_IQTNBUF_AMP,       1);
 		status += MXL_ControlWrite(fe, DN_IQTNGNBFBIAS_BST,  0);
 	}
-	if (state->RF_LO > 100000000UL && state->RF_LO <= 150000000UL) {
+
+	if (state->RF_LO > 100000000UL && state->RF_LO <= 150000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_IQTNBUF_AMP,       1);
 		status += MXL_ControlWrite(fe, DN_IQTNGNBFBIAS_BST,  0);
 	}
-	if (state->RF_LO > 150000000UL && state->RF_LO <= 200000000UL) {
+
+	if (state->RF_LO > 150000000UL && state->RF_LO <= 200000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_IQTNBUF_AMP,       1);
 		status += MXL_ControlWrite(fe, DN_IQTNGNBFBIAS_BST,  0);
 	}
-	if (state->RF_LO > 200000000UL && state->RF_LO <= 300000000UL) {
+
+	if (state->RF_LO > 200000000UL && state->RF_LO <= 300000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_IQTNBUF_AMP,       1);
 		status += MXL_ControlWrite(fe, DN_IQTNGNBFBIAS_BST,  0);
 	}
-	if (state->RF_LO > 300000000UL && state->RF_LO <= 400000000UL) {
+
+	if (state->RF_LO > 300000000UL && state->RF_LO <= 400000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_IQTNBUF_AMP,       1);
 		status += MXL_ControlWrite(fe, DN_IQTNGNBFBIAS_BST,  0);
 	}
-	if (state->RF_LO > 400000000UL && state->RF_LO <= 450000000UL) {
+
+	if (state->RF_LO > 400000000UL && state->RF_LO <= 450000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_IQTNBUF_AMP,       1);
 		status += MXL_ControlWrite(fe, DN_IQTNGNBFBIAS_BST,  0);
 	}
-	if (state->RF_LO > 450000000UL && state->RF_LO <= 500000000UL) {
+
+	if (state->RF_LO > 450000000UL && state->RF_LO <= 500000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_IQTNBUF_AMP,       1);
 		status += MXL_ControlWrite(fe, DN_IQTNGNBFBIAS_BST,  0);
 	}
-	if (state->RF_LO > 500000000UL && state->RF_LO <= 550000000UL) {
+
+	if (state->RF_LO > 500000000UL && state->RF_LO <= 550000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_IQTNBUF_AMP,       1);
 		status += MXL_ControlWrite(fe, DN_IQTNGNBFBIAS_BST,  0);
 	}
-	if (state->RF_LO > 550000000UL && state->RF_LO <= 600000000UL) {
+
+	if (state->RF_LO > 550000000UL && state->RF_LO <= 600000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_IQTNBUF_AMP,       1);
 		status += MXL_ControlWrite(fe, DN_IQTNGNBFBIAS_BST,  0);
 	}
-	if (state->RF_LO > 600000000UL && state->RF_LO <= 650000000UL) {
+
+	if (state->RF_LO > 600000000UL && state->RF_LO <= 650000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_IQTNBUF_AMP,       1);
 		status += MXL_ControlWrite(fe, DN_IQTNGNBFBIAS_BST,  0);
 	}
-	if (state->RF_LO > 650000000UL && state->RF_LO <= 700000000UL) {
+
+	if (state->RF_LO > 650000000UL && state->RF_LO <= 700000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_IQTNBUF_AMP,       1);
 		status += MXL_ControlWrite(fe, DN_IQTNGNBFBIAS_BST,  0);
 	}
-	if (state->RF_LO > 700000000UL && state->RF_LO <= 750000000UL) {
+
+	if (state->RF_LO > 700000000UL && state->RF_LO <= 750000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_IQTNBUF_AMP,       1);
 		status += MXL_ControlWrite(fe, DN_IQTNGNBFBIAS_BST,  0);
 	}
-	if (state->RF_LO > 750000000UL && state->RF_LO <= 800000000UL) {
+
+	if (state->RF_LO > 750000000UL && state->RF_LO <= 800000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_IQTNBUF_AMP,       1);
 		status += MXL_ControlWrite(fe, DN_IQTNGNBFBIAS_BST,  0);
 	}
-	if (state->RF_LO > 800000000UL && state->RF_LO <= 850000000UL) {
+
+	if (state->RF_LO > 800000000UL && state->RF_LO <= 850000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_IQTNBUF_AMP,       10);
 		status += MXL_ControlWrite(fe, DN_IQTNGNBFBIAS_BST,  1);
 	}
-	if (state->RF_LO > 850000000UL && state->RF_LO <= 900000000UL) {
+
+	if (state->RF_LO > 850000000UL && state->RF_LO <= 900000000UL)
+	{
 		status += MXL_ControlWrite(fe, DN_IQTNBUF_AMP,       10);
 		status += MXL_ControlWrite(fe, DN_IQTNGNBFBIAS_BST,  1);
 	}
@@ -2473,7 +2731,9 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 	 */
 	FminBin = 28000000UL ;
 	FmaxBin = 42500000UL ;
-	if (state->RF_LO >= 40000000UL && state->RF_LO <= FmaxBin) {
+
+	if (state->RF_LO >= 40000000UL && state->RF_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, RFSYN_EN_OUTMUX,     1);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_OUT,   0);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI,    0);
@@ -2484,9 +2744,12 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 		Fmax = FmaxBin ;
 		Fmin = FminBin ;
 	}
+
 	FminBin = 42500000UL ;
 	FmaxBin = 56000000UL ;
-	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin) {
+
+	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, RFSYN_EN_OUTMUX,     1);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_OUT,   0);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI,    1);
@@ -2497,9 +2760,12 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 		Fmax = FmaxBin ;
 		Fmin = FminBin ;
 	}
+
 	FminBin = 56000000UL ;
 	FmaxBin = 85000000UL ;
-	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin) {
+
+	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, RFSYN_EN_OUTMUX,     0);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_OUT,   1);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI,    0);
@@ -2510,9 +2776,12 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 		Fmax = FmaxBin ;
 		Fmin = FminBin ;
 	}
+
 	FminBin = 85000000UL ;
 	FmaxBin = 112000000UL ;
-	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin) {
+
+	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, RFSYN_EN_OUTMUX,     0);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_OUT,   1);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI,    1);
@@ -2523,9 +2792,12 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 		Fmax = FmaxBin ;
 		Fmin = FminBin ;
 	}
+
 	FminBin = 112000000UL ;
 	FmaxBin = 170000000UL ;
-	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin) {
+
+	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, RFSYN_EN_OUTMUX,     0);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_OUT,   1);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI,    0);
@@ -2536,9 +2808,12 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 		Fmax = FmaxBin ;
 		Fmin = FminBin ;
 	}
+
 	FminBin = 170000000UL ;
 	FmaxBin = 225000000UL ;
-	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin) {
+
+	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, RFSYN_EN_OUTMUX,     0);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_OUT,   1);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI,    1);
@@ -2549,9 +2824,12 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 		Fmax = FmaxBin ;
 		Fmin = FminBin ;
 	}
+
 	FminBin = 225000000UL ;
 	FmaxBin = 300000000UL ;
-	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin) {
+
+	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, RFSYN_EN_OUTMUX,     0);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_OUT,   1);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI,    0);
@@ -2562,9 +2840,12 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 		Fmax = 340000000UL ;
 		Fmin = FminBin ;
 	}
+
 	FminBin = 300000000UL ;
 	FmaxBin = 340000000UL ;
-	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin) {
+
+	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, RFSYN_EN_OUTMUX,     1);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_OUT,   0);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI,    0);
@@ -2575,9 +2856,12 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 		Fmax = FmaxBin ;
 		Fmin = 225000000UL ;
 	}
+
 	FminBin = 340000000UL ;
 	FmaxBin = 450000000UL ;
-	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin) {
+
+	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, RFSYN_EN_OUTMUX,     1);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_OUT,   0);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI,    1);
@@ -2588,9 +2872,12 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 		Fmax = FmaxBin ;
 		Fmin = FminBin ;
 	}
+
 	FminBin = 450000000UL ;
 	FmaxBin = 680000000UL ;
-	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin) {
+
+	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, RFSYN_EN_OUTMUX,     0);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_OUT,   1);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI,    0);
@@ -2601,9 +2888,12 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 		Fmax = FmaxBin ;
 		Fmin = FminBin ;
 	}
+
 	FminBin = 680000000UL ;
 	FmaxBin = 900000000UL ;
-	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin) {
+
+	if (state->RF_LO > FminBin && state->RF_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, RFSYN_EN_OUTMUX,     0);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_OUT,   1);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI,    1);
@@ -2621,22 +2911,22 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 	 *	CHCAL_EN_INT_RF
 	 */
 	/* Equation E3 RFSYN_VCO_BIAS */
-	E3 = (((Fmax-state->RF_LO)/1000)*32)/((Fmax-Fmin)/1000) + 8 ;
+	E3 = (((Fmax - state->RF_LO) / 1000) * 32) / ((Fmax - Fmin) / 1000) + 8 ;
 	status += MXL_ControlWrite(fe, RFSYN_VCO_BIAS, E3);
 
 	/* Equation E4 CHCAL_INT_MOD_RF */
-	E4 = (state->RF_LO*divider_val/1000)/(2*state->Fxtal*Kdbl_RF/1000);
+	E4 = (state->RF_LO * divider_val / 1000) / (2 * state->Fxtal * Kdbl_RF / 1000);
 	MXL_ControlWrite(fe, CHCAL_INT_MOD_RF, E4);
 
 	/* Equation E5 CHCAL_FRAC_MOD_RF CHCAL_EN_INT_RF */
-	E5 = ((2<<17)*(state->RF_LO/10000*divider_val -
-		(E4*(2*state->Fxtal*Kdbl_RF)/10000))) /
-		(2*state->Fxtal*Kdbl_RF/10000);
+	E5 = ((2 << 17) * (state->RF_LO / 10000 * divider_val -
+					   (E4 * (2 * state->Fxtal * Kdbl_RF) / 10000))) /
+		 (2 * state->Fxtal * Kdbl_RF / 10000);
 
 	status += MXL_ControlWrite(fe, CHCAL_FRAC_MOD_RF, E5);
 
 	/* Equation E5A RFSYN_LPF_R */
-	E5A = (((Fmax - state->RF_LO)/1000)*4/((Fmax-Fmin)/1000)) + 1 ;
+	E5A = (((Fmax - state->RF_LO) / 1000) * 4 / ((Fmax - Fmin) / 1000)) + 1 ;
 	status += MXL_ControlWrite(fe, RFSYN_LPF_R, E5A);
 
 	/* Euqation E5B CHCAL_EN_INIT_RF */
@@ -2657,83 +2947,111 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 	 * Set divider_val, Fmax, Fmix to use in Equations
 	 */
 	if (state->TG_LO < 33000000UL)
+	{
 		return -1;
+	}
 
 	FminBin = 33000000UL ;
 	FmaxBin = 50000000UL ;
-	if (state->TG_LO >= FminBin && state->TG_LO <= FmaxBin) {
+
+	if (state->TG_LO >= FminBin && state->TG_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, TG_LO_DIVVAL,	0x6);
 		status += MXL_ControlWrite(fe, TG_LO_SELVAL,	0x0);
 		divider_val = 36 ;
 		Fmax = FmaxBin ;
 		Fmin = FminBin ;
 	}
+
 	FminBin = 50000000UL ;
 	FmaxBin = 67000000UL ;
-	if (state->TG_LO > FminBin && state->TG_LO <= FmaxBin) {
+
+	if (state->TG_LO > FminBin && state->TG_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, TG_LO_DIVVAL,	0x1);
 		status += MXL_ControlWrite(fe, TG_LO_SELVAL,	0x0);
 		divider_val = 24 ;
 		Fmax = FmaxBin ;
 		Fmin = FminBin ;
 	}
+
 	FminBin = 67000000UL ;
 	FmaxBin = 100000000UL ;
-	if (state->TG_LO > FminBin && state->TG_LO <= FmaxBin) {
+
+	if (state->TG_LO > FminBin && state->TG_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, TG_LO_DIVVAL,	0xC);
 		status += MXL_ControlWrite(fe, TG_LO_SELVAL,	0x2);
 		divider_val = 18 ;
 		Fmax = FmaxBin ;
 		Fmin = FminBin ;
 	}
+
 	FminBin = 100000000UL ;
 	FmaxBin = 150000000UL ;
-	if (state->TG_LO > FminBin && state->TG_LO <= FmaxBin) {
+
+	if (state->TG_LO > FminBin && state->TG_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, TG_LO_DIVVAL,	0x8);
 		status += MXL_ControlWrite(fe, TG_LO_SELVAL,	0x2);
 		divider_val = 12 ;
 		Fmax = FmaxBin ;
 		Fmin = FminBin ;
 	}
+
 	FminBin = 150000000UL ;
 	FmaxBin = 200000000UL ;
-	if (state->TG_LO > FminBin && state->TG_LO <= FmaxBin) {
+
+	if (state->TG_LO > FminBin && state->TG_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, TG_LO_DIVVAL,	0x0);
 		status += MXL_ControlWrite(fe, TG_LO_SELVAL,	0x2);
 		divider_val = 8 ;
 		Fmax = FmaxBin ;
 		Fmin = FminBin ;
 	}
+
 	FminBin = 200000000UL ;
 	FmaxBin = 300000000UL ;
-	if (state->TG_LO > FminBin && state->TG_LO <= FmaxBin) {
+
+	if (state->TG_LO > FminBin && state->TG_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, TG_LO_DIVVAL,	0x8);
 		status += MXL_ControlWrite(fe, TG_LO_SELVAL,	0x3);
 		divider_val = 6 ;
 		Fmax = FmaxBin ;
 		Fmin = FminBin ;
 	}
+
 	FminBin = 300000000UL ;
 	FmaxBin = 400000000UL ;
-	if (state->TG_LO > FminBin && state->TG_LO <= FmaxBin) {
+
+	if (state->TG_LO > FminBin && state->TG_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, TG_LO_DIVVAL,	0x0);
 		status += MXL_ControlWrite(fe, TG_LO_SELVAL,	0x3);
 		divider_val = 4 ;
 		Fmax = FmaxBin ;
 		Fmin = FminBin ;
 	}
+
 	FminBin = 400000000UL ;
 	FmaxBin = 600000000UL ;
-	if (state->TG_LO > FminBin && state->TG_LO <= FmaxBin) {
+
+	if (state->TG_LO > FminBin && state->TG_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, TG_LO_DIVVAL,	0x8);
 		status += MXL_ControlWrite(fe, TG_LO_SELVAL,	0x7);
 		divider_val = 3 ;
 		Fmax = FmaxBin ;
 		Fmin = FminBin ;
 	}
+
 	FminBin = 600000000UL ;
 	FmaxBin = 900000000UL ;
-	if (state->TG_LO > FminBin && state->TG_LO <= FmaxBin) {
+
+	if (state->TG_LO > FminBin && state->TG_LO <= FmaxBin)
+	{
 		status += MXL_ControlWrite(fe, TG_LO_DIVVAL,	0x0);
 		status += MXL_ControlWrite(fe, TG_LO_SELVAL,	0x7);
 		divider_val = 2 ;
@@ -2742,14 +3060,16 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 	}
 
 	/* TG_DIV_VAL */
-	tg_divval = (state->TG_LO*divider_val/100000) *
-		(MXL_Ceiling(state->Fxtal, 1000000) * 100) /
-		(state->Fxtal/1000);
+	tg_divval = (state->TG_LO * divider_val / 100000) *
+				(MXL_Ceiling(state->Fxtal, 1000000) * 100) /
+				(state->Fxtal / 1000);
 
 	status += MXL_ControlWrite(fe, TG_DIV_VAL, tg_divval);
 
 	if (state->TG_LO > 600000000UL)
+	{
 		status += MXL_ControlWrite(fe, TG_DIV_VAL, tg_divval + 1);
+	}
 
 	Fmax = 1800000000UL ;
 	Fmin = 1200000000UL ;
@@ -2758,12 +3078,12 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 	 * following equation. Edit for v2.6.4
 	 */
 	/* Fref_TF = Fref_TG * 1000 */
-	Fref_TG = (state->Fxtal/1000) / MXL_Ceiling(state->Fxtal, 1000000);
+	Fref_TG = (state->Fxtal / 1000) / MXL_Ceiling(state->Fxtal, 1000000);
 
 	/* Fvco = Fvco/10 */
-	Fvco = (state->TG_LO/10000) * divider_val * Fref_TG;
+	Fvco = (state->TG_LO / 10000) * divider_val * Fref_TG;
 
-	tg_lo = (((Fmax/10 - Fvco)/100)*32) / ((Fmax-Fmin)/1000)+8;
+	tg_lo = (((Fmax / 10 - Fvco) / 100) * 32) / ((Fmax - Fmin) / 1000) + 8;
 
 	/* below equation is same as above but much harder to debug.
 	 *
@@ -2785,18 +3105,24 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 	status += MXL_ControlWrite(fe, TG_VCO_BIAS , tg_lo);
 
 	/* add for 2.6.5 Special setting for QAM */
-	if (state->Mod_Type == MXL_QAM) {
+	if (state->Mod_Type == MXL_QAM)
+	{
 		if (state->config->qam_gain != 0)
 			status += MXL_ControlWrite(fe, RFSYN_CHP_GAIN,
-						   state->config->qam_gain);
+									   state->config->qam_gain);
 		else if (state->RF_IN < 680000000)
+		{
 			status += MXL_ControlWrite(fe, RFSYN_CHP_GAIN, 3);
+		}
 		else
+		{
 			status += MXL_ControlWrite(fe, RFSYN_CHP_GAIN, 2);
+		}
 	}
 
 	/* Off Chip Tracking Filter Control */
-	if (state->TF_Type == MXL_TF_OFF) {
+	if (state->TF_Type == MXL_TF_OFF)
+	{
 		/* Tracking Filter Off State; turn off all the banks */
 		status += MXL_ControlWrite(fe, DAC_A_ENABLE, 0);
 		status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
@@ -2805,67 +3131,85 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 		status += MXL_SetGPIO(fe, 4, 1); /* Bank3 Off */
 	}
 
-	if (state->TF_Type == MXL_TF_C) /* Tracking Filter type C */ {
+	if (state->TF_Type == MXL_TF_C) /* Tracking Filter type C */
+	{
 		status += MXL_ControlWrite(fe, DAC_B_ENABLE, 1);
 		status += MXL_ControlWrite(fe, DAC_DIN_A, 0);
 
-		if (state->RF_IN >= 43000000 && state->RF_IN < 150000000) {
+		if (state->RF_IN >= 43000000 && state->RF_IN < 150000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_A_ENABLE, 0);
 			status += MXL_ControlWrite(fe, DAC_DIN_B, 0);
 			status += MXL_SetGPIO(fe, 3, 0);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 		}
-		if (state->RF_IN >= 150000000 && state->RF_IN < 280000000) {
+
+		if (state->RF_IN >= 150000000 && state->RF_IN < 280000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_A_ENABLE, 0);
 			status += MXL_ControlWrite(fe, DAC_DIN_B, 0);
 			status += MXL_SetGPIO(fe, 3, 1);
 			status += MXL_SetGPIO(fe, 1, 0);
 			status += MXL_SetGPIO(fe, 4, 1);
 		}
-		if (state->RF_IN >= 280000000 && state->RF_IN < 360000000) {
+
+		if (state->RF_IN >= 280000000 && state->RF_IN < 360000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_A_ENABLE, 0);
 			status += MXL_ControlWrite(fe, DAC_DIN_B, 0);
 			status += MXL_SetGPIO(fe, 3, 1);
 			status += MXL_SetGPIO(fe, 1, 0);
 			status += MXL_SetGPIO(fe, 4, 0);
 		}
-		if (state->RF_IN >= 360000000 && state->RF_IN < 560000000) {
+
+		if (state->RF_IN >= 360000000 && state->RF_IN < 560000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_A_ENABLE, 0);
 			status += MXL_ControlWrite(fe, DAC_DIN_B, 0);
 			status += MXL_SetGPIO(fe, 3, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 4, 0);
 		}
-		if (state->RF_IN >= 560000000 && state->RF_IN < 580000000) {
+
+		if (state->RF_IN >= 560000000 && state->RF_IN < 580000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_A_ENABLE, 1);
 			status += MXL_ControlWrite(fe, DAC_DIN_B, 29);
 			status += MXL_SetGPIO(fe, 3, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 4, 0);
 		}
-		if (state->RF_IN >= 580000000 && state->RF_IN < 630000000) {
+
+		if (state->RF_IN >= 580000000 && state->RF_IN < 630000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_A_ENABLE, 1);
 			status += MXL_ControlWrite(fe, DAC_DIN_B, 0);
 			status += MXL_SetGPIO(fe, 3, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 4, 0);
 		}
-		if (state->RF_IN >= 630000000 && state->RF_IN < 700000000) {
+
+		if (state->RF_IN >= 630000000 && state->RF_IN < 700000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_A_ENABLE, 1);
 			status += MXL_ControlWrite(fe, DAC_DIN_B, 16);
 			status += MXL_SetGPIO(fe, 3, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 		}
-		if (state->RF_IN >= 700000000 && state->RF_IN < 760000000) {
+
+		if (state->RF_IN >= 700000000 && state->RF_IN < 760000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_A_ENABLE, 1);
 			status += MXL_ControlWrite(fe, DAC_DIN_B, 7);
 			status += MXL_SetGPIO(fe, 3, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 		}
-		if (state->RF_IN >= 760000000 && state->RF_IN <= 900000000) {
+
+		if (state->RF_IN >= 760000000 && state->RF_IN <= 900000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_A_ENABLE, 1);
 			status += MXL_ControlWrite(fe, DAC_DIN_B, 0);
 			status += MXL_SetGPIO(fe, 3, 1);
@@ -2874,60 +3218,78 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 		}
 	}
 
-	if (state->TF_Type == MXL_TF_C_H) {
+	if (state->TF_Type == MXL_TF_C_H)
+	{
 
 		/* Tracking Filter type C-H for Hauppauge only */
 		status += MXL_ControlWrite(fe, DAC_DIN_A, 0);
 
-		if (state->RF_IN >= 43000000 && state->RF_IN < 150000000) {
+		if (state->RF_IN >= 43000000 && state->RF_IN < 150000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_A_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 0);
 			status += MXL_SetGPIO(fe, 3, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
 		}
-		if (state->RF_IN >= 150000000 && state->RF_IN < 280000000) {
+
+		if (state->RF_IN >= 150000000 && state->RF_IN < 280000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_A_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 3, 0);
 			status += MXL_SetGPIO(fe, 1, 1);
 		}
-		if (state->RF_IN >= 280000000 && state->RF_IN < 360000000) {
+
+		if (state->RF_IN >= 280000000 && state->RF_IN < 360000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_A_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 3, 0);
 			status += MXL_SetGPIO(fe, 1, 0);
 		}
-		if (state->RF_IN >= 360000000 && state->RF_IN < 560000000) {
+
+		if (state->RF_IN >= 360000000 && state->RF_IN < 560000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_A_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 3, 1);
 			status += MXL_SetGPIO(fe, 1, 0);
 		}
-		if (state->RF_IN >= 560000000 && state->RF_IN < 580000000) {
+
+		if (state->RF_IN >= 560000000 && state->RF_IN < 580000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_A_ENABLE, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 3, 1);
 			status += MXL_SetGPIO(fe, 1, 0);
 		}
-		if (state->RF_IN >= 580000000 && state->RF_IN < 630000000) {
+
+		if (state->RF_IN >= 580000000 && state->RF_IN < 630000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_A_ENABLE, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 3, 1);
 			status += MXL_SetGPIO(fe, 1, 0);
 		}
-		if (state->RF_IN >= 630000000 && state->RF_IN < 700000000) {
+
+		if (state->RF_IN >= 630000000 && state->RF_IN < 700000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_A_ENABLE, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 3, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
 		}
-		if (state->RF_IN >= 700000000 && state->RF_IN < 760000000) {
+
+		if (state->RF_IN >= 700000000 && state->RF_IN < 760000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_A_ENABLE, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 3, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
 		}
-		if (state->RF_IN >= 760000000 && state->RF_IN <= 900000000) {
+
+		if (state->RF_IN >= 760000000 && state->RF_IN <= 900000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_A_ENABLE, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 3, 1);
@@ -2935,47 +3297,61 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 		}
 	}
 
-	if (state->TF_Type == MXL_TF_D) { /* Tracking Filter type D */
+	if (state->TF_Type == MXL_TF_D)   /* Tracking Filter type D */
+	{
 
 		status += MXL_ControlWrite(fe, DAC_DIN_B, 0);
 
-		if (state->RF_IN >= 43000000 && state->RF_IN < 174000000) {
+		if (state->RF_IN >= 43000000 && state->RF_IN < 174000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 0);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 3, 1);
 		}
-		if (state->RF_IN >= 174000000 && state->RF_IN < 250000000) {
+
+		if (state->RF_IN >= 174000000 && state->RF_IN < 250000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 0);
 			status += MXL_SetGPIO(fe, 1, 0);
 			status += MXL_SetGPIO(fe, 3, 1);
 		}
-		if (state->RF_IN >= 250000000 && state->RF_IN < 310000000) {
+
+		if (state->RF_IN >= 250000000 && state->RF_IN < 310000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 0);
 			status += MXL_SetGPIO(fe, 3, 1);
 		}
-		if (state->RF_IN >= 310000000 && state->RF_IN < 360000000) {
+
+		if (state->RF_IN >= 310000000 && state->RF_IN < 360000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 0);
 			status += MXL_SetGPIO(fe, 3, 0);
 		}
-		if (state->RF_IN >= 360000000 && state->RF_IN < 470000000) {
+
+		if (state->RF_IN >= 360000000 && state->RF_IN < 470000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 3, 0);
 		}
-		if (state->RF_IN >= 470000000 && state->RF_IN < 640000000) {
+
+		if (state->RF_IN >= 470000000 && state->RF_IN < 640000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 3, 0);
 		}
-		if (state->RF_IN >= 640000000 && state->RF_IN <= 900000000) {
+
+		if (state->RF_IN >= 640000000 && state->RF_IN <= 900000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
@@ -2983,81 +3359,102 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 		}
 	}
 
-	if (state->TF_Type == MXL_TF_D_L) {
+	if (state->TF_Type == MXL_TF_D_L)
+	{
 
 		/* Tracking Filter type D-L for Lumanate ONLY change 2.6.3 */
 		status += MXL_ControlWrite(fe, DAC_DIN_A, 0);
 
 		/* if UHF and terrestrial => Turn off Tracking Filter */
 		if (state->RF_IN >= 471000000 &&
-			(state->RF_IN - 471000000)%6000000 != 0) {
+			(state->RF_IN - 471000000) % 6000000 != 0)
+		{
 			/* Turn off all the banks */
 			status += MXL_SetGPIO(fe, 3, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_ControlWrite(fe, DAC_A_ENABLE, 0);
 			status += MXL_ControlWrite(fe, AGC_IF, 10);
-		} else {
+		}
+		else
+		{
 			/* if VHF or cable => Turn on Tracking Filter */
 			if (state->RF_IN >= 43000000 &&
-				state->RF_IN < 140000000) {
+				state->RF_IN < 140000000)
+			{
 
 				status += MXL_ControlWrite(fe, DAC_A_ENABLE, 0);
 				status += MXL_SetGPIO(fe, 4, 1);
 				status += MXL_SetGPIO(fe, 1, 1);
 				status += MXL_SetGPIO(fe, 3, 0);
 			}
+
 			if (state->RF_IN >= 140000000 &&
-				state->RF_IN < 240000000) {
+				state->RF_IN < 240000000)
+			{
 				status += MXL_ControlWrite(fe, DAC_A_ENABLE, 0);
 				status += MXL_SetGPIO(fe, 4, 1);
 				status += MXL_SetGPIO(fe, 1, 0);
 				status += MXL_SetGPIO(fe, 3, 0);
 			}
+
 			if (state->RF_IN >= 240000000 &&
-				state->RF_IN < 340000000) {
+				state->RF_IN < 340000000)
+			{
 				status += MXL_ControlWrite(fe, DAC_A_ENABLE, 0);
 				status += MXL_SetGPIO(fe, 4, 0);
 				status += MXL_SetGPIO(fe, 1, 1);
 				status += MXL_SetGPIO(fe, 3, 0);
 			}
+
 			if (state->RF_IN >= 340000000 &&
-				state->RF_IN < 430000000) {
+				state->RF_IN < 430000000)
+			{
 				status += MXL_ControlWrite(fe, DAC_A_ENABLE, 0);
 				status += MXL_SetGPIO(fe, 4, 0);
 				status += MXL_SetGPIO(fe, 1, 0);
 				status += MXL_SetGPIO(fe, 3, 1);
 			}
+
 			if (state->RF_IN >= 430000000 &&
-				state->RF_IN < 470000000) {
+				state->RF_IN < 470000000)
+			{
 				status += MXL_ControlWrite(fe, DAC_A_ENABLE, 1);
 				status += MXL_SetGPIO(fe, 4, 1);
 				status += MXL_SetGPIO(fe, 1, 0);
 				status += MXL_SetGPIO(fe, 3, 1);
 			}
+
 			if (state->RF_IN >= 470000000 &&
-				state->RF_IN < 570000000) {
+				state->RF_IN < 570000000)
+			{
 				status += MXL_ControlWrite(fe, DAC_A_ENABLE, 1);
 				status += MXL_SetGPIO(fe, 4, 0);
 				status += MXL_SetGPIO(fe, 1, 0);
 				status += MXL_SetGPIO(fe, 3, 1);
 			}
+
 			if (state->RF_IN >= 570000000 &&
-				state->RF_IN < 620000000) {
+				state->RF_IN < 620000000)
+			{
 				status += MXL_ControlWrite(fe, DAC_A_ENABLE, 0);
 				status += MXL_SetGPIO(fe, 4, 0);
 				status += MXL_SetGPIO(fe, 1, 1);
 				status += MXL_SetGPIO(fe, 3, 1);
 			}
+
 			if (state->RF_IN >= 620000000 &&
-				state->RF_IN < 760000000) {
+				state->RF_IN < 760000000)
+			{
 				status += MXL_ControlWrite(fe, DAC_A_ENABLE, 1);
 				status += MXL_SetGPIO(fe, 4, 0);
 				status += MXL_SetGPIO(fe, 1, 1);
 				status += MXL_SetGPIO(fe, 3, 1);
 			}
+
 			if (state->RF_IN >= 760000000 &&
-				state->RF_IN <= 900000000) {
+				state->RF_IN <= 900000000)
+			{
 				status += MXL_ControlWrite(fe, DAC_A_ENABLE, 1);
 				status += MXL_SetGPIO(fe, 4, 1);
 				status += MXL_SetGPIO(fe, 1, 1);
@@ -3066,47 +3463,61 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 		}
 	}
 
-	if (state->TF_Type == MXL_TF_E) /* Tracking Filter type E */ {
+	if (state->TF_Type == MXL_TF_E) /* Tracking Filter type E */
+	{
 
 		status += MXL_ControlWrite(fe, DAC_DIN_B, 0);
 
-		if (state->RF_IN >= 43000000 && state->RF_IN < 174000000) {
+		if (state->RF_IN >= 43000000 && state->RF_IN < 174000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 0);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 3, 1);
 		}
-		if (state->RF_IN >= 174000000 && state->RF_IN < 250000000) {
+
+		if (state->RF_IN >= 174000000 && state->RF_IN < 250000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 0);
 			status += MXL_SetGPIO(fe, 1, 0);
 			status += MXL_SetGPIO(fe, 3, 1);
 		}
-		if (state->RF_IN >= 250000000 && state->RF_IN < 310000000) {
+
+		if (state->RF_IN >= 250000000 && state->RF_IN < 310000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 0);
 			status += MXL_SetGPIO(fe, 3, 1);
 		}
-		if (state->RF_IN >= 310000000 && state->RF_IN < 360000000) {
+
+		if (state->RF_IN >= 310000000 && state->RF_IN < 360000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 0);
 			status += MXL_SetGPIO(fe, 3, 0);
 		}
-		if (state->RF_IN >= 360000000 && state->RF_IN < 470000000) {
+
+		if (state->RF_IN >= 360000000 && state->RF_IN < 470000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 3, 0);
 		}
-		if (state->RF_IN >= 470000000 && state->RF_IN < 640000000) {
+
+		if (state->RF_IN >= 470000000 && state->RF_IN < 640000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 3, 0);
 		}
-		if (state->RF_IN >= 640000000 && state->RF_IN <= 900000000) {
+
+		if (state->RF_IN >= 640000000 && state->RF_IN <= 900000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
@@ -3114,48 +3525,62 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 		}
 	}
 
-	if (state->TF_Type == MXL_TF_F) {
+	if (state->TF_Type == MXL_TF_F)
+	{
 
 		/* Tracking Filter type F */
 		status += MXL_ControlWrite(fe, DAC_DIN_B, 0);
 
-		if (state->RF_IN >= 43000000 && state->RF_IN < 160000000) {
+		if (state->RF_IN >= 43000000 && state->RF_IN < 160000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 0);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 3, 1);
 		}
-		if (state->RF_IN >= 160000000 && state->RF_IN < 210000000) {
+
+		if (state->RF_IN >= 160000000 && state->RF_IN < 210000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 0);
 			status += MXL_SetGPIO(fe, 1, 0);
 			status += MXL_SetGPIO(fe, 3, 1);
 		}
-		if (state->RF_IN >= 210000000 && state->RF_IN < 300000000) {
+
+		if (state->RF_IN >= 210000000 && state->RF_IN < 300000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 0);
 			status += MXL_SetGPIO(fe, 3, 1);
 		}
-		if (state->RF_IN >= 300000000 && state->RF_IN < 390000000) {
+
+		if (state->RF_IN >= 300000000 && state->RF_IN < 390000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 0);
 			status += MXL_SetGPIO(fe, 3, 0);
 		}
-		if (state->RF_IN >= 390000000 && state->RF_IN < 515000000) {
+
+		if (state->RF_IN >= 390000000 && state->RF_IN < 515000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 3, 0);
 		}
-		if (state->RF_IN >= 515000000 && state->RF_IN < 650000000) {
+
+		if (state->RF_IN >= 515000000 && state->RF_IN < 650000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 3, 0);
 		}
-		if (state->RF_IN >= 650000000 && state->RF_IN <= 900000000) {
+
+		if (state->RF_IN >= 650000000 && state->RF_IN <= 900000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
@@ -3163,48 +3588,62 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 		}
 	}
 
-	if (state->TF_Type == MXL_TF_E_2) {
+	if (state->TF_Type == MXL_TF_E_2)
+	{
 
 		/* Tracking Filter type E_2 */
 		status += MXL_ControlWrite(fe, DAC_DIN_B, 0);
 
-		if (state->RF_IN >= 43000000 && state->RF_IN < 174000000) {
+		if (state->RF_IN >= 43000000 && state->RF_IN < 174000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 0);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 3, 1);
 		}
-		if (state->RF_IN >= 174000000 && state->RF_IN < 250000000) {
+
+		if (state->RF_IN >= 174000000 && state->RF_IN < 250000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 0);
 			status += MXL_SetGPIO(fe, 1, 0);
 			status += MXL_SetGPIO(fe, 3, 1);
 		}
-		if (state->RF_IN >= 250000000 && state->RF_IN < 350000000) {
+
+		if (state->RF_IN >= 250000000 && state->RF_IN < 350000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 0);
 			status += MXL_SetGPIO(fe, 3, 1);
 		}
-		if (state->RF_IN >= 350000000 && state->RF_IN < 400000000) {
+
+		if (state->RF_IN >= 350000000 && state->RF_IN < 400000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 0);
 			status += MXL_SetGPIO(fe, 3, 0);
 		}
-		if (state->RF_IN >= 400000000 && state->RF_IN < 570000000) {
+
+		if (state->RF_IN >= 400000000 && state->RF_IN < 570000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 3, 0);
 		}
-		if (state->RF_IN >= 570000000 && state->RF_IN < 770000000) {
+
+		if (state->RF_IN >= 570000000 && state->RF_IN < 770000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 3, 0);
 		}
-		if (state->RF_IN >= 770000000 && state->RF_IN <= 900000000) {
+
+		if (state->RF_IN >= 770000000 && state->RF_IN <= 900000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
@@ -3212,55 +3651,71 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 		}
 	}
 
-	if (state->TF_Type == MXL_TF_G) {
+	if (state->TF_Type == MXL_TF_G)
+	{
 
 		/* Tracking Filter type G add for v2.6.8 */
 		status += MXL_ControlWrite(fe, DAC_DIN_B, 0);
 
-		if (state->RF_IN >= 50000000 && state->RF_IN < 190000000) {
+		if (state->RF_IN >= 50000000 && state->RF_IN < 190000000)
+		{
 
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 0);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 3, 1);
 		}
-		if (state->RF_IN >= 190000000 && state->RF_IN < 280000000) {
+
+		if (state->RF_IN >= 190000000 && state->RF_IN < 280000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 0);
 			status += MXL_SetGPIO(fe, 1, 0);
 			status += MXL_SetGPIO(fe, 3, 1);
 		}
-		if (state->RF_IN >= 280000000 && state->RF_IN < 350000000) {
+
+		if (state->RF_IN >= 280000000 && state->RF_IN < 350000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 0);
 			status += MXL_SetGPIO(fe, 3, 1);
 		}
-		if (state->RF_IN >= 350000000 && state->RF_IN < 400000000) {
+
+		if (state->RF_IN >= 350000000 && state->RF_IN < 400000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 0);
 			status += MXL_SetGPIO(fe, 3, 0);
 		}
-		if (state->RF_IN >= 400000000 && state->RF_IN < 470000000) {
+
+		if (state->RF_IN >= 400000000 && state->RF_IN < 470000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 0);
 			status += MXL_SetGPIO(fe, 3, 1);
 		}
-		if (state->RF_IN >= 470000000 && state->RF_IN < 640000000) {
+
+		if (state->RF_IN >= 470000000 && state->RF_IN < 640000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 3, 0);
 		}
-		if (state->RF_IN >= 640000000 && state->RF_IN < 820000000) {
+
+		if (state->RF_IN >= 640000000 && state->RF_IN < 820000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
 			status += MXL_SetGPIO(fe, 3, 0);
 		}
-		if (state->RF_IN >= 820000000 && state->RF_IN <= 900000000) {
+
+		if (state->RF_IN >= 820000000 && state->RF_IN <= 900000000)
+		{
 			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 1);
 			status += MXL_SetGPIO(fe, 4, 1);
 			status += MXL_SetGPIO(fe, 1, 1);
@@ -3268,14 +3723,16 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 		}
 	}
 
-	if (state->TF_Type == MXL_TF_E_NA) {
+	if (state->TF_Type == MXL_TF_E_NA)
+	{
 
 		/* Tracking Filter type E-NA for Empia ONLY change for 2.6.8 */
 		status += MXL_ControlWrite(fe, DAC_DIN_B, 0);
 
 		/* if UHF and terrestrial=> Turn off Tracking Filter */
 		if (state->RF_IN >= 471000000 &&
-			(state->RF_IN - 471000000)%6000000 != 0) {
+			(state->RF_IN - 471000000) % 6000000 != 0)
+		{
 
 			/* Turn off all the banks */
 			status += MXL_SetGPIO(fe, 3, 1);
@@ -3297,61 +3754,77 @@ static u16 MXL_TuneRF(struct dvb_frontend *fe, u32 RF_Freq)
 			/* following parameter is from analog OTA mode,
 			 * can be change to seek better performance */
 			status += MXL_ControlWrite(fe, RFSYN_CHP_GAIN, 3);
-		} else {
-		/* if VHF or Cable =>  Turn on Tracking Filter */
+		}
+		else
+		{
+			/* if VHF or Cable =>  Turn on Tracking Filter */
 
-		/* 2.6.12 Turn off RSSI */
-		status += MXL_ControlWrite(fe, AGC_EN_RSSI, 0);
+			/* 2.6.12 Turn off RSSI */
+			status += MXL_ControlWrite(fe, AGC_EN_RSSI, 0);
 
-		/* change back from above condition */
-		status += MXL_ControlWrite(fe, RFSYN_CHP_GAIN, 5);
+			/* change back from above condition */
+			status += MXL_ControlWrite(fe, RFSYN_CHP_GAIN, 5);
 
 
-		if (state->RF_IN >= 43000000 && state->RF_IN < 174000000) {
+			if (state->RF_IN >= 43000000 && state->RF_IN < 174000000)
+			{
 
-			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
-			status += MXL_SetGPIO(fe, 4, 0);
-			status += MXL_SetGPIO(fe, 1, 1);
-			status += MXL_SetGPIO(fe, 3, 1);
-		}
-		if (state->RF_IN >= 174000000 && state->RF_IN < 250000000) {
-			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
-			status += MXL_SetGPIO(fe, 4, 0);
-			status += MXL_SetGPIO(fe, 1, 0);
-			status += MXL_SetGPIO(fe, 3, 1);
-		}
-		if (state->RF_IN >= 250000000 && state->RF_IN < 350000000) {
-			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
-			status += MXL_SetGPIO(fe, 4, 1);
-			status += MXL_SetGPIO(fe, 1, 0);
-			status += MXL_SetGPIO(fe, 3, 1);
-		}
-		if (state->RF_IN >= 350000000 && state->RF_IN < 400000000) {
-			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
-			status += MXL_SetGPIO(fe, 4, 1);
-			status += MXL_SetGPIO(fe, 1, 0);
-			status += MXL_SetGPIO(fe, 3, 0);
-		}
-		if (state->RF_IN >= 400000000 && state->RF_IN < 570000000) {
-			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
-			status += MXL_SetGPIO(fe, 4, 1);
-			status += MXL_SetGPIO(fe, 1, 1);
-			status += MXL_SetGPIO(fe, 3, 0);
-		}
-		if (state->RF_IN >= 570000000 && state->RF_IN < 770000000) {
-			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 1);
-			status += MXL_SetGPIO(fe, 4, 1);
-			status += MXL_SetGPIO(fe, 1, 1);
-			status += MXL_SetGPIO(fe, 3, 0);
-		}
-		if (state->RF_IN >= 770000000 && state->RF_IN <= 900000000) {
-			status += MXL_ControlWrite(fe, DAC_B_ENABLE, 1);
-			status += MXL_SetGPIO(fe, 4, 1);
-			status += MXL_SetGPIO(fe, 1, 1);
-			status += MXL_SetGPIO(fe, 3, 1);
-		}
+				status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
+				status += MXL_SetGPIO(fe, 4, 0);
+				status += MXL_SetGPIO(fe, 1, 1);
+				status += MXL_SetGPIO(fe, 3, 1);
+			}
+
+			if (state->RF_IN >= 174000000 && state->RF_IN < 250000000)
+			{
+				status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
+				status += MXL_SetGPIO(fe, 4, 0);
+				status += MXL_SetGPIO(fe, 1, 0);
+				status += MXL_SetGPIO(fe, 3, 1);
+			}
+
+			if (state->RF_IN >= 250000000 && state->RF_IN < 350000000)
+			{
+				status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
+				status += MXL_SetGPIO(fe, 4, 1);
+				status += MXL_SetGPIO(fe, 1, 0);
+				status += MXL_SetGPIO(fe, 3, 1);
+			}
+
+			if (state->RF_IN >= 350000000 && state->RF_IN < 400000000)
+			{
+				status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
+				status += MXL_SetGPIO(fe, 4, 1);
+				status += MXL_SetGPIO(fe, 1, 0);
+				status += MXL_SetGPIO(fe, 3, 0);
+			}
+
+			if (state->RF_IN >= 400000000 && state->RF_IN < 570000000)
+			{
+				status += MXL_ControlWrite(fe, DAC_B_ENABLE, 0);
+				status += MXL_SetGPIO(fe, 4, 1);
+				status += MXL_SetGPIO(fe, 1, 1);
+				status += MXL_SetGPIO(fe, 3, 0);
+			}
+
+			if (state->RF_IN >= 570000000 && state->RF_IN < 770000000)
+			{
+				status += MXL_ControlWrite(fe, DAC_B_ENABLE, 1);
+				status += MXL_SetGPIO(fe, 4, 1);
+				status += MXL_SetGPIO(fe, 1, 1);
+				status += MXL_SetGPIO(fe, 3, 0);
+			}
+
+			if (state->RF_IN >= 770000000 && state->RF_IN <= 900000000)
+			{
+				status += MXL_ControlWrite(fe, DAC_B_ENABLE, 1);
+				status += MXL_SetGPIO(fe, 4, 1);
+				status += MXL_SetGPIO(fe, 1, 1);
+				status += MXL_SetGPIO(fe, 3, 1);
+			}
 		}
 	}
+
 	return status ;
 }
 
@@ -3360,34 +3833,49 @@ static u16 MXL_SetGPIO(struct dvb_frontend *fe, u8 GPIO_Num, u8 GPIO_Val)
 	u16 status = 0;
 
 	if (GPIO_Num == 1)
+	{
 		status += MXL_ControlWrite(fe, GPIO_1B, GPIO_Val ? 0 : 1);
+	}
 
 	/* GPIO2 is not available */
 
-	if (GPIO_Num == 3) {
-		if (GPIO_Val == 1) {
+	if (GPIO_Num == 3)
+	{
+		if (GPIO_Val == 1)
+		{
 			status += MXL_ControlWrite(fe, GPIO_3, 0);
 			status += MXL_ControlWrite(fe, GPIO_3B, 0);
 		}
-		if (GPIO_Val == 0) {
+
+		if (GPIO_Val == 0)
+		{
 			status += MXL_ControlWrite(fe, GPIO_3, 1);
 			status += MXL_ControlWrite(fe, GPIO_3B, 1);
 		}
-		if (GPIO_Val == 3) { /* tri-state */
+
+		if (GPIO_Val == 3)   /* tri-state */
+		{
 			status += MXL_ControlWrite(fe, GPIO_3, 0);
 			status += MXL_ControlWrite(fe, GPIO_3B, 1);
 		}
 	}
-	if (GPIO_Num == 4) {
-		if (GPIO_Val == 1) {
+
+	if (GPIO_Num == 4)
+	{
+		if (GPIO_Val == 1)
+		{
 			status += MXL_ControlWrite(fe, GPIO_4, 0);
 			status += MXL_ControlWrite(fe, GPIO_4B, 0);
 		}
-		if (GPIO_Val == 0) {
+
+		if (GPIO_Val == 0)
+		{
 			status += MXL_ControlWrite(fe, GPIO_4, 1);
 			status += MXL_ControlWrite(fe, GPIO_4B, 1);
 		}
-		if (GPIO_Val == 3) { /* tri-state */
+
+		if (GPIO_Val == 3)   /* tri-state */
+		{
 			status += MXL_ControlWrite(fe, GPIO_4, 0);
 			status += MXL_ControlWrite(fe, GPIO_4B, 1);
 		}
@@ -3413,82 +3901,123 @@ static u16 MXL_ControlWrite(struct dvb_frontend *fe, u16 ControlNum, u32 value)
 }
 
 static u16 MXL_ControlWrite_Group(struct dvb_frontend *fe, u16 controlNum,
-	u32 value, u16 controlGroup)
+								  u32 value, u16 controlGroup)
 {
 	struct mxl5005s_state *state = fe->tuner_priv;
 	u16 i, j, k;
 	u32 highLimit;
 	u32 ctrlVal;
 
-	if (controlGroup == 1) /* Initial Control */ {
+	if (controlGroup == 1) /* Initial Control */
+	{
 
-		for (i = 0; i < state->Init_Ctrl_Num; i++) {
+		for (i = 0; i < state->Init_Ctrl_Num; i++)
+		{
 
-			if (controlNum == state->Init_Ctrl[i].Ctrl_Num) {
+			if (controlNum == state->Init_Ctrl[i].Ctrl_Num)
+			{
 
 				highLimit = 1 << state->Init_Ctrl[i].size;
-				if (value < highLimit) {
-					for (j = 0; j < state->Init_Ctrl[i].size; j++) {
+
+				if (value < highLimit)
+				{
+					for (j = 0; j < state->Init_Ctrl[i].size; j++)
+					{
 						state->Init_Ctrl[i].val[j] = (u8)((value >> j) & 0x01);
 						MXL_RegWriteBit(fe, (u8)(state->Init_Ctrl[i].addr[j]),
-							(u8)(state->Init_Ctrl[i].bit[j]),
-							(u8)((value>>j) & 0x01));
+										(u8)(state->Init_Ctrl[i].bit[j]),
+										(u8)((value >> j) & 0x01));
 					}
+
 					ctrlVal = 0;
+
 					for (k = 0; k < state->Init_Ctrl[i].size; k++)
+					{
 						ctrlVal += state->Init_Ctrl[i].val[k] * (1 << k);
-				} else
+					}
+				}
+				else
+				{
 					return -1;
+				}
 			}
 		}
 	}
-	if (controlGroup == 2) /* Chan change Control */ {
 
-		for (i = 0; i < state->CH_Ctrl_Num; i++) {
+	if (controlGroup == 2) /* Chan change Control */
+	{
 
-			if (controlNum == state->CH_Ctrl[i].Ctrl_Num) {
+		for (i = 0; i < state->CH_Ctrl_Num; i++)
+		{
+
+			if (controlNum == state->CH_Ctrl[i].Ctrl_Num)
+			{
 
 				highLimit = 1 << state->CH_Ctrl[i].size;
-				if (value < highLimit) {
-					for (j = 0; j < state->CH_Ctrl[i].size; j++) {
+
+				if (value < highLimit)
+				{
+					for (j = 0; j < state->CH_Ctrl[i].size; j++)
+					{
 						state->CH_Ctrl[i].val[j] = (u8)((value >> j) & 0x01);
 						MXL_RegWriteBit(fe, (u8)(state->CH_Ctrl[i].addr[j]),
-							(u8)(state->CH_Ctrl[i].bit[j]),
-							(u8)((value>>j) & 0x01));
+										(u8)(state->CH_Ctrl[i].bit[j]),
+										(u8)((value >> j) & 0x01));
 					}
+
 					ctrlVal = 0;
+
 					for (k = 0; k < state->CH_Ctrl[i].size; k++)
+					{
 						ctrlVal += state->CH_Ctrl[i].val[k] * (1 << k);
-				} else
+					}
+				}
+				else
+				{
 					return -1;
+				}
 			}
 		}
 	}
+
 #ifdef _MXL_INTERNAL
-	if (controlGroup == 3) /* Maxlinear Control */ {
 
-		for (i = 0; i < state->MXL_Ctrl_Num; i++) {
+	if (controlGroup == 3) /* Maxlinear Control */
+	{
 
-			if (controlNum == state->MXL_Ctrl[i].Ctrl_Num) {
+		for (i = 0; i < state->MXL_Ctrl_Num; i++)
+		{
+
+			if (controlNum == state->MXL_Ctrl[i].Ctrl_Num)
+			{
 
 				highLimit = (1 << state->MXL_Ctrl[i].size);
-				if (value < highLimit) {
-					for (j = 0; j < state->MXL_Ctrl[i].size; j++) {
+
+				if (value < highLimit)
+				{
+					for (j = 0; j < state->MXL_Ctrl[i].size; j++)
+					{
 						state->MXL_Ctrl[i].val[j] = (u8)((value >> j) & 0x01);
 						MXL_RegWriteBit(fe, (u8)(state->MXL_Ctrl[i].addr[j]),
-							(u8)(state->MXL_Ctrl[i].bit[j]),
-							(u8)((value>>j) & 0x01));
+										(u8)(state->MXL_Ctrl[i].bit[j]),
+										(u8)((value >> j) & 0x01));
 					}
+
 					ctrlVal = 0;
+
 					for (k = 0; k < state->MXL_Ctrl[i].size; k++)
 						ctrlVal += state->
-							MXL_Ctrl[i].val[k] *
-							(1 << k);
-				} else
+								   MXL_Ctrl[i].val[k] *
+								   (1 << k);
+				}
+				else
+				{
 					return -1;
+				}
 			}
 		}
 	}
+
 #endif
 	return 0 ; /* successful return */
 }
@@ -3498,8 +4027,10 @@ static u16 MXL_RegRead(struct dvb_frontend *fe, u8 RegNum, u8 *RegVal)
 	struct mxl5005s_state *state = fe->tuner_priv;
 	int i ;
 
-	for (i = 0; i < 104; i++) {
-		if (RegNum == state->TunerRegs[i].Reg_Num) {
+	for (i = 0; i < 104; i++)
+	{
+		if (RegNum == state->TunerRegs[i].Reg_Num)
+		{
 			*RegVal = (u8)(state->TunerRegs[i].Reg_Val);
 			return 0;
 		}
@@ -3514,25 +4045,37 @@ static u16 MXL_ControlRead(struct dvb_frontend *fe, u16 controlNum, u32 *value)
 	u32 ctrlVal ;
 	u16 i, k ;
 
-	for (i = 0; i < state->Init_Ctrl_Num ; i++) {
+	for (i = 0; i < state->Init_Ctrl_Num ; i++)
+	{
 
-		if (controlNum == state->Init_Ctrl[i].Ctrl_Num) {
+		if (controlNum == state->Init_Ctrl[i].Ctrl_Num)
+		{
 
 			ctrlVal = 0;
+
 			for (k = 0; k < state->Init_Ctrl[i].size; k++)
-				ctrlVal += state->Init_Ctrl[i].val[k] * (1<<k);
+			{
+				ctrlVal += state->Init_Ctrl[i].val[k] * (1 << k);
+			}
+
 			*value = ctrlVal;
 			return 0;
 		}
 	}
 
-	for (i = 0; i < state->CH_Ctrl_Num ; i++) {
+	for (i = 0; i < state->CH_Ctrl_Num ; i++)
+	{
 
-		if (controlNum == state->CH_Ctrl[i].Ctrl_Num) {
+		if (controlNum == state->CH_Ctrl[i].Ctrl_Num)
+		{
 
 			ctrlVal = 0;
+
 			for (k = 0; k < state->CH_Ctrl[i].size; k++)
+			{
 				ctrlVal += state->CH_Ctrl[i].val[k] * (1 << k);
+			}
+
 			*value = ctrlVal;
 			return 0;
 
@@ -3540,42 +4083,61 @@ static u16 MXL_ControlRead(struct dvb_frontend *fe, u16 controlNum, u32 *value)
 	}
 
 #ifdef _MXL_INTERNAL
-	for (i = 0; i < state->MXL_Ctrl_Num ; i++) {
 
-		if (controlNum == state->MXL_Ctrl[i].Ctrl_Num) {
+	for (i = 0; i < state->MXL_Ctrl_Num ; i++)
+	{
+
+		if (controlNum == state->MXL_Ctrl[i].Ctrl_Num)
+		{
 
 			ctrlVal = 0;
+
 			for (k = 0; k < state->MXL_Ctrl[i].size; k++)
-				ctrlVal += state->MXL_Ctrl[i].val[k] * (1<<k);
+			{
+				ctrlVal += state->MXL_Ctrl[i].val[k] * (1 << k);
+			}
+
 			*value = ctrlVal;
 			return 0;
 
 		}
 	}
+
 #endif
 	return 1;
 }
 
 static void MXL_RegWriteBit(struct dvb_frontend *fe, u8 address, u8 bit,
-	u8 bitVal)
+							u8 bitVal)
 {
 	struct mxl5005s_state *state = fe->tuner_priv;
 	int i ;
 
-	const u8 AND_MAP[8] = {
+	const u8 AND_MAP[8] =
+	{
 		0xFE, 0xFD, 0xFB, 0xF7,
-		0xEF, 0xDF, 0xBF, 0x7F } ;
+		0xEF, 0xDF, 0xBF, 0x7F
+	} ;
 
-	const u8 OR_MAP[8] = {
+	const u8 OR_MAP[8] =
+	{
 		0x01, 0x02, 0x04, 0x08,
-		0x10, 0x20, 0x40, 0x80 } ;
+		0x10, 0x20, 0x40, 0x80
+	} ;
 
-	for (i = 0; i < state->TunerRegs_Num; i++) {
-		if (state->TunerRegs[i].Reg_Num == address) {
+	for (i = 0; i < state->TunerRegs_Num; i++)
+	{
+		if (state->TunerRegs[i].Reg_Num == address)
+		{
 			if (bitVal)
+			{
 				state->TunerRegs[i].Reg_Val |= OR_MAP[bit];
+			}
 			else
+			{
 				state->TunerRegs[i].Reg_Val &= AND_MAP[bit];
+			}
+
 			break ;
 		}
 	}
@@ -3588,21 +4150,24 @@ static u32 MXL_Ceiling(u32 value, u32 resolution)
 
 /* Retrieve the Initialzation Registers */
 static u16 MXL_GetInitRegister(struct dvb_frontend *fe, u8 *RegNum,
-	u8 *RegVal, int *count)
+							   u8 *RegVal, int *count)
 {
 	u16 status = 0;
 	int i ;
 
-	u8 RegAddr[] = {
+	u8 RegAddr[] =
+	{
 		11, 12, 13, 22, 32, 43, 44, 53, 56, 59, 73,
 		76, 77, 91, 134, 135, 137, 147,
-		156, 166, 167, 168, 25 };
+		156, 166, 167, 168, 25
+	};
 
 	*count = ARRAY_SIZE(RegAddr);
 
 	status += MXL_BlockInit(fe);
 
-	for (i = 0 ; i < *count; i++) {
+	for (i = 0 ; i < *count; i++)
+	{
 		RegNum[i] = RegAddr[i];
 		status += MXL_RegRead(fe, RegNum[i], &RegVal[i]);
 	}
@@ -3611,18 +4176,20 @@ static u16 MXL_GetInitRegister(struct dvb_frontend *fe, u8 *RegNum,
 }
 
 static u16 MXL_GetCHRegister(struct dvb_frontend *fe, u8 *RegNum, u8 *RegVal,
-	int *count)
+							 int *count)
 {
 	u16 status = 0;
 	int i ;
 
-/* add 77, 166, 167, 168 register for 2.6.12 */
+	/* add 77, 166, 167, 168 register for 2.6.12 */
 #ifdef _MXL_PRODUCTION
 	u8 RegAddr[] = {14, 15, 16, 17, 22, 43, 65, 68, 69, 70, 73, 92, 93, 106,
-	   107, 108, 109, 110, 111, 112, 136, 138, 149, 77, 166, 167, 168 } ;
+					107, 108, 109, 110, 111, 112, 136, 138, 149, 77, 166, 167, 168
+				   } ;
 #else
 	u8 RegAddr[] = {14, 15, 16, 17, 22, 43, 68, 69, 70, 73, 92, 93, 106,
-	   107, 108, 109, 110, 111, 112, 136, 138, 149, 77, 166, 167, 168 } ;
+					107, 108, 109, 110, 111, 112, 136, 138, 149, 77, 166, 167, 168
+				   } ;
 	/*
 	u8 RegAddr[171];
 	for (i = 0; i <= 170; i++)
@@ -3632,7 +4199,8 @@ static u16 MXL_GetCHRegister(struct dvb_frontend *fe, u8 *RegNum, u8 *RegVal,
 
 	*count = ARRAY_SIZE(RegAddr);
 
-	for (i = 0 ; i < *count; i++) {
+	for (i = 0 ; i < *count; i++)
+	{
 		RegNum[i] = RegAddr[i];
 		status += MXL_RegRead(fe, RegNum[i], &RegVal[i]);
 	}
@@ -3641,7 +4209,7 @@ static u16 MXL_GetCHRegister(struct dvb_frontend *fe, u8 *RegNum, u8 *RegVal,
 }
 
 static u16 MXL_GetCHRegister_ZeroIF(struct dvb_frontend *fe, u8 *RegNum,
-	u8 *RegVal, int *count)
+									u8 *RegVal, int *count)
 {
 	u16 status = 0;
 	int i;
@@ -3650,7 +4218,8 @@ static u16 MXL_GetCHRegister_ZeroIF(struct dvb_frontend *fe, u8 *RegNum,
 
 	*count = ARRAY_SIZE(RegAddr);
 
-	for (i = 0; i < *count; i++) {
+	for (i = 0; i < *count; i++)
+	{
 		RegNum[i] = RegAddr[i];
 		status += MXL_RegRead(fe, RegNum[i], &RegVal[i]);
 	}
@@ -3661,13 +4230,24 @@ static u16 MXL_GetCHRegister_ZeroIF(struct dvb_frontend *fe, u8 *RegNum,
 static u16 MXL_GetMasterControl(u8 *MasterReg, int state)
 {
 	if (state == 1) /* Load_Start */
+	{
 		*MasterReg = 0xF3;
+	}
+
 	if (state == 2) /* Power_Down */
+	{
 		*MasterReg = 0x41;
+	}
+
 	if (state == 3) /* Synth_Reset */
+	{
 		*MasterReg = 0xB1;
+	}
+
 	if (state == 4) /* Seq_Off */
+	{
 		*MasterReg = 0xF1;
+	}
 
 	return 0;
 }
@@ -3678,7 +4258,8 @@ static u16 MXL_VCORange_Test(struct dvb_frontend *fe, int VCO_Range)
 	struct mxl5005s_state *state = fe->tuner_priv;
 	u16 status = 0 ;
 
-	if (VCO_Range == 1) {
+	if (VCO_Range == 1)
+	{
 		status += MXL_ControlWrite(fe, RFSYN_EN_DIV, 1);
 		status += MXL_ControlWrite(fe, RFSYN_EN_OUTMUX, 0);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_DIVM, 0);
@@ -3686,32 +4267,39 @@ static u16 MXL_VCORange_Test(struct dvb_frontend *fe, int VCO_Range)
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_OUT, 1);
 		status += MXL_ControlWrite(fe, RFSYN_RF_DIV_BIAS, 1);
 		status += MXL_ControlWrite(fe, DN_SEL_FREQ, 0);
-		if (state->Mode == 0 && state->IF_Mode == 1) {
+
+		if (state->Mode == 0 && state->IF_Mode == 1)
+		{
 			/* Analog Low IF Mode */
 			status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI, 1);
 			status += MXL_ControlWrite(fe, RFSYN_VCO_BIAS, 8);
 			status += MXL_ControlWrite(fe, CHCAL_INT_MOD_RF, 56);
 			status += MXL_ControlWrite(fe,
-				CHCAL_FRAC_MOD_RF, 180224);
+									   CHCAL_FRAC_MOD_RF, 180224);
 		}
-		if (state->Mode == 0 && state->IF_Mode == 0) {
+
+		if (state->Mode == 0 && state->IF_Mode == 0)
+		{
 			/* Analog Zero IF Mode */
 			status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI, 1);
 			status += MXL_ControlWrite(fe, RFSYN_VCO_BIAS, 8);
 			status += MXL_ControlWrite(fe, CHCAL_INT_MOD_RF, 56);
 			status += MXL_ControlWrite(fe,
-				CHCAL_FRAC_MOD_RF, 222822);
+									   CHCAL_FRAC_MOD_RF, 222822);
 		}
-		if (state->Mode == 1) /* Digital Mode */ {
+
+		if (state->Mode == 1) /* Digital Mode */
+		{
 			status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI, 1);
 			status += MXL_ControlWrite(fe, RFSYN_VCO_BIAS, 8);
 			status += MXL_ControlWrite(fe, CHCAL_INT_MOD_RF, 56);
 			status += MXL_ControlWrite(fe,
-				CHCAL_FRAC_MOD_RF, 229376);
+									   CHCAL_FRAC_MOD_RF, 229376);
 		}
 	}
 
-	if (VCO_Range == 2) {
+	if (VCO_Range == 2)
+	{
 		status += MXL_ControlWrite(fe, RFSYN_EN_DIV, 1);
 		status += MXL_ControlWrite(fe, RFSYN_EN_OUTMUX, 0);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_DIVM, 0);
@@ -3722,32 +4310,39 @@ static u16 MXL_VCORange_Test(struct dvb_frontend *fe, int VCO_Range)
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI, 1);
 		status += MXL_ControlWrite(fe, RFSYN_VCO_BIAS, 40);
 		status += MXL_ControlWrite(fe, CHCAL_INT_MOD_RF, 41);
-		if (state->Mode == 0 && state->IF_Mode == 1) {
+
+		if (state->Mode == 0 && state->IF_Mode == 1)
+		{
 			/* Analog Low IF Mode */
 			status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI, 1);
 			status += MXL_ControlWrite(fe, RFSYN_VCO_BIAS, 40);
 			status += MXL_ControlWrite(fe, CHCAL_INT_MOD_RF, 42);
 			status += MXL_ControlWrite(fe,
-				CHCAL_FRAC_MOD_RF, 206438);
+									   CHCAL_FRAC_MOD_RF, 206438);
 		}
-		if (state->Mode == 0 && state->IF_Mode == 0) {
+
+		if (state->Mode == 0 && state->IF_Mode == 0)
+		{
 			/* Analog Zero IF Mode */
 			status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI, 1);
 			status += MXL_ControlWrite(fe, RFSYN_VCO_BIAS, 40);
 			status += MXL_ControlWrite(fe, CHCAL_INT_MOD_RF, 42);
 			status += MXL_ControlWrite(fe,
-				CHCAL_FRAC_MOD_RF, 206438);
+									   CHCAL_FRAC_MOD_RF, 206438);
 		}
-		if (state->Mode == 1) /* Digital Mode */ {
+
+		if (state->Mode == 1) /* Digital Mode */
+		{
 			status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI, 1);
 			status += MXL_ControlWrite(fe, RFSYN_VCO_BIAS, 40);
 			status += MXL_ControlWrite(fe, CHCAL_INT_MOD_RF, 41);
 			status += MXL_ControlWrite(fe,
-				CHCAL_FRAC_MOD_RF, 16384);
+									   CHCAL_FRAC_MOD_RF, 16384);
 		}
 	}
 
-	if (VCO_Range == 3) {
+	if (VCO_Range == 3)
+	{
 		status += MXL_ControlWrite(fe, RFSYN_EN_DIV, 1);
 		status += MXL_ControlWrite(fe, RFSYN_EN_OUTMUX, 0);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_DIVM, 0);
@@ -3758,32 +4353,39 @@ static u16 MXL_VCORange_Test(struct dvb_frontend *fe, int VCO_Range)
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI, 0);
 		status += MXL_ControlWrite(fe, RFSYN_VCO_BIAS, 8);
 		status += MXL_ControlWrite(fe, CHCAL_INT_MOD_RF, 42);
-		if (state->Mode == 0 && state->IF_Mode == 1) {
+
+		if (state->Mode == 0 && state->IF_Mode == 1)
+		{
 			/* Analog Low IF Mode */
 			status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI, 0);
 			status += MXL_ControlWrite(fe, RFSYN_VCO_BIAS, 8);
 			status += MXL_ControlWrite(fe, CHCAL_INT_MOD_RF, 44);
 			status += MXL_ControlWrite(fe,
-				CHCAL_FRAC_MOD_RF, 173670);
+									   CHCAL_FRAC_MOD_RF, 173670);
 		}
-		if (state->Mode == 0 && state->IF_Mode == 0) {
+
+		if (state->Mode == 0 && state->IF_Mode == 0)
+		{
 			/* Analog Zero IF Mode */
 			status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI, 0);
 			status += MXL_ControlWrite(fe, RFSYN_VCO_BIAS, 8);
 			status += MXL_ControlWrite(fe, CHCAL_INT_MOD_RF, 44);
 			status += MXL_ControlWrite(fe,
-				CHCAL_FRAC_MOD_RF, 173670);
+									   CHCAL_FRAC_MOD_RF, 173670);
 		}
-		if (state->Mode == 1) /* Digital Mode */ {
+
+		if (state->Mode == 1) /* Digital Mode */
+		{
 			status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI, 0);
 			status += MXL_ControlWrite(fe, RFSYN_VCO_BIAS, 8);
 			status += MXL_ControlWrite(fe, CHCAL_INT_MOD_RF, 42);
 			status += MXL_ControlWrite(fe,
-				CHCAL_FRAC_MOD_RF, 245760);
+									   CHCAL_FRAC_MOD_RF, 245760);
 		}
 	}
 
-	if (VCO_Range == 4) {
+	if (VCO_Range == 4)
+	{
 		status += MXL_ControlWrite(fe, RFSYN_EN_DIV, 1);
 		status += MXL_ControlWrite(fe, RFSYN_EN_OUTMUX, 0);
 		status += MXL_ControlWrite(fe, RFSYN_SEL_DIVM, 0);
@@ -3794,28 +4396,34 @@ static u16 MXL_VCORange_Test(struct dvb_frontend *fe, int VCO_Range)
 		status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI, 0);
 		status += MXL_ControlWrite(fe, RFSYN_VCO_BIAS, 40);
 		status += MXL_ControlWrite(fe, CHCAL_INT_MOD_RF, 27);
-		if (state->Mode == 0 && state->IF_Mode == 1) {
+
+		if (state->Mode == 0 && state->IF_Mode == 1)
+		{
 			/* Analog Low IF Mode */
 			status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI, 0);
 			status += MXL_ControlWrite(fe, RFSYN_VCO_BIAS, 40);
 			status += MXL_ControlWrite(fe, CHCAL_INT_MOD_RF, 27);
 			status += MXL_ControlWrite(fe,
-				CHCAL_FRAC_MOD_RF, 206438);
+									   CHCAL_FRAC_MOD_RF, 206438);
 		}
-		if (state->Mode == 0 && state->IF_Mode == 0) {
+
+		if (state->Mode == 0 && state->IF_Mode == 0)
+		{
 			/* Analog Zero IF Mode */
 			status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI, 0);
 			status += MXL_ControlWrite(fe, RFSYN_VCO_BIAS, 40);
 			status += MXL_ControlWrite(fe, CHCAL_INT_MOD_RF, 27);
 			status += MXL_ControlWrite(fe,
-				CHCAL_FRAC_MOD_RF, 206438);
+									   CHCAL_FRAC_MOD_RF, 206438);
 		}
-		if (state->Mode == 1) /* Digital Mode */ {
+
+		if (state->Mode == 1) /* Digital Mode */
+		{
 			status += MXL_ControlWrite(fe, RFSYN_SEL_VCO_HI, 0);
 			status += MXL_ControlWrite(fe, RFSYN_VCO_BIAS, 40);
 			status += MXL_ControlWrite(fe, CHCAL_INT_MOD_RF, 27);
 			status += MXL_ControlWrite(fe,
-				CHCAL_FRAC_MOD_RF, 212992);
+									   CHCAL_FRAC_MOD_RF, 212992);
 		}
 	}
 
@@ -3828,7 +4436,9 @@ static u16 MXL_Hystersis_Test(struct dvb_frontend *fe, int Hystersis)
 	u16 status = 0;
 
 	if (Hystersis == 1)
+	{
 		status += MXL_ControlWrite(fe, DN_BYPASS_AGC_I2C, 1);
+	}
 
 	return status;
 }
@@ -3848,20 +4458,26 @@ static int mxl5005s_reset(struct dvb_frontend *fe)
 
 	u8 buf[2] = { 0xff, 0x00 };
 	struct i2c_msg msg = { .addr = state->config->i2c_address, .flags = 0,
-			       .buf = buf, .len = 2 };
+			   .buf = buf, .len = 2
+	};
 
 	dprintk(2, "%s()\n", __func__);
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
 
-	if (i2c_transfer(state->i2c, &msg, 1) != 1) {
+	if (i2c_transfer(state->i2c, &msg, 1) != 1)
+	{
 		printk(KERN_WARNING "mxl5005s I2C reset failed\n");
 		ret = -EREMOTEIO;
 	}
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	return ret;
 }
@@ -3874,38 +4490,51 @@ static int mxl5005s_writereg(struct dvb_frontend *fe, u8 reg, u8 val, int latch)
 	struct mxl5005s_state *state = fe->tuner_priv;
 	u8 buf[3] = { reg, val, MXL5005S_LATCH_BYTE };
 	struct i2c_msg msg = { .addr = state->config->i2c_address, .flags = 0,
-			       .buf = buf, .len = 3 };
+			   .buf = buf, .len = 3
+	};
 
 	if (latch == 0)
+	{
 		msg.len = 2;
+	}
 
 	dprintk(2, "%s(0x%x, 0x%x, 0x%x)\n", __func__, reg, val, msg.addr);
 
-	if (i2c_transfer(state->i2c, &msg, 1) != 1) {
+	if (i2c_transfer(state->i2c, &msg, 1) != 1)
+	{
 		printk(KERN_WARNING "mxl5005s I2C write failed\n");
 		return -EREMOTEIO;
 	}
+
 	return 0;
 }
 
 static int mxl5005s_writeregs(struct dvb_frontend *fe, u8 *addrtable,
-	u8 *datatable, u8 len)
+							  u8 *datatable, u8 len)
 {
 	int ret = 0, i;
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
 
-	for (i = 0 ; i < len-1; i++) {
+	for (i = 0 ; i < len - 1; i++)
+	{
 		ret = mxl5005s_writereg(fe, addrtable[i], datatable[i], 0);
+
 		if (ret < 0)
+		{
 			break;
+		}
 	}
 
 	ret = mxl5005s_writereg(fe, addrtable[i], datatable[i], 1);
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	return ret;
 }
@@ -3920,7 +4549,7 @@ static int mxl5005s_init(struct dvb_frontend *fe)
 }
 
 static int mxl5005s_reconfigure(struct dvb_frontend *fe, u32 mod_type,
-	u32 bandwidth)
+								u32 bandwidth)
 {
 	struct mxl5005s_state *state = fe->tuner_priv;
 
@@ -3950,7 +4579,7 @@ static int mxl5005s_reconfigure(struct dvb_frontend *fe, u32 mod_type,
 }
 
 static int mxl5005s_AssignTunerMode(struct dvb_frontend *fe, u32 mod_type,
-	u32 bandwidth)
+									u32 bandwidth)
 {
 	struct mxl5005s_state *state = fe->tuner_priv;
 	struct mxl5005s_config *c = state->config;
@@ -3989,43 +4618,56 @@ static int mxl5005s_set_params(struct dvb_frontend *fe)
 
 	dprintk(1, "%s()\n", __func__);
 
-	switch (delsys) {
-	case SYS_ATSC:
-		req_mode = MXL_ATSC;
-		req_bw  = MXL5005S_BANDWIDTH_6MHZ;
-		break;
-	case SYS_DVBC_ANNEX_B:
-		req_mode = MXL_QAM;
-		req_bw  = MXL5005S_BANDWIDTH_6MHZ;
-		break;
-	default:	/* Assume DVB-T */
-		req_mode = MXL_DVBT;
-		switch (bw) {
-		case 6000000:
-			req_bw = MXL5005S_BANDWIDTH_6MHZ;
+	switch (delsys)
+	{
+		case SYS_ATSC:
+			req_mode = MXL_ATSC;
+			req_bw  = MXL5005S_BANDWIDTH_6MHZ;
 			break;
-		case 7000000:
-			req_bw = MXL5005S_BANDWIDTH_7MHZ;
+
+		case SYS_DVBC_ANNEX_B:
+			req_mode = MXL_QAM;
+			req_bw  = MXL5005S_BANDWIDTH_6MHZ;
 			break;
-		case 8000000:
-		case 0:
-			req_bw = MXL5005S_BANDWIDTH_8MHZ;
-			break;
-		default:
-			return -EINVAL;
-		}
+
+		default:	/* Assume DVB-T */
+			req_mode = MXL_DVBT;
+
+			switch (bw)
+			{
+				case 6000000:
+					req_bw = MXL5005S_BANDWIDTH_6MHZ;
+					break;
+
+				case 7000000:
+					req_bw = MXL5005S_BANDWIDTH_7MHZ;
+					break;
+
+				case 8000000:
+				case 0:
+					req_bw = MXL5005S_BANDWIDTH_8MHZ;
+					break;
+
+				default:
+					return -EINVAL;
+			}
 	}
 
 	/* Change tuner for new modulation type if reqd */
 	if (req_mode != state->current_mode ||
-	    req_bw != state->Chan_Bandwidth) {
+		req_bw != state->Chan_Bandwidth)
+	{
 		state->current_mode = req_mode;
 		ret = mxl5005s_reconfigure(fe, req_mode, req_bw);
 
-	} else
+	}
+	else
+	{
 		ret = 0;
+	}
 
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		dprintk(1, "%s() freq=%d\n", __func__, c->frequency);
 		ret = mxl5005s_SetRfFreqHz(fe, c->frequency);
 	}
@@ -4071,7 +4713,8 @@ static int mxl5005s_release(struct dvb_frontend *fe)
 	return 0;
 }
 
-static const struct dvb_tuner_ops mxl5005s_tuner_ops = {
+static const struct dvb_tuner_ops mxl5005s_tuner_ops =
+{
 	.info = {
 		.name           = "MaxLinear MXL5005S",
 		.frequency_min  =  48000000,
@@ -4089,25 +4732,28 @@ static const struct dvb_tuner_ops mxl5005s_tuner_ops = {
 };
 
 struct dvb_frontend *mxl5005s_attach(struct dvb_frontend *fe,
-				     struct i2c_adapter *i2c,
-				     struct mxl5005s_config *config)
+									 struct i2c_adapter *i2c,
+									 struct mxl5005s_config *config)
 {
 	struct mxl5005s_state *state = NULL;
 	dprintk(1, "%s()\n", __func__);
 
 	state = kzalloc(sizeof(struct mxl5005s_state), GFP_KERNEL);
+
 	if (state == NULL)
+	{
 		return NULL;
+	}
 
 	state->frontend = fe;
 	state->config = config;
 	state->i2c = i2c;
 
 	printk(KERN_INFO "MXL5005S: Attached at address 0x%02x\n",
-		config->i2c_address);
+		   config->i2c_address);
 
 	memcpy(&fe->ops.tuner_ops, &mxl5005s_tuner_ops,
-		sizeof(struct dvb_tuner_ops));
+		   sizeof(struct dvb_tuner_ops));
 
 	fe->tuner_priv = state;
 	return fe;

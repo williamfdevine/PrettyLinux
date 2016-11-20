@@ -20,7 +20,8 @@
 struct backlight_device;
 struct shmob_drm_device;
 
-struct shmob_drm_crtc {
+struct shmob_drm_crtc
+{
 	struct drm_crtc crtc;
 
 	struct drm_pending_vblank_event *event;
@@ -33,12 +34,14 @@ struct shmob_drm_crtc {
 	bool started;
 };
 
-struct shmob_drm_encoder {
+struct shmob_drm_encoder
+{
 	struct drm_encoder encoder;
 	int dpms;
 };
 
-struct shmob_drm_connector {
+struct shmob_drm_connector
+{
 	struct drm_connector connector;
 	struct drm_encoder *encoder;
 
@@ -53,6 +56,6 @@ void shmob_drm_crtc_resume(struct shmob_drm_crtc *scrtc);
 
 int shmob_drm_encoder_create(struct shmob_drm_device *sdev);
 int shmob_drm_connector_create(struct shmob_drm_device *sdev,
-			       struct drm_encoder *encoder);
+							   struct drm_encoder *encoder);
 
 #endif /* __SHMOB_DRM_CRTC_H__ */

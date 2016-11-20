@@ -5,14 +5,16 @@
 
 struct perf_sample;
 
-struct ordered_event {
+struct ordered_event
+{
 	u64			timestamp;
 	u64			file_offset;
 	union perf_event	*event;
 	struct list_head	list;
 };
 
-enum oe_flush {
+enum oe_flush
+{
 	OE_FLUSH__NONE,
 	OE_FLUSH__FINAL,
 	OE_FLUSH__ROUND,
@@ -22,9 +24,10 @@ enum oe_flush {
 struct ordered_events;
 
 typedef int (*ordered_events__deliver_t)(struct ordered_events *oe,
-					 struct ordered_event *event);
+		struct ordered_event *event);
 
-struct ordered_events {
+struct ordered_events
+{
 	u64			last_flush;
 	u64			next_flush;
 	u64			max_timestamp;
@@ -44,7 +47,7 @@ struct ordered_events {
 };
 
 int ordered_events__queue(struct ordered_events *oe, union perf_event *event,
-			  struct perf_sample *sample, u64 file_offset);
+						  struct perf_sample *sample, u64 file_offset);
 void ordered_events__delete(struct ordered_events *oe, struct ordered_event *event);
 int ordered_events__flush(struct ordered_events *oe, enum oe_flush how);
 void ordered_events__init(struct ordered_events *oe, ordered_events__deliver_t deliver);

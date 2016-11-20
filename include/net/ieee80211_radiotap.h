@@ -61,7 +61,8 @@
  * The radio capture header precedes the 802.11 header.
  * All data in the header is little endian on all platforms.
  */
-struct ieee80211_radiotap_header {
+struct ieee80211_radiotap_header
+{
 	u8 it_version;		/* Version 0. Only increases
 				 * for drastic changes,
 				 * introduction of compatible
@@ -195,7 +196,8 @@ struct ieee80211_radiotap_header {
  *
  *	Contains timestamp information for this frame.
  */
-enum ieee80211_radiotap_type {
+enum ieee80211_radiotap_type
+{
 	IEEE80211_RADIOTAP_TSFT = 0,
 	IEEE80211_RADIOTAP_FLAGS = 1,
 	IEEE80211_RADIOTAP_RATE = 2,

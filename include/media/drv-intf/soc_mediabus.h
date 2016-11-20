@@ -29,7 +29,8 @@
  * @SOC_MBUS_PACKING_EXTEND32:	sample width (e.g., 24 bits) has to be extended
  *				to 32 bits
  */
-enum soc_mbus_packing {
+enum soc_mbus_packing
+{
 	SOC_MBUS_PACKING_NONE,
 	SOC_MBUS_PACKING_2X8_PADHI,
 	SOC_MBUS_PACKING_2X8_PADLO,
@@ -44,7 +45,8 @@ enum soc_mbus_packing {
  * @SOC_MBUS_ORDER_LE:		least significant sample first
  * @SOC_MBUS_ORDER_BE:		most significant sample first
  */
-enum soc_mbus_order {
+enum soc_mbus_order
+{
 	SOC_MBUS_ORDER_LE,
 	SOC_MBUS_ORDER_BE,
 };
@@ -60,7 +62,8 @@ enum soc_mbus_order {
  *					chroma plane (C plane is the same size
  *					as Y plane)
  */
-enum soc_mbus_layout {
+enum soc_mbus_layout
+{
 	SOC_MBUS_LAYOUT_PACKED = 0,
 	SOC_MBUS_LAYOUT_PLANAR_2Y_U_V,
 	SOC_MBUS_LAYOUT_PLANAR_2Y_C,
@@ -76,7 +79,8 @@ enum soc_mbus_layout {
  * @order:		Sample order when storing in memory
  * @bits_per_sample:	How many bits the bridge has to sample
  */
-struct soc_mbus_pixelfmt {
+struct soc_mbus_pixelfmt
+{
 	const char		*name;
 	u32			fourcc;
 	enum soc_mbus_packing	packing;
@@ -90,7 +94,8 @@ struct soc_mbus_pixelfmt {
  * @code:	mediabus pixel-code
  * @fmt:	pixel format description
  */
-struct soc_mbus_lookup {
+struct soc_mbus_lookup
+{
 	u32	code;
 	struct soc_mbus_pixelfmt	fmt;
 };
@@ -103,10 +108,10 @@ const struct soc_mbus_pixelfmt *soc_mbus_get_fmtdesc(
 	u32 code);
 s32 soc_mbus_bytes_per_line(u32 width, const struct soc_mbus_pixelfmt *mf);
 s32 soc_mbus_image_size(const struct soc_mbus_pixelfmt *mf,
-			u32 bytes_per_line, u32 height);
+						u32 bytes_per_line, u32 height);
 int soc_mbus_samples_per_pixel(const struct soc_mbus_pixelfmt *mf,
-			unsigned int *numerator, unsigned int *denominator);
+							   unsigned int *numerator, unsigned int *denominator);
 unsigned int soc_mbus_config_compatible(const struct v4l2_mbus_config *cfg,
-					unsigned int flags);
+										unsigned int flags);
 
 #endif

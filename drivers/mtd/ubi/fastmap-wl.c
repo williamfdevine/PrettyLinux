@@ -38,8 +38,10 @@ static struct ubi_wl_entry *find_anchor_wl_entry(struct rb_root *root)
 	struct ubi_wl_entry *e, *victim = NULL;
 	int max_ec = UBI_MAX_ERASECOUNTER;
 
-	ubi_rb_for_each_entry(p, e, root, u.rb) {
-		if (e->pnum < UBI_FM_MAX_START && e->ec < max_ec) {
+	ubi_rb_for_each_entry(p, e, root, u.rb)
+	{
+		if (e->pnum < UBI_FM_MAX_START && e->ec < max_ec)
+		{
 			victim = e;
 			max_ec = e->ec;
 		}
@@ -54,12 +56,13 @@ static struct ubi_wl_entry *find_anchor_wl_entry(struct rb_root *root)
  * @pool: fastmap pool description object
  */
 static void return_unused_pool_pebs(struct ubi_device *ubi,
-				    struct ubi_fm_pool *pool)
+									struct ubi_fm_pool *pool)
 {
 	int i;
 	struct ubi_wl_entry *e;
 
-	for (i = pool->used; i < pool->size; i++) {
+	for (i = pool->used; i < pool->size; i++)
+	{
 		e = ubi->lookuptbl[pool->pebs[i]];
 		wl_tree_add(e, &ubi->free);
 		ubi->free_count++;
@@ -72,8 +75,11 @@ static int anchor_pebs_avalible(struct rb_root *root)
 	struct ubi_wl_entry *e;
 
 	ubi_rb_for_each_entry(p, e, root, u.rb)
-		if (e->pnum < UBI_FM_MAX_START)
-			return 1;
+
+	if (e->pnum < UBI_FM_MAX_START)
+	{
+		return 1;
+	}
 
 	return 0;
 }
@@ -92,15 +98,23 @@ struct ubi_wl_entry *ubi_wl_get_fm_peb(struct ubi_device *ubi, int anchor)
 	struct ubi_wl_entry *e = NULL;
 
 	if (!ubi->free.rb_node || (ubi->free_count - ubi->beb_rsvd_pebs < 1))
+	{
 		goto out;
+	}
 
 	if (anchor)
+	{
 		e = find_anchor_wl_entry(&ubi->free);
+	}
 	else
+	{
 		e = find_mean_wl_entry(ubi, &ubi->free);
+	}
 
 	if (!e)
+	{
 		goto out;
+	}
 
 	self_check_in_wl_tree(ubi, e, &ubi->free);
 
@@ -131,25 +145,39 @@ void ubi_refill_pools(struct ubi_device *ubi)
 	wl_pool->size = 0;
 	pool->size = 0;
 
-	for (;;) {
+	for (;;)
+	{
 		enough = 0;
-		if (pool->size < pool->max_size) {
+
+		if (pool->size < pool->max_size)
+		{
 			if (!ubi->free.rb_node)
+			{
 				break;
+			}
 
 			e = wl_get_wle(ubi);
+
 			if (!e)
+			{
 				break;
+			}
 
 			pool->pebs[pool->size] = e->pnum;
 			pool->size++;
-		} else
+		}
+		else
+		{
 			enough++;
+		}
 
-		if (wl_pool->size < wl_pool->max_size) {
+		if (wl_pool->size < wl_pool->max_size)
+		{
 			if (!ubi->free.rb_node ||
-			   (ubi->free_count - ubi->beb_rsvd_pebs < 5))
+				(ubi->free_count - ubi->beb_rsvd_pebs < 5))
+			{
 				break;
+			}
 
 			e = find_wl_entry(ubi, &ubi->free, WL_FREE_MAX_DIFF);
 			self_check_in_wl_tree(ubi, e, &ubi->free);
@@ -158,11 +186,16 @@ void ubi_refill_pools(struct ubi_device *ubi)
 
 			wl_pool->pebs[wl_pool->size] = e->pnum;
 			wl_pool->size++;
-		} else
+		}
+		else
+		{
 			enough++;
+		}
 
 		if (enough == 2)
+		{
 			break;
+		}
 	}
 
 	wl_pool->used = 0;
@@ -184,12 +217,15 @@ static int produce_free_peb(struct ubi_device *ubi)
 {
 	int err;
 
-	while (!ubi->free.rb_node && ubi->works_count) {
+	while (!ubi->free.rb_node && ubi->works_count)
+	{
 		dbg_wl("do one work synchronously");
 		err = do_work(ubi);
 
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	return 0;
@@ -215,33 +251,44 @@ again:
 
 	/* We check here also for the WL pool because at this point we can
 	 * refill the WL pool synchronous. */
-	if (pool->used == pool->size || wl_pool->used == wl_pool->size) {
+	if (pool->used == pool->size || wl_pool->used == wl_pool->size)
+	{
 		spin_unlock(&ubi->wl_lock);
 		up_read(&ubi->fm_eba_sem);
 		ret = ubi_update_fastmap(ubi);
-		if (ret) {
+
+		if (ret)
+		{
 			ubi_msg(ubi, "Unable to write a new fastmap: %i", ret);
 			down_read(&ubi->fm_eba_sem);
 			return -ENOSPC;
 		}
+
 		down_read(&ubi->fm_eba_sem);
 		spin_lock(&ubi->wl_lock);
 	}
 
-	if (pool->used == pool->size) {
+	if (pool->used == pool->size)
+	{
 		spin_unlock(&ubi->wl_lock);
-		if (retried) {
+
+		if (retried)
+		{
 			ubi_err(ubi, "Unable to get a free PEB from user WL pool");
 			ret = -ENOSPC;
 			goto out;
 		}
+
 		retried = 1;
 		up_read(&ubi->fm_eba_sem);
 		ret = produce_free_peb(ubi);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			down_read(&ubi->fm_eba_sem);
 			goto out;
 		}
+
 		goto again;
 	}
 
@@ -264,14 +311,17 @@ static struct ubi_wl_entry *get_peb_for_wl(struct ubi_device *ubi)
 
 	ubi_assert(rwsem_is_locked(&ubi->fm_eba_sem));
 
-	if (pool->used == pool->size) {
+	if (pool->used == pool->size)
+	{
 		/* We cannot update the fastmap here because this
 		 * function is called in atomic context.
 		 * Let's fail here and refill/update it as soon as possible. */
-		if (!ubi->fm_work_scheduled) {
+		if (!ubi->fm_work_scheduled)
+		{
 			ubi->fm_work_scheduled = 1;
 			schedule_work(&ubi->fm_work);
 		}
+
 		return NULL;
 	}
 
@@ -288,15 +338,20 @@ int ubi_ensure_anchor_pebs(struct ubi_device *ubi)
 	struct ubi_work *wrk;
 
 	spin_lock(&ubi->wl_lock);
-	if (ubi->wl_scheduled) {
+
+	if (ubi->wl_scheduled)
+	{
 		spin_unlock(&ubi->wl_lock);
 		return 0;
 	}
+
 	ubi->wl_scheduled = 1;
 	spin_unlock(&ubi->wl_lock);
 
 	wrk = kmalloc(sizeof(struct ubi_work), GFP_NOFS);
-	if (!wrk) {
+
+	if (!wrk)
+	{
 		spin_lock(&ubi->wl_lock);
 		ubi->wl_scheduled = 0;
 		spin_unlock(&ubi->wl_lock);
@@ -320,7 +375,7 @@ int ubi_ensure_anchor_pebs(struct ubi_device *ubi)
  * @torture: if this physical eraseblock has to be tortured
  */
 int ubi_wl_put_fm_peb(struct ubi_device *ubi, struct ubi_wl_entry *fm_e,
-		      int lnum, int torture)
+					  int lnum, int torture)
 {
 	struct ubi_wl_entry *e;
 	int vol_id, pnum = fm_e->pnum;
@@ -337,7 +392,8 @@ int ubi_wl_put_fm_peb(struct ubi_device *ubi, struct ubi_wl_entry *fm_e,
 	 * first time and writing now a new one. In this case the wl system
 	 * has never seen any PEB used by the original fastmap.
 	 */
-	if (!e) {
+	if (!e)
+	{
 		e = fm_e;
 		ubi_assert(e->ec >= 0);
 		ubi->lookuptbl[pnum] = e;
@@ -366,10 +422,14 @@ static void ubi_fastmap_close(struct ubi_device *ubi)
 	return_unused_pool_pebs(ubi, &ubi->fm_pool);
 	return_unused_pool_pebs(ubi, &ubi->fm_wl_pool);
 
-	if (ubi->fm) {
+	if (ubi->fm)
+	{
 		for (i = 0; i < ubi->fm->used_blocks; i++)
+		{
 			kfree(ubi->fm->e[i]);
+		}
 	}
+
 	kfree(ubi->fm);
 }
 
@@ -382,12 +442,13 @@ static void ubi_fastmap_close(struct ubi_device *ubi)
  * @root: RB tree to test against.
  */
 static struct ubi_wl_entry *may_reserve_for_fm(struct ubi_device *ubi,
-					   struct ubi_wl_entry *e,
-					   struct rb_root *root) {
+		struct ubi_wl_entry *e,
+		struct rb_root *root)
+{
 	if (e && !ubi->fm_disabled && !ubi->fm &&
-	    e->pnum < UBI_FM_MAX_START)
+		e->pnum < UBI_FM_MAX_START)
 		e = rb_entry(rb_next(root->rb_node),
-			     struct ubi_wl_entry, u.rb);
+					 struct ubi_wl_entry, u.rb);
 
 	return e;
 }

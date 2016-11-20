@@ -40,14 +40,16 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
 static struct list_head g_smsdvb_clients;
 static struct mutex g_smsdvb_clientslock;
 
-static u32 sms_to_guard_interval_table[] = {
+static u32 sms_to_guard_interval_table[] =
+{
 	[0] = GUARD_INTERVAL_1_32,
 	[1] = GUARD_INTERVAL_1_16,
 	[2] = GUARD_INTERVAL_1_8,
 	[3] = GUARD_INTERVAL_1_4,
 };
 
-static u32 sms_to_code_rate_table[] = {
+static u32 sms_to_code_rate_table[] =
+{
 	[0] = FEC_1_2,
 	[1] = FEC_2_3,
 	[2] = FEC_3_4,
@@ -56,14 +58,16 @@ static u32 sms_to_code_rate_table[] = {
 };
 
 
-static u32 sms_to_hierarchy_table[] = {
+static u32 sms_to_hierarchy_table[] =
+{
 	[0] = HIERARCHY_NONE,
 	[1] = HIERARCHY_1,
 	[2] = HIERARCHY_2,
 	[3] = HIERARCHY_4,
 };
 
-static u32 sms_to_modulation_table[] = {
+static u32 sms_to_modulation_table[] =
+{
 	[0] = QPSK,
 	[1] = QAM_16,
 	[2] = QAM_64,
@@ -73,54 +77,71 @@ static u32 sms_to_modulation_table[] = {
 
 /* Events that may come from DVB v3 adapter */
 static void sms_board_dvb3_event(struct smsdvb_client_t *client,
-		enum SMS_DVB3_EVENTS event) {
+								 enum SMS_DVB3_EVENTS event)
+{
 
 	struct smscore_device_t *coredev = client->coredev;
-	switch (event) {
-	case DVB3_EVENT_INIT:
-		pr_debug("DVB3_EVENT_INIT\n");
-		sms_board_event(coredev, BOARD_EVENT_BIND);
-		break;
-	case DVB3_EVENT_SLEEP:
-		pr_debug("DVB3_EVENT_SLEEP\n");
-		sms_board_event(coredev, BOARD_EVENT_POWER_SUSPEND);
-		break;
-	case DVB3_EVENT_HOTPLUG:
-		pr_debug("DVB3_EVENT_HOTPLUG\n");
-		sms_board_event(coredev, BOARD_EVENT_POWER_INIT);
-		break;
-	case DVB3_EVENT_FE_LOCK:
-		if (client->event_fe_state != DVB3_EVENT_FE_LOCK) {
-			client->event_fe_state = DVB3_EVENT_FE_LOCK;
-			pr_debug("DVB3_EVENT_FE_LOCK\n");
-			sms_board_event(coredev, BOARD_EVENT_FE_LOCK);
-		}
-		break;
-	case DVB3_EVENT_FE_UNLOCK:
-		if (client->event_fe_state != DVB3_EVENT_FE_UNLOCK) {
-			client->event_fe_state = DVB3_EVENT_FE_UNLOCK;
-			pr_debug("DVB3_EVENT_FE_UNLOCK\n");
-			sms_board_event(coredev, BOARD_EVENT_FE_UNLOCK);
-		}
-		break;
-	case DVB3_EVENT_UNC_OK:
-		if (client->event_unc_state != DVB3_EVENT_UNC_OK) {
-			client->event_unc_state = DVB3_EVENT_UNC_OK;
-			pr_debug("DVB3_EVENT_UNC_OK\n");
-			sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_OK);
-		}
-		break;
-	case DVB3_EVENT_UNC_ERR:
-		if (client->event_unc_state != DVB3_EVENT_UNC_ERR) {
-			client->event_unc_state = DVB3_EVENT_UNC_ERR;
-			pr_debug("DVB3_EVENT_UNC_ERR\n");
-			sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_ERRORS);
-		}
-		break;
 
-	default:
-		pr_err("Unknown dvb3 api event\n");
-		break;
+	switch (event)
+	{
+		case DVB3_EVENT_INIT:
+			pr_debug("DVB3_EVENT_INIT\n");
+			sms_board_event(coredev, BOARD_EVENT_BIND);
+			break;
+
+		case DVB3_EVENT_SLEEP:
+			pr_debug("DVB3_EVENT_SLEEP\n");
+			sms_board_event(coredev, BOARD_EVENT_POWER_SUSPEND);
+			break;
+
+		case DVB3_EVENT_HOTPLUG:
+			pr_debug("DVB3_EVENT_HOTPLUG\n");
+			sms_board_event(coredev, BOARD_EVENT_POWER_INIT);
+			break;
+
+		case DVB3_EVENT_FE_LOCK:
+			if (client->event_fe_state != DVB3_EVENT_FE_LOCK)
+			{
+				client->event_fe_state = DVB3_EVENT_FE_LOCK;
+				pr_debug("DVB3_EVENT_FE_LOCK\n");
+				sms_board_event(coredev, BOARD_EVENT_FE_LOCK);
+			}
+
+			break;
+
+		case DVB3_EVENT_FE_UNLOCK:
+			if (client->event_fe_state != DVB3_EVENT_FE_UNLOCK)
+			{
+				client->event_fe_state = DVB3_EVENT_FE_UNLOCK;
+				pr_debug("DVB3_EVENT_FE_UNLOCK\n");
+				sms_board_event(coredev, BOARD_EVENT_FE_UNLOCK);
+			}
+
+			break;
+
+		case DVB3_EVENT_UNC_OK:
+			if (client->event_unc_state != DVB3_EVENT_UNC_OK)
+			{
+				client->event_unc_state = DVB3_EVENT_UNC_OK;
+				pr_debug("DVB3_EVENT_UNC_OK\n");
+				sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_OK);
+			}
+
+			break;
+
+		case DVB3_EVENT_UNC_ERR:
+			if (client->event_unc_state != DVB3_EVENT_UNC_ERR)
+			{
+				client->event_unc_state = DVB3_EVENT_UNC_ERR;
+				pr_debug("DVB3_EVENT_UNC_ERR\n");
+				sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_ERRORS);
+			}
+
+			break;
+
+		default:
+			pr_err("Unknown dvb3 api event\n");
+			break;
 	}
 }
 
@@ -132,13 +153,15 @@ static void smsdvb_stats_not_ready(struct dvb_frontend *fe)
 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
 	int i, n_layers;
 
-	switch (smscore_get_device_mode(coredev)) {
-	case DEVICE_MODE_ISDBT:
-	case DEVICE_MODE_ISDBT_BDA:
-		n_layers = 4;
-		break;
-	default:
-		n_layers = 1;
+	switch (smscore_get_device_mode(coredev))
+	{
+		case DEVICE_MODE_ISDBT:
+		case DEVICE_MODE_ISDBT_BDA:
+			n_layers = 4;
+			break;
+
+		default:
+			n_layers = 1;
 	}
 
 	/* Global stats */
@@ -157,7 +180,8 @@ static void smsdvb_stats_not_ready(struct dvb_frontend *fe)
 	 * Put all of them at FE_SCALE_NOT_AVAILABLE. They're dynamically
 	 * changed when the stats become available.
 	 */
-	for (i = 0; i < n_layers; i++) {
+	for (i = 0; i < n_layers; i++)
+	{
 		c->post_bit_error.stat[i].scale = FE_SCALE_NOT_AVAILABLE;
 		c->post_bit_count.stat[i].scale = FE_SCALE_NOT_AVAILABLE;
 		c->block_error.stat[i].scale = FE_SCALE_NOT_AVAILABLE;
@@ -167,14 +191,18 @@ static void smsdvb_stats_not_ready(struct dvb_frontend *fe)
 
 static inline int sms_to_mode(u32 mode)
 {
-	switch (mode) {
-	case 2:
-		return TRANSMISSION_MODE_2K;
-	case 4:
-		return TRANSMISSION_MODE_4K;
-	case 8:
-		return TRANSMISSION_MODE_8K;
+	switch (mode)
+	{
+		case 2:
+			return TRANSMISSION_MODE_2K;
+
+		case 4:
+			return TRANSMISSION_MODE_4K;
+
+		case 8:
+			return TRANSMISSION_MODE_8K;
 	}
+
 	return TRANSMISSION_MODE_AUTO;
 }
 
@@ -182,10 +210,12 @@ static inline int sms_to_status(u32 is_demod_locked, u32 is_rf_locked)
 {
 	if (is_demod_locked)
 		return FE_HAS_SIGNAL  | FE_HAS_CARRIER | FE_HAS_VITERBI |
-		       FE_HAS_SYNC    | FE_HAS_LOCK;
+			   FE_HAS_SYNC    | FE_HAS_LOCK;
 
 	if (is_rf_locked)
+	{
 		return FE_HAS_SIGNAL | FE_HAS_CARRIER;
+	}
 
 	return 0;
 }
@@ -196,32 +226,32 @@ static inline u32 sms_to_bw(u32 value)
 }
 
 #define convert_from_table(value, table, defval) ({			\
-	u32 __ret;							\
-	if (value < ARRAY_SIZE(table))					\
-		__ret = table[value];					\
-	else								\
-		__ret = defval;						\
-	__ret;								\
-})
+		u32 __ret;							\
+		if (value < ARRAY_SIZE(table))					\
+			__ret = table[value];					\
+		else								\
+			__ret = defval;						\
+		__ret;								\
+	})
 
 #define sms_to_guard_interval(value)					\
 	convert_from_table(value, sms_to_guard_interval_table,		\
-			   GUARD_INTERVAL_AUTO);
+					   GUARD_INTERVAL_AUTO);
 
 #define sms_to_code_rate(value)						\
 	convert_from_table(value, sms_to_code_rate_table,		\
-			   FEC_NONE);
+					   FEC_NONE);
 
 #define sms_to_hierarchy(value)						\
 	convert_from_table(value, sms_to_hierarchy_table,		\
-			   FEC_NONE);
+					   FEC_NONE);
 
 #define sms_to_modulation(value)					\
 	convert_from_table(value, sms_to_modulation_table,		\
-			   FEC_NONE);
+					   FEC_NONE);
 
 static void smsdvb_update_tx_params(struct smsdvb_client_t *client,
-				    struct sms_tx_stats *p)
+									struct sms_tx_stats *p)
 {
 	struct dvb_frontend *fe = &client->frontend;
 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
@@ -238,7 +268,7 @@ static void smsdvb_update_tx_params(struct smsdvb_client_t *client,
 }
 
 static void smsdvb_update_per_slices(struct smsdvb_client_t *client,
-				     struct RECEPTION_STATISTICS_PER_SLICES_S *p)
+									 struct RECEPTION_STATISTICS_PER_SLICES_S *p)
 {
 	struct dvb_frontend *fe = &client->frontend;
 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
@@ -255,7 +285,9 @@ static void smsdvb_update_per_slices(struct smsdvb_client_t *client,
 
 	/* PER/BER requires demod lock */
 	if (!p->is_demod_locked)
+	{
 		return;
+	}
 
 	/* TS PER */
 	client->last_per = c->block_error.stat[0].uvalue;
@@ -272,19 +304,25 @@ static void smsdvb_update_per_slices(struct smsdvb_client_t *client,
 
 	/* Legacy PER/BER */
 	tmp = p->ets_packets * 65535;
+
 	if (p->ts_packets + p->ets_packets)
+	{
 		do_div(tmp, p->ts_packets + p->ets_packets);
+	}
+
 	client->legacy_per = tmp;
 }
 
 static void smsdvb_update_dvb_stats(struct smsdvb_client_t *client,
-				    struct sms_stats *p)
+									struct sms_stats *p)
 {
 	struct dvb_frontend *fe = &client->frontend;
 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
 
 	if (client->prt_dvb_stats)
+	{
 		client->prt_dvb_stats(client->debug_data, p);
+	}
 
 	client->fe_status = sms_to_status(p->is_demod_locked, p->is_rf_locked);
 
@@ -310,7 +348,9 @@ static void smsdvb_update_dvb_stats(struct smsdvb_client_t *client,
 
 	/* PER/BER requires demod lock */
 	if (!p->is_demod_locked)
+	{
 		return;
+	}
 
 	/* TS PER */
 	client->last_per = c->block_error.stat[0].uvalue;
@@ -330,7 +370,7 @@ static void smsdvb_update_dvb_stats(struct smsdvb_client_t *client,
 };
 
 static void smsdvb_update_isdbt_stats(struct smsdvb_client_t *client,
-				      struct sms_isdbt_stats *p)
+									  struct sms_isdbt_stats *p)
 {
 	struct dvb_frontend *fe = &client->frontend;
 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
@@ -338,7 +378,9 @@ static void smsdvb_update_isdbt_stats(struct smsdvb_client_t *client,
 	int i, n_layers;
 
 	if (client->prt_isdb_stats)
+	{
 		client->prt_isdb_stats(client->debug_data, p);
+	}
 
 	client->fe_status = sms_to_status(p->is_demod_locked, p->is_rf_locked);
 
@@ -347,7 +389,8 @@ static void smsdvb_update_isdbt_stats(struct smsdvb_client_t *client,
 	 * signal strength. The signal strength indicator is at the
 	 * wrong field.
 	 */
-	if (p->statistics_type == 0) {
+	if (p->statistics_type == 0)
+	{
 		c->strength.stat[0].uvalue = ((s32)p->transmission_mode) * 1000;
 		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
 		return;
@@ -360,10 +403,17 @@ static void smsdvb_update_isdbt_stats(struct smsdvb_client_t *client,
 	c->guard_interval = sms_to_guard_interval(p->guard_interval);
 	c->isdbt_partial_reception = p->partial_reception ? 1 : 0;
 	n_layers = p->num_of_layers;
+
 	if (n_layers < 1)
+	{
 		n_layers = 1;
+	}
+
 	if (n_layers > 3)
+	{
 		n_layers = 3;
+	}
+
 	c->isdbt_layer_enabled = 0;
 
 	/* update reception data */
@@ -377,7 +427,9 @@ static void smsdvb_update_isdbt_stats(struct smsdvb_client_t *client,
 
 	/* PER/BER and per-layer stats require demod lock */
 	if (!p->is_demod_locked)
+	{
 		return;
+	}
 
 	client->last_per = c->block_error.stat[0].uvalue;
 
@@ -391,16 +443,21 @@ static void smsdvb_update_isdbt_stats(struct smsdvb_client_t *client,
 	c->post_bit_error.stat[0].scale = FE_SCALE_COUNTER;
 	c->post_bit_count.stat[0].scale = FE_SCALE_COUNTER;
 
-	for (i = 0; i < n_layers; i++) {
+	for (i = 0; i < n_layers; i++)
+	{
 		lr = &p->layer_info[i];
 
 		/* Update per-layer transmission parameters */
-		if (lr->number_of_segments > 0 && lr->number_of_segments < 13) {
+		if (lr->number_of_segments > 0 && lr->number_of_segments < 13)
+		{
 			c->isdbt_layer_enabled |= 1 << i;
 			c->layer[i].segment_count = lr->number_of_segments;
-		} else {
+		}
+		else
+		{
 			continue;
 		}
+
 		c->layer[i].modulation = sms_to_modulation(lr->constellation);
 
 		/* TS PER */
@@ -426,7 +483,7 @@ static void smsdvb_update_isdbt_stats(struct smsdvb_client_t *client,
 }
 
 static void smsdvb_update_isdbt_stats_ex(struct smsdvb_client_t *client,
-					 struct sms_isdbt_stats_ex *p)
+		struct sms_isdbt_stats_ex *p)
 {
 	struct dvb_frontend *fe = &client->frontend;
 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
@@ -434,7 +491,9 @@ static void smsdvb_update_isdbt_stats_ex(struct smsdvb_client_t *client,
 	int i, n_layers;
 
 	if (client->prt_isdb_stats_ex)
+	{
 		client->prt_isdb_stats_ex(client->debug_data, p);
+	}
 
 	/* Update ISDB-T transmission parameters */
 	c->frequency = p->frequency;
@@ -444,10 +503,17 @@ static void smsdvb_update_isdbt_stats_ex(struct smsdvb_client_t *client,
 	c->guard_interval = sms_to_guard_interval(p->guard_interval);
 	c->isdbt_partial_reception = p->partial_reception ? 1 : 0;
 	n_layers = p->num_of_layers;
+
 	if (n_layers < 1)
+	{
 		n_layers = 1;
+	}
+
 	if (n_layers > 3)
+	{
 		n_layers = 3;
+	}
+
 	c->isdbt_layer_enabled = 0;
 
 	/* update reception data */
@@ -461,7 +527,9 @@ static void smsdvb_update_isdbt_stats_ex(struct smsdvb_client_t *client,
 
 	/* PER/BER and per-layer stats require demod lock */
 	if (!p->is_demod_locked)
+	{
 		return;
+	}
 
 	client->last_per = c->block_error.stat[0].uvalue;
 
@@ -479,16 +547,22 @@ static void smsdvb_update_isdbt_stats_ex(struct smsdvb_client_t *client,
 	c->post_bit_count.len = n_layers + 1;
 	c->block_error.len = n_layers + 1;
 	c->block_count.len = n_layers + 1;
-	for (i = 0; i < n_layers; i++) {
+
+	for (i = 0; i < n_layers; i++)
+	{
 		lr = &p->layer_info[i];
 
 		/* Update per-layer transmission parameters */
-		if (lr->number_of_segments > 0 && lr->number_of_segments < 13) {
+		if (lr->number_of_segments > 0 && lr->number_of_segments < 13)
+		{
 			c->isdbt_layer_enabled |= 1 << i;
 			c->layer[i].segment_count = lr->number_of_segments;
-		} else {
+		}
+		else
+		{
 			continue;
 		}
+
 		c->layer[i].modulation = sms_to_modulation(lr->constellation);
 
 		/* TS PER */
@@ -517,92 +591,110 @@ static int smsdvb_onresponse(void *context, struct smscore_buffer_t *cb)
 {
 	struct smsdvb_client_t *client = (struct smsdvb_client_t *) context;
 	struct sms_msg_hdr *phdr = (struct sms_msg_hdr *) (((u8 *) cb->p)
-			+ cb->offset);
+							   + cb->offset);
 	void *p = phdr + 1;
 	struct dvb_frontend *fe = &client->frontend;
 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
 	bool is_status_update = false;
 
-	switch (phdr->msg_type) {
-	case MSG_SMS_DVBT_BDA_DATA:
-		/*
-		 * Only feed data to dvb demux if are there any feed listening
-		 * to it and if the device has tuned
-		 */
-		if (client->feed_users && client->has_tuned)
-			dvb_dmx_swfilter(&client->demux, p,
-					 cb->size - sizeof(struct sms_msg_hdr));
-		break;
+	switch (phdr->msg_type)
+	{
+		case MSG_SMS_DVBT_BDA_DATA:
 
-	case MSG_SMS_RF_TUNE_RES:
-	case MSG_SMS_ISDBT_TUNE_RES:
-		complete(&client->tune_done);
-		break;
+			/*
+			 * Only feed data to dvb demux if are there any feed listening
+			 * to it and if the device has tuned
+			 */
+			if (client->feed_users && client->has_tuned)
+				dvb_dmx_swfilter(&client->demux, p,
+								 cb->size - sizeof(struct sms_msg_hdr));
 
-	case MSG_SMS_SIGNAL_DETECTED_IND:
-		client->fe_status = FE_HAS_SIGNAL  | FE_HAS_CARRIER |
-				    FE_HAS_VITERBI | FE_HAS_SYNC    |
-				    FE_HAS_LOCK;
-
-		is_status_update = true;
-		break;
-
-	case MSG_SMS_NO_SIGNAL_IND:
-		client->fe_status = 0;
-
-		is_status_update = true;
-		break;
-
-	case MSG_SMS_TRANSMISSION_IND:
-		smsdvb_update_tx_params(client, p);
-
-		is_status_update = true;
-		break;
-
-	case MSG_SMS_HO_PER_SLICES_IND:
-		smsdvb_update_per_slices(client, p);
-
-		is_status_update = true;
-		break;
-
-	case MSG_SMS_GET_STATISTICS_RES:
-		switch (smscore_get_device_mode(client->coredev)) {
-		case DEVICE_MODE_ISDBT:
-		case DEVICE_MODE_ISDBT_BDA:
-			smsdvb_update_isdbt_stats(client, p);
 			break;
+
+		case MSG_SMS_RF_TUNE_RES:
+		case MSG_SMS_ISDBT_TUNE_RES:
+			complete(&client->tune_done);
+			break;
+
+		case MSG_SMS_SIGNAL_DETECTED_IND:
+			client->fe_status = FE_HAS_SIGNAL  | FE_HAS_CARRIER |
+								FE_HAS_VITERBI | FE_HAS_SYNC    |
+								FE_HAS_LOCK;
+
+			is_status_update = true;
+			break;
+
+		case MSG_SMS_NO_SIGNAL_IND:
+			client->fe_status = 0;
+
+			is_status_update = true;
+			break;
+
+		case MSG_SMS_TRANSMISSION_IND:
+			smsdvb_update_tx_params(client, p);
+
+			is_status_update = true;
+			break;
+
+		case MSG_SMS_HO_PER_SLICES_IND:
+			smsdvb_update_per_slices(client, p);
+
+			is_status_update = true;
+			break;
+
+		case MSG_SMS_GET_STATISTICS_RES:
+			switch (smscore_get_device_mode(client->coredev))
+			{
+				case DEVICE_MODE_ISDBT:
+				case DEVICE_MODE_ISDBT_BDA:
+					smsdvb_update_isdbt_stats(client, p);
+					break;
+
+				default:
+					/* Skip sms_msg_statistics_info:request_result field */
+					smsdvb_update_dvb_stats(client, p + sizeof(u32));
+			}
+
+			is_status_update = true;
+			break;
+
+		/* Only for ISDB-T */
+		case MSG_SMS_GET_STATISTICS_EX_RES:
+			/* Skip sms_msg_statistics_info:request_result field? */
+			smsdvb_update_isdbt_stats_ex(client, p + sizeof(u32));
+			is_status_update = true;
+			break;
+
 		default:
-			/* Skip sms_msg_statistics_info:request_result field */
-			smsdvb_update_dvb_stats(client, p + sizeof(u32));
-		}
-
-		is_status_update = true;
-		break;
-
-	/* Only for ISDB-T */
-	case MSG_SMS_GET_STATISTICS_EX_RES:
-		/* Skip sms_msg_statistics_info:request_result field? */
-		smsdvb_update_isdbt_stats_ex(client, p + sizeof(u32));
-		is_status_update = true;
-		break;
-	default:
-		pr_debug("message not handled\n");
+			pr_debug("message not handled\n");
 	}
+
 	smscore_putbuffer(client->coredev, cb);
 
-	if (is_status_update) {
-		if (client->fe_status & FE_HAS_LOCK) {
+	if (is_status_update)
+	{
+		if (client->fe_status & FE_HAS_LOCK)
+		{
 			sms_board_dvb3_event(client, DVB3_EVENT_FE_LOCK);
+
 			if (client->last_per == c->block_error.stat[0].uvalue)
+			{
 				sms_board_dvb3_event(client, DVB3_EVENT_UNC_OK);
+			}
 			else
+			{
 				sms_board_dvb3_event(client, DVB3_EVENT_UNC_ERR);
+			}
+
 			client->has_tuned = true;
-		} else {
+		}
+		else
+		{
 			smsdvb_stats_not_ready(fe);
 			client->has_tuned = false;
 			sms_board_dvb3_event(client, DVB3_EVENT_FE_UNLOCK);
 		}
+
 		complete(&client->stats_done);
 	}
 
@@ -615,7 +707,10 @@ static void smsdvb_media_device_unregister(struct smsdvb_client_t *client)
 	struct smscore_device_t *coredev = client->coredev;
 
 	if (!coredev->media_dev)
+	{
 		return;
+	}
+
 	media_device_unregister(coredev->media_dev);
 	media_device_cleanup(coredev->media_dev);
 	kfree(coredev->media_dev);
@@ -655,7 +750,7 @@ static int smsdvb_start_feed(struct dvb_demux_feed *feed)
 	struct sms_msg_data pid_msg;
 
 	pr_debug("add pid %d(%x)\n",
-		  feed->pid, feed->pid);
+			 feed->pid, feed->pid);
 
 	client->feed_users++;
 
@@ -667,7 +762,7 @@ static int smsdvb_start_feed(struct dvb_demux_feed *feed)
 	pid_msg.msg_data[0] = feed->pid;
 
 	return smsclient_sendrequest(client->smsclient,
-				     &pid_msg, sizeof(pid_msg));
+								 &pid_msg, sizeof(pid_msg));
 }
 
 static int smsdvb_stop_feed(struct dvb_demux_feed *feed)
@@ -677,7 +772,7 @@ static int smsdvb_stop_feed(struct dvb_demux_feed *feed)
 	struct sms_msg_data pid_msg;
 
 	pr_debug("remove pid %d(%x)\n",
-		  feed->pid, feed->pid);
+			 feed->pid, feed->pid);
 
 	client->feed_users--;
 
@@ -689,22 +784,25 @@ static int smsdvb_stop_feed(struct dvb_demux_feed *feed)
 	pid_msg.msg_data[0] = feed->pid;
 
 	return smsclient_sendrequest(client->smsclient,
-				     &pid_msg, sizeof(pid_msg));
+								 &pid_msg, sizeof(pid_msg));
 }
 
 static int smsdvb_sendrequest_and_wait(struct smsdvb_client_t *client,
-					void *buffer, size_t size,
-					struct completion *completion)
+									   void *buffer, size_t size,
+									   struct completion *completion)
 {
 	int rc;
 
 	rc = smsclient_sendrequest(client->smsclient, buffer, size);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	return wait_for_completion_timeout(completion,
-					   msecs_to_jiffies(2000)) ?
-						0 : -ETIME;
+									   msecs_to_jiffies(2000)) ?
+		   0 : -ETIME;
 }
 
 static int smsdvb_send_statistics_request(struct smsdvb_client_t *client)
@@ -714,8 +812,11 @@ static int smsdvb_send_statistics_request(struct smsdvb_client_t *client)
 
 	/* Don't request stats too fast */
 	if (client->get_stats_jiffies &&
-	   (!time_after(jiffies, client->get_stats_jiffies)))
+		(!time_after(jiffies, client->get_stats_jiffies)))
+	{
 		return 0;
+	}
+
 	client->get_stats_jiffies = jiffies + msecs_to_jiffies(100);
 
 	msg.msg_src_id = DVBT_BDA_CONTROL_MSG_ID;
@@ -723,23 +824,31 @@ static int smsdvb_send_statistics_request(struct smsdvb_client_t *client)
 	msg.msg_flags = 0;
 	msg.msg_length = sizeof(msg);
 
-	switch (smscore_get_device_mode(client->coredev)) {
-	case DEVICE_MODE_ISDBT:
-	case DEVICE_MODE_ISDBT_BDA:
-		/*
-		* Check for firmware version, to avoid breaking for old cards
-		*/
-		if (client->coredev->fw_version >= 0x800)
-			msg.msg_type = MSG_SMS_GET_STATISTICS_EX_REQ;
-		else
+	switch (smscore_get_device_mode(client->coredev))
+	{
+		case DEVICE_MODE_ISDBT:
+		case DEVICE_MODE_ISDBT_BDA:
+
+			/*
+			* Check for firmware version, to avoid breaking for old cards
+			*/
+			if (client->coredev->fw_version >= 0x800)
+			{
+				msg.msg_type = MSG_SMS_GET_STATISTICS_EX_REQ;
+			}
+			else
+			{
+				msg.msg_type = MSG_SMS_GET_STATISTICS_REQ;
+			}
+
+			break;
+
+		default:
 			msg.msg_type = MSG_SMS_GET_STATISTICS_REQ;
-		break;
-	default:
-		msg.msg_type = MSG_SMS_GET_STATISTICS_REQ;
 	}
 
 	rc = smsdvb_sendrequest_and_wait(client, &msg, sizeof(msg),
-					 &client->stats_done);
+									 &client->stats_done);
 
 	return rc;
 }
@@ -747,11 +856,13 @@ static int smsdvb_send_statistics_request(struct smsdvb_client_t *client)
 static inline int led_feedback(struct smsdvb_client_t *client)
 {
 	if (!(client->fe_status & FE_HAS_LOCK))
+	{
 		return sms_board_led_feedback(client->coredev, SMS_LED_OFF);
+	}
 
 	return sms_board_led_feedback(client->coredev,
-				     (client->legacy_ber == 0) ?
-				     SMS_LED_HI : SMS_LED_LO);
+								  (client->legacy_ber == 0) ?
+								  SMS_LED_HI : SMS_LED_LO);
 }
 
 static int smsdvb_read_status(struct dvb_frontend *fe, enum fe_status *stat)
@@ -797,11 +908,17 @@ static int smsdvb_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
 	rc = smsdvb_send_statistics_request(client);
 
 	if (power < -95)
+	{
 		*strength = 0;
-		else if (power > -29)
-			*strength = 65535;
-		else
-			*strength = (power + 95) * 65535 / 66;
+	}
+	else if (power > -29)
+	{
+		*strength = 65535;
+	}
+	else
+	{
+		*strength = (power + 95) * 65535 / 66;
+	}
 
 	led_feedback(client);
 
@@ -844,7 +961,7 @@ static int smsdvb_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
 }
 
 static int smsdvb_get_tune_settings(struct dvb_frontend *fe,
-				    struct dvb_frontend_tune_settings *tune)
+									struct dvb_frontend_tune_settings *tune)
 {
 	pr_debug("\n");
 
@@ -860,7 +977,8 @@ static int smsdvb_dvbt_set_frontend(struct dvb_frontend *fe)
 	struct smsdvb_client_t *client =
 		container_of(fe, struct smsdvb_client_t, frontend);
 
-	struct {
+	struct
+	{
 		struct sms_msg_hdr	msg;
 		u32		Data[3];
 	} msg;
@@ -881,43 +999,53 @@ static int smsdvb_dvbt_set_frontend(struct dvb_frontend *fe)
 	msg.Data[2] = 12000000;
 
 	pr_debug("%s: freq %d band %d\n", __func__, c->frequency,
-		 c->bandwidth_hz);
+			 c->bandwidth_hz);
 
-	switch (c->bandwidth_hz / 1000000) {
-	case 8:
-		msg.Data[1] = BW_8_MHZ;
-		break;
-	case 7:
-		msg.Data[1] = BW_7_MHZ;
-		break;
-	case 6:
-		msg.Data[1] = BW_6_MHZ;
-		break;
-	case 0:
-		return -EOPNOTSUPP;
-	default:
-		return -EINVAL;
+	switch (c->bandwidth_hz / 1000000)
+	{
+		case 8:
+			msg.Data[1] = BW_8_MHZ;
+			break;
+
+		case 7:
+			msg.Data[1] = BW_7_MHZ;
+			break;
+
+		case 6:
+			msg.Data[1] = BW_6_MHZ;
+			break;
+
+		case 0:
+			return -EOPNOTSUPP;
+
+		default:
+			return -EINVAL;
 	}
+
 	/* Disable LNA, if any. An error is returned if no LNA is present */
 	ret = sms_board_lna_control(client->coredev, 0);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		enum fe_status status;
 
 		/* tune with LNA off at first */
 		ret = smsdvb_sendrequest_and_wait(client, &msg, sizeof(msg),
-						  &client->tune_done);
+										  &client->tune_done);
 
 		smsdvb_read_status(fe, &status);
 
 		if (status & FE_HAS_LOCK)
+		{
 			return ret;
+		}
 
 		/* previous tune didn't lock - enable LNA and tune again */
 		sms_board_lna_control(client->coredev, 1);
 	}
 
 	return smsdvb_sendrequest_and_wait(client, &msg, sizeof(msg),
-					   &client->tune_done);
+									   &client->tune_done);
 }
 
 static int smsdvb_isdbt_set_frontend(struct dvb_frontend *fe)
@@ -930,7 +1058,8 @@ static int smsdvb_isdbt_set_frontend(struct dvb_frontend *fe)
 	enum sms_device_type_st type = board->type;
 	int ret;
 
-	struct {
+	struct
+	{
 		struct sms_msg_hdr	msg;
 		u32		Data[4];
 	} msg;
@@ -944,50 +1073,67 @@ static int smsdvb_isdbt_set_frontend(struct dvb_frontend *fe)
 	msg.msg.msg_length = sizeof(msg);
 
 	if (c->isdbt_sb_segment_idx == -1)
+	{
 		c->isdbt_sb_segment_idx = 0;
+	}
 
 	if (!c->isdbt_layer_enabled)
+	{
 		c->isdbt_layer_enabled = 7;
+	}
 
 	msg.Data[0] = c->frequency;
 	msg.Data[1] = BW_ISDBT_1SEG;
 	msg.Data[2] = 12000000;
 	msg.Data[3] = c->isdbt_sb_segment_idx;
 
-	if (c->isdbt_partial_reception) {
+	if (c->isdbt_partial_reception)
+	{
 		if ((type == SMS_PELE || type == SMS_RIO) &&
-		    c->isdbt_sb_segment_count > 3)
+			c->isdbt_sb_segment_count > 3)
+		{
 			msg.Data[1] = BW_ISDBT_13SEG;
+		}
 		else if (c->isdbt_sb_segment_count > 1)
+		{
 			msg.Data[1] = BW_ISDBT_3SEG;
-	} else if (type == SMS_PELE || type == SMS_RIO)
+		}
+	}
+	else if (type == SMS_PELE || type == SMS_RIO)
+	{
 		msg.Data[1] = BW_ISDBT_13SEG;
+	}
 
 	c->bandwidth_hz = 6000000;
 
 	pr_debug("freq %d segwidth %d segindex %d\n",
-		 c->frequency, c->isdbt_sb_segment_count,
-		 c->isdbt_sb_segment_idx);
+			 c->frequency, c->isdbt_sb_segment_count,
+			 c->isdbt_sb_segment_idx);
 
 	/* Disable LNA, if any. An error is returned if no LNA is present */
 	ret = sms_board_lna_control(client->coredev, 0);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		enum fe_status status;
 
 		/* tune with LNA off at first */
 		ret = smsdvb_sendrequest_and_wait(client, &msg, sizeof(msg),
-						  &client->tune_done);
+										  &client->tune_done);
 
 		smsdvb_read_status(fe, &status);
 
 		if (status & FE_HAS_LOCK)
+		{
 			return ret;
+		}
 
 		/* previous tune didn't lock - enable LNA and tune again */
 		sms_board_lna_control(client->coredev, 1);
 	}
+
 	return smsdvb_sendrequest_and_wait(client, &msg, sizeof(msg),
-					   &client->tune_done);
+									   &client->tune_done);
 }
 
 static int smsdvb_set_frontend(struct dvb_frontend *fe)
@@ -1003,15 +1149,18 @@ static int smsdvb_set_frontend(struct dvb_frontend *fe)
 
 	client->has_tuned = false;
 
-	switch (smscore_get_device_mode(coredev)) {
-	case DEVICE_MODE_DVBT:
-	case DEVICE_MODE_DVBT_BDA:
-		return smsdvb_dvbt_set_frontend(fe);
-	case DEVICE_MODE_ISDBT:
-	case DEVICE_MODE_ISDBT_BDA:
-		return smsdvb_isdbt_set_frontend(fe);
-	default:
-		return -EINVAL;
+	switch (smscore_get_device_mode(coredev))
+	{
+		case DEVICE_MODE_DVBT:
+		case DEVICE_MODE_DVBT_BDA:
+			return smsdvb_dvbt_set_frontend(fe);
+
+		case DEVICE_MODE_ISDBT:
+		case DEVICE_MODE_ISDBT_BDA:
+			return smsdvb_isdbt_set_frontend(fe);
+
+		default:
+			return -EINVAL;
 	}
 }
 
@@ -1044,20 +1193,21 @@ static void smsdvb_release(struct dvb_frontend *fe)
 	/* do nothing */
 }
 
-static struct dvb_frontend_ops smsdvb_fe_ops = {
+static struct dvb_frontend_ops smsdvb_fe_ops =
+{
 	.info = {
 		.name			= "Siano Mobile Digital MDTV Receiver",
 		.frequency_min		= 44250000,
 		.frequency_max		= 867250000,
 		.frequency_stepsize	= 250000,
 		.caps = FE_CAN_INVERSION_AUTO |
-			FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
-			FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
-			FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_QAM_64 |
-			FE_CAN_QAM_AUTO | FE_CAN_TRANSMISSION_MODE_AUTO |
-			FE_CAN_GUARD_INTERVAL_AUTO |
-			FE_CAN_RECOVER |
-			FE_CAN_HIERARCHY_AUTO,
+		FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
+		FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
+		FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_QAM_64 |
+		FE_CAN_QAM_AUTO | FE_CAN_TRANSMISSION_MODE_AUTO |
+		FE_CAN_GUARD_INTERVAL_AUTO |
+		FE_CAN_RECOVER |
+		FE_CAN_HIERARCHY_AUTO,
 	},
 
 	.release = smsdvb_release,
@@ -1076,7 +1226,7 @@ static struct dvb_frontend_ops smsdvb_fe_ops = {
 };
 
 static int smsdvb_hotplug(struct smscore_device_t *coredev,
-			  struct device *device, int arrival)
+						  struct device *device, int arrival)
 {
 	struct smsclient_params_t params;
 	struct smsdvb_client_t *client;
@@ -1084,20 +1234,29 @@ static int smsdvb_hotplug(struct smscore_device_t *coredev,
 
 	/* device removal handled by onremove callback */
 	if (!arrival)
+	{
 		return 0;
+	}
+
 	client = kzalloc(sizeof(struct smsdvb_client_t), GFP_KERNEL);
+
 	if (!client)
+	{
 		return -ENOMEM;
+	}
 
 	/* register dvb adapter */
 	rc = dvb_register_adapter(&client->adapter,
-				  sms_get_board(
-					smscore_get_board_id(coredev))->name,
-				  THIS_MODULE, device, adapter_nr);
-	if (rc < 0) {
+							  sms_get_board(
+								  smscore_get_board_id(coredev))->name,
+							  THIS_MODULE, device, adapter_nr);
+
+	if (rc < 0)
+	{
 		pr_err("dvb_register_adapter() failed %d\n", rc);
 		goto adapter_error;
 	}
+
 	dvb_register_media_controller(&client->adapter, coredev->media_dev);
 
 	/* init dvb demux */
@@ -1108,7 +1267,9 @@ static int smsdvb_hotplug(struct smscore_device_t *coredev,
 	client->demux.stop_feed = smsdvb_stop_feed;
 
 	rc = dvb_dmx_init(&client->demux);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		pr_err("dvb_dmx_init failed %d\n", rc);
 		goto dvbdmx_error;
 	}
@@ -1119,28 +1280,34 @@ static int smsdvb_hotplug(struct smscore_device_t *coredev,
 	client->dmxdev.capabilities = 0;
 
 	rc = dvb_dmxdev_init(&client->dmxdev, &client->adapter);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		pr_err("dvb_dmxdev_init failed %d\n", rc);
 		goto dmxdev_error;
 	}
 
 	/* init and register frontend */
 	memcpy(&client->frontend.ops, &smsdvb_fe_ops,
-	       sizeof(struct dvb_frontend_ops));
+		   sizeof(struct dvb_frontend_ops));
 
-	switch (smscore_get_device_mode(coredev)) {
-	case DEVICE_MODE_DVBT:
-	case DEVICE_MODE_DVBT_BDA:
-		client->frontend.ops.delsys[0] = SYS_DVBT;
-		break;
-	case DEVICE_MODE_ISDBT:
-	case DEVICE_MODE_ISDBT_BDA:
-		client->frontend.ops.delsys[0] = SYS_ISDBT;
-		break;
+	switch (smscore_get_device_mode(coredev))
+	{
+		case DEVICE_MODE_DVBT:
+		case DEVICE_MODE_DVBT_BDA:
+			client->frontend.ops.delsys[0] = SYS_DVBT;
+			break;
+
+		case DEVICE_MODE_ISDBT:
+		case DEVICE_MODE_ISDBT_BDA:
+			client->frontend.ops.delsys[0] = SYS_ISDBT;
+			break;
 	}
 
 	rc = dvb_register_frontend(&client->adapter, &client->frontend);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		pr_err("frontend registration failed %d\n", rc);
 		goto frontend_error;
 	}
@@ -1152,7 +1319,9 @@ static int smsdvb_hotplug(struct smscore_device_t *coredev,
 	params.context = client;
 
 	rc = smscore_register_client(coredev, &params, &client->smsclient);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		pr_err("smscore_register_client() failed %d\n", rc);
 		goto client_error;
 	}
@@ -1175,10 +1344,14 @@ static int smsdvb_hotplug(struct smscore_device_t *coredev,
 	sms_board_setup(coredev);
 
 	if (smsdvb_debugfs_create(client) < 0)
+	{
 		pr_info("failed to create debugfs node\n");
+	}
 
 	rc = dvb_create_media_graph(&client->adapter, true);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		pr_err("dvb_create_media_graph failed %d\n", rc);
 		goto client_error;
 	}
@@ -1227,7 +1400,9 @@ static void __exit smsdvb_module_exit(void)
 	kmutex_lock(&g_smsdvb_clientslock);
 
 	while (!list_empty(&g_smsdvb_clients))
+	{
 		smsdvb_unregister_client((struct smsdvb_client_t *)g_smsdvb_clients.next);
+	}
 
 	smsdvb_debugfs_unregister();
 

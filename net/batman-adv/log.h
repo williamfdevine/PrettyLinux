@@ -54,7 +54,8 @@ static inline void batadv_debug_log_cleanup(struct batadv_priv *bat_priv)
  * @BATADV_DBG_TP_METER: throughput meter messages
  * @BATADV_DBG_ALL: the union of all the above log levels
  */
-enum batadv_dbg_level {
+enum batadv_dbg_level
+{
 	BATADV_DBG_BATMAN	= BIT(0),
 	BATADV_DBG_ROUTES	= BIT(1),
 	BATADV_DBG_TT		= BIT(2),
@@ -74,16 +75,16 @@ __printf(2, 3);
 #define _batadv_dbg(type, bat_priv, ratelimited, fmt, arg...)	\
 	do {							\
 		if (atomic_read(&bat_priv->log_level) & type && \
-		    (!ratelimited || net_ratelimit()))		\
+			(!ratelimited || net_ratelimit()))		\
 			batadv_debug_log(bat_priv, fmt, ## arg);\
 	}							\
 	while (0)
 #else /* !CONFIG_BATMAN_ADV_DEBUG */
 __printf(4, 5)
 static inline void _batadv_dbg(int type __always_unused,
-			       struct batadv_priv *bat_priv __always_unused,
-			       int ratelimited __always_unused,
-			       const char *fmt __always_unused, ...)
+							   struct batadv_priv *bat_priv __always_unused,
+							   int ratelimited __always_unused,
+							   const char *fmt __always_unused, ...)
 {
 }
 #endif

@@ -69,7 +69,7 @@
  * o pbuf can wrap only at a block boundary
  */
 void pio_copy(struct hfi1_devdata *dd, struct pio_buf *pbuf, u64 pbc,
-	      const void *from, size_t count)
+			  const void *from, size_t count)
 {
 	void __iomem *dest = pbuf->start + SOP_DISTANCE;
 	void __iomem *send = dest + PIO_BLOCK_SIZE;
@@ -82,17 +82,20 @@ void pio_copy(struct hfi1_devdata *dd, struct pio_buf *pbuf, u64 pbc,
 	/* calculate where the QWORD data ends - in SOP=1 space */
 	dend = dest + ((count >> 1) * sizeof(u64));
 
-	if (dend < send) {
+	if (dend < send)
+	{
 		/*
 		 * all QWORD data is within the SOP block, does *not*
 		 * reach the end of the SOP block
 		 */
 
-		while (dest < dend) {
+		while (dest < dend)
+		{
 			writeq(*(u64 *)from, dest);
 			from += sizeof(u64);
 			dest += sizeof(u64);
 		}
+
 		/*
 		 * No boundary checks are needed here:
 		 * 0. We're not on the SOP block boundary
@@ -100,15 +103,19 @@ void pio_copy(struct hfi1_devdata *dd, struct pio_buf *pbuf, u64 pbc,
 		 *    the SOP block
 		 * 2. We cannot wrap except on a block boundary.
 		 */
-	} else {
+	}
+	else
+	{
 		/* QWORD data extends _to_ or beyond the SOP block */
 
 		/* write 8-byte SOP chunk data */
-		while (dest < send) {
+		while (dest < send)
+		{
 			writeq(*(u64 *)from, dest);
 			from += sizeof(u64);
 			dest += sizeof(u64);
 		}
+
 		/* drop out of the SOP range */
 		dest -= SOP_DISTANCE;
 		dend -= SOP_DISTANCE;
@@ -122,8 +129,10 @@ void pio_copy(struct hfi1_devdata *dd, struct pio_buf *pbuf, u64 pbc,
 		 * and nothing will get written, but we will wrap in
 		 * case there is a dangling DWORD.
 		 */
-		if (pbuf->end <= dend) {
-			while (dest < pbuf->end) {
+		if (pbuf->end <= dend)
+		{
+			while (dest < pbuf->end)
+			{
 				writeq(*(u64 *)from, dest);
 				from += sizeof(u64);
 				dest += sizeof(u64);
@@ -134,16 +143,19 @@ void pio_copy(struct hfi1_devdata *dd, struct pio_buf *pbuf, u64 pbc,
 		}
 
 		/* write 8-byte non-SOP, non-wrap chunk data */
-		while (dest < dend) {
+		while (dest < dend)
+		{
 			writeq(*(u64 *)from, dest);
 			from += sizeof(u64);
 			dest += sizeof(u64);
 		}
 	}
+
 	/* at this point we have wrapped if we are going to wrap */
 
 	/* write dangling u32, if any */
-	if (count & 1) {
+	if (count & 1)
+	{
 		union mix val;
 
 		val.val64 = 0;
@@ -151,11 +163,13 @@ void pio_copy(struct hfi1_devdata *dd, struct pio_buf *pbuf, u64 pbc,
 		writeq(val.val64, dest);
 		dest += sizeof(u64);
 	}
+
 	/*
 	 * fill in rest of block, no need to check pbuf->end
 	 * as we only wrap on a block boundary
 	 */
-	while (((unsigned long)dest & PIO_BLOCK_MASK) != 0) {
+	while (((unsigned long)dest & PIO_BLOCK_MASK) != 0)
+	{
 		writeq(0, dest);
 		dest += sizeof(u64);
 	}
@@ -188,28 +202,35 @@ void pio_copy(struct hfi1_devdata *dd, struct pio_buf *pbuf, u64 pbc,
  */
 static inline void jcopy(u8 *dest, const u8 *src, u32 n)
 {
-	switch (n) {
-	case 7:
-		*dest++ = *src++;
+	switch (n)
+	{
+		case 7:
+			*dest++ = *src++;
+
 		/* fall through */
-	case 6:
-		*dest++ = *src++;
+		case 6:
+			*dest++ = *src++;
+
 		/* fall through */
-	case 5:
-		*dest++ = *src++;
+		case 5:
+			*dest++ = *src++;
+
 		/* fall through */
-	case 4:
-		*dest++ = *src++;
+		case 4:
+			*dest++ = *src++;
+
 		/* fall through */
-	case 3:
-		*dest++ = *src++;
+		case 3:
+			*dest++ = *src++;
+
 		/* fall through */
-	case 2:
-		*dest++ = *src++;
+		case 2:
+			*dest++ = *src++;
+
 		/* fall through */
-	case 1:
-		*dest++ = *src++;
-		/* fall through */
+		case 1:
+			*dest++ = *src++;
+			/* fall through */
 	}
 }
 
@@ -223,7 +244,7 @@ static inline void jcopy(u8 *dest, const u8 *src, u32 n)
  * o from may _not_ be u64 aligned.
  */
 static inline void read_low_bytes(struct pio_buf *pbuf, const void *from,
-				  unsigned int nbytes)
+								  unsigned int nbytes)
 {
 	pbuf->carry.val64 = 0;
 	jcopy(&pbuf->carry.val8[0], from, nbytes);
@@ -239,7 +260,7 @@ static inline void read_low_bytes(struct pio_buf *pbuf, const void *from,
  * o nbytes may span a QW boundary
  */
 static inline void read_extra_bytes(struct pio_buf *pbuf,
-				    const void *from, unsigned int nbytes)
+									const void *from, unsigned int nbytes)
 {
 	jcopy(&pbuf->carry.val8[pbuf->carry_bytes], from, nbytes);
 	pbuf->carry_bytes += nbytes;
@@ -282,7 +303,8 @@ static inline void carry8_write8(union mix carry, void __iomem *dest)
  */
 static inline int carry_write8(struct pio_buf *pbuf, void __iomem *dest)
 {
-	if (pbuf->carry_bytes) {
+	if (pbuf->carry_bytes)
+	{
 		/* unused bytes are always kept zeroed, so just write */
 		writeq(pbuf->carry.val64, dest);
 		return 1;
@@ -302,7 +324,7 @@ static inline int carry_write8(struct pio_buf *pbuf, void __iomem *dest)
  * @nbytes: bytes to copy
  */
 void seg_pio_copy_start(struct pio_buf *pbuf, u64 pbc,
-			const void *from, size_t nbytes)
+						const void *from, size_t nbytes)
 {
 	void __iomem *dest = pbuf->start + SOP_DISTANCE;
 	void __iomem *send = dest + PIO_BLOCK_SIZE;
@@ -314,17 +336,20 @@ void seg_pio_copy_start(struct pio_buf *pbuf, u64 pbc,
 	/* calculate where the QWORD data ends - in SOP=1 space */
 	dend = dest + ((nbytes >> 3) * sizeof(u64));
 
-	if (dend < send) {
+	if (dend < send)
+	{
 		/*
 		 * all QWORD data is within the SOP block, does *not*
 		 * reach the end of the SOP block
 		 */
 
-		while (dest < dend) {
+		while (dest < dend)
+		{
 			writeq(*(u64 *)from, dest);
 			from += sizeof(u64);
 			dest += sizeof(u64);
 		}
+
 		/*
 		 * No boundary checks are needed here:
 		 * 0. We're not on the SOP block boundary
@@ -332,15 +357,19 @@ void seg_pio_copy_start(struct pio_buf *pbuf, u64 pbc,
 		 *    the SOP block
 		 * 2. We cannot wrap except on a block boundary.
 		 */
-	} else {
+	}
+	else
+	{
 		/* QWORD data extends _to_ or beyond the SOP block */
 
 		/* write 8-byte SOP chunk data */
-		while (dest < send) {
+		while (dest < send)
+		{
 			writeq(*(u64 *)from, dest);
 			from += sizeof(u64);
 			dest += sizeof(u64);
 		}
+
 		/* drop out of the SOP range */
 		dest -= SOP_DISTANCE;
 		dend -= SOP_DISTANCE;
@@ -354,8 +383,10 @@ void seg_pio_copy_start(struct pio_buf *pbuf, u64 pbc,
 		 * and nothing will get written, but we will wrap in
 		 * case there is a dangling DWORD.
 		 */
-		if (pbuf->end <= dend) {
-			while (dest < pbuf->end) {
+		if (pbuf->end <= dend)
+		{
+			while (dest < pbuf->end)
+			{
 				writeq(*(u64 *)from, dest);
 				from += sizeof(u64);
 				dest += sizeof(u64);
@@ -366,12 +397,14 @@ void seg_pio_copy_start(struct pio_buf *pbuf, u64 pbc,
 		}
 
 		/* write 8-byte non-SOP, non-wrap chunk data */
-		while (dest < dend) {
+		while (dest < dend)
+		{
 			writeq(*(u64 *)from, dest);
 			from += sizeof(u64);
 			dest += sizeof(u64);
 		}
 	}
+
 	/* at this point we have wrapped if we are going to wrap */
 
 	/* ...but it doesn't matter as we're done writing */
@@ -404,7 +437,8 @@ static void mid_copy_mix(struct pio_buf *pbuf, const void *from, size_t nbytes)
 	/* calculate 8-byte data end */
 	dend = dest + (qw_to_write * sizeof(u64));
 
-	if (pbuf->qw_written < PIO_BLOCK_QWS) {
+	if (pbuf->qw_written < PIO_BLOCK_QWS)
+	{
 		/*
 		 * Still within SOP block.  We don't need to check for
 		 * wrap because we are still in the first block and
@@ -425,7 +459,8 @@ static void mid_copy_mix(struct pio_buf *pbuf, const void *from, size_t nbytes)
 		xend += SOP_DISTANCE;
 
 		/* write 8-byte chunk data */
-		while (dest < xend) {
+		while (dest < xend)
+		{
 			merge_write8(pbuf, dest, from);
 			from += sizeof(u64);
 			dest += sizeof(u64);
@@ -434,6 +469,7 @@ static void mid_copy_mix(struct pio_buf *pbuf, const void *from, size_t nbytes)
 		/* shift down to SOP=0 space */
 		dest -= SOP_DISTANCE;
 	}
+
 	/*
 	 * At this point dest could be (either, both, or neither):
 	 * - at dend
@@ -451,8 +487,10 @@ static void mid_copy_mix(struct pio_buf *pbuf, const void *from, size_t nbytes)
 	 * the buffer wraps, then pbuf->end == dend == dest
 	 * and nothing will get written.
 	 */
-	if (pbuf->end <= dend) {
-		while (dest < pbuf->end) {
+	if (pbuf->end <= dend)
+	{
+		while (dest < pbuf->end)
+		{
 			merge_write8(pbuf, dest, from);
 			from += sizeof(u64);
 			dest += sizeof(u64);
@@ -463,7 +501,8 @@ static void mid_copy_mix(struct pio_buf *pbuf, const void *from, size_t nbytes)
 	}
 
 	/* write 8-byte non-SOP, non-wrap chunk data */
-	while (dest < dend) {
+	while (dest < dend)
+	{
 		merge_write8(pbuf, dest, from);
 		from += sizeof(u64);
 		dest += sizeof(u64);
@@ -472,7 +511,8 @@ static void mid_copy_mix(struct pio_buf *pbuf, const void *from, size_t nbytes)
 	pbuf->qw_written += qw_to_write;
 
 	/* handle carry and left-over bytes */
-	if (pbuf->carry_bytes + bytes_left >= 8) {
+	if (pbuf->carry_bytes + bytes_left >= 8)
+	{
 		unsigned long nread;
 
 		/* there is enough to fill another qw - fill carry */
@@ -492,10 +532,14 @@ static void mid_copy_mix(struct pio_buf *pbuf, const void *from, size_t nbytes)
 		 */
 		/* adjust if we have wrapped */
 		if (dest >= pbuf->end)
+		{
 			dest -= pbuf->size;
+		}
 		/* jump to the SOP range if within the first block */
 		else if (pbuf->qw_written < PIO_BLOCK_QWS)
+		{
 			dest += SOP_DISTANCE;
+		}
 
 		/* flush out full carry */
 		carry8_write8(pbuf->carry, dest);
@@ -505,7 +549,9 @@ static void mid_copy_mix(struct pio_buf *pbuf, const void *from, size_t nbytes)
 		bytes_left -= nread;
 		from += nread; /* from is now not aligned */
 		read_low_bytes(pbuf, from, bytes_left);
-	} else {
+	}
+	else
+	{
 		/* not enough to fill another qw, append the rest to carry */
 		read_extra_bytes(pbuf, from, bytes_left);
 	}
@@ -522,7 +568,7 @@ static void mid_copy_mix(struct pio_buf *pbuf, const void *from, size_t nbytes)
  * Must handle nbytes < 8.
  */
 static void mid_copy_straight(struct pio_buf *pbuf,
-			      const void *from, size_t nbytes)
+							  const void *from, size_t nbytes)
 {
 	void __iomem *dest = pbuf->start + (pbuf->qw_written * sizeof(u64));
 	void __iomem *dend;			/* 8-byte data end */
@@ -530,7 +576,8 @@ static void mid_copy_straight(struct pio_buf *pbuf,
 	/* calculate 8-byte data end */
 	dend = dest + ((nbytes >> 3) * sizeof(u64));
 
-	if (pbuf->qw_written < PIO_BLOCK_QWS) {
+	if (pbuf->qw_written < PIO_BLOCK_QWS)
+	{
 		/*
 		 * Still within SOP block.  We don't need to check for
 		 * wrap because we are still in the first block and
@@ -551,7 +598,8 @@ static void mid_copy_straight(struct pio_buf *pbuf,
 		xend += SOP_DISTANCE;
 
 		/* write 8-byte chunk data */
-		while (dest < xend) {
+		while (dest < xend)
+		{
 			writeq(*(u64 *)from, dest);
 			from += sizeof(u64);
 			dest += sizeof(u64);
@@ -560,6 +608,7 @@ static void mid_copy_straight(struct pio_buf *pbuf,
 		/* shift down to SOP=0 space */
 		dest -= SOP_DISTANCE;
 	}
+
 	/*
 	 * At this point dest could be (either, both, or neither):
 	 * - at dend
@@ -577,8 +626,10 @@ static void mid_copy_straight(struct pio_buf *pbuf,
 	 * the buffer wraps, then pbuf->end == dend == dest
 	 * and nothing will get written.
 	 */
-	if (pbuf->end <= dend) {
-		while (dest < pbuf->end) {
+	if (pbuf->end <= dend)
+	{
+		while (dest < pbuf->end)
+		{
 			writeq(*(u64 *)from, dest);
 			from += sizeof(u64);
 			dest += sizeof(u64);
@@ -589,7 +640,8 @@ static void mid_copy_straight(struct pio_buf *pbuf,
 	}
 
 	/* write 8-byte non-SOP, non-wrap chunk data */
-	while (dest < dend) {
+	while (dest < dend)
+	{
 		writeq(*(u64 *)from, dest);
 		from += sizeof(u64);
 		dest += sizeof(u64);
@@ -614,13 +666,15 @@ void seg_pio_copy_mid(struct pio_buf *pbuf, const void *from, size_t nbytes)
 {
 	unsigned long from_align = (unsigned long)from & 0x7;
 
-	if (pbuf->carry_bytes + nbytes < 8) {
+	if (pbuf->carry_bytes + nbytes < 8)
+	{
 		/* not enough bytes to fill a QW */
 		read_extra_bytes(pbuf, from, nbytes);
 		return;
 	}
 
-	if (from_align) {
+	if (from_align)
+	{
 		/* misaligned source pointer - align it */
 		unsigned long to_align;
 
@@ -633,12 +687,15 @@ void seg_pio_copy_mid(struct pio_buf *pbuf, const void *from, size_t nbytes)
 		 * if we are here, we already know that carry+nbytes will
 		 * fill at least one QW.
 		 */
-		if (pbuf->carry_bytes + to_align < 8) {
+		if (pbuf->carry_bytes + to_align < 8)
+		{
 			/* not enough align bytes to fill a QW */
 			read_extra_bytes(pbuf, from, to_align);
 			from += to_align;
 			nbytes -= to_align;
-		} else {
+		}
+		else
+		{
 			/* bytes to fill carry */
 			unsigned long to_fill = 8 - pbuf->carry_bytes;
 			/* bytes left over to be read */
@@ -649,9 +706,12 @@ void seg_pio_copy_mid(struct pio_buf *pbuf, const void *from, size_t nbytes)
 			read_extra_bytes(pbuf, from, to_fill);
 			from += to_fill;
 			nbytes -= to_fill;
+
 			/* may not be enough valid bytes left to align */
 			if (extra > nbytes)
+			{
 				extra = nbytes;
+			}
 
 			/* ...now write carry */
 			dest = pbuf->start + (pbuf->qw_written * sizeof(u64));
@@ -666,10 +726,14 @@ void seg_pio_copy_mid(struct pio_buf *pbuf, const void *from, size_t nbytes)
 			 */
 			/* adjust if we've wrapped */
 			if (dest >= pbuf->end)
+			{
 				dest -= pbuf->size;
+			}
 			/* jump to SOP range if within the first block */
 			else if (pbuf->qw_written < PIO_BLOCK_QWS)
+			{
 				dest += SOP_DISTANCE;
+			}
 
 			carry8_write8(pbuf->carry, dest);
 			pbuf->qw_written++;
@@ -679,6 +743,7 @@ void seg_pio_copy_mid(struct pio_buf *pbuf, const void *from, size_t nbytes)
 			read_low_bytes(pbuf, from, extra);
 			from += extra;
 			nbytes -= extra;
+
 			/*
 			 * If no bytes are left, return early - we are done.
 			 * NOTE: This short-circuit is *required* because
@@ -687,16 +752,22 @@ void seg_pio_copy_mid(struct pio_buf *pbuf, const void *from, size_t nbytes)
 			 * if block.
 			 */
 			if (nbytes == 0)
+			{
 				return;
+			}
 		}
 
 		/* at this point, from is QW aligned */
 	}
 
 	if (pbuf->carry_bytes)
+	{
 		mid_copy_mix(pbuf, from, nbytes);
+	}
 	else
+	{
 		mid_copy_straight(pbuf, from, nbytes);
+	}
 }
 
 /*
@@ -719,13 +790,18 @@ void seg_pio_copy_end(struct pio_buf *pbuf)
 	 */
 	/* adjust if we have wrapped */
 	if (dest >= pbuf->end)
+	{
 		dest -= pbuf->size;
+	}
 	/* jump to the SOP range if within the first block */
 	else if (pbuf->qw_written < PIO_BLOCK_QWS)
+	{
 		dest += SOP_DISTANCE;
+	}
 
 	/* write final bytes, if any */
-	if (carry_write8(pbuf, dest)) {
+	if (carry_write8(pbuf, dest))
+	{
 		dest += sizeof(u64);
 		/*
 		 * NOTE: We do not need to recalculate whether dest needs
@@ -746,7 +822,8 @@ void seg_pio_copy_end(struct pio_buf *pbuf)
 	}
 
 	/* fill in rest of block */
-	while (((unsigned long)dest & PIO_BLOCK_MASK) != 0) {
+	while (((unsigned long)dest & PIO_BLOCK_MASK) != 0)
+	{
 		writeq(0, dest);
 		dest += sizeof(u64);
 	}

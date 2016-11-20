@@ -126,7 +126,8 @@
 #define CPU_RESET(cpu)	(0x1111ul << (cpu))
 
 #ifdef CONFIG_PM_SLEEP
-static struct cpu_clk_suspend_context {
+static struct cpu_clk_suspend_context
+{
 	u32 pllx_misc;
 	u32 pllx_base;
 
@@ -142,30 +143,31 @@ static void __iomem *pmc_base;
 static DEFINE_SPINLOCK(emc_lock);
 
 #define TEGRA_INIT_DATA_MUX(_name, _parents, _offset,	\
-			    _clk_num, _gate_flags, _clk_id)	\
-	TEGRA_INIT_DATA(_name, NULL, NULL, _parents, _offset,	\
-			30, 2, 0, 0, 8, 1, TEGRA_DIVIDER_ROUND_UP,	\
-			_clk_num, \
-			_gate_flags, _clk_id)
+							_clk_num, _gate_flags, _clk_id)	\
+TEGRA_INIT_DATA(_name, NULL, NULL, _parents, _offset,	\
+				30, 2, 0, 0, 8, 1, TEGRA_DIVIDER_ROUND_UP,	\
+				_clk_num, \
+				_gate_flags, _clk_id)
 
 #define TEGRA_INIT_DATA_DIV16(_name, _parents, _offset, \
-			      _clk_num, _gate_flags, _clk_id)	\
-	TEGRA_INIT_DATA(_name, NULL, NULL, _parents, _offset,	\
-			30, 2, 0, 0, 16, 0, TEGRA_DIVIDER_ROUND_UP, \
-			_clk_num, _gate_flags,	\
-			_clk_id)
+							  _clk_num, _gate_flags, _clk_id)	\
+TEGRA_INIT_DATA(_name, NULL, NULL, _parents, _offset,	\
+				30, 2, 0, 0, 16, 0, TEGRA_DIVIDER_ROUND_UP, \
+				_clk_num, _gate_flags,	\
+				_clk_id)
 
 #define TEGRA_INIT_DATA_NODIV(_name, _parents, _offset, \
-			      _mux_shift, _mux_width, _clk_num, \
-			      _gate_flags, _clk_id)			\
-	TEGRA_INIT_DATA(_name, NULL, NULL, _parents, _offset,	\
-			_mux_shift, _mux_width, 0, 0, 0, 0, 0, \
-			_clk_num, _gate_flags,	\
-			_clk_id)
+							  _mux_shift, _mux_width, _clk_num, \
+							  _gate_flags, _clk_id)			\
+TEGRA_INIT_DATA(_name, NULL, NULL, _parents, _offset,	\
+				_mux_shift, _mux_width, 0, 0, 0, 0, 0, \
+				_clk_num, _gate_flags,	\
+				_clk_id)
 
 static struct clk **clks;
 
-static struct tegra_clk_pll_freq_table pll_c_freq_table[] = {
+static struct tegra_clk_pll_freq_table pll_c_freq_table[] =
+{
 	{ 12000000, 600000000, 600, 12, 1, 8 },
 	{ 13000000, 600000000, 600, 13, 1, 8 },
 	{ 19200000, 600000000, 500, 16, 1, 6 },
@@ -173,7 +175,8 @@ static struct tegra_clk_pll_freq_table pll_c_freq_table[] = {
 	{        0,         0,   0,  0, 0, 0 },
 };
 
-static struct tegra_clk_pll_freq_table pll_m_freq_table[] = {
+static struct tegra_clk_pll_freq_table pll_m_freq_table[] =
+{
 	{ 12000000, 666000000, 666, 12, 1, 8 },
 	{ 13000000, 666000000, 666, 13, 1, 8 },
 	{ 19200000, 666000000, 555, 16, 1, 8 },
@@ -185,7 +188,8 @@ static struct tegra_clk_pll_freq_table pll_m_freq_table[] = {
 	{        0,         0,   0,  0, 0, 0 },
 };
 
-static struct tegra_clk_pll_freq_table pll_p_freq_table[] = {
+static struct tegra_clk_pll_freq_table pll_p_freq_table[] =
+{
 	{ 12000000, 216000000, 432, 12, 2, 8 },
 	{ 13000000, 216000000, 432, 13, 2, 8 },
 	{ 19200000, 216000000,  90,  4, 2, 1 },
@@ -197,14 +201,16 @@ static struct tegra_clk_pll_freq_table pll_p_freq_table[] = {
 	{        0,         0,   0,  0, 0, 0 },
 };
 
-static struct tegra_clk_pll_freq_table pll_a_freq_table[] = {
+static struct tegra_clk_pll_freq_table pll_a_freq_table[] =
+{
 	{ 28800000, 56448000, 49, 25, 1, 1 },
 	{ 28800000, 73728000, 64, 25, 1, 1 },
 	{ 28800000, 24000000,  5,  6, 1, 1 },
 	{        0,        0,  0,  0, 0, 0 },
 };
 
-static struct tegra_clk_pll_freq_table pll_d_freq_table[] = {
+static struct tegra_clk_pll_freq_table pll_d_freq_table[] =
+{
 	{ 12000000,  216000000,  216, 12, 1,  4 },
 	{ 13000000,  216000000,  216, 13, 1,  4 },
 	{ 19200000,  216000000,  135, 12, 1,  3 },
@@ -220,7 +226,8 @@ static struct tegra_clk_pll_freq_table pll_d_freq_table[] = {
 	{        0,          0,    0,  0, 0,  0 },
 };
 
-static struct tegra_clk_pll_freq_table pll_u_freq_table[] = {
+static struct tegra_clk_pll_freq_table pll_u_freq_table[] =
+{
 	{ 12000000, 480000000, 960, 12, 1, 0 },
 	{ 13000000, 480000000, 960, 13, 1, 0 },
 	{ 19200000, 480000000, 200,  4, 1, 0 },
@@ -228,7 +235,8 @@ static struct tegra_clk_pll_freq_table pll_u_freq_table[] = {
 	{        0,         0,   0,  0, 0, 0 },
 };
 
-static struct tegra_clk_pll_freq_table pll_x_freq_table[] = {
+static struct tegra_clk_pll_freq_table pll_x_freq_table[] =
+{
 	/* 1 GHz */
 	{ 12000000, 1000000000, 1000, 12, 1, 12 },
 	{ 13000000, 1000000000, 1000, 13, 1, 12 },
@@ -272,18 +280,21 @@ static struct tegra_clk_pll_freq_table pll_x_freq_table[] = {
 	{        0,          0,    0,  0, 0,  0 },
 };
 
-static const struct pdiv_map plle_p[] = {
+static const struct pdiv_map plle_p[] =
+{
 	{ .pdiv = 1, .hw_val = 1 },
 	{ .pdiv = 0, .hw_val = 0 },
 };
 
-static struct tegra_clk_pll_freq_table pll_e_freq_table[] = {
+static struct tegra_clk_pll_freq_table pll_e_freq_table[] =
+{
 	{ 12000000, 100000000, 200, 24, 1, 0 },
 	{        0,         0,   0,  0, 0, 0 },
 };
 
 /* PLL parameters */
-static struct tegra_clk_pll_params pll_c_params = {
+static struct tegra_clk_pll_params pll_c_params =
+{
 	.input_min = 2000000,
 	.input_max = 31000000,
 	.cf_min = 1000000,
@@ -299,7 +310,8 @@ static struct tegra_clk_pll_params pll_c_params = {
 	.flags = TEGRA_PLL_HAS_CPCON | TEGRA_PLL_HAS_LOCK_ENABLE,
 };
 
-static struct tegra_clk_pll_params pll_m_params = {
+static struct tegra_clk_pll_params pll_m_params =
+{
 	.input_min = 2000000,
 	.input_max = 31000000,
 	.cf_min = 1000000,
@@ -315,7 +327,8 @@ static struct tegra_clk_pll_params pll_m_params = {
 	.flags = TEGRA_PLL_HAS_CPCON | TEGRA_PLL_HAS_LOCK_ENABLE,
 };
 
-static struct tegra_clk_pll_params pll_p_params = {
+static struct tegra_clk_pll_params pll_p_params =
+{
 	.input_min = 2000000,
 	.input_max = 31000000,
 	.cf_min = 1000000,
@@ -329,11 +342,12 @@ static struct tegra_clk_pll_params pll_p_params = {
 	.lock_delay = 300,
 	.freq_table = pll_p_freq_table,
 	.flags = TEGRA_PLL_FIXED | TEGRA_PLL_HAS_CPCON |
-		 TEGRA_PLL_HAS_LOCK_ENABLE,
+	TEGRA_PLL_HAS_LOCK_ENABLE,
 	.fixed_rate =  216000000,
 };
 
-static struct tegra_clk_pll_params pll_a_params = {
+static struct tegra_clk_pll_params pll_a_params =
+{
 	.input_min = 2000000,
 	.input_max = 31000000,
 	.cf_min = 1000000,
@@ -349,7 +363,8 @@ static struct tegra_clk_pll_params pll_a_params = {
 	.flags = TEGRA_PLL_HAS_CPCON | TEGRA_PLL_HAS_LOCK_ENABLE,
 };
 
-static struct tegra_clk_pll_params pll_d_params = {
+static struct tegra_clk_pll_params pll_d_params =
+{
 	.input_min = 2000000,
 	.input_max = 40000000,
 	.cf_min = 1000000,
@@ -365,13 +380,15 @@ static struct tegra_clk_pll_params pll_d_params = {
 	.flags = TEGRA_PLL_HAS_CPCON | TEGRA_PLL_HAS_LOCK_ENABLE,
 };
 
-static const struct pdiv_map pllu_p[] = {
+static const struct pdiv_map pllu_p[] =
+{
 	{ .pdiv = 1, .hw_val = 1 },
 	{ .pdiv = 2, .hw_val = 0 },
 	{ .pdiv = 0, .hw_val = 0 },
 };
 
-static struct tegra_clk_pll_params pll_u_params = {
+static struct tegra_clk_pll_params pll_u_params =
+{
 	.input_min = 2000000,
 	.input_max = 40000000,
 	.cf_min = 1000000,
@@ -388,7 +405,8 @@ static struct tegra_clk_pll_params pll_u_params = {
 	.flags = TEGRA_PLLU | TEGRA_PLL_HAS_CPCON | TEGRA_PLL_HAS_LOCK_ENABLE,
 };
 
-static struct tegra_clk_pll_params pll_x_params = {
+static struct tegra_clk_pll_params pll_x_params =
+{
 	.input_min = 2000000,
 	.input_max = 31000000,
 	.cf_min = 1000000,
@@ -404,7 +422,8 @@ static struct tegra_clk_pll_params pll_x_params = {
 	.flags = TEGRA_PLL_HAS_CPCON | TEGRA_PLL_HAS_LOCK_ENABLE,
 };
 
-static struct tegra_clk_pll_params pll_e_params = {
+static struct tegra_clk_pll_params pll_e_params =
+{
 	.input_min = 12000000,
 	.input_max = 12000000,
 	.cf_min = 0,
@@ -419,11 +438,12 @@ static struct tegra_clk_pll_params pll_e_params = {
 	.pdiv_tohw = plle_p,
 	.freq_table = pll_e_freq_table,
 	.flags = TEGRA_PLL_FIXED | TEGRA_PLL_LOCK_MISC |
-		 TEGRA_PLL_HAS_LOCK_ENABLE,
+	TEGRA_PLL_HAS_LOCK_ENABLE,
 	.fixed_rate = 100000000,
 };
 
-static struct tegra_devclk devclks[] __initdata = {
+static struct tegra_devclk devclks[] __initdata =
+{
 	{ .con_id = "pll_c", .dt_id = TEGRA20_CLK_PLL_C },
 	{ .con_id = "pll_c_out1", .dt_id = TEGRA20_CLK_PLL_C_OUT1 },
 	{ .con_id = "pll_p", .dt_id = TEGRA20_CLK_PLL_P },
@@ -521,7 +541,8 @@ static struct tegra_devclk devclks[] __initdata = {
 	{ .dev_id = "tegradc.1", .dt_id = TEGRA20_CLK_DISP2 },
 };
 
-static struct tegra_clk tegra20_clks[tegra_clk_max] __initdata = {
+static struct tegra_clk tegra20_clks[tegra_clk_max] __initdata =
+{
 	[tegra_clk_spdif_out] = { .dt_id = TEGRA20_CLK_SPDIF_OUT, .present = true },
 	[tegra_clk_spdif_in] = { .dt_id = TEGRA20_CLK_SPDIF_IN, .present = true },
 	[tegra_clk_sdmmc1] = { .dt_id = TEGRA20_CLK_SDMMC1, .present = true },
@@ -583,28 +604,33 @@ static unsigned long tegra20_clk_measure_input_freq(void)
 	u32 pll_ref_div = osc_ctrl & OSC_CTRL_PLL_REF_DIV_MASK;
 	unsigned long input_freq;
 
-	switch (auto_clk_control) {
-	case OSC_CTRL_OSC_FREQ_12MHZ:
-		BUG_ON(pll_ref_div != OSC_CTRL_PLL_REF_DIV_1);
-		input_freq = 12000000;
-		break;
-	case OSC_CTRL_OSC_FREQ_13MHZ:
-		BUG_ON(pll_ref_div != OSC_CTRL_PLL_REF_DIV_1);
-		input_freq = 13000000;
-		break;
-	case OSC_CTRL_OSC_FREQ_19_2MHZ:
-		BUG_ON(pll_ref_div != OSC_CTRL_PLL_REF_DIV_1);
-		input_freq = 19200000;
-		break;
-	case OSC_CTRL_OSC_FREQ_26MHZ:
-		BUG_ON(pll_ref_div != OSC_CTRL_PLL_REF_DIV_1);
-		input_freq = 26000000;
-		break;
-	default:
-		pr_err("Unexpected clock autodetect value %d",
-		       auto_clk_control);
-		BUG();
-		return 0;
+	switch (auto_clk_control)
+	{
+		case OSC_CTRL_OSC_FREQ_12MHZ:
+			BUG_ON(pll_ref_div != OSC_CTRL_PLL_REF_DIV_1);
+			input_freq = 12000000;
+			break;
+
+		case OSC_CTRL_OSC_FREQ_13MHZ:
+			BUG_ON(pll_ref_div != OSC_CTRL_PLL_REF_DIV_1);
+			input_freq = 13000000;
+			break;
+
+		case OSC_CTRL_OSC_FREQ_19_2MHZ:
+			BUG_ON(pll_ref_div != OSC_CTRL_PLL_REF_DIV_1);
+			input_freq = 19200000;
+			break;
+
+		case OSC_CTRL_OSC_FREQ_26MHZ:
+			BUG_ON(pll_ref_div != OSC_CTRL_PLL_REF_DIV_1);
+			input_freq = 26000000;
+			break;
+
+		default:
+			pr_err("Unexpected clock autodetect value %d",
+				   auto_clk_control);
+			BUG();
+			return 0;
 	}
 
 	return input_freq;
@@ -613,19 +639,24 @@ static unsigned long tegra20_clk_measure_input_freq(void)
 static unsigned int tegra20_get_pll_ref_div(void)
 {
 	u32 pll_ref_div = readl_relaxed(clk_base + OSC_CTRL) &
-		OSC_CTRL_PLL_REF_DIV_MASK;
+					  OSC_CTRL_PLL_REF_DIV_MASK;
 
-	switch (pll_ref_div) {
-	case OSC_CTRL_PLL_REF_DIV_1:
-		return 1;
-	case OSC_CTRL_PLL_REF_DIV_2:
-		return 2;
-	case OSC_CTRL_PLL_REF_DIV_4:
-		return 4;
-	default:
-		pr_err("Invalid pll ref divider %d\n", pll_ref_div);
-		BUG();
+	switch (pll_ref_div)
+	{
+		case OSC_CTRL_PLL_REF_DIV_1:
+			return 1;
+
+		case OSC_CTRL_PLL_REF_DIV_2:
+			return 2;
+
+		case OSC_CTRL_PLL_REF_DIV_4:
+			return 4;
+
+		default:
+			pr_err("Invalid pll ref divider %d\n", pll_ref_div);
+			BUG();
 	}
+
 	return 0;
 }
 
@@ -635,79 +666,81 @@ static void tegra20_pll_init(void)
 
 	/* PLLC */
 	clk = tegra_clk_register_pll("pll_c", "pll_ref", clk_base, NULL, 0,
-			    &pll_c_params, NULL);
+								 &pll_c_params, NULL);
 	clks[TEGRA20_CLK_PLL_C] = clk;
 
 	/* PLLC_OUT1 */
 	clk = tegra_clk_register_divider("pll_c_out1_div", "pll_c",
-				clk_base + PLLC_OUT, 0, TEGRA_DIVIDER_ROUND_UP,
-				8, 8, 1, NULL);
+									 clk_base + PLLC_OUT, 0, TEGRA_DIVIDER_ROUND_UP,
+									 8, 8, 1, NULL);
 	clk = tegra_clk_register_pll_out("pll_c_out1", "pll_c_out1_div",
-				clk_base + PLLC_OUT, 1, 0, CLK_SET_RATE_PARENT,
-				0, NULL);
+									 clk_base + PLLC_OUT, 1, 0, CLK_SET_RATE_PARENT,
+									 0, NULL);
 	clks[TEGRA20_CLK_PLL_C_OUT1] = clk;
 
 	/* PLLM */
 	clk = tegra_clk_register_pll("pll_m", "pll_ref", clk_base, NULL,
-			    CLK_IGNORE_UNUSED | CLK_SET_RATE_GATE,
-			    &pll_m_params, NULL);
+								 CLK_IGNORE_UNUSED | CLK_SET_RATE_GATE,
+								 &pll_m_params, NULL);
 	clks[TEGRA20_CLK_PLL_M] = clk;
 
 	/* PLLM_OUT1 */
 	clk = tegra_clk_register_divider("pll_m_out1_div", "pll_m",
-				clk_base + PLLM_OUT, 0, TEGRA_DIVIDER_ROUND_UP,
-				8, 8, 1, NULL);
+									 clk_base + PLLM_OUT, 0, TEGRA_DIVIDER_ROUND_UP,
+									 8, 8, 1, NULL);
 	clk = tegra_clk_register_pll_out("pll_m_out1", "pll_m_out1_div",
-				clk_base + PLLM_OUT, 1, 0, CLK_IGNORE_UNUSED |
-				CLK_SET_RATE_PARENT, 0, NULL);
+									 clk_base + PLLM_OUT, 1, 0, CLK_IGNORE_UNUSED |
+									 CLK_SET_RATE_PARENT, 0, NULL);
 	clks[TEGRA20_CLK_PLL_M_OUT1] = clk;
 
 	/* PLLX */
 	clk = tegra_clk_register_pll("pll_x", "pll_ref", clk_base, NULL, 0,
-			    &pll_x_params, NULL);
+								 &pll_x_params, NULL);
 	clks[TEGRA20_CLK_PLL_X] = clk;
 
 	/* PLLU */
 	clk = tegra_clk_register_pll("pll_u", "pll_ref", clk_base, NULL, 0,
-			    &pll_u_params, NULL);
+								 &pll_u_params, NULL);
 	clks[TEGRA20_CLK_PLL_U] = clk;
 
 	/* PLLD */
 	clk = tegra_clk_register_pll("pll_d", "pll_ref", clk_base, NULL, 0,
-			    &pll_d_params, NULL);
+								 &pll_d_params, NULL);
 	clks[TEGRA20_CLK_PLL_D] = clk;
 
 	/* PLLD_OUT0 */
 	clk = clk_register_fixed_factor(NULL, "pll_d_out0", "pll_d",
-					CLK_SET_RATE_PARENT, 1, 2);
+									CLK_SET_RATE_PARENT, 1, 2);
 	clks[TEGRA20_CLK_PLL_D_OUT0] = clk;
 
 	/* PLLA */
 	clk = tegra_clk_register_pll("pll_a", "pll_p_out1", clk_base, NULL, 0,
-			    &pll_a_params, NULL);
+								 &pll_a_params, NULL);
 	clks[TEGRA20_CLK_PLL_A] = clk;
 
 	/* PLLA_OUT0 */
 	clk = tegra_clk_register_divider("pll_a_out0_div", "pll_a",
-				clk_base + PLLA_OUT, 0, TEGRA_DIVIDER_ROUND_UP,
-				8, 8, 1, NULL);
+									 clk_base + PLLA_OUT, 0, TEGRA_DIVIDER_ROUND_UP,
+									 8, 8, 1, NULL);
 	clk = tegra_clk_register_pll_out("pll_a_out0", "pll_a_out0_div",
-				clk_base + PLLA_OUT, 1, 0, CLK_IGNORE_UNUSED |
-				CLK_SET_RATE_PARENT, 0, NULL);
+									 clk_base + PLLA_OUT, 1, 0, CLK_IGNORE_UNUSED |
+									 CLK_SET_RATE_PARENT, 0, NULL);
 	clks[TEGRA20_CLK_PLL_A_OUT0] = clk;
 
 	/* PLLE */
 	clk = tegra_clk_register_plle("pll_e", "pll_ref", clk_base, pmc_base,
-			     0, &pll_e_params, NULL);
+								  0, &pll_e_params, NULL);
 	clks[TEGRA20_CLK_PLL_E] = clk;
 }
 
 static const char *cclk_parents[] = { "clk_m", "pll_c", "clk_32k", "pll_m",
-				      "pll_p", "pll_p_out4",
-				      "pll_p_out3", "clk_d", "pll_x" };
+									  "pll_p", "pll_p_out4",
+									  "pll_p_out3", "clk_d", "pll_x"
+									};
 static const char *sclk_parents[] = { "clk_m", "pll_c_out1", "pll_p_out4",
-				      "pll_p_out3", "pll_p_out2", "clk_d",
-				      "clk_32k", "pll_m_out1" };
+									  "pll_p_out3", "pll_p_out2", "clk_d",
+									  "clk_32k", "pll_m_out1"
+									};
 
 static void tegra20_super_clk_init(void)
 {
@@ -715,14 +748,14 @@ static void tegra20_super_clk_init(void)
 
 	/* CCLK */
 	clk = tegra_clk_register_super_mux("cclk", cclk_parents,
-			      ARRAY_SIZE(cclk_parents), CLK_SET_RATE_PARENT,
-			      clk_base + CCLK_BURST_POLICY, 0, 4, 0, 0, NULL);
+									   ARRAY_SIZE(cclk_parents), CLK_SET_RATE_PARENT,
+									   clk_base + CCLK_BURST_POLICY, 0, 4, 0, 0, NULL);
 	clks[TEGRA20_CLK_CCLK] = clk;
 
 	/* SCLK */
 	clk = tegra_clk_register_super_mux("sclk", sclk_parents,
-			      ARRAY_SIZE(sclk_parents), CLK_SET_RATE_PARENT,
-			      clk_base + SCLK_BURST_POLICY, 0, 4, 0, 0, NULL);
+									   ARRAY_SIZE(sclk_parents), CLK_SET_RATE_PARENT,
+									   clk_base + SCLK_BURST_POLICY, 0, 4, 0, 0, NULL);
 	clks[TEGRA20_CLK_SCLK] = clk;
 
 	/* twd */
@@ -731,8 +764,9 @@ static void tegra20_super_clk_init(void)
 }
 
 static const char *audio_parents[] = { "spdif_in", "i2s1", "i2s2", "unused",
-				       "pll_a_out0", "unused", "unused",
-				       "unused" };
+									   "pll_a_out0", "unused", "unused",
+									   "unused"
+									 };
 
 static void __init tegra20_audio_clk_init(void)
 {
@@ -740,36 +774,41 @@ static void __init tegra20_audio_clk_init(void)
 
 	/* audio */
 	clk = clk_register_mux(NULL, "audio_mux", audio_parents,
-				ARRAY_SIZE(audio_parents),
-				CLK_SET_RATE_NO_REPARENT,
-				clk_base + AUDIO_SYNC_CLK, 0, 3, 0, NULL);
+						   ARRAY_SIZE(audio_parents),
+						   CLK_SET_RATE_NO_REPARENT,
+						   clk_base + AUDIO_SYNC_CLK, 0, 3, 0, NULL);
 	clk = clk_register_gate(NULL, "audio", "audio_mux", 0,
-				clk_base + AUDIO_SYNC_CLK, 4,
-				CLK_GATE_SET_TO_DISABLE, NULL);
+							clk_base + AUDIO_SYNC_CLK, 4,
+							CLK_GATE_SET_TO_DISABLE, NULL);
 	clks[TEGRA20_CLK_AUDIO] = clk;
 
 	/* audio_2x */
 	clk = clk_register_fixed_factor(NULL, "audio_doubler", "audio",
-					CLK_SET_RATE_PARENT, 2, 1);
+									CLK_SET_RATE_PARENT, 2, 1);
 	clk = tegra_clk_register_periph_gate("audio_2x", "audio_doubler",
-				    TEGRA_PERIPH_NO_RESET, clk_base,
-				    CLK_SET_RATE_PARENT, 89,
-				    periph_clk_enb_refcnt);
+										 TEGRA_PERIPH_NO_RESET, clk_base,
+										 CLK_SET_RATE_PARENT, 89,
+										 periph_clk_enb_refcnt);
 	clks[TEGRA20_CLK_AUDIO_2X] = clk;
 }
 
 static const char *i2s1_parents[] = { "pll_a_out0", "audio_2x", "pll_p",
-				      "clk_m" };
+									  "clk_m"
+									};
 static const char *i2s2_parents[] = { "pll_a_out0", "audio_2x", "pll_p",
-				      "clk_m" };
+									  "clk_m"
+									};
 static const char *pwm_parents[] = { "pll_p", "pll_c", "audio", "clk_m",
-				     "clk_32k" };
+									 "clk_32k"
+								   };
 static const char *mux_pllpcm_clkm[] = { "pll_p", "pll_c", "pll_m", "clk_m" };
 static const char *mux_pllpdc_clkm[] = { "pll_p", "pll_d_out0", "pll_c",
-					 "clk_m" };
+										 "clk_m"
+									   };
 static const char *mux_pllmcp_clkm[] = { "pll_m", "pll_c", "pll_p", "clk_m" };
 
-static struct tegra_periph_init_data tegra_periph_clk_list[] = {
+static struct tegra_periph_init_data tegra_periph_clk_list[] =
+{
 	TEGRA_INIT_DATA_MUX("i2s1", i2s1_parents,     CLK_SOURCE_I2S1,   11, TEGRA_PERIPH_ON_APB, TEGRA20_CLK_I2S1),
 	TEGRA_INIT_DATA_MUX("i2s2", i2s2_parents,     CLK_SOURCE_I2S2,   18, TEGRA_PERIPH_ON_APB, TEGRA20_CLK_I2S2),
 	TEGRA_INIT_DATA_MUX("spi",   mux_pllpcm_clkm,   CLK_SOURCE_SPI,   43, TEGRA_PERIPH_ON_APB, TEGRA20_CLK_SPI),
@@ -784,7 +823,8 @@ static struct tegra_periph_init_data tegra_periph_clk_list[] = {
 	TEGRA_INIT_DATA("pwm", NULL, NULL, pwm_parents,     CLK_SOURCE_PWM,   28, 3, 0, 0, 8, 1, 0, 17, TEGRA_PERIPH_ON_APB, TEGRA20_CLK_PWM),
 };
 
-static struct tegra_periph_init_data tegra_periph_nodiv_clk_list[] = {
+static struct tegra_periph_init_data tegra_periph_nodiv_clk_list[] =
+{
 	TEGRA_INIT_DATA_NODIV("uarta",	mux_pllpcm_clkm, CLK_SOURCE_UARTA, 30, 2, 6,   TEGRA_PERIPH_ON_APB, TEGRA20_CLK_UARTA),
 	TEGRA_INIT_DATA_NODIV("uartb",	mux_pllpcm_clkm, CLK_SOURCE_UARTB, 30, 2, 7,   TEGRA_PERIPH_ON_APB, TEGRA20_CLK_UARTB),
 	TEGRA_INIT_DATA_NODIV("uartc",	mux_pllpcm_clkm, CLK_SOURCE_UARTC, 30, 2, 55,  TEGRA_PERIPH_ON_APB, TEGRA20_CLK_UARTC),
@@ -802,66 +842,68 @@ static void __init tegra20_periph_clk_init(void)
 
 	/* ac97 */
 	clk = tegra_clk_register_periph_gate("ac97", "pll_a_out0",
-				    TEGRA_PERIPH_ON_APB,
-				    clk_base, 0, 3, periph_clk_enb_refcnt);
+										 TEGRA_PERIPH_ON_APB,
+										 clk_base, 0, 3, periph_clk_enb_refcnt);
 	clks[TEGRA20_CLK_AC97] = clk;
 
 	/* apbdma */
 	clk = tegra_clk_register_periph_gate("apbdma", "pclk", 0, clk_base,
-				    0, 34, periph_clk_enb_refcnt);
+										 0, 34, periph_clk_enb_refcnt);
 	clks[TEGRA20_CLK_APBDMA] = clk;
 
 	/* emc */
 	clk = clk_register_mux(NULL, "emc_mux", mux_pllmcp_clkm,
-			       ARRAY_SIZE(mux_pllmcp_clkm),
-			       CLK_SET_RATE_NO_REPARENT,
-			       clk_base + CLK_SOURCE_EMC,
-			       30, 2, 0, &emc_lock);
+						   ARRAY_SIZE(mux_pllmcp_clkm),
+						   CLK_SET_RATE_NO_REPARENT,
+						   clk_base + CLK_SOURCE_EMC,
+						   30, 2, 0, &emc_lock);
 	clk = tegra_clk_register_periph_gate("emc", "emc_mux", 0, clk_base, 0,
-				    57, periph_clk_enb_refcnt);
+										 57, periph_clk_enb_refcnt);
 	clks[TEGRA20_CLK_EMC] = clk;
 
 	clk = tegra_clk_register_mc("mc", "emc_mux", clk_base + CLK_SOURCE_EMC,
-				    &emc_lock);
+								&emc_lock);
 	clks[TEGRA20_CLK_MC] = clk;
 
 	/* dsi */
 	clk = tegra_clk_register_periph_gate("dsi", "pll_d", 0, clk_base, 0,
-				    48, periph_clk_enb_refcnt);
+										 48, periph_clk_enb_refcnt);
 	clk_register_clkdev(clk, NULL, "dsi");
 	clks[TEGRA20_CLK_DSI] = clk;
 
 	/* pex */
 	clk = tegra_clk_register_periph_gate("pex", "clk_m", 0, clk_base, 0, 70,
-				    periph_clk_enb_refcnt);
+										 periph_clk_enb_refcnt);
 	clks[TEGRA20_CLK_PEX] = clk;
 
 	/* cdev1 */
 	clk = clk_register_fixed_rate(NULL, "cdev1_fixed", NULL, 0, 26000000);
 	clk = tegra_clk_register_periph_gate("cdev1", "cdev1_fixed", 0,
-				    clk_base, 0, 94, periph_clk_enb_refcnt);
+										 clk_base, 0, 94, periph_clk_enb_refcnt);
 	clks[TEGRA20_CLK_CDEV1] = clk;
 
 	/* cdev2 */
 	clk = clk_register_fixed_rate(NULL, "cdev2_fixed", NULL, 0, 26000000);
 	clk = tegra_clk_register_periph_gate("cdev2", "cdev2_fixed", 0,
-				    clk_base, 0, 93, periph_clk_enb_refcnt);
+										 clk_base, 0, 93, periph_clk_enb_refcnt);
 	clks[TEGRA20_CLK_CDEV2] = clk;
 
-	for (i = 0; i < ARRAY_SIZE(tegra_periph_clk_list); i++) {
+	for (i = 0; i < ARRAY_SIZE(tegra_periph_clk_list); i++)
+	{
 		data = &tegra_periph_clk_list[i];
 		clk = tegra_clk_register_periph(data->name, data->p.parent_names,
-				data->num_parents, &data->periph,
-				clk_base, data->offset, data->flags);
+										data->num_parents, &data->periph,
+										clk_base, data->offset, data->flags);
 		clks[data->clk_id] = clk;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(tegra_periph_nodiv_clk_list); i++) {
+	for (i = 0; i < ARRAY_SIZE(tegra_periph_nodiv_clk_list); i++)
+	{
 		data = &tegra_periph_nodiv_clk_list[i];
 		clk = tegra_clk_register_periph_nodiv(data->name,
-					data->p.parent_names,
-					data->num_parents, &data->periph,
-					clk_base, data->offset);
+											  data->p.parent_names,
+											  data->num_parents, &data->periph,
+											  clk_base, data->offset);
 		clks[data->clk_id] = clk;
 	}
 
@@ -878,13 +920,13 @@ static void __init tegra20_osc_clk_init(void)
 
 	/* clk_m */
 	clk = clk_register_fixed_rate(NULL, "clk_m", NULL, CLK_IGNORE_UNUSED,
-				      input_freq);
+								  input_freq);
 	clks[TEGRA20_CLK_CLK_M] = clk;
 
 	/* pll_ref */
 	pll_ref_div = tegra20_get_pll_ref_div();
 	clk = clk_register_fixed_factor(NULL, "pll_ref", "clk_m",
-					CLK_SET_RATE_PARENT, 1, pll_ref_div);
+									CLK_SET_RATE_PARENT, 1, pll_ref_div);
 	clks[TEGRA20_CLK_PLL_REF] = clk;
 }
 
@@ -893,11 +935,13 @@ static void tegra20_wait_cpu_in_reset(u32 cpu)
 {
 	unsigned int reg;
 
-	do {
+	do
+	{
 		reg = readl(clk_base +
-			    TEGRA_CLK_RST_CONTROLLER_RST_CPU_CMPLX_SET);
+					TEGRA_CLK_RST_CONTROLLER_RST_CPU_CMPLX_SET);
 		cpu_relax();
-	} while (!(reg & (1 << cpu)));	/* check CPU been reset or not */
+	}
+	while (!(reg & (1 << cpu)));	/* check CPU been reset or not */
 
 	return;
 }
@@ -905,14 +949,14 @@ static void tegra20_wait_cpu_in_reset(u32 cpu)
 static void tegra20_put_cpu_in_reset(u32 cpu)
 {
 	writel(CPU_RESET(cpu),
-	       clk_base + TEGRA_CLK_RST_CONTROLLER_RST_CPU_CMPLX_SET);
+		   clk_base + TEGRA_CLK_RST_CONTROLLER_RST_CPU_CMPLX_SET);
 	dmb();
 }
 
 static void tegra20_cpu_out_of_reset(u32 cpu)
 {
 	writel(CPU_RESET(cpu),
-	       clk_base + TEGRA_CLK_RST_CONTROLLER_RST_CPU_CMPLX_CLR);
+		   clk_base + TEGRA_CLK_RST_CONTROLLER_RST_CPU_CMPLX_CLR);
 	wmb();
 }
 
@@ -922,7 +966,7 @@ static void tegra20_enable_cpu_clock(u32 cpu)
 
 	reg = readl(clk_base + TEGRA_CLK_RST_CONTROLLER_CLK_CPU_CMPLX);
 	writel(reg & ~CPU_CLOCK(cpu),
-	       clk_base + TEGRA_CLK_RST_CONTROLLER_CLK_CPU_CMPLX);
+		   clk_base + TEGRA_CLK_RST_CONTROLLER_CLK_CPU_CMPLX);
 	barrier();
 	reg = readl(clk_base + TEGRA_CLK_RST_CONTROLLER_CLK_CPU_CMPLX);
 }
@@ -933,7 +977,7 @@ static void tegra20_disable_cpu_clock(u32 cpu)
 
 	reg = readl(clk_base + TEGRA_CLK_RST_CONTROLLER_CLK_CPU_CMPLX);
 	writel(reg | CPU_CLOCK(cpu),
-	       clk_base + TEGRA_CLK_RST_CONTROLLER_CLK_CPU_CMPLX);
+		   clk_base + TEGRA_CLK_RST_CONTROLLER_CLK_CPU_CMPLX);
 }
 
 #ifdef CONFIG_PM_SLEEP
@@ -942,7 +986,7 @@ static bool tegra20_cpu_rail_off_ready(void)
 	unsigned int cpu_rst_status;
 
 	cpu_rst_status = readl(clk_base +
-			       TEGRA_CLK_RST_CONTROLLER_RST_CPU_CMPLX_SET);
+						   TEGRA_CLK_RST_CONTROLLER_RST_CPU_CMPLX_SET);
 
 	return !!(cpu_rst_status & 0x2);
 }
@@ -951,17 +995,17 @@ static void tegra20_cpu_clock_suspend(void)
 {
 	/* switch coresite to clk_m, save off original source */
 	tegra20_cpu_clk_sctx.clk_csite_src =
-				readl(clk_base + CLK_SOURCE_CSITE);
-	writel(3<<30, clk_base + CLK_SOURCE_CSITE);
+		readl(clk_base + CLK_SOURCE_CSITE);
+	writel(3 << 30, clk_base + CLK_SOURCE_CSITE);
 
 	tegra20_cpu_clk_sctx.cpu_burst =
-				readl(clk_base + CCLK_BURST_POLICY);
+		readl(clk_base + CCLK_BURST_POLICY);
 	tegra20_cpu_clk_sctx.pllx_base =
-				readl(clk_base + PLLX_BASE);
+		readl(clk_base + PLLX_BASE);
 	tegra20_cpu_clk_sctx.pllx_misc =
-				readl(clk_base + PLLX_MISC);
+		readl(clk_base + PLLX_MISC);
 	tegra20_cpu_clk_sctx.cclk_divider =
-				readl(clk_base + SUPER_CCLK_DIVIDER);
+		readl(clk_base + SUPER_CCLK_DIVIDER);
 }
 
 static void tegra20_cpu_clock_resume(void)
@@ -973,22 +1017,31 @@ static void tegra20_cpu_clock_resume(void)
 	policy = (reg >> CCLK_BURST_POLICY_SHIFT) & 0xF;
 
 	if (policy == CCLK_IDLE_POLICY)
+	{
 		reg = (reg >> CCLK_IDLE_POLICY_SHIFT) & 0xF;
+	}
 	else if (policy == CCLK_RUN_POLICY)
+	{
 		reg = (reg >> CCLK_RUN_POLICY_SHIFT) & 0xF;
+	}
 	else
+	{
 		BUG();
+	}
 
-	if (reg != CCLK_BURST_POLICY_PLLX) {
+	if (reg != CCLK_BURST_POLICY_PLLX)
+	{
 		/* restore PLLX settings if CPU is on different PLL */
 		writel(tegra20_cpu_clk_sctx.pllx_misc,
-					clk_base + PLLX_MISC);
+			   clk_base + PLLX_MISC);
 		writel(tegra20_cpu_clk_sctx.pllx_base,
-					clk_base + PLLX_BASE);
+			   clk_base + PLLX_BASE);
 
 		/* wait for PLL stabilization if PLLX was enabled */
 		if (tegra20_cpu_clk_sctx.pllx_base & (1 << 30))
+		{
 			udelay(300);
+		}
 	}
 
 	/*
@@ -996,16 +1049,17 @@ static void tegra20_cpu_clock_resume(void)
 	 * LP2 in idle or system suspend.
 	 */
 	writel(tegra20_cpu_clk_sctx.cclk_divider,
-					clk_base + SUPER_CCLK_DIVIDER);
+		   clk_base + SUPER_CCLK_DIVIDER);
 	writel(tegra20_cpu_clk_sctx.cpu_burst,
-					clk_base + CCLK_BURST_POLICY);
+		   clk_base + CCLK_BURST_POLICY);
 
 	writel(tegra20_cpu_clk_sctx.clk_csite_src,
-					clk_base + CLK_SOURCE_CSITE);
+		   clk_base + CLK_SOURCE_CSITE);
 }
 #endif
 
-static struct tegra_cpu_car_ops tegra20_cpu_car_ops = {
+static struct tegra_cpu_car_ops tegra20_cpu_car_ops =
+{
 	.wait_for_reset	= tegra20_wait_cpu_in_reset,
 	.put_in_reset	= tegra20_put_cpu_in_reset,
 	.out_of_reset	= tegra20_cpu_out_of_reset,
@@ -1018,7 +1072,8 @@ static struct tegra_cpu_car_ops tegra20_cpu_car_ops = {
 #endif
 };
 
-static struct tegra_clk_init_table init_table[] __initdata = {
+static struct tegra_clk_init_table init_table[] __initdata =
+{
 	{ TEGRA20_CLK_PLL_P, TEGRA20_CLK_CLK_MAX, 216000000, 1 },
 	{ TEGRA20_CLK_PLL_P_OUT1, TEGRA20_CLK_CLK_MAX, 28800000, 1 },
 	{ TEGRA20_CLK_PLL_P_OUT2, TEGRA20_CLK_CLK_MAX, 48000000, 1 },
@@ -1070,7 +1125,8 @@ static void __init tegra20_clock_apply_init_table(void)
  * configuration.  List those here to register them twice in the clock lookup
  * table under two names.
  */
-static struct tegra_clk_duplicate tegra_clk_duplicates[] = {
+static struct tegra_clk_duplicate tegra_clk_duplicates[] =
+{
 	TEGRA_CLK_DUPLICATE(TEGRA20_CLK_USBD,    "utmip-pad",     NULL),
 	TEGRA_CLK_DUPLICATE(TEGRA20_CLK_USBD,    "tegra-ehci.0",  NULL),
 	TEGRA_CLK_DUPLICATE(TEGRA20_CLK_USBD,    "tegra-otg",     NULL),
@@ -1079,7 +1135,8 @@ static struct tegra_clk_duplicate tegra_clk_duplicates[] = {
 	TEGRA_CLK_DUPLICATE(TEGRA20_CLK_CLK_MAX, NULL,            NULL),
 };
 
-static const struct of_device_id pmc_match[] __initconst = {
+static const struct of_device_id pmc_match[] __initconst =
+{
 	{ .compatible = "nvidia,tegra20-pmc" },
 	{ },
 };
@@ -1089,27 +1146,36 @@ static void __init tegra20_clock_init(struct device_node *np)
 	struct device_node *node;
 
 	clk_base = of_iomap(np, 0);
-	if (!clk_base) {
+
+	if (!clk_base)
+	{
 		pr_err("Can't map CAR registers\n");
 		BUG();
 	}
 
 	node = of_find_matching_node(NULL, pmc_match);
-	if (!node) {
+
+	if (!node)
+	{
 		pr_err("Failed to find pmc node\n");
 		BUG();
 	}
 
 	pmc_base = of_iomap(node, 0);
-	if (!pmc_base) {
+
+	if (!pmc_base)
+	{
 		pr_err("Can't map pmc registers\n");
 		BUG();
 	}
 
 	clks = tegra_clk_init(clk_base, TEGRA20_CLK_CLK_MAX,
-				TEGRA20_CLK_PERIPH_BANKS);
+						  TEGRA20_CLK_PERIPH_BANKS);
+
 	if (!clks)
+	{
 		return;
+	}
 
 	tegra20_osc_clk_init();
 	tegra_fixed_clk_init(tegra20_clks);

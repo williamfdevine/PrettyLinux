@@ -34,7 +34,8 @@
 #define HCI_CMSG_DIR	0x0001
 #define HCI_CMSG_TSTAMP	0x0002
 
-struct sockaddr_hci {
+struct sockaddr_hci
+{
 	sa_family_t    hci_family;
 	unsigned short hci_dev;
 	unsigned short hci_channel;
@@ -47,13 +48,15 @@ struct sockaddr_hci {
 #define HCI_CHANNEL_CONTROL	3
 #define HCI_CHANNEL_LOGGING	4
 
-struct hci_filter {
+struct hci_filter
+{
 	unsigned long type_mask;
 	unsigned long event_mask[2];
 	__le16 opcode;
 };
 
-struct hci_ufilter {
+struct hci_ufilter
+{
 	__u32  type_mask;
 	__u32  event_mask[2];
 	__le16 opcode;
@@ -92,7 +95,8 @@ struct hci_ufilter {
 #define HCIINQUIRY	_IOR('H', 240, int)
 
 /* Ioctl requests structures */
-struct hci_dev_stats {
+struct hci_dev_stats
+{
 	__u32 err_rx;
 	__u32 err_tx;
 	__u32 cmd_tx;
@@ -105,7 +109,8 @@ struct hci_dev_stats {
 	__u32 byte_tx;
 };
 
-struct hci_dev_info {
+struct hci_dev_info
+{
 	__u16 dev_id;
 	char  name[8];
 
@@ -128,7 +133,8 @@ struct hci_dev_info {
 	struct hci_dev_stats stat;
 };
 
-struct hci_conn_info {
+struct hci_conn_info
+{
 	__u16    handle;
 	bdaddr_t bdaddr;
 	__u8     type;
@@ -137,34 +143,40 @@ struct hci_conn_info {
 	__u32    link_mode;
 };
 
-struct hci_dev_req {
+struct hci_dev_req
+{
 	__u16  dev_id;
 	__u32  dev_opt;
 };
 
-struct hci_dev_list_req {
+struct hci_dev_list_req
+{
 	__u16  dev_num;
 	struct hci_dev_req dev_req[0];	/* hci_dev_req structures */
 };
 
-struct hci_conn_list_req {
+struct hci_conn_list_req
+{
 	__u16  dev_id;
 	__u16  conn_num;
 	struct hci_conn_info conn_info[0];
 };
 
-struct hci_conn_info_req {
+struct hci_conn_info_req
+{
 	bdaddr_t bdaddr;
 	__u8     type;
 	struct   hci_conn_info conn_info[0];
 };
 
-struct hci_auth_info_req {
+struct hci_auth_info_req
+{
 	bdaddr_t bdaddr;
 	__u8     type;
 };
 
-struct hci_inquiry_req {
+struct hci_inquiry_req
+{
 	__u16 dev_id;
 	__u16 flags;
 	__u8  lap[3];

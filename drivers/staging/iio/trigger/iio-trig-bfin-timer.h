@@ -15,7 +15,8 @@
  * is set to false no external trigger pulse will be generated and active_low
  * and duty_ns are ignored.
  **/
-struct iio_bfin_timer_trigger_pdata {
+struct iio_bfin_timer_trigger_pdata
+{
 	bool output_enable;
 	bool active_low;
 	unsigned int duty_ns;

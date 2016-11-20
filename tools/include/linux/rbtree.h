@@ -32,14 +32,16 @@
 #include <linux/kernel.h>
 #include <linux/stddef.h>
 
-struct rb_node {
+struct rb_node
+{
 	unsigned long  __rb_parent_color;
 	struct rb_node *rb_right;
 	struct rb_node *rb_left;
 } __attribute__((aligned(sizeof(long))));
-    /* The alignment might seem pointless, but allegedly CRIS needs it */
+/* The alignment might seem pointless, but allegedly CRIS needs it */
 
-struct rb_root {
+struct rb_root
+{
 	struct rb_node *rb_node;
 };
 
@@ -74,10 +76,10 @@ extern struct rb_node *rb_next_postorder(const struct rb_node *);
 
 /* Fast replacement of a single node without remove/rebalance/add/rebalance */
 extern void rb_replace_node(struct rb_node *victim, struct rb_node *new,
-			    struct rb_root *root);
+							struct rb_root *root);
 
 static inline void rb_link_node(struct rb_node *node, struct rb_node *parent,
-				struct rb_node **rb_link)
+								struct rb_node **rb_link)
 {
 	node->__rb_parent_color = (unsigned long)parent;
 	node->rb_left = node->rb_right = NULL;
@@ -87,7 +89,7 @@ static inline void rb_link_node(struct rb_node *node, struct rb_node *parent,
 
 #define rb_entry_safe(ptr, type, member) \
 	({ typeof(ptr) ____ptr = (ptr); \
-	   ____ptr ? rb_entry(____ptr, type, member) : NULL; \
+		____ptr ? rb_entry(____ptr, type, member) : NULL; \
 	})
 
 

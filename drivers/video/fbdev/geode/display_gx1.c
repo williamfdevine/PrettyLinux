@@ -58,16 +58,23 @@ int gx1_frame_buffer_size(void)
 	unsigned dram_size = 0, fb_base;
 
 	mc_regs = ioremap(gx1_gx_base() + 0x8400, 0x100);
+
 	if (!mc_regs)
+	{
 		return -ENOMEM;
+	}
 
 
 	/* Calculate the total size of both DIMM0 and DIMM1. */
 	bank_cfg = readl(mc_regs + MC_BANK_CFG);
 
-	for (d = 0; d < 2; d++) {
+	for (d = 0; d < 2; d++)
+	{
 		if ((bank_cfg & MC_BCFG_DIMM0_PG_SZ_MASK) != MC_BCFG_DIMM0_PG_SZ_NO_DIMM)
+		{
 			dram_size += 0x400000 << ((bank_cfg & MC_BCFG_DIMM0_SZ_MASK) >> 8);
+		}
+
 		bank_cfg >>= 16; /* look at DIMM1 next */
 	}
 
@@ -136,16 +143,17 @@ static void gx1_set_mode(struct fb_info *info)
 
 	/* Line delta and line buffer length. */
 	writel(info->fix.line_length >> 2, par->dc_regs + DC_LINE_DELTA);
-	writel(((info->var.xres * info->var.bits_per_pixel/8) >> 3) + 2,
-	       par->dc_regs + DC_BUF_SIZE);
+	writel(((info->var.xres * info->var.bits_per_pixel / 8) >> 3) + 2,
+		   par->dc_regs + DC_BUF_SIZE);
 
 	/* Output configuration. Enable panel data, set pixel format. */
 	ocfg = DC_OCFG_PCKE | DC_OCFG_PDEL | DC_OCFG_PDEH;
-	if (info->var.bits_per_pixel == 8) ocfg |= DC_OCFG_8BPP;
+
+	if (info->var.bits_per_pixel == 8) { ocfg |= DC_OCFG_8BPP; }
 
 	/* Enable timing generator, sync and FP data. */
 	tcfg = DC_TCFG_FPPE | DC_TCFG_HSYE | DC_TCFG_VSYE | DC_TCFG_BLKE
-		| DC_TCFG_TGEN;
+		   | DC_TCFG_TGEN;
 
 	/* Horizontal and vertical timings. */
 	hactive = info->var.xres;
@@ -194,7 +202,7 @@ static void gx1_set_mode(struct fb_info *info)
 }
 
 static void gx1_set_hw_palette_reg(struct fb_info *info, unsigned regno,
-				   unsigned red, unsigned green, unsigned blue)
+								   unsigned red, unsigned green, unsigned blue)
 {
 	struct geodefb_par *par = info->par;
 	int val;
@@ -208,7 +216,8 @@ static void gx1_set_hw_palette_reg(struct fb_info *info, unsigned regno,
 	writel(val, par->dc_regs + DC_PAL_DATA);
 }
 
-const struct geode_dc_ops gx1_dc_ops = {
+const struct geode_dc_ops gx1_dc_ops =
+{
 	.set_mode	 = gx1_set_mode,
 	.set_palette_reg = gx1_set_hw_palette_reg,
 };

@@ -41,9 +41,15 @@ static const struct pppox_proto *pppox_protos[PX_MAX_PROTO + 1];
 int register_pppox_proto(int proto_num, const struct pppox_proto *pp)
 {
 	if (proto_num < 0 || proto_num > PX_MAX_PROTO)
+	{
 		return -EINVAL;
+	}
+
 	if (pppox_protos[proto_num])
+	{
 		return -EALREADY;
+	}
+
 	pppox_protos[proto_num] = pp;
 	return 0;
 }
@@ -51,14 +57,17 @@ int register_pppox_proto(int proto_num, const struct pppox_proto *pp)
 void unregister_pppox_proto(int proto_num)
 {
 	if (proto_num >= 0 && proto_num <= PX_MAX_PROTO)
+	{
 		pppox_protos[proto_num] = NULL;
+	}
 }
 
 void pppox_unbind_sock(struct sock *sk)
 {
 	/* Clear connection to ppp device, if attached. */
 
-	if (sk->sk_state & (PPPOX_BOUND | PPPOX_CONNECTED)) {
+	if (sk->sk_state & (PPPOX_BOUND | PPPOX_CONNECTED))
+	{
 		ppp_unregister_channel(&pppox_sk(sk)->chan);
 		sk->sk_state = PPPOX_DEAD;
 	}
@@ -76,25 +85,34 @@ int pppox_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 
 	lock_sock(sk);
 
-	switch (cmd) {
-	case PPPIOCGCHAN: {
-		int index;
-		rc = -ENOTCONN;
-		if (!(sk->sk_state & PPPOX_CONNECTED))
-			break;
+	switch (cmd)
+	{
+		case PPPIOCGCHAN:
+			{
+				int index;
+				rc = -ENOTCONN;
 
-		rc = -EINVAL;
-		index = ppp_channel_index(&po->chan);
-		if (put_user(index , (int __user *) arg))
-			break;
+				if (!(sk->sk_state & PPPOX_CONNECTED))
+				{
+					break;
+				}
 
-		rc = 0;
-		sk->sk_state |= PPPOX_BOUND;
-		break;
-	}
-	default:
-		rc = pppox_protos[sk->sk_protocol]->ioctl ?
-			pppox_protos[sk->sk_protocol]->ioctl(sock, cmd, arg) : -ENOTTY;
+				rc = -EINVAL;
+				index = ppp_channel_index(&po->chan);
+
+				if (put_user(index , (int __user *) arg))
+				{
+					break;
+				}
+
+				rc = 0;
+				sk->sk_state |= PPPOX_BOUND;
+				break;
+			}
+
+		default:
+			rc = pppox_protos[sk->sk_protocol]->ioctl ?
+				 pppox_protos[sk->sk_protocol]->ioctl(sock, cmd, arg) : -ENOTTY;
 	}
 
 	release_sock(sk);
@@ -104,19 +122,27 @@ int pppox_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 EXPORT_SYMBOL(pppox_ioctl);
 
 static int pppox_create(struct net *net, struct socket *sock, int protocol,
-			int kern)
+						int kern)
 {
 	int rc = -EPROTOTYPE;
 
 	if (protocol < 0 || protocol > PX_MAX_PROTO)
+	{
 		goto out;
+	}
 
 	rc = -EPROTONOSUPPORT;
+
 	if (!pppox_protos[protocol])
+	{
 		request_module("net-pf-%d-proto-%d", PF_PPPOX, protocol);
+	}
+
 	if (!pppox_protos[protocol] ||
-	    !try_module_get(pppox_protos[protocol]->owner))
+		!try_module_get(pppox_protos[protocol]->owner))
+	{
 		goto out;
+	}
 
 	rc = pppox_protos[protocol]->create(net, sock, kern);
 
@@ -125,7 +151,8 @@ out:
 	return rc;
 }
 
-static const struct net_proto_family pppox_proto_family = {
+static const struct net_proto_family pppox_proto_family =
+{
 	.family	= PF_PPPOX,
 	.create	= pppox_create,
 	.owner	= THIS_MODULE,

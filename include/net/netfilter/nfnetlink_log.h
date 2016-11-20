@@ -3,13 +3,13 @@
 
 void
 nfulnl_log_packet(struct net *net,
-		  u_int8_t pf,
-		  unsigned int hooknum,
-		  const struct sk_buff *skb,
-		  const struct net_device *in,
-		  const struct net_device *out,
-		  const struct nf_loginfo *li_user,
-		  const char *prefix);
+				  u_int8_t pf,
+				  unsigned int hooknum,
+				  const struct sk_buff *skb,
+				  const struct net_device *in,
+				  const struct net_device *out,
+				  const struct nf_loginfo *li_user,
+				  const char *prefix);
 
 #define NFULNL_COPY_DISABLED    0xff
 

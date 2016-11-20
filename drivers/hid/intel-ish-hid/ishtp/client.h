@@ -20,7 +20,8 @@
 #include "ishtp-dev.h"
 
 /* Client state */
-enum cl_state {
+enum cl_state
+{
 	ISHTP_CL_INITIALIZING = 0,
 	ISHTP_CL_CONNECTING,
 	ISHTP_CL_CONNECTED,
@@ -44,13 +45,15 @@ enum cl_state {
 #define	CL_TX_PATH_DMA		2
 
 /* Client Tx buffer list entry */
-struct ishtp_cl_tx_ring {
+struct ishtp_cl_tx_ring
+{
 	struct list_head	list;
 	struct ishtp_msg_data	send_buf;
 };
 
 /* ISHTP client instance */
-struct ishtp_cl {
+struct ishtp_cl
+{
 	struct list_head	link;
 	struct ishtp_device	*dev;
 	enum cl_state		state;
@@ -129,7 +132,7 @@ int ishtp_can_client_connect(struct ishtp_device *ishtp_dev, uuid_le *uuid);
 int ishtp_fw_cl_by_id(struct ishtp_device *dev, uint8_t client_id);
 void ishtp_cl_send_msg(struct ishtp_device *dev, struct ishtp_cl *cl);
 void recv_ishtp_cl_msg(struct ishtp_device *dev,
-		       struct ishtp_msg_hdr *ishtp_hdr);
+					   struct ishtp_msg_hdr *ishtp_hdr);
 int ishtp_cl_read_start(struct ishtp_cl *cl);
 
 /* Ring Buffer I/F */
@@ -140,14 +143,14 @@ void ishtp_cl_free_tx_ring(struct ishtp_cl *cl);
 
 /* DMA I/F functions */
 void recv_ishtp_cl_msg_dma(struct ishtp_device *dev, void *msg,
-			   struct dma_xfer_hbm *hbm);
+						   struct dma_xfer_hbm *hbm);
 void ishtp_cl_alloc_dma_buf(struct ishtp_device *dev);
 void ishtp_cl_free_dma_buf(struct ishtp_device *dev);
 void *ishtp_cl_get_dma_send_buf(struct ishtp_device *dev,
-				uint32_t size);
+								uint32_t size);
 void ishtp_cl_release_dma_acked_mem(struct ishtp_device *dev,
-				    void *msg_addr,
-				    uint8_t size);
+									void *msg_addr,
+									uint8_t size);
 
 /* Request blocks alloc/free I/F */
 struct ishtp_cl_rb *ishtp_io_rb_init(struct ishtp_cl *cl);
@@ -159,11 +162,11 @@ int ishtp_io_rb_alloc_buf(struct ishtp_cl_rb *rb, size_t length);
  * returns true  - if ids are the same and not NULL
  */
 static inline bool ishtp_cl_cmp_id(const struct ishtp_cl *cl1,
-				   const struct ishtp_cl *cl2)
+								   const struct ishtp_cl *cl2)
 {
 	return cl1 && cl2 &&
-		(cl1->host_client_id == cl2->host_client_id) &&
-		(cl1->fw_client_id == cl2->fw_client_id);
+		   (cl1->host_client_id == cl2->host_client_id) &&
+		   (cl1->fw_client_id == cl2->fw_client_id);
 }
 
 /* exported functions from ISHTP under client management scope */

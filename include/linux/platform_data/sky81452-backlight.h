@@ -32,7 +32,8 @@
  * @short_detecion_threshold:	It should be one of 4, 5, 6 and 7V.
  * @boost_current_limit:	It should be one of 2300, 2750mA.
  */
-struct sky81452_bl_platform_data {
+struct sky81452_bl_platform_data
+{
 	const char *name;
 	int gpio_enable;
 	unsigned int enable;

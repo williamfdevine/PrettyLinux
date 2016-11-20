@@ -18,7 +18,8 @@
  * lguest_data".  Once the Guest's initialization hypercall tells the Host where
  * this is, the Guest and Host both publish information in it.
 :*/
-struct lguest_data {
+struct lguest_data
+{
 	/*
 	 * 512 == enabled (same as eflags in normal hardware).  The Guest
 	 * changes interrupts so often that a hypercall is too slow.
@@ -54,13 +55,13 @@ struct lguest_data {
 	/* The actual registers for the hypercalls. */
 	struct hcall_args hcalls[LHCALL_RING_SIZE];
 
-/* Fields initialized by the Host at boot: */
+	/* Fields initialized by the Host at boot: */
 	/* Memory not to try to access */
 	unsigned long reserve_mem;
 	/* KHz for the TSC clock. */
 	u32 tsc_khz;
 
-/* Fields initialized by the Guest at boot: */
+	/* Fields initialized by the Guest at boot: */
 	/* Instruction to suppress interrupts even if enabled */
 	unsigned long noirq_iret;
 	/* Address above which page tables are all identical. */

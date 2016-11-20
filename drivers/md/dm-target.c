@@ -23,8 +23,11 @@ static inline struct target_type *__find_target_type(const char *name)
 	struct target_type *tt;
 
 	list_for_each_entry(tt, &_targets, list)
-		if (!strcmp(name, tt->name))
-			return tt;
+
+	if (!strcmp(name, tt->name))
+	{
+		return tt;
+	}
 
 	return NULL;
 }
@@ -36,8 +39,11 @@ static struct target_type *get_target_type(const char *name)
 	down_read(&_lock);
 
 	tt = __find_target_type(name);
+
 	if (tt && !try_module_get(tt->module))
+	{
 		tt = NULL;
+	}
 
 	up_read(&_lock);
 	return tt;
@@ -52,7 +58,8 @@ struct target_type *dm_get_target_type(const char *name)
 {
 	struct target_type *tt = get_target_type(name);
 
-	if (!tt) {
+	if (!tt)
+	{
 		load_module(name);
 		tt = get_target_type(name);
 	}
@@ -68,13 +75,13 @@ void dm_put_target_type(struct target_type *tt)
 }
 
 int dm_target_iterate(void (*iter_func)(struct target_type *tt,
-					void *param), void *param)
+										void *param), void *param)
 {
 	struct target_type *tt;
 
 	down_read(&_lock);
 	list_for_each_entry(tt, &_targets, list)
-		iter_func(tt, param);
+	iter_func(tt, param);
 	up_read(&_lock);
 
 	return 0;
@@ -85,10 +92,15 @@ int dm_register_target(struct target_type *tt)
 	int rv = 0;
 
 	down_write(&_lock);
+
 	if (__find_target_type(tt->name))
+	{
 		rv = -EEXIST;
+	}
 	else
+	{
 		list_add(&tt->list, &_targets);
+	}
 
 	up_write(&_lock);
 	return rv;
@@ -97,7 +109,9 @@ int dm_register_target(struct target_type *tt)
 void dm_unregister_target(struct target_type *tt)
 {
 	down_write(&_lock);
-	if (!__find_target_type(tt->name)) {
+
+	if (!__find_target_type(tt->name))
+	{
 		DMCRIT("Unregistering unrecognised target: %s", tt->name);
 		BUG();
 	}
@@ -132,14 +146,14 @@ static int io_err_map(struct dm_target *tt, struct bio *bio)
 }
 
 static int io_err_map_rq(struct dm_target *ti, struct request *clone,
-			 union map_info *map_context)
+						 union map_info *map_context)
 {
 	return -EIO;
 }
 
 static int io_err_clone_and_map_rq(struct dm_target *ti, struct request *rq,
-				   union map_info *map_context,
-				   struct request **clone)
+								   union map_info *map_context,
+								   struct request **clone)
 {
 	return -EIO;
 }
@@ -149,12 +163,13 @@ static void io_err_release_clone_rq(struct request *clone)
 }
 
 static long io_err_direct_access(struct dm_target *ti, sector_t sector,
-				 void **kaddr, pfn_t *pfn, long size)
+								 void **kaddr, pfn_t *pfn, long size)
 {
 	return -EIO;
 }
 
-static struct target_type error_target = {
+static struct target_type error_target =
+{
 	.name = "error",
 	.version = {1, 5, 0},
 	.features = DM_TARGET_WILDCARD,

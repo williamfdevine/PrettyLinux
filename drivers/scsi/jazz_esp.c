@@ -39,25 +39,25 @@ static u8 jazz_esp_read8(struct esp *esp, unsigned long reg)
 }
 
 static dma_addr_t jazz_esp_map_single(struct esp *esp, void *buf,
-				      size_t sz, int dir)
+									  size_t sz, int dir)
 {
 	return dma_map_single(esp->dev, buf, sz, dir);
 }
 
 static int jazz_esp_map_sg(struct esp *esp, struct scatterlist *sg,
-				  int num_sg, int dir)
+						   int num_sg, int dir)
 {
 	return dma_map_sg(esp->dev, sg, num_sg, dir);
 }
 
 static void jazz_esp_unmap_single(struct esp *esp, dma_addr_t addr,
-				  size_t sz, int dir)
+								  size_t sz, int dir)
 {
 	dma_unmap_single(esp->dev, addr, sz, dir);
 }
 
 static void jazz_esp_unmap_sg(struct esp *esp, struct scatterlist *sg,
-			      int num_sg, int dir)
+							  int num_sg, int dir)
 {
 	dma_unmap_sg(esp->dev, sg, num_sg, dir);
 }
@@ -65,7 +65,10 @@ static void jazz_esp_unmap_sg(struct esp *esp, struct scatterlist *sg,
 static int jazz_esp_irq_pending(struct esp *esp)
 {
 	if (jazz_esp_read8(esp, ESP_STATUS) & ESP_STAT_INTR)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -85,17 +88,22 @@ static void jazz_esp_dma_invalidate(struct esp *esp)
 }
 
 static void jazz_esp_send_dma_cmd(struct esp *esp, u32 addr, u32 esp_count,
-				  u32 dma_count, int write, u8 cmd)
+								  u32 dma_count, int write, u8 cmd)
 {
 	BUG_ON(!(cmd & ESP_CMD_DMA));
 
 	jazz_esp_write8(esp, (esp_count >> 0) & 0xff, ESP_TCLOW);
 	jazz_esp_write8(esp, (esp_count >> 8) & 0xff, ESP_TCMED);
 	vdma_disable ((int)esp->dma_regs);
+
 	if (write)
+	{
 		vdma_set_mode ((int)esp->dma_regs, DMA_MODE_READ);
+	}
 	else
+	{
 		vdma_set_mode ((int)esp->dma_regs, DMA_MODE_WRITE);
+	}
 
 	vdma_set_addr ((int)esp->dma_regs, addr);
 	vdma_set_count ((int)esp->dma_regs, dma_count);
@@ -108,13 +116,16 @@ static int jazz_esp_dma_error(struct esp *esp)
 {
 	u32 enable = vdma_get_enable((int)esp->dma_regs);
 
-	if (enable & (R4030_MEM_INTR|R4030_ADDR_INTR))
+	if (enable & (R4030_MEM_INTR | R4030_ADDR_INTR))
+	{
 		return 1;
+	}
 
 	return 0;
 }
 
-static const struct esp_driver_ops jazz_esp_ops = {
+static const struct esp_driver_ops jazz_esp_ops =
+{
 	.esp_write8	=	jazz_esp_write8,
 	.esp_read8	=	jazz_esp_read8,
 	.map_single	=	jazz_esp_map_single,
@@ -140,8 +151,11 @@ static int esp_jazz_probe(struct platform_device *dev)
 	host = scsi_host_alloc(tpnt, sizeof(struct esp));
 
 	err = -ENOMEM;
+
 	if (!host)
+	{
 		goto fail;
+	}
 
 	host->max_id = 8;
 	esp = shost_priv(host);
@@ -151,29 +165,44 @@ static int esp_jazz_probe(struct platform_device *dev)
 	esp->ops = &jazz_esp_ops;
 
 	res = platform_get_resource(dev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		goto fail_unlink;
+	}
 
 	esp->regs = (void __iomem *)res->start;
+
 	if (!esp->regs)
+	{
 		goto fail_unlink;
+	}
 
 	res = platform_get_resource(dev, IORESOURCE_MEM, 1);
+
 	if (!res)
+	{
 		goto fail_unlink;
+	}
 
 	esp->dma_regs = (void __iomem *)res->start;
 
 	esp->command_block = dma_alloc_coherent(esp->dev, 16,
-						&esp->command_block_dma,
-						GFP_KERNEL);
+											&esp->command_block_dma,
+											GFP_KERNEL);
+
 	if (!esp->command_block)
+	{
 		goto fail_unmap_regs;
+	}
 
 	host->irq = platform_get_irq(dev, 0);
 	err = request_irq(host->irq, scsi_esp_intr, IRQF_SHARED, "ESP", esp);
+
 	if (err < 0)
+	{
 		goto fail_unmap_command_block;
+	}
 
 	esp->scsi_id = 7;
 	esp->host->this_id = esp->scsi_id;
@@ -183,8 +212,11 @@ static int esp_jazz_probe(struct platform_device *dev)
 	dev_set_drvdata(&dev->dev, esp);
 
 	err = scsi_esp_register(esp, &dev->dev);
+
 	if (err)
+	{
 		goto fail_free_irq;
+	}
 
 	return 0;
 
@@ -192,8 +224,8 @@ fail_free_irq:
 	free_irq(host->irq, esp);
 fail_unmap_command_block:
 	dma_free_coherent(esp->dev, 16,
-			  esp->command_block,
-			  esp->command_block_dma);
+					  esp->command_block,
+					  esp->command_block_dma);
 fail_unmap_regs:
 fail_unlink:
 	scsi_host_put(host);
@@ -210,8 +242,8 @@ static int esp_jazz_remove(struct platform_device *dev)
 
 	free_irq(irq, esp);
 	dma_free_coherent(esp->dev, 16,
-			  esp->command_block,
-			  esp->command_block_dma);
+					  esp->command_block,
+					  esp->command_block_dma);
 
 	scsi_host_put(esp->host);
 
@@ -221,7 +253,8 @@ static int esp_jazz_remove(struct platform_device *dev)
 /* work with hotplug and coldplug */
 MODULE_ALIAS("platform:jazz_esp");
 
-static struct platform_driver esp_jazz_driver = {
+static struct platform_driver esp_jazz_driver =
+{
 	.probe		= esp_jazz_probe,
 	.remove		= esp_jazz_remove,
 	.driver	= {

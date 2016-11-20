@@ -16,12 +16,14 @@
 #ifndef BNX2X_INIT_FILE_HDR_H
 #define BNX2X_INIT_FILE_HDR_H
 
-struct bnx2x_fw_file_section {
+struct bnx2x_fw_file_section
+{
 	__be32 len;
 	__be32 offset;
 };
 
-struct bnx2x_fw_file_hdr {
+struct bnx2x_fw_file_hdr
+{
 	struct bnx2x_fw_file_section init_ops;
 	struct bnx2x_fw_file_section init_ops_offsets;
 	struct bnx2x_fw_file_section init_data;

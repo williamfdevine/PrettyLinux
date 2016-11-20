@@ -11,10 +11,12 @@
 #include "jr.h"
 #include "error.h"
 
-static const struct {
+static const struct
+{
 	u8 value;
 	const char *error_text;
-} desc_error_list[] = {
+} desc_error_list[] =
+{
 	{ 0x00, "No error." },
 	{ 0x01, "SGT Length Error. The descriptor is trying to read more data than is contained in the SGT table." },
 	{ 0x02, "SGT Null Entry Error." },
@@ -69,7 +71,8 @@ static const struct {
 	{ 0xF1, "3GPP HFN matches or exceeds the Threshold" },
 };
 
-static const char * const cha_id_list[] = {
+static const char *const cha_id_list[] =
+{
 	"",
 	"AES",
 	"DES",
@@ -85,7 +88,8 @@ static const char * const cha_id_list[] = {
 	"ZUCA",
 };
 
-static const char * const err_id_list[] = {
+static const char *const err_id_list[] =
+{
 	"No error.",
 	"Mode error.",
 	"Data size error.",
@@ -104,7 +108,8 @@ static const char * const err_id_list[] = {
 	"Invalid CHA selected.",
 };
 
-static const char * const rng_err_id_list[] = {
+static const char *const rng_err_id_list[] =
+{
 	"",
 	"",
 	"",
@@ -118,13 +123,13 @@ static const char * const rng_err_id_list[] = {
 };
 
 static void report_ccb_status(struct device *jrdev, const u32 status,
-			      const char *error)
+							  const char *error)
 {
 	u8 cha_id = (status & JRSTA_CCBERR_CHAID_MASK) >>
-		    JRSTA_CCBERR_CHAID_SHIFT;
+				JRSTA_CCBERR_CHAID_SHIFT;
 	u8 err_id = status & JRSTA_CCBERR_ERRID_MASK;
 	u8 idx = (status & JRSTA_DECOERR_INDEX_MASK) >>
-		  JRSTA_DECOERR_INDEX_SHIFT;
+			 JRSTA_DECOERR_INDEX_SHIFT;
 	char *idx_str;
 	const char *cha_str = "unidentified cha_id value 0x";
 	char cha_err_code[3] = { 0 };
@@ -132,24 +137,38 @@ static void report_ccb_status(struct device *jrdev, const u32 status,
 	char err_err_code[3] = { 0 };
 
 	if (status & JRSTA_DECOERR_JUMP)
+	{
 		idx_str = "jump tgt desc idx";
+	}
 	else
+	{
 		idx_str = "desc idx";
+	}
 
 	if (cha_id < ARRAY_SIZE(cha_id_list))
+	{
 		cha_str = cha_id_list[cha_id];
+	}
 	else
+	{
 		snprintf(cha_err_code, sizeof(cha_err_code), "%02x", cha_id);
+	}
 
 	if ((cha_id << JRSTA_CCBERR_CHAID_SHIFT) == JRSTA_CCBERR_CHAID_RNG &&
-	    err_id < ARRAY_SIZE(rng_err_id_list) &&
-	    strlen(rng_err_id_list[err_id])) {
+		err_id < ARRAY_SIZE(rng_err_id_list) &&
+		strlen(rng_err_id_list[err_id]))
+	{
 		/* RNG-only error */
 		err_str = rng_err_id_list[err_id];
-	} else if (err_id < ARRAY_SIZE(err_id_list))
+	}
+	else if (err_id < ARRAY_SIZE(err_id_list))
+	{
 		err_str = err_id_list[err_id];
+	}
 	else
+	{
 		snprintf(err_err_code, sizeof(err_err_code), "%02x", err_id);
+	}
 
 	/*
 	 * CCB ICV check failures are part of normal operation life;
@@ -157,68 +176,80 @@ static void report_ccb_status(struct device *jrdev, const u32 status,
 	 */
 	if (err_id != JRSTA_CCBERR_ERRID_ICVCHK)
 		dev_err(jrdev, "%08x: %s: %s %d: %s%s: %s%s\n",
-			status, error, idx_str, idx,
-			cha_str, cha_err_code,
-			err_str, err_err_code);
+				status, error, idx_str, idx,
+				cha_str, cha_err_code,
+				err_str, err_err_code);
 }
 
 static void report_jump_status(struct device *jrdev, const u32 status,
-			       const char *error)
+							   const char *error)
 {
 	dev_err(jrdev, "%08x: %s: %s() not implemented\n",
-		status, error, __func__);
+			status, error, __func__);
 }
 
 static void report_deco_status(struct device *jrdev, const u32 status,
-			       const char *error)
+							   const char *error)
 {
 	u8 err_id = status & JRSTA_DECOERR_ERROR_MASK;
 	u8 idx = (status & JRSTA_DECOERR_INDEX_MASK) >>
-		  JRSTA_DECOERR_INDEX_SHIFT;
+			 JRSTA_DECOERR_INDEX_SHIFT;
 	char *idx_str;
 	const char *err_str = "unidentified error value 0x";
 	char err_err_code[3] = { 0 };
 	int i;
 
 	if (status & JRSTA_DECOERR_JUMP)
+	{
 		idx_str = "jump tgt desc idx";
+	}
 	else
+	{
 		idx_str = "desc idx";
+	}
 
 	for (i = 0; i < ARRAY_SIZE(desc_error_list); i++)
 		if (desc_error_list[i].value == err_id)
+		{
 			break;
+		}
 
 	if (i != ARRAY_SIZE(desc_error_list) && desc_error_list[i].error_text)
+	{
 		err_str = desc_error_list[i].error_text;
+	}
 	else
+	{
 		snprintf(err_err_code, sizeof(err_err_code), "%02x", err_id);
+	}
 
 	dev_err(jrdev, "%08x: %s: %s %d: %s%s\n",
-		status, error, idx_str, idx, err_str, err_err_code);
+			status, error, idx_str, idx, err_str, err_err_code);
 }
 
 static void report_jr_status(struct device *jrdev, const u32 status,
-			     const char *error)
+							 const char *error)
 {
 	dev_err(jrdev, "%08x: %s: %s() not implemented\n",
-		status, error, __func__);
+			status, error, __func__);
 }
 
 static void report_cond_code_status(struct device *jrdev, const u32 status,
-				    const char *error)
+									const char *error)
 {
 	dev_err(jrdev, "%08x: %s: %s() not implemented\n",
-		status, error, __func__);
+			status, error, __func__);
 }
 
 void caam_jr_strstatus(struct device *jrdev, u32 status)
 {
-	static const struct stat_src {
+	static const struct stat_src
+	{
 		void (*report_ssed)(struct device *jrdev, const u32 status,
-				    const char *error);
+							const char *error);
 		const char *error;
-	} status_src[16] = {
+	} status_src[16] =
+	{
 		{ NULL, "No error" },
 		{ NULL, NULL },
 		{ report_ccb_status, "CCB" },
@@ -244,10 +275,16 @@ void caam_jr_strstatus(struct device *jrdev, u32 status)
 	 * Otherwise print the error source name.
 	 */
 	if (status_src[ssrc].report_ssed)
+	{
 		status_src[ssrc].report_ssed(jrdev, status, error);
+	}
 	else if (error)
+	{
 		dev_err(jrdev, "%d: %s\n", ssrc, error);
+	}
 	else
+	{
 		dev_err(jrdev, "%d: unknown error source\n", ssrc);
+	}
 }
 EXPORT_SYMBOL(caam_jr_strstatus);

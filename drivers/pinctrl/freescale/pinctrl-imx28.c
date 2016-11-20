@@ -17,7 +17,8 @@
 #include <linux/pinctrl/pinctrl.h>
 #include "pinctrl-mxs.h"
 
-enum imx28_pin_enum {
+enum imx28_pin_enum
+{
 	GPMI_D00	= PINID(0, 0),
 	GPMI_D01	= PINID(0, 1),
 	GPMI_D02	= PINID(0, 2),
@@ -195,7 +196,8 @@ enum imx28_pin_enum {
 	EMI_CKE		= PINID(6, 24),
 };
 
-static const struct pinctrl_pin_desc imx28_pins[] = {
+static const struct pinctrl_pin_desc imx28_pins[] =
+{
 	MXS_PINCTRL_PIN(GPMI_D00),
 	MXS_PINCTRL_PIN(GPMI_D01),
 	MXS_PINCTRL_PIN(GPMI_D02),
@@ -373,13 +375,15 @@ static const struct pinctrl_pin_desc imx28_pins[] = {
 	MXS_PINCTRL_PIN(EMI_CKE),
 };
 
-static struct mxs_regs imx28_regs = {
+static struct mxs_regs imx28_regs =
+{
 	.muxsel = 0x100,
 	.drive = 0x300,
 	.pull = 0x600,
 };
 
-static struct mxs_pinctrl_soc_data imx28_pinctrl_data = {
+static struct mxs_pinctrl_soc_data imx28_pinctrl_data =
+{
 	.regs = &imx28_regs,
 	.pins = imx28_pins,
 	.npins = ARRAY_SIZE(imx28_pins),
@@ -390,12 +394,14 @@ static int imx28_pinctrl_probe(struct platform_device *pdev)
 	return mxs_pinctrl_probe(pdev, &imx28_pinctrl_data);
 }
 
-static const struct of_device_id imx28_pinctrl_of_match[] = {
+static const struct of_device_id imx28_pinctrl_of_match[] =
+{
 	{ .compatible = "fsl,imx28-pinctrl", },
 	{ /* sentinel */ }
 };
 
-static struct platform_driver imx28_pinctrl_driver = {
+static struct platform_driver imx28_pinctrl_driver =
+{
 	.driver = {
 		.name = "imx28-pinctrl",
 		.suppress_bind_attrs = true,

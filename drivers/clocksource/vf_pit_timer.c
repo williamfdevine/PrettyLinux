@@ -66,11 +66,11 @@ static int __init pit_clocksource_init(unsigned long rate)
 
 	sched_clock_register(pit_read_sched_clock, 32, rate);
 	return clocksource_mmio_init(clksrc_base + PITCVAL, "vf-pit", rate,
-			300, 32, clocksource_mmio_readl_down);
+								 300, 32, clocksource_mmio_readl_down);
 }
 
 static int pit_set_next_event(unsigned long delta,
-				struct clock_event_device *unused)
+							  struct clock_event_device *unused)
 {
 	/*
 	 * set a new value to PITLDVAL register will not restart the timer,
@@ -111,14 +111,17 @@ static irqreturn_t pit_timer_interrupt(int irq, void *dev_id)
 	 * to stop the counter loop in ONESHOT mode.
 	 */
 	if (likely(clockevent_state_oneshot(evt)))
+	{
 		pit_timer_disable();
+	}
 
 	evt->event_handler(evt);
 
 	return IRQ_HANDLED;
 }
 
-static struct clock_event_device clockevent_pit = {
+static struct clock_event_device clockevent_pit =
+{
 	.name		= "VF pit timer",
 	.features	= CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
 	.set_state_shutdown = pit_shutdown,
@@ -127,7 +130,8 @@ static struct clock_event_device clockevent_pit = {
 	.rating		= 300,
 };
 
-static struct irqaction pit_timer_irq = {
+static struct irqaction pit_timer_irq =
+{
 	.name		= "VF pit timer",
 	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
 	.handler	= pit_timer_interrupt,
@@ -164,7 +168,9 @@ static int __init pit_timer_init(struct device_node *np)
 	int irq, ret;
 
 	timer_base = of_iomap(np, 0);
-	if (!timer_base) {
+
+	if (!timer_base)
+	{
 		pr_err("Failed to iomap");
 		return -ENXIO;
 	}
@@ -178,16 +184,25 @@ static int __init pit_timer_init(struct device_node *np)
 	clkevt_base = timer_base + PITn_OFFSET(3);
 
 	irq = irq_of_parse_and_map(np, 0);
+
 	if (irq <= 0)
+	{
 		return -EINVAL;
+	}
 
 	pit_clk = of_clk_get(np, 0);
+
 	if (IS_ERR(pit_clk))
+	{
 		return PTR_ERR(pit_clk);
+	}
 
 	ret = clk_prepare_enable(pit_clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	clk_rate = clk_get_rate(pit_clk);
 	cycle_per_jiffy = clk_rate / (HZ);
@@ -196,8 +211,11 @@ static int __init pit_timer_init(struct device_node *np)
 	__raw_writel(~PITMCR_MDIS, timer_base + PITMCR);
 
 	ret = pit_clocksource_init(clk_rate);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return pit_clockevent_init(clk_rate, irq);
 }

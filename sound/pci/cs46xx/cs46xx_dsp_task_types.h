@@ -18,10 +18,10 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
  *
- * NOTE: comments are copy/paste from cwcemb80.lst 
+ * NOTE: comments are copy/paste from cwcemb80.lst
  * provided by Tom Woller at Cirrus (my only
  * documentation about the SP OS running inside
- * the DSP) 
+ * the DSP)
  */
 
 #ifndef __CS46XX_DSP_TASK_TYPES_H__
@@ -41,13 +41,13 @@ Ptr____Call (c)
  -------------- (g)     -------------      -------------      -------------      -----
        |c                     |c                 |c                 |c
        |                      |                  |                  |
-      \/                  -------------      -------------      -------------   
+      \/                  -------------      -------------      -------------
                        | Foreground  |_\  | Middlegr'nd |_\  | Background  |_\
                        |     tree    |g/  |    tree     |g/  |     tree    |g/
-                        -------------      -------------      -------------   
+                        -------------      -------------      -------------
                               |c                 |c                 |c
-                              |                  |                  | 
-                             \/                 \/                 \/ 
+                              |                  |                  |
+                             \/                 \/                 \/
 
 *********************************************************************************************/
 
@@ -71,88 +71,91 @@ Ptr____Call (c)
                                                at the end of BG */
 
 /* Minimal context save area for Hyper Forground */
-struct dsp_hf_save_area {
+struct dsp_hf_save_area
+{
 	u32	r10_save;
 	u32	r54_save;
 	u32	r98_save;
 
 	___DSP_DUAL_16BIT_ALLOC(
-	    status_save,
-	    ind_save
+		status_save,
+		ind_save
 	)
 
 	___DSP_DUAL_16BIT_ALLOC(
-	    rci1_save,
-	    rci0_save
+		rci1_save,
+		rci0_save
 	)
 
 	u32	r32_save;
 	u32	r76_save;
 	u32	rsd2_save;
 
-       	___DSP_DUAL_16BIT_ALLOC(
-	      rsi2_save,	  /* See TaskTreeParameterBlock for 
+	___DSP_DUAL_16BIT_ALLOC(
+		rsi2_save,	  /* See TaskTreeParameterBlock for
 				     remainder of registers  */
-	      rsa2Save
+		rsa2Save
 	)
 	/* saved as part of HFG context  */
 };
 
 
 /* Task link data structure */
-struct dsp_tree_link {
+struct dsp_tree_link
+{
 	___DSP_DUAL_16BIT_ALLOC(
-	/* Pointer to sibling task control block */
-	    next_scb,
-	/* Pointer to child task control block */
-	    sub_ptr
+		/* Pointer to sibling task control block */
+		next_scb,
+		/* Pointer to child task control block */
+		sub_ptr
 	)
-  
+
 	___DSP_DUAL_16BIT_ALLOC(
-	/* Pointer to code entry point */
-	    entry_point, 
-	/* Pointer to local data */
-	    this_spb
+		/* Pointer to code entry point */
+		entry_point,
+		/* Pointer to local data */
+		this_spb
 	)
 };
 
 
-struct dsp_task_tree_data {
+struct dsp_task_tree_data
+{
 	___DSP_DUAL_16BIT_ALLOC(
-	/* Initial tock count; controls task tree execution rate */
-	    tock_count_limit,
-	/* Tock down counter */
-	    tock_count
+		/* Initial tock count; controls task tree execution rate */
+		tock_count_limit,
+		/* Tock down counter */
+		tock_count
 	)
 
-	/* Add to ActiveCount when TockCountLimit reached: 
+	/* Add to ActiveCount when TockCountLimit reached:
 	   Subtract on task tree termination */
 	___DSP_DUAL_16BIT_ALLOC(
-	    active_tncrement,		
-	/* Number of pending activations for task tree */
-	    active_count
+		active_tncrement,
+		/* Number of pending activations for task tree */
+		active_count
 	)
 
-        ___DSP_DUAL_16BIT_ALLOC(
-	/* BitNumber to enable modification of correct bit in ActiveTaskFlags */
-	    active_bit,	    
-	/* Pointer to OS location for indicating current activity on task level */
-	    active_task_flags_ptr
+	___DSP_DUAL_16BIT_ALLOC(
+		/* BitNumber to enable modification of correct bit in ActiveTaskFlags */
+		active_bit,
+		/* Pointer to OS location for indicating current activity on task level */
+		active_task_flags_ptr
 	)
 
-	/* Data structure for controlling movement of memory blocks:- 
+	/* Data structure for controlling movement of memory blocks:-
 	   currently unused */
 	___DSP_DUAL_16BIT_ALLOC(
-	    mem_upd_ptr,
-	/* Data structure for controlling synchronous link update */
-	    link_upd_ptr
+		mem_upd_ptr,
+		/* Data structure for controlling synchronous link update */
+		link_upd_ptr
 	)
-  
+
 	___DSP_DUAL_16BIT_ALLOC(
-	/* Save area for remainder of full context. */
-	    save_area,
-	/* Address of start of local stack for data storage */
-	    data_stack_base_ptr
+		/* Save area for remainder of full context. */
+		save_area,
+		/* Address of start of local stack for data storage */
+		data_stack_base_ptr
 	)
 
 };
@@ -162,52 +165,53 @@ struct dsp_interval_timer_data
 {
 	/* These data items have the same relative locations to those */
 	___DSP_DUAL_16BIT_ALLOC(
-	     interval_timer_period,
-	     itd_unused
+		interval_timer_period,
+		itd_unused
 	)
 
 	/* used for this data in the SPOS control block for SPOS 1.0 */
 	___DSP_DUAL_16BIT_ALLOC(
-	     num_FG_ticks_this_interval,        
-	     num_intervals
+		num_FG_ticks_this_interval,
+		num_intervals
 	)
 };
 
 
 /* This structure contains extra storage for the task tree
    Currently, this additional data is related only to a full context save */
-struct dsp_task_tree_context_block {
+struct dsp_task_tree_context_block
+{
 	/* Up to 10 values are saved onto the stack.  8 for the task tree, 1 for
 	   The access to the context switch (call or interrupt), and 1 spare that
 	   users should never use.  This last may be required by the system */
 	___DSP_DUAL_16BIT_ALLOC(
-	     stack1,
-	     stack0
+		stack1,
+		stack0
 	)
 	___DSP_DUAL_16BIT_ALLOC(
-	     stack3,
-	     stack2
+		stack3,
+		stack2
 	)
 	___DSP_DUAL_16BIT_ALLOC(
-	     stack5,
-	     stack4
+		stack5,
+		stack4
 	)
 	___DSP_DUAL_16BIT_ALLOC(
-	     stack7,
-	     stack6
+		stack7,
+		stack6
 	)
 	___DSP_DUAL_16BIT_ALLOC(
-	     stack9,
-	     stack8
+		stack9,
+		stack8
 	)
 
-	u32	  saverfe;					
+	u32	  saverfe;
 
 	/* Value may be overwriten by stack save algorithm.
 	   Retain the size of the stack data saved here if used */
 	___DSP_DUAL_16BIT_ALLOC(
-             reserved1,	
-  	     stack_size
+		reserved1,
+		stack_size
 	)
 	u32		saverba;	  /* (HFG) */
 	u32		saverdc;
@@ -238,9 +242,10 @@ struct dsp_task_tree_context_block {
 	u32		savershouthl;
 	u32		savershoutxmacmode;
 };
-                
 
-struct dsp_task_tree_control_block {
+
+struct dsp_task_tree_control_block
+{
 	struct dsp_hf_save_area			context;
 	struct dsp_tree_link			links;
 	struct dsp_task_tree_data		data;

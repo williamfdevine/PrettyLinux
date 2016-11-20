@@ -9,7 +9,7 @@
  * Software distributed under the License is distributed on an "AS IS"
  * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
  * the License for the specific language governing rights and
- * limitations under the License. 
+ * limitations under the License.
  *
  * The initial developer of the original code is David A. Hinds
  * <dahinds@users.sourceforge.net>.  Portions created by David A. Hinds
@@ -113,14 +113,18 @@ static void topic97_zoom_video(struct pcmcia_socket *sock, int onoff)
 	u8 reg_zv, reg;
 
 	reg_zv = config_readb(socket, TOPIC97_ZOOM_VIDEO_CONTROL);
-	if (onoff) {
+
+	if (onoff)
+	{
 		reg_zv |= TOPIC97_ZV_CONTROL_ENABLE;
 		config_writeb(socket, TOPIC97_ZOOM_VIDEO_CONTROL, reg_zv);
 
 		reg = config_readb(socket, TOPIC97_AUDIO_VIDEO_SWITCH);
 		reg |= TOPIC97_AVS_AUDIO_CONTROL | TOPIC97_AVS_VIDEO_CONTROL;
 		config_writeb(socket, TOPIC97_AUDIO_VIDEO_SWITCH, reg);
-	} else {
+	}
+	else
+	{
 		reg_zv &= ~TOPIC97_ZV_CONTROL_ENABLE;
 		config_writeb(socket, TOPIC97_ZOOM_VIDEO_CONTROL, reg_zv);
 
@@ -155,8 +159,9 @@ static int topic95_override(struct yenta_socket *socket)
 	   net.  This is not a power-on default according to the datasheet
 	   but some BIOSes seem to set it. */
 	if (pci_read_config_word(socket->dev, TOPIC_PCI_CFG_PPBCN, &ppbcn) == 0
-	    && socket->dev->revision <= 7
-	    && (ppbcn & TOPIC_PCI_CFG_PPBCN_WBEN)) {
+		&& socket->dev->revision <= 7
+		&& (ppbcn & TOPIC_PCI_CFG_PPBCN_WBEN))
+	{
 		ppbcn &= ~TOPIC_PCI_CFG_PPBCN_WBEN;
 		pci_write_config_word(socket->dev, TOPIC_PCI_CFG_PPBCN, ppbcn);
 		dev_info(&socket->dev->dev, "Disabled ToPIC95 Cardbus write buffers.\n");

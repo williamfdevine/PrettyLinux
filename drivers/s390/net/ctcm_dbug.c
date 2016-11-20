@@ -20,7 +20,8 @@
  * Debug Facility Stuff
  */
 
-struct ctcm_dbf_info ctcm_dbf[CTCM_DBF_INFOS] = {
+struct ctcm_dbf_info ctcm_dbf[CTCM_DBF_INFOS] =
+{
 	[CTCM_DBF_SETUP]     = {"ctc_setup", 8, 1, 64, CTC_DBF_INFO, NULL},
 	[CTCM_DBF_ERROR]     = {"ctc_error", 8, 1, 64, CTC_DBF_ERROR, NULL},
 	[CTCM_DBF_TRACE]     = {"ctc_trace", 8, 1, 64, CTC_DBF_ERROR, NULL},
@@ -32,7 +33,9 @@ struct ctcm_dbf_info ctcm_dbf[CTCM_DBF_INFOS] = {
 void ctcm_unregister_dbf_views(void)
 {
 	int x;
-	for (x = 0; x < CTCM_DBF_INFOS; x++) {
+
+	for (x = 0; x < CTCM_DBF_INFOS; x++)
+	{
 		debug_unregister(ctcm_dbf[x].id);
 		ctcm_dbf[x].id = NULL;
 	}
@@ -41,13 +44,17 @@ void ctcm_unregister_dbf_views(void)
 int ctcm_register_dbf_views(void)
 {
 	int x;
-	for (x = 0; x < CTCM_DBF_INFOS; x++) {
+
+	for (x = 0; x < CTCM_DBF_INFOS; x++)
+	{
 		/* register the areas */
 		ctcm_dbf[x].id = debug_register(ctcm_dbf[x].name,
-						ctcm_dbf[x].pages,
-						ctcm_dbf[x].areas,
-						ctcm_dbf[x].len);
-		if (ctcm_dbf[x].id == NULL) {
+										ctcm_dbf[x].pages,
+										ctcm_dbf[x].areas,
+										ctcm_dbf[x].len);
+
+		if (ctcm_dbf[x].id == NULL)
+		{
 			ctcm_unregister_dbf_views();
 			return -ENOMEM;
 		}
@@ -67,7 +74,10 @@ void ctcm_dbf_longtext(enum ctcm_dbf_names dbf_nix, int level, char *fmt, ...)
 	va_list args;
 
 	if (!debug_level_enabled(ctcm_dbf[dbf_nix].id, level))
+	{
 		return;
+	}
+
 	va_start(args, fmt);
 	vsnprintf(dbf_txt_buf, sizeof(dbf_txt_buf), fmt, args);
 	va_end(args);

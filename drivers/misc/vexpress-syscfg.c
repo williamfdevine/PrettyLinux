@@ -38,13 +38,15 @@
 #define SYS_CFGSTAT_COMPLETE	(1 << 0)
 
 
-struct vexpress_syscfg {
+struct vexpress_syscfg
+{
 	struct device *dev;
 	void __iomem *base;
 	struct list_head funcs;
 };
 
-struct vexpress_syscfg_func {
+struct vexpress_syscfg_func
+{
 	struct list_head list;
 	struct vexpress_syscfg *syscfg;
 	struct regmap *regmap;
@@ -54,7 +56,7 @@ struct vexpress_syscfg_func {
 
 
 static int vexpress_syscfg_exec(struct vexpress_syscfg_func *func,
-		int index, bool write, u32 *data)
+								int index, bool write, u32 *data)
 {
 	struct vexpress_syscfg *syscfg = func->syscfg;
 	u32 command, status;
@@ -62,11 +64,16 @@ static int vexpress_syscfg_exec(struct vexpress_syscfg_func *func,
 	long timeout;
 
 	if (WARN_ON(index > func->num_templates))
+	{
 		return -EINVAL;
+	}
 
 	command = readl(syscfg->base + SYS_CFGCTRL);
+
 	if (WARN_ON(command & SYS_CFGCTRL_START))
+	{
 		return -EBUSY;
+	}
 
 	command = func->template[index];
 	command |= SYS_CFGCTRL_START;
@@ -74,7 +81,9 @@ static int vexpress_syscfg_exec(struct vexpress_syscfg_func *func,
 
 	/* Use a canary for reads */
 	if (!write)
+	{
 		*data = 0xdeadbeef;
+	}
 
 	dev_dbg(syscfg->dev, "func %p, command %x, data %x\n",
 			func, command, *data);
@@ -86,27 +95,45 @@ static int vexpress_syscfg_exec(struct vexpress_syscfg_func *func,
 	/* The operation can take ages... Go to sleep, 100us initially */
 	tries = 100;
 	timeout = 100;
-	do {
-		if (!irqs_disabled()) {
+
+	do
+	{
+		if (!irqs_disabled())
+		{
 			set_current_state(TASK_INTERRUPTIBLE);
 			schedule_timeout(usecs_to_jiffies(timeout));
+
 			if (signal_pending(current))
+			{
 				return -EINTR;
-		} else {
+			}
+		}
+		else
+		{
 			udelay(timeout);
 		}
 
 		status = readl(syscfg->base + SYS_CFGSTAT);
+
 		if (status & SYS_CFGSTAT_ERR)
+		{
 			return -EFAULT;
+		}
 
 		if (timeout > 20)
+		{
 			timeout -= 20;
-	} while (--tries && !(status & SYS_CFGSTAT_COMPLETE));
-	if (WARN_ON_ONCE(!tries))
-		return -ETIMEDOUT;
+		}
+	}
+	while (--tries && !(status & SYS_CFGSTAT_COMPLETE));
 
-	if (!write) {
+	if (WARN_ON_ONCE(!tries))
+	{
+		return -ETIMEDOUT;
+	}
+
+	if (!write)
+	{
 		*data = readl(syscfg->base + SYS_CFGDATA);
 		dev_dbg(syscfg->dev, "func %p, read data %x\n", func, *data);
 	}
@@ -115,7 +142,7 @@ static int vexpress_syscfg_exec(struct vexpress_syscfg_func *func,
 }
 
 static int vexpress_syscfg_read(void *context, unsigned int index,
-		unsigned int *val)
+								unsigned int *val)
 {
 	struct vexpress_syscfg_func *func = context;
 
@@ -123,14 +150,15 @@ static int vexpress_syscfg_read(void *context, unsigned int index,
 }
 
 static int vexpress_syscfg_write(void *context, unsigned int index,
-		unsigned int val)
+								 unsigned int val)
 {
 	struct vexpress_syscfg_func *func = context;
 
 	return vexpress_syscfg_exec(func, index, true, &val);
 }
 
-static struct regmap_config vexpress_syscfg_regmap_config = {
+static struct regmap_config vexpress_syscfg_regmap_config =
+{
 	.lock = vexpress_config_lock,
 	.unlock = vexpress_config_unlock,
 	.reg_bits = 32,
@@ -156,14 +184,20 @@ static struct regmap *vexpress_syscfg_regmap_init(struct device *dev,
 	int i;
 
 	err = vexpress_config_get_topo(dev->of_node, &site,
-				&position, &dcc);
+								   &position, &dcc);
+
 	if (err)
+	{
 		return ERR_PTR(err);
+	}
 
 	prop = of_find_property(dev->of_node,
-			"arm,vexpress-sysreg,func", NULL);
+							"arm,vexpress-sysreg,func", NULL);
+
 	if (!prop)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	num = prop->length / sizeof(u32) / 2;
 	val = prop->value;
@@ -173,7 +207,8 @@ static struct regmap *vexpress_syscfg_regmap_init(struct device *dev,
 	 * by its first device only, now it requires both
 	 */
 	if (num == 1 && of_device_is_compatible(dev->of_node,
-			"arm,vexpress-energy")) {
+											"arm,vexpress-energy"))
+	{
 		num = 2;
 		energy_quirk[0] = *val;
 		energy_quirk[2] = *val++;
@@ -183,14 +218,18 @@ static struct regmap *vexpress_syscfg_regmap_init(struct device *dev,
 	}
 
 	func = kzalloc(sizeof(*func) + sizeof(*func->template) * num,
-			GFP_KERNEL);
+				   GFP_KERNEL);
+
 	if (!func)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	func->syscfg = syscfg;
 	func->num_templates = num;
 
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num; i++)
+	{
 		u32 function, device;
 
 		function = be32_to_cpup(val++);
@@ -210,9 +249,10 @@ static struct regmap *vexpress_syscfg_regmap_init(struct device *dev,
 	vexpress_syscfg_regmap_config.max_register = num - 1;
 
 	func->regmap = regmap_init(dev, NULL, func,
-			&vexpress_syscfg_regmap_config);
+							   &vexpress_syscfg_regmap_config);
 
-	if (IS_ERR(func->regmap)) {
+	if (IS_ERR(func->regmap))
+	{
 		void *err = func->regmap;
 
 		kfree(func);
@@ -231,8 +271,10 @@ static void vexpress_syscfg_regmap_exit(struct regmap *regmap, void *context)
 
 	regmap_exit(regmap);
 
-	list_for_each_entry_safe(func, tmp, &syscfg->funcs, list) {
-		if (func->regmap == regmap) {
+	list_for_each_entry_safe(func, tmp, &syscfg->funcs, list)
+	{
+		if (func->regmap == regmap)
+		{
 			list_del(&syscfg->funcs);
 			kfree(func);
 			break;
@@ -240,7 +282,8 @@ static void vexpress_syscfg_regmap_exit(struct regmap *regmap, void *context)
 	}
 }
 
-static struct vexpress_config_bridge_ops vexpress_syscfg_bridge_ops = {
+static struct vexpress_config_bridge_ops vexpress_syscfg_bridge_ops =
+{
 	.regmap_init = vexpress_syscfg_regmap_init,
 	.regmap_exit = vexpress_syscfg_regmap_exit,
 };
@@ -253,35 +296,50 @@ static int vexpress_syscfg_probe(struct platform_device *pdev)
 	struct device *bridge;
 
 	syscfg = devm_kzalloc(&pdev->dev, sizeof(*syscfg), GFP_KERNEL);
+
 	if (!syscfg)
+	{
 		return -ENOMEM;
+	}
+
 	syscfg->dev = &pdev->dev;
 	INIT_LIST_HEAD(&syscfg->funcs);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!devm_request_mem_region(&pdev->dev, res->start,
-			resource_size(res), pdev->name))
+								 resource_size(res), pdev->name))
+	{
 		return -EBUSY;
+	}
 
 	syscfg->base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
+
 	if (!syscfg->base)
+	{
 		return -EFAULT;
+	}
 
 	/* Must use dev.parent (MFD), as that's where DT phandle points at... */
 	bridge = vexpress_config_bridge_register(pdev->dev.parent,
 			&vexpress_syscfg_bridge_ops, syscfg);
+
 	if (IS_ERR(bridge))
+	{
 		return PTR_ERR(bridge);
+	}
 
 	return 0;
 }
 
-static const struct platform_device_id vexpress_syscfg_id_table[] = {
+static const struct platform_device_id vexpress_syscfg_id_table[] =
+{
 	{ "vexpress-syscfg", },
 	{},
 };
 
-static struct platform_driver vexpress_syscfg_driver = {
+static struct platform_driver vexpress_syscfg_driver =
+{
 	.driver.name = "vexpress-syscfg",
 	.id_table = vexpress_syscfg_id_table,
 	.probe = vexpress_syscfg_probe,

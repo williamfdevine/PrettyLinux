@@ -21,7 +21,8 @@
 
 struct snd_card;
 
-struct snd_cx18_card {
+struct snd_cx18_card
+{
 	struct v4l2_device *v4l2_dev;
 	struct snd_card *sc;
 	unsigned int capture_transfer_done;
@@ -55,7 +56,7 @@ static inline void snd_cx18_unlock(struct snd_cx18_card *cxsc)
 	do { \
 		if ((x) & cx18_alsa_debug) \
 			printk(KERN_INFO "%s-alsa: " type ": " fmt, \
-				v4l2_dev->name , ## args); \
+				   v4l2_dev->name , ## args); \
 	} while (0)
 
 #define CX18_ALSA_DEBUG_WARN(fmt, args...) \

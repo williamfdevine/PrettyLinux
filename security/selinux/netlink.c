@@ -28,42 +28,47 @@ static int selnl_msglen(int msgtype)
 {
 	int ret = 0;
 
-	switch (msgtype) {
-	case SELNL_MSG_SETENFORCE:
-		ret = sizeof(struct selnl_msg_setenforce);
-		break;
+	switch (msgtype)
+	{
+		case SELNL_MSG_SETENFORCE:
+			ret = sizeof(struct selnl_msg_setenforce);
+			break;
 
-	case SELNL_MSG_POLICYLOAD:
-		ret = sizeof(struct selnl_msg_policyload);
-		break;
+		case SELNL_MSG_POLICYLOAD:
+			ret = sizeof(struct selnl_msg_policyload);
+			break;
 
-	default:
-		BUG();
+		default:
+			BUG();
 	}
+
 	return ret;
 }
 
 static void selnl_add_payload(struct nlmsghdr *nlh, int len, int msgtype, void *data)
 {
-	switch (msgtype) {
-	case SELNL_MSG_SETENFORCE: {
-		struct selnl_msg_setenforce *msg = nlmsg_data(nlh);
+	switch (msgtype)
+	{
+		case SELNL_MSG_SETENFORCE:
+			{
+				struct selnl_msg_setenforce *msg = nlmsg_data(nlh);
 
-		memset(msg, 0, len);
-		msg->val = *((int *)data);
-		break;
-	}
+				memset(msg, 0, len);
+				msg->val = *((int *)data);
+				break;
+			}
 
-	case SELNL_MSG_POLICYLOAD: {
-		struct selnl_msg_policyload *msg = nlmsg_data(nlh);
+		case SELNL_MSG_POLICYLOAD:
+			{
+				struct selnl_msg_policyload *msg = nlmsg_data(nlh);
 
-		memset(msg, 0, len);
-		msg->seqno = *((u32 *)data);
-		break;
-	}
+				memset(msg, 0, len);
+				msg->seqno = *((u32 *)data);
+				break;
+			}
 
-	default:
-		BUG();
+		default:
+			BUG();
 	}
 }
 
@@ -77,13 +82,20 @@ static void selnl_notify(int msgtype, void *data)
 	len = selnl_msglen(msgtype);
 
 	skb = nlmsg_new(len, GFP_USER);
+
 	if (!skb)
+	{
 		goto oom;
+	}
 
 	tmp = skb->tail;
 	nlh = nlmsg_put(skb, 0, 0, msgtype, len, 0);
+
 	if (!nlh)
+	{
 		goto out_kfree_skb;
+	}
+
 	selnl_add_payload(nlh, len, msgtype, data);
 	nlh->nlmsg_len = skb->tail - tmp;
 	NETLINK_CB(skb).dst_group = SELNLGRP_AVC;
@@ -110,14 +122,19 @@ void selnl_notify_policyload(u32 seqno)
 
 static int __init selnl_init(void)
 {
-	struct netlink_kernel_cfg cfg = {
+	struct netlink_kernel_cfg cfg =
+	{
 		.groups	= SELNLGRP_MAX,
 		.flags	= NL_CFG_F_NONROOT_RECV,
 	};
 
 	selnl = netlink_kernel_create(&init_net, NETLINK_SELINUX, &cfg);
+
 	if (selnl == NULL)
+	{
 		panic("SELinux:  Cannot create netlink socket.");
+	}
+
 	return 0;
 }
 

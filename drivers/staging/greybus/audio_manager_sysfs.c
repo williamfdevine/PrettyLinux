@@ -19,18 +19,23 @@ static ssize_t manager_sysfs_add_store(
 	struct gb_audio_manager_module_descriptor desc = { {0} };
 
 	int num = sscanf(buf,
-			"name=%" GB_AUDIO_MANAGER_MODULE_NAME_LEN_SSCANF "s "
-			"slot=%d vid=%d pid=%d cport=%d i/p devices=0x%X"
-			"o/p devices=0x%X",
-			desc.name, &desc.slot, &desc.vid, &desc.pid,
-			&desc.cport, &desc.ip_devices, &desc.op_devices);
+					 "name=%" GB_AUDIO_MANAGER_MODULE_NAME_LEN_SSCANF "s "
+					 "slot=%d vid=%d pid=%d cport=%d i/p devices=0x%X"
+					 "o/p devices=0x%X",
+					 desc.name, &desc.slot, &desc.vid, &desc.pid,
+					 &desc.cport, &desc.ip_devices, &desc.op_devices);
 
 	if (num != 7)
+	{
 		return -EINVAL;
+	}
 
 	num = gb_audio_manager_add(&desc);
+
 	if (num < 0)
+	{
 		return -EINVAL;
+	}
 
 	return count;
 }
@@ -47,11 +52,16 @@ static ssize_t manager_sysfs_remove_store(
 	int num = sscanf(buf, "%d", &id);
 
 	if (num != 1)
+	{
 		return -EINVAL;
+	}
 
 	num = gb_audio_manager_remove(id);
+
 	if (num)
+	{
 		return num;
+	}
 
 	return count;
 }
@@ -67,14 +77,23 @@ static ssize_t manager_sysfs_dump_store(
 
 	int num = sscanf(buf, "%d", &id);
 
-	if (num == 1) {
+	if (num == 1)
+	{
 		num = gb_audio_manager_dump_module(id);
+
 		if (num)
+		{
 			return num;
-	} else if (!strncmp("all", buf, 3))
+		}
+	}
+	else if (!strncmp("all", buf, 3))
+	{
 		gb_audio_manager_dump_all();
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	return count;
 }
@@ -83,14 +102,16 @@ static struct kobj_attribute manager_dump_attribute =
 	__ATTR(dump, 0664, NULL, manager_sysfs_dump_store);
 
 static void manager_sysfs_init_attribute(
-		struct kobject *kobj, struct kobj_attribute *kattr)
+	struct kobject *kobj, struct kobj_attribute *kattr)
 {
 	int err;
 
 	err = sysfs_create_file(kobj, &kattr->attr);
-	if (err) {
+
+	if (err)
+	{
 		pr_warn("creating the sysfs entry for %s failed: %d\n",
-			kattr->attr.name, err);
+				kattr->attr.name, err);
 	}
 }
 

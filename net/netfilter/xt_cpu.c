@@ -30,7 +30,10 @@ static int cpu_mt_check(const struct xt_mtchk_param *par)
 	const struct xt_cpu_info *info = par->matchinfo;
 
 	if (info->invert & ~1)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
@@ -41,7 +44,8 @@ static bool cpu_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	return (info->cpu == smp_processor_id()) ^ info->invert;
 }
 
-static struct xt_match cpu_mt_reg __read_mostly = {
+static struct xt_match cpu_mt_reg __read_mostly =
+{
 	.name       = "cpu",
 	.revision   = 0,
 	.family     = NFPROTO_UNSPEC,

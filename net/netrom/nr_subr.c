@@ -54,8 +54,10 @@ void nr_frames_acked(struct sock *sk, unsigned short nr)
 	/*
 	 * Remove all the ack-ed frames from the ack queue.
 	 */
-	if (nrom->va != nr) {
-		while (skb_peek(&nrom->ack_queue) != NULL && nrom->va != nr) {
+	if (nrom->va != nr)
+	{
+		while (skb_peek(&nrom->ack_queue) != NULL && nrom->va != nr)
+		{
 			skb = skb_dequeue(&nrom->ack_queue);
 			kfree_skb(skb);
 			nrom->va = (nrom->va + 1) % NR_MODULUS;
@@ -72,11 +74,17 @@ void nr_requeue_frames(struct sock *sk)
 {
 	struct sk_buff *skb, *skb_prev = NULL;
 
-	while ((skb = skb_dequeue(&nr_sk(sk)->ack_queue)) != NULL) {
+	while ((skb = skb_dequeue(&nr_sk(sk)->ack_queue)) != NULL)
+	{
 		if (skb_prev == NULL)
+		{
 			skb_queue_head(&sk->sk_write_queue, skb);
+		}
 		else
+		{
 			skb_append(skb_prev, skb, &sk->sk_write_queue);
+		}
+
 		skb_prev = skb;
 	}
 }
@@ -90,8 +98,10 @@ int nr_validate_nr(struct sock *sk, unsigned short nr)
 	struct nr_sock *nrom = nr_sk(sk);
 	unsigned short vc = nrom->va;
 
-	while (vc != nrom->vs) {
-		if (nr == vc) return 1;
+	while (vc != nrom->vs)
+	{
+		if (nr == vc) { return 1; }
+
 		vc = (vc + 1) % NR_MODULUS;
 	}
 
@@ -107,8 +117,10 @@ int nr_in_rx_window(struct sock *sk, unsigned short ns)
 	unsigned short vc = nr->vr;
 	unsigned short vt = (nr->vl + nr->window) % NR_MODULUS;
 
-	while (vc != vt) {
-		if (ns == vc) return 1;
+	while (vc != vt)
+	{
+		if (ns == vc) { return 1; }
+
 		vc = (vc + 1) % NR_MODULUS;
 	}
 
@@ -128,24 +140,30 @@ void nr_write_internal(struct sock *sk, int frametype)
 
 	len = NR_NETWORK_LEN + NR_TRANSPORT_LEN;
 
-	switch (frametype & 0x0F) {
-	case NR_CONNREQ:
-		len += 17;
-		break;
-	case NR_CONNACK:
-		len += (nr->bpqext) ? 2 : 1;
-		break;
-	case NR_DISCREQ:
-	case NR_DISCACK:
-	case NR_INFOACK:
-		break;
-	default:
-		printk(KERN_ERR "NET/ROM: nr_write_internal - invalid frame type %d\n", frametype);
-		return;
+	switch (frametype & 0x0F)
+	{
+		case NR_CONNREQ:
+			len += 17;
+			break;
+
+		case NR_CONNACK:
+			len += (nr->bpqext) ? 2 : 1;
+			break;
+
+		case NR_DISCREQ:
+		case NR_DISCACK:
+		case NR_INFOACK:
+			break;
+
+		default:
+			printk(KERN_ERR "NET/ROM: nr_write_internal - invalid frame type %d\n", frametype);
+			return;
 	}
 
 	if ((skb = alloc_skb(len, GFP_ATOMIC)) == NULL)
+	{
 		return;
+	}
 
 	/*
 	 *	Space for AX.25 and NET/ROM network header
@@ -154,55 +172,58 @@ void nr_write_internal(struct sock *sk, int frametype)
 
 	dptr = skb_put(skb, skb_tailroom(skb));
 
-	switch (frametype & 0x0F) {
-	case NR_CONNREQ:
-		timeout  = nr->t1 / HZ;
-		*dptr++  = nr->my_index;
-		*dptr++  = nr->my_id;
-		*dptr++  = 0;
-		*dptr++  = 0;
-		*dptr++  = frametype;
-		*dptr++  = nr->window;
-		memcpy(dptr, &nr->user_addr, AX25_ADDR_LEN);
-		dptr[6] &= ~AX25_CBIT;
-		dptr[6] &= ~AX25_EBIT;
-		dptr[6] |= AX25_SSSID_SPARE;
-		dptr    += AX25_ADDR_LEN;
-		memcpy(dptr, &nr->source_addr, AX25_ADDR_LEN);
-		dptr[6] &= ~AX25_CBIT;
-		dptr[6] &= ~AX25_EBIT;
-		dptr[6] |= AX25_SSSID_SPARE;
-		dptr    += AX25_ADDR_LEN;
-		*dptr++  = timeout % 256;
-		*dptr++  = timeout / 256;
-		break;
+	switch (frametype & 0x0F)
+	{
+		case NR_CONNREQ:
+			timeout  = nr->t1 / HZ;
+			*dptr++  = nr->my_index;
+			*dptr++  = nr->my_id;
+			*dptr++  = 0;
+			*dptr++  = 0;
+			*dptr++  = frametype;
+			*dptr++  = nr->window;
+			memcpy(dptr, &nr->user_addr, AX25_ADDR_LEN);
+			dptr[6] &= ~AX25_CBIT;
+			dptr[6] &= ~AX25_EBIT;
+			dptr[6] |= AX25_SSSID_SPARE;
+			dptr    += AX25_ADDR_LEN;
+			memcpy(dptr, &nr->source_addr, AX25_ADDR_LEN);
+			dptr[6] &= ~AX25_CBIT;
+			dptr[6] &= ~AX25_EBIT;
+			dptr[6] |= AX25_SSSID_SPARE;
+			dptr    += AX25_ADDR_LEN;
+			*dptr++  = timeout % 256;
+			*dptr++  = timeout / 256;
+			break;
 
-	case NR_CONNACK:
-		*dptr++ = nr->your_index;
-		*dptr++ = nr->your_id;
-		*dptr++ = nr->my_index;
-		*dptr++ = nr->my_id;
-		*dptr++ = frametype;
-		*dptr++ = nr->window;
-		if (nr->bpqext) *dptr++ = sysctl_netrom_network_ttl_initialiser;
-		break;
+		case NR_CONNACK:
+			*dptr++ = nr->your_index;
+			*dptr++ = nr->your_id;
+			*dptr++ = nr->my_index;
+			*dptr++ = nr->my_id;
+			*dptr++ = frametype;
+			*dptr++ = nr->window;
 
-	case NR_DISCREQ:
-	case NR_DISCACK:
-		*dptr++ = nr->your_index;
-		*dptr++ = nr->your_id;
-		*dptr++ = 0;
-		*dptr++ = 0;
-		*dptr++ = frametype;
-		break;
+			if (nr->bpqext) { *dptr++ = sysctl_netrom_network_ttl_initialiser; }
 
-	case NR_INFOACK:
-		*dptr++ = nr->your_index;
-		*dptr++ = nr->your_id;
-		*dptr++ = 0;
-		*dptr++ = nr->vr;
-		*dptr++ = frametype;
-		break;
+			break;
+
+		case NR_DISCREQ:
+		case NR_DISCACK:
+			*dptr++ = nr->your_index;
+			*dptr++ = nr->your_id;
+			*dptr++ = 0;
+			*dptr++ = 0;
+			*dptr++ = frametype;
+			break;
+
+		case NR_INFOACK:
+			*dptr++ = nr->your_index;
+			*dptr++ = nr->your_id;
+			*dptr++ = 0;
+			*dptr++ = nr->vr;
+			*dptr++ = frametype;
+			break;
 	}
 
 	nr_transmit_buffer(sk, skb);
@@ -220,7 +241,9 @@ void __nr_transmit_reply(struct sk_buff *skb, int mine, unsigned char cmdflags)
 	len = NR_NETWORK_LEN + NR_TRANSPORT_LEN + 1;
 
 	if ((skbn = alloc_skb(len, GFP_ATOMIC)) == NULL)
+	{
 		return;
+	}
 
 	skb_reserve(skbn, 0);
 
@@ -240,12 +263,15 @@ void __nr_transmit_reply(struct sk_buff *skb, int mine, unsigned char cmdflags)
 
 	*dptr++ = sysctl_netrom_network_ttl_initialiser;
 
-	if (mine) {
+	if (mine)
+	{
 		*dptr++ = 0;
 		*dptr++ = 0;
 		*dptr++ = skb->data[15];
 		*dptr++ = skb->data[16];
-	} else {
+	}
+	else
+	{
 		*dptr++ = skb->data[15];
 		*dptr++ = skb->data[16];
 		*dptr++ = 0;
@@ -256,7 +282,9 @@ void __nr_transmit_reply(struct sk_buff *skb, int mine, unsigned char cmdflags)
 	*dptr++ = 0;
 
 	if (!nr_route_frame(skbn, NULL))
+	{
 		kfree_skb(skbn);
+	}
 }
 
 void nr_disconnect(struct sock *sk, int reason)
@@ -274,7 +302,8 @@ void nr_disconnect(struct sock *sk, int reason)
 	sk->sk_err       = reason;
 	sk->sk_shutdown |= SEND_SHUTDOWN;
 
-	if (!sock_flag(sk, SOCK_DEAD)) {
+	if (!sock_flag(sk, SOCK_DEAD))
+	{
 		sk->sk_state_change(sk);
 		sock_set_flag(sk, SOCK_DEAD);
 	}

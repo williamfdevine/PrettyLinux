@@ -23,7 +23,8 @@
  * Register Block
  * M00473_FREEWHEEL_MEMMAP_PACKAGE_VHD_REGMAP
  *******************************************************************/
-struct m00473_freewheel_regmap {
+struct m00473_freewheel_regmap
+{
 	uint32_t ctrl;          /* Reg 0x0000, Default=0x0 */
 	uint32_t status;        /* Reg 0x0004 */
 	uint32_t active_length; /* Reg 0x0008, Default=0x1fa400 */

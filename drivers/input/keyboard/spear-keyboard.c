@@ -52,7 +52,8 @@
 
 #define ROW_SHIFT		4
 
-struct spear_kbd {
+struct spear_kbd
+{
 	struct input_dev *input;
 	void __iomem *io_base;
 	struct clk *clk;
@@ -74,17 +75,21 @@ static irqreturn_t spear_kbd_interrupt(int irq, void *dev_id)
 	u32 sts, val;
 
 	sts = readl_relaxed(kbd->io_base + STATUS_REG);
-	if (!(sts & STATUS_DATA_AVAIL))
-		return IRQ_NONE;
 
-	if (kbd->last_key != KEY_RESERVED) {
+	if (!(sts & STATUS_DATA_AVAIL))
+	{
+		return IRQ_NONE;
+	}
+
+	if (kbd->last_key != KEY_RESERVED)
+	{
 		input_report_key(input, kbd->last_key, 0);
 		kbd->last_key = KEY_RESERVED;
 	}
 
 	/* following reads active (row, col) pair */
 	val = readl_relaxed(kbd->io_base + DATA_REG) &
-		(DATA_ROW_MASK | DATA_COLUMN_MASK);
+		  (DATA_ROW_MASK | DATA_COLUMN_MASK);
 	key = kbd->keycodes[val];
 
 	input_event(input, EV_MSC, MSC_SCAN, val);
@@ -108,8 +113,11 @@ static int spear_kbd_open(struct input_dev *dev)
 	kbd->last_key = KEY_RESERVED;
 
 	error = clk_enable(kbd->clk);
+
 	if (error)
+	{
 		return error;
+	}
 
 	/* keyboard rate to be programmed is input clock (in MHz) - 1 */
 	val = clk_get_rate(kbd->clk) / 1000000 - 1;
@@ -117,7 +125,7 @@ static int spear_kbd_open(struct input_dev *dev)
 
 	/* program keyboard */
 	val = MODE_CTL_SCAN_RATE_80 | MODE_CTL_KEYBOARD | val |
-		(kbd->mode << MODE_CTL_KEYNUM_SHIFT);
+		  (kbd->mode << MODE_CTL_KEYNUM_SHIFT);
 	writel_relaxed(val, kbd->io_base + MODE_CTL_REG);
 	writel_relaxed(1, kbd->io_base + STATUS_REG);
 
@@ -146,25 +154,32 @@ static void spear_kbd_close(struct input_dev *dev)
 
 #ifdef CONFIG_OF
 static int spear_kbd_parse_dt(struct platform_device *pdev,
-                                        struct spear_kbd *kbd)
+							  struct spear_kbd *kbd)
 {
 	struct device_node *np = pdev->dev.of_node;
 	int error;
 	u32 val, suspended_rate;
 
-	if (!np) {
+	if (!np)
+	{
 		dev_err(&pdev->dev, "Missing DT data\n");
 		return -EINVAL;
 	}
 
 	if (of_property_read_bool(np, "autorepeat"))
+	{
 		kbd->rep = true;
+	}
 
 	if (of_property_read_u32(np, "suspended_rate", &suspended_rate))
+	{
 		kbd->suspended_rate = suspended_rate;
+	}
 
 	error = of_property_read_u32(np, "st,mode", &val);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "DT: Invalid or missing mode\n");
 		return error;
 	}
@@ -174,7 +189,7 @@ static int spear_kbd_parse_dt(struct platform_device *pdev,
 }
 #else
 static inline int spear_kbd_parse_dt(struct platform_device *pdev,
-				     struct spear_kbd *kbd)
+									 struct spear_kbd *kbd)
 {
 	return -ENOSYS;
 }
@@ -191,19 +206,25 @@ static int spear_kbd_probe(struct platform_device *pdev)
 	int error;
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "not able to get irq for the device\n");
 		return irq;
 	}
 
 	kbd = devm_kzalloc(&pdev->dev, sizeof(*kbd), GFP_KERNEL);
-	if (!kbd) {
+
+	if (!kbd)
+	{
 		dev_err(&pdev->dev, "not enough memory for driver data\n");
 		return -ENOMEM;
 	}
 
 	input_dev = devm_input_allocate_device(&pdev->dev);
-	if (!input_dev) {
+
+	if (!input_dev)
+	{
 		dev_err(&pdev->dev, "unable to allocate input device\n");
 		return -ENOMEM;
 	}
@@ -211,11 +232,17 @@ static int spear_kbd_probe(struct platform_device *pdev)
 	kbd->input = input_dev;
 	kbd->irq = irq;
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		error = spear_kbd_parse_dt(pdev, kbd);
+
 		if (error)
+		{
 			return error;
-	} else {
+		}
+	}
+	else
+	{
 		kbd->mode = pdata->mode;
 		kbd->rep = pdata->rep;
 		kbd->suspended_rate = pdata->suspended_rate;
@@ -223,12 +250,18 @@ static int spear_kbd_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	kbd->io_base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(kbd->io_base))
+	{
 		return PTR_ERR(kbd->io_base);
+	}
 
 	kbd->clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(kbd->clk))
+	{
 		return PTR_ERR(kbd->clk);
+	}
 
 	input_dev->name = "Spear Keyboard";
 	input_dev->phys = "keyboard/input0";
@@ -240,31 +273,43 @@ static int spear_kbd_probe(struct platform_device *pdev)
 	input_dev->close = spear_kbd_close;
 
 	error = matrix_keypad_build_keymap(keymap, NULL, NUM_ROWS, NUM_COLS,
-					   kbd->keycodes, input_dev);
-	if (error) {
+									   kbd->keycodes, input_dev);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "Failed to build keymap\n");
 		return error;
 	}
 
 	if (kbd->rep)
+	{
 		__set_bit(EV_REP, input_dev->evbit);
+	}
+
 	input_set_capability(input_dev, EV_MSC, MSC_SCAN);
 
 	input_set_drvdata(input_dev, kbd);
 
 	error = devm_request_irq(&pdev->dev, irq, spear_kbd_interrupt, 0,
-			"keyboard", kbd);
-	if (error) {
+							 "keyboard", kbd);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "request_irq failed\n");
 		return error;
 	}
 
 	error = clk_prepare(kbd->clk);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = input_register_device(input_dev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "Unable to register keyboard device\n");
 		clk_unprepare(kbd->clk);
 		return error;
@@ -302,36 +347,48 @@ static int __maybe_unused spear_kbd_suspend(struct device *dev)
 
 	mode_ctl_reg = readl_relaxed(kbd->io_base + MODE_CTL_REG);
 
-	if (device_may_wakeup(&pdev->dev)) {
+	if (device_may_wakeup(&pdev->dev))
+	{
 		if (!enable_irq_wake(kbd->irq))
+		{
 			kbd->irq_wake_enabled = true;
+		}
 
 		/*
 		 * reprogram the keyboard operating frequency as on some
 		 * platform it may change during system suspended
 		 */
 		if (kbd->suspended_rate)
+		{
 			rate = kbd->suspended_rate / 1000000 - 1;
+		}
 		else
+		{
 			rate = clk_get_rate(kbd->clk) / 1000000 - 1;
+		}
 
 		val = mode_ctl_reg &
-			~(MODE_CTL_PCLK_FREQ_MSK << MODE_CTL_PCLK_FREQ_SHIFT);
+			  ~(MODE_CTL_PCLK_FREQ_MSK << MODE_CTL_PCLK_FREQ_SHIFT);
 		val |= (rate & MODE_CTL_PCLK_FREQ_MSK)
-			<< MODE_CTL_PCLK_FREQ_SHIFT;
+			   << MODE_CTL_PCLK_FREQ_SHIFT;
 		writel_relaxed(val, kbd->io_base + MODE_CTL_REG);
 
-	} else {
-		if (input_dev->users) {
+	}
+	else
+	{
+		if (input_dev->users)
+		{
 			writel_relaxed(mode_ctl_reg & ~MODE_CTL_START_SCAN,
-					kbd->io_base + MODE_CTL_REG);
+						   kbd->io_base + MODE_CTL_REG);
 			clk_disable(kbd->clk);
 		}
 	}
 
 	/* store current configuration */
 	if (input_dev->users)
+	{
 		kbd->mode_ctl_reg = mode_ctl_reg;
+	}
 
 	/* restore previous clk state */
 	clk_disable(kbd->clk);
@@ -349,19 +406,27 @@ static int __maybe_unused spear_kbd_resume(struct device *dev)
 
 	mutex_lock(&input_dev->mutex);
 
-	if (device_may_wakeup(&pdev->dev)) {
-		if (kbd->irq_wake_enabled) {
+	if (device_may_wakeup(&pdev->dev))
+	{
+		if (kbd->irq_wake_enabled)
+		{
 			kbd->irq_wake_enabled = false;
 			disable_irq_wake(kbd->irq);
 		}
-	} else {
+	}
+	else
+	{
 		if (input_dev->users)
+		{
 			clk_enable(kbd->clk);
+		}
 	}
 
 	/* restore current configuration */
 	if (input_dev->users)
+	{
 		writel_relaxed(kbd->mode_ctl_reg, kbd->io_base + MODE_CTL_REG);
+	}
 
 	mutex_unlock(&input_dev->mutex);
 
@@ -371,14 +436,16 @@ static int __maybe_unused spear_kbd_resume(struct device *dev)
 static SIMPLE_DEV_PM_OPS(spear_kbd_pm_ops, spear_kbd_suspend, spear_kbd_resume);
 
 #ifdef CONFIG_OF
-static const struct of_device_id spear_kbd_id_table[] = {
+static const struct of_device_id spear_kbd_id_table[] =
+{
 	{ .compatible = "st,spear300-kbd" },
 	{}
 };
 MODULE_DEVICE_TABLE(of, spear_kbd_id_table);
 #endif
 
-static struct platform_driver spear_kbd_driver = {
+static struct platform_driver spear_kbd_driver =
+{
 	.probe		= spear_kbd_probe,
 	.remove		= spear_kbd_remove,
 	.driver		= {

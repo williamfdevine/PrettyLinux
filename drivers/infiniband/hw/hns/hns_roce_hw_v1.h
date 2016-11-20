@@ -141,7 +141,8 @@
 #define QKEY_VAL					0x80010000
 #define SDB_INV_CNT_OFFSET				8
 
-struct hns_roce_cq_context {
+struct hns_roce_cq_context
+{
 	u32 cqc_byte_4;
 	u32 cq_bt_l;
 	u32 cqc_byte_12;
@@ -198,9 +199,11 @@ struct hns_roce_cq_context {
 #define CQ_CONTEXT_CQC_BYTE_32_CQ_CONS_IDX_M   \
 	(((1UL << 16) - 1) << CQ_CONTEXT_CQC_BYTE_32_CQ_CONS_IDX_S)
 
-struct hns_roce_cqe {
+struct hns_roce_cqe
+{
 	u32 cqe_byte_4;
-	union {
+	union
+	{
 		u32 r_key;
 		u32 immediate_data;
 	};
@@ -249,7 +252,8 @@ struct hns_roce_cqe {
 #define CQ_DB_REQ_NOT_SOL	0
 #define CQ_DB_REQ_NOT		(1 << 16)
 
-struct hns_roce_v1_mpt_entry {
+struct hns_roce_v1_mpt_entry
+{
 	u32  mpt_byte_4;
 	u32  pbl_addr_l;
 	u32  mpt_byte_12;
@@ -349,26 +353,30 @@ struct hns_roce_v1_mpt_entry {
 #define MPT_BYTE_64_L_KEY_IDX_H_M   \
 	(((1UL << 8) - 1) << MPT_BYTE_64_L_KEY_IDX_H_S)
 
-struct hns_roce_wqe_ctrl_seg {
+struct hns_roce_wqe_ctrl_seg
+{
 	__be32 sgl_pa_h;
 	__be32 flag;
 	__be32 imm_data;
 	__be32 msg_length;
 };
 
-struct hns_roce_wqe_data_seg {
+struct hns_roce_wqe_data_seg
+{
 	__be64    addr;
 	__be32    lkey;
 	__be32    len;
 };
 
-struct hns_roce_wqe_raddr_seg {
+struct hns_roce_wqe_raddr_seg
+{
 	__be32 rkey;
 	__be32 len;/* reserved */
 	__be64 raddr;
 };
 
-struct hns_roce_rq_wqe_ctrl {
+struct hns_roce_rq_wqe_ctrl
+{
 
 	u32 rwqe_byte_4;
 	u32 rocee_sgl_ba_l;
@@ -384,15 +392,18 @@ struct hns_roce_rq_wqe_ctrl {
 
 #define GID_LEN					16
 
-struct hns_roce_ud_send_wqe {
+struct hns_roce_ud_send_wqe
+{
 	u32 dmac_h;
 	u32 u32_8;
 	u32 immediate_data;
 
 	u32 u32_16;
-	union {
+	union
+	{
 		unsigned char dgid[GID_LEN];
-		struct {
+		struct
+		{
 			u32 u32_20;
 			u32 u32_24;
 			u32 u32_28;
@@ -474,7 +485,8 @@ struct hns_roce_ud_send_wqe {
 #define UD_SEND_WQE_U32_40_TRAFFIC_CLASS_M   \
 	(((1UL << 8) - 1) << UD_SEND_WQE_U32_40_TRAFFIC_CLASS_S)
 
-struct hns_roce_sqp_context {
+struct hns_roce_sqp_context
+{
 	u32 qp1c_bytes_4;
 	u32 sq_rq_bt_l;
 	u32 qp1c_bytes_12;
@@ -561,7 +573,8 @@ struct hns_roce_sqp_context {
 #define HNS_ROCE_WQE_OPCODE_UD_SEND	(7<<16)
 #define HNS_ROCE_WQE_OPCODE_MASK	(15<<16)
 
-struct hns_roce_qp_context {
+struct hns_roce_qp_context
+{
 	u32 qpc_bytes_4;
 	u32 qpc_bytes_8;
 	u32 qpc_bytes_12;
@@ -581,11 +594,13 @@ struct hns_roce_qp_context {
 	u32 rx_rnr_time;
 	u32 qpc_bytes_84;
 	u32 qpc_bytes_88;
-	union {
+	union
+	{
 		u32 rx_sge_len;
 		u32 dma_length;
 	};
-	union {
+	union
+	{
 		u32 rx_sge_num;
 		u32 rx_send_pktn;
 		u32 r_key;
@@ -603,7 +618,8 @@ struct hns_roce_qp_context {
 	u32 qpc_bytes_140;
 	u32 qpc_bytes_144;
 	u32 qpc_bytes_148;
-	union {
+	union
+	{
 		u32 rnr_retry;
 		u32 ack_time;
 	};
@@ -611,7 +627,8 @@ struct hns_roce_qp_context {
 	u32 pkt_use_len;
 	u32 qpc_bytes_164;
 	u32 qpc_bytes_168;
-	union {
+	union
+	{
 		u32 sge_use_len;
 		u32 pa_use_len;
 	};
@@ -757,7 +774,7 @@ struct hns_roce_qp_context {
 #define QP_CONTEXT_QPC_BYTES_88_RQ_REQ_LAST_OPERATION_TYPE_S 26
 #define QP_CONTEXT_QPC_BYTES_88_RQ_REQ_LAST_OPERATION_TYPE_M   \
 	(((1UL << 2) - 1) << \
-	QP_CONTEXT_QPC_BYTES_88_RQ_REQ_LAST_OPERATION_TYPE_S)
+	 QP_CONTEXT_QPC_BYTES_88_RQ_REQ_LAST_OPERATION_TYPE_S)
 
 #define QP_CONTEXT_QPC_BYTES_88_RQ_REQ_RDMA_WR_FLAG_S 29
 #define QP_CONTEXT_QPC_BYTES_88_RQ_REQ_RDMA_WR_FLAG_M   \
@@ -926,7 +943,8 @@ struct hns_roce_qp_context {
 #define QP_CONTEXT_QPC_BYTES_188_TX_RETRY_CUR_INDEX_M   \
 	(((1UL << 15) - 1) << QP_CONTEXT_QPC_BYTES_188_TX_RETRY_CUR_INDEX_S)
 
-struct hns_roce_rq_db {
+struct hns_roce_rq_db
+{
 	u32    u32_4;
 	u32    u32_8;
 };
@@ -943,7 +961,8 @@ struct hns_roce_rq_db {
 
 #define RQ_DOORBELL_U32_8_HW_SYNC_S 31
 
-struct hns_roce_sq_db {
+struct hns_roce_sq_db
+{
 	u32    u32_4;
 	u32    u32_8;
 };
@@ -960,26 +979,30 @@ struct hns_roce_sq_db {
 
 #define SQ_DOORBELL_HW_SYNC_S 31
 
-struct hns_roce_ext_db {
+struct hns_roce_ext_db
+{
 	int esdb_dep;
 	int eodb_dep;
 	struct hns_roce_buf_list *sdb_buf_list;
 	struct hns_roce_buf_list *odb_buf_list;
 };
 
-struct hns_roce_db_table {
+struct hns_roce_db_table
+{
 	int  sdb_ext_mod;
 	int  odb_ext_mod;
 	struct hns_roce_ext_db *ext_db;
 };
 
-struct hns_roce_bt_table {
+struct hns_roce_bt_table
+{
 	struct hns_roce_buf_list qpc_buf;
 	struct hns_roce_buf_list mtpt_buf;
 	struct hns_roce_buf_list cqc_buf;
 };
 
-struct hns_roce_v1_priv {
+struct hns_roce_v1_priv
+{
 	struct hns_roce_db_table  db_table;
 	struct hns_roce_raq_table raq_table;
 	struct hns_roce_bt_table  bt_table;

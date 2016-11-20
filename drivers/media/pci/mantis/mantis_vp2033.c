@@ -37,12 +37,14 @@
 #define MANTIS_MODEL_NAME	"VP-2033"
 #define MANTIS_DEV_TYPE		"DVB-C"
 
-static struct tda1002x_config vp2033_tda1002x_cu1216_config = {
+static struct tda1002x_config vp2033_tda1002x_cu1216_config =
+{
 	.demod_address = 0x18 >> 1,
 	.invert = 1,
 };
 
-static struct tda10023_config vp2033_tda10023_cu1216_config = {
+static struct tda10023_config vp2033_tda10023_cu1216_config =
+{
 	.demod_address = 0x18 >> 1,
 	.invert = 1,
 };
@@ -53,14 +55,17 @@ static u8 read_pwm(struct mantis_pci *mantis)
 
 	u8 b = 0xff;
 	u8 pwm;
-	struct i2c_msg msg[] = {
+	struct i2c_msg msg[] =
+	{
 		{.addr = 0x50, .flags = 0, .buf = &b, .len = 1},
 		{.addr = 0x50, .flags = I2C_M_RD, .buf = &pwm, .len = 1}
 	};
 
 	if ((i2c_transfer(adapter, msg, 2) != 2)
-	    || (pwm == 0xff))
+		|| (pwm == 0xff))
+	{
 		pwm = 0x48;
+	}
 
 	return pwm;
 }
@@ -84,25 +89,35 @@ static int tda1002x_cu1216_tuner_set(struct dvb_frontend *fe)
 	buf[1] = div & 0xff;
 	buf[2] = 0xce;
 	buf[3] = (p->frequency < 150000000 ? 0x01 :
-		  p->frequency < 445000000 ? 0x02 : 0x04);
+			  p->frequency < 445000000 ? 0x02 : 0x04);
 	buf[4] = 0xde;
 	buf[5] = 0x20;
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
 
 	if (i2c_transfer(adapter, &msg, 1) != 1)
+	{
 		return -EIO;
+	}
 
 	/* wait for the pll lock */
 	msg.flags = I2C_M_RD;
 	msg.len = 1;
-	for (i = 0; i < 20; i++) {
+
+	for (i = 0; i < 20; i++)
+	{
 		if (fe->ops.i2c_gate_ctrl)
+		{
 			fe->ops.i2c_gate_ctrl(fe, 1);
+		}
 
 		if (i2c_transfer(adapter, &msg, 1) == 1 && (buf[0] & 0x40))
+		{
 			break;
+		}
 
 		msleep(10);
 	}
@@ -112,11 +127,16 @@ static int tda1002x_cu1216_tuner_set(struct dvb_frontend *fe)
 	msg.len = 2;
 	msg.buf = &buf[2];
 	buf[2] &= ~0x40;
+
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
 
 	if (i2c_transfer(adapter, &msg, 1) != 1)
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
@@ -128,41 +148,52 @@ static int vp2033_frontend_init(struct mantis_pci *mantis, struct dvb_frontend *
 	int err = 0;
 
 	err = mantis_frontend_power(mantis, POWER_ON);
-	if (err == 0) {
+
+	if (err == 0)
+	{
 		mantis_frontend_soft_reset(mantis);
 		msleep(250);
 
 		dprintk(MANTIS_ERROR, 1, "Probing for CU1216 (DVB-C)");
 		fe = dvb_attach(tda10021_attach, &vp2033_tda1002x_cu1216_config,
-				     adapter,
-				     read_pwm(mantis));
+						adapter,
+						read_pwm(mantis));
 
-		if (fe) {
+		if (fe)
+		{
 			dprintk(MANTIS_ERROR, 1,
-				"found Philips CU1216 DVB-C frontend (TDA10021) @ 0x%02x",
-				vp2033_tda1002x_cu1216_config.demod_address);
-		} else {
-			fe = dvb_attach(tda10023_attach, &vp2033_tda10023_cu1216_config,
-					     adapter,
-					     read_pwm(mantis));
-
-			if (fe) {
-				dprintk(MANTIS_ERROR, 1,
-					"found Philips CU1216 DVB-C frontend (TDA10023) @ 0x%02x",
+					"found Philips CU1216 DVB-C frontend (TDA10021) @ 0x%02x",
 					vp2033_tda1002x_cu1216_config.demod_address);
+		}
+		else
+		{
+			fe = dvb_attach(tda10023_attach, &vp2033_tda10023_cu1216_config,
+							adapter,
+							read_pwm(mantis));
+
+			if (fe)
+			{
+				dprintk(MANTIS_ERROR, 1,
+						"found Philips CU1216 DVB-C frontend (TDA10023) @ 0x%02x",
+						vp2033_tda1002x_cu1216_config.demod_address);
 			}
 		}
 
-		if (fe) {
+		if (fe)
+		{
 			fe->ops.tuner_ops.set_params = tda1002x_cu1216_tuner_set;
 			dprintk(MANTIS_ERROR, 1, "Mantis DVB-C Philips CU1216 frontend attach success");
-		} else {
+		}
+		else
+		{
 			return -1;
 		}
-	} else {
+	}
+	else
+	{
 		dprintk(MANTIS_ERROR, 1, "Frontend on <%s> POWER ON failed! <%d>",
-			adapter->name,
-			err);
+				adapter->name,
+				err);
 
 		return -EIO;
 	}
@@ -173,7 +204,8 @@ static int vp2033_frontend_init(struct mantis_pci *mantis, struct dvb_frontend *
 	return 0;
 }
 
-struct mantis_hwconfig vp2033_config = {
+struct mantis_hwconfig vp2033_config =
+{
 	.model_name	= MANTIS_MODEL_NAME,
 	.dev_type	= MANTIS_DEV_TYPE,
 	.ts_size	= MANTIS_TS_204,

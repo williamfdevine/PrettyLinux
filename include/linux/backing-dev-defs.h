@@ -18,20 +18,23 @@ struct dentry;
 /*
  * Bits in bdi_writeback.state
  */
-enum wb_state {
+enum wb_state
+{
 	WB_registered,		/* bdi_register() was done */
 	WB_writeback_running,	/* Writeback is in progress */
 	WB_has_dirty_io,	/* Dirty inodes on ->b_{dirty|io|more_io} */
 };
 
-enum wb_congested_state {
+enum wb_congested_state
+{
 	WB_async_congested,	/* The async (write) queue is getting full */
 	WB_sync_congested,	/* The sync queue is getting full */
 };
 
 typedef int (congested_fn)(void *, int);
 
-enum wb_stat_item {
+enum wb_stat_item
+{
 	WB_RECLAIMABLE,
 	WB_WRITEBACK,
 	WB_DIRTIED,
@@ -48,7 +51,8 @@ enum wb_stat_item {
  * the following struct which is created on demand, indexed by blkcg ID on
  * its bdi, and refcounted.
  */
-struct bdi_writeback_congested {
+struct bdi_writeback_congested
+{
 	unsigned long state;		/* WB_[a]sync_congested flags */
 	atomic_t refcnt;		/* nr of attached wb's and blkg */
 
@@ -78,7 +82,8 @@ struct bdi_writeback_congested {
  * is tested for blkcg after lookup and removed from index on mismatch so
  * that a new wb for the combination can be created.
  */
-struct bdi_writeback {
+struct bdi_writeback
+{
 	struct backing_dev_info *bdi;	/* our parent bdi */
 
 	unsigned long state;		/* Always use atomic bitops on this */
@@ -126,14 +131,16 @@ struct bdi_writeback {
 	struct list_head memcg_node;	/* anchored at memcg->cgwb_list */
 	struct list_head blkcg_node;	/* anchored at blkcg->cgwb_list */
 
-	union {
+	union
+	{
 		struct work_struct release_work;
 		struct rcu_head rcu;
 	};
 #endif
 };
 
-struct backing_dev_info {
+struct backing_dev_info
+{
 	struct list_head bdi_list;
 	unsigned long ra_pages;	/* max readahead in PAGE_SIZE units */
 	unsigned int capabilities; /* Device capabilities */
@@ -173,7 +180,8 @@ struct backing_dev_info {
 #endif
 };
 
-enum {
+enum
+{
 	BLK_RW_ASYNC	= 0,
 	BLK_RW_SYNC	= 1,
 };
@@ -200,7 +208,10 @@ static inline void set_bdi_congested(struct backing_dev_info *bdi, int sync)
 static inline bool wb_tryget(struct bdi_writeback *wb)
 {
 	if (wb != &wb->bdi->wb)
+	{
 		return percpu_ref_tryget(&wb->refcnt);
+	}
+
 	return true;
 }
 
@@ -211,7 +222,9 @@ static inline bool wb_tryget(struct bdi_writeback *wb)
 static inline void wb_get(struct bdi_writeback *wb)
 {
 	if (wb != &wb->bdi->wb)
+	{
 		percpu_ref_get(&wb->refcnt);
+	}
 }
 
 /**
@@ -221,7 +234,9 @@ static inline void wb_get(struct bdi_writeback *wb)
 static inline void wb_put(struct bdi_writeback *wb)
 {
 	if (wb != &wb->bdi->wb)
+	{
 		percpu_ref_put(&wb->refcnt);
+	}
 }
 
 /**

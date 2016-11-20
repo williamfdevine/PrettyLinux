@@ -28,14 +28,18 @@ static int via_fetch_size(void)
 
 	values = A_SIZE_8(agp_bridge->driver->aperture_sizes);
 	pci_read_config_byte(agp_bridge->dev, VIA_APSIZE, &temp);
-	for (i = 0; i < agp_bridge->driver->num_aperture_sizes; i++) {
-		if (temp == values[i].size_value) {
+
+	for (i = 0; i < agp_bridge->driver->num_aperture_sizes; i++)
+	{
+		if (temp == values[i].size_value)
+		{
 			agp_bridge->previous_size =
-			    agp_bridge->current_size = (void *) (values + i);
+				agp_bridge->current_size = (void *) (values + i);
 			agp_bridge->aperture_size_idx = i;
 			return values[i].size;
 		}
 	}
+
 	printk(KERN_ERR PFX "Unknown aperture size from AGP bridge (0x%x)\n", temp);
 	return 0;
 }
@@ -48,17 +52,17 @@ static int via_configure(void)
 	current_size = A_SIZE_8(agp_bridge->current_size);
 	/* aperture size */
 	pci_write_config_byte(agp_bridge->dev, VIA_APSIZE,
-			      current_size->size_value);
+						  current_size->size_value);
 	/* address to map to */
 	agp_bridge->gart_bus_addr = pci_bus_address(agp_bridge->dev,
-						    AGP_APERTURE_BAR);
+								AGP_APERTURE_BAR);
 
 	/* GART control register */
 	pci_write_config_dword(agp_bridge->dev, VIA_GARTCTRL, 0x0000000f);
 
 	/* attbase - aperture GATT base */
 	pci_write_config_dword(agp_bridge->dev, VIA_ATTBASE,
-			    (agp_bridge->gatt_bus_addr & 0xfffff000) | 3);
+						   (agp_bridge->gatt_bus_addr & 0xfffff000) | 3);
 	return 0;
 }
 
@@ -69,7 +73,7 @@ static void via_cleanup(void)
 
 	previous_size = A_SIZE_8(agp_bridge->previous_size);
 	pci_write_config_byte(agp_bridge->dev, VIA_APSIZE,
-			      previous_size->size_value);
+						  previous_size->size_value);
 	/* Do not disable by writing 0 to VIA_ATTBASE, it screws things up
 	 * during reinitialization.
 	 */
@@ -81,9 +85,9 @@ static void via_tlbflush(struct agp_memory *mem)
 	u32 temp;
 
 	pci_read_config_dword(agp_bridge->dev, VIA_GARTCTRL, &temp);
-	temp |= (1<<7);
+	temp |= (1 << 7);
 	pci_write_config_dword(agp_bridge->dev, VIA_GARTCTRL, temp);
-	temp &= ~(1<<7);
+	temp &= ~(1 << 7);
 	pci_write_config_dword(agp_bridge->dev, VIA_GARTCTRL, temp);
 }
 
@@ -112,14 +116,17 @@ static int via_fetch_size_agp3(void)
 	pci_read_config_word(agp_bridge->dev, VIA_AGP3_APSIZE, &temp);
 	temp &= 0xfff;
 
-	for (i = 0; i < agp_bridge->driver->num_aperture_sizes; i++) {
-		if (temp == values[i].size_value) {
+	for (i = 0; i < agp_bridge->driver->num_aperture_sizes; i++)
+	{
+		if (temp == values[i].size_value)
+		{
 			agp_bridge->previous_size =
 				agp_bridge->current_size = (void *) (values + i);
 			agp_bridge->aperture_size_idx = i;
 			return values[i].size;
 		}
 	}
+
 	return 0;
 }
 
@@ -133,11 +140,11 @@ static int via_configure_agp3(void)
 
 	/* address to map to */
 	agp_bridge->gart_bus_addr = pci_bus_address(agp_bridge->dev,
-						    AGP_APERTURE_BAR);
+								AGP_APERTURE_BAR);
 
 	/* attbase - aperture GATT base */
 	pci_write_config_dword(agp_bridge->dev, VIA_AGP3_ATTBASE,
-		agp_bridge->gatt_bus_addr & 0xfffff000);
+						   agp_bridge->gatt_bus_addr & 0xfffff000);
 
 	/* 1. Enable GTLB in RX90<7>, all AGP aperture access needs to fetch
 	 *    translation table first.
@@ -145,7 +152,7 @@ static int via_configure_agp3(void)
 	 *    graphics AGP aperture for the AGP3.0 port.
 	 */
 	pci_read_config_dword(agp_bridge->dev, VIA_AGP3_GARTCTRL, &temp);
-	pci_write_config_dword(agp_bridge->dev, VIA_AGP3_GARTCTRL, temp | (3<<7));
+	pci_write_config_dword(agp_bridge->dev, VIA_AGP3_GARTCTRL, temp | (3 << 7));
 	return 0;
 }
 
@@ -164,12 +171,13 @@ static void via_tlbflush_agp3(struct agp_memory *mem)
 	u32 temp;
 
 	pci_read_config_dword(agp_bridge->dev, VIA_AGP3_GARTCTRL, &temp);
-	pci_write_config_dword(agp_bridge->dev, VIA_AGP3_GARTCTRL, temp & ~(1<<7));
+	pci_write_config_dword(agp_bridge->dev, VIA_AGP3_GARTCTRL, temp & ~(1 << 7));
 	pci_write_config_dword(agp_bridge->dev, VIA_AGP3_GARTCTRL, temp);
 }
 
 
-static const struct agp_bridge_driver via_agp3_driver = {
+static const struct agp_bridge_driver via_agp3_driver =
+{
 	.owner			= THIS_MODULE,
 	.aperture_sizes		= agp3_generic_sizes,
 	.size_type		= U8_APER_SIZE,
@@ -196,7 +204,8 @@ static const struct agp_bridge_driver via_agp3_driver = {
 	.agp_type_to_mask_type  = agp_generic_type_to_mask_type,
 };
 
-static const struct agp_bridge_driver via_driver = {
+static const struct agp_bridge_driver via_driver =
+{
 	.owner			= THIS_MODULE,
 	.aperture_sizes		= via_generic_sizes,
 	.size_type		= U8_APER_SIZE,
@@ -431,9 +440,12 @@ static void check_via_agp3 (struct agp_bridge_data *bridge)
 	u8 reg;
 
 	pci_read_config_byte(bridge->dev, VIA_AGPSEL, &reg);
+
 	/* Check AGP 2.0 compatibility mode. */
-	if ((reg & (1<<1))==0)
+	if ((reg & (1 << 1)) == 0)
+	{
 		bridge->driver = &via_agp3_driver;
+	}
 }
 
 
@@ -445,15 +457,21 @@ static int agp_via_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	u8 cap_ptr;
 
 	cap_ptr = pci_find_capability(pdev, PCI_CAP_ID_AGP);
+
 	if (!cap_ptr)
+	{
 		return -ENODEV;
+	}
 
 	j = ent - agp_via_pci_table;
 	printk (KERN_INFO PFX "Detected VIA %s chipset\n", devs[j].chipset_name);
 
 	bridge = agp_alloc_bridge();
+
 	if (!bridge)
+	{
 		return -ENOMEM;
+	}
 
 	bridge->dev = pdev;
 	bridge->capndx = cap_ptr;
@@ -462,9 +480,11 @@ static int agp_via_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	/*
 	 * Garg, there are KT400s with KT266 IDs.
 	 */
-	if (pdev->device == PCI_DEVICE_ID_VIA_8367_0) {
+	if (pdev->device == PCI_DEVICE_ID_VIA_8367_0)
+	{
 		/* Is there a KT400 subsystem ? */
-		if (pdev->subsystem_device == PCI_DEVICE_ID_VIA_8377_0) {
+		if (pdev->subsystem_device == PCI_DEVICE_ID_VIA_8377_0)
+		{
 			printk(KERN_INFO PFX "Found KT400 in disguise as a KT266.\n");
 			check_via_agp3(bridge);
 		}
@@ -472,12 +492,15 @@ static int agp_via_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	/* If this is an AGP3 bridge, check which mode its in and adjust. */
 	get_agp_version(bridge);
+
 	if (bridge->major_version >= 3)
+	{
 		check_via_agp3(bridge);
+	}
 
 	/* Fill in the mode register */
 	pci_read_config_dword(pdev,
-			bridge->capndx+PCI_AGP_STATUS, &bridge->mode);
+						  bridge->capndx + PCI_AGP_STATUS, &bridge->mode);
 
 	pci_set_drvdata(pdev, bridge);
 	return agp_add_bridge(bridge);
@@ -509,9 +532,13 @@ static int agp_via_resume(struct pci_dev *pdev)
 	pci_restore_state(pdev);
 
 	if (bridge->driver == &via_agp3_driver)
+	{
 		return via_configure_agp3();
+	}
 	else if (bridge->driver == &via_driver)
+	{
 		return via_configure();
+	}
 
 	return 0;
 }
@@ -519,15 +546,16 @@ static int agp_via_resume(struct pci_dev *pdev)
 #endif /* CONFIG_PM */
 
 /* must be the same order as name table above */
-static const struct pci_device_id agp_via_pci_table[] = {
+static const struct pci_device_id agp_via_pci_table[] =
+{
 #define ID(x) \
 	{						\
-	.class		= (PCI_CLASS_BRIDGE_HOST << 8),	\
-	.class_mask	= ~0,				\
-	.vendor		= PCI_VENDOR_ID_VIA,		\
-	.device		= x,				\
-	.subvendor	= PCI_ANY_ID,			\
-	.subdevice	= PCI_ANY_ID,			\
+		.class		= (PCI_CLASS_BRIDGE_HOST << 8),	\
+		.class_mask	= ~0,				\
+		.vendor		= PCI_VENDOR_ID_VIA,		\
+		.device		= x,				\
+		.subvendor	= PCI_ANY_ID,			\
+		.subdevice	= PCI_ANY_ID,			\
 	}
 	ID(PCI_DEVICE_ID_VIA_82C597_0),
 	ID(PCI_DEVICE_ID_VIA_82C598_0),
@@ -567,7 +595,8 @@ static const struct pci_device_id agp_via_pci_table[] = {
 MODULE_DEVICE_TABLE(pci, agp_via_pci_table);
 
 
-static struct pci_driver agp_via_pci_driver = {
+static struct pci_driver agp_via_pci_driver =
+{
 	.name		= "agpgart-via",
 	.id_table	= agp_via_pci_table,
 	.probe		= agp_via_probe,
@@ -582,7 +611,10 @@ static struct pci_driver agp_via_pci_driver = {
 static int __init agp_via_init(void)
 {
 	if (agp_off)
+	{
 		return -EINVAL;
+	}
+
 	return pci_register_driver(&agp_via_pci_driver);
 }
 

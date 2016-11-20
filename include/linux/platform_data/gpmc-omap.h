@@ -16,7 +16,8 @@
 #define GPMC_CS_NUM		8
 
 /* bool type time settings */
-struct gpmc_bool_timings {
+struct gpmc_bool_timings
+{
 	bool cycle2cyclediffcsen;
 	bool cycle2cyclesamecsen;
 	bool we_extra_delay;
@@ -30,7 +31,8 @@ struct gpmc_bool_timings {
  * Note that all values in this struct are in nanoseconds except sync_clk
  * (which is in picoseconds), while the register values are in gpmc_fck cycles.
  */
-struct gpmc_timings {
+struct gpmc_timings
+{
 	/* Minimum clock period for synchronous mode (in picoseconds) */
 	u32 sync_clk;
 
@@ -77,7 +79,8 @@ struct gpmc_timings {
 };
 
 /* Device timings in picoseconds */
-struct gpmc_device_timings {
+struct gpmc_device_timings
+{
 	u32 t_ceasu;	/* address setup to CS valid */
 	u32 t_avdasu;	/* address setup to ADV valid */
 	/* XXX: try to combine t_avdp_r & t_avdp_w. Issue is
@@ -139,7 +142,8 @@ struct gpmc_device_timings {
 #define GPMC_MUX_AAD			1	/* Addr-Addr-Data multiplex */
 #define GPMC_MUX_AD			2	/* Addr-Data multiplex */
 
-struct gpmc_settings {
+struct gpmc_settings
+{
 	bool burst_wrap;	/* enables wrap bursting */
 	bool burst_read;	/* enables read page/burst mode */
 	bool burst_write;	/* enables write page/burst mode */
@@ -155,7 +159,8 @@ struct gpmc_settings {
 };
 
 /* Data for each chip select */
-struct gpmc_omap_cs_data {
+struct gpmc_omap_cs_data
+{
 	bool valid;			/* data is valid */
 	bool is_nand;			/* device within this CS is NAND */
 	struct gpmc_settings *settings;
@@ -165,7 +170,8 @@ struct gpmc_omap_cs_data {
 	unsigned int pdata_size;
 };
 
-struct gpmc_omap_platform_data {
+struct gpmc_omap_platform_data
+{
 	struct gpmc_omap_cs_data cs[GPMC_CS_NUM];
 };
 

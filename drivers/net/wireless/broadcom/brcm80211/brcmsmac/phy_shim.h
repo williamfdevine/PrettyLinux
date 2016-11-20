@@ -125,14 +125,14 @@
 struct brcms_phy;
 
 struct phy_shim_info *wlc_phy_shim_attach(struct brcms_hardware *wlc_hw,
-					  struct brcms_info *wl,
-					  struct brcms_c_info *wlc);
+		struct brcms_info *wl,
+		struct brcms_c_info *wlc);
 void wlc_phy_shim_detach(struct phy_shim_info *physhim);
 
 /* PHY to WL utility functions */
 struct wlapi_timer *wlapi_init_timer(struct phy_shim_info *physhim,
-				     void (*fn)(struct brcms_phy *pi),
-				     void *arg, const char *name);
+									 void (*fn)(struct brcms_phy *pi),
+									 void *arg, const char *name);
 void wlapi_free_timer(struct wlapi_timer *t);
 void wlapi_add_timer(struct wlapi_timer *t, uint ms, int periodic);
 bool wlapi_del_timer(struct wlapi_timer *t);
@@ -143,7 +143,7 @@ void wlapi_intrsrestore(struct phy_shim_info *physhim, u32 macintmask);
 void wlapi_bmac_write_shm(struct phy_shim_info *physhim, uint offset, u16 v);
 u16 wlapi_bmac_read_shm(struct phy_shim_info *physhim, uint offset);
 void wlapi_bmac_mhf(struct phy_shim_info *physhim, u8 idx, u16 mask, u16 val,
-		    int bands);
+					int bands);
 void wlapi_bmac_corereset(struct phy_shim_info *physhim, u32 flags);
 void wlapi_suspend_mac_and_wait(struct phy_shim_info *physhim);
 void wlapi_switch_macfreq(struct phy_shim_info *physhim, u8 spurmode);
@@ -158,13 +158,13 @@ void wlapi_bmac_core_phypll_reset(struct phy_shim_info *physhim);
 void wlapi_bmac_ucode_wake_override_phyreg_set(struct phy_shim_info *physhim);
 void wlapi_bmac_ucode_wake_override_phyreg_clear(struct phy_shim_info *physhim);
 void wlapi_bmac_write_template_ram(struct phy_shim_info *physhim, int o,
-				   int len, void *buf);
+								   int len, void *buf);
 u16 wlapi_bmac_rate_shm_offset(struct phy_shim_info *physhim, u8 rate);
 void wlapi_ucode_sample_init(struct phy_shim_info *physhim);
 void wlapi_copyfrom_objmem(struct phy_shim_info *physhim, uint, void *buf,
-			   int, u32 sel);
+						   int, u32 sel);
 void wlapi_copyto_objmem(struct phy_shim_info *physhim, uint, const void *buf,
-			 int, u32);
+						 int, u32);
 
 void wlapi_high_update_phy_mode(struct phy_shim_info *physhim, u32 phy_mode);
 u16 wlapi_bmac_get_txant(struct phy_shim_info *physhim);

@@ -22,7 +22,8 @@
 
 #include <linux/types.h>
 
-struct mfb_chroma_key {
+struct mfb_chroma_key
+{
 	int enable;
 	__u8  red_max;
 	__u8  green_max;
@@ -32,7 +33,8 @@ struct mfb_chroma_key {
 	__u8  blue_min;
 };
 
-struct aoi_display_offset {
+struct aoi_display_offset
+{
 	__s32 x_aoi_d;
 	__s32 y_aoi_d;
 };
@@ -69,17 +71,18 @@ struct aoi_display_offset {
 /*
  * These are the fields of area descriptor(in DDR memory) for every plane
  */
-struct diu_ad {
+struct diu_ad
+{
 	/* Word 0(32-bit) in DDR memory */
-/* 	__u16 comp; */
-/* 	__u16 pixel_s:2; */
-/* 	__u16 pallete:1; */
-/* 	__u16 red_c:2; */
-/* 	__u16 green_c:2; */
-/* 	__u16 blue_c:2; */
-/* 	__u16 alpha_c:3; */
-/* 	__u16 byte_f:1; */
-/* 	__u16 res0:3; */
+	/* 	__u16 comp; */
+	/* 	__u16 pixel_s:2; */
+	/* 	__u16 pallete:1; */
+	/* 	__u16 red_c:2; */
+	/* 	__u16 green_c:2; */
+	/* 	__u16 blue_c:2; */
+	/* 	__u16 alpha_c:3; */
+	/* 	__u16 byte_f:1; */
+	/* 	__u16 res0:3; */
 
 	__be32 pix_fmt; /* hard coding pixel format */
 
@@ -87,19 +90,19 @@ struct diu_ad {
 	__le32 addr;
 
 	/* Word 2(32-bit) in DDR memory */
-/* 	__u32 delta_xs:11; */
-/* 	__u32 res1:1; */
-/* 	__u32 delta_ys:11; */
-/* 	__u32 res2:1; */
-/* 	__u32 g_alpha:8; */
+	/* 	__u32 delta_xs:11; */
+	/* 	__u32 res1:1; */
+	/* 	__u32 delta_ys:11; */
+	/* 	__u32 res2:1; */
+	/* 	__u32 g_alpha:8; */
 	__le32 src_size_g_alpha;
 
 	/* Word 3(32-bit) in DDR memory */
-/* 	__u32 delta_xi:11; */
-/* 	__u32 res3:5; */
-/* 	__u32 delta_yi:11; */
-/* 	__u32 res4:3; */
-/* 	__u32 flip:2; */
+	/* 	__u32 delta_xi:11; */
+	/* 	__u32 res3:5; */
+	/* 	__u32 delta_yi:11; */
+	/* 	__u32 res4:3; */
+	/* 	__u32 flip:2; */
 	__le32 aoi_size;
 
 	/* Word 4(32-bit) in DDR memory */
@@ -129,7 +132,7 @@ struct diu_ad {
 	__u8 ckmin_g;
 	__u8 ckmin_b;
 	__u8 res10;
-/* 	__u32 res10:8; */
+	/* 	__u32 res10:8; */
 
 	/* Word 8(32-bit) in DDR memory */
 	__le32 next_ad;
@@ -139,7 +142,8 @@ struct diu_ad {
 } __attribute__ ((packed));
 
 /* DIU register map */
-struct diu {
+struct diu
+{
 	__be32 desc[3];
 	__be32 gamma;
 	__be32 pallete;

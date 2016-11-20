@@ -5,7 +5,7 @@
 struct thread;
 struct perf_sample;
 int test__arch_unwind_sample(struct perf_sample *sample,
-			     struct thread *thread);
+							 struct thread *thread);
 #endif
 
 extern struct test arch_tests[];

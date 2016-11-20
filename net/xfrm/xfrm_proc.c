@@ -16,7 +16,8 @@
 #include <net/snmp.h>
 #include <net/xfrm.h>
 
-static const struct snmp_mib xfrm_mib_list[] = {
+static const struct snmp_mib xfrm_mib_list[] =
+{
 	SNMP_MIB_ITEM("XfrmInError", LINUX_MIB_XFRMINERROR),
 	SNMP_MIB_ITEM("XfrmInBufferError", LINUX_MIB_XFRMINBUFFERERROR),
 	SNMP_MIB_ITEM("XfrmInHdrError", LINUX_MIB_XFRMINHDRERROR),
@@ -57,10 +58,11 @@ static int xfrm_statistics_seq_show(struct seq_file *seq, void *v)
 	memset(buff, 0, sizeof(unsigned long) * LINUX_MIB_XFRMMAX);
 
 	snmp_get_cpu_field_batch(buff, xfrm_mib_list,
-				 net->mib.xfrm_statistics);
+							 net->mib.xfrm_statistics);
+
 	for (i = 0; xfrm_mib_list[i].name; i++)
 		seq_printf(seq, "%-24s\t%lu\n", xfrm_mib_list[i].name,
-						buff[i]);
+				   buff[i]);
 
 	return 0;
 }
@@ -70,7 +72,8 @@ static int xfrm_statistics_seq_open(struct inode *inode, struct file *file)
 	return single_open_net(inode, file, xfrm_statistics_seq_show);
 }
 
-static const struct file_operations xfrm_statistics_seq_fops = {
+static const struct file_operations xfrm_statistics_seq_fops =
+{
 	.owner	 = THIS_MODULE,
 	.open	 = xfrm_statistics_seq_open,
 	.read	 = seq_read,
@@ -81,8 +84,11 @@ static const struct file_operations xfrm_statistics_seq_fops = {
 int __net_init xfrm_proc_init(struct net *net)
 {
 	if (!proc_create("xfrm_stat", S_IRUGO, net->proc_net,
-			 &xfrm_statistics_seq_fops))
+					 &xfrm_statistics_seq_fops))
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 

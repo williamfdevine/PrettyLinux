@@ -10,7 +10,8 @@
 #include <linux/bitops.h>
 #include "amba-clcd-versatile.h"
 
-static struct clcd_panel vga = {
+static struct clcd_panel vga =
+{
 	.mode		= {
 		.name		= "VGA",
 		.refresh	= 60,
@@ -34,7 +35,8 @@ static struct clcd_panel vga = {
 	.bpp		= 16,
 };
 
-static struct clcd_panel xvga = {
+static struct clcd_panel xvga =
+{
 	.mode		= {
 		.name		= "XVGA",
 		.refresh	= 60,
@@ -59,7 +61,8 @@ static struct clcd_panel xvga = {
 };
 
 /* Sanyo TM38QV67A02A - 3.8 inch QVGA (320x240) Color TFT */
-static struct clcd_panel sanyo_tm38qv67a02a = {
+static struct clcd_panel sanyo_tm38qv67a02a =
+{
 	.mode		= {
 		.name		= "Sanyo TM38QV67A02A",
 		.refresh	= 116,
@@ -83,7 +86,8 @@ static struct clcd_panel sanyo_tm38qv67a02a = {
 	.bpp		= 16,
 };
 
-static struct clcd_panel sanyo_2_5_in = {
+static struct clcd_panel sanyo_2_5_in =
+{
 	.mode		= {
 		.name		= "Sanyo QVGA Portrait",
 		.refresh	= 116,
@@ -108,7 +112,8 @@ static struct clcd_panel sanyo_2_5_in = {
 };
 
 /* Epson L2F50113T00 - 2.2 inch 176x220 Color TFT */
-static struct clcd_panel epson_l2f50113t00 = {
+static struct clcd_panel epson_l2f50113t00 =
+{
 	.mode		= {
 		.name		= "Epson L2F50113T00",
 		.refresh	= 390,
@@ -132,7 +137,8 @@ static struct clcd_panel epson_l2f50113t00 = {
 	.bpp		= 16,
 };
 
-static struct clcd_panel *panels[] = {
+static struct clcd_panel *panels[] =
+{
 	&vga,
 	&xvga,
 	&sanyo_tm38qv67a02a,
@@ -146,10 +152,14 @@ struct clcd_panel *versatile_clcd_get_panel(const char *name)
 
 	for (i = 0; i < ARRAY_SIZE(panels); i++)
 		if (strcmp(panels[i]->mode.name, name) == 0)
+		{
 			break;
+		}
 
 	if (i < ARRAY_SIZE(panels))
+	{
 		return panels[i];
+	}
 
 	pr_err("CLCD: couldn't get parameters for panel %s\n", name);
 
@@ -161,8 +171,10 @@ int versatile_clcd_setup_dma(struct clcd_fb *fb, unsigned long framesize)
 	dma_addr_t dma;
 
 	fb->fb.screen_base = dma_alloc_wc(&fb->dev->dev, framesize, &dma,
-					  GFP_KERNEL);
-	if (!fb->fb.screen_base) {
+									  GFP_KERNEL);
+
+	if (!fb->fb.screen_base)
+	{
 		pr_err("CLCD: unable to map framebuffer\n");
 		return -ENOMEM;
 	}
@@ -176,13 +188,13 @@ int versatile_clcd_setup_dma(struct clcd_fb *fb, unsigned long framesize)
 int versatile_clcd_mmap_dma(struct clcd_fb *fb, struct vm_area_struct *vma)
 {
 	return dma_mmap_wc(&fb->dev->dev, vma, fb->fb.screen_base,
-			   fb->fb.fix.smem_start, fb->fb.fix.smem_len);
+					   fb->fb.fix.smem_start, fb->fb.fix.smem_len);
 }
 
 void versatile_clcd_remove_dma(struct clcd_fb *fb)
 {
 	dma_free_wc(&fb->dev->dev, fb->fb.fix.smem_len, fb->fb.screen_base,
-		    fb->fb.fix.smem_start);
+				fb->fb.fix.smem_start);
 }
 
 #ifdef CONFIG_OF
@@ -193,7 +205,8 @@ static struct regmap *versatile_ib2_map;
 /*
  * We detect the different syscon types from the compatible strings.
  */
-enum versatile_clcd {
+enum versatile_clcd
+{
 	INTEGRATOR_CLCD_CM,
 	VERSATILE_CLCD,
 	REALVIEW_CLCD_EB,
@@ -203,7 +216,8 @@ enum versatile_clcd {
 	REALVIEW_CLCD_PBX,
 };
 
-static const struct of_device_id versatile_clcd_of_match[] = {
+static const struct of_device_id versatile_clcd_of_match[] =
+{
 	{
 		.compatible = "arm,core-module-integrator",
 		.data = (void *)INTEGRATOR_CLCD_CM,
@@ -263,15 +277,15 @@ static const struct of_device_id versatile_clcd_of_match[] = {
 #define INTEGRATOR_CLCD_LCD_N24BITEN	BIT(19)
 
 #define INTEGRATOR_CLCD_MASK		(INTEGRATOR_CLCD_LCDBIASEN | \
-					 INTEGRATOR_CLCD_LCDBIASUP | \
-					 INTEGRATOR_CLCD_LCDBIASDN | \
-					 INTEGRATOR_CLCD_LCDMUX_MASK | \
-					 INTEGRATOR_CLCD_LCD0_EN | \
-					 INTEGRATOR_CLCD_LCD1_EN | \
-					 INTEGRATOR_CLCD_LCD_STATIC1 | \
-					 INTEGRATOR_CLCD_LCD_STATIC2 | \
-					 INTEGRATOR_CLCD_LCD_STATIC | \
-					 INTEGRATOR_CLCD_LCD_N24BITEN)
+									 INTEGRATOR_CLCD_LCDBIASUP | \
+									 INTEGRATOR_CLCD_LCDBIASDN | \
+									 INTEGRATOR_CLCD_LCDMUX_MASK | \
+									 INTEGRATOR_CLCD_LCD0_EN | \
+									 INTEGRATOR_CLCD_LCD1_EN | \
+									 INTEGRATOR_CLCD_LCD_STATIC1 | \
+									 INTEGRATOR_CLCD_LCD_STATIC2 | \
+									 INTEGRATOR_CLCD_LCD_STATIC | \
+									 INTEGRATOR_CLCD_LCD_N24BITEN)
 
 static void integrator_clcd_enable(struct clcd_fb *fb)
 {
@@ -282,21 +296,28 @@ static void integrator_clcd_enable(struct clcd_fb *fb)
 
 	/* FIXME: really needed? */
 	val = INTEGRATOR_CLCD_LCD_STATIC1 | INTEGRATOR_CLCD_LCD_STATIC2 |
-		INTEGRATOR_CLCD_LCD0_EN | INTEGRATOR_CLCD_LCD1_EN;
+		  INTEGRATOR_CLCD_LCD0_EN | INTEGRATOR_CLCD_LCD1_EN;
+
 	if (var->bits_per_pixel <= 8 ||
-	    (var->bits_per_pixel == 16 && var->green.length == 5))
+		(var->bits_per_pixel == 16 && var->green.length == 5))
 		/* Pseudocolor, RGB555, BGR555 */
+	{
 		val |= INTEGRATOR_CLCD_LCDMUX_VGA555;
+	}
 	else if (fb->fb.var.bits_per_pixel <= 16)
 		/* truecolor RGB565 */
+	{
 		val |= INTEGRATOR_CLCD_LCDMUX_VGA565;
+	}
 	else
-		val = 0; /* no idea for this, don't trust the docs */
+	{
+		val = 0;    /* no idea for this, don't trust the docs */
+	}
 
 	regmap_update_bits(versatile_syscon_map,
-			   INTEGRATOR_HDR_CTRL_OFFSET,
-			   INTEGRATOR_CLCD_MASK,
-			   val);
+					   INTEGRATOR_HDR_CTRL_OFFSET,
+					   INTEGRATOR_CLCD_MASK,
+					   val);
 }
 
 /*
@@ -338,17 +359,18 @@ static void versatile_clcd_disable(struct clcd_fb *fb)
 {
 	dev_info(&fb->dev->dev, "disable Versatile CLCD connectors\n");
 	regmap_update_bits(versatile_syscon_map,
-			   SYS_CLCD,
-			   SYS_CLCD_CONNECTOR_MASK,
-			   0);
+					   SYS_CLCD,
+					   SYS_CLCD_CONNECTOR_MASK,
+					   0);
 
 	/* If we're on an IB2 daughterboard, turn off display */
-	if (versatile_ib2_map) {
+	if (versatile_ib2_map)
+	{
 		dev_info(&fb->dev->dev, "disable IB2 display\n");
 		regmap_update_bits(versatile_ib2_map,
-				   IB2_CTRL,
-				   IB2_CTRL_LCD_MASK,
-				   IB2_CTRL_LCD_SD);
+						   IB2_CTRL,
+						   IB2_CTRL_LCD_MASK,
+						   IB2_CTRL_LCD_SD);
 	}
 }
 
@@ -358,40 +380,50 @@ static void versatile_clcd_enable(struct clcd_fb *fb)
 	u32 val = 0;
 
 	dev_info(&fb->dev->dev, "enable Versatile CLCD connectors\n");
-	switch (var->green.length) {
-	case 5:
-		val |= SYS_CLCD_MODE_5551;
-		break;
-	case 6:
-		if (var->red.offset == 0)
-			val |= SYS_CLCD_MODE_565_R_LSB;
-		else
-			val |= SYS_CLCD_MODE_565_B_LSB;
-		break;
-	case 8:
-		val |= SYS_CLCD_MODE_888;
-		break;
+
+	switch (var->green.length)
+	{
+		case 5:
+			val |= SYS_CLCD_MODE_5551;
+			break;
+
+		case 6:
+			if (var->red.offset == 0)
+			{
+				val |= SYS_CLCD_MODE_565_R_LSB;
+			}
+			else
+			{
+				val |= SYS_CLCD_MODE_565_B_LSB;
+			}
+
+			break;
+
+		case 8:
+			val |= SYS_CLCD_MODE_888;
+			break;
 	}
 
 	/* Set up the MUX */
 	regmap_update_bits(versatile_syscon_map,
-			   SYS_CLCD,
-			   SYS_CLCD_MODE_MASK,
-			   val);
+					   SYS_CLCD,
+					   SYS_CLCD_MODE_MASK,
+					   val);
 
 	/* Then enable the display */
 	regmap_update_bits(versatile_syscon_map,
-			   SYS_CLCD,
-			   SYS_CLCD_CONNECTOR_MASK,
-			   SYS_CLCD_NLCDIOON | SYS_CLCD_PWR3V5SWITCH);
+					   SYS_CLCD,
+					   SYS_CLCD_CONNECTOR_MASK,
+					   SYS_CLCD_NLCDIOON | SYS_CLCD_PWR3V5SWITCH);
 
 	/* If we're on an IB2 daughterboard, turn on display */
-	if (versatile_ib2_map) {
+	if (versatile_ib2_map)
+	{
 		dev_info(&fb->dev->dev, "enable IB2 display\n");
 		regmap_update_bits(versatile_ib2_map,
-				   IB2_CTRL,
-				   IB2_CTRL_LCD_MASK,
-				   IB2_CTRL_LCD_BL_ON);
+						   IB2_CTRL,
+						   IB2_CTRL_LCD_MASK,
+						   IB2_CTRL_LCD_BL_ON);
 	}
 }
 
@@ -401,34 +433,38 @@ static void versatile_clcd_decode(struct clcd_fb *fb, struct clcd_regs *regs)
 
 	/* Always clear BGR for RGB565: we do the routing externally */
 	if (fb->fb.var.green.length == 6)
+	{
 		regs->cntl &= ~CNTL_BGR;
+	}
 }
 
 static void realview_clcd_disable(struct clcd_fb *fb)
 {
 	dev_info(&fb->dev->dev, "disable RealView CLCD connectors\n");
 	regmap_update_bits(versatile_syscon_map,
-			   SYS_CLCD,
-			   SYS_CLCD_CONNECTOR_MASK,
-			   0);
+					   SYS_CLCD,
+					   SYS_CLCD_CONNECTOR_MASK,
+					   0);
 }
 
 static void realview_clcd_enable(struct clcd_fb *fb)
 {
 	dev_info(&fb->dev->dev, "enable RealView CLCD connectors\n");
 	regmap_update_bits(versatile_syscon_map,
-			   SYS_CLCD,
-			   SYS_CLCD_CONNECTOR_MASK,
-			   SYS_CLCD_NLCDIOON | SYS_CLCD_PWR3V5SWITCH);
+					   SYS_CLCD,
+					   SYS_CLCD_CONNECTOR_MASK,
+					   SYS_CLCD_NLCDIOON | SYS_CLCD_PWR3V5SWITCH);
 }
 
-struct versatile_panel {
+struct versatile_panel
+{
 	u32 id;
 	char *compatible;
 	bool ib2;
 };
 
-static const struct versatile_panel versatile_panels[] = {
+static const struct versatile_panel versatile_panels[] =
+{
 	{
 		.id = SYS_CLCD_ID_VGA,
 		.compatible = "VGA",
@@ -453,7 +489,7 @@ static const struct versatile_panel versatile_panels[] = {
 };
 
 static void versatile_panel_probe(struct device *dev,
-				  struct device_node *endpoint)
+								  struct device_node *endpoint)
 {
 	struct versatile_panel const *vpanel = NULL;
 	struct device_node *panel = NULL;
@@ -467,35 +503,45 @@ static void versatile_panel_probe(struct device *dev,
 	 * device tree.
 	 */
 	ret = regmap_read(versatile_syscon_map, SYS_CLCD, &val);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "cannot read CLCD syscon register\n");
 		return;
 	}
+
 	val &= SYS_CLCD_CLCDID_MASK;
 
 	/* First find corresponding panel information */
-	for (i = 0; i < ARRAY_SIZE(versatile_panels); i++) {
+	for (i = 0; i < ARRAY_SIZE(versatile_panels); i++)
+	{
 		vpanel = &versatile_panels[i];
 
-		if (val == vpanel->id) {
+		if (val == vpanel->id)
+		{
 			dev_err(dev, "autodetected panel \"%s\"\n",
-				vpanel->compatible);
+					vpanel->compatible);
 			break;
 		}
 	}
-	if (i == ARRAY_SIZE(versatile_panels)) {
+
+	if (i == ARRAY_SIZE(versatile_panels))
+	{
 		dev_err(dev, "could not auto-detect panel\n");
 		return;
 	}
 
 	panel = of_graph_get_remote_port_parent(endpoint);
-	if (!panel) {
+
+	if (!panel)
+	{
 		dev_err(dev, "could not locate panel in DT\n");
 		return;
 	}
+
 	if (!of_device_is_compatible(panel, vpanel->compatible))
 		dev_err(dev, "panel in DT is not compatible with the "
-			"auto-detected panel, continuing anyway\n");
+				"auto-detected panel, continuing anyway\n");
 
 	/*
 	 * If we have a Sanyo 2.5" port
@@ -503,11 +549,15 @@ static void versatile_panel_probe(struct device *dev,
 	 * IB2 syscon regmap.
 	 */
 	if (!vpanel->ib2)
+	{
 		return;
+	}
 
 	versatile_ib2_map = syscon_regmap_lookup_by_compatible(
-		"arm,versatile-ib2-syscon");
-	if (IS_ERR(versatile_ib2_map)) {
+							"arm,versatile-ib2-syscon");
+
+	if (IS_ERR(versatile_ib2_map))
+	{
 		dev_err(dev, "could not locate IB2 control register\n");
 		versatile_ib2_map = NULL;
 		return;
@@ -515,7 +565,7 @@ static void versatile_panel_probe(struct device *dev,
 }
 
 int versatile_clcd_init_panel(struct clcd_fb *fb,
-			      struct device_node *endpoint)
+							  struct device_node *endpoint)
 {
 	const struct of_device_id *clcd_id;
 	enum versatile_clcd versatile_clcd_type;
@@ -524,49 +574,58 @@ int versatile_clcd_init_panel(struct clcd_fb *fb,
 	struct device *dev = &fb->dev->dev;
 
 	np = of_find_matching_node_and_match(NULL, versatile_clcd_of_match,
-					     &clcd_id);
-	if (!np) {
+										 &clcd_id);
+
+	if (!np)
+	{
 		/* Vexpress does not have this */
 		return 0;
 	}
+
 	versatile_clcd_type = (enum versatile_clcd)clcd_id->data;
 
 	map = syscon_node_to_regmap(np);
-	if (IS_ERR(map)) {
+
+	if (IS_ERR(map))
+	{
 		dev_err(dev, "no Versatile syscon regmap\n");
 		return PTR_ERR(map);
 	}
 
-	switch (versatile_clcd_type) {
-	case INTEGRATOR_CLCD_CM:
-		versatile_syscon_map = map;
-		fb->board->enable = integrator_clcd_enable;
-		/* Override the caps, we have only these */
-		fb->board->caps = CLCD_CAP_5551 | CLCD_CAP_RGB565 |
-			CLCD_CAP_888;
-		dev_info(dev, "set up callbacks for Integrator PL110\n");
-		break;
-	case VERSATILE_CLCD:
-		versatile_syscon_map = map;
-		fb->board->enable = versatile_clcd_enable;
-		fb->board->disable = versatile_clcd_disable;
-		fb->board->decode = versatile_clcd_decode;
-		versatile_panel_probe(dev, endpoint);
-		dev_info(dev, "set up callbacks for Versatile\n");
-		break;
-	case REALVIEW_CLCD_EB:
-	case REALVIEW_CLCD_PB1176:
-	case REALVIEW_CLCD_PB11MP:
-	case REALVIEW_CLCD_PBA8:
-	case REALVIEW_CLCD_PBX:
-		versatile_syscon_map = map;
-		fb->board->enable = realview_clcd_enable;
-		fb->board->disable = realview_clcd_disable;
-		dev_info(dev, "set up callbacks for RealView PL111\n");
-		break;
-	default:
-		dev_info(dev, "unknown Versatile system controller\n");
-		break;
+	switch (versatile_clcd_type)
+	{
+		case INTEGRATOR_CLCD_CM:
+			versatile_syscon_map = map;
+			fb->board->enable = integrator_clcd_enable;
+			/* Override the caps, we have only these */
+			fb->board->caps = CLCD_CAP_5551 | CLCD_CAP_RGB565 |
+							  CLCD_CAP_888;
+			dev_info(dev, "set up callbacks for Integrator PL110\n");
+			break;
+
+		case VERSATILE_CLCD:
+			versatile_syscon_map = map;
+			fb->board->enable = versatile_clcd_enable;
+			fb->board->disable = versatile_clcd_disable;
+			fb->board->decode = versatile_clcd_decode;
+			versatile_panel_probe(dev, endpoint);
+			dev_info(dev, "set up callbacks for Versatile\n");
+			break;
+
+		case REALVIEW_CLCD_EB:
+		case REALVIEW_CLCD_PB1176:
+		case REALVIEW_CLCD_PB11MP:
+		case REALVIEW_CLCD_PBA8:
+		case REALVIEW_CLCD_PBX:
+			versatile_syscon_map = map;
+			fb->board->enable = realview_clcd_enable;
+			fb->board->disable = realview_clcd_disable;
+			dev_info(dev, "set up callbacks for RealView PL111\n");
+			break;
+
+		default:
+			dev_info(dev, "unknown Versatile system controller\n");
+			break;
 	}
 
 	return 0;

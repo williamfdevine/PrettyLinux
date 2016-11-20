@@ -25,7 +25,8 @@
 #define to_drm_minor(d) dev_get_drvdata(d)
 #define to_drm_connector(d) dev_get_drvdata(d)
 
-static struct device_type drm_sysfs_device_minor = {
+static struct device_type drm_sysfs_device_minor =
+{
 	.name = "drm_minor"
 };
 
@@ -53,11 +54,16 @@ int drm_sysfs_init(void)
 	int err;
 
 	drm_class = class_create(THIS_MODULE, "drm");
+
 	if (IS_ERR(drm_class))
+	{
 		return PTR_ERR(drm_class);
+	}
 
 	err = class_create_file(drm_class, &class_attr_version.attr);
-	if (err) {
+
+	if (err)
+	{
 		class_destroy(drm_class);
 		drm_class = NULL;
 		return err;
@@ -75,7 +81,10 @@ int drm_sysfs_init(void)
 void drm_sysfs_destroy(void)
 {
 	if (IS_ERR_OR_NULL(drm_class))
+	{
 		return;
+	}
+
 	class_remove_file(drm_class, &class_attr_version.attr);
 	class_destroy(drm_class);
 	drm_class = NULL;
@@ -85,8 +94,8 @@ void drm_sysfs_destroy(void)
  * Connector properties
  */
 static ssize_t status_store(struct device *device,
-			   struct device_attribute *attr,
-			   const char *buf, size_t count)
+							struct device_attribute *attr,
+							const char *buf, size_t count)
 {
 	struct drm_connector *connector = to_drm_connector(device);
 	struct drm_device *dev = connector->dev;
@@ -94,31 +103,45 @@ static ssize_t status_store(struct device *device,
 	int ret;
 
 	ret = mutex_lock_interruptible(&dev->mode_config.mutex);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	old_force = connector->force;
 
 	if (sysfs_streq(buf, "detect"))
+	{
 		connector->force = 0;
+	}
 	else if (sysfs_streq(buf, "on"))
+	{
 		connector->force = DRM_FORCE_ON;
+	}
 	else if (sysfs_streq(buf, "on-digital"))
+	{
 		connector->force = DRM_FORCE_ON_DIGITAL;
+	}
 	else if (sysfs_streq(buf, "off"))
+	{
 		connector->force = DRM_FORCE_OFF;
+	}
 	else
+	{
 		ret = -EINVAL;
+	}
 
-	if (old_force != connector->force || !connector->force) {
+	if (old_force != connector->force || !connector->force)
+	{
 		DRM_DEBUG_KMS("[CONNECTOR:%d:%s] force updated from %d to %d or reprobing\n",
-			      connector->base.id,
-			      connector->name,
-			      old_force, connector->force);
+					  connector->base.id,
+					  connector->name,
+					  old_force, connector->force);
 
 		connector->funcs->fill_modes(connector,
-					     dev->mode_config.max_width,
-					     dev->mode_config.max_height);
+									 dev->mode_config.max_width,
+									 dev->mode_config.max_height);
 	}
 
 	mutex_unlock(&dev->mode_config.mutex);
@@ -127,8 +150,8 @@ static ssize_t status_store(struct device *device,
 }
 
 static ssize_t status_show(struct device *device,
-			   struct device_attribute *attr,
-			   char *buf)
+						   struct device_attribute *attr,
+						   char *buf)
 {
 	struct drm_connector *connector = to_drm_connector(device);
 	enum drm_connector_status status;
@@ -136,12 +159,12 @@ static ssize_t status_show(struct device *device,
 	status = READ_ONCE(connector->status);
 
 	return snprintf(buf, PAGE_SIZE, "%s\n",
-			drm_get_connector_status_name(status));
+					drm_get_connector_status_name(status));
 }
 
 static ssize_t dpms_show(struct device *device,
-			   struct device_attribute *attr,
-			   char *buf)
+						 struct device_attribute *attr,
+						 char *buf)
 {
 	struct drm_connector *connector = to_drm_connector(device);
 	int dpms;
@@ -149,12 +172,12 @@ static ssize_t dpms_show(struct device *device,
 	dpms = READ_ONCE(connector->dpms);
 
 	return snprintf(buf, PAGE_SIZE, "%s\n",
-			drm_get_dpms_name(dpms));
+					drm_get_dpms_name(dpms));
 }
 
 static ssize_t enabled_show(struct device *device,
-			    struct device_attribute *attr,
-			   char *buf)
+							struct device_attribute *attr,
+							char *buf)
 {
 	struct drm_connector *connector = to_drm_connector(device);
 	bool enabled;
@@ -165,8 +188,8 @@ static ssize_t enabled_show(struct device *device,
 }
 
 static ssize_t edid_show(struct file *filp, struct kobject *kobj,
-			 struct bin_attribute *attr, char *buf, loff_t off,
-			 size_t count)
+						 struct bin_attribute *attr, char *buf, loff_t off,
+						 size_t count)
 {
 	struct device *connector_dev = kobj_to_dev(kobj);
 	struct drm_connector *connector = to_drm_connector(connector_dev);
@@ -175,19 +198,30 @@ static ssize_t edid_show(struct file *filp, struct kobject *kobj,
 	ssize_t ret = 0;
 
 	mutex_lock(&connector->dev->mode_config.mutex);
+
 	if (!connector->edid_blob_ptr)
+	{
 		goto unlock;
+	}
 
 	edid = connector->edid_blob_ptr->data;
 	size = connector->edid_blob_ptr->length;
+
 	if (!edid)
+	{
 		goto unlock;
+	}
 
 	if (off >= size)
+	{
 		goto unlock;
+	}
 
 	if (off + count > size)
+	{
 		count = size - off;
+	}
+
 	memcpy(buf, edid + off, count);
 
 	ret = count;
@@ -198,17 +232,18 @@ unlock:
 }
 
 static ssize_t modes_show(struct device *device,
-			   struct device_attribute *attr,
-			   char *buf)
+						  struct device_attribute *attr,
+						  char *buf)
 {
 	struct drm_connector *connector = to_drm_connector(device);
 	struct drm_display_mode *mode;
 	int written = 0;
 
 	mutex_lock(&connector->dev->mode_config.mutex);
-	list_for_each_entry(mode, &connector->modes, head) {
+	list_for_each_entry(mode, &connector->modes, head)
+	{
 		written += snprintf(buf + written, PAGE_SIZE - written, "%s\n",
-				    mode->name);
+							mode->name);
 	}
 	mutex_unlock(&connector->dev->mode_config.mutex);
 
@@ -220,7 +255,8 @@ static DEVICE_ATTR_RO(enabled);
 static DEVICE_ATTR_RO(dpms);
 static DEVICE_ATTR_RO(modes);
 
-static struct attribute *connector_dev_attrs[] = {
+static struct attribute *connector_dev_attrs[] =
+{
 	&dev_attr_status.attr,
 	&dev_attr_enabled.attr,
 	&dev_attr_dpms.attr,
@@ -228,24 +264,28 @@ static struct attribute *connector_dev_attrs[] = {
 	NULL
 };
 
-static struct bin_attribute edid_attr = {
+static struct bin_attribute edid_attr =
+{
 	.attr.name = "edid",
 	.attr.mode = 0444,
 	.size = 0,
 	.read = edid_show,
 };
 
-static struct bin_attribute *connector_bin_attrs[] = {
+static struct bin_attribute *connector_bin_attrs[] =
+{
 	&edid_attr,
 	NULL
 };
 
-static const struct attribute_group connector_dev_group = {
+static const struct attribute_group connector_dev_group =
+{
 	.attrs = connector_dev_attrs,
 	.bin_attrs = connector_bin_attrs,
 };
 
-static const struct attribute_group *connector_dev_groups[] = {
+static const struct attribute_group *connector_dev_groups[] =
+{
 	&connector_dev_group,
 	NULL
 };
@@ -264,17 +304,20 @@ int drm_sysfs_connector_add(struct drm_connector *connector)
 	struct drm_device *dev = connector->dev;
 
 	if (connector->kdev)
+	{
 		return 0;
+	}
 
 	connector->kdev =
 		device_create_with_groups(drm_class, dev->primary->kdev, 0,
-					  connector, connector_dev_groups,
-					  "card%d-%s", dev->primary->index,
-					  connector->name);
+								  connector, connector_dev_groups,
+								  "card%d-%s", dev->primary->index,
+								  connector->name);
 	DRM_DEBUG("adding \"%s\" to sysfs\n",
-		  connector->name);
+			  connector->name);
 
-	if (IS_ERR(connector->kdev)) {
+	if (IS_ERR(connector->kdev))
+	{
 		DRM_ERROR("failed to register connector device: %ld\n", PTR_ERR(connector->kdev));
 		return PTR_ERR(connector->kdev);
 	}
@@ -301,9 +344,12 @@ int drm_sysfs_connector_add(struct drm_connector *connector)
 void drm_sysfs_connector_remove(struct drm_connector *connector)
 {
 	if (!connector->kdev)
+	{
 		return;
+	}
+
 	DRM_DEBUG("removing \"%s\" from sysfs\n",
-		  connector->name);
+			  connector->name);
 
 	device_unregister(connector->kdev);
 	connector->kdev = NULL;
@@ -354,15 +400,24 @@ struct device *drm_sysfs_minor_alloc(struct drm_minor *minor)
 	int r;
 
 	if (minor->type == DRM_MINOR_CONTROL)
+	{
 		minor_str = "controlD%d";
+	}
 	else if (minor->type == DRM_MINOR_RENDER)
+	{
 		minor_str = "renderD%d";
+	}
 	else
+	{
 		minor_str = "card%d";
+	}
 
 	kdev = kzalloc(sizeof(*kdev), GFP_KERNEL);
+
 	if (!kdev)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	device_initialize(kdev);
 	kdev->devt = MKDEV(DRM_MAJOR, minor->index);
@@ -373,8 +428,11 @@ struct device *drm_sysfs_minor_alloc(struct drm_minor *minor)
 	dev_set_drvdata(kdev, minor);
 
 	r = dev_set_name(kdev, minor_str, minor->index);
+
 	if (r < 0)
+	{
 		goto err_free;
+	}
 
 	return kdev;
 
@@ -396,7 +454,9 @@ err_free:
 int drm_class_device_register(struct device *dev)
 {
 	if (!drm_class || IS_ERR(drm_class))
+	{
 		return -ENOENT;
+	}
 
 	dev->class = drm_class;
 	return device_register(dev);

@@ -155,7 +155,7 @@
 
 /* I'd like a Big Mac, small fries, small coke, and SparcLinux please. */
 #define BMAC_XIFCFG	0x0000UL	/* XIF config register                */
-	/* 0x4-->0x204, reserved */
+/* 0x4-->0x204, reserved */
 #define BMAC_TXSWRESET	0x208UL	/* Transmitter software reset         */
 #define BMAC_TXCFG	0x20cUL	/* Transmitter config register        */
 #define BMAC_IGAP1	0x210UL	/* Inter-packet gap 1                 */
@@ -176,7 +176,7 @@
 #define BMAC_LTCTR	0x24cUL	/* Transmit late-collision counter    */
 #define BMAC_RSEED	0x250UL	/* Transmit random number seed        */
 #define BMAC_TXSMACHINE	0x254UL	/* Transmit state machine             */
-	/* 0x258-->0x304, reserved */
+/* 0x258-->0x304, reserved */
 #define BMAC_RXSWRESET	0x308UL	/* Receiver software reset            */
 #define BMAC_RXCFG	0x30cUL	/* Receiver config register           */
 #define BMAC_RXMAX	0x310UL	/* Receive max pkt size               */
@@ -190,7 +190,7 @@
 #define BMAC_RCRCECTR	0x330UL	/* Receive CRC error counter          */
 #define BMAC_RXSMACHINE	0x334UL	/* Receiver state machine             */
 #define BMAC_RXCVALID	0x338UL	/* Receiver code violation            */
-	/* 0x33c, reserved */
+/* 0x33c, reserved */
 #define BMAC_HTABLE3	0x340UL	/* Hash table 3                       */
 #define BMAC_HTABLE2	0x344UL	/* Hash table 2                       */
 #define BMAC_HTABLE1	0x348UL	/* Hash table 1                       */
@@ -304,7 +304,8 @@
  */
 typedef u32 __bitwise__ hme32;
 
-struct happy_meal_rxd {
+struct happy_meal_rxd
+{
 	hme32 rx_flags;
 	hme32 rx_addr;
 };
@@ -314,7 +315,8 @@ struct happy_meal_rxd {
 #define RXFLAG_SIZE        0x3fff0000 /* Size of the buffer         */
 #define RXFLAG_CSUM        0x0000ffff /* HW computed checksum       */
 
-struct happy_meal_txd {
+struct happy_meal_txd
+{
 	hme32 tx_flags;
 	hme32 tx_addr;
 };
@@ -331,7 +333,7 @@ struct happy_meal_txd {
 #define RX_RING_SIZE       32         /* see ERX_CFG_SIZE* for possible values */
 
 #if (TX_RING_SIZE < 16 || TX_RING_SIZE > 256 || (TX_RING_SIZE % 16) != 0)
-#error TX_RING_SIZE holds illegal value
+	#error TX_RING_SIZE holds illegal value
 #endif
 
 #define TX_RING_MAXSIZE    256
@@ -339,21 +341,21 @@ struct happy_meal_txd {
 
 /* We use a 14 byte offset for checksum computation. */
 #if (RX_RING_SIZE == 32)
-#define ERX_CFG_DEFAULT(off) (ERX_CFG_DMAENABLE|((off)<<3)|ERX_CFG_SIZE32|((14/2)<<16))
+	#define ERX_CFG_DEFAULT(off) (ERX_CFG_DMAENABLE|((off)<<3)|ERX_CFG_SIZE32|((14/2)<<16))
 #else
-#if (RX_RING_SIZE == 64)
-#define ERX_CFG_DEFAULT(off) (ERX_CFG_DMAENABLE|((off)<<3)|ERX_CFG_SIZE64|((14/2)<<16))
-#else
-#if (RX_RING_SIZE == 128)
-#define ERX_CFG_DEFAULT(off) (ERX_CFG_DMAENABLE|((off)<<3)|ERX_CFG_SIZE128|((14/2)<<16))
-#else
-#if (RX_RING_SIZE == 256)
-#define ERX_CFG_DEFAULT(off) (ERX_CFG_DMAENABLE|((off)<<3)|ERX_CFG_SIZE256|((14/2)<<16))
-#else
-#error RX_RING_SIZE holds illegal value
-#endif
-#endif
-#endif
+	#if (RX_RING_SIZE == 64)
+		#define ERX_CFG_DEFAULT(off) (ERX_CFG_DMAENABLE|((off)<<3)|ERX_CFG_SIZE64|((14/2)<<16))
+	#else
+		#if (RX_RING_SIZE == 128)
+			#define ERX_CFG_DEFAULT(off) (ERX_CFG_DMAENABLE|((off)<<3)|ERX_CFG_SIZE128|((14/2)<<16))
+		#else
+			#if (RX_RING_SIZE == 256)
+				#define ERX_CFG_DEFAULT(off) (ERX_CFG_DMAENABLE|((off)<<3)|ERX_CFG_SIZE256|((14/2)<<16))
+			#else
+				#error RX_RING_SIZE holds illegal value
+			#endif
+		#endif
+	#endif
 #endif
 
 #define NEXT_RX(num)       (((num) + 1) & (RX_RING_SIZE - 1))
@@ -362,32 +364,35 @@ struct happy_meal_txd {
 #define PREV_TX(num)       (((num) - 1) & (TX_RING_SIZE - 1))
 
 #define TX_BUFFS_AVAIL(hp)                                    \
-        (((hp)->tx_old <= (hp)->tx_new) ?                     \
-	  (hp)->tx_old + (TX_RING_SIZE - 1) - (hp)->tx_new :  \
-			    (hp)->tx_old - (hp)->tx_new - 1)
+	(((hp)->tx_old <= (hp)->tx_new) ?                     \
+	 (hp)->tx_old + (TX_RING_SIZE - 1) - (hp)->tx_new :  \
+	 (hp)->tx_old - (hp)->tx_new - 1)
 
 #define RX_OFFSET          2
 #define RX_BUF_ALLOC_SIZE  (1546 + RX_OFFSET + 64)
 
 #define RX_COPY_THRESHOLD  256
 
-struct hmeal_init_block {
+struct hmeal_init_block
+{
 	struct happy_meal_rxd happy_meal_rxd[RX_RING_MAXSIZE];
 	struct happy_meal_txd happy_meal_txd[TX_RING_MAXSIZE];
 };
 
 #define hblock_offset(mem, elem) \
-((__u32)((unsigned long)(&(((struct hmeal_init_block *)0)->mem[elem]))))
+	((__u32)((unsigned long)(&(((struct hmeal_init_block *)0)->mem[elem]))))
 
 /* Now software state stuff. */
-enum happy_transceiver {
+enum happy_transceiver
+{
 	external = 0,
 	internal = 1,
 	none     = 2,
 };
 
 /* Timer state engine. */
-enum happy_timer_state {
+enum happy_timer_state
+{
 	arbwait  = 0,  /* Waiting for auto negotiation to complete.          */
 	lupwait  = 1,  /* Auto-neg complete, awaiting link-up status.        */
 	ltrywait = 2,  /* Forcing try of all modes, from fastest to slowest. */
@@ -397,7 +402,8 @@ enum happy_timer_state {
 struct quattro;
 
 /* Happy happy, joy joy! */
-struct happy_meal {
+struct happy_meal
+{
 	void __iomem	*gregs;			/* Happy meal global registers       */
 	struct hmeal_init_block  *happy_block;	/* RX and TX descriptors (CPU addr)  */
 
@@ -446,7 +452,7 @@ struct happy_meal {
 	unsigned short            sw_expansion;   /* SW copy of EXPANSION              */
 	unsigned short            sw_csconfig;    /* SW copy of CSCONFIG               */
 	unsigned int              auto_speed;     /* Auto-nego link speed              */
-        unsigned int              forced_speed;   /* Force mode link speed             */
+	unsigned int              forced_speed;   /* Force mode link speed             */
 	unsigned int              poll_data;      /* MIF poll data                     */
 	unsigned int              poll_flag;      /* MIF poll flag                     */
 	unsigned int              linkcheck;      /* Have we checked the link yet?     */
@@ -481,7 +487,8 @@ struct happy_meal {
 #define HFLAG_NOT_A0 (HFLAG_POLLENABLE | HFLAG_FENABLE | HFLAG_LANCE | HFLAG_RXCV)
 
 /* Support for QFE/Quattro cards. */
-struct quattro {
+struct quattro
+{
 	struct net_device	*happy_meals[4];
 
 	/* This is either a sbus_dev or a pci_dev. */
@@ -498,16 +505,16 @@ struct quattro {
 
 /* We use this to acquire receive skb's that we can DMA directly into. */
 #define ALIGNED_RX_SKB_ADDR(addr) \
-        ((((unsigned long)(addr) + (64UL - 1UL)) & ~(64UL - 1UL)) - (unsigned long)(addr))
+	((((unsigned long)(addr) + (64UL - 1UL)) & ~(64UL - 1UL)) - (unsigned long)(addr))
 #define happy_meal_alloc_skb(__length, __gfp_flags) \
-({	struct sk_buff *__skb; \
-	__skb = alloc_skb((__length) + 64, (__gfp_flags)); \
-	if(__skb) { \
-		int __offset = (int) ALIGNED_RX_SKB_ADDR(__skb->data); \
-		if(__offset) \
-			skb_reserve(__skb, __offset); \
-	} \
-	__skb; \
-})
+	({	struct sk_buff *__skb; \
+		__skb = alloc_skb((__length) + 64, (__gfp_flags)); \
+		if(__skb) { \
+			int __offset = (int) ALIGNED_RX_SKB_ADDR(__skb->data); \
+			if(__offset) \
+				skb_reserve(__skb, __offset); \
+		} \
+		__skb; \
+	})
 
 #endif /* !(_SUNHME_H) */

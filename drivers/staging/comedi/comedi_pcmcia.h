@@ -27,16 +27,16 @@
 struct pcmcia_device *comedi_to_pcmcia_dev(struct comedi_device *);
 
 int comedi_pcmcia_enable(struct comedi_device *,
-			 int (*conf_check)(struct pcmcia_device *, void *));
+						 int (*conf_check)(struct pcmcia_device *, void *));
 void comedi_pcmcia_disable(struct comedi_device *);
 
 int comedi_pcmcia_auto_config(struct pcmcia_device *, struct comedi_driver *);
 void comedi_pcmcia_auto_unconfig(struct pcmcia_device *);
 
 int comedi_pcmcia_driver_register(struct comedi_driver *,
-				  struct pcmcia_driver *);
+								  struct pcmcia_driver *);
 void comedi_pcmcia_driver_unregister(struct comedi_driver *,
-				     struct pcmcia_driver *);
+									 struct pcmcia_driver *);
 
 /**
  * module_comedi_pcmcia_driver() - Helper macro for registering a comedi
@@ -51,6 +51,6 @@ void comedi_pcmcia_driver_unregister(struct comedi_driver *,
  */
 #define module_comedi_pcmcia_driver(__comedi_driver, __pcmcia_driver) \
 	module_driver(__comedi_driver, comedi_pcmcia_driver_register, \
-			comedi_pcmcia_driver_unregister, &(__pcmcia_driver))
+				  comedi_pcmcia_driver_unregister, &(__pcmcia_driver))
 
 #endif /* _COMEDI_PCMCIA_H */

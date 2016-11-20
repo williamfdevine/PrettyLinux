@@ -65,10 +65,12 @@
  * and completion queue entries as a single memory allocation so
  * it can be mmap'ed into user space.
  */
-struct rvt_cq_wc {
+struct rvt_cq_wc
+{
 	u32 head;               /* index of next entry to fill */
 	u32 tail;               /* index of next ib_poll_cq() entry */
-	union {
+	union
+	{
 		/* these are actually size ibcq.cqe + 1 */
 		struct ib_uverbs_wc uqueue[0];
 		struct ib_wc kqueue[0];
@@ -78,7 +80,8 @@ struct rvt_cq_wc {
 /*
  * The completion queue structure.
  */
-struct rvt_cq {
+struct rvt_cq
+{
 	struct ib_cq ibcq;
 	struct kthread_work comptask;
 	spinlock_t lock; /* protect changes in this struct */

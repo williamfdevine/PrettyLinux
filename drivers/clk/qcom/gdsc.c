@@ -49,8 +49,11 @@ static int gdsc_is_enabled(struct gdsc *sc, unsigned int reg)
 	int ret;
 
 	ret = regmap_read(sc->regmap, reg, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return !!(val & PWR_ON_MASK);
 }
@@ -63,11 +66,15 @@ static int gdsc_toggle_logic(struct gdsc *sc, bool en)
 	unsigned int status_reg = sc->gdscr;
 
 	ret = regmap_update_bits(sc->regmap, sc->gdscr, SW_COLLAPSE_MASK, val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* If disabling votable gdscs, don't poll on status */
-	if ((sc->flags & VOTABLE) && !en) {
+	if ((sc->flags & VOTABLE) && !en)
+	{
 		/*
 		 * Add a short delay here to ensure that an enable
 		 * right after it was disabled does not put it in an
@@ -77,7 +84,8 @@ static int gdsc_toggle_logic(struct gdsc *sc, bool en)
 		return 0;
 	}
 
-	if (sc->gds_hw_ctrl) {
+	if (sc->gds_hw_ctrl)
+	{
 		status_reg = sc->gds_hw_ctrl;
 		/*
 		 * The gds hw controller asserts/de-asserts the status bit soon
@@ -93,13 +101,20 @@ static int gdsc_toggle_logic(struct gdsc *sc, bool en)
 	}
 
 	start = ktime_get();
-	do {
+
+	do
+	{
 		if (gdsc_is_enabled(sc, status_reg) == en)
+		{
 			return 0;
-	} while (ktime_us_delta(ktime_get(), start) < TIMEOUT_US);
+		}
+	}
+	while (ktime_us_delta(ktime_get(), start) < TIMEOUT_US);
 
 	if (gdsc_is_enabled(sc, status_reg) == en)
+	{
 		return 0;
+	}
 
 	return -ETIMEDOUT;
 }
@@ -109,7 +124,10 @@ static inline int gdsc_deassert_reset(struct gdsc *sc)
 	int i;
 
 	for (i = 0; i < sc->reset_count; i++)
+	{
 		sc->rcdev->ops->deassert(sc->rcdev, sc->resets[i]);
+	}
+
 	return 0;
 }
 
@@ -118,7 +136,10 @@ static inline int gdsc_assert_reset(struct gdsc *sc)
 	int i;
 
 	for (i = 0; i < sc->reset_count; i++)
+	{
 		sc->rcdev->ops->assert(sc->rcdev, sc->resets[i]);
+	}
+
 	return 0;
 }
 
@@ -128,7 +149,9 @@ static inline void gdsc_force_mem_on(struct gdsc *sc)
 	u32 mask = RETAIN_MEM | RETAIN_PERIPH;
 
 	for (i = 0; i < sc->cxc_count; i++)
+	{
 		regmap_update_bits(sc->regmap, sc->cxcs[i], mask, mask);
+	}
 }
 
 static inline void gdsc_clear_mem_on(struct gdsc *sc)
@@ -137,7 +160,9 @@ static inline void gdsc_clear_mem_on(struct gdsc *sc)
 	u32 mask = RETAIN_MEM | RETAIN_PERIPH;
 
 	for (i = 0; i < sc->cxc_count; i++)
+	{
 		regmap_update_bits(sc->regmap, sc->cxcs[i], mask, 0);
+	}
 }
 
 static int gdsc_enable(struct generic_pm_domain *domain)
@@ -146,14 +171,21 @@ static int gdsc_enable(struct generic_pm_domain *domain)
 	int ret;
 
 	if (sc->pwrsts == PWRSTS_ON)
+	{
 		return gdsc_deassert_reset(sc);
+	}
 
 	ret = gdsc_toggle_logic(sc, true);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (sc->pwrsts & PWRSTS_OFF)
+	{
 		gdsc_force_mem_on(sc);
+	}
 
 	/*
 	 * If clocks to this power domain were already on, they will take an
@@ -172,10 +204,14 @@ static int gdsc_disable(struct generic_pm_domain *domain)
 	struct gdsc *sc = domain_to_gdsc(domain);
 
 	if (sc->pwrsts == PWRSTS_ON)
+	{
 		return gdsc_assert_reset(sc);
+	}
 
 	if (sc->pwrsts & PWRSTS_OFF)
+	{
 		gdsc_clear_mem_on(sc);
+	}
 
 	return gdsc_toggle_logic(sc, false);
 }
@@ -192,35 +228,51 @@ static int gdsc_init(struct gdsc *sc)
 	 * Configure wait time between states.
 	 */
 	mask = HW_CONTROL_MASK | SW_OVERRIDE_MASK |
-	       EN_REST_WAIT_MASK | EN_FEW_WAIT_MASK | CLK_DIS_WAIT_MASK;
+		   EN_REST_WAIT_MASK | EN_FEW_WAIT_MASK | CLK_DIS_WAIT_MASK;
 	val = EN_REST_WAIT_VAL | EN_FEW_WAIT_VAL | CLK_DIS_WAIT_VAL;
 	ret = regmap_update_bits(sc->regmap, sc->gdscr, mask, val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Force gdsc ON if only ON state is supported */
-	if (sc->pwrsts == PWRSTS_ON) {
+	if (sc->pwrsts == PWRSTS_ON)
+	{
 		ret = gdsc_toggle_logic(sc, true);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	reg = sc->gds_hw_ctrl ? sc->gds_hw_ctrl : sc->gdscr;
 	on = gdsc_is_enabled(sc, reg);
+
 	if (on < 0)
+	{
 		return on;
+	}
 
 	/*
 	 * Votable GDSCs can be ON due to Vote from other masters.
 	 * If a Votable GDSC is ON, make sure we have a Vote.
 	 */
 	if ((sc->flags & VOTABLE) && on)
+	{
 		gdsc_enable(&sc->pd);
+	}
 
 	if (on || (sc->pwrsts & PWRSTS_RET))
+	{
 		gdsc_force_mem_on(sc);
+	}
 	else
+	{
 		gdsc_clear_mem_on(sc);
+	}
 
 	sc->pd.power_off = gdsc_disable;
 	sc->pd.power_on = gdsc_enable;
@@ -230,7 +282,7 @@ static int gdsc_init(struct gdsc *sc)
 }
 
 int gdsc_register(struct gdsc_desc *desc,
-		  struct reset_controller_dev *rcdev, struct regmap *regmap)
+				  struct reset_controller_dev *rcdev, struct regmap *regmap)
 {
 	int i, ret;
 	struct genpd_onecell_data *data;
@@ -239,32 +291,53 @@ int gdsc_register(struct gdsc_desc *desc,
 	size_t num = desc->num;
 
 	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	data->domains = devm_kcalloc(dev, num, sizeof(*data->domains),
-				     GFP_KERNEL);
+								 GFP_KERNEL);
+
 	if (!data->domains)
+	{
 		return -ENOMEM;
+	}
 
 	data->num_domains = num;
-	for (i = 0; i < num; i++) {
+
+	for (i = 0; i < num; i++)
+	{
 		if (!scs[i])
+		{
 			continue;
+		}
+
 		scs[i]->regmap = regmap;
 		scs[i]->rcdev = rcdev;
 		ret = gdsc_init(scs[i]);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		data->domains[i] = &scs[i]->pd;
 	}
 
 	/* Add subdomains */
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num; i++)
+	{
 		if (!scs[i])
+		{
 			continue;
+		}
+
 		if (scs[i]->parent)
+		{
 			pm_genpd_add_subdomain(scs[i]->parent, &scs[i]->pd);
+		}
 	}
 
 	return of_genpd_add_provider_onecell(dev->of_node, data);
@@ -278,11 +351,18 @@ void gdsc_unregister(struct gdsc_desc *desc)
 	size_t num = desc->num;
 
 	/* Remove subdomains */
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num; i++)
+	{
 		if (!scs[i])
+		{
 			continue;
+		}
+
 		if (scs[i]->parent)
+		{
 			pm_genpd_remove_subdomain(scs[i]->parent, &scs[i]->pd);
+		}
 	}
+
 	of_genpd_del_provider(dev->of_node);
 }

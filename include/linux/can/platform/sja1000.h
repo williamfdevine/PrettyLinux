@@ -25,7 +25,8 @@
 #define OCR_TX_MASK       0xfc
 #define OCR_TX_SHIFT      2
 
-struct sja1000_platform_data {
+struct sja1000_platform_data
+{
 	u32 osc_freq;	/* CAN bus oscillator frequency in Hz */
 
 	u8 ocr;		/* output control register */

@@ -26,7 +26,8 @@
  *
  * Clocks based on the formula parent * N / M
  */
-struct ccu_nm {
+struct ccu_nm
+{
 	u32			enable;
 	u32			lock;
 
@@ -38,46 +39,46 @@ struct ccu_nm {
 };
 
 #define SUNXI_CCU_NM_WITH_FRAC_GATE_LOCK(_struct, _name, _parent, _reg,	\
-					 _nshift, _nwidth,		\
-					 _mshift, _mwidth,		\
-					 _frac_en, _frac_sel,		\
-					 _frac_rate_0, _frac_rate_1,	\
-					 _gate, _lock, _flags)		\
-	struct ccu_nm _struct = {					\
-		.enable		= _gate,				\
-		.lock		= _lock,				\
-		.n		= _SUNXI_CCU_MULT(_nshift, _nwidth),	\
-		.m		= _SUNXI_CCU_DIV(_mshift, _mwidth),	\
-		.frac		= _SUNXI_CCU_FRAC(_frac_en, _frac_sel,	\
-						  _frac_rate_0,		\
-						  _frac_rate_1),	\
-		.common		= {					\
-			.reg		= _reg,				\
-			.features	= CCU_FEATURE_FRACTIONAL,	\
-			.hw.init	= CLK_HW_INIT(_name,		\
-						      _parent,		\
-						      &ccu_nm_ops,	\
-						      _flags),		\
-		},							\
-	}
+		_nshift, _nwidth,		\
+		_mshift, _mwidth,		\
+		_frac_en, _frac_sel,		\
+		_frac_rate_0, _frac_rate_1,	\
+		_gate, _lock, _flags)		\
+struct ccu_nm _struct = {					\
+	.enable		= _gate,				\
+				  .lock		= _lock,				\
+								.n		= _SUNXI_CCU_MULT(_nshift, _nwidth),	\
+										  .m		= _SUNXI_CCU_DIV(_mshift, _mwidth),	\
+												  .frac		= _SUNXI_CCU_FRAC(_frac_en, _frac_sel,	\
+														  _frac_rate_0,		\
+														  _frac_rate_1),	\
+														  .common		= {					\
+																						  .reg		= _reg,				\
+																						  .features	= CCU_FEATURE_FRACTIONAL,	\
+																						  .hw.init	= CLK_HW_INIT(_name,		\
+																								  _parent,		\
+																								  &ccu_nm_ops,	\
+																								  _flags),		\
+																	 },							\
+}
 
 #define SUNXI_CCU_NM_WITH_GATE_LOCK(_struct, _name, _parent, _reg,	\
-				    _nshift, _nwidth,			\
-				    _mshift, _mwidth,			\
-				    _gate, _lock, _flags)		\
-	struct ccu_nm _struct = {					\
-		.enable		= _gate,				\
-		.lock		= _lock,				\
-		.n		= _SUNXI_CCU_MULT(_nshift, _nwidth),	\
-		.m		= _SUNXI_CCU_DIV(_mshift, _mwidth),	\
-		.common		= {					\
-			.reg		= _reg,				\
-			.hw.init	= CLK_HW_INIT(_name,		\
-						      _parent,		\
-						      &ccu_nm_ops,	\
-						      _flags),		\
-		},							\
-	}
+									_nshift, _nwidth,			\
+									_mshift, _mwidth,			\
+									_gate, _lock, _flags)		\
+struct ccu_nm _struct = {					\
+	.enable		= _gate,				\
+				  .lock		= _lock,				\
+								.n		= _SUNXI_CCU_MULT(_nshift, _nwidth),	\
+										  .m		= _SUNXI_CCU_DIV(_mshift, _mwidth),	\
+												  .common		= {					\
+																				  .reg		= _reg,				\
+																				  .hw.init	= CLK_HW_INIT(_name,		\
+																						  _parent,		\
+																						  &ccu_nm_ops,	\
+																						  _flags),		\
+															 },							\
+}
 
 static inline struct ccu_nm *hw_to_ccu_nm(struct clk_hw *hw)
 {

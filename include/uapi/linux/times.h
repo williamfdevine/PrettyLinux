@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-struct tms {
+struct tms
+{
 	__kernel_clock_t tms_utime;
 	__kernel_clock_t tms_stime;
 	__kernel_clock_t tms_cutime;

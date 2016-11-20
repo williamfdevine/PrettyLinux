@@ -26,7 +26,8 @@
 #include <nvif/class.h>
 
 const struct nvkm_fifo_chan_oclass
-gk110_fifo_gpfifo_oclass = {
+	gk110_fifo_gpfifo_oclass =
+{
 	.base.oclass = KEPLER_CHANNEL_GPFIFO_B,
 	.base.minver = 0,
 	.base.maxver = 0,

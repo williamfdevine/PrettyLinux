@@ -2,13 +2,13 @@
 #define _LMC_DEBUG_H_
 
 #ifdef DEBUG
-#ifdef LMC_PACKET_LOG
-#define LMC_CONSOLE_LOG(x,y,z) lmcConsoleLog((x), (y), (z))
+	#ifdef LMC_PACKET_LOG
+		#define LMC_CONSOLE_LOG(x,y,z) lmcConsoleLog((x), (y), (z))
+	#else
+		#define LMC_CONSOLE_LOG(x,y,z)
+	#endif
 #else
-#define LMC_CONSOLE_LOG(x,y,z)
-#endif
-#else
-#define LMC_CONSOLE_LOG(x,y,z)
+	#define LMC_CONSOLE_LOG(x,y,z)
 #endif
 
 
@@ -38,11 +38,11 @@
 
 
 #ifdef DEBUG
-extern u32 lmcEventLogIndex;
-extern u32 lmcEventLogBuf[LMC_EVENTLOGSIZE * LMC_EVENTLOGARGS];
-#define LMC_EVENT_LOG(x, y, z) lmcEventLog((x), (y), (z))
+	extern u32 lmcEventLogIndex;
+	extern u32 lmcEventLogBuf[LMC_EVENTLOGSIZE * LMC_EVENTLOGARGS];
+	#define LMC_EVENT_LOG(x, y, z) lmcEventLog((x), (y), (z))
 #else
-#define LMC_EVENT_LOG(x,y,z)
+	#define LMC_EVENT_LOG(x,y,z)
 #endif /* end ifdef _DBG_EVENTLOG */
 
 void lmcConsoleLog(char *type, unsigned char *ucData, int iLen);

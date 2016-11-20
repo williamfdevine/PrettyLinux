@@ -27,18 +27,20 @@
 
 /* For archs that don't support NO_IRQ (such as mips), provide a dummy value */
 #ifndef NO_IRQ
-#define NO_IRQ 0
+	#define NO_IRQ 0
 #endif
 
 MODULE_LICENSE("GPL");
 
-enum {
+enum
+{
 	CD_GPIO = 0,
 	WP_GPIO,
 	NUM_GPIOS,
 };
 
-struct of_mmc_spi {
+struct of_mmc_spi
+{
 	int gpios[NUM_GPIOS];
 	bool alow_gpios[NUM_GPIOS];
 	int detect_irq;
@@ -51,12 +53,12 @@ static struct of_mmc_spi *to_of_mmc_spi(struct device *dev)
 }
 
 static int of_mmc_spi_init(struct device *dev,
-			   irqreturn_t (*irqhandler)(int, void *), void *mmc)
+						   irqreturn_t (*irqhandler)(int, void *), void *mmc)
 {
 	struct of_mmc_spi *oms = to_of_mmc_spi(dev);
 
 	return request_threaded_irq(oms->detect_irq, NULL, irqhandler,
-					IRQF_ONESHOT, dev_name(dev), mmc);
+								IRQF_ONESHOT, dev_name(dev), mmc);
 }
 
 static void of_mmc_spi_exit(struct device *dev, void *mmc)
@@ -76,61 +78,91 @@ struct mmc_spi_platform_data *mmc_spi_get_pdata(struct spi_device *spi)
 	int i;
 
 	if (dev->platform_data || !np)
+	{
 		return dev->platform_data;
+	}
 
 	oms = kzalloc(sizeof(*oms), GFP_KERNEL);
+
 	if (!oms)
+	{
 		return NULL;
+	}
 
 	voltage_ranges = of_get_property(np, "voltage-ranges", &num_ranges);
 	num_ranges = num_ranges / sizeof(*voltage_ranges) / 2;
-	if (!voltage_ranges || !num_ranges) {
+
+	if (!voltage_ranges || !num_ranges)
+	{
 		dev_err(dev, "OF: voltage-ranges unspecified\n");
 		goto err_ocr;
 	}
 
-	for (i = 0; i < num_ranges; i++) {
+	for (i = 0; i < num_ranges; i++)
+	{
 		const int j = i * 2;
 		u32 mask;
 
 		mask = mmc_vddrange_to_ocrmask(be32_to_cpu(voltage_ranges[j]),
-					       be32_to_cpu(voltage_ranges[j + 1]));
-		if (!mask) {
+									   be32_to_cpu(voltage_ranges[j + 1]));
+
+		if (!mask)
+		{
 			dev_err(dev, "OF: voltage-range #%d is invalid\n", i);
 			goto err_ocr;
 		}
+
 		oms->pdata.ocr_mask |= mask;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(oms->gpios); i++) {
+	for (i = 0; i < ARRAY_SIZE(oms->gpios); i++)
+	{
 		enum of_gpio_flags gpio_flags;
 
 		oms->gpios[i] = of_get_gpio_flags(np, i, &gpio_flags);
+
 		if (!gpio_is_valid(oms->gpios[i]))
+		{
 			continue;
+		}
 
 		if (gpio_flags & OF_GPIO_ACTIVE_LOW)
+		{
 			oms->alow_gpios[i] = true;
+		}
 	}
 
-	if (gpio_is_valid(oms->gpios[CD_GPIO])) {
+	if (gpio_is_valid(oms->gpios[CD_GPIO]))
+	{
 		oms->pdata.cd_gpio = oms->gpios[CD_GPIO];
 		oms->pdata.flags |= MMC_SPI_USE_CD_GPIO;
+
 		if (!oms->alow_gpios[CD_GPIO])
+		{
 			oms->pdata.caps2 |= MMC_CAP2_CD_ACTIVE_HIGH;
+		}
 	}
-	if (gpio_is_valid(oms->gpios[WP_GPIO])) {
+
+	if (gpio_is_valid(oms->gpios[WP_GPIO]))
+	{
 		oms->pdata.ro_gpio = oms->gpios[WP_GPIO];
 		oms->pdata.flags |= MMC_SPI_USE_RO_GPIO;
+
 		if (!oms->alow_gpios[WP_GPIO])
+		{
 			oms->pdata.caps2 |= MMC_CAP2_RO_ACTIVE_HIGH;
+		}
 	}
 
 	oms->detect_irq = irq_of_parse_and_map(np, 0);
-	if (oms->detect_irq != 0) {
+
+	if (oms->detect_irq != 0)
+	{
 		oms->pdata.init = of_mmc_spi_init;
 		oms->pdata.exit = of_mmc_spi_exit;
-	} else {
+	}
+	else
+	{
 		oms->pdata.caps |= MMC_CAP_NEEDS_POLL;
 	}
 
@@ -149,7 +181,9 @@ void mmc_spi_put_pdata(struct spi_device *spi)
 	struct of_mmc_spi *oms = to_of_mmc_spi(dev);
 
 	if (!dev->platform_data || !np)
+	{
 		return;
+	}
 
 	kfree(oms);
 	dev->platform_data = NULL;

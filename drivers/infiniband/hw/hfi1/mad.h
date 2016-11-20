@@ -83,7 +83,8 @@
 #define OPA_NOTICE_TRAP_LWE_CHG         0x02 /* Link Width Enable changed */
 #define OPA_NOTICE_TRAP_NODE_DESC_CHG   0x01
 
-struct opa_mad_notice_attr {
+struct opa_mad_notice_attr
+{
 	u8 generic_type;
 	u8 prod_type_msb;
 	__be16 prod_type_lsb;
@@ -93,25 +94,31 @@ struct opa_mad_notice_attr {
 	__be32 reserved1;
 	union ib_gid issuer_gid;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u8	details[64];
 		} raw_data;
 
-		struct {
+		struct
+		{
 			union ib_gid	gid;
 		} __packed ntc_64_65_66_67;
 
-		struct {
+		struct
+		{
 			__be32	lid;
 		} __packed ntc_128;
 
-		struct {
+		struct
+		{
 			__be32	lid;		/* where violation happened */
 			u8	port_num;	/* where violation happened */
 		} __packed ntc_129_130_131;
 
-		struct {
+		struct
+		{
 			__be32	lid;		/* LID where change occurred */
 			__be32	new_cap_mask;	/* new capability mask */
 			__be16	reserved2;
@@ -119,12 +126,14 @@ struct opa_mad_notice_attr {
 			__be16	change_flags;	/* low 4 bits only */
 		} __packed ntc_144;
 
-		struct {
+		struct
+		{
 			__be64	new_sys_guid;
 			__be32	lid;		/* lid where sys guid changed */
 		} __packed ntc_145;
 
-		struct {
+		struct
+		{
 			__be32	lid;
 			__be32	dr_slid;
 			u8	method;
@@ -135,7 +144,8 @@ struct opa_mad_notice_attr {
 			u8	dr_rtn_path[30];
 		} __packed ntc_256;
 
-		struct {
+		struct
+		{
 			__be32		lid1;
 			__be32		lid2;
 			__be32		key;
@@ -147,7 +157,8 @@ struct opa_mad_notice_attr {
 			__be32		qp2;	/* high 8 bits reserved */
 		} __packed ntc_257_258;
 
-		struct {
+		struct
+		{
 			__be16		flags;	/* low 8 bits reserved */
 			__be16		pkey;
 			__be32		lid1;
@@ -160,7 +171,8 @@ struct opa_mad_notice_attr {
 			__be32		qp2;	/* high 8 bits reserved */
 		} __packed ntc_259;
 
-		struct {
+		struct
+		{
 			__be32	lid;
 		} __packed ntc_2048;
 
@@ -181,7 +193,8 @@ struct opa_mad_notice_attr {
 
 #define IB_PMA_PORT_COUNTERS_CONG       cpu_to_be16(0xFF00)
 
-struct ib_pma_portcounters_cong {
+struct ib_pma_portcounters_cong
+{
 	u8 reserved;
 	u8 reserved1;
 	__be16 port_check_rate;
@@ -233,7 +246,8 @@ struct ib_pma_portcounters_cong {
  */
 #define OPA_CC_LOG_TYPE_HFI	2
 
-struct opa_hfi1_cong_log_event_internal {
+struct opa_hfi1_cong_log_event_internal
+{
 	u32 lqpn;
 	u32 rqpn;
 	u8 sl;
@@ -242,7 +256,8 @@ struct opa_hfi1_cong_log_event_internal {
 	s64 timestamp; /* wider than 32 bits to detect 32 bit rollover */
 };
 
-struct opa_hfi1_cong_log_event {
+struct opa_hfi1_cong_log_event
+{
 	u8 local_qp_cn_entry[3];
 	u8 remote_qp_number_cn_entry[3];
 	u8 sl_svc_type_cn_entry; /* 5 bits SL, 3 bits svc type */
@@ -253,7 +268,8 @@ struct opa_hfi1_cong_log_event {
 
 #define OPA_CONG_LOG_ELEMS	96
 
-struct opa_hfi1_cong_log {
+struct opa_hfi1_cong_log
+{
 	u8 log_type;
 	u8 congestion_flags;
 	__be16 threshold_event_counter;
@@ -267,7 +283,8 @@ struct opa_hfi1_cong_log {
 /* Port control flags */
 #define IB_CC_CCS_PC_SL_BASED 0x01
 
-struct opa_congestion_setting_entry {
+struct opa_congestion_setting_entry
+{
 	u8 ccti_increase;
 	u8 reserved;
 	__be16 ccti_timer;
@@ -275,7 +292,8 @@ struct opa_congestion_setting_entry {
 	u8 ccti_min; /* min CCTI for cc table */
 } __packed;
 
-struct opa_congestion_setting_entry_shadow {
+struct opa_congestion_setting_entry_shadow
+{
 	u8 ccti_increase;
 	u8 reserved;
 	u16 ccti_timer;
@@ -283,13 +301,15 @@ struct opa_congestion_setting_entry_shadow {
 	u8 ccti_min; /* min CCTI for cc table */
 } __packed;
 
-struct opa_congestion_setting_attr {
+struct opa_congestion_setting_attr
+{
 	__be32 control_map;
 	__be16 port_control;
 	struct opa_congestion_setting_entry entries[OPA_MAX_SLS];
 } __packed;
 
-struct opa_congestion_setting_attr_shadow {
+struct opa_congestion_setting_attr_shadow
+{
 	u32 control_map;
 	u16 port_control;
 	struct opa_congestion_setting_entry_shadow entries[OPA_MAX_SLS];
@@ -302,20 +322,24 @@ struct opa_congestion_setting_attr_shadow {
 #define IB_CCT_ENTRIES 64
 #define IB_CCT_MIN_ENTRIES (IB_CCT_ENTRIES * 2)
 
-struct ib_cc_table_entry {
+struct ib_cc_table_entry
+{
 	__be16 entry; /* shift:2, multiplier:14 */
 };
 
-struct ib_cc_table_entry_shadow {
+struct ib_cc_table_entry_shadow
+{
 	u16 entry; /* shift:2, multiplier:14 */
 };
 
-struct ib_cc_table_attr {
+struct ib_cc_table_attr
+{
 	__be16 ccti_limit; /* max CCTI for cc table */
 	struct ib_cc_table_entry ccti_entries[IB_CCT_ENTRIES];
 } __packed;
 
-struct ib_cc_table_attr_shadow {
+struct ib_cc_table_attr_shadow
+{
 	u16 ccti_limit; /* max CCTI for cc table */
 	struct ib_cc_table_entry_shadow ccti_entries[IB_CCT_ENTRIES];
 } __packed;
@@ -323,7 +347,8 @@ struct ib_cc_table_attr_shadow {
 #define CC_TABLE_SHADOW_MAX \
 	(IB_CC_TABLE_CAP_DEFAULT * IB_CCT_ENTRIES)
 
-struct cc_table_shadow {
+struct cc_table_shadow
+{
 	u16 ccti_limit; /* max CCTI for cc table */
 	struct ib_cc_table_entry_shadow entries[CC_TABLE_SHADOW_MAX];
 } __packed;
@@ -334,7 +359,8 @@ struct cc_table_shadow {
  * may need to be read in code paths that we want to be fast, so it
  * is an RCU protected structure.
  */
-struct cc_state {
+struct cc_state
+{
 	struct rcu_head rcu;
 	struct cc_table_shadow cct;
 	struct opa_congestion_setting_attr_shadow cong_setting;
@@ -349,68 +375,71 @@ struct cc_state {
 #define OPA_AM_NPORT_MASK	0xff
 #define OPA_AM_NPORT_SMASK	(OPA_AM_NPORT_MASK << OPA_AM_NPORT_SHIFT)
 #define OPA_AM_NPORT(am)	(((am) >> OPA_AM_NPORT_SHIFT) & \
-					OPA_AM_NPORT_MASK)
+							 OPA_AM_NPORT_MASK)
 
 #define OPA_AM_NBLK_SHIFT	24
 #define OPA_AM_NBLK_MASK	0xff
 #define OPA_AM_NBLK_SMASK	(OPA_AM_NBLK_MASK << OPA_AM_NBLK_SHIFT)
 #define OPA_AM_NBLK(am)		(((am) >> OPA_AM_NBLK_SHIFT) & \
-					OPA_AM_NBLK_MASK)
+							 OPA_AM_NBLK_MASK)
 
 #define OPA_AM_START_BLK_SHIFT	0
 #define OPA_AM_START_BLK_MASK	0xff
 #define OPA_AM_START_BLK_SMASK	(OPA_AM_START_BLK_MASK << \
-					OPA_AM_START_BLK_SHIFT)
+								 OPA_AM_START_BLK_SHIFT)
 #define OPA_AM_START_BLK(am)	(((am) >> OPA_AM_START_BLK_SHIFT) & \
-					OPA_AM_START_BLK_MASK)
+								 OPA_AM_START_BLK_MASK)
 
 #define OPA_AM_PORTNUM_SHIFT	0
 #define OPA_AM_PORTNUM_MASK	0xff
 #define OPA_AM_PORTNUM_SMASK	(OPA_AM_PORTNUM_MASK << OPA_AM_PORTNUM_SHIFT)
 #define OPA_AM_PORTNUM(am)	(((am) >> OPA_AM_PORTNUM_SHIFT) & \
-					OPA_AM_PORTNUM_MASK)
+							 OPA_AM_PORTNUM_MASK)
 
 #define OPA_AM_ASYNC_SHIFT	12
 #define OPA_AM_ASYNC_MASK	0x1
 #define OPA_AM_ASYNC_SMASK	(OPA_AM_ASYNC_MASK << OPA_AM_ASYNC_SHIFT)
 #define OPA_AM_ASYNC(am)	(((am) >> OPA_AM_ASYNC_SHIFT) & \
-					OPA_AM_ASYNC_MASK)
+							 OPA_AM_ASYNC_MASK)
 
 #define OPA_AM_START_SM_CFG_SHIFT	9
 #define OPA_AM_START_SM_CFG_MASK	0x1
 #define OPA_AM_START_SM_CFG_SMASK	(OPA_AM_START_SM_CFG_MASK << \
-						OPA_AM_START_SM_CFG_SHIFT)
+									 OPA_AM_START_SM_CFG_SHIFT)
 #define OPA_AM_START_SM_CFG(am)		(((am) >> OPA_AM_START_SM_CFG_SHIFT) \
-						& OPA_AM_START_SM_CFG_MASK)
+									 & OPA_AM_START_SM_CFG_MASK)
 
 #define OPA_AM_CI_ADDR_SHIFT	19
 #define OPA_AM_CI_ADDR_MASK	0xfff
 #define OPA_AM_CI_ADDR_SMASK	(OPA_AM_CI_ADDR_MASK << OPA_CI_ADDR_SHIFT)
 #define OPA_AM_CI_ADDR(am)	(((am) >> OPA_AM_CI_ADDR_SHIFT) & \
-					OPA_AM_CI_ADDR_MASK)
+							 OPA_AM_CI_ADDR_MASK)
 
 #define OPA_AM_CI_LEN_SHIFT	13
 #define OPA_AM_CI_LEN_MASK	0x3f
 #define OPA_AM_CI_LEN_SMASK	(OPA_AM_CI_LEN_MASK << OPA_CI_LEN_SHIFT)
 #define OPA_AM_CI_LEN(am)	(((am) >> OPA_AM_CI_LEN_SHIFT) & \
-					OPA_AM_CI_LEN_MASK)
+							 OPA_AM_CI_LEN_MASK)
 
 /* error info macros */
 #define OPA_EI_STATUS_SMASK	0x80
 #define OPA_EI_CODE_SMASK	0x0f
 
-struct vl_limit {
+struct vl_limit
+{
 	__be16 dedicated;
 	__be16 shared;
 };
 
-struct buffer_control {
+struct buffer_control
+{
 	__be16 reserved;
 	__be16 overall_shared_limit;
 	struct vl_limit vl[OPA_MAX_VLS];
 };
 
-struct sc2vlnt {
+struct sc2vlnt
+{
 	u8 vlnt[32]; /* 5 bit VL, 3 bits reserved */
 };
 
@@ -422,10 +451,10 @@ struct sc2vlnt {
 #define COUNTER_MASK(q, n) (q << ((9 - n) * 3))
 #define COUNTER_MASK0_9 \
 	cpu_to_be32(COUNTER_MASK(1, 0) | \
-		    COUNTER_MASK(1, 1) | \
-		    COUNTER_MASK(1, 2) | \
-		    COUNTER_MASK(1, 3) | \
-		    COUNTER_MASK(1, 4))
+				COUNTER_MASK(1, 1) | \
+				COUNTER_MASK(1, 2) | \
+				COUNTER_MASK(1, 3) | \
+				COUNTER_MASK(1, 4))
 
 void hfi1_event_pkey_change(struct hfi1_devdata *dd, u8 port);
 

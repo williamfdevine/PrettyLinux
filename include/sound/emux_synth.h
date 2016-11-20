@@ -26,7 +26,7 @@
 #include <sound/soundfont.h>
 #include <sound/seq_midi_emul.h>
 #ifdef CONFIG_SND_SEQUENCER_OSS
-#include <sound/seq_oss.h>
+	#include <sound/seq_oss.h>
 #endif
 #include <sound/emux_legacy.h>
 #include <sound/seq_virmidi.h>
@@ -44,10 +44,11 @@ struct snd_emux_effect_table;
 /*
  * operators
  */
-struct snd_emux_operators {
+struct snd_emux_operators
+{
 	struct module *owner;
 	struct snd_emux_voice *(*get_voice)(struct snd_emux *emu,
-					    struct snd_emux_port *port);
+										struct snd_emux_port *port);
 	int (*prepare)(struct snd_emux_voice *vp);
 	void (*trigger)(struct snd_emux_voice *vp);
 	void (*release)(struct snd_emux_voice *vp);
@@ -57,15 +58,15 @@ struct snd_emux_operators {
 	void (*reset)(struct snd_emux *emu, int ch);
 	/* the first parameters are struct snd_emux */
 	int (*sample_new)(struct snd_emux *emu, struct snd_sf_sample *sp,
-			  struct snd_util_memhdr *hdr,
-			  const void __user *data, long count);
+					  struct snd_util_memhdr *hdr,
+					  const void __user *data, long count);
 	int (*sample_free)(struct snd_emux *emu, struct snd_sf_sample *sp,
-			   struct snd_util_memhdr *hdr);
+					   struct snd_util_memhdr *hdr);
 	void (*sample_reset)(struct snd_emux *emu);
 	int (*load_fx)(struct snd_emux *emu, int type, int arg,
-		       const void __user *data, long count);
+				   const void __user *data, long count);
 	void (*sysex)(struct snd_emux *emu, char *buf, int len, int parsed,
-		      struct snd_midi_channel_set *chset);
+				  struct snd_midi_channel_set *chset);
 #ifdef CONFIG_SND_SEQUENCER_OSS
 	int (*oss_ioctl)(struct snd_emux *emu, int cmd, int p1, int p2);
 #endif
@@ -89,7 +90,8 @@ struct snd_emux_operators {
 /*
  * emuX wavetable
  */
-struct snd_emux {
+struct snd_emux
+{
 
 	struct snd_card *card;	/* assigned card */
 
@@ -138,7 +140,8 @@ struct snd_emux {
 /*
  * sequencer port information
  */
-struct snd_emux_port {
+struct snd_emux_port
+{
 
 	struct snd_midi_channel_set chset;
 	struct snd_emux *emu;
@@ -163,7 +166,8 @@ struct snd_emux_port {
 /*
  * A structure to keep track of each hardware voice
  */
-struct snd_emux_voice {
+struct snd_emux_voice
+{
 	int  ch;		/* Hardware channel number */
 
 	int  state;		/* status */
@@ -187,7 +191,7 @@ struct snd_emux_voice {
 	struct snd_emux *emu;	/* assigned root info */
 	void *hw;		/* hardware pointer (emu8000 or emu10k1) */
 	unsigned long ontime;	/* jiffies at note triggered */
-	
+
 	/* Emu8k/Emu10k1 registers */
 	struct soundfont_voice_info reg;
 
@@ -219,7 +223,8 @@ struct snd_emux_voice {
 /*
  * effect table
  */
-struct snd_emux_effect_table {
+struct snd_emux_effect_table
+{
 	/* Emu8000 specific effects */
 	short val[EMUX_NUM_EFFECTS];
 	unsigned char flag[EMUX_NUM_EFFECTS];

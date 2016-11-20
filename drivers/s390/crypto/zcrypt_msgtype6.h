@@ -44,7 +44,8 @@
  *
  * Note that all reserved fields must be zeroes.
  */
-struct type6_hdr {
+struct type6_hdr
+{
 	unsigned char reserved1;	/* 0x00				*/
 	unsigned char type;		/* 0x06				*/
 	unsigned char reserved2[2];	/* 0x0000			*/
@@ -57,12 +58,12 @@ struct type6_hdr {
 	unsigned int  offset3;		/* 0x00000000			*/
 	unsigned int  offset4;		/* 0x00000000			*/
 	unsigned char agent_id[16];	/* PCICC:			*/
-					/*    0x0100			*/
-					/*    0x4343412d4150504c202020	*/
-					/*    0x010101			*/
-					/* PCIXCC:			*/
-					/*    0x4341000000000000	*/
-					/*    0x0000000000000000	*/
+	/*    0x0100			*/
+	/*    0x4343412d4150504c202020	*/
+	/*    0x010101			*/
+	/* PCIXCC:			*/
+	/*    0x4341000000000000	*/
+	/*    0x0000000000000000	*/
 	unsigned char rqid[2];		/* rqid.  internal to 603	*/
 	unsigned char reserved5[2];	/* 0x0000			*/
 	unsigned char function_code[2];	/* for PKD, 0x5044 (ascii 'PD')	*/
@@ -90,7 +91,8 @@ struct type6_hdr {
  *
  * Note that all reserved fields must be zeroes.
  */
-struct type86_hdr {
+struct type86_hdr
+{
 	unsigned char reserved1;	/* 0x00				*/
 	unsigned char type;		/* 0x86				*/
 	unsigned char format;		/* 0x01 (error) or 0x02 (ok)	*/
@@ -103,7 +105,8 @@ struct type86_hdr {
 #define TYPE87_RSP_CODE 0x87
 #define TYPE86_FMT2	0x02
 
-struct type86_fmt2_ext {
+struct type86_fmt2_ext
+{
 	unsigned char	  reserved[4];	/* 0x00000000			*/
 	unsigned char	  apfs[4];	/* final status			*/
 	unsigned int	  count1;	/* length of CPRB + parameters	*/
@@ -123,10 +126,11 @@ struct type86_fmt2_ext {
  * @ap_msg: pointer to AP message
  */
 static inline void rng_type6CPRB_msgX(struct ap_device *ap_dev,
-			       struct ap_message *ap_msg,
-			       unsigned random_number_length)
+									  struct ap_message *ap_msg,
+									  unsigned random_number_length)
 {
-	struct {
+	struct
+	{
 		struct type6_hdr hdr;
 		struct CPRBX cprbx;
 		char function_code[2];
@@ -134,8 +138,9 @@ static inline void rng_type6CPRB_msgX(struct ap_device *ap_dev,
 		char rule[8];
 		short int verb_length;
 		short int key_length;
-	} __packed * msg = ap_msg->message;
-	static struct type6_hdr static_type6_hdrX = {
+	} __packed *msg = ap_msg->message;
+	static struct type6_hdr static_type6_hdrX =
+	{
 		.type		= 0x06,
 		.offset1	= 0x00000058,
 		.agent_id	= {'C', 'A'},
@@ -143,20 +148,21 @@ static inline void rng_type6CPRB_msgX(struct ap_device *ap_dev,
 		.ToCardLen1	= sizeof(*msg) - sizeof(msg->hdr),
 		.FromCardLen1	= sizeof(*msg) - sizeof(msg->hdr),
 	};
-	static struct CPRBX local_cprbx = {
+	static struct CPRBX local_cprbx =
+	{
 		.cprb_len	= 0x00dc,
 		.cprb_ver_id	= 0x02,
 		.func_id	= {0x54, 0x32},
 		.req_parml	= sizeof(*msg) - sizeof(msg->hdr) -
-				  sizeof(msg->cprbx),
+		sizeof(msg->cprbx),
 		.rpl_msgbl	= sizeof(*msg) - sizeof(msg->hdr),
 	};
 
 	msg->hdr = static_type6_hdrX;
 	msg->hdr.FromCardLen2 = random_number_length,
-	msg->cprbx = local_cprbx;
+			 msg->cprbx = local_cprbx;
 	msg->cprbx.rpl_datal = random_number_length,
-	msg->cprbx.domain = AP_QID_QUEUE(ap_dev->qid);
+			   msg->cprbx.domain = AP_QID_QUEUE(ap_dev->qid);
 	memcpy(msg->function_code, msg->hdr.function_code, 0x02);
 	msg->rule_length = 0x0a;
 	memcpy(msg->rule, "RANDOM  ", 8);

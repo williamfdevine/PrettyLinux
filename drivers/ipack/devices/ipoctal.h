@@ -30,7 +30,8 @@
  * @framing_err: Number of framing errors
  * @rcv_break: Number of break received
  */
-struct ipoctal_stats {
+struct ipoctal_stats
+{
 	unsigned long tx;
 	unsigned long rx;
 	unsigned long overrun_err;

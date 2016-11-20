@@ -33,7 +33,7 @@
 #define HEIGHT		320
 #define TXBUFLEN	(4 * PAGE_SIZE)
 #define DEFAULT_GAMMA	"1F 1A 18 0A 0F 06 45 87 32 0A 07 02 07 05 00\n" \
-			"00 25 27 05 10 09 3A 78 4D 05 18 0D 38 3A 1F"
+	"00 25 27 05 10 09 3A 78 4D 05 18 0D 38 3A 1F"
 
 static int init_display(struct fbtft_par *par)
 {
@@ -77,10 +77,10 @@ static int init_display(struct fbtft_par *par)
 static void set_addr_win(struct fbtft_par *par, int xs, int ys, int xe, int ye)
 {
 	write_reg(par, MIPI_DCS_SET_COLUMN_ADDRESS,
-		  (xs >> 8) & 0xFF, xs & 0xFF, (xe >> 8) & 0xFF, xe & 0xFF);
+			  (xs >> 8) & 0xFF, xs & 0xFF, (xe >> 8) & 0xFF, xe & 0xFF);
 
 	write_reg(par, MIPI_DCS_SET_PAGE_ADDRESS,
-		  (ys >> 8) & 0xFF, ys & 0xFF, (ye >> 8) & 0xFF, ye & 0xFF);
+			  (ys >> 8) & 0xFF, ys & 0xFF, (ye >> 8) & 0xFF, ye & 0xFF);
 
 	write_reg(par, MIPI_DCS_WRITE_MEMORY_START);
 }
@@ -93,23 +93,27 @@ static void set_addr_win(struct fbtft_par *par, int xs, int ys, int xe, int ye)
 #define MEM_BGR (3) /* RGB-BGR Order */
 static int set_var(struct fbtft_par *par)
 {
-	switch (par->info->var.rotate) {
-	case 0:
-		write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
-			  MEM_X | (par->bgr << MEM_BGR));
-		break;
-	case 270:
-		write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
-			  MEM_V | MEM_L | (par->bgr << MEM_BGR));
-		break;
-	case 180:
-		write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
-			  MEM_Y | (par->bgr << MEM_BGR));
-		break;
-	case 90:
-		write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
-			  MEM_Y | MEM_X | MEM_V | (par->bgr << MEM_BGR));
-		break;
+	switch (par->info->var.rotate)
+	{
+		case 0:
+			write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
+					  MEM_X | (par->bgr << MEM_BGR));
+			break;
+
+		case 270:
+			write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
+					  MEM_V | MEM_L | (par->bgr << MEM_BGR));
+			break;
+
+		case 180:
+			write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
+					  MEM_Y | (par->bgr << MEM_BGR));
+			break;
+
+		case 90:
+			write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
+					  MEM_Y | MEM_X | MEM_V | (par->bgr << MEM_BGR));
+			break;
 	}
 
 	return 0;
@@ -127,18 +131,19 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 
 	for (i = 0; i < par->gamma.num_curves; i++)
 		write_reg(par, 0xE0 + i,
-			  CURVE(i, 0), CURVE(i, 1), CURVE(i, 2),
-			  CURVE(i, 3), CURVE(i, 4), CURVE(i, 5),
-			  CURVE(i, 6), CURVE(i, 7), CURVE(i, 8),
-			  CURVE(i, 9), CURVE(i, 10), CURVE(i, 11),
-			  CURVE(i, 12), CURVE(i, 13), CURVE(i, 14));
+				  CURVE(i, 0), CURVE(i, 1), CURVE(i, 2),
+				  CURVE(i, 3), CURVE(i, 4), CURVE(i, 5),
+				  CURVE(i, 6), CURVE(i, 7), CURVE(i, 8),
+				  CURVE(i, 9), CURVE(i, 10), CURVE(i, 11),
+				  CURVE(i, 12), CURVE(i, 13), CURVE(i, 14));
 
 	return 0;
 }
 
 #undef CURVE
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 8,
 	.width = WIDTH,
 	.height = HEIGHT,

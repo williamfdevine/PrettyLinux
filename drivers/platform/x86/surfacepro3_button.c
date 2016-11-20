@@ -56,14 +56,16 @@ MODULE_LICENSE("GPL v2");
  * will be created, nor i2c_client will be enumerated, we have to use
  * acpi_driver.
  */
-static const struct acpi_device_id surface_button_device_ids[] = {
+static const struct acpi_device_id surface_button_device_ids[] =
+{
 	{SURFACE_PRO3_BUTTON_HID,    0},
 	{SURFACE_PRO4_BUTTON_HID,    0},
 	{"", 0},
 };
 MODULE_DEVICE_TABLE(acpi, surface_button_device_ids);
 
-struct surface_button {
+struct surface_button
+{
 	unsigned int type;
 	struct input_dev *input;
 	char phys[32];			/* for input device */
@@ -78,51 +80,72 @@ static void surface_button_notify(struct acpi_device *device, u32 event)
 	int key_code = KEY_RESERVED;
 	bool pressed = false;
 
-	switch (event) {
-	/* Power button press,release handle */
-	case SURFACE_BUTTON_NOTIFY_PRESS_POWER:
-		pressed = true;
+	switch (event)
+	{
+		/* Power button press,release handle */
+		case SURFACE_BUTTON_NOTIFY_PRESS_POWER:
+			pressed = true;
+
 		/*fall through*/
-	case SURFACE_BUTTON_NOTIFY_RELEASE_POWER:
-		key_code = KEY_POWER;
-		break;
-	/* Home button press,release handle */
-	case SURFACE_BUTTON_NOTIFY_PRESS_HOME:
-		pressed = true;
+		case SURFACE_BUTTON_NOTIFY_RELEASE_POWER:
+			key_code = KEY_POWER;
+			break;
+
+		/* Home button press,release handle */
+		case SURFACE_BUTTON_NOTIFY_PRESS_HOME:
+			pressed = true;
+
 		/*fall through*/
-	case SURFACE_BUTTON_NOTIFY_RELEASE_HOME:
-		key_code = KEY_LEFTMETA;
-		break;
-	/* Volume up button press,release handle */
-	case SURFACE_BUTTON_NOTIFY_PRESS_VOLUME_UP:
-		pressed = true;
+		case SURFACE_BUTTON_NOTIFY_RELEASE_HOME:
+			key_code = KEY_LEFTMETA;
+			break;
+
+		/* Volume up button press,release handle */
+		case SURFACE_BUTTON_NOTIFY_PRESS_VOLUME_UP:
+			pressed = true;
+
 		/*fall through*/
-	case SURFACE_BUTTON_NOTIFY_RELEASE_VOLUME_UP:
-		key_code = KEY_VOLUMEUP;
-		break;
-	/* Volume down button press,release handle */
-	case SURFACE_BUTTON_NOTIFY_PRESS_VOLUME_DOWN:
-		pressed = true;
+		case SURFACE_BUTTON_NOTIFY_RELEASE_VOLUME_UP:
+			key_code = KEY_VOLUMEUP;
+			break;
+
+		/* Volume down button press,release handle */
+		case SURFACE_BUTTON_NOTIFY_PRESS_VOLUME_DOWN:
+			pressed = true;
+
 		/*fall through*/
-	case SURFACE_BUTTON_NOTIFY_RELEASE_VOLUME_DOWN:
-		key_code = KEY_VOLUMEDOWN;
-		break;
-	case SURFACE_BUTTON_NOTIFY_TABLET_MODE:
-		dev_warn_once(&device->dev, "Tablet mode is not supported\n");
-		break;
-	default:
-		dev_info_ratelimited(&device->dev,
-				     "Unsupported event [0x%x]\n", event);
-		break;
+		case SURFACE_BUTTON_NOTIFY_RELEASE_VOLUME_DOWN:
+			key_code = KEY_VOLUMEDOWN;
+			break;
+
+		case SURFACE_BUTTON_NOTIFY_TABLET_MODE:
+			dev_warn_once(&device->dev, "Tablet mode is not supported\n");
+			break;
+
+		default:
+			dev_info_ratelimited(&device->dev,
+								 "Unsupported event [0x%x]\n", event);
+			break;
 	}
+
 	input = button->input;
+
 	if (key_code == KEY_RESERVED)
+	{
 		return;
+	}
+
 	if (pressed)
+	{
 		pm_wakeup_event(&device->dev, 0);
+	}
+
 	if (button->suspended)
+	{
 		return;
-	input_report_key(input, key_code, pressed?1:0);
+	}
+
+	input_report_key(input, key_code, pressed ? 1 : 0);
 	input_sync(input);
 }
 
@@ -155,16 +178,23 @@ static int surface_button_add(struct acpi_device *device)
 	int error;
 
 	if (strncmp(acpi_device_bid(device), SURFACE_BUTTON_OBJ_NAME,
-	    strlen(SURFACE_BUTTON_OBJ_NAME)))
+				strlen(SURFACE_BUTTON_OBJ_NAME)))
+	{
 		return -ENODEV;
+	}
 
 	button = kzalloc(sizeof(struct surface_button), GFP_KERNEL);
+
 	if (!button)
+	{
 		return -ENOMEM;
+	}
 
 	device->driver_data = button;
 	button->input = input = input_allocate_device();
-	if (!input) {
+
+	if (!input)
+	{
 		error = -ENOMEM;
 		goto err_free_button;
 	}
@@ -183,15 +213,19 @@ static int surface_button_add(struct acpi_device *device)
 	input_set_capability(input, EV_KEY, KEY_VOLUMEDOWN);
 
 	error = input_register_device(input);
+
 	if (error)
+	{
 		goto err_free_input;
+	}
+
 	dev_info(&device->dev,
-			"%s [%s]\n", name, acpi_device_bid(device));
+			 "%s [%s]\n", name, acpi_device_bid(device));
 	return 0;
 
- err_free_input:
+err_free_input:
 	input_free_device(input);
- err_free_button:
+err_free_button:
 	kfree(button);
 	return error;
 }
@@ -206,9 +240,10 @@ static int surface_button_remove(struct acpi_device *device)
 }
 
 static SIMPLE_DEV_PM_OPS(surface_button_pm,
-		surface_button_suspend, surface_button_resume);
+						 surface_button_suspend, surface_button_resume);
 
-static struct acpi_driver surface_button_driver = {
+static struct acpi_driver surface_button_driver =
+{
 	.name = "surface_pro3_button",
 	.class = "SurfacePro3",
 	.ids = surface_button_device_ids,

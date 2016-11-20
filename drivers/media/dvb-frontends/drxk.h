@@ -32,7 +32,8 @@
  * On the *_gpio vars, bit 0 is UIO-1, bit 1 is UIO-2 and bit 2 is
  * UIO-3.
  */
-struct drxk_config {
+struct drxk_config
+{
 	u8	adr;
 	bool	single_master;
 	bool	no_i2c_bridge;
@@ -52,13 +53,13 @@ struct drxk_config {
 
 #if IS_REACHABLE(CONFIG_DVB_DRXK)
 extern struct dvb_frontend *drxk_attach(const struct drxk_config *config,
-					struct i2c_adapter *i2c);
+										struct i2c_adapter *i2c);
 #else
 static inline struct dvb_frontend *drxk_attach(const struct drxk_config *config,
-					struct i2c_adapter *i2c)
+		struct i2c_adapter *i2c)
 {
-        printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-        return NULL;
+	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+	return NULL;
 }
 #endif
 

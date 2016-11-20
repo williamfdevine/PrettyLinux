@@ -34,12 +34,13 @@
 
 #ifdef CONFIG_SMARTJOYPLUS_FF
 
-struct sjoyff_device {
+struct sjoyff_device
+{
 	struct hid_report *report;
 };
 
 static int hid_sjoyff_play(struct input_dev *dev, void *data,
-			 struct ff_effect *effect)
+						   struct ff_effect *effect)
 {
 	struct hid_device *hid = input_get_drvdata(dev);
 	struct sjoyff_device *sjoyff = data;
@@ -71,40 +72,51 @@ static int sjoyff_init(struct hid_device *hid)
 	struct input_dev *dev;
 	int error;
 
-	if (list_empty(report_list)) {
+	if (list_empty(report_list))
+	{
 		hid_err(hid, "no output reports found\n");
 		return -ENODEV;
 	}
 
-	list_for_each_entry(hidinput, &hid->inputs, list) {
+	list_for_each_entry(hidinput, &hid->inputs, list)
+	{
 		report_ptr = report_ptr->next;
 
-		if (report_ptr == report_list) {
+		if (report_ptr == report_list)
+		{
 			hid_err(hid, "required output report is missing\n");
 			return -ENODEV;
 		}
 
 		report = list_entry(report_ptr, struct hid_report, list);
-		if (report->maxfield < 1) {
+
+		if (report->maxfield < 1)
+		{
 			hid_err(hid, "no fields in the report\n");
 			return -ENODEV;
 		}
 
-		if (report->field[0]->report_count < 3) {
+		if (report->field[0]->report_count < 3)
+		{
 			hid_err(hid, "not enough values in the field\n");
 			return -ENODEV;
 		}
 
 		sjoyff = kzalloc(sizeof(struct sjoyff_device), GFP_KERNEL);
+
 		if (!sjoyff)
+		{
 			return -ENOMEM;
+		}
 
 		dev = hidinput->input;
 
 		set_bit(FF_RUMBLE, dev->ffbit);
 
 		error = input_ff_create_memless(dev, sjoyff, hid_sjoyff_play);
-		if (error) {
+
+		if (error)
+		{
 			kfree(sjoyff);
 			return error;
 		}
@@ -134,13 +146,17 @@ static int sjoy_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	hdev->quirks |= id->driver_data;
 
 	ret = hid_parse(hdev);
-	if (ret) {
+
+	if (ret)
+	{
 		hid_err(hdev, "parse failed\n");
 		goto err;
 	}
 
 	ret = hid_hw_start(hdev, HID_CONNECT_DEFAULT & ~HID_CONNECT_FF);
-	if (ret) {
+
+	if (ret)
+	{
 		hid_err(hdev, "hw start failed\n");
 		goto err;
 	}
@@ -152,28 +168,40 @@ err:
 	return ret;
 }
 
-static const struct hid_device_id sjoy_devices[] = {
-	{ HID_USB_DEVICE(USB_VENDOR_ID_WISEGROUP_LTD, USB_DEVICE_ID_SUPER_JOY_BOX_3_PRO),
-		.driver_data = HID_QUIRK_NOGET },
-	{ HID_USB_DEVICE(USB_VENDOR_ID_WISEGROUP_LTD, USB_DEVICE_ID_SUPER_DUAL_BOX_PRO),
+static const struct hid_device_id sjoy_devices[] =
+{
+	{
+		HID_USB_DEVICE(USB_VENDOR_ID_WISEGROUP_LTD, USB_DEVICE_ID_SUPER_JOY_BOX_3_PRO),
+		.driver_data = HID_QUIRK_NOGET
+	},
+	{
+		HID_USB_DEVICE(USB_VENDOR_ID_WISEGROUP_LTD, USB_DEVICE_ID_SUPER_DUAL_BOX_PRO),
 		.driver_data = HID_QUIRK_MULTI_INPUT | HID_QUIRK_NOGET |
-			       HID_QUIRK_SKIP_OUTPUT_REPORTS },
-	{ HID_USB_DEVICE(USB_VENDOR_ID_WISEGROUP_LTD, USB_DEVICE_ID_SUPER_JOY_BOX_5_PRO),
+		HID_QUIRK_SKIP_OUTPUT_REPORTS
+	},
+	{
+		HID_USB_DEVICE(USB_VENDOR_ID_WISEGROUP_LTD, USB_DEVICE_ID_SUPER_JOY_BOX_5_PRO),
 		.driver_data = HID_QUIRK_MULTI_INPUT | HID_QUIRK_NOGET |
-			       HID_QUIRK_SKIP_OUTPUT_REPORTS },
+		HID_QUIRK_SKIP_OUTPUT_REPORTS
+	},
 	{ HID_USB_DEVICE(USB_VENDOR_ID_WISEGROUP, USB_DEVICE_ID_SMARTJOY_PLUS) },
 	{ HID_USB_DEVICE(USB_VENDOR_ID_WISEGROUP, USB_DEVICE_ID_SUPER_JOY_BOX_3) },
-	{ HID_USB_DEVICE(USB_VENDOR_ID_WISEGROUP, USB_DEVICE_ID_DUAL_USB_JOYPAD),
+	{
+		HID_USB_DEVICE(USB_VENDOR_ID_WISEGROUP, USB_DEVICE_ID_DUAL_USB_JOYPAD),
 		.driver_data = HID_QUIRK_MULTI_INPUT |
-			       HID_QUIRK_SKIP_OUTPUT_REPORTS },
-	{ HID_USB_DEVICE(USB_VENDOR_ID_PLAYDOTCOM, USB_DEVICE_ID_PLAYDOTCOM_EMS_USBII),
+		HID_QUIRK_SKIP_OUTPUT_REPORTS
+	},
+	{
+		HID_USB_DEVICE(USB_VENDOR_ID_PLAYDOTCOM, USB_DEVICE_ID_PLAYDOTCOM_EMS_USBII),
 		.driver_data = HID_QUIRK_MULTI_INPUT |
-			       HID_QUIRK_SKIP_OUTPUT_REPORTS },
+		HID_QUIRK_SKIP_OUTPUT_REPORTS
+	},
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, sjoy_devices);
 
-static struct hid_driver sjoy_driver = {
+static struct hid_driver sjoy_driver =
+{
 	.name = "smartjoyplus",
 	.id_table = sjoy_devices,
 	.probe = sjoy_probe,

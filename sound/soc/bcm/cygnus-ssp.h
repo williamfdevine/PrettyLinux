@@ -32,7 +32,8 @@
 /* Max string length of our dt property names */
 #define PROP_LEN_MAX 40
 
-struct ringbuf_regs {
+struct ringbuf_regs
+{
 	unsigned rdaddr;
 	unsigned wraddr;
 	unsigned baseaddr;
@@ -43,31 +44,33 @@ struct ringbuf_regs {
 };
 
 #define RINGBUF_REG_PLAYBACK(num) ((struct ringbuf_regs) { \
-	.rdaddr = SRC_RBUF_ ##num## _RDADDR_OFFSET, \
-	.wraddr = SRC_RBUF_ ##num## _WRADDR_OFFSET, \
-	.baseaddr = SRC_RBUF_ ##num## _BASEADDR_OFFSET, \
-	.endaddr = SRC_RBUF_ ##num## _ENDADDR_OFFSET, \
-	.fmark = SRC_RBUF_ ##num## _FREE_MARK_OFFSET, \
-	.period_bytes = 0, \
-	.buf_size = 0, \
-})
+		.rdaddr = SRC_RBUF_ ##num## _RDADDR_OFFSET, \
+				  .wraddr = SRC_RBUF_ ##num## _WRADDR_OFFSET, \
+							.baseaddr = SRC_RBUF_ ##num## _BASEADDR_OFFSET, \
+										.endaddr = SRC_RBUF_ ##num## _ENDADDR_OFFSET, \
+												.fmark = SRC_RBUF_ ##num## _FREE_MARK_OFFSET, \
+														.period_bytes = 0, \
+																.buf_size = 0, \
+	})
 
 #define RINGBUF_REG_CAPTURE(num) ((struct ringbuf_regs)  { \
-	.rdaddr = DST_RBUF_ ##num## _RDADDR_OFFSET, \
-	.wraddr = DST_RBUF_ ##num## _WRADDR_OFFSET, \
-	.baseaddr = DST_RBUF_ ##num## _BASEADDR_OFFSET, \
-	.endaddr = DST_RBUF_ ##num## _ENDADDR_OFFSET, \
-	.fmark = DST_RBUF_ ##num## _FULL_MARK_OFFSET, \
-	.period_bytes = 0, \
-	.buf_size = 0, \
-})
+		.rdaddr = DST_RBUF_ ##num## _RDADDR_OFFSET, \
+				  .wraddr = DST_RBUF_ ##num## _WRADDR_OFFSET, \
+							.baseaddr = DST_RBUF_ ##num## _BASEADDR_OFFSET, \
+										.endaddr = DST_RBUF_ ##num## _ENDADDR_OFFSET, \
+												.fmark = DST_RBUF_ ##num## _FULL_MARK_OFFSET, \
+														.period_bytes = 0, \
+																.buf_size = 0, \
+	})
 
-enum cygnus_audio_port_type {
+enum cygnus_audio_port_type
+{
 	PORT_TDM,
 	PORT_SPDIF,
 };
 
-struct cygnus_ssp_regs {
+struct cygnus_ssp_regs
+{
 	u32 i2s_stream_cfg;
 	u32 i2s_cfg;
 	u32 i2s_cap_stream_cfg;
@@ -81,14 +84,16 @@ struct cygnus_ssp_regs {
 	u32 bf_sourcech_grp;
 };
 
-struct cygnus_track_clk {
+struct cygnus_track_clk
+{
 	bool cap_en;
 	bool play_en;
 	bool cap_clk_en;
 	bool play_clk_en;
 };
 
-struct cygnus_aio_port {
+struct cygnus_aio_port
+{
 	int portnum;
 	int mode;
 	bool is_slave;
@@ -114,7 +119,8 @@ struct cygnus_aio_port {
 };
 
 
-struct cygnus_audio {
+struct cygnus_audio
+{
 	struct cygnus_aio_port  portinfo[CYGNUS_MAX_PORTS];
 
 	int irq_num;
@@ -130,10 +136,10 @@ struct cygnus_audio {
 extern int cygnus_ssp_get_mode(struct snd_soc_dai *cpu_dai);
 extern int cygnus_ssp_add_pll_tweak_controls(struct snd_soc_pcm_runtime *rtd);
 extern int cygnus_ssp_set_custom_fsync_width(struct snd_soc_dai *cpu_dai,
-						int len);
+		int len);
 extern int cygnus_soc_platform_register(struct device *dev,
-					struct cygnus_audio *cygaud);
+										struct cygnus_audio *cygaud);
 extern int cygnus_soc_platform_unregister(struct device *dev);
 extern int cygnus_ssp_set_custom_fsync_width(struct snd_soc_dai *cpu_dai,
-	int len);
+		int len);
 #endif

@@ -35,7 +35,8 @@
 
 static int debug;
 
-struct stv6110_priv {
+struct stv6110_priv
+{
 	int i2c_address;
 	struct i2c_adapter *i2c;
 
@@ -54,9 +55,13 @@ struct stv6110_priv {
 static s32 abssub(s32 a, s32 b)
 {
 	if (a > b)
+	{
 		return a - b;
+	}
 	else
+	{
 		return b - a;
+	}
 };
 
 static int stv6110_release(struct dvb_frontend *fe)
@@ -67,12 +72,13 @@ static int stv6110_release(struct dvb_frontend *fe)
 }
 
 static int stv6110_write_regs(struct dvb_frontend *fe, u8 buf[],
-							int start, int len)
+							  int start, int len)
 {
 	struct stv6110_priv *priv = fe->tuner_priv;
 	int rc;
 	u8 cmdbuf[MAX_XFER_SIZE];
-	struct i2c_msg msg = {
+	struct i2c_msg msg =
+	{
 		.addr	= priv->i2c_address,
 		.flags	= 0,
 		.buf	= cmdbuf,
@@ -81,39 +87,50 @@ static int stv6110_write_regs(struct dvb_frontend *fe, u8 buf[],
 
 	dprintk("%s\n", __func__);
 
-	if (1 + len > sizeof(cmdbuf)) {
+	if (1 + len > sizeof(cmdbuf))
+	{
 		printk(KERN_WARNING
-		       "%s: i2c wr: len=%d is too big!\n",
-		       KBUILD_MODNAME, len);
+			   "%s: i2c wr: len=%d is too big!\n",
+			   KBUILD_MODNAME, len);
 		return -EINVAL;
 	}
 
 	if (start + len > 8)
+	{
 		return -EINVAL;
+	}
 
 	memcpy(&cmdbuf[1], buf, len);
 	cmdbuf[0] = start;
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
 
 	rc = i2c_transfer(priv->i2c, &msg, 1);
+
 	if (rc != 1)
+	{
 		dprintk("%s: i2c error\n", __func__);
+	}
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	return 0;
 }
 
 static int stv6110_read_regs(struct dvb_frontend *fe, u8 regs[],
-							int start, int len)
+							 int start, int len)
 {
 	struct stv6110_priv *priv = fe->tuner_priv;
 	int rc;
 	u8 reg[] = { start };
-	struct i2c_msg msg[] = {
+	struct i2c_msg msg[] =
+	{
 		{
 			.addr	= priv->i2c_address,
 			.flags	= 0,
@@ -128,14 +145,21 @@ static int stv6110_read_regs(struct dvb_frontend *fe, u8 regs[],
 	};
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
 
 	rc = i2c_transfer(priv->i2c, msg, 2);
+
 	if (rc != 2)
+	{
 		dprintk("%s: i2c error\n", __func__);
+	}
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	memcpy(&priv->regs[start], regs, len);
 
@@ -162,16 +186,19 @@ static u32 carrier_width(u32 symbol_rate, enum fe_rolloff rolloff)
 {
 	u32 rlf;
 
-	switch (rolloff) {
-	case ROLLOFF_20:
-		rlf = 20;
-		break;
-	case ROLLOFF_25:
-		rlf = 25;
-		break;
-	default:
-		rlf = 35;
-		break;
+	switch (rolloff)
+	{
+		case ROLLOFF_20:
+			rlf = 20;
+			break;
+
+		case ROLLOFF_25:
+			rlf = 25;
+			break;
+
+		default:
+			rlf = 35;
+			break;
 	}
 
 	return symbol_rate  + ((symbol_rate * rlf) / 100);
@@ -184,11 +211,17 @@ static int stv6110_set_bandwidth(struct dvb_frontend *fe, u32 bandwidth)
 	int i;
 
 	if ((bandwidth / 2) > 36000000) /*BW/2 max=31+5=36 mhz for r8=31*/
+	{
 		r8 = 31;
+	}
 	else if ((bandwidth / 2) < 5000000) /* BW/2 min=5Mhz for F=0 */
+	{
 		r8 = 0;
+	}
 	else /*if 5 < BW/2 < 36*/
+	{
 		r8 = (bandwidth / 2) / 1000000 - 5;
+	}
 
 	/* ctrl3, RCCLKOFF = 0 Activate the calibration Clock */
 	/* ctrl3, CF = r8 Set the LPF value */
@@ -200,8 +233,10 @@ static int stv6110_set_bandwidth(struct dvb_frontend *fe, u32 bandwidth)
 	stv6110_write_regs(fe, &priv->regs[RSTV6110_STAT1], RSTV6110_STAT1, 1);
 
 	i = 0;
+
 	/* Wait for CALRCSTRT == 0 */
-	while ((i < 10) && (ret != 0)) {
+	while ((i < 10) && (ret != 0))
+	{
 		ret = ((stv6110_read_reg(fe, RSTV6110_STAT1)) & 0x02);
 		mdelay(1);	/* wait for LPF auto calibration */
 		i++;
@@ -222,7 +257,7 @@ static int stv6110_init(struct dvb_frontend *fe)
 	/* K = (Reference / 1000000) - 16 */
 	priv->regs[RSTV6110_CTRL1] &= ~(0x1f << 3);
 	priv->regs[RSTV6110_CTRL1] |=
-				((((priv->mclk / 1000000) - 16) & 0x1f) << 3);
+		((((priv->mclk / 1000000) - 16) & 0x1f) << 3);
 
 	/* divisor value for the output clock */
 	priv->regs[RSTV6110_CTRL2] &= ~0xc0;
@@ -270,37 +305,49 @@ static int stv6110_set_frequency(struct dvb_frontend *fe, u32 frequency)
 	s32 srate;
 
 	dprintk("%s, freq=%d kHz, mclk=%d Hz\n", __func__,
-						frequency, priv->mclk);
+			frequency, priv->mclk);
 
 	/* K = (Reference / 1000000) - 16 */
 	priv->regs[RSTV6110_CTRL1] &= ~(0x1f << 3);
 	priv->regs[RSTV6110_CTRL1] |=
-				((((priv->mclk / 1000000) - 16) & 0x1f) << 3);
+		((((priv->mclk / 1000000) - 16) & 0x1f) << 3);
 
 	/* BB_GAIN = db/2 */
-	if (fe->ops.set_property && fe->ops.get_property) {
+	if (fe->ops.set_property && fe->ops.get_property)
+	{
 		srate = c->symbol_rate;
 		dprintk("%s: Get Frontend parameters: srate=%d\n",
-							__func__, srate);
-	} else
+				__func__, srate);
+	}
+	else
+	{
 		srate = 15000000;
+	}
 
 	priv->regs[RSTV6110_CTRL2] &= ~0x0f;
 	priv->regs[RSTV6110_CTRL2] |= (priv->gain & 0x0f);
 
-	if (frequency <= 1023000) {
+	if (frequency <= 1023000)
+	{
 		p = 1;
 		presc = 0;
-	} else if (frequency <= 1300000) {
+	}
+	else if (frequency <= 1300000)
+	{
 		p = 1;
 		presc = 1;
-	} else if (frequency <= 2046000) {
+	}
+	else if (frequency <= 2046000)
+	{
 		p = 0;
 		presc = 0;
-	} else {
+	}
+	else
+	{
 		p = 0;
 		presc = 1;
 	}
+
 	/* DIV4SEL = p*/
 	priv->regs[RSTV6110_TUNING2] &= ~(1 << 4);
 	priv->regs[RSTV6110_TUNING2] |= (p << 4);
@@ -310,11 +357,16 @@ static int stv6110_set_frequency(struct dvb_frontend *fe, u32 frequency)
 	priv->regs[RSTV6110_TUNING2] |= (presc << 5);
 
 	p_val = (int)(1 << (p + 1)) * 10;/* P = 2 or P = 4 */
-	for (r_div = 0; r_div <= 3; r_div++) {
+
+	for (r_div = 0; r_div <= 3; r_div++)
+	{
 		p_calc = (priv->mclk / 100000);
 		p_calc /= (1 << (r_div + 1));
+
 		if ((abssub(p_calc, p_val)) < (abssub(p_calc_opt, p_val)))
+		{
 			r_div_opt = r_div;
+		}
 
 		p_calc_opt = (priv->mclk / 100000);
 		p_calc_opt /= (1 << (r_div_opt + 1));
@@ -337,11 +389,13 @@ static int stv6110_set_frequency(struct dvb_frontend *fe, u32 frequency)
 	/* CALVCOSTRT = 1 VCO Auto Calibration */
 	priv->regs[RSTV6110_STAT1] |= 0x04;
 	stv6110_write_regs(fe, &priv->regs[RSTV6110_CTRL1],
-						RSTV6110_CTRL1, 8);
+					   RSTV6110_CTRL1, 8);
 
 	i = 0;
+
 	/* Wait for CALVCOSTRT == 0 */
-	while ((i < 10) && (ret != 0)) {
+	while ((i < 10) && (ret != 0))
+	{
 		ret = ((stv6110_read_reg(fe, RSTV6110_STAT1)) & 0x04);
 		msleep(1); /* wait for VCO auto calibration */
 		i++;
@@ -352,7 +406,7 @@ static int stv6110_set_frequency(struct dvb_frontend *fe, u32 frequency)
 
 	vco_freq = divider * ((priv->mclk / 1000) / ((1 << (r_div_opt + 1))));
 	dprintk("%s, stat1=%x, lo_freq=%d kHz, vco_frec=%d kHz\n", __func__,
-						ret, result_freq, vco_freq);
+			ret, result_freq, vco_freq);
 
 	return 0;
 }
@@ -382,7 +436,8 @@ static int stv6110_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
 	return 0;
 }
 
-static const struct dvb_tuner_ops stv6110_tuner_ops = {
+static const struct dvb_tuner_ops stv6110_tuner_ops =
+{
 	.info = {
 		.name = "ST STV6110",
 		.frequency_min = 950000,
@@ -401,13 +456,14 @@ static const struct dvb_tuner_ops stv6110_tuner_ops = {
 };
 
 struct dvb_frontend *stv6110_attach(struct dvb_frontend *fe,
-					const struct stv6110_config *config,
-					struct i2c_adapter *i2c)
+									const struct stv6110_config *config,
+									struct i2c_adapter *i2c)
 {
 	struct stv6110_priv *priv = NULL;
 	u8 reg0[] = { 0x00, 0x07, 0x11, 0xdc, 0x85, 0x17, 0x01, 0xe6, 0x1e };
 
-	struct i2c_msg msg[] = {
+	struct i2c_msg msg[] =
+	{
 		{
 			.addr = config->i2c_address,
 			.flags = 0,
@@ -422,19 +478,28 @@ struct dvb_frontend *stv6110_attach(struct dvb_frontend *fe,
 	reg0[2] |= (config->clk_div << 6);
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
 
 	ret = i2c_transfer(i2c, msg, 1);
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	if (ret != 1)
+	{
 		return NULL;
+	}
 
 	priv = kzalloc(sizeof(struct stv6110_priv), GFP_KERNEL);
+
 	if (priv == NULL)
+	{
 		return NULL;
+	}
 
 	priv->i2c_address = config->i2c_address;
 	priv->i2c = i2c;
@@ -445,7 +510,7 @@ struct dvb_frontend *stv6110_attach(struct dvb_frontend *fe,
 	memcpy(&priv->regs, &reg0[1], 8);
 
 	memcpy(&fe->ops.tuner_ops, &stv6110_tuner_ops,
-				sizeof(struct dvb_tuner_ops));
+		   sizeof(struct dvb_tuner_ops));
 	fe->tuner_priv = priv;
 	printk(KERN_INFO "STV6110 attached on addr=%x!\n", priv->i2c_address);
 

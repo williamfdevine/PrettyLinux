@@ -40,7 +40,9 @@ static int no_handler_test(void)
 
 	/* Spin to make sure the event has time to overflow */
 	for (i = 0; i < 1000; i++)
+	{
 		mb();
+	}
 
 	dump_ebb_state();
 
@@ -59,5 +61,5 @@ static int no_handler_test(void)
 
 int main(void)
 {
-	return test_harness(no_handler_test,"no_handler_test");
+	return test_harness(no_handler_test, "no_handler_test");
 }

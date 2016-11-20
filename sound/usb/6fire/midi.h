@@ -16,7 +16,8 @@
 
 #include "common.h"
 
-struct midi_runtime {
+struct midi_runtime
+{
 	struct sfire_chip *chip;
 	struct snd_rawmidi *instance;
 

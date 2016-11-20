@@ -32,7 +32,8 @@
 
 #define FC_ENCAPS_VER       1           /* current version number */
 
-struct fc_encaps_hdr {
+struct fc_encaps_hdr
+{
 	__u8	fc_proto;	/* protocol number */
 	__u8	fc_ver;		/* version of encapsulation */
 	__u8	fc_proto_n;	/* ones complement of protocol */
@@ -68,7 +69,8 @@ struct fc_encaps_hdr {
 /*
  * SOF / EOF bytes.
  */
-enum fc_sof {
+enum fc_sof
+{
 	FC_SOF_F =	0x28,	/* fabric */
 	FC_SOF_I4 =	0x29,	/* initiate class 4 */
 	FC_SOF_I2 =	0x2d,	/* initiate class 2 */
@@ -79,7 +81,8 @@ enum fc_sof {
 	FC_SOF_C4 =	0x39,	/* activate class 4 */
 } __attribute__((packed));
 
-enum fc_eof {
+enum fc_eof
+{
 	FC_EOF_N =	0x41,	/* normal (not last frame of seq) */
 	FC_EOF_T =	0x42,	/* terminate (last frame of sequence) */
 	FC_EOF_RT =	0x44,
@@ -95,7 +98,8 @@ enum fc_eof {
 /*
  * Define classes in terms of the SOF code (initial).
  */
-enum fc_class {
+enum fc_class
+{
 	FC_CLASS_NONE = 0,	/* software value indicating no class */
 	FC_CLASS_2 =	FC_SOF_I2,
 	FC_CLASS_3 =	FC_SOF_I3,

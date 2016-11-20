@@ -67,13 +67,17 @@ static const struct bug_entry *module_find_bug(unsigned long bugaddr)
 	const struct bug_entry *bug = NULL;
 
 	rcu_read_lock_sched();
-	list_for_each_entry_rcu(mod, &module_bug_list, bug_list) {
+	list_for_each_entry_rcu(mod, &module_bug_list, bug_list)
+	{
 		unsigned i;
 
 		bug = mod->bug_table;
+
 		for (i = 0; i < mod->num_bugs; ++i, ++bug)
 			if (bugaddr == bug_addr(bug))
+			{
 				goto out;
+			}
 	}
 	bug = NULL;
 out:
@@ -83,7 +87,7 @@ out:
 }
 
 void module_bug_finalize(const Elf_Ehdr *hdr, const Elf_Shdr *sechdrs,
-			 struct module *mod)
+						 struct module *mod)
 {
 	char *secstrings;
 	unsigned int i;
@@ -95,9 +99,14 @@ void module_bug_finalize(const Elf_Ehdr *hdr, const Elf_Shdr *sechdrs,
 
 	/* Find the __bug_table section, if present */
 	secstrings = (char *)hdr + sechdrs[hdr->e_shstrndx].sh_offset;
-	for (i = 1; i < hdr->e_shnum; i++) {
-		if (strcmp(secstrings+sechdrs[i].sh_name, "__bug_table"))
+
+	for (i = 1; i < hdr->e_shnum; i++)
+	{
+		if (strcmp(secstrings + sechdrs[i].sh_name, "__bug_table"))
+		{
 			continue;
+		}
+
 		mod->bug_table = (void *) sechdrs[i].sh_addr;
 		mod->num_bugs = sechdrs[i].sh_size / sizeof(struct bug_entry);
 		break;
@@ -133,7 +142,9 @@ const struct bug_entry *find_bug(unsigned long bugaddr)
 
 	for (bug = __start___bug_table; bug < __stop___bug_table; ++bug)
 		if (bugaddr == bug_addr(bug))
+		{
 			return bug;
+		}
 
 	return module_find_bug(bugaddr);
 }
@@ -145,7 +156,9 @@ enum bug_trap_type report_bug(unsigned long bugaddr, struct pt_regs *regs)
 	unsigned line, warning;
 
 	if (!is_valid_bugaddr(bugaddr))
+	{
 		return BUG_TRAP_TYPE_NONE;
+	}
 
 	bug = find_bug(bugaddr);
 
@@ -153,7 +166,8 @@ enum bug_trap_type report_bug(unsigned long bugaddr, struct pt_regs *regs)
 	line = 0;
 	warning = 0;
 
-	if (bug) {
+	if (bug)
+	{
 #ifdef CONFIG_DEBUG_BUGVERBOSE
 #ifndef CONFIG_GENERIC_BUG_RELATIVE_POINTERS
 		file = bug->file;
@@ -165,20 +179,23 @@ enum bug_trap_type report_bug(unsigned long bugaddr, struct pt_regs *regs)
 		warning = (bug->flags & BUGFLAG_WARNING) != 0;
 	}
 
-	if (warning) {
+	if (warning)
+	{
 		/* this is a WARN_ON rather than BUG/BUG_ON */
 		__warn(file, line, (void *)bugaddr, BUG_GET_TAINT(bug), regs,
-		       NULL);
+			   NULL);
 		return BUG_TRAP_TYPE_WARN;
 	}
 
 	printk(KERN_DEFAULT "------------[ cut here ]------------\n");
 
 	if (file)
+	{
 		pr_crit("kernel BUG at %s:%u!\n", file, line);
+	}
 	else
 		pr_crit("Kernel BUG at %p [verbose debug info unavailable]\n",
-			(void *)bugaddr);
+				(void *)bugaddr);
 
 	return BUG_TRAP_TYPE_BUG;
 }

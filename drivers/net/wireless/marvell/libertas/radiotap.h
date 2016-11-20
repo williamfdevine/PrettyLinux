@@ -1,6 +1,7 @@
 #include <net/ieee80211_radiotap.h>
 
-struct tx_radiotap_hdr {
+struct tx_radiotap_hdr
+{
 	struct ieee80211_radiotap_header hdr;
 	u8 rate;
 	u8 txpower;
@@ -9,11 +10,11 @@ struct tx_radiotap_hdr {
 } __packed;
 
 #define TX_RADIOTAP_PRESENT (				\
-	(1 << IEEE80211_RADIOTAP_RATE) |		\
-	(1 << IEEE80211_RADIOTAP_DBM_TX_POWER) |	\
-	(1 << IEEE80211_RADIOTAP_RTS_RETRIES) |		\
-	(1 << IEEE80211_RADIOTAP_DATA_RETRIES)  |	\
-	0)
+		(1 << IEEE80211_RADIOTAP_RATE) |		\
+		(1 << IEEE80211_RADIOTAP_DBM_TX_POWER) |	\
+		(1 << IEEE80211_RADIOTAP_RTS_RETRIES) |		\
+		(1 << IEEE80211_RADIOTAP_DATA_RETRIES)  |	\
+		0)
 
 #define IEEE80211_FC_VERSION_MASK    0x0003
 #define IEEE80211_FC_TYPE_MASK       0x000c
@@ -29,7 +30,8 @@ struct tx_radiotap_hdr {
 #define IEEE80211_FC_FROMDS          0x0200
 #define IEEE80211_FC_DSTODS          0x0300
 
-struct rx_radiotap_hdr {
+struct rx_radiotap_hdr
+{
 	struct ieee80211_radiotap_header hdr;
 	u8 flags;
 	u8 rate;
@@ -37,8 +39,8 @@ struct rx_radiotap_hdr {
 } __packed;
 
 #define RX_RADIOTAP_PRESENT (			\
-	(1 << IEEE80211_RADIOTAP_FLAGS) |	\
-	(1 << IEEE80211_RADIOTAP_RATE) |	\
-	(1 << IEEE80211_RADIOTAP_DB_ANTSIGNAL) |\
-	0)
+										(1 << IEEE80211_RADIOTAP_FLAGS) |	\
+										(1 << IEEE80211_RADIOTAP_RATE) |	\
+										(1 << IEEE80211_RADIOTAP_DB_ANTSIGNAL) |\
+										0)
 

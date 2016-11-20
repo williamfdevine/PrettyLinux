@@ -1,14 +1,14 @@
 /*
  * include/linux/cpu.h - generic cpu definition
  *
- * This is mainly for topological representation. We define the 
- * basic 'struct cpu' here, which can be embedded in per-arch 
+ * This is mainly for topological representation. We define the
+ * basic 'struct cpu' here, which can be embedded in per-arch
  * definitions of processors.
  *
  * Basic handling of the devices is done in drivers/base/cpu.c
  *
  * CPUs are exported via sysfs in the devices/system/cpu
- * directory. 
+ * directory.
  */
 #ifndef _LINUX_CPU_H_
 #define _LINUX_CPU_H_
@@ -22,7 +22,8 @@ struct device;
 struct device_node;
 struct attribute_group;
 
-struct cpu {
+struct cpu
+{
 	int node_id;		/* The node which contains the CPU */
 	int hotpluggable;	/* creates sysfs control file if hotpluggable */
 	struct device dev;
@@ -36,7 +37,7 @@ extern struct device *get_cpu_device(unsigned cpu);
 extern bool cpu_is_hotpluggable(unsigned cpu);
 extern bool arch_match_cpu_phys_id(int cpu, u64 phys_id);
 extern bool arch_find_n_match_cpu_physical_id(struct device_node *cpun,
-					      int cpu, unsigned int *thread);
+		int cpu, unsigned int *thread);
 
 extern int cpu_add_dev_attr(struct device_attribute *attr);
 extern void cpu_remove_dev_attr(struct device_attribute *attr);
@@ -46,12 +47,12 @@ extern void cpu_remove_dev_attr_group(struct attribute_group *attrs);
 
 extern __printf(4, 5)
 struct device *cpu_device_create(struct device *parent, void *drvdata,
-				 const struct attribute_group **groups,
-				 const char *fmt, ...);
+								 const struct attribute_group **groups,
+								 const char *fmt, ...);
 #ifdef CONFIG_HOTPLUG_CPU
-extern void unregister_cpu(struct cpu *cpu);
-extern ssize_t arch_cpu_probe(const char *, size_t);
-extern ssize_t arch_cpu_release(const char *, size_t);
+	extern void unregister_cpu(struct cpu *cpu);
+	extern ssize_t arch_cpu_probe(const char *, size_t);
+	extern ssize_t arch_cpu_release(const char *, size_t);
 #endif
 struct notifier_block;
 
@@ -83,16 +84,16 @@ extern bool cpuhp_tasks_frozen;
 /* Need to know about CPUs going up/down? */
 #if defined(CONFIG_HOTPLUG_CPU) || !defined(MODULE)
 #define cpu_notifier(fn, pri) {					\
-	static struct notifier_block fn##_nb =			\
+		static struct notifier_block fn##_nb =			\
 		{ .notifier_call = fn, .priority = pri };	\
-	register_cpu_notifier(&fn##_nb);			\
-}
+		register_cpu_notifier(&fn##_nb);			\
+	}
 
 #define __cpu_notifier(fn, pri) {				\
-	static struct notifier_block fn##_nb =			\
+		static struct notifier_block fn##_nb =			\
 		{ .notifier_call = fn, .priority = pri };	\
-	__register_cpu_notifier(&fn##_nb);			\
-}
+		__register_cpu_notifier(&fn##_nb);			\
+	}
 #else /* #if defined(CONFIG_HOTPLUG_CPU) || !defined(MODULE) */
 #define cpu_notifier(fn, pri)	do { (void)(fn); } while (0)
 #define __cpu_notifier(fn, pri)	do { (void)(fn); } while (0)

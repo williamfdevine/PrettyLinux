@@ -41,13 +41,13 @@
  * or all of the above.
  */
 #ifndef LOGFS_DEBUG
-#define LOGFS_DEBUG		(0)
+	#define LOGFS_DEBUG		(0)
 #endif
 
 #define log_cond(cond, fmt, arg...) do {	\
-	if (cond)				\
-		printk(KERN_DEBUG fmt, ##arg);	\
-} while (0)
+		if (cond)				\
+			printk(KERN_DEBUG fmt, ##arg);	\
+	} while (0)
 
 #define log_super(fmt, arg...) \
 	log_cond(LOGFS_DEBUG & LOGFS_DEBUG_SUPER, fmt, ##arg)
@@ -98,7 +98,7 @@ typedef u8 __bitwise gc_level_t;
 #define GC_LEVEL(gc_level) ((__force gc_level_t)(gc_level))
 
 #define SUBLEVEL(level) ( (void)((level) == LEVEL(1)),	\
-		(__force level_t)((__force u8)(level) - 1) )
+						  (__force level_t)((__force u8)(level) - 1) )
 
 /**
  * struct logfs_area - area management information
@@ -112,7 +112,8 @@ typedef u8 __bitwise gc_level_t;
  * @a_erase_count:		erase count
  * @a_level:			GC level
  */
-struct logfs_area { /* a segment open for writing */
+struct logfs_area   /* a segment open for writing */
+{
 	struct super_block *a_sb;
 	int	a_is_open;
 	u32	a_segno;
@@ -130,7 +131,8 @@ struct logfs_area { /* a segment open for writing */
  * @get_erase_count:		fill area->erase_count (needs area->ofs)
  * @erase_segment:		erase and setup segment
  */
-struct logfs_area_ops {
+struct logfs_area_ops
+{
 	void	(*get_free_segment)(struct logfs_area *area);
 	void	(*get_erase_count)(struct logfs_area *area);
 	int	(*erase_segment)(struct logfs_area *area);
@@ -147,14 +149,15 @@ struct logfs_super;	/* forward */
  * @erase:			erase part of the device
  * @can_write_buf:		decide whether wbuf can be written to ofs
  */
-struct logfs_device_ops {
+struct logfs_device_ops
+{
 	struct page *(*find_first_sb)(struct super_block *sb, u64 *ofs);
 	struct page *(*find_last_sb)(struct super_block *sb, u64 *ofs);
 	int (*write_sb)(struct super_block *sb, struct page *page);
 	int (*readpage)(void *_sb, struct page *page);
 	void (*writeseg)(struct super_block *sb, u64 ofs, size_t len);
 	int (*erase)(struct super_block *sb, loff_t ofs, size_t len,
-			int ensure_write);
+				 int ensure_write);
 	int (*can_write_buf)(struct super_block *sb, u64 ofs);
 	void (*sync)(struct super_block *sb);
 	void (*put_device)(struct logfs_super *s);
@@ -163,7 +166,8 @@ struct logfs_device_ops {
 /**
  * struct candidate_list - list of similar candidates
  */
-struct candidate_list {
+struct candidate_list
+{
 	struct rb_root rb_tree;
 	int count;
 	int maxcount;
@@ -185,7 +189,8 @@ struct candidate_list {
  * short.  It is not required to always pick a perfect candidate.  In the
  * worst case GC will have to move more data than absolutely necessary.
  */
-struct gc_candidate {
+struct gc_candidate
+{
 	struct rb_node rb_node;
 	struct candidate_list *list;
 	u32	segno;
@@ -202,7 +207,8 @@ struct gc_candidate {
  * @len:			length
  * @offset:			offset
  */
-struct logfs_journal_entry {
+struct logfs_journal_entry
+{
 	int used;
 	s16 version;
 	u16 len;
@@ -210,7 +216,8 @@ struct logfs_journal_entry {
 	u64 offset;
 };
 
-enum transaction_state {
+enum transaction_state
+{
 	CREATE_1 = 1,
 	CREATE_2,
 	UNLINK_1,
@@ -229,7 +236,8 @@ enum transaction_state {
  * @dir:			inode of directory containing dentry
  * @pos:			pos of dentry in directory
  */
-struct logfs_transaction {
+struct logfs_transaction
+{
 	enum transaction_state state;
 	u64	 ino;
 	u64	 dir;
@@ -246,7 +254,8 @@ struct logfs_transaction {
  * @new_len:			size of new block, including header
  * @level:			block level
  */
-struct logfs_shadow {
+struct logfs_shadow
+{
 	u64 old_ofs;
 	u64 new_ofs;
 	u64 ino;
@@ -263,14 +272,16 @@ struct logfs_shadow {
  * @segment_map:		bitfield of segments containing shadows
  * @no_shadowed_segment:	number of segments containing shadows
  */
-struct shadow_tree {
+struct shadow_tree
+{
 	struct btree_head64 new;
 	struct btree_head64 old;
 	struct btree_head32 segment_map;
 	int no_shadowed_segments;
 };
 
-struct object_alias_item {
+struct object_alias_item
+{
 	struct list_head list;
 	__be64 val;
 	int child_no;
@@ -291,7 +302,8 @@ struct object_alias_item {
 #define BLOCK_INDIRECT	1	/* Indirect block */
 #define BLOCK_INODE	2	/* Inode */
 struct logfs_block_ops;
-struct logfs_block {
+struct logfs_block
+{
 	struct list_head alias_list;
 	struct list_head item_list;
 	struct super_block *sb;
@@ -309,18 +321,20 @@ struct logfs_block {
 };
 
 typedef int write_alias_t(struct super_block *sb, u64 ino, u64 bix,
-		level_t level, int child_no, __be64 val);
-struct logfs_block_ops {
+						  level_t level, int child_no, __be64 val);
+struct logfs_block_ops
+{
 	void	(*write_block)(struct logfs_block *block);
-	void	(*free_block)(struct super_block *sb, struct logfs_block*block);
+	void	(*free_block)(struct super_block *sb, struct logfs_block *block);
 	int	(*write_alias)(struct super_block *sb,
-			struct logfs_block *block,
-			write_alias_t *write_one_alias);
+					   struct logfs_block *block,
+					   write_alias_t *write_one_alias);
 };
 
 #define MAX_JOURNAL_ENTRIES 256
 
-struct logfs_super {
+struct logfs_super
+{
 	struct mtd_info *s_mtd;			/* underlying device */
 	struct block_device *s_bdev;		/* underlying device */
 	const struct logfs_device_ops *s_devops;/* device access */
@@ -449,7 +463,8 @@ struct logfs_super {
  * @li_flags:			inode flags
  * @li_refcount:		number of internal (GC-induced) references
  */
-struct logfs_inode {
+struct logfs_inode
+{
 	struct inode vfs_inode;
 	u64	li_data[LOGFS_EMBEDDED_FIELDS];
 	u64	li_used_bytes;
@@ -473,12 +488,12 @@ void logfs_compr_exit(void);
 /* dev_bdev.c */
 #ifdef CONFIG_BLOCK
 int logfs_get_sb_bdev(struct logfs_super *s,
-		struct file_system_type *type,
-		const char *devname);
+					  struct file_system_type *type,
+					  const char *devname);
 #else
 static inline int logfs_get_sb_bdev(struct logfs_super *s,
-		struct file_system_type *type,
-		const char *devname)
+									struct file_system_type *type,
+									const char *devname)
 {
 	return -ENODEV;
 }
@@ -535,22 +550,22 @@ void logfs_write_anchor(struct super_block *sb);
 int logfs_init_journal(struct super_block *sb);
 void logfs_cleanup_journal(struct super_block *sb);
 int write_alias_journal(struct super_block *sb, u64 ino, u64 bix,
-		level_t level, int child_no, __be64 val);
+						level_t level, int child_no, __be64 val);
 void do_logfs_journal_wl_pass(struct super_block *sb);
 
 /* readwrite.c */
 pgoff_t logfs_pack_index(u64 bix, level_t level);
 void logfs_unpack_index(pgoff_t index, u64 *bix, level_t *level);
 int logfs_inode_write(struct inode *inode, const void *buf, size_t count,
-		loff_t bix, long flags, struct shadow_tree *shadow_tree);
+					  loff_t bix, long flags, struct shadow_tree *shadow_tree);
 int logfs_readpage_nolock(struct page *page);
 int logfs_write_buf(struct inode *inode, struct page *page, long flags);
 int logfs_delete(struct inode *inode, pgoff_t index,
-		struct shadow_tree *shadow_tree);
+				 struct shadow_tree *shadow_tree);
 int logfs_rewrite_block(struct inode *inode, u64 bix, u64 ofs,
-		gc_level_t gc_level, long flags);
+						gc_level_t gc_level, long flags);
 int logfs_is_valid_block(struct super_block *sb, u64 ofs, u64 ino, u64 bix,
-		gc_level_t gc_level);
+						 gc_level_t gc_level);
 int logfs_truncate(struct inode *inode, u64 size);
 u64 logfs_seek_hole(struct inode *inode, u64 bix);
 u64 logfs_seek_data(struct inode *inode, u64 bix);
@@ -562,18 +577,18 @@ void logfs_del_transaction(struct inode *inode, struct logfs_transaction *ta);
 void logfs_write_block(struct logfs_block *block, long flags);
 int logfs_write_obj_aliases_pagecache(struct super_block *sb);
 void logfs_get_segment_entry(struct super_block *sb, u32 segno,
-		struct logfs_segment_entry *se);
+							 struct logfs_segment_entry *se);
 void logfs_set_segment_used(struct super_block *sb, u64 ofs, int increment);
 void logfs_set_segment_erased(struct super_block *sb, u32 segno, u32 ec,
-		gc_level_t gc_level);
+							  gc_level_t gc_level);
 void logfs_set_segment_reserved(struct super_block *sb, u32 segno);
 void logfs_set_segment_unreserved(struct super_block *sb, u32 segno, u32 ec);
 struct logfs_block *__alloc_block(struct super_block *sb,
-		u64 ino, u64 bix, level_t level);
+								  u64 ino, u64 bix, level_t level);
 void __free_block(struct super_block *sb, struct logfs_block *block);
 void btree_write_block(struct logfs_block *block);
 void initialize_block_counters(struct page *page, struct logfs_block *block,
-		__be64 *array, int page_is_empty);
+							   __be64 *array, int page_is_empty);
 int logfs_exist_block(struct inode *inode, u64 bix);
 int get_page_reserve(struct inode *inode, struct page *page);
 void logfs_get_wblocks(struct super_block *sb, struct page *page, int lock);
@@ -584,12 +599,12 @@ extern const struct logfs_block_ops indirect_block_ops;
 int logfs_erase_segment(struct super_block *sb, u32 ofs, int ensure_erase);
 int wbuf_read(struct super_block *sb, u64 ofs, size_t len, void *buf);
 int logfs_segment_read(struct inode *inode, struct page *page, u64 ofs, u64 bix,
-		level_t level);
+					   level_t level);
 int logfs_segment_write(struct inode *inode, struct page *page,
-		struct logfs_shadow *shadow);
+						struct logfs_shadow *shadow);
 int logfs_segment_delete(struct inode *inode, struct logfs_shadow *shadow);
 int logfs_load_object_aliases(struct super_block *sb,
-		struct logfs_obj_alias *oa, int count);
+							  struct logfs_obj_alias *oa, int count);
 void move_page_to_btree(struct page *page);
 int logfs_init_mapping(struct super_block *sb);
 void logfs_sync_area(struct logfs_area *area);
@@ -602,16 +617,16 @@ int logfs_init_areas(struct super_block *sb);
 void logfs_cleanup_areas(struct super_block *sb);
 int logfs_open_area(struct logfs_area *area, size_t bytes);
 int __logfs_buf_write(struct logfs_area *area, u64 ofs, void *buf, size_t len,
-		int use_filler);
+					  int use_filler);
 
 static inline int logfs_buf_write(struct logfs_area *area, u64 ofs,
-		void *buf, size_t len)
+								  void *buf, size_t len)
 {
 	return __logfs_buf_write(area, ofs, buf, len, 0);
 }
 
 static inline int logfs_buf_recover(struct logfs_area *area, u64 ofs,
-		void *buf, size_t len)
+									void *buf, size_t len)
 {
 	return __logfs_buf_write(area, ofs, buf, len, 1);
 }
@@ -640,18 +655,18 @@ static inline void logfs_set_ro(struct super_block *sb)
 }
 
 #define LOGFS_BUG(sb) do {					\
-	struct super_block *__sb = sb;				\
-	logfs_crash_dump(__sb);					\
-	logfs_super(__sb)->s_flags |= LOGFS_SB_FLAG_RO;		\
-	BUG();							\
-} while (0)
+		struct super_block *__sb = sb;				\
+		logfs_crash_dump(__sb);					\
+		logfs_super(__sb)->s_flags |= LOGFS_SB_FLAG_RO;		\
+		BUG();							\
+	} while (0)
 
 #define LOGFS_BUG_ON(condition, sb) \
 	do { if (unlikely(condition)) LOGFS_BUG((sb)); } while (0)
 
 static inline __be32 logfs_crc32(void *data, size_t len, size_t skip)
 {
-	return cpu_to_be32(crc32(~0, data+skip, len-skip));
+	return cpu_to_be32(crc32(~0, data + skip, len - skip));
 }
 
 static inline u8 logfs_type(struct inode *inode)
@@ -694,7 +709,10 @@ static inline level_t shrink_level(gc_level_t __level)
 	u8 level = (__force u8)__level;
 
 	if (level >= LOGFS_MAX_LEVELS)
+	{
 		level -= LOGFS_MAX_LEVELS;
+	}
+
 	return (__force level_t)level;
 }
 
@@ -702,10 +720,12 @@ static inline gc_level_t expand_level(u64 ino, level_t __level)
 {
 	u8 level = (__force u8)__level;
 
-	if (ino == LOGFS_INO_MASTER) {
+	if (ino == LOGFS_INO_MASTER)
+	{
 		/* ifile has separate areas */
 		level += LOGFS_MAX_LEVELS;
 	}
+
 	return (__force gc_level_t)level;
 }
 
@@ -729,7 +749,9 @@ static inline struct logfs_area *get_area(struct super_block *sb,
 static inline void logfs_mempool_destroy(mempool_t *pool)
 {
 	if (pool)
+	{
 		mempool_destroy(pool);
+	}
 }
 
 #endif

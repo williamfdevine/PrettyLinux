@@ -74,7 +74,8 @@
  * @slow_clk: the system slow clk
  * @irq: the hlcdc irq
  */
-struct atmel_hlcdc {
+struct atmel_hlcdc
+{
 	struct regmap *regmap;
 	struct clk *periph_clk;
 	struct clk *sys_clk;

@@ -27,9 +27,9 @@
 #include <asm/octeon/cvmx-config.h>
 
 #ifdef CONFIG_NETFILTER
-#define REUSE_SKBUFFS_WITHOUT_FREE  0
+	#define REUSE_SKBUFFS_WITHOUT_FREE  0
 #else
-#define REUSE_SKBUFFS_WITHOUT_FREE  1
+	#define REUSE_SKBUFFS_WITHOUT_FREE  1
 #endif
 
 #define USE_ASYNC_IOBDMA            (CONFIG_CAVIUM_OCTEON_CVMSEG_SIZE > 0)

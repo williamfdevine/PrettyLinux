@@ -27,7 +27,7 @@
 #else
 #define dprintk(format, args...)					\
 	do { if (0)							\
-		printk(KERN_DEBUG "mpoa:%s: " format, __FILE__, ##args);\
+			printk(KERN_DEBUG "mpoa:%s: " format, __FILE__, ##args);\
 	} while (0)
 #endif
 
@@ -37,7 +37,7 @@
 #else
 #define ddprintk(format, args...)					\
 	do { if (0)							\
-		printk(KERN_DEBUG "mpoa:%s: " format, __FILE__, ##args);\
+			printk(KERN_DEBUG "mpoa:%s: " format, __FILE__, ##args);\
 	} while (0)
 #endif
 
@@ -48,14 +48,15 @@ extern struct proc_dir_entry *atm_proc_root;  /* from proc.c. */
 
 static int proc_mpc_open(struct inode *inode, struct file *file);
 static ssize_t proc_mpc_write(struct file *file, const char __user *buff,
-			      size_t nbytes, loff_t *ppos);
+							  size_t nbytes, loff_t *ppos);
 
 static int parse_qos(const char *buff);
 
 /*
  *   Define allowed FILE OPERATIONS
  */
-static const struct file_operations mpc_file_operations = {
+static const struct file_operations mpc_file_operations =
+{
 	.owner =	THIS_MODULE,
 	.open =		proc_mpc_open,
 	.read =		seq_read,
@@ -69,15 +70,19 @@ static const struct file_operations mpc_file_operations = {
  */
 static const char *ingress_state_string(int state)
 {
-	switch (state) {
-	case INGRESS_RESOLVING:
-		return "resolving  ";
-	case INGRESS_RESOLVED:
-		return "resolved   ";
-	case INGRESS_INVALID:
-		return "invalid    ";
-	case INGRESS_REFRESHING:
-		return "refreshing ";
+	switch (state)
+	{
+		case INGRESS_RESOLVING:
+			return "resolving  ";
+
+		case INGRESS_RESOLVED:
+			return "resolved   ";
+
+		case INGRESS_INVALID:
+			return "invalid    ";
+
+		case INGRESS_REFRESHING:
+			return "refreshing ";
 	}
 
 	return "";
@@ -88,13 +93,16 @@ static const char *ingress_state_string(int state)
  */
 static const char *egress_state_string(int state)
 {
-	switch (state) {
-	case EGRESS_RESOLVED:
-		return "resolved   ";
-	case EGRESS_PURGE:
-		return "purge      ";
-	case EGRESS_INVALID:
-		return "invalid    ";
+	switch (state)
+	{
+		case EGRESS_RESOLVED:
+			return "resolved   ";
+
+		case EGRESS_PURGE:
+			return "purge      ";
+
+		case EGRESS_INVALID:
+			return "invalid    ";
 	}
 
 	return "";
@@ -110,10 +118,16 @@ static void *mpc_start(struct seq_file *m, loff_t *pos)
 	struct mpoa_client *mpc;
 
 	if (!l--)
+	{
 		return SEQ_START_TOKEN;
+	}
+
 	for (mpc = mpcs; mpc; mpc = mpc->next)
 		if (!l--)
+		{
 			return mpc;
+		}
+
 	return NULL;
 }
 
@@ -140,7 +154,8 @@ static int mpc_show(struct seq_file *m, void *v)
 	struct timeval now;
 	unsigned char ip_string[16];
 
-	if (v == SEQ_START_TOKEN) {
+	if (v == SEQ_START_TOKEN)
+	{
 		atm_mpoa_disp_qos(m);
 		return 0;
 	}
@@ -149,33 +164,43 @@ static int mpc_show(struct seq_file *m, void *v)
 	seq_printf(m, "Ingress Entries:\nIP address      State      Holding time  Packets fwded  VPI  VCI\n");
 	do_gettimeofday(&now);
 
-	for (in_entry = mpc->in_cache; in_entry; in_entry = in_entry->next) {
+	for (in_entry = mpc->in_cache; in_entry; in_entry = in_entry->next)
+	{
 		sprintf(ip_string, "%pI4", &in_entry->ctrl_info.in_dst_ip);
 		seq_printf(m, "%-16s%s%-14lu%-12u",
-			   ip_string,
-			   ingress_state_string(in_entry->entry_state),
-			   in_entry->ctrl_info.holding_time -
-			   (now.tv_sec-in_entry->tv.tv_sec),
-			   in_entry->packets_fwded);
+				   ip_string,
+				   ingress_state_string(in_entry->entry_state),
+				   in_entry->ctrl_info.holding_time -
+				   (now.tv_sec - in_entry->tv.tv_sec),
+				   in_entry->packets_fwded);
+
 		if (in_entry->shortcut)
 			seq_printf(m, "   %-3d  %-3d",
-				   in_entry->shortcut->vpi,
-				   in_entry->shortcut->vci);
+					   in_entry->shortcut->vpi,
+					   in_entry->shortcut->vci);
+
 		seq_printf(m, "\n");
 	}
 
 	seq_printf(m, "\n");
-	seq_printf(m, "Egress Entries:\nIngress MPC ATM addr\nCache-id        State      Holding time  Packets recvd  Latest IP addr   VPI VCI\n");
-	for (eg_entry = mpc->eg_cache; eg_entry; eg_entry = eg_entry->next) {
+	seq_printf(m,
+			   "Egress Entries:\nIngress MPC ATM addr\nCache-id        State      Holding time  Packets recvd  Latest IP addr   VPI VCI\n");
+
+	for (eg_entry = mpc->eg_cache; eg_entry; eg_entry = eg_entry->next)
+	{
 		unsigned char *p = eg_entry->ctrl_info.in_MPC_data_ATM_addr;
+
 		for (i = 0; i < ATM_ESA_LEN; i++)
+		{
 			seq_printf(m, "%02x", p[i]);
+		}
+
 		seq_printf(m, "\n%-16lu%s%-14lu%-15u",
-			   (unsigned long)ntohl(eg_entry->ctrl_info.cache_id),
-			   egress_state_string(eg_entry->entry_state),
-			   (eg_entry->ctrl_info.holding_time -
-			    (now.tv_sec-eg_entry->tv.tv_sec)),
-			   eg_entry->packets_rcvd);
+				   (unsigned long)ntohl(eg_entry->ctrl_info.cache_id),
+				   egress_state_string(eg_entry->entry_state),
+				   (eg_entry->ctrl_info.holding_time -
+					(now.tv_sec - eg_entry->tv.tv_sec)),
+				   eg_entry->packets_rcvd);
 
 		/* latest IP address */
 		sprintf(ip_string, "%pI4", &eg_entry->latest_ip_addr);
@@ -183,15 +208,18 @@ static int mpc_show(struct seq_file *m, void *v)
 
 		if (eg_entry->shortcut)
 			seq_printf(m, " %-3d %-3d",
-				   eg_entry->shortcut->vpi,
-				   eg_entry->shortcut->vci);
+					   eg_entry->shortcut->vpi,
+					   eg_entry->shortcut->vci);
+
 		seq_printf(m, "\n");
 	}
+
 	seq_printf(m, "\n");
 	return 0;
 }
 
-static const struct seq_operations mpc_op = {
+static const struct seq_operations mpc_op =
+{
 	.start =	mpc_start,
 	.next =		mpc_next,
 	.stop =		mpc_stop,
@@ -204,34 +232,48 @@ static int proc_mpc_open(struct inode *inode, struct file *file)
 }
 
 static ssize_t proc_mpc_write(struct file *file, const char __user *buff,
-			      size_t nbytes, loff_t *ppos)
+							  size_t nbytes, loff_t *ppos)
 {
 	char *page, *p;
 	unsigned int len;
 
 	if (nbytes == 0)
+	{
 		return 0;
+	}
 
 	if (nbytes >= PAGE_SIZE)
-		nbytes = PAGE_SIZE-1;
+	{
+		nbytes = PAGE_SIZE - 1;
+	}
 
 	page = (char *)__get_free_page(GFP_KERNEL);
-	if (!page)
-		return -ENOMEM;
 
-	for (p = page, len = 0; len < nbytes; p++, len++) {
-		if (get_user(*p, buff++)) {
+	if (!page)
+	{
+		return -ENOMEM;
+	}
+
+	for (p = page, len = 0; len < nbytes; p++, len++)
+	{
+		if (get_user(*p, buff++))
+		{
 			free_page((unsigned long)page);
 			return -EFAULT;
 		}
+
 		if (*p == '\0' || *p == '\n')
+		{
 			break;
+		}
 	}
 
 	*p = '\0';
 
 	if (!parse_qos(page))
+	{
 		printk("mpoa: proc_mpc_write: could not parse '%s'\n", page);
+	}
 
 	free_page((unsigned long)page);
 
@@ -251,18 +293,23 @@ static int parse_qos(const char *buff)
 	memset(&qos, 0, sizeof(struct atm_qos));
 
 	if (sscanf(buff, "del %hhu.%hhu.%hhu.%hhu",
-			ip, ip+1, ip+2, ip+3) == 4) {
+			   ip, ip + 1, ip + 2, ip + 3) == 4)
+	{
 		ipaddr = *(__be32 *)ip;
 		return atm_mpoa_delete_qos(atm_mpoa_search_qos(ipaddr));
 	}
 
 	if (sscanf(buff, "add %hhu.%hhu.%hhu.%hhu tx=%d,%d rx=tx",
-			ip, ip+1, ip+2, ip+3, &tx_pcr, &tx_sdu) == 6) {
+			   ip, ip + 1, ip + 2, ip + 3, &tx_pcr, &tx_sdu) == 6)
+	{
 		rx_pcr = tx_pcr;
 		rx_sdu = tx_sdu;
-	} else if (sscanf(buff, "add %hhu.%hhu.%hhu.%hhu tx=%d,%d rx=%d,%d",
-		ip, ip+1, ip+2, ip+3, &tx_pcr, &tx_sdu, &rx_pcr, &rx_sdu) != 8)
+	}
+	else if (sscanf(buff, "add %hhu.%hhu.%hhu.%hhu tx=%d,%d rx=%d,%d",
+					ip, ip + 1, ip + 2, ip + 3, &tx_pcr, &tx_sdu, &rx_pcr, &rx_sdu) != 8)
+	{
 		return 0;
+	}
 
 	ipaddr = *(__be32 *)ip;
 	qos.txtp.traffic_class = ATM_CBR;
@@ -273,8 +320,8 @@ static int parse_qos(const char *buff)
 	qos.rxtp.max_sdu = rx_sdu;
 	qos.aal = ATM_AAL5;
 	dprintk("parse_qos(): setting qos parameters to tx=%d,%d rx=%d,%d\n",
-		qos.txtp.max_pcr, qos.txtp.max_sdu,
-		qos.rxtp.max_pcr, qos.rxtp.max_sdu);
+			qos.txtp.max_pcr, qos.txtp.max_sdu,
+			qos.rxtp.max_pcr, qos.rxtp.max_sdu);
 
 	atm_mpoa_add_qos(ipaddr, &qos);
 	return 1;
@@ -288,10 +335,13 @@ int mpc_proc_init(void)
 	struct proc_dir_entry *p;
 
 	p = proc_create(STAT_FILE_NAME, 0, atm_proc_root, &mpc_file_operations);
-	if (!p) {
+
+	if (!p)
+	{
 		pr_err("Unable to initialize /proc/atm/%s\n", STAT_FILE_NAME);
 		return -ENOMEM;
 	}
+
 	return 0;
 }
 

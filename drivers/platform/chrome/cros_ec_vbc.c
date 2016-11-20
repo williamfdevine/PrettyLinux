@@ -25,12 +25,12 @@
 #include <linux/slab.h>
 
 static ssize_t vboot_context_read(struct file *filp, struct kobject *kobj,
-				  struct bin_attribute *att, char *buf,
-				  loff_t pos, size_t count)
+								  struct bin_attribute *att, char *buf,
+								  loff_t pos, size_t count)
 {
 	struct device *dev = container_of(kobj, struct device, kobj);
 	struct cros_ec_dev *ec = container_of(dev, struct cros_ec_dev,
-					      class_dev);
+										  class_dev);
 	struct cros_ec_device *ecdev = ec->ec_dev;
 	struct ec_params_vbnvcontext *params;
 	struct cros_ec_command *msg;
@@ -40,8 +40,11 @@ static ssize_t vboot_context_read(struct file *filp, struct kobject *kobj,
 	const size_t payload = max(para_sz, resp_sz);
 
 	msg = kmalloc(sizeof(*msg) + payload, GFP_KERNEL);
+
 	if (!msg)
+	{
 		return -ENOMEM;
+	}
 
 	/* NB: we only kmalloc()ated enough space for the op field */
 	params = (struct ec_params_vbnvcontext *)msg->data;
@@ -53,7 +56,9 @@ static ssize_t vboot_context_read(struct file *filp, struct kobject *kobj,
 	msg->insize = resp_sz;
 
 	err = cros_ec_cmd_xfer(ecdev, msg);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(dev, "Error sending read request: %d\n", err);
 		kfree(msg);
 		return err;
@@ -66,12 +71,12 @@ static ssize_t vboot_context_read(struct file *filp, struct kobject *kobj,
 }
 
 static ssize_t vboot_context_write(struct file *filp, struct kobject *kobj,
-				   struct bin_attribute *attr, char *buf,
-				   loff_t pos, size_t count)
+								   struct bin_attribute *attr, char *buf,
+								   loff_t pos, size_t count)
 {
 	struct device *dev = container_of(kobj, struct device, kobj);
 	struct cros_ec_dev *ec = container_of(dev, struct cros_ec_dev,
-					      class_dev);
+										  class_dev);
 	struct cros_ec_device *ecdev = ec->ec_dev;
 	struct ec_params_vbnvcontext *params;
 	struct cros_ec_command *msg;
@@ -81,11 +86,16 @@ static ssize_t vboot_context_write(struct file *filp, struct kobject *kobj,
 
 	/* Only write full values */
 	if (count != data_sz)
+	{
 		return -EINVAL;
+	}
 
 	msg = kmalloc(sizeof(*msg) + para_sz, GFP_KERNEL);
+
 	if (!msg)
+	{
 		return -ENOMEM;
+	}
 
 	params = (struct ec_params_vbnvcontext *)msg->data;
 	params->op = EC_VBNV_CONTEXT_OP_WRITE;
@@ -97,7 +107,9 @@ static ssize_t vboot_context_write(struct file *filp, struct kobject *kobj,
 	msg->insize = 0;
 
 	err = cros_ec_cmd_xfer(ecdev, msg);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(dev, "Error sending write request: %d\n", err);
 		kfree(msg);
 		return err;
@@ -108,16 +120,19 @@ static ssize_t vboot_context_write(struct file *filp, struct kobject *kobj,
 }
 
 static umode_t cros_ec_vbc_is_visible(struct kobject *kobj,
-				      struct bin_attribute *a, int n)
+									  struct bin_attribute *a, int n)
 {
 	struct device *dev = container_of(kobj, struct device, kobj);
 	struct cros_ec_dev *ec = container_of(dev, struct cros_ec_dev,
-					      class_dev);
+										  class_dev);
 	struct device_node *np = ec->ec_dev->dev->of_node;
 
-	if (IS_ENABLED(CONFIG_OF) && np) {
+	if (IS_ENABLED(CONFIG_OF) && np)
+	{
 		if (of_property_read_bool(np, "google,has-vbc-nvram"))
+		{
 			return a->attr.mode;
+		}
 	}
 
 	return 0;
@@ -125,12 +140,14 @@ static umode_t cros_ec_vbc_is_visible(struct kobject *kobj,
 
 static BIN_ATTR_RW(vboot_context, 16);
 
-static struct bin_attribute *cros_ec_vbc_bin_attrs[] = {
+static struct bin_attribute *cros_ec_vbc_bin_attrs[] =
+{
 	&bin_attr_vboot_context,
 	NULL
 };
 
-struct attribute_group cros_ec_vbc_attr_group = {
+struct attribute_group cros_ec_vbc_attr_group =
+{
 	.name = "vbc",
 	.bin_attrs = cros_ec_vbc_bin_attrs,
 	.is_bin_visible = cros_ec_vbc_is_visible,

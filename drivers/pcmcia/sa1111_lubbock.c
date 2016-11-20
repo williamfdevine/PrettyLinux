@@ -30,7 +30,7 @@
 
 static int
 lubbock_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
-				const socket_state_t *state)
+								const socket_state_t *state)
 {
 	struct sa1111_pcmcia_socket *s = to_skt(skt);
 	unsigned int pa_dwr_mask, pa_dwr_set, misc_mask, misc_set;
@@ -68,93 +68,109 @@ lubbock_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
 	 *
 	 */
 
- again:
-	switch (skt->nr) {
-	case 0:
-		pa_dwr_mask = GPIO_A0 | GPIO_A1 | GPIO_A2 | GPIO_A3;
+again:
 
-		switch (state->Vcc) {
-		case 0: /* Hi-Z */
+	switch (skt->nr)
+	{
+		case 0:
+			pa_dwr_mask = GPIO_A0 | GPIO_A1 | GPIO_A2 | GPIO_A3;
+
+			switch (state->Vcc)
+			{
+				case 0: /* Hi-Z */
+					break;
+
+				case 33: /* VY */
+					pa_dwr_set |= GPIO_A3;
+					break;
+
+				case 50: /* VX */
+					pa_dwr_set |= GPIO_A2;
+					break;
+
+				default:
+					printk(KERN_ERR "%s(): unrecognized Vcc %u\n",
+						   __func__, state->Vcc);
+					ret = -1;
+			}
+
+			switch (state->Vpp)
+			{
+				case 0: /* Hi-Z */
+					break;
+
+				case 120: /* 12IN */
+					pa_dwr_set |= GPIO_A1;
+					break;
+
+				default: /* VCC */
+					if (state->Vpp == state->Vcc)
+					{
+						pa_dwr_set |= GPIO_A0;
+					}
+					else
+					{
+						printk(KERN_ERR "%s(): unrecognized Vpp %u\n",
+							   __func__, state->Vpp);
+						ret = -1;
+						break;
+					}
+			}
+
 			break;
 
-		case 33: /* VY */
-			pa_dwr_set |= GPIO_A3;
-			break;
+		case 1:
+			misc_mask = (1 << 15) | (1 << 14);
 
-		case 50: /* VX */
-			pa_dwr_set |= GPIO_A2;
-			break;
+			switch (state->Vcc)
+			{
+				case 0: /* Hi-Z */
+					break;
 
-		default:
-			printk(KERN_ERR "%s(): unrecognized Vcc %u\n",
-			       __func__, state->Vcc);
-			ret = -1;
-		}
+				case 33: /* VY */
+					misc_set |= 1 << 15;
+					break;
 
-		switch (state->Vpp) {
-		case 0: /* Hi-Z */
-			break;
+				case 50: /* VX */
+					misc_set |= 1 << 14;
+					break;
 
-		case 120: /* 12IN */
-			pa_dwr_set |= GPIO_A1;
-			break;
+				default:
+					printk(KERN_ERR "%s(): unrecognized Vcc %u\n",
+						   __func__, state->Vcc);
+					ret = -1;
+					break;
+			}
 
-		default: /* VCC */
-			if (state->Vpp == state->Vcc)
-				pa_dwr_set |= GPIO_A0;
-			else {
-				printk(KERN_ERR "%s(): unrecognized Vpp %u\n",
-				       __func__, state->Vpp);
+			if (state->Vpp != state->Vcc && state->Vpp != 0)
+			{
+				printk(KERN_ERR "%s(): CF slot cannot support Vpp %u\n",
+					   __func__, state->Vpp);
 				ret = -1;
 				break;
 			}
-		}
-		break;
 
-	case 1:
-		misc_mask = (1 << 15) | (1 << 14);
-
-		switch (state->Vcc) {
-		case 0: /* Hi-Z */
-			break;
-
-		case 33: /* VY */
-			misc_set |= 1 << 15;
-			break;
-
-		case 50: /* VX */
-			misc_set |= 1 << 14;
 			break;
 
 		default:
-			printk(KERN_ERR "%s(): unrecognized Vcc %u\n",
-			       __func__, state->Vcc);
 			ret = -1;
-			break;
-		}
-
-		if (state->Vpp != state->Vcc && state->Vpp != 0) {
-			printk(KERN_ERR "%s(): CF slot cannot support Vpp %u\n",
-			       __func__, state->Vpp);
-			ret = -1;
-			break;
-		}
-		break;
-
-	default:
-		ret = -1;
 	}
 
 	if (ret == 0)
+	{
 		ret = sa1111_pcmcia_configure_socket(skt, state);
+	}
 
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		lubbock_set_misc_wr(misc_mask, misc_set);
 		sa1111_set_io(s->dev, pa_dwr_mask, pa_dwr_set);
 	}
 
 #if 1
-	if (ret == 0 && state->Vcc == 33) {
+
+	if (ret == 0 && state->Vcc == 33)
+	{
 		struct pcmcia_state new_state;
 
 		/*
@@ -171,7 +187,8 @@ lubbock_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
 
 		sa1111_pcmcia_socket_state(skt, &new_state);
 
-		if (!new_state.vs_3v && !new_state.vs_Xv) {
+		if (!new_state.vs_3v && !new_state.vs_Xv)
+		{
 			/*
 			 * Switch to 5V,  Configure socket with 5V voltage
 			 */
@@ -194,12 +211,14 @@ lubbock_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
 			goto again;
 		}
 	}
+
 #endif
 
 	return ret;
 }
 
-static struct pcmcia_low_level lubbock_pcmcia_ops = {
+static struct pcmcia_low_level lubbock_pcmcia_ops =
+{
 	.owner			= THIS_MODULE,
 	.configure_socket	= lubbock_pcmcia_configure_socket,
 	.first			= 0,
@@ -214,9 +233,9 @@ int pcmcia_lubbock_init(struct sa1111_dev *sadev)
 	 * Set GPIO_A<3:0> to be outputs for the MAX1600,
 	 * and switch to standby mode.
 	 */
-	sa1111_set_io_dir(sadev, GPIO_A0|GPIO_A1|GPIO_A2|GPIO_A3, 0, 0);
-	sa1111_set_io(sadev, GPIO_A0|GPIO_A1|GPIO_A2|GPIO_A3, 0);
-	sa1111_set_sleep_io(sadev, GPIO_A0|GPIO_A1|GPIO_A2|GPIO_A3, 0);
+	sa1111_set_io_dir(sadev, GPIO_A0 | GPIO_A1 | GPIO_A2 | GPIO_A3, 0, 0);
+	sa1111_set_io(sadev, GPIO_A0 | GPIO_A1 | GPIO_A2 | GPIO_A3, 0);
+	sa1111_set_sleep_io(sadev, GPIO_A0 | GPIO_A1 | GPIO_A2 | GPIO_A3, 0);
 
 	/* Set CF Socket 1 power to standby mode. */
 	lubbock_set_misc_wr((1 << 15) | (1 << 14), 0);
@@ -224,7 +243,7 @@ int pcmcia_lubbock_init(struct sa1111_dev *sadev)
 	pxa2xx_drv_pcmcia_ops(&lubbock_pcmcia_ops);
 	pxa2xx_configure_sockets(&sadev->dev, &lubbock_pcmcia_ops);
 	return sa1111_pcmcia_add(sadev, &lubbock_pcmcia_ops,
-				 pxa2xx_drv_pcmcia_add_one);
+							 pxa2xx_drv_pcmcia_add_one);
 }
 
 MODULE_LICENSE("GPL");

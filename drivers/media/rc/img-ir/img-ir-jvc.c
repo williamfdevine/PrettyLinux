@@ -13,12 +13,14 @@
 
 /* Convert JVC data to a scancode */
 static int img_ir_jvc_scancode(int len, u64 raw, u64 enabled_protocols,
-			       struct img_ir_scancode_req *request)
+							   struct img_ir_scancode_req *request)
 {
 	unsigned int cust, data;
 
 	if (len != 16)
+	{
 		return -EINVAL;
+	}
 
 	cust = (raw >> 0) & 0xff;
 	data = (raw >> 8) & 0xff;
@@ -30,7 +32,7 @@ static int img_ir_jvc_scancode(int len, u64 raw, u64 enabled_protocols,
 
 /* Convert JVC scancode to JVC data filter */
 static int img_ir_jvc_filter(const struct rc_scancode_filter *in,
-			     struct img_ir_filter *out, u64 protocols)
+							 struct img_ir_filter *out, u64 protocols)
 {
 	unsigned int cust, data;
 	unsigned int cust_m, data_m;
@@ -51,7 +53,8 @@ static int img_ir_jvc_filter(const struct rc_scancode_filter *in,
  * See also http://www.sbprojects.com/knowledge/ir/jvc.php
  *          http://support.jvc.com/consumer/support/documents/RemoteCodes.pdf
  */
-struct img_ir_decoder img_ir_jvc = {
+struct img_ir_decoder img_ir_jvc =
+{
 	.type = RC_BIT_JVC,
 	.control = {
 		.decoden = 1,

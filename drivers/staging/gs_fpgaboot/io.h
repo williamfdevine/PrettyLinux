@@ -61,14 +61,16 @@
 /*
  * program bus width in bytes
  */
-enum wbus {
+enum wbus
+{
 	bus_1byte	= 1,
 	bus_2byte	= 2,
 };
 
 #define MAX_WAIT_DONE	10000
 
-struct gpiobus {
+struct gpiobus
+{
 	int	ngpio;
 	void __iomem *r[4];
 };

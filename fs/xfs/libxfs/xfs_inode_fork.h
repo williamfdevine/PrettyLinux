@@ -40,7 +40,8 @@ struct xfs_dinode;
  * if the memory needed for the contiguous array ever becomes a problem,
  * it is possible that a third level of indirection may be required.
  */
-typedef struct xfs_ext_irec {
+typedef struct xfs_ext_irec
+{
 	xfs_bmbt_rec_host_t *er_extbuf;	/* block of extent records */
 	xfs_extnum_t	er_extoff;	/* extent offset in file */
 	xfs_extnum_t	er_extcount;	/* number of extents in page/block */
@@ -53,22 +54,25 @@ typedef struct xfs_ext_irec {
 #define	XFS_LINEAR_EXTS		(XFS_IEXT_BUFSZ / (uint)sizeof(xfs_bmbt_rec_t))
 #define	XFS_INLINE_EXTS		2
 #define	XFS_INLINE_DATA		32
-typedef struct xfs_ifork {
+typedef struct xfs_ifork
+{
 	int			if_bytes;	/* bytes in if_u1 */
 	int			if_real_bytes;	/* bytes allocated in if_u1 */
 	struct xfs_btree_block	*if_broot;	/* file's incore btree root */
 	short			if_broot_bytes;	/* bytes allocated for root */
 	unsigned char		if_flags;	/* per-fork flags */
-	union {
+	union
+	{
 		xfs_bmbt_rec_host_t *if_extents;/* linear map file exts */
 		xfs_ext_irec_t	*if_ext_irec;	/* irec map file exts */
 		char		*if_data;	/* inline file data */
 	} if_u1;
-	union {
+	union
+	{
 		xfs_bmbt_rec_host_t if_inline_ext[XFS_INLINE_EXTS];
-						/* very small file extents */
+		/* very small file extents */
 		char		if_inline_data[XFS_INLINE_DATA];
-						/* very small file data */
+		/* very small file data */
 		xfs_dev_t	if_rdev;	/* dev number if special */
 		uuid_t		if_uuid;	/* mount point value */
 	} if_u2;
@@ -91,49 +95,49 @@ typedef struct xfs_ifork {
 
 #define XFS_IFORK_PTR(ip,w)		\
 	((w) == XFS_DATA_FORK ? \
-		&(ip)->i_df : \
-		((w) == XFS_ATTR_FORK ? \
-			(ip)->i_afp : \
-			(ip)->i_cowfp))
+	 &(ip)->i_df : \
+	 ((w) == XFS_ATTR_FORK ? \
+	  (ip)->i_afp : \
+	  (ip)->i_cowfp))
 #define XFS_IFORK_DSIZE(ip) \
 	(XFS_IFORK_Q(ip) ? \
-		XFS_IFORK_BOFF(ip) : \
-		XFS_LITINO((ip)->i_mount, (ip)->i_d.di_version))
+	 XFS_IFORK_BOFF(ip) : \
+	 XFS_LITINO((ip)->i_mount, (ip)->i_d.di_version))
 #define XFS_IFORK_ASIZE(ip) \
 	(XFS_IFORK_Q(ip) ? \
-		XFS_LITINO((ip)->i_mount, (ip)->i_d.di_version) - \
-			XFS_IFORK_BOFF(ip) : \
-		0)
+	 XFS_LITINO((ip)->i_mount, (ip)->i_d.di_version) - \
+	 XFS_IFORK_BOFF(ip) : \
+	 0)
 #define XFS_IFORK_SIZE(ip,w) \
 	((w) == XFS_DATA_FORK ? \
-		XFS_IFORK_DSIZE(ip) : \
-		((w) == XFS_ATTR_FORK ? \
-			XFS_IFORK_ASIZE(ip) : \
-			0))
+	 XFS_IFORK_DSIZE(ip) : \
+	 ((w) == XFS_ATTR_FORK ? \
+	  XFS_IFORK_ASIZE(ip) : \
+	  0))
 #define XFS_IFORK_FORMAT(ip,w) \
 	((w) == XFS_DATA_FORK ? \
-		(ip)->i_d.di_format : \
-		((w) == XFS_ATTR_FORK ? \
-			(ip)->i_d.di_aformat : \
-			(ip)->i_cformat))
+	 (ip)->i_d.di_format : \
+	 ((w) == XFS_ATTR_FORK ? \
+	  (ip)->i_d.di_aformat : \
+	  (ip)->i_cformat))
 #define XFS_IFORK_FMT_SET(ip,w,n) \
 	((w) == XFS_DATA_FORK ? \
-		((ip)->i_d.di_format = (n)) : \
-		((w) == XFS_ATTR_FORK ? \
-			((ip)->i_d.di_aformat = (n)) : \
-			((ip)->i_cformat = (n))))
+	 ((ip)->i_d.di_format = (n)) : \
+	 ((w) == XFS_ATTR_FORK ? \
+	  ((ip)->i_d.di_aformat = (n)) : \
+	  ((ip)->i_cformat = (n))))
 #define XFS_IFORK_NEXTENTS(ip,w) \
 	((w) == XFS_DATA_FORK ? \
-		(ip)->i_d.di_nextents : \
-		((w) == XFS_ATTR_FORK ? \
-			(ip)->i_d.di_anextents : \
-			(ip)->i_cnextents))
+	 (ip)->i_d.di_nextents : \
+	 ((w) == XFS_ATTR_FORK ? \
+	  (ip)->i_d.di_anextents : \
+	  (ip)->i_cnextents))
 #define XFS_IFORK_NEXT_SET(ip,w,n) \
 	((w) == XFS_DATA_FORK ? \
-		((ip)->i_d.di_nextents = (n)) : \
-		((w) == XFS_ATTR_FORK ? \
-			((ip)->i_d.di_anextents = (n)) : \
-			((ip)->i_cnextents = (n))))
+	 ((ip)->i_d.di_nextents = (n)) : \
+	 ((w) == XFS_ATTR_FORK ? \
+	  ((ip)->i_d.di_anextents = (n)) : \
+	  ((ip)->i_cnextents = (n))))
 #define XFS_IFORK_MAXEXT(ip, w) \
 	(XFS_IFORK_SIZE(ip, w) / sizeof(xfs_bmbt_rec_t))
 
@@ -141,22 +145,22 @@ struct xfs_ifork *xfs_iext_state_to_fork(struct xfs_inode *ip, int state);
 
 int		xfs_iformat_fork(struct xfs_inode *, struct xfs_dinode *);
 void		xfs_iflush_fork(struct xfs_inode *, struct xfs_dinode *,
-				struct xfs_inode_log_item *, int);
+							struct xfs_inode_log_item *, int);
 void		xfs_idestroy_fork(struct xfs_inode *, int);
 void		xfs_idata_realloc(struct xfs_inode *, int, int);
 void		xfs_iroot_realloc(struct xfs_inode *, int, int);
 int		xfs_iread_extents(struct xfs_trans *, struct xfs_inode *, int);
 int		xfs_iextents_copy(struct xfs_inode *, struct xfs_bmbt_rec *,
-				  int);
+						  int);
 void		xfs_init_local_fork(struct xfs_inode *, int, const void *, int);
 
 struct xfs_bmbt_rec_host *
-		xfs_iext_get_ext(struct xfs_ifork *, xfs_extnum_t);
+xfs_iext_get_ext(struct xfs_ifork *, xfs_extnum_t);
 void		xfs_iext_insert(struct xfs_inode *, xfs_extnum_t, xfs_extnum_t,
-				struct xfs_bmbt_irec *, int);
+							struct xfs_bmbt_irec *, int);
 void		xfs_iext_add(struct xfs_ifork *, xfs_extnum_t, int);
 void		xfs_iext_add_indirect_multi(struct xfs_ifork *, int,
-					    xfs_extnum_t, int);
+										xfs_extnum_t, int);
 void		xfs_iext_remove(struct xfs_inode *, xfs_extnum_t, int, int);
 void		xfs_iext_remove_inline(struct xfs_ifork *, xfs_extnum_t, int);
 void		xfs_iext_remove_direct(struct xfs_ifork *, xfs_extnum_t, int);
@@ -166,15 +170,15 @@ void		xfs_iext_direct_to_inline(struct xfs_ifork *, xfs_extnum_t);
 void		xfs_iext_inline_to_direct(struct xfs_ifork *, int);
 void		xfs_iext_destroy(struct xfs_ifork *);
 struct xfs_bmbt_rec_host *
-		xfs_iext_bno_to_ext(struct xfs_ifork *, xfs_fileoff_t, int *);
+xfs_iext_bno_to_ext(struct xfs_ifork *, xfs_fileoff_t, int *);
 struct xfs_ext_irec *
-		xfs_iext_bno_to_irec(struct xfs_ifork *, xfs_fileoff_t, int *);
+xfs_iext_bno_to_irec(struct xfs_ifork *, xfs_fileoff_t, int *);
 struct xfs_ext_irec *
-		xfs_iext_idx_to_irec(struct xfs_ifork *, xfs_extnum_t *, int *,
-				     int);
+xfs_iext_idx_to_irec(struct xfs_ifork *, xfs_extnum_t *, int *,
+					 int);
 void		xfs_iext_irec_init(struct xfs_ifork *);
 struct xfs_ext_irec *
-		xfs_iext_irec_new(struct xfs_ifork *, int);
+xfs_iext_irec_new(struct xfs_ifork *, int);
 void		xfs_iext_irec_remove(struct xfs_ifork *, int);
 void		xfs_iext_irec_compact(struct xfs_ifork *);
 void		xfs_iext_irec_compact_pages(struct xfs_ifork *);

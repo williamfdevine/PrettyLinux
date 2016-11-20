@@ -78,20 +78,20 @@
 
 /* -------- Hybird Controller System Control register -------- */
 #define MUX_MODE_CTRL         (SYSTEM_CONTROL_REG_BASE + 0x00)
-	#define rbPaMSMask        0x07
-	#define rbPaMSDtvNoGpio   0x00 /*[2:0], DTV Simple mode */
-	#define rbPaMSDtv4bitGpio 0x01 /*[2:0], DTV TS2 Serial mode)*/
-	#define rbPaMSDtv7bitGpio 0x02 /*[2:0], DTV TS0 Serial mode*/
-	#define rbPaMS8bitGpio    0x03 /*[2:0], GPIO mode selected;(8bit GPIO)*/
-	#define rbPaMSAtv         0x04 /*[2:0], 3'b1xx: ATV mode select*/
-	#define rbPbMSMask        0x38
-	#define rbPbMSDtvNoGpio   0x00 /*[5:3], DTV Simple mode */
-	#define rbPbMSDtv4bitGpio 0x08 /*[5:3], DTV TS2 Serial mode*/
-	#define rbPbMSDtv7bitGpio 0x10 /*[5:3], DTV TS0 Serial mode*/
-	#define rbPbMS8bitGpio    0x18 /*[5:3], GPIO mode selected;(8bit GPIO)*/
-	#define rbPbMSAtv         0x20 /*[5:3], 3'b1xx: ATV mode select*/
-	#define rbPaAESEN         0x40 /*[6], port A AES enable bit*/
-	#define rbPbAESEN         0x80 /*[7], port B AES enable bit*/
+#define rbPaMSMask        0x07
+#define rbPaMSDtvNoGpio   0x00 /*[2:0], DTV Simple mode */
+#define rbPaMSDtv4bitGpio 0x01 /*[2:0], DTV TS2 Serial mode)*/
+#define rbPaMSDtv7bitGpio 0x02 /*[2:0], DTV TS0 Serial mode*/
+#define rbPaMS8bitGpio    0x03 /*[2:0], GPIO mode selected;(8bit GPIO)*/
+#define rbPaMSAtv         0x04 /*[2:0], 3'b1xx: ATV mode select*/
+#define rbPbMSMask        0x38
+#define rbPbMSDtvNoGpio   0x00 /*[5:3], DTV Simple mode */
+#define rbPbMSDtv4bitGpio 0x08 /*[5:3], DTV TS2 Serial mode*/
+#define rbPbMSDtv7bitGpio 0x10 /*[5:3], DTV TS0 Serial mode*/
+#define rbPbMS8bitGpio    0x18 /*[5:3], GPIO mode selected;(8bit GPIO)*/
+#define rbPbMSAtv         0x20 /*[5:3], 3'b1xx: ATV mode select*/
+#define rbPaAESEN         0x40 /*[6], port A AES enable bit*/
+#define rbPbAESEN         0x80 /*[7], port B AES enable bit*/
 
 #define INTERNAL_RST                (SYSTEM_CONTROL_REG_BASE + 0x04)
 #define PERIPHERAL_CTRL             (SYSTEM_CONTROL_REG_BASE + 0x08)
@@ -211,7 +211,8 @@
 #define SMI_PID		0x3038
 #define SMI_TS_DMA_BUF_SIZE	(1024 * 188)
 
-struct smi_cfg_info {
+struct smi_cfg_info
+{
 #define SMI_DVBSKY_S952         0
 #define SMI_DVBSKY_S950         1
 #define SMI_DVBSKY_T9580        2
@@ -222,9 +223,9 @@ struct smi_cfg_info {
 #define SMI_TS_NULL             0
 #define SMI_TS_DMA_SINGLE       1
 #define SMI_TS_DMA_BOTH         3
-/* SMI_TS_NULL: not use;
- * SMI_TS_DMA_SINGLE: use DMA 0 only;
- * SMI_TS_DMA_BOTH:use DMA 0 and 1.*/
+	/* SMI_TS_NULL: not use;
+	 * SMI_TS_DMA_SINGLE: use DMA 0 only;
+	 * SMI_TS_DMA_BOTH:use DMA 0 and 1.*/
 	int ts_0;
 	int ts_1;
 #define DVBSKY_FE_NULL          0
@@ -236,7 +237,8 @@ struct smi_cfg_info {
 	char *rc_map;
 };
 
-struct smi_rc {
+struct smi_rc
+{
 	struct smi_dev *dev;
 	struct rc_dev *rc_dev;
 	char input_phys[64];
@@ -247,7 +249,8 @@ struct smi_rc {
 	int users;
 };
 
-struct smi_port {
+struct smi_port
+{
 	struct smi_dev *dev;
 	int idx;
 	int enable;
@@ -283,7 +286,8 @@ struct smi_port {
 	struct i2c_client *i2c_client_tuner;
 };
 
-struct smi_dev {
+struct smi_dev
+{
 	int nr;
 	struct smi_cfg_info *info;
 
@@ -307,7 +311,7 @@ struct smi_dev {
 
 #define smi_andor(reg, mask, value) \
 	writel((readl(dev->lmmio+((reg)>>2)) & ~(mask)) |\
-	((value) & (mask)), dev->lmmio+((reg)>>2))
+		   ((value) & (mask)), dev->lmmio+((reg)>>2))
 
 #define smi_set(reg, bit)          smi_andor((reg), (bit), (bit))
 #define smi_clear(reg, bit)        smi_andor((reg), (bit), 0)

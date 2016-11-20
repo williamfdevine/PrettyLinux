@@ -31,7 +31,7 @@
 #include <media/v4l2-image-sizes.h>
 
 #define VAL_SET(x, mask, rshift, lshift)  \
-		((((x) >> rshift) & mask) << lshift)
+	((((x) >> rshift) & mask) << lshift)
 /*
  * DSP registers
  * register offset for BANK_SEL == BANK_SEL_DSP
@@ -176,7 +176,7 @@
 #define REG08       0x08 /* Frame Exposure One-pin Control Pre-charge Row Num */
 #define COM2        0x09 /* Common control 2 */
 #define   COM2_SOFT_SLEEP_MODE  0x10 /* Soft sleep mode */
-				     /* Output drive capability */
+/* Output drive capability */
 #define   COM2_OCAP_Nx_SET(N)   (((N) - 1) & 0x03) /* N = [1x .. 4x] */
 #define PID         0x0A /* Product ID Number MSB */
 #define VER         0x0B /* Product ID Number LSB */
@@ -267,12 +267,14 @@
 /*
  * Struct
  */
-struct regval_list {
+struct regval_list
+{
 	u8 reg_num;
 	u8 value;
 };
 
-struct ov2640_win_size {
+struct ov2640_win_size
+{
 	char				*name;
 	u32				width;
 	u32				height;
@@ -280,7 +282,8 @@ struct ov2640_win_size {
 };
 
 
-struct ov2640_priv {
+struct ov2640_priv
+{
 	struct v4l2_subdev		subdev;
 	struct v4l2_ctrl_handler	hdl;
 	u32	cfmt_code;
@@ -298,7 +301,8 @@ struct ov2640_priv {
 
 #define ENDMARKER { 0xff, 0xff }
 
-static const struct regval_list ov2640_init_regs[] = {
+static const struct regval_list ov2640_init_regs[] =
+{
 	{ BANK_SEL, BANK_SEL_DSP },
 	{ 0x2c,   0xff },
 	{ 0x2e,   0xdf },
@@ -477,71 +481,84 @@ static const struct regval_list ov2640_init_regs[] = {
  * The preamble, setup the internal DSP to input an UXGA (1600x1200) image.
  * Then the different zooming configurations will setup the output image size.
  */
-static const struct regval_list ov2640_size_change_preamble_regs[] = {
+static const struct regval_list ov2640_size_change_preamble_regs[] =
+{
 	{ BANK_SEL, BANK_SEL_DSP },
 	{ RESET, RESET_DVP },
 	{ HSIZE8, HSIZE8_SET(UXGA_WIDTH) },
 	{ VSIZE8, VSIZE8_SET(UXGA_HEIGHT) },
-	{ CTRL2, CTRL2_DCW_EN | CTRL2_SDE_EN |
-		 CTRL2_UV_AVG_EN | CTRL2_CMX_EN | CTRL2_UV_ADJ_EN },
+	{
+		CTRL2, CTRL2_DCW_EN | CTRL2_SDE_EN |
+		CTRL2_UV_AVG_EN | CTRL2_CMX_EN | CTRL2_UV_ADJ_EN
+	},
 	{ HSIZE, HSIZE_SET(UXGA_WIDTH) },
 	{ VSIZE, VSIZE_SET(UXGA_HEIGHT) },
 	{ XOFFL, XOFFL_SET(0) },
 	{ YOFFL, YOFFL_SET(0) },
-	{ VHYX, VHYX_HSIZE_SET(UXGA_WIDTH) | VHYX_VSIZE_SET(UXGA_HEIGHT) |
-		VHYX_XOFF_SET(0) | VHYX_YOFF_SET(0)},
+	{
+		VHYX, VHYX_HSIZE_SET(UXGA_WIDTH) | VHYX_VSIZE_SET(UXGA_HEIGHT) |
+		VHYX_XOFF_SET(0) | VHYX_YOFF_SET(0)
+	},
 	{ TEST, TEST_HSIZE_SET(UXGA_WIDTH) },
 	ENDMARKER,
 };
 
 #define PER_SIZE_REG_SEQ(x, y, v_div, h_div, pclk_div)	\
 	{ CTRLI, CTRLI_LP_DP | CTRLI_V_DIV_SET(v_div) |	\
-		 CTRLI_H_DIV_SET(h_div)},		\
+		CTRLI_H_DIV_SET(h_div)},		\
 	{ ZMOW, ZMOW_OUTW_SET(x) },			\
 	{ ZMOH, ZMOH_OUTH_SET(y) },			\
 	{ ZMHH, ZMHH_OUTW_SET(x) | ZMHH_OUTH_SET(y) },	\
 	{ R_DVP_SP, pclk_div },				\
 	{ RESET, 0x00}
 
-static const struct regval_list ov2640_qcif_regs[] = {
+static const struct regval_list ov2640_qcif_regs[] =
+{
 	PER_SIZE_REG_SEQ(QCIF_WIDTH, QCIF_HEIGHT, 3, 3, 4),
 	ENDMARKER,
 };
 
-static const struct regval_list ov2640_qvga_regs[] = {
+static const struct regval_list ov2640_qvga_regs[] =
+{
 	PER_SIZE_REG_SEQ(QVGA_WIDTH, QVGA_HEIGHT, 2, 2, 4),
 	ENDMARKER,
 };
 
-static const struct regval_list ov2640_cif_regs[] = {
+static const struct regval_list ov2640_cif_regs[] =
+{
 	PER_SIZE_REG_SEQ(CIF_WIDTH, CIF_HEIGHT, 2, 2, 8),
 	ENDMARKER,
 };
 
-static const struct regval_list ov2640_vga_regs[] = {
+static const struct regval_list ov2640_vga_regs[] =
+{
 	PER_SIZE_REG_SEQ(VGA_WIDTH, VGA_HEIGHT, 0, 0, 2),
 	ENDMARKER,
 };
 
-static const struct regval_list ov2640_svga_regs[] = {
+static const struct regval_list ov2640_svga_regs[] =
+{
 	PER_SIZE_REG_SEQ(SVGA_WIDTH, SVGA_HEIGHT, 1, 1, 2),
 	ENDMARKER,
 };
 
-static const struct regval_list ov2640_xga_regs[] = {
+static const struct regval_list ov2640_xga_regs[] =
+{
 	PER_SIZE_REG_SEQ(XGA_WIDTH, XGA_HEIGHT, 0, 0, 2),
 	{ CTRLI,    0x00},
 	ENDMARKER,
 };
 
-static const struct regval_list ov2640_sxga_regs[] = {
+static const struct regval_list ov2640_sxga_regs[] =
+{
 	PER_SIZE_REG_SEQ(SXGA_WIDTH, SXGA_HEIGHT, 0, 0, 2),
 	{ CTRLI,    0x00},
 	{ R_DVP_SP, 2 | R_DVP_SP_AUTO_MODE },
 	ENDMARKER,
 };
 
-static const struct regval_list ov2640_uxga_regs[] = {
+static const struct regval_list ov2640_uxga_regs[] =
+{
 	PER_SIZE_REG_SEQ(UXGA_WIDTH, UXGA_HEIGHT, 0, 0, 0),
 	{ CTRLI,    0x00},
 	{ R_DVP_SP, 0 | R_DVP_SP_AUTO_MODE },
@@ -551,7 +568,8 @@ static const struct regval_list ov2640_uxga_regs[] = {
 #define OV2640_SIZE(n, w, h, r) \
 	{.name = n, .width = w , .height = h, .regs = r }
 
-static const struct ov2640_win_size ov2640_supported_win_sizes[] = {
+static const struct ov2640_win_size ov2640_supported_win_sizes[] =
+{
 	OV2640_SIZE("QCIF", QCIF_WIDTH, QCIF_HEIGHT, ov2640_qcif_regs),
 	OV2640_SIZE("QVGA", QVGA_WIDTH, QVGA_HEIGHT, ov2640_qvga_regs),
 	OV2640_SIZE("CIF", CIF_WIDTH, CIF_HEIGHT, ov2640_cif_regs),
@@ -565,13 +583,15 @@ static const struct ov2640_win_size ov2640_supported_win_sizes[] = {
 /*
  * Register settings for pixel formats
  */
-static const struct regval_list ov2640_format_change_preamble_regs[] = {
+static const struct regval_list ov2640_format_change_preamble_regs[] =
+{
 	{ BANK_SEL, BANK_SEL_DSP },
 	{ R_BYPASS, R_BYPASS_USE_DSP },
 	ENDMARKER,
 };
 
-static const struct regval_list ov2640_yuyv_regs[] = {
+static const struct regval_list ov2640_yuyv_regs[] =
+{
 	{ IMAGE_MODE, IMAGE_MODE_YUV422 },
 	{ 0xd7, 0x03 },
 	{ 0x33, 0xa0 },
@@ -582,7 +602,8 @@ static const struct regval_list ov2640_yuyv_regs[] = {
 	ENDMARKER,
 };
 
-static const struct regval_list ov2640_uyvy_regs[] = {
+static const struct regval_list ov2640_uyvy_regs[] =
+{
 	{ IMAGE_MODE, IMAGE_MODE_LBYTE_FIRST | IMAGE_MODE_YUV422 },
 	{ 0xd7, 0x01 },
 	{ 0x33, 0xa0 },
@@ -592,7 +613,8 @@ static const struct regval_list ov2640_uyvy_regs[] = {
 	ENDMARKER,
 };
 
-static const struct regval_list ov2640_rgb565_be_regs[] = {
+static const struct regval_list ov2640_rgb565_be_regs[] =
+{
 	{ IMAGE_MODE, IMAGE_MODE_RGB565 },
 	{ 0xd7, 0x03 },
 	{ RESET,  0x00 },
@@ -600,7 +622,8 @@ static const struct regval_list ov2640_rgb565_be_regs[] = {
 	ENDMARKER,
 };
 
-static const struct regval_list ov2640_rgb565_le_regs[] = {
+static const struct regval_list ov2640_rgb565_le_regs[] =
+{
 	{ IMAGE_MODE, IMAGE_MODE_LBYTE_FIRST | IMAGE_MODE_RGB565 },
 	{ 0xd7, 0x03 },
 	{ RESET,  0x00 },
@@ -608,7 +631,8 @@ static const struct regval_list ov2640_rgb565_le_regs[] = {
 	ENDMARKER,
 };
 
-static u32 ov2640_codes[] = {
+static u32 ov2640_codes[] =
+{
 	MEDIA_BUS_FMT_YUYV8_2X8,
 	MEDIA_BUS_FMT_UYVY8_2X8,
 	MEDIA_BUS_FMT_RGB565_2X8_BE,
@@ -621,33 +645,41 @@ static u32 ov2640_codes[] = {
 static struct ov2640_priv *to_ov2640(const struct i2c_client *client)
 {
 	return container_of(i2c_get_clientdata(client), struct ov2640_priv,
-			    subdev);
+						subdev);
 }
 
 static int ov2640_write_array(struct i2c_client *client,
-			      const struct regval_list *vals)
+							  const struct regval_list *vals)
 {
 	int ret;
 
-	while ((vals->reg_num != 0xff) || (vals->value != 0xff)) {
+	while ((vals->reg_num != 0xff) || (vals->value != 0xff))
+	{
 		ret = i2c_smbus_write_byte_data(client,
-						vals->reg_num, vals->value);
+										vals->reg_num, vals->value);
 		dev_vdbg(&client->dev, "array: 0x%02x, 0x%02x",
-			 vals->reg_num, vals->value);
+				 vals->reg_num, vals->value);
 
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		vals++;
 	}
+
 	return 0;
 }
 
 static int ov2640_mask_set(struct i2c_client *client,
-			   u8  reg, u8  mask, u8  set)
+						   u8  reg, u8  mask, u8  set)
 {
 	s32 val = i2c_smbus_read_byte_data(client, reg);
+
 	if (val < 0)
+	{
 		return val;
+	}
 
 	val &= ~mask;
 	val |= set & mask;
@@ -660,15 +692,19 @@ static int ov2640_mask_set(struct i2c_client *client,
 static int ov2640_reset(struct i2c_client *client)
 {
 	int ret;
-	const struct regval_list reset_seq[] = {
+	const struct regval_list reset_seq[] =
+	{
 		{BANK_SEL, BANK_SEL_SENS},
 		{COM7, COM7_SRST},
 		ENDMARKER,
 	};
 
 	ret = ov2640_write_array(client, reset_seq);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	msleep(5);
 err:
@@ -693,16 +729,21 @@ static int ov2640_s_ctrl(struct v4l2_ctrl *ctrl)
 	int ret;
 
 	ret = i2c_smbus_write_byte_data(client, BANK_SEL, BANK_SEL_SENS);
-	if (ret < 0)
-		return ret;
 
-	switch (ctrl->id) {
-	case V4L2_CID_VFLIP:
-		val = ctrl->val ? REG04_VFLIP_IMG : 0x00;
-		return ov2640_mask_set(client, REG04, REG04_VFLIP_IMG, val);
-	case V4L2_CID_HFLIP:
-		val = ctrl->val ? REG04_HFLIP_IMG : 0x00;
-		return ov2640_mask_set(client, REG04, REG04_HFLIP_IMG, val);
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	switch (ctrl->id)
+	{
+		case V4L2_CID_VFLIP:
+			val = ctrl->val ? REG04_VFLIP_IMG : 0x00;
+			return ov2640_mask_set(client, REG04, REG04_VFLIP_IMG, val);
+
+		case V4L2_CID_HFLIP:
+			val = ctrl->val ? REG04_HFLIP_IMG : 0x00;
+			return ov2640_mask_set(client, REG04, REG04_HFLIP_IMG, val);
 	}
 
 	return -EINVAL;
@@ -710,18 +751,24 @@ static int ov2640_s_ctrl(struct v4l2_ctrl *ctrl)
 
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 static int ov2640_g_register(struct v4l2_subdev *sd,
-			     struct v4l2_dbg_register *reg)
+							 struct v4l2_dbg_register *reg)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	int ret;
 
 	reg->size = 1;
+
 	if (reg->reg > 0xff)
+	{
 		return -EINVAL;
+	}
 
 	ret = i2c_smbus_read_byte_data(client, reg->reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	reg->val = ret;
 
@@ -729,13 +776,15 @@ static int ov2640_g_register(struct v4l2_subdev *sd,
 }
 
 static int ov2640_s_register(struct v4l2_subdev *sd,
-			     const struct v4l2_dbg_register *reg)
+							 const struct v4l2_dbg_register *reg)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 
 	if (reg->reg > 0xff ||
-	    reg->val > 0xff)
+		reg->val > 0xff)
+	{
 		return -EINVAL;
+	}
 
 	return i2c_smbus_write_byte_data(client, reg->reg, reg->val);
 }
@@ -755,9 +804,11 @@ static const struct ov2640_win_size *ov2640_select_win(u32 *width, u32 *height)
 {
 	int i, default_size = ARRAY_SIZE(ov2640_supported_win_sizes) - 1;
 
-	for (i = 0; i < ARRAY_SIZE(ov2640_supported_win_sizes); i++) {
+	for (i = 0; i < ARRAY_SIZE(ov2640_supported_win_sizes); i++)
+	{
 		if (ov2640_supported_win_sizes[i].width  >= *width &&
-		    ov2640_supported_win_sizes[i].height >= *height) {
+			ov2640_supported_win_sizes[i].height >= *height)
+		{
 			*width = ov2640_supported_win_sizes[i].width;
 			*height = ov2640_supported_win_sizes[i].height;
 			return &ov2640_supported_win_sizes[i];
@@ -770,7 +821,7 @@ static const struct ov2640_win_size *ov2640_select_win(u32 *width, u32 *height)
 }
 
 static int ov2640_set_params(struct i2c_client *client, u32 *width, u32 *height,
-			     u32 code)
+							 u32 code)
 {
 	struct ov2640_priv       *priv = to_ov2640(client);
 	const struct regval_list *selected_cfmt_regs;
@@ -781,23 +832,28 @@ static int ov2640_set_params(struct i2c_client *client, u32 *width, u32 *height,
 
 	/* select format */
 	priv->cfmt_code = 0;
-	switch (code) {
-	case MEDIA_BUS_FMT_RGB565_2X8_BE:
-		dev_dbg(&client->dev, "%s: Selected cfmt RGB565 BE", __func__);
-		selected_cfmt_regs = ov2640_rgb565_be_regs;
-		break;
-	case MEDIA_BUS_FMT_RGB565_2X8_LE:
-		dev_dbg(&client->dev, "%s: Selected cfmt RGB565 LE", __func__);
-		selected_cfmt_regs = ov2640_rgb565_le_regs;
-		break;
-	case MEDIA_BUS_FMT_YUYV8_2X8:
-		dev_dbg(&client->dev, "%s: Selected cfmt YUYV (YUV422)", __func__);
-		selected_cfmt_regs = ov2640_yuyv_regs;
-		break;
-	default:
-	case MEDIA_BUS_FMT_UYVY8_2X8:
-		dev_dbg(&client->dev, "%s: Selected cfmt UYVY", __func__);
-		selected_cfmt_regs = ov2640_uyvy_regs;
+
+	switch (code)
+	{
+		case MEDIA_BUS_FMT_RGB565_2X8_BE:
+			dev_dbg(&client->dev, "%s: Selected cfmt RGB565 BE", __func__);
+			selected_cfmt_regs = ov2640_rgb565_be_regs;
+			break;
+
+		case MEDIA_BUS_FMT_RGB565_2X8_LE:
+			dev_dbg(&client->dev, "%s: Selected cfmt RGB565 LE", __func__);
+			selected_cfmt_regs = ov2640_rgb565_le_regs;
+			break;
+
+		case MEDIA_BUS_FMT_YUYV8_2X8:
+			dev_dbg(&client->dev, "%s: Selected cfmt YUYV (YUV422)", __func__);
+			selected_cfmt_regs = ov2640_yuyv_regs;
+			break;
+
+		default:
+		case MEDIA_BUS_FMT_UYVY8_2X8:
+			dev_dbg(&client->dev, "%s: Selected cfmt UYVY", __func__);
+			selected_cfmt_regs = ov2640_uyvy_regs;
 	}
 
 	/* reset hardware */
@@ -806,30 +862,45 @@ static int ov2640_set_params(struct i2c_client *client, u32 *width, u32 *height,
 	/* initialize the sensor with default data */
 	dev_dbg(&client->dev, "%s: Init default", __func__);
 	ret = ov2640_write_array(client, ov2640_init_regs);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	/* select preamble */
 	dev_dbg(&client->dev, "%s: Set size to %s", __func__, priv->win->name);
 	ret = ov2640_write_array(client, ov2640_size_change_preamble_regs);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	/* set size win */
 	ret = ov2640_write_array(client, priv->win->regs);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	/* cfmt preamble */
 	dev_dbg(&client->dev, "%s: Set cfmt", __func__);
 	ret = ov2640_write_array(client, ov2640_format_change_preamble_regs);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	/* set cfmt */
 	ret = ov2640_write_array(client, selected_cfmt_regs);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	priv->cfmt_code = code;
 	*width = priv->win->width;
@@ -846,17 +917,20 @@ err:
 }
 
 static int ov2640_get_fmt(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_format *format)
+						  struct v4l2_subdev_pad_config *cfg,
+						  struct v4l2_subdev_format *format)
 {
 	struct v4l2_mbus_framefmt *mf = &format->format;
 	struct i2c_client  *client = v4l2_get_subdevdata(sd);
 	struct ov2640_priv *priv = to_ov2640(client);
 
 	if (format->pad)
+	{
 		return -EINVAL;
+	}
 
-	if (!priv->win) {
+	if (!priv->win)
+	{
 		u32 width = SVGA_WIDTH, height = SVGA_HEIGHT;
 		priv->win = ov2640_select_win(&width, &height);
 		priv->cfmt_code = MEDIA_BUS_FMT_UYVY8_2X8;
@@ -866,30 +940,35 @@ static int ov2640_get_fmt(struct v4l2_subdev *sd,
 	mf->height	= priv->win->height;
 	mf->code	= priv->cfmt_code;
 
-	switch (mf->code) {
-	case MEDIA_BUS_FMT_RGB565_2X8_BE:
-	case MEDIA_BUS_FMT_RGB565_2X8_LE:
-		mf->colorspace = V4L2_COLORSPACE_SRGB;
-		break;
-	default:
-	case MEDIA_BUS_FMT_YUYV8_2X8:
-	case MEDIA_BUS_FMT_UYVY8_2X8:
-		mf->colorspace = V4L2_COLORSPACE_JPEG;
+	switch (mf->code)
+	{
+		case MEDIA_BUS_FMT_RGB565_2X8_BE:
+		case MEDIA_BUS_FMT_RGB565_2X8_LE:
+			mf->colorspace = V4L2_COLORSPACE_SRGB;
+			break;
+
+		default:
+		case MEDIA_BUS_FMT_YUYV8_2X8:
+		case MEDIA_BUS_FMT_UYVY8_2X8:
+			mf->colorspace = V4L2_COLORSPACE_JPEG;
 	}
+
 	mf->field	= V4L2_FIELD_NONE;
 
 	return 0;
 }
 
 static int ov2640_set_fmt(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_format *format)
+						  struct v4l2_subdev_pad_config *cfg,
+						  struct v4l2_subdev_format *format)
 {
 	struct v4l2_mbus_framefmt *mf = &format->format;
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 
 	if (format->pad)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * select suitable win, but don't store it
@@ -898,54 +977,64 @@ static int ov2640_set_fmt(struct v4l2_subdev *sd,
 
 	mf->field	= V4L2_FIELD_NONE;
 
-	switch (mf->code) {
-	case MEDIA_BUS_FMT_RGB565_2X8_BE:
-	case MEDIA_BUS_FMT_RGB565_2X8_LE:
-		mf->colorspace = V4L2_COLORSPACE_SRGB;
-		break;
-	default:
-		mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
-	case MEDIA_BUS_FMT_YUYV8_2X8:
-	case MEDIA_BUS_FMT_UYVY8_2X8:
-		mf->colorspace = V4L2_COLORSPACE_JPEG;
+	switch (mf->code)
+	{
+		case MEDIA_BUS_FMT_RGB565_2X8_BE:
+		case MEDIA_BUS_FMT_RGB565_2X8_LE:
+			mf->colorspace = V4L2_COLORSPACE_SRGB;
+			break;
+
+		default:
+			mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
+
+		case MEDIA_BUS_FMT_YUYV8_2X8:
+		case MEDIA_BUS_FMT_UYVY8_2X8:
+			mf->colorspace = V4L2_COLORSPACE_JPEG;
 	}
 
 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
 		return ov2640_set_params(client, &mf->width,
-					 &mf->height, mf->code);
+								 &mf->height, mf->code);
+
 	cfg->try_fmt = *mf;
 	return 0;
 }
 
 static int ov2640_enum_mbus_code(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_mbus_code_enum *code)
+								 struct v4l2_subdev_pad_config *cfg,
+								 struct v4l2_subdev_mbus_code_enum *code)
 {
 	if (code->pad || code->index >= ARRAY_SIZE(ov2640_codes))
+	{
 		return -EINVAL;
+	}
 
 	code->code = ov2640_codes[code->index];
 	return 0;
 }
 
 static int ov2640_get_selection(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_selection *sel)
+								struct v4l2_subdev_pad_config *cfg,
+								struct v4l2_subdev_selection *sel)
 {
 	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+	{
 		return -EINVAL;
+	}
 
-	switch (sel->target) {
-	case V4L2_SEL_TGT_CROP_BOUNDS:
-	case V4L2_SEL_TGT_CROP_DEFAULT:
-	case V4L2_SEL_TGT_CROP:
-		sel->r.left = 0;
-		sel->r.top = 0;
-		sel->r.width = UXGA_WIDTH;
-		sel->r.height = UXGA_HEIGHT;
-		return 0;
-	default:
-		return -EINVAL;
+	switch (sel->target)
+	{
+		case V4L2_SEL_TGT_CROP_BOUNDS:
+		case V4L2_SEL_TGT_CROP_DEFAULT:
+		case V4L2_SEL_TGT_CROP:
+			sel->r.left = 0;
+			sel->r.top = 0;
+			sel->r.width = UXGA_WIDTH;
+			sel->r.height = UXGA_HEIGHT;
+			return 0;
+
+		default:
+			return -EINVAL;
 	}
 }
 
@@ -957,8 +1046,11 @@ static int ov2640_video_probe(struct i2c_client *client)
 	int ret;
 
 	ret = ov2640_s_power(&priv->subdev, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/*
 	 * check and show product ID and manufacturer ID
@@ -969,20 +1061,22 @@ static int ov2640_video_probe(struct i2c_client *client)
 	midh = i2c_smbus_read_byte_data(client, MIDH);
 	midl = i2c_smbus_read_byte_data(client, MIDL);
 
-	switch (VERSION(pid, ver)) {
-	case PID_OV2640:
-		devname     = "ov2640";
-		break;
-	default:
-		dev_err(&client->dev,
-			"Product ID error %x:%x\n", pid, ver);
-		ret = -ENODEV;
-		goto done;
+	switch (VERSION(pid, ver))
+	{
+		case PID_OV2640:
+			devname     = "ov2640";
+			break;
+
+		default:
+			dev_err(&client->dev,
+					"Product ID error %x:%x\n", pid, ver);
+			ret = -ENODEV;
+			goto done;
 	}
 
 	dev_info(&client->dev,
-		 "%s Product ID %0x:%0x Manufacturer ID %x:%x\n",
-		 devname, pid, ver, midh, midl);
+			 "%s Product ID %0x:%0x Manufacturer ID %x:%x\n",
+			 devname, pid, ver, midh, midl);
 
 	ret = v4l2_ctrl_handler_setup(&priv->hdl);
 
@@ -991,11 +1085,13 @@ done:
 	return ret;
 }
 
-static const struct v4l2_ctrl_ops ov2640_ctrl_ops = {
+static const struct v4l2_ctrl_ops ov2640_ctrl_ops =
+{
 	.s_ctrl = ov2640_s_ctrl,
 };
 
-static struct v4l2_subdev_core_ops ov2640_subdev_core_ops = {
+static struct v4l2_subdev_core_ops ov2640_subdev_core_ops =
+{
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 	.g_register	= ov2640_g_register,
 	.s_register	= ov2640_s_register,
@@ -1004,33 +1100,36 @@ static struct v4l2_subdev_core_ops ov2640_subdev_core_ops = {
 };
 
 static int ov2640_g_mbus_config(struct v4l2_subdev *sd,
-				struct v4l2_mbus_config *cfg)
+								struct v4l2_mbus_config *cfg)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
 
 	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
-		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_HIGH |
-		V4L2_MBUS_DATA_ACTIVE_HIGH;
+				 V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_HIGH |
+				 V4L2_MBUS_DATA_ACTIVE_HIGH;
 	cfg->type = V4L2_MBUS_PARALLEL;
 	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
 
 	return 0;
 }
 
-static struct v4l2_subdev_video_ops ov2640_subdev_video_ops = {
+static struct v4l2_subdev_video_ops ov2640_subdev_video_ops =
+{
 	.s_stream	= ov2640_s_stream,
 	.g_mbus_config	= ov2640_g_mbus_config,
 };
 
-static const struct v4l2_subdev_pad_ops ov2640_subdev_pad_ops = {
+static const struct v4l2_subdev_pad_ops ov2640_subdev_pad_ops =
+{
 	.enum_mbus_code = ov2640_enum_mbus_code,
 	.get_selection	= ov2640_get_selection,
 	.get_fmt	= ov2640_get_fmt,
 	.set_fmt	= ov2640_set_fmt,
 };
 
-static struct v4l2_subdev_ops ov2640_subdev_ops = {
+static struct v4l2_subdev_ops ov2640_subdev_ops =
+{
 	.core	= &ov2640_subdev_core_ops,
 	.video	= &ov2640_subdev_video_ops,
 	.pad	= &ov2640_subdev_pad_ops,
@@ -1046,7 +1145,9 @@ static int ov2640_hw_power(struct device *dev, int on)
 			__func__, on ? "ENABLE" : "DISABLE");
 
 	if (priv->pwdn_gpio)
+	{
 		gpiod_direction_output(priv->pwdn_gpio, !on);
+	}
 
 	return 0;
 }
@@ -1056,7 +1157,8 @@ static int ov2640_hw_reset(struct device *dev)
 	struct i2c_client *client = to_i2c_client(dev);
 	struct ov2640_priv *priv = to_ov2640(client);
 
-	if (priv->resetb_gpio) {
+	if (priv->resetb_gpio)
+	{
 		/* Active the resetb pin to perform a reset pulse */
 		gpiod_direction_output(priv->resetb_gpio, 1);
 		usleep_range(3000, 5000);
@@ -1067,23 +1169,33 @@ static int ov2640_hw_reset(struct device *dev)
 }
 
 static int ov2640_probe_dt(struct i2c_client *client,
-		struct ov2640_priv *priv)
+						   struct ov2640_priv *priv)
 {
 	/* Request the reset GPIO deasserted */
 	priv->resetb_gpio = devm_gpiod_get_optional(&client->dev, "resetb",
-			GPIOD_OUT_LOW);
+						GPIOD_OUT_LOW);
+
 	if (!priv->resetb_gpio)
+	{
 		dev_dbg(&client->dev, "resetb gpio is not assigned!\n");
+	}
 	else if (IS_ERR(priv->resetb_gpio))
+	{
 		return PTR_ERR(priv->resetb_gpio);
+	}
 
 	/* Request the power down GPIO asserted */
 	priv->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "pwdn",
-			GPIOD_OUT_HIGH);
+					  GPIOD_OUT_HIGH);
+
 	if (!priv->pwdn_gpio)
+	{
 		dev_dbg(&client->dev, "pwdn gpio is not assigned!\n");
+	}
 	else if (IS_ERR(priv->pwdn_gpio))
+	{
 		return PTR_ERR(priv->pwdn_gpio);
+	}
 
 	/* Initialize the soc_camera_subdev_desc */
 	priv->ssdd_dt.power = ov2640_hw_power;
@@ -1097,61 +1209,80 @@ static int ov2640_probe_dt(struct i2c_client *client,
  * i2c_driver functions
  */
 static int ov2640_probe(struct i2c_client *client,
-			const struct i2c_device_id *did)
+						const struct i2c_device_id *did)
 {
 	struct ov2640_priv	*priv;
 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
 	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
 	int			ret;
 
-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		dev_err(&adapter->dev,
-			"OV2640: I2C-Adapter doesn't support SMBUS\n");
+				"OV2640: I2C-Adapter doesn't support SMBUS\n");
 		return -EIO;
 	}
 
 	priv = devm_kzalloc(&client->dev, sizeof(struct ov2640_priv), GFP_KERNEL);
-	if (!priv) {
+
+	if (!priv)
+	{
 		dev_err(&adapter->dev,
-			"Failed to allocate memory for private data!\n");
+				"Failed to allocate memory for private data!\n");
 		return -ENOMEM;
 	}
 
 	priv->clk = v4l2_clk_get(&client->dev, "xvclk");
-	if (IS_ERR(priv->clk))
-		return -EPROBE_DEFER;
 
-	if (!ssdd && !client->dev.of_node) {
+	if (IS_ERR(priv->clk))
+	{
+		return -EPROBE_DEFER;
+	}
+
+	if (!ssdd && !client->dev.of_node)
+	{
 		dev_err(&client->dev, "Missing platform_data for driver\n");
 		ret = -EINVAL;
 		goto err_clk;
 	}
 
-	if (!ssdd) {
+	if (!ssdd)
+	{
 		ret = ov2640_probe_dt(client, priv);
+
 		if (ret)
+		{
 			goto err_clk;
+		}
 	}
 
 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
 	v4l2_ctrl_handler_init(&priv->hdl, 2);
 	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
-			V4L2_CID_VFLIP, 0, 1, 1, 0);
+					  V4L2_CID_VFLIP, 0, 1, 1, 0);
 	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
-			V4L2_CID_HFLIP, 0, 1, 1, 0);
+					  V4L2_CID_HFLIP, 0, 1, 1, 0);
 	priv->subdev.ctrl_handler = &priv->hdl;
-	if (priv->hdl.error) {
+
+	if (priv->hdl.error)
+	{
 		ret = priv->hdl.error;
 		goto err_clk;
 	}
 
 	ret = ov2640_video_probe(client);
+
 	if (ret < 0)
+	{
 		goto err_videoprobe;
+	}
 
 	ret = v4l2_async_register_subdev(&priv->subdev);
+
 	if (ret < 0)
+	{
 		goto err_videoprobe;
+	}
 
 	dev_info(&adapter->dev, "OV2640 Probed\n");
 
@@ -1175,19 +1306,22 @@ static int ov2640_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id ov2640_id[] = {
+static const struct i2c_device_id ov2640_id[] =
+{
 	{ "ov2640", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, ov2640_id);
 
-static const struct of_device_id ov2640_of_match[] = {
+static const struct of_device_id ov2640_of_match[] =
+{
 	{.compatible = "ovti,ov2640", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, ov2640_of_match);
 
-static struct i2c_driver ov2640_i2c_driver = {
+static struct i2c_driver ov2640_i2c_driver =
+{
 	.driver = {
 		.name = "ov2640",
 		.of_match_table = of_match_ptr(ov2640_of_match),

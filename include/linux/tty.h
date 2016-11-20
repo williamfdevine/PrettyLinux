@@ -33,7 +33,8 @@
  *		     master.
  */
 
-enum {
+enum
+{
 	TTY_LOCK_NORMAL = 0,
 	TTY_LOCK_SLAVE,
 };
@@ -53,8 +54,10 @@ enum {
  */
 #define __DISABLED_CHAR '\0'
 
-struct tty_buffer {
-	union {
+struct tty_buffer
+{
+	union
+	{
 		struct tty_buffer *next;
 		struct llist_node free;
 	};
@@ -80,7 +83,8 @@ static inline char *flag_buf_ptr(struct tty_buffer *b, int ofs)
 	return (char *)char_buf_ptr(b, ofs) + b->size;
 }
 
-struct tty_bufhead {
+struct tty_bufhead
+{
 	struct tty_buffer *head;	/* Queue head */
 	struct work_struct work;
 	struct mutex	   lock;
@@ -200,7 +204,8 @@ struct signal_struct;
 
 struct tty_port;
 
-struct tty_port_operations {
+struct tty_port_operations
+{
 	/* Return 1 if the carrier is raised */
 	int (*carrier_raised)(struct tty_port *port);
 	/* Control the DTR line */
@@ -211,14 +216,15 @@ struct tty_port_operations {
 	void (*shutdown)(struct tty_port *port);
 	/* Called under the port mutex from tty_port_open, serialized using
 	   the port mutex */
-        /* FIXME: long term getting the tty argument *out* of this would be
-           good for consoles */
+	/* FIXME: long term getting the tty argument *out* of this would be
+	   good for consoles */
 	int (*activate)(struct tty_port *port, struct tty_struct *tty);
 	/* Called on the final put of a port */
 	void (*destruct)(struct tty_port *port);
 };
-	
-struct tty_port {
+
+struct tty_port
+{
 	struct tty_bufhead	buf;		/* Locked internally */
 	struct tty_struct	*tty;		/* Back pointer */
 	struct tty_struct	*itty;		/* internal back ptr */
@@ -230,8 +236,8 @@ struct tty_port {
 	wait_queue_head_t	delta_msr_wait;	/* Modem status change */
 	unsigned long		flags;		/* User TTY flags ASYNC_ */
 	unsigned long		iflags;		/* Internal flags TTY_PORT_ */
-	unsigned char		console:1,	/* port is a console */
-				low_latency:1;	/* optional: tune for latency */
+	unsigned char		console: 1,	/* port is a console */
+				  low_latency: 1;	/* optional: tune for latency */
 	struct mutex		mutex;		/* Locking */
 	struct mutex		buf_mutex;	/* Buffer alloc lock */
 	unsigned char		*xmit_buf;	/* Optional buffer */
@@ -269,7 +275,8 @@ struct tty_port {
 
 struct tty_operations;
 
-struct tty_struct {
+struct tty_struct
+{
 	int	magic;
 	struct kref kref;
 	struct device *dev;
@@ -297,13 +304,13 @@ struct tty_struct {
 	unsigned long flags;
 	int count;
 	struct winsize winsize;		/* winsize_mutex */
-	unsigned long stopped:1,	/* flow_lock */
-		      flow_stopped:1,
-		      unused:BITS_PER_LONG - 2;
+	unsigned long stopped: 1,	/* flow_lock */
+			 flow_stopped: 1,
+		 unused: BITS_PER_LONG - 2;
 	int hw_stopped;
-	unsigned long ctrl_status:8,	/* ctrl_lock */
-		      packet:1,
-		      unused_ctrl:BITS_PER_LONG - 9;
+	unsigned long ctrl_status: 8,	/* ctrl_lock */
+			 packet: 1,
+		 unused_ctrl: BITS_PER_LONG - 9;
 	unsigned int receive_room;	/* Bytes free for queue */
 	int flow_change;
 
@@ -329,7 +336,8 @@ struct tty_struct {
 };
 
 /* Each of a tty's open files has private_data pointing to tty_file_private */
-struct tty_file_private {
+struct tty_file_private
+{
 	struct tty_struct *tty;
 	struct file *file;
 	struct list_head list;
@@ -436,7 +444,10 @@ extern struct class *tty_class;
 static inline struct tty_struct *tty_kref_get(struct tty_struct *tty)
 {
 	if (tty)
+	{
 		kref_get(&tty->kref);
+	}
+
 	return tty;
 }
 
@@ -451,11 +462,11 @@ extern void start_tty(struct tty_struct *tty);
 extern int tty_register_driver(struct tty_driver *driver);
 extern int tty_unregister_driver(struct tty_driver *driver);
 extern struct device *tty_register_device(struct tty_driver *driver,
-					  unsigned index, struct device *dev);
+		unsigned index, struct device *dev);
 extern struct device *tty_register_device_attr(struct tty_driver *driver,
-				unsigned index, struct device *device,
-				void *drvdata,
-				const struct attribute_group **attr_grp);
+		unsigned index, struct device *device,
+		void *drvdata,
+		const struct attribute_group **attr_grp);
 extern void tty_unregister_device(struct tty_driver *driver, unsigned index);
 extern void tty_write_message(struct tty_struct *tty, char *msg);
 extern int tty_send_xchar(struct tty_struct *tty, char ch);
@@ -485,9 +496,9 @@ extern void tty_buffer_flush_work(struct tty_port *port);
 extern speed_t tty_termios_baud_rate(struct ktermios *termios);
 extern speed_t tty_termios_input_baud_rate(struct ktermios *termios);
 extern void tty_termios_encode_baud_rate(struct ktermios *termios,
-						speed_t ibaud, speed_t obaud);
+		speed_t ibaud, speed_t obaud);
 extern void tty_encode_baud_rate(struct tty_struct *tty,
-						speed_t ibaud, speed_t obaud);
+								 speed_t ibaud, speed_t obaud);
 
 /**
  *	tty_get_baud_rate	-	get tty bit rates
@@ -520,7 +531,7 @@ extern void tty_ldisc_flush(struct tty_struct *tty);
 
 extern long tty_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
 extern int tty_mode_ioctl(struct tty_struct *tty, struct file *file,
-			unsigned int cmd, unsigned long arg);
+						  unsigned int cmd, unsigned long arg);
 extern int tty_perform_flush(struct tty_struct *tty, unsigned long arg);
 extern void tty_default_fops(struct file_operations *fops);
 extern struct tty_struct *alloc_tty_struct(struct tty_driver *driver, int idx);
@@ -531,7 +542,7 @@ extern struct tty_struct *tty_init_dev(struct tty_driver *driver, int idx);
 extern int tty_release(struct inode *inode, struct file *filp);
 extern void tty_init_termios(struct tty_struct *tty);
 extern int tty_standard_install(struct tty_driver *driver,
-		struct tty_struct *tty);
+								struct tty_struct *tty);
 
 extern struct mutex tty_mutex;
 
@@ -539,7 +550,7 @@ extern struct mutex tty_mutex;
 
 extern void tty_port_init(struct tty_port *port);
 extern void tty_port_link_device(struct tty_port *port,
-		struct tty_driver *driver, unsigned index);
+								 struct tty_driver *driver, unsigned index);
 extern struct device *tty_port_register_device(struct tty_port *port,
 		struct tty_driver *driver, unsigned index,
 		struct device *device);
@@ -555,7 +566,10 @@ extern void tty_port_put(struct tty_port *port);
 static inline struct tty_port *tty_port_get(struct tty_port *port)
 {
 	if (port && kref_get_unless_zero(&port->kref))
+	{
 		return port;
+	}
+
 	return NULL;
 }
 
@@ -568,9 +582,13 @@ static inline bool tty_port_cts_enabled(struct tty_port *port)
 static inline void tty_port_set_cts_flow(struct tty_port *port, bool val)
 {
 	if (val)
+	{
 		set_bit(TTY_PORT_CTS_FLOW, &port->iflags);
+	}
 	else
+	{
 		clear_bit(TTY_PORT_CTS_FLOW, &port->iflags);
+	}
 }
 
 static inline bool tty_port_active(struct tty_port *port)
@@ -581,9 +599,13 @@ static inline bool tty_port_active(struct tty_port *port)
 static inline void tty_port_set_active(struct tty_port *port, bool val)
 {
 	if (val)
+	{
 		set_bit(TTY_PORT_ACTIVE, &port->iflags);
+	}
 	else
+	{
 		clear_bit(TTY_PORT_ACTIVE, &port->iflags);
+	}
 }
 
 static inline bool tty_port_check_carrier(struct tty_port *port)
@@ -594,9 +616,13 @@ static inline bool tty_port_check_carrier(struct tty_port *port)
 static inline void tty_port_set_check_carrier(struct tty_port *port, bool val)
 {
 	if (val)
+	{
 		set_bit(TTY_PORT_CHECK_CD, &port->iflags);
+	}
 	else
+	{
 		clear_bit(TTY_PORT_CHECK_CD, &port->iflags);
+	}
 }
 
 static inline bool tty_port_suspended(struct tty_port *port)
@@ -607,9 +633,13 @@ static inline bool tty_port_suspended(struct tty_port *port)
 static inline void tty_port_set_suspended(struct tty_port *port, bool val)
 {
 	if (val)
+	{
 		set_bit(TTY_PORT_SUSPENDED, &port->iflags);
+	}
 	else
+	{
 		clear_bit(TTY_PORT_SUSPENDED, &port->iflags);
+	}
 }
 
 static inline bool tty_port_initialized(struct tty_port *port)
@@ -620,9 +650,13 @@ static inline bool tty_port_initialized(struct tty_port *port)
 static inline void tty_port_set_initialized(struct tty_port *port, bool val)
 {
 	if (val)
+	{
 		set_bit(TTY_PORT_INITIALIZED, &port->iflags);
+	}
 	else
+	{
 		clear_bit(TTY_PORT_INITIALIZED, &port->iflags);
+	}
 }
 
 extern struct tty_struct *tty_port_tty_get(struct tty_port *port);
@@ -634,16 +668,16 @@ extern void tty_port_hangup(struct tty_port *port);
 extern void tty_port_tty_hangup(struct tty_port *port, bool check_clocal);
 extern void tty_port_tty_wakeup(struct tty_port *port);
 extern int tty_port_block_til_ready(struct tty_port *port,
-				struct tty_struct *tty, struct file *filp);
+									struct tty_struct *tty, struct file *filp);
 extern int tty_port_close_start(struct tty_port *port,
-				struct tty_struct *tty, struct file *filp);
+								struct tty_struct *tty, struct file *filp);
 extern void tty_port_close_end(struct tty_port *port, struct tty_struct *tty);
 extern void tty_port_close(struct tty_port *port,
-				struct tty_struct *tty, struct file *filp);
+						   struct tty_struct *tty, struct file *filp);
 extern int tty_port_install(struct tty_port *port, struct tty_driver *driver,
-				struct tty_struct *tty);
+							struct tty_struct *tty);
 extern int tty_port_open(struct tty_port *port,
-				struct tty_struct *tty, struct file *filp);
+						 struct tty_struct *tty, struct file *filp);
 static inline int tty_port_users(struct tty_port *port)
 {
 	return port->count + port->blocked_open;
@@ -657,7 +691,7 @@ extern void tty_ldisc_release(struct tty_struct *tty);
 extern void tty_ldisc_init(struct tty_struct *tty);
 extern void tty_ldisc_deinit(struct tty_struct *tty);
 extern int tty_ldisc_receive_buf(struct tty_ldisc *ld, unsigned char *p,
-				 char *f, int count);
+								 char *f, int count);
 
 /* n_tty.c */
 extern void n_tty_inherit_ops(struct tty_ldisc_ops *ops);
@@ -666,14 +700,14 @@ extern void __init n_tty_init(void);
 /* tty_audit.c */
 #ifdef CONFIG_AUDIT
 extern void tty_audit_add_data(struct tty_struct *tty, const void *data,
-			       size_t size);
+							   size_t size);
 extern void tty_audit_exit(void);
 extern void tty_audit_fork(struct signal_struct *sig);
 extern void tty_audit_tiocsti(struct tty_struct *tty, char ch);
 extern int tty_audit_push(void);
 #else
 static inline void tty_audit_add_data(struct tty_struct *tty, const void *data,
-				      size_t size)
+									  size_t size)
 {
 }
 static inline void tty_audit_tiocsti(struct tty_struct *tty, char ch)
@@ -693,17 +727,17 @@ static inline int tty_audit_push(void)
 
 /* tty_ioctl.c */
 extern int n_tty_ioctl_helper(struct tty_struct *tty, struct file *file,
-		       unsigned int cmd, unsigned long arg);
+							  unsigned int cmd, unsigned long arg);
 extern long n_tty_compat_ioctl_helper(struct tty_struct *tty, struct file *file,
-		       unsigned int cmd, unsigned long arg);
+									  unsigned int cmd, unsigned long arg);
 
 /* vt.c */
 
 extern int vt_ioctl(struct tty_struct *tty,
-		    unsigned int cmd, unsigned long arg);
+					unsigned int cmd, unsigned long arg);
 
 extern long vt_compat_ioctl(struct tty_struct *tty,
-		     unsigned int cmd, unsigned long arg);
+							unsigned int cmd, unsigned long arg);
 
 /* tty_mutex.c */
 /* functions for preparation of BKL removal */
@@ -732,6 +766,6 @@ static inline void proc_tty_unregister_driver(struct tty_driver *d) {}
 #define tty_err(tty, f, ...)	tty_msg(pr_err, tty, f, ##__VA_ARGS__)
 
 #define tty_info_ratelimited(tty, f, ...) \
-		tty_msg(pr_info_ratelimited, tty, f, ##__VA_ARGS__)
+	tty_msg(pr_info_ratelimited, tty, f, ##__VA_ARGS__)
 
 #endif

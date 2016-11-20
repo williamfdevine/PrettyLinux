@@ -9,7 +9,8 @@ struct blkcipher_desc;
 
 #define LRW_BLOCK_SIZE 16
 
-struct lrw_table_ctx {
+struct lrw_table_ctx
+{
 	/* optimizes multiplying a random (non incrementing, as at the
 	 * start of a new sector) value with key2, we could also have
 	 * used 4k optimization tables or no optimization at all. In the
@@ -27,7 +28,8 @@ struct lrw_table_ctx {
 int lrw_init_table(struct lrw_table_ctx *ctx, const u8 *tweak);
 void lrw_free_table(struct lrw_table_ctx *ctx);
 
-struct lrw_crypt_req {
+struct lrw_crypt_req
+{
 	be128 *tbuf;
 	unsigned int tbuflen;
 
@@ -37,7 +39,7 @@ struct lrw_crypt_req {
 };
 
 int lrw_crypt(struct blkcipher_desc *desc, struct scatterlist *dst,
-	      struct scatterlist *src, unsigned int nbytes,
-	      struct lrw_crypt_req *req);
+			  struct scatterlist *src, unsigned int nbytes,
+			  struct lrw_crypt_req *req);
 
 #endif  /* _CRYPTO_LRW_H */

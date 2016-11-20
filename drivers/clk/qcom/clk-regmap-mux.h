@@ -17,7 +17,8 @@
 #include <linux/clk-provider.h>
 #include "clk-regmap.h"
 
-struct clk_regmap_mux {
+struct clk_regmap_mux
+{
 	u32			reg;
 	u32			shift;
 	u32			width;

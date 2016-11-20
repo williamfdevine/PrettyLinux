@@ -39,13 +39,15 @@ struct kgd_dev;
 
 struct kgd_mem;
 
-enum kgd_memory_pool {
+enum kgd_memory_pool
+{
 	KGD_POOL_SYSTEM_CACHEABLE = 1,
 	KGD_POOL_SYSTEM_WRITECOMBINE = 2,
 	KGD_POOL_FRAMEBUFFER = 3,
 };
 
-enum kgd_engine_type {
+enum kgd_engine_type
+{
 	KGD_ENGINE_PFP = 1,
 	KGD_ENGINE_ME,
 	KGD_ENGINE_CE,
@@ -57,7 +59,8 @@ enum kgd_engine_type {
 	KGD_ENGINE_MAX
 };
 
-struct kgd2kfd_shared_resources {
+struct kgd2kfd_shared_resources
+{
 	/* Bit n == 1 means VMID n is available for KFD. */
 	unsigned int compute_vmid_bitmap;
 
@@ -122,10 +125,11 @@ struct kgd2kfd_shared_resources {
  * provides to amdkfd driver.
  *
  */
-struct kfd2kgd_calls {
+struct kfd2kgd_calls
+{
 	int (*init_gtt_mem_allocation)(struct kgd_dev *kgd, size_t size,
-					void **mem_obj, uint64_t *gpu_addr,
-					void **cpu_ptr);
+								   void **mem_obj, uint64_t *gpu_addr,
+								   void **cpu_ptr);
 
 	void (*free_gtt_mem)(struct kgd_dev *kgd, void *mem_obj);
 
@@ -136,57 +140,57 @@ struct kfd2kgd_calls {
 
 	/* Register access functions */
 	void (*program_sh_mem_settings)(struct kgd_dev *kgd, uint32_t vmid,
-			uint32_t sh_mem_config,	uint32_t sh_mem_ape1_base,
-			uint32_t sh_mem_ape1_limit, uint32_t sh_mem_bases);
+									uint32_t sh_mem_config,	uint32_t sh_mem_ape1_base,
+									uint32_t sh_mem_ape1_limit, uint32_t sh_mem_bases);
 
 	int (*set_pasid_vmid_mapping)(struct kgd_dev *kgd, unsigned int pasid,
-					unsigned int vmid);
+								  unsigned int vmid);
 
 	int (*init_pipeline)(struct kgd_dev *kgd, uint32_t pipe_id,
-				uint32_t hpd_size, uint64_t hpd_gpu_addr);
+						 uint32_t hpd_size, uint64_t hpd_gpu_addr);
 
 	int (*init_interrupts)(struct kgd_dev *kgd, uint32_t pipe_id);
 
 	int (*hqd_load)(struct kgd_dev *kgd, void *mqd, uint32_t pipe_id,
-			uint32_t queue_id, uint32_t __user *wptr);
+					uint32_t queue_id, uint32_t __user *wptr);
 
 	int (*hqd_sdma_load)(struct kgd_dev *kgd, void *mqd);
 
 	bool (*hqd_is_occupied)(struct kgd_dev *kgd, uint64_t queue_address,
-				uint32_t pipe_id, uint32_t queue_id);
+							uint32_t pipe_id, uint32_t queue_id);
 
 	int (*hqd_destroy)(struct kgd_dev *kgd, uint32_t reset_type,
-				unsigned int timeout, uint32_t pipe_id,
-				uint32_t queue_id);
+					   unsigned int timeout, uint32_t pipe_id,
+					   uint32_t queue_id);
 
 	bool (*hqd_sdma_is_occupied)(struct kgd_dev *kgd, void *mqd);
 
 	int (*hqd_sdma_destroy)(struct kgd_dev *kgd, void *mqd,
-				unsigned int timeout);
+							unsigned int timeout);
 
 	int (*address_watch_disable)(struct kgd_dev *kgd);
 	int (*address_watch_execute)(struct kgd_dev *kgd,
-					unsigned int watch_point_id,
-					uint32_t cntl_val,
-					uint32_t addr_hi,
-					uint32_t addr_lo);
+								 unsigned int watch_point_id,
+								 uint32_t cntl_val,
+								 uint32_t addr_hi,
+								 uint32_t addr_lo);
 	int (*wave_control_execute)(struct kgd_dev *kgd,
-					uint32_t gfx_index_val,
-					uint32_t sq_cmd);
+								uint32_t gfx_index_val,
+								uint32_t sq_cmd);
 	uint32_t (*address_watch_get_offset)(struct kgd_dev *kgd,
-					unsigned int watch_point_id,
-					unsigned int reg_offset);
+										 unsigned int watch_point_id,
+										 unsigned int reg_offset);
 	bool (*get_atc_vmid_pasid_mapping_valid)(
-					struct kgd_dev *kgd,
-					uint8_t vmid);
+		struct kgd_dev *kgd,
+		uint8_t vmid);
 	uint16_t (*get_atc_vmid_pasid_mapping_pasid)(
-					struct kgd_dev *kgd,
-					uint8_t vmid);
+		struct kgd_dev *kgd,
+		uint8_t vmid);
 	void (*write_vmid_invalidate_request)(struct kgd_dev *kgd,
-					uint8_t vmid);
+										  uint8_t vmid);
 
 	uint16_t (*get_fw_version)(struct kgd_dev *kgd,
-				enum kgd_engine_type type);
+							   enum kgd_engine_type type);
 };
 
 /**
@@ -209,12 +213,13 @@ struct kfd2kgd_calls {
  * will notify to the amdkfd about certain status changes.
  *
  */
-struct kgd2kfd_calls {
+struct kgd2kfd_calls
+{
 	void (*exit)(void);
-	struct kfd_dev* (*probe)(struct kgd_dev *kgd, struct pci_dev *pdev,
-		const struct kfd2kgd_calls *f2g);
+	struct kfd_dev *(*probe)(struct kgd_dev *kgd, struct pci_dev *pdev,
+							 const struct kfd2kgd_calls *f2g);
 	bool (*device_init)(struct kfd_dev *kfd,
-			const struct kgd2kfd_shared_resources *gpu_resources);
+						const struct kgd2kfd_shared_resources *gpu_resources);
 	void (*device_exit)(struct kfd_dev *kfd);
 	void (*interrupt)(struct kfd_dev *kfd, const void *ih_ring_entry);
 	void (*suspend)(struct kfd_dev *kfd);
@@ -222,6 +227,6 @@ struct kgd2kfd_calls {
 };
 
 int kgd2kfd_init(unsigned interface_version,
-		const struct kgd2kfd_calls **g2f);
+				 const struct kgd2kfd_calls **g2f);
 
 #endif	/* KGD_KFD_INTERFACE_H_INCLUDED */

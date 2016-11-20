@@ -92,7 +92,8 @@ MODULE_LICENSE("GPL");
  * 25 87 ee a3 04	gives you the middle button
  */
 
-static const unsigned short appleir_key_table[] = {
+static const unsigned short appleir_key_table[] =
+{
 	KEY_RESERVED,
 	KEY_MENU,
 	KEY_PLAYPAUSE,
@@ -112,7 +113,8 @@ static const unsigned short appleir_key_table[] = {
 	KEY_RESERVED,
 };
 
-struct appleir {
+struct appleir
+{
 	struct input_dev *input_dev;
 	struct hid_device *hid;
 	unsigned short keymap[ARRAY_SIZE(appleir_key_table)];
@@ -151,7 +153,9 @@ static int get_key(int data)
 
 	if ((data & TWO_PACKETS_MASK))
 		/* Part of a 2 packets-command */
+	{
 		key = -key;
+	}
 
 	return key;
 }
@@ -180,15 +184,18 @@ static void key_up_tick(unsigned long data)
 	unsigned long flags;
 
 	spin_lock_irqsave(&appleir->lock, flags);
-	if (appleir->current_key) {
+
+	if (appleir->current_key)
+	{
 		key_up(hid, appleir, appleir->current_key);
 		appleir->current_key = 0;
 	}
+
 	spin_unlock_irqrestore(&appleir->lock, flags);
 }
 
 static int appleir_raw_event(struct hid_device *hid, struct hid_report *report,
-	 u8 *data, int len)
+							 u8 *data, int len)
 {
 	struct appleir *appleir = hid_get_drvdata(hid);
 	static const u8 keydown[] = { 0x25, 0x87, 0xee };
@@ -197,26 +204,37 @@ static int appleir_raw_event(struct hid_device *hid, struct hid_report *report,
 	unsigned long flags;
 
 	if (len != 5)
+	{
 		goto out;
+	}
 
-	if (!memcmp(data, keydown, sizeof(keydown))) {
+	if (!memcmp(data, keydown, sizeof(keydown)))
+	{
 		int index;
 
 		spin_lock_irqsave(&appleir->lock, flags);
+
 		/*
 		 * If we already have a key down, take it up before marking
 		 * this one down
 		 */
 		if (appleir->current_key)
+		{
 			key_up(hid, appleir, appleir->current_key);
+		}
 
 		/* Handle dual packet commands */
 		if (appleir->prev_key_idx > 0)
+		{
 			index = appleir->prev_key_idx;
+		}
 		else
+		{
 			index = get_key(data[4]);
+		}
 
-		if (index >= 0) {
+		if (index >= 0)
+		{
 			appleir->current_key = appleir->keymap[index];
 
 			key_down(hid, appleir, appleir->current_key);
@@ -227,16 +245,21 @@ static int appleir_raw_event(struct hid_device *hid, struct hid_report *report,
 			 */
 			mod_timer(&appleir->key_up_timer, jiffies + HZ / 8);
 			appleir->prev_key_idx = 0;
-		} else
+		}
+		else
 			/* Remember key for next packet */
+		{
 			appleir->prev_key_idx = -index;
+		}
+
 		spin_unlock_irqrestore(&appleir->lock, flags);
 		goto out;
 	}
 
 	appleir->prev_key_idx = 0;
 
-	if (!memcmp(data, keyrepeat, sizeof(keyrepeat))) {
+	if (!memcmp(data, keyrepeat, sizeof(keyrepeat)))
+	{
 		key_down(hid, appleir, appleir->current_key);
 		/*
 		 * Remote doesn't do key up, either pull them up, in the test
@@ -246,7 +269,8 @@ static int appleir_raw_event(struct hid_device *hid, struct hid_report *report,
 		goto out;
 	}
 
-	if (!memcmp(data, flatbattery, sizeof(flatbattery))) {
+	if (!memcmp(data, flatbattery, sizeof(flatbattery)))
+	{
 		battery_flat(appleir);
 		/* Fall through */
 	}
@@ -257,7 +281,7 @@ out:
 }
 
 static int appleir_input_configured(struct hid_device *hid,
-		struct hid_input *hidinput)
+									struct hid_input *hidinput)
 {
 	struct input_dev *input_dev = hidinput->input;
 	struct appleir *appleir = hid_get_drvdata(hid);
@@ -272,16 +296,20 @@ static int appleir_input_configured(struct hid_device *hid,
 	input_dev->evbit[0] = BIT(EV_KEY) | BIT(EV_REP);
 
 	memcpy(appleir->keymap, appleir_key_table, sizeof(appleir->keymap));
+
 	for (i = 0; i < ARRAY_SIZE(appleir_key_table); i++)
+	{
 		set_bit(appleir->keymap[i], input_dev->keybit);
+	}
+
 	clear_bit(KEY_RESERVED, input_dev->keybit);
 
 	return 0;
 }
 
 static int appleir_input_mapping(struct hid_device *hid,
-		struct hid_input *hi, struct hid_field *field,
-		struct hid_usage *usage, unsigned long **bit, int *max)
+								 struct hid_input *hi, struct hid_field *field,
+								 struct hid_usage *usage, unsigned long **bit, int *max)
 {
 	return -1;
 }
@@ -292,7 +320,9 @@ static int appleir_probe(struct hid_device *hid, const struct hid_device_id *id)
 	struct appleir *appleir;
 
 	appleir = kzalloc(sizeof(struct appleir), GFP_KERNEL);
-	if (!appleir) {
+
+	if (!appleir)
+	{
 		ret = -ENOMEM;
 		goto allocfail;
 	}
@@ -304,18 +334,22 @@ static int appleir_probe(struct hid_device *hid, const struct hid_device_id *id)
 
 	spin_lock_init(&appleir->lock);
 	setup_timer(&appleir->key_up_timer,
-		    key_up_tick, (unsigned long) appleir);
+				key_up_tick, (unsigned long) appleir);
 
 	hid_set_drvdata(hid, appleir);
 
 	ret = hid_parse(hid);
-	if (ret) {
+
+	if (ret)
+	{
 		hid_err(hid, "parse failed\n");
 		goto fail;
 	}
 
 	ret = hid_hw_start(hid, HID_CONNECT_DEFAULT | HID_CONNECT_HIDDEV_FORCE);
-	if (ret) {
+
+	if (ret)
+	{
 		hid_err(hid, "hw start failed\n");
 		goto fail;
 	}
@@ -335,7 +369,8 @@ static void appleir_remove(struct hid_device *hid)
 	kfree(appleir);
 }
 
-static const struct hid_device_id appleir_devices[] = {
+static const struct hid_device_id appleir_devices[] =
+{
 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_IRCONTROL) },
 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_IRCONTROL2) },
 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_IRCONTROL3) },
@@ -345,7 +380,8 @@ static const struct hid_device_id appleir_devices[] = {
 };
 MODULE_DEVICE_TABLE(hid, appleir_devices);
 
-static struct hid_driver appleir_driver = {
+static struct hid_driver appleir_driver =
+{
 	.name = "appleir",
 	.id_table = appleir_devices,
 	.raw_event = appleir_raw_event,

@@ -2,28 +2,31 @@
 #include <sys/socket.h>
 
 #ifndef MSG_PROBE
-#define MSG_PROBE		     0x10
+	#define MSG_PROBE		     0x10
 #endif
 #ifndef MSG_WAITFORONE
-#define MSG_WAITFORONE		   0x10000
+	#define MSG_WAITFORONE		   0x10000
 #endif
 #ifndef MSG_SENDPAGE_NOTLAST
-#define MSG_SENDPAGE_NOTLAST	   0x20000
+	#define MSG_SENDPAGE_NOTLAST	   0x20000
 #endif
 #ifndef MSG_FASTOPEN
-#define MSG_FASTOPEN		0x20000000
+	#define MSG_FASTOPEN		0x20000000
 #endif
 #ifndef MSG_CMSG_CLOEXEC
-# define MSG_CMSG_CLOEXEC	0x40000000
+	#define MSG_CMSG_CLOEXEC	0x40000000
 #endif
 
 static size_t syscall_arg__scnprintf_msg_flags(char *bf, size_t size,
-					       struct syscall_arg *arg)
+		struct syscall_arg *arg)
 {
 	int printed = 0, flags = arg->val;
 
 	if (flags == 0)
+	{
 		return scnprintf(bf, size, "NONE");
+	}
+
 #define	P_MSG_FLAG(n) \
 	if (flags & MSG_##n) { \
 		printed += scnprintf(bf + printed, size - printed, "%s%s", printed ? "|" : "", #n); \
@@ -53,7 +56,9 @@ static size_t syscall_arg__scnprintf_msg_flags(char *bf, size_t size,
 #undef P_MSG_FLAG
 
 	if (flags)
+	{
 		printed += scnprintf(bf + printed, size - printed, "%s%#x", printed ? "|" : "", flags);
+	}
 
 	return printed;
 }

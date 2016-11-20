@@ -33,7 +33,8 @@
 struct c8sectpfe;
 struct stdemux;
 
-struct stdemux {
+struct stdemux
+{
 	struct dvb_demux	dvb_demux;
 	struct dmxdev		dmxdev;
 	struct dmx_frontend	hw_frontend;
@@ -43,7 +44,8 @@ struct stdemux {
 	struct			c8sectpfei *c8sectpfei;
 };
 
-struct c8sectpfe {
+struct c8sectpfe
+{
 	struct stdemux demux[MAX_INPUTBLOCKS];
 	struct mutex lock;
 	struct dvb_adapter adapter;
@@ -54,11 +56,11 @@ struct c8sectpfe {
 
 /* Channel registration */
 int c8sectpfe_tuner_register_frontend(struct c8sectpfe **c8sectpfe,
-					struct c8sectpfei *fei,
-					void *start_feed,
-					void *stop_feed);
+									  struct c8sectpfei *fei,
+									  void *start_feed,
+									  void *stop_feed);
 
 void c8sectpfe_tuner_unregister_frontend(struct c8sectpfe *c8sectpfe,
-						struct c8sectpfei *fei);
+		struct c8sectpfei *fei);
 
 #endif

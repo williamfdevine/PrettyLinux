@@ -26,7 +26,8 @@
 #include "regsnv04.h"
 
 static const struct nv04_fifo_ramfc
-nv10_fifo_ramfc[] = {
+	nv10_fifo_ramfc[] =
+{
 	{ 32,  0, 0x00,  0, NV04_PFIFO_CACHE1_DMA_PUT },
 	{ 32,  0, 0x04,  0, NV04_PFIFO_CACHE1_DMA_GET },
 	{ 32,  0, 0x08,  0, NV10_PFIFO_CACHE1_REF_CNT },
@@ -40,7 +41,8 @@ nv10_fifo_ramfc[] = {
 };
 
 static const struct nvkm_fifo_func
-nv10_fifo = {
+	nv10_fifo =
+{
 	.init = nv04_fifo_init,
 	.intr = nv04_fifo_intr,
 	.pause = nv04_fifo_pause,
@@ -55,5 +57,5 @@ int
 nv10_fifo_new(struct nvkm_device *device, int index, struct nvkm_fifo **pfifo)
 {
 	return nv04_fifo_new_(&nv10_fifo, device, index, 32,
-			      nv10_fifo_ramfc, pfifo);
+						  nv10_fifo_ramfc, pfifo);
 }

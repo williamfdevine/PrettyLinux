@@ -11,7 +11,8 @@
 
 #include <linux/list.h>
 
-struct syscore_ops {
+struct syscore_ops
+{
 	struct list_head node;
 	int (*suspend)(void);
 	void (*resume)(void);
@@ -21,8 +22,8 @@ struct syscore_ops {
 extern void register_syscore_ops(struct syscore_ops *ops);
 extern void unregister_syscore_ops(struct syscore_ops *ops);
 #ifdef CONFIG_PM_SLEEP
-extern int syscore_suspend(void);
-extern void syscore_resume(void);
+	extern int syscore_suspend(void);
+	extern void syscore_resume(void);
 #endif
 extern void syscore_shutdown(void);
 

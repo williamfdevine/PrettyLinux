@@ -20,7 +20,8 @@
 #ifndef R8192_HW
 #define R8192_HW
 
-typedef enum _VERSION_819xU{
+typedef enum _VERSION_819xU
+{
 	VERSION_819xU_A, // A-cut
 	VERSION_819xU_B, // B-cut
 	VERSION_819xU_C,// C-cut
@@ -32,13 +33,14 @@ typedef enum _RT_RF_TYPE_DEF
 	RF_2T4R,
 
 	RF_819X_MAX_TYPE
-}RT_RF_TYPE_DEF;
+} RT_RF_TYPE_DEF;
 
 
-typedef enum _BaseBand_Config_Type{
+typedef enum _BaseBand_Config_Type
+{
 	BaseBand_Config_PHY_REG = 0,			//Radio Path A
 	BaseBand_Config_AGC_TAB = 1,			//Radio Path B
-}BaseBand_Config_Type, *PBaseBand_Config_Type;
+} BaseBand_Config_Type, *PBaseBand_Config_Type;
 #define	RTL8187_REQT_READ	0xc0
 #define	RTL8187_REQT_WRITE	0x40
 #define	RTL8187_REQ_GET_REGS	0x05
@@ -108,7 +110,8 @@ typedef enum _BaseBand_Config_Type{
 #define AC_PARAM_AIFS_OFFSET		0
 
 //#endif
-enum _RTL8192Usb_HW {
+enum _RTL8192Usb_HW
+{
 
 	PCIF			= 0x009, // PCI Function Register 0x0009h~0x000bh
 #define	BB_GLOBAL_RESET_BIT	0x1
@@ -129,8 +132,8 @@ enum _RTL8192Usb_HW {
 #define TCR_SAT			BIT(24)	// Enable Rate depedent ack timeout timer
 	RCR			= 0x044, // Receive Configuration Register
 #define MAC_FILTER_MASK (BIT(0) | BIT(1) | BIT(2) | BIT(3) | BIT(5) | \
-			 BIT(12) | BIT(18) | BIT(19) | BIT(20) | BIT(21) | \
-			 BIT(22) | BIT(23))
+						 BIT(12) | BIT(18) | BIT(19) | BIT(20) | BIT(21) | \
+						 BIT(22) | BIT(23))
 #define RX_FIFO_THRESHOLD_MASK (BIT(13) | BIT(14) | BIT(15))
 #define RX_FIFO_THRESHOLD_SHIFT 13
 #define RX_FIFO_THRESHOLD_128 3
@@ -203,9 +206,9 @@ enum _RTL8192Usb_HW {
 #define CPU_GEN_NO_LOOPBACK_MSK	0xFFF8FFFF		// Set bit18,17,16 to 0. Set bit19
 #define CPU_GEN_NO_LOOPBACK_SET	0x00080000		// Set BIT19 to 1
 
-//----------------------------------------------------------------------------
-//       8190 CPU General Register		(offset 0x100, 4 byte)
-//----------------------------------------------------------------------------
+	//----------------------------------------------------------------------------
+	//       8190 CPU General Register		(offset 0x100, 4 byte)
+	//----------------------------------------------------------------------------
 #define	CPU_CCK_LOOPBACK	0x00030000
 #define	CPU_GEN_SYSTEM_RESET	0x00000001
 #define	CPU_GEN_FIRMWARE_RESET	0x00000008
@@ -222,11 +225,11 @@ enum _RTL8192Usb_HW {
 
 	AcmAvg			= 0x170, // ACM Average Period Register
 	AcmHwCtrl		= 0x171, // ACM Hardware Control Register
-//----------------------------------------------------------------------------
-////
-////       8190 AcmHwCtrl bits                                    (offset 0x171, 1 byte)
-////----------------------------------------------------------------------------
-//
+	//----------------------------------------------------------------------------
+	////
+	////       8190 AcmHwCtrl bits                                    (offset 0x171, 1 byte)
+	////----------------------------------------------------------------------------
+	//
 #define AcmHw_HwEn              BIT(0)
 #define AcmHw_BeqEn             BIT(1)
 #define AcmHw_ViqEn             BIT(2)
@@ -243,7 +246,7 @@ enum _RTL8192Usb_HW {
 	RQPN1			= 0x180, // Reserved Queue Page Number , Vo Vi, Be, Bk
 	RQPN2			= 0x184, // Reserved Queue Page Number, HCCA, Cmd, Mgnt, High
 	RQPN3			= 0x188, // Reserved Queue Page Number, Bcn, Public,
-//	QPRR			= 0x1E0, // Queue Page Report per TID
+	//	QPRR			= 0x1E0, // Queue Page Report per TID
 	QPNR			= 0x1D0, //0x1F0, // Queue Packet Number report per TID
 	BQDA			= 0x200, // Beacon Queue Descriptor Address
 	HQDA			= 0x204, // High Priority Queue Descriptor Address
@@ -329,15 +332,15 @@ enum _RTL8192Usb_HW {
 	RATR0			= 0x320, // Rate Adaptive Table register1
 	UFWP			= 0x318,
 	DRIVER_RSSI		= 0x32c,					// Driver tell Firmware current RSSI
-//----------------------------------------------------------------------------
-//       8190 Rate Adaptive Table Register	(offset 0x320, 4 byte)
-//----------------------------------------------------------------------------
-//CCK
+	//----------------------------------------------------------------------------
+	//       8190 Rate Adaptive Table Register	(offset 0x320, 4 byte)
+	//----------------------------------------------------------------------------
+	//CCK
 #define	RATR_1M			0x00000001
 #define	RATR_2M			0x00000002
 #define	RATR_55M		0x00000004
 #define	RATR_11M		0x00000008
-//OFDM
+	//OFDM
 #define	RATR_6M			0x00000010
 #define	RATR_9M			0x00000020
 #define	RATR_12M		0x00000040
@@ -346,7 +349,7 @@ enum _RTL8192Usb_HW {
 #define	RATR_36M		0x00000200
 #define	RATR_48M		0x00000400
 #define	RATR_54M		0x00000800
-//MCS 1 Spatial Stream
+	//MCS 1 Spatial Stream
 #define	RATR_MCS0		0x00001000
 #define	RATR_MCS1		0x00002000
 #define	RATR_MCS2		0x00004000
@@ -355,7 +358,7 @@ enum _RTL8192Usb_HW {
 #define	RATR_MCS5		0x00020000
 #define	RATR_MCS6		0x00040000
 #define	RATR_MCS7		0x00080000
-//MCS 2 Spatial Stream
+	//MCS 2 Spatial Stream
 #define	RATR_MCS8		0x00100000
 #define	RATR_MCS9		0x00200000
 #define	RATR_MCS10		0x00400000
@@ -364,20 +367,20 @@ enum _RTL8192Usb_HW {
 #define	RATR_MCS13		0x02000000
 #define	RATR_MCS14		0x04000000
 #define	RATR_MCS15		0x08000000
-// ALL CCK Rate
+	// ALL CCK Rate
 #define RATE_ALL_CCK		RATR_1M|RATR_2M|RATR_55M|RATR_11M
 #define RATE_ALL_OFDM_AG	RATR_6M|RATR_9M|RATR_12M|RATR_18M|RATR_24M\
-							|RATR_36M|RATR_48M|RATR_54M
+	|RATR_36M|RATR_48M|RATR_54M
 #define RATE_ALL_OFDM_1SS	RATR_MCS0|RATR_MCS1|RATR_MCS2|RATR_MCS3 | \
-							RATR_MCS4|RATR_MCS5|RATR_MCS6|RATR_MCS7
+	RATR_MCS4|RATR_MCS5|RATR_MCS6|RATR_MCS7
 #define RATE_ALL_OFDM_2SS	RATR_MCS8|RATR_MCS9	|RATR_MCS10|RATR_MCS11| \
-							RATR_MCS12|RATR_MCS13|RATR_MCS14|RATR_MCS15
+	RATR_MCS12|RATR_MCS13|RATR_MCS14|RATR_MCS15
 
 	MCS_TXAGC		= 0x340, // MCS AGC
 	CCK_TXAGC		= 0x348, // CCK AGC
-//	ISR			= 0x350, // Interrupt Status Register
-//	IMR			= 0x354, // Interrupt Mask Register
-//	IMR_POLL		= 0x360,
+	//	ISR			= 0x350, // Interrupt Status Register
+	//	IMR			= 0x354, // Interrupt Mask Register
+	//	IMR_POLL		= 0x360,
 	MacBlkCtrl		= 0x403, // Mac block on/off control register
 
 	EPROM_CMD		= 0xfe58,

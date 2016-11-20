@@ -79,7 +79,8 @@ static int all;
 module_param(all, int, 0444);
 MODULE_PARM_DESC(all, "Grab all legacy port devices, even if PCI(0=off, 1=on)");
 
-enum controller {
+enum controller
+{
 	BIOS = 0,
 	SNOOP = 1,
 	PDC20230 = 2,
@@ -95,7 +96,8 @@ enum controller {
 	UNKNOWN = -1
 };
 
-struct legacy_data {
+struct legacy_data
+{
 	unsigned long timing;
 	u8 clock[2];
 	u8 last;
@@ -104,23 +106,25 @@ struct legacy_data {
 	struct platform_device *platform_dev;
 };
 
-struct legacy_probe {
-	unsigned char *name;
-	unsigned long port;
-	unsigned int irq;
-	unsigned int slot;
-	enum controller type;
-	unsigned long private;
+struct legacy_probe
+{
+		unsigned char *name;
+		unsigned long port;
+		unsigned int irq;
+		unsigned int slot;
+		enum controller type;
+		unsigned long private;
 };
 
-struct legacy_controller {
+struct legacy_controller
+{
 	const char *name;
 	struct ata_port_operations *ops;
 	unsigned int pio_mask;
 	unsigned int flags;
 	unsigned int pflags;
 	int (*setup)(struct platform_device *, struct legacy_probe *probe,
-		struct legacy_data *data);
+				 struct legacy_data *data);
 };
 
 static int legacy_port[NR_HOST] = { 0x1f0, 0x170, 0x1e8, 0x168, 0x1e0, 0x160 };
@@ -142,17 +146,17 @@ static int iordy_mask = 0xFFFFFFFF;	/* Use iordy if available */
 
 /* Set to probe QDI controllers */
 #ifdef CONFIG_PATA_QDI_MODULE
-static int qdi = 1;
+	static int qdi = 1;
 #else
-static int qdi;
+	static int qdi;
 #endif
 
 #ifdef CONFIG_PATA_WINBOND_VLB_MODULE
-static int winbond = 1;		/* Set to probe Winbond controllers,
-					give I/O port if non standard */
+	static int winbond = 1;		/* Set to probe Winbond controllers,
+	give I/O port if non standard */
 #else
-static int winbond;		/* Set to probe Winbond controllers,
-					give I/O port if non standard */
+	static int winbond;		/* Set to probe Winbond controllers,
+	give I/O port if non standard */
 #endif
 
 /**
@@ -171,26 +175,35 @@ static int winbond;		/* Set to probe Winbond controllers,
  */
 
 static int legacy_probe_add(unsigned long port, unsigned int irq,
-				enum controller type, unsigned long private)
+							enum controller type, unsigned long private)
 {
 	struct legacy_probe *lp = &probe_list[0];
 	int i;
 	struct legacy_probe *free = NULL;
 
-	for (i = 0; i < NR_HOST; i++) {
+	for (i = 0; i < NR_HOST; i++)
+	{
 		if (lp->port == 0 && free == NULL)
+		{
 			free = lp;
+		}
+
 		/* Matching port, or the correct slot for ordering */
-		if (lp->port == port || legacy_port[i] == port) {
+		if (lp->port == port || legacy_port[i] == port)
+		{
 			free = lp;
 			break;
 		}
+
 		lp++;
 	}
-	if (free == NULL) {
+
+	if (free == NULL)
+	{
 		printk(KERN_ERR "pata_legacy: Too many interfaces.\n");
 		return -1;
 	}
+
 	/* Fill in the entry for later probing */
 	free->port = port;
 	free->irq = irq;
@@ -217,7 +230,8 @@ static int legacy_set_mode(struct ata_link *link, struct ata_device **unused)
 {
 	struct ata_device *dev;
 
-	ata_for_each_dev(dev, link, ENABLED) {
+	ata_for_each_dev(dev, link, ENABLED)
+	{
 		ata_dev_info(dev, "configured for PIO\n");
 		dev->pio_mode = XFER_PIO_0;
 		dev->xfer_mode = XFER_PIO_0;
@@ -227,11 +241,13 @@ static int legacy_set_mode(struct ata_link *link, struct ata_device **unused)
 	return 0;
 }
 
-static struct scsi_host_template legacy_sht = {
+static struct scsi_host_template legacy_sht =
+{
 	ATA_PIO_SHT(DRV_NAME),
 };
 
-static const struct ata_port_operations legacy_base_port_ops = {
+static const struct ata_port_operations legacy_base_port_ops =
+{
 	.inherits	= &ata_sff_port_ops,
 	.cable_detect	= ata_cable_40wire,
 };
@@ -244,12 +260,14 @@ static const struct ata_port_operations legacy_base_port_ops = {
  *	pio_mask as well.
  */
 
-static struct ata_port_operations simple_port_ops = {
+static struct ata_port_operations simple_port_ops =
+{
 	.inherits	= &legacy_base_port_ops,
 	.sff_data_xfer	= ata_sff_data_xfer_noirq,
 };
 
-static struct ata_port_operations legacy_port_ops = {
+static struct ata_port_operations legacy_port_ops =
+{
 	.inherits	= &legacy_base_port_ops,
 	.sff_data_xfer	= ata_sff_data_xfer_noirq,
 	.set_mode	= legacy_set_mode,
@@ -276,7 +294,8 @@ static void pdc20230_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	local_irq_save(flags);
 
 	/* Unlock the control interface */
-	do {
+	do
+	{
 		inb(0x1F5);
 		outb(inb(0x1F2) | 0x80, 0x1F2);
 		inb(0x1F2);
@@ -293,8 +312,11 @@ static void pdc20230_set_piomode(struct ata_port *ap, struct ata_device *adev)
 
 	rt = inb(0x1F3);
 	rt &= 0x07 << (3 * adev->devno);
+
 	if (pio)
+	{
 		rt |= (1 + 3 * pio) << (3 * adev->devno);
+	}
 
 	udelay(100);
 	outb(inb(0x1F2) | 0x01, 0x1F2);
@@ -304,14 +326,15 @@ static void pdc20230_set_piomode(struct ata_port *ap, struct ata_device *adev)
 }
 
 static unsigned int pdc_data_xfer_vlb(struct ata_device *dev,
-			unsigned char *buf, unsigned int buflen, int rw)
+									  unsigned char *buf, unsigned int buflen, int rw)
 {
 	int slop = buflen & 3;
 	struct ata_port *ap = dev->link->ap;
 
 	/* 32bit I/O capable *and* we need to write a whole number of dwords */
 	if (ata_id_has_dword_io(dev->id) && (slop == 0 || slop == 3)
-					&& (ap->pflags & ATA_PFLAG_PIO32)) {
+		&& (ap->pflags & ATA_PFLAG_PIO32))
+	{
 		unsigned long flags;
 
 		local_irq_save(flags);
@@ -323,29 +346,44 @@ static unsigned int pdc_data_xfer_vlb(struct ata_device *dev,
 
 		/* Now the data */
 		if (rw == READ)
+		{
 			ioread32_rep(ap->ioaddr.data_addr, buf, buflen >> 2);
+		}
 		else
+		{
 			iowrite32_rep(ap->ioaddr.data_addr, buf, buflen >> 2);
+		}
 
-		if (unlikely(slop)) {
+		if (unlikely(slop))
+		{
 			__le32 pad;
-			if (rw == READ) {
+
+			if (rw == READ)
+			{
 				pad = cpu_to_le32(ioread32(ap->ioaddr.data_addr));
 				memcpy(buf + buflen - slop, &pad, slop);
-			} else {
+			}
+			else
+			{
 				memcpy(&pad, buf + buflen - slop, slop);
 				iowrite32(le32_to_cpu(pad), ap->ioaddr.data_addr);
 			}
+
 			buflen += 4 - slop;
 		}
+
 		local_irq_restore(flags);
-	} else
+	}
+	else
+	{
 		buflen = ata_sff_data_xfer_noirq(dev, buf, buflen, rw);
+	}
 
 	return buflen;
 }
 
-static struct ata_port_operations pdc20230_port_ops = {
+static struct ata_port_operations pdc20230_port_ops =
+{
 	.inherits	= &legacy_base_port_ops,
 	.set_piomode	= pdc20230_set_piomode,
 	.sff_data_xfer	= pdc_data_xfer_vlb,
@@ -378,7 +416,8 @@ static void ht6560a_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	ioread8(ap->ioaddr.status_addr);
 }
 
-static struct ata_port_operations ht6560a_port_ops = {
+static struct ata_port_operations ht6560a_port_ops =
+{
 	.inherits	= &legacy_base_port_ops,
 	.set_piomode	= ht6560a_set_piomode,
 };
@@ -410,17 +449,22 @@ static void ht6560b_set_piomode(struct ata_port *ap, struct ata_device *adev)
 
 	iowrite8(recover << 4 | active, ap->ioaddr.device_addr);
 
-	if (adev->class != ATA_DEV_ATA) {
+	if (adev->class != ATA_DEV_ATA)
+	{
 		u8 rconf = inb(0x3E6);
-		if (rconf & 0x24) {
+
+		if (rconf & 0x24)
+		{
 			rconf &= ~0x24;
 			outb(rconf, 0x3E6);
 		}
 	}
+
 	ioread8(ap->ioaddr.status_addr);
 }
 
-static struct ata_port_operations ht6560b_port_ops = {
+static struct ata_port_operations ht6560b_port_ops =
+{
 	.inherits	= &legacy_base_port_ops,
 	.set_piomode	= ht6560b_set_piomode,
 };
@@ -456,7 +500,7 @@ static u8 opti_syscfg(u8 reg)
  */
 
 static void opti82c611a_set_piomode(struct ata_port *ap,
-						struct ata_device *adev)
+									struct ata_device *adev)
 {
 	u8 active, recover, setup;
 	struct ata_timing t;
@@ -477,7 +521,8 @@ static void opti82c611a_set_piomode(struct ata_port *ap,
 	ata_timing_compute(adev, adev->pio_mode, &t, clock, 1000);
 
 	/* Setup timing is shared */
-	if (pair) {
+	if (pair)
+	{
 		struct ata_timing tp;
 		ata_timing_compute(pair, pair->pio_mode, &tp, clock, 1000);
 
@@ -519,7 +564,8 @@ static void opti82c611a_set_piomode(struct ata_port *ap,
 }
 
 
-static struct ata_port_operations opti82c611a_port_ops = {
+static struct ata_port_operations opti82c611a_port_ops =
+{
 	.inherits	= &legacy_base_port_ops,
 	.set_piomode	= opti82c611a_set_piomode,
 };
@@ -556,7 +602,8 @@ static void opti82c46x_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	ata_timing_compute(adev, adev->pio_mode, &t, clock, 1000);
 
 	/* Setup timing is shared */
-	if (pair) {
+	if (pair)
+	{
 		struct ata_timing tp;
 		ata_timing_compute(pair, pair->pio_mode, &tp, clock, 1000);
 
@@ -623,13 +670,16 @@ static unsigned int opti82c46x_qc_issue(struct ata_queued_cmd *qc)
 	/* If timings are set and for the wrong channel (2nd test is
 	   due to a libata shortcoming and will eventually go I hope) */
 	if (ap->host->private_data != ap->host
-	    && ap->host->private_data != NULL)
+		&& ap->host->private_data != NULL)
+	{
 		opti82c46x_set_piomode(ap, adev);
+	}
 
 	return ata_sff_qc_issue(qc);
 }
 
-static struct ata_port_operations opti82c46x_port_ops = {
+static struct ata_port_operations opti82c46x_port_ops =
+{
 	.inherits	= &legacy_base_port_ops,
 	.set_piomode	= opti82c46x_set_piomode,
 	.qc_issue	= opti82c46x_qc_issue,
@@ -658,24 +708,34 @@ static void qdi65x0_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	/* Get the timing data in cycles */
 	ata_timing_compute(adev, adev->pio_mode, &t, 30303, 1000);
 
-	if (ld_qdi->fast) {
+	if (ld_qdi->fast)
+	{
 		active = 8 - clamp_val(t.active, 1, 8);
 		recovery = 18 - clamp_val(t.recover, 3, 18);
-	} else {
+	}
+	else
+	{
 		active = 9 - clamp_val(t.active, 2, 9);
 		recovery = 15 - clamp_val(t.recover, 0, 15);
 	}
+
 	timing = (recovery << 4) | active | 0x08;
 	ld_qdi->clock[adev->devno] = timing;
 
 	if (ld_qdi->type == QDI6580)
+	{
 		outb(timing, ld_qdi->timing + 2 * adev->devno);
+	}
 	else
+	{
 		outb(timing, ld_qdi->timing + 2 * ap->port_no);
+	}
 
 	/* Clear the FIFO */
 	if (ld_qdi->type != QDI6500 && adev->class != ATA_DEV_ATA)
+	{
 		outb(0x5F, (ld_qdi->timing & 0xFFF0) + 3);
+	}
 }
 
 /**
@@ -692,67 +752,90 @@ static unsigned int qdi_qc_issue(struct ata_queued_cmd *qc)
 	struct ata_device *adev = qc->dev;
 	struct legacy_data *ld_qdi = ap->host->private_data;
 
-	if (ld_qdi->clock[adev->devno] != ld_qdi->last) {
-		if (adev->pio_mode) {
+	if (ld_qdi->clock[adev->devno] != ld_qdi->last)
+	{
+		if (adev->pio_mode)
+		{
 			ld_qdi->last = ld_qdi->clock[adev->devno];
 			outb(ld_qdi->clock[adev->devno], ld_qdi->timing +
-							2 * ap->port_no);
+				 2 * ap->port_no);
 		}
 	}
+
 	return ata_sff_qc_issue(qc);
 }
 
 static unsigned int vlb32_data_xfer(struct ata_device *adev, unsigned char *buf,
-					unsigned int buflen, int rw)
+									unsigned int buflen, int rw)
 {
 	struct ata_port *ap = adev->link->ap;
 	int slop = buflen & 3;
 
 	if (ata_id_has_dword_io(adev->id) && (slop == 0 || slop == 3)
-					&& (ap->pflags & ATA_PFLAG_PIO32)) {
+		&& (ap->pflags & ATA_PFLAG_PIO32))
+	{
 		if (rw == WRITE)
+		{
 			iowrite32_rep(ap->ioaddr.data_addr, buf, buflen >> 2);
+		}
 		else
+		{
 			ioread32_rep(ap->ioaddr.data_addr, buf, buflen >> 2);
+		}
 
-		if (unlikely(slop)) {
+		if (unlikely(slop))
+		{
 			__le32 pad;
-			if (rw == WRITE) {
+
+			if (rw == WRITE)
+			{
 				memcpy(&pad, buf + buflen - slop, slop);
 				iowrite32(le32_to_cpu(pad), ap->ioaddr.data_addr);
-			} else {
+			}
+			else
+			{
 				pad = cpu_to_le32(ioread32(ap->ioaddr.data_addr));
 				memcpy(buf + buflen - slop, &pad, slop);
 			}
 		}
+
 		return (buflen + 3) & ~3;
-	} else
+	}
+	else
+	{
 		return ata_sff_data_xfer(adev, buf, buflen, rw);
+	}
 }
 
 static int qdi_port(struct platform_device *dev,
-			struct legacy_probe *lp, struct legacy_data *ld)
+					struct legacy_probe *lp, struct legacy_data *ld)
 {
 	if (devm_request_region(&dev->dev, lp->private, 4, "qdi") == NULL)
+	{
 		return -EBUSY;
+	}
+
 	ld->timing = lp->private;
 	return 0;
 }
 
-static struct ata_port_operations qdi6500_port_ops = {
+static struct ata_port_operations qdi6500_port_ops =
+{
 	.inherits	= &legacy_base_port_ops,
 	.set_piomode	= qdi65x0_set_piomode,
 	.qc_issue	= qdi_qc_issue,
 	.sff_data_xfer	= vlb32_data_xfer,
 };
 
-static struct ata_port_operations qdi6580_port_ops = {
+static struct ata_port_operations qdi6580_port_ops =
+{
 	.inherits	= &legacy_base_port_ops,
 	.set_piomode	= qdi65x0_set_piomode,
 	.sff_data_xfer	= vlb32_data_xfer,
 };
 
-static struct ata_port_operations qdi6580dp_port_ops = {
+static struct ata_port_operations qdi6580dp_port_ops =
+{
 	.inherits	= &legacy_base_port_ops,
 	.set_piomode	= qdi65x0_set_piomode,
 	.qc_issue	= qdi_qc_issue,
@@ -795,9 +878,13 @@ static void winbond_set_piomode(struct ata_port *ap, struct ata_device *adev)
 
 	/* Get the timing data in cycles */
 	if (reg & 0x40)		/* Fast VLB bus, assume 50MHz */
+	{
 		ata_timing_compute(adev, adev->pio_mode, &t, 20000, 1000);
+	}
 	else
+	{
 		ata_timing_compute(adev, adev->pio_mode, &t, 30303, 1000);
+	}
 
 	active = (clamp_val(t.active, 3, 17) - 1) & 0x0F;
 	recovery = (clamp_val(t.recover, 1, 15) + 1) & 0x0F;
@@ -807,55 +894,89 @@ static void winbond_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	/* Load the setup timing */
 
 	reg = 0x35;
+
 	if (adev->class != ATA_DEV_ATA)
-		reg |= 0x08;	/* FIFO off */
+	{
+		reg |= 0x08;    /* FIFO off */
+	}
+
 	if (!ata_pio_need_iordy(adev))
-		reg |= 0x02;	/* IORDY off */
+	{
+		reg |= 0x02;    /* IORDY off */
+	}
+
 	reg |= (clamp_val(t.setup, 0, 3) << 6);
 	winbond_writecfg(ld_winbond->timing, timing + 1, reg);
 }
 
 static int winbond_port(struct platform_device *dev,
-			struct legacy_probe *lp, struct legacy_data *ld)
+						struct legacy_probe *lp, struct legacy_data *ld)
 {
 	if (devm_request_region(&dev->dev, lp->private, 4, "winbond") == NULL)
+	{
 		return -EBUSY;
+	}
+
 	ld->timing = lp->private;
 	return 0;
 }
 
-static struct ata_port_operations winbond_port_ops = {
+static struct ata_port_operations winbond_port_ops =
+{
 	.inherits	= &legacy_base_port_ops,
 	.set_piomode	= winbond_set_piomode,
 	.sff_data_xfer	= vlb32_data_xfer,
 };
 
-static struct legacy_controller controllers[] = {
-	{"BIOS",	&legacy_port_ops, 	ATA_PIO4,
-			ATA_FLAG_NO_IORDY,	0,			NULL },
-	{"Snooping", 	&simple_port_ops, 	ATA_PIO4,
-			0,			0,			NULL },
-	{"PDC20230",	&pdc20230_port_ops,	ATA_PIO2,
-			ATA_FLAG_NO_IORDY,
-			ATA_PFLAG_PIO32 | ATA_PFLAG_PIO32CHANGE,	NULL },
-	{"HT6560A",	&ht6560a_port_ops,	ATA_PIO2,
-			ATA_FLAG_NO_IORDY,	0,			NULL },
-	{"HT6560B",	&ht6560b_port_ops,	ATA_PIO4,
-			ATA_FLAG_NO_IORDY,	0,			NULL },
-	{"OPTI82C611A",	&opti82c611a_port_ops,	ATA_PIO3,
-			0,			0,			NULL },
-	{"OPTI82C46X",	&opti82c46x_port_ops,	ATA_PIO3,
-			0,			0,			NULL },
-	{"QDI6500",	&qdi6500_port_ops,	ATA_PIO2,
-			ATA_FLAG_NO_IORDY,
-			ATA_PFLAG_PIO32 | ATA_PFLAG_PIO32CHANGE,    qdi_port },
-	{"QDI6580",	&qdi6580_port_ops,	ATA_PIO4,
-			0, ATA_PFLAG_PIO32 | ATA_PFLAG_PIO32CHANGE, qdi_port },
-	{"QDI6580DP",	&qdi6580dp_port_ops,	ATA_PIO4,
-			0, ATA_PFLAG_PIO32 | ATA_PFLAG_PIO32CHANGE, qdi_port },
-	{"W83759A",	&winbond_port_ops,	ATA_PIO4,
-			0, ATA_PFLAG_PIO32 | ATA_PFLAG_PIO32CHANGE,
-								winbond_port }
+static struct legacy_controller controllers[] =
+{
+	{
+		"BIOS",	&legacy_port_ops, 	ATA_PIO4,
+		ATA_FLAG_NO_IORDY,	0,			NULL
+	},
+	{
+		"Snooping", 	&simple_port_ops, 	ATA_PIO4,
+		0,			0,			NULL
+	},
+	{
+		"PDC20230",	&pdc20230_port_ops,	ATA_PIO2,
+		ATA_FLAG_NO_IORDY,
+		ATA_PFLAG_PIO32 | ATA_PFLAG_PIO32CHANGE,	NULL
+	},
+	{
+		"HT6560A",	&ht6560a_port_ops,	ATA_PIO2,
+		ATA_FLAG_NO_IORDY,	0,			NULL
+	},
+	{
+		"HT6560B",	&ht6560b_port_ops,	ATA_PIO4,
+		ATA_FLAG_NO_IORDY,	0,			NULL
+	},
+	{
+		"OPTI82C611A",	&opti82c611a_port_ops,	ATA_PIO3,
+		0,			0,			NULL
+	},
+	{
+		"OPTI82C46X",	&opti82c46x_port_ops,	ATA_PIO3,
+		0,			0,			NULL
+	},
+	{
+		"QDI6500",	&qdi6500_port_ops,	ATA_PIO2,
+		ATA_FLAG_NO_IORDY,
+		ATA_PFLAG_PIO32 | ATA_PFLAG_PIO32CHANGE,    qdi_port
+	},
+	{
+		"QDI6580",	&qdi6580_port_ops,	ATA_PIO4,
+		0, ATA_PFLAG_PIO32 | ATA_PFLAG_PIO32CHANGE, qdi_port
+	},
+	{
+		"QDI6580DP",	&qdi6580dp_port_ops,	ATA_PIO4,
+		0, ATA_PFLAG_PIO32 | ATA_PFLAG_PIO32CHANGE, qdi_port
+	},
+	{
+		"W83759A",	&winbond_port_ops,	ATA_PIO4,
+		0, ATA_PFLAG_PIO32 | ATA_PFLAG_PIO32CHANGE,
+		winbond_port
+	}
 };
 
 /**
@@ -870,7 +991,8 @@ static __init int probe_chip_type(struct legacy_probe *probe)
 {
 	int mask = 1 << probe->slot;
 
-	if (winbond && (probe->port == 0x1F0 || probe->port == 0x170)) {
+	if (winbond && (probe->port == 0x1F0 || probe->port == 0x170))
+	{
 		u8 reg = winbond_readcfg(winbond, 0x81);
 		reg |= 0x80;	/* jumpered mode off */
 		winbond_writecfg(winbond, 0x81, reg);
@@ -884,9 +1006,13 @@ static __init int probe_chip_type(struct legacy_probe *probe)
 		reg = winbond_readcfg(winbond, 0x81);
 
 		if (reg & mask)
+		{
 			return W83759A;
+		}
 	}
-	if (probe->port == 0x1F0) {
+
+	if (probe->port == 0x1F0)
+	{
 		unsigned long flags;
 		local_irq_save(flags);
 		/* Probes */
@@ -898,36 +1024,56 @@ static __init int probe_chip_type(struct legacy_probe *probe)
 		inb(0x1F2);
 		inb(0x1F2);
 
-		if ((inb(0x1F2) & 0x80) == 0) {
+		if ((inb(0x1F2) & 0x80) == 0)
+		{
 			/* PDC20230c or 20630 ? */
 			printk(KERN_INFO  "PDC20230-C/20630 VLB ATA controller"
-							" detected.\n");
+				   " detected.\n");
 			udelay(100);
 			inb(0x1F5);
 			local_irq_restore(flags);
 			return PDC20230;
-		} else {
+		}
+		else
+		{
 			outb(0x55, 0x1F2);
 			inb(0x1F2);
 			inb(0x1F2);
+
 			if (inb(0x1F2) == 0x00)
 				printk(KERN_INFO "PDC20230-B VLB ATA "
-						     "controller detected.\n");
+					   "controller detected.\n");
+
 			local_irq_restore(flags);
 			return BIOS;
 		}
 	}
 
 	if (ht6560a & mask)
+	{
 		return HT6560A;
+	}
+
 	if (ht6560b & mask)
+	{
 		return HT6560B;
+	}
+
 	if (opti82c611a & mask)
+	{
 		return OPTI611A;
+	}
+
 	if (opti82c46x & mask)
+	{
 		return OPTI46X;
+	}
+
 	if (autospeed & mask)
+	{
 		return SNOOP;
+	}
+
 	return BIOS;
 }
 
@@ -953,33 +1099,51 @@ static __init int legacy_init_one(struct legacy_probe *probe)
 	struct platform_device *pdev;
 	struct ata_device *dev;
 	void __iomem *io_addr, *ctrl_addr;
-	u32 iordy = (iordy_mask & mask) ? 0: ATA_FLAG_NO_IORDY;
+	u32 iordy = (iordy_mask & mask) ? 0 : ATA_FLAG_NO_IORDY;
 	int ret;
 
 	iordy |= controller->flags;
 
 	pdev = platform_device_register_simple(DRV_NAME, probe->slot, NULL, 0);
+
 	if (IS_ERR(pdev))
+	{
 		return PTR_ERR(pdev);
+	}
 
 	ret = -EBUSY;
+
 	if (devm_request_region(&pdev->dev, io, 8, "pata_legacy") == NULL ||
-	    devm_request_region(&pdev->dev, io + 0x0206, 1,
+		devm_request_region(&pdev->dev, io + 0x0206, 1,
 							"pata_legacy") == NULL)
+	{
 		goto fail;
+	}
 
 	ret = -ENOMEM;
 	io_addr = devm_ioport_map(&pdev->dev, io, 8);
 	ctrl_addr = devm_ioport_map(&pdev->dev, io + 0x0206, 1);
+
 	if (!io_addr || !ctrl_addr)
+	{
 		goto fail;
+	}
+
 	ld->type = probe->type;
+
 	if (controller->setup)
 		if (controller->setup(pdev, probe, ld) < 0)
+		{
 			goto fail;
+		}
+
 	host = ata_host_alloc(&pdev->dev, 1);
+
 	if (!host)
+	{
 		goto fail;
+	}
+
 	ap = host->ports[0];
 
 	ap->ops = ops;
@@ -995,17 +1159,23 @@ static __init int legacy_init_one(struct legacy_probe *probe)
 	ata_port_desc(ap, "cmd 0x%lx ctl 0x%lx", io, io + 0x0206);
 
 	ret = ata_host_activate(host, probe->irq, ata_sff_interrupt, 0,
-				&legacy_sht);
+							&legacy_sht);
+
 	if (ret)
+	{
 		goto fail;
+	}
+
 	async_synchronize_full();
 	ld->platform_dev = pdev;
 
 	/* Nothing found means we drop the port as its probably not there */
 
 	ret = -ENODEV;
-	ata_for_each_dev(dev, &ap->link, ALL) {
-		if (!ata_dev_absent(dev)) {
+	ata_for_each_dev(dev, &ap->link, ALL)
+	{
+		if (!ata_dev_absent(dev))
+		{
 			legacy_host[probe->slot] = host;
 			ld->platform_dev = pdev;
 			return 0;
@@ -1031,29 +1201,41 @@ fail:
  */
 
 static void __init legacy_check_special_cases(struct pci_dev *p, int *primary,
-								int *secondary)
+		int *secondary)
 {
 	/* Cyrix CS5510 pre SFF MWDMA ATA on the bridge */
-	if (p->vendor == 0x1078 && p->device == 0x0000) {
+	if (p->vendor == 0x1078 && p->device == 0x0000)
+	{
 		*primary = *secondary = 1;
 		return;
 	}
+
 	/* Cyrix CS5520 pre SFF MWDMA ATA on the bridge */
-	if (p->vendor == 0x1078 && p->device == 0x0002) {
+	if (p->vendor == 0x1078 && p->device == 0x0002)
+	{
 		*primary = *secondary = 1;
 		return;
 	}
+
 	/* Intel MPIIX - PIO ATA on non PCI side of bridge */
-	if (p->vendor == 0x8086 && p->device == 0x1234) {
+	if (p->vendor == 0x8086 && p->device == 0x1234)
+	{
 		u16 r;
 		pci_read_config_word(p, 0x6C, &r);
-		if (r & 0x8000) {
+
+		if (r & 0x8000)
+		{
 			/* ATA port enabled */
 			if (r & 0x4000)
+			{
 				*secondary = 1;
+			}
 			else
+			{
 				*primary = 1;
+			}
 		}
+
 		return;
 	}
 }
@@ -1061,7 +1243,8 @@ static void __init legacy_check_special_cases(struct pci_dev *p, int *primary,
 static __init void probe_opti_vlb(void)
 {
 	/* If an OPTI 82C46X is present find out where the channels are */
-	static const char *optis[4] = {
+	static const char *optis[4] =
+	{
 		"3/463MV", "5MV",
 		"5MVA", "5MVB"
 	};
@@ -1070,53 +1253,80 @@ static __init void probe_opti_vlb(void)
 
 	opti82c46x = 3;	/* Assume master and slave first */
 	printk(KERN_INFO DRV_NAME ": Opti 82C46%s chipset support.\n",
-								optis[ctrl]);
+		   optis[ctrl]);
+
 	if (ctrl == 3)
+	{
 		chans = (opti_syscfg(0x3F) & 0x20) ? 2 : 1;
+	}
+
 	ctrl = opti_syscfg(0xAC);
+
 	/* Check enabled and this port is the 465MV port. On the
 	   MVB we may have two channels */
-	if (ctrl & 8) {
-		if (chans == 2) {
+	if (ctrl & 8)
+	{
+		if (chans == 2)
+		{
 			legacy_probe_add(0x1F0, 14, OPTI46X, 0);
 			legacy_probe_add(0x170, 15, OPTI46X, 0);
 		}
+
 		if (ctrl & 4)
+		{
 			legacy_probe_add(0x170, 15, OPTI46X, 0);
+		}
 		else
+		{
 			legacy_probe_add(0x1F0, 14, OPTI46X, 0);
-	} else
+		}
+	}
+	else
+	{
 		legacy_probe_add(0x1F0, 14, OPTI46X, 0);
+	}
 }
 
 static __init void qdi65_identify_port(u8 r, u8 res, unsigned long port)
 {
 	static const unsigned long ide_port[2] = { 0x170, 0x1F0 };
+
 	/* Check card type */
-	if ((r & 0xF0) == 0xC0) {
+	if ((r & 0xF0) == 0xC0)
+	{
 		/* QD6500: single channel */
 		if (r & 8)
 			/* Disabled ? */
+		{
 			return;
+		}
+
 		legacy_probe_add(ide_port[r & 0x01], 14 + (r & 0x01),
-								QDI6500, port);
+						 QDI6500, port);
 	}
-	if (((r & 0xF0) == 0xA0) || (r & 0xF0) == 0x50) {
+
+	if (((r & 0xF0) == 0xA0) || (r & 0xF0) == 0x50)
+	{
 		/* QD6580: dual channel */
-		if (!request_region(port + 2 , 2, "pata_qdi")) {
+		if (!request_region(port + 2 , 2, "pata_qdi"))
+		{
 			release_region(port, 2);
 			return;
 		}
+
 		res = inb(port + 3);
+
 		/* Single channel mode ? */
 		if (res & 1)
 			legacy_probe_add(ide_port[r & 0x01], 14 + (r & 0x01),
-								QDI6580, port);
-		else { /* Dual channel mode */
+							 QDI6580, port);
+		else   /* Dual channel mode */
+		{
 			legacy_probe_add(0x1F0, 14, QDI6580DP, port);
 			/* port + 0x02, r & 0x04 */
 			legacy_probe_add(0x170, 15, QDI6580DP, port + 2);
 		}
+
 		release_region(port + 2, 2);
 	}
 }
@@ -1131,12 +1341,14 @@ static __init void probe_qdi_vlb(void)
 	 *	Check each possible QD65xx base address
 	 */
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		unsigned long port = qd_port[i];
 		u8 r, res;
 
 
-		if (request_region(port, 2, "pata_qdi")) {
+		if (request_region(port, 2, "pata_qdi"))
+		{
 			/* Check for a card */
 			local_irq_save(flags);
 			/* I have no h/w that needs this delay but it
@@ -1152,16 +1364,22 @@ static __init void probe_qdi_vlb(void)
 			local_irq_restore(flags);
 
 			/* Fail */
-			if (res == 0x19) {
+			if (res == 0x19)
+			{
 				release_region(port, 2);
 				continue;
 			}
+
 			/* Passes the presence test */
 			r = inb(port + 1);
 			udelay(1);
+
 			/* Check port agrees with port set */
 			if ((r & 2) >> 1 == i)
+			{
 				qdi65_identify_port(r, res, port);
+			}
+
 			release_region(port, 2);
 		}
 	}
@@ -1189,17 +1407,26 @@ static __init int legacy_init(void)
 
 	struct pci_dev *p = NULL;
 
-	for_each_pci_dev(p) {
+	for_each_pci_dev(p)
+	{
 		int r;
+
 		/* Check for any overlap of the system ATA mappings. Native
 		   mode controllers stuck on these addresses or some devices
 		   in 'raid' mode won't be found by the storage class test */
-		for (r = 0; r < 6; r++) {
+		for (r = 0; r < 6; r++)
+		{
 			if (pci_resource_start(p, r) == 0x1f0)
+			{
 				primary = 1;
+			}
+
 			if (pci_resource_start(p, r) == 0x170)
+			{
 				secondary = 1;
+			}
 		}
+
 		/* Check for special cases */
 		legacy_check_special_cases(p, &primary, &secondary);
 
@@ -1209,14 +1436,22 @@ static __init int legacy_init(void)
 	}
 
 	if (winbond == 1)
-		winbond = 0x130;	/* Default port, alt is 1B0 */
+	{
+		winbond = 0x130;    /* Default port, alt is 1B0 */
+	}
 
 	if (primary == 0 || all)
+	{
 		legacy_probe_add(0x1F0, 14, UNKNOWN, 0);
-	if (secondary == 0 || all)
-		legacy_probe_add(0x170, 15, UNKNOWN, 0);
+	}
 
-	if (probe_all || !pci_present) {
+	if (secondary == 0 || all)
+	{
+		legacy_probe_add(0x170, 15, UNKNOWN, 0);
+	}
+
+	if (probe_all || !pci_present)
+	{
 		/* ISA/VLB extra ports */
 		legacy_probe_add(0x1E8, 11, UNKNOWN, 0);
 		legacy_probe_add(0x168, 10, UNKNOWN, 0);
@@ -1225,21 +1460,40 @@ static __init int legacy_init(void)
 	}
 
 	if (opti82c46x)
+	{
 		probe_opti_vlb();
-	if (qdi)
-		probe_qdi_vlb();
-
-	for (i = 0; i < NR_HOST; i++, pl++) {
-		if (pl->port == 0)
-			continue;
-		if (pl->type == UNKNOWN)
-			pl->type = probe_chip_type(pl);
-		pl->slot = slot++;
-		if (legacy_init_one(pl) == 0)
-			ct++;
 	}
+
+	if (qdi)
+	{
+		probe_qdi_vlb();
+	}
+
+	for (i = 0; i < NR_HOST; i++, pl++)
+	{
+		if (pl->port == 0)
+		{
+			continue;
+		}
+
+		if (pl->type == UNKNOWN)
+		{
+			pl->type = probe_chip_type(pl);
+		}
+
+		pl->slot = slot++;
+
+		if (legacy_init_one(pl) == 0)
+		{
+			ct++;
+		}
+	}
+
 	if (ct != 0)
+	{
 		return 0;
+	}
+
 	return -ENODEV;
 }
 
@@ -1247,7 +1501,8 @@ static __exit void legacy_exit(void)
 {
 	int i;
 
-	for (i = 0; i < nr_legacy_host; i++) {
+	for (i = 0; i < nr_legacy_host; i++)
+	{
 		struct legacy_data *ld = &legacy_data[i];
 		ata_host_detach(legacy_host[i]);
 		platform_device_unregister(ld->platform_dev);

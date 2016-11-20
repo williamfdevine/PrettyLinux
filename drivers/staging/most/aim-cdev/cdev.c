@@ -30,7 +30,8 @@ static struct ida minor_id;
 static unsigned int major;
 static struct most_aim cdev_aim;
 
-struct aim_channel {
+struct aim_channel
+{
 	wait_queue_head_t wq;
 	spinlock_t unlink;	/* synchronization lock to unlink channels */
 	struct cdev cdev;
@@ -57,11 +58,16 @@ static inline bool ch_has_mbo(struct aim_channel *c)
 
 static inline bool ch_get_mbo(struct aim_channel *c, struct mbo **mbo)
 {
-	if (!kfifo_peek(&c->fifo, mbo)) {
+	if (!kfifo_peek(&c->fifo, mbo))
+	{
 		*mbo = most_get_mbo(c->iface, c->channel_id, &cdev_aim);
+
 		if (*mbo)
+		{
 			kfifo_in(&c->fifo, mbo, 1);
+		}
 	}
+
 	return *mbo;
 }
 
@@ -72,15 +78,21 @@ static struct aim_channel *get_channel(struct most_interface *iface, int id)
 	int found_channel = 0;
 
 	spin_lock_irqsave(&ch_list_lock, flags);
-	list_for_each_entry_safe(c, tmp, &channel_list, list) {
-		if ((c->iface == iface) && (c->channel_id == id)) {
+	list_for_each_entry_safe(c, tmp, &channel_list, list)
+	{
+		if ((c->iface == iface) && (c->channel_id == id))
+		{
 			found_channel = 1;
 			break;
 		}
 	}
 	spin_unlock_irqrestore(&ch_list_lock, flags);
+
 	if (!found_channel)
+	{
 		return NULL;
+	}
+
 	return c;
 }
 
@@ -89,7 +101,10 @@ static void stop_channel(struct aim_channel *c)
 	struct mbo *mbo;
 
 	while (kfifo_out((struct kfifo *)&c->fifo, &mbo, 1))
+	{
 		most_put_mbo(mbo);
+	}
+
 	most_stop_channel(c->iface, c->channel_id, &cdev_aim);
 }
 
@@ -123,21 +138,25 @@ static int aim_open(struct inode *inode, struct file *filp)
 	filp->private_data = c;
 
 	if (((c->cfg->direction == MOST_CH_RX) &&
-	     ((filp->f_flags & O_ACCMODE) != O_RDONLY)) ||
-	     ((c->cfg->direction == MOST_CH_TX) &&
-		((filp->f_flags & O_ACCMODE) != O_WRONLY))) {
+		 ((filp->f_flags & O_ACCMODE) != O_RDONLY)) ||
+		((c->cfg->direction == MOST_CH_TX) &&
+		 ((filp->f_flags & O_ACCMODE) != O_WRONLY)))
+	{
 		pr_info("WARN: Access flags mismatch\n");
 		return -EACCES;
 	}
 
 	mutex_lock(&c->io_mutex);
-	if (!c->dev) {
+
+	if (!c->dev)
+	{
 		pr_info("WARN: Device is destroyed\n");
 		mutex_unlock(&c->io_mutex);
 		return -ENODEV;
 	}
 
-	if (c->access_ref) {
+	if (c->access_ref)
+	{
 		pr_info("WARN: Device is busy\n");
 		mutex_unlock(&c->io_mutex);
 		return -EBUSY;
@@ -145,8 +164,12 @@ static int aim_open(struct inode *inode, struct file *filp)
 
 	c->mbo_offs = 0;
 	ret = most_start_channel(c->iface, c->channel_id, &cdev_aim);
+
 	if (!ret)
+	{
 		c->access_ref = 1;
+	}
+
 	mutex_unlock(&c->io_mutex);
 	return ret;
 }
@@ -166,14 +189,19 @@ static int aim_close(struct inode *inode, struct file *filp)
 	spin_lock(&c->unlink);
 	c->access_ref = 0;
 	spin_unlock(&c->unlink);
-	if (c->dev) {
+
+	if (c->dev)
+	{
 		stop_channel(c);
 		mutex_unlock(&c->io_mutex);
-	} else {
+	}
+	else
+	{
 		destroy_cdev(c);
 		mutex_unlock(&c->io_mutex);
 		kfree(c);
 	}
+
 	return 0;
 }
 
@@ -185,7 +213,7 @@ static int aim_close(struct inode *inode, struct file *filp)
  * @offset: offset from where to start writing
  */
 static ssize_t aim_write(struct file *filp, const char __user *buf,
-			 size_t count, loff_t *offset)
+						 size_t count, loff_t *offset)
 {
 	int ret;
 	size_t to_copy, left;
@@ -193,32 +221,45 @@ static ssize_t aim_write(struct file *filp, const char __user *buf,
 	struct aim_channel *c = filp->private_data;
 
 	mutex_lock(&c->io_mutex);
-	while (c->dev && !ch_get_mbo(c, &mbo)) {
+
+	while (c->dev && !ch_get_mbo(c, &mbo))
+	{
 		mutex_unlock(&c->io_mutex);
 
 		if ((filp->f_flags & O_NONBLOCK))
+		{
 			return -EAGAIN;
+		}
+
 		if (wait_event_interruptible(c->wq, ch_has_mbo(c) || !c->dev))
+		{
 			return -ERESTARTSYS;
+		}
+
 		mutex_lock(&c->io_mutex);
 	}
 
-	if (unlikely(!c->dev)) {
+	if (unlikely(!c->dev))
+	{
 		ret = -ENODEV;
 		goto unlock;
 	}
 
 	to_copy = min(count, c->cfg->buffer_size - c->mbo_offs);
 	left = copy_from_user(mbo->virt_address + c->mbo_offs, buf, to_copy);
-	if (left == to_copy) {
+
+	if (left == to_copy)
+	{
 		ret = -EFAULT;
 		goto unlock;
 	}
 
 	c->mbo_offs += to_copy - left;
+
 	if (c->mbo_offs >= c->cfg->buffer_size ||
-	    c->cfg->data_type == MOST_CH_CONTROL ||
-	    c->cfg->data_type == MOST_CH_ASYNC) {
+		c->cfg->data_type == MOST_CH_CONTROL ||
+		c->cfg->data_type == MOST_CH_ASYNC)
+	{
 		kfifo_skip(&c->fifo);
 		mbo->buffer_length = c->mbo_offs;
 		c->mbo_offs = 0;
@@ -246,39 +287,52 @@ aim_read(struct file *filp, char __user *buf, size_t count, loff_t *offset)
 	struct aim_channel *c = filp->private_data;
 
 	mutex_lock(&c->io_mutex);
-	while (c->dev && !kfifo_peek(&c->fifo, &mbo)) {
+
+	while (c->dev && !kfifo_peek(&c->fifo, &mbo))
+	{
 		mutex_unlock(&c->io_mutex);
+
 		if (filp->f_flags & O_NONBLOCK)
+		{
 			return -EAGAIN;
+		}
+
 		if (wait_event_interruptible(c->wq,
-					     (!kfifo_is_empty(&c->fifo) ||
-					      (!c->dev))))
+									 (!kfifo_is_empty(&c->fifo) ||
+									  (!c->dev))))
+		{
 			return -ERESTARTSYS;
+		}
+
 		mutex_lock(&c->io_mutex);
 	}
 
 	/* make sure we don't submit to gone devices */
-	if (unlikely(!c->dev)) {
+	if (unlikely(!c->dev))
+	{
 		mutex_unlock(&c->io_mutex);
 		return -ENODEV;
 	}
 
 	to_copy = min_t(size_t,
-			count,
-			mbo->processed_length - c->mbo_offs);
+					count,
+					mbo->processed_length - c->mbo_offs);
 
 	not_copied = copy_to_user(buf,
-				  mbo->virt_address + c->mbo_offs,
-				  to_copy);
+							  mbo->virt_address + c->mbo_offs,
+							  to_copy);
 
 	copied = to_copy - not_copied;
 
 	c->mbo_offs += copied;
-	if (c->mbo_offs >= mbo->processed_length) {
+
+	if (c->mbo_offs >= mbo->processed_length)
+	{
 		kfifo_skip(&c->fifo);
 		most_put_mbo(mbo);
 		c->mbo_offs = 0;
 	}
+
 	mutex_unlock(&c->io_mutex);
 	return copied;
 }
@@ -290,20 +344,29 @@ static unsigned int aim_poll(struct file *filp, poll_table *wait)
 
 	poll_wait(filp, &c->wq, wait);
 
-	if (c->cfg->direction == MOST_CH_RX) {
+	if (c->cfg->direction == MOST_CH_RX)
+	{
 		if (!kfifo_is_empty(&c->fifo))
+		{
 			mask |= POLLIN | POLLRDNORM;
-	} else {
-		if (!kfifo_is_empty(&c->fifo) || ch_has_mbo(c))
-			mask |= POLLOUT | POLLWRNORM;
+		}
 	}
+	else
+	{
+		if (!kfifo_is_empty(&c->fifo) || ch_has_mbo(c))
+		{
+			mask |= POLLOUT | POLLWRNORM;
+		}
+	}
+
 	return mask;
 }
 
 /**
  * Initialization of struct file_operations
  */
-static const struct file_operations channel_fops = {
+static const struct file_operations channel_fops =
+{
 	.owner = THIS_MODULE,
 	.read = aim_read,
 	.write = aim_write,
@@ -324,28 +387,37 @@ static int aim_disconnect_channel(struct most_interface *iface, int channel_id)
 {
 	struct aim_channel *c;
 
-	if (!iface) {
+	if (!iface)
+	{
 		pr_info("Bad interface pointer\n");
 		return -EINVAL;
 	}
 
 	c = get_channel(iface, channel_id);
+
 	if (!c)
+	{
 		return -ENXIO;
+	}
 
 	mutex_lock(&c->io_mutex);
 	spin_lock(&c->unlink);
 	c->dev = NULL;
 	spin_unlock(&c->unlink);
-	if (c->access_ref) {
+
+	if (c->access_ref)
+	{
 		stop_channel(c);
 		wake_up_interruptible(&c->wq);
 		mutex_unlock(&c->io_mutex);
-	} else {
+	}
+	else
+	{
 		destroy_cdev(c);
 		mutex_unlock(&c->io_mutex);
 		kfree(c);
 	}
+
 	return 0;
 }
 
@@ -361,22 +433,34 @@ static int aim_rx_completion(struct mbo *mbo)
 	struct aim_channel *c;
 
 	if (!mbo)
+	{
 		return -EINVAL;
+	}
 
 	c = get_channel(mbo->ifp, mbo->hdm_channel_id);
+
 	if (!c)
+	{
 		return -ENXIO;
+	}
 
 	spin_lock(&c->unlink);
-	if (!c->access_ref || !c->dev) {
+
+	if (!c->access_ref || !c->dev)
+	{
 		spin_unlock(&c->unlink);
 		return -ENODEV;
 	}
+
 	kfifo_in(&c->fifo, &mbo, 1);
 	spin_unlock(&c->unlink);
 #ifdef DEBUG_MESG
+
 	if (kfifo_is_full(&c->fifo))
+	{
 		pr_info("WARN: Fifo is full\n");
+	}
+
 #endif
 	wake_up_interruptible(&c->wq);
 	return 0;
@@ -393,18 +477,25 @@ static int aim_tx_completion(struct most_interface *iface, int channel_id)
 {
 	struct aim_channel *c;
 
-	if (!iface) {
+	if (!iface)
+	{
 		pr_info("Bad interface pointer\n");
 		return -EINVAL;
 	}
-	if ((channel_id < 0) || (channel_id >= iface->num_channels)) {
+
+	if ((channel_id < 0) || (channel_id >= iface->num_channels))
+	{
 		pr_info("Channel ID out of range\n");
 		return -EINVAL;
 	}
 
 	c = get_channel(iface, channel_id);
+
 	if (!c)
+	{
 		return -ENXIO;
+	}
+
 	wake_up_interruptible(&c->wq);
 	return 0;
 }
@@ -422,28 +513,38 @@ static int aim_tx_completion(struct most_interface *iface, int channel_id)
  * Returns 0 on success or error code otherwise.
  */
 static int aim_probe(struct most_interface *iface, int channel_id,
-		     struct most_channel_config *cfg,
-		     struct kobject *parent, char *name)
+					 struct most_channel_config *cfg,
+					 struct kobject *parent, char *name)
 {
 	struct aim_channel *c;
 	unsigned long cl_flags;
 	int retval;
 	int current_minor;
 
-	if ((!iface) || (!cfg) || (!parent) || (!name)) {
+	if ((!iface) || (!cfg) || (!parent) || (!name))
+	{
 		pr_info("Probing AIM with bad arguments");
 		return -EINVAL;
 	}
+
 	c = get_channel(iface, channel_id);
+
 	if (c)
+	{
 		return -EEXIST;
+	}
 
 	current_minor = ida_simple_get(&minor_id, 0, 0, GFP_KERNEL);
+
 	if (current_minor < 0)
+	{
 		return current_minor;
+	}
 
 	c = kzalloc(sizeof(*c), GFP_KERNEL);
-	if (!c) {
+
+	if (!c)
+	{
 		retval = -ENOMEM;
 		goto error_alloc_channel;
 	}
@@ -459,26 +560,31 @@ static int aim_probe(struct most_interface *iface, int channel_id,
 	spin_lock_init(&c->unlink);
 	INIT_KFIFO(c->fifo);
 	retval = kfifo_alloc(&c->fifo, cfg->num_buffers, GFP_KERNEL);
-	if (retval) {
+
+	if (retval)
+	{
 		pr_info("failed to alloc channel kfifo");
 		goto error_alloc_kfifo;
 	}
+
 	init_waitqueue_head(&c->wq);
 	mutex_init(&c->io_mutex);
 	spin_lock_irqsave(&ch_list_lock, cl_flags);
 	list_add_tail(&c->list, &channel_list);
 	spin_unlock_irqrestore(&ch_list_lock, cl_flags);
 	c->dev = device_create(aim_class,
-				     NULL,
-				     c->devno,
-				     NULL,
-				     "%s", name);
+						   NULL,
+						   c->devno,
+						   NULL,
+						   "%s", name);
 
-	if (IS_ERR(c->dev)) {
+	if (IS_ERR(c->dev))
+	{
 		retval = PTR_ERR(c->dev);
 		pr_info("failed to create new device node %s\n", name);
 		goto error_create_device;
 	}
+
 	kobject_uevent(&c->dev->kobj, KOBJ_ADD);
 	return 0;
 
@@ -493,7 +599,8 @@ error_alloc_channel:
 	return retval;
 }
 
-static struct most_aim cdev_aim = {
+static struct most_aim cdev_aim =
+{
 	.name = "cdev",
 	.probe_channel = aim_probe,
 	.disconnect_channel = aim_disconnect_channel,
@@ -512,19 +619,30 @@ static int __init mod_init(void)
 	ida_init(&minor_id);
 
 	err = alloc_chrdev_region(&aim_devno, 0, 50, "cdev");
+
 	if (err < 0)
+	{
 		goto dest_ida;
+	}
+
 	major = MAJOR(aim_devno);
 
 	aim_class = class_create(THIS_MODULE, "most_cdev_aim");
-	if (IS_ERR(aim_class)) {
+
+	if (IS_ERR(aim_class))
+	{
 		pr_err("no udev support\n");
 		err = PTR_ERR(aim_class);
 		goto free_cdev;
 	}
+
 	err = most_register_aim(&cdev_aim);
+
 	if (err)
+	{
 		goto dest_class;
+	}
+
 	return 0;
 
 dest_class:
@@ -544,7 +662,8 @@ static void __exit mod_exit(void)
 
 	most_deregister_aim(&cdev_aim);
 
-	list_for_each_entry_safe(c, tmp, &channel_list, list) {
+	list_for_each_entry_safe(c, tmp, &channel_list, list)
+	{
 		destroy_cdev(c);
 		kfree(c);
 	}

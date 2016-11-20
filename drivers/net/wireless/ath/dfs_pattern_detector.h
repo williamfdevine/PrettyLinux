@@ -29,7 +29,8 @@
 /**
  * struct ath_dfs_pool_stats - DFS Statistics for global pools
  */
-struct ath_dfs_pool_stats {
+struct ath_dfs_pool_stats
+{
 	u32 pool_reference;
 	u32 pulse_allocated;
 	u32 pulse_alloc_error;
@@ -47,7 +48,8 @@ struct ath_dfs_pool_stats {
  * @rssi: rssi of radar event
  * @chirp: chirp detected in pulse
  */
-struct pulse_event {
+struct pulse_event
+{
 	u64 ts;
 	u16 freq;
 	u8 width;
@@ -68,7 +70,8 @@ struct pulse_event {
  * @max_pri_tolerance: pulse time stamp tolerance on both sides [us]
  * @chirp: chirp required for the radar pattern
  */
-struct radar_detector_specs {
+struct radar_detector_specs
+{
 	u8 type_id;
 	u8 width_min;
 	u8 width_max;
@@ -92,12 +95,13 @@ struct radar_detector_specs {
  * @radar_detector_specs: array of radar detection specs
  * @channel_detectors: list connecting channel_detector elements
  */
-struct dfs_pattern_detector {
+struct dfs_pattern_detector
+{
 	void (*exit)(struct dfs_pattern_detector *dpd);
 	bool (*set_dfs_domain)(struct dfs_pattern_detector *dpd,
-			   enum nl80211_dfs_regions region);
+						   enum nl80211_dfs_regions region);
 	bool (*add_pulse)(struct dfs_pattern_detector *dpd,
-			  struct pulse_event *pe);
+					  struct pulse_event *pe);
 
 	struct ath_dfs_pool_stats (*get_stats)(struct dfs_pattern_detector *dpd);
 	enum nl80211_dfs_regions region;
@@ -117,5 +121,5 @@ struct dfs_pattern_detector {
  */
 extern struct dfs_pattern_detector *
 dfs_pattern_detector_init(struct ath_common *common,
-			  enum nl80211_dfs_regions region);
+						  enum nl80211_dfs_regions region);
 #endif /* DFS_PATTERN_DETECTOR_H */

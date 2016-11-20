@@ -186,7 +186,8 @@
  * initialization need not require initializing all of the
  * unlock addresses for all bit widths.
  */
-enum uaddr {
+enum uaddr
+{
 	MTD_UADDR_NOT_SUPPORTED = 0,	/* data width not supported */
 	MTD_UADDR_0x0555_0x02AA,
 	MTD_UADDR_0x0555_0x0AAA,
@@ -199,7 +200,8 @@ enum uaddr {
 };
 
 
-struct unlock_addr {
+struct unlock_addr
+{
 	uint32_t addr1;
 	uint32_t addr2;
 };
@@ -215,7 +217,8 @@ struct unlock_addr {
  * MTD_UADDR_NOT_SUPPORTED must be 0 and the first entry here
  * must go unused.
  */
-static const struct unlock_addr  unlock_addrs[] = {
+static const struct unlock_addr  unlock_addrs[] =
+{
 	[MTD_UADDR_NOT_SUPPORTED] = {
 		.addr1 = 0xffff,
 		.addr2 = 0xffff
@@ -262,7 +265,8 @@ static const struct unlock_addr  unlock_addrs[] = {
 	}
 };
 
-struct amd_flash_info {
+struct amd_flash_info
+{
 	const char *name;
 	const uint16_t mfr_id;
 	const uint16_t dev_id;
@@ -291,7 +295,8 @@ struct amd_flash_info {
  * Fortunately, the list isn't searched often and so a
  * slow, linear search isn't so bad.
  */
-static const struct amd_flash_info jedec_table[] = {
+static const struct amd_flash_info jedec_table[] =
+{
 	{
 		.mfr_id		= CFI_MFR_AMD,
 		.dev_id		= AM29F032B,
@@ -302,162 +307,162 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,64)
+			ERASEINFO(0x10000, 64)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_AMD,
 		.dev_id		= AM29LV160DT,
 		.name		= "AMD AM29LV160DT",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_2MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x10000,31),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x04000,1)
+			ERASEINFO(0x10000, 31),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x04000, 1)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_AMD,
 		.dev_id		= AM29LV160DB,
 		.name		= "AMD AM29LV160DB",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_2MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x10000,31)
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x10000, 31)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_AMD,
 		.dev_id		= AM29LV400BB,
 		.name		= "AMD AM29LV400BB",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_512KiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x10000,7)
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x10000, 7)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_AMD,
 		.dev_id		= AM29LV400BT,
 		.name		= "AMD AM29LV400BT",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_512KiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x10000,7),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x04000,1)
+			ERASEINFO(0x10000, 7),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x04000, 1)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_AMD,
 		.dev_id		= AM29LV800BB,
 		.name		= "AMD AM29LV800BB",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_1MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x10000,15),
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x10000, 15),
 		}
 	}, {
-/* add DL */
+		/* add DL */
 		.mfr_id		= CFI_MFR_AMD,
 		.dev_id		= AM29DL800BB,
 		.name		= "AMD AM29DL800BB",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_1MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 6,
 		.regions	= {
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x02000,4),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x10000,14)
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x02000, 4),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x10000, 14)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_AMD,
 		.dev_id		= AM29DL800BT,
 		.name		= "AMD AM29DL800BT",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_1MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 6,
 		.regions	= {
-			ERASEINFO(0x10000,14),
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x02000,4),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x04000,1)
+			ERASEINFO(0x10000, 14),
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x02000, 4),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x04000, 1)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_AMD,
 		.dev_id		= AM29F800BB,
 		.name		= "AMD AM29F800BB",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_1MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x10000,15),
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x10000, 15),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_AMD,
 		.dev_id		= AM29LV800BT,
 		.name		= "AMD AM29LV800BT",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_1MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x10000,15),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x04000,1)
+			ERASEINFO(0x10000, 15),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x04000, 1)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_AMD,
 		.dev_id		= AM29F800BT,
 		.name		= "AMD AM29F800BT",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_1MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x10000,15),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x04000,1)
+			ERASEINFO(0x10000, 15),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x04000, 1)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_AMD,
@@ -469,7 +474,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,32),
+			ERASEINFO(0x10000, 32),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_AMD,
@@ -481,7 +486,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,32),
+			ERASEINFO(0x10000, 32),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_AMD,
@@ -493,7 +498,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,16),
+			ERASEINFO(0x10000, 16),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_AMD,
@@ -505,7 +510,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,8),
+			ERASEINFO(0x10000, 8),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_AMD,
@@ -517,7 +522,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,8),
+			ERASEINFO(0x10000, 8),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_AMD,
@@ -529,40 +534,40 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x10000,3),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x04000,1),
+			ERASEINFO(0x10000, 3),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x04000, 1),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_AMD,
 		.dev_id		= AM29SL800DT,
 		.name		= "AMD AM29SL800DT",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_1MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x10000,15),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x04000,1),
+			ERASEINFO(0x10000, 15),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x04000, 1),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_AMD,
 		.dev_id		= AM29SL800DB,
 		.name		= "AMD AM29SL800DB",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_1MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x10000,15),
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x10000, 15),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_ATMEL,
@@ -574,7 +579,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,1)
+			ERASEINFO(0x10000, 1)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_ATMEL,
@@ -586,90 +591,90 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x80,256),
-			ERASEINFO(0x80,256)
+			ERASEINFO(0x80, 256),
+			ERASEINFO(0x80, 256)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_ATMEL,
 		.dev_id		= AT49BV16X,
 		.name		= "Atmel AT49BV16X",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0555_0x0AAA,	/* ???? */
 		.dev_size	= SIZE_2MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 2,
 		.regions	= {
-			ERASEINFO(0x02000,8),
-			ERASEINFO(0x10000,31)
+			ERASEINFO(0x02000, 8),
+			ERASEINFO(0x10000, 31)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_ATMEL,
 		.dev_id		= AT49BV16XT,
 		.name		= "Atmel AT49BV16XT",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0555_0x0AAA,	/* ???? */
 		.dev_size	= SIZE_2MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 2,
 		.regions	= {
-			ERASEINFO(0x10000,31),
-			ERASEINFO(0x02000,8)
+			ERASEINFO(0x10000, 31),
+			ERASEINFO(0x02000, 8)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_ATMEL,
 		.dev_id		= AT49BV32X,
 		.name		= "Atmel AT49BV32X",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0555_0x0AAA,	/* ???? */
 		.dev_size	= SIZE_4MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 2,
 		.regions	= {
-			ERASEINFO(0x02000,8),
-			ERASEINFO(0x10000,63)
+			ERASEINFO(0x02000, 8),
+			ERASEINFO(0x10000, 63)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_ATMEL,
 		.dev_id		= AT49BV32XT,
 		.name		= "Atmel AT49BV32XT",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0555_0x0AAA,	/* ???? */
 		.dev_size	= SIZE_4MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 2,
 		.regions	= {
-			ERASEINFO(0x10000,63),
-			ERASEINFO(0x02000,8)
+			ERASEINFO(0x10000, 63),
+			ERASEINFO(0x02000, 8)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_EON,
 		.dev_id		= EN29SL800BT,
 		.name		= "Eon EN29SL800BT",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_1MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x10000,15),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x04000,1),
+			ERASEINFO(0x10000, 15),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x04000, 1),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_EON,
 		.dev_id		= EN29SL800BB,
 		.name		= "Eon EN29SL800BB",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_1MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x10000,15),
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x10000, 15),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_FUJITSU,
@@ -681,22 +686,22 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,8)
+			ERASEINFO(0x10000, 8)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_FUJITSU,
 		.dev_id		= MBM29F800BA,
 		.name		= "Fujitsu MBM29F800BA",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_1MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x10000,15),
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x10000, 15),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_FUJITSU,
@@ -708,123 +713,123 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,128)
+			ERASEINFO(0x10000, 128)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_FUJITSU,
 		.dev_id		= MBM29LV320TE,
 		.name		= "Fujitsu MBM29LV320TE",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_4MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 2,
 		.regions	= {
-			ERASEINFO(0x10000,63),
-			ERASEINFO(0x02000,8)
+			ERASEINFO(0x10000, 63),
+			ERASEINFO(0x02000, 8)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_FUJITSU,
 		.dev_id		= MBM29LV320BE,
 		.name		= "Fujitsu MBM29LV320BE",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_4MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 2,
 		.regions	= {
-			ERASEINFO(0x02000,8),
-			ERASEINFO(0x10000,63)
+			ERASEINFO(0x02000, 8),
+			ERASEINFO(0x10000, 63)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_FUJITSU,
 		.dev_id		= MBM29LV160TE,
 		.name		= "Fujitsu MBM29LV160TE",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_2MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x10000,31),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x04000,1)
+			ERASEINFO(0x10000, 31),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x04000, 1)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_FUJITSU,
 		.dev_id		= MBM29LV160BE,
 		.name		= "Fujitsu MBM29LV160BE",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_2MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x10000,31)
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x10000, 31)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_FUJITSU,
 		.dev_id		= MBM29LV800BA,
 		.name		= "Fujitsu MBM29LV800BA",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_1MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x10000,15)
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x10000, 15)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_FUJITSU,
 		.dev_id		= MBM29LV800TA,
 		.name		= "Fujitsu MBM29LV800TA",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_1MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x10000,15),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x04000,1)
+			ERASEINFO(0x10000, 15),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x04000, 1)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_FUJITSU,
 		.dev_id		= MBM29LV400BC,
 		.name		= "Fujitsu MBM29LV400BC",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_512KiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x10000,7)
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x10000, 7)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_FUJITSU,
 		.dev_id		= MBM29LV400TC,
 		.name		= "Fujitsu MBM29LV400TC",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_512KiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x10000,7),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x04000,1)
+			ERASEINFO(0x10000, 7),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x04000, 1)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_HYUNDAI,
@@ -836,10 +841,10 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x10000,3),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x04000,1),
+			ERASEINFO(0x10000, 3),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x04000, 1),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_INTEL,
@@ -871,7 +876,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.mfr_id		= CFI_MFR_INTEL,
 		.dev_id		= I28F400B3B,
 		.name		= "Intel 28F400B3B",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_UNNECESSARY,
 		.dev_size	= SIZE_512KiB,
 		.cmd_set	= P_ID_INTEL_STD,
@@ -884,7 +889,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.mfr_id		= CFI_MFR_INTEL,
 		.dev_id		= I28F400B3T,
 		.name		= "Intel 28F400B3T",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_UNNECESSARY,
 		.dev_size	= SIZE_512KiB,
 		.cmd_set	= P_ID_INTEL_STD,
@@ -929,7 +934,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_INTEL_EXT,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,16),
+			ERASEINFO(0x10000, 16),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_INTEL,
@@ -941,7 +946,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_INTEL_EXT,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,32),
+			ERASEINFO(0x10000, 32),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_INTEL,
@@ -1120,7 +1125,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_INTEL_EXT,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,8),
+			ERASEINFO(0x10000, 8),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_INTEL,
@@ -1132,7 +1137,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_INTEL_EXT,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,16),
+			ERASEINFO(0x10000, 16),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_MACRONIX,
@@ -1144,22 +1149,22 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,8),
+			ERASEINFO(0x10000, 8),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_MACRONIX,
 		.dev_id		= MX29LV160T,
 		.name		= "MXIC MX29LV160T",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_2MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x10000,31),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x04000,1)
+			ERASEINFO(0x10000, 31),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x04000, 1)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_NEC,
@@ -1171,24 +1176,24 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 3,
 		.regions	= {
-			ERASEINFO(0x2000,8),
-			ERASEINFO(0x10000,126),
-			ERASEINFO(0x2000,8),
+			ERASEINFO(0x2000, 8),
+			ERASEINFO(0x10000, 126),
+			ERASEINFO(0x2000, 8),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_MACRONIX,
 		.dev_id		= MX29LV160B,
 		.name		= "MXIC MX29LV160B",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_2MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x10000,31)
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x10000, 31)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_MACRONIX,
@@ -1200,7 +1205,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,8),
+			ERASEINFO(0x10000, 8),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_MACRONIX,
@@ -1212,7 +1217,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,32),
+			ERASEINFO(0x10000, 32),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_MACRONIX,
@@ -1224,10 +1229,10 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x10000,7),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x04000,1),
+			ERASEINFO(0x10000, 7),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x04000, 1),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_MACRONIX,
@@ -1239,10 +1244,10 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x10000,7),
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x10000, 7),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_MACRONIX,
@@ -1254,10 +1259,10 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x10000,3),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x04000,1),
+			ERASEINFO(0x10000, 3),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x04000, 1),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_PMC,
@@ -1318,7 +1323,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x01000,16),
+			ERASEINFO(0x01000, 16),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_SST,
@@ -1330,7 +1335,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x01000,32),
+			ERASEINFO(0x01000, 32),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_SST,
@@ -1341,7 +1346,8 @@ static const struct amd_flash_info jedec_table[] = {
 		.dev_size	= SIZE_256KiB,
 		.cmd_set	= P_ID_SST_PAGE,
 		.nr_regions	= 1,
-		.regions = {ERASEINFO(0x01000,64),
+		.regions = {
+			ERASEINFO(0x01000, 64),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_SST,
@@ -1352,7 +1358,8 @@ static const struct amd_flash_info jedec_table[] = {
 		.dev_size	= SIZE_256KiB,
 		.cmd_set	= P_ID_SST_PAGE,
 		.nr_regions	= 1,
-		.regions = {ERASEINFO(0x01000,64),
+		.regions = {
+			ERASEINFO(0x01000, 64),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_SST,
@@ -1364,7 +1371,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x01000,64),
+			ERASEINFO(0x01000, 64),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_SST,
@@ -1376,7 +1383,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x01000,128),
+			ERASEINFO(0x01000, 128),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_SST,
@@ -1388,7 +1395,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x01000,32),
+			ERASEINFO(0x01000, 32),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_SST,
@@ -1400,7 +1407,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x01000,64),
+			ERASEINFO(0x01000, 64),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_SST,
@@ -1412,7 +1419,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x01000,128),
+			ERASEINFO(0x01000, 128),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_SST,
@@ -1424,7 +1431,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x01000,128),
+			ERASEINFO(0x01000, 128),
 		}
 	}, {
 
@@ -1437,7 +1444,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x01000,128),
+			ERASEINFO(0x01000, 128),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_SST,
@@ -1449,7 +1456,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x01000,256),
+			ERASEINFO(0x01000, 256),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_SST,
@@ -1461,7 +1468,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x01000,96),
+			ERASEINFO(0x01000, 96),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_SST,
@@ -1473,7 +1480,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x01000,128),
+			ERASEINFO(0x01000, 128),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_SST,
@@ -1485,7 +1492,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x01000,256),
+			ERASEINFO(0x01000, 256),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_SST,     /* should be CFI */
@@ -1497,8 +1504,8 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 2,
 		.regions	= {
-			ERASEINFO(0x1000,256),
-			ERASEINFO(0x1000,256)
+			ERASEINFO(0x1000, 256),
+			ERASEINFO(0x1000, 256)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_SST,     /* should be CFI */
@@ -1510,8 +1517,8 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 2,
 		.regions	= {
-			ERASEINFO(0x1000,256),
-			ERASEINFO(0x1000,256)
+			ERASEINFO(0x1000, 256),
+			ERASEINFO(0x1000, 256)
 		}
 	}, {
 		/* CFI is broken: reports AMD_STD, but needs custom uaddr */
@@ -1524,8 +1531,8 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 2,
 		.regions	= {
-			ERASEINFO(0x1000,256),
-			ERASEINFO(0x1000,256)
+			ERASEINFO(0x1000, 256),
+			ERASEINFO(0x1000, 256)
 		}
 	}, {
 		/* CFI is broken: reports AMD_STD, but needs custom uaddr */
@@ -1538,8 +1545,8 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 2,
 		.regions	= {
-			ERASEINFO(0x1000,256),
-			ERASEINFO(0x1000,256)
+			ERASEINFO(0x1000, 256),
+			ERASEINFO(0x1000, 256)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_SST,     /* should be CFI */
@@ -1551,127 +1558,127 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x1000,256),
-			ERASEINFO(0x1000,256),
-			ERASEINFO(0x1000,256),
-			ERASEINFO(0x1000,256)
+			ERASEINFO(0x1000, 256),
+			ERASEINFO(0x1000, 256),
+			ERASEINFO(0x1000, 256),
+			ERASEINFO(0x1000, 256)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_SST,
 		.dev_id		= SST36VF3203,
 		.name		= "SST 36VF3203",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_4MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,64),
+			ERASEINFO(0x10000, 64),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_ST,
 		.dev_id		= M29F800AB,
 		.name		= "ST M29F800AB",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_1MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x10000,15),
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x10000, 15),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_ST,	/* FIXME - CFI device? */
 		.dev_id		= M29W800DT,
 		.name		= "ST M29W800DT",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_1MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x10000,15),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x04000,1)
+			ERASEINFO(0x10000, 15),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x04000, 1)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_ST,	/* FIXME - CFI device? */
 		.dev_id		= M29W800DB,
 		.name		= "ST M29W800DB",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_1MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x10000,15)
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x10000, 15)
 		}
 	},  {
 		.mfr_id         = CFI_MFR_ST,
 		.dev_id         = M29W400DT,
 		.name           = "ST M29W400DT",
-		.devtypes       = CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes       = CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr          = MTD_UADDR_0x0AAA_0x0555,
 		.dev_size       = SIZE_512KiB,
 		.cmd_set        = P_ID_AMD_STD,
 		.nr_regions     = 4,
 		.regions        = {
-			ERASEINFO(0x04000,7),
-			ERASEINFO(0x02000,1),
-			ERASEINFO(0x08000,2),
-			ERASEINFO(0x10000,1)
+			ERASEINFO(0x04000, 7),
+			ERASEINFO(0x02000, 1),
+			ERASEINFO(0x08000, 2),
+			ERASEINFO(0x10000, 1)
 		}
 	}, {
 		.mfr_id         = CFI_MFR_ST,
 		.dev_id         = M29W400DB,
 		.name           = "ST M29W400DB",
-		.devtypes       = CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes       = CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr          = MTD_UADDR_0x0AAA_0x0555,
 		.dev_size       = SIZE_512KiB,
 		.cmd_set        = P_ID_AMD_STD,
 		.nr_regions     = 4,
 		.regions        = {
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x10000,7)
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x10000, 7)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_ST,	/* FIXME - CFI device? */
 		.dev_id		= M29W160DT,
 		.name		= "ST M29W160DT",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0555_0x02AA,	/* ???? */
 		.dev_size	= SIZE_2MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x10000,31),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x04000,1)
+			ERASEINFO(0x10000, 31),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x04000, 1)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_ST,	/* FIXME - CFI device? */
 		.dev_id		= M29W160DB,
 		.name		= "ST M29W160DB",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0555_0x02AA,	/* ???? */
 		.dev_size	= SIZE_2MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x10000,31)
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x10000, 31)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_ST,
@@ -1683,7 +1690,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,8),
+			ERASEINFO(0x10000, 8),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_ST,
@@ -1695,7 +1702,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_INTEL_EXT,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,8),
+			ERASEINFO(0x10000, 8),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_ST,
@@ -1707,7 +1714,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_INTEL_EXT,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,16),
+			ERASEINFO(0x10000, 16),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_ST,
@@ -1719,7 +1726,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_INTEL_EXT,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,32),
+			ERASEINFO(0x10000, 32),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_ST,
@@ -1731,7 +1738,7 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_INTEL_EXT,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,16),
+			ERASEINFO(0x10000, 16),
 		},
 	}, {
 		.mfr_id		= CFI_MFR_ST,
@@ -1743,10 +1750,10 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_INTEL_EXT,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x1000,16),
-			ERASEINFO(0x10000,13),
-			ERASEINFO(0x1000,16),
-			ERASEINFO(0x1000,16),
+			ERASEINFO(0x1000, 16),
+			ERASEINFO(0x10000, 13),
+			ERASEINFO(0x1000, 16),
+			ERASEINFO(0x1000, 16),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_ST,
@@ -1758,10 +1765,10 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_INTEL_EXT,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x1000,16),
-			ERASEINFO(0x1000,16),
-			ERASEINFO(0x10000,13),
-			ERASEINFO(0x1000,16),
+			ERASEINFO(0x1000, 16),
+			ERASEINFO(0x1000, 16),
+			ERASEINFO(0x10000, 13),
+			ERASEINFO(0x1000, 16),
 		}
 	}, {
 		.mfr_id		= 0xff00 | CFI_MFR_ST,
@@ -1773,89 +1780,89 @@ static const struct amd_flash_info jedec_table[] = {
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 1,
 		.regions	= {
-			ERASEINFO(0x10000,16),
+			ERASEINFO(0x10000, 16),
 		}
 	}, {
 		.mfr_id		= CFI_MFR_TOSHIBA,
 		.dev_id		= TC58FVT160,
 		.name		= "Toshiba TC58FVT160",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_2MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x10000,31),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x04000,1)
+			ERASEINFO(0x10000, 31),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x04000, 1)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_TOSHIBA,
 		.dev_id		= TC58FVB160,
 		.name		= "Toshiba TC58FVB160",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_2MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 4,
 		.regions	= {
-			ERASEINFO(0x04000,1),
-			ERASEINFO(0x02000,2),
-			ERASEINFO(0x08000,1),
-			ERASEINFO(0x10000,31)
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x10000, 31)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_TOSHIBA,
 		.dev_id		= TC58FVB321,
 		.name		= "Toshiba TC58FVB321",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_4MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 2,
 		.regions	= {
-			ERASEINFO(0x02000,8),
-			ERASEINFO(0x10000,63)
+			ERASEINFO(0x02000, 8),
+			ERASEINFO(0x10000, 63)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_TOSHIBA,
 		.dev_id		= TC58FVT321,
 		.name		= "Toshiba TC58FVT321",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_4MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 2,
 		.regions	= {
-			ERASEINFO(0x10000,63),
-			ERASEINFO(0x02000,8)
+			ERASEINFO(0x10000, 63),
+			ERASEINFO(0x02000, 8)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_TOSHIBA,
 		.dev_id		= TC58FVB641,
 		.name		= "Toshiba TC58FVB641",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_8MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 2,
 		.regions	= {
-			ERASEINFO(0x02000,8),
-			ERASEINFO(0x10000,127)
+			ERASEINFO(0x02000, 8),
+			ERASEINFO(0x10000, 127)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_TOSHIBA,
 		.dev_id		= TC58FVT641,
 		.name		= "Toshiba TC58FVT641",
-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+		.devtypes	= CFI_DEVICETYPE_X16 | CFI_DEVICETYPE_X8,
 		.uaddr		= MTD_UADDR_0x0AAA_0x0555,
 		.dev_size	= SIZE_8MiB,
 		.cmd_set	= P_ID_AMD_STD,
 		.nr_regions	= 2,
 		.regions	= {
-			ERASEINFO(0x10000,127),
-			ERASEINFO(0x02000,8)
+			ERASEINFO(0x10000, 127),
+			ERASEINFO(0x02000, 8)
 		}
 	}, {
 		.mfr_id		= CFI_MFR_WINBOND,
@@ -1876,7 +1883,7 @@ static const struct amd_flash_info jedec_table[] = {
 };
 
 static inline u32 jedec_read_mfr(struct map_info *map, uint32_t base,
-	struct cfi_private *cfi)
+								 struct cfi_private *cfi)
 {
 	map_word result;
 	unsigned long mask;
@@ -1886,23 +1893,25 @@ static inline u32 jedec_read_mfr(struct map_info *map, uint32_t base,
 	 * (http://www.jedec.org/download/search/jep106W.pdf)
 	 * several first banks can contain 0x7f instead of actual ID
 	 */
-	do {
+	do
+	{
 		uint32_t ofs = cfi_build_cmd_addr(0 + (bank << 8), map, cfi);
 		mask = (1 << (cfi->device_type * 8)) - 1;
 		result = map_read(map, base + ofs);
 		bank++;
-	} while ((result.x[0] & mask) == CFI_MFR_CONTINUATION);
+	}
+	while ((result.x[0] & mask) == CFI_MFR_CONTINUATION);
 
 	return result.x[0] & mask;
 }
 
 static inline u32 jedec_read_id(struct map_info *map, uint32_t base,
-	struct cfi_private *cfi)
+								struct cfi_private *cfi)
 {
 	map_word result;
 	unsigned long mask;
 	u32 ofs = cfi_build_cmd_addr(1, map, cfi);
-	mask = (1 << (cfi->device_type * 8)) -1;
+	mask = (1 << (cfi->device_type * 8)) - 1;
 	result = map_read(map, base + ofs);
 	return result.x[0] & mask;
 }
@@ -1917,9 +1926,10 @@ static void jedec_reset(u32 base, struct map_info *map, struct cfi_private *cfi)
 	 * 0x2aaa, 0xF0 at 0x5555 this will not affect the AMD chips
 	 * as they will ignore the writes and don't care what address
 	 * the F0 is written to */
-	if (cfi->addr_unlock1) {
+	if (cfi->addr_unlock1)
+	{
 		pr_debug( "reset unlock called %x %x \n",
-		       cfi->addr_unlock1,cfi->addr_unlock2);
+				  cfi->addr_unlock1, cfi->addr_unlock2);
 		cfi_send_gen_cmd(0xaa, cfi->addr_unlock1, base, map, cfi, cfi->device_type, NULL);
 		cfi_send_gen_cmd(0x55, cfi->addr_unlock2, base, map, cfi, cfi->device_type, NULL);
 	}
@@ -1937,21 +1947,24 @@ static void jedec_reset(u32 base, struct map_info *map, struct cfi_private *cfi)
 
 static int cfi_jedec_setup(struct map_info *map, struct cfi_private *cfi, int index)
 {
-	int i,num_erase_regions;
+	int i, num_erase_regions;
 	uint8_t uaddr;
 
-	if (!(jedec_table[index].devtypes & cfi->device_type)) {
+	if (!(jedec_table[index].devtypes & cfi->device_type))
+	{
 		pr_debug("Rejecting potential %s with incompatible %d-bit device type\n",
-		      jedec_table[index].name, 4 * (1<<cfi->device_type));
+				 jedec_table[index].name, 4 * (1 << cfi->device_type));
 		return 0;
 	}
 
-	printk(KERN_INFO "Found: %s\n",jedec_table[index].name);
+	printk(KERN_INFO "Found: %s\n", jedec_table[index].name);
 
 	num_erase_regions = jedec_table[index].nr_regions;
 
 	cfi->cfiq = kmalloc(sizeof(struct cfi_ident) + num_erase_regions * 4, GFP_KERNEL);
-	if (!cfi->cfiq) {
+
+	if (!cfi->cfiq)
+	{
 		//xx printk(KERN_WARNING "%s: kmalloc failed for CFI ident structure\n", map->name);
 		return 0;
 	}
@@ -1964,9 +1977,11 @@ static int cfi_jedec_setup(struct map_info *map, struct cfi_private *cfi, int in
 	cfi->cfi_mode = CFI_MODE_JEDEC;
 	cfi->sector_erase_cmd = CMD(0x30);
 
-	for (i=0; i<num_erase_regions; i++){
+	for (i = 0; i < num_erase_regions; i++)
+	{
 		cfi->cfiq->EraseRegionInfo[i] = jedec_table[index].regions[i];
 	}
+
 	cfi->cmdset_priv = NULL;
 
 	/* This may be redundant for some cases, but it doesn't hurt */
@@ -1994,9 +2009,9 @@ static int cfi_jedec_setup(struct map_info *map, struct cfi_private *cfi, int in
  * could be manually specified to force the chip info.
  */
 static inline int jedec_match( uint32_t base,
-			       struct map_info *map,
-			       struct cfi_private *cfi,
-			       const struct amd_flash_info *finfo )
+							   struct map_info *map,
+							   struct cfi_private *cfi,
+							   const struct amd_flash_info *finfo )
 {
 	int rc = 0;           /* failure until all tests pass */
 	u32 mfr, id;
@@ -2011,63 +2026,77 @@ static inline int jedec_match( uint32_t base,
 	 * then the jedec_table[] will have to be augmented with the IDs
 	 * for different widths.
 	 */
-	switch (cfi->device_type) {
-	case CFI_DEVICETYPE_X8:
-		mfr = (uint8_t)finfo->mfr_id;
-		id = (uint8_t)finfo->dev_id;
+	switch (cfi->device_type)
+	{
+		case CFI_DEVICETYPE_X8:
+			mfr = (uint8_t)finfo->mfr_id;
+			id = (uint8_t)finfo->dev_id;
 
-		/* bjd: it seems that if we do this, we can end up
-		 * detecting 16bit flashes as an 8bit device, even though
-		 * there aren't.
-		 */
-		if (finfo->dev_id > 0xff) {
-			pr_debug("%s(): ID is not 8bit\n",
-			       __func__);
+			/* bjd: it seems that if we do this, we can end up
+			 * detecting 16bit flashes as an 8bit device, even though
+			 * there aren't.
+			 */
+			if (finfo->dev_id > 0xff)
+			{
+				pr_debug("%s(): ID is not 8bit\n",
+						 __func__);
+				goto match_done;
+			}
+
+			break;
+
+		case CFI_DEVICETYPE_X16:
+			mfr = (uint16_t)finfo->mfr_id;
+			id = (uint16_t)finfo->dev_id;
+			break;
+
+		case CFI_DEVICETYPE_X32:
+			mfr = (uint16_t)finfo->mfr_id;
+			id = (uint32_t)finfo->dev_id;
+			break;
+
+		default:
+			printk(KERN_WARNING
+				   "MTD %s(): Unsupported device type %d\n",
+				   __func__, cfi->device_type);
 			goto match_done;
-		}
-		break;
-	case CFI_DEVICETYPE_X16:
-		mfr = (uint16_t)finfo->mfr_id;
-		id = (uint16_t)finfo->dev_id;
-		break;
-	case CFI_DEVICETYPE_X32:
-		mfr = (uint16_t)finfo->mfr_id;
-		id = (uint32_t)finfo->dev_id;
-		break;
-	default:
-		printk(KERN_WARNING
-		       "MTD %s(): Unsupported device type %d\n",
-		       __func__, cfi->device_type);
-		goto match_done;
 	}
-	if ( cfi->mfr != mfr || cfi->id != id ) {
+
+	if ( cfi->mfr != mfr || cfi->id != id )
+	{
 		goto match_done;
 	}
 
 	/* the part size must fit in the memory window */
 	pr_debug("MTD %s(): Check fit 0x%.8x + 0x%.8x = 0x%.8x\n",
-	       __func__, base, 1 << finfo->dev_size, base + (1 << finfo->dev_size) );
-	if ( base + cfi_interleave(cfi) * ( 1 << finfo->dev_size ) > map->size ) {
+			 __func__, base, 1 << finfo->dev_size, base + (1 << finfo->dev_size) );
+
+	if ( base + cfi_interleave(cfi) * ( 1 << finfo->dev_size ) > map->size )
+	{
 		pr_debug("MTD %s(): 0x%.4x 0x%.4x %dKiB doesn't fit\n",
-		       __func__, finfo->mfr_id, finfo->dev_id,
-		       1 << finfo->dev_size );
+				 __func__, finfo->mfr_id, finfo->dev_id,
+				 1 << finfo->dev_size );
 		goto match_done;
 	}
 
 	if (! (finfo->devtypes & cfi->device_type))
+	{
 		goto match_done;
+	}
 
 	uaddr = finfo->uaddr;
 
 	pr_debug("MTD %s(): check unlock addrs 0x%.4x 0x%.4x\n",
-	       __func__, cfi->addr_unlock1, cfi->addr_unlock2 );
+			 __func__, cfi->addr_unlock1, cfi->addr_unlock2 );
+
 	if ( MTD_UADDR_UNNECESSARY != uaddr && MTD_UADDR_DONT_CARE != uaddr
-	     && ( unlock_addrs[uaddr].addr1 / cfi->device_type != cfi->addr_unlock1 ||
-		  unlock_addrs[uaddr].addr2 / cfi->device_type != cfi->addr_unlock2 ) ) {
+		 && ( unlock_addrs[uaddr].addr1 / cfi->device_type != cfi->addr_unlock1 ||
+			  unlock_addrs[uaddr].addr2 / cfi->device_type != cfi->addr_unlock2 ) )
+	{
 		pr_debug("MTD %s(): 0x%.4x 0x%.4x did not match\n",
-			__func__,
-			unlock_addrs[uaddr].addr1,
-			unlock_addrs[uaddr].addr2);
+				 __func__,
+				 unlock_addrs[uaddr].addr1,
+				 unlock_addrs[uaddr].addr2);
 		goto match_done;
 	}
 
@@ -2081,14 +2110,16 @@ static inline int jedec_match( uint32_t base,
 	 * module parameters, doesn't probe but forces a load.
 	 */
 	pr_debug("MTD %s(): check ID's disappear when not in ID mode\n",
-	       __func__ );
+			 __func__ );
 	jedec_reset( base, map, cfi );
 	mfr = jedec_read_mfr( map, base, cfi );
 	id = jedec_read_id( map, base, cfi );
-	if ( mfr == cfi->mfr && id == cfi->id ) {
+
+	if ( mfr == cfi->mfr && id == cfi->id )
+	{
 		pr_debug("MTD %s(): ID 0x%.2x:0x%.2x did not change after reset:\n"
-		       "You might need to manually specify JEDEC parameters.\n",
-			__func__, cfi->mfr, cfi->id );
+				 "You might need to manually specify JEDEC parameters.\n",
+				 __func__, cfi->mfr, cfi->id );
 		goto match_done;
 	}
 
@@ -2100,82 +2131,107 @@ static inline int jedec_match( uint32_t base,
 	 * were truly frobbing a real device.
 	 */
 	pr_debug("MTD %s(): return to ID mode\n", __func__ );
-	if (cfi->addr_unlock1) {
+
+	if (cfi->addr_unlock1)
+	{
 		cfi_send_gen_cmd(0xaa, cfi->addr_unlock1, base, map, cfi, cfi->device_type, NULL);
 		cfi_send_gen_cmd(0x55, cfi->addr_unlock2, base, map, cfi, cfi->device_type, NULL);
 	}
+
 	cfi_send_gen_cmd(0x90, cfi->addr_unlock1, base, map, cfi, cfi->device_type, NULL);
 	/* FIXME - should have a delay before continuing */
 
- match_done:
+match_done:
 	return rc;
 }
 
 
 static int jedec_probe_chip(struct map_info *map, __u32 base,
-			    unsigned long *chip_map, struct cfi_private *cfi)
+							unsigned long *chip_map, struct cfi_private *cfi)
 {
 	int i;
 	enum uaddr uaddr_idx = MTD_UADDR_NOT_SUPPORTED;
 	u32 probe_offset1, probe_offset2;
 
- retry:
-	if (!cfi->numchips) {
+retry:
+
+	if (!cfi->numchips)
+	{
 		uaddr_idx++;
 
 		if (MTD_UADDR_UNNECESSARY == uaddr_idx)
+		{
 			return 0;
+		}
 
 		cfi->addr_unlock1 = unlock_addrs[uaddr_idx].addr1 / cfi->device_type;
 		cfi->addr_unlock2 = unlock_addrs[uaddr_idx].addr2 / cfi->device_type;
 	}
 
 	/* Make certain we aren't probing past the end of map */
-	if (base >= map->size) {
+	if (base >= map->size)
+	{
 		printk(KERN_NOTICE
-			"Probe at base(0x%08x) past the end of the map(0x%08lx)\n",
-			base, map->size -1);
+			   "Probe at base(0x%08x) past the end of the map(0x%08lx)\n",
+			   base, map->size - 1);
 		return 0;
 
 	}
+
 	/* Ensure the unlock addresses we try stay inside the map */
 	probe_offset1 = cfi_build_cmd_addr(cfi->addr_unlock1, map, cfi);
 	probe_offset2 = cfi_build_cmd_addr(cfi->addr_unlock2, map, cfi);
+
 	if (	((base + probe_offset1 + map_bankwidth(map)) >= map->size) ||
-		((base + probe_offset2 + map_bankwidth(map)) >= map->size))
+			((base + probe_offset2 + map_bankwidth(map)) >= map->size))
+	{
 		goto retry;
+	}
 
 	/* Reset */
 	jedec_reset(base, map, cfi);
 
 	/* Autoselect Mode */
-	if(cfi->addr_unlock1) {
+	if (cfi->addr_unlock1)
+	{
 		cfi_send_gen_cmd(0xaa, cfi->addr_unlock1, base, map, cfi, cfi->device_type, NULL);
 		cfi_send_gen_cmd(0x55, cfi->addr_unlock2, base, map, cfi, cfi->device_type, NULL);
 	}
+
 	cfi_send_gen_cmd(0x90, cfi->addr_unlock1, base, map, cfi, cfi->device_type, NULL);
 	/* FIXME - should have a delay before continuing */
 
-	if (!cfi->numchips) {
+	if (!cfi->numchips)
+	{
 		/* This is the first time we're called. Set up the CFI
 		   stuff accordingly and return */
 
 		cfi->mfr = jedec_read_mfr(map, base, cfi);
 		cfi->id = jedec_read_id(map, base, cfi);
 		pr_debug("Search for id:(%02x %02x) interleave(%d) type(%d)\n",
-			cfi->mfr, cfi->id, cfi_interleave(cfi), cfi->device_type);
-		for (i = 0; i < ARRAY_SIZE(jedec_table); i++) {
-			if ( jedec_match( base, map, cfi, &jedec_table[i] ) ) {
+				 cfi->mfr, cfi->id, cfi_interleave(cfi), cfi->device_type);
+
+		for (i = 0; i < ARRAY_SIZE(jedec_table); i++)
+		{
+			if ( jedec_match( base, map, cfi, &jedec_table[i] ) )
+			{
 				pr_debug("MTD %s(): matched device 0x%x,0x%x unlock_addrs: 0x%.4x 0x%.4x\n",
-				       __func__, cfi->mfr, cfi->id,
-				       cfi->addr_unlock1, cfi->addr_unlock2 );
+						 __func__, cfi->mfr, cfi->id,
+						 cfi->addr_unlock1, cfi->addr_unlock2 );
+
 				if (!cfi_jedec_setup(map, cfi, i))
+				{
 					return 0;
+				}
+
 				goto ok_out;
 			}
 		}
+
 		goto retry;
-	} else {
+	}
+	else
+	{
 		uint16_t mfr;
 		uint16_t id;
 
@@ -2183,32 +2239,40 @@ static int jedec_probe_chip(struct map_info *map, __u32 base,
 		mfr = jedec_read_mfr(map, base, cfi);
 		id = jedec_read_id(map, base, cfi);
 
-		if ((mfr != cfi->mfr) || (id != cfi->id)) {
+		if ((mfr != cfi->mfr) || (id != cfi->id))
+		{
 			printk(KERN_DEBUG "%s: Found different chip or no chip at all (mfr 0x%x, id 0x%x) at 0x%x\n",
-			       map->name, mfr, id, base);
+				   map->name, mfr, id, base);
 			jedec_reset(base, map, cfi);
 			return 0;
 		}
 	}
 
 	/* Check each previous chip locations to see if it's an alias */
-	for (i=0; i < (base >> cfi->chipshift); i++) {
+	for (i = 0; i < (base >> cfi->chipshift); i++)
+	{
 		unsigned long start;
-		if(!test_bit(i, chip_map)) {
+
+		if (!test_bit(i, chip_map))
+		{
 			continue; /* Skip location; no valid chip at this address */
 		}
+
 		start = i << cfi->chipshift;
+
 		if (jedec_read_mfr(map, start, cfi) == cfi->mfr &&
-		    jedec_read_id(map, start, cfi) == cfi->id) {
+			jedec_read_id(map, start, cfi) == cfi->id)
+		{
 			/* Eep. This chip also looks like it's in autoselect mode.
 			   Is it an alias for the new one? */
 			jedec_reset(start, map, cfi);
 
 			/* If the device IDs go away, it's an alias */
 			if (jedec_read_mfr(map, base, cfi) != cfi->mfr ||
-			    jedec_read_id(map, base, cfi) != cfi->id) {
+				jedec_read_id(map, base, cfi) != cfi->id)
+			{
 				printk(KERN_DEBUG "%s: Found an alias at 0x%x for the chip at 0x%lx\n",
-				       map->name, base, start);
+					   map->name, base, start);
 				return 0;
 			}
 
@@ -2217,10 +2281,12 @@ static int jedec_probe_chip(struct map_info *map, __u32 base,
 			 * too and if it's the same, assume it's an alias. */
 			/* FIXME: Use other modes to do a proper check */
 			jedec_reset(base, map, cfi);
+
 			if (jedec_read_mfr(map, base, cfi) == cfi->mfr &&
-			    jedec_read_id(map, base, cfi) == cfi->id) {
+				jedec_read_id(map, base, cfi) == cfi->id)
+			{
 				printk(KERN_DEBUG "%s: Found an alias at 0x%x for the chip at 0x%lx\n",
-				       map->name, base, start);
+					   map->name, base, start);
 				return 0;
 			}
 		}
@@ -2236,13 +2302,14 @@ ok_out:
 	jedec_reset(base, map, cfi);
 
 	printk(KERN_INFO "%s: Found %d x%d devices at 0x%x in %d-bit bank\n",
-	       map->name, cfi_interleave(cfi), cfi->device_type*8, base,
-	       map->bankwidth*8);
+		   map->name, cfi_interleave(cfi), cfi->device_type * 8, base,
+		   map->bankwidth * 8);
 
 	return 1;
 }
 
-static struct chip_probe jedec_chip_probe = {
+static struct chip_probe jedec_chip_probe =
+{
 	.name = "JEDEC",
 	.probe_chip = jedec_probe_chip
 };
@@ -2256,7 +2323,8 @@ static struct mtd_info *jedec_probe(struct map_info *map)
 	return mtd_do_chip_probe(map, &jedec_chip_probe);
 }
 
-static struct mtd_chip_driver jedec_chipdrv = {
+static struct mtd_chip_driver jedec_chipdrv =
+{
 	.probe	= jedec_probe,
 	.name	= "jedec_probe",
 	.module	= THIS_MODULE

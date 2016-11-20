@@ -59,12 +59,12 @@
 #define PCMCIA1MemSp	PCMCIAMemSp	/* PCMCIA 1 Memory Space [byte]    */
 
 #define _PCMCIA(Nb)			/* PCMCIA [0..1]                   */ \
-			(0x20000000 + (Nb) * PCMCIASp)
+	(0x20000000 + (Nb) * PCMCIASp)
 #define _PCMCIAIO(Nb)	_PCMCIA(Nb)	/* PCMCIA I/O [0..1]               */
 #define _PCMCIAAttr(Nb)			/* PCMCIA Attribute [0..1]         */ \
-			(_PCMCIA(Nb) + 2 * PCMCIAPrtSp)
+	(_PCMCIA(Nb) + 2 * PCMCIAPrtSp)
 #define _PCMCIAMem(Nb)			/* PCMCIA Memory [0..1]            */ \
-			(_PCMCIA(Nb) + 3 * PCMCIAPrtSp)
+	(_PCMCIA(Nb) + 3 * PCMCIAPrtSp)
 
 #define _PCMCIA0	_PCMCIA(0)	/* PCMCIA 0                        */
 #define _PCMCIA0IO	_PCMCIAIO(0)	/* PCMCIA 0 I/O                    */
@@ -85,21 +85,21 @@
 #define MCXX_HOLD_SHIFT     (14)
 
 static inline u_int pxa2xx_mcxx_hold(u_int pcmcia_cycle_ns,
-				     u_int mem_clk_10khz)
+									 u_int mem_clk_10khz)
 {
 	u_int code = pcmcia_cycle_ns * mem_clk_10khz;
 	return (code / 300000) + ((code % 300000) ? 1 : 0) - 1;
 }
 
 static inline u_int pxa2xx_mcxx_asst(u_int pcmcia_cycle_ns,
-				     u_int mem_clk_10khz)
+									 u_int mem_clk_10khz)
 {
 	u_int code = pcmcia_cycle_ns * mem_clk_10khz;
 	return (code / 300000) + ((code % 300000) ? 1 : 0) + 1;
 }
 
 static inline u_int pxa2xx_mcxx_setup(u_int pcmcia_cycle_ns,
-				      u_int mem_clk_10khz)
+									  u_int mem_clk_10khz)
 {
 	u_int code = pcmcia_cycle_ns * mem_clk_10khz;
 	return (code / 100000) + ((code % 100000) ? 1 : 0) - 1;
@@ -109,7 +109,7 @@ static inline u_int pxa2xx_mcxx_setup(u_int pcmcia_cycle_ns,
  * nanoseconds, for a given CPU clock frequency and MCXX_ASST value:
  */
 static inline u_int pxa2xx_pcmcia_cmd_time(u_int mem_clk_10khz,
-					   u_int pcmcia_mcxx_asst)
+		u_int pcmcia_mcxx_asst)
 {
 	return (300000 * (pcmcia_mcxx_asst + 1) / mem_clk_10khz);
 }
@@ -119,11 +119,11 @@ static int pxa2xx_pcmcia_set_mcmem( int sock, int speed, int clock )
 	uint32_t val;
 
 	val = ((pxa2xx_mcxx_setup(speed, clock)
-		& MCXX_SETUP_MASK) << MCXX_SETUP_SHIFT)
-		| ((pxa2xx_mcxx_asst(speed, clock)
-		& MCXX_ASST_MASK) << MCXX_ASST_SHIFT)
-		| ((pxa2xx_mcxx_hold(speed, clock)
-		& MCXX_HOLD_MASK) << MCXX_HOLD_SHIFT);
+			& MCXX_SETUP_MASK) << MCXX_SETUP_SHIFT)
+		  | ((pxa2xx_mcxx_asst(speed, clock)
+			  & MCXX_ASST_MASK) << MCXX_ASST_SHIFT)
+		  | ((pxa2xx_mcxx_hold(speed, clock)
+			  & MCXX_HOLD_MASK) << MCXX_HOLD_SHIFT);
 
 	__raw_writel(val, MCMEM(sock));
 
@@ -135,11 +135,11 @@ static int pxa2xx_pcmcia_set_mcio( int sock, int speed, int clock )
 	uint32_t val;
 
 	val = ((pxa2xx_mcxx_setup(speed, clock)
-		& MCXX_SETUP_MASK) << MCXX_SETUP_SHIFT)
-		| ((pxa2xx_mcxx_asst(speed, clock)
-		& MCXX_ASST_MASK) << MCXX_ASST_SHIFT)
-		| ((pxa2xx_mcxx_hold(speed, clock)
-		& MCXX_HOLD_MASK) << MCXX_HOLD_SHIFT);
+			& MCXX_SETUP_MASK) << MCXX_SETUP_SHIFT)
+		  | ((pxa2xx_mcxx_asst(speed, clock)
+			  & MCXX_ASST_MASK) << MCXX_ASST_SHIFT)
+		  | ((pxa2xx_mcxx_hold(speed, clock)
+			  & MCXX_HOLD_MASK) << MCXX_HOLD_SHIFT);
 
 	__raw_writel(val, MCIO(sock));
 
@@ -151,11 +151,11 @@ static int pxa2xx_pcmcia_set_mcatt( int sock, int speed, int clock )
 	uint32_t val;
 
 	val = ((pxa2xx_mcxx_setup(speed, clock)
-		& MCXX_SETUP_MASK) << MCXX_SETUP_SHIFT)
-		| ((pxa2xx_mcxx_asst(speed, clock)
-		& MCXX_ASST_MASK) << MCXX_ASST_SHIFT)
-		| ((pxa2xx_mcxx_hold(speed, clock)
-		& MCXX_HOLD_MASK) << MCXX_HOLD_SHIFT);
+			& MCXX_SETUP_MASK) << MCXX_SETUP_SHIFT)
+		  | ((pxa2xx_mcxx_asst(speed, clock)
+			  & MCXX_ASST_MASK) << MCXX_ASST_SHIFT)
+		  | ((pxa2xx_mcxx_hold(speed, clock)
+			  & MCXX_HOLD_MASK) << MCXX_HOLD_SHIFT);
 
 	__raw_writel(val, MCATT(sock));
 
@@ -186,30 +186,36 @@ static int pxa2xx_pcmcia_set_timing(struct soc_pcmcia_socket *skt)
 
 static int
 pxa2xx_pcmcia_frequency_change(struct soc_pcmcia_socket *skt,
-			       unsigned long val,
-			       struct cpufreq_freqs *freqs)
+							   unsigned long val,
+							   struct cpufreq_freqs *freqs)
 {
-	switch (val) {
-	case CPUFREQ_PRECHANGE:
-		if (freqs->new > freqs->old) {
-			debug(skt, 2, "new frequency %u.%uMHz > %u.%uMHz, "
-			       "pre-updating\n",
-			       freqs->new / 1000, (freqs->new / 100) % 10,
-			       freqs->old / 1000, (freqs->old / 100) % 10);
-			pxa2xx_pcmcia_set_timing(skt);
-		}
-		break;
+	switch (val)
+	{
+		case CPUFREQ_PRECHANGE:
+			if (freqs->new > freqs->old)
+			{
+				debug(skt, 2, "new frequency %u.%uMHz > %u.%uMHz, "
+					  "pre-updating\n",
+					  freqs->new / 1000, (freqs->new / 100) % 10,
+					  freqs->old / 1000, (freqs->old / 100) % 10);
+				pxa2xx_pcmcia_set_timing(skt);
+			}
 
-	case CPUFREQ_POSTCHANGE:
-		if (freqs->new < freqs->old) {
-			debug(skt, 2, "new frequency %u.%uMHz < %u.%uMHz, "
-			       "post-updating\n",
-			       freqs->new / 1000, (freqs->new / 100) % 10,
-			       freqs->old / 1000, (freqs->old / 100) % 10);
-			pxa2xx_pcmcia_set_timing(skt);
-		}
-		break;
+			break;
+
+		case CPUFREQ_POSTCHANGE:
+			if (freqs->new < freqs->old)
+			{
+				debug(skt, 2, "new frequency %u.%uMHz < %u.%uMHz, "
+					  "post-updating\n",
+					  freqs->new / 1000, (freqs->new / 100) % 10,
+					  freqs->old / 1000, (freqs->old / 100) % 10);
+				pxa2xx_pcmcia_set_timing(skt);
+			}
+
+			break;
 	}
+
 	return 0;
 }
 #endif
@@ -224,14 +230,17 @@ void pxa2xx_configure_sockets(struct device *dev, struct pcmcia_low_level *ops)
 
 	/* Set MECR:NOS (Number Of Sockets) */
 	if ((ops->first + ops->nr) > 1 ||
-	    machine_is_viper() || machine_is_arcom_zeus())
+		machine_is_viper() || machine_is_arcom_zeus())
+	{
 		mecr |= MECR_NOS;
+	}
 
 	__raw_writel(mecr, MECR);
 }
 EXPORT_SYMBOL(pxa2xx_configure_sockets);
 
-static const char *skt_names[] = {
+static const char *skt_names[] =
+{
 	"PCMCIA socket 0",
 	"PCMCIA socket 1",
 };
@@ -284,32 +293,42 @@ static int pxa2xx_drv_pcmcia_probe(struct platform_device *dev)
 	struct clk *clk;
 
 	ops = (struct pcmcia_low_level *)dev->dev.platform_data;
-	if (!ops) {
+
+	if (!ops)
+	{
 		ret = -ENODEV;
 		goto err0;
 	}
 
-	if (cpu_is_pxa320() && ops->nr > 1) {
+	if (cpu_is_pxa320() && ops->nr > 1)
+	{
 		dev_err(&dev->dev, "pxa320 supports only one pcmcia slot");
 		ret = -EINVAL;
 		goto err0;
 	}
 
 	clk = devm_clk_get(&dev->dev, NULL);
+
 	if (IS_ERR(clk))
+	{
 		return -ENODEV;
+	}
 
 	pxa2xx_drv_pcmcia_ops(ops);
 
 	sinfo = devm_kzalloc(&dev->dev, SKT_DEV_INFO_SIZE(ops->nr),
-			     GFP_KERNEL);
+						 GFP_KERNEL);
+
 	if (!sinfo)
+	{
 		return -ENOMEM;
+	}
 
 	sinfo->nskt = ops->nr;
 
 	/* Initialize processor specific parameters */
-	for (i = 0; i < ops->nr; i++) {
+	for (i = 0; i < ops->nr; i++)
+	{
 		skt = &sinfo->skt[i];
 
 		skt->nr = ops->first + i;
@@ -317,8 +336,11 @@ static int pxa2xx_drv_pcmcia_probe(struct platform_device *dev)
 		soc_pcmcia_init_one(skt, ops, &dev->dev);
 
 		ret = pxa2xx_drv_pcmcia_add_one(skt);
+
 		if (ret)
+		{
 			goto err1;
+		}
 	}
 
 	pxa2xx_configure_sockets(&dev->dev, ops);
@@ -327,8 +349,11 @@ static int pxa2xx_drv_pcmcia_probe(struct platform_device *dev)
 	return 0;
 
 err1:
+
 	while (--i >= 0)
+	{
 		soc_pcmcia_remove_one(&sinfo->skt[i]);
+	}
 
 err0:
 	return ret;
@@ -340,7 +365,9 @@ static int pxa2xx_drv_pcmcia_remove(struct platform_device *dev)
 	int i;
 
 	for (i = 0; i < sinfo->nskt; i++)
+	{
 		soc_pcmcia_remove_one(&sinfo->skt[i]);
+	}
 
 	return 0;
 }
@@ -353,11 +380,13 @@ static int pxa2xx_drv_pcmcia_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops pxa2xx_drv_pcmcia_pm_ops = {
+static const struct dev_pm_ops pxa2xx_drv_pcmcia_pm_ops =
+{
 	.resume		= pxa2xx_drv_pcmcia_resume,
 };
 
-static struct platform_driver pxa2xx_pcmcia_driver = {
+static struct platform_driver pxa2xx_pcmcia_driver =
+{
 	.probe		= pxa2xx_drv_pcmcia_probe,
 	.remove		= pxa2xx_drv_pcmcia_remove,
 	.driver		= {

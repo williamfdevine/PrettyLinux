@@ -21,11 +21,11 @@
 
 /* macro to define partitions for flash devices */
 #define DEFINE_PARTS(n, of, s)		\
-{					\
-	.name = n,			\
-	.offset = of,			\
-	.size = s,			\
-}
+	{					\
+		.name = n,			\
+				.offset = of,			\
+						  .size = s,			\
+	}
 
 /**
  * struct spear_smi_flash_info - platform structure for passing flash
@@ -39,7 +39,8 @@
  * fast_mode: whether flash supports fast mode
  */
 
-struct spear_smi_flash_info {
+struct spear_smi_flash_info
+{
 	char *name;
 	unsigned long mem_base;
 	unsigned long size;
@@ -55,7 +56,8 @@ struct spear_smi_flash_info {
  * num_flashes: number of flashes present on board
  * board_flash_info: specific details of each flash present on board
  */
-struct spear_smi_plat_data {
+struct spear_smi_plat_data
+{
 	unsigned long clk_rate;
 	int num_flashes;
 	struct spear_smi_flash_info *board_flash_info;

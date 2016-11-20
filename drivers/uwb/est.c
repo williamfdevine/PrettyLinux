@@ -45,7 +45,8 @@
 
 #include "uwb-internal.h"
 
-struct uwb_est {
+struct uwb_est
+{
 	u16 type_event_high;
 	u16 vendor, product;
 	u8 entries;
@@ -63,7 +64,8 @@ static DEFINE_RWLOCK(uwb_est_lock);
  * Sizes for events and notifications type 0 (general), high nibble 0.
  */
 static
-struct uwb_est_entry uwb_est_00_00xx[] = {
+struct uwb_est_entry uwb_est_00_00xx[] =
+{
 	[UWB_RC_EVT_IE_RCV] = {
 		.size = sizeof(struct uwb_rc_evt_ie_rcv),
 		.offset = 1 + offsetof(struct uwb_rc_evt_ie_rcv, wIELength),
@@ -78,7 +80,7 @@ struct uwb_est_entry uwb_est_00_00xx[] = {
 	[UWB_RC_EVT_BPOIE_CHANGE] = {
 		.size = sizeof(struct uwb_rc_evt_bpoie_change),
 		.offset = 1 + offsetof(struct uwb_rc_evt_bpoie_change,
-				       wBPOIELength),
+		wBPOIELength),
 	},
 	[UWB_RC_EVT_BP_SLOT_CHANGE] = {
 		.size = sizeof(struct uwb_rc_evt_bp_slot_change),
@@ -112,7 +114,8 @@ struct uwb_est_entry uwb_est_00_00xx[] = {
 		.size = sizeof(struct uwb_rc_evt_confirm),
 	},
 	[UWB_RC_CMD_DEV_ADDR_MGMT] = {
-		.size = sizeof(struct uwb_rc_evt_dev_addr_mgmt) },
+		.size = sizeof(struct uwb_rc_evt_dev_addr_mgmt)
+	},
 	[UWB_RC_CMD_GET_IE] = {
 		.size = sizeof(struct uwb_rc_evt_get_ie),
 		.offset = 1 + offsetof(struct uwb_rc_evt_get_ie, wIELength),
@@ -159,7 +162,8 @@ struct uwb_est_entry uwb_est_00_00xx[] = {
 };
 
 static
-struct uwb_est_entry uwb_est_01_00xx[] = {
+struct uwb_est_entry uwb_est_01_00xx[] =
+{
 	[UWB_RC_DAA_ENERGY_DETECTED] = {
 		.size = sizeof(struct uwb_rc_evt_daa_energy_detected),
 	},
@@ -185,15 +189,22 @@ int uwb_est_create(void)
 	uwb_est_size = 2;
 	uwb_est_used = 0;
 	uwb_est = kcalloc(uwb_est_size, sizeof(uwb_est[0]), GFP_KERNEL);
+
 	if (uwb_est == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	result = uwb_est_register(UWB_RC_CET_GENERAL, 0, 0xffff, 0xffff,
-				  uwb_est_00_00xx, ARRAY_SIZE(uwb_est_00_00xx));
+							  uwb_est_00_00xx, ARRAY_SIZE(uwb_est_00_00xx));
+
 	if (result < 0)
+	{
 		goto out;
+	}
+
 	result = uwb_est_register(UWB_RC_CET_EX_TYPE_1, 0, 0xffff, 0xffff,
-				  uwb_est_01_00xx, ARRAY_SIZE(uwb_est_01_00xx));
+							  uwb_est_01_00xx, ARRAY_SIZE(uwb_est_01_00xx));
 out:
 	return result;
 }
@@ -218,8 +229,12 @@ int uwb_est_grow(void)
 {
 	size_t actual_size = uwb_est_size * sizeof(uwb_est[0]);
 	void *new = kmalloc(2 * actual_size, GFP_ATOMIC);
+
 	if (new == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	memcpy(new, uwb_est, actual_size);
 	memset(new + actual_size, 0, actual_size);
 	kfree(uwb_est);
@@ -254,28 +269,39 @@ int uwb_est_grow(void)
  */
 /* FIXME: add bus type to vendor/product code */
 int uwb_est_register(u8 type, u8 event_high, u16 vendor, u16 product,
-		     const struct uwb_est_entry *entry, size_t entries)
+					 const struct uwb_est_entry *entry, size_t entries)
 {
 	unsigned long flags;
 	unsigned itr;
 	int result = 0;
 
 	write_lock_irqsave(&uwb_est_lock, flags);
-	if (uwb_est_used == uwb_est_size) {
+
+	if (uwb_est_used == uwb_est_size)
+	{
 		result = uwb_est_grow();
+
 		if (result < 0)
+		{
 			goto out;
+		}
 	}
+
 	/* Find the right spot to insert it in */
 	for (itr = 0; itr < uwb_est_used; itr++)
 		if (uwb_est[itr].type_event_high < type
-		    && uwb_est[itr].vendor < vendor
-		    && uwb_est[itr].product < product)
+			&& uwb_est[itr].vendor < vendor
+			&& uwb_est[itr].product < product)
+		{
 			break;
+		}
 
 	/* Shift others to make room for the new one? */
 	if (itr < uwb_est_used)
-		memmove(&uwb_est[itr+1], &uwb_est[itr], uwb_est_used - itr);
+	{
+		memmove(&uwb_est[itr + 1], &uwb_est[itr], uwb_est_used - itr);
+	}
+
 	uwb_est[itr].type_event_high = type << 8 | event_high;
 	uwb_est[itr].vendor = vendor;
 	uwb_est[itr].product = product;
@@ -303,11 +329,12 @@ EXPORT_SYMBOL_GPL(uwb_est_register);
  * @returns 0 if ok, < 0 errno on error (-ENOENT if not found).
  */
 int uwb_est_unregister(u8 type, u8 event_high, u16 vendor, u16 product,
-		       const struct uwb_est_entry *entry, size_t entries)
+					   const struct uwb_est_entry *entry, size_t entries)
 {
 	unsigned long flags;
 	unsigned itr;
-	struct uwb_est est_cmp = {
+	struct uwb_est est_cmp =
+	{
 		.type_event_high = type << 8 | event_high,
 		.vendor = vendor,
 		.product = product,
@@ -315,15 +342,23 @@ int uwb_est_unregister(u8 type, u8 event_high, u16 vendor, u16 product,
 		.entries = entries
 	};
 	write_lock_irqsave(&uwb_est_lock, flags);
+
 	for (itr = 0; itr < uwb_est_used; itr++)
 		if (!memcmp(&uwb_est[itr], &est_cmp, sizeof(est_cmp)))
+		{
 			goto found;
+		}
+
 	write_unlock_irqrestore(&uwb_est_lock, flags);
 	return -ENOENT;
 
 found:
+
 	if (itr < uwb_est_used - 1)	/* Not last one? move ones above */
-		memmove(&uwb_est[itr], &uwb_est[itr+1], uwb_est_used - itr - 1);
+	{
+		memmove(&uwb_est[itr], &uwb_est[itr + 1], uwb_est_used - itr - 1);
+	}
+
 	uwb_est_used--;
 	write_unlock_irqrestore(&uwb_est_lock, flags);
 	return 0;
@@ -350,8 +385,8 @@ EXPORT_SYMBOL_GPL(uwb_est_unregister);
  */
 static
 ssize_t uwb_est_get_size(struct uwb_rc *uwb_rc, struct uwb_est *est,
-			 u8 event_low, const struct uwb_rceb *rceb,
-			 size_t rceb_size)
+						 u8 event_low, const struct uwb_rceb *rceb,
+						 size_t rceb_size)
 {
 	unsigned offset;
 	ssize_t size;
@@ -359,49 +394,71 @@ ssize_t uwb_est_get_size(struct uwb_rc *uwb_rc, struct uwb_est *est,
 	const struct uwb_est_entry *entry;
 
 	size = -ENOENT;
-	if (event_low >= est->entries) {	/* in range? */
+
+	if (event_low >= est->entries)  	/* in range? */
+	{
 		dev_err(dev, "EST %p 0x%04x/%04x/%04x[%u]: event %u out of range\n",
-			est, est->type_event_high, est->vendor, est->product,
-			est->entries, event_low);
+				est, est->type_event_high, est->vendor, est->product,
+				est->entries, event_low);
 		goto out;
 	}
+
 	size = -ENOENT;
 	entry = &est->entry[event_low];
-	if (entry->size == 0 && entry->offset == 0) {	/* unknown? */
+
+	if (entry->size == 0 && entry->offset == 0)  	/* unknown? */
+	{
 		dev_err(dev, "EST %p 0x%04x/%04x/%04x[%u]: event %u unknown\n",
-			est, est->type_event_high, est->vendor,	est->product,
-			est->entries, event_low);
+				est, est->type_event_high, est->vendor,	est->product,
+				est->entries, event_low);
 		goto out;
 	}
+
 	offset = entry->offset;	/* extra fries with that? */
+
 	if (offset == 0)
+	{
 		size = entry->size;
-	else {
+	}
+	else
+	{
 		/* Ops, got an extra size field at 'offset'--read it */
 		const void *ptr = rceb;
 		size_t type_size = 0;
 		offset--;
 		size = -ENOSPC;			/* enough data for more? */
-		switch (entry->type) {
-		case UWB_EST_16:  type_size = sizeof(__le16); break;
-		case UWB_EST_8:   type_size = sizeof(u8);     break;
-		default: 	 BUG();
+
+		switch (entry->type)
+		{
+			case UWB_EST_16:  type_size = sizeof(__le16); break;
+
+			case UWB_EST_8:   type_size = sizeof(u8);     break;
+
+			default: 	 BUG();
 		}
-		if (offset + type_size > rceb_size) {
+
+		if (offset + type_size > rceb_size)
+		{
 			dev_err(dev, "EST %p 0x%04x/%04x/%04x[%u]: "
-				"not enough data to read extra size\n",
-				est, est->type_event_high, est->vendor,
-				est->product, est->entries);
+					"not enough data to read extra size\n",
+					est, est->type_event_high, est->vendor,
+					est->product, est->entries);
 			goto out;
 		}
+
 		size = entry->size;
 		ptr += offset;
-		switch (entry->type) {
-		case UWB_EST_16:  size += le16_to_cpu(*(__le16 *)ptr); break;
-		case UWB_EST_8:   size += *(u8 *)ptr;                  break;
-		default: 	 BUG();
+
+		switch (entry->type)
+		{
+			case UWB_EST_16:  size += le16_to_cpu(*(__le16 *)ptr); break;
+
+			case UWB_EST_8:   size += *(u8 *)ptr;                  break;
+
+			default: 	 BUG();
 		}
 	}
+
 out:
 	return size;
 }
@@ -426,7 +483,7 @@ out:
  * might specificy an extra size to add or replace.
  */
 ssize_t uwb_est_find_size(struct uwb_rc *rc, const struct uwb_rceb *rceb,
-			  size_t rceb_size)
+						  size_t rceb_size)
 {
 	/* FIXME: add vendor/product data */
 	ssize_t size;
@@ -437,25 +494,38 @@ ssize_t uwb_est_find_size(struct uwb_rc *rc, const struct uwb_rceb *rceb,
 
 	read_lock_irqsave(&uwb_est_lock, flags);
 	size = -ENOSPC;
+
 	if (rceb_size < sizeof(*rceb))
+	{
 		goto out;
+	}
+
 	event = le16_to_cpu(rceb->wEvent);
 	type_event_high = rceb->bEventType << 8 | (event & 0xff00) >> 8;
-	for (itr = 0; itr < uwb_est_used; itr++) {
+
+	for (itr = 0; itr < uwb_est_used; itr++)
+	{
 		if (uwb_est[itr].type_event_high != type_event_high)
+		{
 			continue;
+		}
+
 		size = uwb_est_get_size(rc, &uwb_est[itr],
-					event & 0x00ff, rceb, rceb_size);
+								event & 0x00ff, rceb, rceb_size);
+
 		/* try more tables that might handle the same type */
 		if (size != -ENOENT)
+		{
 			goto out;
+		}
 	}
+
 	dev_dbg(dev,
-		"event 0x%02x/%04x/%02x: no handlers available; RCEB %4ph\n",
-		(unsigned) rceb->bEventType,
-		(unsigned) le16_to_cpu(rceb->wEvent),
-		(unsigned) rceb->bEventContext,
-		rceb);
+			"event 0x%02x/%04x/%02x: no handlers available; RCEB %4ph\n",
+			(unsigned) rceb->bEventType,
+			(unsigned) le16_to_cpu(rceb->wEvent),
+			(unsigned) rceb->bEventContext,
+			rceb);
 	size = -ENOENT;
 out:
 	read_unlock_irqrestore(&uwb_est_lock, flags);

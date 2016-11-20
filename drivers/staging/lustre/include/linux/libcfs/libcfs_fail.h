@@ -42,7 +42,8 @@ extern int cfs_race_state;
 int __cfs_fail_check_set(__u32 id, __u32 value, int set);
 int __cfs_fail_timeout_set(__u32 id, __u32 value, int ms, int set);
 
-enum {
+enum
+{
 	CFS_FAIL_LOC_NOSET      = 0,
 	CFS_FAIL_LOC_ORSET      = 1,
 	CFS_FAIL_LOC_RESET      = 2,
@@ -72,24 +73,30 @@ enum {
 static inline bool CFS_FAIL_PRECHECK(__u32 id)
 {
 	return cfs_fail_loc != 0 &&
-	       ((cfs_fail_loc & CFS_FAIL_MASK_LOC) == (id & CFS_FAIL_MASK_LOC) ||
-	        (cfs_fail_loc & id & CFS_FAULT));
+		   ((cfs_fail_loc & CFS_FAIL_MASK_LOC) == (id & CFS_FAIL_MASK_LOC) ||
+			(cfs_fail_loc & id & CFS_FAULT));
 }
 
 static inline int cfs_fail_check_set(__u32 id, __u32 value,
-				     int set, int quiet)
+									 int set, int quiet)
 {
 	int ret = 0;
 
-	if (unlikely(CFS_FAIL_PRECHECK(id))) {
+	if (unlikely(CFS_FAIL_PRECHECK(id)))
+	{
 		ret = __cfs_fail_check_set(id, value, set);
-		if (ret) {
-			if (quiet) {
+
+		if (ret)
+		{
+			if (quiet)
+			{
 				CDEBUG(D_INFO, "*** cfs_fail_loc=%x, val=%u***\n",
-				       id, value);
-			} else {
+					   id, value);
+			}
+			else
+			{
 				LCONSOLE_INFO("*** cfs_fail_loc=%x, val=%u***\n",
-					      id, value);
+							  id, value);
 			}
 		}
 	}
@@ -127,7 +134,10 @@ static inline int cfs_fail_check_set(__u32 id, __u32 value,
 static inline int cfs_fail_timeout_set(__u32 id, __u32 value, int ms, int set)
 {
 	if (unlikely(CFS_FAIL_PRECHECK(id)))
+	{
 		return __cfs_fail_timeout_set(id, value, ms, set);
+	}
+
 	return 0;
 }
 
@@ -159,16 +169,20 @@ static inline int cfs_fail_timeout_set(__u32 id, __u32 value, int ms, int set)
 static inline void cfs_race(__u32 id)
 {
 
-	if (CFS_FAIL_PRECHECK(id)) {
-		if (unlikely(__cfs_fail_check_set(id, 0, CFS_FAIL_LOC_NOSET))) {
+	if (CFS_FAIL_PRECHECK(id))
+	{
+		if (unlikely(__cfs_fail_check_set(id, 0, CFS_FAIL_LOC_NOSET)))
+		{
 			int rc;
 
 			cfs_race_state = 0;
 			CERROR("cfs_race id %x sleeping\n", id);
 			rc = wait_event_interruptible(cfs_race_waitq,
-						      cfs_race_state != 0);
+										  cfs_race_state != 0);
 			CERROR("cfs_fail_race id %x awake, rc=%d\n", id, rc);
-		} else {
+		}
+		else
+		{
 			CERROR("cfs_fail_race id %x waking\n", id);
 			cfs_race_state = 1;
 			wake_up(&cfs_race_waitq);

@@ -33,15 +33,18 @@ int venc_if_init(struct mtk_vcodec_ctx *ctx, unsigned int fourcc)
 {
 	int ret = 0;
 
-	switch (fourcc) {
-	case V4L2_PIX_FMT_VP8:
-		ctx->enc_if = get_vp8_enc_comm_if();
-		break;
-	case V4L2_PIX_FMT_H264:
-		ctx->enc_if = get_h264_enc_comm_if();
-		break;
-	default:
-		return -EINVAL;
+	switch (fourcc)
+	{
+		case V4L2_PIX_FMT_VP8:
+			ctx->enc_if = get_vp8_enc_comm_if();
+			break;
+
+		case V4L2_PIX_FMT_H264:
+			ctx->enc_if = get_h264_enc_comm_if();
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	mtk_venc_lock(ctx);
@@ -54,7 +57,7 @@ int venc_if_init(struct mtk_vcodec_ctx *ctx, unsigned int fourcc)
 }
 
 int venc_if_set_param(struct mtk_vcodec_ctx *ctx,
-		enum venc_set_param_type type, struct venc_enc_param *in)
+					  enum venc_set_param_type type, struct venc_enc_param *in)
 {
 	int ret = 0;
 
@@ -68,9 +71,9 @@ int venc_if_set_param(struct mtk_vcodec_ctx *ctx,
 }
 
 int venc_if_encode(struct mtk_vcodec_ctx *ctx,
-		   enum venc_start_opt opt, struct venc_frm_buf *frm_buf,
-		   struct mtk_vcodec_mem *bs_buf,
-		   struct venc_done_result *result)
+				   enum venc_start_opt opt, struct venc_frm_buf *frm_buf,
+				   struct mtk_vcodec_mem *bs_buf,
+				   struct venc_done_result *result)
 {
 	int ret = 0;
 	unsigned long flags;
@@ -83,7 +86,7 @@ int venc_if_encode(struct mtk_vcodec_ctx *ctx,
 
 	mtk_vcodec_enc_clock_on(&ctx->dev->pm);
 	ret = ctx->enc_if->encode(ctx->drv_handle, opt, frm_buf,
-				  bs_buf, result);
+							  bs_buf, result);
 	mtk_vcodec_enc_clock_off(&ctx->dev->pm);
 
 	spin_lock_irqsave(&ctx->dev->irqlock, flags);
@@ -99,7 +102,9 @@ int venc_if_deinit(struct mtk_vcodec_ctx *ctx)
 	int ret = 0;
 
 	if (ctx->drv_handle == 0)
+	{
 		return 0;
+	}
 
 	mtk_venc_lock(ctx);
 	mtk_vcodec_enc_clock_on(&ctx->dev->pm);

@@ -59,7 +59,8 @@
  * a subdirectory) or use the "fsid" export option.
  */
 
-struct xfs_fid64 {
+struct xfs_fid64
+{
 	u64 ino;
 	u32 gen;
 	u64 parent_ino;

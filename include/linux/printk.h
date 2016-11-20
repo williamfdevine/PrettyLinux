@@ -12,21 +12,26 @@ extern const char linux_proc_banner[];
 
 static inline int printk_get_level(const char *buffer)
 {
-	if (buffer[0] == KERN_SOH_ASCII && buffer[1]) {
-		switch (buffer[1]) {
-		case '0' ... '7':
-		case 'd':	/* KERN_DEFAULT */
-		case 'c':	/* KERN_CONT */
-			return buffer[1];
+	if (buffer[0] == KERN_SOH_ASCII && buffer[1])
+	{
+		switch (buffer[1])
+		{
+			case '0' ... '7':
+			case 'd':	/* KERN_DEFAULT */
+			case 'c':	/* KERN_CONT */
+				return buffer[1];
 		}
 	}
+
 	return 0;
 }
 
 static inline const char *printk_skip_level(const char *buffer)
 {
 	if (printk_get_level(buffer))
+	{
 		return buffer + 2;
+	}
 
 	return buffer;
 }
@@ -59,7 +64,9 @@ static inline void console_silent(void)
 static inline void console_verbose(void)
 {
 	if (console_loglevel)
+	{
 		console_loglevel = CONSOLE_LOGLEVEL_MOTORMOUTH;
+	}
 }
 
 /* strlen("ratelimit") + 1 */
@@ -67,7 +74,8 @@ static inline void console_verbose(void)
 extern char devkmsg_log_str[];
 struct ctl_table;
 
-struct va_format {
+struct va_format
+{
 	const char *fmt;
 	va_list *va;
 };
@@ -115,13 +123,13 @@ struct va_format {
  * gcc's format checking.
  */
 #define no_printk(fmt, ...)				\
-({							\
-	do {						\
-		if (0)					\
-			printk(fmt, ##__VA_ARGS__);	\
-	} while (0);					\
-	0;						\
-})
+	({							\
+		do {						\
+			if (0)					\
+				printk(fmt, ##__VA_ARGS__);	\
+		} while (0);					\
+		0;						\
+	})
 
 #ifdef CONFIG_EARLY_PRINTK
 extern asmlinkage __printf(1, 2)
@@ -148,16 +156,16 @@ static inline void printk_nmi_flush_on_panic(void) { }
 #ifdef CONFIG_PRINTK
 asmlinkage __printf(5, 0)
 int vprintk_emit(int facility, int level,
-		 const char *dict, size_t dictlen,
-		 const char *fmt, va_list args);
+				 const char *dict, size_t dictlen,
+				 const char *fmt, va_list args);
 
 asmlinkage __printf(1, 0)
 int vprintk(const char *fmt, va_list args);
 
 asmlinkage __printf(5, 6) __cold
 int printk_emit(int facility, int level,
-		const char *dict, size_t dictlen,
-		const char *fmt, ...);
+				const char *dict, size_t dictlen,
+				const char *fmt, ...);
 
 asmlinkage __printf(1, 2) __cold
 int printk(const char *fmt, ...);
@@ -175,7 +183,7 @@ __printf(1, 2) __cold int printk_deferred(const char *fmt, ...);
 extern int __printk_ratelimit(const char *func);
 #define printk_ratelimit() __printk_ratelimit(__func__)
 extern bool printk_timed_ratelimit(unsigned long *caller_jiffies,
-				   unsigned int interval_msec);
+								   unsigned int interval_msec);
 
 extern int printk_delay_msec;
 extern int dmesg_restrict;
@@ -183,7 +191,7 @@ extern int kptr_restrict;
 
 extern int
 devkmsg_sysctl_set_loglvl(struct ctl_table *table, int write, void __user *buf,
-			  size_t *lenp, loff_t *ppos);
+						  size_t *lenp, loff_t *ppos);
 
 extern void wake_up_klogd(void);
 
@@ -215,7 +223,7 @@ static inline int printk_ratelimit(void)
 	return 0;
 }
 static inline bool printk_timed_ratelimit(unsigned long *caller_jiffies,
-					  unsigned int interval_msec)
+		unsigned int interval_msec)
 {
 	return false;
 }
@@ -258,7 +266,7 @@ static inline void show_regs_print_info(const char *log_lvl)
 extern asmlinkage void dump_stack(void) __cold;
 
 #ifndef pr_fmt
-#define pr_fmt(fmt) fmt
+	#define pr_fmt(fmt) fmt
 #endif
 
 /*
@@ -321,27 +329,27 @@ extern asmlinkage void dump_stack(void) __cold;
 
 #ifdef CONFIG_PRINTK
 #define printk_once(fmt, ...)					\
-({								\
-	static bool __print_once __read_mostly;			\
-	bool __ret_print_once = !__print_once;			\
-								\
-	if (!__print_once) {					\
-		__print_once = true;				\
-		printk(fmt, ##__VA_ARGS__);			\
-	}							\
-	unlikely(__ret_print_once);				\
-})
+	({								\
+		static bool __print_once __read_mostly;			\
+		bool __ret_print_once = !__print_once;			\
+		\
+		if (!__print_once) {					\
+			__print_once = true;				\
+			printk(fmt, ##__VA_ARGS__);			\
+		}							\
+		unlikely(__ret_print_once);				\
+	})
 #define printk_deferred_once(fmt, ...)				\
-({								\
-	static bool __print_once __read_mostly;			\
-	bool __ret_print_once = !__print_once;			\
-								\
-	if (!__print_once) {					\
-		__print_once = true;				\
-		printk_deferred(fmt, ##__VA_ARGS__);		\
-	}							\
-	unlikely(__ret_print_once);				\
-})
+	({								\
+		static bool __print_once __read_mostly;			\
+		bool __ret_print_once = !__print_once;			\
+		\
+		if (!__print_once) {					\
+			__print_once = true;				\
+			printk_deferred(fmt, ##__VA_ARGS__);		\
+		}							\
+		unlikely(__ret_print_once);				\
+	})
 #else
 #define printk_once(fmt, ...)					\
 	no_printk(fmt, ##__VA_ARGS__)
@@ -389,14 +397,14 @@ extern asmlinkage void dump_stack(void) __cold;
  */
 #ifdef CONFIG_PRINTK
 #define printk_ratelimited(fmt, ...)					\
-({									\
-	static DEFINE_RATELIMIT_STATE(_rs,				\
-				      DEFAULT_RATELIMIT_INTERVAL,	\
-				      DEFAULT_RATELIMIT_BURST);		\
-									\
-	if (__ratelimit(&_rs))						\
-		printk(fmt, ##__VA_ARGS__);				\
-})
+	({									\
+		static DEFINE_RATELIMIT_STATE(_rs,				\
+									  DEFAULT_RATELIMIT_INTERVAL,	\
+									  DEFAULT_RATELIMIT_BURST);		\
+		\
+		if (__ratelimit(&_rs))						\
+			printk(fmt, ##__VA_ARGS__);				\
+	})
 #else
 #define printk_ratelimited(fmt, ...)					\
 	no_printk(fmt, ##__VA_ARGS__)
@@ -430,15 +438,15 @@ extern asmlinkage void dump_stack(void) __cold;
 #if defined(CONFIG_DYNAMIC_DEBUG)
 /* descriptor check is first to prevent flooding with "callbacks suppressed" */
 #define pr_debug_ratelimited(fmt, ...)					\
-do {									\
-	static DEFINE_RATELIMIT_STATE(_rs,				\
-				      DEFAULT_RATELIMIT_INTERVAL,	\
-				      DEFAULT_RATELIMIT_BURST);		\
-	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, pr_fmt(fmt));		\
-	if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT) &&	\
-	    __ratelimit(&_rs))						\
-		__dynamic_pr_debug(&descriptor, pr_fmt(fmt), ##__VA_ARGS__);	\
-} while (0)
+	do {									\
+		static DEFINE_RATELIMIT_STATE(_rs,				\
+									  DEFAULT_RATELIMIT_INTERVAL,	\
+									  DEFAULT_RATELIMIT_BURST);		\
+		DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, pr_fmt(fmt));		\
+		if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT) &&	\
+			__ratelimit(&_rs))						\
+			__dynamic_pr_debug(&descriptor, pr_fmt(fmt), ##__VA_ARGS__);	\
+	} while (0)
 #elif defined(DEBUG)
 #define pr_debug_ratelimited(fmt, ...)					\
 	printk_ratelimited(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
@@ -449,33 +457,34 @@ do {									\
 
 extern const struct file_operations kmsg_fops;
 
-enum {
+enum
+{
 	DUMP_PREFIX_NONE,
 	DUMP_PREFIX_ADDRESS,
 	DUMP_PREFIX_OFFSET
 };
 extern int hex_dump_to_buffer(const void *buf, size_t len, int rowsize,
-			      int groupsize, char *linebuf, size_t linebuflen,
-			      bool ascii);
+							  int groupsize, char *linebuf, size_t linebuflen,
+							  bool ascii);
 #ifdef CONFIG_PRINTK
 extern void print_hex_dump(const char *level, const char *prefix_str,
-			   int prefix_type, int rowsize, int groupsize,
-			   const void *buf, size_t len, bool ascii);
+						   int prefix_type, int rowsize, int groupsize,
+						   const void *buf, size_t len, bool ascii);
 #if defined(CONFIG_DYNAMIC_DEBUG)
 #define print_hex_dump_bytes(prefix_str, prefix_type, buf, len)	\
 	dynamic_hex_dump(prefix_str, prefix_type, 16, 1, buf, len, true)
 #else
 extern void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
-				 const void *buf, size_t len);
+								 const void *buf, size_t len);
 #endif /* defined(CONFIG_DYNAMIC_DEBUG) */
 #else
 static inline void print_hex_dump(const char *level, const char *prefix_str,
-				  int prefix_type, int rowsize, int groupsize,
-				  const void *buf, size_t len, bool ascii)
+								  int prefix_type, int rowsize, int groupsize,
+								  const void *buf, size_t len, bool ascii)
 {
 }
 static inline void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
-					const void *buf, size_t len)
+										const void *buf, size_t len)
 {
 }
 
@@ -483,18 +492,18 @@ static inline void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
 
 #if defined(CONFIG_DYNAMIC_DEBUG)
 #define print_hex_dump_debug(prefix_str, prefix_type, rowsize,	\
-			     groupsize, buf, len, ascii)	\
-	dynamic_hex_dump(prefix_str, prefix_type, rowsize,	\
-			 groupsize, buf, len, ascii)
+							 groupsize, buf, len, ascii)	\
+dynamic_hex_dump(prefix_str, prefix_type, rowsize,	\
+				 groupsize, buf, len, ascii)
 #elif defined(DEBUG)
 #define print_hex_dump_debug(prefix_str, prefix_type, rowsize,		\
-			     groupsize, buf, len, ascii)		\
-	print_hex_dump(KERN_DEBUG, prefix_str, prefix_type, rowsize,	\
-		       groupsize, buf, len, ascii)
+							 groupsize, buf, len, ascii)		\
+print_hex_dump(KERN_DEBUG, prefix_str, prefix_type, rowsize,	\
+			   groupsize, buf, len, ascii)
 #else
 static inline void print_hex_dump_debug(const char *prefix_str, int prefix_type,
-					int rowsize, int groupsize,
-					const void *buf, size_t len, bool ascii)
+										int rowsize, int groupsize,
+										const void *buf, size_t len, bool ascii)
 {
 }
 #endif

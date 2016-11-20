@@ -143,9 +143,9 @@
 
 /* SMBus capabilities */
 #define LM93_SMBUS_FUNC_FULL (I2C_FUNC_SMBUS_BYTE_DATA | \
-		I2C_FUNC_SMBUS_WORD_DATA | I2C_FUNC_SMBUS_BLOCK_DATA)
+							  I2C_FUNC_SMBUS_WORD_DATA | I2C_FUNC_SMBUS_BLOCK_DATA)
 #define LM93_SMBUS_FUNC_MIN  (I2C_FUNC_SMBUS_BYTE_DATA | \
-		I2C_FUNC_SMBUS_WORD_DATA)
+							  I2C_FUNC_SMBUS_WORD_DATA)
 
 /* Addresses to scan */
 static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
@@ -155,7 +155,7 @@ static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
 static bool disable_block;
 module_param(disable_block, bool, 0);
 MODULE_PARM_DESC(disable_block,
-	"Set to non-zero to disable SMBus block data transactions.");
+				 "Set to non-zero to disable SMBus block data transactions.");
 
 static bool init;
 module_param(init, bool, 0);
@@ -173,7 +173,8 @@ MODULE_PARM_DESC(vid_agtl, "Configures VID pin input thresholds.");
 static struct i2c_driver lm93_driver;
 
 /* LM93 BLOCK READ COMMANDS */
-static const struct { u8 cmd; u8 len; } lm93_block_read_cmds[12] = {
+static const struct { u8 cmd; u8 len; } lm93_block_read_cmds[12] =
+{
 	{ 0xf2,  8 },
 	{ 0xf3,  8 },
 	{ 0xf4,  6 },
@@ -192,7 +193,8 @@ static const struct { u8 cmd; u8 len; } lm93_block_read_cmds[12] = {
  * ALARMS: SYSCTL format described further below
  * REG: 64 bits in 8 registers, as immediately below
  */
-struct block1_t {
+struct block1_t
+{
 	u8 host_status_1;
 	u8 host_status_2;
 	u8 host_status_3;
@@ -206,7 +208,8 @@ struct block1_t {
 /*
  * Client-specific data
  */
-struct lm93_data {
+struct lm93_data
+{
 	struct i2c_client *client;
 
 	struct mutex update_lock;
@@ -230,7 +233,8 @@ struct lm93_data {
 	u8 block3[16];
 
 	/* prochot1 - prochot2: readings */
-	struct {
+	struct
+	{
 		u8 cur;
 		u8 avg;
 	} block4[2];
@@ -239,13 +243,15 @@ struct lm93_data {
 	u16 block5[4];
 
 	/* block6 has a lot of data we don't need */
-	struct {
+	struct
+	{
 		u8 min;
 		u8 max;
 	} temp_lim[4];
 
 	/* vin1 - vin16: low and high limits */
-	struct {
+	struct
+	{
 		u8 min;
 		u8 max;
 	} block7[16];
@@ -257,7 +263,8 @@ struct lm93_data {
 	u8 block9[2][4];
 
 	/* auto/pwm base temp and offset temp registers */
-	struct {
+	struct
+	{
 		u8 base[4];
 		u8 offset[12];
 	} block10;
@@ -318,11 +325,13 @@ static int LM93_VID_FROM_REG(u8 reg)
 }
 
 /* min, max, and nominal register values, per channel (u8) */
-static const u8 lm93_vin_reg_min[16] = {
+static const u8 lm93_vin_reg_min[16] =
+{
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xae,
 };
-static const u8 lm93_vin_reg_max[16] = {
+static const u8 lm93_vin_reg_max[16] =
+{
 	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 	0xff, 0xfa, 0xff, 0xff, 0xff, 0xff, 0xff, 0xd1,
 };
@@ -335,12 +344,14 @@ static const u8 lm93_vin_reg_max[16] = {
  */
 
 /* min, max, and nominal voltage readings, per channel (mV)*/
-static const unsigned long lm93_vin_val_min[16] = {
+static const unsigned long lm93_vin_val_min[16] =
+{
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 3000,
 };
 
-static const unsigned long lm93_vin_val_max[16] = {
+static const unsigned long lm93_vin_val_max[16] =
+{
 	1236, 1236, 1236, 1600, 2000, 2000, 1600, 1600,
 	4400, 6500, 3333, 2625, 1312, 1312, 1236, 3600,
 };
@@ -358,7 +369,7 @@ static unsigned LM93_IN_FROM_REG(int nr, u8 reg)
 	const long uv_min = lm93_vin_val_min[nr] * 1000;
 
 	const long slope = (uv_max - uv_min) /
-		(lm93_vin_reg_max[nr] - lm93_vin_reg_min[nr]);
+					   (lm93_vin_reg_max[nr] - lm93_vin_reg_min[nr]);
 	const long intercept = uv_min - slope * lm93_vin_reg_min[nr];
 
 	return (slope * reg + intercept + 500) / 1000;
@@ -372,7 +383,7 @@ static u8 LM93_IN_TO_REG(int nr, unsigned val)
 {
 	/* range limit */
 	const long mv = clamp_val(val,
-				  lm93_vin_val_min[nr], lm93_vin_val_max[nr]);
+							  lm93_vin_val_min[nr], lm93_vin_val_max[nr]);
 
 	/* try not to lose too much precision here */
 	const long uv = mv * 1000;
@@ -381,12 +392,12 @@ static u8 LM93_IN_TO_REG(int nr, unsigned val)
 
 	/* convert */
 	const long slope = (uv_max - uv_min) /
-		(lm93_vin_reg_max[nr] - lm93_vin_reg_min[nr]);
+					   (lm93_vin_reg_max[nr] - lm93_vin_reg_min[nr]);
 	const long intercept = uv_min - slope * lm93_vin_reg_min[nr];
 
-	u8 result = ((uv - intercept + (slope/2)) / slope);
+	u8 result = ((uv - intercept + (slope / 2)) / slope);
 	result = clamp_val(result,
-			   lm93_vin_reg_min[nr], lm93_vin_reg_max[nr]);
+					   lm93_vin_reg_min[nr], lm93_vin_reg_max[nr]);
 	return result;
 }
 
@@ -394,7 +405,7 @@ static u8 LM93_IN_TO_REG(int nr, unsigned val)
 static unsigned LM93_IN_REL_FROM_REG(u8 reg, int upper, int vid)
 {
 	const long uv_offset = upper ? (((reg >> 4 & 0x0f) + 1) * 12500) :
-				(((reg >> 0 & 0x0f) + 1) * -25000);
+						   (((reg >> 0 & 0x0f) + 1) * -25000);
 	const long uv_vid = vid * 1000;
 	return (uv_vid + uv_offset + 5000) / 10000;
 }
@@ -410,10 +421,14 @@ static unsigned LM93_IN_REL_FROM_REG(u8 reg, int upper, int vid)
 static u8 LM93_IN_REL_TO_REG(unsigned val, int upper, int vid)
 {
 	long uv_offset = vid * 1000 - val * 10000;
-	if (upper) {
+
+	if (upper)
+	{
 		uv_offset = clamp_val(uv_offset, 12500, 200000);
 		return (u8)((uv_offset /  12500 - 1) << 4);
-	} else {
+	}
+	else
+	{
 		uv_offset = clamp_val(uv_offset, -400000, -25000);
 		return (u8)((uv_offset / -25000 - 1) << 0);
 	}
@@ -473,8 +488,8 @@ static u8 LM93_TEMP_OFFSET_TO_REG(int off, int mode)
 	int factor = mode ? 5 : 10;
 
 	off = clamp_val(off, LM93_TEMP_OFFSET_MIN,
-		mode ? LM93_TEMP_OFFSET_MAX1 : LM93_TEMP_OFFSET_MAX0);
-	return (u8)((off + factor/2) / factor);
+					mode ? LM93_TEMP_OFFSET_MAX1 : LM93_TEMP_OFFSET_MAX0);
+	return (u8)((off + factor / 2) / factor);
 }
 
 /* 0 <= nr <= 3 */
@@ -482,11 +497,15 @@ static int LM93_TEMP_AUTO_OFFSET_FROM_REG(u8 reg, int nr, int mode)
 {
 	/* temp1-temp2 (nr=0,1) use lower nibble */
 	if (nr < 2)
+	{
 		return LM93_TEMP_OFFSET_FROM_REG(reg & 0x0f, mode);
+	}
 
 	/* temp3-temp4 (nr=2,3) use upper nibble */
 	else
+	{
 		return LM93_TEMP_OFFSET_FROM_REG(reg >> 4 & 0x0f, mode);
+	}
 }
 
 /*
@@ -500,11 +519,15 @@ static u8 LM93_TEMP_AUTO_OFFSET_TO_REG(u8 old, int off, int nr, int mode)
 
 	/* temp1-temp2 (nr=0,1) use lower nibble */
 	if (nr < 2)
+	{
 		return (old & 0xf0) | (new & 0x0f);
+	}
 
 	/* temp3-temp4 (nr=2,3) use upper nibble */
 	else
+	{
 		return (new << 4 & 0xf0) | (old & 0x0f);
+	}
 }
 
 static int LM93_AUTO_BOOST_HYST_FROM_REGS(struct lm93_data *data, int nr,
@@ -512,46 +535,54 @@ static int LM93_AUTO_BOOST_HYST_FROM_REGS(struct lm93_data *data, int nr,
 {
 	u8 reg;
 
-	switch (nr) {
-	case 0:
-		reg = data->boost_hyst[0] & 0x0f;
-		break;
-	case 1:
-		reg = data->boost_hyst[0] >> 4 & 0x0f;
-		break;
-	case 2:
-		reg = data->boost_hyst[1] & 0x0f;
-		break;
-	case 3:
-	default:
-		reg = data->boost_hyst[1] >> 4 & 0x0f;
-		break;
+	switch (nr)
+	{
+		case 0:
+			reg = data->boost_hyst[0] & 0x0f;
+			break;
+
+		case 1:
+			reg = data->boost_hyst[0] >> 4 & 0x0f;
+			break;
+
+		case 2:
+			reg = data->boost_hyst[1] & 0x0f;
+			break;
+
+		case 3:
+		default:
+			reg = data->boost_hyst[1] >> 4 & 0x0f;
+			break;
 	}
 
 	return LM93_TEMP_FROM_REG(data->boost[nr]) -
-			LM93_TEMP_OFFSET_FROM_REG(reg, mode);
+		   LM93_TEMP_OFFSET_FROM_REG(reg, mode);
 }
 
 static u8 LM93_AUTO_BOOST_HYST_TO_REG(struct lm93_data *data, long hyst,
-		int nr, int mode)
+									  int nr, int mode)
 {
 	u8 reg = LM93_TEMP_OFFSET_TO_REG(
-			(LM93_TEMP_FROM_REG(data->boost[nr]) - hyst), mode);
+				 (LM93_TEMP_FROM_REG(data->boost[nr]) - hyst), mode);
 
-	switch (nr) {
-	case 0:
-		reg = (data->boost_hyst[0] & 0xf0) | (reg & 0x0f);
-		break;
-	case 1:
-		reg = (reg << 4 & 0xf0) | (data->boost_hyst[0] & 0x0f);
-		break;
-	case 2:
-		reg = (data->boost_hyst[1] & 0xf0) | (reg & 0x0f);
-		break;
-	case 3:
-	default:
-		reg = (reg << 4 & 0xf0) | (data->boost_hyst[1] & 0x0f);
-		break;
+	switch (nr)
+	{
+		case 0:
+			reg = (data->boost_hyst[0] & 0xf0) | (reg & 0x0f);
+			break;
+
+		case 1:
+			reg = (reg << 4 & 0xf0) | (data->boost_hyst[0] & 0x0f);
+			break;
+
+		case 2:
+			reg = (data->boost_hyst[1] & 0xf0) | (reg & 0x0f);
+			break;
+
+		case 3:
+		default:
+			reg = (reg << 4 & 0xf0) | (data->boost_hyst[1] & 0x0f);
+			break;
 	}
 
 	return reg;
@@ -563,7 +594,8 @@ static u8 LM93_AUTO_BOOST_HYST_TO_REG(struct lm93_data *data, long hyst,
  */
 enum pwm_freq { LM93_PWM_MAP_HI_FREQ, LM93_PWM_MAP_LO_FREQ };
 
-static int lm93_pwm_map[2][16] = {
+static int lm93_pwm_map[2][16] =
+{
 	{
 		0x00, /*   0.00% */ 0x40, /*  25.00% */
 		0x50, /*  31.25% */ 0x60, /*  37.50% */
@@ -595,9 +627,12 @@ static int LM93_PWM_FROM_REG(u8 reg, enum pwm_freq freq)
 static u8 LM93_PWM_TO_REG(int pwm, enum pwm_freq freq)
 {
 	int i;
+
 	for (i = 0; i < 13; i++)
 		if (pwm <= lm93_pwm_map[freq][i])
+		{
 			break;
+		}
 
 	/* can fall through with i==13 */
 	return (u8)i;
@@ -617,9 +652,12 @@ static u16 LM93_FAN_TO_REG(long rpm)
 {
 	u16 count, regs;
 
-	if (rpm == 0) {
+	if (rpm == 0)
+	{
 		count = 0x3fff;
-	} else {
+	}
+	else
+	{
 		rpm = clamp_val(rpm, 1, 1000000);
 		count = clamp_val((1350000 + rpm) / rpm, 1, 0x3ffe);
 	}
@@ -632,7 +670,8 @@ static u16 LM93_FAN_TO_REG(long rpm)
  * PWM FREQ: HZ
  * REG: 0-7 as mapped below
  */
-static int lm93_pwm_freq_map[8] = {
+static int lm93_pwm_freq_map[8] =
+{
 	22500, 96, 84, 72, 60, 48, 36, 12
 };
 
@@ -645,9 +684,12 @@ static int LM93_PWM_FREQ_FROM_REG(u8 reg)
 static u8 LM93_PWM_FREQ_TO_REG(int freq)
 {
 	int i;
+
 	for (i = 7; i > 0; i--)
 		if (freq <= lm93_pwm_freq_map[i])
+		{
 			break;
+		}
 
 	/* can fall through with i==0 */
 	return (u8)i;
@@ -657,7 +699,8 @@ static u8 LM93_PWM_FREQ_TO_REG(int freq)
  * TIME: 1/100 seconds
  * REG: 0-7 as mapped below
  */
-static int lm93_spinup_time_map[8] = {
+static int lm93_spinup_time_map[8] =
+{
 	0, 10, 25, 40, 70, 100, 200, 400,
 };
 
@@ -670,9 +713,12 @@ static int LM93_SPINUP_TIME_FROM_REG(u8 reg)
 static u8 LM93_SPINUP_TIME_TO_REG(int time)
 {
 	int i;
+
 	for (i = 0; i < 7; i++)
 		if (time <= lm93_spinup_time_map[i])
+		{
 			break;
+		}
 
 	/* can fall through with i==8 */
 	return (u8)i;
@@ -710,7 +756,8 @@ static u8 LM93_PROCHOT_TO_REG(long prochot)
  * PROCHOT-INTERVAL: 73 - 37200 (1/100 seconds)
  * REG: 0-9 as mapped below
  */
-static int lm93_interval_map[10] = {
+static int lm93_interval_map[10] =
+{
 	73, 146, 290, 580, 1170, 2330, 4660, 9320, 18600, 37200,
 };
 
@@ -723,9 +770,12 @@ static int LM93_INTERVAL_FROM_REG(u8 reg)
 static u8 LM93_INTERVAL_TO_REG(long interval)
 {
 	int i;
+
 	for (i = 0; i < 9; i++)
 		if (interval <= lm93_interval_map[i])
+		{
 			break;
+		}
 
 	/* can fall through with i==9 */
 	return (u8)i;
@@ -788,14 +838,22 @@ static unsigned LM93_ALARMS_FROM_REG(struct block1_t b1)
 	result  = b1.host_status_2 & 0x3f;
 
 	if (vccp_limit_type[0])
+	{
 		result |= (b1.host_status_4 & 0x10) << 2;
+	}
 	else
+	{
 		result |= b1.host_status_2 & 0x40;
+	}
 
 	if (vccp_limit_type[1])
+	{
 		result |= (b1.host_status_4 & 0x20) << 2;
+	}
 	else
+	{
 		result |= b1.host_status_2 & 0x80;
+	}
 
 	result |= b1.host_status_3 << 8;
 	result |= (b1.fan_status & 0x0f) << 16;
@@ -813,14 +871,19 @@ static u8 lm93_read_byte(struct i2c_client *client, u8 reg)
 	int value, i;
 
 	/* retry in case of read errors */
-	for (i = 1; i <= MAX_RETRIES; i++) {
+	for (i = 1; i <= MAX_RETRIES; i++)
+	{
 		value = i2c_smbus_read_byte_data(client, reg);
-		if (value >= 0) {
+
+		if (value >= 0)
+		{
 			return value;
-		} else {
+		}
+		else
+		{
 			dev_warn(&client->dev,
-				 "lm93: read byte data failed, address 0x%02x.\n",
-				 reg);
+					 "lm93: read byte data failed, address 0x%02x.\n",
+					 reg);
 			mdelay(i + 3);
 		}
 
@@ -840,8 +903,8 @@ static int lm93_write_byte(struct i2c_client *client, u8 reg, u8 value)
 
 	if (result < 0)
 		dev_warn(&client->dev,
-			 "lm93: write byte data failed, 0x%02x at address 0x%02x.\n",
-			 value, reg);
+				 "lm93: write byte data failed, 0x%02x at address 0x%02x.\n",
+				 value, reg);
 
 	return result;
 }
@@ -851,14 +914,19 @@ static u16 lm93_read_word(struct i2c_client *client, u8 reg)
 	int value, i;
 
 	/* retry in case of read errors */
-	for (i = 1; i <= MAX_RETRIES; i++) {
+	for (i = 1; i <= MAX_RETRIES; i++)
+	{
 		value = i2c_smbus_read_word_data(client, reg);
-		if (value >= 0) {
+
+		if (value >= 0)
+		{
 			return value;
-		} else {
+		}
+		else
+		{
 			dev_warn(&client->dev,
-				 "lm93: read word data failed, address 0x%02x.\n",
-				 reg);
+					 "lm93: read word data failed, address 0x%02x.\n",
+					 reg);
 			mdelay(i + 3);
 		}
 
@@ -878,8 +946,8 @@ static int lm93_write_word(struct i2c_client *client, u8 reg, u16 value)
 
 	if (result < 0)
 		dev_warn(&client->dev,
-			 "lm93: write word data failed, 0x%04x at address 0x%02x.\n",
-			 value, reg);
+				 "lm93: write word data failed, 0x%04x at address 0x%02x.\n",
+				 value, reg);
 
 	return result;
 }
@@ -895,24 +963,31 @@ static void lm93_read_block(struct i2c_client *client, u8 fbn, u8 *values)
 {
 	int i, result = 0;
 
-	for (i = 1; i <= MAX_RETRIES; i++) {
+	for (i = 1; i <= MAX_RETRIES; i++)
+	{
 		result = i2c_smbus_read_block_data(client,
-			lm93_block_read_cmds[fbn].cmd, lm93_block_buffer);
+										   lm93_block_read_cmds[fbn].cmd, lm93_block_buffer);
 
-		if (result == lm93_block_read_cmds[fbn].len) {
+		if (result == lm93_block_read_cmds[fbn].len)
+		{
 			break;
-		} else {
+		}
+		else
+		{
 			dev_warn(&client->dev,
-				 "lm93: block read data failed, command 0x%02x.\n",
-				 lm93_block_read_cmds[fbn].cmd);
+					 "lm93: block read data failed, command 0x%02x.\n",
+					 lm93_block_read_cmds[fbn].cmd);
 			mdelay(i + 3);
 		}
 	}
 
-	if (result == lm93_block_read_cmds[fbn].len) {
+	if (result == lm93_block_read_cmds[fbn].len)
+	{
 		memcpy(values, lm93_block_buffer,
-		       lm93_block_read_cmds[fbn].len);
-	} else {
+			   lm93_block_read_cmds[fbn].len);
+	}
+	else
+	{
 		/* <TODO> what to do in case of error? */
 	}
 }
@@ -926,7 +1001,8 @@ static struct lm93_data *lm93_update_device(struct device *dev)
 	mutex_lock(&data->update_lock);
 
 	if (time_after(jiffies, data->last_updated + interval) ||
-		!data->valid) {
+		!data->valid)
+	{
 
 		data->update(data, client);
 		data->last_updated = jiffies;
@@ -939,13 +1015,14 @@ static struct lm93_data *lm93_update_device(struct device *dev)
 
 /* update routine for data that has no corresponding SMBus block command */
 static void lm93_update_client_common(struct lm93_data *data,
-				      struct i2c_client *client)
+									  struct i2c_client *client)
 {
 	int i;
 	u8 *ptr;
 
 	/* temp1 - temp4: limits */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		data->temp_lim[i].min =
 			lm93_read_byte(client, LM93_REG_TEMP_MIN(i));
 		data->temp_lim[i].max =
@@ -957,32 +1034,36 @@ static void lm93_update_client_common(struct lm93_data *data,
 
 	/* vid1 - vid2: values */
 	for (i = 0; i < 2; i++)
+	{
 		data->vid[i] = lm93_read_byte(client, LM93_REG_VID(i));
+	}
 
 	/* prochot1 - prochot2: limits */
 	for (i = 0; i < 2; i++)
 		data->prochot_max[i] = lm93_read_byte(client,
-				LM93_REG_PROCHOT_MAX(i));
+											  LM93_REG_PROCHOT_MAX(i));
 
 	/* vccp1 - vccp2: VID relative limits */
 	for (i = 0; i < 2; i++)
 		data->vccp_limits[i] = lm93_read_byte(client,
-				LM93_REG_VCCP_LIMIT_OFF(i));
+											  LM93_REG_VCCP_LIMIT_OFF(i));
 
 	/* GPIO input state */
 	data->gpi = lm93_read_byte(client, LM93_REG_GPI);
 
 	/* #PROCHOT override state */
 	data->prochot_override = lm93_read_byte(client,
-			LM93_REG_PROCHOT_OVERRIDE);
+											LM93_REG_PROCHOT_OVERRIDE);
 
 	/* #PROCHOT intervals */
 	data->prochot_interval = lm93_read_byte(client,
-			LM93_REG_PROCHOT_INTERVAL);
+											LM93_REG_PROCHOT_INTERVAL);
 
 	/* Fan Boost Temperature registers */
 	for (i = 0; i < 4; i++)
+	{
 		data->boost[i] = lm93_read_byte(client, LM93_REG_BOOST(i));
+	}
 
 	/* Fan Boost Temperature Hyst. registers */
 	data->boost_hyst[0] = lm93_read_byte(client, LM93_REG_BOOST_HYST_12);
@@ -990,9 +1071,9 @@ static void lm93_update_client_common(struct lm93_data *data,
 
 	/* Temperature Zone Min. PWM & Hysteresis registers */
 	data->auto_pwm_min_hyst[0] =
-			lm93_read_byte(client, LM93_REG_PWM_MIN_HYST_12);
+		lm93_read_byte(client, LM93_REG_PWM_MIN_HYST_12);
 	data->auto_pwm_min_hyst[1] =
-			lm93_read_byte(client, LM93_REG_PWM_MIN_HYST_34);
+		lm93_read_byte(client, LM93_REG_PWM_MIN_HYST_34);
 
 	/* #PROCHOT & #VRDHOT PWM Ramp Control register */
 	data->pwm_ramp_ctl = lm93_read_byte(client, LM93_REG_PWM_RAMP_CTL);
@@ -1001,16 +1082,18 @@ static void lm93_update_client_common(struct lm93_data *data,
 	data->sfc1 = lm93_read_byte(client, LM93_REG_SFC1);
 	data->sfc2 = lm93_read_byte(client, LM93_REG_SFC2);
 	data->sf_tach_to_pwm = lm93_read_byte(client,
-			LM93_REG_SF_TACH_TO_PWM);
+										  LM93_REG_SF_TACH_TO_PWM);
 
 	/* write back alarm values to clear */
 	for (i = 0, ptr = (u8 *)(&data->block1); i < 8; i++)
+	{
 		lm93_write_byte(client, LM93_REG_HOST_ERROR_1 + i, *(ptr + i));
+	}
 }
 
 /* update routine which uses SMBus block data commands */
 static void lm93_update_client_full(struct lm93_data *data,
-				    struct i2c_client *client)
+									struct i2c_client *client)
 {
 	dev_dbg(&client->dev, "starting device update (block data enabled)\n");
 
@@ -1042,7 +1125,7 @@ static void lm93_update_client_full(struct lm93_data *data,
 
 /* update routine which uses SMBus byte/word data commands only */
 static void lm93_update_client_min(struct lm93_data *data,
-				   struct i2c_client *client)
+								   struct i2c_client *client)
 {
 	int i, j;
 	u8 *ptr;
@@ -1050,7 +1133,8 @@ static void lm93_update_client_min(struct lm93_data *data,
 	dev_dbg(&client->dev, "starting device update (block data disabled)\n");
 
 	/* in1 - in16: values & limits */
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 16; i++)
+	{
 		data->block3[i] =
 			lm93_read_byte(client, LM93_REG_IN(i));
 		data->block7[i].min =
@@ -1060,13 +1144,15 @@ static void lm93_update_client_min(struct lm93_data *data,
 	}
 
 	/* temp1 - temp4: values */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		data->block2[i] =
 			lm93_read_byte(client, LM93_REG_TEMP(i));
 	}
 
 	/* prochot1 - prochot2: values */
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		data->block4[i].cur =
 			lm93_read_byte(client, LM93_REG_PROCHOT_CUR(i));
 		data->block4[i].avg =
@@ -1074,7 +1160,8 @@ static void lm93_update_client_min(struct lm93_data *data,
 	}
 
 	/* fan1 - fan4: values & limits */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		data->block5[i] =
 			lm93_read_word(client, LM93_REG_FAN(i));
 		data->block8[i] =
@@ -1082,27 +1169,32 @@ static void lm93_update_client_min(struct lm93_data *data,
 	}
 
 	/* pwm control registers */
-	for (i = 0; i < 2; i++) {
-		for (j = 0; j < 4; j++) {
+	for (i = 0; i < 2; i++)
+	{
+		for (j = 0; j < 4; j++)
+		{
 			data->block9[i][j] =
 				lm93_read_byte(client, LM93_REG_PWM_CTL(i, j));
 		}
 	}
 
 	/* alarm values */
-	for (i = 0, ptr = (u8 *)(&data->block1); i < 8; i++) {
+	for (i = 0, ptr = (u8 *)(&data->block1); i < 8; i++)
+	{
 		*(ptr + i) =
 			lm93_read_byte(client, LM93_REG_HOST_ERROR_1 + i);
 	}
 
 	/* auto/pwm (base temp) registers */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		data->block10.base[i] =
 			lm93_read_byte(client, LM93_REG_TEMP_BASE(i));
 	}
 
 	/* auto/pwm (offset temp) registers */
-	for (i = 0; i < 12; i++) {
+	for (i = 0; i < 12; i++)
+	{
 		data->block10.offset[i] =
 			lm93_read_byte(client, LM93_REG_TEMP_OFFSET(i));
 	}
@@ -1112,7 +1204,7 @@ static void lm93_update_client_min(struct lm93_data *data,
 
 /* following are the sysfs callback functions */
 static ssize_t show_in(struct device *dev, struct device_attribute *attr,
-			char *buf)
+					   char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 
@@ -1138,24 +1230,28 @@ static SENSOR_DEVICE_ATTR(in15_input, S_IRUGO, show_in, NULL, 14);
 static SENSOR_DEVICE_ATTR(in16_input, S_IRUGO, show_in, NULL, 15);
 
 static ssize_t show_in_min(struct device *dev,
-			struct device_attribute *attr, char *buf)
+						   struct device_attribute *attr, char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
 	int vccp = nr - 6;
 	long rc, vid;
 
-	if ((nr == 6 || nr == 7) && vccp_limit_type[vccp]) {
+	if ((nr == 6 || nr == 7) && vccp_limit_type[vccp])
+	{
 		vid = LM93_VID_FROM_REG(data->vid[vccp]);
 		rc = LM93_IN_MIN_FROM_REG(data->vccp_limits[vccp], vid);
-	} else {
+	}
+	else
+	{
 		rc = LM93_IN_FROM_REG(nr, data->block7[nr].min);
 	}
+
 	return sprintf(buf, "%ld\n", rc);
 }
 
 static ssize_t store_in_min(struct device *dev, struct device_attribute *attr,
-			    const char *buf, size_t count)
+							const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -1166,77 +1262,89 @@ static ssize_t store_in_min(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
-	if ((nr == 6 || nr == 7) && vccp_limit_type[vccp]) {
+
+	if ((nr == 6 || nr == 7) && vccp_limit_type[vccp])
+	{
 		vid = LM93_VID_FROM_REG(data->vid[vccp]);
 		data->vccp_limits[vccp] = (data->vccp_limits[vccp] & 0xf0) |
-				LM93_IN_REL_TO_REG(val, 0, vid);
+								  LM93_IN_REL_TO_REG(val, 0, vid);
 		lm93_write_byte(client, LM93_REG_VCCP_LIMIT_OFF(vccp),
-				data->vccp_limits[vccp]);
-	} else {
+						data->vccp_limits[vccp]);
+	}
+	else
+	{
 		data->block7[nr].min = LM93_IN_TO_REG(nr, val);
 		lm93_write_byte(client, LM93_REG_IN_MIN(nr),
-				data->block7[nr].min);
+						data->block7[nr].min);
 	}
+
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static SENSOR_DEVICE_ATTR(in1_min, S_IWUSR | S_IRUGO,
-			  show_in_min, store_in_min, 0);
+						  show_in_min, store_in_min, 0);
 static SENSOR_DEVICE_ATTR(in2_min, S_IWUSR | S_IRUGO,
-			  show_in_min, store_in_min, 1);
+						  show_in_min, store_in_min, 1);
 static SENSOR_DEVICE_ATTR(in3_min, S_IWUSR | S_IRUGO,
-			  show_in_min, store_in_min, 2);
+						  show_in_min, store_in_min, 2);
 static SENSOR_DEVICE_ATTR(in4_min, S_IWUSR | S_IRUGO,
-			  show_in_min, store_in_min, 3);
+						  show_in_min, store_in_min, 3);
 static SENSOR_DEVICE_ATTR(in5_min, S_IWUSR | S_IRUGO,
-			  show_in_min, store_in_min, 4);
+						  show_in_min, store_in_min, 4);
 static SENSOR_DEVICE_ATTR(in6_min, S_IWUSR | S_IRUGO,
-			  show_in_min, store_in_min, 5);
+						  show_in_min, store_in_min, 5);
 static SENSOR_DEVICE_ATTR(in7_min, S_IWUSR | S_IRUGO,
-			  show_in_min, store_in_min, 6);
+						  show_in_min, store_in_min, 6);
 static SENSOR_DEVICE_ATTR(in8_min, S_IWUSR | S_IRUGO,
-			  show_in_min, store_in_min, 7);
+						  show_in_min, store_in_min, 7);
 static SENSOR_DEVICE_ATTR(in9_min, S_IWUSR | S_IRUGO,
-			  show_in_min, store_in_min, 8);
+						  show_in_min, store_in_min, 8);
 static SENSOR_DEVICE_ATTR(in10_min, S_IWUSR | S_IRUGO,
-			  show_in_min, store_in_min, 9);
+						  show_in_min, store_in_min, 9);
 static SENSOR_DEVICE_ATTR(in11_min, S_IWUSR | S_IRUGO,
-			  show_in_min, store_in_min, 10);
+						  show_in_min, store_in_min, 10);
 static SENSOR_DEVICE_ATTR(in12_min, S_IWUSR | S_IRUGO,
-			  show_in_min, store_in_min, 11);
+						  show_in_min, store_in_min, 11);
 static SENSOR_DEVICE_ATTR(in13_min, S_IWUSR | S_IRUGO,
-			  show_in_min, store_in_min, 12);
+						  show_in_min, store_in_min, 12);
 static SENSOR_DEVICE_ATTR(in14_min, S_IWUSR | S_IRUGO,
-			  show_in_min, store_in_min, 13);
+						  show_in_min, store_in_min, 13);
 static SENSOR_DEVICE_ATTR(in15_min, S_IWUSR | S_IRUGO,
-			  show_in_min, store_in_min, 14);
+						  show_in_min, store_in_min, 14);
 static SENSOR_DEVICE_ATTR(in16_min, S_IWUSR | S_IRUGO,
-			  show_in_min, store_in_min, 15);
+						  show_in_min, store_in_min, 15);
 
 static ssize_t show_in_max(struct device *dev,
-			   struct device_attribute *attr, char *buf)
+						   struct device_attribute *attr, char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
 	int vccp = nr - 6;
 	long rc, vid;
 
-	if ((nr == 6 || nr == 7) && vccp_limit_type[vccp]) {
+	if ((nr == 6 || nr == 7) && vccp_limit_type[vccp])
+	{
 		vid = LM93_VID_FROM_REG(data->vid[vccp]);
 		rc = LM93_IN_MAX_FROM_REG(data->vccp_limits[vccp], vid);
-	} else {
+	}
+	else
+	{
 		rc = LM93_IN_FROM_REG(nr, data->block7[nr].max);
 	}
+
 	return sprintf(buf, "%ld\n", rc);
 }
 
 static ssize_t store_in_max(struct device *dev, struct device_attribute *attr,
-			    const char *buf, size_t count)
+							const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -1247,60 +1355,68 @@ static ssize_t store_in_max(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
-	if ((nr == 6 || nr == 7) && vccp_limit_type[vccp]) {
+
+	if ((nr == 6 || nr == 7) && vccp_limit_type[vccp])
+	{
 		vid = LM93_VID_FROM_REG(data->vid[vccp]);
 		data->vccp_limits[vccp] = (data->vccp_limits[vccp] & 0x0f) |
-				LM93_IN_REL_TO_REG(val, 1, vid);
+								  LM93_IN_REL_TO_REG(val, 1, vid);
 		lm93_write_byte(client, LM93_REG_VCCP_LIMIT_OFF(vccp),
-				data->vccp_limits[vccp]);
-	} else {
+						data->vccp_limits[vccp]);
+	}
+	else
+	{
 		data->block7[nr].max = LM93_IN_TO_REG(nr, val);
 		lm93_write_byte(client, LM93_REG_IN_MAX(nr),
-				data->block7[nr].max);
+						data->block7[nr].max);
 	}
+
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static SENSOR_DEVICE_ATTR(in1_max, S_IWUSR | S_IRUGO,
-			  show_in_max, store_in_max, 0);
+						  show_in_max, store_in_max, 0);
 static SENSOR_DEVICE_ATTR(in2_max, S_IWUSR | S_IRUGO,
-			  show_in_max, store_in_max, 1);
+						  show_in_max, store_in_max, 1);
 static SENSOR_DEVICE_ATTR(in3_max, S_IWUSR | S_IRUGO,
-			  show_in_max, store_in_max, 2);
+						  show_in_max, store_in_max, 2);
 static SENSOR_DEVICE_ATTR(in4_max, S_IWUSR | S_IRUGO,
-			  show_in_max, store_in_max, 3);
+						  show_in_max, store_in_max, 3);
 static SENSOR_DEVICE_ATTR(in5_max, S_IWUSR | S_IRUGO,
-			  show_in_max, store_in_max, 4);
+						  show_in_max, store_in_max, 4);
 static SENSOR_DEVICE_ATTR(in6_max, S_IWUSR | S_IRUGO,
-			  show_in_max, store_in_max, 5);
+						  show_in_max, store_in_max, 5);
 static SENSOR_DEVICE_ATTR(in7_max, S_IWUSR | S_IRUGO,
-			  show_in_max, store_in_max, 6);
+						  show_in_max, store_in_max, 6);
 static SENSOR_DEVICE_ATTR(in8_max, S_IWUSR | S_IRUGO,
-			  show_in_max, store_in_max, 7);
+						  show_in_max, store_in_max, 7);
 static SENSOR_DEVICE_ATTR(in9_max, S_IWUSR | S_IRUGO,
-			  show_in_max, store_in_max, 8);
+						  show_in_max, store_in_max, 8);
 static SENSOR_DEVICE_ATTR(in10_max, S_IWUSR | S_IRUGO,
-			  show_in_max, store_in_max, 9);
+						  show_in_max, store_in_max, 9);
 static SENSOR_DEVICE_ATTR(in11_max, S_IWUSR | S_IRUGO,
-			  show_in_max, store_in_max, 10);
+						  show_in_max, store_in_max, 10);
 static SENSOR_DEVICE_ATTR(in12_max, S_IWUSR | S_IRUGO,
-			  show_in_max, store_in_max, 11);
+						  show_in_max, store_in_max, 11);
 static SENSOR_DEVICE_ATTR(in13_max, S_IWUSR | S_IRUGO,
-			  show_in_max, store_in_max, 12);
+						  show_in_max, store_in_max, 12);
 static SENSOR_DEVICE_ATTR(in14_max, S_IWUSR | S_IRUGO,
-			  show_in_max, store_in_max, 13);
+						  show_in_max, store_in_max, 13);
 static SENSOR_DEVICE_ATTR(in15_max, S_IWUSR | S_IRUGO,
-			  show_in_max, store_in_max, 14);
+						  show_in_max, store_in_max, 14);
 static SENSOR_DEVICE_ATTR(in16_max, S_IWUSR | S_IRUGO,
-			  show_in_max, store_in_max, 15);
+						  show_in_max, store_in_max, 15);
 
 static ssize_t show_temp(struct device *dev,
-			 struct device_attribute *attr, char *buf)
+						 struct device_attribute *attr, char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
@@ -1312,7 +1428,7 @@ static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1);
 static SENSOR_DEVICE_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 2);
 
 static ssize_t show_temp_min(struct device *dev,
-				struct device_attribute *attr, char *buf)
+							 struct device_attribute *attr, char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
@@ -1320,7 +1436,7 @@ static ssize_t show_temp_min(struct device *dev,
 }
 
 static ssize_t store_temp_min(struct device *dev, struct device_attribute *attr,
-			      const char *buf, size_t count)
+							  const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -1329,8 +1445,11 @@ static ssize_t store_temp_min(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->temp_lim[nr].min = LM93_TEMP_TO_REG(val);
@@ -1340,14 +1459,14 @@ static ssize_t store_temp_min(struct device *dev, struct device_attribute *attr,
 }
 
 static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO,
-			  show_temp_min, store_temp_min, 0);
+						  show_temp_min, store_temp_min, 0);
 static SENSOR_DEVICE_ATTR(temp2_min, S_IWUSR | S_IRUGO,
-			  show_temp_min, store_temp_min, 1);
+						  show_temp_min, store_temp_min, 1);
 static SENSOR_DEVICE_ATTR(temp3_min, S_IWUSR | S_IRUGO,
-			  show_temp_min, store_temp_min, 2);
+						  show_temp_min, store_temp_min, 2);
 
 static ssize_t show_temp_max(struct device *dev,
-			     struct device_attribute *attr, char *buf)
+							 struct device_attribute *attr, char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
@@ -1355,7 +1474,7 @@ static ssize_t show_temp_max(struct device *dev,
 }
 
 static ssize_t store_temp_max(struct device *dev, struct device_attribute *attr,
-			      const char *buf, size_t count)
+							  const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -1364,8 +1483,11 @@ static ssize_t store_temp_max(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->temp_lim[nr].max = LM93_TEMP_TO_REG(val);
@@ -1375,14 +1497,14 @@ static ssize_t store_temp_max(struct device *dev, struct device_attribute *attr,
 }
 
 static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO,
-			  show_temp_max, store_temp_max, 0);
+						  show_temp_max, store_temp_max, 0);
 static SENSOR_DEVICE_ATTR(temp2_max, S_IWUSR | S_IRUGO,
-			  show_temp_max, store_temp_max, 1);
+						  show_temp_max, store_temp_max, 1);
 static SENSOR_DEVICE_ATTR(temp3_max, S_IWUSR | S_IRUGO,
-			  show_temp_max, store_temp_max, 2);
+						  show_temp_max, store_temp_max, 2);
 
 static ssize_t show_temp_auto_base(struct device *dev,
-				struct device_attribute *attr, char *buf)
+								   struct device_attribute *attr, char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
@@ -1390,8 +1512,8 @@ static ssize_t show_temp_auto_base(struct device *dev,
 }
 
 static ssize_t store_temp_auto_base(struct device *dev,
-					struct device_attribute *attr,
-					const char *buf, size_t count)
+									struct device_attribute *attr,
+									const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -1400,8 +1522,11 @@ static ssize_t store_temp_auto_base(struct device *dev,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->block10.base[nr] = LM93_TEMP_TO_REG(val);
@@ -1411,14 +1536,14 @@ static ssize_t store_temp_auto_base(struct device *dev,
 }
 
 static SENSOR_DEVICE_ATTR(temp1_auto_base, S_IWUSR | S_IRUGO,
-			  show_temp_auto_base, store_temp_auto_base, 0);
+						  show_temp_auto_base, store_temp_auto_base, 0);
 static SENSOR_DEVICE_ATTR(temp2_auto_base, S_IWUSR | S_IRUGO,
-			  show_temp_auto_base, store_temp_auto_base, 1);
+						  show_temp_auto_base, store_temp_auto_base, 1);
 static SENSOR_DEVICE_ATTR(temp3_auto_base, S_IWUSR | S_IRUGO,
-			  show_temp_auto_base, store_temp_auto_base, 2);
+						  show_temp_auto_base, store_temp_auto_base, 2);
 
 static ssize_t show_temp_auto_boost(struct device *dev,
-				    struct device_attribute *attr, char *buf)
+									struct device_attribute *attr, char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
@@ -1426,8 +1551,8 @@ static ssize_t show_temp_auto_boost(struct device *dev,
 }
 
 static ssize_t store_temp_auto_boost(struct device *dev,
-				     struct device_attribute *attr,
-				     const char *buf, size_t count)
+									 struct device_attribute *attr,
+									 const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -1436,8 +1561,11 @@ static ssize_t store_temp_auto_boost(struct device *dev,
 	int err;
 
 	err = kstrtol(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->boost[nr] = LM93_TEMP_TO_REG(val);
@@ -1447,26 +1575,26 @@ static ssize_t store_temp_auto_boost(struct device *dev,
 }
 
 static SENSOR_DEVICE_ATTR(temp1_auto_boost, S_IWUSR | S_IRUGO,
-			  show_temp_auto_boost, store_temp_auto_boost, 0);
+						  show_temp_auto_boost, store_temp_auto_boost, 0);
 static SENSOR_DEVICE_ATTR(temp2_auto_boost, S_IWUSR | S_IRUGO,
-			  show_temp_auto_boost, store_temp_auto_boost, 1);
+						  show_temp_auto_boost, store_temp_auto_boost, 1);
 static SENSOR_DEVICE_ATTR(temp3_auto_boost, S_IWUSR | S_IRUGO,
-			  show_temp_auto_boost, store_temp_auto_boost, 2);
+						  show_temp_auto_boost, store_temp_auto_boost, 2);
 
 static ssize_t show_temp_auto_boost_hyst(struct device *dev,
-					 struct device_attribute *attr,
-					 char *buf)
+		struct device_attribute *attr,
+		char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
 	int mode = LM93_TEMP_OFFSET_MODE_FROM_REG(data->sfc2, nr);
 	return sprintf(buf, "%d\n",
-		       LM93_AUTO_BOOST_HYST_FROM_REGS(data, nr, mode));
+				   LM93_AUTO_BOOST_HYST_FROM_REGS(data, nr, mode));
 }
 
 static ssize_t store_temp_auto_boost_hyst(struct device *dev,
-					  struct device_attribute *attr,
-					  const char *buf, size_t count)
+		struct device_attribute *attr,
+		const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -1475,33 +1603,36 @@ static ssize_t store_temp_auto_boost_hyst(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	/* force 0.5C/bit mode */
 	data->sfc2 = lm93_read_byte(client, LM93_REG_SFC2);
 	data->sfc2 |= ((nr < 2) ? 0x10 : 0x20);
 	lm93_write_byte(client, LM93_REG_SFC2, data->sfc2);
-	data->boost_hyst[nr/2] = LM93_AUTO_BOOST_HYST_TO_REG(data, val, nr, 1);
+	data->boost_hyst[nr / 2] = LM93_AUTO_BOOST_HYST_TO_REG(data, val, nr, 1);
 	lm93_write_byte(client, LM93_REG_BOOST_HYST(nr),
-			data->boost_hyst[nr/2]);
+					data->boost_hyst[nr / 2]);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static SENSOR_DEVICE_ATTR(temp1_auto_boost_hyst, S_IWUSR | S_IRUGO,
-			  show_temp_auto_boost_hyst,
-			  store_temp_auto_boost_hyst, 0);
+						  show_temp_auto_boost_hyst,
+						  store_temp_auto_boost_hyst, 0);
 static SENSOR_DEVICE_ATTR(temp2_auto_boost_hyst, S_IWUSR | S_IRUGO,
-			  show_temp_auto_boost_hyst,
-			  store_temp_auto_boost_hyst, 1);
+						  show_temp_auto_boost_hyst,
+						  store_temp_auto_boost_hyst, 1);
 static SENSOR_DEVICE_ATTR(temp3_auto_boost_hyst, S_IWUSR | S_IRUGO,
-			  show_temp_auto_boost_hyst,
-			  store_temp_auto_boost_hyst, 2);
+						  show_temp_auto_boost_hyst,
+						  store_temp_auto_boost_hyst, 2);
 
 static ssize_t show_temp_auto_offset(struct device *dev,
-				struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	struct sensor_device_attribute_2 *s_attr = to_sensor_dev_attr_2(attr);
 	int nr = s_attr->index;
@@ -1509,13 +1640,13 @@ static ssize_t show_temp_auto_offset(struct device *dev,
 	struct lm93_data *data = lm93_update_device(dev);
 	int mode = LM93_TEMP_OFFSET_MODE_FROM_REG(data->sfc2, nr);
 	return sprintf(buf, "%d\n",
-	       LM93_TEMP_AUTO_OFFSET_FROM_REG(data->block10.offset[ofs],
-					      nr, mode));
+				   LM93_TEMP_AUTO_OFFSET_FROM_REG(data->block10.offset[ofs],
+						   nr, mode));
 }
 
 static ssize_t store_temp_auto_offset(struct device *dev,
-					struct device_attribute *attr,
-					const char *buf, size_t count)
+									  struct device_attribute *attr,
+									  const char *buf, size_t count)
 {
 	struct sensor_device_attribute_2 *s_attr = to_sensor_dev_attr_2(attr);
 	int nr = s_attr->index;
@@ -1526,8 +1657,11 @@ static ssize_t store_temp_auto_offset(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	/* force 0.5C/bit mode */
@@ -1535,101 +1669,101 @@ static ssize_t store_temp_auto_offset(struct device *dev,
 	data->sfc2 |= ((nr < 2) ? 0x10 : 0x20);
 	lm93_write_byte(client, LM93_REG_SFC2, data->sfc2);
 	data->block10.offset[ofs] = LM93_TEMP_AUTO_OFFSET_TO_REG(
-			data->block10.offset[ofs], val, nr, 1);
+									data->block10.offset[ofs], val, nr, 1);
 	lm93_write_byte(client, LM93_REG_TEMP_OFFSET(ofs),
-			data->block10.offset[ofs]);
+					data->block10.offset[ofs]);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static SENSOR_DEVICE_ATTR_2(temp1_auto_offset1, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 0, 0);
+							show_temp_auto_offset, store_temp_auto_offset, 0, 0);
 static SENSOR_DEVICE_ATTR_2(temp1_auto_offset2, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 1, 0);
+							show_temp_auto_offset, store_temp_auto_offset, 1, 0);
 static SENSOR_DEVICE_ATTR_2(temp1_auto_offset3, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 2, 0);
+							show_temp_auto_offset, store_temp_auto_offset, 2, 0);
 static SENSOR_DEVICE_ATTR_2(temp1_auto_offset4, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 3, 0);
+							show_temp_auto_offset, store_temp_auto_offset, 3, 0);
 static SENSOR_DEVICE_ATTR_2(temp1_auto_offset5, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 4, 0);
+							show_temp_auto_offset, store_temp_auto_offset, 4, 0);
 static SENSOR_DEVICE_ATTR_2(temp1_auto_offset6, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 5, 0);
+							show_temp_auto_offset, store_temp_auto_offset, 5, 0);
 static SENSOR_DEVICE_ATTR_2(temp1_auto_offset7, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 6, 0);
+							show_temp_auto_offset, store_temp_auto_offset, 6, 0);
 static SENSOR_DEVICE_ATTR_2(temp1_auto_offset8, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 7, 0);
+							show_temp_auto_offset, store_temp_auto_offset, 7, 0);
 static SENSOR_DEVICE_ATTR_2(temp1_auto_offset9, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 8, 0);
+							show_temp_auto_offset, store_temp_auto_offset, 8, 0);
 static SENSOR_DEVICE_ATTR_2(temp1_auto_offset10, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 9, 0);
+							show_temp_auto_offset, store_temp_auto_offset, 9, 0);
 static SENSOR_DEVICE_ATTR_2(temp1_auto_offset11, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 10, 0);
+							show_temp_auto_offset, store_temp_auto_offset, 10, 0);
 static SENSOR_DEVICE_ATTR_2(temp1_auto_offset12, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 11, 0);
+							show_temp_auto_offset, store_temp_auto_offset, 11, 0);
 static SENSOR_DEVICE_ATTR_2(temp2_auto_offset1, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 0, 1);
+							show_temp_auto_offset, store_temp_auto_offset, 0, 1);
 static SENSOR_DEVICE_ATTR_2(temp2_auto_offset2, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 1, 1);
+							show_temp_auto_offset, store_temp_auto_offset, 1, 1);
 static SENSOR_DEVICE_ATTR_2(temp2_auto_offset3, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 2, 1);
+							show_temp_auto_offset, store_temp_auto_offset, 2, 1);
 static SENSOR_DEVICE_ATTR_2(temp2_auto_offset4, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 3, 1);
+							show_temp_auto_offset, store_temp_auto_offset, 3, 1);
 static SENSOR_DEVICE_ATTR_2(temp2_auto_offset5, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 4, 1);
+							show_temp_auto_offset, store_temp_auto_offset, 4, 1);
 static SENSOR_DEVICE_ATTR_2(temp2_auto_offset6, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 5, 1);
+							show_temp_auto_offset, store_temp_auto_offset, 5, 1);
 static SENSOR_DEVICE_ATTR_2(temp2_auto_offset7, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 6, 1);
+							show_temp_auto_offset, store_temp_auto_offset, 6, 1);
 static SENSOR_DEVICE_ATTR_2(temp2_auto_offset8, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 7, 1);
+							show_temp_auto_offset, store_temp_auto_offset, 7, 1);
 static SENSOR_DEVICE_ATTR_2(temp2_auto_offset9, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 8, 1);
+							show_temp_auto_offset, store_temp_auto_offset, 8, 1);
 static SENSOR_DEVICE_ATTR_2(temp2_auto_offset10, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 9, 1);
+							show_temp_auto_offset, store_temp_auto_offset, 9, 1);
 static SENSOR_DEVICE_ATTR_2(temp2_auto_offset11, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 10, 1);
+							show_temp_auto_offset, store_temp_auto_offset, 10, 1);
 static SENSOR_DEVICE_ATTR_2(temp2_auto_offset12, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 11, 1);
+							show_temp_auto_offset, store_temp_auto_offset, 11, 1);
 static SENSOR_DEVICE_ATTR_2(temp3_auto_offset1, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 0, 2);
+							show_temp_auto_offset, store_temp_auto_offset, 0, 2);
 static SENSOR_DEVICE_ATTR_2(temp3_auto_offset2, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 1, 2);
+							show_temp_auto_offset, store_temp_auto_offset, 1, 2);
 static SENSOR_DEVICE_ATTR_2(temp3_auto_offset3, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 2, 2);
+							show_temp_auto_offset, store_temp_auto_offset, 2, 2);
 static SENSOR_DEVICE_ATTR_2(temp3_auto_offset4, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 3, 2);
+							show_temp_auto_offset, store_temp_auto_offset, 3, 2);
 static SENSOR_DEVICE_ATTR_2(temp3_auto_offset5, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 4, 2);
+							show_temp_auto_offset, store_temp_auto_offset, 4, 2);
 static SENSOR_DEVICE_ATTR_2(temp3_auto_offset6, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 5, 2);
+							show_temp_auto_offset, store_temp_auto_offset, 5, 2);
 static SENSOR_DEVICE_ATTR_2(temp3_auto_offset7, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 6, 2);
+							show_temp_auto_offset, store_temp_auto_offset, 6, 2);
 static SENSOR_DEVICE_ATTR_2(temp3_auto_offset8, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 7, 2);
+							show_temp_auto_offset, store_temp_auto_offset, 7, 2);
 static SENSOR_DEVICE_ATTR_2(temp3_auto_offset9, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 8, 2);
+							show_temp_auto_offset, store_temp_auto_offset, 8, 2);
 static SENSOR_DEVICE_ATTR_2(temp3_auto_offset10, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 9, 2);
+							show_temp_auto_offset, store_temp_auto_offset, 9, 2);
 static SENSOR_DEVICE_ATTR_2(temp3_auto_offset11, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 10, 2);
+							show_temp_auto_offset, store_temp_auto_offset, 10, 2);
 static SENSOR_DEVICE_ATTR_2(temp3_auto_offset12, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset, store_temp_auto_offset, 11, 2);
+							show_temp_auto_offset, store_temp_auto_offset, 11, 2);
 
 static ssize_t show_temp_auto_pwm_min(struct device *dev,
-				struct device_attribute *attr, char *buf)
+									  struct device_attribute *attr, char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	u8 reg, ctl4;
 	struct lm93_data *data = lm93_update_device(dev);
-	reg = data->auto_pwm_min_hyst[nr/2] >> 4 & 0x0f;
+	reg = data->auto_pwm_min_hyst[nr / 2] >> 4 & 0x0f;
 	ctl4 = data->block9[nr][LM93_PWM_CTL4];
 	return sprintf(buf, "%d\n", LM93_PWM_FROM_REG(reg, (ctl4 & 0x07) ?
-				LM93_PWM_MAP_LO_FREQ : LM93_PWM_MAP_HI_FREQ));
+				   LM93_PWM_MAP_LO_FREQ : LM93_PWM_MAP_HI_FREQ));
 }
 
 static ssize_t store_temp_auto_pwm_min(struct device *dev,
-					struct device_attribute *attr,
-					const char *buf, size_t count)
+									   struct device_attribute *attr,
+									   const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -1639,45 +1773,48 @@ static ssize_t store_temp_auto_pwm_min(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	reg = lm93_read_byte(client, LM93_REG_PWM_MIN_HYST(nr));
 	ctl4 = lm93_read_byte(client, LM93_REG_PWM_CTL(nr, LM93_PWM_CTL4));
 	reg = (reg & 0x0f) |
-		LM93_PWM_TO_REG(val, (ctl4 & 0x07) ?
-				LM93_PWM_MAP_LO_FREQ :
-				LM93_PWM_MAP_HI_FREQ) << 4;
-	data->auto_pwm_min_hyst[nr/2] = reg;
+		  LM93_PWM_TO_REG(val, (ctl4 & 0x07) ?
+						  LM93_PWM_MAP_LO_FREQ :
+						  LM93_PWM_MAP_HI_FREQ) << 4;
+	data->auto_pwm_min_hyst[nr / 2] = reg;
 	lm93_write_byte(client, LM93_REG_PWM_MIN_HYST(nr), reg);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static SENSOR_DEVICE_ATTR(temp1_auto_pwm_min, S_IWUSR | S_IRUGO,
-			  show_temp_auto_pwm_min,
-			  store_temp_auto_pwm_min, 0);
+						  show_temp_auto_pwm_min,
+						  store_temp_auto_pwm_min, 0);
 static SENSOR_DEVICE_ATTR(temp2_auto_pwm_min, S_IWUSR | S_IRUGO,
-			  show_temp_auto_pwm_min,
-			  store_temp_auto_pwm_min, 1);
+						  show_temp_auto_pwm_min,
+						  store_temp_auto_pwm_min, 1);
 static SENSOR_DEVICE_ATTR(temp3_auto_pwm_min, S_IWUSR | S_IRUGO,
-			  show_temp_auto_pwm_min,
-			  store_temp_auto_pwm_min, 2);
+						  show_temp_auto_pwm_min,
+						  store_temp_auto_pwm_min, 2);
 
 static ssize_t show_temp_auto_offset_hyst(struct device *dev,
-				struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
 	int mode = LM93_TEMP_OFFSET_MODE_FROM_REG(data->sfc2, nr);
 	return sprintf(buf, "%d\n", LM93_TEMP_OFFSET_FROM_REG(
-					data->auto_pwm_min_hyst[nr / 2], mode));
+					   data->auto_pwm_min_hyst[nr / 2], mode));
 }
 
 static ssize_t store_temp_auto_offset_hyst(struct device *dev,
-						struct device_attribute *attr,
-						const char *buf, size_t count)
+		struct device_attribute *attr,
+		const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -1687,34 +1824,37 @@ static ssize_t store_temp_auto_offset_hyst(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	/* force 0.5C/bit mode */
 	data->sfc2 = lm93_read_byte(client, LM93_REG_SFC2);
 	data->sfc2 |= ((nr < 2) ? 0x10 : 0x20);
 	lm93_write_byte(client, LM93_REG_SFC2, data->sfc2);
-	reg = data->auto_pwm_min_hyst[nr/2];
+	reg = data->auto_pwm_min_hyst[nr / 2];
 	reg = (reg & 0xf0) | (LM93_TEMP_OFFSET_TO_REG(val, 1) & 0x0f);
-	data->auto_pwm_min_hyst[nr/2] = reg;
+	data->auto_pwm_min_hyst[nr / 2] = reg;
 	lm93_write_byte(client, LM93_REG_PWM_MIN_HYST(nr), reg);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static SENSOR_DEVICE_ATTR(temp1_auto_offset_hyst, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset_hyst,
-			  store_temp_auto_offset_hyst, 0);
+						  show_temp_auto_offset_hyst,
+						  store_temp_auto_offset_hyst, 0);
 static SENSOR_DEVICE_ATTR(temp2_auto_offset_hyst, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset_hyst,
-			  store_temp_auto_offset_hyst, 1);
+						  show_temp_auto_offset_hyst,
+						  store_temp_auto_offset_hyst, 1);
 static SENSOR_DEVICE_ATTR(temp3_auto_offset_hyst, S_IWUSR | S_IRUGO,
-			  show_temp_auto_offset_hyst,
-			  store_temp_auto_offset_hyst, 2);
+						  show_temp_auto_offset_hyst,
+						  store_temp_auto_offset_hyst, 2);
 
 static ssize_t show_fan_input(struct device *dev,
-		struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	struct sensor_device_attribute *s_attr = to_sensor_dev_attr(attr);
 	int nr = s_attr->index;
@@ -1729,7 +1869,7 @@ static SENSOR_DEVICE_ATTR(fan3_input, S_IRUGO, show_fan_input, NULL, 2);
 static SENSOR_DEVICE_ATTR(fan4_input, S_IRUGO, show_fan_input, NULL, 3);
 
 static ssize_t show_fan_min(struct device *dev,
-			      struct device_attribute *attr, char *buf)
+							struct device_attribute *attr, char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
@@ -1738,7 +1878,7 @@ static ssize_t show_fan_min(struct device *dev,
 }
 
 static ssize_t store_fan_min(struct device *dev, struct device_attribute *attr,
-				const char *buf, size_t count)
+							 const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -1747,8 +1887,11 @@ static ssize_t store_fan_min(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->block8[nr] = LM93_FAN_TO_REG(val);
@@ -1758,13 +1901,13 @@ static ssize_t store_fan_min(struct device *dev, struct device_attribute *attr,
 }
 
 static SENSOR_DEVICE_ATTR(fan1_min, S_IWUSR | S_IRUGO,
-			  show_fan_min, store_fan_min, 0);
+						  show_fan_min, store_fan_min, 0);
 static SENSOR_DEVICE_ATTR(fan2_min, S_IWUSR | S_IRUGO,
-			  show_fan_min, store_fan_min, 1);
+						  show_fan_min, store_fan_min, 1);
 static SENSOR_DEVICE_ATTR(fan3_min, S_IWUSR | S_IRUGO,
-			  show_fan_min, store_fan_min, 2);
+						  show_fan_min, store_fan_min, 2);
 static SENSOR_DEVICE_ATTR(fan4_min, S_IWUSR | S_IRUGO,
-			  show_fan_min, store_fan_min, 3);
+						  show_fan_min, store_fan_min, 3);
 
 /*
  * some tedious bit-twiddling here to deal with the register format:
@@ -1781,7 +1924,7 @@ static SENSOR_DEVICE_ATTR(fan4_min, S_IWUSR | S_IRUGO,
  */
 
 static ssize_t show_fan_smart_tach(struct device *dev,
-				struct device_attribute *attr, char *buf)
+								   struct device_attribute *attr, char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
@@ -1793,7 +1936,10 @@ static ssize_t show_fan_smart_tach(struct device *dev,
 
 	/* if there's a mapping and it's enabled */
 	if (mapping && ((data->sfc2 >> nr) & 0x01))
+	{
 		rc = mapping;
+	}
+
 	return sprintf(buf, "%ld\n", rc);
 }
 
@@ -1802,7 +1948,7 @@ static ssize_t show_fan_smart_tach(struct device *dev,
  * fan is 0-3, indicating fan1-fan4
  */
 static void lm93_write_fan_smart_tach(struct i2c_client *client,
-	struct lm93_data *data, int fan, long value)
+									  struct lm93_data *data, int fan, long value)
 {
 	/* insert the new mapping and write it out */
 	data->sf_tach_to_pwm = lm93_read_byte(client, LM93_REG_SF_TACH_TO_PWM);
@@ -1812,16 +1958,22 @@ static void lm93_write_fan_smart_tach(struct i2c_client *client,
 
 	/* insert the enable bit and write it out */
 	data->sfc2 = lm93_read_byte(client, LM93_REG_SFC2);
+
 	if (value)
+	{
 		data->sfc2 |= 1 << fan;
+	}
 	else
+	{
 		data->sfc2 &= ~(1 << fan);
+	}
+
 	lm93_write_byte(client, LM93_REG_SFC2, data->sfc2);
 }
 
 static ssize_t store_fan_smart_tach(struct device *dev,
-					struct device_attribute *attr,
-					const char *buf, size_t count)
+									struct device_attribute *attr,
+									const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -1830,36 +1982,47 @@ static ssize_t store_fan_smart_tach(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
+
 	/* sanity test, ignore the write otherwise */
-	if (val <= 2) {
+	if (val <= 2)
+	{
 		/* can't enable if pwm freq is 22.5KHz */
-		if (val) {
+		if (val)
+		{
 			u8 ctl4 = lm93_read_byte(client,
-				LM93_REG_PWM_CTL(val - 1, LM93_PWM_CTL4));
+									 LM93_REG_PWM_CTL(val - 1, LM93_PWM_CTL4));
+
 			if ((ctl4 & 0x07) == 0)
+			{
 				val = 0;
+			}
 		}
+
 		lm93_write_fan_smart_tach(client, data, nr, val);
 	}
+
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static SENSOR_DEVICE_ATTR(fan1_smart_tach, S_IWUSR | S_IRUGO,
-			  show_fan_smart_tach, store_fan_smart_tach, 0);
+						  show_fan_smart_tach, store_fan_smart_tach, 0);
 static SENSOR_DEVICE_ATTR(fan2_smart_tach, S_IWUSR | S_IRUGO,
-			  show_fan_smart_tach, store_fan_smart_tach, 1);
+						  show_fan_smart_tach, store_fan_smart_tach, 1);
 static SENSOR_DEVICE_ATTR(fan3_smart_tach, S_IWUSR | S_IRUGO,
-			  show_fan_smart_tach, store_fan_smart_tach, 2);
+						  show_fan_smart_tach, store_fan_smart_tach, 2);
 static SENSOR_DEVICE_ATTR(fan4_smart_tach, S_IWUSR | S_IRUGO,
-			  show_fan_smart_tach, store_fan_smart_tach, 3);
+						  show_fan_smart_tach, store_fan_smart_tach, 3);
 
 static ssize_t show_pwm(struct device *dev, struct device_attribute *attr,
-			char *buf)
+						char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
@@ -1868,16 +2031,20 @@ static ssize_t show_pwm(struct device *dev, struct device_attribute *attr,
 
 	ctl2 = data->block9[nr][LM93_PWM_CTL2];
 	ctl4 = data->block9[nr][LM93_PWM_CTL4];
+
 	if (ctl2 & 0x01) /* show user commanded value if enabled */
+	{
 		rc = data->pwm_override[nr];
+	}
 	else /* show present h/w value if manual pwm disabled */
 		rc = LM93_PWM_FROM_REG(ctl2 >> 4, (ctl4 & 0x07) ?
-			LM93_PWM_MAP_LO_FREQ : LM93_PWM_MAP_HI_FREQ);
+							   LM93_PWM_MAP_LO_FREQ : LM93_PWM_MAP_HI_FREQ);
+
 	return sprintf(buf, "%ld\n", rc);
 }
 
 static ssize_t store_pwm(struct device *dev, struct device_attribute *attr,
-				const char *buf, size_t count)
+						 const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -1887,18 +2054,21 @@ static ssize_t store_pwm(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	ctl2 = lm93_read_byte(client, LM93_REG_PWM_CTL(nr, LM93_PWM_CTL2));
 	ctl4 = lm93_read_byte(client, LM93_REG_PWM_CTL(nr, LM93_PWM_CTL4));
 	ctl2 = (ctl2 & 0x0f) | LM93_PWM_TO_REG(val, (ctl4 & 0x07) ?
-			LM93_PWM_MAP_LO_FREQ : LM93_PWM_MAP_HI_FREQ) << 4;
+										   LM93_PWM_MAP_LO_FREQ : LM93_PWM_MAP_HI_FREQ) << 4;
 	/* save user commanded value */
 	data->pwm_override[nr] = LM93_PWM_FROM_REG(ctl2 >> 4,
-			(ctl4 & 0x07) ?  LM93_PWM_MAP_LO_FREQ :
-			LM93_PWM_MAP_HI_FREQ);
+							 (ctl4 & 0x07) ?  LM93_PWM_MAP_LO_FREQ :
+							 LM93_PWM_MAP_HI_FREQ);
 	lm93_write_byte(client, LM93_REG_PWM_CTL(nr, LM93_PWM_CTL2), ctl2);
 	mutex_unlock(&data->update_lock);
 	return count;
@@ -1908,7 +2078,7 @@ static SENSOR_DEVICE_ATTR(pwm1, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 0);
 static SENSOR_DEVICE_ATTR(pwm2, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 1);
 
 static ssize_t show_pwm_enable(struct device *dev,
-				struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
@@ -1916,16 +2086,22 @@ static ssize_t show_pwm_enable(struct device *dev,
 	long rc;
 
 	ctl2 = data->block9[nr][LM93_PWM_CTL2];
+
 	if (ctl2 & 0x01) /* manual override enabled ? */
+	{
 		rc = ((ctl2 & 0xF0) == 0xF0) ? 0 : 1;
+	}
 	else
+	{
 		rc = 2;
+	}
+
 	return sprintf(buf, "%ld\n", rc);
 }
 
 static ssize_t store_pwm_enable(struct device *dev,
-				struct device_attribute *attr,
-				const char *buf, size_t count)
+								struct device_attribute *attr,
+								const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -1935,25 +2111,32 @@ static ssize_t store_pwm_enable(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	ctl2 = lm93_read_byte(client, LM93_REG_PWM_CTL(nr, LM93_PWM_CTL2));
 
-	switch (val) {
-	case 0:
-		ctl2 |= 0xF1; /* enable manual override, set PWM to max */
-		break;
-	case 1:
-		ctl2 |= 0x01; /* enable manual override */
-		break;
-	case 2:
-		ctl2 &= ~0x01; /* disable manual override */
-		break;
-	default:
-		mutex_unlock(&data->update_lock);
-		return -EINVAL;
+	switch (val)
+	{
+		case 0:
+			ctl2 |= 0xF1; /* enable manual override, set PWM to max */
+			break;
+
+		case 1:
+			ctl2 |= 0x01; /* enable manual override */
+			break;
+
+		case 2:
+			ctl2 &= ~0x01; /* disable manual override */
+			break;
+
+		default:
+			mutex_unlock(&data->update_lock);
+			return -EINVAL;
 	}
 
 	lm93_write_byte(client, LM93_REG_PWM_CTL(nr, LM93_PWM_CTL2), ctl2);
@@ -1962,12 +2145,12 @@ static ssize_t store_pwm_enable(struct device *dev,
 }
 
 static SENSOR_DEVICE_ATTR(pwm1_enable, S_IWUSR | S_IRUGO,
-				show_pwm_enable, store_pwm_enable, 0);
+						  show_pwm_enable, store_pwm_enable, 0);
 static SENSOR_DEVICE_ATTR(pwm2_enable, S_IWUSR | S_IRUGO,
-				show_pwm_enable, store_pwm_enable, 1);
+						  show_pwm_enable, store_pwm_enable, 1);
 
 static ssize_t show_pwm_freq(struct device *dev, struct device_attribute *attr,
-				char *buf)
+							 char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
@@ -1983,7 +2166,7 @@ static ssize_t show_pwm_freq(struct device *dev, struct device_attribute *attr,
  * this disables smart tach for all tach channels bound to the given pwm
  */
 static void lm93_disable_fan_smart_tach(struct i2c_client *client,
-	struct lm93_data *data, int pwm)
+										struct lm93_data *data, int pwm)
 {
 	int mapping = lm93_read_byte(client, LM93_REG_SF_TACH_TO_PWM);
 	int mask;
@@ -2002,8 +2185,8 @@ static void lm93_disable_fan_smart_tach(struct i2c_client *client,
 }
 
 static ssize_t store_pwm_freq(struct device *dev,
-				struct device_attribute *attr,
-				const char *buf, size_t count)
+							  struct device_attribute *attr,
+							  const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -2013,28 +2196,35 @@ static ssize_t store_pwm_freq(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	ctl4 = lm93_read_byte(client, LM93_REG_PWM_CTL(nr, LM93_PWM_CTL4));
 	ctl4 = (ctl4 & 0xf8) | LM93_PWM_FREQ_TO_REG(val);
 	data->block9[nr][LM93_PWM_CTL4] = ctl4;
+
 	/* ctl4 == 0 -> 22.5KHz -> disable smart tach */
 	if (!ctl4)
+	{
 		lm93_disable_fan_smart_tach(client, data, nr);
+	}
+
 	lm93_write_byte(client, LM93_REG_PWM_CTL(nr, LM93_PWM_CTL4), ctl4);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static SENSOR_DEVICE_ATTR(pwm1_freq, S_IWUSR | S_IRUGO,
-			  show_pwm_freq, store_pwm_freq, 0);
+						  show_pwm_freq, store_pwm_freq, 0);
 static SENSOR_DEVICE_ATTR(pwm2_freq, S_IWUSR | S_IRUGO,
-			  show_pwm_freq, store_pwm_freq, 1);
+						  show_pwm_freq, store_pwm_freq, 1);
 
 static ssize_t show_pwm_auto_channels(struct device *dev,
-				struct device_attribute *attr, char *buf)
+									  struct device_attribute *attr, char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
@@ -2042,8 +2232,8 @@ static ssize_t show_pwm_auto_channels(struct device *dev,
 }
 
 static ssize_t store_pwm_auto_channels(struct device *dev,
-					struct device_attribute *attr,
-					const char *buf, size_t count)
+									   struct device_attribute *attr,
+									   const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -2052,24 +2242,27 @@ static ssize_t store_pwm_auto_channels(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->block9[nr][LM93_PWM_CTL1] = clamp_val(val, 0, 255);
 	lm93_write_byte(client, LM93_REG_PWM_CTL(nr, LM93_PWM_CTL1),
-				data->block9[nr][LM93_PWM_CTL1]);
+					data->block9[nr][LM93_PWM_CTL1]);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static SENSOR_DEVICE_ATTR(pwm1_auto_channels, S_IWUSR | S_IRUGO,
-			  show_pwm_auto_channels, store_pwm_auto_channels, 0);
+						  show_pwm_auto_channels, store_pwm_auto_channels, 0);
 static SENSOR_DEVICE_ATTR(pwm2_auto_channels, S_IWUSR | S_IRUGO,
-			  show_pwm_auto_channels, store_pwm_auto_channels, 1);
+						  show_pwm_auto_channels, store_pwm_auto_channels, 1);
 
 static ssize_t show_pwm_auto_spinup_min(struct device *dev,
-				struct device_attribute *attr, char *buf)
+										struct device_attribute *attr, char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
@@ -2078,13 +2271,13 @@ static ssize_t show_pwm_auto_spinup_min(struct device *dev,
 	ctl3 = data->block9[nr][LM93_PWM_CTL3];
 	ctl4 = data->block9[nr][LM93_PWM_CTL4];
 	return sprintf(buf, "%d\n",
-		       LM93_PWM_FROM_REG(ctl3 & 0x0f, (ctl4 & 0x07) ?
-			LM93_PWM_MAP_LO_FREQ : LM93_PWM_MAP_HI_FREQ));
+				   LM93_PWM_FROM_REG(ctl3 & 0x0f, (ctl4 & 0x07) ?
+									 LM93_PWM_MAP_LO_FREQ : LM93_PWM_MAP_HI_FREQ));
 }
 
 static ssize_t store_pwm_auto_spinup_min(struct device *dev,
-						struct device_attribute *attr,
-						const char *buf, size_t count)
+		struct device_attribute *attr,
+		const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -2094,15 +2287,18 @@ static ssize_t store_pwm_auto_spinup_min(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	ctl3 = lm93_read_byte(client, LM93_REG_PWM_CTL(nr, LM93_PWM_CTL3));
 	ctl4 = lm93_read_byte(client, LM93_REG_PWM_CTL(nr, LM93_PWM_CTL4));
 	ctl3 = (ctl3 & 0xf0) | LM93_PWM_TO_REG(val, (ctl4 & 0x07) ?
-			LM93_PWM_MAP_LO_FREQ :
-			LM93_PWM_MAP_HI_FREQ);
+										   LM93_PWM_MAP_LO_FREQ :
+										   LM93_PWM_MAP_HI_FREQ);
 	data->block9[nr][LM93_PWM_CTL3] = ctl3;
 	lm93_write_byte(client, LM93_REG_PWM_CTL(nr, LM93_PWM_CTL3), ctl3);
 	mutex_unlock(&data->update_lock);
@@ -2110,24 +2306,24 @@ static ssize_t store_pwm_auto_spinup_min(struct device *dev,
 }
 
 static SENSOR_DEVICE_ATTR(pwm1_auto_spinup_min, S_IWUSR | S_IRUGO,
-			  show_pwm_auto_spinup_min,
-			  store_pwm_auto_spinup_min, 0);
+						  show_pwm_auto_spinup_min,
+						  store_pwm_auto_spinup_min, 0);
 static SENSOR_DEVICE_ATTR(pwm2_auto_spinup_min, S_IWUSR | S_IRUGO,
-			  show_pwm_auto_spinup_min,
-			  store_pwm_auto_spinup_min, 1);
+						  show_pwm_auto_spinup_min,
+						  store_pwm_auto_spinup_min, 1);
 
 static ssize_t show_pwm_auto_spinup_time(struct device *dev,
-				struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
 	return sprintf(buf, "%d\n", LM93_SPINUP_TIME_FROM_REG(
-				data->block9[nr][LM93_PWM_CTL3]));
+					   data->block9[nr][LM93_PWM_CTL3]));
 }
 
 static ssize_t store_pwm_auto_spinup_time(struct device *dev,
-						struct device_attribute *attr,
-						const char *buf, size_t count)
+		struct device_attribute *attr,
+		const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -2137,8 +2333,11 @@ static ssize_t store_pwm_auto_spinup_time(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	ctl3 = lm93_read_byte(client, LM93_REG_PWM_CTL(nr, LM93_PWM_CTL3));
@@ -2150,23 +2349,23 @@ static ssize_t store_pwm_auto_spinup_time(struct device *dev,
 }
 
 static SENSOR_DEVICE_ATTR(pwm1_auto_spinup_time, S_IWUSR | S_IRUGO,
-			  show_pwm_auto_spinup_time,
-			  store_pwm_auto_spinup_time, 0);
+						  show_pwm_auto_spinup_time,
+						  store_pwm_auto_spinup_time, 0);
 static SENSOR_DEVICE_ATTR(pwm2_auto_spinup_time, S_IWUSR | S_IRUGO,
-			  show_pwm_auto_spinup_time,
-			  store_pwm_auto_spinup_time, 1);
+						  show_pwm_auto_spinup_time,
+						  store_pwm_auto_spinup_time, 1);
 
 static ssize_t show_pwm_auto_prochot_ramp(struct device *dev,
-				struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	struct lm93_data *data = lm93_update_device(dev);
 	return sprintf(buf, "%d\n",
-		       LM93_RAMP_FROM_REG(data->pwm_ramp_ctl >> 4 & 0x0f));
+				   LM93_RAMP_FROM_REG(data->pwm_ramp_ctl >> 4 & 0x0f));
 }
 
 static ssize_t store_pwm_auto_prochot_ramp(struct device *dev,
-						struct device_attribute *attr,
-						const char *buf, size_t count)
+		struct device_attribute *attr,
+		const char *buf, size_t count)
 {
 	struct lm93_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
@@ -2175,8 +2374,11 @@ static ssize_t store_pwm_auto_prochot_ramp(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	ramp = lm93_read_byte(client, LM93_REG_PWM_RAMP_CTL);
@@ -2187,20 +2389,20 @@ static ssize_t store_pwm_auto_prochot_ramp(struct device *dev,
 }
 
 static DEVICE_ATTR(pwm_auto_prochot_ramp, S_IRUGO | S_IWUSR,
-			show_pwm_auto_prochot_ramp,
-			store_pwm_auto_prochot_ramp);
+				   show_pwm_auto_prochot_ramp,
+				   store_pwm_auto_prochot_ramp);
 
 static ssize_t show_pwm_auto_vrdhot_ramp(struct device *dev,
-				struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	struct lm93_data *data = lm93_update_device(dev);
 	return sprintf(buf, "%d\n",
-		       LM93_RAMP_FROM_REG(data->pwm_ramp_ctl & 0x0f));
+				   LM93_RAMP_FROM_REG(data->pwm_ramp_ctl & 0x0f));
 }
 
 static ssize_t store_pwm_auto_vrdhot_ramp(struct device *dev,
-						struct device_attribute *attr,
-						const char *buf, size_t count)
+		struct device_attribute *attr,
+		const char *buf, size_t count)
 {
 	struct lm93_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
@@ -2209,8 +2411,11 @@ static ssize_t store_pwm_auto_vrdhot_ramp(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	ramp = lm93_read_byte(client, LM93_REG_PWM_RAMP_CTL);
@@ -2221,11 +2426,11 @@ static ssize_t store_pwm_auto_vrdhot_ramp(struct device *dev,
 }
 
 static DEVICE_ATTR(pwm_auto_vrdhot_ramp, S_IRUGO | S_IWUSR,
-			show_pwm_auto_vrdhot_ramp,
-			store_pwm_auto_vrdhot_ramp);
+				   show_pwm_auto_vrdhot_ramp,
+				   store_pwm_auto_vrdhot_ramp);
 
 static ssize_t show_vid(struct device *dev, struct device_attribute *attr,
-			char *buf)
+						char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
@@ -2236,7 +2441,7 @@ static SENSOR_DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL, 0);
 static SENSOR_DEVICE_ATTR(cpu1_vid, S_IRUGO, show_vid, NULL, 1);
 
 static ssize_t show_prochot(struct device *dev, struct device_attribute *attr,
-				char *buf)
+							char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
@@ -2247,7 +2452,7 @@ static SENSOR_DEVICE_ATTR(prochot1, S_IRUGO, show_prochot, NULL, 0);
 static SENSOR_DEVICE_ATTR(prochot2, S_IRUGO, show_prochot, NULL, 1);
 
 static ssize_t show_prochot_avg(struct device *dev,
-				struct device_attribute *attr, char *buf)
+								struct device_attribute *attr, char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
@@ -2258,7 +2463,7 @@ static SENSOR_DEVICE_ATTR(prochot1_avg, S_IRUGO, show_prochot_avg, NULL, 0);
 static SENSOR_DEVICE_ATTR(prochot2_avg, S_IRUGO, show_prochot_avg, NULL, 1);
 
 static ssize_t show_prochot_max(struct device *dev,
-				struct device_attribute *attr, char *buf)
+								struct device_attribute *attr, char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
@@ -2266,8 +2471,8 @@ static ssize_t show_prochot_max(struct device *dev,
 }
 
 static ssize_t store_prochot_max(struct device *dev,
-					struct device_attribute *attr,
-					const char *buf, size_t count)
+								 struct device_attribute *attr,
+								 const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -2276,36 +2481,39 @@ static ssize_t store_prochot_max(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->prochot_max[nr] = LM93_PROCHOT_TO_REG(val);
 	lm93_write_byte(client, LM93_REG_PROCHOT_MAX(nr),
-			data->prochot_max[nr]);
+					data->prochot_max[nr]);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static SENSOR_DEVICE_ATTR(prochot1_max, S_IWUSR | S_IRUGO,
-			  show_prochot_max, store_prochot_max, 0);
+						  show_prochot_max, store_prochot_max, 0);
 static SENSOR_DEVICE_ATTR(prochot2_max, S_IWUSR | S_IRUGO,
-			  show_prochot_max, store_prochot_max, 1);
+						  show_prochot_max, store_prochot_max, 1);
 
 static const u8 prochot_override_mask[] = { 0x80, 0x40 };
 
 static ssize_t show_prochot_override(struct device *dev,
-				struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
 	return sprintf(buf, "%d\n",
-		(data->prochot_override & prochot_override_mask[nr]) ? 1 : 0);
+				   (data->prochot_override & prochot_override_mask[nr]) ? 1 : 0);
 }
 
 static ssize_t store_prochot_override(struct device *dev,
-					struct device_attribute *attr,
-					const char *buf, size_t count)
+									  struct device_attribute *attr,
+									  const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -2314,41 +2522,56 @@ static ssize_t store_prochot_override(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
+
 	if (val)
+	{
 		data->prochot_override |= prochot_override_mask[nr];
+	}
 	else
+	{
 		data->prochot_override &= (~prochot_override_mask[nr]);
+	}
+
 	lm93_write_byte(client, LM93_REG_PROCHOT_OVERRIDE,
-			data->prochot_override);
+					data->prochot_override);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static SENSOR_DEVICE_ATTR(prochot1_override, S_IWUSR | S_IRUGO,
-			  show_prochot_override, store_prochot_override, 0);
+						  show_prochot_override, store_prochot_override, 0);
 static SENSOR_DEVICE_ATTR(prochot2_override, S_IWUSR | S_IRUGO,
-			  show_prochot_override, store_prochot_override, 1);
+						  show_prochot_override, store_prochot_override, 1);
 
 static ssize_t show_prochot_interval(struct device *dev,
-				struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
 	u8 tmp;
+
 	if (nr == 1)
+	{
 		tmp = (data->prochot_interval & 0xf0) >> 4;
+	}
 	else
+	{
 		tmp = data->prochot_interval & 0x0f;
+	}
+
 	return sprintf(buf, "%d\n", LM93_INTERVAL_FROM_REG(tmp));
 }
 
 static ssize_t store_prochot_interval(struct device *dev,
-					struct device_attribute *attr,
-					const char *buf, size_t count)
+									  struct device_attribute *attr,
+									  const char *buf, size_t count)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = dev_get_drvdata(dev);
@@ -2358,15 +2581,24 @@ static ssize_t store_prochot_interval(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	tmp = lm93_read_byte(client, LM93_REG_PROCHOT_INTERVAL);
+
 	if (nr == 1)
+	{
 		tmp = (tmp & 0x0f) | (LM93_INTERVAL_TO_REG(val) << 4);
+	}
 	else
+	{
 		tmp = (tmp & 0xf0) | LM93_INTERVAL_TO_REG(val);
+	}
+
 	data->prochot_interval = tmp;
 	lm93_write_byte(client, LM93_REG_PROCHOT_INTERVAL, tmp);
 	mutex_unlock(&data->update_lock);
@@ -2374,21 +2606,21 @@ static ssize_t store_prochot_interval(struct device *dev,
 }
 
 static SENSOR_DEVICE_ATTR(prochot1_interval, S_IWUSR | S_IRUGO,
-			  show_prochot_interval, store_prochot_interval, 0);
+						  show_prochot_interval, store_prochot_interval, 0);
 static SENSOR_DEVICE_ATTR(prochot2_interval, S_IWUSR | S_IRUGO,
-			  show_prochot_interval, store_prochot_interval, 1);
+						  show_prochot_interval, store_prochot_interval, 1);
 
 static ssize_t show_prochot_override_duty_cycle(struct device *dev,
-						struct device_attribute *attr,
-						char *buf)
+		struct device_attribute *attr,
+		char *buf)
 {
 	struct lm93_data *data = lm93_update_device(dev);
 	return sprintf(buf, "%d\n", data->prochot_override & 0x0f);
 }
 
 static ssize_t store_prochot_override_duty_cycle(struct device *dev,
-						struct device_attribute *attr,
-						const char *buf, size_t count)
+		struct device_attribute *attr,
+		const char *buf, size_t count)
 {
 	struct lm93_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
@@ -2396,32 +2628,35 @@ static ssize_t store_prochot_override_duty_cycle(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->prochot_override = (data->prochot_override & 0xf0) |
-					clamp_val(val, 0, 15);
+							 clamp_val(val, 0, 15);
 	lm93_write_byte(client, LM93_REG_PROCHOT_OVERRIDE,
-			data->prochot_override);
+					data->prochot_override);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static DEVICE_ATTR(prochot_override_duty_cycle, S_IRUGO | S_IWUSR,
-			show_prochot_override_duty_cycle,
-			store_prochot_override_duty_cycle);
+				   show_prochot_override_duty_cycle,
+				   store_prochot_override_duty_cycle);
 
 static ssize_t show_prochot_short(struct device *dev,
-				struct device_attribute *attr, char *buf)
+								  struct device_attribute *attr, char *buf)
 {
 	struct lm93_data *data = lm93_update_device(dev);
 	return sprintf(buf, "%d\n", (data->config & 0x10) ? 1 : 0);
 }
 
 static ssize_t store_prochot_short(struct device *dev,
-					struct device_attribute *attr,
-					const char *buf, size_t count)
+								   struct device_attribute *attr,
+								   const char *buf, size_t count)
 {
 	struct lm93_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
@@ -2429,36 +2664,45 @@ static ssize_t store_prochot_short(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
+
 	if (val)
+	{
 		data->config |= 0x10;
+	}
 	else
+	{
 		data->config &= ~0x10;
+	}
+
 	lm93_write_byte(client, LM93_REG_CONFIG, data->config);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static DEVICE_ATTR(prochot_short, S_IRUGO | S_IWUSR,
-		   show_prochot_short, store_prochot_short);
+				   show_prochot_short, store_prochot_short);
 
 static ssize_t show_vrdhot(struct device *dev, struct device_attribute *attr,
-				char *buf)
+						   char *buf)
 {
 	int nr = (to_sensor_dev_attr(attr))->index;
 	struct lm93_data *data = lm93_update_device(dev);
 	return sprintf(buf, "%d\n",
-		       data->block1.host_status_1 & (1 << (nr + 4)) ? 1 : 0);
+				   data->block1.host_status_1 & (1 << (nr + 4)) ? 1 : 0);
 }
 
 static SENSOR_DEVICE_ATTR(vrdhot1, S_IRUGO, show_vrdhot, NULL, 0);
 static SENSOR_DEVICE_ATTR(vrdhot2, S_IRUGO, show_vrdhot, NULL, 1);
 
 static ssize_t show_gpio(struct device *dev, struct device_attribute *attr,
-				char *buf)
+						 char *buf)
 {
 	struct lm93_data *data = lm93_update_device(dev);
 	return sprintf(buf, "%d\n", LM93_GPI_FROM_REG(data->gpi));
@@ -2467,7 +2711,7 @@ static ssize_t show_gpio(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR(gpio, S_IRUGO, show_gpio, NULL);
 
 static ssize_t show_alarms(struct device *dev, struct device_attribute *attr,
-				char *buf)
+						   char *buf)
 {
 	struct lm93_data *data = lm93_update_device(dev);
 	return sprintf(buf, "%d\n", LM93_ALARMS_FROM_REG(data->block1));
@@ -2475,7 +2719,8 @@ static ssize_t show_alarms(struct device *dev, struct device_attribute *attr,
 
 static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
 
-static struct attribute *lm93_attrs[] = {
+static struct attribute *lm93_attrs[] =
+{
 	&sensor_dev_attr_in1_input.dev_attr.attr,
 	&sensor_dev_attr_in2_input.dev_attr.attr,
 	&sensor_dev_attr_in3_input.dev_attr.attr,
@@ -2641,9 +2886,10 @@ static void lm93_init_client(struct i2c_client *client)
 	/* configure VID pin input thresholds */
 	reg = lm93_read_byte(client, LM93_REG_GPI_VID_CTL);
 	lm93_write_byte(client, LM93_REG_GPI_VID_CTL,
-			reg | (vid_agtl ? 0x03 : 0x00));
+					reg | (vid_agtl ? 0x03 : 0x00));
 
-	if (init) {
+	if (init)
+	{
 		/* enable #ALERT pin */
 		reg = lm93_read_byte(client, LM93_REG_CONFIG);
 		lm93_write_byte(client, LM93_REG_CONFIG, reg | 0x08);
@@ -2668,14 +2914,18 @@ static void lm93_init_client(struct i2c_client *client)
 	lm93_write_byte(client, LM93_REG_CONFIG, reg | 0x01);
 
 	/* spin until ready */
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < 20; i++)
+	{
 		msleep(10);
+
 		if ((lm93_read_byte(client, LM93_REG_CONFIG) & 0x80) == 0x80)
+		{
 			return;
+		}
 	}
 
 	dev_warn(&client->dev,
-		 "timed out waiting for sensor chip to signal ready!\n");
+			 "timed out waiting for sensor chip to signal ready!\n");
 }
 
 /* Return 0 if detection is successful, -ENODEV otherwise */
@@ -2686,43 +2936,51 @@ static int lm93_detect(struct i2c_client *client, struct i2c_board_info *info)
 	const char *name;
 
 	if (!i2c_check_functionality(adapter, LM93_SMBUS_FUNC_MIN))
+	{
 		return -ENODEV;
+	}
 
 	/* detection */
 	mfr = lm93_read_byte(client, LM93_REG_MFR_ID);
-	if (mfr != 0x01) {
+
+	if (mfr != 0x01)
+	{
 		dev_dbg(&adapter->dev,
-			"detect failed, bad manufacturer id 0x%02x!\n", mfr);
+				"detect failed, bad manufacturer id 0x%02x!\n", mfr);
 		return -ENODEV;
 	}
 
 	ver = lm93_read_byte(client, LM93_REG_VER);
-	switch (ver) {
-	case LM93_MFR_ID:
-	case LM93_MFR_ID_PROTOTYPE:
-		name = "lm93";
-		break;
-	case LM94_MFR_ID_2:
-	case LM94_MFR_ID:
-	case LM94_MFR_ID_PROTOTYPE:
-		name = "lm94";
-		break;
-	default:
-		dev_dbg(&adapter->dev,
-			"detect failed, bad version id 0x%02x!\n", ver);
-		return -ENODEV;
+
+	switch (ver)
+	{
+		case LM93_MFR_ID:
+		case LM93_MFR_ID_PROTOTYPE:
+			name = "lm93";
+			break;
+
+		case LM94_MFR_ID_2:
+		case LM94_MFR_ID:
+		case LM94_MFR_ID_PROTOTYPE:
+			name = "lm94";
+			break;
+
+		default:
+			dev_dbg(&adapter->dev,
+					"detect failed, bad version id 0x%02x!\n", ver);
+			return -ENODEV;
 	}
 
 	strlcpy(info->type, name, I2C_NAME_SIZE);
 	dev_dbg(&adapter->dev, "loading %s at %d, 0x%02x\n",
-		client->name, i2c_adapter_id(client->adapter),
-		client->addr);
+			client->name, i2c_adapter_id(client->adapter),
+			client->addr);
 
 	return 0;
 }
 
 static int lm93_probe(struct i2c_client *client,
-		      const struct i2c_device_id *id)
+					  const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
 	struct lm93_data *data;
@@ -2732,21 +2990,30 @@ static int lm93_probe(struct i2c_client *client,
 
 	/* choose update routine based on bus capabilities */
 	func = i2c_get_functionality(client->adapter);
+
 	if (((LM93_SMBUS_FUNC_FULL & func) == LM93_SMBUS_FUNC_FULL) &&
-			(!disable_block)) {
+		(!disable_block))
+	{
 		dev_dbg(dev, "using SMBus block data transactions\n");
 		update = lm93_update_client_full;
-	} else if ((LM93_SMBUS_FUNC_MIN & func) == LM93_SMBUS_FUNC_MIN) {
+	}
+	else if ((LM93_SMBUS_FUNC_MIN & func) == LM93_SMBUS_FUNC_MIN)
+	{
 		dev_dbg(dev, "disabled SMBus block data transactions\n");
 		update = lm93_update_client_min;
-	} else {
+	}
+	else
+	{
 		dev_dbg(dev, "detect failed, smbus byte and/or word data not supported!\n");
 		return -ENODEV;
 	}
 
 	data = devm_kzalloc(dev, sizeof(struct lm93_data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	/* housekeeping */
 	data->client = client;
@@ -2757,19 +3024,21 @@ static int lm93_probe(struct i2c_client *client,
 	lm93_init_client(client);
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-							   data,
-							   lm93_groups);
+				data,
+				lm93_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
-static const struct i2c_device_id lm93_id[] = {
+static const struct i2c_device_id lm93_id[] =
+{
 	{ "lm93", 0 },
 	{ "lm94", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, lm93_id);
 
-static struct i2c_driver lm93_driver = {
+static struct i2c_driver lm93_driver =
+{
 	.class		= I2C_CLASS_HWMON,
 	.driver = {
 		.name	= "lm93",
@@ -2783,6 +3052,6 @@ static struct i2c_driver lm93_driver = {
 module_i2c_driver(lm93_driver);
 
 MODULE_AUTHOR("Mark M. Hoffman <mhoffman@lightlink.com>, "
-		"Hans J. Koch <hjk@hansjkoch.de>");
+			  "Hans J. Koch <hjk@hansjkoch.de>");
 MODULE_DESCRIPTION("LM93 driver");
 MODULE_LICENSE("GPL");

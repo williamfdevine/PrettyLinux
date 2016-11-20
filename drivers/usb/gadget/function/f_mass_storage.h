@@ -4,7 +4,8 @@
 #include <linux/usb/composite.h>
 #include "storage_common.h"
 
-struct fsg_module_parameters {
+struct fsg_module_parameters
+{
 	char		*file[FSG_MAX_LUNS];
 	bool		ro[FSG_MAX_LUNS];
 	bool		removable[FSG_MAX_LUNS];
@@ -19,30 +20,30 @@ struct fsg_module_parameters {
 
 #define _FSG_MODULE_PARAM_ARRAY(prefix, params, name, type, desc)	\
 	module_param_array_named(prefix ## name, params.name, type,	\
-				 &prefix ## params.name ## _count,	\
-				 S_IRUGO);				\
+							 &prefix ## params.name ## _count,	\
+							 S_IRUGO);				\
 	MODULE_PARM_DESC(prefix ## name, desc)
 
 #define _FSG_MODULE_PARAM(prefix, params, name, type, desc)		\
 	module_param_named(prefix ## name, params.name, type,		\
-			   S_IRUGO);					\
+					   S_IRUGO);					\
 	MODULE_PARM_DESC(prefix ## name, desc)
 
 #define __FSG_MODULE_PARAMETERS(prefix, params)				\
 	_FSG_MODULE_PARAM_ARRAY(prefix, params, file, charp,		\
-				"names of backing files or devices");	\
+							"names of backing files or devices");	\
 	_FSG_MODULE_PARAM_ARRAY(prefix, params, ro, bool,		\
-				"true to force read-only");		\
+							"true to force read-only");		\
 	_FSG_MODULE_PARAM_ARRAY(prefix, params, removable, bool,	\
-				"true to simulate removable media");	\
+							"true to simulate removable media");	\
 	_FSG_MODULE_PARAM_ARRAY(prefix, params, cdrom, bool,		\
-				"true to simulate CD-ROM instead of disk"); \
+							"true to simulate CD-ROM instead of disk"); \
 	_FSG_MODULE_PARAM_ARRAY(prefix, params, nofua, bool,		\
-				"true to ignore SCSI WRITE(10,12) FUA bit"); \
+							"true to ignore SCSI WRITE(10,12) FUA bit"); \
 	_FSG_MODULE_PARAM(prefix, params, luns, uint,			\
-			  "number of LUNs");				\
+					  "number of LUNs");				\
 	_FSG_MODULE_PARAM(prefix, params, stall, bool,			\
-			  "false to prevent bulk stalls")
+					  "false to prevent bulk stalls")
 
 #ifdef CONFIG_USB_GADGET_DEBUG_FILES
 
@@ -60,7 +61,8 @@ struct fsg_module_parameters {
 struct fsg_common;
 
 /* FSF callback functions */
-struct fsg_operations {
+struct fsg_operations
+{
 	/*
 	 * Callback function to call when thread exits.  If no
 	 * callback is set or it returns value lower then zero MSF
@@ -71,13 +73,15 @@ struct fsg_operations {
 	int (*thread_exits)(struct fsg_common *common);
 };
 
-struct fsg_lun_opts {
+struct fsg_lun_opts
+{
 	struct config_group group;
 	struct fsg_lun *lun;
 	int lun_id;
 };
 
-struct fsg_opts {
+struct fsg_opts
+{
 	struct fsg_common *common;
 	struct usb_function_instance func_inst;
 	struct fsg_lun_opts lun0;
@@ -94,7 +98,8 @@ struct fsg_opts {
 	int				refcnt;
 };
 
-struct fsg_lun_config {
+struct fsg_lun_config
+{
 	const char *filename;
 	char ro;
 	char removable;
@@ -103,7 +108,8 @@ struct fsg_lun_config {
 	char inquiry_string[INQUIRY_STRING_LEN];
 };
 
-struct fsg_config {
+struct fsg_config
+{
 	unsigned nluns;
 	struct fsg_lun_config luns[FSG_MAX_LUNS];
 
@@ -136,26 +142,26 @@ int fsg_common_set_num_buffers(struct fsg_common *common, unsigned int n);
 void fsg_common_free_buffers(struct fsg_common *common);
 
 int fsg_common_set_cdev(struct fsg_common *common,
-			struct usb_composite_dev *cdev, bool can_stall);
+						struct usb_composite_dev *cdev, bool can_stall);
 
 void fsg_common_remove_lun(struct fsg_lun *lun);
 
 void fsg_common_remove_luns(struct fsg_common *common);
 
 void fsg_common_set_ops(struct fsg_common *common,
-			const struct fsg_operations *ops);
+						const struct fsg_operations *ops);
 
 int fsg_common_create_lun(struct fsg_common *common, struct fsg_lun_config *cfg,
-			  unsigned int id, const char *name,
-			  const char **name_pfx);
+						  unsigned int id, const char *name,
+						  const char **name_pfx);
 
 int fsg_common_create_luns(struct fsg_common *common, struct fsg_config *cfg);
 
 void fsg_common_set_inquiry_string(struct fsg_common *common, const char *vn,
-				   const char *pn);
+								   const char *pn);
 
 void fsg_config_from_params(struct fsg_config *cfg,
-			    const struct fsg_module_parameters *params,
-			    unsigned int fsg_num_buffers);
+							const struct fsg_module_parameters *params,
+							unsigned int fsg_num_buffers);
 
 #endif /* USB_F_MASS_STORAGE_H */

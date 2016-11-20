@@ -26,10 +26,11 @@
  * spinlock is not shared between both drivers.
  */
 #ifdef CONFIG_CLKSRC_SAMSUNG_PWM
-extern spinlock_t samsung_pwm_lock;
+	extern spinlock_t samsung_pwm_lock;
 #endif
 
-struct samsung_pwm_variant {
+struct samsung_pwm_variant
+{
 	u8 bits;
 	u8 div_base;
 	u8 tclk_mask;
@@ -38,6 +39,6 @@ struct samsung_pwm_variant {
 };
 
 void samsung_pwm_clocksource_init(void __iomem *base,
-		unsigned int *irqs, struct samsung_pwm_variant *variant);
+								  unsigned int *irqs, struct samsung_pwm_variant *variant);
 
 #endif /* __CLOCKSOURCE_SAMSUNG_PWM_H */

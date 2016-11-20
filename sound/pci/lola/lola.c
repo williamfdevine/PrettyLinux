@@ -49,12 +49,14 @@ MODULE_PARM_DESC(enable, "Enable Digigram Lola driver.");
 /* for instance use always max granularity which is compatible
  * with all sample rates
  */
-static int granularity[SNDRV_CARDS] = {
+static int granularity[SNDRV_CARDS] =
+{
 	[0 ... (SNDRV_CARDS - 1)] = LOLA_GRANULARITY_MAX
 };
 
 /* below a sample_rate of 16kHz the analogue audio quality is NOT excellent */
-static int sample_rate_min[SNDRV_CARDS] = {
+static int sample_rate_min[SNDRV_CARDS] =
+{
 	[0 ... (SNDRV_CARDS - 1) ] = 16000
 };
 
@@ -85,8 +87,8 @@ module_param(debug, int, 0644);
  */
 
 static int corb_send_verb(struct lola *chip, unsigned int nid,
-			  unsigned int verb, unsigned int data,
-			  unsigned int extdata)
+						  unsigned int verb, unsigned int data,
+						  unsigned int extdata)
 {
 	unsigned long flags;
 	int ret = -EIO;
@@ -98,7 +100,9 @@ static int corb_send_verb(struct lola *chip, unsigned int nid,
 	data |= (nid << 20) | (verb << 8);
 
 	spin_lock_irqsave(&chip->reg_lock, flags);
-	if (chip->rirb.cmds < LOLA_CORB_ENTRIES - 1) {
+
+	if (chip->rirb.cmds < LOLA_CORB_ENTRIES - 1)
+	{
 		unsigned int wp = chip->corb.wp + 1;
 		wp %= LOLA_CORB_ENTRIES;
 		chip->corb.wp = wp;
@@ -109,12 +113,13 @@ static int corb_send_verb(struct lola *chip, unsigned int nid,
 		smp_wmb();
 		ret = 0;
 	}
+
 	spin_unlock_irqrestore(&chip->reg_lock, flags);
 	return ret;
 }
 
 static void lola_queue_unsol_event(struct lola *chip, unsigned int res,
-				   unsigned int res_ex)
+								   unsigned int res_ex)
 {
 	lola_update_ext_clock_freq(chip, res);
 }
@@ -126,20 +131,29 @@ static void lola_update_rirb(struct lola *chip)
 	u32 res, res_ex;
 
 	wp = lola_readw(chip, BAR0, RIRBWP);
+
 	if (wp == chip->rirb.wp)
+	{
 		return;
+	}
+
 	chip->rirb.wp = wp;
 
-	while (chip->rirb.rp != wp) {
+	while (chip->rirb.rp != wp)
+	{
 		chip->rirb.rp++;
 		chip->rirb.rp %= LOLA_CORB_ENTRIES;
 
 		rp = chip->rirb.rp << 1; /* an RIRB entry is 8-bytes */
 		res_ex = le32_to_cpu(chip->rirb.buf[rp + 1]);
 		res = le32_to_cpu(chip->rirb.buf[rp]);
+
 		if (res_ex & LOLA_RIRB_EX_UNSOL_EV)
+		{
 			lola_queue_unsol_event(chip, res, res_ex);
-		else if (chip->rirb.cmds) {
+		}
+		else if (chip->rirb.cmds)
+		{
 			chip->res = res;
 			chip->res_ex = res_ex;
 			smp_wmb();
@@ -149,69 +163,93 @@ static void lola_update_rirb(struct lola *chip)
 }
 
 static int rirb_get_response(struct lola *chip, unsigned int *val,
-			     unsigned int *extval)
+							 unsigned int *extval)
 {
 	unsigned long timeout;
 
- again:
+again:
 	timeout = jiffies + msecs_to_jiffies(1000);
-	for (;;) {
-		if (chip->polling_mode) {
+
+	for (;;)
+	{
+		if (chip->polling_mode)
+		{
 			spin_lock_irq(&chip->reg_lock);
 			lola_update_rirb(chip);
 			spin_unlock_irq(&chip->reg_lock);
 		}
-		if (!chip->rirb.cmds) {
+
+		if (!chip->rirb.cmds)
+		{
 			*val = chip->res;
+
 			if (extval)
+			{
 				*extval = chip->res_ex;
+			}
+
 			verbose_debug("get_response: %x, %x\n",
-				      chip->res, chip->res_ex);
-			if (chip->res_ex & LOLA_RIRB_EX_ERROR) {
+						  chip->res, chip->res_ex);
+
+			if (chip->res_ex & LOLA_RIRB_EX_ERROR)
+			{
 				dev_warn(chip->card->dev, "RIRB ERROR: "
-				       "NID=%x, verb=%x, data=%x, ext=%x\n",
-				       chip->last_cmd_nid,
-				       chip->last_verb, chip->last_data,
-				       chip->last_extdata);
+						 "NID=%x, verb=%x, data=%x, ext=%x\n",
+						 chip->last_cmd_nid,
+						 chip->last_verb, chip->last_data,
+						 chip->last_extdata);
 				return -EIO;
 			}
+
 			return 0;
 		}
+
 		if (time_after(jiffies, timeout))
+		{
 			break;
+		}
+
 		udelay(20);
 		cond_resched();
 	}
+
 	dev_warn(chip->card->dev, "RIRB response error\n");
-	if (!chip->polling_mode) {
+
+	if (!chip->polling_mode)
+	{
 		dev_warn(chip->card->dev, "switching to polling mode\n");
 		chip->polling_mode = 1;
 		goto again;
 	}
+
 	return -EIO;
 }
 
 /* aynchronous write of a codec verb with data */
 int lola_codec_write(struct lola *chip, unsigned int nid, unsigned int verb,
-		     unsigned int data, unsigned int extdata)
+					 unsigned int data, unsigned int extdata)
 {
 	verbose_debug("codec_write NID=%x, verb=%x, data=%x, ext=%x\n",
-		      nid, verb, data, extdata);
+				  nid, verb, data, extdata);
 	return corb_send_verb(chip, nid, verb, data, extdata);
 }
 
 /* write a codec verb with data and read the returned status */
 int lola_codec_read(struct lola *chip, unsigned int nid, unsigned int verb,
-		    unsigned int data, unsigned int extdata,
-		    unsigned int *val, unsigned int *extval)
+					unsigned int data, unsigned int extdata,
+					unsigned int *val, unsigned int *extval)
 {
 	int err;
 
 	verbose_debug("codec_read NID=%x, verb=%x, data=%x, ext=%x\n",
-		      nid, verb, data, extdata);
+				  nid, verb, data, extdata);
 	err = corb_send_verb(chip, nid, verb, data, extdata);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	err = rirb_get_response(chip, val, extval);
 	return err;
 }
@@ -235,65 +273,103 @@ static irqreturn_t lola_interrupt(int irq, void *dev_id)
 
 	notify_ins = notify_outs = error_ins = error_outs = 0;
 	spin_lock(&chip->reg_lock);
-	for (;;) {
+
+	for (;;)
+	{
 		unsigned int status, in_sts, out_sts;
 		unsigned int reg;
 
 		status = lola_readl(chip, BAR1, DINTSTS);
+
 		if (!status || status == -1)
+		{
 			break;
+		}
 
 		in_sts = lola_readl(chip, BAR1, DIINTSTS);
 		out_sts = lola_readl(chip, BAR1, DOINTSTS);
 
 		/* clear Input Interrupts */
-		for (i = 0; in_sts && i < chip->pcm[CAPT].num_streams; i++) {
+		for (i = 0; in_sts && i < chip->pcm[CAPT].num_streams; i++)
+		{
 			if (!(in_sts & (1 << i)))
+			{
 				continue;
+			}
+
 			in_sts &= ~(1 << i);
 			reg = lola_dsd_read(chip, i, STS);
+
 			if (reg & LOLA_DSD_STS_DESE) /* error */
+			{
 				error_ins |= (1 << i);
+			}
+
 			if (reg & LOLA_DSD_STS_BCIS) /* notify */
+			{
 				notify_ins |= (1 << i);
+			}
+
 			/* clear */
 			lola_dsd_write(chip, i, STS, reg);
 		}
 
 		/* clear Output Interrupts */
-		for (i = 0; out_sts && i < chip->pcm[PLAY].num_streams; i++) {
+		for (i = 0; out_sts && i < chip->pcm[PLAY].num_streams; i++)
+		{
 			if (!(out_sts & (1 << i)))
+			{
 				continue;
+			}
+
 			out_sts &= ~(1 << i);
 			reg = lola_dsd_read(chip, i + MAX_STREAM_IN_COUNT, STS);
+
 			if (reg & LOLA_DSD_STS_DESE) /* error */
+			{
 				error_outs |= (1 << i);
+			}
+
 			if (reg & LOLA_DSD_STS_BCIS) /* notify */
+			{
 				notify_outs |= (1 << i);
+			}
+
 			lola_dsd_write(chip, i + MAX_STREAM_IN_COUNT, STS, reg);
 		}
 
-		if (status & LOLA_DINT_CTRL) {
+		if (status & LOLA_DINT_CTRL)
+		{
 			unsigned char rbsts; /* ring status is byte access */
 			rbsts = lola_readb(chip, BAR0, RIRBSTS);
 			rbsts &= LOLA_RIRB_INT_MASK;
+
 			if (rbsts)
+			{
 				lola_writeb(chip, BAR0, RIRBSTS, rbsts);
+			}
+
 			rbsts = lola_readb(chip, BAR0, CORBSTS);
 			rbsts &= LOLA_CORB_INT_MASK;
+
 			if (rbsts)
+			{
 				lola_writeb(chip, BAR0, CORBSTS, rbsts);
+			}
 
 			lola_update_rirb(chip);
 		}
 
-		if (status & (LOLA_DINT_FIFOERR | LOLA_DINT_MUERR)) {
+		if (status & (LOLA_DINT_FIFOERR | LOLA_DINT_MUERR))
+		{
 			/* clear global fifo error interrupt */
 			lola_writel(chip, BAR1, DINTSTS,
-				    (status & (LOLA_DINT_FIFOERR | LOLA_DINT_MUERR)));
+						(status & (LOLA_DINT_FIFOERR | LOLA_DINT_MUERR)));
 		}
+
 		handled = 1;
 	}
+
 	spin_unlock(&chip->reg_lock);
 
 	lola_pcm_update(chip, &chip->pcm[CAPT], notify_ins);
@@ -311,7 +387,8 @@ static int reset_controller(struct lola *chip)
 	unsigned int gctl = lola_readl(chip, BAR0, GCTL);
 	unsigned long end_time;
 
-	if (gctl) {
+	if (gctl)
+	{
 		/* to be sure */
 		lola_writel(chip, BAR1, BOARD_MODE, 0);
 		return 0;
@@ -320,16 +397,25 @@ static int reset_controller(struct lola *chip)
 	chip->cold_reset = 1;
 	lola_writel(chip, BAR0, GCTL, LOLA_GCTL_RESET);
 	end_time = jiffies + msecs_to_jiffies(200);
-	do {
+
+	do
+	{
 		msleep(1);
 		gctl = lola_readl(chip, BAR0, GCTL);
+
 		if (gctl)
+		{
 			break;
-	} while (time_before(jiffies, end_time));
-	if (!gctl) {
+		}
+	}
+	while (time_before(jiffies, end_time));
+
+	if (!gctl)
+	{
 		dev_err(chip->card->dev, "cannot reset controller\n");
 		return -EIO;
 	}
+
 	return 0;
 }
 
@@ -345,7 +431,7 @@ static void lola_irq_enable(struct lola *chip)
 
 	/* enable global irqs */
 	val = LOLA_DINT_GLOBAL | LOLA_DINT_CTRL | LOLA_DINT_FIFOERR |
-		LOLA_DINT_MUERR;
+		  LOLA_DINT_MUERR;
 	lola_writel(chip, BAR1, DINTCTL, val);
 }
 
@@ -363,10 +449,13 @@ static int setup_corb_rirb(struct lola *chip)
 	unsigned long end_time;
 
 	err = snd_dma_alloc_pages(SNDRV_DMA_TYPE_DEV,
-				  snd_dma_pci_data(chip->pci),
-				  PAGE_SIZE, &chip->rb);
+							  snd_dma_pci_data(chip->pci),
+							  PAGE_SIZE, &chip->rb);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	chip->corb.addr = chip->rb.addr;
 	chip->corb.buf = (u32 *)chip->rb.area;
@@ -378,12 +467,18 @@ static int setup_corb_rirb(struct lola *chip)
 	lola_writeb(chip, BAR0, CORBCTL, 0);
 
 	end_time = jiffies + msecs_to_jiffies(200);
-	do {
+
+	do
+	{
 		if (!lola_readb(chip, BAR0, RIRBCTL) &&
-		    !lola_readb(chip, BAR0, CORBCTL))
+			!lola_readb(chip, BAR0, CORBCTL))
+		{
 			break;
+		}
+
 		msleep(1);
-	} while (time_before(jiffies, end_time));
+	}
+	while (time_before(jiffies, end_time));
 
 	/* CORB set up */
 	lola_writel(chip, BAR0, CORBLBASE, (u32)chip->corb.addr);
@@ -398,8 +493,12 @@ static int setup_corb_rirb(struct lola *chip)
 	lola_writeb(chip, BAR0, CORBCTL, LOLA_RBCTL_DMA_EN);
 	/* clear flags if set */
 	tmp = lola_readb(chip, BAR0, CORBSTS) & LOLA_CORB_INT_MASK;
+
 	if (tmp)
+	{
 		lola_writeb(chip, BAR0, CORBSTS, tmp);
+	}
+
 	chip->corb.wp = 0;
 
 	/* RIRB set up */
@@ -415,8 +514,12 @@ static int setup_corb_rirb(struct lola *chip)
 	lola_writeb(chip, BAR0, RIRBCTL, LOLA_RBCTL_DMA_EN | LOLA_RBCTL_IRQ_EN);
 	/* clear flags if set */
 	tmp =  lola_readb(chip, BAR0, RIRBSTS) & LOLA_RIRB_INT_MASK;
+
 	if (tmp)
+	{
 		lola_writeb(chip, BAR0, RIRBSTS, tmp);
+	}
+
 	chip->rirb.rp = chip->rirb.cmds = 0;
 
 	return 0;
@@ -451,87 +554,133 @@ static int lola_parse_tree(struct lola *chip)
 	int nid, err;
 
 	err = lola_read_param(chip, 0, LOLA_PAR_VENDOR_ID, &val);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(chip->card->dev, "Can't read VENDOR_ID\n");
 		return err;
 	}
+
 	val >>= 16;
-	if (val != 0x1369) {
+
+	if (val != 0x1369)
+	{
 		dev_err(chip->card->dev, "Unknown codec vendor 0x%x\n", val);
 		return -EINVAL;
 	}
 
 	err = lola_read_param(chip, 1, LOLA_PAR_FUNCTION_TYPE, &val);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(chip->card->dev, "Can't read FUNCTION_TYPE\n");
 		return err;
 	}
-	if (val != 1) {
+
+	if (val != 1)
+	{
 		dev_err(chip->card->dev, "Unknown function type %d\n", val);
 		return -EINVAL;
 	}
 
 	err = lola_read_param(chip, 1, LOLA_PAR_SPECIFIC_CAPS, &val);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(chip->card->dev, "Can't read SPECCAPS\n");
 		return err;
 	}
+
 	chip->lola_caps = val;
 	chip->pin[CAPT].num_pins = LOLA_AFG_INPUT_PIN_COUNT(chip->lola_caps);
 	chip->pin[PLAY].num_pins = LOLA_AFG_OUTPUT_PIN_COUNT(chip->lola_caps);
 	dev_dbg(chip->card->dev, "speccaps=0x%x, pins in=%d, out=%d\n",
-		    chip->lola_caps,
-		    chip->pin[CAPT].num_pins, chip->pin[PLAY].num_pins);
+			chip->lola_caps,
+			chip->pin[CAPT].num_pins, chip->pin[PLAY].num_pins);
 
 	if (chip->pin[CAPT].num_pins > MAX_AUDIO_INOUT_COUNT ||
-	    chip->pin[PLAY].num_pins > MAX_AUDIO_INOUT_COUNT) {
+		chip->pin[PLAY].num_pins > MAX_AUDIO_INOUT_COUNT)
+	{
 		dev_err(chip->card->dev, "Invalid Lola-spec caps 0x%x\n", val);
 		return -EINVAL;
 	}
 
 	nid = 0x02;
 	err = lola_init_pcm(chip, CAPT, &nid);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	err = lola_init_pcm(chip, PLAY, &nid);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = lola_init_pins(chip, CAPT, &nid);
-	if (err < 0)
-		return err;
-	err = lola_init_pins(chip, PLAY, &nid);
-	if (err < 0)
-		return err;
 
-	if (LOLA_AFG_CLOCK_WIDGET_PRESENT(chip->lola_caps)) {
+	if (err < 0)
+	{
+		return err;
+	}
+
+	err = lola_init_pins(chip, PLAY, &nid);
+
+	if (err < 0)
+	{
+		return err;
+	}
+
+	if (LOLA_AFG_CLOCK_WIDGET_PRESENT(chip->lola_caps))
+	{
 		err = lola_init_clock_widget(chip, nid);
+
 		if (err < 0)
+		{
 			return err;
+		}
+
 		nid++;
 	}
-	if (LOLA_AFG_MIXER_WIDGET_PRESENT(chip->lola_caps)) {
+
+	if (LOLA_AFG_MIXER_WIDGET_PRESENT(chip->lola_caps))
+	{
 		err = lola_init_mixer_widget(chip, nid);
+
 		if (err < 0)
+		{
 			return err;
+		}
+
 		nid++;
 	}
 
 	/* enable unsolicited events of the clock widget */
 	err = lola_enable_clock_events(chip);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* if last ResetController was not a ColdReset, we don't know
 	 * the state of the card; initialize here again
 	 */
-	if (!chip->cold_reset) {
+	if (!chip->cold_reset)
+	{
 		lola_reset_setups(chip);
 		chip->cold_reset = 1;
-	} else {
+	}
+	else
+	{
 		/* set the granularity if it is not the default */
 		if (chip->granularity != LOLA_GRANULARITY_MIN)
+		{
 			lola_set_granularity(chip, chip->granularity, true);
+		}
 	}
 
 	return 0;
@@ -546,15 +695,26 @@ static void lola_stop_hw(struct lola *chip)
 static void lola_free(struct lola *chip)
 {
 	if (chip->initialized)
+	{
 		lola_stop_hw(chip);
+	}
+
 	lola_free_pcm(chip);
 	lola_free_mixer(chip);
+
 	if (chip->irq >= 0)
+	{
 		free_irq(chip->irq, (void *)chip);
+	}
+
 	iounmap(chip->bar[0].remap_addr);
 	iounmap(chip->bar[1].remap_addr);
+
 	if (chip->rb.area)
+	{
 		snd_dma_free_pages(&chip->rb);
+	}
+
 	pci_release_regions(chip->pci);
 	pci_disable_device(chip->pci);
 	kfree(chip);
@@ -567,23 +727,29 @@ static int lola_dev_free(struct snd_device *device)
 }
 
 static int lola_create(struct snd_card *card, struct pci_dev *pci,
-		       int dev, struct lola **rchip)
+					   int dev, struct lola **rchip)
 {
 	struct lola *chip;
 	int err;
 	unsigned int dever;
-	static struct snd_device_ops ops = {
+	static struct snd_device_ops ops =
+	{
 		.dev_free = lola_dev_free,
 	};
 
 	*rchip = NULL;
 
 	err = pci_enable_device(pci);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
-	if (!chip) {
+
+	if (!chip)
+	{
 		pci_disable_device(pci);
 		return -ENOMEM;
 	}
@@ -595,34 +761,44 @@ static int lola_create(struct snd_card *card, struct pci_dev *pci,
 	chip->irq = -1;
 
 	chip->granularity = granularity[dev];
-	switch (chip->granularity) {
-	case 8:
-		chip->sample_rate_max = 48000;
-		break;
-	case 16:
-		chip->sample_rate_max = 96000;
-		break;
-	case 32:
-		chip->sample_rate_max = 192000;
-		break;
-	default:
-		dev_warn(chip->card->dev,
-			   "Invalid granularity %d, reset to %d\n",
-			   chip->granularity, LOLA_GRANULARITY_MAX);
-		chip->granularity = LOLA_GRANULARITY_MAX;
-		chip->sample_rate_max = 192000;
-		break;
+
+	switch (chip->granularity)
+	{
+		case 8:
+			chip->sample_rate_max = 48000;
+			break;
+
+		case 16:
+			chip->sample_rate_max = 96000;
+			break;
+
+		case 32:
+			chip->sample_rate_max = 192000;
+			break;
+
+		default:
+			dev_warn(chip->card->dev,
+					 "Invalid granularity %d, reset to %d\n",
+					 chip->granularity, LOLA_GRANULARITY_MAX);
+			chip->granularity = LOLA_GRANULARITY_MAX;
+			chip->sample_rate_max = 192000;
+			break;
 	}
+
 	chip->sample_rate_min = sample_rate_min[dev];
-	if (chip->sample_rate_min > chip->sample_rate_max) {
+
+	if (chip->sample_rate_min > chip->sample_rate_max)
+	{
 		dev_warn(chip->card->dev,
-			   "Invalid sample_rate_min %d, reset to 16000\n",
-			   chip->sample_rate_min);
+				 "Invalid sample_rate_min %d, reset to 16000\n",
+				 chip->sample_rate_min);
 		chip->sample_rate_min = 16000;
 	}
 
 	err = pci_request_regions(pci, DRVNAME);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		kfree(chip);
 		pci_disable_device(pci);
 		return err;
@@ -632,7 +808,9 @@ static int lola_create(struct snd_card *card, struct pci_dev *pci,
 	chip->bar[0].remap_addr = pci_ioremap_bar(pci, 0);
 	chip->bar[1].addr = pci_resource_start(pci, 2);
 	chip->bar[1].remap_addr = pci_ioremap_bar(pci, 2);
-	if (!chip->bar[0].remap_addr || !chip->bar[1].remap_addr) {
+
+	if (!chip->bar[0].remap_addr || !chip->bar[1].remap_addr)
+	{
 		dev_err(chip->card->dev, "ioremap error\n");
 		err = -ENXIO;
 		goto errout;
@@ -641,15 +819,20 @@ static int lola_create(struct snd_card *card, struct pci_dev *pci,
 	pci_set_master(pci);
 
 	err = reset_controller(chip);
+
 	if (err < 0)
+	{
 		goto errout;
+	}
 
 	if (request_irq(pci->irq, lola_interrupt, IRQF_SHARED,
-			KBUILD_MODNAME, chip)) {
+					KBUILD_MODNAME, chip))
+	{
 		dev_err(chip->card->dev, "unable to grab IRQ %d\n", pci->irq);
 		err = -EBUSY;
 		goto errout;
 	}
+
 	chip->irq = pci->irq;
 	synchronize_irq(chip->irq);
 
@@ -658,25 +841,31 @@ static int lola_create(struct snd_card *card, struct pci_dev *pci,
 	chip->pcm[PLAY].num_streams = (dever >> 10) & 0x3ff;
 	chip->version = (dever >> 24) & 0xff;
 	dev_dbg(chip->card->dev, "streams in=%d, out=%d, version=0x%x\n",
-		    chip->pcm[CAPT].num_streams, chip->pcm[PLAY].num_streams,
-		    chip->version);
+			chip->pcm[CAPT].num_streams, chip->pcm[PLAY].num_streams,
+			chip->version);
 
 	/* Test LOLA_BAR1_DEVER */
 	if (chip->pcm[CAPT].num_streams > MAX_STREAM_IN_COUNT ||
-	    chip->pcm[PLAY].num_streams > MAX_STREAM_OUT_COUNT ||
-	    (!chip->pcm[CAPT].num_streams &&
-	     !chip->pcm[PLAY].num_streams)) {
+		chip->pcm[PLAY].num_streams > MAX_STREAM_OUT_COUNT ||
+		(!chip->pcm[CAPT].num_streams &&
+		 !chip->pcm[PLAY].num_streams))
+	{
 		dev_err(chip->card->dev, "invalid DEVER = %x\n", dever);
 		err = -EINVAL;
 		goto errout;
 	}
 
 	err = setup_corb_rirb(chip);
+
 	if (err < 0)
+	{
 		goto errout;
+	}
 
 	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(chip->card->dev, "Error creating device [card]!\n");
 		goto errout;
 	}
@@ -684,8 +873,8 @@ static int lola_create(struct snd_card *card, struct pci_dev *pci,
 	strcpy(card->driver, "Lola");
 	strlcpy(card->shortname, "Digigram Lola", sizeof(card->shortname));
 	snprintf(card->longname, sizeof(card->longname),
-		 "%s at 0x%lx irq %i",
-		 card->shortname, chip->bar[0].addr, chip->irq);
+			 "%s at 0x%lx irq %i",
+			 card->shortname, chip->bar[0].addr, chip->irq);
 	strcpy(card->mixername, card->shortname);
 
 	lola_irq_enable(chip);
@@ -694,13 +883,13 @@ static int lola_create(struct snd_card *card, struct pci_dev *pci,
 	*rchip = chip;
 	return 0;
 
- errout:
+errout:
 	lola_free(chip);
 	return err;
 }
 
 static int lola_probe(struct pci_dev *pci,
-		      const struct pci_device_id *pci_id)
+					  const struct pci_device_id *pci_id)
 {
 	static int dev;
 	struct snd_card *card;
@@ -708,41 +897,63 @@ static int lola_probe(struct pci_dev *pci,
 	int err;
 
 	if (dev >= SNDRV_CARDS)
+	{
 		return -ENODEV;
-	if (!enable[dev]) {
+	}
+
+	if (!enable[dev])
+	{
 		dev++;
 		return -ENOENT;
 	}
 
 	err = snd_card_new(&pci->dev, index[dev], id[dev], THIS_MODULE,
-			   0, &card);
-	if (err < 0) {
+					   0, &card);
+
+	if (err < 0)
+	{
 		dev_err(&pci->dev, "Error creating card!\n");
 		return err;
 	}
 
 	err = lola_create(card, pci, dev, &chip);
+
 	if (err < 0)
+	{
 		goto out_free;
+	}
+
 	card->private_data = chip;
 
 	err = lola_parse_tree(chip);
+
 	if (err < 0)
+	{
 		goto out_free;
+	}
 
 	err = lola_create_pcm(chip);
+
 	if (err < 0)
+	{
 		goto out_free;
+	}
 
 	err = lola_create_mixer(chip);
+
 	if (err < 0)
+	{
 		goto out_free;
+	}
 
 	lola_proc_debug_new(chip);
 
 	err = snd_card_register(card);
+
 	if (err < 0)
+	{
 		goto out_free;
+	}
 
 	pci_set_drvdata(pci, card);
 	dev++;
@@ -758,14 +969,16 @@ static void lola_remove(struct pci_dev *pci)
 }
 
 /* PCI IDs */
-static const struct pci_device_id lola_ids[] = {
+static const struct pci_device_id lola_ids[] =
+{
 	{ PCI_VDEVICE(DIGIGRAM, 0x0001) },
 	{ 0, }
 };
 MODULE_DEVICE_TABLE(pci, lola_ids);
 
 /* pci_driver definition */
-static struct pci_driver lola_driver = {
+static struct pci_driver lola_driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = lola_ids,
 	.probe = lola_probe,

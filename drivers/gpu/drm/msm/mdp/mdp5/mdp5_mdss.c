@@ -24,14 +24,16 @@
  * If needed, this can become more specific: something like struct mdp5_mdss,
  * which contains a 'struct msm_mdss base' member.
  */
-struct msm_mdss {
+struct msm_mdss
+{
 	struct drm_device *dev;
 
 	void __iomem *mmio, *vbif;
 
 	struct regulator *vdd;
 
-	struct {
+	struct
+	{
 		volatile unsigned long enabled_mask;
 		struct irq_domain *domain;
 	} irqcontroller;
@@ -56,11 +58,12 @@ static irqreturn_t mdss_irq(int irq, void *arg)
 
 	VERB("intr=%08x", intr);
 
-	while (intr) {
+	while (intr)
+	{
 		irq_hw_number_t hwirq = fls(intr) - 1;
 
 		generic_handle_irq(irq_find_mapping(
-				mdss->irqcontroller.domain, hwirq));
+							   mdss->irqcontroller.domain, hwirq));
 		intr &= ~(1 << hwirq);
 	}
 
@@ -73,10 +76,10 @@ static irqreturn_t mdss_irq(int irq, void *arg)
  */
 
 #define VALID_IRQS  (MDSS_HW_INTR_STATUS_INTR_MDP | \
-		MDSS_HW_INTR_STATUS_INTR_DSI0 | \
-		MDSS_HW_INTR_STATUS_INTR_DSI1 | \
-		MDSS_HW_INTR_STATUS_INTR_HDMI | \
-		MDSS_HW_INTR_STATUS_INTR_EDP)
+					 MDSS_HW_INTR_STATUS_INTR_DSI0 | \
+					 MDSS_HW_INTR_STATUS_INTR_DSI1 | \
+					 MDSS_HW_INTR_STATUS_INTR_HDMI | \
+					 MDSS_HW_INTR_STATUS_INTR_EDP)
 
 static void mdss_hw_mask_irq(struct irq_data *irqd)
 {
@@ -96,19 +99,22 @@ static void mdss_hw_unmask_irq(struct irq_data *irqd)
 	smp_mb__after_atomic();
 }
 
-static struct irq_chip mdss_hw_irq_chip = {
+static struct irq_chip mdss_hw_irq_chip =
+{
 	.name		= "mdss",
 	.irq_mask	= mdss_hw_mask_irq,
 	.irq_unmask	= mdss_hw_unmask_irq,
 };
 
 static int mdss_hw_irqdomain_map(struct irq_domain *d, unsigned int irq,
-				 irq_hw_number_t hwirq)
+								 irq_hw_number_t hwirq)
 {
 	struct msm_mdss *mdss = d->host_data;
 
 	if (!(VALID_IRQS & (1 << hwirq)))
+	{
 		return -EPERM;
+	}
 
 	irq_set_chip_and_handler(irq, &mdss_hw_irq_chip, handle_level_irq);
 	irq_set_chip_data(irq, mdss);
@@ -116,7 +122,8 @@ static int mdss_hw_irqdomain_map(struct irq_domain *d, unsigned int irq,
 	return 0;
 }
 
-static struct irq_domain_ops mdss_hw_irqdomain_ops = {
+static struct irq_domain_ops mdss_hw_irqdomain_ops =
+{
 	.map = mdss_hw_irqdomain_map,
 	.xlate = irq_domain_xlate_onecell,
 };
@@ -128,8 +135,10 @@ static int mdss_irq_domain_init(struct msm_mdss *mdss)
 	struct irq_domain *d;
 
 	d = irq_domain_add_linear(dev->of_node, 32, &mdss_hw_irqdomain_ops,
-				  mdss);
-	if (!d) {
+							  mdss);
+
+	if (!d)
+	{
 		dev_err(dev, "mdss irq domain add failed\n");
 		return -ENXIO;
 	}
@@ -146,7 +155,9 @@ void msm_mdss_destroy(struct drm_device *dev)
 	struct msm_mdss *mdss = priv->mdss;
 
 	if (!mdss)
+	{
 		return;
+	}
 
 	irq_domain_remove(mdss->irqcontroller.domain);
 	mdss->irqcontroller.domain = NULL;
@@ -168,10 +179,14 @@ int msm_mdss_init(struct drm_device *dev)
 	DBG("");
 
 	if (!of_device_is_compatible(dev->dev->of_node, "qcom,mdss"))
+	{
 		return 0;
+	}
 
 	mdss = devm_kzalloc(dev->dev, sizeof(*mdss), GFP_KERNEL);
-	if (!mdss) {
+
+	if (!mdss)
+	{
 		ret = -ENOMEM;
 		goto fail;
 	}
@@ -179,40 +194,52 @@ int msm_mdss_init(struct drm_device *dev)
 	mdss->dev = dev;
 
 	mdss->mmio = msm_ioremap(pdev, "mdss_phys", "MDSS");
-	if (IS_ERR(mdss->mmio)) {
+
+	if (IS_ERR(mdss->mmio))
+	{
 		ret = PTR_ERR(mdss->mmio);
 		goto fail;
 	}
 
 	mdss->vbif = msm_ioremap(pdev, "vbif_phys", "VBIF");
-	if (IS_ERR(mdss->vbif)) {
+
+	if (IS_ERR(mdss->vbif))
+	{
 		ret = PTR_ERR(mdss->vbif);
 		goto fail;
 	}
 
 	/* Regulator to enable GDSCs in downstream kernels */
 	mdss->vdd = devm_regulator_get(dev->dev, "vdd");
-	if (IS_ERR(mdss->vdd)) {
+
+	if (IS_ERR(mdss->vdd))
+	{
 		ret = PTR_ERR(mdss->vdd);
 		goto fail;
 	}
 
 	ret = regulator_enable(mdss->vdd);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev->dev, "failed to enable regulator vdd: %d\n",
-			ret);
+				ret);
 		goto fail;
 	}
 
 	ret = devm_request_irq(dev->dev, platform_get_irq(pdev, 0),
-			       mdss_irq, 0, "mdss_isr", mdss);
-	if (ret) {
+						   mdss_irq, 0, "mdss_isr", mdss);
+
+	if (ret)
+	{
 		dev_err(dev->dev, "failed to init irq: %d\n", ret);
 		goto fail_irq;
 	}
 
 	ret = mdss_irq_domain_init(mdss);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev->dev, "failed to init sub-block irqs: %d\n", ret);
 		goto fail_irq;
 	}

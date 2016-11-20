@@ -53,7 +53,10 @@ void oprofile_cpu_buffer_inc_smpl_lost(void)
 void free_cpu_buffers(void)
 {
 	if (op_ring_buffer)
+	{
 		ring_buffer_free(op_ring_buffer);
+	}
+
 	op_ring_buffer = NULL;
 }
 
@@ -65,13 +68,17 @@ int alloc_cpu_buffers(void)
 
 	unsigned long buffer_size = oprofile_cpu_buffer_size;
 	unsigned long byte_size = buffer_size * (sizeof(struct op_sample) +
-						 RB_EVENT_HDR_SIZE);
+							  RB_EVENT_HDR_SIZE);
 
 	op_ring_buffer = ring_buffer_alloc(byte_size, OP_BUFFER_FLAGS);
-	if (!op_ring_buffer)
-		goto fail;
 
-	for_each_possible_cpu(i) {
+	if (!op_ring_buffer)
+	{
+		goto fail;
+	}
+
+	for_each_possible_cpu(i)
+	{
 		struct oprofile_cpu_buffer *b = &per_cpu(op_cpu_buffer, i);
 
 		b->last_task = NULL;
@@ -98,7 +105,8 @@ void start_cpu_work(void)
 
 	work_enabled = 1;
 
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		struct oprofile_cpu_buffer *b = &per_cpu(op_cpu_buffer, i);
 
 		/*
@@ -118,7 +126,8 @@ void flush_cpu_work(void)
 {
 	int i;
 
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		struct oprofile_cpu_buffer *b = &per_cpu(op_cpu_buffer, i);
 
 		/* these works are per-cpu, no need for flush_sync */
@@ -142,10 +151,14 @@ struct op_sample
 *op_cpu_buffer_write_reserve(struct op_entry *entry, unsigned long size)
 {
 	entry->event = ring_buffer_lock_reserve
-		(op_ring_buffer, sizeof(struct op_sample) +
-		 size * sizeof(entry->sample->data[0]));
+				   (op_ring_buffer, sizeof(struct op_sample) +
+					size * sizeof(entry->sample->data[0]));
+
 	if (!entry->event)
+	{
 		return NULL;
+	}
+
 	entry->sample = ring_buffer_event_data(entry->event);
 	entry->size = size;
 	entry->data = entry->sample->data;
@@ -162,13 +175,16 @@ struct op_sample *op_cpu_buffer_read_entry(struct op_entry *entry, int cpu)
 {
 	struct ring_buffer_event *e;
 	e = ring_buffer_consume(op_ring_buffer, cpu, NULL, NULL);
+
 	if (!e)
+	{
 		return NULL;
+	}
 
 	entry->event = e;
 	entry->sample = ring_buffer_event_data(e);
 	entry->size = (ring_buffer_event_length(e) - sizeof(struct op_sample))
-		/ sizeof(entry->sample->data[0]);
+				  / sizeof(entry->sample->data[0]);
 	entry->data = entry->sample->data;
 	return entry->sample;
 }
@@ -180,7 +196,7 @@ unsigned long op_cpu_buffer_entries(int cpu)
 
 static int
 op_add_code(struct oprofile_cpu_buffer *cpu_buf, unsigned long backtrace,
-	    int is_kernel, struct task_struct *task)
+			int is_kernel, struct task_struct *task)
 {
 	struct op_entry entry;
 	struct op_sample *sample;
@@ -190,41 +206,60 @@ op_add_code(struct oprofile_cpu_buffer *cpu_buf, unsigned long backtrace,
 	flags = 0;
 
 	if (backtrace)
+	{
 		flags |= TRACE_BEGIN;
+	}
 
 	/* notice a switch from user->kernel or vice versa */
 	is_kernel = !!is_kernel;
-	if (cpu_buf->last_is_kernel != is_kernel) {
+
+	if (cpu_buf->last_is_kernel != is_kernel)
+	{
 		cpu_buf->last_is_kernel = is_kernel;
 		flags |= KERNEL_CTX_SWITCH;
+
 		if (is_kernel)
+		{
 			flags |= IS_KERNEL;
+		}
 	}
 
 	/* notice a task switch */
-	if (cpu_buf->last_task != task) {
+	if (cpu_buf->last_task != task)
+	{
 		cpu_buf->last_task = task;
 		flags |= USER_CTX_SWITCH;
 	}
 
 	if (!flags)
 		/* nothing to do */
+	{
 		return 0;
+	}
 
 	if (flags & USER_CTX_SWITCH)
+	{
 		size = 1;
+	}
 	else
+	{
 		size = 0;
+	}
 
 	sample = op_cpu_buffer_write_reserve(&entry, size);
+
 	if (!sample)
+	{
 		return -ENOMEM;
+	}
 
 	sample->eip = ESCAPE_CODE;
 	sample->event = flags;
 
 	if (size)
+	{
 		op_cpu_buffer_add_data(&entry, (unsigned long)task);
+	}
 
 	op_cpu_buffer_write_commit(&entry);
 
@@ -233,14 +268,17 @@ op_add_code(struct oprofile_cpu_buffer *cpu_buf, unsigned long backtrace,
 
 static inline int
 op_add_sample(struct oprofile_cpu_buffer *cpu_buf,
-	      unsigned long pc, unsigned long event)
+			  unsigned long pc, unsigned long event)
 {
 	struct op_entry entry;
 	struct op_sample *sample;
 
 	sample = op_cpu_buffer_write_reserve(&entry, 0);
+
 	if (!sample)
+	{
 		return -ENOMEM;
+	}
 
 	sample->eip = pc;
 	sample->event = event;
@@ -258,22 +296,27 @@ op_add_sample(struct oprofile_cpu_buffer *cpu_buf,
  */
 static int
 log_sample(struct oprofile_cpu_buffer *cpu_buf, unsigned long pc,
-	   unsigned long backtrace, int is_kernel, unsigned long event,
-	   struct task_struct *task)
+		   unsigned long backtrace, int is_kernel, unsigned long event,
+		   struct task_struct *task)
 {
 	struct task_struct *tsk = task ? task : current;
 	cpu_buf->sample_received++;
 
-	if (pc == ESCAPE_CODE) {
+	if (pc == ESCAPE_CODE)
+	{
 		cpu_buf->sample_invalid_eip++;
 		return 0;
 	}
 
 	if (op_add_code(cpu_buf, backtrace, is_kernel, tsk))
+	{
 		goto fail;
+	}
 
 	if (op_add_sample(cpu_buf, pc, event))
+	{
 		goto fail;
+	}
 
 	return 1;
 
@@ -293,9 +336,9 @@ static inline void oprofile_end_trace(struct oprofile_cpu_buffer *cpu_buf)
 }
 
 static inline void
-__oprofile_add_ext_sample(unsigned long pc, struct pt_regs * const regs,
-			  unsigned long event, int is_kernel,
-			  struct task_struct *task)
+__oprofile_add_ext_sample(unsigned long pc, struct pt_regs *const regs,
+						  unsigned long event, int is_kernel,
+						  struct task_struct *task)
 {
 	struct oprofile_cpu_buffer *cpu_buf = this_cpu_ptr(&op_cpu_buffer);
 	unsigned long backtrace = oprofile_backtrace_depth;
@@ -306,38 +349,45 @@ __oprofile_add_ext_sample(unsigned long pc, struct pt_regs * const regs,
 	 */
 	if (!log_sample(cpu_buf, pc, backtrace, is_kernel, event, task))
 		/* failed */
+	{
 		return;
+	}
 
 	if (!backtrace)
+	{
 		return;
+	}
 
 	oprofile_begin_trace(cpu_buf);
 	oprofile_ops.backtrace(regs, backtrace);
 	oprofile_end_trace(cpu_buf);
 }
 
-void oprofile_add_ext_hw_sample(unsigned long pc, struct pt_regs * const regs,
-				unsigned long event, int is_kernel,
-				struct task_struct *task)
+void oprofile_add_ext_hw_sample(unsigned long pc, struct pt_regs *const regs,
+								unsigned long event, int is_kernel,
+								struct task_struct *task)
 {
 	__oprofile_add_ext_sample(pc, regs, event, is_kernel, task);
 }
 
-void oprofile_add_ext_sample(unsigned long pc, struct pt_regs * const regs,
-			     unsigned long event, int is_kernel)
+void oprofile_add_ext_sample(unsigned long pc, struct pt_regs *const regs,
+							 unsigned long event, int is_kernel)
 {
 	__oprofile_add_ext_sample(pc, regs, event, is_kernel, NULL);
 }
 
-void oprofile_add_sample(struct pt_regs * const regs, unsigned long event)
+void oprofile_add_sample(struct pt_regs *const regs, unsigned long event)
 {
 	int is_kernel;
 	unsigned long pc;
 
-	if (likely(regs)) {
+	if (likely(regs))
+	{
 		is_kernel = !user_mode(regs);
 		pc = profile_pc(regs);
-	} else {
+	}
+	else
+	{
 		is_kernel = 0;    /* This value will not be used */
 		pc = ESCAPE_CODE; /* as this causes an early return. */
 	}
@@ -352,8 +402,8 @@ void oprofile_add_sample(struct pt_regs * const regs, unsigned long event)
  * oprofile_write_commit(&entry) to commit the sample.
  */
 void
-oprofile_write_reserve(struct op_entry *entry, struct pt_regs * const regs,
-		       unsigned long pc, int code, int size)
+oprofile_write_reserve(struct op_entry *entry, struct pt_regs *const regs,
+					   unsigned long pc, int code, int size)
 {
 	struct op_sample *sample;
 	int is_kernel = !user_mode(regs);
@@ -363,11 +413,17 @@ oprofile_write_reserve(struct op_entry *entry, struct pt_regs * const regs,
 
 	/* no backtraces for samples with data */
 	if (op_add_code(cpu_buf, 0, is_kernel, current))
+	{
 		goto fail;
+	}
 
 	sample = op_cpu_buffer_write_reserve(entry, size + 2);
+
 	if (!sample)
+	{
 		goto fail;
+	}
+
 	sample->eip = ESCAPE_CODE;
 	sample->event = 0;		/* no flags */
 
@@ -384,29 +440,44 @@ fail:
 int oprofile_add_data(struct op_entry *entry, unsigned long val)
 {
 	if (!entry->event)
+	{
 		return 0;
+	}
+
 	return op_cpu_buffer_add_data(entry, val);
 }
 
 int oprofile_add_data64(struct op_entry *entry, u64 val)
 {
 	if (!entry->event)
+	{
 		return 0;
+	}
+
 	if (op_cpu_buffer_get_size(entry) < 2)
 		/*
 		 * the function returns 0 to indicate a too small
 		 * buffer, even if there is some space left
 		 */
+	{
 		return 0;
+	}
+
 	if (!op_cpu_buffer_add_data(entry, (u32)val))
+	{
 		return 0;
+	}
+
 	return op_cpu_buffer_add_data(entry, (u32)(val >> 32));
 }
 
 int oprofile_write_commit(struct op_entry *entry)
 {
 	if (!entry->event)
+	{
 		return -EINVAL;
+	}
+
 	return op_cpu_buffer_write_commit(entry);
 }
 
@@ -421,17 +492,23 @@ void oprofile_add_trace(unsigned long pc)
 	struct oprofile_cpu_buffer *cpu_buf = this_cpu_ptr(&op_cpu_buffer);
 
 	if (!cpu_buf->tracing)
+	{
 		return;
+	}
 
 	/*
 	 * broken frame can give an eip with the same value as an
 	 * escape code, abort the trace if we get it
 	 */
 	if (pc == ESCAPE_CODE)
+	{
 		goto fail;
+	}
 
 	if (op_add_sample(cpu_buf, pc, 0))
+	{
 		goto fail;
+	}
 
 	return;
 fail:
@@ -451,13 +528,18 @@ static void wq_sync_buffer(struct work_struct *work)
 {
 	struct oprofile_cpu_buffer *b =
 		container_of(work, struct oprofile_cpu_buffer, work.work);
-	if (b->cpu != smp_processor_id() && !cpu_online(b->cpu)) {
+
+	if (b->cpu != smp_processor_id() && !cpu_online(b->cpu))
+	{
 		cancel_delayed_work(&b->work);
 		return;
 	}
+
 	sync_buffer(b->cpu);
 
 	/* don't re-add the work if we're shutting down */
 	if (work_enabled)
+	{
 		schedule_delayed_work(&b->work, DEFAULT_TIMER_EXPIRE);
+	}
 }

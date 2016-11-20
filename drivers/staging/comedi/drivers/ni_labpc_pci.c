@@ -36,11 +36,13 @@
 
 #include "ni_labpc.h"
 
-enum labpc_pci_boardid {
+enum labpc_pci_boardid
+{
 	BOARD_NI_PCI1200,
 };
 
-static const struct labpc_boardinfo labpc_pci_boards[] = {
+static const struct labpc_boardinfo labpc_pci_boards[] =
+{
 	[BOARD_NI_PCI1200] = {
 		.name			= "ni_pci-1200",
 		.ai_speed		= 10000,
@@ -61,8 +63,11 @@ static int labpc_pci_mite_init(struct pci_dev *pcidev)
 
 	/* ioremap the MITE registers (BAR 0) temporarily */
 	mite_base = pci_ioremap_bar(pcidev, 0);
+
 	if (!mite_base)
+	{
 		return -ENOMEM;
+	}
 
 	/* set data window to main registers (BAR 1) */
 	main_phys_addr = pci_resource_start(pcidev, 1);
@@ -74,30 +79,45 @@ static int labpc_pci_mite_init(struct pci_dev *pcidev)
 }
 
 static int labpc_pci_auto_attach(struct comedi_device *dev,
-				 unsigned long context)
+								 unsigned long context)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	const struct labpc_boardinfo *board = NULL;
 	int ret;
 
 	if (context < ARRAY_SIZE(labpc_pci_boards))
+	{
 		board = &labpc_pci_boards[context];
+	}
+
 	if (!board)
+	{
 		return -ENODEV;
+	}
+
 	dev->board_ptr = board;
 	dev->board_name = board->name;
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = labpc_pci_mite_init(pcidev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dev->mmio = pci_ioremap_bar(pcidev, 1);
+
 	if (!dev->mmio)
+	{
 		return -ENOMEM;
+	}
 
 	return labpc_common_attach(dev, pcidev->irq, IRQF_SHARED);
 }
@@ -108,27 +128,30 @@ static void labpc_pci_detach(struct comedi_device *dev)
 	comedi_pci_detach(dev);
 }
 
-static struct comedi_driver labpc_pci_comedi_driver = {
+static struct comedi_driver labpc_pci_comedi_driver =
+{
 	.driver_name	= "labpc_pci",
 	.module		= THIS_MODULE,
 	.auto_attach	= labpc_pci_auto_attach,
 	.detach		= labpc_pci_detach,
 };
 
-static const struct pci_device_id labpc_pci_table[] = {
+static const struct pci_device_id labpc_pci_table[] =
+{
 	{ PCI_VDEVICE(NI, 0x161), BOARD_NI_PCI1200 },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, labpc_pci_table);
 
 static int labpc_pci_probe(struct pci_dev *dev,
-			   const struct pci_device_id *id)
+						   const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &labpc_pci_comedi_driver,
-				      id->driver_data);
+								  id->driver_data);
 }
 
-static struct pci_driver labpc_pci_driver = {
+static struct pci_driver labpc_pci_driver =
+{
 	.name		= "labpc_pci",
 	.id_table	= labpc_pci_table,
 	.probe		= labpc_pci_probe,

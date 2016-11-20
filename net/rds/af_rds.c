@@ -61,7 +61,9 @@ static int rds_release(struct socket *sock)
 	struct rds_sock *rs;
 
 	if (!sk)
+	{
 		goto out;
+	}
 
 	rs = rds_sk_to_rs(sk);
 
@@ -110,7 +112,7 @@ void rds_wake_sk_sleep(struct rds_sock *rs)
 }
 
 static int rds_getname(struct socket *sock, struct sockaddr *uaddr,
-		       int *uaddr_len, int peer)
+					   int *uaddr_len, int peer)
 {
 	struct sockaddr_in *sin = (struct sockaddr_in *)uaddr;
 	struct rds_sock *rs = rds_sk_to_rs(sock->sk);
@@ -118,13 +120,18 @@ static int rds_getname(struct socket *sock, struct sockaddr *uaddr,
 	memset(sin->sin_zero, 0, sizeof(sin->sin_zero));
 
 	/* racey, don't care */
-	if (peer) {
+	if (peer)
+	{
 		if (!rs->rs_conn_addr)
+		{
 			return -ENOTCONN;
+		}
 
 		sin->sin_port = rs->rs_conn_port;
 		sin->sin_addr.s_addr = rs->rs_conn_addr;
-	} else {
+	}
+	else
+	{
 		sin->sin_port = rs->rs_bound_port;
 		sin->sin_addr.s_addr = rs->rs_bound_addr;
 	}
@@ -153,7 +160,7 @@ static int rds_getname(struct socket *sock, struct sockaddr *uaddr,
  * return ENOBUFS).
  */
 static unsigned int rds_poll(struct file *file, struct socket *sock,
-			     poll_table *wait)
+							 poll_table *wait)
 {
 	struct sock *sk = sock->sk;
 	struct rds_sock *rs = rds_sk_to_rs(sk);
@@ -163,31 +170,52 @@ static unsigned int rds_poll(struct file *file, struct socket *sock,
 	poll_wait(file, sk_sleep(sk), wait);
 
 	if (rs->rs_seen_congestion)
+	{
 		poll_wait(file, &rds_poll_waitq, wait);
+	}
 
 	read_lock_irqsave(&rs->rs_recv_lock, flags);
-	if (!rs->rs_cong_monitor) {
+
+	if (!rs->rs_cong_monitor)
+	{
 		/* When a congestion map was updated, we signal POLLIN for
 		 * "historical" reasons. Applications can also poll for
 		 * WRBAND instead. */
 		if (rds_cong_updated_since(&rs->rs_cong_track))
+		{
 			mask |= (POLLIN | POLLRDNORM | POLLWRBAND);
-	} else {
+		}
+	}
+	else
+	{
 		spin_lock(&rs->rs_lock);
+
 		if (rs->rs_cong_notify)
+		{
 			mask |= (POLLIN | POLLRDNORM);
+		}
+
 		spin_unlock(&rs->rs_lock);
 	}
+
 	if (!list_empty(&rs->rs_recv_queue) ||
-	    !list_empty(&rs->rs_notify_queue))
+		!list_empty(&rs->rs_notify_queue))
+	{
 		mask |= (POLLIN | POLLRDNORM);
+	}
+
 	if (rs->rs_snd_bytes < rds_sk_sndbuf(rs))
+	{
 		mask |= (POLLOUT | POLLWRNORM);
+	}
+
 	read_unlock_irqrestore(&rs->rs_recv_lock, flags);
 
 	/* clear state any time we wake a seen-congested socket */
 	if (mask)
+	{
 		rs->rs_seen_congestion = 0;
+	}
 
 	return mask;
 }
@@ -198,23 +226,26 @@ static int rds_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 }
 
 static int rds_cancel_sent_to(struct rds_sock *rs, char __user *optval,
-			      int len)
+							  int len)
 {
 	struct sockaddr_in sin;
 	int ret = 0;
 
 	/* racing with another thread binding seems ok here */
-	if (rs->rs_bound_addr == 0) {
+	if (rs->rs_bound_addr == 0)
+	{
 		ret = -ENOTCONN; /* XXX not a great errno */
 		goto out;
 	}
 
-	if (len < sizeof(struct sockaddr_in)) {
+	if (len < sizeof(struct sockaddr_in))
+	{
 		ret = -EINVAL;
 		goto out;
 	}
 
-	if (copy_from_user(&sin, optval, sizeof(sin))) {
+	if (copy_from_user(&sin, optval, sizeof(sin)))
+	{
 		ret = -EFAULT;
 		goto out;
 	}
@@ -225,52 +256,72 @@ out:
 }
 
 static int rds_set_bool_option(unsigned char *optvar, char __user *optval,
-			       int optlen)
+							   int optlen)
 {
 	int value;
 
 	if (optlen < sizeof(int))
+	{
 		return -EINVAL;
+	}
+
 	if (get_user(value, (int __user *) optval))
+	{
 		return -EFAULT;
+	}
+
 	*optvar = !!value;
 	return 0;
 }
 
 static int rds_cong_monitor(struct rds_sock *rs, char __user *optval,
-			    int optlen)
+							int optlen)
 {
 	int ret;
 
 	ret = rds_set_bool_option(&rs->rs_cong_monitor, optval, optlen);
-	if (ret == 0) {
-		if (rs->rs_cong_monitor) {
+
+	if (ret == 0)
+	{
+		if (rs->rs_cong_monitor)
+		{
 			rds_cong_add_socket(rs);
-		} else {
+		}
+		else
+		{
 			rds_cong_remove_socket(rs);
 			rs->rs_cong_mask = 0;
 			rs->rs_cong_notify = 0;
 		}
 	}
+
 	return ret;
 }
 
 static int rds_set_transport(struct rds_sock *rs, char __user *optval,
-			     int optlen)
+							 int optlen)
 {
 	int t_type;
 
 	if (rs->rs_transport)
-		return -EOPNOTSUPP; /* previously attached to transport */
+	{
+		return -EOPNOTSUPP;    /* previously attached to transport */
+	}
 
 	if (optlen != sizeof(int))
+	{
 		return -EINVAL;
+	}
 
 	if (copy_from_user(&t_type, (int __user *)optval, sizeof(t_type)))
+	{
 		return -EFAULT;
+	}
 
 	if (t_type < 0 || t_type >= RDS_TRANS_COUNT)
+	{
 		return -EINVAL;
+	}
 
 	rs->rs_transport = rds_trans_get(t_type);
 
@@ -278,119 +329,158 @@ static int rds_set_transport(struct rds_sock *rs, char __user *optval,
 }
 
 static int rds_enable_recvtstamp(struct sock *sk, char __user *optval,
-				 int optlen)
+								 int optlen)
 {
 	int val, valbool;
 
 	if (optlen != sizeof(int))
+	{
 		return -EFAULT;
+	}
 
 	if (get_user(val, (int __user *)optval))
+	{
 		return -EFAULT;
+	}
 
 	valbool = val ? 1 : 0;
 
 	if (valbool)
+	{
 		sock_set_flag(sk, SOCK_RCVTSTAMP);
+	}
 	else
+	{
 		sock_reset_flag(sk, SOCK_RCVTSTAMP);
+	}
 
 	return 0;
 }
 
 static int rds_setsockopt(struct socket *sock, int level, int optname,
-			  char __user *optval, unsigned int optlen)
+						  char __user *optval, unsigned int optlen)
 {
 	struct rds_sock *rs = rds_sk_to_rs(sock->sk);
 	int ret;
 
-	if (level != SOL_RDS) {
+	if (level != SOL_RDS)
+	{
 		ret = -ENOPROTOOPT;
 		goto out;
 	}
 
-	switch (optname) {
-	case RDS_CANCEL_SENT_TO:
-		ret = rds_cancel_sent_to(rs, optval, optlen);
-		break;
-	case RDS_GET_MR:
-		ret = rds_get_mr(rs, optval, optlen);
-		break;
-	case RDS_GET_MR_FOR_DEST:
-		ret = rds_get_mr_for_dest(rs, optval, optlen);
-		break;
-	case RDS_FREE_MR:
-		ret = rds_free_mr(rs, optval, optlen);
-		break;
-	case RDS_RECVERR:
-		ret = rds_set_bool_option(&rs->rs_recverr, optval, optlen);
-		break;
-	case RDS_CONG_MONITOR:
-		ret = rds_cong_monitor(rs, optval, optlen);
-		break;
-	case SO_RDS_TRANSPORT:
-		lock_sock(sock->sk);
-		ret = rds_set_transport(rs, optval, optlen);
-		release_sock(sock->sk);
-		break;
-	case SO_TIMESTAMP:
-		lock_sock(sock->sk);
-		ret = rds_enable_recvtstamp(sock->sk, optval, optlen);
-		release_sock(sock->sk);
-		break;
-	default:
-		ret = -ENOPROTOOPT;
+	switch (optname)
+	{
+		case RDS_CANCEL_SENT_TO:
+			ret = rds_cancel_sent_to(rs, optval, optlen);
+			break;
+
+		case RDS_GET_MR:
+			ret = rds_get_mr(rs, optval, optlen);
+			break;
+
+		case RDS_GET_MR_FOR_DEST:
+			ret = rds_get_mr_for_dest(rs, optval, optlen);
+			break;
+
+		case RDS_FREE_MR:
+			ret = rds_free_mr(rs, optval, optlen);
+			break;
+
+		case RDS_RECVERR:
+			ret = rds_set_bool_option(&rs->rs_recverr, optval, optlen);
+			break;
+
+		case RDS_CONG_MONITOR:
+			ret = rds_cong_monitor(rs, optval, optlen);
+			break;
+
+		case SO_RDS_TRANSPORT:
+			lock_sock(sock->sk);
+			ret = rds_set_transport(rs, optval, optlen);
+			release_sock(sock->sk);
+			break;
+
+		case SO_TIMESTAMP:
+			lock_sock(sock->sk);
+			ret = rds_enable_recvtstamp(sock->sk, optval, optlen);
+			release_sock(sock->sk);
+			break;
+
+		default:
+			ret = -ENOPROTOOPT;
 	}
+
 out:
 	return ret;
 }
 
 static int rds_getsockopt(struct socket *sock, int level, int optname,
-			  char __user *optval, int __user *optlen)
+						  char __user *optval, int __user *optlen)
 {
 	struct rds_sock *rs = rds_sk_to_rs(sock->sk);
 	int ret = -ENOPROTOOPT, len;
 	int trans;
 
 	if (level != SOL_RDS)
+	{
 		goto out;
+	}
 
-	if (get_user(len, optlen)) {
+	if (get_user(len, optlen))
+	{
 		ret = -EFAULT;
 		goto out;
 	}
 
-	switch (optname) {
-	case RDS_INFO_FIRST ... RDS_INFO_LAST:
-		ret = rds_info_getsockopt(sock, optname, optval,
-					  optlen);
-		break;
-
-	case RDS_RECVERR:
-		if (len < sizeof(int))
-			ret = -EINVAL;
-		else
-		if (put_user(rs->rs_recverr, (int __user *) optval) ||
-		    put_user(sizeof(int), optlen))
-			ret = -EFAULT;
-		else
-			ret = 0;
-		break;
-	case SO_RDS_TRANSPORT:
-		if (len < sizeof(int)) {
-			ret = -EINVAL;
+	switch (optname)
+	{
+		case RDS_INFO_FIRST ... RDS_INFO_LAST:
+			ret = rds_info_getsockopt(sock, optname, optval,
+									  optlen);
 			break;
-		}
-		trans = (rs->rs_transport ? rs->rs_transport->t_type :
-			 RDS_TRANS_NONE); /* unbound */
-		if (put_user(trans, (int __user *)optval) ||
-		    put_user(sizeof(int), optlen))
-			ret = -EFAULT;
-		else
-			ret = 0;
-		break;
-	default:
-		break;
+
+		case RDS_RECVERR:
+			if (len < sizeof(int))
+			{
+				ret = -EINVAL;
+			}
+			else if (put_user(rs->rs_recverr, (int __user *) optval) ||
+					 put_user(sizeof(int), optlen))
+			{
+				ret = -EFAULT;
+			}
+			else
+			{
+				ret = 0;
+			}
+
+			break;
+
+		case SO_RDS_TRANSPORT:
+			if (len < sizeof(int))
+			{
+				ret = -EINVAL;
+				break;
+			}
+
+			trans = (rs->rs_transport ? rs->rs_transport->t_type :
+					 RDS_TRANS_NONE); /* unbound */
+
+			if (put_user(trans, (int __user *)optval) ||
+				put_user(sizeof(int), optlen))
+			{
+				ret = -EFAULT;
+			}
+			else
+			{
+				ret = 0;
+			}
+
+			break;
+
+		default:
+			break;
 	}
 
 out:
@@ -399,7 +489,7 @@ out:
 }
 
 static int rds_connect(struct socket *sock, struct sockaddr *uaddr,
-		       int addr_len, int flags)
+					   int addr_len, int flags)
 {
 	struct sock *sk = sock->sk;
 	struct sockaddr_in *sin = (struct sockaddr_in *)uaddr;
@@ -408,17 +498,20 @@ static int rds_connect(struct socket *sock, struct sockaddr *uaddr,
 
 	lock_sock(sk);
 
-	if (addr_len != sizeof(struct sockaddr_in)) {
+	if (addr_len != sizeof(struct sockaddr_in))
+	{
 		ret = -EINVAL;
 		goto out;
 	}
 
-	if (sin->sin_family != AF_INET) {
+	if (sin->sin_family != AF_INET)
+	{
 		ret = -EAFNOSUPPORT;
 		goto out;
 	}
 
-	if (sin->sin_addr.s_addr == htonl(INADDR_ANY)) {
+	if (sin->sin_addr.s_addr == htonl(INADDR_ANY))
+	{
 		ret = -EDESTADDRREQ;
 		goto out;
 	}
@@ -431,13 +524,15 @@ out:
 	return ret;
 }
 
-static struct proto rds_proto = {
+static struct proto rds_proto =
+{
 	.name	  = "RDS",
 	.owner	  = THIS_MODULE,
 	.obj_size = sizeof(struct rds_sock),
 };
 
-static const struct proto_ops rds_proto_ops = {
+static const struct proto_ops rds_proto_ops =
+{
 	.family =	AF_RDS,
 	.owner =	THIS_MODULE,
 	.release =	rds_release,
@@ -463,7 +558,7 @@ static void rds_sock_destruct(struct sock *sk)
 	struct rds_sock *rs = rds_sk_to_rs(sk);
 
 	WARN_ON((&rs->rs_item != rs->rs_item.next ||
-		 &rs->rs_item != rs->rs_item.prev));
+			 &rs->rs_item != rs->rs_item.prev));
 }
 
 static int __rds_create(struct socket *sock, struct sock *sk, int protocol)
@@ -494,16 +589,21 @@ static int __rds_create(struct socket *sock, struct sock *sk, int protocol)
 }
 
 static int rds_create(struct net *net, struct socket *sock, int protocol,
-		      int kern)
+					  int kern)
 {
 	struct sock *sk;
 
 	if (sock->type != SOCK_SEQPACKET || protocol)
+	{
 		return -ESOCKTNOSUPPORT;
+	}
 
 	sk = sk_alloc(net, AF_RDS, GFP_ATOMIC, &rds_proto, kern);
+
 	if (!sk)
+	{
 		return -ENOMEM;
+	}
 
 	return __rds_create(sock, sk, protocol);
 }
@@ -518,15 +618,16 @@ void rds_sock_put(struct rds_sock *rs)
 	sock_put(rds_rs_to_sk(rs));
 }
 
-static const struct net_proto_family rds_family_ops = {
+static const struct net_proto_family rds_family_ops =
+{
 	.family =	AF_RDS,
 	.create =	rds_create,
 	.owner	=	THIS_MODULE,
 };
 
 static void rds_sock_inc_info(struct socket *sock, unsigned int len,
-			      struct rds_info_iterator *iter,
-			      struct rds_info_lengths *lens)
+							  struct rds_info_iterator *iter,
+							  struct rds_info_lengths *lens)
 {
 	struct rds_sock *rs;
 	struct rds_incoming *inc;
@@ -536,15 +637,18 @@ static void rds_sock_inc_info(struct socket *sock, unsigned int len,
 
 	spin_lock_bh(&rds_sock_lock);
 
-	list_for_each_entry(rs, &rds_sock_list, rs_item) {
+	list_for_each_entry(rs, &rds_sock_list, rs_item)
+	{
 		read_lock(&rs->rs_recv_lock);
 
 		/* XXX too lazy to maintain counts.. */
-		list_for_each_entry(inc, &rs->rs_recv_queue, i_item) {
+		list_for_each_entry(inc, &rs->rs_recv_queue, i_item)
+		{
 			total++;
+
 			if (total <= len)
 				rds_inc_info_copy(inc, iter, inc->i_saddr,
-						  rs->rs_bound_addr, 1);
+								  rs->rs_bound_addr, 1);
 		}
 
 		read_unlock(&rs->rs_recv_lock);
@@ -557,8 +661,8 @@ static void rds_sock_inc_info(struct socket *sock, unsigned int len,
 }
 
 static void rds_sock_info(struct socket *sock, unsigned int len,
-			  struct rds_info_iterator *iter,
-			  struct rds_info_lengths *lens)
+						  struct rds_info_iterator *iter,
+						  struct rds_info_lengths *lens)
 {
 	struct rds_info_socket sinfo;
 	struct rds_sock *rs;
@@ -568,9 +672,12 @@ static void rds_sock_info(struct socket *sock, unsigned int len,
 	spin_lock_bh(&rds_sock_lock);
 
 	if (len < rds_sock_count)
+	{
 		goto out;
+	}
 
-	list_for_each_entry(rs, &rds_sock_list, rs_item) {
+	list_for_each_entry(rs, &rds_sock_list, rs_item)
+	{
 		sinfo.sndbuf = rds_sk_sndbuf(rs);
 		sinfo.rcvbuf = rds_sk_rcvbuf(rs);
 		sinfo.bound_addr = rs->rs_bound_addr;
@@ -610,28 +717,53 @@ static int rds_init(void)
 	int ret;
 
 	ret = rds_bind_lock_init();
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ret = rds_conn_init();
+
 	if (ret)
+	{
 		goto out_bind;
+	}
 
 	ret = rds_threads_init();
+
 	if (ret)
+	{
 		goto out_conn;
+	}
+
 	ret = rds_sysctl_init();
+
 	if (ret)
+	{
 		goto out_threads;
+	}
+
 	ret = rds_stats_init();
+
 	if (ret)
+	{
 		goto out_sysctl;
+	}
+
 	ret = proto_register(&rds_proto, 1);
+
 	if (ret)
+	{
 		goto out_stats;
+	}
+
 	ret = sock_register(&rds_family_ops);
+
 	if (ret)
+	{
 		goto out_proto;
+	}
 
 	rds_info_register_func(RDS_INFO_SOCKETS, rds_sock_info);
 	rds_info_register_func(RDS_INFO_RECV_MESSAGES, rds_sock_inc_info);
@@ -662,7 +794,7 @@ module_init(rds_init);
 
 MODULE_AUTHOR("Oracle Corporation <rds-devel@oss.oracle.com>");
 MODULE_DESCRIPTION("RDS: Reliable Datagram Sockets"
-		   " v" DRV_VERSION " (" DRV_RELDATE ")");
+				   " v" DRV_VERSION " (" DRV_RELDATE ")");
 MODULE_VERSION(DRV_VERSION);
 MODULE_LICENSE("Dual BSD/GPL");
 MODULE_ALIAS_NETPROTO(PF_RDS);

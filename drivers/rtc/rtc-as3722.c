@@ -31,7 +31,8 @@
 #include <linux/time.h>
 
 #define AS3722_RTC_START_YEAR	  2000
-struct as3722_rtc {
+struct as3722_rtc
+{
 	struct rtc_device	*rtc;
 	struct device		*dev;
 	struct as3722		*as3722;
@@ -68,11 +69,14 @@ static int as3722_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	int ret;
 
 	ret = as3722_block_read(as3722, AS3722_RTC_SECOND_REG,
-			6, as_time_array);
-	if (ret < 0) {
+							6, as_time_array);
+
+	if (ret < 0)
+	{
 		dev_err(dev, "RTC_SECOND reg block read failed %d\n", ret);
 		return ret;
 	}
+
 	as3722_reg_to_time(as_time_array, tm);
 	return 0;
 }
@@ -85,28 +89,38 @@ static int as3722_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	int ret;
 
 	if (tm->tm_year < (AS3722_RTC_START_YEAR - 1900))
+	{
 		return -EINVAL;
+	}
 
 	as3722_time_to_reg(as_time_array, tm);
 	ret = as3722_block_write(as3722, AS3722_RTC_SECOND_REG, 6,
-			as_time_array);
+							 as_time_array);
+
 	if (ret < 0)
+	{
 		dev_err(dev, "RTC_SECOND reg block write failed %d\n", ret);
+	}
+
 	return ret;
 }
 
 static int as3722_rtc_alarm_irq_enable(struct device *dev,
-		unsigned int enabled)
+									   unsigned int enabled)
 {
 	struct as3722_rtc *as3722_rtc = dev_get_drvdata(dev);
 
-	if (enabled && !as3722_rtc->irq_enable) {
+	if (enabled && !as3722_rtc->irq_enable)
+	{
 		enable_irq(as3722_rtc->alarm_irq);
 		as3722_rtc->irq_enable = true;
-	} else if (!enabled && as3722_rtc->irq_enable)  {
+	}
+	else if (!enabled && as3722_rtc->irq_enable)
+	{
 		disable_irq(as3722_rtc->alarm_irq);
 		as3722_rtc->irq_enable = false;
 	}
+
 	return 0;
 }
 
@@ -118,8 +132,10 @@ static int as3722_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	int ret;
 
 	ret = as3722_block_read(as3722, AS3722_RTC_ALARM_SECOND_REG, 6,
-			as_time_array);
-	if (ret < 0) {
+							as_time_array);
+
+	if (ret < 0)
+	{
 		dev_err(dev, "RTC_ALARM_SECOND block read failed %d\n", ret);
 		return ret;
 	}
@@ -136,24 +152,33 @@ static int as3722_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	int ret;
 
 	if (alrm->time.tm_year < (AS3722_RTC_START_YEAR - 1900))
+	{
 		return -EINVAL;
+	}
 
 	ret = as3722_rtc_alarm_irq_enable(dev, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "Disable RTC alarm failed\n");
 		return ret;
 	}
 
 	as3722_time_to_reg(as_time_array, &alrm->time);
 	ret = as3722_block_write(as3722, AS3722_RTC_ALARM_SECOND_REG, 6,
-			as_time_array);
-	if (ret < 0) {
+							 as_time_array);
+
+	if (ret < 0)
+	{
 		dev_err(dev, "RTC_ALARM_SECOND block write failed %d\n", ret);
 		return ret;
 	}
 
 	if (alrm->enabled)
+	{
 		ret = as3722_rtc_alarm_irq_enable(dev, alrm->enabled);
+	}
+
 	return ret;
 }
 
@@ -165,7 +190,8 @@ static irqreturn_t as3722_alarm_irq(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
-static const struct rtc_class_ops as3722_rtc_ops = {
+static const struct rtc_class_ops as3722_rtc_ops =
+{
 	.read_time = as3722_rtc_read_time,
 	.set_time = as3722_rtc_set_time,
 	.read_alarm = as3722_rtc_read_alarm,
@@ -180,8 +206,11 @@ static int as3722_rtc_probe(struct platform_device *pdev)
 	int ret;
 
 	as3722_rtc = devm_kzalloc(&pdev->dev, sizeof(*as3722_rtc), GFP_KERNEL);
+
 	if (!as3722_rtc)
+	{
 		return -ENOMEM;
+	}
 
 	as3722_rtc->as3722 = as3722;
 	as3722_rtc->dev = &pdev->dev;
@@ -189,9 +218,11 @@ static int as3722_rtc_probe(struct platform_device *pdev)
 
 	/* Enable the RTC to make sure it is running. */
 	ret = as3722_update_bits(as3722, AS3722_RTC_CONTROL_REG,
-			AS3722_RTC_ON | AS3722_RTC_ALARM_WAKEUP_EN,
-			AS3722_RTC_ON | AS3722_RTC_ALARM_WAKEUP_EN);
-	if (ret < 0) {
+							 AS3722_RTC_ON | AS3722_RTC_ALARM_WAKEUP_EN,
+							 AS3722_RTC_ON | AS3722_RTC_ALARM_WAKEUP_EN);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "RTC_CONTROL reg write failed: %d\n", ret);
 		return ret;
 	}
@@ -199,8 +230,10 @@ static int as3722_rtc_probe(struct platform_device *pdev)
 	device_init_wakeup(&pdev->dev, 1);
 
 	as3722_rtc->rtc = devm_rtc_device_register(&pdev->dev, "as3722-rtc",
-				&as3722_rtc_ops, THIS_MODULE);
-	if (IS_ERR(as3722_rtc->rtc)) {
+					  &as3722_rtc_ops, THIS_MODULE);
+
+	if (IS_ERR(as3722_rtc->rtc))
+	{
 		ret = PTR_ERR(as3722_rtc->rtc);
 		dev_err(&pdev->dev, "RTC register failed: %d\n", ret);
 		return ret;
@@ -210,13 +243,16 @@ static int as3722_rtc_probe(struct platform_device *pdev)
 	dev_info(&pdev->dev, "RTC interrupt %d\n", as3722_rtc->alarm_irq);
 
 	ret = devm_request_threaded_irq(&pdev->dev, as3722_rtc->alarm_irq, NULL,
-			as3722_alarm_irq, IRQF_ONESHOT,
-			"rtc-alarm", as3722_rtc);
-	if (ret < 0) {
+									as3722_alarm_irq, IRQF_ONESHOT,
+									"rtc-alarm", as3722_rtc);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to request alarm IRQ %d: %d\n",
 				as3722_rtc->alarm_irq, ret);
 		return ret;
 	}
+
 	disable_irq(as3722_rtc->alarm_irq);
 	return 0;
 }
@@ -227,7 +263,9 @@ static int as3722_rtc_suspend(struct device *dev)
 	struct as3722_rtc *as3722_rtc = dev_get_drvdata(dev);
 
 	if (device_may_wakeup(dev))
+	{
 		enable_irq_wake(as3722_rtc->alarm_irq);
+	}
 
 	return 0;
 }
@@ -237,15 +275,19 @@ static int as3722_rtc_resume(struct device *dev)
 	struct as3722_rtc *as3722_rtc = dev_get_drvdata(dev);
 
 	if (device_may_wakeup(dev))
+	{
 		disable_irq_wake(as3722_rtc->alarm_irq);
+	}
+
 	return 0;
 }
 #endif
 
 static SIMPLE_DEV_PM_OPS(as3722_rtc_pm_ops, as3722_rtc_suspend,
-			 as3722_rtc_resume);
+						 as3722_rtc_resume);
 
-static struct platform_driver as3722_rtc_driver = {
+static struct platform_driver as3722_rtc_driver =
+{
 	.probe = as3722_rtc_probe,
 	.driver = {
 		.name = "as3722-rtc",

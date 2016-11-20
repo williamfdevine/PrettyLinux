@@ -34,7 +34,8 @@
 
 #define MC_CMD_NUM_OF_PARAMS	7
 
-struct mc_cmd_header {
+struct mc_cmd_header
+{
 	u8 src_id;
 	u8 flags_hw;
 	u8 status;
@@ -43,12 +44,14 @@ struct mc_cmd_header {
 	__le16 cmd_id;
 };
 
-struct mc_command {
+struct mc_command
+{
 	u64 header;
 	u64 params[MC_CMD_NUM_OF_PARAMS];
 };
 
-enum mc_cmd_status {
+enum mc_cmd_status
+{
 	MC_CMD_STATUS_OK = 0x0, /* Completed successfully */
 	MC_CMD_STATUS_READY = 0x1, /* Ready to be processed */
 	MC_CMD_STATUS_AUTH_ERR = 0x3, /* Authentication error */
@@ -78,21 +81,27 @@ enum mc_cmd_status {
 #define MC_CMD_HDR_TOKEN_SHIFT		6
 
 static inline u64 mc_encode_cmd_header(u16 cmd_id,
-				       u32 cmd_flags,
-				       u16 token)
+									   u32 cmd_flags,
+									   u16 token)
 {
 	u64 header = 0;
 	struct mc_cmd_header *hdr = (struct mc_cmd_header *)&header;
 
 	hdr->cmd_id = cpu_to_le16((cmd_id << MC_CMD_HDR_CMDID_SHIFT) &
-				  MC_CMD_HDR_CMDID_MASK);
+							  MC_CMD_HDR_CMDID_MASK);
 	hdr->token = cpu_to_le16((token << MC_CMD_HDR_TOKEN_SHIFT) &
-				 MC_CMD_HDR_TOKEN_MASK);
+							 MC_CMD_HDR_TOKEN_MASK);
 	hdr->status = MC_CMD_STATUS_READY;
+
 	if (cmd_flags & MC_CMD_FLAG_PRI)
+	{
 		hdr->flags_hw = MC_CMD_FLAG_PRI;
+	}
+
 	if (cmd_flags & MC_CMD_FLAG_INTR_DIS)
+	{
 		hdr->flags_sw = MC_CMD_FLAG_INTR_DIS;
+	}
 
 	return header;
 }

@@ -25,7 +25,8 @@ unsigned int gx_frame_buffer_size(void)
 {
 	unsigned int val;
 
-	if (!cs5535_has_vsa2()) {
+	if (!cs5535_has_vsa2())
+	{
 		uint32_t hi, lo;
 
 		/* The number of pages is (PMAX - PMIN)+1 */
@@ -80,7 +81,7 @@ void gx_set_mode(struct fb_info *info)
 
 	/* Disable FIFO load and compression. */
 	gcfg &= ~(DC_GENERAL_CFG_DFLE | DC_GENERAL_CFG_CMPE |
-			DC_GENERAL_CFG_DECE);
+			  DC_GENERAL_CFG_DECE);
 	write_dc(par, DC_GENERAL_CFG, gcfg);
 
 	/* Setup DCLK and its divisor. */
@@ -97,7 +98,7 @@ void gx_set_mode(struct fb_info *info)
 	/* Set FIFO priority (default 6/5) and enable. */
 	/* FIXME: increase fifo priority for 1280x1024 and higher modes? */
 	gcfg |= (6 << DC_GENERAL_CFG_DFHPEL_SHIFT) |
-		(5 << DC_GENERAL_CFG_DFHPSL_SHIFT) | DC_GENERAL_CFG_DFLE;
+			(5 << DC_GENERAL_CFG_DFHPSL_SHIFT) | DC_GENERAL_CFG_DFLE;
 
 	/* Framebuffer start offset. */
 	write_dc(par, DC_FB_ST_OFFSET, 0);
@@ -105,25 +106,28 @@ void gx_set_mode(struct fb_info *info)
 	/* Line delta and line buffer length. */
 	write_dc(par, DC_GFX_PITCH, info->fix.line_length >> 3);
 	write_dc(par, DC_LINE_SIZE,
-		((info->var.xres * info->var.bits_per_pixel/8) >> 3) + 2);
+			 ((info->var.xres * info->var.bits_per_pixel / 8) >> 3) + 2);
 
 
 	/* Enable graphics and video data and unmask address lines. */
 	dcfg |= DC_DISPLAY_CFG_GDEN | DC_DISPLAY_CFG_VDEN |
-		DC_DISPLAY_CFG_A20M | DC_DISPLAY_CFG_A18M;
+			DC_DISPLAY_CFG_A20M | DC_DISPLAY_CFG_A18M;
 
 	/* Set pixel format. */
-	switch (info->var.bits_per_pixel) {
-	case 8:
-		dcfg |= DC_DISPLAY_CFG_DISP_MODE_8BPP;
-		break;
-	case 16:
-		dcfg |= DC_DISPLAY_CFG_DISP_MODE_16BPP;
-		break;
-	case 32:
-		dcfg |= DC_DISPLAY_CFG_DISP_MODE_24BPP;
-		dcfg |= DC_DISPLAY_CFG_PALB;
-		break;
+	switch (info->var.bits_per_pixel)
+	{
+		case 8:
+			dcfg |= DC_DISPLAY_CFG_DISP_MODE_8BPP;
+			break;
+
+		case 16:
+			dcfg |= DC_DISPLAY_CFG_DISP_MODE_16BPP;
+			break;
+
+		case 32:
+			dcfg |= DC_DISPLAY_CFG_DISP_MODE_24BPP;
+			dcfg |= DC_DISPLAY_CFG_PALB;
+			break;
 	}
 
 	/* Enable timing generator. */
@@ -145,18 +149,18 @@ void gx_set_mode(struct fb_info *info)
 	vtotal = vblankend;
 
 	write_dc(par, DC_H_ACTIVE_TIMING, (hactive - 1)    |
-			((htotal - 1) << 16));
+			 ((htotal - 1) << 16));
 	write_dc(par, DC_H_BLANK_TIMING, (hblankstart - 1) |
-			((hblankend - 1) << 16));
+			 ((hblankend - 1) << 16));
 	write_dc(par, DC_H_SYNC_TIMING, (hsyncstart - 1)   |
-			((hsyncend - 1) << 16));
+			 ((hsyncend - 1) << 16));
 
 	write_dc(par, DC_V_ACTIVE_TIMING, (vactive - 1)    |
-			((vtotal - 1) << 16));
+			 ((vtotal - 1) << 16));
 	write_dc(par, DC_V_BLANK_TIMING, (vblankstart - 1) |
-			((vblankend - 1) << 16));
+			 ((vblankend - 1) << 16));
 	write_dc(par, DC_V_SYNC_TIMING, (vsyncstart - 1)   |
-			((vsyncend - 1) << 16));
+			 ((vsyncend - 1) << 16));
 
 	/* Write final register values. */
 	write_dc(par, DC_DISPLAY_CFG, dcfg);
@@ -169,7 +173,7 @@ void gx_set_mode(struct fb_info *info)
 }
 
 void gx_set_hw_palette_reg(struct fb_info *info, unsigned regno,
-		unsigned red, unsigned green, unsigned blue)
+						   unsigned red, unsigned green, unsigned blue)
 {
 	struct gxfb_par *par = info->par;
 	int val;

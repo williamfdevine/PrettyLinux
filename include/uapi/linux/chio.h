@@ -25,14 +25,16 @@
  *    unit = 0 .. cp_nslots-1
  *
  */
-struct changer_params {
+struct changer_params
+{
 	int cp_curpicker;  /* current transport element */
 	int cp_npickers;   /* number of transport elements      (CHET_MT) */
 	int cp_nslots;     /* number of storage elements        (CHET_ST) */
 	int cp_nportals;   /* number of import/export elements  (CHET_IE) */
 	int cp_ndrives;    /* number of data transfer elements  (CHET_DT) */
 };
-struct changer_vendor_params {
+struct changer_vendor_params
+{
 	int  cvp_n1;       /* number of vendor specific elems   (CHET_V1) */
 	char cvp_label1[16];
 	int  cvp_n2;       /* number of vendor specific elems   (CHET_V2) */
@@ -49,9 +51,10 @@ struct changer_vendor_params {
  * CHIOMOVE
  *    move a medium from one element to another
  */
-struct changer_move {
+struct changer_move
+{
 	int cm_fromtype;	/* type/unit of source element */
-	int cm_fromunit;	
+	int cm_fromunit;
 	int cm_totype;	/* type/unit of destination element */
 	int cm_tounit;
 	int cm_flags;
@@ -65,7 +68,8 @@ struct changer_move {
  *    and another one from element #2 to element #3.
  *    element #1 and #3 are allowed to be identical.
  */
-struct changer_exchange {
+struct changer_exchange
+{
 	int ce_srctype;	    /* type/unit of element #1 */
 	int ce_srcunit;
 	int ce_fdsttype;    /* type/unit of element #2 */
@@ -82,7 +86,8 @@ struct changer_exchange {
  * CHIOPOSITION
  *    move the transport element (robot arm) to a specific element.
  */
-struct changer_position {
+struct changer_position
+{
 	int cp_type;
 	int cp_unit;
 	int cp_flags;
@@ -94,7 +99,8 @@ struct changer_position {
  * CHIOGSTATUS
  *    get element status for all elements of a specific type
  */
-struct changer_element_status {
+struct changer_element_status
+{
 	int             ces_type;
 	unsigned char   __user *ces_data;
 };
@@ -110,7 +116,8 @@ struct changer_element_status {
  * CHIOGELEM
  *    get more detailed status information for a single element
  */
-struct changer_get_element {
+struct changer_get_element
+{
 	int	cge_type;	 /* type/unit */
 	int	cge_unit;
 	int	cge_status;      /* status */
@@ -136,7 +143,8 @@ struct changer_get_element {
  * CHIOSVOLTAG
  *    set volume tag
  */
-struct changer_set_voltag {
+struct changer_set_voltag
+{
 	int	csv_type;	 /* type/unit */
 	int	csv_unit;
 	char    csv_voltag[36];  /* volume tag */

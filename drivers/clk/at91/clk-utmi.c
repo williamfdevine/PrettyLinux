@@ -19,7 +19,8 @@
 
 #define UTMI_FIXED_MUL		40
 
-struct clk_utmi {
+struct clk_utmi
+{
 	struct clk_hw hw;
 	struct regmap *regmap;
 };
@@ -39,12 +40,14 @@ static int clk_utmi_prepare(struct clk_hw *hw)
 {
 	struct clk_utmi *utmi = to_clk_utmi(hw);
 	unsigned int uckr = AT91_PMC_UPLLEN | AT91_PMC_UPLLCOUNT |
-			    AT91_PMC_BIASEN;
+						AT91_PMC_BIASEN;
 
 	regmap_update_bits(utmi->regmap, AT91_CKGR_UCKR, uckr, uckr);
 
 	while (!clk_utmi_ready(utmi->regmap))
+	{
 		cpu_relax();
+	}
 
 	return 0;
 }
@@ -64,22 +67,23 @@ static void clk_utmi_unprepare(struct clk_hw *hw)
 }
 
 static unsigned long clk_utmi_recalc_rate(struct clk_hw *hw,
-					  unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	/* UTMI clk is a fixed clk multiplier */
 	return parent_rate * UTMI_FIXED_MUL;
 }
 
-static const struct clk_ops utmi_ops = {
+static const struct clk_ops utmi_ops =
+{
 	.prepare = clk_utmi_prepare,
 	.unprepare = clk_utmi_unprepare,
 	.is_prepared = clk_utmi_is_prepared,
 	.recalc_rate = clk_utmi_recalc_rate,
 };
 
-static struct clk_hw * __init
+static struct clk_hw *__init
 at91_clk_register_utmi(struct regmap *regmap,
-		       const char *name, const char *parent_name)
+					   const char *name, const char *parent_name)
 {
 	struct clk_utmi *utmi;
 	struct clk_hw *hw;
@@ -87,8 +91,11 @@ at91_clk_register_utmi(struct regmap *regmap,
 	int ret;
 
 	utmi = kzalloc(sizeof(*utmi), GFP_KERNEL);
+
 	if (!utmi)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = &utmi_ops;
@@ -101,7 +108,9 @@ at91_clk_register_utmi(struct regmap *regmap,
 
 	hw = &utmi->hw;
 	ret = clk_hw_register(NULL, &utmi->hw);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(utmi);
 		hw = ERR_PTR(ret);
 	}
@@ -121,15 +130,21 @@ static void __init of_at91sam9x5_clk_utmi_setup(struct device_node *np)
 	of_property_read_string(np, "clock-output-names", &name);
 
 	regmap = syscon_node_to_regmap(of_get_parent(np));
+
 	if (IS_ERR(regmap))
+	{
 		return;
+	}
 
 	hw = at91_clk_register_utmi(regmap, name, parent_name);
+
 	if (IS_ERR(hw))
+	{
 		return;
+	}
 
 	of_clk_add_hw_provider(np, of_clk_hw_simple_get, hw);
 	return;
 }
 CLK_OF_DECLARE(at91sam9x5_clk_utmi, "atmel,at91sam9x5-clk-utmi",
-	       of_at91sam9x5_clk_utmi_setup);
+			   of_at91sam9x5_clk_utmi_setup);

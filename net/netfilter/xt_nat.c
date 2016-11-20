@@ -18,16 +18,18 @@ static int xt_nat_checkentry_v0(const struct xt_tgchk_param *par)
 {
 	const struct nf_nat_ipv4_multi_range_compat *mr = par->targinfo;
 
-	if (mr->rangesize != 1) {
+	if (mr->rangesize != 1)
+	{
 		pr_info("%s: multiple ranges no longer supported\n",
-			par->target->name);
+				par->target->name);
 		return -EINVAL;
 	}
+
 	return 0;
 }
 
 static void xt_nat_convert_range(struct nf_nat_range *dst,
-				 const struct nf_nat_ipv4_range *src)
+								 const struct nf_nat_ipv4_range *src)
 {
 	memset(&dst->min_addr, 0, sizeof(dst->min_addr));
 	memset(&dst->max_addr, 0, sizeof(dst->max_addr));
@@ -49,8 +51,8 @@ xt_snat_target_v0(struct sk_buff *skb, const struct xt_action_param *par)
 
 	ct = nf_ct_get(skb, &ctinfo);
 	NF_CT_ASSERT(ct != NULL &&
-		     (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED ||
-		      ctinfo == IP_CT_RELATED_REPLY));
+				 (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED ||
+				  ctinfo == IP_CT_RELATED_REPLY));
 
 	xt_nat_convert_range(&range, &mr->range[0]);
 	return nf_nat_setup_info(ct, &range, NF_NAT_MANIP_SRC);
@@ -66,7 +68,7 @@ xt_dnat_target_v0(struct sk_buff *skb, const struct xt_action_param *par)
 
 	ct = nf_ct_get(skb, &ctinfo);
 	NF_CT_ASSERT(ct != NULL &&
-		     (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED));
+				 (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED));
 
 	xt_nat_convert_range(&range, &mr->range[0]);
 	return nf_nat_setup_info(ct, &range, NF_NAT_MANIP_DST);
@@ -81,8 +83,8 @@ xt_snat_target_v1(struct sk_buff *skb, const struct xt_action_param *par)
 
 	ct = nf_ct_get(skb, &ctinfo);
 	NF_CT_ASSERT(ct != NULL &&
-		     (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED ||
-		      ctinfo == IP_CT_RELATED_REPLY));
+				 (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED ||
+				  ctinfo == IP_CT_RELATED_REPLY));
 
 	return nf_nat_setup_info(ct, range, NF_NAT_MANIP_SRC);
 }
@@ -96,12 +98,13 @@ xt_dnat_target_v1(struct sk_buff *skb, const struct xt_action_param *par)
 
 	ct = nf_ct_get(skb, &ctinfo);
 	NF_CT_ASSERT(ct != NULL &&
-		     (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED));
+				 (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED));
 
 	return nf_nat_setup_info(ct, range, NF_NAT_MANIP_DST);
 }
 
-static struct xt_target xt_nat_target_reg[] __read_mostly = {
+static struct xt_target xt_nat_target_reg[] __read_mostly =
+{
 	{
 		.name		= "SNAT",
 		.revision	= 0,
@@ -111,7 +114,7 @@ static struct xt_target xt_nat_target_reg[] __read_mostly = {
 		.family		= NFPROTO_IPV4,
 		.table		= "nat",
 		.hooks		= (1 << NF_INET_POST_ROUTING) |
-				  (1 << NF_INET_LOCAL_IN),
+		(1 << NF_INET_LOCAL_IN),
 		.me		= THIS_MODULE,
 	},
 	{
@@ -123,7 +126,7 @@ static struct xt_target xt_nat_target_reg[] __read_mostly = {
 		.family		= NFPROTO_IPV4,
 		.table		= "nat",
 		.hooks		= (1 << NF_INET_PRE_ROUTING) |
-				  (1 << NF_INET_LOCAL_OUT),
+		(1 << NF_INET_LOCAL_OUT),
 		.me		= THIS_MODULE,
 	},
 	{
@@ -133,7 +136,7 @@ static struct xt_target xt_nat_target_reg[] __read_mostly = {
 		.targetsize	= sizeof(struct nf_nat_range),
 		.table		= "nat",
 		.hooks		= (1 << NF_INET_POST_ROUTING) |
-				  (1 << NF_INET_LOCAL_IN),
+		(1 << NF_INET_LOCAL_IN),
 		.me		= THIS_MODULE,
 	},
 	{
@@ -143,7 +146,7 @@ static struct xt_target xt_nat_target_reg[] __read_mostly = {
 		.targetsize	= sizeof(struct nf_nat_range),
 		.table		= "nat",
 		.hooks		= (1 << NF_INET_PRE_ROUTING) |
-				  (1 << NF_INET_LOCAL_OUT),
+		(1 << NF_INET_LOCAL_OUT),
 		.me		= THIS_MODULE,
 	},
 };
@@ -151,7 +154,7 @@ static struct xt_target xt_nat_target_reg[] __read_mostly = {
 static int __init xt_nat_init(void)
 {
 	return xt_register_targets(xt_nat_target_reg,
-				   ARRAY_SIZE(xt_nat_target_reg));
+							   ARRAY_SIZE(xt_nat_target_reg));
 }
 
 static void __exit xt_nat_exit(void)

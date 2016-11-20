@@ -44,18 +44,19 @@
 #define	UNSET	(-1U)
 
 #define TW68_NORMS ( \
-	V4L2_STD_NTSC    | V4L2_STD_PAL       | V4L2_STD_SECAM    | \
-	V4L2_STD_PAL_M   | V4L2_STD_PAL_Nc    | V4L2_STD_PAL_60)
+					 V4L2_STD_NTSC    | V4L2_STD_PAL       | V4L2_STD_SECAM    | \
+					 V4L2_STD_PAL_M   | V4L2_STD_PAL_Nc    | V4L2_STD_PAL_60)
 
 #define	TW68_VID_INTS	(TW68_FFERR | TW68_PABORT | TW68_DMAPERR | \
-			 TW68_FFOF   | TW68_DMAPI)
+						 TW68_FFOF   | TW68_DMAPI)
 /* TW6800 chips have trouble with these, so we don't set them for that chip */
 #define	TW68_VID_INTSX	(TW68_FDMIS | TW68_HLOCK | TW68_VLOCK)
 
 #define	TW68_I2C_INTS	(TW68_SBERR | TW68_SBDONE | TW68_SBERR2  | \
-			 TW68_SBDONE2)
+						 TW68_SBDONE2)
 
-enum tw68_decoder_type {
+enum tw68_decoder_type
+{
 	TW6800,
 	TW6801,
 	TW6804,
@@ -65,7 +66,8 @@ enum tw68_decoder_type {
 /* ----------------------------------------------------------- */
 /* static data                                                 */
 
-struct tw68_tvnorm {
+struct tw68_tvnorm
+{
 	char		*name;
 	v4l2_std_id	id;
 
@@ -93,7 +95,8 @@ struct tw68_tvnorm {
 	u32	format;
 };
 
-struct tw68_format {
+struct tw68_format
+{
 	char	*name;
 	u32	fourcc;
 	u32	depth;
@@ -118,7 +121,8 @@ struct tw68_format {
 struct tw68_dev;	/* forward delclaration */
 
 /* buffer for one video/vbi/ts frame */
-struct tw68_buf {
+struct tw68_buf
+{
 	struct vb2_v4l2_buffer vb;
 	struct list_head list;
 
@@ -128,7 +132,8 @@ struct tw68_buf {
 	dma_addr_t     dma;
 };
 
-struct tw68_fmt {
+struct tw68_fmt
+{
 	char			*name;
 	u32			fourcc;	/* v4l2 format id */
 	int			depth;
@@ -137,7 +142,8 @@ struct tw68_fmt {
 };
 
 /* global device status */
-struct tw68_dev {
+struct tw68_dev
+{
 	struct mutex		lock;
 	spinlock_t		slock;
 	u16			instance;
@@ -180,19 +186,19 @@ struct tw68_dev {
 #define	tw_writeb(reg, value)	writeb((value), dev->bmmio + (reg))
 
 #define tw_andorl(reg, mask, value) \
-		writel((readl(dev->lmmio+((reg)>>2)) & ~(mask)) |\
-		((value) & (mask)), dev->lmmio+((reg)>>2))
+	writel((readl(dev->lmmio+((reg)>>2)) & ~(mask)) |\
+		   ((value) & (mask)), dev->lmmio+((reg)>>2))
 #define	tw_andorb(reg, mask, value) \
-		writeb((readb(dev->bmmio + (reg)) & ~(mask)) |\
-		((value) & (mask)), dev->bmmio+(reg))
+	writeb((readb(dev->bmmio + (reg)) & ~(mask)) |\
+		   ((value) & (mask)), dev->bmmio+(reg))
 #define tw_setl(reg, bit)	tw_andorl((reg), (bit), (bit))
 #define	tw_setb(reg, bit)	tw_andorb((reg), (bit), (bit))
 #define	tw_clearl(reg, bit)	\
-		writel((readl(dev->lmmio + ((reg) >> 2)) & ~(bit)), \
-		dev->lmmio + ((reg) >> 2))
+	writel((readl(dev->lmmio + ((reg) >> 2)) & ~(bit)), \
+		   dev->lmmio + ((reg) >> 2))
 #define	tw_clearb(reg, bit)	\
-		writeb((readb(dev->bmmio+(reg)) & ~(bit)), \
-		dev->bmmio + (reg))
+	writeb((readb(dev->bmmio+(reg)) & ~(bit)), \
+		   dev->bmmio + (reg))
 
 #define tw_wait(us) { udelay(us); }
 
@@ -210,6 +216,6 @@ int tw68_video_start_dma(struct tw68_dev *dev, struct tw68_buf *buf);
 /* tw68-risc.c                                                 */
 
 int tw68_risc_buffer(struct pci_dev *pci, struct tw68_buf *buf,
-	struct scatterlist *sglist, unsigned int top_offset,
-	unsigned int bottom_offset, unsigned int bpl,
-	unsigned int padding, unsigned int lines);
+					 struct scatterlist *sglist, unsigned int top_offset,
+					 unsigned int bottom_offset, unsigned int bpl,
+					 unsigned int padding, unsigned int lines);

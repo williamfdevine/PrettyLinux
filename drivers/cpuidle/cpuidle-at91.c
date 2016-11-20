@@ -27,14 +27,15 @@ static void (*at91_standby)(void);
 
 /* Actual code that puts the SoC in different idle states */
 static int at91_enter_idle(struct cpuidle_device *dev,
-			struct cpuidle_driver *drv,
-			       int index)
+						   struct cpuidle_driver *drv,
+						   int index)
 {
 	at91_standby();
 	return index;
 }
 
-static struct cpuidle_driver at91_idle_driver = {
+static struct cpuidle_driver at91_idle_driver =
+{
 	.name			= "at91_idle",
 	.owner			= THIS_MODULE,
 	.states[0]		= ARM_CPUIDLE_WFI_STATE,
@@ -52,11 +53,12 @@ static struct cpuidle_driver at91_idle_driver = {
 static int at91_cpuidle_probe(struct platform_device *dev)
 {
 	at91_standby = (void *)(dev->dev.platform_data);
-	
+
 	return cpuidle_register(&at91_idle_driver, NULL);
 }
 
-static struct platform_driver at91_cpuidle_driver = {
+static struct platform_driver at91_cpuidle_driver =
+{
 	.driver = {
 		.name = "cpuidle-at91",
 	},

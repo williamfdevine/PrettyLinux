@@ -24,7 +24,8 @@
 
 struct uart_port;
 
-enum mctrl_gpio_idx {
+enum mctrl_gpio_idx
+{
 	UART_GPIO_CTS,
 	UART_GPIO_DSR,
 	UART_GPIO_DCD,
@@ -64,7 +65,7 @@ mctrl_gpio_get_outputs(struct mctrl_gpios *gpios, unsigned int *mctrl);
  * Returns the associated struct gpio_desc to the modem line gidx
  */
 struct gpio_desc *mctrl_gpio_to_gpiod(struct mctrl_gpios *gpios,
-				      enum mctrl_gpio_idx gidx);
+									  enum mctrl_gpio_idx gidx);
 
 /*
  * Request and set direction of modem control line GPIOs and set up irq
@@ -82,7 +83,7 @@ struct mctrl_gpios *mctrl_gpio_init(struct uart_port *port, unsigned int idx);
  * allocation error.
  */
 struct mctrl_gpios *mctrl_gpio_init_noauto(struct device *dev,
-					   unsigned int idx);
+		unsigned int idx);
 
 /*
  * Free the mctrl_gpios structure.
@@ -122,7 +123,7 @@ mctrl_gpio_get_outputs(struct mctrl_gpios *gpios, unsigned int *mctrl)
 
 static inline
 struct gpio_desc *mctrl_gpio_to_gpiod(struct mctrl_gpios *gpios,
-				      enum mctrl_gpio_idx gidx)
+									  enum mctrl_gpio_idx gidx)
 {
 	return ERR_PTR(-ENOSYS);
 }

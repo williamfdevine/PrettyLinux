@@ -71,7 +71,8 @@
 #define IOC4_CMD_CTL_BLK_SIZE	0x20
 #define IOC4_SUPPORTED_FIRMWARE_REV 46
 
-struct ioc4_dma_regs {
+struct ioc4_dma_regs
+{
 	u32 timing_reg0;
 	u32 timing_reg1;
 	u32 low_mem_ptr;
@@ -90,16 +91,18 @@ struct ioc4_dma_regs {
 
 
 static void sgiioc4_init_hwif_ports(struct ide_hw *hw,
-				    unsigned long data_port,
-				    unsigned long ctrl_port,
-				    unsigned long irq_port)
+									unsigned long data_port,
+									unsigned long ctrl_port,
+									unsigned long irq_port)
 {
 	unsigned long reg = data_port;
 	int i;
 
 	/* Registers are word (32 bit) aligned */
 	for (i = 0; i <= 7; i++)
+	{
 		hw->io_ports_array[i] = reg + i * 4;
+	}
 
 	hw->io_ports.ctl_addr = ctrl_port;
 	hw->io_ports.irq_addr = irq_port;
@@ -110,7 +113,9 @@ static int sgiioc4_checkirq(ide_hwif_t *hwif)
 	unsigned long intr_addr = hwif->io_ports.irq_addr + IOC4_INTR_REG * 4;
 
 	if (readl((void __iomem *)intr_addr) & 0x03)
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -126,7 +131,9 @@ static int sgiioc4_clearirq(ide_drive_t *drive)
 
 	/* Code to check for PCI error conditions */
 	intr_reg = readl((void __iomem *)other_ir);
-	if (intr_reg & 0x03) { /* Valid IOC4-IDE interrupt */
+
+	if (intr_reg & 0x03)   /* Valid IOC4-IDE interrupt */
+	{
 		/*
 		 * Using sgiioc4_read_status to read the Status register has a
 		 * side effect of clearing the interrupt.  The first read should
@@ -138,29 +145,32 @@ static int sgiioc4_clearirq(ide_drive_t *drive)
 		int count = 0;
 
 		stat = sgiioc4_read_status(hwif);
-		while ((stat & ATA_BUSY) && (count++ < 100)) {
+
+		while ((stat & ATA_BUSY) && (count++ < 100))
+		{
 			udelay(1);
 			stat = sgiioc4_read_status(hwif);
 		}
 
-		if (intr_reg & 0x02) {
+		if (intr_reg & 0x02)
+		{
 			struct pci_dev *dev = to_pci_dev(hwif->dev);
 			/* Error when transferring DMA data on PCI bus */
 			u32 pci_err_addr_low, pci_err_addr_high,
-			    pci_stat_cmd_reg;
+				pci_stat_cmd_reg;
 
 			pci_err_addr_low =
 				readl((void __iomem *)io_ports->irq_addr);
 			pci_err_addr_high =
 				readl((void __iomem *)(io_ports->irq_addr + 4));
 			pci_read_config_dword(dev, PCI_COMMAND,
-					      &pci_stat_cmd_reg);
+								  &pci_stat_cmd_reg);
 			printk(KERN_ERR "%s(%s): PCI Bus Error when doing DMA: "
-			       "status-cmd reg is 0x%x\n",
-			       __func__, drive->name, pci_stat_cmd_reg);
+				   "status-cmd reg is 0x%x\n",
+				   __func__, drive->name, pci_stat_cmd_reg);
 			printk(KERN_ERR "%s(%s): PCI Error Address is 0x%x%x\n",
-			       __func__, drive->name,
-			       pci_err_addr_high, pci_err_addr_low);
+				   __func__, drive->name,
+				   pci_err_addr_high, pci_err_addr_low);
 			/* Clear the PCI Error indicator */
 			pci_write_config_dword(dev, PCI_COMMAND, 0x00000146);
 		}
@@ -192,10 +202,13 @@ static u32 sgiioc4_ide_dma_stop(ide_hwif_t *hwif, u64 dma_base)
 
 	count = 0;
 	ioc4_dma = readl((void __iomem *)ioc4_dma_addr);
-	while ((ioc4_dma & IOC4_S_DMA_STOP) && (count++ < 200)) {
+
+	while ((ioc4_dma & IOC4_S_DMA_STOP) && (count++ < 200))
+	{
 		udelay(1);
 		ioc4_dma = readl((void __iomem *)ioc4_dma_addr);
 	}
+
 	return ioc4_dma;
 }
 
@@ -212,11 +225,12 @@ static int sgiioc4_dma_end(ide_drive_t *drive)
 
 	ioc4_dma = sgiioc4_ide_dma_stop(hwif, dma_base);
 
-	if (ioc4_dma & IOC4_S_DMA_STOP) {
+	if (ioc4_dma & IOC4_S_DMA_STOP)
+	{
 		printk(KERN_ERR
-		       "%s(%s): IOC4 DMA STOP bit is still 1 :"
-		       "ioc4_dma_reg 0x%x\n",
-		       __func__, drive->name, ioc4_dma);
+			   "%s(%s): IOC4 DMA STOP bit is still 1 :"
+			   "ioc4_dma_reg 0x%x\n",
+			   __func__, drive->name, ioc4_dma);
 		dma_stat = 1;
 	}
 
@@ -225,30 +239,38 @@ static int sgiioc4_dma_end(ide_drive_t *drive)
 	 * previous data DMA is complete.  This is necessary because of relaxed
 	 * ordering between register reads and DMA writes on the Altix.
 	 */
-	while ((cnt++ < 200) && (!valid)) {
-		for (num = 0; num < 16; num++) {
-			if (ending_dma[num]) {
+	while ((cnt++ < 200) && (!valid))
+	{
+		for (num = 0; num < 16; num++)
+		{
+			if (ending_dma[num])
+			{
 				valid = 1;
 				break;
 			}
 		}
+
 		udelay(1);
 	}
-	if (!valid) {
+
+	if (!valid)
+	{
 		printk(KERN_ERR "%s(%s) : DMA incomplete\n", __func__,
-		       drive->name);
+			   drive->name);
 		dma_stat = 1;
 	}
 
 	bc_dev = readl((void __iomem *)(dma_base + IOC4_BC_DEV * 4));
 	bc_mem = readl((void __iomem *)(dma_base + IOC4_BC_MEM * 4));
 
-	if ((bc_dev & 0x01FF) || (bc_mem & 0x1FF)) {
-		if (bc_dev > bc_mem + 8) {
+	if ((bc_dev & 0x01FF) || (bc_mem & 0x1FF))
+	{
+		if (bc_dev > bc_mem + 8)
+		{
 			printk(KERN_ERR
-			       "%s(%s): WARNING!! byte_count_dev %d "
-			       "!= byte_count_mem %d\n",
-			       __func__, drive->name, bc_dev, bc_mem);
+				   "%s(%s): WARNING!! byte_count_dev %d "
+				   "!= byte_count_mem %d\n",
+				   __func__, drive->name, bc_dev, bc_mem);
 		}
 	}
 
@@ -268,7 +290,9 @@ static int sgiioc4_dma_test_irq(ide_drive_t *drive)
 static void sgiioc4_dma_host_set(ide_drive_t *drive, int on)
 {
 	if (!on)
+	{
 		sgiioc4_clearirq(drive);
+	}
 }
 
 static void sgiioc4_resetproc(ide_drive_t *drive)
@@ -292,12 +316,14 @@ static u8 sgiioc4_read_status(ide_hwif_t *hwif)
 	unsigned long port = hwif->io_ports.status_addr;
 	u8 reg = (u8) readb((void __iomem *) port);
 
-	if (!(reg & ATA_BUSY)) {	/* Not busy... check for interrupt */
+	if (!(reg & ATA_BUSY))  	/* Not busy... check for interrupt */
+	{
 		unsigned long other_ir = port - 0x110;
 		unsigned int intr_reg = (u32) readl((void __iomem *) other_ir);
 
 		/* Clear the Interrupt, Error bits on the IOC4 */
-		if (intr_reg & 0x03) {
+		if (intr_reg & 0x03)
+		{
 			writel(0x03, (void __iomem *) other_ir);
 			intr_reg = (u32) readl((void __iomem *) other_ir);
 		}
@@ -316,15 +342,16 @@ static int ide_dma_sgiioc4(ide_hwif_t *hwif, const struct ide_port_info *d)
 
 	printk(KERN_INFO "    %s: MMIO-DMA\n", hwif->name);
 
-	if (request_mem_region(dma_base, num_ports, hwif->name) == NULL) {
+	if (request_mem_region(dma_base, num_ports, hwif->name) == NULL)
+	{
 		printk(KERN_ERR "%s(%s) -- ERROR: addresses 0x%08lx to 0x%08lx "
-		       "already in use\n", __func__, hwif->name,
-		       dma_base, dma_base + num_ports - 1);
+			   "already in use\n", __func__, hwif->name,
+			   dma_base, dma_base + num_ports - 1);
 		return -1;
 	}
 
 	hwif->dma_base = (unsigned long)hwif->io_ports.irq_addr +
-			 IOC4_DMA_OFFSET;
+					 IOC4_DMA_OFFSET;
 
 	hwif->sg_max_nents = IOC4_PRD_ENTRIES;
 
@@ -332,11 +359,15 @@ static int ide_dma_sgiioc4(ide_hwif_t *hwif, const struct ide_port_info *d)
 	hwif->prd_ent_size = IOC4_PRD_BYTES;
 
 	if (ide_allocate_dma_engine(hwif))
+	{
 		goto dma_pci_alloc_failure;
+	}
 
 	pad = dma_alloc_coherent(&dev->dev, IOC4_IDE_CACHELINE_SIZE,
-				   (dma_addr_t *)&hwif->extra_base, GFP_KERNEL);
-	if (pad) {
+							 (dma_addr_t *)&hwif->extra_base, GFP_KERNEL);
+
+	if (pad)
+	{
 		ide_set_hwifdata(hwif, pad);
 		return 0;
 	}
@@ -344,7 +375,7 @@ static int ide_dma_sgiioc4(ide_hwif_t *hwif, const struct ide_port_info *d)
 	ide_release_dma_engine(hwif);
 
 	printk(KERN_ERR "%s(%s) -- ERROR: Unable to allocate DMA maps\n",
-	       __func__, hwif->name);
+		   __func__, hwif->name);
 	printk(KERN_INFO "%s: changing from DMA to PIO mode", hwif->name);
 
 dma_pci_alloc_failure:
@@ -364,28 +395,31 @@ static void sgiioc4_configure_for_dma(int dma_direction, ide_drive_t *drive)
 
 	ioc4_dma = readl((void __iomem *)ioc4_dma_addr);
 
-	if (ioc4_dma & IOC4_S_DMA_ACTIVE) {
+	if (ioc4_dma & IOC4_S_DMA_ACTIVE)
+	{
 		printk(KERN_WARNING "%s(%s): Warning!! DMA from previous "
-		       "transfer was still active\n", __func__, drive->name);
+			   "transfer was still active\n", __func__, drive->name);
 		writel(IOC4_S_DMA_STOP, (void __iomem *)ioc4_dma_addr);
 		ioc4_dma = sgiioc4_ide_dma_stop(hwif, dma_base);
 
 		if (ioc4_dma & IOC4_S_DMA_STOP)
 			printk(KERN_ERR "%s(%s): IOC4 DMA STOP bit is "
-			       "still 1\n", __func__, drive->name);
+				   "still 1\n", __func__, drive->name);
 	}
 
 	ioc4_dma = readl((void __iomem *)ioc4_dma_addr);
-	if (ioc4_dma & IOC4_S_DMA_ERROR) {
+
+	if (ioc4_dma & IOC4_S_DMA_ERROR)
+	{
 		printk(KERN_WARNING "%s(%s): Warning!! DMA Error during "
-		       "previous transfer, status 0x%x\n",
-		       __func__, drive->name, ioc4_dma);
+			   "previous transfer, status 0x%x\n",
+			   __func__, drive->name, ioc4_dma);
 		writel(IOC4_S_DMA_STOP, (void __iomem *)ioc4_dma_addr);
 		ioc4_dma = sgiioc4_ide_dma_stop(hwif, dma_base);
 
 		if (ioc4_dma & IOC4_S_DMA_STOP)
 			printk(KERN_ERR "%s(%s): IOC4 DMA STOP bit is "
-			       "still 1\n", __func__, drive->name);
+				   "still 1\n", __func__, drive->name);
 	}
 
 	/* Address of the Scatter Gather List */
@@ -396,7 +430,7 @@ static void sgiioc4_configure_for_dma(int dma_direction, ide_drive_t *drive)
 	memset(ide_get_hwifdata(hwif), 0, IOC4_IDE_CACHELINE_SIZE);
 	ending_dma_addr = cpu_to_le32(hwif->extra_base);
 	writel(ending_dma_addr, (void __iomem *)(dma_base +
-						 IOC4_DMA_END_ADDR * 4));
+			IOC4_DMA_END_ADDR * 4));
 
 	writel(dma_direction, (void __iomem *)ioc4_dma_addr);
 }
@@ -418,24 +452,31 @@ static int sgiioc4_build_dmatable(ide_drive_t *drive, struct ide_cmd *cmd)
 	unsigned int count = 0, i = cmd->sg_nents;
 	struct scatterlist *sg = hwif->sg_table;
 
-	while (i && sg_dma_len(sg)) {
+	while (i && sg_dma_len(sg))
+	{
 		dma_addr_t cur_addr;
 		int cur_len;
 		cur_addr = sg_dma_address(sg);
 		cur_len = sg_dma_len(sg);
 
-		while (cur_len) {
-			if (count++ >= IOC4_PRD_ENTRIES) {
+		while (cur_len)
+		{
+			if (count++ >= IOC4_PRD_ENTRIES)
+			{
 				printk(KERN_WARNING
-				       "%s: DMA table too small\n",
-				       drive->name);
+					   "%s: DMA table too small\n",
+					   drive->name);
 				return 0;
-			} else {
+			}
+			else
+			{
 				u32 bcount =
-				    0x10000 - (cur_addr & 0xffff);
+					0x10000 - (cur_addr & 0xffff);
 
 				if (bcount > cur_len)
+				{
 					bcount = cur_len;
+				}
 
 				/*
 				 * Put the address, length in
@@ -460,7 +501,8 @@ static int sgiioc4_build_dmatable(ide_drive_t *drive, struct ide_cmd *cmd)
 		i--;
 	}
 
-	if (count) {
+	if (count)
+	{
 		table--;
 		*table |= cpu_to_be32(0x80000000);
 		return count;
@@ -476,21 +518,28 @@ static int sgiioc4_dma_setup(ide_drive_t *drive, struct ide_cmd *cmd)
 
 	if (sgiioc4_build_dmatable(drive, cmd) == 0)
 		/* try PIO instead of DMA */
+	{
 		return 1;
+	}
 
 	if (write)
 		/* Writes TO the IOC4 FROM Main Memory */
+	{
 		ddir = IOC4_DMA_READ;
+	}
 	else
 		/* Writes FROM the IOC4 TO Main Memory */
+	{
 		ddir = IOC4_DMA_WRITE;
+	}
 
 	sgiioc4_configure_for_dma(ddir, drive);
 
 	return 0;
 }
 
-static const struct ide_tp_ops sgiioc4_tp_ops = {
+static const struct ide_tp_ops sgiioc4_tp_ops =
+{
 	.exec_command		= ide_exec_command,
 	.read_status		= sgiioc4_read_status,
 	.read_altstatus		= ide_read_altstatus,
@@ -504,13 +553,15 @@ static const struct ide_tp_ops sgiioc4_tp_ops = {
 	.output_data		= ide_output_data,
 };
 
-static const struct ide_port_ops sgiioc4_port_ops = {
+static const struct ide_port_ops sgiioc4_port_ops =
+{
 	.set_dma_mode		= sgiioc4_set_dma_mode,
 	/* reset DMA engine, clear IRQs */
 	.resetproc		= sgiioc4_resetproc,
 };
 
-static const struct ide_dma_ops sgiioc4_dma_ops = {
+static const struct ide_dma_ops sgiioc4_dma_ops =
+{
 	.dma_host_set		= sgiioc4_dma_host_set,
 	.dma_setup		= sgiioc4_dma_setup,
 	.dma_start		= sgiioc4_dma_start,
@@ -519,7 +570,8 @@ static const struct ide_dma_ops sgiioc4_dma_ops = {
 	.dma_lost_irq		= sgiioc4_dma_lost_irq,
 };
 
-static const struct ide_port_info sgiioc4_port_info = {
+static const struct ide_port_info sgiioc4_port_info =
+{
 	.name			= DRV_NAME,
 	.chipset		= ide_pci,
 	.init_dma		= ide_dma_sgiioc4,
@@ -542,21 +594,26 @@ static int sgiioc4_ide_setup_pci_device(struct pci_dev *dev)
 	/* Get the CmdBlk and CtrlBlk base registers */
 	bar0 = pci_resource_start(dev, 0);
 	virt_base = pci_ioremap_bar(dev, 0);
-	if (virt_base == NULL) {
+
+	if (virt_base == NULL)
+	{
 		printk(KERN_ERR "%s: Unable to remap BAR 0 address: 0x%lx\n",
-				DRV_NAME, bar0);
+			   DRV_NAME, bar0);
 		return -ENOMEM;
 	}
+
 	cmd_base = (unsigned long)virt_base + IOC4_CMD_OFFSET;
 	ctl = (unsigned long)virt_base + IOC4_CTRL_OFFSET;
 	irqport = (unsigned long)virt_base + IOC4_INTR_OFFSET;
 
 	cmd_phys_base = bar0 + IOC4_CMD_OFFSET;
+
 	if (request_mem_region(cmd_phys_base, IOC4_CMD_CTL_BLK_SIZE,
-			       DRV_NAME) == NULL) {
+						   DRV_NAME) == NULL)
+	{
 		printk(KERN_ERR "%s %s -- ERROR: addresses 0x%08lx to 0x%08lx "
-		       "already in use\n", DRV_NAME, pci_name(dev),
-		       cmd_phys_base, cmd_phys_base + IOC4_CMD_CTL_BLK_SIZE);
+			   "already in use\n", DRV_NAME, pci_name(dev),
+			   cmd_phys_base, cmd_phys_base + IOC4_CMD_CTL_BLK_SIZE);
 		rc = -EBUSY;
 		goto req_mem_rgn_err;
 	}
@@ -571,8 +628,11 @@ static int sgiioc4_ide_setup_pci_device(struct pci_dev *dev)
 	writel(0x03, (void __iomem *)(irqport + IOC4_INTR_SET * 4));
 
 	rc = ide_host_add(&sgiioc4_port_info, hws, 1, NULL);
+
 	if (!rc)
+	{
 		return 0;
+	}
 
 	release_mem_region(cmd_phys_base, IOC4_CMD_CTL_BLK_SIZE);
 req_mem_rgn_err:
@@ -585,16 +645,18 @@ static unsigned int pci_init_sgiioc4(struct pci_dev *dev)
 	int ret;
 
 	printk(KERN_INFO "%s: IDE controller at PCI slot %s, revision %d\n",
-			 DRV_NAME, pci_name(dev), dev->revision);
+		   DRV_NAME, pci_name(dev), dev->revision);
 
-	if (dev->revision < IOC4_SUPPORTED_FIRMWARE_REV) {
+	if (dev->revision < IOC4_SUPPORTED_FIRMWARE_REV)
+	{
 		printk(KERN_ERR "Skipping %s IDE controller in slot %s: "
-				"firmware is obsolete - please upgrade to "
-				"revision46 or higher\n",
-				DRV_NAME, pci_name(dev));
+			   "firmware is obsolete - please upgrade to "
+			   "revision46 or higher\n",
+			   DRV_NAME, pci_name(dev));
 		ret = -EAGAIN;
 		goto out;
 	}
+
 	ret = sgiioc4_ide_setup_pci_device(dev);
 out:
 	return ret;
@@ -607,12 +669,15 @@ static int ioc4_ide_attach_one(struct ioc4_driver_data *idd)
 	 * Do not attach to this particular IOC4.
 	 */
 	if (idd->idd_variant == IOC4_VARIANT_PCI_RT)
+	{
 		return 0;
+	}
 
 	return pci_init_sgiioc4(idd->idd_pdev);
 }
 
-static struct ioc4_submodule ioc4_ide_submodule = {
+static struct ioc4_submodule ioc4_ide_submodule =
+{
 	.is_name = "IOC4_ide",
 	.is_owner = THIS_MODULE,
 	.is_probe = ioc4_ide_attach_one,

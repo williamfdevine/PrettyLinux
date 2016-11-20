@@ -36,12 +36,14 @@ static inline void qce_write(struct qce_device *qce, u32 offset, u32 val)
 }
 
 static inline void qce_write_array(struct qce_device *qce, u32 offset,
-				   const u32 *val, unsigned int len)
+								   const u32 *val, unsigned int len)
 {
 	int i;
 
 	for (i = 0; i < len; i++)
+	{
 		qce_write(qce, offset + i * sizeof(u32), val[i]);
+	}
 }
 
 static inline void
@@ -50,50 +52,71 @@ qce_clear_array(struct qce_device *qce, u32 offset, unsigned int len)
 	int i;
 
 	for (i = 0; i < len; i++)
+	{
 		qce_write(qce, offset + i * sizeof(u32), 0);
+	}
 }
 
 static u32 qce_encr_cfg(unsigned long flags, u32 aes_key_size)
 {
 	u32 cfg = 0;
 
-	if (IS_AES(flags)) {
+	if (IS_AES(flags))
+	{
 		if (aes_key_size == AES_KEYSIZE_128)
+		{
 			cfg |= ENCR_KEY_SZ_AES128 << ENCR_KEY_SZ_SHIFT;
+		}
 		else if (aes_key_size == AES_KEYSIZE_256)
+		{
 			cfg |= ENCR_KEY_SZ_AES256 << ENCR_KEY_SZ_SHIFT;
+		}
 	}
 
 	if (IS_AES(flags))
+	{
 		cfg |= ENCR_ALG_AES << ENCR_ALG_SHIFT;
+	}
 	else if (IS_DES(flags) || IS_3DES(flags))
+	{
 		cfg |= ENCR_ALG_DES << ENCR_ALG_SHIFT;
+	}
 
 	if (IS_DES(flags))
+	{
 		cfg |= ENCR_KEY_SZ_DES << ENCR_KEY_SZ_SHIFT;
+	}
 
 	if (IS_3DES(flags))
+	{
 		cfg |= ENCR_KEY_SZ_3DES << ENCR_KEY_SZ_SHIFT;
+	}
 
-	switch (flags & QCE_MODE_MASK) {
-	case QCE_MODE_ECB:
-		cfg |= ENCR_MODE_ECB << ENCR_MODE_SHIFT;
-		break;
-	case QCE_MODE_CBC:
-		cfg |= ENCR_MODE_CBC << ENCR_MODE_SHIFT;
-		break;
-	case QCE_MODE_CTR:
-		cfg |= ENCR_MODE_CTR << ENCR_MODE_SHIFT;
-		break;
-	case QCE_MODE_XTS:
-		cfg |= ENCR_MODE_XTS << ENCR_MODE_SHIFT;
-		break;
-	case QCE_MODE_CCM:
-		cfg |= ENCR_MODE_CCM << ENCR_MODE_SHIFT;
-		cfg |= LAST_CCM_XFR << LAST_CCM_SHIFT;
-		break;
-	default:
-		return ~0;
+	switch (flags & QCE_MODE_MASK)
+	{
+		case QCE_MODE_ECB:
+			cfg |= ENCR_MODE_ECB << ENCR_MODE_SHIFT;
+			break;
+
+		case QCE_MODE_CBC:
+			cfg |= ENCR_MODE_CBC << ENCR_MODE_SHIFT;
+			break;
+
+		case QCE_MODE_CTR:
+			cfg |= ENCR_MODE_CTR << ENCR_MODE_SHIFT;
+			break;
+
+		case QCE_MODE_XTS:
+			cfg |= ENCR_MODE_XTS << ENCR_MODE_SHIFT;
+			break;
+
+		case QCE_MODE_CCM:
+			cfg |= ENCR_MODE_CCM << ENCR_MODE_SHIFT;
+			cfg |= LAST_CCM_XFR << LAST_CCM_SHIFT;
+			break;
+
+		default:
+			return ~0;
 	}
 
 	return cfg;
@@ -104,43 +127,72 @@ static u32 qce_auth_cfg(unsigned long flags, u32 key_size)
 	u32 cfg = 0;
 
 	if (IS_AES(flags) && (IS_CCM(flags) || IS_CMAC(flags)))
+	{
 		cfg |= AUTH_ALG_AES << AUTH_ALG_SHIFT;
+	}
 	else
+	{
 		cfg |= AUTH_ALG_SHA << AUTH_ALG_SHIFT;
+	}
 
-	if (IS_CCM(flags) || IS_CMAC(flags)) {
+	if (IS_CCM(flags) || IS_CMAC(flags))
+	{
 		if (key_size == AES_KEYSIZE_128)
+		{
 			cfg |= AUTH_KEY_SZ_AES128 << AUTH_KEY_SIZE_SHIFT;
+		}
 		else if (key_size == AES_KEYSIZE_256)
+		{
 			cfg |= AUTH_KEY_SZ_AES256 << AUTH_KEY_SIZE_SHIFT;
+		}
 	}
 
 	if (IS_SHA1(flags) || IS_SHA1_HMAC(flags))
+	{
 		cfg |= AUTH_SIZE_SHA1 << AUTH_SIZE_SHIFT;
+	}
 	else if (IS_SHA256(flags) || IS_SHA256_HMAC(flags))
+	{
 		cfg |= AUTH_SIZE_SHA256 << AUTH_SIZE_SHIFT;
+	}
 	else if (IS_CMAC(flags))
+	{
 		cfg |= AUTH_SIZE_ENUM_16_BYTES << AUTH_SIZE_SHIFT;
+	}
 
 	if (IS_SHA1(flags) || IS_SHA256(flags))
+	{
 		cfg |= AUTH_MODE_HASH << AUTH_MODE_SHIFT;
+	}
 	else if (IS_SHA1_HMAC(flags) || IS_SHA256_HMAC(flags) ||
-		 IS_CBC(flags) || IS_CTR(flags))
+			 IS_CBC(flags) || IS_CTR(flags))
+	{
 		cfg |= AUTH_MODE_HMAC << AUTH_MODE_SHIFT;
+	}
 	else if (IS_AES(flags) && IS_CCM(flags))
+	{
 		cfg |= AUTH_MODE_CCM << AUTH_MODE_SHIFT;
+	}
 	else if (IS_AES(flags) && IS_CMAC(flags))
+	{
 		cfg |= AUTH_MODE_CMAC << AUTH_MODE_SHIFT;
+	}
 
 	if (IS_SHA(flags) || IS_SHA_HMAC(flags))
+	{
 		cfg |= AUTH_POS_BEFORE << AUTH_POS_SHIFT;
+	}
 
 	if (IS_CCM(flags))
+	{
 		cfg |= QCE_MAX_NONCE_WORDS << AUTH_NONCE_NUM_WORDS_SHIFT;
+	}
 
 	if (IS_CBC(flags) || IS_CTR(flags) || IS_CCM(flags) ||
-	    IS_CMAC(flags))
+		IS_CMAC(flags))
+	{
 		cfg |= BIT(AUTH_LAST_SHIFT) | BIT(AUTH_FIRST_SHIFT);
+	}
 
 	return cfg;
 }
@@ -153,12 +205,14 @@ static u32 qce_config_reg(struct qce_device *qce, int little)
 
 	config = (beats << REQ_SIZE_SHIFT) & REQ_SIZE_MASK;
 	config |= BIT(MASK_DOUT_INTR_SHIFT) | BIT(MASK_DIN_INTR_SHIFT) |
-		  BIT(MASK_OP_DONE_INTR_SHIFT) | BIT(MASK_ERR_INTR_SHIFT);
+			  BIT(MASK_OP_DONE_INTR_SHIFT) | BIT(MASK_ERR_INTR_SHIFT);
 	config |= (pipe_pair << PIPE_SET_SELECT_SHIFT) & PIPE_SET_SELECT_MASK;
 	config &= ~HIGH_SPD_EN_N_SHIFT;
 
 	if (little)
+	{
 		config |= BIT(LITTLE_ENDIAN_MODE_SHIFT);
+	}
 
 	return config;
 }
@@ -170,7 +224,9 @@ void qce_cpu_to_be32p_array(__be32 *dst, const u8 *src, unsigned int len)
 	unsigned int n;
 
 	n = len / sizeof(u32);
-	for (; n > 0; n--) {
+
+	for (; n > 0; n--)
+	{
 		*d = cpu_to_be32p((const __u32 *) s);
 		s += sizeof(__u32);
 		d++;
@@ -183,26 +239,30 @@ static void qce_xts_swapiv(__be32 *dst, const u8 *src, unsigned int ivsize)
 	u32 i, j;
 
 	if (ivsize > QCE_AES_IV_LENGTH)
+	{
 		return;
+	}
 
 	memset(swap, 0, QCE_AES_IV_LENGTH);
 
 	for (i = (QCE_AES_IV_LENGTH - ivsize), j = ivsize - 1;
-	     i < QCE_AES_IV_LENGTH; i++, j--)
+		 i < QCE_AES_IV_LENGTH; i++, j--)
+	{
 		swap[i] = src[j];
+	}
 
 	qce_cpu_to_be32p_array(dst, swap, QCE_AES_IV_LENGTH);
 }
 
 static void qce_xtskey(struct qce_device *qce, const u8 *enckey,
-		       unsigned int enckeylen, unsigned int cryptlen)
+					   unsigned int enckeylen, unsigned int cryptlen)
 {
 	u32 xtskey[QCE_MAX_CIPHER_KEY_SIZE / sizeof(u32)] = {0};
 	unsigned int xtsklen = enckeylen / (2 * sizeof(u32));
 	unsigned int xtsdusize;
 
 	qce_cpu_to_be32p_array((__be32 *)xtskey, enckey + enckeylen / 2,
-			       enckeylen / 2);
+						   enckeylen / 2);
 	qce_write_array(qce, REG_ENCR_XTS_KEY0, xtskey, xtsklen);
 
 	/* xts du size 512B */
@@ -228,7 +288,7 @@ static inline void qce_crypto_go(struct qce_device *qce)
 }
 
 static int qce_setup_regs_ahash(struct crypto_async_request *async_req,
-				u32 totallen, u32 offset)
+								u32 totallen, u32 offset)
 {
 	struct ahash_request *req = ahash_request_cast(async_req);
 	struct crypto_ahash *ahash = __crypto_ahash_cast(async_req->tfm);
@@ -244,11 +304,14 @@ static int qce_setup_regs_ahash(struct crypto_async_request *async_req,
 
 	/* if not the last, the size has to be on the block boundary */
 	if (!rctx->last_blk && req->nbytes % blocksize)
+	{
 		return -EINVAL;
+	}
 
 	qce_setup_config(qce);
 
-	if (IS_CMAC(rctx->flags)) {
+	if (IS_CMAC(rctx->flags))
+	{
 		qce_write(qce, REG_AUTH_SEG_CFG, 0);
 		qce_write(qce, REG_ENCR_SEG_CFG, 0);
 		qce_write(qce, REG_ENCR_SEG_SIZE, 0);
@@ -259,42 +322,59 @@ static int qce_setup_regs_ahash(struct crypto_async_request *async_req,
 		auth_cfg = qce_auth_cfg(rctx->flags, rctx->authklen);
 	}
 
-	if (IS_SHA_HMAC(rctx->flags) || IS_CMAC(rctx->flags)) {
+	if (IS_SHA_HMAC(rctx->flags) || IS_CMAC(rctx->flags))
+	{
 		u32 authkey_words = rctx->authklen / sizeof(u32);
 
 		qce_cpu_to_be32p_array(mackey, rctx->authkey, rctx->authklen);
 		qce_write_array(qce, REG_AUTH_KEY0, (u32 *)mackey,
-				authkey_words);
+						authkey_words);
 	}
 
 	if (IS_CMAC(rctx->flags))
+	{
 		goto go_proc;
+	}
 
 	if (rctx->first_blk)
+	{
 		memcpy(auth, rctx->digest, digestsize);
+	}
 	else
+	{
 		qce_cpu_to_be32p_array(auth, rctx->digest, digestsize);
+	}
 
 	iv_words = (IS_SHA1(rctx->flags) || IS_SHA1_HMAC(rctx->flags)) ? 5 : 8;
 	qce_write_array(qce, REG_AUTH_IV0, (u32 *)auth, iv_words);
 
 	if (rctx->first_blk)
+	{
 		qce_clear_array(qce, REG_AUTH_BYTECNT0, 4);
+	}
 	else
 		qce_write_array(qce, REG_AUTH_BYTECNT0,
-				(u32 *)rctx->byte_count, 2);
+						(u32 *)rctx->byte_count, 2);
 
 	auth_cfg = qce_auth_cfg(rctx->flags, 0);
 
 	if (rctx->last_blk)
+	{
 		auth_cfg |= BIT(AUTH_LAST_SHIFT);
+	}
 	else
+	{
 		auth_cfg &= ~BIT(AUTH_LAST_SHIFT);
+	}
 
 	if (rctx->first_blk)
+	{
 		auth_cfg |= BIT(AUTH_FIRST_SHIFT);
+	}
 	else
+	{
 		auth_cfg &= ~BIT(AUTH_FIRST_SHIFT);
+	}
 
 go_proc:
 	qce_write(qce, REG_AUTH_SEG_CFG, auth_cfg);
@@ -313,7 +393,7 @@ go_proc:
 }
 
 static int qce_setup_regs_ablkcipher(struct crypto_async_request *async_req,
-				     u32 totallen, u32 offset)
+									 u32 totallen, u32 offset)
 {
 	struct ablkcipher_request *req = ablkcipher_request_cast(async_req);
 	struct qce_cipher_reqctx *rctx = ablkcipher_request_ctx(req);
@@ -331,9 +411,13 @@ static int qce_setup_regs_ablkcipher(struct crypto_async_request *async_req,
 	qce_setup_config(qce);
 
 	if (IS_XTS(flags))
+	{
 		keylen = ctx->enc_keylen / 2;
+	}
 	else
+	{
 		keylen = ctx->enc_keylen;
+	}
 
 	qce_cpu_to_be32p_array(enckey, ctx->enc_key, keylen);
 	enckey_words = keylen / sizeof(u32);
@@ -342,40 +426,56 @@ static int qce_setup_regs_ablkcipher(struct crypto_async_request *async_req,
 
 	encr_cfg = qce_encr_cfg(flags, keylen);
 
-	if (IS_DES(flags)) {
+	if (IS_DES(flags))
+	{
 		enciv_words = 2;
 		enckey_words = 2;
-	} else if (IS_3DES(flags)) {
+	}
+	else if (IS_3DES(flags))
+	{
 		enciv_words = 2;
 		enckey_words = 6;
-	} else if (IS_AES(flags)) {
+	}
+	else if (IS_AES(flags))
+	{
 		if (IS_XTS(flags))
 			qce_xtskey(qce, ctx->enc_key, ctx->enc_keylen,
-				   rctx->cryptlen);
+					   rctx->cryptlen);
+
 		enciv_words = 4;
-	} else {
+	}
+	else
+	{
 		return -EINVAL;
 	}
 
 	qce_write_array(qce, REG_ENCR_KEY0, (u32 *)enckey, enckey_words);
 
-	if (!IS_ECB(flags)) {
+	if (!IS_ECB(flags))
+	{
 		if (IS_XTS(flags))
+		{
 			qce_xts_swapiv(enciv, rctx->iv, ivsize);
+		}
 		else
+		{
 			qce_cpu_to_be32p_array(enciv, rctx->iv, ivsize);
+		}
 
 		qce_write_array(qce, REG_CNTR0_IV0, (u32 *)enciv, enciv_words);
 	}
 
 	if (IS_ENCRYPT(flags))
+	{
 		encr_cfg |= BIT(ENCODE_SHIFT);
+	}
 
 	qce_write(qce, REG_ENCR_SEG_CFG, encr_cfg);
 	qce_write(qce, REG_ENCR_SEG_SIZE, rctx->cryptlen);
 	qce_write(qce, REG_ENCR_SEG_START, offset & 0xffff);
 
-	if (IS_CTR(flags)) {
+	if (IS_CTR(flags))
+	{
 		qce_write(qce, REG_CNTR_MASK, ~0);
 		qce_write(qce, REG_CNTR_MASK0, ~0);
 		qce_write(qce, REG_CNTR_MASK1, ~0);
@@ -394,20 +494,23 @@ static int qce_setup_regs_ablkcipher(struct crypto_async_request *async_req,
 }
 
 int qce_start(struct crypto_async_request *async_req, u32 type, u32 totallen,
-	      u32 offset)
+			  u32 offset)
 {
-	switch (type) {
-	case CRYPTO_ALG_TYPE_ABLKCIPHER:
-		return qce_setup_regs_ablkcipher(async_req, totallen, offset);
-	case CRYPTO_ALG_TYPE_AHASH:
-		return qce_setup_regs_ahash(async_req, totallen, offset);
-	default:
-		return -EINVAL;
+	switch (type)
+	{
+		case CRYPTO_ALG_TYPE_ABLKCIPHER:
+			return qce_setup_regs_ablkcipher(async_req, totallen, offset);
+
+		case CRYPTO_ALG_TYPE_AHASH:
+			return qce_setup_regs_ahash(async_req, totallen, offset);
+
+		default:
+			return -EINVAL;
 	}
 }
 
 #define STATUS_ERRORS	\
-		(BIT(SW_ERR_SHIFT) | BIT(AXI_ERR_SHIFT) | BIT(HSD_ERR_SHIFT))
+	(BIT(SW_ERR_SHIFT) | BIT(AXI_ERR_SHIFT) | BIT(HSD_ERR_SHIFT))
 
 int qce_check_status(struct qce_device *qce, u32 *status)
 {
@@ -422,7 +525,9 @@ int qce_check_status(struct qce_device *qce, u32 *status)
 	 * swapped, since we set the device to little endian.
 	 */
 	if (*status & STATUS_ERRORS || !(*status & BIT(OPERATION_DONE_SHIFT)))
+	{
 		ret = -ENXIO;
+	}
 
 	return ret;
 }

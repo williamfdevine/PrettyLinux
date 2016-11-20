@@ -62,7 +62,8 @@
 #define EXECUTION_TIMEOUT_RESET		0x8006
 
 /* Am I fucking pedantic or what? */
-struct Entry_header {
+struct Entry_header
+{
 #ifdef __BIG_ENDIAN
 	u8	entry_cnt;
 	u8	entry_type;
@@ -89,12 +90,14 @@ struct Entry_header {
 #define EFLAG_BAD_HEADER	4
 #define EFLAG_BAD_PAYLOAD	8
 
-struct dataseg {
+struct dataseg
+{
 	u32	d_base;
 	u32	d_count;
 };
 
-struct Command_Entry {
+struct Command_Entry
+{
 	struct Entry_header	hdr;
 	u32			handle;
 #ifdef __BIG_ENDIAN
@@ -122,7 +125,8 @@ struct Command_Entry {
 #define CFLAG_READ		0x20
 #define CFLAG_WRITE		0x40
 
-struct Ext_Command_Entry {
+struct Ext_Command_Entry
+{
 	struct Entry_header	hdr;
 	u32			handle;
 #ifdef __BIG_ENDIAN
@@ -140,13 +144,15 @@ struct Ext_Command_Entry {
 	u8			cdb[44];
 };
 
-struct Continuation_Entry {
+struct Continuation_Entry
+{
 	struct Entry_header	hdr;
 	u32			reserved;
 	struct dataseg		dataseg[7];
 };
 
-struct Marker_Entry {
+struct Marker_Entry
+{
 	struct Entry_header	hdr;
 	u32			reserved;
 #ifdef __BIG_ENDIAN
@@ -171,7 +177,8 @@ struct Marker_Entry {
 #define SYNC_TARGET	1
 #define SYNC_ALL	2
 
-struct Status_Entry {
+struct Status_Entry
+{
 	struct Entry_header	hdr;
 	u32			handle;
 	u16			scsi_status;
@@ -275,7 +282,8 @@ struct Status_Entry {
 #define MBOX_SET_TARGET_PARAMS		0x0038
 #define MBOX_SET_DEV_QUEUE_PARAMS	0x0039
 
-struct host_param {
+struct host_param
+{
 	u_short		initiator_scsi_id;
 	u_short		bus_reset_delay;
 	u_short		retry_count;
@@ -305,7 +313,8 @@ struct host_param {
  *  0   Renegotiate on Error
  */
 
-struct dev_param {
+struct dev_param
+{
 	u_short		device_flags;
 	u_short		execution_throttle;
 	u_short		synchronous_period;
@@ -326,14 +335,16 @@ struct dev_param {
 #define PREV_REQ_PTR(wheee)   (((wheee) - 1) & QLOGICPTI_REQ_QUEUE_LEN)
 #define PREV_RES_PTR(wheee)   (((wheee) - 1) & RES_QUEUE_LEN)
 
-struct pti_queue_entry {
+struct pti_queue_entry
+{
 	char __opaque[QUEUE_ENTRY_LEN];
 };
 
 struct scsi_cmnd;
 
 /* Software state for the driver. */
-struct qlogicpti {
+struct qlogicpti
+{
 	/* These are the hot elements in the cache, so they come first. */
 	void __iomem             *qregs;                /* Adapter registers          */
 	struct pti_queue_entry   *res_cpu;              /* Ptr to RESPONSE bufs (CPU) */
@@ -378,9 +389,9 @@ struct qlogicpti {
 #define SREG_IMASK                0x0c   /* Interrupt level            */
 #define SREG_SPMASK               0x03   /* Mask for switch pack       */
 	unsigned char             swsreg;
-	unsigned int	
-		gotirq	:	1,	/* this instance got an irq */
-		is_pti	: 	1;	/* Non-zero if this is a PTI board. */
+	unsigned int
+	gotirq	:	1,	/* this instance got an irq */
+			  is_pti	: 	1;	/* Non-zero if this is a PTI board. */
 };
 
 /* How to twiddle them bits... */
@@ -502,6 +513,6 @@ struct qlogicpti {
 
 /* For our interrupt engine. */
 #define for_each_qlogicpti(qp) \
-        for((qp) = qptichain; (qp); (qp) = (qp)->next)
+	for((qp) = qptichain; (qp); (qp) = (qp)->next)
 
 #endif /* !(_QLOGICPTI_H) */

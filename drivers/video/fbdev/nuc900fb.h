@@ -18,7 +18,8 @@
 #include <mach/map.h>
 #include <linux/platform_data/video-nuc900fb.h>
 
-enum nuc900_lcddrv_type {
+enum nuc900_lcddrv_type
+{
 	LCDDRV_NUC910,
 	LCDDRV_NUC930,
 	LCDDRV_NUC932,
@@ -30,7 +31,8 @@ enum nuc900_lcddrv_type {
 #define PALETTE_BUFFER_SIZE	256
 #define PALETTE_BUFF_CLEAR 	(0x80000000) /* entry is clear/invalid */
 
-struct nuc900fb_info {
+struct nuc900fb_info
+{
 	struct device		*dev;
 	struct clk		*clk;
 

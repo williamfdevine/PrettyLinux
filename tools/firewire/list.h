@@ -1,4 +1,5 @@
-struct list {
+struct list
+{
 	struct list *next, *prev;
 };
 
@@ -57,6 +58,6 @@ list_remove(struct list *link)
 
 #define list_for_each_entry(pos, list, member)			\
 	for (pos = list_head(list, typeof(*pos), member);	\
-	     &pos->member != (list);				\
-	     pos = list_next(pos, member))
+		 &pos->member != (list);				\
+		 pos = list_next(pos, member))
 

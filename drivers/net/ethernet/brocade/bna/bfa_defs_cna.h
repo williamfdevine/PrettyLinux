@@ -22,7 +22,8 @@
 #include "bfa_defs.h"
 
 /* FC physical port statistics. */
-struct bfa_port_fc_stats {
+struct bfa_port_fc_stats
+{
 	u64	secs_reset;	/*!< Seconds since stats is reset */
 	u64	tx_frames;	/*!< Tx frames			*/
 	u64	tx_words;	/*!< Tx words			*/
@@ -58,7 +59,8 @@ struct bfa_port_fc_stats {
 };
 
 /* Eth Physical Port statistics. */
-struct bfa_port_eth_stats {
+struct bfa_port_eth_stats
+{
 	u64	secs_reset;	/*!< Seconds since stats is reset */
 	u64	frame_64;	/*!< Frames 64 bytes		*/
 	u64	frame_65_127;	/*!< Frames 65-127 bytes	*/
@@ -104,7 +106,8 @@ struct bfa_port_eth_stats {
 };
 
 /* Port statistics. */
-union bfa_port_stats_u {
+union bfa_port_stats_u
+{
 	struct bfa_port_fc_stats fc;
 	struct bfa_port_eth_stats eth;
 };
@@ -126,7 +129,8 @@ union bfa_port_stats_u {
 #define BFA_CEE_LLDP_SYS_CAP_TPMR	0x0400
 
 /* LLDP string type */
-struct bfa_cee_lldp_str {
+struct bfa_cee_lldp_str
+{
 	u8 sub_type;
 	u8 len;
 	u8 rsvd[2];
@@ -134,7 +138,8 @@ struct bfa_cee_lldp_str {
 } __packed;
 
 /* LLDP parameters */
-struct bfa_cee_lldp_cfg {
+struct bfa_cee_lldp_cfg
+{
 	struct bfa_cee_lldp_str chassis_id;
 	struct bfa_cee_lldp_str port_id;
 	struct bfa_cee_lldp_str port_desc;
@@ -145,12 +150,14 @@ struct bfa_cee_lldp_cfg {
 	u16 enabled_system_cap;
 } __packed;
 
-enum bfa_cee_dcbx_version {
+enum bfa_cee_dcbx_version
+{
 	DCBX_PROTOCOL_PRECEE	= 1,
 	DCBX_PROTOCOL_CEE	= 2,
 };
 
-enum bfa_cee_lls {
+enum bfa_cee_lls
+{
 	/* LLS is down because the TLV not sent by the peer */
 	CEE_LLS_DOWN_NO_TLV = 0,
 	/* LLS is down as advertised by the peer */
@@ -159,7 +166,8 @@ enum bfa_cee_lls {
 };
 
 /* CEE/DCBX parameters */
-struct bfa_cee_dcbx_cfg {
+struct bfa_cee_dcbx_cfg
+{
 	u8 pgid[BFA_CEE_DCBX_MAX_PRIORITY];
 	u8 pg_percentage[BFA_CEE_DCBX_MAX_PGID];
 	u8 pfc_primap; /* bitmap of priorties with PFC enabled */
@@ -173,7 +181,8 @@ struct bfa_cee_dcbx_cfg {
 
 /* CEE status */
 /* Making this to tri-state for the benefit of port list command */
-enum bfa_cee_status {
+enum bfa_cee_status
+{
 	CEE_UP = 0,
 	CEE_PHY_UP = 1,
 	CEE_LOOPBACK = 2,
@@ -181,7 +190,8 @@ enum bfa_cee_status {
 };
 
 /* CEE Query */
-struct bfa_cee_attr {
+struct bfa_cee_attr
+{
 	u8	cee_status;
 	u8 error_reason;
 	struct bfa_cee_lldp_cfg lldp_remote;
@@ -193,7 +203,8 @@ struct bfa_cee_attr {
 } __packed;
 
 /* LLDP/DCBX/CEE Statistics */
-struct bfa_cee_stats {
+struct bfa_cee_stats
+{
 	u32	lldp_tx_frames;		/*!< LLDP Tx Frames */
 	u32	lldp_rx_frames;		/*!< LLDP Rx Frames */
 	u32	lldp_rx_frames_invalid;	/*!< LLDP Rx Frames invalid */

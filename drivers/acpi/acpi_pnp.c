@@ -14,7 +14,8 @@
 #include <linux/module.h>
 #include <linux/ctype.h>
 
-static const struct acpi_device_id acpi_pnp_device_ids[] = {
+static const struct acpi_device_id acpi_pnp_device_ids[] =
+{
 	/* pata_isapnp */
 	{"PNP0600"},		/* Generic ESDI/IDE/ATA compatible hard disk controller */
 	/* floppy */
@@ -321,15 +322,21 @@ static bool matching_id(const char *idstr, const char *list_id)
 	int i;
 
 	if (memcmp(idstr, list_id, 3))
+	{
 		return false;
+	}
 
-	for (i = 3; i < 7; i++) {
+	for (i = 3; i < 7; i++)
+	{
 		char c = toupper(idstr[i]);
 
 		if (!isxdigit(c)
-		    || (list_id[i] != 'X' && c != toupper(list_id[i])))
+			|| (list_id[i] != 'X' && c != toupper(list_id[i])))
+		{
 			return false;
+		}
 	}
+
 	return true;
 }
 
@@ -338,9 +345,12 @@ static bool acpi_pnp_match(const char *idstr, const struct acpi_device_id **matc
 	const struct acpi_device_id *devid;
 
 	for (devid = acpi_pnp_device_ids; devid->id[0]; devid++)
-		if (matching_id(idstr, (char *)devid->id)) {
+		if (matching_id(idstr, (char *)devid->id))
+		{
 			if (matchid)
+			{
 				*matchid = devid;
+			}
 
 			return true;
 		}
@@ -349,12 +359,13 @@ static bool acpi_pnp_match(const char *idstr, const struct acpi_device_id **matc
 }
 
 static int acpi_pnp_attach(struct acpi_device *adev,
-			   const struct acpi_device_id *id)
+						   const struct acpi_device_id *id)
 {
 	return 1;
 }
 
-static struct acpi_scan_handler acpi_pnp_handler = {
+static struct acpi_scan_handler acpi_pnp_handler =
+{
 	.ids = acpi_pnp_device_ids,
 	.match = acpi_pnp_match,
 	.attach = acpi_pnp_attach,
@@ -367,7 +378,8 @@ static struct acpi_scan_handler acpi_pnp_handler = {
  */
 static int is_cmos_rtc_device(struct acpi_device *adev)
 {
-	static const struct acpi_device_id ids[] = {
+	static const struct acpi_device_id ids[] =
+	{
 		{ "PNP0B00" },
 		{ "PNP0B01" },
 		{ "PNP0B02" },

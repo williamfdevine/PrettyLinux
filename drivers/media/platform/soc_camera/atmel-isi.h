@@ -124,7 +124,8 @@
 
 struct v4l2_async_subdev;
 
-struct isi_platform_data {
+struct isi_platform_data
+{
 	u8 has_emb_sync;
 	u8 hsync_act_low;
 	u8 vsync_act_low;

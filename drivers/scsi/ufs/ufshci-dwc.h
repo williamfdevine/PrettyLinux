@@ -14,19 +14,22 @@
 #define _UFSHCI_DWC_H
 
 /* DWC HC UFSHCI specific Registers */
-enum dwc_specific_registers {
+enum dwc_specific_registers
+{
 	DWC_UFS_REG_HCLKDIV	= 0xFC,
 };
 
 /* Clock Divider Values: Hex equivalent of frequency in MHz */
-enum clk_div_values {
+enum clk_div_values
+{
 	DWC_UFS_REG_HCLKDIV_DIV_62_5	= 0x3e,
 	DWC_UFS_REG_HCLKDIV_DIV_125	= 0x7d,
 	DWC_UFS_REG_HCLKDIV_DIV_200	= 0xc8,
 };
 
 /* Selector Index */
-enum selector_index {
+enum selector_index
+{
 	SELIND_LN0_TX		= 0x00,
 	SELIND_LN1_TX		= 0x01,
 	SELIND_LN0_RX		= 0x04,

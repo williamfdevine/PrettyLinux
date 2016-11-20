@@ -38,12 +38,14 @@
 #define SUPPORTED_CABLE_MAX	32
 #define CABLE_NAME_MAX		30
 
-struct __extcon_info {
+struct __extcon_info
+{
 	unsigned int type;
 	unsigned int id;
 	const char *name;
 
-} extcon_info[] = {
+} extcon_info[] =
+{
 	[EXTCON_NONE] = {
 		.type = EXTCON_TYPE_MISC,
 		.id = EXTCON_NONE,
@@ -202,7 +204,8 @@ struct __extcon_info {
  * @attr_state:		"state" sysfs entry
  * @attrs:		Array pointing to attr_name and attr_state for attr_g
  */
-struct extcon_cable {
+struct extcon_cable
+{
 	struct extcon_dev *edev;
 	int cable_index;
 
@@ -225,7 +228,7 @@ struct extcon_cable {
 
 static struct class *extcon_class;
 #if defined(CONFIG_ANDROID)
-static struct class_compat *switch_class;
+	static struct class_compat *switch_class;
 #endif /* CONFIG_ANDROID */
 
 static LIST_HEAD(extcon_dev_list);
@@ -245,16 +248,22 @@ static int check_mutually_exclusive(struct extcon_dev *edev, u32 new_state)
 	int i = 0;
 
 	if (!edev->mutually_exclusive)
+	{
 		return 0;
+	}
 
-	for (i = 0; edev->mutually_exclusive[i]; i++) {
+	for (i = 0; edev->mutually_exclusive[i]; i++)
+	{
 		int weight;
 		u32 correspondants = new_state & edev->mutually_exclusive[i];
 
 		/* calculate the total number of bits set */
 		weight = hweight32(correspondants);
+
 		if (weight > 1)
+		{
 			return i + 1;
+		}
 	}
 
 	return 0;
@@ -265,9 +274,12 @@ static int find_cable_index_by_id(struct extcon_dev *edev, const unsigned int id
 	int i;
 
 	/* Find the the index of extcon cable in edev->supported_cable */
-	for (i = 0; i < edev->max_supported; i++) {
+	for (i = 0; i < edev->max_supported; i++)
+	{
 		if (edev->supported_cable[i] == id)
+		{
 			return i;
+		}
 	}
 
 	return -EINVAL;
@@ -275,17 +287,22 @@ static int find_cable_index_by_id(struct extcon_dev *edev, const unsigned int id
 
 static int get_extcon_type(unsigned int prop)
 {
-	switch (prop) {
-	case EXTCON_PROP_USB_MIN ... EXTCON_PROP_USB_MAX:
-		return EXTCON_TYPE_USB;
-	case EXTCON_PROP_CHG_MIN ... EXTCON_PROP_CHG_MAX:
-		return EXTCON_TYPE_CHG;
-	case EXTCON_PROP_JACK_MIN ... EXTCON_PROP_JACK_MAX:
-		return EXTCON_TYPE_JACK;
-	case EXTCON_PROP_DISP_MIN ... EXTCON_PROP_DISP_MAX:
-		return EXTCON_TYPE_DISP;
-	default:
-		return -EINVAL;
+	switch (prop)
+	{
+		case EXTCON_PROP_USB_MIN ... EXTCON_PROP_USB_MAX:
+			return EXTCON_TYPE_USB;
+
+		case EXTCON_PROP_CHG_MIN ... EXTCON_PROP_CHG_MAX:
+			return EXTCON_TYPE_CHG;
+
+		case EXTCON_PROP_JACK_MIN ... EXTCON_PROP_JACK_MAX:
+			return EXTCON_TYPE_JACK;
+
+		case EXTCON_PROP_DISP_MIN ... EXTCON_PROP_DISP_MAX:
+			return EXTCON_TYPE_DISP;
+
+		default:
+			return -EINVAL;
 	}
 }
 
@@ -295,7 +312,7 @@ static bool is_extcon_attached(struct extcon_dev *edev, unsigned int index)
 }
 
 static bool is_extcon_changed(struct extcon_dev *edev, int index,
-				bool new_state)
+							  bool new_state)
 {
 	int state = !!(edev->state & BIT(index));
 	return (state != new_state);
@@ -307,41 +324,52 @@ static bool is_extcon_property_supported(unsigned int id, unsigned int prop)
 
 	/* Check whether the property is supported or not. */
 	type = get_extcon_type(prop);
+
 	if (type < 0)
+	{
 		return false;
+	}
 
 	/* Check whether a specific extcon id supports the property or not. */
 	return !!(extcon_info[id].type & type);
 }
 
 static int is_extcon_property_capability(struct extcon_dev *edev,
-				unsigned int id, int index,unsigned int prop)
+		unsigned int id, int index, unsigned int prop)
 {
 	struct extcon_cable *cable;
 	int type, ret;
 
 	/* Check whether the property is supported or not. */
 	type = get_extcon_type(prop);
+
 	if (type < 0)
+	{
 		return type;
+	}
 
 	cable = &edev->cables[index];
 
-	switch (type) {
-	case EXTCON_TYPE_USB:
-		ret = test_bit(prop - EXTCON_PROP_USB_MIN, cable->usb_bits);
-		break;
-	case EXTCON_TYPE_CHG:
-		ret = test_bit(prop - EXTCON_PROP_CHG_MIN, cable->chg_bits);
-		break;
-	case EXTCON_TYPE_JACK:
-		ret = test_bit(prop - EXTCON_PROP_JACK_MIN, cable->jack_bits);
-		break;
-	case EXTCON_TYPE_DISP:
-		ret = test_bit(prop - EXTCON_PROP_DISP_MIN, cable->disp_bits);
-		break;
-	default:
-		ret = -EINVAL;
+	switch (type)
+	{
+		case EXTCON_TYPE_USB:
+			ret = test_bit(prop - EXTCON_PROP_USB_MIN, cable->usb_bits);
+			break;
+
+		case EXTCON_TYPE_CHG:
+			ret = test_bit(prop - EXTCON_PROP_CHG_MIN, cable->chg_bits);
+			break;
+
+		case EXTCON_TYPE_JACK:
+			ret = test_bit(prop - EXTCON_PROP_JACK_MIN, cable->jack_bits);
+			break;
+
+		case EXTCON_TYPE_DISP:
+			ret = test_bit(prop - EXTCON_PROP_DISP_MIN, cable->disp_bits);
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	return ret;
@@ -353,28 +381,42 @@ static void init_property(struct extcon_dev *edev, unsigned int id, int index)
 	struct extcon_cable *cable = &edev->cables[index];
 
 	if (EXTCON_TYPE_USB & type)
+	{
 		memset(cable->usb_propval, 0, sizeof(cable->usb_propval));
+	}
+
 	if (EXTCON_TYPE_CHG & type)
+	{
 		memset(cable->chg_propval, 0, sizeof(cable->chg_propval));
+	}
+
 	if (EXTCON_TYPE_JACK & type)
+	{
 		memset(cable->jack_propval, 0, sizeof(cable->jack_propval));
+	}
+
 	if (EXTCON_TYPE_DISP & type)
+	{
 		memset(cable->disp_propval, 0, sizeof(cable->disp_propval));
+	}
 }
 
 static ssize_t state_show(struct device *dev, struct device_attribute *attr,
-			  char *buf)
+						  char *buf)
 {
 	int i, count = 0;
 	struct extcon_dev *edev = dev_get_drvdata(dev);
 
 	if (edev->max_supported == 0)
+	{
 		return sprintf(buf, "%u\n", edev->state);
+	}
 
-	for (i = 0; i < edev->max_supported; i++) {
+	for (i = 0; i < edev->max_supported; i++)
+	{
 		count += sprintf(buf + count, "%s=%d\n",
-				extcon_info[edev->supported_cable[i]].name,
-				 !!(edev->state & (1 << i)));
+						 extcon_info[edev->supported_cable[i]].name,
+						 !!(edev->state & (1 << i)));
 	}
 
 	return count;
@@ -382,7 +424,7 @@ static ssize_t state_show(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR_RO(state);
 
 static ssize_t name_show(struct device *dev, struct device_attribute *attr,
-		char *buf)
+						 char *buf)
 {
 	struct extcon_dev *edev = dev_get_drvdata(dev);
 
@@ -391,26 +433,26 @@ static ssize_t name_show(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR_RO(name);
 
 static ssize_t cable_name_show(struct device *dev,
-			       struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	struct extcon_cable *cable = container_of(attr, struct extcon_cable,
-						  attr_name);
+								 attr_name);
 	int i = cable->cable_index;
 
 	return sprintf(buf, "%s\n",
-			extcon_info[cable->edev->supported_cable[i]].name);
+				   extcon_info[cable->edev->supported_cable[i]].name);
 }
 
 static ssize_t cable_state_show(struct device *dev,
-				struct device_attribute *attr, char *buf)
+								struct device_attribute *attr, char *buf)
 {
 	struct extcon_cable *cable = container_of(attr, struct extcon_cable,
-						  attr_state);
+								 attr_state);
 
 	int i = cable->cable_index;
 
 	return sprintf(buf, "%d\n",
-		extcon_get_state(cable->edev, cable->edev->supported_cable[i]));
+				   extcon_get_state(cable->edev, cable->edev->supported_cable[i]));
 }
 
 /**
@@ -433,11 +475,16 @@ int extcon_sync(struct extcon_dev *edev, unsigned int id)
 	unsigned long flags;
 
 	if (!edev)
+	{
 		return -EINVAL;
+	}
 
 	index = find_cable_index_by_id(edev, id);
+
 	if (index < 0)
+	{
 		return index;
+	}
 
 	spin_lock_irqsave(&edev->lock, flags);
 
@@ -446,7 +493,9 @@ int extcon_sync(struct extcon_dev *edev, unsigned int id)
 
 	/* This could be in interrupt handler */
 	prop_buf = (char *)get_zeroed_page(GFP_ATOMIC);
-	if (!prop_buf) {
+
+	if (!prop_buf)
+	{
 		/* Unlock early before uevent */
 		spin_unlock_irqrestore(&edev->lock, flags);
 
@@ -457,20 +506,31 @@ int extcon_sync(struct extcon_dev *edev, unsigned int id)
 	}
 
 	length = name_show(&edev->dev, NULL, prop_buf);
-	if (length > 0) {
+
+	if (length > 0)
+	{
 		if (prop_buf[length - 1] == '\n')
+		{
 			prop_buf[length - 1] = 0;
+		}
+
 		snprintf(name_buf, sizeof(name_buf), "NAME=%s", prop_buf);
 		envp[env_offset++] = name_buf;
 	}
 
 	length = state_show(&edev->dev, NULL, prop_buf);
-	if (length > 0) {
+
+	if (length > 0)
+	{
 		if (prop_buf[length - 1] == '\n')
+		{
 			prop_buf[length - 1] = 0;
+		}
+
 		snprintf(state_buf, sizeof(state_buf), "STATE=%s", prop_buf);
 		envp[env_offset++] = state_buf;
 	}
+
 	envp[env_offset] = NULL;
 
 	/* Unlock early before uevent */
@@ -493,11 +553,16 @@ int extcon_get_state(struct extcon_dev *edev, const unsigned int id)
 	unsigned long flags;
 
 	if (!edev)
+	{
 		return -EINVAL;
+	}
 
 	index = find_cable_index_by_id(edev, id);
+
 	if (index < 0)
+	{
 		return index;
+	}
 
 	spin_lock_irqsave(&edev->lock, flags);
 	state = is_extcon_attached(edev, index);
@@ -521,26 +586,34 @@ EXPORT_SYMBOL_GPL(extcon_get_state);
  * use extcon_set_state_sync() and extcon_sync().
  */
 int extcon_set_state(struct extcon_dev *edev, unsigned int id,
-				bool cable_state)
+					 bool cable_state)
 {
 	unsigned long flags;
 	int index, ret = 0;
 
 	if (!edev)
+	{
 		return -EINVAL;
+	}
 
 	index = find_cable_index_by_id(edev, id);
+
 	if (index < 0)
+	{
 		return index;
+	}
 
 	spin_lock_irqsave(&edev->lock, flags);
 
 	/* Check whether the external connector's state is changed. */
 	if (!is_extcon_changed(edev, index, cable_state))
+	{
 		goto out;
+	}
 
 	if (check_mutually_exclusive(edev,
-		(edev->state & ~BIT(index)) | (cable_state & BIT(index)))) {
+								 (edev->state & ~BIT(index)) | (cable_state & BIT(index))))
+	{
 		ret = -EPERM;
 		goto out;
 	}
@@ -550,13 +623,20 @@ int extcon_set_state(struct extcon_dev *edev, unsigned int id,
 	 * the detached state for an external connector.
 	 */
 	if (!cable_state)
+	{
 		init_property(edev, id, index);
+	}
 
 	/* Update the state for a external connector. */
 	if (cable_state)
+	{
 		edev->state |= BIT(index);
+	}
 	else
+	{
 		edev->state &= ~(BIT(index));
+	}
+
 out:
 	spin_unlock_irqrestore(&edev->lock, flags);
 
@@ -577,25 +657,34 @@ EXPORT_SYMBOL_GPL(extcon_set_state);
  * by usning a notification.
  */
 int extcon_set_state_sync(struct extcon_dev *edev, unsigned int id,
-				bool cable_state)
+						  bool cable_state)
 {
 	int ret, index;
 	unsigned long flags;
 
 	index = find_cable_index_by_id(edev, id);
+
 	if (index < 0)
+	{
 		return index;
+	}
 
 	/* Check whether the external connector's state is changed. */
 	spin_lock_irqsave(&edev->lock, flags);
 	ret = is_extcon_changed(edev, index, cable_state);
 	spin_unlock_irqrestore(&edev->lock, flags);
+
 	if (!ret)
+	{
 		return 0;
+	}
 
 	ret = extcon_set_state(edev, id, cable_state);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return extcon_sync(edev, id);
 }
@@ -617,8 +706,8 @@ EXPORT_SYMBOL_GPL(extcon_set_state_sync);
  * Returns 0 if success or error number if fail
  */
 int extcon_get_property(struct extcon_dev *edev, unsigned int id,
-				unsigned int prop,
-				union extcon_property_value *prop_val)
+						unsigned int prop,
+						union extcon_property_value *prop_val)
 {
 	struct extcon_cable *cable;
 	unsigned long flags;
@@ -627,21 +716,29 @@ int extcon_get_property(struct extcon_dev *edev, unsigned int id,
 	*prop_val = (union extcon_property_value)(0);
 
 	if (!edev)
+	{
 		return -EINVAL;
+	}
 
 	/* Check whether the property is supported or not */
 	if (!is_extcon_property_supported(id, prop))
+	{
 		return -EINVAL;
+	}
 
 	/* Find the cable index of external connector by using id */
 	index = find_cable_index_by_id(edev, id);
+
 	if (index < 0)
+	{
 		return index;
+	}
 
 	spin_lock_irqsave(&edev->lock, flags);
 
 	/* Check whether the property is available or not. */
-	if (!is_extcon_property_capability(edev, id, index, prop)) {
+	if (!is_extcon_property_capability(edev, id, index, prop))
+	{
 		spin_unlock_irqrestore(&edev->lock, flags);
 		return -EPERM;
 	}
@@ -651,7 +748,8 @@ int extcon_get_property(struct extcon_dev *edev, unsigned int id,
 	 * If external connector is detached, the user can not
 	 * get the property value.
 	 */
-	if (!is_extcon_attached(edev, index)) {
+	if (!is_extcon_attached(edev, index))
+	{
 		spin_unlock_irqrestore(&edev->lock, flags);
 		return 0;
 	}
@@ -659,22 +757,27 @@ int extcon_get_property(struct extcon_dev *edev, unsigned int id,
 	cable = &edev->cables[index];
 
 	/* Get the property value according to extcon type */
-	switch (prop) {
-	case EXTCON_PROP_USB_MIN ... EXTCON_PROP_USB_MAX:
-		*prop_val = cable->usb_propval[prop - EXTCON_PROP_USB_MIN];
-		break;
-	case EXTCON_PROP_CHG_MIN ... EXTCON_PROP_CHG_MAX:
-		*prop_val = cable->chg_propval[prop - EXTCON_PROP_CHG_MIN];
-		break;
-	case EXTCON_PROP_JACK_MIN ... EXTCON_PROP_JACK_MAX:
-		*prop_val = cable->jack_propval[prop - EXTCON_PROP_JACK_MIN];
-		break;
-	case EXTCON_PROP_DISP_MIN ... EXTCON_PROP_DISP_MAX:
-		*prop_val = cable->disp_propval[prop - EXTCON_PROP_DISP_MIN];
-		break;
-	default:
-		ret = -EINVAL;
-		break;
+	switch (prop)
+	{
+		case EXTCON_PROP_USB_MIN ... EXTCON_PROP_USB_MAX:
+			*prop_val = cable->usb_propval[prop - EXTCON_PROP_USB_MIN];
+			break;
+
+		case EXTCON_PROP_CHG_MIN ... EXTCON_PROP_CHG_MAX:
+			*prop_val = cable->chg_propval[prop - EXTCON_PROP_CHG_MIN];
+			break;
+
+		case EXTCON_PROP_JACK_MIN ... EXTCON_PROP_JACK_MAX:
+			*prop_val = cable->jack_propval[prop - EXTCON_PROP_JACK_MIN];
+			break;
+
+		case EXTCON_PROP_DISP_MIN ... EXTCON_PROP_DISP_MAX:
+			*prop_val = cable->disp_propval[prop - EXTCON_PROP_DISP_MIN];
+			break;
+
+		default:
+			ret = -EINVAL;
+			break;
 	}
 
 	spin_unlock_irqrestore(&edev->lock, flags);
@@ -697,29 +800,37 @@ EXPORT_SYMBOL_GPL(extcon_get_property);
  * Returns 0 if success or error number if fail
  */
 int extcon_set_property(struct extcon_dev *edev, unsigned int id,
-				unsigned int prop,
-				union extcon_property_value prop_val)
+						unsigned int prop,
+						union extcon_property_value prop_val)
 {
 	struct extcon_cable *cable;
 	unsigned long flags;
 	int index, ret = 0;
 
 	if (!edev)
+	{
 		return -EINVAL;
+	}
 
 	/* Check whether the property is supported or not */
 	if (!is_extcon_property_supported(id, prop))
+	{
 		return -EINVAL;
+	}
 
 	/* Find the cable index of external connector by using id */
 	index = find_cable_index_by_id(edev, id);
+
 	if (index < 0)
+	{
 		return index;
+	}
 
 	spin_lock_irqsave(&edev->lock, flags);
 
 	/* Check whether the property is available or not. */
-	if (!is_extcon_property_capability(edev, id, index, prop)) {
+	if (!is_extcon_property_capability(edev, id, index, prop))
+	{
 		spin_unlock_irqrestore(&edev->lock, flags);
 		return -EPERM;
 	}
@@ -727,22 +838,27 @@ int extcon_set_property(struct extcon_dev *edev, unsigned int id,
 	cable = &edev->cables[index];
 
 	/* Set the property value according to extcon type */
-	switch (prop) {
-	case EXTCON_PROP_USB_MIN ... EXTCON_PROP_USB_MAX:
-		cable->usb_propval[prop - EXTCON_PROP_USB_MIN] = prop_val;
-		break;
-	case EXTCON_PROP_CHG_MIN ... EXTCON_PROP_CHG_MAX:
-		cable->chg_propval[prop - EXTCON_PROP_CHG_MIN] = prop_val;
-		break;
-	case EXTCON_PROP_JACK_MIN ... EXTCON_PROP_JACK_MAX:
-		cable->jack_propval[prop - EXTCON_PROP_JACK_MIN] = prop_val;
-		break;
-	case EXTCON_PROP_DISP_MIN ... EXTCON_PROP_DISP_MAX:
-		cable->disp_propval[prop - EXTCON_PROP_DISP_MIN] = prop_val;
-		break;
-	default:
-		ret = -EINVAL;
-		break;
+	switch (prop)
+	{
+		case EXTCON_PROP_USB_MIN ... EXTCON_PROP_USB_MAX:
+			cable->usb_propval[prop - EXTCON_PROP_USB_MIN] = prop_val;
+			break;
+
+		case EXTCON_PROP_CHG_MIN ... EXTCON_PROP_CHG_MAX:
+			cable->chg_propval[prop - EXTCON_PROP_CHG_MIN] = prop_val;
+			break;
+
+		case EXTCON_PROP_JACK_MIN ... EXTCON_PROP_JACK_MAX:
+			cable->jack_propval[prop - EXTCON_PROP_JACK_MIN] = prop_val;
+			break;
+
+		case EXTCON_PROP_DISP_MIN ... EXTCON_PROP_DISP_MAX:
+			cable->disp_propval[prop - EXTCON_PROP_DISP_MIN] = prop_val;
+			break;
+
+		default:
+			ret = -EINVAL;
+			break;
 	}
 
 	spin_unlock_irqrestore(&edev->lock, flags);
@@ -763,14 +879,17 @@ EXPORT_SYMBOL_GPL(extcon_set_property);
  * Returns 0 if success or error number if fail
  */
 int extcon_set_property_sync(struct extcon_dev *edev, unsigned int id,
-				unsigned int prop,
-				union extcon_property_value prop_val)
+							 unsigned int prop,
+							 union extcon_property_value prop_val)
 {
 	int ret;
 
 	ret = extcon_set_property(edev, id, prop, prop_val);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return extcon_sync(edev, id);
 }
@@ -787,21 +906,28 @@ EXPORT_SYMBOL_GPL(extcon_set_property_sync);
  * Returns 1 if the property is available or 0 if not available.
  */
 int extcon_get_property_capability(struct extcon_dev *edev, unsigned int id,
-					unsigned int prop)
+								   unsigned int prop)
 {
 	int index;
 
 	if (!edev)
+	{
 		return -EINVAL;
+	}
 
 	/* Check whether the property is supported or not */
 	if (!is_extcon_property_supported(id, prop))
+	{
 		return -EINVAL;
+	}
 
 	/* Find the cable index of external connector by using id */
 	index = find_cable_index_by_id(edev, id);
+
 	if (index < 0)
+	{
 		return index;
+	}
 
 	return is_extcon_property_capability(edev, id, index, prop);
 }
@@ -822,44 +948,59 @@ EXPORT_SYMBOL_GPL(extcon_get_property_capability);
  * Returns 0 if success or error number if fail
  */
 int extcon_set_property_capability(struct extcon_dev *edev, unsigned int id,
-					unsigned int prop)
+								   unsigned int prop)
 {
 	struct extcon_cable *cable;
 	int index, type, ret = 0;
 
 	if (!edev)
+	{
 		return -EINVAL;
+	}
 
 	/* Check whether the property is supported or not. */
 	if (!is_extcon_property_supported(id, prop))
+	{
 		return -EINVAL;
+	}
 
 	/* Find the cable index of external connector by using id. */
 	index = find_cable_index_by_id(edev, id);
+
 	if (index < 0)
+	{
 		return index;
+	}
 
 	type = get_extcon_type(prop);
+
 	if (type < 0)
+	{
 		return type;
+	}
 
 	cable = &edev->cables[index];
 
-	switch (type) {
-	case EXTCON_TYPE_USB:
-		__set_bit(prop - EXTCON_PROP_USB_MIN, cable->usb_bits);
-		break;
-	case EXTCON_TYPE_CHG:
-		__set_bit(prop - EXTCON_PROP_CHG_MIN, cable->chg_bits);
-		break;
-	case EXTCON_TYPE_JACK:
-		__set_bit(prop - EXTCON_PROP_JACK_MIN, cable->jack_bits);
-		break;
-	case EXTCON_TYPE_DISP:
-		__set_bit(prop - EXTCON_PROP_DISP_MIN, cable->disp_bits);
-		break;
-	default:
-		ret = -EINVAL;
+	switch (type)
+	{
+		case EXTCON_TYPE_USB:
+			__set_bit(prop - EXTCON_PROP_USB_MIN, cable->usb_bits);
+			break;
+
+		case EXTCON_TYPE_CHG:
+			__set_bit(prop - EXTCON_PROP_CHG_MIN, cable->chg_bits);
+			break;
+
+		case EXTCON_TYPE_JACK:
+			__set_bit(prop - EXTCON_PROP_JACK_MIN, cable->jack_bits);
+			break;
+
+		case EXTCON_TYPE_DISP:
+			__set_bit(prop - EXTCON_PROP_DISP_MIN, cable->disp_bits);
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	return ret;
@@ -875,12 +1016,17 @@ struct extcon_dev *extcon_get_extcon_dev(const char *extcon_name)
 	struct extcon_dev *sd;
 
 	if (!extcon_name)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	mutex_lock(&extcon_dev_list_lock);
-	list_for_each_entry(sd, &extcon_dev_list, entry) {
+	list_for_each_entry(sd, &extcon_dev_list, entry)
+	{
 		if (!strcmp(sd->name, extcon_name))
+		{
 			goto out;
+		}
 	}
 	sd = NULL;
 out:
@@ -901,37 +1047,52 @@ EXPORT_SYMBOL_GPL(extcon_get_extcon_dev);
  * by looking at the third pameter (edev pointer)'s state value.
  */
 int extcon_register_notifier(struct extcon_dev *edev, unsigned int id,
-			     struct notifier_block *nb)
+							 struct notifier_block *nb)
 {
 	unsigned long flags;
 	int ret, idx = -EINVAL;
 
 	if (!nb)
+	{
 		return -EINVAL;
+	}
 
-	if (edev) {
+	if (edev)
+	{
 		idx = find_cable_index_by_id(edev, id);
+
 		if (idx < 0)
+		{
 			return idx;
+		}
 
 		spin_lock_irqsave(&edev->lock, flags);
 		ret = raw_notifier_chain_register(&edev->nh[idx], nb);
 		spin_unlock_irqrestore(&edev->lock, flags);
-	} else {
+	}
+	else
+	{
 		struct extcon_dev *extd;
 
 		mutex_lock(&extcon_dev_list_lock);
-		list_for_each_entry(extd, &extcon_dev_list, entry) {
+		list_for_each_entry(extd, &extcon_dev_list, entry)
+		{
 			idx = find_cable_index_by_id(extd, id);
+
 			if (idx >= 0)
+			{
 				break;
+			}
 		}
 		mutex_unlock(&extcon_dev_list_lock);
 
-		if (idx >= 0) {
+		if (idx >= 0)
+		{
 			edev = extd;
 			return extcon_register_notifier(extd, id, nb);
-		} else {
+		}
+		else
+		{
 			ret = -ENODEV;
 		}
 	}
@@ -947,17 +1108,22 @@ EXPORT_SYMBOL_GPL(extcon_register_notifier);
  * @nb:		a notifier block to be registered.
  */
 int extcon_unregister_notifier(struct extcon_dev *edev, unsigned int id,
-				struct notifier_block *nb)
+							   struct notifier_block *nb)
 {
 	unsigned long flags;
 	int ret, idx;
 
 	if (!edev || !nb)
+	{
 		return -EINVAL;
+	}
 
 	idx = find_cable_index_by_id(edev, id);
+
 	if (idx < 0)
+	{
 		return idx;
+	}
 
 	spin_lock_irqsave(&edev->lock, flags);
 	ret = raw_notifier_chain_unregister(&edev->nh[idx], nb);
@@ -967,7 +1133,8 @@ int extcon_unregister_notifier(struct extcon_dev *edev, unsigned int id,
 }
 EXPORT_SYMBOL_GPL(extcon_unregister_notifier);
 
-static struct attribute *extcon_attrs[] = {
+static struct attribute *extcon_attrs[] =
+{
 	&dev_attr_state.attr,
 	&dev_attr_name.attr,
 	NULL,
@@ -976,16 +1143,25 @@ ATTRIBUTE_GROUPS(extcon);
 
 static int create_extcon_class(void)
 {
-	if (!extcon_class) {
+	if (!extcon_class)
+	{
 		extcon_class = class_create(THIS_MODULE, "extcon");
+
 		if (IS_ERR(extcon_class))
+		{
 			return PTR_ERR(extcon_class);
+		}
+
 		extcon_class->dev_groups = extcon_groups;
 
 #if defined(CONFIG_ANDROID)
 		switch_class = class_compat_register("switch");
+
 		if (WARN(!switch_class, "cannot allocate"))
+		{
 			return -ENOMEM;
+		}
+
 #endif /* CONFIG_ANDROID */
 	}
 
@@ -1018,11 +1194,16 @@ struct extcon_dev *extcon_dev_allocate(const unsigned int *supported_cable)
 	struct extcon_dev *edev;
 
 	if (!supported_cable)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	edev = kzalloc(sizeof(*edev), GFP_KERNEL);
+
 	if (!edev)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	edev->max_supported = 0;
 	edev->supported_cable = supported_cable;
@@ -1054,21 +1235,29 @@ int extcon_dev_register(struct extcon_dev *edev)
 	int ret, index = 0;
 	static atomic_t edev_no = ATOMIC_INIT(-1);
 
-	if (!extcon_class) {
+	if (!extcon_class)
+	{
 		ret = create_extcon_class();
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	if (!edev || !edev->supported_cable)
+	{
 		return -EINVAL;
+	}
 
 	for (; edev->supported_cable[index] != EXTCON_NONE; index++);
 
 	edev->max_supported = index;
-	if (index > SUPPORTED_CABLE_MAX) {
+
+	if (index > SUPPORTED_CABLE_MAX)
+	{
 		dev_err(&edev->dev,
-			"exceed the maximum number of supported cables\n");
+				"exceed the maximum number of supported cables\n");
 		return -EINVAL;
 	}
 
@@ -1076,40 +1265,53 @@ int extcon_dev_register(struct extcon_dev *edev)
 	edev->dev.release = extcon_dev_release;
 
 	edev->name = dev_name(edev->dev.parent);
-	if (IS_ERR_OR_NULL(edev->name)) {
+
+	if (IS_ERR_OR_NULL(edev->name))
+	{
 		dev_err(&edev->dev,
-			"extcon device name is null\n");
+				"extcon device name is null\n");
 		return -EINVAL;
 	}
-	dev_set_name(&edev->dev, "extcon%lu",
-			(unsigned long)atomic_inc_return(&edev_no));
 
-	if (edev->max_supported) {
+	dev_set_name(&edev->dev, "extcon%lu",
+				 (unsigned long)atomic_inc_return(&edev_no));
+
+	if (edev->max_supported)
+	{
 		char buf[10];
 		char *str;
 		struct extcon_cable *cable;
 
 		edev->cables = kzalloc(sizeof(struct extcon_cable) *
-				       edev->max_supported, GFP_KERNEL);
-		if (!edev->cables) {
+							   edev->max_supported, GFP_KERNEL);
+
+		if (!edev->cables)
+		{
 			ret = -ENOMEM;
 			goto err_sysfs_alloc;
 		}
-		for (index = 0; index < edev->max_supported; index++) {
+
+		for (index = 0; index < edev->max_supported; index++)
+		{
 			cable = &edev->cables[index];
 
 			snprintf(buf, 10, "cable.%d", index);
 			str = kzalloc(sizeof(char) * (strlen(buf) + 1),
-				      GFP_KERNEL);
-			if (!str) {
-				for (index--; index >= 0; index--) {
+						  GFP_KERNEL);
+
+			if (!str)
+			{
+				for (index--; index >= 0; index--)
+				{
 					cable = &edev->cables[index];
 					kfree(cable->attr_g.name);
 				}
+
 				ret = -ENOMEM;
 
 				goto err_alloc_cables;
 			}
+
 			strcpy(str, buf);
 
 			cable->edev = edev;
@@ -1132,7 +1334,8 @@ int extcon_dev_register(struct extcon_dev *edev)
 		}
 	}
 
-	if (edev->max_supported && edev->mutually_exclusive) {
+	if (edev->max_supported && edev->mutually_exclusive)
+	{
 		char buf[80];
 		char *name;
 
@@ -1141,51 +1344,65 @@ int extcon_dev_register(struct extcon_dev *edev)
 			;
 
 		edev->attrs_muex = kzalloc(sizeof(struct attribute *) *
-					   (index + 1), GFP_KERNEL);
-		if (!edev->attrs_muex) {
+								   (index + 1), GFP_KERNEL);
+
+		if (!edev->attrs_muex)
+		{
 			ret = -ENOMEM;
 			goto err_muex;
 		}
 
 		edev->d_attrs_muex = kzalloc(sizeof(struct device_attribute) *
-					     index, GFP_KERNEL);
-		if (!edev->d_attrs_muex) {
+									 index, GFP_KERNEL);
+
+		if (!edev->d_attrs_muex)
+		{
 			ret = -ENOMEM;
 			kfree(edev->attrs_muex);
 			goto err_muex;
 		}
 
-		for (index = 0; edev->mutually_exclusive[index]; index++) {
+		for (index = 0; edev->mutually_exclusive[index]; index++)
+		{
 			sprintf(buf, "0x%x", edev->mutually_exclusive[index]);
 			name = kzalloc(sizeof(char) * (strlen(buf) + 1),
-				       GFP_KERNEL);
-			if (!name) {
-				for (index--; index >= 0; index--) {
+						   GFP_KERNEL);
+
+			if (!name)
+			{
+				for (index--; index >= 0; index--)
+				{
 					kfree(edev->d_attrs_muex[index].attr.
-					      name);
+						  name);
 				}
+
 				kfree(edev->d_attrs_muex);
 				kfree(edev->attrs_muex);
 				ret = -ENOMEM;
 				goto err_muex;
 			}
+
 			strcpy(name, buf);
 			sysfs_attr_init(&edev->d_attrs_muex[index].attr);
 			edev->d_attrs_muex[index].attr.name = name;
 			edev->d_attrs_muex[index].attr.mode = 0000;
 			edev->attrs_muex[index] = &edev->d_attrs_muex[index]
-							.attr;
+									  .attr;
 		}
+
 		edev->attr_g_muex.name = muex_name;
 		edev->attr_g_muex.attrs = edev->attrs_muex;
 
 	}
 
-	if (edev->max_supported) {
+	if (edev->max_supported)
+	{
 		edev->extcon_dev_type.groups =
 			kzalloc(sizeof(struct attribute_group *) *
-				(edev->max_supported + 2), GFP_KERNEL);
-		if (!edev->extcon_dev_type.groups) {
+					(edev->max_supported + 2), GFP_KERNEL);
+
+		if (!edev->extcon_dev_type.groups)
+		{
 			ret = -ENOMEM;
 			goto err_alloc_groups;
 		}
@@ -1196,6 +1413,7 @@ int extcon_dev_register(struct extcon_dev *edev)
 		for (index = 0; index < edev->max_supported; index++)
 			edev->extcon_dev_type.groups[index] =
 				&edev->cables[index].attr_g;
+
 		if (edev->mutually_exclusive)
 			edev->extcon_dev_type.groups[index] =
 				&edev->attr_g_muex;
@@ -1204,26 +1422,37 @@ int extcon_dev_register(struct extcon_dev *edev)
 	}
 
 	ret = device_register(&edev->dev);
-	if (ret) {
+
+	if (ret)
+	{
 		put_device(&edev->dev);
 		goto err_dev;
 	}
+
 #if defined(CONFIG_ANDROID)
+
 	if (switch_class)
+	{
 		ret = class_compat_create_link(switch_class, &edev->dev, NULL);
+	}
+
 #endif /* CONFIG_ANDROID */
 
 	spin_lock_init(&edev->lock);
 
 	edev->nh = devm_kzalloc(&edev->dev,
-			sizeof(*edev->nh) * edev->max_supported, GFP_KERNEL);
-	if (!edev->nh) {
+							sizeof(*edev->nh) * edev->max_supported, GFP_KERNEL);
+
+	if (!edev->nh)
+	{
 		ret = -ENOMEM;
 		goto err_dev;
 	}
 
 	for (index = 0; index < edev->max_supported; index++)
+	{
 		RAW_INIT_NOTIFIER_HEAD(&edev->nh[index]);
+	}
 
 	dev_set_drvdata(&edev->dev, edev);
 	edev->state = 0;
@@ -1235,21 +1464,39 @@ int extcon_dev_register(struct extcon_dev *edev)
 	return 0;
 
 err_dev:
+
 	if (edev->max_supported)
+	{
 		kfree(edev->extcon_dev_type.groups);
+	}
+
 err_alloc_groups:
-	if (edev->max_supported && edev->mutually_exclusive) {
+
+	if (edev->max_supported && edev->mutually_exclusive)
+	{
 		for (index = 0; edev->mutually_exclusive[index]; index++)
+		{
 			kfree(edev->d_attrs_muex[index].attr.name);
+		}
+
 		kfree(edev->d_attrs_muex);
 		kfree(edev->attrs_muex);
 	}
+
 err_muex:
+
 	for (index = 0; index < edev->max_supported; index++)
+	{
 		kfree(edev->cables[index].attr_g.name);
+	}
+
 err_alloc_cables:
+
 	if (edev->max_supported)
+	{
 		kfree(edev->cables);
+	}
+
 err_sysfs_alloc:
 	return ret;
 }
@@ -1267,13 +1514,16 @@ void extcon_dev_unregister(struct extcon_dev *edev)
 	int index;
 
 	if (!edev)
+	{
 		return;
+	}
 
 	mutex_lock(&extcon_dev_list_lock);
 	list_del(&edev->entry);
 	mutex_unlock(&extcon_dev_list_lock);
 
-	if (IS_ERR_OR_NULL(get_device(&edev->dev))) {
+	if (IS_ERR_OR_NULL(get_device(&edev->dev)))
+	{
 		dev_err(&edev->dev, "Failed to unregister extcon_dev (%s)\n",
 				dev_name(&edev->dev));
 		return;
@@ -1281,25 +1531,36 @@ void extcon_dev_unregister(struct extcon_dev *edev)
 
 	device_unregister(&edev->dev);
 
-	if (edev->mutually_exclusive && edev->max_supported) {
+	if (edev->mutually_exclusive && edev->max_supported)
+	{
 		for (index = 0; edev->mutually_exclusive[index];
-				index++)
+			 index++)
+		{
 			kfree(edev->d_attrs_muex[index].attr.name);
+		}
+
 		kfree(edev->d_attrs_muex);
 		kfree(edev->attrs_muex);
 	}
 
 	for (index = 0; index < edev->max_supported; index++)
+	{
 		kfree(edev->cables[index].attr_g.name);
+	}
 
-	if (edev->max_supported) {
+	if (edev->max_supported)
+	{
 		kfree(edev->extcon_dev_type.groups);
 		kfree(edev->cables);
 	}
 
 #if defined(CONFIG_ANDROID)
+
 	if (switch_class)
+	{
 		class_compat_remove_link(switch_class, &edev->dev, NULL);
+	}
+
 #endif
 	put_device(&edev->dev);
 }
@@ -1319,23 +1580,30 @@ struct extcon_dev *extcon_get_edev_by_phandle(struct device *dev, int index)
 	struct extcon_dev *edev;
 
 	if (!dev)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
-	if (!dev->of_node) {
+	if (!dev->of_node)
+	{
 		dev_dbg(dev, "device does not have a device node entry\n");
 		return ERR_PTR(-EINVAL);
 	}
 
 	node = of_parse_phandle(dev->of_node, "extcon", index);
-	if (!node) {
+
+	if (!node)
+	{
 		dev_dbg(dev, "failed to get phandle in %s node\n",
-			dev->of_node->full_name);
+				dev->of_node->full_name);
 		return ERR_PTR(-ENODEV);
 	}
 
 	mutex_lock(&extcon_dev_list_lock);
-	list_for_each_entry(edev, &extcon_dev_list, entry) {
-		if (edev->dev.parent && edev->dev.parent->of_node == node) {
+	list_for_each_entry(edev, &extcon_dev_list, entry)
+	{
+		if (edev->dev.parent && edev->dev.parent->of_node == node)
+		{
 			mutex_unlock(&extcon_dev_list_lock);
 			of_node_put(node);
 			return edev;

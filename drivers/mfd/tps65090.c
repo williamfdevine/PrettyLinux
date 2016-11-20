@@ -47,7 +47,8 @@
 #define TPS65090_INT2_MASK_OVERLOAD_FET6		6
 #define TPS65090_INT2_MASK_OVERLOAD_FET7		7
 
-static struct resource charger_resources[] = {
+static struct resource charger_resources[] =
+{
 	{
 		.start  = TPS65090_IRQ_VAC_STATUS_CHANGE,
 		.end    = TPS65090_IRQ_VAC_STATUS_CHANGE,
@@ -55,12 +56,14 @@ static struct resource charger_resources[] = {
 	}
 };
 
-enum tps65090_cells {
+enum tps65090_cells
+{
 	PMIC = 0,
 	CHARGER = 1,
 };
 
-static struct mfd_cell tps65090s[] = {
+static struct mfd_cell tps65090s[] =
+{
 	[PMIC] = {
 		.name = "tps65090-pmic",
 	},
@@ -72,7 +75,8 @@ static struct mfd_cell tps65090s[] = {
 	},
 };
 
-static const struct regmap_irq tps65090_irqs[] = {
+static const struct regmap_irq tps65090_irqs[] =
+{
 	/* INT1 IRQs*/
 	[TPS65090_IRQ_VAC_STATUS_CHANGE] = {
 		.mask = TPS65090_INT1_MASK_VAC_STATUS_CHANGE,
@@ -130,7 +134,8 @@ static const struct regmap_irq tps65090_irqs[] = {
 	},
 };
 
-static struct regmap_irq_chip tps65090_irq_chip = {
+static struct regmap_irq_chip tps65090_irq_chip =
+{
 	.name = "tps65090",
 	.irqs = tps65090_irqs,
 	.num_irqs = ARRAY_SIZE(tps65090_irqs),
@@ -143,21 +148,24 @@ static struct regmap_irq_chip tps65090_irq_chip = {
 static bool is_volatile_reg(struct device *dev, unsigned int reg)
 {
 	/* Nearly all registers have status bits mixed in, except a few */
-	switch (reg) {
-	case TPS65090_REG_INTR_MASK:
-	case TPS65090_REG_INTR_MASK2:
-	case TPS65090_REG_CG_CTRL0:
-	case TPS65090_REG_CG_CTRL1:
-	case TPS65090_REG_CG_CTRL2:
-	case TPS65090_REG_CG_CTRL3:
-	case TPS65090_REG_CG_CTRL4:
-	case TPS65090_REG_CG_CTRL5:
-		return false;
+	switch (reg)
+	{
+		case TPS65090_REG_INTR_MASK:
+		case TPS65090_REG_INTR_MASK2:
+		case TPS65090_REG_CG_CTRL0:
+		case TPS65090_REG_CG_CTRL1:
+		case TPS65090_REG_CG_CTRL2:
+		case TPS65090_REG_CG_CTRL3:
+		case TPS65090_REG_CG_CTRL4:
+		case TPS65090_REG_CG_CTRL5:
+			return false;
 	}
+
 	return true;
 }
 
-static const struct regmap_config tps65090_regmap_config = {
+static const struct regmap_config tps65090_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 	.max_register = TPS65090_MAX_REG,
@@ -167,7 +175,8 @@ static const struct regmap_config tps65090_regmap_config = {
 };
 
 #ifdef CONFIG_OF
-static const struct of_device_id tps65090_of_match[] = {
+static const struct of_device_id tps65090_of_match[] =
+{
 	{ .compatible = "ti,tps65090",},
 	{},
 };
@@ -175,24 +184,29 @@ MODULE_DEVICE_TABLE(of, tps65090_of_match);
 #endif
 
 static int tps65090_i2c_probe(struct i2c_client *client,
-			      const struct i2c_device_id *id)
+							  const struct i2c_device_id *id)
 {
 	struct tps65090_platform_data *pdata = dev_get_platdata(&client->dev);
 	int irq_base = 0;
 	struct tps65090 *tps65090;
 	int ret;
 
-	if (!pdata && !client->dev.of_node) {
+	if (!pdata && !client->dev.of_node)
+	{
 		dev_err(&client->dev,
-			"tps65090 requires platform data or of_node\n");
+				"tps65090 requires platform data or of_node\n");
 		return -EINVAL;
 	}
 
 	if (pdata)
+	{
 		irq_base = pdata->irq_base;
+	}
 
 	tps65090 = devm_kzalloc(&client->dev, sizeof(*tps65090), GFP_KERNEL);
-	if (!tps65090) {
+
+	if (!tps65090)
+	{
 		dev_err(&client->dev, "mem alloc for tps65090 failed\n");
 		return -ENOMEM;
 	}
@@ -201,40 +215,53 @@ static int tps65090_i2c_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, tps65090);
 
 	tps65090->rmap = devm_regmap_init_i2c(client, &tps65090_regmap_config);
-	if (IS_ERR(tps65090->rmap)) {
+
+	if (IS_ERR(tps65090->rmap))
+	{
 		ret = PTR_ERR(tps65090->rmap);
 		dev_err(&client->dev, "regmap_init failed with err: %d\n", ret);
 		return ret;
 	}
 
-	if (client->irq) {
+	if (client->irq)
+	{
 		ret = regmap_add_irq_chip(tps65090->rmap, client->irq,
-					  IRQF_ONESHOT | IRQF_TRIGGER_LOW, irq_base,
-					  &tps65090_irq_chip, &tps65090->irq_data);
-		if (ret) {
+								  IRQF_ONESHOT | IRQF_TRIGGER_LOW, irq_base,
+								  &tps65090_irq_chip, &tps65090->irq_data);
+
+		if (ret)
+		{
 			dev_err(&client->dev,
-				"IRQ init failed with err: %d\n", ret);
+					"IRQ init failed with err: %d\n", ret);
 			return ret;
 		}
-	} else {
+	}
+	else
+	{
 		/* Don't tell children they have an IRQ that'll never fire */
 		tps65090s[CHARGER].num_resources = 0;
 	}
 
 	ret = mfd_add_devices(tps65090->dev, -1, tps65090s,
-			      ARRAY_SIZE(tps65090s), NULL,
-			      0, regmap_irq_get_domain(tps65090->irq_data));
-	if (ret) {
+						  ARRAY_SIZE(tps65090s), NULL,
+						  0, regmap_irq_get_domain(tps65090->irq_data));
+
+	if (ret)
+	{
 		dev_err(&client->dev, "add mfd devices failed with err: %d\n",
-			ret);
+				ret);
 		goto err_irq_exit;
 	}
 
 	return 0;
 
 err_irq_exit:
+
 	if (client->irq)
+	{
 		regmap_del_irq_chip(client->irq, tps65090->irq_data);
+	}
+
 	return ret;
 }
 
@@ -243,19 +270,24 @@ static int tps65090_i2c_remove(struct i2c_client *client)
 	struct tps65090 *tps65090 = i2c_get_clientdata(client);
 
 	mfd_remove_devices(tps65090->dev);
+
 	if (client->irq)
+	{
 		regmap_del_irq_chip(client->irq, tps65090->irq_data);
+	}
 
 	return 0;
 }
 
-static const struct i2c_device_id tps65090_id_table[] = {
+static const struct i2c_device_id tps65090_id_table[] =
+{
 	{ "tps65090", 0 },
 	{ },
 };
 MODULE_DEVICE_TABLE(i2c, tps65090_id_table);
 
-static struct i2c_driver tps65090_driver = {
+static struct i2c_driver tps65090_driver =
+{
 	.driver	= {
 		.name	= "tps65090",
 		.of_match_table = of_match_ptr(tps65090_of_match),

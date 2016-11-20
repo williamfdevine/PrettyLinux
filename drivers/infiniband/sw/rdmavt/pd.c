@@ -59,18 +59,21 @@
  * Return: 0 on success
  */
 struct ib_pd *rvt_alloc_pd(struct ib_device *ibdev,
-			   struct ib_ucontext *context,
-			   struct ib_udata *udata)
+						   struct ib_ucontext *context,
+						   struct ib_udata *udata)
 {
 	struct rvt_dev_info *dev = ib_to_rvt(ibdev);
 	struct rvt_pd *pd;
 	struct ib_pd *ret;
 
 	pd = kmalloc(sizeof(*pd), GFP_KERNEL);
-	if (!pd) {
+
+	if (!pd)
+	{
 		ret = ERR_PTR(-ENOMEM);
 		goto bail;
 	}
+
 	/*
 	 * While we could continue allocating protecetion domains, being
 	 * constrained only by system resources. The IBTA spec defines that
@@ -79,7 +82,9 @@ struct ib_pd *rvt_alloc_pd(struct ib_device *ibdev,
 	 */
 
 	spin_lock(&dev->n_pds_lock);
-	if (dev->n_pds_allocated == dev->dparms.props.max_pd) {
+
+	if (dev->n_pds_allocated == dev->dparms.props.max_pd)
+	{
 		spin_unlock(&dev->n_pds_lock);
 		kfree(pd);
 		ret = ERR_PTR(-ENOMEM);

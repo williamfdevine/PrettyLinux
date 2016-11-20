@@ -59,13 +59,17 @@ int seq_buf_vprintf(struct seq_buf *s, const char *fmt, va_list args)
 
 	WARN_ON(s->size == 0);
 
-	if (s->len < s->size) {
+	if (s->len < s->size)
+	{
 		len = vsnprintf(s->buffer + s->len, s->size - s->len, fmt, args);
-		if (s->len + len < s->size) {
+
+		if (s->len + len < s->size)
+		{
 			s->len += len;
 			return 0;
 		}
 	}
+
 	seq_buf_set_overflow(s);
 	return -1;
 }
@@ -116,13 +120,17 @@ int seq_buf_bprintf(struct seq_buf *s, const char *fmt, const u32 *binary)
 
 	WARN_ON(s->size == 0);
 
-	if (s->len < s->size) {
+	if (s->len < s->size)
+	{
 		ret = bstr_printf(s->buffer + s->len, len, fmt, binary);
-		if (s->len + ret < s->size) {
+
+		if (s->len + ret < s->size)
+		{
 			s->len += ret;
 			return 0;
 		}
 	}
+
 	seq_buf_set_overflow(s);
 	return -1;
 }
@@ -143,11 +151,13 @@ int seq_buf_puts(struct seq_buf *s, const char *str)
 
 	WARN_ON(s->size == 0);
 
-	if (seq_buf_can_fit(s, len)) {
+	if (seq_buf_can_fit(s, len))
+	{
 		memcpy(s->buffer + s->len, str, len);
 		s->len += len;
 		return 0;
 	}
+
 	seq_buf_set_overflow(s);
 	return -1;
 }
@@ -165,10 +175,12 @@ int seq_buf_putc(struct seq_buf *s, unsigned char c)
 {
 	WARN_ON(s->size == 0);
 
-	if (seq_buf_can_fit(s, 1)) {
+	if (seq_buf_can_fit(s, 1))
+	{
 		s->buffer[s->len++] = c;
 		return 0;
 	}
+
 	seq_buf_set_overflow(s);
 	return -1;
 }
@@ -189,11 +201,13 @@ int seq_buf_putmem(struct seq_buf *s, const void *mem, unsigned int len)
 {
 	WARN_ON(s->size == 0);
 
-	if (seq_buf_can_fit(s, len)) {
+	if (seq_buf_can_fit(s, len))
+	{
 		memcpy(s->buffer + s->len, mem, len);
 		s->len += len;
 		return 0;
 	}
+
 	seq_buf_set_overflow(s);
 	return -1;
 }
@@ -214,7 +228,7 @@ int seq_buf_putmem(struct seq_buf *s, const void *mem, unsigned int len)
  * Returns zero on success, -1 on overflow
  */
 int seq_buf_putmem_hex(struct seq_buf *s, const void *mem,
-		       unsigned int len)
+					   unsigned int len)
 {
 	unsigned char hex[HEX_CHARS];
 	const unsigned char *data = mem;
@@ -223,27 +237,39 @@ int seq_buf_putmem_hex(struct seq_buf *s, const void *mem,
 
 	WARN_ON(s->size == 0);
 
-	while (len) {
+	while (len)
+	{
 		start_len = min(len, HEX_CHARS - 1);
 #ifdef __BIG_ENDIAN
-		for (i = 0, j = 0; i < start_len; i++) {
+
+		for (i = 0, j = 0; i < start_len; i++)
+		{
 #else
-		for (i = start_len-1, j = 0; i >= 0; i--) {
+
+		for (i = start_len - 1, j = 0; i >= 0; i--)
+		{
 #endif
 			hex[j++] = hex_asc_hi(data[i]);
 			hex[j++] = hex_asc_lo(data[i]);
 		}
-		if (WARN_ON_ONCE(j == 0 || j/2 > len))
+
+		if (WARN_ON_ONCE(j == 0 || j / 2 > len))
+		{
 			break;
+		}
 
 		/* j increments twice per loop */
 		len -= j / 2;
 		hex[j++] = ' ';
 
 		seq_buf_putmem(s, hex, j);
+
 		if (seq_buf_has_overflowed(s))
+		{
 			return -1;
+		}
 	}
+
 	return 0;
 }
 
@@ -265,14 +291,21 @@ int seq_buf_path(struct seq_buf *s, const struct path *path, const char *esc)
 
 	WARN_ON(s->size == 0);
 
-	if (size) {
+	if (size)
+	{
 		char *p = d_path(path, buf, size);
-		if (!IS_ERR(p)) {
+
+		if (!IS_ERR(p))
+		{
 			char *end = mangle_path(buf, p, esc);
+
 			if (end)
+			{
 				res = end - buf;
+			}
 		}
 	}
+
 	seq_buf_commit(s, res);
 
 	return res;
@@ -304,19 +337,30 @@ int seq_buf_to_user(struct seq_buf *s, char __user *ubuf, int cnt)
 	int ret;
 
 	if (!cnt)
+	{
 		return 0;
+	}
 
 	len = seq_buf_used(s);
 
 	if (len <= s->readpos)
+	{
 		return -EBUSY;
+	}
 
 	len -= s->readpos;
+
 	if (cnt > len)
+	{
 		cnt = len;
+	}
+
 	ret = copy_to_user(ubuf, s->buffer + s->readpos, cnt);
+
 	if (ret == cnt)
+	{
 		return -EFAULT;
+	}
 
 	cnt -= ret;
 

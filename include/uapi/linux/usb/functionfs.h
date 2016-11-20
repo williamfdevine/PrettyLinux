@@ -8,13 +8,15 @@
 #include <linux/usb/ch9.h>
 
 
-enum {
+enum
+{
 	FUNCTIONFS_DESCRIPTORS_MAGIC = 1,
 	FUNCTIONFS_STRINGS_MAGIC = 2,
 	FUNCTIONFS_DESCRIPTORS_MAGIC_V2 = 3,
 };
 
-enum functionfs_flags {
+enum functionfs_flags
+{
 	FUNCTIONFS_HAS_FS_DESC = 1,
 	FUNCTIONFS_HAS_HS_DESC = 2,
 	FUNCTIONFS_HAS_SS_DESC = 4,
@@ -26,7 +28,8 @@ enum functionfs_flags {
 };
 
 /* Descriptor of an non-audio endpoint */
-struct usb_endpoint_descriptor_no_audio {
+struct usb_endpoint_descriptor_no_audio
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 
@@ -36,7 +39,8 @@ struct usb_endpoint_descriptor_no_audio {
 	__u8  bInterval;
 } __attribute__((packed));
 
-struct usb_functionfs_descs_head_v2 {
+struct usb_functionfs_descs_head_v2
+{
 	__le32 magic;
 	__le32 length;
 	__le32 flags;
@@ -47,7 +51,8 @@ struct usb_functionfs_descs_head_v2 {
 } __attribute__((packed));
 
 /* Legacy format, deprecated as of 3.14. */
-struct usb_functionfs_descs_head {
+struct usb_functionfs_descs_head
+{
 	__le32 magic;
 	__le32 length;
 	__le32 fs_count;
@@ -55,13 +60,16 @@ struct usb_functionfs_descs_head {
 } __attribute__((packed, deprecated));
 
 /* MS OS Descriptor header */
-struct usb_os_desc_header {
+struct usb_os_desc_header
+{
 	__u8	interface;
 	__le32	dwLength;
 	__le16	bcdVersion;
 	__le16	wIndex;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__u8	bCount;
 			__u8	Reserved;
 		};
@@ -69,7 +77,8 @@ struct usb_os_desc_header {
 	};
 } __attribute__((packed));
 
-struct usb_ext_compat_desc {
+struct usb_ext_compat_desc
+{
 	__u8	bFirstInterfaceNumber;
 	__u8	Reserved1;
 	__u8	CompatibleID[8];
@@ -77,7 +86,8 @@ struct usb_ext_compat_desc {
 	__u8	Reserved2[6];
 };
 
-struct usb_ext_prop_desc {
+struct usb_ext_prop_desc
+{
 	__le32	dwSize;
 	__le32	dwPropertyDataType;
 	__le16	wPropertyNameLength;
@@ -175,7 +185,8 @@ struct usb_ext_prop_desc {
  * |14+NL| bProperty             |U8[DL]| payload of this property            |
  */
 
-struct usb_functionfs_strings_head {
+struct usb_functionfs_strings_head
+{
 	__le32 magic;
 	__le32 length;
 	__le32 str_count;
@@ -215,7 +226,8 @@ struct usb_functionfs_strings_head {
  * stop polling this descriptor.
  */
 
-enum usb_functionfs_event_type {
+enum usb_functionfs_event_type
+{
 	FUNCTIONFS_BIND,
 	FUNCTIONFS_UNBIND,
 
@@ -231,8 +243,10 @@ enum usb_functionfs_event_type {
 /* NOTE:  this structure must stay the same size and layout on
  * both 32-bit and 64-bit kernels.
  */
-struct usb_functionfs_event {
-	union {
+struct usb_functionfs_event
+{
+	union
+	{
 		/* SETUP: packet; DATA phase i/o precedes next event
 		 *(setup.bmRequestType & USB_DIR_IN) flags direction */
 		struct usb_ctrlrequest	setup;
@@ -283,7 +297,7 @@ struct usb_functionfs_event {
  * Returns endpoint descriptor. If function is not active returns -ENODEV.
  */
 #define	FUNCTIONFS_ENDPOINT_DESC	_IOR('g', 130, \
-					     struct usb_endpoint_descriptor)
+		struct usb_endpoint_descriptor)
 
 
 

@@ -26,7 +26,7 @@
 /* DEVICE CONTROL register - LP8550 */
 #define LP8550_PWM_CONFIG	(LP8550_PWM_ONLY << BRT_MODE_SHFT)
 #define LP8550_I2C_CONFIG	((ENABLE_BL << BL_CTL_SHFT) | \
-				(LP8550_I2C_ONLY << BRT_MODE_SHFT))
+							 (LP8550_I2C_ONLY << BRT_MODE_SHFT))
 
 /* DEVICE CONTROL register - LP8551 */
 #define LP8551_PWM_CONFIG	LP8550_PWM_CONFIG
@@ -55,7 +55,7 @@
 #define LP8556_PWM_CONFIG	(LP8556_PWM_ONLY << BRT_MODE_SHFT)
 #define LP8556_COMB1_CONFIG	(LP8556_COMBINED1 << BRT_MODE_SHFT)
 #define LP8556_I2C_CONFIG	((ENABLE_BL << BL_CTL_SHFT) | \
-				(LP8556_I2C_ONLY << BRT_MODE_SHFT))
+							 (LP8556_I2C_ONLY << BRT_MODE_SHFT))
 #define LP8556_COMB2_CONFIG	(LP8556_COMBINED2 << BRT_MODE_SHFT)
 #define LP8556_FAST_CONFIG	BIT(7) /* use it if EPROMs should be maintained
 					  when exiting the low power mode */
@@ -71,7 +71,8 @@
 #define LP8557_COMB1_CONFIG	LP8557_COMBINED1
 #define LP8557_COMB2_CONFIG	LP8557_COMBINED2
 
-enum lp855x_chip_id {
+enum lp855x_chip_id
+{
 	LP8550,
 	LP8551,
 	LP8552,
@@ -81,48 +82,56 @@ enum lp855x_chip_id {
 	LP8557,
 };
 
-enum lp8550_brighntess_source {
+enum lp8550_brighntess_source
+{
 	LP8550_PWM_ONLY,
 	LP8550_I2C_ONLY = 2,
 };
 
-enum lp8551_brighntess_source {
+enum lp8551_brighntess_source
+{
 	LP8551_PWM_ONLY = LP8550_PWM_ONLY,
 	LP8551_I2C_ONLY = LP8550_I2C_ONLY,
 };
 
-enum lp8552_brighntess_source {
+enum lp8552_brighntess_source
+{
 	LP8552_PWM_ONLY = LP8550_PWM_ONLY,
 	LP8552_I2C_ONLY = LP8550_I2C_ONLY,
 };
 
-enum lp8553_brighntess_source {
+enum lp8553_brighntess_source
+{
 	LP8553_PWM_ONLY = LP8550_PWM_ONLY,
 	LP8553_I2C_ONLY = LP8550_I2C_ONLY,
 };
 
-enum lp8555_brightness_source {
+enum lp8555_brightness_source
+{
 	LP8555_PWM_ONLY,
 	LP8555_I2C_ONLY,
 	LP8555_COMBINED1,	/* Brightness register with shaped PWM */
 	LP8555_COMBINED2,	/* PWM with shaped brightness register */
 };
 
-enum lp8556_brightness_source {
+enum lp8556_brightness_source
+{
 	LP8556_PWM_ONLY,
 	LP8556_COMBINED1,	/* pwm + i2c before the shaper block */
 	LP8556_I2C_ONLY,
 	LP8556_COMBINED2,	/* pwm + i2c after the shaper block */
 };
 
-enum lp8557_brightness_source {
+enum lp8557_brightness_source
+{
 	LP8557_PWM_ONLY,
 	LP8557_I2C_ONLY,
 	LP8557_COMBINED1,	/* pwm + i2c after the shaper block */
 	LP8557_COMBINED2,	/* pwm + i2c before the shaper block */
 };
 
-struct lp855x_rom_data {
+struct lp855x_rom_data
+{
 	u8 addr;
 	u8 val;
 };
@@ -137,7 +146,8 @@ struct lp855x_rom_data {
  * @size_program : total size of lp855x_rom_data
  * @rom_data : list of new eeprom/eprom registers
  */
-struct lp855x_platform_data {
+struct lp855x_platform_data
+{
 	const char *name;
 	u8 device_control;
 	u8 initial_brightness;

@@ -5,7 +5,8 @@
 #include <linux/of_device.h>
 #include <linux/list.h>
 
-struct bbc_i2c_client {
+struct bbc_i2c_client
+{
 	struct bbc_i2c_bus		*bp;
 	struct platform_device		*op;
 	int				bus;
@@ -14,7 +15,8 @@ struct bbc_i2c_client {
 
 enum fan_action { FAN_SLOWER, FAN_SAME, FAN_FASTER, FAN_FULLBLAST, FAN_STATE_MAX };
 
-struct bbc_cpu_temperature {
+struct bbc_cpu_temperature
+{
 	struct list_head		bp_list;
 	struct list_head		glob_list;
 
@@ -36,7 +38,8 @@ struct bbc_cpu_temperature {
 #define FAN_CPU		1
 };
 
-struct bbc_fan_control {
+struct bbc_fan_control
+{
 	struct list_head		bp_list;
 	struct list_head		glob_list;
 
@@ -50,7 +53,8 @@ struct bbc_fan_control {
 
 #define NUM_CHILDREN	8
 
-struct bbc_i2c_bus {
+struct bbc_i2c_bus
+{
 	struct bbc_i2c_bus		*next;
 	int				index;
 	spinlock_t			lock;
@@ -65,7 +69,8 @@ struct bbc_i2c_bus {
 	struct list_head		fans;
 
 	struct platform_device		*op;
-	struct {
+	struct
+	{
 		struct platform_device	*device;
 		int			client_claimed;
 	} devs[NUM_CHILDREN];

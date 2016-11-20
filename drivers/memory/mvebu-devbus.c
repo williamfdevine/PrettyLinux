@@ -72,7 +72,8 @@
 #define ORION_TURN_OFF_SHIFT		0
 #define ORION_TURN_OFF_MASK		0x7
 
-struct devbus_read_params {
+struct devbus_read_params
+{
 	u32 bus_width;
 	u32 badr_skew;
 	u32 turn_off;
@@ -82,53 +83,59 @@ struct devbus_read_params {
 	u32 rd_hold;
 };
 
-struct devbus_write_params {
+struct devbus_write_params
+{
 	u32 sync_enable;
 	u32 wr_high;
 	u32 wr_low;
 	u32 ale_wr;
 };
 
-struct devbus {
+struct devbus
+{
 	struct device *dev;
 	void __iomem *base;
 	unsigned long tick_ps;
 };
 
 static int get_timing_param_ps(struct devbus *devbus,
-			       struct device_node *node,
-			       const char *name,
-			       u32 *ticks)
+							   struct device_node *node,
+							   const char *name,
+							   u32 *ticks)
 {
 	u32 time_ps;
 	int err;
 
 	err = of_property_read_u32(node, name, &time_ps);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(devbus->dev, "%s has no '%s' property\n",
-			name, node->full_name);
+				name, node->full_name);
 		return err;
 	}
 
 	*ticks = (time_ps + devbus->tick_ps - 1) / devbus->tick_ps;
 
 	dev_dbg(devbus->dev, "%s: %u ps -> 0x%x\n",
-		name, time_ps, *ticks);
+			name, time_ps, *ticks);
 	return 0;
 }
 
 static int devbus_get_timing_params(struct devbus *devbus,
-				    struct device_node *node,
-				    struct devbus_read_params *r,
-				    struct devbus_write_params *w)
+									struct device_node *node,
+									struct devbus_read_params *r,
+									struct devbus_write_params *w)
 {
 	int err;
 
 	err = of_property_read_u32(node, "devbus,bus-width", &r->bus_width);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(devbus->dev,
-			"%s has no 'devbus,bus-width' property\n",
-			node->full_name);
+				"%s has no 'devbus,bus-width' property\n",
+				node->full_name);
 		return err;
 	}
 
@@ -137,77 +144,112 @@ static int devbus_get_timing_params(struct devbus *devbus,
 	 * and 1 for 16 bits, so we do the necessary conversion here.
 	 */
 	if (r->bus_width == 8)
+	{
 		r->bus_width = 0;
+	}
 	else if (r->bus_width == 16)
+	{
 		r->bus_width = 1;
-	else {
+	}
+	else
+	{
 		dev_err(devbus->dev, "invalid bus width %d\n", r->bus_width);
 		return -EINVAL;
 	}
 
 	err = get_timing_param_ps(devbus, node, "devbus,badr-skew-ps",
-				 &r->badr_skew);
+							  &r->badr_skew);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = get_timing_param_ps(devbus, node, "devbus,turn-off-ps",
-				 &r->turn_off);
+							  &r->turn_off);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = get_timing_param_ps(devbus, node, "devbus,acc-first-ps",
-				 &r->acc_first);
+							  &r->acc_first);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = get_timing_param_ps(devbus, node, "devbus,acc-next-ps",
-				 &r->acc_next);
-	if (err < 0)
-		return err;
+							  &r->acc_next);
 
-	if (of_device_is_compatible(devbus->dev->of_node, "marvell,mvebu-devbus")) {
+	if (err < 0)
+	{
+		return err;
+	}
+
+	if (of_device_is_compatible(devbus->dev->of_node, "marvell,mvebu-devbus"))
+	{
 		err = get_timing_param_ps(devbus, node, "devbus,rd-setup-ps",
-					  &r->rd_setup);
+								  &r->rd_setup);
+
 		if (err < 0)
+		{
 			return err;
+		}
 
 		err = get_timing_param_ps(devbus, node, "devbus,rd-hold-ps",
-					  &r->rd_hold);
+								  &r->rd_hold);
+
 		if (err < 0)
+		{
 			return err;
+		}
 
 		err = of_property_read_u32(node, "devbus,sync-enable",
-					   &w->sync_enable);
-		if (err < 0) {
+								   &w->sync_enable);
+
+		if (err < 0)
+		{
 			dev_err(devbus->dev,
-				"%s has no 'devbus,sync-enable' property\n",
-				node->full_name);
+					"%s has no 'devbus,sync-enable' property\n",
+					node->full_name);
 			return err;
 		}
 	}
 
 	err = get_timing_param_ps(devbus, node, "devbus,ale-wr-ps",
-				 &w->ale_wr);
+							  &w->ale_wr);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = get_timing_param_ps(devbus, node, "devbus,wr-low-ps",
-				 &w->wr_low);
+							  &w->wr_low);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = get_timing_param_ps(devbus, node, "devbus,wr-high-ps",
-				 &w->wr_high);
+							  &w->wr_high);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
 
 static void devbus_orion_set_timing_params(struct devbus *devbus,
-					  struct device_node *node,
-					  struct devbus_read_params *r,
-					  struct devbus_write_params *w)
+		struct device_node *node,
+		struct devbus_read_params *r,
+		struct devbus_write_params *w)
 {
 	u32 value;
 
@@ -219,55 +261,55 @@ static void devbus_orion_set_timing_params(struct devbus *devbus,
 	 * fields, we have to split the value into these two parts.
 	 */
 	value =	(r->turn_off   & ORION_TURN_OFF_MASK)  << ORION_TURN_OFF_SHIFT  |
-		(r->acc_first  & ORION_ACC_FIRST_MASK) << ORION_ACC_FIRST_SHIFT |
-		(r->acc_next   & ORION_ACC_NEXT_MASK)  << ORION_ACC_NEXT_SHIFT  |
-		(w->ale_wr     & ORION_ALE_WR_MASK)    << ORION_ALE_WR_SHIFT    |
-		(w->wr_low     & ORION_WR_LOW_MASK)    << ORION_WR_LOW_SHIFT    |
-		(w->wr_high    & ORION_WR_HIGH_MASK)   << ORION_WR_HIGH_SHIFT   |
-		r->bus_width                           << ORION_DEV_WIDTH_SHIFT |
-		((r->turn_off  & ORION_TURN_OFF_EXT_MASK)  ? ORION_TURN_OFF_EXT_BIT  : 0) |
-		((r->acc_first & ORION_ACC_FIRST_EXT_MASK) ? ORION_ACC_FIRST_EXT_BIT : 0) |
-		((r->acc_next  & ORION_ACC_NEXT_EXT_MASK)  ? ORION_ACC_NEXT_EXT_BIT  : 0) |
-		((w->ale_wr    & ORION_ALE_WR_EXT_MASK)    ? ORION_ALE_WR_EXT_BIT    : 0) |
-		((w->wr_low    & ORION_WR_LOW_EXT_MASK)    ? ORION_WR_LOW_EXT_BIT    : 0) |
-		((w->wr_high   & ORION_WR_HIGH_EXT_MASK)   ? ORION_WR_HIGH_EXT_BIT   : 0) |
-		(r->badr_skew << ORION_BADR_SKEW_SHIFT) |
-		ORION_RESERVED;
+			(r->acc_first  & ORION_ACC_FIRST_MASK) << ORION_ACC_FIRST_SHIFT |
+			(r->acc_next   & ORION_ACC_NEXT_MASK)  << ORION_ACC_NEXT_SHIFT  |
+			(w->ale_wr     & ORION_ALE_WR_MASK)    << ORION_ALE_WR_SHIFT    |
+			(w->wr_low     & ORION_WR_LOW_MASK)    << ORION_WR_LOW_SHIFT    |
+			(w->wr_high    & ORION_WR_HIGH_MASK)   << ORION_WR_HIGH_SHIFT   |
+			r->bus_width                           << ORION_DEV_WIDTH_SHIFT |
+			((r->turn_off  & ORION_TURN_OFF_EXT_MASK)  ? ORION_TURN_OFF_EXT_BIT  : 0) |
+			((r->acc_first & ORION_ACC_FIRST_EXT_MASK) ? ORION_ACC_FIRST_EXT_BIT : 0) |
+			((r->acc_next  & ORION_ACC_NEXT_EXT_MASK)  ? ORION_ACC_NEXT_EXT_BIT  : 0) |
+			((w->ale_wr    & ORION_ALE_WR_EXT_MASK)    ? ORION_ALE_WR_EXT_BIT    : 0) |
+			((w->wr_low    & ORION_WR_LOW_EXT_MASK)    ? ORION_WR_LOW_EXT_BIT    : 0) |
+			((w->wr_high   & ORION_WR_HIGH_EXT_MASK)   ? ORION_WR_HIGH_EXT_BIT   : 0) |
+			(r->badr_skew << ORION_BADR_SKEW_SHIFT) |
+			ORION_RESERVED;
 
 	writel(value, devbus->base);
 }
 
 static void devbus_armada_set_timing_params(struct devbus *devbus,
-					   struct device_node *node,
-					   struct devbus_read_params *r,
-					   struct devbus_write_params *w)
+		struct device_node *node,
+		struct devbus_read_params *r,
+		struct devbus_write_params *w)
 {
 	u32 value;
 
 	/* Set read timings */
 	value = r->bus_width << ARMADA_DEV_WIDTH_SHIFT |
-		r->badr_skew << ARMADA_BADR_SKEW_SHIFT |
-		r->rd_hold   << ARMADA_RD_HOLD_SHIFT   |
-		r->acc_next  << ARMADA_ACC_NEXT_SHIFT  |
-		r->rd_setup  << ARMADA_RD_SETUP_SHIFT  |
-		r->acc_first << ARMADA_ACC_FIRST_SHIFT |
-		r->turn_off;
+			r->badr_skew << ARMADA_BADR_SKEW_SHIFT |
+			r->rd_hold   << ARMADA_RD_HOLD_SHIFT   |
+			r->acc_next  << ARMADA_ACC_NEXT_SHIFT  |
+			r->rd_setup  << ARMADA_RD_SETUP_SHIFT  |
+			r->acc_first << ARMADA_ACC_FIRST_SHIFT |
+			r->turn_off;
 
 	dev_dbg(devbus->dev, "read parameters register 0x%p = 0x%x\n",
-		devbus->base + ARMADA_READ_PARAM_OFFSET,
-		value);
+			devbus->base + ARMADA_READ_PARAM_OFFSET,
+			value);
 
 	writel(value, devbus->base + ARMADA_READ_PARAM_OFFSET);
 
 	/* Set write timings */
 	value = w->sync_enable  << ARMADA_SYNC_ENABLE_SHIFT |
-		w->wr_low       << ARMADA_WR_LOW_SHIFT      |
-		w->wr_high      << ARMADA_WR_HIGH_SHIFT     |
-		w->ale_wr;
+			w->wr_low       << ARMADA_WR_LOW_SHIFT      |
+			w->wr_high      << ARMADA_WR_HIGH_SHIFT     |
+			w->ale_wr;
 
 	dev_dbg(devbus->dev, "write parameters register: 0x%p = 0x%x\n",
-		devbus->base + ARMADA_WRITE_PARAM_OFFSET,
-		value);
+			devbus->base + ARMADA_WRITE_PARAM_OFFSET,
+			value);
 
 	writel(value, devbus->base + ARMADA_WRITE_PARAM_OFFSET);
 }
@@ -285,18 +327,28 @@ static int mvebu_devbus_probe(struct platform_device *pdev)
 	int err;
 
 	devbus = devm_kzalloc(&pdev->dev, sizeof(struct devbus), GFP_KERNEL);
+
 	if (!devbus)
+	{
 		return -ENOMEM;
+	}
 
 	devbus->dev = dev;
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	devbus->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(devbus->base))
+	{
 		return PTR_ERR(devbus->base);
+	}
 
 	clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(clk))
+	{
 		return PTR_ERR(clk);
+	}
+
 	clk_prepare_enable(clk);
 
 	/*
@@ -308,19 +360,27 @@ static int mvebu_devbus_probe(struct platform_device *pdev)
 	devbus->tick_ps = 1000000000 / rate;
 
 	dev_dbg(devbus->dev, "Setting timing parameter, tick is %lu ps\n",
-		devbus->tick_ps);
+			devbus->tick_ps);
 
-	if (!of_property_read_bool(node, "devbus,keep-config")) {
+	if (!of_property_read_bool(node, "devbus,keep-config"))
+	{
 		/* Read the Device Tree node */
 		err = devbus_get_timing_params(devbus, node, &r, &w);
+
 		if (err < 0)
+		{
 			return err;
+		}
 
 		/* Set the new timing parameters */
 		if (of_device_is_compatible(node, "marvell,orion-devbus"))
+		{
 			devbus_orion_set_timing_params(devbus, node, &r, &w);
+		}
 		else
+		{
 			devbus_armada_set_timing_params(devbus, node, &r, &w);
+		}
 	}
 
 	/*
@@ -329,20 +389,25 @@ static int mvebu_devbus_probe(struct platform_device *pdev)
 	 * parameters for the bus are written.
 	 */
 	err = of_platform_populate(node, NULL, NULL, dev);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
 
-static const struct of_device_id mvebu_devbus_of_match[] = {
+static const struct of_device_id mvebu_devbus_of_match[] =
+{
 	{ .compatible = "marvell,mvebu-devbus" },
 	{ .compatible = "marvell,orion-devbus" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, mvebu_devbus_of_match);
 
-static struct platform_driver mvebu_devbus_driver = {
+static struct platform_driver mvebu_devbus_driver =
+{
 	.probe		= mvebu_devbus_probe,
 	.driver		= {
 		.name	= "mvebu-devbus",

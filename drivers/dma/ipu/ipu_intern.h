@@ -145,11 +145,13 @@
 #define TASK_STAT_ACTIVE	1
 #define TASK_STAT_WAIT4READY	2
 
-struct idmac {
+struct idmac
+{
 	struct dma_device	dma;
 };
 
-struct ipu {
+struct ipu
+{
 	void __iomem		*reg_ipu;
 	void __iomem		*reg_ic;
 	unsigned int		irq_fn;		/* IPU Function IRQ to the CPU */

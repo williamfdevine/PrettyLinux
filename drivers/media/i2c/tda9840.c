@@ -1,29 +1,29 @@
- /*
-    tda9840 - i2c-driver for the tda9840 by SGS Thomson
+/*
+   tda9840 - i2c-driver for the tda9840 by SGS Thomson
 
-    Copyright (C) 1998-2003 Michael Hunold <michael@mihu.de>
-    Copyright (C) 2008 Hans Verkuil <hverkuil@xs4all.nl>
+   Copyright (C) 1998-2003 Michael Hunold <michael@mihu.de>
+   Copyright (C) 2008 Hans Verkuil <hverkuil@xs4all.nl>
 
-    The tda9840 is a stereo/dual sound processor with digital
-    identification. It can be found at address 0x84 on the i2c-bus.
+   The tda9840 is a stereo/dual sound processor with digital
+   identification. It can be found at address 0x84 on the i2c-bus.
 
-    For detailed informations download the specifications directly
-    from SGS Thomson at http://www.st.com
+   For detailed informations download the specifications directly
+   from SGS Thomson at http://www.st.com
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
 
 
 #include <linux/module.h>
@@ -62,7 +62,7 @@ static void tda9840_write(struct v4l2_subdev *sd, u8 reg, u8 val)
 
 	if (i2c_smbus_write_byte_data(client, reg, val))
 		v4l2_dbg(1, debug, sd, "error writing %02x to %02x\n",
-				val, reg);
+				 val, reg);
 }
 
 static int tda9840_status(struct v4l2_subdev *sd)
@@ -70,15 +70,17 @@ static int tda9840_status(struct v4l2_subdev *sd)
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	u8 byte;
 
-	if (1 != i2c_master_recv(client, &byte, 1)) {
+	if (1 != i2c_master_recv(client, &byte, 1))
+	{
 		v4l2_dbg(1, debug, sd,
-			"i2c_master_recv() failed\n");
+				 "i2c_master_recv() failed\n");
 		return -EIO;
 	}
 
-	if (byte & 0x80) {
+	if (byte & 0x80)
+	{
 		v4l2_dbg(1, debug, sd,
-			"TDA9840_DETECT: register contents invalid\n");
+				 "TDA9840_DETECT: register contents invalid\n");
 		return -EINVAL;
 	}
 
@@ -92,27 +94,37 @@ static int tda9840_s_tuner(struct v4l2_subdev *sd, const struct v4l2_tuner *t)
 	int byte;
 
 	if (t->index)
+	{
 		return -EINVAL;
+	}
 
 	stat = stat < 0 ? 0 : stat;
+
 	if (stat == 0 || stat == 0x60) /* mono input */
+	{
 		byte = TDA9840_SET_MONO;
+	}
 	else if (stat == 0x40) /* stereo input */
 		byte = (t->audmode == V4L2_TUNER_MODE_MONO) ?
-			TDA9840_SET_MONO : TDA9840_SET_STEREO;
-	else { /* bilingual */
-		switch (t->audmode) {
-		case V4L2_TUNER_MODE_LANG1_LANG2:
-			byte = TDA9840_SET_BOTH;
-			break;
-		case V4L2_TUNER_MODE_LANG2:
-			byte = TDA9840_SET_LANG2;
-			break;
-		default:
-			byte = TDA9840_SET_LANG1;
-			break;
+			   TDA9840_SET_MONO : TDA9840_SET_STEREO;
+	else   /* bilingual */
+	{
+		switch (t->audmode)
+		{
+			case V4L2_TUNER_MODE_LANG1_LANG2:
+				byte = TDA9840_SET_BOTH;
+				break;
+
+			case V4L2_TUNER_MODE_LANG2:
+				byte = TDA9840_SET_LANG2;
+				break;
+
+			default:
+				byte = TDA9840_SET_LANG1;
+				break;
 		}
 	}
+
 	v4l2_dbg(1, debug, sd, "TDA9840_SWITCH: 0x%02x\n", byte);
 	tda9840_write(sd, SWITCH, byte);
 	return 0;
@@ -123,57 +135,72 @@ static int tda9840_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *t)
 	int stat = tda9840_status(sd);
 
 	if (stat < 0)
+	{
 		return stat;
+	}
 
 	t->rxsubchans = V4L2_TUNER_SUB_MONO;
 
-	switch (stat & 0x60) {
-	case 0x00:
-		t->rxsubchans = V4L2_TUNER_SUB_MONO;
-		break;
-	case 0x20:
-		t->rxsubchans = V4L2_TUNER_SUB_LANG1 | V4L2_TUNER_SUB_LANG2;
-		break;
-	case 0x40:
-		t->rxsubchans = V4L2_TUNER_SUB_STEREO | V4L2_TUNER_SUB_MONO;
-		break;
-	default: /* Incorrect detect */
-		t->rxsubchans = V4L2_TUNER_MODE_MONO;
-		break;
+	switch (stat & 0x60)
+	{
+		case 0x00:
+			t->rxsubchans = V4L2_TUNER_SUB_MONO;
+			break;
+
+		case 0x20:
+			t->rxsubchans = V4L2_TUNER_SUB_LANG1 | V4L2_TUNER_SUB_LANG2;
+			break;
+
+		case 0x40:
+			t->rxsubchans = V4L2_TUNER_SUB_STEREO | V4L2_TUNER_SUB_MONO;
+			break;
+
+		default: /* Incorrect detect */
+			t->rxsubchans = V4L2_TUNER_MODE_MONO;
+			break;
 	}
+
 	return 0;
 }
 
 /* ----------------------------------------------------------------------- */
 
-static const struct v4l2_subdev_tuner_ops tda9840_tuner_ops = {
+static const struct v4l2_subdev_tuner_ops tda9840_tuner_ops =
+{
 	.s_tuner = tda9840_s_tuner,
 	.g_tuner = tda9840_g_tuner,
 };
 
-static const struct v4l2_subdev_ops tda9840_ops = {
+static const struct v4l2_subdev_ops tda9840_ops =
+{
 	.tuner = &tda9840_tuner_ops,
 };
 
 /* ----------------------------------------------------------------------- */
 
 static int tda9840_probe(struct i2c_client *client,
-			  const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct v4l2_subdev *sd;
 
 	/* let's see whether this adapter can support what we need */
 	if (!i2c_check_functionality(client->adapter,
-			I2C_FUNC_SMBUS_READ_BYTE_DATA |
-			I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
+								 I2C_FUNC_SMBUS_READ_BYTE_DATA |
+								 I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
+	{
 		return -EIO;
+	}
 
 	v4l_info(client, "chip found @ 0x%x (%s)\n",
-			client->addr << 1, client->adapter->name);
+			 client->addr << 1, client->adapter->name);
 
 	sd = devm_kzalloc(&client->dev, sizeof(*sd), GFP_KERNEL);
+
 	if (sd == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	v4l2_i2c_subdev_init(sd, client, &tda9840_ops);
 
 	/* set initial values for level & stereo - adjustment, mode */
@@ -191,13 +218,15 @@ static int tda9840_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id tda9840_id[] = {
+static const struct i2c_device_id tda9840_id[] =
+{
 	{ "tda9840", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, tda9840_id);
 
-static struct i2c_driver tda9840_driver = {
+static struct i2c_driver tda9840_driver =
+{
 	.driver = {
 		.name	= "tda9840",
 	},

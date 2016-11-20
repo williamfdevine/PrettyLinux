@@ -11,7 +11,8 @@
 #define PF_KEY_V2		2
 #define PFKEYV2_REVISION	199806L
 
-struct sadb_msg {
+struct sadb_msg
+{
 	__u8		sadb_msg_version;
 	__u8		sadb_msg_type;
 	__u8		sadb_msg_errno;
@@ -23,13 +24,15 @@ struct sadb_msg {
 } __attribute__((packed));
 /* sizeof(struct sadb_msg) == 16 */
 
-struct sadb_ext {
+struct sadb_ext
+{
 	__u16	sadb_ext_len;
 	__u16	sadb_ext_type;
 } __attribute__((packed));
 /* sizeof(struct sadb_ext) == 4 */
 
-struct sadb_sa {
+struct sadb_sa
+{
 	__u16	sadb_sa_len;
 	__u16	sadb_sa_exttype;
 	__be32		sadb_sa_spi;
@@ -41,7 +44,8 @@ struct sadb_sa {
 } __attribute__((packed));
 /* sizeof(struct sadb_sa) == 16 */
 
-struct sadb_lifetime {
+struct sadb_lifetime
+{
 	__u16	sadb_lifetime_len;
 	__u16	sadb_lifetime_exttype;
 	__u32	sadb_lifetime_allocations;
@@ -51,7 +55,8 @@ struct sadb_lifetime {
 } __attribute__((packed));
 /* sizeof(struct sadb_lifetime) == 32 */
 
-struct sadb_address {
+struct sadb_address
+{
 	__u16	sadb_address_len;
 	__u16	sadb_address_exttype;
 	__u8		sadb_address_proto;
@@ -60,7 +65,8 @@ struct sadb_address {
 } __attribute__((packed));
 /* sizeof(struct sadb_address) == 8 */
 
-struct sadb_key {
+struct sadb_key
+{
 	__u16	sadb_key_len;
 	__u16	sadb_key_exttype;
 	__u16	sadb_key_bits;
@@ -68,7 +74,8 @@ struct sadb_key {
 } __attribute__((packed));
 /* sizeof(struct sadb_key) == 8 */
 
-struct sadb_ident {
+struct sadb_ident
+{
 	__u16	sadb_ident_len;
 	__u16	sadb_ident_exttype;
 	__u16	sadb_ident_type;
@@ -77,7 +84,8 @@ struct sadb_ident {
 } __attribute__((packed));
 /* sizeof(struct sadb_ident) == 16 */
 
-struct sadb_sens {
+struct sadb_sens
+{
 	__u16	sadb_sens_len;
 	__u16	sadb_sens_exttype;
 	__u32	sadb_sens_dpd;
@@ -93,7 +101,8 @@ struct sadb_sens {
 	__u64	sadb_sens_bitmap[sens_len];
 	__u64	sadb_integ_bitmap[integ_len];  */
 
-struct sadb_prop {
+struct sadb_prop
+{
 	__u16	sadb_prop_len;
 	__u16	sadb_prop_exttype;
 	__u8		sadb_prop_replay;
@@ -106,7 +115,8 @@ struct sadb_prop {
 		sizeof(__u64) - sizeof(struct sadb_prop)) /
 		sizeof(struct sadb_comb)]; */
 
-struct sadb_comb {
+struct sadb_comb
+{
 	__u8		sadb_comb_auth;
 	__u8		sadb_comb_encrypt;
 	__u16	sadb_comb_flags;
@@ -126,7 +136,8 @@ struct sadb_comb {
 } __attribute__((packed));
 /* sizeof(struct sadb_comb) == 72 */
 
-struct sadb_supported {
+struct sadb_supported
+{
 	__u16	sadb_supported_len;
 	__u16	sadb_supported_exttype;
 	__u32	sadb_supported_reserved;
@@ -138,7 +149,8 @@ struct sadb_supported {
 		sizeof(__u64) - sizeof(struct sadb_supported)) /
 		sizeof(struct sadb_alg)]; */
 
-struct sadb_alg {
+struct sadb_alg
+{
 	__u8		sadb_alg_id;
 	__u8		sadb_alg_ivlen;
 	__u16	sadb_alg_minbits;
@@ -147,7 +159,8 @@ struct sadb_alg {
 } __attribute__((packed));
 /* sizeof(struct sadb_alg) == 8 */
 
-struct sadb_spirange {
+struct sadb_spirange
+{
 	__u16	sadb_spirange_len;
 	__u16	sadb_spirange_exttype;
 	__u32	sadb_spirange_min;
@@ -156,14 +169,16 @@ struct sadb_spirange {
 } __attribute__((packed));
 /* sizeof(struct sadb_spirange) == 16 */
 
-struct sadb_x_kmprivate {
+struct sadb_x_kmprivate
+{
 	__u16	sadb_x_kmprivate_len;
 	__u16	sadb_x_kmprivate_exttype;
 	__u32	sadb_x_kmprivate_reserved;
 } __attribute__((packed));
 /* sizeof(struct sadb_x_kmprivate) == 8 */
 
-struct sadb_x_sa2 {
+struct sadb_x_sa2
+{
 	__u16	sadb_x_sa2_len;
 	__u16	sadb_x_sa2_exttype;
 	__u8		sadb_x_sa2_mode;
@@ -174,7 +189,8 @@ struct sadb_x_sa2 {
 } __attribute__((packed));
 /* sizeof(struct sadb_x_sa2) == 16 */
 
-struct sadb_x_policy {
+struct sadb_x_policy
+{
 	__u16	sadb_x_policy_len;
 	__u16	sadb_x_policy_exttype;
 	__u16	sadb_x_policy_type;
@@ -185,7 +201,8 @@ struct sadb_x_policy {
 } __attribute__((packed));
 /* sizeof(struct sadb_x_policy) == 16 */
 
-struct sadb_x_ipsecrequest {
+struct sadb_x_ipsecrequest
+{
 	__u16	sadb_x_ipsecrequest_len;
 	__u16	sadb_x_ipsecrequest_proto;
 	__u8		sadb_x_ipsecrequest_mode;
@@ -199,7 +216,8 @@ struct sadb_x_ipsecrequest {
 /* This defines the TYPE of Nat Traversal in use.  Currently only one
  * type of NAT-T is supported, draft-ietf-ipsec-udp-encaps-06
  */
-struct sadb_x_nat_t_type {
+struct sadb_x_nat_t_type
+{
 	__u16	sadb_x_nat_t_type_len;
 	__u16	sadb_x_nat_t_type_exttype;
 	__u8		sadb_x_nat_t_type_type;
@@ -208,7 +226,8 @@ struct sadb_x_nat_t_type {
 /* sizeof(struct sadb_x_nat_t_type) == 8 */
 
 /* Pass a NAT Traversal port (Source or Dest port) */
-struct sadb_x_nat_t_port {
+struct sadb_x_nat_t_port
+{
 	__u16	sadb_x_nat_t_port_len;
 	__u16	sadb_x_nat_t_port_exttype;
 	__be16		sadb_x_nat_t_port_port;
@@ -217,7 +236,8 @@ struct sadb_x_nat_t_port {
 /* sizeof(struct sadb_x_nat_t_port) == 8 */
 
 /* Generic LSM security context */
-struct sadb_x_sec_ctx {
+struct sadb_x_sec_ctx
+{
 	__u16	sadb_x_sec_len;
 	__u16	sadb_x_sec_exttype;
 	__u8		sadb_x_ctx_alg;  /* LSMs: e.g., selinux == 1 */
@@ -228,7 +248,8 @@ struct sadb_x_sec_ctx {
 
 /* Used by MIGRATE to pass addresses IKE will use to perform
  * negotiation with the peer */
-struct sadb_x_kmaddress {
+struct sadb_x_kmaddress
+{
 	__u16	sadb_x_kmaddress_len;
 	__u16	sadb_x_kmaddress_exttype;
 	__u32	sadb_x_kmaddress_reserved;
@@ -236,7 +257,8 @@ struct sadb_x_kmaddress {
 /* sizeof(struct sadb_x_kmaddress) == 8 */
 
 /* To specify the SA dump filter */
-struct sadb_x_filter {
+struct sadb_x_filter
+{
 	__u16	sadb_x_filter_len;
 	__u16	sadb_x_filter_exttype;
 	__u32	sadb_x_filter_saddr[4];

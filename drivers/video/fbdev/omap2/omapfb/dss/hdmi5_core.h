@@ -269,7 +269,8 @@
 #define HDMI_CORE_I2CM_FS_SCL_LCNT_0_ADDR	0x15810
 #define HDMI_CORE_I2CM_SDA_HOLD_ADDR		0x15814
 
-enum hdmi_core_packet_mode {
+enum hdmi_core_packet_mode
+{
 	HDMI_PACKETMODERESERVEDVALUE = 0,
 	HDMI_PACKETMODE24BITPERPIXEL = 4,
 	HDMI_PACKETMODE30BITPERPIXEL = 5,
@@ -277,7 +278,8 @@ enum hdmi_core_packet_mode {
 	HDMI_PACKETMODE48BITPERPIXEL = 7,
 };
 
-struct hdmi_core_vid_config {
+struct hdmi_core_vid_config
+{
 	struct hdmi_config v_fc_config;
 	enum hdmi_core_packet_mode packet_mode;
 	int data_enable_pol;
@@ -286,7 +288,8 @@ struct hdmi_core_vid_config {
 	int vblank;
 };
 
-struct csc_table {
+struct csc_table
+{
 	u16 a1, a2, a3, a4;
 	u16 b1, b2, b3, b4;
 	u16 c1, c2, c3, c4;
@@ -296,9 +299,9 @@ int hdmi5_read_edid(struct hdmi_core_data *core, u8 *edid, int len);
 void hdmi5_core_dump(struct hdmi_core_data *core, struct seq_file *s);
 int hdmi5_core_handle_irqs(struct hdmi_core_data *core);
 void hdmi5_configure(struct hdmi_core_data *core, struct hdmi_wp_data *wp,
-			struct hdmi_config *cfg);
+					 struct hdmi_config *cfg);
 int hdmi5_core_init(struct platform_device *pdev, struct hdmi_core_data *core);
 
 int hdmi5_audio_config(struct hdmi_core_data *core, struct hdmi_wp_data *wp,
-			struct omap_dss_audio *audio, u32 pclk);
+					   struct omap_dss_audio *audio, u32 pclk);
 #endif

@@ -300,15 +300,15 @@
 #define EXYNOS_CIOYSA(__x)		\
 	(((__x) < DEF_PP) ?	\
 	 (EXYNOS_CIOYSA1  + (__x) * 4) : \
-	(EXYNOS_CIOYSA5  + ((__x) - DEF_PP) * 4))
+	 (EXYNOS_CIOYSA5  + ((__x) - DEF_PP) * 4))
 #define EXYNOS_CIOCBSA(__x)	\
 	(((__x) < DEF_PP) ?	\
 	 (EXYNOS_CIOCBSA1 + (__x) * 4) : \
-	(EXYNOS_CIOCBSA5 + ((__x) - DEF_PP) * 4))
+	 (EXYNOS_CIOCBSA5 + ((__x) - DEF_PP) * 4))
 #define EXYNOS_CIOCRSA(__x)	\
 	(((__x) < DEF_PP) ?	\
 	 (EXYNOS_CIOCRSA1 + (__x) * 4) : \
-	(EXYNOS_CIOCRSA5 + ((__x) - DEF_PP) * 4))
+	 (EXYNOS_CIOCRSA5 + ((__x) - DEF_PP) * 4))
 /* Number of Default PingPong Memory */
 #define DEF_IPP		1
 #define EXYNOS_CIIYSA(__x)		\

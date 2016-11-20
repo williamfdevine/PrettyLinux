@@ -26,7 +26,8 @@
 #include <linux/firmware.h>
 #include <linux/regmap.h>
 
-struct tda10071_dev {
+struct tda10071_dev
+{
 	struct dvb_frontend fe;
 	struct i2c_client *client;
 	struct regmap *regmap;
@@ -47,12 +48,14 @@ struct tda10071_dev {
 	u64 block_error;
 };
 
-static struct tda10071_modcod {
+static struct tda10071_modcod
+{
 	enum fe_delivery_system delivery_system;
 	enum fe_modulation modulation;
 	enum fe_code_rate fec;
 	u8 val;
-} TDA10071_MODCOD[] = {
+} TDA10071_MODCOD[] =
+{
 	/* NBC-QPSK */
 	{ SYS_DVBS2, QPSK,  FEC_AUTO, 0x00 },
 	{ SYS_DVBS2, QPSK,  FEC_1_2,  0x04 },
@@ -80,7 +83,8 @@ static struct tda10071_modcod {
 	{ SYS_DVBS,  QPSK,  FEC_7_8,  0x32 },
 };
 
-struct tda10071_reg_val_mask {
+struct tda10071_reg_val_mask
+{
 	u8 reg;
 	u8 val;
 	u8 mask;
@@ -110,7 +114,8 @@ struct tda10071_reg_val_mask {
 
 /* firmware command struct */
 #define TDA10071_ARGLEN      30
-struct tda10071_cmd {
+struct tda10071_cmd
+{
 	u8 args[TDA10071_ARGLEN];
 	u8 len;
 };

@@ -38,14 +38,15 @@
 static int heartbeat = WDT_HEARTBEAT;
 module_param(heartbeat, int, 0);
 MODULE_PARM_DESC(heartbeat, "Watchdog heartbeats in seconds. "
-	"(default = " __MODULE_STRING(WDT_HEARTBEAT) ")");
+				 "(default = " __MODULE_STRING(WDT_HEARTBEAT) ")");
 
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started "
-	"(default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "(default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
-static struct {
+static struct
+{
 	void __iomem *fpga;
 	unsigned long next_heartbeat;	/* the next_heartbeat for the timer */
 	unsigned long open;
@@ -54,12 +55,13 @@ static struct {
 	struct timer_list timer;	/* The timer that pings the watchdog */
 } pikawdt_private;
 
-static struct watchdog_info ident = {
+static struct watchdog_info ident =
+{
 	.identity	= DRV_NAME,
 	.options	= WDIOF_CARDRESET |
-			  WDIOF_SETTIMEOUT |
-			  WDIOF_KEEPALIVEPING |
-			  WDIOF_MAGICCLOSE,
+	WDIOF_SETTIMEOUT |
+	WDIOF_KEEPALIVEPING |
+	WDIOF_MAGICCLOSE,
 };
 
 /*
@@ -88,11 +90,15 @@ static inline void pikawdt_reset(void)
 static void pikawdt_ping(unsigned long data)
 {
 	if (time_before(jiffies, pikawdt_private.next_heartbeat) ||
-			(!nowayout && !pikawdt_private.open)) {
+		(!nowayout && !pikawdt_private.open))
+	{
 		pikawdt_reset();
 		mod_timer(&pikawdt_private.timer, jiffies + WDT_TIMEOUT);
-	} else
+	}
+	else
+	{
 		pr_crit("I will reset your machine !\n");
+	}
 }
 
 
@@ -114,7 +120,9 @@ static int pikawdt_open(struct inode *inode, struct file *file)
 {
 	/* /dev/watchdog can only be opened once */
 	if (test_and_set_bit(0, &pikawdt_private.open))
+	{
 		return -EBUSY;
+	}
 
 	pikawdt_start();
 
@@ -128,7 +136,9 @@ static int pikawdt_release(struct inode *inode, struct file *file)
 {
 	/* stop internal ping */
 	if (!pikawdt_private.expect_close)
+	{
 		del_timer(&pikawdt_private.timer);
+	}
 
 	clear_bit(0, &pikawdt_private.open);
 	pikawdt_private.expect_close = 0;
@@ -139,22 +149,31 @@ static int pikawdt_release(struct inode *inode, struct file *file)
  * Pat the watchdog whenever device is written to.
  */
 static ssize_t pikawdt_write(struct file *file, const char __user *data,
-			     size_t len, loff_t *ppos)
+							 size_t len, loff_t *ppos)
 {
 	if (!len)
+	{
 		return 0;
+	}
 
 	/* Scan for magic character */
-	if (!nowayout) {
+	if (!nowayout)
+	{
 		size_t i;
 
 		pikawdt_private.expect_close = 0;
 
-		for (i = 0; i < len; i++) {
+		for (i = 0; i < len; i++)
+		{
 			char c;
+
 			if (get_user(c, data + i))
+			{
 				return -EFAULT;
-			if (c == 'V') {
+			}
+
+			if (c == 'V')
+			{
 				pikawdt_private.expect_close = 42;
 				break;
 			}
@@ -170,43 +189,48 @@ static ssize_t pikawdt_write(struct file *file, const char __user *data,
  * Handle commands from user-space.
  */
 static long pikawdt_ioctl(struct file *file,
-		unsigned int cmd, unsigned long arg)
+						  unsigned int cmd, unsigned long arg)
 {
 	void __user *argp = (void __user *)arg;
 	int __user *p = argp;
 	int new_value;
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
+	switch (cmd)
+	{
+		case WDIOC_GETSUPPORT:
+			return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
 
-	case WDIOC_GETSTATUS:
-		return put_user(0, p);
+		case WDIOC_GETSTATUS:
+			return put_user(0, p);
 
-	case WDIOC_GETBOOTSTATUS:
-		return put_user(pikawdt_private.bootstatus, p);
+		case WDIOC_GETBOOTSTATUS:
+			return put_user(pikawdt_private.bootstatus, p);
 
-	case WDIOC_KEEPALIVE:
-		pikawdt_keepalive();
-		return 0;
+		case WDIOC_KEEPALIVE:
+			pikawdt_keepalive();
+			return 0;
 
-	case WDIOC_SETTIMEOUT:
-		if (get_user(new_value, p))
-			return -EFAULT;
+		case WDIOC_SETTIMEOUT:
+			if (get_user(new_value, p))
+			{
+				return -EFAULT;
+			}
 
-		heartbeat = new_value;
-		pikawdt_keepalive();
+			heartbeat = new_value;
+			pikawdt_keepalive();
 
-		return put_user(new_value, p);  /* return current value */
+			return put_user(new_value, p);  /* return current value */
 
-	case WDIOC_GETTIMEOUT:
-		return put_user(heartbeat, p);
+		case WDIOC_GETTIMEOUT:
+			return put_user(heartbeat, p);
 	}
+
 	return -ENOTTY;
 }
 
 
-static const struct file_operations pikawdt_fops = {
+static const struct file_operations pikawdt_fops =
+{
 	.owner		= THIS_MODULE,
 	.llseek		= no_llseek,
 	.open		= pikawdt_open,
@@ -215,7 +239,8 @@ static const struct file_operations pikawdt_fops = {
 	.unlocked_ioctl	= pikawdt_ioctl,
 };
 
-static struct miscdevice pikawdt_miscdev = {
+static struct miscdevice pikawdt_miscdev =
+{
 	.minor	= WATCHDOG_MINOR,
 	.name	= "watchdog",
 	.fops	= &pikawdt_fops,
@@ -229,14 +254,18 @@ static int __init pikawdt_init(void)
 	int ret;
 
 	np = of_find_compatible_node(NULL, NULL, "pika,fpga");
-	if (np == NULL) {
+
+	if (np == NULL)
+	{
 		pr_err("Unable to find fpga\n");
 		return -ENOENT;
 	}
 
 	pikawdt_private.fpga = of_iomap(np, 0);
 	of_node_put(np);
-	if (pikawdt_private.fpga == NULL) {
+
+	if (pikawdt_private.fpga == NULL)
+	{
 		pr_err("Unable to map fpga\n");
 		return -ENOMEM;
 	}
@@ -245,7 +274,9 @@ static int __init pikawdt_init(void)
 
 	/* POST information is in the sd area. */
 	np = of_find_compatible_node(NULL, NULL, "pika,fpga-sd");
-	if (np == NULL) {
+
+	if (np == NULL)
+	{
 		pr_err("Unable to find fpga-sd\n");
 		ret = -ENOENT;
 		goto out;
@@ -253,7 +284,9 @@ static int __init pikawdt_init(void)
 
 	fpga = of_iomap(np, 0);
 	of_node_put(np);
-	if (fpga == NULL) {
+
+	if (fpga == NULL)
+	{
 		pr_err("Unable to map fpga-sd\n");
 		ret = -ENOMEM;
 		goto out;
@@ -264,21 +297,26 @@ static int __init pikawdt_init(void)
 	 *           timeout.
 	 */
 	post1 = in_be32(fpga + 0x40);
+
 	if (post1 & 0x80000000)
+	{
 		pikawdt_private.bootstatus = WDIOF_CARDRESET;
+	}
 
 	iounmap(fpga);
 
 	setup_timer(&pikawdt_private.timer, pikawdt_ping, 0);
 
 	ret = misc_register(&pikawdt_miscdev);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Unable to register miscdev\n");
 		goto out;
 	}
 
 	pr_info("initialized. heartbeat=%d sec (nowayout=%d)\n",
-		heartbeat, nowayout);
+			heartbeat, nowayout);
 	return 0;
 
 out:

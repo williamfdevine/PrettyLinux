@@ -74,17 +74,21 @@ static int _omap3_wait_dpll_status(struct clk_hw_omap *clk, u8 state)
 	state <<= __ffs(dd->idlest_mask);
 
 	while (((ti_clk_ll_ops->clk_readl(dd->idlest_reg) & dd->idlest_mask)
-		!= state) && i < MAX_DPLL_WAIT_TRIES) {
+			!= state) && i < MAX_DPLL_WAIT_TRIES)
+	{
 		i++;
 		udelay(1);
 	}
 
-	if (i == MAX_DPLL_WAIT_TRIES) {
+	if (i == MAX_DPLL_WAIT_TRIES)
+	{
 		pr_err("clock: %s failed transition to '%s'\n",
-		       clk_name, (state) ? "locked" : "bypassed");
-	} else {
+			   clk_name, (state) ? "locked" : "bypassed");
+	}
+	else
+	{
 		pr_debug("clock: %s transition to '%s' in %d loops\n",
-			 clk_name, (state) ? "locked" : "bypassed", i);
+				 clk_name, (state) ? "locked" : "bypassed", i);
 
 		ret = 0;
 	}
@@ -103,27 +107,49 @@ static u16 _omap3_dpll_compute_freqsel(struct clk_hw_omap *clk, u8 n)
 	pr_debug("clock: fint is %lu\n", fint);
 
 	if (fint >= 750000 && fint <= 1000000)
+	{
 		f = 0x3;
+	}
 	else if (fint > 1000000 && fint <= 1250000)
+	{
 		f = 0x4;
+	}
 	else if (fint > 1250000 && fint <= 1500000)
+	{
 		f = 0x5;
+	}
 	else if (fint > 1500000 && fint <= 1750000)
+	{
 		f = 0x6;
+	}
 	else if (fint > 1750000 && fint <= 2100000)
+	{
 		f = 0x7;
+	}
 	else if (fint > 7500000 && fint <= 10000000)
+	{
 		f = 0xB;
+	}
 	else if (fint > 10000000 && fint <= 12500000)
+	{
 		f = 0xC;
+	}
 	else if (fint > 12500000 && fint <= 15000000)
+	{
 		f = 0xD;
+	}
 	else if (fint > 15000000 && fint <= 17500000)
+	{
 		f = 0xE;
+	}
 	else if (fint > 17500000 && fint <= 21000000)
+	{
 		f = 0xF;
+	}
 	else
+	{
 		pr_debug("clock: unknown freqsel setting for %d\n", n);
+	}
 
 	return f;
 }
@@ -152,20 +178,26 @@ static int _omap3_noncore_dpll_lock(struct clk_hw_omap *clk)
 
 	/* Check if already locked */
 	if ((ti_clk_ll_ops->clk_readl(dd->idlest_reg) & dd->idlest_mask) ==
-	    state)
+		state)
+	{
 		goto done;
+	}
 
 	ai = omap3_dpll_autoidle_read(clk);
 
 	if (ai)
+	{
 		omap3_dpll_deny_idle(clk);
+	}
 
 	_omap3_dpll_write_clken(clk, DPLL_LOCKED);
 
 	r = _omap3_wait_dpll_status(clk, 1);
 
 	if (ai)
+	{
 		omap3_dpll_allow_idle(clk);
+	}
 
 done:
 	return r;
@@ -190,10 +222,12 @@ static int _omap3_noncore_dpll_bypass(struct clk_hw_omap *clk)
 	u8 ai;
 
 	if (!(clk->dpll_data->modes & (1 << DPLL_LOW_POWER_BYPASS)))
+	{
 		return -EINVAL;
+	}
 
 	pr_debug("clock: configuring DPLL %s for low-power bypass\n",
-		 clk_hw_get_name(&clk->hw));
+			 clk_hw_get_name(&clk->hw));
 
 	ai = omap3_dpll_autoidle_read(clk);
 
@@ -202,7 +236,9 @@ static int _omap3_noncore_dpll_bypass(struct clk_hw_omap *clk)
 	r = _omap3_wait_dpll_status(clk, 0);
 
 	if (ai)
+	{
 		omap3_dpll_allow_idle(clk);
+	}
 
 	return r;
 }
@@ -221,7 +257,9 @@ static int _omap3_noncore_dpll_stop(struct clk_hw_omap *clk)
 	u8 ai;
 
 	if (!(clk->dpll_data->modes & (1 << DPLL_LOW_POWER_STOP)))
+	{
 		return -EINVAL;
+	}
 
 	pr_debug("clock: stopping DPLL %s\n", clk_hw_get_name(&clk->hw));
 
@@ -230,7 +268,9 @@ static int _omap3_noncore_dpll_stop(struct clk_hw_omap *clk)
 	_omap3_dpll_write_clken(clk, DPLL_LOW_POWER_STOP);
 
 	if (ai)
+	{
 		omap3_dpll_allow_idle(clk);
+	}
 
 	return 0;
 }
@@ -255,9 +295,13 @@ static void _lookup_dco(struct clk_hw_omap *clk, u8 *dco, u16 m, u8 n)
 	fint = (clkinp / n) * m;
 
 	if (fint < 1000000000)
+	{
 		*dco = 2;
+	}
 	else
+	{
 		*dco = 4;
+	}
 }
 
 /**
@@ -290,7 +334,10 @@ static void _lookup_sddiv(struct clk_hw_omap *clk, u8 *sd_div, u16 m, u8 n)
 	sd /= 10;
 
 	if (mod1 || mod2)
+	{
 		sd++;
+	}
+
 	*sd_div = sd;
 }
 
@@ -316,7 +363,8 @@ static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 freqsel)
 	 * Set jitter correction. Jitter correction applicable for OMAP343X
 	 * only since freqsel field is no longer present on other devices.
 	 */
-	if (ti_clk_get_features()->flags & TI_CLK_DPLL_HAS_FREQSEL) {
+	if (ti_clk_get_features()->flags & TI_CLK_DPLL_HAS_FREQSEL)
+	{
 		v = ti_clk_ll_ops->clk_readl(dd->control_reg);
 		v &= ~dd->freqsel_mask;
 		v |= freqsel << __ffs(dd->freqsel_mask);
@@ -327,11 +375,16 @@ static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 freqsel)
 	v = ti_clk_ll_ops->clk_readl(dd->mult_div1_reg);
 
 	/* Handle Duty Cycle Correction */
-	if (dd->dcc_mask) {
+	if (dd->dcc_mask)
+	{
 		if (dd->last_rounded_rate >= dd->dcc_rate)
-			v |= dd->dcc_mask; /* Enable DCC */
+		{
+			v |= dd->dcc_mask;    /* Enable DCC */
+		}
 		else
-			v &= ~dd->dcc_mask; /* Disable DCC */
+		{
+			v &= ~dd->dcc_mask;    /* Disable DCC */
+		}
 	}
 
 	v &= ~(dd->mult_mask | dd->div1_mask);
@@ -339,14 +392,17 @@ static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 freqsel)
 	v |= (dd->last_rounded_n - 1) << __ffs(dd->div1_mask);
 
 	/* Configure dco and sd_div for dplls that have these fields */
-	if (dd->dco_mask) {
+	if (dd->dco_mask)
+	{
 		_lookup_dco(clk, &dco, dd->last_rounded_m, dd->last_rounded_n);
 		v &= ~(dd->dco_mask);
 		v |= dco << __ffs(dd->dco_mask);
 	}
-	if (dd->sddiv_mask) {
+
+	if (dd->sddiv_mask)
+	{
 		_lookup_sddiv(clk, &sd_div, dd->last_rounded_m,
-			      dd->last_rounded_n);
+					  dd->last_rounded_n);
 		v &= ~(dd->sddiv_mask);
 		v |= sd_div << __ffs(dd->sddiv_mask);
 	}
@@ -360,9 +416,12 @@ static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 freqsel)
 	 */
 	errata_i810 = ti_clk_get_features()->flags & TI_CLK_ERRATA_I810;
 
-	if (errata_i810) {
+	if (errata_i810)
+	{
 		ai = omap3_dpll_autoidle_read(clk);
-		if (ai) {
+
+		if (ai)
+		{
 			omap3_dpll_deny_idle(clk);
 
 			/* OCP barrier */
@@ -373,21 +432,32 @@ static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 freqsel)
 	ti_clk_ll_ops->clk_writel(v, dd->mult_div1_reg);
 
 	/* Set 4X multiplier and low-power mode */
-	if (dd->m4xen_mask || dd->lpmode_mask) {
+	if (dd->m4xen_mask || dd->lpmode_mask)
+	{
 		v = ti_clk_ll_ops->clk_readl(dd->control_reg);
 
-		if (dd->m4xen_mask) {
+		if (dd->m4xen_mask)
+		{
 			if (dd->last_rounded_m4xen)
+			{
 				v |= dd->m4xen_mask;
+			}
 			else
+			{
 				v &= ~dd->m4xen_mask;
+			}
 		}
 
-		if (dd->lpmode_mask) {
+		if (dd->lpmode_mask)
+		{
 			if (dd->last_rounded_lpmode)
+			{
 				v |= dd->lpmode_mask;
+			}
 			else
+			{
 				v &= ~dd->lpmode_mask;
+			}
 		}
 
 		ti_clk_ll_ops->clk_writel(v, dd->control_reg);
@@ -400,7 +470,9 @@ static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 freqsel)
 	_omap3_noncore_dpll_lock(clk);
 
 	if (errata_i810 && ai)
+	{
 		omap3_dpll_allow_idle(clk);
+	}
 
 	return 0;
 }
@@ -444,26 +516,35 @@ int omap3_noncore_dpll_enable(struct clk_hw *hw)
 	struct clk_hw *parent;
 
 	dd = clk->dpll_data;
-	if (!dd)
-		return -EINVAL;
 
-	if (clk->clkdm) {
+	if (!dd)
+	{
+		return -EINVAL;
+	}
+
+	if (clk->clkdm)
+	{
 		r = ti_clk_ll_ops->clkdm_clk_enable(clk->clkdm, hw->clk);
-		if (r) {
+
+		if (r)
+		{
 			WARN(1,
-			     "%s: could not enable %s's clockdomain %s: %d\n",
-			     __func__, clk_hw_get_name(hw),
-			     clk->clkdm_name, r);
+				 "%s: could not enable %s's clockdomain %s: %d\n",
+				 __func__, clk_hw_get_name(hw),
+				 clk->clkdm_name, r);
 			return r;
 		}
 	}
 
 	parent = clk_hw_get_parent(hw);
 
-	if (clk_hw_get_rate(hw) == clk_hw_get_rate(dd->clk_bypass)) {
+	if (clk_hw_get_rate(hw) == clk_hw_get_rate(dd->clk_bypass))
+	{
 		WARN_ON(parent != dd->clk_bypass);
 		r = _omap3_noncore_dpll_bypass(clk);
-	} else {
+	}
+	else
+	{
 		WARN_ON(parent != dd->clk_ref);
 		r = _omap3_noncore_dpll_lock(clk);
 	}
@@ -483,8 +564,11 @@ void omap3_noncore_dpll_disable(struct clk_hw *hw)
 	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
 
 	_omap3_noncore_dpll_stop(clk);
+
 	if (clk->clkdm)
+	{
 		ti_clk_ll_ops->clkdm_clk_disable(clk->clkdm, hw->clk);
+	}
 }
 
 /* Non-CORE DPLL rate set code */
@@ -500,24 +584,32 @@ void omap3_noncore_dpll_disable(struct clk_hw *hw)
  * Returns a 0 on success, negative error value in failure.
  */
 int omap3_noncore_dpll_determine_rate(struct clk_hw *hw,
-				      struct clk_rate_request *req)
+									  struct clk_rate_request *req)
 {
 	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
 	struct dpll_data *dd;
 
 	if (!req->rate)
+	{
 		return -EINVAL;
+	}
 
 	dd = clk->dpll_data;
+
 	if (!dd)
+	{
 		return -EINVAL;
+	}
 
 	if (clk_hw_get_rate(dd->clk_bypass) == req->rate &&
-	    (dd->modes & (1 << DPLL_LOW_POWER_BYPASS))) {
+		(dd->modes & (1 << DPLL_LOW_POWER_BYPASS)))
+	{
 		req->best_parent_hw = dd->clk_bypass;
-	} else {
+	}
+	else
+	{
 		req->rate = omap2_dpll_round_rate(hw, req->rate,
-					  &req->best_parent_rate);
+										  &req->best_parent_rate);
 		req->best_parent_hw = dd->clk_ref;
 	}
 
@@ -540,12 +632,18 @@ int omap3_noncore_dpll_set_parent(struct clk_hw *hw, u8 index)
 	int ret;
 
 	if (!hw)
+	{
 		return -EINVAL;
+	}
 
 	if (index)
+	{
 		ret = _omap3_noncore_dpll_bypass(clk);
+	}
 	else
+	{
 		ret = _omap3_noncore_dpll_lock(clk);
+	}
 
 	return ret;
 }
@@ -562,7 +660,7 @@ int omap3_noncore_dpll_set_parent(struct clk_hw *hw, u8 index)
  * with success, negative error value otherwise.
  */
 int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
-				unsigned long parent_rate)
+								unsigned long parent_rate)
 {
 	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
 	struct dpll_data *dd;
@@ -570,26 +668,36 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
 	int ret;
 
 	if (!hw || !rate)
+	{
 		return -EINVAL;
+	}
 
 	dd = clk->dpll_data;
+
 	if (!dd)
+	{
 		return -EINVAL;
+	}
 
 	if (clk_hw_get_parent(hw) != dd->clk_ref)
+	{
 		return -EINVAL;
+	}
 
 	if (dd->last_rounded_rate == 0)
+	{
 		return -EINVAL;
+	}
 
 	/* Freqsel is available only on OMAP343X devices */
-	if (ti_clk_get_features()->flags & TI_CLK_DPLL_HAS_FREQSEL) {
+	if (ti_clk_get_features()->flags & TI_CLK_DPLL_HAS_FREQSEL)
+	{
 		freqsel = _omap3_dpll_compute_freqsel(clk, dd->last_rounded_n);
 		WARN_ON(!freqsel);
 	}
 
 	pr_debug("%s: %s: set rate: locking rate to %lu.\n", __func__,
-		 clk_hw_get_name(hw), rate);
+			 clk_hw_get_name(hw), rate);
 
 	ret = omap3_noncore_dpll_program(clk, freqsel);
 
@@ -610,14 +718,16 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
  * value otherwise.
  */
 int omap3_noncore_dpll_set_rate_and_parent(struct clk_hw *hw,
-					   unsigned long rate,
-					   unsigned long parent_rate,
-					   u8 index)
+		unsigned long rate,
+		unsigned long parent_rate,
+		u8 index)
 {
 	int ret;
 
 	if (!hw || !rate)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * clk-ref at index[0], in which case we only need to set rate,
@@ -625,9 +735,13 @@ int omap3_noncore_dpll_set_rate_and_parent(struct clk_hw *hw,
 	 * With clk-bypass case we only need to change parent.
 	 */
 	if (index)
+	{
 		ret = omap3_noncore_dpll_set_parent(hw, index);
+	}
 	else
+	{
 		ret = omap3_noncore_dpll_set_rate(hw, rate, parent_rate);
+	}
 
 	return ret;
 }
@@ -648,12 +762,16 @@ static u32 omap3_dpll_autoidle_read(struct clk_hw_omap *clk)
 	u32 v;
 
 	if (!clk || !clk->dpll_data)
+	{
 		return -EINVAL;
+	}
 
 	dd = clk->dpll_data;
 
 	if (!dd->autoidle_reg)
+	{
 		return -EINVAL;
+	}
 
 	v = ti_clk_ll_ops->clk_readl(dd->autoidle_reg);
 	v &= dd->autoidle_mask;
@@ -677,12 +795,16 @@ static void omap3_dpll_allow_idle(struct clk_hw_omap *clk)
 	u32 v;
 
 	if (!clk || !clk->dpll_data)
+	{
 		return;
+	}
 
 	dd = clk->dpll_data;
 
 	if (!dd->autoidle_reg)
+	{
 		return;
+	}
 
 	/*
 	 * REVISIT: CORE DPLL can optionally enter low-power bypass
@@ -707,12 +829,16 @@ static void omap3_dpll_deny_idle(struct clk_hw_omap *clk)
 	u32 v;
 
 	if (!clk || !clk->dpll_data)
+	{
 		return;
+	}
 
 	dd = clk->dpll_data;
 
 	if (!dd->autoidle_reg)
+	{
 		return;
+	}
 
 	v = ti_clk_ll_ops->clk_readl(dd->autoidle_reg);
 	v &= ~dd->autoidle_mask;
@@ -728,17 +854,26 @@ static struct clk_hw_omap *omap3_find_clkoutx2_dpll(struct clk_hw *hw)
 	struct clk_hw_omap *pclk = NULL;
 
 	/* Walk up the parents of clk, looking for a DPLL */
-	do {
-		do {
+	do
+	{
+		do
+		{
 			hw = clk_hw_get_parent(hw);
-		} while (hw && (clk_hw_get_flags(hw) & CLK_IS_BASIC));
+		}
+		while (hw && (clk_hw_get_flags(hw) & CLK_IS_BASIC));
+
 		if (!hw)
+		{
 			break;
+		}
+
 		pclk = to_clk_hw_omap(hw);
-	} while (pclk && !pclk->dpll_data);
+	}
+	while (pclk && !pclk->dpll_data);
 
 	/* clk does not have a DPLL as a parent?  error in the clock data */
-	if (!pclk) {
+	if (!pclk)
+	{
 		WARN_ON(1);
 		return NULL;
 	}
@@ -754,7 +889,7 @@ static struct clk_hw_omap *omap3_find_clkoutx2_dpll(struct clk_hw *hw)
  * rate to the dpll_clk * 2; otherwise, just use dpll_clk.
  */
 unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
-				    unsigned long parent_rate)
+									unsigned long parent_rate)
 {
 	const struct dpll_data *dd;
 	unsigned long rate;
@@ -762,12 +897,16 @@ unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
 	struct clk_hw_omap *pclk = NULL;
 
 	if (!parent_rate)
+	{
 		return 0;
+	}
 
 	pclk = omap3_find_clkoutx2_dpll(hw);
 
 	if (!pclk)
+	{
 		return 0;
+	}
 
 	dd = pclk->dpll_data;
 
@@ -775,15 +914,22 @@ unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
 
 	v = ti_clk_ll_ops->clk_readl(dd->control_reg) & dd->enable_mask;
 	v >>= __ffs(dd->enable_mask);
+
 	if ((v != OMAP3XXX_EN_DPLL_LOCKED) || (dd->flags & DPLL_J_TYPE))
+	{
 		rate = parent_rate;
+	}
 	else
+	{
 		rate = parent_rate * 2;
+	}
+
 	return rate;
 }
 
 /* OMAP3/4 non-CORE DPLL clkops */
-const struct clk_hw_omap_ops clkhwops_omap3_dpll = {
+const struct clk_hw_omap_ops clkhwops_omap3_dpll =
+{
 	.allow_idle	= omap3_dpll_allow_idle,
 	.deny_idle	= omap3_dpll_deny_idle,
 };
@@ -800,14 +946,15 @@ const struct clk_hw_omap_ops clkhwops_omap3_dpll = {
  * clock rate change.
  */
 int omap3_dpll4_set_rate(struct clk_hw *hw, unsigned long rate,
-			 unsigned long parent_rate)
+						 unsigned long parent_rate)
 {
 	/*
 	 * According to the 12-5 CDP code from TI, "Limitation 2.5"
 	 * on 3430ES1 prevents us from changing DPLL multipliers or dividers
 	 * on DPLL4.
 	 */
-	if (ti_clk_get_features()->flags & TI_CLK_DPLL4_DENY_REPROGRAM) {
+	if (ti_clk_get_features()->flags & TI_CLK_DPLL4_DENY_REPROGRAM)
+	{
 		pr_err("clock: DPLL4 cannot change rate due to silicon 'Limitation 2.5' on 3430ES1.\n");
 		return -EINVAL;
 	}
@@ -828,13 +975,14 @@ int omap3_dpll4_set_rate(struct clk_hw *hw, unsigned long rate,
  * from the clock rate change.
  */
 int omap3_dpll4_set_rate_and_parent(struct clk_hw *hw, unsigned long rate,
-				    unsigned long parent_rate, u8 index)
+									unsigned long parent_rate, u8 index)
 {
-	if (ti_clk_get_features()->flags & TI_CLK_DPLL4_DENY_REPROGRAM) {
+	if (ti_clk_get_features()->flags & TI_CLK_DPLL4_DENY_REPROGRAM)
+	{
 		pr_err("clock: DPLL4 cannot change rate due to silicon 'Limitation 2.5' on 3430ES1.\n");
 		return -EINVAL;
 	}
 
 	return omap3_noncore_dpll_set_rate_and_parent(hw, rate, parent_rate,
-						      index);
+			index);
 }

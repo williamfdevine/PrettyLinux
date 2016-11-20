@@ -27,8 +27,8 @@
  * fill in basic accounting fields
  */
 void bacct_add_tsk(struct user_namespace *user_ns,
-		   struct pid_namespace *pid_ns,
-		   struct taskstats *stats, struct task_struct *tsk)
+				   struct pid_namespace *pid_ns,
+				   struct taskstats *stats, struct task_struct *tsk)
 {
 	const struct cred *tcred;
 	cputime_t utime, stime, utimescaled, stimescaled;
@@ -44,17 +44,32 @@ void bacct_add_tsk(struct user_namespace *user_ns,
 	/* Convert to seconds for btime */
 	do_div(delta, USEC_PER_SEC);
 	stats->ac_btime = get_seconds() - delta;
-	if (thread_group_leader(tsk)) {
+
+	if (thread_group_leader(tsk))
+	{
 		stats->ac_exitcode = tsk->exit_code;
+
 		if (tsk->flags & PF_FORKNOEXEC)
+		{
 			stats->ac_flag |= AFORK;
+		}
 	}
+
 	if (tsk->flags & PF_SUPERPRIV)
+	{
 		stats->ac_flag |= ASU;
+	}
+
 	if (tsk->flags & PF_DUMPCORE)
+	{
 		stats->ac_flag |= ACORE;
+	}
+
 	if (tsk->flags & PF_SIGNALED)
+	{
 		stats->ac_flag |= AXSIG;
+	}
+
 	stats->ac_nice	 = task_nice(tsk);
 	stats->ac_sched	 = tsk->policy;
 	stats->ac_pid	 = task_pid_nr_ns(tsk, pid_ns);
@@ -63,7 +78,7 @@ void bacct_add_tsk(struct user_namespace *user_ns,
 	stats->ac_uid	 = from_kuid_munged(user_ns, tcred->uid);
 	stats->ac_gid	 = from_kgid_munged(user_ns, tcred->gid);
 	stats->ac_ppid	 = pid_alive(tsk) ?
-		task_tgid_nr_ns(rcu_dereference(tsk->real_parent), pid_ns) : 0;
+					   task_tgid_nr_ns(rcu_dereference(tsk->real_parent), pid_ns) : 0;
 	rcu_read_unlock();
 
 	task_cputime(tsk, &utime, &stime);
@@ -99,12 +114,15 @@ void xacct_add_tsk(struct taskstats *stats, struct task_struct *p)
 	stats->virtmem = p->acct_vm_mem1 * PAGE_SIZE;
 	do_div(stats->virtmem, 1000 * KB);
 	mm = get_task_mm(p);
-	if (mm) {
+
+	if (mm)
+	{
 		/* adjust to KB unit */
 		stats->hiwater_rss   = get_mm_hiwater_rss(mm) * PAGE_SIZE / KB;
 		stats->hiwater_vm    = get_mm_hiwater_vm(mm)  * PAGE_SIZE / KB;
 		mmput(mm);
 	}
+
 	stats->read_char	= p->ioac.rchar & KB_MASK;
 	stats->write_char	= p->ioac.wchar & KB_MASK;
 	stats->read_syscalls	= p->ioac.syscr & KB_MASK;
@@ -123,13 +141,15 @@ void xacct_add_tsk(struct taskstats *stats, struct task_struct *p)
 #undef MB
 
 static void __acct_update_integrals(struct task_struct *tsk,
-				    cputime_t utime, cputime_t stime)
+									cputime_t utime, cputime_t stime)
 {
 	cputime_t time, dtime;
 	u64 delta;
 
 	if (!likely(tsk->mm))
+	{
 		return;
+	}
 
 	time = stime + utime;
 	dtime = time - tsk->acct_timexpd;
@@ -137,7 +157,9 @@ static void __acct_update_integrals(struct task_struct *tsk,
 	delta = cputime_to_nsecs(dtime);
 
 	if (delta < TICK_NSEC)
+	{
 		return;
+	}
 
 	tsk->acct_timexpd = time;
 	/*

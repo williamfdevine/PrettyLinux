@@ -38,7 +38,8 @@
 #define IPO_IATTR_CONNECT_SQE(x)	\
 	(cpu_to_le32(offsetof(struct nvmf_connect_command, x)))
 
-struct nvmet_ns {
+struct nvmet_ns
+{
 	struct list_head	dev_link;
 	struct percpu_ref	ref;
 	struct block_device	*bdev;
@@ -66,12 +67,14 @@ static inline bool nvmet_ns_enabled(struct nvmet_ns *ns)
 	return !list_empty_careful(&ns->dev_link);
 }
 
-struct nvmet_cq {
+struct nvmet_cq
+{
 	u16			qid;
 	u16			size;
 };
 
-struct nvmet_sq {
+struct nvmet_sq
+{
 	struct nvmet_ctrl	*ctrl;
 	struct percpu_ref	ref;
 	u16			qid;
@@ -88,7 +91,8 @@ struct nvmet_sq {
  * @group:		ConfigFS group for this element's folder.
  * @priv:		Private data for the transport.
  */
-struct nvmet_port {
+struct nvmet_port
+{
 	struct list_head		entry;
 	struct nvmf_disc_rsp_page_entry	disc_addr;
 	struct config_group		group;
@@ -103,10 +107,11 @@ struct nvmet_port {
 static inline struct nvmet_port *to_nvmet_port(struct config_item *item)
 {
 	return container_of(to_config_group(item), struct nvmet_port,
-			group);
+						group);
 }
 
-struct nvmet_ctrl {
+struct nvmet_ctrl
+{
 	struct nvmet_subsys	*subsys;
 	struct nvmet_cq		**cqs;
 	struct nvmet_sq		**sqs;
@@ -136,7 +141,8 @@ struct nvmet_ctrl {
 	char			hostnqn[NVMF_NQN_FIELD_LEN];
 };
 
-struct nvmet_subsys {
+struct nvmet_subsys
+{
 	enum nvme_subsys_type	type;
 
 	struct mutex		lock;
@@ -168,13 +174,14 @@ static inline struct nvmet_subsys *to_subsys(struct config_item *item)
 }
 
 static inline struct nvmet_subsys *namespaces_to_subsys(
-		struct config_item *item)
+	struct config_item *item)
 {
 	return container_of(to_config_group(item), struct nvmet_subsys,
-			namespaces_group);
+						namespaces_group);
 }
 
-struct nvmet_host {
+struct nvmet_host
+{
 	struct config_group	group;
 };
 
@@ -188,18 +195,21 @@ static inline char *nvmet_host_name(struct nvmet_host *host)
 	return config_item_name(&host->group.cg_item);
 }
 
-struct nvmet_host_link {
+struct nvmet_host_link
+{
 	struct list_head	entry;
 	struct nvmet_host	*host;
 };
 
-struct nvmet_subsys_link {
+struct nvmet_subsys_link
+{
 	struct list_head	entry;
 	struct nvmet_subsys	*subsys;
 };
 
 struct nvmet_req;
-struct nvmet_fabrics_ops {
+struct nvmet_fabrics_ops
+{
 	struct module *owner;
 	unsigned int type;
 	unsigned int sqe_inline_size;
@@ -213,7 +223,8 @@ struct nvmet_fabrics_ops {
 
 #define NVMET_MAX_INLINE_BIOVEC	8
 
-struct nvmet_req {
+struct nvmet_req
+{
 	struct nvme_command	*cmd;
 	struct nvme_completion	*rsp;
 	struct nvmet_sq		*sq;
@@ -250,7 +261,8 @@ nvmet_data_dir(struct nvmet_req *req)
 	return nvme_is_write(req->cmd) ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
 }
 
-struct nvmet_async_event {
+struct nvmet_async_event
+{
 	struct list_head	entry;
 	u8			event_type;
 	u8			event_info;
@@ -264,13 +276,13 @@ int nvmet_parse_discovery_cmd(struct nvmet_req *req);
 int nvmet_parse_fabrics_cmd(struct nvmet_req *req);
 
 bool nvmet_req_init(struct nvmet_req *req, struct nvmet_cq *cq,
-		struct nvmet_sq *sq, struct nvmet_fabrics_ops *ops);
+					struct nvmet_sq *sq, struct nvmet_fabrics_ops *ops);
 void nvmet_req_complete(struct nvmet_req *req, u16 status);
 
 void nvmet_cq_setup(struct nvmet_ctrl *ctrl, struct nvmet_cq *cq, u16 qid,
-		u16 size);
+					u16 size);
 void nvmet_sq_setup(struct nvmet_ctrl *ctrl, struct nvmet_sq *sq, u16 qid,
-		u16 size);
+					u16 size);
 void nvmet_sq_destroy(struct nvmet_sq *sq);
 int nvmet_sq_init(struct nvmet_sq *sq);
 
@@ -278,13 +290,13 @@ void nvmet_ctrl_fatal_error(struct nvmet_ctrl *ctrl);
 
 void nvmet_update_cc(struct nvmet_ctrl *ctrl, u32 new);
 u16 nvmet_alloc_ctrl(const char *subsysnqn, const char *hostnqn,
-		struct nvmet_req *req, u32 kato, struct nvmet_ctrl **ctrlp);
+					 struct nvmet_req *req, u32 kato, struct nvmet_ctrl **ctrlp);
 u16 nvmet_ctrl_find_get(const char *subsysnqn, const char *hostnqn, u16 cntlid,
-		struct nvmet_req *req, struct nvmet_ctrl **ret);
+						struct nvmet_req *req, struct nvmet_ctrl **ret);
 void nvmet_ctrl_put(struct nvmet_ctrl *ctrl);
 
 struct nvmet_subsys *nvmet_subsys_alloc(const char *subsysnqn,
-		enum nvme_subsys_type type);
+										enum nvme_subsys_type type);
 void nvmet_subsys_put(struct nvmet_subsys *subsys);
 
 struct nvmet_ns *nvmet_find_namespace(struct nvmet_ctrl *ctrl, __le32 nsid);
@@ -304,9 +316,9 @@ void nvmet_referral_enable(struct nvmet_port *parent, struct nvmet_port *port);
 void nvmet_referral_disable(struct nvmet_port *port);
 
 u16 nvmet_copy_to_sgl(struct nvmet_req *req, off_t off, const void *buf,
-		size_t len);
+					  size_t len);
 u16 nvmet_copy_from_sgl(struct nvmet_req *req, off_t off, void *buf,
-		size_t len);
+						size_t len);
 
 u32 nvmet_get_log_page_len(struct nvme_command *cmd);
 
@@ -327,6 +339,6 @@ extern u64 nvmet_genctr;
 extern struct rw_semaphore nvmet_config_sem;
 
 bool nvmet_host_allowed(struct nvmet_req *req, struct nvmet_subsys *subsys,
-		const char *hostnqn);
+						const char *hostnqn);
 
 #endif /* _NVMET_H */

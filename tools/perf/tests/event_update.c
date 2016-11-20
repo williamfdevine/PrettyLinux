@@ -6,9 +6,9 @@
 #include "debug.h"
 
 static int process_event_unit(struct perf_tool *tool __maybe_unused,
-			      union perf_event *event,
-			      struct perf_sample *sample __maybe_unused,
-			      struct machine *machine __maybe_unused)
+							  union perf_event *event,
+							  struct perf_sample *sample __maybe_unused,
+							  struct machine *machine __maybe_unused)
 {
 	struct event_update_event *ev = (struct event_update_event *) event;
 
@@ -19,9 +19,9 @@ static int process_event_unit(struct perf_tool *tool __maybe_unused,
 }
 
 static int process_event_scale(struct perf_tool *tool __maybe_unused,
-			       union perf_event *event,
-			       struct perf_sample *sample __maybe_unused,
-			       struct machine *machine __maybe_unused)
+							   union perf_event *event,
+							   struct perf_sample *sample __maybe_unused,
+							   struct machine *machine __maybe_unused)
 {
 	struct event_update_event *ev = (struct event_update_event *) event;
 	struct event_update_event_scale *ev_data;
@@ -34,18 +34,19 @@ static int process_event_scale(struct perf_tool *tool __maybe_unused,
 	return 0;
 }
 
-struct event_name {
+struct event_name
+{
 	struct perf_tool tool;
 	const char *name;
 };
 
 static int process_event_name(struct perf_tool *tool,
-			      union perf_event *event,
-			      struct perf_sample *sample __maybe_unused,
-			      struct machine *machine __maybe_unused)
+							  union perf_event *event,
+							  struct perf_sample *sample __maybe_unused,
+							  struct machine *machine __maybe_unused)
 {
 	struct event_name *tmp = container_of(tool, struct event_name, tool);
-	struct event_update_event *ev = (struct event_update_event*) event;
+	struct event_update_event *ev = (struct event_update_event *) event;
 
 	TEST_ASSERT_VAL("wrong id", ev->id == 123);
 	TEST_ASSERT_VAL("wrong id", ev->type == PERF_EVENT_UPDATE__NAME);
@@ -54,15 +55,15 @@ static int process_event_name(struct perf_tool *tool,
 }
 
 static int process_event_cpus(struct perf_tool *tool __maybe_unused,
-			      union perf_event *event,
-			      struct perf_sample *sample __maybe_unused,
-			      struct machine *machine __maybe_unused)
+							  union perf_event *event,
+							  struct perf_sample *sample __maybe_unused,
+							  struct machine *machine __maybe_unused)
 {
-	struct event_update_event *ev = (struct event_update_event*) event;
+	struct event_update_event *ev = (struct event_update_event *) event;
 	struct event_update_event_cpus *ev_data;
 	struct cpu_map *map;
 
-	ev_data = (struct event_update_event_cpus*) ev->data;
+	ev_data = (struct event_update_event_cpus *) ev->data;
 
 	map = cpu_map__new_data(&ev_data->cpus);
 
@@ -88,29 +89,29 @@ int test__event_update(int subtest __maybe_unused)
 	evsel = perf_evlist__first(evlist);
 
 	TEST_ASSERT_VAL("failed to allos ids",
-			!perf_evsel__alloc_id(evsel, 1, 1));
+					!perf_evsel__alloc_id(evsel, 1, 1));
 
 	perf_evlist__id_add(evlist, evsel, 0, 0, 123);
 
 	evsel->unit = strdup("KRAVA");
 
 	TEST_ASSERT_VAL("failed to synthesize attr update unit",
-			!perf_event__synthesize_event_update_unit(NULL, evsel, process_event_unit));
+					!perf_event__synthesize_event_update_unit(NULL, evsel, process_event_unit));
 
 	evsel->scale = 0.123;
 
 	TEST_ASSERT_VAL("failed to synthesize attr update scale",
-			!perf_event__synthesize_event_update_scale(NULL, evsel, process_event_scale));
+					!perf_event__synthesize_event_update_scale(NULL, evsel, process_event_scale));
 
 	tmp.name = perf_evsel__name(evsel);
 
 	TEST_ASSERT_VAL("failed to synthesize attr update name",
-			!perf_event__synthesize_event_update_name(&tmp.tool, evsel, process_event_name));
+					!perf_event__synthesize_event_update_name(&tmp.tool, evsel, process_event_name));
 
 	evsel->own_cpus = cpu_map__new("1,2,3");
 
 	TEST_ASSERT_VAL("failed to synthesize attr update cpus",
-			!perf_event__synthesize_event_update_cpus(&tmp.tool, evsel, process_event_cpus));
+					!perf_event__synthesize_event_update_cpus(&tmp.tool, evsel, process_event_cpus));
 
 	cpu_map__put(evsel->own_cpus);
 	return 0;

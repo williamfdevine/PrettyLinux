@@ -24,7 +24,8 @@
 #define gp100_mc(p) container_of((p), struct gp100_mc, base)
 #include "priv.h"
 
-struct gp100_mc {
+struct gp100_mc
+{
 	struct nvkm_mc base;
 	spinlock_t lock;
 	bool intr;
@@ -36,7 +37,9 @@ gp100_mc_intr_update(struct gp100_mc *mc)
 {
 	struct nvkm_device *device = mc->base.subdev.device;
 	u32 mask = mc->intr ? mc->mask : 0, i;
-	for (i = 0; i < 2; i++) {
+
+	for (i = 0; i < 2; i++)
+	{
 		nvkm_wr32(device, 0x000180 + (i * 0x04), ~mask);
 		nvkm_wr32(device, 0x000160 + (i * 0x04),  mask);
 	}
@@ -76,7 +79,8 @@ gp100_mc_intr_mask(struct nvkm_mc *base, u32 mask, u32 intr)
 }
 
 static const struct nvkm_mc_func
-gp100_mc = {
+	gp100_mc =
+{
 	.init = nv50_mc_init,
 	.intr = gk104_mc_intr,
 	.intr_unarm = gp100_mc_intr_unarm,
@@ -92,7 +96,10 @@ gp100_mc_new(struct nvkm_device *device, int index, struct nvkm_mc **pmc)
 	struct gp100_mc *mc;
 
 	if (!(mc = kzalloc(sizeof(*mc), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	nvkm_mc_ctor(&gp100_mc, device, index, &mc->base);
 	*pmc = &mc->base;
 

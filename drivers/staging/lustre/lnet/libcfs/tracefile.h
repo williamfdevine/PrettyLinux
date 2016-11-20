@@ -35,7 +35,8 @@
 
 #include "../../include/linux/libcfs/libcfs.h"
 
-enum cfs_trace_buf_type {
+enum cfs_trace_buf_type
+{
 	CFS_TCD_TYPE_PROC = 0,
 	CFS_TCD_TYPE_SOFTIRQ,
 	CFS_TCD_TYPE_IRQ,
@@ -67,9 +68,9 @@ int cfs_tracefile_init(int max_pages);
 void cfs_tracefile_exit(void);
 
 int cfs_trace_copyin_string(char *knl_buffer, int knl_buffer_nob,
-			    const char __user *usr_buffer, int usr_buffer_nob);
+							const char __user *usr_buffer, int usr_buffer_nob);
 int cfs_trace_copyout_string(char __user *usr_buffer, int usr_buffer_nob,
-			     const char *knl_str, char *append);
+							 const char *knl_str, char *append);
 int cfs_trace_allocate_string_buffer(char **str, int nob);
 int cfs_trace_dump_debug_buffer_usrstr(void __user *usr_str, int usr_str_nob);
 int cfs_trace_daemon_command(char *str);
@@ -103,8 +104,10 @@ int cfs_trace_max_debug_mb(void);
  */
 #define CFS_TRACE_CONSOLE_BUFFER_SIZE   1024
 
-union cfs_trace_data_union {
-	struct cfs_trace_cpu_data {
+union cfs_trace_data_union
+{
+	struct cfs_trace_cpu_data
+	{
 		/*
 		 * Even though this structure is meant to be per-CPU, locking
 		 * is needed because in some places the data may be accessed
@@ -185,20 +188,20 @@ extern union cfs_trace_data_union (*cfs_trace_data[TCD_MAX_TYPES])[NR_CPUS];
 #define cfs_tcd_for_each(tcd, i, j)				       \
 	for (i = 0; cfs_trace_data[i]; i++)				\
 		for (j = 0, ((tcd) = &(*cfs_trace_data[i])[j].tcd);	\
-		     j < num_possible_cpus();				 \
-		     j++, (tcd) = &(*cfs_trace_data[i])[j].tcd)
+			 j < num_possible_cpus();				 \
+			 j++, (tcd) = &(*cfs_trace_data[i])[j].tcd)
 
 #define cfs_tcd_for_each_type_lock(tcd, i, cpu)			   \
 	for (i = 0; cfs_trace_data[i] &&				\
-	     (tcd = &(*cfs_trace_data[i])[cpu].tcd) &&			\
-	     cfs_trace_lock_tcd(tcd, 1); cfs_trace_unlock_tcd(tcd, 1), i++)
+		 (tcd = &(*cfs_trace_data[i])[cpu].tcd) &&			\
+		 cfs_trace_lock_tcd(tcd, 1); cfs_trace_unlock_tcd(tcd, 1), i++)
 
 void cfs_set_ptldebug_header(struct ptldebug_header *header,
-			     struct libcfs_debug_msg_data *m,
-			     unsigned long stack);
+							 struct libcfs_debug_msg_data *m,
+							 unsigned long stack);
 void cfs_print_to_console(struct ptldebug_header *hdr, int mask,
-			  const char *buf, int len, const char *file,
-			  const char *fn);
+						  const char *buf, int len, const char *file,
+						  const char *fn);
 
 int cfs_trace_lock_tcd(struct cfs_trace_cpu_data *tcd, int walking);
 void cfs_trace_unlock_tcd(struct cfs_trace_cpu_data *tcd, int walking);
@@ -234,28 +237,28 @@ static inline void cfs_trace_put_tcd(struct cfs_trace_cpu_data *tcd)
 }
 
 int cfs_trace_refill_stock(struct cfs_trace_cpu_data *tcd, gfp_t gfp,
-			   struct list_head *stock);
+						   struct list_head *stock);
 
 void cfs_trace_assertion_failed(const char *str,
-				struct libcfs_debug_msg_data *m);
+								struct libcfs_debug_msg_data *m);
 
 /* ASSERTION that is safe to use within the debug system */
 #define __LASSERT(cond)						 \
-do {								    \
-	if (unlikely(!(cond))) {					\
-		LIBCFS_DEBUG_MSG_DATA_DECL(msgdata, D_EMERG, NULL);     \
-		cfs_trace_assertion_failed("ASSERTION("#cond") failed", \
-					   &msgdata);		   \
-	}							       \
-} while (0)
+	do {								    \
+		if (unlikely(!(cond))) {					\
+			LIBCFS_DEBUG_MSG_DATA_DECL(msgdata, D_EMERG, NULL);     \
+			cfs_trace_assertion_failed("ASSERTION("#cond") failed", \
+									   &msgdata);		   \
+		}							       \
+	} while (0)
 
 #define __LASSERT_TAGE_INVARIANT(tage)				  \
-do {								    \
-	__LASSERT(tage);					\
-	__LASSERT(tage->page);				  \
-	__LASSERT(tage->used <= PAGE_SIZE);			 \
-	__LASSERT(page_count(tage->page) > 0);		      \
-} while (0)
+	do {								    \
+		__LASSERT(tage);					\
+		__LASSERT(tage->page);				  \
+		__LASSERT(tage->used <= PAGE_SIZE);			 \
+		__LASSERT(page_count(tage->page) > 0);		      \
+	} while (0)
 
 #endif	/* LUSTRE_TRACEFILE_PRIVATE */
 

@@ -68,14 +68,16 @@
 #define __fw_api_stats_h__
 #include "fw-api-mac.h"
 
-struct mvm_statistics_dbg {
+struct mvm_statistics_dbg
+{
 	__le32 burst_check;
 	__le32 burst_count;
 	__le32 wait_for_silence_timeout_cnt;
 	__le32 reserved[3];
 } __packed; /* STATISTICS_DEBUG_API_S_VER_2 */
 
-struct mvm_statistics_div {
+struct mvm_statistics_div
+{
 	__le32 tx_on_a;
 	__le32 tx_on_b;
 	__le32 exec_time;
@@ -84,7 +86,8 @@ struct mvm_statistics_div {
 	__le32 reserved2;
 } __packed; /* STATISTICS_SLOW_DIV_API_S_VER_2 */
 
-struct mvm_statistics_rx_non_phy {
+struct mvm_statistics_rx_non_phy
+{
 	__le32 bogus_cts;	/* CTS received when not expecting CTS */
 	__le32 bogus_ack;	/* ACK received when not expecting ACK */
 	__le32 non_bssid_frames;	/* number of frames with BSSID that
@@ -120,7 +123,8 @@ struct mvm_statistics_rx_non_phy {
 	__le32 directed_data_mpdu;
 } __packed; /* STATISTICS_RX_NON_PHY_API_S_VER_3 */
 
-struct mvm_statistics_rx_phy {
+struct mvm_statistics_rx_phy
+{
 	__le32 ina_cnt;
 	__le32 fina_cnt;
 	__le32 plcp_err;
@@ -143,7 +147,8 @@ struct mvm_statistics_rx_phy {
 	__le32 reserved;
 } __packed; /* STATISTICS_RX_PHY_API_S_VER_2 */
 
-struct mvm_statistics_rx_ht_phy {
+struct mvm_statistics_rx_ht_phy
+{
 	__le32 plcp_err;
 	__le32 overrun_err;
 	__le32 early_overrun_err;
@@ -156,7 +161,8 @@ struct mvm_statistics_rx_ht_phy {
 	__le32 unsupport_mcs;
 } __packed;  /* STATISTICS_HT_RX_PHY_API_S_VER_1 */
 
-struct mvm_statistics_tx_non_phy {
+struct mvm_statistics_tx_non_phy
+{
 	__le32 preamble_cnt;
 	__le32 rx_detected_cnt;
 	__le32 bt_prio_defer_cnt;
@@ -175,7 +181,8 @@ struct mvm_statistics_tx_non_phy {
 
 #define MAX_CHAINS 3
 
-struct mvm_statistics_tx_non_phy_agg {
+struct mvm_statistics_tx_non_phy_agg
+{
 	__le32 ba_timeout;
 	__le32 ba_reschedule_frames;
 	__le32 scd_query_agg_frame_cnt;
@@ -191,7 +198,8 @@ struct mvm_statistics_tx_non_phy_agg {
 	__le32 reserved2;
 } __packed; /* STATISTICS_TX_NON_PHY_AGG_API_S_VER_1 */
 
-struct mvm_statistics_tx_channel_width {
+struct mvm_statistics_tx_channel_width
+{
 	__le32 ext_cca_narrow_ch20[1];
 	__le32 ext_cca_narrow_ch40[2];
 	__le32 ext_cca_narrow_ch80[3];
@@ -202,14 +210,16 @@ struct mvm_statistics_tx_channel_width {
 	__le32 fail_per_ch_width[4];
 }; /* STATISTICS_TX_CHANNEL_WIDTH_API_S_VER_1 */
 
-struct mvm_statistics_tx {
+struct mvm_statistics_tx
+{
 	struct mvm_statistics_tx_non_phy general;
 	struct mvm_statistics_tx_non_phy_agg agg;
 	struct mvm_statistics_tx_channel_width channel_width;
 } __packed; /* STATISTICS_TX_API_S_VER_4 */
 
 
-struct mvm_statistics_bt_activity {
+struct mvm_statistics_bt_activity
+{
 	__le32 hi_priority_tx_req_cnt;
 	__le32 hi_priority_tx_denied_cnt;
 	__le32 lo_priority_tx_req_cnt;
@@ -220,7 +230,8 @@ struct mvm_statistics_bt_activity {
 	__le32 lo_priority_rx_denied_cnt;
 } __packed;  /* STATISTICS_BT_ACTIVITY_API_S_VER_1 */
 
-struct mvm_statistics_general_v8 {
+struct mvm_statistics_general_v8
+{
 	__le32 radio_temperature;
 	__le32 radio_voltage;
 	struct mvm_statistics_dbg dbg;
@@ -260,14 +271,16 @@ struct mvm_statistics_general_v8 {
  * @pkt_count: accumulated packet count, per mac
  * @avg_energy: average RSSI, per station
  */
-struct mvm_statistics_load {
+struct mvm_statistics_load
+{
 	__le32 air_time[NUM_MAC_INDEX];
 	__le32 byte_count[NUM_MAC_INDEX];
 	__le32 pkt_count[NUM_MAC_INDEX];
 	u8 avg_energy[IWL_MVM_STATION_COUNT];
 } __packed; /* STATISTICS_RX_MAC_STATION_S_VER_1 */
 
-struct mvm_statistics_rx {
+struct mvm_statistics_rx
+{
 	struct mvm_statistics_rx_phy ofdm;
 	struct mvm_statistics_rx_phy cck;
 	struct mvm_statistics_rx_non_phy general;
@@ -281,14 +294,16 @@ struct mvm_statistics_rx {
  * while associated.  To disable this behavior, set DISABLE_NOTIF flag in the
  * STATISTICS_CMD (0x9c), below.
  */
-struct iwl_notif_statistics_v10 {
+struct iwl_notif_statistics_v10
+{
 	__le32 flag;
 	struct mvm_statistics_rx rx;
 	struct mvm_statistics_tx tx;
 	struct mvm_statistics_general_v8 general;
 } __packed; /* STATISTICS_NTFY_API_S_VER_10 */
 
-struct iwl_notif_statistics_v11 {
+struct iwl_notif_statistics_v11
+{
 	__le32 flag;
 	struct mvm_statistics_rx rx;
 	struct mvm_statistics_tx tx;
@@ -299,7 +314,8 @@ struct iwl_notif_statistics_v11 {
 #define IWL_STATISTICS_FLG_CLEAR		0x1
 #define IWL_STATISTICS_FLG_DISABLE_NOTIF	0x2
 
-struct iwl_statistics_cmd {
+struct iwl_statistics_cmd
+{
 	__le32 flags;
 } __packed; /* STATISTICS_CMD_API_S_VER_1 */
 

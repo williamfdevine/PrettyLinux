@@ -17,7 +17,8 @@
 
 struct device;
 
-struct soc_camera_platform_info {
+struct soc_camera_platform_info
+{
 	const char *format_name;
 	unsigned long format_depth;
 	struct v4l2_mbus_framefmt format;
@@ -33,10 +34,10 @@ static inline void soc_camera_platform_release(struct platform_device **pdev)
 }
 
 static inline int soc_camera_platform_add(struct soc_camera_device *icd,
-					  struct platform_device **pdev,
-					  struct soc_camera_link *plink,
-					  void (*release)(struct device *dev),
-					  int id)
+		struct platform_device **pdev,
+		struct soc_camera_link *plink,
+		void (*release)(struct device *dev),
+		int id)
 {
 	struct soc_camera_subdev_desc *ssdd =
 		(struct soc_camera_subdev_desc *)plink;
@@ -44,14 +45,21 @@ static inline int soc_camera_platform_add(struct soc_camera_device *icd,
 	int ret;
 
 	if (&icd->sdesc->subdev_desc != ssdd)
+	{
 		return -ENODEV;
+	}
 
 	if (*pdev)
+	{
 		return -EBUSY;
+	}
 
 	*pdev = platform_device_alloc("soc_camera_platform", id);
+
 	if (!*pdev)
+	{
 		return -ENOMEM;
+	}
 
 	info->icd = icd;
 
@@ -59,7 +67,9 @@ static inline int soc_camera_platform_add(struct soc_camera_device *icd,
 	(*pdev)->dev.release = release;
 
 	ret = platform_device_add(*pdev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		platform_device_put(*pdev);
 		*pdev = NULL;
 		info->icd = NULL;
@@ -69,13 +79,16 @@ static inline int soc_camera_platform_add(struct soc_camera_device *icd,
 }
 
 static inline void soc_camera_platform_del(const struct soc_camera_device *icd,
-					   struct platform_device *pdev,
-					   const struct soc_camera_link *plink)
+		struct platform_device *pdev,
+		const struct soc_camera_link *plink)
 {
 	const struct soc_camera_subdev_desc *ssdd =
 		(const struct soc_camera_subdev_desc *)plink;
+
 	if (&icd->sdesc->subdev_desc != ssdd || !pdev)
+	{
 		return;
+	}
 
 	platform_device_unregister(pdev);
 }

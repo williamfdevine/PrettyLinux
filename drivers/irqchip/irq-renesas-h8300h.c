@@ -11,11 +11,12 @@
 #include <linux/of_irq.h>
 #include <asm/io.h>
 
-static const char ipr_bit[] = {
-	 7,  6,  5,  5,
-	 4,  4,  4,  4,  3,  3,  3,  3,
-	 2,  2,  2,  2,  1,  1,  1,  1,
-	 0,  0,  0,  0, 15, 15, 15, 15,
+static const char ipr_bit[] =
+{
+	7,  6,  5,  5,
+	4,  4,  4,  4,  3,  3,  3,  3,
+	2,  2,  2,  2,  1,  1,  1,  1,
+	0,  0,  0,  0, 15, 15, 15, 15,
 	14, 14, 14, 14, 13, 13, 13, 13,
 	-1, -1, -1, -1, 11, 11, 11, 11,
 	10, 10, 10, 10,  9,  9,  9,  9,
@@ -31,11 +32,17 @@ static void h8300h_disable_irq(struct irq_data *data)
 	int irq = data->irq - 12;
 
 	bit = ipr_bit[irq];
-	if (bit >= 0) {
+
+	if (bit >= 0)
+	{
 		if (bit < 8)
+		{
 			ctrl_bclr(bit & 7, IPR);
+		}
 		else
-			ctrl_bclr(bit & 7, (IPR+1));
+		{
+			ctrl_bclr(bit & 7, (IPR + 1));
+		}
 	}
 }
 
@@ -45,35 +52,43 @@ static void h8300h_enable_irq(struct irq_data *data)
 	int irq = data->irq - 12;
 
 	bit = ipr_bit[irq];
-	if (bit >= 0) {
+
+	if (bit >= 0)
+	{
 		if (bit < 8)
+		{
 			ctrl_bset(bit & 7, IPR);
+		}
 		else
-			ctrl_bset(bit & 7, (IPR+1));
+		{
+			ctrl_bset(bit & 7, (IPR + 1));
+		}
 	}
 }
 
-struct irq_chip h8300h_irq_chip = {
+struct irq_chip h8300h_irq_chip =
+{
 	.name		= "H8/300H-INTC",
 	.irq_enable	= h8300h_enable_irq,
 	.irq_disable	= h8300h_disable_irq,
 };
 
 static int irq_map(struct irq_domain *h, unsigned int virq,
-		   irq_hw_number_t hw_irq_num)
+				   irq_hw_number_t hw_irq_num)
 {
-       irq_set_chip_and_handler(virq, &h8300h_irq_chip, handle_simple_irq);
+	irq_set_chip_and_handler(virq, &h8300h_irq_chip, handle_simple_irq);
 
-       return 0;
+	return 0;
 }
 
-static struct irq_domain_ops irq_ops = {
-       .map    = irq_map,
-       .xlate  = irq_domain_xlate_onecell,
+static struct irq_domain_ops irq_ops =
+{
+	.map    = irq_map,
+	.xlate  = irq_domain_xlate_onecell,
 };
 
 static int __init h8300h_intc_of_init(struct device_node *intc,
-				      struct device_node *parent)
+									  struct device_node *parent)
 {
 	struct irq_domain *domain;
 

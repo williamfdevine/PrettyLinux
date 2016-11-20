@@ -69,10 +69,12 @@ void libcfs_run_debug_log_upcall(char *file)
 {
 	char *argv[3];
 	int   rc;
-	char *envp[] = {
+	char *envp[] =
+	{
 		"HOME=/",
 		"PATH=/sbin:/bin:/usr/sbin:/usr/bin",
-		NULL};
+		NULL
+	};
 
 	argv[0] = lnet_debug_log_upcall;
 
@@ -82,12 +84,16 @@ void libcfs_run_debug_log_upcall(char *file)
 	argv[2] = NULL;
 
 	rc = call_usermodehelper(argv[0], argv, envp, 1);
-	if (rc < 0 && rc != -ENOENT) {
+
+	if (rc < 0 && rc != -ENOENT)
+	{
 		CERROR("Error %d invoking LNET debug log upcall %s %s; check /sys/kernel/debug/lnet/debug_log_upcall\n",
-		       rc, argv[0], argv[1]);
-	} else {
+			   rc, argv[0], argv[1]);
+	}
+	else
+	{
 		CDEBUG(D_HA, "Invoked LNET debug log upcall %s %s\n",
-		       argv[0], argv[1]);
+			   argv[0], argv[1]);
 	}
 }
 
@@ -95,33 +101,42 @@ void libcfs_run_upcall(char **argv)
 {
 	int   rc;
 	int   argc;
-	char *envp[] = {
+	char *envp[] =
+	{
 		"HOME=/",
 		"PATH=/sbin:/bin:/usr/sbin:/usr/bin",
-		NULL};
+		NULL
+	};
 
 	argv[0] = lnet_upcall;
 	argc = 1;
+
 	while (argv[argc])
+	{
 		argc++;
+	}
 
 	LASSERT(argc >= 2);
 
 	rc = call_usermodehelper(argv[0], argv, envp, 1);
-	if (rc < 0 && rc != -ENOENT) {
+
+	if (rc < 0 && rc != -ENOENT)
+	{
 		CERROR("Error %d invoking LNET upcall %s %s%s%s%s%s%s%s%s; check /sys/kernel/debug/lnet/upcall\n",
-		       rc, argv[0], argv[1],
-		       argc < 3 ? "" : ",", argc < 3 ? "" : argv[2],
-		       argc < 4 ? "" : ",", argc < 4 ? "" : argv[3],
-		       argc < 5 ? "" : ",", argc < 5 ? "" : argv[4],
-		       argc < 6 ? "" : ",...");
-	} else {
+			   rc, argv[0], argv[1],
+			   argc < 3 ? "" : ",", argc < 3 ? "" : argv[2],
+			   argc < 4 ? "" : ",", argc < 4 ? "" : argv[3],
+			   argc < 5 ? "" : ",", argc < 5 ? "" : argv[4],
+			   argc < 6 ? "" : ",...");
+	}
+	else
+	{
 		CDEBUG(D_HA, "Invoked LNET upcall %s %s%s%s%s%s%s%s%s\n",
-		       argv[0], argv[1],
-		       argc < 3 ? "" : ",", argc < 3 ? "" : argv[2],
-		       argc < 4 ? "" : ",", argc < 4 ? "" : argv[3],
-		       argc < 5 ? "" : ",", argc < 5 ? "" : argv[4],
-		       argc < 6 ? "" : ",...");
+			   argv[0], argv[1],
+			   argc < 3 ? "" : ",", argc < 3 ? "" : argv[2],
+			   argc < 4 ? "" : ",", argc < 4 ? "" : argv[3],
+			   argc < 5 ? "" : ",", argc < 5 ? "" : argv[4],
+			   argc < 6 ? "" : ",...");
 	}
 }
 
@@ -148,28 +163,42 @@ void __noreturn lbug_with_loc(struct libcfs_debug_msg_data *msgdata)
 	libcfs_catastrophe = 1;
 	libcfs_debug_msg(msgdata, "LBUG\n");
 
-	if (in_interrupt()) {
+	if (in_interrupt())
+	{
 		panic("LBUG in interrupt.\n");
 		/* not reached */
 	}
 
 	dump_stack();
+
 	if (!libcfs_panic_on_lbug)
+	{
 		libcfs_debug_dumplog();
+	}
+
 	libcfs_run_lbug_upcall(msgdata);
+
 	if (libcfs_panic_on_lbug)
+	{
 		panic("LBUG");
+	}
+
 	set_task_state(current, TASK_UNINTERRUPTIBLE);
+
 	while (1)
+	{
 		schedule();
+	}
 }
 EXPORT_SYMBOL(lbug_with_loc);
 
 static int panic_notifier(struct notifier_block *self, unsigned long unused1,
-			  void *unused2)
+						  void *unused2)
 {
 	if (libcfs_panic_in_progress)
+	{
 		return 0;
+	}
 
 	libcfs_panic_in_progress = 1;
 	mb();
@@ -177,7 +206,8 @@ static int panic_notifier(struct notifier_block *self, unsigned long unused1,
 	return 0;
 }
 
-static struct notifier_block libcfs_panic_notifier = {
+static struct notifier_block libcfs_panic_notifier =
+{
 	.notifier_call	= panic_notifier,
 	.next		= NULL,
 	.priority	= 10000,
@@ -186,11 +216,11 @@ static struct notifier_block libcfs_panic_notifier = {
 void libcfs_register_panic_notifier(void)
 {
 	atomic_notifier_chain_register(&panic_notifier_list,
-				       &libcfs_panic_notifier);
+								   &libcfs_panic_notifier);
 }
 
 void libcfs_unregister_panic_notifier(void)
 {
 	atomic_notifier_chain_unregister(&panic_notifier_list,
-					 &libcfs_panic_notifier);
+									 &libcfs_panic_notifier);
 }

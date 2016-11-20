@@ -51,23 +51,26 @@
 #define SC_DC_ERROR	0x00400000	/* non-fatal decomp error detected */
 
 /* Used with PPPIOCGNPMODE/PPPIOCSNPMODE */
-struct npioctl {
+struct npioctl
+{
 	int		protocol;	/* PPP protocol, e.g. PPP_IP */
 	enum NPmode	mode;
 };
 
 /* Structure describing a CCP configuration option, for PPPIOCSCOMPRESS */
-struct ppp_option_data {
+struct ppp_option_data
+{
 	__u8	__user *ptr;
 	__u32	length;
 	int	transmit;
 };
 
 /* For PPPIOCGL2TPSTATS */
-struct pppol2tp_ioc_stats {
+struct pppol2tp_ioc_stats
+{
 	__u16		tunnel_id;	/* redundant */
 	__u16		session_id;	/* if zero, get tunnel stats */
-	__u32		using_ipsec:1;	/* valid only for session_id == 0 */
+	__u32		using_ipsec: 1;	/* valid only for session_id == 0 */
 	__aligned_u64	tx_packets;
 	__aligned_u64	tx_bytes;
 	__aligned_u64	tx_errors;

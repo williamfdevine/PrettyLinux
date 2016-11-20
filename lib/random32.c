@@ -101,19 +101,24 @@ void prandom_bytes_state(struct rnd_state *state, void *buf, size_t bytes)
 {
 	u8 *ptr = buf;
 
-	while (bytes >= sizeof(u32)) {
+	while (bytes >= sizeof(u32))
+	{
 		put_unaligned(prandom_u32_state(state), (u32 *) ptr);
 		ptr += sizeof(u32);
 		bytes -= sizeof(u32);
 	}
 
-	if (bytes > 0) {
+	if (bytes > 0)
+	{
 		u32 rem = prandom_u32_state(state);
-		do {
+
+		do
+		{
 			*ptr++ = (u8) rem;
 			bytes--;
 			rem >>= BITS_PER_BYTE;
-		} while (bytes > 0);
+		}
+		while (bytes > 0);
 	}
 }
 EXPORT_SYMBOL(prandom_bytes_state);
@@ -152,13 +157,13 @@ static u32 __extract_hwseed(void)
 	unsigned int val = 0;
 
 	(void)(arch_get_random_seed_int(&val) ||
-	       arch_get_random_int(&val));
+		   arch_get_random_int(&val));
 
 	return val;
 }
 
 static void prandom_seed_early(struct rnd_state *state, u32 seed,
-			       bool mix_with_hwseed)
+							   bool mix_with_hwseed)
 {
 #define LCG(x)	 ((x) * 69069U)	/* super-duper LCG */
 #define HWSEED() (mix_with_hwseed ? __extract_hwseed() : 0)
@@ -181,7 +186,8 @@ void prandom_seed(u32 entropy)
 	 * No locking on the CPUs, but then somewhat random results are, well,
 	 * expected.
 	 */
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		struct rnd_state *state = &per_cpu(net_rand_state, i);
 
 		state->s1 = __seed(state->s1 ^ entropy, 2U);
@@ -200,7 +206,8 @@ static int __init prandom_init(void)
 
 	prandom_state_selftest();
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		struct rnd_state *state = &per_cpu(net_rand_state, i);
 		u32 weak_seed = (i + jiffies) ^ random_get_entropy();
 
@@ -241,7 +248,8 @@ void prandom_seed_full_state(struct rnd_state __percpu *pcpu_state)
 {
 	int i;
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		struct rnd_state *state = per_cpu_ptr(pcpu_state, i);
 		u32 seeds[4];
 
@@ -277,10 +285,14 @@ static void __prandom_reseed(bool late)
 
 	/* only allow initial seeding (late == false) once */
 	if (!spin_trylock_irqsave(&lock, flags))
+	{
 		return;
+	}
 
 	if (latch && !late)
+	{
 		goto out;
+	}
 
 	latch = true;
 	prandom_seed_full_state(&net_rand_state);
@@ -302,21 +314,25 @@ static int __init prandom_reseed(void)
 late_initcall(prandom_reseed);
 
 #ifdef CONFIG_RANDOM32_SELFTEST
-static struct prandom_test1 {
+static struct prandom_test1
+{
 	u32 seed;
 	u32 result;
-} test1[] = {
+} test1[] =
+{
 	{ 1U, 3484351685U },
 	{ 2U, 2623130059U },
 	{ 3U, 3125133893U },
 	{ 4U,  984847254U },
 };
 
-static struct prandom_test2 {
+static struct prandom_test2
+{
 	u32 seed;
 	u32 iteration;
 	u32 result;
-} test2[] = {
+} test2[] =
+{
 	/* Test cases against taus113 from GSL library. */
 	{  931557656U, 959U, 2975593782U },
 	{ 1339693295U, 876U, 3887776532U },
@@ -425,40 +441,56 @@ static void __init prandom_state_selftest(void)
 	int i, j, errors = 0, runs = 0;
 	bool error = false;
 
-	for (i = 0; i < ARRAY_SIZE(test1); i++) {
+	for (i = 0; i < ARRAY_SIZE(test1); i++)
+	{
 		struct rnd_state state;
 
 		prandom_seed_early(&state, test1[i].seed, false);
 		prandom_warmup(&state);
 
 		if (test1[i].result != prandom_u32_state(&state))
+		{
 			error = true;
+		}
 	}
 
 	if (error)
+	{
 		pr_warn("prandom: seed boundary self test failed\n");
+	}
 	else
+	{
 		pr_info("prandom: seed boundary self test passed\n");
+	}
 
-	for (i = 0; i < ARRAY_SIZE(test2); i++) {
+	for (i = 0; i < ARRAY_SIZE(test2); i++)
+	{
 		struct rnd_state state;
 
 		prandom_seed_early(&state, test2[i].seed, false);
 		prandom_warmup(&state);
 
 		for (j = 0; j < test2[i].iteration - 1; j++)
+		{
 			prandom_u32_state(&state);
+		}
 
 		if (test2[i].result != prandom_u32_state(&state))
+		{
 			errors++;
+		}
 
 		runs++;
 		cond_resched();
 	}
 
 	if (errors)
+	{
 		pr_warn("prandom: %d/%d self tests failed\n", errors, runs);
+	}
 	else
+	{
 		pr_info("prandom: %d self tests passed\n", runs);
+	}
 }
 #endif

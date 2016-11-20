@@ -85,21 +85,24 @@
 #define FUSE_SATA_CALIB					0x124
 #define FUSE_SATA_CALIB_MASK				0x3
 
-struct sata_pad_calibration {
+struct sata_pad_calibration
+{
 	u8 gen1_tx_amp;
 	u8 gen1_tx_peak;
 	u8 gen2_tx_amp;
 	u8 gen2_tx_peak;
 };
 
-static const struct sata_pad_calibration tegra124_pad_calibration[] = {
+static const struct sata_pad_calibration tegra124_pad_calibration[] =
+{
 	{0x18, 0x04, 0x18, 0x0a},
 	{0x0e, 0x04, 0x14, 0x0a},
 	{0x0e, 0x07, 0x1a, 0x0e},
 	{0x14, 0x0e, 0x1a, 0x0e},
 };
 
-struct tegra_ahci_priv {
+struct tegra_ahci_priv
+{
 	struct platform_device	   *pdev;
 	void __iomem		   *sata_regs;
 	struct reset_control	   *sata_rst;
@@ -116,22 +119,31 @@ static int tegra_ahci_power_on(struct ahci_host_priv *hpriv)
 	int ret;
 
 	ret = regulator_bulk_enable(ARRAY_SIZE(tegra->supplies),
-				    tegra->supplies);
+								tegra->supplies);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = tegra_powergate_sequence_power_up(TEGRA_POWERGATE_SATA,
-						tegra->sata_clk,
-						tegra->sata_rst);
+											tegra->sata_clk,
+											tegra->sata_rst);
+
 	if (ret)
+	{
 		goto disable_regulators;
+	}
 
 	reset_control_assert(tegra->sata_oob_rst);
 	reset_control_assert(tegra->sata_cold_rst);
 
 	ret = ahci_platform_enable_resources(hpriv);
+
 	if (ret)
+	{
 		goto disable_power;
+	}
 
 	reset_control_deassert(tegra->sata_cold_rst);
 	reset_control_deassert(tegra->sata_oob_rst);
@@ -173,9 +185,11 @@ static int tegra_ahci_controller_init(struct ahci_host_priv *hpriv)
 	struct sata_pad_calibration calib;
 
 	ret = tegra_ahci_power_on(hpriv);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&tegra->pdev->dev,
-			"failed to power on AHCI controller: %d\n", ret);
+				"failed to power on AHCI controller: %d\n", ret);
 		return ret;
 	}
 
@@ -186,9 +200,11 @@ static int tegra_ahci_controller_init(struct ahci_host_priv *hpriv)
 	/* Pad calibration */
 
 	ret = tegra_fuse_readl(FUSE_SATA_CALIB, &val);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&tegra->pdev->dev,
-			"failed to read calibration fuse: %d\n", ret);
+				"failed to read calibration fuse: %d\n", ret);
 		return ret;
 	}
 
@@ -197,31 +213,31 @@ static int tegra_ahci_controller_init(struct ahci_host_priv *hpriv)
 	writel(BIT(0), tegra->sata_regs + SCFG_OFFSET + T_SATA0_INDEX);
 
 	val = readl(tegra->sata_regs +
-		SCFG_OFFSET + T_SATA0_CHX_PHY_CTRL1_GEN1);
+				SCFG_OFFSET + T_SATA0_CHX_PHY_CTRL1_GEN1);
 	val &= ~T_SATA0_CHX_PHY_CTRL1_GEN1_TX_AMP_MASK;
 	val &= ~T_SATA0_CHX_PHY_CTRL1_GEN1_TX_PEAK_MASK;
 	val |= calib.gen1_tx_amp <<
-			T_SATA0_CHX_PHY_CTRL1_GEN1_TX_AMP_SHIFT;
+		   T_SATA0_CHX_PHY_CTRL1_GEN1_TX_AMP_SHIFT;
 	val |= calib.gen1_tx_peak <<
-			T_SATA0_CHX_PHY_CTRL1_GEN1_TX_PEAK_SHIFT;
+		   T_SATA0_CHX_PHY_CTRL1_GEN1_TX_PEAK_SHIFT;
 	writel(val, tegra->sata_regs + SCFG_OFFSET +
-		T_SATA0_CHX_PHY_CTRL1_GEN1);
+		   T_SATA0_CHX_PHY_CTRL1_GEN1);
 
 	val = readl(tegra->sata_regs +
-			SCFG_OFFSET + T_SATA0_CHX_PHY_CTRL1_GEN2);
+				SCFG_OFFSET + T_SATA0_CHX_PHY_CTRL1_GEN2);
 	val &= ~T_SATA0_CHX_PHY_CTRL1_GEN2_TX_AMP_MASK;
 	val &= ~T_SATA0_CHX_PHY_CTRL1_GEN2_TX_PEAK_MASK;
 	val |= calib.gen2_tx_amp <<
-			T_SATA0_CHX_PHY_CTRL1_GEN1_TX_AMP_SHIFT;
+		   T_SATA0_CHX_PHY_CTRL1_GEN1_TX_AMP_SHIFT;
 	val |= calib.gen2_tx_peak <<
-			T_SATA0_CHX_PHY_CTRL1_GEN1_TX_PEAK_SHIFT;
+		   T_SATA0_CHX_PHY_CTRL1_GEN1_TX_PEAK_SHIFT;
 	writel(val, tegra->sata_regs + SCFG_OFFSET +
-		T_SATA0_CHX_PHY_CTRL1_GEN2);
+		   T_SATA0_CHX_PHY_CTRL1_GEN2);
 
 	writel(T_SATA0_CHX_PHY_CTRL11_GEN2_RX_EQ,
-		tegra->sata_regs + SCFG_OFFSET + T_SATA0_CHX_PHY_CTRL11);
+		   tegra->sata_regs + SCFG_OFFSET + T_SATA0_CHX_PHY_CTRL11);
 	writel(T_SATA0_CHX_PHY_CTRL2_CDR_CNTL_GEN1,
-		tegra->sata_regs + SCFG_OFFSET + T_SATA0_CHX_PHY_CTRL2);
+		   tegra->sata_regs + SCFG_OFFSET + T_SATA0_CHX_PHY_CTRL2);
 
 	writel(0, tegra->sata_regs + SCFG_OFFSET + T_SATA0_INDEX);
 
@@ -241,16 +257,16 @@ static int tegra_ahci_controller_init(struct ahci_host_priv *hpriv)
 
 	val = readl(tegra->sata_regs + SCFG_OFFSET + T_SATA0_CFG_1);
 	val |= T_SATA0_CFG_1_IO_SPACE | T_SATA0_CFG_1_MEMORY_SPACE |
-		T_SATA0_CFG_1_BUS_MASTER | T_SATA0_CFG_1_SERR;
+		   T_SATA0_CFG_1_BUS_MASTER | T_SATA0_CFG_1_SERR;
 	writel(val, tegra->sata_regs + SCFG_OFFSET + T_SATA0_CFG_1);
 
 	/* Program SATA MMIO */
 
 	writel(0x10000 << SATA_FPCI_BAR5_START_SHIFT,
-	       tegra->sata_regs + SATA_FPCI_BAR5);
+		   tegra->sata_regs + SATA_FPCI_BAR5);
 
 	writel(0x08000 << T_SATA0_CFG_9_BASE_ADDRESS_SHIFT,
-	       tegra->sata_regs + SCFG_OFFSET + T_SATA0_CFG_9);
+		   tegra->sata_regs + SCFG_OFFSET + T_SATA0_CFG_9);
 
 	/* Unmask SATA interrupts */
 
@@ -273,25 +289,29 @@ static void tegra_ahci_host_stop(struct ata_host *host)
 	tegra_ahci_controller_deinit(hpriv);
 }
 
-static struct ata_port_operations ahci_tegra_port_ops = {
+static struct ata_port_operations ahci_tegra_port_ops =
+{
 	.inherits	= &ahci_ops,
 	.host_stop	= tegra_ahci_host_stop,
 };
 
-static const struct ata_port_info ahci_tegra_port_info = {
+static const struct ata_port_info ahci_tegra_port_info =
+{
 	.flags		= AHCI_FLAG_COMMON,
 	.pio_mask	= ATA_PIO4,
 	.udma_mask	= ATA_UDMA6,
 	.port_ops	= &ahci_tegra_port_ops,
 };
 
-static const struct of_device_id tegra_ahci_of_match[] = {
+static const struct of_device_id tegra_ahci_of_match[] =
+{
 	{ .compatible = "nvidia,tegra124-ahci" },
 	{}
 };
 MODULE_DEVICE_TABLE(of, tegra_ahci_of_match);
 
-static struct scsi_host_template ahci_platform_sht = {
+static struct scsi_host_template ahci_platform_sht =
+{
 	AHCI_SHT(DRV_NAME),
 };
 
@@ -303,12 +323,18 @@ static int tegra_ahci_probe(struct platform_device *pdev)
 	int ret;
 
 	hpriv = ahci_platform_get_resources(pdev);
+
 	if (IS_ERR(hpriv))
+	{
 		return PTR_ERR(hpriv);
+	}
 
 	tegra = devm_kzalloc(&pdev->dev, sizeof(*tegra), GFP_KERNEL);
+
 	if (!tegra)
+	{
 		return -ENOMEM;
+	}
 
 	hpriv->plat_data = tegra;
 
@@ -316,29 +342,40 @@ static int tegra_ahci_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 	tegra->sata_regs = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(tegra->sata_regs))
+	{
 		return PTR_ERR(tegra->sata_regs);
+	}
 
 	tegra->sata_rst = devm_reset_control_get(&pdev->dev, "sata");
-	if (IS_ERR(tegra->sata_rst)) {
+
+	if (IS_ERR(tegra->sata_rst))
+	{
 		dev_err(&pdev->dev, "Failed to get sata reset\n");
 		return PTR_ERR(tegra->sata_rst);
 	}
 
 	tegra->sata_oob_rst = devm_reset_control_get(&pdev->dev, "sata-oob");
-	if (IS_ERR(tegra->sata_oob_rst)) {
+
+	if (IS_ERR(tegra->sata_oob_rst))
+	{
 		dev_err(&pdev->dev, "Failed to get sata-oob reset\n");
 		return PTR_ERR(tegra->sata_oob_rst);
 	}
 
 	tegra->sata_cold_rst = devm_reset_control_get(&pdev->dev, "sata-cold");
-	if (IS_ERR(tegra->sata_cold_rst)) {
+
+	if (IS_ERR(tegra->sata_cold_rst))
+	{
 		dev_err(&pdev->dev, "Failed to get sata-cold reset\n");
 		return PTR_ERR(tegra->sata_cold_rst);
 	}
 
 	tegra->sata_clk = devm_clk_get(&pdev->dev, "sata");
-	if (IS_ERR(tegra->sata_clk)) {
+
+	if (IS_ERR(tegra->sata_clk))
+	{
 		dev_err(&pdev->dev, "Failed to get sata clock\n");
 		return PTR_ERR(tegra->sata_clk);
 	}
@@ -350,20 +387,28 @@ static int tegra_ahci_probe(struct platform_device *pdev)
 	tegra->supplies[4].supply = "target-12v";
 
 	ret = devm_regulator_bulk_get(&pdev->dev, ARRAY_SIZE(tegra->supplies),
-				      tegra->supplies);
-	if (ret) {
+								  tegra->supplies);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to get regulators\n");
 		return ret;
 	}
 
 	ret = tegra_ahci_controller_init(hpriv);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = ahci_platform_init_host(pdev, hpriv, &ahci_tegra_port_info,
-				      &ahci_platform_sht);
+								  &ahci_platform_sht);
+
 	if (ret)
+	{
 		goto deinit_controller;
+	}
 
 	return 0;
 
@@ -373,7 +418,8 @@ deinit_controller:
 	return ret;
 };
 
-static struct platform_driver tegra_ahci_driver = {
+static struct platform_driver tegra_ahci_driver =
+{
 	.probe = tegra_ahci_probe,
 	.remove = ata_platform_remove_one,
 	.driver = {

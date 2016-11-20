@@ -30,11 +30,12 @@
 #define BLKPG      _IO(0x12,105)
 
 /* The argument structure */
-struct blkpg_ioctl_arg {
-        int op;
-        int flags;
-        int datalen;
-        void __user *data;
+struct blkpg_ioctl_arg
+{
+	int op;
+	int flags;
+	int datalen;
+	void __user *data;
 };
 
 /* The subfunctions (for the op field) */
@@ -47,7 +48,8 @@ struct blkpg_ioctl_arg {
 #define BLKPG_VOLNAMELTH	64
 
 /* The data structure for ADD_PARTITION and DEL_PARTITION */
-struct blkpg_partition {
+struct blkpg_partition
+{
 	long long start;		/* starting offset in bytes */
 	long long length;		/* length in bytes */
 	int pno;			/* partition number */

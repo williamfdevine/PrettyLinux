@@ -16,15 +16,21 @@ static int umc_bus_pre_reset_helper(struct device *dev, void *data)
 {
 	int ret = 0;
 
-	if (dev->driver) {
+	if (dev->driver)
+	{
 		struct umc_dev *umc = to_umc_dev(dev);
 		struct umc_driver *umc_drv = to_umc_driver(dev->driver);
 
 		if (umc_drv->pre_reset)
+		{
 			ret = umc_drv->pre_reset(umc);
+		}
 		else
+		{
 			device_release_driver(dev);
+		}
 	}
+
 	return ret;
 }
 
@@ -32,14 +38,20 @@ static int umc_bus_post_reset_helper(struct device *dev, void *data)
 {
 	int ret = 0;
 
-	if (dev->driver) {
+	if (dev->driver)
+	{
 		struct umc_dev *umc = to_umc_dev(dev);
 		struct umc_driver *umc_drv = to_umc_driver(dev->driver);
 
 		if (umc_drv->post_reset)
+		{
 			ret = umc_drv->post_reset(umc);
-	} else
+		}
+	}
+	else
+	{
 		ret = device_attach(dev);
+	}
 
 	return ret;
 }
@@ -64,10 +76,17 @@ int umc_controller_reset(struct umc_dev *umc)
 	int ret = 0;
 
 	if (!device_trylock(parent))
+	{
 		return -EAGAIN;
+	}
+
 	ret = device_for_each_child(parent, parent, umc_bus_pre_reset_helper);
+
 	if (ret >= 0)
+	{
 		ret = device_for_each_child(parent, parent, umc_bus_post_reset_helper);
+	}
+
 	device_unlock(parent);
 
 	return ret;
@@ -86,7 +105,9 @@ int umc_match_pci_id(struct umc_driver *umc_drv, struct umc_dev *umc)
 	struct pci_dev *pci;
 
 	if (!dev_is_pci(umc->dev.parent))
+	{
 		return 0;
+	}
 
 	pci = to_pci_dev(umc->dev.parent);
 	return pci_match_id(id_table, pci) != NULL;
@@ -98,7 +119,9 @@ static int umc_bus_rescan_helper(struct device *dev, void *data)
 	int ret = 0;
 
 	if (!dev->driver)
+	{
 		ret = device_attach(dev);
+	}
 
 	return ret;
 }
@@ -112,9 +135,10 @@ static void umc_bus_rescan(struct device *parent)
 	 * it tries to retake the dev->parent semaphore.
 	 */
 	err = device_for_each_child(parent, NULL, umc_bus_rescan_helper);
+
 	if (err < 0)
 		printk(KERN_WARNING "%s: rescan of bus failed: %d\n",
-		       KBUILD_MODNAME, err);
+			   KBUILD_MODNAME, err);
 }
 
 static int umc_bus_match(struct device *dev, struct device_driver *drv)
@@ -122,12 +146,18 @@ static int umc_bus_match(struct device *dev, struct device_driver *drv)
 	struct umc_dev *umc = to_umc_dev(dev);
 	struct umc_driver *umc_driver = to_umc_driver(drv);
 
-	if (umc->cap_id == umc_driver->cap_id) {
+	if (umc->cap_id == umc_driver->cap_id)
+	{
 		if (umc_driver->match)
+		{
 			return umc_driver->match(umc_driver, umc);
+		}
 		else
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 
@@ -142,10 +172,15 @@ static int umc_device_probe(struct device *dev)
 
 	get_device(dev);
 	err = umc_driver->probe(umc);
+
 	if (err)
+	{
 		put_device(dev);
+	}
 	else
+	{
 		umc_bus_rescan(dev->parent);
+	}
 
 	return err;
 }
@@ -179,14 +214,16 @@ static ssize_t version_show(struct device *dev, struct device_attribute *attr, c
 }
 static DEVICE_ATTR_RO(version);
 
-static struct attribute *umc_dev_attrs[] = {
+static struct attribute *umc_dev_attrs[] =
+{
 	&dev_attr_capability_id.attr,
 	&dev_attr_version.attr,
 	NULL,
 };
 ATTRIBUTE_GROUPS(umc_dev);
 
-struct bus_type umc_bus_type = {
+struct bus_type umc_bus_type =
+{
 	.name		= "umc",
 	.match		= umc_bus_match,
 	.probe		= umc_device_probe,

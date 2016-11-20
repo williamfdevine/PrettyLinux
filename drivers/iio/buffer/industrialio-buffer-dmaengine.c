@@ -27,7 +27,8 @@
  * connected to a DMA controller which has a DMAengine driver implementation.
  */
 
-struct dmaengine_buffer {
+struct dmaengine_buffer
+{
 	struct iio_dma_buffer_queue queue;
 
 	struct dma_chan *chan;
@@ -38,7 +39,7 @@ struct dmaengine_buffer {
 };
 
 static struct dmaengine_buffer *iio_buffer_to_dmaengine_buffer(
-		struct iio_buffer *buffer)
+	struct iio_buffer *buffer)
 {
 	return container_of(buffer, struct dmaengine_buffer, queue.buffer);
 }
@@ -55,7 +56,7 @@ static void iio_dmaengine_buffer_block_done(void *data)
 }
 
 static int iio_dmaengine_buffer_submit_block(struct iio_dma_buffer_queue *queue,
-	struct iio_dma_buffer_block *block)
+		struct iio_dma_buffer_block *block)
 {
 	struct dmaengine_buffer *dmaengine_buffer =
 		iio_buffer_to_dmaengine_buffer(&queue->buffer);
@@ -64,20 +65,26 @@ static int iio_dmaengine_buffer_submit_block(struct iio_dma_buffer_queue *queue,
 
 	block->bytes_used = min(block->size, dmaengine_buffer->max_size);
 	block->bytes_used = rounddown(block->bytes_used,
-			dmaengine_buffer->align);
+								  dmaengine_buffer->align);
 
 	desc = dmaengine_prep_slave_single(dmaengine_buffer->chan,
-		block->phys_addr, block->bytes_used, DMA_DEV_TO_MEM,
-		DMA_PREP_INTERRUPT);
+									   block->phys_addr, block->bytes_used, DMA_DEV_TO_MEM,
+									   DMA_PREP_INTERRUPT);
+
 	if (!desc)
+	{
 		return -ENOMEM;
+	}
 
 	desc->callback = iio_dmaengine_buffer_block_done;
 	desc->callback_param = block;
 
 	cookie = dmaengine_submit(desc);
+
 	if (dma_submit_error(cookie))
+	{
 		return dma_submit_error(cookie);
+	}
 
 	spin_lock_irq(&dmaengine_buffer->queue.list_lock);
 	list_add_tail(&block->head, &dmaengine_buffer->active);
@@ -106,7 +113,8 @@ static void iio_dmaengine_buffer_release(struct iio_buffer *buf)
 	kfree(dmaengine_buffer);
 }
 
-static const struct iio_buffer_access_funcs iio_dmaengine_buffer_ops = {
+static const struct iio_buffer_access_funcs iio_dmaengine_buffer_ops =
+{
 	.read_first_n = iio_dma_buffer_read,
 	.set_bytes_per_datum = iio_dma_buffer_set_bytes_per_datum,
 	.set_length = iio_dma_buffer_set_length,
@@ -120,7 +128,8 @@ static const struct iio_buffer_access_funcs iio_dmaengine_buffer_ops = {
 	.flags = INDIO_BUFFER_FLAG_FIXED_WATERMARK,
 };
 
-static const struct iio_dma_buffer_ops iio_dmaengine_default_ops = {
+static const struct iio_dma_buffer_ops iio_dmaengine_default_ops =
+{
 	.submit = iio_dmaengine_buffer_submit_block,
 	.abort = iio_dmaengine_buffer_abort,
 };
@@ -138,7 +147,7 @@ static const struct iio_dma_buffer_ops iio_dmaengine_default_ops = {
  * release it.
  */
 struct iio_buffer *iio_dmaengine_buffer_alloc(struct device *dev,
-	const char *channel)
+		const char *channel)
 {
 	struct dmaengine_buffer *dmaengine_buffer;
 	unsigned int width, src_width, dest_width;
@@ -147,28 +156,46 @@ struct iio_buffer *iio_dmaengine_buffer_alloc(struct device *dev,
 	int ret;
 
 	dmaengine_buffer = kzalloc(sizeof(*dmaengine_buffer), GFP_KERNEL);
+
 	if (!dmaengine_buffer)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	chan = dma_request_slave_channel_reason(dev, channel);
-	if (IS_ERR(chan)) {
+
+	if (IS_ERR(chan))
+	{
 		ret = PTR_ERR(chan);
 		goto err_free;
 	}
 
 	ret = dma_get_slave_caps(chan, &caps);
+
 	if (ret < 0)
+	{
 		goto err_free;
+	}
 
 	/* Needs to be aligned to the maximum of the minimums */
 	if (caps.src_addr_widths)
+	{
 		src_width = __ffs(caps.src_addr_widths);
+	}
 	else
+	{
 		src_width = 1;
+	}
+
 	if (caps.dst_addr_widths)
+	{
 		dest_width = __ffs(caps.dst_addr_widths);
+	}
 	else
+	{
 		dest_width = 1;
+	}
+
 	width = max(src_width, dest_width);
 
 	INIT_LIST_HEAD(&dmaengine_buffer->active);
@@ -177,7 +204,7 @@ struct iio_buffer *iio_dmaengine_buffer_alloc(struct device *dev,
 	dmaengine_buffer->max_size = dma_get_max_seg_size(chan->device->dev);
 
 	iio_dma_buffer_init(&dmaengine_buffer->queue, chan->device->dev,
-		&iio_dmaengine_default_ops);
+						&iio_dmaengine_default_ops);
 
 	dmaengine_buffer->queue.buffer.access = &iio_dmaengine_buffer_ops;
 

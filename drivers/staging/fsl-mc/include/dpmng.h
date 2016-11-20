@@ -52,18 +52,19 @@ struct fsl_mc_io;
  * @revision: Internal revision number: incremented on implementation changes
  *		and/or bug fixes that have no impact on API
  */
-struct mc_version {
+struct mc_version
+{
 	u32 major;
 	u32 minor;
 	u32 revision;
 };
 
 int mc_get_version(struct fsl_mc_io	*mc_io,
-		   u32		cmd_flags,
-		   struct mc_version	*mc_ver_info);
+				   u32		cmd_flags,
+				   struct mc_version	*mc_ver_info);
 
 int dpmng_get_container_id(struct fsl_mc_io	*mc_io,
-			   u32		cmd_flags,
-			   int			*container_id);
+						   u32		cmd_flags,
+						   int			*container_id);
 
 #endif /* __FSL_DPMNG_H */

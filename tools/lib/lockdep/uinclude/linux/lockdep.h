@@ -15,7 +15,8 @@
 
 #include "../../../include/linux/lockdep.h"
 
-struct task_struct {
+struct task_struct
+{
 	u64 curr_chain_key;
 	int lockdep_depth;
 	unsigned int lockdep_recursion;
@@ -42,9 +43,10 @@ extern struct task_struct *__curr(void);
 
 static struct new_utsname *init_utsname(void)
 {
-	static struct new_utsname n = (struct new_utsname) {
+	static struct new_utsname n = (struct new_utsname)
+	{
 		.release = "liblockdep",
-		.version = LIBLOCKDEP_VERSION,
+		 .version = LIBLOCKDEP_VERSION,
 	};
 
 	return &n;

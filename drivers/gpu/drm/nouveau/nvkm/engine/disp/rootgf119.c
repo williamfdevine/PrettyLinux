@@ -39,15 +39,18 @@ gf119_disp_root_scanoutpos(NV50_DISP_MTHD_V0)
 	const u32 total  = nvkm_rd32(device, 0x640414 + (head * 0x300));
 	const u32 blanke = nvkm_rd32(device, 0x64041c + (head * 0x300));
 	const u32 blanks = nvkm_rd32(device, 0x640420 + (head * 0x300));
-	union {
+	union
+	{
 		struct nv50_disp_scanoutpos_v0 v0;
 	} *args = data;
 	int ret = -ENOSYS;
 
 	nvif_ioctl(object, "disp scanoutpos size %d\n", size);
-	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false))) {
+
+	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false)))
+	{
 		nvif_ioctl(object, "disp scanoutpos vers %d\n",
-			   args->v0.version);
+				   args->v0.version);
 		args->v0.vblanke = (blanke & 0xffff0000) >> 16;
 		args->v0.hblanke = (blanke & 0x0000ffff);
 		args->v0.vblanks = (blanks & 0xffff0000) >> 16;
@@ -60,8 +63,11 @@ gf119_disp_root_scanoutpos(NV50_DISP_MTHD_V0)
 		args->v0.time[1] = ktime_to_ns(ktime_get());
 		args->v0.hline =
 			nvkm_rd32(device, 0x616344 + (head * 0x800)) & 0xffff;
-	} else
+	}
+	else
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -88,7 +94,8 @@ gf119_disp_root_init(struct nv50_disp_root *root)
 	 */
 
 	/* ... CRTC caps */
-	for (i = 0; i < disp->base.head.nr; i++) {
+	for (i = 0; i < disp->base.head.nr; i++)
+	{
 		tmp = nvkm_rd32(device, 0x616104 + (i * 0x800));
 		nvkm_wr32(device, 0x6101b4 + (i * 0x800), tmp);
 		tmp = nvkm_rd32(device, 0x616108 + (i * 0x800));
@@ -98,26 +105,32 @@ gf119_disp_root_init(struct nv50_disp_root *root)
 	}
 
 	/* ... DAC caps */
-	for (i = 0; i < disp->func->dac.nr; i++) {
+	for (i = 0; i < disp->func->dac.nr; i++)
+	{
 		tmp = nvkm_rd32(device, 0x61a000 + (i * 0x800));
 		nvkm_wr32(device, 0x6101c0 + (i * 0x800), tmp);
 	}
 
 	/* ... SOR caps */
-	for (i = 0; i < disp->func->sor.nr; i++) {
+	for (i = 0; i < disp->func->sor.nr; i++)
+	{
 		tmp = nvkm_rd32(device, 0x61c000 + (i * 0x800));
 		nvkm_wr32(device, 0x6301c4 + (i * 0x800), tmp);
 	}
 
 	/* steal display away from vbios, or something like that */
-	if (nvkm_rd32(device, 0x6100ac) & 0x00000100) {
+	if (nvkm_rd32(device, 0x6100ac) & 0x00000100)
+	{
 		nvkm_wr32(device, 0x6100ac, 0x00000100);
 		nvkm_mask(device, 0x6194e8, 0x00000001, 0x00000000);
+
 		if (nvkm_msec(device, 2000,
-			if (!(nvkm_rd32(device, 0x6194e8) & 0x00000002))
-				break;
-		) < 0)
-			return -EBUSY;
+					  if (!(nvkm_rd32(device, 0x6194e8) & 0x00000002))
+						  break;
+						 ) < 0)
+			{
+				return -EBUSY;
+			}
 	}
 
 	/* point at display engine memory area (hash table, objects) */
@@ -135,13 +148,16 @@ gf119_disp_root_init(struct nv50_disp_root *root)
 	 * ftp://download.nvidia.com/open-gpu-doc/gk104-disable-underflow-reporting/1/gk104-disable-underflow-reporting.txt
 	 */
 	for (i = 0; i < disp->base.head.nr; i++)
+	{
 		nvkm_mask(device, 0x616308 + (i * 0x800), 0x00000111, 0x00000010);
+	}
 
 	return 0;
 }
 
 static const struct nv50_disp_root_func
-gf119_disp_root = {
+	gf119_disp_root =
+{
 	.init = gf119_disp_root_init,
 	.fini = gf119_disp_root_fini,
 	.dmac = {
@@ -157,14 +173,15 @@ gf119_disp_root = {
 
 static int
 gf119_disp_root_new(struct nvkm_disp *disp, const struct nvkm_oclass *oclass,
-		    void *data, u32 size, struct nvkm_object **pobject)
+					void *data, u32 size, struct nvkm_object **pobject)
 {
 	return nv50_disp_root_new_(&gf119_disp_root, disp, oclass,
-				   data, size, pobject);
+							   data, size, pobject);
 }
 
 const struct nvkm_disp_oclass
-gf119_disp_root_oclass = {
+	gf119_disp_root_oclass =
+{
 	.base.oclass = GF110_DISP,
 	.base.minver = -1,
 	.base.maxver = -1,

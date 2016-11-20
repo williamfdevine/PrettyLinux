@@ -21,7 +21,8 @@
 
 #include "nuc900-audio.h"
 
-static struct snd_soc_dai_link nuc900evb_ac97_dai = {
+static struct snd_soc_dai_link nuc900evb_ac97_dai =
+{
 	.name		= "AC97",
 	.stream_name	= "AC97 HiFi",
 	.cpu_dai_name	= "nuc900-ac97",
@@ -30,7 +31,8 @@ static struct snd_soc_dai_link nuc900evb_ac97_dai = {
 	.platform_name	= "nuc900-pcm-audio",
 };
 
-static struct snd_soc_card nuc900evb_audio_machine = {
+static struct snd_soc_card nuc900evb_audio_machine =
+{
 	.name		= "NUC900EVB_AC97",
 	.owner		= THIS_MODULE,
 	.dai_link	= &nuc900evb_ac97_dai,
@@ -45,15 +47,19 @@ static int __init nuc900evb_audio_init(void)
 
 	ret = -ENOMEM;
 	nuc900evb_asoc_dev = platform_device_alloc("soc-audio", -1);
+
 	if (!nuc900evb_asoc_dev)
+	{
 		goto out;
+	}
 
 	/* nuc900 board audio device */
 	platform_set_drvdata(nuc900evb_asoc_dev, &nuc900evb_audio_machine);
 
 	ret = platform_device_add(nuc900evb_asoc_dev);
 
-	if (ret) {
+	if (ret)
+	{
 		platform_device_put(nuc900evb_asoc_dev);
 		nuc900evb_asoc_dev = NULL;
 	}

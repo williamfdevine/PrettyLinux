@@ -29,13 +29,15 @@
 
 
 
-struct fiji_smu_avfs {
+struct fiji_smu_avfs
+{
 	enum AVFS_BTC_STATUS AvfsBtcStatus;
 	uint32_t           AvfsBtcParam;
 };
 
 
-struct fiji_smumgr {
+struct fiji_smumgr
+{
 	struct smu7_smumgr                   smu7_data;
 
 	struct fiji_smu_avfs avfs;

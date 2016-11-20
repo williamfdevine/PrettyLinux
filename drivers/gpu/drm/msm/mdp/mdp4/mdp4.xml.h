@@ -46,7 +46,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 
-enum mdp4_pipe {
+enum mdp4_pipe
+{
 	VG1 = 0,
 	VG2 = 1,
 	RGB1 = 2,
@@ -56,37 +57,43 @@ enum mdp4_pipe {
 	VG4 = 6,
 };
 
-enum mdp4_mixer {
+enum mdp4_mixer
+{
 	MIXER0 = 0,
 	MIXER1 = 1,
 	MIXER2 = 2,
 };
 
-enum mdp4_intf {
+enum mdp4_intf
+{
 	INTF_LCDC_DTV = 0,
 	INTF_DSI_VIDEO = 1,
 	INTF_DSI_CMD = 2,
 	INTF_EBI2_TV = 3,
 };
 
-enum mdp4_cursor_format {
+enum mdp4_cursor_format
+{
 	CURSOR_ARGB = 1,
 	CURSOR_XRGB = 2,
 };
 
-enum mdp4_frame_format {
+enum mdp4_frame_format
+{
 	FRAME_LINEAR = 0,
 	FRAME_TILE_ARGB_4X4 = 1,
 	FRAME_TILE_YCBCR_420 = 2,
 };
 
-enum mdp4_scale_unit {
+enum mdp4_scale_unit
+{
 	SCALE_FIR = 0,
 	SCALE_MN_PHASE = 1,
 	SCALE_PIXEL_RPT = 2,
 };
 
-enum mdp4_dma {
+enum mdp4_dma
+{
 	DMA_P = 0,
 	DMA_S = 1,
 	DMA_E = 2,
@@ -309,10 +316,14 @@ static inline uint32_t MDP4_LAYERMIXER_IN_CFG_PIPE7(enum mdp_mixer_stage_id val)
 
 static inline uint32_t __offset_OVLP(uint32_t idx)
 {
-	switch (idx) {
+	switch (idx)
+	{
 		case 0: return 0x00010000;
+
 		case 1: return 0x00018000;
+
 		case 2: return 0x00088000;
+
 		default: return INVALID_IDX(idx);
 	}
 }
@@ -342,11 +353,16 @@ static inline uint32_t REG_MDP4_OVLP_OPMODE(uint32_t i0) { return 0x00000014 + _
 
 static inline uint32_t __offset_STAGE(uint32_t idx)
 {
-	switch (idx) {
+	switch (idx)
+	{
 		case 0: return 0x00000104;
+
 		case 1: return 0x00000124;
+
 		case 2: return 0x00000144;
+
 		case 3: return 0x00000160;
+
 		default: return INVALID_IDX(idx);
 	}
 }
@@ -386,11 +402,16 @@ static inline uint32_t REG_MDP4_OVLP_STAGE_TRANSP_HIGH1(uint32_t i0, uint32_t i1
 
 static inline uint32_t __offset_STAGE_CO3(uint32_t idx)
 {
-	switch (idx) {
+	switch (idx)
+	{
 		case 0: return 0x00001004;
+
 		case 1: return 0x00001404;
+
 		case 2: return 0x00001804;
+
 		case 3: return 0x00001b84;
+
 		default: return INVALID_IDX(idx);
 	}
 }
@@ -412,44 +433,48 @@ static inline uint32_t REG_MDP4_OVLP_CSC_CONFIG(uint32_t i0) { return 0x00000200
 static inline uint32_t REG_MDP4_OVLP_CSC(uint32_t i0) { return 0x00002000 + __offset_OVLP(i0); }
 
 
-static inline uint32_t REG_MDP4_OVLP_CSC_MV(uint32_t i0, uint32_t i1) { return 0x00002400 + __offset_OVLP(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_OVLP_CSC_MV(uint32_t i0, uint32_t i1) { return 0x00002400 + __offset_OVLP(i0) + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_OVLP_CSC_MV_VAL(uint32_t i0, uint32_t i1) { return 0x00002400 + __offset_OVLP(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_OVLP_CSC_MV_VAL(uint32_t i0, uint32_t i1) { return 0x00002400 + __offset_OVLP(i0) + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_OVLP_CSC_PRE_BV(uint32_t i0, uint32_t i1) { return 0x00002500 + __offset_OVLP(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_OVLP_CSC_PRE_BV(uint32_t i0, uint32_t i1) { return 0x00002500 + __offset_OVLP(i0) + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_OVLP_CSC_PRE_BV_VAL(uint32_t i0, uint32_t i1) { return 0x00002500 + __offset_OVLP(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_OVLP_CSC_PRE_BV_VAL(uint32_t i0, uint32_t i1) { return 0x00002500 + __offset_OVLP(i0) + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_OVLP_CSC_POST_BV(uint32_t i0, uint32_t i1) { return 0x00002580 + __offset_OVLP(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_OVLP_CSC_POST_BV(uint32_t i0, uint32_t i1) { return 0x00002580 + __offset_OVLP(i0) + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_OVLP_CSC_POST_BV_VAL(uint32_t i0, uint32_t i1) { return 0x00002580 + __offset_OVLP(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_OVLP_CSC_POST_BV_VAL(uint32_t i0, uint32_t i1) { return 0x00002580 + __offset_OVLP(i0) + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_OVLP_CSC_PRE_LV(uint32_t i0, uint32_t i1) { return 0x00002600 + __offset_OVLP(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_OVLP_CSC_PRE_LV(uint32_t i0, uint32_t i1) { return 0x00002600 + __offset_OVLP(i0) + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_OVLP_CSC_PRE_LV_VAL(uint32_t i0, uint32_t i1) { return 0x00002600 + __offset_OVLP(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_OVLP_CSC_PRE_LV_VAL(uint32_t i0, uint32_t i1) { return 0x00002600 + __offset_OVLP(i0) + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_OVLP_CSC_POST_LV(uint32_t i0, uint32_t i1) { return 0x00002680 + __offset_OVLP(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_OVLP_CSC_POST_LV(uint32_t i0, uint32_t i1) { return 0x00002680 + __offset_OVLP(i0) + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_OVLP_CSC_POST_LV_VAL(uint32_t i0, uint32_t i1) { return 0x00002680 + __offset_OVLP(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_OVLP_CSC_POST_LV_VAL(uint32_t i0, uint32_t i1) { return 0x00002680 + __offset_OVLP(i0) + 0x4 * i1; }
 
 #define REG_MDP4_DMA_P_OP_MODE					0x00090070
 
-static inline uint32_t REG_MDP4_LUTN(uint32_t i0) { return 0x00094800 + 0x400*i0; }
+static inline uint32_t REG_MDP4_LUTN(uint32_t i0) { return 0x00094800 + 0x400 * i0; }
 
-static inline uint32_t REG_MDP4_LUTN_LUT(uint32_t i0, uint32_t i1) { return 0x00094800 + 0x400*i0 + 0x4*i1; }
+static inline uint32_t REG_MDP4_LUTN_LUT(uint32_t i0, uint32_t i1) { return 0x00094800 + 0x400 * i0 + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_LUTN_LUT_VAL(uint32_t i0, uint32_t i1) { return 0x00094800 + 0x400*i0 + 0x4*i1; }
+static inline uint32_t REG_MDP4_LUTN_LUT_VAL(uint32_t i0, uint32_t i1) { return 0x00094800 + 0x400 * i0 + 0x4 * i1; }
 
 #define REG_MDP4_DMA_S_OP_MODE					0x000a0028
 
-static inline uint32_t REG_MDP4_DMA_E_QUANT(uint32_t i0) { return 0x000b0070 + 0x4*i0; }
+static inline uint32_t REG_MDP4_DMA_E_QUANT(uint32_t i0) { return 0x000b0070 + 0x4 * i0; }
 
 static inline uint32_t __offset_DMA(enum mdp4_dma idx)
 {
-	switch (idx) {
+	switch (idx)
+	{
 		case DMA_P: return 0x00090000;
+
 		case DMA_S: return 0x000a0000;
+
 		case DMA_E: return 0x000b0000;
+
 		default: return INVALID_IDX(idx);
 	}
 }
@@ -567,29 +592,29 @@ static inline uint32_t REG_MDP4_DMA_FETCH_CONFIG(enum mdp4_dma i0) { return 0x00
 static inline uint32_t REG_MDP4_DMA_CSC(enum mdp4_dma i0) { return 0x00003000 + __offset_DMA(i0); }
 
 
-static inline uint32_t REG_MDP4_DMA_CSC_MV(enum mdp4_dma i0, uint32_t i1) { return 0x00003400 + __offset_DMA(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_DMA_CSC_MV(enum mdp4_dma i0, uint32_t i1) { return 0x00003400 + __offset_DMA(i0) + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_DMA_CSC_MV_VAL(enum mdp4_dma i0, uint32_t i1) { return 0x00003400 + __offset_DMA(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_DMA_CSC_MV_VAL(enum mdp4_dma i0, uint32_t i1) { return 0x00003400 + __offset_DMA(i0) + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_DMA_CSC_PRE_BV(enum mdp4_dma i0, uint32_t i1) { return 0x00003500 + __offset_DMA(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_DMA_CSC_PRE_BV(enum mdp4_dma i0, uint32_t i1) { return 0x00003500 + __offset_DMA(i0) + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_DMA_CSC_PRE_BV_VAL(enum mdp4_dma i0, uint32_t i1) { return 0x00003500 + __offset_DMA(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_DMA_CSC_PRE_BV_VAL(enum mdp4_dma i0, uint32_t i1) { return 0x00003500 + __offset_DMA(i0) + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_DMA_CSC_POST_BV(enum mdp4_dma i0, uint32_t i1) { return 0x00003580 + __offset_DMA(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_DMA_CSC_POST_BV(enum mdp4_dma i0, uint32_t i1) { return 0x00003580 + __offset_DMA(i0) + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_DMA_CSC_POST_BV_VAL(enum mdp4_dma i0, uint32_t i1) { return 0x00003580 + __offset_DMA(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_DMA_CSC_POST_BV_VAL(enum mdp4_dma i0, uint32_t i1) { return 0x00003580 + __offset_DMA(i0) + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_DMA_CSC_PRE_LV(enum mdp4_dma i0, uint32_t i1) { return 0x00003600 + __offset_DMA(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_DMA_CSC_PRE_LV(enum mdp4_dma i0, uint32_t i1) { return 0x00003600 + __offset_DMA(i0) + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_DMA_CSC_PRE_LV_VAL(enum mdp4_dma i0, uint32_t i1) { return 0x00003600 + __offset_DMA(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_DMA_CSC_PRE_LV_VAL(enum mdp4_dma i0, uint32_t i1) { return 0x00003600 + __offset_DMA(i0) + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_DMA_CSC_POST_LV(enum mdp4_dma i0, uint32_t i1) { return 0x00003680 + __offset_DMA(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_DMA_CSC_POST_LV(enum mdp4_dma i0, uint32_t i1) { return 0x00003680 + __offset_DMA(i0) + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_DMA_CSC_POST_LV_VAL(enum mdp4_dma i0, uint32_t i1) { return 0x00003680 + __offset_DMA(i0) + 0x4*i1; }
+static inline uint32_t REG_MDP4_DMA_CSC_POST_LV_VAL(enum mdp4_dma i0, uint32_t i1) { return 0x00003680 + __offset_DMA(i0) + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_PIPE(enum mdp4_pipe i0) { return 0x00020000 + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE(enum mdp4_pipe i0) { return 0x00020000 + 0x10000 * i0; }
 
-static inline uint32_t REG_MDP4_PIPE_SRC_SIZE(enum mdp4_pipe i0) { return 0x00020000 + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE_SRC_SIZE(enum mdp4_pipe i0) { return 0x00020000 + 0x10000 * i0; }
 #define MDP4_PIPE_SRC_SIZE_HEIGHT__MASK				0xffff0000
 #define MDP4_PIPE_SRC_SIZE_HEIGHT__SHIFT			16
 static inline uint32_t MDP4_PIPE_SRC_SIZE_HEIGHT(uint32_t val)
@@ -603,7 +628,7 @@ static inline uint32_t MDP4_PIPE_SRC_SIZE_WIDTH(uint32_t val)
 	return ((val) << MDP4_PIPE_SRC_SIZE_WIDTH__SHIFT) & MDP4_PIPE_SRC_SIZE_WIDTH__MASK;
 }
 
-static inline uint32_t REG_MDP4_PIPE_SRC_XY(enum mdp4_pipe i0) { return 0x00020004 + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE_SRC_XY(enum mdp4_pipe i0) { return 0x00020004 + 0x10000 * i0; }
 #define MDP4_PIPE_SRC_XY_Y__MASK				0xffff0000
 #define MDP4_PIPE_SRC_XY_Y__SHIFT				16
 static inline uint32_t MDP4_PIPE_SRC_XY_Y(uint32_t val)
@@ -617,7 +642,7 @@ static inline uint32_t MDP4_PIPE_SRC_XY_X(uint32_t val)
 	return ((val) << MDP4_PIPE_SRC_XY_X__SHIFT) & MDP4_PIPE_SRC_XY_X__MASK;
 }
 
-static inline uint32_t REG_MDP4_PIPE_DST_SIZE(enum mdp4_pipe i0) { return 0x00020008 + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE_DST_SIZE(enum mdp4_pipe i0) { return 0x00020008 + 0x10000 * i0; }
 #define MDP4_PIPE_DST_SIZE_HEIGHT__MASK				0xffff0000
 #define MDP4_PIPE_DST_SIZE_HEIGHT__SHIFT			16
 static inline uint32_t MDP4_PIPE_DST_SIZE_HEIGHT(uint32_t val)
@@ -631,7 +656,7 @@ static inline uint32_t MDP4_PIPE_DST_SIZE_WIDTH(uint32_t val)
 	return ((val) << MDP4_PIPE_DST_SIZE_WIDTH__SHIFT) & MDP4_PIPE_DST_SIZE_WIDTH__MASK;
 }
 
-static inline uint32_t REG_MDP4_PIPE_DST_XY(enum mdp4_pipe i0) { return 0x0002000c + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE_DST_XY(enum mdp4_pipe i0) { return 0x0002000c + 0x10000 * i0; }
 #define MDP4_PIPE_DST_XY_Y__MASK				0xffff0000
 #define MDP4_PIPE_DST_XY_Y__SHIFT				16
 static inline uint32_t MDP4_PIPE_DST_XY_Y(uint32_t val)
@@ -645,15 +670,15 @@ static inline uint32_t MDP4_PIPE_DST_XY_X(uint32_t val)
 	return ((val) << MDP4_PIPE_DST_XY_X__SHIFT) & MDP4_PIPE_DST_XY_X__MASK;
 }
 
-static inline uint32_t REG_MDP4_PIPE_SRCP0_BASE(enum mdp4_pipe i0) { return 0x00020010 + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE_SRCP0_BASE(enum mdp4_pipe i0) { return 0x00020010 + 0x10000 * i0; }
 
-static inline uint32_t REG_MDP4_PIPE_SRCP1_BASE(enum mdp4_pipe i0) { return 0x00020014 + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE_SRCP1_BASE(enum mdp4_pipe i0) { return 0x00020014 + 0x10000 * i0; }
 
-static inline uint32_t REG_MDP4_PIPE_SRCP2_BASE(enum mdp4_pipe i0) { return 0x00020018 + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE_SRCP2_BASE(enum mdp4_pipe i0) { return 0x00020018 + 0x10000 * i0; }
 
-static inline uint32_t REG_MDP4_PIPE_SRCP3_BASE(enum mdp4_pipe i0) { return 0x0002001c + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE_SRCP3_BASE(enum mdp4_pipe i0) { return 0x0002001c + 0x10000 * i0; }
 
-static inline uint32_t REG_MDP4_PIPE_SRC_STRIDE_A(enum mdp4_pipe i0) { return 0x00020040 + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE_SRC_STRIDE_A(enum mdp4_pipe i0) { return 0x00020040 + 0x10000 * i0; }
 #define MDP4_PIPE_SRC_STRIDE_A_P0__MASK				0x0000ffff
 #define MDP4_PIPE_SRC_STRIDE_A_P0__SHIFT			0
 static inline uint32_t MDP4_PIPE_SRC_STRIDE_A_P0(uint32_t val)
@@ -667,7 +692,7 @@ static inline uint32_t MDP4_PIPE_SRC_STRIDE_A_P1(uint32_t val)
 	return ((val) << MDP4_PIPE_SRC_STRIDE_A_P1__SHIFT) & MDP4_PIPE_SRC_STRIDE_A_P1__MASK;
 }
 
-static inline uint32_t REG_MDP4_PIPE_SRC_STRIDE_B(enum mdp4_pipe i0) { return 0x00020044 + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE_SRC_STRIDE_B(enum mdp4_pipe i0) { return 0x00020044 + 0x10000 * i0; }
 #define MDP4_PIPE_SRC_STRIDE_B_P2__MASK				0x0000ffff
 #define MDP4_PIPE_SRC_STRIDE_B_P2__SHIFT			0
 static inline uint32_t MDP4_PIPE_SRC_STRIDE_B_P2(uint32_t val)
@@ -681,7 +706,7 @@ static inline uint32_t MDP4_PIPE_SRC_STRIDE_B_P3(uint32_t val)
 	return ((val) << MDP4_PIPE_SRC_STRIDE_B_P3__SHIFT) & MDP4_PIPE_SRC_STRIDE_B_P3__MASK;
 }
 
-static inline uint32_t REG_MDP4_PIPE_SSTILE_FRAME_SIZE(enum mdp4_pipe i0) { return 0x00020048 + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE_SSTILE_FRAME_SIZE(enum mdp4_pipe i0) { return 0x00020048 + 0x10000 * i0; }
 #define MDP4_PIPE_SSTILE_FRAME_SIZE_HEIGHT__MASK		0xffff0000
 #define MDP4_PIPE_SSTILE_FRAME_SIZE_HEIGHT__SHIFT		16
 static inline uint32_t MDP4_PIPE_SSTILE_FRAME_SIZE_HEIGHT(uint32_t val)
@@ -695,7 +720,7 @@ static inline uint32_t MDP4_PIPE_SSTILE_FRAME_SIZE_WIDTH(uint32_t val)
 	return ((val) << MDP4_PIPE_SSTILE_FRAME_SIZE_WIDTH__SHIFT) & MDP4_PIPE_SSTILE_FRAME_SIZE_WIDTH__MASK;
 }
 
-static inline uint32_t REG_MDP4_PIPE_SRC_FORMAT(enum mdp4_pipe i0) { return 0x00020050 + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE_SRC_FORMAT(enum mdp4_pipe i0) { return 0x00020050 + 0x10000 * i0; }
 #define MDP4_PIPE_SRC_FORMAT_G_BPC__MASK			0x00000003
 #define MDP4_PIPE_SRC_FORMAT_G_BPC__SHIFT			0
 static inline uint32_t MDP4_PIPE_SRC_FORMAT_G_BPC(enum mdp_bpc val)
@@ -756,7 +781,7 @@ static inline uint32_t MDP4_PIPE_SRC_FORMAT_FRAME_FORMAT(enum mdp4_frame_format 
 	return ((val) << MDP4_PIPE_SRC_FORMAT_FRAME_FORMAT__SHIFT) & MDP4_PIPE_SRC_FORMAT_FRAME_FORMAT__MASK;
 }
 
-static inline uint32_t REG_MDP4_PIPE_SRC_UNPACK(enum mdp4_pipe i0) { return 0x00020054 + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE_SRC_UNPACK(enum mdp4_pipe i0) { return 0x00020054 + 0x10000 * i0; }
 #define MDP4_PIPE_SRC_UNPACK_ELEM0__MASK			0x000000ff
 #define MDP4_PIPE_SRC_UNPACK_ELEM0__SHIFT			0
 static inline uint32_t MDP4_PIPE_SRC_UNPACK_ELEM0(uint32_t val)
@@ -782,7 +807,7 @@ static inline uint32_t MDP4_PIPE_SRC_UNPACK_ELEM3(uint32_t val)
 	return ((val) << MDP4_PIPE_SRC_UNPACK_ELEM3__SHIFT) & MDP4_PIPE_SRC_UNPACK_ELEM3__MASK;
 }
 
-static inline uint32_t REG_MDP4_PIPE_OP_MODE(enum mdp4_pipe i0) { return 0x00020058 + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE_OP_MODE(enum mdp4_pipe i0) { return 0x00020058 + 0x10000 * i0; }
 #define MDP4_PIPE_OP_MODE_SCALEX_EN				0x00000001
 #define MDP4_PIPE_OP_MODE_SCALEY_EN				0x00000002
 #define MDP4_PIPE_OP_MODE_SCALEX_UNIT_SEL__MASK			0x0000000c
@@ -807,36 +832,36 @@ static inline uint32_t MDP4_PIPE_OP_MODE_SCALEY_UNIT_SEL(enum mdp4_scale_unit va
 #define MDP4_PIPE_OP_MODE_DEINT_EN				0x00040000
 #define MDP4_PIPE_OP_MODE_DEINT_ODD_REF				0x00080000
 
-static inline uint32_t REG_MDP4_PIPE_PHASEX_STEP(enum mdp4_pipe i0) { return 0x0002005c + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE_PHASEX_STEP(enum mdp4_pipe i0) { return 0x0002005c + 0x10000 * i0; }
 
-static inline uint32_t REG_MDP4_PIPE_PHASEY_STEP(enum mdp4_pipe i0) { return 0x00020060 + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE_PHASEY_STEP(enum mdp4_pipe i0) { return 0x00020060 + 0x10000 * i0; }
 
-static inline uint32_t REG_MDP4_PIPE_FETCH_CONFIG(enum mdp4_pipe i0) { return 0x00021004 + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE_FETCH_CONFIG(enum mdp4_pipe i0) { return 0x00021004 + 0x10000 * i0; }
 
-static inline uint32_t REG_MDP4_PIPE_SOLID_COLOR(enum mdp4_pipe i0) { return 0x00021008 + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE_SOLID_COLOR(enum mdp4_pipe i0) { return 0x00021008 + 0x10000 * i0; }
 
-static inline uint32_t REG_MDP4_PIPE_CSC(enum mdp4_pipe i0) { return 0x00024000 + 0x10000*i0; }
+static inline uint32_t REG_MDP4_PIPE_CSC(enum mdp4_pipe i0) { return 0x00024000 + 0x10000 * i0; }
 
 
-static inline uint32_t REG_MDP4_PIPE_CSC_MV(enum mdp4_pipe i0, uint32_t i1) { return 0x00024400 + 0x10000*i0 + 0x4*i1; }
+static inline uint32_t REG_MDP4_PIPE_CSC_MV(enum mdp4_pipe i0, uint32_t i1) { return 0x00024400 + 0x10000 * i0 + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_PIPE_CSC_MV_VAL(enum mdp4_pipe i0, uint32_t i1) { return 0x00024400 + 0x10000*i0 + 0x4*i1; }
+static inline uint32_t REG_MDP4_PIPE_CSC_MV_VAL(enum mdp4_pipe i0, uint32_t i1) { return 0x00024400 + 0x10000 * i0 + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_PIPE_CSC_PRE_BV(enum mdp4_pipe i0, uint32_t i1) { return 0x00024500 + 0x10000*i0 + 0x4*i1; }
+static inline uint32_t REG_MDP4_PIPE_CSC_PRE_BV(enum mdp4_pipe i0, uint32_t i1) { return 0x00024500 + 0x10000 * i0 + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_PIPE_CSC_PRE_BV_VAL(enum mdp4_pipe i0, uint32_t i1) { return 0x00024500 + 0x10000*i0 + 0x4*i1; }
+static inline uint32_t REG_MDP4_PIPE_CSC_PRE_BV_VAL(enum mdp4_pipe i0, uint32_t i1) { return 0x00024500 + 0x10000 * i0 + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_PIPE_CSC_POST_BV(enum mdp4_pipe i0, uint32_t i1) { return 0x00024580 + 0x10000*i0 + 0x4*i1; }
+static inline uint32_t REG_MDP4_PIPE_CSC_POST_BV(enum mdp4_pipe i0, uint32_t i1) { return 0x00024580 + 0x10000 * i0 + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_PIPE_CSC_POST_BV_VAL(enum mdp4_pipe i0, uint32_t i1) { return 0x00024580 + 0x10000*i0 + 0x4*i1; }
+static inline uint32_t REG_MDP4_PIPE_CSC_POST_BV_VAL(enum mdp4_pipe i0, uint32_t i1) { return 0x00024580 + 0x10000 * i0 + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_PIPE_CSC_PRE_LV(enum mdp4_pipe i0, uint32_t i1) { return 0x00024600 + 0x10000*i0 + 0x4*i1; }
+static inline uint32_t REG_MDP4_PIPE_CSC_PRE_LV(enum mdp4_pipe i0, uint32_t i1) { return 0x00024600 + 0x10000 * i0 + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_PIPE_CSC_PRE_LV_VAL(enum mdp4_pipe i0, uint32_t i1) { return 0x00024600 + 0x10000*i0 + 0x4*i1; }
+static inline uint32_t REG_MDP4_PIPE_CSC_PRE_LV_VAL(enum mdp4_pipe i0, uint32_t i1) { return 0x00024600 + 0x10000 * i0 + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_PIPE_CSC_POST_LV(enum mdp4_pipe i0, uint32_t i1) { return 0x00024680 + 0x10000*i0 + 0x4*i1; }
+static inline uint32_t REG_MDP4_PIPE_CSC_POST_LV(enum mdp4_pipe i0, uint32_t i1) { return 0x00024680 + 0x10000 * i0 + 0x4 * i1; }
 
-static inline uint32_t REG_MDP4_PIPE_CSC_POST_LV_VAL(enum mdp4_pipe i0, uint32_t i1) { return 0x00024680 + 0x10000*i0 + 0x4*i1; }
+static inline uint32_t REG_MDP4_PIPE_CSC_POST_LV_VAL(enum mdp4_pipe i0, uint32_t i1) { return 0x00024680 + 0x10000 * i0 + 0x4 * i1; }
 
 #define REG_MDP4_LCDC						0x000c0000
 
@@ -935,9 +960,9 @@ static inline uint32_t MDP4_LCDC_UNDERFLOW_CLR_COLOR(uint32_t val)
 #define MDP4_LCDC_LVDS_INTF_CTL_CH1_CLK_LANE_EN			0x00010000
 #define MDP4_LCDC_LVDS_INTF_CTL_CH2_CLK_LANE_EN			0x00020000
 
-static inline uint32_t REG_MDP4_LCDC_LVDS_MUX_CTL(uint32_t i0) { return 0x000c2014 + 0x8*i0; }
+static inline uint32_t REG_MDP4_LCDC_LVDS_MUX_CTL(uint32_t i0) { return 0x000c2014 + 0x8 * i0; }
 
-static inline uint32_t REG_MDP4_LCDC_LVDS_MUX_CTL_3_TO_0(uint32_t i0) { return 0x000c2014 + 0x8*i0; }
+static inline uint32_t REG_MDP4_LCDC_LVDS_MUX_CTL_3_TO_0(uint32_t i0) { return 0x000c2014 + 0x8 * i0; }
 #define MDP4_LCDC_LVDS_MUX_CTL_3_TO_0_BIT0__MASK		0x000000ff
 #define MDP4_LCDC_LVDS_MUX_CTL_3_TO_0_BIT0__SHIFT		0
 static inline uint32_t MDP4_LCDC_LVDS_MUX_CTL_3_TO_0_BIT0(uint32_t val)
@@ -963,7 +988,7 @@ static inline uint32_t MDP4_LCDC_LVDS_MUX_CTL_3_TO_0_BIT3(uint32_t val)
 	return ((val) << MDP4_LCDC_LVDS_MUX_CTL_3_TO_0_BIT3__SHIFT) & MDP4_LCDC_LVDS_MUX_CTL_3_TO_0_BIT3__MASK;
 }
 
-static inline uint32_t REG_MDP4_LCDC_LVDS_MUX_CTL_6_TO_4(uint32_t i0) { return 0x000c2018 + 0x8*i0; }
+static inline uint32_t REG_MDP4_LCDC_LVDS_MUX_CTL_6_TO_4(uint32_t i0) { return 0x000c2018 + 0x8 * i0; }
 #define MDP4_LCDC_LVDS_MUX_CTL_6_TO_4_BIT4__MASK		0x000000ff
 #define MDP4_LCDC_LVDS_MUX_CTL_6_TO_4_BIT4__SHIFT		0
 static inline uint32_t MDP4_LCDC_LVDS_MUX_CTL_6_TO_4_BIT4(uint32_t val)

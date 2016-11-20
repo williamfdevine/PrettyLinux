@@ -31,7 +31,8 @@ gm107_fuse_read(struct nvkm_fuse *fuse, u32 addr)
 }
 
 static const struct nvkm_fuse_func
-gm107_fuse = {
+	gm107_fuse =
+{
 	.read = gm107_fuse_read,
 };
 

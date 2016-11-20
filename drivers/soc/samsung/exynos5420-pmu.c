@@ -17,7 +17,8 @@
 
 #include "exynos-pmu.h"
 
-static const struct exynos_pmu_conf exynos5420_pmu_config[] = {
+static const struct exynos_pmu_conf exynos5420_pmu_config[] =
+{
 	/* { .offset = offset, .val = { AFTR, LPA, SLEEP } */
 	{ EXYNOS5_ARM_CORE0_SYS_PWR_REG,		{ 0x0, 0x0, 0x0} },
 	{ EXYNOS5_DIS_IRQ_ARM_CORE0_LOCAL_SYS_PWR_REG,	{ 0x0, 0x0, 0x0} },
@@ -162,7 +163,8 @@ static const struct exynos_pmu_conf exynos5420_pmu_config[] = {
 	{ PMU_TABLE_END,},
 };
 
-static unsigned int const exynos5420_list_disable_pmu_reg[] = {
+static unsigned int const exynos5420_list_disable_pmu_reg[] =
+{
 	EXYNOS5_CMU_CLKSTOP_GSCL_SYS_PWR_REG,
 	EXYNOS5_CMU_CLKSTOP_ISP_SYS_PWR_REG,
 	EXYNOS5_CMU_CLKSTOP_G3D_SYS_PWR_REG,
@@ -224,7 +226,9 @@ static void exynos5420_pmu_init(void)
 	 * "System-Level Power-Down Configuration Registers".
 	 */
 	for (i = 0; i < ARRAY_SIZE(exynos5420_list_disable_pmu_reg); i++)
+	{
 		pmu_raw_writel(0, exynos5420_list_disable_pmu_reg[i]);
+	}
 
 	/* Enable USE_STANDBY_WFI for all CORE */
 	pmu_raw_writel(EXYNOS5420_USE_STANDBY_WFI_ALL, S5P_CENTRAL_SEQ_OPTION);
@@ -266,14 +270,15 @@ static void exynos5420_pmu_init(void)
 	pmu_raw_writel(SPREAD_ENABLE, EXYNOS5420_ARM_INTR_SPREAD_ENABLE);
 
 	pmu_raw_writel(SPREAD_USE_STANDWFI,
-			EXYNOS5420_ARM_INTR_SPREAD_USE_STANDBYWFI);
+				   EXYNOS5420_ARM_INTR_SPREAD_USE_STANDBYWFI);
 
 	pmu_raw_writel(0x1, EXYNOS5420_UP_SCHEDULER);
 
 	pr_info("EXYNOS5420 PMU initialized\n");
 }
 
-const struct exynos_pmu_data exynos5420_pmu_data = {
+const struct exynos_pmu_data exynos5420_pmu_data =
+{
 	.pmu_config	= exynos5420_pmu_config,
 	.pmu_init	= exynos5420_pmu_init,
 	.powerdown_conf	= exynos5420_powerdown_conf,

@@ -44,8 +44,11 @@ nv50_fence_context_new(struct nouveau_channel *chan)
 	int ret, i;
 
 	fctx = chan->fence = kzalloc(sizeof(*fctx), GFP_KERNEL);
+
 	if (!fctx)
+	{
 		return -ENOMEM;
+	}
 
 	nouveau_fence_context_new(chan, &fctx->base);
 	fctx->base.emit = nv10_fence_emit;
@@ -53,32 +56,38 @@ nv50_fence_context_new(struct nouveau_channel *chan)
 	fctx->base.sync = nv17_fence_sync;
 
 	ret = nvif_object_init(&chan->user, NvSema, NV_DMA_IN_MEMORY,
-			       &(struct nv_dma_v0) {
-					.target = NV_DMA_V0_TARGET_VRAM,
-					.access = NV_DMA_V0_ACCESS_RDWR,
-					.start = start,
-					.limit = limit,
-			       }, sizeof(struct nv_dma_v0),
-			       &fctx->sema);
+						   &(struct nv_dma_v0)
+	{
+		.target = NV_DMA_V0_TARGET_VRAM,
+		 .access = NV_DMA_V0_ACCESS_RDWR,
+		  .start = start,
+		   .limit = limit,
+	}, sizeof(struct nv_dma_v0),
+	&fctx->sema);
 
 	/* dma objects for display sync channel semaphore blocks */
-	for (i = 0; !ret && i < dev->mode_config.num_crtc; i++) {
+	for (i = 0; !ret && i < dev->mode_config.num_crtc; i++)
+	{
 		struct nouveau_bo *bo = nv50_display_crtc_sema(dev, i);
 		u32 start = bo->bo.mem.start * PAGE_SIZE;
 		u32 limit = start + bo->bo.mem.size - 1;
 
 		ret = nvif_object_init(&chan->user, NvEvoSema0 + i,
-				       NV_DMA_IN_MEMORY, &(struct nv_dma_v0) {
-						.target = NV_DMA_V0_TARGET_VRAM,
-						.access = NV_DMA_V0_ACCESS_RDWR,
-						.start = start,
-						.limit = limit,
-				       }, sizeof(struct nv_dma_v0),
-				       &fctx->head[i]);
+							   NV_DMA_IN_MEMORY, &(struct nv_dma_v0)
+		{
+			.target = NV_DMA_V0_TARGET_VRAM,
+			 .access = NV_DMA_V0_ACCESS_RDWR,
+			  .start = start,
+			   .limit = limit,
+		}, sizeof(struct nv_dma_v0),
+		&fctx->head[i]);
 	}
 
 	if (ret)
+	{
 		nv10_fence_context_del(chan);
+	}
+
 	return ret;
 }
 
@@ -89,8 +98,11 @@ nv50_fence_create(struct nouveau_drm *drm)
 	int ret = 0;
 
 	priv = drm->fence = kzalloc(sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	priv->base.dtor = nv10_fence_destroy;
 	priv->base.resume = nv17_fence_resume;
@@ -101,19 +113,30 @@ nv50_fence_create(struct nouveau_drm *drm)
 	spin_lock_init(&priv->lock);
 
 	ret = nouveau_bo_new(drm->dev, 4096, 0x1000, TTM_PL_FLAG_VRAM,
-			     0, 0x0000, NULL, NULL, &priv->bo);
-	if (!ret) {
+						 0, 0x0000, NULL, NULL, &priv->bo);
+
+	if (!ret)
+	{
 		ret = nouveau_bo_pin(priv->bo, TTM_PL_FLAG_VRAM, false);
-		if (!ret) {
+
+		if (!ret)
+		{
 			ret = nouveau_bo_map(priv->bo);
+
 			if (ret)
+			{
 				nouveau_bo_unpin(priv->bo);
+			}
 		}
+
 		if (ret)
+		{
 			nouveau_bo_ref(NULL, &priv->bo);
+		}
 	}
 
-	if (ret) {
+	if (ret)
+	{
 		nv10_fence_destroy(drm);
 		return ret;
 	}

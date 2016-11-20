@@ -75,14 +75,17 @@
 static u8 trickle_resistors[] = {0, 3, 6, 11};
 
 enum abx80x_chip {AB0801, AB0803, AB0804, AB0805,
-	AB1801, AB1803, AB1804, AB1805, ABX80X};
+				  AB1801, AB1803, AB1804, AB1805, ABX80X
+				 };
 
-struct abx80x_cap {
+struct abx80x_cap
+{
 	u16 pn;
 	bool has_tc;
 };
 
-static struct abx80x_cap abx80x_caps[] = {
+static struct abx80x_cap abx80x_caps[] =
+{
 	[AB0801] = {.pn = 0x0801},
 	[AB0803] = {.pn = 0x0803},
 	[AB0804] = {.pn = 0x0804, .has_tc = true},
@@ -99,9 +102,11 @@ static int abx80x_is_rc_mode(struct i2c_client *client)
 	int flags = 0;
 
 	flags =  i2c_smbus_read_byte_data(client, ABX8XX_REG_OSS);
-	if (flags < 0) {
+
+	if (flags < 0)
+	{
 		dev_err(&client->dev,
-			"Failed to read autocalibration attribute\n");
+				"Failed to read autocalibration attribute\n");
 		return flags;
 	}
 
@@ -109,7 +114,7 @@ static int abx80x_is_rc_mode(struct i2c_client *client)
 }
 
 static int abx80x_enable_trickle_charger(struct i2c_client *client,
-					 u8 trickle_cfg)
+		u8 trickle_cfg)
 {
 	int err;
 
@@ -118,16 +123,20 @@ static int abx80x_enable_trickle_charger(struct i2c_client *client,
 	 * register
 	 */
 	err = i2c_smbus_write_byte_data(client, ABX8XX_REG_CFG_KEY,
-					ABX8XX_CFG_KEY_MISC);
-	if (err < 0) {
+									ABX8XX_CFG_KEY_MISC);
+
+	if (err < 0)
+	{
 		dev_err(&client->dev, "Unable to write configuration key\n");
 		return -EIO;
 	}
 
 	err = i2c_smbus_write_byte_data(client, ABX8XX_REG_TRICKLE,
-					ABX8XX_TRICKLE_CHARGE_ENABLE |
-					trickle_cfg);
-	if (err < 0) {
+									ABX8XX_TRICKLE_CHARGE_ENABLE |
+									trickle_cfg);
+
+	if (err < 0)
+	{
 		dev_err(&client->dev, "Unable to write trickle register\n");
 		return -EIO;
 	}
@@ -143,23 +152,33 @@ static int abx80x_rtc_read_time(struct device *dev, struct rtc_time *tm)
 
 	/* Read the Oscillator Failure only in XT mode */
 	rc_mode = abx80x_is_rc_mode(client);
+
 	if (rc_mode < 0)
+	{
 		return rc_mode;
+	}
 
-	if (!rc_mode) {
+	if (!rc_mode)
+	{
 		flags = i2c_smbus_read_byte_data(client, ABX8XX_REG_OSS);
-		if (flags < 0)
-			return flags;
 
-		if (flags & ABX8XX_OSS_OF) {
+		if (flags < 0)
+		{
+			return flags;
+		}
+
+		if (flags & ABX8XX_OSS_OF)
+		{
 			dev_err(dev, "Oscillator failure, data is invalid.\n");
 			return -EINVAL;
 		}
 	}
 
 	err = i2c_smbus_read_i2c_block_data(client, ABX8XX_REG_HTH,
-					    sizeof(buf), buf);
-	if (err < 0) {
+										sizeof(buf), buf);
+
+	if (err < 0)
+	{
 		dev_err(&client->dev, "Unable to read date\n");
 		return -EIO;
 	}
@@ -173,8 +192,11 @@ static int abx80x_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	tm->tm_year = bcd2bin(buf[ABX8XX_REG_YR]) + 100;
 
 	err = rtc_valid_tm(tm);
+
 	if (err < 0)
+	{
 		dev_err(&client->dev, "retrieved date/time is not valid.\n");
+	}
 
 	return err;
 }
@@ -186,7 +208,9 @@ static int abx80x_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	int err, flags;
 
 	if (tm->tm_year < 100)
+	{
 		return -EINVAL;
+	}
 
 	buf[ABX8XX_REG_HTH] = 0;
 	buf[ABX8XX_REG_SC] = bin2bcd(tm->tm_sec);
@@ -198,20 +222,27 @@ static int abx80x_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	buf[ABX8XX_REG_WD] = tm->tm_wday;
 
 	err = i2c_smbus_write_i2c_block_data(client, ABX8XX_REG_HTH,
-					     sizeof(buf), buf);
-	if (err < 0) {
+										 sizeof(buf), buf);
+
+	if (err < 0)
+	{
 		dev_err(&client->dev, "Unable to write to date registers\n");
 		return -EIO;
 	}
 
 	/* Clear the OF bit of Oscillator Status Register */
 	flags = i2c_smbus_read_byte_data(client, ABX8XX_REG_OSS);
+
 	if (flags < 0)
+	{
 		return flags;
+	}
 
 	err = i2c_smbus_write_byte_data(client, ABX8XX_REG_OSS,
-					flags & ~ABX8XX_OSS_OF);
-	if (err < 0) {
+									flags & ~ABX8XX_OSS_OF);
+
+	if (err < 0)
+	{
 		dev_err(&client->dev, "Unable to write oscillator status register\n");
 		return err;
 	}
@@ -226,11 +257,16 @@ static irqreturn_t abx80x_handle_irq(int irq, void *dev_id)
 	int status;
 
 	status = i2c_smbus_read_byte_data(client, ABX8XX_REG_STATUS);
+
 	if (status < 0)
+	{
 		return IRQ_NONE;
+	}
 
 	if (status & ABX8XX_STATUS_AF)
+	{
 		rtc_update_irq(rtc, 1, RTC_AF | RTC_IRQF);
+	}
 
 	i2c_smbus_write_byte_data(client, ABX8XX_REG_STATUS, 0);
 
@@ -245,16 +281,24 @@ static int abx80x_read_alarm(struct device *dev, struct rtc_wkalrm *t)
 	int irq_mask, err;
 
 	if (client->irq <= 0)
+	{
 		return -EINVAL;
+	}
 
 	err = i2c_smbus_read_i2c_block_data(client, ABX8XX_REG_ASC,
-					    sizeof(buf), buf);
+										sizeof(buf), buf);
+
 	if (err)
+	{
 		return err;
+	}
 
 	irq_mask = i2c_smbus_read_byte_data(client, ABX8XX_REG_IRQ);
+
 	if (irq_mask < 0)
+	{
 		return irq_mask;
+	}
 
 	t->time.tm_sec = bcd2bin(buf[0] & 0x7F);
 	t->time.tm_min = bcd2bin(buf[1] & 0x7F);
@@ -276,7 +320,9 @@ static int abx80x_set_alarm(struct device *dev, struct rtc_wkalrm *t)
 	int err;
 
 	if (client->irq <= 0)
+	{
 		return -EINVAL;
+	}
 
 	alarm[0] = 0x0;
 	alarm[1] = bin2bcd(t->time.tm_sec);
@@ -286,54 +332,71 @@ static int abx80x_set_alarm(struct device *dev, struct rtc_wkalrm *t)
 	alarm[5] = bin2bcd(t->time.tm_mon + 1);
 
 	err = i2c_smbus_write_i2c_block_data(client, ABX8XX_REG_AHTH,
-					     sizeof(alarm), alarm);
-	if (err < 0) {
+										 sizeof(alarm), alarm);
+
+	if (err < 0)
+	{
 		dev_err(&client->dev, "Unable to write alarm registers\n");
 		return -EIO;
 	}
 
-	if (t->enabled) {
+	if (t->enabled)
+	{
 		err = i2c_smbus_write_byte_data(client, ABX8XX_REG_IRQ,
-						(ABX8XX_IRQ_IM_1_4 |
-						 ABX8XX_IRQ_AIE));
+										(ABX8XX_IRQ_IM_1_4 |
+										 ABX8XX_IRQ_AIE));
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	return 0;
 }
 
 static int abx80x_rtc_set_autocalibration(struct device *dev,
-					  int autocalibration)
+		int autocalibration)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	int retval, flags = 0;
 
 	if ((autocalibration != 0) && (autocalibration != 1024) &&
-	    (autocalibration != 512)) {
+		(autocalibration != 512))
+	{
 		dev_err(dev, "autocalibration value outside permitted range\n");
 		return -EINVAL;
 	}
 
 	flags = i2c_smbus_read_byte_data(client, ABX8XX_REG_OSC);
-	if (flags < 0)
-		return flags;
 
-	if (autocalibration == 0) {
+	if (flags < 0)
+	{
+		return flags;
+	}
+
+	if (autocalibration == 0)
+	{
 		flags &= ~(ABX8XX_OSC_ACAL_512 | ABX8XX_OSC_ACAL_1024);
-	} else if (autocalibration == 1024) {
+	}
+	else if (autocalibration == 1024)
+	{
 		/* 1024 autocalibration is 0x10 */
 		flags |= ABX8XX_OSC_ACAL_1024;
 		flags &= ~(ABX8XX_OSC_ACAL_512);
-	} else {
+	}
+	else
+	{
 		/* 512 autocalibration is 0x11 */
 		flags |= (ABX8XX_OSC_ACAL_1024 | ABX8XX_OSC_ACAL_512);
 	}
 
 	/* Unlock write access to Oscillator Control Register */
 	retval = i2c_smbus_write_byte_data(client, ABX8XX_REG_CFG_KEY,
-					   ABX8XX_CFG_KEY_OSC);
-	if (retval < 0) {
+									   ABX8XX_CFG_KEY_OSC);
+
+	if (retval < 0)
+	{
 		dev_err(dev, "Failed to write CONFIG_KEY register\n");
 		return retval;
 	}
@@ -349,28 +412,39 @@ static int abx80x_rtc_get_autocalibration(struct device *dev)
 	int flags = 0, autocalibration;
 
 	flags =  i2c_smbus_read_byte_data(client, ABX8XX_REG_OSC);
+
 	if (flags < 0)
+	{
 		return flags;
+	}
 
 	if (flags & ABX8XX_OSC_ACAL_512)
+	{
 		autocalibration = 512;
+	}
 	else if (flags & ABX8XX_OSC_ACAL_1024)
+	{
 		autocalibration = 1024;
+	}
 	else
+	{
 		autocalibration = 0;
+	}
 
 	return autocalibration;
 }
 
 static ssize_t autocalibration_store(struct device *dev,
-				     struct device_attribute *attr,
-				     const char *buf, size_t count)
+									 struct device_attribute *attr,
+									 const char *buf, size_t count)
 {
 	int retval;
 	unsigned long autocalibration = 0;
 
 	retval = kstrtoul(buf, 10, &autocalibration);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		dev_err(dev, "Failed to store RTC autocalibration attribute\n");
 		return -EINVAL;
 	}
@@ -381,12 +455,14 @@ static ssize_t autocalibration_store(struct device *dev,
 }
 
 static ssize_t autocalibration_show(struct device *dev,
-				    struct device_attribute *attr, char *buf)
+									struct device_attribute *attr, char *buf)
 {
 	int autocalibration = 0;
 
 	autocalibration = abx80x_rtc_get_autocalibration(dev);
-	if (autocalibration < 0) {
+
+	if (autocalibration < 0)
+	{
 		dev_err(dev, "Failed to read RTC autocalibration\n");
 		sprintf(buf, "0\n");
 		return autocalibration;
@@ -398,40 +474,56 @@ static ssize_t autocalibration_show(struct device *dev,
 static DEVICE_ATTR_RW(autocalibration);
 
 static ssize_t oscillator_store(struct device *dev,
-				struct device_attribute *attr,
-				const char *buf, size_t count)
+								struct device_attribute *attr,
+								const char *buf, size_t count)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	int retval, flags, rc_mode = 0;
 
-	if (strncmp(buf, "rc", 2) == 0) {
+	if (strncmp(buf, "rc", 2) == 0)
+	{
 		rc_mode = 1;
-	} else if (strncmp(buf, "xtal", 4) == 0) {
+	}
+	else if (strncmp(buf, "xtal", 4) == 0)
+	{
 		rc_mode = 0;
-	} else {
+	}
+	else
+	{
 		dev_err(dev, "Oscillator selection value outside permitted ones\n");
 		return -EINVAL;
 	}
 
 	flags =  i2c_smbus_read_byte_data(client, ABX8XX_REG_OSC);
+
 	if (flags < 0)
+	{
 		return flags;
+	}
 
 	if (rc_mode == 0)
+	{
 		flags &= ~(ABX8XX_OSC_OSEL);
+	}
 	else
+	{
 		flags |= (ABX8XX_OSC_OSEL);
+	}
 
 	/* Unlock write access on Oscillator Control register */
 	retval = i2c_smbus_write_byte_data(client, ABX8XX_REG_CFG_KEY,
-					   ABX8XX_CFG_KEY_OSC);
-	if (retval < 0) {
+									   ABX8XX_CFG_KEY_OSC);
+
+	if (retval < 0)
+	{
 		dev_err(dev, "Failed to write CONFIG_KEY register\n");
 		return retval;
 	}
 
 	retval = i2c_smbus_write_byte_data(client, ABX8XX_REG_OSC, flags);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		dev_err(dev, "Failed to write Oscillator Control register\n");
 		return retval;
 	}
@@ -440,34 +532,41 @@ static ssize_t oscillator_store(struct device *dev,
 }
 
 static ssize_t oscillator_show(struct device *dev,
-			       struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	int rc_mode = 0;
 	struct i2c_client *client = to_i2c_client(dev);
 
 	rc_mode = abx80x_is_rc_mode(client);
 
-	if (rc_mode < 0) {
+	if (rc_mode < 0)
+	{
 		dev_err(dev, "Failed to read RTC oscillator selection\n");
 		sprintf(buf, "\n");
 		return rc_mode;
 	}
 
 	if (rc_mode)
+	{
 		return sprintf(buf, "rc\n");
+	}
 	else
+	{
 		return sprintf(buf, "xtal\n");
+	}
 }
 
 static DEVICE_ATTR_RW(oscillator);
 
-static struct attribute *rtc_calib_attrs[] = {
+static struct attribute *rtc_calib_attrs[] =
+{
 	&dev_attr_autocalibration.attr,
 	&dev_attr_oscillator.attr,
 	NULL,
 };
 
-static const struct attribute_group rtc_calib_attr_group = {
+static const struct attribute_group rtc_calib_attr_group =
+{
 	.attrs		= rtc_calib_attrs,
 };
 
@@ -478,15 +577,17 @@ static int abx80x_alarm_irq_enable(struct device *dev, unsigned int enabled)
 
 	if (enabled)
 		err = i2c_smbus_write_byte_data(client, ABX8XX_REG_IRQ,
-						(ABX8XX_IRQ_IM_1_4 |
-						 ABX8XX_IRQ_AIE));
+										(ABX8XX_IRQ_IM_1_4 |
+										 ABX8XX_IRQ_AIE));
 	else
 		err = i2c_smbus_write_byte_data(client, ABX8XX_REG_IRQ,
-						ABX8XX_IRQ_IM_1_4);
+										ABX8XX_IRQ_IM_1_4);
+
 	return err;
 }
 
-static const struct rtc_class_ops abx80x_rtc_ops = {
+static const struct rtc_class_ops abx80x_rtc_ops =
+{
 	.read_time	= abx80x_rtc_read_time,
 	.set_time	= abx80x_rtc_set_time,
 	.read_alarm	= abx80x_read_alarm,
@@ -502,26 +603,42 @@ static int abx80x_dt_trickle_cfg(struct device_node *np)
 	u32 tmp;
 
 	ret = of_property_read_string(np, "abracon,tc-diode", &diode);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (!strcmp(diode, "standard"))
+	{
 		trickle_cfg |= ABX8XX_TRICKLE_STANDARD_DIODE;
+	}
 	else if (!strcmp(diode, "schottky"))
+	{
 		trickle_cfg |= ABX8XX_TRICKLE_SCHOTTKY_DIODE;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	ret = of_property_read_u32(np, "abracon,tc-resistor", &tmp);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	for (i = 0; i < sizeof(trickle_resistors); i++)
 		if (trickle_resistors[i] == tmp)
+		{
 			break;
+		}
 
 	if (i == sizeof(trickle_resistors))
+	{
 		return -EINVAL;
+	}
 
 	return (trickle_cfg | i);
 }
@@ -534,7 +651,7 @@ static void rtc_calib_remove_sysfs_group(void *_dev)
 }
 
 static int abx80x_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct device_node *np = client->dev.of_node;
 	struct rtc_device *rtc;
@@ -548,11 +665,15 @@ static int abx80x_probe(struct i2c_client *client,
 	unsigned int uid;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		return -ENODEV;
+	}
 
 	err = i2c_smbus_read_i2c_block_data(client, ABX8XX_REG_ID0,
-					    sizeof(buf), buf);
-	if (err < 0) {
+										sizeof(buf), buf);
+
+	if (err < 0)
+	{
 		dev_err(&client->dev, "Unable to read partnumber\n");
 		return -EIO;
 	}
@@ -564,72 +685,94 @@ static int abx80x_probe(struct i2c_client *client,
 	uid = ((buf[4] & 0x7f) << 8) | buf[5];
 	wafer = (buf[6] & 0x7c) >> 2;
 	dev_info(&client->dev, "model %04x, revision %u.%u, lot %x, wafer %x, uid %x\n",
-		 partnumber, majrev, minrev, lot, wafer, uid);
+			 partnumber, majrev, minrev, lot, wafer, uid);
 
 	data = i2c_smbus_read_byte_data(client, ABX8XX_REG_CTRL1);
-	if (data < 0) {
+
+	if (data < 0)
+	{
 		dev_err(&client->dev, "Unable to read control register\n");
 		return -EIO;
 	}
 
 	err = i2c_smbus_write_byte_data(client, ABX8XX_REG_CTRL1,
-					((data & ~(ABX8XX_CTRL_12_24 |
-						   ABX8XX_CTRL_ARST)) |
-					 ABX8XX_CTRL_WRITE));
-	if (err < 0) {
+									((data & ~(ABX8XX_CTRL_12_24 |
+											ABX8XX_CTRL_ARST)) |
+									 ABX8XX_CTRL_WRITE));
+
+	if (err < 0)
+	{
 		dev_err(&client->dev, "Unable to write control register\n");
 		return -EIO;
 	}
 
 	/* part autodetection */
-	if (part == ABX80X) {
+	if (part == ABX80X)
+	{
 		for (i = 0; abx80x_caps[i].pn; i++)
 			if (partnumber == abx80x_caps[i].pn)
+			{
 				break;
-		if (abx80x_caps[i].pn == 0) {
+			}
+
+		if (abx80x_caps[i].pn == 0)
+		{
 			dev_err(&client->dev, "Unknown part: %04x\n",
-				partnumber);
+					partnumber);
 			return -EINVAL;
 		}
+
 		part = i;
 	}
 
-	if (partnumber != abx80x_caps[part].pn) {
+	if (partnumber != abx80x_caps[part].pn)
+	{
 		dev_err(&client->dev, "partnumber mismatch %04x != %04x\n",
-			partnumber, abx80x_caps[part].pn);
+				partnumber, abx80x_caps[part].pn);
 		return -EINVAL;
 	}
 
 	if (np && abx80x_caps[part].has_tc)
+	{
 		trickle_cfg = abx80x_dt_trickle_cfg(np);
+	}
 
-	if (trickle_cfg > 0) {
+	if (trickle_cfg > 0)
+	{
 		dev_info(&client->dev, "Enabling trickle charger: %02x\n",
-			 trickle_cfg);
+				 trickle_cfg);
 		abx80x_enable_trickle_charger(client, trickle_cfg);
 	}
 
 	err = i2c_smbus_write_byte_data(client, ABX8XX_REG_CD_TIMER_CTL,
-					BIT(2));
+									BIT(2));
+
 	if (err)
+	{
 		return err;
+	}
 
 	rtc = devm_rtc_device_register(&client->dev, "abx8xx",
-				       &abx80x_rtc_ops, THIS_MODULE);
+								   &abx80x_rtc_ops, THIS_MODULE);
 
 	if (IS_ERR(rtc))
+	{
 		return PTR_ERR(rtc);
+	}
 
 	i2c_set_clientdata(client, rtc);
 
-	if (client->irq > 0) {
+	if (client->irq > 0)
+	{
 		dev_info(&client->dev, "IRQ %d supplied\n", client->irq);
 		err = devm_request_threaded_irq(&client->dev, client->irq, NULL,
-						abx80x_handle_irq,
-						IRQF_SHARED | IRQF_ONESHOT,
-						"abx8xx",
-						client);
-		if (err) {
+										abx80x_handle_irq,
+										IRQF_SHARED | IRQF_ONESHOT,
+										"abx8xx",
+										client);
+
+		if (err)
+		{
 			dev_err(&client->dev, "unable to request IRQ, alarms disabled\n");
 			client->irq = 0;
 		}
@@ -637,19 +780,22 @@ static int abx80x_probe(struct i2c_client *client,
 
 	/* Export sysfs entries */
 	err = sysfs_create_group(&(&client->dev)->kobj, &rtc_calib_attr_group);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&client->dev, "Failed to create sysfs group: %d\n",
-			err);
+				err);
 		return err;
 	}
 
 	err = devm_add_action_or_reset(&client->dev,
-				       rtc_calib_remove_sysfs_group,
-				       &client->dev);
+								   rtc_calib_remove_sysfs_group,
+								   &client->dev);
+
 	if (err)
 		dev_err(&client->dev,
-			"Failed to add sysfs cleanup action: %d\n",
-			err);
+				"Failed to add sysfs cleanup action: %d\n",
+				err);
 
 	return err;
 }
@@ -659,7 +805,8 @@ static int abx80x_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id abx80x_id[] = {
+static const struct i2c_device_id abx80x_id[] =
+{
 	{ "abx80x", ABX80X },
 	{ "ab0801", AB0801 },
 	{ "ab0803", AB0803 },
@@ -674,7 +821,8 @@ static const struct i2c_device_id abx80x_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, abx80x_id);
 
-static struct i2c_driver abx80x_driver = {
+static struct i2c_driver abx80x_driver =
+{
 	.driver		= {
 		.name	= "rtc-abx80x",
 	},

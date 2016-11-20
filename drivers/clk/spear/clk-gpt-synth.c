@@ -32,7 +32,7 @@
 #define to_clk_gpt(_hw) container_of(_hw, struct clk_gpt, hw)
 
 static unsigned long gpt_calc_rate(struct clk_hw *hw, unsigned long prate,
-		int index)
+								   int index)
 {
 	struct clk_gpt *gpt = to_clk_gpt(hw);
 	struct gpt_rate_tbl *rtbl = gpt->rtbl;
@@ -43,13 +43,13 @@ static unsigned long gpt_calc_rate(struct clk_hw *hw, unsigned long prate,
 }
 
 static long clk_gpt_round_rate(struct clk_hw *hw, unsigned long drate,
-		unsigned long *prate)
+							   unsigned long *prate)
 {
 	struct clk_gpt *gpt = to_clk_gpt(hw);
 	int unused;
 
 	return clk_round_rate_index(hw, drate, *prate, gpt_calc_rate,
-			gpt->rtbl_cnt, &unused);
+								gpt->rtbl_cnt, &unused);
 }
 
 static unsigned long clk_gpt_recalc_rate(struct clk_hw *hw,
@@ -60,25 +60,31 @@ static unsigned long clk_gpt_recalc_rate(struct clk_hw *hw,
 	unsigned int div = 1, val;
 
 	if (gpt->lock)
+	{
 		spin_lock_irqsave(gpt->lock, flags);
+	}
 
 	val = readl_relaxed(gpt->reg);
 
 	if (gpt->lock)
+	{
 		spin_unlock_irqrestore(gpt->lock, flags);
+	}
 
 	div += val & GPT_MSCALE_MASK;
 	div *= 1 << (((val >> GPT_NSCALE_SHIFT) & GPT_NSCALE_MASK) + 1);
 
 	if (!div)
+	{
 		return 0;
+	}
 
 	return parent_rate / div;
 }
 
 /* Configures new clock rate of gpt */
 static int clk_gpt_set_rate(struct clk_hw *hw, unsigned long drate,
-				unsigned long prate)
+							unsigned long prate)
 {
 	struct clk_gpt *gpt = to_clk_gpt(hw);
 	struct gpt_rate_tbl *rtbl = gpt->rtbl;
@@ -86,10 +92,12 @@ static int clk_gpt_set_rate(struct clk_hw *hw, unsigned long drate,
 	int i;
 
 	clk_round_rate_index(hw, drate, prate, gpt_calc_rate, gpt->rtbl_cnt,
-			&i);
+						 &i);
 
 	if (gpt->lock)
+	{
 		spin_lock_irqsave(gpt->lock, flags);
+	}
 
 	val = readl(gpt->reg) & ~GPT_MSCALE_MASK;
 	val &= ~(GPT_NSCALE_MASK << GPT_NSCALE_SHIFT);
@@ -100,32 +108,38 @@ static int clk_gpt_set_rate(struct clk_hw *hw, unsigned long drate,
 	writel_relaxed(val, gpt->reg);
 
 	if (gpt->lock)
+	{
 		spin_unlock_irqrestore(gpt->lock, flags);
+	}
 
 	return 0;
 }
 
-static struct clk_ops clk_gpt_ops = {
+static struct clk_ops clk_gpt_ops =
+{
 	.recalc_rate = clk_gpt_recalc_rate,
 	.round_rate = clk_gpt_round_rate,
 	.set_rate = clk_gpt_set_rate,
 };
 
 struct clk *clk_register_gpt(const char *name, const char *parent_name, unsigned
-		long flags, void __iomem *reg, struct gpt_rate_tbl *rtbl, u8
-		rtbl_cnt, spinlock_t *lock)
+							 long flags, void __iomem *reg, struct gpt_rate_tbl *rtbl, u8
+							 rtbl_cnt, spinlock_t *lock)
 {
 	struct clk_init_data init;
 	struct clk_gpt *gpt;
 	struct clk *clk;
 
-	if (!name || !parent_name || !reg || !rtbl || !rtbl_cnt) {
+	if (!name || !parent_name || !reg || !rtbl || !rtbl_cnt)
+	{
 		pr_err("Invalid arguments passed");
 		return ERR_PTR(-EINVAL);
 	}
 
 	gpt = kzalloc(sizeof(*gpt), GFP_KERNEL);
-	if (!gpt) {
+
+	if (!gpt)
+	{
 		pr_err("could not allocate gpt clk\n");
 		return ERR_PTR(-ENOMEM);
 	}
@@ -144,8 +158,11 @@ struct clk *clk_register_gpt(const char *name, const char *parent_name, unsigned
 	init.num_parents = 1;
 
 	clk = clk_register(NULL, &gpt->hw);
+
 	if (!IS_ERR_OR_NULL(clk))
+	{
 		return clk;
+	}
 
 	pr_err("clk register failed\n");
 	kfree(gpt);

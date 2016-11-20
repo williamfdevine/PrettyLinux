@@ -28,7 +28,8 @@
  ******************************************************************************/
 
 const struct gf100_gr_init
-gf104_grctx_init_tex_0[] = {
+	gf104_grctx_init_tex_0[] =
+{
 	{ 0x419a00,   1, 0x04, 0x000001f0 },
 	{ 0x419a04,   1, 0x04, 0x00000001 },
 	{ 0x419a08,   1, 0x04, 0x00000023 },
@@ -42,7 +43,8 @@ gf104_grctx_init_tex_0[] = {
 };
 
 const struct gf100_gr_init
-gf104_grctx_init_l1c_0[] = {
+	gf104_grctx_init_l1c_0[] =
+{
 	{ 0x419cb0,   1, 0x04, 0x00020048 },
 	{ 0x419ce8,   1, 0x04, 0x00000000 },
 	{ 0x419cf4,   1, 0x04, 0x00000183 },
@@ -50,7 +52,8 @@ gf104_grctx_init_l1c_0[] = {
 };
 
 const struct gf100_gr_init
-gf104_grctx_init_sm_0[] = {
+	gf104_grctx_init_sm_0[] =
+{
 	{ 0x419e04,   3, 0x04, 0x00000000 },
 	{ 0x419e10,   1, 0x04, 0x00000002 },
 	{ 0x419e44,   1, 0x04, 0x001beff2 },
@@ -64,7 +67,8 @@ gf104_grctx_init_sm_0[] = {
 };
 
 static const struct gf100_gr_pack
-gf104_grctx_pack_tpc[] = {
+	gf104_grctx_pack_tpc[] =
+{
 	{ gf100_grctx_init_pe_0 },
 	{ gf104_grctx_init_tex_0 },
 	{ gf100_grctx_init_wwdx_0 },
@@ -80,7 +84,8 @@ gf104_grctx_pack_tpc[] = {
  ******************************************************************************/
 
 const struct gf100_grctx_func
-gf104_grctx = {
+	gf104_grctx =
+{
 	.main  = gf100_grctx_generate_main,
 	.unkn  = gf100_grctx_generate_unkn,
 	.hub   = gf100_grctx_pack_hub,

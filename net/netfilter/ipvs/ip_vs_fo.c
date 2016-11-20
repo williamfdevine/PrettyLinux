@@ -24,7 +24,7 @@
 /* Weighted Fail Over Module */
 static struct ip_vs_dest *
 ip_vs_fo_schedule(struct ip_vs_service *svc, const struct sk_buff *skb,
-		  struct ip_vs_iphdr *iph)
+				  struct ip_vs_iphdr *iph)
 {
 	struct ip_vs_dest *dest, *hweight = NULL;
 	int hw = 0; /* Track highest weight */
@@ -34,20 +34,23 @@ ip_vs_fo_schedule(struct ip_vs_service *svc, const struct sk_buff *skb,
 	/* Basic failover functionality
 	 * Find virtual server with highest weight and send it traffic
 	 */
-	list_for_each_entry_rcu(dest, &svc->destinations, n_list) {
+	list_for_each_entry_rcu(dest, &svc->destinations, n_list)
+	{
 		if (!(dest->flags & IP_VS_DEST_F_OVERLOAD) &&
-		    atomic_read(&dest->weight) > hw) {
+			atomic_read(&dest->weight) > hw)
+		{
 			hweight = dest;
 			hw = atomic_read(&dest->weight);
 		}
 	}
 
-	if (hweight) {
+	if (hweight)
+	{
 		IP_VS_DBG_BUF(6, "FO: server %s:%u activeconns %d weight %d\n",
-			      IP_VS_DBG_ADDR(hweight->af, &hweight->addr),
-			      ntohs(hweight->port),
-			      atomic_read(&hweight->activeconns),
-			      atomic_read(&hweight->weight));
+					  IP_VS_DBG_ADDR(hweight->af, &hweight->addr),
+					  ntohs(hweight->port),
+					  atomic_read(&hweight->activeconns),
+					  atomic_read(&hweight->weight));
 		return hweight;
 	}
 
@@ -55,7 +58,8 @@ ip_vs_fo_schedule(struct ip_vs_service *svc, const struct sk_buff *skb,
 	return NULL;
 }
 
-static struct ip_vs_scheduler ip_vs_fo_scheduler = {
+static struct ip_vs_scheduler ip_vs_fo_scheduler =
+{
 	.name =			"fo",
 	.refcnt =		ATOMIC_INIT(0),
 	.module =		THIS_MODULE,

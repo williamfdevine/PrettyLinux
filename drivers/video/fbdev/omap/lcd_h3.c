@@ -43,10 +43,16 @@ static int h3_panel_enable(struct lcd_panel *panel)
 
 	/* GPIO1 and GPIO2 of TPS65010 send LCD_ENBKL and LCD_ENVDD signals */
 	r = tps65010_set_gpio_out_value(GPIO1, HIGH);
+
 	if (!r)
+	{
 		r = tps65010_set_gpio_out_value(GPIO2, HIGH);
+	}
+
 	if (r)
+	{
 		pr_err(MODULE_NAME ": Unable to turn on LCD panel\n");
+	}
 
 	return r;
 }
@@ -57,10 +63,16 @@ static void h3_panel_disable(struct lcd_panel *panel)
 
 	/* GPIO1 and GPIO2 of TPS65010 send LCD_ENBKL and LCD_ENVDD signals */
 	r = tps65010_set_gpio_out_value(GPIO1, LOW);
+
 	if (!r)
+	{
 		tps65010_set_gpio_out_value(GPIO2, LOW);
+	}
+
 	if (r)
+	{
 		pr_err(MODULE_NAME ": Unable to turn off LCD panel\n");
+	}
 }
 
 static unsigned long h3_panel_get_caps(struct lcd_panel *panel)
@@ -68,7 +80,8 @@ static unsigned long h3_panel_get_caps(struct lcd_panel *panel)
 	return 0;
 }
 
-struct lcd_panel h3_panel = {
+struct lcd_panel h3_panel =
+{
 	.name		= "h3",
 	.config		= OMAP_LCDC_PANEL_TFT,
 
@@ -113,7 +126,8 @@ static int h3_panel_resume(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver h3_panel_driver = {
+static struct platform_driver h3_panel_driver =
+{
 	.probe		= h3_panel_probe,
 	.remove		= h3_panel_remove,
 	.suspend	= h3_panel_suspend,

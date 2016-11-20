@@ -84,31 +84,45 @@ static void desc_list_free(void)
 	dma_addr_t dma_handle = 0;
 #endif
 
-	if (tx_desc) {
+	if (tx_desc)
+	{
 		t = tx_list_head;
-		for (i = 0; i < CONFIG_BFIN_TX_DESC_NUM; i++) {
-			if (t) {
-				if (t->skb) {
+
+		for (i = 0; i < CONFIG_BFIN_TX_DESC_NUM; i++)
+		{
+			if (t)
+			{
+				if (t->skb)
+				{
 					dev_kfree_skb(t->skb);
 					t->skb = NULL;
 				}
+
 				t = t->next;
 			}
 		}
+
 		bfin_mac_free(dma_handle, tx_desc, CONFIG_BFIN_TX_DESC_NUM);
 	}
 
-	if (rx_desc) {
+	if (rx_desc)
+	{
 		r = rx_list_head;
-		for (i = 0; i < CONFIG_BFIN_RX_DESC_NUM; i++) {
-			if (r) {
-				if (r->skb) {
+
+		for (i = 0; i < CONFIG_BFIN_RX_DESC_NUM; i++)
+		{
+			if (r)
+			{
+				if (r->skb)
+				{
 					dev_kfree_skb(r->skb);
 					r->skb = NULL;
 				}
+
 				r = r->next;
 			}
 		}
+
 		bfin_mac_free(dma_handle, rx_desc, CONFIG_BFIN_RX_DESC_NUM);
 	}
 }
@@ -126,21 +140,28 @@ static int desc_list_init(struct net_device *dev)
 #endif
 
 	tx_desc = bfin_mac_alloc(&dma_handle,
-				sizeof(struct net_dma_desc_tx),
-				CONFIG_BFIN_TX_DESC_NUM);
+							 sizeof(struct net_dma_desc_tx),
+							 CONFIG_BFIN_TX_DESC_NUM);
+
 	if (tx_desc == NULL)
+	{
 		goto init_error;
+	}
 
 	rx_desc = bfin_mac_alloc(&dma_handle,
-				sizeof(struct net_dma_desc_rx),
-				CONFIG_BFIN_RX_DESC_NUM);
+							 sizeof(struct net_dma_desc_rx),
+							 CONFIG_BFIN_RX_DESC_NUM);
+
 	if (rx_desc == NULL)
+	{
 		goto init_error;
+	}
 
 	/* init tx_list */
 	tx_list_head = tx_list_tail = tx_desc;
 
-	for (i = 0; i < CONFIG_BFIN_TX_DESC_NUM; i++) {
+	for (i = 0; i < CONFIG_BFIN_TX_DESC_NUM; i++)
+	{
 		struct net_dma_desc_tx *t = tx_desc + i;
 		struct dma_descriptor *a = &(t->desc_a);
 		struct dma_descriptor *b = &(t->desc_b);
@@ -174,6 +195,7 @@ static int desc_list_init(struct net_device *dev)
 		tx_list_tail->next = t;
 		tx_list_tail = t;
 	}
+
 	tx_list_tail->next = tx_list_head;	/* tx_list is a circle */
 	tx_list_tail->desc_b.next_dma_desc = &(tx_list_head->desc_a);
 	current_tx_ptr = tx_list_head;
@@ -181,22 +203,26 @@ static int desc_list_init(struct net_device *dev)
 	/* init rx_list */
 	rx_list_head = rx_list_tail = rx_desc;
 
-	for (i = 0; i < CONFIG_BFIN_RX_DESC_NUM; i++) {
+	for (i = 0; i < CONFIG_BFIN_RX_DESC_NUM; i++)
+	{
 		struct net_dma_desc_rx *r = rx_desc + i;
 		struct dma_descriptor *a = &(r->desc_a);
 		struct dma_descriptor *b = &(r->desc_b);
 
 		/* allocate a new skb for next time receive */
 		new_skb = netdev_alloc_skb(dev, PKT_BUF_SZ + NET_IP_ALIGN);
+
 		if (!new_skb)
+		{
 			goto init_error;
+		}
 
 		skb_reserve(new_skb, NET_IP_ALIGN);
 		/* Invalidate the data cache of skb->data range when it is write back
 		 * cache. It will prevent overwriting the new data from DMA
 		 */
 		blackfin_dcache_invalidate_range((unsigned long)new_skb->head,
-					 (unsigned long)new_skb->end);
+										 (unsigned long)new_skb->end);
 		r->skb = new_skb;
 
 		/*
@@ -222,7 +248,7 @@ static int desc_list_init(struct net_device *dev)
 		 * large desc flow
 		 */
 		b->config = DMAEN | WNR | WDSIZE_32 | DI_EN |
-				NDSIZE_6 | DMAFLOW_LARGE;
+					NDSIZE_6 | DMAFLOW_LARGE;
 		b->start_addr = (unsigned long)(&(r->status));
 		b->x_count = 0;
 
@@ -230,6 +256,7 @@ static int desc_list_init(struct net_device *dev)
 		rx_list_tail->next = r;
 		rx_list_tail = r;
 	}
+
 	rx_list_tail->next = rx_list_head;	/* rx_list is a circle */
 	rx_list_tail->desc_b.next_dma_desc = &(rx_list_head->desc_a);
 	current_rx_ptr = rx_list_head;
@@ -254,9 +281,12 @@ static int bfin_mdio_poll(void)
 	int timeout_cnt = MAX_TIMEOUT_CNT;
 
 	/* poll the STABUSY bit */
-	while ((bfin_read_EMAC_STAADD()) & STABUSY) {
+	while ((bfin_read_EMAC_STAADD()) & STABUSY)
+	{
 		udelay(1);
-		if (timeout_cnt-- < 0) {
+
+		if (timeout_cnt-- < 0)
+		{
 			pr_err("wait MDC/MDIO transaction to complete timeout\n");
 			return -ETIMEDOUT;
 		}
@@ -271,38 +301,47 @@ static int bfin_mdiobus_read(struct mii_bus *bus, int phy_addr, int regnum)
 	int ret;
 
 	ret = bfin_mdio_poll();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* read mode */
 	bfin_write_EMAC_STAADD(SET_PHYAD((u16) phy_addr) |
-				SET_REGAD((u16) regnum) |
-				STABUSY);
+						   SET_REGAD((u16) regnum) |
+						   STABUSY);
 
 	ret = bfin_mdio_poll();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return (int) bfin_read_EMAC_STADAT();
 }
 
 /* Write an off-chip register in a PHY through the MDC/MDIO port */
 static int bfin_mdiobus_write(struct mii_bus *bus, int phy_addr, int regnum,
-			      u16 value)
+							  u16 value)
 {
 	int ret;
 
 	ret = bfin_mdio_poll();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	bfin_write_EMAC_STADAT((u32) value);
 
 	/* write mode */
 	bfin_write_EMAC_STAADD(SET_PHYAD((u16) phy_addr) |
-				SET_REGAD((u16) regnum) |
-				STAOP |
-				STABUSY);
+						   SET_REGAD((u16) regnum) |
+						   STAOP |
+						   STABUSY);
 
 	return bfin_mdio_poll();
 }
@@ -315,38 +354,52 @@ static void bfin_mac_adjust_link(struct net_device *dev)
 	int new_state = 0;
 
 	spin_lock_irqsave(&lp->lock, flags);
-	if (phydev->link) {
+
+	if (phydev->link)
+	{
 		/* Now we make sure that we can be in full duplex mode.
 		 * If not, we operate in half-duplex mode. */
-		if (phydev->duplex != lp->old_duplex) {
+		if (phydev->duplex != lp->old_duplex)
+		{
 			u32 opmode = bfin_read_EMAC_OPMODE();
 			new_state = 1;
 
 			if (phydev->duplex)
+			{
 				opmode |= FDMODE;
+			}
 			else
+			{
 				opmode &= ~(FDMODE);
+			}
 
 			bfin_write_EMAC_OPMODE(opmode);
 			lp->old_duplex = phydev->duplex;
 		}
 
-		if (phydev->speed != lp->old_speed) {
-			if (phydev->interface == PHY_INTERFACE_MODE_RMII) {
+		if (phydev->speed != lp->old_speed)
+		{
+			if (phydev->interface == PHY_INTERFACE_MODE_RMII)
+			{
 				u32 opmode = bfin_read_EMAC_OPMODE();
-				switch (phydev->speed) {
-				case 10:
-					opmode |= RMII_10;
-					break;
-				case 100:
-					opmode &= ~RMII_10;
-					break;
-				default:
-					netdev_warn(dev,
-						"Ack! Speed (%d) is not 10/100!\n",
-						phydev->speed);
-					break;
+
+				switch (phydev->speed)
+				{
+					case 10:
+						opmode |= RMII_10;
+						break;
+
+					case 100:
+						opmode &= ~RMII_10;
+						break;
+
+					default:
+						netdev_warn(dev,
+									"Ack! Speed (%d) is not 10/100!\n",
+									phydev->speed);
+						break;
 				}
+
 				bfin_write_EMAC_OPMODE(opmode);
 			}
 
@@ -354,18 +407,22 @@ static void bfin_mac_adjust_link(struct net_device *dev)
 			lp->old_speed = phydev->speed;
 		}
 
-		if (!lp->old_link) {
+		if (!lp->old_link)
+		{
 			new_state = 1;
 			lp->old_link = 1;
 		}
-	} else if (lp->old_link) {
+	}
+	else if (lp->old_link)
+	{
 		new_state = 1;
 		lp->old_link = 0;
 		lp->old_speed = 0;
 		lp->old_duplex = -1;
 	}
 
-	if (new_state) {
+	if (new_state)
+	{
 		u32 opmode = bfin_read_EMAC_OPMODE();
 		phy_print_status(phydev);
 		pr_debug("EMAC_OPMODE = 0x%08x\n", opmode);
@@ -386,7 +443,9 @@ static int mii_probe(struct net_device *dev, int phy_mode)
 
 	/* Enable PHY output early */
 	if (!(bfin_read_VR_CTL() & CLKBUFOE))
+	{
 		bfin_write_VR_CTL(bfin_read_VR_CTL() | CLKBUFOE);
+	}
 
 	sclk = get_sclk();
 	mdc_div = ((sclk / MDC_CLK) / 2) - 1;
@@ -396,34 +455,38 @@ static int mii_probe(struct net_device *dev, int phy_mode)
 	bfin_write_EMAC_SYSCTL(sysctl);
 
 	phydev = phy_find_first(lp->mii_bus);
-	if (!phydev) {
+
+	if (!phydev)
+	{
 		netdev_err(dev, "no phy device found\n");
 		return -ENODEV;
 	}
 
 	if (phy_mode != PHY_INTERFACE_MODE_RMII &&
-		phy_mode != PHY_INTERFACE_MODE_MII) {
+		phy_mode != PHY_INTERFACE_MODE_MII)
+	{
 		netdev_err(dev, "invalid phy interface mode\n");
 		return -EINVAL;
 	}
 
 	phydev = phy_connect(dev, phydev_name(phydev),
-			     &bfin_mac_adjust_link, phy_mode);
+						 &bfin_mac_adjust_link, phy_mode);
 
-	if (IS_ERR(phydev)) {
+	if (IS_ERR(phydev))
+	{
 		netdev_err(dev, "could not attach PHY\n");
 		return PTR_ERR(phydev);
 	}
 
 	/* mask with MAC supported features */
 	phydev->supported &= (SUPPORTED_10baseT_Half
-			      | SUPPORTED_10baseT_Full
-			      | SUPPORTED_100baseT_Half
-			      | SUPPORTED_100baseT_Full
-			      | SUPPORTED_Autoneg
-			      | SUPPORTED_Pause | SUPPORTED_Asym_Pause
-			      | SUPPORTED_MII
-			      | SUPPORTED_TP);
+						  | SUPPORTED_10baseT_Full
+						  | SUPPORTED_100baseT_Half
+						  | SUPPORTED_100baseT_Full
+						  | SUPPORTED_Autoneg
+						  | SUPPORTED_Pause | SUPPORTED_Asym_Pause
+						  | SUPPORTED_MII
+						  | SUPPORTED_TP);
 
 	phydev->advertising = phydev->supported;
 
@@ -432,7 +495,7 @@ static int mii_probe(struct net_device *dev, int phy_mode)
 	lp->old_duplex = -1;
 
 	phy_attached_print(phydev, "mdc_clk=%dHz(mdc_div=%d)@sclk=%dMHz)\n",
-			   MDC_CLK, mdc_div, sclk / 1000000);
+					   MDC_CLK, mdc_div, sclk / 1000000);
 
 	return 0;
 }
@@ -450,7 +513,7 @@ static irqreturn_t bfin_mac_wake_interrupt(int irq, void *dev_id)
 }
 
 static void bfin_mac_ethtool_getdrvinfo(struct net_device *dev,
-					struct ethtool_drvinfo *info)
+										struct ethtool_drvinfo *info)
 {
 	strlcpy(info->driver, KBUILD_MODNAME, sizeof(info->driver));
 	strlcpy(info->version, DRV_VERSION, sizeof(info->version));
@@ -459,7 +522,7 @@ static void bfin_mac_ethtool_getdrvinfo(struct net_device *dev,
 }
 
 static void bfin_mac_ethtool_getwol(struct net_device *dev,
-	struct ethtool_wolinfo *wolinfo)
+									struct ethtool_wolinfo *wolinfo)
 {
 	struct bfin_mac_local *lp = netdev_priv(dev);
 
@@ -468,30 +531,38 @@ static void bfin_mac_ethtool_getwol(struct net_device *dev,
 }
 
 static int bfin_mac_ethtool_setwol(struct net_device *dev,
-	struct ethtool_wolinfo *wolinfo)
+								   struct ethtool_wolinfo *wolinfo)
 {
 	struct bfin_mac_local *lp = netdev_priv(dev);
 	int rc;
 
 	if (wolinfo->wolopts & (WAKE_MAGICSECURE |
-				WAKE_UCAST |
-				WAKE_MCAST |
-				WAKE_BCAST |
-				WAKE_ARP))
+							WAKE_UCAST |
+							WAKE_MCAST |
+							WAKE_BCAST |
+							WAKE_ARP))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	lp->wol = wolinfo->wolopts;
 
-	if (lp->wol && !lp->irq_wake_requested) {
+	if (lp->wol && !lp->irq_wake_requested)
+	{
 		/* register wake irq handler */
 		rc = request_irq(IRQ_MAC_WAKEDET, bfin_mac_wake_interrupt,
-				 0, "EMAC_WAKE", dev);
+						 0, "EMAC_WAKE", dev);
+
 		if (rc)
+		{
 			return rc;
+		}
+
 		lp->irq_wake_requested = true;
 	}
 
-	if (!lp->wol && lp->irq_wake_requested) {
+	if (!lp->wol && lp->irq_wake_requested)
+	{
 		free_irq(IRQ_MAC_WAKEDET, dev);
 		lp->irq_wake_requested = false;
 	}
@@ -504,7 +575,7 @@ static int bfin_mac_ethtool_setwol(struct net_device *dev,
 
 #ifdef CONFIG_BFIN_MAC_USE_HWSTAMP
 static int bfin_mac_ethtool_get_ts_info(struct net_device *dev,
-	struct ethtool_ts_info *info)
+										struct ethtool_ts_info *info)
 {
 	struct bfin_mac_local *lp = netdev_priv(dev);
 
@@ -525,7 +596,8 @@ static int bfin_mac_ethtool_get_ts_info(struct net_device *dev,
 }
 #endif
 
-static const struct ethtool_ops bfin_mac_ethtool_ops = {
+static const struct ethtool_ops bfin_mac_ethtool_ops =
+{
 	.get_link = ethtool_op_get_link,
 	.get_drvinfo = bfin_mac_ethtool_getdrvinfo,
 	.get_wol = bfin_mac_ethtool_getwol,
@@ -549,15 +621,22 @@ static void setup_system_regs(struct net_device *dev)
 	 * Configure checksum support and rcve frame word alignment
 	 */
 	sysctl = bfin_read_EMAC_SYSCTL();
+
 	/*
 	 * check if interrupt is requested for any PHY,
 	 * enable PHY interrupt only if needed
 	 */
 	for (i = 0; i < PHY_MAX_ADDR; ++i)
 		if (lp->mii_bus->irq[i] != PHY_POLL)
+		{
 			break;
+		}
+
 	if (i < PHY_MAX_ADDR)
+	{
 		sysctl |= PHYIE;
+	}
+
 	sysctl |= RXDWA;
 #if defined(BFIN_MAC_CSUM_OFFLOAD)
 	sysctl |= RXCKS;
@@ -598,8 +677,12 @@ static void setup_mac_addr(u8 *mac_addr)
 static int bfin_mac_set_mac_address(struct net_device *dev, void *p)
 {
 	struct sockaddr *addr = p;
+
 	if (netif_running(dev))
+	{
 		return -EBUSY;
+	}
+
 	memcpy(dev->dev_addr, addr->sa_data, dev->addr_len);
 	setup_mac_addr(dev->dev_addr);
 	return 0;
@@ -614,16 +697,18 @@ static u32 bfin_select_phc_clock(u32 input_clk, unsigned int *shift_result)
 	u32 ppn = 1;
 	unsigned int shift = 0;
 
-	while (ppn <= ipn) {
+	while (ppn <= ipn)
+	{
 		ppn <<= 1;
 		shift++;
 	}
+
 	*shift_result = shift;
 	return 1000000000UL / ppn;
 }
 
 static int bfin_mac_hwtstamp_set(struct net_device *netdev,
-				 struct ifreq *ifr)
+								 struct ifreq *ifr)
 {
 	struct hwtstamp_config config;
 	struct bfin_mac_local *lp = netdev_priv(netdev);
@@ -631,134 +716,148 @@ static int bfin_mac_hwtstamp_set(struct net_device *netdev,
 	u32 ptpfv1, ptpfv2, ptpfv3, ptpfoff;
 
 	if (copy_from_user(&config, ifr->ifr_data, sizeof(config)))
+	{
 		return -EFAULT;
+	}
 
 	pr_debug("%s config flag:0x%x, tx_type:0x%x, rx_filter:0x%x\n",
-			__func__, config.flags, config.tx_type, config.rx_filter);
+			 __func__, config.flags, config.tx_type, config.rx_filter);
 
 	/* reserved for future extensions */
 	if (config.flags)
+	{
 		return -EINVAL;
+	}
 
 	if ((config.tx_type != HWTSTAMP_TX_OFF) &&
-			(config.tx_type != HWTSTAMP_TX_ON))
-		return -ERANGE;
-
-	ptpctl = bfin_read_EMAC_PTP_CTL();
-
-	switch (config.rx_filter) {
-	case HWTSTAMP_FILTER_NONE:
-		/*
-		 * Dont allow any timestamping
-		 */
-		ptpfv3 = 0xFFFFFFFF;
-		bfin_write_EMAC_PTP_FV3(ptpfv3);
-		break;
-	case HWTSTAMP_FILTER_PTP_V1_L4_EVENT:
-	case HWTSTAMP_FILTER_PTP_V1_L4_SYNC:
-	case HWTSTAMP_FILTER_PTP_V1_L4_DELAY_REQ:
-		/*
-		 * Clear the five comparison mask bits (bits[12:8]) in EMAC_PTP_CTL)
-		 * to enable all the field matches.
-		 */
-		ptpctl &= ~0x1F00;
-		bfin_write_EMAC_PTP_CTL(ptpctl);
-		/*
-		 * Keep the default values of the EMAC_PTP_FOFF register.
-		 */
-		ptpfoff = 0x4A24170C;
-		bfin_write_EMAC_PTP_FOFF(ptpfoff);
-		/*
-		 * Keep the default values of the EMAC_PTP_FV1 and EMAC_PTP_FV2
-		 * registers.
-		 */
-		ptpfv1 = 0x11040800;
-		bfin_write_EMAC_PTP_FV1(ptpfv1);
-		ptpfv2 = 0x0140013F;
-		bfin_write_EMAC_PTP_FV2(ptpfv2);
-		/*
-		 * The default value (0xFFFC) allows the timestamping of both
-		 * received Sync messages and Delay_Req messages.
-		 */
-		ptpfv3 = 0xFFFFFFFC;
-		bfin_write_EMAC_PTP_FV3(ptpfv3);
-
-		config.rx_filter = HWTSTAMP_FILTER_PTP_V1_L4_EVENT;
-		break;
-	case HWTSTAMP_FILTER_PTP_V2_L4_EVENT:
-	case HWTSTAMP_FILTER_PTP_V2_L4_SYNC:
-	case HWTSTAMP_FILTER_PTP_V2_DELAY_REQ:
-		/* Clear all five comparison mask bits (bits[12:8]) in the
-		 * EMAC_PTP_CTL register to enable all the field matches.
-		 */
-		ptpctl &= ~0x1F00;
-		bfin_write_EMAC_PTP_CTL(ptpctl);
-		/*
-		 * Keep the default values of the EMAC_PTP_FOFF register, except set
-		 * the PTPCOF field to 0x2A.
-		 */
-		ptpfoff = 0x2A24170C;
-		bfin_write_EMAC_PTP_FOFF(ptpfoff);
-		/*
-		 * Keep the default values of the EMAC_PTP_FV1 and EMAC_PTP_FV2
-		 * registers.
-		 */
-		ptpfv1 = 0x11040800;
-		bfin_write_EMAC_PTP_FV1(ptpfv1);
-		ptpfv2 = 0x0140013F;
-		bfin_write_EMAC_PTP_FV2(ptpfv2);
-		/*
-		 * To allow the timestamping of Pdelay_Req and Pdelay_Resp, set
-		 * the value to 0xFFF0.
-		 */
-		ptpfv3 = 0xFFFFFFF0;
-		bfin_write_EMAC_PTP_FV3(ptpfv3);
-
-		config.rx_filter = HWTSTAMP_FILTER_PTP_V2_L4_EVENT;
-		break;
-	case HWTSTAMP_FILTER_PTP_V2_L2_EVENT:
-	case HWTSTAMP_FILTER_PTP_V2_L2_SYNC:
-	case HWTSTAMP_FILTER_PTP_V2_L2_DELAY_REQ:
-		/*
-		 * Clear bits 8 and 12 of the EMAC_PTP_CTL register to enable only the
-		 * EFTM and PTPCM field comparison.
-		 */
-		ptpctl &= ~0x1100;
-		bfin_write_EMAC_PTP_CTL(ptpctl);
-		/*
-		 * Keep the default values of all the fields of the EMAC_PTP_FOFF
-		 * register, except set the PTPCOF field to 0x0E.
-		 */
-		ptpfoff = 0x0E24170C;
-		bfin_write_EMAC_PTP_FOFF(ptpfoff);
-		/*
-		 * Program bits [15:0] of the EMAC_PTP_FV1 register to 0x88F7, which
-		 * corresponds to PTP messages on the MAC layer.
-		 */
-		ptpfv1 = 0x110488F7;
-		bfin_write_EMAC_PTP_FV1(ptpfv1);
-		ptpfv2 = 0x0140013F;
-		bfin_write_EMAC_PTP_FV2(ptpfv2);
-		/*
-		 * To allow the timestamping of Pdelay_Req and Pdelay_Resp
-		 * messages, set the value to 0xFFF0.
-		 */
-		ptpfv3 = 0xFFFFFFF0;
-		bfin_write_EMAC_PTP_FV3(ptpfv3);
-
-		config.rx_filter = HWTSTAMP_FILTER_PTP_V2_L2_EVENT;
-		break;
-	default:
+		(config.tx_type != HWTSTAMP_TX_ON))
+	{
 		return -ERANGE;
 	}
 
+	ptpctl = bfin_read_EMAC_PTP_CTL();
+
+	switch (config.rx_filter)
+	{
+		case HWTSTAMP_FILTER_NONE:
+			/*
+			 * Dont allow any timestamping
+			 */
+			ptpfv3 = 0xFFFFFFFF;
+			bfin_write_EMAC_PTP_FV3(ptpfv3);
+			break;
+
+		case HWTSTAMP_FILTER_PTP_V1_L4_EVENT:
+		case HWTSTAMP_FILTER_PTP_V1_L4_SYNC:
+		case HWTSTAMP_FILTER_PTP_V1_L4_DELAY_REQ:
+			/*
+			 * Clear the five comparison mask bits (bits[12:8]) in EMAC_PTP_CTL)
+			 * to enable all the field matches.
+			 */
+			ptpctl &= ~0x1F00;
+			bfin_write_EMAC_PTP_CTL(ptpctl);
+			/*
+			 * Keep the default values of the EMAC_PTP_FOFF register.
+			 */
+			ptpfoff = 0x4A24170C;
+			bfin_write_EMAC_PTP_FOFF(ptpfoff);
+			/*
+			 * Keep the default values of the EMAC_PTP_FV1 and EMAC_PTP_FV2
+			 * registers.
+			 */
+			ptpfv1 = 0x11040800;
+			bfin_write_EMAC_PTP_FV1(ptpfv1);
+			ptpfv2 = 0x0140013F;
+			bfin_write_EMAC_PTP_FV2(ptpfv2);
+			/*
+			 * The default value (0xFFFC) allows the timestamping of both
+			 * received Sync messages and Delay_Req messages.
+			 */
+			ptpfv3 = 0xFFFFFFFC;
+			bfin_write_EMAC_PTP_FV3(ptpfv3);
+
+			config.rx_filter = HWTSTAMP_FILTER_PTP_V1_L4_EVENT;
+			break;
+
+		case HWTSTAMP_FILTER_PTP_V2_L4_EVENT:
+		case HWTSTAMP_FILTER_PTP_V2_L4_SYNC:
+		case HWTSTAMP_FILTER_PTP_V2_DELAY_REQ:
+			/* Clear all five comparison mask bits (bits[12:8]) in the
+			 * EMAC_PTP_CTL register to enable all the field matches.
+			 */
+			ptpctl &= ~0x1F00;
+			bfin_write_EMAC_PTP_CTL(ptpctl);
+			/*
+			 * Keep the default values of the EMAC_PTP_FOFF register, except set
+			 * the PTPCOF field to 0x2A.
+			 */
+			ptpfoff = 0x2A24170C;
+			bfin_write_EMAC_PTP_FOFF(ptpfoff);
+			/*
+			 * Keep the default values of the EMAC_PTP_FV1 and EMAC_PTP_FV2
+			 * registers.
+			 */
+			ptpfv1 = 0x11040800;
+			bfin_write_EMAC_PTP_FV1(ptpfv1);
+			ptpfv2 = 0x0140013F;
+			bfin_write_EMAC_PTP_FV2(ptpfv2);
+			/*
+			 * To allow the timestamping of Pdelay_Req and Pdelay_Resp, set
+			 * the value to 0xFFF0.
+			 */
+			ptpfv3 = 0xFFFFFFF0;
+			bfin_write_EMAC_PTP_FV3(ptpfv3);
+
+			config.rx_filter = HWTSTAMP_FILTER_PTP_V2_L4_EVENT;
+			break;
+
+		case HWTSTAMP_FILTER_PTP_V2_L2_EVENT:
+		case HWTSTAMP_FILTER_PTP_V2_L2_SYNC:
+		case HWTSTAMP_FILTER_PTP_V2_L2_DELAY_REQ:
+			/*
+			 * Clear bits 8 and 12 of the EMAC_PTP_CTL register to enable only the
+			 * EFTM and PTPCM field comparison.
+			 */
+			ptpctl &= ~0x1100;
+			bfin_write_EMAC_PTP_CTL(ptpctl);
+			/*
+			 * Keep the default values of all the fields of the EMAC_PTP_FOFF
+			 * register, except set the PTPCOF field to 0x0E.
+			 */
+			ptpfoff = 0x0E24170C;
+			bfin_write_EMAC_PTP_FOFF(ptpfoff);
+			/*
+			 * Program bits [15:0] of the EMAC_PTP_FV1 register to 0x88F7, which
+			 * corresponds to PTP messages on the MAC layer.
+			 */
+			ptpfv1 = 0x110488F7;
+			bfin_write_EMAC_PTP_FV1(ptpfv1);
+			ptpfv2 = 0x0140013F;
+			bfin_write_EMAC_PTP_FV2(ptpfv2);
+			/*
+			 * To allow the timestamping of Pdelay_Req and Pdelay_Resp
+			 * messages, set the value to 0xFFF0.
+			 */
+			ptpfv3 = 0xFFFFFFF0;
+			bfin_write_EMAC_PTP_FV3(ptpfv3);
+
+			config.rx_filter = HWTSTAMP_FILTER_PTP_V2_L2_EVENT;
+			break;
+
+		default:
+			return -ERANGE;
+	}
+
 	if (config.tx_type == HWTSTAMP_TX_OFF &&
-	    bfin_mac_hwtstamp_is_none(config.rx_filter)) {
+		bfin_mac_hwtstamp_is_none(config.rx_filter))
+	{
 		ptpctl &= ~PTP_EN;
 		bfin_write_EMAC_PTP_CTL(ptpctl);
 
 		SSYNC();
-	} else {
+	}
+	else
+	{
 		ptpctl |= PTP_EN;
 		bfin_write_EMAC_PTP_CTL(ptpctl);
 
@@ -776,24 +875,25 @@ static int bfin_mac_hwtstamp_set(struct net_device *netdev,
 
 	lp->stamp_cfg = config;
 	return copy_to_user(ifr->ifr_data, &config, sizeof(config)) ?
-		-EFAULT : 0;
+		   -EFAULT : 0;
 }
 
 static int bfin_mac_hwtstamp_get(struct net_device *netdev,
-				 struct ifreq *ifr)
+								 struct ifreq *ifr)
 {
 	struct bfin_mac_local *lp = netdev_priv(netdev);
 
 	return copy_to_user(ifr->ifr_data, &lp->stamp_cfg,
-			    sizeof(lp->stamp_cfg)) ?
-		-EFAULT : 0;
+						sizeof(lp->stamp_cfg)) ?
+		   -EFAULT : 0;
 }
 
 static void bfin_tx_hwtstamp(struct net_device *netdev, struct sk_buff *skb)
 {
 	struct bfin_mac_local *lp = netdev_priv(netdev);
 
-	if (skb_shinfo(skb)->tx_flags & SKBTX_HW_TSTAMP) {
+	if (skb_shinfo(skb)->tx_flags & SKBTX_HW_TSTAMP)
+	{
 		int timeout_cnt = MAX_TIMEOUT_CNT;
 
 		/* When doing time stamping, keep the connection to the socket
@@ -808,10 +908,16 @@ static void bfin_tx_hwtstamp(struct net_device *netdev, struct sk_buff *skb)
 		 * medium, providing the best timing accuracy.
 		 */
 		while ((!(bfin_read_EMAC_PTP_ISTAT() & TXTL)) && (--timeout_cnt))
+		{
 			udelay(1);
+		}
+
 		if (timeout_cnt == 0)
+		{
 			netdev_err(netdev, "timestamp the TX packet failed\n");
-		else {
+		}
+		else
+		{
 			struct skb_shared_hwtstamps shhwtstamps;
 			u64 ns;
 			u64 regval;
@@ -834,11 +940,16 @@ static void bfin_rx_hwtstamp(struct net_device *netdev, struct sk_buff *skb)
 	struct skb_shared_hwtstamps *shhwtstamps;
 
 	if (bfin_mac_hwtstamp_is_none(lp->stamp_cfg.rx_filter))
+	{
 		return;
+	}
 
 	valid = bfin_read_EMAC_PTP_ISTAT() & RXEL;
+
 	if (!valid)
+	{
 		return;
+	}
 
 	shhwtstamps = skb_hwtstamps(skb);
 
@@ -909,10 +1020,12 @@ static int bfin_ptp_adjfreq(struct ptp_clock_info *ptp, s32 ppb)
 	struct bfin_mac_local *lp =
 		container_of(ptp, struct bfin_mac_local, caps);
 
-	if (ppb < 0) {
+	if (ppb < 0)
+	{
 		neg_adj = 1;
 		ppb = -ppb;
 	}
+
 	addend = lp->addend;
 	adj = addend;
 	adj *= ppb;
@@ -962,7 +1075,7 @@ static int bfin_ptp_gettime(struct ptp_clock_info *ptp, struct timespec64 *ts)
 }
 
 static int bfin_ptp_settime(struct ptp_clock_info *ptp,
-			   const struct timespec64 *ts)
+							const struct timespec64 *ts)
 {
 	u64 ns;
 	unsigned long flags;
@@ -981,12 +1094,13 @@ static int bfin_ptp_settime(struct ptp_clock_info *ptp,
 }
 
 static int bfin_ptp_enable(struct ptp_clock_info *ptp,
-			  struct ptp_clock_request *rq, int on)
+						   struct ptp_clock_request *rq, int on)
 {
 	return -EOPNOTSUPP;
 }
 
-static struct ptp_clock_info bfin_ptp_caps = {
+static struct ptp_clock_info bfin_ptp_caps =
+{
 	.owner		= THIS_MODULE,
 	.name		= "BF518 clock",
 	.max_adj	= 0,
@@ -1009,8 +1123,11 @@ static int bfin_phc_init(struct net_device *netdev, struct device *dev)
 	lp->caps = bfin_ptp_caps;
 	lp->caps.max_adj = lp->max_ppb;
 	lp->clock = ptp_clock_register(&lp->caps, dev);
+
 	if (IS_ERR(lp->clock))
+	{
 		return PTR_ERR(lp->clock);
+	}
 
 	lp->phc_index = ptp_clock_index(lp->clock);
 	spin_lock_init(&lp->phc_lock);
@@ -1036,16 +1153,21 @@ static void bfin_phc_release(struct bfin_mac_local *lp)
 
 static inline void _tx_reclaim_skb(void)
 {
-	do {
+	do
+	{
 		tx_list_head->desc_a.config &= ~DMAEN;
 		tx_list_head->status.status_word = 0;
-		if (tx_list_head->skb) {
+
+		if (tx_list_head->skb)
+		{
 			dev_consume_skb_any(tx_list_head->skb);
 			tx_list_head->skb = NULL;
 		}
+
 		tx_list_head = tx_list_head->next;
 
-	} while (tx_list_head->status.status_word != 0);
+	}
+	while (tx_list_head->status.status_word != 0);
 }
 
 static void tx_reclaim_skb(struct bfin_mac_local *lp)
@@ -1053,30 +1175,47 @@ static void tx_reclaim_skb(struct bfin_mac_local *lp)
 	int timeout_cnt = MAX_TIMEOUT_CNT;
 
 	if (tx_list_head->status.status_word != 0)
+	{
 		_tx_reclaim_skb();
+	}
 
-	if (current_tx_ptr->next == tx_list_head) {
-		while (tx_list_head->status.status_word == 0) {
+	if (current_tx_ptr->next == tx_list_head)
+	{
+		while (tx_list_head->status.status_word == 0)
+		{
 			/* slow down polling to avoid too many queue stop. */
 			udelay(10);
+
 			/* reclaim skb if DMA is not running. */
 			if (!(bfin_read_DMA2_IRQ_STATUS() & DMA_RUN))
+			{
 				break;
+			}
+
 			if (timeout_cnt-- < 0)
+			{
 				break;
+			}
 		}
 
 		if (timeout_cnt >= 0)
+		{
 			_tx_reclaim_skb();
+		}
 		else
+		{
 			netif_stop_queue(lp->ndev);
+		}
 	}
 
 	if (current_tx_ptr->next != tx_list_head &&
 		netif_queue_stopped(lp->ndev))
+	{
 		netif_wake_queue(lp->ndev);
+	}
 
-	if (tx_list_head != current_tx_ptr) {
+	if (tx_list_head != current_tx_ptr)
+	{
 		/* shorten the timer interval if tx queue is stopped */
 		if (netif_queue_stopped(lp->ndev))
 			lp->tx_reclaim_timer.expires =
@@ -1086,7 +1225,7 @@ static void tx_reclaim_skb(struct bfin_mac_local *lp)
 				jiffies + TX_RECLAIM_JIFFIES;
 
 		mod_timer(&lp->tx_reclaim_timer,
-			lp->tx_reclaim_timer.expires);
+				  lp->tx_reclaim_timer.expires);
 	}
 
 	return;
@@ -1098,7 +1237,7 @@ static void tx_reclaim_skb_timeout(unsigned long lp)
 }
 
 static int bfin_mac_hard_start_xmit(struct sk_buff *skb,
-				struct net_device *dev)
+									struct net_device *dev)
 {
 	struct bfin_mac_local *lp = netdev_priv(dev);
 	u16 *data;
@@ -1106,10 +1245,12 @@ static int bfin_mac_hard_start_xmit(struct sk_buff *skb,
 
 	current_tx_ptr->skb = skb;
 
-	if (data_align == 0x2) {
+	if (data_align == 0x2)
+	{
 		/* move skb->data to current_tx_ptr payload */
 		data = (u16 *)(skb->data) - 1;
 		*data = (u16)(skb->len);
+
 		/*
 		 * When transmitting an Ethernet packet, the PTP_TSYNC module requires
 		 * a DMA_Length_Word field associated with the packet. The lower 12 bits
@@ -1117,19 +1258,27 @@ static int bfin_mac_hard_start_xmit(struct sk_buff *skb,
 		 * 4 bits are the timestamping enable field.
 		 */
 		if (skb_shinfo(skb)->tx_flags & SKBTX_HW_TSTAMP)
+		{
 			*data |= 0x1000;
+		}
 
 		current_tx_ptr->desc_a.start_addr = (u32)data;
 		/* this is important! */
 		blackfin_dcache_flush_range((u32)data,
-				(u32)((u8 *)data + skb->len + 4));
-	} else {
+									(u32)((u8 *)data + skb->len + 4));
+	}
+	else
+	{
 		*((u16 *)(current_tx_ptr->packet)) = (u16)(skb->len);
+
 		/* enable timestamping for the sent packet */
 		if (skb_shinfo(skb)->tx_flags & SKBTX_HW_TSTAMP)
+		{
 			*((u16 *)(current_tx_ptr->packet)) |= 0x1000;
+		}
+
 		memcpy((u8 *)(current_tx_ptr->packet + 2), skb->data,
-			skb->len);
+			   skb->len);
 		current_tx_ptr->desc_a.start_addr =
 			(u32)current_tx_ptr->packet;
 		blackfin_dcache_flush_range(
@@ -1151,7 +1300,9 @@ static int bfin_mac_hard_start_xmit(struct sk_buff *skb,
 
 	/* tx dma is running, just return */
 	if (bfin_read_DMA2_IRQ_STATUS() & DMA_RUN)
+	{
 		goto out;
+	}
 
 	/* tx dma is not running */
 	bfin_write_DMA2_NEXT_DESC_PTR(&(current_tx_ptr->desc_a));
@@ -1174,7 +1325,7 @@ out:
 
 #define IP_HEADER_OFF  0
 #define RX_ERROR_MASK (RX_LONG | RX_ALIGN | RX_CRC | RX_LEN | \
-	RX_FRAG | RX_ADDR | RX_DMAO | RX_PHY | RX_LATE | RX_RANGE)
+					   RX_FRAG | RX_ADDR | RX_DMAO | RX_PHY | RX_LATE | RX_RANGE)
 
 static void bfin_mac_rx(struct bfin_mac_local *lp)
 {
@@ -1189,7 +1340,8 @@ static void bfin_mac_rx(struct bfin_mac_local *lp)
 	/* check if frame status word reports an error condition
 	 * we which case we simply drop the packet
 	 */
-	if (current_rx_ptr->status.status_word & RX_ERROR_MASK) {
+	if (current_rx_ptr->status.status_word & RX_ERROR_MASK)
+	{
 		netdev_notice(dev, "rx: receive error - packet dropped\n");
 		dev->stats.rx_dropped++;
 		goto out;
@@ -1199,17 +1351,20 @@ static void bfin_mac_rx(struct bfin_mac_local *lp)
 	skb = current_rx_ptr->skb;
 
 	new_skb = netdev_alloc_skb(dev, PKT_BUF_SZ + NET_IP_ALIGN);
-	if (!new_skb) {
+
+	if (!new_skb)
+	{
 		dev->stats.rx_dropped++;
 		goto out;
 	}
+
 	/* reserve 2 bytes for RXDWA padding */
 	skb_reserve(new_skb, NET_IP_ALIGN);
 	/* Invalidate the data cache of skb->data range when it is write back
 	 * cache. It will prevent overwritting the new data from DMA
 	 */
 	blackfin_dcache_invalidate_range((unsigned long)new_skb->head,
-					 (unsigned long)new_skb->end);
+									 (unsigned long)new_skb->end);
 
 	current_rx_ptr->skb = new_skb;
 	current_rx_ptr->desc_a.start_addr = (unsigned long)new_skb->data - 2;
@@ -1224,13 +1379,16 @@ static void bfin_mac_rx(struct bfin_mac_local *lp)
 	bfin_rx_hwtstamp(dev, skb);
 
 #if defined(BFIN_MAC_CSUM_OFFLOAD)
+
 	/* Checksum offloading only works for IPv4 packets with the standard IP header
 	 * length of 20 bytes, because the blackfin MAC checksum calculation is
 	 * based on that assumption. We must NOT use the calculated checksum if our
 	 * IP version or header break that assumption.
 	 */
-	if (skb->data[IP_HEADER_OFF] == 0x45) {
+	if (skb->data[IP_HEADER_OFF] == 0x45)
+	{
 		skb->csum = current_rx_ptr->status.ip_payload_csum;
+
 		/*
 		 * Deduce Ethernet FCS from hardware generated IP payload checksum.
 		 * IP checksum is based on 16-bit one's complement algorithm.
@@ -1238,18 +1396,30 @@ static void bfin_mac_rx(struct bfin_mac_local *lp)
 		 * If the IP payload len is odd, the inversed FCS should also
 		 * begin from odd address and leave first byte zero.
 		 */
-		if (skb->len % 2) {
+		if (skb->len % 2)
+		{
 			fcs[0] = 0;
+
 			for (i = 0; i < ETH_FCS_LEN; i++)
+			{
 				fcs[i + 1] = ~skb->data[skb->len + i];
+			}
+
 			skb->csum = csum_partial(fcs, ETH_FCS_LEN + 1, skb->csum);
-		} else {
+		}
+		else
+		{
 			for (i = 0; i < ETH_FCS_LEN; i++)
+			{
 				fcs[i] = ~skb->data[skb->len + i];
+			}
+
 			skb->csum = csum_partial(fcs, ETH_FCS_LEN, skb->csum);
 		}
+
 		skb->ip_summed = CHECKSUM_COMPLETE;
 	}
+
 #endif
 
 	napi_gro_receive(&lp->napi, skb);
@@ -1265,18 +1435,23 @@ static int bfin_mac_poll(struct napi_struct *napi, int budget)
 {
 	int i = 0;
 	struct bfin_mac_local *lp = container_of(napi,
-						 struct bfin_mac_local,
-						 napi);
+								struct bfin_mac_local,
+								napi);
 
-	while (current_rx_ptr->status.status_word != 0 && i < budget) {
+	while (current_rx_ptr->status.status_word != 0 && i < budget)
+	{
 		bfin_mac_rx(lp);
 		i++;
 	}
 
-	if (i < budget) {
+	if (i < budget)
+	{
 		napi_complete(napi);
+
 		if (test_and_clear_bit(BFIN_MAC_RX_IRQ_DISABLED, &lp->flags))
+		{
 			enable_irq(IRQ_MAC_RX);
+		}
 	}
 
 	return i;
@@ -1291,7 +1466,9 @@ static irqreturn_t bfin_mac_interrupt(int irq, void *dev_id)
 	status = bfin_read_DMA1_IRQ_STATUS();
 
 	bfin_write_DMA1_IRQ_STATUS(status | DMA_DONE | DMA_ERR);
-	if (status & DMA_DONE) {
+
+	if (status & DMA_DONE)
+	{
 		disable_irq_nosync(IRQ_MAC_RX);
 		set_bit(BFIN_MAC_RX_IRQ_DISABLED, &lp->flags);
 		napi_schedule(&lp->napi);
@@ -1337,8 +1514,11 @@ static int bfin_mac_enable(struct phy_device *phydev)
 
 	/* Wait MII done */
 	ret = bfin_mdio_poll();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* We enable only RX here */
 	/* ASTP   : Enable Automatic Pad Stripping
@@ -1348,16 +1528,25 @@ static int bfin_mac_enable(struct phy_device *phydev)
 	   LB     : Internal Loopback for test
 	   RE     : Receiver Enable */
 	opmode = bfin_read_EMAC_OPMODE();
+
 	if (opmode & FDMODE)
+	{
 		opmode |= PSF;
+	}
 	else
+	{
 		opmode |= DRO | DC | PSF;
+	}
+
 	opmode |= RE;
 
-	if (phydev->interface == PHY_INTERFACE_MODE_RMII) {
+	if (phydev->interface == PHY_INTERFACE_MODE_RMII)
+	{
 		opmode |= RMII; /* For Now only 100MBit are supported */
 #if defined(CONFIG_BF537) || defined(CONFIG_BF536)
-		if (__SILICON_REVISION__ < 3) {
+
+		if (__SILICON_REVISION__ < 3)
+		{
 			/*
 			 * This isn't publicly documented (fun times!), but in
 			 * silicon <=0.2, the RX and TX pins are clocked together.
@@ -1367,6 +1556,7 @@ static int bfin_mac_enable(struct phy_device *phydev)
 			 */
 			opmode |= TE;
 		}
+
 #endif
 	}
 
@@ -1388,18 +1578,24 @@ static void bfin_mac_timeout(struct net_device *dev)
 	del_timer(&lp->tx_reclaim_timer);
 
 	/* reset tx queue and free skb */
-	while (tx_list_head != current_tx_ptr) {
+	while (tx_list_head != current_tx_ptr)
+	{
 		tx_list_head->desc_a.config &= ~DMAEN;
 		tx_list_head->status.status_word = 0;
-		if (tx_list_head->skb) {
+
+		if (tx_list_head->skb)
+		{
 			dev_kfree_skb(tx_list_head->skb);
 			tx_list_head->skb = NULL;
 		}
+
 		tx_list_head = tx_list_head->next;
 	}
 
 	if (netif_queue_stopped(dev))
+	{
 		netif_wake_queue(dev);
+	}
 
 	bfin_mac_enable(dev->phydev);
 
@@ -1415,14 +1611,19 @@ static void bfin_mac_multicast_hash(struct net_device *dev)
 
 	emac_hashhi = emac_hashlo = 0;
 
-	netdev_for_each_mc_addr(ha, dev) {
+	netdev_for_each_mc_addr(ha, dev)
+	{
 		crc = ether_crc(ETH_ALEN, ha->addr);
 		crc >>= 26;
 
 		if (crc & 0x20)
+		{
 			emac_hashhi |= 1 << (crc & 0x1f);
+		}
 		else
+		{
 			emac_hashlo |= 1 << (crc & 0x1f);
+		}
 	}
 
 	bfin_write_EMAC_HASHHI(emac_hashhi);
@@ -1439,23 +1640,30 @@ static void bfin_mac_set_multicast_list(struct net_device *dev)
 {
 	u32 sysctl;
 
-	if (dev->flags & IFF_PROMISC) {
+	if (dev->flags & IFF_PROMISC)
+	{
 		netdev_info(dev, "set promisc mode\n");
 		sysctl = bfin_read_EMAC_OPMODE();
 		sysctl |= PR;
 		bfin_write_EMAC_OPMODE(sysctl);
-	} else if (dev->flags & IFF_ALLMULTI) {
+	}
+	else if (dev->flags & IFF_ALLMULTI)
+	{
 		/* accept all multicast */
 		sysctl = bfin_read_EMAC_OPMODE();
 		sysctl |= PAM;
 		bfin_write_EMAC_OPMODE(sysctl);
-	} else if (!netdev_mc_empty(dev)) {
+	}
+	else if (!netdev_mc_empty(dev))
+	{
 		/* set up multicast hash table */
 		sysctl = bfin_read_EMAC_OPMODE();
 		sysctl |= HM;
 		bfin_write_EMAC_OPMODE(sysctl);
 		bfin_mac_multicast_hash(dev);
-	} else {
+	}
+	else
+	{
 		/* clear promisc or multicast mode */
 		sysctl = bfin_read_EMAC_OPMODE();
 		sysctl &= ~(RAF | PAM);
@@ -1466,18 +1674,27 @@ static void bfin_mac_set_multicast_list(struct net_device *dev)
 static int bfin_mac_ioctl(struct net_device *netdev, struct ifreq *ifr, int cmd)
 {
 	if (!netif_running(netdev))
+	{
 		return -EINVAL;
+	}
 
-	switch (cmd) {
-	case SIOCSHWTSTAMP:
-		return bfin_mac_hwtstamp_set(netdev, ifr);
-	case SIOCGHWTSTAMP:
-		return bfin_mac_hwtstamp_get(netdev, ifr);
-	default:
-		if (netdev->phydev)
-			return phy_mii_ioctl(netdev->phydev, ifr, cmd);
-		else
-			return -EOPNOTSUPP;
+	switch (cmd)
+	{
+		case SIOCSHWTSTAMP:
+			return bfin_mac_hwtstamp_set(netdev, ifr);
+
+		case SIOCGHWTSTAMP:
+			return bfin_mac_hwtstamp_get(netdev, ifr);
+
+		default:
+			if (netdev->phydev)
+			{
+				return phy_mii_ioctl(netdev->phydev, ifr, cmd);
+			}
+			else
+			{
+				return -EOPNOTSUPP;
+			}
 	}
 }
 
@@ -1509,15 +1726,19 @@ static int bfin_mac_open(struct net_device *dev)
 	 * to bring the device up.  The user must specify an
 	 * address using ifconfig eth0 hw ether xx:xx:xx:xx:xx:xx
 	 */
-	if (!is_valid_ether_addr(dev->dev_addr)) {
+	if (!is_valid_ether_addr(dev->dev_addr))
+	{
 		netdev_warn(dev, "no valid ethernet hw addr\n");
 		return -EINVAL;
 	}
 
 	/* initial rx and tx list */
 	ret = desc_list_init(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	phy_start(dev->phydev);
 	setup_system_regs(dev);
@@ -1525,8 +1746,12 @@ static int bfin_mac_open(struct net_device *dev)
 
 	bfin_mac_disable();
 	ret = bfin_mac_enable(dev->phydev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	pr_debug("hardware init finished\n");
 
 	napi_enable(&lp->napi);
@@ -1562,7 +1787,8 @@ static int bfin_mac_close(struct net_device *dev)
 	return 0;
 }
 
-static const struct net_device_ops bfin_mac_netdev_ops = {
+static const struct net_device_ops bfin_mac_netdev_ops =
+{
 	.ndo_open		= bfin_mac_open,
 	.ndo_stop		= bfin_mac_close,
 	.ndo_start_xmit		= bfin_mac_hard_start_xmit,
@@ -1586,8 +1812,11 @@ static int bfin_mac_probe(struct platform_device *pdev)
 	int rc;
 
 	ndev = alloc_etherdev(sizeof(struct bfin_mac_local));
+
 	if (!ndev)
+	{
 		return -ENOMEM;
+	}
 
 	SET_NETDEV_DEV(ndev, &pdev->dev);
 	platform_set_drvdata(pdev, ndev);
@@ -1601,7 +1830,9 @@ static int bfin_mac_probe(struct platform_device *pdev)
 	/* probe mac */
 	/*todo: how to probe? which is revision_register */
 	bfin_write_EMAC_ADDRLO(0x12345678);
-	if (bfin_read_EMAC_ADDRLO() != 0x12345678) {
+
+	if (bfin_read_EMAC_ADDRLO() != 0x12345678)
+	{
 		dev_err(&pdev->dev, "Cannot detect Blackfin on-chip ethernet MAC controller!\n");
 		rc = -ENODEV;
 		goto out_err_probe_mac;
@@ -1613,9 +1844,11 @@ static int bfin_mac_probe(struct platform_device *pdev)
 	 * Grab the MAC from the board somehow
 	 * this is done in the arch/blackfin/mach-bfxxx/boards/eth_mac.c
 	 */
-	if (!is_valid_ether_addr(ndev->dev_addr)) {
+	if (!is_valid_ether_addr(ndev->dev_addr))
+	{
 		if (bfin_get_ether_addr(ndev->dev_addr) ||
-		     !is_valid_ether_addr(ndev->dev_addr)) {
+			!is_valid_ether_addr(ndev->dev_addr))
+		{
 			/* Still not valid, get a random one */
 			netdev_warn(ndev, "Setting Ethernet MAC to a random one\n");
 			eth_hw_addr_random(ndev);
@@ -1624,23 +1857,30 @@ static int bfin_mac_probe(struct platform_device *pdev)
 
 	setup_mac_addr(ndev->dev_addr);
 
-	if (!dev_get_platdata(&pdev->dev)) {
+	if (!dev_get_platdata(&pdev->dev))
+	{
 		dev_err(&pdev->dev, "Cannot get platform device bfin_mii_bus!\n");
 		rc = -ENODEV;
 		goto out_err_probe_mac;
 	}
+
 	pd = dev_get_platdata(&pdev->dev);
 	lp->mii_bus = platform_get_drvdata(pd);
-	if (!lp->mii_bus) {
+
+	if (!lp->mii_bus)
+	{
 		dev_err(&pdev->dev, "Cannot get mii_bus!\n");
 		rc = -ENODEV;
 		goto out_err_probe_mac;
 	}
+
 	lp->mii_bus->priv = ndev;
 	mii_bus_data = dev_get_platdata(&pd->dev);
 
 	rc = mii_probe(ndev, mii_bus_data->phy_mode);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "MII Probe failed!\n");
 		goto out_err_mii_probe;
 	}
@@ -1663,22 +1903,28 @@ static int bfin_mac_probe(struct platform_device *pdev)
 	/* now, enable interrupts */
 	/* register irq handler */
 	rc = request_irq(IRQ_MAC_RX, bfin_mac_interrupt,
-			0, "EMAC_RX", ndev);
-	if (rc) {
+					 0, "EMAC_RX", ndev);
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "Cannot request Blackfin MAC RX IRQ!\n");
 		rc = -EBUSY;
 		goto out_err_request_irq;
 	}
 
 	rc = register_netdev(ndev);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "Cannot register net device!\n");
 		goto out_err_reg_ndev;
 	}
 
 	bfin_mac_hwtstamp_init(ndev);
 	rc = bfin_phc_init(ndev, &pdev->dev);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "Cannot register PHC device!\n");
 		goto out_err_phc;
 	}
@@ -1728,13 +1974,18 @@ static int bfin_mac_suspend(struct platform_device *pdev, pm_message_t mesg)
 	struct net_device *net_dev = platform_get_drvdata(pdev);
 	struct bfin_mac_local *lp = netdev_priv(net_dev);
 
-	if (lp->wol) {
+	if (lp->wol)
+	{
 		bfin_write_EMAC_OPMODE((bfin_read_EMAC_OPMODE() & ~TE) | RE);
 		bfin_write_EMAC_WKUP_CTL(MPKE);
 		enable_irq_wake(IRQ_MAC_WAKEDET);
-	} else {
+	}
+	else
+	{
 		if (netif_running(net_dev))
+		{
 			bfin_mac_close(net_dev);
+		}
 	}
 
 	return 0;
@@ -1745,13 +1996,18 @@ static int bfin_mac_resume(struct platform_device *pdev)
 	struct net_device *net_dev = platform_get_drvdata(pdev);
 	struct bfin_mac_local *lp = netdev_priv(net_dev);
 
-	if (lp->wol) {
+	if (lp->wol)
+	{
 		bfin_write_EMAC_OPMODE(bfin_read_EMAC_OPMODE() | TE);
 		bfin_write_EMAC_WKUP_CTL(0);
 		disable_irq_wake(IRQ_MAC_WAKEDET);
-	} else {
+	}
+	else
+	{
 		if (netif_running(net_dev))
+		{
 			bfin_mac_open(net_dev);
+		}
 	}
 
 	return 0;
@@ -1769,7 +2025,9 @@ static int bfin_mii_bus_probe(struct platform_device *pdev)
 	int rc, i;
 
 	mii_bus_pd = dev_get_platdata(&pdev->dev);
-	if (!mii_bus_pd) {
+
+	if (!mii_bus_pd)
+	{
 		dev_err(&pdev->dev, "No peripherals in platform data!\n");
 		return -EINVAL;
 	}
@@ -1780,15 +2038,21 @@ static int bfin_mii_bus_probe(struct platform_device *pdev)
 	 */
 	pin_req = mii_bus_pd->mac_peripherals;
 	rc = peripheral_request_list(pin_req, KBUILD_MODNAME);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "Requesting peripherals failed!\n");
 		return rc;
 	}
 
 	rc = -ENOMEM;
 	miibus = mdiobus_alloc();
+
 	if (miibus == NULL)
+	{
 		goto out_err_alloc;
+	}
+
 	miibus->read = bfin_mdiobus_read;
 	miibus->write = bfin_mdiobus_write;
 
@@ -1797,24 +2061,32 @@ static int bfin_mii_bus_probe(struct platform_device *pdev)
 	miibus->phy_mask = mii_bus_pd->phy_mask;
 
 	snprintf(miibus->id, MII_BUS_ID_SIZE, "%s-%x",
-		pdev->name, pdev->id);
+			 pdev->name, pdev->id);
 
 	rc = clamp(mii_bus_pd->phydev_number, 0, PHY_MAX_ADDR);
+
 	if (rc != mii_bus_pd->phydev_number)
 		dev_err(&pdev->dev, "Invalid number (%i) of phydevs\n",
-			mii_bus_pd->phydev_number);
-	for (i = 0; i < rc; ++i) {
+				mii_bus_pd->phydev_number);
+
+	for (i = 0; i < rc; ++i)
+	{
 		unsigned short phyaddr = mii_bus_pd->phydev_data[i].addr;
+
 		if (phyaddr < PHY_MAX_ADDR)
+		{
 			miibus->irq[phyaddr] = mii_bus_pd->phydev_data[i].irq;
+		}
 		else
 			dev_err(&pdev->dev,
-				"Invalid PHY address %i for phydev %i\n",
-				phyaddr, i);
+					"Invalid PHY address %i for phydev %i\n",
+					phyaddr, i);
 	}
 
 	rc = mdiobus_register(miibus);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "Cannot register MDIO bus!\n");
 		goto out_err_irq_alloc;
 	}
@@ -1843,7 +2115,8 @@ static int bfin_mii_bus_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver bfin_mii_bus_driver = {
+static struct platform_driver bfin_mii_bus_driver =
+{
 	.probe = bfin_mii_bus_probe,
 	.remove = bfin_mii_bus_remove,
 	.driver = {
@@ -1851,7 +2124,8 @@ static struct platform_driver bfin_mii_bus_driver = {
 	},
 };
 
-static struct platform_driver bfin_mac_driver = {
+static struct platform_driver bfin_mac_driver =
+{
 	.probe = bfin_mac_probe,
 	.remove = bfin_mac_remove,
 	.resume = bfin_mac_resume,
@@ -1861,7 +2135,8 @@ static struct platform_driver bfin_mac_driver = {
 	},
 };
 
-static struct platform_driver * const drivers[] = {
+static struct platform_driver *const drivers[] =
+{
 	&bfin_mii_bus_driver,
 	&bfin_mac_driver,
 };

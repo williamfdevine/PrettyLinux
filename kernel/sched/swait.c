@@ -2,7 +2,7 @@
 #include <linux/swait.h>
 
 void __init_swait_queue_head(struct swait_queue_head *q, const char *name,
-			     struct lock_class_key *key)
+							 struct lock_class_key *key)
 {
 	raw_spin_lock_init(&q->lock);
 	lockdep_set_class_and_name(&q->lock, key, name);
@@ -21,7 +21,9 @@ void swake_up_locked(struct swait_queue_head *q)
 	struct swait_queue *curr;
 
 	if (list_empty(&q->task_list))
+	{
 		return;
+	}
 
 	curr = list_first_entry(&q->task_list, typeof(*curr), task_list);
 	wake_up_process(curr->task);
@@ -34,7 +36,9 @@ void swake_up(struct swait_queue_head *q)
 	unsigned long flags;
 
 	if (!swait_active(q))
+	{
 		return;
+	}
 
 	raw_spin_lock_irqsave(&q->lock, flags);
 	swake_up_locked(q);
@@ -52,22 +56,29 @@ void swake_up_all(struct swait_queue_head *q)
 	LIST_HEAD(tmp);
 
 	if (!swait_active(q))
+	{
 		return;
+	}
 
 	raw_spin_lock_irq(&q->lock);
 	list_splice_init(&q->task_list, &tmp);
-	while (!list_empty(&tmp)) {
+
+	while (!list_empty(&tmp))
+	{
 		curr = list_first_entry(&tmp, typeof(*curr), task_list);
 
 		wake_up_state(curr->task, TASK_NORMAL);
 		list_del_init(&curr->task_list);
 
 		if (list_empty(&tmp))
+		{
 			break;
+		}
 
 		raw_spin_unlock_irq(&q->lock);
 		raw_spin_lock_irq(&q->lock);
 	}
+
 	raw_spin_unlock_irq(&q->lock);
 }
 EXPORT_SYMBOL(swake_up_all);
@@ -75,8 +86,11 @@ EXPORT_SYMBOL(swake_up_all);
 void __prepare_to_swait(struct swait_queue_head *q, struct swait_queue *wait)
 {
 	wait->task = current;
+
 	if (list_empty(&wait->task_list))
+	{
 		list_add(&wait->task_list, &q->task_list);
+	}
 }
 
 void prepare_to_swait(struct swait_queue_head *q, struct swait_queue *wait, int state)
@@ -93,7 +107,9 @@ EXPORT_SYMBOL(prepare_to_swait);
 long prepare_to_swait_event(struct swait_queue_head *q, struct swait_queue *wait, int state)
 {
 	if (signal_pending_state(state, current))
+	{
 		return -ERESTARTSYS;
+	}
 
 	prepare_to_swait(q, wait, state);
 
@@ -104,8 +120,11 @@ EXPORT_SYMBOL(prepare_to_swait_event);
 void __finish_swait(struct swait_queue_head *q, struct swait_queue *wait)
 {
 	__set_current_state(TASK_RUNNING);
+
 	if (!list_empty(&wait->task_list))
+	{
 		list_del_init(&wait->task_list);
+	}
 }
 
 void finish_swait(struct swait_queue_head *q, struct swait_queue *wait)
@@ -114,7 +133,8 @@ void finish_swait(struct swait_queue_head *q, struct swait_queue *wait)
 
 	__set_current_state(TASK_RUNNING);
 
-	if (!list_empty_careful(&wait->task_list)) {
+	if (!list_empty_careful(&wait->task_list))
+	{
 		raw_spin_lock_irqsave(&q->lock, flags);
 		list_del_init(&wait->task_list);
 		raw_spin_unlock_irqrestore(&q->lock, flags);

@@ -31,7 +31,8 @@ static phys_addr_t guts_phys;
  * This structure contains data for a single sound platform device on an
  * MPC8610 HPCD.  Some of the data is taken from the device tree.
  */
-struct mpc8610_hpcd_data {
+struct mpc8610_hpcd_data
+{
 	struct snd_soc_dai_link dai[2];
 	struct snd_soc_card card;
 	unsigned int dai_format;
@@ -59,33 +60,37 @@ static int mpc8610_hpcd_machine_probe(struct snd_soc_card *card)
 	struct ccsr_guts __iomem *guts;
 
 	guts = ioremap(guts_phys, sizeof(struct ccsr_guts));
-	if (!guts) {
+
+	if (!guts)
+	{
 		dev_err(card->dev, "could not map global utilities\n");
 		return -ENOMEM;
 	}
 
 	/* Program the signal routing between the SSI and the DMA */
 	guts_set_dmacr(guts, machine_data->dma_id[0],
-		       machine_data->dma_channel_id[0],
-		       CCSR_GUTS_DMACR_DEV_SSI);
+				   machine_data->dma_channel_id[0],
+				   CCSR_GUTS_DMACR_DEV_SSI);
 	guts_set_dmacr(guts, machine_data->dma_id[1],
-		       machine_data->dma_channel_id[1],
-		       CCSR_GUTS_DMACR_DEV_SSI);
+				   machine_data->dma_channel_id[1],
+				   CCSR_GUTS_DMACR_DEV_SSI);
 
 	guts_set_pmuxcr_dma(guts, machine_data->dma_id[0],
-			    machine_data->dma_channel_id[0], 0);
+						machine_data->dma_channel_id[0], 0);
 	guts_set_pmuxcr_dma(guts, machine_data->dma_id[1],
-			    machine_data->dma_channel_id[1], 0);
+						machine_data->dma_channel_id[1], 0);
 
-	switch (machine_data->ssi_id) {
-	case 0:
-		clrsetbits_be32(&guts->pmuxcr,
-			CCSR_GUTS_PMUXCR_SSI1_MASK, CCSR_GUTS_PMUXCR_SSI1_SSI);
-		break;
-	case 1:
-		clrsetbits_be32(&guts->pmuxcr,
-			CCSR_GUTS_PMUXCR_SSI2_MASK, CCSR_GUTS_PMUXCR_SSI2_SSI);
-		break;
+	switch (machine_data->ssi_id)
+	{
+		case 0:
+			clrsetbits_be32(&guts->pmuxcr,
+							CCSR_GUTS_PMUXCR_SSI1_MASK, CCSR_GUTS_PMUXCR_SSI1_SSI);
+			break;
+
+		case 1:
+			clrsetbits_be32(&guts->pmuxcr,
+							CCSR_GUTS_PMUXCR_SSI2_MASK, CCSR_GUTS_PMUXCR_SSI2_SSI);
+			break;
 	}
 
 	iounmap(guts);
@@ -110,7 +115,9 @@ static int mpc8610_hpcd_startup(struct snd_pcm_substream *substream)
 
 	/* Tell the codec driver what the serial protocol is. */
 	ret = snd_soc_dai_set_fmt(rtd->codec_dai, machine_data->dai_format);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "could not set codec driver audio format\n");
 		return ret;
 	}
@@ -120,9 +127,11 @@ static int mpc8610_hpcd_startup(struct snd_pcm_substream *substream)
 	 * a slave or master.
 	 */
 	ret = snd_soc_dai_set_sysclk(rtd->codec_dai, 0,
-				     machine_data->clk_frequency,
-				     machine_data->codec_clk_direction);
-	if (ret < 0) {
+								 machine_data->clk_frequency,
+								 machine_data->codec_clk_direction);
+
+	if (ret < 0)
+	{
 		dev_err(dev, "could not set codec driver clock params\n");
 		return ret;
 	}
@@ -143,7 +152,9 @@ static int mpc8610_hpcd_machine_remove(struct snd_soc_card *card)
 	struct ccsr_guts __iomem *guts;
 
 	guts = ioremap(guts_phys, sizeof(struct ccsr_guts));
-	if (!guts) {
+
+	if (!guts)
+	{
 		dev_err(card->dev, "could not map global utilities\n");
 		return -ENOMEM;
 	}
@@ -151,19 +162,21 @@ static int mpc8610_hpcd_machine_remove(struct snd_soc_card *card)
 	/* Restore the signal routing */
 
 	guts_set_dmacr(guts, machine_data->dma_id[0],
-		       machine_data->dma_channel_id[0], 0);
+				   machine_data->dma_channel_id[0], 0);
 	guts_set_dmacr(guts, machine_data->dma_id[1],
-		       machine_data->dma_channel_id[1], 0);
+				   machine_data->dma_channel_id[1], 0);
 
-	switch (machine_data->ssi_id) {
-	case 0:
-		clrsetbits_be32(&guts->pmuxcr,
-			CCSR_GUTS_PMUXCR_SSI1_MASK, CCSR_GUTS_PMUXCR_SSI1_LA);
-		break;
-	case 1:
-		clrsetbits_be32(&guts->pmuxcr,
-			CCSR_GUTS_PMUXCR_SSI2_MASK, CCSR_GUTS_PMUXCR_SSI2_LA);
-		break;
+	switch (machine_data->ssi_id)
+	{
+		case 0:
+			clrsetbits_be32(&guts->pmuxcr,
+							CCSR_GUTS_PMUXCR_SSI1_MASK, CCSR_GUTS_PMUXCR_SSI1_LA);
+			break;
+
+		case 1:
+			clrsetbits_be32(&guts->pmuxcr,
+							CCSR_GUTS_PMUXCR_SSI2_MASK, CCSR_GUTS_PMUXCR_SSI2_LA);
+			break;
 	}
 
 	iounmap(guts);
@@ -174,7 +187,8 @@ static int mpc8610_hpcd_machine_remove(struct snd_soc_card *card)
 /**
  * mpc8610_hpcd_ops: ASoC machine driver operations
  */
-static struct snd_soc_ops mpc8610_hpcd_ops = {
+static struct snd_soc_ops mpc8610_hpcd_ops =
+{
 	.startup = mpc8610_hpcd_startup,
 };
 
@@ -199,13 +213,17 @@ static int mpc8610_hpcd_probe(struct platform_device *pdev)
 
 	/* Find the codec node for this SSI. */
 	codec_np = of_parse_phandle(np, "codec-handle", 0);
-	if (!codec_np) {
+
+	if (!codec_np)
+	{
 		dev_err(dev, "invalid codec node\n");
 		return -EINVAL;
 	}
 
 	machine_data = kzalloc(sizeof(struct mpc8610_hpcd_data), GFP_KERNEL);
-	if (!machine_data) {
+
+	if (!machine_data)
+	{
 		ret = -ENOMEM;
 		goto error_alloc;
 	}
@@ -224,26 +242,32 @@ static int mpc8610_hpcd_probe(struct platform_device *pdev)
 	 * both playback and capture.
 	 */
 	memcpy(&machine_data->dai[1], &machine_data->dai[0],
-	       sizeof(struct snd_soc_dai_link));
+		   sizeof(struct snd_soc_dai_link));
 
 	/* Get the device ID */
 	iprop = of_get_property(np, "cell-index", NULL);
-	if (!iprop) {
+
+	if (!iprop)
+	{
 		dev_err(&pdev->dev, "cell-index property not found\n");
 		ret = -EINVAL;
 		goto error;
 	}
+
 	machine_data->ssi_id = be32_to_cpup(iprop);
 
 	/* Get the serial format and clock direction. */
 	sprop = of_get_property(np, "fsl,mode", NULL);
-	if (!sprop) {
+
+	if (!sprop)
+	{
 		dev_err(&pdev->dev, "fsl,mode property not found\n");
 		ret = -EINVAL;
 		goto error;
 	}
 
-	if (strcasecmp(sprop, "i2s-slave") == 0) {
+	if (strcasecmp(sprop, "i2s-slave") == 0)
+	{
 		machine_data->dai_format =
 			SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_CBM_CFM;
 		machine_data->codec_clk_direction = SND_SOC_CLOCK_OUT;
@@ -254,56 +278,76 @@ static int mpc8610_hpcd_probe(struct platform_device *pdev)
 		 * the codec driver.
 		 */
 		iprop = of_get_property(codec_np, "clock-frequency", NULL);
-		if (!iprop || !*iprop) {
+
+		if (!iprop || !*iprop)
+		{
 			dev_err(&pdev->dev, "codec bus-frequency "
-				"property is missing or invalid\n");
+					"property is missing or invalid\n");
 			ret = -EINVAL;
 			goto error;
 		}
+
 		machine_data->clk_frequency = be32_to_cpup(iprop);
-	} else if (strcasecmp(sprop, "i2s-master") == 0) {
+	}
+	else if (strcasecmp(sprop, "i2s-master") == 0)
+	{
 		machine_data->dai_format =
 			SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_CBS_CFS;
 		machine_data->codec_clk_direction = SND_SOC_CLOCK_IN;
 		machine_data->cpu_clk_direction = SND_SOC_CLOCK_OUT;
-	} else if (strcasecmp(sprop, "lj-slave") == 0) {
+	}
+	else if (strcasecmp(sprop, "lj-slave") == 0)
+	{
 		machine_data->dai_format =
 			SND_SOC_DAIFMT_LEFT_J | SND_SOC_DAIFMT_CBM_CFM;
 		machine_data->codec_clk_direction = SND_SOC_CLOCK_OUT;
 		machine_data->cpu_clk_direction = SND_SOC_CLOCK_IN;
-	} else if (strcasecmp(sprop, "lj-master") == 0) {
+	}
+	else if (strcasecmp(sprop, "lj-master") == 0)
+	{
 		machine_data->dai_format =
 			SND_SOC_DAIFMT_LEFT_J | SND_SOC_DAIFMT_CBS_CFS;
 		machine_data->codec_clk_direction = SND_SOC_CLOCK_IN;
 		machine_data->cpu_clk_direction = SND_SOC_CLOCK_OUT;
-	} else if (strcasecmp(sprop, "rj-slave") == 0) {
+	}
+	else if (strcasecmp(sprop, "rj-slave") == 0)
+	{
 		machine_data->dai_format =
 			SND_SOC_DAIFMT_RIGHT_J | SND_SOC_DAIFMT_CBM_CFM;
 		machine_data->codec_clk_direction = SND_SOC_CLOCK_OUT;
 		machine_data->cpu_clk_direction = SND_SOC_CLOCK_IN;
-	} else if (strcasecmp(sprop, "rj-master") == 0) {
+	}
+	else if (strcasecmp(sprop, "rj-master") == 0)
+	{
 		machine_data->dai_format =
 			SND_SOC_DAIFMT_RIGHT_J | SND_SOC_DAIFMT_CBS_CFS;
 		machine_data->codec_clk_direction = SND_SOC_CLOCK_IN;
 		machine_data->cpu_clk_direction = SND_SOC_CLOCK_OUT;
-	} else if (strcasecmp(sprop, "ac97-slave") == 0) {
+	}
+	else if (strcasecmp(sprop, "ac97-slave") == 0)
+	{
 		machine_data->dai_format =
 			SND_SOC_DAIFMT_AC97 | SND_SOC_DAIFMT_CBM_CFM;
 		machine_data->codec_clk_direction = SND_SOC_CLOCK_OUT;
 		machine_data->cpu_clk_direction = SND_SOC_CLOCK_IN;
-	} else if (strcasecmp(sprop, "ac97-master") == 0) {
+	}
+	else if (strcasecmp(sprop, "ac97-master") == 0)
+	{
 		machine_data->dai_format =
 			SND_SOC_DAIFMT_AC97 | SND_SOC_DAIFMT_CBS_CFS;
 		machine_data->codec_clk_direction = SND_SOC_CLOCK_IN;
 		machine_data->cpu_clk_direction = SND_SOC_CLOCK_OUT;
-	} else {
+	}
+	else
+	{
 		dev_err(&pdev->dev,
-			"unrecognized fsl,mode property '%s'\n", sprop);
+				"unrecognized fsl,mode property '%s'\n", sprop);
 		ret = -EINVAL;
 		goto error;
 	}
 
-	if (!machine_data->clk_frequency) {
+	if (!machine_data->clk_frequency)
+	{
 		dev_err(&pdev->dev, "unknown clock frequency\n");
 		ret = -EINVAL;
 		goto error;
@@ -312,10 +356,12 @@ static int mpc8610_hpcd_probe(struct platform_device *pdev)
 	/* Find the playback DMA channel to use. */
 	machine_data->dai[0].platform_name = machine_data->platform_name[0];
 	ret = fsl_asoc_get_dma_channel(np, "fsl,playback-dma",
-				       &machine_data->dai[0],
-				       &machine_data->dma_channel_id[0],
-				       &machine_data->dma_id[0]);
-	if (ret) {
+								   &machine_data->dai[0],
+								   &machine_data->dma_channel_id[0],
+								   &machine_data->dma_id[0]);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "missing/invalid playback DMA phandle\n");
 		goto error;
 	}
@@ -323,10 +369,12 @@ static int mpc8610_hpcd_probe(struct platform_device *pdev)
 	/* Find the capture DMA channel to use. */
 	machine_data->dai[1].platform_name = machine_data->platform_name[1];
 	ret = fsl_asoc_get_dma_channel(np, "fsl,capture-dma",
-				       &machine_data->dai[1],
-				       &machine_data->dma_channel_id[1],
-				       &machine_data->dma_id[1]);
-	if (ret) {
+								   &machine_data->dai[1],
+								   &machine_data->dma_channel_id[1],
+								   &machine_data->dma_id[1]);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "missing/invalid capture DMA phandle\n");
 		goto error;
 	}
@@ -347,7 +395,9 @@ static int mpc8610_hpcd_probe(struct platform_device *pdev)
 
 	/* Register with ASoC */
 	ret = snd_soc_register_card(&machine_data->card);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "could not register card\n");
 		goto error;
 	}
@@ -380,7 +430,8 @@ static int mpc8610_hpcd_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver mpc8610_hpcd_driver = {
+static struct platform_driver mpc8610_hpcd_driver =
+{
 	.probe = mpc8610_hpcd_probe,
 	.remove = mpc8610_hpcd_remove,
 	.driver = {
@@ -405,10 +456,13 @@ static int __init mpc8610_hpcd_init(void)
 
 	/* Get the physical address of the global utilities registers */
 	guts_np = of_find_compatible_node(NULL, NULL, "fsl,mpc8610-guts");
-	if (of_address_to_resource(guts_np, 0, &res)) {
+
+	if (of_address_to_resource(guts_np, 0, &res))
+	{
 		pr_err("mpc8610-hpcd: missing/invalid global utilities node\n");
 		return -EINVAL;
 	}
+
 	guts_phys = res.start;
 
 	return platform_driver_register(&mpc8610_hpcd_driver);

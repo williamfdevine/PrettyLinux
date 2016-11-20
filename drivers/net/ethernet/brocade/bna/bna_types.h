@@ -39,17 +39,20 @@ struct bnad;
 
 /* Enums, primitive data types */
 
-enum bna_status {
+enum bna_status
+{
 	BNA_STATUS_T_DISABLED	= 0,
 	BNA_STATUS_T_ENABLED	= 1
 };
 
-enum bna_cleanup_type {
+enum bna_cleanup_type
+{
 	BNA_HARD_CLEANUP	= 0,
 	BNA_SOFT_CLEANUP	= 1
 };
 
-enum bna_cb_status {
+enum bna_cb_status
+{
 	BNA_CB_SUCCESS		= 0,
 	BNA_CB_FAIL		= 1,
 	BNA_CB_INTERRUPT	= 2,
@@ -61,22 +64,26 @@ enum bna_cb_status {
 	BNA_CB_NOT_EXEC		= 8
 };
 
-enum bna_res_type {
+enum bna_res_type
+{
 	BNA_RES_T_MEM		= 1,
 	BNA_RES_T_INTR		= 2
 };
 
-enum bna_mem_type {
+enum bna_mem_type
+{
 	BNA_MEM_T_KVA		= 1,
 	BNA_MEM_T_DMA		= 2
 };
 
-enum bna_intr_type {
+enum bna_intr_type
+{
 	BNA_INTR_T_INTX		= 1,
 	BNA_INTR_T_MSIX		= 2
 };
 
-enum bna_res_req_type {
+enum bna_res_req_type
+{
 	BNA_RES_MEM_T_COM		= 0,
 	BNA_RES_MEM_T_ATTR		= 1,
 	BNA_RES_MEM_T_FWTRC		= 2,
@@ -84,7 +91,8 @@ enum bna_res_req_type {
 	BNA_RES_T_MAX
 };
 
-enum bna_mod_res_req_type {
+enum bna_mod_res_req_type
+{
 	BNA_MOD_RES_MEM_T_TX_ARRAY	= 0,
 	BNA_MOD_RES_MEM_T_TXQ_ARRAY	= 1,
 	BNA_MOD_RES_MEM_T_RX_ARRAY	= 2,
@@ -96,7 +104,8 @@ enum bna_mod_res_req_type {
 	BNA_MOD_RES_T_MAX
 };
 
-enum bna_tx_res_req_type {
+enum bna_tx_res_req_type
+{
 	BNA_TX_RES_MEM_T_TCB	= 0,
 	BNA_TX_RES_MEM_T_UNMAPQ	= 1,
 	BNA_TX_RES_MEM_T_QPT	= 2,
@@ -107,7 +116,8 @@ enum bna_tx_res_req_type {
 	BNA_TX_RES_T_MAX,
 };
 
-enum bna_rx_mem_type {
+enum bna_rx_mem_type
+{
 	BNA_RX_RES_MEM_T_CCB		= 0,	/* CQ context */
 	BNA_RX_RES_MEM_T_RCB		= 1,	/* CQ context */
 	BNA_RX_RES_MEM_T_UNMAPHQ	= 2,
@@ -127,40 +137,47 @@ enum bna_rx_mem_type {
 	BNA_RX_RES_T_MAX		= 16
 };
 
-enum bna_tx_type {
+enum bna_tx_type
+{
 	BNA_TX_T_REGULAR	= 0,
 	BNA_TX_T_LOOPBACK	= 1,
 };
 
-enum bna_tx_flags {
+enum bna_tx_flags
+{
 	BNA_TX_F_ENET_STARTED	= 1,
 	BNA_TX_F_ENABLED	= 2,
 	BNA_TX_F_BW_UPDATED	= 8,
 };
 
-enum bna_tx_mod_flags {
+enum bna_tx_mod_flags
+{
 	BNA_TX_MOD_F_ENET_STARTED	= 1,
 	BNA_TX_MOD_F_ENET_LOOPBACK	= 2,
 };
 
-enum bna_rx_type {
+enum bna_rx_type
+{
 	BNA_RX_T_REGULAR	= 0,
 	BNA_RX_T_LOOPBACK	= 1,
 };
 
-enum bna_rxp_type {
+enum bna_rxp_type
+{
 	BNA_RXP_SINGLE		= 1,
 	BNA_RXP_SLR		= 2,
 	BNA_RXP_HDS		= 3
 };
 
-enum bna_rxmode {
+enum bna_rxmode
+{
 	BNA_RXMODE_PROMISC	= 1,
 	BNA_RXMODE_DEFAULT	= 2,
 	BNA_RXMODE_ALLMULTI	= 4
 };
 
-enum bna_rx_event {
+enum bna_rx_event
+{
 	RX_E_START			= 1,
 	RX_E_STOP			= 2,
 	RX_E_FAIL			= 3,
@@ -171,17 +188,20 @@ enum bna_rx_event {
 	RX_E_CLEANUP_DONE		= 8,
 };
 
-enum bna_rx_flags {
+enum bna_rx_flags
+{
 	BNA_RX_F_ENET_STARTED	= 1,
 	BNA_RX_F_ENABLED	= 2,
 };
 
-enum bna_rx_mod_flags {
+enum bna_rx_mod_flags
+{
 	BNA_RX_MOD_F_ENET_STARTED	= 1,
 	BNA_RX_MOD_F_ENET_LOOPBACK	= 2,
 };
 
-enum bna_rxf_event {
+enum bna_rxf_event
+{
 	RXF_E_START			= 1,
 	RXF_E_STOP			= 2,
 	RXF_E_FAIL			= 3,
@@ -189,42 +209,49 @@ enum bna_rxf_event {
 	RXF_E_FW_RESP			= 7,
 };
 
-enum bna_enet_type {
+enum bna_enet_type
+{
 	BNA_ENET_T_REGULAR		= 0,
 	BNA_ENET_T_LOOPBACK_INTERNAL	= 1,
 	BNA_ENET_T_LOOPBACK_EXTERNAL	= 2,
 };
 
-enum bna_link_status {
+enum bna_link_status
+{
 	BNA_LINK_DOWN		= 0,
 	BNA_LINK_UP		= 1,
 	BNA_CEE_UP		= 2
 };
 
-enum bna_ethport_flags {
+enum bna_ethport_flags
+{
 	BNA_ETHPORT_F_ADMIN_UP		= 1,
 	BNA_ETHPORT_F_PORT_ENABLED	= 2,
 	BNA_ETHPORT_F_RX_STARTED	= 4,
 };
 
-enum bna_enet_flags {
+enum bna_enet_flags
+{
 	BNA_ENET_F_IOCETH_READY		= 1,
 	BNA_ENET_F_ENABLED		= 2,
 	BNA_ENET_F_PAUSE_CHANGED	= 4,
 	BNA_ENET_F_MTU_CHANGED		= 8
 };
 
-enum bna_rss_flags {
+enum bna_rss_flags
+{
 	BNA_RSS_F_RIT_PENDING		= 1,
 	BNA_RSS_F_CFG_PENDING		= 2,
 	BNA_RSS_F_STATUS_PENDING	= 4,
 };
 
-enum bna_mod_flags {
+enum bna_mod_flags
+{
 	BNA_MOD_F_INIT_DONE		= 1,
 };
 
-enum bna_pkt_rates {
+enum bna_pkt_rates
+{
 	BNA_PKT_RATE_10K		= 10000,
 	BNA_PKT_RATE_20K		= 20000,
 	BNA_PKT_RATE_30K		= 30000,
@@ -235,7 +262,8 @@ enum bna_pkt_rates {
 	BNA_PKT_RATE_80K		= 80000,
 };
 
-enum bna_dim_load_types {
+enum bna_dim_load_types
+{
 	BNA_LOAD_T_HIGH_4		= 0, /* 80K <= r */
 	BNA_LOAD_T_HIGH_3		= 1, /* 60K <= r < 80K */
 	BNA_LOAD_T_HIGH_2		= 2, /* 50K <= r < 60K */
@@ -247,32 +275,37 @@ enum bna_dim_load_types {
 	BNA_LOAD_T_MAX			= 8
 };
 
-enum bna_dim_bias_types {
+enum bna_dim_bias_types
+{
 	BNA_BIAS_T_SMALL		= 0, /* small pkts > (large pkts * 2) */
 	BNA_BIAS_T_LARGE		= 1, /* Not BNA_BIAS_T_SMALL */
 	BNA_BIAS_T_MAX			= 2
 };
 
 #define BNA_MAX_NAME_SIZE	64
-struct bna_ident {
+struct bna_ident
+{
 	int			id;
 	char			name[BNA_MAX_NAME_SIZE];
 };
 
-struct bna_mac {
+struct bna_mac
+{
 	/* This should be the first one */
 	struct list_head			qe;
 	u8			addr[ETH_ALEN];
 	struct bna_mcam_handle *handle;
 };
 
-struct bna_mem_descr {
+struct bna_mem_descr
+{
 	u32		len;
 	void		*kva;
 	struct bna_dma_addr dma;
 };
 
-struct bna_mem_info {
+struct bna_mem_info
+{
 	enum bna_mem_type mem_type;
 	u32		len;
 	u32		num;
@@ -281,35 +314,41 @@ struct bna_mem_info {
 	void			*cookie; /* For bnad to unmap dma later */
 };
 
-struct bna_intr_descr {
+struct bna_intr_descr
+{
 	int			vector;
 };
 
-struct bna_intr_info {
+struct bna_intr_info
+{
 	enum bna_intr_type intr_type;
 	int			num;
 	struct bna_intr_descr *idl;
 };
 
-union bna_res_u {
+union bna_res_u
+{
 	struct bna_mem_info mem_info;
 	struct bna_intr_info intr_info;
 };
 
-struct bna_res_info {
+struct bna_res_info
+{
 	enum bna_res_type res_type;
 	union bna_res_u		res_u;
 };
 
 /* HW QPT */
-struct bna_qpt {
+struct bna_qpt
+{
 	struct bna_dma_addr hw_qpt_ptr;
 	void		*kv_qpt_ptr;
 	u32		page_count;
 	u32		page_size;
 };
 
-struct bna_attr {
+struct bna_attr
+{
 	bool			fw_query_complete;
 	int			num_txq;
 	int			num_rxp;
@@ -320,7 +359,8 @@ struct bna_attr {
 
 /* IOCEth */
 
-struct bna_ioceth {
+struct bna_ioceth
+{
 	bfa_fsm_t		fsm;
 	struct bfa_ioc ioc;
 
@@ -337,12 +377,14 @@ struct bna_ioceth {
 /* Enet */
 
 /* Pause configuration */
-struct bna_pause_config {
+struct bna_pause_config
+{
 	enum bna_status tx_pause;
 	enum bna_status rx_pause;
 };
 
-struct bna_enet {
+struct bna_enet
+{
 	bfa_fsm_t		fsm;
 	enum bna_enet_flags flags;
 
@@ -368,7 +410,8 @@ struct bna_enet {
 
 /* Ethport */
 
-struct bna_ethport {
+struct bna_ethport
+{
 	bfa_fsm_t		fsm;
 	enum bna_ethport_flags flags;
 
@@ -383,7 +426,8 @@ struct bna_ethport {
 	void (*link_cbfn)(struct bnad *, enum bna_link_status);
 
 	struct bfa_msgq_cmd_entry msgq_cmd;
-	union {
+	union
+	{
 		struct bfi_enet_enable_req admin_req;
 		struct bfi_enet_diag_lb_req lpbk_req;
 	} bfi_enet_cmd;
@@ -394,13 +438,15 @@ struct bna_ethport {
 /* Interrupt Block */
 
 /* Doorbell structure */
-struct bna_ib_dbell {
+struct bna_ib_dbell
+{
 	void __iomem   *doorbell_addr;
 	u32		doorbell_ack;
 };
 
 /* IB structure */
-struct bna_ib {
+struct bna_ib
+{
 	struct bna_dma_addr ib_seg_host_addr;
 	void		*ib_seg_host_addr_kva;
 
@@ -419,7 +465,8 @@ struct bna_ib {
 
 /* Tx datapath control structure */
 #define BNA_Q_NAME_SIZE		16
-struct bna_tcb {
+struct bna_tcb
+{
 	/* Fast path */
 	void			**sw_qpt;
 	void			*sw_q;
@@ -443,7 +490,8 @@ struct bna_tcb {
 };
 
 /* TxQ QPT and configuration */
-struct bna_txq {
+struct bna_txq
+{
 	/* This should be the first one */
 	struct list_head			qe;
 
@@ -462,7 +510,8 @@ struct bna_txq {
 };
 
 /* Tx object */
-struct bna_tx {
+struct bna_tx
+{
 	/* This should be the first one */
 	struct list_head			qe;
 	int			rid;
@@ -489,7 +538,8 @@ struct bna_tx {
 	void			*stop_cbarg;
 
 	struct bfa_msgq_cmd_entry msgq_cmd;
-	union {
+	union
+	{
 		struct bfi_enet_tx_cfg_req	cfg_req;
 		struct bfi_enet_req		req;
 		struct bfi_enet_tx_cfg_rsp	cfg_rsp;
@@ -500,14 +550,16 @@ struct bna_tx {
 };
 
 /* Tx object configuration used during creation */
-struct bna_tx_config {
+struct bna_tx_config
+{
 	int			num_txq;
 	int			txq_depth;
 	int			coalescing_timeo;
 	enum bna_tx_type tx_type;
 };
 
-struct bna_tx_event_cbfn {
+struct bna_tx_event_cbfn
+{
 	/* Optional */
 	void (*tcb_setup_cbfn)(struct bnad *, struct bna_tcb *);
 	void (*tcb_destroy_cbfn)(struct bnad *, struct bna_tcb *);
@@ -518,7 +570,8 @@ struct bna_tx_event_cbfn {
 };
 
 /* Tx module - keeps track of free, active tx objects */
-struct bna_tx_mod {
+struct bna_tx_mod
+{
 	struct bna_tx *tx;		/* BFI_MAX_TXQ entries */
 	struct bna_txq *txq;		/* BFI_MAX_TXQ entries */
 
@@ -548,7 +601,8 @@ struct bna_tx_mod {
 /* Rx object */
 
 /* Rx datapath control structure */
-struct bna_rcb {
+struct bna_rcb
+{
 	/* Fast path */
 	void			**sw_qpt;
 	void			*sw_q;
@@ -567,7 +621,8 @@ struct bna_rcb {
 };
 
 /* RxQ structure - QPT, configuration */
-struct bna_rxq {
+struct bna_rxq
+{
 	struct list_head			qe;
 
 	int			buffer_size;
@@ -591,29 +646,35 @@ struct bna_rxq {
 };
 
 /* RxQ pair */
-union bna_rxq_u {
-	struct {
+union bna_rxq_u
+{
+	struct
+	{
 		struct bna_rxq *hdr;
 		struct bna_rxq *data;
 	} hds;
-	struct {
+	struct
+	{
 		struct bna_rxq *small;
 		struct bna_rxq *large;
 	} slr;
-	struct {
+	struct
+	{
 		struct bna_rxq *only;
 		struct bna_rxq *reserved;
 	} single;
 };
 
 /* Packet rate for Dynamic Interrupt Moderation */
-struct bna_pkt_rate {
+struct bna_pkt_rate
+{
 	u32		small_pkt_cnt;
 	u32		large_pkt_cnt;
 };
 
 /* Completion control structure */
-struct bna_ccb {
+struct bna_ccb
+{
 	/* Fast path */
 	void			**sw_qpt;
 	void			*sw_q;
@@ -639,7 +700,8 @@ struct bna_ccb {
 };
 
 /* CQ QPT, configuration  */
-struct bna_cq {
+struct bna_cq
+{
 	struct bna_qpt qpt;
 	struct bna_ccb *ccb;
 
@@ -648,19 +710,22 @@ struct bna_cq {
 	struct bna_rx *rx;
 };
 
-struct bna_rss_config {
+struct bna_rss_config
+{
 	enum bfi_enet_rss_type	hash_type;
 	u8			hash_mask;
 	u32		toeplitz_hash_key[BFI_ENET_RSS_KEY_LEN];
 };
 
-struct bna_hds_config {
+struct bna_hds_config
+{
 	enum bfi_enet_hds_type	hdr_type;
 	int			forced_offset;
 };
 
 /* Rx object configuration used during creation */
-struct bna_rx_config {
+struct bna_rx_config
+{
 	enum bna_rx_type rx_type;
 	int			num_paths;
 	enum bna_rxp_type rxp_type;
@@ -690,7 +755,8 @@ struct bna_rx_config {
 };
 
 /* Rx Path structure - one per MSIX vector/CPU */
-struct bna_rxp {
+struct bna_rxp
+{
 	/* This should be the first one */
 	struct list_head			qe;
 
@@ -706,11 +772,13 @@ struct bna_rxp {
 };
 
 /* RxF structure (hardware Rx Function) */
-struct bna_rxf {
+struct bna_rxf
+{
 	bfa_fsm_t		fsm;
 
 	struct bfa_msgq_cmd_entry msgq_cmd;
-	union {
+	union
+	{
 		struct bfi_enet_enable_req req;
 		struct bfi_enet_rss_cfg_req rss_req;
 		struct bfi_enet_rit_req rit_req;
@@ -777,7 +845,8 @@ struct bna_rxf {
 };
 
 /* Rx object */
-struct bna_rx {
+struct bna_rx
+{
 	/* This should be the first one */
 	struct list_head			qe;
 	int			rid;
@@ -797,7 +866,8 @@ struct bna_rx {
 	enum bna_rx_flags rx_flags;
 
 	struct bfa_msgq_cmd_entry msgq_cmd;
-	union {
+	union
+	{
 		struct bfi_enet_rx_cfg_req	cfg_req;
 		struct bfi_enet_req		req;
 		struct bfi_enet_rx_cfg_rsp	cfg_rsp;
@@ -820,7 +890,8 @@ struct bna_rx {
 	void			*priv; /* bnad's cookie */
 };
 
-struct bna_rx_event_cbfn {
+struct bna_rx_event_cbfn
+{
 	/* Optional */
 	void (*rcb_setup_cbfn)(struct bnad *, struct bna_rcb *);
 	void (*rcb_destroy_cbfn)(struct bnad *, struct bna_rcb *);
@@ -833,7 +904,8 @@ struct bna_rx_event_cbfn {
 };
 
 /* Rx module - keeps track of free, active rx objects */
-struct bna_rx_mod {
+struct bna_rx_mod
+{
 	struct bna *bna;		/* back pointer to parent */
 	struct bna_rx *rx;		/* BFI_MAX_RXQ entries */
 	struct bna_rxp *rxp;		/* BFI_MAX_RXQ entries */
@@ -861,7 +933,8 @@ struct bna_rx_mod {
 
 /* CAM */
 
-struct bna_ucam_mod {
+struct bna_ucam_mod
+{
 	struct bna_mac *ucmac;		/* num_ucmac * 2 entries */
 	struct list_head			free_q;
 	struct list_head			del_q;
@@ -869,14 +942,16 @@ struct bna_ucam_mod {
 	struct bna *bna;
 };
 
-struct bna_mcam_handle {
+struct bna_mcam_handle
+{
 	/* This should be the first one */
 	struct list_head			qe;
 	int			handle;
 	int			refcnt;
 };
 
-struct bna_mcam_mod {
+struct bna_mcam_mod
+{
 	struct bna_mac *mcmac;		/* num_mcmac * 2 entries */
 	struct bna_mcam_handle *mchandle;	/* num_mcmac entries */
 	struct list_head			free_q;
@@ -888,13 +963,15 @@ struct bna_mcam_mod {
 
 /* Statistics */
 
-struct bna_stats {
+struct bna_stats
+{
 	struct bna_dma_addr	hw_stats_dma;
 	struct bfi_enet_stats	*hw_stats_kva;
 	struct bfi_enet_stats	hw_stats;
 };
 
-struct bna_stats_mod {
+struct bna_stats_mod
+{
 	bool		ioc_ready;
 	bool		stats_get_busy;
 	bool		stats_clr_busy;
@@ -906,7 +983,8 @@ struct bna_stats_mod {
 
 /* BNA */
 
-struct bna {
+struct bna
+{
 	struct bna_ident ident;
 	struct bfa_pcidev pcidev;
 

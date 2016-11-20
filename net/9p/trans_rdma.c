@@ -80,8 +80,10 @@
  * @req_lock: Protects the active request list
  * @cm_done: Completion event for connection management tracking
  */
-struct p9_trans_rdma {
-	enum {
+struct p9_trans_rdma
+{
+	enum
+	{
 		P9_RDMA_INIT,
 		P9_RDMA_ADDR_RESOLVED,
 		P9_RDMA_ROUTE_RESOLVED,
@@ -114,10 +116,12 @@ struct p9_trans_rdma {
  * @rc: Keepts track of replies (receive)
  */
 struct p9_rdma_req;
-struct p9_rdma_context {
+struct p9_rdma_context
+{
 	struct ib_cqe cqe;
 	dma_addr_t busa;
-	union {
+	union
+	{
 		struct p9_req_t *req;
 		struct p9_fcall *rc;
 	};
@@ -131,7 +135,8 @@ struct p9_rdma_context {
  * @rq_depth: The depth of the RQ. Should be greater than or equal to SQ depth
  * @timeout: Time to wait in msecs for CM events
  */
-struct p9_rdma_opts {
+struct p9_rdma_opts
+{
 	short port;
 	int sq_depth;
 	int rq_depth;
@@ -142,7 +147,8 @@ struct p9_rdma_opts {
 /*
  * Option Parsing (code inspired by NFS code)
  */
-enum {
+enum
+{
 	/* Options that take integer arguments */
 	Opt_port, Opt_rq_depth, Opt_sq_depth, Opt_timeout,
 	/* Options that take no argument */
@@ -150,7 +156,8 @@ enum {
 	Opt_err,
 };
 
-static match_table_t tokens = {
+static match_table_t tokens =
+{
 	{Opt_port, "port=%u"},
 	{Opt_sq_depth, "sq=%u"},
 	{Opt_rq_depth, "rq=%u"},
@@ -180,50 +187,72 @@ static int parse_opts(char *params, struct p9_rdma_opts *opts)
 	opts->privport = 0;
 
 	if (!params)
+	{
 		return 0;
+	}
 
 	tmp_options = kstrdup(params, GFP_KERNEL);
-	if (!tmp_options) {
+
+	if (!tmp_options)
+	{
 		p9_debug(P9_DEBUG_ERROR,
-			 "failed to allocate copy of option string\n");
+				 "failed to allocate copy of option string\n");
 		return -ENOMEM;
 	}
+
 	options = tmp_options;
 
-	while ((p = strsep(&options, ",")) != NULL) {
+	while ((p = strsep(&options, ",")) != NULL)
+	{
 		int token;
 		int r;
+
 		if (!*p)
+		{
 			continue;
+		}
+
 		token = match_token(p, tokens, args);
-		if ((token != Opt_err) && (token != Opt_privport)) {
+
+		if ((token != Opt_err) && (token != Opt_privport))
+		{
 			r = match_int(&args[0], &option);
-			if (r < 0) {
+
+			if (r < 0)
+			{
 				p9_debug(P9_DEBUG_ERROR,
-					 "integer field, but no integer?\n");
+						 "integer field, but no integer?\n");
 				continue;
 			}
 		}
-		switch (token) {
-		case Opt_port:
-			opts->port = option;
-			break;
-		case Opt_sq_depth:
-			opts->sq_depth = option;
-			break;
-		case Opt_rq_depth:
-			opts->rq_depth = option;
-			break;
-		case Opt_timeout:
-			opts->timeout = option;
-			break;
-		case Opt_privport:
-			opts->privport = 1;
-			break;
-		default:
-			continue;
+
+		switch (token)
+		{
+			case Opt_port:
+				opts->port = option;
+				break;
+
+			case Opt_sq_depth:
+				opts->sq_depth = option;
+				break;
+
+			case Opt_rq_depth:
+				opts->rq_depth = option;
+				break;
+
+			case Opt_timeout:
+				opts->timeout = option;
+				break;
+
+			case Opt_privport:
+				opts->privport = 1;
+				break;
+
+			default:
+				continue;
 		}
 	}
+
 	/* RQ must be at least as large as the SQ */
 	opts->rq_depth = max(opts->rq_depth, opts->sq_depth);
 	kfree(tmp_options);
@@ -235,49 +264,59 @@ p9_cm_event_handler(struct rdma_cm_id *id, struct rdma_cm_event *event)
 {
 	struct p9_client *c = id->context;
 	struct p9_trans_rdma *rdma = c->trans;
-	switch (event->event) {
-	case RDMA_CM_EVENT_ADDR_RESOLVED:
-		BUG_ON(rdma->state != P9_RDMA_INIT);
-		rdma->state = P9_RDMA_ADDR_RESOLVED;
-		break;
 
-	case RDMA_CM_EVENT_ROUTE_RESOLVED:
-		BUG_ON(rdma->state != P9_RDMA_ADDR_RESOLVED);
-		rdma->state = P9_RDMA_ROUTE_RESOLVED;
-		break;
+	switch (event->event)
+	{
+		case RDMA_CM_EVENT_ADDR_RESOLVED:
+			BUG_ON(rdma->state != P9_RDMA_INIT);
+			rdma->state = P9_RDMA_ADDR_RESOLVED;
+			break;
 
-	case RDMA_CM_EVENT_ESTABLISHED:
-		BUG_ON(rdma->state != P9_RDMA_ROUTE_RESOLVED);
-		rdma->state = P9_RDMA_CONNECTED;
-		break;
+		case RDMA_CM_EVENT_ROUTE_RESOLVED:
+			BUG_ON(rdma->state != P9_RDMA_ADDR_RESOLVED);
+			rdma->state = P9_RDMA_ROUTE_RESOLVED;
+			break;
 
-	case RDMA_CM_EVENT_DISCONNECTED:
-		if (rdma)
-			rdma->state = P9_RDMA_CLOSED;
-		if (c)
+		case RDMA_CM_EVENT_ESTABLISHED:
+			BUG_ON(rdma->state != P9_RDMA_ROUTE_RESOLVED);
+			rdma->state = P9_RDMA_CONNECTED;
+			break;
+
+		case RDMA_CM_EVENT_DISCONNECTED:
+			if (rdma)
+			{
+				rdma->state = P9_RDMA_CLOSED;
+			}
+
+			if (c)
+			{
+				c->status = Disconnected;
+			}
+
+			break;
+
+		case RDMA_CM_EVENT_TIMEWAIT_EXIT:
+			break;
+
+		case RDMA_CM_EVENT_ADDR_CHANGE:
+		case RDMA_CM_EVENT_ROUTE_ERROR:
+		case RDMA_CM_EVENT_DEVICE_REMOVAL:
+		case RDMA_CM_EVENT_MULTICAST_JOIN:
+		case RDMA_CM_EVENT_MULTICAST_ERROR:
+		case RDMA_CM_EVENT_REJECTED:
+		case RDMA_CM_EVENT_CONNECT_REQUEST:
+		case RDMA_CM_EVENT_CONNECT_RESPONSE:
+		case RDMA_CM_EVENT_CONNECT_ERROR:
+		case RDMA_CM_EVENT_ADDR_ERROR:
+		case RDMA_CM_EVENT_UNREACHABLE:
 			c->status = Disconnected;
-		break;
+			rdma_disconnect(rdma->cm_id);
+			break;
 
-	case RDMA_CM_EVENT_TIMEWAIT_EXIT:
-		break;
-
-	case RDMA_CM_EVENT_ADDR_CHANGE:
-	case RDMA_CM_EVENT_ROUTE_ERROR:
-	case RDMA_CM_EVENT_DEVICE_REMOVAL:
-	case RDMA_CM_EVENT_MULTICAST_JOIN:
-	case RDMA_CM_EVENT_MULTICAST_ERROR:
-	case RDMA_CM_EVENT_REJECTED:
-	case RDMA_CM_EVENT_CONNECT_REQUEST:
-	case RDMA_CM_EVENT_CONNECT_RESPONSE:
-	case RDMA_CM_EVENT_CONNECT_ERROR:
-	case RDMA_CM_EVENT_ADDR_ERROR:
-	case RDMA_CM_EVENT_UNREACHABLE:
-		c->status = Disconnected;
-		rdma_disconnect(rdma->cm_id);
-		break;
-	default:
-		BUG();
+		default:
+			BUG();
 	}
+
 	complete(&rdma->cm_done);
 	return 0;
 }
@@ -295,22 +334,31 @@ recv_done(struct ib_cq *cq, struct ib_wc *wc)
 
 	req = NULL;
 	ib_dma_unmap_single(rdma->cm_id->device, c->busa, client->msize,
-							 DMA_FROM_DEVICE);
+						DMA_FROM_DEVICE);
 
 	if (wc->status != IB_WC_SUCCESS)
+	{
 		goto err_out;
+	}
 
 	err = p9_parse_header(c->rc, NULL, NULL, &tag, 1);
+
 	if (err)
+	{
 		goto err_out;
+	}
 
 	req = p9_tag_lookup(client, tag);
+
 	if (!req)
+	{
 		goto err_out;
+	}
 
 	/* Check that we have not yet received a reply for this request.
 	 */
-	if (unlikely(req->rc)) {
+	if (unlikely(req->rc))
+	{
 		pr_err("Duplicate reply for request %d", tag);
 		goto err_out;
 	}
@@ -318,14 +366,14 @@ recv_done(struct ib_cq *cq, struct ib_wc *wc)
 	req->rc = c->rc;
 	p9_client_cb(client, req, REQ_STATUS_RCVD);
 
- out:
+out:
 	up(&rdma->rq_sem);
 	kfree(c);
 	return;
 
- err_out:
+err_out:
 	p9_debug(P9_DEBUG_ERROR, "req %p err %d status %d\n",
-			req, err, wc->status);
+			 req, err, wc->status);
 	rdma->state = P9_RDMA_FLUSHING;
 	client->status = Disconnected;
 	goto out;
@@ -340,8 +388,8 @@ send_done(struct ib_cq *cq, struct ib_wc *wc)
 		container_of(wc->wr_cqe, struct p9_rdma_context, cqe);
 
 	ib_dma_unmap_single(rdma->cm_id->device,
-			    c->busa, c->req->tc->size,
-			    DMA_TO_DEVICE);
+						c->busa, c->req->tc->size,
+						DMA_TO_DEVICE);
 	up(&rdma->sq_sem);
 	kfree(c);
 }
@@ -349,25 +397,35 @@ send_done(struct ib_cq *cq, struct ib_wc *wc)
 static void qp_event_handler(struct ib_event *event, void *context)
 {
 	p9_debug(P9_DEBUG_ERROR, "QP event %d context %p\n",
-		 event->event, context);
+			 event->event, context);
 }
 
 static void rdma_destroy_trans(struct p9_trans_rdma *rdma)
 {
 	if (!rdma)
+	{
 		return;
+	}
 
 	if (rdma->qp && !IS_ERR(rdma->qp))
+	{
 		ib_destroy_qp(rdma->qp);
+	}
 
 	if (rdma->pd && !IS_ERR(rdma->pd))
+	{
 		ib_dealloc_pd(rdma->pd);
+	}
 
 	if (rdma->cq && !IS_ERR(rdma->cq))
+	{
 		ib_free_cq(rdma->cq);
+	}
 
 	if (rdma->cm_id && !IS_ERR(rdma->cm_id))
+	{
 		rdma_destroy_id(rdma->cm_id);
+	}
 
 	kfree(rdma);
 }
@@ -380,10 +438,13 @@ post_recv(struct p9_client *client, struct p9_rdma_context *c)
 	struct ib_sge sge;
 
 	c->busa = ib_dma_map_single(rdma->cm_id->device,
-				    c->rc->sdata, client->msize,
-				    DMA_FROM_DEVICE);
+								c->rc->sdata, client->msize,
+								DMA_FROM_DEVICE);
+
 	if (ib_dma_mapping_error(rdma->cm_id->device, c->busa))
+	{
 		goto error;
+	}
 
 	c->cqe.done = recv_done;
 
@@ -397,7 +458,7 @@ post_recv(struct p9_client *client, struct p9_rdma_context *c)
 	wr.num_sge = 1;
 	return ib_post_recv(rdma->qp, &wr, &bad_wr);
 
- error:
+error:
 	p9_debug(P9_DEBUG_ERROR, "EIO\n");
 	return -EIO;
 }
@@ -420,24 +481,31 @@ static int rdma_request(struct p9_client *client, struct p9_req_t *req)
 	 * see if we are this `next request' and need to absorb an excess rc.
 	 * If yes, then drop and free our own, and do not recv_post().
 	 **/
-	if (unlikely(atomic_read(&rdma->excess_rc) > 0)) {
-		if ((atomic_sub_return(1, &rdma->excess_rc) >= 0)) {
+	if (unlikely(atomic_read(&rdma->excess_rc) > 0))
+	{
+		if ((atomic_sub_return(1, &rdma->excess_rc) >= 0))
+		{
 			/* Got one ! */
 			kfree(req->rc);
 			req->rc = NULL;
 			goto dont_need_post_recv;
-		} else {
+		}
+		else
+		{
 			/* We raced and lost. */
 			atomic_inc(&rdma->excess_rc);
 		}
 	}
 
 	/* Allocate an fcall for the reply */
-	rpl_context = kmalloc(sizeof *rpl_context, GFP_NOFS);
-	if (!rpl_context) {
+	rpl_context = kmalloc(sizeof * rpl_context, GFP_NOFS);
+
+	if (!rpl_context)
+	{
 		err = -ENOMEM;
 		goto recv_error;
 	}
+
 	rpl_context->rc = req->rc;
 
 	/*
@@ -447,32 +515,41 @@ static int rdma_request(struct p9_client *client, struct p9_req_t *req)
 	 * outstanding request, so we must keep a count to avoid
 	 * overflowing the RQ.
 	 */
-	if (down_interruptible(&rdma->rq_sem)) {
+	if (down_interruptible(&rdma->rq_sem))
+	{
 		err = -EINTR;
 		goto recv_error;
 	}
 
 	err = post_recv(client, rpl_context);
-	if (err) {
+
+	if (err)
+	{
 		p9_debug(P9_DEBUG_FCALL, "POST RECV failed\n");
 		goto recv_error;
 	}
+
 	/* remove posted receive buffer from request structure */
 	req->rc = NULL;
 
 dont_need_post_recv:
 	/* Post the request */
-	c = kmalloc(sizeof *c, GFP_NOFS);
-	if (!c) {
+	c = kmalloc(sizeof * c, GFP_NOFS);
+
+	if (!c)
+	{
 		err = -ENOMEM;
 		goto send_error;
 	}
+
 	c->req = req;
 
 	c->busa = ib_dma_map_single(rdma->cm_id->device,
-				    c->req->tc->sdata, c->req->tc->size,
-				    DMA_TO_DEVICE);
-	if (ib_dma_mapping_error(rdma->cm_id->device, c->busa)) {
+								c->req->tc->sdata, c->req->tc->size,
+								DMA_TO_DEVICE);
+
+	if (ib_dma_mapping_error(rdma->cm_id->device, c->busa))
+	{
 		err = -EIO;
 		goto send_error;
 	}
@@ -490,7 +567,8 @@ dont_need_post_recv:
 	wr.sg_list = &sge;
 	wr.num_sge = 1;
 
-	if (down_interruptible(&rdma->sq_sem)) {
+	if (down_interruptible(&rdma->sq_sem))
+	{
 		err = -EINTR;
 		goto send_error;
 	}
@@ -501,14 +579,17 @@ dont_need_post_recv:
 	 */
 	req->status = REQ_STATUS_SENT;
 	err = ib_post_send(rdma->qp, &wr, &bad_wr);
+
 	if (err)
+	{
 		goto send_error;
+	}
 
 	/* Success */
 	return 0;
 
- /* Handle errors that happened during or while preparing the send: */
- send_error:
+	/* Handle errors that happened during or while preparing the send: */
+send_error:
 	req->status = REQ_STATUS_ERROR;
 	kfree(c);
 	p9_debug(P9_DEBUG_ERROR, "Error %d in rdma_request()\n", err);
@@ -519,16 +600,22 @@ dont_need_post_recv:
 	atomic_inc(&rdma->excess_rc);
 	return err;
 
- /* Handle errors that happened during or while preparing post_recv(): */
- recv_error:
+	/* Handle errors that happened during or while preparing post_recv(): */
+recv_error:
 	kfree(rpl_context);
 	spin_lock_irqsave(&rdma->req_lock, flags);
-	if (rdma->state < P9_RDMA_CLOSING) {
+
+	if (rdma->state < P9_RDMA_CLOSING)
+	{
 		rdma->state = P9_RDMA_CLOSING;
 		spin_unlock_irqrestore(&rdma->req_lock, flags);
 		rdma_disconnect(rdma->cm_id);
-	} else
+	}
+	else
+	{
 		spin_unlock_irqrestore(&rdma->req_lock, flags);
+	}
+
 	return err;
 }
 
@@ -537,11 +624,16 @@ static void rdma_close(struct p9_client *client)
 	struct p9_trans_rdma *rdma;
 
 	if (!client)
+	{
 		return;
+	}
 
 	rdma = client->trans;
+
 	if (!rdma)
+	{
 		return;
+	}
 
 	client->status = Disconnected;
 	rdma_disconnect(rdma->cm_id);
@@ -557,8 +649,11 @@ static struct p9_trans_rdma *alloc_rdma(struct p9_rdma_opts *opts)
 	struct p9_trans_rdma *rdma;
 
 	rdma = kzalloc(sizeof(struct p9_trans_rdma), GFP_KERNEL);
+
 	if (!rdma)
+	{
 		return NULL;
+	}
 
 	rdma->sq_depth = opts->sq_depth;
 	rdma->rq_depth = opts->rq_depth;
@@ -592,18 +687,24 @@ static int rdma_cancelled(struct p9_client *client, struct p9_req_t *req)
 
 static int p9_rdma_bind_privport(struct p9_trans_rdma *rdma)
 {
-	struct sockaddr_in cl = {
+	struct sockaddr_in cl =
+	{
 		.sin_family = AF_INET,
 		.sin_addr.s_addr = htonl(INADDR_ANY),
 	};
 	int port, err = -EINVAL;
 
-	for (port = P9_DEF_MAX_RESVPORT; port >= P9_DEF_MIN_RESVPORT; port--) {
+	for (port = P9_DEF_MAX_RESVPORT; port >= P9_DEF_MIN_RESVPORT; port--)
+	{
 		cl.sin_port = htons((ushort)port);
 		err = rdma_bind_addr(rdma->cm_id, (struct sockaddr *)&cl);
+
 		if (err != -EADDRINUSE)
+		{
 			break;
+		}
 	}
+
 	return err;
 }
 
@@ -624,29 +725,41 @@ rdma_create_trans(struct p9_client *client, const char *addr, char *args)
 
 	/* Parse the transport specific mount options */
 	err = parse_opts(args, &opts);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* Create and initialize the RDMA transport structure */
 	rdma = alloc_rdma(&opts);
+
 	if (!rdma)
+	{
 		return -ENOMEM;
+	}
 
 	/* Create the RDMA CM ID */
 	rdma->cm_id = rdma_create_id(&init_net, p9_cm_event_handler, client,
-				     RDMA_PS_TCP, IB_QPT_RC);
+								 RDMA_PS_TCP, IB_QPT_RC);
+
 	if (IS_ERR(rdma->cm_id))
+	{
 		goto error;
+	}
 
 	/* Associate the client with the transport */
 	client->trans = rdma;
 
 	/* Bind to a privileged port if we need to */
-	if (opts.privport) {
+	if (opts.privport)
+	{
 		err = p9_rdma_bind_privport(rdma);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			pr_err("%s (%d): problem binding to privport: %d\n",
-			       __func__, task_pid_nr(current), -err);
+				   __func__, task_pid_nr(current), -err);
 			goto error;
 		}
 	}
@@ -656,33 +769,53 @@ rdma_create_trans(struct p9_client *client, const char *addr, char *args)
 	rdma->addr.sin_addr.s_addr = in_aton(addr);
 	rdma->addr.sin_port = htons(opts.port);
 	err = rdma_resolve_addr(rdma->cm_id, NULL,
-				(struct sockaddr *)&rdma->addr,
-				rdma->timeout);
+							(struct sockaddr *)&rdma->addr,
+							rdma->timeout);
+
 	if (err)
+	{
 		goto error;
+	}
+
 	err = wait_for_completion_interruptible(&rdma->cm_done);
+
 	if (err || (rdma->state != P9_RDMA_ADDR_RESOLVED))
+	{
 		goto error;
+	}
 
 	/* Resolve the route to the server */
 	err = rdma_resolve_route(rdma->cm_id, rdma->timeout);
+
 	if (err)
+	{
 		goto error;
+	}
+
 	err = wait_for_completion_interruptible(&rdma->cm_done);
+
 	if (err || (rdma->state != P9_RDMA_ROUTE_RESOLVED))
+	{
 		goto error;
+	}
 
 	/* Create the Completion Queue */
 	rdma->cq = ib_alloc_cq(rdma->cm_id->device, client,
-			opts.sq_depth + opts.rq_depth + 1,
-			0, IB_POLL_SOFTIRQ);
+						   opts.sq_depth + opts.rq_depth + 1,
+						   0, IB_POLL_SOFTIRQ);
+
 	if (IS_ERR(rdma->cq))
+	{
 		goto error;
+	}
 
 	/* Create the Protection Domain */
 	rdma->pd = ib_alloc_pd(rdma->cm_id->device, 0);
+
 	if (IS_ERR(rdma->pd))
+	{
 		goto error;
+	}
 
 	/* Create the Queue Pair */
 	memset(&qp_attr, 0, sizeof qp_attr);
@@ -697,8 +830,12 @@ rdma_create_trans(struct p9_client *client, const char *addr, char *args)
 	qp_attr.send_cq = rdma->cq;
 	qp_attr.recv_cq = rdma->cq;
 	err = rdma_create_qp(rdma->cm_id, rdma->pd, &qp_attr);
+
 	if (err)
+	{
 		goto error;
+	}
+
 	rdma->qp = rdma->cm_id->qp;
 
 	/* Request a connection */
@@ -708,11 +845,18 @@ rdma_create_trans(struct p9_client *client, const char *addr, char *args)
 	conn_param.responder_resources = P9_RDMA_IRD;
 	conn_param.initiator_depth = P9_RDMA_ORD;
 	err = rdma_connect(rdma->cm_id, &conn_param);
+
 	if (err)
+	{
 		goto error;
+	}
+
 	err = wait_for_completion_interruptible(&rdma->cm_done);
+
 	if (err || (rdma->state != P9_RDMA_CONNECTED))
+	{
 		goto error;
+	}
 
 	client->status = Connected;
 
@@ -723,7 +867,8 @@ error:
 	return -ENOTCONN;
 }
 
-static struct p9_trans_module p9_rdma_trans = {
+static struct p9_trans_module p9_rdma_trans =
+{
 	.name = "rdma",
 	.maxsize = P9_RDMA_MAXSIZE,
 	.def = 0,

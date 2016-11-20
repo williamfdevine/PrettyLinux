@@ -12,11 +12,12 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table streamzap[] = {
-/*
- * The Streamzap remote is almost, but not quite, RC-5, as it has an extra
- * bit in it.
- */
+static struct rc_map_table streamzap[] =
+{
+	/*
+	 * The Streamzap remote is almost, but not quite, RC-5, as it has an extra
+	 * bit in it.
+	 */
 	{ 0x28c0, KEY_NUMERIC_0 },
 	{ 0x28c1, KEY_NUMERIC_1 },
 	{ 0x28c2, KEY_NUMERIC_2 },
@@ -55,7 +56,8 @@ static struct rc_map_table streamzap[] = {
 
 };
 
-static struct rc_map_list streamzap_map = {
+static struct rc_map_list streamzap_map =
+{
 	.map = {
 		.scan    = streamzap,
 		.size    = ARRAY_SIZE(streamzap),

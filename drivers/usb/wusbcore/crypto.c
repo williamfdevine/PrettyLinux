@@ -62,7 +62,7 @@ MODULE_PARM_DESC(debug_crypto_verify, "verify the key generation algorithms");
 static void wusb_key_dump(const void *buf, size_t len)
 {
 	print_hex_dump(KERN_ERR, "  ", DUMP_PREFIX_OFFSET, 16, 1,
-		       buf, len, 0);
+				   buf, len, 0);
 }
 
 /*
@@ -72,7 +72,8 @@ static void wusb_key_dump(const void *buf, size_t len)
  * (packed in a struct to avoid common mess ups that I usually do with
  * arrays and enforcing type checking).
  */
-struct aes_ccm_block {
+struct aes_ccm_block
+{
 	u8 data[16];
 } __attribute__((packed));
 
@@ -93,14 +94,16 @@ struct aes_ccm_block {
  */
 
 /* WUSB1.0[T6.4] */
-struct aes_ccm_b0 {
+struct aes_ccm_b0
+{
 	u8 flags;	/* 0x59, per CCM spec */
 	struct aes_ccm_nonce ccm_nonce;
 	__be16 lm;
 } __attribute__((packed));
 
 /* WUSB1.0[T6.5] */
-struct aes_ccm_b1 {
+struct aes_ccm_b1
+{
 	__be16 la;
 	u8 mac_header[10];
 	__le16 eo;
@@ -117,24 +120,29 @@ struct aes_ccm_b1 {
  *
  * The x is the counter, and is increased for each block.
  */
-struct aes_ccm_a {
+struct aes_ccm_a
+{
 	u8 flags;	/* 0x01, per CCM spec */
 	struct aes_ccm_nonce ccm_nonce;
 	__be16 counter;	/* Value of x */
 } __attribute__((packed));
 
 static void bytewise_xor(void *_bo, const void *_bi1, const void *_bi2,
-			 size_t size)
+						 size_t size)
 {
 	u8 *bo = _bo;
 	const u8 *bi1 = _bi1, *bi2 = _bi2;
 	size_t itr;
+
 	for (itr = 0; itr < size; itr++)
+	{
 		bo[itr] = bi1[itr] ^ bi2[itr];
+	}
 }
 
 /* Scratch space for MAC calculations. */
-struct wusb_mac_scratch {
+struct wusb_mac_scratch
+{
 	struct aes_ccm_b0 b0;
 	struct aes_ccm_b1 b1;
 	struct aes_ccm_a ax;
@@ -204,12 +212,12 @@ struct wusb_mac_scratch {
  *       what sg[4] is for. Maybe there is a smarter way to do this.
  */
 static int wusb_ccm_mac(struct crypto_skcipher *tfm_cbc,
-			struct crypto_cipher *tfm_aes,
-			struct wusb_mac_scratch *scratch,
-			void *mic,
-			const struct aes_ccm_nonce *n,
-			const struct aes_ccm_label *a, const void *b,
-			size_t blen)
+						struct crypto_cipher *tfm_aes,
+						struct wusb_mac_scratch *scratch,
+						void *mic,
+						const struct aes_ccm_nonce *n,
+						const struct aes_ccm_label *a, const void *b,
+						size_t blen)
 {
 	int result = 0;
 	SKCIPHER_REQUEST_ON_STACK(req, tfm_cbc);
@@ -231,13 +239,20 @@ static int wusb_ccm_mac(struct crypto_skcipher *tfm_cbc,
 
 	result = -ENOMEM;
 	zero_padding = blen % sizeof(struct aes_ccm_block);
+
 	if (zero_padding)
+	{
 		zero_padding = sizeof(struct aes_ccm_block) - zero_padding;
+	}
+
 	dst_size = blen + sizeof(scratch->b0) + sizeof(scratch->b1) +
-		zero_padding;
+			   zero_padding;
 	dst_buf = kzalloc(dst_size, GFP_KERNEL);
+
 	if (!dst_buf)
+	{
 		goto error_dst_buf;
+	}
 
 	memset(iv, 0, sizeof(iv));
 
@@ -269,9 +284,11 @@ static int wusb_ccm_mac(struct crypto_skcipher *tfm_cbc,
 	skcipher_request_set_crypt(req, sg, &sg_dst, dst_size, iv);
 	result = crypto_skcipher_encrypt(req);
 	skcipher_request_zero(req);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		printk(KERN_ERR "E: can't compute CBC-MAC tag (MIC): %d\n",
-		       result);
+			   result);
 		goto error_cbc_crypt;
 	}
 
@@ -287,7 +304,7 @@ static int wusb_ccm_mac(struct crypto_skcipher *tfm_cbc,
 	scratch->ax.ccm_nonce = *n;
 	scratch->ax.counter = 0;
 	crypto_cipher_encrypt_one(tfm_aes, (void *)&scratch->ax,
-				  (void *)&scratch->ax);
+							  (void *)&scratch->ax);
 	bytewise_xor(mic, &scratch->ax, iv, 8);
 	result = 8;
 error_cbc_crypt:
@@ -303,9 +320,9 @@ error_dst_buf:
  *     (will confuse the scatterlists)
  */
 ssize_t wusb_prf(void *out, size_t out_size,
-		 const u8 key[16], const struct aes_ccm_nonce *_n,
-		 const struct aes_ccm_label *a,
-		 const void *b, size_t blen, size_t len)
+				 const u8 key[16], const struct aes_ccm_nonce *_n,
+				 const struct aes_ccm_label *a,
+				 const void *b, size_t blen, size_t len)
 {
 	ssize_t result, bytes = 0, bitr;
 	struct aes_ccm_nonce n = *_n;
@@ -316,43 +333,62 @@ ssize_t wusb_prf(void *out, size_t out_size,
 	__le64 sfn_le;
 
 	tfm_cbc = crypto_alloc_skcipher("cbc(aes)", 0, CRYPTO_ALG_ASYNC);
-	if (IS_ERR(tfm_cbc)) {
+
+	if (IS_ERR(tfm_cbc))
+	{
 		result = PTR_ERR(tfm_cbc);
 		printk(KERN_ERR "E: can't load CBC(AES): %d\n", (int)result);
 		goto error_alloc_cbc;
 	}
+
 	result = crypto_skcipher_setkey(tfm_cbc, key, 16);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		printk(KERN_ERR "E: can't set CBC key: %d\n", (int)result);
 		goto error_setkey_cbc;
 	}
 
 	tfm_aes = crypto_alloc_cipher("aes", 0, CRYPTO_ALG_ASYNC);
-	if (IS_ERR(tfm_aes)) {
+
+	if (IS_ERR(tfm_aes))
+	{
 		result = PTR_ERR(tfm_aes);
 		printk(KERN_ERR "E: can't load AES: %d\n", (int)result);
 		goto error_alloc_aes;
 	}
+
 	result = crypto_cipher_setkey(tfm_aes, key, 16);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		printk(KERN_ERR "E: can't set AES key: %d\n", (int)result);
 		goto error_setkey_aes;
 	}
+
 	scratch = kmalloc(sizeof(*scratch), GFP_KERNEL);
-	if (!scratch) {
+
+	if (!scratch)
+	{
 		result = -ENOMEM;
 		goto error_alloc_scratch;
 	}
 
-	for (bitr = 0; bitr < (len + 63) / 64; bitr++) {
+	for (bitr = 0; bitr < (len + 63) / 64; bitr++)
+	{
 		sfn_le = cpu_to_le64(sfn++);
 		memcpy(&n.sfn, &sfn_le, sizeof(n.sfn));	/* n.sfn++... */
 		result = wusb_ccm_mac(tfm_cbc, tfm_aes, scratch, out + bytes,
-				      &n, a, b, blen);
+							  &n, a, b, blen);
+
 		if (result < 0)
+		{
 			goto error_ccm_mac;
+		}
+
 		bytes += result;
 	}
+
 	result = bytes;
 
 	kfree(scratch);
@@ -368,16 +404,18 @@ error_alloc_cbc:
 }
 
 /* WUSB1.0[A.2] test vectors */
-static const u8 stv_hsmic_key[16] = {
+static const u8 stv_hsmic_key[16] =
+{
 	0x4b, 0x79, 0xa3, 0xcf, 0xe5, 0x53, 0x23, 0x9d,
 	0xd7, 0xc1, 0x6d, 0x1c, 0x2d, 0xab, 0x6d, 0x3f
 };
 
-static const struct aes_ccm_nonce stv_hsmic_n = {
+static const struct aes_ccm_nonce stv_hsmic_n =
+{
 	.sfn = { 0 },
 	.tkid = { 0x76, 0x98, 0x01,  },
 	.dest_addr = { .data = { 0xbe, 0x00 } },
-		.src_addr = { .data = { 0x76, 0x98 } },
+	.src_addr = { .data = { 0x76, 0x98 } },
 };
 
 /*
@@ -393,41 +431,56 @@ static int wusb_oob_mic_verify(void)
 	 * Need to keep it in the local stack as GCC 4.1.3something
 	 * messes up and generates noise.
 	 */
-	struct usb_handshake stv_hsmic_hs = {
+	struct usb_handshake stv_hsmic_hs =
+	{
 		.bMessageNumber = 2,
 		.bStatus 	= 00,
 		.tTKID 		= { 0x76, 0x98, 0x01 },
 		.bReserved 	= 00,
-		.CDID 		= { 0x30, 0x31, 0x32, 0x33, 0x34, 0x35,
-				    0x36, 0x37, 0x38, 0x39, 0x3a, 0x3b,
-				    0x3c, 0x3d, 0x3e, 0x3f },
-		.nonce	 	= { 0x20, 0x21, 0x22, 0x23, 0x24, 0x25,
-				    0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b,
-				    0x2c, 0x2d, 0x2e, 0x2f },
-		.MIC	 	= { 0x75, 0x6a, 0x97, 0x51, 0x0c, 0x8c,
-				    0x14, 0x7b },
+		.CDID 		= {
+			0x30, 0x31, 0x32, 0x33, 0x34, 0x35,
+			0x36, 0x37, 0x38, 0x39, 0x3a, 0x3b,
+			0x3c, 0x3d, 0x3e, 0x3f
+		},
+		.nonce	 	= {
+			0x20, 0x21, 0x22, 0x23, 0x24, 0x25,
+			0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b,
+			0x2c, 0x2d, 0x2e, 0x2f
+		},
+		.MIC	 	= {
+			0x75, 0x6a, 0x97, 0x51, 0x0c, 0x8c,
+			0x14, 0x7b
+		},
 	};
 	size_t hs_size;
 
 	result = wusb_oob_mic(mic, stv_hsmic_key, &stv_hsmic_n, &stv_hsmic_hs);
+
 	if (result < 0)
+	{
 		printk(KERN_ERR "E: WUSB OOB MIC test: failed: %d\n", result);
-	else if (memcmp(stv_hsmic_hs.MIC, mic, sizeof(mic))) {
+	}
+	else if (memcmp(stv_hsmic_hs.MIC, mic, sizeof(mic)))
+	{
 		printk(KERN_ERR "E: OOB MIC test: "
-		       "mismatch between MIC result and WUSB1.0[A2]\n");
+			   "mismatch between MIC result and WUSB1.0[A2]\n");
 		hs_size = sizeof(stv_hsmic_hs) - sizeof(stv_hsmic_hs.MIC);
 		printk(KERN_ERR "E: Handshake2 in: (%zu bytes)\n", hs_size);
 		wusb_key_dump(&stv_hsmic_hs, hs_size);
 		printk(KERN_ERR "E: CCM Nonce in: (%zu bytes)\n",
-		       sizeof(stv_hsmic_n));
+			   sizeof(stv_hsmic_n));
 		wusb_key_dump(&stv_hsmic_n, sizeof(stv_hsmic_n));
 		printk(KERN_ERR "E: MIC out:\n");
 		wusb_key_dump(mic, sizeof(mic));
 		printk(KERN_ERR "E: MIC out (from WUSB1.0[A.2]):\n");
 		wusb_key_dump(stv_hsmic_hs.MIC, sizeof(stv_hsmic_hs.MIC));
 		result = -EINVAL;
-	} else
+	}
+	else
+	{
 		result = 0;
+	}
+
 	return result;
 }
 
@@ -437,19 +490,22 @@ static int wusb_oob_mic_verify(void)
  * These come from WUSB1.0[6.5.1], the vectors in WUSB1.0[A.1]
  * (errata corrected in 2005/07).
  */
-static const u8 stv_key_a1[16] __attribute__ ((__aligned__(4))) = {
+static const u8 stv_key_a1[16] __attribute__ ((__aligned__(4))) =
+{
 	0xf0, 0xe1, 0xd2, 0xc3, 0xb4, 0xa5, 0x96, 0x87,
 	0x78, 0x69, 0x5a, 0x4b, 0x3c, 0x2d, 0x1e, 0x0f
 };
 
-static const struct aes_ccm_nonce stv_keydvt_n_a1 = {
+static const struct aes_ccm_nonce stv_keydvt_n_a1 =
+{
 	.sfn = { 0 },
 	.tkid = { 0x76, 0x98, 0x01,  },
 	.dest_addr = { .data = { 0xbe, 0x00 } },
 	.src_addr = { .data = { 0x76, 0x98 } },
 };
 
-static const struct wusb_keydvt_out stv_keydvt_out_a1 = {
+static const struct wusb_keydvt_out stv_keydvt_out_a1 =
+{
 	.kck = {
 		0x4b, 0x79, 0xa3, 0xcf, 0xe5, 0x53, 0x23, 0x9d,
 		0xd7, 0xc1, 0x6d, 0x1c, 0x2d, 0xab, 0x6d, 0x3f
@@ -472,7 +528,8 @@ static int wusb_key_derive_verify(void)
 	 * NOTE: can't make this const or global -- somehow it seems
 	 *       the scatterlists for crypto get confused and we get
 	 *       bad data. There is no doc on this... */
-	struct wusb_keydvt_in stv_keydvt_in_a1 = {
+	struct wusb_keydvt_in stv_keydvt_in_a1 =
+	{
 		.hnonce = {
 			0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
 			0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f
@@ -484,14 +541,17 @@ static int wusb_key_derive_verify(void)
 	};
 
 	result = wusb_key_derive(&keydvt_out, stv_key_a1, &stv_keydvt_n_a1,
-				 &stv_keydvt_in_a1);
+							 &stv_keydvt_in_a1);
+
 	if (result < 0)
 		printk(KERN_ERR "E: WUSB key derivation test: "
-		       "derivation failed: %d\n", result);
-	if (memcmp(&stv_keydvt_out_a1, &keydvt_out, sizeof(keydvt_out))) {
+			   "derivation failed: %d\n", result);
+
+	if (memcmp(&stv_keydvt_out_a1, &keydvt_out, sizeof(keydvt_out)))
+	{
 		printk(KERN_ERR "E: WUSB key derivation test: "
-		       "mismatch between key derivation result "
-		       "and WUSB1.0[A1] Errata 2006/12\n");
+			   "mismatch between key derivation result "
+			   "and WUSB1.0[A1] Errata 2006/12\n");
 		printk(KERN_ERR "E: keydvt in: key\n");
 		wusb_key_dump(stv_key_a1, sizeof(stv_key_a1));
 		printk(KERN_ERR "E: keydvt in: nonce\n");
@@ -503,8 +563,12 @@ static int wusb_key_derive_verify(void)
 		printk(KERN_ERR "E: keydvt out: PTK\n");
 		wusb_key_dump(&keydvt_out.ptk, sizeof(keydvt_out.ptk));
 		result = -EINVAL;
-	} else
+	}
+	else
+	{
 		result = 0;
+	}
+
 	return result;
 }
 
@@ -518,12 +582,18 @@ int wusb_crypto_init(void)
 {
 	int result;
 
-	if (debug_crypto_verify) {
+	if (debug_crypto_verify)
+	{
 		result = wusb_key_derive_verify();
+
 		if (result < 0)
+		{
 			return result;
+		}
+
 		return wusb_oob_mic_verify();
 	}
+
 	return 0;
 }
 

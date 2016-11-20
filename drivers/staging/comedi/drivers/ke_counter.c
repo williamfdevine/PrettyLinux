@@ -48,15 +48,16 @@
 #define KE_DO_REG			0xfc
 
 static int ke_counter_insn_write(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int val;
 	int i;
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		val = data[0];
 
 		/* Order matters */
@@ -70,15 +71,16 @@ static int ke_counter_insn_write(struct comedi_device *dev,
 }
 
 static int ke_counter_insn_read(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int val;
 	int i;
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		/* Order matters */
 		inb(dev->iobase + KE_LATCH_REG(chan));
 
@@ -98,69 +100,88 @@ static void ke_counter_reset(struct comedi_device *dev)
 	unsigned int chan;
 
 	for (chan = 0; chan < 3; chan++)
+	{
 		outb(0, dev->iobase + KE_RESET_REG(chan));
+	}
 }
 
 static int ke_counter_insn_config(struct comedi_device *dev,
-				  struct comedi_subdevice *s,
-				  struct comedi_insn *insn,
-				  unsigned int *data)
+								  struct comedi_subdevice *s,
+								  struct comedi_insn *insn,
+								  unsigned int *data)
 {
 	unsigned char src;
 
-	switch (data[0]) {
-	case INSN_CONFIG_SET_CLOCK_SRC:
-		switch (data[1]) {
-		case KE_CLK_20MHZ:	/* default */
-			src = KE_OSC_SEL_20MHZ;
+	switch (data[0])
+	{
+		case INSN_CONFIG_SET_CLOCK_SRC:
+			switch (data[1])
+			{
+				case KE_CLK_20MHZ:	/* default */
+					src = KE_OSC_SEL_20MHZ;
+					break;
+
+				case KE_CLK_4MHZ:	/* option */
+					src = KE_OSC_SEL_4MHZ;
+					break;
+
+				case KE_CLK_EXT:	/* Pin 21 on D-sub */
+					src = KE_OSC_SEL_EXT;
+					break;
+
+				default:
+					return -EINVAL;
+			}
+
+			outb(src, dev->iobase + KE_OSC_SEL_REG);
 			break;
-		case KE_CLK_4MHZ:	/* option */
-			src = KE_OSC_SEL_4MHZ;
+
+		case INSN_CONFIG_GET_CLOCK_SRC:
+			src = inb(dev->iobase + KE_OSC_SEL_REG);
+
+			switch (src)
+			{
+				case KE_OSC_SEL_20MHZ:
+					data[1] = KE_CLK_20MHZ;
+					data[2] = 50;	/* 50ns */
+					break;
+
+				case KE_OSC_SEL_4MHZ:
+					data[1] = KE_CLK_4MHZ;
+					data[2] = 250;	/* 250ns */
+					break;
+
+				case KE_OSC_SEL_EXT:
+					data[1] = KE_CLK_EXT;
+					data[2] = 0;	/* Unknown */
+					break;
+
+				default:
+					return -EINVAL;
+			}
+
 			break;
-		case KE_CLK_EXT:	/* Pin 21 on D-sub */
-			src = KE_OSC_SEL_EXT;
+
+		case INSN_CONFIG_RESET:
+			ke_counter_reset(dev);
 			break;
+
 		default:
 			return -EINVAL;
-		}
-		outb(src, dev->iobase + KE_OSC_SEL_REG);
-		break;
-	case INSN_CONFIG_GET_CLOCK_SRC:
-		src = inb(dev->iobase + KE_OSC_SEL_REG);
-		switch (src) {
-		case KE_OSC_SEL_20MHZ:
-			data[1] = KE_CLK_20MHZ;
-			data[2] = 50;	/* 50ns */
-			break;
-		case KE_OSC_SEL_4MHZ:
-			data[1] = KE_CLK_4MHZ;
-			data[2] = 250;	/* 250ns */
-			break;
-		case KE_OSC_SEL_EXT:
-			data[1] = KE_CLK_EXT;
-			data[2] = 0;	/* Unknown */
-			break;
-		default:
-			return -EINVAL;
-		}
-		break;
-	case INSN_CONFIG_RESET:
-		ke_counter_reset(dev);
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	return insn->n;
 }
 
 static int ke_counter_do_insn_bits(struct comedi_device *dev,
-				   struct comedi_subdevice *s,
-				   struct comedi_insn *insn,
-				   unsigned int *data)
+								   struct comedi_subdevice *s,
+								   struct comedi_insn *insn,
+								   unsigned int *data)
 {
 	if (comedi_dio_update_state(s, data))
+	{
 		outb(s->state, dev->iobase + KE_DO_REG);
+	}
 
 	data[1] = s->state;
 
@@ -168,20 +189,27 @@ static int ke_counter_do_insn_bits(struct comedi_device *dev,
 }
 
 static int ke_counter_auto_attach(struct comedi_device *dev,
-				  unsigned long context_unused)
+								  unsigned long context_unused)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	struct comedi_subdevice *s;
 	int ret;
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	dev->iobase = pci_resource_start(pcidev, 0);
 
 	ret = comedi_alloc_subdevices(dev, 2);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	s = &dev->subdevices[0];
 	s->type		= COMEDI_SUBD_COUNTER;
@@ -208,7 +236,8 @@ static int ke_counter_auto_attach(struct comedi_device *dev,
 	return 0;
 }
 
-static struct comedi_driver ke_counter_driver = {
+static struct comedi_driver ke_counter_driver =
+{
 	.driver_name	= "ke_counter",
 	.module		= THIS_MODULE,
 	.auto_attach	= ke_counter_auto_attach,
@@ -216,19 +245,21 @@ static struct comedi_driver ke_counter_driver = {
 };
 
 static int ke_counter_pci_probe(struct pci_dev *dev,
-				const struct pci_device_id *id)
+								const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &ke_counter_driver,
-				      id->driver_data);
+								  id->driver_data);
 }
 
-static const struct pci_device_id ke_counter_pci_table[] = {
+static const struct pci_device_id ke_counter_pci_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_KOLTER, 0x0014) },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, ke_counter_pci_table);
 
-static struct pci_driver ke_counter_pci_driver = {
+static struct pci_driver ke_counter_pci_driver =
+{
 	.name		= "ke_counter",
 	.id_table	= ke_counter_pci_table,
 	.probe		= ke_counter_pci_probe,

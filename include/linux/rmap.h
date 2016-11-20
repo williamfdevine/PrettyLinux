@@ -24,7 +24,8 @@
  * the anon_vma object itself: we're guaranteed no page can be
  * pointing to this anon_vma once its vma list is empty.
  */
-struct anon_vma {
+struct anon_vma
+{
 	struct anon_vma *root;		/* Root of this anon_vma tree */
 	struct rw_semaphore rwsem;	/* W: modification, R: walking the list */
 	/*
@@ -70,7 +71,8 @@ struct anon_vma {
  * The "rb" field indexes on an interval tree the anon_vma_chains
  * which link all the VMAs associated with this anon_vma.
  */
-struct anon_vma_chain {
+struct anon_vma_chain
+{
 	struct vm_area_struct *vma;
 	struct anon_vma *anon_vma;
 	struct list_head same_vma;   /* locked by mmap_sem & page_table_lock */
@@ -81,7 +83,8 @@ struct anon_vma_chain {
 #endif
 };
 
-enum ttu_flags {
+enum ttu_flags
+{
 	TTU_UNMAP = 1,			/* unmap mode */
 	TTU_MIGRATION = 2,		/* migration mode */
 	TTU_MUNLOCK = 4,		/* munlock mode */
@@ -109,7 +112,9 @@ void __put_anon_vma(struct anon_vma *anon_vma);
 static inline void put_anon_vma(struct anon_vma *anon_vma)
 {
 	if (atomic_dec_and_test(&anon_vma->refcount))
+	{
 		__put_anon_vma(anon_vma);
+	}
 }
 
 static inline void anon_vma_lock_write(struct anon_vma *anon_vma)
@@ -143,7 +148,7 @@ int anon_vma_clone(struct vm_area_struct *, struct vm_area_struct *);
 int anon_vma_fork(struct vm_area_struct *, struct vm_area_struct *);
 
 static inline void anon_vma_merge(struct vm_area_struct *vma,
-				  struct vm_area_struct *next)
+								  struct vm_area_struct *next)
 {
 	VM_BUG_ON_VMA(vma->anon_vma != next->anon_vma, vma);
 	unlink_anon_vmas(next);
@@ -160,18 +165,18 @@ struct anon_vma *page_get_anon_vma(struct page *page);
  */
 void page_move_anon_rmap(struct page *, struct vm_area_struct *);
 void page_add_anon_rmap(struct page *, struct vm_area_struct *,
-		unsigned long, bool);
+						unsigned long, bool);
 void do_page_add_anon_rmap(struct page *, struct vm_area_struct *,
-			   unsigned long, int);
+						   unsigned long, int);
 void page_add_new_anon_rmap(struct page *, struct vm_area_struct *,
-		unsigned long, bool);
+							unsigned long, bool);
 void page_add_file_rmap(struct page *, bool);
 void page_remove_rmap(struct page *, bool);
 
 void hugepage_add_anon_rmap(struct page *, struct vm_area_struct *,
-			    unsigned long);
+							unsigned long);
 void hugepage_add_new_anon_rmap(struct page *, struct vm_area_struct *,
-				unsigned long);
+								unsigned long);
 
 static inline void page_dup_rmap(struct page *page, bool compound)
 {
@@ -182,7 +187,7 @@ static inline void page_dup_rmap(struct page *page, bool compound)
  * Called from mm/vmscan.c to handle paging out
  */
 int page_referenced(struct page *, int is_locked,
-			struct mem_cgroup *memcg, unsigned long *vm_flags);
+					struct mem_cgroup *memcg, unsigned long *vm_flags);
 
 #define TTU_ACTION(x) ((x) & TTU_ACTION_MASK)
 
@@ -192,16 +197,16 @@ int try_to_unmap(struct page *, enum ttu_flags flags);
  * Used by uprobes to replace a userspace page safely
  */
 pte_t *__page_check_address(struct page *, struct mm_struct *,
-				unsigned long, spinlock_t **, int);
+							unsigned long, spinlock_t **, int);
 
 static inline pte_t *page_check_address(struct page *page, struct mm_struct *mm,
-					unsigned long address,
-					spinlock_t **ptlp, int sync)
+										unsigned long address,
+										spinlock_t **ptlp, int sync)
 {
 	pte_t *ptep;
 
 	__cond_lock(*ptlp, ptep = __page_check_address(page, mm, address,
-						       ptlp, sync));
+							  ptlp, sync));
 	return ptep;
 }
 
@@ -211,12 +216,12 @@ static inline pte_t *page_check_address(struct page *page, struct mm_struct *mm,
  */
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
 bool page_check_address_transhuge(struct page *page, struct mm_struct *mm,
-				  unsigned long address, pmd_t **pmdp,
-				  pte_t **ptep, spinlock_t **ptlp);
+								  unsigned long address, pmd_t **pmdp,
+								  pte_t **ptep, spinlock_t **ptlp);
 #else
 static inline bool page_check_address_transhuge(struct page *page,
-				struct mm_struct *mm, unsigned long address,
-				pmd_t **pmdp, pte_t **ptep, spinlock_t **ptlp)
+		struct mm_struct *mm, unsigned long address,
+		pmd_t **pmdp, pte_t **ptep, spinlock_t **ptlp)
 {
 	*ptep = page_check_address(page, mm, address, ptlp, 0);
 	*pmdp = NULL;
@@ -261,7 +266,8 @@ int page_mapped_in_vma(struct page *page, struct vm_area_struct *vma);
  * anon_lock: for getting anon_lock by optimized way rather than default
  * invalid_vma: for skipping uninterested vma
  */
-struct rmap_walk_control {
+struct rmap_walk_control
+{
 	void *arg;
 	int (*rmap_one)(struct page *page, struct vm_area_struct *vma,
 					unsigned long addr, void *arg);
@@ -280,8 +286,8 @@ int rmap_walk_locked(struct page *page, struct rmap_walk_control *rwc);
 #define anon_vma_link(vma)	do {} while (0)
 
 static inline int page_referenced(struct page *page, int is_locked,
-				  struct mem_cgroup *memcg,
-				  unsigned long *vm_flags)
+								  struct mem_cgroup *memcg,
+								  unsigned long *vm_flags)
 {
 	*vm_flags = 0;
 	return 0;

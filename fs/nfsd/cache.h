@@ -17,12 +17,13 @@
  * typical sockaddr_storage. This is for space reasons, since sockaddr_storage
  * is much larger than a sockaddr_in6.
  */
-struct svc_cacherep {
+struct svc_cacherep
+{
 	struct list_head	c_lru;
 
 	unsigned char		c_state,	/* unused, inprog, done */
-				c_type,		/* status, buffer */
-				c_secure : 1;	/* req came from port < 1024 */
+				  c_type,		/* status, buffer */
+				  c_secure : 1;	/* req came from port < 1024 */
 	struct sockaddr_in6	c_addr;
 	__be32			c_xid;
 	u32			c_prot;
@@ -31,7 +32,8 @@ struct svc_cacherep {
 	unsigned int		c_len;
 	__wsum			c_csum;
 	unsigned long		c_timestamp;
-	union {
+	union
+	{
 		struct kvec	u_vec;
 		__be32		u_status;
 	}			c_u;
@@ -41,14 +43,16 @@ struct svc_cacherep {
 #define c_replstat		c_u.u_status
 
 /* cache entry states */
-enum {
+enum
+{
 	RC_UNUSED,
 	RC_INPROG,
 	RC_DONE
 };
 
 /* return values */
-enum {
+enum
+{
 	RC_DROPIT,
 	RC_REPLY,
 	RC_DOIT
@@ -60,7 +64,8 @@ enum {
  * attrstat replies. Using cache entries with fixed length instead
  * of buffer pointers may be more efficient.
  */
-enum {
+enum
+{
 	RC_NOCACHE,
 	RC_REPLSTAT,
 	RC_REPLBUFF,

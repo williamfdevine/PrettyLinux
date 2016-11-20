@@ -31,7 +31,7 @@
 #define CYAPA_TSG_IMG_END_ROW_NUM           0x01fe
 #define CYAPA_TSG_IMG_APP_INTEGRITY_ROW_NUM 0x01ff
 #define CYAPA_TSG_IMG_MAX_RECORDS           (CYAPA_TSG_IMG_END_ROW_NUM - \
-				CYAPA_TSG_IMG_START_ROW_NUM + 1 + 1)
+		CYAPA_TSG_IMG_START_ROW_NUM + 1 + 1)
 #define CYAPA_TSG_IMG_READ_SIZE             (CYAPA_TSG_FLASH_MAP_BLOCK_SIZE / 2)
 #define CYAPA_TSG_START_OF_APPLICATION      0x1700
 #define CYAPA_TSG_APP_INTEGRITY_SIZE        60
@@ -136,7 +136,8 @@
 #define GEN5_PWC_DATA_ELEMENT_SIZE_MASK      0x07
 
 
-struct cyapa_pip_touch_record {
+struct cyapa_pip_touch_record
+{
 	/*
 	 * Bit 7 - 3: reserved
 	 * Bit 2 - 0: touch type;
@@ -219,12 +220,14 @@ struct cyapa_pip_touch_record {
 	u8 orientation;
 } __packed;
 
-struct cyapa_pip_report_data {
+struct cyapa_pip_report_data
+{
 	u8 report_head[PIP_TOUCH_REPORT_HEAD_SIZE];
 	struct cyapa_pip_touch_record touch_records[10];
 } __packed;
 
-struct cyapa_tsg_bin_image_head {
+struct cyapa_tsg_bin_image_head
+{
 	u8 head_size;  /* Unit: bytes, including itself. */
 	u8 ttda_driver_major_version;  /* Reserved as 0. */
 	u8 ttda_driver_minor_version;  /* Reserved as 0. */
@@ -239,7 +242,8 @@ struct cyapa_tsg_bin_image_head {
 	u8 bl_ver_min;
 } __packed;
 
-struct cyapa_tsg_bin_image_data_record {
+struct cyapa_tsg_bin_image_data_record
+{
 	u8 flash_array_id;
 	__be16 row_number;
 	/* The number of bytes of flash data contained in this record. */
@@ -248,23 +252,27 @@ struct cyapa_tsg_bin_image_data_record {
 	u8 record_data[CYAPA_TSG_FW_ROW_SIZE];
 } __packed;
 
-struct cyapa_tsg_bin_image {
+struct cyapa_tsg_bin_image
+{
 	struct cyapa_tsg_bin_image_head image_head;
 	struct cyapa_tsg_bin_image_data_record records[0];
 } __packed;
 
-struct pip_bl_packet_start {
+struct pip_bl_packet_start
+{
 	u8 sop;  /* Start of packet, must be 01h */
 	u8 cmd_code;
 	__le16 data_length;  /* Size of data parameter start from data[0] */
 } __packed;
 
-struct pip_bl_packet_end {
+struct pip_bl_packet_end
+{
 	__le16 crc;
 	u8 eop;  /* End of packet, must be 17h */
 } __packed;
 
-struct pip_bl_cmd_head {
+struct pip_bl_cmd_head
+{
 	__le16 addr;   /* Output report register address, must be 0004h */
 	/* Size of packet not including output report register address */
 	__le16 length;
@@ -275,14 +283,16 @@ struct pip_bl_cmd_head {
 } __packed;
 
 /* Initiate bootload command data structure. */
-struct pip_bl_initiate_cmd_data {
+struct pip_bl_initiate_cmd_data
+{
 	/* Key must be "A5h 01h 02h 03h FFh FEh FDh 5Ah" */
 	u8 key[CYAPA_TSG_BL_KEY_SIZE];
 	u8 metadata_raw_parameter[CYAPA_TSG_FLASH_MAP_METADATA_SIZE];
 	__le16 metadata_crc;
 } __packed;
 
-struct tsg_bl_metadata_row_params {
+struct tsg_bl_metadata_row_params
+{
 	__le16 size;
 	__le16 maximum_size;
 	__le32 app_start;
@@ -297,13 +307,15 @@ struct tsg_bl_metadata_row_params {
 } __packed;
 
 /* Bootload program and verify row command data structure */
-struct tsg_bl_flash_row_head {
+struct tsg_bl_flash_row_head
+{
 	u8 flash_array_id;
 	__le16 flash_row_id;
 	u8 flash_data[0];
 } __packed;
 
-struct pip_app_cmd_head {
+struct pip_app_cmd_head
+{
 	__le16 addr;   /* Output report register address, must be 0004h */
 	/* Size of packet not including output report register address */
 	__le16 length;
@@ -318,17 +330,20 @@ struct pip_app_cmd_head {
 } __packed;
 
 /* Application get/set parameter command data structure */
-struct gen5_app_set_parameter_data {
+struct gen5_app_set_parameter_data
+{
 	u8 parameter_id;
 	u8 parameter_size;
 	__le32 value;
 } __packed;
 
-struct gen5_app_get_parameter_data {
+struct gen5_app_get_parameter_data
+{
 	u8 parameter_id;
 } __packed;
 
-struct gen5_retrieve_panel_scan_data {
+struct gen5_retrieve_panel_scan_data
+{
 	__le16 read_offset;
 	__le16 read_elements;
 	u8 data_id;
@@ -336,14 +351,15 @@ struct gen5_retrieve_panel_scan_data {
 
 u8 pip_read_sys_info[] = { 0x04, 0x00, 0x05, 0x00, 0x2f, 0x00, 0x02 };
 u8 pip_bl_read_app_info[] = { 0x04, 0x00, 0x0b, 0x00, 0x40, 0x00,
-		0x01, 0x3c, 0x00, 0x00, 0xb0, 0x42, 0x17
-	};
+							  0x01, 0x3c, 0x00, 0x00, 0xb0, 0x42, 0x17
+							};
 
 static u8 cyapa_pip_bl_cmd_key[] = { 0xa5, 0x01, 0x02, 0x03,
-	0xff, 0xfe, 0xfd, 0x5a };
+									 0xff, 0xfe, 0xfd, 0x5a
+								   };
 
 static int cyapa_pip_event_process(struct cyapa *cyapa,
-				   struct cyapa_pip_report_data *report_data);
+								   struct cyapa_pip_report_data *report_data);
 
 int cyapa_pip_cmd_state_initialize(struct cyapa *cyapa)
 {
@@ -373,15 +389,22 @@ ssize_t cyapa_i2c_pip_read(struct cyapa *cyapa, u8 *buf, size_t size)
 	int ret;
 
 	if (size == 0)
+	{
 		return 0;
+	}
 
 	if (!buf || size > CYAPA_REG_MAP_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	ret = i2c_master_recv(cyapa->client, buf, size);
 
 	if (ret != size)
+	{
 		return (ret < 0) ? ret : -EIO;
+	}
+
 	return size;
 }
 
@@ -393,18 +416,22 @@ ssize_t cyapa_i2c_pip_write(struct cyapa *cyapa, u8 *buf, size_t size)
 	int ret;
 
 	if (!buf || !size)
+	{
 		return -EINVAL;
+	}
 
 	ret = i2c_master_send(cyapa->client, buf, size);
 
 	if (ret != size)
+	{
 		return (ret < 0) ? ret : -EIO;
+	}
 
 	return 0;
 }
 
 static void cyapa_set_pip_pm_state(struct cyapa *cyapa,
-				   enum cyapa_pm_stage pm_stage)
+								   enum cyapa_pm_stage pm_stage)
 {
 	struct cyapa_pip_cmd_states *pip = &cyapa->cmd_states.pip;
 
@@ -440,7 +467,7 @@ static enum cyapa_pm_stage cyapa_get_pip_pm_state(struct cyapa *cyapa)
  * before send any command, otherwise, the interrupt line will be blocked.
  */
 int cyapa_empty_pip_output_data(struct cyapa *cyapa,
-		u8 *buf, int *len, cb_sort func)
+								u8 *buf, int *len, cb_sort func)
 {
 	struct input_dev *input = cyapa->input;
 	struct cyapa_pip_cmd_states *pip = &cyapa->cmd_states.pip;
@@ -452,15 +479,19 @@ int cyapa_empty_pip_output_data(struct cyapa *cyapa,
 	int error;
 
 	buf_len = 0;
-	if (len) {
+
+	if (len)
+	{
 		buf_len = (*len < CYAPA_REG_MAP_SIZE) ?
-				*len : CYAPA_REG_MAP_SIZE;
+				  *len : CYAPA_REG_MAP_SIZE;
 		*len = 0;
 	}
 
 	report_count = 8;  /* max 7 pending data before command response data */
 	empty_count = 0;
-	do {
+
+	do
+	{
 		/*
 		 * Depending on testing in cyapa driver, there are max 5 "02 00"
 		 * packets between two valid buffered data report in firmware.
@@ -474,68 +505,92 @@ int cyapa_empty_pip_output_data(struct cyapa *cyapa,
 		 * for example, it may happen in EFT and ESD testing.
 		 */
 		if (empty_count > 5)
+		{
 			return 0;
+		}
 
 		error = cyapa_i2c_pip_read(cyapa, pip->empty_buf,
-				PIP_RESP_LENGTH_SIZE);
+								   PIP_RESP_LENGTH_SIZE);
+
 		if (error < 0)
+		{
 			return error;
+		}
 
 		length = get_unaligned_le16(pip->empty_buf);
-		if (length == PIP_RESP_LENGTH_SIZE) {
+
+		if (length == PIP_RESP_LENGTH_SIZE)
+		{
 			empty_count++;
 			continue;
-		} else if (length > CYAPA_REG_MAP_SIZE) {
+		}
+		else if (length > CYAPA_REG_MAP_SIZE)
+		{
 			/* Should not happen */
 			return -EINVAL;
-		} else if (length == 0) {
+		}
+		else if (length == 0)
+		{
 			/* Application or bootloader launch data polled out. */
 			length = PIP_RESP_LENGTH_SIZE;
+
 			if (buf && buf_len && func &&
-				func(cyapa, pip->empty_buf, length)) {
+				func(cyapa, pip->empty_buf, length))
+			{
 				length = min(buf_len, length);
 				memcpy(buf, pip->empty_buf, length);
 				*len = length;
 				/* Response found, success. */
 				return 0;
 			}
+
 			continue;
 		}
 
 		error = cyapa_i2c_pip_read(cyapa, pip->empty_buf, length);
+
 		if (error < 0)
+		{
 			return error;
+		}
 
 		report_count--;
 		empty_count = 0;
 		length = get_unaligned_le16(pip->empty_buf);
-		if (length <= PIP_RESP_LENGTH_SIZE) {
+
+		if (length <= PIP_RESP_LENGTH_SIZE)
+		{
 			empty_count++;
-		} else if (buf && buf_len && func &&
-			func(cyapa, pip->empty_buf, length)) {
+		}
+		else if (buf && buf_len && func &&
+				 func(cyapa, pip->empty_buf, length))
+		{
 			length = min(buf_len, length);
 			memcpy(buf, pip->empty_buf, length);
 			*len = length;
 			/* Response found, success. */
 			return 0;
-		} else if (cyapa->operational && input && input->users &&
-			   (pm_stage == CYAPA_PM_RUNTIME_RESUME ||
-			    pm_stage == CYAPA_PM_RUNTIME_SUSPEND)) {
+		}
+		else if (cyapa->operational && input && input->users &&
+				 (pm_stage == CYAPA_PM_RUNTIME_RESUME ||
+				  pm_stage == CYAPA_PM_RUNTIME_SUSPEND))
+		{
 			/* Parse the data and report it if it's valid. */
 			cyapa_pip_event_process(cyapa,
-			       (struct cyapa_pip_report_data *)pip->empty_buf);
+									(struct cyapa_pip_report_data *)pip->empty_buf);
 		}
 
 		error = -EINVAL;
-	} while (report_count);
+	}
+	while (report_count);
 
 	return error;
 }
 
 static int cyapa_do_i2c_pip_cmd_irq_sync(
-		struct cyapa *cyapa,
-		u8 *cmd, size_t cmd_len,
-		unsigned long timeout)
+	struct cyapa *cyapa,
+	u8 *cmd, size_t cmd_len,
+	unsigned long timeout)
 {
 	struct cyapa_pip_cmd_states *pip = &cyapa->cmd_states.pip;
 	int error;
@@ -545,15 +600,19 @@ static int cyapa_do_i2c_pip_cmd_irq_sync(
 
 	atomic_inc(&pip->cmd_issued);
 	error = cyapa_i2c_pip_write(cyapa, cmd, cmd_len);
-	if (error) {
+
+	if (error)
+	{
 		atomic_dec(&pip->cmd_issued);
 		return (error < 0) ? error : -EIO;
 	}
 
 	/* Wait for interrupt to indicate command is completed. */
 	timeout = wait_for_completion_timeout(&pip->cmd_ready,
-				msecs_to_jiffies(timeout));
-	if (timeout == 0) {
+										  msecs_to_jiffies(timeout));
+
+	if (timeout == 0)
+	{
 		atomic_dec(&pip->cmd_issued);
 		return -ETIMEDOUT;
 	}
@@ -562,11 +621,11 @@ static int cyapa_do_i2c_pip_cmd_irq_sync(
 }
 
 static int cyapa_do_i2c_pip_cmd_polling(
-		struct cyapa *cyapa,
-		u8 *cmd, size_t cmd_len,
-		u8 *resp_data, int *resp_len,
-		unsigned long timeout,
-		cb_sort func)
+	struct cyapa *cyapa,
+	u8 *cmd, size_t cmd_len,
+	u8 *resp_data, int *resp_len,
+	unsigned long timeout,
+	cb_sort func)
 {
 	struct cyapa_pip_cmd_states *pip = &cyapa->cmd_states.pip;
 	int tries;
@@ -575,26 +634,41 @@ static int cyapa_do_i2c_pip_cmd_polling(
 
 	atomic_inc(&pip->cmd_issued);
 	error = cyapa_i2c_pip_write(cyapa, cmd, cmd_len);
-	if (error) {
+
+	if (error)
+	{
 		atomic_dec(&pip->cmd_issued);
 		return error < 0 ? error : -EIO;
 	}
 
 	length = resp_len ? *resp_len : 0;
-	if (resp_data && resp_len && length != 0 && func) {
+
+	if (resp_data && resp_len && length != 0 && func)
+	{
 		tries = timeout / 5;
-		do {
+
+		do
+		{
 			usleep_range(3000, 5000);
 			*resp_len = length;
 			error = cyapa_empty_pip_output_data(cyapa,
-					resp_data, resp_len, func);
+												resp_data, resp_len, func);
+
 			if (error || *resp_len == 0)
+			{
 				continue;
+			}
 			else
+			{
 				break;
-		} while (--tries > 0);
+			}
+		}
+		while (--tries > 0);
+
 		if ((error || *resp_len == 0) || tries <= 0)
+		{
 			error = error ? error : -ETIMEDOUT;
+		}
 	}
 
 	atomic_dec(&pip->cmd_issued);
@@ -602,59 +676,75 @@ static int cyapa_do_i2c_pip_cmd_polling(
 }
 
 int cyapa_i2c_pip_cmd_irq_sync(
-		struct cyapa *cyapa,
-		u8 *cmd, int cmd_len,
-		u8 *resp_data, int *resp_len,
-		unsigned long timeout,
-		cb_sort func,
-		bool irq_mode)
+	struct cyapa *cyapa,
+	u8 *cmd, int cmd_len,
+	u8 *resp_data, int *resp_len,
+	unsigned long timeout,
+	cb_sort func,
+	bool irq_mode)
 {
 	struct cyapa_pip_cmd_states *pip = &cyapa->cmd_states.pip;
 	int error;
 
 	if (!cmd || !cmd_len)
+	{
 		return -EINVAL;
+	}
 
 	/* Commands must be serialized. */
 	error = mutex_lock_interruptible(&pip->cmd_lock);
+
 	if (error)
+	{
 		return error;
+	}
 
 	pip->resp_sort_func = func;
 	pip->resp_data = resp_data;
 	pip->resp_len = resp_len;
 
 	if (cmd_len >= PIP_MIN_APP_CMD_LENGTH &&
-			cmd[4] == PIP_APP_CMD_REPORT_ID) {
+		cmd[4] == PIP_APP_CMD_REPORT_ID)
+	{
 		/* Application command */
 		pip->in_progress_cmd = cmd[6] & 0x7f;
-	} else if (cmd_len >= PIP_MIN_BL_CMD_LENGTH &&
-			cmd[4] == PIP_BL_CMD_REPORT_ID) {
+	}
+	else if (cmd_len >= PIP_MIN_BL_CMD_LENGTH &&
+			 cmd[4] == PIP_BL_CMD_REPORT_ID)
+	{
 		/* Bootloader command */
 		pip->in_progress_cmd = cmd[7];
 	}
 
 	/* Send command data, wait and read output response data's length. */
-	if (irq_mode) {
+	if (irq_mode)
+	{
 		pip->is_irq_mode = true;
 		error = cyapa_do_i2c_pip_cmd_irq_sync(cyapa, cmd, cmd_len,
-							timeout);
+											  timeout);
+
 		if (error == -ETIMEDOUT && resp_data &&
-				resp_len && *resp_len != 0 && func) {
+			resp_len && *resp_len != 0 && func)
+		{
 			/*
 			 * For some old version, there was no interrupt for
 			 * the command response data, so need to poll here
 			 * to try to get the response data.
 			 */
 			error = cyapa_empty_pip_output_data(cyapa,
-					resp_data, resp_len, func);
+												resp_data, resp_len, func);
+
 			if (error || *resp_len == 0)
+			{
 				error = error ? error : -ETIMEDOUT;
+			}
 		}
-	} else {
+	}
+	else
+	{
 		pip->is_irq_mode = false;
 		error = cyapa_do_i2c_pip_cmd_polling(cyapa, cmd, cmd_len,
-				resp_data, resp_len, timeout, func);
+											 resp_data, resp_len, timeout, func);
 	}
 
 	pip->resp_sort_func = NULL;
@@ -667,39 +757,50 @@ int cyapa_i2c_pip_cmd_irq_sync(
 }
 
 bool cyapa_sort_tsg_pip_bl_resp_data(struct cyapa *cyapa,
-		u8 *data, int len)
+									 u8 *data, int len)
 {
 	if (!data || len < PIP_MIN_BL_RESP_LENGTH)
+	{
 		return false;
+	}
 
 	/* Bootloader input report id 30h */
 	if (data[PIP_RESP_REPORT_ID_OFFSET] == PIP_BL_RESP_REPORT_ID &&
-			data[PIP_RESP_RSVD_OFFSET] == PIP_RESP_RSVD_KEY &&
-			data[PIP_RESP_BL_SOP_OFFSET] == PIP_SOP_KEY)
+		data[PIP_RESP_RSVD_OFFSET] == PIP_RESP_RSVD_KEY &&
+		data[PIP_RESP_BL_SOP_OFFSET] == PIP_SOP_KEY)
+	{
 		return true;
+	}
 
 	return false;
 }
 
 bool cyapa_sort_tsg_pip_app_resp_data(struct cyapa *cyapa,
-		u8 *data, int len)
+									  u8 *data, int len)
 {
 	struct cyapa_pip_cmd_states *pip = &cyapa->cmd_states.pip;
 	int resp_len;
 
 	if (!data || len < PIP_MIN_APP_RESP_LENGTH)
+	{
 		return false;
+	}
 
 	if (data[PIP_RESP_REPORT_ID_OFFSET] == PIP_APP_RESP_REPORT_ID &&
-			data[PIP_RESP_RSVD_OFFSET] == PIP_RESP_RSVD_KEY) {
+		data[PIP_RESP_RSVD_OFFSET] == PIP_RESP_RSVD_KEY)
+	{
 		resp_len = get_unaligned_le16(&data[PIP_RESP_LENGTH_OFFSET]);
+
 		if (GET_PIP_CMD_CODE(data[PIP_RESP_APP_CMD_OFFSET]) == 0x00 &&
 			resp_len == PIP_UNSUPPORTED_CMD_RESP_LENGTH &&
-			data[5] == pip->in_progress_cmd) {
+			data[5] == pip->in_progress_cmd)
+		{
 			/* Unsupported command code */
 			return false;
-		} else if (GET_PIP_CMD_CODE(data[PIP_RESP_APP_CMD_OFFSET]) ==
-				pip->in_progress_cmd) {
+		}
+		else if (GET_PIP_CMD_CODE(data[PIP_RESP_APP_CMD_OFFSET]) ==
+				 pip->in_progress_cmd)
+		{
 			/* Correct command response received */
 			return true;
 		}
@@ -712,14 +813,18 @@ static bool cyapa_sort_pip_application_launch_data(struct cyapa *cyapa,
 		u8 *buf, int len)
 {
 	if (buf == NULL || len < PIP_RESP_LENGTH_SIZE)
+	{
 		return false;
+	}
 
 	/*
 	 * After reset or power on, trackpad device always sets to 0x00 0x00
 	 * to indicate a reset or power on event.
 	 */
 	if (buf[0] == 0 && buf[1] == 0)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -732,18 +837,25 @@ static bool cyapa_sort_gen5_hid_descriptor_data(struct cyapa *cyapa,
 
 	/* Check hid descriptor. */
 	if (len != PIP_HID_DESCRIPTOR_SIZE)
+	{
 		return false;
+	}
 
 	resp_len = get_unaligned_le16(&buf[PIP_RESP_LENGTH_OFFSET]);
 	max_output_len = get_unaligned_le16(&buf[16]);
-	if (resp_len == PIP_HID_DESCRIPTOR_SIZE) {
+
+	if (resp_len == PIP_HID_DESCRIPTOR_SIZE)
+	{
 		if (buf[PIP_RESP_REPORT_ID_OFFSET] == PIP_HID_BL_REPORT_ID &&
-				max_output_len == GEN5_BL_MAX_OUTPUT_LENGTH) {
+			max_output_len == GEN5_BL_MAX_OUTPUT_LENGTH)
+		{
 			/* BL mode HID Descriptor */
 			return true;
-		} else if ((buf[PIP_RESP_REPORT_ID_OFFSET] ==
-				PIP_HID_APP_REPORT_ID) &&
-				max_output_len == GEN5_APP_MAX_OUTPUT_LENGTH) {
+		}
+		else if ((buf[PIP_RESP_REPORT_ID_OFFSET] ==
+				  PIP_HID_APP_REPORT_ID) &&
+				 max_output_len == GEN5_APP_MAX_OUTPUT_LENGTH)
+		{
 			/* APP mode HID Descriptor */
 			return true;
 		}
@@ -757,10 +869,13 @@ static bool cyapa_sort_pip_deep_sleep_data(struct cyapa *cyapa,
 {
 	if (len == PIP_DEEP_SLEEP_RESP_LENGTH &&
 		buf[PIP_RESP_REPORT_ID_OFFSET] ==
-			PIP_APP_DEEP_SLEEP_REPORT_ID &&
+		PIP_APP_DEEP_SLEEP_REPORT_ID &&
 		(buf[4] & PIP_DEEP_SLEEP_OPCODE_MASK) ==
-			PIP_DEEP_SLEEP_OPCODE)
+		PIP_DEEP_SLEEP_OPCODE)
+	{
 		return true;
+	}
+
 	return false;
 }
 
@@ -781,11 +896,16 @@ static int gen5_idle_state_parse(struct cyapa *cyapa)
 
 	memset(resp_data, 0, sizeof(resp_data));
 	ret = cyapa_i2c_pip_read(cyapa, resp_data, 3);
+
 	if (ret != 3)
+	{
 		return ret < 0 ? ret : -EIO;
+	}
 
 	length = get_unaligned_le16(&resp_data[PIP_RESP_LENGTH_OFFSET]);
-	if (length == PIP_RESP_LENGTH_SIZE) {
+
+	if (length == PIP_RESP_LENGTH_SIZE)
+	{
 		/* Normal state of Gen5 with no data to response */
 		cyapa->gen = CYAPA_GEN5;
 
@@ -796,32 +916,41 @@ static int gen5_idle_state_parse(struct cyapa *cyapa)
 		cmd[1] = 0x00;
 		length = PIP_HID_DESCRIPTOR_SIZE;
 		error = cyapa_i2c_pip_cmd_irq_sync(cyapa,
-				cmd, PIP_RESP_LENGTH_SIZE,
-				resp_data, &length,
-				300,
-				cyapa_sort_gen5_hid_descriptor_data,
-				false);
+										   cmd, PIP_RESP_LENGTH_SIZE,
+										   resp_data, &length,
+										   300,
+										   cyapa_sort_gen5_hid_descriptor_data,
+										   false);
+
 		if (error)
+		{
 			return error;
+		}
 
 		length = get_unaligned_le16(
-				&resp_data[PIP_RESP_LENGTH_OFFSET]);
+					 &resp_data[PIP_RESP_LENGTH_OFFSET]);
 		max_output_len = get_unaligned_le16(&resp_data[16]);
+
 		if ((length == PIP_HID_DESCRIPTOR_SIZE ||
-				length == PIP_RESP_LENGTH_SIZE) &&
+			 length == PIP_RESP_LENGTH_SIZE) &&
 			(resp_data[PIP_RESP_REPORT_ID_OFFSET] ==
-				PIP_HID_BL_REPORT_ID) &&
-			max_output_len == GEN5_BL_MAX_OUTPUT_LENGTH) {
+			 PIP_HID_BL_REPORT_ID) &&
+			max_output_len == GEN5_BL_MAX_OUTPUT_LENGTH)
+		{
 			/* BL mode HID Description read */
 			cyapa->state = CYAPA_STATE_GEN5_BL;
-		} else if ((length == PIP_HID_DESCRIPTOR_SIZE ||
-				length == PIP_RESP_LENGTH_SIZE) &&
-			(resp_data[PIP_RESP_REPORT_ID_OFFSET] ==
-				PIP_HID_APP_REPORT_ID) &&
-			max_output_len == GEN5_APP_MAX_OUTPUT_LENGTH) {
+		}
+		else if ((length == PIP_HID_DESCRIPTOR_SIZE ||
+				  length == PIP_RESP_LENGTH_SIZE) &&
+				 (resp_data[PIP_RESP_REPORT_ID_OFFSET] ==
+				  PIP_HID_APP_REPORT_ID) &&
+				 max_output_len == GEN5_APP_MAX_OUTPUT_LENGTH)
+		{
 			/* APP mode HID Description read */
 			cyapa->state = CYAPA_STATE_GEN5_APP;
-		} else {
+		}
+		else
+		{
 			/* Should not happen!!! */
 			cyapa->state = CYAPA_STATE_NO_DEVICE;
 		}
@@ -845,21 +974,30 @@ static int gen5_hid_description_header_parse(struct cyapa *cyapa, u8 *reg_data)
 	 * or report any touch or button data.
 	 */
 	ret = cyapa_i2c_pip_read(cyapa, resp_data,
-			PIP_HID_DESCRIPTOR_SIZE);
+							 PIP_HID_DESCRIPTOR_SIZE);
+
 	if (ret != PIP_HID_DESCRIPTOR_SIZE)
+	{
 		return ret < 0 ? ret : -EIO;
+	}
+
 	length = get_unaligned_le16(&resp_data[PIP_RESP_LENGTH_OFFSET]);
 	max_output_len = get_unaligned_le16(&resp_data[16]);
-	if (length == PIP_RESP_LENGTH_SIZE) {
+
+	if (length == PIP_RESP_LENGTH_SIZE)
+	{
 		if (reg_data[PIP_RESP_REPORT_ID_OFFSET] ==
-				PIP_HID_BL_REPORT_ID) {
+			PIP_HID_BL_REPORT_ID)
+		{
 			/*
 			 * BL mode HID Description has been previously
 			 * read out.
 			 */
 			cyapa->gen = CYAPA_GEN5;
 			cyapa->state = CYAPA_STATE_GEN5_BL;
-		} else {
+		}
+		else
+		{
 			/*
 			 * APP mode HID Description has been previously
 			 * read out.
@@ -867,20 +1005,26 @@ static int gen5_hid_description_header_parse(struct cyapa *cyapa, u8 *reg_data)
 			cyapa->gen = CYAPA_GEN5;
 			cyapa->state = CYAPA_STATE_GEN5_APP;
 		}
-	} else if (length == PIP_HID_DESCRIPTOR_SIZE &&
-			resp_data[2] == PIP_HID_BL_REPORT_ID &&
-			max_output_len == GEN5_BL_MAX_OUTPUT_LENGTH) {
+	}
+	else if (length == PIP_HID_DESCRIPTOR_SIZE &&
+			 resp_data[2] == PIP_HID_BL_REPORT_ID &&
+			 max_output_len == GEN5_BL_MAX_OUTPUT_LENGTH)
+	{
 		/* BL mode HID Description read. */
 		cyapa->gen = CYAPA_GEN5;
 		cyapa->state = CYAPA_STATE_GEN5_BL;
-	} else if (length == PIP_HID_DESCRIPTOR_SIZE &&
-			(resp_data[PIP_RESP_REPORT_ID_OFFSET] ==
-				PIP_HID_APP_REPORT_ID) &&
-			max_output_len == GEN5_APP_MAX_OUTPUT_LENGTH) {
+	}
+	else if (length == PIP_HID_DESCRIPTOR_SIZE &&
+			 (resp_data[PIP_RESP_REPORT_ID_OFFSET] ==
+			  PIP_HID_APP_REPORT_ID) &&
+			 max_output_len == GEN5_APP_MAX_OUTPUT_LENGTH)
+	{
 		/* APP mode HID Description read. */
 		cyapa->gen = CYAPA_GEN5;
 		cyapa->state = CYAPA_STATE_GEN5_APP;
-	} else {
+	}
+	else
+	{
 		/* Should not happen!!! */
 		cyapa->state = CYAPA_STATE_NO_DEVICE;
 	}
@@ -893,25 +1037,39 @@ static int gen5_report_data_header_parse(struct cyapa *cyapa, u8 *reg_data)
 	int length;
 
 	length = get_unaligned_le16(&reg_data[PIP_RESP_LENGTH_OFFSET]);
-	switch (reg_data[PIP_RESP_REPORT_ID_OFFSET]) {
-	case PIP_TOUCH_REPORT_ID:
-		if (length < PIP_TOUCH_REPORT_HEAD_SIZE ||
-			length > PIP_TOUCH_REPORT_MAX_SIZE)
+
+	switch (reg_data[PIP_RESP_REPORT_ID_OFFSET])
+	{
+		case PIP_TOUCH_REPORT_ID:
+			if (length < PIP_TOUCH_REPORT_HEAD_SIZE ||
+				length > PIP_TOUCH_REPORT_MAX_SIZE)
+			{
+				return -EINVAL;
+			}
+
+			break;
+
+		case PIP_BTN_REPORT_ID:
+		case GEN5_OLD_PUSH_BTN_REPORT_ID:
+		case PIP_PUSH_BTN_REPORT_ID:
+			if (length < PIP_BTN_REPORT_HEAD_SIZE ||
+				length > PIP_BTN_REPORT_MAX_SIZE)
+			{
+				return -EINVAL;
+			}
+
+			break;
+
+		case PIP_WAKEUP_EVENT_REPORT_ID:
+			if (length != PIP_WAKEUP_EVENT_SIZE)
+			{
+				return -EINVAL;
+			}
+
+			break;
+
+		default:
 			return -EINVAL;
-		break;
-	case PIP_BTN_REPORT_ID:
-	case GEN5_OLD_PUSH_BTN_REPORT_ID:
-	case PIP_PUSH_BTN_REPORT_ID:
-		if (length < PIP_BTN_REPORT_HEAD_SIZE ||
-			length > PIP_BTN_REPORT_MAX_SIZE)
-			return -EINVAL;
-		break;
-	case PIP_WAKEUP_EVENT_REPORT_ID:
-		if (length != PIP_WAKEUP_EVENT_SIZE)
-			return -EINVAL;
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	cyapa->gen = CYAPA_GEN5;
@@ -932,40 +1090,53 @@ static int gen5_cmd_resp_header_parse(struct cyapa *cyapa, u8 *reg_data)
 	 */
 	length = get_unaligned_le16(&reg_data[PIP_RESP_LENGTH_OFFSET]);
 	ret = cyapa_i2c_pip_read(cyapa, pip->empty_buf, length);
-	if (ret != length)
-		return ret < 0 ? ret : -EIO;
 
-	if (length == PIP_RESP_LENGTH_SIZE) {
+	if (ret != length)
+	{
+		return ret < 0 ? ret : -EIO;
+	}
+
+	if (length == PIP_RESP_LENGTH_SIZE)
+	{
 		/* Previous command has read the data through out. */
 		if (reg_data[PIP_RESP_REPORT_ID_OFFSET] ==
-				PIP_BL_RESP_REPORT_ID) {
+			PIP_BL_RESP_REPORT_ID)
+		{
 			/* Gen5 BL command response data detected */
 			cyapa->gen = CYAPA_GEN5;
 			cyapa->state = CYAPA_STATE_GEN5_BL;
-		} else {
+		}
+		else
+		{
 			/* Gen5 APP command response data detected */
 			cyapa->gen = CYAPA_GEN5;
 			cyapa->state = CYAPA_STATE_GEN5_APP;
 		}
-	} else if ((pip->empty_buf[PIP_RESP_REPORT_ID_OFFSET] ==
-				PIP_BL_RESP_REPORT_ID) &&
-			(pip->empty_buf[PIP_RESP_RSVD_OFFSET] ==
-				PIP_RESP_RSVD_KEY) &&
-			(pip->empty_buf[PIP_RESP_BL_SOP_OFFSET] ==
-				PIP_SOP_KEY) &&
-			(pip->empty_buf[length - 1] ==
-				PIP_EOP_KEY)) {
+	}
+	else if ((pip->empty_buf[PIP_RESP_REPORT_ID_OFFSET] ==
+			  PIP_BL_RESP_REPORT_ID) &&
+			 (pip->empty_buf[PIP_RESP_RSVD_OFFSET] ==
+			  PIP_RESP_RSVD_KEY) &&
+			 (pip->empty_buf[PIP_RESP_BL_SOP_OFFSET] ==
+			  PIP_SOP_KEY) &&
+			 (pip->empty_buf[length - 1] ==
+			  PIP_EOP_KEY))
+	{
 		/* Gen5 BL command response data detected */
 		cyapa->gen = CYAPA_GEN5;
 		cyapa->state = CYAPA_STATE_GEN5_BL;
-	} else if (pip->empty_buf[PIP_RESP_REPORT_ID_OFFSET] ==
-				PIP_APP_RESP_REPORT_ID &&
-			pip->empty_buf[PIP_RESP_RSVD_OFFSET] ==
-				PIP_RESP_RSVD_KEY) {
+	}
+	else if (pip->empty_buf[PIP_RESP_REPORT_ID_OFFSET] ==
+			 PIP_APP_RESP_REPORT_ID &&
+			 pip->empty_buf[PIP_RESP_RSVD_OFFSET] ==
+			 PIP_RESP_RSVD_KEY)
+	{
 		/* Gen5 APP command response data detected */
 		cyapa->gen = CYAPA_GEN5;
 		cyapa->state = CYAPA_STATE_GEN5_APP;
-	} else {
+	}
+	else
+	{
 		/* Should not happen!!! */
 		cyapa->state = CYAPA_STATE_NO_DEVICE;
 	}
@@ -978,41 +1149,56 @@ static int cyapa_gen5_state_parse(struct cyapa *cyapa, u8 *reg_data, int len)
 	int length;
 
 	if (!reg_data || len < 3)
+	{
 		return -EINVAL;
+	}
 
 	cyapa->state = CYAPA_STATE_NO_DEVICE;
 
 	/* Parse based on Gen5 characteristic registers and bits */
 	length = get_unaligned_le16(&reg_data[PIP_RESP_LENGTH_OFFSET]);
-	if (length == 0 || length == PIP_RESP_LENGTH_SIZE) {
+
+	if (length == 0 || length == PIP_RESP_LENGTH_SIZE)
+	{
 		gen5_idle_state_parse(cyapa);
-	} else if (length == PIP_HID_DESCRIPTOR_SIZE &&
-			(reg_data[2] == PIP_HID_BL_REPORT_ID ||
-				reg_data[2] == PIP_HID_APP_REPORT_ID)) {
+	}
+	else if (length == PIP_HID_DESCRIPTOR_SIZE &&
+			 (reg_data[2] == PIP_HID_BL_REPORT_ID ||
+			  reg_data[2] == PIP_HID_APP_REPORT_ID))
+	{
 		gen5_hid_description_header_parse(cyapa, reg_data);
-	} else if ((length == GEN5_APP_REPORT_DESCRIPTOR_SIZE ||
-			length == GEN5_APP_CONTRACT_REPORT_DESCRIPTOR_SIZE) &&
-			reg_data[2] == GEN5_APP_REPORT_DESCRIPTOR_ID) {
+	}
+	else if ((length == GEN5_APP_REPORT_DESCRIPTOR_SIZE ||
+			  length == GEN5_APP_CONTRACT_REPORT_DESCRIPTOR_SIZE) &&
+			 reg_data[2] == GEN5_APP_REPORT_DESCRIPTOR_ID)
+	{
 		/* 0xEE 0x00 0xF6 is Gen5 APP report description header. */
 		cyapa->gen = CYAPA_GEN5;
 		cyapa->state = CYAPA_STATE_GEN5_APP;
-	} else if (length == GEN5_BL_REPORT_DESCRIPTOR_SIZE &&
-			reg_data[2] == GEN5_BL_REPORT_DESCRIPTOR_ID) {
+	}
+	else if (length == GEN5_BL_REPORT_DESCRIPTOR_SIZE &&
+			 reg_data[2] == GEN5_BL_REPORT_DESCRIPTOR_ID)
+	{
 		/* 0x1D 0x00 0xFE is Gen5 BL report descriptor header. */
 		cyapa->gen = CYAPA_GEN5;
 		cyapa->state = CYAPA_STATE_GEN5_BL;
-	} else if (reg_data[2] == PIP_TOUCH_REPORT_ID ||
-			reg_data[2] == PIP_BTN_REPORT_ID ||
-			reg_data[2] == GEN5_OLD_PUSH_BTN_REPORT_ID ||
-			reg_data[2] == PIP_PUSH_BTN_REPORT_ID ||
-			reg_data[2] == PIP_WAKEUP_EVENT_REPORT_ID) {
+	}
+	else if (reg_data[2] == PIP_TOUCH_REPORT_ID ||
+			 reg_data[2] == PIP_BTN_REPORT_ID ||
+			 reg_data[2] == GEN5_OLD_PUSH_BTN_REPORT_ID ||
+			 reg_data[2] == PIP_PUSH_BTN_REPORT_ID ||
+			 reg_data[2] == PIP_WAKEUP_EVENT_REPORT_ID)
+	{
 		gen5_report_data_header_parse(cyapa, reg_data);
-	} else if (reg_data[2] == PIP_BL_RESP_REPORT_ID ||
-			reg_data[2] == PIP_APP_RESP_REPORT_ID) {
+	}
+	else if (reg_data[2] == PIP_BL_RESP_REPORT_ID ||
+			 reg_data[2] == PIP_APP_RESP_REPORT_ID)
+	{
 		gen5_cmd_resp_header_parse(cyapa, reg_data);
 	}
 
-	if (cyapa->gen == CYAPA_GEN5) {
+	if (cyapa->gen == CYAPA_GEN5)
+	{
 		/*
 		 * Must read the content (e.g.: report description and so on)
 		 * from trackpad device throughout. Otherwise,
@@ -1023,7 +1209,9 @@ static int cyapa_gen5_state_parse(struct cyapa *cyapa, u8 *reg_data, int len)
 
 		if (cyapa->state == CYAPA_STATE_GEN5_APP ||
 			cyapa->state == CYAPA_STATE_GEN5_BL)
+		{
 			return 0;
+		}
 	}
 
 	return -EAGAIN;
@@ -1031,13 +1219,13 @@ static int cyapa_gen5_state_parse(struct cyapa *cyapa, u8 *reg_data, int len)
 
 static struct cyapa_tsg_bin_image_data_record *
 cyapa_get_image_record_data_num(const struct firmware *fw,
-		int *record_num)
+								int *record_num)
 {
 	int head_size;
 
 	head_size = fw->data[0] + 1;
 	*record_num = (fw->size - head_size) /
-			sizeof(struct cyapa_tsg_bin_image_data_record);
+				  sizeof(struct cyapa_tsg_bin_image_data_record);
 	return (struct cyapa_tsg_bin_image_data_record *)&fw->data[head_size];
 }
 
@@ -1066,7 +1254,7 @@ int cyapa_pip_bl_initiate(struct cyapa *cyapa, const struct firmware *fw)
 	bl_cmd_head = (struct pip_bl_cmd_head *)cmd;
 	cmd_data_len = CYAPA_TSG_BL_KEY_SIZE + CYAPA_TSG_FLASH_MAP_BLOCK_SIZE;
 	cmd_len = sizeof(struct pip_bl_cmd_head) + cmd_data_len +
-		  sizeof(struct pip_bl_packet_end);
+			  sizeof(struct pip_bl_packet_end);
 
 	put_unaligned_le16(PIP_OUTPUT_REPORT_ADDR, &bl_cmd_head->addr);
 	put_unaligned_le16(cmd_len - 2, &bl_cmd_head->length);
@@ -1086,28 +1274,31 @@ int cyapa_pip_bl_initiate(struct cyapa *cyapa, const struct firmware *fw)
 	/* APP_INTEGRITY row is always the last row block */
 	data = image_records[records_num - 1].record_data;
 	memcpy(cmd_data->metadata_raw_parameter, data,
-		CYAPA_TSG_FLASH_MAP_METADATA_SIZE);
+		   CYAPA_TSG_FLASH_MAP_METADATA_SIZE);
 
 	meta_data_crc = crc_itu_t(0xffff, cmd_data->metadata_raw_parameter,
-				CYAPA_TSG_FLASH_MAP_METADATA_SIZE);
+							  CYAPA_TSG_FLASH_MAP_METADATA_SIZE);
 	put_unaligned_le16(meta_data_crc, &cmd_data->metadata_crc);
 
 	bl_packet_end = (struct pip_bl_packet_end *)(bl_cmd_head->data +
-				cmd_data_len);
+					cmd_data_len);
 	cmd_crc = crc_itu_t(0xffff, (u8 *)bl_packet_start,
-		sizeof(struct pip_bl_packet_start) + cmd_data_len);
+						sizeof(struct pip_bl_packet_start) + cmd_data_len);
 	put_unaligned_le16(cmd_crc, &bl_packet_end->crc);
 	bl_packet_end->eop = PIP_EOP_KEY;
 
 	resp_len = sizeof(resp_data);
 	error = cyapa_i2c_pip_cmd_irq_sync(cyapa,
-			cmd, cmd_len,
-			resp_data, &resp_len, 12000,
-			cyapa_sort_tsg_pip_bl_resp_data, true);
+									   cmd, cmd_len,
+									   resp_data, &resp_len, 12000,
+									   cyapa_sort_tsg_pip_bl_resp_data, true);
+
 	if (error || resp_len != PIP_BL_INITIATE_RESP_LEN ||
-			resp_data[2] != PIP_BL_RESP_REPORT_ID ||
-			!PIP_CMD_COMPLETE_SUCCESS(resp_data))
+		resp_data[2] != PIP_BL_RESP_REPORT_ID ||
+		!PIP_CMD_COMPLETE_SUCCESS(resp_data))
+	{
 		return error ? error : -EAGAIN;
+	}
 
 	return 0;
 }
@@ -1115,19 +1306,25 @@ int cyapa_pip_bl_initiate(struct cyapa *cyapa, const struct firmware *fw)
 static bool cyapa_sort_pip_bl_exit_data(struct cyapa *cyapa, u8 *buf, int len)
 {
 	if (buf == NULL || len < PIP_RESP_LENGTH_SIZE)
+	{
 		return false;
+	}
 
 	if (buf[0] == 0 && buf[1] == 0)
+	{
 		return true;
+	}
 
 	/* Exit bootloader failed for some reason. */
 	if (len == PIP_BL_FAIL_EXIT_RESP_LEN &&
-			buf[PIP_RESP_REPORT_ID_OFFSET] ==
-				PIP_BL_RESP_REPORT_ID &&
-			buf[PIP_RESP_RSVD_OFFSET] == PIP_RESP_RSVD_KEY &&
-			buf[PIP_RESP_BL_SOP_OFFSET] == PIP_SOP_KEY &&
-			buf[10] == PIP_EOP_KEY)
+		buf[PIP_RESP_REPORT_ID_OFFSET] ==
+		PIP_BL_RESP_REPORT_ID &&
+		buf[PIP_RESP_RSVD_OFFSET] == PIP_RESP_RSVD_KEY &&
+		buf[PIP_RESP_BL_SOP_OFFSET] == PIP_SOP_KEY &&
+		buf[10] == PIP_EOP_KEY)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -1136,28 +1333,35 @@ int cyapa_pip_bl_exit(struct cyapa *cyapa)
 {
 
 	u8 bl_gen5_bl_exit[] = { 0x04, 0x00,
-		0x0B, 0x00, 0x40, 0x00, 0x01, 0x3b, 0x00, 0x00,
-		0x20, 0xc7, 0x17
-	};
+							 0x0B, 0x00, 0x40, 0x00, 0x01, 0x3b, 0x00, 0x00,
+							 0x20, 0xc7, 0x17
+						   };
 	u8 resp_data[11];
 	int resp_len;
 	int error;
 
 	resp_len = sizeof(resp_data);
 	error = cyapa_i2c_pip_cmd_irq_sync(cyapa,
-			bl_gen5_bl_exit, sizeof(bl_gen5_bl_exit),
-			resp_data, &resp_len,
-			5000, cyapa_sort_pip_bl_exit_data, false);
+									   bl_gen5_bl_exit, sizeof(bl_gen5_bl_exit),
+									   resp_data, &resp_len,
+									   5000, cyapa_sort_pip_bl_exit_data, false);
+
 	if (error)
+	{
 		return error;
+	}
 
 	if (resp_len == PIP_BL_FAIL_EXIT_RESP_LEN ||
-			resp_data[PIP_RESP_REPORT_ID_OFFSET] ==
-				PIP_BL_RESP_REPORT_ID)
+		resp_data[PIP_RESP_REPORT_ID_OFFSET] ==
+		PIP_BL_RESP_REPORT_ID)
+	{
 		return -EAGAIN;
+	}
 
 	if (resp_data[0] == 0x00 && resp_data[1] == 0x00)
+	{
 		return 0;
+	}
 
 	return -ENODEV;
 }
@@ -1170,14 +1374,21 @@ int cyapa_pip_bl_enter(struct cyapa *cyapa)
 	int error;
 
 	error = cyapa_poll_state(cyapa, 500);
+
 	if (error < 0)
+	{
 		return error;
+	}
 
 	/* Already in bootloader mode, Skipping exit. */
 	if (cyapa_is_pip_bl_mode(cyapa))
+	{
 		return 0;
+	}
 	else if (!cyapa_is_pip_app_mode(cyapa))
+	{
 		return -EINVAL;
+	}
 
 	/* Try to dump all buffered report data before any send command. */
 	cyapa_empty_pip_output_data(cyapa, NULL, NULL, NULL);
@@ -1189,47 +1400,72 @@ int cyapa_pip_bl_enter(struct cyapa *cyapa)
 	resp_len = sizeof(resp_data);
 	memset(resp_data, 0, resp_len);
 	error = cyapa_i2c_pip_cmd_irq_sync(cyapa,
-			cmd, sizeof(cmd),
-			resp_data, &resp_len,
-			5000, cyapa_sort_pip_application_launch_data,
-			true);
+									   cmd, sizeof(cmd),
+									   resp_data, &resp_len,
+									   5000, cyapa_sort_pip_application_launch_data,
+									   true);
+
 	if (error || resp_data[0] != 0x00 || resp_data[1] != 0x00)
+	{
 		return error < 0 ? error : -EAGAIN;
+	}
 
 	cyapa->operational = false;
+
 	if (cyapa->gen == CYAPA_GEN5)
+	{
 		cyapa->state = CYAPA_STATE_GEN5_BL;
+	}
 	else if (cyapa->gen == CYAPA_GEN6)
+	{
 		cyapa->state = CYAPA_STATE_GEN6_BL;
+	}
+
 	return 0;
 }
 
 static int cyapa_pip_fw_head_check(struct cyapa *cyapa,
-		struct cyapa_tsg_bin_image_head *image_head)
+								   struct cyapa_tsg_bin_image_head *image_head)
 {
 	if (image_head->head_size != 0x0C && image_head->head_size != 0x12)
+	{
 		return -EINVAL;
+	}
 
-	switch (cyapa->gen) {
-	case CYAPA_GEN6:
-		if (image_head->family_id != 0x9B ||
-		    image_head->silicon_id_hi != 0x0B)
-			return -EINVAL;
-		break;
-	case CYAPA_GEN5:
-		/* Gen5 without proximity support. */
-		if (cyapa->platform_ver < 2) {
-			if (image_head->head_size == 0x0C)
-				break;
-			return -EINVAL;
-		}
+	switch (cyapa->gen)
+	{
+		case CYAPA_GEN6:
+			if (image_head->family_id != 0x9B ||
+				image_head->silicon_id_hi != 0x0B)
+			{
+				return -EINVAL;
+			}
 
-		if (image_head->family_id != 0x91 ||
-		    image_head->silicon_id_hi != 0x02)
+			break;
+
+		case CYAPA_GEN5:
+
+			/* Gen5 without proximity support. */
+			if (cyapa->platform_ver < 2)
+			{
+				if (image_head->head_size == 0x0C)
+				{
+					break;
+				}
+
+				return -EINVAL;
+			}
+
+			if (image_head->family_id != 0x91 ||
+				image_head->silicon_id_hi != 0x02)
+			{
+				return -EINVAL;
+			}
+
+			break;
+
+		default:
 			return -EINVAL;
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	return 0;
@@ -1250,9 +1486,10 @@ int cyapa_pip_check_fw(struct cyapa *cyapa, const struct firmware *fw)
 
 	/* Verify the firmware image not miss-used for Gen5 and Gen6. */
 	if (cyapa_pip_fw_head_check(cyapa,
-		(struct cyapa_tsg_bin_image_head *)fw->data)) {
+								(struct cyapa_tsg_bin_image_head *)fw->data))
+	{
 		dev_err(dev, "%s: firmware image not match TP device.\n",
-			     __func__);
+				__func__);
 		return -EINVAL;
 	}
 
@@ -1266,7 +1503,8 @@ int cyapa_pip_check_fw(struct cyapa *cyapa, const struct firmware *fw)
 	app_integrity = &image_records[flash_records_count - 1];
 
 	if (app_integrity->flash_array_id != 0x00 ||
-	    get_unaligned_be16(&app_integrity->row_number) != 0x01ff) {
+		get_unaligned_be16(&app_integrity->row_number) != 0x01ff)
+	{
 		dev_err(dev, "%s: invalid app_integrity data.\n", __func__);
 		return -EINVAL;
 	}
@@ -1275,8 +1513,10 @@ int cyapa_pip_check_fw(struct cyapa *cyapa, const struct firmware *fw)
 
 	/* Verify app_integrity crc */
 	app_integrity_crc = crc_itu_t(0xffff, app_integrity->record_data,
-				      CYAPA_TSG_APP_INTEGRITY_SIZE);
-	if (app_integrity_crc != get_unaligned_le16(&metadata->metadata_crc)) {
+								  CYAPA_TSG_APP_INTEGRITY_SIZE);
+
+	if (app_integrity_crc != get_unaligned_le16(&metadata->metadata_crc))
+	{
 		dev_err(dev, "%s: invalid app_integrity crc.\n", __func__);
 		return -EINVAL;
 	}
@@ -1287,22 +1527,26 @@ int cyapa_pip_check_fw(struct cyapa *cyapa, const struct firmware *fw)
 	fw_upgrade_len = get_unaligned_le16(&metadata->upgrade_len);
 
 	if (fw_app_start % CYAPA_TSG_FW_ROW_SIZE ||
-	    fw_app_len % CYAPA_TSG_FW_ROW_SIZE ||
-	    fw_upgrade_start % CYAPA_TSG_FW_ROW_SIZE ||
-	    fw_upgrade_len % CYAPA_TSG_FW_ROW_SIZE) {
+		fw_app_len % CYAPA_TSG_FW_ROW_SIZE ||
+		fw_upgrade_start % CYAPA_TSG_FW_ROW_SIZE ||
+		fw_upgrade_len % CYAPA_TSG_FW_ROW_SIZE)
+	{
 		dev_err(dev, "%s: invalid image alignment.\n", __func__);
 		return -EINVAL;
 	}
 
 	/* Verify application image CRC. */
 	app_crc = 0xffffU;
-	for (i = 0; i < fw_app_len / CYAPA_TSG_FW_ROW_SIZE; i++) {
+
+	for (i = 0; i < fw_app_len / CYAPA_TSG_FW_ROW_SIZE; i++)
+	{
 		const u8 *data = image_records[i].record_data;
 
 		app_crc = crc_itu_t(app_crc, data, CYAPA_TSG_FW_ROW_SIZE);
 	}
 
-	if (app_crc != get_unaligned_le16(&metadata->app_crc)) {
+	if (app_crc != get_unaligned_le16(&metadata->app_crc))
+	{
 		dev_err(dev, "%s: invalid firmware app crc check.\n", __func__);
 		return -EINVAL;
 	}
@@ -1311,7 +1555,7 @@ int cyapa_pip_check_fw(struct cyapa *cyapa, const struct firmware *fw)
 }
 
 static int cyapa_pip_write_fw_block(struct cyapa *cyapa,
-		struct cyapa_tsg_bin_image_data_record *flash_record)
+									struct cyapa_tsg_bin_image_data_record *flash_record)
 {
 	struct pip_bl_cmd_head *bl_cmd_head;
 	struct pip_bl_packet_start *bl_packet_start;
@@ -1338,9 +1582,9 @@ static int cyapa_pip_write_fw_block(struct cyapa *cyapa,
 	bl_cmd_head = (struct pip_bl_cmd_head *)cmd;
 	bl_packet_start = &bl_cmd_head->packet_start;
 	cmd_len = sizeof(struct pip_bl_cmd_head) +
-		  sizeof(struct tsg_bl_flash_row_head) +
-		  CYAPA_TSG_FLASH_MAP_BLOCK_SIZE +
-		  sizeof(struct pip_bl_packet_end);
+			  sizeof(struct tsg_bl_flash_row_head) +
+			  CYAPA_TSG_FLASH_MAP_BLOCK_SIZE +
+			  sizeof(struct pip_bl_packet_end);
 
 	put_unaligned_le16(PIP_OUTPUT_REPORT_ADDR, &bl_cmd_head->addr);
 	/* Don't include 2 bytes register address */
@@ -1359,26 +1603,29 @@ static int cyapa_pip_write_fw_block(struct cyapa *cyapa,
 	memcpy(flash_row_head->flash_data, record_data, record_len);
 
 	bl_packet_end = (struct pip_bl_packet_end *)(bl_cmd_head->data +
-						      data_len);
+					data_len);
 	crc = crc_itu_t(0xffff, (u8 *)bl_packet_start,
-		sizeof(struct pip_bl_packet_start) + data_len);
+					sizeof(struct pip_bl_packet_start) + data_len);
 	put_unaligned_le16(crc, &bl_packet_end->crc);
 	bl_packet_end->eop = PIP_EOP_KEY;
 
 	resp_len = sizeof(resp_data);
 	error = cyapa_i2c_pip_cmd_irq_sync(cyapa, cmd, cmd_len,
-			resp_data, &resp_len,
-			500, cyapa_sort_tsg_pip_bl_resp_data, true);
+									   resp_data, &resp_len,
+									   500, cyapa_sort_tsg_pip_bl_resp_data, true);
+
 	if (error || resp_len != PIP_BL_BLOCK_WRITE_RESP_LEN ||
-			resp_data[2] != PIP_BL_RESP_REPORT_ID ||
-			!PIP_CMD_COMPLETE_SUCCESS(resp_data))
+		resp_data[2] != PIP_BL_RESP_REPORT_ID ||
+		!PIP_CMD_COMPLETE_SUCCESS(resp_data))
+	{
 		return error < 0 ? error : -EAGAIN;
+	}
 
 	return 0;
 }
 
 int cyapa_pip_do_fw_update(struct cyapa *cyapa,
-		const struct firmware *fw)
+						   const struct firmware *fw)
 {
 	struct device *dev = &cyapa->client->dev;
 	struct cyapa_tsg_bin_image_data_record *image_records;
@@ -1395,11 +1642,14 @@ int cyapa_pip_do_fw_update(struct cyapa *cyapa,
 	 * The last flash row 0x01ff has been written through bl_initiate
 	 * command, so DO NOT write flash 0x01ff to trackpad device.
 	 */
-	for (i = 0; i < (flash_records_count - 1); i++) {
+	for (i = 0; i < (flash_records_count - 1); i++)
+	{
 		error = cyapa_pip_write_fw_block(cyapa, &image_records[i]);
-		if (error) {
+
+		if (error)
+		{
 			dev_err(dev, "%s: Gen5 FW update aborted: %d\n",
-				__func__, error);
+					__func__, error);
 			return error;
 		}
 	}
@@ -1417,17 +1667,20 @@ static int cyapa_gen5_change_power_state(struct cyapa *cyapa, u8 power_state)
 	cmd[7] = power_state;
 	resp_len = sizeof(resp_data);
 	error = cyapa_i2c_pip_cmd_irq_sync(cyapa, cmd, sizeof(cmd),
-			resp_data, &resp_len,
-			500, cyapa_sort_tsg_pip_app_resp_data, false);
+									   resp_data, &resp_len,
+									   500, cyapa_sort_tsg_pip_app_resp_data, false);
+
 	if (error || !VALID_CMD_RESP_HEADER(resp_data, 0x08) ||
-			!PIP_CMD_COMPLETE_SUCCESS(resp_data))
+		!PIP_CMD_COMPLETE_SUCCESS(resp_data))
+	{
 		return error < 0 ? error : -EINVAL;
+	}
 
 	return 0;
 }
 
 static int cyapa_gen5_set_interval_time(struct cyapa *cyapa,
-		u8 parameter_id, u16 interval_time)
+										u8 parameter_id, u16 interval_time)
 {
 	struct pip_app_cmd_head *app_cmd_head;
 	struct gen5_app_set_parameter_data *parameter_data;
@@ -1441,22 +1694,26 @@ static int cyapa_gen5_set_interval_time(struct cyapa *cyapa,
 	memset(cmd, 0, CYAPA_TSG_MAX_CMD_SIZE);
 	app_cmd_head = (struct pip_app_cmd_head *)cmd;
 	parameter_data = (struct gen5_app_set_parameter_data *)
-			 app_cmd_head->parameter_data;
+					 app_cmd_head->parameter_data;
 	cmd_len = sizeof(struct pip_app_cmd_head) +
-		  sizeof(struct gen5_app_set_parameter_data);
+			  sizeof(struct gen5_app_set_parameter_data);
 
-	switch (parameter_id) {
-	case GEN5_PARAMETER_ACT_INTERVL_ID:
-		parameter_size = GEN5_PARAMETER_ACT_INTERVL_SIZE;
-		break;
-	case GEN5_PARAMETER_ACT_LFT_INTERVL_ID:
-		parameter_size = GEN5_PARAMETER_ACT_LFT_INTERVL_SIZE;
-		break;
-	case GEN5_PARAMETER_LP_INTRVL_ID:
-		parameter_size = GEN5_PARAMETER_LP_INTRVL_SIZE;
-		break;
-	default:
-		return -EINVAL;
+	switch (parameter_id)
+	{
+		case GEN5_PARAMETER_ACT_INTERVL_ID:
+			parameter_size = GEN5_PARAMETER_ACT_INTERVL_SIZE;
+			break;
+
+		case GEN5_PARAMETER_ACT_LFT_INTERVL_ID:
+			parameter_size = GEN5_PARAMETER_ACT_LFT_INTERVL_SIZE;
+			break;
+
+		case GEN5_PARAMETER_LP_INTRVL_ID:
+			parameter_size = GEN5_PARAMETER_LP_INTRVL_SIZE;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	put_unaligned_le16(PIP_OUTPUT_REPORT_ADDR, &app_cmd_head->addr);
@@ -1465,7 +1722,7 @@ static int cyapa_gen5_set_interval_time(struct cyapa *cyapa,
 	 * 2 bytes register address.
 	 */
 	put_unaligned_le16(cmd_len - (4 - parameter_size) - 2,
-			   &app_cmd_head->length);
+					   &app_cmd_head->length);
 	app_cmd_head->report_id = PIP_APP_CMD_REPORT_ID;
 	app_cmd_head->cmd_code = GEN5_CMD_SET_PARAMETER;
 	parameter_data->parameter_id = parameter_id;
@@ -1473,18 +1730,21 @@ static int cyapa_gen5_set_interval_time(struct cyapa *cyapa,
 	put_unaligned_le32((u32)interval_time, &parameter_data->value);
 	resp_len = sizeof(resp_data);
 	error = cyapa_i2c_pip_cmd_irq_sync(cyapa, cmd, cmd_len,
-			resp_data, &resp_len,
-			500, cyapa_sort_tsg_pip_app_resp_data, false);
+									   resp_data, &resp_len,
+									   500, cyapa_sort_tsg_pip_app_resp_data, false);
+
 	if (error || resp_data[5] != parameter_id ||
 		resp_data[6] != parameter_size ||
 		!VALID_CMD_RESP_HEADER(resp_data, GEN5_CMD_SET_PARAMETER))
+	{
 		return error < 0 ? error : -EINVAL;
+	}
 
 	return 0;
 }
 
 static int cyapa_gen5_get_interval_time(struct cyapa *cyapa,
-		u8 parameter_id, u16 *interval_time)
+										u8 parameter_id, u16 *interval_time)
 {
 	struct pip_app_cmd_head *app_cmd_head;
 	struct gen5_app_get_parameter_data *parameter_data;
@@ -1499,23 +1759,28 @@ static int cyapa_gen5_get_interval_time(struct cyapa *cyapa,
 	memset(cmd, 0, CYAPA_TSG_MAX_CMD_SIZE);
 	app_cmd_head = (struct pip_app_cmd_head *)cmd;
 	parameter_data = (struct gen5_app_get_parameter_data *)
-			 app_cmd_head->parameter_data;
+					 app_cmd_head->parameter_data;
 	cmd_len = sizeof(struct pip_app_cmd_head) +
-		  sizeof(struct gen5_app_get_parameter_data);
+			  sizeof(struct gen5_app_get_parameter_data);
 
 	*interval_time = 0;
-	switch (parameter_id) {
-	case GEN5_PARAMETER_ACT_INTERVL_ID:
-		parameter_size = GEN5_PARAMETER_ACT_INTERVL_SIZE;
-		break;
-	case GEN5_PARAMETER_ACT_LFT_INTERVL_ID:
-		parameter_size = GEN5_PARAMETER_ACT_LFT_INTERVL_SIZE;
-		break;
-	case GEN5_PARAMETER_LP_INTRVL_ID:
-		parameter_size = GEN5_PARAMETER_LP_INTRVL_SIZE;
-		break;
-	default:
-		return -EINVAL;
+
+	switch (parameter_id)
+	{
+		case GEN5_PARAMETER_ACT_INTERVL_ID:
+			parameter_size = GEN5_PARAMETER_ACT_INTERVL_SIZE;
+			break;
+
+		case GEN5_PARAMETER_ACT_LFT_INTERVL_ID:
+			parameter_size = GEN5_PARAMETER_ACT_LFT_INTERVL_SIZE;
+			break;
+
+		case GEN5_PARAMETER_LP_INTRVL_ID:
+			parameter_size = GEN5_PARAMETER_LP_INTRVL_SIZE;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	put_unaligned_le16(PIP_OUTPUT_REPORT_ADDR, &app_cmd_head->addr);
@@ -1527,15 +1792,22 @@ static int cyapa_gen5_get_interval_time(struct cyapa *cyapa,
 
 	resp_len = sizeof(resp_data);
 	error = cyapa_i2c_pip_cmd_irq_sync(cyapa, cmd, cmd_len,
-			resp_data, &resp_len,
-			500, cyapa_sort_tsg_pip_app_resp_data, false);
+									   resp_data, &resp_len,
+									   500, cyapa_sort_tsg_pip_app_resp_data, false);
+
 	if (error || resp_data[5] != parameter_id || resp_data[6] == 0 ||
 		!VALID_CMD_RESP_HEADER(resp_data, GEN5_CMD_GET_PARAMETER))
+	{
 		return error < 0 ? error : -EINVAL;
+	}
 
 	mask = 0;
+
 	for (i = 0; i < parameter_size; i++)
+	{
 		mask |= (0xff << (i * 8));
+	}
+
 	*interval_time = get_unaligned_le16(&resp_data[7]) & mask;
 
 	return 0;
@@ -1561,12 +1833,15 @@ static int cyapa_gen5_disable_pip_report(struct cyapa *cyapa)
 	app_cmd_head->parameter_data[2] = 0x01;
 	resp_len = sizeof(resp_data);
 	error = cyapa_i2c_pip_cmd_irq_sync(cyapa, cmd, sizeof(cmd),
-			resp_data, &resp_len,
-			500, cyapa_sort_tsg_pip_app_resp_data, false);
+									   resp_data, &resp_len,
+									   500, cyapa_sort_tsg_pip_app_resp_data, false);
+
 	if (error || resp_data[5] != GEN5_PARAMETER_DISABLE_PIP_REPORT ||
 		!VALID_CMD_RESP_HEADER(resp_data, GEN5_CMD_SET_PARAMETER) ||
 		resp_data[6] != 0x01)
+	{
 		return error < 0 ? error : -EINVAL;
+	}
 
 	return 0;
 }
@@ -1574,18 +1849,20 @@ static int cyapa_gen5_disable_pip_report(struct cyapa *cyapa)
 int cyapa_pip_set_proximity(struct cyapa *cyapa, bool enable)
 {
 	u8 cmd[] = { 0x04, 0x00, 0x06, 0x00, 0x2f, 0x00, PIP_SET_PROXIMITY,
-		     (u8)!!enable
-	};
+				 (u8)!!enable
+			   };
 	u8 resp_data[6];
 	int resp_len;
 	int error;
 
 	resp_len = sizeof(resp_data);
 	error = cyapa_i2c_pip_cmd_irq_sync(cyapa, cmd, sizeof(cmd),
-			resp_data, &resp_len,
-			500, cyapa_sort_tsg_pip_app_resp_data, false);
+									   resp_data, &resp_len,
+									   500, cyapa_sort_tsg_pip_app_resp_data, false);
+
 	if (error || !VALID_CMD_RESP_HEADER(resp_data, PIP_SET_PROXIMITY) ||
-			!PIP_CMD_COMPLETE_SUCCESS(resp_data)) {
+		!PIP_CMD_COMPLETE_SUCCESS(resp_data))
+	{
 		error = (error == -ETIMEDOUT) ? -EOPNOTSUPP : error;
 		return error < 0 ? error : -EINVAL;
 	}
@@ -1603,27 +1880,33 @@ int cyapa_pip_deep_sleep(struct cyapa *cyapa, u8 state)
 	cmd[2] = state & PIP_DEEP_SLEEP_STATE_MASK;
 	resp_len = sizeof(resp_data);
 	error = cyapa_i2c_pip_cmd_irq_sync(cyapa, cmd, sizeof(cmd),
-			resp_data, &resp_len,
-			500, cyapa_sort_pip_deep_sleep_data, false);
+									   resp_data, &resp_len,
+									   500, cyapa_sort_pip_deep_sleep_data, false);
+
 	if (error || ((resp_data[3] & PIP_DEEP_SLEEP_STATE_MASK) != state))
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 static int cyapa_gen5_set_power_mode(struct cyapa *cyapa,
-		u8 power_mode, u16 sleep_time, enum cyapa_pm_stage pm_stage)
+									 u8 power_mode, u16 sleep_time, enum cyapa_pm_stage pm_stage)
 {
 	struct device *dev = &cyapa->client->dev;
 	u8 power_state;
 	int error = 0;
 
 	if (cyapa->state != CYAPA_STATE_GEN5_APP)
+	{
 		return 0;
+	}
 
 	cyapa_set_pip_pm_state(cyapa, pm_stage);
 
-	if (PIP_DEV_GET_PWR_STATE(cyapa) == UNINIT_PWR_MODE) {
+	if (PIP_DEV_GET_PWR_STATE(cyapa) == UNINIT_PWR_MODE)
+	{
 		/*
 		 * Assume TP in deep sleep mode when driver is loaded,
 		 * avoid driver unload and reload command IO issue caused by TP
@@ -1633,25 +1916,32 @@ static int cyapa_gen5_set_power_mode(struct cyapa *cyapa,
 	}
 
 	if (PIP_DEV_UNINIT_SLEEP_TIME(cyapa) &&
-			PIP_DEV_GET_PWR_STATE(cyapa) != PWR_MODE_OFF)
+		PIP_DEV_GET_PWR_STATE(cyapa) != PWR_MODE_OFF)
 		if (cyapa_gen5_get_interval_time(cyapa,
-				GEN5_PARAMETER_LP_INTRVL_ID,
-				&cyapa->dev_sleep_time) != 0)
+										 GEN5_PARAMETER_LP_INTRVL_ID,
+										 &cyapa->dev_sleep_time) != 0)
+		{
 			PIP_DEV_SET_SLEEP_TIME(cyapa, UNINIT_SLEEP_TIME);
+		}
 
-	if (PIP_DEV_GET_PWR_STATE(cyapa) == power_mode) {
+	if (PIP_DEV_GET_PWR_STATE(cyapa) == power_mode)
+	{
 		if (power_mode == PWR_MODE_OFF ||
 			power_mode == PWR_MODE_FULL_ACTIVE ||
 			power_mode == PWR_MODE_BTN_ONLY ||
-			PIP_DEV_GET_SLEEP_TIME(cyapa) == sleep_time) {
+			PIP_DEV_GET_SLEEP_TIME(cyapa) == sleep_time)
+		{
 			/* Has in correct power mode state, early return. */
 			goto out;
 		}
 	}
 
-	if (power_mode == PWR_MODE_OFF) {
+	if (power_mode == PWR_MODE_OFF)
+	{
 		error = cyapa_pip_deep_sleep(cyapa, PIP_DEEP_SLEEP_STATE_OFF);
-		if (error) {
+
+		if (error)
+		{
 			dev_err(dev, "enter deep sleep fail: %d\n", error);
 			goto out;
 		}
@@ -1665,53 +1955,74 @@ static int cyapa_gen5_set_power_mode(struct cyapa *cyapa,
 	 * state directly, must be wake up from sleep firstly, then
 	 * continue to do next power sate change.
 	 */
-	if (PIP_DEV_GET_PWR_STATE(cyapa) == PWR_MODE_OFF) {
+	if (PIP_DEV_GET_PWR_STATE(cyapa) == PWR_MODE_OFF)
+	{
 		error = cyapa_pip_deep_sleep(cyapa, PIP_DEEP_SLEEP_STATE_ON);
-		if (error) {
+
+		if (error)
+		{
 			dev_err(dev, "deep sleep wake fail: %d\n", error);
 			goto out;
 		}
 	}
 
-	if (power_mode == PWR_MODE_FULL_ACTIVE) {
+	if (power_mode == PWR_MODE_FULL_ACTIVE)
+	{
 		error = cyapa_gen5_change_power_state(cyapa,
-				GEN5_POWER_STATE_ACTIVE);
-		if (error) {
+											  GEN5_POWER_STATE_ACTIVE);
+
+		if (error)
+		{
 			dev_err(dev, "change to active fail: %d\n", error);
 			goto out;
 		}
 
 		PIP_DEV_SET_PWR_STATE(cyapa, PWR_MODE_FULL_ACTIVE);
-	} else if (power_mode == PWR_MODE_BTN_ONLY) {
+	}
+	else if (power_mode == PWR_MODE_BTN_ONLY)
+	{
 		error = cyapa_gen5_change_power_state(cyapa,
-				GEN5_POWER_STATE_BTN_ONLY);
-		if (error) {
+											  GEN5_POWER_STATE_BTN_ONLY);
+
+		if (error)
+		{
 			dev_err(dev, "fail to button only mode: %d\n", error);
 			goto out;
 		}
 
 		PIP_DEV_SET_PWR_STATE(cyapa, PWR_MODE_BTN_ONLY);
-	} else {
+	}
+	else
+	{
 		/*
 		 * Continue to change power mode even failed to set
 		 * interval time, it won't affect the power mode change.
 		 * except the sleep interval time is not correct.
 		 */
 		if (PIP_DEV_UNINIT_SLEEP_TIME(cyapa) ||
-				sleep_time != PIP_DEV_GET_SLEEP_TIME(cyapa))
+			sleep_time != PIP_DEV_GET_SLEEP_TIME(cyapa))
 			if (cyapa_gen5_set_interval_time(cyapa,
-					GEN5_PARAMETER_LP_INTRVL_ID,
-					sleep_time) == 0)
+											 GEN5_PARAMETER_LP_INTRVL_ID,
+											 sleep_time) == 0)
+			{
 				PIP_DEV_SET_SLEEP_TIME(cyapa, sleep_time);
+			}
 
 		if (sleep_time <= GEN5_POWER_READY_MAX_INTRVL_TIME)
+		{
 			power_state = GEN5_POWER_STATE_READY;
+		}
 		else
+		{
 			power_state = GEN5_POWER_STATE_IDLE;
+		}
+
 		error = cyapa_gen5_change_power_state(cyapa, power_state);
-		if (error) {
+
+		if (error)
+		{
 			dev_err(dev, "set power state to 0x%02x failed: %d\n",
-				power_state, error);
+					power_state, error);
 			goto out;
 		}
 
@@ -1726,10 +2037,12 @@ static int cyapa_gen5_set_power_mode(struct cyapa *cyapa,
 		 * asserted again.
 		 */
 		if (pm_stage == CYAPA_PM_SUSPEND)
+		{
 			cyapa_gen5_disable_pip_report(cyapa);
+		}
 
 		PIP_DEV_SET_PWR_STATE(cyapa,
-			cyapa_sleep_time_to_pwr_cmd(sleep_time));
+							  cyapa_sleep_time_to_pwr_cmd(sleep_time));
 	}
 
 out:
@@ -1749,11 +2062,14 @@ int cyapa_pip_resume_scanning(struct cyapa *cyapa)
 
 	resp_len = sizeof(resp_data);
 	error = cyapa_i2c_pip_cmd_irq_sync(cyapa,
-			cmd, sizeof(cmd),
-			resp_data, &resp_len,
-			500, cyapa_sort_tsg_pip_app_resp_data, true);
+									   cmd, sizeof(cmd),
+									   resp_data, &resp_len,
+									   500, cyapa_sort_tsg_pip_app_resp_data, true);
+
 	if (error || !VALID_CMD_RESP_HEADER(resp_data, 0x04))
+	{
 		return -EINVAL;
+	}
 
 	/* Try to dump all buffered data when resuming scanning. */
 	cyapa_empty_pip_output_data(cyapa, NULL, NULL, NULL);
@@ -1773,11 +2089,14 @@ int cyapa_pip_suspend_scanning(struct cyapa *cyapa)
 
 	resp_len = sizeof(resp_data);
 	error = cyapa_i2c_pip_cmd_irq_sync(cyapa,
-			cmd, sizeof(cmd),
-			resp_data, &resp_len,
-			500, cyapa_sort_tsg_pip_app_resp_data, true);
+									   cmd, sizeof(cmd),
+									   resp_data, &resp_len,
+									   500, cyapa_sort_tsg_pip_app_resp_data, true);
+
 	if (error || !VALID_CMD_RESP_HEADER(resp_data, 0x03))
+	{
 		return -EINVAL;
+	}
 
 	/* Try to dump all buffered data when suspending scanning. */
 	cyapa_empty_pip_output_data(cyapa, NULL, NULL, NULL);
@@ -1786,7 +2105,7 @@ int cyapa_pip_suspend_scanning(struct cyapa *cyapa)
 }
 
 static int cyapa_pip_calibrate_pwcs(struct cyapa *cyapa,
-		u8 calibrate_sensing_mode_type)
+									u8 calibrate_sensing_mode_type)
 {
 	struct pip_app_cmd_head *app_cmd_head;
 	u8 cmd[8];
@@ -1806,45 +2125,60 @@ static int cyapa_pip_calibrate_pwcs(struct cyapa *cyapa,
 	app_cmd_head->parameter_data[0] = calibrate_sensing_mode_type;
 	resp_len = sizeof(resp_data);
 	error = cyapa_i2c_pip_cmd_irq_sync(cyapa,
-			cmd, sizeof(cmd),
-			resp_data, &resp_len,
-			5000, cyapa_sort_tsg_pip_app_resp_data, true);
+									   cmd, sizeof(cmd),
+									   resp_data, &resp_len,
+									   5000, cyapa_sort_tsg_pip_app_resp_data, true);
+
 	if (error || !VALID_CMD_RESP_HEADER(resp_data, PIP_CMD_CALIBRATE) ||
-			!PIP_CMD_COMPLETE_SUCCESS(resp_data))
+		!PIP_CMD_COMPLETE_SUCCESS(resp_data))
+	{
 		return error < 0 ? error : -EAGAIN;
+	}
 
 	return 0;
 }
 
 ssize_t cyapa_pip_do_calibrate(struct device *dev,
-				     struct device_attribute *attr,
-				     const char *buf, size_t count)
+							   struct device_attribute *attr,
+							   const char *buf, size_t count)
 {
 	struct cyapa *cyapa = dev_get_drvdata(dev);
 	int error, calibrate_error;
 
 	/* 1. Suspend Scanning*/
 	error = cyapa_pip_suspend_scanning(cyapa);
+
 	if (error)
+	{
 		return error;
+	}
 
 	/* 2. Do mutual capacitance fine calibrate. */
 	calibrate_error = cyapa_pip_calibrate_pwcs(cyapa,
-				PIP_SENSING_MODE_MUTUAL_CAP_FINE);
+					  PIP_SENSING_MODE_MUTUAL_CAP_FINE);
+
 	if (calibrate_error)
+	{
 		goto resume_scanning;
+	}
 
 	/* 3. Do self capacitance calibrate. */
 	calibrate_error = cyapa_pip_calibrate_pwcs(cyapa,
-				PIP_SENSING_MODE_SELF_CAP);
+					  PIP_SENSING_MODE_SELF_CAP);
+
 	if (calibrate_error)
+	{
 		goto resume_scanning;
+	}
 
 resume_scanning:
 	/* 4. Resume Scanning*/
 	error = cyapa_pip_resume_scanning(cyapa);
+
 	if (error || calibrate_error)
+	{
 		return error ? error : calibrate_error;
+	}
 
 	return count;
 }
@@ -1852,7 +2186,10 @@ resume_scanning:
 static s32 twos_complement_to_s32(s32 value, int num_bits)
 {
 	if (value >> (num_bits - 1))
+	{
 		value |=  -1 << num_bits;
+	}
+
 	return value;
 }
 
@@ -1868,44 +2205,65 @@ static s32 cyapa_parse_structure_data(u8 data_format, u8 *buf, int buf_len)
 	unsigned_type = ((data_format & 0x20) == 0x00);
 
 	if (buf_len < data_size)
+	{
 		return 0;
+	}
 
-	switch (data_size) {
-	case 1:
-		value  = buf[0];
-		break;
-	case 2:
-		if (big_endian)
-			value = get_unaligned_be16(buf);
-		else
-			value = get_unaligned_le16(buf);
-		break;
-	case 4:
-		if (big_endian)
-			value = get_unaligned_be32(buf);
-		else
-			value = get_unaligned_le32(buf);
-		break;
-	default:
-		/* Should not happen, just as default case here. */
-		value = 0;
-		break;
+	switch (data_size)
+	{
+		case 1:
+			value  = buf[0];
+			break;
+
+		case 2:
+			if (big_endian)
+			{
+				value = get_unaligned_be16(buf);
+			}
+			else
+			{
+				value = get_unaligned_le16(buf);
+			}
+
+			break;
+
+		case 4:
+			if (big_endian)
+			{
+				value = get_unaligned_be32(buf);
+			}
+			else
+			{
+				value = get_unaligned_le32(buf);
+			}
+
+			break;
+
+		default:
+			/* Should not happen, just as default case here. */
+			value = 0;
+			break;
 	}
 
 	if (!unsigned_type)
+	{
 		value = twos_complement_to_s32(value, data_size * 8);
+	}
 
 	return value;
 }
 
 static void cyapa_gen5_guess_electrodes(struct cyapa *cyapa,
-		int *electrodes_rx, int *electrodes_tx)
+										int *electrodes_rx, int *electrodes_tx)
 {
-	if (cyapa->electrodes_rx != 0) {
+	if (cyapa->electrodes_rx != 0)
+	{
 		*electrodes_rx = cyapa->electrodes_rx;
 		*electrodes_tx = (cyapa->electrodes_x == *electrodes_rx) ?
-				cyapa->electrodes_y : cyapa->electrodes_x;
-	} else {
+						 cyapa->electrodes_y : cyapa->electrodes_x;
+	}
+	else
+	{
 		*electrodes_tx = min(cyapa->electrodes_x, cyapa->electrodes_y);
 		*electrodes_rx = max(cyapa->electrodes_x, cyapa->electrodes_y);
 	}
@@ -1930,8 +2288,8 @@ static void cyapa_gen5_guess_electrodes(struct cyapa *cyapa,
  * value, otherwise, the read mutual idac and PWC data may not correct.
  */
 static int cyapa_gen5_read_idac_data(struct cyapa *cyapa,
-		u8 cmd_code, u8 idac_data_type, int *data_size,
-		int *idac_max, int *idac_min, int *idac_ave)
+									 u8 cmd_code, u8 idac_data_type, int *data_size,
+									 int *idac_max, int *idac_min, int *idac_ave)
 {
 	struct pip_app_cmd_head *cmd_head;
 	u8 cmd[12];
@@ -1950,15 +2308,19 @@ static int cyapa_gen5_read_idac_data(struct cyapa *cyapa,
 
 	if (cmd_code != PIP_RETRIEVE_DATA_STRUCTURE ||
 		(idac_data_type != GEN5_RETRIEVE_MUTUAL_PWC_DATA &&
-		idac_data_type != GEN5_RETRIEVE_SELF_CAP_PWC_DATA) ||
+		 idac_data_type != GEN5_RETRIEVE_SELF_CAP_PWC_DATA) ||
 		!data_size || !idac_max || !idac_min || !idac_ave)
+	{
 		return -EINVAL;
+	}
 
 	*idac_max = INT_MIN;
 	*idac_min = INT_MAX;
 	sum = count = tmp_count = 0;
 	electrodes_rx = electrodes_tx = 0;
-	if (*data_size == 0) {
+
+	if (*data_size == 0)
+	{
 		/*
 		 * Read global idac values firstly.
 		 * Currently, no idac data exceed 4 bytes.
@@ -1970,35 +2332,55 @@ static int cyapa_gen5_read_idac_data(struct cyapa *cyapa,
 		tmp_min = INT_MAX;
 		tmp_ave = tmp_sum = tmp_count = 0;
 
-		if (idac_data_type == GEN5_RETRIEVE_MUTUAL_PWC_DATA) {
-			if (cyapa->aligned_electrodes_rx == 0) {
+		if (idac_data_type == GEN5_RETRIEVE_MUTUAL_PWC_DATA)
+		{
+			if (cyapa->aligned_electrodes_rx == 0)
+			{
 				cyapa_gen5_guess_electrodes(cyapa,
-					&electrodes_rx, &electrodes_tx);
+											&electrodes_rx, &electrodes_tx);
 				cyapa->aligned_electrodes_rx =
 					(electrodes_rx + 3) & ~3u;
 			}
+
 			max_element_cnt =
 				(cyapa->aligned_electrodes_rx + 7) & ~7u;
-		} else {
+		}
+		else
+		{
 			max_element_cnt = 2;
 		}
-	} else {
+	}
+	else
+	{
 		read_global_idac = false;
+
 		if (*data_size > 4)
+		{
 			*data_size = 4;
+		}
+
 		/* Calculate the start offset in bytes of local PWC data. */
-		if (idac_data_type == GEN5_RETRIEVE_MUTUAL_PWC_DATA) {
+		if (idac_data_type == GEN5_RETRIEVE_MUTUAL_PWC_DATA)
+		{
 			offset = cyapa->aligned_electrodes_rx * (*data_size);
+
 			if (cyapa->electrodes_rx == cyapa->electrodes_x)
+			{
 				electrodes_tx = cyapa->electrodes_y;
+			}
 			else
+			{
 				electrodes_tx = cyapa->electrodes_x;
+			}
+
 			max_element_cnt = ((cyapa->aligned_electrodes_rx + 7) &
-						~7u) * electrodes_tx;
-		} else {
+							   ~7u) * electrodes_tx;
+		}
+		else
+		{
 			offset = 2;
 			max_element_cnt = cyapa->electrodes_x +
-						cyapa->electrodes_y;
+							  cyapa->electrodes_y;
 			max_element_cnt = (max_element_cnt + 3) & ~3u;
 		}
 	}
@@ -2009,9 +2391,11 @@ static int cyapa_gen5_read_idac_data(struct cyapa *cyapa,
 	put_unaligned_le16(sizeof(cmd) - 2, &cmd_head->length);
 	cmd_head->report_id = PIP_APP_CMD_REPORT_ID;
 	cmd_head->cmd_code = cmd_code;
-	do {
+
+	do
+	{
 		read_elements = (256 - GEN5_RESP_DATA_STRUCTURE_OFFSET) /
-				(*data_size);
+						(*data_size);
 		read_elements = min(read_elements, max_element_cnt - count);
 		read_len = read_elements * (*data_size);
 
@@ -2020,58 +2404,73 @@ static int cyapa_gen5_read_idac_data(struct cyapa *cyapa,
 		cmd_head->parameter_data[4] = idac_data_type;
 		resp_len = GEN5_RESP_DATA_STRUCTURE_OFFSET + read_len;
 		error = cyapa_i2c_pip_cmd_irq_sync(cyapa,
-				cmd, sizeof(cmd),
-				resp_data, &resp_len,
-				500, cyapa_sort_tsg_pip_app_resp_data,
-				true);
+										   cmd, sizeof(cmd),
+										   resp_data, &resp_len,
+										   500, cyapa_sort_tsg_pip_app_resp_data,
+										   true);
+
 		if (error || resp_len < GEN5_RESP_DATA_STRUCTURE_OFFSET ||
-				!VALID_CMD_RESP_HEADER(resp_data, cmd_code) ||
-				!PIP_CMD_COMPLETE_SUCCESS(resp_data) ||
-				resp_data[6] != idac_data_type)
+			!VALID_CMD_RESP_HEADER(resp_data, cmd_code) ||
+			!PIP_CMD_COMPLETE_SUCCESS(resp_data) ||
+			resp_data[6] != idac_data_type)
+		{
 			return (error < 0) ? error : -EAGAIN;
+		}
+
 		read_len = get_unaligned_le16(&resp_data[7]);
+
 		if (read_len == 0)
+		{
 			break;
+		}
 
 		*data_size = (resp_data[9] & GEN5_PWC_DATA_ELEMENT_SIZE_MASK);
+
 		if (read_len < *data_size)
+		{
 			return -EINVAL;
+		}
 
 		if (read_global_idac &&
-			idac_data_type == GEN5_RETRIEVE_SELF_CAP_PWC_DATA) {
+			idac_data_type == GEN5_RETRIEVE_SELF_CAP_PWC_DATA)
+		{
 			/* Rx's self global idac data. */
 			*idac_max = cyapa_parse_structure_data(
-				resp_data[9],
-				&resp_data[GEN5_RESP_DATA_STRUCTURE_OFFSET],
-				*data_size);
+							resp_data[9],
+							&resp_data[GEN5_RESP_DATA_STRUCTURE_OFFSET],
+							*data_size);
 			/* Tx's self global idac data. */
 			*idac_min = cyapa_parse_structure_data(
-				resp_data[9],
-				&resp_data[GEN5_RESP_DATA_STRUCTURE_OFFSET +
-					   *data_size],
-				*data_size);
+							resp_data[9],
+							&resp_data[GEN5_RESP_DATA_STRUCTURE_OFFSET +
+									   *data_size],
+							*data_size);
 			break;
 		}
 
 		/* Read mutual global idac or local mutual/self PWC data. */
 		offset += read_len;
+
 		for (i = 10; i < (read_len + GEN5_RESP_DATA_STRUCTURE_OFFSET);
-				i += *data_size) {
+			 i += *data_size)
+		{
 			value = cyapa_parse_structure_data(resp_data[9],
-					&resp_data[i], *data_size);
+											   &resp_data[i], *data_size);
 			*idac_min = min(value, *idac_min);
 			*idac_max = max(value, *idac_max);
 
 			if (idac_data_type == GEN5_RETRIEVE_MUTUAL_PWC_DATA &&
 				tmp_count < cyapa->aligned_electrodes_rx &&
-				read_global_idac) {
+				read_global_idac)
+			{
 				/*
 				 * The value gap between global and local mutual
 				 * idac data must bigger than 50%.
 				 * Normally, global value bigger than 50,
 				 * local values less than 10.
 				 */
-				if (!tmp_ave || value > tmp_ave / 2) {
+				if (!tmp_ave || value > tmp_ave / 2)
+				{
 					tmp_min = min(value, tmp_min);
 					tmp_max = max(value, tmp_max);
 					tmp_sum += value;
@@ -2085,28 +2484,39 @@ static int cyapa_gen5_read_idac_data(struct cyapa *cyapa,
 			count++;
 
 			if (count >= max_element_cnt)
+			{
 				goto out;
+			}
 		}
-	} while (true);
+	}
+	while (true);
 
 out:
 	*idac_ave = count ? (sum / count) : 0;
 
 	if (read_global_idac &&
-		idac_data_type == GEN5_RETRIEVE_MUTUAL_PWC_DATA) {
+		idac_data_type == GEN5_RETRIEVE_MUTUAL_PWC_DATA)
+	{
 		if (tmp_count == 0)
+		{
 			return 0;
+		}
 
-		if (tmp_count == cyapa->aligned_electrodes_rx) {
+		if (tmp_count == cyapa->aligned_electrodes_rx)
+		{
 			cyapa->electrodes_rx = cyapa->electrodes_rx ?
-				cyapa->electrodes_rx : electrodes_rx;
-		} else if (tmp_count == electrodes_rx) {
+								   cyapa->electrodes_rx : electrodes_rx;
+		}
+		else if (tmp_count == electrodes_rx)
+		{
 			cyapa->electrodes_rx = cyapa->electrodes_rx ?
-				cyapa->electrodes_rx : electrodes_rx;
+								   cyapa->electrodes_rx : electrodes_rx;
 			cyapa->aligned_electrodes_rx = electrodes_rx;
-		} else {
+		}
+		else
+		{
 			cyapa->electrodes_rx = cyapa->electrodes_rx ?
-				cyapa->electrodes_rx : electrodes_tx;
+								   cyapa->electrodes_rx : electrodes_tx;
 			cyapa->aligned_electrodes_rx = tmp_count;
 		}
 
@@ -2119,8 +2529,8 @@ out:
 }
 
 static int cyapa_gen5_read_mutual_idac_data(struct cyapa *cyapa,
-	int *gidac_mutual_max, int *gidac_mutual_min, int *gidac_mutual_ave,
-	int *lidac_mutual_max, int *lidac_mutual_min, int *lidac_mutual_ave)
+		int *gidac_mutual_max, int *gidac_mutual_min, int *gidac_mutual_ave,
+		int *lidac_mutual_max, int *lidac_mutual_min, int *lidac_mutual_ave)
 {
 	int data_size;
 	int error;
@@ -2130,18 +2540,21 @@ static int cyapa_gen5_read_mutual_idac_data(struct cyapa *cyapa,
 
 	data_size = 0;
 	error = cyapa_gen5_read_idac_data(cyapa,
-		PIP_RETRIEVE_DATA_STRUCTURE,
-		GEN5_RETRIEVE_MUTUAL_PWC_DATA,
-		&data_size,
-		gidac_mutual_max, gidac_mutual_min, gidac_mutual_ave);
+									  PIP_RETRIEVE_DATA_STRUCTURE,
+									  GEN5_RETRIEVE_MUTUAL_PWC_DATA,
+									  &data_size,
+									  gidac_mutual_max, gidac_mutual_min, gidac_mutual_ave);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = cyapa_gen5_read_idac_data(cyapa,
-		PIP_RETRIEVE_DATA_STRUCTURE,
-		GEN5_RETRIEVE_MUTUAL_PWC_DATA,
-		&data_size,
-		lidac_mutual_max, lidac_mutual_min, lidac_mutual_ave);
+									  PIP_RETRIEVE_DATA_STRUCTURE,
+									  GEN5_RETRIEVE_MUTUAL_PWC_DATA,
+									  &data_size,
+									  lidac_mutual_max, lidac_mutual_min, lidac_mutual_ave);
 	return error;
 }
 
@@ -2157,20 +2570,24 @@ static int cyapa_gen5_read_self_idac_data(struct cyapa *cyapa,
 
 	data_size = 0;
 	error = cyapa_gen5_read_idac_data(cyapa,
-		PIP_RETRIEVE_DATA_STRUCTURE,
-		GEN5_RETRIEVE_SELF_CAP_PWC_DATA,
-		&data_size,
-		lidac_self_max, lidac_self_min, lidac_self_ave);
+									  PIP_RETRIEVE_DATA_STRUCTURE,
+									  GEN5_RETRIEVE_SELF_CAP_PWC_DATA,
+									  &data_size,
+									  lidac_self_max, lidac_self_min, lidac_self_ave);
+
 	if (error)
+	{
 		return error;
+	}
+
 	*gidac_self_rx = *lidac_self_max;
 	*gidac_self_tx = *lidac_self_min;
 
 	error = cyapa_gen5_read_idac_data(cyapa,
-		PIP_RETRIEVE_DATA_STRUCTURE,
-		GEN5_RETRIEVE_SELF_CAP_PWC_DATA,
-		&data_size,
-		lidac_self_max, lidac_self_min, lidac_self_ave);
+									  PIP_RETRIEVE_DATA_STRUCTURE,
+									  GEN5_RETRIEVE_SELF_CAP_PWC_DATA,
+									  &data_size,
+									  lidac_self_max, lidac_self_min, lidac_self_ave);
 	return error;
 }
 
@@ -2190,14 +2607,17 @@ static ssize_t cyapa_gen5_execute_panel_scan(struct cyapa *cyapa)
 	app_cmd_head->cmd_code = GEN5_CMD_EXECUTE_PANEL_SCAN;
 	resp_len = sizeof(resp_data);
 	error = cyapa_i2c_pip_cmd_irq_sync(cyapa,
-			cmd, sizeof(cmd),
-			resp_data, &resp_len,
-			500, cyapa_sort_tsg_pip_app_resp_data, true);
+									   cmd, sizeof(cmd),
+									   resp_data, &resp_len,
+									   500, cyapa_sort_tsg_pip_app_resp_data, true);
+
 	if (error || resp_len != sizeof(resp_data) ||
-			!VALID_CMD_RESP_HEADER(resp_data,
-				GEN5_CMD_EXECUTE_PANEL_SCAN) ||
-			!PIP_CMD_COMPLETE_SUCCESS(resp_data))
+		!VALID_CMD_RESP_HEADER(resp_data,
+							   GEN5_CMD_EXECUTE_PANEL_SCAN) ||
+		!PIP_CMD_COMPLETE_SUCCESS(resp_data))
+	{
 		return error ? error : -EAGAIN;
+	}
 
 	return 0;
 }
@@ -2225,7 +2645,9 @@ static int cyapa_gen5_read_panel_scan_raw_data(struct cyapa *cyapa,
 	if (cmd_code != GEN5_CMD_RETRIEVE_PANEL_SCAN ||
 		(raw_data_type > GEN5_PANEL_SCAN_SELF_DIFFCOUNT) ||
 		!raw_data_max || !raw_data_min || !raw_data_ave)
+	{
 		return -EINVAL;
+	}
 
 	intp = (s32 *)buffer;
 	*raw_data_max = INT_MIN;
@@ -2241,42 +2663,55 @@ static int cyapa_gen5_read_panel_scan_raw_data(struct cyapa *cyapa,
 	app_cmd_head->report_id = PIP_APP_CMD_REPORT_ID;
 	app_cmd_head->cmd_code = cmd_code;
 	panel_sacn_data = (struct gen5_retrieve_panel_scan_data *)
-			app_cmd_head->parameter_data;
-	do {
+					  app_cmd_head->parameter_data;
+
+	do
+	{
 		put_unaligned_le16(offset, &panel_sacn_data->read_offset);
 		put_unaligned_le16(read_elements,
-			&panel_sacn_data->read_elements);
+						   &panel_sacn_data->read_elements);
 		panel_sacn_data->data_id = raw_data_type;
 
 		resp_len = GEN5_RESP_DATA_STRUCTURE_OFFSET + read_len;
 		error = cyapa_i2c_pip_cmd_irq_sync(cyapa,
-			cmd, sizeof(cmd),
-			resp_data, &resp_len,
-			500, cyapa_sort_tsg_pip_app_resp_data, true);
+										   cmd, sizeof(cmd),
+										   resp_data, &resp_len,
+										   500, cyapa_sort_tsg_pip_app_resp_data, true);
+
 		if (error || resp_len < GEN5_RESP_DATA_STRUCTURE_OFFSET ||
-				!VALID_CMD_RESP_HEADER(resp_data, cmd_code) ||
-				!PIP_CMD_COMPLETE_SUCCESS(resp_data) ||
-				resp_data[6] != raw_data_type)
+			!VALID_CMD_RESP_HEADER(resp_data, cmd_code) ||
+			!PIP_CMD_COMPLETE_SUCCESS(resp_data) ||
+			resp_data[6] != raw_data_type)
+		{
 			return error ? error : -EAGAIN;
+		}
 
 		read_elements = get_unaligned_le16(&resp_data[7]);
+
 		if (read_elements == 0)
+		{
 			break;
+		}
 
 		data_size = (resp_data[9] & GEN5_PWC_DATA_ELEMENT_SIZE_MASK);
 		offset += read_elements;
-		if (read_elements) {
+
+		if (read_elements)
+		{
 			for (i = GEN5_RESP_DATA_STRUCTURE_OFFSET;
-			     i < (read_elements * data_size +
-					GEN5_RESP_DATA_STRUCTURE_OFFSET);
-			     i += data_size) {
+				 i < (read_elements * data_size +
+					  GEN5_RESP_DATA_STRUCTURE_OFFSET);
+				 i += data_size)
+			{
 				value = cyapa_parse_structure_data(resp_data[9],
-						&resp_data[i], data_size);
+												   &resp_data[i], data_size);
 				*raw_data_min = min(value, *raw_data_min);
 				*raw_data_max = max(value, *raw_data_max);
 
 				if (intp)
+				{
 					put_unaligned_le32(value, &intp[count]);
+				}
 
 				sum += value;
 				count++;
@@ -2285,12 +2720,15 @@ static int cyapa_gen5_read_panel_scan_raw_data(struct cyapa *cyapa,
 		}
 
 		if (count >= raw_data_max_num)
+		{
 			break;
+		}
 
 		read_elements = (sizeof(resp_data) -
-				GEN5_RESP_DATA_STRUCTURE_OFFSET) / data_size;
+						 GEN5_RESP_DATA_STRUCTURE_OFFSET) / data_size;
 		read_len = read_elements * data_size;
-	} while (true);
+	}
+	while (true);
 
 	*raw_data_ave = count ? (sum / count) : 0;
 
@@ -2298,7 +2736,7 @@ static int cyapa_gen5_read_panel_scan_raw_data(struct cyapa *cyapa,
 }
 
 static ssize_t cyapa_gen5_show_baseline(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+										struct device_attribute *attr, char *buf)
 {
 	struct cyapa *cyapa = dev_get_drvdata(dev);
 	int gidac_mutual_max, gidac_mutual_min, gidac_mutual_ave;
@@ -2315,130 +2753,167 @@ static ssize_t cyapa_gen5_show_baseline(struct device *dev,
 	int size;
 
 	if (!cyapa_is_pip_app_mode(cyapa))
+	{
 		return -EBUSY;
+	}
 
 	/* 1. Suspend Scanning*/
 	error = cyapa_pip_suspend_scanning(cyapa);
+
 	if (error)
+	{
 		return error;
+	}
 
 	/* 2.  Read global and local mutual IDAC data. */
 	gidac_self_rx = gidac_self_tx = 0;
 	error = cyapa_gen5_read_mutual_idac_data(cyapa,
-				&gidac_mutual_max, &gidac_mutual_min,
-				&gidac_mutual_ave, &lidac_mutual_max,
-				&lidac_mutual_min, &lidac_mutual_ave);
+			&gidac_mutual_max, &gidac_mutual_min,
+			&gidac_mutual_ave, &lidac_mutual_max,
+			&lidac_mutual_min, &lidac_mutual_ave);
+
 	if (error)
+	{
 		goto resume_scanning;
+	}
 
 	/* 3.  Read global and local self IDAC data. */
 	error = cyapa_gen5_read_self_idac_data(cyapa,
-				&gidac_self_rx, &gidac_self_tx,
-				&lidac_self_max, &lidac_self_min,
-				&lidac_self_ave);
+										   &gidac_self_rx, &gidac_self_tx,
+										   &lidac_self_max, &lidac_self_min,
+										   &lidac_self_ave);
+
 	if (error)
+	{
 		goto resume_scanning;
+	}
 
 	/* 4. Execute panel scan. It must be executed before read data. */
 	error = cyapa_gen5_execute_panel_scan(cyapa);
+
 	if (error)
+	{
 		goto resume_scanning;
+	}
 
 	/* 5. Retrieve panel scan, mutual cap raw data. */
 	error = cyapa_gen5_read_panel_scan_raw_data(cyapa,
-				GEN5_CMD_RETRIEVE_PANEL_SCAN,
-				GEN5_PANEL_SCAN_MUTUAL_RAW_DATA,
-				cyapa->electrodes_x * cyapa->electrodes_y,
-				&raw_cap_mutual_max, &raw_cap_mutual_min,
-				&raw_cap_mutual_ave,
-				NULL);
+			GEN5_CMD_RETRIEVE_PANEL_SCAN,
+			GEN5_PANEL_SCAN_MUTUAL_RAW_DATA,
+			cyapa->electrodes_x * cyapa->electrodes_y,
+			&raw_cap_mutual_max, &raw_cap_mutual_min,
+			&raw_cap_mutual_ave,
+			NULL);
+
 	if (error)
+	{
 		goto resume_scanning;
+	}
 
 	/* 6. Retrieve panel scan, self cap raw data. */
 	error = cyapa_gen5_read_panel_scan_raw_data(cyapa,
-				GEN5_CMD_RETRIEVE_PANEL_SCAN,
-				GEN5_PANEL_SCAN_SELF_RAW_DATA,
-				cyapa->electrodes_x + cyapa->electrodes_y,
-				&raw_cap_self_max, &raw_cap_self_min,
-				&raw_cap_self_ave,
-				NULL);
+			GEN5_CMD_RETRIEVE_PANEL_SCAN,
+			GEN5_PANEL_SCAN_SELF_RAW_DATA,
+			cyapa->electrodes_x + cyapa->electrodes_y,
+			&raw_cap_self_max, &raw_cap_self_min,
+			&raw_cap_self_ave,
+			NULL);
+
 	if (error)
+	{
 		goto resume_scanning;
+	}
 
 	/* 7. Retrieve panel scan, mutual cap diffcount raw data. */
 	error = cyapa_gen5_read_panel_scan_raw_data(cyapa,
-				GEN5_CMD_RETRIEVE_PANEL_SCAN,
-				GEN5_PANEL_SCAN_MUTUAL_DIFFCOUNT,
-				cyapa->electrodes_x * cyapa->electrodes_y,
-				&mutual_diffdata_max, &mutual_diffdata_min,
-				&mutual_diffdata_ave,
-				NULL);
+			GEN5_CMD_RETRIEVE_PANEL_SCAN,
+			GEN5_PANEL_SCAN_MUTUAL_DIFFCOUNT,
+			cyapa->electrodes_x * cyapa->electrodes_y,
+			&mutual_diffdata_max, &mutual_diffdata_min,
+			&mutual_diffdata_ave,
+			NULL);
+
 	if (error)
+	{
 		goto resume_scanning;
+	}
 
 	/* 8. Retrieve panel scan, self cap diffcount raw data. */
 	error = cyapa_gen5_read_panel_scan_raw_data(cyapa,
-				GEN5_CMD_RETRIEVE_PANEL_SCAN,
-				GEN5_PANEL_SCAN_SELF_DIFFCOUNT,
-				cyapa->electrodes_x + cyapa->electrodes_y,
-				&self_diffdata_max, &self_diffdata_min,
-				&self_diffdata_ave,
-				NULL);
+			GEN5_CMD_RETRIEVE_PANEL_SCAN,
+			GEN5_PANEL_SCAN_SELF_DIFFCOUNT,
+			cyapa->electrodes_x + cyapa->electrodes_y,
+			&self_diffdata_max, &self_diffdata_min,
+			&self_diffdata_ave,
+			NULL);
+
 	if (error)
+	{
 		goto resume_scanning;
+	}
 
 	/* 9. Retrieve panel scan, mutual cap baseline raw data. */
 	error = cyapa_gen5_read_panel_scan_raw_data(cyapa,
-				GEN5_CMD_RETRIEVE_PANEL_SCAN,
-				GEN5_PANEL_SCAN_MUTUAL_BASELINE,
-				cyapa->electrodes_x * cyapa->electrodes_y,
-				&mutual_baseline_max, &mutual_baseline_min,
-				&mutual_baseline_ave,
-				NULL);
+			GEN5_CMD_RETRIEVE_PANEL_SCAN,
+			GEN5_PANEL_SCAN_MUTUAL_BASELINE,
+			cyapa->electrodes_x * cyapa->electrodes_y,
+			&mutual_baseline_max, &mutual_baseline_min,
+			&mutual_baseline_ave,
+			NULL);
+
 	if (error)
+	{
 		goto resume_scanning;
+	}
 
 	/* 10. Retrieve panel scan, self cap baseline raw data. */
 	error = cyapa_gen5_read_panel_scan_raw_data(cyapa,
-				GEN5_CMD_RETRIEVE_PANEL_SCAN,
-				GEN5_PANEL_SCAN_SELF_BASELINE,
-				cyapa->electrodes_x + cyapa->electrodes_y,
-				&self_baseline_max, &self_baseline_min,
-				&self_baseline_ave,
-				NULL);
+			GEN5_CMD_RETRIEVE_PANEL_SCAN,
+			GEN5_PANEL_SCAN_SELF_BASELINE,
+			cyapa->electrodes_x + cyapa->electrodes_y,
+			&self_baseline_max, &self_baseline_min,
+			&self_baseline_ave,
+			NULL);
+
 	if (error)
+	{
 		goto resume_scanning;
+	}
 
 resume_scanning:
 	/* 11. Resume Scanning*/
 	resume_error = cyapa_pip_resume_scanning(cyapa);
+
 	if (resume_error || error)
+	{
 		return resume_error ? resume_error : error;
+	}
 
 	/* 12. Output data strings */
 	size = scnprintf(buf, PAGE_SIZE, "%d %d %d %d %d %d %d %d %d %d %d ",
-		gidac_mutual_min, gidac_mutual_max, gidac_mutual_ave,
-		lidac_mutual_min, lidac_mutual_max, lidac_mutual_ave,
-		gidac_self_rx, gidac_self_tx,
-		lidac_self_min, lidac_self_max, lidac_self_ave);
+					 gidac_mutual_min, gidac_mutual_max, gidac_mutual_ave,
+					 lidac_mutual_min, lidac_mutual_max, lidac_mutual_ave,
+					 gidac_self_rx, gidac_self_tx,
+					 lidac_self_min, lidac_self_max, lidac_self_ave);
 	size += scnprintf(buf + size, PAGE_SIZE - size,
-		"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
-		raw_cap_mutual_min, raw_cap_mutual_max, raw_cap_mutual_ave,
-		raw_cap_self_min, raw_cap_self_max, raw_cap_self_ave,
-		mutual_diffdata_min, mutual_diffdata_max, mutual_diffdata_ave,
-		self_diffdata_min, self_diffdata_max, self_diffdata_ave,
-		mutual_baseline_min, mutual_baseline_max, mutual_baseline_ave,
-		self_baseline_min, self_baseline_max, self_baseline_ave);
+					  "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
+					  raw_cap_mutual_min, raw_cap_mutual_max, raw_cap_mutual_ave,
+					  raw_cap_self_min, raw_cap_self_max, raw_cap_self_ave,
+					  mutual_diffdata_min, mutual_diffdata_max, mutual_diffdata_ave,
+					  self_diffdata_min, self_diffdata_max, self_diffdata_ave,
+					  mutual_baseline_min, mutual_baseline_max, mutual_baseline_ave,
+					  self_baseline_min, self_baseline_max, self_baseline_ave);
 	return size;
 }
 
 bool cyapa_pip_sort_system_info_data(struct cyapa *cyapa,
-		u8 *buf, int len)
+									 u8 *buf, int len)
 {
 	/* Check the report id and command code */
 	if (VALID_CMD_RESP_HEADER(buf, 0x02))
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -2451,12 +2926,15 @@ static int cyapa_gen5_bl_query_data(struct cyapa *cyapa)
 
 	resp_len = sizeof(resp_data);
 	error = cyapa_i2c_pip_cmd_irq_sync(cyapa,
-			pip_bl_read_app_info, PIP_BL_READ_APP_INFO_CMD_LENGTH,
-			resp_data, &resp_len,
-			500, cyapa_sort_tsg_pip_bl_resp_data, false);
+									   pip_bl_read_app_info, PIP_BL_READ_APP_INFO_CMD_LENGTH,
+									   resp_data, &resp_len,
+									   500, cyapa_sort_tsg_pip_bl_resp_data, false);
+
 	if (error || resp_len < PIP_BL_APP_INFO_RESP_LENGTH ||
 		!PIP_CMD_COMPLETE_SUCCESS(resp_data))
+	{
 		return error ? error : -EIO;
+	}
 
 	memcpy(&cyapa->product_id[0], &resp_data[8], 5);
 	cyapa->product_id[5] = '-';
@@ -2469,7 +2947,7 @@ static int cyapa_gen5_bl_query_data(struct cyapa *cyapa)
 	cyapa->fw_min_ver = resp_data[23];
 
 	cyapa->platform_ver = (resp_data[26] >> PIP_BL_PLATFORM_VER_SHIFT) &
-			      PIP_BL_PLATFORM_VER_MASK;
+						  PIP_BL_PLATFORM_VER_MASK;
 
 	return 0;
 }
@@ -2483,24 +2961,34 @@ static int cyapa_gen5_get_query_data(struct cyapa *cyapa)
 
 	resp_len = sizeof(resp_data);
 	error = cyapa_i2c_pip_cmd_irq_sync(cyapa,
-			pip_read_sys_info, PIP_READ_SYS_INFO_CMD_LENGTH,
-			resp_data, &resp_len,
-			2000, cyapa_pip_sort_system_info_data, false);
+									   pip_read_sys_info, PIP_READ_SYS_INFO_CMD_LENGTH,
+									   resp_data, &resp_len,
+									   2000, cyapa_pip_sort_system_info_data, false);
+
 	if (error || resp_len < sizeof(resp_data))
+	{
 		return error ? error : -EIO;
+	}
 
 	product_family = get_unaligned_le16(&resp_data[7]);
+
 	if ((product_family & PIP_PRODUCT_FAMILY_MASK) !=
 		PIP_PRODUCT_FAMILY_TRACKPAD)
+	{
 		return -EINVAL;
+	}
 
 	cyapa->platform_ver = (resp_data[49] >> PIP_BL_PLATFORM_VER_SHIFT) &
-			      PIP_BL_PLATFORM_VER_MASK;
-	if (cyapa->gen == CYAPA_GEN5 && cyapa->platform_ver < 2) {
+						  PIP_BL_PLATFORM_VER_MASK;
+
+	if (cyapa->gen == CYAPA_GEN5 && cyapa->platform_ver < 2)
+	{
 		/* Gen5 firmware that does not support proximity. */
 		cyapa->fw_maj_ver = resp_data[15];
 		cyapa->fw_min_ver = resp_data[16];
-	} else {
+	}
+	else
+	{
 		cyapa->fw_maj_ver = resp_data[9];
 		cyapa->fw_min_ver = resp_data[10];
 	}
@@ -2531,7 +3019,9 @@ static int cyapa_gen5_get_query_data(struct cyapa *cyapa)
 	if (!cyapa->electrodes_x || !cyapa->electrodes_y ||
 		!cyapa->physical_size_x || !cyapa->physical_size_y ||
 		!cyapa->max_abs_x || !cyapa->max_abs_y || !cyapa->max_z)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -2542,55 +3032,70 @@ static int cyapa_gen5_do_operational_check(struct cyapa *cyapa)
 	int error;
 
 	if (cyapa->gen != CYAPA_GEN5)
+	{
 		return -ENODEV;
+	}
 
-	switch (cyapa->state) {
-	case CYAPA_STATE_GEN5_BL:
-		error = cyapa_pip_bl_exit(cyapa);
-		if (error) {
-			/* Try to update trackpad product information. */
-			cyapa_gen5_bl_query_data(cyapa);
-			goto out;
-		}
+	switch (cyapa->state)
+	{
+		case CYAPA_STATE_GEN5_BL:
+			error = cyapa_pip_bl_exit(cyapa);
 
-		cyapa->state = CYAPA_STATE_GEN5_APP;
-
-	case CYAPA_STATE_GEN5_APP:
-		/*
-		 * If trackpad device in deep sleep mode,
-		 * the app command will fail.
-		 * So always try to reset trackpad device to full active when
-		 * the device state is required.
-		 */
-		error = cyapa_gen5_set_power_mode(cyapa,
-				PWR_MODE_FULL_ACTIVE, 0, CYAPA_PM_ACTIVE);
-		if (error)
-			dev_warn(dev, "%s: failed to set power active mode.\n",
-				__func__);
-
-		/* By default, the trackpad proximity function is enabled. */
-		if (cyapa->platform_ver >= 2) {
-			error = cyapa_pip_set_proximity(cyapa, true);
 			if (error)
-				dev_warn(dev,
-					"%s: failed to enable proximity.\n",
-					__func__);
-		}
+			{
+				/* Try to update trackpad product information. */
+				cyapa_gen5_bl_query_data(cyapa);
+				goto out;
+			}
 
-		/* Get trackpad product information. */
-		error = cyapa_gen5_get_query_data(cyapa);
-		if (error)
-			goto out;
-		/* Only support product ID starting with CYTRA */
-		if (memcmp(cyapa->product_id, product_id,
-				strlen(product_id)) != 0) {
-			dev_err(dev, "%s: unknown product ID (%s)\n",
-				__func__, cyapa->product_id);
+			cyapa->state = CYAPA_STATE_GEN5_APP;
+
+		case CYAPA_STATE_GEN5_APP:
+			/*
+			 * If trackpad device in deep sleep mode,
+			 * the app command will fail.
+			 * So always try to reset trackpad device to full active when
+			 * the device state is required.
+			 */
+			error = cyapa_gen5_set_power_mode(cyapa,
+											  PWR_MODE_FULL_ACTIVE, 0, CYAPA_PM_ACTIVE);
+
+			if (error)
+				dev_warn(dev, "%s: failed to set power active mode.\n",
+						 __func__);
+
+			/* By default, the trackpad proximity function is enabled. */
+			if (cyapa->platform_ver >= 2)
+			{
+				error = cyapa_pip_set_proximity(cyapa, true);
+
+				if (error)
+					dev_warn(dev,
+							 "%s: failed to enable proximity.\n",
+							 __func__);
+			}
+
+			/* Get trackpad product information. */
+			error = cyapa_gen5_get_query_data(cyapa);
+
+			if (error)
+			{
+				goto out;
+			}
+
+			/* Only support product ID starting with CYTRA */
+			if (memcmp(cyapa->product_id, product_id,
+					   strlen(product_id)) != 0)
+			{
+				dev_err(dev, "%s: unknown product ID (%s)\n",
+						__func__, cyapa->product_id);
+				error = -EINVAL;
+			}
+
+			break;
+
+		default:
 			error = -EINVAL;
-		}
-		break;
-	default:
-		error = -EINVAL;
 	}
 
 out:
@@ -2606,10 +3111,13 @@ bool cyapa_pip_irq_cmd_handler(struct cyapa *cyapa)
 	struct cyapa_pip_cmd_states *pip = &cyapa->cmd_states.pip;
 	int length;
 
-	if (atomic_read(&pip->cmd_issued)) {
+	if (atomic_read(&pip->cmd_issued))
+	{
 		/* Polling command response data. */
 		if (pip->is_irq_mode == false)
+		{
 			return false;
+		}
 
 		/*
 		 * Read out all none command response data.
@@ -2617,16 +3125,19 @@ bool cyapa_pip_irq_cmd_handler(struct cyapa *cyapa)
 		 * trackpad when host waiting the command response.
 		 */
 		cyapa_i2c_pip_read(cyapa, pip->irq_cmd_buf,
-			PIP_RESP_LENGTH_SIZE);
+						   PIP_RESP_LENGTH_SIZE);
 		length = get_unaligned_le16(pip->irq_cmd_buf);
 		length = (length <= PIP_RESP_LENGTH_SIZE) ?
-				PIP_RESP_LENGTH_SIZE : length;
+				 PIP_RESP_LENGTH_SIZE : length;
+
 		if (length > PIP_RESP_LENGTH_SIZE)
 			cyapa_i2c_pip_read(cyapa,
-				pip->irq_cmd_buf, length);
+							   pip->irq_cmd_buf, length);
+
 		if (!(pip->resp_sort_func &&
-			pip->resp_sort_func(cyapa,
-				pip->irq_cmd_buf, length))) {
+			  pip->resp_sort_func(cyapa,
+								  pip->irq_cmd_buf, length)))
+		{
 			/*
 			 * Cover the Gen5 V1 firmware issue.
 			 * The issue is no interrupt would be asserted from
@@ -2641,26 +3152,35 @@ bool cyapa_pip_irq_cmd_handler(struct cyapa *cyapa)
 			 * trackpad device during system booting/rebooting.
 			 */
 			length = 0;
+
 			if (pip->resp_len)
+			{
 				length = *pip->resp_len;
+			}
+
 			cyapa_empty_pip_output_data(cyapa,
-					pip->resp_data,
-					&length,
-					pip->resp_sort_func);
-			if (pip->resp_len && length != 0) {
+										pip->resp_data,
+										&length,
+										pip->resp_sort_func);
+
+			if (pip->resp_len && length != 0)
+			{
 				*pip->resp_len = length;
 				atomic_dec(&pip->cmd_issued);
 				complete(&pip->cmd_ready);
 			}
+
 			return false;
 		}
 
-		if (pip->resp_data && pip->resp_len) {
+		if (pip->resp_data && pip->resp_len)
+		{
 			*pip->resp_len = (*pip->resp_len < length) ?
-				*pip->resp_len : length;
+							 *pip->resp_len : length;
 			memcpy(pip->resp_data, pip->irq_cmd_buf,
-				*pip->resp_len);
+				   *pip->resp_len);
 		}
+
 		atomic_dec(&pip->cmd_issued);
 		complete(&pip->cmd_ready);
 		return false;
@@ -2670,42 +3190,47 @@ bool cyapa_pip_irq_cmd_handler(struct cyapa *cyapa)
 }
 
 static void cyapa_pip_report_buttons(struct cyapa *cyapa,
-		const struct cyapa_pip_report_data *report_data)
+									 const struct cyapa_pip_report_data *report_data)
 {
 	struct input_dev *input = cyapa->input;
 	u8 buttons = report_data->report_head[PIP_BUTTONS_OFFSET];
 
 	buttons = (buttons << CAPABILITY_BTN_SHIFT) & CAPABILITY_BTN_MASK;
 
-	if (cyapa->btn_capability & CAPABILITY_LEFT_BTN_MASK) {
+	if (cyapa->btn_capability & CAPABILITY_LEFT_BTN_MASK)
+	{
 		input_report_key(input, BTN_LEFT,
-			!!(buttons & CAPABILITY_LEFT_BTN_MASK));
+						 !!(buttons & CAPABILITY_LEFT_BTN_MASK));
 	}
-	if (cyapa->btn_capability & CAPABILITY_MIDDLE_BTN_MASK) {
+
+	if (cyapa->btn_capability & CAPABILITY_MIDDLE_BTN_MASK)
+	{
 		input_report_key(input, BTN_MIDDLE,
-			!!(buttons & CAPABILITY_MIDDLE_BTN_MASK));
+						 !!(buttons & CAPABILITY_MIDDLE_BTN_MASK));
 	}
-	if (cyapa->btn_capability & CAPABILITY_RIGHT_BTN_MASK) {
+
+	if (cyapa->btn_capability & CAPABILITY_RIGHT_BTN_MASK)
+	{
 		input_report_key(input, BTN_RIGHT,
-			!!(buttons & CAPABILITY_RIGHT_BTN_MASK));
+						 !!(buttons & CAPABILITY_RIGHT_BTN_MASK));
 	}
 
 	input_sync(input);
 }
 
 static void cyapa_pip_report_proximity(struct cyapa *cyapa,
-		const struct cyapa_pip_report_data *report_data)
+									   const struct cyapa_pip_report_data *report_data)
 {
 	struct input_dev *input = cyapa->input;
 	u8 distance = report_data->report_head[PIP_PROXIMITY_DISTANCE_OFFSET] &
-			PIP_PROXIMITY_DISTANCE_MASK;
+				  PIP_PROXIMITY_DISTANCE_MASK;
 
 	input_report_abs(input, ABS_DISTANCE, distance);
 	input_sync(input);
 }
 
 static void cyapa_pip_report_slot_data(struct cyapa *cyapa,
-		const struct cyapa_pip_touch_record *touch)
+									   const struct cyapa_pip_touch_record *touch)
 {
 	struct input_dev *input = cyapa->input;
 	u8 event_id = PIP_GET_EVENT_ID(touch->touch_tip_event_id);
@@ -2713,48 +3238,58 @@ static void cyapa_pip_report_slot_data(struct cyapa *cyapa,
 	int x, y;
 
 	if (event_id == RECORD_EVENT_LIFTOFF)
+	{
 		return;
+	}
 
 	input_mt_slot(input, slot);
 	input_mt_report_slot_state(input, MT_TOOL_FINGER, true);
 	x = (touch->x_hi << 8) | touch->x_lo;
+
 	if (cyapa->x_origin)
+	{
 		x = cyapa->max_abs_x - x;
+	}
+
 	y = (touch->y_hi << 8) | touch->y_lo;
+
 	if (cyapa->y_origin)
+	{
 		y = cyapa->max_abs_y - y;
+	}
+
 	input_report_abs(input, ABS_MT_POSITION_X, x);
 	input_report_abs(input, ABS_MT_POSITION_Y, y);
 	input_report_abs(input, ABS_DISTANCE, 0);
 	input_report_abs(input, ABS_MT_PRESSURE,
-		touch->z);
+					 touch->z);
 	input_report_abs(input, ABS_MT_TOUCH_MAJOR,
-		touch->major_axis_len);
+					 touch->major_axis_len);
 	input_report_abs(input, ABS_MT_TOUCH_MINOR,
-		touch->minor_axis_len);
+					 touch->minor_axis_len);
 
 	input_report_abs(input, ABS_MT_WIDTH_MAJOR,
-		touch->major_tool_len);
+					 touch->major_tool_len);
 	input_report_abs(input, ABS_MT_WIDTH_MINOR,
-		touch->minor_tool_len);
+					 touch->minor_tool_len);
 
 	input_report_abs(input, ABS_MT_ORIENTATION,
-		touch->orientation);
+					 touch->orientation);
 }
 
 static void cyapa_pip_report_touches(struct cyapa *cyapa,
-		const struct cyapa_pip_report_data *report_data)
+									 const struct cyapa_pip_report_data *report_data)
 {
 	struct input_dev *input = cyapa->input;
 	unsigned int touch_num;
 	int i;
 
 	touch_num = report_data->report_head[PIP_NUMBER_OF_TOUCH_OFFSET] &
-			PIP_NUMBER_OF_TOUCH_MASK;
+				PIP_NUMBER_OF_TOUCH_MASK;
 
 	for (i = 0; i < touch_num; i++)
 		cyapa_pip_report_slot_data(cyapa,
-			&report_data->touch_records[i]);
+								   &report_data->touch_records[i]);
 
 	input_mt_sync_frame(input);
 	input_sync(input);
@@ -2767,37 +3302,46 @@ int cyapa_pip_irq_handler(struct cyapa *cyapa)
 	unsigned int report_len;
 	int ret;
 
-	if (!cyapa_is_pip_app_mode(cyapa)) {
+	if (!cyapa_is_pip_app_mode(cyapa))
+	{
 		dev_err(dev, "invalid device state, gen=%d, state=0x%02x\n",
-			cyapa->gen, cyapa->state);
+				cyapa->gen, cyapa->state);
 		return -EINVAL;
 	}
 
 	ret = cyapa_i2c_pip_read(cyapa, (u8 *)&report_data,
-			PIP_RESP_LENGTH_SIZE);
-	if (ret != PIP_RESP_LENGTH_SIZE) {
+							 PIP_RESP_LENGTH_SIZE);
+
+	if (ret != PIP_RESP_LENGTH_SIZE)
+	{
 		dev_err(dev, "failed to read length bytes, (%d)\n", ret);
 		return -EINVAL;
 	}
 
 	report_len = get_unaligned_le16(
-			&report_data.report_head[PIP_RESP_LENGTH_OFFSET]);
-	if (report_len < PIP_RESP_LENGTH_SIZE) {
+					 &report_data.report_head[PIP_RESP_LENGTH_OFFSET]);
+
+	if (report_len < PIP_RESP_LENGTH_SIZE)
+	{
 		/* Invalid length or internal reset happened. */
 		dev_err(dev, "invalid report_len=%d. bytes: %02x %02x\n",
-			report_len, report_data.report_head[0],
-			report_data.report_head[1]);
+				report_len, report_data.report_head[0],
+				report_data.report_head[1]);
 		return -EINVAL;
 	}
 
 	/* Idle, no data for report. */
 	if (report_len == PIP_RESP_LENGTH_SIZE)
+	{
 		return 0;
+	}
 
 	ret = cyapa_i2c_pip_read(cyapa, (u8 *)&report_data, report_len);
-	if (ret != report_len) {
+
+	if (ret != report_len)
+	{
 		dev_err(dev, "failed to read %d bytes report data, (%d)\n",
-			report_len, ret);
+				report_len, ret);
 		return -EINVAL;
 	}
 
@@ -2805,21 +3349,26 @@ int cyapa_pip_irq_handler(struct cyapa *cyapa)
 }
 
 static int cyapa_pip_event_process(struct cyapa *cyapa,
-				   struct cyapa_pip_report_data *report_data)
+								   struct cyapa_pip_report_data *report_data)
 {
 	struct device *dev = &cyapa->client->dev;
 	unsigned int report_len;
 	u8 report_id;
 
 	report_len = get_unaligned_le16(
-			&report_data->report_head[PIP_RESP_LENGTH_OFFSET]);
+					 &report_data->report_head[PIP_RESP_LENGTH_OFFSET]);
+
 	/* Idle, no data for report. */
 	if (report_len == PIP_RESP_LENGTH_SIZE)
+	{
 		return 0;
+	}
 
 	report_id = report_data->report_head[PIP_RESP_REPORT_ID_OFFSET];
+
 	if (report_id == PIP_WAKEUP_EVENT_REPORT_ID &&
-			report_len == PIP_WAKEUP_EVENT_SIZE) {
+		report_len == PIP_WAKEUP_EVENT_SIZE)
+	{
 		/*
 		 * Device wake event from deep sleep mode for touch.
 		 * This interrupt event is used to wake system up.
@@ -2834,11 +3383,13 @@ static int cyapa_pip_event_process(struct cyapa *cyapa,
 		pm_runtime_mark_last_busy(dev);
 		pm_runtime_put_sync_autosuspend(dev);
 		return 0;
-	} else if (report_id != PIP_TOUCH_REPORT_ID &&
-			report_id != PIP_BTN_REPORT_ID &&
-			report_id != GEN5_OLD_PUSH_BTN_REPORT_ID &&
-			report_id != PIP_PUSH_BTN_REPORT_ID &&
-			report_id != PIP_PROXIMITY_REPORT_ID) {
+	}
+	else if (report_id != PIP_TOUCH_REPORT_ID &&
+			 report_id != PIP_BTN_REPORT_ID &&
+			 report_id != GEN5_OLD_PUSH_BTN_REPORT_ID &&
+			 report_id != PIP_PUSH_BTN_REPORT_ID &&
+			 report_id != PIP_PROXIMITY_REPORT_ID)
+	{
 		/* Running in BL mode or unknown response data read. */
 		dev_err(dev, "invalid report_id=0x%02x\n", report_id);
 		return -EINVAL;
@@ -2846,35 +3397,44 @@ static int cyapa_pip_event_process(struct cyapa *cyapa,
 
 	if (report_id == PIP_TOUCH_REPORT_ID &&
 		(report_len < PIP_TOUCH_REPORT_HEAD_SIZE ||
-			report_len > PIP_TOUCH_REPORT_MAX_SIZE)) {
+		 report_len > PIP_TOUCH_REPORT_MAX_SIZE))
+	{
 		/* Invalid report data length for finger packet. */
 		dev_err(dev, "invalid touch packet length=%d\n", report_len);
 		return 0;
 	}
 
 	if ((report_id == PIP_BTN_REPORT_ID ||
-			report_id == GEN5_OLD_PUSH_BTN_REPORT_ID ||
-			report_id == PIP_PUSH_BTN_REPORT_ID) &&
+		 report_id == GEN5_OLD_PUSH_BTN_REPORT_ID ||
+		 report_id == PIP_PUSH_BTN_REPORT_ID) &&
 		(report_len < PIP_BTN_REPORT_HEAD_SIZE ||
-			report_len > PIP_BTN_REPORT_MAX_SIZE)) {
+		 report_len > PIP_BTN_REPORT_MAX_SIZE))
+	{
 		/* Invalid report data length of button packet. */
 		dev_err(dev, "invalid button packet length=%d\n", report_len);
 		return 0;
 	}
 
 	if (report_id == PIP_PROXIMITY_REPORT_ID &&
-			report_len != PIP_PROXIMITY_REPORT_SIZE) {
+		report_len != PIP_PROXIMITY_REPORT_SIZE)
+	{
 		/* Invalid report data length of proximity packet. */
 		dev_err(dev, "invalid proximity data, length=%d\n", report_len);
 		return 0;
 	}
 
 	if (report_id == PIP_TOUCH_REPORT_ID)
+	{
 		cyapa_pip_report_touches(cyapa, report_data);
+	}
 	else if (report_id == PIP_PROXIMITY_REPORT_ID)
+	{
 		cyapa_pip_report_proximity(cyapa, report_data);
+	}
 	else
+	{
 		cyapa_pip_report_buttons(cyapa, report_data);
+	}
 
 	return 0;
 }
@@ -2883,7 +3443,8 @@ int cyapa_pip_bl_activate(struct cyapa *cyapa) { return 0; }
 int cyapa_pip_bl_deactivate(struct cyapa *cyapa) { return 0; }
 
 
-const struct cyapa_dev_ops cyapa_gen5_ops = {
+const struct cyapa_dev_ops cyapa_gen5_ops =
+{
 	.check_fw = cyapa_pip_check_fw,
 	.bl_enter = cyapa_pip_bl_enter,
 	.bl_initiate = cyapa_pip_bl_initiate,

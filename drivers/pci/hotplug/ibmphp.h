@@ -102,7 +102,8 @@ extern int ibmphp_debug;
 // RIO TABLE DATA STRUCTURE
 //--------------------------------------------------------------
 
-struct rio_table_hdr {
+struct rio_table_hdr
+{
 	u8 ver_num;
 	u8 scal_count;
 	u8 riodev_count;
@@ -113,7 +114,8 @@ struct rio_table_hdr {
 // SCALABILITY DETAIL
 //-------------------------------------------------------------
 
-struct scal_detail {
+struct scal_detail
+{
 	u8 node_id;
 	u32 cbar;
 	u8 port0_node_connect;
@@ -123,14 +125,15 @@ struct scal_detail {
 	u8 port2_node_connect;
 	u8 port2_port_connect;
 	u8 chassis_num;
-//	struct list_head scal_detail_list;
+	//	struct list_head scal_detail_list;
 };
 
 //--------------------------------------------------------------
 // RIO DETAIL
 //--------------------------------------------------------------
 
-struct rio_detail {
+struct rio_detail
+{
 	u8 rio_node_id;
 	u32 bbar;
 	u8 rio_type;
@@ -146,7 +149,8 @@ struct rio_detail {
 	struct list_head rio_detail_list;
 };
 
-struct opt_rio {
+struct opt_rio
+{
 	u8 rio_type;
 	u8 chassis_num;
 	u8 first_slot_num;
@@ -154,7 +158,8 @@ struct opt_rio {
 	struct list_head opt_rio_list;
 };
 
-struct opt_rio_lo {
+struct opt_rio_lo
+{
 	u8 rio_type;
 	u8 chassis_num;
 	u8 first_slot_num;
@@ -167,25 +172,28 @@ struct opt_rio_lo {
 *  HPC DESCRIPTOR NODE                                          *
 ****************************************************************/
 
-struct ebda_hpc_list {
+struct ebda_hpc_list
+{
 	u8 format;
 	u16 num_ctlrs;
 	short phys_addr;
-//      struct list_head ebda_hpc_list;
+	//      struct list_head ebda_hpc_list;
 };
 /*****************************************************************
 *   IN HPC DATA STRUCTURE, THE ASSOCIATED SLOT AND BUS           *
 *   STRUCTURE                                                    *
 *****************************************************************/
 
-struct ebda_hpc_slot {
+struct ebda_hpc_slot
+{
 	u8 slot_num;
 	u32 slot_bus_num;
 	u8 ctl_index;
 	u8 slot_cap;
 };
 
-struct ebda_hpc_bus {
+struct ebda_hpc_bus
+{
 	u32 bus_num;
 	u8 slots_at_33_conv;
 	u8 slots_at_66_conv;
@@ -199,17 +207,20 @@ struct ebda_hpc_bus {
 *   THREE TYPE OF HOT PLUG CONTROLLER                                *
 ********************************************************************/
 
-struct isa_ctlr_access {
+struct isa_ctlr_access
+{
 	u16 io_start;
 	u16 io_end;
 };
 
-struct pci_ctlr_access {
+struct pci_ctlr_access
+{
 	u8 bus;
 	u8 dev_fun;
 };
 
-struct wpeg_i2c_ctlr_access {
+struct wpeg_i2c_ctlr_access
+{
 	ulong wpegbbar;
 	u8 i2c_addr;
 };
@@ -221,7 +232,8 @@ struct wpeg_i2c_ctlr_access {
 *   RSTC DESCRIPTOR NODE                                                 *
 *************************************************************************/
 
-struct ebda_rsrc_list {
+struct ebda_rsrc_list
+{
 	u8 format;
 	u16 num_entries;
 	u16 phys_addr;
@@ -233,7 +245,8 @@ struct ebda_rsrc_list {
 *   PCI RSRC NODE                                                          *
 ***************************************************************************/
 
-struct ebda_pci_rsrc {
+struct ebda_pci_rsrc
+{
 	u8 rsrc_type;
 	u8 bus_num;
 	u8 dev_fun;
@@ -248,7 +261,8 @@ struct ebda_pci_rsrc {
 * BUS_INFO DATE STRUCTURE                                  *
 ***********************************************************/
 
-struct bus_info {
+struct bus_info
+{
 	u8 slot_min;
 	u8 slot_max;
 	u8 slot_count;
@@ -332,14 +346,16 @@ int ibmphp_register_pci(void);
 /* we need this struct because there could be several resource blocks
  * allocated per primary bus in the EBDA
  */
-struct range_node {
+struct range_node
+{
 	int rangeno;
 	u32 start;
 	u32 end;
 	struct range_node *next;
 };
 
-struct bus_node {
+struct bus_node
+{
 	u8 busno;
 	int noIORanges;
 	struct range_node *rangeIO;
@@ -357,7 +373,8 @@ struct bus_node {
 	struct list_head bus_list;
 };
 
-struct resource_node {
+struct resource_node
+{
 	int rangeno;
 	u8 busno;
 	u8 devfunc;
@@ -371,7 +388,8 @@ struct resource_node {
 	struct resource_node *nextRange;	/* for the other mem range on bus */
 };
 
-struct res_needed {
+struct res_needed
+{
 	u32 mem;
 	u32 pfmem;
 	u32 io;
@@ -598,45 +616,45 @@ void ibmphp_hpc_stop_poll_thread(void);
 // macro for slot info
 //----------------------------------------------------------------------------
 #define SLOT_POWER(s)	((u8) ((s & HPC_SLOT_POWER) \
-	? HPC_SLOT_POWER_ON : HPC_SLOT_POWER_OFF))
+							   ? HPC_SLOT_POWER_ON : HPC_SLOT_POWER_OFF))
 
 #define SLOT_CONNECT(s)	((u8) ((s & HPC_SLOT_CONNECT) \
-	? HPC_SLOT_DISCONNECTED : HPC_SLOT_CONNECTED))
+							   ? HPC_SLOT_DISCONNECTED : HPC_SLOT_CONNECTED))
 
 #define SLOT_ATTN(s, es)	((u8) ((es & HPC_SLOT_BLINK_ATTN) \
-	? HPC_SLOT_ATTN_BLINK \
-	: ((s & HPC_SLOT_ATTN) ? HPC_SLOT_ATTN_ON : HPC_SLOT_ATTN_OFF)))
+								   ? HPC_SLOT_ATTN_BLINK \
+								   : ((s & HPC_SLOT_ATTN) ? HPC_SLOT_ATTN_ON : HPC_SLOT_ATTN_OFF)))
 
 #define SLOT_PRESENT(s)	((u8) ((s & HPC_SLOT_PRSNT1) \
-	? ((s & HPC_SLOT_PRSNT2) ? HPC_SLOT_EMPTY : HPC_SLOT_PRSNT_15) \
-	: ((s & HPC_SLOT_PRSNT2) ? HPC_SLOT_PRSNT_25 : HPC_SLOT_PRSNT_7)))
+							   ? ((s & HPC_SLOT_PRSNT2) ? HPC_SLOT_EMPTY : HPC_SLOT_PRSNT_15) \
+							   : ((s & HPC_SLOT_PRSNT2) ? HPC_SLOT_PRSNT_25 : HPC_SLOT_PRSNT_7)))
 
 #define SLOT_PWRGD(s)	((u8) ((s & HPC_SLOT_PWRGD) \
-	? HPC_SLOT_PWRGD_GOOD : HPC_SLOT_PWRGD_FAULT_NONE))
+							   ? HPC_SLOT_PWRGD_GOOD : HPC_SLOT_PWRGD_FAULT_NONE))
 
 #define SLOT_BUS_SPEED(s)	((u8) ((s & HPC_SLOT_BUS_SPEED) \
-	? HPC_SLOT_BUS_SPEED_MISM : HPC_SLOT_BUS_SPEED_OK))
+								   ? HPC_SLOT_BUS_SPEED_MISM : HPC_SLOT_BUS_SPEED_OK))
 
 #define SLOT_LATCH(s)	((u8) ((s & HPC_SLOT_LATCH) \
-	? HPC_SLOT_LATCH_CLOSED : HPC_SLOT_LATCH_OPEN))
+							   ? HPC_SLOT_LATCH_CLOSED : HPC_SLOT_LATCH_OPEN))
 
 #define SLOT_PCIX(es)	((u8) ((es & HPC_SLOT_PCIX) \
-	? HPC_SLOT_PCIX_YES : HPC_SLOT_PCIX_NO))
+							   ? HPC_SLOT_PCIX_YES : HPC_SLOT_PCIX_NO))
 
 #define SLOT_SPEED(es)	((u8) ((es & HPC_SLOT_SPEED2) \
-	? ((es & HPC_SLOT_SPEED1) ? HPC_SLOT_SPEED_133   \
-				: HPC_SLOT_SPEED_66)   \
-	: HPC_SLOT_SPEED_33))
+							   ? ((es & HPC_SLOT_SPEED1) ? HPC_SLOT_SPEED_133   \
+								  : HPC_SLOT_SPEED_66)   \
+							   : HPC_SLOT_SPEED_33))
 
 #define SLOT_BUS_MODE(es)	((u8) ((es & HPC_SLOT_BUS_MODE) \
-	? HPC_SLOT_BUS_MODE_MISM : HPC_SLOT_BUS_MODE_OK))
+								   ? HPC_SLOT_BUS_MODE_MISM : HPC_SLOT_BUS_MODE_OK))
 
 //--------------------------------------------------------------------------
 // macro for bus info
 //---------------------------------------------------------------------------
 #define CURRENT_BUS_SPEED(s)	((u8) (s & BUS_SPEED_2) \
-	? ((s & BUS_SPEED_1) ? BUS_SPEED_133 : BUS_SPEED_100) \
-	: ((s & BUS_SPEED_1) ? BUS_SPEED_66 : BUS_SPEED_33))
+								 ? ((s & BUS_SPEED_1) ? BUS_SPEED_133 : BUS_SPEED_100) \
+								 : ((s & BUS_SPEED_1) ? BUS_SPEED_66 : BUS_SPEED_33))
 
 #define CURRENT_BUS_MODE(s)	((u8) (s & BUS_MODE) ? BUS_MODE_PCIX : BUS_MODE_PCI)
 
@@ -652,26 +670,26 @@ void ibmphp_hpc_stop_poll_thread(void);
 // macro for controller info
 //----------------------------------------------------------------------------
 #define CTLR_WORKING(c) ((u8) ((c & HPC_CTLR_WORKING) \
-	? HPC_CTLR_WORKING_YES : HPC_CTLR_WORKING_NO))
+							   ? HPC_CTLR_WORKING_YES : HPC_CTLR_WORKING_NO))
 #define CTLR_FINISHED(c) ((u8) ((c & HPC_CTLR_FINISHED) \
-	? HPC_CTLR_FINISHED_YES : HPC_CTLR_FINISHED_NO))
+								? HPC_CTLR_FINISHED_YES : HPC_CTLR_FINISHED_NO))
 #define CTLR_RESULT(c) ((u8) ((c & HPC_CTLR_RESULT1)  \
-	? ((c & HPC_CTLR_RESULT0) ? HPC_CTLR_RESULT_NORESP \
-				: HPC_CTLR_RESULT_RSVD)  \
-	: ((c & HPC_CTLR_RESULT0) ? HPC_CTLR_RESULT_FAILED \
-				: HPC_CTLR_RESULT_SUCCESS)))
+							  ? ((c & HPC_CTLR_RESULT0) ? HPC_CTLR_RESULT_NORESP \
+								 : HPC_CTLR_RESULT_RSVD)  \
+							  : ((c & HPC_CTLR_RESULT0) ? HPC_CTLR_RESULT_FAILED \
+								 : HPC_CTLR_RESULT_SUCCESS)))
 
 // command that affect the state machine of HPC
 #define NEEDTOCHECK_CMDSTATUS(c) ((c == HPC_SLOT_OFF)        || \
-				  (c == HPC_SLOT_ON)         || \
-				  (c == HPC_CTLR_RESET)      || \
-				  (c == HPC_BUS_33CONVMODE)  || \
-				  (c == HPC_BUS_66CONVMODE)  || \
-				  (c == HPC_BUS_66PCIXMODE)  || \
-				  (c == HPC_BUS_100PCIXMODE) || \
-				  (c == HPC_BUS_133PCIXMODE) || \
-				  (c == HPC_ALLSLOT_OFF)     || \
-				  (c == HPC_ALLSLOT_ON))
+								  (c == HPC_SLOT_ON)         || \
+								  (c == HPC_CTLR_RESET)      || \
+								  (c == HPC_BUS_33CONVMODE)  || \
+								  (c == HPC_BUS_66CONVMODE)  || \
+								  (c == HPC_BUS_66PCIXMODE)  || \
+								  (c == HPC_BUS_100PCIXMODE) || \
+								  (c == HPC_BUS_133PCIXMODE) || \
+								  (c == HPC_ALLSLOT_OFF)     || \
+								  (c == HPC_ALLSLOT_ON))
 
 
 /* Core part of the driver */
@@ -688,7 +706,8 @@ extern struct pci_bus *ibmphp_pci_bus;
 
 /* Variables */
 
-struct pci_func {
+struct pci_func
+{
 	struct pci_dev *dev;	/* from the OS */
 	u8 busno;
 	u8 device;
@@ -702,7 +721,8 @@ struct pci_func {
 	u8 bus;			/* flag for unconfiguring, to say if PPB */
 };
 
-struct slot {
+struct slot
+{
 	u8 bus;
 	u8 device;
 	u8 number;
@@ -724,7 +744,8 @@ struct slot {
 	u8 busstatus;
 };
 
-struct controller {
+struct controller
+{
 	struct ebda_hpc_slot *slots;
 	struct ebda_hpc_bus *buses;
 	struct pci_dev *ctrl_dev; /* in case where controller is PCI */
@@ -738,7 +759,8 @@ struct controller {
 	u8 bus_count;
 	u8 ctlr_relative_id;
 	u32 irq;
-	union {
+	union
+	{
 		struct isa_ctlr_access isa_ctlr;
 		struct pci_ctlr_access pci_ctlr;
 		struct wpeg_i2c_ctlr_access wpeg_ctlr;

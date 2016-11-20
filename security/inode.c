@@ -33,13 +33,14 @@ static int fill_super(struct super_block *sb, void *data, int silent)
 }
 
 static struct dentry *get_sb(struct file_system_type *fs_type,
-		  int flags, const char *dev_name,
-		  void *data)
+							 int flags, const char *dev_name,
+							 void *data)
 {
 	return mount_single(fs_type, flags, data, fill_super);
 }
 
-static struct file_system_type fs_type = {
+static struct file_system_type fs_type =
+{
 	.owner =	THIS_MODULE,
 	.name =		"securityfs",
 	.mount =	get_sb,
@@ -75,42 +76,54 @@ static struct file_system_type fs_type = {
  * returned.
  */
 struct dentry *securityfs_create_file(const char *name, umode_t mode,
-				   struct dentry *parent, void *data,
-				   const struct file_operations *fops)
+									  struct dentry *parent, void *data,
+									  const struct file_operations *fops)
 {
 	struct dentry *dentry;
 	int is_dir = S_ISDIR(mode);
 	struct inode *dir, *inode;
 	int error;
 
-	if (!is_dir) {
+	if (!is_dir)
+	{
 		BUG_ON(!fops);
 		mode = (mode & S_IALLUGO) | S_IFREG;
 	}
 
-	pr_debug("securityfs: creating file '%s'\n",name);
+	pr_debug("securityfs: creating file '%s'\n", name);
 
 	error = simple_pin_fs(&fs_type, &mount, &mount_count);
+
 	if (error)
+	{
 		return ERR_PTR(error);
+	}
 
 	if (!parent)
+	{
 		parent = mount->mnt_root;
+	}
 
 	dir = d_inode(parent);
 
 	inode_lock(dir);
 	dentry = lookup_one_len(name, parent, strlen(name));
-	if (IS_ERR(dentry))
-		goto out;
 
-	if (d_really_is_positive(dentry)) {
+	if (IS_ERR(dentry))
+	{
+		goto out;
+	}
+
+	if (d_really_is_positive(dentry))
+	{
 		error = -EEXIST;
 		goto out1;
 	}
 
 	inode = new_inode(dir->i_sb);
-	if (!inode) {
+
+	if (!inode)
+	{
 		error = -ENOMEM;
 		goto out1;
 	}
@@ -119,14 +132,19 @@ struct dentry *securityfs_create_file(const char *name, umode_t mode,
 	inode->i_mode = mode;
 	inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
 	inode->i_private = data;
-	if (is_dir) {
+
+	if (is_dir)
+	{
 		inode->i_op = &simple_dir_inode_operations;
 		inode->i_fop = &simple_dir_operations;
 		inc_nlink(inode);
 		inc_nlink(dir);
-	} else {
+	}
+	else
+	{
 		inode->i_fop = fops;
 	}
+
 	d_instantiate(dentry, inode);
 	dget(dentry);
 	inode_unlock(dir);
@@ -165,8 +183,8 @@ EXPORT_SYMBOL_GPL(securityfs_create_file);
 struct dentry *securityfs_create_dir(const char *name, struct dentry *parent)
 {
 	return securityfs_create_file(name,
-				      S_IFDIR | S_IRWXU | S_IRUGO | S_IXUGO,
-				      parent, NULL, NULL);
+								  S_IFDIR | S_IRWXU | S_IRUGO | S_IXUGO,
+								  parent, NULL, NULL);
 }
 EXPORT_SYMBOL_GPL(securityfs_create_dir);
 
@@ -188,17 +206,27 @@ void securityfs_remove(struct dentry *dentry)
 	struct inode *dir;
 
 	if (!dentry || IS_ERR(dentry))
+	{
 		return;
+	}
 
 	dir = d_inode(dentry->d_parent);
 	inode_lock(dir);
-	if (simple_positive(dentry)) {
+
+	if (simple_positive(dentry))
+	{
 		if (d_is_dir(dentry))
+		{
 			simple_rmdir(dir, dentry);
+		}
 		else
+		{
 			simple_unlink(dir, dentry);
+		}
+
 		dput(dentry);
 	}
+
 	inode_unlock(dir);
 	simple_release_fs(&mount, &mount_count);
 }
@@ -209,12 +237,19 @@ static int __init securityfs_init(void)
 	int retval;
 
 	retval = sysfs_create_mount_point(kernel_kobj, "security");
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	retval = register_filesystem(&fs_type);
+
 	if (retval)
+	{
 		sysfs_remove_mount_point(kernel_kobj, "security");
+	}
+
 	return retval;
 }
 

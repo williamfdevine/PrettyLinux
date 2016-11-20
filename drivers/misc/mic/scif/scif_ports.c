@@ -29,7 +29,8 @@ struct idr scif_ports;
  * @ref_cnt - Reference count since there can be multiple endpoints
  *		created via scif_accept(..) simultaneously using a port.
  */
-struct scif_port {
+struct scif_port
+{
 	int ref_cnt;
 };
 
@@ -47,11 +48,18 @@ static int __scif_get_port(int start, int end)
 	struct scif_port *port = kzalloc(sizeof(*port), GFP_ATOMIC);
 
 	if (!port)
+	{
 		return -ENOMEM;
+	}
+
 	spin_lock(&scif_info.port_lock);
 	id = idr_alloc(&scif_ports, port, start, end, GFP_ATOMIC);
+
 	if (id >= 0)
+	{
 		port->ref_cnt++;
+	}
+
 	spin_unlock(&scif_info.port_lock);
 	return id;
 }
@@ -91,11 +99,18 @@ void scif_get_port(u16 id)
 	struct scif_port *port;
 
 	if (!id)
+	{
 		return;
+	}
+
 	spin_lock(&scif_info.port_lock);
 	port = idr_find(&scif_ports, id);
+
 	if (port)
+	{
 		port->ref_cnt++;
+	}
+
 	spin_unlock(&scif_info.port_lock);
 }
 
@@ -110,15 +125,23 @@ void scif_put_port(u16 id)
 	struct scif_port *port;
 
 	if (!id)
+	{
 		return;
+	}
+
 	spin_lock(&scif_info.port_lock);
 	port = idr_find(&scif_ports, id);
-	if (port) {
+
+	if (port)
+	{
 		port->ref_cnt--;
-		if (!port->ref_cnt) {
+
+		if (!port->ref_cnt)
+		{
 			idr_remove(&scif_ports, id);
 			kfree(port);
 		}
 	}
+
 	spin_unlock(&scif_info.port_lock);
 }

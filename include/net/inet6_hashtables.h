@@ -29,10 +29,10 @@
 struct inet_hashinfo;
 
 static inline unsigned int __inet6_ehashfn(const u32 lhash,
-				    const u16 lport,
-				    const u32 fhash,
-				    const __be16 fport,
-				    const u32 initval)
+		const u16 lport,
+		const u32 fhash,
+		const __be16 fport,
+		const u32 initval)
 {
 	const u32 ports = (((u32)lport) << 16) | (__force u32)fport;
 	return jhash_3words(lhash, fhash, ports, initval);
@@ -45,64 +45,71 @@ static inline unsigned int __inet6_ehashfn(const u32 lhash,
  * The sockhash lock must be held as a reader here.
  */
 struct sock *__inet6_lookup_established(struct net *net,
-					struct inet_hashinfo *hashinfo,
-					const struct in6_addr *saddr,
-					const __be16 sport,
-					const struct in6_addr *daddr,
-					const u16 hnum, const int dif);
+										struct inet_hashinfo *hashinfo,
+										const struct in6_addr *saddr,
+										const __be16 sport,
+										const struct in6_addr *daddr,
+										const u16 hnum, const int dif);
 
 struct sock *inet6_lookup_listener(struct net *net,
-				   struct inet_hashinfo *hashinfo,
-				   struct sk_buff *skb, int doff,
-				   const struct in6_addr *saddr,
-				   const __be16 sport,
-				   const struct in6_addr *daddr,
-				   const unsigned short hnum, const int dif);
+								   struct inet_hashinfo *hashinfo,
+								   struct sk_buff *skb, int doff,
+								   const struct in6_addr *saddr,
+								   const __be16 sport,
+								   const struct in6_addr *daddr,
+								   const unsigned short hnum, const int dif);
 
 static inline struct sock *__inet6_lookup(struct net *net,
-					  struct inet_hashinfo *hashinfo,
-					  struct sk_buff *skb, int doff,
-					  const struct in6_addr *saddr,
-					  const __be16 sport,
-					  const struct in6_addr *daddr,
-					  const u16 hnum,
-					  const int dif,
-					  bool *refcounted)
+		struct inet_hashinfo *hashinfo,
+		struct sk_buff *skb, int doff,
+		const struct in6_addr *saddr,
+		const __be16 sport,
+		const struct in6_addr *daddr,
+		const u16 hnum,
+		const int dif,
+		bool *refcounted)
 {
 	struct sock *sk = __inet6_lookup_established(net, hashinfo, saddr,
-						sport, daddr, hnum, dif);
+					  sport, daddr, hnum, dif);
 	*refcounted = true;
+
 	if (sk)
+	{
 		return sk;
+	}
+
 	*refcounted = false;
 	return inet6_lookup_listener(net, hashinfo, skb, doff, saddr, sport,
-				     daddr, hnum, dif);
+								 daddr, hnum, dif);
 }
 
 static inline struct sock *__inet6_lookup_skb(struct inet_hashinfo *hashinfo,
-					      struct sk_buff *skb, int doff,
-					      const __be16 sport,
-					      const __be16 dport,
-					      int iif,
-					      bool *refcounted)
+		struct sk_buff *skb, int doff,
+		const __be16 sport,
+		const __be16 dport,
+		int iif,
+		bool *refcounted)
 {
 	struct sock *sk = skb_steal_sock(skb);
 
 	*refcounted = true;
+
 	if (sk)
+	{
 		return sk;
+	}
 
 	return __inet6_lookup(dev_net(skb_dst(skb)->dev), hashinfo, skb,
-			      doff, &ipv6_hdr(skb)->saddr, sport,
-			      &ipv6_hdr(skb)->daddr, ntohs(dport),
-			      iif, refcounted);
+						  doff, &ipv6_hdr(skb)->saddr, sport,
+						  &ipv6_hdr(skb)->daddr, ntohs(dport),
+						  iif, refcounted);
 }
 
 struct sock *inet6_lookup(struct net *net, struct inet_hashinfo *hashinfo,
-			  struct sk_buff *skb, int doff,
-			  const struct in6_addr *saddr, const __be16 sport,
-			  const struct in6_addr *daddr, const __be16 dport,
-			  const int dif);
+						  struct sk_buff *skb, int doff,
+						  const struct in6_addr *saddr, const __be16 sport,
+						  const struct in6_addr *daddr, const __be16 dport,
+						  const int dif);
 
 int inet6_hash(struct sock *sk);
 #endif /* IS_ENABLED(CONFIG_IPV6) */
@@ -113,7 +120,7 @@ int inet6_hash(struct sock *sk);
 	 ipv6_addr_equal(&(__sk)->sk_v6_daddr, (__saddr))		&&	\
 	 ipv6_addr_equal(&(__sk)->sk_v6_rcv_saddr, (__daddr))	&&	\
 	 (!(__sk)->sk_bound_dev_if	||				\
-	   ((__sk)->sk_bound_dev_if == (__dif))) 		&&	\
+	  ((__sk)->sk_bound_dev_if == (__dif))) 		&&	\
 	 net_eq(sock_net(__sk), (__net)))
 
 #endif /* _INET6_HASHTABLES_H */

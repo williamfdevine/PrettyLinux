@@ -120,15 +120,15 @@
 #define OSD_STRIDE				0x20
 
 #define VIDOSD_A(_win)				(VIDOSD_BASE + \
-						((_win) * OSD_STRIDE) + 0x00)
+									 ((_win) * OSD_STRIDE) + 0x00)
 #define VIDOSD_B(_win)				(VIDOSD_BASE + \
-						((_win) * OSD_STRIDE) + 0x04)
+									 ((_win) * OSD_STRIDE) + 0x04)
 #define VIDOSD_C(_win)				(VIDOSD_BASE + \
-						((_win) * OSD_STRIDE) + 0x08)
+									 ((_win) * OSD_STRIDE) + 0x08)
 #define VIDOSD_D(_win)				(VIDOSD_BASE + \
-						((_win) * OSD_STRIDE) + 0x0C)
+									 ((_win) * OSD_STRIDE) + 0x0C)
 #define VIDOSD_E(_win)				(VIDOSD_BASE + \
-						((_win) * OSD_STRIDE) + 0x10)
+									 ((_win) * OSD_STRIDE) + 0x10)
 
 #define VIDOSDxA_TOPLEFT_X_MASK			(0x1fff << 13)
 #define VIDOSDxA_TOPLEFT_X_SHIFT		13

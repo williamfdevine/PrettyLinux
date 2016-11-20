@@ -14,7 +14,7 @@
 #	include <linux/crc32.h>
 #	undef crc32
 #	define xz_crc32(buf, size, crc) \
-		(~crc32_le(~(uint32_t)(crc), buf, size))
+	(~crc32_le(~(uint32_t)(crc), buf, size))
 #endif
 
 /*
@@ -49,7 +49,8 @@ typedef uint64_t vli_type;
 #define VLI_BYTES_MAX (sizeof(vli_type) * 8 / 7)
 
 /* Integrity Check types */
-enum xz_check {
+enum xz_check
+{
 	XZ_CHECK_NONE = 0,
 	XZ_CHECK_CRC32 = 1,
 	XZ_CHECK_CRC64 = 4,

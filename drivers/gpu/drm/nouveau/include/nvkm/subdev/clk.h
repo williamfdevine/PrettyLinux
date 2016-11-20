@@ -6,7 +6,8 @@
 struct nvbios_pll;
 struct nvkm_pll_vals;
 
-enum nv_clk_src {
+enum nv_clk_src
+{
 	nv_clk_src_crystal,
 	nv_clk_src_href,
 
@@ -48,13 +49,15 @@ enum nv_clk_src {
 	nv_clk_src_max,
 };
 
-struct nvkm_cstate {
+struct nvkm_cstate
+{
 	struct list_head head;
 	u8  voltage;
 	u32 domain[nv_clk_src_max];
 };
 
-struct nvkm_pstate {
+struct nvkm_pstate
+{
 	struct list_head head;
 	struct list_head list; /* c-states */
 	struct nvkm_cstate base;
@@ -64,7 +67,8 @@ struct nvkm_pstate {
 	u8 pcie_width;
 };
 
-struct nvkm_domain {
+struct nvkm_domain
+{
 	enum nv_clk_src name;
 	u8 bios; /* 0xff for none */
 #define NVKM_CLK_DOM_FLAG_CORE 0x01
@@ -73,7 +77,8 @@ struct nvkm_domain {
 	int mdiv;
 };
 
-struct nvkm_clk {
+struct nvkm_clk
+{
 	const struct nvkm_clk_func *func;
 	struct nvkm_subdev subdev;
 
@@ -102,7 +107,7 @@ struct nvkm_clk {
 	 *     bat-shit insane what-was-nouveau_hw.c code
 	 */
 	int (*pll_calc)(struct nvkm_clk *, struct nvbios_pll *, int clk,
-			struct nvkm_pll_vals *pv);
+					struct nvkm_pll_vals *pv);
 	int (*pll_prog)(struct nvkm_clk *, u32 reg1, struct nvkm_pll_vals *pv);
 };
 

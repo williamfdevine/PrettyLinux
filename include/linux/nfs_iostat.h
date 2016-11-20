@@ -58,7 +58,8 @@
  * units in the name of each byte counter to help users of this
  * interface determine what exactly is being counted.
  */
-enum nfs_stat_bytecounters {
+enum nfs_stat_bytecounters
+{
 	NFSIOS_NORMALREADBYTES = 0,
 	NFSIOS_NORMALWRITTENBYTES,
 	NFSIOS_DIRECTREADBYTES,
@@ -87,7 +88,8 @@ enum nfs_stat_bytecounters {
  * source of data corruption if applications aren't using file
  * locking properly).
  */
-enum nfs_stat_eventcounters {
+enum nfs_stat_eventcounters
+{
 	NFSIOS_INODEREVALIDATE = 0,
 	NFSIOS_DENTRYREVALIDATE,
 	NFSIOS_DATAINVALIDATE,
@@ -121,7 +123,8 @@ enum nfs_stat_eventcounters {
 /*
  * NFS local caching servicing counters
  */
-enum nfs_stat_fscachecounters {
+enum nfs_stat_fscachecounters
+{
 	NFSIOS_FSCACHE_PAGES_READ_OK,
 	NFSIOS_FSCACHE_PAGES_READ_FAIL,
 	NFSIOS_FSCACHE_PAGES_WRITTEN_OK,

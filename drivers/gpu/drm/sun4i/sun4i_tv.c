@@ -116,28 +116,33 @@
 
 #define SUN4I_TVE_WSS_DATA2_REG		0x244
 
-struct color_gains {
+struct color_gains
+{
 	u16	cb;
 	u16	cr;
 };
 
-struct burst_levels {
+struct burst_levels
+{
 	u16	cb;
 	u16	cr;
 };
 
-struct video_levels {
+struct video_levels
+{
 	u16	black;
 	u16	blank;
 };
 
-struct resync_parameters {
+struct resync_parameters
+{
 	bool	field;
 	u16	line;
 	u16	pixel;
 };
 
-struct tv_mode {
+struct tv_mode
+{
 	char		*name;
 
 	u32		mode;
@@ -167,7 +172,8 @@ struct tv_mode {
 	const struct resync_parameters	*resync_params;
 };
 
-struct sun4i_tv {
+struct sun4i_tv
+{
 	struct drm_connector	connector;
 	struct drm_encoder	encoder;
 
@@ -178,39 +184,48 @@ struct sun4i_tv {
 	struct sun4i_drv	*drv;
 };
 
-static const struct video_levels ntsc_video_levels = {
+static const struct video_levels ntsc_video_levels =
+{
 	.black = 282,	.blank = 240,
 };
 
-static const struct video_levels pal_video_levels = {
+static const struct video_levels pal_video_levels =
+{
 	.black = 252,	.blank = 252,
 };
 
-static const struct burst_levels ntsc_burst_levels = {
+static const struct burst_levels ntsc_burst_levels =
+{
 	.cb = 79,	.cr = 0,
 };
 
-static const struct burst_levels pal_burst_levels = {
+static const struct burst_levels pal_burst_levels =
+{
 	.cb = 40,	.cr = 40,
 };
 
-static const struct color_gains ntsc_color_gains = {
+static const struct color_gains ntsc_color_gains =
+{
 	.cb = 160,	.cr = 160,
 };
 
-static const struct color_gains pal_color_gains = {
+static const struct color_gains pal_color_gains =
+{
 	.cb = 224,	.cr = 224,
 };
 
-static const struct resync_parameters ntsc_resync_parameters = {
+static const struct resync_parameters ntsc_resync_parameters =
+{
 	.field = false,	.line = 14,	.pixel = 12,
 };
 
-static const struct resync_parameters pal_resync_parameters = {
+static const struct resync_parameters pal_resync_parameters =
+{
 	.field = true,	.line = 13,	.pixel = 12,
 };
 
-static const struct tv_mode tv_modes[] = {
+static const struct tv_mode tv_modes[] =
+{
 	{
 		.name		= "NTSC",
 		.mode		= SUN4I_TVE_CFG0_RES_480i,
@@ -272,14 +287,14 @@ static inline struct sun4i_tv *
 drm_encoder_to_sun4i_tv(struct drm_encoder *encoder)
 {
 	return container_of(encoder, struct sun4i_tv,
-			    encoder);
+						encoder);
 }
 
 static inline struct sun4i_tv *
 drm_connector_to_sun4i_tv(struct drm_connector *connector)
 {
 	return container_of(connector, struct sun4i_tv,
-			    connector);
+						connector);
 }
 
 /*
@@ -294,33 +309,39 @@ static const struct tv_mode *sun4i_tv_find_tv_by_mode(const struct drm_display_m
 	int i;
 
 	/* First try to identify the mode by name */
-	for (i = 0; i < ARRAY_SIZE(tv_modes); i++) {
+	for (i = 0; i < ARRAY_SIZE(tv_modes); i++)
+	{
 		const struct tv_mode *tv_mode = &tv_modes[i];
 
 		DRM_DEBUG_DRIVER("Comparing mode %s vs %s",
-				 mode->name, tv_mode->name);
+						 mode->name, tv_mode->name);
 
 		if (!strcmp(mode->name, tv_mode->name))
+		{
 			return tv_mode;
+		}
 	}
 
 	/* Then by number of lines */
-	for (i = 0; i < ARRAY_SIZE(tv_modes); i++) {
+	for (i = 0; i < ARRAY_SIZE(tv_modes); i++)
+	{
 		const struct tv_mode *tv_mode = &tv_modes[i];
 
 		DRM_DEBUG_DRIVER("Comparing mode %s vs %s (X: %d vs %d)",
-				 mode->name, tv_mode->name,
-				 mode->vdisplay, tv_mode->vdisplay);
+						 mode->name, tv_mode->name,
+						 mode->vdisplay, tv_mode->vdisplay);
 
 		if (mode->vdisplay == tv_mode->vdisplay)
+		{
 			return tv_mode;
+		}
 	}
 
 	return NULL;
 }
 
 static void sun4i_tv_mode_to_drm_mode(const struct tv_mode *tv_mode,
-				      struct drm_display_mode *mode)
+									  struct drm_display_mode *mode)
 {
 	DRM_DEBUG_DRIVER("Creating mode %s\n", mode->name);
 
@@ -340,8 +361,8 @@ static void sun4i_tv_mode_to_drm_mode(const struct tv_mode *tv_mode,
 }
 
 static int sun4i_tv_atomic_check(struct drm_encoder *encoder,
-				 struct drm_crtc_state *crtc_state,
-				 struct drm_connector_state *conn_state)
+								 struct drm_crtc_state *crtc_state,
+								 struct drm_connector_state *conn_state)
 {
 	return 0;
 }
@@ -357,8 +378,8 @@ static void sun4i_tv_disable(struct drm_encoder *encoder)
 	sun4i_tcon_channel_disable(tcon, 1);
 
 	regmap_update_bits(tv->regs, SUN4I_TVE_EN_REG,
-			   SUN4I_TVE_EN_ENABLE,
-			   0);
+					   SUN4I_TVE_EN_ENABLE,
+					   0);
 	sun4i_backend_disable_color_correction(drv->backend);
 }
 
@@ -373,15 +394,15 @@ static void sun4i_tv_enable(struct drm_encoder *encoder)
 	sun4i_backend_apply_color_correction(drv->backend);
 
 	regmap_update_bits(tv->regs, SUN4I_TVE_EN_REG,
-			   SUN4I_TVE_EN_ENABLE,
-			   SUN4I_TVE_EN_ENABLE);
+					   SUN4I_TVE_EN_ENABLE,
+					   SUN4I_TVE_EN_ENABLE);
 
 	sun4i_tcon_channel_enable(tcon, 1);
 }
 
 static void sun4i_tv_mode_set(struct drm_encoder *encoder,
-			      struct drm_display_mode *mode,
-			      struct drm_display_mode *adjusted_mode)
+							  struct drm_display_mode *mode,
+							  struct drm_display_mode *adjusted_mode)
 {
 	struct sun4i_tv *tv = drm_encoder_to_sun4i_tv(encoder);
 	struct sun4i_drv *drv = tv->drv;
@@ -392,101 +413,102 @@ static void sun4i_tv_mode_set(struct drm_encoder *encoder,
 
 	/* Enable and map the DAC to the output */
 	regmap_update_bits(tv->regs, SUN4I_TVE_EN_REG,
-			   SUN4I_TVE_EN_DAC_MAP_MASK,
-			   SUN4I_TVE_EN_DAC_MAP(0, 1) |
-			   SUN4I_TVE_EN_DAC_MAP(1, 2) |
-			   SUN4I_TVE_EN_DAC_MAP(2, 3) |
-			   SUN4I_TVE_EN_DAC_MAP(3, 4));
+					   SUN4I_TVE_EN_DAC_MAP_MASK,
+					   SUN4I_TVE_EN_DAC_MAP(0, 1) |
+					   SUN4I_TVE_EN_DAC_MAP(1, 2) |
+					   SUN4I_TVE_EN_DAC_MAP(2, 3) |
+					   SUN4I_TVE_EN_DAC_MAP(3, 4));
 
 	/* Set PAL settings */
 	regmap_write(tv->regs, SUN4I_TVE_CFG0_REG,
-		     tv_mode->mode |
-		     (tv_mode->yc_en ? SUN4I_TVE_CFG0_YC_EN : 0) |
-		     SUN4I_TVE_CFG0_COMP_EN |
-		     SUN4I_TVE_CFG0_DAC_CONTROL_54M |
-		     SUN4I_TVE_CFG0_CORE_DATAPATH_54M |
-		     SUN4I_TVE_CFG0_CORE_CONTROL_54M);
+				 tv_mode->mode |
+				 (tv_mode->yc_en ? SUN4I_TVE_CFG0_YC_EN : 0) |
+				 SUN4I_TVE_CFG0_COMP_EN |
+				 SUN4I_TVE_CFG0_DAC_CONTROL_54M |
+				 SUN4I_TVE_CFG0_CORE_DATAPATH_54M |
+				 SUN4I_TVE_CFG0_CORE_CONTROL_54M);
 
 	/* Configure the DAC for a composite output */
 	regmap_write(tv->regs, SUN4I_TVE_DAC0_REG,
-		     SUN4I_TVE_DAC0_DAC_EN(0) |
-		     (tv_mode->dac3_en ? SUN4I_TVE_DAC0_DAC_EN(3) : 0) |
-		     SUN4I_TVE_DAC0_INTERNAL_DAC_37_5_OHMS |
-		     SUN4I_TVE_DAC0_CHROMA_0_75 |
-		     SUN4I_TVE_DAC0_LUMA_0_4 |
-		     SUN4I_TVE_DAC0_CLOCK_INVERT |
-		     (tv_mode->dac_bit25_en ? BIT(25) : 0) |
-		     BIT(30));
+				 SUN4I_TVE_DAC0_DAC_EN(0) |
+				 (tv_mode->dac3_en ? SUN4I_TVE_DAC0_DAC_EN(3) : 0) |
+				 SUN4I_TVE_DAC0_INTERNAL_DAC_37_5_OHMS |
+				 SUN4I_TVE_DAC0_CHROMA_0_75 |
+				 SUN4I_TVE_DAC0_LUMA_0_4 |
+				 SUN4I_TVE_DAC0_CLOCK_INVERT |
+				 (tv_mode->dac_bit25_en ? BIT(25) : 0) |
+				 BIT(30));
 
 	/* Configure the sample delay between DAC0 and the other DAC */
 	regmap_write(tv->regs, SUN4I_TVE_NOTCH_REG,
-		     SUN4I_TVE_NOTCH_DAC0_TO_DAC_DLY(1, 0) |
-		     SUN4I_TVE_NOTCH_DAC0_TO_DAC_DLY(2, 0));
+				 SUN4I_TVE_NOTCH_DAC0_TO_DAC_DLY(1, 0) |
+				 SUN4I_TVE_NOTCH_DAC0_TO_DAC_DLY(2, 0));
 
 	regmap_write(tv->regs, SUN4I_TVE_CHROMA_FREQ_REG,
-		     tv_mode->chroma_freq);
+				 tv_mode->chroma_freq);
 
 	/* Set the front and back porch */
 	regmap_write(tv->regs, SUN4I_TVE_PORCH_REG,
-		     SUN4I_TVE_PORCH_BACK(tv_mode->back_porch) |
-		     SUN4I_TVE_PORCH_FRONT(tv_mode->front_porch));
+				 SUN4I_TVE_PORCH_BACK(tv_mode->back_porch) |
+				 SUN4I_TVE_PORCH_FRONT(tv_mode->front_porch));
 
 	/* Set the lines setup */
 	regmap_write(tv->regs, SUN4I_TVE_LINE_REG,
-		     SUN4I_TVE_LINE_FIRST(22) |
-		     SUN4I_TVE_LINE_NUMBER(tv_mode->line_number));
+				 SUN4I_TVE_LINE_FIRST(22) |
+				 SUN4I_TVE_LINE_NUMBER(tv_mode->line_number));
 
 	regmap_write(tv->regs, SUN4I_TVE_LEVEL_REG,
-		     SUN4I_TVE_LEVEL_BLANK(tv_mode->video_levels->blank) |
-		     SUN4I_TVE_LEVEL_BLACK(tv_mode->video_levels->black));
+				 SUN4I_TVE_LEVEL_BLANK(tv_mode->video_levels->blank) |
+				 SUN4I_TVE_LEVEL_BLACK(tv_mode->video_levels->black));
 
 	regmap_write(tv->regs, SUN4I_TVE_DAC1_REG,
-		     SUN4I_TVE_DAC1_AMPLITUDE(0, 0x18) |
-		     SUN4I_TVE_DAC1_AMPLITUDE(1, 0x18) |
-		     SUN4I_TVE_DAC1_AMPLITUDE(2, 0x18) |
-		     SUN4I_TVE_DAC1_AMPLITUDE(3, 0x18));
+				 SUN4I_TVE_DAC1_AMPLITUDE(0, 0x18) |
+				 SUN4I_TVE_DAC1_AMPLITUDE(1, 0x18) |
+				 SUN4I_TVE_DAC1_AMPLITUDE(2, 0x18) |
+				 SUN4I_TVE_DAC1_AMPLITUDE(3, 0x18));
 
 	regmap_write(tv->regs, SUN4I_TVE_CB_CR_LVL_REG,
-		     SUN4I_TVE_CB_CR_LVL_CB_BURST(tv_mode->burst_levels->cb) |
-		     SUN4I_TVE_CB_CR_LVL_CR_BURST(tv_mode->burst_levels->cr));
+				 SUN4I_TVE_CB_CR_LVL_CB_BURST(tv_mode->burst_levels->cb) |
+				 SUN4I_TVE_CB_CR_LVL_CR_BURST(tv_mode->burst_levels->cr));
 
 	/* Set burst width for a composite output */
 	regmap_write(tv->regs, SUN4I_TVE_BURST_WIDTH_REG,
-		     SUN4I_TVE_BURST_WIDTH_HSYNC_WIDTH(126) |
-		     SUN4I_TVE_BURST_WIDTH_BURST_WIDTH(68) |
-		     SUN4I_TVE_BURST_WIDTH_BREEZEWAY(22));
+				 SUN4I_TVE_BURST_WIDTH_HSYNC_WIDTH(126) |
+				 SUN4I_TVE_BURST_WIDTH_BURST_WIDTH(68) |
+				 SUN4I_TVE_BURST_WIDTH_BREEZEWAY(22));
 
 	regmap_write(tv->regs, SUN4I_TVE_CB_CR_GAIN_REG,
-		     SUN4I_TVE_CB_CR_GAIN_CB(tv_mode->color_gains->cb) |
-		     SUN4I_TVE_CB_CR_GAIN_CR(tv_mode->color_gains->cr));
+				 SUN4I_TVE_CB_CR_GAIN_CB(tv_mode->color_gains->cb) |
+				 SUN4I_TVE_CB_CR_GAIN_CR(tv_mode->color_gains->cr));
 
 	regmap_write(tv->regs, SUN4I_TVE_SYNC_VBI_REG,
-		     SUN4I_TVE_SYNC_VBI_SYNC(0x10) |
-		     SUN4I_TVE_SYNC_VBI_VBLANK(tv_mode->vblank_level));
+				 SUN4I_TVE_SYNC_VBI_SYNC(0x10) |
+				 SUN4I_TVE_SYNC_VBI_VBLANK(tv_mode->vblank_level));
 
 	regmap_write(tv->regs, SUN4I_TVE_ACTIVE_LINE_REG,
-		     SUN4I_TVE_ACTIVE_LINE(1440));
+				 SUN4I_TVE_ACTIVE_LINE(1440));
 
 	/* Set composite chroma gain to 50 % */
 	regmap_write(tv->regs, SUN4I_TVE_CHROMA_REG,
-		     SUN4I_TVE_CHROMA_COMP_GAIN_50);
+				 SUN4I_TVE_CHROMA_COMP_GAIN_50);
 
 	regmap_write(tv->regs, SUN4I_TVE_12C_REG,
-		     SUN4I_TVE_12C_COMP_YUV_EN |
-		     SUN4I_TVE_12C_NOTCH_WIDTH_WIDE);
+				 SUN4I_TVE_12C_COMP_YUV_EN |
+				 SUN4I_TVE_12C_NOTCH_WIDTH_WIDE);
 
 	regmap_write(tv->regs, SUN4I_TVE_RESYNC_REG,
-		     SUN4I_TVE_RESYNC_PIXEL(tv_mode->resync_params->pixel) |
-		     SUN4I_TVE_RESYNC_LINE(tv_mode->resync_params->line) |
-		     (tv_mode->resync_params->field ?
-		      SUN4I_TVE_RESYNC_FIELD : 0));
+				 SUN4I_TVE_RESYNC_PIXEL(tv_mode->resync_params->pixel) |
+				 SUN4I_TVE_RESYNC_LINE(tv_mode->resync_params->line) |
+				 (tv_mode->resync_params->field ?
+				  SUN4I_TVE_RESYNC_FIELD : 0));
 
 	regmap_write(tv->regs, SUN4I_TVE_SLAVE_REG, 0);
 
 	clk_set_rate(tcon->sclk1, mode->crtc_clock * 1000);
 }
 
-static struct drm_encoder_helper_funcs sun4i_tv_helper_funcs = {
+static struct drm_encoder_helper_funcs sun4i_tv_helper_funcs =
+{
 	.atomic_check	= sun4i_tv_atomic_check,
 	.disable	= sun4i_tv_disable,
 	.enable		= sun4i_tv_enable,
@@ -498,7 +520,8 @@ static void sun4i_tv_destroy(struct drm_encoder *encoder)
 	drm_encoder_cleanup(encoder);
 }
 
-static struct drm_encoder_funcs sun4i_tv_funcs = {
+static struct drm_encoder_funcs sun4i_tv_funcs =
+{
 	.destroy	= sun4i_tv_destroy,
 };
 
@@ -506,12 +529,15 @@ static int sun4i_tv_comp_get_modes(struct drm_connector *connector)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(tv_modes); i++) {
+	for (i = 0; i < ARRAY_SIZE(tv_modes); i++)
+	{
 		struct drm_display_mode *mode;
 		const struct tv_mode *tv_mode = &tv_modes[i];
 
 		mode = drm_mode_create(connector->dev);
-		if (!mode) {
+
+		if (!mode)
+		{
 			DRM_ERROR("Failed to create a new display mode\n");
 			return 0;
 		}
@@ -526,13 +552,14 @@ static int sun4i_tv_comp_get_modes(struct drm_connector *connector)
 }
 
 static int sun4i_tv_comp_mode_valid(struct drm_connector *connector,
-				    struct drm_display_mode *mode)
+									struct drm_display_mode *mode)
 {
 	/* TODO */
 	return MODE_OK;
 }
 
-static struct drm_connector_helper_funcs sun4i_tv_comp_connector_helper_funcs = {
+static struct drm_connector_helper_funcs sun4i_tv_comp_connector_helper_funcs =
+{
 	.get_modes	= sun4i_tv_comp_get_modes,
 	.mode_valid	= sun4i_tv_comp_mode_valid,
 };
@@ -549,7 +576,8 @@ sun4i_tv_comp_connector_destroy(struct drm_connector *connector)
 	drm_connector_cleanup(connector);
 }
 
-static struct drm_connector_funcs sun4i_tv_comp_connector_funcs = {
+static struct drm_connector_funcs sun4i_tv_comp_connector_funcs =
+{
 	.dpms			= drm_atomic_helper_connector_dpms,
 	.detect			= sun4i_tv_comp_connector_detect,
 	.fill_modes		= drm_helper_probe_single_connector_modes,
@@ -559,7 +587,8 @@ static struct drm_connector_funcs sun4i_tv_comp_connector_funcs = {
 	.atomic_destroy_state	= drm_atomic_helper_connector_destroy_state,
 };
 
-static struct regmap_config sun4i_tv_regmap_config = {
+static struct regmap_config sun4i_tv_regmap_config =
+{
 	.reg_bits	= 32,
 	.val_bits	= 32,
 	.reg_stride	= 4,
@@ -568,7 +597,7 @@ static struct regmap_config sun4i_tv_regmap_config = {
 };
 
 static int sun4i_tv_bind(struct device *dev, struct device *master,
-			 void *data)
+						 void *data)
 {
 	struct platform_device *pdev = to_platform_device(dev);
 	struct drm_device *drm = data;
@@ -579,53 +608,70 @@ static int sun4i_tv_bind(struct device *dev, struct device *master,
 	int ret;
 
 	tv = devm_kzalloc(dev, sizeof(*tv), GFP_KERNEL);
+
 	if (!tv)
+	{
 		return -ENOMEM;
+	}
+
 	tv->drv = drv;
 	dev_set_drvdata(dev, tv);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	regs = devm_ioremap_resource(dev, res);
-	if (IS_ERR(regs)) {
+
+	if (IS_ERR(regs))
+	{
 		dev_err(dev, "Couldn't map the TV encoder registers\n");
 		return PTR_ERR(regs);
 	}
 
 	tv->regs = devm_regmap_init_mmio(dev, regs,
-					 &sun4i_tv_regmap_config);
-	if (IS_ERR(tv->regs)) {
+									 &sun4i_tv_regmap_config);
+
+	if (IS_ERR(tv->regs))
+	{
 		dev_err(dev, "Couldn't create the TV encoder regmap\n");
 		return PTR_ERR(tv->regs);
 	}
 
 	tv->reset = devm_reset_control_get(dev, NULL);
-	if (IS_ERR(tv->reset)) {
+
+	if (IS_ERR(tv->reset))
+	{
 		dev_err(dev, "Couldn't get our reset line\n");
 		return PTR_ERR(tv->reset);
 	}
 
 	ret = reset_control_deassert(tv->reset);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Couldn't deassert our reset line\n");
 		return ret;
 	}
 
 	tv->clk = devm_clk_get(dev, NULL);
-	if (IS_ERR(tv->clk)) {
+
+	if (IS_ERR(tv->clk))
+	{
 		dev_err(dev, "Couldn't get the TV encoder clock\n");
 		ret = PTR_ERR(tv->clk);
 		goto err_assert_reset;
 	}
+
 	clk_prepare_enable(tv->clk);
 
 	drm_encoder_helper_add(&tv->encoder,
-			       &sun4i_tv_helper_funcs);
+						   &sun4i_tv_helper_funcs);
 	ret = drm_encoder_init(drm,
-			       &tv->encoder,
-			       &sun4i_tv_funcs,
-			       DRM_MODE_ENCODER_TVDAC,
-			       NULL);
-	if (ret) {
+						   &tv->encoder,
+						   &sun4i_tv_funcs,
+						   DRM_MODE_ENCODER_TVDAC,
+						   NULL);
+
+	if (ret)
+	{
 		dev_err(dev, "Couldn't initialise the TV encoder\n");
 		goto err_disable_clk;
 	}
@@ -633,15 +679,18 @@ static int sun4i_tv_bind(struct device *dev, struct device *master,
 	tv->encoder.possible_crtcs = BIT(0);
 
 	drm_connector_helper_add(&tv->connector,
-				 &sun4i_tv_comp_connector_helper_funcs);
+							 &sun4i_tv_comp_connector_helper_funcs);
 	ret = drm_connector_init(drm, &tv->connector,
-				 &sun4i_tv_comp_connector_funcs,
-				 DRM_MODE_CONNECTOR_Composite);
-	if (ret) {
+							 &sun4i_tv_comp_connector_funcs,
+							 DRM_MODE_CONNECTOR_Composite);
+
+	if (ret)
+	{
 		dev_err(dev,
-			"Couldn't initialise the Composite connector\n");
+				"Couldn't initialise the Composite connector\n");
 		goto err_cleanup_connector;
 	}
+
 	tv->connector.interlace_allowed = true;
 
 	drm_mode_connector_attach_encoder(&tv->connector, &tv->encoder);
@@ -658,7 +707,7 @@ err_assert_reset:
 }
 
 static void sun4i_tv_unbind(struct device *dev, struct device *master,
-			    void *data)
+							void *data)
 {
 	struct sun4i_tv *tv = dev_get_drvdata(dev);
 
@@ -667,7 +716,8 @@ static void sun4i_tv_unbind(struct device *dev, struct device *master,
 	clk_disable_unprepare(tv->clk);
 }
 
-static struct component_ops sun4i_tv_ops = {
+static struct component_ops sun4i_tv_ops =
+{
 	.bind	= sun4i_tv_bind,
 	.unbind	= sun4i_tv_unbind,
 };
@@ -684,13 +734,15 @@ static int sun4i_tv_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id sun4i_tv_of_table[] = {
+static const struct of_device_id sun4i_tv_of_table[] =
+{
 	{ .compatible = "allwinner,sun4i-a10-tv-encoder" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, sun4i_tv_of_table);
 
-static struct platform_driver sun4i_tv_platform_driver = {
+static struct platform_driver sun4i_tv_platform_driver =
+{
 	.probe		= sun4i_tv_probe,
 	.remove		= sun4i_tv_remove,
 	.driver		= {

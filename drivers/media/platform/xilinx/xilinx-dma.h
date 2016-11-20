@@ -37,7 +37,8 @@ struct xvip_video_format;
  * @num_dmas: number of DMA engines in the pipeline
  * @output: DMA engine at the output of the pipeline
  */
-struct xvip_pipeline {
+struct xvip_pipeline
+{
 	struct media_pipeline pipe;
 
 	struct mutex lock;
@@ -73,7 +74,8 @@ static inline struct xvip_pipeline *to_xvip_pipeline(struct media_entity *e)
  * @xt: dma interleaved template for dma configuration
  * @sgl: data chunk structure for dma_interleaved_template
  */
-struct xvip_dma {
+struct xvip_dma
+{
 	struct list_head list;
 	struct video_device video;
 	struct media_pad pad;
@@ -101,7 +103,7 @@ struct xvip_dma {
 #define to_xvip_dma(vdev)	container_of(vdev, struct xvip_dma, video)
 
 int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma *dma,
-		  enum v4l2_buf_type type, unsigned int port);
+				  enum v4l2_buf_type type, unsigned int port);
 void xvip_dma_cleanup(struct xvip_dma *dma);
 
 #endif /* __XILINX_VIP_DMA_H__ */

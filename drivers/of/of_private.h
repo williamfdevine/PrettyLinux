@@ -23,7 +23,8 @@
  * The structure represents one alias property of 'aliases' node as
  * an entry in aliases_lookup list.
  */
-struct alias_prop {
+struct alias_prop
+{
 	struct list_head link;
 	const char *alias;
 	struct device_node *np;
@@ -43,13 +44,13 @@ static inline struct device_node *kobj_to_device_node(struct kobject *kobj)
 
 #if defined(CONFIG_OF_DYNAMIC)
 extern int of_property_notify(int action, struct device_node *np,
-			      struct property *prop, struct property *old_prop);
+							  struct property *prop, struct property *old_prop);
 extern void of_node_release(struct kobject *kobj);
 extern int __of_changeset_apply(struct of_changeset *ocs);
 extern int __of_changeset_revert(struct of_changeset *ocs);
 #else /* CONFIG_OF_DYNAMIC */
 static inline int of_property_notify(int action, struct device_node *np,
-				     struct property *prop, struct property *old_prop)
+									 struct property *prop, struct property *old_prop)
 {
 	return 0;
 }
@@ -66,17 +67,17 @@ struct property *__of_prop_dup(const struct property *prop, gfp_t allocflags);
 __printf(2, 3) struct device_node *__of_node_dup(const struct device_node *np, const char *fmt, ...);
 
 extern const void *__of_get_property(const struct device_node *np,
-				     const char *name, int *lenp);
+									 const char *name, int *lenp);
 extern int __of_add_property(struct device_node *np, struct property *prop);
 extern int __of_add_property_sysfs(struct device_node *np,
-		struct property *prop);
+								   struct property *prop);
 extern int __of_remove_property(struct device_node *np, struct property *prop);
 extern void __of_remove_property_sysfs(struct device_node *np,
-		struct property *prop);
+									   struct property *prop);
 extern int __of_update_property(struct device_node *np,
-		struct property *newprop, struct property **oldprop);
+								struct property *newprop, struct property **oldprop);
 extern void __of_update_property_sysfs(struct device_node *np,
-		struct property *newprop, struct property *oldprop);
+									   struct property *newprop, struct property *oldprop);
 
 extern void __of_attach_node(struct device_node *np);
 extern int __of_attach_node_sysfs(struct device_node *np);
@@ -84,7 +85,7 @@ extern void __of_detach_node(struct device_node *np);
 extern void __of_detach_node_sysfs(struct device_node *np);
 
 extern void __of_sysfs_remove_bin_file(struct device_node *np,
-				       struct property *prop);
+									   struct property *prop);
 
 /* iterators for transactions, used for overlays */
 /* forward iterator */

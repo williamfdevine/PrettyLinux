@@ -54,14 +54,16 @@
 #define NFCMRVL_HCI_OGF				0x81
 #define NFCMRVL_HCI_OCF				0xFE
 
-enum nfcmrvl_phy {
+enum nfcmrvl_phy
+{
 	NFCMRVL_PHY_USB		= 0,
 	NFCMRVL_PHY_UART	= 1,
 	NFCMRVL_PHY_I2C		= 2,
 	NFCMRVL_PHY_SPI		= 3,
 };
 
-struct nfcmrvl_private {
+struct nfcmrvl_private
+{
 
 	unsigned long flags;
 
@@ -91,27 +93,28 @@ struct nfcmrvl_private {
 	struct nfcmrvl_if_ops *if_ops;
 };
 
-struct nfcmrvl_if_ops {
+struct nfcmrvl_if_ops
+{
 	int (*nci_open) (struct nfcmrvl_private *priv);
 	int (*nci_close) (struct nfcmrvl_private *priv);
 	int (*nci_send) (struct nfcmrvl_private *priv, struct sk_buff *skb);
 	void (*nci_update_config)(struct nfcmrvl_private *priv,
-				  const void *param);
+							  const void *param);
 };
 
 void nfcmrvl_nci_unregister_dev(struct nfcmrvl_private *priv);
 int nfcmrvl_nci_recv_frame(struct nfcmrvl_private *priv, struct sk_buff *skb);
 struct nfcmrvl_private *nfcmrvl_nci_register_dev(enum nfcmrvl_phy phy,
-				void *drv_data,
-				struct nfcmrvl_if_ops *ops,
-				struct device *dev,
-				struct nfcmrvl_platform_data *pdata);
+		void *drv_data,
+		struct nfcmrvl_if_ops *ops,
+		struct device *dev,
+		struct nfcmrvl_platform_data *pdata);
 
 
 void nfcmrvl_chip_reset(struct nfcmrvl_private *priv);
 void nfcmrvl_chip_halt(struct nfcmrvl_private *priv);
 
 int nfcmrvl_parse_dt(struct device_node *node,
-		     struct nfcmrvl_platform_data *pdata);
+					 struct nfcmrvl_platform_data *pdata);
 
 #endif

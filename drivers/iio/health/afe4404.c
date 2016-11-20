@@ -51,7 +51,8 @@
 /* AFE4404 CONTROL2 register fields */
 #define AFE440X_CONTROL2_OSC_ENABLE	BIT(9)
 
-enum afe4404_fields {
+enum afe4404_fields
+{
 	/* Gains */
 	F_TIA_GAIN_SEP, F_TIA_CF_SEP,
 	F_TIA_GAIN, TIA_CF,
@@ -66,7 +67,8 @@ enum afe4404_fields {
 	F_MAX_FIELDS
 };
 
-static const struct reg_field afe4404_reg_fields[] = {
+static const struct reg_field afe4404_reg_fields[] =
+{
 	/* Gains */
 	[F_TIA_GAIN_SEP]	= REG_FIELD(AFE4404_TIA_GAIN_SEP, 0, 2),
 	[F_TIA_CF_SEP]		= REG_FIELD(AFE4404_TIA_GAIN_SEP, 3, 5),
@@ -92,7 +94,8 @@ static const struct reg_field afe4404_reg_fields[] = {
  * @trig: IIO trigger for this device
  * @irq: ADC_RDY line interrupt number
  */
-struct afe4404_data {
+struct afe4404_data
+{
 	struct device *dev;
 	struct regmap *regmap;
 	struct regmap_field *fields[F_MAX_FIELDS];
@@ -101,7 +104,8 @@ struct afe4404_data {
 	int irq;
 };
 
-enum afe4404_chan_id {
+enum afe4404_chan_id
+{
 	LED2 = 1,
 	ALED2,
 	LED1,
@@ -110,7 +114,8 @@ enum afe4404_chan_id {
 	LED1_ALED1,
 };
 
-static const unsigned int afe4404_channel_values[] = {
+static const unsigned int afe4404_channel_values[] =
+{
 	[LED2] = AFE440X_LED2VAL,
 	[ALED2] = AFE440X_ALED2VAL,
 	[LED1] = AFE440X_LED1VAL,
@@ -119,20 +124,23 @@ static const unsigned int afe4404_channel_values[] = {
 	[LED1_ALED1] = AFE440X_LED1_ALED1VAL,
 };
 
-static const unsigned int afe4404_channel_leds[] = {
+static const unsigned int afe4404_channel_leds[] =
+{
 	[LED2] = F_ILED2,
 	[ALED2] = F_ILED3,
 	[LED1] = F_ILED1,
 };
 
-static const unsigned int afe4404_channel_offdacs[] = {
+static const unsigned int afe4404_channel_offdacs[] =
+{
 	[LED2] = F_OFFDAC_LED2,
 	[ALED2] = F_OFFDAC_AMB2,
 	[LED1] = F_OFFDAC_LED1,
 	[ALED1] = F_OFFDAC_AMB1,
 };
 
-static const struct iio_chan_spec afe4404_channels[] = {
+static const struct iio_chan_spec afe4404_channels[] =
+{
 	/* ADC values */
 	AFE440X_INTENSITY_CHAN(LED2, BIT(IIO_CHAN_INFO_OFFSET)),
 	AFE440X_INTENSITY_CHAN(ALED2, BIT(IIO_CHAN_INFO_OFFSET)),
@@ -146,7 +154,8 @@ static const struct iio_chan_spec afe4404_channels[] = {
 	AFE440X_CURRENT_CHAN(LED1),
 };
 
-static const struct afe440x_val_table afe4404_res_table[] = {
+static const struct afe440x_val_table afe4404_res_table[] =
+{
 	{ .integer = 500000, .fract = 0 },
 	{ .integer = 250000, .fract = 0 },
 	{ .integer = 100000, .fract = 0 },
@@ -158,7 +167,8 @@ static const struct afe440x_val_table afe4404_res_table[] = {
 };
 AFE440X_TABLE_ATTR(in_intensity_resistance_available, afe4404_res_table);
 
-static const struct afe440x_val_table afe4404_cap_table[] = {
+static const struct afe440x_val_table afe4404_cap_table[] =
+{
 	{ .integer = 0, .fract = 5000 },
 	{ .integer = 0, .fract = 2500 },
 	{ .integer = 0, .fract = 10000 },
@@ -171,8 +181,8 @@ static const struct afe440x_val_table afe4404_cap_table[] = {
 AFE440X_TABLE_ATTR(in_intensity_capacitance_available, afe4404_cap_table);
 
 static ssize_t afe440x_show_register(struct device *dev,
-				     struct device_attribute *attr,
-				     char *buf)
+									 struct device_attribute *attr,
+									 char *buf)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct afe4404_data *afe = iio_priv(indio_dev);
@@ -182,11 +192,16 @@ static ssize_t afe440x_show_register(struct device *dev,
 	int ret;
 
 	ret = regmap_field_read(afe->fields[afe440x_attr->field], &reg_val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (reg_val >= afe440x_attr->table_size)
+	{
 		return -EINVAL;
+	}
 
 	vals[0] = afe440x_attr->val_table[reg_val].integer;
 	vals[1] = afe440x_attr->val_table[reg_val].fract;
@@ -195,8 +210,8 @@ static ssize_t afe440x_show_register(struct device *dev,
 }
 
 static ssize_t afe440x_store_register(struct device *dev,
-				      struct device_attribute *attr,
-				      const char *buf, size_t count)
+									  struct device_attribute *attr,
+									  const char *buf, size_t count)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct afe4404_data *afe = iio_priv(indio_dev);
@@ -204,19 +219,30 @@ static ssize_t afe440x_store_register(struct device *dev,
 	int val, integer, fract, ret;
 
 	ret = iio_str_to_fixpoint(buf, 100000, &integer, &fract);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	for (val = 0; val < afe440x_attr->table_size; val++)
 		if (afe440x_attr->val_table[val].integer == integer &&
-		    afe440x_attr->val_table[val].fract == fract)
+			afe440x_attr->val_table[val].fract == fract)
+		{
 			break;
+		}
+
 	if (val == afe440x_attr->table_size)
+	{
 		return -EINVAL;
+	}
 
 	ret = regmap_field_write(afe->fields[afe440x_attr->field], val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return count;
 }
@@ -233,7 +259,8 @@ static AFE440X_ATTR(in_intensity3_capacitance, TIA_CF, afe4404_cap_table);
 static AFE440X_ATTR(in_intensity4_resistance, F_TIA_GAIN, afe4404_res_table);
 static AFE440X_ATTR(in_intensity4_capacitance, TIA_CF, afe4404_cap_table);
 
-static struct attribute *afe440x_attributes[] = {
+static struct attribute *afe440x_attributes[] =
+{
 	&dev_attr_in_intensity_resistance_available.attr,
 	&dev_attr_in_intensity_capacitance_available.attr,
 	&afe440x_attr_in_intensity1_resistance.dev_attr.attr,
@@ -247,13 +274,14 @@ static struct attribute *afe440x_attributes[] = {
 	NULL
 };
 
-static const struct attribute_group afe440x_attribute_group = {
+static const struct attribute_group afe440x_attribute_group =
+{
 	.attrs = afe440x_attributes
 };
 
 static int afe4404_read_raw(struct iio_dev *indio_dev,
-			    struct iio_chan_spec const *chan,
-			    int *val, int *val2, long mask)
+							struct iio_chan_spec const *chan,
+							int *val, int *val2, long mask)
 {
 	struct afe4404_data *afe = iio_priv(indio_dev);
 	unsigned int value_reg = afe4404_channel_values[chan->address];
@@ -261,70 +289,99 @@ static int afe4404_read_raw(struct iio_dev *indio_dev,
 	unsigned int offdac_field = afe4404_channel_offdacs[chan->address];
 	int ret;
 
-	switch (chan->type) {
-	case IIO_INTENSITY:
-		switch (mask) {
-		case IIO_CHAN_INFO_RAW:
-			ret = regmap_read(afe->regmap, value_reg, val);
-			if (ret)
-				return ret;
-			return IIO_VAL_INT;
-		case IIO_CHAN_INFO_OFFSET:
-			ret = regmap_field_read(afe->fields[offdac_field], val);
-			if (ret)
-				return ret;
-			return IIO_VAL_INT;
-		}
-		break;
-	case IIO_CURRENT:
-		switch (mask) {
-		case IIO_CHAN_INFO_RAW:
-			ret = regmap_field_read(afe->fields[led_field], val);
-			if (ret)
-				return ret;
-			return IIO_VAL_INT;
-		case IIO_CHAN_INFO_SCALE:
-			*val = 0;
-			*val2 = 800000;
-			return IIO_VAL_INT_PLUS_MICRO;
-		}
-		break;
-	default:
-		break;
+	switch (chan->type)
+	{
+		case IIO_INTENSITY:
+			switch (mask)
+			{
+				case IIO_CHAN_INFO_RAW:
+					ret = regmap_read(afe->regmap, value_reg, val);
+
+					if (ret)
+					{
+						return ret;
+					}
+
+					return IIO_VAL_INT;
+
+				case IIO_CHAN_INFO_OFFSET:
+					ret = regmap_field_read(afe->fields[offdac_field], val);
+
+					if (ret)
+					{
+						return ret;
+					}
+
+					return IIO_VAL_INT;
+			}
+
+			break;
+
+		case IIO_CURRENT:
+			switch (mask)
+			{
+				case IIO_CHAN_INFO_RAW:
+					ret = regmap_field_read(afe->fields[led_field], val);
+
+					if (ret)
+					{
+						return ret;
+					}
+
+					return IIO_VAL_INT;
+
+				case IIO_CHAN_INFO_SCALE:
+					*val = 0;
+					*val2 = 800000;
+					return IIO_VAL_INT_PLUS_MICRO;
+			}
+
+			break;
+
+		default:
+			break;
 	}
 
 	return -EINVAL;
 }
 
 static int afe4404_write_raw(struct iio_dev *indio_dev,
-			     struct iio_chan_spec const *chan,
-			     int val, int val2, long mask)
+							 struct iio_chan_spec const *chan,
+							 int val, int val2, long mask)
 {
 	struct afe4404_data *afe = iio_priv(indio_dev);
 	unsigned int led_field = afe4404_channel_leds[chan->address];
 	unsigned int offdac_field = afe4404_channel_offdacs[chan->address];
 
-	switch (chan->type) {
-	case IIO_INTENSITY:
-		switch (mask) {
-		case IIO_CHAN_INFO_OFFSET:
-			return regmap_field_write(afe->fields[offdac_field], val);
-		}
-		break;
-	case IIO_CURRENT:
-		switch (mask) {
-		case IIO_CHAN_INFO_RAW:
-			return regmap_field_write(afe->fields[led_field], val);
-		}
-		break;
-	default:
-		break;
+	switch (chan->type)
+	{
+		case IIO_INTENSITY:
+			switch (mask)
+			{
+				case IIO_CHAN_INFO_OFFSET:
+					return regmap_field_write(afe->fields[offdac_field], val);
+			}
+
+			break;
+
+		case IIO_CURRENT:
+			switch (mask)
+			{
+				case IIO_CHAN_INFO_RAW:
+					return regmap_field_write(afe->fields[led_field], val);
+			}
+
+			break;
+
+		default:
+			break;
 	}
 
 	return -EINVAL;
 }
 
-static const struct iio_info afe4404_iio_info = {
+static const struct iio_info afe4404_iio_info =
+{
 	.attrs = &afe440x_attribute_group,
 	.read_raw = afe4404_read_raw,
 	.write_raw = afe4404_write_raw,
@@ -340,11 +397,15 @@ static irqreturn_t afe4404_trigger_handler(int irq, void *private)
 	s32 buffer[10];
 
 	for_each_set_bit(bit, indio_dev->active_scan_mask,
-			 indio_dev->masklength) {
+					 indio_dev->masklength)
+	{
 		ret = regmap_read(afe->regmap, afe4404_channel_values[bit],
-				  &buffer[i++]);
+						  &buffer[i++]);
+
 		if (ret)
+		{
 			goto err;
+		}
 	}
 
 	iio_push_to_buffers_with_timestamp(indio_dev, buffer, pf->timestamp);
@@ -354,7 +415,8 @@ err:
 	return IRQ_HANDLED;
 }
 
-static const struct iio_trigger_ops afe4404_trigger_ops = {
+static const struct iio_trigger_ops afe4404_trigger_ops =
+{
 	.owner = THIS_MODULE,
 };
 
@@ -394,24 +456,28 @@ static const struct iio_trigger_ops afe4404_trigger_ops = {
 	{ AFE440X_PDNCYCLESTC,	7671	},	\
 	{ AFE440X_PDNCYCLEENDC,	39199	}
 
-static const struct reg_sequence afe4404_reg_sequences[] = {
+static const struct reg_sequence afe4404_reg_sequences[] =
+{
 	AFE4404_TIMING_PAIRS,
 	{ AFE440X_CONTROL1, AFE440X_CONTROL1_TIMEREN },
 	{ AFE4404_TIA_GAIN_SEP, AFE440X_TIAGAIN_ENSEPGAIN },
 	{ AFE440X_CONTROL2, AFE440X_CONTROL2_OSC_ENABLE	},
 };
 
-static const struct regmap_range afe4404_yes_ranges[] = {
+static const struct regmap_range afe4404_yes_ranges[] =
+{
 	regmap_reg_range(AFE440X_LED2VAL, AFE440X_LED1_ALED1VAL),
 	regmap_reg_range(AFE4404_AVG_LED2_ALED2VAL, AFE4404_AVG_LED1_ALED1VAL),
 };
 
-static const struct regmap_access_table afe4404_volatile_table = {
+static const struct regmap_access_table afe4404_volatile_table =
+{
 	.yes_ranges = afe4404_yes_ranges,
 	.n_yes_ranges = ARRAY_SIZE(afe4404_yes_ranges),
 };
 
-static const struct regmap_config afe4404_regmap_config = {
+static const struct regmap_config afe4404_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 24,
 
@@ -420,7 +486,8 @@ static const struct regmap_config afe4404_regmap_config = {
 	.volatile_table = &afe4404_volatile_table,
 };
 
-static const struct of_device_id afe4404_of_match[] = {
+static const struct of_device_id afe4404_of_match[] =
+{
 	{ .compatible = "ti,afe4404", },
 	{ /* sentinel */ }
 };
@@ -433,13 +500,18 @@ static int __maybe_unused afe4404_suspend(struct device *dev)
 	int ret;
 
 	ret = regmap_update_bits(afe->regmap, AFE440X_CONTROL2,
-				 AFE440X_CONTROL2_PDN_AFE,
-				 AFE440X_CONTROL2_PDN_AFE);
+							 AFE440X_CONTROL2_PDN_AFE,
+							 AFE440X_CONTROL2_PDN_AFE);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = regulator_disable(afe->regulator);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Unable to disable regulator\n");
 		return ret;
 	}
@@ -454,15 +526,20 @@ static int __maybe_unused afe4404_resume(struct device *dev)
 	int ret;
 
 	ret = regulator_enable(afe->regulator);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Unable to enable regulator\n");
 		return ret;
 	}
 
 	ret = regmap_update_bits(afe->regmap, AFE440X_CONTROL2,
-				 AFE440X_CONTROL2_PDN_AFE, 0);
+							 AFE440X_CONTROL2_PDN_AFE, 0);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -470,15 +547,18 @@ static int __maybe_unused afe4404_resume(struct device *dev)
 static SIMPLE_DEV_PM_OPS(afe4404_pm_ops, afe4404_suspend, afe4404_resume);
 
 static int afe4404_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct iio_dev *indio_dev;
 	struct afe4404_data *afe;
 	int i, ret;
 
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*afe));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	afe = iio_priv(indio_dev);
 	i2c_set_clientdata(client, indio_dev);
@@ -487,41 +567,55 @@ static int afe4404_probe(struct i2c_client *client,
 	afe->irq = client->irq;
 
 	afe->regmap = devm_regmap_init_i2c(client, &afe4404_regmap_config);
-	if (IS_ERR(afe->regmap)) {
+
+	if (IS_ERR(afe->regmap))
+	{
 		dev_err(afe->dev, "Unable to allocate register map\n");
 		return PTR_ERR(afe->regmap);
 	}
 
-	for (i = 0; i < F_MAX_FIELDS; i++) {
+	for (i = 0; i < F_MAX_FIELDS; i++)
+	{
 		afe->fields[i] = devm_regmap_field_alloc(afe->dev, afe->regmap,
-							 afe4404_reg_fields[i]);
-		if (IS_ERR(afe->fields[i])) {
+						 afe4404_reg_fields[i]);
+
+		if (IS_ERR(afe->fields[i]))
+		{
 			dev_err(afe->dev, "Unable to allocate regmap fields\n");
 			return PTR_ERR(afe->fields[i]);
 		}
 	}
 
 	afe->regulator = devm_regulator_get(afe->dev, "tx_sup");
-	if (IS_ERR(afe->regulator)) {
+
+	if (IS_ERR(afe->regulator))
+	{
 		dev_err(afe->dev, "Unable to get regulator\n");
 		return PTR_ERR(afe->regulator);
 	}
+
 	ret = regulator_enable(afe->regulator);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(afe->dev, "Unable to enable regulator\n");
 		return ret;
 	}
 
 	ret = regmap_write(afe->regmap, AFE440X_CONTROL0,
-			   AFE440X_CONTROL0_SW_RESET);
-	if (ret) {
+					   AFE440X_CONTROL0_SW_RESET);
+
+	if (ret)
+	{
 		dev_err(afe->dev, "Unable to reset device\n");
 		goto disable_reg;
 	}
 
 	ret = regmap_multi_reg_write(afe->regmap, afe4404_reg_sequences,
-				     ARRAY_SIZE(afe4404_reg_sequences));
-	if (ret) {
+								 ARRAY_SIZE(afe4404_reg_sequences));
+
+	if (ret)
+	{
 		dev_err(afe->dev, "Unable to set register defaults\n");
 		goto disable_reg;
 	}
@@ -533,12 +627,15 @@ static int afe4404_probe(struct i2c_client *client,
 	indio_dev->name = AFE4404_DRIVER_NAME;
 	indio_dev->info = &afe4404_iio_info;
 
-	if (afe->irq > 0) {
+	if (afe->irq > 0)
+	{
 		afe->trig = devm_iio_trigger_alloc(afe->dev,
-						   "%s-dev%d",
-						   indio_dev->name,
-						   indio_dev->id);
-		if (!afe->trig) {
+										   "%s-dev%d",
+										   indio_dev->name,
+										   indio_dev->id);
+
+		if (!afe->trig)
+		{
 			dev_err(afe->dev, "Unable to allocate IIO trigger\n");
 			ret = -ENOMEM;
 			goto disable_reg;
@@ -550,31 +647,39 @@ static int afe4404_probe(struct i2c_client *client,
 		afe->trig->dev.parent = afe->dev;
 
 		ret = iio_trigger_register(afe->trig);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(afe->dev, "Unable to register IIO trigger\n");
 			goto disable_reg;
 		}
 
 		ret = devm_request_threaded_irq(afe->dev, afe->irq,
-						iio_trigger_generic_data_rdy_poll,
-						NULL, IRQF_ONESHOT,
-						AFE4404_DRIVER_NAME,
-						afe->trig);
-		if (ret) {
+										iio_trigger_generic_data_rdy_poll,
+										NULL, IRQF_ONESHOT,
+										AFE4404_DRIVER_NAME,
+										afe->trig);
+
+		if (ret)
+		{
 			dev_err(afe->dev, "Unable to request IRQ\n");
 			goto disable_reg;
 		}
 	}
 
 	ret = iio_triggered_buffer_setup(indio_dev, &iio_pollfunc_store_time,
-					 afe4404_trigger_handler, NULL);
-	if (ret) {
+									 afe4404_trigger_handler, NULL);
+
+	if (ret)
+	{
 		dev_err(afe->dev, "Unable to setup buffer\n");
 		goto unregister_trigger;
 	}
 
 	ret = iio_device_register(indio_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(afe->dev, "Unable to register IIO device\n");
 		goto unregister_triggered_buffer;
 	}
@@ -584,8 +689,12 @@ static int afe4404_probe(struct i2c_client *client,
 unregister_triggered_buffer:
 	iio_triggered_buffer_cleanup(indio_dev);
 unregister_trigger:
+
 	if (afe->irq > 0)
+	{
 		iio_trigger_unregister(afe->trig);
+	}
+
 disable_reg:
 	regulator_disable(afe->regulator);
 
@@ -603,10 +712,14 @@ static int afe4404_remove(struct i2c_client *client)
 	iio_triggered_buffer_cleanup(indio_dev);
 
 	if (afe->irq > 0)
+	{
 		iio_trigger_unregister(afe->trig);
+	}
 
 	ret = regulator_disable(afe->regulator);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(afe->dev, "Unable to disable regulator\n");
 		return ret;
 	}
@@ -614,13 +727,15 @@ static int afe4404_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id afe4404_ids[] = {
+static const struct i2c_device_id afe4404_ids[] =
+{
 	{ "afe4404", 0 },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(i2c, afe4404_ids);
 
-static struct i2c_driver afe4404_i2c_driver = {
+static struct i2c_driver afe4404_i2c_driver =
+{
 	.driver = {
 		.name = AFE4404_DRIVER_NAME,
 		.of_match_table = afe4404_of_match,

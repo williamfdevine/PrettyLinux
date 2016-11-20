@@ -18,23 +18,29 @@ static int prism2_debug_proc_show(struct seq_file *m, void *v)
 	int i;
 
 	seq_printf(m, "next_txfid=%d next_alloc=%d\n",
-		   local->next_txfid, local->next_alloc);
+			   local->next_txfid, local->next_alloc);
+
 	for (i = 0; i < PRISM2_TXFID_COUNT; i++)
 		seq_printf(m, "FID: tx=%04X intransmit=%04X\n",
-			   local->txfid[i], local->intransmitfid[i]);
+				   local->txfid[i], local->intransmitfid[i]);
+
 	seq_printf(m, "FW TX rate control: %d\n", local->fw_tx_rate_control);
 	seq_printf(m, "beacon_int=%d\n", local->beacon_int);
 	seq_printf(m, "dtim_period=%d\n", local->dtim_period);
 	seq_printf(m, "wds_max_connections=%d\n", local->wds_max_connections);
 	seq_printf(m, "dev_enabled=%d\n", local->dev_enabled);
 	seq_printf(m, "sw_tick_stuck=%d\n", local->sw_tick_stuck);
-	for (i = 0; i < WEP_KEYS; i++) {
+
+	for (i = 0; i < WEP_KEYS; i++)
+	{
 		if (local->crypt_info.crypt[i] &&
-		    local->crypt_info.crypt[i]->ops) {
+			local->crypt_info.crypt[i]->ops)
+		{
 			seq_printf(m, "crypt[%d]=%s\n", i,
-				   local->crypt_info.crypt[i]->ops->name);
+					   local->crypt_info.crypt[i]->ops->name);
 		}
 	}
+
 	seq_printf(m, "pri_only=%d\n", local->pri_only);
 	seq_printf(m, "pci=%d\n", local->func->hw_type == HOSTAP_HW_PCI);
 	seq_printf(m, "sram_type=%d\n", local->sram_type);
@@ -48,7 +54,8 @@ static int prism2_debug_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, prism2_debug_proc_show, PDE_DATA(inode));
 }
 
-static const struct file_operations prism2_debug_proc_fops = {
+static const struct file_operations prism2_debug_proc_fops =
+{
 	.open		= prism2_debug_proc_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -68,12 +75,12 @@ static int prism2_stats_proc_show(struct seq_file *m, void *v)
 	seq_printf(m, "TxUnicastOctets=%u\n", sums->tx_unicast_octets);
 	seq_printf(m, "TxMulticastOctets=%u\n", sums->tx_multicast_octets);
 	seq_printf(m, "TxDeferredTransmissions=%u\n",
-		   sums->tx_deferred_transmissions);
+			   sums->tx_deferred_transmissions);
 	seq_printf(m, "TxSingleRetryFrames=%u\n", sums->tx_single_retry_frames);
 	seq_printf(m, "TxMultipleRetryFrames=%u\n",
-		   sums->tx_multiple_retry_frames);
+			   sums->tx_multiple_retry_frames);
 	seq_printf(m, "TxRetryLimitExceeded=%u\n",
-		   sums->tx_retry_limit_exceeded);
+			   sums->tx_retry_limit_exceeded);
 	seq_printf(m, "TxDiscards=%u\n", sums->tx_discards);
 	seq_printf(m, "RxUnicastFrames=%u\n", sums->rx_unicast_frames);
 	seq_printf(m, "RxMulticastFrames=%u\n", sums->rx_multicast_frames);
@@ -84,11 +91,11 @@ static int prism2_stats_proc_show(struct seq_file *m, void *v)
 	seq_printf(m, "RxDiscardsNoBuffer=%u\n", sums->rx_discards_no_buffer);
 	seq_printf(m, "TxDiscardsWrongSA=%u\n", sums->tx_discards_wrong_sa);
 	seq_printf(m, "RxDiscardsWEPUndecryptable=%u\n",
-		   sums->rx_discards_wep_undecryptable);
+			   sums->rx_discards_wep_undecryptable);
 	seq_printf(m, "RxMessageInMsgFragments=%u\n",
-		   sums->rx_message_in_msg_fragments);
+			   sums->rx_message_in_msg_fragments);
 	seq_printf(m, "RxMessageInBadMsgFragments=%u\n",
-		   sums->rx_message_in_bad_msg_fragments);
+			   sums->rx_message_in_bad_msg_fragments);
 	/* FIX: this may grow too long for one page(?) */
 
 	return 0;
@@ -99,7 +106,8 @@ static int prism2_stats_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, prism2_stats_proc_show, PDE_DATA(inode));
 }
 
-static const struct file_operations prism2_stats_proc_fops = {
+static const struct file_operations prism2_stats_proc_fops =
+{
 	.open		= prism2_stats_proc_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -113,9 +121,11 @@ static int prism2_wds_proc_show(struct seq_file *m, void *v)
 	struct hostap_interface *iface;
 
 	iface = list_entry(ptr, struct hostap_interface, list);
+
 	if (iface->type == HOSTAP_INTERFACE_WDS)
 		seq_printf(m, "%s\t%pM\n",
-			   iface->dev->name, iface->u.wds.remote_addr);
+				   iface->dev->name, iface->u.wds.remote_addr);
+
 	return 0;
 }
 
@@ -138,7 +148,8 @@ static void prism2_wds_proc_stop(struct seq_file *m, void *v)
 	read_unlock_bh(&local->iface_lock);
 }
 
-static const struct seq_operations prism2_wds_proc_seqops = {
+static const struct seq_operations prism2_wds_proc_seqops =
+{
 	.start	= prism2_wds_proc_start,
 	.next	= prism2_wds_proc_next,
 	.stop	= prism2_wds_proc_stop,
@@ -148,14 +159,18 @@ static const struct seq_operations prism2_wds_proc_seqops = {
 static int prism2_wds_proc_open(struct inode *inode, struct file *file)
 {
 	int ret = seq_open(file, &prism2_wds_proc_seqops);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		struct seq_file *m = file->private_data;
 		m->private = PDE_DATA(inode);
 	}
+
 	return ret;
 }
 
-static const struct file_operations prism2_wds_proc_fops = {
+static const struct file_operations prism2_wds_proc_fops =
+{
 	.open		= prism2_wds_proc_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -169,16 +184,17 @@ static int prism2_bss_list_proc_show(struct seq_file *m, void *v)
 	struct list_head *ptr = v;
 	struct hostap_bss_info *bss;
 
-	if (ptr == &local->bss_list) {
+	if (ptr == &local->bss_list)
+	{
 		seq_printf(m, "#BSSID\tlast_update\tcount\tcapab_info\tSSID(txt)\t"
-			   "SSID(hex)\tWPA IE\n");
+				   "SSID(hex)\tWPA IE\n");
 		return 0;
 	}
 
 	bss = list_entry(ptr, struct hostap_bss_info, list);
 	seq_printf(m, "%pM\t%lu\t%u\t0x%x\t",
-		   bss->bssid, bss->last_update,
-		   bss->count, bss->capab_info);
+			   bss->bssid, bss->last_update,
+			   bss->count, bss->capab_info);
 
 	seq_printf(m, "%*pE", (int)bss->ssid_len, bss->ssid);
 
@@ -209,7 +225,8 @@ static void prism2_bss_list_proc_stop(struct seq_file *m, void *v)
 	spin_unlock_bh(&local->lock);
 }
 
-static const struct seq_operations prism2_bss_list_proc_seqops = {
+static const struct seq_operations prism2_bss_list_proc_seqops =
+{
 	.start	= prism2_bss_list_proc_start,
 	.next	= prism2_bss_list_proc_next,
 	.stop	= prism2_bss_list_proc_stop,
@@ -219,14 +236,18 @@ static const struct seq_operations prism2_bss_list_proc_seqops = {
 static int prism2_bss_list_proc_open(struct inode *inode, struct file *file)
 {
 	int ret = seq_open(file, &prism2_bss_list_proc_seqops);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		struct seq_file *m = file->private_data;
 		m->private = PDE_DATA(inode);
 	}
+
 	return ret;
 }
 
-static const struct file_operations prism2_bss_list_proc_fops = {
+static const struct file_operations prism2_bss_list_proc_fops =
+{
 	.open		= prism2_bss_list_proc_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -240,14 +261,18 @@ static int prism2_crypt_proc_show(struct seq_file *m, void *v)
 	int i;
 
 	seq_printf(m, "tx_keyidx=%d\n", local->crypt_info.tx_keyidx);
-	for (i = 0; i < WEP_KEYS; i++) {
+
+	for (i = 0; i < WEP_KEYS; i++)
+	{
 		if (local->crypt_info.crypt[i] &&
-		    local->crypt_info.crypt[i]->ops &&
-		    local->crypt_info.crypt[i]->ops->print_stats) {
+			local->crypt_info.crypt[i]->ops &&
+			local->crypt_info.crypt[i]->ops->print_stats)
+		{
 			local->crypt_info.crypt[i]->ops->print_stats(
 				m, local->crypt_info.crypt[i]->priv);
 		}
 	}
+
 	return 0;
 }
 
@@ -256,7 +281,8 @@ static int prism2_crypt_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, prism2_crypt_proc_show, PDE_DATA(inode));
 }
 
-static const struct file_operations prism2_crypt_proc_fops = {
+static const struct file_operations prism2_crypt_proc_fops =
+{
 	.open		= prism2_crypt_proc_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -265,52 +291,68 @@ static const struct file_operations prism2_crypt_proc_fops = {
 
 
 static ssize_t prism2_pda_proc_read(struct file *file, char __user *buf,
-				    size_t count, loff_t *_pos)
+									size_t count, loff_t *_pos)
 {
 	local_info_t *local = PDE_DATA(file_inode(file));
 	size_t off;
 
 	if (local->pda == NULL || *_pos >= PRISM2_PDA_SIZE)
+	{
 		return 0;
+	}
 
 	off = *_pos;
+
 	if (count > PRISM2_PDA_SIZE - off)
+	{
 		count = PRISM2_PDA_SIZE - off;
+	}
+
 	if (copy_to_user(buf, local->pda + off, count) != 0)
+	{
 		return -EFAULT;
+	}
+
 	*_pos += count;
 	return count;
 }
 
-static const struct file_operations prism2_pda_proc_fops = {
+static const struct file_operations prism2_pda_proc_fops =
+{
 	.read		= prism2_pda_proc_read,
 	.llseek		= generic_file_llseek,
 };
 
 
 static ssize_t prism2_aux_dump_proc_no_read(struct file *file, char __user *buf,
-					    size_t bufsize, loff_t *_pos)
+		size_t bufsize, loff_t *_pos)
 {
 	return 0;
 }
 
-static const struct file_operations prism2_aux_dump_proc_fops = {
+static const struct file_operations prism2_aux_dump_proc_fops =
+{
 	.read		= prism2_aux_dump_proc_no_read,
 };
 
 
 #ifdef PRISM2_IO_DEBUG
 static int prism2_io_debug_proc_read(char *page, char **start, off_t off,
-				     int count, int *eof, void *data)
+									 int count, int *eof, void *data)
 {
 	local_info_t *local = (local_info_t *) data;
 	int head = local->io_debug_head;
 	int start_bytes, left, copy, copied;
 
-	if (off + count > PRISM2_IO_DEBUG_SIZE * 4) {
+	if (off + count > PRISM2_IO_DEBUG_SIZE * 4)
+	{
 		*eof = 1;
+
 		if (off >= PRISM2_IO_DEBUG_SIZE * 4)
+		{
 			return 0;
+		}
+
 		count = PRISM2_IO_DEBUG_SIZE * 4 - off;
 	}
 
@@ -318,17 +360,27 @@ static int prism2_io_debug_proc_read(char *page, char **start, off_t off,
 	start_bytes = (PRISM2_IO_DEBUG_SIZE - head) * 4;
 	left = count;
 
-	if (off < start_bytes) {
+	if (off < start_bytes)
+	{
 		copy = start_bytes - off;
+
 		if (copy > count)
+		{
 			copy = count;
+		}
+
 		memcpy(page, ((u8 *) &local->io_debug[head]) + off, copy);
 		left -= copy;
+
 		if (left > 0)
+		{
 			memcpy(&page[copy], local->io_debug, left);
-	} else {
+		}
+	}
+	else
+	{
 		memcpy(page, ((u8 *) local->io_debug) + (off - start_bytes),
-		       left);
+			   left);
 	}
 
 	*start = page;
@@ -347,9 +399,10 @@ static int prism2_scan_results_proc_show(struct seq_file *m, void *v)
 	struct hfa384x_hostscan_result *scanres;
 	u8 *p;
 
-	if (v == SEQ_START_TOKEN) {
+	if (v == SEQ_START_TOKEN)
+	{
 		seq_printf(m,
-			   "CHID ANL SL BcnInt Capab Rate BSSID ATIM SupRates SSID\n");
+				   "CHID ANL SL BcnInt Capab Rate BSSID ATIM SupRates SSID\n");
 		return 0;
 	}
 
@@ -357,34 +410,51 @@ static int prism2_scan_results_proc_show(struct seq_file *m, void *v)
 	scanres = &local->last_scan_results[entry];
 
 	seq_printf(m, "%d %d %d %d 0x%02x %d %pM %d ",
-		   le16_to_cpu(scanres->chid),
-		   (s16) le16_to_cpu(scanres->anl),
-		   (s16) le16_to_cpu(scanres->sl),
-		   le16_to_cpu(scanres->beacon_interval),
-		   le16_to_cpu(scanres->capability),
-		   le16_to_cpu(scanres->rate),
-		   scanres->bssid,
-		   le16_to_cpu(scanres->atim));
+			   le16_to_cpu(scanres->chid),
+			   (s16) le16_to_cpu(scanres->anl),
+			   (s16) le16_to_cpu(scanres->sl),
+			   le16_to_cpu(scanres->beacon_interval),
+			   le16_to_cpu(scanres->capability),
+			   le16_to_cpu(scanres->rate),
+			   scanres->bssid,
+			   le16_to_cpu(scanres->atim));
 
 	p = scanres->sup_rates;
-	for (i = 0; i < sizeof(scanres->sup_rates); i++) {
+
+	for (i = 0; i < sizeof(scanres->sup_rates); i++)
+	{
 		if (p[i] == 0)
+		{
 			break;
+		}
+
 		seq_printf(m, "<%02x>", p[i]);
 	}
+
 	seq_putc(m, ' ');
 
 	p = scanres->ssid;
 	len = le16_to_cpu(scanres->ssid_len);
+
 	if (len > 32)
+	{
 		len = 32;
-	for (i = 0; i < len; i++) {
-		unsigned char c = p[i];
-		if (c >= 32 && c < 127)
-			seq_putc(m, c);
-		else
-			seq_printf(m, "<%02x>", c);
 	}
+
+	for (i = 0; i < len; i++)
+	{
+		unsigned char c = p[i];
+
+		if (c >= 32 && c < 127)
+		{
+			seq_putc(m, c);
+		}
+		else
+		{
+			seq_printf(m, "<%02x>", c);
+		}
+	}
+
 	seq_putc(m, '\n');
 	return 0;
 }
@@ -396,7 +466,10 @@ static void *prism2_scan_results_proc_start(struct seq_file *m, loff_t *_pos)
 
 	/* We have a header (pos 0) + N results to show (pos 1...N) */
 	if (*_pos > local->last_scan_results_count)
+	{
 		return NULL;
+	}
+
 	return (void *)(unsigned long)(*_pos + 1); /* 0 would be EOF */
 }
 
@@ -405,8 +478,12 @@ static void *prism2_scan_results_proc_next(struct seq_file *m, void *v, loff_t *
 	local_info_t *local = m->private;
 
 	++*_pos;
+
 	if (*_pos > local->last_scan_results_count)
+	{
 		return NULL;
+	}
+
 	return (void *)(unsigned long)(*_pos + 1); /* 0 would be EOF */
 }
 
@@ -416,7 +493,8 @@ static void prism2_scan_results_proc_stop(struct seq_file *m, void *v)
 	spin_unlock_bh(&local->lock);
 }
 
-static const struct seq_operations prism2_scan_results_proc_seqops = {
+static const struct seq_operations prism2_scan_results_proc_seqops =
+{
 	.start	= prism2_scan_results_proc_start,
 	.next	= prism2_scan_results_proc_next,
 	.stop	= prism2_scan_results_proc_stop,
@@ -426,14 +504,18 @@ static const struct seq_operations prism2_scan_results_proc_seqops = {
 static int prism2_scan_results_proc_open(struct inode *inode, struct file *file)
 {
 	int ret = seq_open(file, &prism2_scan_results_proc_seqops);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		struct seq_file *m = file->private_data;
 		m->private = PDE_DATA(inode);
 	}
+
 	return ret;
 }
 
-static const struct file_operations prism2_scan_results_proc_fops = {
+static const struct file_operations prism2_scan_results_proc_fops =
+{
 	.open		= prism2_scan_results_proc_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -448,43 +530,46 @@ void hostap_init_proc(local_info_t *local)
 {
 	local->proc = NULL;
 
-	if (hostap_proc == NULL) {
+	if (hostap_proc == NULL)
+	{
 		printk(KERN_WARNING "%s: hostap proc directory not created\n",
-		       local->dev->name);
+			   local->dev->name);
 		return;
 	}
 
 	local->proc = proc_mkdir(local->ddev->name, hostap_proc);
-	if (local->proc == NULL) {
+
+	if (local->proc == NULL)
+	{
 		printk(KERN_INFO "/proc/net/hostap/%s creation failed\n",
-		       local->ddev->name);
+			   local->ddev->name);
 		return;
 	}
 
 #ifndef PRISM2_NO_PROCFS_DEBUG
 	proc_create_data("debug", 0, local->proc,
-			 &prism2_debug_proc_fops, local);
+					 &prism2_debug_proc_fops, local);
 #endif /* PRISM2_NO_PROCFS_DEBUG */
 	proc_create_data("stats", 0, local->proc,
-			 &prism2_stats_proc_fops, local);
+					 &prism2_stats_proc_fops, local);
 	proc_create_data("wds", 0, local->proc,
-			 &prism2_wds_proc_fops, local);
+					 &prism2_wds_proc_fops, local);
 	proc_create_data("pda", 0, local->proc,
-			 &prism2_pda_proc_fops, local);
+					 &prism2_pda_proc_fops, local);
 	proc_create_data("aux_dump", 0, local->proc,
-			 local->func->read_aux_fops ?: &prism2_aux_dump_proc_fops,
-			 local);
+					 local->func->read_aux_fops ? : &prism2_aux_dump_proc_fops,
+					 local);
 	proc_create_data("bss_list", 0, local->proc,
-			 &prism2_bss_list_proc_fops, local);
+					 &prism2_bss_list_proc_fops, local);
 	proc_create_data("crypt", 0, local->proc,
-			 &prism2_crypt_proc_fops, local);
+					 &prism2_crypt_proc_fops, local);
 #ifdef PRISM2_IO_DEBUG
 	proc_create_data("io_debug", 0, local->proc,
-			 &prism2_io_debug_proc_fops, local);
+					 &prism2_io_debug_proc_fops, local);
 #endif /* PRISM2_IO_DEBUG */
 #ifndef PRISM2_NO_STATION_MODES
 	proc_create_data("scan_results", 0, local->proc,
-			 &prism2_scan_results_proc_fops, local);
+					 &prism2_scan_results_proc_fops, local);
 #endif /* PRISM2_NO_STATION_MODES */
 }
 

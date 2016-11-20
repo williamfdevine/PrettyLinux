@@ -230,12 +230,14 @@
 #define MAX_PATH_NUM_8812A		2
 #define MAX_PATH_NUM_8821A		1
 
-enum FAT_STATE {
+enum FAT_STATE
+{
 	FAT_NORMAL_STATE	= 0,
 	FAT_TRAINING_STATE = 1,
 };
 
-enum tag_dynamic_init_gain_operation_type_definition {
+enum tag_dynamic_init_gain_operation_type_definition
+{
 	DIG_TYPE_THRESH_HIGH = 0,
 	DIG_TYPE_THRESH_LOW = 1,
 	DIG_TYPE_BACKOFF = 2,
@@ -246,25 +248,29 @@ enum tag_dynamic_init_gain_operation_type_definition {
 	DIG_OP_TYPE_MAX
 };
 
-enum dm_1r_cca_e {
+enum dm_1r_cca_e
+{
 	CCA_1R = 0,
 	CCA_2R = 1,
 	CCA_MAX = 2,
 };
 
-enum dm_rf_e {
+enum dm_rf_e
+{
 	RF_SAVE = 0,
 	RF_NORMAL = 1,
 	RF_MAX = 2,
 };
 
-enum dm_sw_ant_switch_e {
+enum dm_sw_ant_switch_e
+{
 	ANS_ANTENNA_B = 1,
 	ANS_ANTENNA_A = 2,
 	ANS_ANTENNA_MAX = 3,
 };
 
-enum pwr_track_control_method {
+enum pwr_track_control_method
+{
 	BBSWING,
 	TXAGC,
 	MIX_MODE
@@ -277,15 +283,15 @@ enum pwr_track_control_method {
 #define BT_RSSI_STATE_TXPOWER_LOW       BIT_OFFSET_LEN_MASK_32(4, 1)
 #define GET_UNDECORATED_AVERAGE_RSSI(_priv)     \
 	((((struct rtl_priv *)(_priv))->mac80211.opmode ==	\
-			      NL80211_IFTYPE_ADHOC) ? \
-	(((struct rtl_priv *)(_priv))->dm.entry_min_undec_sm_pwdb) : \
-	(((struct rtl_priv *)(_priv))->dm.undec_sm_pwdb))
+	  NL80211_IFTYPE_ADHOC) ? \
+	 (((struct rtl_priv *)(_priv))->dm.entry_min_undec_sm_pwdb) : \
+	 (((struct rtl_priv *)(_priv))->dm.undec_sm_pwdb))
 
 void rtl8821ae_dm_set_tx_ant_by_tx_info(struct ieee80211_hw *hw,
-					u8 *pdesc, u32 mac_id);
+										u8 *pdesc, u32 mac_id);
 void rtl8821ae_dm_ant_sel_statistics(struct ieee80211_hw *hw,
-				     u8 antsel_tr_mux, u32 mac_id,
-				     u32 rx_pwdb_all);
+									 u8 antsel_tr_mux, u32 mac_id,
+									 u32 rx_pwdb_all);
 void rtl8821ae_dm_fast_antenna_training_callback(unsigned long data);
 void rtl8821ae_dm_init(struct ieee80211_hw *hw);
 void rtl8821ae_dm_watchdog(struct ieee80211_hw *hw);
@@ -294,18 +300,18 @@ void rtl8821ae_dm_init_edca_turbo(struct ieee80211_hw *hw);
 void rtl8821ae_dm_check_txpower_tracking_thermalmeter(struct ieee80211_hw *hw);
 void rtl8821ae_dm_init_rate_adaptive_mask(struct ieee80211_hw *hw);
 void rtl8821ae_dm_txpower_track_adjust(struct ieee80211_hw *hw,
-				       u8 type, u8 *pdirection,
-				       u32 *poutwrite_val);
+									   u8 type, u8 *pdirection,
+									   u32 *poutwrite_val);
 void rtl8821ae_dm_clear_txpower_tracking_state(struct ieee80211_hw *hw);
 void rtl8821ae_dm_write_cck_cca_thres(struct ieee80211_hw *hw, u8 current_cca);
 void rtl8821ae_dm_initialize_txpower_tracking_thermalmeter(struct ieee80211_hw *hw);
 void rtl8812ae_dm_txpwr_track_set_pwr(struct ieee80211_hw *hw,
-				      enum pwr_track_control_method method,
-				      u8 rf_path,
-				      u8 channel_mapped_index);
+									  enum pwr_track_control_method method,
+									  u8 rf_path,
+									  u8 channel_mapped_index);
 void rtl8821ae_dm_txpwr_track_set_pwr(struct ieee80211_hw *hw,
-				      enum pwr_track_control_method method,
-				      u8 rf_path, u8 channel_mapped_index);
+									  enum pwr_track_control_method method,
+									  u8 rf_path, u8 channel_mapped_index);
 
 void rtl8821ae_dm_update_init_rate(struct ieee80211_hw *hw, u8 rate);
 u8 rtl8821ae_hw_rate_to_mrate(struct ieee80211_hw *hw, u8 rate);

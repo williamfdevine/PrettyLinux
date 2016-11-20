@@ -17,7 +17,8 @@
  * Self tests
  */
 
-struct efx_loopback_self_tests {
+struct efx_loopback_self_tests
+{
 	int tx_sent[EFX_TXQ_TYPES];
 	int tx_done[EFX_TXQ_TYPES];
 	int rx_good;
@@ -30,7 +31,8 @@ struct efx_loopback_self_tests {
  * For fields which are not counters, 1 indicates success and -1
  * indicates failure; 0 indicates test could not be run.
  */
-struct efx_self_tests {
+struct efx_self_tests
+{
 	/* online tests */
 	int phy_alive;
 	int nvram;
@@ -45,9 +47,9 @@ struct efx_self_tests {
 };
 
 void efx_loopback_rx_packet(struct efx_nic *efx, const char *buf_ptr,
-			    int pkt_len);
+							int pkt_len);
 int efx_selftest(struct efx_nic *efx, struct efx_self_tests *tests,
-		 unsigned flags);
+				 unsigned flags);
 void efx_selftest_async_start(struct efx_nic *efx);
 void efx_selftest_async_cancel(struct efx_nic *efx);
 void efx_selftest_async_work(struct work_struct *data);

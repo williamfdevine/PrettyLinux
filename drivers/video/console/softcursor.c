@@ -29,17 +29,22 @@ int soft_cursor(struct fb_info *info, struct fb_cursor *cursor)
 	u8 *src, *dst;
 
 	if (info->state != FBINFO_STATE_RUNNING)
+	{
 		return 0;
+	}
 
 	s_pitch = (cursor->image.width + 7) >> 3;
 	dsize = s_pitch * cursor->image.height;
 
-	if (dsize + sizeof(struct fb_image) != ops->cursor_size) {
+	if (dsize + sizeof(struct fb_image) != ops->cursor_size)
+	{
 		kfree(ops->cursor_src);
 		ops->cursor_size = dsize + sizeof(struct fb_image);
 
 		ops->cursor_src = kmalloc(ops->cursor_size, GFP_ATOMIC);
-		if (!ops->cursor_src) {
+
+		if (!ops->cursor_src)
+		{
 			ops->cursor_size = 0;
 			return -ENOMEM;
 		}
@@ -54,20 +59,32 @@ int soft_cursor(struct fb_info *info, struct fb_cursor *cursor)
 	size &= ~buf_align;
 	dst = fb_get_buffer_offset(info, &info->pixmap, size);
 
-	if (cursor->enable) {
-		switch (cursor->rop) {
-		case ROP_XOR:
-			for (i = 0; i < dsize; i++)
-				src[i] = image->data[i] ^ cursor->mask[i];
-			break;
-		case ROP_COPY:
-		default:
-			for (i = 0; i < dsize; i++)
-				src[i] = image->data[i] & cursor->mask[i];
-			break;
+	if (cursor->enable)
+	{
+		switch (cursor->rop)
+		{
+			case ROP_XOR:
+				for (i = 0; i < dsize; i++)
+				{
+					src[i] = image->data[i] ^ cursor->mask[i];
+				}
+
+				break;
+
+			case ROP_COPY:
+			default:
+				for (i = 0; i < dsize; i++)
+				{
+					src[i] = image->data[i] & cursor->mask[i];
+				}
+
+				break;
 		}
-	} else
+	}
+	else
+	{
 		memcpy(src, image->data, dsize);
+	}
 
 	fb_pad_aligned_buffer(dst, d_pitch, src, s_pitch, image->height);
 	image->data = dst;

@@ -61,7 +61,8 @@
  * syscall interface - used (mainly by NTP daemon)
  * to discipline kernel clock oscillator
  */
-struct timex {
+struct timex
+{
 	unsigned int modes;	/* mode selector */
 	__kernel_long_t offset;	/* time offset (usec) */
 	__kernel_long_t freq;	/* frequency offset (scaled ppm) */
@@ -87,9 +88,9 @@ struct timex {
 
 	int tai;		/* TAI offset (ro) */
 
-	int  :32; int  :32; int  :32; int  :32;
-	int  :32; int  :32; int  :32; int  :32;
-	int  :32; int  :32; int  :32;
+	int  : 32; int  : 32; int  : 32; int  : 32;
+	int  : 32; int  : 32; int  : 32; int  : 32;
+	int  : 32; int  : 32; int  : 32;
 };
 
 /*
@@ -108,8 +109,8 @@ struct timex {
 #define ADJ_TICK		0x4000	/* tick value */
 
 #ifndef __KERNEL__
-#define ADJ_OFFSET_SINGLESHOT	0x8001	/* old-fashioned adjtime */
-#define ADJ_OFFSET_SS_READ	0xa001	/* read-only adjtime */
+	#define ADJ_OFFSET_SINGLESHOT	0x8001	/* old-fashioned adjtime */
+	#define ADJ_OFFSET_SS_READ	0xa001	/* read-only adjtime */
 #endif
 
 /* NTP userland likes the MOD_ prefix better */
@@ -149,7 +150,7 @@ struct timex {
 
 /* read-only bits */
 #define STA_RONLY (STA_PPSSIGNAL | STA_PPSJITTER | STA_PPSWANDER | \
-	STA_PPSERROR | STA_CLOCKERR | STA_NANO | STA_MODE | STA_CLK)
+				   STA_PPSERROR | STA_CLOCKERR | STA_NANO | STA_MODE | STA_CLK)
 
 /*
  * Clock states (time_state)

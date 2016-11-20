@@ -9,7 +9,7 @@ struct mei_cl_device;
 struct mei_device;
 
 typedef void (*mei_cldev_event_cb_t)(struct mei_cl_device *cldev,
-				     u32 events, void *context);
+									 u32 events, void *context);
 
 /**
  * struct mei_cl_device - MEI device handle
@@ -35,7 +35,8 @@ typedef void (*mei_cldev_event_cb_t)(struct mei_cl_device *cldev,
  * @is_added: device is already scanned
  * @priv_data: client private data
  */
-struct mei_cl_device {
+struct mei_cl_device
+{
 	struct list_head bus_list;
 	struct mei_device *bus;
 	struct device dev;
@@ -50,25 +51,26 @@ struct mei_cl_device {
 	unsigned long events_mask;
 	unsigned long events;
 
-	unsigned int do_match:1;
-	unsigned int is_added:1;
+	unsigned int do_match: 1;
+	unsigned int is_added: 1;
 
 	void *priv_data;
 };
 
-struct mei_cl_driver {
+struct mei_cl_driver
+{
 	struct device_driver driver;
 	const char *name;
 
 	const struct mei_cl_device_id *id_table;
 
 	int (*probe)(struct mei_cl_device *cldev,
-		     const struct mei_cl_device_id *id);
+				 const struct mei_cl_device_id *id);
 	int (*remove)(struct mei_cl_device *cldev);
 };
 
 int __mei_cldev_driver_register(struct mei_cl_driver *cldrv,
-				struct module *owner);
+								struct module *owner);
 #define mei_cldev_driver_register(cldrv)             \
 	__mei_cldev_driver_register(cldrv, THIS_MODULE)
 
@@ -78,8 +80,8 @@ ssize_t mei_cldev_send(struct mei_cl_device *cldev, u8 *buf, size_t length);
 ssize_t  mei_cldev_recv(struct mei_cl_device *cldev, u8 *buf, size_t length);
 
 int mei_cldev_register_event_cb(struct mei_cl_device *cldev,
-				unsigned long event_mask,
-				mei_cldev_event_cb_t read_cb, void *context);
+								unsigned long event_mask,
+								mei_cldev_event_cb_t read_cb, void *context);
 
 #define MEI_CL_EVENT_RX 0
 #define MEI_CL_EVENT_TX 1

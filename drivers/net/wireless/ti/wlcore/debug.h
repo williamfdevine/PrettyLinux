@@ -31,7 +31,8 @@
 #define DRIVER_NAME "wlcore"
 #define DRIVER_PREFIX DRIVER_NAME ": "
 
-enum {
+enum
+{
 	DEBUG_NONE	= 0,
 	DEBUG_IRQ	= BIT(0),
 	DEBUG_SPI	= BIT(1),
@@ -85,7 +86,7 @@ extern u32 wl12xx_debug_level;
 	do { \
 		if (unlikely(level & wl12xx_debug_level)) \
 			printk(KERN_DEBUG pr_fmt(DRIVER_PREFIX fmt "\n"), \
-			       ##arg); \
+				   ##arg); \
 	} while (0)
 #endif
 
@@ -93,20 +94,20 @@ extern u32 wl12xx_debug_level;
 	do {								      \
 		if (level & wl12xx_debug_level)				      \
 			print_hex_dump_debug(DRIVER_PREFIX prefix,	      \
-					DUMP_PREFIX_OFFSET, 16, 1,	      \
-					buf,				      \
-					min_t(size_t, len, DEBUG_DUMP_LIMIT), \
-					0);				      \
+								 DUMP_PREFIX_OFFSET, 16, 1,	      \
+								 buf,				      \
+								 min_t(size_t, len, DEBUG_DUMP_LIMIT), \
+								 0);				      \
 	} while (0)
 
 #define wl1271_dump_ascii(level, prefix, buf, len)			      \
 	do {								      \
 		if (level & wl12xx_debug_level)				      \
 			print_hex_dump_debug(DRIVER_PREFIX prefix,	      \
-					DUMP_PREFIX_OFFSET, 16, 1,	      \
-					buf,				      \
-					min_t(size_t, len, DEBUG_DUMP_LIMIT), \
-					true);				      \
+								 DUMP_PREFIX_OFFSET, 16, 1,	      \
+								 buf,				      \
+								 min_t(size_t, len, DEBUG_DUMP_LIMIT), \
+								 true);				      \
 	} while (0)
 
 #endif /* __DEBUG_H__ */

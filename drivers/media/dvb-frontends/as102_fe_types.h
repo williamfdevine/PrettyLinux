@@ -105,7 +105,8 @@
 #define CFG_MODE_OFF	1
 #define CFG_MODE_AUTO	2
 
-struct as10x_tps {
+struct as10x_tps
+{
 	uint8_t modulation;
 	uint8_t hierarchy;
 	uint8_t interleaving_mode;
@@ -118,7 +119,8 @@ struct as10x_tps {
 	uint16_t cell_ID;
 } __packed;
 
-struct as10x_tune_args {
+struct as10x_tune_args
+{
 	/* frequency */
 	uint32_t freq;
 	/* bandwidth */
@@ -139,7 +141,8 @@ struct as10x_tune_args {
 	uint8_t transmission_mode;
 } __packed;
 
-struct as10x_tune_status {
+struct as10x_tune_status
+{
 	/* tune status */
 	uint8_t tune_state;
 	/* signal strength */
@@ -150,7 +153,8 @@ struct as10x_tune_status {
 	uint16_t BER;
 } __packed;
 
-struct as10x_demod_stats {
+struct as10x_demod_stats
+{
 	/* frame counter */
 	uint32_t frame_count;
 	/* Bad frame counter */
@@ -163,22 +167,26 @@ struct as10x_demod_stats {
 	uint8_t has_started;
 } __packed;
 
-struct as10x_ts_filter {
+struct as10x_ts_filter
+{
 	uint16_t pid;  /* valid PID value 0x00 : 0x2000 */
 	uint8_t  type; /* Red TS_PID_TYPE_<N> values */
 	uint8_t  idx;  /* index in filtering table */
 } __packed;
 
-struct as10x_register_value {
+struct as10x_register_value
+{
 	uint8_t mode;
-	union {
+	union
+	{
 		uint8_t  value8;   /* 8 bit value */
 		uint16_t value16;  /* 16 bit value */
 		uint32_t value32;  /* 32 bit value */
 	} __packed u;
 } __packed;
 
-struct as10x_register_addr {
+struct as10x_register_addr
+{
 	/* register addr */
 	uint32_t addr;
 	/* register mode access */

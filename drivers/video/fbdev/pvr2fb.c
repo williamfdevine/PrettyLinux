@@ -57,23 +57,23 @@
 #include <linux/pci.h>
 
 #ifdef CONFIG_SH_DREAMCAST
-#include <asm/machvec.h>
-#include <mach-dreamcast/mach/sysasic.h>
+	#include <asm/machvec.h>
+	#include <mach-dreamcast/mach/sysasic.h>
 #endif
 
 #ifdef CONFIG_PVR2_DMA
-#include <linux/pagemap.h>
-#include <mach/dma.h>
-#include <asm/dma.h>
+	#include <linux/pagemap.h>
+	#include <mach/dma.h>
+	#include <asm/dma.h>
 #endif
 
 #ifdef CONFIG_SH_STORE_QUEUES
-#include <linux/uaccess.h>
-#include <cpu/sq.h>
+	#include <linux/uaccess.h>
+	#include <cpu/sq.h>
 #endif
 
 #ifndef PCI_DEVICE_ID_NEC_NEON250
-#  define PCI_DEVICE_ID_NEC_NEON250	0x0067
+	#define PCI_DEVICE_ID_NEC_NEON250	0x0067
 #endif
 
 /* 2D video registers */
@@ -112,11 +112,13 @@ enum { VO_PAL, VO_NTSC, VO_VGA };
 enum { PAL_ARGB1555, PAL_RGB565, PAL_ARGB4444, PAL_ARGB8888 };
 
 struct pvr2_params { unsigned int val; char *name; };
-static struct pvr2_params cables[] = {
+static struct pvr2_params cables[] =
+{
 	{ CT_VGA, "VGA" }, { CT_RGB, "RGB" }, { CT_COMPOSITE, "COMPOSITE" },
 };
 
-static struct pvr2_params outputs[] = {
+static struct pvr2_params outputs[] =
+{
 	{ VO_PAL, "PAL" }, { VO_NTSC, "NTSC" }, { VO_VGA, "VGA" },
 };
 
@@ -124,7 +126,8 @@ static struct pvr2_params outputs[] = {
  * This describes the current video mode
  */
 
-static struct pvr2fb_par {
+static struct pvr2fb_par
+{
 	unsigned int hsync_total;	/* Clocks/line */
 	unsigned int vsync_total;	/* Lines/field */
 	unsigned int borderstart_h;
@@ -145,7 +148,8 @@ static struct pvr2fb_par {
 
 static struct fb_info *fb_info;
 
-static struct fb_fix_screeninfo pvr2_fix = {
+static struct fb_fix_screeninfo pvr2_fix =
+{
 	.id =		"NEC PowerVR2",
 	.type =		FB_TYPE_PACKED_PIXELS,
 	.visual =	FB_VISUAL_TRUECOLOR,
@@ -154,12 +158,13 @@ static struct fb_fix_screeninfo pvr2_fix = {
 	.accel =	FB_ACCEL_NONE,
 };
 
-static struct fb_var_screeninfo pvr2_var = {
+static struct fb_var_screeninfo pvr2_var =
+{
 	.xres =		640,
 	.yres =		480,
 	.xres_virtual =	640,
 	.yres_virtual = 480,
-	.bits_per_pixel	=16,
+	.bits_per_pixel	= 16,
 	.red =		{ 11, 5, 0 },
 	.green =	{  5, 6, 0 },
 	.blue =		{  0, 5, 0 },
@@ -185,16 +190,16 @@ static short do_blank = 0;		/* (Un)Blank the screen */
 static unsigned int is_blanked = 0;		/* Is the screen blanked? */
 
 #ifdef CONFIG_SH_STORE_QUEUES
-static unsigned long pvr2fb_map;
+	static unsigned long pvr2fb_map;
 #endif
 
 #ifdef CONFIG_PVR2_DMA
-static unsigned int shdma = PVR2_CASCADE_CHAN;
-static unsigned int pvr2dma = ONCHIP_NR_DMA_CHANNELS;
+	static unsigned int shdma = PVR2_CASCADE_CHAN;
+	static unsigned int pvr2dma = ONCHIP_NR_DMA_CHANNELS;
 #endif
 
 static int pvr2fb_setcolreg(unsigned int regno, unsigned int red, unsigned int green, unsigned int blue,
-                            unsigned int transp, struct fb_info *info);
+							unsigned int transp, struct fb_info *info);
 static int pvr2fb_blank(int blank, struct fb_info *info);
 static unsigned long get_line_length(int xres_virtual, int bpp);
 static void set_color_bitfields(struct fb_var_screeninfo *var);
@@ -206,13 +211,14 @@ static void pvr2_do_blank(void);
 static irqreturn_t pvr2fb_interrupt(int irq, void *dev_id);
 static int pvr2_init_cable(void);
 static int pvr2_get_param(const struct pvr2_params *p, const char *s,
-                            int val, int size);
+						  int val, int size);
 #ifdef CONFIG_PVR2_DMA
 static ssize_t pvr2fb_write(struct fb_info *info, const char *buf,
-			    size_t count, loff_t *ppos);
+							size_t count, loff_t *ppos);
 #endif
 
-static struct fb_ops pvr2fb_ops = {
+static struct fb_ops pvr2fb_ops =
+{
 	.owner		= THIS_MODULE,
 	.fb_setcolreg	= pvr2fb_setcolreg,
 	.fb_blank	= pvr2fb_blank,
@@ -226,27 +232,28 @@ static struct fb_ops pvr2fb_ops = {
 	.fb_imageblit	= cfb_imageblit,
 };
 
-static struct fb_videomode pvr2_modedb[] = {
-    /*
-     * Broadcast video modes (PAL and NTSC).  I'm unfamiliar with
-     * PAL-M and PAL-N, but from what I've read both modes parallel PAL and
-     * NTSC, so it shouldn't be a problem (I hope).
-     */
+static struct fb_videomode pvr2_modedb[] =
+{
+	/*
+	 * Broadcast video modes (PAL and NTSC).  I'm unfamiliar with
+	 * PAL-M and PAL-N, but from what I've read both modes parallel PAL and
+	 * NTSC, so it shouldn't be a problem (I hope).
+	 */
 
-    {
-	/* 640x480 @ 60Hz interlaced (NTSC) */
-	"ntsc_640x480i", 60, 640, 480, TV_CLK, 38, 33, 0, 18, 146, 26,
-	FB_SYNC_BROADCAST, FB_VMODE_INTERLACED | FB_VMODE_YWRAP
-    }, {
-	/* 640x240 @ 60Hz (NTSC) */
-	/* XXX: Broken! Don't use... */
-	"ntsc_640x240", 60, 640, 240, TV_CLK, 38, 33, 0, 0, 146, 22,
-	FB_SYNC_BROADCAST, FB_VMODE_YWRAP
-    }, {
-	/* 640x480 @ 60hz (VGA) */
-	"vga_640x480", 60, 640, 480, VGA_CLK, 38, 33, 0, 18, 146, 26,
-	0, FB_VMODE_YWRAP
-    },
+	{
+		/* 640x480 @ 60Hz interlaced (NTSC) */
+		"ntsc_640x480i", 60, 640, 480, TV_CLK, 38, 33, 0, 18, 146, 26,
+		FB_SYNC_BROADCAST, FB_VMODE_INTERLACED | FB_VMODE_YWRAP
+	}, {
+		/* 640x240 @ 60Hz (NTSC) */
+		/* XXX: Broken! Don't use... */
+		"ntsc_640x240", 60, 640, 240, TV_CLK, 38, 33, 0, 0, 146, 22,
+		FB_SYNC_BROADCAST, FB_VMODE_YWRAP
+	}, {
+		/* 640x480 @ 60hz (VGA) */
+		"vga_640x480", 60, 640, 480, VGA_CLK, 38, 33, 0, 18, 146, 26,
+		0, FB_VMODE_YWRAP
+	},
 };
 
 #define NUM_TOTAL_MODES  ARRAY_SIZE(pvr2_modedb)
@@ -266,8 +273,8 @@ static inline void pvr2fb_set_pal_type(unsigned int type)
 }
 
 static inline void pvr2fb_set_pal_entry(struct pvr2fb_par *par,
-					unsigned int regno,
-					unsigned int val)
+										unsigned int regno,
+										unsigned int val)
 {
 	fb_writel(val, par->mmio_base + 0x1000 + (4 * regno));
 }
@@ -280,75 +287,86 @@ static int pvr2fb_blank(int blank, struct fb_info *info)
 
 static inline unsigned long get_line_length(int xres_virtual, int bpp)
 {
-	return (unsigned long)((((xres_virtual*bpp)+31)&~31) >> 3);
+	return (unsigned long)((((xres_virtual * bpp) + 31) & ~31) >> 3);
 }
 
 static void set_color_bitfields(struct fb_var_screeninfo *var)
 {
-	switch (var->bits_per_pixel) {
-	    case 16:        /* RGB 565 */
-		pvr2fb_set_pal_type(PAL_RGB565);
-		var->red.offset = 11;    var->red.length = 5;
-		var->green.offset = 5;   var->green.length = 6;
-		var->blue.offset = 0;    var->blue.length = 5;
-		var->transp.offset = 0;  var->transp.length = 0;
-		break;
-	    case 24:        /* RGB 888 */
-		var->red.offset = 16;    var->red.length = 8;
-		var->green.offset = 8;   var->green.length = 8;
-		var->blue.offset = 0;    var->blue.length = 8;
-		var->transp.offset = 0;  var->transp.length = 0;
-		break;
-	    case 32:        /* ARGB 8888 */
-		pvr2fb_set_pal_type(PAL_ARGB8888);
-		var->red.offset = 16;    var->red.length = 8;
-		var->green.offset = 8;   var->green.length = 8;
-		var->blue.offset = 0;    var->blue.length = 8;
-		var->transp.offset = 24; var->transp.length = 8;
-		break;
+	switch (var->bits_per_pixel)
+	{
+		case 16:        /* RGB 565 */
+			pvr2fb_set_pal_type(PAL_RGB565);
+			var->red.offset = 11;    var->red.length = 5;
+			var->green.offset = 5;   var->green.length = 6;
+			var->blue.offset = 0;    var->blue.length = 5;
+			var->transp.offset = 0;  var->transp.length = 0;
+			break;
+
+		case 24:        /* RGB 888 */
+			var->red.offset = 16;    var->red.length = 8;
+			var->green.offset = 8;   var->green.length = 8;
+			var->blue.offset = 0;    var->blue.length = 8;
+			var->transp.offset = 0;  var->transp.length = 0;
+			break;
+
+		case 32:        /* ARGB 8888 */
+			pvr2fb_set_pal_type(PAL_ARGB8888);
+			var->red.offset = 16;    var->red.length = 8;
+			var->green.offset = 8;   var->green.length = 8;
+			var->blue.offset = 0;    var->blue.length = 8;
+			var->transp.offset = 24; var->transp.length = 8;
+			break;
 	}
 }
 
 static int pvr2fb_setcolreg(unsigned int regno, unsigned int red,
-			    unsigned int green, unsigned int blue,
-                            unsigned int transp, struct fb_info *info)
+							unsigned int green, unsigned int blue,
+							unsigned int transp, struct fb_info *info)
 {
 	struct pvr2fb_par *par = (struct pvr2fb_par *)info->par;
 	unsigned int tmp;
 
 	if (regno > info->cmap.len)
+	{
 		return 1;
+	}
 
 	/*
 	 * We only support the hardware palette for 16 and 32bpp. It's also
 	 * expected that the palette format has been set by the time we get
 	 * here, so we don't waste time setting it again.
 	 */
-	switch (info->var.bits_per_pixel) {
-	    case 16: /* RGB 565 */
-		tmp =  (red   & 0xf800)       |
-		      ((green & 0xfc00) >> 5) |
-		      ((blue  & 0xf800) >> 11);
+	switch (info->var.bits_per_pixel)
+	{
+		case 16: /* RGB 565 */
+			tmp =  (red   & 0xf800)       |
+				   ((green & 0xfc00) >> 5) |
+				   ((blue  & 0xf800) >> 11);
 
-		pvr2fb_set_pal_entry(par, regno, tmp);
-		break;
-	    case 24: /* RGB 888 */
-		red >>= 8; green >>= 8; blue >>= 8;
-		tmp = (red << 16) | (green << 8) | blue;
-		break;
-	    case 32: /* ARGB 8888 */
-		red >>= 8; green >>= 8; blue >>= 8;
-		tmp = (transp << 24) | (red << 16) | (green << 8) | blue;
+			pvr2fb_set_pal_entry(par, regno, tmp);
+			break;
 
-		pvr2fb_set_pal_entry(par, regno, tmp);
-		break;
-	    default:
-		pr_debug("Invalid bit depth %d?!?\n", info->var.bits_per_pixel);
-		return 1;
+		case 24: /* RGB 888 */
+			red >>= 8; green >>= 8; blue >>= 8;
+			tmp = (red << 16) | (green << 8) | blue;
+			break;
+
+		case 32: /* ARGB 8888 */
+			red >>= 8; green >>= 8; blue >>= 8;
+			tmp = (transp << 24) | (red << 16) | (green << 8) | blue;
+
+			pvr2fb_set_pal_entry(par, regno, tmp);
+			break;
+
+		default:
+			pr_debug("Invalid bit depth %d?!?\n", info->var.bits_per_pixel);
+			return 1;
 	}
 
 	if (regno < 16)
-		((u32*)(info->pseudo_palette))[regno] = tmp;
+	{
+		((u32 *)(info->pseudo_palette))[regno] = tmp;
+	}
 
 	return 0;
 }
@@ -368,39 +386,58 @@ static int pvr2fb_set_par(struct fb_info *info)
 	 * don't have a VGA box to make sure this works properly.
 	 */
 	cable_type = pvr2_init_cable();
+
 	if (cable_type == CT_VGA && video_output != VO_VGA)
+	{
 		video_output = VO_VGA;
+	}
 
 	var->vmode &= FB_VMODE_MASK;
+
 	if (var->vmode & FB_VMODE_INTERLACED && video_output != VO_VGA)
+	{
 		par->is_interlaced = 1;
+	}
+
 	/*
 	 * XXX: Need to be more creative with this (i.e. allow doublecan for
 	 * PAL/NTSC output).
 	 */
 	if (var->vmode & FB_VMODE_DOUBLE && video_output == VO_VGA)
+	{
 		par->is_doublescan = 1;
+	}
 
 	par->hsync_total = var->left_margin + var->xres + var->right_margin +
-	                   var->hsync_len;
+					   var->hsync_len;
 	par->vsync_total = var->upper_margin + var->yres + var->lower_margin +
-	                   var->vsync_len;
+					   var->vsync_len;
 
-	if (var->sync & FB_SYNC_BROADCAST) {
+	if (var->sync & FB_SYNC_BROADCAST)
+	{
 		vtotal = par->vsync_total;
+
 		if (par->is_interlaced)
+		{
 			vtotal /= 2;
-		if (vtotal > (PAL_VTOTAL + NTSC_VTOTAL)/2) {
+		}
+
+		if (vtotal > (PAL_VTOTAL + NTSC_VTOTAL) / 2)
+		{
 			/* XXX: Check for start values here... */
 			/* XXX: Check hardware for PAL-compatibility */
 			par->borderstart_h = 116;
 			par->borderstart_v = 44;
-		} else {
+		}
+		else
+		{
 			/* NTSC video output */
 			par->borderstart_h = 126;
 			par->borderstart_v = 18;
 		}
-	} else {
+	}
+	else
+	{
 		/* VGA mode */
 		/* XXX: What else needs to be checked? */
 		/*
@@ -415,14 +452,19 @@ static int pvr2fb_set_par(struct fb_info *info)
 	par->diwstart_h = par->borderstart_h + var->left_margin;
 	par->diwstart_v = par->borderstart_v + var->upper_margin;
 	par->borderstop_h = par->diwstart_h + var->xres +
-			    var->right_margin;
+						var->right_margin;
 	par->borderstop_v = par->diwstart_v + var->yres +
-			    var->lower_margin;
+						var->lower_margin;
 
 	if (!par->is_interlaced)
+	{
 		par->borderstop_v /= 2;
+	}
+
 	if (info->var.xres < 640)
+	{
 		par->is_lowres = 1;
+	}
 
 	line_length = get_line_length(var->xres_virtual, var->bits_per_pixel);
 	par->disp_start = info->fix.smem_start + (line_length * var->yoffset) * line_length;
@@ -436,40 +478,66 @@ static int pvr2fb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 	unsigned int vtotal, hsync_total;
 	unsigned long line_length;
 
-	if (var->pixclock != TV_CLK && var->pixclock != VGA_CLK) {
+	if (var->pixclock != TV_CLK && var->pixclock != VGA_CLK)
+	{
 		pr_debug("Invalid pixclock value %d\n", var->pixclock);
 		return -EINVAL;
 	}
 
 	if (var->xres < 320)
+	{
 		var->xres = 320;
+	}
+
 	if (var->yres < 240)
+	{
 		var->yres = 240;
+	}
+
 	if (var->xres_virtual < var->xres)
+	{
 		var->xres_virtual = var->xres;
+	}
+
 	if (var->yres_virtual < var->yres)
+	{
 		var->yres_virtual = var->yres;
+	}
 
 	if (var->bits_per_pixel <= 16)
+	{
 		var->bits_per_pixel = 16;
+	}
 	else if (var->bits_per_pixel <= 24)
+	{
 		var->bits_per_pixel = 24;
+	}
 	else if (var->bits_per_pixel <= 32)
+	{
 		var->bits_per_pixel = 32;
+	}
 
 	set_color_bitfields(var);
 
-	if (var->vmode & FB_VMODE_YWRAP) {
+	if (var->vmode & FB_VMODE_YWRAP)
+	{
 		if (var->xoffset || var->yoffset < 0 ||
-		    var->yoffset >= var->yres_virtual) {
+			var->yoffset >= var->yres_virtual)
+		{
 			var->xoffset = var->yoffset = 0;
-		} else {
-			if (var->xoffset > var->xres_virtual - var->xres ||
-			    var->yoffset > var->yres_virtual - var->yres ||
-			    var->xoffset < 0 || var->yoffset < 0)
-				var->xoffset = var->yoffset = 0;
 		}
-	} else {
+		else
+		{
+			if (var->xoffset > var->xres_virtual - var->xres ||
+				var->yoffset > var->yres_virtual - var->yres ||
+				var->xoffset < 0 || var->yoffset < 0)
+			{
+				var->xoffset = var->yoffset = 0;
+			}
+		}
+	}
+	else
+	{
 		var->xoffset = var->yoffset = 0;
 	}
 
@@ -478,49 +546,64 @@ static int pvr2fb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 	 * PAL/NTSC output).
 	 */
 	if (var->yres < 480 && video_output == VO_VGA)
+	{
 		var->vmode |= FB_VMODE_DOUBLE;
+	}
 
-	if (video_output != VO_VGA) {
+	if (video_output != VO_VGA)
+	{
 		var->sync |= FB_SYNC_BROADCAST;
 		var->vmode |= FB_VMODE_INTERLACED;
-	} else {
+	}
+	else
+	{
 		var->sync &= ~FB_SYNC_BROADCAST;
 		var->vmode &= ~FB_VMODE_INTERLACED;
 		var->vmode |= FB_VMODE_NONINTERLACED;
 	}
 
-	if ((var->activate & FB_ACTIVATE_MASK) != FB_ACTIVATE_TEST) {
+	if ((var->activate & FB_ACTIVATE_MASK) != FB_ACTIVATE_TEST)
+	{
 		var->right_margin = par->borderstop_h -
-				   (par->diwstart_h + var->xres);
+							(par->diwstart_h + var->xres);
 		var->left_margin  = par->diwstart_h - par->borderstart_h;
 		var->hsync_len    = par->borderstart_h +
-		                   (par->hsync_total - par->borderstop_h);
+							(par->hsync_total - par->borderstop_h);
 
 		var->upper_margin = par->diwstart_v - par->borderstart_v;
 		var->lower_margin = par->borderstop_v -
-				   (par->diwstart_v + var->yres);
+							(par->diwstart_v + var->yres);
 		var->vsync_len    = par->borderstop_v +
-				   (par->vsync_total - par->borderstop_v);
+							(par->vsync_total - par->borderstop_v);
 	}
 
 	hsync_total = var->left_margin + var->xres + var->right_margin +
-		      var->hsync_len;
+				  var->hsync_len;
 	vtotal = var->upper_margin + var->yres + var->lower_margin +
-		 var->vsync_len;
+			 var->vsync_len;
 
-	if (var->sync & FB_SYNC_BROADCAST) {
+	if (var->sync & FB_SYNC_BROADCAST)
+	{
 		if (var->vmode & FB_VMODE_INTERLACED)
+		{
 			vtotal /= 2;
-		if (vtotal > (PAL_VTOTAL + NTSC_VTOTAL)/2) {
+		}
+
+		if (vtotal > (PAL_VTOTAL + NTSC_VTOTAL) / 2)
+		{
 			/* PAL video output */
 			/* XXX: Should be using a range here ... ? */
-			if (hsync_total != PAL_HTOTAL) {
+			if (hsync_total != PAL_HTOTAL)
+			{
 				pr_debug("invalid hsync total for PAL\n");
 				return -EINVAL;
 			}
-		} else {
+		}
+		else
+		{
 			/* NTSC video output */
-			if (hsync_total != NTSC_HTOTAL) {
+			if (hsync_total != NTSC_HTOTAL)
+			{
 				pr_debug("invalid hsync total for NTSC\n");
 				return -EINVAL;
 			}
@@ -529,8 +612,11 @@ static int pvr2fb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 
 	/* Check memory sizes */
 	line_length = get_line_length(var->xres_virtual, var->bits_per_pixel);
+
 	if (line_length * var->yres_virtual > info->fix.smem_len)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -543,8 +629,8 @@ static void pvr2_update_display(struct fb_info *info)
 	/* Update the start address of the display image */
 	fb_writel(par->disp_start, DISP_DIWADDRL);
 	fb_writel(par->disp_start +
-		  get_line_length(var->xoffset+var->xres, var->bits_per_pixel),
-	          DISP_DIWADDRS);
+			  get_line_length(var->xoffset + var->xres, var->bits_per_pixel),
+			  DISP_DIWADDRS);
 }
 
 /*
@@ -567,17 +653,20 @@ static void pvr2_init_display(struct fb_info *info)
 	/* since we're "panning" within vram, we need to offset things based
 	 * on the offset from the virtual x start to our real gfx. */
 	if (video_output != VO_VGA && par->is_interlaced)
+	{
 		diw_modulo += info->fix.line_length / 4;
+	}
+
 	diw_height = (par->is_interlaced ? var->yres / 2 : var->yres);
 	diw_width = get_line_length(var->xres, var->bits_per_pixel) / 4;
 	fb_writel((diw_modulo << 20) | (--diw_height << 10) | --diw_width,
-	          DISP_DIWSIZE);
+			  DISP_DIWSIZE);
 
 	/* display address, long and short fields */
 	fb_writel(par->disp_start, DISP_DIWADDRL);
 	fb_writel(par->disp_start +
-	          get_line_length(var->xoffset+var->xres, var->bits_per_pixel),
-	          DISP_DIWADDRS);
+			  get_line_length(var->xoffset + var->xres, var->bits_per_pixel),
+			  DISP_DIWADDRS);
 
 	/* border horizontal, border vertical, border color */
 	fb_writel((par->borderstart_h << 16) | par->borderstop_h, DISP_BRDRHORZ);
@@ -593,7 +682,7 @@ static void pvr2_init_display(struct fb_info *info)
 
 	/* clock doubler (for VGA), scan doubler, display enable */
 	fb_writel(((video_output == VO_VGA) << 23) |
-	          (par->is_doublescan << 1) | 1, DISP_DIWMODE);
+			  (par->is_doublescan << 1) | 1, DISP_DIWMODE);
 
 	/* bits per pixel */
 	fb_writel(fb_readl(DISP_DIWMODE) | (--bytesperpixel << 2), DISP_DIWMODE);
@@ -614,10 +703,15 @@ static void pvr2_do_blank(void)
 	unsigned long diwconf;
 
 	diwconf = fb_readl(DISP_DIWCONF);
+
 	if (do_blank > 0)
+	{
 		fb_writel(diwconf | BLANK_BIT, DISP_DIWCONF);
+	}
 	else
+	{
 		fb_writel(diwconf & ~BLANK_BIT, DISP_DIWCONF);
+	}
 
 	is_blanked = do_blank > 0 ? do_blank : 0;
 }
@@ -627,17 +721,31 @@ static irqreturn_t pvr2fb_interrupt(int irq, void *dev_id)
 	struct fb_info *info = dev_id;
 
 	if (do_vmode_pan || do_vmode_full)
+	{
 		pvr2_update_display(info);
+	}
+
 	if (do_vmode_full)
+	{
 		pvr2_init_display(info);
+	}
+
 	if (do_vmode_pan)
+	{
 		do_vmode_pan = 0;
+	}
+
 	if (do_vmode_full)
+	{
 		do_vmode_full = 0;
-	if (do_blank) {
+	}
+
+	if (do_blank)
+	{
 		pvr2_do_blank();
 		do_blank = 0;
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -652,9 +760,10 @@ static irqreturn_t pvr2fb_interrupt(int irq, void *dev_id)
 
 static int pvr2_init_cable(void)
 {
-	if (cable_type < 0) {
+	if (cable_type < 0)
+	{
 		fb_writel((fb_readl(PCTRA) & 0xfff0ffff) | 0x000a0000,
-	                  PCTRA);
+				  PCTRA);
 		cable_type = (fb_readw(PDTRA) >> 8) & 3;
 	}
 
@@ -662,18 +771,24 @@ static int pvr2_init_cable(void)
 	/* XXX: Save the previous val first, as this reg is also AICA
 	  related */
 	if (cable_type == CT_COMPOSITE)
+	{
 		fb_writel(3 << 8, VOUTC);
+	}
 	else if (cable_type == CT_RGB)
+	{
 		fb_writel(1 << 9, VOUTC);
+	}
 	else
+	{
 		fb_writel(0, VOUTC);
+	}
 
 	return cable_type;
 }
 
 #ifdef CONFIG_PVR2_DMA
 static ssize_t pvr2fb_write(struct fb_info *info, const char *buf,
-			    size_t count, loff_t *ppos)
+							size_t count, loff_t *ppos)
 {
 	unsigned long dst, start, end, len;
 	unsigned int nr_pages;
@@ -683,13 +798,17 @@ static ssize_t pvr2fb_write(struct fb_info *info, const char *buf,
 	nr_pages = (count + PAGE_SIZE - 1) >> PAGE_SHIFT;
 
 	pages = kmalloc(nr_pages * sizeof(struct page *), GFP_KERNEL);
+
 	if (!pages)
+	{
 		return -ENOMEM;
+	}
 
 	ret = get_user_pages_unlocked((unsigned long)buf, nr_pages, pages,
-			FOLL_WRITE);
+								  FOLL_WRITE);
 
-	if (ret < nr_pages) {
+	if (ret < nr_pages)
+	{
 		nr_pages = ret;
 		ret = -EINVAL;
 		goto out_unmap;
@@ -703,9 +822,11 @@ static ssize_t pvr2fb_write(struct fb_info *info, const char *buf,
 	len   = nr_pages << PAGE_SHIFT;
 
 	/* Half-assed contig check */
-	if (start + len == end) {
+	if (start + len == end)
+	{
 		/* As we do this in one shot, it's either all or nothing.. */
-		if ((*ppos + len) > fb_info->fix.smem_len) {
+		if ((*ppos + len) > fb_info->fix.smem_len)
+		{
 			ret = -ENOSPC;
 			goto out_unmap;
 		}
@@ -718,8 +839,10 @@ static ssize_t pvr2fb_write(struct fb_info *info, const char *buf,
 	}
 
 	/* Not contiguous, writeout per-page instead.. */
-	for (i = 0; i < nr_pages; i++, dst += PAGE_SIZE) {
-		if ((*ppos + (i << PAGE_SHIFT)) > fb_info->fix.smem_len) {
+	for (i = 0; i < nr_pages; i++, dst += PAGE_SIZE)
+	{
+		if ((*ppos + (i << PAGE_SHIFT)) > fb_info->fix.smem_len)
+		{
 			ret = -ENOSPC;
 			goto out_unmap;
 		}
@@ -734,8 +857,11 @@ out:
 	ret = count;
 
 out_unmap:
+
 	for (i = 0; i < nr_pages; i++)
+	{
 		put_page(pages[i]);
+	}
 
 	kfree(pages);
 
@@ -767,16 +893,19 @@ static int pvr2fb_common_init(void)
 	unsigned long modememused, rev;
 
 	fb_info->screen_base = ioremap_nocache(pvr2_fix.smem_start,
-					       pvr2_fix.smem_len);
+										   pvr2_fix.smem_len);
 
-	if (!fb_info->screen_base) {
+	if (!fb_info->screen_base)
+	{
 		printk(KERN_ERR "pvr2fb: Failed to remap smem space\n");
 		goto out_err;
 	}
 
 	par->mmio_base = (unsigned long)ioremap_nocache(pvr2_fix.mmio_start,
-							pvr2_fix.mmio_len);
-	if (!par->mmio_base) {
+					 pvr2_fix.mmio_len);
+
+	if (!par->mmio_base)
+	{
 		printk(KERN_ERR "pvr2fb: Failed to remap mmio space\n");
 		goto out_err;
 	}
@@ -793,56 +922,71 @@ static int pvr2fb_common_init(void)
 	fb_info->flags		= FBINFO_DEFAULT | FBINFO_HWACCEL_YPAN;
 
 	if (video_output == VO_VGA)
+	{
 		defmode = DEFMODE_VGA;
+	}
 
 	if (!mode_option)
+	{
 		mode_option = "640x480@60";
+	}
 
 	if (!fb_find_mode(&fb_info->var, fb_info, mode_option, pvr2_modedb,
-	                  NUM_TOTAL_MODES, &pvr2_modedb[defmode], 16))
+					  NUM_TOTAL_MODES, &pvr2_modedb[defmode], 16))
+	{
 		fb_info->var = pvr2_var;
+	}
 
 	fb_alloc_cmap(&fb_info->cmap, 256, 0);
 
 	if (register_framebuffer(fb_info) < 0)
+	{
 		goto out_err;
+	}
+
 	/*Must write PIXDEPTH to register before anything is displayed - so force init */
 	pvr2_init_display(fb_info);
 
 	modememused = get_line_length(fb_info->var.xres_virtual,
-				      fb_info->var.bits_per_pixel);
+								  fb_info->var.bits_per_pixel);
 	modememused *= fb_info->var.yres_virtual;
 
 	rev = fb_readl(par->mmio_base + 0x04);
 
 	fb_info(fb_info, "%s (rev %ld.%ld) frame buffer device, using %ldk/%ldk of video memory\n",
-		fb_info->fix.id, (rev >> 4) & 0x0f, rev & 0x0f,
-		modememused >> 10,
-		(unsigned long)(fb_info->fix.smem_len >> 10));
+			fb_info->fix.id, (rev >> 4) & 0x0f, rev & 0x0f,
+			modememused >> 10,
+			(unsigned long)(fb_info->fix.smem_len >> 10));
 	fb_info(fb_info, "Mode %dx%d-%d pitch = %ld cable: %s video output: %s\n",
-		fb_info->var.xres, fb_info->var.yres,
-		fb_info->var.bits_per_pixel,
-		get_line_length(fb_info->var.xres, fb_info->var.bits_per_pixel),
-		(char *)pvr2_get_param(cables, NULL, cable_type, 3),
-		(char *)pvr2_get_param(outputs, NULL, video_output, 3));
+			fb_info->var.xres, fb_info->var.yres,
+			fb_info->var.bits_per_pixel,
+			get_line_length(fb_info->var.xres, fb_info->var.bits_per_pixel),
+			(char *)pvr2_get_param(cables, NULL, cable_type, 3),
+			(char *)pvr2_get_param(outputs, NULL, video_output, 3));
 
 #ifdef CONFIG_SH_STORE_QUEUES
 	fb_notice(fb_info, "registering with SQ API\n");
 
 	pvr2fb_map = sq_remap(fb_info->fix.smem_start, fb_info->fix.smem_len,
-			      fb_info->fix.id, PAGE_SHARED);
+						  fb_info->fix.id, PAGE_SHARED);
 
 	fb_notice(fb_info, "Mapped video memory to SQ addr 0x%lx\n",
-		  pvr2fb_map);
+			  pvr2fb_map);
 #endif
 
 	return 0;
 
 out_err:
+
 	if (fb_info->screen_base)
+	{
 		iounmap(fb_info->screen_base);
+	}
+
 	if (par->mmio_base)
+	{
 		iounmap((void *)par->mmio_base);
+	}
 
 	return -ENXIO;
 }
@@ -851,15 +995,20 @@ out_err:
 static int __init pvr2fb_dc_init(void)
 {
 	if (!mach_is_dreamcast())
+	{
 		return -ENXIO;
+	}
 
 	/* Make a guess at the monitor based on the attached cable */
-	if (pvr2_init_cable() == CT_VGA) {
+	if (pvr2_init_cable() == CT_VGA)
+	{
 		fb_info->monspecs.hfmin = 30000;
 		fb_info->monspecs.hfmax = 70000;
 		fb_info->monspecs.vfmin = 60;
 		fb_info->monspecs.vfmax = 60;
-	} else {
+	}
+	else
+	{
 		/* Not VGA, using a TV (taken from acornfb) */
 		fb_info->monspecs.hfmin = 15469;
 		fb_info->monspecs.hfmax = 15781;
@@ -870,10 +1019,14 @@ static int __init pvr2fb_dc_init(void)
 	/*
 	 * XXX: This needs to pull default video output via BIOS or other means
 	 */
-	if (video_output < 0) {
-		if (cable_type == CT_VGA) {
+	if (video_output < 0)
+	{
+		if (cable_type == CT_VGA)
+		{
 			video_output = VO_VGA;
-		} else {
+		}
+		else
+		{
 			video_output = VO_NTSC;
 		}
 	}
@@ -888,15 +1041,19 @@ static int __init pvr2fb_dc_init(void)
 	pvr2_fix.mmio_len	= 0x2000;
 
 	if (request_irq(HW_EVENT_VSYNC, pvr2fb_interrupt, IRQF_SHARED,
-	                "pvr2 VBL handler", fb_info)) {
+					"pvr2 VBL handler", fb_info))
+	{
 		return -EBUSY;
 	}
 
 #ifdef CONFIG_PVR2_DMA
-	if (request_dma(pvr2dma, "pvr2") != 0) {
+
+	if (request_dma(pvr2dma, "pvr2") != 0)
+	{
 		free_irq(HW_EVENT_VSYNC, fb_info);
 		return -EBUSY;
 	}
+
 #endif
 
 	return pvr2fb_common_init();
@@ -904,11 +1061,14 @@ static int __init pvr2fb_dc_init(void)
 
 static void __exit pvr2fb_dc_exit(void)
 {
-	if (fb_info->screen_base) {
+	if (fb_info->screen_base)
+	{
 		iounmap(fb_info->screen_base);
 		fb_info->screen_base = NULL;
 	}
-	if (currentpar->mmio_base) {
+
+	if (currentpar->mmio_base)
+	{
 		iounmap((void *)currentpar->mmio_base);
 		currentpar->mmio_base = 0;
 	}
@@ -922,18 +1082,22 @@ static void __exit pvr2fb_dc_exit(void)
 
 #ifdef CONFIG_PCI
 static int pvr2fb_pci_probe(struct pci_dev *pdev,
-			    const struct pci_device_id *ent)
+							const struct pci_device_id *ent)
 {
 	int ret;
 
 	ret = pci_enable_device(pdev);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "pvr2fb: PCI enable failed\n");
 		return ret;
 	}
 
 	ret = pci_request_regions(pdev, "pvr2fb");
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "pvr2fb: PCI request regions failed\n");
 		return ret;
 	}
@@ -954,11 +1118,14 @@ static int pvr2fb_pci_probe(struct pci_dev *pdev,
 
 static void pvr2fb_pci_remove(struct pci_dev *pdev)
 {
-	if (fb_info->screen_base) {
+	if (fb_info->screen_base)
+	{
 		iounmap(fb_info->screen_base);
 		fb_info->screen_base = NULL;
 	}
-	if (currentpar->mmio_base) {
+
+	if (currentpar->mmio_base)
+	{
 		iounmap((void *)currentpar->mmio_base);
 		currentpar->mmio_base = 0;
 	}
@@ -966,15 +1133,19 @@ static void pvr2fb_pci_remove(struct pci_dev *pdev)
 	pci_release_regions(pdev);
 }
 
-static struct pci_device_id pvr2fb_pci_tbl[] = {
-	{ PCI_VENDOR_ID_NEC, PCI_DEVICE_ID_NEC_NEON250,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
+static struct pci_device_id pvr2fb_pci_tbl[] =
+{
+	{
+		PCI_VENDOR_ID_NEC, PCI_DEVICE_ID_NEC_NEON250,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0
+	},
 	{ 0, },
 };
 
 MODULE_DEVICE_TABLE(pci, pvr2fb_pci_tbl);
 
-static struct pci_driver pvr2fb_pci_driver = {
+static struct pci_driver pvr2fb_pci_driver =
+{
 	.name		= "pvr2fb",
 	.id_table	= pvr2fb_pci_tbl,
 	.probe		= pvr2fb_pci_probe,
@@ -993,19 +1164,28 @@ static void __exit pvr2fb_pci_exit(void)
 #endif /* CONFIG_PCI */
 
 static int pvr2_get_param(const struct pvr2_params *p, const char *s, int val,
-			  int size)
+						  int size)
 {
 	int i;
 
-	for (i = 0 ; i < size ; i++ ) {
-		if (s != NULL) {
+	for (i = 0 ; i < size ; i++ )
+	{
+		if (s != NULL)
+		{
 			if (!strncasecmp(p[i].name, s, strlen(s)))
+			{
 				return p[i].val;
-		} else {
+			}
+		}
+		else
+		{
 			if (p[i].val == val)
+			{
 				return (int)p[i].name;
+			}
 		}
 	}
+
 	return -1;
 }
 
@@ -1027,40 +1207,64 @@ static int __init pvr2fb_setup(char *options)
 	char output_arg[80];
 
 	if (!options || !*options)
+	{
 		return 0;
+	}
 
-	while ((this_opt = strsep(&options, ","))) {
+	while ((this_opt = strsep(&options, ",")))
+	{
 		if (!*this_opt)
+		{
 			continue;
-		if (!strcmp(this_opt, "inverse")) {
+		}
+
+		if (!strcmp(this_opt, "inverse"))
+		{
 			fb_invert_cmaps();
-		} else if (!strncmp(this_opt, "cable:", 6)) {
+		}
+		else if (!strncmp(this_opt, "cable:", 6))
+		{
 			strcpy(cable_arg, this_opt + 6);
-		} else if (!strncmp(this_opt, "output:", 7)) {
+		}
+		else if (!strncmp(this_opt, "output:", 7))
+		{
 			strcpy(output_arg, this_opt + 7);
-		} else if (!strncmp(this_opt, "nopan", 5)) {
+		}
+		else if (!strncmp(this_opt, "nopan", 5))
+		{
 			nopan = 1;
-		} else if (!strncmp(this_opt, "nowrap", 6)) {
+		}
+		else if (!strncmp(this_opt, "nowrap", 6))
+		{
 			nowrap = 1;
-		} else {
+		}
+		else
+		{
 			mode_option = this_opt;
 		}
 	}
 
 	if (*cable_arg)
+	{
 		cable_type = pvr2_get_param(cables, cable_arg, 0, 3);
+	}
+
 	if (*output_arg)
+	{
 		video_output = pvr2_get_param(outputs, output_arg, 0, 3);
+	}
 
 	return 0;
 }
 #endif
 
-static struct pvr2_board {
+static struct pvr2_board
+{
 	int (*init)(void);
 	void (*exit)(void);
 	char name[16];
-} board_driver[] __refdata = {
+} board_driver[] __refdata =
+{
 #ifdef CONFIG_SH_DREAMCAST
 	{ pvr2fb_dc_init, pvr2fb_dc_exit, "Sega DC PVR2" },
 #endif
@@ -1079,14 +1283,18 @@ static int __init pvr2fb_init(void)
 	char *option = NULL;
 
 	if (fb_get_options("pvr2fb", &option))
+	{
 		return -ENODEV;
+	}
+
 	pvr2fb_setup(option);
 #endif
 	size = sizeof(struct fb_info) + sizeof(struct pvr2fb_par) + 16 * sizeof(u32);
 
 	fb_info = framebuffer_alloc(sizeof(struct pvr2fb_par), NULL);
 
-	if (!fb_info) {
+	if (!fb_info)
+	{
 		printk(KERN_ERR "Failed to allocate memory for fb_info\n");
 		return -ENOMEM;
 	}
@@ -1094,17 +1302,21 @@ static int __init pvr2fb_init(void)
 
 	currentpar = fb_info->par;
 
-	for (i = 0; i < ARRAY_SIZE(board_driver); i++) {
+	for (i = 0; i < ARRAY_SIZE(board_driver); i++)
+	{
 		struct pvr2_board *pvr_board = board_driver + i;
 
 		if (!pvr_board->init)
+		{
 			continue;
+		}
 
 		ret = pvr_board->init();
 
-		if (ret != 0) {
+		if (ret != 0)
+		{
 			printk(KERN_ERR "pvr2fb: Failed init of %s device\n",
-				pvr_board->name);
+				   pvr_board->name);
 			framebuffer_release(fb_info);
 			break;
 		}
@@ -1117,11 +1329,14 @@ static void __exit pvr2fb_exit(void)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(board_driver); i++) {
+	for (i = 0; i < ARRAY_SIZE(board_driver); i++)
+	{
 		struct pvr2_board *pvr_board = board_driver + i;
 
 		if (pvr_board->exit)
+		{
 			pvr_board->exit();
+		}
 	}
 
 #ifdef CONFIG_SH_STORE_QUEUES

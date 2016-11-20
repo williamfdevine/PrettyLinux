@@ -1,7 +1,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table twinhan_vp1027[] = {
+static struct rc_map_table twinhan_vp1027[] =
+{
 	{ 0x16, KEY_POWER2 },
 	{ 0x17, KEY_FAVORITES },
 	{ 0x0f, KEY_TEXT },
@@ -62,7 +63,8 @@ static struct rc_map_table twinhan_vp1027[] = {
 	{ 0x5f, KEY_BLUE },
 };
 
-static struct rc_map_list twinhan_vp1027_map = {
+static struct rc_map_list twinhan_vp1027_map =
+{
 	.map = {
 		.scan    = twinhan_vp1027,
 		.size    = ARRAY_SIZE(twinhan_vp1027),

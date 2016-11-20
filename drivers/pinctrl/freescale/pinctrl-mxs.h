@@ -54,13 +54,15 @@
 #define CONFIG_TO_VOL(c)	((c) >> VOL_SHIFT & 0x1)
 #define CONFIG_TO_MA(c)		((c) >> MA_SHIFT & 0x3)
 
-struct mxs_function {
+struct mxs_function
+{
 	const char *name;
 	const char **groups;
 	unsigned ngroups;
 };
 
-struct mxs_group {
+struct mxs_group
+{
 	const char *name;
 	unsigned int *pins;
 	unsigned npins;
@@ -68,13 +70,15 @@ struct mxs_group {
 	u8 config;
 };
 
-struct mxs_regs {
+struct mxs_regs
+{
 	u16 muxsel;
 	u16 drive;
 	u16 pull;
 };
 
-struct mxs_pinctrl_soc_data {
+struct mxs_pinctrl_soc_data
+{
 	const struct mxs_regs *regs;
 	const struct pinctrl_pin_desc *pins;
 	unsigned npins;
@@ -85,6 +89,6 @@ struct mxs_pinctrl_soc_data {
 };
 
 int mxs_pinctrl_probe(struct platform_device *pdev,
-		      struct mxs_pinctrl_soc_data *soc);
+					  struct mxs_pinctrl_soc_data *soc);
 
 #endif /* __PINCTRL_MXS_H */

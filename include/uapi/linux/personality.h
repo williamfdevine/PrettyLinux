@@ -7,7 +7,8 @@
  *
  * These occupy the top three bytes.
  */
-enum {
+enum
+{
 	UNAME26	=               0x0020000,
 	ADDR_NO_RANDOMIZE = 	0x0040000,	/* disable randomization of VA space */
 	FDPIC_FUNCPTRS =	0x0080000,	/* userspace function ptrs point to descriptors
@@ -28,9 +29,9 @@ enum {
  * cleared upon setuid or setgid exec:
  */
 #define PER_CLEAR_ON_SETID (READ_IMPLIES_EXEC  | \
-			    ADDR_NO_RANDOMIZE  | \
-			    ADDR_COMPAT_LAYOUT | \
-			    MMAP_PAGE_ZERO)
+							ADDR_NO_RANDOMIZE  | \
+							ADDR_COMPAT_LAYOUT | \
+							MMAP_PAGE_ZERO)
 
 /*
  * Personality types.
@@ -38,14 +39,15 @@ enum {
  * These go in the low byte.  Avoid using the top bit, it will
  * conflict with error returns.
  */
-enum {
+enum
+{
 	PER_LINUX =		0x0000,
 	PER_LINUX_32BIT =	0x0000 | ADDR_LIMIT_32BIT,
 	PER_LINUX_FDPIC =	0x0000 | FDPIC_FUNCPTRS,
 	PER_SVR4 =		0x0001 | STICKY_TIMEOUTS | MMAP_PAGE_ZERO,
 	PER_SVR3 =		0x0002 | STICKY_TIMEOUTS | SHORT_INODE,
 	PER_SCOSVR3 =		0x0003 | STICKY_TIMEOUTS |
-					 WHOLE_SECONDS | SHORT_INODE,
+						WHOLE_SECONDS | SHORT_INODE,
 	PER_OSR5 =		0x0003 | STICKY_TIMEOUTS | WHOLE_SECONDS,
 	PER_WYSEV386 =		0x0004 | STICKY_TIMEOUTS | SHORT_INODE,
 	PER_ISCR4 =		0x0005 | STICKY_TIMEOUTS,

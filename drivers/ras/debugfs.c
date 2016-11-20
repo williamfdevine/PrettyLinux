@@ -27,7 +27,8 @@ static int trace_release(struct inode *inode, struct file *file)
 	return single_release(inode, file);
 }
 
-static const struct file_operations trace_fops = {
+static const struct file_operations trace_fops =
+{
 	.open    = trace_open,
 	.read    = seq_read,
 	.llseek  = seq_lseek,
@@ -39,12 +40,17 @@ int __init ras_add_daemon_trace(void)
 	struct dentry *fentry;
 
 	if (!ras_debugfs_dir)
+	{
 		return -ENOENT;
+	}
 
 	fentry = debugfs_create_file("daemon_active", S_IRUSR, ras_debugfs_dir,
-				     NULL, &trace_fops);
+								 NULL, &trace_fops);
+
 	if (!fentry)
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 

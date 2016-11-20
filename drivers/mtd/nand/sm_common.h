@@ -10,7 +10,8 @@
 #include <linux/mtd/mtd.h>
 
 /* Full oob structure as written on the flash */
-struct sm_oob {
+struct sm_oob
+{
 	uint32_t reserved;
 	uint8_t data_status;
 	uint8_t block_status;
@@ -51,11 +52,16 @@ static inline int sm_block_valid(struct sm_oob *oob)
 
 static inline int sm_block_erased(struct sm_oob *oob)
 {
-	static const uint32_t erased_pattern[4] = {
-		0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+	static const uint32_t erased_pattern[4] =
+	{
+		0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF
+	};
 
 	/* First test for erased block */
 	if (!memcmp(oob, erased_pattern, sizeof(*oob)))
+	{
 		return 1;
+	}
+
 	return 0;
 }

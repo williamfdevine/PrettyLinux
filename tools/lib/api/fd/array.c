@@ -27,10 +27,14 @@ int fdarray__grow(struct fdarray *fda, int nr)
 	struct pollfd *entries = realloc(fda->entries, size);
 
 	if (entries == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	priv = realloc(fda->priv, psize);
-	if (priv == NULL) {
+
+	if (priv == NULL)
+	{
 		free(entries);
 		return -ENOMEM;
 	}
@@ -45,11 +49,15 @@ struct fdarray *fdarray__new(int nr_alloc, int nr_autogrow)
 {
 	struct fdarray *fda = calloc(1, sizeof(*fda));
 
-	if (fda != NULL) {
-		if (fdarray__grow(fda, nr_alloc)) {
+	if (fda != NULL)
+	{
+		if (fdarray__grow(fda, nr_alloc))
+		{
 			free(fda);
 			fda = NULL;
-		} else {
+		}
+		else
+		{
 			fda->nr_autogrow = nr_autogrow;
 		}
 	}
@@ -75,8 +83,10 @@ int fdarray__add(struct fdarray *fda, int fd, short revents)
 	int pos = fda->nr;
 
 	if (fda->nr == fda->nr_alloc &&
-	    fdarray__grow(fda, fda->nr_autogrow) < 0)
+		fdarray__grow(fda, fda->nr_autogrow) < 0)
+	{
 		return -ENOMEM;
+	}
 
 	fda->entries[fda->nr].fd     = fd;
 	fda->entries[fda->nr].events = revents;
@@ -85,23 +95,30 @@ int fdarray__add(struct fdarray *fda, int fd, short revents)
 }
 
 int fdarray__filter(struct fdarray *fda, short revents,
-		    void (*entry_destructor)(struct fdarray *fda, int fd, void *arg),
-		    void *arg)
+					void (*entry_destructor)(struct fdarray *fda, int fd, void *arg),
+					void *arg)
 {
 	int fd, nr = 0;
 
 	if (fda->nr == 0)
+	{
 		return 0;
+	}
 
-	for (fd = 0; fd < fda->nr; ++fd) {
-		if (fda->entries[fd].revents & revents) {
+	for (fd = 0; fd < fda->nr; ++fd)
+	{
+		if (fda->entries[fd].revents & revents)
+		{
 			if (entry_destructor)
+			{
 				entry_destructor(fda, fd, arg);
+			}
 
 			continue;
 		}
 
-		if (fd != nr) {
+		if (fd != nr)
+		{
 			fda->entries[nr] = fda->entries[fd];
 			fda->priv[nr]	 = fda->priv[fd];
 		}
@@ -122,7 +139,9 @@ int fdarray__fprintf(struct fdarray *fda, FILE *fp)
 	int fd, printed = fprintf(fp, "%d [ ", fda->nr);
 
 	for (fd = 0; fd < fda->nr; ++fd)
+	{
 		printed += fprintf(fp, "%s%d", fd ? ", " : "", fda->entries[fd].fd);
+	}
 
 	return printed + fprintf(fp, " ]");
 }

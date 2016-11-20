@@ -67,7 +67,8 @@ static int bit_via_getsda(void *data)
 }
 
 
-static struct i2c_algo_bit_data bit_data = {
+static struct i2c_algo_bit_data bit_data =
+{
 	.setsda		= bit_via_setsda,
 	.setscl		= bit_via_setscl,
 	.getsda		= bit_via_getsda,
@@ -76,7 +77,8 @@ static struct i2c_algo_bit_data bit_data = {
 	.timeout	= HZ
 };
 
-static struct i2c_adapter vt586b_adapter = {
+static struct i2c_adapter vt586b_adapter =
+{
 	.owner		= THIS_MODULE,
 	.class          = I2C_CLASS_HWMON | I2C_CLASS_SPD,
 	.name		= "VIA i2c",
@@ -84,7 +86,8 @@ static struct i2c_adapter vt586b_adapter = {
 };
 
 
-static const struct pci_device_id vt586b_ids[] = {
+static const struct pci_device_id vt586b_ids[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C586_3) },
 	{ 0, }
 };
@@ -97,31 +100,35 @@ static int vt586b_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	u8 rev;
 	int res;
 
-	if (pm_io_base) {
+	if (pm_io_base)
+	{
 		dev_err(&dev->dev, "i2c-via: Will only support one host\n");
 		return -ENODEV;
 	}
 
 	pci_read_config_byte(dev, PM_CFG_REVID, &rev);
 
-	switch (rev) {
-	case 0x00:
-		base = PM_CFG_IOBASE0;
-		break;
-	case 0x01:
-	case 0x10:
-		base = PM_CFG_IOBASE1;
-		break;
+	switch (rev)
+	{
+		case 0x00:
+			base = PM_CFG_IOBASE0;
+			break;
 
-	default:
-		base = PM_CFG_IOBASE1;
-		/* later revision */
+		case 0x01:
+		case 0x10:
+			base = PM_CFG_IOBASE1;
+			break;
+
+		default:
+			base = PM_CFG_IOBASE1;
+			/* later revision */
 	}
 
 	pci_read_config_word(dev, base, &pm_io_base);
 	pm_io_base &= (0xff << 8);
 
-	if (!request_region(I2C_DIR, IOSPACE, vt586b_driver.name)) {
+	if (!request_region(I2C_DIR, IOSPACE, vt586b_driver.name))
+	{
 		dev_err(&dev->dev, "IO 0x%x-0x%x already in use\n", I2C_DIR, I2C_DIR + IOSPACE);
 		return -ENODEV;
 	}
@@ -133,11 +140,14 @@ static int vt586b_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	vt586b_adapter.dev.parent = &dev->dev;
 
 	res = i2c_bit_add_bus(&vt586b_adapter);
-	if ( res < 0 ) {
+
+	if ( res < 0 )
+	{
 		release_region(I2C_DIR, IOSPACE);
 		pm_io_base = 0;
 		return res;
 	}
+
 	return 0;
 }
 
@@ -149,7 +159,8 @@ static void vt586b_remove(struct pci_dev *dev)
 }
 
 
-static struct pci_driver vt586b_driver = {
+static struct pci_driver vt586b_driver =
+{
 	.name		= "vt586b_smbus",
 	.id_table	= vt586b_ids,
 	.probe		= vt586b_probe,

@@ -153,7 +153,8 @@
 /* GLOBAL Module of JAGCore Address Mapping
  * Located at address 0x0000
  */
-struct global_regs {				/* Location: */
+struct global_regs  				/* Location: */
+{
 	u32 txq_start_addr;			/*  0x0000 */
 	u32 txq_end_addr;			/*  0x0004 */
 	u32 rxq_start_addr;			/*  0x0008 */
@@ -237,7 +238,8 @@ struct global_regs {				/* Location: */
 /* Tx DMA Module of JAGCore Address Mapping
  * Located at address 0x1000
  */
-struct txdma_regs {			/* Location: */
+struct txdma_regs  			/* Location: */
+{
 	u32 csr;			/*  0x1000 */
 	u32 pr_base_hi;			/*  0x1004 */
 	u32 pr_base_lo;			/*  0x1008 */
@@ -459,7 +461,8 @@ struct txdma_regs {			/* Location: */
 /* Rx DMA Module of JAGCore Address Mapping
  * Located at address 0x2000
  */
-struct rxdma_regs {					/* Location: */
+struct rxdma_regs  					/* Location: */
+{
 	u32 csr;					/*  0x2000 */
 	u32 dma_wb_base_lo;				/*  0x2004 */
 	u32 dma_wb_base_hi;				/*  0x2008 */
@@ -587,7 +590,8 @@ struct rxdma_regs {					/* Location: */
 
 /* Tx MAC Module of JAGCore Address Mapping
  */
-struct txmac_regs {			/* Location: */
+struct txmac_regs  			/* Location: */
+{
 	u32 ctl;			/*  0x3000 */
 	u32 shadow_ptr;			/*  0x3004 */
 	u32 err_cnt;			/*  0x3008 */
@@ -789,7 +793,8 @@ struct txmac_regs {			/* Location: */
 
 /* Rx MAC Module of JAGCore Address Mapping
  */
-struct rxmac_regs {					/* Location: */
+struct rxmac_regs  					/* Location: */
+{
 	u32 ctrl;					/*  0x4000 */
 	u32 crc0;					/*  0x4004 */
 	u32 crc12;					/*  0x4008 */
@@ -1044,7 +1049,8 @@ struct rxmac_regs {					/* Location: */
 
 /* MAC Module of JAGCore Address Mapping
  */
-struct mac_regs {					/* Location: */
+struct mac_regs  					/* Location: */
+{
 	u32 cfg1;					/*  0x5000 */
 	u32 cfg2;					/*  0x5004 */
 	u32 ipg;					/*  0x5008 */
@@ -1126,7 +1132,8 @@ struct mac_regs {					/* Location: */
 
 /* MAC STATS Module of JAGCore Address Mapping
  */
-struct macstat_regs {			/* Location: */
+struct macstat_regs  			/* Location: */
+{
 	u32 pad[32];			/*  0x6000 - 607C */
 
 	/* counters */
@@ -1208,7 +1215,8 @@ struct macstat_regs {			/* Location: */
 
 /* Memory Control Module of JAGCore Address Mapping
  */
-struct mmc_regs {		/* Location: */
+struct mmc_regs  		/* Location: */
+{
 	u32 mmc_ctrl;		/*  0x7000 */
 	u32 sram_access;	/*  0x7004 */
 	u32 sram_word1;		/*  0x7008 */
@@ -1221,7 +1229,8 @@ struct mmc_regs {		/* Location: */
 
 /* JAGCore Address Mapping
  */
-struct address_map {
+struct address_map
+{
 	struct global_regs global;
 	/* unused section of global address map */
 	u8 unused_global[4096 - sizeof(struct global_regs)];
@@ -1262,7 +1271,7 @@ struct address_map {
 
 /* defines for specified registers */
 #define PHY_LOOPBACK_CONTROL       0x13	/* TRU_VMI_LOOPBACK_CONTROL_1_REG 19 */
-					/* TRU_VMI_LOOPBACK_CONTROL_2_REG 20 */
+/* TRU_VMI_LOOPBACK_CONTROL_2_REG 20 */
 #define PHY_REGISTER_MGMT_CONTROL  0x15	/* TRU_VMI_MI_SEQ_CONTROL_REG     21 */
 #define PHY_CONFIG                 0x16	/* TRU_VMI_CONFIGURATION_REG      22 */
 #define PHY_PHY_CONTROL            0x17	/* TRU_VMI_PHY_CONTROL_REG        23 */
@@ -1271,8 +1280,8 @@ struct address_map {
 #define PHY_PHY_STATUS             0x1A	/* TRU_VMI_PHY_STATUS_REG         26 */
 #define PHY_LED_1                  0x1B	/* TRU_VMI_LED_CONTROL_1_REG      27 */
 #define PHY_LED_2                  0x1C	/* TRU_VMI_LED_CONTROL_2_REG      28 */
-					/* TRU_VMI_LINK_CONTROL_REG       29 */
-					/* TRU_VMI_TIMING_CONTROL_REG        */
+/* TRU_VMI_LINK_CONTROL_REG       29 */
+/* TRU_VMI_TIMING_CONTROL_REG        */
 
 /* MI Register 10: Gigabit basic mode status reg(Reg 0x0A) */
 #define ET_1000BT_MSTR_SLV 0x4000

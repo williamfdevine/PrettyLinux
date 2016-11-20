@@ -26,7 +26,8 @@
 #define	XMP_HALFFRAME_SPACE	13800000 /* ns */
 #define	XMP_TRAILER_SPACE	20000000 /* should be 80ms but not all dureation supliers can go that high */
 
-enum xmp_state {
+enum xmp_state
+{
 	STATE_INACTIVE,
 	STATE_LEADER_PULSE,
 	STATE_NIBBLE_SPACE,
@@ -43,159 +44,197 @@ static int ir_xmp_decode(struct rc_dev *dev, struct ir_raw_event ev)
 {
 	struct xmp_dec *data = &dev->raw->xmp;
 
-	if (!is_timing_event(ev)) {
+	if (!is_timing_event(ev))
+	{
 		if (ev.reset)
+		{
 			data->state = STATE_INACTIVE;
+		}
+
 		return 0;
 	}
 
 	IR_dprintk(2, "XMP decode started at state %d %d (%uus %s)\n",
-		   data->state, data->count, TO_US(ev.duration), TO_STR(ev.pulse));
+			   data->state, data->count, TO_US(ev.duration), TO_STR(ev.pulse));
 
-	switch (data->state) {
+	switch (data->state)
+	{
 
-	case STATE_INACTIVE:
-		if (!ev.pulse)
-			break;
-
-		if (eq_margin(ev.duration, XMP_LEADER, XMP_UNIT / 2)) {
-			data->count = 0;
-			data->state = STATE_NIBBLE_SPACE;
-		}
-
-		return 0;
-
-	case STATE_LEADER_PULSE:
-		if (!ev.pulse)
-			break;
-
-		if (eq_margin(ev.duration, XMP_LEADER, XMP_UNIT / 2))
-			data->state = STATE_NIBBLE_SPACE;
-
-		return 0;
-
-	case STATE_NIBBLE_SPACE:
-		if (ev.pulse)
-			break;
-
-		if (geq_margin(ev.duration, XMP_TRAILER_SPACE, XMP_NIBBLE_PREFIX)) {
-			int divider, i;
-			u8 addr, subaddr, subaddr2, toggle, oem, obc1, obc2, sum1, sum2;
-			u32 *n;
-			u32 scancode;
-
-			if (data->count != 16) {
-				IR_dprintk(2, "received TRAILER period at index %d: %u\n",
-					data->count, ev.duration);
-				data->state = STATE_INACTIVE;
-				return -EINVAL;
+		case STATE_INACTIVE:
+			if (!ev.pulse)
+			{
+				break;
 			}
 
-			n = data->durations;
-			/*
-			 * the 4th nibble should be 15 so base the divider on this
-			 * to transform durations into nibbles. Substract 2000 from
-			 * the divider to compensate for fluctuations in the signal
-			 */
-			divider = (n[3] - XMP_NIBBLE_PREFIX) / 15 - 2000;
-			if (divider < 50) {
-				IR_dprintk(2, "divider to small %d.\n", divider);
-				data->state = STATE_INACTIVE;
-				return -EINVAL;
+			if (eq_margin(ev.duration, XMP_LEADER, XMP_UNIT / 2))
+			{
+				data->count = 0;
+				data->state = STATE_NIBBLE_SPACE;
 			}
-
-			/* convert to nibbles and do some sanity checks */
-			for (i = 0; i < 16; i++)
-				n[i] = (n[i] - XMP_NIBBLE_PREFIX) / divider;
-			sum1 = (15 + n[0] + n[1] + n[2] + n[3] +
-				n[4] + n[5] + n[6] + n[7]) % 16;
-			sum2 = (15 + n[8] + n[9] + n[10] + n[11] +
-				n[12] + n[13] + n[14] + n[15]) % 16;
-
-			if (sum1 != 15 || sum2 != 15) {
-				IR_dprintk(2, "checksum errors sum1=0x%X sum2=0x%X\n",
-					sum1, sum2);
-				data->state = STATE_INACTIVE;
-				return -EINVAL;
-			}
-
-			subaddr  = n[0] << 4 | n[2];
-			subaddr2 = n[8] << 4 | n[11];
-			oem      = n[4] << 4 | n[5];
-			addr     = n[6] << 4 | n[7];
-			toggle   = n[10];
-			obc1 = n[12] << 4 | n[13];
-			obc2 = n[14] << 4 | n[15];
-			if (subaddr != subaddr2) {
-				IR_dprintk(2, "subaddress nibbles mismatch 0x%02X != 0x%02X\n",
-					subaddr, subaddr2);
-				data->state = STATE_INACTIVE;
-				return -EINVAL;
-			}
-			if (oem != 0x44)
-				IR_dprintk(1, "Warning: OEM nibbles 0x%02X. Expected 0x44\n",
-					oem);
-
-			scancode = addr << 24 | subaddr << 16 |
-				   obc1 << 8 | obc2;
-			IR_dprintk(1, "XMP scancode 0x%06x\n", scancode);
-
-			if (toggle == 0) {
-				rc_keydown(dev, RC_TYPE_XMP, scancode, 0);
-			} else {
-				rc_repeat(dev);
-				IR_dprintk(1, "Repeat last key\n");
-			}
-			data->state = STATE_INACTIVE;
 
 			return 0;
 
-		} else if (geq_margin(ev.duration, XMP_HALFFRAME_SPACE, XMP_NIBBLE_PREFIX)) {
-			/* Expect 8 or 16 nibble pulses. 16 in case of 'final' frame */
-			if (data->count == 16) {
-				IR_dprintk(2, "received half frame pulse at index %d. Probably a final frame key-up event: %u\n",
-					data->count, ev.duration);
+		case STATE_LEADER_PULSE:
+			if (!ev.pulse)
+			{
+				break;
+			}
+
+			if (eq_margin(ev.duration, XMP_LEADER, XMP_UNIT / 2))
+			{
+				data->state = STATE_NIBBLE_SPACE;
+			}
+
+			return 0;
+
+		case STATE_NIBBLE_SPACE:
+			if (ev.pulse)
+			{
+				break;
+			}
+
+			if (geq_margin(ev.duration, XMP_TRAILER_SPACE, XMP_NIBBLE_PREFIX))
+			{
+				int divider, i;
+				u8 addr, subaddr, subaddr2, toggle, oem, obc1, obc2, sum1, sum2;
+				u32 *n;
+				u32 scancode;
+
+				if (data->count != 16)
+				{
+					IR_dprintk(2, "received TRAILER period at index %d: %u\n",
+							   data->count, ev.duration);
+					data->state = STATE_INACTIVE;
+					return -EINVAL;
+				}
+
+				n = data->durations;
 				/*
-				 * TODO: for now go back to half frame position
-				 *	 so trailer can be found and key press
-				 *	 can be handled.
+				 * the 4th nibble should be 15 so base the divider on this
+				 * to transform durations into nibbles. Substract 2000 from
+				 * the divider to compensate for fluctuations in the signal
 				 */
-				data->count = 8;
-			}
+				divider = (n[3] - XMP_NIBBLE_PREFIX) / 15 - 2000;
 
-			else if (data->count != 8)
-				IR_dprintk(2, "received half frame pulse at index %d: %u\n",
-					data->count, ev.duration);
-			data->state = STATE_LEADER_PULSE;
+				if (divider < 50)
+				{
+					IR_dprintk(2, "divider to small %d.\n", divider);
+					data->state = STATE_INACTIVE;
+					return -EINVAL;
+				}
 
-			return 0;
+				/* convert to nibbles and do some sanity checks */
+				for (i = 0; i < 16; i++)
+				{
+					n[i] = (n[i] - XMP_NIBBLE_PREFIX) / divider;
+				}
 
-		} else if (geq_margin(ev.duration, XMP_NIBBLE_PREFIX, XMP_UNIT)) {
-			/* store nibble raw data, decode after trailer */
-			if (data->count == 16) {
-				IR_dprintk(2, "to many pulses (%d) ignoring: %u\n",
-					data->count, ev.duration);
+				sum1 = (15 + n[0] + n[1] + n[2] + n[3] +
+						n[4] + n[5] + n[6] + n[7]) % 16;
+				sum2 = (15 + n[8] + n[9] + n[10] + n[11] +
+						n[12] + n[13] + n[14] + n[15]) % 16;
+
+				if (sum1 != 15 || sum2 != 15)
+				{
+					IR_dprintk(2, "checksum errors sum1=0x%X sum2=0x%X\n",
+							   sum1, sum2);
+					data->state = STATE_INACTIVE;
+					return -EINVAL;
+				}
+
+				subaddr  = n[0] << 4 | n[2];
+				subaddr2 = n[8] << 4 | n[11];
+				oem      = n[4] << 4 | n[5];
+				addr     = n[6] << 4 | n[7];
+				toggle   = n[10];
+				obc1 = n[12] << 4 | n[13];
+				obc2 = n[14] << 4 | n[15];
+
+				if (subaddr != subaddr2)
+				{
+					IR_dprintk(2, "subaddress nibbles mismatch 0x%02X != 0x%02X\n",
+							   subaddr, subaddr2);
+					data->state = STATE_INACTIVE;
+					return -EINVAL;
+				}
+
+				if (oem != 0x44)
+					IR_dprintk(1, "Warning: OEM nibbles 0x%02X. Expected 0x44\n",
+							   oem);
+
+				scancode = addr << 24 | subaddr << 16 |
+						   obc1 << 8 | obc2;
+				IR_dprintk(1, "XMP scancode 0x%06x\n", scancode);
+
+				if (toggle == 0)
+				{
+					rc_keydown(dev, RC_TYPE_XMP, scancode, 0);
+				}
+				else
+				{
+					rc_repeat(dev);
+					IR_dprintk(1, "Repeat last key\n");
+				}
+
 				data->state = STATE_INACTIVE;
-				return -EINVAL;
+
+				return 0;
+
 			}
-			data->durations[data->count] = ev.duration;
-			data->count++;
-			data->state = STATE_LEADER_PULSE;
+			else if (geq_margin(ev.duration, XMP_HALFFRAME_SPACE, XMP_NIBBLE_PREFIX))
+			{
+				/* Expect 8 or 16 nibble pulses. 16 in case of 'final' frame */
+				if (data->count == 16)
+				{
+					IR_dprintk(2, "received half frame pulse at index %d. Probably a final frame key-up event: %u\n",
+							   data->count, ev.duration);
+					/*
+					 * TODO: for now go back to half frame position
+					 *	 so trailer can be found and key press
+					 *	 can be handled.
+					 */
+					data->count = 8;
+				}
 
-			return 0;
+				else if (data->count != 8)
+					IR_dprintk(2, "received half frame pulse at index %d: %u\n",
+							   data->count, ev.duration);
 
-		}
+				data->state = STATE_LEADER_PULSE;
 
-		break;
+				return 0;
+
+			}
+			else if (geq_margin(ev.duration, XMP_NIBBLE_PREFIX, XMP_UNIT))
+			{
+				/* store nibble raw data, decode after trailer */
+				if (data->count == 16)
+				{
+					IR_dprintk(2, "to many pulses (%d) ignoring: %u\n",
+							   data->count, ev.duration);
+					data->state = STATE_INACTIVE;
+					return -EINVAL;
+				}
+
+				data->durations[data->count] = ev.duration;
+				data->count++;
+				data->state = STATE_LEADER_PULSE;
+
+				return 0;
+
+			}
+
+			break;
 	}
 
 	IR_dprintk(1, "XMP decode failed at count %d state %d (%uus %s)\n",
-		   data->count, data->state, TO_US(ev.duration), TO_STR(ev.pulse));
+			   data->count, data->state, TO_US(ev.duration), TO_STR(ev.pulse));
 	data->state = STATE_INACTIVE;
 	return -EINVAL;
 }
 
-static struct ir_raw_handler xmp_handler = {
+static struct ir_raw_handler xmp_handler =
+{
 	.protocols	= RC_BIT_XMP,
 	.decode		= ir_xmp_decode,
 };

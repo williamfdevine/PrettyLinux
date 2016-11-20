@@ -32,9 +32,9 @@
 
 static void
 snic_wq_cmpl_frame_send(struct vnic_wq *wq,
-			    struct cq_desc *cq_desc,
-			    struct vnic_wq_buf *buf,
-			    void *opaque)
+						struct cq_desc *cq_desc,
+						struct vnic_wq_buf *buf,
+						void *opaque)
 {
 	struct snic *snic = svnic_dev_priv(wq->vdev);
 
@@ -42,23 +42,23 @@ snic_wq_cmpl_frame_send(struct vnic_wq *wq,
 
 	if (snic_log_level & SNIC_DESC_LOGGING)
 		SNIC_HOST_INFO(snic->shost,
-			       "Ack received for snic_host_req %p.\n",
-			       buf->os_buf);
+					   "Ack received for snic_host_req %p.\n",
+					   buf->os_buf);
 
 	SNIC_TRC(snic->shost->host_no, 0, 0,
-		 ((ulong)(buf->os_buf) - sizeof(struct snic_req_info)), 0, 0,
-		 0);
+			 ((ulong)(buf->os_buf) - sizeof(struct snic_req_info)), 0, 0,
+			 0);
 
 	buf->os_buf = NULL;
 }
 
 static int
 snic_wq_cmpl_handler_cont(struct vnic_dev *vdev,
-			  struct cq_desc *cq_desc,
-			  u8 type,
-			  u16 q_num,
-			  u16 cmpl_idx,
-			  void *opaque)
+						  struct cq_desc *cq_desc,
+						  u8 type,
+						  u16 q_num,
+						  u16 cmpl_idx,
+						  void *opaque)
 {
 	struct snic *snic = svnic_dev_priv(vdev);
 	unsigned long flags;
@@ -67,10 +67,10 @@ snic_wq_cmpl_handler_cont(struct vnic_dev *vdev,
 
 	spin_lock_irqsave(&snic->wq_lock[q_num], flags);
 	svnic_wq_service(&snic->wq[q_num],
-			 cq_desc,
-			 cmpl_idx,
-			 snic_wq_cmpl_frame_send,
-			 NULL);
+					 cq_desc,
+					 cmpl_idx,
+					 snic_wq_cmpl_frame_send,
+					 NULL);
 	spin_unlock_irqrestore(&snic->wq_lock[q_num], flags);
 
 	return 0;
@@ -83,11 +83,13 @@ snic_wq_cmpl_handler(struct snic *snic, int work_to_do)
 	unsigned int i;
 
 	snic->s_stats.misc.last_ack_time = jiffies;
-	for (i = 0; i < snic->wq_count; i++) {
+
+	for (i = 0; i < snic->wq_count; i++)
+	{
 		work_done += svnic_cq_service(&snic->cq[i],
-					      work_to_do,
-					      snic_wq_cmpl_handler_cont,
-					      NULL);
+									  work_to_do,
+									  snic_wq_cmpl_handler_cont,
+									  NULL);
 	}
 
 	return work_done;
@@ -106,7 +108,9 @@ snic_free_wq_buf(struct vnic_wq *wq, struct vnic_wq_buf *buf)
 
 	rqi = req_to_rqi(req);
 	spin_lock_irqsave(&snic->spl_cmd_lock, flags);
-	if (list_empty(&rqi->list)) {
+
+	if (list_empty(&rqi->list))
+	{
 		spin_unlock_irqrestore(&snic->spl_cmd_lock, flags);
 		goto end;
 	}
@@ -115,11 +119,13 @@ snic_free_wq_buf(struct vnic_wq *wq, struct vnic_wq_buf *buf)
 	list_del_init(&rqi->list);
 	spin_unlock_irqrestore(&snic->spl_cmd_lock, flags);
 
-	if (rqi->sge_va) {
+	if (rqi->sge_va)
+	{
 		snic_pci_unmap_rsp_buf(snic, rqi);
 		kfree((void *)rqi->sge_va);
 		rqi->sge_va = 0;
 	}
+
 	snic_req_free(snic, rqi);
 	SNIC_HOST_INFO(snic->shost, "snic_free_wq_buf .. freed.\n");
 
@@ -142,7 +148,8 @@ snic_wqdesc_avail(struct snic *snic, int q_num, int req_type)
 {
 	int nr_wqdesc = snic->config.wq_enet_desc_count;
 
-	if (q_num > 0) {
+	if (q_num > 0)
+	{
 		/*
 		 * Multi Queue case, additional care is required.
 		 * Per WQ active requests need to be maintained.
@@ -173,7 +180,9 @@ snic_queue_wq_desc(struct snic *snic, void *os_buf, u16 len)
 
 	/* Map request buffer */
 	pa = pci_map_single(snic->pdev, os_buf, len, PCI_DMA_TODEVICE);
-	if (pci_dma_mapping_error(snic->pdev, pa)) {
+
+	if (pci_dma_mapping_error(snic->pdev, pa))
+	{
 		SNIC_HOST_ERR(snic->shost, "qdesc: PCI DMA Mapping Fail.\n");
 
 		return -ENOMEM;
@@ -185,7 +194,9 @@ snic_queue_wq_desc(struct snic *snic, void *os_buf, u16 len)
 
 	spin_lock_irqsave(&snic->wq_lock[q_num], flags);
 	desc_avail = snic_wqdesc_avail(snic, q_num, req->hdr.type);
-	if (desc_avail <= 0) {
+
+	if (desc_avail <= 0)
+	{
 		pci_unmap_single(snic->pdev, pa, len, PCI_DMA_TODEVICE);
 		req->req_pa = 0;
 		spin_unlock_irqrestore(&snic->wq_lock[q_num], flags);
@@ -204,7 +215,9 @@ snic_queue_wq_desc(struct snic *snic, void *os_buf, u16 len)
 	spin_unlock_irqrestore(&snic->wq_lock[q_num], flags);
 
 	if (act_reqs > atomic64_read(&fwstats->max_actv_reqs))
+	{
 		atomic64_set(&fwstats->max_actv_reqs, act_reqs);
+	}
 
 	return 0;
 } /* end of snic_queue_wq_desc() */
@@ -236,14 +249,16 @@ snic_req_init(struct snic *snic, int sg_cnt)
 	struct snic_req_info *rqi = NULL;
 
 	typ = (sg_cnt <= SNIC_REQ_CACHE_DFLT_SGL) ?
-		SNIC_REQ_CACHE_DFLT_SGL : SNIC_REQ_CACHE_MAX_SGL;
+		  SNIC_REQ_CACHE_DFLT_SGL : SNIC_REQ_CACHE_MAX_SGL;
 
 	rqi = mempool_alloc(snic->req_pool[typ], GFP_ATOMIC);
-	if (!rqi) {
+
+	if (!rqi)
+	{
 		atomic64_inc(&snic->s_stats.io.alloc_fail);
 		SNIC_HOST_ERR(snic->shost,
-			      "Failed to allocate memory from snic req pool id = %d\n",
-			      typ);
+					  "Failed to allocate memory from snic req pool id = %d\n",
+					  typ);
 		return rqi;
 	}
 
@@ -257,12 +272,16 @@ snic_req_init(struct snic *snic, int sg_cnt)
 	rqi->req = (struct snic_host_req *)(rqi + 1);
 
 	if (sg_cnt == 0)
+	{
 		goto end;
+	}
 
 	rqi->req_len += (sg_cnt * sizeof(struct snic_sg_desc));
 
 	if (sg_cnt > atomic64_read(&snic->s_stats.io.max_sgl))
+	{
 		atomic64_set(&snic->s_stats.io.max_sgl, sg_cnt);
+	}
 
 	SNIC_BUG_ON(sg_cnt > SNIC_MAX_SG_DESC_CNT);
 	atomic64_inc(&snic->s_stats.io.sgl_cnt[sg_cnt - 1]);
@@ -290,11 +309,15 @@ snic_abort_req_init(struct snic *snic, struct snic_req_info *rqi)
 
 	/* If abort to be issued second time, then reuse */
 	if (rqi->abort_req)
+	{
 		return rqi->abort_req;
+	}
 
 
 	req = mempool_alloc(snic->req_pool[SNIC_REQ_TM_CACHE], GFP_ATOMIC);
-	if (!req) {
+
+	if (!req)
+	{
 		SNIC_HOST_ERR(snic->shost, "abts:Failed to alloc tm req.\n");
 		WARN_ON_ONCE(1);
 
@@ -320,7 +343,9 @@ snic_dr_req_init(struct snic *snic, struct snic_req_info *rqi)
 	SNIC_BUG_ON(!rqi);
 
 	req = mempool_alloc(snic->req_pool[SNIC_REQ_TM_CACHE], GFP_ATOMIC);
-	if (!req) {
+
+	if (!req)
+	{
 		SNIC_HOST_ERR(snic->shost, "dr:Failed to alloc tm req.\n");
 		WARN_ON_ONCE(1);
 
@@ -345,34 +370,36 @@ snic_req_free(struct snic *snic, struct snic_req_info *rqi)
 	SNIC_BUG_ON(rqi->sge_va != 0);
 
 	SNIC_SCSI_DBG(snic->shost,
-		      "Req_free:rqi %p:ioreq %p:abt %p:dr %p\n",
-		      rqi, rqi->req, rqi->abort_req, rqi->dr_req);
+				  "Req_free:rqi %p:ioreq %p:abt %p:dr %p\n",
+				  rqi, rqi->req, rqi->abort_req, rqi->dr_req);
 
-	if (rqi->abort_req) {
+	if (rqi->abort_req)
+	{
 		if (rqi->abort_req->req_pa)
 			pci_unmap_single(snic->pdev,
-					 rqi->abort_req->req_pa,
-					 sizeof(struct snic_host_req),
-					 PCI_DMA_TODEVICE);
+							 rqi->abort_req->req_pa,
+							 sizeof(struct snic_host_req),
+							 PCI_DMA_TODEVICE);
 
 		mempool_free(rqi->abort_req, snic->req_pool[SNIC_REQ_TM_CACHE]);
 	}
 
-	if (rqi->dr_req) {
+	if (rqi->dr_req)
+	{
 		if (rqi->dr_req->req_pa)
 			pci_unmap_single(snic->pdev,
-					 rqi->dr_req->req_pa,
-					 sizeof(struct snic_host_req),
-					 PCI_DMA_TODEVICE);
+							 rqi->dr_req->req_pa,
+							 sizeof(struct snic_host_req),
+							 PCI_DMA_TODEVICE);
 
 		mempool_free(rqi->dr_req, snic->req_pool[SNIC_REQ_TM_CACHE]);
 	}
 
 	if (rqi->req->req_pa)
 		pci_unmap_single(snic->pdev,
-				 rqi->req->req_pa,
-				 rqi->req_len,
-				 PCI_DMA_TODEVICE);
+						 rqi->req->req_pa,
+						 rqi->req_len,
+						 PCI_DMA_TODEVICE);
 
 	mempool_free(rqi, snic->req_pool[rqi->rq_pool_type]);
 }
@@ -385,9 +412,9 @@ snic_pci_unmap_rsp_buf(struct snic *snic, struct snic_req_info *rqi)
 	sgd = req_to_sgl(rqi_to_req(rqi));
 	SNIC_BUG_ON(sgd[0].addr == 0);
 	pci_unmap_single(snic->pdev,
-			 le64_to_cpu(sgd[0].addr),
-			 le32_to_cpu(sgd[0].len),
-			 PCI_DMA_FROMDEVICE);
+					 le64_to_cpu(sgd[0].addr),
+					 le32_to_cpu(sgd[0].len),
+					 PCI_DMA_FROMDEVICE);
 }
 
 /*
@@ -401,10 +428,13 @@ snic_free_all_untagged_reqs(struct snic *snic)
 	unsigned long flags;
 
 	spin_lock_irqsave(&snic->spl_cmd_lock, flags);
-	list_for_each_safe(cur, nxt, &snic->spl_cmd_list) {
+	list_for_each_safe(cur, nxt, &snic->spl_cmd_list)
+	{
 		rqi = list_entry(cur, struct snic_req_info, list);
 		list_del_init(&rqi->list);
-		if (rqi->sge_va) {
+
+		if (rqi->sge_va)
+		{
 			snic_pci_unmap_rsp_buf(snic, rqi);
 			kfree((void *)rqi->sge_va);
 			rqi->sge_va = 0;
@@ -424,17 +454,23 @@ snic_release_untagged_req(struct snic *snic, struct snic_req_info *rqi)
 	unsigned long flags;
 
 	spin_lock_irqsave(&snic->snic_lock, flags);
-	if (snic->in_remove) {
+
+	if (snic->in_remove)
+	{
 		spin_unlock_irqrestore(&snic->snic_lock, flags);
 		goto end;
 	}
+
 	spin_unlock_irqrestore(&snic->snic_lock, flags);
 
 	spin_lock_irqsave(&snic->spl_cmd_lock, flags);
-	if (list_empty(&rqi->list)) {
+
+	if (list_empty(&rqi->list))
+	{
 		spin_unlock_irqrestore(&snic->spl_cmd_lock, flags);
 		goto end;
 	}
+
 	list_del_init(&rqi->list);
 	spin_unlock_irqrestore(&snic->spl_cmd_lock, flags);
 	snic_req_free(snic, rqi);
@@ -462,98 +498,108 @@ snic_dump_desc(const char *fn, char *os_buf, int len)
 	char *cmd_str = NULL;
 
 	if (req->hdr.type >= SNIC_RSP_REPORT_TGTS_CMPL)
+	{
 		rqi = (struct snic_req_info *) fwreq->hdr.init_ctx;
+	}
 	else
+	{
 		rqi = (struct snic_req_info *) req->hdr.init_ctx;
+	}
 
 	SNIC_BUG_ON(rqi == NULL || rqi->req == NULL);
-	switch (req->hdr.type) {
-	case SNIC_REQ_REPORT_TGTS:
-		cmd_str = "report-tgt : ";
-		snprintf(line, LINE_BUFSZ, "SNIC_REQ_REPORT_TGTS :");
-		break;
 
-	case SNIC_REQ_ICMND:
-		cmd_str = "icmnd : ";
-		snprintf(line, LINE_BUFSZ, "SNIC_REQ_ICMND : 0x%x :",
-			 req->u.icmnd.cdb[0]);
-		break;
+	switch (req->hdr.type)
+	{
+		case SNIC_REQ_REPORT_TGTS:
+			cmd_str = "report-tgt : ";
+			snprintf(line, LINE_BUFSZ, "SNIC_REQ_REPORT_TGTS :");
+			break;
 
-	case SNIC_REQ_ITMF:
-		cmd_str = "itmf : ";
-		snprintf(line, LINE_BUFSZ, "SNIC_REQ_ITMF :");
-		break;
+		case SNIC_REQ_ICMND:
+			cmd_str = "icmnd : ";
+			snprintf(line, LINE_BUFSZ, "SNIC_REQ_ICMND : 0x%x :",
+					 req->u.icmnd.cdb[0]);
+			break;
 
-	case SNIC_REQ_HBA_RESET:
-		cmd_str = "hba reset :";
-		snprintf(line, LINE_BUFSZ, "SNIC_REQ_HBA_RESET :");
-		break;
+		case SNIC_REQ_ITMF:
+			cmd_str = "itmf : ";
+			snprintf(line, LINE_BUFSZ, "SNIC_REQ_ITMF :");
+			break;
 
-	case SNIC_REQ_EXCH_VER:
-		cmd_str = "exch ver : ";
-		snprintf(line, LINE_BUFSZ, "SNIC_REQ_EXCH_VER :");
-		break;
+		case SNIC_REQ_HBA_RESET:
+			cmd_str = "hba reset :";
+			snprintf(line, LINE_BUFSZ, "SNIC_REQ_HBA_RESET :");
+			break;
 
-	case SNIC_REQ_TGT_INFO:
-		cmd_str = "tgt info : ";
-		break;
+		case SNIC_REQ_EXCH_VER:
+			cmd_str = "exch ver : ";
+			snprintf(line, LINE_BUFSZ, "SNIC_REQ_EXCH_VER :");
+			break;
 
-	case SNIC_RSP_REPORT_TGTS_CMPL:
-		cmd_str = "report tgt cmpl : ";
-		snprintf(line, LINE_BUFSZ, "SNIC_RSP_REPORT_TGTS_CMPL :");
-		break;
+		case SNIC_REQ_TGT_INFO:
+			cmd_str = "tgt info : ";
+			break;
 
-	case SNIC_RSP_ICMND_CMPL:
-		cmd_str = "icmnd_cmpl : ";
-		snprintf(line, LINE_BUFSZ, "SNIC_RSP_ICMND_CMPL : 0x%x :",
-			 rqi->req->u.icmnd.cdb[0]);
-		break;
+		case SNIC_RSP_REPORT_TGTS_CMPL:
+			cmd_str = "report tgt cmpl : ";
+			snprintf(line, LINE_BUFSZ, "SNIC_RSP_REPORT_TGTS_CMPL :");
+			break;
 
-	case SNIC_RSP_ITMF_CMPL:
-		cmd_str = "itmf_cmpl : ";
-		snprintf(line, LINE_BUFSZ, "SNIC_RSP_ITMF_CMPL :");
-		break;
+		case SNIC_RSP_ICMND_CMPL:
+			cmd_str = "icmnd_cmpl : ";
+			snprintf(line, LINE_BUFSZ, "SNIC_RSP_ICMND_CMPL : 0x%x :",
+					 rqi->req->u.icmnd.cdb[0]);
+			break;
 
-	case SNIC_RSP_HBA_RESET_CMPL:
-		cmd_str = "hba_reset_cmpl : ";
-		snprintf(line, LINE_BUFSZ, "SNIC_RSP_HBA_RESET_CMPL :");
-		break;
+		case SNIC_RSP_ITMF_CMPL:
+			cmd_str = "itmf_cmpl : ";
+			snprintf(line, LINE_BUFSZ, "SNIC_RSP_ITMF_CMPL :");
+			break;
 
-	case SNIC_RSP_EXCH_VER_CMPL:
-		cmd_str = "exch_ver_cmpl : ";
-		snprintf(line, LINE_BUFSZ, "SNIC_RSP_EXCH_VER_CMPL :");
-		break;
+		case SNIC_RSP_HBA_RESET_CMPL:
+			cmd_str = "hba_reset_cmpl : ";
+			snprintf(line, LINE_BUFSZ, "SNIC_RSP_HBA_RESET_CMPL :");
+			break;
 
-	case SNIC_MSG_ACK:
-		cmd_str = "msg ack : ";
-		snprintf(line, LINE_BUFSZ, "SNIC_MSG_ACK :");
-		break;
+		case SNIC_RSP_EXCH_VER_CMPL:
+			cmd_str = "exch_ver_cmpl : ";
+			snprintf(line, LINE_BUFSZ, "SNIC_RSP_EXCH_VER_CMPL :");
+			break;
 
-	case SNIC_MSG_ASYNC_EVNOTIFY:
-		cmd_str = "async notify : ";
-		snprintf(line, LINE_BUFSZ, "SNIC_MSG_ASYNC_EVNOTIFY :");
-		break;
+		case SNIC_MSG_ACK:
+			cmd_str = "msg ack : ";
+			snprintf(line, LINE_BUFSZ, "SNIC_MSG_ACK :");
+			break;
 
-	default:
-		cmd_str = "unknown : ";
-		SNIC_BUG_ON(1);
-		break;
+		case SNIC_MSG_ASYNC_EVNOTIFY:
+			cmd_str = "async notify : ";
+			snprintf(line, LINE_BUFSZ, "SNIC_MSG_ASYNC_EVNOTIFY :");
+			break;
+
+		default:
+			cmd_str = "unknown : ";
+			SNIC_BUG_ON(1);
+			break;
 	}
 
 	SNIC_INFO("%s:%s >>cmndid=%x:sg_cnt = %x:status = %x:ctx = %lx.\n",
-		  fn, line, req->hdr.cmnd_id, req->hdr.sg_cnt, req->hdr.status,
-		  req->hdr.init_ctx);
+			  fn, line, req->hdr.cmnd_id, req->hdr.sg_cnt, req->hdr.status,
+			  req->hdr.init_ctx);
 
 	/* Enable it, to dump byte stream */
 	if (snic_log_level & 0x20)
+	{
 		snic_hex_dump(cmd_str, os_buf, len);
+	}
 } /* end of __snic_print_desc */
 
 void
 snic_print_desc(const char *fn, char *os_buf, int len)
 {
 	if (snic_log_level & SNIC_DESC_LOGGING)
+	{
 		snic_dump_desc(fn, os_buf, len);
+	}
 }
 
 void
@@ -564,5 +610,7 @@ snic_calc_io_process_time(struct snic *snic, struct snic_req_info *rqi)
 	duration = jiffies - rqi->start_time;
 
 	if (duration > atomic64_read(&snic->s_stats.io.max_time))
+	{
 		atomic64_set(&snic->s_stats.io.max_time, duration);
+	}
 }

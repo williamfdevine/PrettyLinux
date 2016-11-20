@@ -34,9 +34,9 @@
  * status as soon as the cdb is validated).
  */
 #if defined(CONFIG_CDROM_PKTCDVD_WCACHE)
-#define USE_WCACHING		1
+	#define USE_WCACHING		1
 #else
-#define USE_WCACHING		0
+	#define USE_WCACHING		0
 #endif
 
 /*
@@ -58,7 +58,7 @@
 #define PACKET_NWA_VALID	2	/* next writable address valid */
 #define PACKET_LRA_VALID	3	/* last recorded address valid */
 #define PACKET_MERGE_SEGS	4	/* perform segment merging to keep */
-					/* underlying cdrom device happy */
+/* underlying cdrom device happy */
 
 /*
  * Disc status -- from READ_DISC_INFO
@@ -92,7 +92,8 @@
 #define PKT_CTRL_CMD_TEARDOWN	1
 #define PKT_CTRL_CMD_STATUS	2
 
-struct pkt_ctrl_command {
+struct pkt_ctrl_command
+{
 	__u32 command;				/* in: Setup, teardown, status */
 	__u32 dev_index;			/* in/out: Device index */
 	__u32 dev;				/* in/out: Device nr for cdrw device */

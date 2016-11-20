@@ -44,7 +44,8 @@
 
 #include "esas2r.h"
 
-static u8 esas2r_vdaioctl_versions[] = {
+static u8 esas2r_vdaioctl_versions[] =
+{
 	ATTO_VDA_VER_UNSUPPORTED,
 	ATTO_VDA_FLASH_VER,
 	ATTO_VDA_VER_UNSUPPORTED,
@@ -59,13 +60,13 @@ static u8 esas2r_vdaioctl_versions[] = {
 static void clear_vda_request(struct esas2r_request *rq);
 
 static void esas2r_complete_vda_ioctl(struct esas2r_adapter *a,
-				      struct esas2r_request *rq);
+									  struct esas2r_request *rq);
 
 /* Prepare a VDA IOCTL request to be sent to the firmware. */
 bool esas2r_process_vda_ioctl(struct esas2r_adapter *a,
-			      struct atto_ioctl_vda *vi,
-			      struct esas2r_request *rq,
-			      struct esas2r_sg_context *sgc)
+							  struct atto_ioctl_vda *vi,
+							  struct esas2r_request *rq,
+							  struct esas2r_sg_context *sgc)
 {
 	u32 datalen = 0;
 	struct atto_vda_sge *firstsg = NULL;
@@ -74,188 +75,215 @@ bool esas2r_process_vda_ioctl(struct esas2r_adapter *a,
 	vi->status = ATTO_STS_SUCCESS;
 	vi->vda_status = RS_PENDING;
 
-	if (vi->function >= vercnt) {
+	if (vi->function >= vercnt)
+	{
 		vi->status = ATTO_STS_INV_FUNC;
 		return false;
 	}
 
-	if (vi->version > esas2r_vdaioctl_versions[vi->function]) {
+	if (vi->version > esas2r_vdaioctl_versions[vi->function])
+	{
 		vi->status = ATTO_STS_INV_VERSION;
 		return false;
 	}
 
-	if (test_bit(AF_DEGRADED_MODE, &a->flags)) {
+	if (test_bit(AF_DEGRADED_MODE, &a->flags))
+	{
 		vi->status = ATTO_STS_DEGRADED;
 		return false;
 	}
 
 	if (vi->function != VDA_FUNC_SCSI)
+	{
 		clear_vda_request(rq);
+	}
 
 	rq->vrq->scsi.function = vi->function;
 	rq->interrupt_cb = esas2r_complete_vda_ioctl;
 	rq->interrupt_cx = vi;
 
-	switch (vi->function) {
-	case VDA_FUNC_FLASH:
+	switch (vi->function)
+	{
+		case VDA_FUNC_FLASH:
 
-		if (vi->cmd.flash.sub_func != VDA_FLASH_FREAD
-		    && vi->cmd.flash.sub_func != VDA_FLASH_FWRITE
-		    && vi->cmd.flash.sub_func != VDA_FLASH_FINFO) {
-			vi->status = ATTO_STS_INV_FUNC;
-			return false;
-		}
+			if (vi->cmd.flash.sub_func != VDA_FLASH_FREAD
+				&& vi->cmd.flash.sub_func != VDA_FLASH_FWRITE
+				&& vi->cmd.flash.sub_func != VDA_FLASH_FINFO)
+			{
+				vi->status = ATTO_STS_INV_FUNC;
+				return false;
+			}
 
-		if (vi->cmd.flash.sub_func != VDA_FLASH_FINFO)
+			if (vi->cmd.flash.sub_func != VDA_FLASH_FINFO)
+			{
+				datalen = vi->data_length;
+			}
+
+			rq->vrq->flash.length = cpu_to_le32(datalen);
+			rq->vrq->flash.sub_func = vi->cmd.flash.sub_func;
+
+			memcpy(rq->vrq->flash.data.file.file_name,
+				   vi->cmd.flash.data.file.file_name,
+				   sizeof(vi->cmd.flash.data.file.file_name));
+
+			firstsg = rq->vrq->flash.data.file.sge;
+			break;
+
+		case VDA_FUNC_CLI:
+
 			datalen = vi->data_length;
 
-		rq->vrq->flash.length = cpu_to_le32(datalen);
-		rq->vrq->flash.sub_func = vi->cmd.flash.sub_func;
+			rq->vrq->cli.cmd_rsp_len =
+				cpu_to_le32(vi->cmd.cli.cmd_rsp_len);
+			rq->vrq->cli.length = cpu_to_le32(datalen);
 
-		memcpy(rq->vrq->flash.data.file.file_name,
-		       vi->cmd.flash.data.file.file_name,
-		       sizeof(vi->cmd.flash.data.file.file_name));
+			firstsg = rq->vrq->cli.sge;
+			break;
 
-		firstsg = rq->vrq->flash.data.file.sge;
-		break;
+		case VDA_FUNC_MGT:
+			{
+				u8 *cmdcurr_offset = sgc->cur_offset
+									 - offsetof(struct atto_ioctl_vda, data)
+									 + offsetof(struct atto_ioctl_vda, cmd)
+									 + offsetof(struct atto_ioctl_vda_mgt_cmd,
+												data);
 
-	case VDA_FUNC_CLI:
+				/*
+				 * build the data payload SGL here first since
+				 * esas2r_sgc_init() will modify the S/G list offset for the
+				 * management SGL (which is built below where the data SGL is
+				 * usually built).
+				 */
 
-		datalen = vi->data_length;
+				if (vi->data_length)
+				{
+					u32 payldlen = 0;
 
-		rq->vrq->cli.cmd_rsp_len =
-			cpu_to_le32(vi->cmd.cli.cmd_rsp_len);
-		rq->vrq->cli.length = cpu_to_le32(datalen);
+					if (vi->cmd.mgt.mgt_func == VDAMGT_DEV_HEALTH_REQ
+						|| vi->cmd.mgt.mgt_func == VDAMGT_DEV_METRICS)
+					{
+						rq->vrq->mgt.payld_sglst_offset =
+							(u8)offsetof(struct atto_vda_mgmt_req,
+										 payld_sge);
 
-		firstsg = rq->vrq->cli.sge;
-		break;
+						payldlen = vi->data_length;
+						datalen = vi->cmd.mgt.data_length;
+					}
+					else if (vi->cmd.mgt.mgt_func == VDAMGT_DEV_INFO2
+							 || vi->cmd.mgt.mgt_func ==
+							 VDAMGT_DEV_INFO2_BYADDR)
+					{
+						datalen = vi->data_length;
+						cmdcurr_offset = sgc->cur_offset;
+					}
+					else
+					{
+						vi->status = ATTO_STS_INV_PARAM;
+						return false;
+					}
 
-	case VDA_FUNC_MGT:
-	{
-		u8 *cmdcurr_offset = sgc->cur_offset
-				     - offsetof(struct atto_ioctl_vda, data)
-				     + offsetof(struct atto_ioctl_vda, cmd)
-				     + offsetof(struct atto_ioctl_vda_mgt_cmd,
-						data);
-		/*
-		 * build the data payload SGL here first since
-		 * esas2r_sgc_init() will modify the S/G list offset for the
-		 * management SGL (which is built below where the data SGL is
-		 * usually built).
-		 */
+					/* Setup the length so building the payload SGL works */
+					rq->vrq->mgt.length = cpu_to_le32(datalen);
 
-		if (vi->data_length) {
-			u32 payldlen = 0;
+					if (payldlen)
+					{
+						rq->vrq->mgt.payld_length =
+							cpu_to_le32(payldlen);
 
-			if (vi->cmd.mgt.mgt_func == VDAMGT_DEV_HEALTH_REQ
-			    || vi->cmd.mgt.mgt_func == VDAMGT_DEV_METRICS) {
-				rq->vrq->mgt.payld_sglst_offset =
-					(u8)offsetof(struct atto_vda_mgmt_req,
-						     payld_sge);
+						esas2r_sgc_init(sgc, a, rq,
+										rq->vrq->mgt.payld_sge);
+						sgc->length = payldlen;
 
-				payldlen = vi->data_length;
-				datalen = vi->cmd.mgt.data_length;
-			} else if (vi->cmd.mgt.mgt_func == VDAMGT_DEV_INFO2
-				   || vi->cmd.mgt.mgt_func ==
-				   VDAMGT_DEV_INFO2_BYADDR) {
-				datalen = vi->data_length;
-				cmdcurr_offset = sgc->cur_offset;
-			} else {
+						if (!esas2r_build_sg_list(a, rq, sgc))
+						{
+							vi->status = ATTO_STS_OUT_OF_RSRC;
+							return false;
+						}
+					}
+				}
+				else
+				{
+					datalen = vi->cmd.mgt.data_length;
+
+					rq->vrq->mgt.length = cpu_to_le32(datalen);
+				}
+
+				/*
+				 * Now that the payload SGL is built, if any, setup to build
+				 * the management SGL.
+				 */
+				firstsg = rq->vrq->mgt.sge;
+				sgc->cur_offset = cmdcurr_offset;
+
+				/* Finish initializing the management request. */
+				rq->vrq->mgt.mgt_func = vi->cmd.mgt.mgt_func;
+				rq->vrq->mgt.scan_generation = vi->cmd.mgt.scan_generation;
+				rq->vrq->mgt.dev_index =
+					cpu_to_le32(vi->cmd.mgt.dev_index);
+
+				esas2r_nuxi_mgt_data(rq->vrq->mgt.mgt_func, &vi->cmd.mgt.data);
+				break;
+			}
+
+		case VDA_FUNC_CFG:
+
+			if (vi->data_length
+				|| vi->cmd.cfg.data_length == 0)
+			{
 				vi->status = ATTO_STS_INV_PARAM;
 				return false;
 			}
 
-			/* Setup the length so building the payload SGL works */
-			rq->vrq->mgt.length = cpu_to_le32(datalen);
-
-			if (payldlen) {
-				rq->vrq->mgt.payld_length =
-					cpu_to_le32(payldlen);
-
-				esas2r_sgc_init(sgc, a, rq,
-						rq->vrq->mgt.payld_sge);
-				sgc->length = payldlen;
-
-				if (!esas2r_build_sg_list(a, rq, sgc)) {
-					vi->status = ATTO_STS_OUT_OF_RSRC;
-					return false;
-				}
+			if (vi->cmd.cfg.cfg_func == VDA_CFG_INIT)
+			{
+				vi->status = ATTO_STS_INV_FUNC;
+				return false;
 			}
-		} else {
-			datalen = vi->cmd.mgt.data_length;
 
-			rq->vrq->mgt.length = cpu_to_le32(datalen);
-		}
+			rq->vrq->cfg.sub_func = vi->cmd.cfg.cfg_func;
+			rq->vrq->cfg.length = cpu_to_le32(vi->cmd.cfg.data_length);
 
-		/*
-		 * Now that the payload SGL is built, if any, setup to build
-		 * the management SGL.
-		 */
-		firstsg = rq->vrq->mgt.sge;
-		sgc->cur_offset = cmdcurr_offset;
+			if (vi->cmd.cfg.cfg_func == VDA_CFG_GET_INIT)
+			{
+				memcpy(&rq->vrq->cfg.data,
+					   &vi->cmd.cfg.data,
+					   vi->cmd.cfg.data_length);
 
-		/* Finish initializing the management request. */
-		rq->vrq->mgt.mgt_func = vi->cmd.mgt.mgt_func;
-		rq->vrq->mgt.scan_generation = vi->cmd.mgt.scan_generation;
-		rq->vrq->mgt.dev_index =
-			cpu_to_le32(vi->cmd.mgt.dev_index);
+				esas2r_nuxi_cfg_data(rq->vrq->cfg.sub_func,
+									 &rq->vrq->cfg.data);
+			}
+			else
+			{
+				vi->status = ATTO_STS_INV_FUNC;
 
-		esas2r_nuxi_mgt_data(rq->vrq->mgt.mgt_func, &vi->cmd.mgt.data);
-		break;
-	}
+				return false;
+			}
 
-	case VDA_FUNC_CFG:
+			break;
 
-		if (vi->data_length
-		    || vi->cmd.cfg.data_length == 0) {
-			vi->status = ATTO_STS_INV_PARAM;
-			return false;
-		}
+		case VDA_FUNC_GSV:
 
-		if (vi->cmd.cfg.cfg_func == VDA_CFG_INIT) {
+			vi->cmd.gsv.rsp_len = vercnt;
+
+			memcpy(vi->cmd.gsv.version_info, esas2r_vdaioctl_versions,
+				   vercnt);
+
+			vi->vda_status = RS_SUCCESS;
+			break;
+
+		default:
+
 			vi->status = ATTO_STS_INV_FUNC;
 			return false;
-		}
-
-		rq->vrq->cfg.sub_func = vi->cmd.cfg.cfg_func;
-		rq->vrq->cfg.length = cpu_to_le32(vi->cmd.cfg.data_length);
-
-		if (vi->cmd.cfg.cfg_func == VDA_CFG_GET_INIT) {
-			memcpy(&rq->vrq->cfg.data,
-			       &vi->cmd.cfg.data,
-			       vi->cmd.cfg.data_length);
-
-			esas2r_nuxi_cfg_data(rq->vrq->cfg.sub_func,
-					     &rq->vrq->cfg.data);
-		} else {
-			vi->status = ATTO_STS_INV_FUNC;
-
-			return false;
-		}
-
-		break;
-
-	case VDA_FUNC_GSV:
-
-		vi->cmd.gsv.rsp_len = vercnt;
-
-		memcpy(vi->cmd.gsv.version_info, esas2r_vdaioctl_versions,
-		       vercnt);
-
-		vi->vda_status = RS_SUCCESS;
-		break;
-
-	default:
-
-		vi->status = ATTO_STS_INV_FUNC;
-		return false;
 	}
 
-	if (datalen) {
+	if (datalen)
+	{
 		esas2r_sgc_init(sgc, a, rq, firstsg);
 		sgc->length = datalen;
 
-		if (!esas2r_build_sg_list(a, rq, sgc)) {
+		if (!esas2r_build_sg_list(a, rq, sgc))
+		{
 			vi->status = ATTO_STS_OUT_OF_RSRC;
 			return false;
 		}
@@ -267,88 +295,92 @@ bool esas2r_process_vda_ioctl(struct esas2r_adapter *a,
 }
 
 static void esas2r_complete_vda_ioctl(struct esas2r_adapter *a,
-				      struct esas2r_request *rq)
+									  struct esas2r_request *rq)
 {
 	struct atto_ioctl_vda *vi = (struct atto_ioctl_vda *)rq->interrupt_cx;
 
 	vi->vda_status = rq->req_stat;
 
-	switch (vi->function) {
-	case VDA_FUNC_FLASH:
+	switch (vi->function)
+	{
+		case VDA_FUNC_FLASH:
 
-		if (vi->cmd.flash.sub_func == VDA_FLASH_FINFO
-		    || vi->cmd.flash.sub_func == VDA_FLASH_FREAD)
-			vi->cmd.flash.data.file.file_size =
-				le32_to_cpu(rq->func_rsp.flash_rsp.file_size);
+			if (vi->cmd.flash.sub_func == VDA_FLASH_FINFO
+				|| vi->cmd.flash.sub_func == VDA_FLASH_FREAD)
+				vi->cmd.flash.data.file.file_size =
+					le32_to_cpu(rq->func_rsp.flash_rsp.file_size);
 
-		break;
+			break;
 
-	case VDA_FUNC_MGT:
+		case VDA_FUNC_MGT:
 
-		vi->cmd.mgt.scan_generation =
-			rq->func_rsp.mgt_rsp.scan_generation;
-		vi->cmd.mgt.dev_index = le16_to_cpu(
-			rq->func_rsp.mgt_rsp.dev_index);
+			vi->cmd.mgt.scan_generation =
+				rq->func_rsp.mgt_rsp.scan_generation;
+			vi->cmd.mgt.dev_index = le16_to_cpu(
+										rq->func_rsp.mgt_rsp.dev_index);
 
-		if (vi->data_length == 0)
-			vi->cmd.mgt.data_length =
-				le32_to_cpu(rq->func_rsp.mgt_rsp.length);
+			if (vi->data_length == 0)
+				vi->cmd.mgt.data_length =
+					le32_to_cpu(rq->func_rsp.mgt_rsp.length);
 
-		esas2r_nuxi_mgt_data(rq->vrq->mgt.mgt_func, &vi->cmd.mgt.data);
-		break;
+			esas2r_nuxi_mgt_data(rq->vrq->mgt.mgt_func, &vi->cmd.mgt.data);
+			break;
 
-	case VDA_FUNC_CFG:
+		case VDA_FUNC_CFG:
 
-		if (vi->cmd.cfg.cfg_func == VDA_CFG_GET_INIT) {
-			struct atto_ioctl_vda_cfg_cmd *cfg = &vi->cmd.cfg;
-			struct atto_vda_cfg_rsp *rsp = &rq->func_rsp.cfg_rsp;
-			char buf[sizeof(cfg->data.init.fw_release) + 1];
+			if (vi->cmd.cfg.cfg_func == VDA_CFG_GET_INIT)
+			{
+				struct atto_ioctl_vda_cfg_cmd *cfg = &vi->cmd.cfg;
+				struct atto_vda_cfg_rsp *rsp = &rq->func_rsp.cfg_rsp;
+				char buf[sizeof(cfg->data.init.fw_release) + 1];
 
-			cfg->data_length =
-				cpu_to_le32(sizeof(struct atto_vda_cfg_init));
-			cfg->data.init.vda_version =
-				le32_to_cpu(rsp->vda_version);
-			cfg->data.init.fw_build = rsp->fw_build;
+				cfg->data_length =
+					cpu_to_le32(sizeof(struct atto_vda_cfg_init));
+				cfg->data.init.vda_version =
+					le32_to_cpu(rsp->vda_version);
+				cfg->data.init.fw_build = rsp->fw_build;
 
-			snprintf(buf, sizeof(buf), "%1.1u.%2.2u",
-				 (int)LOBYTE(le16_to_cpu(rsp->fw_release)),
-				 (int)HIBYTE(le16_to_cpu(rsp->fw_release)));
+				snprintf(buf, sizeof(buf), "%1.1u.%2.2u",
+						 (int)LOBYTE(le16_to_cpu(rsp->fw_release)),
+						 (int)HIBYTE(le16_to_cpu(rsp->fw_release)));
 
-			memcpy(&cfg->data.init.fw_release, buf,
-			       sizeof(cfg->data.init.fw_release));
+				memcpy(&cfg->data.init.fw_release, buf,
+					   sizeof(cfg->data.init.fw_release));
 
-			if (LOWORD(LOBYTE(cfg->data.init.fw_build)) == 'A')
-				cfg->data.init.fw_version =
-					cfg->data.init.fw_build;
+				if (LOWORD(LOBYTE(cfg->data.init.fw_build)) == 'A')
+					cfg->data.init.fw_version =
+						cfg->data.init.fw_build;
+				else
+					cfg->data.init.fw_version =
+						cfg->data.init.fw_release;
+			}
 			else
-				cfg->data.init.fw_version =
-					cfg->data.init.fw_release;
-		} else {
-			esas2r_nuxi_cfg_data(rq->vrq->cfg.sub_func,
-					     &vi->cmd.cfg.data);
-		}
+			{
+				esas2r_nuxi_cfg_data(rq->vrq->cfg.sub_func,
+									 &vi->cmd.cfg.data);
+			}
 
-		break;
+			break;
 
-	case VDA_FUNC_CLI:
+		case VDA_FUNC_CLI:
 
-		vi->cmd.cli.cmd_rsp_len =
-			le32_to_cpu(rq->func_rsp.cli_rsp.cmd_rsp_len);
-		break;
+			vi->cmd.cli.cmd_rsp_len =
+				le32_to_cpu(rq->func_rsp.cli_rsp.cmd_rsp_len);
+			break;
 
-	default:
+		default:
 
-		break;
+			break;
 	}
 }
 
 /* Build a flash VDA request. */
 void esas2r_build_flash_req(struct esas2r_adapter *a,
-			    struct esas2r_request *rq,
-			    u8 sub_func,
-			    u8 cksum,
-			    u32 addr,
-			    u32 length)
+							struct esas2r_request *rq,
+							u8 sub_func,
+							u8 cksum,
+							u32 addr,
+							u32 length)
 {
 	struct atto_vda_flash_req *vrq = &rq->vrq->flash;
 
@@ -357,10 +389,10 @@ void esas2r_build_flash_req(struct esas2r_adapter *a,
 	rq->vrq->scsi.function = VDA_FUNC_FLASH;
 
 	if (sub_func == VDA_FLASH_BEGINW
-	    || sub_func == VDA_FLASH_WRITE
-	    || sub_func == VDA_FLASH_READ)
+		|| sub_func == VDA_FLASH_WRITE
+		|| sub_func == VDA_FLASH_READ)
 		vrq->sg_list_offset = (u8)offsetof(struct atto_vda_flash_req,
-						   data.sge);
+										   data.sge);
 
 	vrq->length = cpu_to_le32(length);
 	vrq->flash_addr = cpu_to_le32(addr);
@@ -370,12 +402,12 @@ void esas2r_build_flash_req(struct esas2r_adapter *a,
 
 /* Build a VDA management request. */
 void esas2r_build_mgt_req(struct esas2r_adapter *a,
-			  struct esas2r_request *rq,
-			  u8 sub_func,
-			  u8 scan_gen,
-			  u16 dev_index,
-			  u32 length,
-			  void *data)
+						  struct esas2r_request *rq,
+						  u8 sub_func,
+						  u8 scan_gen,
+						  u16 dev_index,
+						  u32 length,
+						  void *data)
 {
 	struct atto_vda_mgmt_req *vrq = &rq->vrq->mgt;
 
@@ -388,31 +420,36 @@ void esas2r_build_mgt_req(struct esas2r_adapter *a,
 	vrq->dev_index = cpu_to_le16(dev_index);
 	vrq->length = cpu_to_le32(length);
 
-	if (vrq->length) {
-		if (test_bit(AF_LEGACY_SGE_MODE, &a->flags)) {
+	if (vrq->length)
+	{
+		if (test_bit(AF_LEGACY_SGE_MODE, &a->flags))
+		{
 			vrq->sg_list_offset = (u8)offsetof(
-				struct atto_vda_mgmt_req, sge);
+									  struct atto_vda_mgmt_req, sge);
 
 			vrq->sge[0].length = cpu_to_le32(SGE_LAST | length);
 			vrq->sge[0].address = cpu_to_le64(
-				rq->vrq_md->phys_addr +
-				sizeof(union atto_vda_req));
-		} else {
+									  rq->vrq_md->phys_addr +
+									  sizeof(union atto_vda_req));
+		}
+		else
+		{
 			vrq->sg_list_offset = (u8)offsetof(
-				struct atto_vda_mgmt_req, prde);
+									  struct atto_vda_mgmt_req, prde);
 
 			vrq->prde[0].ctl_len = cpu_to_le32(length);
 			vrq->prde[0].address = cpu_to_le64(
-				rq->vrq_md->phys_addr +
-				sizeof(union atto_vda_req));
+									   rq->vrq_md->phys_addr +
+									   sizeof(union atto_vda_req));
 		}
 	}
 
-	if (data) {
+	if (data)
+	{
 		esas2r_nuxi_mgt_data(sub_func, data);
 
 		memcpy(&rq->vda_rsp_data->mgt_data.data.bytes[0], data,
-		       length);
+			   length);
 	}
 }
 
@@ -427,28 +464,31 @@ void esas2r_build_ae_req(struct esas2r_adapter *a, struct esas2r_request *rq)
 
 	vrq->length = cpu_to_le32(sizeof(struct atto_vda_ae_data));
 
-	if (test_bit(AF_LEGACY_SGE_MODE, &a->flags)) {
+	if (test_bit(AF_LEGACY_SGE_MODE, &a->flags))
+	{
 		vrq->sg_list_offset =
 			(u8)offsetof(struct atto_vda_ae_req, sge);
 		vrq->sge[0].length = cpu_to_le32(SGE_LAST | vrq->length);
 		vrq->sge[0].address = cpu_to_le64(
-			rq->vrq_md->phys_addr +
-			sizeof(union atto_vda_req));
-	} else {
+								  rq->vrq_md->phys_addr +
+								  sizeof(union atto_vda_req));
+	}
+	else
+	{
 		vrq->sg_list_offset = (u8)offsetof(struct atto_vda_ae_req,
-						   prde);
+										   prde);
 		vrq->prde[0].ctl_len = cpu_to_le32(vrq->length);
 		vrq->prde[0].address = cpu_to_le64(
-			rq->vrq_md->phys_addr +
-			sizeof(union atto_vda_req));
+								   rq->vrq_md->phys_addr +
+								   sizeof(union atto_vda_req));
 	}
 }
 
 /* Build a VDA CLI request. */
 void esas2r_build_cli_req(struct esas2r_adapter *a,
-			  struct esas2r_request *rq,
-			  u32 length,
-			  u32 cmd_rsp_len)
+						  struct esas2r_request *rq,
+						  u32 length,
+						  u32 cmd_rsp_len)
 {
 	struct atto_vda_cli_req *vrq = &rq->vrq->cli;
 
@@ -463,9 +503,9 @@ void esas2r_build_cli_req(struct esas2r_adapter *a,
 
 /* Build a VDA IOCTL request. */
 void esas2r_build_ioctl_req(struct esas2r_adapter *a,
-			    struct esas2r_request *rq,
-			    u32 length,
-			    u8 sub_func)
+							struct esas2r_request *rq,
+							u32 length,
+							u8 sub_func)
 {
 	struct atto_vda_ioctl_req *vrq = &rq->vrq->ioctl;
 
@@ -480,10 +520,10 @@ void esas2r_build_ioctl_req(struct esas2r_adapter *a,
 
 /* Build a VDA configuration request. */
 void esas2r_build_cfg_req(struct esas2r_adapter *a,
-			  struct esas2r_request *rq,
-			  u8 sub_func,
-			  u32 length,
-			  void *data)
+						  struct esas2r_request *rq,
+						  u8 sub_func,
+						  u32 length,
+						  void *data)
 {
 	struct atto_vda_cfg_req *vrq = &rq->vrq->cfg;
 
@@ -494,7 +534,8 @@ void esas2r_build_cfg_req(struct esas2r_adapter *a,
 	vrq->sub_func = sub_func;
 	vrq->length = cpu_to_le32(length);
 
-	if (data) {
+	if (data)
+	{
 		esas2r_nuxi_cfg_data(sub_func, data);
 
 		memcpy(&vrq->data, data, length);

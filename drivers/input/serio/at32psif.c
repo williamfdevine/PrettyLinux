@@ -82,7 +82,7 @@
 
 #define PSIF_BFINS(name, value, old)			\
 	(((old) & ~(((1 << PSIF_##name##_SIZE) - 1)	\
-		    << PSIF_##name##_OFFSET))		\
+				<< PSIF_##name##_OFFSET))		\
 	 | PSIF_BF(name, value))
 
 /* Register access macros */
@@ -92,7 +92,8 @@
 #define psif_writel(port, reg, value)			\
 	__raw_writel((value), (port)->regs + PSIF_##reg)
 
-struct psif {
+struct psif
+{
 	struct platform_device	*pdev;
 	struct clk		*pclk;
 	struct serio		*io;
@@ -112,13 +113,19 @@ static irqreturn_t psif_interrupt(int irq, void *_ptr)
 
 	status = psif_readl(psif, SR);
 
-	if (status & PSIF_BIT(RXRDY)) {
+	if (status & PSIF_BIT(RXRDY))
+	{
 		unsigned char val = (unsigned char) psif_readl(psif, RHR);
 
 		if (status & PSIF_BIT(PARITY))
+		{
 			io_flags |= SERIO_PARITY;
+		}
+
 		if (status & PSIF_BIT(OVRUN))
+		{
 			dev_err(&psif->pdev->dev, "overrun read error\n");
+		}
 
 		serio_interrupt(psif->io, val, io_flags);
 
@@ -138,11 +145,16 @@ static int psif_write(struct serio *io, unsigned char val)
 	spin_lock_irqsave(&psif->lock, flags);
 
 	while (!(psif_readl(psif, SR) & PSIF_BIT(TXEMPTY)) && timeout--)
+	{
 		udelay(50);
+	}
 
-	if (timeout >= 0) {
+	if (timeout >= 0)
+	{
 		psif_writel(psif, THR, val);
-	} else {
+	}
+	else
+	{
 		dev_dbg(&psif->pdev->dev, "timeout writing to THR\n");
 		retval = -EBUSY;
 	}
@@ -158,8 +170,11 @@ static int psif_open(struct serio *io)
 	int retval;
 
 	retval = clk_enable(psif->pclk);
+
 	if (retval)
+	{
 		goto out;
+	}
 
 	psif_writel(psif, CR, PSIF_BIT(CR_TXEN) | PSIF_BIT(CR_RXEN));
 	psif_writel(psif, IER, PSIF_BIT(RXRDY));
@@ -189,8 +204,9 @@ static void psif_set_prescaler(struct psif *psif)
 	/* PRSCV = Pulse length (100 us) * PSIF module frequency. */
 	prscv = 100 * (rate / 1000000UL);
 
-	if (prscv > ((1<<PSIF_PSR_PRSCV_SIZE) - 1)) {
-		prscv = (1<<PSIF_PSR_PRSCV_SIZE) - 1;
+	if (prscv > ((1 << PSIF_PSR_PRSCV_SIZE) - 1))
+	{
+		prscv = (1 << PSIF_PSR_PRSCV_SIZE) - 1;
 		dev_dbg(&psif->pdev->dev, "pclk too fast, "
 				"prescaler set to max\n");
 	}
@@ -210,63 +226,85 @@ static int __init psif_probe(struct platform_device *pdev)
 	int ret;
 
 	psif = kzalloc(sizeof(struct psif), GFP_KERNEL);
-	if (!psif) {
+
+	if (!psif)
+	{
 		dev_dbg(&pdev->dev, "out of memory\n");
 		ret = -ENOMEM;
 		goto out;
 	}
+
 	psif->pdev = pdev;
 
 	io = kzalloc(sizeof(struct serio), GFP_KERNEL);
-	if (!io) {
+
+	if (!io)
+	{
 		dev_dbg(&pdev->dev, "out of memory\n");
 		ret = -ENOMEM;
 		goto out_free_psif;
 	}
+
 	psif->io = io;
 
 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!regs) {
+
+	if (!regs)
+	{
 		dev_dbg(&pdev->dev, "no mmio resources defined\n");
 		ret = -ENOMEM;
 		goto out_free_io;
 	}
 
 	psif->regs = ioremap(regs->start, resource_size(regs));
-	if (!psif->regs) {
+
+	if (!psif->regs)
+	{
 		ret = -ENOMEM;
 		dev_dbg(&pdev->dev, "could not map I/O memory\n");
 		goto out_free_io;
 	}
 
 	pclk = clk_get(&pdev->dev, "pclk");
-	if (IS_ERR(pclk)) {
+
+	if (IS_ERR(pclk))
+	{
 		dev_dbg(&pdev->dev, "could not get peripheral clock\n");
 		ret = PTR_ERR(pclk);
 		goto out_iounmap;
 	}
+
 	psif->pclk = pclk;
 
 	/* Reset the PSIF to enter at a known state. */
 	ret = clk_enable(pclk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_dbg(&pdev->dev, "could not enable pclk\n");
 		goto out_put_clk;
 	}
+
 	psif_writel(psif, CR, PSIF_BIT(CR_SWRST));
 	clk_disable(pclk);
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_dbg(&pdev->dev, "could not get irq\n");
 		ret = -ENXIO;
 		goto out_put_clk;
 	}
+
 	ret = request_irq(irq, psif_interrupt, IRQF_SHARED, "at32psif", psif);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_dbg(&pdev->dev, "could not request irq %d\n", irq);
 		goto out_put_clk;
 	}
+
 	psif->irq = irq;
 
 	io->id.type	= SERIO_8042;
@@ -285,7 +323,7 @@ static int __init psif_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, psif);
 
 	dev_info(&pdev->dev, "Atmel AVR32 PSIF PS/2 driver on 0x%08x irq %d\n",
-			(int)psif->regs, psif->irq);
+			 (int)psif->regs, psif->irq);
 
 	return 0;
 
@@ -323,7 +361,8 @@ static int psif_suspend(struct device *dev)
 	struct platform_device *pdev = to_platform_device(dev);
 	struct psif *psif = platform_get_drvdata(pdev);
 
-	if (psif->open) {
+	if (psif->open)
+	{
 		psif_writel(psif, CR, PSIF_BIT(CR_RXDIS) | PSIF_BIT(CR_TXDIS));
 		clk_disable(psif->pclk);
 	}
@@ -336,7 +375,8 @@ static int psif_resume(struct device *dev)
 	struct platform_device *pdev = to_platform_device(dev);
 	struct psif *psif = platform_get_drvdata(pdev);
 
-	if (psif->open) {
+	if (psif->open)
+	{
 		clk_enable(psif->pclk);
 		psif_set_prescaler(psif);
 		psif_writel(psif, CR, PSIF_BIT(CR_RXEN) | PSIF_BIT(CR_TXEN));
@@ -348,7 +388,8 @@ static int psif_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(psif_pm_ops, psif_suspend, psif_resume);
 
-static struct platform_driver psif_driver = {
+static struct platform_driver psif_driver =
+{
 	.remove		= __exit_p(psif_remove),
 	.driver		= {
 		.name	= "atmel_psif",

@@ -31,12 +31,15 @@ struct gfs2_glock;
 static inline unsigned int gfs2_rg_blocks(const struct gfs2_inode *ip, unsigned requested)
 {
 	if (requested < ip->i_rgd->rd_length)
+	{
 		return requested + 1;
+	}
+
 	return ip->i_rgd->rd_length;
 }
 
 extern int gfs2_trans_begin(struct gfs2_sbd *sdp, unsigned int blocks,
-			    unsigned int revokes);
+							unsigned int revokes);
 
 extern void gfs2_trans_end(struct gfs2_sbd *sdp);
 extern void gfs2_trans_add_data(struct gfs2_glock *gl, struct buffer_head *bh);

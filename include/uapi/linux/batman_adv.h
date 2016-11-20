@@ -47,7 +47,8 @@
  * the other nodes in the network. To achieve this goal these flags are included
  * in the TT CRC computation.
  */
-enum batadv_tt_client_flags {
+enum batadv_tt_client_flags
+{
 	BATADV_TT_CLIENT_DEL     = (1 << 0),
 	BATADV_TT_CLIENT_ROAM    = (1 << 1),
 	BATADV_TT_CLIENT_WIFI    = (1 << 4),
@@ -100,7 +101,8 @@ enum batadv_tt_client_flags {
  * @NUM_BATADV_ATTR: total number of batadv_nl_attrs available
  * @BATADV_ATTR_MAX: highest attribute number currently defined
  */
-enum batadv_nl_attrs {
+enum batadv_nl_attrs
+{
 	BATADV_ATTR_UNSPEC,
 	BATADV_ATTR_VERSION,
 	BATADV_ATTR_ALGO_NAME,
@@ -161,7 +163,8 @@ enum batadv_nl_attrs {
  * @__BATADV_CMD_AFTER_LAST: internal use
  * @BATADV_CMD_MAX: highest used command number
  */
-enum batadv_nl_commands {
+enum batadv_nl_commands
+{
 	BATADV_CMD_UNSPEC,
 	BATADV_CMD_GET_MESH_INFO,
 	BATADV_CMD_TP_METER,
@@ -193,7 +196,8 @@ enum batadv_nl_commands {
  * @BATADV_TP_REASON_CANT_SEND: failed to send via outgoing interface
  * @BATADV_TP_REASON_TOO_MANY: too many ongoing sessions
  */
-enum batadv_tp_meter_reason {
+enum batadv_tp_meter_reason
+{
 	BATADV_TP_REASON_COMPLETE		= 3,
 	BATADV_TP_REASON_CANCEL			= 4,
 	/* error status >= 128 */

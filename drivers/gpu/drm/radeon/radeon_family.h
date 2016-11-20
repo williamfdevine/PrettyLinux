@@ -35,7 +35,8 @@
 /*
  * Radeon chip families
  */
-enum radeon_family {
+enum radeon_family
+{
 	CHIP_R100 = 0,
 	CHIP_RV100,
 	CHIP_RS100,
@@ -104,7 +105,8 @@ enum radeon_family {
 /*
  * Chip flags
  */
-enum radeon_chip_flags {
+enum radeon_chip_flags
+{
 	RADEON_FAMILY_MASK = 0x0000ffffUL,
 	RADEON_FLAGS_MASK = 0xffff0000UL,
 	RADEON_IS_MOBILITY = 0x00010000UL,

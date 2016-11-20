@@ -26,7 +26,8 @@
 #include <subdev/secboot.h>
 #include <subdev/mmu.h>
 
-struct nvkm_secboot_func {
+struct nvkm_secboot_func
+{
 	int (*init)(struct nvkm_secboot *);
 	int (*fini)(struct nvkm_secboot *, bool suspend);
 	void *(*dtor)(struct nvkm_secboot *);
@@ -40,11 +41,12 @@ struct nvkm_secboot_func {
 };
 
 int nvkm_secboot_ctor(const struct nvkm_secboot_func *, struct nvkm_device *,
-		      int index, struct nvkm_secboot *);
+					  int index, struct nvkm_secboot *);
 int nvkm_secboot_falcon_reset(struct nvkm_secboot *);
 int nvkm_secboot_falcon_run(struct nvkm_secboot *);
 
-struct flcn_u64 {
+struct flcn_u64
+{
 	u32 lo;
 	u32 hi;
 };
@@ -76,7 +78,8 @@ static inline u64 flcn64_to_u64(const struct flcn_u64 f)
  * to be filled by host and copied into DMEM at offset provided in the
  * hsflcn_bl_desc.bl_desc_dmem_load_off.
  */
-struct gm200_flcn_bl_desc {
+struct gm200_flcn_bl_desc
+{
 	u32 reserved[4];
 	u32 signature[4];
 	u32 ctx_dma;
@@ -102,8 +105,10 @@ struct gm200_flcn_bl_desc {
  * @nonwpr_ucode_blob_size:	size of LS blob
  * @nonwpr_ucode_blob_start:	FB location of LS blob is
  */
-struct hsflcn_acr_desc {
-	union {
+struct hsflcn_acr_desc
+{
+	union
+	{
 		u8 reserved_dmem[0x200];
 		u32 signatures[4];
 	} ucode_reserved_space;
@@ -111,9 +116,11 @@ struct hsflcn_acr_desc {
 	u32 wpr_offset;
 	u32 mmu_mem_range;
 #define FLCN_ACR_MAX_REGIONS 2
-	struct {
+	struct
+	{
 		u32 no_regions;
-		struct {
+		struct
+		{
 			u32 start_addr;
 			u32 end_addr;
 			u32 region_id;
@@ -124,7 +131,8 @@ struct hsflcn_acr_desc {
 	} regions;
 	u32 ucode_blob_size;
 	u64 ucode_blob_base __aligned(8);
-	struct {
+	struct
+	{
 		u32 vpr_enabled;
 		u32 vpr_start;
 		u32 vpr_end;
@@ -149,7 +157,8 @@ struct hsflcn_acr_desc {
  * @falcon_state:	current state of the managed falcons
  * @firmware_ok:	whether the firmware blobs have been created
  */
-struct gm200_secboot {
+struct gm200_secboot
+{
 	struct nvkm_secboot base;
 	const struct gm200_secboot_func *func;
 
@@ -184,7 +193,8 @@ struct gm200_secboot {
 	struct nvkm_vm *vm;
 
 	/* To keep track of the state of all managed falcons */
-	enum {
+	enum
+	{
 		/* In non-secure state, no firmware loaded, no privileges*/
 		NON_SECURE = 0,
 		/* In low-secure mode and ready to be started */
@@ -206,7 +216,8 @@ struct gm200_secboot {
  * @fixup_hs_desc:	hook that twiddles the HS descriptor before it is used
  * @prepare_blobs:	prepares the various blobs needed for secure booting
  */
-struct gm200_secboot_func {
+struct gm200_secboot_func
+{
 	/*
 	 * Size of the bootloader descriptor for this chip. A block of this
 	 * size is allocated before booting a falcon and the fixup_bl_desc

@@ -25,7 +25,8 @@
 #ifndef BSBE1_H
 #define BSBE1_H
 
-static u8 alps_bsbe1_inittab[] = {
+static u8 alps_bsbe1_inittab[] =
+{
 	0x01, 0x15,   /* XTAL = 4MHz, VCO = 352 MHz */
 	0x02, 0x30,   /* MCLK = 88 MHz */
 	0x03, 0x00,   /* ACR output 0 */
@@ -48,7 +49,7 @@ static u8 alps_bsbe1_inittab[] = {
 };
 
 
-static int alps_bsbe1_set_symbol_rate(struct dvb_frontend* fe, u32 srate, u32 ratio)
+static int alps_bsbe1_set_symbol_rate(struct dvb_frontend *fe, u32 srate, u32 ratio)
 {
 	u8 aclk = 0;
 	u8 bclk = 0;
@@ -79,7 +80,9 @@ static int alps_bsbe1_tuner_set_params(struct dvb_frontend *fe)
 	struct i2c_adapter *i2c = fe->tuner_priv;
 
 	if ((p->frequency < 950000) || (p->frequency > 2150000))
+	{
 		return -EINVAL;
+	}
 
 	div = p->frequency / 1000;
 	data[0] = (div >> 8) & 0x7f;
@@ -88,12 +91,16 @@ static int alps_bsbe1_tuner_set_params(struct dvb_frontend *fe)
 	data[3] = 0xe0;
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
+
 	ret = i2c_transfer(i2c, &msg, 1);
 	return (ret != 1) ? -EIO : 0;
 }
 
-static struct stv0299_config alps_bsbe1_config = {
+static struct stv0299_config alps_bsbe1_config =
+{
 	.demod_address = 0x68,
 	.inittab = alps_bsbe1_inittab,
 	.mclk = 88000000UL,

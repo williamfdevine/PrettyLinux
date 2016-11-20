@@ -44,7 +44,8 @@ static void __init emev2_smu_write(unsigned long value, int offs)
 	writel_relaxed(value, smu_base + offs);
 }
 
-static const struct of_device_id smu_id[] __initconst = {
+static const struct of_device_id smu_id[] __initconst =
+{
 	{ .compatible = "renesas,emev2-smu", },
 	{},
 };
@@ -79,30 +80,44 @@ static void __init emev2_smu_clkdiv_init(struct device_node *np)
 	u32 reg[2];
 	struct clk *clk;
 	const char *parent_name = of_clk_get_parent_name(np, 0);
+
 	if (WARN_ON(of_property_read_u32_array(np, "reg", reg, 2)))
+	{
 		return;
+	}
+
 	if (!smu_base)
+	{
 		emev2_smu_init();
+	}
+
 	clk = clk_register_divider(NULL, np->name, parent_name, 0,
-				   smu_base + reg[0], reg[1], 8, 0, &lock);
+							   smu_base + reg[0], reg[1], 8, 0, &lock);
 	of_clk_add_provider(np, of_clk_src_simple_get, clk);
 	clk_register_clkdev(clk, np->name, NULL);
 	pr_debug("## %s %s %p\n", __func__, np->name, clk);
 }
 CLK_OF_DECLARE(emev2_smu_clkdiv, "renesas,emev2-smu-clkdiv",
-		emev2_smu_clkdiv_init);
+			   emev2_smu_clkdiv_init);
 
 static void __init emev2_smu_gclk_init(struct device_node *np)
 {
 	u32 reg[2];
 	struct clk *clk;
 	const char *parent_name = of_clk_get_parent_name(np, 0);
+
 	if (WARN_ON(of_property_read_u32_array(np, "reg", reg, 2)))
+	{
 		return;
+	}
+
 	if (!smu_base)
+	{
 		emev2_smu_init();
+	}
+
 	clk = clk_register_gate(NULL, np->name, parent_name, 0,
-				smu_base + reg[0], reg[1], 0, &lock);
+							smu_base + reg[0], reg[1], 0, &lock);
 	of_clk_add_provider(np, of_clk_src_simple_get, clk);
 	clk_register_clkdev(clk, np->name, NULL);
 	pr_debug("## %s %s %p\n", __func__, np->name, clk);

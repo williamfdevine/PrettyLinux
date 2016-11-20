@@ -52,7 +52,8 @@
 
 #define KONA_MMC_AUTOSUSPEND_DELAY		(50)
 
-struct sdhci_bcm_kona_dev {
+struct sdhci_bcm_kona_dev
+{
 	struct mutex	write_lock; /* protect back to back writes */
 };
 
@@ -70,8 +71,10 @@ static int sdhci_bcm_kona_sd_reset(struct sdhci_host *host)
 	val |= KONA_SDHOST_RESET;
 	sdhci_writel(host, val, KONA_SDHOST_CORECTRL);
 
-	while (!(sdhci_readl(host, KONA_SDHOST_CORECTRL) & KONA_SDHOST_RESET)) {
-		if (time_is_before_jiffies(timeout)) {
+	while (!(sdhci_readl(host, KONA_SDHOST_CORECTRL) & KONA_SDHOST_RESET))
+	{
+		if (time_is_before_jiffies(timeout))
+		{
 			pr_err("Error: sd host is stuck in reset!!!\n");
 			return -EFAULT;
 		}
@@ -139,20 +142,25 @@ static int sdhci_bcm_kona_sd_card_emulate(struct sdhci_host *host, int insert)
 	udelay(20);
 	val = sdhci_readl(host, KONA_SDHOST_CORESTAT);
 
-	if (insert) {
+	if (insert)
+	{
 		int ret;
 
 		ret = mmc_gpio_get_ro(host->mmc);
+
 		if (ret >= 0)
 			val = (val & ~KONA_SDHOST_WP) |
-				((ret) ? KONA_SDHOST_WP : 0);
+				  ((ret) ? KONA_SDHOST_WP : 0);
 
 		val |= KONA_SDHOST_CD_SW;
 		sdhci_writel(host, val, KONA_SDHOST_CORESTAT);
-	} else {
+	}
+	else
+	{
 		val &= ~KONA_SDHOST_CD_SW;
 		sdhci_writel(host, val, KONA_SDHOST_CORESTAT);
 	}
+
 	mutex_unlock(&kona_dev->write_lock);
 
 	return 0;
@@ -163,19 +171,22 @@ static int sdhci_bcm_kona_sd_card_emulate(struct sdhci_host *host, int insert)
  */
 static void sdhci_bcm_kona_card_event(struct sdhci_host *host)
 {
-	if (mmc_gpio_get_cd(host->mmc) > 0) {
+	if (mmc_gpio_get_cd(host->mmc) > 0)
+	{
 		dev_dbg(mmc_dev(host->mmc),
-			"card inserted\n");
+				"card inserted\n");
 		sdhci_bcm_kona_sd_card_emulate(host, 1);
-	} else {
+	}
+	else
+	{
 		dev_dbg(mmc_dev(host->mmc),
-			"card removed\n");
+				"card removed\n");
 		sdhci_bcm_kona_sd_card_emulate(host, 0);
 	}
 }
 
 static void sdhci_bcm_kona_init_74_clocks(struct sdhci_host *host,
-				u8 power_mode)
+		u8 power_mode)
 {
 	/*
 	 *  JEDEC and SD spec specify supplying 74 continuous clocks to
@@ -183,10 +194,13 @@ static void sdhci_bcm_kona_init_74_clocks(struct sdhci_host *host,
 	 * that translates to 740us
 	 */
 	if (power_mode != MMC_POWER_OFF)
+	{
 		udelay(740);
+	}
 }
 
-static struct sdhci_ops sdhci_bcm_kona_ops = {
+static struct sdhci_ops sdhci_bcm_kona_ops =
+{
 	.set_clock = sdhci_set_clock,
 	.get_max_clock = sdhci_pltfm_clk_get_max_clock,
 	.get_timeout_clock = sdhci_pltfm_clk_get_max_clock,
@@ -197,16 +211,18 @@ static struct sdhci_ops sdhci_bcm_kona_ops = {
 	.card_event = sdhci_bcm_kona_card_event,
 };
 
-static struct sdhci_pltfm_data sdhci_pltfm_data_kona = {
+static struct sdhci_pltfm_data sdhci_pltfm_data_kona =
+{
 	.ops    = &sdhci_bcm_kona_ops,
 	.quirks = SDHCI_QUIRK_NO_CARD_NO_RESET |
-		SDHCI_QUIRK_BROKEN_TIMEOUT_VAL | SDHCI_QUIRK_32BIT_DMA_ADDR |
-		SDHCI_QUIRK_32BIT_DMA_SIZE | SDHCI_QUIRK_32BIT_ADMA_SIZE |
-		SDHCI_QUIRK_FORCE_BLK_SZ_2048 |
-		SDHCI_QUIRK_CAP_CLOCK_BASE_BROKEN,
+	SDHCI_QUIRK_BROKEN_TIMEOUT_VAL | SDHCI_QUIRK_32BIT_DMA_ADDR |
+	SDHCI_QUIRK_32BIT_DMA_SIZE | SDHCI_QUIRK_32BIT_ADMA_SIZE |
+	SDHCI_QUIRK_FORCE_BLK_SZ_2048 |
+	SDHCI_QUIRK_CAP_CLOCK_BASE_BROKEN,
 };
 
-static const struct of_device_id sdhci_bcm_kona_of_match[] = {
+static const struct of_device_id sdhci_bcm_kona_of_match[] =
+{
 	{ .compatible = "brcm,kona-sdhci"},
 	{ .compatible = "bcm,kona-sdhci"}, /* deprecated name */
 	{}
@@ -224,9 +240,12 @@ static int sdhci_bcm_kona_probe(struct platform_device *pdev)
 	ret = 0;
 
 	host = sdhci_pltfm_init(pdev, &sdhci_pltfm_data_kona,
-			sizeof(*kona_dev));
+							sizeof(*kona_dev));
+
 	if (IS_ERR(host))
+	{
 		return PTR_ERR(host);
+	}
 
 	dev_dbg(dev, "%s: inited. IOADDR=%p\n", __func__, host->ioaddr);
 
@@ -236,10 +255,14 @@ static int sdhci_bcm_kona_probe(struct platform_device *pdev)
 	mutex_init(&kona_dev->write_lock);
 
 	ret = mmc_of_parse(host->mmc);
-	if (ret)
-		goto err_pltfm_free;
 
-	if (!host->mmc->f_max) {
+	if (ret)
+	{
+		goto err_pltfm_free;
+	}
+
+	if (!host->mmc->f_max)
+	{
 		dev_err(&pdev->dev, "Missing max-freq for SDHCI cfg\n");
 		ret = -ENXIO;
 		goto err_pltfm_free;
@@ -247,64 +270,83 @@ static int sdhci_bcm_kona_probe(struct platform_device *pdev)
 
 	/* Get and enable the core clock */
 	pltfm_priv->clk = devm_clk_get(dev, NULL);
-	if (IS_ERR(pltfm_priv->clk)) {
+
+	if (IS_ERR(pltfm_priv->clk))
+	{
 		dev_err(dev, "Failed to get core clock\n");
 		ret = PTR_ERR(pltfm_priv->clk);
 		goto err_pltfm_free;
 	}
 
 	ret = clk_set_rate(pltfm_priv->clk, host->mmc->f_max);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to set rate core clock\n");
 		goto err_pltfm_free;
 	}
 
 	ret = clk_prepare_enable(pltfm_priv->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to enable core clock\n");
 		goto err_pltfm_free;
 	}
 
 	dev_dbg(dev, "non-removable=%c\n",
-		mmc_card_is_removable(host->mmc) ? 'N' : 'Y');
+			mmc_card_is_removable(host->mmc) ? 'N' : 'Y');
 	dev_dbg(dev, "cd_gpio %c, wp_gpio %c\n",
-		(mmc_gpio_get_cd(host->mmc) != -ENOSYS) ? 'Y' : 'N',
-		(mmc_gpio_get_ro(host->mmc) != -ENOSYS) ? 'Y' : 'N');
+			(mmc_gpio_get_cd(host->mmc) != -ENOSYS) ? 'Y' : 'N',
+			(mmc_gpio_get_ro(host->mmc) != -ENOSYS) ? 'Y' : 'N');
 
 	if (!mmc_card_is_removable(host->mmc))
+	{
 		host->quirks |= SDHCI_QUIRK_BROKEN_CARD_DETECTION;
+	}
 
 	dev_dbg(dev, "is_8bit=%c\n",
-		(host->mmc->caps & MMC_CAP_8_BIT_DATA) ? 'Y' : 'N');
+			(host->mmc->caps & MMC_CAP_8_BIT_DATA) ? 'Y' : 'N');
 
 	ret = sdhci_bcm_kona_sd_reset(host);
+
 	if (ret)
+	{
 		goto err_clk_disable;
+	}
 
 	sdhci_bcm_kona_sd_init(host);
 
 	ret = sdhci_add_host(host);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Failed sdhci_add_host\n");
 		goto err_reset;
 	}
 
 	/* if device is eMMC, emulate card insert right here */
-	if (!mmc_card_is_removable(host->mmc)) {
+	if (!mmc_card_is_removable(host->mmc))
+	{
 		ret = sdhci_bcm_kona_sd_card_emulate(host, 1);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev,
-				"unable to emulate card insertion\n");
+					"unable to emulate card insertion\n");
 			goto err_remove_host;
 		}
 	}
+
 	/*
 	 * Since the card detection GPIO interrupt is configured to be
 	 * edge sensitive, check the initial GPIO value here, emulate
 	 * only if the card is present
 	 */
 	if (mmc_gpio_get_cd(host->mmc) > 0)
+	{
 		sdhci_bcm_kona_sd_card_emulate(host, 1);
+	}
 
 	dev_dbg(dev, "initialized properly\n");
 	return 0;
@@ -325,7 +367,8 @@ err_pltfm_free:
 	return ret;
 }
 
-static struct platform_driver sdhci_bcm_kona_driver = {
+static struct platform_driver sdhci_bcm_kona_driver =
+{
 	.driver		= {
 		.name	= "sdhci-kona",
 		.pm	= &sdhci_pltfm_pmops,

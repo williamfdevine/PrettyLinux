@@ -33,12 +33,14 @@ nvbios_addr(struct nvkm_bios *bios, u32 *addr, u8 size)
 {
 	u32 p = *addr;
 
-	if (*addr > bios->image0_size && bios->imaged_addr) {
+	if (*addr > bios->image0_size && bios->imaged_addr)
+	{
 		*addr -= bios->image0_size;
 		*addr += bios->imaged_addr;
 	}
 
-	if (unlikely(*addr + size >= bios->size)) {
+	if (unlikely(*addr + size >= bios->size))
+	{
 		nvkm_error(&bios->subdev, "OOB %d %08x %08x\n", size, p, *addr);
 		return false;
 	}
@@ -50,7 +52,10 @@ u8
 nvbios_rd08(struct nvkm_bios *bios, u32 addr)
 {
 	if (likely(nvbios_addr(bios, &addr, 1)))
+	{
 		return bios->data[addr];
+	}
+
 	return 0x00;
 }
 
@@ -58,7 +63,10 @@ u16
 nvbios_rd16(struct nvkm_bios *bios, u32 addr)
 {
 	if (likely(nvbios_addr(bios, &addr, 2)))
+	{
 		return get_unaligned_le16(&bios->data[addr]);
+	}
+
 	return 0x0000;
 }
 
@@ -66,7 +74,10 @@ u32
 nvbios_rd32(struct nvkm_bios *bios, u32 addr)
 {
 	if (likely(nvbios_addr(bios, &addr, 4)))
+	{
 		return get_unaligned_le32(&bios->data[addr]);
+	}
+
 	return 0x00000000;
 }
 
@@ -74,8 +85,12 @@ u8
 nvbios_checksum(const u8 *data, int size)
 {
 	u8 sum = 0;
+
 	while (size--)
+	{
 		sum += *data++;
+	}
+
 	return sum;
 }
 
@@ -84,12 +99,18 @@ nvbios_findstr(const u8 *data, int size, const char *str, int len)
 {
 	int i, j;
 
-	for (i = 0; i <= (size - len); i++) {
+	for (i = 0; i <= (size - len); i++)
+	{
 		for (j = 0; j < len; j++)
 			if ((char)data[i + j] != str[j])
+			{
 				break;
+			}
+
 		if (j == len)
+		{
 			return i;
+		}
 	}
 
 	return 0;
@@ -100,29 +121,39 @@ nvbios_memcmp(struct nvkm_bios *bios, u32 addr, const char *str, u32 len)
 {
 	unsigned char c1, c2;
 
-	while (len--) {
+	while (len--)
+	{
 		c1 = nvbios_rd08(bios, addr++);
 		c2 = *(str++);
+
 		if (c1 != c2)
+		{
 			return c1 - c2;
+		}
 	}
+
 	return 0;
 }
 
 int
 nvbios_extend(struct nvkm_bios *bios, u32 length)
 {
-	if (bios->size < length) {
+	if (bios->size < length)
+	{
 		u8 *prev = bios->data;
-		if (!(bios->data = kmalloc(length, GFP_KERNEL))) {
+
+		if (!(bios->data = kmalloc(length, GFP_KERNEL)))
+		{
 			bios->data = prev;
 			return -ENOMEM;
 		}
+
 		memcpy(bios->data, prev, bios->size);
 		bios->size = length;
 		kfree(prev);
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -135,7 +166,8 @@ nvkm_bios_dtor(struct nvkm_subdev *subdev)
 }
 
 static const struct nvkm_subdev_func
-nvkm_bios = {
+	nvkm_bios =
+{
 	.dtor = nvkm_bios_dtor,
 };
 
@@ -148,20 +180,30 @@ nvkm_bios_new(struct nvkm_device *device, int index, struct nvkm_bios **pbios)
 	int ret, idx = 0;
 
 	if (!(bios = *pbios = kzalloc(sizeof(*bios), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	nvkm_subdev_ctor(&nvkm_bios, device, index, &bios->subdev);
 
 	ret = nvbios_shadow(bios);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Some tables have weird pointers that need adjustment before
 	 * they're dereferenced.  I'm not entirely sure why...
 	 */
-	if (nvbios_image(bios, idx++, &image)) {
+	if (nvbios_image(bios, idx++, &image))
+	{
 		bios->image0_size = image.size;
-		while (nvbios_image(bios, idx++, &image)) {
-			if (image.type == 0xe0) {
+
+		while (nvbios_image(bios, idx++, &image))
+		{
+			if (image.type == 0xe0)
+			{
 				bios->imaged_addr = image.base;
 				break;
 			}
@@ -170,27 +212,34 @@ nvkm_bios_new(struct nvkm_device *device, int index, struct nvkm_bios **pbios)
 
 	/* detect type of vbios we're dealing with */
 	bios->bmp_offset = nvbios_findstr(bios->data, bios->size,
-					  "\xff\x7f""NV\0", 5);
-	if (bios->bmp_offset) {
+									  "\xff\x7f""NV\0", 5);
+
+	if (bios->bmp_offset)
+	{
 		nvkm_debug(&bios->subdev, "BMP version %x.%x\n",
-			   bmp_version(bios) >> 8,
-			   bmp_version(bios) & 0xff);
+				   bmp_version(bios) >> 8,
+				   bmp_version(bios) & 0xff);
 	}
 
 	bios->bit_offset = nvbios_findstr(bios->data, bios->size,
-					  "\xff\xb8""BIT", 5);
+									  "\xff\xb8""BIT", 5);
+
 	if (bios->bit_offset)
+	{
 		nvkm_debug(&bios->subdev, "BIT signature found\n");
+	}
 
 	/* determine the vbios version number */
-	if (!bit_entry(bios, 'i', &bit_i) && bit_i.length >= 4) {
+	if (!bit_entry(bios, 'i', &bit_i) && bit_i.length >= 4)
+	{
 		bios->version.major = nvbios_rd08(bios, bit_i.offset + 3);
 		bios->version.chip  = nvbios_rd08(bios, bit_i.offset + 2);
 		bios->version.minor = nvbios_rd08(bios, bit_i.offset + 1);
 		bios->version.micro = nvbios_rd08(bios, bit_i.offset + 0);
 		bios->version.patch = nvbios_rd08(bios, bit_i.offset + 4);
-	} else
-	if (bmp_version(bios)) {
+	}
+	else if (bmp_version(bios))
+	{
 		bios->version.major = nvbios_rd08(bios, bios->bmp_offset + 13);
 		bios->version.chip  = nvbios_rd08(bios, bios->bmp_offset + 12);
 		bios->version.minor = nvbios_rd08(bios, bios->bmp_offset + 11);
@@ -198,7 +247,7 @@ nvkm_bios_new(struct nvkm_device *device, int index, struct nvkm_bios **pbios)
 	}
 
 	nvkm_info(&bios->subdev, "version %02x.%02x.%02x.%02x.%02x\n",
-		  bios->version.major, bios->version.chip,
-		  bios->version.minor, bios->version.micro, bios->version.patch);
+			  bios->version.major, bios->version.chip,
+			  bios->version.minor, bios->version.micro, bios->version.patch);
 	return 0;
 }

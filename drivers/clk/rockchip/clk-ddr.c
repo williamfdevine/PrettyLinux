@@ -21,7 +21,8 @@
 #include <soc/rockchip/rockchip_sip.h>
 #include "clk.h"
 
-struct rockchip_ddrclk {
+struct rockchip_ddrclk
+{
 	struct clk_hw	hw;
 	void __iomem	*reg_base;
 	int		mux_offset;
@@ -36,7 +37,7 @@ struct rockchip_ddrclk {
 #define to_rockchip_ddrclk_hw(hw) container_of(hw, struct rockchip_ddrclk, hw)
 
 static int rockchip_ddrclk_sip_set_rate(struct clk_hw *hw, unsigned long drate,
-					unsigned long prate)
+										unsigned long prate)
 {
 	struct rockchip_ddrclk *ddrclk = to_rockchip_ddrclk_hw(hw);
 	unsigned long flags;
@@ -44,8 +45,8 @@ static int rockchip_ddrclk_sip_set_rate(struct clk_hw *hw, unsigned long drate,
 
 	spin_lock_irqsave(ddrclk->lock, flags);
 	arm_smccc_smc(ROCKCHIP_SIP_DRAM_FREQ, drate, 0,
-		      ROCKCHIP_SIP_CONFIG_DRAM_SET_RATE,
-		      0, 0, 0, 0, &res);
+				  ROCKCHIP_SIP_CONFIG_DRAM_SET_RATE,
+				  0, 0, 0, 0, &res);
 	spin_unlock_irqrestore(ddrclk->lock, flags);
 
 	return res.a0;
@@ -53,26 +54,26 @@ static int rockchip_ddrclk_sip_set_rate(struct clk_hw *hw, unsigned long drate,
 
 static unsigned long
 rockchip_ddrclk_sip_recalc_rate(struct clk_hw *hw,
-				unsigned long parent_rate)
+								unsigned long parent_rate)
 {
 	struct arm_smccc_res res;
 
 	arm_smccc_smc(ROCKCHIP_SIP_DRAM_FREQ, 0, 0,
-		      ROCKCHIP_SIP_CONFIG_DRAM_GET_RATE,
-		      0, 0, 0, 0, &res);
+				  ROCKCHIP_SIP_CONFIG_DRAM_GET_RATE,
+				  0, 0, 0, 0, &res);
 
 	return res.a0;
 }
 
 static long rockchip_ddrclk_sip_round_rate(struct clk_hw *hw,
-					   unsigned long rate,
-					   unsigned long *prate)
+		unsigned long rate,
+		unsigned long *prate)
 {
 	struct arm_smccc_res res;
 
 	arm_smccc_smc(ROCKCHIP_SIP_DRAM_FREQ, rate, 0,
-		      ROCKCHIP_SIP_CONFIG_DRAM_ROUND_RATE,
-		      0, 0, 0, 0, &res);
+				  ROCKCHIP_SIP_CONFIG_DRAM_ROUND_RATE,
+				  0, 0, 0, 0, &res);
 
 	return res.a0;
 }
@@ -84,16 +85,19 @@ static u8 rockchip_ddrclk_get_parent(struct clk_hw *hw)
 	u32 val;
 
 	val = clk_readl(ddrclk->reg_base +
-			ddrclk->mux_offset) >> ddrclk->mux_shift;
+					ddrclk->mux_offset) >> ddrclk->mux_shift;
 	val &= GENMASK(ddrclk->mux_width - 1, 0);
 
 	if (val >= num_parents)
+	{
 		return -EINVAL;
+	}
 
 	return val;
 }
 
-static const struct clk_ops rockchip_ddrclk_sip_ops = {
+static const struct clk_ops rockchip_ddrclk_sip_ops =
+{
 	.recalc_rate = rockchip_ddrclk_sip_recalc_rate,
 	.set_rate = rockchip_ddrclk_sip_set_rate,
 	.round_rate = rockchip_ddrclk_sip_round_rate,
@@ -101,20 +105,23 @@ static const struct clk_ops rockchip_ddrclk_sip_ops = {
 };
 
 struct clk *rockchip_clk_register_ddrclk(const char *name, int flags,
-					 const char *const *parent_names,
-					 u8 num_parents, int mux_offset,
-					 int mux_shift, int mux_width,
-					 int div_shift, int div_width,
-					 int ddr_flag, void __iomem *reg_base,
-					 spinlock_t *lock)
+		const char *const *parent_names,
+		u8 num_parents, int mux_offset,
+		int mux_shift, int mux_width,
+		int div_shift, int div_width,
+		int ddr_flag, void __iomem *reg_base,
+		spinlock_t *lock)
 {
 	struct rockchip_ddrclk *ddrclk;
 	struct clk_init_data init;
 	struct clk *clk;
 
 	ddrclk = kzalloc(sizeof(*ddrclk), GFP_KERNEL);
+
 	if (!ddrclk)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.parent_names = parent_names;
@@ -123,14 +130,16 @@ struct clk *rockchip_clk_register_ddrclk(const char *name, int flags,
 	init.flags = flags;
 	init.flags |= CLK_SET_RATE_NO_REPARENT;
 
-	switch (ddr_flag) {
-	case ROCKCHIP_DDRCLK_SIP:
-		init.ops = &rockchip_ddrclk_sip_ops;
-		break;
-	default:
-		pr_err("%s: unsupported ddrclk type %d\n", __func__, ddr_flag);
-		kfree(ddrclk);
-		return ERR_PTR(-EINVAL);
+	switch (ddr_flag)
+	{
+		case ROCKCHIP_DDRCLK_SIP:
+			init.ops = &rockchip_ddrclk_sip_ops;
+			break;
+
+		default:
+			pr_err("%s: unsupported ddrclk type %d\n", __func__, ddr_flag);
+			kfree(ddrclk);
+			return ERR_PTR(-EINVAL);
 	}
 
 	ddrclk->reg_base = reg_base;
@@ -144,8 +153,11 @@ struct clk *rockchip_clk_register_ddrclk(const char *name, int flags,
 	ddrclk->ddr_flag = ddr_flag;
 
 	clk = clk_register(NULL, &ddrclk->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(ddrclk);
+	}
 
 	return clk;
 }

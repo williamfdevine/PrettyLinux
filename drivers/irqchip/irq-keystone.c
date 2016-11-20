@@ -31,7 +31,8 @@
 #define BIT_OFS			4
 #define KEYSTONE_N_IRQ		(32 - BIT_OFS)
 
-struct keystone_irq_device {
+struct keystone_irq_device
+{
 	struct device		*dev;
 	struct irq_chip		 chip;
 	u32			 mask;
@@ -47,8 +48,12 @@ static inline u32 keystone_irq_readl(struct keystone_irq_device *kirq)
 	u32 val = 0;
 
 	ret = regmap_read(kirq->devctrl_regs, kirq->devctrl_offset, &val);
+
 	if (ret < 0)
+	{
 		dev_dbg(kirq->dev, "irq read failed ret(%d)\n", ret);
+	}
+
 	return val;
 }
 
@@ -58,8 +63,11 @@ keystone_irq_writel(struct keystone_irq_device *kirq, u32 value)
 	int ret;
 
 	ret = regmap_write(kirq->devctrl_regs, kirq->devctrl_offset, value);
+
 	if (ret < 0)
+	{
 		dev_dbg(kirq->dev, "irq write failed ret(%d)\n", ret);
+	}
 }
 
 static void keystone_irq_setmask(struct irq_data *d)
@@ -103,14 +111,18 @@ static void keystone_irq_handler(struct irq_desc *desc)
 
 	dev_dbg(kirq->dev, "pending after mask 0x%lx\n", pending);
 
-	for (src = 0; src < KEYSTONE_N_IRQ; src++) {
-		if (BIT(src) & pending) {
+	for (src = 0; src < KEYSTONE_N_IRQ; src++)
+	{
+		if (BIT(src) & pending)
+		{
 			virq = irq_find_mapping(kirq->irqd, src);
 			dev_dbg(kirq->dev, "dispatch bit %d, virq %d\n",
-				src, virq);
+					src, virq);
+
 			if (!virq)
 				dev_warn(kirq->dev, "spurious irq detected hwirq %d, virq %d\n",
-					 src, virq);
+						 src, virq);
+
 			generic_handle_irq(virq);
 		}
 	}
@@ -121,7 +133,7 @@ static void keystone_irq_handler(struct irq_desc *desc)
 }
 
 static int keystone_irq_map(struct irq_domain *h, unsigned int virq,
-				irq_hw_number_t hw)
+							irq_hw_number_t hw)
 {
 	struct keystone_irq_device *kirq = h->host_data;
 
@@ -131,7 +143,8 @@ static int keystone_irq_map(struct irq_domain *h, unsigned int virq,
 	return 0;
 }
 
-static const struct irq_domain_ops keystone_irq_ops = {
+static const struct irq_domain_ops keystone_irq_ops =
+{
 	.map	= keystone_irq_map,
 	.xlate	= irq_domain_xlate_onecell,
 };
@@ -144,26 +157,38 @@ static int keystone_irq_probe(struct platform_device *pdev)
 	int ret;
 
 	if (np == NULL)
+	{
 		return -EINVAL;
+	}
 
 	kirq = devm_kzalloc(dev, sizeof(*kirq), GFP_KERNEL);
+
 	if (!kirq)
+	{
 		return -ENOMEM;
+	}
 
 	kirq->devctrl_regs =
 		syscon_regmap_lookup_by_phandle(np, "ti,syscon-dev");
+
 	if (IS_ERR(kirq->devctrl_regs))
+	{
 		return PTR_ERR(kirq->devctrl_regs);
+	}
 
 	ret = of_property_read_u32_index(np, "ti,syscon-dev", 1,
-					 &kirq->devctrl_offset);
-	if (ret) {
+									 &kirq->devctrl_offset);
+
+	if (ret)
+	{
 		dev_err(dev, "couldn't read the devctrl_offset offset!\n");
 		return ret;
 	}
 
 	kirq->irq = platform_get_irq(pdev, 0);
-	if (kirq->irq < 0) {
+
+	if (kirq->irq < 0)
+	{
 		dev_err(dev, "no irq resource %d\n", kirq->irq);
 		return kirq->irq;
 	}
@@ -176,8 +201,10 @@ static int keystone_irq_probe(struct platform_device *pdev)
 	kirq->chip.irq_unmask	= keystone_irq_unmask;
 
 	kirq->irqd = irq_domain_add_linear(np, KEYSTONE_N_IRQ,
-					   &keystone_irq_ops, kirq);
-	if (!kirq->irqd) {
+									   &keystone_irq_ops, kirq);
+
+	if (!kirq->irqd)
+	{
 		dev_err(dev, "IRQ domain registration failed\n");
 		return -ENODEV;
 	}
@@ -200,19 +227,23 @@ static int keystone_irq_remove(struct platform_device *pdev)
 	int hwirq;
 
 	for (hwirq = 0; hwirq < KEYSTONE_N_IRQ; hwirq++)
+	{
 		irq_dispose_mapping(irq_find_mapping(kirq->irqd, hwirq));
+	}
 
 	irq_domain_remove(kirq->irqd);
 	return 0;
 }
 
-static const struct of_device_id keystone_irq_dt_ids[] = {
+static const struct of_device_id keystone_irq_dt_ids[] =
+{
 	{ .compatible = "ti,keystone-irq", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, keystone_irq_dt_ids);
 
-static struct platform_driver keystone_irq_device_driver = {
+static struct platform_driver keystone_irq_device_driver =
+{
 	.probe		= keystone_irq_probe,
 	.remove		= keystone_irq_remove,
 	.driver		= {

@@ -55,7 +55,8 @@
  * @h2c_vdev_db: The doorbell used by the host to interrupt the guest
  * @dnode: The destination node
  */
-struct _vop_vdev {
+struct _vop_vdev
+{
 	struct virtio_device vdev;
 	struct mic_device_desc __iomem *desc;
 	struct mic_device_ctrl __iomem *dc;
@@ -83,9 +84,9 @@ static inline struct device *_vop_dev(struct _vop_vdev *vdev)
 static inline unsigned _vop_desc_size(struct mic_device_desc __iomem *desc)
 {
 	return sizeof(*desc)
-		+ ioread8(&desc->num_vq) * sizeof(struct mic_vqconfig)
-		+ ioread8(&desc->feature_len) * 2
-		+ ioread8(&desc->config_len);
+		   + ioread8(&desc->num_vq) * sizeof(struct mic_vqconfig)
+		   + ioread8(&desc->feature_len) * 2
+		   + ioread8(&desc->config_len);
 }
 
 static inline struct mic_vqconfig __iomem *
@@ -122,9 +123,12 @@ static u64 vop_get_features(struct virtio_device *vdev)
 	int feature_len = ioread8(&desc->feature_len);
 
 	bits = min_t(unsigned, feature_len, sizeof(vdev->features)) * 8;
+
 	for (i = 0; i < bits; i++)
 		if (ioread8(&in_features[i / 8]) & (BIT(i % 8)))
+		{
 			features |= BIT(i);
+		}
 
 	return features;
 }
@@ -143,12 +147,15 @@ static int vop_finalize_features(struct virtio_device *vdev)
 
 	memset_io(out_features, 0, feature_len);
 	bits = min_t(unsigned, feature_len,
-		     sizeof(vdev->features)) * 8;
-	for (i = 0; i < bits; i++) {
+				 sizeof(vdev->features)) * 8;
+
+	for (i = 0; i < bits; i++)
+	{
 		if (__virtio_test_bit(vdev, i))
 			iowrite8(ioread8(&out_features[i / 8]) | (1 << (i % 8)),
-				 &out_features[i / 8]);
+					 &out_features[i / 8]);
 	}
+
 	return 0;
 }
 
@@ -156,22 +163,28 @@ static int vop_finalize_features(struct virtio_device *vdev)
  * Reading and writing elements in config space
  */
 static void vop_get(struct virtio_device *vdev, unsigned int offset,
-		    void *buf, unsigned len)
+					void *buf, unsigned len)
 {
 	struct mic_device_desc __iomem *desc = to_vopvdev(vdev)->desc;
 
 	if (offset + len > ioread8(&desc->config_len))
+	{
 		return;
+	}
+
 	memcpy_fromio(buf, _vop_vq_configspace(desc) + offset, len);
 }
 
 static void vop_set(struct virtio_device *vdev, unsigned int offset,
-		    const void *buf, unsigned len)
+					const void *buf, unsigned len)
 {
 	struct mic_device_desc __iomem *desc = to_vopvdev(vdev)->desc;
 
 	if (offset + len > ioread8(&desc->config_len))
+	{
 		return;
+	}
+
 	memcpy_toio(_vop_vq_configspace(desc) + offset, buf, len);
 }
 
@@ -191,7 +204,10 @@ static void vop_set_status(struct virtio_device *dev, u8 status)
 	struct vop_device *vpdev = vdev->vpdev;
 
 	if (!status)
+	{
 		return;
+	}
+
 	iowrite8(status, &vdev->desc->status);
 	vpdev->hw_ops->send_intr(vpdev, vdev->c2h_vdev_db);
 }
@@ -209,9 +225,13 @@ static void vop_reset_inform_host(struct virtio_device *dev)
 	vpdev->hw_ops->send_intr(vpdev, vdev->c2h_vdev_db);
 
 	/* Wait till host completes all card accesses and acks the reset */
-	for (retry = 100; retry--;) {
+	for (retry = 100; retry--;)
+	{
 		if (ioread8(&dc->host_ack))
+		{
 			break;
+		}
+
 		msleep(100);
 	};
 
@@ -226,7 +246,7 @@ static void vop_reset(struct virtio_device *dev)
 	struct _vop_vdev *vdev = to_vopvdev(dev);
 
 	dev_dbg(_vop_dev(vdev), "%s: virtio id %d\n",
-		__func__, dev->id.device);
+			__func__, dev->id.device);
 
 	vop_reset_inform_host(dev);
 	complete_all(&vdev->reset_done);
@@ -251,7 +271,7 @@ static void vop_del_vq(struct virtqueue *vq, int n)
 	struct vop_device *vpdev = vdev->vpdev;
 
 	dma_unmap_single(&vpdev->dev, vdev->used[n],
-			 vdev->used_size[n], DMA_BIDIRECTIONAL);
+					 vdev->used_size[n], DMA_BIDIRECTIONAL);
 	free_pages((unsigned long)vr->used, get_order(vdev->used_size[n]));
 	vring_del_virtqueue(vq);
 	vpdev->hw_ops->iounmap(vpdev, vdev->vr[n]);
@@ -267,7 +287,7 @@ static void vop_del_vqs(struct virtio_device *dev)
 	dev_dbg(_vop_dev(vdev), "%s\n", __func__);
 
 	list_for_each_entry_safe(vq, n, &dev->vqs, list)
-		vop_del_vq(vq, idx++);
+	vop_del_vq(vq, idx++);
 }
 
 /*
@@ -276,9 +296,9 @@ static void vop_del_vqs(struct virtio_device *dev)
  * memory without io accessors.
  */
 static struct virtqueue *vop_find_vq(struct virtio_device *dev,
-				     unsigned index,
-				     void (*callback)(struct virtqueue *vq),
-				     const char *name)
+									 unsigned index,
+									 void (*callback)(struct virtqueue *vq),
+									 const char *name)
 {
 	struct _vop_vdev *vdev = to_vopvdev(dev);
 	struct vop_device *vpdev = vdev->vpdev;
@@ -293,10 +313,14 @@ static struct virtqueue *vop_find_vq(struct virtio_device *dev,
 	u8 type = ioread8(&vdev->desc->type);
 
 	if (index >= ioread8(&vdev->desc->num_vq))
+	{
 		return ERR_PTR(-ENOENT);
+	}
 
 	if (!name)
+	{
 		return ERR_PTR(-ENOENT);
+	}
 
 	/* First assign the vring's allocated in host memory */
 	vqconfig = _vop_vq_config(vdev->desc) + index;
@@ -304,50 +328,64 @@ static struct virtqueue *vop_find_vq(struct virtio_device *dev,
 	_vr_size = vring_size(le16_to_cpu(config.num), MIC_VIRTIO_RING_ALIGN);
 	vr_size = PAGE_ALIGN(_vr_size + sizeof(struct _mic_vring_info));
 	va = vpdev->hw_ops->ioremap(vpdev, le64_to_cpu(config.address),
-			vr_size);
+								vr_size);
+
 	if (!va)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	vdev->vr[index] = va;
 	memset_io(va, 0x0, _vr_size);
 	vq = vring_new_virtqueue(
-				index,
-				le16_to_cpu(config.num), MIC_VIRTIO_RING_ALIGN,
-				dev,
-				false,
-				(void __force *)va, vop_notify, callback, name);
-	if (!vq) {
+			 index,
+			 le16_to_cpu(config.num), MIC_VIRTIO_RING_ALIGN,
+			 dev,
+			 false,
+			 (void __force *)va, vop_notify, callback, name);
+
+	if (!vq)
+	{
 		err = -ENOMEM;
 		goto unmap;
 	}
+
 	info = va + _vr_size;
 	magic = ioread32(&info->magic);
 
-	if (WARN(magic != MIC_MAGIC + type + index, "magic mismatch")) {
+	if (WARN(magic != MIC_MAGIC + type + index, "magic mismatch"))
+	{
 		err = -EIO;
 		goto unmap;
 	}
 
 	/* Allocate and reassign used ring now */
 	vdev->used_size[index] = PAGE_ALIGN(sizeof(__u16) * 3 +
-					     sizeof(struct vring_used_elem) *
-					     le16_to_cpu(config.num));
+										sizeof(struct vring_used_elem) *
+										le16_to_cpu(config.num));
 	used = (void *)__get_free_pages(GFP_KERNEL | __GFP_ZERO,
-					get_order(vdev->used_size[index]));
-	if (!used) {
+									get_order(vdev->used_size[index]));
+
+	if (!used)
+	{
 		err = -ENOMEM;
 		dev_err(_vop_dev(vdev), "%s %d err %d\n",
-			__func__, __LINE__, err);
+				__func__, __LINE__, err);
 		goto del_vq;
 	}
+
 	vdev->used[index] = dma_map_single(&vpdev->dev, used,
-					    vdev->used_size[index],
-					    DMA_BIDIRECTIONAL);
-	if (dma_mapping_error(&vpdev->dev, vdev->used[index])) {
+									   vdev->used_size[index],
+									   DMA_BIDIRECTIONAL);
+
+	if (dma_mapping_error(&vpdev->dev, vdev->used[index]))
+	{
 		err = -ENOMEM;
 		dev_err(_vop_dev(vdev), "%s %d err %d\n",
-			__func__, __LINE__, err);
+				__func__, __LINE__, err);
 		goto free_used;
 	}
+
 	writeq(vdev->used[index], &vqconfig->used_address);
 	/*
 	 * To reassign the used ring here we are directly accessing
@@ -363,7 +401,7 @@ static struct virtqueue *vop_find_vq(struct virtio_device *dev,
 	return vq;
 free_used:
 	free_pages((unsigned long)used,
-		   get_order(vdev->used_size[index]));
+			   get_order(vdev->used_size[index]));
 del_vq:
 	vring_del_virtqueue(vq);
 unmap:
@@ -372,9 +410,9 @@ unmap:
 }
 
 static int vop_find_vqs(struct virtio_device *dev, unsigned nvqs,
-			struct virtqueue *vqs[],
-			vq_callback_t *callbacks[],
-			const char * const names[])
+						struct virtqueue *vqs[],
+						vq_callback_t *callbacks[],
+						const char *const names[])
 {
 	struct _vop_vdev *vdev = to_vopvdev(dev);
 	struct vop_device *vpdev = vdev->vpdev;
@@ -383,13 +421,18 @@ static int vop_find_vqs(struct virtio_device *dev, unsigned nvqs,
 
 	/* We must have this many virtqueues. */
 	if (nvqs > ioread8(&vdev->desc->num_vq))
+	{
 		return -ENOENT;
+	}
 
-	for (i = 0; i < nvqs; ++i) {
+	for (i = 0; i < nvqs; ++i)
+	{
 		dev_dbg(_vop_dev(vdev), "%s: %d: %s\n",
-			__func__, i, names[i]);
+				__func__, i, names[i]);
 		vqs[i] = vop_find_vq(dev, i, callbacks[i], names[i]);
-		if (IS_ERR(vqs[i])) {
+
+		if (IS_ERR(vqs[i]))
+		{
 			err = PTR_ERR(vqs[i]);
 			goto error;
 		}
@@ -401,14 +444,21 @@ static int vop_find_vqs(struct virtio_device *dev, unsigned nvqs,
 	 * rings have been re-assigned.
 	 */
 	vpdev->hw_ops->send_intr(vpdev, vdev->c2h_vdev_db);
-	for (retry = 100; --retry;) {
+
+	for (retry = 100; --retry;)
+	{
 		if (!ioread8(&dc->used_address_updated))
+		{
 			break;
+		}
+
 		msleep(100);
 	};
 
 	dev_dbg(_vop_dev(vdev), "%s: retry: %d\n", __func__, retry);
-	if (!retry) {
+
+	if (!retry)
+	{
 		err = -ENODEV;
 		goto error;
 	}
@@ -422,7 +472,8 @@ error:
 /*
  * The config ops structure as defined by virtio config
  */
-static struct virtio_config_ops vop_vq_config_ops = {
+static struct virtio_config_ops vop_vq_config_ops =
+{
 	.get_features = vop_get_features,
 	.finalize_features = vop_finalize_features,
 	.get = vop_get,
@@ -442,7 +493,7 @@ static irqreturn_t vop_virtio_intr_handler(int irq, void *data)
 
 	vpdev->hw_ops->ack_interrupt(vpdev, vdev->h2c_vdev_db);
 	list_for_each_entry(vq, &vdev->vdev.vqs, list)
-		vring_interrupt(0, vq);
+	vring_interrupt(0, vq);
 
 	return IRQ_HANDLED;
 }
@@ -460,16 +511,19 @@ static void vop_virtio_release_dev(struct device *_d)
  * appropriate drivers are loaded by the device model
  */
 static int _vop_add_device(struct mic_device_desc __iomem *d,
-			   unsigned int offset, struct vop_device *vpdev,
-			   int dnode)
+						   unsigned int offset, struct vop_device *vpdev,
+						   int dnode)
 {
 	struct _vop_vdev *vdev;
 	int ret;
 	u8 type = ioread8(&d->type);
 
 	vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
+
 	if (!vdev)
+	{
 		return -ENOMEM;
+	}
 
 	vdev->vpdev = vpdev;
 	vdev->vdev.dev.parent = &vpdev->dev;
@@ -484,25 +538,31 @@ static int _vop_add_device(struct mic_device_desc __iomem *d,
 
 	vdev->h2c_vdev_db = vpdev->hw_ops->next_db(vpdev);
 	vdev->virtio_cookie = vpdev->hw_ops->request_irq(vpdev,
-			vop_virtio_intr_handler, "virtio intr",
-			vdev, vdev->h2c_vdev_db);
-	if (IS_ERR(vdev->virtio_cookie)) {
+						  vop_virtio_intr_handler, "virtio intr",
+						  vdev, vdev->h2c_vdev_db);
+
+	if (IS_ERR(vdev->virtio_cookie))
+	{
 		ret = PTR_ERR(vdev->virtio_cookie);
 		goto kfree;
 	}
+
 	iowrite8((u8)vdev->h2c_vdev_db, &vdev->dc->h2c_vdev_db);
 	vdev->c2h_vdev_db = ioread8(&vdev->dc->c2h_vdev_db);
 
 	ret = register_virtio_device(&vdev->vdev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(_vop_dev(vdev),
-			"Failed to register vop device %u type %u\n",
-			offset, type);
+				"Failed to register vop device %u type %u\n",
+				offset, type);
 		goto free_irq;
 	}
+
 	writeq((u64)vdev, &vdev->dc->vdev);
 	dev_dbg(_vop_dev(vdev), "%s: registered vop device %u type %u vdev %p\n",
-		__func__, offset, type, vdev);
+			__func__, offset, type, vdev);
 
 	return 0;
 
@@ -525,15 +585,17 @@ static int vop_match_desc(struct device *dev, void *data)
 }
 
 static void _vop_handle_config_change(struct mic_device_desc __iomem *d,
-				      unsigned int offset,
-				      struct vop_device *vpdev)
+									  unsigned int offset,
+									  struct vop_device *vpdev)
 {
 	struct mic_device_ctrl __iomem *dc
 		= (void __iomem *)d + _vop_aligned_desc_size(d);
 	struct _vop_vdev *vdev = (struct _vop_vdev *)readq(&dc->vdev);
 
 	if (ioread8(&dc->config_change) != MIC_VIRTIO_PARAM_CONFIG_CHANGED)
+	{
 		return;
+	}
 
 	dev_dbg(&vpdev->dev, "%s %d\n", __func__, __LINE__);
 	virtio_config_changed(&vdev->vdev);
@@ -545,7 +607,7 @@ static void _vop_handle_config_change(struct mic_device_desc __iomem *d,
  * requested by the host.
  */
 static int _vop_remove_device(struct mic_device_desc __iomem *d,
-			      unsigned int offset, struct vop_device *vpdev)
+							  unsigned int offset, struct vop_device *vpdev)
 {
 	struct mic_device_ctrl __iomem *dc
 		= (void __iomem *)d + _vop_aligned_desc_size(d);
@@ -553,32 +615,38 @@ static int _vop_remove_device(struct mic_device_desc __iomem *d,
 	u8 status;
 	int ret = -1;
 
-	if (ioread8(&dc->config_change) == MIC_VIRTIO_PARAM_DEV_REMOVE) {
+	if (ioread8(&dc->config_change) == MIC_VIRTIO_PARAM_DEV_REMOVE)
+	{
 		dev_dbg(&vpdev->dev,
-			"%s %d config_change %d type %d vdev %p\n",
-			__func__, __LINE__,
-			ioread8(&dc->config_change), ioread8(&d->type), vdev);
+				"%s %d config_change %d type %d vdev %p\n",
+				__func__, __LINE__,
+				ioread8(&dc->config_change), ioread8(&d->type), vdev);
 		status = ioread8(&d->status);
 		reinit_completion(&vdev->reset_done);
 		unregister_virtio_device(&vdev->vdev);
 		vpdev->hw_ops->free_irq(vpdev, vdev->virtio_cookie, vdev);
 		iowrite8(-1, &dc->h2c_vdev_db);
+
 		if (status & VIRTIO_CONFIG_S_DRIVER_OK)
+		{
 			wait_for_completion(&vdev->reset_done);
+		}
+
 		kfree(vdev);
 		iowrite8(1, &dc->guest_ack);
 		dev_dbg(&vpdev->dev, "%s %d guest_ack %d\n",
-			__func__, __LINE__, ioread8(&dc->guest_ack));
+				__func__, __LINE__, ioread8(&dc->guest_ack));
 		iowrite8(-1, &d->type);
 		ret = 0;
 	}
+
 	return ret;
 }
 
 #define REMOVE_DEVICES true
 
 static void _vop_scan_devices(void __iomem *dp, struct vop_device *vpdev,
-			      bool remove, int dnode)
+							  bool remove, int dnode)
 {
 	s8 type;
 	unsigned int i;
@@ -588,7 +656,8 @@ static void _vop_scan_devices(void __iomem *dp, struct vop_device *vpdev,
 	int ret;
 
 	for (i = sizeof(struct mic_bootparam);
-			i < MIC_DP_SIZE; i += _vop_total_desc_size(d)) {
+		 i < MIC_DP_SIZE; i += _vop_total_desc_size(d))
+	{
 		d = dp + i;
 		dc = (void __iomem *)d + _vop_aligned_desc_size(d);
 		/*
@@ -601,43 +670,59 @@ static void _vop_scan_devices(void __iomem *dp, struct vop_device *vpdev,
 
 		/* end of list */
 		if (type == 0)
+		{
 			break;
+		}
 
 		if (type == -1)
+		{
 			continue;
+		}
 
 		/* device already exists */
 		dev = device_find_child(&vpdev->dev, (void __force *)d,
-					vop_match_desc);
-		if (dev) {
+								vop_match_desc);
+
+		if (dev)
+		{
 			if (remove)
 				iowrite8(MIC_VIRTIO_PARAM_DEV_REMOVE,
-					 &dc->config_change);
+						 &dc->config_change);
+
 			put_device(dev);
 			_vop_handle_config_change(d, i, vpdev);
 			ret = _vop_remove_device(d, i, vpdev);
-			if (remove) {
+
+			if (remove)
+			{
 				iowrite8(0, &dc->config_change);
 				iowrite8(0, &dc->guest_ack);
 			}
+
 			continue;
 		}
 
 		/* new device */
 		dev_dbg(&vpdev->dev, "%s %d Adding new virtio device %p\n",
-			__func__, __LINE__, d);
+				__func__, __LINE__, d);
+
 		if (!remove)
+		{
 			_vop_add_device(d, i, vpdev, dnode);
+		}
 	}
 }
 
 static void vop_scan_devices(struct vop_info *vi,
-			     struct vop_device *vpdev, bool remove)
+							 struct vop_device *vpdev, bool remove)
 {
 	void __iomem *dp = vpdev->hw_ops->get_remote_dp(vpdev);
 
 	if (!dp)
+	{
 		return;
+	}
+
 	mutex_lock(&vi->vop_mutex);
 	_vop_scan_devices(dp, vpdev, remove, vpdev->dnode);
 	mutex_unlock(&vi->vop_mutex);
@@ -649,7 +734,7 @@ static void vop_scan_devices(struct vop_info *vi,
 static void vop_hotplug_devices(struct work_struct *work)
 {
 	struct vop_info *vi = container_of(work, struct vop_info,
-					     hotplug_work);
+									   hotplug_work);
 
 	vop_scan_devices(vi, vi->vpdev, !REMOVE_DEVICES);
 }
@@ -665,7 +750,7 @@ static irqreturn_t vop_extint_handler(int irq, void *data)
 
 	bp = vpdev->hw_ops->get_remote_dp(vpdev);
 	dev_dbg(&vpdev->dev, "%s %d hotplug work\n",
-		__func__, __LINE__);
+			__func__, __LINE__);
 	vpdev->hw_ops->ack_interrupt(vpdev, ioread8(&bp->h2c_config_db));
 	schedule_work(&vi->hotplug_work);
 	return IRQ_HANDLED;
@@ -677,36 +762,50 @@ static int vop_driver_probe(struct vop_device *vpdev)
 	int rc;
 
 	vi = kzalloc(sizeof(*vi), GFP_KERNEL);
-	if (!vi) {
+
+	if (!vi)
+	{
 		rc = -ENOMEM;
 		goto exit;
 	}
+
 	dev_set_drvdata(&vpdev->dev, vi);
 	vi->vpdev = vpdev;
 
 	mutex_init(&vi->vop_mutex);
 	INIT_WORK(&vi->hotplug_work, vop_hotplug_devices);
-	if (vpdev->dnode) {
+
+	if (vpdev->dnode)
+	{
 		rc = vop_host_init(vi);
+
 		if (rc < 0)
+		{
 			goto free;
-	} else {
+		}
+	}
+	else
+	{
 		struct mic_bootparam __iomem *bootparam;
 
 		vop_scan_devices(vi, vpdev, !REMOVE_DEVICES);
 
 		vi->h2c_config_db = vpdev->hw_ops->next_db(vpdev);
 		vi->cookie = vpdev->hw_ops->request_irq(vpdev,
-							vop_extint_handler,
-							"virtio_config_intr",
-							vi, vi->h2c_config_db);
-		if (IS_ERR(vi->cookie)) {
+												vop_extint_handler,
+												"virtio_config_intr",
+												vi, vi->h2c_config_db);
+
+		if (IS_ERR(vi->cookie))
+		{
 			rc = PTR_ERR(vi->cookie);
 			goto free;
 		}
+
 		bootparam = vpdev->hw_ops->get_remote_dp(vpdev);
 		iowrite8(vi->h2c_config_db, &bootparam->h2c_config_db);
 	}
+
 	vop_init_debugfs(vi);
 	return 0;
 free:
@@ -719,27 +818,37 @@ static void vop_driver_remove(struct vop_device *vpdev)
 {
 	struct vop_info *vi = dev_get_drvdata(&vpdev->dev);
 
-	if (vpdev->dnode) {
+	if (vpdev->dnode)
+	{
 		vop_host_uninit(vi);
-	} else {
+	}
+	else
+	{
 		struct mic_bootparam __iomem *bootparam =
 			vpdev->hw_ops->get_remote_dp(vpdev);
+
 		if (bootparam)
+		{
 			iowrite8(-1, &bootparam->h2c_config_db);
+		}
+
 		vpdev->hw_ops->free_irq(vpdev, vi->cookie, vi);
 		flush_work(&vi->hotplug_work);
 		vop_scan_devices(vi, vpdev, REMOVE_DEVICES);
 	}
+
 	vop_exit_debugfs(vi);
 	kfree(vi);
 }
 
-static struct vop_device_id id_table[] = {
+static struct vop_device_id id_table[] =
+{
 	{ VOP_DEV_TRNSP, VOP_DEV_ANY_ID },
 	{ 0 },
 };
 
-static struct vop_driver vop_driver = {
+static struct vop_driver vop_driver =
+{
 	.driver.name =	KBUILD_MODNAME,
 	.driver.owner =	THIS_MODULE,
 	.id_table = id_table,

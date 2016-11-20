@@ -37,7 +37,8 @@ MODULE_LICENSE("GPL");
 #define FPIX_MAX_TRANSFER 0x2000
 
 /* Structure to hold all of our device specific stuff */
-struct usb_fpix {
+struct usb_fpix
+{
 	struct gspca_dev gspca_dev;	/* !! must be the first item */
 
 	struct work_struct work_struct;
@@ -50,30 +51,34 @@ struct usb_fpix {
 #define NEXT_FRAME_DELAY 35
 
 /* These cameras only support 320x200. */
-static const struct v4l2_pix_format fpix_mode[1] = {
-	{ 320, 240, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
+static const struct v4l2_pix_format fpix_mode[1] =
+{
+	{
+		320, 240, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
 		.bytesperline = 320,
 		.sizeimage = 320 * 240 * 3 / 8 + 590,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 0}
+		.priv = 0
+	}
 };
 
 /* send a command to the webcam */
 static int command(struct gspca_dev *gspca_dev,
-		int order)	/* 0: reset, 1: frame request */
+				   int order)	/* 0: reset, 1: frame request */
 {
-	static u8 order_values[2][12] = {
+	static u8 order_values[2][12] =
+	{
 		{0xc6, 0, 0, 0, 0, 0, 0,    0, 0x20, 0, 0, 0},	/* reset */
 		{0xd3, 0, 0, 0, 0, 0, 0, 0x01,    0, 0, 0, 0},	/* fr req */
 	};
 
 	memcpy(gspca_dev->usb_buf, order_values[order], 12);
 	return usb_control_msg(gspca_dev->dev,
-			usb_sndctrlpipe(gspca_dev->dev, 0),
-			USB_REQ_GET_STATUS,
-			USB_DIR_OUT | USB_TYPE_CLASS |
-			USB_RECIP_INTERFACE, 0, 0, gspca_dev->usb_buf,
-			12, FPIX_TIMEOUT);
+						   usb_sndctrlpipe(gspca_dev->dev, 0),
+						   USB_REQ_GET_STATUS,
+						   USB_DIR_OUT | USB_TYPE_CLASS |
+						   USB_RECIP_INTERFACE, 0, 0, gspca_dev->usb_buf,
+						   12, FPIX_TIMEOUT);
 }
 
 /*
@@ -97,46 +102,76 @@ static void dostream(struct work_struct *work)
 
 	/* loop reading a frame */
 again:
-	while (gspca_dev->present && gspca_dev->streaming) {
+
+	while (gspca_dev->present && gspca_dev->streaming)
+	{
 #ifdef CONFIG_PM
+
 		if (gspca_dev->frozen)
+		{
 			break;
+		}
+
 #endif
 
 		/* request a frame */
 		mutex_lock(&gspca_dev->usb_lock);
 		ret = command(gspca_dev, 1);
 		mutex_unlock(&gspca_dev->usb_lock);
+
 		if (ret < 0)
+		{
 			break;
+		}
+
 #ifdef CONFIG_PM
+
 		if (gspca_dev->frozen)
+		{
 			break;
+		}
+
 #endif
+
 		if (!gspca_dev->present || !gspca_dev->streaming)
+		{
 			break;
+		}
 
 		/* the frame comes in parts */
-		for (;;) {
+		for (;;)
+		{
 			ret = usb_bulk_msg(gspca_dev->dev,
-					urb->pipe,
-					data,
-					FPIX_MAX_TRANSFER,
-					&len, FPIX_TIMEOUT);
-			if (ret < 0) {
+							   urb->pipe,
+							   data,
+							   FPIX_MAX_TRANSFER,
+							   &len, FPIX_TIMEOUT);
+
+			if (ret < 0)
+			{
 				/* Most of the time we get a timeout
 				 * error. Just restart. */
 				goto again;
 			}
+
 #ifdef CONFIG_PM
+
 			if (gspca_dev->frozen)
+			{
 				goto out;
+			}
+
 #endif
+
 			if (!gspca_dev->present || !gspca_dev->streaming)
+			{
 				goto out;
+			}
+
 			if (len < FPIX_MAX_TRANSFER ||
 				(data[len - 2] == 0xff &&
-					data[len - 1] == 0xd9)) {
+				 data[len - 1] == 0xd9))
+			{
 
 				/* If the result is less than what was asked
 				 * for, then it's the end of the
@@ -145,16 +180,16 @@ again:
 				 * here if the the jpeg ends right at the end
 				 * of the frame. */
 				gspca_frame_add(gspca_dev, LAST_PACKET,
-						data, len);
+								data, len);
 				break;
 			}
 
 			/* got a partial image */
 			gspca_frame_add(gspca_dev,
-					gspca_dev->last_packet_type
-						== LAST_PACKET
-					? FIRST_PACKET : INTER_PACKET,
-					data, len);
+							gspca_dev->last_packet_type
+							== LAST_PACKET
+							? FIRST_PACKET : INTER_PACKET,
+							data, len);
 		}
 
 		/* We must wait before trying reading the next
@@ -169,7 +204,7 @@ out:
 
 /* this function is called at probe time */
 static int sd_config(struct gspca_dev *gspca_dev,
-		const struct usb_device_id *id)
+					 const struct usb_device_id *id)
 {
 	struct usb_fpix *dev = (struct usb_fpix *) gspca_dev;
 	struct cam *cam = &gspca_dev->cam;
@@ -198,7 +233,9 @@ static int sd_start(struct gspca_dev *gspca_dev)
 
 	/* Init the device */
 	ret = command(gspca_dev, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("init failed %d\n", ret);
 		return ret;
 	}
@@ -206,18 +243,22 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	/* Read the result of the command. Ignore the result, for it
 	 * varies with the device. */
 	ret = usb_bulk_msg(gspca_dev->dev,
-			gspca_dev->urb[0]->pipe,
-			gspca_dev->urb[0]->transfer_buffer,
-			FPIX_MAX_TRANSFER, &len,
-			FPIX_TIMEOUT);
-	if (ret < 0) {
+					   gspca_dev->urb[0]->pipe,
+					   gspca_dev->urb[0]->transfer_buffer,
+					   FPIX_MAX_TRANSFER, &len,
+					   FPIX_TIMEOUT);
+
+	if (ret < 0)
+	{
 		pr_err("usb_bulk_msg failed %d\n", ret);
 		return ret;
 	}
 
 	/* Request a frame, but don't read it */
 	ret = command(gspca_dev, 1);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("frame request failed %d\n", ret);
 		return ret;
 	}
@@ -243,7 +284,8 @@ static void sd_stop0(struct gspca_dev *gspca_dev)
 }
 
 /* Table of supported USB devices */
-static const struct usb_device_id device_table[] = {
+static const struct usb_device_id device_table[] =
+{
 	{USB_DEVICE(0x04cb, 0x0104)},
 	{USB_DEVICE(0x04cb, 0x0109)},
 	{USB_DEVICE(0x04cb, 0x010b)},
@@ -273,7 +315,8 @@ static const struct usb_device_id device_table[] = {
 MODULE_DEVICE_TABLE(usb, device_table);
 
 /* sub-driver description */
-static const struct sd_desc sd_desc = {
+static const struct sd_desc sd_desc =
+{
 	.name   = MODULE_NAME,
 	.config = sd_config,
 	.init   = sd_init,
@@ -283,15 +326,16 @@ static const struct sd_desc sd_desc = {
 
 /* -- device connect -- */
 static int sd_probe(struct usb_interface *intf,
-		const struct usb_device_id *id)
+					const struct usb_device_id *id)
 {
 	return gspca_dev_probe(intf, id,
-			&sd_desc,
-			sizeof(struct usb_fpix),
-			THIS_MODULE);
+						   &sd_desc,
+						   sizeof(struct usb_fpix),
+						   THIS_MODULE);
 }
 
-static struct usb_driver sd_driver = {
+static struct usb_driver sd_driver =
+{
 	.name       = MODULE_NAME,
 	.id_table   = device_table,
 	.probe      = sd_probe,

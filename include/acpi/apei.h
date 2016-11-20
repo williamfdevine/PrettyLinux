@@ -19,9 +19,9 @@
 extern bool hest_disable;
 extern int erst_disable;
 #ifdef CONFIG_ACPI_APEI_GHES
-extern bool ghes_disable;
+	extern bool ghes_disable;
 #else
-#define ghes_disable 1
+	#define ghes_disable 1
 #endif
 
 #ifdef CONFIG_ACPI_APEI
@@ -39,7 +39,7 @@ int erst_get_record_id_begin(int *pos);
 int erst_get_record_id_next(int *pos, u64 *record_id);
 void erst_get_record_id_end(void);
 ssize_t erst_read(u64 record_id, struct cper_record_header *record,
-		  size_t buflen);
+				  size_t buflen);
 int erst_clear(u64 record_id);
 
 int arch_apei_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data);

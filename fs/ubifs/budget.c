@@ -83,14 +83,21 @@ static int run_gc(struct ubifs_info *c)
 	down_read(&c->commit_sem);
 	lnum = ubifs_garbage_collect(c, 1);
 	up_read(&c->commit_sem);
+
 	if (lnum < 0)
+	{
 		return lnum;
+	}
 
 	/* GC freed one LEB, return it to lprops */
 	dbg_budg("GC freed LEB %d", lnum);
 	err = ubifs_return_leb(c, lnum);
+
 	if (err)
+	{
 		return err;
+	}
+
 	return 0;
 }
 
@@ -134,7 +141,8 @@ static int make_free_space(struct ubifs_info *c)
 	int err, retries = 0;
 	long long liab1, liab2;
 
-	do {
+	do
+	{
 		liab1 = get_liability(c);
 		/*
 		 * We probably have some dirty pages or inodes (liability), try
@@ -144,26 +152,38 @@ static int make_free_space(struct ubifs_info *c)
 		shrink_liability(c, NR_TO_WRITE);
 
 		liab2 = get_liability(c);
+
 		if (liab2 < liab1)
+		{
 			return -EAGAIN;
+		}
 
 		dbg_budg("new liability %lld (not shrunk)", liab2);
 
 		/* Liability did not shrink again, try GC */
 		dbg_budg("Run GC");
 		err = run_gc(c);
+
 		if (!err)
+		{
 			return -EAGAIN;
+		}
 
 		if (err != -EAGAIN && err != -ENOSPC)
 			/* Some real error happened */
+		{
 			return err;
+		}
 
 		dbg_budg("Run commit (retries %d)", retries);
 		err = ubifs_run_commit(c);
+
 		if (err)
+		{
 			return err;
-	} while (retries++ < MAX_MKSPC_RETRIES);
+		}
+	}
+	while (retries++ < MAX_MKSPC_RETRIES);
 
 	return -ENOSPC;
 }
@@ -194,8 +214,12 @@ int ubifs_calc_min_idx_lebs(struct ubifs_info *c)
 	 * extra LEB to compensate.
 	 */
 	idx_lebs += 1;
+
 	if (idx_lebs < MIN_INDEX_LEBS)
+	{
 		idx_lebs = MIN_INDEX_LEBS;
+	}
+
 	return idx_lebs;
 }
 
@@ -252,7 +276,8 @@ long long ubifs_calc_available(const struct ubifs_info *c, int min_idx_lebs)
 	 * their dark space is not included in total_dark, so it is subtracted
 	 * here.
 	 */
-	if (c->lst.idx_lebs > min_idx_lebs) {
+	if (c->lst.idx_lebs > min_idx_lebs)
+	{
 		subtract_lebs = c->lst.idx_lebs - min_idx_lebs;
 		available -= subtract_lebs * c->dark_wm;
 	}
@@ -273,8 +298,11 @@ long long ubifs_calc_available(const struct ubifs_info *c, int min_idx_lebs)
 static int can_use_rp(struct ubifs_info *c)
 {
 	if (uid_eq(current_fsuid(), c->rp_uid) || capable(CAP_SYS_RESOURCE) ||
-	    (!gid_eq(c->rp_gid, GLOBAL_ROOT_GID) && in_group_p(c->rp_gid)))
+		(!gid_eq(c->rp_gid, GLOBAL_ROOT_GID) && in_group_p(c->rp_gid)))
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -313,9 +341,13 @@ static int do_budget_space(struct ubifs_info *c)
 
 	/* Now 'min_idx_lebs' contains number of LEBs to reserve */
 	if (min_idx_lebs > c->lst.idx_lebs)
+	{
 		rsvd_idx_lebs = min_idx_lebs - c->lst.idx_lebs;
+	}
 	else
+	{
 		rsvd_idx_lebs = 0;
+	}
 
 	/*
 	 * The number of LEBs that are available to be used by the index is:
@@ -340,24 +372,29 @@ static int do_budget_space(struct ubifs_info *c)
 	 * comment in 'ubifs_find_free_space()'.
 	 */
 	lebs = c->lst.empty_lebs + c->freeable_cnt + c->idx_gc_cnt -
-	       c->lst.taken_empty_lebs;
-	if (unlikely(rsvd_idx_lebs > lebs)) {
+		   c->lst.taken_empty_lebs;
+
+	if (unlikely(rsvd_idx_lebs > lebs))
+	{
 		dbg_budg("out of indexing space: min_idx_lebs %d (old %d), rsvd_idx_lebs %d",
-			 min_idx_lebs, c->bi.min_idx_lebs, rsvd_idx_lebs);
+				 min_idx_lebs, c->bi.min_idx_lebs, rsvd_idx_lebs);
 		return -ENOSPC;
 	}
 
 	available = ubifs_calc_available(c, min_idx_lebs);
 	outstanding = c->bi.data_growth + c->bi.dd_growth;
 
-	if (unlikely(available < outstanding)) {
+	if (unlikely(available < outstanding))
+	{
 		dbg_budg("out of data space: available %lld, outstanding %lld",
-			 available, outstanding);
+				 available, outstanding);
 		return -ENOSPC;
 	}
 
 	if (available - outstanding <= c->rp_size && !can_use_rp(c))
+	{
 		return -ENOSPC;
+	}
 
 	c->bi.min_idx_lebs = min_idx_lebs;
 	return 0;
@@ -372,12 +409,12 @@ static int do_budget_space(struct ubifs_info *c)
  * approximation, though.
  */
 static int calc_idx_growth(const struct ubifs_info *c,
-			   const struct ubifs_budget_req *req)
+						   const struct ubifs_budget_req *req)
 {
 	int znodes;
 
 	znodes = req->new_ino + (req->new_page << UBIFS_BLOCKS_PER_PAGE_SHIFT) +
-		 req->new_dent;
+			 req->new_dent;
 	return znodes * c->max_idx_node_sz;
 }
 
@@ -388,15 +425,22 @@ static int calc_idx_growth(const struct ubifs_info *c,
  * @req: budgeting request
  */
 static int calc_data_growth(const struct ubifs_info *c,
-			    const struct ubifs_budget_req *req)
+							const struct ubifs_budget_req *req)
 {
 	int data_growth;
 
 	data_growth = req->new_ino  ? c->bi.inode_budget : 0;
+
 	if (req->new_page)
+	{
 		data_growth += c->bi.page_budget;
+	}
+
 	if (req->new_dent)
+	{
 		data_growth += c->bi.dent_budget;
+	}
+
 	data_growth += req->new_ino_d;
 	return data_growth;
 }
@@ -408,16 +452,22 @@ static int calc_data_growth(const struct ubifs_info *c,
  * @req: budgeting request
  */
 static int calc_dd_growth(const struct ubifs_info *c,
-			  const struct ubifs_budget_req *req)
+						  const struct ubifs_budget_req *req)
 {
 	int dd_growth;
 
 	dd_growth = req->dirtied_page ? c->bi.page_budget : 0;
 
 	if (req->dirtied_ino)
+	{
 		dd_growth += c->bi.inode_budget << (req->dirtied_ino - 1);
+	}
+
 	if (req->mod_dent)
+	{
 		dd_growth += c->bi.dent_budget;
+	}
+
 	dd_growth += req->dirtied_ino_d;
 	return dd_growth;
 }
@@ -452,8 +502,12 @@ int ubifs_budget_space(struct ubifs_info *c, struct ubifs_budget_req *req)
 
 	data_growth = calc_data_growth(c, req);
 	dd_growth = calc_dd_growth(c, req);
+
 	if (!data_growth && !dd_growth)
+	{
 		return 0;
+	}
+
 	idx_growth = calc_idx_growth(c, req);
 
 again:
@@ -462,7 +516,8 @@ again:
 	ubifs_assert(c->bi.data_growth >= 0);
 	ubifs_assert(c->bi.dd_growth >= 0);
 
-	if (unlikely(c->bi.nospace) && (c->bi.nospace_rp || !can_use_rp(c))) {
+	if (unlikely(c->bi.nospace) && (c->bi.nospace_rp || !can_use_rp(c)))
+	{
 		dbg_budg("no space");
 		spin_unlock(&c->space_lock);
 		return -ENOSPC;
@@ -473,7 +528,9 @@ again:
 	c->bi.dd_growth += dd_growth;
 
 	err = do_budget_space(c);
-	if (likely(!err)) {
+
+	if (likely(!err))
+	{
 		req->idx_growth = idx_growth;
 		req->data_growth = data_growth;
 		req->dd_growth = dd_growth;
@@ -487,29 +544,44 @@ again:
 	c->bi.dd_growth -= dd_growth;
 	spin_unlock(&c->space_lock);
 
-	if (req->fast) {
+	if (req->fast)
+	{
 		dbg_budg("no space for fast budgeting");
 		return err;
 	}
 
 	err = make_free_space(c);
 	cond_resched();
-	if (err == -EAGAIN) {
+
+	if (err == -EAGAIN)
+	{
 		dbg_budg("try again");
 		goto again;
-	} else if (err == -ENOSPC) {
-		if (!retried) {
+	}
+	else if (err == -ENOSPC)
+	{
+		if (!retried)
+		{
 			retried = 1;
 			dbg_budg("-ENOSPC, but anyway try once again");
 			goto again;
 		}
+
 		dbg_budg("FS is full, -ENOSPC");
 		c->bi.nospace = 1;
+
 		if (can_use_rp(c) || c->rp_size == 0)
+		{
 			c->bi.nospace_rp = 1;
+		}
+
 		smp_wmb();
-	} else
+	}
+	else
+	{
 		ubifs_err(c, "cannot budget space, error %d", err);
+	}
+
 	return err;
 }
 
@@ -536,20 +608,25 @@ void ubifs_release_budget(struct ubifs_info *c, struct ubifs_budget_req *req)
 	ubifs_assert(req->dirtied_ino_d <= UBIFS_MAX_INO_DATA * 4);
 	ubifs_assert(!(req->new_ino_d & 7));
 	ubifs_assert(!(req->dirtied_ino_d & 7));
-	if (!req->recalculate) {
+
+	if (!req->recalculate)
+	{
 		ubifs_assert(req->idx_growth >= 0);
 		ubifs_assert(req->data_growth >= 0);
 		ubifs_assert(req->dd_growth >= 0);
 	}
 
-	if (req->recalculate) {
+	if (req->recalculate)
+	{
 		req->data_growth = calc_data_growth(c, req);
 		req->dd_growth = calc_dd_growth(c, req);
 		req->idx_growth = calc_idx_growth(c, req);
 	}
 
 	if (!req->data_growth && !req->dd_growth)
+	{
 		return;
+	}
 
 	c->bi.nospace = c->bi.nospace_rp = 0;
 	smp_wmb();
@@ -604,7 +681,7 @@ void ubifs_convert_page_budget(struct ubifs_info *c)
  * clean. It also causes the "no space" flags to be cleared.
  */
 void ubifs_release_dirty_inode_budget(struct ubifs_info *c,
-				      struct ubifs_inode *ui)
+									  struct ubifs_inode *ui)
 {
 	struct ubifs_budget_req req;
 
@@ -696,18 +773,28 @@ long long ubifs_get_free_space_nolock(struct ubifs_info *c)
 	 * 'do_budget_space()', so refer there for comments.
 	 */
 	if (c->bi.min_idx_lebs > c->lst.idx_lebs)
+	{
 		rsvd_idx_lebs = c->bi.min_idx_lebs - c->lst.idx_lebs;
+	}
 	else
+	{
 		rsvd_idx_lebs = 0;
+	}
+
 	lebs = c->lst.empty_lebs + c->freeable_cnt + c->idx_gc_cnt -
-	       c->lst.taken_empty_lebs;
+		   c->lst.taken_empty_lebs;
 	lebs -= rsvd_idx_lebs;
 	available += lebs * (c->dark_wm - c->leb_overhead);
 
 	if (available > outstanding)
+	{
 		free = ubifs_reported_space(c, available - outstanding);
+	}
 	else
+	{
 		free = 0;
+	}
+
 	return free;
 }
 

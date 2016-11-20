@@ -24,7 +24,8 @@
  * NOTE: The error msgs are auto generated from the comments. Only singe line
  * comments are supported
  */
-enum bfa_status {
+enum bfa_status
+{
 	BFA_STATUS_OK = 0,
 	BFA_STATUS_FAILED = 1,
 	BFA_STATUS_EINVAL = 2,
@@ -208,7 +209,8 @@ enum bfa_status {
 	BFA_STATUS_MAX_VAL
 };
 
-enum bfa_eproto_status {
+enum bfa_eproto_status
+{
 	BFA_EPROTO_BAD_ACCEPT = 0,
 	BFA_EPROTO_UNKNOWN_RSP = 1
 };

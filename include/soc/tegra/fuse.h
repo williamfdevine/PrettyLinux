@@ -33,7 +33,8 @@
 u32 tegra_read_chipid(void);
 u8 tegra_get_chip_id(void);
 
-enum tegra_revision {
+enum tegra_revision
+{
 	TEGRA_REVISION_UNKNOWN = 0,
 	TEGRA_REVISION_A01,
 	TEGRA_REVISION_A02,
@@ -43,7 +44,8 @@ enum tegra_revision {
 	TEGRA_REVISION_MAX,
 };
 
-struct tegra_sku_info {
+struct tegra_sku_info
+{
 	int sku_id;
 	int cpu_process_id;
 	int cpu_speedo_id;

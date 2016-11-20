@@ -23,7 +23,7 @@
 #define __IOCTL_H__
 
 #ifndef __user
-#define __user
+	#define __user
 #endif
 
 /* VIAFB IOCTL definition */
@@ -80,16 +80,17 @@
 
 #define MAX_ACTIVE_DEV_NUM  2
 
-struct device_t {
-	unsigned short crt:1;
-	unsigned short dvi:1;
-	unsigned short lcd:1;
-	unsigned short samm:1;
-	unsigned short lcd_dsp_cent:1;
-	unsigned char lcd_mode:1;
-	unsigned short epia_dvi:1;
-	unsigned short lcd_dual_edge:1;
-	unsigned short lcd2:1;
+struct device_t
+{
+	unsigned short crt: 1;
+	unsigned short dvi: 1;
+	unsigned short lcd: 1;
+	unsigned short samm: 1;
+	unsigned short lcd_dsp_cent: 1;
+	unsigned char lcd_mode: 1;
+	unsigned short epia_dvi: 1;
+	unsigned short lcd_dual_edge: 1;
+	unsigned short lcd2: 1;
 
 	unsigned short primary_dev;
 	unsigned char lcd_panel_id;
@@ -103,7 +104,8 @@ struct device_t {
 	unsigned short bus_width;
 };
 
-struct viafb_ioctl_info {
+struct viafb_ioctl_info
+{
 	u32 viafb_id;		/* for identifying viafb */
 #define VIAID       0x56494146	/* Identify myself with 'VIAF' */
 	u16 vendor_id;
@@ -113,7 +115,8 @@ struct viafb_ioctl_info {
 	u8 reserved[246];	/* for future use */
 };
 
-struct viafb_ioctl_mode {
+struct viafb_ioctl_mode
+{
 	u32 xres;
 	u32 yres;
 	u32 refresh;
@@ -125,7 +128,8 @@ struct viafb_ioctl_mode {
 	u32 refresh_sec;
 	u32 bpp_sec;
 };
-struct viafb_ioctl_samm {
+struct viafb_ioctl_samm
+{
 	u32 samm_status;
 	u32 size_prim;
 	u32 size_sec;
@@ -133,20 +137,23 @@ struct viafb_ioctl_samm {
 	u32 offset_sec;
 };
 
-struct viafb_driver_version {
+struct viafb_driver_version
+{
 	int iMajorNum;
 	int iKernelNum;
 	int iOSNum;
 	int iMinorNum;
 };
 
-struct viafb_ioctl_lcd_attribute {
+struct viafb_ioctl_lcd_attribute
+{
 	unsigned int panel_id;
 	unsigned int display_center;
 	unsigned int lcd_mode;
 };
 
-struct viafb_ioctl_setting {
+struct viafb_ioctl_setting
+{
 	/* Enable or disable active devices */
 	unsigned short device_flag;
 	/* Indicate which device should be turn on or turn off. */
@@ -178,17 +185,20 @@ struct viafb_ioctl_setting {
 	struct viafb_ioctl_lcd_attribute lcd_attributes;
 };
 
-struct _UTFunctionCaps {
+struct _UTFunctionCaps
+{
 	unsigned int dw3DScalingState;
 	unsigned int reserved[31];
 };
 
-struct _POSITIONVALUE {
+struct _POSITIONVALUE
+{
 	unsigned int dwX;
 	unsigned int dwY;
 };
 
-struct _panel_size_pos_info {
+struct _panel_size_pos_info
+{
 	unsigned int device_type;
 	int x;
 	int y;

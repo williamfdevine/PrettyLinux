@@ -21,7 +21,8 @@
 #include <linux/regulator/of_regulator.h>
 #include <linux/soc/qcom/smd-rpm.h>
 
-struct qcom_rpm_reg {
+struct qcom_rpm_reg
+{
 	struct device *dev;
 
 	struct qcom_smd_rpm *rpm;
@@ -35,7 +36,8 @@ struct qcom_rpm_reg {
 	int uV;
 };
 
-struct rpm_regulator_req {
+struct rpm_regulator_req
+{
 	__le32 key;
 	__le32 nbytes;
 	__le32 value;
@@ -46,14 +48,14 @@ struct rpm_regulator_req {
 #define RPM_KEY_MA	0x0000616d /* "ma" */
 
 static int rpm_reg_write_active(struct qcom_rpm_reg *vreg,
-				struct rpm_regulator_req *req,
-				size_t size)
+								struct rpm_regulator_req *req,
+								size_t size)
 {
 	return qcom_rpm_smd_write(vreg->rpm,
-				  QCOM_SMD_RPM_ACTIVE_STATE,
-				  vreg->type,
-				  vreg->id,
-				  req, size);
+							  QCOM_SMD_RPM_ACTIVE_STATE,
+							  vreg->type,
+							  vreg->id,
+							  req, size);
 }
 
 static int rpm_reg_enable(struct regulator_dev *rdev)
@@ -67,8 +69,11 @@ static int rpm_reg_enable(struct regulator_dev *rdev)
 	req.value = cpu_to_le32(1);
 
 	ret = rpm_reg_write_active(vreg, &req, sizeof(req));
+
 	if (!ret)
+	{
 		vreg->is_enabled = 1;
+	}
 
 	return ret;
 }
@@ -91,8 +96,11 @@ static int rpm_reg_disable(struct regulator_dev *rdev)
 	req.value = 0;
 
 	ret = rpm_reg_write_active(vreg, &req, sizeof(req));
+
 	if (!ret)
+	{
 		vreg->is_enabled = 0;
+	}
 
 	return ret;
 }
@@ -105,9 +113,9 @@ static int rpm_reg_get_voltage(struct regulator_dev *rdev)
 }
 
 static int rpm_reg_set_voltage(struct regulator_dev *rdev,
-			       int min_uV,
-			       int max_uV,
-			       unsigned *selector)
+							   int min_uV,
+							   int max_uV,
+							   unsigned *selector)
 {
 	struct qcom_rpm_reg *vreg = rdev_get_drvdata(rdev);
 	struct rpm_regulator_req req;
@@ -118,8 +126,11 @@ static int rpm_reg_set_voltage(struct regulator_dev *rdev,
 	req.value = cpu_to_le32(min_uV);
 
 	ret = rpm_reg_write_active(vreg, &req, sizeof(req));
+
 	if (!ret)
+	{
 		vreg->uV = min_uV;
+	}
 
 	return ret;
 }
@@ -136,7 +147,8 @@ static int rpm_reg_set_load(struct regulator_dev *rdev, int load_uA)
 	return rpm_reg_write_active(vreg, &req, sizeof(req));
 }
 
-static const struct regulator_ops rpm_smps_ldo_ops = {
+static const struct regulator_ops rpm_smps_ldo_ops =
+{
 	.enable = rpm_reg_enable,
 	.disable = rpm_reg_disable,
 	.is_enabled = rpm_reg_is_enabled,
@@ -148,7 +160,8 @@ static const struct regulator_ops rpm_smps_ldo_ops = {
 	.set_load = rpm_reg_set_load,
 };
 
-static const struct regulator_ops rpm_smps_ldo_ops_fixed = {
+static const struct regulator_ops rpm_smps_ldo_ops_fixed =
+{
 	.enable = rpm_reg_enable,
 	.disable = rpm_reg_disable,
 	.is_enabled = rpm_reg_is_enabled,
@@ -159,14 +172,17 @@ static const struct regulator_ops rpm_smps_ldo_ops_fixed = {
 	.set_load = rpm_reg_set_load,
 };
 
-static const struct regulator_ops rpm_switch_ops = {
+static const struct regulator_ops rpm_switch_ops =
+{
 	.enable = rpm_reg_enable,
 	.disable = rpm_reg_disable,
 	.is_enabled = rpm_reg_is_enabled,
 };
 
-static const struct regulator_desc pma8084_hfsmps = {
-	.linear_ranges = (struct regulator_linear_range[]) {
+static const struct regulator_desc pma8084_hfsmps =
+{
+	.linear_ranges = (struct regulator_linear_range[])
+	{
 		REGULATOR_LINEAR_RANGE(375000,  0,  95, 12500),
 		REGULATOR_LINEAR_RANGE(1550000, 96, 158, 25000),
 	},
@@ -175,8 +191,10 @@ static const struct regulator_desc pma8084_hfsmps = {
 	.ops = &rpm_smps_ldo_ops,
 };
 
-static const struct regulator_desc pma8084_ftsmps = {
-	.linear_ranges = (struct regulator_linear_range[]) {
+static const struct regulator_desc pma8084_ftsmps =
+{
+	.linear_ranges = (struct regulator_linear_range[])
+	{
 		REGULATOR_LINEAR_RANGE(350000,  0, 184, 5000),
 		REGULATOR_LINEAR_RANGE(1280000, 185, 261, 10000),
 	},
@@ -185,8 +203,10 @@ static const struct regulator_desc pma8084_ftsmps = {
 	.ops = &rpm_smps_ldo_ops,
 };
 
-static const struct regulator_desc pma8084_pldo = {
-	.linear_ranges = (struct regulator_linear_range[]) {
+static const struct regulator_desc pma8084_pldo =
+{
+	.linear_ranges = (struct regulator_linear_range[])
+	{
 		REGULATOR_LINEAR_RANGE( 750000,  0,  63, 12500),
 		REGULATOR_LINEAR_RANGE(1550000, 64, 126, 25000),
 		REGULATOR_LINEAR_RANGE(3100000, 127, 163, 50000),
@@ -196,8 +216,10 @@ static const struct regulator_desc pma8084_pldo = {
 	.ops = &rpm_smps_ldo_ops,
 };
 
-static const struct regulator_desc pma8084_nldo = {
-	.linear_ranges = (struct regulator_linear_range[]) {
+static const struct regulator_desc pma8084_nldo =
+{
+	.linear_ranges = (struct regulator_linear_range[])
+	{
 		REGULATOR_LINEAR_RANGE(750000, 0, 63, 12500),
 	},
 	.n_linear_ranges = 1,
@@ -205,12 +227,15 @@ static const struct regulator_desc pma8084_nldo = {
 	.ops = &rpm_smps_ldo_ops,
 };
 
-static const struct regulator_desc pma8084_switch = {
+static const struct regulator_desc pma8084_switch =
+{
 	.ops = &rpm_switch_ops,
 };
 
-static const struct regulator_desc pm8x41_hfsmps = {
-	.linear_ranges = (struct regulator_linear_range[]) {
+static const struct regulator_desc pm8x41_hfsmps =
+{
+	.linear_ranges = (struct regulator_linear_range[])
+	{
 		REGULATOR_LINEAR_RANGE( 375000,  0,  95, 12500),
 		REGULATOR_LINEAR_RANGE(1575000, 96, 158, 25000),
 	},
@@ -219,8 +244,10 @@ static const struct regulator_desc pm8x41_hfsmps = {
 	.ops = &rpm_smps_ldo_ops,
 };
 
-static const struct regulator_desc pm8841_ftsmps = {
-	.linear_ranges = (struct regulator_linear_range[]) {
+static const struct regulator_desc pm8841_ftsmps =
+{
+	.linear_ranges = (struct regulator_linear_range[])
+	{
 		REGULATOR_LINEAR_RANGE(350000,  0, 184, 5000),
 		REGULATOR_LINEAR_RANGE(1280000, 185, 261, 10000),
 	},
@@ -229,8 +256,10 @@ static const struct regulator_desc pm8841_ftsmps = {
 	.ops = &rpm_smps_ldo_ops,
 };
 
-static const struct regulator_desc pm8941_boost = {
-	.linear_ranges = (struct regulator_linear_range[]) {
+static const struct regulator_desc pm8941_boost =
+{
+	.linear_ranges = (struct regulator_linear_range[])
+	{
 		REGULATOR_LINEAR_RANGE(4000000, 0, 30, 50000),
 	},
 	.n_linear_ranges = 1,
@@ -238,8 +267,10 @@ static const struct regulator_desc pm8941_boost = {
 	.ops = &rpm_smps_ldo_ops,
 };
 
-static const struct regulator_desc pm8941_pldo = {
-	.linear_ranges = (struct regulator_linear_range[]) {
+static const struct regulator_desc pm8941_pldo =
+{
+	.linear_ranges = (struct regulator_linear_range[])
+	{
 		REGULATOR_LINEAR_RANGE( 750000,  0,  63, 12500),
 		REGULATOR_LINEAR_RANGE(1550000, 64, 126, 25000),
 		REGULATOR_LINEAR_RANGE(3100000, 127, 163, 50000),
@@ -249,8 +280,10 @@ static const struct regulator_desc pm8941_pldo = {
 	.ops = &rpm_smps_ldo_ops,
 };
 
-static const struct regulator_desc pm8941_nldo = {
-	.linear_ranges = (struct regulator_linear_range[]) {
+static const struct regulator_desc pm8941_nldo =
+{
+	.linear_ranges = (struct regulator_linear_range[])
+	{
 		REGULATOR_LINEAR_RANGE(750000, 0, 63, 12500),
 	},
 	.n_linear_ranges = 1,
@@ -258,18 +291,22 @@ static const struct regulator_desc pm8941_nldo = {
 	.ops = &rpm_smps_ldo_ops,
 };
 
-static const struct regulator_desc pm8941_lnldo = {
+static const struct regulator_desc pm8941_lnldo =
+{
 	.fixed_uV = 1740000,
 	.n_voltages = 1,
 	.ops = &rpm_smps_ldo_ops_fixed,
 };
 
-static const struct regulator_desc pm8941_switch = {
+static const struct regulator_desc pm8941_switch =
+{
 	.ops = &rpm_switch_ops,
 };
 
-static const struct regulator_desc pm8916_pldo = {
-	.linear_ranges = (struct regulator_linear_range[]) {
+static const struct regulator_desc pm8916_pldo =
+{
+	.linear_ranges = (struct regulator_linear_range[])
+	{
 		REGULATOR_LINEAR_RANGE(750000, 0, 208, 12500),
 	},
 	.n_linear_ranges = 1,
@@ -277,8 +314,10 @@ static const struct regulator_desc pm8916_pldo = {
 	.ops = &rpm_smps_ldo_ops,
 };
 
-static const struct regulator_desc pm8916_nldo = {
-	.linear_ranges = (struct regulator_linear_range[]) {
+static const struct regulator_desc pm8916_nldo =
+{
+	.linear_ranges = (struct regulator_linear_range[])
+	{
 		REGULATOR_LINEAR_RANGE(375000, 0, 93, 12500),
 	},
 	.n_linear_ranges = 1,
@@ -286,8 +325,10 @@ static const struct regulator_desc pm8916_nldo = {
 	.ops = &rpm_smps_ldo_ops,
 };
 
-static const struct regulator_desc pm8916_buck_lvo_smps = {
-	.linear_ranges = (struct regulator_linear_range[]) {
+static const struct regulator_desc pm8916_buck_lvo_smps =
+{
+	.linear_ranges = (struct regulator_linear_range[])
+	{
 		REGULATOR_LINEAR_RANGE(375000, 0, 95, 12500),
 		REGULATOR_LINEAR_RANGE(750000, 96, 127, 25000),
 	},
@@ -296,8 +337,10 @@ static const struct regulator_desc pm8916_buck_lvo_smps = {
 	.ops = &rpm_smps_ldo_ops,
 };
 
-static const struct regulator_desc pm8916_buck_hvo_smps = {
-	.linear_ranges = (struct regulator_linear_range[]) {
+static const struct regulator_desc pm8916_buck_hvo_smps =
+{
+	.linear_ranges = (struct regulator_linear_range[])
+	{
 		REGULATOR_LINEAR_RANGE(1550000, 0, 31, 25000),
 	},
 	.n_linear_ranges = 1,
@@ -305,7 +348,8 @@ static const struct regulator_desc pm8916_buck_hvo_smps = {
 	.ops = &rpm_smps_ldo_ops,
 };
 
-struct rpm_regulator_data {
+struct rpm_regulator_data
+{
 	const char *name;
 	u32 type;
 	u32 id;
@@ -313,7 +357,8 @@ struct rpm_regulator_data {
 	const char *supply;
 };
 
-static const struct rpm_regulator_data rpm_pm8841_regulators[] = {
+static const struct rpm_regulator_data rpm_pm8841_regulators[] =
+{
 	{ "s1", QCOM_SMD_RPM_SMPB, 1, &pm8x41_hfsmps, "vdd_s1" },
 	{ "s2", QCOM_SMD_RPM_SMPB, 2, &pm8841_ftsmps, "vdd_s2" },
 	{ "s3", QCOM_SMD_RPM_SMPB, 3, &pm8x41_hfsmps, "vdd_s3" },
@@ -325,7 +370,8 @@ static const struct rpm_regulator_data rpm_pm8841_regulators[] = {
 	{}
 };
 
-static const struct rpm_regulator_data rpm_pm8916_regulators[] = {
+static const struct rpm_regulator_data rpm_pm8916_regulators[] =
+{
 	{ "s1", QCOM_SMD_RPM_SMPA, 1, &pm8916_buck_lvo_smps, "vdd_s1" },
 	{ "s2", QCOM_SMD_RPM_SMPA, 2, &pm8916_buck_lvo_smps, "vdd_s2" },
 	{ "s3", QCOM_SMD_RPM_SMPA, 3, &pm8916_buck_lvo_smps, "vdd_s3" },
@@ -351,7 +397,8 @@ static const struct rpm_regulator_data rpm_pm8916_regulators[] = {
 	{}
 };
 
-static const struct rpm_regulator_data rpm_pm8941_regulators[] = {
+static const struct rpm_regulator_data rpm_pm8941_regulators[] =
+{
 	{ "s1", QCOM_SMD_RPM_SMPA, 1, &pm8x41_hfsmps, "vdd_s1" },
 	{ "s2", QCOM_SMD_RPM_SMPA, 2, &pm8x41_hfsmps, "vdd_s2" },
 	{ "s3", QCOM_SMD_RPM_SMPA, 3, &pm8x41_hfsmps, "vdd_s3" },
@@ -392,7 +439,8 @@ static const struct rpm_regulator_data rpm_pm8941_regulators[] = {
 	{}
 };
 
-static const struct rpm_regulator_data rpm_pma8084_regulators[] = {
+static const struct rpm_regulator_data rpm_pma8084_regulators[] =
+{
 	{ "s1", QCOM_SMD_RPM_SMPA, 1, &pma8084_ftsmps, "vdd_s1" },
 	{ "s2", QCOM_SMD_RPM_SMPA, 2, &pma8084_ftsmps, "vdd_s2" },
 	{ "s3", QCOM_SMD_RPM_SMPA, 3, &pma8084_hfsmps, "vdd_s3" },
@@ -443,7 +491,8 @@ static const struct rpm_regulator_data rpm_pma8084_regulators[] = {
 	{}
 };
 
-static const struct of_device_id rpm_of_match[] = {
+static const struct of_device_id rpm_of_match[] =
+{
 	{ .compatible = "qcom,rpm-pm8841-regulators", .data = &rpm_pm8841_regulators },
 	{ .compatible = "qcom,rpm-pm8916-regulators", .data = &rpm_pm8916_regulators },
 	{ .compatible = "qcom,rpm-pm8941-regulators", .data = &rpm_pm8941_regulators },
@@ -462,16 +511,23 @@ static int rpm_reg_probe(struct platform_device *pdev)
 	struct qcom_smd_rpm *rpm;
 
 	rpm = dev_get_drvdata(pdev->dev.parent);
-	if (!rpm) {
+
+	if (!rpm)
+	{
 		dev_err(&pdev->dev, "unable to retrieve handle to rpm\n");
 		return -ENODEV;
 	}
 
 	match = of_match_device(rpm_of_match, &pdev->dev);
-	for (reg = match->data; reg->name; reg++) {
+
+	for (reg = match->data; reg->name; reg++)
+	{
 		vreg = devm_kzalloc(&pdev->dev, sizeof(*vreg), GFP_KERNEL);
+
 		if (!vreg)
+		{
 			return -ENOMEM;
+		}
 
 		vreg->dev = &pdev->dev;
 		vreg->type = reg->type;
@@ -490,7 +546,9 @@ static int rpm_reg_probe(struct platform_device *pdev)
 		config.dev = &pdev->dev;
 		config.driver_data = vreg;
 		rdev = devm_regulator_register(&pdev->dev, &vreg->desc, &config);
-		if (IS_ERR(rdev)) {
+
+		if (IS_ERR(rdev))
+		{
 			dev_err(&pdev->dev, "failed to register %s\n", reg->name);
 			return PTR_ERR(rdev);
 		}
@@ -499,7 +557,8 @@ static int rpm_reg_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver rpm_reg_driver = {
+static struct platform_driver rpm_reg_driver =
+{
 	.probe = rpm_reg_probe,
 	.driver = {
 		.name  = "qcom_rpm_smd_regulator",

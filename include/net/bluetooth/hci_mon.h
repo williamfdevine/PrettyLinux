@@ -24,7 +24,8 @@
 #ifndef __HCI_MON_H
 #define __HCI_MON_H
 
-struct hci_mon_hdr {
+struct hci_mon_hdr
+{
 	__le16	opcode;
 	__le16	index;
 	__le16	len;
@@ -50,7 +51,8 @@ struct hci_mon_hdr {
 #define HCI_MON_CTRL_COMMAND	16
 #define HCI_MON_CTRL_EVENT	17
 
-struct hci_mon_new_index {
+struct hci_mon_new_index
+{
 	__u8		type;
 	__u8		bus;
 	bdaddr_t	bdaddr;
@@ -58,7 +60,8 @@ struct hci_mon_new_index {
 } __packed;
 #define HCI_MON_NEW_INDEX_SIZE 16
 
-struct hci_mon_index_info {
+struct hci_mon_index_info
+{
 	bdaddr_t	bdaddr;
 	__le16		manufacturer;
 } __packed;

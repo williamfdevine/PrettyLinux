@@ -48,26 +48,29 @@ gp104_disp_core_init(struct nv50_disp_dmac *chan)
 
 	/* wait for it to go inactive */
 	if (nvkm_msec(device, 2000,
-		if (!(nvkm_rd32(device, 0x610490) & 0x80000000))
-			break;
-	) < 0) {
-		nvkm_error(subdev, "core init: %08x\n",
-			   nvkm_rd32(device, 0x610490));
-		return -EBUSY;
-	}
+				  if (!(nvkm_rd32(device, 0x610490) & 0x80000000))
+					  break;
+					 ) < 0)
+		{
+			nvkm_error(subdev, "core init: %08x\n",
+					   nvkm_rd32(device, 0x610490));
+			return -EBUSY;
+		}
 
 	return 0;
 }
 
 const struct nv50_disp_dmac_func
-gp104_disp_core_func = {
+	gp104_disp_core_func =
+{
 	.init = gp104_disp_core_init,
 	.fini = gf119_disp_core_fini,
 	.bind = gf119_disp_dmac_bind,
 };
 
 const struct nv50_disp_dmac_oclass
-gp104_disp_core_oclass = {
+	gp104_disp_core_oclass =
+{
 	.base.oclass = GP104_DISP_CORE_CHANNEL_DMA,
 	.base.minver = 0,
 	.base.maxver = 0,

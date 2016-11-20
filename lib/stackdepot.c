@@ -47,25 +47,28 @@
 #define STACK_ALLOC_SIZE (1LL << (PAGE_SHIFT + STACK_ALLOC_ORDER))
 #define STACK_ALLOC_ALIGN 4
 #define STACK_ALLOC_OFFSET_BITS (STACK_ALLOC_ORDER + PAGE_SHIFT - \
-					STACK_ALLOC_ALIGN)
+								 STACK_ALLOC_ALIGN)
 #define STACK_ALLOC_INDEX_BITS (DEPOT_STACK_BITS - \
-		STACK_ALLOC_NULL_PROTECTION_BITS - STACK_ALLOC_OFFSET_BITS)
+								STACK_ALLOC_NULL_PROTECTION_BITS - STACK_ALLOC_OFFSET_BITS)
 #define STACK_ALLOC_SLABS_CAP 8192
 #define STACK_ALLOC_MAX_SLABS \
 	(((1LL << (STACK_ALLOC_INDEX_BITS)) < STACK_ALLOC_SLABS_CAP) ? \
 	 (1LL << (STACK_ALLOC_INDEX_BITS)) : STACK_ALLOC_SLABS_CAP)
 
 /* The compact structure to store the reference to stacks. */
-union handle_parts {
+union handle_parts
+{
 	depot_stack_handle_t handle;
-	struct {
-		u32 slabindex : STACK_ALLOC_INDEX_BITS;
-		u32 offset : STACK_ALLOC_OFFSET_BITS;
-		u32 valid : STACK_ALLOC_NULL_PROTECTION_BITS;
+	struct
+	{
+u32 slabindex : STACK_ALLOC_INDEX_BITS;
+u32 offset : STACK_ALLOC_OFFSET_BITS;
+u32 valid : STACK_ALLOC_NULL_PROTECTION_BITS;
 	};
 };
 
-struct stack_record {
+struct stack_record
+{
 	struct stack_record *next;	/* Link in the hashtable */
 	u32 hash;			/* Hash in the hastable */
 	u32 size;			/* Number of frames in the stack */
@@ -83,16 +86,25 @@ static DEFINE_SPINLOCK(depot_lock);
 static bool init_stack_slab(void **prealloc)
 {
 	if (!*prealloc)
+	{
 		return false;
+	}
+
 	/*
 	 * This smp_load_acquire() pairs with smp_store_release() to
 	 * |next_slab_inited| below and in depot_alloc_stack().
 	 */
 	if (smp_load_acquire(&next_slab_inited))
+	{
 		return true;
-	if (stack_slabs[depot_index] == NULL) {
+	}
+
+	if (stack_slabs[depot_index] == NULL)
+	{
 		stack_slabs[depot_index] = *prealloc;
-	} else {
+	}
+	else
+	{
 		stack_slabs[depot_index + 1] = *prealloc;
 		/*
 		 * This smp_store_release pairs with smp_load_acquire() from
@@ -100,6 +112,7 @@ static bool init_stack_slab(void **prealloc)
 		 */
 		smp_store_release(&next_slab_inited, 1);
 	}
+
 	*prealloc = NULL;
 	return true;
 }
@@ -109,29 +122,39 @@ static struct stack_record *depot_alloc_stack(unsigned long *entries, int size,
 		u32 hash, void **prealloc, gfp_t alloc_flags)
 {
 	int required_size = offsetof(struct stack_record, entries) +
-		sizeof(unsigned long) * size;
+						sizeof(unsigned long) * size;
 	struct stack_record *stack;
 
 	required_size = ALIGN(required_size, 1 << STACK_ALLOC_ALIGN);
 
-	if (unlikely(depot_offset + required_size > STACK_ALLOC_SIZE)) {
-		if (unlikely(depot_index + 1 >= STACK_ALLOC_MAX_SLABS)) {
+	if (unlikely(depot_offset + required_size > STACK_ALLOC_SIZE))
+	{
+		if (unlikely(depot_index + 1 >= STACK_ALLOC_MAX_SLABS))
+		{
 			WARN_ONCE(1, "Stack depot reached limit capacity");
 			return NULL;
 		}
+
 		depot_index++;
 		depot_offset = 0;
+
 		/*
 		 * smp_store_release() here pairs with smp_load_acquire() from
 		 * |next_slab_inited| in depot_save_stack() and
 		 * init_stack_slab().
 		 */
 		if (depot_index + 1 < STACK_ALLOC_MAX_SLABS)
+		{
 			smp_store_release(&next_slab_inited, 0);
+		}
 	}
+
 	init_stack_slab(prealloc);
+
 	if (stack_slabs[depot_index] == NULL)
+	{
 		return NULL;
+	}
 
 	stack = stack_slabs[depot_index] + depot_offset;
 
@@ -151,7 +174,8 @@ static struct stack_record *depot_alloc_stack(unsigned long *entries, int size,
 #define STACK_HASH_MASK (STACK_HASH_SIZE - 1)
 #define STACK_HASH_SEED 0x9747b28c
 
-static struct stack_record *stack_table[STACK_HASH_SIZE] = {
+static struct stack_record *stack_table[STACK_HASH_SIZE] =
+{
 	[0 ...	STACK_HASH_SIZE - 1] = NULL
 };
 
@@ -159,25 +183,28 @@ static struct stack_record *stack_table[STACK_HASH_SIZE] = {
 static inline u32 hash_stack(unsigned long *entries, unsigned int size)
 {
 	return jhash2((u32 *)entries,
-			       size * sizeof(unsigned long) / sizeof(u32),
-			       STACK_HASH_SEED);
+				  size * sizeof(unsigned long) / sizeof(u32),
+				  STACK_HASH_SEED);
 }
 
 /* Find a stack that is equal to the one stored in entries in the hash */
 static inline struct stack_record *find_stack(struct stack_record *bucket,
-					     unsigned long *entries, int size,
-					     u32 hash)
+		unsigned long *entries, int size,
+		u32 hash)
 {
 	struct stack_record *found;
 
-	for (found = bucket; found; found = found->next) {
+	for (found = bucket; found; found = found->next)
+	{
 		if (found->hash == hash &&
-		    found->size == size &&
-		    !memcmp(entries, found->entries,
-			    size * sizeof(unsigned long))) {
+			found->size == size &&
+			!memcmp(entries, found->entries,
+					size * sizeof(unsigned long)))
+		{
 			return found;
 		}
 	}
+
 	return NULL;
 }
 
@@ -202,7 +229,7 @@ EXPORT_SYMBOL_GPL(depot_fetch_stack);
  * Returns the handle of the stack struct stored in depot.
  */
 depot_stack_handle_t depot_save_stack(struct stack_trace *trace,
-				    gfp_t alloc_flags)
+									  gfp_t alloc_flags)
 {
 	u32 hash;
 	depot_stack_handle_t retval = 0;
@@ -212,7 +239,9 @@ depot_stack_handle_t depot_save_stack(struct stack_trace *trace,
 	void *prealloc = NULL;
 
 	if (unlikely(trace->nr_entries == 0))
+	{
 		goto fast_exit;
+	}
 
 	hash = hash_stack(trace->entries, trace->nr_entries);
 	bucket = &stack_table[hash & STACK_HASH_MASK];
@@ -223,9 +252,12 @@ depot_stack_handle_t depot_save_stack(struct stack_trace *trace,
 	 * |bucket| below.
 	 */
 	found = find_stack(smp_load_acquire(bucket), trace->entries,
-			   trace->nr_entries, hash);
+					   trace->nr_entries, hash);
+
 	if (found)
+	{
 		goto exit;
+	}
 
 	/*
 	 * Check if the current or the next stack slab need to be initialized.
@@ -235,7 +267,8 @@ depot_stack_handle_t depot_save_stack(struct stack_trace *trace,
 	 * The smp_load_acquire() here pairs with smp_store_release() to
 	 * |next_slab_inited| in depot_alloc_stack() and init_stack_slab().
 	 */
-	if (unlikely(!smp_load_acquire(&next_slab_inited))) {
+	if (unlikely(!smp_load_acquire(&next_slab_inited)))
+	{
 		/*
 		 * Zero out zone modifiers, as we don't have specific zone
 		 * requirements. Keep the flags related to allocation in atomic
@@ -245,18 +278,25 @@ depot_stack_handle_t depot_save_stack(struct stack_trace *trace,
 		alloc_flags &= (GFP_ATOMIC | GFP_KERNEL);
 		alloc_flags |= __GFP_NOWARN;
 		page = alloc_pages(alloc_flags, STACK_ALLOC_ORDER);
+
 		if (page)
+		{
 			prealloc = page_address(page);
+		}
 	}
 
 	spin_lock_irqsave(&depot_lock, flags);
 
 	found = find_stack(*bucket, trace->entries, trace->nr_entries, hash);
-	if (!found) {
+
+	if (!found)
+	{
 		struct stack_record *new =
 			depot_alloc_stack(trace->entries, trace->nr_entries,
-					  hash, &prealloc, alloc_flags);
-		if (new) {
+							  hash, &prealloc, alloc_flags);
+
+		if (new)
+		{
 			new->next = *bucket;
 			/*
 			 * This smp_store_release() pairs with
@@ -265,7 +305,9 @@ depot_stack_handle_t depot_save_stack(struct stack_trace *trace,
 			smp_store_release(bucket, new);
 			found = new;
 		}
-	} else if (prealloc) {
+	}
+	else if (prealloc)
+	{
 		/*
 		 * We didn't need to store this stack trace, but let's keep
 		 * the preallocated memory for the future.
@@ -275,12 +317,18 @@ depot_stack_handle_t depot_save_stack(struct stack_trace *trace,
 
 	spin_unlock_irqrestore(&depot_lock, flags);
 exit:
-	if (prealloc) {
+
+	if (prealloc)
+	{
 		/* Nobody used this memory, ok to free it. */
 		free_pages((unsigned long)prealloc, STACK_ALLOC_ORDER);
 	}
+
 	if (found)
+	{
 		retval = found->handle.handle;
+	}
+
 fast_exit:
 	return retval;
 }

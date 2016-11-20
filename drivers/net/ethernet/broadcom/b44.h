@@ -240,7 +240,8 @@
 #define B44_MII_TLEDCTRL	27	/* Traffic Meter LED */
 #define  MII_TLEDCTRL_ENABLE	0x0040
 
-struct dma_desc {
+struct dma_desc
+{
 	__le32	ctrl;
 	__le32	addr;
 };
@@ -259,7 +260,8 @@ struct dma_desc {
 
 #define RX_COPY_THRESHOLD  	256
 
-struct rx_header {
+struct rx_header
+{
 	__le16	len;
 	__le16	flags;
 	__le16	pad[12];
@@ -277,7 +279,8 @@ struct rx_header {
 #define RX_FLAG_LAST	0x00000800 /* Last buffer in frame */
 #define RX_FLAG_ERRORS	(RX_FLAG_ODD | RX_FLAG_SERR | RX_FLAG_CRCERR | RX_FLAG_OFIFO)
 
-struct ring_info {
+struct ring_info
+{
 	struct sk_buff		*skb;
 	dma_addr_t	mapping;
 };
@@ -342,9 +345,10 @@ struct ring_info {
  * which probes HW values. Check b44_stats_update if you mess with
  * the layout
  */
-struct b44_hw_stats {
+struct b44_hw_stats
+{
 #define _B44(x)	u64 x;
-B44_STAT_REG_DECLARE
+	B44_STAT_REG_DECLARE
 #undef _B44
 	struct u64_stats_sync	syncp;
 };
@@ -354,7 +358,8 @@ B44_STAT_REG_DECLARE
 
 struct ssb_device;
 
-struct b44 {
+struct b44
+{
 	spinlock_t		lock;
 
 	u32			imask, istat;

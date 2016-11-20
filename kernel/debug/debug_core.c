@@ -109,8 +109,9 @@ module_param(kgdbreboot, int, 0644);
  * Holds information about breakpoints in a kernel. These breakpoints are
  * added and removed by gdb.
  */
-static struct kgdb_bkpt		kgdb_break[KGDB_MAX_BREAKPOINTS] = {
-	[0 ... KGDB_MAX_BREAKPOINTS-1] = { .state = BP_UNDEFINED }
+static struct kgdb_bkpt		kgdb_break[KGDB_MAX_BREAKPOINTS] =
+{
+	[0 ... KGDB_MAX_BREAKPOINTS - 1] = { .state = BP_UNDEFINED }
 };
 
 /*
@@ -170,18 +171,22 @@ int __weak kgdb_arch_set_breakpoint(struct kgdb_bkpt *bpt)
 	int err;
 
 	err = probe_kernel_read(bpt->saved_instr, (char *)bpt->bpt_addr,
-				BREAK_INSTR_SIZE);
+							BREAK_INSTR_SIZE);
+
 	if (err)
+	{
 		return err;
+	}
+
 	err = probe_kernel_write((char *)bpt->bpt_addr,
-				 arch_kgdb_ops.gdb_bpt_instr, BREAK_INSTR_SIZE);
+							 arch_kgdb_ops.gdb_bpt_instr, BREAK_INSTR_SIZE);
 	return err;
 }
 
 int __weak kgdb_arch_remove_breakpoint(struct kgdb_bkpt *bpt)
 {
 	return probe_kernel_write((char *)bpt->bpt_addr,
-				  (char *)bpt->saved_instr, BREAK_INSTR_SIZE);
+							  (char *)bpt->saved_instr, BREAK_INSTR_SIZE);
 }
 
 int __weak kgdb_validate_break_address(unsigned long addr)
@@ -195,12 +200,18 @@ int __weak kgdb_validate_break_address(unsigned long addr)
 	 */
 	tmp.bpt_addr = addr;
 	err = kgdb_arch_set_breakpoint(&tmp);
+
 	if (err)
+	{
 		return err;
+	}
+
 	err = kgdb_arch_remove_breakpoint(&tmp);
+
 	if (err)
 		pr_err("Critical breakpoint error, kernel memory destroyed at: %lx\n",
-		       addr);
+			   addr);
+
 	return err;
 }
 
@@ -226,16 +237,23 @@ int __weak kgdb_skipexception(int exception, struct pt_regs *regs)
 static void kgdb_flush_swbreak_addr(unsigned long addr)
 {
 	if (!CACHE_FLUSH_IS_SAFE)
+	{
 		return;
+	}
 
-	if (current->mm) {
+	if (current->mm)
+	{
 		int i;
 
-		for (i = 0; i < VMACACHE_SIZE; i++) {
+		for (i = 0; i < VMACACHE_SIZE; i++)
+		{
 			if (!current->vmacache[i])
+			{
 				continue;
+			}
+
 			flush_cache_range(current->vmacache[i],
-					  addr, addr + BREAK_INSTR_SIZE);
+							  addr, addr + BREAK_INSTR_SIZE);
 		}
 	}
 
@@ -252,21 +270,27 @@ int dbg_activate_sw_breakpoints(void)
 	int ret = 0;
 	int i;
 
-	for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++) {
+	for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++)
+	{
 		if (kgdb_break[i].state != BP_SET)
+		{
 			continue;
+		}
 
 		error = kgdb_arch_set_breakpoint(&kgdb_break[i]);
-		if (error) {
+
+		if (error)
+		{
 			ret = error;
 			pr_info("BP install failed: %lx\n",
-				kgdb_break[i].bpt_addr);
+					kgdb_break[i].bpt_addr);
 			continue;
 		}
 
 		kgdb_flush_swbreak_addr(kgdb_break[i].bpt_addr);
 		kgdb_break[i].state = BP_ACTIVE;
 	}
+
 	return ret;
 }
 
@@ -277,24 +301,35 @@ int dbg_set_sw_break(unsigned long addr)
 	int i;
 
 	if (err)
+	{
 		return err;
-
-	for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++) {
-		if ((kgdb_break[i].state == BP_SET) &&
-					(kgdb_break[i].bpt_addr == addr))
-			return -EEXIST;
 	}
-	for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++) {
+
+	for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++)
+	{
+		if ((kgdb_break[i].state == BP_SET) &&
+			(kgdb_break[i].bpt_addr == addr))
+		{
+			return -EEXIST;
+		}
+	}
+
+	for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++)
+	{
 		if (kgdb_break[i].state == BP_REMOVED &&
-					kgdb_break[i].bpt_addr == addr) {
+			kgdb_break[i].bpt_addr == addr)
+		{
 			breakno = i;
 			break;
 		}
 	}
 
-	if (breakno == -1) {
-		for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++) {
-			if (kgdb_break[i].state == BP_UNDEFINED) {
+	if (breakno == -1)
+	{
+		for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++)
+		{
+			if (kgdb_break[i].state == BP_UNDEFINED)
+			{
 				breakno = i;
 				break;
 			}
@@ -302,7 +337,9 @@ int dbg_set_sw_break(unsigned long addr)
 	}
 
 	if (breakno == -1)
+	{
 		return -E2BIG;
+	}
 
 	kgdb_break[breakno].state = BP_SET;
 	kgdb_break[breakno].type = BP_BREAKPOINT;
@@ -317,19 +354,26 @@ int dbg_deactivate_sw_breakpoints(void)
 	int ret = 0;
 	int i;
 
-	for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++) {
+	for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++)
+	{
 		if (kgdb_break[i].state != BP_ACTIVE)
+		{
 			continue;
+		}
+
 		error = kgdb_arch_remove_breakpoint(&kgdb_break[i]);
-		if (error) {
+
+		if (error)
+		{
 			pr_info("BP remove failed: %lx\n",
-				kgdb_break[i].bpt_addr);
+					kgdb_break[i].bpt_addr);
 			ret = error;
 		}
 
 		kgdb_flush_swbreak_addr(kgdb_break[i].bpt_addr);
 		kgdb_break[i].state = BP_SET;
 	}
+
 	return ret;
 }
 
@@ -337,13 +381,16 @@ int dbg_remove_sw_break(unsigned long addr)
 {
 	int i;
 
-	for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++) {
+	for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++)
+	{
 		if ((kgdb_break[i].state == BP_SET) &&
-				(kgdb_break[i].bpt_addr == addr)) {
+			(kgdb_break[i].bpt_addr == addr))
+		{
 			kgdb_break[i].state = BP_REMOVED;
 			return 0;
 		}
 	}
+
 	return -ENOENT;
 }
 
@@ -351,11 +398,15 @@ int kgdb_isremovedbreak(unsigned long addr)
 {
 	int i;
 
-	for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++) {
+	for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++)
+	{
 		if ((kgdb_break[i].state == BP_REMOVED) &&
-					(kgdb_break[i].bpt_addr == addr))
+			(kgdb_break[i].bpt_addr == addr))
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 
@@ -365,20 +416,28 @@ int dbg_remove_all_break(void)
 	int i;
 
 	/* Clear memory breakpoints. */
-	for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++) {
+	for (i = 0; i < KGDB_MAX_BREAKPOINTS; i++)
+	{
 		if (kgdb_break[i].state != BP_ACTIVE)
+		{
 			goto setundefined;
+		}
+
 		error = kgdb_arch_remove_breakpoint(&kgdb_break[i]);
+
 		if (error)
 			pr_err("breakpoint remove failed: %lx\n",
-			       kgdb_break[i].bpt_addr);
+				   kgdb_break[i].bpt_addr);
+
 setundefined:
 		kgdb_break[i].state = BP_UNDEFINED;
 	}
 
 	/* Clear hardware breakpoints. */
 	if (arch_kgdb_ops.remove_all_hw_break)
+	{
 		arch_kgdb_ops.remove_all_hw_break();
+	}
 
 	return 0;
 }
@@ -395,19 +454,34 @@ setundefined:
 static int kgdb_io_ready(int print_wait)
 {
 	if (!dbg_io_ops)
+	{
 		return 0;
+	}
+
 	if (kgdb_connected)
+	{
 		return 1;
+	}
+
 	if (atomic_read(&kgdb_setting_breakpoint))
+	{
 		return 1;
-	if (print_wait) {
+	}
+
+	if (print_wait)
+	{
 #ifdef CONFIG_KGDB_KDB
+
 		if (!dbg_kdb_mode)
+		{
 			pr_crit("waiting... or $3#33 for KDB\n");
+		}
+
 #else
 		pr_crit("Waiting for remote debugger\n");
 #endif
 	}
+
 	return 1;
 }
 
@@ -416,7 +490,9 @@ static int kgdb_reenter_check(struct kgdb_state *ks)
 	unsigned long addr;
 
 	if (atomic_read(&kgdb_active) != raw_smp_processor_id())
+	{
 		return 0;
+	}
 
 	/* Panic on recursive debugger calls: */
 	exception_level++;
@@ -429,7 +505,8 @@ static int kgdb_reenter_check(struct kgdb_state *ks)
 	 * user because the user planted a breakpoint in a place that
 	 * KGDB needs in order to function.
 	 */
-	if (dbg_remove_sw_break(addr) == 0) {
+	if (dbg_remove_sw_break(addr) == 0)
+	{
 		exception_level = 0;
 		kgdb_skipexception(ks->ex_vector, ks->linux_regs);
 		dbg_activate_sw_breakpoints();
@@ -438,10 +515,12 @@ static int kgdb_reenter_check(struct kgdb_state *ks)
 
 		return 1;
 	}
+
 	dbg_remove_all_break();
 	kgdb_skipexception(ks->ex_vector, ks->linux_regs);
 
-	if (exception_level > 1) {
+	if (exception_level > 1)
+	{
 		dump_stack();
 		panic("Recursive entry to debugger");
 	}
@@ -465,7 +544,7 @@ static void dbg_touch_watchdogs(void)
 }
 
 static int kgdb_cpu_enter(struct kgdb_state *ks, struct pt_regs *regs,
-		int exception_state)
+						  int exception_state)
 {
 	unsigned long flags;
 	int sstep_tries = 100;
@@ -479,12 +558,18 @@ static int kgdb_cpu_enter(struct kgdb_state *ks, struct pt_regs *regs,
 	kgdb_info[ks->cpu].exception_state |= exception_state;
 
 	if (exception_state == DCPU_WANT_MASTER)
+	{
 		atomic_inc(&masters_in_kgdb);
+	}
 	else
+	{
 		atomic_inc(&slaves_in_kgdb);
+	}
 
 	if (arch_kgdb_ops.disable_hw_break)
+	{
 		arch_kgdb_ops.disable_hw_break(regs);
+	}
 
 acquirelock:
 	/*
@@ -502,9 +587,13 @@ acquirelock:
 	/* Make sure the above info reaches the primary CPU */
 	smp_mb();
 
-	if (exception_level == 1) {
+	if (exception_level == 1)
+	{
 		if (raw_spin_trylock(&dbg_master_lock))
+		{
 			atomic_xchg(&kgdb_active, cpu);
+		}
+
 		goto cpu_master_loop;
 	}
 
@@ -512,28 +601,47 @@ acquirelock:
 	 * CPU will loop if it is a slave or request to become a kgdb
 	 * master cpu and acquire the kgdb_active lock:
 	 */
-	while (1) {
+	while (1)
+	{
 cpu_loop:
-		if (kgdb_info[cpu].exception_state & DCPU_NEXT_MASTER) {
+
+		if (kgdb_info[cpu].exception_state & DCPU_NEXT_MASTER)
+		{
 			kgdb_info[cpu].exception_state &= ~DCPU_NEXT_MASTER;
 			goto cpu_master_loop;
-		} else if (kgdb_info[cpu].exception_state & DCPU_WANT_MASTER) {
-			if (raw_spin_trylock(&dbg_master_lock)) {
+		}
+		else if (kgdb_info[cpu].exception_state & DCPU_WANT_MASTER)
+		{
+			if (raw_spin_trylock(&dbg_master_lock))
+			{
 				atomic_xchg(&kgdb_active, cpu);
 				break;
 			}
-		} else if (kgdb_info[cpu].exception_state & DCPU_IS_SLAVE) {
+		}
+		else if (kgdb_info[cpu].exception_state & DCPU_IS_SLAVE)
+		{
 			if (!raw_spin_is_locked(&dbg_slave_lock))
+			{
 				goto return_normal;
-		} else {
+			}
+		}
+		else
+		{
 return_normal:
+
 			/* Return to normal operation by executing any
 			 * hw breakpoint fixup.
 			 */
 			if (arch_kgdb_ops.correct_hw_break)
+			{
 				arch_kgdb_ops.correct_hw_break();
+			}
+
 			if (trace_on)
+			{
 				tracing_on();
+			}
+
 			kgdb_info[cpu].exception_state &=
 				~(DCPU_WANT_MASTER | DCPU_IS_SLAVE);
 			kgdb_info[cpu].enter_kgdb--;
@@ -543,6 +651,7 @@ return_normal:
 			local_irq_restore(flags);
 			return 0;
 		}
+
 		cpu_relax();
 	}
 
@@ -553,8 +662,9 @@ return_normal:
 	 * giving up and continuing on.
 	 */
 	if (atomic_read(&kgdb_cpu_doing_single_step) != -1 &&
-	    (kgdb_info[cpu].task &&
-	     kgdb_info[cpu].task->pid != kgdb_sstep_pid) && --sstep_tries) {
+		(kgdb_info[cpu].task &&
+		 kgdb_info[cpu].task->pid != kgdb_sstep_pid) && --sstep_tries)
+	{
 		atomic_set(&kgdb_active, -1);
 		raw_spin_unlock(&dbg_master_lock);
 		dbg_touch_watchdogs();
@@ -563,7 +673,8 @@ return_normal:
 		goto acquirelock;
 	}
 
-	if (!kgdb_io_ready(1)) {
+	if (!kgdb_io_ready(1))
+	{
 		kgdb_info[cpu].ret_state = 1;
 		goto kgdb_restore; /* No I/O connection, resume the system */
 	}
@@ -572,39 +683,57 @@ return_normal:
 	 * Don't enter if we have hit a removed breakpoint.
 	 */
 	if (kgdb_skipexception(ks->ex_vector, ks->linux_regs))
+	{
 		goto kgdb_restore;
+	}
 
 	/* Call the I/O driver's pre_exception routine */
 	if (dbg_io_ops->pre_exception)
+	{
 		dbg_io_ops->pre_exception();
+	}
 
 	/*
 	 * Get the passive CPU lock which will hold all the non-primary
 	 * CPU in a spin state while the debugger is active
 	 */
 	if (!kgdb_single_step)
+	{
 		raw_spin_lock(&dbg_slave_lock);
+	}
 
 #ifdef CONFIG_SMP
+
 	/* If send_ready set, slaves are already waiting */
 	if (ks->send_ready)
+	{
 		atomic_set(ks->send_ready, 1);
+	}
 
 	/* Signal the other CPUs to enter kgdb_wait() */
 	else if ((!kgdb_single_step) && kgdb_do_roundup)
+	{
 		kgdb_roundup_cpus(flags);
+	}
+
 #endif
 
 	/*
 	 * Wait for the other CPUs to be notified and be waiting for us:
 	 */
 	time_left = loops_per_jiffy * HZ;
+
 	while (kgdb_do_roundup && --time_left &&
-	       (atomic_read(&masters_in_kgdb) + atomic_read(&slaves_in_kgdb)) !=
+		   (atomic_read(&masters_in_kgdb) + atomic_read(&slaves_in_kgdb)) !=
 		   online_cpus)
+	{
 		cpu_relax();
+	}
+
 	if (!time_left)
+	{
 		pr_crit("Timed out waiting for secondary CPUs.\n");
+	}
 
 	/*
 	 * At this point the primary processor is completely
@@ -615,28 +744,45 @@ return_normal:
 	kgdb_contthread = current;
 	exception_level = 0;
 	trace_on = tracing_is_on();
-	if (trace_on)
-		tracing_off();
 
-	while (1) {
+	if (trace_on)
+	{
+		tracing_off();
+	}
+
+	while (1)
+	{
 cpu_master_loop:
-		if (dbg_kdb_mode) {
+
+		if (dbg_kdb_mode)
+		{
 			kgdb_connected = 1;
 			error = kdb_stub(ks);
+
 			if (error == -1)
+			{
 				continue;
+			}
+
 			kgdb_connected = 0;
-		} else {
+		}
+		else
+		{
 			error = gdb_serial_stub(ks);
 		}
 
-		if (error == DBG_PASS_EVENT) {
+		if (error == DBG_PASS_EVENT)
+		{
 			dbg_kdb_mode = !dbg_kdb_mode;
-		} else if (error == DBG_SWITCH_CPU_EVENT) {
+		}
+		else if (error == DBG_SWITCH_CPU_EVENT)
+		{
 			kgdb_info[dbg_switch_cpu].exception_state |=
 				DCPU_NEXT_MASTER;
 			goto cpu_loop;
-		} else {
+		}
+		else
+		{
 			kgdb_info[cpu].ret_state = error;
 			break;
 		}
@@ -644,27 +790,46 @@ cpu_master_loop:
 
 	/* Call the I/O driver's post_exception routine */
 	if (dbg_io_ops->post_exception)
+	{
 		dbg_io_ops->post_exception();
+	}
 
-	if (!kgdb_single_step) {
+	if (!kgdb_single_step)
+	{
 		raw_spin_unlock(&dbg_slave_lock);
+
 		/* Wait till all the CPUs have quit from the debugger. */
 		while (kgdb_do_roundup && atomic_read(&slaves_in_kgdb))
+		{
 			cpu_relax();
+		}
 	}
 
 kgdb_restore:
-	if (atomic_read(&kgdb_cpu_doing_single_step) != -1) {
+
+	if (atomic_read(&kgdb_cpu_doing_single_step) != -1)
+	{
 		int sstep_cpu = atomic_read(&kgdb_cpu_doing_single_step);
+
 		if (kgdb_info[sstep_cpu].task)
+		{
 			kgdb_sstep_pid = kgdb_info[sstep_cpu].task->pid;
+		}
 		else
+		{
 			kgdb_sstep_pid = 0;
+		}
 	}
+
 	if (arch_kgdb_ops.correct_hw_break)
+	{
 		arch_kgdb_ops.correct_hw_break();
+	}
+
 	if (trace_on)
+	{
 		tracing_on();
+	}
 
 	kgdb_info[cpu].exception_state &=
 		~(DCPU_WANT_MASTER | DCPU_IS_SLAVE);
@@ -695,7 +860,10 @@ kgdb_handle_exception(int evector, int signo, int ecode, struct pt_regs *regs)
 	int ret = 0;
 
 	if (arch_kgdb_ops.enable_nmi)
+	{
 		arch_kgdb_ops.enable_nmi(0);
+	}
+
 	/*
 	 * Avoid entering the debugger if we were triggered due to an oops
 	 * but panic_timeout indicates the system should automatically
@@ -703,7 +871,9 @@ kgdb_handle_exception(int evector, int signo, int ecode, struct pt_regs *regs)
 	 * on such systems, especially if its "just" an oops.
 	 */
 	if (signo != SIGTRAP && panic_timeout)
+	{
 		return 1;
+	}
 
 	memset(ks, 0, sizeof(struct kgdb_state));
 	ks->cpu			= raw_smp_processor_id();
@@ -713,14 +883,23 @@ kgdb_handle_exception(int evector, int signo, int ecode, struct pt_regs *regs)
 	ks->linux_regs		= regs;
 
 	if (kgdb_reenter_check(ks))
-		goto out; /* Ouch, double exception ! */
+	{
+		goto out;    /* Ouch, double exception ! */
+	}
+
 	if (kgdb_info[ks->cpu].enter_kgdb != 0)
+	{
 		goto out;
+	}
 
 	ret = kgdb_cpu_enter(ks, regs, DCPU_WANT_MASTER);
 out:
+
 	if (arch_kgdb_ops.enable_nmi)
+	{
 		arch_kgdb_ops.enable_nmi(1);
+	}
+
 	return ret;
 }
 
@@ -731,12 +910,13 @@ out:
  */
 
 static int module_event(struct notifier_block *self, unsigned long val,
-	void *data)
+						void *data)
 {
 	return 0;
 }
 
-static struct notifier_block dbg_module_load_nb = {
+static struct notifier_block dbg_module_load_nb =
+{
 	.notifier_call	= module_event,
 };
 
@@ -751,22 +931,28 @@ int kgdb_nmicallback(int cpu, void *regs)
 	ks->linux_regs		= regs;
 
 	if (kgdb_info[ks->cpu].enter_kgdb == 0 &&
-			raw_spin_is_locked(&dbg_master_lock)) {
+		raw_spin_is_locked(&dbg_master_lock))
+	{
 		kgdb_cpu_enter(ks, regs, DCPU_IS_SLAVE);
 		return 0;
 	}
+
 #endif
 	return 1;
 }
 
 int kgdb_nmicallin(int cpu, int trapnr, void *regs, int err_code,
-							atomic_t *send_ready)
+				   atomic_t *send_ready)
 {
 #ifdef CONFIG_SMP
-	if (!kgdb_io_ready(0) || !send_ready)
-		return 1;
 
-	if (kgdb_info[cpu].enter_kgdb == 0) {
+	if (!kgdb_io_ready(0) || !send_ready)
+	{
+		return 1;
+	}
+
+	if (kgdb_info[cpu].enter_kgdb == 0)
+	{
 		struct kgdb_state kgdb_var;
 		struct kgdb_state *ks = &kgdb_var;
 
@@ -780,26 +966,30 @@ int kgdb_nmicallin(int cpu, int trapnr, void *regs, int err_code,
 		kgdb_cpu_enter(ks, regs, DCPU_WANT_MASTER);
 		return 0;
 	}
+
 #endif
 	return 1;
 }
 
 static void kgdb_console_write(struct console *co, const char *s,
-   unsigned count)
+							   unsigned count)
 {
 	unsigned long flags;
 
 	/* If we're debugging, or KGDB has not connected, don't try
 	 * and print. */
 	if (!kgdb_connected || atomic_read(&kgdb_active) != -1 || dbg_kdb_mode)
+	{
 		return;
+	}
 
 	local_irq_save(flags);
 	gdbstub_msg_write(s, count);
 	local_irq_restore(flags);
 }
 
-static struct console kgdbcons = {
+static struct console kgdbcons =
+{
 	.name		= "kgdb",
 	.write		= kgdb_console_write,
 	.flags		= CON_PRINTBUFFER | CON_ENABLED,
@@ -809,14 +999,21 @@ static struct console kgdbcons = {
 #ifdef CONFIG_MAGIC_SYSRQ
 static void sysrq_handle_dbg(int key)
 {
-	if (!dbg_io_ops) {
+	if (!dbg_io_ops)
+	{
 		pr_crit("ERROR: No KGDB I/O module available\n");
 		return;
 	}
-	if (!kgdb_connected) {
+
+	if (!kgdb_connected)
+	{
 #ifdef CONFIG_KGDB_KDB
+
 		if (!dbg_kdb_mode)
+		{
 			pr_crit("KGDB or $3#33 for KDB\n");
+		}
+
 #else
 		pr_crit("Entering KGDB\n");
 #endif
@@ -825,7 +1022,8 @@ static void sysrq_handle_dbg(int key)
 	kgdb_breakpoint();
 }
 
-static struct sysrq_key_op sysrq_dbg_op = {
+static struct sysrq_key_op sysrq_dbg_op =
+{
 	.handler	= sysrq_handle_dbg,
 	.help_msg	= "debug(g)",
 	.action_msg	= "DEBUG",
@@ -833,8 +1031,8 @@ static struct sysrq_key_op sysrq_dbg_op = {
 #endif
 
 static int kgdb_panic_event(struct notifier_block *self,
-			    unsigned long val,
-			    void *data)
+							unsigned long val,
+							void *data)
 {
 	/*
 	 * Avoid entering the debugger if we were triggered due to a panic
@@ -843,17 +1041,23 @@ static int kgdb_panic_event(struct notifier_block *self,
 	 * reboot on panic.
 	 */
 	if (panic_timeout)
+	{
 		return NOTIFY_DONE;
+	}
 
 	if (dbg_kdb_mode)
+	{
 		kdb_printf("PANIC: %s\n", (char *)data);
+	}
+
 	kgdb_breakpoint();
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block kgdb_panic_event_nb = {
-       .notifier_call	= kgdb_panic_event,
-       .priority	= INT_MAX,
+static struct notifier_block kgdb_panic_event_nb =
+{
+	.notifier_call	= kgdb_panic_event,
+	.priority	= INT_MAX,
 };
 
 void __weak kgdb_arch_late(void)
@@ -863,8 +1067,12 @@ void __weak kgdb_arch_late(void)
 void __init dbg_late_init(void)
 {
 	dbg_is_early = false;
+
 	if (kgdb_io_module_registered)
+	{
 		kgdb_arch_late();
+	}
+
 	kdb_init(KDB_INIT_FULL);
 }
 
@@ -877,19 +1085,26 @@ dbg_notify_reboot(struct notifier_block *this, unsigned long code, void *x)
 	 *    0 == [the default] detatch debug client
 	 *   -1 == Do nothing... and use this until the board resets
 	 */
-	switch (kgdbreboot) {
-	case 1:
-		kgdb_breakpoint();
-	case -1:
-		goto done;
+	switch (kgdbreboot)
+	{
+		case 1:
+			kgdb_breakpoint();
+
+		case -1:
+			goto done;
 	}
+
 	if (!dbg_kdb_mode)
+	{
 		gdbstub_exit(code);
+	}
+
 done:
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block dbg_reboot_notifier = {
+static struct notifier_block dbg_reboot_notifier =
+{
 	.notifier_call		= dbg_notify_reboot,
 	.next			= NULL,
 	.priority		= INT_MAX,
@@ -897,19 +1112,26 @@ static struct notifier_block dbg_reboot_notifier = {
 
 static void kgdb_register_callbacks(void)
 {
-	if (!kgdb_io_module_registered) {
+	if (!kgdb_io_module_registered)
+	{
 		kgdb_io_module_registered = 1;
 		kgdb_arch_init();
+
 		if (!dbg_is_early)
+		{
 			kgdb_arch_late();
+		}
+
 		register_module_notifier(&dbg_module_load_nb);
 		register_reboot_notifier(&dbg_reboot_notifier);
 		atomic_notifier_chain_register(&panic_notifier_list,
-					       &kgdb_panic_event_nb);
+									   &kgdb_panic_event_nb);
 #ifdef CONFIG_MAGIC_SYSRQ
 		register_sysrq_key('g', &sysrq_dbg_op);
 #endif
-		if (kgdb_use_con && !kgdb_con_registered) {
+
+		if (kgdb_use_con && !kgdb_con_registered)
+		{
 			register_console(&kgdbcons);
 			kgdb_con_registered = 1;
 		}
@@ -923,17 +1145,20 @@ static void kgdb_unregister_callbacks(void)
 	 * panic handler and clean up, making sure it is not handling any
 	 * break exceptions at the time.
 	 */
-	if (kgdb_io_module_registered) {
+	if (kgdb_io_module_registered)
+	{
 		kgdb_io_module_registered = 0;
 		unregister_reboot_notifier(&dbg_reboot_notifier);
 		unregister_module_notifier(&dbg_module_load_nb);
 		atomic_notifier_chain_unregister(&panic_notifier_list,
-					       &kgdb_panic_event_nb);
+										 &kgdb_panic_event_nb);
 		kgdb_arch_exit();
 #ifdef CONFIG_MAGIC_SYSRQ
 		unregister_sysrq_key('g', &sysrq_dbg_op);
 #endif
-		if (kgdb_con_registered) {
+
+		if (kgdb_con_registered)
+		{
 			unregister_console(&kgdbcons);
 			kgdb_con_registered = 0;
 		}
@@ -959,7 +1184,10 @@ void kgdb_schedule_breakpoint(void)
 	if (atomic_read(&kgdb_break_tasklet_var) ||
 		atomic_read(&kgdb_active) != -1 ||
 		atomic_read(&kgdb_setting_breakpoint))
+	{
 		return;
+	}
+
 	atomic_inc(&kgdb_break_tasklet_var);
 	tasklet_schedule(&kgdb_tasklet_breakpoint);
 }
@@ -985,16 +1213,20 @@ int kgdb_register_io_module(struct kgdb_io *new_dbg_io_ops)
 
 	spin_lock(&kgdb_registration_lock);
 
-	if (dbg_io_ops) {
+	if (dbg_io_ops)
+	{
 		spin_unlock(&kgdb_registration_lock);
 
 		pr_err("Another I/O driver is already registered with KGDB\n");
 		return -EBUSY;
 	}
 
-	if (new_dbg_io_ops->init) {
+	if (new_dbg_io_ops->init)
+	{
 		err = new_dbg_io_ops->init();
-		if (err) {
+
+		if (err)
+		{
 			spin_unlock(&kgdb_registration_lock);
 			return err;
 		}
@@ -1010,7 +1242,9 @@ int kgdb_register_io_module(struct kgdb_io *new_dbg_io_ops)
 	kgdb_register_callbacks();
 
 	if (kgdb_break_asap)
+	{
 		kgdb_initial_breakpoint();
+	}
 
 	return 0;
 }
@@ -1040,19 +1274,29 @@ void kgdb_unregister_io_module(struct kgdb_io *old_dbg_io_ops)
 	spin_unlock(&kgdb_registration_lock);
 
 	pr_info("Unregistered I/O driver %s, debugger disabled\n",
-		old_dbg_io_ops->name);
+			old_dbg_io_ops->name);
 }
 EXPORT_SYMBOL_GPL(kgdb_unregister_io_module);
 
 int dbg_io_get_char(void)
 {
 	int ret = dbg_io_ops->read_char();
+
 	if (ret == NO_POLL_CHAR)
+	{
 		return -1;
+	}
+
 	if (!dbg_kdb_mode)
+	{
 		return ret;
+	}
+
 	if (ret == 127)
+	{
 		return 8;
+	}
+
 	return ret;
 }
 
@@ -1079,8 +1323,11 @@ static int __init opt_kgdb_wait(char *str)
 	kgdb_break_asap = 1;
 
 	kdb_init(KDB_INIT_EARLY);
+
 	if (kgdb_io_module_registered)
+	{
 		kgdb_initial_breakpoint();
+	}
 
 	return 0;
 }

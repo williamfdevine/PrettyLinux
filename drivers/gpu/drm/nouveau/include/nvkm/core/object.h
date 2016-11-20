@@ -6,7 +6,8 @@ struct nvkm_event;
 struct nvkm_gpuobj;
 struct nvkm_oclass;
 
-struct nvkm_object {
+struct nvkm_object
+{
 	const struct nvkm_object_func *func;
 	struct nvkm_client *client;
 	struct nvkm_engine *engine;
@@ -21,7 +22,8 @@ struct nvkm_object {
 	struct rb_node node;
 };
 
-struct nvkm_object_func {
+struct nvkm_object_func
+{
 	void *(*dtor)(struct nvkm_object *);
 	int (*init)(struct nvkm_object *);
 	int (*fini)(struct nvkm_object *, bool suspend);
@@ -35,17 +37,17 @@ struct nvkm_object_func {
 	int (*wr16)(struct nvkm_object *, u64 addr, u16 data);
 	int (*wr32)(struct nvkm_object *, u64 addr, u32 data);
 	int (*bind)(struct nvkm_object *, struct nvkm_gpuobj *, int align,
-		    struct nvkm_gpuobj **);
+				struct nvkm_gpuobj **);
 	int (*sclass)(struct nvkm_object *, int index, struct nvkm_oclass *);
 };
 
 void nvkm_object_ctor(const struct nvkm_object_func *,
-		      const struct nvkm_oclass *, struct nvkm_object *);
+					  const struct nvkm_oclass *, struct nvkm_object *);
 int nvkm_object_new_(const struct nvkm_object_func *,
-		     const struct nvkm_oclass *, void *data, u32 size,
-		     struct nvkm_object **);
+					 const struct nvkm_oclass *, void *data, u32 size,
+					 struct nvkm_object **);
 int nvkm_object_new(const struct nvkm_oclass *, void *data, u32 size,
-		    struct nvkm_object **);
+					struct nvkm_object **);
 void nvkm_object_del(struct nvkm_object **);
 void *nvkm_object_dtor(struct nvkm_object *);
 int nvkm_object_init(struct nvkm_object *);
@@ -60,20 +62,22 @@ int nvkm_object_wr08(struct nvkm_object *, u64 addr, u8   data);
 int nvkm_object_wr16(struct nvkm_object *, u64 addr, u16  data);
 int nvkm_object_wr32(struct nvkm_object *, u64 addr, u32  data);
 int nvkm_object_bind(struct nvkm_object *, struct nvkm_gpuobj *, int align,
-		     struct nvkm_gpuobj **);
+					 struct nvkm_gpuobj **);
 
-struct nvkm_sclass {
+struct nvkm_sclass
+{
 	int minver;
 	int maxver;
 	s32 oclass;
 	const struct nvkm_object_func *func;
 	int (*ctor)(const struct nvkm_oclass *, void *data, u32 size,
-		    struct nvkm_object **);
+				struct nvkm_object **);
 };
 
-struct nvkm_oclass {
+struct nvkm_oclass
+{
 	int (*ctor)(const struct nvkm_oclass *, void *data, u32 size,
-		    struct nvkm_object **);
+				struct nvkm_object **);
 	struct nvkm_sclass base;
 	const void *priv;
 	const void *engn;

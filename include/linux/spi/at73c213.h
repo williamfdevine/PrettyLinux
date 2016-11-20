@@ -16,7 +16,8 @@
  * external DAC. The DAC needs a master clock and a I2S audio stream. It also
  * provides a name which is used to identify it in userspace tools.
  */
-struct at73c213_board_info {
+struct at73c213_board_info
+{
 	int		ssc_id;
 	struct clk	*dac_clk;
 	char		shortname[32];

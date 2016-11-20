@@ -45,7 +45,9 @@ int vsp1_du_init(struct device *dev)
 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
 
 	if (!vsp1)
+	{
 		return -EPROBE_DEFER;
+	}
 
 	return 0;
 }
@@ -70,7 +72,7 @@ EXPORT_SYMBOL_GPL(vsp1_du_init);
  * Return 0 on success or a negative error code on failure.
  */
 int vsp1_du_setup_lif(struct device *dev, unsigned int width,
-		      unsigned int height)
+					  unsigned int height)
 {
 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
 	struct vsp1_pipeline *pipe = &vsp1->drm->pipe;
@@ -80,19 +82,24 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int width,
 	int ret;
 
 	dev_dbg(vsp1->dev, "%s: configuring LIF with format %ux%u\n",
-		__func__, width, height);
+			__func__, width, height);
 
-	if (width == 0 || height == 0) {
+	if (width == 0 || height == 0)
+	{
 		/* Zero width or height means the CRTC is being disabled, stop
 		 * the pipeline and turn the light off.
 		 */
 		ret = vsp1_pipeline_stop(pipe);
+
 		if (ret == -ETIMEDOUT)
+		{
 			dev_err(vsp1->dev, "DRM pipeline stop timeout\n");
+		}
 
 		media_entity_pipeline_stop(&pipe->output->entity.subdev.entity);
 
-		for (i = 0; i < bru->entity.source_pad; ++i) {
+		for (i = 0; i < bru->entity.source_pad; ++i)
+		{
 			vsp1->drm->inputs[i].enabled = false;
 			bru->inputs[i].rpf = NULL;
 			pipe->inputs[i] = NULL;
@@ -114,7 +121,8 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int width,
 	memset(&format, 0, sizeof(format));
 	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
 
-	for (i = 0; i < bru->entity.source_pad; ++i) {
+	for (i = 0; i < bru->entity.source_pad; ++i)
+	{
 		format.pad = i;
 
 		format.format.width = width;
@@ -123,13 +131,16 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int width,
 		format.format.field = V4L2_FIELD_NONE;
 
 		ret = v4l2_subdev_call(&bru->entity.subdev, pad,
-				       set_fmt, NULL, &format);
+							   set_fmt, NULL, &format);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on BRU pad %u\n",
-			__func__, format.format.width, format.format.height,
-			format.format.code, i);
+				__func__, format.format.width, format.format.height,
+				format.format.code, i);
 	}
 
 	format.pad = bru->entity.source_pad;
@@ -139,49 +150,62 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int width,
 	format.format.field = V4L2_FIELD_NONE;
 
 	ret = v4l2_subdev_call(&bru->entity.subdev, pad, set_fmt, NULL,
-			       &format);
+						   &format);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on BRU pad %u\n",
-		__func__, format.format.width, format.format.height,
-		format.format.code, i);
+			__func__, format.format.width, format.format.height,
+			format.format.code, i);
 
 	format.pad = RWPF_PAD_SINK;
 	ret = v4l2_subdev_call(&vsp1->wpf[0]->entity.subdev, pad, set_fmt, NULL,
-			       &format);
+						   &format);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on WPF0 sink\n",
-		__func__, format.format.width, format.format.height,
-		format.format.code);
+			__func__, format.format.width, format.format.height,
+			format.format.code);
 
 	format.pad = RWPF_PAD_SOURCE;
 	ret = v4l2_subdev_call(&vsp1->wpf[0]->entity.subdev, pad, get_fmt, NULL,
-			       &format);
+						   &format);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	dev_dbg(vsp1->dev, "%s: got format %ux%u (%x) on WPF0 source\n",
-		__func__, format.format.width, format.format.height,
-		format.format.code);
+			__func__, format.format.width, format.format.height,
+			format.format.code);
 
 	format.pad = LIF_PAD_SINK;
 	ret = v4l2_subdev_call(&vsp1->lif->entity.subdev, pad, set_fmt, NULL,
-			       &format);
+						   &format);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on LIF sink\n",
-		__func__, format.format.width, format.format.height,
-		format.format.code);
+			__func__, format.format.width, format.format.height,
+			format.format.code);
 
 	/* Verify that the format at the output of the pipeline matches the
 	 * requested frame size and media bus code.
 	 */
 	if (format.format.width != width || format.format.height != height ||
-	    format.format.code != MEDIA_BUS_FMT_ARGB8888_1X32) {
+		format.format.code != MEDIA_BUS_FMT_ARGB8888_1X32)
+	{
 		dev_dbg(vsp1->dev, "%s: format mismatch\n", __func__);
 		return -EPIPE;
 	}
@@ -193,12 +217,17 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int width,
 	 * buffers.
 	 */
 	ret = vsp1_device_get(vsp1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = media_entity_pipeline_start(&pipe->output->entity.subdev.entity,
-					  &pipe->pipe);
-	if (ret < 0) {
+									  &pipe->pipe);
+
+	if (ret < 0)
+	{
 		dev_dbg(vsp1->dev, "%s: pipeline start failed\n", __func__);
 		vsp1_device_put(vsp1);
 		return ret;
@@ -256,41 +285,46 @@ EXPORT_SYMBOL_GPL(vsp1_du_atomic_begin);
  * Return 0 on success or a negative error code on failure.
  */
 int vsp1_du_atomic_update(struct device *dev, unsigned int rpf_index,
-			  const struct vsp1_du_atomic_config *cfg)
+						  const struct vsp1_du_atomic_config *cfg)
 {
 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
 	const struct vsp1_format_info *fmtinfo;
 	struct vsp1_rwpf *rpf;
 
 	if (rpf_index >= vsp1->info->rpf_count)
+	{
 		return -EINVAL;
+	}
 
 	rpf = vsp1->rpf[rpf_index];
 
-	if (!cfg) {
+	if (!cfg)
+	{
 		dev_dbg(vsp1->dev, "%s: RPF%u: disable requested\n", __func__,
-			rpf_index);
+				rpf_index);
 
 		vsp1->drm->inputs[rpf_index].enabled = false;
 		return 0;
 	}
 
 	dev_dbg(vsp1->dev,
-		"%s: RPF%u: (%u,%u)/%ux%u -> (%u,%u)/%ux%u (%08x), pitch %u dma { %pad, %pad, %pad } zpos %u\n",
-		__func__, rpf_index,
-		cfg->src.left, cfg->src.top, cfg->src.width, cfg->src.height,
-		cfg->dst.left, cfg->dst.top, cfg->dst.width, cfg->dst.height,
-		cfg->pixelformat, cfg->pitch, &cfg->mem[0], &cfg->mem[1],
-		&cfg->mem[2], cfg->zpos);
+			"%s: RPF%u: (%u,%u)/%ux%u -> (%u,%u)/%ux%u (%08x), pitch %u dma { %pad, %pad, %pad } zpos %u\n",
+			__func__, rpf_index,
+			cfg->src.left, cfg->src.top, cfg->src.width, cfg->src.height,
+			cfg->dst.left, cfg->dst.top, cfg->dst.width, cfg->dst.height,
+			cfg->pixelformat, cfg->pitch, &cfg->mem[0], &cfg->mem[1],
+			&cfg->mem[2], cfg->zpos);
 
 	/*
 	 * Store the format, stride, memory buffer address, crop and compose
 	 * rectangles and Z-order position and for the input.
 	 */
 	fmtinfo = vsp1_get_format_info(vsp1, cfg->pixelformat);
-	if (!fmtinfo) {
+
+	if (!fmtinfo)
+	{
 		dev_dbg(vsp1->dev, "Unsupport pixel format %08x for RPF\n",
-			cfg->pixelformat);
+				cfg->pixelformat);
 		return -EINVAL;
 	}
 
@@ -314,7 +348,7 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int rpf_index,
 EXPORT_SYMBOL_GPL(vsp1_du_atomic_update);
 
 static int vsp1_du_setup_rpf_pipe(struct vsp1_device *vsp1,
-				  struct vsp1_rwpf *rpf, unsigned int bru_input)
+								  struct vsp1_rwpf *rpf, unsigned int bru_input)
 {
 	struct v4l2_subdev_selection sel;
 	struct v4l2_subdev_format format;
@@ -335,14 +369,17 @@ static int vsp1_du_setup_rpf_pipe(struct vsp1_device *vsp1,
 	format.format.field = V4L2_FIELD_NONE;
 
 	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_fmt, NULL,
-			       &format);
+						   &format);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	dev_dbg(vsp1->dev,
-		"%s: set format %ux%u (%x) on RPF%u sink\n",
-		__func__, format.format.width, format.format.height,
-		format.format.code, rpf->entity.index);
+			"%s: set format %ux%u (%x) on RPF%u sink\n",
+			__func__, format.format.width, format.format.height,
+			format.format.code, rpf->entity.index);
 
 	memset(&sel, 0, sizeof(sel));
 	sel.which = V4L2_SUBDEV_FORMAT_ACTIVE;
@@ -351,14 +388,17 @@ static int vsp1_du_setup_rpf_pipe(struct vsp1_device *vsp1,
 	sel.r = *crop;
 
 	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_selection, NULL,
-			       &sel);
+						   &sel);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	dev_dbg(vsp1->dev,
-		"%s: set selection (%u,%u)/%ux%u on RPF%u sink\n",
-		__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
-		rpf->entity.index);
+			"%s: set selection (%u,%u)/%ux%u on RPF%u sink\n",
+			__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
+			rpf->entity.index);
 
 	/* RPF source, hardcode the format to ARGB8888 to turn on format
 	 * conversion if needed.
@@ -366,47 +406,59 @@ static int vsp1_du_setup_rpf_pipe(struct vsp1_device *vsp1,
 	format.pad = RWPF_PAD_SOURCE;
 
 	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, get_fmt, NULL,
-			       &format);
+						   &format);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	dev_dbg(vsp1->dev,
-		"%s: got format %ux%u (%x) on RPF%u source\n",
-		__func__, format.format.width, format.format.height,
-		format.format.code, rpf->entity.index);
+			"%s: got format %ux%u (%x) on RPF%u source\n",
+			__func__, format.format.width, format.format.height,
+			format.format.code, rpf->entity.index);
 
 	format.format.code = MEDIA_BUS_FMT_ARGB8888_1X32;
 
 	ret = v4l2_subdev_call(&rpf->entity.subdev, pad, set_fmt, NULL,
-			       &format);
+						   &format);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* BRU sink, propagate the format from the RPF source. */
 	format.pad = bru_input;
 
 	ret = v4l2_subdev_call(&vsp1->bru->entity.subdev, pad, set_fmt, NULL,
-			       &format);
+						   &format);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on BRU pad %u\n",
-		__func__, format.format.width, format.format.height,
-		format.format.code, format.pad);
+			__func__, format.format.width, format.format.height,
+			format.format.code, format.pad);
 
 	sel.pad = bru_input;
 	sel.target = V4L2_SEL_TGT_COMPOSE;
 	sel.r = vsp1->drm->inputs[rpf->entity.index].compose;
 
 	ret = v4l2_subdev_call(&vsp1->bru->entity.subdev, pad, set_selection,
-			       NULL, &sel);
+						   NULL, &sel);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	dev_dbg(vsp1->dev,
-		"%s: set selection (%u,%u)/%ux%u on BRU pad %u\n",
-		__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
-		sel.pad);
+			"%s: set selection (%u,%u)/%ux%u on BRU pad %u\n",
+			__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
+			sel.pad);
 
 	return 0;
 }
@@ -433,11 +485,13 @@ void vsp1_du_atomic_flush(struct device *dev)
 	/* Count the number of enabled inputs and sort them by Z-order. */
 	pipe->num_inputs = 0;
 
-	for (i = 0; i < vsp1->info->rpf_count; ++i) {
+	for (i = 0; i < vsp1->info->rpf_count; ++i)
+	{
 		struct vsp1_rwpf *rpf = vsp1->rpf[i];
 		unsigned int j;
 
-		if (!vsp1->drm->inputs[i].enabled) {
+		if (!vsp1->drm->inputs[i].enabled)
+		{
 			pipe->inputs[i] = NULL;
 			continue;
 		}
@@ -445,20 +499,26 @@ void vsp1_du_atomic_flush(struct device *dev)
 		pipe->inputs[i] = rpf;
 
 		/* Insert the RPF in the sorted RPFs array. */
-		for (j = pipe->num_inputs++; j > 0; --j) {
-			if (rpf_zpos(vsp1, inputs[j-1]) <= rpf_zpos(vsp1, rpf))
+		for (j = pipe->num_inputs++; j > 0; --j)
+		{
+			if (rpf_zpos(vsp1, inputs[j - 1]) <= rpf_zpos(vsp1, rpf))
+			{
 				break;
-			inputs[j] = inputs[j-1];
+			}
+
+			inputs[j] = inputs[j - 1];
 		}
 
 		inputs[j] = rpf;
 	}
 
 	/* Setup the RPF input pipeline for every enabled input. */
-	for (i = 0; i < vsp1->info->num_bru_inputs; ++i) {
+	for (i = 0; i < vsp1->info->num_bru_inputs; ++i)
+	{
 		struct vsp1_rwpf *rpf = inputs[i];
 
-		if (!rpf) {
+		if (!rpf)
+		{
 			vsp1->bru->inputs[i].rpf = NULL;
 			continue;
 		}
@@ -468,37 +528,42 @@ void vsp1_du_atomic_flush(struct device *dev)
 		rpf->entity.sink_pad = i;
 
 		dev_dbg(vsp1->dev, "%s: connecting RPF.%u to BRU:%u\n",
-			__func__, rpf->entity.index, i);
+				__func__, rpf->entity.index, i);
 
 		ret = vsp1_du_setup_rpf_pipe(vsp1, rpf, i);
+
 		if (ret < 0)
 			dev_err(vsp1->dev,
-				"%s: failed to setup RPF.%u\n",
-				__func__, rpf->entity.index);
+					"%s: failed to setup RPF.%u\n",
+					__func__, rpf->entity.index);
 	}
 
 	/* Configure all entities in the pipeline. */
-	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+	list_for_each_entry(entity, &pipe->entities, list_pipe)
+	{
 		/* Disconnect unused RPFs from the pipeline. */
-		if (entity->type == VSP1_ENTITY_RPF) {
+		if (entity->type == VSP1_ENTITY_RPF)
+		{
 			struct vsp1_rwpf *rpf = to_rwpf(&entity->subdev);
 
-			if (!pipe->inputs[rpf->entity.index]) {
+			if (!pipe->inputs[rpf->entity.index])
+			{
 				vsp1_dl_list_write(pipe->dl, entity->route->reg,
-						   VI6_DPR_NODE_UNUSED);
+								   VI6_DPR_NODE_UNUSED);
 				continue;
 			}
 		}
 
 		vsp1_entity_route_setup(entity, pipe->dl);
 
-		if (entity->ops->configure) {
+		if (entity->ops->configure)
+		{
 			entity->ops->configure(entity, pipe, pipe->dl,
-					       VSP1_ENTITY_PARAMS_INIT);
+								   VSP1_ENTITY_PARAMS_INIT);
 			entity->ops->configure(entity, pipe, pipe->dl,
-					       VSP1_ENTITY_PARAMS_RUNTIME);
+								   VSP1_ENTITY_PARAMS_RUNTIME);
 			entity->ops->configure(entity, pipe, pipe->dl,
-					       VSP1_ENTITY_PARAMS_PARTITION);
+								   VSP1_ENTITY_PARAMS_PARTITION);
 		}
 	}
 
@@ -506,13 +571,16 @@ void vsp1_du_atomic_flush(struct device *dev)
 	pipe->dl = NULL;
 
 	/* Start or stop the pipeline if needed. */
-	if (!vsp1->drm->num_inputs && pipe->num_inputs) {
+	if (!vsp1->drm->num_inputs && pipe->num_inputs)
+	{
 		vsp1_write(vsp1, VI6_DISP_IRQ_STA, 0);
 		vsp1_write(vsp1, VI6_DISP_IRQ_ENB, VI6_DISP_IRQ_ENB_DSTE);
 		spin_lock_irqsave(&pipe->irqlock, flags);
 		vsp1_pipeline_run(pipe);
 		spin_unlock_irqrestore(&pipe->irqlock, flags);
-	} else if (vsp1->drm->num_inputs && !pipe->num_inputs) {
+	}
+	else if (vsp1->drm->num_inputs && !pipe->num_inputs)
+	{
 		vsp1_write(vsp1, VI6_DISP_IRQ_ENB, 0);
 		vsp1_pipeline_stop(pipe);
 	}
@@ -533,38 +601,50 @@ int vsp1_drm_create_links(struct vsp1_device *vsp1)
 	 * output to the DU.
 	 */
 	if (!vsp1->bru || !vsp1->lif)
+	{
 		return -ENXIO;
+	}
 
-	for (i = 0; i < vsp1->info->rpf_count; ++i) {
+	for (i = 0; i < vsp1->info->rpf_count; ++i)
+	{
 		struct vsp1_rwpf *rpf = vsp1->rpf[i];
 
 		ret = media_create_pad_link(&rpf->entity.subdev.entity,
-					    RWPF_PAD_SOURCE,
-					    &vsp1->bru->entity.subdev.entity,
-					    i, flags);
+									RWPF_PAD_SOURCE,
+									&vsp1->bru->entity.subdev.entity,
+									i, flags);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		rpf->entity.sink = &vsp1->bru->entity.subdev.entity;
 		rpf->entity.sink_pad = i;
 	}
 
 	ret = media_create_pad_link(&vsp1->bru->entity.subdev.entity,
-				    vsp1->bru->entity.source_pad,
-				    &vsp1->wpf[0]->entity.subdev.entity,
-				    RWPF_PAD_SINK, flags);
+								vsp1->bru->entity.source_pad,
+								&vsp1->wpf[0]->entity.subdev.entity,
+								RWPF_PAD_SINK, flags);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	vsp1->bru->entity.sink = &vsp1->wpf[0]->entity.subdev.entity;
 	vsp1->bru->entity.sink_pad = RWPF_PAD_SINK;
 
 	ret = media_create_pad_link(&vsp1->wpf[0]->entity.subdev.entity,
-				    RWPF_PAD_SOURCE,
-				    &vsp1->lif->entity.subdev.entity,
-				    LIF_PAD_SINK, flags);
+								RWPF_PAD_SOURCE,
+								&vsp1->lif->entity.subdev.entity,
+								LIF_PAD_SINK, flags);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -575,15 +655,19 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
 	unsigned int i;
 
 	vsp1->drm = devm_kzalloc(vsp1->dev, sizeof(*vsp1->drm), GFP_KERNEL);
+
 	if (!vsp1->drm)
+	{
 		return -ENOMEM;
+	}
 
 	pipe = &vsp1->drm->pipe;
 
 	vsp1_pipeline_init(pipe);
 
 	/* The DRM pipeline is static, add entities manually. */
-	for (i = 0; i < vsp1->info->rpf_count; ++i) {
+	for (i = 0; i < vsp1->info->rpf_count; ++i)
+	{
 		struct vsp1_rwpf *input = vsp1->rpf[i];
 
 		list_add_tail(&input->entity.list_pipe, &pipe->entities);

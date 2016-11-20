@@ -68,7 +68,8 @@
 /*---------------------  Static Variables  --------------------------*/
 
 #define CB_VT3253_INIT_FOR_RFMD 446
-static const unsigned char byVT3253InitTab_RFMD[CB_VT3253_INIT_FOR_RFMD][2] = {
+static const unsigned char byVT3253InitTab_RFMD[CB_VT3253_INIT_FOR_RFMD][2] =
+{
 	{0x00, 0x30},
 	{0x01, 0x00},
 	{0x02, 0x00},
@@ -518,7 +519,8 @@ static const unsigned char byVT3253InitTab_RFMD[CB_VT3253_INIT_FOR_RFMD][2] = {
 };
 
 #define CB_VT3253B0_INIT_FOR_RFMD 256
-static const unsigned char byVT3253B0_RFMD[CB_VT3253B0_INIT_FOR_RFMD][2] = {
+static const unsigned char byVT3253B0_RFMD[CB_VT3253B0_INIT_FOR_RFMD][2] =
+{
 	{0x00, 0x31},
 	{0x01, 0x00},
 	{0x02, 0x00},
@@ -780,7 +782,8 @@ static const unsigned char byVT3253B0_RFMD[CB_VT3253B0_INIT_FOR_RFMD][2] = {
 #define CB_VT3253B0_AGC_FOR_RFMD2959 195
 /* For RFMD2959 */
 static
-unsigned char byVT3253B0_AGC4_RFMD2959[CB_VT3253B0_AGC_FOR_RFMD2959][2] = {
+unsigned char byVT3253B0_AGC4_RFMD2959[CB_VT3253B0_AGC_FOR_RFMD2959][2] =
+{
 	{0xF0, 0x00},
 	{0xF1, 0x3E},
 	{0xF0, 0x80},
@@ -981,7 +984,8 @@ unsigned char byVT3253B0_AGC4_RFMD2959[CB_VT3253B0_AGC_FOR_RFMD2959][2] = {
 #define CB_VT3253B0_INIT_FOR_AIROHA2230 256
 /* For AIROHA */
 static
-unsigned char byVT3253B0_AIROHA2230[CB_VT3253B0_INIT_FOR_AIROHA2230][2] = {
+unsigned char byVT3253B0_AIROHA2230[CB_VT3253B0_INIT_FOR_AIROHA2230][2] =
+{
 	{0x00, 0x31},
 	{0x01, 0x00},
 	{0x02, 0x00},
@@ -1242,7 +1246,8 @@ unsigned char byVT3253B0_AIROHA2230[CB_VT3253B0_INIT_FOR_AIROHA2230][2] = {
 
 #define CB_VT3253B0_INIT_FOR_UW2451 256
 /* For UW2451 */
-static unsigned char byVT3253B0_UW2451[CB_VT3253B0_INIT_FOR_UW2451][2] = {
+static unsigned char byVT3253B0_UW2451[CB_VT3253B0_INIT_FOR_UW2451][2] =
+{
 	{0x00, 0x31},
 	{0x01, 0x00},
 	{0x02, 0x00},
@@ -1503,7 +1508,8 @@ static unsigned char byVT3253B0_UW2451[CB_VT3253B0_INIT_FOR_UW2451][2] = {
 
 #define CB_VT3253B0_AGC 193
 /* For AIROHA */
-static unsigned char byVT3253B0_AGC[CB_VT3253B0_AGC][2] = {
+static unsigned char byVT3253B0_AGC[CB_VT3253B0_AGC][2] =
+{
 	{0xF0, 0x00},
 	{0xF1, 0x00},
 	{0xF0, 0x80},
@@ -1699,8 +1705,9 @@ static unsigned char byVT3253B0_AGC[CB_VT3253B0_AGC][2] = {
 	{0xF0, 0x00},
 };
 
-static const unsigned short awcFrameTime[MAX_RATE] = {
-		10, 20, 55, 110, 24, 36, 48, 72, 96, 144, 192, 216
+static const unsigned short awcFrameTime[MAX_RATE] =
+{
+	10, 20, 55, 110, 24, 36, 48, 72, 96, 144, 192, 216
 };
 
 /*---------------------  Export Variables  --------------------------*/
@@ -1733,31 +1740,48 @@ BBuGetFrameTime(
 	unsigned int uRate = 0;
 
 	if (uRateIdx > RATE_54M)
+	{
 		return 0;
+	}
 
 	uRate = (unsigned int)awcFrameTime[uRateIdx];
 
-	if (uRateIdx <= 3) {          /* CCK mode */
+	if (uRateIdx <= 3)            /* CCK mode */
+	{
 		if (byPreambleType == 1) /* Short */
+		{
 			uPreamble = 96;
+		}
 		else
+		{
 			uPreamble = 192;
+		}
 
 		uFrameTime = (cbFrameLength * 80) / uRate;  /* ????? */
 		uTmp = (uFrameTime * uRate) / 80;
+
 		if (cbFrameLength != uTmp)
+		{
 			uFrameTime++;
+		}
 
 		return uPreamble + uFrameTime;
 	}
+
 	uFrameTime = (cbFrameLength * 8 + 22) / uRate; /* ???????? */
 	uTmp = ((uFrameTime * uRate) - 22) / 8;
+
 	if (cbFrameLength != uTmp)
+	{
 		uFrameTime++;
+	}
 
 	uFrameTime = uFrameTime * 4;    /* ??????? */
+
 	if (byPktType != PK_TYPE_11A)
-		uFrameTime += 6;     /* ?????? */
+	{
+		uFrameTime += 6;    /* ?????? */
+	}
 
 	return 20 + uFrameTime; /* ?????? */
 }
@@ -1780,7 +1804,7 @@ BBuGetFrameTime(
  *
  */
 void vnt_get_phy_field(struct vnt_private *priv, u32 frame_length,
-		       u16 tx_rate, u8 pkt_type, struct vnt_phy_field *phy)
+					   u16 tx_rate, u8 pkt_type, struct vnt_phy_field *phy)
 {
 	u32 bit_count;
 	u32 count = 0;
@@ -1791,121 +1815,196 @@ void vnt_get_phy_field(struct vnt_private *priv, u32 frame_length,
 	bit_count = frame_length * 8;
 	ext_bit = false;
 
-	switch (tx_rate) {
-	case RATE_1M:
-		count = bit_count;
+	switch (tx_rate)
+	{
+		case RATE_1M:
+			count = bit_count;
 
-		phy->signal = 0x00;
+			phy->signal = 0x00;
 
-		break;
-	case RATE_2M:
-		count = bit_count / 2;
+			break;
 
-		if (preamble_type == 1)
-			phy->signal = 0x09;
-		else
-			phy->signal = 0x01;
+		case RATE_2M:
+			count = bit_count / 2;
 
-		break;
-	case RATE_5M:
-		count = (bit_count * 10) / 55;
-		tmp = (count * 55) / 10;
+			if (preamble_type == 1)
+			{
+				phy->signal = 0x09;
+			}
+			else
+			{
+				phy->signal = 0x01;
+			}
 
-		if (tmp != bit_count)
-			count++;
+			break;
 
-		if (preamble_type == 1)
-			phy->signal = 0x0a;
-		else
-			phy->signal = 0x02;
+		case RATE_5M:
+			count = (bit_count * 10) / 55;
+			tmp = (count * 55) / 10;
 
-		break;
-	case RATE_11M:
-		count = bit_count / 11;
-		tmp = count * 11;
+			if (tmp != bit_count)
+			{
+				count++;
+			}
 
-		if (tmp != bit_count) {
-			count++;
+			if (preamble_type == 1)
+			{
+				phy->signal = 0x0a;
+			}
+			else
+			{
+				phy->signal = 0x02;
+			}
 
-			if ((bit_count - tmp) <= 3)
-				ext_bit = true;
-		}
+			break;
 
-		if (preamble_type == 1)
-			phy->signal = 0x0b;
-		else
-			phy->signal = 0x03;
+		case RATE_11M:
+			count = bit_count / 11;
+			tmp = count * 11;
 
-		break;
-	case RATE_6M:
-		if (pkt_type == PK_TYPE_11A)
-			phy->signal = 0x9b;
-		else
-			phy->signal = 0x8b;
+			if (tmp != bit_count)
+			{
+				count++;
 
-		break;
-	case RATE_9M:
-		if (pkt_type == PK_TYPE_11A)
-			phy->signal = 0x9f;
-		else
-			phy->signal = 0x8f;
+				if ((bit_count - tmp) <= 3)
+				{
+					ext_bit = true;
+				}
+			}
 
-		break;
-	case RATE_12M:
-		if (pkt_type == PK_TYPE_11A)
-			phy->signal = 0x9a;
-		else
-			phy->signal = 0x8a;
+			if (preamble_type == 1)
+			{
+				phy->signal = 0x0b;
+			}
+			else
+			{
+				phy->signal = 0x03;
+			}
 
-		break;
-	case RATE_18M:
-		if (pkt_type == PK_TYPE_11A)
-			phy->signal = 0x9e;
-		else
-			phy->signal = 0x8e;
+			break;
 
-		break;
-	case RATE_24M:
-		if (pkt_type == PK_TYPE_11A)
-			phy->signal = 0x99;
-		else
-			phy->signal = 0x89;
+		case RATE_6M:
+			if (pkt_type == PK_TYPE_11A)
+			{
+				phy->signal = 0x9b;
+			}
+			else
+			{
+				phy->signal = 0x8b;
+			}
 
-		break;
-	case RATE_36M:
-		if (pkt_type == PK_TYPE_11A)
-			phy->signal = 0x9d;
-		else
-			phy->signal = 0x8d;
+			break;
 
-		break;
-	case RATE_48M:
-		if (pkt_type == PK_TYPE_11A)
-			phy->signal = 0x98;
-		else
-			phy->signal = 0x88;
+		case RATE_9M:
+			if (pkt_type == PK_TYPE_11A)
+			{
+				phy->signal = 0x9f;
+			}
+			else
+			{
+				phy->signal = 0x8f;
+			}
 
-		break;
-	case RATE_54M:
-		if (pkt_type == PK_TYPE_11A)
-			phy->signal = 0x9c;
-		else
-			phy->signal = 0x8c;
-		break;
-	default:
-		if (pkt_type == PK_TYPE_11A)
-			phy->signal = 0x9c;
-		else
-			phy->signal = 0x8c;
-		break;
+			break;
+
+		case RATE_12M:
+			if (pkt_type == PK_TYPE_11A)
+			{
+				phy->signal = 0x9a;
+			}
+			else
+			{
+				phy->signal = 0x8a;
+			}
+
+			break;
+
+		case RATE_18M:
+			if (pkt_type == PK_TYPE_11A)
+			{
+				phy->signal = 0x9e;
+			}
+			else
+			{
+				phy->signal = 0x8e;
+			}
+
+			break;
+
+		case RATE_24M:
+			if (pkt_type == PK_TYPE_11A)
+			{
+				phy->signal = 0x99;
+			}
+			else
+			{
+				phy->signal = 0x89;
+			}
+
+			break;
+
+		case RATE_36M:
+			if (pkt_type == PK_TYPE_11A)
+			{
+				phy->signal = 0x9d;
+			}
+			else
+			{
+				phy->signal = 0x8d;
+			}
+
+			break;
+
+		case RATE_48M:
+			if (pkt_type == PK_TYPE_11A)
+			{
+				phy->signal = 0x98;
+			}
+			else
+			{
+				phy->signal = 0x88;
+			}
+
+			break;
+
+		case RATE_54M:
+			if (pkt_type == PK_TYPE_11A)
+			{
+				phy->signal = 0x9c;
+			}
+			else
+			{
+				phy->signal = 0x8c;
+			}
+
+			break;
+
+		default:
+			if (pkt_type == PK_TYPE_11A)
+			{
+				phy->signal = 0x9c;
+			}
+			else
+			{
+				phy->signal = 0x8c;
+			}
+
+			break;
 	}
 
-	if (pkt_type == PK_TYPE_11B) {
+	if (pkt_type == PK_TYPE_11B)
+	{
 		phy->service = 0x00;
+
 		if (ext_bit)
+		{
 			phy->service |= 0x80;
+		}
+
 		phy->len = cpu_to_le16((u16)count);
-	} else {
+	}
+	else
+	{
 		phy->service = 0x00;
 		phy->len = cpu_to_le16((u16)frame_length);
 	}
@@ -1925,7 +2024,7 @@ void vnt_get_phy_field(struct vnt_private *priv, u32 frame_length,
  *
  */
 bool BBbReadEmbedded(struct vnt_private *priv,
-		     unsigned char byBBAddr, unsigned char *pbyData)
+					 unsigned char byBBAddr, unsigned char *pbyData)
 {
 	void __iomem *dwIoBase = priv->PortOffset;
 	unsigned short ww;
@@ -1936,20 +2035,27 @@ bool BBbReadEmbedded(struct vnt_private *priv,
 
 	/* turn on REGR */
 	MACvRegBitsOn(dwIoBase, MAC_REG_BBREGCTL, BBREGCTL_REGR);
+
 	/* W_MAX_TIMEOUT is the timeout period */
-	for (ww = 0; ww < W_MAX_TIMEOUT; ww++) {
+	for (ww = 0; ww < W_MAX_TIMEOUT; ww++)
+	{
 		VNSvInPortB(dwIoBase + MAC_REG_BBREGCTL, &byValue);
+
 		if (byValue & BBREGCTL_DONE)
+		{
 			break;
+		}
 	}
 
 	/* get BB data */
 	VNSvInPortB(dwIoBase + MAC_REG_BBREGDATA, pbyData);
 
-	if (ww == W_MAX_TIMEOUT) {
+	if (ww == W_MAX_TIMEOUT)
+	{
 		pr_debug(" DBG_PORT80(0x30)\n");
 		return false;
 	}
+
 	return true;
 }
 
@@ -1968,7 +2074,7 @@ bool BBbReadEmbedded(struct vnt_private *priv,
  *
  */
 bool BBbWriteEmbedded(struct vnt_private *priv,
-		      unsigned char byBBAddr, unsigned char byData)
+					  unsigned char byBBAddr, unsigned char byData)
 {
 	void __iomem *dwIoBase = priv->PortOffset;
 	unsigned short ww;
@@ -1981,17 +2087,24 @@ bool BBbWriteEmbedded(struct vnt_private *priv,
 
 	/* turn on BBREGCTL_REGW */
 	MACvRegBitsOn(dwIoBase, MAC_REG_BBREGCTL, BBREGCTL_REGW);
+
 	/* W_MAX_TIMEOUT is the timeout period */
-	for (ww = 0; ww < W_MAX_TIMEOUT; ww++) {
+	for (ww = 0; ww < W_MAX_TIMEOUT; ww++)
+	{
 		VNSvInPortB(dwIoBase + MAC_REG_BBREGCTL, &byValue);
+
 		if (byValue & BBREGCTL_DONE)
+		{
 			break;
+		}
 	}
 
-	if (ww == W_MAX_TIMEOUT) {
+	if (ww == W_MAX_TIMEOUT)
+	{
 		pr_debug(" DBG_PORT80(0x31)\n");
 		return false;
 	}
+
 	return true;
 }
 
@@ -2018,27 +2131,32 @@ bool BBbVT3253Init(struct vnt_private *priv)
 	unsigned char byRFType = priv->byRFType;
 	unsigned char byLocalID = priv->byLocalID;
 
-	if (byRFType == RF_RFMD2959) {
-		if (byLocalID <= REV_ID_VT3253_A1) {
+	if (byRFType == RF_RFMD2959)
+	{
+		if (byLocalID <= REV_ID_VT3253_A1)
+		{
 			for (ii = 0; ii < CB_VT3253_INIT_FOR_RFMD; ii++)
 				bResult &= BBbWriteEmbedded(priv,
-					byVT3253InitTab_RFMD[ii][0],
-					byVT3253InitTab_RFMD[ii][1]);
+											byVT3253InitTab_RFMD[ii][0],
+											byVT3253InitTab_RFMD[ii][1]);
 
-		} else {
+		}
+		else
+		{
 			for (ii = 0; ii < CB_VT3253B0_INIT_FOR_RFMD; ii++)
 				bResult &= BBbWriteEmbedded(priv,
-					byVT3253B0_RFMD[ii][0],
-					byVT3253B0_RFMD[ii][1]);
+											byVT3253B0_RFMD[ii][0],
+											byVT3253B0_RFMD[ii][1]);
 
 			for (ii = 0; ii < CB_VT3253B0_AGC_FOR_RFMD2959; ii++)
 				bResult &= BBbWriteEmbedded(priv,
-					byVT3253B0_AGC4_RFMD2959[ii][0],
-					byVT3253B0_AGC4_RFMD2959[ii][1]);
+											byVT3253B0_AGC4_RFMD2959[ii][0],
+											byVT3253B0_AGC4_RFMD2959[ii][1]);
 
 			VNSvOutPortD(dwIoBase + MAC_REG_ITRTMSET, 0x23);
 			MACvRegBitsOn(dwIoBase, MAC_REG_PAPEDELAY, BIT(0));
 		}
+
 		priv->abyBBVGA[0] = 0x18;
 		priv->abyBBVGA[1] = 0x0A;
 		priv->abyBBVGA[2] = 0x0;
@@ -2047,15 +2165,17 @@ bool BBbVT3253Init(struct vnt_private *priv)
 		priv->ldBmThreshold[1] = -50;
 		priv->ldBmThreshold[2] = 0;
 		priv->ldBmThreshold[3] = 0;
-	} else if ((byRFType == RF_AIROHA) || (byRFType == RF_AL2230S)) {
+	}
+	else if ((byRFType == RF_AIROHA) || (byRFType == RF_AL2230S))
+	{
 		for (ii = 0; ii < CB_VT3253B0_INIT_FOR_AIROHA2230; ii++)
 			bResult &= BBbWriteEmbedded(priv,
-				byVT3253B0_AIROHA2230[ii][0],
-				byVT3253B0_AIROHA2230[ii][1]);
+										byVT3253B0_AIROHA2230[ii][0],
+										byVT3253B0_AIROHA2230[ii][1]);
 
 		for (ii = 0; ii < CB_VT3253B0_AGC; ii++)
 			bResult &= BBbWriteEmbedded(priv,
-				byVT3253B0_AGC[ii][0], byVT3253B0_AGC[ii][1]);
+										byVT3253B0_AGC[ii][0], byVT3253B0_AGC[ii][1]);
 
 		priv->abyBBVGA[0] = 0x1C;
 		priv->abyBBVGA[1] = 0x10;
@@ -2065,16 +2185,18 @@ bool BBbVT3253Init(struct vnt_private *priv)
 		priv->ldBmThreshold[1] = -48;
 		priv->ldBmThreshold[2] = 0;
 		priv->ldBmThreshold[3] = 0;
-	} else if (byRFType == RF_UW2451) {
+	}
+	else if (byRFType == RF_UW2451)
+	{
 		for (ii = 0; ii < CB_VT3253B0_INIT_FOR_UW2451; ii++)
 			bResult &= BBbWriteEmbedded(priv,
-				byVT3253B0_UW2451[ii][0],
-				byVT3253B0_UW2451[ii][1]);
+										byVT3253B0_UW2451[ii][0],
+										byVT3253B0_UW2451[ii][1]);
 
 		for (ii = 0; ii < CB_VT3253B0_AGC; ii++)
 			bResult &= BBbWriteEmbedded(priv,
-				byVT3253B0_AGC[ii][0],
-				byVT3253B0_AGC[ii][1]);
+										byVT3253B0_AGC[ii][0],
+										byVT3253B0_AGC[ii][1]);
 
 		VNSvOutPortB(dwIoBase + MAC_REG_ITRTMSET, 0x23);
 		MACvRegBitsOn(dwIoBase, MAC_REG_PAPEDELAY, BIT(0));
@@ -2087,11 +2209,13 @@ bool BBbVT3253Init(struct vnt_private *priv)
 		priv->ldBmThreshold[1] = -50;
 		priv->ldBmThreshold[2] = 0;
 		priv->ldBmThreshold[3] = 0;
-	} else if (byRFType == RF_UW2452) {
+	}
+	else if (byRFType == RF_UW2452)
+	{
 		for (ii = 0; ii < CB_VT3253B0_INIT_FOR_UW2451; ii++)
 			bResult &= BBbWriteEmbedded(priv,
-				byVT3253B0_UW2451[ii][0],
-				byVT3253B0_UW2451[ii][1]);
+										byVT3253B0_UW2451[ii][0],
+										byVT3253B0_UW2451[ii][1]);
 
 		/* Init ANT B select,
 		 * TX Config CR09 = 0x61->0x45,
@@ -2123,7 +2247,7 @@ bool BBbVT3253Init(struct vnt_private *priv)
 
 		for (ii = 0; ii < CB_VT3253B0_AGC; ii++)
 			bResult &= BBbWriteEmbedded(priv,
-				byVT3253B0_AGC[ii][0], byVT3253B0_AGC[ii][1]);
+										byVT3253B0_AGC[ii][0], byVT3253B0_AGC[ii][1]);
 
 		priv->abyBBVGA[0] = 0x14;
 		priv->abyBBVGA[1] = 0x0A;
@@ -2135,15 +2259,17 @@ bool BBbVT3253Init(struct vnt_private *priv)
 		priv->ldBmThreshold[3] = 0;
 		/* }} RobertYu */
 
-	} else if (byRFType == RF_VT3226) {
+	}
+	else if (byRFType == RF_VT3226)
+	{
 		for (ii = 0; ii < CB_VT3253B0_INIT_FOR_AIROHA2230; ii++)
 			bResult &= BBbWriteEmbedded(priv,
-				byVT3253B0_AIROHA2230[ii][0],
-				byVT3253B0_AIROHA2230[ii][1]);
+										byVT3253B0_AIROHA2230[ii][0],
+										byVT3253B0_AIROHA2230[ii][1]);
 
 		for (ii = 0; ii < CB_VT3253B0_AGC; ii++)
 			bResult &= BBbWriteEmbedded(priv,
-				byVT3253B0_AGC[ii][0], byVT3253B0_AGC[ii][1]);
+										byVT3253B0_AGC[ii][0], byVT3253B0_AGC[ii][1]);
 
 		priv->abyBBVGA[0] = 0x1C;
 		priv->abyBBVGA[1] = 0x10;
@@ -2156,11 +2282,13 @@ bool BBbVT3253Init(struct vnt_private *priv)
 		/* Fix VT3226 DFC system timing issue */
 		MACvSetRFLE_LatchBase(dwIoBase);
 		/* {{ RobertYu: 20050104 */
-	} else if (byRFType == RF_AIROHA7230) {
+	}
+	else if (byRFType == RF_AIROHA7230)
+	{
 		for (ii = 0; ii < CB_VT3253B0_INIT_FOR_AIROHA2230; ii++)
 			bResult &= BBbWriteEmbedded(priv,
-				byVT3253B0_AIROHA2230[ii][0],
-				byVT3253B0_AIROHA2230[ii][1]);
+										byVT3253B0_AIROHA2230[ii][0],
+										byVT3253B0_AIROHA2230[ii][1]);
 
 
 		/* {{ RobertYu:20050223, request by JerryChung */
@@ -2178,7 +2306,7 @@ bool BBbVT3253Init(struct vnt_private *priv)
 
 		for (ii = 0; ii < CB_VT3253B0_AGC; ii++)
 			bResult &= BBbWriteEmbedded(priv,
-				byVT3253B0_AGC[ii][0], byVT3253B0_AGC[ii][1]);
+										byVT3253B0_AGC[ii][0], byVT3253B0_AGC[ii][1]);
 
 		priv->abyBBVGA[0] = 0x1C;
 		priv->abyBBVGA[1] = 0x10;
@@ -2189,13 +2317,16 @@ bool BBbVT3253Init(struct vnt_private *priv)
 		priv->ldBmThreshold[2] = 0;
 		priv->ldBmThreshold[3] = 0;
 		/* }} RobertYu */
-	} else {
+	}
+	else
+	{
 		/* No VGA Table now */
 		priv->bUpdateBBVGA = false;
 		priv->abyBBVGA[0] = 0x1C;
 	}
 
-	if (byLocalID > REV_ID_VT3253_A1) {
+	if (byLocalID > REV_ID_VT3253_A1)
+	{
 		BBbWriteEmbedded(priv, 0x04, 0x7F);
 		BBbWriteEmbedded(priv, 0x0D, 0x01);
 	}
@@ -2224,14 +2355,21 @@ BBvSetShortSlotTime(struct vnt_private *priv)
 	BBbReadEmbedded(priv, 0x0A, &byBBRxConf); /* CR10 */
 
 	if (priv->bShortSlotTime)
-		byBBRxConf &= 0xDF; /* 1101 1111 */
+	{
+		byBBRxConf &= 0xDF;    /* 1101 1111 */
+	}
 	else
-		byBBRxConf |= 0x20; /* 0010 0000 */
+	{
+		byBBRxConf |= 0x20;    /* 0010 0000 */
+	}
 
 	/* patch for 3253B0 Baseband with Cardbus module */
 	BBbReadEmbedded(priv, 0xE7, &byBBVGA);
+
 	if (byBBVGA == priv->abyBBVGA[0])
-		byBBRxConf |= 0x20; /* 0010 0000 */
+	{
+		byBBRxConf |= 0x20;    /* 0010 0000 */
+	}
 
 	BBbWriteEmbedded(priv, 0x0A, byBBRxConf); /* CR10 */
 }
@@ -2243,13 +2381,21 @@ void BBvSetVGAGainOffset(struct vnt_private *priv, unsigned char byData)
 	BBbWriteEmbedded(priv, 0xE7, byData);
 
 	BBbReadEmbedded(priv, 0x0A, &byBBRxConf); /* CR10 */
+
 	/* patch for 3253B0 Baseband with Cardbus module */
 	if (byData == priv->abyBBVGA[0])
-		byBBRxConf |= 0x20; /* 0010 0000 */
+	{
+		byBBRxConf |= 0x20;    /* 0010 0000 */
+	}
 	else if (priv->bShortSlotTime)
-		byBBRxConf &= 0xDF; /* 1101 1111 */
+	{
+		byBBRxConf &= 0xDF;    /* 1101 1111 */
+	}
 	else
-		byBBRxConf |= 0x20; /* 0010 0000 */
+	{
+		byBBRxConf |= 0x20;    /* 0010 0000 */
+	}
+
 	priv->byBBVGACurrent = byData;
 	BBbWriteEmbedded(priv, 0x0A, byBBRxConf); /* CR10 */
 }
@@ -2339,16 +2485,23 @@ BBvSetTxAntennaMode(struct vnt_private *priv, unsigned char byAntennaMode)
 	unsigned char byBBTxConf;
 
 	BBbReadEmbedded(priv, 0x09, &byBBTxConf); /* CR09 */
-	if (byAntennaMode == ANT_DIVERSITY) {
+
+	if (byAntennaMode == ANT_DIVERSITY)
+	{
 		/* bit 1 is diversity */
 		byBBTxConf |= 0x02;
-	} else if (byAntennaMode == ANT_A) {
+	}
+	else if (byAntennaMode == ANT_A)
+	{
 		/* bit 2 is ANTSEL */
 		byBBTxConf &= 0xF9; /* 1111 1001 */
-	} else if (byAntennaMode == ANT_B) {
+	}
+	else if (byAntennaMode == ANT_B)
+	{
 		byBBTxConf &= 0xFD; /* 1111 1101 */
 		byBBTxConf |= 0x04;
 	}
+
 	BBbWriteEmbedded(priv, 0x09, byBBTxConf); /* CR09 */
 }
 
@@ -2372,15 +2525,22 @@ BBvSetRxAntennaMode(struct vnt_private *priv, unsigned char byAntennaMode)
 	unsigned char byBBRxConf;
 
 	BBbReadEmbedded(priv, 0x0A, &byBBRxConf); /* CR10 */
-	if (byAntennaMode == ANT_DIVERSITY) {
+
+	if (byAntennaMode == ANT_DIVERSITY)
+	{
 		byBBRxConf |= 0x01;
 
-	} else if (byAntennaMode == ANT_A) {
+	}
+	else if (byAntennaMode == ANT_A)
+	{
 		byBBRxConf &= 0xFC; /* 1111 1100 */
-	} else if (byAntennaMode == ANT_B) {
+	}
+	else if (byAntennaMode == ANT_B)
+	{
 		byBBRxConf &= 0xFE; /* 1111 1110 */
 		byBBRxConf |= 0x02;
 	}
+
 	BBbWriteEmbedded(priv, 0x0A, byBBRxConf); /* CR10 */
 }
 

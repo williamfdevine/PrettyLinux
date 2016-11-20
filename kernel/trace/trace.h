@@ -17,11 +17,12 @@
 #include <linux/trace_seq.h>
 
 #ifdef CONFIG_FTRACE_SYSCALLS
-#include <asm/unistd.h>		/* For NR_SYSCALLS	     */
-#include <asm/syscall.h>	/* some archs define it here */
+	#include <asm/unistd.h>		/* For NR_SYSCALLS	     */
+	#include <asm/syscall.h>	/* some archs define it here */
 #endif
 
-enum trace_type {
+enum trace_type
+{
 	__TRACE_FIRST_TYPE = 0,
 
 	TRACE_FN,
@@ -77,15 +78,15 @@ enum trace_type {
 
 #undef FTRACE_ENTRY_REG
 #define FTRACE_ENTRY_REG(name, struct_name, id, tstruct, print,	\
-			 filter, regfn) \
-	FTRACE_ENTRY(name, struct_name, id, PARAMS(tstruct), PARAMS(print), \
-		     filter)
+						 filter, regfn) \
+FTRACE_ENTRY(name, struct_name, id, PARAMS(tstruct), PARAMS(print), \
+			 filter)
 
 #undef FTRACE_ENTRY_PACKED
 #define FTRACE_ENTRY_PACKED(name, struct_name, id, tstruct, print,	\
-			    filter)					\
-	FTRACE_ENTRY(name, struct_name, id, PARAMS(tstruct), PARAMS(print), \
-		     filter) __packed
+							filter)					\
+FTRACE_ENTRY(name, struct_name, id, PARAMS(tstruct), PARAMS(print), \
+			 filter) __packed
 
 #include "trace_entries.h"
 
@@ -93,24 +94,28 @@ enum trace_type {
  * syscalls are special, and need special handling, this is why
  * they are not included in trace_entries.h
  */
-struct syscall_trace_enter {
+struct syscall_trace_enter
+{
 	struct trace_entry	ent;
 	int			nr;
 	unsigned long		args[];
 };
 
-struct syscall_trace_exit {
+struct syscall_trace_exit
+{
 	struct trace_entry	ent;
 	int			nr;
 	long			ret;
 };
 
-struct kprobe_trace_entry_head {
+struct kprobe_trace_entry_head
+{
 	struct trace_entry	ent;
 	unsigned long		ip;
 };
 
-struct kretprobe_trace_entry_head {
+struct kretprobe_trace_entry_head
+{
 	struct trace_entry	ent;
 	unsigned long		func;
 	unsigned long		ret_ip;
@@ -125,7 +130,8 @@ struct kretprobe_trace_entry_head {
  *  HARDIRQ		- inside an interrupt handler
  *  SOFTIRQ		- inside a softirq handler
  */
-enum trace_flag_type {
+enum trace_flag_type
+{
 	TRACE_FLAG_IRQS_OFF		= 0x01,
 	TRACE_FLAG_IRQS_NOSUPPORT	= 0x02,
 	TRACE_FLAG_NEED_RESCHED		= 0x04,
@@ -144,7 +150,8 @@ struct trace_array;
  * plus some other descriptor data: (for example which task started
  * the trace, etc.)
  */
-struct trace_array_cpu {
+struct trace_array_cpu
+{
 	atomic_t		disabled;
 	void			*buffer_page;	/* ring buffer spare */
 
@@ -171,7 +178,8 @@ struct trace_array_cpu {
 struct tracer;
 struct trace_option_dentry;
 
-struct trace_buffer {
+struct trace_buffer
+{
 	struct trace_array		*tr;
 	struct ring_buffer		*buffer;
 	struct trace_array_cpu __percpu	*data;
@@ -181,12 +189,14 @@ struct trace_buffer {
 
 #define TRACE_FLAGS_MAX_SIZE		32
 
-struct trace_options {
+struct trace_options
+{
 	struct tracer			*tracer;
 	struct trace_option_dentry	*topts;
 };
 
-struct trace_pid_list {
+struct trace_pid_list
+{
 	int				pid_max;
 	unsigned long			*pids;
 };
@@ -196,7 +206,8 @@ struct trace_pid_list {
  * highest level data structure that individual tracers deal with.
  * They have on/off state as well:
  */
-struct trace_array {
+struct trace_array
+{
 	struct list_head	list;
 	char			*name;
 	struct trace_buffer	trace_buffer;
@@ -265,7 +276,8 @@ struct trace_array {
 #endif
 };
 
-enum {
+enum
+{
 	TRACE_ARRAY_FL_GLOBAL	= (1 << 0)
 };
 
@@ -285,10 +297,12 @@ static inline struct trace_array *top_trace_array(void)
 	struct trace_array *tr;
 
 	if (list_empty(&ftrace_trace_arrays))
+	{
 		return NULL;
+	}
 
 	tr = list_entry(ftrace_trace_arrays.prev,
-			typeof(*tr), list);
+					typeof(*tr), list);
 	WARN_ON(!(tr->flags & TRACE_ARRAY_FL_GLOBAL));
 	return tr;
 }
@@ -331,14 +345,14 @@ extern void __ftrace_bad_type(void);
 		IF_ASSIGN(var, ent, struct bputs_entry, TRACE_BPUTS);	\
 		IF_ASSIGN(var, ent, struct hwlat_entry, TRACE_HWLAT);	\
 		IF_ASSIGN(var, ent, struct trace_mmiotrace_rw,		\
-			  TRACE_MMIO_RW);				\
+				  TRACE_MMIO_RW);				\
 		IF_ASSIGN(var, ent, struct trace_mmiotrace_map,		\
-			  TRACE_MMIO_MAP);				\
+				  TRACE_MMIO_MAP);				\
 		IF_ASSIGN(var, ent, struct trace_branch, TRACE_BRANCH); \
 		IF_ASSIGN(var, ent, struct ftrace_graph_ent_entry,	\
-			  TRACE_GRAPH_ENT);		\
+				  TRACE_GRAPH_ENT);		\
 		IF_ASSIGN(var, ent, struct ftrace_graph_ret_entry,	\
-			  TRACE_GRAPH_RET);		\
+				  TRACE_GRAPH_RET);		\
 		__ftrace_bad_type();					\
 	} while (0)
 
@@ -347,7 +361,8 @@ extern void __ftrace_bad_type(void);
  * The bit is the bit index that sets its value on the
  * flags value in struct tracer_flags.
  */
-struct tracer_opt {
+struct tracer_opt
+{
 	const char	*name; /* Will appear on the trace_options file */
 	u32		bit; /* Mask assigned in val field in tracer_flags */
 };
@@ -356,7 +371,8 @@ struct tracer_opt {
  * The set of specific options for a tracer. Your tracer
  * have to set the initial value of the flags val.
  */
-struct tracer_flags {
+struct tracer_flags
+{
 	u32			val;
 	struct tracer_opt	*opts;
 	struct tracer		*trace;
@@ -366,7 +382,8 @@ struct tracer_flags {
 #define TRACER_OPT(s, b)	.name = #s, .bit = b
 
 
-struct trace_option_dentry {
+struct trace_option_dentry
+{
 	struct tracer_opt		*opt;
 	struct tracer_flags		*flags;
 	struct trace_array		*tr;
@@ -393,7 +410,8 @@ struct trace_option_dentry {
  * @set_flag: signals one of your private flags changed (trace_options file)
  * @flags: your private flags
  */
-struct tracer {
+struct tracer
+{
 	const char		*name;
 	int			(*init)(struct trace_array *tr);
 	void			(*reset)(struct trace_array *tr);
@@ -405,26 +423,26 @@ struct tracer {
 	void			(*close)(struct trace_iterator *iter);
 	void			(*pipe_close)(struct trace_iterator *iter);
 	ssize_t			(*read)(struct trace_iterator *iter,
-					struct file *filp, char __user *ubuf,
-					size_t cnt, loff_t *ppos);
+							struct file *filp, char __user *ubuf,
+							size_t cnt, loff_t *ppos);
 	ssize_t			(*splice_read)(struct trace_iterator *iter,
-					       struct file *filp,
-					       loff_t *ppos,
-					       struct pipe_inode_info *pipe,
-					       size_t len,
-					       unsigned int flags);
+								   struct file *filp,
+								   loff_t *ppos,
+								   struct pipe_inode_info *pipe,
+								   size_t len,
+								   unsigned int flags);
 #ifdef CONFIG_FTRACE_STARTUP_TEST
 	int			(*selftest)(struct tracer *trace,
-					    struct trace_array *tr);
+							struct trace_array *tr);
 #endif
 	void			(*print_header)(struct seq_file *m);
 	enum print_line_t	(*print_line)(struct trace_iterator *iter);
 	/* If you handled the flag setting, return 0 */
 	int			(*set_flag)(struct trace_array *tr,
-					    u32 old_flags, u32 bit, int set);
+							u32 old_flags, u32 bit, int set);
 	/* Return 0 if OK with change, else return non-zero */
 	int			(*flag_changed)(struct trace_array *tr,
-						u32 mask, int set);
+								u32 mask, int set);
 	struct tracer		*next;
 	struct tracer_flags	*flags;
 	int			enabled;
@@ -464,7 +482,8 @@ struct tracer {
  * check, then we know that the check was made by the previous
  * caller, and we can skip the current check.
  */
-enum {
+enum
+{
 	TRACE_BUFFER_BIT,
 	TRACE_BUFFER_NMI_BIT,
 	TRACE_BUFFER_IRQ_BIT,
@@ -483,13 +502,13 @@ enum {
 	TRACE_INTERNAL_SIRQ_BIT,
 
 	TRACE_BRANCH_BIT,
-/*
- * Abuse of the trace_recursion.
- * As we need a way to maintain state if we are tracing the function
- * graph in irq because we want to trace a particular function that
- * was called in irq context but we have irq tracing off. Since this
- * can only be modified by current, we can reuse trace_recursion.
- */
+	/*
+	 * Abuse of the trace_recursion.
+	 * As we need a way to maintain state if we are tracing the function
+	 * graph in irq because we want to trace a particular function that
+	 * was called in irq context but we have irq tracing off. Since this
+	 * can only be modified by current, we can reuse trace_recursion.
+	 */
 	TRACE_IRQ_BIT,
 };
 
@@ -511,16 +530,26 @@ static __always_inline int trace_get_context_bit(void)
 {
 	int bit;
 
-	if (in_interrupt()) {
+	if (in_interrupt())
+	{
 		if (in_nmi())
+		{
 			bit = 0;
+		}
 
 		else if (in_irq())
+		{
 			bit = 1;
+		}
 		else
+		{
 			bit = 2;
-	} else
+		}
+	}
+	else
+	{
 		bit = 3;
+	}
 
 	return bit;
 }
@@ -532,11 +561,16 @@ static __always_inline int trace_test_and_set_recursion(int start, int max)
 
 	/* A previous recursion check was made */
 	if ((val & TRACE_CONTEXT_MASK) > max)
+	{
 		return 0;
+	}
 
 	bit = trace_get_context_bit() + start;
+
 	if (unlikely(val & (1 << bit)))
+	{
 		return -1;
+	}
 
 	val |= 1 << bit;
 	current->trace_recursion = val;
@@ -550,7 +584,9 @@ static __always_inline void trace_clear_recursion(int bit)
 	unsigned int val = current->trace_recursion;
 
 	if (!bit)
+	{
 		return;
+	}
 
 	bit = 1 << bit;
 	val &= ~bit;
@@ -563,7 +599,10 @@ static inline struct ring_buffer_iter *
 trace_buffer_iter(struct trace_iterator *iter, int cpu)
 {
 	if (iter->buffer_iter && iter->buffer_iter[cpu])
+	{
 		return iter->buffer_iter[cpu];
+	}
+
 	return NULL;
 }
 
@@ -577,10 +616,10 @@ int tracing_open_generic(struct inode *inode, struct file *filp);
 bool tracing_is_disabled(void);
 int tracer_tracing_is_on(struct trace_array *tr);
 struct dentry *trace_create_file(const char *name,
-				 umode_t mode,
-				 struct dentry *parent,
-				 void *data,
-				 const struct file_operations *fops);
+								 umode_t mode,
+								 struct dentry *parent,
+								 void *data,
+								 const struct file_operations *fops);
 
 struct dentry *tracing_init_dentry(void);
 
@@ -588,19 +627,19 @@ struct ring_buffer_event;
 
 struct ring_buffer_event *
 trace_buffer_lock_reserve(struct ring_buffer *buffer,
-			  int type,
-			  unsigned long len,
-			  unsigned long flags,
-			  int pc);
+						  int type,
+						  unsigned long len,
+						  unsigned long flags,
+						  int pc);
 
 struct trace_entry *tracing_get_trace_entry(struct trace_array *tr,
-						struct trace_array_cpu *data);
+		struct trace_array_cpu *data);
 
 struct trace_entry *trace_find_next_entry(struct trace_iterator *iter,
-					  int *ent_cpu, u64 *ent_ts);
+		int *ent_cpu, u64 *ent_ts);
 
 void __buffer_unlock_commit(struct ring_buffer *buffer,
-			    struct ring_buffer_event *event);
+							struct ring_buffer_event *event);
 
 int trace_empty(struct trace_iterator *iter);
 
@@ -611,13 +650,13 @@ void trace_init_global_iter(struct trace_iterator *iter);
 void tracing_iter_reset(struct trace_iterator *iter, int cpu);
 
 void trace_function(struct trace_array *tr,
-		    unsigned long ip,
-		    unsigned long parent_ip,
-		    unsigned long flags, int pc);
+					unsigned long ip,
+					unsigned long parent_ip,
+					unsigned long flags, int pc);
 void trace_graph_function(struct trace_array *tr,
-		    unsigned long ip,
-		    unsigned long parent_ip,
-		    unsigned long flags, int pc);
+						  unsigned long ip,
+						  unsigned long parent_ip,
+						  unsigned long flags, int pc);
 void trace_latency_header(struct seq_file *m);
 void trace_default_header(struct seq_file *m);
 void print_trace_header(struct seq_file *m, struct trace_iterator *iter);
@@ -648,40 +687,40 @@ extern unsigned long tracing_thresh;
 extern int pid_max;
 
 bool trace_find_filtered_pid(struct trace_pid_list *filtered_pids,
-			     pid_t search_pid);
+							 pid_t search_pid);
 bool trace_ignore_this_task(struct trace_pid_list *filtered_pids,
-			    struct task_struct *task);
+							struct task_struct *task);
 void trace_filter_add_remove_task(struct trace_pid_list *pid_list,
-				  struct task_struct *self,
-				  struct task_struct *task);
+								  struct task_struct *self,
+								  struct task_struct *task);
 void *trace_pid_next(struct trace_pid_list *pid_list, void *v, loff_t *pos);
 void *trace_pid_start(struct trace_pid_list *pid_list, loff_t *pos);
 int trace_pid_show(struct seq_file *m, void *v);
 void trace_free_pid_list(struct trace_pid_list *pid_list);
 int trace_pid_write(struct trace_pid_list *filtered_pids,
-		    struct trace_pid_list **new_pid_list,
-		    const char __user *ubuf, size_t cnt);
+					struct trace_pid_list **new_pid_list,
+					const char __user *ubuf, size_t cnt);
 
 #ifdef CONFIG_TRACER_MAX_TRACE
 void update_max_tr(struct trace_array *tr, struct task_struct *tsk, int cpu);
 void update_max_tr_single(struct trace_array *tr,
-			  struct task_struct *tsk, int cpu);
+						  struct task_struct *tsk, int cpu);
 #endif /* CONFIG_TRACER_MAX_TRACE */
 
 #ifdef CONFIG_STACKTRACE
 void ftrace_trace_userstack(struct ring_buffer *buffer, unsigned long flags,
-			    int pc);
+							int pc);
 
 void __trace_stack(struct trace_array *tr, unsigned long flags, int skip,
-		   int pc);
+				   int pc);
 #else
 static inline void ftrace_trace_userstack(struct ring_buffer *buffer,
-					  unsigned long flags, int pc)
+		unsigned long flags, int pc)
 {
 }
 
 static inline void __trace_stack(struct trace_array *tr, unsigned long flags,
-				 int skip, int pc)
+								 int skip, int pc)
 {
 }
 #endif /* CONFIG_STACKTRACE */
@@ -692,7 +731,7 @@ extern void trace_find_cmdline(int pid, char comm[]);
 extern void trace_event_follow_fork(struct trace_array *tr, bool enable);
 
 #ifdef CONFIG_DYNAMIC_FTRACE
-extern unsigned long ftrace_update_tot_cnt;
+	extern unsigned long ftrace_update_tot_cnt;
 #endif
 #define DYN_FTRACE_TEST_NAME trace_selftest_dynamic_test_func
 extern int DYN_FTRACE_TEST_NAME(void);
@@ -704,23 +743,23 @@ extern bool tracing_selftest_disabled;
 
 #ifdef CONFIG_FTRACE_STARTUP_TEST
 extern int trace_selftest_startup_function(struct tracer *trace,
-					   struct trace_array *tr);
+		struct trace_array *tr);
 extern int trace_selftest_startup_function_graph(struct tracer *trace,
-						 struct trace_array *tr);
+		struct trace_array *tr);
 extern int trace_selftest_startup_irqsoff(struct tracer *trace,
-					  struct trace_array *tr);
+		struct trace_array *tr);
 extern int trace_selftest_startup_preemptoff(struct tracer *trace,
-					     struct trace_array *tr);
+		struct trace_array *tr);
 extern int trace_selftest_startup_preemptirqsoff(struct tracer *trace,
-						 struct trace_array *tr);
+		struct trace_array *tr);
 extern int trace_selftest_startup_wakeup(struct tracer *trace,
-					 struct trace_array *tr);
+		struct trace_array *tr);
 extern int trace_selftest_startup_nop(struct tracer *trace,
-					 struct trace_array *tr);
+									  struct trace_array *tr);
 extern int trace_selftest_startup_sched_switch(struct tracer *trace,
-					       struct trace_array *tr);
+		struct trace_array *tr);
 extern int trace_selftest_startup_branch(struct tracer *trace,
-					 struct trace_array *tr);
+		struct trace_array *tr);
 /*
  * Tracer data references selftest functions that only occur
  * on boot up. These can be __init functions. Thus, when selftests
@@ -740,11 +779,11 @@ extern int
 trace_vprintk(unsigned long ip, const char *fmt, va_list args);
 extern int
 trace_array_vprintk(struct trace_array *tr,
-		    unsigned long ip, const char *fmt, va_list args);
+					unsigned long ip, const char *fmt, va_list args);
 int trace_array_printk(struct trace_array *tr,
-		       unsigned long ip, const char *fmt, ...);
+					   unsigned long ip, const char *fmt, ...);
 int trace_array_printk_buf(struct ring_buffer *buffer,
-			   unsigned long ip, const char *fmt, ...);
+						   unsigned long ip, const char *fmt, ...);
 void trace_printk_seq(struct trace_seq *s);
 enum print_line_t print_trace_line(struct trace_iterator *iter);
 
@@ -778,11 +817,11 @@ trace_print_graph_duration(unsigned long long duration, struct trace_seq *s);
 extern void graph_trace_open(struct trace_iterator *iter);
 extern void graph_trace_close(struct trace_iterator *iter);
 extern int __trace_graph_entry(struct trace_array *tr,
-			       struct ftrace_graph_ent *trace,
-			       unsigned long flags, int pc);
+							   struct ftrace_graph_ent *trace,
+							   unsigned long flags, int pc);
 extern void __trace_graph_return(struct trace_array *tr,
-				 struct ftrace_graph_ret *trace,
-				 unsigned long flags, int pc);
+								 struct ftrace_graph_ret *trace,
+								 unsigned long flags, int pc);
 
 
 #ifdef CONFIG_DYNAMIC_FTRACE
@@ -798,19 +837,28 @@ static inline int ftrace_graph_addr(unsigned long addr)
 	int i;
 
 	if (!ftrace_graph_count)
+	{
 		return 1;
+	}
 
-	for (i = 0; i < ftrace_graph_count; i++) {
-		if (addr == ftrace_graph_funcs[i]) {
+	for (i = 0; i < ftrace_graph_count; i++)
+	{
+		if (addr == ftrace_graph_funcs[i])
+		{
 			/*
 			 * If no irqs are to be traced, but a set_graph_function
 			 * is set, and called by an interrupt handler, we still
 			 * want to trace it.
 			 */
 			if (in_irq())
+			{
 				trace_recursion_set(TRACE_IRQ_BIT);
+			}
 			else
+			{
 				trace_recursion_clear(TRACE_IRQ_BIT);
+			}
+
 			return 1;
 		}
 	}
@@ -823,11 +871,16 @@ static inline int ftrace_graph_notrace_addr(unsigned long addr)
 	int i;
 
 	if (!ftrace_graph_notrace_count)
+	{
 		return 0;
+	}
 
-	for (i = 0; i < ftrace_graph_notrace_count; i++) {
+	for (i = 0; i < ftrace_graph_notrace_count; i++)
+	{
 		if (addr == ftrace_graph_notrace_funcs[i])
+		{
 			return 1;
+		}
 	}
 
 	return 0;
@@ -861,7 +914,7 @@ static inline int ftrace_trace_task(struct trace_array *tr)
 }
 extern int ftrace_is_dead(void);
 int ftrace_create_function_files(struct trace_array *tr,
-				 struct dentry *parent);
+								 struct dentry *parent);
 void ftrace_destroy_function_files(struct trace_array *tr);
 void ftrace_init_global_array_ops(struct trace_array *tr);
 void ftrace_init_array_ops(struct trace_array *tr, ftrace_func_t func);
@@ -869,7 +922,7 @@ void ftrace_reset_array_ops(struct trace_array *tr);
 int using_ftrace_ops_list_func(void);
 void ftrace_init_tracefs(struct trace_array *tr, struct dentry *d_tracer);
 void ftrace_init_tracefs_toplevel(struct trace_array *tr,
-				  struct dentry *d_tracer);
+								  struct dentry *d_tracer);
 #else
 static inline int ftrace_trace_task(struct trace_array *tr)
 {
@@ -878,7 +931,7 @@ static inline int ftrace_trace_task(struct trace_array *tr)
 static inline int ftrace_is_dead(void) { return 0; }
 static inline int
 ftrace_create_function_files(struct trace_array *tr,
-			     struct dentry *parent)
+							 struct dentry *parent)
 {
 	return 0;
 }
@@ -894,7 +947,7 @@ static inline void ftrace_init_tracefs_toplevel(struct trace_array *tr, struct d
 
 #if defined(CONFIG_FUNCTION_TRACER) && defined(CONFIG_DYNAMIC_FTRACE)
 void ftrace_create_filter_files(struct ftrace_ops *ops,
-				struct dentry *parent);
+								struct dentry *parent);
 void ftrace_destroy_filter_files(struct ftrace_ops *ops);
 #else
 /*
@@ -914,7 +967,8 @@ bool ftrace_event_is_function(struct trace_event_call *call);
  * @idx: user input length
  * @size: buffer size
  */
-struct trace_parser {
+struct trace_parser
+{
 	bool		cont;
 	char		*buffer;
 	unsigned	idx;
@@ -940,28 +994,28 @@ static inline void trace_parser_clear(struct trace_parser *parser)
 extern int trace_parser_get_init(struct trace_parser *parser, int size);
 extern void trace_parser_put(struct trace_parser *parser);
 extern int trace_get_user(struct trace_parser *parser, const char __user *ubuf,
-	size_t cnt, loff_t *ppos);
+						  size_t cnt, loff_t *ppos);
 
 /*
  * Only create function graph options if function graph is configured.
  */
 #ifdef CONFIG_FUNCTION_GRAPH_TRACER
 # define FGRAPH_FLAGS						\
-		C(DISPLAY_GRAPH,	"display-graph"),
+	C(DISPLAY_GRAPH,	"display-graph"),
 #else
 # define FGRAPH_FLAGS
 #endif
 
 #ifdef CONFIG_BRANCH_TRACER
 # define BRANCH_FLAGS					\
-		C(BRANCH,		"branch"),
+	C(BRANCH,		"branch"),
 #else
 # define BRANCH_FLAGS
 #endif
 
 #ifdef CONFIG_FUNCTION_TRACER
 # define FUNCTION_FLAGS						\
-		C(FUNCTION,		"function-trace"),
+	C(FUNCTION,		"function-trace"),
 # define FUNCTION_DEFAULT_FLAGS		TRACE_ITER_FUNCTION
 #else
 # define FUNCTION_FLAGS
@@ -970,7 +1024,7 @@ extern int trace_get_user(struct trace_parser *parser, const char __user *ubuf,
 
 #ifdef CONFIG_STACKTRACE
 # define STACK_FLAGS				\
-		C(STACKTRACE,		"stacktrace"),
+	C(STACKTRACE,		"stacktrace"),
 #else
 # define STACK_FLAGS
 #endif
@@ -983,31 +1037,31 @@ extern int trace_get_user(struct trace_parser *parser, const char __user *ubuf,
  *       trace.c (this macro guarantees it).
  */
 #define TRACE_FLAGS						\
-		C(PRINT_PARENT,		"print-parent"),	\
-		C(SYM_OFFSET,		"sym-offset"),		\
-		C(SYM_ADDR,		"sym-addr"),		\
-		C(VERBOSE,		"verbose"),		\
-		C(RAW,			"raw"),			\
-		C(HEX,			"hex"),			\
-		C(BIN,			"bin"),			\
-		C(BLOCK,		"block"),		\
-		C(PRINTK,		"trace_printk"),	\
-		C(ANNOTATE,		"annotate"),		\
-		C(USERSTACKTRACE,	"userstacktrace"),	\
-		C(SYM_USEROBJ,		"sym-userobj"),		\
-		C(PRINTK_MSGONLY,	"printk-msg-only"),	\
-		C(CONTEXT_INFO,		"context-info"),   /* Print pid/cpu/time */ \
-		C(LATENCY_FMT,		"latency-format"),	\
-		C(RECORD_CMD,		"record-cmd"),		\
-		C(OVERWRITE,		"overwrite"),		\
-		C(STOP_ON_FREE,		"disable_on_free"),	\
-		C(IRQ_INFO,		"irq-info"),		\
-		C(MARKERS,		"markers"),		\
-		C(EVENT_FORK,		"event-fork"),		\
-		FUNCTION_FLAGS					\
-		FGRAPH_FLAGS					\
-		STACK_FLAGS					\
-		BRANCH_FLAGS
+	C(PRINT_PARENT,		"print-parent"),	\
+	C(SYM_OFFSET,		"sym-offset"),		\
+	C(SYM_ADDR,		"sym-addr"),		\
+	C(VERBOSE,		"verbose"),		\
+	C(RAW,			"raw"),			\
+	C(HEX,			"hex"),			\
+	C(BIN,			"bin"),			\
+	C(BLOCK,		"block"),		\
+	C(PRINTK,		"trace_printk"),	\
+	C(ANNOTATE,		"annotate"),		\
+	C(USERSTACKTRACE,	"userstacktrace"),	\
+	C(SYM_USEROBJ,		"sym-userobj"),		\
+	C(PRINTK_MSGONLY,	"printk-msg-only"),	\
+	C(CONTEXT_INFO,		"context-info"),   /* Print pid/cpu/time */ \
+	   C(LATENCY_FMT,		"latency-format"),	\
+	   C(RECORD_CMD,		"record-cmd"),		\
+	   C(OVERWRITE,		"overwrite"),		\
+	   C(STOP_ON_FREE,		"disable_on_free"),	\
+	   C(IRQ_INFO,		"irq-info"),		\
+	   C(MARKERS,		"markers"),		\
+	   C(EVENT_FORK,		"event-fork"),		\
+	   FUNCTION_FLAGS					\
+	   FGRAPH_FLAGS					\
+	   STACK_FLAGS					\
+	   BRANCH_FLAGS
 
 /*
  * By defining C, we can make TRACE_FLAGS a list of bit names
@@ -1016,7 +1070,8 @@ extern int trace_get_user(struct trace_parser *parser, const char __user *ubuf,
 #undef C
 #define C(a, b) TRACE_ITER_##a##_BIT
 
-enum trace_iterator_bits {
+enum trace_iterator_bits
+{
 	TRACE_FLAGS
 	/* Make sure we don't go more than we have bits for */
 	TRACE_ITER_LAST_BIT
@@ -1046,7 +1101,10 @@ extern void disable_branch_tracing(void);
 static inline int trace_branch_enable(struct trace_array *tr)
 {
 	if (tr->trace_flags & TRACE_ITER_BRANCH)
+	{
 		return enable_branch_tracing(tr);
+	}
+
 	return 0;
 }
 static inline void trace_branch_disable(void)
@@ -1067,7 +1125,8 @@ static inline void trace_branch_disable(void)
 /* set ring buffers to default size if not already done so */
 int tracing_update_buffers(void);
 
-struct ftrace_event_field {
+struct ftrace_event_field
+{
 	struct list_head	link;
 	const char		*name;
 	const char		*type;
@@ -1077,7 +1136,8 @@ struct ftrace_event_field {
 	int			is_signed;
 };
 
-struct event_filter {
+struct event_filter
+{
 	int			n_preds;	/* Number assigned */
 	int			a_preds;	/* allocated */
 	struct filter_pred	*preds;
@@ -1085,14 +1145,16 @@ struct event_filter {
 	char			*filter_string;
 };
 
-struct event_subsystem {
+struct event_subsystem
+{
 	struct list_head	list;
 	const char		*name;
 	struct event_filter	*filter;
 	int			ref_count;
 };
 
-struct trace_subsystem_dir {
+struct trace_subsystem_dir
+{
 	struct list_head		list;
 	struct event_subsystem		*subsystem;
 	struct trace_array		*tr;
@@ -1102,19 +1164,19 @@ struct trace_subsystem_dir {
 };
 
 extern int call_filter_check_discard(struct trace_event_call *call, void *rec,
-				     struct ring_buffer *buffer,
-				     struct ring_buffer_event *event);
+									 struct ring_buffer *buffer,
+									 struct ring_buffer_event *event);
 
 void trace_buffer_unlock_commit_regs(struct trace_array *tr,
-				     struct ring_buffer *buffer,
-				     struct ring_buffer_event *event,
-				     unsigned long flags, int pc,
-				     struct pt_regs *regs);
+									 struct ring_buffer *buffer,
+									 struct ring_buffer_event *event,
+									 unsigned long flags, int pc,
+									 struct pt_regs *regs);
 
 static inline void trace_buffer_unlock_commit(struct trace_array *tr,
-					      struct ring_buffer *buffer,
-					      struct ring_buffer_event *event,
-					      unsigned long flags, int pc)
+		struct ring_buffer *buffer,
+		struct ring_buffer_event *event,
+		unsigned long flags, int pc)
 {
 	trace_buffer_unlock_commit_regs(tr, buffer, event, flags, pc, NULL);
 }
@@ -1126,13 +1188,15 @@ void trace_buffered_event_enable(void);
 
 static inline void
 __trace_event_discard_commit(struct ring_buffer *buffer,
-			     struct ring_buffer_event *event)
+							 struct ring_buffer_event *event)
 {
-	if (this_cpu_read(trace_buffered_event) == event) {
+	if (this_cpu_read(trace_buffered_event) == event)
+	{
 		/* Simply release the temp buffer */
 		this_cpu_dec(trace_buffered_event_cnt);
 		return;
 	}
+
 	ring_buffer_discard_commit(buffer, event);
 }
 
@@ -1151,19 +1215,22 @@ __trace_event_discard_commit(struct ring_buffer *buffer,
  */
 static inline bool
 __event_trigger_test_discard(struct trace_event_file *file,
-			     struct ring_buffer *buffer,
-			     struct ring_buffer_event *event,
-			     void *entry,
-			     enum event_trigger_type *tt)
+							 struct ring_buffer *buffer,
+							 struct ring_buffer_event *event,
+							 void *entry,
+							 enum event_trigger_type *tt)
 {
 	unsigned long eflags = file->flags;
 
 	if (eflags & EVENT_FILE_FL_TRIGGER_COND)
+	{
 		*tt = event_triggers_call(file, entry);
+	}
 
 	if (test_bit(EVENT_FILE_FL_SOFT_DISABLED_BIT, &file->flags) ||
-	    (unlikely(file->flags & EVENT_FILE_FL_FILTERED) &&
-	     !filter_match_preds(file->filter, entry))) {
+		(unlikely(file->flags & EVENT_FILE_FL_FILTERED) &&
+		 !filter_match_preds(file->filter, entry)))
+	{
 		__trace_event_discard_commit(buffer, event);
 		return true;
 	}
@@ -1186,17 +1253,21 @@ __event_trigger_test_discard(struct trace_event_file *file,
  */
 static inline void
 event_trigger_unlock_commit(struct trace_event_file *file,
-			    struct ring_buffer *buffer,
-			    struct ring_buffer_event *event,
-			    void *entry, unsigned long irq_flags, int pc)
+							struct ring_buffer *buffer,
+							struct ring_buffer_event *event,
+							void *entry, unsigned long irq_flags, int pc)
 {
 	enum event_trigger_type tt = ETT_NONE;
 
 	if (!__event_trigger_test_discard(file, buffer, event, entry, &tt))
+	{
 		trace_buffer_unlock_commit(file->tr, buffer, event, irq_flags, pc);
+	}
 
 	if (tt)
+	{
 		event_triggers_post_call(file, tt, entry);
+	}
 }
 
 /**
@@ -1217,19 +1288,21 @@ event_trigger_unlock_commit(struct trace_event_file *file,
  */
 static inline void
 event_trigger_unlock_commit_regs(struct trace_event_file *file,
-				 struct ring_buffer *buffer,
-				 struct ring_buffer_event *event,
-				 void *entry, unsigned long irq_flags, int pc,
-				 struct pt_regs *regs)
+								 struct ring_buffer *buffer,
+								 struct ring_buffer_event *event,
+								 void *entry, unsigned long irq_flags, int pc,
+								 struct pt_regs *regs)
 {
 	enum event_trigger_type tt = ETT_NONE;
 
 	if (!__event_trigger_test_discard(file, buffer, event, entry, &tt))
 		trace_buffer_unlock_commit_regs(file->tr, buffer, event,
-						irq_flags, pc, regs);
+										irq_flags, pc, regs);
 
 	if (tt)
+	{
 		event_triggers_post_call(file, tt, entry);
+	}
 }
 
 #define FILTER_PRED_INVALID	((unsigned short)-1)
@@ -1252,21 +1325,24 @@ typedef int (*filter_pred_fn_t) (struct filter_pred *pred, void *event);
 
 typedef int (*regex_match_func)(char *str, struct regex *r, int len);
 
-enum regex_type {
+enum regex_type
+{
 	MATCH_FULL = 0,
 	MATCH_FRONT_ONLY,
 	MATCH_MIDDLE_ONLY,
 	MATCH_END_ONLY,
 };
 
-struct regex {
+struct regex
+{
 	char			pattern[MAX_FILTER_STR_VAL];
 	int			len;
 	int			field_len;
 	regex_match_func	match;
 };
 
-struct filter_pred {
+struct filter_pred
+{
 	filter_pred_fn_t 	fn;
 	u64 			val;
 	struct regex		regex;
@@ -1284,8 +1360,8 @@ struct filter_pred {
 static inline bool is_string_field(struct ftrace_event_field *field)
 {
 	return field->filter_type == FILTER_DYN_STRING ||
-	       field->filter_type == FILTER_STATIC_STRING ||
-	       field->filter_type == FILTER_PTR_STRING;
+		   field->filter_type == FILTER_STATIC_STRING ||
+		   field->filter_type == FILTER_PTR_STRING;
 }
 
 static inline bool is_function_field(struct ftrace_event_field *field)
@@ -1296,17 +1372,17 @@ static inline bool is_function_field(struct ftrace_event_field *field)
 extern enum regex_type
 filter_parse_regex(char *buff, int len, char **search, int *not);
 extern void print_event_filter(struct trace_event_file *file,
-			       struct trace_seq *s);
+							   struct trace_seq *s);
 extern int apply_event_filter(struct trace_event_file *file,
-			      char *filter_string);
+							  char *filter_string);
 extern int apply_subsystem_event_filter(struct trace_subsystem_dir *dir,
-					char *filter_string);
+										char *filter_string);
 extern void print_subsystem_event_filter(struct event_subsystem *system,
-					 struct trace_seq *s);
+		struct trace_seq *s);
 extern int filter_assign_type(const char *type);
 extern int create_event_filter(struct trace_event_call *call,
-			       char *filter_str, bool set_str,
-			       struct event_filter **filterp);
+							   char *filter_str, bool set_str,
+							   struct event_filter **filterp);
 extern void free_event_filter(struct event_filter *filter);
 
 struct ftrace_event_field *
@@ -1317,8 +1393,8 @@ extern int event_trace_add_tracer(struct dentry *parent, struct trace_array *tr)
 extern int event_trace_del_tracer(struct trace_array *tr);
 
 extern struct trace_event_file *find_event_file(struct trace_array *tr,
-						const char *system,
-						const char *event);
+		const char *system,
+		const char *event);
 
 static inline void *event_file_data(struct file *filp)
 {
@@ -1342,7 +1418,8 @@ static inline int register_trigger_hist_enable_disable_cmds(void) { return 0; }
 extern int register_trigger_cmds(void);
 extern void clear_event_triggers(struct trace_array *tr);
 
-struct event_trigger_data {
+struct event_trigger_data
+{
 	unsigned long			count;
 	int				ref;
 	struct event_trigger_ops	*ops;
@@ -1364,49 +1441,50 @@ struct event_trigger_data {
 #define ENABLE_HIST_STR		"enable_hist"
 #define DISABLE_HIST_STR	"disable_hist"
 
-struct enable_trigger_data {
+struct enable_trigger_data
+{
 	struct trace_event_file		*file;
 	bool				enable;
 	bool				hist;
 };
 
 extern int event_enable_trigger_print(struct seq_file *m,
-				      struct event_trigger_ops *ops,
-				      struct event_trigger_data *data);
+									  struct event_trigger_ops *ops,
+									  struct event_trigger_data *data);
 extern void event_enable_trigger_free(struct event_trigger_ops *ops,
-				      struct event_trigger_data *data);
+									  struct event_trigger_data *data);
 extern int event_enable_trigger_func(struct event_command *cmd_ops,
-				     struct trace_event_file *file,
-				     char *glob, char *cmd, char *param);
+									 struct trace_event_file *file,
+									 char *glob, char *cmd, char *param);
 extern int event_enable_register_trigger(char *glob,
-					 struct event_trigger_ops *ops,
-					 struct event_trigger_data *data,
-					 struct trace_event_file *file);
+		struct event_trigger_ops *ops,
+		struct event_trigger_data *data,
+		struct trace_event_file *file);
 extern void event_enable_unregister_trigger(char *glob,
-					    struct event_trigger_ops *ops,
-					    struct event_trigger_data *test,
-					    struct trace_event_file *file);
+		struct event_trigger_ops *ops,
+		struct event_trigger_data *test,
+		struct trace_event_file *file);
 extern void trigger_data_free(struct event_trigger_data *data);
 extern int event_trigger_init(struct event_trigger_ops *ops,
-			      struct event_trigger_data *data);
+							  struct event_trigger_data *data);
 extern int trace_event_trigger_enable_disable(struct trace_event_file *file,
-					      int trigger_enable);
+		int trigger_enable);
 extern void update_cond_flag(struct trace_event_file *file);
 extern void unregister_trigger(char *glob, struct event_trigger_ops *ops,
-			       struct event_trigger_data *test,
-			       struct trace_event_file *file);
+							   struct event_trigger_data *test,
+							   struct trace_event_file *file);
 extern int set_trigger_filter(char *filter_str,
-			      struct event_trigger_data *trigger_data,
-			      struct trace_event_file *file);
+							  struct event_trigger_data *trigger_data,
+							  struct trace_event_file *file);
 extern struct event_trigger_data *find_named_trigger(const char *name);
 extern bool is_named_trigger(struct event_trigger_data *test);
 extern int save_named_trigger(const char *name,
-			      struct event_trigger_data *data);
+							  struct event_trigger_data *data);
 extern void del_named_trigger(struct event_trigger_data *data);
 extern void pause_named_trigger(struct event_trigger_data *data);
 extern void unpause_named_trigger(struct event_trigger_data *data);
 extern void set_named_trigger_data(struct event_trigger_data *data,
-				   struct event_trigger_data *named_data);
+								   struct event_trigger_data *named_data);
 extern int register_event_command(struct event_command *cmd);
 extern int unregister_event_command(struct event_command *cmd);
 extern int register_trigger_hist_enable_disable_cmds(void);
@@ -1448,16 +1526,17 @@ extern int register_trigger_hist_enable_disable_cmds(void);
  *	that calls the generic utility function @event_trigger_print()
  *	(see trace_event_triggers.c).
  */
-struct event_trigger_ops {
+struct event_trigger_ops
+{
 	void			(*func)(struct event_trigger_data *data,
-					void *rec);
+							void *rec);
 	int			(*init)(struct event_trigger_ops *ops,
-					struct event_trigger_data *data);
+						struct event_trigger_data *data);
 	void			(*free)(struct event_trigger_ops *ops,
-					struct event_trigger_data *data);
+							struct event_trigger_data *data);
 	int			(*print)(struct seq_file *m,
-					 struct event_trigger_ops *ops,
-					 struct event_trigger_data *data);
+						 struct event_trigger_ops *ops,
+						 struct event_trigger_data *data);
 };
 
 /**
@@ -1535,26 +1614,27 @@ struct event_trigger_ops {
  * @get_trigger_ops: The callback function invoked to retrieve the
  *	event_trigger_ops implementation associated with the command.
  */
-struct event_command {
+struct event_command
+{
 	struct list_head	list;
 	char			*name;
 	enum event_trigger_type	trigger_type;
 	int			flags;
 	int			(*func)(struct event_command *cmd_ops,
-					struct trace_event_file *file,
-					char *glob, char *cmd, char *params);
+						struct trace_event_file *file,
+						char *glob, char *cmd, char *params);
 	int			(*reg)(char *glob,
-				       struct event_trigger_ops *ops,
-				       struct event_trigger_data *data,
-				       struct trace_event_file *file);
+					   struct event_trigger_ops *ops,
+					   struct event_trigger_data *data,
+					   struct trace_event_file *file);
 	void			(*unreg)(char *glob,
-					 struct event_trigger_ops *ops,
-					 struct event_trigger_data *data,
-					 struct trace_event_file *file);
+							 struct event_trigger_ops *ops,
+							 struct event_trigger_data *data,
+							 struct trace_event_file *file);
 	void			(*unreg_all)(struct trace_event_file *file);
 	int			(*set_filter)(char *filter_str,
-					      struct event_trigger_data *data,
-					      struct trace_event_file *file);
+							  struct event_trigger_data *data,
+							  struct trace_event_file *file);
 	struct event_trigger_ops *(*get_trigger_ops)(char *cmd, char *param);
 };
 
@@ -1586,7 +1666,8 @@ struct event_command {
  *	it (filters make a trigger require access to the trace record
  *	but are not always present).
  */
-enum event_command_flags {
+enum event_command_flags
+{
 	EVENT_CMD_FL_POST_TRIGGER	= 1,
 	EVENT_CMD_FL_NEEDS_REC		= 2,
 };
@@ -1602,7 +1683,7 @@ static inline bool event_command_needs_rec(struct event_command *cmd_ops)
 }
 
 extern int trace_event_enable_disable(struct trace_event_file *file,
-				      int enable, int soft_disable);
+									  int enable, int soft_disable);
 extern int tracing_alloc_snapshot(void);
 
 extern const char *__start___trace_bprintk_fmt[];
@@ -1635,17 +1716,17 @@ int set_tracer_flag(struct trace_array *tr, unsigned int mask, int enabled);
 #undef FTRACE_ENTRY_DUP
 #define FTRACE_ENTRY_DUP(call, struct_name, id, tstruct, print, filter)	\
 	FTRACE_ENTRY(call, struct_name, id, PARAMS(tstruct), PARAMS(print), \
-		     filter)
+				 filter)
 #undef FTRACE_ENTRY_PACKED
 #define FTRACE_ENTRY_PACKED(call, struct_name, id, tstruct, print, filter) \
 	FTRACE_ENTRY(call, struct_name, id, PARAMS(tstruct), PARAMS(print), \
-		     filter)
+				 filter)
 
 #include "trace_entries.h"
 
 #if defined(CONFIG_PERF_EVENTS) && defined(CONFIG_FUNCTION_TRACER)
 int perf_ftrace_event_register(struct trace_event_call *call,
-			       enum trace_reg type, void *data);
+							   enum trace_reg type, void *data);
 #else
 #define perf_ftrace_event_register NULL
 #endif

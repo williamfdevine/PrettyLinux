@@ -31,20 +31,25 @@
 #include "mgmt_util.h"
 
 static struct sk_buff *create_monitor_ctrl_event(__le16 index, u32 cookie,
-						 u16 opcode, u16 len, void *buf)
+		u16 opcode, u16 len, void *buf)
 {
 	struct hci_mon_hdr *hdr;
 	struct sk_buff *skb;
 
 	skb = bt_skb_alloc(6 + len, GFP_ATOMIC);
+
 	if (!skb)
+	{
 		return NULL;
+	}
 
 	put_unaligned_le32(cookie, skb_put(skb, 4));
 	put_unaligned_le16(opcode, skb_put(skb, 2));
 
 	if (buf)
+	{
 		memcpy(skb_put(skb, len), buf, len);
+	}
 
 	__net_timestamp(skb);
 
@@ -57,25 +62,36 @@ static struct sk_buff *create_monitor_ctrl_event(__le16 index, u32 cookie,
 }
 
 int mgmt_send_event(u16 event, struct hci_dev *hdev, unsigned short channel,
-		    void *data, u16 data_len, int flag, struct sock *skip_sk)
+					void *data, u16 data_len, int flag, struct sock *skip_sk)
 {
 	struct sk_buff *skb;
 	struct mgmt_hdr *hdr;
 
 	skb = alloc_skb(sizeof(*hdr) + data_len, GFP_KERNEL);
+
 	if (!skb)
+	{
 		return -ENOMEM;
+	}
 
 	hdr = (void *) skb_put(skb, sizeof(*hdr));
 	hdr->opcode = cpu_to_le16(event);
+
 	if (hdev)
+	{
 		hdr->index = cpu_to_le16(hdev->id);
+	}
 	else
+	{
 		hdr->index = cpu_to_le16(MGMT_INDEX_NONE);
+	}
+
 	hdr->len = cpu_to_le16(data_len);
 
 	if (data)
+	{
 		memcpy(skb_put(skb, data_len), data, data_len);
+	}
 
 	/* Time stamp */
 	__net_timestamp(skb);
@@ -84,7 +100,7 @@ int mgmt_send_event(u16 event, struct hci_dev *hdev, unsigned short channel,
 
 	if (channel == HCI_CHANNEL_CONTROL)
 		hci_send_monitor_ctrl_event(hdev, event, data, data_len,
-					    skb_get_ktime(skb), flag, skip_sk);
+									skb_get_ktime(skb), flag, skip_sk);
 
 	kfree_skb(skb);
 	return 0;
@@ -100,8 +116,11 @@ int mgmt_cmd_status(struct sock *sk, u16 index, u16 cmd, u8 status)
 	BT_DBG("sock %p, index %u, cmd %u, status %u", sk, index, cmd, status);
 
 	skb = alloc_skb(sizeof(*hdr) + sizeof(*ev), GFP_KERNEL);
+
 	if (!skb)
+	{
 		return -ENOMEM;
+	}
 
 	hdr = (void *) skb_put(skb, sizeof(*hdr));
 
@@ -114,19 +133,28 @@ int mgmt_cmd_status(struct sock *sk, u16 index, u16 cmd, u8 status)
 	ev->opcode = cpu_to_le16(cmd);
 
 	mskb = create_monitor_ctrl_event(hdr->index, hci_sock_get_cookie(sk),
-					 MGMT_EV_CMD_STATUS, sizeof(*ev), ev);
+									 MGMT_EV_CMD_STATUS, sizeof(*ev), ev);
+
 	if (mskb)
+	{
 		skb->tstamp = mskb->tstamp;
+	}
 	else
+	{
 		__net_timestamp(skb);
+	}
 
 	err = sock_queue_rcv_skb(sk, skb);
-	if (err < 0)
-		kfree_skb(skb);
 
-	if (mskb) {
+	if (err < 0)
+	{
+		kfree_skb(skb);
+	}
+
+	if (mskb)
+	{
 		hci_send_to_channel(HCI_CHANNEL_MONITOR, mskb,
-				    HCI_SOCK_TRUSTED, NULL);
+							HCI_SOCK_TRUSTED, NULL);
 		kfree_skb(mskb);
 	}
 
@@ -134,7 +162,7 @@ int mgmt_cmd_status(struct sock *sk, u16 index, u16 cmd, u8 status)
 }
 
 int mgmt_cmd_complete(struct sock *sk, u16 index, u16 cmd, u8 status,
-		      void *rp, size_t rp_len)
+					  void *rp, size_t rp_len)
 {
 	struct sk_buff *skb, *mskb;
 	struct mgmt_hdr *hdr;
@@ -144,8 +172,11 @@ int mgmt_cmd_complete(struct sock *sk, u16 index, u16 cmd, u8 status,
 	BT_DBG("sock %p", sk);
 
 	skb = alloc_skb(sizeof(*hdr) + sizeof(*ev) + rp_len, GFP_KERNEL);
+
 	if (!skb)
+	{
 		return -ENOMEM;
+	}
 
 	hdr = (void *) skb_put(skb, sizeof(*hdr));
 
@@ -158,23 +189,34 @@ int mgmt_cmd_complete(struct sock *sk, u16 index, u16 cmd, u8 status,
 	ev->status = status;
 
 	if (rp)
+	{
 		memcpy(ev->data, rp, rp_len);
+	}
 
 	mskb = create_monitor_ctrl_event(hdr->index, hci_sock_get_cookie(sk),
-					 MGMT_EV_CMD_COMPLETE,
-					 sizeof(*ev) + rp_len, ev);
+									 MGMT_EV_CMD_COMPLETE,
+									 sizeof(*ev) + rp_len, ev);
+
 	if (mskb)
+	{
 		skb->tstamp = mskb->tstamp;
+	}
 	else
+	{
 		__net_timestamp(skb);
+	}
 
 	err = sock_queue_rcv_skb(sk, skb);
-	if (err < 0)
-		kfree_skb(skb);
 
-	if (mskb) {
+	if (err < 0)
+	{
+		kfree_skb(skb);
+	}
+
+	if (mskb)
+	{
 		hci_send_to_channel(HCI_CHANNEL_MONITOR, mskb,
-				    HCI_SOCK_TRUSTED, NULL);
+							HCI_SOCK_TRUSTED, NULL);
 		kfree_skb(mskb);
 	}
 
@@ -182,66 +224,86 @@ int mgmt_cmd_complete(struct sock *sk, u16 index, u16 cmd, u8 status,
 }
 
 struct mgmt_pending_cmd *mgmt_pending_find(unsigned short channel, u16 opcode,
-					   struct hci_dev *hdev)
+		struct hci_dev *hdev)
 {
 	struct mgmt_pending_cmd *cmd;
 
-	list_for_each_entry(cmd, &hdev->mgmt_pending, list) {
+	list_for_each_entry(cmd, &hdev->mgmt_pending, list)
+	{
 		if (hci_sock_get_channel(cmd->sk) != channel)
+		{
 			continue;
+		}
+
 		if (cmd->opcode == opcode)
+		{
 			return cmd;
+		}
 	}
 
 	return NULL;
 }
 
 struct mgmt_pending_cmd *mgmt_pending_find_data(unsigned short channel,
-						u16 opcode,
-						struct hci_dev *hdev,
-						const void *data)
+		u16 opcode,
+		struct hci_dev *hdev,
+		const void *data)
 {
 	struct mgmt_pending_cmd *cmd;
 
-	list_for_each_entry(cmd, &hdev->mgmt_pending, list) {
+	list_for_each_entry(cmd, &hdev->mgmt_pending, list)
+	{
 		if (cmd->user_data != data)
+		{
 			continue;
+		}
+
 		if (cmd->opcode == opcode)
+		{
 			return cmd;
+		}
 	}
 
 	return NULL;
 }
 
 void mgmt_pending_foreach(u16 opcode, struct hci_dev *hdev,
-			  void (*cb)(struct mgmt_pending_cmd *cmd, void *data),
-			  void *data)
+						  void (*cb)(struct mgmt_pending_cmd *cmd, void *data),
+						  void *data)
 {
 	struct mgmt_pending_cmd *cmd, *tmp;
 
-	list_for_each_entry_safe(cmd, tmp, &hdev->mgmt_pending, list) {
+	list_for_each_entry_safe(cmd, tmp, &hdev->mgmt_pending, list)
+	{
 		if (opcode > 0 && cmd->opcode != opcode)
+		{
 			continue;
+		}
 
 		cb(cmd, data);
 	}
 }
 
 struct mgmt_pending_cmd *mgmt_pending_add(struct sock *sk, u16 opcode,
-					  struct hci_dev *hdev,
-					  void *data, u16 len)
+		struct hci_dev *hdev,
+		void *data, u16 len)
 {
 	struct mgmt_pending_cmd *cmd;
 
 	cmd = kzalloc(sizeof(*cmd), GFP_KERNEL);
+
 	if (!cmd)
+	{
 		return NULL;
+	}
 
 	cmd->opcode = opcode;
 	cmd->index = hdev->id;
 
 	cmd->param = kmemdup(data, len, GFP_KERNEL);
-	if (!cmd->param) {
+
+	if (!cmd->param)
+	{
 		kfree(cmd);
 		return NULL;
 	}

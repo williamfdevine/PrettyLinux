@@ -41,23 +41,23 @@
  * @di:  [OUT]
  */
 #define VMW_PORT(cmd, in_ebx, in_si, in_di,	\
-		 port_num, magic,		\
-		 eax, ebx, ecx, edx, si, di)	\
+				 port_num, magic,		\
+				 eax, ebx, ecx, edx, si, di)	\
 ({						\
 	asm volatile ("inl %%dx, %%eax;" :	\
-		"=a"(eax),			\
-		"=b"(ebx),			\
-		"=c"(ecx),			\
-		"=d"(edx),			\
-		"=S"(si),			\
-		"=D"(di) :			\
-		"a"(magic),			\
-		"b"(in_ebx),			\
-		"c"(cmd),			\
-		"d"(port_num),			\
-		"S"(in_si),			\
-		"D"(in_di) :			\
-		"memory");			\
+				  "=a"(eax),			\
+				  "=b"(ebx),			\
+				  "=c"(ecx),			\
+				  "=d"(edx),			\
+				  "=S"(si),			\
+				  "=D"(di) :			\
+				  "a"(magic),			\
+				  "b"(in_ebx),			\
+				  "c"(cmd),			\
+				  "d"(port_num),			\
+				  "S"(in_si),			\
+				  "D"(in_di) :			\
+				  "memory");			\
 })
 
 
@@ -85,52 +85,52 @@
 #ifdef __x86_64__
 
 #define VMW_PORT_HB_OUT(cmd, in_ecx, in_si, in_di,	\
-			port_num, magic, bp,		\
-			eax, ebx, ecx, edx, si, di)	\
+						port_num, magic, bp,		\
+						eax, ebx, ecx, edx, si, di)	\
 ({							\
 	asm volatile ("push %%rbp;"			\
-		"mov %12, %%rbp;"			\
-		"rep outsb;"				\
-		"pop %%rbp;" :				\
-		"=a"(eax),				\
-		"=b"(ebx),				\
-		"=c"(ecx),				\
-		"=d"(edx),				\
-		"=S"(si),				\
-		"=D"(di) :				\
-		"a"(magic),				\
-		"b"(cmd),				\
-		"c"(in_ecx),				\
-		"d"(port_num),				\
-		"S"(in_si),				\
-		"D"(in_di),				\
-		"r"(bp) :				\
-		"memory", "cc");			\
+				  "mov %12, %%rbp;"			\
+				  "rep outsb;"				\
+				  "pop %%rbp;" :				\
+				  "=a"(eax),				\
+				  "=b"(ebx),				\
+				  "=c"(ecx),				\
+				  "=d"(edx),				\
+				  "=S"(si),				\
+				  "=D"(di) :				\
+				  "a"(magic),				\
+				  "b"(cmd),				\
+				  "c"(in_ecx),				\
+				  "d"(port_num),				\
+				  "S"(in_si),				\
+				  "D"(in_di),				\
+				  "r"(bp) :				\
+				  "memory", "cc");			\
 })
 
 
 #define VMW_PORT_HB_IN(cmd, in_ecx, in_si, in_di,	\
-		       port_num, magic, bp,		\
-		       eax, ebx, ecx, edx, si, di)	\
+					   port_num, magic, bp,		\
+					   eax, ebx, ecx, edx, si, di)	\
 ({							\
 	asm volatile ("push %%rbp;"			\
-		"mov %12, %%rbp;"			\
-		"rep insb;"				\
-		"pop %%rbp" :				\
-		"=a"(eax),				\
-		"=b"(ebx),				\
-		"=c"(ecx),				\
-		"=d"(edx),				\
-		"=S"(si),				\
-		"=D"(di) :				\
-		"a"(magic),				\
-		"b"(cmd),				\
-		"c"(in_ecx),				\
-		"d"(port_num),				\
-		"S"(in_si),				\
-		"D"(in_di),				\
-		"r"(bp) :				\
-		"memory", "cc");			\
+				  "mov %12, %%rbp;"			\
+				  "rep insb;"				\
+				  "pop %%rbp" :				\
+				  "=a"(eax),				\
+				  "=b"(ebx),				\
+				  "=c"(ecx),				\
+				  "=d"(edx),				\
+				  "=S"(si),				\
+				  "=D"(di) :				\
+				  "a"(magic),				\
+				  "b"(cmd),				\
+				  "c"(in_ecx),				\
+				  "d"(port_num),				\
+				  "S"(in_si),				\
+				  "D"(in_di),				\
+				  "r"(bp) :				\
+				  "memory", "cc");			\
 })
 
 #else
@@ -139,52 +139,52 @@
  * more register left for bp
  */
 #define VMW_PORT_HB_OUT(cmd, in_ecx, in_si, in_di,	\
-			port_num, magic, bp,		\
-			eax, ebx, ecx, edx, si, di)	\
+						port_num, magic, bp,		\
+						eax, ebx, ecx, edx, si, di)	\
 ({							\
 	asm volatile ("push %%ebp;"			\
-		"mov %12, %%ebp;"			\
-		"rep outsb;"				\
-		"pop %%ebp;" :				\
-		"=a"(eax),				\
-		"=b"(ebx),				\
-		"=c"(ecx),				\
-		"=d"(edx),				\
-		"=S"(si),				\
-		"=D"(di) :				\
-		"a"(magic),				\
-		"b"(cmd),				\
-		"c"(in_ecx),				\
-		"d"(port_num),				\
-		"S"(in_si),				\
-		"D"(in_di),				\
-		"m"(bp) :				\
-		"memory", "cc");			\
+				  "mov %12, %%ebp;"			\
+				  "rep outsb;"				\
+				  "pop %%ebp;" :				\
+				  "=a"(eax),				\
+				  "=b"(ebx),				\
+				  "=c"(ecx),				\
+				  "=d"(edx),				\
+				  "=S"(si),				\
+				  "=D"(di) :				\
+				  "a"(magic),				\
+				  "b"(cmd),				\
+				  "c"(in_ecx),				\
+				  "d"(port_num),				\
+				  "S"(in_si),				\
+				  "D"(in_di),				\
+				  "m"(bp) :				\
+				  "memory", "cc");			\
 })
 
 
 #define VMW_PORT_HB_IN(cmd, in_ecx, in_si, in_di,	\
-		       port_num, magic, bp,		\
-		       eax, ebx, ecx, edx, si, di)	\
+					   port_num, magic, bp,		\
+					   eax, ebx, ecx, edx, si, di)	\
 ({							\
 	asm volatile ("push %%ebp;"			\
-		"mov %12, %%ebp;"			\
-		"rep insb;"				\
-		"pop %%ebp" :				\
-		"=a"(eax),				\
-		"=b"(ebx),				\
-		"=c"(ecx),				\
-		"=d"(edx),				\
-		"=S"(si),				\
-		"=D"(di) :				\
-		"a"(magic),				\
-		"b"(cmd),				\
-		"c"(in_ecx),				\
-		"d"(port_num),				\
-		"S"(in_si),				\
-		"D"(in_di),				\
-		"m"(bp) :				\
-		"memory", "cc");			\
+				  "mov %12, %%ebp;"			\
+				  "rep insb;"				\
+				  "pop %%ebp" :				\
+				  "=a"(eax),				\
+				  "=b"(ebx),				\
+				  "=c"(ecx),				\
+				  "=d"(edx),				\
+				  "=S"(si),				\
+				  "=D"(di) :				\
+				  "a"(magic),				\
+				  "b"(cmd),				\
+				  "c"(in_ecx),				\
+				  "d"(port_num),				\
+				  "S"(in_si),				\
+				  "D"(in_di),				\
+				  "m"(bp) :				\
+				  "memory", "cc");			\
 })
 #endif /* #if __x86_64__ */
 

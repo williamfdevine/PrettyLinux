@@ -36,7 +36,8 @@ static void usage(char *name)
 }
 
 /* Class/perm mapping support */
-struct security_class_mapping {
+struct security_class_mapping
+{
 	const char *name;
 	const char *perms[sizeof(unsigned) * 8 + 1];
 };
@@ -53,45 +54,67 @@ int main(int argc, char *argv[])
 	FILE *fout;
 
 	if (argc < 3)
+	{
 		usage(argv[0]);
-	arg = argv+1;
-	if (argc==4 && strcmp(argv[1], "-m") == 0) {
+	}
+
+	arg = argv + 1;
+
+	if (argc == 4 && strcmp(argv[1], "-m") == 0)
+	{
 		mls = 1;
 		arg++;
 	}
+
 	polout = *arg++;
 	ctxout = *arg;
 
 	fout = fopen(polout, "w");
-	if (!fout) {
+
+	if (!fout)
+	{
 		printf("Could not open %s for writing\n", polout);
 		usage(argv[0]);
 	}
 
 	/* print out the classes */
 	for (i = 0; secclass_map[i].name; i++)
+	{
 		fprintf(fout, "class %s\n", secclass_map[i].name);
+	}
+
 	fprintf(fout, "\n");
 
 	initial_sid_to_string_len = sizeof(initial_sid_to_string) / sizeof (char *);
+
 	/* print out the sids */
 	for (i = 1; i < initial_sid_to_string_len; i++)
+	{
 		fprintf(fout, "sid %s\n", initial_sid_to_string[i]);
+	}
+
 	fprintf(fout, "\n");
 
 	/* print out the class permissions */
-	for (i = 0; secclass_map[i].name; i++) {
+	for (i = 0; secclass_map[i].name; i++)
+	{
 		struct security_class_mapping *map = &secclass_map[i];
 		fprintf(fout, "class %s\n", map->name);
 		fprintf(fout, "{\n");
+
 		for (j = 0; map->perms[j]; j++)
+		{
 			fprintf(fout, "\t%s\n", map->perms[j]);
+		}
+
 		fprintf(fout, "}\n\n");
 	}
+
 	fprintf(fout, "\n");
 
 	/* NOW PRINT OUT MLS STUFF */
-	if (mls) {
+	if (mls)
+	{
 		printf("MLS not yet implemented\n");
 		exit(1);
 	}
@@ -100,15 +123,20 @@ int main(int argc, char *argv[])
 	fprintf(fout, "type base_t;\n");
 	fprintf(fout, "role base_r;\n");
 	fprintf(fout, "role base_r types { base_t };\n");
+
 	for (i = 0; secclass_map[i].name; i++)
 		fprintf(fout, "allow base_t base_t:%s *;\n",
-			secclass_map[i].name);
+				secclass_map[i].name);
+
 	fprintf(fout, "user user_u roles { base_r };\n");
 	fprintf(fout, "\n");
 
 	/* default sids */
 	for (i = 1; i < initial_sid_to_string_len; i++)
+	{
 		fprintf(fout, "sid %s user_u:base_r:base_t\n", initial_sid_to_string[i]);
+	}
+
 	fprintf(fout, "\n");
 
 	fprintf(fout, "fs_use_xattr ext2 user_u:base_r:base_t;\n");
@@ -136,10 +164,13 @@ int main(int argc, char *argv[])
 	fclose(fout);
 
 	fout = fopen(ctxout, "w");
-	if (!fout) {
+
+	if (!fout)
+	{
 		printf("Wrote policy, but cannot open %s for writing\n", ctxout);
 		usage(argv[0]);
 	}
+
 	fprintf(fout, "/ user_u:base_r:base_t\n");
 	fprintf(fout, "/.* user_u:base_r:base_t\n");
 	fclose(fout);

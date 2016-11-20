@@ -23,9 +23,10 @@
 #include <net/inet_sock.h>
 #include <net/snmp.h>
 
-struct icmp_err {
-  int		errno;
-  unsigned int	fatal:1;
+struct icmp_err
+{
+	int		errno;
+	unsigned int	fatal: 1;
 };
 
 extern const struct icmp_err icmp_err_convert[];

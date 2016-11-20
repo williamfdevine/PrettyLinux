@@ -73,7 +73,8 @@
 #define MAX9867_CACHEREGNUM 10
 
 /* codec private data */
-struct max9867_priv {
+struct max9867_priv
+{
 	struct regmap *regmap;
 	struct snd_soc_codec *codec;
 	unsigned int sysclk;

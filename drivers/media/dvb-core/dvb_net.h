@@ -34,11 +34,12 @@
 
 #ifdef CONFIG_DVB_NET
 
-struct dvb_net {
+struct dvb_net
+{
 	struct dvb_device *dvbdev;
 	struct net_device *device[DVB_NET_DEVICES_MAX];
 	int state[DVB_NET_DEVICES_MAX];
-	unsigned int exit:1;
+	unsigned int exit: 1;
 	struct dmx_demux *demux;
 	struct mutex ioctl_mutex;
 };
@@ -48,7 +49,8 @@ int  dvb_net_init(struct dvb_adapter *, struct dvb_net *, struct dmx_demux *);
 
 #else
 
-struct dvb_net {
+struct dvb_net
+{
 	struct dvb_device *dvbdev;
 };
 
@@ -57,7 +59,7 @@ static inline void dvb_net_release(struct dvb_net *dvbnet)
 }
 
 static inline int dvb_net_init(struct dvb_adapter *adap,
-			       struct dvb_net *dvbnet, struct dmx_demux *dmx)
+							   struct dvb_net *dvbnet, struct dmx_demux *dmx)
 {
 	return 0;
 }

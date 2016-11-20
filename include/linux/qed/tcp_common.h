@@ -11,7 +11,8 @@
 
 #define TCP_INVALID_TIMEOUT_VAL -1
 
-struct ooo_opaque {
+struct ooo_opaque
+{
 	__le32 cid;
 	u8 drop_isle;
 	u8 drop_size;
@@ -19,26 +20,30 @@ struct ooo_opaque {
 	u8 ooo_isle;
 };
 
-enum tcp_connect_mode {
+enum tcp_connect_mode
+{
 	TCP_CONNECT_ACTIVE,
 	TCP_CONNECT_PASSIVE,
 	MAX_TCP_CONNECT_MODE
 };
 
-struct tcp_init_params {
+struct tcp_init_params
+{
 	__le32 two_msl_timer;
 	__le16 tx_sws_timer;
 	u8 maxfinrt;
 	u8 reserved[9];
 };
 
-enum tcp_ip_version {
+enum tcp_ip_version
+{
 	TCP_IPV4,
 	TCP_IPV6,
 	MAX_TCP_IP_VERSION
 };
 
-struct tcp_offload_params {
+struct tcp_offload_params
+{
 	__le16 local_mac_addr_lo;
 	__le16 local_mac_addr_mid;
 	__le16 local_mac_addr_hi;
@@ -109,7 +114,8 @@ struct tcp_offload_params {
 	__le32 ts_ticks_per_second;
 };
 
-struct tcp_offload_params_opt2 {
+struct tcp_offload_params_opt2
+{
 	__le16 local_mac_addr_lo;
 	__le16 local_mac_addr_mid;
 	__le16 local_mac_addr_hi;
@@ -143,7 +149,8 @@ struct tcp_offload_params_opt2 {
 	__le32 reserved1[22];
 };
 
-enum tcp_seg_placement_event {
+enum tcp_seg_placement_event
+{
 	TCP_EVENT_ADD_PEN,
 	TCP_EVENT_ADD_NEW_ISLE,
 	TCP_EVENT_ADD_ISLE_RIGHT,
@@ -153,7 +160,8 @@ enum tcp_seg_placement_event {
 	MAX_TCP_SEG_PLACEMENT_EVENT
 };
 
-struct tcp_update_params {
+struct tcp_update_params
+{
 	__le16 flags;
 #define TCP_UPDATE_PARAMS_REMOTE_MAC_ADDR_CHANGED_MASK   0x1
 #define TCP_UPDATE_PARAMS_REMOTE_MAC_ADDR_CHANGED_SHIFT  0
@@ -202,7 +210,8 @@ struct tcp_update_params {
 	u8 reserved1[7];
 };
 
-struct tcp_upload_params {
+struct tcp_upload_params
+{
 	__le32 rcv_next;
 	__le32 snd_una;
 	__le32 snd_next;

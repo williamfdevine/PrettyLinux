@@ -41,7 +41,8 @@
  * Duty Cycle (3bits), note DC_DISABLE is not specified in
  * intel docs i just use it to mean disable
  */
-enum {
+enum
+{
 	DC_RESV, DC_DFLT, DC_25PT, DC_38PT, DC_50PT,
 	DC_64PT, DC_75PT, DC_88PT, DC_DISABLE
 };
@@ -59,31 +60,41 @@ static int cpufreq_p4_setdc(unsigned int cpu, unsigned int newstate)
 	u32 l, h;
 
 	if ((newstate > DC_DISABLE) || (newstate == DC_RESV))
+	{
 		return -EINVAL;
+	}
 
 	rdmsr_on_cpu(cpu, MSR_IA32_THERM_STATUS, &l, &h);
 
 	if (l & 0x01)
+	{
 		pr_debug("CPU#%d currently thermal throttled\n", cpu);
+	}
 
 	if (has_N44_O17_errata[cpu] &&
-	    (newstate == DC_25PT || newstate == DC_DFLT))
+		(newstate == DC_25PT || newstate == DC_DFLT))
+	{
 		newstate = DC_38PT;
+	}
 
 	rdmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL, &l, &h);
-	if (newstate == DC_DISABLE) {
+
+	if (newstate == DC_DISABLE)
+	{
 		pr_debug("CPU#%d disabling modulation\n", cpu);
-		wrmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL, l & ~(1<<4), h);
-	} else {
+		wrmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL, l & ~(1 << 4), h);
+	}
+	else
+	{
 		pr_debug("CPU#%d setting duty cycle to %d%%\n",
-			cpu, ((125 * newstate) / 10));
+				 cpu, ((125 * newstate) / 10));
 		/* bits 63 - 5	: reserved
 		 * bit  4	: enable/disable
 		 * bits 3-1	: duty cycle
 		 * bit  0	: reserved
 		 */
 		l = (l & ~14);
-		l = l | (1<<4) | ((newstate & 0x7)<<1);
+		l = l | (1 << 4) | ((newstate & 0x7) << 1);
 		wrmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL, l, h);
 	}
 
@@ -91,7 +102,8 @@ static int cpufreq_p4_setdc(unsigned int cpu, unsigned int newstate)
 }
 
 
-static struct cpufreq_frequency_table p4clockmod_table[] = {
+static struct cpufreq_frequency_table p4clockmod_table[] =
+{
 	{0, DC_RESV, CPUFREQ_ENTRY_INVALID},
 	{0, DC_DFLT, 0},
 	{0, DC_25PT, 0},
@@ -114,7 +126,7 @@ static int cpufreq_p4_target(struct cpufreq_policy *policy, unsigned int index)
 	 * Developer's Manual, Volume 3
 	 */
 	for_each_cpu(i, policy->cpus)
-		cpufreq_p4_setdc(i, p4clockmod_table[index].driver_data);
+	cpufreq_p4_setdc(i, p4clockmod_table[index].driver_data);
 
 	return 0;
 }
@@ -122,32 +134,42 @@ static int cpufreq_p4_target(struct cpufreq_policy *policy, unsigned int index)
 
 static unsigned int cpufreq_p4_get_frequency(struct cpuinfo_x86 *c)
 {
-	if (c->x86 == 0x06) {
+	if (c->x86 == 0x06)
+	{
 		if (cpu_has(c, X86_FEATURE_EST))
+		{
 			pr_warn_once("Warning: EST-capable CPU detected. The acpi-cpufreq module offers voltage scaling in addition to frequency scaling. You should use that instead of p4-clockmod, if possible.\n");
-		switch (c->x86_model) {
-		case 0x0E: /* Core */
-		case 0x0F: /* Core Duo */
-		case 0x16: /* Celeron Core */
-		case 0x1C: /* Atom */
-			p4clockmod_driver.flags |= CPUFREQ_CONST_LOOPS;
-			return speedstep_get_frequency(SPEEDSTEP_CPU_PCORE);
-		case 0x0D: /* Pentium M (Dothan) */
-			p4clockmod_driver.flags |= CPUFREQ_CONST_LOOPS;
+		}
+
+		switch (c->x86_model)
+		{
+			case 0x0E: /* Core */
+			case 0x0F: /* Core Duo */
+			case 0x16: /* Celeron Core */
+			case 0x1C: /* Atom */
+				p4clockmod_driver.flags |= CPUFREQ_CONST_LOOPS;
+				return speedstep_get_frequency(SPEEDSTEP_CPU_PCORE);
+
+			case 0x0D: /* Pentium M (Dothan) */
+				p4clockmod_driver.flags |= CPUFREQ_CONST_LOOPS;
+
 			/* fall through */
-		case 0x09: /* Pentium M (Banias) */
-			return speedstep_get_frequency(SPEEDSTEP_CPU_PM);
+			case 0x09: /* Pentium M (Banias) */
+				return speedstep_get_frequency(SPEEDSTEP_CPU_PM);
 		}
 	}
 
 	if (c->x86 != 0xF)
+	{
 		return 0;
+	}
 
 	/* on P-4s, the TSC runs with constant frequency independent whether
 	 * throttling is active or not. */
 	p4clockmod_driver.flags |= CPUFREQ_CONST_LOOPS;
 
-	if (speedstep_detect_processor() == SPEEDSTEP_CPU_P4M) {
+	if (speedstep_detect_processor() == SPEEDSTEP_CPU_P4M)
+	{
 		pr_warn("Warning: Pentium 4-M detected. The speedstep-ich or acpi cpufreq modules offer voltage scaling in addition of frequency scaling. You should use either one instead of p4-clockmod, if possible.\n");
 		return speedstep_get_frequency(SPEEDSTEP_CPU_P4M);
 	}
@@ -169,32 +191,44 @@ static int cpufreq_p4_cpu_init(struct cpufreq_policy *policy)
 
 	/* Errata workaround */
 	cpuid = (c->x86 << 8) | (c->x86_model << 4) | c->x86_mask;
-	switch (cpuid) {
-	case 0x0f07:
-	case 0x0f0a:
-	case 0x0f11:
-	case 0x0f12:
-		has_N44_O17_errata[policy->cpu] = 1;
-		pr_debug("has errata -- disabling low frequencies\n");
+
+	switch (cpuid)
+	{
+		case 0x0f07:
+		case 0x0f0a:
+		case 0x0f11:
+		case 0x0f12:
+			has_N44_O17_errata[policy->cpu] = 1;
+			pr_debug("has errata -- disabling low frequencies\n");
 	}
 
 	if (speedstep_detect_processor() == SPEEDSTEP_CPU_P4D &&
-	    c->x86_model < 2) {
+		c->x86_model < 2)
+	{
 		/* switch to maximum frequency and measure result */
 		cpufreq_p4_setdc(policy->cpu, DC_DISABLE);
 		recalibrate_cpu_khz();
 	}
+
 	/* get max frequency */
 	stock_freq = cpufreq_p4_get_frequency(c);
+
 	if (!stock_freq)
+	{
 		return -EINVAL;
+	}
 
 	/* table init */
-	for (i = 1; (p4clockmod_table[i].frequency != CPUFREQ_TABLE_END); i++) {
+	for (i = 1; (p4clockmod_table[i].frequency != CPUFREQ_TABLE_END); i++)
+	{
 		if ((i < 2) && (has_N44_O17_errata[policy->cpu]))
+		{
 			p4clockmod_table[i].frequency = CPUFREQ_ENTRY_INVALID;
+		}
 		else
-			p4clockmod_table[i].frequency = (stock_freq * i)/8;
+		{
+			p4clockmod_table[i].frequency = (stock_freq * i) / 8;
+		}
 	}
 
 	/* cpuinfo and default policy values */
@@ -213,19 +247,26 @@ static unsigned int cpufreq_p4_get(unsigned int cpu)
 
 	rdmsr_on_cpu(cpu, MSR_IA32_THERM_CONTROL, &l, &h);
 
-	if (l & 0x10) {
+	if (l & 0x10)
+	{
 		l = l >> 1;
 		l &= 0x7;
-	} else
+	}
+	else
+	{
 		l = DC_DISABLE;
+	}
 
 	if (l != DC_DISABLE)
+	{
 		return stock_freq * l / 8;
+	}
 
 	return stock_freq;
 }
 
-static struct cpufreq_driver p4clockmod_driver = {
+static struct cpufreq_driver p4clockmod_driver =
+{
 	.verify		= cpufreq_generic_frequency_table_verify,
 	.target_index	= cpufreq_p4_target,
 	.init		= cpufreq_p4_cpu_init,
@@ -234,7 +275,8 @@ static struct cpufreq_driver p4clockmod_driver = {
 	.attr		= cpufreq_generic_attr,
 };
 
-static const struct x86_cpu_id cpufreq_p4_id[] = {
+static const struct x86_cpu_id cpufreq_p4_id[] =
+{
 	{ X86_VENDOR_INTEL, X86_FAMILY_ANY, X86_MODEL_ANY, X86_FEATURE_ACC },
 	{}
 };
@@ -253,11 +295,16 @@ static int __init cpufreq_p4_init(void)
 	 * we can rely on the capability checks
 	 */
 	if (!x86_match_cpu(cpufreq_p4_id) || !boot_cpu_has(X86_FEATURE_ACPI))
+	{
 		return -ENODEV;
+	}
 
 	ret = cpufreq_register_driver(&p4clockmod_driver);
+
 	if (!ret)
+	{
 		pr_info("P4/Xeon(TM) CPU On-Demand Clock Modulation available\n");
+	}
 
 	return ret;
 }

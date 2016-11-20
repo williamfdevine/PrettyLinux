@@ -22,11 +22,16 @@ unsigned int sysfs_read_file(const char *path, char *buf, size_t buflen)
 	ssize_t numread;
 
 	fd = open(path, O_RDONLY);
+
 	if (fd == -1)
+	{
 		return 0;
+	}
 
 	numread = read(fd, buf, buflen - 1);
-	if (numread < 1) {
+
+	if (numread < 1)
+	{
 		close(fd);
 		return 0;
 	}
@@ -58,31 +63,45 @@ int sysfs_is_cpu_online(unsigned int cpu)
 	snprintf(path, sizeof(path), PATH_TO_CPU "cpu%u", cpu);
 
 	if (stat(path, &statbuf) != 0)
+	{
 		return 0;
+	}
 
 	/*
 	 * kernel without CONFIG_HOTPLUG_CPU
 	 * -> cpuX directory exists, but not cpuX/online file
 	 */
 	snprintf(path, sizeof(path), PATH_TO_CPU "cpu%u/online", cpu);
+
 	if (stat(path, &statbuf) != 0)
+	{
 		return 1;
+	}
 
 	fd = open(path, O_RDONLY);
+
 	if (fd == -1)
+	{
 		return -errno;
+	}
 
 	numread = read(fd, linebuf, MAX_LINE_LEN - 1);
-	if (numread < 1) {
+
+	if (numread < 1)
+	{
 		close(fd);
 		return -EIO;
 	}
+
 	linebuf[numread] = '\0';
 	close(fd);
 
 	value = strtoull(linebuf, &endp, 0);
+
 	if (value > 1)
+	{
 		return -EINVAL;
+	}
 
 	return value;
 }
@@ -102,17 +121,21 @@ int sysfs_is_cpu_online(unsigned int cpu)
  * returns 1 if the file exists, 0 otherwise.
  */
 unsigned int sysfs_idlestate_file_exists(unsigned int cpu,
-					 unsigned int idlestate,
-					 const char *fname)
+		unsigned int idlestate,
+		const char *fname)
 {
 	char path[SYSFS_PATH_MAX];
 	struct stat statbuf;
 
 
 	snprintf(path, sizeof(path), PATH_TO_CPU "cpu%u/cpuidle/state%u/%s",
-		 cpu, idlestate, fname);
+			 cpu, idlestate, fname);
+
 	if (stat(path, &statbuf) != 0)
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
@@ -123,21 +146,26 @@ unsigned int sysfs_idlestate_file_exists(unsigned int cpu,
  * This means if you want C1 info, pass 0 as idlestate param
  */
 unsigned int sysfs_idlestate_read_file(unsigned int cpu, unsigned int idlestate,
-			     const char *fname, char *buf, size_t buflen)
+									   const char *fname, char *buf, size_t buflen)
 {
 	char path[SYSFS_PATH_MAX];
 	int fd;
 	ssize_t numread;
 
 	snprintf(path, sizeof(path), PATH_TO_CPU "cpu%u/cpuidle/state%u/%s",
-		 cpu, idlestate, fname);
+			 cpu, idlestate, fname);
 
 	fd = open(path, O_RDONLY);
+
 	if (fd == -1)
+	{
 		return 0;
+	}
 
 	numread = read(fd, buf, buflen - 1);
-	if (numread < 1) {
+
+	if (numread < 1)
+	{
 		close(fd);
 		return 0;
 	}
@@ -148,7 +176,7 @@ unsigned int sysfs_idlestate_read_file(unsigned int cpu, unsigned int idlestate,
 	return (unsigned int) numread;
 }
 
-/* 
+/*
  * helper function to write a new value to a /sys file
  * fname is a relative path under "../cpuX/cpuidle/cstateY/" dir
  *
@@ -156,23 +184,28 @@ unsigned int sysfs_idlestate_read_file(unsigned int cpu, unsigned int idlestate,
  */
 static
 unsigned int sysfs_idlestate_write_file(unsigned int cpu,
-					unsigned int idlestate,
-					const char *fname,
-					const char *value, size_t len)
+										unsigned int idlestate,
+										const char *fname,
+										const char *value, size_t len)
 {
 	char path[SYSFS_PATH_MAX];
 	int fd;
 	ssize_t numwrite;
 
 	snprintf(path, sizeof(path), PATH_TO_CPU "cpu%u/cpuidle/state%u/%s",
-		 cpu, idlestate, fname);
+			 cpu, idlestate, fname);
 
 	fd = open(path, O_WRONLY);
+
 	if (fd == -1)
+	{
 		return 0;
+	}
 
 	numwrite = write(fd, value, len);
-	if (numwrite < 1) {
+
+	if (numwrite < 1)
+	{
 		close(fd);
 		return 0;
 	}
@@ -184,7 +217,8 @@ unsigned int sysfs_idlestate_write_file(unsigned int cpu,
 
 /* read access to files which contain one numeric value */
 
-enum idlestate_value {
+enum idlestate_value
+{
 	IDLESTATE_USAGE,
 	IDLESTATE_POWER,
 	IDLESTATE_LATENCY,
@@ -193,7 +227,8 @@ enum idlestate_value {
 	MAX_IDLESTATE_VALUE_FILES
 };
 
-static const char *idlestate_value_files[MAX_IDLESTATE_VALUE_FILES] = {
+static const char *idlestate_value_files[MAX_IDLESTATE_VALUE_FILES] =
+{
 	[IDLESTATE_USAGE] = "usage",
 	[IDLESTATE_POWER] = "power",
 	[IDLESTATE_LATENCY] = "latency",
@@ -202,8 +237,8 @@ static const char *idlestate_value_files[MAX_IDLESTATE_VALUE_FILES] = {
 };
 
 static unsigned long long sysfs_idlestate_get_one_value(unsigned int cpu,
-						     unsigned int idlestate,
-						     enum idlestate_value which)
+		unsigned int idlestate,
+		enum idlestate_value which)
 {
 	unsigned long long value;
 	unsigned int len;
@@ -211,59 +246,78 @@ static unsigned long long sysfs_idlestate_get_one_value(unsigned int cpu,
 	char *endp;
 
 	if (which >= MAX_IDLESTATE_VALUE_FILES)
+	{
 		return 0;
+	}
 
 	len = sysfs_idlestate_read_file(cpu, idlestate,
-					idlestate_value_files[which],
-					linebuf, sizeof(linebuf));
+									idlestate_value_files[which],
+									linebuf, sizeof(linebuf));
+
 	if (len == 0)
+	{
 		return 0;
+	}
 
 	value = strtoull(linebuf, &endp, 0);
 
 	if (endp == linebuf || errno == ERANGE)
+	{
 		return 0;
+	}
 
 	return value;
 }
 
 /* read access to files which contain one string */
 
-enum idlestate_string {
+enum idlestate_string
+{
 	IDLESTATE_DESC,
 	IDLESTATE_NAME,
 	MAX_IDLESTATE_STRING_FILES
 };
 
-static const char *idlestate_string_files[MAX_IDLESTATE_STRING_FILES] = {
+static const char *idlestate_string_files[MAX_IDLESTATE_STRING_FILES] =
+{
 	[IDLESTATE_DESC] = "desc",
 	[IDLESTATE_NAME] = "name",
 };
 
 
 static char *sysfs_idlestate_get_one_string(unsigned int cpu,
-					unsigned int idlestate,
-					enum idlestate_string which)
+		unsigned int idlestate,
+		enum idlestate_string which)
 {
 	char linebuf[MAX_LINE_LEN];
 	char *result;
 	unsigned int len;
 
 	if (which >= MAX_IDLESTATE_STRING_FILES)
+	{
 		return NULL;
+	}
 
 	len = sysfs_idlestate_read_file(cpu, idlestate,
-					idlestate_string_files[which],
-					linebuf, sizeof(linebuf));
+									idlestate_string_files[which],
+									linebuf, sizeof(linebuf));
+
 	if (len == 0)
+	{
 		return NULL;
+	}
 
 	result = strdup(linebuf);
+
 	if (result == NULL)
+	{
 		return NULL;
+	}
 
 	if (result[strlen(result) - 1] == '\n')
+	{
 		result[strlen(result) - 1] = '\0';
+	}
 
 	return result;
 }
@@ -276,14 +330,19 @@ static char *sysfs_idlestate_get_one_string(unsigned int cpu,
  *    -2 if disabling is not supported by the kernel
  */
 int sysfs_is_idlestate_disabled(unsigned int cpu,
-				unsigned int idlestate)
+								unsigned int idlestate)
 {
 	if (sysfs_get_idlestate_count(cpu) <= idlestate)
+	{
 		return -1;
+	}
 
 	if (!sysfs_idlestate_file_exists(cpu, idlestate,
-				 idlestate_value_files[IDLESTATE_DISABLE]))
+									 idlestate_value_files[IDLESTATE_DISABLE]))
+	{
 		return -2;
+	}
+
 	return sysfs_idlestate_get_one_value(cpu, idlestate, IDLESTATE_DISABLE);
 }
 
@@ -297,42 +356,50 @@ int sysfs_is_idlestate_disabled(unsigned int cpu,
  *      -3 No write access to disable/enable C-states
  */
 int sysfs_idlestate_disable(unsigned int cpu,
-			    unsigned int idlestate,
-			    unsigned int disable)
+							unsigned int idlestate,
+							unsigned int disable)
 {
 	char value[SYSFS_PATH_MAX];
 	int bytes_written;
 
 	if (sysfs_get_idlestate_count(cpu) <= idlestate)
+	{
 		return -1;
+	}
 
 	if (!sysfs_idlestate_file_exists(cpu, idlestate,
-				 idlestate_value_files[IDLESTATE_DISABLE]))
+									 idlestate_value_files[IDLESTATE_DISABLE]))
+	{
 		return -2;
+	}
 
 	snprintf(value, SYSFS_PATH_MAX, "%u", disable);
 
 	bytes_written = sysfs_idlestate_write_file(cpu, idlestate, "disable",
-						   value, sizeof(disable));
+					value, sizeof(disable));
+
 	if (bytes_written)
+	{
 		return 0;
+	}
+
 	return -3;
 }
 
 unsigned long sysfs_get_idlestate_latency(unsigned int cpu,
-					  unsigned int idlestate)
+		unsigned int idlestate)
 {
 	return sysfs_idlestate_get_one_value(cpu, idlestate, IDLESTATE_LATENCY);
 }
 
 unsigned long sysfs_get_idlestate_usage(unsigned int cpu,
-					unsigned int idlestate)
+										unsigned int idlestate)
 {
 	return sysfs_idlestate_get_one_value(cpu, idlestate, IDLESTATE_USAGE);
 }
 
 unsigned long long sysfs_get_idlestate_time(unsigned int cpu,
-					unsigned int idlestate)
+		unsigned int idlestate)
 {
 	return sysfs_idlestate_get_one_value(cpu, idlestate, IDLESTATE_TIME);
 }
@@ -360,18 +427,26 @@ unsigned int sysfs_get_idlestate_count(unsigned int cpu)
 
 
 	snprintf(file, SYSFS_PATH_MAX, PATH_TO_CPU "cpuidle");
+
 	if (stat(file, &statbuf) != 0 || !S_ISDIR(statbuf.st_mode))
+	{
 		return 0;
+	}
 
 	snprintf(file, SYSFS_PATH_MAX, PATH_TO_CPU "cpu%u/cpuidle/state0", cpu);
-	if (stat(file, &statbuf) != 0 || !S_ISDIR(statbuf.st_mode))
-		return 0;
 
-	while (stat(file, &statbuf) == 0 && S_ISDIR(statbuf.st_mode)) {
+	if (stat(file, &statbuf) != 0 || !S_ISDIR(statbuf.st_mode))
+	{
+		return 0;
+	}
+
+	while (stat(file, &statbuf) == 0 && S_ISDIR(statbuf.st_mode))
+	{
 		snprintf(file, SYSFS_PATH_MAX, PATH_TO_CPU
-			 "cpu%u/cpuidle/state%d", cpu, idlestates);
+				 "cpu%u/cpuidle/state%d", cpu, idlestates);
 		idlestates++;
 	}
+
 	idlestates--;
 	return idlestates;
 }
@@ -383,7 +458,7 @@ unsigned int sysfs_get_idlestate_count(unsigned int cpu)
  * fname is a relative path under "cpu/cpuidle/" dir
  */
 static unsigned int sysfs_cpuidle_read_file(const char *fname, char *buf,
-					    size_t buflen)
+		size_t buflen)
 {
 	char path[SYSFS_PATH_MAX];
 
@@ -396,14 +471,16 @@ static unsigned int sysfs_cpuidle_read_file(const char *fname, char *buf,
 
 /* read access to files which contain one string */
 
-enum cpuidle_string {
+enum cpuidle_string
+{
 	CPUIDLE_GOVERNOR,
 	CPUIDLE_GOVERNOR_RO,
 	CPUIDLE_DRIVER,
 	MAX_CPUIDLE_STRING_FILES
 };
 
-static const char *cpuidle_string_files[MAX_CPUIDLE_STRING_FILES] = {
+static const char *cpuidle_string_files[MAX_CPUIDLE_STRING_FILES] =
+{
 	[CPUIDLE_GOVERNOR]	= "current_governor",
 	[CPUIDLE_GOVERNOR_RO]	= "current_governor_ro",
 	[CPUIDLE_DRIVER]	= "current_driver",
@@ -417,19 +494,29 @@ static char *sysfs_cpuidle_get_one_string(enum cpuidle_string which)
 	unsigned int len;
 
 	if (which >= MAX_CPUIDLE_STRING_FILES)
+	{
 		return NULL;
+	}
 
 	len = sysfs_cpuidle_read_file(cpuidle_string_files[which],
-				linebuf, sizeof(linebuf));
+								  linebuf, sizeof(linebuf));
+
 	if (len == 0)
+	{
 		return NULL;
+	}
 
 	result = strdup(linebuf);
+
 	if (result == NULL)
+	{
 		return NULL;
+	}
 
 	if (result[strlen(result) - 1] == '\n')
+	{
 		result[strlen(result) - 1] = '\0';
+	}
 
 	return result;
 }
@@ -437,10 +524,15 @@ static char *sysfs_cpuidle_get_one_string(enum cpuidle_string which)
 char *sysfs_get_cpuidle_governor(void)
 {
 	char *tmp = sysfs_cpuidle_get_one_string(CPUIDLE_GOVERNOR_RO);
+
 	if (!tmp)
+	{
 		return sysfs_cpuidle_get_one_string(CPUIDLE_GOVERNOR);
+	}
 	else
+	{
 		return tmp;
+	}
 }
 
 char *sysfs_get_cpuidle_driver(void)

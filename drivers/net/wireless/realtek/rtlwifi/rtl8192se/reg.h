@@ -415,8 +415,8 @@
 #define	TSFRST					BIT(9)
 #define	TSFEN					BIT(8)
 #define	FWALLRDY				(BIT(0) | BIT(1) | BIT(2) | \
-						BIT(3) | BIT(4) | BIT(5) | \
-						BIT(6) | BIT(7))
+								 BIT(3) | BIT(4) | BIT(5) | \
+								 BIT(6) | BIT(7))
 #define	FWRDY					BIT(7)
 #define	BASECHG					BIT(6)
 #define	IMEM					BIT(5)
@@ -429,13 +429,13 @@
 #define	EMEM_CHK_RPT				BIT(3)
 #define	IMEM_RDY				BIT(5)
 #define	LOAD_FW_READY				(IMEM_CODE_DONE | \
-						IMEM_CHK_RPT | \
-						EMEM_CODE_DONE | \
-						EMEM_CHK_RPT | \
-						DMEM_CODE_DONE | \
-						IMEM_RDY | \
-						BASECHG | \
-						FWRDY)
+									 IMEM_CHK_RPT | \
+									 EMEM_CODE_DONE | \
+									 EMEM_CHK_RPT | \
+									 DMEM_CODE_DONE | \
+									 IMEM_RDY | \
+									 BASECHG | \
+									 FWRDY)
 #define	TCR_TSFEN				BIT(8)
 #define	TCR_TSFRST				BIT(9)
 #define	TCR_FAKE_IMEM_EN			BIT(15)
@@ -445,7 +445,7 @@
 #define	TCR_HWPC_TX_EN				BIT(24)
 #define	TCR_TCP_OFDL_EN				BIT(25)
 #define	TXDMA_INIT_VALUE			(IMEM_CHK_RPT | \
-						EXT_IMEM_CHK_RPT)
+									 EXT_IMEM_CHK_RPT)
 
 #define	RCR_APPFCS				BIT(31)
 #define	RCR_DIS_ENC_2BYTE			BIT(30)
@@ -566,19 +566,19 @@
 #define	RATR_MCS15				0x08000000
 
 #define	RATE_ALL_CCK				(RATR_1M | RATR_2M | \
-						RATR_55M | RATR_11M)
+									 RATR_55M | RATR_11M)
 #define	RATE_ALL_OFDM_AG			(RATR_6M | RATR_9M | \
-						RATR_12M | RATR_18M | \
-						RATR_24M | RATR_36M | \
-						RATR_48M | RATR_54M)
+									 RATR_12M | RATR_18M | \
+									 RATR_24M | RATR_36M | \
+									 RATR_48M | RATR_54M)
 #define	RATE_ALL_OFDM_1SS			(RATR_MCS0 | RATR_MCS1 | \
-						RATR_MCS2 | RATR_MCS3 | \
-						RATR_MCS4 | RATR_MCS5 | \
-						RATR_MCS6 | RATR_MCS7)
+									 RATR_MCS2 | RATR_MCS3 | \
+									 RATR_MCS4 | RATR_MCS5 | \
+									 RATR_MCS6 | RATR_MCS7)
 #define	RATE_ALL_OFDM_2SS			(RATR_MCS8 | RATR_MCS9 | \
-						RATR_MCS10 | RATR_MCS11 | \
-						RATR_MCS12 | RATR_MCS13 | \
-						RATR_MCS14 | RATR_MCS15)
+									 RATR_MCS10 | RATR_MCS11 | \
+									 RATR_MCS12 | RATR_MCS13 | \
+									 RATR_MCS14 | RATR_MCS15)
 
 #define	AC_PARAM_TXOP_LIMIT_OFFSET		16
 #define	AC_PARAM_ECW_MAX_OFFSET			12

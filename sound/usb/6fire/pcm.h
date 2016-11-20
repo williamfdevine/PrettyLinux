@@ -25,7 +25,8 @@ enum /* settings for pcm */
 	PCM_N_URBS = 16, PCM_N_PACKETS_PER_URB = 8, PCM_MAX_PACKET_SIZE = 604
 };
 
-struct pcm_urb {
+struct pcm_urb
+{
 	struct sfire_chip *chip;
 
 	/* BEGIN DO NOT SEPARATE */
@@ -37,7 +38,8 @@ struct pcm_urb {
 	struct pcm_urb *peer;
 };
 
-struct pcm_substream {
+struct pcm_substream
+{
 	spinlock_t lock;
 	struct snd_pcm_substream *instance;
 
@@ -47,7 +49,8 @@ struct pcm_substream {
 	snd_pcm_uframes_t period_off; /* current position in current period */
 };
 
-struct pcm_runtime {
+struct pcm_runtime
+{
 	struct sfire_chip *chip;
 	struct snd_pcm *instance;
 

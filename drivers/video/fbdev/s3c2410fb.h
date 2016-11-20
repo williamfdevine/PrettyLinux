@@ -13,12 +13,14 @@
 #ifndef __S3C2410FB_H
 #define __S3C2410FB_H
 
-enum s3c_drv_type {
+enum s3c_drv_type
+{
 	DRV_S3C2410,
 	DRV_S3C2412,
 };
 
-struct s3c2410fb_info {
+struct s3c2410fb_info
+{
 	struct device		*dev;
 	struct clk		*clk;
 

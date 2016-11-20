@@ -8,7 +8,7 @@
 #define _EFS_EFS_H_
 
 #ifdef pr_fmt
-#undef pr_fmt
+	#undef pr_fmt
 #endif
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -33,17 +33,20 @@ typedef uint32_t	efs_ino_t;
 /*
  * layout of an extent, in memory and on disk. 8 bytes exactly.
  */
-typedef union extent_u {
+typedef union extent_u
+{
 	unsigned char raw[8];
-	struct extent_s {
-		unsigned int	ex_magic:8;	/* magic # (zero) */
-		unsigned int	ex_bn:24;	/* basic block */
-		unsigned int	ex_length:8;	/* numblocks in this extent */
-		unsigned int	ex_offset:24;	/* logical offset into file */
+	struct extent_s
+	{
+		unsigned int	ex_magic: 8;	/* magic # (zero) */
+		unsigned int	ex_bn: 24;	/* basic block */
+		unsigned int	ex_length: 8;	/* numblocks in this extent */
+		unsigned int	ex_offset: 24;	/* logical offset into file */
 	} cooked;
 } efs_extent;
 
-typedef struct edevs {
+typedef struct edevs
+{
 	__be16		odev;
 	__be32		ndev;
 } efs_devs;
@@ -52,7 +55,8 @@ typedef struct edevs {
  * extent based filesystem inode as it appears on disk.  The efs inode
  * is exactly 128 bytes long.
  */
-struct	efs_dinode {
+struct	efs_dinode
+{
 	__be16		di_mode;	/* mode and type of file */
 	__be16		di_nlink;	/* number of links to file */
 	__be16		di_uid;		/* owner's user id */
@@ -65,14 +69,16 @@ struct	efs_dinode {
 	__be16		di_numextents;	/* # of extents */
 	u_char		di_version;	/* version of inode */
 	u_char		di_spare;	/* spare - used by AFS */
-	union di_addr {
+	union di_addr
+	{
 		efs_extent	di_extents[EFS_DIRECTEXTENTS];
 		efs_devs	di_dev;	/* device for IFCHR/IFBLK */
 	} di_u;
 };
 
 /* efs inode storage in memory */
-struct efs_inode_info {
+struct efs_inode_info
+{
 	int		numextents;
 	int		lastextent;
 
@@ -85,7 +91,8 @@ struct efs_inode_info {
 #define EFS_DIRBSIZE_BITS	EFS_BLOCKSIZE_BITS
 #define EFS_DIRBSIZE		(1 << EFS_DIRBSIZE_BITS)
 
-struct efs_dentry {
+struct efs_dentry
+{
 	__be32		inode;
 	unsigned char	namelen;
 	char		name[3];
@@ -97,7 +104,8 @@ struct efs_dentry {
 #define EFS_DIRBLK_HEADERSIZE	4
 #define EFS_DIRBLK_MAGIC	0xbeef	/* moo */
 
-struct efs_dir {
+struct efs_dir
+{
 	__be16	magic;
 	unsigned char	firstused;
 	unsigned char	slots;
@@ -137,9 +145,9 @@ extern int efs_get_block(struct inode *, sector_t, struct buffer_head *, int);
 
 extern struct dentry *efs_lookup(struct inode *, struct dentry *, unsigned int);
 extern struct dentry *efs_fh_to_dentry(struct super_block *sb, struct fid *fid,
-		int fh_len, int fh_type);
+									   int fh_len, int fh_type);
 extern struct dentry *efs_fh_to_parent(struct super_block *sb, struct fid *fid,
-		int fh_len, int fh_type);
+									   int fh_len, int fh_type);
 extern struct dentry *efs_get_parent(struct dentry *);
 extern int efs_bmap(struct inode *, int);
 

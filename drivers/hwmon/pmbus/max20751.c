@@ -21,7 +21,8 @@
 #include <linux/i2c.h>
 #include "pmbus.h"
 
-static struct pmbus_driver_info max20751_info = {
+static struct pmbus_driver_info max20751_info =
+{
 	.pages = 1,
 	.format[PSC_VOLTAGE_IN] = linear,
 	.format[PSC_VOLTAGE_OUT] = vid,
@@ -30,28 +31,30 @@ static struct pmbus_driver_info max20751_info = {
 	.format[PSC_CURRENT_OUT] = linear,
 	.format[PSC_POWER] = linear,
 	.func[0] = PMBUS_HAVE_VIN | PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT |
-		PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT |
-		PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP |
-		PMBUS_HAVE_POUT,
+	PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT |
+	PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP |
+	PMBUS_HAVE_POUT,
 };
 
 static int max20751_probe(struct i2c_client *client,
-			  const struct i2c_device_id *id)
+						  const struct i2c_device_id *id)
 {
 	return pmbus_do_probe(client, id, &max20751_info);
 }
 
-static const struct i2c_device_id max20751_id[] = {
+static const struct i2c_device_id max20751_id[] =
+{
 	{"max20751", 0},
 	{}
 };
 
 MODULE_DEVICE_TABLE(i2c, max20751_id);
 
-static struct i2c_driver max20751_driver = {
+static struct i2c_driver max20751_driver =
+{
 	.driver = {
-		   .name = "max20751",
-		   },
+		.name = "max20751",
+	},
 	.probe = max20751_probe,
 	.remove = pmbus_do_remove,
 	.id_table = max20751_id,

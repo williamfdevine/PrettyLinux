@@ -4,7 +4,7 @@
  *	Alan Cox (GW4PTS) 	10/11/93
  */
 #ifndef _AX25_H
-#define _AX25_H 
+#define _AX25_H
 
 #include <linux/ax25.h>
 #include <linux/spinlock.h>
@@ -29,9 +29,9 @@
 /* AX.25 Protocol IDs */
 #define AX25_P_ROSE			0x01
 #define AX25_P_VJCOMP			0x06	/* Compressed TCP/IP packet   */
-						/* Van Jacobsen (RFC 1144)    */
+/* Van Jacobsen (RFC 1144)    */
 #define AX25_P_VJUNCOMP			0x07	/* Uncompressed TCP/IP packet */
-						/* Van Jacobsen (RFC 1144)    */
+/* Van Jacobsen (RFC 1144)    */
 #define	AX25_P_SEGMENT			0x08	/* Segmentation fragment      */
 #define AX25_P_TEXNET			0xc3	/* TEXTNET datagram protocol  */
 #define AX25_P_LQ			0xc4	/* Link Quality Protocol      */
@@ -62,7 +62,7 @@
 #define	AX25_COND_DAMA_MODE		0x10
 
 #ifndef _LINUX_NETDEVICE_H
-#include <linux/netdevice.h>
+	#include <linux/netdevice.h>
 #endif
 
 /* Upper sub-layer (LAPB) definitions */
@@ -98,7 +98,8 @@
 
 /* Define Link State constants. */
 
-enum { 
+enum
+{
 	AX25_STATE_0,			/* Listening */
 	AX25_STATE_1,			/* SABM sent */
 	AX25_STATE_2,			/* DISC sent */
@@ -109,7 +110,8 @@ enum {
 #define AX25_MODULUS 		8	/*  Standard AX.25 modulus */
 #define	AX25_EMODULUS		128	/*  Extended AX.25 modulus */
 
-enum {
+enum
+{
 	AX25_PROTO_STD_SIMPLEX,
 	AX25_PROTO_STD_DUPLEX,
 #ifdef CONFIG_AX25_DAMA_SLAVE
@@ -120,10 +122,11 @@ enum {
 #endif
 #endif
 	__AX25_PROTO_MAX,
-	AX25_PROTO_MAX = __AX25_PROTO_MAX -1
+	AX25_PROTO_MAX = __AX25_PROTO_MAX - 1
 };
 
-enum {
+enum
+{
 	AX25_VALUES_IPDEFMODE,	/* 0=DG 1=VC */
 	AX25_VALUES_AXDEFMODE,	/* 0=Normal 1=Extended Seq Nos */
 	AX25_VALUES_BACKOFF,	/* 0=None 1=Linear 2=Exponential */
@@ -156,7 +159,8 @@ enum {
 #define	AX25_DEF_PROTOCOL	AX25_PROTO_STD_SIMPLEX	/* Standard AX.25 */
 #define AX25_DEF_DS_TIMEOUT	180000			/* DAMA timeout 3 minutes */
 
-typedef struct ax25_uid_assoc {
+typedef struct ax25_uid_assoc
+{
 	struct hlist_node	uid_node;
 	atomic_t		refcount;
 	kuid_t			uid;
@@ -171,19 +175,22 @@ typedef struct ax25_uid_assoc {
 
 static inline void ax25_uid_put(ax25_uid_assoc *assoc)
 {
-	if (atomic_dec_and_test(&assoc->refcount)) {
+	if (atomic_dec_and_test(&assoc->refcount))
+	{
 		kfree(assoc);
 	}
 }
 
-typedef struct {
+typedef struct
+{
 	ax25_address		calls[AX25_MAX_DIGIS];
 	unsigned char		repeated[AX25_MAX_DIGIS];
 	unsigned char		ndigi;
 	signed char		lastrepeat;
 } ax25_digi;
 
-typedef struct ax25_route {
+typedef struct ax25_route
+{
 	struct ax25_route	*next;
 	atomic_t		refcount;
 	ax25_address		callsign;
@@ -202,10 +209,13 @@ void __ax25_put_route(ax25_route *ax25_rt);
 static inline void ax25_put_route(ax25_route *ax25_rt)
 {
 	if (atomic_dec_and_test(&ax25_rt->refcount))
+	{
 		__ax25_put_route(ax25_rt);
+	}
 }
 
-typedef struct {
+typedef struct
+{
 	char			slave;			/* slave_mode?   */
 	struct timer_list	slave_timer;		/* timeout timer */
 	unsigned short		slave_timeout;		/* when? */
@@ -213,7 +223,8 @@ typedef struct {
 
 struct ctl_table;
 
-typedef struct ax25_dev {
+typedef struct ax25_dev
+{
 	struct ax25_dev		*next;
 	struct net_device	*dev;
 	struct net_device	*forward;
@@ -224,7 +235,8 @@ typedef struct ax25_dev {
 #endif
 } ax25_dev;
 
-typedef struct ax25_cb {
+typedef struct ax25_cb
+{
 	struct hlist_node	ax25_node;
 	ax25_address		source_addr, dest_addr;
 	ax25_digi		*digipeat;
@@ -247,7 +259,8 @@ typedef struct ax25_cb {
 	atomic_t		refcount;
 } ax25_cb;
 
-struct ax25_sock {
+struct ax25_sock
+{
 	struct sock		sk;
 	struct ax25_cb		*cb;
 };
@@ -270,7 +283,8 @@ static inline struct ax25_cb *sk_to_ax25(const struct sock *sk)
 
 static __inline__ void ax25_cb_put(ax25_cb *ax25)
 {
-	if (atomic_dec_and_test(&ax25->refcount)) {
+	if (atomic_dec_and_test(&ax25->refcount))
+	{
 		kfree(ax25->digipeat);
 		kfree(ax25);
 	}
@@ -291,10 +305,10 @@ void ax25_cb_add(ax25_cb *);
 struct sock *ax25_find_listener(ax25_address *, int, struct net_device *, int);
 struct sock *ax25_get_socket(ax25_address *, ax25_address *, int);
 ax25_cb *ax25_find_cb(ax25_address *, ax25_address *, ax25_digi *,
-		      struct net_device *);
+					  struct net_device *);
 void ax25_send_to_raw(ax25_address *, struct sk_buff *, int);
 void ax25_destroy_socket(ax25_cb *);
-ax25_cb * __must_check ax25_create_cb(void);
+ax25_cb *__must_check ax25_create_cb(void);
 void ax25_fillin_cb(ax25_cb *, ax25_dev *);
 struct sock *ax25_make_new(struct sock *, struct ax25_dev *);
 
@@ -307,9 +321,9 @@ void asc2ax(ax25_address *addr, const char *callsign);
 int ax25cmp(const ax25_address *, const ax25_address *);
 int ax25digicmp(const ax25_digi *, const ax25_digi *);
 const unsigned char *ax25_addr_parse(const unsigned char *, int,
-	ax25_address *, ax25_address *, ax25_digi *, int *, int *);
+									 ax25_address *, ax25_address *, ax25_digi *, int *, int *);
 int ax25_addr_build(unsigned char *, const ax25_address *,
-		    const ax25_address *, const ax25_digi *, int, int);
+					const ax25_address *, const ax25_digi *, int, int);
 int ax25_addr_size(const ax25_digi *);
 void ax25_digi_invert(const ax25_digi *, ax25_digi *);
 
@@ -352,7 +366,8 @@ void ax25_ds_idletimer_expiry(ax25_cb *);
 
 /* ax25_iface.c */
 
-struct ax25_protocol {
+struct ax25_protocol
+{
 	struct ax25_protocol *next;
 	unsigned int pid;
 	int (*func)(struct sk_buff *, ax25_cb *);
@@ -361,7 +376,8 @@ struct ax25_protocol {
 void ax25_register_pid(struct ax25_protocol *ap);
 void ax25_protocol_release(unsigned int);
 
-struct ax25_linkfail {
+struct ax25_linkfail
+{
 	struct hlist_node lf_node;
 	void (*func)(ax25_cb *, int);
 };
@@ -378,7 +394,7 @@ int ax25_protocol_is_registered(unsigned int);
 /* ax25_in.c */
 int ax25_rx_iframe(ax25_cb *, struct sk_buff *);
 int ax25_kiss_rcv(struct sk_buff *, struct net_device *, struct packet_type *,
-		  struct net_device *);
+				  struct net_device *);
 
 /* ax25_ip.c */
 netdev_tx_t ax25_ip_xmit(struct sk_buff *skb);
@@ -386,7 +402,7 @@ extern const struct header_ops ax25_header_ops;
 
 /* ax25_out.c */
 ax25_cb *ax25_send_frame(struct sk_buff *, int, ax25_address *, ax25_address *,
-			 ax25_digi *, struct net_device *);
+						 ax25_digi *, struct net_device *);
 void ax25_output(ax25_cb *, int, struct sk_buff *);
 void ax25_kick(ax25_cb *);
 void ax25_transmit_buffer(ax25_cb *, struct sk_buff *, int);
@@ -400,7 +416,7 @@ extern const struct file_operations ax25_route_fops;
 ax25_route *ax25_get_route(ax25_address *addr, struct net_device *dev);
 int ax25_rt_autobind(ax25_cb *, ax25_address *);
 struct sk_buff *ax25_rt_build_path(struct sk_buff *, ax25_address *,
-				   ax25_address *, ax25_digi *);
+								   ax25_address *, ax25_digi *);
 void ax25_rt_free(void);
 
 /* ax25_std_in.c */
@@ -428,7 +444,7 @@ int ax25_validate_nr(ax25_cb *, unsigned short);
 int ax25_decode(ax25_cb *, struct sk_buff *, int *, int *, int *);
 void ax25_send_control(ax25_cb *, int, int, int);
 void ax25_return_dm(struct net_device *, ax25_address *, ax25_address *,
-		    ax25_digi *);
+					ax25_digi *);
 void ax25_calculate_t1(ax25_cb *);
 void ax25_calculate_rtt(ax25_cb *);
 void ax25_disconnect(ax25_cb *, int);

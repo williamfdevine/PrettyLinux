@@ -18,7 +18,8 @@
 #include "dss.h"
 #include "hdmi.h"
 
-struct hdmi_phy_features {
+struct hdmi_phy_features
+{
 	bool bist_ctrl;
 	bool ldo_voltage;
 	unsigned long max_phy;
@@ -29,21 +30,25 @@ static const struct hdmi_phy_features *phy_feat;
 void hdmi_phy_dump(struct hdmi_phy_data *phy, struct seq_file *s)
 {
 #define DUMPPHY(r) seq_printf(s, "%-35s %08x\n", #r,\
-		hdmi_read_reg(phy->base, r))
+							  hdmi_read_reg(phy->base, r))
 
 	DUMPPHY(HDMI_TXPHY_TX_CTRL);
 	DUMPPHY(HDMI_TXPHY_DIGITAL_CTRL);
 	DUMPPHY(HDMI_TXPHY_POWER_CTRL);
 	DUMPPHY(HDMI_TXPHY_PAD_CFG_CTRL);
+
 	if (phy_feat->bist_ctrl)
+	{
 		DUMPPHY(HDMI_TXPHY_BIST_CONTROL);
+	}
 }
 
 int hdmi_phy_parse_lanes(struct hdmi_phy_data *phy, const u32 *lanes)
 {
 	int i;
 
-	for (i = 0; i < 8; i += 2) {
+	for (i = 0; i < 8; i += 2)
+	{
 		u8 lane, pol;
 		int dx, dy;
 
@@ -51,18 +56,31 @@ int hdmi_phy_parse_lanes(struct hdmi_phy_data *phy, const u32 *lanes)
 		dy = lanes[i + 1];
 
 		if (dx < 0 || dx >= 8)
+		{
 			return -EINVAL;
+		}
 
 		if (dy < 0 || dy >= 8)
+		{
 			return -EINVAL;
+		}
 
-		if (dx & 1) {
+		if (dx & 1)
+		{
 			if (dy != dx - 1)
+			{
 				return -EINVAL;
+			}
+
 			pol = 1;
-		} else {
+		}
+		else
+		{
 			if (dy != dx + 1)
+			{
 				return -EINVAL;
+			}
+
 			pol = 0;
 		}
 
@@ -77,7 +95,8 @@ int hdmi_phy_parse_lanes(struct hdmi_phy_data *phy, const u32 *lanes)
 
 static void hdmi_phy_configure_lanes(struct hdmi_phy_data *phy)
 {
-	static const u16 pad_cfg_list[] = {
+	static const u16 pad_cfg_list[] =
+	{
 		0x0123,
 		0x0132,
 		0x0312,
@@ -110,7 +129,9 @@ static void hdmi_phy_configure_lanes(struct hdmi_phy_data *phy)
 	u16 pol_val = 0;
 
 	for (i = 0; i < 4; ++i)
+	{
 		lane_cfg |= phy->lane_function[i] << ((3 - i) * 4);
+	}
 
 	pol_val |= phy->lane_polarity[0] << 0;
 	pol_val |= phy->lane_polarity[1] << 3;
@@ -119,10 +140,14 @@ static void hdmi_phy_configure_lanes(struct hdmi_phy_data *phy)
 
 	for (i = 0; i < ARRAY_SIZE(pad_cfg_list); ++i)
 		if (pad_cfg_list[i] == lane_cfg)
+		{
 			break;
+		}
 
 	if (WARN_ON(i == ARRAY_SIZE(pad_cfg_list)))
+	{
 		i = 0;
+	}
 
 	lane_cfg_val = i;
 
@@ -131,7 +156,7 @@ static void hdmi_phy_configure_lanes(struct hdmi_phy_data *phy)
 }
 
 int hdmi_phy_configure(struct hdmi_phy_data *phy, unsigned long hfbitclk,
-	unsigned long lfbitclk)
+					   unsigned long lfbitclk)
 {
 	u8 freqout;
 
@@ -146,18 +171,26 @@ int hdmi_phy_configure(struct hdmi_phy_data *phy, unsigned long hfbitclk,
 	 * HDMI_PHYPWRCMD_LDOON command.
 	*/
 	if (phy_feat->bist_ctrl)
+	{
 		REG_FLD_MOD(phy->base, HDMI_TXPHY_BIST_CONTROL, 1, 11, 11);
+	}
 
 	/*
 	 * If the hfbitclk != lfbitclk, it means the lfbitclk was configured
 	 * to be used for TMDS.
 	 */
 	if (hfbitclk != lfbitclk)
+	{
 		freqout = 0;
+	}
 	else if (hfbitclk / 10 < phy_feat->max_phy)
+	{
 		freqout = 1;
+	}
 	else
+	{
 		freqout = 2;
+	}
 
 	/*
 	 * Write to phy address 0 to configure the clock
@@ -170,20 +203,24 @@ int hdmi_phy_configure(struct hdmi_phy_data *phy, unsigned long hfbitclk,
 
 	/* Setup max LDO voltage */
 	if (phy_feat->ldo_voltage)
+	{
 		REG_FLD_MOD(phy->base, HDMI_TXPHY_POWER_CTRL, 0xB, 3, 0);
+	}
 
 	hdmi_phy_configure_lanes(phy);
 
 	return 0;
 }
 
-static const struct hdmi_phy_features omap44xx_phy_feats = {
+static const struct hdmi_phy_features omap44xx_phy_feats =
+{
 	.bist_ctrl	=	false,
 	.ldo_voltage	=	true,
 	.max_phy	=	185675000,
 };
 
-static const struct hdmi_phy_features omap54xx_phy_feats = {
+static const struct hdmi_phy_features omap54xx_phy_feats =
+{
 	.bist_ctrl	=	true,
 	.ldo_voltage	=	false,
 	.max_phy	=	186000000,
@@ -195,25 +232,28 @@ static int hdmi_phy_init_features(struct platform_device *pdev)
 	const struct hdmi_phy_features *src;
 
 	dst = devm_kzalloc(&pdev->dev, sizeof(*dst), GFP_KERNEL);
-	if (!dst) {
+
+	if (!dst)
+	{
 		dev_err(&pdev->dev, "Failed to allocate HDMI PHY Features\n");
 		return -ENOMEM;
 	}
 
-	switch (omapdss_get_version()) {
-	case OMAPDSS_VER_OMAP4430_ES1:
-	case OMAPDSS_VER_OMAP4430_ES2:
-	case OMAPDSS_VER_OMAP4:
-		src = &omap44xx_phy_feats;
-		break;
+	switch (omapdss_get_version())
+	{
+		case OMAPDSS_VER_OMAP4430_ES1:
+		case OMAPDSS_VER_OMAP4430_ES2:
+		case OMAPDSS_VER_OMAP4:
+			src = &omap44xx_phy_feats;
+			break;
 
-	case OMAPDSS_VER_OMAP5:
-	case OMAPDSS_VER_DRA7xx:
-		src = &omap54xx_phy_feats;
-		break;
+		case OMAPDSS_VER_OMAP5:
+		case OMAPDSS_VER_DRA7xx:
+			src = &omap54xx_phy_feats;
+			break;
 
-	default:
-		return -ENODEV;
+		default:
+			return -ENODEV;
 	}
 
 	memcpy(dst, src, sizeof(*dst));
@@ -228,17 +268,24 @@ int hdmi_phy_init(struct platform_device *pdev, struct hdmi_phy_data *phy)
 	struct resource *res;
 
 	r = hdmi_phy_init_features(pdev);
+
 	if (r)
+	{
 		return r;
+	}
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "phy");
-	if (!res) {
+
+	if (!res)
+	{
 		DSSERR("can't get PHY mem resource\n");
 		return -EINVAL;
 	}
 
 	phy->base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(phy->base)) {
+
+	if (IS_ERR(phy->base))
+	{
 		DSSERR("can't ioremap TX PHY\n");
 		return PTR_ERR(phy->base);
 	}

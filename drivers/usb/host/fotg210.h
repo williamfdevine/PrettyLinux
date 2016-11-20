@@ -17,7 +17,8 @@
 #define __hc16	__le16
 
 /* statistics can be kept for tuning/monitoring */
-struct fotg210_stats {
+struct fotg210_stats
+{
 	/* irq usage */
 	unsigned long		normal;
 	unsigned long		error;
@@ -45,7 +46,8 @@ struct fotg210_stats {
  * fotg210_rh_state values of FOTG210_RH_RUNNING or above mean that the
  * controller may be doing DMA.  Lower values mean there's no DMA.
  */
-enum fotg210_rh_state {
+enum fotg210_rh_state
+{
 	FOTG210_RH_HALTED,
 	FOTG210_RH_SUSPENDED,
 	FOTG210_RH_RUNNING,
@@ -57,7 +59,8 @@ enum fotg210_rh_state {
  * Always update event_delays_ns[] and event_handlers[] (defined in
  * ehci-timer.c) in parallel with this list.
  */
-enum fotg210_hrtimer_event {
+enum fotg210_hrtimer_event
+{
 	FOTG210_HRTIMER_POLL_ASS,	/* Poll for async schedule off */
 	FOTG210_HRTIMER_POLL_PSS,	/* Poll for periodic schedule off */
 	FOTG210_HRTIMER_POLL_DEAD,	/* Wait for dead controller to stop */
@@ -72,7 +75,8 @@ enum fotg210_hrtimer_event {
 };
 #define FOTG210_HRTIMER_NO_EVENT	99
 
-struct fotg210_hcd {			/* one per controller */
+struct fotg210_hcd  			/* one per controller */
+{
 	/* timing support */
 	enum fotg210_hrtimer_event	next_hrtimer_event;
 	unsigned		enabled_hrtimer_events;
@@ -93,11 +97,11 @@ struct fotg210_hcd {			/* one per controller */
 	enum fotg210_rh_state	rh_state;
 
 	/* general schedule support */
-	bool			scanning:1;
-	bool			need_rescan:1;
-	bool			intr_unlinking:1;
-	bool			async_unlinking:1;
-	bool			shutdown:1;
+	bool			scanning: 1;
+	bool			need_rescan: 1;
+	bool			intr_unlinking: 1;
+	bool			async_unlinking: 1;
+	bool			shutdown: 1;
 	struct fotg210_qh		*qh_scan_next;
 
 	/* async schedule support */
@@ -168,8 +172,8 @@ struct fotg210_hcd {			/* one per controller */
 	u32			command;
 
 	/* SILICON QUIRKS */
-	unsigned		need_io_watchdog:1;
-	unsigned		fs_i_thresh:1;	/* Intel iso scheduling */
+	unsigned		need_io_watchdog: 1;
+	unsigned		fs_i_thresh: 1;	/* Intel iso scheduling */
 
 	u8			sbrn;		/* packed release number */
 
@@ -200,7 +204,8 @@ static inline struct usb_hcd *fotg210_to_hcd(struct fotg210_hcd *fotg210)
 /* EHCI register interface, corresponds to EHCI Revision 0.95 specification */
 
 /* Section 2.2 Host Controller Capability Registers */
-struct fotg210_caps {
+struct fotg210_caps
+{
 	/* these fields are specified as 8 and 16 bit registers,
 	 * but some hosts can't perform 8 or 16 bit PCI accesses.
 	 * some hosts treat caplength and hciversion as parts of a 32-bit
@@ -209,9 +214,9 @@ struct fotg210_caps {
 	 */
 	u32		hc_capbase;
 #define HC_LENGTH(fotg210, p)	(0x00ff&((p) >> /* bits 7:0 / offset 00h */ \
-				(fotg210_big_endian_capbase(fotg210) ? 24 : 0)))
+								 (fotg210_big_endian_capbase(fotg210) ? 24 : 0)))
 #define HC_VERSION(fotg210, p)	(0xffff&((p) >> /* bits 31:16 / offset 02h */ \
-				(fotg210_big_endian_capbase(fotg210) ? 0 : 16)))
+								 (fotg210_big_endian_capbase(fotg210) ? 0 : 16)))
 	u32		hcs_params;     /* HCSPARAMS - offset 0x4 */
 #define HCS_N_PORTS(p)		(((p)>>0)&0xf)	/* bits 3:0, ports on HC */
 
@@ -223,19 +228,20 @@ struct fotg210_caps {
 
 
 /* Section 2.3 Host Controller Operational Registers */
-struct fotg210_regs {
+struct fotg210_regs
+{
 
 	/* USBCMD: offset 0x00 */
 	u32		command;
 
-/* EHCI 1.1 addendum */
-/* 23:16 is r/w intr rate, in microframes; default "8" == 1/msec */
+	/* EHCI 1.1 addendum */
+	/* 23:16 is r/w intr rate, in microframes; default "8" == 1/msec */
 #define CMD_PARK	(1<<11)		/* enable "park" on async qh */
 #define CMD_PARK_CNT(c)	(((c)>>8)&3)	/* how many transfers to park for */
 #define CMD_IAAD	(1<<6)		/* "doorbell" interrupt async advance */
 #define CMD_ASE		(1<<5)		/* async schedule enable */
 #define CMD_PSE		(1<<4)		/* periodic schedule enable */
-/* 3:2 is periodic frame list size */
+	/* 3:2 is periodic frame list size */
 #define CMD_RESET	(1<<1)		/* reset HC not bus */
 #define CMD_RUN		(1<<0)		/* start/stop HC */
 
@@ -245,7 +251,7 @@ struct fotg210_regs {
 #define STS_PSS		(1<<14)		/* Periodic Schedule Status */
 #define STS_RECL	(1<<13)		/* Reclamation */
 #define STS_HALT	(1<<12)		/* Not running (any reason) */
-/* some bits reserved */
+	/* some bits reserved */
 	/* these STS_* flags are also intr_enable bits (USBINTR) */
 #define STS_IAA		(1<<5)		/* Interrupted on async advance */
 #define STS_FATAL	(1<<4)		/* such as some PCI access errors */
@@ -269,7 +275,7 @@ struct fotg210_regs {
 	u32	reserved1;
 	/* PORTSC: offset 0x20 */
 	u32	port_status;
-/* 31:23 reserved */
+	/* 31:23 reserved */
 #define PORT_USB11(x) (((x)&(3<<10)) == (1<<10))	/* USB 1.1 device */
 #define PORT_RESET	(1<<8)		/* reset port */
 #define PORT_SUSPEND	(1<<7)		/* suspend port */
@@ -313,7 +319,8 @@ struct fotg210_regs {
  * These are associated only with "QH" (Queue Head) structures,
  * used with control, bulk, and interrupt transfers.
  */
-struct fotg210_qtd {
+struct fotg210_qtd
+{
 	/* first part defined by EHCI spec */
 	__hc32			hw_next;	/* see EHCI 3.5.1 */
 	__hc32			hw_alt_next;    /* see EHCI 3.5.2 */
@@ -385,7 +392,8 @@ struct fotg210_qtd {
  *
  * For entries in the async schedule, the type tag always says "qh".
  */
-union fotg210_shadow {
+union fotg210_shadow
+{
 	struct fotg210_qh	*qh;		/* Q_TYPE_QH */
 	struct fotg210_itd	*itd;		/* Q_TYPE_ITD */
 	struct fotg210_fstn	*fstn;		/* Q_TYPE_FSTN */
@@ -404,7 +412,8 @@ union fotg210_shadow {
  */
 
 /* first part defined by EHCI spec */
-struct fotg210_qh_hw {
+struct fotg210_qh_hw
+{
 	__hc32			hw_next;	/* see EHCI 3.6.1 */
 	__hc32			hw_info1;	/* see EHCI 3.6.2 */
 #define	QH_CONTROL_EP	(1 << 27)	/* FS/LS control endpoint */
@@ -430,7 +439,8 @@ struct fotg210_qh_hw {
 	__hc32			hw_buf_hi[5];
 } __aligned(32);
 
-struct fotg210_qh {
+struct fotg210_qh
+{
 	struct fotg210_qh_hw	*hw;		/* Must come first */
 	/* the rest is HCD-private */
 	dma_addr_t		qh_dma;		/* address of qh */
@@ -463,14 +473,15 @@ struct fotg210_qh {
 #define NO_FRAME ((unsigned short)~0)			/* pick new start */
 
 	struct usb_device	*dev;		/* access to TT */
-	unsigned		is_out:1;	/* bulk or intr OUT */
-	unsigned		clearing_tt:1;	/* Clear-TT-Buf in progress */
+	unsigned		is_out: 1;	/* bulk or intr OUT */
+	unsigned		clearing_tt: 1;	/* Clear-TT-Buf in progress */
 };
 
 /*-------------------------------------------------------------------------*/
 
 /* description of one iso transaction (up to 3 KB data if highspeed) */
-struct fotg210_iso_packet {
+struct fotg210_iso_packet
+{
 	/* These will be copied to iTD when scheduling */
 	u64			bufp;		/* itd->hw_bufp{,_hi}[pg] |= */
 	__hc32			transaction;	/* itd->hw_transaction[i] |= */
@@ -483,7 +494,8 @@ struct fotg210_iso_packet {
  * each packet is one logical usb transaction to the device (not TT),
  * beginning at stream->next_uframe
  */
-struct fotg210_iso_sched {
+struct fotg210_iso_sched
+{
 	struct list_head	td_list;
 	unsigned		span;
 	struct fotg210_iso_packet	packet[0];
@@ -493,7 +505,8 @@ struct fotg210_iso_sched {
  * fotg210_iso_stream - groups all (s)itds for this endpoint.
  * acts like a qh would, if EHCI had them for ISO.
  */
-struct fotg210_iso_stream {
+struct fotg210_iso_stream
+{
 	/* first field matches fotg210_hq, but is NULL */
 	struct fotg210_qh_hw	*hw;
 
@@ -536,7 +549,8 @@ struct fotg210_iso_stream {
  *
  * Schedule records for high speed iso xfers
  */
-struct fotg210_itd {
+struct fotg210_itd
+{
 	/* first part defined by EHCI spec */
 	__hc32			hw_next;	/* see EHCI 3.3.1 */
 	__hc32			hw_transaction[8]; /* see EHCI 3.3.2 */
@@ -577,7 +591,8 @@ struct fotg210_itd {
  * makes the HC jump (back) to a QH to scan for fs/ls QH completions until
  * it hits a "restore" FSTN; then it returns to finish other uframe 0/1 work.
  */
-struct fotg210_fstn {
+struct fotg210_fstn
+{
 	__hc32			hw_next;	/* any periodic q entry */
 	__hc32			hw_prev;	/* qh or FOTG210_LIST_END */
 
@@ -591,10 +606,10 @@ struct fotg210_fstn {
 /* Prepare the PORTSC wakeup flags during controller suspend/resume */
 
 #define fotg210_prepare_ports_for_controller_suspend(fotg210, do_wakeup) \
-		fotg210_adjust_port_wakeup_flags(fotg210, true, do_wakeup)
+	fotg210_adjust_port_wakeup_flags(fotg210, true, do_wakeup)
 
 #define fotg210_prepare_ports_for_controller_resume(fotg210)		\
-		fotg210_adjust_port_wakeup_flags(fotg210, false, false)
+	fotg210_adjust_port_wakeup_flags(fotg210, false, false)
 
 /*-------------------------------------------------------------------------*/
 
@@ -609,21 +624,24 @@ static inline unsigned int
 fotg210_get_speed(struct fotg210_hcd *fotg210, unsigned int portsc)
 {
 	return (readl(&fotg210->regs->otgcsr)
-		& OTGCSR_HOST_SPD_TYP) >> 22;
+			& OTGCSR_HOST_SPD_TYP) >> 22;
 }
 
 /* Returns the speed of a device attached to a port on the root hub. */
 static inline unsigned int
 fotg210_port_speed(struct fotg210_hcd *fotg210, unsigned int portsc)
 {
-	switch (fotg210_get_speed(fotg210, portsc)) {
-	case 0:
-		return 0;
-	case 1:
-		return USB_PORT_STAT_LOW_SPEED;
-	case 2:
-	default:
-		return USB_PORT_STAT_HIGH_SPEED;
+	switch (fotg210_get_speed(fotg210, portsc))
+	{
+		case 0:
+			return 0;
+
+		case 1:
+			return USB_PORT_STAT_LOW_SPEED;
+
+		case 2:
+		default:
+			return USB_PORT_STAT_HIGH_SPEED;
 	}
 }
 
@@ -652,7 +670,7 @@ static inline unsigned int fotg210_readl(const struct fotg210_hcd *fotg210,
 }
 
 static inline void fotg210_writel(const struct fotg210_hcd *fotg210,
-		const unsigned int val, __u32 __iomem *regs)
+								  const unsigned int val, __u32 __iomem *regs)
 {
 	writel(val, regs);
 }
@@ -670,7 +688,7 @@ static inline u32 hc32_to_cpu(const struct fotg210_hcd *fotg210, const __hc32 x)
 }
 
 static inline u32 hc32_to_cpup(const struct fotg210_hcd *fotg210,
-			       const __hc32 *x)
+							   const __hc32 *x)
 {
 	return le32_to_cpup(x);
 }
@@ -683,10 +701,10 @@ static inline unsigned fotg210_read_frame_index(struct fotg210_hcd *fotg210)
 }
 
 #define fotg210_itdlen(urb, desc, t) ({			\
-	usb_pipein((urb)->pipe) ?				\
-	(desc)->length - FOTG210_ITD_LENGTH(t) :			\
-	FOTG210_ITD_LENGTH(t);					\
-})
+		usb_pipein((urb)->pipe) ?				\
+		(desc)->length - FOTG210_ITD_LENGTH(t) :			\
+		FOTG210_ITD_LENGTH(t);					\
+	})
 /*-------------------------------------------------------------------------*/
 
 #endif /* __LINUX_FOTG210_H */

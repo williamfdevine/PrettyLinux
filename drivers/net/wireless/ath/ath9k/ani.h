@@ -51,7 +51,8 @@
 
 /* values here are relative to the INI */
 
-enum ath9k_ani_cmd {
+enum ath9k_ani_cmd
+{
 	ATH9K_ANI_OFDM_WEAK_SIGNAL_DETECTION = 0x1,
 	ATH9K_ANI_FIRSTEP_LEVEL = 0x2,
 	ATH9K_ANI_SPUR_IMMUNITY_LEVEL = 0x4,
@@ -59,7 +60,8 @@ enum ath9k_ani_cmd {
 	ATH9K_ANI_ALL = 0xfff
 };
 
-struct ath9k_mib_stats {
+struct ath9k_mib_stats
+{
 	u32 ackrcv_bad;
 	u32 rts_bad;
 	u32 rts_good;
@@ -68,7 +70,8 @@ struct ath9k_mib_stats {
 };
 
 /* INI default values for ANI registers */
-struct ath9k_ani_default {
+struct ath9k_ani_default
+{
 	u16 m1ThreshLow;
 	u16 m2ThreshLow;
 	u16 m1Thresh;
@@ -85,7 +88,8 @@ struct ath9k_ani_default {
 	u16 cycpwrThr1Ext;
 };
 
-struct ar5416AniState {
+struct ar5416AniState
+{
 	u8 noiseImmunityLevel;
 	u8 ofdmNoiseImmunityLevel;
 	u8 cckNoiseImmunityLevel;
@@ -100,7 +104,8 @@ struct ar5416AniState {
 	struct ath9k_ani_default iniDef;
 };
 
-struct ar5416Stats {
+struct ar5416Stats
+{
 	u32 ast_ani_spurup;
 	u32 ast_ani_spurdown;
 	u32 ast_ani_ofdmon;

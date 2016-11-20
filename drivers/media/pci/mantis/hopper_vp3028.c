@@ -34,7 +34,8 @@
 #include "mantis_dvb.h"
 #include "hopper_vp3028.h"
 
-static struct zl10353_config hopper_vp3028_config = {
+static struct zl10353_config hopper_vp3028_config =
+{
 	.demod_address	= 0x0f,
 };
 
@@ -54,26 +55,34 @@ static int vp3028_frontend_init(struct mantis_pci *mantis, struct dvb_frontend *
 	mantis_gpio_set_bits(mantis, config->reset, 1);
 
 	err = mantis_frontend_power(mantis, POWER_ON);
-	if (err == 0) {
+
+	if (err == 0)
+	{
 		msleep(250);
 		dprintk(MANTIS_ERROR, 1, "Probing for 10353 (DVB-T)");
 		fe = dvb_attach(zl10353_attach, &hopper_vp3028_config, adapter);
 
 		if (!fe)
+		{
 			return -1;
-	} else {
+		}
+	}
+	else
+	{
 		dprintk(MANTIS_ERROR, 1, "Frontend on <%s> POWER ON failed! <%d>",
-			adapter->name,
-			err);
+				adapter->name,
+				err);
 
 		return -EIO;
 	}
+
 	dprintk(MANTIS_ERROR, 1, "Done!");
 
 	return 0;
 }
 
-struct mantis_hwconfig vp3028_config = {
+struct mantis_hwconfig vp3028_config =
+{
 	.model_name	= MANTIS_MODEL_NAME,
 	.dev_type	= MANTIS_DEV_TYPE,
 	.ts_size	= MANTIS_TS_188,

@@ -25,9 +25,9 @@
 #define SSP_DEVICE_ID		0x55
 
 #ifdef SSP_DBG
-#define ssp_dbg(format, ...) pr_info("[SSP] "format, ##__VA_ARGS__)
+	#define ssp_dbg(format, ...) pr_info("[SSP] "format, ##__VA_ARGS__)
 #else
-#define ssp_dbg(format, ...)
+	#define ssp_dbg(format, ...)
 #endif
 
 #define SSP_SW_RESET_TIME		3000
@@ -37,12 +37,14 @@
 #define SSP_DATA_PACKET_SIZE		960
 #define SSP_HEADER_BUFFER_SIZE		4
 
-enum {
+enum
+{
 	SSP_KERNEL_BINARY = 0,
 	SSP_KERNEL_CRASHED_BINARY,
 };
 
-enum {
+enum
+{
 	SSP_INITIALIZATION_STATE = 0,
 	SSP_NO_SENSOR_STATE,
 	SSP_ADD_SENSOR_STATE,
@@ -50,7 +52,8 @@ enum {
 };
 
 /* Firmware download STATE */
-enum {
+enum
+{
 	SSP_FW_DL_STATE_FAIL = -1,
 	SSP_FW_DL_STATE_NONE = 0,
 	SSP_FW_DL_STATE_NEED_TO_SCHEDULE,
@@ -130,11 +133,12 @@ enum {
 #define SSP_MSG_ACK		0x80	/* ACK from SSP to AP */
 #define SSP_MSG_NAK		0x70	/* NAK from SSP to AP */
 
-struct ssp_sensorhub_info {
+struct ssp_sensorhub_info
+{
 	char *fw_name;
 	char *fw_crashed_name;
 	unsigned int fw_rev;
-	const u8 * const mag_table;
+	const u8 *const mag_table;
 	const unsigned int mag_length;
 };
 
@@ -186,7 +190,8 @@ struct ssp_sensorhub_info {
  * @enable_refcount:	enable reference count for wdt (watchdog timer)
  * @header_buffer:	cache aligned buffer for packet header
  */
-struct ssp_data {
+struct ssp_data
+{
 	struct spi_device *spi;
 	struct ssp_sensorhub_info *sensorhub_info;
 	struct timer_list wdt_timer;
@@ -232,7 +237,7 @@ struct ssp_data {
 	atomic_t enable_refcount;
 
 	__le16 header_buffer[SSP_HEADER_BUFFER_SIZE / sizeof(__le16)]
-		____cacheline_aligned;
+	____cacheline_aligned;
 };
 
 void ssp_clean_pending_list(struct ssp_data *data);
@@ -240,7 +245,7 @@ void ssp_clean_pending_list(struct ssp_data *data);
 int ssp_command(struct ssp_data *data, char command, int arg);
 
 int ssp_send_instruction(struct ssp_data *data, u8 inst, u8 sensor_type,
-			 u8 *send_buf, u8 length);
+						 u8 *send_buf, u8 length);
 
 int ssp_irq_msg(struct ssp_data *data);
 

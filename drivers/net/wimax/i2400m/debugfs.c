@@ -41,8 +41,8 @@ int debugfs_netdev_queue_stopped_get(void *data, u64 *val)
 	return 0;
 }
 DEFINE_SIMPLE_ATTRIBUTE(fops_netdev_queue_stopped,
-			debugfs_netdev_queue_stopped_get,
-			NULL, "%llu\n");
+						debugfs_netdev_queue_stopped_get,
+						NULL, "%llu\n");
 
 
 static
@@ -50,7 +50,7 @@ struct dentry *debugfs_create_netdev_queue_stopped(
 	const char *name, struct dentry *parent, struct i2400m *i2400m)
 {
 	return debugfs_create_file(name, 0400, parent, i2400m,
-				   &fops_netdev_queue_stopped);
+							   &fops_netdev_queue_stopped);
 }
 
 /*
@@ -62,22 +62,28 @@ struct dentry *debugfs_create_netdev_queue_stopped(
  */
 static
 ssize_t i2400m_rx_stats_read(struct file *filp, char __user *buffer,
-			     size_t count, loff_t *ppos)
+							 size_t count, loff_t *ppos)
 {
 	struct i2400m *i2400m = filp->private_data;
 	char buf[128];
 	unsigned long flags;
 
 	if (*ppos != 0)
+	{
 		return 0;
+	}
+
 	if (count < sizeof(buf))
+	{
 		return -ENOSPC;
+	}
+
 	spin_lock_irqsave(&i2400m->rx_lock, flags);
 	snprintf(buf, sizeof(buf), "%u %u %u %u %u %u %u\n",
-		 i2400m->rx_pl_num, i2400m->rx_pl_min,
-		 i2400m->rx_pl_max, i2400m->rx_num,
-		 i2400m->rx_size_acc,
-		 i2400m->rx_size_min, i2400m->rx_size_max);
+			 i2400m->rx_pl_num, i2400m->rx_pl_min,
+			 i2400m->rx_pl_max, i2400m->rx_num,
+			 i2400m->rx_size_acc,
+			 i2400m->rx_size_min, i2400m->rx_size_max);
 	spin_unlock_irqrestore(&i2400m->rx_lock, flags);
 	return simple_read_from_buffer(buffer, count, ppos, buf, strlen(buf));
 }
@@ -86,7 +92,7 @@ ssize_t i2400m_rx_stats_read(struct file *filp, char __user *buffer,
 /* Any write clears the stats */
 static
 ssize_t i2400m_rx_stats_write(struct file *filp, const char __user *buffer,
-			      size_t count, loff_t *ppos)
+							  size_t count, loff_t *ppos)
 {
 	struct i2400m *i2400m = filp->private_data;
 	unsigned long flags;
@@ -104,7 +110,8 @@ ssize_t i2400m_rx_stats_write(struct file *filp, const char __user *buffer,
 }
 
 static
-const struct file_operations i2400m_rx_stats_fops = {
+const struct file_operations i2400m_rx_stats_fops =
+{
 	.owner =	THIS_MODULE,
 	.open =		simple_open,
 	.read =		i2400m_rx_stats_read,
@@ -116,22 +123,28 @@ const struct file_operations i2400m_rx_stats_fops = {
 /* See i2400m_rx_stats_read() */
 static
 ssize_t i2400m_tx_stats_read(struct file *filp, char __user *buffer,
-			     size_t count, loff_t *ppos)
+							 size_t count, loff_t *ppos)
 {
 	struct i2400m *i2400m = filp->private_data;
 	char buf[128];
 	unsigned long flags;
 
 	if (*ppos != 0)
+	{
 		return 0;
+	}
+
 	if (count < sizeof(buf))
+	{
 		return -ENOSPC;
+	}
+
 	spin_lock_irqsave(&i2400m->tx_lock, flags);
 	snprintf(buf, sizeof(buf), "%u %u %u %u %u %u %u\n",
-		 i2400m->tx_pl_num, i2400m->tx_pl_min,
-		 i2400m->tx_pl_max, i2400m->tx_num,
-		 i2400m->tx_size_acc,
-		 i2400m->tx_size_min, i2400m->tx_size_max);
+			 i2400m->tx_pl_num, i2400m->tx_pl_min,
+			 i2400m->tx_pl_max, i2400m->tx_num,
+			 i2400m->tx_size_acc,
+			 i2400m->tx_size_min, i2400m->tx_size_max);
 	spin_unlock_irqrestore(&i2400m->tx_lock, flags);
 	return simple_read_from_buffer(buffer, count, ppos, buf, strlen(buf));
 }
@@ -139,7 +152,7 @@ ssize_t i2400m_tx_stats_read(struct file *filp, char __user *buffer,
 /* Any write clears the stats */
 static
 ssize_t i2400m_tx_stats_write(struct file *filp, const char __user *buffer,
-			      size_t count, loff_t *ppos)
+							  size_t count, loff_t *ppos)
 {
 	struct i2400m *i2400m = filp->private_data;
 	unsigned long flags;
@@ -157,7 +170,8 @@ ssize_t i2400m_tx_stats_write(struct file *filp, const char __user *buffer,
 }
 
 static
-const struct file_operations i2400m_tx_stats_fops = {
+const struct file_operations i2400m_tx_stats_fops =
+{
 	.owner =	THIS_MODULE,
 	.open =		simple_open,
 	.read =		i2400m_tx_stats_read,
@@ -173,20 +187,24 @@ int debugfs_i2400m_suspend_set(void *data, u64 val)
 	int result;
 	struct i2400m *i2400m = data;
 	result = i2400m_cmd_enter_powersave(i2400m);
+
 	if (result >= 0)
+	{
 		result = 0;
+	}
+
 	return result;
 }
 DEFINE_SIMPLE_ATTRIBUTE(fops_i2400m_suspend,
-			NULL, debugfs_i2400m_suspend_set,
-			"%llu\n");
+						NULL, debugfs_i2400m_suspend_set,
+						"%llu\n");
 
 static
 struct dentry *debugfs_create_i2400m_suspend(
 	const char *name, struct dentry *parent, struct i2400m *i2400m)
 {
 	return debugfs_create_file(name, 0200, parent, i2400m,
-				   &fops_i2400m_suspend);
+							   &fops_i2400m_suspend);
 }
 
 
@@ -202,38 +220,46 @@ int debugfs_i2400m_reset_set(void *data, u64 val)
 	int result;
 	struct i2400m *i2400m = data;
 	enum i2400m_reset_type rt = val;
-	switch(rt) {
-	case I2400M_RT_WARM:
-	case I2400M_RT_COLD:
-	case I2400M_RT_BUS:
-		result = i2400m_reset(i2400m, rt);
-		if (result >= 0)
-			result = 0;
-		break;
-	default:
-		result = -EINVAL;
+
+	switch (rt)
+	{
+		case I2400M_RT_WARM:
+		case I2400M_RT_COLD:
+		case I2400M_RT_BUS:
+			result = i2400m_reset(i2400m, rt);
+
+			if (result >= 0)
+			{
+				result = 0;
+			}
+
+			break;
+
+		default:
+			result = -EINVAL;
 	}
+
 	return result;
 }
 DEFINE_SIMPLE_ATTRIBUTE(fops_i2400m_reset,
-			NULL, debugfs_i2400m_reset_set,
-			"%llu\n");
+						NULL, debugfs_i2400m_reset_set,
+						"%llu\n");
 
 static
 struct dentry *debugfs_create_i2400m_reset(
 	const char *name, struct dentry *parent, struct i2400m *i2400m)
 {
 	return debugfs_create_file(name, 0200, parent, i2400m,
-				   &fops_i2400m_reset);
+							   &fops_i2400m_reset);
 }
 
 
 #define __debugfs_register(prefix, name, parent)			\
-do {									\
-	result = d_level_register_debugfs(prefix, name, parent);	\
-	if (result < 0)							\
-		goto error;						\
-} while (0)
+	do {									\
+		result = d_level_register_debugfs(prefix, name, parent);	\
+		if (result < 0)							\
+			goto error;						\
+	} while (0)
 
 
 int i2400m_debugfs_add(struct i2400m *i2400m)
@@ -245,11 +271,17 @@ int i2400m_debugfs_add(struct i2400m *i2400m)
 
 	dentry = debugfs_create_dir("i2400m", dentry);
 	result = PTR_ERR(dentry);
-	if (IS_ERR(dentry)) {
+
+	if (IS_ERR(dentry))
+	{
 		if (result == -ENODEV)
-			result = 0;	/* No debugfs support */
+		{
+			result = 0;    /* No debugfs support */
+		}
+
 		goto error;
 	}
+
 	i2400m->debugfs_dentry = dentry;
 	__debugfs_register("dl_", control, dentry);
 	__debugfs_register("dl_", driver, dentry);
@@ -261,29 +293,35 @@ int i2400m_debugfs_add(struct i2400m *i2400m)
 	__debugfs_register("dl_", tx, dentry);
 
 	fd = debugfs_create_size_t("tx_in", 0400, dentry,
-				   &i2400m->tx_in);
+							   &i2400m->tx_in);
 	result = PTR_ERR(fd);
-	if (IS_ERR(fd) && result != -ENODEV) {
+
+	if (IS_ERR(fd) && result != -ENODEV)
+	{
 		dev_err(dev, "Can't create debugfs entry "
-			"tx_in: %d\n", result);
+				"tx_in: %d\n", result);
 		goto error;
 	}
 
 	fd = debugfs_create_size_t("tx_out", 0400, dentry,
-				   &i2400m->tx_out);
+							   &i2400m->tx_out);
 	result = PTR_ERR(fd);
-	if (IS_ERR(fd) && result != -ENODEV) {
+
+	if (IS_ERR(fd) && result != -ENODEV)
+	{
 		dev_err(dev, "Can't create debugfs entry "
-			"tx_out: %d\n", result);
+				"tx_out: %d\n", result);
 		goto error;
 	}
 
 	fd = debugfs_create_u32("state", 0600, dentry,
-				&i2400m->state);
+							&i2400m->state);
 	result = PTR_ERR(fd);
-	if (IS_ERR(fd) && result != -ENODEV) {
+
+	if (IS_ERR(fd) && result != -ENODEV)
+	{
 		dev_err(dev, "Can't create debugfs entry "
-			"state: %d\n", result);
+				"state: %d\n", result);
 		goto error;
 	}
 
@@ -310,52 +348,64 @@ int i2400m_debugfs_add(struct i2400m *i2400m)
 	 * critical.
 	 */
 	fd = debugfs_create_u8("trace_msg_from_user", 0600, dentry,
-			       &i2400m->trace_msg_from_user);
+						   &i2400m->trace_msg_from_user);
 	result = PTR_ERR(fd);
-	if (IS_ERR(fd) && result != -ENODEV) {
+
+	if (IS_ERR(fd) && result != -ENODEV)
+	{
 		dev_err(dev, "Can't create debugfs entry "
-			"trace_msg_from_user: %d\n", result);
+				"trace_msg_from_user: %d\n", result);
 		goto error;
 	}
 
 	fd = debugfs_create_netdev_queue_stopped("netdev_queue_stopped",
-						 dentry, i2400m);
+			dentry, i2400m);
 	result = PTR_ERR(fd);
-	if (IS_ERR(fd) && result != -ENODEV) {
+
+	if (IS_ERR(fd) && result != -ENODEV)
+	{
 		dev_err(dev, "Can't create debugfs entry "
-			"netdev_queue_stopped: %d\n", result);
+				"netdev_queue_stopped: %d\n", result);
 		goto error;
 	}
 
 	fd = debugfs_create_file("rx_stats", 0600, dentry, i2400m,
-				 &i2400m_rx_stats_fops);
+							 &i2400m_rx_stats_fops);
 	result = PTR_ERR(fd);
-	if (IS_ERR(fd) && result != -ENODEV) {
+
+	if (IS_ERR(fd) && result != -ENODEV)
+	{
 		dev_err(dev, "Can't create debugfs entry "
-			"rx_stats: %d\n", result);
+				"rx_stats: %d\n", result);
 		goto error;
 	}
 
 	fd = debugfs_create_file("tx_stats", 0600, dentry, i2400m,
-				 &i2400m_tx_stats_fops);
+							 &i2400m_tx_stats_fops);
 	result = PTR_ERR(fd);
-	if (IS_ERR(fd) && result != -ENODEV) {
+
+	if (IS_ERR(fd) && result != -ENODEV)
+	{
 		dev_err(dev, "Can't create debugfs entry "
-			"tx_stats: %d\n", result);
+				"tx_stats: %d\n", result);
 		goto error;
 	}
 
 	fd = debugfs_create_i2400m_suspend("suspend", dentry, i2400m);
 	result = PTR_ERR(fd);
-	if (IS_ERR(fd) && result != -ENODEV) {
+
+	if (IS_ERR(fd) && result != -ENODEV)
+	{
 		dev_err(dev, "Can't create debugfs entry suspend: %d\n",
-			result);
+				result);
 		goto error;
 	}
 
 	fd = debugfs_create_i2400m_reset("reset", dentry, i2400m);
 	result = PTR_ERR(fd);
-	if (IS_ERR(fd) && result != -ENODEV) {
+
+	if (IS_ERR(fd) && result != -ENODEV)
+	{
 		dev_err(dev, "Can't create debugfs entry reset: %d\n", result);
 		goto error;
 	}

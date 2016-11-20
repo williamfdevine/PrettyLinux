@@ -46,7 +46,8 @@
  *  AT specific setup
  */
 
-static const struct ni_board_struct ni_boards[] = {
+static const struct ni_board_struct ni_boards[] =
+{
 	{
 		.name		= "DAQCard-ai-16xe-50",
 		.device_id	= 0x010d,
@@ -79,7 +80,7 @@ static const struct ni_board_struct ni_boards[] = {
 		.ao_range_table	= &range_bipolar10,
 		.ao_speed	= 1176,
 		.caldac		= { ad8804_debug },	/* verified */
-	 }, {
+	}, {
 		/* specs incorrect! */
 		.name		= "DAQCard-6024E",
 		.device_id	= 0x075e,
@@ -108,7 +109,7 @@ static const struct ni_board_struct ni_boards[] = {
 		.ao_range_table	= &range_bipolar10,
 		.ao_speed	= 1000000,
 		.caldac		= { ad8804_debug },
-	 },
+	},
 #if 0
 	{
 		.name		= "DAQCard-6715",
@@ -124,16 +125,21 @@ static const struct ni_board_struct ni_boards[] = {
 #include "ni_mio_common.c"
 
 static const void *ni_getboardtype(struct comedi_device *dev,
-				   struct pcmcia_device *link)
+								   struct pcmcia_device *link)
 {
 	static const struct ni_board_struct *board;
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(ni_boards); i++) {
+	for (i = 0; i < ARRAY_SIZE(ni_boards); i++)
+	{
 		board = &ni_boards[i];
+
 		if (board->device_id == link->card_id)
+		{
 			return board;
+		}
 	}
+
 	return NULL;
 }
 
@@ -144,43 +150,63 @@ static int mio_pcmcia_config_loop(struct pcmcia_device *p_dev, void *priv_data)
 	p_dev->resource[0]->flags &= ~IO_DATA_PATH_WIDTH;
 	p_dev->resource[0]->flags |= IO_DATA_PATH_WIDTH_16;
 
-	for (base = 0x000; base < 0x400; base += 0x20) {
+	for (base = 0x000; base < 0x400; base += 0x20)
+	{
 		p_dev->resource[0]->start = base;
 		ret = pcmcia_request_io(p_dev);
+
 		if (!ret)
+		{
 			return 0;
+		}
 	}
+
 	return -ENODEV;
 }
 
 static int mio_cs_auto_attach(struct comedi_device *dev,
-			      unsigned long context)
+							  unsigned long context)
 {
 	struct pcmcia_device *link = comedi_to_pcmcia_dev(dev);
 	static const struct ni_board_struct *board;
 	int ret;
 
 	board = ni_getboardtype(dev, link);
+
 	if (!board)
+	{
 		return -ENODEV;
+	}
+
 	dev->board_ptr = board;
 	dev->board_name = board->name;
 
 	link->config_flags |= CONF_AUTO_SET_IO | CONF_ENABLE_IRQ;
 	ret = comedi_pcmcia_enable(dev, mio_pcmcia_config_loop);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	dev->iobase = link->resource[0]->start;
 
 	link->priv = dev;
 	ret = pcmcia_request_irq(link, ni_E_interrupt);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	dev->irq = link->irq;
 
 	ret = ni_alloc_private(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return ni_E_init(dev, 0, 1);
 }
@@ -191,7 +217,8 @@ static void mio_cs_detach(struct comedi_device *dev)
 	comedi_pcmcia_disable(dev);
 }
 
-static struct comedi_driver driver_ni_mio_cs = {
+static struct comedi_driver driver_ni_mio_cs =
+{
 	.driver_name	= "ni_mio_cs",
 	.module		= THIS_MODULE,
 	.auto_attach	= mio_cs_auto_attach,
@@ -203,7 +230,8 @@ static int cs_attach(struct pcmcia_device *link)
 	return comedi_pcmcia_auto_config(link, &driver_ni_mio_cs);
 }
 
-static const struct pcmcia_device_id ni_mio_cs_ids[] = {
+static const struct pcmcia_device_id ni_mio_cs_ids[] =
+{
 	PCMCIA_DEVICE_MANF_CARD(0x010b, 0x010d),	/* DAQCard-ai-16xe-50 */
 	PCMCIA_DEVICE_MANF_CARD(0x010b, 0x010c),	/* DAQCard-ai-16e-4 */
 	PCMCIA_DEVICE_MANF_CARD(0x010b, 0x02c4),	/* DAQCard-6062E */
@@ -213,7 +241,8 @@ static const struct pcmcia_device_id ni_mio_cs_ids[] = {
 };
 MODULE_DEVICE_TABLE(pcmcia, ni_mio_cs_ids);
 
-static struct pcmcia_driver ni_mio_cs_driver = {
+static struct pcmcia_driver ni_mio_cs_driver =
+{
 	.name		= "ni_mio_cs",
 	.owner		= THIS_MODULE,
 	.id_table	= ni_mio_cs_ids,

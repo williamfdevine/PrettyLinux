@@ -24,7 +24,8 @@ static void sun4i_de_output_poll_changed(struct drm_device *drm)
 	drm_fbdev_cma_hotplug_event(drv->fbdev);
 }
 
-static const struct drm_mode_config_funcs sun4i_de_mode_config_funcs = {
+static const struct drm_mode_config_funcs sun4i_de_mode_config_funcs =
+{
 	.output_poll_changed	= sun4i_de_output_poll_changed,
 	.atomic_check		= drm_atomic_helper_check,
 	.atomic_commit		= drm_atomic_helper_commit,
@@ -41,8 +42,8 @@ struct drm_fbdev_cma *sun4i_framebuffer_init(struct drm_device *drm)
 	drm->mode_config.funcs = &sun4i_de_mode_config_funcs;
 
 	return drm_fbdev_cma_init(drm, 32,
-				  drm->mode_config.num_crtc,
-				  drm->mode_config.num_connector);
+							  drm->mode_config.num_crtc,
+							  drm->mode_config.num_connector);
 }
 
 void sun4i_framebuffer_free(struct drm_device *drm)

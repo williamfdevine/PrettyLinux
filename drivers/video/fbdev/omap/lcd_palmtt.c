@@ -33,7 +33,7 @@ GPIO13 - screen blanking
 #include "omapfb.h"
 
 static int palmtt_panel_init(struct lcd_panel *panel,
-	struct omapfb_device *fbdev)
+							 struct omapfb_device *fbdev)
 {
 	return 0;
 }
@@ -56,11 +56,12 @@ static unsigned long palmtt_panel_get_caps(struct lcd_panel *panel)
 	return OMAPFB_CAPS_SET_BACKLIGHT;
 }
 
-struct lcd_panel palmtt_panel = {
+struct lcd_panel palmtt_panel =
+{
 	.name		= "palmtt",
 	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
-			OMAP_LCDC_INV_HSYNC | OMAP_LCDC_HSVS_RISING_EDGE |
-			OMAP_LCDC_HSVS_OPPOSITE,
+	OMAP_LCDC_INV_HSYNC | OMAP_LCDC_HSVS_RISING_EDGE |
+	OMAP_LCDC_HSVS_OPPOSITE,
 	.bpp		= 16,
 	.data_lines	= 16,
 	.x_res		= 320,
@@ -102,7 +103,8 @@ static int palmtt_panel_resume(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver palmtt_panel_driver = {
+static struct platform_driver palmtt_panel_driver =
+{
 	.probe		= palmtt_panel_probe,
 	.remove		= palmtt_panel_remove,
 	.suspend	= palmtt_panel_suspend,

@@ -47,9 +47,12 @@ int pem_task_start_asic_block_usage(struct pp_eventmgr *eventmgr, struct pem_eve
 int pem_task_stop_asic_block_usage(struct pp_eventmgr *eventmgr, struct pem_event_data *event_data);
 int pem_task_setup_asic(struct pp_eventmgr *eventmgr, struct pem_event_data *event_data);
 int pem_task_cleanup_asic(struct pp_eventmgr *eventmgr, struct pem_event_data *event_data);
-int pem_task_store_dal_configuration (struct pp_eventmgr *eventmgr, const struct amd_display_configuration *display_config);
-int pem_task_notify_hw_mgr_display_configuration_change(struct pp_eventmgr *eventmgr, struct pem_event_data *event_data);
-int pem_task_notify_hw_mgr_pre_display_configuration_change(struct pp_eventmgr *eventmgr, struct pem_event_data *event_data);
+int pem_task_store_dal_configuration (struct pp_eventmgr *eventmgr,
+									  const struct amd_display_configuration *display_config);
+int pem_task_notify_hw_mgr_display_configuration_change(struct pp_eventmgr *eventmgr,
+		struct pem_event_data *event_data);
+int pem_task_notify_hw_mgr_pre_display_configuration_change(struct pp_eventmgr *eventmgr,
+		struct pem_event_data *event_data);
 int pem_task_block_adjust_power_state(struct pp_eventmgr *eventmgr, struct pem_event_data *event_data);
 int pem_task_unblock_adjust_power_state(struct pp_eventmgr *eventmgr, struct pem_event_data *event_data);
 int pem_task_notify_power_state_change(struct pp_eventmgr *eventmgr, struct pem_event_data *event_data);
@@ -57,7 +60,8 @@ int pem_task_block_hw_access(struct pp_eventmgr *eventmgr, struct pem_event_data
 int pem_task_un_block_hw_access(struct pp_eventmgr *eventmgr, struct pem_event_data *event_data);
 int pem_task_reset_display_phys_access(struct pp_eventmgr *eventmgr, struct pem_event_data *event_data);
 int pem_task_set_cpu_power_state(struct pp_eventmgr *eventmgr, struct pem_event_data *event_data);
-int pem_task_notify_smc_display_config_after_power_state_adjustment(struct pp_eventmgr *eventmgr, struct pem_event_data *event_data);
+int pem_task_notify_smc_display_config_after_power_state_adjustment(struct pp_eventmgr *eventmgr,
+		struct pem_event_data *event_data);
 /*powersaving*/
 
 int pem_task_set_power_source(struct pp_eventmgr *eventmgr, struct pem_event_data *event_data);

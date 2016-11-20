@@ -97,9 +97,9 @@ int llc_conn_ac_disc_ind(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_rst_ind(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_rst_confirm(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_clear_remote_busy_if_f_eq_1(struct sock *sk,
-					    struct sk_buff *skb);
+		struct sk_buff *skb);
 int llc_conn_ac_stop_rej_tmr_if_data_flag_eq_2(struct sock *sk,
-					       struct sk_buff *skb);
+		struct sk_buff *skb);
 int llc_conn_ac_send_disc_cmd_p_set_x(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_send_dm_rsp_f_set_p(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_send_dm_rsp_f_set_1(struct sock *sk, struct sk_buff *skb);
@@ -110,7 +110,7 @@ int llc_conn_ac_send_i_cmd_p_set_1(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_send_i_xxx_x_set_0(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_resend_i_xxx_x_set_0(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_resend_i_xxx_x_set_0_or_send_rr(struct sock *sk,
-						struct sk_buff *skb);
+		struct sk_buff *skb);
 int llc_conn_ac_resend_i_rsp_f_set_1(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_send_rej_cmd_p_set_1(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_send_rej_rsp_f_set_1(struct sock *sk, struct sk_buff *skb);
@@ -133,7 +133,7 @@ int llc_conn_ac_start_p_timer(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_start_ack_timer(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_start_rej_timer(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_start_ack_tmr_if_not_running(struct sock *sk,
-					     struct sk_buff *skb);
+		struct sk_buff *skb);
 int llc_conn_ac_stop_ack_timer(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_stop_p_timer(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_stop_rej_timer(struct sock *sk, struct sk_buff *skb);
@@ -147,7 +147,7 @@ int llc_conn_ac_set_data_flag_2(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_set_data_flag_0(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_set_data_flag_1(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_set_data_flag_1_if_data_flag_eq_0(struct sock *sk,
-						  struct sk_buff *skb);
+		struct sk_buff *skb);
 int llc_conn_ac_set_p_flag_0(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_set_remote_busy_0(struct sock *sk, struct sk_buff *skb);
 int llc_conn_ac_set_retry_cnt_0(struct sock *sk, struct sk_buff *skb);

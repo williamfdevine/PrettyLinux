@@ -44,7 +44,8 @@
 
 #include "das08.h"
 
-static const struct das08_board_struct das08_cs_boards[] = {
+static const struct das08_board_struct das08_cs_boards[] =
+{
 	{
 		.name		= "pcm-das08",
 		.ai_nbits	= 12,
@@ -57,7 +58,7 @@ static const struct das08_board_struct das08_cs_boards[] = {
 };
 
 static int das08_cs_auto_attach(struct comedi_device *dev,
-				unsigned long context)
+								unsigned long context)
 {
 	struct pcmcia_device *link = comedi_to_pcmcia_dev(dev);
 	struct das08_private_struct *devpriv;
@@ -69,18 +70,26 @@ static int das08_cs_auto_attach(struct comedi_device *dev,
 
 	link->config_flags |= CONF_AUTO_SET_IO;
 	ret = comedi_pcmcia_enable(dev, NULL);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	iobase = link->resource[0]->start;
 
 	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
+
 	if (!devpriv)
+	{
 		return -ENOMEM;
+	}
 
 	return das08_common_attach(dev, iobase);
 }
 
-static struct comedi_driver driver_das08_cs = {
+static struct comedi_driver driver_das08_cs =
+{
 	.driver_name	= "das08_cs",
 	.module		= THIS_MODULE,
 	.auto_attach	= das08_cs_auto_attach,
@@ -92,13 +101,15 @@ static int das08_pcmcia_attach(struct pcmcia_device *link)
 	return comedi_pcmcia_auto_config(link, &driver_das08_cs);
 }
 
-static const struct pcmcia_device_id das08_cs_id_table[] = {
+static const struct pcmcia_device_id das08_cs_id_table[] =
+{
 	PCMCIA_DEVICE_MANF_CARD(0x01c5, 0x4001),
 	PCMCIA_DEVICE_NULL
 };
 MODULE_DEVICE_TABLE(pcmcia, das08_cs_id_table);
 
-static struct pcmcia_driver das08_cs_driver = {
+static struct pcmcia_driver das08_cs_driver =
+{
 	.name		= "pcm-das08",
 	.owner		= THIS_MODULE,
 	.id_table	= das08_cs_id_table,

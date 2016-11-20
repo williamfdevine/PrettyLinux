@@ -42,7 +42,7 @@ static void wil_ethtoolops_complete(struct net_device *ndev)
 }
 
 static int wil_ethtoolops_get_coalesce(struct net_device *ndev,
-				       struct ethtool_coalesce *cp)
+									   struct ethtool_coalesce *cp)
 {
 	struct wil6210_priv *wil = ndev_to_wil(ndev);
 	u32 tx_itr_en, tx_itr_val = 0;
@@ -51,12 +51,18 @@ static int wil_ethtoolops_get_coalesce(struct net_device *ndev,
 	wil_dbg_misc(wil, "%s()\n", __func__);
 
 	tx_itr_en = wil_r(wil, RGF_DMA_ITR_TX_CNT_CTL);
+
 	if (tx_itr_en & BIT_DMA_ITR_TX_CNT_CTL_EN)
+	{
 		tx_itr_val = wil_r(wil, RGF_DMA_ITR_TX_CNT_TRSH);
+	}
 
 	rx_itr_en = wil_r(wil, RGF_DMA_ITR_RX_CNT_CTL);
+
 	if (rx_itr_en & BIT_DMA_ITR_RX_CNT_CTL_EN)
+	{
 		rx_itr_val = wil_r(wil, RGF_DMA_ITR_RX_CNT_TRSH);
+	}
 
 	cp->tx_coalesce_usecs = tx_itr_val;
 	cp->rx_coalesce_usecs = rx_itr_val;
@@ -64,14 +70,15 @@ static int wil_ethtoolops_get_coalesce(struct net_device *ndev,
 }
 
 static int wil_ethtoolops_set_coalesce(struct net_device *ndev,
-				       struct ethtool_coalesce *cp)
+									   struct ethtool_coalesce *cp)
 {
 	struct wil6210_priv *wil = ndev_to_wil(ndev);
 
 	wil_dbg_misc(wil, "%s(rx %d usec, tx %d usec)\n", __func__,
-		     cp->rx_coalesce_usecs, cp->tx_coalesce_usecs);
+				 cp->rx_coalesce_usecs, cp->tx_coalesce_usecs);
 
-	if (wil->wdev->iftype == NL80211_IFTYPE_MONITOR) {
+	if (wil->wdev->iftype == NL80211_IFTYPE_MONITOR)
+	{
 		wil_dbg_misc(wil, "No IRQ coalescing in monitor mode\n");
 		return -EINVAL;
 	}
@@ -81,8 +88,10 @@ static int wil_ethtoolops_set_coalesce(struct net_device *ndev,
 	 */
 
 	if (cp->rx_coalesce_usecs > WIL6210_ITR_TRSH_MAX ||
-	    cp->tx_coalesce_usecs > WIL6210_ITR_TRSH_MAX)
+		cp->tx_coalesce_usecs > WIL6210_ITR_TRSH_MAX)
+	{
 		goto out_bad;
+	}
 
 	wil->tx_max_burst_duration = cp->tx_coalesce_usecs;
 	wil->rx_max_burst_duration = cp->rx_coalesce_usecs;
@@ -93,11 +102,12 @@ static int wil_ethtoolops_set_coalesce(struct net_device *ndev,
 out_bad:
 	wil_dbg_misc(wil, "Unsupported coalescing params. Raw command:\n");
 	print_hex_dump_debug("DBG[MISC] coal ", DUMP_PREFIX_OFFSET, 16, 4,
-			     cp, sizeof(*cp), false);
+						 cp, sizeof(*cp), false);
 	return -EINVAL;
 }
 
-static const struct ethtool_ops wil_ethtool_ops = {
+static const struct ethtool_ops wil_ethtool_ops =
+{
 	.begin		= wil_ethtoolops_begin,
 	.complete	= wil_ethtoolops_complete,
 	.get_drvinfo	= cfg80211_get_drvinfo,

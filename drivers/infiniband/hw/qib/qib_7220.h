@@ -43,7 +43,8 @@
 #define IB_7220_LT_STATE_TXREVLANES      0x0d
 #define IB_7220_LT_STATE_CFGENH          0x10
 
-struct qib_chip_specific {
+struct qib_chip_specific
+{
 	u64 __iomem *cregbase;
 	u64 *cntrs;
 	u64 *portcntrs;
@@ -77,7 +78,8 @@ struct qib_chip_specific {
 	unsigned int relock_interval; /* in jiffies */
 };
 
-struct qib_chippport_specific {
+struct qib_chippport_specific
+{
 	struct qib_pportdata pportdata;
 	wait_queue_head_t autoneg_wait;
 	struct delayed_work autoneg_work;
@@ -118,27 +120,34 @@ void qib_sd7220_clr_ibpar(struct qib_devdata *);
 #define IB_7220_SERDES 2
 
 static inline u32 qib_read_kreg32(const struct qib_devdata *dd,
-				  const u16 regno)
+								  const u16 regno)
 {
 	if (!dd->kregbase || !(dd->flags & QIB_PRESENT))
+	{
 		return -1;
+	}
+
 	return readl((u32 __iomem *)&dd->kregbase[regno]);
 }
 
 static inline u64 qib_read_kreg64(const struct qib_devdata *dd,
-				  const u16 regno)
+								  const u16 regno)
 {
 	if (!dd->kregbase || !(dd->flags & QIB_PRESENT))
+	{
 		return -1;
+	}
 
 	return readq(&dd->kregbase[regno]);
 }
 
 static inline void qib_write_kreg(const struct qib_devdata *dd,
-				  const u16 regno, u64 value)
+								  const u16 regno, u64 value)
 {
 	if (dd->kregbase)
+	{
 		writeq(value, &dd->kregbase[regno]);
+	}
 }
 
 void set_7220_relock_poll(struct qib_devdata *, int);

@@ -55,7 +55,8 @@
 
 struct uld_ctx;
 
-struct chcr_dev {
+struct chcr_dev
+{
 	/* Request submited to h/w and waiting for response. */
 	spinlock_t lock_chcr_dev;
 	struct crypto_queue pending_queue;
@@ -63,7 +64,8 @@ struct chcr_dev {
 	unsigned char tx_channel_id;
 };
 
-struct uld_ctx {
+struct uld_ctx
+{
 	struct list_head entry;
 	struct cxgb4_lld_info lldi;
 	struct chcr_dev *dev;
@@ -74,7 +76,7 @@ int chcr_send_wr(struct sk_buff *skb);
 int start_crypto(void);
 int stop_crypto(void);
 int chcr_uld_rx_handler(void *handle, const __be64 *rsp,
-			const struct pkt_gl *pgl);
+						const struct pkt_gl *pgl);
 int chcr_handle_resp(struct crypto_async_request *req, unsigned char *input,
-		     int err);
+					 int err);
 #endif /* __CHCR_CORE_H__ */

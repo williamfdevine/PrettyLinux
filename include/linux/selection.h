@@ -20,7 +20,7 @@ extern int set_selection(const struct tiocl_selection __user *sel, struct tty_st
 extern int paste_selection(struct tty_struct *tty);
 extern int sel_loadlut(char __user *p);
 extern int mouse_reporting(void);
-extern void mouse_report(struct tty_struct * tty, int butt, int mrx, int mry);
+extern void mouse_report(struct tty_struct *tty, int butt, int mrx, int mry);
 
 extern int console_blanked;
 

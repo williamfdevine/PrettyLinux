@@ -90,7 +90,8 @@
 #define CB_DDA_CALDAC_COURSE_OFFSET	2
 #define CB_DDA_CALDAC_FINE_OFFSET	3
 
-static const struct comedi_lrange cb_pcidda_ranges = {
+static const struct comedi_lrange cb_pcidda_ranges =
+{
 	6, {
 		BIP_RANGE(10),
 		BIP_RANGE(5),
@@ -101,7 +102,8 @@ static const struct comedi_lrange cb_pcidda_ranges = {
 	}
 };
 
-enum cb_pcidda_boardid {
+enum cb_pcidda_boardid
+{
 	BOARD_DDA02_12,
 	BOARD_DDA04_12,
 	BOARD_DDA08_12,
@@ -110,13 +112,15 @@ enum cb_pcidda_boardid {
 	BOARD_DDA08_16,
 };
 
-struct cb_pcidda_board {
+struct cb_pcidda_board
+{
 	const char *name;
 	int ao_chans;
 	int ao_bits;
 };
 
-static const struct cb_pcidda_board cb_pcidda_boards[] = {
+static const struct cb_pcidda_board cb_pcidda_boards[] =
+{
 	[BOARD_DDA02_12] = {
 		.name		= "pci-dda02/12",
 		.ao_chans	= 2,
@@ -149,7 +153,8 @@ static const struct cb_pcidda_board cb_pcidda_boards[] = {
 	},
 };
 
-struct cb_pcidda_private {
+struct cb_pcidda_private
+{
 	unsigned long daqio;
 	/* bits last written to da calibration register 1 */
 	unsigned int dac_cal1_bits;
@@ -166,10 +171,13 @@ static unsigned int cb_pcidda_serial_in(struct comedi_device *dev)
 	int i;
 	const int value_width = 16;	/*  number of bits wide values are */
 
-	for (i = 1; i <= value_width; i++) {
+	for (i = 1; i <= value_width; i++)
+	{
 		/*  read bits most significant bit first */
 		if (inw_p(devpriv->daqio + DACALIBRATION1) & SERIAL_OUT_BIT)
+		{
 			value |= 1 << (value_width - i);
+		}
 	}
 
 	return value;
@@ -177,24 +185,30 @@ static unsigned int cb_pcidda_serial_in(struct comedi_device *dev)
 
 /* lowlevel write to eeprom/dac */
 static void cb_pcidda_serial_out(struct comedi_device *dev, unsigned int value,
-				 unsigned int num_bits)
+								 unsigned int num_bits)
 {
 	struct cb_pcidda_private *devpriv = dev->private;
 	int i;
 
-	for (i = 1; i <= num_bits; i++) {
+	for (i = 1; i <= num_bits; i++)
+	{
 		/*  send bits most significant bit first */
 		if (value & (1 << (num_bits - i)))
+		{
 			devpriv->dac_cal1_bits |= SERIAL_IN_BIT;
+		}
 		else
+		{
 			devpriv->dac_cal1_bits &= ~SERIAL_IN_BIT;
+		}
+
 		outw_p(devpriv->dac_cal1_bits, devpriv->daqio + DACALIBRATION1);
 	}
 }
 
 /* reads a 16 bit value from board's eeprom */
 static unsigned int cb_pcidda_read_eeprom(struct comedi_device *dev,
-					  unsigned int address)
+		unsigned int address)
 {
 	struct cb_pcidda_private *devpriv = dev->private;
 	unsigned int i;
@@ -209,9 +223,13 @@ static unsigned int cb_pcidda_read_eeprom(struct comedi_device *dev,
 
 	/*  send serial output stream to eeprom */
 	cal2_bits = SELECT_EEPROM_BIT | DESELECT_REF_DAC_BIT | DUMMY_BIT;
+
 	/*  deactivate caldacs (one caldac for every two channels) */
 	for (i = 0; i < max_num_caldacs; i++)
+	{
 		cal2_bits |= DESELECT_CALDAC_BIT(i);
+	}
+
 	outw_p(cal2_bits, devpriv->daqio + DACALIBRATION2);
 
 	/*  tell eeprom we want to read */
@@ -230,8 +248,8 @@ static unsigned int cb_pcidda_read_eeprom(struct comedi_device *dev,
 
 /* writes to 8 bit calibration dacs */
 static void cb_pcidda_write_caldac(struct comedi_device *dev,
-				   unsigned int caldac, unsigned int channel,
-				   unsigned int value)
+								   unsigned int caldac, unsigned int channel,
+								   unsigned int value)
 {
 	struct cb_pcidda_private *devpriv = dev->private;
 	unsigned int cal2_bits;
@@ -247,13 +265,17 @@ static void cb_pcidda_write_caldac(struct comedi_device *dev,
 	/*  write 8 bit caldac value */
 	cb_pcidda_serial_out(dev, value, num_caldac_bits);
 
-/*
-* latch stream into appropriate caldac deselect reference dac
-*/
+	/*
+	* latch stream into appropriate caldac deselect reference dac
+	*/
 	cal2_bits = DESELECT_REF_DAC_BIT | DUMMY_BIT;
+
 	/*  deactivate caldacs (one caldac for every two channels) */
 	for (i = 0; i < max_num_caldacs; i++)
+	{
 		cal2_bits |= DESELECT_CALDAC_BIT(i);
+	}
+
 	/*  activate the caldac we want */
 	cal2_bits &= ~DESELECT_CALDAC_BIT(caldac);
 	outw_p(cal2_bits, devpriv->daqio + DACALIBRATION2);
@@ -264,7 +286,7 @@ static void cb_pcidda_write_caldac(struct comedi_device *dev,
 
 /* set caldacs to eeprom values for given channel and range */
 static void cb_pcidda_calibrate(struct comedi_device *dev, unsigned int channel,
-				unsigned int range)
+								unsigned int range)
 {
 	struct cb_pcidda_private *devpriv = dev->private;
 	unsigned int caldac = channel / 2;	/* two caldacs per channel */
@@ -282,19 +304,19 @@ static void cb_pcidda_calibrate(struct comedi_device *dev, unsigned int channel,
 
 	/* set caldacs */
 	cb_pcidda_write_caldac(dev, caldac, chan + CB_DDA_CALDAC_COURSE_OFFSET,
-			       (offset >> 8) & 0xff);
+						   (offset >> 8) & 0xff);
 	cb_pcidda_write_caldac(dev, caldac, chan + CB_DDA_CALDAC_FINE_OFFSET,
-			       offset & 0xff);
+						   offset & 0xff);
 	cb_pcidda_write_caldac(dev, caldac, chan + CB_DDA_CALDAC_COURSE_GAIN,
-			       (gain >> 8) & 0xff);
+						   (gain >> 8) & 0xff);
 	cb_pcidda_write_caldac(dev, caldac, chan + CB_DDA_CALDAC_FINE_GAIN,
-			       gain & 0xff);
+						   gain & 0xff);
 }
 
 static int cb_pcidda_ao_insn_write(struct comedi_device *dev,
-				   struct comedi_subdevice *s,
-				   struct comedi_insn *insn,
-				   unsigned int *data)
+								   struct comedi_subdevice *s,
+								   struct comedi_insn *insn,
+								   unsigned int *data)
 {
 	struct cb_pcidda_private *devpriv = dev->private;
 	unsigned int channel = CR_CHAN(insn->chanspec);
@@ -302,27 +324,34 @@ static int cb_pcidda_ao_insn_write(struct comedi_device *dev,
 	unsigned int ctrl;
 
 	if (range != devpriv->ao_range[channel])
+	{
 		cb_pcidda_calibrate(dev, channel, range);
+	}
 
 	ctrl = CB_DDA_DA_CTRL_EN | CB_DDA_DA_CTRL_DAC(channel);
 
-	switch (range) {
-	case 0:
-	case 3:
-		ctrl |= CB_DDA_DA_CTRL_RANGE10V;
-		break;
-	case 1:
-	case 4:
-		ctrl |= CB_DDA_DA_CTRL_RANGE5V;
-		break;
-	case 2:
-	case 5:
-		ctrl |= CB_DDA_DA_CTRL_RANGE2V5;
-		break;
+	switch (range)
+	{
+		case 0:
+		case 3:
+			ctrl |= CB_DDA_DA_CTRL_RANGE10V;
+			break;
+
+		case 1:
+		case 4:
+			ctrl |= CB_DDA_DA_CTRL_RANGE5V;
+			break;
+
+		case 2:
+		case 5:
+			ctrl |= CB_DDA_DA_CTRL_RANGE2V5;
+			break;
 	}
 
 	if (range > 2)
+	{
 		ctrl |= CB_DDA_DA_CTRL_UNIP;
+	}
 
 	outw(ctrl, devpriv->daqio + CB_DDA_DA_CTRL_REG);
 
@@ -332,7 +361,7 @@ static int cb_pcidda_ao_insn_write(struct comedi_device *dev,
 }
 
 static int cb_pcidda_auto_attach(struct comedi_device *dev,
-				 unsigned long context)
+								 unsigned long context)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	const struct cb_pcidda_board *board = NULL;
@@ -342,25 +371,41 @@ static int cb_pcidda_auto_attach(struct comedi_device *dev,
 	int ret;
 
 	if (context < ARRAY_SIZE(cb_pcidda_boards))
+	{
 		board = &cb_pcidda_boards[context];
+	}
+
 	if (!board)
+	{
 		return -ENODEV;
+	}
+
 	dev->board_ptr = board;
 	dev->board_name = board->name;
 
 	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
+
 	if (!devpriv)
+	{
 		return -ENOMEM;
+	}
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	dev->iobase = pci_resource_start(pcidev, 2);
 	devpriv->daqio = pci_resource_start(pcidev, 3);
 
 	ret = comedi_alloc_subdevices(dev, 3);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	s = &dev->subdevices[0];
 	/* analog output subdevice */
@@ -372,25 +417,34 @@ static int cb_pcidda_auto_attach(struct comedi_device *dev,
 	s->insn_write = cb_pcidda_ao_insn_write;
 
 	/* two 8255 digital io subdevices */
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		s = &dev->subdevices[1 + i];
 		ret = subdev_8255_init(dev, s, NULL, i * I8255_SIZE);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	/* Read the caldac eeprom data */
 	for (i = 0; i < EEPROM_SIZE; i++)
+	{
 		devpriv->eeprom_data[i] = cb_pcidda_read_eeprom(dev, i);
+	}
 
 	/*  set calibrations dacs */
 	for (i = 0; i < board->ao_chans; i++)
+	{
 		cb_pcidda_calibrate(dev, i, devpriv->ao_range[i]);
+	}
 
 	return 0;
 }
 
-static struct comedi_driver cb_pcidda_driver = {
+static struct comedi_driver cb_pcidda_driver =
+{
 	.driver_name	= "cb_pcidda",
 	.module		= THIS_MODULE,
 	.auto_attach	= cb_pcidda_auto_attach,
@@ -398,13 +452,14 @@ static struct comedi_driver cb_pcidda_driver = {
 };
 
 static int cb_pcidda_pci_probe(struct pci_dev *dev,
-			       const struct pci_device_id *id)
+							   const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &cb_pcidda_driver,
-				      id->driver_data);
+								  id->driver_data);
 }
 
-static const struct pci_device_id cb_pcidda_pci_table[] = {
+static const struct pci_device_id cb_pcidda_pci_table[] =
+{
 	{ PCI_VDEVICE(CB, 0x0020), BOARD_DDA02_12 },
 	{ PCI_VDEVICE(CB, 0x0021), BOARD_DDA04_12 },
 	{ PCI_VDEVICE(CB, 0x0022), BOARD_DDA08_12 },
@@ -415,7 +470,8 @@ static const struct pci_device_id cb_pcidda_pci_table[] = {
 };
 MODULE_DEVICE_TABLE(pci, cb_pcidda_pci_table);
 
-static struct pci_driver cb_pcidda_pci_driver = {
+static struct pci_driver cb_pcidda_pci_driver =
+{
 	.name		= "cb_pcidda",
 	.id_table	= cb_pcidda_pci_table,
 	.probe		= cb_pcidda_pci_probe,

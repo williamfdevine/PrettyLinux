@@ -25,7 +25,8 @@
  * need to describe the individual bit fields
  */
 static struct temp_sensor_registers
-omap4430_mpu_temp_sensor_registers = {
+	omap4430_mpu_temp_sensor_registers =
+{
 	.temp_sensor_ctrl = OMAP4430_TEMP_SENSOR_CTRL_OFFSET,
 	.bgap_tempsoff_mask = OMAP4430_BGAP_TEMPSOFF_MASK,
 	.bgap_soc_mask = OMAP4430_BGAP_TEMP_SENSOR_SOC_MASK,
@@ -39,7 +40,8 @@ omap4430_mpu_temp_sensor_registers = {
 };
 
 /* Thresholds and limits for OMAP4430 MPU temperature sensor */
-static struct temp_sensor_data omap4430_mpu_temp_sensor_data = {
+static struct temp_sensor_data omap4430_mpu_temp_sensor_data =
+{
 	.min_freq = OMAP4430_MIN_FREQ,
 	.max_freq = OMAP4430_MAX_FREQ,
 	.max_temp = OMAP4430_MAX_TEMP,
@@ -52,7 +54,8 @@ static struct temp_sensor_data omap4430_mpu_temp_sensor_data = {
  * ADC code values from 530 to 923
  */
 static const int
-omap4430_adc_to_temp[OMAP4430_ADC_END_VALUE - OMAP4430_ADC_START_VALUE + 1] = {
+omap4430_adc_to_temp[OMAP4430_ADC_END_VALUE - OMAP4430_ADC_START_VALUE + 1] =
+{
 	-38000, -35000, -34000, -32000, -30000, -28000, -26000, -24000, -22000,
 	-20000, -18000, -17000, -15000, -13000, -12000, -10000, -8000, -6000,
 	-5000, -3000, -1000, 0, 2000, 3000, 5000, 6000, 8000, 10000, 12000,
@@ -66,10 +69,11 @@ omap4430_adc_to_temp[OMAP4430_ADC_END_VALUE - OMAP4430_ADC_START_VALUE + 1] = {
 };
 
 /* OMAP4430 data */
-const struct ti_bandgap_data omap4430_data = {
+const struct ti_bandgap_data omap4430_data =
+{
 	.features = TI_BANDGAP_FEATURE_MODE_CONFIG |
-			TI_BANDGAP_FEATURE_CLK_CTRL |
-			TI_BANDGAP_FEATURE_POWER_SWITCH,
+	TI_BANDGAP_FEATURE_CLK_CTRL |
+	TI_BANDGAP_FEATURE_POWER_SWITCH,
 	.fclock_name = "bandgap_fclk",
 	.div_ck_name = "bandgap_fclk",
 	.conv_table = omap4430_adc_to_temp,
@@ -79,15 +83,15 @@ const struct ti_bandgap_data omap4430_data = {
 	.remove_sensor = ti_thermal_remove_sensor,
 	.sensors = {
 		{
-		.registers = &omap4430_mpu_temp_sensor_registers,
-		.ts_data = &omap4430_mpu_temp_sensor_data,
-		.domain = "cpu",
-		.slope = OMAP_GRADIENT_SLOPE_4430,
-		.constant = OMAP_GRADIENT_CONST_4430,
-		.slope_pcb = OMAP_GRADIENT_SLOPE_W_PCB_4430,
-		.constant_pcb = OMAP_GRADIENT_CONST_W_PCB_4430,
-		.register_cooling = ti_thermal_register_cpu_cooling,
-		.unregister_cooling = ti_thermal_unregister_cpu_cooling,
+			.registers = &omap4430_mpu_temp_sensor_registers,
+			.ts_data = &omap4430_mpu_temp_sensor_data,
+			.domain = "cpu",
+			.slope = OMAP_GRADIENT_SLOPE_4430,
+			.constant = OMAP_GRADIENT_CONST_4430,
+			.slope_pcb = OMAP_GRADIENT_SLOPE_W_PCB_4430,
+			.constant_pcb = OMAP_GRADIENT_CONST_W_PCB_4430,
+			.register_cooling = ti_thermal_register_cpu_cooling,
+			.unregister_cooling = ti_thermal_unregister_cpu_cooling,
 		},
 	},
 	.sensor_count = 1,
@@ -97,7 +101,8 @@ const struct ti_bandgap_data omap4430_data = {
  * need to describe the individual bit fields
  */
 static struct temp_sensor_registers
-omap4460_mpu_temp_sensor_registers = {
+	omap4460_mpu_temp_sensor_registers =
+{
 	.temp_sensor_ctrl = OMAP4460_TEMP_SENSOR_CTRL_OFFSET,
 	.bgap_tempsoff_mask = OMAP4460_BGAP_TEMPSOFF_MASK,
 	.bgap_soc_mask = OMAP4460_BGAP_TEMP_SENSOR_SOC_MASK,
@@ -132,7 +137,8 @@ omap4460_mpu_temp_sensor_registers = {
 };
 
 /* Thresholds and limits for OMAP4460 MPU temperature sensor */
-static struct temp_sensor_data omap4460_mpu_temp_sensor_data = {
+static struct temp_sensor_data omap4460_mpu_temp_sensor_data =
+{
 	.tshut_hot = OMAP4460_TSHUT_HOT,
 	.tshut_cold = OMAP4460_TSHUT_COLD,
 	.t_hot = OMAP4460_T_HOT,
@@ -151,7 +157,8 @@ static struct temp_sensor_data omap4460_mpu_temp_sensor_data = {
  * ADC code values from 530 to 923
  */
 static const int
-omap4460_adc_to_temp[OMAP4460_ADC_END_VALUE - OMAP4460_ADC_START_VALUE + 1] = {
+omap4460_adc_to_temp[OMAP4460_ADC_END_VALUE - OMAP4460_ADC_START_VALUE + 1] =
+{
 	-40000, -40000, -40000, -40000, -39800, -39400, -39000, -38600, -38200,
 	-37800, -37300, -36800, -36400, -36000, -35600, -35200, -34800,
 	-34300, -33800, -33400, -33000, -32600, -32200, -31800, -31300,
@@ -201,14 +208,15 @@ omap4460_adc_to_temp[OMAP4460_ADC_END_VALUE - OMAP4460_ADC_START_VALUE + 1] = {
 };
 
 /* OMAP4460 data */
-const struct ti_bandgap_data omap4460_data = {
+const struct ti_bandgap_data omap4460_data =
+{
 	.features = TI_BANDGAP_FEATURE_TSHUT |
-			TI_BANDGAP_FEATURE_TSHUT_CONFIG |
-			TI_BANDGAP_FEATURE_TALERT |
-			TI_BANDGAP_FEATURE_MODE_CONFIG |
-			TI_BANDGAP_FEATURE_POWER_SWITCH |
-			TI_BANDGAP_FEATURE_CLK_CTRL |
-			TI_BANDGAP_FEATURE_COUNTER,
+	TI_BANDGAP_FEATURE_TSHUT_CONFIG |
+	TI_BANDGAP_FEATURE_TALERT |
+	TI_BANDGAP_FEATURE_MODE_CONFIG |
+	TI_BANDGAP_FEATURE_POWER_SWITCH |
+	TI_BANDGAP_FEATURE_CLK_CTRL |
+	TI_BANDGAP_FEATURE_COUNTER,
 	.fclock_name = "bandgap_ts_fclk",
 	.div_ck_name = "div_ts_ck",
 	.conv_table = omap4460_adc_to_temp,
@@ -219,29 +227,30 @@ const struct ti_bandgap_data omap4460_data = {
 	.report_temperature = ti_thermal_report_sensor_temperature,
 	.sensors = {
 		{
-		.registers = &omap4460_mpu_temp_sensor_registers,
-		.ts_data = &omap4460_mpu_temp_sensor_data,
-		.domain = "cpu",
-		.slope = OMAP_GRADIENT_SLOPE_4460,
-		.constant = OMAP_GRADIENT_CONST_4460,
-		.slope_pcb = OMAP_GRADIENT_SLOPE_W_PCB_4460,
-		.constant_pcb = OMAP_GRADIENT_CONST_W_PCB_4460,
-		.register_cooling = ti_thermal_register_cpu_cooling,
-		.unregister_cooling = ti_thermal_unregister_cpu_cooling,
+			.registers = &omap4460_mpu_temp_sensor_registers,
+			.ts_data = &omap4460_mpu_temp_sensor_data,
+			.domain = "cpu",
+			.slope = OMAP_GRADIENT_SLOPE_4460,
+			.constant = OMAP_GRADIENT_CONST_4460,
+			.slope_pcb = OMAP_GRADIENT_SLOPE_W_PCB_4460,
+			.constant_pcb = OMAP_GRADIENT_CONST_W_PCB_4460,
+			.register_cooling = ti_thermal_register_cpu_cooling,
+			.unregister_cooling = ti_thermal_unregister_cpu_cooling,
 		},
 	},
 	.sensor_count = 1,
 };
 
 /* OMAP4470 data */
-const struct ti_bandgap_data omap4470_data = {
+const struct ti_bandgap_data omap4470_data =
+{
 	.features = TI_BANDGAP_FEATURE_TSHUT |
-			TI_BANDGAP_FEATURE_TSHUT_CONFIG |
-			TI_BANDGAP_FEATURE_TALERT |
-			TI_BANDGAP_FEATURE_MODE_CONFIG |
-			TI_BANDGAP_FEATURE_POWER_SWITCH |
-			TI_BANDGAP_FEATURE_CLK_CTRL |
-			TI_BANDGAP_FEATURE_COUNTER,
+	TI_BANDGAP_FEATURE_TSHUT_CONFIG |
+	TI_BANDGAP_FEATURE_TALERT |
+	TI_BANDGAP_FEATURE_MODE_CONFIG |
+	TI_BANDGAP_FEATURE_POWER_SWITCH |
+	TI_BANDGAP_FEATURE_CLK_CTRL |
+	TI_BANDGAP_FEATURE_COUNTER,
 	.fclock_name = "bandgap_ts_fclk",
 	.div_ck_name = "div_ts_ck",
 	.conv_table = omap4460_adc_to_temp,
@@ -252,15 +261,15 @@ const struct ti_bandgap_data omap4470_data = {
 	.report_temperature = ti_thermal_report_sensor_temperature,
 	.sensors = {
 		{
-		.registers = &omap4460_mpu_temp_sensor_registers,
-		.ts_data = &omap4460_mpu_temp_sensor_data,
-		.domain = "cpu",
-		.slope = OMAP_GRADIENT_SLOPE_4470,
-		.constant = OMAP_GRADIENT_CONST_4470,
-		.slope_pcb = OMAP_GRADIENT_SLOPE_W_PCB_4470,
-		.constant_pcb = OMAP_GRADIENT_CONST_W_PCB_4470,
-		.register_cooling = ti_thermal_register_cpu_cooling,
-		.unregister_cooling = ti_thermal_unregister_cpu_cooling,
+			.registers = &omap4460_mpu_temp_sensor_registers,
+			.ts_data = &omap4460_mpu_temp_sensor_data,
+			.domain = "cpu",
+			.slope = OMAP_GRADIENT_SLOPE_4470,
+			.constant = OMAP_GRADIENT_CONST_4470,
+			.slope_pcb = OMAP_GRADIENT_SLOPE_W_PCB_4470,
+			.constant_pcb = OMAP_GRADIENT_CONST_W_PCB_4470,
+			.register_cooling = ti_thermal_register_cpu_cooling,
+			.unregister_cooling = ti_thermal_unregister_cpu_cooling,
 		},
 	},
 	.sensor_count = 1,

@@ -55,7 +55,8 @@
 #define AS3711_NUM_REGS		(AS3711_MAX_REG + 1)
 
 /* Regulators */
-enum {
+enum
+{
 	AS3711_REGULATOR_SD_1,
 	AS3711_REGULATOR_SD_2,
 	AS3711_REGULATOR_SD_3,
@@ -75,7 +76,8 @@ enum {
 struct device;
 struct regmap;
 
-struct as3711 {
+struct as3711
+{
 	struct device *dev;
 	struct regmap *regmap;
 };
@@ -84,7 +86,8 @@ struct as3711 {
 #define AS3711_MAX_STEPUP 2
 #define AS3711_MAX_LDO 8
 
-enum as3711_su2_feedback {
+enum as3711_su2_feedback
+{
 	AS3711_SU2_VOLTAGE,
 	AS3711_SU2_CURR1,
 	AS3711_SU2_CURR2,
@@ -92,7 +95,8 @@ enum as3711_su2_feedback {
 	AS3711_SU2_CURR_AUTO,
 };
 
-enum as3711_su2_fbprot {
+enum as3711_su2_fbprot
+{
 	AS3711_SU2_LX_SD4,
 	AS3711_SU2_GPIO2,
 	AS3711_SU2_GPIO3,
@@ -103,11 +107,13 @@ enum as3711_su2_fbprot {
  * Platform data
  */
 
-struct as3711_regulator_pdata {
+struct as3711_regulator_pdata
+{
 	struct regulator_init_data *init_data[AS3711_REGULATOR_MAX];
 };
 
-struct as3711_bl_pdata {
+struct as3711_bl_pdata
+{
 	const char *su1_fb;
 	int su1_max_uA;
 	const char *su2_fb;
@@ -119,7 +125,8 @@ struct as3711_bl_pdata {
 	bool su2_auto_curr3;
 };
 
-struct as3711_platform_data {
+struct as3711_platform_data
+{
 	struct as3711_regulator_pdata regulator;
 	struct as3711_bl_pdata backlight;
 };

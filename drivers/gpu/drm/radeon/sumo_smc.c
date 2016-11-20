@@ -38,30 +38,46 @@ static void sumo_send_msg_to_smu(struct radeon_device *rdev, u32 id)
 	u32 gfx_int_req;
 	int i;
 
-	for (i = 0; i < rdev->usec_timeout; i++) {
+	for (i = 0; i < rdev->usec_timeout; i++)
+	{
 		if (RREG32(GFX_INT_STATUS) & INT_DONE)
+		{
 			break;
+		}
+
 		udelay(1);
 	}
 
 	gfx_int_req = SERV_INDEX(id) | INT_REQ;
 	WREG32(GFX_INT_REQ, gfx_int_req);
 
-	for (i = 0; i < rdev->usec_timeout; i++) {
+	for (i = 0; i < rdev->usec_timeout; i++)
+	{
 		if (RREG32(GFX_INT_REQ) & INT_REQ)
+		{
 			break;
+		}
+
 		udelay(1);
 	}
 
-	for (i = 0; i < rdev->usec_timeout; i++) {
+	for (i = 0; i < rdev->usec_timeout; i++)
+	{
 		if (RREG32(GFX_INT_STATUS) & INT_ACK)
+		{
 			break;
+		}
+
 		udelay(1);
 	}
 
-	for (i = 0; i < rdev->usec_timeout; i++) {
+	for (i = 0; i < rdev->usec_timeout; i++)
+	{
 		if (RREG32(GFX_INT_STATUS) & INT_DONE)
+		{
 			break;
+		}
+
 		udelay(1);
 	}
 
@@ -75,19 +91,21 @@ void sumo_initialize_m3_arb(struct radeon_device *rdev)
 	u32 i;
 
 	if (!pi->enable_dynamic_m3_arbiter)
+	{
 		return;
+	}
 
 	for (i = 0; i < NUMBER_OF_M3ARB_PARAM_SETS; i++)
 		WREG32_RCU(MCU_M3ARB_PARAMS + (i * 4),
-			   pi->sys_info.csr_m3_arb_cntl_default[i]);
+				   pi->sys_info.csr_m3_arb_cntl_default[i]);
 
 	for (; i < NUMBER_OF_M3ARB_PARAM_SETS * 2; i++)
 		WREG32_RCU(MCU_M3ARB_PARAMS + (i * 4),
-			   pi->sys_info.csr_m3_arb_cntl_uvd[i % NUMBER_OF_M3ARB_PARAM_SETS]);
+				   pi->sys_info.csr_m3_arb_cntl_uvd[i % NUMBER_OF_M3ARB_PARAM_SETS]);
 
 	for (; i < NUMBER_OF_M3ARB_PARAM_SETS * 3; i++)
 		WREG32_RCU(MCU_M3ARB_PARAMS + (i * 4),
-			   pi->sys_info.csr_m3_arb_cntl_fs3d[i % NUMBER_OF_M3ARB_PARAM_SETS]);
+				   pi->sys_info.csr_m3_arb_cntl_fs3d[i % NUMBER_OF_M3ARB_PARAM_SETS]);
 }
 
 static bool sumo_is_alt_vddnb_supported(struct radeon_device *rdev)
@@ -96,29 +114,40 @@ static bool sumo_is_alt_vddnb_supported(struct radeon_device *rdev)
 	bool return_code = false;
 
 	if (!pi->enable_alt_vddnb)
+	{
 		return return_code;
+	}
 
-	if ((rdev->family == CHIP_SUMO) || (rdev->family == CHIP_SUMO2)) {
+	if ((rdev->family == CHIP_SUMO) || (rdev->family == CHIP_SUMO2))
+	{
 		if (pi->fw_version >= 0x00010C00)
+		{
 			return_code = true;
+		}
 	}
 
 	return return_code;
 }
 
 void sumo_smu_notify_alt_vddnb_change(struct radeon_device *rdev,
-				      bool powersaving, bool force_nbps1)
+									  bool powersaving, bool force_nbps1)
 {
 	u32 param = 0;
 
 	if (!sumo_is_alt_vddnb_supported(rdev))
+	{
 		return;
+	}
 
 	if (powersaving)
+	{
 		param |= 1;
+	}
 
 	if (force_nbps1)
+	{
 		param |= 2;
+	}
 
 	WREG32_RCU(RCU_ALTVDDNB_NOTIFY, param);
 
@@ -136,7 +165,9 @@ static u32 sumo_power_of_4(u32 unit)
 	u32 i;
 
 	for (i = 0; i < unit; i++)
+	{
 		ret *= 4;
+	}
 
 	return ret;
 }
@@ -148,7 +179,7 @@ void sumo_enable_boost_timer(struct radeon_device *rdev)
 	u32 xclk = radeon_get_xclk(rdev);
 
 	unit = (RREG32_RCU(RCU_LCLK_SCALING_CNTL) & LCLK_SCALING_TIMER_PRESCALER_MASK)
-		>> LCLK_SCALING_TIMER_PRESCALER_SHIFT;
+		   >> LCLK_SCALING_TIMER_PRESCALER_SHIFT;
 
 	period = 100 * (xclk / 100 / sumo_power_of_4(unit));
 
@@ -170,33 +201,40 @@ void sumo_set_tdp_limit(struct radeon_device *rdev, u32 index, u32 tdp_limit)
 	u32 mask = 0xFFF;
 	u32 sclk_dpm_tdp_limit;
 
-	switch (index) {
-	case 0:
-		regoffset = RCU_SclkDpmTdpLimit01;
-		shift = 16;
-		break;
-	case 1:
-		regoffset = RCU_SclkDpmTdpLimit01;
-		shift = 0;
-		break;
-	case 2:
-		regoffset = RCU_SclkDpmTdpLimit23;
-		shift = 16;
-		break;
-	case 3:
-		regoffset = RCU_SclkDpmTdpLimit23;
-		shift = 0;
-		break;
-	case 4:
-		regoffset = RCU_SclkDpmTdpLimit47;
-		shift = 16;
-		break;
-	case 7:
-		regoffset = RCU_SclkDpmTdpLimit47;
-		shift = 0;
-		break;
-	default:
-		break;
+	switch (index)
+	{
+		case 0:
+			regoffset = RCU_SclkDpmTdpLimit01;
+			shift = 16;
+			break;
+
+		case 1:
+			regoffset = RCU_SclkDpmTdpLimit01;
+			shift = 0;
+			break;
+
+		case 2:
+			regoffset = RCU_SclkDpmTdpLimit23;
+			shift = 16;
+			break;
+
+		case 3:
+			regoffset = RCU_SclkDpmTdpLimit23;
+			shift = 0;
+			break;
+
+		case 4:
+			regoffset = RCU_SclkDpmTdpLimit47;
+			shift = 16;
+			break;
+
+		case 7:
+			regoffset = RCU_SclkDpmTdpLimit47;
+			shift = 0;
+			break;
+
+		default:
+			break;
 	}
 
 	sclk_dpm_tdp_limit = RREG32_RCU(regoffset);

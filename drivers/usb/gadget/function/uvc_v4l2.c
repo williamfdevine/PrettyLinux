@@ -39,7 +39,9 @@ uvc_send_response(struct uvc_device *uvc, struct uvc_request_data *data)
 	struct usb_request *req = uvc->control_req;
 
 	if (data->length < 0)
+	{
 		return usb_ep_set_halt(cdev->gadget->ep0);
+	}
 
 	req->length = min_t(unsigned int, uvc->event_length, data->length);
 	req->zero = data->length < uvc->event_length;
@@ -59,7 +61,8 @@ struct uvc_format
 	u32 fcc;
 };
 
-static struct uvc_format uvc_formats[] = {
+static struct uvc_format uvc_formats[] =
+{
 	{ 16, V4L2_PIX_FMT_YUYV  },
 	{ 0,  V4L2_PIX_FMT_MJPEG },
 };
@@ -74,7 +77,7 @@ uvc_v4l2_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
 	strlcpy(cap->driver, "g_uvc", sizeof(cap->driver));
 	strlcpy(cap->card, cdev->gadget->name, sizeof(cap->card));
 	strlcpy(cap->bus_info, dev_name(&cdev->gadget->dev),
-		sizeof(cap->bus_info));
+			sizeof(cap->bus_info));
 
 	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
@@ -112,15 +115,20 @@ uvc_v4l2_set_format(struct file *file, void *fh, struct v4l2_format *fmt)
 	unsigned int bpl;
 	unsigned int i;
 
-	for (i = 0; i < ARRAY_SIZE(uvc_formats); ++i) {
+	for (i = 0; i < ARRAY_SIZE(uvc_formats); ++i)
+	{
 		format = &uvc_formats[i];
+
 		if (format->fcc == fmt->fmt.pix.pixelformat)
+		{
 			break;
+		}
 	}
 
-	if (i == ARRAY_SIZE(uvc_formats)) {
+	if (i == ARRAY_SIZE(uvc_formats))
+	{
 		printk(KERN_INFO "Unsupported format 0x%08x.\n",
-			fmt->fmt.pix.pixelformat);
+			   fmt->fmt.pix.pixelformat);
 		return -EINVAL;
 	}
 
@@ -150,7 +158,9 @@ uvc_v4l2_reqbufs(struct file *file, void *fh, struct v4l2_requestbuffers *b)
 	struct uvc_video *video = &uvc->video;
 
 	if (b->type != video->queue.queue.type)
+	{
 		return -EINVAL;
+	}
 
 	return uvcg_alloc_buffers(&video->queue, b);
 }
@@ -174,8 +184,11 @@ uvc_v4l2_qbuf(struct file *file, void *fh, struct v4l2_buffer *b)
 	int ret;
 
 	ret = uvcg_queue_buffer(&video->queue, b);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return uvcg_video_pump(video);
 }
@@ -199,12 +212,17 @@ uvc_v4l2_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
 	int ret;
 
 	if (type != video->queue.queue.type)
+	{
 		return -EINVAL;
+	}
 
 	/* Enable UVC video. */
 	ret = uvcg_video_enable(video, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/*
 	 * Complete the alternate setting selection setup phase now that
@@ -224,45 +242,51 @@ uvc_v4l2_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
 	struct uvc_video *video = &uvc->video;
 
 	if (type != video->queue.queue.type)
+	{
 		return -EINVAL;
+	}
 
 	return uvcg_video_enable(video, 0);
 }
 
 static int
 uvc_v4l2_subscribe_event(struct v4l2_fh *fh,
-			 const struct v4l2_event_subscription *sub)
+						 const struct v4l2_event_subscription *sub)
 {
 	if (sub->type < UVC_EVENT_FIRST || sub->type > UVC_EVENT_LAST)
+	{
 		return -EINVAL;
+	}
 
 	return v4l2_event_subscribe(fh, sub, 2, NULL);
 }
 
 static int
 uvc_v4l2_unsubscribe_event(struct v4l2_fh *fh,
-			   const struct v4l2_event_subscription *sub)
+						   const struct v4l2_event_subscription *sub)
 {
 	return v4l2_event_unsubscribe(fh, sub);
 }
 
 static long
 uvc_v4l2_ioctl_default(struct file *file, void *fh, bool valid_prio,
-		       unsigned int cmd, void *arg)
+					   unsigned int cmd, void *arg)
 {
 	struct video_device *vdev = video_devdata(file);
 	struct uvc_device *uvc = video_get_drvdata(vdev);
 
-	switch (cmd) {
-	case UVCIOC_SEND_RESPONSE:
-		return uvc_send_response(uvc, arg);
+	switch (cmd)
+	{
+		case UVCIOC_SEND_RESPONSE:
+			return uvc_send_response(uvc, arg);
 
-	default:
-		return -ENOIOCTLCMD;
+		default:
+			return -ENOIOCTLCMD;
 	}
 }
 
-const struct v4l2_ioctl_ops uvc_v4l2_ioctl_ops = {
+const struct v4l2_ioctl_ops uvc_v4l2_ioctl_ops =
+{
 	.vidioc_querycap = uvc_v4l2_querycap,
 	.vidioc_g_fmt_vid_out = uvc_v4l2_get_format,
 	.vidioc_s_fmt_vid_out = uvc_v4l2_set_format,
@@ -289,8 +313,11 @@ uvc_v4l2_open(struct file *file)
 	struct uvc_file_handle *handle;
 
 	handle = kzalloc(sizeof(*handle), GFP_KERNEL);
+
 	if (handle == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	v4l2_fh_init(&handle->vfh, vdev);
 	v4l2_fh_add(&handle->vfh);
@@ -355,7 +382,8 @@ static unsigned long uvcg_v4l2_get_unmapped_area(struct file *file,
 }
 #endif
 
-struct v4l2_file_operations uvc_v4l2_fops = {
+struct v4l2_file_operations uvc_v4l2_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= uvc_v4l2_open,
 	.release	= uvc_v4l2_release,

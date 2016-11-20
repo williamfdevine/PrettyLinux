@@ -30,17 +30,20 @@ static void usbhs_write32(struct usbhs_priv *priv, u32 reg, u32 data)
 }
 
 static int usbhs_rcar3_power_ctrl(struct platform_device *pdev,
-				void __iomem *base, int enable)
+								  void __iomem *base, int enable)
 {
 	struct usbhs_priv *priv = usbhs_pdev_to_priv(pdev);
 
 	usbhs_write32(priv, UGCTRL2, UGCTRL2_RESERVED_3 | UGCTRL2_USB0SEL_OTG);
 
-	if (enable) {
+	if (enable)
+	{
 		usbhs_bset(priv, LPSTS, LPSTS_SUSPM, LPSTS_SUSPM);
 		/* The controller on R-Car Gen3 needs to wait up to 45 usec */
 		udelay(45);
-	} else {
+	}
+	else
+	{
 		usbhs_bset(priv, LPSTS, LPSTS_SUSPM, 0);
 	}
 
@@ -52,7 +55,8 @@ static int usbhs_rcar3_get_id(struct platform_device *pdev)
 	return USBHS_GADGET;
 }
 
-const struct renesas_usbhs_platform_callback usbhs_rcar3_ops = {
+const struct renesas_usbhs_platform_callback usbhs_rcar3_ops =
+{
 	.power_ctrl = usbhs_rcar3_power_ctrl,
 	.get_id = usbhs_rcar3_get_id,
 };

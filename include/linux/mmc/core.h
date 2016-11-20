@@ -15,7 +15,8 @@ struct request;
 struct mmc_data;
 struct mmc_request;
 
-struct mmc_command {
+struct mmc_command
+{
 	u32			opcode;
 	u32			arg;
 #define MMC_CMD23_ARG_REL_WR	(1 << 31)
@@ -40,11 +41,11 @@ struct mmc_command {
 #define MMC_RSP_SPI_B4	(1 << 9)		/* four data bytes */
 #define MMC_RSP_SPI_BUSY (1 << 10)		/* card may send busy */
 
-/*
- * These are the native response types, and correspond to valid bit
- * patterns of the above flags.  One additional valid pattern
- * is all zeros, which means we don't expect a response.
- */
+	/*
+	 * These are the native response types, and correspond to valid bit
+	 * patterns of the above flags.  One additional valid pattern
+	 * is all zeros, which means we don't expect a response.
+	 */
 #define MMC_RSP_NONE	(0)
 #define MMC_RSP_R1	(MMC_RSP_PRESENT|MMC_RSP_CRC|MMC_RSP_OPCODE)
 #define MMC_RSP_R1B	(MMC_RSP_PRESENT|MMC_RSP_CRC|MMC_RSP_OPCODE|MMC_RSP_BUSY)
@@ -55,16 +56,16 @@ struct mmc_command {
 #define MMC_RSP_R6	(MMC_RSP_PRESENT|MMC_RSP_CRC|MMC_RSP_OPCODE)
 #define MMC_RSP_R7	(MMC_RSP_PRESENT|MMC_RSP_CRC|MMC_RSP_OPCODE)
 
-/* Can be used by core to poll after switch to MMC HS mode */
+	/* Can be used by core to poll after switch to MMC HS mode */
 #define MMC_RSP_R1_NO_CRC	(MMC_RSP_PRESENT|MMC_RSP_OPCODE)
 
 #define mmc_resp_type(cmd)	((cmd)->flags & (MMC_RSP_PRESENT|MMC_RSP_136|MMC_RSP_CRC|MMC_RSP_BUSY|MMC_RSP_OPCODE))
 
-/*
- * These are the SPI response types for MMC, SD, and SDIO cards.
- * Commands return R1, with maybe more info.  Zero is an error type;
- * callers must always provide the appropriate MMC_RSP_SPI_Rx flags.
- */
+	/*
+	 * These are the SPI response types for MMC, SD, and SDIO cards.
+	 * Commands return R1, with maybe more info.  Zero is an error type;
+	 * callers must always provide the appropriate MMC_RSP_SPI_Rx flags.
+	 */
 #define MMC_RSP_SPI_R1	(MMC_RSP_SPI_S1)
 #define MMC_RSP_SPI_R1B	(MMC_RSP_SPI_S1|MMC_RSP_SPI_BUSY)
 #define MMC_RSP_SPI_R2	(MMC_RSP_SPI_S1|MMC_RSP_SPI_S2)
@@ -74,29 +75,29 @@ struct mmc_command {
 #define MMC_RSP_SPI_R7	(MMC_RSP_SPI_S1|MMC_RSP_SPI_B4)
 
 #define mmc_spi_resp_type(cmd)	((cmd)->flags & \
-		(MMC_RSP_SPI_S1|MMC_RSP_SPI_BUSY|MMC_RSP_SPI_S2|MMC_RSP_SPI_B4))
+								 (MMC_RSP_SPI_S1|MMC_RSP_SPI_BUSY|MMC_RSP_SPI_S2|MMC_RSP_SPI_B4))
 
-/*
- * These are the command types.
- */
+	/*
+	 * These are the command types.
+	 */
 #define mmc_cmd_type(cmd)	((cmd)->flags & MMC_CMD_MASK)
 
 	unsigned int		retries;	/* max number of retries */
 	int			error;		/* command error */
 
-/*
- * Standard errno values are used for errors, but some have specific
- * meaning in the MMC layer:
- *
- * ETIMEDOUT    Card took too long to respond
- * EILSEQ       Basic format problem with the received or sent data
- *              (e.g. CRC check failed, incorrect opcode in response
- *              or bad end bit)
- * EINVAL       Request cannot be performed because of restrictions
- *              in hardware and/or the driver
- * ENOMEDIUM    Host can determine that the slot is empty and is
- *              actively failing requests
- */
+	/*
+	 * Standard errno values are used for errors, but some have specific
+	 * meaning in the MMC layer:
+	 *
+	 * ETIMEDOUT    Card took too long to respond
+	 * EILSEQ       Basic format problem with the received or sent data
+	 *              (e.g. CRC check failed, incorrect opcode in response
+	 *              or bad end bit)
+	 * EINVAL       Request cannot be performed because of restrictions
+	 *              in hardware and/or the driver
+	 * ENOMEDIUM    Host can determine that the slot is empty and is
+	 *              actively failing requests
+	 */
 
 	unsigned int		busy_timeout;	/* busy detect timeout in ms */
 	/* Set this flag only for blocking sanitize request */
@@ -106,7 +107,8 @@ struct mmc_command {
 	struct mmc_request	*mrq;		/* associated request */
 };
 
-struct mmc_data {
+struct mmc_data
+{
 	unsigned int		timeout_ns;	/* data timeout (in ns, max 80ms) */
 	unsigned int		timeout_clks;	/* data timeout (in clocks) */
 	unsigned int		blksz;		/* data block size */
@@ -129,7 +131,8 @@ struct mmc_data {
 };
 
 struct mmc_host;
-struct mmc_request {
+struct mmc_request
+{
 	struct mmc_command	*sbc;		/* SET_BLOCK_COUNT for multiblock */
 	struct mmc_command	*cmd;
 	struct mmc_data		*data;
@@ -150,16 +153,16 @@ struct mmc_async_req;
 extern int mmc_stop_bkops(struct mmc_card *);
 extern int mmc_read_bkops_status(struct mmc_card *);
 extern struct mmc_async_req *mmc_start_req(struct mmc_host *,
-					   struct mmc_async_req *, int *);
+		struct mmc_async_req *, int *);
 extern int mmc_interrupt_hpi(struct mmc_card *);
 extern void mmc_wait_for_req(struct mmc_host *, struct mmc_request *);
 extern void mmc_wait_for_req_done(struct mmc_host *host,
-				  struct mmc_request *mrq);
+								  struct mmc_request *mrq);
 extern bool mmc_is_req_done(struct mmc_host *host, struct mmc_request *mrq);
 extern int mmc_wait_for_cmd(struct mmc_host *, struct mmc_command *, int);
 extern int mmc_app_cmd(struct mmc_host *, struct mmc_card *);
 extern int mmc_wait_for_app_cmd(struct mmc_host *, struct mmc_card *,
-	struct mmc_command *, int);
+								struct mmc_command *, int);
 extern void mmc_start_bkops(struct mmc_card *card, bool from_exception);
 extern int mmc_switch(struct mmc_card *, u8, u8, u8, unsigned int);
 extern int mmc_send_tuning(struct mmc_host *host, u32 opcode, int *cmd_error);
@@ -176,19 +179,19 @@ extern int mmc_get_ext_csd(struct mmc_card *card, u8 **new_ext_csd);
 #define MMC_TRIM_ARGS		0x00008001
 
 extern int mmc_erase(struct mmc_card *card, unsigned int from, unsigned int nr,
-		     unsigned int arg);
+					 unsigned int arg);
 extern int mmc_can_erase(struct mmc_card *card);
 extern int mmc_can_trim(struct mmc_card *card);
 extern int mmc_can_discard(struct mmc_card *card);
 extern int mmc_can_sanitize(struct mmc_card *card);
 extern int mmc_can_secure_erase_trim(struct mmc_card *card);
 extern int mmc_erase_group_aligned(struct mmc_card *card, unsigned int from,
-				   unsigned int nr);
+								   unsigned int nr);
 extern unsigned int mmc_calc_max_discard(struct mmc_card *card);
 
 extern int mmc_set_blocklen(struct mmc_card *card, unsigned int blocklen);
 extern int mmc_set_blockcount(struct mmc_card *card, unsigned int blockcount,
-			      bool is_rel_write);
+							  bool is_rel_write);
 extern int mmc_hw_reset(struct mmc_host *host);
 extern int mmc_can_reset(struct mmc_card *card);
 

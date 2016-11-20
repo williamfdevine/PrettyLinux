@@ -2,7 +2,8 @@
 #define __NVKM_FUSE_H__
 #include <core/subdev.h>
 
-struct nvkm_fuse {
+struct nvkm_fuse
+{
 	const struct nvkm_fuse_func *func;
 	struct nvkm_subdev subdev;
 	spinlock_t lock;

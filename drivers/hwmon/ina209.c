@@ -62,7 +62,8 @@
 #define INA209_CONFIG_DEFAULT		0x3c47	/* PGA=8, full range */
 #define INA209_SHUNT_DEFAULT		10000	/* uOhm */
 
-struct ina209_data {
+struct ina209_data
+{
 	struct i2c_client *client;
 
 	struct mutex update_lock;
@@ -87,18 +88,25 @@ static struct ina209_data *ina209_update_device(struct device *dev)
 	mutex_lock(&data->update_lock);
 
 	if (!data->valid ||
-	    time_after(jiffies, data->last_updated + data->update_interval)) {
-		for (i = 0; i < ARRAY_SIZE(data->regs); i++) {
+		time_after(jiffies, data->last_updated + data->update_interval))
+	{
+		for (i = 0; i < ARRAY_SIZE(data->regs); i++)
+		{
 			val = i2c_smbus_read_word_swapped(client, i);
-			if (val < 0) {
+
+			if (val < 0)
+			{
 				ret = ERR_PTR(val);
 				goto abort;
 			}
+
 			data->regs[i] = val;
 		}
+
 		data->last_updated = jiffies;
 		data->valid = true;
 	}
+
 abort:
 	mutex_unlock(&data->update_lock);
 	return ret;
@@ -110,43 +118,44 @@ abort:
  */
 static long ina209_from_reg(const u8 reg, const u16 val)
 {
-	switch (reg) {
-	case INA209_SHUNT_VOLTAGE:
-	case INA209_SHUNT_VOLTAGE_POS_PEAK:
-	case INA209_SHUNT_VOLTAGE_NEG_PEAK:
-	case INA209_SHUNT_VOLTAGE_POS_WARN:
-	case INA209_SHUNT_VOLTAGE_NEG_WARN:
-		/* LSB=10 uV. Convert to mV. */
-		return DIV_ROUND_CLOSEST(val, 100);
+	switch (reg)
+	{
+		case INA209_SHUNT_VOLTAGE:
+		case INA209_SHUNT_VOLTAGE_POS_PEAK:
+		case INA209_SHUNT_VOLTAGE_NEG_PEAK:
+		case INA209_SHUNT_VOLTAGE_POS_WARN:
+		case INA209_SHUNT_VOLTAGE_NEG_WARN:
+			/* LSB=10 uV. Convert to mV. */
+			return DIV_ROUND_CLOSEST(val, 100);
 
-	case INA209_BUS_VOLTAGE:
-	case INA209_BUS_VOLTAGE_MAX_PEAK:
-	case INA209_BUS_VOLTAGE_MIN_PEAK:
-	case INA209_BUS_VOLTAGE_OVER_WARN:
-	case INA209_BUS_VOLTAGE_UNDER_WARN:
-	case INA209_BUS_VOLTAGE_OVER_LIMIT:
-	case INA209_BUS_VOLTAGE_UNDER_LIMIT:
-		/* LSB=4 mV, last 3 bits unused */
-		return (val >> 3) * 4;
+		case INA209_BUS_VOLTAGE:
+		case INA209_BUS_VOLTAGE_MAX_PEAK:
+		case INA209_BUS_VOLTAGE_MIN_PEAK:
+		case INA209_BUS_VOLTAGE_OVER_WARN:
+		case INA209_BUS_VOLTAGE_UNDER_WARN:
+		case INA209_BUS_VOLTAGE_OVER_LIMIT:
+		case INA209_BUS_VOLTAGE_UNDER_LIMIT:
+			/* LSB=4 mV, last 3 bits unused */
+			return (val >> 3) * 4;
 
-	case INA209_CRITICAL_DAC_POS:
-		/* LSB=1 mV, in the upper 8 bits */
-		return val >> 8;
+		case INA209_CRITICAL_DAC_POS:
+			/* LSB=1 mV, in the upper 8 bits */
+			return val >> 8;
 
-	case INA209_CRITICAL_DAC_NEG:
-		/* LSB=1 mV, in the upper 8 bits */
-		return -1 * (val >> 8);
+		case INA209_CRITICAL_DAC_NEG:
+			/* LSB=1 mV, in the upper 8 bits */
+			return -1 * (val >> 8);
 
-	case INA209_POWER:
-	case INA209_POWER_PEAK:
-	case INA209_POWER_WARN:
-	case INA209_POWER_OVER_LIMIT:
-		/* LSB=20 mW. Convert to uW */
-		return val * 20 * 1000L;
+		case INA209_POWER:
+		case INA209_POWER_PEAK:
+		case INA209_POWER_WARN:
+		case INA209_POWER_OVER_LIMIT:
+			/* LSB=20 mW. Convert to uW */
+			return val * 20 * 1000L;
 
-	case INA209_CURRENT:
-		/* LSB=1 mA (selected). Is in mA */
-		return val;
+		case INA209_CURRENT:
+			/* LSB=1 mA (selected). Is in mA */
+			return val;
 	}
 
 	/* programmer goofed */
@@ -160,48 +169,49 @@ static long ina209_from_reg(const u8 reg, const u16 val)
  */
 static int ina209_to_reg(u8 reg, u16 old, long val)
 {
-	switch (reg) {
-	case INA209_SHUNT_VOLTAGE_POS_WARN:
-	case INA209_SHUNT_VOLTAGE_NEG_WARN:
-		/* Limit to +- 320 mV, 10 uV LSB */
-		return clamp_val(val, -320, 320) * 100;
+	switch (reg)
+	{
+		case INA209_SHUNT_VOLTAGE_POS_WARN:
+		case INA209_SHUNT_VOLTAGE_NEG_WARN:
+			/* Limit to +- 320 mV, 10 uV LSB */
+			return clamp_val(val, -320, 320) * 100;
 
-	case INA209_BUS_VOLTAGE_OVER_WARN:
-	case INA209_BUS_VOLTAGE_UNDER_WARN:
-	case INA209_BUS_VOLTAGE_OVER_LIMIT:
-	case INA209_BUS_VOLTAGE_UNDER_LIMIT:
-		/*
-		 * Limit to 0-32000 mV, 4 mV LSB
-		 *
-		 * The last three bits aren't part of the value, but we'll
-		 * preserve them in their original state.
-		 */
-		return (DIV_ROUND_CLOSEST(clamp_val(val, 0, 32000), 4) << 3)
-		  | (old & 0x7);
+		case INA209_BUS_VOLTAGE_OVER_WARN:
+		case INA209_BUS_VOLTAGE_UNDER_WARN:
+		case INA209_BUS_VOLTAGE_OVER_LIMIT:
+		case INA209_BUS_VOLTAGE_UNDER_LIMIT:
+			/*
+			 * Limit to 0-32000 mV, 4 mV LSB
+			 *
+			 * The last three bits aren't part of the value, but we'll
+			 * preserve them in their original state.
+			 */
+			return (DIV_ROUND_CLOSEST(clamp_val(val, 0, 32000), 4) << 3)
+				   | (old & 0x7);
 
-	case INA209_CRITICAL_DAC_NEG:
-		/*
-		 * Limit to -255-0 mV, 1 mV LSB
-		 * Convert the value to a positive value for the register
-		 *
-		 * The value lives in the top 8 bits only, be careful
-		 * and keep original value of other bits.
-		 */
-		return (clamp_val(-val, 0, 255) << 8) | (old & 0xff);
+		case INA209_CRITICAL_DAC_NEG:
+			/*
+			 * Limit to -255-0 mV, 1 mV LSB
+			 * Convert the value to a positive value for the register
+			 *
+			 * The value lives in the top 8 bits only, be careful
+			 * and keep original value of other bits.
+			 */
+			return (clamp_val(-val, 0, 255) << 8) | (old & 0xff);
 
-	case INA209_CRITICAL_DAC_POS:
-		/*
-		 * Limit to 0-255 mV, 1 mV LSB
-		 *
-		 * The value lives in the top 8 bits only, be careful
-		 * and keep original value of other bits.
-		 */
-		return (clamp_val(val, 0, 255) << 8) | (old & 0xff);
+		case INA209_CRITICAL_DAC_POS:
+			/*
+			 * Limit to 0-255 mV, 1 mV LSB
+			 *
+			 * The value lives in the top 8 bits only, be careful
+			 * and keep original value of other bits.
+			 */
+			return (clamp_val(val, 0, 255) << 8) | (old & 0xff);
 
-	case INA209_POWER_WARN:
-	case INA209_POWER_OVER_LIMIT:
-		/* 20 mW LSB */
-		return DIV_ROUND_CLOSEST(val, 20 * 1000);
+		case INA209_POWER_WARN:
+		case INA209_POWER_OVER_LIMIT:
+			/* 20 mW LSB */
+			return DIV_ROUND_CLOSEST(val, 20 * 1000);
 	}
 
 	/* Other registers are read-only, return access error */
@@ -217,22 +227,31 @@ static u16 ina209_reg_from_interval(u16 config, long interval)
 {
 	int i, adc;
 
-	if (interval <= 0) {
+	if (interval <= 0)
+	{
 		adc = 8;
-	} else {
+	}
+	else
+	{
 		adc = 15;
-		for (i = 34 + 34 / 2; i; i >>= 1) {
+
+		for (i = 34 + 34 / 2; i; i >>= 1)
+		{
 			if (i < interval)
+			{
 				break;
+			}
+
 			adc--;
 		}
 	}
+
 	return (config & 0xf807) | (adc << 3) | (adc << 7);
 }
 
 static ssize_t ina209_set_interval(struct device *dev,
-				   struct device_attribute *da,
-				   const char *buf, size_t count)
+								   struct device_attribute *da,
+								   const char *buf, size_t count)
 {
 	struct ina209_data *data = ina209_update_device(dev);
 	long val;
@@ -240,17 +259,22 @@ static ssize_t ina209_set_interval(struct device *dev,
 	int ret;
 
 	if (IS_ERR(data))
+	{
 		return PTR_ERR(data);
+	}
 
 	ret = kstrtol(buf, 10, &val);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	mutex_lock(&data->update_lock);
 	regval = ina209_reg_from_interval(data->regs[INA209_CONFIGURATION],
-					  val);
+									  val);
 	i2c_smbus_write_word_swapped(data->client, INA209_CONFIGURATION,
-				     regval);
+								 regval);
 	data->regs[INA209_CONFIGURATION] = regval;
 	data->update_interval = ina209_interval_from_reg(regval);
 	mutex_unlock(&data->update_lock);
@@ -258,7 +282,7 @@ static ssize_t ina209_set_interval(struct device *dev,
 }
 
 static ssize_t ina209_show_interval(struct device *dev,
-				    struct device_attribute *da, char *buf)
+									struct device_attribute *da, char *buf)
 {
 	struct ina209_data *data = dev_get_drvdata(dev);
 
@@ -271,7 +295,8 @@ static ssize_t ina209_show_interval(struct device *dev,
  * reset_history attribute write, use a bit mask in attr->index to identify
  * which registers are affected.
  */
-static u16 ina209_reset_history_regs[] = {
+static u16 ina209_reset_history_regs[] =
+{
 	INA209_SHUNT_VOLTAGE_POS_PEAK,
 	INA209_SHUNT_VOLTAGE_NEG_PEAK,
 	INA209_BUS_VOLTAGE_MAX_PEAK,
@@ -280,9 +305,9 @@ static u16 ina209_reset_history_regs[] = {
 };
 
 static ssize_t ina209_reset_history(struct device *dev,
-				    struct device_attribute *da,
-				    const char *buf,
-				    size_t count)
+									struct device_attribute *da,
+									const char *buf,
+									size_t count)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
 	struct ina209_data *data = dev_get_drvdata(dev);
@@ -292,24 +317,30 @@ static ssize_t ina209_reset_history(struct device *dev,
 	int i, ret;
 
 	ret = kstrtol(buf, 10, &val);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	mutex_lock(&data->update_lock);
-	for (i = 0; i < ARRAY_SIZE(ina209_reset_history_regs); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(ina209_reset_history_regs); i++)
+	{
 		if (mask & (1 << i))
 			i2c_smbus_write_word_swapped(client,
-					ina209_reset_history_regs[i], 1);
+										 ina209_reset_history_regs[i], 1);
 	}
+
 	data->valid = false;
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static ssize_t ina209_set_value(struct device *dev,
-				struct device_attribute *da,
-				const char *buf,
-				size_t count)
+								struct device_attribute *da,
+								const char *buf,
+								size_t count)
 {
 	struct ina209_data *data = ina209_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
@@ -318,18 +349,26 @@ static ssize_t ina209_set_value(struct device *dev,
 	int ret;
 
 	if (IS_ERR(data))
+	{
 		return PTR_ERR(data);
+	}
 
 	ret = kstrtol(buf, 10, &val);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	mutex_lock(&data->update_lock);
 	ret = ina209_to_reg(reg, data->regs[reg], val);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		count = ret;
 		goto abort;
 	}
+
 	i2c_smbus_write_word_swapped(data->client, reg, ret);
 	data->regs[reg] = ret;
 abort:
@@ -338,23 +377,25 @@ abort:
 }
 
 static ssize_t ina209_show_value(struct device *dev,
-				 struct device_attribute *da,
-				 char *buf)
+								 struct device_attribute *da,
+								 char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
 	struct ina209_data *data = ina209_update_device(dev);
 	long val;
 
 	if (IS_ERR(data))
+	{
 		return PTR_ERR(data);
+	}
 
 	val = ina209_from_reg(attr->index, data->regs[attr->index]);
 	return snprintf(buf, PAGE_SIZE, "%ld\n", val);
 }
 
 static ssize_t ina209_show_alarm(struct device *dev,
-				 struct device_attribute *da,
-				 char *buf)
+								 struct device_attribute *da,
+								 char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
 	struct ina209_data *data = ina209_update_device(dev);
@@ -362,7 +403,9 @@ static ssize_t ina209_show_alarm(struct device *dev,
 	u16 status;
 
 	if (IS_ERR(data))
+	{
 		return PTR_ERR(data);
+	}
 
 	status = data->regs[INA209_STATUS];
 
@@ -375,87 +418,88 @@ static ssize_t ina209_show_alarm(struct device *dev,
 
 /* Shunt voltage, history, limits, alarms */
 static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, ina209_show_value, NULL,
-			  INA209_SHUNT_VOLTAGE);
+						  INA209_SHUNT_VOLTAGE);
 static SENSOR_DEVICE_ATTR(in0_input_highest, S_IRUGO, ina209_show_value, NULL,
-			  INA209_SHUNT_VOLTAGE_POS_PEAK);
+						  INA209_SHUNT_VOLTAGE_POS_PEAK);
 static SENSOR_DEVICE_ATTR(in0_input_lowest, S_IRUGO, ina209_show_value, NULL,
-			  INA209_SHUNT_VOLTAGE_NEG_PEAK);
+						  INA209_SHUNT_VOLTAGE_NEG_PEAK);
 static SENSOR_DEVICE_ATTR(in0_reset_history, S_IWUSR, NULL,
-			  ina209_reset_history, (1 << 0) | (1 << 1));
+						  ina209_reset_history, (1 << 0) | (1 << 1));
 static SENSOR_DEVICE_ATTR(in0_max, S_IRUGO | S_IWUSR, ina209_show_value,
-			  ina209_set_value, INA209_SHUNT_VOLTAGE_POS_WARN);
+						  ina209_set_value, INA209_SHUNT_VOLTAGE_POS_WARN);
 static SENSOR_DEVICE_ATTR(in0_min, S_IRUGO | S_IWUSR, ina209_show_value,
-			  ina209_set_value, INA209_SHUNT_VOLTAGE_NEG_WARN);
+						  ina209_set_value, INA209_SHUNT_VOLTAGE_NEG_WARN);
 static SENSOR_DEVICE_ATTR(in0_crit_max, S_IRUGO | S_IWUSR, ina209_show_value,
-			  ina209_set_value, INA209_CRITICAL_DAC_POS);
+						  ina209_set_value, INA209_CRITICAL_DAC_POS);
 static SENSOR_DEVICE_ATTR(in0_crit_min, S_IRUGO | S_IWUSR, ina209_show_value,
-			  ina209_set_value, INA209_CRITICAL_DAC_NEG);
+						  ina209_set_value, INA209_CRITICAL_DAC_NEG);
 
 static SENSOR_DEVICE_ATTR(in0_min_alarm,  S_IRUGO, ina209_show_alarm, NULL,
-			  1 << 11);
+						  1 << 11);
 static SENSOR_DEVICE_ATTR(in0_max_alarm, S_IRUGO, ina209_show_alarm, NULL,
-			  1 << 12);
+						  1 << 12);
 static SENSOR_DEVICE_ATTR(in0_crit_min_alarm, S_IRUGO, ina209_show_alarm, NULL,
-			  1 << 6);
+						  1 << 6);
 static SENSOR_DEVICE_ATTR(in0_crit_max_alarm, S_IRUGO, ina209_show_alarm, NULL,
-			  1 << 7);
+						  1 << 7);
 
 /* Bus voltage, history, limits, alarms */
 static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, ina209_show_value, NULL,
-			  INA209_BUS_VOLTAGE);
+						  INA209_BUS_VOLTAGE);
 static SENSOR_DEVICE_ATTR(in1_input_highest, S_IRUGO, ina209_show_value, NULL,
-			  INA209_BUS_VOLTAGE_MAX_PEAK);
+						  INA209_BUS_VOLTAGE_MAX_PEAK);
 static SENSOR_DEVICE_ATTR(in1_input_lowest, S_IRUGO, ina209_show_value, NULL,
-			  INA209_BUS_VOLTAGE_MIN_PEAK);
+						  INA209_BUS_VOLTAGE_MIN_PEAK);
 static SENSOR_DEVICE_ATTR(in1_reset_history, S_IWUSR, NULL,
-			  ina209_reset_history, (1 << 2) | (1 << 3));
+						  ina209_reset_history, (1 << 2) | (1 << 3));
 static SENSOR_DEVICE_ATTR(in1_max, S_IRUGO | S_IWUSR, ina209_show_value,
-			  ina209_set_value, INA209_BUS_VOLTAGE_OVER_WARN);
+						  ina209_set_value, INA209_BUS_VOLTAGE_OVER_WARN);
 static SENSOR_DEVICE_ATTR(in1_min, S_IRUGO | S_IWUSR, ina209_show_value,
-			  ina209_set_value, INA209_BUS_VOLTAGE_UNDER_WARN);
+						  ina209_set_value, INA209_BUS_VOLTAGE_UNDER_WARN);
 static SENSOR_DEVICE_ATTR(in1_crit_max, S_IRUGO | S_IWUSR, ina209_show_value,
-			  ina209_set_value, INA209_BUS_VOLTAGE_OVER_LIMIT);
+						  ina209_set_value, INA209_BUS_VOLTAGE_OVER_LIMIT);
 static SENSOR_DEVICE_ATTR(in1_crit_min, S_IRUGO | S_IWUSR, ina209_show_value,
-			  ina209_set_value, INA209_BUS_VOLTAGE_UNDER_LIMIT);
+						  ina209_set_value, INA209_BUS_VOLTAGE_UNDER_LIMIT);
 
 static SENSOR_DEVICE_ATTR(in1_min_alarm, S_IRUGO, ina209_show_alarm, NULL,
-			  1 << 14);
+						  1 << 14);
 static SENSOR_DEVICE_ATTR(in1_max_alarm, S_IRUGO, ina209_show_alarm, NULL,
-			  1 << 15);
+						  1 << 15);
 static SENSOR_DEVICE_ATTR(in1_crit_min_alarm, S_IRUGO, ina209_show_alarm, NULL,
-			  1 << 9);
+						  1 << 9);
 static SENSOR_DEVICE_ATTR(in1_crit_max_alarm, S_IRUGO, ina209_show_alarm, NULL,
-			  1 << 10);
+						  1 << 10);
 
 /* Power */
 static SENSOR_DEVICE_ATTR(power1_input, S_IRUGO, ina209_show_value, NULL,
-			  INA209_POWER);
+						  INA209_POWER);
 static SENSOR_DEVICE_ATTR(power1_input_highest, S_IRUGO, ina209_show_value,
-			  NULL, INA209_POWER_PEAK);
+						  NULL, INA209_POWER_PEAK);
 static SENSOR_DEVICE_ATTR(power1_reset_history, S_IWUSR, NULL,
-			  ina209_reset_history, 1 << 4);
+						  ina209_reset_history, 1 << 4);
 static SENSOR_DEVICE_ATTR(power1_max, S_IRUGO | S_IWUSR, ina209_show_value,
-			  ina209_set_value, INA209_POWER_WARN);
+						  ina209_set_value, INA209_POWER_WARN);
 static SENSOR_DEVICE_ATTR(power1_crit, S_IRUGO | S_IWUSR, ina209_show_value,
-			  ina209_set_value, INA209_POWER_OVER_LIMIT);
+						  ina209_set_value, INA209_POWER_OVER_LIMIT);
 
 static SENSOR_DEVICE_ATTR(power1_max_alarm, S_IRUGO, ina209_show_alarm, NULL,
-			  1 << 13);
+						  1 << 13);
 static SENSOR_DEVICE_ATTR(power1_crit_alarm, S_IRUGO, ina209_show_alarm, NULL,
-			  1 << 8);
+						  1 << 8);
 
 /* Current */
 static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO, ina209_show_value, NULL,
-			  INA209_CURRENT);
+						  INA209_CURRENT);
 
 static SENSOR_DEVICE_ATTR(update_interval, S_IRUGO | S_IWUSR,
-			  ina209_show_interval, ina209_set_interval, 0);
+						  ina209_show_interval, ina209_set_interval, 0);
 
 /*
  * Finally, construct an array of pointers to members of the above objects,
  * as required for sysfs_create_group()
  */
-static struct attribute *ina209_attrs[] = {
+static struct attribute *ina209_attrs[] =
+{
 	&sensor_dev_attr_in0_input.dev_attr.attr,
 	&sensor_dev_attr_in0_input_highest.dev_attr.attr,
 	&sensor_dev_attr_in0_input_lowest.dev_attr.attr,
@@ -499,47 +543,65 @@ static struct attribute *ina209_attrs[] = {
 ATTRIBUTE_GROUPS(ina209);
 
 static void ina209_restore_conf(struct i2c_client *client,
-				struct ina209_data *data)
+								struct ina209_data *data)
 {
 	/* Restore initial configuration */
 	i2c_smbus_write_word_swapped(client, INA209_CONFIGURATION,
-				     data->config_orig);
+								 data->config_orig);
 	i2c_smbus_write_word_swapped(client, INA209_CALIBRATION,
-				     data->calibration_orig);
+								 data->calibration_orig);
 }
 
 static int ina209_init_client(struct i2c_client *client,
-			      struct ina209_data *data)
+							  struct ina209_data *data)
 {
 	struct ina2xx_platform_data *pdata = dev_get_platdata(&client->dev);
 	u32 shunt;
 	int reg;
 
 	reg = i2c_smbus_read_word_swapped(client, INA209_CALIBRATION);
+
 	if (reg < 0)
+	{
 		return reg;
+	}
+
 	data->calibration_orig = reg;
 
 	reg = i2c_smbus_read_word_swapped(client, INA209_CONFIGURATION);
+
 	if (reg < 0)
+	{
 		return reg;
+	}
+
 	data->config_orig = reg;
 
-	if (pdata) {
+	if (pdata)
+	{
 		if (pdata->shunt_uohms <= 0)
+		{
 			return -EINVAL;
+		}
+
 		shunt = pdata->shunt_uohms;
-	} else if (!of_property_read_u32(client->dev.of_node, "shunt-resistor",
-					 &shunt)) {
+	}
+	else if (!of_property_read_u32(client->dev.of_node, "shunt-resistor",
+								   &shunt))
+	{
 		if (shunt == 0)
+		{
 			return -EINVAL;
-	} else {
+		}
+	}
+	else
+	{
 		shunt = data->calibration_orig ?
-		  40960000 / data->calibration_orig : INA209_SHUNT_DEFAULT;
+				40960000 / data->calibration_orig : INA209_SHUNT_DEFAULT;
 	}
 
 	i2c_smbus_write_word_swapped(client, INA209_CONFIGURATION,
-				     INA209_CONFIG_DEFAULT);
+								 INA209_CONFIG_DEFAULT);
 	data->update_interval = ina209_interval_from_reg(INA209_CONFIG_DEFAULT);
 
 	/*
@@ -547,7 +609,7 @@ static int ina209_init_client(struct i2c_client *client,
 	 * See equation 13 in datasheet.
 	 */
 	i2c_smbus_write_word_swapped(client, INA209_CALIBRATION,
-				     clamp_val(40960000 / shunt, 1, 65535));
+								 clamp_val(40960000 / shunt, 1, 65535));
 
 	/* Clear status register */
 	i2c_smbus_read_word_swapped(client, INA209_STATUS);
@@ -556,7 +618,7 @@ static int ina209_init_client(struct i2c_client *client,
 }
 
 static int ina209_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct i2c_adapter *adapter = client->adapter;
 	struct ina209_data *data;
@@ -564,24 +626,34 @@ static int ina209_probe(struct i2c_client *client,
 	int ret;
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA))
+	{
 		return -ENODEV;
+	}
 
 	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(client, data);
 	data->client = client;
 	mutex_init(&data->update_lock);
 
 	ret = ina209_init_client(client, data);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(&client->dev,
-							   client->name,
-							   data, ina209_groups);
-	if (IS_ERR(hwmon_dev)) {
+				client->name,
+				data, ina209_groups);
+
+	if (IS_ERR(hwmon_dev))
+	{
 		ret = PTR_ERR(hwmon_dev);
 		goto out_restore_conf;
 	}
@@ -602,14 +674,16 @@ static int ina209_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id ina209_id[] = {
+static const struct i2c_device_id ina209_id[] =
+{
 	{ "ina209", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, ina209_id);
 
 /* This is the driver that will be inserted */
-static struct i2c_driver ina209_driver = {
+static struct i2c_driver ina209_driver =
+{
 	.class		= I2C_CLASS_HWMON,
 	.driver = {
 		.name	= "ina209",

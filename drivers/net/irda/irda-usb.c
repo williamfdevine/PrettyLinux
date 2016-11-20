@@ -3,7 +3,7 @@
  * Filename:      irda-usb.c
  * Version:       0.10
  * Description:   IrDA-USB Driver
- * Status:        Experimental 
+ * Status:        Experimental
  * Author:        Dag Brattli <dag@brattli.net>
  *
  *	Copyright (C) 2000, Roman Weissgaerber <weissg@vienna.at>
@@ -12,7 +12,7 @@
  *      Copyright (C) 2004, SigmaTel, Inc. <irquality@sigmatel.com>
  *      Copyright (C) 2005, Milan Beno <beno@pobox.sk>
  *      Copyright (C) 2006, Nick Fedchik <nick@fedchik.org.ua>
- *          
+ *
  *	This program is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
  *	the Free Software Foundation; either version 2 of the License, or
@@ -72,7 +72,8 @@
 static int qos_mtt_bits = 0;
 
 /* These are the currently known IrDA USB dongles. Add new dongles here */
-static struct usb_device_id dongles[] = {
+static struct usb_device_id dongles[] =
+{
 	/* ACTiSYS Corp.,  ACT-IR2000U FIR-USB Adapter */
 	{ USB_DEVICE(0x9c4, 0x011), .driver_info = IUC_SPEED_BUG | IUC_NO_WINDOW },
 	/* Look like ACTiSYS, Report : IBM Corp., IBM UltraPort IrDA */
@@ -85,11 +86,13 @@ static struct usb_device_id dongles[] = {
 	{ USB_DEVICE(0x66f, 0x4210), .driver_info = IUC_STIR421X | IUC_SPEED_BUG },
 	{ USB_DEVICE(0x66f, 0x4220), .driver_info = IUC_STIR421X | IUC_SPEED_BUG },
 	{ USB_DEVICE(0x66f, 0x4116), .driver_info = IUC_STIR421X | IUC_SPEED_BUG },
-	{ .match_flags = USB_DEVICE_ID_MATCH_INT_CLASS |
-	  USB_DEVICE_ID_MATCH_INT_SUBCLASS,
-	  .bInterfaceClass = USB_CLASS_APP_SPEC,
-	  .bInterfaceSubClass = USB_CLASS_IRDA,
-	  .driver_info = IUC_DEFAULT, },
+	{
+		.match_flags = USB_DEVICE_ID_MATCH_INT_CLASS |
+		USB_DEVICE_ID_MATCH_INT_SUBCLASS,
+		.bInterfaceClass = USB_CLASS_APP_SPEC,
+		.bInterfaceSubClass = USB_CLASS_IRDA,
+		.driver_info = IUC_DEFAULT,
+	},
 	{ }, /* The end */
 };
 
@@ -111,7 +114,7 @@ static struct irda_class_desc *irda_usb_find_class_desc(struct usb_interface *in
 static void irda_usb_disconnect(struct usb_interface *intf);
 static void irda_usb_change_speed_xbofs(struct irda_usb_cb *self);
 static netdev_tx_t irda_usb_hard_xmit(struct sk_buff *skb,
-					    struct net_device *dev);
+									  struct net_device *dev);
 static int irda_usb_open(struct irda_usb_cb *self);
 static void irda_usb_close(struct irda_usb_cb *self);
 static void speed_bulk_callback(struct urb *urb);
@@ -146,34 +149,41 @@ static void irda_usb_net_timeout(struct net_device *dev);
  * Jean II
  */
 static void irda_usb_build_header(struct irda_usb_cb *self,
-				  __u8 *header,
-				  int	force)
+								  __u8 *header,
+								  int	force)
 {
 	/* Here we check if we have an STIR421x chip,
 	 * and if either speed or xbofs (or both) needs
 	 * to be changed.
 	 */
 	if (self->capability & IUC_STIR421X &&
-	    ((self->new_speed != -1) || (self->new_xbofs != -1))) {
+		((self->new_speed != -1) || (self->new_xbofs != -1)))
+	{
 
 		/* With STIR421x, speed and xBOFs must be set at the same
 		 * time, even if only one of them changes.
 		 */
 		if (self->new_speed == -1)
+		{
 			self->new_speed = self->speed ;
+		}
 
 		if (self->new_xbofs == -1)
+		{
 			self->new_xbofs = self->xbofs ;
+		}
 	}
 
 	/* Set the link speed */
-	if (self->new_speed != -1) {
+	if (self->new_speed != -1)
+	{
 		/* Hum... Ugly hack :-(
 		 * Some device are not compliant with the spec and change
 		 * parameters *before* sending the frame. - Jean II
 		 */
 		if ((self->capability & IUC_SPEED_BUG) &&
-		    (!force) && (self->speed != -1)) {
+			(!force) && (self->speed != -1))
+		{
 			/* No speed and xbofs change here
 			 * (we'll do it later in the write callback) */
 			pr_debug("%s(), not changing speed yet\n", __func__);
@@ -182,86 +192,108 @@ static void irda_usb_build_header(struct irda_usb_cb *self,
 		}
 
 		pr_debug("%s(), changing speed to %d\n",
-			 __func__, self->new_speed);
+				 __func__, self->new_speed);
 		self->speed = self->new_speed;
 		/* We will do ` self->new_speed = -1; ' in the completion
 		 * handler just in case the current URB fail - Jean II */
 
-		switch (self->speed) {
-		case 2400:
-		        *header = SPEED_2400;
-			break;
-		default:
-		case 9600:
-			*header = SPEED_9600;
-			break;
-		case 19200:
-			*header = SPEED_19200;
-			break;
-		case 38400:
-			*header = SPEED_38400;
-			break;
-		case 57600:
-		        *header = SPEED_57600;
-			break;
-		case 115200:
-		        *header = SPEED_115200;
-			break;
-		case 576000:
-		        *header = SPEED_576000;
-			break;
-		case 1152000:
-		        *header = SPEED_1152000;
-			break;
-		case 4000000:
-		        *header = SPEED_4000000;
-			self->new_xbofs = 0;
-			break;
-		case 16000000:
-			*header = SPEED_16000000;
-  			self->new_xbofs = 0;
-  			break;
-  		}
-	} else
+		switch (self->speed)
+		{
+			case 2400:
+				*header = SPEED_2400;
+				break;
+
+			default:
+			case 9600:
+				*header = SPEED_9600;
+				break;
+
+			case 19200:
+				*header = SPEED_19200;
+				break;
+
+			case 38400:
+				*header = SPEED_38400;
+				break;
+
+			case 57600:
+				*header = SPEED_57600;
+				break;
+
+			case 115200:
+				*header = SPEED_115200;
+				break;
+
+			case 576000:
+				*header = SPEED_576000;
+				break;
+
+			case 1152000:
+				*header = SPEED_1152000;
+				break;
+
+			case 4000000:
+				*header = SPEED_4000000;
+				self->new_xbofs = 0;
+				break;
+
+			case 16000000:
+				*header = SPEED_16000000;
+				self->new_xbofs = 0;
+				break;
+		}
+	}
+	else
 		/* No change */
+	{
 		*header = 0;
-	
+	}
+
 	/* Set the negotiated additional XBOFS */
-	if (self->new_xbofs != -1) {
+	if (self->new_xbofs != -1)
+	{
 		pr_debug("%s(), changing xbofs to %d\n",
-			 __func__, self->new_xbofs);
+				 __func__, self->new_xbofs);
 		self->xbofs = self->new_xbofs;
 		/* We will do ` self->new_xbofs = -1; ' in the completion
 		 * handler just in case the current URB fail - Jean II */
 
-		switch (self->xbofs) {
-		case 48:
-			*header |= 0x10;
-			break;
-		case 28:
-		case 24:	/* USB spec 1.0 says 24 */
-			*header |= 0x20;
-			break;
-		default:
-		case 12:
-			*header |= 0x30;
-			break;
-		case 5: /* Bug in IrLAP spec? (should be 6) */
-		case 6:
-			*header |= 0x40;
-			break;
-		case 3:
-			*header |= 0x50;
-			break;
-		case 2:
-			*header |= 0x60;
-			break;
-		case 1:
-			*header |= 0x70;
-			break;
-		case 0:
-			*header |= 0x80;
-			break;
+		switch (self->xbofs)
+		{
+			case 48:
+				*header |= 0x10;
+				break;
+
+			case 28:
+			case 24:	/* USB spec 1.0 says 24 */
+				*header |= 0x20;
+				break;
+
+			default:
+			case 12:
+				*header |= 0x30;
+				break;
+
+			case 5: /* Bug in IrLAP spec? (should be 6) */
+			case 6:
+				*header |= 0x40;
+				break;
+
+			case 3:
+				*header |= 0x50;
+				break;
+
+			case 2:
+				*header |= 0x60;
+				break;
+
+			case 1:
+				*header |= 0x70;
+				break;
+
+			case 0:
+				*header |= 0x80;
+				break;
 		}
 	}
 }
@@ -274,21 +306,37 @@ static __u8 get_turnaround_time(struct sk_buff *skb)
 	int turnaround_time = irda_get_mtt(skb);
 
 	if ( turnaround_time == 0 )
+	{
 		return 0;
+	}
 	else if ( turnaround_time <= 10 )
+	{
 		return 1;
+	}
 	else if ( turnaround_time <= 50 )
+	{
 		return 2;
+	}
 	else if ( turnaround_time <= 100 )
+	{
 		return 3;
+	}
 	else if ( turnaround_time <= 500 )
+	{
 		return 4;
+	}
 	else if ( turnaround_time <= 1000 )
+	{
 		return 5;
+	}
 	else if ( turnaround_time <= 5000 )
+	{
 		return 6;
+	}
 	else
+	{
 		return 7;
+	}
 }
 
 
@@ -304,11 +352,13 @@ static void irda_usb_change_speed_xbofs(struct irda_usb_cb *self)
 	int ret;
 
 	pr_debug("%s(), speed=%d, xbofs=%d\n", __func__,
-		 self->new_speed, self->new_xbofs);
+			 self->new_speed, self->new_xbofs);
 
 	/* Grab the speed URB */
 	urb = self->speed_urb;
-	if (urb->status != 0) {
+
+	if (urb->status != 0)
+	{
 		net_warn_ratelimited("%s(), URB still in use!\n", __func__);
 		return;
 	}
@@ -319,22 +369,25 @@ static void irda_usb_change_speed_xbofs(struct irda_usb_cb *self)
 	/* Set the new speed and xbofs in this fake frame */
 	irda_usb_build_header(self, frame, 1);
 
-	if (self->capability & IUC_STIR421X) {
-		if (frame[0] == 0) return ; // do nothing if no change
+	if (self->capability & IUC_STIR421X)
+	{
+		if (frame[0] == 0) { return ; } // do nothing if no change
+
 		frame[1] = 0; // other parameters don't change here
 		frame[2] = 0;
 	}
 
 	/* Submit the 0 length IrDA frame to trigger new speed settings */
-        usb_fill_bulk_urb(urb, self->usbdev,
-		      usb_sndbulkpipe(self->usbdev, self->bulk_out_ep),
-                      frame, IRDA_USB_SPEED_MTU,
-                      speed_bulk_callback, self);
+	usb_fill_bulk_urb(urb, self->usbdev,
+					  usb_sndbulkpipe(self->usbdev, self->bulk_out_ep),
+					  frame, IRDA_USB_SPEED_MTU,
+					  speed_bulk_callback, self);
 	urb->transfer_buffer_length = self->header_length;
 	urb->transfer_flags = 0;
 
 	/* Irq disabled -> GFP_ATOMIC */
-	if ((ret = usb_submit_urb(urb, GFP_ATOMIC))) {
+	if ((ret = usb_submit_urb(urb, GFP_ATOMIC)))
+	{
 		net_warn_ratelimited("%s(), failed Speed URB\n", __func__);
 	}
 }
@@ -347,17 +400,18 @@ static void irda_usb_change_speed_xbofs(struct irda_usb_cb *self)
 static void speed_bulk_callback(struct urb *urb)
 {
 	struct irda_usb_cb *self = urb->context;
-	
+
 	/* We should always have a context */
 	IRDA_ASSERT(self != NULL, return;);
 	/* We should always be called for the speed URB */
 	IRDA_ASSERT(urb == self->speed_urb, return;);
 
 	/* Check for timeout and other USB nasties */
-	if (urb->status != 0) {
+	if (urb->status != 0)
+	{
 		/* I get a lot of -ECONNABORTED = -103 here - Jean II */
 		pr_debug("%s(), URB complete status %d, transfer_flags 0x%04X\n",
-			 __func__, urb->status, urb->transfer_flags);
+				 __func__, urb->status, urb->transfer_flags);
 
 		/* Don't do anything here, that might confuse the USB layer.
 		 * Instead, we will wait for irda_usb_net_timeout(), the
@@ -383,7 +437,7 @@ static void speed_bulk_callback(struct urb *urb)
  * Send an IrDA frame to the USB dongle (for transmission)
  */
 static netdev_tx_t irda_usb_hard_xmit(struct sk_buff *skb,
-					    struct net_device *netdev)
+									  struct net_device *netdev)
 {
 	struct irda_usb_cb *self = netdev_priv(netdev);
 	struct urb *urb = self->tx_urb;
@@ -402,25 +456,31 @@ static netdev_tx_t irda_usb_hard_xmit(struct sk_buff *skb,
 	/* Check if the device is still there.
 	 * We need to check self->present under the spinlock because
 	 * of irda_usb_disconnect() is synchronous - Jean II */
-	if (!self->present) {
+	if (!self->present)
+	{
 		pr_debug("%s(), Device is gone...\n", __func__);
 		goto drop;
 	}
 
 	/* Check if we need to change the number of xbofs */
-        xbofs = irda_get_next_xbofs(skb);
-        if ((xbofs != self->xbofs) && (xbofs != -1)) {
+	xbofs = irda_get_next_xbofs(skb);
+
+	if ((xbofs != self->xbofs) && (xbofs != -1))
+	{
 		self->new_xbofs = xbofs;
 	}
 
-        /* Check if we need to change the speed */
+	/* Check if we need to change the speed */
 	speed = irda_get_next_speed(skb);
-	if ((speed != self->speed) && (speed != -1)) {
+
+	if ((speed != self->speed) && (speed != -1))
+	{
 		/* Set the desired speed */
 		self->new_speed = speed;
 
 		/* Check for empty frame */
-		if (!skb->len) {
+		if (!skb->len)
+		{
 			/* IrLAP send us an empty frame to make us change the
 			 * speed. Changing speed with the USB adapter is in
 			 * fact sending an empty frame to the adapter, so we
@@ -435,7 +495,8 @@ static netdev_tx_t irda_usb_hard_xmit(struct sk_buff *skb,
 		}
 	}
 
-	if (urb->status != 0) {
+	if (urb->status != 0)
+	{
 		net_warn_ratelimited("%s(), URB still in use!\n", __func__);
 		goto drop;
 	}
@@ -443,22 +504,29 @@ static netdev_tx_t irda_usb_hard_xmit(struct sk_buff *skb,
 	skb_copy_from_linear_data(skb, self->tx_buff + self->header_length, skb->len);
 
 	/* Change setting for next frame */
-	if (self->capability & IUC_STIR421X) {
+	if (self->capability & IUC_STIR421X)
+	{
 		__u8 turnaround_time;
-		__u8* frame = self->tx_buff;
+		__u8 *frame = self->tx_buff;
 		turnaround_time = get_turnaround_time( skb );
 		irda_usb_build_header(self, frame, 0);
 		frame[2] = turnaround_time;
+
 		if ((skb->len != 0) &&
-		    ((skb->len % 128) == 0) &&
-		    ((skb->len % 512) != 0)) {
+			((skb->len % 128) == 0) &&
+			((skb->len % 512) != 0))
+		{
 			/* add extra byte for special SigmaTel feature */
 			frame[1] = 1;
 			skb_put(skb, 1);
-		} else {
+		}
+		else
+		{
 			frame[1] = 0;
 		}
-	} else {
+	}
+	else
+	{
 		irda_usb_build_header(self, self->tx_buff, 0);
 	}
 
@@ -466,9 +534,9 @@ static netdev_tx_t irda_usb_hard_xmit(struct sk_buff *skb,
 	((struct irda_skb_cb *)skb->cb)->context = self;
 
 	usb_fill_bulk_urb(urb, self->usbdev,
-		      usb_sndbulkpipe(self->usbdev, self->bulk_out_ep),
-                      self->tx_buff, skb->len + self->header_length,
-                      write_bulk_callback, skb);
+					  usb_sndbulkpipe(self->usbdev, self->bulk_out_ep),
+					  self->tx_buff, skb->len + self->header_length,
+					  write_bulk_callback, skb);
 
 	/* This flag (URB_ZERO_PACKET) indicates that what we send is not
 	 * a continuous stream of data but separate packets.
@@ -491,9 +559,12 @@ static netdev_tx_t irda_usb_hard_xmit(struct sk_buff *skb,
 	 * why this code is enabled only for dongles that doesn't meet
 	 * the spec.
 	 * Jean II */
-	if (self->capability & IUC_NO_TURN) {
+	if (self->capability & IUC_NO_TURN)
+	{
 		mtt = irda_get_mtt(skb);
-		if (mtt) {
+
+		if (mtt)
+		{
 			int diff;
 			diff = ktime_us_delta(ktime_get(), self->stamp);
 #ifdef IU_USB_MIN_RTT
@@ -502,34 +573,44 @@ static netdev_tx_t irda_usb_hard_xmit(struct sk_buff *skb,
 			diff += IU_USB_MIN_RTT;
 #endif /* IU_USB_MIN_RTT */
 
-		        /* Check if the mtt is larger than the time we have
-			 * already used by all the protocol processing
+			/* Check if the mtt is larger than the time we have
+			* already used by all the protocol processing
 			 */
-			if (mtt > diff) {
+			if (mtt > diff)
+			{
 				mtt -= diff;
+
 				if (mtt > 1000)
-					mdelay(mtt/1000);
+				{
+					mdelay(mtt / 1000);
+				}
 				else
+				{
 					udelay(mtt);
+				}
 			}
 		}
 	}
-	
+
 	/* Ask USB to send the packet - Irq disabled -> GFP_ATOMIC */
-	if ((res = usb_submit_urb(urb, GFP_ATOMIC))) {
+	if ((res = usb_submit_urb(urb, GFP_ATOMIC)))
+	{
 		net_warn_ratelimited("%s(), failed Tx URB\n", __func__);
 		netdev->stats.tx_errors++;
 		/* Let USB recover : We will catch that in the watchdog */
 		/*netif_start_queue(netdev);*/
-	} else {
+	}
+	else
+	{
 		/* Increment packet stats */
 		netdev->stats.tx_packets++;
-                netdev->stats.tx_bytes += skb->len;
-		
+		netdev->stats.tx_bytes += skb->len;
+
 		netif_trans_update(netdev);
 	}
+
 	spin_unlock_irqrestore(&self->lock, flags);
-	
+
 	return NETDEV_TX_OK;
 
 drop:
@@ -548,7 +629,7 @@ static void write_bulk_callback(struct urb *urb)
 	unsigned long flags;
 	struct sk_buff *skb = urb->context;
 	struct irda_usb_cb *self = ((struct irda_skb_cb *) skb->cb)->context;
-	
+
 	/* We should always have a context */
 	IRDA_ASSERT(self != NULL, return;);
 	/* We should always be called for the speed URB */
@@ -559,10 +640,11 @@ static void write_bulk_callback(struct urb *urb)
 	urb->context = NULL;
 
 	/* Check for timeout and other USB nasties */
-	if (urb->status != 0) {
+	if (urb->status != 0)
+	{
 		/* I get a lot of -ECONNABORTED = -103 here - Jean II */
 		pr_debug("%s(), URB complete status %d, transfer_flags 0x%04X\n",
-			 __func__, urb->status, urb->transfer_flags);
+				 __func__, urb->status, urb->transfer_flags);
 
 		/* Don't do anything here, that might confuse the USB layer,
 		 * and we could go in recursion and blow the kernel stack...
@@ -580,31 +662,39 @@ static void write_bulk_callback(struct urb *urb)
 	spin_lock_irqsave(&self->lock, flags);
 
 	/* If the network is closed, stop everything */
-	if ((!self->netopen) || (!self->present)) {
+	if ((!self->netopen) || (!self->present))
+	{
 		pr_debug("%s(), Network is gone...\n", __func__);
 		spin_unlock_irqrestore(&self->lock, flags);
 		return;
 	}
 
 	/* If changes to speed or xbofs is pending... */
-	if ((self->new_speed != -1) || (self->new_xbofs != -1)) {
+	if ((self->new_speed != -1) || (self->new_xbofs != -1))
+	{
 		if ((self->new_speed != self->speed) ||
-		    (self->new_xbofs != self->xbofs)) {
+			(self->new_xbofs != self->xbofs))
+		{
 			/* We haven't changed speed yet (because of
 			 * IUC_SPEED_BUG), so do it now - Jean II */
 			pr_debug("%s(), Changing speed now...\n", __func__);
 			irda_usb_change_speed_xbofs(self);
-		} else {
+		}
+		else
+		{
 			/* New speed and xbof is now committed in hardware */
 			self->new_speed = -1;
 			self->new_xbofs = -1;
 			/* Done, waiting for next packet */
 			netif_wake_queue(self->netdev);
 		}
-	} else {
+	}
+	else
+	{
 		/* Otherwise, allow the stack to send more packets */
 		netif_wake_queue(self->netdev);
 	}
+
 	spin_unlock_irqrestore(&self->lock, flags);
 }
 
@@ -631,7 +721,8 @@ static void irda_usb_net_timeout(struct net_device *netdev)
 	spin_lock_irqsave(&self->lock, flags);
 
 	/* self->present *MUST* be read under spinlock */
-	if (!self->present) {
+	if (!self->present)
+	{
 		net_warn_ratelimited("%s(), device not present!\n", __func__);
 		netif_stop_queue(netdev);
 		spin_unlock_irqrestore(&self->lock, flags);
@@ -640,71 +731,89 @@ static void irda_usb_net_timeout(struct net_device *netdev)
 
 	/* Check speed URB */
 	urb = self->speed_urb;
-	if (urb->status != 0) {
-		pr_debug("%s: Speed change timed out, urb->status=%d, urb->transfer_flags=0x%04X\n",
-			 netdev->name, urb->status, urb->transfer_flags);
 
-		switch (urb->status) {
-		case -EINPROGRESS:
-			usb_unlink_urb(urb);
-			/* Note : above will  *NOT* call netif_wake_queue()
-			 * in completion handler, we will come back here.
-			 * Jean II */
-			done = 1;
-			break;
-		case -ECONNRESET:
-		case -ENOENT:			/* urb unlinked by us */
-		default:			/* ??? - Play safe */
-			urb->status = 0;
-			netif_wake_queue(self->netdev);
-			done = 1;
-			break;
+	if (urb->status != 0)
+	{
+		pr_debug("%s: Speed change timed out, urb->status=%d, urb->transfer_flags=0x%04X\n",
+				 netdev->name, urb->status, urb->transfer_flags);
+
+		switch (urb->status)
+		{
+			case -EINPROGRESS:
+				usb_unlink_urb(urb);
+				/* Note : above will  *NOT* call netif_wake_queue()
+				 * in completion handler, we will come back here.
+				 * Jean II */
+				done = 1;
+				break;
+
+			case -ECONNRESET:
+			case -ENOENT:			/* urb unlinked by us */
+			default:			/* ??? - Play safe */
+				urb->status = 0;
+				netif_wake_queue(self->netdev);
+				done = 1;
+				break;
 		}
 	}
 
 	/* Check Tx URB */
 	urb = self->tx_urb;
-	if (urb->status != 0) {
+
+	if (urb->status != 0)
+	{
 		struct sk_buff *skb = urb->context;
 
 		pr_debug("%s: Tx timed out, urb->status=%d, urb->transfer_flags=0x%04X\n",
-			 netdev->name, urb->status, urb->transfer_flags);
+				 netdev->name, urb->status, urb->transfer_flags);
 
 		/* Increase error count */
 		netdev->stats.tx_errors++;
 
 #ifdef IU_BUG_KICK_TIMEOUT
+
 		/* Can't be a bad idea to reset the speed ;-) - Jean II */
-		if(self->new_speed == -1)
+		if (self->new_speed == -1)
+		{
 			self->new_speed = self->speed;
-		if(self->new_xbofs == -1)
+		}
+
+		if (self->new_xbofs == -1)
+		{
 			self->new_xbofs = self->xbofs;
+		}
+
 		irda_usb_change_speed_xbofs(self);
 #endif /* IU_BUG_KICK_TIMEOUT */
 
-		switch (urb->status) {
-		case -EINPROGRESS:
-			usb_unlink_urb(urb);
-			/* Note : above will  *NOT* call netif_wake_queue()
-			 * in completion handler, because urb->status will
-			 * be -ENOENT. We will fix that at the next watchdog,
-			 * leaving more time to USB to recover...
-			 * Jean II */
-			done = 1;
-			break;
-		case -ECONNRESET:
-		case -ENOENT:			/* urb unlinked by us */
-		default:			/* ??? - Play safe */
-			if(skb != NULL) {
-				dev_kfree_skb_any(skb);
-				urb->context = NULL;
-			}
-			urb->status = 0;
-			netif_wake_queue(self->netdev);
-			done = 1;
-			break;
+		switch (urb->status)
+		{
+			case -EINPROGRESS:
+				usb_unlink_urb(urb);
+				/* Note : above will  *NOT* call netif_wake_queue()
+				 * in completion handler, because urb->status will
+				 * be -ENOENT. We will fix that at the next watchdog,
+				 * leaving more time to USB to recover...
+				 * Jean II */
+				done = 1;
+				break;
+
+			case -ECONNRESET:
+			case -ENOENT:			/* urb unlinked by us */
+			default:			/* ??? - Play safe */
+				if (skb != NULL)
+				{
+					dev_kfree_skb_any(skb);
+					urb->context = NULL;
+				}
+
+				urb->status = 0;
+				netif_wake_queue(self->netdev);
+				done = 1;
+				break;
 		}
 	}
+
 	spin_unlock_irqrestore(&self->lock, flags);
 
 	/* Maybe we need a reset */
@@ -766,19 +875,21 @@ static void irda_usb_submit(struct irda_usb_cb *self, struct sk_buff *skb, struc
 	cb->context = self;
 
 	/* Reinitialize URB */
-	usb_fill_bulk_urb(urb, self->usbdev, 
-		      usb_rcvbulkpipe(self->usbdev, self->bulk_in_ep), 
-		      skb->data, IRDA_SKB_MAX_MTU,
-                      irda_usb_receive, skb);
+	usb_fill_bulk_urb(urb, self->usbdev,
+					  usb_rcvbulkpipe(self->usbdev, self->bulk_in_ep),
+					  skb->data, IRDA_SKB_MAX_MTU,
+					  irda_usb_receive, skb);
 	urb->status = 0;
 
 	/* Can be called from irda_usb_receive (irq handler) -> GFP_ATOMIC */
 	ret = usb_submit_urb(urb, GFP_ATOMIC);
-	if (ret) {
+
+	if (ret)
+	{
 		/* If this ever happen, we are in deep s***.
 		 * Basically, the Rx path will stop... */
 		net_warn_ratelimited("%s(), Failed to submit Rx URB %d\n",
-				     __func__, ret);
+							 __func__, ret);
 	}
 }
 
@@ -792,7 +903,7 @@ static void irda_usb_submit(struct irda_usb_cb *self, struct sk_buff *skb, struc
 static void irda_usb_receive(struct urb *urb)
 {
 	struct sk_buff *skb = (struct sk_buff *) urb->context;
-	struct irda_usb_cb *self; 
+	struct irda_usb_cb *self;
 	struct irda_skb_cb *cb;
 	struct sk_buff *newskb;
 	struct sk_buff *dataskb;
@@ -800,7 +911,7 @@ static void irda_usb_receive(struct urb *urb)
 	unsigned int len, docopy;
 
 	pr_debug("%s(), len=%d\n", __func__, urb->actual_length);
-	
+
 	/* Find ourselves */
 	cb = (struct irda_skb_cb *) skb->cb;
 	IRDA_ASSERT(cb != NULL, return;);
@@ -808,34 +919,42 @@ static void irda_usb_receive(struct urb *urb)
 	IRDA_ASSERT(self != NULL, return;);
 
 	/* If the network is closed or the device gone, stop everything */
-	if ((!self->netopen) || (!self->present)) {
+	if ((!self->netopen) || (!self->present))
+	{
 		pr_debug("%s(), Network is gone!\n", __func__);
 		/* Don't re-submit the URB : will stall the Rx path */
 		return;
 	}
-	
+
 	/* Check the status */
-	if (urb->status != 0) {
-		switch (urb->status) {
-		case -EILSEQ:
-			self->netdev->stats.rx_crc_errors++;
+	if (urb->status != 0)
+	{
+		switch (urb->status)
+		{
+			case -EILSEQ:
+				self->netdev->stats.rx_crc_errors++;
+
 			/* Also precursor to a hot-unplug on UHCI. */
 			/* Fallthrough... */
-		case -ECONNRESET:
+			case -ECONNRESET:
+
 			/* Random error, if I remember correctly */
 			/* uhci_cleanup_unlink() is going to kill the Rx
 			 * URB just after we return. No problem, at this
 			 * point the URB will be idle ;-) - Jean II */
-		case -ESHUTDOWN:
+			case -ESHUTDOWN:
+
 			/* That's usually a hot-unplug. Submit will fail... */
-		case -ETIME:
+			case -ETIME:
+
 			/* Usually precursor to a hot-unplug on OHCI. */
-		default:
-			self->netdev->stats.rx_errors++;
-			pr_debug("%s(), RX status %d, transfer_flags 0x%04X\n",
-				 __func__, urb->status, urb->transfer_flags);
-			break;
+			default:
+				self->netdev->stats.rx_errors++;
+				pr_debug("%s(), RX status %d, transfer_flags 0x%04X\n",
+						 __func__, urb->status, urb->transfer_flags);
+				break;
 		}
+
 		/* If we received an error, we don't want to resubmit the
 		 * Rx URB straight away but to give the USB layer a little
 		 * bit of breathing room.
@@ -849,18 +968,19 @@ static void irda_usb_receive(struct urb *urb)
 		self->rx_defer_timer.function = irda_usb_rx_defer_expired;
 		self->rx_defer_timer.data = (unsigned long) urb;
 		mod_timer(&self->rx_defer_timer,
-			  jiffies + msecs_to_jiffies(10));
+				  jiffies + msecs_to_jiffies(10));
 
 		return;
 	}
-	
+
 	/* Check for empty frames */
-	if (urb->actual_length <= self->header_length) {
+	if (urb->actual_length <= self->header_length)
+	{
 		net_warn_ratelimited("%s(), empty frame!\n", __func__);
 		goto done;
 	}
 
-	/*  
+	/*
 	 * Remember the time we received this frame, so we can
 	 * reduce the min turn time a bit since we will know
 	 * how much time we have used for protocol processing
@@ -878,24 +998,26 @@ static void irda_usb_receive(struct urb *urb)
 	/* Allocate a new skb */
 	if (self->capability & IUC_STIR421X)
 		newskb = dev_alloc_skb(docopy ? urb->actual_length :
-				       IRDA_SKB_MAX_MTU +
-				       USB_IRDA_STIR421X_HEADER);
+							   IRDA_SKB_MAX_MTU +
+							   USB_IRDA_STIR421X_HEADER);
 	else
 		newskb = dev_alloc_skb(docopy ? urb->actual_length :
-				       IRDA_SKB_MAX_MTU);
+							   IRDA_SKB_MAX_MTU);
 
-	if (!newskb)  {
+	if (!newskb)
+	{
 		self->netdev->stats.rx_dropped++;
 		/* We could deliver the current skb, but this would stall
 		 * the Rx path. Better drop the packet... Jean II */
-		goto done;  
+		goto done;
 	}
 
 	/* Make sure IP header get aligned (IrDA header is 5 bytes) */
 	/* But IrDA-USB header is 1 byte. Jean II */
 	//skb_reserve(newskb, USB_IRDA_HEADER - 1);
 
-	if(docopy) {
+	if (docopy)
+	{
 		/* Copy packet, so we can recycle the original */
 		skb_copy_from_linear_data(skb, newskb->data, urb->actual_length);
 		/* Deliver this new skb */
@@ -903,7 +1025,9 @@ static void irda_usb_receive(struct urb *urb)
 		/* And hook the old skb to the URB
 		 * Note : we don't need to "clean up" the old skb,
 		 * as we never touched it. Jean II */
-	} else {
+	}
+	else
+	{
 		/* We are using ZeroCopy. Deliver old skb */
 		dataskb = skb;
 		/* And hook the new skb to the URB */
@@ -957,7 +1081,7 @@ static void irda_usb_rx_defer_expired(unsigned long data)
 {
 	struct urb *urb = (struct urb *) data;
 	struct sk_buff *skb = (struct sk_buff *) urb->context;
-	struct irda_usb_cb *self; 
+	struct irda_usb_cb *self;
 	struct irda_skb_cb *cb;
 	struct urb *next_urb;
 
@@ -1016,47 +1140,55 @@ static int irda_usb_is_receiving(struct irda_usb_cb *self)
  *   Upload firmware code to SigmaTel 421X IRDA-USB dongle
  */
 static int stir421x_fw_upload(struct irda_usb_cb *self,
-			     const unsigned char *patch,
-			     const unsigned int patch_len)
+							  const unsigned char *patch,
+							  const unsigned int patch_len)
 {
-        int ret = -ENOMEM;
-        int actual_len = 0;
-        unsigned int i;
-        unsigned int block_size = 0;
-        unsigned char *patch_block;
+	int ret = -ENOMEM;
+	int actual_len = 0;
+	unsigned int i;
+	unsigned int block_size = 0;
+	unsigned char *patch_block;
 
-        patch_block = kzalloc(STIR421X_PATCH_BLOCK_SIZE, GFP_KERNEL);
+	patch_block = kzalloc(STIR421X_PATCH_BLOCK_SIZE, GFP_KERNEL);
+
 	if (patch_block == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	/* break up patch into 1023-byte sections */
-	for (i = 0; i < patch_len; i += block_size) {
+	for (i = 0; i < patch_len; i += block_size)
+	{
 		block_size = patch_len - i;
 
 		if (block_size > STIR421X_PATCH_BLOCK_SIZE)
+		{
 			block_size = STIR421X_PATCH_BLOCK_SIZE;
+		}
 
 		/* upload the patch section */
 		memcpy(patch_block, patch + i, block_size);
 
 		ret = usb_bulk_msg(self->usbdev,
-				   usb_sndbulkpipe(self->usbdev,
-						   self->bulk_out_ep),
-				   patch_block, block_size,
-				   &actual_len, msecs_to_jiffies(500));
+						   usb_sndbulkpipe(self->usbdev,
+										   self->bulk_out_ep),
+						   patch_block, block_size,
+						   &actual_len, msecs_to_jiffies(500));
 		pr_debug("%s(): Bulk send %u bytes, ret=%d\n",
-			 __func__, actual_len, ret);
+				 __func__, actual_len, ret);
 
 		if (ret < 0)
+		{
 			break;
+		}
 
 		mdelay(10);
 	}
 
 	kfree(patch_block);
 
-        return ret;
- }
+	return ret;
+}
 
 /*
  * Function stir421x_patch_device(struct irda_usb_cb *self)
@@ -1072,71 +1204,80 @@ static int stir421x_patch_device(struct irda_usb_cb *self)
 	const unsigned char *fw_version_ptr; /* pointer to version string */
 	unsigned long fw_version = 0;
 
-        /*
-         * Known firmware patch file names for STIR421x dongles
-         * are "42101001.sb" or "42101002.sb"
-         */
-        sprintf(stir421x_fw_name, "4210%4X.sb",
-                self->usbdev->descriptor.bcdDevice);
-        ret = request_firmware(&fw, stir421x_fw_name, &self->usbdev->dev);
-        if (ret < 0)
-                return ret;
+	/*
+	 * Known firmware patch file names for STIR421x dongles
+	 * are "42101001.sb" or "42101002.sb"
+	 */
+	sprintf(stir421x_fw_name, "4210%4X.sb",
+			self->usbdev->descriptor.bcdDevice);
+	ret = request_firmware(&fw, stir421x_fw_name, &self->usbdev->dev);
 
-        /* We get a patch from userspace */
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	/* We get a patch from userspace */
 	net_info_ratelimited("%s(): Received firmware %s (%zu bytes)\n",
-			     __func__, stir421x_fw_name, fw->size);
+						 __func__, stir421x_fw_name, fw->size);
 
-        ret = -EINVAL;
+	ret = -EINVAL;
 
 	/* Get the bcd product version */
-        if (!memcmp(fw->data, STIR421X_PATCH_PRODUCT_VER,
-                    sizeof(STIR421X_PATCH_PRODUCT_VER) - 1)) {
-                fw_version_ptr = fw->data +
-			sizeof(STIR421X_PATCH_PRODUCT_VER) - 1;
+	if (!memcmp(fw->data, STIR421X_PATCH_PRODUCT_VER,
+				sizeof(STIR421X_PATCH_PRODUCT_VER) - 1))
+	{
+		fw_version_ptr = fw->data +
+						 sizeof(STIR421X_PATCH_PRODUCT_VER) - 1;
 
-                /* Let's check if the product version is dotted */
-                if (fw_version_ptr[3] == '.' &&
-		    fw_version_ptr[7] == '.') {
+		/* Let's check if the product version is dotted */
+		if (fw_version_ptr[3] == '.' &&
+			fw_version_ptr[7] == '.')
+		{
 			unsigned long major, minor, build;
 			major = simple_strtoul(fw_version_ptr, NULL, 10);
 			minor = simple_strtoul(fw_version_ptr + 4, NULL, 10);
 			build = simple_strtoul(fw_version_ptr + 8, NULL, 10);
 
 			fw_version = (major << 12)
-				+ (minor << 8)
-				+ ((build / 10) << 4)
-				+ (build % 10);
+						 + (minor << 8)
+						 + ((build / 10) << 4)
+						 + (build % 10);
 
 			pr_debug("%s(): Firmware Product version %ld\n",
-				 __func__, fw_version);
-                }
-        }
+					 __func__, fw_version);
+		}
+	}
 
-        if (self->usbdev->descriptor.bcdDevice == cpu_to_le16(fw_version)) {
-                /*
-		 * If we're here, we've found a correct patch
-                 * The actual image starts after the "STMP" keyword
-                 * so forward to the firmware header tag
-                 */
-                for (i = 0; i < fw->size && fw->data[i] !=
-			     STIR421X_PATCH_END_OF_HDR_TAG; i++) ;
-                /* here we check for the out of buffer case */
-                if (i < STIR421X_PATCH_CODE_OFFSET && i < fw->size &&
-				STIR421X_PATCH_END_OF_HDR_TAG == fw->data[i]) {
-                        if (!memcmp(fw->data + i + 1, STIR421X_PATCH_STMP_TAG,
-                                    sizeof(STIR421X_PATCH_STMP_TAG) - 1)) {
+	if (self->usbdev->descriptor.bcdDevice == cpu_to_le16(fw_version))
+	{
+		/*
+		* If we're here, we've found a correct patch
+		              * The actual image starts after the "STMP" keyword
+		              * so forward to the firmware header tag
+		              */
+		for (i = 0; i < fw->size && fw->data[i] !=
+			 STIR421X_PATCH_END_OF_HDR_TAG; i++) ;
+
+		/* here we check for the out of buffer case */
+		if (i < STIR421X_PATCH_CODE_OFFSET && i < fw->size &&
+			STIR421X_PATCH_END_OF_HDR_TAG == fw->data[i])
+		{
+			if (!memcmp(fw->data + i + 1, STIR421X_PATCH_STMP_TAG,
+						sizeof(STIR421X_PATCH_STMP_TAG) - 1))
+			{
 
 				/* We can upload the patch to the target */
 				i += sizeof(STIR421X_PATCH_STMP_TAG);
-                                ret = stir421x_fw_upload(self, &fw->data[i],
-							 fw->size - i);
-                        }
-                }
-        }
+				ret = stir421x_fw_upload(self, &fw->data[i],
+										 fw->size - i);
+			}
+		}
+	}
 
-        release_firmware(fw);
+	release_firmware(fw);
 
-        return ret;
+	return ret;
 }
 
 
@@ -1153,8 +1294,8 @@ static int stir421x_patch_device(struct irda_usb_cb *self)
 /*
  * Function irda_usb_net_open (dev)
  *
- *    Network device is taken up. Usually this is done by "ifconfig irda0 up" 
- *   
+ *    Network device is taken up. Usually this is done by "ifconfig irda0 up"
+ *
  * Note : don't mess with self->netopen - Jean II
  */
 static int irda_usb_net_open(struct net_device *netdev)
@@ -1163,20 +1304,23 @@ static int irda_usb_net_open(struct net_device *netdev)
 	unsigned long flags;
 	char	hwname[16];
 	int i;
-	
+
 	IRDA_ASSERT(netdev != NULL, return -1;);
 	self = netdev_priv(netdev);
 	IRDA_ASSERT(self != NULL, return -1;);
 
 	spin_lock_irqsave(&self->lock, flags);
+
 	/* Can only open the device if it's there */
-	if(!self->present) {
+	if (!self->present)
+	{
 		spin_unlock_irqrestore(&self->lock, flags);
 		net_warn_ratelimited("%s(), device not present!\n", __func__);
 		return -1;
 	}
 
-	if(self->needspatch) {
+	if (self->needspatch)
+	{
 		spin_unlock_irqrestore(&self->lock, flags);
 		net_warn_ratelimited("%s(), device needs patch\n", __func__);
 		return -EIO ;
@@ -1194,7 +1338,7 @@ static int irda_usb_net_open(struct net_device *netdev)
 	self->netopen = 1;
 	spin_unlock_irqrestore(&self->lock, flags);
 
-	/* 
+	/*
 	 * Now that everything should be initialized properly,
 	 * Open new IrLAP layer instance to take care of us...
 	 * Note : will send immediately a speed change...
@@ -1215,13 +1359,17 @@ static int irda_usb_net_open(struct net_device *netdev)
 
 	/* Now that we can pass data to IrLAP, allow the USB layer
 	 * to send us some data... */
-	for (i = 0; i < IU_MAX_ACTIVE_RX_URBS; i++) {
+	for (i = 0; i < IU_MAX_ACTIVE_RX_URBS; i++)
+	{
 		struct sk_buff *skb = dev_alloc_skb(IRDA_SKB_MAX_MTU);
-		if (!skb) {
+
+		if (!skb)
+		{
 			/* If this ever happen, we are in deep s***.
 			 * Basically, we can't start the Rx path... */
 			return -1;
 		}
+
 		//skb_reserve(newskb, USB_IRDA_HEADER - 1);
 		irda_usb_submit(self, skb, self->rx_urb[i]);
 	}
@@ -1234,8 +1382,8 @@ static int irda_usb_net_open(struct net_device *netdev)
 /*
  * Function irda_usb_net_close (self)
  *
- *    Network device is taken down. Usually this is done by 
- *    "ifconfig irda0 down" 
+ *    Network device is taken down. Usually this is done by
+ *    "ifconfig irda0 down"
  */
 static int irda_usb_net_close(struct net_device *netdev)
 {
@@ -1257,24 +1405,31 @@ static int irda_usb_net_close(struct net_device *netdev)
 	del_timer(&self->rx_defer_timer);
 
 	/* Deallocate all the Rx path buffers (URBs and skb) */
-	for (i = 0; i < self->max_rx_urb; i++) {
+	for (i = 0; i < self->max_rx_urb; i++)
+	{
 		struct urb *urb = self->rx_urb[i];
 		struct sk_buff *skb = (struct sk_buff *) urb->context;
 		/* Cancel the receive command */
 		usb_kill_urb(urb);
+
 		/* The skb is ours, free it */
-		if(skb) {
+		if (skb)
+		{
 			dev_kfree_skb(skb);
 			urb->context = NULL;
 		}
 	}
+
 	/* Cancel Tx and speed URB - need to be synchronous to avoid races */
 	usb_kill_urb(self->tx_urb);
 	usb_kill_urb(self->speed_urb);
 
 	/* Stop and remove instance of IrLAP */
 	if (self->irlap)
+	{
 		irlap_close(self->irlap);
+	}
+
 	self->irlap = NULL;
 
 	return 0;
@@ -1297,34 +1452,50 @@ static int irda_usb_net_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 
 	pr_debug("%s(), %s, (cmd=0x%X)\n", __func__, dev->name, cmd);
 
-	switch (cmd) {
-	case SIOCSBANDWIDTH: /* Set bandwidth */
-		if (!capable(CAP_NET_ADMIN))
-			return -EPERM;
-		/* Protect us from USB callbacks, net watchdog and else. */
-		spin_lock_irqsave(&self->lock, flags);
-		/* Check if the device is still there */
-		if(self->present) {
-			/* Set the desired speed */
-			self->new_speed = irq->ifr_baudrate;
-			irda_usb_change_speed_xbofs(self);
-		}
-		spin_unlock_irqrestore(&self->lock, flags);
-		break;
-	case SIOCSMEDIABUSY: /* Set media busy */
-		if (!capable(CAP_NET_ADMIN))
-			return -EPERM;
-		/* Check if the IrDA stack is still there */
-		if(self->netopen)
-			irda_device_set_media_busy(self->netdev, TRUE);
-		break;
-	case SIOCGRECEIVING: /* Check if we are receiving right now */
-		irq->ifr_receiving = irda_usb_is_receiving(self);
-		break;
-	default:
-		ret = -EOPNOTSUPP;
+	switch (cmd)
+	{
+		case SIOCSBANDWIDTH: /* Set bandwidth */
+			if (!capable(CAP_NET_ADMIN))
+			{
+				return -EPERM;
+			}
+
+			/* Protect us from USB callbacks, net watchdog and else. */
+			spin_lock_irqsave(&self->lock, flags);
+
+			/* Check if the device is still there */
+			if (self->present)
+			{
+				/* Set the desired speed */
+				self->new_speed = irq->ifr_baudrate;
+				irda_usb_change_speed_xbofs(self);
+			}
+
+			spin_unlock_irqrestore(&self->lock, flags);
+			break;
+
+		case SIOCSMEDIABUSY: /* Set media busy */
+			if (!capable(CAP_NET_ADMIN))
+			{
+				return -EPERM;
+			}
+
+			/* Check if the IrDA stack is still there */
+			if (self->netopen)
+			{
+				irda_device_set_media_busy(self->netdev, TRUE);
+			}
+
+			break;
+
+		case SIOCGRECEIVING: /* Check if we are receiving right now */
+			irq->ifr_receiving = irda_usb_is_receiving(self);
+			break;
+
+		default:
+			ret = -EOPNOTSUPP;
 	}
-	
+
 	return ret;
 }
 
@@ -1345,9 +1516,9 @@ static inline void irda_usb_init_qos(struct irda_usb_cb *self)
 {
 	struct irda_class_desc *desc;
 
-	
+
 	desc = self->irda_desc;
-	
+
 	/* Initialize QoS for this device */
 	irda_init_max_qos_capabilies(&self->qos);
 
@@ -1361,36 +1532,55 @@ static inline void irda_usb_init_qos(struct irda_usb_cb *self)
 	self->qos.data_size.bits       = desc->bmDataSize;
 
 	pr_debug("%s(), dongle says speed=0x%X, size=0x%X, window=0x%X, bofs=0x%X, turn=0x%X\n",
-		 __func__, self->qos.baud_rate.bits, self->qos.data_size.bits,
-		 self->qos.window_size.bits, self->qos.additional_bofs.bits,
-		 self->qos.min_turn_time.bits);
+			 __func__, self->qos.baud_rate.bits, self->qos.data_size.bits,
+			 self->qos.window_size.bits, self->qos.additional_bofs.bits,
+			 self->qos.min_turn_time.bits);
 
 	/* Don't always trust what the dongle tell us */
-	if(self->capability & IUC_SIR_ONLY)
+	if (self->capability & IUC_SIR_ONLY)
+	{
 		self->qos.baud_rate.bits	&= 0x00ff;
-	if(self->capability & IUC_SMALL_PKT)
+	}
+
+	if (self->capability & IUC_SMALL_PKT)
+	{
 		self->qos.data_size.bits	 = 0x07;
-	if(self->capability & IUC_NO_WINDOW)
+	}
+
+	if (self->capability & IUC_NO_WINDOW)
+	{
 		self->qos.window_size.bits	 = 0x01;
-	if(self->capability & IUC_MAX_WINDOW)
+	}
+
+	if (self->capability & IUC_MAX_WINDOW)
+	{
 		self->qos.window_size.bits	 = 0x7f;
-	if(self->capability & IUC_MAX_XBOFS)
+	}
+
+	if (self->capability & IUC_MAX_XBOFS)
+	{
 		self->qos.additional_bofs.bits	 = 0x01;
+	}
 
 #if 1
+
 	/* Module parameter can override the rx window size */
 	if (qos_mtt_bits)
+	{
 		self->qos.min_turn_time.bits = qos_mtt_bits;
-#endif	    
-	/* 
+	}
+
+#endif
+	/*
 	 * Note : most of those values apply only for the receive path,
-	 * the transmit path will be set differently - Jean II 
+	 * the transmit path will be set differently - Jean II
 	 */
 	irda_qos_bits_to_value(&self->qos);
 }
 
 /*------------------------------------------------------------------*/
-static const struct net_device_ops irda_usb_netdev_ops = {
+static const struct net_device_ops irda_usb_netdev_ops =
+{
 	.ndo_open       = irda_usb_net_open,
 	.ndo_stop       = irda_usb_net_close,
 	.ndo_do_ioctl   = irda_usb_net_ioctl,
@@ -1453,14 +1643,15 @@ static inline void irda_usb_close(struct irda_usb_cb *self)
 static inline int irda_usb_parse_endpoints(struct irda_usb_cb *self, struct usb_host_endpoint *endpoint, int ennum)
 {
 	int i;		/* Endpoint index in table */
-		
+
 	/* Init : no endpoints */
 	self->bulk_in_ep = 0;
 	self->bulk_out_ep = 0;
 	self->bulk_int_ep = 0;
 
 	/* Let's look at all those endpoints */
-	for(i = 0; i < ennum; i++) {
+	for (i = 0; i < ennum; i++)
+	{
 		/* All those variables will get optimised by the compiler,
 		 * so let's aim for clarity... - Jean II */
 		__u8 ep;	/* Endpoint address */
@@ -1475,31 +1666,40 @@ static inline int irda_usb_parse_endpoints(struct irda_usb_cb *self, struct usb_
 		psize = le16_to_cpu(endpoint[i].desc.wMaxPacketSize);
 
 		/* Is it a bulk endpoint ??? */
-		if(attr == USB_ENDPOINT_XFER_BULK) {
+		if (attr == USB_ENDPOINT_XFER_BULK)
+		{
 			/* We need to find an IN and an OUT */
-			if(dir == USB_DIR_IN) {
+			if (dir == USB_DIR_IN)
+			{
 				/* This is our Rx endpoint */
 				self->bulk_in_ep = ep;
-			} else {
+			}
+			else
+			{
 				/* This is our Tx endpoint */
 				self->bulk_out_ep = ep;
 				self->bulk_out_mtu = psize;
 			}
-		} else {
-			if((attr == USB_ENDPOINT_XFER_INT) &&
-			   (dir == USB_DIR_IN)) {
+		}
+		else
+		{
+			if ((attr == USB_ENDPOINT_XFER_INT) &&
+				(dir == USB_DIR_IN))
+			{
 				/* This is our interrupt endpoint */
 				self->bulk_int_ep = ep;
-			} else {
+			}
+			else
+			{
 				net_err_ratelimited("%s(), Unrecognised endpoint %02X\n",
-						    __func__, ep);
+									__func__, ep);
 			}
 		}
 	}
 
 	pr_debug("%s(), And our endpoints are : in=%02X, out=%02X (%d), int=%02X\n",
-		 __func__, self->bulk_in_ep, self->bulk_out_ep,
-		 self->bulk_out_mtu, self->bulk_int_ep);
+			 __func__, self->bulk_in_ep, self->bulk_out_ep,
+			 self->bulk_out_mtu, self->bulk_int_ep);
 
 	return (self->bulk_in_ep != 0) && (self->bulk_out_ep != 0);
 }
@@ -1517,7 +1717,7 @@ static inline void irda_usb_dump_class_desc(struct irda_class_desc *desc)
 	/* Values are little endian */
 	printk("bLength=%x\n", desc->bLength);
 	printk("bDescriptorType=%x\n", desc->bDescriptorType);
-	printk("bcdSpecRevision=%x\n", le16_to_cpu(desc->bcdSpecRevision)); 
+	printk("bcdSpecRevision=%x\n", le16_to_cpu(desc->bcdSpecRevision));
 	printk("bmDataSize=%x\n", desc->bmDataSize);
 	printk("bmWindowSize=%x\n", desc->bmWindowSize);
 	printk("bmMinTurnaroundTime=%d\n", desc->bmMinTurnaroundTime);
@@ -1545,8 +1745,11 @@ static inline struct irda_class_desc *irda_usb_find_class_desc(struct usb_interf
 	int ret;
 
 	desc = kzalloc(sizeof(*desc), GFP_KERNEL);
+
 	if (!desc)
+	{
 		return NULL;
+	}
 
 	/* USB-IrDA class spec 1.0:
 	 *	6.1.3: Standard "Get Descriptor" Device Request is not
@@ -1555,27 +1758,32 @@ static inline struct irda_class_desc *irda_usb_find_class_desc(struct usb_interf
 	 *	       is mandatory and returns the USB-IrDA class descriptor
 	 */
 
-	ret = usb_control_msg(dev, usb_rcvctrlpipe(dev,0),
-		IU_REQ_GET_CLASS_DESC,
-		USB_DIR_IN | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
-		0, intf->altsetting->desc.bInterfaceNumber, desc,
-		sizeof(*desc), 500);
-	
+	ret = usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
+						  IU_REQ_GET_CLASS_DESC,
+						  USB_DIR_IN | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
+						  0, intf->altsetting->desc.bInterfaceNumber, desc,
+						  sizeof(*desc), 500);
+
 	pr_debug("%s(), ret=%d\n", __func__, ret);
-	if (ret < sizeof(*desc)) {
+
+	if (ret < sizeof(*desc))
+	{
 		net_warn_ratelimited("usb-irda: class_descriptor read %s (%d)\n",
-				     ret < 0 ? "failed" : "too short", ret);
+							 ret < 0 ? "failed" : "too short", ret);
 	}
-	else if (desc->bDescriptorType != USB_DT_IRDA) {
+	else if (desc->bDescriptorType != USB_DT_IRDA)
+	{
 		net_warn_ratelimited("usb-irda: bad class_descriptor type\n");
 	}
-	else {
+	else
+	{
 #ifdef IU_DUMP_CLASS_DESC
 		irda_usb_dump_class_desc(desc);
 #endif	/* IU_DUMP_CLASS_DESC */
 
 		return desc;
 	}
+
 	kfree(desc);
 	return NULL;
 }
@@ -1595,7 +1803,7 @@ static inline struct irda_class_desc *irda_usb_find_class_desc(struct usb_interf
  * to spinlock in there... Jean II
  */
 static int irda_usb_probe(struct usb_interface *intf,
-			  const struct usb_device_id *id)
+						  const struct usb_device_id *id)
 {
 	struct net_device *net;
 	struct usb_device *dev = interface_to_usbdev(intf);
@@ -1611,12 +1819,15 @@ static int irda_usb_probe(struct usb_interface *intf,
 	 * Jean II */
 
 	net_info_ratelimited("IRDA-USB found at address %d, Vendor: %x, Product: %x\n",
-			     dev->devnum, le16_to_cpu(dev->descriptor.idVendor),
-			     le16_to_cpu(dev->descriptor.idProduct));
+						 dev->devnum, le16_to_cpu(dev->descriptor.idVendor),
+						 le16_to_cpu(dev->descriptor.idProduct));
 
 	net = alloc_irdadev(sizeof(*self));
-	if (!net) 
+
+	if (!net)
+	{
 		goto err_out;
+	}
 
 	SET_NETDEV_DEV(net, &intf->dev);
 	self = netdev_priv(net);
@@ -1628,36 +1839,52 @@ static int irda_usb_probe(struct usb_interface *intf,
 	self->needspatch = ((self->capability & IUC_STIR421X) != 0);
 
 	/* Create all of the needed urbs */
-	if (self->capability & IUC_STIR421X) {
+	if (self->capability & IUC_STIR421X)
+	{
 		self->max_rx_urb = IU_SIGMATEL_MAX_RX_URBS;
 		self->header_length = USB_IRDA_STIR421X_HEADER;
-	} else {
+	}
+	else
+	{
 		self->max_rx_urb = IU_MAX_RX_URBS;
 		self->header_length = USB_IRDA_HEADER;
 	}
 
 	self->rx_urb = kcalloc(self->max_rx_urb, sizeof(struct urb *),
-				GFP_KERNEL);
-	if (!self->rx_urb)
-		goto err_free_net;
+						   GFP_KERNEL);
 
-	for (i = 0; i < self->max_rx_urb; i++) {
+	if (!self->rx_urb)
+	{
+		goto err_free_net;
+	}
+
+	for (i = 0; i < self->max_rx_urb; i++)
+	{
 		self->rx_urb[i] = usb_alloc_urb(0, GFP_KERNEL);
-		if (!self->rx_urb[i]) {
+
+		if (!self->rx_urb[i])
+		{
 			goto err_out_1;
 		}
 	}
+
 	self->tx_urb = usb_alloc_urb(0, GFP_KERNEL);
-	if (!self->tx_urb) {
+
+	if (!self->tx_urb)
+	{
 		goto err_out_1;
 	}
+
 	self->speed_urb = usb_alloc_urb(0, GFP_KERNEL);
-	if (!self->speed_urb) {
+
+	if (!self->speed_urb)
+	{
 		goto err_out_2;
 	}
 
 	/* Is this really necessary? (no, except maybe for broken devices) */
-	if (usb_reset_configuration (dev) < 0) {
+	if (usb_reset_configuration (dev) < 0)
+	{
 		dev_err(&intf->dev, "reset_configuration failed\n");
 		ret = -EIO;
 		goto err_out_3;
@@ -1669,17 +1896,21 @@ static int irda_usb_probe(struct usb_interface *intf,
 	 * Jean II */
 	ret = usb_set_interface(dev, intf->altsetting->desc.bInterfaceNumber, 0);
 	pr_debug("usb-irda: set interface %d result %d\n",
-		 intf->altsetting->desc.bInterfaceNumber, ret);
-	switch (ret) {
+			 intf->altsetting->desc.bInterfaceNumber, ret);
+
+	switch (ret)
+	{
 		case 0:
 			break;
+
 		case -EPIPE:		/* -EPIPE = -32 */
 			/* Martin Diehl says if we get a -EPIPE we should
 			 * be fine and we don't need to do a usb_clear_halt().
 			 * - Jean II */
 			pr_debug("%s(), Received -EPIPE, ignoring...\n",
-				 __func__);
+					 __func__);
 			break;
+
 		default:
 			pr_debug("%s(), Unknown error %d\n", __func__, ret);
 			ret = -EIO;
@@ -1688,8 +1919,10 @@ static int irda_usb_probe(struct usb_interface *intf,
 
 	/* Find our endpoints */
 	interface = intf->cur_altsetting;
-	if(!irda_usb_parse_endpoints(self, interface->endpoint,
-				     interface->desc.bNumEndpoints)) {
+
+	if (!irda_usb_parse_endpoints(self, interface->endpoint,
+								  interface->desc.bNumEndpoints))
+	{
 		net_err_ratelimited("%s(), Bogus endpoints...\n", __func__);
 		ret = -EIO;
 		goto err_out_3;
@@ -1700,16 +1933,24 @@ static int irda_usb_probe(struct usb_interface *intf,
 	/* Find IrDA class descriptor */
 	irda_desc = irda_usb_find_class_desc(intf);
 	ret = -ENODEV;
-	if (!irda_desc)
-		goto err_out_3;
 
-	if (self->needspatch) {
+	if (!irda_desc)
+	{
+		goto err_out_3;
+	}
+
+	if (self->needspatch)
+	{
 		ret = usb_control_msg (self->usbdev, usb_sndctrlpipe (self->usbdev, 0),
-				       0x02, 0x40, 0, 0, NULL, 0, 500);
-		if (ret < 0) {
+							   0x02, 0x40, 0, 0, NULL, 0, 500);
+
+		if (ret < 0)
+		{
 			pr_debug("usb_control_msg failed %d\n", ret);
 			goto err_out_3;
-		} else {
+		}
+		else
+		{
 			mdelay(10);
 		}
 	}
@@ -1724,36 +1965,51 @@ static int irda_usb_probe(struct usb_interface *intf,
 	 * some heavy and complete testing. Don't ask why :-(
 	 * Jean II */
 	self->speed_buff = kzalloc(IRDA_USB_SPEED_MTU, GFP_KERNEL);
+
 	if (!self->speed_buff)
+	{
 		goto err_out_3;
+	}
 
 	self->tx_buff = kzalloc(IRDA_SKB_MAX_MTU + self->header_length,
-				GFP_KERNEL);
+							GFP_KERNEL);
+
 	if (!self->tx_buff)
+	{
 		goto err_out_4;
+	}
 
 	ret = irda_usb_open(self);
-	if (ret) 
+
+	if (ret)
+	{
 		goto err_out_5;
+	}
 
 	net_info_ratelimited("IrDA: Registered device %s\n", net->name);
 	usb_set_intfdata(intf, self);
 
-	if (self->needspatch) {
+	if (self->needspatch)
+	{
 		/* Now we fetch and upload the firmware patch */
 		ret = stir421x_patch_device(self);
 		self->needspatch = (ret < 0);
-		if (self->needspatch) {
+
+		if (self->needspatch)
+		{
 			net_err_ratelimited("STIR421X: Couldn't upload patch\n");
 			goto err_out_6;
 		}
 
 		/* replace IrDA class descriptor with what patched device is now reporting */
 		irda_desc = irda_usb_find_class_desc (self->usbintf);
-		if (!irda_desc) {
+
+		if (!irda_desc)
+		{
 			ret = -ENODEV;
 			goto err_out_6;
 		}
+
 		kfree(self->irda_desc);
 		self->irda_desc = irda_desc;
 		irda_usb_init_qos(self);
@@ -1772,8 +2028,12 @@ err_out_3:
 err_out_2:
 	usb_free_urb(self->tx_urb);
 err_out_1:
+
 	for (i = 0; i < self->max_rx_urb; i++)
+	{
 		usb_free_urb(self->rx_urb[i]);
+	}
+
 	kfree(self->rx_urb);
 err_free_net:
 	free_netdev(net);
@@ -1800,8 +2060,11 @@ static void irda_usb_disconnect(struct usb_interface *intf)
 	int i;
 
 	usb_set_intfdata(intf, NULL);
+
 	if (!self)
+	{
 		return;
+	}
 
 	/* Make sure that the Tx path is not executing. - Jean II */
 	spin_lock_irqsave(&self->lock, flags);
@@ -1818,13 +2081,18 @@ static void irda_usb_disconnect(struct usb_interface *intf)
 	spin_unlock_irqrestore(&self->lock, flags);
 
 	/* Hum... Check if networking is still active (avoid races) */
-	if((self->netopen) || (self->irlap)) {
+	if ((self->netopen) || (self->irlap))
+	{
 		/* Accept no more transmissions */
 		/*netif_device_detach(self->netdev);*/
 		netif_stop_queue(self->netdev);
+
 		/* Stop all the receive URBs. Must be synchronous. */
 		for (i = 0; i < self->max_rx_urb; i++)
+		{
 			usb_kill_urb(self->rx_urb[i]);
+		}
+
 		/* Cancel Tx and speed URB.
 		 * Make sure it's synchronous to avoid races. */
 		usb_kill_urb(self->tx_urb);
@@ -1839,7 +2107,10 @@ static void irda_usb_disconnect(struct usb_interface *intf)
 
 	/* Clean up our urbs */
 	for (i = 0; i < self->max_rx_urb; i++)
+	{
 		usb_free_urb(self->rx_urb[i]);
+	}
+
 	kfree(self->rx_urb);
 	/* Clean up Tx and speed URB */
 	usb_free_urb(self->tx_urb);
@@ -1860,13 +2131,23 @@ static int irda_usb_suspend(struct usb_interface *intf, pm_message_t message)
 	netif_device_detach(self->netdev);
 
 	if (self->tx_urb != NULL)
+	{
 		usb_kill_urb(self->tx_urb);
-	if (self->speed_urb != NULL)
-		usb_kill_urb(self->speed_urb);
-	for (i = 0; i < self->max_rx_urb; i++) {
-		if (self->rx_urb[i] != NULL)
-			usb_kill_urb(self->rx_urb[i]);
 	}
+
+	if (self->speed_urb != NULL)
+	{
+		usb_kill_urb(self->speed_urb);
+	}
+
+	for (i = 0; i < self->max_rx_urb; i++)
+	{
+		if (self->rx_urb[i] != NULL)
+		{
+			usb_kill_urb(self->rx_urb[i]);
+		}
+	}
+
 	return 0;
 }
 
@@ -1876,9 +2157,12 @@ static int irda_usb_resume(struct usb_interface *intf)
 	struct irda_usb_cb *self = usb_get_intfdata(intf);
 	int i;
 
-	for (i = 0; i < self->max_rx_urb; i++) {
+	for (i = 0; i < self->max_rx_urb; i++)
+	{
 		if (self->rx_urb[i] != NULL)
+		{
 			usb_submit_urb(self->rx_urb[i], GFP_KERNEL);
+		}
 	}
 
 	netif_device_attach(self->netdev);
@@ -1890,7 +2174,8 @@ static int irda_usb_resume(struct usb_interface *intf)
 /*
  * USB device callbacks
  */
-static struct usb_driver irda_driver = {
+static struct usb_driver irda_driver =
+{
 	.name		= "irda-usb",
 	.probe		= irda_usb_probe,
 	.disconnect	= irda_usb_disconnect,

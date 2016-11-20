@@ -10,12 +10,13 @@ void kimage_free(struct kimage *image);
 int kimage_load_segment(struct kimage *image, struct kexec_segment *segment);
 void kimage_terminate(struct kimage *image);
 int kimage_is_destination_range(struct kimage *image,
-				unsigned long start, unsigned long end);
+								unsigned long start, unsigned long end);
 
 extern struct mutex kexec_mutex;
 
 #ifdef CONFIG_KEXEC_FILE
-struct kexec_sha_region {
+struct kexec_sha_region
+{
 	unsigned long start;
 	unsigned long len;
 };
@@ -24,7 +25,8 @@ struct kexec_sha_region {
  * Keeps track of buffer parameters as provided by caller for requesting
  * memory placement of buffer.
  */
-struct kexec_buf {
+struct kexec_buf
+{
 	struct kimage *image;
 	char *buffer;
 	unsigned long bufsz;

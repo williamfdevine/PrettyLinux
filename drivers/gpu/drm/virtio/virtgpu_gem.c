@@ -31,40 +31,50 @@ void virtio_gpu_gem_free_object(struct drm_gem_object *gem_obj)
 	struct virtio_gpu_object *obj = gem_to_virtio_gpu_obj(gem_obj);
 
 	if (obj)
+	{
 		virtio_gpu_object_unref(&obj);
+	}
 }
 
 struct virtio_gpu_object *virtio_gpu_alloc_object(struct drm_device *dev,
-						  size_t size, bool kernel,
-						  bool pinned)
+		size_t size, bool kernel,
+		bool pinned)
 {
 	struct virtio_gpu_device *vgdev = dev->dev_private;
 	struct virtio_gpu_object *obj;
 	int ret;
 
 	ret = virtio_gpu_object_create(vgdev, size, kernel, pinned, &obj);
+
 	if (ret)
+	{
 		return ERR_PTR(ret);
+	}
 
 	return obj;
 }
 
 int virtio_gpu_gem_create(struct drm_file *file,
-			  struct drm_device *dev,
-			  uint64_t size,
-			  struct drm_gem_object **obj_p,
-			  uint32_t *handle_p)
+						  struct drm_device *dev,
+						  uint64_t size,
+						  struct drm_gem_object **obj_p,
+						  uint32_t *handle_p)
 {
 	struct virtio_gpu_object *obj;
 	int ret;
 	u32 handle;
 
 	obj = virtio_gpu_alloc_object(dev, size, false, false);
+
 	if (IS_ERR(obj))
+	{
 		return PTR_ERR(obj);
+	}
 
 	ret = drm_gem_handle_create(file, &obj->gem_base, &handle);
-	if (ret) {
+
+	if (ret)
+	{
 		drm_gem_object_release(&obj->gem_base);
 		return ret;
 	}
@@ -79,8 +89,8 @@ int virtio_gpu_gem_create(struct drm_file *file,
 }
 
 int virtio_gpu_mode_dumb_create(struct drm_file *file_priv,
-				struct drm_device *dev,
-				struct drm_mode_create_dumb *args)
+								struct drm_device *dev,
+								struct drm_mode_create_dumb *args)
 {
 	struct virtio_gpu_device *vgdev = dev->dev_private;
 	struct drm_gem_object *gobj;
@@ -94,19 +104,25 @@ int virtio_gpu_mode_dumb_create(struct drm_file *file_priv,
 	args->size = ALIGN(args->size, PAGE_SIZE);
 
 	ret = virtio_gpu_gem_create(file_priv, dev, args->size, &gobj,
-				    &args->handle);
+								&args->handle);
+
 	if (ret)
+	{
 		goto fail;
+	}
 
 	virtio_gpu_resource_id_get(vgdev, &resid);
 	virtio_gpu_cmd_create_resource(vgdev, resid,
-				       2, args->width, args->height);
+								   2, args->width, args->height);
 
 	/* attach the object to the resource */
 	obj = gem_to_virtio_gpu_obj(gobj);
 	ret = virtio_gpu_object_attach(vgdev, obj, resid, NULL);
+
 	if (ret)
+	{
 		goto fail;
+	}
 
 	obj->dumb = true;
 	args->pitch = pitch;
@@ -117,22 +133,26 @@ fail:
 }
 
 int virtio_gpu_mode_dumb_destroy(struct drm_file *file_priv,
-				 struct drm_device *dev,
-				 uint32_t handle)
+								 struct drm_device *dev,
+								 uint32_t handle)
 {
 	return drm_gem_handle_delete(file_priv, handle);
 }
 
 int virtio_gpu_mode_dumb_mmap(struct drm_file *file_priv,
-			      struct drm_device *dev,
-			      uint32_t handle, uint64_t *offset_p)
+							  struct drm_device *dev,
+							  uint32_t handle, uint64_t *offset_p)
 {
 	struct drm_gem_object *gobj;
 	struct virtio_gpu_object *obj;
 	BUG_ON(!offset_p);
 	gobj = drm_gem_object_lookup(file_priv, handle);
+
 	if (gobj == NULL)
+	{
 		return -ENOENT;
+	}
+
 	obj = gem_to_virtio_gpu_obj(gobj);
 	*offset_p = virtio_gpu_object_mmap_offset(obj);
 	drm_gem_object_unreference_unlocked(gobj);
@@ -140,7 +160,7 @@ int virtio_gpu_mode_dumb_mmap(struct drm_file *file_priv,
 }
 
 int virtio_gpu_gem_object_open(struct drm_gem_object *obj,
-			       struct drm_file *file)
+							   struct drm_file *file)
 {
 	struct virtio_gpu_device *vgdev = obj->dev->dev_private;
 	struct virtio_gpu_fpriv *vfpriv = file->driver_priv;
@@ -148,20 +168,25 @@ int virtio_gpu_gem_object_open(struct drm_gem_object *obj,
 	int r;
 
 	if (!vgdev->has_virgl_3d)
+	{
 		return 0;
+	}
 
 	r = virtio_gpu_object_reserve(qobj, false);
+
 	if (r)
+	{
 		return r;
+	}
 
 	virtio_gpu_cmd_context_attach_resource(vgdev, vfpriv->ctx_id,
-					       qobj->hw_res_handle);
+										   qobj->hw_res_handle);
 	virtio_gpu_object_unreserve(qobj);
 	return 0;
 }
 
 void virtio_gpu_gem_object_close(struct drm_gem_object *obj,
-				 struct drm_file *file)
+								 struct drm_file *file)
 {
 	struct virtio_gpu_device *vgdev = obj->dev->dev_private;
 	struct virtio_gpu_fpriv *vfpriv = file->driver_priv;
@@ -169,13 +194,18 @@ void virtio_gpu_gem_object_close(struct drm_gem_object *obj,
 	int r;
 
 	if (!vgdev->has_virgl_3d)
+	{
 		return;
+	}
 
 	r = virtio_gpu_object_reserve(qobj, false);
+
 	if (r)
+	{
 		return;
+	}
 
 	virtio_gpu_cmd_context_detach_resource(vgdev, vfpriv->ctx_id,
-						qobj->hw_res_handle);
+										   qobj->hw_res_handle);
 	virtio_gpu_object_unreserve(qobj);
 }

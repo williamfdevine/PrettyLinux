@@ -31,8 +31,11 @@ static int wm831x_spi_probe(struct spi_device *spi)
 	type = (enum wm831x_parent)id->driver_data;
 
 	wm831x = devm_kzalloc(&spi->dev, sizeof(struct wm831x), GFP_KERNEL);
+
 	if (wm831x == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	spi->mode = SPI_MODE_0;
 
@@ -40,10 +43,12 @@ static int wm831x_spi_probe(struct spi_device *spi)
 	wm831x->dev = &spi->dev;
 
 	wm831x->regmap = devm_regmap_init_spi(spi, &wm831x_regmap_config);
-	if (IS_ERR(wm831x->regmap)) {
+
+	if (IS_ERR(wm831x->regmap))
+	{
 		ret = PTR_ERR(wm831x->regmap);
 		dev_err(wm831x->dev, "Failed to allocate register map: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
@@ -75,13 +80,15 @@ static int wm831x_spi_poweroff(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops wm831x_spi_pm = {
+static const struct dev_pm_ops wm831x_spi_pm =
+{
 	.freeze = wm831x_spi_suspend,
 	.suspend = wm831x_spi_suspend,
 	.poweroff = wm831x_spi_poweroff,
 };
 
-static const struct spi_device_id wm831x_spi_ids[] = {
+static const struct spi_device_id wm831x_spi_ids[] =
+{
 	{ "wm8310", WM8310 },
 	{ "wm8311", WM8311 },
 	{ "wm8312", WM8312 },
@@ -93,7 +100,8 @@ static const struct spi_device_id wm831x_spi_ids[] = {
 };
 MODULE_DEVICE_TABLE(spi, wm831x_spi_ids);
 
-static struct spi_driver wm831x_spi_driver = {
+static struct spi_driver wm831x_spi_driver =
+{
 	.driver = {
 		.name	= "wm831x",
 		.pm	= &wm831x_spi_pm,
@@ -108,8 +116,11 @@ static int __init wm831x_spi_init(void)
 	int ret;
 
 	ret = spi_register_driver(&wm831x_spi_driver);
+
 	if (ret != 0)
+	{
 		pr_err("Failed to register WM831x SPI driver: %d\n", ret);
+	}
 
 	return 0;
 }

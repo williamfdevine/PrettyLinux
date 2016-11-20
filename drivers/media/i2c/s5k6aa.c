@@ -169,7 +169,8 @@ module_param(debug, int, 0644);
 /* For now we use only one user configuration register set */
 #define S5K6AA_MAX_PRESETS		1
 
-static const char * const s5k6aa_supply_names[] = {
+static const char *const s5k6aa_supply_names[] =
+{
 	"vdd_core",	/* Digital core supply 1.5V (1.4V to 1.6V) */
 	"vdda",		/* Analog power supply 2.8V (2.6V to 3.0V) */
 	"vdd_reg",	/* Regulator input power 1.8V (1.7V to 1.9V)
@@ -179,32 +180,37 @@ static const char * const s5k6aa_supply_names[] = {
 };
 #define S5K6AA_NUM_SUPPLIES ARRAY_SIZE(s5k6aa_supply_names)
 
-enum s5k6aa_gpio_id {
+enum s5k6aa_gpio_id
+{
 	STBY,
 	RST,
 	GPIO_NUM,
 };
 
-struct s5k6aa_regval {
+struct s5k6aa_regval
+{
 	u16 addr;
 	u16 val;
 };
 
-struct s5k6aa_pixfmt {
+struct s5k6aa_pixfmt
+{
 	u32 code;
 	u32 colorspace;
 	/* REG_P_FMT(x) register value */
 	u16 reg_p_fmt;
 };
 
-struct s5k6aa_preset {
+struct s5k6aa_preset
+{
 	/* output pixel format and resolution */
 	struct v4l2_mbus_framefmt mbus_fmt;
 	u8 clk_id;
 	u8 index;
 };
 
-struct s5k6aa_ctrls {
+struct s5k6aa_ctrls
+{
 	struct v4l2_ctrl_handler handler;
 	/* Auto / manual white balance cluster */
 	struct v4l2_ctrl *awb;
@@ -220,14 +226,16 @@ struct s5k6aa_ctrls {
 	struct v4l2_ctrl *gain;
 };
 
-struct s5k6aa_interval {
+struct s5k6aa_interval
+{
 	u16 reg_fr_time;
 	struct v4l2_fract interval;
 	/* Maximum rectangle for the interval */
 	struct v4l2_frmsize_discrete size;
 };
 
-struct s5k6aa {
+struct s5k6aa
+{
 	struct v4l2_subdev sd;
 	struct media_pad pad;
 
@@ -246,8 +254,8 @@ struct s5k6aa {
 	u16 pclk_fmin;
 	u16 pclk_fmax;
 
-	unsigned int inv_hflip:1;
-	unsigned int inv_vflip:1;
+	unsigned int inv_hflip: 1;
+	unsigned int inv_vflip: 1;
 
 	/* protects the struct members below */
 	struct mutex lock;
@@ -260,13 +268,14 @@ struct s5k6aa {
 	struct s5k6aa_preset *preset;
 	const struct s5k6aa_interval *fiv;
 
-	unsigned int streaming:1;
-	unsigned int apply_cfg:1;
-	unsigned int apply_crop:1;
+	unsigned int streaming: 1;
+	unsigned int apply_cfg: 1;
+	unsigned int apply_crop: 1;
 	unsigned int power;
 };
 
-static struct s5k6aa_regval s5k6aa_analog_config[] = {
+static struct s5k6aa_regval s5k6aa_analog_config[] =
+{
 	/* Analog settings */
 	{ 0x112a, 0x0000 }, { 0x1132, 0x0000 },
 	{ 0x113e, 0x0000 }, { 0x115c, 0x0000 },
@@ -284,14 +293,16 @@ static struct s5k6aa_regval s5k6aa_analog_config[] = {
 };
 
 /* TODO: Add RGB888 and Bayer format */
-static const struct s5k6aa_pixfmt s5k6aa_formats[] = {
+static const struct s5k6aa_pixfmt s5k6aa_formats[] =
+{
 	{ MEDIA_BUS_FMT_YUYV8_2X8,	V4L2_COLORSPACE_JPEG,	5 },
 	/* range 16-240 */
 	{ MEDIA_BUS_FMT_YUYV8_2X8,	V4L2_COLORSPACE_REC709,	6 },
 	{ MEDIA_BUS_FMT_RGB565_2X8_BE,	V4L2_COLORSPACE_JPEG,	0 },
 };
 
-static const struct s5k6aa_interval s5k6aa_intervals[] = {
+static const struct s5k6aa_interval s5k6aa_intervals[] =
+{
 	{ 1000, {10000, 1000000}, {1280, 1024} }, /* 10 fps */
 	{ 666,  {15000, 1000000}, {1280, 1024} }, /* 15 fps */
 	{ 500,  {20000, 1000000}, {1280, 720} },  /* 20 fps */
@@ -317,7 +328,8 @@ static void s5k6aa_presets_data_init(struct s5k6aa *s5k6aa)
 	struct s5k6aa_preset *preset = &s5k6aa->presets[0];
 	int i;
 
-	for (i = 0; i < S5K6AA_MAX_PRESETS; i++) {
+	for (i = 0; i < S5K6AA_MAX_PRESETS; i++)
+	{
 		preset->mbus_fmt.width	= S5K6AA_OUT_WIDTH_DEF;
 		preset->mbus_fmt.height	= S5K6AA_OUT_HEIGHT_DEF;
 		preset->mbus_fmt.code	= s5k6aa_formats[0].code;
@@ -369,8 +381,12 @@ static int s5k6aa_i2c_write(struct i2c_client *client, u16 addr, u16 val)
 static int s5k6aa_write(struct i2c_client *c, u16 addr, u16 val)
 {
 	int ret = s5k6aa_i2c_write(c, REG_CMDWR_ADDRL, addr);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	return s5k6aa_i2c_write(c, REG_CMDBUF0_ADDR, val);
 }
 
@@ -378,27 +394,40 @@ static int s5k6aa_write(struct i2c_client *c, u16 addr, u16 val)
 static int s5k6aa_read(struct i2c_client *client, u16 addr, u16 *val)
 {
 	int ret = s5k6aa_i2c_write(client, REG_CMDRD_ADDRL, addr);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	return s5k6aa_i2c_read(client, REG_CMDBUF0_ADDR, val);
 }
 
 static int s5k6aa_write_array(struct v4l2_subdev *sd,
-			      const struct s5k6aa_regval *msg)
+							  const struct s5k6aa_regval *msg)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	u16 addr_incr = 0;
 	int ret = 0;
 
-	while (msg->addr != S5K6AA_TERM) {
+	while (msg->addr != S5K6AA_TERM)
+	{
 		if (addr_incr != 2)
 			ret = s5k6aa_i2c_write(client, REG_CMDWR_ADDRL,
-					       msg->addr);
+								   msg->addr);
+
 		if (ret)
+		{
 			break;
+		}
+
 		ret = s5k6aa_i2c_write(client, REG_CMDBUF0_ADDR, msg->val);
+
 		if (ret)
+		{
 			break;
+		}
+
 		/* Assume that msg->addr is always less than 0xfffc */
 		addr_incr = (msg + 1)->addr - msg->addr;
 		msg++;
@@ -411,11 +440,19 @@ static int s5k6aa_write_array(struct v4l2_subdev *sd,
 static int s5k6aa_set_ahb_address(struct i2c_client *client)
 {
 	int ret = s5k6aa_i2c_write(client, AHB_MSB_ADDR_PTR, GEN_REG_OFFSH);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = s5k6aa_i2c_write(client, REG_CMDRD_ADDRH, HOST_SWIF_OFFSH);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	return s5k6aa_i2c_write(client, REG_CMDWR_ADDRH, HOST_SWIF_OFFSH);
 }
 
@@ -433,8 +470,10 @@ static int s5k6aa_configure_pixel_clocks(struct s5k6aa *s5k6aa)
 	int ret;
 
 	if (WARN(fmclk < MIN_MCLK_FREQ_KHZ || fmclk > MAX_MCLK_FREQ_KHZ,
-		 "Invalid clock frequency: %ld\n", fmclk))
+			 "Invalid clock frequency: %ld\n", fmclk))
+	{
 		return -EINVAL;
+	}
 
 	s5k6aa->pclk_fmin = PCLK_FREQ_MIN;
 	s5k6aa->pclk_fmax = PCLK_FREQ_MAX;
@@ -442,23 +481,40 @@ static int s5k6aa_configure_pixel_clocks(struct s5k6aa *s5k6aa)
 
 	/* External input clock frequency in kHz */
 	ret = s5k6aa_write(c, REG_I_INCLK_FREQ_H, fmclk >> 16);
+
 	if (!ret)
+	{
 		ret = s5k6aa_write(c, REG_I_INCLK_FREQ_L, fmclk & 0xFFFF);
+	}
+
 	if (!ret)
+	{
 		ret = s5k6aa_write(c, REG_I_USE_NPVI_CLOCKS, 1);
+	}
+
 	/* Internal PLL frequency */
 	if (!ret)
+	{
 		ret = s5k6aa_write(c, REG_I_OPCLK_4KHZ(0), s5k6aa->clk_fop);
+	}
+
 	if (!ret)
 		ret = s5k6aa_write(c, REG_I_MIN_OUTRATE_4KHZ(0),
-				   s5k6aa->pclk_fmin);
+						   s5k6aa->pclk_fmin);
+
 	if (!ret)
 		ret = s5k6aa_write(c, REG_I_MAX_OUTRATE_4KHZ(0),
-				   s5k6aa->pclk_fmax);
+						   s5k6aa->pclk_fmax);
+
 	if (!ret)
+	{
 		ret = s5k6aa_write(c, REG_I_INIT_PARAMS_UPDATED, 1);
+	}
+
 	if (!ret)
+	{
 		ret = s5k6aa_read(c, REG_I_ERROR_INFO, &status);
+	}
 
 	return ret ? ret : (status ? -EINVAL : 0);
 }
@@ -484,24 +540,42 @@ static int s5k6aa_set_awb(struct s5k6aa *s5k6aa, int awb)
 
 	int ret = s5k6aa_read(c, REG_DBG_AUTOALG_EN, &reg);
 
-	if (!ret && !awb) {
+	if (!ret && !awb)
+	{
 		ret = s5k6aa_write(c, REG_SF_RGAIN, ctrls->gain_red->val);
+
 		if (!ret)
+		{
 			ret = s5k6aa_write(c, REG_SF_RGAIN_CHG, 1);
+		}
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		ret = s5k6aa_write(c, REG_SF_GGAIN, ctrls->gain_green->val);
+
 		if (!ret)
+		{
 			ret = s5k6aa_write(c, REG_SF_GGAIN_CHG, 1);
+		}
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		ret = s5k6aa_write(c, REG_SF_BGAIN, ctrls->gain_blue->val);
+
 		if (!ret)
+		{
 			ret = s5k6aa_write(c, REG_SF_BGAIN_CHG, 1);
+		}
 	}
-	if (!ret) {
+
+	if (!ret)
+	{
 		reg = awb ? reg | AALG_WB_EN_MASK : reg & ~AALG_WB_EN_MASK;
 		ret = s5k6aa_write(c, REG_DBG_AUTOALG_EN, reg);
 	}
@@ -515,18 +589,29 @@ static int s5k6aa_set_user_exposure(struct i2c_client *client, int exposure)
 	unsigned int time = exposure / 10;
 
 	int ret = s5k6aa_write(client, REG_SF_USR_EXPOSURE_L, time & 0xffff);
+
 	if (!ret)
+	{
 		ret = s5k6aa_write(client, REG_SF_USR_EXPOSURE_H, time >> 16);
+	}
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	return s5k6aa_write(client, REG_SF_USR_EXPOSURE_CHG, 1);
 }
 
 static int s5k6aa_set_user_gain(struct i2c_client *client, int gain)
 {
 	int ret = s5k6aa_write(client, REG_SF_USR_TOT_GAIN, gain);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	return s5k6aa_write(client, REG_SF_USR_TOT_GAIN_CHG, 1);
 }
 
@@ -538,21 +623,35 @@ static int s5k6aa_set_auto_exposure(struct s5k6aa *s5k6aa, int value)
 	u16 auto_alg;
 
 	int ret = s5k6aa_read(c, REG_DBG_AUTOALG_EN, &auto_alg);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	v4l2_dbg(1, debug, c, "man_exp: %d, auto_exp: %d, a_alg: 0x%x\n",
-		 exp_time, value, auto_alg);
+			 exp_time, value, auto_alg);
 
-	if (value == V4L2_EXPOSURE_AUTO) {
+	if (value == V4L2_EXPOSURE_AUTO)
+	{
 		auto_alg |= AALG_AE_EN_MASK | AALG_DIVLEI_EN_MASK;
-	} else {
+	}
+	else
+	{
 		ret = s5k6aa_set_user_exposure(c, exp_time);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		ret = s5k6aa_set_user_gain(c, s5k6aa->ctrls.gain->val);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		auto_alg &= ~(AALG_AE_EN_MASK | AALG_DIVLEI_EN_MASK);
 	}
 
@@ -566,21 +665,34 @@ static int s5k6aa_set_anti_flicker(struct s5k6aa *s5k6aa, int value)
 	int ret;
 
 	ret = s5k6aa_read(client, REG_DBG_AUTOALG_EN, &auto_alg);
-	if (ret)
-		return ret;
 
-	if (value == V4L2_CID_POWER_LINE_FREQUENCY_AUTO) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (value == V4L2_CID_POWER_LINE_FREQUENCY_AUTO)
+	{
 		auto_alg |= AALG_FLICKER_EN_MASK;
-	} else {
+	}
+	else
+	{
 		auto_alg &= ~AALG_FLICKER_EN_MASK;
 		/* The V4L2_CID_LINE_FREQUENCY control values match
 		 * the register values */
 		ret = s5k6aa_write(client, REG_SF_FLICKER_QUANT, value);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		ret = s5k6aa_write(client, REG_SF_FLICKER_QUANT_CHG, 1);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return s5k6aa_write(client, REG_DBG_AUTOALG_EN, auto_alg);
@@ -589,7 +701,8 @@ static int s5k6aa_set_anti_flicker(struct s5k6aa *s5k6aa, int value)
 static int s5k6aa_set_colorfx(struct s5k6aa *s5k6aa, int val)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(&s5k6aa->sd);
-	static const struct v4l2_control colorfx[] = {
+	static const struct v4l2_control colorfx[] =
+	{
 		{ V4L2_COLORFX_NONE,	 0 },
 		{ V4L2_COLORFX_BW,	 1 },
 		{ V4L2_COLORFX_NEGATIVE, 2 },
@@ -599,11 +712,13 @@ static int s5k6aa_set_colorfx(struct s5k6aa *s5k6aa, int val)
 	};
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(colorfx); i++) {
+	for (i = 0; i < ARRAY_SIZE(colorfx); i++)
+	{
 		if (colorfx[i].id == val)
 			return s5k6aa_write(client, REG_G_SPEC_EFFECTS,
-					    colorfx[i].value);
+								colorfx[i].value);
 	}
+
 	return -EINVAL;
 }
 
@@ -617,32 +732,38 @@ static int s5k6aa_preview_config_status(struct i2c_client *client)
 }
 
 static int s5k6aa_get_pixfmt_index(struct s5k6aa *s5k6aa,
-				   struct v4l2_mbus_framefmt *mf)
+								   struct v4l2_mbus_framefmt *mf)
 {
 	unsigned int i;
 
 	for (i = 0; i < ARRAY_SIZE(s5k6aa_formats); i++)
 		if (mf->colorspace == s5k6aa_formats[i].colorspace &&
-		    mf->code == s5k6aa_formats[i].code)
+			mf->code == s5k6aa_formats[i].code)
+		{
 			return i;
+		}
+
 	return 0;
 }
 
 static int s5k6aa_set_output_framefmt(struct s5k6aa *s5k6aa,
-				      struct s5k6aa_preset *preset)
+									  struct s5k6aa_preset *preset)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(&s5k6aa->sd);
 	int fmt_index = s5k6aa_get_pixfmt_index(s5k6aa, &preset->mbus_fmt);
 	int ret;
 
 	ret = s5k6aa_write(client, REG_P_OUT_WIDTH(preset->index),
-			   preset->mbus_fmt.width);
+					   preset->mbus_fmt.width);
+
 	if (!ret)
 		ret = s5k6aa_write(client, REG_P_OUT_HEIGHT(preset->index),
-				   preset->mbus_fmt.height);
+						   preset->mbus_fmt.height);
+
 	if (!ret)
 		ret = s5k6aa_write(client, REG_P_FMT(preset->index),
-				   s5k6aa_formats[fmt_index].reg_p_fmt);
+						   s5k6aa_formats[fmt_index].reg_p_fmt);
+
 	return ret;
 }
 
@@ -653,16 +774,31 @@ static int s5k6aa_set_input_params(struct s5k6aa *s5k6aa)
 	int ret;
 
 	ret = s5k6aa_write(c, REG_G_PREVZOOM_IN_WIDTH, r->width);
+
 	if (!ret)
+	{
 		ret = s5k6aa_write(c, REG_G_PREVZOOM_IN_HEIGHT, r->height);
+	}
+
 	if (!ret)
+	{
 		ret = s5k6aa_write(c, REG_G_PREVZOOM_IN_XOFFS, r->left);
+	}
+
 	if (!ret)
+	{
 		ret = s5k6aa_write(c, REG_G_PREVZOOM_IN_YOFFS, r->top);
+	}
+
 	if (!ret)
+	{
 		ret = s5k6aa_write(c, REG_G_INPUTS_CHANGE_REQ, 1);
+	}
+
 	if (!ret)
+	{
 		s5k6aa->apply_crop = 0;
+	}
 
 	return ret;
 }
@@ -675,7 +811,7 @@ static int s5k6aa_set_input_params(struct s5k6aa *s5k6aa)
  * Note: Only parallel bus operation has been tested.
  */
 static int s5k6aa_configure_video_bus(struct s5k6aa *s5k6aa,
-				      enum v4l2_mbus_type bus_type, int nlanes)
+									  enum v4l2_mbus_type bus_type, int nlanes)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(&s5k6aa->sd);
 	u16 cfg = 0;
@@ -687,38 +823,61 @@ static int s5k6aa_configure_video_bus(struct s5k6aa *s5k6aa,
 	 * in the datasheet. For now default BT.601 interface is assumed.
 	 */
 	if (bus_type == V4L2_MBUS_CSI2)
+	{
 		cfg = nlanes;
+	}
 	else if (bus_type != V4L2_MBUS_PARALLEL)
+	{
 		return -EINVAL;
+	}
 
 	ret = s5k6aa_write(client, REG_OIF_EN_MIPI_LANES, cfg);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	return s5k6aa_write(client, REG_OIF_CFG_CHG, 1);
 }
 
 /* This function should be called when switching to new user configuration set*/
 static int s5k6aa_new_config_sync(struct i2c_client *client, int timeout,
-				  int cid)
+								  int cid)
 {
 	unsigned long end = jiffies + msecs_to_jiffies(timeout);
 	u16 reg = 1;
 	int ret;
 
 	ret = s5k6aa_write(client, REG_G_ACTIVE_PREV_CFG, cid);
-	if (!ret)
-		ret = s5k6aa_write(client, REG_G_PREV_CFG_CHG, 1);
-	if (!ret)
-		ret = s5k6aa_write(client, REG_G_NEW_CFG_SYNC, 1);
-	if (timeout == 0)
-		return ret;
 
-	while (ret >= 0 && time_is_after_jiffies(end)) {
+	if (!ret)
+	{
+		ret = s5k6aa_write(client, REG_G_PREV_CFG_CHG, 1);
+	}
+
+	if (!ret)
+	{
+		ret = s5k6aa_write(client, REG_G_NEW_CFG_SYNC, 1);
+	}
+
+	if (timeout == 0)
+	{
+		return ret;
+	}
+
+	while (ret >= 0 && time_is_after_jiffies(end))
+	{
 		ret = s5k6aa_read(client, REG_G_NEW_CFG_SYNC, &reg);
+
 		if (!reg)
+		{
 			return 0;
+		}
+
 		usleep_range(1000, 5000);
 	}
+
 	return ret ? ret : -ETIMEDOUT;
 }
 
@@ -729,7 +888,7 @@ static int s5k6aa_new_config_sync(struct i2c_client *client, int timeout,
  * frequency range, device frame rate type and frame period range.
  */
 static int s5k6aa_set_prev_config(struct s5k6aa *s5k6aa,
-				  struct s5k6aa_preset *preset)
+								  struct s5k6aa_preset *preset)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(&s5k6aa->sd);
 	int idx = preset->index;
@@ -737,41 +896,61 @@ static int s5k6aa_set_prev_config(struct s5k6aa *s5k6aa,
 	int ret;
 
 	if (s5k6aa->fiv->reg_fr_time >= S5K6AA_MAX_HIGHRES_FR_TIME)
+	{
 		frame_rate_q = FR_RATE_Q_BEST_FRRATE;
+	}
 	else
+	{
 		frame_rate_q = FR_RATE_Q_BEST_QUALITY;
+	}
 
 	ret = s5k6aa_set_output_framefmt(s5k6aa, preset);
+
 	if (!ret)
 		ret = s5k6aa_write(client, REG_P_MAX_OUT_RATE(idx),
-				   s5k6aa->pclk_fmax);
+						   s5k6aa->pclk_fmax);
+
 	if (!ret)
 		ret = s5k6aa_write(client, REG_P_MIN_OUT_RATE(idx),
-				   s5k6aa->pclk_fmin);
+						   s5k6aa->pclk_fmin);
+
 	if (!ret)
 		ret = s5k6aa_write(client, REG_P_CLK_INDEX(idx),
-				   preset->clk_id);
+						   preset->clk_id);
+
 	if (!ret)
 		ret = s5k6aa_write(client, REG_P_FR_RATE_TYPE(idx),
-				   FR_RATE_DYNAMIC);
+						   FR_RATE_DYNAMIC);
+
 	if (!ret)
 		ret = s5k6aa_write(client, REG_P_FR_RATE_Q_TYPE(idx),
-				   frame_rate_q);
+						   frame_rate_q);
+
 	if (!ret)
 		ret = s5k6aa_write(client, REG_P_MAX_FR_TIME(idx),
-				   s5k6aa->fiv->reg_fr_time + 33);
+						   s5k6aa->fiv->reg_fr_time + 33);
+
 	if (!ret)
 		ret = s5k6aa_write(client, REG_P_MIN_FR_TIME(idx),
-				   s5k6aa->fiv->reg_fr_time - 33);
+						   s5k6aa->fiv->reg_fr_time - 33);
+
 	if (!ret)
+	{
 		ret = s5k6aa_new_config_sync(client, 250, idx);
+	}
+
 	if (!ret)
+	{
 		ret = s5k6aa_preview_config_status(client);
+	}
+
 	if (!ret)
+	{
 		s5k6aa->apply_cfg = 0;
+	}
 
 	v4l2_dbg(1, debug, client, "Frame interval: %d +/- 3.3ms. (%d)\n",
-		 s5k6aa->fiv->reg_fr_time, ret);
+			 s5k6aa->fiv->reg_fr_time, ret);
 	return ret;
 }
 
@@ -794,15 +973,27 @@ static int s5k6aa_initialize_isp(struct v4l2_subdev *sd)
 	msleep(100);
 
 	ret = s5k6aa_set_ahb_address(client);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = s5k6aa_configure_video_bus(s5k6aa, s5k6aa->bus_type,
-					 s5k6aa->mipi_lanes);
+									 s5k6aa->mipi_lanes);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = s5k6aa_write_array(sd, s5k6aa_analog_config);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	msleep(20);
 
 	return s5k6aa_configure_pixel_clocks(s5k6aa);
@@ -811,7 +1002,10 @@ static int s5k6aa_initialize_isp(struct v4l2_subdev *sd)
 static int s5k6aa_gpio_set_value(struct s5k6aa *priv, int id, u32 val)
 {
 	if (!gpio_is_valid(priv->gpio[id].gpio))
+	{
 		return 0;
+	}
+
 	gpio_set_value(priv->gpio[id].gpio, !!val);
 	return 1;
 }
@@ -831,17 +1025,28 @@ static int __s5k6aa_power_on(struct s5k6aa *s5k6aa)
 	int ret;
 
 	ret = regulator_bulk_enable(S5K6AA_NUM_SUPPLIES, s5k6aa->supplies);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	if (s5k6aa_gpio_deassert(s5k6aa, STBY))
+	{
 		usleep_range(150, 200);
+	}
 
 	if (s5k6aa->s_power)
+	{
 		ret = s5k6aa->s_power(1);
+	}
+
 	usleep_range(4000, 4000);
 
 	if (s5k6aa_gpio_deassert(s5k6aa, RST))
+	{
 		msleep(20);
+	}
 
 	return ret;
 }
@@ -851,15 +1056,25 @@ static int __s5k6aa_power_off(struct s5k6aa *s5k6aa)
 	int ret;
 
 	if (s5k6aa_gpio_assert(s5k6aa, RST))
+	{
 		usleep_range(100, 150);
-
-	if (s5k6aa->s_power) {
-		ret = s5k6aa->s_power(0);
-		if (ret)
-			return ret;
 	}
+
+	if (s5k6aa->s_power)
+	{
+		ret = s5k6aa->s_power(0);
+
+		if (ret)
+		{
+			return ret;
+		}
+	}
+
 	if (s5k6aa_gpio_assert(s5k6aa, STBY))
+	{
 		usleep_range(50, 100);
+	}
+
 	s5k6aa->streaming = 0;
 
 	return regulator_bulk_disable(S5K6AA_NUM_SUPPLIES, s5k6aa->supplies);
@@ -875,23 +1090,34 @@ static int s5k6aa_set_power(struct v4l2_subdev *sd, int on)
 
 	mutex_lock(&s5k6aa->lock);
 
-	if (s5k6aa->power == !on) {
-		if (on) {
+	if (s5k6aa->power == !on)
+	{
+		if (on)
+		{
 			ret = __s5k6aa_power_on(s5k6aa);
+
 			if (!ret)
+			{
 				ret = s5k6aa_initialize_isp(sd);
-		} else {
+			}
+		}
+		else
+		{
 			ret = __s5k6aa_power_off(s5k6aa);
 		}
 
 		if (!ret)
+		{
 			s5k6aa->power += on ? 1 : -1;
+		}
 	}
 
 	mutex_unlock(&s5k6aa->lock);
 
 	if (!on || ret || s5k6aa->power != 1)
+	{
 		return ret;
+	}
 
 	return v4l2_ctrl_handler_setup(sd->ctrl_handler);
 }
@@ -902,10 +1128,16 @@ static int __s5k6aa_stream(struct s5k6aa *s5k6aa, int enable)
 	int ret = 0;
 
 	ret = s5k6aa_write(client, REG_G_ENABLE_PREV, enable);
+
 	if (!ret)
+	{
 		ret = s5k6aa_write(client, REG_G_ENABLE_PREV_CHG, 1);
+	}
+
 	if (!ret)
+	{
 		s5k6aa->streaming = enable;
+	}
 
 	return ret;
 }
@@ -917,21 +1149,31 @@ static int s5k6aa_s_stream(struct v4l2_subdev *sd, int on)
 
 	mutex_lock(&s5k6aa->lock);
 
-	if (s5k6aa->streaming == !on) {
+	if (s5k6aa->streaming == !on)
+	{
 		if (!ret && s5k6aa->apply_cfg)
+		{
 			ret = s5k6aa_set_prev_config(s5k6aa, s5k6aa->preset);
+		}
+
 		if (s5k6aa->apply_crop)
+		{
 			ret = s5k6aa_set_input_params(s5k6aa);
+		}
+
 		if (!ret)
+		{
 			ret = __s5k6aa_stream(s5k6aa, !!on);
+		}
 	}
+
 	mutex_unlock(&s5k6aa->lock);
 
 	return ret;
 }
 
 static int s5k6aa_g_frame_interval(struct v4l2_subdev *sd,
-				   struct v4l2_subdev_frame_interval *fi)
+								   struct v4l2_subdev_frame_interval *fi)
 {
 	struct s5k6aa *s5k6aa = to_s5k6aa(sd);
 
@@ -943,7 +1185,7 @@ static int s5k6aa_g_frame_interval(struct v4l2_subdev *sd,
 }
 
 static int __s5k6aa_set_frame_interval(struct s5k6aa *s5k6aa,
-				       struct v4l2_subdev_frame_interval *fi)
+									   struct v4l2_subdev_frame_interval *fi)
 {
 	struct v4l2_mbus_framefmt *mbus_fmt = &s5k6aa->preset->mbus_fmt;
 	const struct s5k6aa_interval *fiv = &s5k6aa_intervals[0];
@@ -951,38 +1193,46 @@ static int __s5k6aa_set_frame_interval(struct s5k6aa *s5k6aa,
 	unsigned int i, fr_time;
 
 	if (fi->interval.denominator == 0)
+	{
 		return -EINVAL;
+	}
 
 	fr_time = fi->interval.numerator * 10000 / fi->interval.denominator;
 
-	for (i = 0; i < ARRAY_SIZE(s5k6aa_intervals); i++) {
+	for (i = 0; i < ARRAY_SIZE(s5k6aa_intervals); i++)
+	{
 		const struct s5k6aa_interval *iv = &s5k6aa_intervals[i];
 
 		if (mbus_fmt->width > iv->size.width ||
-		    mbus_fmt->height > iv->size.height)
+			mbus_fmt->height > iv->size.height)
+		{
 			continue;
+		}
 
 		err = abs(iv->reg_fr_time - fr_time);
-		if (err < min_err) {
+
+		if (err < min_err)
+		{
 			fiv = iv;
 			min_err = err;
 		}
 	}
+
 	s5k6aa->fiv = fiv;
 
 	v4l2_dbg(1, debug, &s5k6aa->sd, "Changed frame interval to %d us\n",
-		 fiv->reg_fr_time * 100);
+			 fiv->reg_fr_time * 100);
 	return 0;
 }
 
 static int s5k6aa_s_frame_interval(struct v4l2_subdev *sd,
-				   struct v4l2_subdev_frame_interval *fi)
+								   struct v4l2_subdev_frame_interval *fi)
 {
 	struct s5k6aa *s5k6aa = to_s5k6aa(sd);
 	int ret;
 
 	v4l2_dbg(1, debug, sd, "Setting %d/%d frame interval\n",
-		 fi->interval.numerator, fi->interval.denominator);
+			 fi->interval.numerator, fi->interval.denominator);
 
 	mutex_lock(&s5k6aa->lock);
 	ret = __s5k6aa_set_frame_interval(s5k6aa, fi);
@@ -996,55 +1246,69 @@ static int s5k6aa_s_frame_interval(struct v4l2_subdev *sd,
  * V4L2 subdev pad level and video operations
  */
 static int s5k6aa_enum_frame_interval(struct v4l2_subdev *sd,
-			      struct v4l2_subdev_pad_config *cfg,
-			      struct v4l2_subdev_frame_interval_enum *fie)
+									  struct v4l2_subdev_pad_config *cfg,
+									  struct v4l2_subdev_frame_interval_enum *fie)
 {
 	struct s5k6aa *s5k6aa = to_s5k6aa(sd);
 	const struct s5k6aa_interval *fi;
 	int ret = 0;
 
 	if (fie->index >= ARRAY_SIZE(s5k6aa_intervals))
+	{
 		return -EINVAL;
+	}
 
 	v4l_bound_align_image(&fie->width, S5K6AA_WIN_WIDTH_MIN,
-			      S5K6AA_WIN_WIDTH_MAX, 1,
-			      &fie->height, S5K6AA_WIN_HEIGHT_MIN,
-			      S5K6AA_WIN_HEIGHT_MAX, 1, 0);
+						  S5K6AA_WIN_WIDTH_MAX, 1,
+						  &fie->height, S5K6AA_WIN_HEIGHT_MIN,
+						  S5K6AA_WIN_HEIGHT_MAX, 1, 0);
 
 	mutex_lock(&s5k6aa->lock);
 	fi = &s5k6aa_intervals[fie->index];
+
 	if (fie->width > fi->size.width || fie->height > fi->size.height)
+	{
 		ret = -EINVAL;
+	}
 	else
+	{
 		fie->interval = fi->interval;
+	}
+
 	mutex_unlock(&s5k6aa->lock);
 
 	return ret;
 }
 
 static int s5k6aa_enum_mbus_code(struct v4l2_subdev *sd,
-				 struct v4l2_subdev_pad_config *cfg,
-				 struct v4l2_subdev_mbus_code_enum *code)
+								 struct v4l2_subdev_pad_config *cfg,
+								 struct v4l2_subdev_mbus_code_enum *code)
 {
 	if (code->index >= ARRAY_SIZE(s5k6aa_formats))
+	{
 		return -EINVAL;
+	}
 
 	code->code = s5k6aa_formats[code->index].code;
 	return 0;
 }
 
 static int s5k6aa_enum_frame_size(struct v4l2_subdev *sd,
-				  struct v4l2_subdev_pad_config *cfg,
-				  struct v4l2_subdev_frame_size_enum *fse)
+								  struct v4l2_subdev_pad_config *cfg,
+								  struct v4l2_subdev_frame_size_enum *fse)
 {
 	int i = ARRAY_SIZE(s5k6aa_formats);
 
 	if (fse->index > 0)
+	{
 		return -EINVAL;
+	}
 
 	while (--i)
 		if (fse->code == s5k6aa_formats[i].code)
+		{
 			break;
+		}
 
 	fse->code = s5k6aa_formats[i].code;
 	fse->min_width  = S5K6AA_WIN_WIDTH_MIN;
@@ -1057,28 +1321,32 @@ static int s5k6aa_enum_frame_size(struct v4l2_subdev *sd,
 
 static struct v4l2_rect *
 __s5k6aa_get_crop_rect(struct s5k6aa *s5k6aa, struct v4l2_subdev_pad_config *cfg,
-		       enum v4l2_subdev_format_whence which)
+					   enum v4l2_subdev_format_whence which)
 {
 	if (which == V4L2_SUBDEV_FORMAT_ACTIVE)
+	{
 		return &s5k6aa->ccd_rect;
+	}
 
 	WARN_ON(which != V4L2_SUBDEV_FORMAT_TRY);
 	return v4l2_subdev_get_try_crop(&s5k6aa->sd, cfg, 0);
 }
 
 static void s5k6aa_try_format(struct s5k6aa *s5k6aa,
-			      struct v4l2_mbus_framefmt *mf)
+							  struct v4l2_mbus_framefmt *mf)
 {
 	unsigned int index;
 
 	v4l_bound_align_image(&mf->width, S5K6AA_WIN_WIDTH_MIN,
-			      S5K6AA_WIN_WIDTH_MAX, 1,
-			      &mf->height, S5K6AA_WIN_HEIGHT_MIN,
-			      S5K6AA_WIN_HEIGHT_MAX, 1, 0);
+						  S5K6AA_WIN_WIDTH_MAX, 1,
+						  &mf->height, S5K6AA_WIN_HEIGHT_MIN,
+						  S5K6AA_WIN_HEIGHT_MAX, 1, 0);
 
 	if (mf->colorspace != V4L2_COLORSPACE_JPEG &&
-	    mf->colorspace != V4L2_COLORSPACE_REC709)
+		mf->colorspace != V4L2_COLORSPACE_REC709)
+	{
 		mf->colorspace = V4L2_COLORSPACE_JPEG;
+	}
 
 	index = s5k6aa_get_pixfmt_index(s5k6aa, mf);
 
@@ -1088,14 +1356,15 @@ static void s5k6aa_try_format(struct s5k6aa *s5k6aa,
 }
 
 static int s5k6aa_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
-			  struct v4l2_subdev_format *fmt)
+						  struct v4l2_subdev_format *fmt)
 {
 	struct s5k6aa *s5k6aa = to_s5k6aa(sd);
 	struct v4l2_mbus_framefmt *mf;
 
 	memset(fmt->reserved, 0, sizeof(fmt->reserved));
 
-	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
+	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
+	{
 		mf = v4l2_subdev_get_try_format(sd, cfg, 0);
 		fmt->format = *mf;
 		return 0;
@@ -1109,7 +1378,7 @@ static int s5k6aa_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config 
 }
 
 static int s5k6aa_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
-			  struct v4l2_subdev_format *fmt)
+						  struct v4l2_subdev_format *fmt)
 {
 	struct s5k6aa *s5k6aa = to_s5k6aa(sd);
 	struct s5k6aa_preset *preset = s5k6aa->preset;
@@ -1120,21 +1389,29 @@ static int s5k6aa_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config 
 	mutex_lock(&s5k6aa->lock);
 	s5k6aa_try_format(s5k6aa, &fmt->format);
 
-	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
+	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
+	{
 		mf = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
 		crop = v4l2_subdev_get_try_crop(sd, cfg, 0);
-	} else {
-		if (s5k6aa->streaming) {
+	}
+	else
+	{
+		if (s5k6aa->streaming)
+		{
 			ret = -EBUSY;
-		} else {
+		}
+		else
+		{
 			mf = &preset->mbus_fmt;
 			crop = &s5k6aa->ccd_rect;
 			s5k6aa->apply_cfg = 1;
 		}
 	}
 
-	if (ret == 0) {
-		struct v4l2_subdev_frame_interval fiv = {
+	if (ret == 0)
+	{
+		struct v4l2_subdev_frame_interval fiv =
+		{
 			.interval = {0, 1}
 		};
 
@@ -1145,31 +1422,34 @@ static int s5k6aa_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config 
 		 * only down-scaling.
 		 */
 		crop->width = clamp_t(unsigned int, crop->width, mf->width,
-				      S5K6AA_WIN_WIDTH_MAX);
+							  S5K6AA_WIN_WIDTH_MAX);
 		crop->height = clamp_t(unsigned int, crop->height, mf->height,
-				       S5K6AA_WIN_HEIGHT_MAX);
+							   S5K6AA_WIN_HEIGHT_MAX);
 		crop->left = clamp_t(unsigned int, crop->left, 0,
-				     S5K6AA_WIN_WIDTH_MAX - crop->width);
+							 S5K6AA_WIN_WIDTH_MAX - crop->width);
 		crop->top  = clamp_t(unsigned int, crop->top, 0,
-				     S5K6AA_WIN_HEIGHT_MAX - crop->height);
+							 S5K6AA_WIN_HEIGHT_MAX - crop->height);
 
 		/* Reset to minimum possible frame interval */
 		ret = __s5k6aa_set_frame_interval(s5k6aa, &fiv);
 	}
+
 	mutex_unlock(&s5k6aa->lock);
 
 	return ret;
 }
 
 static int s5k6aa_get_selection(struct v4l2_subdev *sd,
-				struct v4l2_subdev_pad_config *cfg,
-				struct v4l2_subdev_selection *sel)
+								struct v4l2_subdev_pad_config *cfg,
+								struct v4l2_subdev_selection *sel)
 {
 	struct s5k6aa *s5k6aa = to_s5k6aa(sd);
 	struct v4l2_rect *rect;
 
 	if (sel->target != V4L2_SEL_TGT_CROP)
+	{
 		return -EINVAL;
+	}
 
 	memset(sel->reserved, 0, sizeof(sel->reserved));
 
@@ -1179,14 +1459,14 @@ static int s5k6aa_get_selection(struct v4l2_subdev *sd,
 	mutex_unlock(&s5k6aa->lock);
 
 	v4l2_dbg(1, debug, sd, "Current crop rectangle: (%d,%d)/%dx%d\n",
-		 rect->left, rect->top, rect->width, rect->height);
+			 rect->left, rect->top, rect->width, rect->height);
 
 	return 0;
 }
 
 static int s5k6aa_set_selection(struct v4l2_subdev *sd,
-				struct v4l2_subdev_pad_config *cfg,
-				struct v4l2_subdev_selection *sel)
+								struct v4l2_subdev_pad_config *cfg,
+								struct v4l2_subdev_selection *sel)
 {
 	struct s5k6aa *s5k6aa = to_s5k6aa(sd);
 	struct v4l2_mbus_framefmt *mf;
@@ -1194,21 +1474,27 @@ static int s5k6aa_set_selection(struct v4l2_subdev *sd,
 	struct v4l2_rect *crop_r;
 
 	if (sel->target != V4L2_SEL_TGT_CROP)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&s5k6aa->lock);
 	crop_r = __s5k6aa_get_crop_rect(s5k6aa, cfg, sel->which);
 
-	if (sel->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+	if (sel->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+	{
 		mf = &s5k6aa->preset->mbus_fmt;
 		s5k6aa->apply_crop = 1;
-	} else {
+	}
+	else
+	{
 		mf = v4l2_subdev_get_try_format(sd, cfg, 0);
 	}
+
 	v4l_bound_align_image(&sel->r.width, mf->width,
-			      S5K6AA_WIN_WIDTH_MAX, 1,
-			      &sel->r.height, mf->height,
-			      S5K6AA_WIN_HEIGHT_MAX, 1, 0);
+						  S5K6AA_WIN_WIDTH_MAX, 1,
+						  &sel->r.height, mf->height,
+						  S5K6AA_WIN_HEIGHT_MAX, 1, 0);
 
 	max_x = (S5K6AA_WIN_WIDTH_MAX - sel->r.width) & ~1;
 	max_y = (S5K6AA_WIN_HEIGHT_MAX - sel->r.height) & ~1;
@@ -1221,12 +1507,13 @@ static int s5k6aa_set_selection(struct v4l2_subdev *sd,
 	mutex_unlock(&s5k6aa->lock);
 
 	v4l2_dbg(1, debug, sd, "Set crop rectangle: (%d,%d)/%dx%d\n",
-		 crop_r->left, crop_r->top, crop_r->width, crop_r->height);
+			 crop_r->left, crop_r->top, crop_r->width, crop_r->height);
 
 	return 0;
 }
 
-static const struct v4l2_subdev_pad_ops s5k6aa_pad_ops = {
+static const struct v4l2_subdev_pad_ops s5k6aa_pad_ops =
+{
 	.enum_mbus_code		= s5k6aa_enum_mbus_code,
 	.enum_frame_size	= s5k6aa_enum_frame_size,
 	.enum_frame_interval	= s5k6aa_enum_frame_interval,
@@ -1236,7 +1523,8 @@ static const struct v4l2_subdev_pad_ops s5k6aa_pad_ops = {
 	.set_selection		= s5k6aa_set_selection,
 };
 
-static const struct v4l2_subdev_video_ops s5k6aa_video_ops = {
+static const struct v4l2_subdev_video_ops s5k6aa_video_ops =
+{
 	.g_frame_interval	= s5k6aa_g_frame_interval,
 	.s_frame_interval	= s5k6aa_s_frame_interval,
 	.s_stream		= s5k6aa_s_stream,
@@ -1256,68 +1544,83 @@ static int s5k6aa_s_ctrl(struct v4l2_ctrl *ctrl)
 	v4l2_dbg(1, debug, sd, "ctrl: 0x%x, value: %d\n", ctrl->id, ctrl->val);
 
 	mutex_lock(&s5k6aa->lock);
+
 	/*
 	 * If the device is not powered up by the host driver do
 	 * not apply any controls to H/W at this time. Instead
 	 * the controls will be restored right after power-up.
 	 */
 	if (s5k6aa->power == 0)
+	{
 		goto unlock;
+	}
+
 	idx = s5k6aa->preset->index;
 
-	switch (ctrl->id) {
-	case V4L2_CID_AUTO_WHITE_BALANCE:
-		err = s5k6aa_set_awb(s5k6aa, ctrl->val);
-		break;
-
-	case V4L2_CID_BRIGHTNESS:
-		err = s5k6aa_write(client, REG_USER_BRIGHTNESS, ctrl->val);
-		break;
-
-	case V4L2_CID_COLORFX:
-		err = s5k6aa_set_colorfx(s5k6aa, ctrl->val);
-		break;
-
-	case V4L2_CID_CONTRAST:
-		err = s5k6aa_write(client, REG_USER_CONTRAST, ctrl->val);
-		break;
-
-	case V4L2_CID_EXPOSURE_AUTO:
-		err = s5k6aa_set_auto_exposure(s5k6aa, ctrl->val);
-		break;
-
-	case V4L2_CID_HFLIP:
-		err = s5k6aa_set_mirror(s5k6aa, ctrl->val);
-		if (err)
+	switch (ctrl->id)
+	{
+		case V4L2_CID_AUTO_WHITE_BALANCE:
+			err = s5k6aa_set_awb(s5k6aa, ctrl->val);
 			break;
-		err = s5k6aa_write(client, REG_G_PREV_CFG_CHG, 1);
-		break;
 
-	case V4L2_CID_POWER_LINE_FREQUENCY:
-		err = s5k6aa_set_anti_flicker(s5k6aa, ctrl->val);
-		break;
-
-	case V4L2_CID_SATURATION:
-		err = s5k6aa_write(client, REG_USER_SATURATION, ctrl->val);
-		break;
-
-	case V4L2_CID_SHARPNESS:
-		err = s5k6aa_write(client, REG_USER_SHARPBLUR, ctrl->val);
-		break;
-
-	case V4L2_CID_WHITE_BALANCE_TEMPERATURE:
-		err = s5k6aa_write(client, REG_P_COLORTEMP(idx), ctrl->val);
-		if (err)
+		case V4L2_CID_BRIGHTNESS:
+			err = s5k6aa_write(client, REG_USER_BRIGHTNESS, ctrl->val);
 			break;
-		err = s5k6aa_write(client, REG_G_PREV_CFG_CHG, 1);
-		break;
+
+		case V4L2_CID_COLORFX:
+			err = s5k6aa_set_colorfx(s5k6aa, ctrl->val);
+			break;
+
+		case V4L2_CID_CONTRAST:
+			err = s5k6aa_write(client, REG_USER_CONTRAST, ctrl->val);
+			break;
+
+		case V4L2_CID_EXPOSURE_AUTO:
+			err = s5k6aa_set_auto_exposure(s5k6aa, ctrl->val);
+			break;
+
+		case V4L2_CID_HFLIP:
+			err = s5k6aa_set_mirror(s5k6aa, ctrl->val);
+
+			if (err)
+			{
+				break;
+			}
+
+			err = s5k6aa_write(client, REG_G_PREV_CFG_CHG, 1);
+			break;
+
+		case V4L2_CID_POWER_LINE_FREQUENCY:
+			err = s5k6aa_set_anti_flicker(s5k6aa, ctrl->val);
+			break;
+
+		case V4L2_CID_SATURATION:
+			err = s5k6aa_write(client, REG_USER_SATURATION, ctrl->val);
+			break;
+
+		case V4L2_CID_SHARPNESS:
+			err = s5k6aa_write(client, REG_USER_SHARPBLUR, ctrl->val);
+			break;
+
+		case V4L2_CID_WHITE_BALANCE_TEMPERATURE:
+			err = s5k6aa_write(client, REG_P_COLORTEMP(idx), ctrl->val);
+
+			if (err)
+			{
+				break;
+			}
+
+			err = s5k6aa_write(client, REG_G_PREV_CFG_CHG, 1);
+			break;
 	}
+
 unlock:
 	mutex_unlock(&s5k6aa->lock);
 	return err;
 }
 
-static const struct v4l2_ctrl_ops s5k6aa_ctrl_ops = {
+static const struct v4l2_ctrl_ops s5k6aa_ctrl_ops =
+{
 	.s_ctrl	= s5k6aa_s_ctrl,
 };
 
@@ -1331,7 +1634,8 @@ static int s5k6aa_log_status(struct v4l2_subdev *sd)
 #define V4L2_CID_GREEN_GAIN	(V4L2_CTRL_CLASS_CAMERA | 0x1002)
 #define V4L2_CID_BLUE_GAIN	(V4L2_CTRL_CLASS_CAMERA | 0x1003)
 
-static const struct v4l2_ctrl_config s5k6aa_ctrls[] = {
+static const struct v4l2_ctrl_config s5k6aa_ctrls[] =
+{
 	{
 		.ops	= &s5k6aa_ctrl_ops,
 		.id	= V4L2_CID_RED_GAIN,
@@ -1369,11 +1673,15 @@ static int s5k6aa_initialize_ctrls(struct s5k6aa *s5k6aa)
 	struct v4l2_ctrl_handler *hdl = &ctrls->handler;
 
 	int ret = v4l2_ctrl_handler_init(hdl, 16);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	/* Auto white balance cluster */
 	ctrls->awb = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_AUTO_WHITE_BALANCE,
-				       0, 1, 1, 1);
+								   0, 1, 1, 1);
 	ctrls->gain_red = v4l2_ctrl_new_custom(hdl, &s5k6aa_ctrls[0], NULL);
 	ctrls->gain_green = v4l2_ctrl_new_custom(hdl, &s5k6aa_ctrls[1], NULL);
 	ctrls->gain_blue = v4l2_ctrl_new_custom(hdl, &s5k6aa_ctrls[2], NULL);
@@ -1384,32 +1692,33 @@ static int s5k6aa_initialize_ctrls(struct s5k6aa *s5k6aa)
 	v4l2_ctrl_cluster(2, &ctrls->hflip);
 
 	ctrls->auto_exp = v4l2_ctrl_new_std_menu(hdl, ops,
-				V4L2_CID_EXPOSURE_AUTO,
-				V4L2_EXPOSURE_MANUAL, 0, V4L2_EXPOSURE_AUTO);
+					  V4L2_CID_EXPOSURE_AUTO,
+					  V4L2_EXPOSURE_MANUAL, 0, V4L2_EXPOSURE_AUTO);
 	/* Exposure time: x 1 us */
 	ctrls->exposure = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_EXPOSURE,
-					    0, 6000000U, 1, 100000U);
+										0, 6000000U, 1, 100000U);
 	/* Total gain: 256 <=> 1x */
 	ctrls->gain = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_GAIN,
-					0, 256, 1, 256);
+									0, 256, 1, 256);
 	v4l2_ctrl_auto_cluster(3, &ctrls->auto_exp, 0, false);
 
 	v4l2_ctrl_new_std_menu(hdl, ops, V4L2_CID_POWER_LINE_FREQUENCY,
-			       V4L2_CID_POWER_LINE_FREQUENCY_AUTO, 0,
-			       V4L2_CID_POWER_LINE_FREQUENCY_AUTO);
+						   V4L2_CID_POWER_LINE_FREQUENCY_AUTO, 0,
+						   V4L2_CID_POWER_LINE_FREQUENCY_AUTO);
 
 	v4l2_ctrl_new_std_menu(hdl, ops, V4L2_CID_COLORFX,
-			       V4L2_COLORFX_SKY_BLUE, ~0x6f, V4L2_COLORFX_NONE);
+						   V4L2_COLORFX_SKY_BLUE, ~0x6f, V4L2_COLORFX_NONE);
 
 	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_WHITE_BALANCE_TEMPERATURE,
-			  0, 256, 1, 0);
+					  0, 256, 1, 0);
 
 	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_SATURATION, -127, 127, 1, 0);
 	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_BRIGHTNESS, -127, 127, 1, 0);
 	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_CONTRAST, -127, 127, 1, 0);
 	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_SHARPNESS, -127, 127, 1, 0);
 
-	if (hdl->error) {
+	if (hdl->error)
+	{
 		ret = hdl->error;
 		v4l2_ctrl_handler_free(hdl);
 		return ret;
@@ -1449,16 +1758,23 @@ static int s5k6aa_check_fw_revision(struct s5k6aa *s5k6aa)
 	int ret = s5k6aa_set_ahb_address(client);
 
 	if (!ret)
+	{
 		ret = s5k6aa_read(client, REG_FW_APIVER, &api_ver);
+	}
+
 	if (!ret)
+	{
 		ret = s5k6aa_read(client, REG_FW_REVISION, &fw_rev);
-	if (ret) {
+	}
+
+	if (ret)
+	{
 		v4l2_err(&s5k6aa->sd, "FW revision check failed!\n");
 		return ret;
 	}
 
 	v4l2_info(&s5k6aa->sd, "FW API ver.: 0x%X, FW rev.: 0x%X\n",
-		  api_ver, fw_rev);
+			  api_ver, fw_rev);
 
 	return api_ver == S5K6AAFX_FW_APIVER ? 0 : -ENODEV;
 }
@@ -1470,27 +1786,33 @@ static int s5k6aa_registered(struct v4l2_subdev *sd)
 
 	mutex_lock(&s5k6aa->lock);
 	ret = __s5k6aa_power_on(s5k6aa);
-	if (!ret) {
+
+	if (!ret)
+	{
 		msleep(100);
 		ret = s5k6aa_check_fw_revision(s5k6aa);
 		__s5k6aa_power_off(s5k6aa);
 	}
+
 	mutex_unlock(&s5k6aa->lock);
 
 	return ret;
 }
 
-static const struct v4l2_subdev_internal_ops s5k6aa_subdev_internal_ops = {
+static const struct v4l2_subdev_internal_ops s5k6aa_subdev_internal_ops =
+{
 	.registered = s5k6aa_registered,
 	.open = s5k6aa_open,
 };
 
-static const struct v4l2_subdev_core_ops s5k6aa_core_ops = {
+static const struct v4l2_subdev_core_ops s5k6aa_core_ops =
+{
 	.s_power = s5k6aa_set_power,
 	.log_status = s5k6aa_log_status,
 };
 
-static const struct v4l2_subdev_ops s5k6aa_subdev_ops = {
+static const struct v4l2_subdev_ops s5k6aa_subdev_ops =
+{
 	.core = &s5k6aa_core_ops,
 	.pad = &s5k6aa_pad_ops,
 	.video = &s5k6aa_video_ops,
@@ -1501,7 +1823,7 @@ static const struct v4l2_subdev_ops s5k6aa_subdev_ops = {
  */
 
 static int s5k6aa_configure_gpios(struct s5k6aa *s5k6aa,
-				  const struct s5k6aa_platform_data *pdata)
+								  const struct s5k6aa_platform_data *pdata)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(&s5k6aa->sd);
 	const struct s5k6aa_gpio *gpio;
@@ -1512,25 +1834,35 @@ static int s5k6aa_configure_gpios(struct s5k6aa *s5k6aa,
 	s5k6aa->gpio[RST].gpio  = -EINVAL;
 
 	gpio = &pdata->gpio_stby;
-	if (gpio_is_valid(gpio->gpio)) {
+
+	if (gpio_is_valid(gpio->gpio))
+	{
 		flags = (gpio->level ? GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW)
-		      | GPIOF_EXPORT;
+				| GPIOF_EXPORT;
 		ret = devm_gpio_request_one(&client->dev, gpio->gpio, flags,
-					    "S5K6AA_STBY");
+									"S5K6AA_STBY");
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		s5k6aa->gpio[STBY] = *gpio;
 	}
 
 	gpio = &pdata->gpio_reset;
-	if (gpio_is_valid(gpio->gpio)) {
+
+	if (gpio_is_valid(gpio->gpio))
+	{
 		flags = (gpio->level ? GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW)
-		      | GPIOF_EXPORT;
+				| GPIOF_EXPORT;
 		ret = devm_gpio_request_one(&client->dev, gpio->gpio, flags,
-					    "S5K6AA_RST");
+									"S5K6AA_RST");
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		s5k6aa->gpio[RST] = *gpio;
 	}
@@ -1539,26 +1871,31 @@ static int s5k6aa_configure_gpios(struct s5k6aa *s5k6aa,
 }
 
 static int s5k6aa_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	const struct s5k6aa_platform_data *pdata = client->dev.platform_data;
 	struct v4l2_subdev *sd;
 	struct s5k6aa *s5k6aa;
 	int i, ret;
 
-	if (pdata == NULL) {
+	if (pdata == NULL)
+	{
 		dev_err(&client->dev, "Platform data not specified\n");
 		return -EINVAL;
 	}
 
-	if (pdata->mclk_frequency == 0) {
+	if (pdata->mclk_frequency == 0)
+	{
 		dev_err(&client->dev, "MCLK frequency not specified\n");
 		return -EINVAL;
 	}
 
 	s5k6aa = devm_kzalloc(&client->dev, sizeof(*s5k6aa), GFP_KERNEL);
+
 	if (!s5k6aa)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&s5k6aa->lock);
 
@@ -1579,26 +1916,39 @@ static int s5k6aa_probe(struct i2c_client *client,
 	s5k6aa->pad.flags = MEDIA_PAD_FL_SOURCE;
 	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
 	ret = media_entity_pads_init(&sd->entity, 1, &s5k6aa->pad);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = s5k6aa_configure_gpios(s5k6aa, pdata);
+
 	if (ret)
+	{
 		goto out_err;
+	}
 
 	for (i = 0; i < S5K6AA_NUM_SUPPLIES; i++)
+	{
 		s5k6aa->supplies[i].supply = s5k6aa_supply_names[i];
+	}
 
 	ret = devm_regulator_bulk_get(&client->dev, S5K6AA_NUM_SUPPLIES,
-				 s5k6aa->supplies);
-	if (ret) {
+								  s5k6aa->supplies);
+
+	if (ret)
+	{
 		dev_err(&client->dev, "Failed to get regulators\n");
 		goto out_err;
 	}
 
 	ret = s5k6aa_initialize_ctrls(s5k6aa);
+
 	if (ret)
+	{
 		goto out_err;
+	}
 
 	s5k6aa_presets_data_init(s5k6aa);
 
@@ -1625,14 +1975,16 @@ static int s5k6aa_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id s5k6aa_id[] = {
+static const struct i2c_device_id s5k6aa_id[] =
+{
 	{ DRIVER_NAME, 0 },
 	{ },
 };
 MODULE_DEVICE_TABLE(i2c, s5k6aa_id);
 
 
-static struct i2c_driver s5k6aa_i2c_driver = {
+static struct i2c_driver s5k6aa_i2c_driver =
+{
 	.driver = {
 		.name = DRIVER_NAME
 	},

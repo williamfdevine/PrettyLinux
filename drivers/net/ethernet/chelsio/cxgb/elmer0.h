@@ -39,7 +39,8 @@
 #define _CXGB_ELMER0_H_
 
 /* ELMER0 flavors */
-enum {
+enum
+{
 	ELMER0_XC2S300E_6FT256_C,
 	ELMER0_XC2S100E_6TQ144_C
 };

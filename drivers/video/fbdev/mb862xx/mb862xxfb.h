@@ -1,7 +1,8 @@
 #ifndef __MB862XX_H__
 #define __MB862XX_H__
 
-struct mb862xx_l1_cfg {
+struct mb862xx_l1_cfg
+{
 	unsigned short sx;
 	unsigned short sy;
 	unsigned short sw;
@@ -28,7 +29,8 @@ struct mb862xx_l1_cfg {
 
 #define GC_MMR_CORALP_EVB_VAL		0x11d7fa13
 
-enum gdctype {
+enum gdctype
+{
 	BT_NONE,
 	BT_LIME,
 	BT_MINT,
@@ -37,7 +39,8 @@ enum gdctype {
 	BT_CARMINE,
 };
 
-struct mb862xx_gc_mode {
+struct mb862xx_gc_mode
+{
 	struct fb_videomode	def_mode;	/* mode of connected display */
 	unsigned int		def_bpp;	/* default depth */
 	unsigned long		max_vram;	/* connected SDRAM size */
@@ -46,7 +49,8 @@ struct mb862xx_gc_mode {
 };
 
 /* private data */
-struct mb862xxfb_par {
+struct mb862xxfb_par
+{
 	struct fb_info		*info;		/* fb info head */
 	struct device		*dev;
 	struct pci_dev		*pdev;
@@ -98,14 +102,14 @@ static inline void mb862xx_i2c_exit(struct mb862xxfb_par *par) { }
 #endif
 
 #if defined(CONFIG_FB_MB862XX_LIME) && defined(CONFIG_FB_MB862XX_PCI_GDC)
-#error	"Select Lime GDC or CoralP/Carmine support, but not both together"
+	#error	"Select Lime GDC or CoralP/Carmine support, but not both together"
 #endif
 #if defined(CONFIG_FB_MB862XX_LIME)
-#define gdc_read	__raw_readl
-#define gdc_write	__raw_writel
+	#define gdc_read	__raw_readl
+	#define gdc_write	__raw_writel
 #else
-#define gdc_read	readl
-#define gdc_write	writel
+	#define gdc_read	readl
+	#define gdc_write	writel
 #endif
 
 #define inreg(type, off)	\

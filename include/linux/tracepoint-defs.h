@@ -10,23 +10,27 @@
 #include <linux/atomic.h>
 #include <linux/static_key.h>
 
-struct trace_print_flags {
+struct trace_print_flags
+{
 	unsigned long		mask;
 	const char		*name;
 };
 
-struct trace_print_flags_u64 {
+struct trace_print_flags_u64
+{
 	unsigned long long	mask;
 	const char		*name;
 };
 
-struct tracepoint_func {
+struct tracepoint_func
+{
 	void *func;
 	void *data;
 	int prio;
 };
 
-struct tracepoint {
+struct tracepoint
+{
 	const char *name;		/* Tracepoint name */
 	struct static_key key;
 	void (*regfunc)(void);

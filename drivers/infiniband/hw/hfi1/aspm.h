@@ -51,7 +51,8 @@
 
 extern uint aspm_mode;
 
-enum aspm_mode {
+enum aspm_mode
+{
 	ASPM_MODE_DISABLED = 0,	/* ASPM always disabled, performance mode */
 	ASPM_MODE_ENABLED = 1,	/* ASPM always enabled, power saving mode */
 	ASPM_MODE_DYNAMIC = 2,	/* ASPM enabled/disabled dynamically */
@@ -77,7 +78,9 @@ static inline bool aspm_hw_l1_supported(struct hfi1_devdata *dd)
 	 * it cannot support ASPM L1 at all.
 	 */
 	if (!parent)
+	{
 		return false;
+	}
 
 	pcie_capability_read_dword(dd->pcidev, PCI_EXP_LNKCAP, &dn);
 	dn = ASPM_L1_SUPPORTED(dn);
@@ -110,15 +113,17 @@ static inline void aspm_hw_enable_l1(struct hfi1_devdata *dd)
 	 * it cannot support ASPM L1 at all.
 	 */
 	if (!parent)
+	{
 		return;
+	}
 
 	/* Enable ASPM L1 first in upstream component and then downstream */
 	pcie_capability_clear_and_set_word(parent, PCI_EXP_LNKCTL,
-					   PCI_EXP_LNKCTL_ASPMC,
-					   PCI_EXP_LNKCTL_ASPM_L1);
+									   PCI_EXP_LNKCTL_ASPMC,
+									   PCI_EXP_LNKCTL_ASPM_L1);
 	pcie_capability_clear_and_set_word(dd->pcidev, PCI_EXP_LNKCTL,
-					   PCI_EXP_LNKCTL_ASPMC,
-					   PCI_EXP_LNKCTL_ASPM_L1);
+									   PCI_EXP_LNKCTL_ASPMC,
+									   PCI_EXP_LNKCTL_ASPM_L1);
 }
 
 static inline void aspm_hw_disable_l1(struct hfi1_devdata *dd)
@@ -127,17 +132,20 @@ static inline void aspm_hw_disable_l1(struct hfi1_devdata *dd)
 
 	/* Disable ASPM L1 first in downstream component and then upstream */
 	pcie_capability_clear_and_set_word(dd->pcidev, PCI_EXP_LNKCTL,
-					   PCI_EXP_LNKCTL_ASPMC, 0x0);
+									   PCI_EXP_LNKCTL_ASPMC, 0x0);
+
 	if (parent)
 		pcie_capability_clear_and_set_word(parent, PCI_EXP_LNKCTL,
-						   PCI_EXP_LNKCTL_ASPMC, 0x0);
+										   PCI_EXP_LNKCTL_ASPMC, 0x0);
 }
 
 static inline void aspm_enable(struct hfi1_devdata *dd)
 {
 	if (dd->aspm_enabled || aspm_mode == ASPM_MODE_DISABLED ||
-	    !dd->aspm_supported)
+		!dd->aspm_supported)
+	{
 		return;
+	}
 
 	aspm_hw_enable_l1(dd);
 	dd->aspm_enabled = true;
@@ -146,7 +154,9 @@ static inline void aspm_enable(struct hfi1_devdata *dd)
 static inline void aspm_disable(struct hfi1_devdata *dd)
 {
 	if (!dd->aspm_enabled || aspm_mode == ASPM_MODE_ENABLED)
+	{
 		return;
+	}
 
 	aspm_hw_disable_l1(dd);
 	dd->aspm_enabled = false;
@@ -167,8 +177,12 @@ static inline void aspm_enable_dec(struct hfi1_devdata *dd)
 	unsigned long flags;
 
 	spin_lock_irqsave(&dd->aspm_lock, flags);
+
 	if (atomic_dec_and_test(&dd->aspm_disabled_cnt))
+	{
 		aspm_enable(dd);
+	}
+
 	spin_unlock_irqrestore(&dd->aspm_lock, flags);
 }
 
@@ -182,12 +196,17 @@ static inline void aspm_ctx_disable(struct hfi1_ctxtdata *rcd)
 
 	/* Quickest exit for minimum impact */
 	if (!rcd->aspm_intr_supported)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&rcd->aspm_lock, flags);
+
 	/* PSM contexts are open */
 	if (!rcd->aspm_intr_enable)
+	{
 		goto unlock;
+	}
 
 	prev = rcd->aspm_ts_last_intr;
 	now = ktime_get();
@@ -198,21 +217,24 @@ static inline void aspm_ctx_disable(struct hfi1_ctxtdata *rcd)
 
 	/* Don't push out our timer till this much time has elapsed */
 	restart_timer = ktime_to_ns(ktime_sub(now, rcd->aspm_ts_timer_sched)) >
-				    ASPM_RESCHED_TIMER_MS * NSEC_PER_MSEC;
+					ASPM_RESCHED_TIMER_MS * NSEC_PER_MSEC;
 	restart_timer = restart_timer && close_interrupts;
 
 	/* Disable ASPM and schedule timer */
-	if (rcd->aspm_enabled && close_interrupts) {
+	if (rcd->aspm_enabled && close_interrupts)
+	{
 		aspm_disable_inc(rcd->dd);
 		rcd->aspm_enabled = false;
 		restart_timer = true;
 	}
 
-	if (restart_timer) {
+	if (restart_timer)
+	{
 		mod_timer(&rcd->aspm_timer,
-			  jiffies + msecs_to_jiffies(ASPM_TIMER_MS));
+				  jiffies + msecs_to_jiffies(ASPM_TIMER_MS));
 		rcd->aspm_ts_timer_sched = now;
 	}
+
 unlock:
 	spin_unlock_irqrestore(&rcd->aspm_lock, flags);
 }
@@ -236,7 +258,8 @@ static inline void aspm_disable_all(struct hfi1_devdata *dd)
 	unsigned long flags;
 	unsigned i;
 
-	for (i = 0; i < dd->first_user_ctxt; i++) {
+	for (i = 0; i < dd->first_user_ctxt; i++)
+	{
 		rcd = dd->rcd[i];
 		del_timer_sync(&rcd->aspm_timer);
 		spin_lock_irqsave(&rcd->aspm_lock, flags);
@@ -258,9 +281,12 @@ static inline void aspm_enable_all(struct hfi1_devdata *dd)
 	aspm_enable(dd);
 
 	if (aspm_mode != ASPM_MODE_DYNAMIC)
+	{
 		return;
+	}
 
-	for (i = 0; i < dd->first_user_ctxt; i++) {
+	for (i = 0; i < dd->first_user_ctxt; i++)
+	{
 		rcd = dd->rcd[i];
 		spin_lock_irqsave(&rcd->aspm_lock, flags);
 		rcd->aspm_intr_enable = true;
@@ -273,10 +299,10 @@ static inline void aspm_ctx_init(struct hfi1_ctxtdata *rcd)
 {
 	spin_lock_init(&rcd->aspm_lock);
 	setup_timer(&rcd->aspm_timer, aspm_ctx_timer_function,
-		    (unsigned long)rcd);
+				(unsigned long)rcd);
 	rcd->aspm_intr_supported = rcd->dd->aspm_supported &&
-		aspm_mode == ASPM_MODE_DYNAMIC &&
-		rcd->ctxt < rcd->dd->first_user_ctxt;
+							   aspm_mode == ASPM_MODE_DYNAMIC &&
+							   rcd->ctxt < rcd->dd->first_user_ctxt;
 }
 
 static inline void aspm_init(struct hfi1_devdata *dd)
@@ -287,7 +313,9 @@ static inline void aspm_init(struct hfi1_devdata *dd)
 	dd->aspm_supported = aspm_hw_l1_supported(dd);
 
 	for (i = 0; i < dd->first_user_ctxt; i++)
+	{
 		aspm_ctx_init(dd->rcd[i]);
+	}
 
 	/* Start with ASPM disabled */
 	aspm_hw_set_l1_ent_latency(dd);

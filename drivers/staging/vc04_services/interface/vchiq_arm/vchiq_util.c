@@ -52,17 +52,22 @@ int vchiu_queue_init(VCHIU_QUEUE_T *queue, int size)
 	sema_init(&queue->push, 0);
 
 	queue->storage = kzalloc(size * sizeof(VCHIQ_HEADER_T *), GFP_KERNEL);
-	if (queue->storage == NULL) {
+
+	if (queue->storage == NULL)
+	{
 		vchiu_queue_delete(queue);
 		return 0;
 	}
+
 	return 1;
 }
 
 void vchiu_queue_delete(VCHIU_QUEUE_T *queue)
 {
 	if (queue->storage != NULL)
+	{
 		kfree(queue->storage);
+	}
 }
 
 int vchiu_queue_is_empty(VCHIU_QUEUE_T *queue)
@@ -78,10 +83,14 @@ int vchiu_queue_is_full(VCHIU_QUEUE_T *queue)
 void vchiu_queue_push(VCHIU_QUEUE_T *queue, VCHIQ_HEADER_T *header)
 {
 	if (!queue->initialized)
+	{
 		return;
+	}
 
-	while (queue->write == queue->read + queue->size) {
-		if (down_interruptible(&queue->pop) != 0) {
+	while (queue->write == queue->read + queue->size)
+	{
+		if (down_interruptible(&queue->pop) != 0)
+		{
 			flush_signals(current);
 		}
 	}
@@ -107,8 +116,10 @@ void vchiu_queue_push(VCHIU_QUEUE_T *queue, VCHIQ_HEADER_T *header)
 
 VCHIQ_HEADER_T *vchiu_queue_peek(VCHIU_QUEUE_T *queue)
 {
-	while (queue->write == queue->read) {
-		if (down_interruptible(&queue->push) != 0) {
+	while (queue->write == queue->read)
+	{
+		if (down_interruptible(&queue->push) != 0)
+		{
 			flush_signals(current);
 		}
 	}
@@ -128,8 +139,10 @@ VCHIQ_HEADER_T *vchiu_queue_pop(VCHIU_QUEUE_T *queue)
 {
 	VCHIQ_HEADER_T *header;
 
-	while (queue->write == queue->read) {
-		if (down_interruptible(&queue->push) != 0) {
+	while (queue->write == queue->read)
+	{
+		if (down_interruptible(&queue->push) != 0)
+		{
 			flush_signals(current);
 		}
 	}

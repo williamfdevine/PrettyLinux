@@ -45,7 +45,8 @@
 #define  OCTEON_CN23XX_REV_2_0        0x80
 
 /** Endian-swap modes supported by Octeon. */
-enum octeon_pci_swap_mode {
+enum octeon_pci_swap_mode
+{
 	OCTEON_PCI_PASSTHROUGH = 0,
 	OCTEON_PCI_64BIT_SWAP = 1,
 	OCTEON_PCI_32BIT_BYTE_SWAP = 2,
@@ -62,8 +63,8 @@ enum octeon_pci_swap_mode {
 #define    PCI_BAR1_ENDIAN_MODE          OCTEON_PCI_64BIT_SWAP
 #define    PCI_BAR1_ENTRY_VALID          1
 #define    PCI_BAR1_MASK                 ((PCI_BAR1_ENABLE_CA << 3)   \
-					    | (PCI_BAR1_ENDIAN_MODE << 1) \
-					    | PCI_BAR1_ENTRY_VALID)
+		| (PCI_BAR1_ENDIAN_MODE << 1) \
+		| PCI_BAR1_ENTRY_VALID)
 
 /** Octeon Device state.
  *  Each octeon device goes through each of these states
@@ -105,7 +106,8 @@ enum octeon_pci_swap_mode {
  *  can hash to the same entry, in which case the list field points
  *  to a linked list with the other entries.
  */
-struct octeon_dispatch {
+struct octeon_dispatch
+{
 	/** List head for this entry */
 	struct list_head list;
 
@@ -122,7 +124,8 @@ struct octeon_dispatch {
 };
 
 /** The dispatch list structure. */
-struct octeon_dispatch_list {
+struct octeon_dispatch_list
+{
 	/** access to dispatch list must be atomic */
 	spinlock_t lock;
 
@@ -141,7 +144,8 @@ struct octeon_dispatch_list {
  *  Octeon gets mapped to different physical address spaces in
  *  the kernel.
  */
-struct octeon_mmio {
+struct octeon_mmio
+{
 	/** PCI address to which the BAR is mapped. */
 	u64 start;
 
@@ -160,13 +164,15 @@ struct octeon_mmio {
 
 #define   MAX_OCTEON_MAPS    32
 
-struct octeon_io_enable {
+struct octeon_io_enable
+{
 	u64 iq;
 	u64 oq;
 	u64 iq64B;
 };
 
-struct octeon_reg_list {
+struct octeon_reg_list
+{
 	u32 __iomem *pci_win_wr_addr_hi;
 	u32 __iomem *pci_win_wr_addr_lo;
 	u64 __iomem *pci_win_wr_addr;
@@ -185,7 +191,8 @@ struct octeon_reg_list {
 };
 
 #define OCTEON_CONSOLE_MAX_READ_BYTES 512
-struct octeon_console {
+struct octeon_console
+{
 	u32 active;
 	u32 waiting;
 	u64 addr;
@@ -195,14 +202,16 @@ struct octeon_console {
 	char leftover[OCTEON_CONSOLE_MAX_READ_BYTES];
 };
 
-struct octeon_board_info {
+struct octeon_board_info
+{
 	char name[OCT_BOARD_NAME];
 	char serial_number[OCT_SERIAL_LEN];
 	u64 major;
 	u64 minor;
 };
 
-struct octeon_fn_list {
+struct octeon_fn_list
+{
 	void (*setup_iq_regs)(struct octeon_device *, u32);
 	void (*setup_oq_regs)(struct octeon_device *, u32);
 
@@ -236,7 +245,8 @@ struct octeon_fn_list {
  * Note: This structure must be naturally 64 bit aligned, as a single
  * memory image will be used by both 32 and 64 bit programs.
  */
-struct cvmx_bootmem_named_block_desc {
+struct cvmx_bootmem_named_block_desc
+{
 	/** Base address of named block */
 	u64 base_addr;
 
@@ -247,7 +257,8 @@ struct cvmx_bootmem_named_block_desc {
 	char name[CVMX_BOOTMEM_NAME_LEN];
 };
 
-struct oct_fw_info {
+struct oct_fw_info
+{
 	u32 max_nic_ports;      /** max nic ports for the device */
 	u32 num_gmx_ports;      /** num gmx ports */
 	u64 app_cap_flags;      /** firmware cap flags */
@@ -260,18 +271,21 @@ struct oct_fw_info {
 };
 
 /* wrappers around work structs */
-struct cavium_wk {
+struct cavium_wk
+{
 	struct delayed_work work;
 	void *ctxptr;
 	u64 ctxul;
 };
 
-struct cavium_wq {
+struct cavium_wq
+{
 	struct workqueue_struct *wq;
 	struct cavium_wk wk;
 };
 
-struct octdev_props {
+struct octdev_props
+{
 	/* Each interface in the Octeon device has a network
 	 * device pointer (used for OS specific calls).
 	 */
@@ -285,7 +299,8 @@ struct octdev_props {
 #define MSIX_PO_INT		0x1
 #define MSIX_PI_INT		0x2
 
-struct octeon_pf_vf_hs_word {
+struct octeon_pf_vf_hs_word
+{
 #ifdef __LITTLE_ENDIAN_BITFIELD
 	/** PKIND value assigned for the DPI interface */
 	u64        pkind : 8;
@@ -321,7 +336,8 @@ struct octeon_pf_vf_hs_word {
 #endif
 };
 
-struct octeon_sriov_info {
+struct octeon_sriov_info
+{
 	/* Actual rings left for PF device */
 	u32	num_pf_rings;
 
@@ -332,7 +348,8 @@ struct octeon_sriov_info {
 
 };
 
-struct octeon_ioq_vector {
+struct octeon_ioq_vector
+{
 	struct octeon_device   *oct_dev;
 	int		        iq_index;
 	int		        droq_index;
@@ -345,7 +362,8 @@ struct octeon_ioq_vector {
  *  Each Octeon device has this structure to represent all its
  *  components.
  */
-struct octeon_device {
+struct octeon_device
+{
 	/** Lock for PCI window configuration accesses */
 	spinlock_t pci_win_lock;
 
@@ -491,12 +509,13 @@ struct octeon_device {
 #define  OCT_DRV_ONLINE 1
 #define  OCT_DRV_OFFLINE 2
 #define  OCTEON_CN6XXX(oct)           ((oct->chip_id == OCTEON_CN66XX) || \
-				       (oct->chip_id == OCTEON_CN68XX))
+									   (oct->chip_id == OCTEON_CN68XX))
 #define  OCTEON_CN23XX_PF(oct)        (oct->chip_id == OCTEON_CN23XX_PF_VID)
 #define CHIP_FIELD(oct, TYPE, field)             \
 	(((struct octeon_ ## TYPE  *)(oct->chip))->field)
 
-struct oct_intrmod_cmd {
+struct oct_intrmod_cmd
+{
 	struct octeon_device *oct_dev;
 	struct octeon_soft_command *sc;
 	struct oct_intrmod_cfg *cfg;
@@ -515,7 +534,7 @@ void octeon_free_device_mem(struct octeon_device *);
  * time.
  */
 struct octeon_device *octeon_allocate_device(u32 pci_id,
-					     u32 priv_size);
+		u32 priv_size);
 
 /**  Initialize the driver's dispatch list which is a mix of a hash table
  *  and a linked list. This is done at driver load time.
@@ -552,7 +571,7 @@ int octeon_core_drv_init(struct octeon_recv_info *recv_info, void *buf);
  */
 octeon_dispatch_fn_t
 octeon_get_dispatch(struct octeon_device *octeon_dev, u16 opcode,
-		    u16 subcode);
+					u16 subcode);
 
 /** Get the octeon device pointer.
  *  @param octeon_id  - The id for which the octeon device pointer is required.
@@ -606,16 +625,16 @@ void lio_pci_writeq(struct octeon_device *oct, u64 val, u64 addr);
 
 /* Routines for reading and writing CSRs */
 #define   octeon_write_csr(oct_dev, reg_off, value) \
-		writel(value, oct_dev->mmio[0].hw_addr + reg_off)
+	writel(value, oct_dev->mmio[0].hw_addr + reg_off)
 
 #define   octeon_write_csr64(oct_dev, reg_off, val64) \
-		writeq(val64, oct_dev->mmio[0].hw_addr + reg_off)
+	writeq(val64, oct_dev->mmio[0].hw_addr + reg_off)
 
 #define   octeon_read_csr(oct_dev, reg_off)         \
-		readl(oct_dev->mmio[0].hw_addr + reg_off)
+	readl(oct_dev->mmio[0].hw_addr + reg_off)
 
 #define   octeon_read_csr64(oct_dev, reg_off)         \
-		readq(oct_dev->mmio[0].hw_addr + reg_off)
+	readq(oct_dev->mmio[0].hw_addr + reg_off)
 
 /**
  * Checks if memory access is okay
@@ -636,7 +655,7 @@ int octeon_mem_access_ok(struct octeon_device *oct);
  * @return Zero on success, negative on failure.
  */
 int octeon_wait_for_ddr_init(struct octeon_device *oct,
-			     u32 *timeout_in_ms);
+							 u32 *timeout_in_ms);
 
 /**
  * Wait for u-boot to boot and be waiting for a command.
@@ -647,7 +666,7 @@ int octeon_wait_for_ddr_init(struct octeon_device *oct,
  * @return Zero on success, negative on failure.
  */
 int octeon_wait_for_bootloader(struct octeon_device *oct,
-			       u32 wait_time_hundredths);
+							   u32 wait_time_hundredths);
 
 /**
  * Initialize console access
@@ -668,7 +687,7 @@ int octeon_add_console(struct octeon_device *oct, u32 console_num);
 
 /** write or read from a console */
 int octeon_console_write(struct octeon_device *oct, u32 console_num,
-			 char *buffer, u32 write_request_size, u32 flags);
+						 char *buffer, u32 write_request_size, u32 flags);
 int octeon_console_write_avail(struct octeon_device *oct, u32 console_num);
 
 int octeon_console_read_avail(struct octeon_device *oct, u32 console_num);
@@ -686,7 +705,7 @@ void octeon_remove_consoles(struct octeon_device *oct);
  * @return Zero on success, negative on failure.
  */
 int octeon_console_send_cmd(struct octeon_device *oct, char *cmd_str,
-			    u32 wait_hundredths);
+							u32 wait_hundredths);
 
 /** Parses, validates, and downloads firmware, then boots associated cores.
  *  @param oct which octeon to download firmware to
@@ -699,7 +718,7 @@ int octeon_console_send_cmd(struct octeon_device *oct, char *cmd_str,
  *         invalid octeon id was passed.
  */
 int octeon_download_firmware(struct octeon_device *oct, const u8 *data,
-			     size_t size);
+							 size_t size);
 
 char *lio_get_state_string(atomic_t *state_ptr);
 
@@ -751,7 +770,8 @@ int octeon_allocate_ioq_vector(struct octeon_device  *oct);
 void lio_enable_irq(struct octeon_droq *droq, struct octeon_instr_queue *iq);
 
 /* LiquidIO driver pivate flags */
-enum {
+enum
+{
 	OCT_PRIV_FLAG_TX_BYTES = 0, /* Tx interrupts by pending byte count */
 };
 
@@ -763,11 +783,15 @@ static inline u32 lio_get_priv_flag(struct octeon_device *octdev, u32 flag)
 }
 
 static inline void lio_set_priv_flag(struct octeon_device *octdev,
-				     u32 flag, u32 val)
+									 u32 flag, u32 val)
 {
 	if (val)
+	{
 		octdev->priv_flags |= (0x1 << flag);
+	}
 	else
+	{
 		octdev->priv_flags &= ~(0x1 << flag);
+	}
 }
 #endif

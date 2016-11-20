@@ -91,30 +91,37 @@ int main(void)
 	next_leap = ts.tv_sec;
 	next_leap += 86400 - (next_leap % 86400);
 
-	for (count = 0; count < 20; count++) {
+	for (count = 0; count < 20; count++)
+	{
 		struct timeval tv;
 
 
 		/* set the time to 2 seconds before the leap */
 		tv.tv_sec = next_leap - 2;
 		tv.tv_usec = 0;
-		if (settimeofday(&tv, NULL)) {
+
+		if (settimeofday(&tv, NULL))
+		{
 			printf("Error: You're likely not running with proper (ie: root) permissions\n");
 			return ksft_exit_fail();
 		}
+
 		tx.modes = 0;
 		adjtimex(&tx);
 
 		/* hammer on adjtime w/ STA_INS */
-		while (tx.time.tv_sec < next_leap + 1) {
+		while (tx.time.tv_sec < next_leap + 1)
+		{
 			/* Set the leap second insert flag */
 			tx.modes = ADJ_STATUS;
 			tx.status = STA_INS;
 			adjtimex(&tx);
 		}
+
 		clear_time_state();
 		printf(".");
 	}
+
 	printf("[OK]\n");
 	return ksft_exit_pass();
 }

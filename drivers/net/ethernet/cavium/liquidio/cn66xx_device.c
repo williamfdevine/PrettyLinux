@@ -48,7 +48,8 @@ int lio_cn6xxx_soft_reset(struct octeon_device *oct)
 	/* Wait for 10ms as Octeon resets. */
 	mdelay(100);
 
-	if (octeon_read_csr64(oct, CN6XXX_SLI_SCRATCH1) == 0x1234ULL) {
+	if (octeon_read_csr64(oct, CN6XXX_SLI_SCRATCH1) == 0x1234ULL)
+	{
 		dev_err(&oct->pci_dev->dev, "Soft reset failed\n");
 		return 1;
 	}
@@ -64,9 +65,11 @@ void lio_cn6xxx_enable_error_reporting(struct octeon_device *oct)
 	u32 val;
 
 	pci_read_config_dword(oct->pci_dev, CN6XXX_PCIE_DEVCTL, &val);
-	if (val & 0x000c0000) {
+
+	if (val & 0x000c0000)
+	{
 		dev_err(&oct->pci_dev->dev, "PCI-E Link error detected: 0x%08x\n",
-			val & 0x000c0000);
+				val & 0x000c0000);
 	}
 
 	val |= 0xf;          /* Enable Link error reporting */
@@ -76,7 +79,7 @@ void lio_cn6xxx_enable_error_reporting(struct octeon_device *oct)
 }
 
 void lio_cn6xxx_setup_pcie_mps(struct octeon_device *oct,
-			       enum octeon_pcie_mps mps)
+							   enum octeon_pcie_mps mps)
 {
 	u32 val;
 	u64 r64;
@@ -84,9 +87,12 @@ void lio_cn6xxx_setup_pcie_mps(struct octeon_device *oct,
 	/* Read config register for MPS */
 	pci_read_config_dword(oct->pci_dev, CN6XXX_PCIE_DEVCTL, &val);
 
-	if (mps == PCIE_MPS_DEFAULT) {
+	if (mps == PCIE_MPS_DEFAULT)
+	{
 		mps = ((val & (0x7 << 5)) >> 5);
-	} else {
+	}
+	else
+	{
 		val &= ~(0x7 << 5);  /* Turn off any MPS bits */
 		val |= (mps << 5);   /* Set MPS */
 		pci_write_config_dword(oct->pci_dev, CN6XXX_PCIE_DEVCTL, val);
@@ -99,7 +105,7 @@ void lio_cn6xxx_setup_pcie_mps(struct octeon_device *oct,
 }
 
 void lio_cn6xxx_setup_pcie_mrrs(struct octeon_device *oct,
-				enum octeon_pcie_mrrs mrrs)
+								enum octeon_pcie_mrrs mrrs)
 {
 	u32 val;
 	u64 r64;
@@ -107,9 +113,12 @@ void lio_cn6xxx_setup_pcie_mrrs(struct octeon_device *oct,
 	/* Read config register for MRRS */
 	pci_read_config_dword(oct->pci_dev, CN6XXX_PCIE_DEVCTL, &val);
 
-	if (mrrs == PCIE_MRRS_DEFAULT) {
+	if (mrrs == PCIE_MRRS_DEFAULT)
+	{
 		mrrs = ((val & (0x7 << 12)) >> 12);
-	} else {
+	}
+	else
+	{
 		val &= ~(0x7 << 12); /* Turn off any MRRS bits */
 		val |= (mrrs << 12); /* Set MRRS */
 		pci_write_config_dword(oct->pci_dev, CN6XXX_PCIE_DEVCTL, val);
@@ -135,7 +144,7 @@ u32 lio_cn6xxx_coprocessor_clock(struct octeon_device *oct)
 }
 
 u32 lio_cn6xxx_get_oq_ticks(struct octeon_device *oct,
-			    u32 time_intr_in_us)
+							u32 time_intr_in_us)
 {
 	/* This gives the SLI clock per microsec */
 	u32 oqticks_per_us = lio_cn6xxx_coprocessor_clock(oct);
@@ -163,15 +172,15 @@ void lio_cn6xxx_setup_global_input_regs(struct octeon_device *oct)
 {
 	/* Select Round-Robin Arb, ES, RO, NS for Input Queues */
 	octeon_write_csr(oct, CN6XXX_SLI_PKT_INPUT_CONTROL,
-			 CN6XXX_INPUT_CTL_MASK);
+					 CN6XXX_INPUT_CTL_MASK);
 
 	/* Instruction Read Size - Max 4 instructions per PCIE Read */
 	octeon_write_csr64(oct, CN6XXX_SLI_PKT_INSTR_RD_SIZE,
-			   0xFFFFFFFFFFFFFFFFULL);
+					   0xFFFFFFFFFFFFFFFFULL);
 
 	/* Select PCIE Port for all Input rings. */
 	octeon_write_csr64(oct, CN6XXX_SLI_IN_PCIE_PORT,
-			   (oct->pcie_port * 0x5555555555555555ULL));
+					   (oct->pcie_port * 0x5555555555555555ULL));
 }
 
 static void lio_cn66xx_setup_pkt_ctl_regs(struct octeon_device *oct)
@@ -185,15 +194,24 @@ static void lio_cn66xx_setup_pkt_ctl_regs(struct octeon_device *oct)
 	/* 66XX SPECIFIC */
 	if (CFG_GET_OQ_MAX_Q(cn6xxx->conf) <= 4)
 		/* Disable RING_EN if only upto 4 rings are used. */
+	{
 		pktctl &= ~(1 << 4);
+	}
 	else
+	{
 		pktctl |= (1 << 4);
+	}
 
 	if (CFG_GET_IS_SLI_BP_ON(cn6xxx->conf))
+	{
 		pktctl |= 0xF;
+	}
 	else
 		/* Disable per-port backpressure. */
+	{
 		pktctl &= ~0xF;
+	}
+
 	octeon_write_csr64(oct, CN6XXX_SLI_PKT_CTL, pktctl);
 }
 
@@ -204,11 +222,14 @@ void lio_cn6xxx_setup_global_output_regs(struct octeon_device *oct)
 
 	/* / Select PCI-E Port for all Output queues */
 	octeon_write_csr64(oct, CN6XXX_SLI_PKT_PCIE_PORT64,
-			   (oct->pcie_port * 0x5555555555555555ULL));
+					   (oct->pcie_port * 0x5555555555555555ULL));
 
-	if (CFG_GET_IS_SLI_BP_ON(cn6xxx->conf)) {
+	if (CFG_GET_IS_SLI_BP_ON(cn6xxx->conf))
+	{
 		octeon_write_csr64(oct, CN6XXX_SLI_OQ_WMARK, 32);
-	} else {
+	}
+	else
+	{
 		/* / Set Output queue watermark to 0 to disable backpressure */
 		octeon_write_csr64(oct, CN6XXX_SLI_OQ_WMARK, 0);
 	}
@@ -233,7 +254,7 @@ void lio_cn6xxx_setup_global_output_regs(struct octeon_device *oct)
 	/* / ENDIAN_SPECIFIC CHANGES - 0 works for LE. */
 #ifdef __BIG_ENDIAN_BITFIELD
 	octeon_write_csr64(oct, CN6XXX_SLI_PKT_SLIST_ES64,
-			   0x5555555555555555ULL);
+					   0x5555555555555555ULL);
 #else
 	octeon_write_csr64(oct, CN6XXX_SLI_PKT_SLIST_ES64, 0ULL);
 #endif
@@ -242,14 +263,14 @@ void lio_cn6xxx_setup_global_output_regs(struct octeon_device *oct)
 	octeon_write_csr(oct, CN6XXX_SLI_PKT_DATA_OUT_ROR, 0);
 	octeon_write_csr(oct, CN6XXX_SLI_PKT_DATA_OUT_NS, 0);
 	octeon_write_csr64(oct, CN6XXX_SLI_PKT_DATA_OUT_ES64,
-			   0x5555555555555555ULL);
+					   0x5555555555555555ULL);
 
 	/* / Set up interrupt packet and time threshold */
 	octeon_write_csr(oct, CN6XXX_SLI_OQ_INT_LEVEL_PKTS,
-			 (u32)CFG_GET_OQ_INTR_PKT(cn6xxx->conf));
+					 (u32)CFG_GET_OQ_INTR_PKT(cn6xxx->conf));
 	time_threshold =
 		lio_cn6xxx_get_oq_ticks(oct, (u32)
-					CFG_GET_OQ_INTR_TIME(cn6xxx->conf));
+								CFG_GET_OQ_INTR_TIME(cn6xxx->conf));
 
 	octeon_write_csr(oct, CN6XXX_SLI_OQ_INT_LEVEL_TIME, time_threshold);
 }
@@ -280,7 +301,7 @@ void lio_cn6xxx_setup_iq_regs(struct octeon_device *oct, u32 iq_no)
 
 	/* Write the start of the input queue's ring and its size  */
 	octeon_write_csr64(oct, CN6XXX_SLI_IQ_BASE_ADDR64(iq_no),
-			   iq->base_addr_dma);
+					   iq->base_addr_dma);
 	octeon_write_csr(oct, CN6XXX_SLI_IQ_SIZE(iq_no), iq->max_count);
 
 	/* Remember the doorbell & instruction count register addr for this
@@ -288,9 +309,9 @@ void lio_cn6xxx_setup_iq_regs(struct octeon_device *oct, u32 iq_no)
 	 */
 	iq->doorbell_reg = oct->mmio[0].hw_addr + CN6XXX_SLI_IQ_DOORBELL(iq_no);
 	iq->inst_cnt_reg = oct->mmio[0].hw_addr
-			   + CN6XXX_SLI_IQ_INSTR_COUNT(iq_no);
+					   + CN6XXX_SLI_IQ_INSTR_COUNT(iq_no);
 	dev_dbg(&oct->pci_dev->dev, "InstQ[%d]:dbell reg @ 0x%p instcnt_reg @ 0x%p\n",
-		iq_no, iq->doorbell_reg, iq->inst_cnt_reg);
+			iq_no, iq->doorbell_reg, iq->inst_cnt_reg);
 
 	/* Store the current instruction counter
 	 * (used in flush_iq calculation)
@@ -306,7 +327,7 @@ static void lio_cn66xx_setup_iq_regs(struct octeon_device *oct, u32 iq_no)
 	 * disables the backpressure mechanism.
 	 */
 	octeon_write_csr64(oct, CN66XX_SLI_IQ_BP64(iq_no),
-			   (0xFFFFFFFFULL << 32));
+					   (0xFFFFFFFFULL << 32));
 }
 
 void lio_cn6xxx_setup_oq_regs(struct octeon_device *oct, u32 oq_no)
@@ -315,11 +336,11 @@ void lio_cn6xxx_setup_oq_regs(struct octeon_device *oct, u32 oq_no)
 	struct octeon_droq *droq = oct->droq[oq_no];
 
 	octeon_write_csr64(oct, CN6XXX_SLI_OQ_BASE_ADDR64(oq_no),
-			   droq->desc_ring_dma);
+					   droq->desc_ring_dma);
 	octeon_write_csr(oct, CN6XXX_SLI_OQ_SIZE(oq_no), droq->max_count);
 
 	octeon_write_csr(oct, CN6XXX_SLI_OQ_BUFF_INFO_SIZE(oq_no),
-			 (droq->buffer_size | (OCT_RH_SIZE << 16)));
+					 (droq->buffer_size | (OCT_RH_SIZE << 16)));
 
 	/* Get the mapped address of the pkt_sent and pkts_credit regs */
 	droq->pkts_sent_reg =
@@ -371,15 +392,21 @@ void lio_cn6xxx_disable_io_queues(struct octeon_device *oct)
 	/* Wait until hardware indicates that the queues are out of reset. */
 	mask = (u32)oct->io_qmask.iq;
 	d32 = octeon_read_csr(oct, CN6XXX_SLI_PORT_IN_RST_IQ);
-	while (((d32 & mask) != mask) && loop--) {
+
+	while (((d32 & mask) != mask) && loop--)
+	{
 		d32 = octeon_read_csr(oct, CN6XXX_SLI_PORT_IN_RST_IQ);
 		schedule_timeout_uninterruptible(1);
 	}
 
 	/* Reset the doorbell register for each Input queue. */
-	for (i = 0; i < MAX_OCTEON_INSTR_QUEUES(oct); i++) {
+	for (i = 0; i < MAX_OCTEON_INSTR_QUEUES(oct); i++)
+	{
 		if (!(oct->io_qmask.iq & (1ULL << i)))
+		{
 			continue;
+		}
+
 		octeon_write_csr(oct, CN6XXX_SLI_IQ_DOORBELL(i), 0xFFFFFFFF);
 		d32 = octeon_read_csr(oct, CN6XXX_SLI_IQ_DOORBELL(i));
 	}
@@ -393,17 +420,24 @@ void lio_cn6xxx_disable_io_queues(struct octeon_device *oct)
 	loop = HZ;
 	mask = (u32)oct->io_qmask.oq;
 	d32 = octeon_read_csr(oct, CN6XXX_SLI_PORT_IN_RST_OQ);
-	while (((d32 & mask) != mask) && loop--) {
+
+	while (((d32 & mask) != mask) && loop--)
+	{
 		d32 = octeon_read_csr(oct, CN6XXX_SLI_PORT_IN_RST_OQ);
 		schedule_timeout_uninterruptible(1);
 	}
+
 	;
 
 	/* Reset the doorbell register for each Output queue. */
 	/* for (i = 0; i < oct->num_oqs; i++) { */
-	for (i = 0; i < MAX_OCTEON_OUTPUT_QUEUES(oct); i++) {
+	for (i = 0; i < MAX_OCTEON_OUTPUT_QUEUES(oct); i++)
+	{
 		if (!(oct->io_qmask.oq & (1ULL << i)))
+		{
 			continue;
+		}
+
 		octeon_write_csr(oct, CN6XXX_SLI_OQ_PKTS_CREDIT(i), 0xFFFFFFFF);
 		d32 = octeon_read_csr(oct, CN6XXX_SLI_OQ_PKTS_CREDIT(i));
 
@@ -412,26 +446,33 @@ void lio_cn6xxx_disable_io_queues(struct octeon_device *oct)
 	}
 
 	d32 = octeon_read_csr(oct, CN6XXX_SLI_PKT_CNT_INT);
+
 	if (d32)
+	{
 		octeon_write_csr(oct, CN6XXX_SLI_PKT_CNT_INT, d32);
+	}
 
 	d32 = octeon_read_csr(oct, CN6XXX_SLI_PKT_TIME_INT);
+
 	if (d32)
+	{
 		octeon_write_csr(oct, CN6XXX_SLI_PKT_TIME_INT, d32);
+	}
 }
 
 void
 lio_cn6xxx_bar1_idx_setup(struct octeon_device *oct,
-			  u64 core_addr,
-			  u32 idx,
-			  int valid)
+						  u64 core_addr,
+						  u32 idx,
+						  int valid)
 {
 	u64 bar1;
 
-	if (valid == 0) {
+	if (valid == 0)
+	{
 		bar1 = lio_pci_readq(oct, CN6XXX_BAR1_REG(idx, oct->pcie_port));
 		lio_pci_writeq(oct, (bar1 & 0xFFFFFFFEULL),
-			       CN6XXX_BAR1_REG(idx, oct->pcie_port));
+					   CN6XXX_BAR1_REG(idx, oct->pcie_port));
 		bar1 = lio_pci_readq(oct, CN6XXX_BAR1_REG(idx, oct->pcie_port));
 		return;
 	}
@@ -440,14 +481,14 @@ lio_cn6xxx_bar1_idx_setup(struct octeon_device *oct,
 	 * the Core Addr
 	 */
 	lio_pci_writeq(oct, (((core_addr >> 22) << 4) | PCI_BAR1_MASK),
-		       CN6XXX_BAR1_REG(idx, oct->pcie_port));
+				   CN6XXX_BAR1_REG(idx, oct->pcie_port));
 
 	bar1 = lio_pci_readq(oct, CN6XXX_BAR1_REG(idx, oct->pcie_port));
 }
 
 void lio_cn6xxx_bar1_idx_write(struct octeon_device *oct,
-			       u32 idx,
-			       u32 mask)
+							   u32 idx,
+							   u32 mask)
 {
 	lio_pci_writeq(oct, mask, CN6XXX_BAR1_REG(idx, oct->pcie_port));
 }
@@ -467,9 +508,13 @@ lio_cn6xxx_update_read_index(struct octeon_instr_queue *iq)
 	 * reset_instr_cnt
 	 */
 	if (iq->reset_instr_cnt < new_idx)
+	{
 		new_idx -= iq->reset_instr_cnt;
+	}
 	else
+	{
 		new_idx += (0xffffffff - iq->reset_instr_cnt) + 1;
+	}
 
 	/* Modulo of the new index with the IQ size will give us
 	 * the new index.
@@ -480,7 +525,7 @@ lio_cn6xxx_update_read_index(struct octeon_instr_queue *iq)
 }
 
 void lio_cn6xxx_enable_interrupt(struct octeon_device *oct,
-				 u8 unused __attribute__((unused)))
+								 u8 unused __attribute__((unused)))
 {
 	struct octeon_cn6xxx *cn6xxx = (struct octeon_cn6xxx *)oct->chip;
 	u64 mask = cn6xxx->intr_mask64 | CN6XXX_INTR_DMA0_FORCE;
@@ -490,7 +535,7 @@ void lio_cn6xxx_enable_interrupt(struct octeon_device *oct,
 }
 
 void lio_cn6xxx_disable_interrupt(struct octeon_device *oct,
-				  u8 unused __attribute__((unused)))
+								  u8 unused __attribute__((unused)))
 {
 	struct octeon_cn6xxx *cn6xxx = (struct octeon_cn6xxx *)oct->chip;
 
@@ -515,7 +560,7 @@ static void
 lio_cn6xxx_process_pcie_error_intr(struct octeon_device *oct, u64 intr64)
 {
 	dev_err(&oct->pci_dev->dev, "Error Intr: 0x%016llx\n",
-		CVM_CAST64(intr64));
+			CVM_CAST64(intr64));
 }
 
 static int lio_cn6xxx_process_droq_intr_regs(struct octeon_device *oct)
@@ -538,15 +583,22 @@ static int lio_cn6xxx_process_droq_intr_regs(struct octeon_device *oct)
 	oct->droq_intr = 0;
 
 	/* for (oq_no = 0; oq_no < oct->num_oqs; oq_no++) { */
-	for (oq_no = 0; oq_no < MAX_OCTEON_OUTPUT_QUEUES(oct); oq_no++) {
+	for (oq_no = 0; oq_no < MAX_OCTEON_OUTPUT_QUEUES(oct); oq_no++)
+	{
 		if (!(droq_mask & (1ULL << oq_no)))
+		{
 			continue;
+		}
 
 		droq = oct->droq[oq_no];
 		pkt_count = octeon_droq_check_hw_for_pkts(droq);
-		if (pkt_count) {
+
+		if (pkt_count)
+		{
 			oct->droq_intr |= (1ULL << oq_no);
-			if (droq->ops.poll_mode) {
+
+			if (droq->ops.poll_mode)
+			{
 				u32 value;
 				u32 reg;
 
@@ -555,7 +607,7 @@ static int lio_cn6xxx_process_droq_intr_regs(struct octeon_device *oct)
 
 				/* disable interrupts for this droq */
 				spin_lock
-					(&cn6xxx->lock_for_droq_int_enb_reg);
+				(&cn6xxx->lock_for_droq_int_enb_reg);
 				reg = CN6XXX_SLI_PKT_TIME_INT_ENB;
 				value = octeon_read_csr(oct, reg);
 				value &= ~(1 << oq_no);
@@ -579,10 +631,14 @@ static int lio_cn6xxx_process_droq_intr_regs(struct octeon_device *oct)
 
 	/* Reset the PKT_CNT/TIME_INT registers. */
 	if (droq_time_mask)
+	{
 		octeon_write_csr(oct, CN6XXX_SLI_PKT_TIME_INT, droq_time_mask);
+	}
 
 	if (droq_cnt_mask)      /* reset PKT_CNT register:66xx */
+	{
 		octeon_write_csr(oct, CN6XXX_SLI_PKT_CNT_INT, droq_cnt_mask);
+	}
 
 	return 0;
 }
@@ -600,23 +656,32 @@ irqreturn_t lio_cn6xxx_process_interrupt_regs(void *dev)
 	 * and the PCI read fails.
 	 */
 	if (!intr64 || (intr64 == 0xFFFFFFFFFFFFFFFFULL))
+	{
 		return IRQ_NONE;
+	}
 
 	oct->int_status = 0;
 
 	if (intr64 & CN6XXX_INTR_ERR)
+	{
 		lio_cn6xxx_process_pcie_error_intr(oct, intr64);
+	}
 
-	if (intr64 & CN6XXX_INTR_PKT_DATA) {
+	if (intr64 & CN6XXX_INTR_PKT_DATA)
+	{
 		lio_cn6xxx_process_droq_intr_regs(oct);
 		oct->int_status |= OCT_DEV_INTR_PKT_DATA;
 	}
 
 	if (intr64 & CN6XXX_INTR_DMA0_FORCE)
+	{
 		oct->int_status |= OCT_DEV_INTR_DMA0_FORCE;
+	}
 
 	if (intr64 & CN6XXX_INTR_DMA1_FORCE)
+	{
 		oct->int_status |= OCT_DEV_INTR_DMA1_FORCE;
+	}
 
 	/* Clear the current interrupts */
 	writeq(intr64, cn6xxx->intr_sum_reg64);
@@ -625,8 +690,8 @@ irqreturn_t lio_cn6xxx_process_interrupt_regs(void *dev)
 }
 
 void lio_cn6xxx_setup_reg_address(struct octeon_device *oct,
-				  void *chip,
-				  struct octeon_reg_list *reg_list)
+								  void *chip,
+								  struct octeon_reg_list *reg_list)
 {
 	u8 __iomem *bar0_pciaddr = oct->mmio[0].hw_addr;
 	struct octeon_cn6xxx *cn6xxx = (struct octeon_cn6xxx *)chip;
@@ -672,11 +737,14 @@ int lio_setup_cn66xx_octeon_device(struct octeon_device *oct)
 	struct octeon_cn6xxx *cn6xxx = (struct octeon_cn6xxx *)oct->chip;
 
 	if (octeon_map_pci_barx(oct, 0, 0))
+	{
 		return 1;
+	}
 
-	if (octeon_map_pci_barx(oct, 1, MAX_BAR1_IOREMAP_SIZE)) {
+	if (octeon_map_pci_barx(oct, 1, MAX_BAR1_IOREMAP_SIZE))
+	{
 		dev_err(&oct->pci_dev->dev, "%s CN66XX BAR1 map failed\n",
-			__func__);
+				__func__);
 		octeon_unmap_pci_barx(oct, 0);
 		return 1;
 	}
@@ -704,10 +772,12 @@ int lio_setup_cn66xx_octeon_device(struct octeon_device *oct)
 	lio_cn6xxx_setup_reg_address(oct, oct->chip, &oct->reg_list);
 
 	cn6xxx->conf = (struct octeon_config *)
-		       oct_get_config_info(oct, LIO_210SV);
-	if (!cn6xxx->conf) {
+				   oct_get_config_info(oct, LIO_210SV);
+
+	if (!cn6xxx->conf)
+	{
 		dev_err(&oct->pci_dev->dev, "%s No Config found for CN66XX\n",
-			__func__);
+				__func__);
 		octeon_unmap_pci_barx(oct, 0);
 		octeon_unmap_pci_barx(oct, 1);
 		return 1;
@@ -719,40 +789,46 @@ int lio_setup_cn66xx_octeon_device(struct octeon_device *oct)
 }
 
 int lio_validate_cn6xxx_config_info(struct octeon_device *oct,
-				    struct octeon_config *conf6xxx)
+									struct octeon_config *conf6xxx)
 {
 	/* int total_instrs = 0; */
 
-	if (CFG_GET_IQ_MAX_Q(conf6xxx) > CN6XXX_MAX_INPUT_QUEUES) {
+	if (CFG_GET_IQ_MAX_Q(conf6xxx) > CN6XXX_MAX_INPUT_QUEUES)
+	{
 		dev_err(&oct->pci_dev->dev, "%s: Num IQ (%d) exceeds Max (%d)\n",
-			__func__, CFG_GET_IQ_MAX_Q(conf6xxx),
-			CN6XXX_MAX_INPUT_QUEUES);
+				__func__, CFG_GET_IQ_MAX_Q(conf6xxx),
+				CN6XXX_MAX_INPUT_QUEUES);
 		return 1;
 	}
 
-	if (CFG_GET_OQ_MAX_Q(conf6xxx) > CN6XXX_MAX_OUTPUT_QUEUES) {
+	if (CFG_GET_OQ_MAX_Q(conf6xxx) > CN6XXX_MAX_OUTPUT_QUEUES)
+	{
 		dev_err(&oct->pci_dev->dev, "%s: Num OQ (%d) exceeds Max (%d)\n",
-			__func__, CFG_GET_OQ_MAX_Q(conf6xxx),
-			CN6XXX_MAX_OUTPUT_QUEUES);
+				__func__, CFG_GET_OQ_MAX_Q(conf6xxx),
+				CN6XXX_MAX_OUTPUT_QUEUES);
 		return 1;
 	}
 
 	if (CFG_GET_IQ_INSTR_TYPE(conf6xxx) != OCTEON_32BYTE_INSTR &&
-	    CFG_GET_IQ_INSTR_TYPE(conf6xxx) != OCTEON_64BYTE_INSTR) {
+		CFG_GET_IQ_INSTR_TYPE(conf6xxx) != OCTEON_64BYTE_INSTR)
+	{
 		dev_err(&oct->pci_dev->dev, "%s: Invalid instr type for IQ\n",
-			__func__);
-		return 1;
-	}
-	if (!(CFG_GET_OQ_INFO_PTR(conf6xxx)) ||
-	    !(CFG_GET_OQ_REFILL_THRESHOLD(conf6xxx))) {
-		dev_err(&oct->pci_dev->dev, "%s: Invalid parameter for OQ\n",
-			__func__);
+				__func__);
 		return 1;
 	}
 
-	if (!(CFG_GET_OQ_INTR_TIME(conf6xxx))) {
+	if (!(CFG_GET_OQ_INFO_PTR(conf6xxx)) ||
+		!(CFG_GET_OQ_REFILL_THRESHOLD(conf6xxx)))
+	{
+		dev_err(&oct->pci_dev->dev, "%s: Invalid parameter for OQ\n",
+				__func__);
+		return 1;
+	}
+
+	if (!(CFG_GET_OQ_INTR_TIME(conf6xxx)))
+	{
 		dev_err(&oct->pci_dev->dev, "%s: No Time Interrupt for OQ\n",
-			__func__);
+				__func__);
 		return 1;
 	}
 

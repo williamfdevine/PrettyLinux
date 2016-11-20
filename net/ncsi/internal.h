@@ -10,7 +10,8 @@
 #ifndef __NCSI_INTERNAL_H__
 #define __NCSI_INTERNAL_H__
 
-enum {
+enum
+{
 	NCSI_CAP_BASE		= 0,
 	NCSI_CAP_GENERIC	= 0,
 	NCSI_CAP_BC,
@@ -21,7 +22,8 @@ enum {
 	NCSI_CAP_MAX
 };
 
-enum {
+enum
+{
 	NCSI_CAP_GENERIC_HWA             = 0x01, /* HW arbitration           */
 	NCSI_CAP_GENERIC_HDS             = 0x02, /* HNC driver status change */
 	NCSI_CAP_GENERIC_FC              = 0x04, /* HNC to MC flow control   */
@@ -55,7 +57,8 @@ enum {
 	NCSI_CAP_VLAN_MASK               = 0x07
 };
 
-enum {
+enum
+{
 	NCSI_MODE_BASE		= 0,
 	NCSI_MODE_ENABLE	= 0,
 	NCSI_MODE_TX_ENABLE,
@@ -68,7 +71,8 @@ enum {
 	NCSI_MODE_MAX
 };
 
-enum {
+enum
+{
 	NCSI_FILTER_BASE	= 0,
 	NCSI_FILTER_VLAN	= 0,
 	NCSI_FILTER_UC,
@@ -77,7 +81,8 @@ enum {
 	NCSI_FILTER_MAX
 };
 
-struct ncsi_channel_version {
+struct ncsi_channel_version
+{
 	u32 version;		/* Supported BCD encoded NCSI version */
 	u32 alpha2;		/* Supported BCD encoded NCSI version */
 	u8  fw_name[12];	/* Firware name string                */
@@ -86,26 +91,30 @@ struct ncsi_channel_version {
 	u32 mf_id;		/* Manufacture ID                     */
 };
 
-struct ncsi_channel_cap {
+struct ncsi_channel_cap
+{
 	u32 index;	/* Index of channel capabilities */
 	u32 cap;	/* NCSI channel capability       */
 };
 
-struct ncsi_channel_mode {
+struct ncsi_channel_mode
+{
 	u32 index;	/* Index of channel modes      */
 	u32 enable;	/* Enabled or disabled         */
 	u32 size;	/* Valid entries in ncm_data[] */
 	u32 data[8];	/* Data entries                */
 };
 
-struct ncsi_channel_filter {
+struct ncsi_channel_filter
+{
 	u32 index;	/* Index of channel filters          */
 	u32 total;	/* Total entries in the filter table */
 	u64 bitmap;	/* Bitmap of valid entries           */
 	u32 data[];	/* Data for the valid entries        */
 };
 
-struct ncsi_channel_stats {
+struct ncsi_channel_stats
+{
 	u32 hnc_cnt_hi;		/* Counter cleared            */
 	u32 hnc_cnt_lo;		/* Counter cleared            */
 	u32 hnc_rx_bytes;	/* Rx bytes                   */
@@ -174,7 +183,8 @@ struct ncsi_package;
 #define NCSI_CHANNEL_INDEX(c)	((c) & ((1 << NCSI_PACKAGE_SHIFT) - 1))
 #define NCSI_TO_CHANNEL(p, c)	(((p) << NCSI_PACKAGE_SHIFT) | (c))
 
-struct ncsi_channel {
+struct ncsi_channel
+{
 	unsigned char               id;
 	int                         state;
 #define NCSI_CHANNEL_INACTIVE		1
@@ -187,7 +197,8 @@ struct ncsi_channel {
 	struct ncsi_channel_mode    modes[NCSI_MODE_MAX];
 	struct ncsi_channel_filter  *filters[NCSI_FILTER_MAX];
 	struct ncsi_channel_stats   stats;
-	struct {
+	struct
+	{
 		struct timer_list   timer;
 		bool                enabled;
 		unsigned int        state;
@@ -200,7 +211,8 @@ struct ncsi_channel {
 	struct list_head            link;
 };
 
-struct ncsi_package {
+struct ncsi_package
+{
 	unsigned char        id;          /* NCSI 3-bits package ID */
 	unsigned char        uuid[16];    /* UUID                   */
 	struct ncsi_dev_priv *ndp;        /* NCSI device            */
@@ -210,7 +222,8 @@ struct ncsi_package {
 	struct list_head     node;        /* Form list of packages  */
 };
 
-struct ncsi_request {
+struct ncsi_request
+{
 	unsigned char        id;      /* Request ID - 0 to 255           */
 	bool                 used;    /* Request that has been assigned  */
 	unsigned int         flags;   /* NCSI request property           */
@@ -222,7 +235,8 @@ struct ncsi_request {
 	bool                 enabled; /* Time has been enabled or not    */
 };
 
-enum {
+enum
+{
 	ncsi_dev_state_major		= 0xff00,
 	ncsi_dev_state_minor		= 0x00ff,
 	ncsi_dev_state_probe_deselect	= 0x0201,
@@ -253,7 +267,8 @@ enum {
 	ncsi_dev_state_suspend_done
 };
 
-struct ncsi_dev_priv {
+struct ncsi_dev_priv
+{
 	struct ncsi_dev     ndev;            /* Associated NCSI device     */
 	unsigned int        flags;           /* NCSI device flags          */
 #define NCSI_DEV_PROBED		1            /* Finalized NCSI topology    */
@@ -278,7 +293,8 @@ struct ncsi_dev_priv {
 	struct list_head    node;            /* Form NCSI device list      */
 };
 
-struct ncsi_cmd_arg {
+struct ncsi_cmd_arg
+{
 	struct ncsi_dev_priv *ndp;        /* Associated NCSI device        */
 	unsigned char        type;        /* Command in the NCSI packet    */
 	unsigned char        id;          /* Request ID (sequence number)  */
@@ -286,7 +302,8 @@ struct ncsi_cmd_arg {
 	unsigned char        channel;     /* Detination channel ID or 0x1f */
 	unsigned short       payload;     /* Command packet payload length */
 	unsigned int         req_flags;   /* NCSI request properties       */
-	union {
+	union
+	{
 		unsigned char  bytes[16]; /* Command packet specific data  */
 		unsigned short words[8];
 		unsigned int   dwords[4];
@@ -312,20 +329,20 @@ int ncsi_remove_filter(struct ncsi_channel *nc, int table, int index);
 void ncsi_start_channel_monitor(struct ncsi_channel *nc);
 void ncsi_stop_channel_monitor(struct ncsi_channel *nc);
 struct ncsi_channel *ncsi_find_channel(struct ncsi_package *np,
-				       unsigned char id);
+									   unsigned char id);
 struct ncsi_channel *ncsi_add_channel(struct ncsi_package *np,
-				      unsigned char id);
+									  unsigned char id);
 struct ncsi_package *ncsi_find_package(struct ncsi_dev_priv *ndp,
-				       unsigned char id);
+									   unsigned char id);
 struct ncsi_package *ncsi_add_package(struct ncsi_dev_priv *ndp,
-				      unsigned char id);
+									  unsigned char id);
 void ncsi_remove_package(struct ncsi_package *np);
 void ncsi_find_package_and_channel(struct ncsi_dev_priv *ndp,
-				   unsigned char id,
-				   struct ncsi_package **np,
-				   struct ncsi_channel **nc);
+								   unsigned char id,
+								   struct ncsi_package **np,
+								   struct ncsi_channel **nc);
 struct ncsi_request *ncsi_alloc_request(struct ncsi_dev_priv *ndp,
-					unsigned int req_flags);
+										unsigned int req_flags);
 void ncsi_free_request(struct ncsi_request *nr);
 struct ncsi_dev *ncsi_find_dev(struct net_device *dev);
 int ncsi_process_next_channel(struct ncsi_dev_priv *ndp);
@@ -334,7 +351,7 @@ int ncsi_process_next_channel(struct ncsi_dev_priv *ndp);
 u32 ncsi_calculate_checksum(unsigned char *data, int len);
 int ncsi_xmit_cmd(struct ncsi_cmd_arg *nca);
 int ncsi_rcv_rsp(struct sk_buff *skb, struct net_device *dev,
-		 struct packet_type *pt, struct net_device *orig_dev);
+				 struct packet_type *pt, struct net_device *orig_dev);
 int ncsi_aen_handler(struct ncsi_dev_priv *ndp, struct sk_buff *skb);
 
 #endif /* __NCSI_INTERNAL_H__ */

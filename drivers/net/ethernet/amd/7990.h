@@ -31,8 +31,8 @@
  * too long (and overflow the RAM on shared-memory cards like the HP LANCE.
  */
 #ifndef LANCE_LOG_TX_BUFFERS
-#define LANCE_LOG_TX_BUFFERS 1
-#define LANCE_LOG_RX_BUFFERS 3
+	#define LANCE_LOG_TX_BUFFERS 1
+	#define LANCE_LOG_RX_BUFFERS 3
 #endif
 
 #define TX_RING_SIZE		(1 << LANCE_LOG_TX_BUFFERS)
@@ -46,7 +46,8 @@
 #define TX_BUFF_SIZE		PKT_BUFF_SIZE
 
 /* Each receive buffer is described by a receive message descriptor (RMD) */
-struct lance_rx_desc {
+struct lance_rx_desc
+{
 	volatile unsigned short rmd0;	    /* low address of packet */
 	volatile unsigned char  rmd1_bits;  /* descriptor bits */
 	volatile unsigned char  rmd1_hadr;  /* high address of packet */
@@ -56,7 +57,8 @@ struct lance_rx_desc {
 };
 
 /* Ditto for TMD: */
-struct lance_tx_desc {
+struct lance_tx_desc
+{
 	volatile unsigned short tmd0;	    /* low address of packet */
 	volatile unsigned char  tmd1_bits;  /* descriptor bits */
 	volatile unsigned char  tmd1_hadr;  /* high address of packet */
@@ -69,7 +71,8 @@ struct lance_tx_desc {
  * and the data buffers themselves. In fact we might as well put the
  * init block,the Tx and Rx rings and the buffers together in memory:
  */
-struct lance_init_block {
+struct lance_init_block
+{
 	volatile unsigned short mode;		/* Pre-set mode (reg. 15) */
 	volatile unsigned char phys_addr[6];	/* Physical ethernet address */
 	volatile unsigned filter[2];		/* Multicast filter (64 bits) */
@@ -97,7 +100,8 @@ struct lance_init_block {
  * I'm definitely unhappy about the mechanism for allowing specific
  * drivers to add things...
  */
-struct lance_private {
+struct lance_private
+{
 	const char *name;
 	unsigned long base;
 	volatile struct lance_init_block *init_block; /* CPU address of RAM */
@@ -231,8 +235,8 @@ struct lance_private {
 /* Miscellaneous useful macros */
 
 #define TX_BUFFS_AVAIL ((lp->tx_old <= lp->tx_new) ? \
-			lp->tx_old + lp->tx_ring_mod_mask - lp->tx_new : \
-			lp->tx_old - lp->tx_new - 1)
+						lp->tx_old + lp->tx_ring_mod_mask - lp->tx_new : \
+						lp->tx_old - lp->tx_new - 1)
 
 /* The LANCE only uses 24 bit addresses. This does the obvious thing. */
 #define LANCE_ADDR(x) ((int)(x) & ~0xff000000)
@@ -244,7 +248,7 @@ int lance_start_xmit(struct sk_buff *skb, struct net_device *dev);
 void lance_set_multicast(struct net_device *dev);
 void lance_tx_timeout(struct net_device *dev);
 #ifdef CONFIG_NET_POLL_CONTROLLER
-void lance_poll(struct net_device *dev);
+	void lance_poll(struct net_device *dev);
 #endif
 
 #endif /* ndef _7990_H */

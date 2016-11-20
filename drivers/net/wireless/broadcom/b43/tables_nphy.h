@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-struct b43_phy_n_sfo_cfg {
+struct b43_phy_n_sfo_cfg
+{
 	u16 phy_bw1a;
 	u16 phy_bw2;
 	u16 phy_bw3;
@@ -14,19 +15,22 @@ struct b43_phy_n_sfo_cfg {
 
 struct b43_wldev;
 
-struct nphy_txiqcal_ladder {
+struct nphy_txiqcal_ladder
+{
 	u8 percent;
 	u8 g_env;
 };
 
-struct nphy_rf_control_override_rev2 {
+struct nphy_rf_control_override_rev2
+{
 	u8 addr0;
 	u8 addr1;
 	u16 bmask;
 	u8 shift;
 };
 
-struct nphy_rf_control_override_rev3 {
+struct nphy_rf_control_override_rev3
+{
 	u16 val_mask;
 	u8 val_shift;
 	u8 en_addr0;
@@ -35,7 +39,8 @@ struct nphy_rf_control_override_rev3 {
 	u8 val_addr1;
 };
 
-struct nphy_rf_control_override_rev7 {
+struct nphy_rf_control_override_rev7
+{
 	u16 field;
 	u16 val_addr_core0;
 	u16 val_addr_core1;
@@ -43,7 +48,8 @@ struct nphy_rf_control_override_rev7 {
 	u8 val_shift;
 };
 
-struct nphy_gain_ctl_workaround_entry {
+struct nphy_gain_ctl_workaround_entry
+{
 	s8 lna1_gain[4];
 	s8 lna2_gain[4];
 	u8 gain_db[10];
@@ -182,10 +188,10 @@ struct nphy_gain_ctl_workaround_entry *b43_nphy_get_gain_ctl_workaround_ent(
 
 u32 b43_ntab_read(struct b43_wldev *dev, u32 offset);
 void b43_ntab_read_bulk(struct b43_wldev *dev, u32 offset,
-			 unsigned int nr_elements, void *_data);
+						unsigned int nr_elements, void *_data);
 void b43_ntab_write(struct b43_wldev *dev, u32 offset, u32 value);
 void b43_ntab_write_bulk(struct b43_wldev *dev, u32 offset,
-			  unsigned int nr_elements, const void *_data);
+						 unsigned int nr_elements, const void *_data);
 
 void b43_nphy_tables_init(struct b43_wldev *dev);
 

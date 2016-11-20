@@ -55,7 +55,8 @@
 #define AT_BINS 4		  /* "bin" means "N seconds of history" */
 #define AT_FLG_NOHIST 0x1	  /* use last reported value only */
 
-struct adaptive_timeout {
+struct adaptive_timeout
+{
 	time64_t	at_binstart;	 /* bin start time */
 	unsigned int	at_hist[AT_BINS];    /* timeout history bins */
 	unsigned int	at_flags;
@@ -65,7 +66,8 @@ struct adaptive_timeout {
 	spinlock_t	at_lock;
 };
 
-struct ptlrpc_at_array {
+struct ptlrpc_at_array
+{
 	struct list_head       *paa_reqs_array; /** array to hold requests */
 	__u32	     paa_size;       /** the size of array */
 	__u32	     paa_count;      /** the total count of reqs */
@@ -74,7 +76,8 @@ struct ptlrpc_at_array {
 };
 
 #define IMP_AT_MAX_PORTALS 8
-struct imp_at {
+struct imp_at
+{
 	int		     iat_portal[IMP_AT_MAX_PORTALS];
 	struct adaptive_timeout iat_net_latency;
 	struct adaptive_timeout iat_service_estimate[IMP_AT_MAX_PORTALS];
@@ -83,7 +86,8 @@ struct imp_at {
 /** @} */
 
 /** Possible import states */
-enum lustre_imp_state {
+enum lustre_imp_state
+{
 	LUSTRE_IMP_CLOSED     = 1,
 	LUSTRE_IMP_NEW	= 2,
 	LUSTRE_IMP_DISCON     = 3,
@@ -99,7 +103,8 @@ enum lustre_imp_state {
 /** Returns test string representation of numeric import state \a state */
 static inline char *ptlrpc_import_state_name(enum lustre_imp_state state)
 {
-	static char *import_state_names[] = {
+	static char *import_state_names[] =
+	{
 		"<UNKNOWN>", "CLOSED",  "NEW", "DISCONN",
 		"CONNECTING", "REPLAY", "REPLAY_LOCKS", "REPLAY_WAIT",
 		"RECOVER", "FULL", "EVICTED",
@@ -112,7 +117,8 @@ static inline char *ptlrpc_import_state_name(enum lustre_imp_state state)
 /**
  * List of import event types
  */
-enum obd_import_event {
+enum obd_import_event
+{
 	IMP_EVENT_DISCON     = 0x808001,
 	IMP_EVENT_INACTIVE   = 0x808002,
 	IMP_EVENT_INVALIDATE = 0x808003,
@@ -125,7 +131,8 @@ enum obd_import_event {
 /**
  * Definition of import connection structure
  */
-struct obd_import_conn {
+struct obd_import_conn
+{
 	/** Item for linking connections together */
 	struct list_head		oic_item;
 	/** Pointer to actual PortalRPC connection */
@@ -140,7 +147,8 @@ struct obd_import_conn {
 
 /* state history */
 #define IMP_STATE_HIST_LEN 16
-struct import_state_hist {
+struct import_state_hist
+{
 	enum lustre_imp_state ish_state;
 	time64_t	ish_time;
 };
@@ -149,7 +157,8 @@ struct import_state_hist {
  * Definition of PortalRPC import structure.
  * Imports are representing client-side view to remote target.
  */
-struct obd_import {
+struct obd_import
+{
 	/** Local handle (== id) for this import. */
 	struct portals_handle     imp_handle;
 	/** Reference counter */
@@ -221,7 +230,7 @@ struct obd_import {
 	int		       imp_generation;
 	/** Incremented every time we send reconnection request */
 	__u32		     imp_conn_cnt;
-       /**
+	/**
 	* \see ptlrpc_free_committed remembers imp_generation value here
 	* after a check to save on unnecessary replay list iterations
 	*/
@@ -258,43 +267,43 @@ struct obd_import {
 	spinlock_t		  imp_lock;
 
 	/* flags */
-	unsigned long	     imp_no_timeout:1, /* timeouts are disabled */
-				  imp_invalid:1,    /* evicted */
-				  /* administratively disabled */
-				  imp_deactive:1,
-				  /* try to recover the import */
-				  imp_replayable:1,
-				  /* don't run recovery (timeout instead) */
-				  imp_dlm_fake:1,
-				  /* use 1/2 timeout on MDS' OSCs */
-				  imp_server_timeout:1,
-				  /* VBR: imp in delayed recovery */
-				  imp_delayed_recovery:1,
-				  /* VBR: if gap was found then no lock replays
-				   */
-				  imp_no_lock_replay:1,
-				  /* recovery by versions was failed */
-				  imp_vbr_failed:1,
-				  /* force an immediate ping */
-				  imp_force_verify:1,
-				  /* force a scheduled ping */
-				  imp_force_next_verify:1,
-				  /* pingable */
-				  imp_pingable:1,
-				  /* resend for replay */
-				  imp_resend_replay:1,
-				  /* disable normal recovery, for test only. */
-				  imp_no_pinger_recover:1,
+	unsigned long	     imp_no_timeout: 1, /* timeouts are disabled */
+			   imp_invalid: 1,   /* evicted */
+			   /* administratively disabled */
+			   imp_deactive: 1,
+			   /* try to recover the import */
+			   imp_replayable: 1,
+			   /* don't run recovery (timeout instead) */
+			   imp_dlm_fake: 1,
+			   /* use 1/2 timeout on MDS' OSCs */
+			   imp_server_timeout: 1,
+			   /* VBR: imp in delayed recovery */
+			   imp_delayed_recovery: 1,
+			   /* VBR: if gap was found then no lock replays
+			    */
+			   imp_no_lock_replay: 1,
+			   /* recovery by versions was failed */
+			   imp_vbr_failed: 1,
+			   /* force an immediate ping */
+			   imp_force_verify: 1,
+			   /* force a scheduled ping */
+			   imp_force_next_verify: 1,
+			   /* pingable */
+			   imp_pingable: 1,
+			   /* resend for replay */
+			   imp_resend_replay: 1,
+			   /* disable normal recovery, for test only. */
+			   imp_no_pinger_recover: 1,
 #if OBD_OCD_VERSION(3, 0, 53, 0) > LUSTRE_VERSION_CODE
-				  /* need IR MNE swab */
-				  imp_need_mne_swab:1,
+			   /* need IR MNE swab */
+			   imp_need_mne_swab: 1,
 #endif
-				  /* import must be reconnected instead of
-				   * chosing new connection
-				   */
-				  imp_force_reconnect:1,
-				  /* import has tried to connect with server */
-				  imp_connect_tried:1;
+			   /* import must be reconnected instead of
+			    * chosing new connection
+			    */
+			   imp_force_reconnect: 1,
+			   /* import has tried to connect with server */
+			   imp_connect_tried: 1;
 	__u32		     imp_connect_op;
 	struct obd_connect_data   imp_connect_data;
 	__u64		     imp_connect_flags_orig;

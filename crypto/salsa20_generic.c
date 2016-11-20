@@ -45,7 +45,7 @@ Public domain.
 
 #define U32TO8_LITTLE(p, v) \
 	{ (p)[0] = (v >>  0) & 0xff; (p)[1] = (v >>  8) & 0xff; \
-	  (p)[2] = (v >> 16) & 0xff; (p)[3] = (v >> 24) & 0xff; }
+		(p)[2] = (v >> 16) & 0xff; (p)[3] = (v >> 24) & 0xff; }
 #define U8TO32_LITTLE(p)   \
 	(((u32)((p)[0])      ) | ((u32)((p)[1]) <<  8) | \
 	 ((u32)((p)[2]) << 16) | ((u32)((p)[3]) << 24)   )
@@ -61,7 +61,9 @@ static void salsa20_wordtobyte(u8 output[64], const u32 input[16])
 	int i;
 
 	memcpy(x, input, sizeof(x));
-	for (i = 20; i > 0; i -= 2) {
+
+	for (i = 20; i > 0; i -= 2)
+	{
 		x[ 4] ^= rol32((x[ 0] + x[12]),  7);
 		x[ 8] ^= rol32((x[ 4] + x[ 0]),  9);
 		x[12] ^= rol32((x[ 8] + x[ 4]), 13);
@@ -95,10 +97,16 @@ static void salsa20_wordtobyte(u8 output[64], const u32 input[16])
 		x[14] ^= rol32((x[13] + x[12]), 13);
 		x[15] ^= rol32((x[14] + x[13]), 18);
 	}
+
 	for (i = 0; i < 16; ++i)
+	{
 		x[i] += input[i];
+	}
+
 	for (i = 0; i < 16; ++i)
-		U32TO8_LITTLE(output + 4 * i,x[i]);
+	{
+		U32TO8_LITTLE(output + 4 * i, x[i]);
+	}
 }
 
 static const char sigma[16] = "expand 32-byte k";
@@ -112,12 +120,17 @@ static void salsa20_keysetup(struct salsa20_ctx *ctx, const u8 *k, u32 kbytes)
 	ctx->input[2] = U8TO32_LITTLE(k + 4);
 	ctx->input[3] = U8TO32_LITTLE(k + 8);
 	ctx->input[4] = U8TO32_LITTLE(k + 12);
-	if (kbytes == 32) { /* recommended */
+
+	if (kbytes == 32)   /* recommended */
+	{
 		k += 16;
 		constants = sigma;
-	} else { /* kbytes == 16 */
+	}
+	else     /* kbytes == 16 */
+	{
 		constants = tau;
 	}
+
 	ctx->input[11] = U8TO32_LITTLE(k + 0);
 	ctx->input[12] = U8TO32_LITTLE(k + 4);
 	ctx->input[13] = U8TO32_LITTLE(k + 8);
@@ -137,21 +150,28 @@ static void salsa20_ivsetup(struct salsa20_ctx *ctx, const u8 *iv)
 }
 
 static void salsa20_encrypt_bytes(struct salsa20_ctx *ctx, u8 *dst,
-				  const u8 *src, unsigned int bytes)
+								  const u8 *src, unsigned int bytes)
 {
 	u8 buf[64];
 
 	if (dst != src)
+	{
 		memcpy(dst, src, bytes);
+	}
 
-	while (bytes) {
+	while (bytes)
+	{
 		salsa20_wordtobyte(buf, ctx->input);
 
 		ctx->input[8]++;
-		if (!ctx->input[8])
-			ctx->input[9]++;
 
-		if (bytes <= 64) {
+		if (!ctx->input[8])
+		{
+			ctx->input[9]++;
+		}
+
+		if (bytes <= 64)
+		{
 			crypto_xor(dst, buf, bytes);
 			return;
 		}
@@ -167,7 +187,7 @@ static void salsa20_encrypt_bytes(struct salsa20_ctx *ctx, u8 *dst,
  */
 
 static int setkey(struct crypto_tfm *tfm, const u8 *key,
-		  unsigned int keysize)
+				  unsigned int keysize)
 {
 	struct salsa20_ctx *ctx = crypto_tfm_ctx(tfm);
 	salsa20_keysetup(ctx, key, keysize);
@@ -175,8 +195,8 @@ static int setkey(struct crypto_tfm *tfm, const u8 *key,
 }
 
 static int encrypt(struct blkcipher_desc *desc,
-		   struct scatterlist *dst, struct scatterlist *src,
-		   unsigned int nbytes)
+				   struct scatterlist *dst, struct scatterlist *src,
+				   unsigned int nbytes)
 {
 	struct blkcipher_walk walk;
 	struct crypto_blkcipher *tfm = desc->tfm;
@@ -191,27 +211,30 @@ static int encrypt(struct blkcipher_desc *desc,
 	if (likely(walk.nbytes == nbytes))
 	{
 		salsa20_encrypt_bytes(ctx, walk.dst.virt.addr,
-				      walk.src.virt.addr, nbytes);
+							  walk.src.virt.addr, nbytes);
 		return blkcipher_walk_done(desc, &walk, 0);
 	}
 
-	while (walk.nbytes >= 64) {
+	while (walk.nbytes >= 64)
+	{
 		salsa20_encrypt_bytes(ctx, walk.dst.virt.addr,
-				      walk.src.virt.addr,
-				      walk.nbytes - (walk.nbytes % 64));
+							  walk.src.virt.addr,
+							  walk.nbytes - (walk.nbytes % 64));
 		err = blkcipher_walk_done(desc, &walk, walk.nbytes % 64);
 	}
 
-	if (walk.nbytes) {
+	if (walk.nbytes)
+	{
 		salsa20_encrypt_bytes(ctx, walk.dst.virt.addr,
-				      walk.src.virt.addr, walk.nbytes);
+							  walk.src.virt.addr, walk.nbytes);
 		err = blkcipher_walk_done(desc, &walk, 0);
 	}
 
 	return err;
 }
 
-static struct crypto_alg alg = {
+static struct crypto_alg alg =
+{
 	.cra_name           =   "salsa20",
 	.cra_driver_name    =   "salsa20-generic",
 	.cra_priority       =   100,

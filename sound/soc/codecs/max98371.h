@@ -60,7 +60,8 @@
 #define MAX98371_VERSION			0xFF
 
 
-struct max98371_priv {
+struct max98371_priv
+{
 	struct regmap *regmap;
 	struct snd_soc_codec *codec;
 };

@@ -31,12 +31,13 @@ void vexpress_config_lock(void *arg);
 void vexpress_config_unlock(void *arg);
 
 int vexpress_config_get_topo(struct device_node *node, u32 *site,
-		u32 *position, u32 *dcc);
+							 u32 *position, u32 *dcc);
 
 /* Config bridge API */
 
-struct vexpress_config_bridge_ops {
-	struct regmap * (*regmap_init)(struct device *dev, void *context);
+struct vexpress_config_bridge_ops
+{
+	struct regmap *(*regmap_init)(struct device *dev, void *context);
 	void (*regmap_exit)(struct regmap *regmap, void *context);
 };
 

@@ -55,17 +55,17 @@
 #undef CONFIG_IRLAN_GRATUITOUS_ARP
 
 static void irlan_client_ctrl_disconnect_indication(void *instance, void *sap,
-						    LM_REASON reason,
-						    struct sk_buff *);
+		LM_REASON reason,
+		struct sk_buff *);
 static int irlan_client_ctrl_data_indication(void *instance, void *sap,
-					     struct sk_buff *skb);
+		struct sk_buff *skb);
 static void irlan_client_ctrl_connect_confirm(void *instance, void *sap,
-					      struct qos_info *qos,
-					      __u32 max_sdu_size,
-					      __u8 max_header_size,
-					      struct sk_buff *);
+		struct qos_info *qos,
+		__u32 max_sdu_size,
+		__u8 max_header_size,
+		struct sk_buff *);
 static void irlan_check_response_param(struct irlan_cb *self, char *param,
-				       char *value, int val_len);
+									   char *value, int val_len);
 static void irlan_client_open_ctrl_tsap(struct irlan_cb *self);
 
 static void irlan_client_kick_timer_expired(void *data)
@@ -81,8 +81,9 @@ static void irlan_client_kick_timer_expired(void *data)
 	 * IDLE state, we must kick it to, but only if the provider is not IDLE
 	 */
 	if ((self->provider.access_type == ACCESS_PEER) &&
-	    (self->client.state == IRLAN_IDLE) &&
-	    (self->provider.state != IRLAN_IDLE)) {
+		(self->client.state == IRLAN_IDLE) &&
+		(self->provider.state != IRLAN_IDLE))
+	{
 		irlan_client_wakeup(self, self->saddr, self->daddr);
 	}
 }
@@ -90,7 +91,7 @@ static void irlan_client_kick_timer_expired(void *data)
 static void irlan_client_start_kick_timer(struct irlan_cb *self, int timeout)
 {
 	irda_start_timer(&self->client.kick_timer, timeout, (void *) self,
-			 irlan_client_kick_timer_expired);
+					 irlan_client_kick_timer_expired);
 }
 
 /*
@@ -109,19 +110,20 @@ void irlan_client_wakeup(struct irlan_cb *self, __u32 saddr, __u32 daddr)
 	 * mode (in that case we must leave the client idle
 	 */
 	if ((self->client.state != IRLAN_IDLE) ||
-	    (self->provider.access_type == ACCESS_DIRECT))
+		(self->provider.access_type == ACCESS_DIRECT))
 	{
 		pr_debug("%s(), already awake!\n", __func__);
-			return;
+		return;
 	}
 
 	/* Addresses may have changed! */
 	self->saddr = saddr;
 	self->daddr = daddr;
 
-	if (self->disconnect_reason == LM_USER_REQUEST) {
+	if (self->disconnect_reason == LM_USER_REQUEST)
+	{
 		pr_debug("%s(), still stopped by user\n", __func__);
-			return;
+		return;
 	}
 
 	/* Open TSAPs */
@@ -131,7 +133,7 @@ void irlan_client_wakeup(struct irlan_cb *self, __u32 saddr, __u32 daddr)
 	irlan_do_client_event(self, IRLAN_DISCOVERY_INDICATION, NULL);
 
 	/* Start kick timer */
-	irlan_client_start_kick_timer(self, 2*HZ);
+	irlan_client_start_kick_timer(self, 2 * HZ);
 }
 
 /*
@@ -141,8 +143,8 @@ void irlan_client_wakeup(struct irlan_cb *self, __u32 saddr, __u32 daddr)
  *
  */
 void irlan_client_discovery_indication(discinfo_t *discovery,
-				       DISCOVERY_MODE mode,
-				       void *priv)
+									   DISCOVERY_MODE mode,
+									   void *priv)
 {
 	struct irlan_cb *self;
 	__u32 saddr, daddr;
@@ -155,8 +157,10 @@ void irlan_client_discovery_indication(discinfo_t *discovery,
 	 * simultaneously connecting to each other.
 	 * Same workaround, drop passive discoveries.
 	 * Jean II */
-	if(mode == DISCOVERY_PASSIVE)
+	if (mode == DISCOVERY_PASSIVE)
+	{
 		return;
+	}
 
 	saddr = discovery->saddr;
 	daddr = discovery->daddr;
@@ -164,15 +168,18 @@ void irlan_client_discovery_indication(discinfo_t *discovery,
 	/* Find instance */
 	rcu_read_lock();
 	self = irlan_get_any();
-	if (self) {
+
+	if (self)
+	{
 		IRDA_ASSERT(self->magic == IRLAN_MAGIC, goto out;);
 
 		pr_debug("%s(), Found instance (%08x)!\n", __func__ ,
-			 daddr);
+				 daddr);
 
 		irlan_client_wakeup(self, saddr, daddr);
 	}
-IRDA_ASSERT_LABEL(out:)
+
+	IRDA_ASSERT_LABEL(out: )
 	rcu_read_unlock();
 }
 
@@ -183,7 +190,7 @@ IRDA_ASSERT_LABEL(out:)
  *
  */
 static int irlan_client_ctrl_data_indication(void *instance, void *sap,
-					     struct sk_buff *skb)
+		struct sk_buff *skb)
 {
 	struct irlan_cb *self;
 
@@ -206,8 +213,8 @@ static int irlan_client_ctrl_data_indication(void *instance, void *sap,
 }
 
 static void irlan_client_ctrl_disconnect_indication(void *instance, void *sap,
-						    LM_REASON reason,
-						    struct sk_buff *userdata)
+		LM_REASON reason,
+		struct sk_buff *userdata)
 {
 	struct irlan_cb *self;
 	struct tsap_cb *tsap;
@@ -226,9 +233,11 @@ static void irlan_client_ctrl_disconnect_indication(void *instance, void *sap,
 	IRDA_ASSERT(tsap == self->client.tsap_ctrl, return;);
 
 	/* Remove frames queued on the control channel */
-	while ((skb = skb_dequeue(&self->client.txq)) != NULL) {
+	while ((skb = skb_dequeue(&self->client.txq)) != NULL)
+	{
 		dev_kfree_skb(skb);
 	}
+
 	self->client.tx_busy = FALSE;
 
 	irlan_do_client_event(self, IRLAN_LMP_DISCONNECT, NULL);
@@ -250,7 +259,9 @@ static void irlan_client_open_ctrl_tsap(struct irlan_cb *self)
 
 	/* Check if already open */
 	if (self->client.tsap_ctrl)
+	{
 		return;
+	}
 
 	irda_notify_init(&notify);
 
@@ -262,10 +273,13 @@ static void irlan_client_open_ctrl_tsap(struct irlan_cb *self)
 	strlcpy(notify.name, "IrLAN ctrl (c)", sizeof(notify.name));
 
 	tsap = irttp_open_tsap(LSAP_ANY, DEFAULT_INITIAL_CREDIT, &notify);
-	if (!tsap) {
+
+	if (!tsap)
+	{
 		pr_debug("%s(), Got no tsap!\n", __func__);
 		return;
 	}
+
 	self->client.tsap_ctrl = tsap;
 }
 
@@ -276,10 +290,10 @@ static void irlan_client_open_ctrl_tsap(struct irlan_cb *self)
  *
  */
 static void irlan_client_ctrl_connect_confirm(void *instance, void *sap,
-					      struct qos_info *qos,
-					      __u32 max_sdu_size,
-					      __u8 max_header_size,
-					      struct sk_buff *skb)
+		struct qos_info *qos,
+		__u32 max_sdu_size,
+		__u8 max_header_size,
+		struct sk_buff *skb)
 {
 	struct irlan_cb *self;
 
@@ -304,40 +318,51 @@ static void irlan_client_ctrl_connect_confirm(void *instance, void *sap,
  */
 static void print_ret_code(__u8 code)
 {
-	switch(code) {
-	case 0:
-		printk(KERN_INFO "Success\n");
-		break;
-	case 1:
-		net_warn_ratelimited("IrLAN: Insufficient resources\n");
-		break;
-	case 2:
-		net_warn_ratelimited("IrLAN: Invalid command format\n");
-		break;
-	case 3:
-		net_warn_ratelimited("IrLAN: Command not supported\n");
-		break;
-	case 4:
-		net_warn_ratelimited("IrLAN: Parameter not supported\n");
-		break;
-	case 5:
-		net_warn_ratelimited("IrLAN: Value not supported\n");
-		break;
-	case 6:
-		net_warn_ratelimited("IrLAN: Not open\n");
-		break;
-	case 7:
-		net_warn_ratelimited("IrLAN: Authentication required\n");
-		break;
-	case 8:
-		net_warn_ratelimited("IrLAN: Invalid password\n");
-		break;
-	case 9:
-		net_warn_ratelimited("IrLAN: Protocol error\n");
-		break;
-	case 255:
-		net_warn_ratelimited("IrLAN: Asynchronous status\n");
-		break;
+	switch (code)
+	{
+		case 0:
+			printk(KERN_INFO "Success\n");
+			break;
+
+		case 1:
+			net_warn_ratelimited("IrLAN: Insufficient resources\n");
+			break;
+
+		case 2:
+			net_warn_ratelimited("IrLAN: Invalid command format\n");
+			break;
+
+		case 3:
+			net_warn_ratelimited("IrLAN: Command not supported\n");
+			break;
+
+		case 4:
+			net_warn_ratelimited("IrLAN: Parameter not supported\n");
+			break;
+
+		case 5:
+			net_warn_ratelimited("IrLAN: Value not supported\n");
+			break;
+
+		case 6:
+			net_warn_ratelimited("IrLAN: Not open\n");
+			break;
+
+		case 7:
+			net_warn_ratelimited("IrLAN: Authentication required\n");
+			break;
+
+		case 8:
+			net_warn_ratelimited("IrLAN: Invalid password\n");
+			break;
+
+		case 9:
+			net_warn_ratelimited("IrLAN: Protocol error\n");
+			break;
+
+		case 255:
+			net_warn_ratelimited("IrLAN: Asynchronous status\n");
+			break;
 	}
 }
 
@@ -365,25 +390,34 @@ void irlan_client_parse_response(struct irlan_cb *self, struct sk_buff *skb)
 	IRDA_ASSERT(self != NULL, return;);
 	IRDA_ASSERT(self->magic == IRLAN_MAGIC, return;);
 
-	if (!skb) {
+	if (!skb)
+	{
 		net_err_ratelimited("%s(), Got NULL skb!\n", __func__);
 		return;
 	}
+
 	frame = skb->data;
 
 	/*
 	 *  Check return code and print it if not success
 	 */
-	if (frame[0]) {
+	if (frame[0])
+	{
 		print_ret_code(frame[0]);
 		return;
 	}
 
 	name = kmalloc(255, GFP_ATOMIC);
+
 	if (!name)
+	{
 		return;
+	}
+
 	value = kmalloc(1016, GFP_ATOMIC);
-	if (!value) {
+
+	if (!value)
+	{
 		kfree(name);
 		return;
 	}
@@ -393,18 +427,23 @@ void irlan_client_parse_response(struct irlan_cb *self, struct sk_buff *skb)
 
 	pr_debug("%s(), got %d parameters\n", __func__ , count);
 
-	ptr = frame+2;
+	ptr = frame + 2;
 
 	/* For all parameters */
-	for (i=0; i<count;i++) {
+	for (i = 0; i < count; i++)
+	{
 		ret = irlan_extract_param(ptr, name, value, &val_len);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			pr_debug("%s(), IrLAN, Error!\n", __func__);
 			break;
 		}
+
 		ptr += ret;
 		irlan_check_response_param(self, name, value, val_len);
 	}
+
 	/* Cleanup */
 	kfree(name);
 	kfree(value);
@@ -417,7 +456,7 @@ void irlan_client_parse_response(struct irlan_cb *self, struct sk_buff *skb)
  *
  */
 static void irlan_check_response_param(struct irlan_cb *self, char *param,
-				       char *value, int val_len)
+									   char *value, int val_len)
 {
 	__u16 tmp_cpu; /* Temporary value in host order */
 	__u8 *bytes;
@@ -429,86 +468,131 @@ static void irlan_check_response_param(struct irlan_cb *self, char *param,
 	IRDA_ASSERT(self->magic == IRLAN_MAGIC, return;);
 
 	/* Media type */
-	if (strcmp(param, "MEDIA") == 0) {
+	if (strcmp(param, "MEDIA") == 0)
+	{
 		if (strcmp(value, "802.3") == 0)
+		{
 			self->media = MEDIA_802_3;
+		}
 		else
+		{
 			self->media = MEDIA_802_5;
+		}
+
 		return;
 	}
-	if (strcmp(param, "FILTER_TYPE") == 0) {
+
+	if (strcmp(param, "FILTER_TYPE") == 0)
+	{
 		if (strcmp(value, "DIRECTED") == 0)
+		{
 			self->client.filter_type |= IRLAN_DIRECTED;
+		}
 		else if (strcmp(value, "FUNCTIONAL") == 0)
+		{
 			self->client.filter_type |= IRLAN_FUNCTIONAL;
+		}
 		else if (strcmp(value, "GROUP") == 0)
+		{
 			self->client.filter_type |= IRLAN_GROUP;
+		}
 		else if (strcmp(value, "MAC_FRAME") == 0)
+		{
 			self->client.filter_type |= IRLAN_MAC_FRAME;
+		}
 		else if (strcmp(value, "MULTICAST") == 0)
+		{
 			self->client.filter_type |= IRLAN_MULTICAST;
+		}
 		else if (strcmp(value, "BROADCAST") == 0)
+		{
 			self->client.filter_type |= IRLAN_BROADCAST;
+		}
 		else if (strcmp(value, "IPX_SOCKET") == 0)
+		{
 			self->client.filter_type |= IRLAN_IPX_SOCKET;
+		}
 
 	}
-	if (strcmp(param, "ACCESS_TYPE") == 0) {
+
+	if (strcmp(param, "ACCESS_TYPE") == 0)
+	{
 		if (strcmp(value, "DIRECT") == 0)
+		{
 			self->client.access_type = ACCESS_DIRECT;
+		}
 		else if (strcmp(value, "PEER") == 0)
+		{
 			self->client.access_type = ACCESS_PEER;
+		}
 		else if (strcmp(value, "HOSTED") == 0)
+		{
 			self->client.access_type = ACCESS_HOSTED;
-		else {
+		}
+		else
+		{
 			pr_debug("%s(), unknown access type!\n", __func__);
 		}
 	}
+
 	/* IRLAN version */
-	if (strcmp(param, "IRLAN_VER") == 0) {
+	if (strcmp(param, "IRLAN_VER") == 0)
+	{
 		pr_debug("IrLAN version %d.%d\n", (__u8)value[0],
-			 (__u8)value[1]);
+				 (__u8)value[1]);
 
 		self->version[0] = value[0];
 		self->version[1] = value[1];
 		return;
 	}
+
 	/* Which remote TSAP to use for data channel */
-	if (strcmp(param, "DATA_CHAN") == 0) {
+	if (strcmp(param, "DATA_CHAN") == 0)
+	{
 		self->dtsap_sel_data = value[0];
 		pr_debug("Data TSAP = %02x\n", self->dtsap_sel_data);
 		return;
 	}
-	if (strcmp(param, "CON_ARB") == 0) {
+
+	if (strcmp(param, "CON_ARB") == 0)
+	{
 		memcpy(&tmp_cpu, value, 2); /* Align value */
 		le16_to_cpus(&tmp_cpu);     /* Convert to host order */
 		self->client.recv_arb_val = tmp_cpu;
 		pr_debug("%s(), receive arb val=%d\n", __func__ ,
-			 self->client.recv_arb_val);
+				 self->client.recv_arb_val);
 	}
-	if (strcmp(param, "MAX_FRAME") == 0) {
+
+	if (strcmp(param, "MAX_FRAME") == 0)
+	{
 		memcpy(&tmp_cpu, value, 2); /* Align value */
 		le16_to_cpus(&tmp_cpu);     /* Convert to host order */
 		self->client.max_frame = tmp_cpu;
 		pr_debug("%s(), max frame=%d\n", __func__ ,
-			 self->client.max_frame);
+				 self->client.max_frame);
 	}
 
 	/* RECONNECT_KEY, in case the link goes down! */
-	if (strcmp(param, "RECONNECT_KEY") == 0) {
+	if (strcmp(param, "RECONNECT_KEY") == 0)
+	{
 		pr_debug("Got reconnect key: ");
 		/* for (i = 0; i < val_len; i++) */
-/* 			printk("%02x", value[i]); */
+		/* 			printk("%02x", value[i]); */
 		memcpy(self->client.reconnect_key, value, val_len);
 		self->client.key_len = val_len;
 		pr_debug("\n");
 	}
+
 	/* FILTER_ENTRY, have we got an ethernet address? */
-	if (strcmp(param, "FILTER_ENTRY") == 0) {
+	if (strcmp(param, "FILTER_ENTRY") == 0)
+	{
 		bytes = value;
 		pr_debug("Ethernet address = %pM\n", bytes);
+
 		for (i = 0; i < 6; i++)
+		{
 			self->dev->dev_addr[i] = bytes[i];
+		}
 	}
 }
 
@@ -519,7 +603,7 @@ static void irlan_check_response_param(struct irlan_cb *self, char *param,
  *
  */
 void irlan_client_get_value_confirm(int result, __u16 obj_id,
-				    struct ias_value *value, void *priv)
+									struct ias_value *value, void *priv)
 {
 	struct irlan_cb *self;
 
@@ -533,27 +617,33 @@ void irlan_client_get_value_confirm(int result, __u16 obj_id,
 	self->client.iriap = NULL;
 
 	/* Check if request succeeded */
-	if (result != IAS_SUCCESS) {
+	if (result != IAS_SUCCESS)
+	{
 		pr_debug("%s(), got NULL value!\n", __func__);
 		irlan_do_client_event(self, IRLAN_IAS_PROVIDER_NOT_AVAIL,
-				      NULL);
+							  NULL);
 		return;
 	}
 
-	switch (value->type) {
-	case IAS_INTEGER:
-		self->dtsap_sel_ctrl = value->t.integer;
+	switch (value->type)
+	{
+		case IAS_INTEGER:
+			self->dtsap_sel_ctrl = value->t.integer;
 
-		if (value->t.integer != -1) {
-			irlan_do_client_event(self, IRLAN_IAS_PROVIDER_AVAIL,
-					      NULL);
-			return;
-		}
-		irias_delete_value(value);
-		break;
-	default:
-		pr_debug("%s(), unknown type!\n", __func__);
-		break;
+			if (value->t.integer != -1)
+			{
+				irlan_do_client_event(self, IRLAN_IAS_PROVIDER_AVAIL,
+									  NULL);
+				return;
+			}
+
+			irias_delete_value(value);
+			break;
+
+		default:
+			pr_debug("%s(), unknown type!\n", __func__);
+			break;
 	}
+
 	irlan_do_client_event(self, IRLAN_IAS_PROVIDER_NOT_AVAIL, NULL);
 }

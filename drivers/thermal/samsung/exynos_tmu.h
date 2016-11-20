@@ -25,7 +25,8 @@
 #include <linux/cpu_cooling.h>
 #include <dt-bindings/thermal/thermal_exynos.h>
 
-enum soc_type {
+enum soc_type
+{
 	SOC_ARCH_EXYNOS3250 = 1,
 	SOC_ARCH_EXYNOS4210,
 	SOC_ARCH_EXYNOS4412,
@@ -56,7 +57,8 @@ enum soc_type {
  *
  * This structure is required for configuration of exynos_tmu driver.
  */
-struct exynos_tmu_platform_data {
+struct exynos_tmu_platform_data
+{
 	u8 gain;
 	u8 reference_voltage;
 	u8 noise_cancel_mode;

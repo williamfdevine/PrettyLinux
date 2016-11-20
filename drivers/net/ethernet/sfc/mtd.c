@@ -27,12 +27,17 @@ static int efx_mtd_erase(struct mtd_info *mtd, struct erase_info *erase)
 	int rc;
 
 	rc = efx->type->mtd_erase(mtd, erase->addr, erase->len);
-	if (rc == 0) {
+
+	if (rc == 0)
+	{
 		erase->state = MTD_ERASE_DONE;
-	} else {
+	}
+	else
+	{
 		erase->state = MTD_ERASE_FAILED;
 		erase->fail_addr = MTD_FAIL_ADDR_UNKNOWN;
 	}
+
 	mtd_erase_callback(erase);
 	return rc;
 }
@@ -44,34 +49,42 @@ static void efx_mtd_sync(struct mtd_info *mtd)
 	int rc;
 
 	rc = efx->type->mtd_sync(mtd);
+
 	if (rc)
 		pr_err("%s: %s sync failed (%d)\n",
-		       part->name, part->dev_type_name, rc);
+			   part->name, part->dev_type_name, rc);
 }
 
 static void efx_mtd_remove_partition(struct efx_mtd_partition *part)
 {
 	int rc;
 
-	for (;;) {
+	for (;;)
+	{
 		rc = mtd_device_unregister(&part->mtd);
+
 		if (rc != -EBUSY)
+		{
 			break;
+		}
+
 		ssleep(1);
 	}
+
 	WARN_ON(rc);
 	list_del(&part->node);
 }
 
 int efx_mtd_add(struct efx_nic *efx, struct efx_mtd_partition *parts,
-		size_t n_parts, size_t sizeof_part)
+				size_t n_parts, size_t sizeof_part)
 {
 	struct efx_mtd_partition *part;
 	size_t i;
 
-	for (i = 0; i < n_parts; i++) {
+	for (i = 0; i < n_parts; i++)
+	{
 		part = (struct efx_mtd_partition *)((char *)parts +
-						    i * sizeof_part);
+											i * sizeof_part);
 
 		part->mtd.writesize = 1;
 
@@ -86,7 +99,9 @@ int efx_mtd_add(struct efx_nic *efx, struct efx_mtd_partition *parts,
 		efx->type->mtd_rename(part);
 
 		if (mtd_device_register(&part->mtd, NULL, 0))
+		{
 			goto fail;
+		}
 
 		/* Add to list in order - efx_mtd_remove() depends on this */
 		list_add_tail(&part->node, &efx->mtd_list);
@@ -95,11 +110,14 @@ int efx_mtd_add(struct efx_nic *efx, struct efx_mtd_partition *parts,
 	return 0;
 
 fail:
-	while (i--) {
+
+	while (i--)
+	{
 		part = (struct efx_mtd_partition *)((char *)parts +
-						    i * sizeof_part);
+											i * sizeof_part);
 		efx_mtd_remove_partition(part);
 	}
+
 	/* Failure is unlikely here, but probably means we're out of memory */
 	return -ENOMEM;
 }
@@ -111,13 +129,15 @@ void efx_mtd_remove(struct efx_nic *efx)
 	WARN_ON(efx_dev_registered(efx));
 
 	if (list_empty(&efx->mtd_list))
+	{
 		return;
+	}
 
 	parts = list_first_entry(&efx->mtd_list, struct efx_mtd_partition,
-				 node);
+							 node);
 
 	list_for_each_entry_safe(part, next, &efx->mtd_list, node)
-		efx_mtd_remove_partition(part);
+	efx_mtd_remove_partition(part);
 
 	kfree(parts);
 }
@@ -129,5 +149,5 @@ void efx_mtd_rename(struct efx_nic *efx)
 	ASSERT_RTNL();
 
 	list_for_each_entry(part, &efx->mtd_list, node)
-		efx->type->mtd_rename(part);
+	efx->type->mtd_rename(part);
 }

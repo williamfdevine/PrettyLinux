@@ -44,7 +44,8 @@ static int ping_srv_workitems = SFW_TEST_WI_MAX;
 module_param(ping_srv_workitems, int, 0644);
 MODULE_PARM_DESC(ping_srv_workitems, "# PING server workitems");
 
-struct lst_ping_data {
+struct lst_ping_data
+{
 	spinlock_t	pnd_lock;	/* serialize */
 	int		pnd_counter;	/* sequence counter */
 };
@@ -75,15 +76,20 @@ ping_client_fini(struct sfw_test_instance *tsi)
 	LASSERT(tsi->tsi_is_client);
 
 	errors = atomic_read(&sn->sn_ping_errors);
+
 	if (errors)
+	{
 		CWARN("%d pings have failed.\n", errors);
+	}
 	else
+	{
 		CDEBUG(D_NET, "Ping test finished OK.\n");
+	}
 }
 
 static int
 ping_client_prep_rpc(struct sfw_test_unit *tsu, lnet_process_id_t dest,
-		     struct srpc_client_rpc **rpc)
+					 struct srpc_client_rpc **rpc)
 {
 	struct srpc_ping_reqst *req;
 	struct sfw_test_instance *tsi = tsu->tsu_instance;
@@ -95,8 +101,11 @@ ping_client_prep_rpc(struct sfw_test_unit *tsu, lnet_process_id_t dest,
 	LASSERT(!(sn->sn_features & ~LST_FEATS_MASK));
 
 	rc = sfw_create_test_rpc(tsu, dest, sn->sn_features, 0, 0, rpc);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	req = &(*rpc)->crpc_reqstmsg.msg_body.ping_reqst;
 
@@ -124,43 +133,50 @@ ping_client_done_rpc(struct sfw_test_unit *tsu, struct srpc_client_rpc *rpc)
 
 	LASSERT(sn);
 
-	if (rpc->crpc_status) {
+	if (rpc->crpc_status)
+	{
 		if (!tsi->tsi_stopping)	/* rpc could have been aborted */
+		{
 			atomic_inc(&sn->sn_ping_errors);
+		}
+
 		CERROR("Unable to ping %s (%d): %d\n",
-		       libcfs_id2str(rpc->crpc_dest),
-		       reqst->pnr_seq, rpc->crpc_status);
+			   libcfs_id2str(rpc->crpc_dest),
+			   reqst->pnr_seq, rpc->crpc_status);
 		return;
 	}
 
-	if (rpc->crpc_replymsg.msg_magic != SRPC_MSG_MAGIC) {
+	if (rpc->crpc_replymsg.msg_magic != SRPC_MSG_MAGIC)
+	{
 		__swab32s(&reply->pnr_seq);
 		__swab32s(&reply->pnr_magic);
 		__swab32s(&reply->pnr_status);
 	}
 
-	if (reply->pnr_magic != LST_PING_TEST_MAGIC) {
+	if (reply->pnr_magic != LST_PING_TEST_MAGIC)
+	{
 		rpc->crpc_status = -EBADMSG;
 		atomic_inc(&sn->sn_ping_errors);
 		CERROR("Bad magic %u from %s, %u expected.\n",
-		       reply->pnr_magic, libcfs_id2str(rpc->crpc_dest),
-		       LST_PING_TEST_MAGIC);
+			   reply->pnr_magic, libcfs_id2str(rpc->crpc_dest),
+			   LST_PING_TEST_MAGIC);
 		return;
 	}
 
-	if (reply->pnr_seq != reqst->pnr_seq) {
+	if (reply->pnr_seq != reqst->pnr_seq)
+	{
 		rpc->crpc_status = -EBADMSG;
 		atomic_inc(&sn->sn_ping_errors);
 		CERROR("Bad seq %u from %s, %u expected.\n",
-		       reply->pnr_seq, libcfs_id2str(rpc->crpc_dest),
-		       reqst->pnr_seq);
+			   reply->pnr_seq, libcfs_id2str(rpc->crpc_dest),
+			   reqst->pnr_seq);
 		return;
 	}
 
 	ktime_get_real_ts64(&ts);
 	CDEBUG(D_NET, "%d reply in %u usec\n", reply->pnr_seq,
-	       (unsigned)((ts.tv_sec - reqst->pnr_time_sec) * 1000000 +
-			  (ts.tv_nsec / NSEC_PER_USEC - reqst->pnr_time_usec)));
+		   (unsigned)((ts.tv_sec - reqst->pnr_time_sec) * 1000000 +
+					  (ts.tv_nsec / NSEC_PER_USEC - reqst->pnr_time_usec)));
 }
 
 static int
@@ -174,7 +190,8 @@ ping_server_handle(struct srpc_server_rpc *rpc)
 
 	LASSERT(sv->sv_id == SRPC_SERVICE_PING);
 
-	if (reqstmsg->msg_magic != SRPC_MSG_MAGIC) {
+	if (reqstmsg->msg_magic != SRPC_MSG_MAGIC)
+	{
 		LASSERT(reqstmsg->msg_magic == __swab32(SRPC_MSG_MAGIC));
 
 		__swab32s(&req->pnr_seq);
@@ -182,18 +199,21 @@ ping_server_handle(struct srpc_server_rpc *rpc)
 		__swab64s(&req->pnr_time_sec);
 		__swab64s(&req->pnr_time_usec);
 	}
+
 	LASSERT(reqstmsg->msg_type == srpc_service2request(sv->sv_id));
 
-	if (req->pnr_magic != LST_PING_TEST_MAGIC) {
+	if (req->pnr_magic != LST_PING_TEST_MAGIC)
+	{
 		CERROR("Unexpected magic %08x from %s\n",
-		       req->pnr_magic, libcfs_id2str(rpc->srpc_peer));
+			   req->pnr_magic, libcfs_id2str(rpc->srpc_peer));
 		return -EINVAL;
 	}
 
 	rep->pnr_seq = req->pnr_seq;
 	rep->pnr_magic = LST_PING_TEST_MAGIC;
 
-	if (reqstmsg->msg_ses_feats & ~LST_FEATS_MASK) {
+	if (reqstmsg->msg_ses_feats & ~LST_FEATS_MASK)
+	{
 		replymsg->msg_ses_feats = LST_FEATS_MASK;
 		rep->pnr_status = EPROTO;
 		return 0;
@@ -202,7 +222,7 @@ ping_server_handle(struct srpc_server_rpc *rpc)
 	replymsg->msg_ses_feats = reqstmsg->msg_ses_feats;
 
 	CDEBUG(D_NET, "Get ping %d from %s\n",
-	       req->pnr_seq, libcfs_id2str(rpc->srpc_peer));
+		   req->pnr_seq, libcfs_id2str(rpc->srpc_peer));
 	return 0;
 }
 

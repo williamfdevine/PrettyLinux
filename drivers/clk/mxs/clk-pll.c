@@ -26,7 +26,8 @@
  * The mxs pll is a fixed rate clock with power and gate control,
  * and the shift of gate bit is always 31.
  */
-struct clk_pll {
+struct clk_pll
+{
 	struct clk_hw hw;
 	void __iomem *base;
 	u8 power;
@@ -70,14 +71,15 @@ static void clk_pll_disable(struct clk_hw *hw)
 }
 
 static unsigned long clk_pll_recalc_rate(struct clk_hw *hw,
-					 unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_pll *pll = to_clk_pll(hw);
 
 	return pll->rate;
 }
 
-static const struct clk_ops clk_pll_ops = {
+static const struct clk_ops clk_pll_ops =
+{
 	.prepare = clk_pll_prepare,
 	.unprepare = clk_pll_unprepare,
 	.enable = clk_pll_enable,
@@ -86,20 +88,23 @@ static const struct clk_ops clk_pll_ops = {
 };
 
 struct clk *mxs_clk_pll(const char *name, const char *parent_name,
-			void __iomem *base, u8 power, unsigned long rate)
+						void __iomem *base, u8 power, unsigned long rate)
 {
 	struct clk_pll *pll;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	pll = kzalloc(sizeof(*pll), GFP_KERNEL);
+
 	if (!pll)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = &clk_pll_ops;
 	init.flags = 0;
-	init.parent_names = (parent_name ? &parent_name: NULL);
+	init.parent_names = (parent_name ? &parent_name : NULL);
 	init.num_parents = (parent_name ? 1 : 0);
 
 	pll->base = base;
@@ -108,8 +113,11 @@ struct clk *mxs_clk_pll(const char *name, const char *parent_name,
 	pll->hw.init = &init;
 
 	clk = clk_register(NULL, &pll->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(pll);
+	}
 
 	return clk;
 }

@@ -17,15 +17,25 @@ void call_rcu(struct rcu_head *head, void (*func)(struct rcu_head *head))
 	head->func = func;
 	head->next = rcuhead;
 	rcuhead = head;
+
 	if (!rcutail)
+	{
 		rcutail = head;
+	}
+
 	nr_rcuhead++;
-	if (nr_rcuhead >= 1000) {
+
+	if (nr_rcuhead >= 1000)
+	{
 		int signal = 0;
 
 		pthread_mutex_lock(&rculock);
+
 		if (!rcuhead_global)
+		{
 			signal = 1;
+		}
+
 		rcutail->next = rcuhead_global;
 		rcuhead_global = head;
 		pthread_mutex_unlock(&rculock);
@@ -34,7 +44,8 @@ void call_rcu(struct rcu_head *head, void (*func)(struct rcu_head *head))
 		rcuhead = NULL;
 		rcutail = NULL;
 
-		if (signal) {
+		if (signal)
+		{
 			pthread_cond_signal(&rcu_worker_cond);
 		}
 	}
@@ -46,11 +57,15 @@ static void *rcu_worker(void *arg)
 
 	rcupdate_thread_init();
 
-	while (1) {
+	while (1)
+	{
 		pthread_mutex_lock(&rculock);
-		while (!rcuhead_global) {
+
+		while (!rcuhead_global)
+		{
 			pthread_cond_wait(&rcu_worker_cond, &rculock);
 		}
+
 		r = rcuhead_global;
 		rcuhead_global = NULL;
 
@@ -58,7 +73,8 @@ static void *rcu_worker(void *arg)
 
 		synchronize_rcu();
 
-		while (r) {
+		while (r)
+		{
 			struct rcu_head *tmp = r->next;
 			r->func(r);
 			r = tmp;

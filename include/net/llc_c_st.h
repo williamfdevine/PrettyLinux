@@ -14,7 +14,7 @@
 /* Connection component state management */
 /* connection states */
 #define LLC_CONN_OUT_OF_SVC		 0	/* prior to allocation */
- 
+
 #define LLC_CONN_STATE_ADM		 1	/* disc, initial state */
 #define LLC_CONN_STATE_SETUP		 2	/* disconnected state */
 #define LLC_CONN_STATE_NORMAL		 3	/* connected state */
@@ -32,14 +32,16 @@
 #define NO_STATE_CHANGE			100
 
 /* Connection state table structure */
-struct llc_conn_state_trans {
+struct llc_conn_state_trans
+{
 	llc_conn_ev_t	   ev;
 	u8		   next_state;
 	const llc_conn_ev_qfyr_t *ev_qualifiers;
 	const llc_conn_action_t  *ev_actions;
 };
 
-struct llc_conn_state {
+struct llc_conn_state
+{
 	u8			    current_state;
 	struct llc_conn_state_trans **transitions;
 };

@@ -68,8 +68,8 @@
 
 #ifndef VIRTIO_MMIO_NO_LEGACY /* LEGACY DEVICES ONLY! */
 
-/* Guest's memory page size in bytes - Write Only */
-#define VIRTIO_MMIO_GUEST_PAGE_SIZE	0x028
+	/* Guest's memory page size in bytes - Write Only */
+	#define VIRTIO_MMIO_GUEST_PAGE_SIZE	0x028
 
 #endif
 
@@ -86,11 +86,11 @@
 
 #ifndef VIRTIO_MMIO_NO_LEGACY /* LEGACY DEVICES ONLY! */
 
-/* Used Ring alignment for the currently selected queue - Write Only */
-#define VIRTIO_MMIO_QUEUE_ALIGN		0x03c
+	/* Used Ring alignment for the currently selected queue - Write Only */
+	#define VIRTIO_MMIO_QUEUE_ALIGN		0x03c
 
-/* Guest's PFN for the currently selected queue - Read Write */
-#define VIRTIO_MMIO_QUEUE_PFN		0x040
+	/* Guest's PFN for the currently selected queue - Read Write */
+	#define VIRTIO_MMIO_QUEUE_PFN		0x040
 
 #endif
 

@@ -15,7 +15,8 @@
 
 /* Cinergy 1400 DVB-T */
 
-static struct rc_map_table cinergy_1400[] = {
+static struct rc_map_table cinergy_1400[] =
+{
 	{ 0x01, KEY_POWER },
 	{ 0x02, KEY_1 },
 	{ 0x03, KEY_2 },
@@ -59,7 +60,8 @@ static struct rc_map_table cinergy_1400[] = {
 	{ 0x5c, KEY_NEXT },
 };
 
-static struct rc_map_list cinergy_1400_map = {
+static struct rc_map_list cinergy_1400_map =
+{
 	.map = {
 		.scan    = cinergy_1400,
 		.size    = ARRAY_SIZE(cinergy_1400),

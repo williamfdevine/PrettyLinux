@@ -61,7 +61,9 @@ static void wdt_disable(void)
 static int ixp4xx_wdt_open(struct inode *inode, struct file *file)
 {
 	if (test_and_set_bit(WDT_IN_USE, &wdt_status))
+	{
 		return -EBUSY;
+	}
 
 	clear_bit(WDT_OK_TO_CLOSE, &wdt_status);
 	wdt_enable();
@@ -71,85 +73,108 @@ static int ixp4xx_wdt_open(struct inode *inode, struct file *file)
 static ssize_t
 ixp4xx_wdt_write(struct file *file, const char *data, size_t len, loff_t *ppos)
 {
-	if (len) {
-		if (!nowayout) {
+	if (len)
+	{
+		if (!nowayout)
+		{
 			size_t i;
 
 			clear_bit(WDT_OK_TO_CLOSE, &wdt_status);
 
-			for (i = 0; i != len; i++) {
+			for (i = 0; i != len; i++)
+			{
 				char c;
 
 				if (get_user(c, data + i))
+				{
 					return -EFAULT;
+				}
+
 				if (c == 'V')
+				{
 					set_bit(WDT_OK_TO_CLOSE, &wdt_status);
+				}
 			}
 		}
+
 		wdt_enable();
 	}
+
 	return len;
 }
 
-static const struct watchdog_info ident = {
+static const struct watchdog_info ident =
+{
 	.options	= WDIOF_CARDRESET | WDIOF_MAGICCLOSE |
-			  WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
+	WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
 	.identity	= "IXP4xx Watchdog",
 };
 
 
 static long ixp4xx_wdt_ioctl(struct file *file, unsigned int cmd,
-							unsigned long arg)
+							 unsigned long arg)
 {
 	int ret = -ENOTTY;
 	int time;
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		ret = copy_to_user((struct watchdog_info *)arg, &ident,
-				   sizeof(ident)) ? -EFAULT : 0;
-		break;
-
-	case WDIOC_GETSTATUS:
-		ret = put_user(0, (int *)arg);
-		break;
-
-	case WDIOC_GETBOOTSTATUS:
-		ret = put_user(boot_status, (int *)arg);
-		break;
-
-	case WDIOC_KEEPALIVE:
-		wdt_enable();
-		ret = 0;
-		break;
-
-	case WDIOC_SETTIMEOUT:
-		ret = get_user(time, (int *)arg);
-		if (ret)
+	switch (cmd)
+	{
+		case WDIOC_GETSUPPORT:
+			ret = copy_to_user((struct watchdog_info *)arg, &ident,
+							   sizeof(ident)) ? -EFAULT : 0;
 			break;
 
-		if (time <= 0 || time > 60) {
-			ret = -EINVAL;
+		case WDIOC_GETSTATUS:
+			ret = put_user(0, (int *)arg);
 			break;
-		}
 
-		heartbeat = time;
-		wdt_enable();
+		case WDIOC_GETBOOTSTATUS:
+			ret = put_user(boot_status, (int *)arg);
+			break;
+
+		case WDIOC_KEEPALIVE:
+			wdt_enable();
+			ret = 0;
+			break;
+
+		case WDIOC_SETTIMEOUT:
+			ret = get_user(time, (int *)arg);
+
+			if (ret)
+			{
+				break;
+			}
+
+			if (time <= 0 || time > 60)
+			{
+				ret = -EINVAL;
+				break;
+			}
+
+			heartbeat = time;
+			wdt_enable();
+
 		/* Fall through */
 
-	case WDIOC_GETTIMEOUT:
-		ret = put_user(heartbeat, (int *)arg);
-		break;
+		case WDIOC_GETTIMEOUT:
+			ret = put_user(heartbeat, (int *)arg);
+			break;
 	}
+
 	return ret;
 }
 
 static int ixp4xx_wdt_release(struct inode *inode, struct file *file)
 {
 	if (test_bit(WDT_OK_TO_CLOSE, &wdt_status))
+	{
 		wdt_disable();
+	}
 	else
+	{
 		pr_crit("Device closed unexpectedly - timer will not stop\n");
+	}
+
 	clear_bit(WDT_IN_USE, &wdt_status);
 	clear_bit(WDT_OK_TO_CLOSE, &wdt_status);
 
@@ -157,7 +182,8 @@ static int ixp4xx_wdt_release(struct inode *inode, struct file *file)
 }
 
 
-static const struct file_operations ixp4xx_wdt_fops = {
+static const struct file_operations ixp4xx_wdt_fops =
+{
 	.owner		= THIS_MODULE,
 	.llseek		= no_llseek,
 	.write		= ixp4xx_wdt_write,
@@ -166,7 +192,8 @@ static const struct file_operations ixp4xx_wdt_fops = {
 	.release	= ixp4xx_wdt_release,
 };
 
-static struct miscdevice ixp4xx_wdt_miscdev = {
+static struct miscdevice ixp4xx_wdt_miscdev =
+{
 	.minor		= WATCHDOG_MINOR,
 	.name		= "watchdog",
 	.fops		= &ixp4xx_wdt_fops,
@@ -176,16 +203,22 @@ static int __init ixp4xx_wdt_init(void)
 {
 	int ret;
 
-	if (!(read_cpuid_id() & 0xf) && !cpu_is_ixp46x()) {
+	if (!(read_cpuid_id() & 0xf) && !cpu_is_ixp46x())
+	{
 		pr_err("Rev. A0 IXP42x CPU detected - watchdog disabled\n");
 
 		return -ENODEV;
 	}
+
 	boot_status = (*IXP4XX_OSST & IXP4XX_OSST_TIMER_WARM_RESET) ?
-			WDIOF_CARDRESET : 0;
+				  WDIOF_CARDRESET : 0;
 	ret = misc_register(&ixp4xx_wdt_miscdev);
+
 	if (ret == 0)
+	{
 		pr_info("timer heartbeat %d sec\n", heartbeat);
+	}
+
 	return ret;
 }
 

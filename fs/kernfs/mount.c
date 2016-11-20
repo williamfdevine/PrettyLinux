@@ -27,7 +27,10 @@ static int kernfs_sop_remount_fs(struct super_block *sb, int *flags, char *data)
 	struct kernfs_syscall_ops *scops = root->syscall_ops;
 
 	if (scops && scops->remount_fs)
+	{
 		return scops->remount_fs(root, flags, data);
+	}
+
 	return 0;
 }
 
@@ -37,7 +40,10 @@ static int kernfs_sop_show_options(struct seq_file *sf, struct dentry *dentry)
 	struct kernfs_syscall_ops *scops = root->syscall_ops;
 
 	if (scops && scops->show_options)
+	{
 		return scops->show_options(sf, root);
+	}
+
 	return 0;
 }
 
@@ -48,13 +54,16 @@ static int kernfs_sop_show_path(struct seq_file *sf, struct dentry *dentry)
 	struct kernfs_syscall_ops *scops = root->syscall_ops;
 
 	if (scops && scops->show_path)
+	{
 		return scops->show_path(sf, node, root);
+	}
 
 	seq_dentry(sf, dentry, " \t\n\\");
 	return 0;
 }
 
-const struct super_operations kernfs_sops = {
+const struct super_operations kernfs_sops =
+{
 	.statfs		= simple_statfs,
 	.drop_inode	= generic_delete_inode,
 	.evict_inode	= kernfs_evict_inode,
@@ -74,7 +83,10 @@ const struct super_operations kernfs_sops = {
 struct kernfs_root *kernfs_root_from_sb(struct super_block *sb)
 {
 	if (sb->s_op == &kernfs_sops)
+	{
 		return kernfs_info(sb)->root;
+	}
+
 	return NULL;
 }
 
@@ -87,16 +99,21 @@ struct kernfs_root *kernfs_root_from_sb(struct super_block *sb)
  * Passing in d as @parent is not ok.
  */
 static struct kernfs_node *find_next_ancestor(struct kernfs_node *child,
-					      struct kernfs_node *parent)
+		struct kernfs_node *parent)
 {
-	if (child == parent) {
+	if (child == parent)
+	{
 		pr_crit_once("BUG in find_next_ancestor: called with parent == child");
 		return NULL;
 	}
 
-	while (child->parent != parent) {
+	while (child->parent != parent)
+	{
 		if (!child->parent)
+		{
 			return NULL;
+		}
+
 		child = child->parent;
 	}
 
@@ -109,7 +126,7 @@ static struct kernfs_node *find_next_ancestor(struct kernfs_node *child,
  * @sb: the kernfs super_block
  */
 struct dentry *kernfs_node_dentry(struct kernfs_node *kn,
-				  struct super_block *sb)
+								  struct super_block *sb)
 {
 	struct dentry *dentry;
 	struct kernfs_node *knparent = NULL;
@@ -120,29 +137,47 @@ struct dentry *kernfs_node_dentry(struct kernfs_node *kn,
 
 	/* Check if this is the root kernfs_node */
 	if (!kn->parent)
+	{
 		return dentry;
+	}
 
 	knparent = find_next_ancestor(kn, NULL);
-	if (WARN_ON(!knparent))
-		return ERR_PTR(-EINVAL);
 
-	do {
+	if (WARN_ON(!knparent))
+	{
+		return ERR_PTR(-EINVAL);
+	}
+
+	do
+	{
 		struct dentry *dtmp;
 		struct kernfs_node *kntmp;
 
 		if (kn == knparent)
+		{
 			return dentry;
+		}
+
 		kntmp = find_next_ancestor(kn, knparent);
+
 		if (WARN_ON(!kntmp))
+		{
 			return ERR_PTR(-EINVAL);
+		}
+
 		dtmp = lookup_one_len_unlocked(kntmp->name, dentry,
-					       strlen(kntmp->name));
+									   strlen(kntmp->name));
 		dput(dentry);
+
 		if (IS_ERR(dtmp))
+		{
 			return dtmp;
+		}
+
 		knparent = kntmp;
 		dentry = dtmp;
-	} while (true);
+	}
+	while (true);
 }
 
 static int kernfs_fill_super(struct super_block *sb, unsigned long magic)
@@ -165,17 +200,22 @@ static int kernfs_fill_super(struct super_block *sb, unsigned long magic)
 	mutex_lock(&kernfs_mutex);
 	inode = kernfs_get_inode(sb, info->root->kn);
 	mutex_unlock(&kernfs_mutex);
-	if (!inode) {
+
+	if (!inode)
+	{
 		pr_debug("kernfs: could not get root inode\n");
 		return -ENOMEM;
 	}
 
 	/* instantiate and link root dentry */
 	root = d_make_root(inode);
-	if (!root) {
+
+	if (!root)
+	{
 		pr_debug("%s: could not get root dentry!\n", __func__);
 		return -ENOMEM;
 	}
+
 	kernfs_get(info->root->kn);
 	root->d_fsdata = info->root->kn;
 	sb->s_root = root;
@@ -195,8 +235,12 @@ static int kernfs_set_super(struct super_block *sb, void *data)
 {
 	int error;
 	error = set_anon_super(sb, data);
+
 	if (!error)
+	{
 		sb->s_fs_info = data;
+	}
+
 	return error;
 }
 
@@ -230,38 +274,53 @@ const void *kernfs_super_ns(struct super_block *sb)
  * The return value can be passed to the vfs layer verbatim.
  */
 struct dentry *kernfs_mount_ns(struct file_system_type *fs_type, int flags,
-				struct kernfs_root *root, unsigned long magic,
-				bool *new_sb_created, const void *ns)
+							   struct kernfs_root *root, unsigned long magic,
+							   bool *new_sb_created, const void *ns)
 {
 	struct super_block *sb;
 	struct kernfs_super_info *info;
 	int error;
 
 	info = kzalloc(sizeof(*info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	info->root = root;
 	info->ns = ns;
 
 	sb = sget_userns(fs_type, kernfs_test_super, kernfs_set_super, flags,
-			 &init_user_ns, info);
+					 &init_user_ns, info);
+
 	if (IS_ERR(sb) || sb->s_fs_info != info)
+	{
 		kfree(info);
+	}
+
 	if (IS_ERR(sb))
+	{
 		return ERR_CAST(sb);
+	}
 
 	if (new_sb_created)
+	{
 		*new_sb_created = !sb->s_root;
+	}
 
-	if (!sb->s_root) {
+	if (!sb->s_root)
+	{
 		struct kernfs_super_info *info = kernfs_info(sb);
 
 		error = kernfs_fill_super(sb, magic);
-		if (error) {
+
+		if (error)
+		{
 			deactivate_locked_super(sb);
 			return ERR_PTR(error);
 		}
+
 		sb->s_flags |= MS_ACTIVE;
 
 		mutex_lock(&kernfs_mutex);
@@ -316,11 +375,17 @@ struct super_block *kernfs_pin_sb(struct kernfs_root *root, const void *ns)
 	struct super_block *sb = NULL;
 
 	mutex_lock(&kernfs_mutex);
-	list_for_each_entry(info, &root->supers, node) {
-		if (info->ns == ns) {
+	list_for_each_entry(info, &root->supers, node)
+	{
+		if (info->ns == ns)
+		{
 			sb = info->sb;
+
 			if (!atomic_inc_not_zero(&info->sb->s_active))
+			{
 				sb = ERR_PTR(-EINVAL);
+			}
+
 			break;
 		}
 	}
@@ -331,6 +396,6 @@ struct super_block *kernfs_pin_sb(struct kernfs_root *root, const void *ns)
 void __init kernfs_init(void)
 {
 	kernfs_node_cache = kmem_cache_create("kernfs_node_cache",
-					      sizeof(struct kernfs_node),
-					      0, SLAB_PANIC, NULL);
+										  sizeof(struct kernfs_node),
+										  0, SLAB_PANIC, NULL);
 }

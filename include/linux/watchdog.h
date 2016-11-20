@@ -39,7 +39,8 @@ struct watchdog_governor;
  * these operations. The start and stop function are mandatory, all other
  * functions are optional.
  */
-struct watchdog_ops {
+struct watchdog_ops
+{
 	struct module *owner;
 	/* mandatory operations */
 	int (*start)(struct watchdog_device *);
@@ -93,7 +94,8 @@ struct watchdog_ops {
  * The lock field is for watchdog core internal use only and should not be
  * touched.
  */
-struct watchdog_device {
+struct watchdog_device
+{
 	int id;
 	struct device *parent;
 	const struct attribute_group **groups;
@@ -112,7 +114,7 @@ struct watchdog_device {
 	void *driver_data;
 	struct watchdog_core_data *wd_data;
 	unsigned long status;
-/* Bit numbers for status flags */
+	/* Bit numbers for status flags */
 #define WDOG_ACTIVE		0	/* Is the watchdog running/active */
 #define WDOG_NO_WAY_OUT		1	/* Is 'nowayout' feature set ? */
 #define WDOG_STOP_ON_REBOOT	2	/* Should be stopped on reboot */
@@ -142,7 +144,9 @@ static inline bool watchdog_hw_running(struct watchdog_device *wdd)
 static inline void watchdog_set_nowayout(struct watchdog_device *wdd, bool nowayout)
 {
 	if (nowayout)
+	{
 		set_bit(WDOG_NO_WAY_OUT, &wdd->status);
+	}
 }
 
 /* Use the following function to stop the watchdog on reboot */
@@ -166,13 +170,13 @@ static inline bool watchdog_timeout_invalid(struct watchdog_device *wdd, unsigne
 	 *   configured maximum timeout.
 	 */
 	return t > UINT_MAX / 1000 || t < wdd->min_timeout ||
-		(!wdd->max_hw_heartbeat_ms && wdd->max_timeout &&
-		 t > wdd->max_timeout);
+		   (!wdd->max_hw_heartbeat_ms && wdd->max_timeout &&
+			t > wdd->max_timeout);
 }
 
 /* Use the following function to check if a pretimeout value is invalid */
 static inline bool watchdog_pretimeout_invalid(struct watchdog_device *wdd,
-					       unsigned int t)
+		unsigned int t)
 {
 	return t && wdd->timeout && t >= wdd->timeout;
 }
@@ -201,7 +205,7 @@ static inline void watchdog_notify_pretimeout(struct watchdog_device *wdd)
 /* drivers/watchdog/watchdog_core.c */
 void watchdog_set_restart_priority(struct watchdog_device *wdd, int priority);
 extern int watchdog_init_timeout(struct watchdog_device *wdd,
-				  unsigned int timeout_parm, struct device *dev);
+								 unsigned int timeout_parm, struct device *dev);
 extern int watchdog_register_device(struct watchdog_device *);
 extern void watchdog_unregister_device(struct watchdog_device *);
 

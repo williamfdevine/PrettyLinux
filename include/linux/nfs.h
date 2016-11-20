@@ -15,7 +15,8 @@
  * This is the kernel NFS client file handle representation
  */
 #define NFS_MAXFHSIZE		128
-struct nfs_fh {
+struct nfs_fh
+{
 	unsigned short		size;
 	unsigned char		data[NFS_MAXFHSIZE];
 };
@@ -43,7 +44,8 @@ static inline void nfs_copy_fh(struct nfs_fh *target, const struct nfs_fh *sourc
 #define NFS_OFFSET_MAX		((__s64)((~(__u64)0) >> 1))
 
 
-enum nfs3_stable_how {
+enum nfs3_stable_how
+{
 	NFS_UNSTABLE = 0,
 	NFS_DATA_SYNC = 1,
 	NFS_FILE_SYNC = 2,

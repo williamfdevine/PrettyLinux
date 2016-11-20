@@ -30,30 +30,35 @@ module_param(timeout, uint, S_IRUSR);
 MODULE_PARM_DESC(timeout, "timeout for master connection/replies in seconds");
 
 int (*nf_nat_snmp_hook)(struct sk_buff *skb,
-			unsigned int protoff,
-			struct nf_conn *ct,
-			enum ip_conntrack_info ctinfo);
+						unsigned int protoff,
+						struct nf_conn *ct,
+						enum ip_conntrack_info ctinfo);
 EXPORT_SYMBOL_GPL(nf_nat_snmp_hook);
 
 static int snmp_conntrack_help(struct sk_buff *skb, unsigned int protoff,
-		struct nf_conn *ct, enum ip_conntrack_info ctinfo)
+							   struct nf_conn *ct, enum ip_conntrack_info ctinfo)
 {
 	typeof(nf_nat_snmp_hook) nf_nat_snmp;
 
 	nf_conntrack_broadcast_help(skb, protoff, ct, ctinfo, timeout);
 
 	nf_nat_snmp = rcu_dereference(nf_nat_snmp_hook);
+
 	if (nf_nat_snmp && ct->status & IPS_NAT_MASK)
+	{
 		return nf_nat_snmp(skb, protoff, ct, ctinfo);
+	}
 
 	return NF_ACCEPT;
 }
 
-static struct nf_conntrack_expect_policy exp_policy = {
+static struct nf_conntrack_expect_policy exp_policy =
+{
 	.max_expected	= 1,
 };
 
-static struct nf_conntrack_helper helper __read_mostly = {
+static struct nf_conntrack_helper helper __read_mostly =
+{
 	.name			= "snmp",
 	.tuple.src.l3num	= NFPROTO_IPV4,
 	.tuple.src.u.udp.port	= cpu_to_be16(SNMP_PORT),

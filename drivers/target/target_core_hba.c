@@ -53,13 +53,19 @@ int transport_backend_register(const struct target_backend_ops *ops)
 	struct target_backend *tb, *old;
 
 	tb = kzalloc(sizeof(*tb), GFP_KERNEL);
+
 	if (!tb)
+	{
 		return -ENOMEM;
+	}
+
 	tb->ops = ops;
 
 	mutex_lock(&backend_mutex);
-	list_for_each_entry(old, &backend_list, list) {
-		if (!strcmp(old->ops->name, ops->name)) {
+	list_for_each_entry(old, &backend_list, list)
+	{
+		if (!strcmp(old->ops->name, ops->name))
+		{
 			pr_err("backend %s already registered.\n", ops->name);
 			mutex_unlock(&backend_mutex);
 			kfree(tb);
@@ -71,7 +77,7 @@ int transport_backend_register(const struct target_backend_ops *ops)
 	mutex_unlock(&backend_mutex);
 
 	pr_debug("TCM: Registered subsystem plugin: %s struct module: %p\n",
-			ops->name, ops->owner);
+			 ops->name, ops->owner);
 	return 0;
 }
 EXPORT_SYMBOL(transport_backend_register);
@@ -81,8 +87,10 @@ void target_backend_unregister(const struct target_backend_ops *ops)
 	struct target_backend *tb;
 
 	mutex_lock(&backend_mutex);
-	list_for_each_entry(tb, &backend_list, list) {
-		if (tb->ops == ops) {
+	list_for_each_entry(tb, &backend_list, list)
+	{
+		if (tb->ops == ops)
+		{
 			list_del(&tb->list);
 			mutex_unlock(&backend_mutex);
 			/*
@@ -105,15 +113,22 @@ static struct target_backend *core_get_backend(const char *name)
 	struct target_backend *tb;
 
 	mutex_lock(&backend_mutex);
-	list_for_each_entry(tb, &backend_list, list) {
+	list_for_each_entry(tb, &backend_list, list)
+	{
 		if (!strcmp(tb->ops->name, name))
+		{
 			goto found;
+		}
 	}
 	mutex_unlock(&backend_mutex);
 	return NULL;
 found:
+
 	if (tb->ops->owner && !try_module_get(tb->ops->owner))
+	{
 		tb = NULL;
+	}
+
 	mutex_unlock(&backend_mutex);
 	return tb;
 }
@@ -125,7 +140,9 @@ core_alloc_hba(const char *plugin_name, u32 plugin_dep_id, u32 hba_flags)
 	int ret = 0;
 
 	hba = kzalloc(sizeof(*hba), GFP_KERNEL);
-	if (!hba) {
+
+	if (!hba)
+	{
 		pr_err("Unable to allocate struct se_hba\n");
 		return ERR_PTR(-ENOMEM);
 	}
@@ -137,14 +154,19 @@ core_alloc_hba(const char *plugin_name, u32 plugin_dep_id, u32 hba_flags)
 	hba->hba_flags |= hba_flags;
 
 	hba->backend = core_get_backend(plugin_name);
-	if (!hba->backend) {
+
+	if (!hba->backend)
+	{
 		ret = -EINVAL;
 		goto out_free_hba;
 	}
 
 	ret = hba->backend->ops->attach_hba(hba, plugin_dep_id);
+
 	if (ret < 0)
+	{
 		goto out_module_put;
+	}
 
 	spin_lock(&hba_lock);
 	hba->hba_id = hba_id_counter++;
@@ -152,7 +174,7 @@ core_alloc_hba(const char *plugin_name, u32 plugin_dep_id, u32 hba_flags)
 	spin_unlock(&hba_lock);
 
 	pr_debug("CORE_HBA[%d] - Attached HBA to Generic Target"
-			" Core\n", hba->hba_id);
+			 " Core\n", hba->hba_id);
 
 	return hba;
 
@@ -176,7 +198,7 @@ core_delete_hba(struct se_hba *hba)
 	spin_unlock(&hba_lock);
 
 	pr_debug("CORE_HBA[%d] - Detached HBA from Generic Target"
-			" Core\n", hba->hba_id);
+			 " Core\n", hba->hba_id);
 
 	module_put(hba->backend->ops->owner);
 

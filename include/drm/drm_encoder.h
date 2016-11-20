@@ -32,7 +32,8 @@
  *
  * Encoders sit between CRTCs and connectors.
  */
-struct drm_encoder_funcs {
+struct drm_encoder_funcs
+{
 	/**
 	 * @reset:
 	 *
@@ -92,7 +93,8 @@ struct drm_encoder_funcs {
  * CRTCs drive pixels to encoders, which convert them into signals
  * appropriate for a given connector or set of connectors.
  */
-struct drm_encoder {
+struct drm_encoder
+{
 	struct drm_device *dev;
 	struct list_head head;
 
@@ -172,9 +174,9 @@ struct drm_encoder {
 
 __printf(5, 6)
 int drm_encoder_init(struct drm_device *dev,
-		     struct drm_encoder *encoder,
-		     const struct drm_encoder_funcs *funcs,
-		     int encoder_type, const char *name, ...);
+					 struct drm_encoder *encoder,
+					 const struct drm_encoder_funcs *funcs,
+					 int encoder_type, const char *name, ...);
 
 /**
  * drm_encoder_index - find the index of a registered encoder
@@ -199,7 +201,7 @@ static inline uint32_t drm_crtc_mask(struct drm_crtc *crtc);
  * Returns false if @encoder can't be driven by @crtc, true otherwise.
  */
 static inline bool drm_encoder_crtc_ok(struct drm_encoder *encoder,
-				       struct drm_crtc *crtc)
+									   struct drm_crtc *crtc)
 {
 	return !!(encoder->possible_crtcs & drm_crtc_mask(crtc));
 }
@@ -213,7 +215,7 @@ static inline bool drm_encoder_crtc_ok(struct drm_encoder *encoder,
  * drm_mode_object_find().
  */
 static inline struct drm_encoder *drm_encoder_find(struct drm_device *dev,
-						   uint32_t id)
+		uint32_t id)
 {
 	struct drm_mode_object *mo;
 
@@ -234,7 +236,7 @@ void drm_encoder_cleanup(struct drm_encoder *encoder);
  */
 #define drm_for_each_encoder_mask(encoder, dev, encoder_mask) \
 	list_for_each_entry((encoder), &(dev)->mode_config.encoder_list, head) \
-		for_each_if ((encoder_mask) & (1 << drm_encoder_index(encoder)))
+	for_each_if ((encoder_mask) & (1 << drm_encoder_index(encoder)))
 
 /**
  * drm_for_each_encoder - iterate over all encoders

@@ -70,7 +70,8 @@
  * enum iwl_d3_wakeup_flags - D3 manager wakeup flags
  * @IWL_WAKEUP_D3_CONFIG_FW_ERROR: wake up on firmware sysassert
  */
-enum iwl_d3_wakeup_flags {
+enum iwl_d3_wakeup_flags
+{
 	IWL_WAKEUP_D3_CONFIG_FW_ERROR = BIT(0),
 }; /* D3_MANAGER_WAKEUP_CONFIG_API_E_VER_3 */
 
@@ -82,7 +83,8 @@ enum iwl_d3_wakeup_flags {
  *
  * The structure is used for the D3_CONFIG_CMD command.
  */
-struct iwl_d3_manager_config {
+struct iwl_d3_manager_config
+{
 	__le32 min_sleep_time;
 	__le32 wakeup_flags;
 	__le32 wakeup_host_timer;
@@ -98,7 +100,8 @@ struct iwl_d3_manager_config {
  * @IWL_D3_PROTO_IPV4_VALID: IPv4 data is valid
  * @IWL_D3_PROTO_IPV6_VALID: IPv6 data is valid
  */
-enum iwl_proto_offloads {
+enum iwl_proto_offloads
+{
 	IWL_D3_PROTO_OFFLOAD_ARP = BIT(0),
 	IWL_D3_PROTO_OFFLOAD_NS = BIT(1),
 	IWL_D3_PROTO_IPV4_VALID = BIT(2),
@@ -122,7 +125,8 @@ enum iwl_proto_offloads {
  * @arp_mac_addr: our MAC address for ARP responses
  * @reserved: unused
  */
-struct iwl_proto_offload_cmd_common {
+struct iwl_proto_offload_cmd_common
+{
 	__le32 enabled;
 	__be32 remote_ipv4_addr;
 	__be32 host_ipv4_addr;
@@ -139,7 +143,8 @@ struct iwl_proto_offload_cmd_common {
  * @target_ipv6_addr: our target addresses
  * @ndp_mac_addr: neighbor solicitation response MAC address
  */
-struct iwl_proto_offload_cmd_v1 {
+struct iwl_proto_offload_cmd_v1
+{
 	struct iwl_proto_offload_cmd_common common;
 	u8 remote_ipv6_addr[16];
 	u8 solicited_node_ipv6_addr[16];
@@ -157,7 +162,8 @@ struct iwl_proto_offload_cmd_v1 {
  * @target_ipv6_addr: our target addresses
  * @ndp_mac_addr: neighbor solicitation response MAC address
  */
-struct iwl_proto_offload_cmd_v2 {
+struct iwl_proto_offload_cmd_v2
+{
 	struct iwl_proto_offload_cmd_common common;
 	u8 remote_ipv6_addr[16];
 	u8 solicited_node_ipv6_addr[16];
@@ -167,14 +173,16 @@ struct iwl_proto_offload_cmd_v2 {
 	u8 reserved2[3];
 } __packed; /* PROT_OFFLOAD_CONFIG_CMD_DB_S_VER_2 */
 
-struct iwl_ns_config {
+struct iwl_ns_config
+{
 	struct in6_addr source_ipv6_addr;
 	struct in6_addr dest_ipv6_addr;
 	u8 target_mac_addr[ETH_ALEN];
 	__le16 reserved;
 } __packed; /* NS_OFFLOAD_CONFIG */
 
-struct iwl_targ_addr {
+struct iwl_targ_addr
+{
 	struct in6_addr addr;
 	__le32 config_num;
 } __packed; /* TARGET_IPV6_ADDRESS */
@@ -185,7 +193,8 @@ struct iwl_targ_addr {
  * @target_ipv6_addr: target IPv6 addresses
  * @ns_config: NS offload configurations
  */
-struct iwl_proto_offload_cmd_v3_small {
+struct iwl_proto_offload_cmd_v3_small
+{
 	struct iwl_proto_offload_cmd_common common;
 	__le32 num_valid_ipv6_addrs;
 	struct iwl_targ_addr targ_addrs[IWL_PROTO_OFFLOAD_NUM_IPV6_ADDRS_V3S];
@@ -198,7 +207,8 @@ struct iwl_proto_offload_cmd_v3_small {
  * @target_ipv6_addr: target IPv6 addresses
  * @ns_config: NS offload configurations
  */
-struct iwl_proto_offload_cmd_v3_large {
+struct iwl_proto_offload_cmd_v3_large
+{
 	struct iwl_proto_offload_cmd_common common;
 	__le32 num_valid_ipv6_addrs;
 	struct iwl_targ_addr targ_addrs[IWL_PROTO_OFFLOAD_NUM_IPV6_ADDRS_V3L];
@@ -211,7 +221,8 @@ struct iwl_proto_offload_cmd_v3_large {
 #define IWL_WOWLAN_MIN_PATTERN_LEN	16
 #define IWL_WOWLAN_MAX_PATTERN_LEN	128
 
-struct iwl_wowlan_pattern {
+struct iwl_wowlan_pattern
+{
 	u8 mask[IWL_WOWLAN_MAX_PATTERN_LEN / 8];
 	u8 pattern[IWL_WOWLAN_MAX_PATTERN_LEN];
 	u8 mask_size;
@@ -221,12 +232,14 @@ struct iwl_wowlan_pattern {
 
 #define IWL_WOWLAN_MAX_PATTERNS	20
 
-struct iwl_wowlan_patterns_cmd {
+struct iwl_wowlan_patterns_cmd
+{
 	__le32 n_patterns;
 	struct iwl_wowlan_pattern patterns[];
 } __packed; /* WOWLAN_PATTERN_ARRAY_API_S_VER_1 */
 
-enum iwl_wowlan_wakeup_filters {
+enum iwl_wowlan_wakeup_filters
+{
 	IWL_WOWLAN_WAKEUP_MAGIC_PACKET			= BIT(0),
 	IWL_WOWLAN_WAKEUP_PATTERN_MATCH			= BIT(1),
 	IWL_WOWLAN_WAKEUP_BEACON_MISS			= BIT(2),
@@ -246,7 +259,8 @@ enum iwl_wowlan_wakeup_filters {
 	IWL_WOWLAN_WAKEUP_BCN_FILTERING			= BIT(16),
 }; /* WOWLAN_WAKEUP_FILTER_API_E_VER_4 */
 
-enum iwl_wowlan_flags {
+enum iwl_wowlan_flags
+{
 	IS_11W_ASSOC		= BIT(0),
 	ENABLE_L3_FILTERING	= BIT(1),
 	ENABLE_NBNS_FILTERING	= BIT(2),
@@ -254,7 +268,8 @@ enum iwl_wowlan_flags {
 	ENABLE_STORE_BEACON	= BIT(4),
 };
 
-struct iwl_wowlan_config_cmd {
+struct iwl_wowlan_config_cmd
+{
 	__le32 wakeup_filter;
 	__le16 non_qos_seq;
 	__le16 qos_seq[8];
@@ -270,52 +285,61 @@ struct iwl_wowlan_config_cmd {
  */
 #define IWL_NUM_RSC	16
 
-struct tkip_sc {
+struct tkip_sc
+{
 	__le16 iv16;
 	__le16 pad;
 	__le32 iv32;
 } __packed; /* TKIP_SC_API_U_VER_1 */
 
-struct iwl_tkip_rsc_tsc {
+struct iwl_tkip_rsc_tsc
+{
 	struct tkip_sc unicast_rsc[IWL_NUM_RSC];
 	struct tkip_sc multicast_rsc[IWL_NUM_RSC];
 	struct tkip_sc tsc;
 } __packed; /* TKIP_TSC_RSC_API_S_VER_1 */
 
-struct aes_sc {
+struct aes_sc
+{
 	__le64 pn;
 } __packed; /* TKIP_AES_SC_API_U_VER_1 */
 
-struct iwl_aes_rsc_tsc {
+struct iwl_aes_rsc_tsc
+{
 	struct aes_sc unicast_rsc[IWL_NUM_RSC];
 	struct aes_sc multicast_rsc[IWL_NUM_RSC];
 	struct aes_sc tsc;
 } __packed; /* AES_TSC_RSC_API_S_VER_1 */
 
-union iwl_all_tsc_rsc {
+union iwl_all_tsc_rsc
+{
 	struct iwl_tkip_rsc_tsc tkip;
 	struct iwl_aes_rsc_tsc aes;
 }; /* ALL_TSC_RSC_API_S_VER_2 */
 
-struct iwl_wowlan_rsc_tsc_params_cmd {
+struct iwl_wowlan_rsc_tsc_params_cmd
+{
 	union iwl_all_tsc_rsc all_tsc_rsc;
 } __packed; /* ALL_TSC_RSC_API_S_VER_2 */
 
 #define IWL_MIC_KEY_SIZE	8
-struct iwl_mic_keys {
+struct iwl_mic_keys
+{
 	u8 tx[IWL_MIC_KEY_SIZE];
 	u8 rx_unicast[IWL_MIC_KEY_SIZE];
 	u8 rx_mcast[IWL_MIC_KEY_SIZE];
 } __packed; /* MIC_KEYS_API_S_VER_1 */
 
 #define IWL_P1K_SIZE		5
-struct iwl_p1k_cache {
+struct iwl_p1k_cache
+{
 	__le16 p1k[IWL_P1K_SIZE];
 } __packed;
 
 #define IWL_NUM_RX_P1K_CACHE	2
 
-struct iwl_wowlan_tkip_params_cmd {
+struct iwl_wowlan_tkip_params_cmd
+{
 	struct iwl_mic_keys mic_keys;
 	struct iwl_p1k_cache tx;
 	struct iwl_p1k_cache rx_uni[IWL_NUM_RX_P1K_CACHE];
@@ -325,7 +349,8 @@ struct iwl_wowlan_tkip_params_cmd {
 #define IWL_KCK_MAX_SIZE	32
 #define IWL_KEK_MAX_SIZE	32
 
-struct iwl_wowlan_kek_kck_material_cmd {
+struct iwl_wowlan_kek_kck_material_cmd
+{
 	u8	kck[IWL_KCK_MAX_SIZE];
 	u8	kek[IWL_KEK_MAX_SIZE];
 	__le16	kck_len;
@@ -335,12 +360,14 @@ struct iwl_wowlan_kek_kck_material_cmd {
 
 #define RF_KILL_INDICATOR_FOR_WOWLAN	0x87
 
-enum iwl_wowlan_rekey_status {
+enum iwl_wowlan_rekey_status
+{
 	IWL_WOWLAN_REKEY_POST_REKEY = 0,
 	IWL_WOWLAN_REKEY_WHILE_REKEY = 1,
 }; /* WOWLAN_REKEY_STATUS_API_E_VER_1 */
 
-enum iwl_wowlan_wakeup_reason {
+enum iwl_wowlan_wakeup_reason
+{
 	IWL_WOWLAN_WAKEUP_BY_NON_WIRELESS			= 0,
 	IWL_WOWLAN_WAKEUP_BY_MAGIC_PACKET			= BIT(0),
 	IWL_WOWLAN_WAKEUP_BY_PATTERN				= BIT(1),
@@ -362,7 +389,8 @@ enum iwl_wowlan_wakeup_reason {
 
 }; /* WOWLAN_WAKE_UP_REASON_API_E_VER_2 */
 
-struct iwl_wowlan_gtk_status {
+struct iwl_wowlan_gtk_status
+{
 	u8 key_index;
 	u8 reserved[3];
 	u8 decrypt_key[16];
@@ -370,7 +398,8 @@ struct iwl_wowlan_gtk_status {
 	struct iwl_wowlan_rsc_tsc_params_cmd rsc;
 } __packed; /* WOWLAN_GTK_MATERIAL_VER_1 */
 
-struct iwl_wowlan_status {
+struct iwl_wowlan_status
+{
 	struct iwl_wowlan_gtk_status gtk;
 	__le64 replay_ctr;
 	__le16 pattern_number;
@@ -389,24 +418,28 @@ struct iwl_wowlan_status {
 #define IWL_WOWLAN_REMOTE_WAKE_MAX_PACKET_LEN	128
 #define IWL_WOWLAN_REMOTE_WAKE_MAX_TOKENS	2048
 
-struct iwl_tcp_packet_info {
+struct iwl_tcp_packet_info
+{
 	__le16 tcp_pseudo_header_checksum;
 	__le16 tcp_payload_length;
 } __packed; /* TCP_PACKET_INFO_API_S_VER_2 */
 
-struct iwl_tcp_packet {
+struct iwl_tcp_packet
+{
 	struct iwl_tcp_packet_info info;
 	u8 rx_mask[IWL_WOWLAN_MAX_PATTERN_LEN / 8];
 	u8 data[IWL_WOWLAN_TCP_MAX_PACKET_LEN];
 } __packed; /* TCP_PROTOCOL_PACKET_API_S_VER_1 */
 
-struct iwl_remote_wake_packet {
+struct iwl_remote_wake_packet
+{
 	struct iwl_tcp_packet_info info;
 	u8 rx_mask[IWL_WOWLAN_MAX_PATTERN_LEN / 8];
 	u8 data[IWL_WOWLAN_REMOTE_WAKE_MAX_PACKET_LEN];
 } __packed; /* TCP_PROTOCOL_PACKET_API_S_VER_1 */
 
-struct iwl_wowlan_remote_wake_config {
+struct iwl_wowlan_remote_wake_config
+{
 	__le32 connection_max_time; /* unused */
 	/* TCP_PROTOCOL_CONFIG_API_S_VER_1 */
 	u8 max_syn_retries;

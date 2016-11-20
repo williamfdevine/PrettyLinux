@@ -34,7 +34,8 @@ static struct list_head dss_conv_list __initdata;
 
 static const char prefix[] __initconst = "omapdss,";
 
-struct dss_conv_node {
+struct dss_conv_node
+{
 	struct list_head list;
 	struct device_node *node;
 	bool root;
@@ -47,19 +48,24 @@ static int __init omapdss_count_strings(const struct property *prop)
 	int i;
 
 	for (i = 0; total < prop->length; total += l, p += l, i++)
+	{
 		l = strlen(p) + 1;
+	}
 
 	return i;
 }
 
 static void __init omapdss_update_prop(struct device_node *node, char *compat,
-	int len)
+									   int len)
 {
 	struct property *prop;
 
 	prop = kzalloc(sizeof(*prop), GFP_KERNEL);
+
 	if (!prop)
+	{
 		return;
+	}
 
 	prop->name = "compatible";
 	prop->value = compat;
@@ -69,11 +75,12 @@ static void __init omapdss_update_prop(struct device_node *node, char *compat,
 }
 
 static void __init omapdss_prefix_strcpy(char *dst, int dst_len,
-	const char *src, int src_len)
+		const char *src, int src_len)
 {
 	size_t total = 0;
 
-	while (total < src_len) {
+	while (total < src_len)
+	{
 		size_t l = strlen(src) + 1;
 
 		strcpy(dst, prefix);
@@ -98,14 +105,20 @@ static void __init omapdss_omapify_node(struct device_node *node)
 	prop = of_find_property(node, "compatible", NULL);
 
 	if (!prop || !prop->value)
+	{
 		return;
+	}
 
 	if (strnlen(prop->value, prop->length) >= prop->length)
+	{
 		return;
+	}
 
 	/* is it already prefixed? */
 	if (strncmp(prefix, prop->value, strlen(prefix)) == 0)
+	{
 		return;
+	}
 
 	num_strs = omapdss_count_strings(prop);
 
@@ -120,8 +133,10 @@ static void __init omapdss_omapify_node(struct device_node *node)
 static void __init omapdss_add_to_list(struct device_node *node, bool root)
 {
 	struct dss_conv_node *n = kmalloc(sizeof(struct dss_conv_node),
-		GFP_KERNEL);
-	if (n) {
+									  GFP_KERNEL);
+
+	if (n)
+	{
 		n->node = node;
 		n->root = root;
 		list_add(&n->list, &dss_conv_list);
@@ -132,9 +147,12 @@ static bool __init omapdss_list_contains(const struct device_node *node)
 {
 	struct dss_conv_node *n;
 
-	list_for_each_entry(n, &dss_conv_list, list) {
+	list_for_each_entry(n, &dss_conv_list, list)
+	{
 		if (n->node == node)
+		{
 			return true;
+		}
 	}
 
 	return false;
@@ -151,23 +169,34 @@ static void __init omapdss_walk_device(struct device_node *node, bool root)
 	 * port/ports node. To avoid that, check first that there's the node.
 	 */
 	n = of_get_child_by_name(node, "ports");
+
 	if (!n)
+	{
 		n = of_get_child_by_name(node, "port");
+	}
+
 	if (!n)
+	{
 		return;
+	}
 
 	of_node_put(n);
 
 	n = NULL;
-	while ((n = of_graph_get_next_endpoint(node, n)) != NULL) {
+
+	while ((n = of_graph_get_next_endpoint(node, n)) != NULL)
+	{
 		struct device_node *pn;
 
 		pn = of_graph_get_remote_port_parent(n);
 
 		if (!pn)
+		{
 			continue;
+		}
 
-		if (!of_device_is_available(pn) || omapdss_list_contains(pn)) {
+		if (!of_device_is_available(pn) || omapdss_list_contains(pn))
+		{
 			of_node_put(pn);
 			continue;
 		}
@@ -176,7 +205,8 @@ static void __init omapdss_walk_device(struct device_node *node, bool root)
 	}
 }
 
-static const struct of_device_id omapdss_of_match[] __initconst = {
+static const struct of_device_id omapdss_of_match[] __initconst =
+{
 	{ .compatible = "ti,omap2-dss", },
 	{ .compatible = "ti,omap3-dss", },
 	{ .compatible = "ti,omap4-dss", },
@@ -194,25 +224,33 @@ static int __init omapdss_boot_init(void)
 	dss = of_find_matching_node(NULL, omapdss_of_match);
 
 	if (dss == NULL || !of_device_is_available(dss))
+	{
 		return 0;
+	}
 
 	omapdss_walk_device(dss, true);
 
-	for_each_available_child_of_node(dss, child) {
+	for_each_available_child_of_node(dss, child)
+	{
 		if (!of_find_property(child, "compatible", NULL))
+		{
 			continue;
+		}
 
 		omapdss_walk_device(child, true);
 	}
 
-	while (!list_empty(&dss_conv_list)) {
+	while (!list_empty(&dss_conv_list))
+	{
 		struct dss_conv_node *n;
 
 		n = list_first_entry(&dss_conv_list, struct dss_conv_node,
-			list);
+							 list);
 
 		if (!n->root)
+		{
 			omapdss_omapify_node(n->node);
+		}
 
 		list_del(&n->list);
 		of_node_put(n->node);

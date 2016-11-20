@@ -35,7 +35,8 @@
  *
  * [1] http://www.analog.com/static/imported-files/data_sheets/ADV7342_7343.pdf
  */
-struct adv7343_power_mode {
+struct adv7343_power_mode
+{
 	bool sleep_mode;
 	bool pll_control;
 	u32 dac[6];
@@ -45,7 +46,8 @@ struct adv7343_power_mode {
  * struct adv7343_sd_config - SD Only Output Configuration.
  * @sd_dac_out: array configuring SD DAC Outputs 1 and 2
  */
-struct adv7343_sd_config {
+struct adv7343_sd_config
+{
 	/* SD only Output Configuration */
 	u32 sd_dac_out[2];
 };
@@ -55,7 +57,8 @@ struct adv7343_sd_config {
  * @mode_config: Configuration for power mode.
  * @sd_config: SD Only Configuration.
  */
-struct adv7343_platform_data {
+struct adv7343_platform_data
+{
 	struct adv7343_power_mode mode_config;
 	struct adv7343_sd_config sd_config;
 };

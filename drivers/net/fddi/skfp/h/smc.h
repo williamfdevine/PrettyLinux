@@ -16,19 +16,19 @@
 #define _SCMECM_
 
 #if	defined(PCI) && !defined(OSDEF)
-/*
- * In the case of the PCI bus the file osdef1st.h must be present
- */
-#define	OSDEF
+	/*
+	* In the case of the PCI bus the file osdef1st.h must be present
+	*/
+	#define	OSDEF
 #endif
 
 #ifdef	PCI
-#ifndef	SUPERNET_3
-#define	SUPERNET_3
-#endif
-#ifndef	TAG_MODE
-#define	TAG_MODE
-#endif
+	#ifndef	SUPERNET_3
+		#define	SUPERNET_3
+	#endif
+	#ifndef	TAG_MODE
+		#define	TAG_MODE
+	#endif
 #endif
 
 /*
@@ -38,10 +38,10 @@
  *	fddi.h
  */
 #ifdef	OSDEF
-#include "osdef1st.h"
+	#include "osdef1st.h"
 #endif	/* OSDEF */
 #ifdef	OEM_CONCEPT
-#include "oemdef.h"
+	#include "oemdef.h"
 #endif	/* OEM_CONCEPT */
 #include "smt.h"
 #include "cmtdef.h"
@@ -49,7 +49,7 @@
 #include "targethw.h"		/* all target hw dependencies */
 #include "targetos.h"		/* all target os dependencies */
 #ifdef	ESS
-#include "sba.h"
+	#include "sba.h"
 #endif
 
 /*
@@ -59,7 +59,8 @@
  *	class	is addressee, e.g. RMT, PCM etc.
  *	value	is command, e.g. line state change, ring op change etc.
  */
-struct event_queue {
+struct event_queue
+{
 	u_short	class ;			/* event class */
 	u_short	event ;			/* event value */
 } ;
@@ -68,12 +69,13 @@ struct event_queue {
  * define event queue as circular buffer
  */
 #ifdef	CONCENTRATOR
-#define MAX_EVENT	128
+	#define MAX_EVENT	128
 #else	/* nCONCENTRATOR */
-#define MAX_EVENT	64
+	#define MAX_EVENT	64
 #endif	/* nCONCENTRATOR */
 
-struct s_queue {
+struct s_queue
+{
 
 	struct event_queue ev_queue[MAX_EVENT];
 	struct event_queue *ev_put ;
@@ -84,10 +86,11 @@ struct s_queue {
  * ECM - Entity Coordination Management
  * ecm.c
  */
-struct s_ecm {
+struct s_ecm
+{
 	u_char path_test ;		/* ECM path test variable */
 	u_char sb_flag ;		/* ECM stuck bypass */
-	u_char DisconnectFlag ;		/* jd 05-Aug-1999 Bug #10419 
+	u_char DisconnectFlag ;		/* jd 05-Aug-1999 Bug #10419
 					 * ECM disconnected */
 	u_char ecm_line_state ;		/* flag to dispatcher : line states */
 	u_long trace_prop ;		/* ECM Trace_Prop flag >= 16 bits !! */
@@ -104,7 +107,8 @@ struct s_ecm {
  * RMT - Ring Management
  * rmt.c
  */
-struct s_rmt {
+struct s_rmt
+{
 	u_char dup_addr_test ;		/* state of dupl. addr. test */
 	u_char da_flag ;		/* flag : duplicate address det. */
 	u_char loop_avail ;		/* flag : MAC available for loopback */
@@ -134,7 +138,8 @@ struct s_rmt {
  * cfm.c
  * used for SAS and DAS
  */
-struct s_cfm {
+struct s_cfm
+{
 	u_char cf_state;		/* CFM state machine current state */
 	u_char cf_pad[3] ;
 } ;
@@ -145,7 +150,8 @@ struct s_cfm {
  * used for Concentrator
  */
 #ifdef	CONCENTRATOR
-struct s_cem {
+struct s_cem
+{
 	int	ce_state ;	/* CEM state */
 	int	ce_port ;	/* PA PB PM PM+1 .. */
 	int	ce_type ;	/* TA TB TS TM */
@@ -154,12 +160,14 @@ struct s_cem {
 /*
  * linked list of CCEs in current token path
  */
-struct s_c_ring {
+struct s_c_ring
+{
 	struct s_c_ring	*c_next ;
 	char		c_entity ;
 } ;
 
-struct mib_path_config {
+struct mib_path_config
+{
 	u_long	fddimibPATHConfigSMTIndex;
 	u_long	fddimibPATHConfigPATHIndex;
 	u_long	fddimibPATHConfigTokenOrder;
@@ -187,7 +195,8 @@ struct mib_path_config {
 #define PCM_STANDBY	2
 #define PCM_ACTIVE	3
 
-struct s_pcm {
+struct s_pcm
+{
 	u_char	pcm_pad[3] ;
 } ;
 
@@ -195,7 +204,8 @@ struct s_pcm {
  * PHY struct
  * one per physical port
  */
-struct s_phy {
+struct s_phy
+{
 	/* Inter Module Globals */
 	struct fddi_mib_p	*mib ;
 
@@ -243,7 +253,8 @@ struct s_phy {
  * timer package
  * smttimer.c
  */
-struct s_timer {
+struct s_timer
+{
 	struct smt_timer	*st_queue ;
 	struct smt_timer	st_fast ;
 } ;
@@ -272,7 +283,8 @@ struct s_timer {
 #define SR1_HOLDOFF	1
 #define SR2_DISABLED	2
 
-struct s_srf {
+struct s_srf
+{
 	u_long	SRThreshold ;			/* threshold value */
 	u_char	RT_Flag ;			/* report transmitted flag */
 	u_char	sr_state ;			/* state-machine */
@@ -311,10 +323,11 @@ struct s_srf {
 /* Define the AIX-event-Notification as null function if it isn't defined */
 /* in the targetos.h file */
 #ifndef AIX_EVENT
-#define AIX_EVENT(smc,opt0,opt1,opt2,opt3)	/* nothing */
+	#define AIX_EVENT(smc,opt0,opt1,opt2,opt3)	/* nothing */
 #endif
 
-struct s_srf_evc {
+struct s_srf_evc
+{
 	u_char	evc_code ;			/* event code type */
 	u_char	evc_index ;			/* index for mult. instances */
 	u_char	evc_rep_required ;		/* report required */
@@ -334,7 +347,8 @@ struct s_srf_evc {
 #define SMT_TID_ECF_DNA		3		/* pending ECF DNA test */
 #define SMT_TID_ECF		4		/* pending ECF test */
 
-struct smt_values {
+struct smt_values
+{
 	u_long		smt_tvu ;		/* timer valid una */
 	u_long		smt_tvd ;		/* timer valid dna */
 	u_long		smt_tid ;		/* transaction id */
@@ -355,7 +369,8 @@ struct smt_values {
 #define SMT_SAS	1			/* single attach */
 #define SMT_NAC	2			/* null attach concentrator */
 
-struct smt_config {
+struct smt_config
+{
 	u_char	attach_s ;		/* CFM attach to secondary path */
 	u_char	sas ;			/* SMT_DAS/SAS/NAC */
 	u_char	build_ring_map ;	/* build ringmap if TRUE */
@@ -403,7 +418,8 @@ struct smt_config {
 /*
  * Debugging struct sometimes used in smc
  */
-struct	smt_debug {
+struct	smt_debug
+{
 	int	d_smtf ;
 	int	d_smt ;
 	int	d_ecm ;
@@ -421,8 +437,8 @@ struct	smt_debug {
 } ;
 
 #ifndef	DEBUG_BRD
-/* all boards shall be debugged with one debug struct */
-extern	struct	smt_debug	debug;	/* Declaration of debug struct */
+	/* all boards shall be debugged with one debug struct */
+	extern	struct	smt_debug	debug;	/* Declaration of debug struct */
 #endif	/* DEBUG_BRD */
 
 #endif	/* DEBUG */
@@ -431,14 +447,15 @@ extern	struct	smt_debug	debug;	/* Declaration of debug struct */
  * the SMT Context Struct SMC
  * this struct contains ALL global variables of SMT
  */
-struct s_smc {
+struct s_smc
+{
 	struct s_smt_os	os ;		/* os specific */
 	struct s_smt_hw	hw ;		/* hardware */
 
-/*
- * NOTE: os and hw MUST BE the first two structs
- * anything beyond hw WILL BE SET TO ZERO in smt_set_defaults()
- */
+	/*
+	 * NOTE: os and hw MUST BE the first two structs
+	 * anything beyond hw WILL BE SET TO ZERO in smt_set_defaults()
+	 */
 	struct smt_config s ;		/* smt constants */
 	struct smt_values sm ;		/* smt variables */
 	struct s_ecm	e ;		/* ecm */
@@ -446,14 +463,14 @@ struct s_smc {
 	struct s_cfm	cf ;		/* cfm/cem */
 #ifdef	CONCENTRATOR
 	struct s_cem	ce[NUMPHYS] ;	/* cem */
-	struct s_c_ring	cr[NUMPHYS+NUMMACS] ;
+	struct s_c_ring	cr[NUMPHYS + NUMMACS] ;
 #endif
 	struct s_pcm	p ;		/* pcm */
 	struct s_phy	y[NUMPHYS] ;	/* phy */
 	struct s_queue	q ;		/* queue */
 	struct s_timer	t ;		/* timer */
 	struct s_srf srf ;		/* SRF */
-	struct s_srf_evc evcs[6+NUMPHYS*4] ;
+	struct s_srf_evc evcs[6 + NUMPHYS * 4] ;
 	struct fddi_mib	mib ;		/* __THE_MIB__ */
 #ifdef	SBA
 	struct s_sba	sba ;		/* SBA variables */

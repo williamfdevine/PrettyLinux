@@ -18,7 +18,8 @@
 
 #include <video/omapfb_dss.h>
 
-static const struct omap_video_timings dvic_default_timings = {
+static const struct omap_video_timings dvic_default_timings =
+{
 	.x_res		= 640,
 	.y_res		= 480,
 
@@ -39,7 +40,8 @@ static const struct omap_video_timings dvic_default_timings = {
 	.sync_pclk_edge	= OMAPDSS_DRIVE_SIG_FALLING_EDGE,
 };
 
-struct panel_drv_data {
+struct panel_drv_data
+{
 	struct omap_dss_device dssdev;
 	struct omap_dss_device *in;
 
@@ -57,11 +59,16 @@ static int dvic_connect(struct omap_dss_device *dssdev)
 	int r;
 
 	if (omapdss_device_is_connected(dssdev))
+	{
 		return 0;
+	}
 
 	r = in->ops.dvi->connect(in, dssdev);
+
 	if (r)
+	{
 		return r;
+	}
 
 	return 0;
 }
@@ -72,7 +79,9 @@ static void dvic_disconnect(struct omap_dss_device *dssdev)
 	struct omap_dss_device *in = ddata->in;
 
 	if (!omapdss_device_is_connected(dssdev))
+	{
 		return;
+	}
 
 	in->ops.dvi->disconnect(in, dssdev);
 }
@@ -84,16 +93,23 @@ static int dvic_enable(struct omap_dss_device *dssdev)
 	int r;
 
 	if (!omapdss_device_is_connected(dssdev))
+	{
 		return -ENODEV;
+	}
 
 	if (omapdss_device_is_enabled(dssdev))
+	{
 		return 0;
+	}
 
 	in->ops.dvi->set_timings(in, &ddata->timings);
 
 	r = in->ops.dvi->enable(in);
+
 	if (r)
+	{
 		return r;
+	}
 
 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
 
@@ -106,7 +122,9 @@ static void dvic_disable(struct omap_dss_device *dssdev)
 	struct omap_dss_device *in = ddata->in;
 
 	if (!omapdss_device_is_enabled(dssdev))
+	{
 		return;
+	}
 
 	in->ops.dvi->disable(in);
 
@@ -114,7 +132,7 @@ static void dvic_disable(struct omap_dss_device *dssdev)
 }
 
 static void dvic_set_timings(struct omap_dss_device *dssdev,
-		struct omap_video_timings *timings)
+							 struct omap_video_timings *timings)
 {
 	struct panel_drv_data *ddata = to_panel_data(dssdev);
 	struct omap_dss_device *in = ddata->in;
@@ -126,7 +144,7 @@ static void dvic_set_timings(struct omap_dss_device *dssdev,
 }
 
 static void dvic_get_timings(struct omap_dss_device *dssdev,
-		struct omap_video_timings *timings)
+							 struct omap_video_timings *timings)
 {
 	struct panel_drv_data *ddata = to_panel_data(dssdev);
 
@@ -134,7 +152,7 @@ static void dvic_get_timings(struct omap_dss_device *dssdev,
 }
 
 static int dvic_check_timings(struct omap_dss_device *dssdev,
-		struct omap_video_timings *timings)
+							  struct omap_video_timings *timings)
 {
 	struct panel_drv_data *ddata = to_panel_data(dssdev);
 	struct omap_dss_device *in = ddata->in;
@@ -143,12 +161,14 @@ static int dvic_check_timings(struct omap_dss_device *dssdev,
 }
 
 static int dvic_ddc_read(struct i2c_adapter *adapter,
-		unsigned char *buf, u16 count, u8 offset)
+						 unsigned char *buf, u16 count, u8 offset)
 {
 	int r, retries;
 
-	for (retries = 3; retries > 0; retries--) {
-		struct i2c_msg msgs[] = {
+	for (retries = 3; retries > 0; retries--)
+	{
+		struct i2c_msg msgs[] =
+		{
 			{
 				.addr   = DDC_ADDR,
 				.flags  = 0,
@@ -163,40 +183,54 @@ static int dvic_ddc_read(struct i2c_adapter *adapter,
 		};
 
 		r = i2c_transfer(adapter, msgs, 2);
+
 		if (r == 2)
+		{
 			return 0;
+		}
 
 		if (r != -EAGAIN)
+		{
 			break;
+		}
 	}
 
 	return r < 0 ? r : -EIO;
 }
 
 static int dvic_read_edid(struct omap_dss_device *dssdev,
-		u8 *edid, int len)
+						  u8 *edid, int len)
 {
 	struct panel_drv_data *ddata = to_panel_data(dssdev);
 	int r, l, bytes_read;
 
 	if (!ddata->i2c_adapter)
+	{
 		return -ENODEV;
+	}
 
 	l = min(EDID_LENGTH, len);
 	r = dvic_ddc_read(ddata->i2c_adapter, edid, l, 0);
+
 	if (r)
+	{
 		return r;
+	}
 
 	bytes_read = l;
 
 	/* if there are extensions, read second block */
-	if (len > EDID_LENGTH && edid[0x7e] > 0) {
+	if (len > EDID_LENGTH && edid[0x7e] > 0)
+	{
 		l = min(EDID_LENGTH, len - EDID_LENGTH);
 
 		r = dvic_ddc_read(ddata->i2c_adapter, edid + EDID_LENGTH,
-				l, EDID_LENGTH);
+						  l, EDID_LENGTH);
+
 		if (r)
+		{
 			return r;
+		}
 
 		bytes_read += l;
 	}
@@ -211,14 +245,17 @@ static bool dvic_detect(struct omap_dss_device *dssdev)
 	int r;
 
 	if (!ddata->i2c_adapter)
+	{
 		return true;
+	}
 
 	r = dvic_ddc_read(ddata->i2c_adapter, &out, 1, 0);
 
 	return r == 0;
 }
 
-static struct omap_dss_driver dvic_driver = {
+static struct omap_dss_driver dvic_driver =
+{
 	.connect	= dvic_connect,
 	.disconnect	= dvic_disconnect,
 
@@ -244,7 +281,9 @@ static int dvic_probe_of(struct platform_device *pdev)
 	struct i2c_adapter *adapter;
 
 	in = omapdss_of_find_source_for_first_ep(node);
-	if (IS_ERR(in)) {
+
+	if (IS_ERR(in))
+	{
 		dev_err(&pdev->dev, "failed to find video source\n");
 		return PTR_ERR(in);
 	}
@@ -252,9 +291,13 @@ static int dvic_probe_of(struct platform_device *pdev)
 	ddata->in = in;
 
 	adapter_node = of_parse_phandle(node, "ddc-i2c-bus", 0);
-	if (adapter_node) {
+
+	if (adapter_node)
+	{
 		adapter = of_get_i2c_adapter_by_node(adapter_node);
-		if (adapter == NULL) {
+
+		if (adapter == NULL)
+		{
 			dev_err(&pdev->dev, "failed to parse ddc-i2c-bus\n");
 			omap_dss_put_device(ddata->in);
 			return -EPROBE_DEFER;
@@ -273,17 +316,25 @@ static int dvic_probe(struct platform_device *pdev)
 	int r;
 
 	if (!pdev->dev.of_node)
+	{
 		return -ENODEV;
+	}
 
 	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
+
 	if (!ddata)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, ddata);
 
 	r = dvic_probe_of(pdev);
+
 	if (r)
+	{
 		return r;
+	}
 
 	ddata->timings = dvic_default_timings;
 
@@ -295,7 +346,9 @@ static int dvic_probe(struct platform_device *pdev)
 	dssdev->panel.timings = dvic_default_timings;
 
 	r = omapdss_register_display(dssdev);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(&pdev->dev, "Failed to register panel\n");
 		goto err_reg;
 	}
@@ -328,14 +381,16 @@ static int __exit dvic_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id dvic_of_match[] = {
+static const struct of_device_id dvic_of_match[] =
+{
 	{ .compatible = "omapdss,dvi-connector", },
 	{},
 };
 
 MODULE_DEVICE_TABLE(of, dvic_of_match);
 
-static struct platform_driver dvi_connector_driver = {
+static struct platform_driver dvi_connector_driver =
+{
 	.probe	= dvic_probe,
 	.remove	= __exit_p(dvic_remove),
 	.driver	= {

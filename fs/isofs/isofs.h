@@ -4,16 +4,18 @@
 #include <linux/iso_fs.h>
 #include <asm/unaligned.h>
 
-enum isofs_file_format {
+enum isofs_file_format
+{
 	isofs_file_normal = 0,
 	isofs_file_sparse = 1,
 	isofs_file_compressed = 2,
 };
-	
+
 /*
  * iso fs inode data in memory
  */
-struct iso_inode_info {
+struct iso_inode_info
+{
 	unsigned long i_iget5_block;
 	unsigned long i_iget5_offset;
 	unsigned int i_first_extent;
@@ -28,27 +30,28 @@ struct iso_inode_info {
 /*
  * iso9660 super-block data in memory
  */
-struct isofs_sb_info {
+struct isofs_sb_info
+{
 	unsigned long s_ninodes;
 	unsigned long s_nzones;
 	unsigned long s_firstdatazone;
 	unsigned long s_log_zone_size;
 	unsigned long s_max_size;
-	
+
 	int           s_rock_offset; /* offset of SUSP fields within SU area */
 	unsigned char s_joliet_level;
 	unsigned char s_mapping;
-	unsigned int  s_high_sierra:1;
-	unsigned int  s_rock:2;
-	unsigned int  s_utf8:1;
-	unsigned int  s_cruft:1; /* Broken disks with high byte of length
+	unsigned int  s_high_sierra: 1;
+	unsigned int  s_rock: 2;
+	unsigned int  s_utf8: 1;
+	unsigned int  s_cruft: 1; /* Broken disks with high byte of length
 				  * containing junk */
-	unsigned int  s_nocompress:1;
-	unsigned int  s_hide:1;
-	unsigned int  s_showassoc:1;
-	unsigned int  s_overriderockperm:1;
-	unsigned int  s_uid_set:1;
-	unsigned int  s_gid_set:1;
+	unsigned int  s_nocompress: 1;
+	unsigned int  s_hide: 1;
+	unsigned int  s_showassoc: 1;
+	unsigned int  s_overriderockperm: 1;
+	unsigned int  s_uid_set: 1;
+	unsigned int  s_gid_set: 1;
 
 	umode_t s_fmode;
 	umode_t s_dmode;
@@ -119,20 +122,20 @@ extern struct buffer_head *isofs_bread(struct inode *, sector_t);
 extern int isofs_get_blocks(struct inode *, sector_t, struct buffer_head **, unsigned long);
 
 struct inode *__isofs_iget(struct super_block *sb,
-			   unsigned long block,
-			   unsigned long offset,
-			   int relocated);
+						   unsigned long block,
+						   unsigned long offset,
+						   int relocated);
 
 static inline struct inode *isofs_iget(struct super_block *sb,
-				       unsigned long block,
-				       unsigned long offset)
+									   unsigned long block,
+									   unsigned long offset)
 {
 	return __isofs_iget(sb, block, offset, 0);
 }
 
 static inline struct inode *isofs_iget_reloc(struct super_block *sb,
-					     unsigned long block,
-					     unsigned long offset)
+		unsigned long block,
+		unsigned long offset)
 {
 	return __isofs_iget(sb, block, offset, 1);
 }
@@ -142,8 +145,8 @@ static inline struct inode *isofs_iget_reloc(struct super_block *sb,
  * convenient 32-bit number as the inode number.  The inode numbering
  * scheme was recommended by Sergey Vlasov and Eric Lammerts. */
 static inline unsigned long isofs_get_ino(unsigned long block,
-					  unsigned long offset,
-					  unsigned long bufbits)
+		unsigned long offset,
+		unsigned long bufbits)
 {
 	return (block << (bufbits - 5)) | (offset >> 5);
 }
@@ -180,15 +183,16 @@ static inline unsigned long isofs_get_ino(unsigned long block,
  * affected making it safe to call even for non-directory file
  * types. */
 static inline void
-isofs_normalize_block_and_offset(struct iso_directory_record* de,
-				 unsigned long *block,
-				 unsigned long *offset)
+isofs_normalize_block_and_offset(struct iso_directory_record *de,
+								 unsigned long *block,
+								 unsigned long *offset)
 {
 	/* Only directories are normalized. */
-	if (de->flags[0] & 2) {
+	if (de->flags[0] & 2)
+	{
 		*offset = 0;
 		*block = (unsigned long)isonum_733(de->extent)
-			+ (unsigned long)isonum_711(de->ext_attr_length);
+				 + (unsigned long)isonum_711(de->ext_attr_length);
 	}
 }
 

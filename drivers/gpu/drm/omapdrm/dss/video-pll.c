@@ -21,7 +21,8 @@
 #include "dss.h"
 #include "dss_features.h"
 
-struct dss_video_pll {
+struct dss_video_pll
+{
 	struct dss_pll pll;
 
 	struct device *dev;
@@ -64,16 +65,22 @@ static int dss_video_pll_enable(struct dss_pll *pll)
 	int r;
 
 	r = dss_runtime_get();
+
 	if (r)
+	{
 		return r;
+	}
 
 	dss_ctrl_pll_enable(pll->id, true);
 
 	dss_dpll_enable_scp_clk(vpll);
 
 	r = dss_pll_wait_reset_done(pll);
+
 	if (r)
+	{
 		goto err_reset;
+	}
 
 	dss_dpll_power_enable(vpll);
 
@@ -100,13 +107,15 @@ static void dss_video_pll_disable(struct dss_pll *pll)
 	dss_runtime_put();
 }
 
-static const struct dss_pll_ops dss_pll_ops = {
+static const struct dss_pll_ops dss_pll_ops =
+{
 	.enable = dss_video_pll_enable,
 	.disable = dss_video_pll_disable,
 	.set_config = dss_pll_write_config_type_a,
 };
 
-static const struct dss_pll_hw dss_dra7_video_pll_hw = {
+static const struct dss_pll_hw dss_dra7_video_pll_hw =
+{
 	.type = DSS_PLL_TYPE_A,
 
 	.n_max = (1 << 8) - 1,
@@ -134,11 +143,11 @@ static const struct dss_pll_hw dss_dra7_video_pll_hw = {
 };
 
 struct dss_pll *dss_video_pll_init(struct platform_device *pdev, int id,
-	struct regulator *regulator)
+								   struct regulator *regulator)
 {
-	const char * const reg_name[] = { "pll1", "pll2" };
-	const char * const clkctrl_name[] = { "pll1_clkctrl", "pll2_clkctrl" };
-	const char * const clkin_name[] = { "video1_clk", "video2_clk" };
+	const char *const reg_name[] = { "pll1", "pll2" };
+	const char *const clkctrl_name[] = { "pll1_clkctrl", "pll2_clkctrl" };
+	const char *const clkin_name[] = { "video1_clk", "video2_clk" };
 
 	struct resource *res;
 	struct dss_video_pll *vpll;
@@ -150,14 +159,18 @@ struct dss_pll *dss_video_pll_init(struct platform_device *pdev, int id,
 	/* PLL CONTROL */
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, reg_name[id]);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev,
-			"missing platform resource data for pll%d\n", id);
+				"missing platform resource data for pll%d\n", id);
 		return ERR_PTR(-ENODEV);
 	}
 
 	pll_base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(pll_base)) {
+
+	if (IS_ERR(pll_base))
+	{
 		dev_err(&pdev->dev, "failed to ioremap pll%d reg_name\n", id);
 		return ERR_CAST(pll_base);
 	}
@@ -165,15 +178,19 @@ struct dss_pll *dss_video_pll_init(struct platform_device *pdev, int id,
 	/* CLOCK CONTROL */
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
-		clkctrl_name[id]);
-	if (!res) {
+									   clkctrl_name[id]);
+
+	if (!res)
+	{
 		dev_err(&pdev->dev,
-			"missing platform resource data for pll%d\n", id);
+				"missing platform resource data for pll%d\n", id);
 		return ERR_PTR(-ENODEV);
 	}
 
 	clkctrl_base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(clkctrl_base)) {
+
+	if (IS_ERR(clkctrl_base))
+	{
 		dev_err(&pdev->dev, "failed to ioremap pll%d clkctrl\n", id);
 		return ERR_CAST(clkctrl_base);
 	}
@@ -181,14 +198,19 @@ struct dss_pll *dss_video_pll_init(struct platform_device *pdev, int id,
 	/* CLKIN */
 
 	clk = devm_clk_get(&pdev->dev, clkin_name[id]);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		DSSERR("can't get video pll clkin\n");
 		return ERR_CAST(clk);
 	}
 
 	vpll = devm_kzalloc(&pdev->dev, sizeof(*vpll), GFP_KERNEL);
+
 	if (!vpll)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	vpll->dev = &pdev->dev;
 	vpll->clkctrl_base = clkctrl_base;
@@ -204,8 +226,11 @@ struct dss_pll *dss_video_pll_init(struct platform_device *pdev, int id,
 	pll->ops = &dss_pll_ops;
 
 	r = dss_pll_register(pll);
+
 	if (r)
+	{
 		return ERR_PTR(r);
+	}
 
 	return pll;
 }

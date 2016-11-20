@@ -21,7 +21,8 @@
 #define _VNIC_STATS_H_
 
 /* Tx statistics */
-struct vnic_tx_stats {
+struct vnic_tx_stats
+{
 	u64 tx_frames_ok;
 	u64 tx_unicast_frames_ok;
 	u64 tx_multicast_frames_ok;
@@ -37,7 +38,8 @@ struct vnic_tx_stats {
 };
 
 /* Rx statistics */
-struct vnic_rx_stats {
+struct vnic_rx_stats
+{
 	u64 rx_frames_ok;
 	u64 rx_frames_total;
 	u64 rx_unicast_frames_ok;
@@ -63,11 +65,13 @@ struct vnic_rx_stats {
 };
 
 /* Generic statistics */
-struct vnic_gen_stats {
+struct vnic_gen_stats
+{
 	u64 dma_map_error;
 };
 
-struct vnic_stats {
+struct vnic_stats
+{
 	struct vnic_tx_stats tx;
 	struct vnic_rx_stats rx;
 };

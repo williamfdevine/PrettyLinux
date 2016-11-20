@@ -31,7 +31,8 @@
 LIST_HEAD(ima_measurements);	/* list of all measurements */
 
 /* key: inode (before secure-hashing a file) */
-struct ima_h_table ima_htable = {
+struct ima_h_table ima_htable =
+{
 	.len = ATOMIC_LONG_INIT(0),
 	.violations = ATOMIC_LONG_INIT(0),
 	.queue[0 ... IMA_MEASURE_HTABLE_SIZE - 1] = HLIST_HEAD_INIT
@@ -45,7 +46,7 @@ static DEFINE_MUTEX(ima_extend_list_mutex);
 
 /* lookup up the digest value in the hash table, and return the entry */
 static struct ima_queue_entry *ima_lookup_digest_entry(u8 *digest_value,
-						       int pcr)
+		int pcr)
 {
 	struct ima_queue_entry *qe, *ret = NULL;
 	unsigned int key;
@@ -53,9 +54,12 @@ static struct ima_queue_entry *ima_lookup_digest_entry(u8 *digest_value,
 
 	key = ima_hash_key(digest_value);
 	rcu_read_lock();
-	hlist_for_each_entry_rcu(qe, &ima_htable.queue[key], hnext) {
+	hlist_for_each_entry_rcu(qe, &ima_htable.queue[key], hnext)
+	{
 		rc = memcmp(qe->entry->digest, digest_value, TPM_DIGEST_SIZE);
-		if ((rc == 0) && (qe->entry->pcr == pcr)) {
+
+		if ((rc == 0) && (qe->entry->pcr == pcr))
+		{
 			ret = qe;
 			break;
 		}
@@ -75,10 +79,13 @@ static int ima_add_digest_entry(struct ima_template_entry *entry)
 	unsigned int key;
 
 	qe = kmalloc(sizeof(*qe), GFP_KERNEL);
-	if (qe == NULL) {
+
+	if (qe == NULL)
+	{
 		pr_err("OUT OF MEMORY ERROR creating queue entry\n");
 		return -ENOMEM;
 	}
+
 	qe->entry = entry;
 
 	INIT_LIST_HEAD(&qe->later);
@@ -95,11 +102,17 @@ static int ima_pcr_extend(const u8 *hash, int pcr)
 	int result = 0;
 
 	if (!ima_used_chip)
+	{
 		return result;
+	}
 
 	result = tpm_pcr_extend(TPM_ANY_NUM, pcr, hash);
+
 	if (result != 0)
+	{
 		pr_err("Error Communicating to TPM chip, result: %d\n", result);
+	}
+
 	return result;
 }
 
@@ -107,8 +120,8 @@ static int ima_pcr_extend(const u8 *hash, int pcr)
  * and extend the pcr.
  */
 int ima_add_template_entry(struct ima_template_entry *entry, int violation,
-			   const char *op, struct inode *inode,
-			   const unsigned char *filename)
+						   const char *op, struct inode *inode,
+						   const unsigned char *filename)
 {
 	u8 digest[TPM_DIGEST_SIZE];
 	const char *audit_cause = "hash_added";
@@ -117,9 +130,13 @@ int ima_add_template_entry(struct ima_template_entry *entry, int violation,
 	int result = 0, tpmresult = 0;
 
 	mutex_lock(&ima_extend_list_mutex);
-	if (!violation) {
+
+	if (!violation)
+	{
 		memcpy(digest, entry->digest, sizeof(digest));
-		if (ima_lookup_digest_entry(digest, entry->pcr)) {
+
+		if (ima_lookup_digest_entry(digest, entry->pcr))
+		{
 			audit_cause = "hash_exists";
 			result = -EEXIST;
 			goto out;
@@ -127,25 +144,32 @@ int ima_add_template_entry(struct ima_template_entry *entry, int violation,
 	}
 
 	result = ima_add_digest_entry(entry);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		audit_cause = "ENOMEM";
 		audit_info = 0;
 		goto out;
 	}
 
 	if (violation)		/* invalidate pcr */
+	{
 		memset(digest, 0xff, sizeof(digest));
+	}
 
 	tpmresult = ima_pcr_extend(digest, entry->pcr);
-	if (tpmresult != 0) {
+
+	if (tpmresult != 0)
+	{
 		snprintf(tpm_audit_cause, AUDIT_CAUSE_LEN_MAX, "TPM_error(%d)",
-			 tpmresult);
+				 tpmresult);
 		audit_cause = tpm_audit_cause;
 		audit_info = 0;
 	}
+
 out:
 	mutex_unlock(&ima_extend_list_mutex);
 	integrity_audit_msg(AUDIT_INTEGRITY_PCR, inode, filename,
-			    op, audit_cause, result, audit_info);
+						op, audit_cause, result, audit_info);
 	return result;
 }

@@ -20,6 +20,7 @@ static inline void wait_cycles(unsigned long long cycles)
 	unsigned long long t;
 
 	t = __rdtsc();
+
 	while (__rdtsc() - t < cycles) {}
 }
 
@@ -38,15 +39,19 @@ static inline void wait_cycles(unsigned long long cycles)
 static inline void vmexit(void)
 {
 	if (!do_exit)
+	{
 		return;
-	
+	}
+
 	wait_cycles(VMEXIT_CYCLES);
 }
 static inline void vmentry(void)
 {
 	if (!do_exit)
+	{
 		return;
-	
+	}
+
 	wait_cycles(VMENTRY_CYCLES);
 }
 
@@ -80,9 +85,9 @@ extern unsigned ring_size;
 
 /* Is there a portable way to do this? */
 #if defined(__x86_64__) || defined(__i386__)
-#define cpu_relax() asm ("rep; nop" ::: "memory")
+	#define cpu_relax() asm ("rep; nop" ::: "memory")
 #else
-#define cpu_relax() assert(0)
+	#define cpu_relax() assert(0)
 #endif
 
 extern bool do_relax;
@@ -90,11 +95,15 @@ extern bool do_relax;
 static inline void busy_wait(void)
 {
 	if (do_relax)
+	{
 		cpu_relax();
+	}
 	else
 		/* prevent compiler from removing busy loops */
+	{
 		barrier();
-} 
+	}
+}
 
 /*
  * Not using __ATOMIC_SEQ_CST since gcc docs say they are only synchronized
@@ -107,13 +116,13 @@ static inline void busy_wait(void)
  * adds a compiler barrier.
  */
 #define smp_release() do { \
-    barrier(); \
-    __atomic_thread_fence(__ATOMIC_RELEASE); \
-} while (0)
+		barrier(); \
+		__atomic_thread_fence(__ATOMIC_RELEASE); \
+	} while (0)
 
 #define smp_acquire() do { \
-    __atomic_thread_fence(__ATOMIC_ACQUIRE); \
-    barrier(); \
-} while (0)
+		__atomic_thread_fence(__ATOMIC_ACQUIRE); \
+		barrier(); \
+	} while (0)
 
 #endif

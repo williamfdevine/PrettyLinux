@@ -18,7 +18,8 @@
 
 #include <linux/usb/composite.h>
 
-struct f_rndis_opts {
+struct f_rndis_opts
+{
 	struct usb_function_instance	func_inst;
 	u32				vendor_id;
 	const char			*manufacturer;

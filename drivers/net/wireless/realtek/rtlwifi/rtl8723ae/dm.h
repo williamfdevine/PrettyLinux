@@ -73,7 +73,8 @@
 #define TX_POWER_NEAR_FIELD_THRESH_LVL2		74
 #define TX_POWER_NEAR_FIELD_THRESH_LVL1		67
 
-struct swat_t {
+struct swat_t
+{
 	u8 failure_cnt;
 	u8 try_flag;
 	u8 stop_trying;
@@ -84,7 +85,8 @@ struct swat_t {
 
 };
 
-enum tag_dynamic_init_gain_operation_type_definition {
+enum tag_dynamic_init_gain_operation_type_definition
+{
 	DIG_TYPE_THRESH_HIGH = 0,
 	DIG_TYPE_THRESH_LOW = 1,
 	DIG_TYPE_BACKOFF = 2,
@@ -95,19 +97,22 @@ enum tag_dynamic_init_gain_operation_type_definition {
 	DIG_OP_TYPE_MAX
 };
 
-enum dm_1r_cca_e {
+enum dm_1r_cca_e
+{
 	CCA_1R = 0,
 	CCA_2R = 1,
 	CCA_MAX = 2,
 };
 
-enum dm_rf_e {
+enum dm_rf_e
+{
 	RF_SAVE = 0,
 	RF_NORMAL = 1,
 	RF_MAX = 2,
 };
 
-enum dm_sw_ant_switch_e {
+enum dm_sw_ant_switch_e
+{
 	ANS_ANTENNA_B = 1,
 	ANS_ANTENNA_A = 2,
 	ANS_ANTENNA_MAX = 3,
@@ -120,10 +125,10 @@ enum dm_sw_ant_switch_e {
 #define BT_RSSI_STATE_TXPOWER_LOW       BIT_OFFSET_LEN_MASK_32(4, 1)
 #define GET_UNDECORATED_AVERAGE_RSSI(_priv)     \
 	( \
-	(((struct rtl_priv *)(_priv))->mac80211.opmode ==		\
-			     NL80211_IFTYPE_ADHOC) ?			\
-	(((struct rtl_priv *)(_priv))->dm.entry_min_undec_sm_pwdb) :	\
-	(((struct rtl_priv *)(_priv))->dm.undec_sm_pwdb)		\
+	  (((struct rtl_priv *)(_priv))->mac80211.opmode ==		\
+	   NL80211_IFTYPE_ADHOC) ?			\
+	  (((struct rtl_priv *)(_priv))->dm.entry_min_undec_sm_pwdb) :	\
+	  (((struct rtl_priv *)(_priv))->dm.undec_sm_pwdb)		\
 	)
 
 void rtl8723e_dm_init(struct ieee80211_hw *hw);

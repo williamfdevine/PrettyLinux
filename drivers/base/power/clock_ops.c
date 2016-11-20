@@ -20,14 +20,16 @@
 
 #ifdef CONFIG_PM_CLK
 
-enum pce_status {
+enum pce_status
+{
 	PCE_STATUS_NONE = 0,
 	PCE_STATUS_ACQUIRED,
 	PCE_STATUS_ENABLED,
 	PCE_STATUS_ERROR,
 };
 
-struct pm_clock_entry {
+struct pm_clock_entry
+{
 	struct list_head node;
 	char *con_id;
 	struct clk *clk;
@@ -43,13 +45,17 @@ static inline void __pm_clk_enable(struct device *dev, struct pm_clock_entry *ce
 {
 	int ret;
 
-	if (ce->status < PCE_STATUS_ERROR) {
+	if (ce->status < PCE_STATUS_ERROR)
+	{
 		ret = clk_enable(ce->clk);
+
 		if (!ret)
+		{
 			ce->status = PCE_STATUS_ENABLED;
+		}
 		else
 			dev_err(dev, "%s: failed to enable clk %p, error %d\n",
-				__func__, ce->clk, ret);
+					__func__, ce->clk, ret);
 	}
 }
 
@@ -61,43 +67,61 @@ static inline void __pm_clk_enable(struct device *dev, struct pm_clock_entry *ce
 static void pm_clk_acquire(struct device *dev, struct pm_clock_entry *ce)
 {
 	if (!ce->clk)
+	{
 		ce->clk = clk_get(dev, ce->con_id);
-	if (IS_ERR(ce->clk)) {
+	}
+
+	if (IS_ERR(ce->clk))
+	{
 		ce->status = PCE_STATUS_ERROR;
-	} else {
+	}
+	else
+	{
 		clk_prepare(ce->clk);
 		ce->status = PCE_STATUS_ACQUIRED;
 		dev_dbg(dev, "Clock %pC con_id %s managed by runtime PM.\n",
-			ce->clk, ce->con_id);
+				ce->clk, ce->con_id);
 	}
 }
 
 static int __pm_clk_add(struct device *dev, const char *con_id,
-			struct clk *clk)
+						struct clk *clk)
 {
 	struct pm_subsys_data *psd = dev_to_psd(dev);
 	struct pm_clock_entry *ce;
 
 	if (!psd)
+	{
 		return -EINVAL;
+	}
 
 	ce = kzalloc(sizeof(*ce), GFP_KERNEL);
-	if (!ce)
-		return -ENOMEM;
 
-	if (con_id) {
+	if (!ce)
+	{
+		return -ENOMEM;
+	}
+
+	if (con_id)
+	{
 		ce->con_id = kstrdup(con_id, GFP_KERNEL);
-		if (!ce->con_id) {
+
+		if (!ce->con_id)
+		{
 			dev_err(dev,
-				"Not enough memory for clock connection ID.\n");
+					"Not enough memory for clock connection ID.\n");
 			kfree(ce);
 			return -ENOMEM;
 		}
-	} else {
-		if (IS_ERR(clk)) {
+	}
+	else
+	{
+		if (IS_ERR(clk))
+		{
 			kfree(ce);
 			return -ENOENT;
 		}
+
 		ce->clk = clk;
 	}
 
@@ -156,14 +180,21 @@ int of_pm_clk_add_clk(struct device *dev, const char *name)
 	int ret;
 
 	if (!dev || !dev->of_node || !name)
+	{
 		return -EINVAL;
+	}
 
 	clk = of_clk_get_by_name(dev->of_node, name);
+
 	if (IS_ERR(clk))
+	{
 		return PTR_ERR(clk);
+	}
 
 	ret = pm_clk_add_clk(dev, clk);
-	if (ret) {
+
+	if (ret)
+	{
 		clk_put(clk);
 		return ret;
 	}
@@ -189,26 +220,39 @@ int of_pm_clk_add_clks(struct device *dev)
 	int ret;
 
 	if (!dev || !dev->of_node)
+	{
 		return -EINVAL;
+	}
 
 	count = of_count_phandle_with_args(dev->of_node, "clocks",
-					   "#clock-cells");
+									   "#clock-cells");
+
 	if (count <= 0)
+	{
 		return -ENODEV;
+	}
 
 	clks = kcalloc(count, sizeof(*clks), GFP_KERNEL);
-	if (!clks)
-		return -ENOMEM;
 
-	for (i = 0; i < count; i++) {
+	if (!clks)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < count; i++)
+	{
 		clks[i] = of_clk_get(dev->of_node, i);
-		if (IS_ERR(clks[i])) {
+
+		if (IS_ERR(clks[i]))
+		{
 			ret = PTR_ERR(clks[i]);
 			goto error;
 		}
 
 		ret = pm_clk_add_clk(dev, clks[i]);
-		if (ret) {
+
+		if (ret)
+		{
 			clk_put(clks[i]);
 			goto error;
 		}
@@ -219,8 +263,11 @@ int of_pm_clk_add_clks(struct device *dev)
 	return i;
 
 error:
+
 	while (i--)
+	{
 		pm_clk_remove_clk(dev, clks[i]);
+	}
 
 	kfree(clks);
 
@@ -235,13 +282,19 @@ EXPORT_SYMBOL_GPL(of_pm_clk_add_clks);
 static void __pm_clk_remove(struct pm_clock_entry *ce)
 {
 	if (!ce)
+	{
 		return;
+	}
 
-	if (ce->status < PCE_STATUS_ERROR) {
+	if (ce->status < PCE_STATUS_ERROR)
+	{
 		if (ce->status == PCE_STATUS_ENABLED)
+		{
 			clk_disable(ce->clk);
+		}
 
-		if (ce->status >= PCE_STATUS_ACQUIRED) {
+		if (ce->status >= PCE_STATUS_ACQUIRED)
+		{
 			clk_unprepare(ce->clk);
 			clk_put(ce->clk);
 		}
@@ -265,23 +318,32 @@ void pm_clk_remove(struct device *dev, const char *con_id)
 	struct pm_clock_entry *ce;
 
 	if (!psd)
+	{
 		return;
+	}
 
 	spin_lock_irq(&psd->lock);
 
-	list_for_each_entry(ce, &psd->clock_list, node) {
+	list_for_each_entry(ce, &psd->clock_list, node)
+	{
 		if (!con_id && !ce->con_id)
+		{
 			goto remove;
+		}
 		else if (!con_id || !ce->con_id)
+		{
 			continue;
+		}
 		else if (!strcmp(con_id, ce->con_id))
+		{
 			goto remove;
+		}
 	}
 
 	spin_unlock_irq(&psd->lock);
 	return;
 
- remove:
+remove:
 	list_del(&ce->node);
 	spin_unlock_irq(&psd->lock);
 
@@ -303,19 +365,24 @@ void pm_clk_remove_clk(struct device *dev, struct clk *clk)
 	struct pm_clock_entry *ce;
 
 	if (!psd || !clk)
+	{
 		return;
+	}
 
 	spin_lock_irq(&psd->lock);
 
-	list_for_each_entry(ce, &psd->clock_list, node) {
+	list_for_each_entry(ce, &psd->clock_list, node)
+	{
 		if (clk == ce->clk)
+		{
 			goto remove;
+		}
 	}
 
 	spin_unlock_irq(&psd->lock);
 	return;
 
- remove:
+remove:
 	list_del(&ce->node);
 	spin_unlock_irq(&psd->lock);
 
@@ -333,8 +400,11 @@ EXPORT_SYMBOL_GPL(pm_clk_remove_clk);
 void pm_clk_init(struct device *dev)
 {
 	struct pm_subsys_data *psd = dev_to_psd(dev);
+
 	if (psd)
+	{
 		INIT_LIST_HEAD(&psd->clock_list);
+	}
 }
 EXPORT_SYMBOL_GPL(pm_clk_init);
 
@@ -366,20 +436,23 @@ void pm_clk_destroy(struct device *dev)
 	struct list_head list;
 
 	if (!psd)
+	{
 		return;
+	}
 
 	INIT_LIST_HEAD(&list);
 
 	spin_lock_irq(&psd->lock);
 
 	list_for_each_entry_safe_reverse(ce, c, &psd->clock_list, node)
-		list_move(&ce->node, &list);
+	list_move(&ce->node, &list);
 
 	spin_unlock_irq(&psd->lock);
 
 	dev_pm_put_subsys_data(dev);
 
-	list_for_each_entry_safe_reverse(ce, c, &list, node) {
+	list_for_each_entry_safe_reverse(ce, c, &list, node)
+	{
 		list_del(&ce->node);
 		__pm_clk_remove(ce);
 	}
@@ -399,14 +472,21 @@ int pm_clk_suspend(struct device *dev)
 	dev_dbg(dev, "%s()\n", __func__);
 
 	if (!psd)
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&psd->lock, flags);
 
-	list_for_each_entry_reverse(ce, &psd->clock_list, node) {
-		if (ce->status < PCE_STATUS_ERROR) {
+	list_for_each_entry_reverse(ce, &psd->clock_list, node)
+	{
+		if (ce->status < PCE_STATUS_ERROR)
+		{
 			if (ce->status == PCE_STATUS_ENABLED)
+			{
 				clk_disable(ce->clk);
+			}
+
 			ce->status = PCE_STATUS_ACQUIRED;
 		}
 	}
@@ -430,12 +510,14 @@ int pm_clk_resume(struct device *dev)
 	dev_dbg(dev, "%s()\n", __func__);
 
 	if (!psd)
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&psd->lock, flags);
 
 	list_for_each_entry(ce, &psd->clock_list, node)
-		__pm_clk_enable(dev, ce);
+	__pm_clk_enable(dev, ce);
 
 	spin_unlock_irqrestore(&psd->lock, flags);
 
@@ -460,7 +542,7 @@ EXPORT_SYMBOL_GPL(pm_clk_resume);
  * does nothing.
  */
 static int pm_clk_notify(struct notifier_block *nb,
-				 unsigned long action, void *data)
+						 unsigned long action, void *data)
 {
 	struct pm_clk_notifier_block *clknb;
 	struct device *dev = data;
@@ -471,31 +553,46 @@ static int pm_clk_notify(struct notifier_block *nb,
 
 	clknb = container_of(nb, struct pm_clk_notifier_block, nb);
 
-	switch (action) {
-	case BUS_NOTIFY_ADD_DEVICE:
-		if (dev->pm_domain)
+	switch (action)
+	{
+		case BUS_NOTIFY_ADD_DEVICE:
+			if (dev->pm_domain)
+			{
+				break;
+			}
+
+			error = pm_clk_create(dev);
+
+			if (error)
+			{
+				break;
+			}
+
+			dev_pm_domain_set(dev, clknb->pm_domain);
+
+			if (clknb->con_ids[0])
+			{
+				for (con_id = clknb->con_ids; *con_id; con_id++)
+				{
+					pm_clk_add(dev, *con_id);
+				}
+			}
+			else
+			{
+				pm_clk_add(dev, NULL);
+			}
+
 			break;
 
-		error = pm_clk_create(dev);
-		if (error)
+		case BUS_NOTIFY_DEL_DEVICE:
+			if (dev->pm_domain != clknb->pm_domain)
+			{
+				break;
+			}
+
+			dev_pm_domain_set(dev, NULL);
+			pm_clk_destroy(dev);
 			break;
-
-		dev_pm_domain_set(dev, clknb->pm_domain);
-		if (clknb->con_ids[0]) {
-			for (con_id = clknb->con_ids; *con_id; con_id++)
-				pm_clk_add(dev, *con_id);
-		} else {
-			pm_clk_add(dev, NULL);
-		}
-
-		break;
-	case BUS_NOTIFY_DEL_DEVICE:
-		if (dev->pm_domain != clknb->pm_domain)
-			break;
-
-		dev_pm_domain_set(dev, NULL);
-		pm_clk_destroy(dev);
-		break;
 	}
 
 	return 0;
@@ -508,13 +605,17 @@ int pm_clk_runtime_suspend(struct device *dev)
 	dev_dbg(dev, "%s\n", __func__);
 
 	ret = pm_generic_runtime_suspend(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to suspend device\n");
 		return ret;
 	}
 
 	ret = pm_clk_suspend(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to suspend clock\n");
 		pm_generic_runtime_resume(dev);
 		return ret;
@@ -531,7 +632,9 @@ int pm_clk_runtime_resume(struct device *dev)
 	dev_dbg(dev, "%s\n", __func__);
 
 	ret = pm_clk_resume(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to resume clock\n");
 		return ret;
 	}
@@ -552,7 +655,9 @@ static void enable_clock(struct device *dev, const char *con_id)
 	struct clk *clk;
 
 	clk = clk_get(dev, con_id);
-	if (!IS_ERR(clk)) {
+
+	if (!IS_ERR(clk))
+	{
 		clk_prepare_enable(clk);
 		clk_put(clk);
 		dev_info(dev, "Runtime PM disabled, clock forced on.\n");
@@ -569,7 +674,9 @@ static void disable_clock(struct device *dev, const char *con_id)
 	struct clk *clk;
 
 	clk = clk_get(dev, con_id);
-	if (!IS_ERR(clk)) {
+
+	if (!IS_ERR(clk))
+	{
 		clk_disable_unprepare(clk);
 		clk_put(clk);
 		dev_info(dev, "Runtime PM disabled, clock forced off.\n");
@@ -588,7 +695,7 @@ static void disable_clock(struct device *dev, const char *con_id)
  * the device's clocks, depending on @action.
  */
 static int pm_clk_notify(struct notifier_block *nb,
-				 unsigned long action, void *data)
+						 unsigned long action, void *data)
 {
 	struct pm_clk_notifier_block *clknb;
 	struct device *dev = data;
@@ -598,24 +705,38 @@ static int pm_clk_notify(struct notifier_block *nb,
 
 	clknb = container_of(nb, struct pm_clk_notifier_block, nb);
 
-	switch (action) {
-	case BUS_NOTIFY_BIND_DRIVER:
-		if (clknb->con_ids[0]) {
-			for (con_id = clknb->con_ids; *con_id; con_id++)
-				enable_clock(dev, *con_id);
-		} else {
-			enable_clock(dev, NULL);
-		}
-		break;
-	case BUS_NOTIFY_DRIVER_NOT_BOUND:
-	case BUS_NOTIFY_UNBOUND_DRIVER:
-		if (clknb->con_ids[0]) {
-			for (con_id = clknb->con_ids; *con_id; con_id++)
-				disable_clock(dev, *con_id);
-		} else {
-			disable_clock(dev, NULL);
-		}
-		break;
+	switch (action)
+	{
+		case BUS_NOTIFY_BIND_DRIVER:
+			if (clknb->con_ids[0])
+			{
+				for (con_id = clknb->con_ids; *con_id; con_id++)
+				{
+					enable_clock(dev, *con_id);
+				}
+			}
+			else
+			{
+				enable_clock(dev, NULL);
+			}
+
+			break;
+
+		case BUS_NOTIFY_DRIVER_NOT_BOUND:
+		case BUS_NOTIFY_UNBOUND_DRIVER:
+			if (clknb->con_ids[0])
+			{
+				for (con_id = clknb->con_ids; *con_id; con_id++)
+				{
+					disable_clock(dev, *con_id);
+				}
+			}
+			else
+			{
+				disable_clock(dev, NULL);
+			}
+
+			break;
 	}
 
 	return 0;
@@ -634,10 +755,12 @@ static int pm_clk_notify(struct notifier_block *nb,
  * routine.
  */
 void pm_clk_add_notifier(struct bus_type *bus,
-				 struct pm_clk_notifier_block *clknb)
+						 struct pm_clk_notifier_block *clknb)
 {
 	if (!bus || !clknb)
+	{
 		return;
+	}
 
 	clknb->nb.notifier_call = pm_clk_notify;
 	bus_register_notifier(bus, &clknb->nb);

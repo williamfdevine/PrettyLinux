@@ -21,7 +21,8 @@
 /*
  * Completion queue descriptor types
  */
-enum cq_desc_types {
+enum cq_desc_types
+{
 	CQ_DESC_TYPE_WQ_ENET = 0,
 	CQ_DESC_TYPE_DESC_COPY = 1,
 	CQ_DESC_TYPE_WQ_EXCH = 2,
@@ -35,7 +36,8 @@ enum cq_desc_types {
  * type_specfic area is unique for each completion
  * queue type.
  */
-struct cq_desc {
+struct cq_desc
+{
 	__le16 completed_index;
 	__le16 q_number;
 	u8 type_specfic[11];
@@ -52,7 +54,7 @@ struct cq_desc {
 #define CQ_DESC_COMP_NDX_MASK    ((1 << CQ_DESC_COMP_NDX_BITS) - 1)
 
 static inline void cq_desc_dec(const struct cq_desc *desc_arg,
-	u8 *type, u8 *color, u16 *q_number, u16 *completed_index)
+							   u8 *type, u8 *color, u16 *q_number, u16 *completed_index)
 {
 	const struct cq_desc *desc = desc_arg;
 	const u8 type_color = desc->type_color;
@@ -72,7 +74,7 @@ static inline void cq_desc_dec(const struct cq_desc *desc_arg,
 	*type = type_color & CQ_DESC_TYPE_MASK;
 	*q_number = le16_to_cpu(desc->q_number) & CQ_DESC_Q_NUM_MASK;
 	*completed_index = le16_to_cpu(desc->completed_index) &
-		CQ_DESC_COMP_NDX_MASK;
+					   CQ_DESC_COMP_NDX_MASK;
 }
 
 #endif /* _CQ_DESC_H_ */

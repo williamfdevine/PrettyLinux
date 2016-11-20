@@ -41,7 +41,9 @@ static void sun4i_irq_ack(struct irq_data *irqd)
 	unsigned int irq = irqd_to_hwirq(irqd);
 
 	if (irq != 0)
-		return; /* Only IRQ 0 / the ENMI needs to be acked */
+	{
+		return;    /* Only IRQ 0 / the ENMI needs to be acked */
+	}
 
 	writel(BIT(0), sun4i_irq_base + SUN4I_IRQ_PENDING_REG(0));
 }
@@ -55,7 +57,7 @@ static void sun4i_irq_mask(struct irq_data *irqd)
 
 	val = readl(sun4i_irq_base + SUN4I_IRQ_ENABLE_REG(reg));
 	writel(val & ~(1 << irq_off),
-	       sun4i_irq_base + SUN4I_IRQ_ENABLE_REG(reg));
+		   sun4i_irq_base + SUN4I_IRQ_ENABLE_REG(reg));
 }
 
 static void sun4i_irq_unmask(struct irq_data *irqd)
@@ -67,10 +69,11 @@ static void sun4i_irq_unmask(struct irq_data *irqd)
 
 	val = readl(sun4i_irq_base + SUN4I_IRQ_ENABLE_REG(reg));
 	writel(val | (1 << irq_off),
-	       sun4i_irq_base + SUN4I_IRQ_ENABLE_REG(reg));
+		   sun4i_irq_base + SUN4I_IRQ_ENABLE_REG(reg));
 }
 
-static struct irq_chip sun4i_irq_chip = {
+static struct irq_chip sun4i_irq_chip =
+{
 	.name		= "sun4i_irq",
 	.irq_eoi	= sun4i_irq_ack,
 	.irq_mask	= sun4i_irq_mask,
@@ -79,7 +82,7 @@ static struct irq_chip sun4i_irq_chip = {
 };
 
 static int sun4i_irq_map(struct irq_domain *d, unsigned int virq,
-			 irq_hw_number_t hw)
+						 irq_hw_number_t hw)
 {
 	irq_set_chip_and_handler(virq, &sun4i_irq_chip, handle_fasteoi_irq);
 	irq_set_probe(virq);
@@ -87,18 +90,20 @@ static int sun4i_irq_map(struct irq_domain *d, unsigned int virq,
 	return 0;
 }
 
-static const struct irq_domain_ops sun4i_irq_ops = {
+static const struct irq_domain_ops sun4i_irq_ops =
+{
 	.map = sun4i_irq_map,
 	.xlate = irq_domain_xlate_onecell,
 };
 
 static int __init sun4i_of_init(struct device_node *node,
-				struct device_node *parent)
+								struct device_node *parent)
 {
 	sun4i_irq_base = of_iomap(node, 0);
+
 	if (!sun4i_irq_base)
 		panic("%s: unable to map IC registers\n",
-			node->full_name);
+			  node->full_name);
 
 	/* Disable all interrupts */
 	writel(0, sun4i_irq_base + SUN4I_IRQ_ENABLE_REG(0));
@@ -122,9 +127,12 @@ static int __init sun4i_of_init(struct device_node *node,
 	writel(0x00, sun4i_irq_base + SUN4I_IRQ_NMI_CTRL_REG);
 
 	sun4i_irq_domain = irq_domain_add_linear(node, 3 * 32,
-						 &sun4i_irq_ops, NULL);
+					   &sun4i_irq_ops, NULL);
+
 	if (!sun4i_irq_domain)
+	{
 		panic("%s: unable to create IRQ domain\n", node->full_name);
+	}
 
 	set_handle_irq(sun4i_handle_irq);
 
@@ -147,12 +155,17 @@ static void __exception_irq_entry sun4i_handle_irq(struct pt_regs *regs)
 	 * read the vector-reg once.
 	 */
 	hwirq = readl(sun4i_irq_base + SUN4I_IRQ_VECTOR_REG) >> 2;
-	if (hwirq == 0 &&
-		  !(readl(sun4i_irq_base + SUN4I_IRQ_PENDING_REG(0)) & BIT(0)))
-		return;
 
-	do {
+	if (hwirq == 0 &&
+		!(readl(sun4i_irq_base + SUN4I_IRQ_PENDING_REG(0)) & BIT(0)))
+	{
+		return;
+	}
+
+	do
+	{
 		handle_domain_irq(sun4i_irq_domain, hwirq, regs);
 		hwirq = readl(sun4i_irq_base + SUN4I_IRQ_VECTOR_REG) >> 2;
-	} while (hwirq != 0);
+	}
+	while (hwirq != 0);
 }

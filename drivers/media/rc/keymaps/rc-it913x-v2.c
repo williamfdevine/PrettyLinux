@@ -12,7 +12,8 @@
 #include <linux/module.h>
 
 
-static struct rc_map_table it913x_v2_rc[] = {
+static struct rc_map_table it913x_v2_rc[] =
+{
 	/* Type 1 */
 	/* 9005 remote */
 	{ 0x807f12, KEY_POWER2 },	/* Power (RED POWER BUTTON)*/
@@ -68,7 +69,8 @@ static struct rc_map_table it913x_v2_rc[] = {
 
 };
 
-static struct rc_map_list it913x_v2_map = {
+static struct rc_map_list it913x_v2_map =
+{
 	.map = {
 		.scan    = it913x_v2_rc,
 		.size    = ARRAY_SIZE(it913x_v2_rc),

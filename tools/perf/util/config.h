@@ -4,19 +4,22 @@
 #include <stdbool.h>
 #include <linux/list.h>
 
-struct perf_config_item {
+struct perf_config_item
+{
 	char *name;
 	char *value;
 	struct list_head node;
 };
 
-struct perf_config_section {
+struct perf_config_section
+{
 	char *name;
 	struct list_head items;
 	struct list_head node;
 };
 
-struct perf_config_set {
+struct perf_config_set
+{
 	struct list_head sections;
 };
 
@@ -43,7 +46,7 @@ void perf_config__refresh(void);
  * @section: struct perf_config_section iterator
  */
 #define perf_config_sections__for_each_entry(list, section)	\
-        list_for_each_entry(section, list, node)
+	list_for_each_entry(section, list, node)
 
 /**
  * perf_config_items__for_each - iterate thru all the items
@@ -51,7 +54,7 @@ void perf_config__refresh(void);
  * @item: struct perf_config_item iterator
  */
 #define perf_config_items__for_each_entry(list, item)	\
-        list_for_each_entry(item, list, node)
+	list_for_each_entry(item, list, node)
 
 /**
  * perf_config_set__for_each - iterate thru all the config section-item pairs

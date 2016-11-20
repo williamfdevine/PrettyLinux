@@ -22,7 +22,8 @@
 #include "vmci_queue_pair.h"
 #include "vmci_context.h"
 
-enum vmci_obj_type {
+enum vmci_obj_type
+{
 	VMCIOBJ_VMX_VM = 10,
 	VMCIOBJ_CONTEXT,
 	VMCIOBJ_SOCKET,
@@ -30,7 +31,8 @@ enum vmci_obj_type {
 };
 
 /* For storing VMCI structures in file handles. */
-struct vmci_obj {
+struct vmci_obj
+{
 	void *ptr;
 	enum vmci_obj_type type;
 };

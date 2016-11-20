@@ -47,7 +47,8 @@ struct igbvf_adapter;
 #define IGBVF_20K_ITR		196
 #define IGBVF_70K_ITR		56
 
-enum latency_range {
+enum latency_range
+{
 	lowest_latency = 0,
 	low_latency = 1,
 	bulk_latency = 2,
@@ -104,12 +105,14 @@ enum latency_range {
 /* Number of packet split data buffers (not including the header buffer) */
 #define PS_PAGE_BUFFERS		(MAX_PS_BUFFERS - 1)
 
-enum igbvf_boards {
+enum igbvf_boards
+{
 	board_vf,
 	board_i350_vf,
 };
 
-struct igbvf_queue_stats {
+struct igbvf_queue_stats
+{
 	u64 packets;
 	u64 bytes;
 };
@@ -117,19 +120,23 @@ struct igbvf_queue_stats {
 /* wrappers around a pointer to a socket buffer,
  * so a DMA handle can be stored along with the buffer
  */
-struct igbvf_buffer {
+struct igbvf_buffer
+{
 	dma_addr_t dma;
 	struct sk_buff *skb;
-	union {
+	union
+	{
 		/* Tx */
-		struct {
+		struct
+		{
 			unsigned long time_stamp;
 			union e1000_adv_tx_desc *next_to_watch;
 			u16 length;
 			u16 mapped_as_page;
 		};
 		/* Rx */
-		struct {
+		struct
+		{
 			struct page *page;
 			u64 page_dma;
 			unsigned int page_offset;
@@ -137,13 +144,15 @@ struct igbvf_buffer {
 	};
 };
 
-union igbvf_desc {
+union igbvf_desc
+{
 	union e1000_adv_rx_desc rx_desc;
 	union e1000_adv_tx_desc tx_desc;
 	struct e1000_adv_tx_context_desc tx_context_desc;
 };
 
-struct igbvf_ring {
+struct igbvf_ring
+{
 	struct igbvf_adapter *adapter;  /* backlink */
 	union igbvf_desc *desc;	/* pointer to ring memory  */
 	dma_addr_t dma;		/* phys address of ring    */
@@ -173,7 +182,8 @@ struct igbvf_ring {
 };
 
 /* board specific private data structure */
-struct igbvf_adapter {
+struct igbvf_adapter
+{
 	struct timer_list watchdog_timer;
 	struct timer_list blink_timer;
 
@@ -201,7 +211,7 @@ struct igbvf_adapter {
 
 	/* Tx */
 	struct igbvf_ring *tx_ring /* One per active queue */
-	____cacheline_aligned_in_smp;
+		____cacheline_aligned_in_smp;
 
 	unsigned int restart_queue;
 	u32 txd_cmd;
@@ -278,7 +288,8 @@ struct igbvf_adapter {
 	unsigned long last_reset;
 };
 
-struct igbvf_info {
+struct igbvf_info
+{
 	enum e1000_mac_type	mac;
 	unsigned int		flags;
 	u32			pba;
@@ -296,7 +307,8 @@ struct igbvf_info {
 #define IGBVF_TX_CTXTDESC_ADV(R, i) \
 	(&((((R).desc))[i].tx_context_desc))
 
-enum igbvf_state_t {
+enum igbvf_state_t
+{
 	__IGBVF_TESTING,
 	__IGBVF_RESETTING,
 	__IGBVF_DOWN

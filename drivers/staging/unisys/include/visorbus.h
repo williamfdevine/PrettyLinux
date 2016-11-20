@@ -44,12 +44,13 @@ struct visor_device;
 extern struct bus_type visorbus_type;
 
 typedef void (*visorbus_state_complete_func) (struct visor_device *dev,
-					      int status);
-struct visorchipset_state {
-	u32 created:1;
-	u32 attached:1;
-	u32 configured:1;
-	u32 running:1;
+		int status);
+struct visorchipset_state
+{
+	u32 created: 1;
+	u32 attached: 1;
+	u32 configured: 1;
+	u32 running: 1;
 	/* Add new fields above. */
 	/* Remaining bits in this 32-bit word are unused. */
 };
@@ -57,7 +58,8 @@ struct visorchipset_state {
 /** This struct describes a specific Supervisor channel, by providing its
  *  GUID, name, and sizes.
  */
-struct visor_channeltype_descriptor {
+struct visor_channeltype_descriptor
+{
 	const uuid_le guid;
 	const char *name;
 };
@@ -93,7 +95,8 @@ struct visor_channeltype_descriptor {
  * @driver:		Private reference to the device driver. For use by bus
  *			driver only.
  */
-struct visor_driver {
+struct visor_driver
+{
 	const char *name;
 	struct module *owner;
 	struct visor_channeltype_descriptor *channel_types;
@@ -101,16 +104,16 @@ struct visor_driver {
 	void (*remove)(struct visor_device *dev);
 	void (*channel_interrupt)(struct visor_device *dev);
 	int (*pause)(struct visor_device *dev,
-		     visorbus_state_complete_func complete_func);
+				 visorbus_state_complete_func complete_func);
 	int (*resume)(struct visor_device *dev,
-		      visorbus_state_complete_func complete_func);
+				  visorbus_state_complete_func complete_func);
 
 	/* These fields are for private use by the bus driver only. */
 	struct device_driver driver;
 };
 
 #define to_visor_driver(x) ((x) ? \
-	(container_of(x, struct visor_driver, driver)) : (NULL))
+							(container_of(x, struct visor_driver, driver)) : (NULL))
 
 /**
  * struct visor_device - A device type for things "plugged" into the visorbus
@@ -146,7 +149,8 @@ struct visor_driver {
  *				guest. Private use by bus driver only.
  */
 
-struct visor_device {
+struct visor_device
+{
 	struct visorchannel *visorchannel;
 	uuid_le channel_type_guid;
 	/* These fields are for private use by the bus driver only. */
@@ -173,11 +177,11 @@ struct visor_device {
 int visorbus_register_visor_driver(struct visor_driver *);
 void visorbus_unregister_visor_driver(struct visor_driver *);
 int visorbus_read_channel(struct visor_device *dev,
-			  unsigned long offset, void *dest,
-			  unsigned long nbytes);
+						  unsigned long offset, void *dest,
+						  unsigned long nbytes);
 int visorbus_write_channel(struct visor_device *dev,
-			   unsigned long offset, void *src,
-			   unsigned long nbytes);
+						   unsigned long offset, void *src,
+						   unsigned long nbytes);
 void visorbus_enable_channel_interrupts(struct visor_device *dev);
 void visorbus_disable_channel_interrupts(struct visor_device *dev);
 
@@ -192,7 +196,8 @@ void visorbus_disable_channel_interrupts(struct visor_device *dev);
  * but they are valid for controlling the amount of event data. Changes made
  * to the enum, need to be reflected in s-Par.
  */
-enum diag_severity {
+enum diag_severity
+{
 	DIAG_SEVERITY_VERBOSE = 0,
 	DIAG_SEVERITY_INFO = 1,
 	DIAG_SEVERITY_WARNING = 2,
@@ -201,13 +206,13 @@ enum diag_severity {
 };
 
 int visorchannel_signalremove(struct visorchannel *channel, u32 queue,
-			      void *msg);
+							  void *msg);
 int visorchannel_signalinsert(struct visorchannel *channel, u32 queue,
-			      void *msg);
+							  void *msg);
 bool visorchannel_signalempty(struct visorchannel *channel, u32 queue);
 uuid_le visorchannel_get_uuid(struct visorchannel *channel);
 
 #define BUS_ROOT_DEVICE		UINT_MAX
 struct visor_device *visorbus_get_device_by_id(u32 bus_no, u32 dev_no,
-					       struct visor_device *from);
+		struct visor_device *from);
 #endif

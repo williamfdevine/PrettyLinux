@@ -4,13 +4,13 @@
 #define CHECK(native, pcp, expected)                                    \
 	do {                                                            \
 		WARN((native) != (expected),                            \
-		     "raw %ld (0x%lx) != expected %lld (0x%llx)",	\
-		     (native), (native),				\
-		     (long long)(expected), (long long)(expected));	\
+			 "raw %ld (0x%lx) != expected %lld (0x%llx)",	\
+			 (native), (native),				\
+			 (long long)(expected), (long long)(expected));	\
 		WARN(__this_cpu_read(pcp) != (expected),                \
-		     "pcp %ld (0x%lx) != expected %lld (0x%llx)",	\
-		     __this_cpu_read(pcp), __this_cpu_read(pcp),	\
-		     (long long)(expected), (long long)(expected));	\
+			 "pcp %ld (0x%lx) != expected %lld (0x%llx)",	\
+			 __this_cpu_read(pcp), __this_cpu_read(pcp),	\
+			 (long long)(expected), (long long)(expected));	\
 	} while (0)
 
 static DEFINE_PER_CPU(long, long_counter);

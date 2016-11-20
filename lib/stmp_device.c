@@ -33,6 +33,7 @@ static int stmp_clear_poll_bit(void __iomem *addr, u32 mask)
 
 	writel(mask, addr + STMP_OFFSET_REG_CLR);
 	udelay(1);
+
 	while ((readl(addr) & mask) && --timeout)
 		/* nothing */;
 
@@ -46,8 +47,11 @@ int stmp_reset_block(void __iomem *reset_addr)
 
 	/* clear and poll SFTRST */
 	ret = stmp_clear_poll_bit(reset_addr, STMP_MODULE_SFTRST);
+
 	if (unlikely(ret))
+	{
 		goto error;
+	}
 
 	/* clear CLKGATE */
 	writel(STMP_MODULE_CLKGATE, reset_addr + STMP_OFFSET_REG_CLR);
@@ -59,18 +63,27 @@ int stmp_reset_block(void __iomem *reset_addr)
 	/* poll CLKGATE becoming set */
 	while ((!(readl(reset_addr) & STMP_MODULE_CLKGATE)) && --timeout)
 		/* nothing */;
+
 	if (unlikely(!timeout))
+	{
 		goto error;
+	}
 
 	/* clear and poll SFTRST */
 	ret = stmp_clear_poll_bit(reset_addr, STMP_MODULE_SFTRST);
+
 	if (unlikely(ret))
+	{
 		goto error;
+	}
 
 	/* clear and poll CLKGATE */
 	ret = stmp_clear_poll_bit(reset_addr, STMP_MODULE_CLKGATE);
+
 	if (unlikely(ret))
+	{
 		goto error;
+	}
 
 	return 0;
 

@@ -108,29 +108,29 @@ int rtl92ee_init_sw_vars(struct ieee80211_hw *hw)
 	rtlpriv->rtlhal.macphymode = SINGLEMAC_SINGLEPHY;
 
 	rtlpci->receive_config = (RCR_APPFCS			|
-				  RCR_APP_MIC			|
-				  RCR_APP_ICV			|
-				  RCR_APP_PHYST_RXFF		|
-				  RCR_HTC_LOC_CTRL		|
-				  RCR_AMF			|
-				  RCR_ACF			|
-				  RCR_ACRC32			|
-				  RCR_AB			|
-				  RCR_AM			|
-				  RCR_APM			|
-				  0);
+							  RCR_APP_MIC			|
+							  RCR_APP_ICV			|
+							  RCR_APP_PHYST_RXFF		|
+							  RCR_HTC_LOC_CTRL		|
+							  RCR_AMF			|
+							  RCR_ACF			|
+							  RCR_ACRC32			|
+							  RCR_AB			|
+							  RCR_AM			|
+							  RCR_APM			|
+							  0);
 
 	rtlpci->irq_mask[0] = (u32)(IMR_PSTIMEOUT		|
-				     IMR_C2HCMD			|
-				     IMR_HIGHDOK		|
-				     IMR_MGNTDOK		|
-				     IMR_BKDOK			|
-				     IMR_BEDOK			|
-				     IMR_VIDOK			|
-				     IMR_VODOK			|
-				     IMR_RDU			|
-				     IMR_ROK			|
-				     0);
+								IMR_C2HCMD			|
+								IMR_HIGHDOK		|
+								IMR_MGNTDOK		|
+								IMR_BKDOK			|
+								IMR_BEDOK			|
+								IMR_VIDOK			|
+								IMR_VODOK			|
+								IMR_RDU			|
+								IMR_ROK			|
+								0);
 	rtlpci->irq_mask[1] = (u32)(IMR_RXFOVW | 0);
 
 	/* for debug level */
@@ -140,8 +140,12 @@ int rtl92ee_init_sw_vars(struct ieee80211_hw *hw)
 	rtlpriv->psc.swctrl_lps = rtlpriv->cfg->mod_params->swctrl_lps;
 	rtlpriv->psc.fwctrl_lps = rtlpriv->cfg->mod_params->fwctrl_lps;
 	rtlpci->msi_support = rtlpriv->cfg->mod_params->msi_support;
+
 	if (rtlpriv->cfg->mod_params->disable_watchdog)
+	{
 		pr_info("watchdog disabled\n");
+	}
+
 	rtlpriv->psc.reg_fwctrl_lps = 3;
 	rtlpriv->psc.reg_max_lps_awakeintvl = 5;
 	/* for ASPM, you can close aspm through
@@ -150,11 +154,17 @@ int rtl92ee_init_sw_vars(struct ieee80211_hw *hw)
 	rtl92ee_init_aspm_vars(hw);
 
 	if (rtlpriv->psc.reg_fwctrl_lps == 1)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_MIN_MODE;
+	}
 	else if (rtlpriv->psc.reg_fwctrl_lps == 2)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_MAX_MODE;
+	}
 	else if (rtlpriv->psc.reg_fwctrl_lps == 3)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_DTIM_MODE;
+	}
 
 	/* for early mode */
 	rtlpriv->rtlhal.earlymode_enable = false;
@@ -164,9 +174,11 @@ int rtl92ee_init_sw_vars(struct ieee80211_hw *hw)
 
 	/* for firmware buf */
 	rtlpriv->rtlhal.pfirmware = vzalloc(0x8000);
-	if (!rtlpriv->rtlhal.pfirmware) {
+
+	if (!rtlpriv->rtlhal.pfirmware)
+	{
 		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-			 "Can't alloc buffer for fw\n");
+				 "Can't alloc buffer for fw\n");
 		return 1;
 	}
 
@@ -176,11 +188,13 @@ int rtl92ee_init_sw_vars(struct ieee80211_hw *hw)
 	rtlpriv->max_fw_size = 0x8000;
 	pr_info("Using firmware %s\n", fw_name);
 	err = request_firmware_nowait(THIS_MODULE, 1, fw_name,
-				      rtlpriv->io.dev, GFP_KERNEL, hw,
-				      rtl_fw_cb);
-	if (err) {
+								  rtlpriv->io.dev, GFP_KERNEL, hw,
+								  rtl_fw_cb);
+
+	if (err)
+	{
 		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-			 "Failed to request firmware!\n");
+				 "Failed to request firmware!\n");
 		return 1;
 	}
 
@@ -191,7 +205,8 @@ void rtl92ee_deinit_sw_vars(struct ieee80211_hw *hw)
 {
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
 
-	if (rtlpriv->rtlhal.pfirmware) {
+	if (rtlpriv->rtlhal.pfirmware)
+	{
 		vfree(rtlpriv->rtlhal.pfirmware);
 		rtlpriv->rtlhal.pfirmware = NULL;
 	}
@@ -203,7 +218,8 @@ bool rtl92ee_get_btc_status(void)
 	return true;
 }
 
-static struct rtl_hal_ops rtl8192ee_hal_ops = {
+static struct rtl_hal_ops rtl8192ee_hal_ops =
+{
 	.init_sw_vars = rtl92ee_init_sw_vars,
 	.deinit_sw_vars = rtl92ee_deinit_sw_vars,
 	.read_eeprom_info = rtl92ee_read_eeprom_info,
@@ -254,7 +270,8 @@ static struct rtl_hal_ops rtl8192ee_hal_ops = {
 	.rx_command_packet = rtl92ee_rx_command_packet,
 };
 
-static struct rtl_mod_params rtl92ee_mod_params = {
+static struct rtl_mod_params rtl92ee_mod_params =
+{
 	.sw_crypto = false,
 	.inactiveps = false,
 	.swctrl_lps = false,
@@ -263,7 +280,8 @@ static struct rtl_mod_params rtl92ee_mod_params = {
 	.debug = DBG_EMERG,
 };
 
-static const struct rtl_hal_cfg rtl92ee_hal_cfg = {
+static const struct rtl_hal_cfg rtl92ee_hal_cfg =
+{
 	.bar_id = 2,
 	.write_readback = true,
 	.name = "rtl92ee_pci",
@@ -356,7 +374,8 @@ static const struct rtl_hal_cfg rtl92ee_hal_cfg = {
 	.maps[RTL_RC_HT_RATEMCS15] = DESC92C_RATEMCS15,
 };
 
-static struct pci_device_id rtl92ee_pci_ids[] = {
+static struct pci_device_id rtl92ee_pci_ids[] =
+{
 	{RTL_PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x818B, rtl92ee_hal_cfg)},
 	{},
 };
@@ -376,7 +395,7 @@ module_param_named(swlps, rtl92ee_mod_params.swctrl_lps, bool, 0444);
 module_param_named(fwlps, rtl92ee_mod_params.fwctrl_lps, bool, 0444);
 module_param_named(msi, rtl92ee_mod_params.msi_support, bool, 0444);
 module_param_named(disable_watchdog, rtl92ee_mod_params.disable_watchdog,
-		   bool, 0444);
+				   bool, 0444);
 MODULE_PARM_DESC(swenc, "Set to 1 for software crypto (default 0)\n");
 MODULE_PARM_DESC(ips, "Set to 0 to not use link power save (default 1)\n");
 MODULE_PARM_DESC(swlps, "Set to 1 to use SW control power save (default 0)\n");
@@ -387,7 +406,8 @@ MODULE_PARM_DESC(disable_watchdog, "Set to 1 to disable the watchdog (default 0)
 
 static SIMPLE_DEV_PM_OPS(rtlwifi_pm_ops, rtl_pci_suspend, rtl_pci_resume);
 
-static struct pci_driver rtl92ee_driver = {
+static struct pci_driver rtl92ee_driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = rtl92ee_pci_ids,
 	.probe = rtl_pci_probe,

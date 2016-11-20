@@ -36,26 +36,31 @@
 #include "rxe_queue.h"
 
 int rxe_cq_chk_attr(struct rxe_dev *rxe, struct rxe_cq *cq,
-		    int cqe, int comp_vector, struct ib_udata *udata)
+					int cqe, int comp_vector, struct ib_udata *udata)
 {
 	int count;
 
-	if (cqe <= 0) {
+	if (cqe <= 0)
+	{
 		pr_warn("cqe(%d) <= 0\n", cqe);
 		goto err1;
 	}
 
-	if (cqe > rxe->attr.max_cqe) {
+	if (cqe > rxe->attr.max_cqe)
+	{
 		pr_warn("cqe(%d) > max_cqe(%d)\n",
-			cqe, rxe->attr.max_cqe);
+				cqe, rxe->attr.max_cqe);
 		goto err1;
 	}
 
-	if (cq) {
+	if (cq)
+	{
 		count = queue_count(cq->queue);
-		if (cqe < count) {
+
+		if (cqe < count)
+		{
 			pr_warn("cqe(%d) < current # elements in queue (%d)",
-				cqe, count);
+					cqe, count);
 			goto err1;
 		}
 	}
@@ -74,28 +79,34 @@ static void rxe_send_complete(unsigned long data)
 }
 
 int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
-		     int comp_vector, struct ib_ucontext *context,
-		     struct ib_udata *udata)
+					 int comp_vector, struct ib_ucontext *context,
+					 struct ib_udata *udata)
 {
 	int err;
 
 	cq->queue = rxe_queue_init(rxe, &cqe,
-				   sizeof(struct rxe_cqe));
-	if (!cq->queue) {
+							   sizeof(struct rxe_cqe));
+
+	if (!cq->queue)
+	{
 		pr_warn("unable to create cq\n");
 		return -ENOMEM;
 	}
 
 	err = do_mmap_info(rxe, udata, false, context, cq->queue->buf,
-			   cq->queue->buf_size, &cq->queue->ip);
-	if (err) {
+					   cq->queue->buf_size, &cq->queue->ip);
+
+	if (err)
+	{
 		kvfree(cq->queue->buf);
 		kfree(cq->queue);
 		return err;
 	}
 
 	if (udata)
+	{
 		cq->is_user = 1;
+	}
 
 	tasklet_init(&cq->comp_task, rxe_send_complete, (unsigned long)cq);
 
@@ -109,11 +120,14 @@ int rxe_cq_resize_queue(struct rxe_cq *cq, int cqe, struct ib_udata *udata)
 	int err;
 
 	err = rxe_queue_resize(cq->queue, (unsigned int *)&cqe,
-			       sizeof(struct rxe_cqe),
-			       cq->queue->ip ? cq->queue->ip->context : NULL,
-			       udata, NULL, &cq->cq_lock);
+						   sizeof(struct rxe_cqe),
+						   cq->queue->ip ? cq->queue->ip->context : NULL,
+						   udata, NULL, &cq->cq_lock);
+
 	if (!err)
+	{
 		cq->ibcq.cqe = cqe;
+	}
 
 	return err;
 }
@@ -125,9 +139,12 @@ int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited)
 
 	spin_lock_irqsave(&cq->cq_lock, flags);
 
-	if (unlikely(queue_full(cq->queue))) {
+	if (unlikely(queue_full(cq->queue)))
+	{
 		spin_unlock_irqrestore(&cq->cq_lock, flags);
-		if (cq->ibcq.event_handler) {
+
+		if (cq->ibcq.event_handler)
+		{
 			ev.device = cq->ibcq.device;
 			ev.element.cq = &cq->ibcq;
 			ev.event = IB_EVENT_CQ_ERR;
@@ -148,7 +165,8 @@ int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited)
 	spin_unlock_irqrestore(&cq->cq_lock, flags);
 
 	if ((cq->notify == IB_CQ_NEXT_COMP) ||
-	    (cq->notify == IB_CQ_SOLICITED && solicited)) {
+		(cq->notify == IB_CQ_SOLICITED && solicited))
+	{
 		cq->notify = 0;
 		tasklet_schedule(&cq->comp_task);
 	}
@@ -161,5 +179,7 @@ void rxe_cq_cleanup(void *arg)
 	struct rxe_cq *cq = arg;
 
 	if (cq->queue)
+	{
 		rxe_queue_cleanup(cq->queue);
+	}
 }

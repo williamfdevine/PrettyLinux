@@ -23,7 +23,8 @@
 #include <linux/regulator/of_regulator.h>
 #include <linux/vexpress.h>
 
-struct vexpress_regulator {
+struct vexpress_regulator
+{
 	struct regulator_desc desc;
 	struct regulator_dev *regdev;
 	struct regmap *regmap;
@@ -46,11 +47,13 @@ static int vexpress_regulator_set_voltage(struct regulator_dev *regdev,
 	return regmap_write(reg->regmap, 0, min_uV);
 }
 
-static struct regulator_ops vexpress_regulator_ops_ro = {
+static struct regulator_ops vexpress_regulator_ops_ro =
+{
 	.get_voltage = vexpress_regulator_get_voltage,
 };
 
-static struct regulator_ops vexpress_regulator_ops = {
+static struct regulator_ops vexpress_regulator_ops =
+{
 	.get_voltage = vexpress_regulator_get_voltage,
 	.set_voltage = vexpress_regulator_set_voltage,
 };
@@ -62,12 +65,18 @@ static int vexpress_regulator_probe(struct platform_device *pdev)
 	struct regulator_config config = { };
 
 	reg = devm_kzalloc(&pdev->dev, sizeof(*reg), GFP_KERNEL);
+
 	if (!reg)
+	{
 		return -ENOMEM;
+	}
 
 	reg->regmap = devm_regmap_init_vexpress_config(&pdev->dev);
+
 	if (IS_ERR(reg->regmap))
+	{
 		return PTR_ERR(reg->regmap);
+	}
 
 	reg->desc.name = dev_name(&pdev->dev);
 	reg->desc.type = REGULATOR_VOLTAGE;
@@ -75,15 +84,23 @@ static int vexpress_regulator_probe(struct platform_device *pdev)
 	reg->desc.continuous_voltage_range = true;
 
 	init_data = of_get_regulator_init_data(&pdev->dev, pdev->dev.of_node,
-					       &reg->desc);
+										   &reg->desc);
+
 	if (!init_data)
+	{
 		return -EINVAL;
+	}
 
 	init_data->constraints.apply_uV = 0;
+
 	if (init_data->constraints.min_uV && init_data->constraints.max_uV)
+	{
 		reg->desc.ops = &vexpress_regulator_ops;
+	}
 	else
+	{
 		reg->desc.ops = &vexpress_regulator_ops_ro;
+	}
 
 	config.dev = &pdev->dev;
 	config.init_data = init_data;
@@ -91,21 +108,26 @@ static int vexpress_regulator_probe(struct platform_device *pdev)
 	config.of_node = pdev->dev.of_node;
 
 	reg->regdev = devm_regulator_register(&pdev->dev, &reg->desc, &config);
+
 	if (IS_ERR(reg->regdev))
+	{
 		return PTR_ERR(reg->regdev);
+	}
 
 	platform_set_drvdata(pdev, reg);
 
 	return 0;
 }
 
-static const struct of_device_id vexpress_regulator_of_match[] = {
+static const struct of_device_id vexpress_regulator_of_match[] =
+{
 	{ .compatible = "arm,vexpress-volt", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, vexpress_regulator_of_match);
 
-static struct platform_driver vexpress_regulator_driver = {
+static struct platform_driver vexpress_regulator_driver =
+{
 	.probe = vexpress_regulator_probe,
 	.driver	= {
 		.name = DRVNAME,

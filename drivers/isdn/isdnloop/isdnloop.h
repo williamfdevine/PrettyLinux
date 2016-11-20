@@ -18,12 +18,14 @@
 #define ISDNLOOP_IOCTL_STARTUP   3
 
 /* Struct for adding new cards */
-typedef struct isdnloop_cdef {
+typedef struct isdnloop_cdef
+{
 	char id1[10];
 } isdnloop_cdef;
 
 /* Struct for configuring cards */
-typedef struct isdnloop_sdef {
+typedef struct isdnloop_sdef
+{
 	int ptype;
 	char num[3][20];
 } isdnloop_sdef;
@@ -31,21 +33,21 @@ typedef struct isdnloop_sdef {
 #if defined(__KERNEL__) || defined(__DEBUGVAR__)
 
 #ifdef __KERNEL__
-/* Kernel includes */
+	/* Kernel includes */
 
-#include <linux/errno.h>
-#include <linux/fs.h>
-#include <linux/major.h>
-#include <asm/io.h>
-#include <linux/kernel.h>
-#include <linux/signal.h>
-#include <linux/slab.h>
-#include <linux/mm.h>
-#include <linux/mman.h>
-#include <linux/ioport.h>
-#include <linux/timer.h>
-#include <linux/wait.h>
-#include <linux/isdnif.h>
+	#include <linux/errno.h>
+	#include <linux/fs.h>
+	#include <linux/major.h>
+	#include <asm/io.h>
+	#include <linux/kernel.h>
+	#include <linux/signal.h>
+	#include <linux/slab.h>
+	#include <linux/mm.h>
+	#include <linux/mman.h>
+	#include <linux/ioport.h>
+	#include <linux/timer.h>
+	#include <linux/wait.h>
+	#include <linux/isdnif.h>
 
 #endif                          /* __KERNEL__ */
 
@@ -62,10 +64,11 @@ typedef struct isdnloop_sdef {
 /*
  * Per card driver data
  */
-typedef struct isdnloop_card {
+typedef struct isdnloop_card
+{
 	struct isdnloop_card *next;	/* Pointer to next device struct    */
 	struct isdnloop_card
-	*rcard[ISDNLOOP_BCH];   /* Pointer to 'remote' card         */
+		*rcard[ISDNLOOP_BCH];   /* Pointer to 'remote' card         */
 	int rch[ISDNLOOP_BCH];  /* 'remote' channel                 */
 	int myid;               /* Driver-Nr. assigned by linklevel */
 	int leased;             /* Flag: This Adapter is connected  */
@@ -79,7 +82,7 @@ typedef struct isdnloop_card {
 	struct timer_list st_timer;	/* Timer for Status-Polls           */
 	struct timer_list rb_timer;	/* Timer for B-Channel-Polls        */
 	struct timer_list
-	c_timer[ISDNLOOP_BCH]; /* Timer for Alerting               */
+		c_timer[ISDNLOOP_BCH]; /* Timer for Alerting               */
 	int l2_proto[ISDNLOOP_BCH];	/* Current layer-2-protocol         */
 	isdn_if interface;      /* Interface to upper layer         */
 	int iptr;               /* Index to imsg-buffer             */
@@ -92,7 +95,7 @@ typedef struct isdnloop_card {
 	char *msg_buf_end;      /* Pointer to end of statusbuffer   */
 	int sndcount[ISDNLOOP_BCH];	/* Byte-counters for B-Ch.-send     */
 	struct sk_buff_head
-	bqueue[ISDNLOOP_BCH];  /* B-Channel queues                 */
+		bqueue[ISDNLOOP_BCH];  /* B-Channel queues                 */
 	struct sk_buff_head dqueue;	/* D-Channel queue                  */
 	spinlock_t isdnloop_lock;
 } isdnloop_card;
@@ -101,7 +104,7 @@ typedef struct isdnloop_card {
  * Main driver data
  */
 #ifdef __KERNEL__
-static isdnloop_card *cards = (isdnloop_card *) 0;
+	static isdnloop_card *cards = (isdnloop_card *) 0;
 #endif                          /* __KERNEL__ */
 
 /* Utility-Macros */

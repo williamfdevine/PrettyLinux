@@ -63,7 +63,7 @@
  */
 
 #if BITS_PER_LONG == 64
-#define EFX_USE_QWORD_IO 1
+	#define EFX_USE_QWORD_IO 1
 #endif
 
 /* Hardware issue requires that only 64-bit naturally aligned writes
@@ -72,15 +72,15 @@
  * can break PIO.
  */
 #ifdef CONFIG_X86_64
-/* PIO is a win only if write-combining is possible */
-#ifdef ARCH_HAS_IOREMAP_WC
-#define EFX_USE_PIO 1
-#endif
+	/* PIO is a win only if write-combining is possible */
+	#ifdef ARCH_HAS_IOREMAP_WC
+		#define EFX_USE_PIO 1
+	#endif
 #endif
 
 #ifdef EFX_USE_QWORD_IO
 static inline void _efx_writeq(struct efx_nic *efx, __le64 value,
-				  unsigned int reg)
+							   unsigned int reg)
 {
 	__raw_writeq((__force u64)value, efx->membase + reg);
 }
@@ -91,7 +91,7 @@ static inline __le64 _efx_readq(struct efx_nic *efx, unsigned int reg)
 #endif
 
 static inline void _efx_writed(struct efx_nic *efx, __le32 value,
-				  unsigned int reg)
+							   unsigned int reg)
 {
 	__raw_writel((__force u32)value, efx->membase + reg);
 }
@@ -102,13 +102,13 @@ static inline __le32 _efx_readd(struct efx_nic *efx, unsigned int reg)
 
 /* Write a normal 128-bit CSR, locking as appropriate. */
 static inline void efx_writeo(struct efx_nic *efx, const efx_oword_t *value,
-			      unsigned int reg)
+							  unsigned int reg)
 {
 	unsigned long flags __attribute__ ((unused));
 
 	netif_vdbg(efx, hw, efx->net_dev,
-		   "writing register %x with " EFX_OWORD_FMT "\n", reg,
-		   EFX_OWORD_VAL(*value));
+			   "writing register %x with " EFX_OWORD_FMT "\n", reg,
+			   EFX_OWORD_VAL(*value));
 
 	spin_lock_irqsave(&efx->biu_lock, flags);
 #ifdef EFX_USE_QWORD_IO
@@ -126,14 +126,14 @@ static inline void efx_writeo(struct efx_nic *efx, const efx_oword_t *value,
 
 /* Write 64-bit SRAM through the supplied mapping, locking as appropriate. */
 static inline void efx_sram_writeq(struct efx_nic *efx, void __iomem *membase,
-				   const efx_qword_t *value, unsigned int index)
+								   const efx_qword_t *value, unsigned int index)
 {
 	unsigned int addr = index * sizeof(*value);
 	unsigned long flags __attribute__ ((unused));
 
 	netif_vdbg(efx, hw, efx->net_dev,
-		   "writing SRAM address %x with " EFX_QWORD_FMT "\n",
-		   addr, EFX_QWORD_VAL(*value));
+			   "writing SRAM address %x with " EFX_QWORD_FMT "\n",
+			   addr, EFX_QWORD_VAL(*value));
 
 	spin_lock_irqsave(&efx->biu_lock, flags);
 #ifdef EFX_USE_QWORD_IO
@@ -148,11 +148,11 @@ static inline void efx_sram_writeq(struct efx_nic *efx, void __iomem *membase,
 
 /* Write a 32-bit CSR or the last dword of a special 128-bit CSR */
 static inline void efx_writed(struct efx_nic *efx, const efx_dword_t *value,
-			      unsigned int reg)
+							  unsigned int reg)
 {
 	netif_vdbg(efx, hw, efx->net_dev,
-		   "writing register %x with "EFX_DWORD_FMT"\n",
-		   reg, EFX_DWORD_VAL(*value));
+			   "writing register %x with "EFX_DWORD_FMT"\n",
+			   reg, EFX_DWORD_VAL(*value));
 
 	/* No lock required */
 	_efx_writed(efx, value->u32[0], reg);
@@ -160,7 +160,7 @@ static inline void efx_writed(struct efx_nic *efx, const efx_dword_t *value,
 
 /* Read a 128-bit CSR, locking as appropriate. */
 static inline void efx_reado(struct efx_nic *efx, efx_oword_t *value,
-			     unsigned int reg)
+							 unsigned int reg)
 {
 	unsigned long flags __attribute__ ((unused));
 
@@ -172,13 +172,13 @@ static inline void efx_reado(struct efx_nic *efx, efx_oword_t *value,
 	spin_unlock_irqrestore(&efx->biu_lock, flags);
 
 	netif_vdbg(efx, hw, efx->net_dev,
-		   "read from register %x, got " EFX_OWORD_FMT "\n", reg,
-		   EFX_OWORD_VAL(*value));
+			   "read from register %x, got " EFX_OWORD_FMT "\n", reg,
+			   EFX_OWORD_VAL(*value));
 }
 
 /* Read 64-bit SRAM through the supplied mapping, locking as appropriate. */
 static inline void efx_sram_readq(struct efx_nic *efx, void __iomem *membase,
-				  efx_qword_t *value, unsigned int index)
+								  efx_qword_t *value, unsigned int index)
 {
 	unsigned int addr = index * sizeof(*value);
 	unsigned long flags __attribute__ ((unused));
@@ -193,31 +193,31 @@ static inline void efx_sram_readq(struct efx_nic *efx, void __iomem *membase,
 	spin_unlock_irqrestore(&efx->biu_lock, flags);
 
 	netif_vdbg(efx, hw, efx->net_dev,
-		   "read from SRAM address %x, got "EFX_QWORD_FMT"\n",
-		   addr, EFX_QWORD_VAL(*value));
+			   "read from SRAM address %x, got "EFX_QWORD_FMT"\n",
+			   addr, EFX_QWORD_VAL(*value));
 }
 
 /* Read a 32-bit CSR or SRAM */
 static inline void efx_readd(struct efx_nic *efx, efx_dword_t *value,
-				unsigned int reg)
+							 unsigned int reg)
 {
 	value->u32[0] = _efx_readd(efx, reg);
 	netif_vdbg(efx, hw, efx->net_dev,
-		   "read from register %x, got "EFX_DWORD_FMT"\n",
-		   reg, EFX_DWORD_VAL(*value));
+			   "read from register %x, got "EFX_DWORD_FMT"\n",
+			   reg, EFX_DWORD_VAL(*value));
 }
 
 /* Write a 128-bit CSR forming part of a table */
 static inline void
 efx_writeo_table(struct efx_nic *efx, const efx_oword_t *value,
-		 unsigned int reg, unsigned int index)
+				 unsigned int reg, unsigned int index)
 {
 	efx_writeo(efx, value, reg + index * sizeof(efx_oword_t));
 }
 
 /* Read a 128-bit CSR forming part of a table */
 static inline void efx_reado_table(struct efx_nic *efx, efx_oword_t *value,
-				     unsigned int reg, unsigned int index)
+								   unsigned int reg, unsigned int index)
 {
 	efx_reado(efx, value, reg + index * sizeof(efx_oword_t));
 }
@@ -231,13 +231,13 @@ static inline void efx_reado_table(struct efx_nic *efx, efx_oword_t *value,
 
 /* Write the whole of RX_DESC_UPD or TX_DESC_UPD */
 static inline void _efx_writeo_page(struct efx_nic *efx, efx_oword_t *value,
-				    unsigned int reg, unsigned int page)
+									unsigned int reg, unsigned int page)
 {
 	reg = EFX_PAGED_REG(page, reg);
 
 	netif_vdbg(efx, hw, efx->net_dev,
-		   "writing register %x with " EFX_OWORD_FMT "\n", reg,
-		   EFX_OWORD_VAL(*value));
+			   "writing register %x with " EFX_OWORD_FMT "\n", reg,
+			   EFX_OWORD_VAL(*value));
 
 #ifdef EFX_USE_QWORD_IO
 	_efx_writeq(efx, value->u64[0], reg + 0);
@@ -251,52 +251,55 @@ static inline void _efx_writeo_page(struct efx_nic *efx, efx_oword_t *value,
 }
 #define efx_writeo_page(efx, value, reg, page)				\
 	_efx_writeo_page(efx, value,					\
-			 reg +						\
-			 BUILD_BUG_ON_ZERO((reg) != 0x830 && (reg) != 0xa10), \
-			 page)
+					 reg +						\
+					 BUILD_BUG_ON_ZERO((reg) != 0x830 && (reg) != 0xa10), \
+					 page)
 
 /* Write a page-mapped 32-bit CSR (EVQ_RPTR, EVQ_TMR (EF10), or the
  * high bits of RX_DESC_UPD or TX_DESC_UPD)
  */
 static inline void
 _efx_writed_page(struct efx_nic *efx, const efx_dword_t *value,
-		 unsigned int reg, unsigned int page)
+				 unsigned int reg, unsigned int page)
 {
 	efx_writed(efx, value, EFX_PAGED_REG(page, reg));
 }
 #define efx_writed_page(efx, value, reg, page)				\
 	_efx_writed_page(efx, value,					\
-			 reg +						\
-			 BUILD_BUG_ON_ZERO((reg) != 0x400 &&		\
-					   (reg) != 0x420 &&		\
-					   (reg) != 0x830 &&		\
-					   (reg) != 0x83c &&		\
-					   (reg) != 0xa18 &&		\
-					   (reg) != 0xa1c),		\
-			 page)
+					 reg +						\
+					 BUILD_BUG_ON_ZERO((reg) != 0x400 &&		\
+									   (reg) != 0x420 &&		\
+									   (reg) != 0x830 &&		\
+									   (reg) != 0x83c &&		\
+									   (reg) != 0xa18 &&		\
+									   (reg) != 0xa1c),		\
+					 page)
 
 /* Write TIMER_COMMAND.  This is a page-mapped 32-bit CSR, but a bug
  * in the BIU means that writes to TIMER_COMMAND[0] invalidate the
  * collector register.
  */
 static inline void _efx_writed_page_locked(struct efx_nic *efx,
-					   const efx_dword_t *value,
-					   unsigned int reg,
-					   unsigned int page)
+		const efx_dword_t *value,
+		unsigned int reg,
+		unsigned int page)
 {
 	unsigned long flags __attribute__ ((unused));
 
-	if (page == 0) {
+	if (page == 0)
+	{
 		spin_lock_irqsave(&efx->biu_lock, flags);
 		efx_writed(efx, value, EFX_PAGED_REG(page, reg));
 		spin_unlock_irqrestore(&efx->biu_lock, flags);
-	} else {
+	}
+	else
+	{
 		efx_writed(efx, value, EFX_PAGED_REG(page, reg));
 	}
 }
 #define efx_writed_page_locked(efx, value, reg, page)			\
 	_efx_writed_page_locked(efx, value,				\
-				reg + BUILD_BUG_ON_ZERO((reg) != 0x420), \
-				page)
+							reg + BUILD_BUG_ON_ZERO((reg) != 0x420), \
+							page)
 
 #endif /* EFX_IO_H */

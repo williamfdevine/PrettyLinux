@@ -169,7 +169,8 @@
 /* Data alignment */
 #define REG_DAL			(15)
 
-typedef enum {
+typedef enum
+{
 	PHASE_IDLE,					/* we're not planning on doing anything	*/
 	PHASE_SELECTION,				/* selecting a device			*/
 	PHASE_SELSTEPS,					/* selection with command steps		*/
@@ -185,12 +186,14 @@ typedef enum {
 	PHASE_DONE					/* Command complete			*/
 } phase_t;
 
-typedef enum {
+typedef enum
+{
 	DMA_OUT,					/* DMA from memory to chip		*/
 	DMA_IN						/* DMA from chip to memory		*/
 } fasdmadir_t;
 
-typedef enum {
+typedef enum
+{
 	fasdma_none,					/* No dma				*/
 	fasdma_pio,					/* PIO mode				*/
 	fasdma_pseudo,					/* Pseudo DMA				*/
@@ -198,7 +201,8 @@ typedef enum {
 	fasdma_real_all					/* Real DMA, on request by request	*/
 } fasdmatype_t;
 
-typedef enum {
+typedef enum
+{
 	neg_wait,					/* Negotiate with device		*/
 	neg_inprogress,					/* Negotiation sent			*/
 	neg_complete,					/* Negotiation complete			*/
@@ -212,7 +216,8 @@ typedef enum {
 #define FASCAP_DMA		(1 << 0)
 #define FASCAP_PSEUDODMA	(1 << 1)
 
-typedef struct {
+typedef struct
+{
 	unsigned long		magic_start;
 	spinlock_t		host_lock;
 	struct Scsi_Host	*host;			/* host					*/
@@ -232,7 +237,8 @@ typedef struct {
 	unsigned int		rst_bus_status;
 
 	/* driver information */
-	struct {
+	struct
+	{
 		phase_t		phase;			/* current phase			*/
 		void __iomem	*io_base;		/* iomem base of FAS216			*/
 		unsigned int	io_shift;		/* shift to adjust reg offsets by	*/
@@ -249,12 +255,13 @@ typedef struct {
 		unsigned char	msgin_fifo;		/* bytes in fifo at time of message in	*/
 		unsigned char	message[256];		/* last message received from device	*/
 
-		unsigned char	disconnectable:1;	/* this command can be disconnected	*/
-		unsigned char	aborting:1;		/* aborting command			*/
+		unsigned char	disconnectable: 1;	/* this command can be disconnected	*/
+		unsigned char	aborting: 1;		/* aborting command			*/
 	} scsi;
 
 	/* statistics information */
-	struct {
+	struct
+	{
 		unsigned int	queues;
 		unsigned int	removes;
 		unsigned int	fins;
@@ -268,7 +275,8 @@ typedef struct {
 	} stats;
 
 	/* configuration information */
-	struct {
+	struct
+	{
 		unsigned char	clockrate;		/* clock rate of FAS device (MHz)	*/
 		unsigned char	select_timeout;		/* timeout (R5)				*/
 		unsigned char	sync_max_depth;		/* Synchronous xfer max fifo depth	*/
@@ -276,20 +284,22 @@ typedef struct {
 		unsigned char	cntl3;			/* Control Reg 3			*/
 		unsigned int	asyncperiod;		/* Async transfer period (ns)		*/
 		unsigned int	capabilities;		/* driver capabilities			*/
-		unsigned int	disconnect_ok:1;	/* Disconnects allowed?			*/
+		unsigned int	disconnect_ok: 1;	/* Disconnects allowed?			*/
 	} ifcfg;
 
 	/* queue handling */
-	struct {
-	    	Queue_t		issue;			/* issue queue				*/
-    		Queue_t		disconnected;		/* disconnected command queue		*/
+	struct
+	{
+		Queue_t		issue;			/* issue queue				*/
+		Queue_t		disconnected;		/* disconnected command queue		*/
 	} queues;
 
 	/* per-device info */
-	struct fas216_device {
-		unsigned char	disconnect_ok:1;	/* device can disconnect		*/
-		unsigned char	parity_enabled:1;	/* parity checking enabled		*/
-		unsigned char	parity_check:1;		/* need to check parity checking	*/
+	struct fas216_device
+	{
+		unsigned char	disconnect_ok: 1;	/* device can disconnect		*/
+		unsigned char	parity_enabled: 1;	/* parity checking enabled		*/
+		unsigned char	parity_check: 1;		/* need to check parity checking	*/
 		unsigned char	period;			/* sync xfer period in (*4ns)		*/
 		unsigned char	stp;			/* synchronous transfer period		*/
 		unsigned char	sof;			/* synchronous offset register		*/
@@ -297,10 +307,11 @@ typedef struct {
 		neg_t		sync_state;		/* synchronous transfer mode		*/
 		neg_t		wide_state;		/* wide transfer mode			*/
 	} device[8];
-	unsigned long	busyluns[64/sizeof(unsigned long)];/* array of bits indicating LUNs busy	*/
+	unsigned long	busyluns[64 / sizeof(unsigned long)]; /* array of bits indicating LUNs busy	*/
 
 	/* dma */
-	struct {
+	struct
+	{
 		fasdmatype_t	transfer_type;		/* current type of DMA transfer		*/
 		fasdmatype_t	(*setup) (struct Scsi_Host *host, struct scsi_pointer *SCp, fasdmadir_t direction, fasdmatype_t min_dma);
 		void		(*pseudo)(struct Scsi_Host *host, struct scsi_pointer *SCp, fasdmadir_t direction, int transfer);

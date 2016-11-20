@@ -98,7 +98,8 @@ static u8 smsc47b397_reg_temp[] = {0x25, 0x26, 0x27, 0x80};
 #define SMSC47B397_REG_FAN_LSB(nr) (0x28 + 2 * (nr))
 #define SMSC47B397_REG_FAN_MSB(nr) (0x29 + 2 * (nr))
 
-struct smsc47b397_data {
+struct smsc47b397_data
+{
 	unsigned short addr;
 	struct mutex lock;
 
@@ -129,19 +130,21 @@ static struct smsc47b397_data *smsc47b397_update_device(struct device *dev)
 
 	mutex_lock(&data->update_lock);
 
-	if (time_after(jiffies, data->last_updated + HZ) || !data->valid) {
+	if (time_after(jiffies, data->last_updated + HZ) || !data->valid)
+	{
 		dev_dbg(dev, "starting device update...\n");
 
 		/* 4 temperature inputs, 4 fan inputs */
-		for (i = 0; i < 4; i++) {
+		for (i = 0; i < 4; i++)
+		{
 			data->temp[i] = smsc47b397_read_value(data,
-					SMSC47B397_REG_TEMP(i));
+												  SMSC47B397_REG_TEMP(i));
 
 			/* must read LSB first */
 			data->fan[i]  = smsc47b397_read_value(data,
-					SMSC47B397_REG_FAN_LSB(i));
+												  SMSC47B397_REG_FAN_LSB(i));
 			data->fan[i] |= smsc47b397_read_value(data,
-					SMSC47B397_REG_FAN_MSB(i)) << 8;
+												  SMSC47B397_REG_FAN_MSB(i)) << 8;
 		}
 
 		data->last_updated = jiffies;
@@ -165,7 +168,7 @@ static int temp_from_reg(u8 reg)
 }
 
 static ssize_t show_temp(struct device *dev, struct device_attribute
-			 *devattr, char *buf)
+						 *devattr, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	struct smsc47b397_data *data = smsc47b397_update_device(dev);
@@ -184,12 +187,15 @@ static SENSOR_DEVICE_ATTR(temp4_input, S_IRUGO, show_temp, NULL, 3);
 static int fan_from_reg(u16 reg)
 {
 	if (reg == 0 || reg == 0xffff)
+	{
 		return 0;
+	}
+
 	return 90000 * 60 / reg;
 }
 
 static ssize_t show_fan(struct device *dev, struct device_attribute
-			*devattr, char *buf)
+						*devattr, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	struct smsc47b397_data *data = smsc47b397_update_device(dev);
@@ -200,7 +206,8 @@ static SENSOR_DEVICE_ATTR(fan2_input, S_IRUGO, show_fan, NULL, 1);
 static SENSOR_DEVICE_ATTR(fan3_input, S_IRUGO, show_fan, NULL, 2);
 static SENSOR_DEVICE_ATTR(fan4_input, S_IRUGO, show_fan, NULL, 3);
 
-static struct attribute *smsc47b397_attrs[] = {
+static struct attribute *smsc47b397_attrs[] =
+{
 	&sensor_dev_attr_temp1_input.dev_attr.attr,
 	&sensor_dev_attr_temp2_input.dev_attr.attr,
 	&sensor_dev_attr_temp3_input.dev_attr.attr,
@@ -217,7 +224,8 @@ ATTRIBUTE_GROUPS(smsc47b397);
 
 static int smsc47b397_probe(struct platform_device *pdev);
 
-static struct platform_driver smsc47b397_driver = {
+static struct platform_driver smsc47b397_driver =
+{
 	.driver = {
 		.name	= DRVNAME,
 	},
@@ -232,31 +240,37 @@ static int smsc47b397_probe(struct platform_device *pdev)
 	struct resource *res;
 
 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+
 	if (!devm_request_region(dev, res->start, SMSC_EXTENT,
-				 smsc47b397_driver.driver.name)) {
+							 smsc47b397_driver.driver.name))
+	{
 		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
-			(unsigned long)res->start,
-			(unsigned long)res->start + SMSC_EXTENT - 1);
+				(unsigned long)res->start,
+				(unsigned long)res->start + SMSC_EXTENT - 1);
 		return -EBUSY;
 	}
 
 	data = devm_kzalloc(dev, sizeof(struct smsc47b397_data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	data->addr = res->start;
 	mutex_init(&data->lock);
 	mutex_init(&data->update_lock);
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, "smsc47b397",
-							   data,
-							   smsc47b397_groups);
+				data,
+				smsc47b397_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
 static int __init smsc47b397_device_add(unsigned short address)
 {
-	struct resource res = {
+	struct resource res =
+	{
 		.start	= address,
 		.end	= address + SMSC_EXTENT - 1,
 		.name	= DRVNAME,
@@ -265,24 +279,33 @@ static int __init smsc47b397_device_add(unsigned short address)
 	int err;
 
 	err = acpi_check_resource_conflict(&res);
+
 	if (err)
+	{
 		goto exit;
+	}
 
 	pdev = platform_device_alloc(DRVNAME, address);
-	if (!pdev) {
+
+	if (!pdev)
+	{
 		err = -ENOMEM;
 		pr_err("Device allocation failed\n");
 		goto exit;
 	}
 
 	err = platform_device_add_resources(pdev, &res, 1);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Device resource addition failed (%d)\n", err);
 		goto exit_device_put;
 	}
 
 	err = platform_device_add(pdev);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Device addition failed (%d)\n", err);
 		goto exit_device_put;
 	}
@@ -304,30 +327,34 @@ static int __init smsc47b397_find(void)
 	superio_enter();
 	id = force_id ? force_id : superio_inb(SUPERIO_REG_DEVID);
 
-	switch (id) {
-	case 0x81:
-		name = "SCH5307-NS";
-		break;
-	case 0x6f:
-		name = "LPC47B397-NC";
-		break;
-	case 0x85:
-	case 0x8c:
-		name = "SCH5317";
-		break;
-	default:
-		superio_exit();
-		return -ENODEV;
+	switch (id)
+	{
+		case 0x81:
+			name = "SCH5307-NS";
+			break;
+
+		case 0x6f:
+			name = "LPC47B397-NC";
+			break;
+
+		case 0x85:
+		case 0x8c:
+			name = "SCH5317";
+			break;
+
+		default:
+			superio_exit();
+			return -ENODEV;
 	}
 
 	rev = superio_inb(SUPERIO_REG_DEVREV);
 
 	superio_select(SUPERIO_REG_LD8);
 	addr = (superio_inb(SUPERIO_REG_BASE_MSB) << 8)
-		 |  superio_inb(SUPERIO_REG_BASE_LSB);
+		   |  superio_inb(SUPERIO_REG_BASE_LSB);
 
 	pr_info("found SMSC %s (base address 0x%04x, revision %u)\n",
-		name, addr, rev);
+			name, addr, rev);
 
 	superio_exit();
 	return addr;
@@ -339,18 +366,28 @@ static int __init smsc47b397_init(void)
 	int ret;
 
 	ret = smsc47b397_find();
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	address = ret;
 
 	ret = platform_driver_register(&smsc47b397_driver);
+
 	if (ret)
+	{
 		goto exit;
+	}
 
 	/* Sets global pdev as a side effect */
 	ret = smsc47b397_device_add(address);
+
 	if (ret)
+	{
 		goto exit_driver;
+	}
 
 	return 0;
 

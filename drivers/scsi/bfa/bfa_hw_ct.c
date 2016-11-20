@@ -37,10 +37,13 @@ bfa_hwct_reginit(struct bfa_s *bfa)
 	void __iomem *kva = bfa_ioc_bar0(&bfa->ioc);
 	int	fn = bfa_ioc_pcifn(&bfa->ioc);
 
-	if (fn == 0) {
+	if (fn == 0)
+	{
 		bfa_regs->intr_status = (kva + HOSTFN0_INT_STATUS);
 		bfa_regs->intr_mask   = (kva + HOSTFN0_INT_MSK);
-	} else {
+	}
+	else
+	{
 		bfa_regs->intr_status = (kva + HOSTFN1_INT_STATUS);
 		bfa_regs->intr_mask   = (kva + HOSTFN1_INT_MSK);
 	}
@@ -99,7 +102,7 @@ bfa_hwct2_rspq_ack(struct bfa_s *bfa, int rspq, u32 ci)
 
 void
 bfa_hwct_msix_getvecs(struct bfa_s *bfa, u32 *msix_vecs_bmap,
-		 u32 *num_vecs, u32 *max_vec_bit)
+					  u32 *num_vecs, u32 *max_vec_bit)
 {
 	*msix_vecs_bmap = (1 << BFI_MSIX_CT_MAX) - 1;
 	*max_vec_bit = (1 << (BFI_MSIX_CT_MAX - 1));
@@ -123,12 +126,18 @@ void
 bfa_hwct_msix_ctrl_install(struct bfa_s *bfa)
 {
 	if (bfa->msix.nvecs == 0)
+	{
 		return;
+	}
 
 	if (bfa->msix.nvecs == 1)
+	{
 		bfa->msix.handler[BFI_MSIX_LPU_ERR_CT] = bfa_msix_all;
+	}
 	else
+	{
 		bfa->msix.handler[BFI_MSIX_LPU_ERR_CT] = bfa_msix_lpu_err;
+	}
 }
 
 void
@@ -137,19 +146,29 @@ bfa_hwct_msix_queue_install(struct bfa_s *bfa)
 	int i;
 
 	if (bfa->msix.nvecs == 0)
+	{
 		return;
+	}
 
-	if (bfa->msix.nvecs == 1) {
+	if (bfa->msix.nvecs == 1)
+	{
 		for (i = BFI_MSIX_CPE_QMIN_CT; i < BFI_MSIX_CT_MAX; i++)
+		{
 			bfa->msix.handler[i] = bfa_msix_all;
+		}
+
 		return;
 	}
 
 	for (i = BFI_MSIX_CPE_QMIN_CT; i <= BFI_MSIX_CPE_QMAX_CT; i++)
+	{
 		bfa->msix.handler[i] = bfa_msix_reqq;
+	}
 
 	for (i = BFI_MSIX_RME_QMIN_CT; i <= BFI_MSIX_RME_QMAX_CT; i++)
+	{
 		bfa->msix.handler[i] = bfa_msix_rspq;
+	}
 }
 
 void
@@ -158,7 +177,9 @@ bfa_hwct_msix_uninstall(struct bfa_s *bfa)
 	int i;
 
 	for (i = 0; i < BFI_MSIX_CT_MAX; i++)
+	{
 		bfa->msix.handler[i] = bfa_hwct_msix_dummy;
+	}
 }
 
 /*

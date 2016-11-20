@@ -27,7 +27,8 @@
  * From T11.org FC-GS-2 Rev 5.3 November 1998.
  */
 
-struct fc_ct_hdr {
+struct fc_ct_hdr
+{
 	__u8		ct_rev;		/* revision */
 	__u8		ct_in_id[3];	/* N_Port ID of original requestor */
 	__u8		ct_fs_type;	/* type of fibre channel service */
@@ -44,14 +45,16 @@ struct fc_ct_hdr {
 
 #define	FC_CT_HDR_LEN	16	/* expected sizeof (struct fc_ct_hdr) */
 
-enum fc_ct_rev {
+enum fc_ct_rev
+{
 	FC_CT_REV = 1		/* common transport revision */
 };
 
 /*
  * ct_fs_type values.
  */
-enum fc_ct_fs_type {
+enum fc_ct_fs_type
+{
 	FC_FST_ALIAS =	0xf8,	/* alias service */
 	FC_FST_MGMT =	0xfa,	/* management service */
 	FC_FST_TIME =	0xfb,	/* time service */
@@ -61,7 +64,8 @@ enum fc_ct_fs_type {
 /*
  * ct_cmd: Command / response codes
  */
-enum fc_ct_cmd {
+enum fc_ct_cmd
+{
 	FC_FS_RJT =	0x8001,	/* reject */
 	FC_FS_ACC =	0x8002,	/* accept */
 };
@@ -69,7 +73,8 @@ enum fc_ct_cmd {
 /*
  * FS_RJT reason codes.
  */
-enum fc_ct_reason {
+enum fc_ct_reason
+{
 	FC_FS_RJT_CMD =		0x01,	/* invalid command code */
 	FC_FS_RJT_VER =		0x02,	/* invalid version level */
 	FC_FS_RJT_LOG =		0x03,	/* logical error */
@@ -83,7 +88,8 @@ enum fc_ct_reason {
 /*
  * FS_RJT reason code explanations.
  */
-enum fc_ct_explan {
+enum fc_ct_explan
+{
 	FC_FS_EXP_NONE =	0x00,	/* no additional explanation */
 	FC_FS_EXP_PID =		0x01,	/* port ID not registered */
 	FC_FS_EXP_PNAM =	0x02,	/* port name not registered */

@@ -61,7 +61,8 @@
 #define CAMIF_SD_PAD_SOURCE_P	2
 #define CAMIF_SD_PADS_NUM	3
 
-enum img_fmt {
+enum img_fmt
+{
 	IMG_FMT_RGB565 = 0x0010,
 	IMG_FMT_RGB666,
 	IMG_FMT_XRGB8888,
@@ -91,7 +92,8 @@ enum img_fmt {
  * @depth:     bits per pixel (total)
  * @ybpp:      number of luminance bytes per pixel
  */
-struct camif_fmt {
+struct camif_fmt
+{
 	char *name;
 	u32 fourcc;
 	u32 color;
@@ -106,7 +108,8 @@ struct camif_fmt {
  * @initial: offset (in pixels) to first pixel
  * @line: offset (in pixels) from end of line to start of next line
  */
-struct camif_dma_offset {
+struct camif_dma_offset
+{
 	int	initial;
 	int	line;
 };
@@ -118,7 +121,8 @@ struct camif_dma_offset {
  * @rect: crop/composition rectangle
  * @dma_offset: DMA offset configuration
  */
-struct camif_frame {
+struct camif_frame
+{
 	u16 f_width;
 	u16 f_height;
 	struct v4l2_rect rect;
@@ -126,13 +130,15 @@ struct camif_frame {
 };
 
 /* CAMIF clocks enumeration */
-enum {
+enum
+{
 	CLK_GATE,
 	CLK_CAM,
 	CLK_MAX_NUM,
 };
 
-struct vp_pix_limits {
+struct vp_pix_limits
+{
 	u16 max_out_width;
 	u16 max_sc_out_width;
 	u16 out_width_align;
@@ -141,7 +147,8 @@ struct vp_pix_limits {
 	u16 out_hor_offset_align;
 };
 
-struct camif_pix_limits {
+struct camif_pix_limits
+{
 	u16 win_hor_offset_align;
 };
 
@@ -151,7 +158,8 @@ struct camif_pix_limits {
  * @camif_pix_limits: pixel limits for the camera input interface
  * @ip_revision:      the CAMIF IP revision: 0x20 for s3c244x, 0x32 for s3c6410
  */
-struct s3c_camif_variant {
+struct s3c_camif_variant
+{
 	struct vp_pix_limits vp_pix_limits[2];
 	struct camif_pix_limits pix_limits;
 	u8 ip_revision;
@@ -159,12 +167,14 @@ struct s3c_camif_variant {
 	unsigned int vp_offset;
 };
 
-struct s3c_camif_drvdata {
+struct s3c_camif_drvdata
+{
 	const struct s3c_camif_variant *variant;
 	unsigned long bus_clk_freq;
 };
 
-struct camif_scaler {
+struct camif_scaler
+{
 	u8 scaleup_h;
 	u8 scaleup_v;
 	u8 copy;
@@ -207,7 +217,8 @@ struct camif_dev;
  * @hflip:	    apply horizontal flip if set
  * @vflip:	    apply vertical flip if set
  */
-struct camif_vp {
+struct camif_vp
+{
 	wait_queue_head_t	irq_queue;
 	int			irq;
 	struct camif_dev	*camif;
@@ -262,7 +273,8 @@ struct camif_vp {
  * @slock:	  spinlock protecting CAMIF registers
  * @io_base:	  start address of the mmaped CAMIF registers
  */
-struct camif_dev {
+struct camif_dev
+{
 	struct media_device		media_dev;
 	struct v4l2_device		v4l2_dev;
 	struct v4l2_subdev		subdev;
@@ -271,7 +283,8 @@ struct camif_dev {
 	struct media_pad		pads[CAMIF_SD_PADS_NUM];
 	int				stream_count;
 
-	struct cam_sensor {
+	struct cam_sensor
+	{
 		struct v4l2_subdev	*sd;
 		short			power_count;
 		short			stream_count;
@@ -280,7 +293,8 @@ struct camif_dev {
 
 	struct v4l2_ctrl_handler	ctrl_handler;
 	struct v4l2_ctrl		*ctrl_test_pattern;
-	struct {
+	struct
+	{
 		struct v4l2_ctrl	*ctrl_colorfx;
 		struct v4l2_ctrl	*ctrl_colorfx_cbcr;
 	};
@@ -306,7 +320,8 @@ struct camif_dev {
  * @cb:	 Cb plane dma address
  * @cr:	 Cr plane dma address
  */
-struct camif_addr {
+struct camif_addr
+{
 	dma_addr_t y;
 	dma_addr_t cb;
 	dma_addr_t cr;
@@ -319,7 +334,8 @@ struct camif_addr {
  * @paddr: DMA start addresses
  * @index: an identifier of this buffer at the DMA engine
  */
-struct camif_buffer {
+struct camif_buffer
+{
 	struct vb2_v4l2_buffer vb;
 	struct list_head list;
 	struct camif_addr paddr;
@@ -327,7 +343,7 @@ struct camif_buffer {
 };
 
 const struct camif_fmt *s3c_camif_find_format(struct camif_vp *vp,
-	      const u32 *pixelformat, int index);
+		const u32 *pixelformat, int index);
 int s3c_camif_register_video_node(struct camif_dev *camif, int idx);
 void s3c_camif_unregister_video_node(struct camif_dev *camif, int idx);
 irqreturn_t s3c_camif_irq_handler(int irq, void *priv);
@@ -335,35 +351,39 @@ int s3c_camif_create_subdev(struct camif_dev *camif);
 void s3c_camif_unregister_subdev(struct camif_dev *camif);
 int s3c_camif_set_defaults(struct camif_dev *camif);
 int s3c_camif_get_scaler_config(struct camif_vp *vp,
-				struct camif_scaler *scaler);
+								struct camif_scaler *scaler);
 
 static inline void camif_active_queue_add(struct camif_vp *vp,
-					  struct camif_buffer *buf)
+		struct camif_buffer *buf)
 {
 	list_add_tail(&buf->list, &vp->active_buf_q);
 	vp->active_buffers++;
 }
 
 static inline struct camif_buffer *camif_active_queue_pop(
-					struct camif_vp *vp)
+	struct camif_vp *vp)
 {
 	struct camif_buffer *buf = list_first_entry(&vp->active_buf_q,
-					      struct camif_buffer, list);
+							   struct camif_buffer, list);
 	list_del(&buf->list);
 	vp->active_buffers--;
 	return buf;
 }
 
 static inline struct camif_buffer *camif_active_queue_peek(
-			   struct camif_vp *vp, int index)
+	struct camif_vp *vp, int index)
 {
 	struct camif_buffer *tmp, *buf;
 
 	if (WARN_ON(list_empty(&vp->active_buf_q)))
+	{
 		return NULL;
+	}
 
-	list_for_each_entry_safe(buf, tmp, &vp->active_buf_q, list) {
-		if (buf->index == index) {
+	list_for_each_entry_safe(buf, tmp, &vp->active_buf_q, list)
+	{
+		if (buf->index == index)
+		{
 			list_del(&buf->list);
 			vp->active_buffers--;
 			return buf;
@@ -374,16 +394,16 @@ static inline struct camif_buffer *camif_active_queue_peek(
 }
 
 static inline void camif_pending_queue_add(struct camif_vp *vp,
-					   struct camif_buffer *buf)
+		struct camif_buffer *buf)
 {
 	list_add_tail(&buf->list, &vp->pending_buf_q);
 }
 
 static inline struct camif_buffer *camif_pending_queue_pop(
-					struct camif_vp *vp)
+	struct camif_vp *vp)
 {
 	struct camif_buffer *buf = list_first_entry(&vp->pending_buf_q,
-					      struct camif_buffer, list);
+							   struct camif_buffer, list);
 	list_del(&buf->list);
 	return buf;
 }

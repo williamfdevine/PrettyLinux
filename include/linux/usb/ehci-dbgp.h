@@ -20,7 +20,8 @@
 /* Appendix C, Debug port ... intended for use with special "debug devices"
  * that can help if there's no serial console.  (nonstandard enumeration.)
  */
-struct ehci_dbg_port {
+struct ehci_dbg_port
+{
 	u32	control;
 #define DBGP_OWNER	(1<<30)
 #define DBGP_ENABLED	(1<<28)
@@ -43,8 +44,8 @@ struct ehci_dbg_port {
 };
 
 #ifdef CONFIG_EARLY_PRINTK_DBGP
-extern int early_dbgp_init(char *s);
-extern struct console early_dbgp_console;
+	extern int early_dbgp_init(char *s);
+	extern struct console early_dbgp_console;
 #endif /* CONFIG_EARLY_PRINTK_DBGP */
 
 struct usb_hcd;

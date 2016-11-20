@@ -32,11 +32,11 @@
 
 
 #ifdef	CONFIG_PPC_FSL_BOOK3E
-#define WDTP(x)		((((x)&0x3)<<30)|(((x)&0x3c)<<15))
-#define WDTP_MASK	(WDTP(0x3f))
+	#define WDTP(x)		((((x)&0x3)<<30)|(((x)&0x3c)<<15))
+	#define WDTP_MASK	(WDTP(0x3f))
 #else
-#define WDTP(x)		(TCR_WP(x))
-#define WDTP_MASK	(TCR_WP_MASK)
+	#define WDTP(x)		(TCR_WP(x))
+	#define WDTP_MASK	(TCR_WP_MASK)
 #endif
 
 static bool booke_wdt_enabled;
@@ -78,10 +78,15 @@ static unsigned long long period_to_sec(unsigned int period)
 static unsigned int sec_to_period(unsigned int secs)
 {
 	unsigned int period;
-	for (period = 63; period > 0; period--) {
+
+	for (period = 63; period > 0; period--)
+	{
 		if (period_to_sec(period) >= secs)
+		{
 			return period;
+		}
 	}
+
 	return 0;
 }
 
@@ -122,7 +127,7 @@ static void booke_wdt_set(void *data)
 
 static void __booke_wdt_ping(void *data)
 {
-	mtspr(SPRN_TSR, TSR_ENW|TSR_WIS);
+	mtspr(SPRN_TSR, TSR_ENW | TSR_WIS);
 }
 
 static int booke_wdt_ping(struct watchdog_device *wdog)
@@ -141,7 +146,7 @@ static void __booke_wdt_enable(void *data)
 	__booke_wdt_ping(NULL);
 	val = mfspr(SPRN_TCR);
 	val &= ~WDTP_MASK;
-	val |= (TCR_WIE|TCR_WRC(WRC_CHIP)|WDTP(sec_to_period(wdog->timeout)));
+	val |= (TCR_WIE | TCR_WRC(WRC_CHIP) | WDTP(sec_to_period(wdog->timeout)));
 
 	mtspr(SPRN_TCR, val);
 }
@@ -184,7 +189,7 @@ static int booke_wdt_stop(struct watchdog_device *wdog)
 }
 
 static int booke_wdt_set_timeout(struct watchdog_device *wdt_dev,
-				 unsigned int timeout)
+								 unsigned int timeout)
 {
 	wdt_dev->timeout = timeout;
 	booke_wdt_set(wdt_dev);
@@ -192,12 +197,14 @@ static int booke_wdt_set_timeout(struct watchdog_device *wdt_dev,
 	return 0;
 }
 
-static struct watchdog_info booke_wdt_info = {
+static struct watchdog_info booke_wdt_info =
+{
 	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
 	.identity = "PowerPC Book-E Watchdog",
 };
 
-static struct watchdog_ops booke_wdt_ops = {
+static struct watchdog_ops booke_wdt_ops =
+{
 	.owner = THIS_MODULE,
 	.start = booke_wdt_start,
 	.stop = booke_wdt_stop,
@@ -205,7 +212,8 @@ static struct watchdog_ops booke_wdt_ops = {
 	.set_timeout = booke_wdt_set_timeout,
 };
 
-static struct watchdog_device booke_wdt_dev = {
+static struct watchdog_device booke_wdt_dev =
+{
 	.info = &booke_wdt_info,
 	.ops = &booke_wdt_ops,
 	.min_timeout = 1,
@@ -224,11 +232,14 @@ static int __init booke_wdt_init(void)
 	pr_info("powerpc book-e watchdog driver loaded\n");
 	booke_wdt_info.firmware_version = cur_cpu_spec->pvr_value;
 	booke_wdt_set_timeout(&booke_wdt_dev,
-			      period_to_sec(booke_wdt_period));
+						  period_to_sec(booke_wdt_period));
 	watchdog_set_nowayout(&booke_wdt_dev, nowayout);
 	booke_wdt_dev.max_timeout = MAX_WDT_TIMEOUT;
+
 	if (booke_wdt_enabled)
+	{
 		booke_wdt_start(&booke_wdt_dev);
+	}
 
 	ret = watchdog_register_device(&booke_wdt_dev);
 

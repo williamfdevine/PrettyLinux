@@ -104,13 +104,15 @@
 #define SE_SENSE_BUF				96
 
 /* struct se_hba->hba_flags */
-enum hba_flags_table {
+enum hba_flags_table
+{
 	HBA_FLAGS_INTERNAL_USE	= 0x01,
 	HBA_FLAGS_PSCSI_MODE	= 0x02,
 };
 
 /* Special transport agnostic struct se_cmd->t_states */
-enum transport_state_table {
+enum transport_state_table
+{
 	TRANSPORT_NO_STATE	= 0,
 	TRANSPORT_NEW_CMD	= 1,
 	TRANSPORT_WRITE_PENDING	= 3,
@@ -122,7 +124,8 @@ enum transport_state_table {
 };
 
 /* Used for struct se_cmd->se_cmd_flags */
-enum se_cmd_flags_table {
+enum se_cmd_flags_table
+{
 	SCF_SUPPORTED_SAM_OPCODE	= 0x00000001,
 	SCF_TRANSPORT_TASK_SENSE	= 0x00000002,
 	SCF_EMULATED_TASK_SENSE		= 0x00000004,
@@ -151,7 +154,8 @@ enum se_cmd_flags_table {
  */
 typedef unsigned __bitwise__ sense_reason_t;
 
-enum tcm_sense_reason_table {
+enum tcm_sense_reason_table
+{
 #define R(x)	(__force sense_reason_t )(x)
 	TCM_NO_SENSE				= R(0x00),
 	TCM_NON_EXISTENT_LUN			= R(0x01),
@@ -181,7 +185,8 @@ enum tcm_sense_reason_table {
 #undef R
 };
 
-enum target_sc_flags_table {
+enum target_sc_flags_table
+{
 	TARGET_SCF_BIDI_OP		= 0x01,
 	TARGET_SCF_ACK_KREF		= 0x02,
 	TARGET_SCF_UNKNOWN_SIZE		= 0x04,
@@ -189,7 +194,8 @@ enum target_sc_flags_table {
 };
 
 /* fabric independent task management function values */
-enum tcm_tmreq_table {
+enum tcm_tmreq_table
+{
 	TMR_ABORT_TASK		= 1,
 	TMR_ABORT_TASK_SET	= 2,
 	TMR_CLEAR_ACA		= 3,
@@ -200,7 +206,8 @@ enum tcm_tmreq_table {
 };
 
 /* fabric independent task management response values */
-enum tcm_tmrsp_table {
+enum tcm_tmrsp_table
+{
 	TMR_FUNCTION_FAILED		= 0,
 	TMR_FUNCTION_COMPLETE		= 1,
 	TMR_TASK_DOES_NOT_EXIST		= 2,
@@ -212,7 +219,8 @@ enum tcm_tmrsp_table {
 /*
  * Used for target SCSI statistics
  */
-typedef enum {
+typedef enum
+{
 	SCSI_INST_INDEX,
 	SCSI_DEVICE_INDEX,
 	SCSI_AUTH_INTR_INDEX,
@@ -221,20 +229,23 @@ typedef enum {
 
 struct se_cmd;
 
-struct t10_alua_lba_map_member {
+struct t10_alua_lba_map_member
+{
 	struct list_head lba_map_mem_list;
 	int lba_map_mem_alua_state;
 	int lba_map_mem_alua_pg_id;
 };
 
-struct t10_alua_lba_map {
+struct t10_alua_lba_map
+{
 	u64 lba_map_first_lba;
 	u64 lba_map_last_lba;
 	struct list_head lba_map_list;
 	struct list_head lba_map_mem_list;
 };
 
-struct t10_alua {
+struct t10_alua
+{
 	/* ALUA Target Port Group ID */
 	u16	alua_tg_pt_gps_counter;
 	u32	alua_tg_pt_gps_count;
@@ -252,7 +263,8 @@ struct t10_alua {
 	struct list_head tg_pt_gps_list;
 };
 
-struct t10_alua_lu_gp {
+struct t10_alua_lu_gp
+{
 	u16	lu_gp_id;
 	int	lu_gp_valid_id;
 	u32	lu_gp_members;
@@ -263,7 +275,8 @@ struct t10_alua_lu_gp {
 	struct list_head lu_gp_mem_list;
 };
 
-struct t10_alua_lu_gp_member {
+struct t10_alua_lu_gp_member
+{
 	bool lu_gp_assoc;
 	atomic_t lu_gp_mem_ref_cnt;
 	spinlock_t lu_gp_mem_lock;
@@ -272,7 +285,8 @@ struct t10_alua_lu_gp_member {
 	struct list_head lu_gp_mem_list;
 };
 
-struct t10_alua_tg_pt_gp {
+struct t10_alua_tg_pt_gp
+{
 	u16	tg_pt_gp_id;
 	int	tg_pt_gp_valid_id;
 	int	tg_pt_gp_alua_supported_states;
@@ -300,7 +314,8 @@ struct t10_alua_tg_pt_gp {
 	struct completion *tg_pt_gp_transition_complete;
 };
 
-struct t10_vpd {
+struct t10_vpd
+{
 	unsigned char device_identifier[INQUIRY_VPD_DEVICE_IDENTIFIER_LEN];
 	int protocol_identifier_set;
 	u32 protocol_identifier;
@@ -310,7 +325,8 @@ struct t10_vpd {
 	struct list_head vpd_list;
 };
 
-struct t10_wwn {
+struct t10_wwn
+{
 	char vendor[8];
 	char model[16];
 	char revision[4];
@@ -321,7 +337,8 @@ struct t10_wwn {
 	struct list_head t10_vpd_list;
 };
 
-struct t10_pr_registration {
+struct t10_pr_registration
+{
 	/* Used for fabrics that contain WWN+ISID */
 #define PR_REG_ISID_LEN				16
 	/* PR_REG_ISID_LEN + ',i,0x' */
@@ -361,7 +378,8 @@ struct t10_pr_registration {
 	struct list_head pr_reg_atp_mem_list;
 };
 
-struct t10_reservation {
+struct t10_reservation
+{
 	/* Reservation effects all target ports */
 	int pr_all_tg_pt;
 	/* Activate Persistence across Target Power Loss enabled
@@ -386,7 +404,8 @@ struct t10_reservation {
 	struct list_head aptpl_reg_list;
 };
 
-struct se_tmr_req {
+struct se_tmr_req
+{
 	/* Task Management function to be performed */
 	u8			function;
 	/* Task Management response to send */
@@ -401,7 +420,8 @@ struct se_tmr_req {
 	struct list_head	tmr_list;
 };
 
-enum target_prot_op {
+enum target_prot_op
+{
 	TARGET_PROT_NORMAL	= 0,
 	TARGET_PROT_DIN_INSERT	= (1 << 0),
 	TARGET_PROT_DOUT_INSERT	= (1 << 1),
@@ -412,17 +432,19 @@ enum target_prot_op {
 };
 
 #define TARGET_PROT_ALL	TARGET_PROT_DIN_INSERT | TARGET_PROT_DOUT_INSERT | \
-			TARGET_PROT_DIN_STRIP | TARGET_PROT_DOUT_STRIP | \
-			TARGET_PROT_DIN_PASS | TARGET_PROT_DOUT_PASS
+	TARGET_PROT_DIN_STRIP | TARGET_PROT_DOUT_STRIP | \
+	TARGET_PROT_DIN_PASS | TARGET_PROT_DOUT_PASS
 
-enum target_prot_type {
+enum target_prot_type
+{
 	TARGET_DIF_TYPE0_PROT,
 	TARGET_DIF_TYPE1_PROT,
 	TARGET_DIF_TYPE2_PROT,
 	TARGET_DIF_TYPE3_PROT,
 };
 
-enum target_core_dif_check {
+enum target_core_dif_check
+{
 	TARGET_DIF_CHECK_GUARD  = 0x1 << 0,
 	TARGET_DIF_CHECK_APPTAG = 0x1 << 1,
 	TARGET_DIF_CHECK_REFTAG = 0x1 << 2,
@@ -434,15 +456,16 @@ enum target_core_dif_check {
 #define TCM_ORDERED_TAG	0x22
 #define TCM_ACA_TAG	0x24
 
-struct se_cmd {
+struct se_cmd
+{
 	/* SAM response code being sent to initiator */
 	u8			scsi_status;
 	u8			scsi_asc;
 	u8			scsi_ascq;
 	u16			scsi_sense_length;
-	unsigned		cmd_wait_set:1;
-	unsigned		unknown_data_length:1;
-	bool			state_active:1;
+	unsigned		cmd_wait_set: 1;
+	unsigned		unknown_data_length: 1;
+	bool			state_active: 1;
 	u64			tag; /* SAM command identifier aka task tag */
 	/* Delay for ALUA Active/NonOptimized state access in milliseconds */
 	int			alua_nonop_delay;
@@ -528,13 +551,15 @@ struct se_cmd {
 	int			cpuid;
 };
 
-struct se_ua {
+struct se_ua
+{
 	u8			ua_asc;
 	u8			ua_ascq;
 	struct list_head	ua_nacl_list;
 };
 
-struct se_node_acl {
+struct se_node_acl
+{
 	char			initiatorname[TRANSPORT_IQN_LEN];
 	/* Used to signal demo mode created ACL, disabled by default */
 	bool			dynamic_node_acl;
@@ -564,35 +589,36 @@ struct se_node_acl {
 static inline struct se_node_acl *acl_to_nacl(struct config_item *item)
 {
 	return container_of(to_config_group(item), struct se_node_acl,
-			acl_group);
+						acl_group);
 }
 
 static inline struct se_node_acl *attrib_to_nacl(struct config_item *item)
 {
 	return container_of(to_config_group(item), struct se_node_acl,
-			acl_attrib_group);
+						acl_attrib_group);
 }
 
 static inline struct se_node_acl *auth_to_nacl(struct config_item *item)
 {
 	return container_of(to_config_group(item), struct se_node_acl,
-			acl_auth_group);
+						acl_auth_group);
 }
 
 static inline struct se_node_acl *param_to_nacl(struct config_item *item)
 {
 	return container_of(to_config_group(item), struct se_node_acl,
-			acl_param_group);
+						acl_param_group);
 }
 
 static inline struct se_node_acl *fabric_stat_to_nacl(struct config_item *item)
 {
 	return container_of(to_config_group(item), struct se_node_acl,
-			acl_fabric_stat_group);
+						acl_fabric_stat_group);
 }
 
-struct se_session {
-	unsigned		sess_tearing_down:1;
+struct se_session
+{
+	unsigned		sess_tearing_down: 1;
 	u64			sess_bin_isid;
 	enum target_prot_op	sup_prot_ops;
 	enum target_prot_type	sess_prot_type;
@@ -612,13 +638,15 @@ struct se_device;
 struct se_transform_info;
 struct scatterlist;
 
-struct se_ml_stat_grps {
+struct se_ml_stat_grps
+{
 	struct config_group	stat_group;
 	struct config_group	scsi_auth_intr_group;
 	struct config_group	scsi_att_intr_port_group;
 };
 
-struct se_lun_acl {
+struct se_lun_acl
+{
 	u64			mapped_lun;
 	struct se_node_acl	*se_lun_nacl;
 	struct se_lun		*se_lun;
@@ -626,7 +654,8 @@ struct se_lun_acl {
 	struct se_ml_stat_grps	ml_stat_grps;
 };
 
-struct se_dev_entry {
+struct se_dev_entry
+{
 	u64			mapped_lun;
 	u64			pr_res_key;
 	u64			creation_time;
@@ -651,7 +680,8 @@ struct se_dev_entry {
 	struct rcu_head		rcu_head;
 };
 
-struct se_dev_attrib {
+struct se_dev_attrib
+{
 	int		emulate_model_alias;
 	int		emulate_dpo;
 	int		emulate_fua_write;
@@ -687,20 +717,23 @@ struct se_dev_attrib {
 	struct config_group da_group;
 };
 
-struct se_port_stat_grps {
+struct se_port_stat_grps
+{
 	struct config_group stat_group;
 	struct config_group scsi_port_group;
 	struct config_group scsi_tgt_port_group;
 	struct config_group scsi_transport_group;
 };
 
-struct scsi_port_stats {
+struct scsi_port_stats
+{
 	atomic_long_t	cmd_pdus;
 	atomic_long_t	tx_data_octets;
 	atomic_long_t	rx_data_octets;
 };
 
-struct se_lun {
+struct se_lun
+{
 	u64			unpacked_lun;
 #define SE_LUN_LINK_MAGIC			0xffff7771
 	u32			lun_link_magic;
@@ -737,14 +770,16 @@ struct se_lun {
 	struct rcu_head		rcu_head;
 };
 
-struct se_dev_stat_grps {
+struct se_dev_stat_grps
+{
 	struct config_group stat_group;
 	struct config_group scsi_dev_group;
 	struct config_group scsi_tgt_dev_group;
 	struct config_group scsi_lu_group;
 };
 
-struct se_device {
+struct se_device
+{
 #define SE_DEV_LINK_MAGIC			0xfeeddeef
 	u32			dev_link_magic;
 	/* RELATIVE TARGET PORT IDENTIFER Counter */
@@ -826,7 +861,8 @@ struct se_device {
 	struct rcu_head		rcu_head;
 };
 
-struct se_hba {
+struct se_hba
+{
 	u16			hba_tpgt;
 	u32			hba_id;
 	/* See hba_flags_table */
@@ -843,7 +879,8 @@ struct se_hba {
 	struct target_backend	*backend;
 };
 
-struct se_tpg_np {
+struct se_tpg_np
+{
 	struct se_portal_group *tpg_np_parent;
 	struct config_group	tpg_np_group;
 };
@@ -851,10 +888,11 @@ struct se_tpg_np {
 static inline struct se_tpg_np *to_tpg_np(struct config_item *item)
 {
 	return container_of(to_config_group(item), struct se_tpg_np,
-			tpg_np_group);
+						tpg_np_group);
 }
 
-struct se_portal_group {
+struct se_portal_group
+{
 	/*
 	 * PROTOCOL IDENTIFIER value per SPC4, 7.5.1.
 	 *
@@ -890,28 +928,29 @@ struct se_portal_group {
 static inline struct se_portal_group *to_tpg(struct config_item *item)
 {
 	return container_of(to_config_group(item), struct se_portal_group,
-			tpg_group);
+						tpg_group);
 }
 
 static inline struct se_portal_group *attrib_to_tpg(struct config_item *item)
 {
 	return container_of(to_config_group(item), struct se_portal_group,
-			tpg_attrib_group);
+						tpg_attrib_group);
 }
 
 static inline struct se_portal_group *auth_to_tpg(struct config_item *item)
 {
 	return container_of(to_config_group(item), struct se_portal_group,
-			tpg_auth_group);
+						tpg_auth_group);
 }
 
 static inline struct se_portal_group *param_to_tpg(struct config_item *item)
 {
 	return container_of(to_config_group(item), struct se_portal_group,
-			tpg_param_group);
+						tpg_param_group);
 }
 
-struct se_wwn {
+struct se_wwn
+{
 	struct target_fabric_configfs *wwn_tf;
 	struct config_group	wwn_group;
 	struct config_group	fabric_stat_group;

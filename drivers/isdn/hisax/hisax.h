@@ -133,15 +133,15 @@ extern const char *tei_revision;
 
 /* include l3dss1 & ni1 specific process structures, but no other defines */
 #ifdef CONFIG_HISAX_EURO
-#define l3dss1_process
-#include "l3dss1.h"
-#undef  l3dss1_process
+	#define l3dss1_process
+	#include "l3dss1.h"
+	#undef  l3dss1_process
 #endif /* CONFIG_HISAX_EURO */
 
 #ifdef CONFIG_HISAX_NI1
-#define l3ni1_process
-#include "l3ni1.h"
-#undef  l3ni1_process
+	#define l3ni1_process
+	#include "l3ni1.h"
+	#undef  l3ni1_process
 #endif /* CONFIG_HISAX_NI1 */
 
 #define MAX_DFRAME_LEN	260
@@ -167,13 +167,15 @@ struct FsmInst;
 
 typedef void (*FSMFNPTR)(struct FsmInst *, int, void *);
 
-struct Fsm {
+struct Fsm
+{
 	FSMFNPTR *jumpmatrix;
 	int state_count, event_count;
-	char **strEvent, **strState;
+	char **strEvent, * *strState;
 };
 
-struct FsmInst {
+struct FsmInst
+{
 	struct Fsm *fsm;
 	int state;
 	int debug;
@@ -182,19 +184,22 @@ struct FsmInst {
 	void (*printdebug) (struct FsmInst *, char *, ...);
 };
 
-struct FsmNode {
+struct FsmNode
+{
 	int state, event;
 	void (*routine) (struct FsmInst *, int, void *);
 };
 
-struct FsmTimer {
+struct FsmTimer
+{
 	struct FsmInst *fi;
 	struct timer_list tl;
 	int event;
 	void *arg;
 };
 
-struct L3Timer {
+struct L3Timer
+{
 	struct l3_process *pc;
 	struct timer_list tl;
 	int event;
@@ -208,7 +213,8 @@ struct L3Timer {
 #define FLG_L1_PULL_REQ		6
 #define FLG_L1_UINT		7
 
-struct Layer1 {
+struct Layer1
+{
 	void *hardware;
 	struct BCState *bcs;
 	struct PStack **stlistp;
@@ -247,7 +253,8 @@ struct Layer1 {
 #define FLG_FIXED_TEI	15
 #define FLG_L2BLOCK	16
 
-struct Layer2 {
+struct Layer2
+{
 	int tei;
 	int sap;
 	int maxlen;
@@ -270,7 +277,8 @@ struct Layer2 {
 	char debug_id[16];
 };
 
-struct Layer3 {
+struct Layer3
+{
 	void (*l3l4) (struct PStack *, int, void *);
 	void (*l3ml3) (struct PStack *, int, void *);
 	void (*l3l2) (struct PStack *, int, void *);
@@ -284,7 +292,8 @@ struct Layer3 {
 	char debug_id[8];
 };
 
-struct LLInterface {
+struct LLInterface
+{
 	void (*l4l3) (struct PStack *, int, void *);
 	int  (*l4l3_proto) (struct PStack *, isdn_ctrl *);
 	void *userdata;
@@ -294,7 +303,8 @@ struct LLInterface {
 #define	FLG_LLI_L1WAKEUP	1
 #define	FLG_LLI_L2WAKEUP	2
 
-struct Management {
+struct Management
+{
 	int	ri;
 	struct FsmInst tei_m;
 	struct FsmTimer t202;
@@ -304,7 +314,8 @@ struct Management {
 
 #define NO_CAUSE 254
 
-struct Param {
+struct Param
+{
 	u_char cause;
 	u_char loc;
 	u_char diag[6];
@@ -316,7 +327,8 @@ struct Param {
 };
 
 
-struct PStack {
+struct PStack
+{
 	struct PStack *next;
 	struct Layer1 l1;
 	struct Layer2 l2;
@@ -327,7 +339,8 @@ struct PStack {
 
 	/* protocol specific data fields */
 	union
-	{ u_char uuuu; /* only as dummy */
+	{
+		u_char uuuu; /* only as dummy */
 #ifdef CONFIG_HISAX_EURO
 		dss1_stk_priv dss1; /* private dss1 data */
 #endif /* CONFIG_HISAX_EURO */
@@ -337,7 +350,8 @@ struct PStack {
 	} prot;
 };
 
-struct l3_process {
+struct l3_process
+{
 	int callref;
 	int state;
 	struct L3Timer timer;
@@ -351,7 +365,8 @@ struct l3_process {
 
 	/* protocol specific data fields */
 	union
-	{ u_char uuuu; /* only when euro not defined, avoiding empty union */
+	{
+		u_char uuuu; /* only when euro not defined, avoiding empty union */
 #ifdef CONFIG_HISAX_EURO
 		dss1_proc_priv dss1; /* private dss1 data */
 #endif /* CONFIG_HISAX_EURO */
@@ -361,7 +376,8 @@ struct l3_process {
 	} prot;
 };
 
-struct hscx_hw {
+struct hscx_hw
+{
 	int hscx;
 	int rcvidx;
 	int count;              /* Current skb sent count */
@@ -370,14 +386,16 @@ struct hscx_hw {
 	u_char tsaxr1;
 };
 
-struct w6692B_hw {
+struct w6692B_hw
+{
 	int bchan;
 	int rcvidx;
 	int count;              /* Current skb sent count */
 	u_char *rcvbuf;         /* B-Channel receive Buffer */
 };
 
-struct isar_reg {
+struct isar_reg
+{
 	unsigned long Flags;
 	volatile u_char bstat;
 	volatile u_char iis;
@@ -386,7 +404,8 @@ struct isar_reg {
 	volatile u_char par[8];
 };
 
-struct isar_hw {
+struct isar_hw
+{
 	int dpath;
 	int rcvidx;
 	int txcnt;
@@ -403,7 +422,8 @@ struct isar_hw {
 	struct isar_reg *reg;
 };
 
-struct hdlc_stat_reg {
+struct hdlc_stat_reg
+{
 #ifdef __BIG_ENDIAN
 	u_char fill;
 	u_char mode;
@@ -417,8 +437,10 @@ struct hdlc_stat_reg {
 #endif
 } __attribute__((packed));
 
-struct hdlc_hw {
-	union {
+struct hdlc_hw
+{
+	union
+	{
 		u_int ctrl;
 		struct hdlc_stat_reg sr;
 	} ctrl;
@@ -428,13 +450,15 @@ struct hdlc_hw {
 	u_char *rcvbuf;         /* B-Channel receive Buffer */
 };
 
-struct hfcB_hw {
+struct hfcB_hw
+{
 	unsigned int *send;
 	int f1;
 	int f2;
 };
 
-struct tiger_hw {
+struct tiger_hw
+{
 	u_int *send;
 	u_int *s_irq;
 	u_int *s_end;
@@ -456,7 +480,8 @@ struct tiger_hw {
 	u_char s_state;
 };
 
-struct amd7930_hw {
+struct amd7930_hw
+{
 	u_char *tx_buff;
 	u_char *rv_buff;
 	int rv_buff_in;
@@ -494,7 +519,8 @@ struct amd7930_hw {
 #define L1_MODE_V32	8
 #define L1_MODE_FAX	9
 
-struct BCState {
+struct BCState
+{
 	int channel;
 	int mode;
 	u_long Flag;
@@ -519,7 +545,8 @@ struct BCState {
 	int err_rdo;
 	int err_inv;
 #endif
-	union {
+	union
+	{
 		struct hscx_hw hscx;
 		struct hdlc_hw hdlc;
 		struct isar_hw isar;
@@ -531,7 +558,8 @@ struct BCState {
 	} hw;
 };
 
-struct Channel {
+struct Channel
+{
 	struct PStack *b_st, *d_st;
 	struct IsdnCardState *cs;
 	struct BCState *bcs;
@@ -549,7 +577,8 @@ struct Channel {
 	int leased;
 };
 
-struct elsa_hw {
+struct elsa_hw
+{
 	struct pci_dev *dev;
 	unsigned long base;
 	unsigned int cfg;
@@ -578,7 +607,8 @@ struct elsa_hw {
 	u_char ctrl_reg;
 };
 
-struct teles3_hw {
+struct teles3_hw
+{
 	unsigned int cfg_reg;
 	signed   int isac;
 	signed   int hscx[2];
@@ -586,13 +616,15 @@ struct teles3_hw {
 	signed   int hscxfifo[2];
 };
 
-struct teles0_hw {
+struct teles0_hw
+{
 	unsigned int cfg_reg;
 	void __iomem *membase;
 	unsigned long phymem;
 };
 
-struct avm_hw {
+struct avm_hw
+{
 	unsigned int cfg_reg;
 	unsigned int isac;
 	unsigned int hscx[2];
@@ -602,7 +634,8 @@ struct avm_hw {
 	struct pci_dev *dev;
 };
 
-struct ix1_hw {
+struct ix1_hw
+{
 	unsigned int cfg_reg;
 	unsigned int isac_ale;
 	unsigned int isac;
@@ -610,7 +643,8 @@ struct ix1_hw {
 	unsigned int hscx;
 };
 
-struct diva_hw {
+struct diva_hw
+{
 	unsigned long cfg_reg;
 	unsigned long pci_cfg;
 	unsigned int ctrl;
@@ -624,7 +658,8 @@ struct diva_hw {
 	struct pci_dev *dev;
 };
 
-struct asus_hw {
+struct asus_hw
+{
 	unsigned int cfg_reg;
 	unsigned int adr;
 	unsigned int isac;
@@ -634,7 +669,8 @@ struct asus_hw {
 };
 
 
-struct hfc_hw {
+struct hfc_hw
+{
 	unsigned int addr;
 	unsigned int fifosize;
 	unsigned char cirm;
@@ -644,7 +680,8 @@ struct hfc_hw {
 	struct timer_list timer;
 };
 
-struct sedl_hw {
+struct sedl_hw
+{
 	unsigned int cfg_reg;
 	unsigned int adr;
 	unsigned int isac;
@@ -657,21 +694,24 @@ struct sedl_hw {
 	struct pci_dev *dev;
 };
 
-struct spt_hw {
+struct spt_hw
+{
 	unsigned int cfg_reg;
 	unsigned int isac;
 	unsigned int hscx[2];
 	unsigned char res_irq;
 };
 
-struct mic_hw {
+struct mic_hw
+{
 	unsigned int cfg_reg;
 	unsigned int adr;
 	unsigned int isac;
 	unsigned int hscx;
 };
 
-struct njet_hw {
+struct njet_hw
+{
 	unsigned long base;
 	unsigned int isac;
 	unsigned int auxa;
@@ -684,7 +724,8 @@ struct njet_hw {
 	struct pci_dev *dev;
 };
 
-struct hfcPCI_hw {
+struct hfcPCI_hw
+{
 	unsigned char cirm;
 	unsigned char ctmt;
 	unsigned char conn;
@@ -710,7 +751,8 @@ struct hfcPCI_hw {
 	struct timer_list timer;
 };
 
-struct hfcSX_hw {
+struct hfcSX_hw
+{
 	unsigned long base;
 	unsigned char cirm;
 	unsigned char ctmt;
@@ -735,7 +777,8 @@ struct hfcSX_hw {
 	struct timer_list timer;
 };
 
-struct hfcD_hw {
+struct hfcD_hw
+{
 	unsigned int addr;
 	unsigned int bfifosize;
 	unsigned int dfifosize;
@@ -756,7 +799,8 @@ struct hfcD_hw {
 	struct timer_list timer;
 };
 
-struct isurf_hw {
+struct isurf_hw
+{
 	unsigned int reset;
 	unsigned long phymem;
 	void __iomem *isac;
@@ -764,7 +808,8 @@ struct isurf_hw {
 	struct isar_reg isar_r;
 };
 
-struct saphir_hw {
+struct saphir_hw
+{
 	struct pci_dev *dev;
 	unsigned int cfg_reg;
 	unsigned int ale;
@@ -773,7 +818,8 @@ struct saphir_hw {
 	struct timer_list timer;
 };
 
-struct bkm_hw {
+struct bkm_hw
+{
 	struct pci_dev *dev;
 	unsigned long base;
 	/* A4T stuff */
@@ -786,7 +832,8 @@ struct bkm_hw {
 	unsigned long data_adr;
 };
 
-struct gazel_hw {
+struct gazel_hw
+{
 	struct pci_dev *dev;
 	unsigned int cfg_reg;
 	unsigned int pciaddr[2];
@@ -799,20 +846,23 @@ struct gazel_hw {
 	unsigned char iom2;
 };
 
-struct w6692_hw {
+struct w6692_hw
+{
 	struct pci_dev *dev;
 	unsigned int iobase;
 	struct timer_list timer;
 };
 
-struct arcofi_msg {
+struct arcofi_msg
+{
 	struct arcofi_msg *next;
 	u_char receive;
 	u_char len;
 	u_char msg[10];
 };
 
-struct isac_chip {
+struct isac_chip
+{
 	int ph_state;
 	u_char *mon_tx;
 	u_char *mon_rx;
@@ -828,23 +878,28 @@ struct isac_chip {
 	u_char adf2;
 };
 
-struct hfcd_chip {
+struct hfcd_chip
+{
 	int ph_state;
 };
 
-struct hfcpci_chip {
+struct hfcpci_chip
+{
 	int ph_state;
 };
 
-struct hfcsx_chip {
+struct hfcsx_chip
+{
 	int ph_state;
 };
 
-struct w6692_chip {
+struct w6692_chip
+{
 	int ph_state;
 };
 
-struct amd7930_chip {
+struct amd7930_chip
+{
 	u_char lmr1;
 	u_char ph_state;
 	u_char old_state;
@@ -855,7 +910,8 @@ struct amd7930_chip {
 	void (*setIrqMask) (struct IsdnCardState *, u_char);
 };
 
-struct icc_chip {
+struct icc_chip
+{
 	int ph_state;
 	u_char *mon_tx;
 	u_char *mon_rx;
@@ -883,7 +939,8 @@ struct icc_chip {
 #define FLG_ARCOFI_ERROR	9
 #define FLG_HW_L1_UINT		10
 
-struct IsdnCardState {
+struct IsdnCardState
+{
 	spinlock_t	lock;
 	u_char		typ;
 	u_char		subtyp;
@@ -894,7 +951,8 @@ struct IsdnCardState {
 	int		*busy_flag;
 	int		chanlimit; /* limited number of B-chans to use */
 	int		logecho; /* log echo if supported by card */
-	union {
+	union
+	{
 		struct elsa_hw elsa;
 		struct teles0_hw teles0;
 		struct teles3_hw teles3;
@@ -944,7 +1002,8 @@ struct IsdnCardState {
 	int		cardnr;
 	char		*dlog;
 	int		debug;
-	union {
+	union
+	{
 		struct isac_chip isac;
 		struct hfcd_chip hfcd;
 		struct hfcpci_chip hfcpci;
@@ -978,250 +1037,250 @@ struct IsdnCardState {
 
 
 #ifdef ISDN_CHIP_ISAC
-#undef ISDN_CHIP_ISAC
+	#undef ISDN_CHIP_ISAC
 #endif
 
 #ifdef	CONFIG_HISAX_16_0
-#define  CARD_TELES0 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define  CARD_TELES0 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define  CARD_TELES0  0
+	#define  CARD_TELES0  0
 #endif
 
 #ifdef	CONFIG_HISAX_16_3
-#define  CARD_TELES3 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define  CARD_TELES3 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define  CARD_TELES3  0
+	#define  CARD_TELES3  0
 #endif
 
 #ifdef	CONFIG_HISAX_TELESPCI
-#define  CARD_TELESPCI 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define  CARD_TELESPCI 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define  CARD_TELESPCI  0
+	#define  CARD_TELESPCI  0
 #endif
 
 #ifdef	CONFIG_HISAX_AVM_A1
-#define  CARD_AVM_A1 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define  CARD_AVM_A1 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define  CARD_AVM_A1  0
+	#define  CARD_AVM_A1  0
 #endif
 
 #ifdef	CONFIG_HISAX_AVM_A1_PCMCIA
-#define  CARD_AVM_A1_PCMCIA 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define  CARD_AVM_A1_PCMCIA 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define  CARD_AVM_A1_PCMCIA  0
+	#define  CARD_AVM_A1_PCMCIA  0
 #endif
 
 #ifdef	CONFIG_HISAX_FRITZPCI
-#define  CARD_FRITZPCI 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define  CARD_FRITZPCI 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define  CARD_FRITZPCI  0
+	#define  CARD_FRITZPCI  0
 #endif
 
 #ifdef	CONFIG_HISAX_ELSA
-#define  CARD_ELSA 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define  CARD_ELSA 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define  CARD_ELSA  0
+	#define  CARD_ELSA  0
 #endif
 
 #ifdef	CONFIG_HISAX_IX1MICROR2
-#define	CARD_IX1MICROR2 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define	CARD_IX1MICROR2 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define CARD_IX1MICROR2 0
+	#define CARD_IX1MICROR2 0
 #endif
 
 #ifdef CONFIG_HISAX_DIEHLDIVA
-#define CARD_DIEHLDIVA 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define CARD_DIEHLDIVA 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define CARD_DIEHLDIVA 0
+	#define CARD_DIEHLDIVA 0
 #endif
 
 #ifdef CONFIG_HISAX_ASUSCOM
-#define CARD_ASUSCOM 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define CARD_ASUSCOM 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define CARD_ASUSCOM 0
+	#define CARD_ASUSCOM 0
 #endif
 
 #ifdef CONFIG_HISAX_TELEINT
-#define CARD_TELEINT 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define CARD_TELEINT 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define CARD_TELEINT 0
+	#define CARD_TELEINT 0
 #endif
 
 #ifdef CONFIG_HISAX_SEDLBAUER
-#define CARD_SEDLBAUER 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define CARD_SEDLBAUER 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define CARD_SEDLBAUER 0
+	#define CARD_SEDLBAUER 0
 #endif
 
 #ifdef CONFIG_HISAX_SPORTSTER
-#define CARD_SPORTSTER 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define CARD_SPORTSTER 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define CARD_SPORTSTER 0
+	#define CARD_SPORTSTER 0
 #endif
 
 #ifdef CONFIG_HISAX_MIC
-#define CARD_MIC 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define CARD_MIC 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define CARD_MIC 0
+	#define CARD_MIC 0
 #endif
 
 #ifdef CONFIG_HISAX_NETJET
-#define CARD_NETJET_S 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define CARD_NETJET_S 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define CARD_NETJET_S 0
+	#define CARD_NETJET_S 0
 #endif
 
 #ifdef	CONFIG_HISAX_HFCS
-#define  CARD_HFCS 1
+	#define  CARD_HFCS 1
 #else
-#define  CARD_HFCS 0
+	#define  CARD_HFCS 0
 #endif
 
 #ifdef	CONFIG_HISAX_HFC_PCI
-#define  CARD_HFC_PCI 1
+	#define  CARD_HFC_PCI 1
 #else
-#define  CARD_HFC_PCI 0
+	#define  CARD_HFC_PCI 0
 #endif
 
 #ifdef	CONFIG_HISAX_HFC_SX
-#define  CARD_HFC_SX 1
+	#define  CARD_HFC_SX 1
 #else
-#define  CARD_HFC_SX 0
+	#define  CARD_HFC_SX 0
 #endif
 
 #ifdef	CONFIG_HISAX_NICCY
-#define	CARD_NICCY 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define	CARD_NICCY 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define CARD_NICCY 0
+	#define CARD_NICCY 0
 #endif
 
 #ifdef	CONFIG_HISAX_ISURF
-#define	CARD_ISURF 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define	CARD_ISURF 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define CARD_ISURF 0
+	#define CARD_ISURF 0
 #endif
 
 #ifdef	CONFIG_HISAX_S0BOX
-#define	CARD_S0BOX 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define	CARD_S0BOX 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define CARD_S0BOX 0
+	#define CARD_S0BOX 0
 #endif
 
 #ifdef	CONFIG_HISAX_HSTSAPHIR
-#define	CARD_HSTSAPHIR 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define	CARD_HSTSAPHIR 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define CARD_HSTSAPHIR 0
+	#define CARD_HSTSAPHIR 0
 #endif
 
 #ifdef	CONFIG_HISAX_BKM_A4T
-#define	CARD_BKM_A4T 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define	CARD_BKM_A4T 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define CARD_BKM_A4T 0
+	#define CARD_BKM_A4T 0
 #endif
 
 #ifdef	CONFIG_HISAX_SCT_QUADRO
-#define	CARD_SCT_QUADRO 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define	CARD_SCT_QUADRO 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define CARD_SCT_QUADRO 0
+	#define CARD_SCT_QUADRO 0
 #endif
 
 #ifdef	CONFIG_HISAX_GAZEL
-#define  CARD_GAZEL 1
-#ifndef ISDN_CHIP_ISAC
-#define ISDN_CHIP_ISAC 1
-#endif
+	#define  CARD_GAZEL 1
+	#ifndef ISDN_CHIP_ISAC
+		#define ISDN_CHIP_ISAC 1
+	#endif
 #else
-#define  CARD_GAZEL  0
+	#define  CARD_GAZEL  0
 #endif
 
 #ifdef	CONFIG_HISAX_W6692
-#define	CARD_W6692	1
-#ifndef	ISDN_CHIP_W6692
-#define	ISDN_CHIP_W6692	1
-#endif
+	#define	CARD_W6692	1
+	#ifndef	ISDN_CHIP_W6692
+		#define	ISDN_CHIP_W6692	1
+	#endif
 #else
-#define	CARD_W6692	0
+	#define	CARD_W6692	0
 #endif
 
 #ifdef CONFIG_HISAX_NETJET_U
-#define CARD_NETJET_U 1
-#ifndef ISDN_CHIP_ICC
-#define ISDN_CHIP_ICC 1
-#endif
-#ifndef HISAX_UINTERFACE
-#define HISAX_UINTERFACE 1
-#endif
+	#define CARD_NETJET_U 1
+	#ifndef ISDN_CHIP_ICC
+		#define ISDN_CHIP_ICC 1
+	#endif
+	#ifndef HISAX_UINTERFACE
+		#define HISAX_UINTERFACE 1
+	#endif
 #else
-#define CARD_NETJET_U 0
+	#define CARD_NETJET_U 0
 #endif
 
 #ifdef CONFIG_HISAX_ENTERNOW_PCI
-#define CARD_FN_ENTERNOW_PCI 1
+	#define CARD_FN_ENTERNOW_PCI 1
 #else
-#define CARD_FN_ENTERNOW_PCI 0
+	#define CARD_FN_ENTERNOW_PCI 0
 #endif
 
 #define TEI_PER_CARD 1
@@ -1243,7 +1302,7 @@ struct IsdnCardState {
 #define L2FRAME_DEBUG
 
 #ifdef L2FRAME_DEBUG
-extern void Logl2Frame(struct IsdnCardState *cs, struct sk_buff *skb, char *buf, int dir);
+	extern void Logl2Frame(struct IsdnCardState *cs, struct sk_buff *skb, char *buf, int dir);
 #endif
 
 #include "hisax_cfg.h"
@@ -1279,9 +1338,9 @@ int FsmEvent(struct FsmInst *fi, int event, void *arg);
 void FsmChangeState(struct FsmInst *fi, int newstate);
 void FsmInitTimer(struct FsmInst *fi, struct FsmTimer *ft);
 int FsmAddTimer(struct FsmTimer *ft, int millisec, int event,
-		void *arg, int where);
+				void *arg, int where);
 void FsmRestartTimer(struct FsmTimer *ft, int millisec, int event,
-		     void *arg, int where);
+					 void *arg, int where);
 void FsmDelTimer(struct FsmTimer *ft, int where);
 int jiftime(char *s, long mark);
 
@@ -1303,7 +1362,7 @@ void iecpy(u_char *dest, u_char *iestart, int ieoffset);
  */
 #define HZDELAY(jiffs) do {				\
 		int tout = jiffs;			\
-							\
+		\
 		while (tout--) {			\
 			int loops = USEC_PER_SEC / HZ;	\
 			while (loops--)			\
@@ -1338,8 +1397,8 @@ void TeiFree(void);
  * Callers should be converted to use pci_get_device() instead.
  */
 static inline struct pci_dev *hisax_find_pci_device(unsigned int vendor,
-						    unsigned int device,
-						    struct pci_dev *from)
+		unsigned int device,
+		struct pci_dev *from)
 {
 	struct pci_dev *pdev;
 

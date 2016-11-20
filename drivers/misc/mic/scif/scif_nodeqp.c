@@ -103,7 +103,7 @@
  * ring buffer (rb) and initializes the "in bound" queue.
  */
 int scif_setup_qp_connect(struct scif_qp *qp, dma_addr_t *qp_offset,
-			  int local_size, struct scif_dev *scifdev)
+						  int local_size, struct scif_dev *scifdev)
 {
 	void *local_q = qp->inbound_q.rb_base;
 	int err = 0;
@@ -113,34 +113,45 @@ int scif_setup_qp_connect(struct scif_qp *qp, dma_addr_t *qp_offset,
 	spin_lock_init(&qp->recv_lock);
 
 	/* Allocate rb only if not already allocated */
-	if (!local_q) {
+	if (!local_q)
+	{
 		local_q = kzalloc(local_size, GFP_KERNEL);
-		if (!local_q) {
+
+		if (!local_q)
+		{
 			err = -ENOMEM;
 			return err;
 		}
 	}
 
 	err = scif_map_single(&qp->local_buf, local_q, scifdev, local_size);
+
 	if (err)
+	{
 		goto kfree;
+	}
+
 	/*
 	 * To setup the inbound_q, the buffer lives locally, the read pointer
 	 * is remote and the write pointer is local.
 	 */
 	scif_rb_init(&qp->inbound_q,
-		     &tmp_rd,
-		     &qp->local_write,
-		     local_q, get_count_order(local_size));
+				 &tmp_rd,
+				 &qp->local_write,
+				 local_q, get_count_order(local_size));
 	/*
 	 * The read pointer is NULL initially and it is unsafe to use the ring
 	 * buffer til this changes!
 	 */
 	qp->inbound_q.read_ptr = NULL;
 	err = scif_map_single(qp_offset, qp,
-			      scifdev, sizeof(struct scif_qp));
+						  scifdev, sizeof(struct scif_qp));
+
 	if (err)
+	{
 		goto unmap;
+	}
+
 	qp->local_qp = *qp_offset;
 	return err;
 unmap:
@@ -153,8 +164,8 @@ kfree:
 
 /* When the other side has already done it's allocation, this is called */
 int scif_setup_qp_accept(struct scif_qp *qp, dma_addr_t *qp_offset,
-			 dma_addr_t phys, int local_size,
-			 struct scif_dev *scifdev)
+						 dma_addr_t phys, int local_size,
+						 struct scif_dev *scifdev)
 {
 	void *local_q;
 	void *remote_q;
@@ -166,51 +177,72 @@ int scif_setup_qp_accept(struct scif_qp *qp, dma_addr_t *qp_offset,
 	spin_lock_init(&qp->recv_lock);
 	/* Start by figuring out where we need to point */
 	remote_qp = scif_ioremap(phys, sizeof(struct scif_qp), scifdev);
+
 	if (!remote_qp)
+	{
 		return -EIO;
+	}
+
 	qp->remote_qp = remote_qp;
-	if (qp->remote_qp->magic != SCIFEP_MAGIC) {
+
+	if (qp->remote_qp->magic != SCIFEP_MAGIC)
+	{
 		err = -EIO;
 		goto iounmap;
 	}
+
 	qp->remote_buf = remote_qp->local_buf;
 	remote_size = qp->remote_qp->inbound_q.size;
 	remote_q = scif_ioremap(qp->remote_buf, remote_size, scifdev);
-	if (!remote_q) {
+
+	if (!remote_q)
+	{
 		err = -EIO;
 		goto iounmap;
 	}
+
 	qp->remote_qp->local_write = 0;
 	/*
 	 * To setup the outbound_q, the buffer lives in remote memory,
 	 * the read pointer is local, the write pointer is remote
 	 */
 	scif_rb_init(&qp->outbound_q,
-		     &qp->local_read,
-		     &qp->remote_qp->local_write,
-		     remote_q,
-		     get_count_order(remote_size));
+				 &qp->local_read,
+				 &qp->remote_qp->local_write,
+				 remote_q,
+				 get_count_order(remote_size));
 	local_q = kzalloc(local_size, GFP_KERNEL);
-	if (!local_q) {
+
+	if (!local_q)
+	{
 		err = -ENOMEM;
 		goto iounmap_1;
 	}
+
 	err = scif_map_single(&qp->local_buf, local_q, scifdev, local_size);
+
 	if (err)
+	{
 		goto kfree;
+	}
+
 	qp->remote_qp->local_read = 0;
 	/*
 	 * To setup the inbound_q, the buffer lives locally, the read pointer
 	 * is remote and the write pointer is local
 	 */
 	scif_rb_init(&qp->inbound_q,
-		     &qp->remote_qp->local_read,
-		     &qp->local_write,
-		     local_q, get_count_order(local_size));
+				 &qp->remote_qp->local_read,
+				 &qp->local_write,
+				 local_q, get_count_order(local_size));
 	err = scif_map_single(qp_offset, qp, scifdev,
-			      sizeof(struct scif_qp));
+						  sizeof(struct scif_qp));
+
 	if (err)
+	{
 		goto unmap;
+	}
+
 	qp->local_qp = *qp_offset;
 	return err;
 unmap:
@@ -228,7 +260,7 @@ iounmap:
 }
 
 int scif_setup_qp_connect_response(struct scif_dev *scifdev,
-				   struct scif_qp *qp, u64 payload)
+								   struct scif_qp *qp, u64 payload)
 {
 	int err = 0;
 	void *r_buf;
@@ -237,15 +269,17 @@ int scif_setup_qp_connect_response(struct scif_dev *scifdev,
 
 	qp->remote_qp = scif_ioremap(payload, sizeof(struct scif_qp), scifdev);
 
-	if (!qp->remote_qp) {
+	if (!qp->remote_qp)
+	{
 		err = -ENOMEM;
 		goto error;
 	}
 
-	if (qp->remote_qp->magic != SCIFEP_MAGIC) {
+	if (qp->remote_qp->magic != SCIFEP_MAGIC)
+	{
 		dev_err(&scifdev->sdev->dev,
-			"SCIFEP_MAGIC mismatch between self %d remote %d\n",
-			scif_dev[scif_info.nodeid].node, scifdev->node);
+				"SCIFEP_MAGIC mismatch between self %d remote %d\n",
+				scif_dev[scif_info.nodeid].node, scifdev->node);
 		err = -ENODEV;
 		goto error;
 	}
@@ -255,14 +289,16 @@ int scif_setup_qp_connect_response(struct scif_dev *scifdev,
 	r_buf = scif_ioremap(tmp_phys, remote_size, scifdev);
 
 	if (!r_buf)
+	{
 		return -EIO;
+	}
 
 	qp->local_read = 0;
 	scif_rb_init(&qp->outbound_q,
-		     &qp->local_read,
-		     &qp->remote_qp->local_write,
-		     r_buf,
-		     get_count_order(remote_size));
+				 &qp->local_read,
+				 &qp->remote_qp->local_write,
+				 r_buf,
+				 get_count_order(remote_size));
 	/*
 	 * Because the node QP may already be processing an INIT message, set
 	 * the read pointer so the cached read offset isn't lost
@@ -273,10 +309,10 @@ int scif_setup_qp_connect_response(struct scif_dev *scifdev,
 	 * inbound_read really is.
 	 */
 	scif_rb_init(&qp->inbound_q,
-		     &qp->remote_qp->local_read,
-		     &qp->local_write,
-		     qp->inbound_q.rb_base,
-		     get_count_order(qp->inbound_q.size));
+				 &qp->remote_qp->local_read,
+				 &qp->local_write,
+				 qp->inbound_q.rb_base,
+				 get_count_order(qp->inbound_q.size));
 error:
 	return err;
 }
@@ -287,9 +323,13 @@ scif_send_msg_intr(struct scif_dev *scifdev)
 	struct scif_hw_dev *sdev = scifdev->sdev;
 
 	if (scifdev_is_p2p(scifdev))
+	{
 		sdev->hw_ops->send_p2p_intr(sdev, scifdev->rdb, &scifdev->mmio);
+	}
 	else
+	{
 		sdev->hw_ops->send_intr(sdev, scifdev->rdb);
+	}
 }
 
 int scif_qp_response(phys_addr_t phys, struct scif_dev *scifdev)
@@ -298,7 +338,9 @@ int scif_qp_response(phys_addr_t phys, struct scif_dev *scifdev)
 	struct scifmsg msg;
 
 	err = scif_setup_qp_connect_response(scifdev, scifdev->qpairs, phys);
-	if (!err) {
+
+	if (!err)
+	{
 		/*
 		 * Now that everything is setup and mapped, we're ready
 		 * to tell the peer about our queue's location
@@ -307,6 +349,7 @@ int scif_qp_response(phys_addr_t phys, struct scif_dev *scifdev)
 		msg.dst.node = scifdev->node;
 		err = scif_nodeqp_send(scifdev, &msg);
 	}
+
 	return err;
 }
 
@@ -320,11 +363,15 @@ void scif_send_exit(struct scif_dev *scifdev)
 	msg.src.node = scif_info.nodeid;
 	msg.dst.node = scifdev->node;
 	ret = scif_nodeqp_send(scifdev, &msg);
+
 	if (ret)
+	{
 		goto done;
+	}
+
 	/* Wait for a SCIF_EXIT_ACK message */
 	wait_event_timeout(scif_info.exitwq, scifdev->exit == OP_COMPLETED,
-			   SCIF_NODE_ALIVE_TIMEOUT);
+					   SCIF_NODE_ALIVE_TIMEOUT);
 done:
 	scifdev->exit = OP_IDLE;
 }
@@ -338,16 +385,23 @@ int scif_setup_qp(struct scif_dev *scifdev)
 	local_size = SCIF_NODE_QP_SIZE;
 
 	qp = kzalloc(sizeof(*qp), GFP_KERNEL);
-	if (!qp) {
+
+	if (!qp)
+	{
 		err = -ENOMEM;
 		return err;
 	}
+
 	qp->magic = SCIFEP_MAGIC;
 	scifdev->qpairs = qp;
 	err = scif_setup_qp_connect(qp, &scifdev->qp_dma_addr,
-				    local_size, scifdev);
+								local_size, scifdev);
+
 	if (err)
+	{
 		goto free_qp;
+	}
+
 	/*
 	 * We're as setup as we can be. The inbound_q is setup, w/o a usable
 	 * outbound q.  When we get a message, the read_ptr will be updated,
@@ -373,14 +427,21 @@ scif_p2p_setsg(phys_addr_t pa, int page_size, int page_cnt)
 	int i;
 
 	sg = kcalloc(page_cnt, sizeof(struct scatterlist), GFP_KERNEL);
+
 	if (!sg)
+	{
 		return NULL;
+	}
+
 	sg_init_table(sg, page_cnt);
-	for (i = 0; i < page_cnt; i++) {
+
+	for (i = 0; i < page_cnt; i++)
+	{
 		page = pfn_to_page(pa >> PAGE_SHIFT);
 		sg_set_page(&sg[i], page, page_size, 0);
 		pa += page_size;
 	}
+
 	return sg;
 }
 
@@ -397,27 +458,43 @@ scif_init_p2p_info(struct scif_dev *scifdev, struct scif_dev *peerdev)
 	num_aper_pages = psdev->aper->len >> PAGE_SHIFT;
 
 	p2p = kzalloc(sizeof(*p2p), GFP_KERNEL);
+
 	if (!p2p)
+	{
 		return NULL;
+	}
+
 	p2p->ppi_sg[SCIF_PPI_MMIO] = scif_p2p_setsg(psdev->mmio->pa,
-						    PAGE_SIZE, num_mmio_pages);
+								 PAGE_SIZE, num_mmio_pages);
+
 	if (!p2p->ppi_sg[SCIF_PPI_MMIO])
+	{
 		goto free_p2p;
+	}
+
 	p2p->sg_nentries[SCIF_PPI_MMIO] = num_mmio_pages;
 	sg_page_shift = get_order(min(psdev->aper->len, (u64)(1 << 30)));
 	num_aper_chunks = num_aper_pages >> (sg_page_shift - PAGE_SHIFT);
 	p2p->ppi_sg[SCIF_PPI_APER] = scif_p2p_setsg(psdev->aper->pa,
-						    1 << sg_page_shift,
-						    num_aper_chunks);
+								 1 << sg_page_shift,
+								 num_aper_chunks);
 	p2p->sg_nentries[SCIF_PPI_APER] = num_aper_chunks;
 	err = dma_map_sg(&sdev->dev, p2p->ppi_sg[SCIF_PPI_MMIO],
-			 num_mmio_pages, PCI_DMA_BIDIRECTIONAL);
+					 num_mmio_pages, PCI_DMA_BIDIRECTIONAL);
+
 	if (err != num_mmio_pages)
+	{
 		goto scif_p2p_free;
+	}
+
 	err = dma_map_sg(&sdev->dev, p2p->ppi_sg[SCIF_PPI_APER],
-			 num_aper_chunks, PCI_DMA_BIDIRECTIONAL);
+					 num_aper_chunks, PCI_DMA_BIDIRECTIONAL);
+
 	if (err != num_aper_chunks)
+	{
 		goto dma_unmap;
+	}
+
 	p2p->ppi_da[SCIF_PPI_MMIO] = sg_dma_address(p2p->ppi_sg[SCIF_PPI_MMIO]);
 	p2p->ppi_da[SCIF_PPI_APER] = sg_dma_address(p2p->ppi_sg[SCIF_PPI_APER]);
 	p2p->ppi_len[SCIF_PPI_MMIO] = num_mmio_pages;
@@ -426,7 +503,7 @@ scif_init_p2p_info(struct scif_dev *scifdev, struct scif_dev *peerdev)
 	return p2p;
 dma_unmap:
 	dma_unmap_sg(&sdev->dev, p2p->ppi_sg[SCIF_PPI_MMIO],
-		     p2p->sg_nentries[SCIF_PPI_MMIO], DMA_BIDIRECTIONAL);
+				 p2p->sg_nentries[SCIF_PPI_MMIO], DMA_BIDIRECTIONAL);
 scif_p2p_free:
 	scif_p2p_freesg(p2p->ppi_sg[SCIF_PPI_MMIO]);
 	scif_p2p_freesg(p2p->ppi_sg[SCIF_PPI_APER]);
@@ -437,14 +514,14 @@ free_p2p:
 
 /* Uninitialize and release resources from a p2p mapping */
 static void scif_deinit_p2p_info(struct scif_dev *scifdev,
-				 struct scif_p2p_info *p2p)
+								 struct scif_p2p_info *p2p)
 {
 	struct scif_hw_dev *sdev = scifdev->sdev;
 
 	dma_unmap_sg(&sdev->dev, p2p->ppi_sg[SCIF_PPI_MMIO],
-		     p2p->sg_nentries[SCIF_PPI_MMIO], DMA_BIDIRECTIONAL);
+				 p2p->sg_nentries[SCIF_PPI_MMIO], DMA_BIDIRECTIONAL);
 	dma_unmap_sg(&sdev->dev, p2p->ppi_sg[SCIF_PPI_APER],
-		     p2p->sg_nentries[SCIF_PPI_APER], DMA_BIDIRECTIONAL);
+				 p2p->sg_nentries[SCIF_PPI_APER], DMA_BIDIRECTIONAL);
 	scif_p2p_freesg(p2p->ppi_sg[SCIF_PPI_MMIO]);
 	scif_p2p_freesg(p2p->ppi_sg[SCIF_PPI_APER]);
 	kfree(p2p);
@@ -470,32 +547,50 @@ static void scif_node_connect(struct scif_dev *scifdev, int dst)
 	u64 tmppayload;
 
 	if (dst < 1 || dst > scif_info.maxid)
+	{
 		return;
+	}
 
 	dev_i = &scif_dev[dst];
 
 	if (!_scifdev_alive(dev_i))
+	{
 		return;
+	}
+
 	/*
 	 * If the p2p connection is already setup or in the process of setting
 	 * up then just ignore this request. The requested node will get
 	 * informed by SCIF_NODE_ADD_ACK or SCIF_NODE_ADD_NACK
 	 */
-	if (!list_empty(&dev_i->p2p)) {
-		list_for_each_safe(pos, tmp, &dev_i->p2p) {
+	if (!list_empty(&dev_i->p2p))
+	{
+		list_for_each_safe(pos, tmp, &dev_i->p2p)
+		{
 			p2p = list_entry(pos, struct scif_p2p_info, ppi_list);
+
 			if (p2p->ppi_peer_id == dev_j->node)
+			{
 				return;
+			}
 		}
 	}
+
 	p2p_ij = scif_init_p2p_info(dev_i, dev_j);
+
 	if (!p2p_ij)
+	{
 		return;
+	}
+
 	p2p_ji = scif_init_p2p_info(dev_j, dev_i);
-	if (!p2p_ji) {
+
+	if (!p2p_ji)
+	{
 		scif_deinit_p2p_info(dev_i, p2p_ij);
 		return;
 	}
+
 	list_add_tail(&p2p_ij->ppi_list, &dev_i->p2p);
 	list_add_tail(&p2p_ji->ppi_list, &dev_j->p2p);
 
@@ -513,9 +608,11 @@ static void scif_node_connect(struct scif_dev *scifdev, int dst)
 	msg.payload[3] = p2p_ij->ppi_len[SCIF_PPI_APER] << PAGE_SHIFT;
 
 	err = scif_nodeqp_send(dev_i,  &msg);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&scifdev->sdev->dev,
-			"%s %d error %d\n", __func__, __LINE__, err);
+				"%s %d error %d\n", __func__, __LINE__, err);
 		return;
 	}
 
@@ -538,81 +635,96 @@ static void scif_p2p_setup(void)
 	int i, j;
 
 	if (!scif_info.p2p_enable)
+	{
 		return;
+	}
 
 	for (i = 1; i <= scif_info.maxid; i++)
 		if (!_scifdev_alive(&scif_dev[i]))
+		{
 			return;
+		}
 
-	for (i = 1; i <= scif_info.maxid; i++) {
-		for (j = 1; j <= scif_info.maxid; j++) {
+	for (i = 1; i <= scif_info.maxid; i++)
+	{
+		for (j = 1; j <= scif_info.maxid; j++)
+		{
 			struct scif_dev *scifdev = &scif_dev[i];
 
 			if (i == j)
+			{
 				continue;
+			}
+
 			scif_node_connect(scifdev, j);
 		}
 	}
 }
 
 static char *message_types[] = {"BAD",
-				"INIT",
-				"EXIT",
-				"SCIF_EXIT_ACK",
-				"SCIF_NODE_ADD",
-				"SCIF_NODE_ADD_ACK",
-				"SCIF_NODE_ADD_NACK",
-				"REMOVE_NODE",
-				"REMOVE_NODE_ACK",
-				"CNCT_REQ",
-				"CNCT_GNT",
-				"CNCT_GNTACK",
-				"CNCT_GNTNACK",
-				"CNCT_REJ",
-				"DISCNCT",
-				"DISCNT_ACK",
-				"CLIENT_SENT",
-				"CLIENT_RCVD",
-				"SCIF_GET_NODE_INFO",
-				"REGISTER",
-				"REGISTER_ACK",
-				"REGISTER_NACK",
-				"UNREGISTER",
-				"UNREGISTER_ACK",
-				"UNREGISTER_NACK",
-				"ALLOC_REQ",
-				"ALLOC_GNT",
-				"ALLOC_REJ",
-				"FREE_PHYS",
-				"FREE_VIRT",
-				"MUNMAP",
-				"MARK",
-				"MARK_ACK",
-				"MARK_NACK",
-				"WAIT",
-				"WAIT_ACK",
-				"WAIT_NACK",
-				"SIGNAL_LOCAL",
-				"SIGNAL_REMOTE",
-				"SIG_ACK",
-				"SIG_NACK"};
+								"INIT",
+								"EXIT",
+								"SCIF_EXIT_ACK",
+								"SCIF_NODE_ADD",
+								"SCIF_NODE_ADD_ACK",
+								"SCIF_NODE_ADD_NACK",
+								"REMOVE_NODE",
+								"REMOVE_NODE_ACK",
+								"CNCT_REQ",
+								"CNCT_GNT",
+								"CNCT_GNTACK",
+								"CNCT_GNTNACK",
+								"CNCT_REJ",
+								"DISCNCT",
+								"DISCNT_ACK",
+								"CLIENT_SENT",
+								"CLIENT_RCVD",
+								"SCIF_GET_NODE_INFO",
+								"REGISTER",
+								"REGISTER_ACK",
+								"REGISTER_NACK",
+								"UNREGISTER",
+								"UNREGISTER_ACK",
+								"UNREGISTER_NACK",
+								"ALLOC_REQ",
+								"ALLOC_GNT",
+								"ALLOC_REJ",
+								"FREE_PHYS",
+								"FREE_VIRT",
+								"MUNMAP",
+								"MARK",
+								"MARK_ACK",
+								"MARK_NACK",
+								"WAIT",
+								"WAIT_ACK",
+								"WAIT_NACK",
+								"SIGNAL_LOCAL",
+								"SIGNAL_REMOTE",
+								"SIG_ACK",
+								"SIG_NACK"
+							   };
 
 static void
 scif_display_message(struct scif_dev *scifdev, struct scifmsg *msg,
-		     const char *label)
+					 const char *label)
 {
 	if (!scif_info.en_msg_log)
-		return;
-	if (msg->uop > SCIF_MAX_MSG) {
-		dev_err(&scifdev->sdev->dev,
-			"%s: unknown msg type %d\n", label, msg->uop);
+	{
 		return;
 	}
+
+	if (msg->uop > SCIF_MAX_MSG)
+	{
+		dev_err(&scifdev->sdev->dev,
+				"%s: unknown msg type %d\n", label, msg->uop);
+		return;
+	}
+
 	dev_info(&scifdev->sdev->dev,
-		 "%s: msg type %s, src %d:%d, dest %d:%d payload 0x%llx:0x%llx:0x%llx:0x%llx\n",
-		 label, message_types[msg->uop], msg->src.node, msg->src.port,
-		 msg->dst.node, msg->dst.port, msg->payload[0], msg->payload[1],
-		 msg->payload[2], msg->payload[3]);
+			 "%s: msg type %s, src %d:%d, dest %d:%d payload 0x%llx:0x%llx:0x%llx:0x%llx\n",
+			 label, message_types[msg->uop], msg->src.node, msg->src.port,
+			 msg->dst.node, msg->dst.port, msg->payload[0], msg->payload[1],
+			 msg->payload[2], msg->payload[3]);
 }
 
 int _scif_nodeqp_send(struct scif_dev *scifdev, struct scifmsg *msg)
@@ -621,40 +733,59 @@ int _scif_nodeqp_send(struct scif_dev *scifdev, struct scifmsg *msg)
 	int err = -ENOMEM, loop_cnt = 0;
 
 	scif_display_message(scifdev, msg, "Sent");
-	if (!qp) {
+
+	if (!qp)
+	{
 		err = -EINVAL;
 		goto error;
 	}
+
 	spin_lock(&qp->send_lock);
 
 	while ((err = scif_rb_write(&qp->outbound_q,
-				    msg, sizeof(struct scifmsg)))) {
+								msg, sizeof(struct scifmsg))))
+	{
 		mdelay(1);
 #define SCIF_NODEQP_SEND_TO_MSEC (3 * 1000)
-		if (loop_cnt++ > (SCIF_NODEQP_SEND_TO_MSEC)) {
+
+		if (loop_cnt++ > (SCIF_NODEQP_SEND_TO_MSEC))
+		{
 			err = -ENODEV;
 			break;
 		}
 	}
+
 	if (!err)
+	{
 		scif_rb_commit(&qp->outbound_q);
+	}
+
 	spin_unlock(&qp->send_lock);
-	if (!err) {
+
+	if (!err)
+	{
 		if (scifdev_self(scifdev))
 			/*
 			 * For loopback we need to emulate an interrupt by
 			 * queuing work for the queue handling real node
 			 * Qp interrupts.
 			 */
+		{
 			queue_work(scifdev->intr_wq, &scifdev->intr_bh);
+		}
 		else
+		{
 			scif_send_msg_intr(scifdev);
+		}
 	}
+
 error:
+
 	if (err)
 		dev_dbg(&scifdev->sdev->dev,
-			"%s %d error %d uop %d\n",
-			 __func__, __LINE__, err, msg->uop);
+				"%s %d error %d uop %d\n",
+				__func__, __LINE__, err, msg->uop);
+
 	return err;
 }
 
@@ -668,19 +799,30 @@ int scif_nodeqp_send(struct scif_dev *scifdev, struct scifmsg *msg)
 	int err;
 	struct device *spdev = NULL;
 
-	if (msg->uop > SCIF_EXIT_ACK) {
+	if (msg->uop > SCIF_EXIT_ACK)
+	{
 		/* Dont send messages once the exit flow has begun */
 		if (OP_IDLE != scifdev->exit)
+		{
 			return -ENODEV;
+		}
+
 		spdev = scif_get_peer_dev(scifdev);
-		if (IS_ERR(spdev)) {
+
+		if (IS_ERR(spdev))
+		{
 			err = PTR_ERR(spdev);
 			return err;
 		}
 	}
+
 	err = _scif_nodeqp_send(scifdev, msg);
+
 	if (msg->uop > SCIF_EXIT_ACK)
+	{
 		scif_put_peer_dev(spdev);
+	}
+
 	return err;
 }
 
@@ -718,7 +860,8 @@ scif_init(struct scif_dev *scifdev, struct scifmsg *msg)
 
 	scif_peer_register_device(scifdev);
 
-	if (scif_is_mgmt_node()) {
+	if (scif_is_mgmt_node())
+	{
 		mutex_lock(&scif_info.conflock);
 		scif_p2p_setup();
 		mutex_unlock(&scif_info.conflock);
@@ -738,12 +881,18 @@ static __always_inline void
 scif_exit(struct scif_dev *scifdev, struct scifmsg *unused)
 {
 	scifdev->exit_ack_pending = true;
+
 	if (scif_is_mgmt_node())
+	{
 		scif_disconnect_node(scifdev->node, false);
+	}
 	else
+	{
 		scif_stop(scifdev);
+	}
+
 	schedule_delayed_work(&scifdev->qp_dwork,
-			      msecs_to_jiffies(1000));
+						  msecs_to_jiffies(1000));
 }
 
 /**
@@ -782,30 +931,39 @@ scif_node_add(struct scif_dev *scifdev, struct scifmsg *msg)
 	struct scif_hw_dev *sdev;
 
 	dev_dbg(&scifdev->sdev->dev,
-		"Scifdev %d:%d received NODE_ADD msg for node %d\n",
-		scifdev->node, msg->dst.node, msg->src.node);
+			"Scifdev %d:%d received NODE_ADD msg for node %d\n",
+			scifdev->node, msg->dst.node, msg->src.node);
 	dev_dbg(&scifdev->sdev->dev,
-		"Remote address for this node's aperture %llx\n",
-		msg->payload[0]);
+			"Remote address for this node's aperture %llx\n",
+			msg->payload[0]);
 	newdev = &scif_dev[msg->src.node];
 	newdev->node = msg->src.node;
 	newdev->sdev = scif_dev[SCIF_MGMT_NODE].sdev;
 	sdev = newdev->sdev;
 
-	if (scif_setup_intr_wq(newdev)) {
+	if (scif_setup_intr_wq(newdev))
+	{
 		dev_err(&scifdev->sdev->dev,
-			"failed to setup interrupts for %d\n", msg->src.node);
+				"failed to setup interrupts for %d\n", msg->src.node);
 		goto interrupt_setup_error;
 	}
+
 	newdev->mmio.va = ioremap_nocache(msg->payload[1], sdev->mmio->len);
-	if (!newdev->mmio.va) {
+
+	if (!newdev->mmio.va)
+	{
 		dev_err(&scifdev->sdev->dev,
-			"failed to map mmio for %d\n", msg->src.node);
+				"failed to map mmio for %d\n", msg->src.node);
 		goto mmio_map_error;
 	}
+
 	newdev->qpairs = kzalloc(sizeof(*newdev->qpairs), GFP_KERNEL);
+
 	if (!newdev->qpairs)
+	{
 		goto qp_alloc_error;
+	}
+
 	/*
 	 * Set the base address of the remote node's memory since it gets
 	 * added to qp_offset
@@ -813,19 +971,25 @@ scif_node_add(struct scif_dev *scifdev, struct scifmsg *msg)
 	newdev->base_addr = msg->payload[0];
 
 	qp_connect = scif_setup_qp_connect(newdev->qpairs, &qp_offset,
-					   SCIF_NODE_QP_SIZE, newdev);
-	if (qp_connect) {
+									   SCIF_NODE_QP_SIZE, newdev);
+
+	if (qp_connect)
+	{
 		dev_err(&scifdev->sdev->dev,
-			"failed to setup qp_connect %d\n", qp_connect);
+				"failed to setup qp_connect %d\n", qp_connect);
 		goto qp_connect_error;
 	}
 
 	newdev->db = sdev->hw_ops->next_db(sdev);
 	newdev->cookie = sdev->hw_ops->request_irq(sdev, scif_intr_handler,
-						   "SCIF_INTR", newdev,
-						   newdev->db);
+					 "SCIF_INTR", newdev,
+					 newdev->db);
+
 	if (IS_ERR(newdev->cookie))
+	{
 		goto qp_connect_error;
+	}
+
 	newdev->qpairs->magic = SCIFEP_MAGIC;
 	newdev->qpairs->qp_state = SCIF_QP_OFFLINE;
 
@@ -845,7 +1009,7 @@ qp_alloc_error:
 mmio_map_error:
 interrupt_setup_error:
 	dev_err(&scifdev->sdev->dev,
-		"node add failed for node %d\n", msg->src.node);
+			"node add failed for node %d\n", msg->src.node);
 	msg->uop = SCIF_NODE_ADD_NACK;
 	msg->dst.node = msg->src.node;
 	msg->src.node = scif_info.nodeid;
@@ -857,26 +1021,30 @@ void scif_poll_qp_state(struct work_struct *work)
 #define SCIF_NODE_QP_RETRY 100
 #define SCIF_NODE_QP_TIMEOUT 100
 	struct scif_dev *peerdev = container_of(work, struct scif_dev,
-							p2p_dwork.work);
+											p2p_dwork.work);
 	struct scif_qp *qp = &peerdev->qpairs[0];
 
 	if (qp->qp_state != SCIF_QP_ONLINE ||
-	    qp->remote_qp->qp_state != SCIF_QP_ONLINE) {
-		if (peerdev->p2p_retry++ == SCIF_NODE_QP_RETRY) {
+		qp->remote_qp->qp_state != SCIF_QP_ONLINE)
+	{
+		if (peerdev->p2p_retry++ == SCIF_NODE_QP_RETRY)
+		{
 			dev_err(&peerdev->sdev->dev,
-				"Warning: QP check timeout with state %d\n",
-				qp->qp_state);
+					"Warning: QP check timeout with state %d\n",
+					qp->qp_state);
 			goto timeout;
 		}
+
 		schedule_delayed_work(&peerdev->p2p_dwork,
-				      msecs_to_jiffies(SCIF_NODE_QP_TIMEOUT));
+							  msecs_to_jiffies(SCIF_NODE_QP_TIMEOUT));
 		return;
 	}
+
 	return;
 timeout:
 	dev_err(&peerdev->sdev->dev,
-		"%s %d remote node %d offline,  state = 0x%x\n",
-		__func__, __LINE__, peerdev->node, qp->qp_state);
+			"%s %d remote node %d offline,  state = 0x%x\n",
+			__func__, __LINE__, peerdev->node, qp->qp_state);
 	qp->remote_qp->qp_state = SCIF_QP_OFFLINE;
 	scif_peer_unregister_device(peerdev);
 	scif_cleanup_scifdev(peerdev);
@@ -899,12 +1067,14 @@ scif_node_add_ack(struct scif_dev *scifdev, struct scifmsg *msg)
 	struct scif_dev *dst_dev = &scif_dev[msg->dst.node];
 
 	dev_dbg(&scifdev->sdev->dev,
-		"Scifdev %d received SCIF_NODE_ADD_ACK msg src %d dst %d\n",
-		scifdev->node, msg->src.node, msg->dst.node);
+			"Scifdev %d received SCIF_NODE_ADD_ACK msg src %d dst %d\n",
+			scifdev->node, msg->src.node, msg->dst.node);
 	dev_dbg(&scifdev->sdev->dev,
-		"payload %llx %llx %llx %llx\n", msg->payload[0],
-		msg->payload[1], msg->payload[2], msg->payload[3]);
-	if (scif_is_mgmt_node()) {
+			"payload %llx %llx %llx %llx\n", msg->payload[0],
+			msg->payload[1], msg->payload[2], msg->payload[3]);
+
+	if (scif_is_mgmt_node())
+	{
 		/*
 		 * the lock serializes with scif_qp_response_ack. The mgmt node
 		 * is forwarding the NODE_ADD_ACK message from src to dst we
@@ -917,6 +1087,7 @@ scif_node_add_ack(struct scif_dev *scifdev, struct scifmsg *msg)
 		mutex_unlock(&scif_info.conflock);
 		return;
 	}
+
 	peerdev = &scif_dev[msg->src.node];
 	peerdev->sdev = scif_dev[SCIF_MGMT_NODE].sdev;
 	peerdev->node = msg->src.node;
@@ -924,8 +1095,11 @@ scif_node_add_ack(struct scif_dev *scifdev, struct scifmsg *msg)
 	qp = &peerdev->qpairs[0];
 
 	if ((scif_setup_qp_connect_response(peerdev, &peerdev->qpairs[0],
-					    msg->payload[0])))
+										msg->payload[0])))
+	{
 		goto local_error;
+	}
+
 	peerdev->rdb = msg->payload[2];
 	qp->remote_qp->qp_state = SCIF_QP_ONLINE;
 
@@ -946,11 +1120,12 @@ local_error:
 static __always_inline void
 scif_node_add_nack(struct scif_dev *scifdev, struct scifmsg *msg)
 {
-	if (scif_is_mgmt_node()) {
+	if (scif_is_mgmt_node())
+	{
 		struct scif_dev *dst_dev = &scif_dev[msg->dst.node];
 
 		dev_dbg(&scifdev->sdev->dev,
-			"SCIF_NODE_ADD_NACK received from %d\n", scifdev->node);
+				"SCIF_NODE_ADD_NACK received from %d\n", scifdev->node);
 		scif_nodeqp_send(dst_dev, msg);
 	}
 }
@@ -995,14 +1170,17 @@ scif_node_remove_ack(struct scif_dev *scifdev, struct scifmsg *msg)
 static __always_inline void
 scif_get_node_info_resp(struct scif_dev *scifdev, struct scifmsg *msg)
 {
-	if (scif_is_mgmt_node()) {
+	if (scif_is_mgmt_node())
+	{
 		swap(msg->dst.node, msg->src.node);
 		mutex_lock(&scif_info.conflock);
 		msg->payload[1] = scif_info.maxid;
 		msg->payload[2] = scif_info.total;
 		mutex_unlock(&scif_info.conflock);
 		scif_nodeqp_send(scifdev, msg);
-	} else {
+	}
+	else
+	{
 		struct completion *node_info =
 			(struct completion *)msg->payload[3];
 
@@ -1019,12 +1197,13 @@ scif_msg_unknown(struct scif_dev *scifdev, struct scifmsg *msg)
 {
 	/* Bogus Node Qp Message? */
 	dev_err(&scifdev->sdev->dev,
-		"Unknown message 0x%xn scifdev->node 0x%x\n",
-		msg->uop, scifdev->node);
+			"Unknown message 0x%xn scifdev->node 0x%x\n",
+			msg->uop, scifdev->node);
 }
 
 static void (*scif_intr_func[SCIF_MAX_MSG + 1])
-	    (struct scif_dev *, struct scifmsg *msg) = {
+(struct scif_dev *, struct scifmsg *msg) =
+{
 	scif_msg_unknown,	/* Error */
 	scif_init,		/* SCIF_INIT */
 	scif_exit,		/* SCIF_EXIT */
@@ -1080,15 +1259,16 @@ static int scif_max_msg_id = SCIF_MAX_MSG;
 
 static void
 scif_nodeqp_msg_handler(struct scif_dev *scifdev,
-			struct scif_qp *qp, struct scifmsg *msg)
+						struct scif_qp *qp, struct scifmsg *msg)
 {
 	scif_display_message(scifdev, msg, "Rcvd");
 
-	if (msg->uop > (u32)scif_max_msg_id) {
+	if (msg->uop > (u32)scif_max_msg_id)
+	{
 		/* Bogus Node Qp Message? */
 		dev_err(&scifdev->sdev->dev,
-			"Unknown message 0x%xn scifdev->node 0x%x\n",
-			msg->uop, scifdev->node);
+				"Unknown message 0x%xn scifdev->node 0x%x\n",
+				msg->uop, scifdev->node);
 		return;
 	}
 
@@ -1109,19 +1289,29 @@ void scif_nodeqp_intrhandler(struct scif_dev *scifdev, struct scif_qp *qp)
 	struct scifmsg msg;
 	int read_size;
 
-	do {
+	do
+	{
 		read_size = scif_rb_get_next(&qp->inbound_q, &msg, sizeof(msg));
+
 		if (!read_size)
+		{
 			break;
+		}
+
 		scif_nodeqp_msg_handler(scifdev, qp, &msg);
+
 		/*
 		 * The node queue pair is unmapped so skip the read pointer
 		 * update after receipt of a SCIF_EXIT_ACK
 		 */
 		if (SCIF_EXIT_ACK == msg.uop)
+		{
 			break;
+		}
+
 		scif_rb_update_read_ptr(&qp->inbound_q);
-	} while (1);
+	}
+	while (1);
 }
 
 /**
@@ -1140,22 +1330,28 @@ static void scif_loopb_wq_handler(struct work_struct *unused)
 	struct scif_qp *qp = scifdev->qpairs;
 	struct scif_loopb_msg *msg;
 
-	do {
+	do
+	{
 		msg = NULL;
 		spin_lock(&qp->recv_lock);
-		if (!list_empty(&scif_info.loopb_recv_q)) {
+
+		if (!list_empty(&scif_info.loopb_recv_q))
+		{
 			msg = list_first_entry(&scif_info.loopb_recv_q,
-					       struct scif_loopb_msg,
-					       list);
+								   struct scif_loopb_msg,
+								   list);
 			list_del(&msg->list);
 		}
+
 		spin_unlock(&qp->recv_lock);
 
-		if (msg) {
+		if (msg)
+		{
 			scif_nodeqp_msg_handler(scifdev, qp, &msg->msg);
 			kfree(msg);
 		}
-	} while (msg);
+	}
+	while (msg);
 }
 
 /**
@@ -1196,23 +1392,33 @@ scif_loopb_msg_handler(struct scif_dev *scifdev, struct scif_qp *qp)
 	int read_size;
 	struct scif_loopb_msg *msg;
 
-	do {
+	do
+	{
 		msg = kmalloc(sizeof(*msg), GFP_KERNEL);
+
 		if (!msg)
+		{
 			return -ENOMEM;
+		}
+
 		read_size = scif_rb_get_next(&qp->inbound_q, &msg->msg,
-					     sizeof(struct scifmsg));
-		if (read_size != sizeof(struct scifmsg)) {
+									 sizeof(struct scifmsg));
+
+		if (read_size != sizeof(struct scifmsg))
+		{
 			kfree(msg);
 			scif_rb_update_read_ptr(&qp->inbound_q);
 			break;
 		}
+
 		spin_lock(&qp->recv_lock);
 		list_add_tail(&msg->list, &scif_info.loopb_recv_q);
 		spin_unlock(&qp->recv_lock);
 		queue_work(scif_info.loopb_wq, &scif_info.loopb_work);
 		scif_rb_update_read_ptr(&qp->inbound_q);
-	} while (read_size == sizeof(struct scifmsg));
+	}
+	while (read_size == sizeof(struct scifmsg));
+
 	return read_size;
 }
 
@@ -1229,21 +1435,30 @@ int scif_setup_loopback_qp(struct scif_dev *scifdev)
 	struct scif_qp *qp;
 
 	err = scif_setup_intr_wq(scifdev);
+
 	if (err)
+	{
 		goto exit;
+	}
+
 	INIT_LIST_HEAD(&scif_info.loopb_recv_q);
 	snprintf(scif_info.loopb_wqname, sizeof(scif_info.loopb_wqname),
-		 "SCIF LOOPB %d", scifdev->node);
+			 "SCIF LOOPB %d", scifdev->node);
 	scif_info.loopb_wq =
 		alloc_ordered_workqueue(scif_info.loopb_wqname, 0);
-	if (!scif_info.loopb_wq) {
+
+	if (!scif_info.loopb_wq)
+	{
 		err = -ENOMEM;
 		goto destroy_intr;
 	}
+
 	INIT_WORK(&scif_info.loopb_work, scif_loopb_wq_handler);
 	/* Allocate Self Qpair */
 	scifdev->qpairs = kzalloc(sizeof(*scifdev->qpairs), GFP_KERNEL);
-	if (!scifdev->qpairs) {
+
+	if (!scifdev->qpairs)
+	{
 		err = -ENOMEM;
 		goto destroy_loopb_wq;
 	}
@@ -1254,24 +1469,27 @@ int scif_setup_loopback_qp(struct scif_dev *scifdev)
 	spin_lock_init(&qp->recv_lock);
 
 	local_q = kzalloc(SCIF_NODE_QP_SIZE, GFP_KERNEL);
-	if (!local_q) {
+
+	if (!local_q)
+	{
 		err = -ENOMEM;
 		goto free_qpairs;
 	}
+
 	/*
 	 * For loopback the inbound_q and outbound_q are essentially the same
 	 * since the Node sends a message on the loopback interface to the
 	 * outbound_q which is then received on the inbound_q.
 	 */
 	scif_rb_init(&qp->outbound_q,
-		     &qp->local_read,
-		     &qp->local_write,
-		     local_q, get_count_order(SCIF_NODE_QP_SIZE));
+				 &qp->local_read,
+				 &qp->local_write,
+				 local_q, get_count_order(SCIF_NODE_QP_SIZE));
 
 	scif_rb_init(&qp->inbound_q,
-		     &qp->local_read,
-		     &qp->local_write,
-		     local_q, get_count_order(SCIF_NODE_QP_SIZE));
+				 &qp->local_read,
+				 &qp->local_write,
+				 local_q, get_count_order(SCIF_NODE_QP_SIZE));
 	scif_info.nodeid = scifdev->node;
 
 	scif_peer_register_device(scifdev);
@@ -1315,14 +1533,15 @@ void scif_destroy_p2p(struct scif_dev *scifdev)
 
 	mutex_lock(&scif_info.conflock);
 	/* Free P2P mappings in the given node for all its peer nodes */
-	list_for_each_safe(pos, tmp, &scifdev->p2p) {
+	list_for_each_safe(pos, tmp, &scifdev->p2p)
+	{
 		p2p = list_entry(pos, struct scif_p2p_info, ppi_list);
 		dma_unmap_sg(&scifdev->sdev->dev, p2p->ppi_sg[SCIF_PPI_MMIO],
-			     p2p->sg_nentries[SCIF_PPI_MMIO],
-			     DMA_BIDIRECTIONAL);
+					 p2p->sg_nentries[SCIF_PPI_MMIO],
+					 DMA_BIDIRECTIONAL);
 		dma_unmap_sg(&scifdev->sdev->dev, p2p->ppi_sg[SCIF_PPI_APER],
-			     p2p->sg_nentries[SCIF_PPI_APER],
-			     DMA_BIDIRECTIONAL);
+					 p2p->sg_nentries[SCIF_PPI_APER],
+					 DMA_BIDIRECTIONAL);
 		scif_p2p_freesg(p2p->ppi_sg[SCIF_PPI_MMIO]);
 		scif_p2p_freesg(p2p->ppi_sg[SCIF_PPI_APER]);
 		list_del(pos);
@@ -1330,19 +1549,23 @@ void scif_destroy_p2p(struct scif_dev *scifdev)
 	}
 
 	/* Free P2P mapping created in the peer nodes for the given node */
-	for (bd = SCIF_MGMT_NODE + 1; bd <= scif_info.maxid; bd++) {
+	for (bd = SCIF_MGMT_NODE + 1; bd <= scif_info.maxid; bd++)
+	{
 		peer_dev = &scif_dev[bd];
-		list_for_each_safe(pos, tmp, &peer_dev->p2p) {
+		list_for_each_safe(pos, tmp, &peer_dev->p2p)
+		{
 			p2p = list_entry(pos, struct scif_p2p_info, ppi_list);
-			if (p2p->ppi_peer_id == scifdev->node) {
+
+			if (p2p->ppi_peer_id == scifdev->node)
+			{
 				dma_unmap_sg(&peer_dev->sdev->dev,
-					     p2p->ppi_sg[SCIF_PPI_MMIO],
-					     p2p->sg_nentries[SCIF_PPI_MMIO],
-					     DMA_BIDIRECTIONAL);
+							 p2p->ppi_sg[SCIF_PPI_MMIO],
+							 p2p->sg_nentries[SCIF_PPI_MMIO],
+							 DMA_BIDIRECTIONAL);
 				dma_unmap_sg(&peer_dev->sdev->dev,
-					     p2p->ppi_sg[SCIF_PPI_APER],
-					     p2p->sg_nentries[SCIF_PPI_APER],
-					     DMA_BIDIRECTIONAL);
+							 p2p->ppi_sg[SCIF_PPI_APER],
+							 p2p->sg_nentries[SCIF_PPI_APER],
+							 DMA_BIDIRECTIONAL);
 				scif_p2p_freesg(p2p->ppi_sg[SCIF_PPI_MMIO]);
 				scif_p2p_freesg(p2p->ppi_sg[SCIF_PPI_APER]);
 				list_del(pos);
@@ -1350,5 +1573,6 @@ void scif_destroy_p2p(struct scif_dev *scifdev)
 			}
 		}
 	}
+
 	mutex_unlock(&scif_info.conflock);
 }

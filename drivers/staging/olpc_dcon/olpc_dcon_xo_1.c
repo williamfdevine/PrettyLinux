@@ -24,23 +24,32 @@ static int dcon_init_xo_1(struct dcon_priv *dcon)
 {
 	unsigned char lob;
 
-	if (gpio_request(OLPC_GPIO_DCON_STAT0, "OLPC-DCON")) {
+	if (gpio_request(OLPC_GPIO_DCON_STAT0, "OLPC-DCON"))
+	{
 		pr_err("failed to request STAT0 GPIO\n");
 		return -EIO;
 	}
-	if (gpio_request(OLPC_GPIO_DCON_STAT1, "OLPC-DCON")) {
+
+	if (gpio_request(OLPC_GPIO_DCON_STAT1, "OLPC-DCON"))
+	{
 		pr_err("failed to request STAT1 GPIO\n");
 		goto err_gp_stat1;
 	}
-	if (gpio_request(OLPC_GPIO_DCON_IRQ, "OLPC-DCON")) {
+
+	if (gpio_request(OLPC_GPIO_DCON_IRQ, "OLPC-DCON"))
+	{
 		pr_err("failed to request IRQ GPIO\n");
 		goto err_gp_irq;
 	}
-	if (gpio_request(OLPC_GPIO_DCON_LOAD, "OLPC-DCON")) {
+
+	if (gpio_request(OLPC_GPIO_DCON_LOAD, "OLPC-DCON"))
+	{
 		pr_err("failed to request LOAD GPIO\n");
 		goto err_gp_load;
 	}
-	if (gpio_request(OLPC_GPIO_DCON_BLANK, "OLPC-DCON")) {
+
+	if (gpio_request(OLPC_GPIO_DCON_BLANK, "OLPC-DCON"))
+	{
 		pr_err("failed to request BLANK GPIO\n");
 		goto err_gp_blank;
 	}
@@ -59,8 +68,8 @@ static int dcon_init_xo_1(struct dcon_priv *dcon)
 	 * READ_BACK, but the first one cannot.  Awesome, huh?
 	 */
 	dcon->curr_src = cs5535_gpio_isset(OLPC_GPIO_DCON_LOAD, GPIO_OUTPUT_VAL)
-		? DCON_SOURCE_CPU
-		: DCON_SOURCE_DCON;
+					 ? DCON_SOURCE_CPU
+					 : DCON_SOURCE_DCON;
 	dcon->pending_src = dcon->curr_src;
 
 	/* Set the directions for the GPIO pins */
@@ -69,7 +78,7 @@ static int dcon_init_xo_1(struct dcon_priv *dcon)
 	gpio_direction_input(OLPC_GPIO_DCON_IRQ);
 	gpio_direction_input(OLPC_GPIO_DCON_BLANK);
 	gpio_direction_output(OLPC_GPIO_DCON_LOAD,
-			dcon->curr_src == DCON_SOURCE_CPU);
+						  dcon->curr_src == DCON_SOURCE_CPU);
 
 	/* Set up the interrupt mappings */
 
@@ -85,7 +94,8 @@ static int dcon_init_xo_1(struct dcon_priv *dcon)
 	outb(lob, 0x4d0);
 
 	/* Register the interrupt handler */
-	if (request_irq(DCON_IRQ, &dcon_interrupt, 0, "DCON", dcon)) {
+	if (request_irq(DCON_IRQ, &dcon_interrupt, 0, "DCON", dcon))
+	{
 		pr_err("failed to request DCON's irq\n");
 		goto err_req_irq;
 	}
@@ -168,12 +178,14 @@ static void dcon_wiggle_xo_1(void)
 	cs5535_gpio_clear(OLPC_GPIO_SMB_CLK, GPIO_INPUT_AUX1);
 	cs5535_gpio_clear(OLPC_GPIO_SMB_DATA, GPIO_INPUT_AUX1);
 
-	for (x = 0; x < 16; x++) {
+	for (x = 0; x < 16; x++)
+	{
 		udelay(5);
 		cs5535_gpio_clear(OLPC_GPIO_SMB_CLK, GPIO_OUTPUT_VAL);
 		udelay(5);
 		cs5535_gpio_set(OLPC_GPIO_SMB_CLK, GPIO_OUTPUT_VAL);
 	}
+
 	udelay(5);
 	cs5535_gpio_set(OLPC_GPIO_SMB_CLK, GPIO_OUTPUT_AUX1);
 	cs5535_gpio_set(OLPC_GPIO_SMB_DATA, GPIO_OUTPUT_AUX1);
@@ -197,7 +209,8 @@ static int dcon_read_status_xo_1(u8 *status)
 	return 0;
 }
 
-struct dcon_platform_data dcon_pdata_xo_1 = {
+struct dcon_platform_data dcon_pdata_xo_1 =
+{
 	.init = dcon_init_xo_1,
 	.bus_stabilize_wiggle = dcon_wiggle_xo_1,
 	.set_dconload = dcon_set_dconload_1,

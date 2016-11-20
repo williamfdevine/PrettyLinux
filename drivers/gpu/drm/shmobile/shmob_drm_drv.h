@@ -25,7 +25,8 @@ struct device;
 struct drm_device;
 struct sh_mobile_meram_info;
 
-struct shmob_drm_device {
+struct shmob_drm_device
+{
 	struct device *dev;
 	const struct shmob_drm_platform_data *pdata;
 

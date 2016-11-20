@@ -47,10 +47,11 @@
 ACPI_MODULE_NAME("oslinuxtbl")
 
 #ifndef PATH_MAX
-#define PATH_MAX 256
+	#define PATH_MAX 256
 #endif
 /* List of information about obtained ACPI tables */
-typedef struct osl_table_info {
+typedef struct osl_table_info
+{
 	struct osl_table_info *next;
 	u32 instance;
 	char signature[ACPI_NAME_SIZE];
@@ -68,17 +69,17 @@ static acpi_status osl_add_table_to_list(char *signature, u32 instance);
 
 static acpi_status
 osl_read_table_from_file(char *filename,
-			 acpi_size file_offset,
-			 char *signature, struct acpi_table_header **table);
+						 acpi_size file_offset,
+						 char *signature, struct acpi_table_header **table);
 
 static acpi_status
 osl_map_table(acpi_size address,
-	      char *signature, struct acpi_table_header **table);
+			  char *signature, struct acpi_table_header **table);
 
 static void osl_unmap_table(struct acpi_table_header *table);
 
 static acpi_physical_address
-osl_find_rsdp_via_efi_by_keyword(FILE * file, const char *keyword);
+osl_find_rsdp_via_efi_by_keyword(FILE *file, const char *keyword);
 
 static acpi_physical_address osl_find_rsdp_via_efi(void);
 
@@ -88,18 +89,18 @@ static acpi_status osl_list_customized_tables(char *directory);
 
 static acpi_status
 osl_get_customized_table(char *pathname,
-			 char *signature,
-			 u32 instance,
-			 struct acpi_table_header **table,
-			 acpi_physical_address *address);
+						 char *signature,
+						 u32 instance,
+						 struct acpi_table_header **table,
+						 acpi_physical_address *address);
 
 static acpi_status osl_list_bios_tables(void);
 
 static acpi_status
 osl_get_bios_table(char *signature,
-		   u32 instance,
-		   struct acpi_table_header **table,
-		   acpi_physical_address *address);
+				   u32 instance,
+				   struct acpi_table_header **table,
+				   acpi_physical_address *address);
 
 static acpi_status osl_get_last_status(acpi_status default_status);
 
@@ -151,23 +152,24 @@ u32 gbl_table_count = 0;
 static acpi_status osl_get_last_status(acpi_status default_status)
 {
 
-	switch (errno) {
-	case EACCES:
-	case EPERM:
+	switch (errno)
+	{
+		case EACCES:
+		case EPERM:
 
-		return (AE_ACCESS);
+			return (AE_ACCESS);
 
-	case ENOENT:
+		case ENOENT:
 
-		return (AE_NOT_FOUND);
+			return (AE_NOT_FOUND);
 
-	case ENOMEM:
+		case ENOMEM:
 
-		return (AE_NO_MEMORY);
+			return (AE_NO_MEMORY);
 
-	default:
+		default:
 
-		return (default_status);
+			return (default_status);
 	}
 }
 
@@ -187,7 +189,7 @@ static acpi_status osl_get_last_status(acpi_status default_status)
 
 acpi_status
 acpi_os_get_table_by_address(acpi_physical_address address,
-			     struct acpi_table_header **table)
+							 struct acpi_table_header **table)
 {
 	u32 table_length;
 	struct acpi_table_header *mapped_table;
@@ -197,27 +199,35 @@ acpi_os_get_table_by_address(acpi_physical_address address,
 	/* Get main ACPI tables from memory on first invocation of this function */
 
 	status = osl_table_initialize();
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
 	/* Map the table and validate it */
 
 	status = osl_map_table(address, NULL, &mapped_table);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
 	/* Copy table to local buffer and return it */
 
 	table_length = ap_get_table_length(mapped_table);
-	if (table_length == 0) {
+
+	if (table_length == 0)
+	{
 		status = AE_BAD_HEADER;
 		goto exit;
 	}
 
 	local_table = calloc(1, table_length);
-	if (!local_table) {
+
+	if (!local_table)
+	{
 		status = AE_NO_MEMORY;
 		goto exit;
 	}
@@ -251,43 +261,50 @@ exit:
 
 acpi_status
 acpi_os_get_table_by_name(char *signature,
-			  u32 instance,
-			  struct acpi_table_header **table,
-			  acpi_physical_address *address)
+						  u32 instance,
+						  struct acpi_table_header **table,
+						  acpi_physical_address *address)
 {
 	acpi_status status;
 
 	/* Get main ACPI tables from memory on first invocation of this function */
 
 	status = osl_table_initialize();
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
 	/* Not a main ACPI table, attempt to extract it from the RSDT/XSDT */
 
-	if (!gbl_dump_customized_tables) {
+	if (!gbl_dump_customized_tables)
+	{
 
 		/* Attempt to get the table from the memory */
 
 		status =
-		    osl_get_bios_table(signature, instance, table, address);
-	} else {
+			osl_get_bios_table(signature, instance, table, address);
+	}
+	else
+	{
 		/* Attempt to get the table from the static directory */
 
 		status = osl_get_customized_table(STATIC_TABLE_DIR, signature,
-						  instance, table, address);
+										  instance, table, address);
 	}
 
-	if (ACPI_FAILURE(status) && status == AE_LIMIT) {
-		if (gbl_dump_dynamic_tables) {
+	if (ACPI_FAILURE(status) && status == AE_LIMIT)
+	{
+		if (gbl_dump_dynamic_tables)
+		{
 
 			/* Attempt to get a dynamic table */
 
 			status =
-			    osl_get_customized_table(DYNAMIC_TABLE_DIR,
-						     signature, instance, table,
-						     address);
+				osl_get_customized_table(DYNAMIC_TABLE_DIR,
+										 signature, instance, table,
+										 address);
 		}
 	}
 
@@ -316,40 +333,57 @@ static acpi_status osl_add_table_to_list(char *signature, u32 instance)
 	u8 found = FALSE;
 
 	new_info = calloc(1, sizeof(struct osl_table_info));
-	if (!new_info) {
+
+	if (!new_info)
+	{
 		return (AE_NO_MEMORY);
 	}
 
 	ACPI_MOVE_NAME(new_info->signature, signature);
 
-	if (!gbl_table_list_head) {
+	if (!gbl_table_list_head)
+	{
 		gbl_table_list_head = new_info;
-	} else {
+	}
+	else
+	{
 		next = gbl_table_list_head;
-		while (1) {
-			if (ACPI_COMPARE_NAME(next->signature, signature)) {
-				if (next->instance == instance) {
+
+		while (1)
+		{
+			if (ACPI_COMPARE_NAME(next->signature, signature))
+			{
+				if (next->instance == instance)
+				{
 					found = TRUE;
 				}
-				if (next->instance >= next_instance) {
+
+				if (next->instance >= next_instance)
+				{
 					next_instance = next->instance + 1;
 				}
 			}
 
-			if (!next->next) {
+			if (!next->next)
+			{
 				break;
 			}
+
 			next = next->next;
 		}
+
 		next->next = new_info;
 	}
 
-	if (found) {
-		if (instance) {
+	if (found)
+	{
+		if (instance)
+		{
 			fprintf(stderr,
-				"%4.4s: Warning unmatched table instance %d, expected %d\n",
-				signature, instance, next_instance);
+					"%4.4s: Warning unmatched table instance %d, expected %d\n",
+					signature, instance, next_instance);
 		}
+
 		instance = next_instance;
 	}
 
@@ -380,8 +414,8 @@ static acpi_status osl_add_table_to_list(char *signature, u32 instance)
 
 acpi_status
 acpi_os_get_table_by_index(u32 index,
-			   struct acpi_table_header **table,
-			   u32 *instance, acpi_physical_address *address)
+						   struct acpi_table_header **table,
+						   u32 *instance, acpi_physical_address *address)
 {
 	struct osl_table_info *info;
 	acpi_status status;
@@ -390,31 +424,38 @@ acpi_os_get_table_by_index(u32 index,
 	/* Get main ACPI tables from memory on first invocation of this function */
 
 	status = osl_table_initialize();
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
 	/* Validate Index */
 
-	if (index >= gbl_table_count) {
+	if (index >= gbl_table_count)
+	{
 		return (AE_LIMIT);
 	}
 
 	/* Point to the table list entry specified by the Index argument */
 
 	info = gbl_table_list_head;
-	for (i = 0; i < index; i++) {
+
+	for (i = 0; i < index; i++)
+	{
 		info = info->next;
 	}
 
 	/* Now we can just get the table via the signature */
 
 	status = acpi_os_get_table_by_name(info->signature, info->instance,
-					   table, address);
+									   table, address);
 
-	if (ACPI_SUCCESS(status)) {
+	if (ACPI_SUCCESS(status))
+	{
 		*instance = info->instance;
 	}
+
 	return (status);
 }
 
@@ -433,7 +474,7 @@ acpi_os_get_table_by_index(u32 index,
  *****************************************************************************/
 
 static acpi_physical_address
-osl_find_rsdp_via_efi_by_keyword(FILE * file, const char *keyword)
+osl_find_rsdp_via_efi_by_keyword(FILE *file, const char *keyword)
 {
 	char buffer[80];
 	unsigned long long address = 0;
@@ -441,8 +482,11 @@ osl_find_rsdp_via_efi_by_keyword(FILE * file, const char *keyword)
 
 	snprintf(format, 32, "%s=%s", keyword, "%llx");
 	fseek(file, 0, SEEK_SET);
-	while (fgets(buffer, 80, file)) {
-		if (sscanf(buffer, format, &address) == 1) {
+
+	while (fgets(buffer, 80, file))
+	{
+		if (sscanf(buffer, format, &address) == 1)
+		{
 			break;
 		}
 	}
@@ -468,12 +512,17 @@ static acpi_physical_address osl_find_rsdp_via_efi(void)
 	acpi_physical_address address = 0;
 
 	file = fopen(EFI_SYSTAB, "r");
-	if (file) {
+
+	if (file)
+	{
 		address = osl_find_rsdp_via_efi_by_keyword(file, "ACPI20");
-		if (!address) {
+
+		if (!address)
+		{
 			address =
-			    osl_find_rsdp_via_efi_by_keyword(file, "ACPI");
+				osl_find_rsdp_via_efi_by_keyword(file, "ACPI");
 		}
+
 		fclose(file);
 	}
 
@@ -502,34 +551,43 @@ static acpi_status osl_load_rsdp(void)
 	/* Get RSDP from memory */
 
 	rsdp_size = sizeof(struct acpi_table_rsdp);
-	if (gbl_rsdp_base) {
+
+	if (gbl_rsdp_base)
+	{
 		rsdp_base = gbl_rsdp_base;
-	} else {
+	}
+	else
+	{
 		rsdp_base = osl_find_rsdp_via_efi();
 	}
 
-	if (!rsdp_base) {
+	if (!rsdp_base)
+	{
 		rsdp_base = ACPI_HI_RSDP_WINDOW_BASE;
 		rsdp_size = ACPI_HI_RSDP_WINDOW_SIZE;
 	}
 
 	rsdp_address = acpi_os_map_memory(rsdp_base, rsdp_size);
-	if (!rsdp_address) {
+
+	if (!rsdp_address)
+	{
 		return (osl_get_last_status(AE_BAD_ADDRESS));
 	}
 
 	/* Search low memory for the RSDP */
 
 	mapped_table = ACPI_CAST_PTR(struct acpi_table_header,
-				     acpi_tb_scan_memory_for_rsdp(rsdp_address,
-								  rsdp_size));
-	if (!mapped_table) {
+								 acpi_tb_scan_memory_for_rsdp(rsdp_address,
+										 rsdp_size));
+
+	if (!mapped_table)
+	{
 		acpi_os_unmap_memory(rsdp_address, rsdp_size);
 		return (AE_NOT_FOUND);
 	}
 
 	gbl_rsdp_address =
-	    rsdp_base + (ACPI_CAST8(mapped_table) - rsdp_address);
+		rsdp_base + (ACPI_CAST8(mapped_table) - rsdp_address);
 
 	memcpy(&gbl_rsdp, mapped_table, sizeof(struct acpi_table_rsdp));
 	acpi_os_unmap_memory(rsdp_address, rsdp_size);
@@ -552,9 +610,12 @@ static acpi_status osl_load_rsdp(void)
 
 static u8 osl_can_use_xsdt(void)
 {
-	if (gbl_revision && !acpi_gbl_do_not_use_xsdt) {
+	if (gbl_revision && !acpi_gbl_do_not_use_xsdt)
+	{
 		return (TRUE);
-	} else {
+	}
+	else
+	{
 		return (FALSE);
 	}
 }
@@ -578,122 +639,157 @@ static acpi_status osl_table_initialize(void)
 	acpi_status status;
 	acpi_physical_address address;
 
-	if (gbl_table_list_initialized) {
+	if (gbl_table_list_initialized)
+	{
 		return (AE_OK);
 	}
 
-	if (!gbl_dump_customized_tables) {
+	if (!gbl_dump_customized_tables)
+	{
 
 		/* Get RSDP from memory */
 
 		status = osl_load_rsdp();
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return (status);
 		}
 
 		/* Get XSDT from memory */
 
-		if (gbl_rsdp.revision && !gbl_do_not_dump_xsdt) {
-			if (gbl_xsdt) {
+		if (gbl_rsdp.revision && !gbl_do_not_dump_xsdt)
+		{
+			if (gbl_xsdt)
+			{
 				free(gbl_xsdt);
 				gbl_xsdt = NULL;
 			}
 
 			gbl_revision = 2;
 			status = osl_get_bios_table(ACPI_SIG_XSDT, 0,
-						    ACPI_CAST_PTR(struct
-								  acpi_table_header
-								  *, &gbl_xsdt),
-						    &address);
-			if (ACPI_FAILURE(status)) {
+										ACPI_CAST_PTR(struct
+												acpi_table_header
+												*, &gbl_xsdt),
+										&address);
+
+			if (ACPI_FAILURE(status))
+			{
 				return (status);
 			}
 		}
 
 		/* Get RSDT from memory */
 
-		if (gbl_rsdp.rsdt_physical_address) {
-			if (gbl_rsdt) {
+		if (gbl_rsdp.rsdt_physical_address)
+		{
+			if (gbl_rsdt)
+			{
 				free(gbl_rsdt);
 				gbl_rsdt = NULL;
 			}
 
 			status = osl_get_bios_table(ACPI_SIG_RSDT, 0,
-						    ACPI_CAST_PTR(struct
-								  acpi_table_header
-								  *, &gbl_rsdt),
-						    &address);
-			if (ACPI_FAILURE(status)) {
+										ACPI_CAST_PTR(struct
+												acpi_table_header
+												*, &gbl_rsdt),
+										&address);
+
+			if (ACPI_FAILURE(status))
+			{
 				return (status);
 			}
 		}
 
 		/* Get FADT from memory */
 
-		if (gbl_fadt) {
+		if (gbl_fadt)
+		{
 			free(gbl_fadt);
 			gbl_fadt = NULL;
 		}
 
 		status = osl_get_bios_table(ACPI_SIG_FADT, 0,
-					    ACPI_CAST_PTR(struct
-							  acpi_table_header *,
-							  &gbl_fadt),
-					    &gbl_fadt_address);
-		if (ACPI_FAILURE(status)) {
+									ACPI_CAST_PTR(struct
+											acpi_table_header *,
+											&gbl_fadt),
+									&gbl_fadt_address);
+
+		if (ACPI_FAILURE(status))
+		{
 			return (status);
 		}
 
 		/* Add mandatory tables to global table list first */
 
 		status = osl_add_table_to_list(ACPI_RSDP_NAME, 0);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return (status);
 		}
 
 		status = osl_add_table_to_list(ACPI_SIG_RSDT, 0);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return (status);
 		}
 
-		if (gbl_revision == 2) {
+		if (gbl_revision == 2)
+		{
 			status = osl_add_table_to_list(ACPI_SIG_XSDT, 0);
-			if (ACPI_FAILURE(status)) {
+
+			if (ACPI_FAILURE(status))
+			{
 				return (status);
 			}
 		}
 
 		status = osl_add_table_to_list(ACPI_SIG_DSDT, 0);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return (status);
 		}
 
 		status = osl_add_table_to_list(ACPI_SIG_FACS, 0);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return (status);
 		}
 
 		/* Add all tables found in the memory */
 
 		status = osl_list_bios_tables();
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return (status);
 		}
-	} else {
+	}
+	else
+	{
 		/* Add all tables found in the static directory */
 
 		status = osl_list_customized_tables(STATIC_TABLE_DIR);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return (status);
 		}
 	}
 
-	if (gbl_dump_dynamic_tables) {
+	if (gbl_dump_dynamic_tables)
+	{
 
 		/* Add all dynamically loaded tables in the dynamic directory */
 
 		status = osl_list_customized_tables(DYNAMIC_TABLE_DIR);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return (status);
 		}
 	}
@@ -727,44 +823,54 @@ static acpi_status osl_list_bios_tables(void)
 	acpi_status status = AE_OK;
 	u32 i;
 
-	if (osl_can_use_xsdt()) {
+	if (osl_can_use_xsdt())
+	{
 		item_size = sizeof(u64);
 		table_data =
-		    ACPI_CAST8(gbl_xsdt) + sizeof(struct acpi_table_header);
+			ACPI_CAST8(gbl_xsdt) + sizeof(struct acpi_table_header);
 		number_of_tables =
-		    (u8)((gbl_xsdt->header.length -
-			  sizeof(struct acpi_table_header))
-			 / item_size);
-	} else {		/* Use RSDT if XSDT is not available */
+			(u8)((gbl_xsdt->header.length -
+				  sizeof(struct acpi_table_header))
+				 / item_size);
+	}
+	else  		/* Use RSDT if XSDT is not available */
+	{
 
 		item_size = sizeof(u32);
 		table_data =
-		    ACPI_CAST8(gbl_rsdt) + sizeof(struct acpi_table_header);
+			ACPI_CAST8(gbl_rsdt) + sizeof(struct acpi_table_header);
 		number_of_tables =
-		    (u8)((gbl_rsdt->header.length -
-			  sizeof(struct acpi_table_header))
-			 / item_size);
+			(u8)((gbl_rsdt->header.length -
+				  sizeof(struct acpi_table_header))
+				 / item_size);
 	}
 
 	/* Search RSDT/XSDT for the requested table */
 
-	for (i = 0; i < number_of_tables; ++i, table_data += item_size) {
-		if (osl_can_use_xsdt()) {
+	for (i = 0; i < number_of_tables; ++i, table_data += item_size)
+	{
+		if (osl_can_use_xsdt())
+		{
 			table_address =
-			    (acpi_physical_address)(*ACPI_CAST64(table_data));
-		} else {
+				(acpi_physical_address)(*ACPI_CAST64(table_data));
+		}
+		else
+		{
 			table_address =
-			    (acpi_physical_address)(*ACPI_CAST32(table_data));
+				(acpi_physical_address)(*ACPI_CAST32(table_data));
 		}
 
 		/* Skip NULL entries in RSDT/XSDT */
 
-		if (!table_address) {
+		if (!table_address)
+		{
 			continue;
 		}
 
 		status = osl_map_table(table_address, NULL, &mapped_table);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return (status);
 		}
 
@@ -798,9 +904,9 @@ static acpi_status osl_list_bios_tables(void)
 
 static acpi_status
 osl_get_bios_table(char *signature,
-		   u32 instance,
-		   struct acpi_table_header **table,
-		   acpi_physical_address *address)
+				   u32 instance,
+				   struct acpi_table_header **table,
+				   acpi_physical_address *address)
 {
 	struct acpi_table_header *local_table = NULL;
 	struct acpi_table_header *mapped_table = NULL;
@@ -816,11 +922,13 @@ osl_get_bios_table(char *signature,
 	/* Handle special tables whose addresses are not in RSDT/XSDT */
 
 	if (ACPI_COMPARE_NAME(signature, ACPI_RSDP_NAME) ||
-	    ACPI_COMPARE_NAME(signature, ACPI_SIG_RSDT) ||
-	    ACPI_COMPARE_NAME(signature, ACPI_SIG_XSDT) ||
-	    ACPI_COMPARE_NAME(signature, ACPI_SIG_DSDT) ||
-	    ACPI_COMPARE_NAME(signature, ACPI_SIG_FACS)) {
-		if (instance > 0) {
+		ACPI_COMPARE_NAME(signature, ACPI_SIG_RSDT) ||
+		ACPI_COMPARE_NAME(signature, ACPI_SIG_XSDT) ||
+		ACPI_COMPARE_NAME(signature, ACPI_SIG_DSDT) ||
+		ACPI_COMPARE_NAME(signature, ACPI_SIG_FACS))
+	{
+		if (instance > 0)
+		{
 			return (AE_LIMIT);
 		}
 
@@ -829,40 +937,55 @@ osl_get_bios_table(char *signature,
 		 * careful about the FADT length and validate table addresses.
 		 * Note: The 64-bit addresses have priority.
 		 */
-		if (ACPI_COMPARE_NAME(signature, ACPI_SIG_DSDT)) {
+		if (ACPI_COMPARE_NAME(signature, ACPI_SIG_DSDT))
+		{
 			if ((gbl_fadt->header.length >= MIN_FADT_FOR_XDSDT) &&
-			    gbl_fadt->Xdsdt) {
+				gbl_fadt->Xdsdt)
+			{
 				table_address =
-				    (acpi_physical_address)gbl_fadt->Xdsdt;
-			} else
-			    if ((gbl_fadt->header.length >= MIN_FADT_FOR_DSDT)
-				&& gbl_fadt->dsdt) {
-				table_address =
-				    (acpi_physical_address)gbl_fadt->dsdt;
+					(acpi_physical_address)gbl_fadt->Xdsdt;
 			}
-		} else if (ACPI_COMPARE_NAME(signature, ACPI_SIG_FACS)) {
+			else if ((gbl_fadt->header.length >= MIN_FADT_FOR_DSDT)
+					 && gbl_fadt->dsdt)
+			{
+				table_address =
+					(acpi_physical_address)gbl_fadt->dsdt;
+			}
+		}
+		else if (ACPI_COMPARE_NAME(signature, ACPI_SIG_FACS))
+		{
 			if ((gbl_fadt->header.length >= MIN_FADT_FOR_XFACS) &&
-			    gbl_fadt->Xfacs) {
+				gbl_fadt->Xfacs)
+			{
 				table_address =
-				    (acpi_physical_address)gbl_fadt->Xfacs;
-			} else
-			    if ((gbl_fadt->header.length >= MIN_FADT_FOR_FACS)
-				&& gbl_fadt->facs) {
-				table_address =
-				    (acpi_physical_address)gbl_fadt->facs;
+					(acpi_physical_address)gbl_fadt->Xfacs;
 			}
-		} else if (ACPI_COMPARE_NAME(signature, ACPI_SIG_XSDT)) {
-			if (!gbl_revision) {
+			else if ((gbl_fadt->header.length >= MIN_FADT_FOR_FACS)
+					 && gbl_fadt->facs)
+			{
+				table_address =
+					(acpi_physical_address)gbl_fadt->facs;
+			}
+		}
+		else if (ACPI_COMPARE_NAME(signature, ACPI_SIG_XSDT))
+		{
+			if (!gbl_revision)
+			{
 				return (AE_BAD_SIGNATURE);
 			}
+
 			table_address =
-			    (acpi_physical_address)gbl_rsdp.
-			    xsdt_physical_address;
-		} else if (ACPI_COMPARE_NAME(signature, ACPI_SIG_RSDT)) {
+				(acpi_physical_address)gbl_rsdp.
+				xsdt_physical_address;
+		}
+		else if (ACPI_COMPARE_NAME(signature, ACPI_SIG_RSDT))
+		{
 			table_address =
-			    (acpi_physical_address)gbl_rsdp.
-			    rsdt_physical_address;
-		} else {
+				(acpi_physical_address)gbl_rsdp.
+				rsdt_physical_address;
+		}
+		else
+		{
 			table_address = (acpi_physical_address)gbl_rsdp_address;
 			signature = ACPI_SIG_RSDP;
 		}
@@ -870,64 +993,80 @@ osl_get_bios_table(char *signature,
 		/* Now we can get the requested special table */
 
 		status = osl_map_table(table_address, signature, &mapped_table);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return (status);
 		}
 
 		table_length = ap_get_table_length(mapped_table);
-	} else {		/* Case for a normal ACPI table */
+	}
+	else  		/* Case for a normal ACPI table */
+	{
 
-		if (osl_can_use_xsdt()) {
+		if (osl_can_use_xsdt())
+		{
 			item_size = sizeof(u64);
 			table_data =
-			    ACPI_CAST8(gbl_xsdt) +
-			    sizeof(struct acpi_table_header);
+				ACPI_CAST8(gbl_xsdt) +
+				sizeof(struct acpi_table_header);
 			number_of_tables =
-			    (u8)((gbl_xsdt->header.length -
-				  sizeof(struct acpi_table_header))
-				 / item_size);
-		} else {	/* Use RSDT if XSDT is not available */
+				(u8)((gbl_xsdt->header.length -
+					  sizeof(struct acpi_table_header))
+					 / item_size);
+		}
+		else  	/* Use RSDT if XSDT is not available */
+		{
 
 			item_size = sizeof(u32);
 			table_data =
-			    ACPI_CAST8(gbl_rsdt) +
-			    sizeof(struct acpi_table_header);
+				ACPI_CAST8(gbl_rsdt) +
+				sizeof(struct acpi_table_header);
 			number_of_tables =
-			    (u8)((gbl_rsdt->header.length -
-				  sizeof(struct acpi_table_header))
-				 / item_size);
+				(u8)((gbl_rsdt->header.length -
+					  sizeof(struct acpi_table_header))
+					 / item_size);
 		}
 
 		/* Search RSDT/XSDT for the requested table */
 
-		for (i = 0; i < number_of_tables; ++i, table_data += item_size) {
-			if (osl_can_use_xsdt()) {
+		for (i = 0; i < number_of_tables; ++i, table_data += item_size)
+		{
+			if (osl_can_use_xsdt())
+			{
 				table_address =
-				    (acpi_physical_address)(*ACPI_CAST64
-							    (table_data));
-			} else {
+					(acpi_physical_address)(*ACPI_CAST64
+											(table_data));
+			}
+			else
+			{
 				table_address =
-				    (acpi_physical_address)(*ACPI_CAST32
-							    (table_data));
+					(acpi_physical_address)(*ACPI_CAST32
+											(table_data));
 			}
 
 			/* Skip NULL entries in RSDT/XSDT */
 
-			if (!table_address) {
+			if (!table_address)
+			{
 				continue;
 			}
 
 			status =
-			    osl_map_table(table_address, NULL, &mapped_table);
-			if (ACPI_FAILURE(status)) {
+				osl_map_table(table_address, NULL, &mapped_table);
+
+			if (ACPI_FAILURE(status))
+			{
 				return (status);
 			}
+
 			table_length = mapped_table->length;
 
 			/* Does this table match the requested signature? */
 
 			if (!ACPI_COMPARE_NAME
-			    (mapped_table->signature, signature)) {
+				(mapped_table->signature, signature))
+			{
 				osl_unmap_table(mapped_table);
 				mapped_table = NULL;
 				continue;
@@ -935,7 +1074,8 @@ osl_get_bios_table(char *signature,
 
 			/* Match table instance (for SSDT/UEFI tables) */
 
-			if (current_instance != instance) {
+			if (current_instance != instance)
+			{
 				osl_unmap_table(mapped_table);
 				mapped_table = NULL;
 				current_instance++;
@@ -946,11 +1086,13 @@ osl_get_bios_table(char *signature,
 		}
 	}
 
-	if (!mapped_table) {
+	if (!mapped_table)
+	{
 		return (AE_LIMIT);
 	}
 
-	if (table_length == 0) {
+	if (table_length == 0)
+	{
 		status = AE_BAD_HEADER;
 		goto exit;
 	}
@@ -958,7 +1100,9 @@ osl_get_bios_table(char *signature,
 	/* Copy table to local buffer and return it */
 
 	local_table = calloc(1, table_length);
-	if (!local_table) {
+
+	if (!local_table)
+	{
 		status = AE_NO_MEMORY;
 		goto exit;
 	}
@@ -995,29 +1139,35 @@ static acpi_status osl_list_customized_tables(char *directory)
 	/* Open the requested directory */
 
 	table_dir = acpi_os_open_directory(directory, "*", REQUEST_FILE_ONLY);
-	if (!table_dir) {
+
+	if (!table_dir)
+	{
 		return (osl_get_last_status(AE_NOT_FOUND));
 	}
 
 	/* Examine all entries in this directory */
 
-	while ((filename = acpi_os_get_next_filename(table_dir))) {
+	while ((filename = acpi_os_get_next_filename(table_dir)))
+	{
 
 		/* Extract table name and instance number */
 
 		status =
-		    osl_table_name_from_file(filename, temp_name, &instance);
+			osl_table_name_from_file(filename, temp_name, &instance);
 
 		/* Ignore meaningless files */
 
-		if (ACPI_FAILURE(status)) {
+		if (ACPI_FAILURE(status))
+		{
 			continue;
 		}
 
 		/* Add new info node to global table list */
 
 		status = osl_add_table_to_list(temp_name, instance);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			break;
 		}
 	}
@@ -1045,12 +1195,13 @@ static acpi_status osl_list_customized_tables(char *directory)
 
 static acpi_status
 osl_map_table(acpi_size address,
-	      char *signature, struct acpi_table_header **table)
+			  char *signature, struct acpi_table_header **table)
 {
 	struct acpi_table_header *mapped_table;
 	u32 length;
 
-	if (!address) {
+	if (!address)
+	{
 		return (AE_BAD_ADDRESS);
 	}
 
@@ -1061,28 +1212,33 @@ osl_map_table(acpi_size address,
 	 * 2. it is smaller than sizeof (struct acpi_table_rsdp)
 	 */
 	mapped_table =
-	    acpi_os_map_memory(address, sizeof(struct acpi_table_header));
-	if (!mapped_table) {
+		acpi_os_map_memory(address, sizeof(struct acpi_table_header));
+
+	if (!mapped_table)
+	{
 		fprintf(stderr, "Could not map table header at 0x%8.8X%8.8X\n",
-			ACPI_FORMAT_UINT64(address));
+				ACPI_FORMAT_UINT64(address));
 		return (osl_get_last_status(AE_BAD_ADDRESS));
 	}
 
 	/* If specified, signature must match */
 
-	if (signature) {
-		if (ACPI_VALIDATE_RSDP_SIG(signature)) {
-			if (!ACPI_VALIDATE_RSDP_SIG(mapped_table->signature)) {
+	if (signature)
+	{
+		if (ACPI_VALIDATE_RSDP_SIG(signature))
+		{
+			if (!ACPI_VALIDATE_RSDP_SIG(mapped_table->signature))
+			{
 				acpi_os_unmap_memory(mapped_table,
-						     sizeof(struct
-							    acpi_table_header));
+									 sizeof(struct
+											acpi_table_header));
 				return (AE_BAD_SIGNATURE);
 			}
-		} else
-		    if (!ACPI_COMPARE_NAME(signature, mapped_table->signature))
+		}
+		else if (!ACPI_COMPARE_NAME(signature, mapped_table->signature))
 		{
 			acpi_os_unmap_memory(mapped_table,
-					     sizeof(struct acpi_table_header));
+								 sizeof(struct acpi_table_header));
 			return (AE_BAD_SIGNATURE);
 		}
 	}
@@ -1091,15 +1247,19 @@ osl_map_table(acpi_size address,
 
 	length = ap_get_table_length(mapped_table);
 	acpi_os_unmap_memory(mapped_table, sizeof(struct acpi_table_header));
-	if (length == 0) {
+
+	if (length == 0)
+	{
 		return (AE_BAD_HEADER);
 	}
 
 	mapped_table = acpi_os_map_memory(address, length);
-	if (!mapped_table) {
+
+	if (!mapped_table)
+	{
 		fprintf(stderr,
-			"Could not map table at 0x%8.8X%8.8X length %8.8X\n",
-			ACPI_FORMAT_UINT64(address), length);
+				"Could not map table at 0x%8.8X%8.8X length %8.8X\n",
+				ACPI_FORMAT_UINT64(address), length);
 		return (osl_get_last_status(AE_INVALID_TABLE_LENGTH));
 	}
 
@@ -1123,7 +1283,8 @@ osl_map_table(acpi_size address,
 
 static void osl_unmap_table(struct acpi_table_header *table)
 {
-	if (table) {
+	if (table)
+	{
 		acpi_os_unmap_memory(table, ap_get_table_length(table));
 	}
 }
@@ -1151,17 +1312,23 @@ osl_table_name_from_file(char *filename, char *signature, u32 *instance)
 
 	/* Ignore meaningless files */
 
-	if (strlen(filename) < ACPI_NAME_SIZE) {
+	if (strlen(filename) < ACPI_NAME_SIZE)
+	{
 		return (AE_BAD_SIGNATURE);
 	}
 
 	/* Extract instance number */
 
-	if (isdigit((int)filename[ACPI_NAME_SIZE])) {
+	if (isdigit((int)filename[ACPI_NAME_SIZE]))
+	{
 		sscanf(&filename[ACPI_NAME_SIZE], "%u", instance);
-	} else if (strlen(filename) != ACPI_NAME_SIZE) {
+	}
+	else if (strlen(filename) != ACPI_NAME_SIZE)
+	{
 		return (AE_BAD_SIGNATURE);
-	} else {
+	}
+	else
+	{
 		*instance = 0;
 	}
 
@@ -1189,8 +1356,8 @@ osl_table_name_from_file(char *filename, char *signature, u32 *instance)
 
 static acpi_status
 osl_read_table_from_file(char *filename,
-			 acpi_size file_offset,
-			 char *signature, struct acpi_table_header **table)
+						 acpi_size file_offset,
+						 char *signature, struct acpi_table_header **table)
 {
 	FILE *table_file;
 	struct acpi_table_header header;
@@ -1202,7 +1369,9 @@ osl_read_table_from_file(char *filename,
 	/* Open the file */
 
 	table_file = fopen(filename, "rb");
-	if (table_file == NULL) {
+
+	if (table_file == NULL)
+	{
 		fprintf(stderr, "Could not open table file: %s\n", filename);
 		return (osl_get_last_status(AE_NOT_FOUND));
 	}
@@ -1212,7 +1381,9 @@ osl_read_table_from_file(char *filename,
 	/* Read the Table header to get the table length */
 
 	count = fread(&header, 1, sizeof(struct acpi_table_header), table_file);
-	if (count != sizeof(struct acpi_table_header)) {
+
+	if (count != sizeof(struct acpi_table_header))
+	{
 		fprintf(stderr, "Could not read table header: %s\n", filename);
 		status = AE_BAD_HEADER;
 		goto exit;
@@ -1220,26 +1391,33 @@ osl_read_table_from_file(char *filename,
 
 	/* If signature is specified, it must match the table */
 
-	if (signature) {
-		if (ACPI_VALIDATE_RSDP_SIG(signature)) {
-			if (!ACPI_VALIDATE_RSDP_SIG(header.signature)) {
+	if (signature)
+	{
+		if (ACPI_VALIDATE_RSDP_SIG(signature))
+		{
+			if (!ACPI_VALIDATE_RSDP_SIG(header.signature))
+			{
 				fprintf(stderr,
-					"Incorrect RSDP signature: found %8.8s\n",
-					header.signature);
+						"Incorrect RSDP signature: found %8.8s\n",
+						header.signature);
 				status = AE_BAD_SIGNATURE;
 				goto exit;
 			}
-		} else if (!ACPI_COMPARE_NAME(signature, header.signature)) {
+		}
+		else if (!ACPI_COMPARE_NAME(signature, header.signature))
+		{
 			fprintf(stderr,
-				"Incorrect signature: Expecting %4.4s, found %4.4s\n",
-				signature, header.signature);
+					"Incorrect signature: Expecting %4.4s, found %4.4s\n",
+					signature, header.signature);
 			status = AE_BAD_SIGNATURE;
 			goto exit;
 		}
 	}
 
 	table_length = ap_get_table_length(&header);
-	if (table_length == 0) {
+
+	if (table_length == 0)
+	{
 		status = AE_BAD_HEADER;
 		goto exit;
 	}
@@ -1247,10 +1425,12 @@ osl_read_table_from_file(char *filename,
 	/* Read the entire table into a local buffer */
 
 	local_table = calloc(1, table_length);
-	if (!local_table) {
+
+	if (!local_table)
+	{
 		fprintf(stderr,
-			"%4.4s: Could not allocate buffer for table of length %X\n",
-			header.signature, table_length);
+				"%4.4s: Could not allocate buffer for table of length %X\n",
+				header.signature, table_length);
 		status = AE_NO_MEMORY;
 		goto exit;
 	}
@@ -1258,9 +1438,11 @@ osl_read_table_from_file(char *filename,
 	fseek(table_file, file_offset, SEEK_SET);
 
 	count = fread(local_table, 1, table_length, table_file);
-	if (count != table_length) {
+
+	if (count != table_length)
+	{
 		fprintf(stderr, "%4.4s: Could not read table content\n",
-			header.signature);
+				header.signature);
 		status = AE_INVALID_TABLE_LENGTH;
 		goto exit;
 	}
@@ -1297,10 +1479,10 @@ exit:
 
 static acpi_status
 osl_get_customized_table(char *pathname,
-			 char *signature,
-			 u32 instance,
-			 struct acpi_table_header **table,
-			 acpi_physical_address *address)
+						 char *signature,
+						 u32 instance,
+						 struct acpi_table_header **table,
+						 acpi_physical_address *address)
 {
 	void *table_dir;
 	u32 current_instance = 0;
@@ -1312,47 +1494,57 @@ osl_get_customized_table(char *pathname,
 	/* Open the directory for customized tables */
 
 	table_dir = acpi_os_open_directory(pathname, "*", REQUEST_FILE_ONLY);
-	if (!table_dir) {
+
+	if (!table_dir)
+	{
 		return (osl_get_last_status(AE_NOT_FOUND));
 	}
 
 	/* Attempt to find the table in the directory */
 
-	while ((filename = acpi_os_get_next_filename(table_dir))) {
+	while ((filename = acpi_os_get_next_filename(table_dir)))
+	{
 
 		/* Ignore meaningless files */
 
-		if (!ACPI_COMPARE_NAME(filename, signature)) {
+		if (!ACPI_COMPARE_NAME(filename, signature))
+		{
 			continue;
 		}
 
 		/* Extract table name and instance number */
 
 		status =
-		    osl_table_name_from_file(filename, temp_name,
-					     &current_instance);
+			osl_table_name_from_file(filename, temp_name,
+									 &current_instance);
 
 		/* Ignore meaningless files */
 
-		if (ACPI_FAILURE(status) || current_instance != instance) {
+		if (ACPI_FAILURE(status) || current_instance != instance)
+		{
 			continue;
 		}
 
 		/* Create the table pathname */
 
-		if (instance != 0) {
+		if (instance != 0)
+		{
 			sprintf(table_filename, "%s/%4.4s%d", pathname,
-				temp_name, instance);
-		} else {
-			sprintf(table_filename, "%s/%4.4s", pathname,
-				temp_name);
+					temp_name, instance);
 		}
+		else
+		{
+			sprintf(table_filename, "%s/%4.4s", pathname,
+					temp_name);
+		}
+
 		break;
 	}
 
 	acpi_os_close_directory(table_dir);
 
-	if (!filename) {
+	if (!filename)
+	{
 		return (AE_LIMIT);
 	}
 

@@ -35,11 +35,13 @@
 #define  PERIOD_CDIV(div)	(((div) & 0x7) << 20)
 #define  PERIOD_CDIV_MAX	8
 
-static const unsigned int cdiv[PERIOD_CDIV_MAX] = {
+static const unsigned int cdiv[PERIOD_CDIV_MAX] =
+{
 	1, 2, 4, 8, 16, 64, 256, 1024
 };
 
-struct mxs_pwm_chip {
+struct mxs_pwm_chip
+{
 	struct pwm_chip chip;
 	struct clk *clk;
 	void __iomem *base;
@@ -48,7 +50,7 @@ struct mxs_pwm_chip {
 #define to_mxs_pwm_chip(_chip) container_of(_chip, struct mxs_pwm_chip, chip)
 
 static int mxs_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
-			  int duty_ns, int period_ns)
+						  int duty_ns, int period_ns)
 {
 	struct mxs_pwm_chip *mxs = to_mxs_pwm_chip(chip);
 	int ret, div = 0;
@@ -57,15 +59,24 @@ static int mxs_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	unsigned long long c;
 
 	rate = clk_get_rate(mxs->clk);
-	while (1) {
+
+	while (1)
+	{
 		c = rate / cdiv[div];
 		c = c * period_ns;
 		do_div(c, 1000000000);
+
 		if (c < PERIOD_PERIOD_MAX)
+		{
 			break;
+		}
+
 		div++;
+
 		if (div >= PERIOD_CDIV_MAX)
+		{
 			return -EINVAL;
+		}
 	}
 
 	period_cycles = c;
@@ -77,23 +88,29 @@ static int mxs_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	 * If the PWM channel is disabled, make sure to turn on the clock
 	 * before writing the register. Otherwise, keep it enabled.
 	 */
-	if (!pwm_is_enabled(pwm)) {
+	if (!pwm_is_enabled(pwm))
+	{
 		ret = clk_prepare_enable(mxs->clk);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	writel(duty_cycles << 16,
-			mxs->base + PWM_ACTIVE0 + pwm->hwpwm * 0x20);
+		   mxs->base + PWM_ACTIVE0 + pwm->hwpwm * 0x20);
 	writel(PERIOD_PERIOD(period_cycles) | PERIOD_ACTIVE_HIGH |
-	       PERIOD_INACTIVE_LOW | PERIOD_CDIV(div),
-			mxs->base + PWM_PERIOD0 + pwm->hwpwm * 0x20);
+		   PERIOD_INACTIVE_LOW | PERIOD_CDIV(div),
+		   mxs->base + PWM_PERIOD0 + pwm->hwpwm * 0x20);
 
 	/*
 	 * If the PWM is not enabled, turn the clock off again to save power.
 	 */
 	if (!pwm_is_enabled(pwm))
+	{
 		clk_disable_unprepare(mxs->clk);
+	}
 
 	return 0;
 }
@@ -104,8 +121,11 @@ static int mxs_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 	int ret;
 
 	ret = clk_prepare_enable(mxs->clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	writel(1 << pwm->hwpwm, mxs->base + PWM_CTRL + SET);
 
@@ -121,7 +141,8 @@ static void mxs_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 	clk_disable_unprepare(mxs->clk);
 }
 
-static const struct pwm_ops mxs_pwm_ops = {
+static const struct pwm_ops mxs_pwm_ops =
+{
 	.config = mxs_pwm_config,
 	.enable = mxs_pwm_enable,
 	.disable = mxs_pwm_disable,
@@ -136,30 +157,43 @@ static int mxs_pwm_probe(struct platform_device *pdev)
 	int ret;
 
 	mxs = devm_kzalloc(&pdev->dev, sizeof(*mxs), GFP_KERNEL);
+
 	if (!mxs)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mxs->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(mxs->base))
+	{
 		return PTR_ERR(mxs->base);
+	}
 
 	mxs->clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(mxs->clk))
+	{
 		return PTR_ERR(mxs->clk);
+	}
 
 	mxs->chip.dev = &pdev->dev;
 	mxs->chip.ops = &mxs_pwm_ops;
 	mxs->chip.base = -1;
 	mxs->chip.can_sleep = true;
 	ret = of_property_read_u32(np, "fsl,pwm-number", &mxs->chip.npwm);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed to get pwm number: %d\n", ret);
 		return ret;
 	}
 
 	ret = pwmchip_add(&mxs->chip);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed to add pwm chip %d\n", ret);
 		return ret;
 	}
@@ -167,8 +201,11 @@ static int mxs_pwm_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, mxs);
 
 	ret = stmp_reset_block(mxs->base);
+
 	if (ret)
+	{
 		goto pwm_remove;
+	}
 
 	return 0;
 
@@ -184,13 +221,15 @@ static int mxs_pwm_remove(struct platform_device *pdev)
 	return pwmchip_remove(&mxs->chip);
 }
 
-static const struct of_device_id mxs_pwm_dt_ids[] = {
+static const struct of_device_id mxs_pwm_dt_ids[] =
+{
 	{ .compatible = "fsl,imx23-pwm", },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, mxs_pwm_dt_ids);
 
-static struct platform_driver mxs_pwm_driver = {
+static struct platform_driver mxs_pwm_driver =
+{
 	.driver = {
 		.name = "mxs-pwm",
 		.of_match_table = mxs_pwm_dt_ids,

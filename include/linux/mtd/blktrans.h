@@ -31,7 +31,8 @@ struct mtd_blktrans_ops;
 struct file;
 struct inode;
 
-struct mtd_blktrans_dev {
+struct mtd_blktrans_dev
+{
 	struct mtd_blktrans_ops *tr;
 	struct list_head list;
 	struct mtd_info *mtd;
@@ -52,7 +53,8 @@ struct mtd_blktrans_dev {
 	fmode_t file_mode;
 };
 
-struct mtd_blktrans_ops {
+struct mtd_blktrans_ops
+{
 	char *name;
 	int major;
 	int part_bits;
@@ -61,11 +63,11 @@ struct mtd_blktrans_ops {
 
 	/* Access functions */
 	int (*readsect)(struct mtd_blktrans_dev *dev,
-		    unsigned long block, char *buffer);
+					unsigned long block, char *buffer);
 	int (*writesect)(struct mtd_blktrans_dev *dev,
-		     unsigned long block, char *buffer);
+					 unsigned long block, char *buffer);
 	int (*discard)(struct mtd_blktrans_dev *dev,
-		       unsigned long block, unsigned nr_blocks);
+				   unsigned long block, unsigned nr_blocks);
 	void (*background)(struct mtd_blktrans_dev *dev);
 
 	/* Block layer ioctls */

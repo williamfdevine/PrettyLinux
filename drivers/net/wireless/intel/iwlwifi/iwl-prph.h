@@ -378,18 +378,21 @@
 #define RADIO_REG_SYS_MANUAL_DFT_0	0xAD4078
 #define RFIC_REG_RD			0xAD0470
 #define WFPM_CTRL_REG			0xA03030
-enum {
+enum
+{
 	ENABLE_WFPM = BIT(31),
 	WFPM_AUX_CTL_AUX_IF_MAC_OWNER_MSK	= 0x80000000,
 };
 
 #define AUX_MISC_REG			0xA200B0
-enum {
+enum
+{
 	HW_STEP_LOCATION_BITS = 24,
 };
 
 #define AUX_MISC_MASTER1_EN		0xA20818
-enum aux_misc_master1_en {
+enum aux_misc_master1_en
+{
 	AUX_MISC_MASTER1_EN_SBE_MSK	= 0x1,
 };
 
@@ -401,13 +404,15 @@ enum aux_misc_master1_en {
 
 /* FW chicken bits */
 #define LMPM_CHICK			0xA01FF8
-enum {
+enum
+{
 	LMPM_CHICK_EXTENDED_ADDR_SPACE = BIT(0),
 };
 
 /* FW chicken bits */
 #define LMPM_PAGE_PASS_NOTIF			0xA03824
-enum {
+enum
+{
 	LMPM_PAGE_PASS_NOTIF_POS = BIT(20),
 };
 

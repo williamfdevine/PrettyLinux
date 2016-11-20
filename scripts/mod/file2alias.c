@@ -16,16 +16,16 @@
 /* We use the ELF typedefs for kernel_ulong_t but bite the bullet and
  * use either stdint.h or inttypes.h for the rest. */
 #if KERNEL_ELFCLASS == ELFCLASS32
-typedef Elf32_Addr	kernel_ulong_t;
-#define BITS_PER_LONG 32
+	typedef Elf32_Addr	kernel_ulong_t;
+	#define BITS_PER_LONG 32
 #else
-typedef Elf64_Addr	kernel_ulong_t;
-#define BITS_PER_LONG 64
+	typedef Elf64_Addr	kernel_ulong_t;
+	#define BITS_PER_LONG 64
 #endif
 #ifdef __sun__
-#include <inttypes.h>
+	#include <inttypes.h>
 #else
-#include <stdint.h>
+	#include <stdint.h>
 #endif
 
 #include <ctype.h>
@@ -34,7 +34,8 @@ typedef Elf64_Addr	kernel_ulong_t;
 typedef uint32_t	__u32;
 typedef uint16_t	__u16;
 typedef unsigned char	__u8;
-typedef struct {
+typedef struct
+{
 	__u8 b[16];
 } uuid_le;
 
@@ -44,7 +45,8 @@ typedef struct {
 #include "../../include/linux/mod_devicetable.h"
 
 /* This array collects all instances that use the generic do_table */
-struct devtable {
+struct devtable
+{
 	const char *device_id; /* name of table, __mod_<name>__*_device_table. */
 	unsigned long id_size;
 	void *function;
@@ -64,15 +66,15 @@ struct devtable {
 #define INIT_SECTION(name)  do {					\
 		unsigned long name ## _len;				\
 		char *__cat(pstart_,name) = getsectdata("__TEXT",	\
-			#name, &__cat(name,_len));			\
+												#name, &__cat(name,_len));			\
 		char *__cat(pstop_,name) = __cat(pstart_,name) +	\
-			__cat(name, _len);				\
+								   __cat(name, _len);				\
 		__cat(__start_,name) = (void *)__cat(pstart_,name);	\
 		__cat(__stop_,name) = (void *)__cat(pstop_,name);	\
 	} while (0)
 #define SECTION(name)   __attribute__((section("__TEXT, " #name)))
 
-struct devtable **__start___devtable, **__stop___devtable;
+struct devtable **__start___devtable, * *__stop___devtable;
 #else
 #define INIT_SECTION(name) /* no-op for ELF */
 #define SECTION(name)   __attribute__((section(#name)))
@@ -83,11 +85,11 @@ extern struct devtable *__start___devtable[], *__stop___devtable[];
 #endif /* __MACH__ */
 
 #if !defined(__used)
-# if __GNUC__ == 3 && __GNUC_MINOR__ < 3
-#  define __used			__attribute__((__unused__))
-# else
-#  define __used			__attribute__((__used__))
-# endif
+	#if __GNUC__ == 3 && __GNUC_MINOR__ < 3
+		#define __used			__attribute__((__unused__))
+	#else
+		#define __used			__attribute__((__used__))
+	#endif
 #endif
 
 /* Define a variable f that holds the value of field f of struct devid
@@ -105,25 +107,25 @@ extern struct devtable *__start___devtable[], *__stop___devtable[];
 /* Add a table entry.  We test function type matches while we're here. */
 #define ADD_TO_DEVTABLE(device_id, type, function) \
 	static struct devtable __cat(devtable,__LINE__) = {	\
-		device_id + 0*sizeof((function)((const char *)NULL,	\
-						(void *)NULL,		\
-						(char *)NULL)),		\
-		SIZE_##type, (function) };				\
+														device_id + 0*sizeof((function)((const char *)NULL,	\
+																(void *)NULL,		\
+																(char *)NULL)),		\
+														SIZE_##type, (function) };				\
 	static struct devtable *SECTION(__devtable) __used \
-		__cat(devtable_ptr,__LINE__) = &__cat(devtable,__LINE__)
+	__cat(devtable_ptr,__LINE__) = &__cat(devtable,__LINE__)
 
 #define ADD(str, sep, cond, field)                              \
-do {                                                            \
-        strcat(str, sep);                                       \
-        if (cond)                                               \
-                sprintf(str + strlen(str),                      \
-                        sizeof(field) == 1 ? "%02X" :           \
-                        sizeof(field) == 2 ? "%04X" :           \
-                        sizeof(field) == 4 ? "%08X" : "",       \
-                        field);                                 \
-        else                                                    \
-                sprintf(str + strlen(str), "*");                \
-} while(0)
+	do {                                                            \
+		strcat(str, sep);                                       \
+		if (cond)                                               \
+			sprintf(str + strlen(str),                      \
+					sizeof(field) == 1 ? "%02X" :           \
+					sizeof(field) == 2 ? "%04X" :           \
+					sizeof(field) == 4 ? "%08X" : "",       \
+					field);                                 \
+		else                                                    \
+			sprintf(str + strlen(str), "*");                \
+	} while(0)
 
 /* End in a wildcard, for future extension */
 static inline void add_wildcard(char *str)
@@ -131,7 +133,9 @@ static inline void add_wildcard(char *str)
 	int len = strlen(str);
 
 	if (str[len - 1] != '*')
+	{
 		strcat(str + len, "*");
+	}
 }
 
 static inline void add_uuid(char *str, uuid_le uuid)
@@ -139,10 +143,10 @@ static inline void add_uuid(char *str, uuid_le uuid)
 	int len = strlen(str);
 
 	sprintf(str + len, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-		uuid.b[3], uuid.b[2], uuid.b[1], uuid.b[0],
-		uuid.b[5], uuid.b[4], uuid.b[7], uuid.b[6],
-		uuid.b[8], uuid.b[9], uuid.b[10], uuid.b[11],
-		uuid.b[12], uuid.b[13], uuid.b[14], uuid.b[15]);
+			uuid.b[3], uuid.b[2], uuid.b[1], uuid.b[0],
+			uuid.b[5], uuid.b[4], uuid.b[7], uuid.b[6],
+			uuid.b[8], uuid.b[9], uuid.b[10], uuid.b[11],
+			uuid.b[12], uuid.b[13], uuid.b[14], uuid.b[15]);
 }
 
 /**
@@ -153,31 +157,37 @@ static inline void add_uuid(char *str, uuid_le uuid)
  * Ignore both checks if build host differ from target host and size differs.
  **/
 static void device_id_check(const char *modname, const char *device_id,
-			    unsigned long size, unsigned long id_size,
-			    void *symval)
+							unsigned long size, unsigned long id_size,
+							void *symval)
 {
 	int i;
 
-	if (size % id_size || size < id_size) {
+	if (size % id_size || size < id_size)
+	{
 		fatal("%s: sizeof(struct %s_device_id)=%lu is not a modulo "
-		      "of the size of "
-		      "section __mod_%s__<identifier>_device_table=%lu.\n"
-		      "Fix definition of struct %s_device_id "
-		      "in mod_devicetable.h\n",
-		      modname, device_id, id_size, device_id, size, device_id);
+			  "of the size of "
+			  "section __mod_%s__<identifier>_device_table=%lu.\n"
+			  "Fix definition of struct %s_device_id "
+			  "in mod_devicetable.h\n",
+			  modname, device_id, id_size, device_id, size, device_id);
 	}
+
 	/* Verify last one is a terminator */
-	for (i = 0; i < id_size; i++ ) {
-		if (*(uint8_t*)(symval+size-id_size+i)) {
-			fprintf(stderr,"%s: struct %s_device_id is %lu bytes.  "
-				"The last of %lu is:\n",
-				modname, device_id, id_size, size / id_size);
+	for (i = 0; i < id_size; i++ )
+	{
+		if (*(uint8_t *)(symval + size - id_size + i))
+		{
+			fprintf(stderr, "%s: struct %s_device_id is %lu bytes.  "
+					"The last of %lu is:\n",
+					modname, device_id, id_size, size / id_size);
+
 			for (i = 0; i < id_size; i++ )
-				fprintf(stderr,"0x%02x ",
-					*(uint8_t*)(symval+size-id_size+i) );
-			fprintf(stderr,"\n");
+				fprintf(stderr, "0x%02x ",
+						*(uint8_t *)(symval + size - id_size + i) );
+
+			fprintf(stderr, "\n");
 			fatal("%s: struct %s_device_id is not terminated "
-				"with a NULL entry!\n", modname, device_id);
+				  "with a NULL entry!\n", modname, device_id);
 		}
 	}
 }
@@ -185,9 +195,9 @@ static void device_id_check(const char *modname, const char *device_id,
 /* USB is special because the bcdDevice can be matched against a numeric range */
 /* Looks like "usb:vNpNdNdcNdscNdpNicNiscNipNinN" */
 static void do_usb_entry(void *symval,
-			 unsigned int bcdDevice_initial, int bcdDevice_initial_digits,
-			 unsigned char range_lo, unsigned char range_hi,
-			 unsigned char max, struct module *mod)
+						 unsigned int bcdDevice_initial, int bcdDevice_initial_digits,
+						 unsigned char range_lo, unsigned char range_hi,
+						 unsigned char max, struct module *mod)
 {
 	char alias[500];
 	DEF_FIELD(symval, usb_device_id, match_flags);
@@ -203,77 +213,92 @@ static void do_usb_entry(void *symval,
 	DEF_FIELD(symval, usb_device_id, bInterfaceNumber);
 
 	strcpy(alias, "usb:");
-	ADD(alias, "v", match_flags&USB_DEVICE_ID_MATCH_VENDOR,
-	    idVendor);
-	ADD(alias, "p", match_flags&USB_DEVICE_ID_MATCH_PRODUCT,
-	    idProduct);
+	ADD(alias, "v", match_flags & USB_DEVICE_ID_MATCH_VENDOR,
+		idVendor);
+	ADD(alias, "p", match_flags & USB_DEVICE_ID_MATCH_PRODUCT,
+		idProduct);
 
 	strcat(alias, "d");
+
 	if (bcdDevice_initial_digits)
 		sprintf(alias + strlen(alias), "%0*X",
-			bcdDevice_initial_digits, bcdDevice_initial);
+				bcdDevice_initial_digits, bcdDevice_initial);
+
 	if (range_lo == range_hi)
+	{
 		sprintf(alias + strlen(alias), "%X", range_lo);
-	else if (range_lo > 0 || range_hi < max) {
+	}
+	else if (range_lo > 0 || range_hi < max)
+	{
 		if (range_lo > 0x9 || range_hi < 0xA)
 			sprintf(alias + strlen(alias),
-				"[%X-%X]",
-				range_lo,
-				range_hi);
-		else {
+					"[%X-%X]",
+					range_lo,
+					range_hi);
+		else
+		{
 			sprintf(alias + strlen(alias),
-				range_lo < 0x9 ? "[%X-9" : "[%X",
-				range_lo);
+					range_lo < 0x9 ? "[%X-9" : "[%X",
+					range_lo);
 			sprintf(alias + strlen(alias),
-				range_hi > 0xA ? "A-%X]" : "%X]",
-				range_hi);
+					range_hi > 0xA ? "A-%X]" : "%X]",
+					range_hi);
 		}
 	}
-	if (bcdDevice_initial_digits < (sizeof(bcdDevice_lo) * 2 - 1))
-		strcat(alias, "*");
 
-	ADD(alias, "dc", match_flags&USB_DEVICE_ID_MATCH_DEV_CLASS,
-	    bDeviceClass);
-	ADD(alias, "dsc", match_flags&USB_DEVICE_ID_MATCH_DEV_SUBCLASS,
-	    bDeviceSubClass);
-	ADD(alias, "dp", match_flags&USB_DEVICE_ID_MATCH_DEV_PROTOCOL,
-	    bDeviceProtocol);
-	ADD(alias, "ic", match_flags&USB_DEVICE_ID_MATCH_INT_CLASS,
-	    bInterfaceClass);
-	ADD(alias, "isc", match_flags&USB_DEVICE_ID_MATCH_INT_SUBCLASS,
-	    bInterfaceSubClass);
-	ADD(alias, "ip", match_flags&USB_DEVICE_ID_MATCH_INT_PROTOCOL,
-	    bInterfaceProtocol);
-	ADD(alias, "in", match_flags&USB_DEVICE_ID_MATCH_INT_NUMBER,
-	    bInterfaceNumber);
+	if (bcdDevice_initial_digits < (sizeof(bcdDevice_lo) * 2 - 1))
+	{
+		strcat(alias, "*");
+	}
+
+	ADD(alias, "dc", match_flags & USB_DEVICE_ID_MATCH_DEV_CLASS,
+		bDeviceClass);
+	ADD(alias, "dsc", match_flags & USB_DEVICE_ID_MATCH_DEV_SUBCLASS,
+		bDeviceSubClass);
+	ADD(alias, "dp", match_flags & USB_DEVICE_ID_MATCH_DEV_PROTOCOL,
+		bDeviceProtocol);
+	ADD(alias, "ic", match_flags & USB_DEVICE_ID_MATCH_INT_CLASS,
+		bInterfaceClass);
+	ADD(alias, "isc", match_flags & USB_DEVICE_ID_MATCH_INT_SUBCLASS,
+		bInterfaceSubClass);
+	ADD(alias, "ip", match_flags & USB_DEVICE_ID_MATCH_INT_PROTOCOL,
+		bInterfaceProtocol);
+	ADD(alias, "in", match_flags & USB_DEVICE_ID_MATCH_INT_NUMBER,
+		bInterfaceNumber);
 
 	add_wildcard(alias);
 	buf_printf(&mod->dev_table_buf,
-		   "MODULE_ALIAS(\"%s\");\n", alias);
+			   "MODULE_ALIAS(\"%s\");\n", alias);
 }
 
 /* Handles increment/decrement of BCD formatted integers */
 /* Returns the previous value, so it works like i++ or i-- */
 static unsigned int incbcd(unsigned int *bcd,
-			   int inc,
-			   unsigned char max,
-			   size_t chars)
+						   int inc,
+						   unsigned char max,
+						   size_t chars)
 {
 	unsigned int init = *bcd, i, j;
 	unsigned long long c, dec = 0;
 
 	/* If bcd is not in BCD format, just increment */
-	if (max > 0x9) {
+	if (max > 0x9)
+	{
 		*bcd += inc;
 		return init;
 	}
 
 	/* Convert BCD to Decimal */
-	for (i=0 ; i < chars ; i++) {
+	for (i = 0 ; i < chars ; i++)
+	{
 		c = (*bcd >> (i << 2)) & 0xf;
 		c = c > 9 ? 9 : c; /* force to bcd just in case */
-		for (j=0 ; j < i ; j++)
+
+		for (j = 0 ; j < i ; j++)
+		{
 			c = c * 10;
+		}
+
 		dec += c;
 	}
 
@@ -282,12 +307,17 @@ static unsigned int incbcd(unsigned int *bcd,
 	*bcd  = 0;
 
 	/* Convert back to BCD */
-	for (i=0 ; i < chars ; i++) {
-		for (c=1,j=0 ; j < i ; j++)
+	for (i = 0 ; i < chars ; i++)
+	{
+		for (c = 1, j = 0 ; j < i ; j++)
+		{
 			c = c * 10;
+		}
+
 		c = (dec / c) % 10;
 		*bcd += c << (i << 2);
 	}
+
 	return init;
 }
 
@@ -306,16 +336,20 @@ static void do_usb_entry_multi(void *symval, struct module *mod)
 	DEF_FIELD(symval, usb_device_id, bInterfaceClass);
 
 	devlo = match_flags & USB_DEVICE_ID_MATCH_DEV_LO ?
-		bcdDevice_lo : 0x0U;
+			bcdDevice_lo : 0x0U;
 	devhi = match_flags & USB_DEVICE_ID_MATCH_DEV_HI ?
-		bcdDevice_hi : ~0x0U;
+			bcdDevice_hi : ~0x0U;
 
 	/* Figure out if this entry is in bcd or hex format */
 	max = 0x9; /* Default to decimal format */
-	for (ndigits = 0 ; ndigits < sizeof(bcdDevice_lo) * 2 ; ndigits++) {
+
+	for (ndigits = 0 ; ndigits < sizeof(bcdDevice_lo) * 2 ; ndigits++)
+	{
 		clo = (devlo >> (ndigits << 2)) & 0xf;
 		chi = ((devhi > 0x9999 ? 0x9999 : devhi) >> (ndigits << 2)) & 0xf;
-		if (clo > max || chi > max) {
+
+		if (clo > max || chi > max)
+		{
 			max = 0xf;
 			break;
 		}
@@ -326,38 +360,46 @@ static void do_usb_entry_multi(void *symval, struct module *mod)
 	 * run-time specification that results in catch-all alias
 	 */
 	if (!(idVendor | idProduct | bDeviceClass | bInterfaceClass))
+	{
 		return;
+	}
 
 	/* Convert numeric bcdDevice range into fnmatch-able pattern(s) */
-	for (ndigits = sizeof(bcdDevice_lo) * 2 - 1; devlo <= devhi; ndigits--) {
+	for (ndigits = sizeof(bcdDevice_lo) * 2 - 1; devlo <= devhi; ndigits--)
+	{
 		clo = devlo & 0xf;
 		chi = devhi & 0xf;
+
 		if (chi > max)	/* If we are in bcd mode, truncate if necessary */
+		{
 			chi = max;
+		}
+
 		devlo >>= 4;
 		devhi >>= 4;
 
-		if (devlo == devhi || !ndigits) {
+		if (devlo == devhi || !ndigits)
+		{
 			do_usb_entry(symval, devlo, ndigits, clo, chi, max, mod);
 			break;
 		}
 
 		if (clo > 0x0)
 			do_usb_entry(symval,
-				     incbcd(&devlo, 1, max,
-					    sizeof(bcdDevice_lo) * 2),
-				     ndigits, clo, max, max, mod);
+						 incbcd(&devlo, 1, max,
+								sizeof(bcdDevice_lo) * 2),
+						 ndigits, clo, max, max, mod);
 
 		if (chi < max)
 			do_usb_entry(symval,
-				     incbcd(&devhi, -1, max,
-					    sizeof(bcdDevice_lo) * 2),
-				     ndigits, 0x0, chi, max, mod);
+						 incbcd(&devhi, -1, max,
+								sizeof(bcdDevice_lo) * 2),
+						 ndigits, 0x0, chi, max, mod);
 	}
 }
 
 static void do_usb_table(void *symval, unsigned long size,
-			 struct module *mod)
+						 struct module *mod)
 {
 	unsigned int i;
 	const unsigned long id_size = SIZE_usb_device_id;
@@ -368,7 +410,9 @@ static void do_usb_table(void *symval, unsigned long size,
 	size -= id_size;
 
 	for (i = 0; i < size; i += id_size)
+	{
 		do_usb_entry_multi(symval + i, mod);
+	}
 }
 
 static void do_of_entry_multi(void *symval, struct module *mod)
@@ -382,16 +426,18 @@ static void do_of_entry_multi(void *symval, struct module *mod)
 	DEF_FIELD_ADDR(symval, of_device_id, compatible);
 
 	len = sprintf(alias, "of:N%sT%s", (*name)[0] ? *name : "*",
-		      (*type)[0] ? *type : "*");
+				  (*type)[0] ? *type : "*");
 
 	if ((*compatible)[0])
 		sprintf(&alias[len], "%sC%s", (*type)[0] ? "*" : "",
-			*compatible);
+				*compatible);
 
 	/* Replace all whitespace with underscores */
 	for (tmp = alias; tmp && *tmp; tmp++)
 		if (isspace(*tmp))
+		{
 			*tmp = '_';
+		}
 
 	buf_printf(&mod->dev_table_buf, "MODULE_ALIAS(\"%s\");\n", alias);
 	strcat(alias, "C");
@@ -400,7 +446,7 @@ static void do_of_entry_multi(void *symval, struct module *mod)
 }
 
 static void do_of_table(void *symval, unsigned long size,
-			struct module *mod)
+						struct module *mod)
 {
 	unsigned int i;
 	const unsigned long id_size = SIZE_of_device_id;
@@ -411,12 +457,14 @@ static void do_of_table(void *symval, unsigned long size,
 	size -= id_size;
 
 	for (i = 0; i < size; i += id_size)
+	{
 		do_of_entry_multi(symval + i, mod);
+	}
 }
 
 /* Looks like: hid:bNvNpN */
 static int do_hid_entry(const char *filename,
-			     void *symval, char *alias)
+						void *symval, char *alias)
 {
 	DEF_FIELD(symval, hid_device_id, bus);
 	DEF_FIELD(symval, hid_device_id, group);
@@ -435,7 +483,7 @@ ADD_TO_DEVTABLE("hid", hid_device_id, do_hid_entry);
 
 /* Looks like: ieee1394:venNmoNspNverN */
 static int do_ieee1394_entry(const char *filename,
-			     void *symval, char *alias)
+							 void *symval, char *alias)
 {
 	DEF_FIELD(symval, ieee1394_device_id, match_flags);
 	DEF_FIELD(symval, ieee1394_device_id, vendor_id);
@@ -445,13 +493,13 @@ static int do_ieee1394_entry(const char *filename,
 
 	strcpy(alias, "ieee1394:");
 	ADD(alias, "ven", match_flags & IEEE1394_MATCH_VENDOR_ID,
-	    vendor_id);
+		vendor_id);
 	ADD(alias, "mo", match_flags & IEEE1394_MATCH_MODEL_ID,
-	    model_id);
+		model_id);
 	ADD(alias, "sp", match_flags & IEEE1394_MATCH_SPECIFIER_ID,
-	    specifier_id);
+		specifier_id);
 	ADD(alias, "ver", match_flags & IEEE1394_MATCH_VERSION,
-	    version);
+		version);
 
 	add_wildcard(alias);
 	return 1;
@@ -460,11 +508,11 @@ ADD_TO_DEVTABLE("ieee1394", ieee1394_device_id, do_ieee1394_entry);
 
 /* Looks like: pci:vNdNsvNsdNbcNscNiN. */
 static int do_pci_entry(const char *filename,
-			void *symval, char *alias)
+						void *symval, char *alias)
 {
 	/* Class field can be divided into these three. */
 	unsigned char baseclass, subclass, interface,
-		baseclass_mask, subclass_mask, interface_mask;
+			 baseclass_mask, subclass_mask, interface_mask;
 
 	DEF_FIELD(symval, pci_device_id, vendor);
 	DEF_FIELD(symval, pci_device_id, device);
@@ -487,10 +535,11 @@ static int do_pci_entry(const char *filename,
 	interface_mask = class_mask;
 
 	if ((baseclass_mask != 0 && baseclass_mask != 0xFF)
-	    || (subclass_mask != 0 && subclass_mask != 0xFF)
-	    || (interface_mask != 0 && interface_mask != 0xFF)) {
+		|| (subclass_mask != 0 && subclass_mask != 0xFF)
+		|| (interface_mask != 0 && interface_mask != 0xFF))
+	{
 		warn("Can't handle masks in %s:%04X\n",
-		     filename, class_mask);
+			 filename, class_mask);
 		return 0;
 	}
 
@@ -504,7 +553,7 @@ ADD_TO_DEVTABLE("pci", pci_device_id, do_pci_entry);
 
 /* looks like: "ccw:tNmNdtNdmN" */
 static int do_ccw_entry(const char *filename,
-			void *symval, char *alias)
+						void *symval, char *alias)
 {
 	DEF_FIELD(symval, ccw_device_id, match_flags);
 	DEF_FIELD(symval, ccw_device_id, cu_type);
@@ -513,14 +562,14 @@ static int do_ccw_entry(const char *filename,
 	DEF_FIELD(symval, ccw_device_id, dev_model);
 
 	strcpy(alias, "ccw:");
-	ADD(alias, "t", match_flags&CCW_DEVICE_ID_MATCH_CU_TYPE,
-	    cu_type);
-	ADD(alias, "m", match_flags&CCW_DEVICE_ID_MATCH_CU_MODEL,
-	    cu_model);
-	ADD(alias, "dt", match_flags&CCW_DEVICE_ID_MATCH_DEVICE_TYPE,
-	    dev_type);
-	ADD(alias, "dm", match_flags&CCW_DEVICE_ID_MATCH_DEVICE_MODEL,
-	    dev_model);
+	ADD(alias, "t", match_flags & CCW_DEVICE_ID_MATCH_CU_TYPE,
+		cu_type);
+	ADD(alias, "m", match_flags & CCW_DEVICE_ID_MATCH_CU_MODEL,
+		cu_model);
+	ADD(alias, "dt", match_flags & CCW_DEVICE_ID_MATCH_DEVICE_TYPE,
+		dev_type);
+	ADD(alias, "dm", match_flags & CCW_DEVICE_ID_MATCH_DEVICE_MODEL,
+		dev_model);
 	add_wildcard(alias);
 	return 1;
 }
@@ -528,7 +577,7 @@ ADD_TO_DEVTABLE("ccw", ccw_device_id, do_ccw_entry);
 
 /* looks like: "ap:tN" */
 static int do_ap_entry(const char *filename,
-		       void *symval, char *alias)
+					   void *symval, char *alias)
 {
 	DEF_FIELD(symval, ap_device_id, dev_type);
 
@@ -539,7 +588,7 @@ ADD_TO_DEVTABLE("ap", ap_device_id, do_ap_entry);
 
 /* looks like: "css:tN" */
 static int do_css_entry(const char *filename,
-			void *symval, char *alias)
+						void *symval, char *alias)
 {
 	DEF_FIELD(symval, css_device_id, type);
 
@@ -550,7 +599,7 @@ ADD_TO_DEVTABLE("css", css_device_id, do_css_entry);
 
 /* Looks like: "serio:tyNprNidNexN" */
 static int do_serio_entry(const char *filename,
-			  void *symval, char *alias)
+						  void *symval, char *alias)
 {
 	DEF_FIELD(symval, serio_device_id, type);
 	DEF_FIELD(symval, serio_device_id, proto);
@@ -576,95 +625,119 @@ ADD_TO_DEVTABLE("serio", serio_device_id, do_serio_entry);
  *       as don't care byte.
  */
 static int do_acpi_entry(const char *filename,
-			void *symval, char *alias)
+						 void *symval, char *alias)
 {
 	DEF_FIELD_ADDR(symval, acpi_device_id, id);
 	DEF_FIELD_ADDR(symval, acpi_device_id, cls);
 	DEF_FIELD_ADDR(symval, acpi_device_id, cls_msk);
 
 	if (id && strlen((const char *)*id))
+	{
 		sprintf(alias, "acpi*:%s:*", *id);
-	else if (cls) {
+	}
+	else if (cls)
+	{
 		int i, byte_shift, cnt = 0;
 		unsigned int msk;
 
 		sprintf(&alias[cnt], "acpi*:");
 		cnt = 6;
-		for (i = 1; i <= 3; i++) {
-			byte_shift = 8 * (3-i);
+
+		for (i = 1; i <= 3; i++)
+		{
+			byte_shift = 8 * (3 - i);
 			msk = (*cls_msk >> byte_shift) & 0xFF;
+
 			if (msk)
 				sprintf(&alias[cnt], "%02x",
-					(*cls >> byte_shift) & 0xFF);
+						(*cls >> byte_shift) & 0xFF);
 			else
+			{
 				sprintf(&alias[cnt], "??");
+			}
+
 			cnt += 2;
 		}
+
 		sprintf(&alias[cnt], ":*");
 	}
+
 	return 1;
 }
 ADD_TO_DEVTABLE("acpi", acpi_device_id, do_acpi_entry);
 
 /* looks like: "pnp:dD" */
 static void do_pnp_device_entry(void *symval, unsigned long size,
-				struct module *mod)
+								struct module *mod)
 {
 	const unsigned long id_size = SIZE_pnp_device_id;
-	const unsigned int count = (size / id_size)-1;
+	const unsigned int count = (size / id_size) - 1;
 	unsigned int i;
 
 	device_id_check(mod->name, "pnp", size, id_size, symval);
 
-	for (i = 0; i < count; i++) {
-		DEF_FIELD_ADDR(symval + i*id_size, pnp_device_id, id);
+	for (i = 0; i < count; i++)
+	{
+		DEF_FIELD_ADDR(symval + i * id_size, pnp_device_id, id);
 		char acpi_id[sizeof(*id)];
 		int j;
 
 		buf_printf(&mod->dev_table_buf,
-			   "MODULE_ALIAS(\"pnp:d%s*\");\n", *id);
+				   "MODULE_ALIAS(\"pnp:d%s*\");\n", *id);
 
 		/* fix broken pnp bus lowercasing */
 		for (j = 0; j < sizeof(acpi_id); j++)
+		{
 			acpi_id[j] = toupper((*id)[j]);
+		}
+
 		buf_printf(&mod->dev_table_buf,
-			   "MODULE_ALIAS(\"acpi*:%s:*\");\n", acpi_id);
+				   "MODULE_ALIAS(\"acpi*:%s:*\");\n", acpi_id);
 	}
 }
 
 /* looks like: "pnp:dD" for every device of the card */
 static void do_pnp_card_entries(void *symval, unsigned long size,
-				struct module *mod)
+								struct module *mod)
 {
 	const unsigned long id_size = SIZE_pnp_card_device_id;
-	const unsigned int count = (size / id_size)-1;
+	const unsigned int count = (size / id_size) - 1;
 	unsigned int i;
 
 	device_id_check(mod->name, "pnp", size, id_size, symval);
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		unsigned int j;
-		DEF_FIELD_ADDR(symval + i*id_size, pnp_card_device_id, devs);
+		DEF_FIELD_ADDR(symval + i * id_size, pnp_card_device_id, devs);
 
-		for (j = 0; j < PNP_MAX_DEVICES; j++) {
+		for (j = 0; j < PNP_MAX_DEVICES; j++)
+		{
 			const char *id = (char *)(*devs)[j].id;
 			int i2, j2;
 			int dup = 0;
 
 			if (!id[0])
+			{
 				break;
+			}
 
 			/* find duplicate, already added value */
-			for (i2 = 0; i2 < i && !dup; i2++) {
-				DEF_FIELD_ADDR(symval + i2*id_size, pnp_card_device_id, devs);
+			for (i2 = 0; i2 < i && !dup; i2++)
+			{
+				DEF_FIELD_ADDR(symval + i2 * id_size, pnp_card_device_id, devs);
 
-				for (j2 = 0; j2 < PNP_MAX_DEVICES; j2++) {
+				for (j2 = 0; j2 < PNP_MAX_DEVICES; j2++)
+				{
 					const char *id2 = (char *)(*devs)[j2].id;
 
 					if (!id2[0])
+					{
 						break;
+					}
 
-					if (!strcmp(id, id2)) {
+					if (!strcmp(id, id2))
+					{
 						dup = 1;
 						break;
 					}
@@ -672,18 +745,22 @@ static void do_pnp_card_entries(void *symval, unsigned long size,
 			}
 
 			/* add an individual alias for every device entry */
-			if (!dup) {
+			if (!dup)
+			{
 				char acpi_id[PNP_ID_LEN];
 				int k;
 
 				buf_printf(&mod->dev_table_buf,
-					   "MODULE_ALIAS(\"pnp:d%s*\");\n", id);
+						   "MODULE_ALIAS(\"pnp:d%s*\");\n", id);
 
 				/* fix broken pnp bus lowercasing */
 				for (k = 0; k < sizeof(acpi_id); k++)
+				{
 					acpi_id[k] = toupper(id[k]);
+				}
+
 				buf_printf(&mod->dev_table_buf,
-					   "MODULE_ALIAS(\"acpi*:%s:*\");\n", acpi_id);
+						   "MODULE_ALIAS(\"acpi*:%s:*\");\n", acpi_id);
 			}
 		}
 	}
@@ -691,7 +768,7 @@ static void do_pnp_card_entries(void *symval, unsigned long size,
 
 /* Looks like: pcmcia:mNcNfNfnNpfnNvaNvbNvcNvdN. */
 static int do_pcmcia_entry(const char *filename,
-			   void *symval, char *alias)
+						   void *symval, char *alias)
 {
 	unsigned int i;
 	DEF_FIELD(symval, pcmcia_device_id, match_flags);
@@ -702,21 +779,22 @@ static int do_pcmcia_entry(const char *filename,
 	DEF_FIELD(symval, pcmcia_device_id, device_no);
 	DEF_FIELD_ADDR(symval, pcmcia_device_id, prod_id_hash);
 
-	for (i=0; i<4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		(*prod_id_hash)[i] = TO_NATIVE((*prod_id_hash)[i]);
 	}
 
 	strcpy(alias, "pcmcia:");
 	ADD(alias, "m", match_flags & PCMCIA_DEV_ID_MATCH_MANF_ID,
-	    manf_id);
+		manf_id);
 	ADD(alias, "c", match_flags & PCMCIA_DEV_ID_MATCH_CARD_ID,
-	    card_id);
+		card_id);
 	ADD(alias, "f", match_flags & PCMCIA_DEV_ID_MATCH_FUNC_ID,
-	    func_id);
+		func_id);
 	ADD(alias, "fn", match_flags & PCMCIA_DEV_ID_MATCH_FUNCTION,
-	    function);
+		function);
 	ADD(alias, "pfn", match_flags & PCMCIA_DEV_ID_MATCH_DEVICE_NO,
-	    device_no);
+		device_no);
 	ADD(alias, "pa", match_flags & PCMCIA_DEV_ID_MATCH_PROD_ID1, (*prod_id_hash)[0]);
 	ADD(alias, "pb", match_flags & PCMCIA_DEV_ID_MATCH_PROD_ID2, (*prod_id_hash)[1]);
 	ADD(alias, "pc", match_flags & PCMCIA_DEV_ID_MATCH_PROD_ID3, (*prod_id_hash)[2]);
@@ -728,7 +806,7 @@ static int do_pcmcia_entry(const char *filename,
 ADD_TO_DEVTABLE("pcmcia", pcmcia_device_id, do_pcmcia_entry);
 
 static int do_vio_entry(const char *filename, void *symval,
-		char *alias)
+						char *alias)
 {
 	char *tmp;
 	DEF_FIELD_ADDR(symval, vio_device_id, type);
@@ -740,7 +818,9 @@ static int do_vio_entry(const char *filename, void *symval,
 	/* Replace all whitespace with underscores */
 	for (tmp = alias; tmp && *tmp; tmp++)
 		if (isspace (*tmp))
+		{
 			*tmp = '_';
+		}
 
 	add_wildcard(alias);
 	return 1;
@@ -750,20 +830,25 @@ ADD_TO_DEVTABLE("vio", vio_device_id, do_vio_entry);
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
 static void do_input(char *alias,
-		     kernel_ulong_t *arr, unsigned int min, unsigned int max)
+					 kernel_ulong_t *arr, unsigned int min, unsigned int max)
 {
 	unsigned int i;
 
 	for (i = min / BITS_PER_LONG; i < max / BITS_PER_LONG + 1; i++)
+	{
 		arr[i] = TO_NATIVE(arr[i]);
+	}
+
 	for (i = min; i < max; i++)
-		if (arr[i / BITS_PER_LONG] & (1L << (i%BITS_PER_LONG)))
+		if (arr[i / BITS_PER_LONG] & (1L << (i % BITS_PER_LONG)))
+		{
 			sprintf(alias + strlen(alias), "%X,*", i);
+		}
 }
 
 /* input:b0v0p0e0-eXkXrXaXmXlXsXfXwX where X is comma-separated %02X. */
 static int do_input_entry(const char *filename, void *symval,
-			  char *alias)
+						  char *alias)
 {
 	DEF_FIELD(symval, input_device_id, flags);
 	DEF_FIELD(symval, input_device_id, bustype);
@@ -788,53 +873,93 @@ static int do_input_entry(const char *filename, void *symval,
 	ADD(alias, "e", flags & INPUT_DEVICE_ID_MATCH_VERSION, version);
 
 	sprintf(alias + strlen(alias), "-e*");
+
 	if (flags & INPUT_DEVICE_ID_MATCH_EVBIT)
+	{
 		do_input(alias, *evbit, 0, INPUT_DEVICE_ID_EV_MAX);
+	}
+
 	sprintf(alias + strlen(alias), "k*");
+
 	if (flags & INPUT_DEVICE_ID_MATCH_KEYBIT)
 		do_input(alias, *keybit,
-			 INPUT_DEVICE_ID_KEY_MIN_INTERESTING,
-			 INPUT_DEVICE_ID_KEY_MAX);
+				 INPUT_DEVICE_ID_KEY_MIN_INTERESTING,
+				 INPUT_DEVICE_ID_KEY_MAX);
+
 	sprintf(alias + strlen(alias), "r*");
+
 	if (flags & INPUT_DEVICE_ID_MATCH_RELBIT)
+	{
 		do_input(alias, *relbit, 0, INPUT_DEVICE_ID_REL_MAX);
+	}
+
 	sprintf(alias + strlen(alias), "a*");
+
 	if (flags & INPUT_DEVICE_ID_MATCH_ABSBIT)
+	{
 		do_input(alias, *absbit, 0, INPUT_DEVICE_ID_ABS_MAX);
+	}
+
 	sprintf(alias + strlen(alias), "m*");
+
 	if (flags & INPUT_DEVICE_ID_MATCH_MSCIT)
+	{
 		do_input(alias, *mscbit, 0, INPUT_DEVICE_ID_MSC_MAX);
+	}
+
 	sprintf(alias + strlen(alias), "l*");
+
 	if (flags & INPUT_DEVICE_ID_MATCH_LEDBIT)
+	{
 		do_input(alias, *ledbit, 0, INPUT_DEVICE_ID_LED_MAX);
+	}
+
 	sprintf(alias + strlen(alias), "s*");
+
 	if (flags & INPUT_DEVICE_ID_MATCH_SNDBIT)
+	{
 		do_input(alias, *sndbit, 0, INPUT_DEVICE_ID_SND_MAX);
+	}
+
 	sprintf(alias + strlen(alias), "f*");
+
 	if (flags & INPUT_DEVICE_ID_MATCH_FFBIT)
+	{
 		do_input(alias, *ffbit, 0, INPUT_DEVICE_ID_FF_MAX);
+	}
+
 	sprintf(alias + strlen(alias), "w*");
+
 	if (flags & INPUT_DEVICE_ID_MATCH_SWBIT)
+	{
 		do_input(alias, *swbit, 0, INPUT_DEVICE_ID_SW_MAX);
+	}
+
 	return 1;
 }
 ADD_TO_DEVTABLE("input", input_device_id, do_input_entry);
 
 static int do_eisa_entry(const char *filename, void *symval,
-		char *alias)
+						 char *alias)
 {
 	DEF_FIELD_ADDR(symval, eisa_device_id, sig);
+
 	if (sig[0])
+	{
 		sprintf(alias, EISA_DEVICE_MODALIAS_FMT "*", *sig);
+	}
 	else
+	{
 		strcat(alias, "*");
+	}
+
 	return 1;
 }
 ADD_TO_DEVTABLE("eisa", eisa_device_id, do_eisa_entry);
 
 /* Looks like: parisc:tNhvNrevNsvN */
 static int do_parisc_entry(const char *filename, void *symval,
-		char *alias)
+						   char *alias)
 {
 	DEF_FIELD(symval, parisc_device_id, hw_type);
 	DEF_FIELD(symval, parisc_device_id, hversion);
@@ -854,7 +979,7 @@ ADD_TO_DEVTABLE("parisc", parisc_device_id, do_parisc_entry);
 
 /* Looks like: sdio:cNvNdN. */
 static int do_sdio_entry(const char *filename,
-			void *symval, char *alias)
+						 void *symval, char *alias)
 {
 	DEF_FIELD(symval, sdio_device_id, class);
 	DEF_FIELD(symval, sdio_device_id, vendor);
@@ -871,7 +996,7 @@ ADD_TO_DEVTABLE("sdio", sdio_device_id, do_sdio_entry);
 
 /* Looks like: ssb:vNidNrevN. */
 static int do_ssb_entry(const char *filename,
-			void *symval, char *alias)
+						void *symval, char *alias)
 {
 	DEF_FIELD(symval, ssb_device_id, vendor);
 	DEF_FIELD(symval, ssb_device_id, coreid);
@@ -888,7 +1013,7 @@ ADD_TO_DEVTABLE("ssb", ssb_device_id, do_ssb_entry);
 
 /* Looks like: bcma:mNidNrevNclN. */
 static int do_bcma_entry(const char *filename,
-			 void *symval, char *alias)
+						 void *symval, char *alias)
 {
 	DEF_FIELD(symval, bcma_device_id, manuf);
 	DEF_FIELD(symval, bcma_device_id, id);
@@ -907,7 +1032,7 @@ ADD_TO_DEVTABLE("bcma", bcma_device_id, do_bcma_entry);
 
 /* Looks like: virtio:dNvN */
 static int do_virtio_entry(const char *filename, void *symval,
-			   char *alias)
+						   char *alias)
 {
 	DEF_FIELD(symval, virtio_device_id, device);
 	DEF_FIELD(symval, virtio_device_id, vendor);
@@ -928,14 +1053,16 @@ ADD_TO_DEVTABLE("virtio", virtio_device_id, do_virtio_entry);
  */
 
 static int do_vmbus_entry(const char *filename, void *symval,
-			  char *alias)
+						  char *alias)
 {
 	int i;
 	DEF_FIELD_ADDR(symval, hv_vmbus_device_id, guid);
 	char guid_name[(sizeof(*guid) + 1) * 2];
 
 	for (i = 0; i < (sizeof(*guid) * 2); i += 2)
-		sprintf(&guid_name[i], "%02x", TO_NATIVE((guid->b)[i/2]));
+	{
+		sprintf(&guid_name[i], "%02x", TO_NATIVE((guid->b)[i / 2]));
+	}
 
 	strcpy(alias, "vmbus:");
 	strcat(alias, guid_name);
@@ -946,7 +1073,7 @@ ADD_TO_DEVTABLE("vmbus", hv_vmbus_device_id, do_vmbus_entry);
 
 /* Looks like: i2c:S */
 static int do_i2c_entry(const char *filename, void *symval,
-			char *alias)
+						char *alias)
 {
 	DEF_FIELD_ADDR(symval, i2c_device_id, name);
 	sprintf(alias, I2C_MODULE_PREFIX "%s", *name);
@@ -957,7 +1084,7 @@ ADD_TO_DEVTABLE("i2c", i2c_device_id, do_i2c_entry);
 
 /* Looks like: spi:S */
 static int do_spi_entry(const char *filename, void *symval,
-			char *alias)
+						char *alias)
 {
 	DEF_FIELD_ADDR(symval, spi_device_id, name);
 	sprintf(alias, SPI_MODULE_PREFIX "%s", *name);
@@ -966,10 +1093,12 @@ static int do_spi_entry(const char *filename, void *symval,
 }
 ADD_TO_DEVTABLE("spi", spi_device_id, do_spi_entry);
 
-static const struct dmifield {
+static const struct dmifield
+{
 	const char *prefix;
 	int field;
-} dmi_fields[] = {
+} dmi_fields[] =
+{
 	{ "bvn", DMI_BIOS_VENDOR },
 	{ "bvr", DMI_BIOS_VERSION },
 	{ "bd",  DMI_BIOS_DATE },
@@ -990,27 +1119,32 @@ static void dmi_ascii_filter(char *d, const char *s)
 	/* Filter out characters we don't want to see in the modalias string */
 	for (; *s; s++)
 		if (*s > ' ' && *s < 127 && *s != ':')
+		{
 			*(d++) = *s;
+		}
 
 	*d = 0;
 }
 
 
 static int do_dmi_entry(const char *filename, void *symval,
-			char *alias)
+						char *alias)
 {
 	int i, j;
 	DEF_FIELD_ADDR(symval, dmi_system_id, matches);
 	sprintf(alias, "dmi*");
 
-	for (i = 0; i < ARRAY_SIZE(dmi_fields); i++) {
-		for (j = 0; j < 4; j++) {
+	for (i = 0; i < ARRAY_SIZE(dmi_fields); i++)
+	{
+		for (j = 0; j < 4; j++)
+		{
 			if ((*matches)[j].slot &&
-			    (*matches)[j].slot == dmi_fields[i].field) {
+				(*matches)[j].slot == dmi_fields[i].field)
+			{
 				sprintf(alias + strlen(alias), ":%s*",
-					dmi_fields[i].prefix);
+						dmi_fields[i].prefix);
 				dmi_ascii_filter(alias + strlen(alias),
-						 (*matches)[j].substr);
+								 (*matches)[j].substr);
 				strcat(alias, "*");
 			}
 		}
@@ -1022,7 +1156,7 @@ static int do_dmi_entry(const char *filename, void *symval,
 ADD_TO_DEVTABLE("dmi", dmi_system_id, do_dmi_entry);
 
 static int do_platform_entry(const char *filename,
-			     void *symval, char *alias)
+							 void *symval, char *alias)
 {
 	DEF_FIELD_ADDR(symval, platform_device_id, name);
 	sprintf(alias, PLATFORM_MODULE_PREFIX "%s", *name);
@@ -1031,7 +1165,7 @@ static int do_platform_entry(const char *filename,
 ADD_TO_DEVTABLE("platform", platform_device_id, do_platform_entry);
 
 static int do_mdio_entry(const char *filename,
-			 void *symval, char *alias)
+						 void *symval, char *alias)
 {
 	int i;
 	DEF_FIELD(symval, mdio_device_id, phy_id);
@@ -1039,13 +1173,20 @@ static int do_mdio_entry(const char *filename,
 
 	alias += sprintf(alias, MDIO_MODULE_PREFIX);
 
-	for (i = 0; i < 32; i++) {
-		if (!((phy_id_mask >> (31-i)) & 1))
+	for (i = 0; i < 32; i++)
+	{
+		if (!((phy_id_mask >> (31 - i)) & 1))
+		{
 			*(alias++) = '?';
-		else if ((phy_id >> (31-i)) & 1)
+		}
+		else if ((phy_id >> (31 - i)) & 1)
+		{
 			*(alias++) = '1';
+		}
 		else
+		{
 			*(alias++) = '0';
+		}
 	}
 
 	/* Terminate the string */
@@ -1057,7 +1198,7 @@ ADD_TO_DEVTABLE("mdio", mdio_device_id, do_mdio_entry);
 
 /* Looks like: zorro:iN. */
 static int do_zorro_entry(const char *filename, void *symval,
-			  char *alias)
+						  char *alias)
 {
 	DEF_FIELD(symval, zorro_device_id, id);
 	strcpy(alias, "zorro:");
@@ -1068,23 +1209,23 @@ ADD_TO_DEVTABLE("zorro", zorro_device_id, do_zorro_entry);
 
 /* looks like: "pnp:dD" */
 static int do_isapnp_entry(const char *filename,
-			   void *symval, char *alias)
+						   void *symval, char *alias)
 {
 	DEF_FIELD(symval, isapnp_device_id, vendor);
 	DEF_FIELD(symval, isapnp_device_id, function);
 	sprintf(alias, "pnp:d%c%c%c%x%x%x%x*",
-		'A' + ((vendor >> 2) & 0x3f) - 1,
-		'A' + (((vendor & 3) << 3) | ((vendor >> 13) & 7)) - 1,
-		'A' + ((vendor >> 8) & 0x1f) - 1,
-		(function >> 4) & 0x0f, function & 0x0f,
-		(function >> 12) & 0x0f, (function >> 8) & 0x0f);
+			'A' + ((vendor >> 2) & 0x3f) - 1,
+			'A' + (((vendor & 3) << 3) | ((vendor >> 13) & 7)) - 1,
+			'A' + ((vendor >> 8) & 0x1f) - 1,
+			(function >> 4) & 0x0f, function & 0x0f,
+			(function >> 12) & 0x0f, (function >> 8) & 0x0f);
 	return 1;
 }
 ADD_TO_DEVTABLE("isapnp", isapnp_device_id, do_isapnp_entry);
 
 /* Looks like: "ipack:fNvNdN". */
 static int do_ipack_entry(const char *filename,
-			  void *symval, char *alias)
+						  void *symval, char *alias)
 {
 	DEF_FIELD(symval, ipack_device_id, format);
 	DEF_FIELD(symval, ipack_device_id, vendor);
@@ -1105,32 +1246,37 @@ ADD_TO_DEVTABLE("ipack", ipack_device_id, do_ipack_entry);
  *	to facilitate further appending.
  */
 static void append_nibble_mask(char **outp,
-			       unsigned int nibble, unsigned int mask)
+							   unsigned int nibble, unsigned int mask)
 {
 	char *p = *outp;
 	unsigned int i;
 
-	switch (mask) {
-	case 0:
-		*p++ = '?';
-		break;
+	switch (mask)
+	{
+		case 0:
+			*p++ = '?';
+			break;
 
-	case 0xf:
-		p += sprintf(p, "%X",  nibble);
-		break;
+		case 0xf:
+			p += sprintf(p, "%X",  nibble);
+			break;
 
-	default:
-		/*
-		 * Dumbly emit a match pattern for all possible matching
-		 * digits.  This could be improved in some cases using ranges,
-		 * but it has the advantage of being trivially correct, and is
-		 * often optimal.
-		 */
-		*p++ = '[';
-		for (i = 0; i < 0x10; i++)
-			if ((i & mask) == nibble)
-				p += sprintf(p, "%X", i);
-		*p++ = ']';
+		default:
+			/*
+			 * Dumbly emit a match pattern for all possible matching
+			 * digits.  This could be improved in some cases using ranges,
+			 * but it has the advantage of being trivially correct, and is
+			 * often optimal.
+			 */
+			*p++ = '[';
+
+			for (i = 0; i < 0x10; i++)
+				if ((i & mask) == nibble)
+				{
+					p += sprintf(p, "%X", i);
+				}
+
+			*p++ = ']';
 	}
 
 	/* Ensure that the string remains NUL-terminated: */
@@ -1147,7 +1293,7 @@ static void append_nibble_mask(char **outp,
  *	a ? or [] pattern matching exactly one digit.
  */
 static int do_amba_entry(const char *filename,
-			 void *symval, char *alias)
+						 void *symval, char *alias)
 {
 	unsigned int digit;
 	char *p = alias;
@@ -1156,14 +1302,15 @@ static int do_amba_entry(const char *filename,
 
 	if ((id & mask) != id)
 		fatal("%s: Masked-off bit(s) of AMBA device ID are non-zero: "
-		      "id=0x%08X, mask=0x%08X.  Please fix this driver.\n",
-		      filename, id, mask);
+			  "id=0x%08X, mask=0x%08X.  Please fix this driver.\n",
+			  filename, id, mask);
 
 	p += sprintf(alias, "amba:d");
+
 	for (digit = 0; digit < 8; digit++)
 		append_nibble_mask(&p,
-				   (id >> (4 * (7 - digit))) & 0xf,
-				   (mask >> (4 * (7 - digit))) & 0xf);
+						   (id >> (4 * (7 - digit))) & 0xf,
+						   (mask >> (4 * (7 - digit))) & 0xf);
 
 	return 1;
 }
@@ -1176,7 +1323,7 @@ ADD_TO_DEVTABLE("amba", amba_id, do_amba_entry);
  *	a ? or [] pattern matching exactly one digit.
  */
 static int do_mips_cdmm_entry(const char *filename,
-			      void *symval, char *alias)
+							  void *symval, char *alias)
 {
 	DEF_FIELD(symval, mips_cdmm_device_id, type);
 
@@ -1192,7 +1339,7 @@ ADD_TO_DEVTABLE("mipscdmm", mips_cdmm_device_id, do_mips_cdmm_entry);
  */
 
 static int do_x86cpu_entry(const char *filename, void *symval,
-			   char *alias)
+						   char *alias)
 {
 	DEF_FIELD(symval, x86_cpu_id, feature);
 	DEF_FIELD(symval, x86_cpu_id, family);
@@ -1204,8 +1351,12 @@ static int do_x86cpu_entry(const char *filename, void *symval,
 	ADD(alias, "fam", family != X86_FAMILY_ANY, family);
 	ADD(alias, "mod", model  != X86_MODEL_ANY,  model);
 	strcat(alias, ":feature:*");
+
 	if (feature != X86_FEATURE_ANY)
+	{
 		sprintf(alias + strlen(alias), "%04X*", feature);
+	}
+
 	return 1;
 }
 ADD_TO_DEVTABLE("x86cpu", x86_cpu_id, do_x86cpu_entry);
@@ -1222,7 +1373,7 @@ ADD_TO_DEVTABLE("cpu", cpu_feature, do_cpu_entry);
 
 /* Looks like: mei:S:uuid:N:* */
 static int do_mei_entry(const char *filename, void *symval,
-			char *alias)
+						char *alias)
 {
 	DEF_FIELD_ADDR(symval, mei_cl_device_id, name);
 	DEF_FIELD_ADDR(symval, mei_cl_device_id, uuid);
@@ -1241,7 +1392,7 @@ ADD_TO_DEVTABLE("mei", mei_cl_device_id, do_mei_entry);
 
 /* Looks like: rapidio:vNdNavNadN */
 static int do_rio_entry(const char *filename,
-			void *symval, char *alias)
+						void *symval, char *alias)
 {
 	DEF_FIELD(symval, rio_device_id, did);
 	DEF_FIELD(symval, rio_device_id, vid);
@@ -1261,7 +1412,7 @@ ADD_TO_DEVTABLE("rapidio", rio_device_id, do_rio_entry);
 
 /* Looks like: ulpi:vNpN */
 static int do_ulpi_entry(const char *filename, void *symval,
-			 char *alias)
+						 char *alias)
 {
 	DEF_FIELD(symval, ulpi_device_id, vendor);
 	DEF_FIELD(symval, ulpi_device_id, product);
@@ -1291,7 +1442,7 @@ ADD_TO_DEVTABLE("hdaudio", hda_device_id, do_hda_entry);
 
 /* Looks like: fsl-mc:vNdN */
 static int do_fsl_mc_entry(const char *filename, void *symval,
-			   char *alias)
+						   char *alias)
 {
 	DEF_FIELD(symval, fsl_mc_device_id, vendor);
 	DEF_FIELD_ADDR(symval, fsl_mc_device_id, obj_type);
@@ -1305,16 +1456,18 @@ ADD_TO_DEVTABLE("fslmc", fsl_mc_device_id, do_fsl_mc_entry);
 static bool sym_is(const char *name, unsigned namelen, const char *symbol)
 {
 	if (namelen != strlen(symbol))
+	{
 		return false;
+	}
 
 	return memcmp(name, symbol, namelen) == 0;
 }
 
 static void do_table(void *symval, unsigned long size,
-		     unsigned long id_size,
-		     const char *device_id,
-		     void *function,
-		     struct module *mod)
+					 unsigned long id_size,
+					 const char *device_id,
+					 void *function,
+					 struct module *mod)
 {
 	unsigned int i;
 	char alias[500];
@@ -1324,10 +1477,12 @@ static void do_table(void *symval, unsigned long size,
 	/* Leave last one: it's the terminator. */
 	size -= id_size;
 
-	for (i = 0; i < size; i += id_size) {
-		if (do_entry(mod->name, symval+i, alias)) {
+	for (i = 0; i < size; i += id_size)
+	{
+		if (do_entry(mod->name, symval + i, alias))
+		{
 			buf_printf(&mod->dev_table_buf,
-				   "MODULE_ALIAS(\"%s\");\n", alias);
+					   "MODULE_ALIAS(\"%s\");\n", alias);
 		}
 	}
 }
@@ -1336,7 +1491,7 @@ static void do_table(void *symval, unsigned long size,
  * At this time, we cannot write the actual output C source yet,
  * so we write into the mod->dev_table_buf buffer. */
 void handle_moddevtable(struct module *mod, struct elf_info *info,
-			Elf_Sym *sym, const char *symname)
+						Elf_Sym *sym, const char *symname)
 {
 	void *symval;
 	char *zeros = NULL;
@@ -1345,58 +1500,93 @@ void handle_moddevtable(struct module *mod, struct elf_info *info,
 
 	/* We're looking for a section relative symbol */
 	if (!sym->st_shndx || get_secindex(info, sym) >= info->num_sections)
+	{
 		return;
+	}
 
 	/* We're looking for an object */
 	if (ELF_ST_TYPE(sym->st_info) != STT_OBJECT)
+	{
 		return;
+	}
 
 	/* All our symbols are of form <prefix>__mod_<name>__<identifier>_device_table. */
 	name = strstr(symname, "__mod_");
+
 	if (!name)
+	{
 		return;
+	}
+
 	name += strlen("__mod_");
 	namelen = strlen(name);
+
 	if (namelen < strlen("_device_table"))
+	{
 		return;
+	}
+
 	if (strcmp(name + namelen - strlen("_device_table"), "_device_table"))
+	{
 		return;
+	}
+
 	identifier = strstr(name, "__");
+
 	if (!identifier)
+	{
 		return;
+	}
+
 	namelen = identifier - name;
 
 	/* Handle all-NULL symbols allocated into .bss */
-	if (info->sechdrs[get_secindex(info, sym)].sh_type & SHT_NOBITS) {
+	if (info->sechdrs[get_secindex(info, sym)].sh_type & SHT_NOBITS)
+	{
 		zeros = calloc(1, sym->st_size);
 		symval = zeros;
-	} else {
+	}
+	else
+	{
 		symval = (void *)info->hdr
-			+ info->sechdrs[get_secindex(info, sym)].sh_offset
-			+ sym->st_value;
+				 + info->sechdrs[get_secindex(info, sym)].sh_offset
+				 + sym->st_value;
 	}
 
 	/* First handle the "special" cases */
 	if (sym_is(name, namelen, "usb"))
+	{
 		do_usb_table(symval, sym->st_size, mod);
+	}
+
 	if (sym_is(name, namelen, "of"))
+	{
 		do_of_table(symval, sym->st_size, mod);
+	}
 	else if (sym_is(name, namelen, "pnp"))
+	{
 		do_pnp_device_entry(symval, sym->st_size, mod);
+	}
 	else if (sym_is(name, namelen, "pnp_card"))
+	{
 		do_pnp_card_entries(symval, sym->st_size, mod);
-	else {
+	}
+	else
+	{
 		struct devtable **p;
 		INIT_SECTION(__devtable);
 
-		for (p = __start___devtable; p < __stop___devtable; p++) {
-			if (sym_is(name, namelen, (*p)->device_id)) {
+		for (p = __start___devtable; p < __stop___devtable; p++)
+		{
+			if (sym_is(name, namelen, (*p)->device_id))
+			{
 				do_table(symval, sym->st_size, (*p)->id_size,
-					 (*p)->device_id, (*p)->function, mod);
+						 (*p)->device_id, (*p)->function, mod);
 				break;
 			}
 		}
 	}
+
 	free(zeros);
 }
 

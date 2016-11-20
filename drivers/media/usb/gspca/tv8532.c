@@ -27,23 +27,29 @@ MODULE_DESCRIPTION("TV8532 USB Camera Driver");
 MODULE_LICENSE("GPL");
 
 /* specific webcam descriptor */
-struct sd {
+struct sd
+{
 	struct gspca_dev gspca_dev;	/* !! must be the first item */
 
 	__u8 packet;
 };
 
-static const struct v4l2_pix_format sif_mode[] = {
-	{176, 144, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
+static const struct v4l2_pix_format sif_mode[] =
+{
+	{
+		176, 144, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
 		.bytesperline = 176,
 		.sizeimage = 176 * 144,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 1},
-	{352, 288, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
+		.priv = 1
+	},
+	{
+		352, 288, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
 		.bytesperline = 352,
 		.sizeimage = 352 * 288,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 0},
+		.priv = 0
+	},
 };
 
 /* TV-8532A (ICM532A) registers (LE) */
@@ -97,8 +103,9 @@ static const struct v4l2_pix_format sif_mode[] = {
 #define R91_AD_SLOPEREG 0x91
 #define R94_AD_BITCONTROL 0x94
 
-static const u8 eeprom_data[][3] = {
-/*	dataH dataM dataL */
+static const u8 eeprom_data[][3] =
+{
+	/*	dataH dataM dataL */
 	{0x01, 0x00, 0x01},
 	{0x01, 0x80, 0x11},
 	{0x05, 0x00, 0x14},
@@ -117,29 +124,29 @@ static const u8 eeprom_data[][3] = {
 
 /* write 1 byte */
 static void reg_w1(struct gspca_dev *gspca_dev,
-		  __u16 index, __u8 value)
+				   __u16 index, __u8 value)
 {
 	gspca_dev->usb_buf[0] = value;
 	usb_control_msg(gspca_dev->dev,
-			usb_sndctrlpipe(gspca_dev->dev, 0),
-			0x02,
-			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-			0,	/* value */
-			index, gspca_dev->usb_buf, 1, 500);
+					usb_sndctrlpipe(gspca_dev->dev, 0),
+					0x02,
+					USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+					0,	/* value */
+					index, gspca_dev->usb_buf, 1, 500);
 }
 
 /* write 2 bytes */
 static void reg_w2(struct gspca_dev *gspca_dev,
-		  u16 index, u16 value)
+				   u16 index, u16 value)
 {
 	gspca_dev->usb_buf[0] = value;
 	gspca_dev->usb_buf[1] = value >> 8;
 	usb_control_msg(gspca_dev->dev,
-			usb_sndctrlpipe(gspca_dev->dev, 0),
-			0x02,
-			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-			0,	/* value */
-			index, gspca_dev->usb_buf, 2, 500);
+					usb_sndctrlpipe(gspca_dev->dev, 0),
+					0x02,
+					USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+					0,	/* value */
+					index, gspca_dev->usb_buf, 2, 500);
 }
 
 static void tv_8532WriteEEprom(struct gspca_dev *gspca_dev)
@@ -147,20 +154,23 @@ static void tv_8532WriteEEprom(struct gspca_dev *gspca_dev)
 	int i;
 
 	reg_w1(gspca_dev, R01_TIMING_CONTROL_LOW, CMD_EEprom_Open);
-	for (i = 0; i < ARRAY_SIZE(eeprom_data); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(eeprom_data); i++)
+	{
 		reg_w1(gspca_dev, R03_TABLE_ADDR, i);
 		reg_w1(gspca_dev, R04_WTRAM_DATA_L, eeprom_data[i][2]);
 		reg_w1(gspca_dev, R05_WTRAM_DATA_M, eeprom_data[i][1]);
 		reg_w1(gspca_dev, R06_WTRAM_DATA_H, eeprom_data[i][0]);
 		reg_w1(gspca_dev, R08_RAM_WRITE_ACTION, 0);
 	}
+
 	reg_w1(gspca_dev, R07_TABLE_LEN, i);
 	reg_w1(gspca_dev, R01_TIMING_CONTROL_LOW, CMD_EEprom_Close);
 }
 
 /* this function is called at probe time */
 static int sd_config(struct gspca_dev *gspca_dev,
-		     const struct usb_device_id *id)
+					 const struct usb_device_id *id)
 {
 	struct cam *cam;
 
@@ -179,15 +189,15 @@ static void tv_8532_setReg(struct gspca_dev *gspca_dev)
 	reg_w1(gspca_dev, R0F_AD_HEIGHTH, 0x01);
 	reg_w2(gspca_dev, R1C_AD_EXPOSE_TIMEL, 0x018f);
 	reg_w1(gspca_dev, R10_AD_COL_BEGINL, 0x44);
-						/* begin active line */
+	/* begin active line */
 	reg_w1(gspca_dev, R11_AD_COL_BEGINH, 0x00);
-						/* mirror and digital gain */
+	/* mirror and digital gain */
 	reg_w1(gspca_dev, R14_AD_ROW_BEGINL, 0x0a);
 
 	reg_w1(gspca_dev, R94_AD_BITCONTROL, 0x02);
 	reg_w1(gspca_dev, R91_AD_SLOPEREG, 0x00);
 	reg_w1(gspca_dev, R00_PART_CONTROL, LATENT_CHANGE | EXPO_CHANGE);
-						/* = 0x84 */
+	/* = 0x84 */
 }
 
 /* this function is called at probe and resume time */
@@ -202,7 +212,7 @@ static void setexposure(struct gspca_dev *gspca_dev, s32 val)
 {
 	reg_w2(gspca_dev, R1C_AD_EXPOSE_TIMEL, val);
 	reg_w1(gspca_dev, R00_PART_CONTROL, LATENT_CHANGE | EXPO_CHANGE);
-						/* 0x84 */
+	/* 0x84 */
 }
 
 static void setgain(struct gspca_dev *gspca_dev, s32 val)
@@ -223,16 +233,21 @@ static int sd_start(struct gspca_dev *gspca_dev)
 
 	/************************************************/
 	reg_w1(gspca_dev, R28_QUANT, 0x90);
-					/* 0x72 compressed mode 0x28 */
-	if (gspca_dev->cam.cam_mode[(int) gspca_dev->curr_mode].priv) {
+
+	/* 0x72 compressed mode 0x28 */
+	if (gspca_dev->cam.cam_mode[(int) gspca_dev->curr_mode].priv)
+	{
 		/* 176x144 */
 		reg_w1(gspca_dev, R29_LINE, 0x41);
-					/* CIF - 2 lines/packet */
-	} else {
+		/* CIF - 2 lines/packet */
+	}
+	else
+	{
 		/* 352x288 */
 		reg_w1(gspca_dev, R29_LINE, 0x81);
-					/* CIF - 2 lines/packet */
+		/* CIF - 2 lines/packet */
 	}
+
 	/************************************************/
 	reg_w1(gspca_dev, R2C_POLARITY, 0x10);		/* slow clock */
 	reg_w1(gspca_dev, R2D_POINT, 0x14);
@@ -259,22 +274,31 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
 }
 
 static void sd_pkt_scan(struct gspca_dev *gspca_dev,
-			u8 *data,			/* isoc packet */
-			int len)			/* iso packet length */
+						u8 *data,			/* isoc packet */
+						int len)			/* iso packet length */
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 	int packet_type0, packet_type1;
 
 	packet_type0 = packet_type1 = INTER_PACKET;
-	if (gspca_dev->empty_packet) {
+
+	if (gspca_dev->empty_packet)
+	{
 		gspca_dev->empty_packet = 0;
 		sd->packet = gspca_dev->pixfmt.height / 2;
 		packet_type0 = FIRST_PACKET;
-	} else if (sd->packet == 0)
-		return;			/* 2 more lines in 352x288 ! */
+	}
+	else if (sd->packet == 0)
+	{
+		return;    /* 2 more lines in 352x288 ! */
+	}
+
 	sd->packet--;
+
 	if (sd->packet == 0)
+	{
 		packet_type1 = LAST_PACKET;
+	}
 
 	/* each packet contains:
 	 * - header 2 bytes
@@ -284,10 +308,10 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
 	 * - 4 bytes
 	 */
 	gspca_frame_add(gspca_dev, packet_type0,
-			data + 2, gspca_dev->pixfmt.width);
+					data + 2, gspca_dev->pixfmt.width);
 	gspca_frame_add(gspca_dev, packet_type1,
-			data + gspca_dev->pixfmt.width + 5,
-			gspca_dev->pixfmt.width);
+					data + gspca_dev->pixfmt.width + 5,
+					gspca_dev->pixfmt.width);
 }
 
 static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
@@ -298,20 +322,26 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
 	gspca_dev->usb_err = 0;
 
 	if (!gspca_dev->streaming)
+	{
 		return 0;
-
-	switch (ctrl->id) {
-	case V4L2_CID_EXPOSURE:
-		setexposure(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_GAIN:
-		setgain(gspca_dev, ctrl->val);
-		break;
 	}
+
+	switch (ctrl->id)
+	{
+		case V4L2_CID_EXPOSURE:
+			setexposure(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_GAIN:
+			setgain(gspca_dev, ctrl->val);
+			break;
+	}
+
 	return gspca_dev->usb_err;
 }
 
-static const struct v4l2_ctrl_ops sd_ctrl_ops = {
+static const struct v4l2_ctrl_ops sd_ctrl_ops =
+{
 	.s_ctrl = sd_s_ctrl,
 };
 
@@ -322,19 +352,22 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 	gspca_dev->vdev.ctrl_handler = hdl;
 	v4l2_ctrl_handler_init(hdl, 2);
 	v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_EXPOSURE, 0, 0x18f, 1, 0x18f);
+					  V4L2_CID_EXPOSURE, 0, 0x18f, 1, 0x18f);
 	v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_GAIN, 0, 0x7ff, 1, 0x100);
+					  V4L2_CID_GAIN, 0, 0x7ff, 1, 0x100);
 
-	if (hdl->error) {
+	if (hdl->error)
+	{
 		pr_err("Could not initialize controls\n");
 		return hdl->error;
 	}
+
 	return 0;
 }
 
 /* sub-driver description */
-static const struct sd_desc sd_desc = {
+static const struct sd_desc sd_desc =
+{
 	.name = MODULE_NAME,
 	.config = sd_config,
 	.init = sd_init,
@@ -345,7 +378,8 @@ static const struct sd_desc sd_desc = {
 };
 
 /* -- module initialisation -- */
-static const struct usb_device_id device_table[] = {
+static const struct usb_device_id device_table[] =
+{
 	{USB_DEVICE(0x046d, 0x0920)},
 	{USB_DEVICE(0x046d, 0x0921)},
 	{USB_DEVICE(0x0545, 0x808b)},
@@ -358,13 +392,14 @@ MODULE_DEVICE_TABLE(usb, device_table);
 
 /* -- device connect -- */
 static int sd_probe(struct usb_interface *intf,
-		    const struct usb_device_id *id)
+					const struct usb_device_id *id)
 {
 	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd),
-			       THIS_MODULE);
+						   THIS_MODULE);
 }
 
-static struct usb_driver sd_driver = {
+static struct usb_driver sd_driver =
+{
 	.name = MODULE_NAME,
 	.id_table = device_table,
 	.probe = sd_probe,

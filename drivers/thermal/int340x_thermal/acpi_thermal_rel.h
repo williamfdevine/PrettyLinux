@@ -13,7 +13,8 @@
 #define ACPI_THERMAL_GET_TRT	_IOR(ACPI_THERMAL_MAGIC, 5, unsigned long)
 #define ACPI_THERMAL_GET_ART	_IOR(ACPI_THERMAL_MAGIC, 6, unsigned long)
 
-struct art {
+struct art
+{
 	acpi_handle source;
 	acpi_handle target;
 	u64 weight;
@@ -29,7 +30,8 @@ struct art {
 	u64 ac9_max;
 } __packed;
 
-struct trt {
+struct trt
+{
 	acpi_handle source;
 	acpi_handle target;
 	u64 influence;
@@ -42,8 +44,10 @@ struct trt {
 
 #define ACPI_NR_ART_ELEMENTS 13
 /* for usrspace */
-union art_object {
-	struct {
+union art_object
+{
+	struct
+	{
 		char source_device[8]; /* ACPI single name */
 		char target_device[8]; /* ACPI single name */
 		u64 weight;
@@ -61,8 +65,10 @@ union art_object {
 	u64 __data[ACPI_NR_ART_ELEMENTS];
 };
 
-union trt_object {
-	struct {
+union trt_object
+{
+	struct
+	{
 		char source_device[8]; /* ACPI single name */
 		char target_device[8]; /* ACPI single name */
 		u64 influence;
@@ -76,9 +82,9 @@ union trt_object {
 int acpi_thermal_rel_misc_device_add(acpi_handle handle);
 int acpi_thermal_rel_misc_device_remove(acpi_handle handle);
 int acpi_parse_art(acpi_handle handle, int *art_count, struct art **arts,
-		bool create_dev);
+				   bool create_dev);
 int acpi_parse_trt(acpi_handle handle, int *trt_count, struct trt **trts,
-		bool create_dev);
+				   bool create_dev);
 #endif
 
 #endif /* __ACPI_ACPI_THERMAL_H */

@@ -29,14 +29,16 @@
 #include "cvb.h"
 
 /* Maximum CPU frequency, indexed by CPU speedo id */
-static const unsigned long cpu_max_freq_table[] = {
+static const unsigned long cpu_max_freq_table[] =
+{
 	[0] = 2014500000UL,
 	[1] = 2320500000UL,
 	[2] = 2116500000UL,
 	[3] = 2524500000UL,
 };
 
-static const struct cvb_table tegra124_cpu_cvb_tables[] = {
+static const struct cvb_table tegra124_cpu_cvb_tables[] =
+{
 	{
 		.speedo_id = -1,
 		.process_id = -1,
@@ -91,18 +93,24 @@ static int tegra124_dfll_fcpu_probe(struct platform_device *pdev)
 	speedo_id = tegra_sku_info.cpu_speedo_id;
 	speedo_value = tegra_sku_info.cpu_speedo_value;
 
-	if (speedo_id >= ARRAY_SIZE(cpu_max_freq_table)) {
+	if (speedo_id >= ARRAY_SIZE(cpu_max_freq_table))
+	{
 		dev_err(&pdev->dev, "unknown max CPU freq for speedo_id=%d\n",
-			speedo_id);
+				speedo_id);
 		return -ENODEV;
 	}
 
 	soc = devm_kzalloc(&pdev->dev, sizeof(*soc), GFP_KERNEL);
+
 	if (!soc)
+	{
 		return -ENOMEM;
+	}
 
 	soc->dev = get_cpu_device(0);
-	if (!soc->dev) {
+
+	if (!soc->dev)
+	{
 		dev_err(&pdev->dev, "no CPU0 device\n");
 		return -ENODEV;
 	}
@@ -110,17 +118,21 @@ static int tegra124_dfll_fcpu_probe(struct platform_device *pdev)
 	soc->max_freq = cpu_max_freq_table[speedo_id];
 
 	soc->cvb = tegra_cvb_add_opp_table(soc->dev, tegra124_cpu_cvb_tables,
-					   ARRAY_SIZE(tegra124_cpu_cvb_tables),
-					   process_id, speedo_id, speedo_value,
-					   soc->max_freq);
-	if (IS_ERR(soc->cvb)) {
+									   ARRAY_SIZE(tegra124_cpu_cvb_tables),
+									   process_id, speedo_id, speedo_value,
+									   soc->max_freq);
+
+	if (IS_ERR(soc->cvb))
+	{
 		dev_err(&pdev->dev, "couldn't add OPP table: %ld\n",
-			PTR_ERR(soc->cvb));
+				PTR_ERR(soc->cvb));
 		return PTR_ERR(soc->cvb);
 	}
 
 	err = tegra_dfll_register(pdev, soc);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		tegra_cvb_remove_opp_table(soc->dev, soc->cvb, soc->max_freq);
 		return err;
 	}
@@ -136,26 +148,32 @@ static int tegra124_dfll_fcpu_remove(struct platform_device *pdev)
 	int err;
 
 	err = tegra_dfll_unregister(pdev);
+
 	if (err < 0)
+	{
 		dev_err(&pdev->dev, "failed to unregister DFLL: %d\n", err);
+	}
 
 	tegra_cvb_remove_opp_table(soc->dev, soc->cvb, soc->max_freq);
 
 	return 0;
 }
 
-static const struct of_device_id tegra124_dfll_fcpu_of_match[] = {
+static const struct of_device_id tegra124_dfll_fcpu_of_match[] =
+{
 	{ .compatible = "nvidia,tegra124-dfll", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, tegra124_dfll_fcpu_of_match);
 
-static const struct dev_pm_ops tegra124_dfll_pm_ops = {
+static const struct dev_pm_ops tegra124_dfll_pm_ops =
+{
 	SET_RUNTIME_PM_OPS(tegra_dfll_runtime_suspend,
-			   tegra_dfll_runtime_resume, NULL)
+	tegra_dfll_runtime_resume, NULL)
 };
 
-static struct platform_driver tegra124_dfll_fcpu_driver = {
+static struct platform_driver tegra124_dfll_fcpu_driver =
+{
 	.probe = tegra124_dfll_fcpu_probe,
 	.remove = tegra124_dfll_fcpu_remove,
 	.driver = {

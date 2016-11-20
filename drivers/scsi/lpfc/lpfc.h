@@ -22,7 +22,7 @@
 #include <scsi/scsi_host.h>
 
 #if defined(CONFIG_DEBUG_FS) && !defined(CONFIG_SCSI_LPFC_DEBUG_FS)
-#define CONFIG_SCSI_LPFC_DEBUG_FS
+	#define CONFIG_SCSI_LPFC_DEBUG_FS
 #endif
 
 struct lpfc_sli2_slim;
@@ -89,7 +89,7 @@ struct lpfc_sli2_slim;
 #define putPaddrLow(addr)    ((uint32_t) (0xffffffff & (u64)(addr)))
 #define putPaddrHigh(addr)   ((uint32_t) (0xffffffff & (((u64)(addr))>>32)))
 #define getPaddr(high, low)  ((dma_addr_t)( \
-			     (( (u64)(high)<<16 ) << 16)|( (u64)(low))))
+							  (( (u64)(high)<<16 ) << 16)|( (u64)(low))))
 /* Provide maximum configuration definitions. */
 #define LPFC_DRVR_TIMEOUT	16	/* driver iocb timeout value in sec */
 #define FC_MAX_ADPTMSG		64
@@ -109,26 +109,30 @@ struct lpfc_sli2_slim;
 #define LPFC_MBX_NO_WAIT	0
 #define LPFC_MBX_WAIT		1
 
-enum lpfc_polling_flags {
+enum lpfc_polling_flags
+{
 	ENABLE_FCP_RING_POLLING = 0x1,
 	DISABLE_FCP_RING_INT    = 0x2
 };
 
 /* Provide DMA memory definitions the driver uses per port instance. */
-struct lpfc_dmabuf {
+struct lpfc_dmabuf
+{
 	struct list_head list;
 	void *virt;		/* virtual address ptr */
 	dma_addr_t phys;	/* mapped address */
 	uint32_t   buffer_tag;	/* used for tagged queue ring */
 };
 
-struct lpfc_dma_pool {
+struct lpfc_dma_pool
+{
 	struct lpfc_dmabuf   *elements;
 	uint32_t    max_count;
 	uint32_t    current_count;
 };
 
-struct hbq_dmabuf {
+struct hbq_dmabuf
+{
 	struct lpfc_dmabuf hbuf;
 	struct lpfc_dmabuf dbuf;
 	uint32_t size;
@@ -144,10 +148,12 @@ struct hbq_dmabuf {
 /****************************************************************************/
 /*      Device VPD save area                                                */
 /****************************************************************************/
-typedef struct lpfc_vpd {
+typedef struct lpfc_vpd
+{
 	uint32_t status;	/* vpd status value */
 	uint32_t length;	/* number of bytes actually returned */
-	struct {
+	struct
+	{
 		uint32_t rsvd1;	/* Revision numbers */
 		uint32_t biuRev;
 		uint32_t smRev;
@@ -166,9 +172,10 @@ typedef struct lpfc_vpd {
 		uint32_t sli2FwRev;
 		uint8_t sli2FwName[16];
 	} rev;
-	struct {
+	struct
+	{
 #ifdef __BIG_ENDIAN_BITFIELD
-		uint32_t rsvd3  :19;  /* Reserved                             */
+		uint32_t rsvd3  : 19; /* Reserved                             */
 		uint32_t cdss	: 1;  /* Configure Data Security SLI          */
 		uint32_t rsvd2	: 3;  /* Reserved                             */
 		uint32_t cbg	: 1;  /* Configure BlockGuard                 */
@@ -192,7 +199,7 @@ typedef struct lpfc_vpd {
 		uint32_t cbg	: 1;  /* Configure BlockGuard                 */
 		uint32_t rsvd2	: 3;  /* Reserved                             */
 		uint32_t cdss	: 1;  /* Configure Data Security SLI          */
-		uint32_t rsvd3  :19;  /* Reserved                             */
+		uint32_t rsvd3  : 19; /* Reserved                             */
 #endif
 	} sli3Feat;
 } lpfc_vpd_t;
@@ -203,7 +210,8 @@ struct lpfc_scsi_buf;
 /*
  * lpfc stat counters
  */
-struct lpfc_stats {
+struct lpfc_stats
+{
 	/* Statistics for ELS commands */
 	uint32_t elsLogiCol;
 	uint32_t elsRetryExceeded;
@@ -268,7 +276,8 @@ struct lpfc_stats {
 struct lpfc_hba;
 
 
-enum discovery_state {
+enum discovery_state
+{
 	LPFC_VPORT_UNKNOWN     =  0,    /* vport state is unknown */
 	LPFC_VPORT_FAILED      =  1,    /* vport has failed */
 	LPFC_LOCAL_CFG_LINK    =  6,    /* local NPORT Id configured */
@@ -284,7 +293,8 @@ enum discovery_state {
 	LPFC_VPORT_READY       =  32,
 };
 
-enum hba_state {
+enum hba_state
+{
 	LPFC_LINK_UNKNOWN    =   0,   /* HBA state is unknown */
 	LPFC_WARM_START      =   1,   /* HBA state after selective reset */
 	LPFC_INIT_START      =   2,   /* Initial state after board reset */
@@ -297,7 +307,8 @@ enum hba_state {
 	LPFC_HBA_ERROR       =  -1
 };
 
-struct lpfc_vport {
+struct lpfc_vport
+{
 	struct lpfc_hba *phba;
 	struct list_head listentry;
 	uint8_t port_type;
@@ -312,9 +323,9 @@ struct lpfc_vport {
 #define LPFC_VPI_REGISTERED	0x1
 
 	uint32_t fc_flag;	/* FC flags */
-/* Several of these flags are HBA centric and should be moved to
- * phba->link_flag (e.g. FC_PTP, FC_PUBLIC_LOOP)
- */
+	/* Several of these flags are HBA centric and should be moved to
+	 * phba->link_flag (e.g. FC_PTP, FC_PUBLIC_LOOP)
+	 */
 #define FC_PT2PT                0x1	 /* pt2pt with no fabric */
 #define FC_PT2PT_PLOGI          0x2	 /* pt2pt initiate PLOGI */
 #define FC_DISC_TMO             0x4	 /* Discovery timer running */
@@ -444,7 +455,8 @@ struct lpfc_vport {
 	uint32_t fdmi_port_mask;
 };
 
-struct hbq_s {
+struct hbq_s
+{
 	uint16_t entry_count;	  /* Current number of HBQ slots */
 	uint16_t buffer_count;	  /* Current number of buffers posted */
 	uint32_t next_hbqPutIdx;  /* Index to next HBQ slot to use */
@@ -452,11 +464,11 @@ struct hbq_s {
 	uint32_t local_hbqGetIdx; /* Local copy of Get index from Port */
 	void    *hbq_virt;	  /* Virtual ptr to this hbq */
 	struct list_head hbq_buffer_list;  /* buffers assigned to this HBQ */
-				  /* Callback for HBQ buffer allocation */
+	/* Callback for HBQ buffer allocation */
 	struct hbq_dmabuf *(*hbq_alloc_buffer) (struct lpfc_hba *);
-				  /* Callback for HBQ buffer free */
+	/* Callback for HBQ buffer free */
 	void               (*hbq_free_buffer) (struct lpfc_hba *,
-					       struct hbq_dmabuf *);
+										   struct hbq_dmabuf *);
 };
 
 #define LPFC_MAX_HBQS  4
@@ -464,12 +476,14 @@ struct hbq_s {
 #define LPFC_ELS_HBQ	0
 #define LPFC_EXTRA_HBQ	1
 
-enum hba_temp_state {
+enum hba_temp_state
+{
 	HBA_NORMAL_TEMP,
 	HBA_OVER_TEMP
 };
 
-enum intr_type_t {
+enum intr_type_t
+{
 	NONE = 0,
 	INTx,
 	MSI,
@@ -477,7 +491,8 @@ enum intr_type_t {
 };
 
 #define LPFC_CT_CTX_MAX		64
-struct unsol_rcv_ct_ctx {
+struct unsol_rcv_ct_ctx
+{
 	uint32_t ctxt_id;
 	uint32_t SID;
 	uint32_t valid;
@@ -497,36 +512,41 @@ struct unsol_rcv_ct_ctx {
 #define LPFC_USER_LINK_SPEED_32G	32	/* 32 Gigabaud */
 #define LPFC_USER_LINK_SPEED_MAX	LPFC_USER_LINK_SPEED_32G
 #define LPFC_USER_LINK_SPEED_BITMAP  ((1ULL << LPFC_USER_LINK_SPEED_32G) | \
-				     (1 << LPFC_USER_LINK_SPEED_16G) | \
-				     (1 << LPFC_USER_LINK_SPEED_10G) | \
-				     (1 << LPFC_USER_LINK_SPEED_8G) | \
-				     (1 << LPFC_USER_LINK_SPEED_4G) | \
-				     (1 << LPFC_USER_LINK_SPEED_2G) | \
-				     (1 << LPFC_USER_LINK_SPEED_1G) | \
-				     (1 << LPFC_USER_LINK_SPEED_AUTO))
+									  (1 << LPFC_USER_LINK_SPEED_16G) | \
+									  (1 << LPFC_USER_LINK_SPEED_10G) | \
+									  (1 << LPFC_USER_LINK_SPEED_8G) | \
+									  (1 << LPFC_USER_LINK_SPEED_4G) | \
+									  (1 << LPFC_USER_LINK_SPEED_2G) | \
+									  (1 << LPFC_USER_LINK_SPEED_1G) | \
+									  (1 << LPFC_USER_LINK_SPEED_AUTO))
 #define LPFC_LINK_SPEED_STRING "0, 1, 2, 4, 8, 10, 16, 32"
 
-enum nemb_type {
+enum nemb_type
+{
 	nemb_mse = 1,
 	nemb_hbd
 };
 
-enum mbox_type {
+enum mbox_type
+{
 	mbox_rd = 1,
 	mbox_wr
 };
 
-enum dma_type {
+enum dma_type
+{
 	dma_mbox = 1,
 	dma_ebuf
 };
 
-enum sta_type {
+enum sta_type
+{
 	sta_pre_addr = 1,
 	sta_pos_addr
 };
 
-struct lpfc_mbox_ext_buf_ctx {
+struct lpfc_mbox_ext_buf_ctx
+{
 	uint32_t state;
 #define LPFC_BSG_MBOX_IDLE		0
 #define LPFC_BSG_MBOX_HOST              1
@@ -542,65 +562,66 @@ struct lpfc_mbox_ext_buf_ctx {
 	struct list_head ext_dmabuf_list;
 };
 
-struct lpfc_hba {
+struct lpfc_hba
+{
 	/* SCSI interface function jump table entries */
 	int (*lpfc_new_scsi_buf)
-		(struct lpfc_vport *, int);
-	struct lpfc_scsi_buf * (*lpfc_get_scsi_buf)
-		(struct lpfc_hba *, struct lpfc_nodelist *);
+	(struct lpfc_vport *, int);
+	struct lpfc_scsi_buf *(*lpfc_get_scsi_buf)
+	(struct lpfc_hba *, struct lpfc_nodelist *);
 	int (*lpfc_scsi_prep_dma_buf)
-		(struct lpfc_hba *, struct lpfc_scsi_buf *);
+	(struct lpfc_hba *, struct lpfc_scsi_buf *);
 	void (*lpfc_scsi_unprep_dma_buf)
-		(struct lpfc_hba *, struct lpfc_scsi_buf *);
+	(struct lpfc_hba *, struct lpfc_scsi_buf *);
 	void (*lpfc_release_scsi_buf)
-		(struct lpfc_hba *, struct lpfc_scsi_buf *);
+	(struct lpfc_hba *, struct lpfc_scsi_buf *);
 	void (*lpfc_rampdown_queue_depth)
-		(struct lpfc_hba *);
+	(struct lpfc_hba *);
 	void (*lpfc_scsi_prep_cmnd)
-		(struct lpfc_vport *, struct lpfc_scsi_buf *,
-		 struct lpfc_nodelist *);
+	(struct lpfc_vport *, struct lpfc_scsi_buf *,
+	 struct lpfc_nodelist *);
 
 	/* IOCB interface function jump table entries */
 	int (*__lpfc_sli_issue_iocb)
-		(struct lpfc_hba *, uint32_t,
-		 struct lpfc_iocbq *, uint32_t);
+	(struct lpfc_hba *, uint32_t,
+	 struct lpfc_iocbq *, uint32_t);
 	void (*__lpfc_sli_release_iocbq)(struct lpfc_hba *,
-			 struct lpfc_iocbq *);
+									 struct lpfc_iocbq *);
 	int (*lpfc_hba_down_post)(struct lpfc_hba *phba);
-	IOCB_t * (*lpfc_get_iocb_from_iocbq)
-		(struct lpfc_iocbq *);
+	IOCB_t *(*lpfc_get_iocb_from_iocbq)
+	(struct lpfc_iocbq *);
 	void (*lpfc_scsi_cmd_iocb_cmpl)
-		(struct lpfc_hba *, struct lpfc_iocbq *, struct lpfc_iocbq *);
+	(struct lpfc_hba *, struct lpfc_iocbq *, struct lpfc_iocbq *);
 
 	/* MBOX interface function jump table entries */
 	int (*lpfc_sli_issue_mbox)
-		(struct lpfc_hba *, LPFC_MBOXQ_t *, uint32_t);
+	(struct lpfc_hba *, LPFC_MBOXQ_t *, uint32_t);
 
 	/* Slow-path IOCB process function jump table entries */
 	void (*lpfc_sli_handle_slow_ring_event)
-		(struct lpfc_hba *phba, struct lpfc_sli_ring *pring,
-		 uint32_t mask);
+	(struct lpfc_hba *phba, struct lpfc_sli_ring *pring,
+	 uint32_t mask);
 
 	/* INIT device interface function jump table entries */
 	int (*lpfc_sli_hbq_to_firmware)
-		(struct lpfc_hba *, uint32_t, struct hbq_dmabuf *);
+	(struct lpfc_hba *, uint32_t, struct hbq_dmabuf *);
 	int (*lpfc_sli_brdrestart)
-		(struct lpfc_hba *);
+	(struct lpfc_hba *);
 	int (*lpfc_sli_brdready)
-		(struct lpfc_hba *, uint32_t);
+	(struct lpfc_hba *, uint32_t);
 	void (*lpfc_handle_eratt)
-		(struct lpfc_hba *);
+	(struct lpfc_hba *);
 	void (*lpfc_stop_port)
-		(struct lpfc_hba *);
+	(struct lpfc_hba *);
 	int (*lpfc_hba_init_link)
-		(struct lpfc_hba *, uint32_t);
+	(struct lpfc_hba *, uint32_t);
 	int (*lpfc_hba_down_link)
-		(struct lpfc_hba *, uint32_t);
+	(struct lpfc_hba *, uint32_t);
 	int (*lpfc_selective_reset)
-		(struct lpfc_hba *);
+	(struct lpfc_hba *);
 
 	int (*lpfc_bg_scsi_prep_dma_buf)
-		(struct lpfc_hba *, struct lpfc_scsi_buf *);
+	(struct lpfc_hba *, struct lpfc_scsi_buf *);
 	/* Add new entries here */
 
 	/* SLI4 specific HBA data structure */
@@ -624,8 +645,8 @@ struct lpfc_hba {
 	enum hba_state link_state;
 	uint32_t link_flag;	/* link state flags */
 #define LS_LOOPBACK_MODE      0x1	/* NPort is in Loopback mode */
-					/* This flag is set while issuing */
-					/* INIT_LINK mailbox command */
+	/* This flag is set while issuing */
+	/* INIT_LINK mailbox command */
 #define LS_NPIV_FAB_SUPPORTED 0x2	/* Fabric supports NPIV */
 #define LS_IGNORE_ERATT       0x4	/* intr handler should ignore ERATT */
 
@@ -978,7 +999,7 @@ struct lpfc_hba {
 	uint32_t bucket_base;
 	uint32_t bucket_step;
 
-/* Maximum number of events that can be outstanding at any time*/
+	/* Maximum number of events that can be outstanding at any time*/
 #define LPFC_MAX_EVT_COUNT 512
 	atomic_t fast_event_count;
 	uint32_t fcoe_eventtag;
@@ -1030,17 +1051,21 @@ static inline void
 lpfc_set_loopback_flag(struct lpfc_hba *phba)
 {
 	if (phba->cfg_topology == FLAGS_LOCAL_LB)
+	{
 		phba->link_flag |= LS_LOOPBACK_MODE;
+	}
 	else
+	{
 		phba->link_flag &= ~LS_LOOPBACK_MODE;
+	}
 }
 
 static inline int
 lpfc_is_link_up(struct lpfc_hba *phba)
 {
 	return  phba->link_state == LPFC_LINK_UP ||
-		phba->link_state == LPFC_CLEAR_LA ||
-		phba->link_state == LPFC_HBA_READY;
+			phba->link_state == LPFC_CLEAR_LA ||
+			phba->link_state == LPFC_HBA_READY;
 }
 
 static inline void
@@ -1059,8 +1084,12 @@ lpfc_readl(void __iomem *addr, uint32_t *data)
 {
 	uint32_t temp;
 	temp = readl(addr);
+
 	if (temp == 0xffffffff)
+	{
 		return -EIO;
+	}
+
 	*data = temp;
 	return 0;
 }
@@ -1077,7 +1106,8 @@ lpfc_sli_read_hs(struct lpfc_hba *phba)
 	/* Save status info and check for unplug error */
 	if (lpfc_readl(phba->HSregaddr, &phba->work_hs) ||
 		lpfc_readl(phba->MBslimaddr + 0xa8, &phba->work_status[0]) ||
-		lpfc_readl(phba->MBslimaddr + 0xac, &phba->work_status[1])) {
+		lpfc_readl(phba->MBslimaddr + 0xac, &phba->work_status[1]))
+	{
 		return -EIO;
 	}
 

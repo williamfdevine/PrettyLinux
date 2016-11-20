@@ -50,7 +50,8 @@
  * @clk: pointer to clk structure of pwm chip
  * @chip: linux pwm chip representation
  */
-struct spear_pwm_chip {
+struct spear_pwm_chip
+{
 	void __iomem *mmio_base;
 	struct clk *clk;
 	struct pwm_chip chip;
@@ -62,20 +63,20 @@ static inline struct spear_pwm_chip *to_spear_pwm_chip(struct pwm_chip *chip)
 }
 
 static inline u32 spear_pwm_readl(struct spear_pwm_chip *chip, unsigned int num,
-				  unsigned long offset)
+								  unsigned long offset)
 {
 	return readl_relaxed(chip->mmio_base + (num << 4) + offset);
 }
 
 static inline void spear_pwm_writel(struct spear_pwm_chip *chip,
-				    unsigned int num, unsigned long offset,
-				    unsigned long val)
+									unsigned int num, unsigned long offset,
+									unsigned long val)
 {
 	writel_relaxed(val, chip->mmio_base + (num << 4) + offset);
 }
 
 static int spear_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
-			    int duty_ns, int period_ns)
+							int duty_ns, int period_ns)
 {
 	struct spear_pwm_chip *pc = to_spear_pwm_chip(chip);
 	u64 val, div, clk_rate;
@@ -93,7 +94,9 @@ static int spear_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	 * DC = (PWM_CLK_RATE * duty_ns) / (10^9 * (PRESCALE + 1))
 	 */
 	clk_rate = clk_get_rate(pc->clk);
-	while (1) {
+
+	while (1)
+	{
 		div = 1000000000;
 		div *= 1 + prescale;
 		val = clk_rate * period_ns;
@@ -103,17 +106,24 @@ static int spear_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 
 		/* if duty_ns and period_ns are not achievable then return */
 		if (pv < PWMPCR_MIN_PERIOD || dc < PWMDCR_MIN_DUTY)
+		{
 			return -EINVAL;
+		}
 
 		/*
 		 * if pv and dc have crossed their upper limit, then increase
 		 * prescale and recalculate pv and dc.
 		 */
-		if (pv > PWMPCR_MAX_PERIOD || dc > PWMDCR_MAX_DUTY) {
+		if (pv > PWMPCR_MAX_PERIOD || dc > PWMDCR_MAX_DUTY)
+		{
 			if (++prescale > PWMCR_MAX_PRESCALE)
+			{
 				return -EINVAL;
+			}
+
 			continue;
 		}
+
 		break;
 	}
 
@@ -122,11 +132,14 @@ static int spear_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	 * registers.
 	 */
 	ret = clk_enable(pc->clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	spear_pwm_writel(pc, pwm->hwpwm, PWMCR,
-			prescale << PWMCR_PRESCALE_SHIFT);
+					 prescale << PWMCR_PRESCALE_SHIFT);
 	spear_pwm_writel(pc, pwm->hwpwm, PWMDCR, dc);
 	spear_pwm_writel(pc, pwm->hwpwm, PWMPCR, pv);
 	clk_disable(pc->clk);
@@ -141,8 +154,11 @@ static int spear_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 	u32 val;
 
 	rc = clk_enable(pc->clk);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	val = spear_pwm_readl(pc, pwm->hwpwm, PWMCR);
 	val |= PWMCR_PWM_ENABLE;
@@ -163,7 +179,8 @@ static void spear_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 	clk_disable(pc->clk);
 }
 
-static const struct pwm_ops spear_pwm_ops = {
+static const struct pwm_ops spear_pwm_ops =
+{
 	.config = spear_pwm_config,
 	.enable = spear_pwm_enable,
 	.disable = spear_pwm_disable,
@@ -179,17 +196,26 @@ static int spear_pwm_probe(struct platform_device *pdev)
 	u32 val;
 
 	pc = devm_kzalloc(&pdev->dev, sizeof(*pc), GFP_KERNEL);
+
 	if (!pc)
+	{
 		return -ENOMEM;
+	}
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	pc->mmio_base = devm_ioremap_resource(&pdev->dev, r);
+
 	if (IS_ERR(pc->mmio_base))
+	{
 		return PTR_ERR(pc->mmio_base);
+	}
 
 	pc->clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(pc->clk))
+	{
 		return PTR_ERR(pc->clk);
+	}
 
 	platform_set_drvdata(pdev, pc);
 
@@ -199,15 +225,22 @@ static int spear_pwm_probe(struct platform_device *pdev)
 	pc->chip.npwm = NUM_PWM;
 
 	ret = clk_prepare(pc->clk);
-	if (ret)
-		return ret;
 
-	if (of_device_is_compatible(np, "st,spear1340-pwm")) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (of_device_is_compatible(np, "st,spear1340-pwm"))
+	{
 		ret = clk_enable(pc->clk);
-		if (ret) {
+
+		if (ret)
+		{
 			clk_unprepare(pc->clk);
 			return ret;
 		}
+
 		/*
 		 * Following enables PWM chip, channels would still be
 		 * enabled individually through their control register
@@ -220,7 +253,9 @@ static int spear_pwm_probe(struct platform_device *pdev)
 	}
 
 	ret = pwmchip_add(&pc->chip);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		clk_unprepare(pc->clk);
 		dev_err(&pdev->dev, "pwmchip_add() failed: %d\n", ret);
 	}
@@ -234,14 +269,17 @@ static int spear_pwm_remove(struct platform_device *pdev)
 	int i;
 
 	for (i = 0; i < NUM_PWM; i++)
+	{
 		pwm_disable(&pc->chip.pwms[i]);
+	}
 
 	/* clk was prepared in probe, hence unprepare it here */
 	clk_unprepare(pc->clk);
 	return pwmchip_remove(&pc->chip);
 }
 
-static const struct of_device_id spear_pwm_of_match[] = {
+static const struct of_device_id spear_pwm_of_match[] =
+{
 	{ .compatible = "st,spear320-pwm" },
 	{ .compatible = "st,spear1340-pwm" },
 	{ }
@@ -249,7 +287,8 @@ static const struct of_device_id spear_pwm_of_match[] = {
 
 MODULE_DEVICE_TABLE(of, spear_pwm_of_match);
 
-static struct platform_driver spear_pwm_driver = {
+static struct platform_driver spear_pwm_driver =
+{
 	.driver = {
 		.name = "spear-pwm",
 		.of_match_table = spear_pwm_of_match,

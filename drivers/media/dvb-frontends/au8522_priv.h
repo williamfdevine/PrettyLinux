@@ -40,7 +40,8 @@
 #define AU8522_DIGITAL_MODE 1
 #define AU8522_SUSPEND_MODE 2
 
-struct au8522_state {
+struct au8522_state
+{
 	struct i2c_client *c;
 	struct i2c_adapter *i2c;
 
@@ -83,7 +84,7 @@ int au8522_init(struct dvb_frontend *fe);
 int au8522_sleep(struct dvb_frontend *fe);
 
 int au8522_get_state(struct au8522_state **state, struct i2c_adapter *i2c,
-		     u8 client_address);
+					 u8 client_address);
 void au8522_release_state(struct au8522_state *state);
 int au8522_i2c_gate_ctrl(struct dvb_frontend *fe, int enable);
 int au8522_analog_i2c_gate_ctrl(struct dvb_frontend *fe, int enable);

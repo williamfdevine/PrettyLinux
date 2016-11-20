@@ -8,7 +8,8 @@
 
 struct regulator_desc;
 
-struct of_regulator_match {
+struct of_regulator_match
+{
 	const char *name;
 	void *driver_data;
 	struct regulator_init_data *init_data;
@@ -18,25 +19,25 @@ struct of_regulator_match {
 
 #if defined(CONFIG_OF)
 extern struct regulator_init_data
-	*of_get_regulator_init_data(struct device *dev,
-				    struct device_node *node,
-				    const struct regulator_desc *desc);
+*of_get_regulator_init_data(struct device *dev,
+							struct device_node *node,
+							const struct regulator_desc *desc);
 extern int of_regulator_match(struct device *dev, struct device_node *node,
-			      struct of_regulator_match *matches,
-			      unsigned int num_matches);
+							  struct of_regulator_match *matches,
+							  unsigned int num_matches);
 #else
 static inline struct regulator_init_data
-	*of_get_regulator_init_data(struct device *dev,
-				    struct device_node *node,
-				    const struct regulator_desc *desc)
+*of_get_regulator_init_data(struct device *dev,
+							struct device_node *node,
+							const struct regulator_desc *desc)
 {
 	return NULL;
 }
 
 static inline int of_regulator_match(struct device *dev,
-				     struct device_node *node,
-				     struct of_regulator_match *matches,
-				     unsigned int num_matches)
+									 struct device_node *node,
+									 struct of_regulator_match *matches,
+									 unsigned int num_matches)
 {
 	return 0;
 }

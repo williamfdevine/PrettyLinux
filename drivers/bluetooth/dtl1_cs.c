@@ -62,7 +62,8 @@ MODULE_LICENSE("GPL");
 /* ======================== Local structures ======================== */
 
 
-struct dtl1_info {
+struct dtl1_info
+{
 	struct pcmcia_device *p_dev;
 
 	struct hci_dev *hdev;
@@ -94,7 +95,8 @@ static int dtl1_config(struct pcmcia_device *link);
 #define RECV_WAIT_DATA  1
 
 
-struct nsh {
+struct nsh
+{
 	u8 type;
 	u8 zero;
 	u16 len;
@@ -113,10 +115,13 @@ static int dtl1_write(unsigned int iobase, int fifo_size, __u8 *buf, int len)
 
 	/* Tx FIFO should be empty */
 	if (!(inb(iobase + UART_LSR) & UART_LSR_THRE))
+	{
 		return 0;
+	}
 
 	/* Fill FIFO with current frame */
-	while ((fifo_size-- > 0) && (actual < len)) {
+	while ((fifo_size-- > 0) && (actual < len))
+	{
 		/* Transmit next byte */
 		outb(buf[actual], iobase + UART_TX);
 		actual++;
@@ -128,22 +133,26 @@ static int dtl1_write(unsigned int iobase, int fifo_size, __u8 *buf, int len)
 
 static void dtl1_write_wakeup(struct dtl1_info *info)
 {
-	if (!info) {
+	if (!info)
+	{
 		BT_ERR("Unknown device");
 		return;
 	}
 
-	if (test_bit(XMIT_WAITING, &(info->tx_state))) {
+	if (test_bit(XMIT_WAITING, &(info->tx_state)))
+	{
 		set_bit(XMIT_WAKEUP, &(info->tx_state));
 		return;
 	}
 
-	if (test_and_set_bit(XMIT_SENDING, &(info->tx_state))) {
+	if (test_and_set_bit(XMIT_SENDING, &(info->tx_state)))
+	{
 		set_bit(XMIT_WAKEUP, &(info->tx_state));
 		return;
 	}
 
-	do {
+	do
+	{
 		unsigned int iobase = info->p_dev->resource[0]->start;
 		register struct sk_buff *skb;
 		int len;
@@ -151,26 +160,35 @@ static void dtl1_write_wakeup(struct dtl1_info *info)
 		clear_bit(XMIT_WAKEUP, &(info->tx_state));
 
 		if (!pcmcia_dev_present(info->p_dev))
+		{
 			return;
+		}
 
 		skb = skb_dequeue(&(info->txq));
+
 		if (!skb)
+		{
 			break;
+		}
 
 		/* Send frame */
 		len = dtl1_write(iobase, 32, skb->data, skb->len);
 
-		if (len == skb->len) {
+		if (len == skb->len)
+		{
 			set_bit(XMIT_WAITING, &(info->tx_state));
 			kfree_skb(skb);
-		} else {
+		}
+		else
+		{
 			skb_pull(skb, len);
 			skb_queue_head(&(info->txq), skb);
 		}
 
 		info->hdev->stat.byte_tx += len;
 
-	} while (test_bit(XMIT_WAKEUP, &(info->tx_state)));
+	}
+	while (test_bit(XMIT_WAKEUP, &(info->tx_state)));
 
 	clear_bit(XMIT_SENDING, &(info->tx_state));
 }
@@ -182,13 +200,17 @@ static void dtl1_control(struct dtl1_info *info, struct sk_buff *skb)
 	int i;
 
 	printk(KERN_INFO "Bluetooth: Nokia control data =");
+
 	for (i = 0; i < skb->len; i++)
+	{
 		printk(" %02x", skb->data[i]);
+	}
 
 	printk("\n");
 
 	/* transition to active state */
-	if (((info->flowmask & 0x07) == 0) && ((flowmask & 0x07) != 0)) {
+	if (((info->flowmask & 0x07) == 0) && ((flowmask & 0x07) != 0))
+	{
 		clear_bit(XMIT_WAITING, &(info->tx_state));
 		dtl1_write_wakeup(info);
 	}
@@ -205,20 +227,25 @@ static void dtl1_receive(struct dtl1_info *info)
 	struct nsh *nsh;
 	int boguscount = 0;
 
-	if (!info) {
+	if (!info)
+	{
 		BT_ERR("Unknown device");
 		return;
 	}
 
 	iobase = info->p_dev->resource[0]->start;
 
-	do {
+	do
+	{
 		info->hdev->stat.byte_rx++;
 
 		/* Allocate packet */
-		if (info->rx_skb == NULL) {
+		if (info->rx_skb == NULL)
+		{
 			info->rx_skb = bt_skb_alloc(HCI_MAX_FRAME_SIZE, GFP_ATOMIC);
-			if (!info->rx_skb) {
+
+			if (!info->rx_skb)
+			{
 				BT_ERR("Can't allocate mem for new packet");
 				info->rx_state = RECV_WAIT_NSH;
 				info->rx_count = NSHL;
@@ -231,58 +258,68 @@ static void dtl1_receive(struct dtl1_info *info)
 
 		info->rx_count--;
 
-		if (info->rx_count == 0) {
+		if (info->rx_count == 0)
+		{
 
-			switch (info->rx_state) {
-			case RECV_WAIT_NSH:
-				info->rx_state = RECV_WAIT_DATA;
-				info->rx_count = nsh->len + (nsh->len & 0x0001);
-				break;
-			case RECV_WAIT_DATA:
-				hci_skb_pkt_type(info->rx_skb) = nsh->type;
-
-				/* remove PAD byte if it exists */
-				if (nsh->len & 0x0001) {
-					info->rx_skb->tail--;
-					info->rx_skb->len--;
-				}
-
-				/* remove NSH */
-				skb_pull(info->rx_skb, NSHL);
-
-				switch (hci_skb_pkt_type(info->rx_skb)) {
-				case 0x80:
-					/* control data for the Nokia Card */
-					dtl1_control(info, info->rx_skb);
+			switch (info->rx_state)
+			{
+				case RECV_WAIT_NSH:
+					info->rx_state = RECV_WAIT_DATA;
+					info->rx_count = nsh->len + (nsh->len & 0x0001);
 					break;
-				case 0x82:
-				case 0x83:
-				case 0x84:
-					/* send frame to the HCI layer */
-					hci_skb_pkt_type(info->rx_skb) &= 0x0f;
-					hci_recv_frame(info->hdev, info->rx_skb);
-					break;
-				default:
-					/* unknown packet */
-					BT_ERR("Unknown HCI packet with type 0x%02x received",
-					       hci_skb_pkt_type(info->rx_skb));
-					kfree_skb(info->rx_skb);
-					break;
-				}
 
-				info->rx_state = RECV_WAIT_NSH;
-				info->rx_count = NSHL;
-				info->rx_skb = NULL;
-				break;
+				case RECV_WAIT_DATA:
+					hci_skb_pkt_type(info->rx_skb) = nsh->type;
+
+					/* remove PAD byte if it exists */
+					if (nsh->len & 0x0001)
+					{
+						info->rx_skb->tail--;
+						info->rx_skb->len--;
+					}
+
+					/* remove NSH */
+					skb_pull(info->rx_skb, NSHL);
+
+					switch (hci_skb_pkt_type(info->rx_skb))
+					{
+						case 0x80:
+							/* control data for the Nokia Card */
+							dtl1_control(info, info->rx_skb);
+							break;
+
+						case 0x82:
+						case 0x83:
+						case 0x84:
+							/* send frame to the HCI layer */
+							hci_skb_pkt_type(info->rx_skb) &= 0x0f;
+							hci_recv_frame(info->hdev, info->rx_skb);
+							break;
+
+						default:
+							/* unknown packet */
+							BT_ERR("Unknown HCI packet with type 0x%02x received",
+								   hci_skb_pkt_type(info->rx_skb));
+							kfree_skb(info->rx_skb);
+							break;
+					}
+
+					info->rx_state = RECV_WAIT_NSH;
+					info->rx_count = NSHL;
+					info->rx_skb = NULL;
+					break;
 			}
 
 		}
 
 		/* Make sure we don't stay here too long */
 		if (boguscount++ > 32)
+		{
 			break;
+		}
 
-	} while (inb(iobase + UART_LSR) & UART_LSR_DR);
+	}
+	while (inb(iobase + UART_LSR) & UART_LSR_DR);
 }
 
 
@@ -297,41 +334,53 @@ static irqreturn_t dtl1_interrupt(int irq, void *dev_inst)
 
 	if (!info || !info->hdev)
 		/* our irq handler is shared */
+	{
 		return IRQ_NONE;
+	}
 
 	iobase = info->p_dev->resource[0]->start;
 
 	spin_lock(&(info->lock));
 
 	iir = inb(iobase + UART_IIR) & UART_IIR_ID;
-	while (iir) {
+
+	while (iir)
+	{
 
 		r = IRQ_HANDLED;
 		/* Clear interrupt */
 		lsr = inb(iobase + UART_LSR);
 
-		switch (iir) {
-		case UART_IIR_RLSI:
-			BT_ERR("RLSI");
-			break;
-		case UART_IIR_RDI:
-			/* Receive interrupt */
-			dtl1_receive(info);
-			break;
-		case UART_IIR_THRI:
-			if (lsr & UART_LSR_THRE) {
-				/* Transmitter ready for data */
-				dtl1_write_wakeup(info);
-			}
-			break;
-		default:
-			BT_ERR("Unhandled IIR=%#x", iir);
-			break;
+		switch (iir)
+		{
+			case UART_IIR_RLSI:
+				BT_ERR("RLSI");
+				break;
+
+			case UART_IIR_RDI:
+				/* Receive interrupt */
+				dtl1_receive(info);
+				break;
+
+			case UART_IIR_THRI:
+				if (lsr & UART_LSR_THRE)
+				{
+					/* Transmitter ready for data */
+					dtl1_write_wakeup(info);
+				}
+
+				break;
+
+			default:
+				BT_ERR("Unhandled IIR=%#x", iir);
+				break;
 		}
 
 		/* Make sure we don't stay here too long */
 		if (boguscount++ > 100)
+		{
 			break;
+		}
 
 		iir = inb(iobase + UART_IIR) & UART_IIR_ID;
 
@@ -339,7 +388,8 @@ static irqreturn_t dtl1_interrupt(int irq, void *dev_inst)
 
 	msr = inb(iobase + UART_MSR);
 
-	if (info->ri_latch ^ (msr & UART_MSR_RI)) {
+	if (info->ri_latch ^ (msr & UART_MSR_RI))
+	{
 		info->ri_latch = msr & UART_MSR_RI;
 		clear_bit(XMIT_WAITING, &(info->tx_state));
 		dtl1_write_wakeup(info);
@@ -387,34 +437,44 @@ static int dtl1_hci_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 	struct sk_buff *s;
 	struct nsh nsh;
 
-	switch (hci_skb_pkt_type(skb)) {
-	case HCI_COMMAND_PKT:
-		hdev->stat.cmd_tx++;
-		nsh.type = 0x81;
-		break;
-	case HCI_ACLDATA_PKT:
-		hdev->stat.acl_tx++;
-		nsh.type = 0x82;
-		break;
-	case HCI_SCODATA_PKT:
-		hdev->stat.sco_tx++;
-		nsh.type = 0x83;
-		break;
-	default:
-		return -EILSEQ;
+	switch (hci_skb_pkt_type(skb))
+	{
+		case HCI_COMMAND_PKT:
+			hdev->stat.cmd_tx++;
+			nsh.type = 0x81;
+			break;
+
+		case HCI_ACLDATA_PKT:
+			hdev->stat.acl_tx++;
+			nsh.type = 0x82;
+			break;
+
+		case HCI_SCODATA_PKT:
+			hdev->stat.sco_tx++;
+			nsh.type = 0x83;
+			break;
+
+		default:
+			return -EILSEQ;
 	}
 
 	nsh.zero = 0;
 	nsh.len = skb->len;
 
 	s = bt_skb_alloc(NSHL + skb->len + 1, GFP_ATOMIC);
+
 	if (!s)
+	{
 		return -ENOMEM;
+	}
 
 	skb_reserve(s, NSHL);
 	skb_copy_from_linear_data(skb, skb_put(s, skb->len), skb->len);
+
 	if (skb->len & 0x0001)
-		*skb_put(s, 1) = 0;	/* PAD */
+	{
+		*skb_put(s, 1) = 0;    /* PAD */
+	}
 
 	/* Prepend skb with Nokia frame header and queue */
 	memcpy(skb_push(s, NSHL), &nsh, NSHL);
@@ -450,7 +510,9 @@ static int dtl1_open(struct dtl1_info *info)
 
 	/* Initialize HCI device */
 	hdev = hci_alloc_dev();
-	if (!hdev) {
+
+	if (!hdev)
+	{
 		BT_ERR("Can't allocate HCI device");
 		return -ENOMEM;
 	}
@@ -479,7 +541,7 @@ static int dtl1_open(struct dtl1_info *info)
 	outb((UART_MCR_DTR | UART_MCR_RTS | UART_MCR_OUT2), iobase + UART_MCR);
 
 	info->ri_latch = inb(info->p_dev->resource[0]->start + UART_MSR)
-				& UART_MSR_RI;
+					 & UART_MSR_RI;
 
 	/* Turn on interrupts */
 	outb(UART_IER_RLSI | UART_IER_RDI | UART_IER_THRI, iobase + UART_IER);
@@ -490,7 +552,8 @@ static int dtl1_open(struct dtl1_info *info)
 	msleep(2000);
 
 	/* Register HCI device */
-	if (hci_register_dev(hdev) < 0) {
+	if (hci_register_dev(hdev) < 0)
+	{
 		BT_ERR("Can't register HCI device");
 		info->hdev = NULL;
 		hci_free_dev(hdev);
@@ -508,7 +571,9 @@ static int dtl1_close(struct dtl1_info *info)
 	struct hci_dev *hdev = info->hdev;
 
 	if (!hdev)
+	{
 		return -ENODEV;
+	}
 
 	dtl1_hci_close(hdev);
 
@@ -534,8 +599,11 @@ static int dtl1_probe(struct pcmcia_device *link)
 
 	/* Create new info device */
 	info = devm_kzalloc(&link->dev, sizeof(*info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	info->p_dev = link;
 	link->priv = info;
@@ -557,7 +625,9 @@ static void dtl1_detach(struct pcmcia_device *link)
 static int dtl1_confcheck(struct pcmcia_device *p_dev, void *priv_data)
 {
 	if ((p_dev->resource[1]->end) || (p_dev->resource[1]->end < 8))
+	{
 		return -ENODEV;
+	}
 
 	p_dev->resource[0]->flags &= ~IO_DATA_PATH_WIDTH;
 	p_dev->resource[0]->flags |= IO_DATA_PATH_WIDTH_8;
@@ -573,20 +643,32 @@ static int dtl1_config(struct pcmcia_device *link)
 	/* Look for a generic full-sized window */
 	link->resource[0]->end = 8;
 	ret = pcmcia_loop_config(link, dtl1_confcheck, NULL);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	ret = pcmcia_request_irq(link, dtl1_interrupt);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	ret = pcmcia_enable_device(link);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	ret = dtl1_open(info);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	return 0;
 
@@ -595,7 +677,8 @@ failed:
 	return ret;
 }
 
-static const struct pcmcia_device_id dtl1_ids[] = {
+static const struct pcmcia_device_id dtl1_ids[] =
+{
 	PCMCIA_DEVICE_PROD_ID12("Nokia Mobile Phones", "DTL-1", 0xe1bfdd64, 0xe168480d),
 	PCMCIA_DEVICE_PROD_ID12("Nokia Mobile Phones", "DTL-4", 0xe1bfdd64, 0x9102bc82),
 	PCMCIA_DEVICE_PROD_ID12("Socket", "CF", 0xb38bcc2e, 0x44ebf863),
@@ -604,7 +687,8 @@ static const struct pcmcia_device_id dtl1_ids[] = {
 };
 MODULE_DEVICE_TABLE(pcmcia, dtl1_ids);
 
-static struct pcmcia_driver dtl1_driver = {
+static struct pcmcia_driver dtl1_driver =
+{
 	.owner		= THIS_MODULE,
 	.name		= "dtl1_cs",
 	.probe		= dtl1_probe,

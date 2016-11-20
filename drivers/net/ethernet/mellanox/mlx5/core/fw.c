@@ -36,7 +36,7 @@
 #include "mlx5_core.h"
 
 static int mlx5_cmd_query_adapter(struct mlx5_core_dev *dev, u32 *out,
-				  int outlen)
+								  int outlen)
 {
 	u32 in[MLX5_ST_SZ_DW(query_adapter_in)] = {0};
 
@@ -51,18 +51,24 @@ int mlx5_query_board_id(struct mlx5_core_dev *dev)
 	int err;
 
 	out = kzalloc(outlen, GFP_KERNEL);
+
 	if (!out)
+	{
 		return -ENOMEM;
+	}
 
 	err = mlx5_cmd_query_adapter(dev, out, outlen);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	memcpy(dev->board_id,
-	       MLX5_ADDR_OF(query_adapter_out, out,
-			    query_adapter_struct.vsd_contd_psid),
-	       MLX5_FLD_SZ_BYTES(query_adapter_out,
-				 query_adapter_struct.vsd_contd_psid));
+		   MLX5_ADDR_OF(query_adapter_out, out,
+						query_adapter_struct.vsd_contd_psid),
+		   MLX5_FLD_SZ_BYTES(query_adapter_out,
+							 query_adapter_struct.vsd_contd_psid));
 
 out:
 	kfree(out);
@@ -76,15 +82,21 @@ int mlx5_core_query_vendor_id(struct mlx5_core_dev *mdev, u32 *vendor_id)
 	int err;
 
 	out = kzalloc(outlen, GFP_KERNEL);
+
 	if (!out)
+	{
 		return -ENOMEM;
+	}
 
 	err = mlx5_cmd_query_adapter(mdev, out, outlen);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	*vendor_id = MLX5_GET(query_adapter_out, out,
-			      query_adapter_struct.ieee_vendor_id);
+						  query_adapter_struct.ieee_vendor_id);
 out:
 	kfree(out);
 	return err;
@@ -96,62 +108,101 @@ int mlx5_query_hca_caps(struct mlx5_core_dev *dev)
 	int err;
 
 	err = mlx5_core_get_caps(dev, MLX5_CAP_GENERAL);
+
 	if (err)
+	{
 		return err;
+	}
 
-	if (MLX5_CAP_GEN(dev, eth_net_offloads)) {
+	if (MLX5_CAP_GEN(dev, eth_net_offloads))
+	{
 		err = mlx5_core_get_caps(dev, MLX5_CAP_ETHERNET_OFFLOADS);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
-	if (MLX5_CAP_GEN(dev, pg)) {
+	if (MLX5_CAP_GEN(dev, pg))
+	{
 		err = mlx5_core_get_caps(dev, MLX5_CAP_ODP);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
-	if (MLX5_CAP_GEN(dev, atomic)) {
+	if (MLX5_CAP_GEN(dev, atomic))
+	{
 		err = mlx5_core_get_caps(dev, MLX5_CAP_ATOMIC);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
-	if (MLX5_CAP_GEN(dev, roce)) {
+	if (MLX5_CAP_GEN(dev, roce))
+	{
 		err = mlx5_core_get_caps(dev, MLX5_CAP_ROCE);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
-	if (MLX5_CAP_GEN(dev, nic_flow_table)) {
+	if (MLX5_CAP_GEN(dev, nic_flow_table))
+	{
 		err = mlx5_core_get_caps(dev, MLX5_CAP_FLOW_TABLE);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	if (MLX5_CAP_GEN(dev, vport_group_manager) &&
-	    MLX5_CAP_GEN(dev, eswitch_flow_table)) {
+		MLX5_CAP_GEN(dev, eswitch_flow_table))
+	{
 		err = mlx5_core_get_caps(dev, MLX5_CAP_ESWITCH_FLOW_TABLE);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
-	if (MLX5_CAP_GEN(dev, eswitch_flow_table)) {
+	if (MLX5_CAP_GEN(dev, eswitch_flow_table))
+	{
 		err = mlx5_core_get_caps(dev, MLX5_CAP_ESWITCH);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
-	if (MLX5_CAP_GEN(dev, vector_calc)) {
+	if (MLX5_CAP_GEN(dev, vector_calc))
+	{
 		err = mlx5_core_get_caps(dev, MLX5_CAP_VECTOR_CALC);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
-	if (MLX5_CAP_GEN(dev, qos)) {
+	if (MLX5_CAP_GEN(dev, qos))
+	{
 		err = mlx5_core_get_caps(dev, MLX5_CAP_QOS);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	return 0;

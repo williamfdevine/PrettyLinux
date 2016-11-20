@@ -48,8 +48,11 @@ void ishtp_recv(struct ishtp_device *dev)
 
 	/* Read ISHTP header dword */
 	msg_hdr = dev->ops->ishtp_read_hdr(dev);
+
 	if (!msg_hdr)
+	{
 		return;
+	}
 
 	dev->ops->sync_fw_clock(dev);
 
@@ -57,22 +60,29 @@ void ishtp_recv(struct ishtp_device *dev)
 	dev->ishtp_msg_hdr = msg_hdr;
 
 	/* Sanity check: ISHTP frag. length in header */
-	if (ishtp_hdr->length > dev->mtu) {
+	if (ishtp_hdr->length > dev->mtu)
+	{
 		dev_err(dev->devc,
-			"ISHTP hdr - bad length: %u; dropped [%08X]\n",
-			(unsigned int)ishtp_hdr->length, msg_hdr);
+				"ISHTP hdr - bad length: %u; dropped [%08X]\n",
+				(unsigned int)ishtp_hdr->length, msg_hdr);
 		return;
 	}
 
 	/* ISHTP bus message */
 	if (!ishtp_hdr->host_addr && !ishtp_hdr->fw_addr)
+	{
 		recv_hbm(dev, ishtp_hdr);
+	}
 	/* ISHTP fixed-client message */
 	else if (!ishtp_hdr->host_addr)
+	{
 		recv_fixed_cl_msg(dev, ishtp_hdr);
+	}
 	else
 		/* ISHTP client message */
+	{
 		recv_ishtp_cl_msg(dev, ishtp_hdr);
+	}
 }
 EXPORT_SYMBOL(ishtp_recv);
 
@@ -90,21 +100,21 @@ EXPORT_SYMBOL(ishtp_recv);
  * Return: This returns IPC send message status.
  */
 int ishtp_send_msg(struct ishtp_device *dev, struct ishtp_msg_hdr *hdr,
-		       void *msg, void(*ipc_send_compl)(void *),
-		       void *ipc_send_compl_prm)
+				   void *msg, void(*ipc_send_compl)(void *),
+				   void *ipc_send_compl_prm)
 {
 	unsigned char	ipc_msg[IPC_FULL_MSG_SIZE];
 	uint32_t	drbl_val;
 
 	drbl_val = dev->ops->ipc_get_header(dev, hdr->length +
-					    sizeof(struct ishtp_msg_hdr),
-					    1);
+										sizeof(struct ishtp_msg_hdr),
+										1);
 
 	memcpy(ipc_msg, &drbl_val, sizeof(uint32_t));
 	memcpy(ipc_msg + sizeof(uint32_t), hdr, sizeof(uint32_t));
 	memcpy(ipc_msg + 2 * sizeof(uint32_t), msg, hdr->length);
 	return	dev->ops->write(dev, ipc_send_compl, ipc_send_compl_prm,
-				ipc_msg, 2 * sizeof(uint32_t) + hdr->length);
+							ipc_msg, 2 * sizeof(uint32_t) + hdr->length);
 }
 
 /**
@@ -119,7 +129,7 @@ int ishtp_send_msg(struct ishtp_device *dev, struct ishtp_msg_hdr *hdr,
  * Return: This returns IPC send message status.
  */
 int ishtp_write_message(struct ishtp_device *dev, struct ishtp_msg_hdr *hdr,
-			unsigned char *buf)
+						unsigned char *buf)
 {
 	return ishtp_send_msg(dev, hdr, buf, NULL, NULL);
 }
@@ -137,13 +147,16 @@ int ishtp_fw_cl_by_uuid(struct ishtp_device *dev, const uuid_le *uuid)
 {
 	int i, res = -ENOENT;
 
-	for (i = 0; i < dev->fw_clients_num; ++i) {
+	for (i = 0; i < dev->fw_clients_num; ++i)
+	{
 		if (uuid_le_cmp(*uuid, dev->fw_clients[i].props.protocol_name)
-				== 0) {
+			== 0)
+		{
 			res = i;
 			break;
 		}
 	}
+
 	return res;
 }
 EXPORT_SYMBOL(ishtp_fw_cl_by_uuid);
@@ -163,12 +176,16 @@ int ishtp_fw_cl_by_id(struct ishtp_device *dev, uint8_t client_id)
 	unsigned long	flags;
 
 	spin_lock_irqsave(&dev->fw_clients_lock, flags);
-	for (i = 0; i < dev->fw_clients_num; i++) {
-		if (dev->fw_clients[i].client_id == client_id) {
+
+	for (i = 0; i < dev->fw_clients_num; i++)
+	{
+		if (dev->fw_clients[i].client_id == client_id)
+		{
 			res = i;
 			break;
 		}
 	}
+
 	spin_unlock_irqrestore(&dev->fw_clients_lock, flags);
 
 	return res;
@@ -188,11 +205,16 @@ static int ishtp_cl_device_probe(struct device *dev)
 	struct ishtp_cl_driver *driver;
 
 	if (!device)
+	{
 		return 0;
+	}
 
 	driver = to_ishtp_cl_driver(dev->driver);
+
 	if (!driver || !driver->probe)
+	{
 		return -ENODEV;
+	}
 
 	return driver->probe(device);
 }
@@ -213,15 +235,20 @@ static int ishtp_cl_device_remove(struct device *dev)
 	struct ishtp_cl_driver *driver;
 
 	if (!device || !dev->driver)
+	{
 		return 0;
+	}
 
-	if (device->event_cb) {
+	if (device->event_cb)
+	{
 		device->event_cb = NULL;
 		cancel_work_sync(&device->event_work);
 	}
 
 	driver = to_ishtp_cl_driver(dev->driver);
-	if (!driver->remove) {
+
+	if (!driver->remove)
+	{
 		dev->driver = NULL;
 
 		return 0;
@@ -245,12 +272,18 @@ static int ishtp_cl_device_suspend(struct device *dev)
 	int ret = 0;
 
 	if (!device)
+	{
 		return 0;
+	}
 
 	driver = to_ishtp_cl_driver(dev->driver);
-	if (driver && driver->driver.pm) {
+
+	if (driver && driver->driver.pm)
+	{
 		if (driver->driver.pm->suspend)
+		{
 			ret = driver->driver.pm->suspend(dev);
+		}
 	}
 
 	return ret;
@@ -271,19 +304,27 @@ static int ishtp_cl_device_resume(struct device *dev)
 	int ret = 0;
 
 	if (!device)
+	{
 		return 0;
+	}
 
 	/*
 	 * When ISH needs hard reset, it is done asynchrnously, hence bus
 	 * resume will  be called before full ISH resume
 	 */
 	if (device->ishtp_dev->resume_flag)
+	{
 		return 0;
+	}
 
 	driver = to_ishtp_cl_driver(dev->driver);
-	if (driver && driver->driver.pm) {
+
+	if (driver && driver->driver.pm)
+	{
 		if (driver->driver.pm->resume)
+		{
 			ret = driver->driver.pm->resume(dev);
+		}
 	}
 
 	return ret;
@@ -307,14 +348,17 @@ static int ishtp_cl_device_reset(struct ishtp_cl_device *device)
 	cancel_work_sync(&device->event_work);
 
 	driver = to_ishtp_cl_driver(device->dev.driver);
+
 	if (driver && driver->reset)
+	{
 		ret = driver->reset(device);
+	}
 
 	return ret;
 }
 
 static ssize_t modalias_show(struct device *dev, struct device_attribute *a,
-	char *buf)
+							 char *buf)
 {
 	int len;
 
@@ -322,7 +366,8 @@ static ssize_t modalias_show(struct device *dev, struct device_attribute *a,
 	return (len >= PAGE_SIZE) ? (PAGE_SIZE - 1) : len;
 }
 
-static struct device_attribute ishtp_cl_dev_attrs[] = {
+static struct device_attribute ishtp_cl_dev_attrs[] =
+{
 	__ATTR_RO(modalias),
 	__ATTR_NULL,
 };
@@ -330,11 +375,15 @@ static struct device_attribute ishtp_cl_dev_attrs[] = {
 static int ishtp_cl_uevent(struct device *dev, struct kobj_uevent_env *env)
 {
 	if (add_uevent_var(env, "MODALIAS=ishtp:%s", dev_name(dev)))
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 
-static const struct dev_pm_ops ishtp_cl_bus_dev_pm_ops = {
+static const struct dev_pm_ops ishtp_cl_bus_dev_pm_ops =
+{
 	/* Suspend callbacks */
 	.suspend = ishtp_cl_device_suspend,
 	.resume = ishtp_cl_device_resume,
@@ -344,7 +393,8 @@ static const struct dev_pm_ops ishtp_cl_bus_dev_pm_ops = {
 	.restore = ishtp_cl_device_resume,
 };
 
-static struct bus_type ishtp_cl_bus_type = {
+static struct bus_type ishtp_cl_bus_type =
+{
 	.name		= "ishtp",
 	.dev_attrs	= ishtp_cl_dev_attrs,
 	.probe		= ishtp_cl_device_probe,
@@ -358,7 +408,8 @@ static void ishtp_cl_dev_release(struct device *dev)
 	kfree(to_ishtp_cl_device(dev));
 }
 
-static struct device_type ishtp_cl_device_type = {
+static struct device_type ishtp_cl_device_type =
+{
 	.release	= ishtp_cl_dev_release,
 };
 
@@ -374,17 +425,19 @@ static struct device_type ishtp_cl_device_type = {
  * Return: ishtp_cl_device pointer or NULL on failure
  */
 static struct ishtp_cl_device *ishtp_bus_add_device(struct ishtp_device *dev,
-						    uuid_le uuid, char *name)
+		uuid_le uuid, char *name)
 {
 	struct ishtp_cl_device *device;
 	int status;
 	unsigned long flags;
 
 	spin_lock_irqsave(&dev->device_list_lock, flags);
-	list_for_each_entry(device, &dev->device_list, device_link) {
-		if (!strcmp(name, dev_name(&device->dev))) {
+	list_for_each_entry(device, &dev->device_list, device_link)
+	{
+		if (!strcmp(name, dev_name(&device->dev)))
+		{
 			device->fw_client = &dev->fw_clients[
-				dev->fw_client_presentation_num - 1];
+									dev->fw_client_presentation_num - 1];
 			spin_unlock_irqrestore(&dev->device_list_lock, flags);
 			ishtp_cl_device_reset(device);
 			return device;
@@ -393,8 +446,11 @@ static struct ishtp_cl_device *ishtp_bus_add_device(struct ishtp_device *dev,
 	spin_unlock_irqrestore(&dev->device_list_lock, flags);
 
 	device = kzalloc(sizeof(struct ishtp_cl_device), GFP_KERNEL);
+
 	if (!device)
+	{
 		return NULL;
+	}
 
 	device->dev.parent = dev->devc;
 	device->dev.bus = &ishtp_cl_bus_type;
@@ -411,7 +467,9 @@ static struct ishtp_cl_device *ishtp_bus_add_device(struct ishtp_device *dev,
 	spin_unlock_irqrestore(&dev->device_list_lock, flags);
 
 	status = device_register(&device->dev);
-	if (status) {
+
+	if (status)
+	{
 		spin_lock_irqsave(&dev->device_list_lock, flags);
 		list_del(&device->device_link);
 		spin_unlock_irqrestore(&dev->device_list_lock, flags);
@@ -450,20 +508,25 @@ static void ishtp_bus_remove_device(struct ishtp_cl_device *device)
  * Return: Return value of driver_register or -ENODEV if not ready
  */
 int __ishtp_cl_driver_register(struct ishtp_cl_driver *driver,
-			       struct module *owner)
+							   struct module *owner)
 {
 	int err;
 
 	if (!ishtp_device_ready)
+	{
 		return -ENODEV;
+	}
 
 	driver->driver.name = driver->name;
 	driver->driver.owner = owner;
 	driver->driver.bus = &ishtp_cl_bus_type;
 
 	err = driver_register(&driver->driver);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -496,7 +559,9 @@ static void ishtp_bus_event_work(struct work_struct *work)
 	device = container_of(work, struct ishtp_cl_device, event_work);
 
 	if (device->event_cb)
+	{
 		device->event_cb(device);
+	}
 }
 
 /**
@@ -509,10 +574,14 @@ static void ishtp_bus_event_work(struct work_struct *work)
 void ishtp_cl_bus_rx_event(struct ishtp_cl_device *device)
 {
 	if (!device || !device->event_cb)
+	{
 		return;
+	}
 
 	if (device->event_cb)
+	{
 		schedule_work(&device->event_work);
+	}
 }
 
 /**
@@ -525,10 +594,12 @@ void ishtp_cl_bus_rx_event(struct ishtp_cl_device *device)
  * Return: Return 0 or -EALREADY if already registered
  */
 int ishtp_register_event_cb(struct ishtp_cl_device *device,
-	void (*event_cb)(struct ishtp_cl_device *))
+							void (*event_cb)(struct ishtp_cl_device *))
 {
 	if (device->event_cb)
+	{
 		return -EALREADY;
+	}
 
 	device->event_cb = event_cb;
 	INIT_WORK(&device->event_work, ishtp_bus_event_work);
@@ -586,18 +657,23 @@ int ishtp_bus_new_client(struct ishtp_device *dev)
 	i = dev->fw_client_presentation_num - 1;
 	device_uuid = dev->fw_clients[i].props.protocol_name;
 	dev_name = kasprintf(GFP_KERNEL,
-		"{%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X}",
-		device_uuid.b[3], device_uuid.b[2], device_uuid.b[1],
-		device_uuid.b[0], device_uuid.b[5], device_uuid.b[4],
-		device_uuid.b[7], device_uuid.b[6], device_uuid.b[8],
-		device_uuid.b[9], device_uuid.b[10], device_uuid.b[11],
-		device_uuid.b[12], device_uuid.b[13], device_uuid.b[14],
-		device_uuid.b[15]);
+						 "{%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X}",
+						 device_uuid.b[3], device_uuid.b[2], device_uuid.b[1],
+						 device_uuid.b[0], device_uuid.b[5], device_uuid.b[4],
+						 device_uuid.b[7], device_uuid.b[6], device_uuid.b[8],
+						 device_uuid.b[9], device_uuid.b[10], device_uuid.b[11],
+						 device_uuid.b[12], device_uuid.b[13], device_uuid.b[14],
+						 device_uuid.b[15]);
+
 	if (!dev_name)
+	{
 		return	-ENOMEM;
+	}
 
 	cl_device = ishtp_bus_add_device(dev, device_uuid, dev_name);
-	if (!cl_device) {
+
+	if (!cl_device)
+	{
 		kfree(dev_name);
 		return	-ENOENT;
 	}
@@ -622,13 +698,17 @@ int ishtp_cl_device_bind(struct ishtp_cl *cl)
 	int	rv;
 
 	if (!cl->fw_client_id || cl->state != ISHTP_CL_CONNECTED)
+	{
 		return	-EFAULT;
+	}
 
 	rv = -ENOENT;
 	spin_lock_irqsave(&cl->dev->device_list_lock, flags);
 	list_for_each_entry(cl_device, &cl->dev->device_list,
-			device_link) {
-		if (cl_device->fw_client->client_id == cl->fw_client_id) {
+						device_link)
+	{
+		if (cl_device->fw_client->client_id == cl->fw_client_id)
+		{
 			cl->device = cl_device;
 			rv = 0;
 			break;
@@ -649,14 +729,15 @@ int ishtp_cl_device_bind(struct ishtp_cl *cl)
  * not removed.
  */
 void ishtp_bus_remove_all_clients(struct ishtp_device *ishtp_dev,
-				  bool warm_reset)
+								  bool warm_reset)
 {
 	struct ishtp_cl_device	*cl_device, *n;
 	struct ishtp_cl	*cl;
 	unsigned long	flags;
 
 	spin_lock_irqsave(&ishtp_dev->cl_list_lock, flags);
-	list_for_each_entry(cl, &ishtp_dev->cl_list, link) {
+	list_for_each_entry(cl, &ishtp_dev->cl_list, link)
+	{
 		cl->state = ISHTP_CL_DISCONNECTED;
 
 		/*
@@ -687,9 +768,12 @@ void ishtp_bus_remove_all_clients(struct ishtp_device *ishtp_dev,
 	/* remove bus clients */
 	spin_lock_irqsave(&ishtp_dev->device_list_lock, flags);
 	list_for_each_entry_safe(cl_device, n, &ishtp_dev->device_list,
-				 device_link) {
+							 device_link)
+	{
 		if (warm_reset && cl_device->reference_count)
+		{
 			continue;
+		}
 
 		list_del(&cl_device->device_link);
 		spin_unlock_irqrestore(&ishtp_dev->device_list_lock, flags);

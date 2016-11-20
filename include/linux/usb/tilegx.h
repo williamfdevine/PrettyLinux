@@ -20,7 +20,8 @@
 
 #include <gxio/usb_host.h>
 
-struct tilegx_usb_platform_data {
+struct tilegx_usb_platform_data
+{
 	/* GXIO device index. */
 	int dev_index;
 

@@ -28,7 +28,8 @@ static int sp2_read_i2c(struct sp2 *s, u8 reg, u8 *buf, int len)
 	int ret;
 	struct i2c_client *client = s->client;
 	struct i2c_adapter *adap = client->adapter;
-	struct i2c_msg msg[] = {
+	struct i2c_msg msg[] =
+	{
 		{
 			.addr = client->addr,
 			.flags = 0,
@@ -44,17 +45,23 @@ static int sp2_read_i2c(struct sp2 *s, u8 reg, u8 *buf, int len)
 
 	ret = i2c_transfer(adap, msg, 2);
 
-	if (ret != 2) {
+	if (ret != 2)
+	{
 		dev_err(&client->dev, "i2c read error, reg = 0x%02x, status = %d\n",
 				reg, ret);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 		else
+		{
 			return -EIO;
+		}
 	}
 
 	dev_dbg(&s->client->dev, "addr=0x%04x, reg = 0x%02x, data = %02x\n",
-				client->addr, reg, buf[0]);
+			client->addr, reg, buf[0]);
 
 	return 0;
 }
@@ -65,14 +72,16 @@ static int sp2_write_i2c(struct sp2 *s, u8 reg, u8 *buf, int len)
 	u8 buffer[35];
 	struct i2c_client *client = s->client;
 	struct i2c_adapter *adap = client->adapter;
-	struct i2c_msg msg = {
+	struct i2c_msg msg =
+	{
 		.addr = client->addr,
 		.flags = 0,
 		.buf = &buffer[0],
 		.len = len + 1
 	};
 
-	if ((len + 1) > sizeof(buffer)) {
+	if ((len + 1) > sizeof(buffer))
+	{
 		dev_err(&client->dev, "i2c wr reg=%02x: len=%d is too big!\n",
 				reg, len);
 		return -EINVAL;
@@ -83,62 +92,81 @@ static int sp2_write_i2c(struct sp2 *s, u8 reg, u8 *buf, int len)
 
 	ret = i2c_transfer(adap, &msg, 1);
 
-	if (ret != 1) {
+	if (ret != 1)
+	{
 		dev_err(&client->dev, "i2c write error, reg = 0x%02x, status = %d\n",
 				reg, ret);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 		else
+		{
 			return -EIO;
+		}
 	}
 
 	dev_dbg(&s->client->dev, "addr=0x%04x, reg = 0x%02x, data = %*ph\n",
-				client->addr, reg, len, buf);
+			client->addr, reg, len, buf);
 
 	return 0;
 }
 
 static int sp2_ci_op_cam(struct dvb_ca_en50221 *en50221, int slot, u8 acs,
-			u8 read, int addr, u8 data)
+						 u8 read, int addr, u8 data)
 {
 	struct sp2 *s = en50221->data;
 	u8 store;
 	int mem, ret;
-	int (*ci_op_cam)(void*, u8, int, u8, int*) = s->ci_control;
+	int (*ci_op_cam)(void *, u8, int, u8, int *) = s->ci_control;
 
 	if (slot != 0)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * change module access type between IO space and attribute memory
 	 * when needed
 	 */
-	if (s->module_access_type != acs) {
+	if (s->module_access_type != acs)
+	{
 		ret = sp2_read_i2c(s, 0x00, &store, 1);
 
 		if (ret)
+		{
 			return ret;
+		}
 
 		store &= ~(SP2_MOD_CTL_ACS1 | SP2_MOD_CTL_ACS0);
 		store |= acs;
 
 		ret = sp2_write_i2c(s, 0x00, &store, 1);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	s->module_access_type = acs;
 
 	/* implementation of ci_op_cam is device specific */
-	if (ci_op_cam) {
+	if (ci_op_cam)
+	{
 		ret = ci_op_cam(s->priv, read, addr, data, &mem);
-	} else {
+	}
+	else
+	{
 		dev_err(&s->client->dev, "callback not defined");
 		return -EINVAL;
 	}
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	dev_dbg(&s->client->dev, "%s: slot=%d, addr=0x%04x, %s, data=%x",
 			(read) ? "read" : "write", slot, addr,
@@ -146,38 +174,42 @@ static int sp2_ci_op_cam(struct dvb_ca_en50221 *en50221, int slot, u8 acs,
 			(read) ? mem : data);
 
 	if (read)
+	{
 		return mem;
+	}
 	else
+	{
 		return 0;
+	}
 
 }
 
 int sp2_ci_read_attribute_mem(struct dvb_ca_en50221 *en50221,
-				int slot, int addr)
+							  int slot, int addr)
 {
 	return sp2_ci_op_cam(en50221, slot, SP2_CI_ATTR_ACS,
-			SP2_CI_RD, addr, 0);
+						 SP2_CI_RD, addr, 0);
 }
 
 int sp2_ci_write_attribute_mem(struct dvb_ca_en50221 *en50221,
-				int slot, int addr, u8 data)
+							   int slot, int addr, u8 data)
 {
 	return sp2_ci_op_cam(en50221, slot, SP2_CI_ATTR_ACS,
-			SP2_CI_WR, addr, data);
+						 SP2_CI_WR, addr, data);
 }
 
 int sp2_ci_read_cam_control(struct dvb_ca_en50221 *en50221,
-				int slot, u8 addr)
+							int slot, u8 addr)
 {
 	return sp2_ci_op_cam(en50221, slot, SP2_CI_IO_ACS,
-			SP2_CI_RD, addr, 0);
+						 SP2_CI_RD, addr, 0);
 }
 
 int sp2_ci_write_cam_control(struct dvb_ca_en50221 *en50221,
-				int slot, u8 addr, u8 data)
+							 int slot, u8 addr, u8 data)
 {
 	return sp2_ci_op_cam(en50221, slot, SP2_CI_IO_ACS,
-			SP2_CI_WR, addr, data);
+						 SP2_CI_WR, addr, data);
 }
 
 int sp2_ci_slot_reset(struct dvb_ca_en50221 *en50221, int slot)
@@ -189,14 +221,18 @@ int sp2_ci_slot_reset(struct dvb_ca_en50221 *en50221, int slot)
 	dev_dbg(&s->client->dev, "slot: %d\n", slot);
 
 	if (slot != 0)
+	{
 		return -EINVAL;
+	}
 
 	/* RST on */
 	buf = SP2_MOD_CTL_RST;
 	ret = sp2_write_i2c(s, 0x00, &buf, 1);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	usleep_range(500, 600);
 
@@ -205,7 +241,9 @@ int sp2_ci_slot_reset(struct dvb_ca_en50221 *en50221, int slot)
 	ret = sp2_write_i2c(s, 0x00, &buf, 1);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	msleep(1000);
 
@@ -230,7 +268,9 @@ int sp2_ci_slot_ts_enable(struct dvb_ca_en50221 *en50221, int slot)
 	dev_dbg(&s->client->dev, "slot:%d\n", slot);
 
 	if (slot != 0)
+	{
 		return -EINVAL;
+	}
 
 	sp2_read_i2c(s, 0x00, &buf, 1);
 
@@ -240,7 +280,7 @@ int sp2_ci_slot_ts_enable(struct dvb_ca_en50221 *en50221, int slot)
 }
 
 int sp2_ci_poll_slot_status(struct dvb_ca_en50221 *en50221,
-				int slot, int open)
+							int slot, int open)
 {
 	struct sp2 *s = en50221->data;
 	u8 buf[2];
@@ -252,18 +292,23 @@ int sp2_ci_poll_slot_status(struct dvb_ca_en50221 *en50221,
 	 * CAM module INSERT/REMOVE processing. Slow operation because of i2c
 	 * transfers. Throttle read to one per sec.
 	 */
-	if (time_after(jiffies, s->next_status_checked_time)) {
+	if (time_after(jiffies, s->next_status_checked_time))
+	{
 		ret = sp2_read_i2c(s, 0x00, buf, 1);
 		s->next_status_checked_time = jiffies +	msecs_to_jiffies(1000);
 
 		if (ret)
+		{
 			return 0;
+		}
 
 		if (buf[0] & SP2_MOD_CTL_DET)
 			s->status = DVB_CA_EN50221_POLL_CAM_PRESENT |
-					DVB_CA_EN50221_POLL_CAM_READY;
+						DVB_CA_EN50221_POLL_CAM_READY;
 		else
+		{
 			s->status = 0;
+		}
 	}
 
 	return s->status;
@@ -273,7 +318,8 @@ static int sp2_init(struct sp2 *s)
 {
 	int ret = 0;
 	u8 buf;
-	u8 cimax_init[34] = {
+	u8 cimax_init[34] =
+	{
 		0x00, /* module A control*/
 		0x00, /* auto select mask high A */
 		0x00, /* auto select mask low A */
@@ -326,23 +372,35 @@ static int sp2_init(struct sp2 *s)
 
 	/* initialize all regs */
 	ret = sp2_write_i2c(s, 0x00, &cimax_init[0], 34);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	/* lock registers */
 	buf = 1;
 	ret = sp2_write_i2c(s, 0x1f, &buf, 1);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	/* power on slots */
 	ret = sp2_write_i2c(s, 0x18, &buf, 1);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = dvb_ca_en50221_init(s->dvb_adap, &s->ca, 0, 1);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	return 0;
 
@@ -358,14 +416,21 @@ static int sp2_exit(struct i2c_client *client)
 	dev_dbg(&client->dev, "\n");
 
 	if (client == NULL)
+	{
 		return 0;
+	}
 
 	s = i2c_get_clientdata(client);
+
 	if (s == NULL)
+	{
 		return 0;
+	}
 
 	if (s->ca.data == NULL)
+	{
 		return 0;
+	}
 
 	dvb_ca_en50221_release(&s->ca);
 
@@ -373,7 +438,7 @@ static int sp2_exit(struct i2c_client *client)
 }
 
 static int sp2_probe(struct i2c_client *client,
-		const struct i2c_device_id *id)
+					 const struct i2c_device_id *id)
 {
 	struct sp2_config *cfg = client->dev.platform_data;
 	struct sp2 *s;
@@ -382,7 +447,9 @@ static int sp2_probe(struct i2c_client *client,
 	dev_dbg(&client->dev, "\n");
 
 	s = kzalloc(sizeof(struct sp2), GFP_KERNEL);
-	if (!s) {
+
+	if (!s)
+	{
 		ret = -ENOMEM;
 		dev_err(&client->dev, "kzalloc() failed\n");
 		goto err;
@@ -396,8 +463,11 @@ static int sp2_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, s);
 
 	ret = sp2_init(s);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	dev_info(&s->client->dev, "CIMaX SP2 successfully attached\n");
 	return 0;
@@ -418,13 +488,15 @@ static int sp2_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id sp2_id[] = {
+static const struct i2c_device_id sp2_id[] =
+{
 	{"sp2", 0},
 	{}
 };
 MODULE_DEVICE_TABLE(i2c, sp2_id);
 
-static struct i2c_driver sp2_driver = {
+static struct i2c_driver sp2_driver =
+{
 	.driver = {
 		.name	= "sp2",
 	},

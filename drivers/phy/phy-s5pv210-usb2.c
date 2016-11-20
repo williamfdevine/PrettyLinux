@@ -23,15 +23,15 @@
 #define S5PV210_UPHYPWR_PHY0_PWR	BIT(3)
 #define S5PV210_UPHYPWR_PHY0_OTG_PWR	BIT(4)
 #define S5PV210_UPHYPWR_PHY0	( \
-	S5PV210_UPHYPWR_PHY0_SUSPEND | \
-	S5PV210_UPHYPWR_PHY0_PWR | \
-	S5PV210_UPHYPWR_PHY0_OTG_PWR)
+								  S5PV210_UPHYPWR_PHY0_SUSPEND | \
+								  S5PV210_UPHYPWR_PHY0_PWR | \
+								  S5PV210_UPHYPWR_PHY0_OTG_PWR)
 
 #define S5PV210_UPHYPWR_PHY1_SUSPEND	BIT(6)
 #define S5PV210_UPHYPWR_PHY1_PWR	BIT(7)
 #define S5PV210_UPHYPWR_PHY1 ( \
-	S5PV210_UPHYPWR_PHY1_SUSPEND | \
-	S5PV210_UPHYPWR_PHY1_PWR)
+							   S5PV210_UPHYPWR_PHY1_SUSPEND | \
+							   S5PV210_UPHYPWR_PHY1_PWR)
 
 /* PHY clock control */
 #define S5PV210_UPHYCLK			0x4
@@ -60,7 +60,8 @@
 #define S5PV210_USB_ISOL_HOST		BIT(1)
 
 
-enum s5pv210_phy_id {
+enum s5pv210_phy_id
+{
 	S5PV210_DEVICE,
 	S5PV210_HOST,
 	S5PV210_NUM_PHYS,
@@ -72,18 +73,22 @@ enum s5pv210_phy_id {
  */
 static int s5pv210_rate_to_clk(unsigned long rate, u32 *reg)
 {
-	switch (rate) {
-	case 12 * MHZ:
-		*reg = S5PV210_UPHYCLK_PHYFSEL_12MHZ;
-		break;
-	case 24 * MHZ:
-		*reg = S5PV210_UPHYCLK_PHYFSEL_24MHZ;
-		break;
-	case 48 * MHZ:
-		*reg = S5PV210_UPHYCLK_PHYFSEL_48MHZ;
-		break;
-	default:
-		return -EINVAL;
+	switch (rate)
+	{
+		case 12 * MHZ:
+			*reg = S5PV210_UPHYCLK_PHYFSEL_12MHZ;
+			break;
+
+		case 24 * MHZ:
+			*reg = S5PV210_UPHYCLK_PHYFSEL_24MHZ;
+			break;
+
+		case 48 * MHZ:
+			*reg = S5PV210_UPHYCLK_PHYFSEL_48MHZ;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -94,19 +99,22 @@ static void s5pv210_isol(struct samsung_usb2_phy_instance *inst, bool on)
 	struct samsung_usb2_phy_driver *drv = inst->drv;
 	u32 mask;
 
-	switch (inst->cfg->id) {
-	case S5PV210_DEVICE:
-		mask = S5PV210_USB_ISOL_DEVICE;
-		break;
-	case S5PV210_HOST:
-		mask = S5PV210_USB_ISOL_HOST;
-		break;
-	default:
-		return;
+	switch (inst->cfg->id)
+	{
+		case S5PV210_DEVICE:
+			mask = S5PV210_USB_ISOL_DEVICE;
+			break;
+
+		case S5PV210_HOST:
+			mask = S5PV210_USB_ISOL_HOST;
+			break;
+
+		default:
+			return;
 	};
 
 	regmap_update_bits(drv->reg_pmu, S5PV210_USB_ISOL_OFFSET,
-							mask, on ? 0 : mask);
+					   mask, on ? 0 : mask);
 }
 
 static void s5pv210_phy_pwr(struct samsung_usb2_phy_instance *inst, bool on)
@@ -117,19 +125,22 @@ static void s5pv210_phy_pwr(struct samsung_usb2_phy_instance *inst, bool on)
 	u32 rst;
 	u32 pwr;
 
-	switch (inst->cfg->id) {
-	case S5PV210_DEVICE:
-		phypwr =	S5PV210_UPHYPWR_PHY0;
-		rstbits =	S5PV210_URSTCON_PHY0;
-		break;
-	case S5PV210_HOST:
-		phypwr =	S5PV210_UPHYPWR_PHY1;
-		rstbits =	S5PV210_URSTCON_PHY1_ALL |
-				S5PV210_URSTCON_HOST_LINK_ALL;
-		break;
+	switch (inst->cfg->id)
+	{
+		case S5PV210_DEVICE:
+			phypwr =	S5PV210_UPHYPWR_PHY0;
+			rstbits =	S5PV210_URSTCON_PHY0;
+			break;
+
+		case S5PV210_HOST:
+			phypwr =	S5PV210_UPHYPWR_PHY1;
+			rstbits =	S5PV210_URSTCON_PHY1_ALL |
+						S5PV210_URSTCON_HOST_LINK_ALL;
+			break;
 	};
 
-	if (on) {
+	if (on)
+	{
 		writel(drv->ref_reg_val, drv->reg_phy + S5PV210_UPHYCLK);
 
 		pwr = readl(drv->reg_phy + S5PV210_UPHYPWR);
@@ -142,7 +153,9 @@ static void s5pv210_phy_pwr(struct samsung_usb2_phy_instance *inst, bool on)
 		udelay(10);
 		rst &= ~rstbits;
 		writel(rst, drv->reg_phy + S5PV210_UPHYRST);
-	} else {
+	}
+	else
+	{
 		pwr = readl(drv->reg_phy + S5PV210_UPHYPWR);
 		pwr |= phypwr;
 		writel(pwr, drv->reg_phy + S5PV210_UPHYPWR);
@@ -165,7 +178,8 @@ static int s5pv210_power_off(struct samsung_usb2_phy_instance *inst)
 	return 0;
 }
 
-static const struct samsung_usb2_common_phy s5pv210_phys[S5PV210_NUM_PHYS] = {
+static const struct samsung_usb2_common_phy s5pv210_phys[S5PV210_NUM_PHYS] =
+{
 	[S5PV210_DEVICE] = {
 		.label		= "device",
 		.id		= S5PV210_DEVICE,
@@ -180,7 +194,8 @@ static const struct samsung_usb2_common_phy s5pv210_phys[S5PV210_NUM_PHYS] = {
 	},
 };
 
-const struct samsung_usb2_phy_config s5pv210_usb2_phy_config = {
+const struct samsung_usb2_phy_config s5pv210_usb2_phy_config =
+{
 	.num_phys	= ARRAY_SIZE(s5pv210_phys),
 	.phys		= s5pv210_phys,
 	.rate_to_clk	= s5pv210_rate_to_clk,

@@ -15,7 +15,8 @@
 
 /* Attila Kondoros <attila.kondoros@chello.hu> */
 
-static struct rc_map_table apac_viewcomp[] = {
+static struct rc_map_table apac_viewcomp[] =
+{
 
 	{ 0x01, KEY_1 },
 	{ 0x02, KEY_2 },
@@ -55,7 +56,8 @@ static struct rc_map_table apac_viewcomp[] = {
 	{ 0x18, KEY_KPMINUS },		/* fine tune <<<< */
 };
 
-static struct rc_map_list apac_viewcomp_map = {
+static struct rc_map_list apac_viewcomp_map =
+{
 	.map = {
 		.scan    = apac_viewcomp,
 		.size    = ARRAY_SIZE(apac_viewcomp),

@@ -24,7 +24,8 @@
 #define THERMAL_PDN				BIT(4)
 #define THERMAL_SRSTN				BIT(10)
 
-static const struct reg_field st_mmap_thermal_regfields[MAX_REGFIELDS] = {
+static const struct reg_field st_mmap_thermal_regfields[MAX_REGFIELDS] =
+{
 	/*
 	 * According to the STIH416 MPE temp sensor data sheet -
 	 * the PDN (Power Down Bit) and SRSTN (Soft Reset Bit) need to be
@@ -43,14 +44,14 @@ static irqreturn_t st_mmap_thermal_trip_handler(int irq, void *sdata)
 	struct st_thermal_sensor *sensor = sdata;
 
 	thermal_zone_device_update(sensor->thermal_dev,
-				   THERMAL_EVENT_UNSPECIFIED);
+							   THERMAL_EVENT_UNSPECIFIED);
 
 	return IRQ_HANDLED;
 }
 
 /* Private ops for the Memory Mapped based thermal sensors */
 static int st_mmap_power_ctrl(struct st_thermal_sensor *sensor,
-			      enum st_thermal_power_state power_state)
+							  enum st_thermal_power_state power_state)
 {
 	const unsigned int mask = (THERMAL_PDN | THERMAL_SRSTN);
 	const unsigned int val = power_state ? mask : 0;
@@ -65,11 +66,12 @@ static int st_mmap_alloc_regfields(struct st_thermal_sensor *sensor)
 	const struct reg_field *reg_fields = sensor->cdata->reg_fields;
 
 	sensor->int_thresh_hi = devm_regmap_field_alloc(dev, regmap,
-						reg_fields[INT_THRESH_HI]);
+							reg_fields[INT_THRESH_HI]);
 	sensor->int_enable = devm_regmap_field_alloc(dev, regmap,
-						reg_fields[INT_ENABLE]);
+						 reg_fields[INT_ENABLE]);
 
-	if (IS_ERR(sensor->int_thresh_hi) || IS_ERR(sensor->int_enable)) {
+	if (IS_ERR(sensor->int_thresh_hi) || IS_ERR(sensor->int_enable))
+	{
 		dev_err(dev, "failed to alloc mmap regfields\n");
 		return -EINVAL;
 	}
@@ -83,10 +85,13 @@ static int st_mmap_enable_irq(struct st_thermal_sensor *sensor)
 
 	/* Set upper critical threshold */
 	ret = regmap_field_write(sensor->int_thresh_hi,
-				 sensor->cdata->crit_temp -
-				 sensor->cdata->temp_adjust_val);
+							 sensor->cdata->crit_temp -
+							 sensor->cdata->temp_adjust_val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return regmap_field_write(sensor->int_enable, 1);
 }
@@ -98,16 +103,20 @@ static int st_mmap_register_enable_irq(struct st_thermal_sensor *sensor)
 	int ret;
 
 	sensor->irq = platform_get_irq(pdev, 0);
-	if (sensor->irq < 0) {
+
+	if (sensor->irq < 0)
+	{
 		dev_err(dev, "failed to register IRQ\n");
 		return sensor->irq;
 	}
 
 	ret = devm_request_threaded_irq(dev, sensor->irq,
-					NULL, st_mmap_thermal_trip_handler,
-					IRQF_TRIGGER_RISING | IRQF_ONESHOT,
-					dev->driver->name, sensor);
-	if (ret) {
+									NULL, st_mmap_thermal_trip_handler,
+									IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+									dev->driver->name, sensor);
+
+	if (ret)
+	{
 		dev_err(dev, "failed to register IRQ %d\n", sensor->irq);
 		return ret;
 	}
@@ -115,7 +124,8 @@ static int st_mmap_register_enable_irq(struct st_thermal_sensor *sensor)
 	return st_mmap_enable_irq(sensor);
 }
 
-static const struct regmap_config st_416mpe_regmap_config = {
+static const struct regmap_config st_416mpe_regmap_config =
+{
 	.reg_bits = 32,
 	.val_bits = 32,
 	.reg_stride = 4,
@@ -128,20 +138,26 @@ static int st_mmap_regmap_init(struct st_thermal_sensor *sensor)
 	struct resource *res;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(dev, "no memory resources defined\n");
 		return -ENODEV;
 	}
 
 	sensor->mmio_base = devm_ioremap_resource(dev, res);
-	if (IS_ERR(sensor->mmio_base)) {
+
+	if (IS_ERR(sensor->mmio_base))
+	{
 		dev_err(dev, "failed to remap IO\n");
 		return PTR_ERR(sensor->mmio_base);
 	}
 
 	sensor->regmap = devm_regmap_init_mmio(dev, sensor->mmio_base,
-				&st_416mpe_regmap_config);
-	if (IS_ERR(sensor->regmap)) {
+										   &st_416mpe_regmap_config);
+
+	if (IS_ERR(sensor->regmap))
+	{
 		dev_err(dev, "failed to initialise regmap\n");
 		return PTR_ERR(sensor->regmap);
 	}
@@ -149,7 +165,8 @@ static int st_mmap_regmap_init(struct st_thermal_sensor *sensor)
 	return 0;
 }
 
-static const struct st_thermal_sensor_ops st_mmap_sensor_ops = {
+static const struct st_thermal_sensor_ops st_mmap_sensor_ops =
+{
 	.power_ctrl		= st_mmap_power_ctrl,
 	.alloc_regfields	= st_mmap_alloc_regfields,
 	.regmap_init		= st_mmap_regmap_init,
@@ -158,7 +175,8 @@ static const struct st_thermal_sensor_ops st_mmap_sensor_ops = {
 };
 
 /* Compatible device data stih416 mpe thermal sensor */
-static const struct st_thermal_compat_data st_416mpe_cdata = {
+static const struct st_thermal_compat_data st_416mpe_cdata =
+{
 	.reg_fields		= st_mmap_thermal_regfields,
 	.ops			= &st_mmap_sensor_ops,
 	.calibration_val	= 14,
@@ -167,7 +185,8 @@ static const struct st_thermal_compat_data st_416mpe_cdata = {
 };
 
 /* Compatible device data stih407 thermal sensor */
-static const struct st_thermal_compat_data st_407_cdata = {
+static const struct st_thermal_compat_data st_407_cdata =
+{
 	.reg_fields		= st_mmap_thermal_regfields,
 	.ops			= &st_mmap_sensor_ops,
 	.calibration_val	= 16,
@@ -175,7 +194,8 @@ static const struct st_thermal_compat_data st_407_cdata = {
 	.crit_temp		= 120,
 };
 
-static const struct of_device_id st_mmap_thermal_of_match[] = {
+static const struct of_device_id st_mmap_thermal_of_match[] =
+{
 	{ .compatible = "st,stih416-mpe-thermal", .data = &st_416mpe_cdata },
 	{ .compatible = "st,stih407-thermal",     .data = &st_407_cdata },
 	{ /* sentinel */ }
@@ -192,7 +212,8 @@ static int st_mmap_remove(struct platform_device *pdev)
 	return st_thermal_unregister(pdev);
 }
 
-static struct platform_driver st_mmap_thermal_driver = {
+static struct platform_driver st_mmap_thermal_driver =
+{
 	.driver = {
 		.name	= "st_thermal_mmap",
 		.pm     = &st_thermal_pm_ops,

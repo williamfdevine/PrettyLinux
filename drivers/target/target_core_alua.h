@@ -93,15 +93,15 @@ extern sense_reason_t target_emulate_set_target_port_groups(struct se_cmd *);
 extern sense_reason_t target_emulate_report_referrals(struct se_cmd *);
 extern int core_alua_check_nonop_delay(struct se_cmd *);
 extern int core_alua_do_port_transition(struct t10_alua_tg_pt_gp *,
-				struct se_device *, struct se_lun *,
-				struct se_node_acl *, int, int);
+										struct se_device *, struct se_lun *,
+										struct se_node_acl *, int, int);
 extern char *core_alua_dump_status(int);
 extern struct t10_alua_lba_map *core_alua_allocate_lba_map(
-				struct list_head *, u64, u64);
+	struct list_head *, u64, u64);
 extern int core_alua_allocate_lba_map_mem(struct t10_alua_lba_map *, int, int);
 extern void core_alua_free_lba_map(struct list_head *);
 extern void core_alua_set_lba_map(struct se_device *, struct list_head *,
-				int, int);
+								  int, int);
 extern struct t10_alua_lu_gp *core_alua_allocate_lu_gp(const char *, int);
 extern int core_alua_set_lu_gp_id(struct t10_alua_lu_gp *, u16);
 extern void core_alua_free_lu_gp(struct t10_alua_lu_gp *);
@@ -109,48 +109,48 @@ extern void core_alua_free_lu_gp_mem(struct se_device *);
 extern struct t10_alua_lu_gp *core_alua_get_lu_gp_by_name(const char *);
 extern void core_alua_put_lu_gp_from_name(struct t10_alua_lu_gp *);
 extern void __core_alua_attach_lu_gp_mem(struct t10_alua_lu_gp_member *,
-					struct t10_alua_lu_gp *);
+		struct t10_alua_lu_gp *);
 extern void __core_alua_drop_lu_gp_mem(struct t10_alua_lu_gp_member *,
-					struct t10_alua_lu_gp *);
+									   struct t10_alua_lu_gp *);
 extern void core_alua_drop_lu_gp_dev(struct se_device *);
 extern struct t10_alua_tg_pt_gp *core_alua_allocate_tg_pt_gp(
-			struct se_device *, const char *, int);
+	struct se_device *, const char *, int);
 extern int core_alua_set_tg_pt_gp_id(struct t10_alua_tg_pt_gp *, u16);
 extern void core_alua_free_tg_pt_gp(struct t10_alua_tg_pt_gp *);
 extern void target_detach_tg_pt_gp(struct se_lun *);
 extern void target_attach_tg_pt_gp(struct se_lun *, struct t10_alua_tg_pt_gp *);
 extern ssize_t core_alua_show_tg_pt_gp_info(struct se_lun *, char *);
 extern ssize_t core_alua_store_tg_pt_gp_info(struct se_lun *, const char *,
-						size_t);
+		size_t);
 extern ssize_t core_alua_show_access_type(struct t10_alua_tg_pt_gp *, char *);
 extern ssize_t core_alua_store_access_type(struct t10_alua_tg_pt_gp *,
-					const char *, size_t);
+		const char *, size_t);
 extern ssize_t core_alua_show_nonop_delay_msecs(struct t10_alua_tg_pt_gp *,
-						char *);
+		char *);
 extern ssize_t core_alua_store_nonop_delay_msecs(struct t10_alua_tg_pt_gp *,
-					const char *, size_t);
+		const char *, size_t);
 extern ssize_t core_alua_show_trans_delay_msecs(struct t10_alua_tg_pt_gp *,
-					char *);
+		char *);
 extern ssize_t core_alua_store_trans_delay_msecs(struct t10_alua_tg_pt_gp *,
-					const char *, size_t);
+		const char *, size_t);
 extern ssize_t core_alua_show_implicit_trans_secs(struct t10_alua_tg_pt_gp *,
-					char *);
+		char *);
 extern ssize_t core_alua_store_implicit_trans_secs(struct t10_alua_tg_pt_gp *,
-					const char *, size_t);
+		const char *, size_t);
 extern ssize_t core_alua_show_preferred_bit(struct t10_alua_tg_pt_gp *,
-					char *);
+		char *);
 extern ssize_t core_alua_store_preferred_bit(struct t10_alua_tg_pt_gp *,
-					const char *, size_t);
+		const char *, size_t);
 extern ssize_t core_alua_show_offline_bit(struct se_lun *, char *);
 extern ssize_t core_alua_store_offline_bit(struct se_lun *, const char *,
-					size_t);
+		size_t);
 extern ssize_t core_alua_show_secondary_status(struct se_lun *, char *);
 extern ssize_t core_alua_store_secondary_status(struct se_lun *,
-					const char *, size_t);
+		const char *, size_t);
 extern ssize_t core_alua_show_secondary_write_metadata(struct se_lun *,
-					char *);
+		char *);
 extern ssize_t core_alua_store_secondary_write_metadata(struct se_lun *,
-					const char *, size_t);
+		const char *, size_t);
 extern int core_setup_alua(struct se_device *);
 extern sense_reason_t target_alua_state_check(struct se_cmd *cmd);
 

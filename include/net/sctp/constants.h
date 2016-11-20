@@ -63,12 +63,13 @@ enum { SCTP_DEFAULT_INSTREAMS = SCTP_MAX_STREAM };
 #define SCTP_NUM_AUTH_CHUNK_TYPES	1
 
 #define SCTP_NUM_CHUNK_TYPES		(SCTP_NUM_BASE_CHUNK_TYPES + \
-					 SCTP_NUM_ADDIP_CHUNK_TYPES +\
-					 SCTP_NUM_PRSCTP_CHUNK_TYPES +\
-					 SCTP_NUM_AUTH_CHUNK_TYPES)
+									 SCTP_NUM_ADDIP_CHUNK_TYPES +\
+									 SCTP_NUM_PRSCTP_CHUNK_TYPES +\
+									 SCTP_NUM_AUTH_CHUNK_TYPES)
 
 /* These are the different flavours of event.  */
-typedef enum {
+typedef enum
+{
 
 	SCTP_EVENT_T_CHUNK = 1,
 	SCTP_EVENT_T_TIMEOUT,
@@ -81,7 +82,8 @@ typedef enum {
  * SCTP_ULP_* to the list of possible chunks.
  */
 
-typedef enum {
+typedef enum
+{
 	SCTP_EVENT_TIMEOUT_NONE = 0,
 	SCTP_EVENT_TIMEOUT_T1_COOKIE,
 	SCTP_EVENT_TIMEOUT_T1_INIT,
@@ -97,7 +99,8 @@ typedef enum {
 #define SCTP_EVENT_TIMEOUT_MAX		SCTP_EVENT_TIMEOUT_AUTOCLOSE
 #define SCTP_NUM_TIMEOUT_TYPES		(SCTP_EVENT_TIMEOUT_MAX + 1)
 
-typedef enum {
+typedef enum
+{
 	SCTP_EVENT_NO_PENDING_TSN = 0,
 	SCTP_EVENT_ICMP_PROTO_UNREACH,
 } sctp_event_other_t;
@@ -106,7 +109,8 @@ typedef enum {
 #define SCTP_NUM_OTHER_TYPES		(SCTP_EVENT_OTHER_MAX + 1)
 
 /* These are primitive requests from the ULP.  */
-typedef enum {
+typedef enum
+{
 	SCTP_PRIMITIVE_ASSOCIATE = 0,
 	SCTP_PRIMITIVE_SHUTDOWN,
 	SCTP_PRIMITIVE_ABORT,
@@ -124,7 +128,8 @@ typedef enum {
  * 	sctp_subtype_t foo = SCTP_ST_CHUNK(SCTP_CID_INIT);
  */
 
-typedef union {
+typedef union
+{
 	sctp_cid_t chunk;
 	sctp_event_timeout_t timeout;
 	sctp_event_other_t other;
@@ -132,9 +137,9 @@ typedef union {
 } sctp_subtype_t;
 
 #define SCTP_SUBTYPE_CONSTRUCTOR(_name, _type, _elt) \
-static inline sctp_subtype_t	\
-SCTP_ST_## _name (_type _arg)		\
-{ sctp_subtype_t _retval; _retval._elt = _arg; return _retval; }
+	static inline sctp_subtype_t	\
+	SCTP_ST_## _name (_type _arg)		\
+	{ sctp_subtype_t _retval; _retval._elt = _arg; return _retval; }
 
 SCTP_SUBTYPE_CONSTRUCTOR(CHUNK,		sctp_cid_t,		chunk)
 SCTP_SUBTYPE_CONSTRUCTOR(TIMEOUT,	sctp_event_timeout_t,	timeout)
@@ -146,11 +151,12 @@ SCTP_SUBTYPE_CONSTRUCTOR(PRIMITIVE,	sctp_event_primitive_t,	primitive)
 
 /* Calculate the actual data size in a data chunk */
 #define SCTP_DATA_SNDSIZE(c) ((int)((unsigned long)(c->chunk_end)\
-		       		- (unsigned long)(c->chunk_hdr)\
-				- sizeof(sctp_data_chunk_t)))
+									- (unsigned long)(c->chunk_hdr)\
+									- sizeof(sctp_data_chunk_t)))
 
 /* Internal error codes */
-typedef enum {
+typedef enum
+{
 
 	SCTP_IERROR_NO_ERROR	        = 0,
 	SCTP_IERROR_BASE		= 1000,
@@ -177,7 +183,8 @@ typedef enum {
 
 
 /* SCTP state defines for internal state machine */
-typedef enum {
+typedef enum
+{
 
 	SCTP_STATE_CLOSED		= 0,
 	SCTP_STATE_COOKIE_WAIT		= 1,
@@ -206,10 +213,11 @@ typedef enum {
  *   accept new associations, but it can initiate the creation of new ones.
  * - A socket in SCTP_SS_LISTENING state indicates that it is willing to
  *   accept new associations, but cannot initiate the creation of new ones.
- * - A socket in SCTP_SS_ESTABLISHED state indicates that it has a single 
+ * - A socket in SCTP_SS_ESTABLISHED state indicates that it has a single
  *   association.
  */
-typedef enum {
+typedef enum
+{
 	SCTP_SS_CLOSED         = TCP_CLOSE,
 	SCTP_SS_LISTENING      = TCP_LISTEN,
 	SCTP_SS_ESTABLISHING   = TCP_SYN_SENT,
@@ -229,7 +237,7 @@ extern const char *const sctp_evttype_tbl[];
 extern const char *const sctp_status_tbl[];
 
 /* Maximum chunk length considering padding requirements. */
-enum { SCTP_MAX_CHUNK_LEN = ((1<<16) - sizeof(__u32)) };
+enum { SCTP_MAX_CHUNK_LEN = ((1 << 16) - sizeof(__u32)) };
 
 /* Encourage Cookie-Echo bundling by pre-fragmenting chunks a little
  * harder (until reaching ESTABLISHED state).
@@ -307,7 +315,8 @@ enum { SCTP_MAX_GABS = 16 };
 /* These return values describe the success or failure of a number of
  * routines which form the lower interface to SCTP_outqueue.
  */
-typedef enum {
+typedef enum
+{
 	SCTP_XMIT_OK,
 	SCTP_XMIT_PMTU_FULL,
 	SCTP_XMIT_RWND_FULL,
@@ -315,7 +324,8 @@ typedef enum {
 } sctp_xmit_t;
 
 /* These are the commands for manipulating transports.  */
-typedef enum {
+typedef enum
+{
 	SCTP_TRANSPORT_UP,
 	SCTP_TRANSPORT_DOWN,
 	SCTP_TRANSPORT_PF,
@@ -328,7 +338,8 @@ typedef enum {
  * At this point, the IPv6 scopes will be mapped to these internal scopes
  * as much as possible.
  */
-typedef enum {
+typedef enum
+{
 	SCTP_SCOPE_GLOBAL,		/* IPv4 global addresses */
 	SCTP_SCOPE_PRIVATE,		/* IPv4 private addresses */
 	SCTP_SCOPE_LINK,		/* IPv4 link local address */
@@ -336,7 +347,8 @@ typedef enum {
 	SCTP_SCOPE_UNUSABLE,		/* IPv4 unusable addresses */
 } sctp_scope_t;
 
-typedef enum {
+typedef enum
+{
 	SCTP_SCOPE_POLICY_DISABLE,	/* Disable IPv4 address scoping */
 	SCTP_SCOPE_POLICY_ENABLE,	/* Enable IPv4 address scoping */
 	SCTP_SCOPE_POLICY_PRIVATE,	/* Follow draft but allow IPv4 private addresses */
@@ -365,7 +377,8 @@ typedef enum {
 						   peer */
 
 /* Reasons to retransmit. */
-typedef enum {
+typedef enum
+{
 	SCTP_RTXR_T3_RTX,
 	SCTP_RTXR_FAST_RTX,
 	SCTP_RTXR_PMTUD,
@@ -373,7 +386,8 @@ typedef enum {
 } sctp_retransmit_reason_t;
 
 /* Reasons to lower cwnd. */
-typedef enum {
+typedef enum
+{
 	SCTP_LOWER_CWND_T3_RTX,
 	SCTP_LOWER_CWND_FAST_RTX,
 	SCTP_LOWER_CWND_ECNE,
@@ -397,7 +411,8 @@ typedef enum {
  *  | 3               | SHA-256 defined in [8]   |
  *  +-----------------+--------------------------+
  */
-enum {
+enum
+{
 	SCTP_AUTH_HMAC_ID_RESERVED_0,
 	SCTP_AUTH_HMAC_ID_SHA1,
 	SCTP_AUTH_HMAC_ID_RESERVED_2,

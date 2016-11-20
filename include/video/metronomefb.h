@@ -13,14 +13,16 @@
 #define _LINUX_METRONOMEFB_H_
 
 /* command structure used by metronome controller */
-struct metromem_cmd {
+struct metromem_cmd
+{
 	u16 opcode;
-	u16 args[((64-2)/2)];
+	u16 args[((64 - 2) / 2)];
 	u16 csum;
 };
 
 /* struct used by metronome. board specific stuff comes from *board */
-struct metronomefb_par {
+struct metronomefb_par
+{
 	struct metromem_cmd *metromem_cmd;
 	unsigned char *metromem_wfm;
 	unsigned char *metromem_img;
@@ -36,7 +38,8 @@ struct metronomefb_par {
 };
 
 /* board specific routines and data */
-struct metronome_board {
+struct metronome_board
+{
 	struct module *owner; /* the platform device */
 	void (*set_rst)(struct metronomefb_par *, int);
 	void (*set_stdby)(struct metronomefb_par *, int);

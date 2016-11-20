@@ -34,7 +34,8 @@
 #include <linux/stat.h>
 #include <linux/slab.h>
 
-struct xgene_reboot_context {
+struct xgene_reboot_context
+{
 	struct device *dev;
 	void *csr;
 	u32 mask;
@@ -42,11 +43,11 @@ struct xgene_reboot_context {
 };
 
 static int xgene_restart_handler(struct notifier_block *this,
-				 unsigned long mode, void *cmd)
+								 unsigned long mode, void *cmd)
 {
 	struct xgene_reboot_context *ctx =
 		container_of(this, struct xgene_reboot_context,
-			     restart_handler);
+					 restart_handler);
 
 	/* Issue the reboot */
 	writel(ctx->mask, ctx->csr);
@@ -65,23 +66,32 @@ static int xgene_reboot_probe(struct platform_device *pdev)
 	int err;
 
 	ctx = devm_kzalloc(dev, sizeof(*ctx), GFP_KERNEL);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	ctx->csr = of_iomap(dev->of_node, 0);
-	if (!ctx->csr) {
+
+	if (!ctx->csr)
+	{
 		dev_err(dev, "can not map resource\n");
 		return -ENODEV;
 	}
 
 	if (of_property_read_u32(dev->of_node, "mask", &ctx->mask))
+	{
 		ctx->mask = 0xFFFFFFFF;
+	}
 
 	ctx->dev = dev;
 	ctx->restart_handler.notifier_call = xgene_restart_handler;
 	ctx->restart_handler.priority = 128;
 	err = register_restart_handler(&ctx->restart_handler);
-	if (err) {
+
+	if (err)
+	{
 		iounmap(ctx->csr);
 		dev_err(dev, "cannot register restart handler (err=%d)\n", err);
 	}
@@ -89,12 +99,14 @@ static int xgene_reboot_probe(struct platform_device *pdev)
 	return err;
 }
 
-static const struct of_device_id xgene_reboot_of_match[] = {
+static const struct of_device_id xgene_reboot_of_match[] =
+{
 	{ .compatible = "apm,xgene-reboot" },
 	{}
 };
 
-static struct platform_driver xgene_reboot_driver = {
+static struct platform_driver xgene_reboot_driver =
+{
 	.probe = xgene_reboot_probe,
 	.driver = {
 		.name = "xgene-reboot",

@@ -48,7 +48,8 @@
 /* Seagate Barracuda ATA IV Family drives in UDMA mode 5
  * can overrun their FIFOs when used with the CSB5 */
 
-static const char *csb_bad_ata100[] = {
+static const char *csb_bad_ata100[] =
+{
 	"ST320011A",
 	"ST340016A",
 	"ST360021A",
@@ -69,17 +70,22 @@ static int oem_cable(struct ata_port *ap)
 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
 
 	if (pdev->subsystem_device & (1 << (ap->port_no + 14)))
+	{
 		return ATA_CBL_PATA80;
+	}
+
 	return ATA_CBL_PATA40;
 }
 
-struct sv_cable_table {
+struct sv_cable_table
+{
 	int device;
 	int subvendor;
 	int (*cable_detect)(struct ata_port *ap);
 };
 
-static struct sv_cable_table cable_detect[] = {
+static struct sv_cable_table cable_detect[] =
+{
 	{ PCI_DEVICE_ID_SERVERWORKS_CSB5IDE,   PCI_VENDOR_ID_DELL, oem_cable },
 	{ PCI_DEVICE_ID_SERVERWORKS_CSB6IDE,   PCI_VENDOR_ID_DELL, oem_cable },
 	{ PCI_DEVICE_ID_SERVERWORKS_CSB5IDE,   PCI_VENDOR_ID_SUN,  oem_cable },
@@ -104,12 +110,15 @@ static int serverworks_cable_detect(struct ata_port *ap)
 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
 	struct sv_cable_table *cb = cable_detect;
 
-	while(cb->device) {
+	while (cb->device)
+	{
 		if (cb->device == pdev->device &&
-		    (cb->subvendor == pdev->subsystem_vendor ||
-		      cb->subvendor == PCI_ANY_ID)) {
+			(cb->subvendor == pdev->subsystem_vendor ||
+			 cb->subvendor == PCI_ANY_ID))
+		{
 			return cb->cable_detect(ap);
 		}
+
 		cb++;
 	}
 
@@ -127,15 +136,18 @@ static int serverworks_cable_detect(struct ata_port *ap)
 
 static u8 serverworks_is_csb(struct pci_dev *pdev)
 {
-	switch (pdev->device) {
+	switch (pdev->device)
+	{
 		case PCI_DEVICE_ID_SERVERWORKS_CSB5IDE:
 		case PCI_DEVICE_ID_SERVERWORKS_CSB6IDE:
 		case PCI_DEVICE_ID_SERVERWORKS_CSB6IDE2:
 		case PCI_DEVICE_ID_SERVERWORKS_HT1000IDE:
 			return 1;
+
 		default:
 			break;
 	}
+
 	return 0;
 }
 
@@ -152,7 +164,10 @@ static u8 serverworks_is_csb(struct pci_dev *pdev)
 static unsigned long serverworks_osb4_filter(struct ata_device *adev, unsigned long mask)
 {
 	if (adev->class == ATA_DEV_ATA)
+	{
 		mask &= ~ATA_MASK_UDMA;
+	}
+
 	return mask;
 }
 
@@ -173,15 +188,21 @@ static unsigned long serverworks_csb_filter(struct ata_device *adev, unsigned lo
 
 	/* Disk, UDMA */
 	if (adev->class != ATA_DEV_ATA)
+	{
 		return mask;
+	}
 
 	/* Actually do need to check */
 	ata_id_c_string(adev->id, model_num, ATA_ID_PROD, sizeof(model_num));
 
-	for (i = 0; (p = csb_bad_ata100[i]) != NULL; i++) {
+	for (i = 0; (p = csb_bad_ata100[i]) != NULL; i++)
+	{
 		if (!strcmp(p, model_num))
+		{
 			mask &= ~(0xE0 << ATA_SHIFT_UDMA);
+		}
 	}
+
 	return mask;
 }
 
@@ -206,7 +227,8 @@ static void serverworks_set_piomode(struct ata_port *ap, struct ata_device *adev
 
 	/* The OSB4 just requires the timing but the CSB series want the
 	   mode number as well */
-	if (serverworks_is_csb(pdev)) {
+	if (serverworks_is_csb(pdev))
+	{
 		pci_read_config_word(pdev, 0x4A, &csb5_pio);
 		csb5_pio &= ~(0x0F << devbits);
 		pci_write_config_word(pdev, 0x4A, csb5_pio | (pio << devbits));
@@ -236,31 +258,38 @@ static void serverworks_set_dmamode(struct ata_port *ap, struct ata_device *adev
 	pci_read_config_byte(pdev, 0x56 + ap->port_no, &ultra);
 	ultra &= ~(0x0F << (adev->devno * 4));
 
-	if (adev->dma_mode >= XFER_UDMA_0) {
+	if (adev->dma_mode >= XFER_UDMA_0)
+	{
 		pci_write_config_byte(pdev, 0x44 + offset,  0x20);
 
 		ultra |= (adev->dma_mode - XFER_UDMA_0)
-					<< (adev->devno * 4);
+				 << (adev->devno * 4);
 		ultra_cfg |=  (1 << devbits);
-	} else {
+	}
+	else
+	{
 		pci_write_config_byte(pdev, 0x44 + offset,
-			dma_mode[adev->dma_mode - XFER_MW_DMA_0]);
+							  dma_mode[adev->dma_mode - XFER_MW_DMA_0]);
 		ultra_cfg &= ~(1 << devbits);
 	}
+
 	pci_write_config_byte(pdev, 0x56 + ap->port_no, ultra);
 	pci_write_config_byte(pdev, 0x54, ultra_cfg);
 }
 
-static struct scsi_host_template serverworks_osb4_sht = {
+static struct scsi_host_template serverworks_osb4_sht =
+{
 	ATA_BMDMA_SHT(DRV_NAME),
 	.sg_tablesize	= LIBATA_DUMB_MAX_PRD,
 };
 
-static struct scsi_host_template serverworks_csb_sht = {
+static struct scsi_host_template serverworks_csb_sht =
+{
 	ATA_BMDMA_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations serverworks_osb4_port_ops = {
+static struct ata_port_operations serverworks_osb4_port_ops =
+{
 	.inherits	= &ata_bmdma_port_ops,
 	.qc_prep	= ata_bmdma_dumb_qc_prep,
 	.cable_detect	= serverworks_cable_detect,
@@ -269,7 +298,8 @@ static struct ata_port_operations serverworks_osb4_port_ops = {
 	.set_dmamode	= serverworks_set_dmamode,
 };
 
-static struct ata_port_operations serverworks_csb_port_ops = {
+static struct ata_port_operations serverworks_csb_port_ops =
+{
 	.inherits	= &serverworks_osb4_port_ops,
 	.qc_prep	= ata_bmdma_qc_prep,
 	.mode_filter	= serverworks_csb_filter,
@@ -279,17 +309,24 @@ static int serverworks_fixup_osb4(struct pci_dev *pdev)
 {
 	u32 reg;
 	struct pci_dev *isa_dev = pci_get_device(PCI_VENDOR_ID_SERVERWORKS,
-		  PCI_DEVICE_ID_SERVERWORKS_OSB4, NULL);
-	if (isa_dev) {
+							  PCI_DEVICE_ID_SERVERWORKS_OSB4, NULL);
+
+	if (isa_dev)
+	{
 		pci_read_config_dword(isa_dev, 0x64, &reg);
 		reg &= ~0x00002000; /* disable 600ns interrupt mask */
+
 		if (!(reg & 0x00004000))
+		{
 			printk(KERN_DEBUG DRV_NAME ": UDMA not BIOS enabled.\n");
+		}
+
 		reg |=  0x00004000; /* enable UDMA/33 support */
 		pci_write_config_dword(isa_dev, 0x64, reg);
 		pci_dev_put(isa_dev);
 		return 0;
 	}
+
 	printk(KERN_WARNING DRV_NAME ": Unable to find bridge.\n");
 	return -ENODEV;
 }
@@ -299,12 +336,15 @@ static int serverworks_fixup_csb(struct pci_dev *pdev)
 	u8 btr;
 
 	/* Third Channel Test */
-	if (!(PCI_FUNC(pdev->devfn) & 1)) {
-		struct pci_dev * findev = NULL;
+	if (!(PCI_FUNC(pdev->devfn) & 1))
+	{
+		struct pci_dev *findev = NULL;
 		u32 reg4c = 0;
 		findev = pci_get_device(PCI_VENDOR_ID_SERVERWORKS,
-			PCI_DEVICE_ID_SERVERWORKS_CSB5, NULL);
-		if (findev) {
+								PCI_DEVICE_ID_SERVERWORKS_CSB5, NULL);
+
+		if (findev)
+		{
 			pci_read_config_dword(findev, 0x4C, &reg4c);
 			reg4c &= ~0x000007FF;
 			reg4c |=  0x00000040;
@@ -312,19 +352,24 @@ static int serverworks_fixup_csb(struct pci_dev *pdev)
 			pci_write_config_dword(findev, 0x4C, reg4c);
 			pci_dev_put(findev);
 		}
-	} else {
-		struct pci_dev * findev = NULL;
+	}
+	else
+	{
+		struct pci_dev *findev = NULL;
 		u8 reg41 = 0;
 
 		findev = pci_get_device(PCI_VENDOR_ID_SERVERWORKS,
-				PCI_DEVICE_ID_SERVERWORKS_CSB6, NULL);
-		if (findev) {
+								PCI_DEVICE_ID_SERVERWORKS_CSB6, NULL);
+
+		if (findev)
+		{
 			pci_read_config_byte(findev, 0x41, &reg41);
 			reg41 &= ~0x40;
 			pci_write_config_byte(findev, 0x41, reg41);
 			pci_dev_put(findev);
 		}
 	}
+
 	/* setup the UDMA Control register
 	 *
 	 * 1. clear bit 6 to enable DMA
@@ -336,10 +381,16 @@ static int serverworks_fixup_csb(struct pci_dev *pdev)
 	 */
 	pci_read_config_byte(pdev, 0x5A, &btr);
 	btr &= ~0x40;
+
 	if (!(PCI_FUNC(pdev->devfn) & 1))
+	{
 		btr |= 0x2;
+	}
 	else
+	{
 		btr |= (pdev->revision >= SVWKS_CSB5_REVISION_NEW) ? 0x3 : 0x2;
+	}
+
 	pci_write_config_byte(pdev, 0x5A, btr);
 
 	return btr;
@@ -362,20 +413,24 @@ static int serverworks_fixup(struct pci_dev *pdev)
 	/* Force master latency timer to 64 PCI clocks */
 	pci_write_config_byte(pdev, PCI_LATENCY_TIMER, 0x40);
 
-	switch (pdev->device) {
-	case PCI_DEVICE_ID_SERVERWORKS_OSB4IDE:
-		rc = serverworks_fixup_osb4(pdev);
-		break;
-	case PCI_DEVICE_ID_SERVERWORKS_CSB5IDE:
-		ata_pci_bmdma_clear_simplex(pdev);
+	switch (pdev->device)
+	{
+		case PCI_DEVICE_ID_SERVERWORKS_OSB4IDE:
+			rc = serverworks_fixup_osb4(pdev);
+			break;
+
+		case PCI_DEVICE_ID_SERVERWORKS_CSB5IDE:
+			ata_pci_bmdma_clear_simplex(pdev);
+
 		/* fall through */
-	case PCI_DEVICE_ID_SERVERWORKS_CSB6IDE:
-	case PCI_DEVICE_ID_SERVERWORKS_CSB6IDE2:
-		rc = serverworks_fixup_csb(pdev);
-		break;
-	case PCI_DEVICE_ID_SERVERWORKS_HT1000IDE:
-		serverworks_fixup_ht1000(pdev);
-		break;
+		case PCI_DEVICE_ID_SERVERWORKS_CSB6IDE:
+		case PCI_DEVICE_ID_SERVERWORKS_CSB6IDE2:
+			rc = serverworks_fixup_csb(pdev);
+			break;
+
+		case PCI_DEVICE_ID_SERVERWORKS_HT1000IDE:
+			serverworks_fixup_ht1000(pdev);
+			break;
 	}
 
 	return rc;
@@ -383,7 +438,8 @@ static int serverworks_fixup(struct pci_dev *pdev)
 
 static int serverworks_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 {
-	static const struct ata_port_info info[4] = {
+	static const struct ata_port_info info[4] =
+	{
 		{ /* OSB4 */
 			.flags = ATA_FLAG_SLAVE_POSS,
 			.pio_mask = ATA_PIO4,
@@ -415,31 +471,43 @@ static int serverworks_init_one(struct pci_dev *pdev, const struct pci_device_id
 	int rc;
 
 	rc = pcim_enable_device(pdev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = serverworks_fixup(pdev);
 
 	/* OSB4 : South Bridge and IDE */
-	if (pdev->device == PCI_DEVICE_ID_SERVERWORKS_OSB4IDE) {
+	if (pdev->device == PCI_DEVICE_ID_SERVERWORKS_OSB4IDE)
+	{
 		/* Select non UDMA capable OSB4 if we can't do fixups */
 		if (rc < 0)
+		{
 			ppi[0] = &info[1];
+		}
+
 		sht = &serverworks_osb4_sht;
 	}
 	/* setup CSB5/CSB6 : South Bridge and IDE option RAID */
 	else if ((pdev->device == PCI_DEVICE_ID_SERVERWORKS_CSB5IDE) ||
-		 (pdev->device == PCI_DEVICE_ID_SERVERWORKS_CSB6IDE) ||
-		 (pdev->device == PCI_DEVICE_ID_SERVERWORKS_CSB6IDE2)) {
+			 (pdev->device == PCI_DEVICE_ID_SERVERWORKS_CSB6IDE) ||
+			 (pdev->device == PCI_DEVICE_ID_SERVERWORKS_CSB6IDE2))
+	{
 
-		 /* If the returned btr is the newer revision then
-		    select the right info block */
-		 if (rc == 3)
-		 	ppi[0] = &info[3];
+		/* If the returned btr is the newer revision then
+		   select the right info block */
+		if (rc == 3)
+		{
+			ppi[0] = &info[3];
+		}
 
 		/* Is this the 3rd channel CSB6 IDE ? */
 		if (pdev->device == PCI_DEVICE_ID_SERVERWORKS_CSB6IDE2)
+		{
 			ppi[1] = &ata_dummy_port_info;
+		}
 	}
 
 	return ata_pci_bmdma_init_one(pdev, ppi, sht, NULL, 0);
@@ -452,8 +520,11 @@ static int serverworks_reinit_one(struct pci_dev *pdev)
 	int rc;
 
 	rc = ata_pci_device_do_resume(pdev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	(void)serverworks_fixup(pdev);
 
@@ -462,7 +533,8 @@ static int serverworks_reinit_one(struct pci_dev *pdev)
 }
 #endif
 
-static const struct pci_device_id serverworks[] = {
+static const struct pci_device_id serverworks[] =
+{
 	{ PCI_VDEVICE(SERVERWORKS, PCI_DEVICE_ID_SERVERWORKS_OSB4IDE), 0},
 	{ PCI_VDEVICE(SERVERWORKS, PCI_DEVICE_ID_SERVERWORKS_CSB5IDE), 2},
 	{ PCI_VDEVICE(SERVERWORKS, PCI_DEVICE_ID_SERVERWORKS_CSB6IDE), 2},
@@ -472,7 +544,8 @@ static const struct pci_device_id serverworks[] = {
 	{ },
 };
 
-static struct pci_driver serverworks_pci_driver = {
+static struct pci_driver serverworks_pci_driver =
+{
 	.name 		= DRV_NAME,
 	.id_table	= serverworks,
 	.probe 		= serverworks_init_one,

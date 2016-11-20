@@ -13,7 +13,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table pinnacle_grey[] = {
+static struct rc_map_table pinnacle_grey[] =
+{
 	{ 0x3a, KEY_0 },
 	{ 0x31, KEY_1 },
 	{ 0x32, KEY_2 },
@@ -64,7 +65,8 @@ static struct rc_map_table pinnacle_grey[] = {
 	{ 0x18, KEY_EPG },
 };
 
-static struct rc_map_list pinnacle_grey_map = {
+static struct rc_map_list pinnacle_grey_map =
+{
 	.map = {
 		.scan    = pinnacle_grey,
 		.size    = ARRAY_SIZE(pinnacle_grey),

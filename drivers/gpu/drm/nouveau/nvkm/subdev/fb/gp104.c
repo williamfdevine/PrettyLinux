@@ -27,7 +27,8 @@
 #include <core/memory.h>
 
 static const struct nvkm_fb_func
-gp104_fb = {
+	gp104_fb =
+{
 	.dtor = gf100_fb_dtor,
 	.oneinit = gf100_fb_oneinit,
 	.init = gp100_fb_init,

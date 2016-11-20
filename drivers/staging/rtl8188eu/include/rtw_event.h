@@ -24,7 +24,8 @@
 /*
 Used to report a bss has been scanned
 */
-struct survey_event	{
+struct survey_event
+{
 	struct wlan_bssid_ex bss;
 };
 
@@ -35,7 +36,8 @@ bss_cnt indicates the number of bss that has been reported.
 
 
 */
-struct surveydone_event {
+struct surveydone_event
+{
 	unsigned int	bss_cnt;
 
 };
@@ -50,7 +52,8 @@ join_res:
 > 0: TID
 
 */
-struct joinbss_event {
+struct joinbss_event
+{
 	struct	wlan_network	network;
 };
 
@@ -59,19 +62,22 @@ Used to report a given STA has joinned the created BSS.
 It is used in AP/Ad-HoC(M) mode.
 */
 
-struct stassoc_event {
+struct stassoc_event
+{
 	unsigned char macaddr[6];
 	unsigned char rsvd[2];
 	int    cam_id;
 };
 
-struct stadel_event {
+struct stadel_event
+{
 	unsigned char macaddr[6];
 	unsigned char rsvd[2]; /* for reason */
 	int mac_id;
 };
 
-struct fwevent {
+struct fwevent
+{
 	u32	parmsize;
 	void (*event_callback)(struct adapter *dev, u8 *pbuf);
 };
@@ -80,7 +86,8 @@ struct fwevent {
 
 #define NETWORK_QUEUE_SZ	4
 
-struct network_queue {
+struct network_queue
+{
 	int	head;
 	int	tail;
 	struct wlan_bssid_ex networks[NETWORK_QUEUE_SZ];

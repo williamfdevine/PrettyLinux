@@ -12,13 +12,15 @@
 
 #include "8250.h"
 
-static struct plat_serial8250_port accent_data[] = {
+static struct plat_serial8250_port accent_data[] =
+{
 	SERIAL8250_PORT(0x330, 4),
 	SERIAL8250_PORT(0x338, 4),
 	{ },
 };
 
-static struct platform_device accent_device = {
+static struct platform_device accent_device =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_ACCENT,
 	.dev			= {

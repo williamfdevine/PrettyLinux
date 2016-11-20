@@ -14,13 +14,15 @@
 
 #include <linux/types.h>
 
-struct kone_keystroke {
+struct kone_keystroke
+{
 	uint8_t key;
 	uint8_t action;
 	uint16_t period; /* in milliseconds */
 } __attribute__ ((__packed__));
 
-enum kone_keystroke_buttons {
+enum kone_keystroke_buttons
+{
 	kone_keystroke_button_1 = 0xf0, /* left mouse button */
 	kone_keystroke_button_2 = 0xf1, /* right mouse button */
 	kone_keystroke_button_3 = 0xf2, /* wheel */
@@ -28,12 +30,14 @@ enum kone_keystroke_buttons {
 	kone_keystroke_button_8 = 0xf4 /* side button down */
 };
 
-enum kone_keystroke_actions {
+enum kone_keystroke_actions
+{
 	kone_keystroke_action_press = 0,
 	kone_keystroke_action_release = 1
 };
 
-struct kone_button_info {
+struct kone_button_info
+{
 	uint8_t number; /* range 1-8 */
 	uint8_t type;
 	uint8_t macro_type; /* 0 = short, 1 = overlong */
@@ -43,7 +47,8 @@ struct kone_button_info {
 	struct kone_keystroke keystrokes[20];
 } __attribute__ ((__packed__));
 
-enum kone_button_info_types {
+enum kone_button_info_types
+{
 	/* valid button types until firmware 1.32 */
 	kone_button_info_type_button_1 = 0x1, /* click (left mouse button) */
 	kone_button_info_type_button_2 = 0x2, /* menu (right mouse button)*/
@@ -75,7 +80,8 @@ enum kone_button_info_types {
 	kone_button_info_type_multimedia_volume_down = 0x27
 };
 
-enum kone_button_info_numbers {
+enum kone_button_info_numbers
+{
 	kone_button_top = 1,
 	kone_button_wheel_tilt_left = 2,
 	kone_button_wheel_tilt_right = 3,
@@ -86,7 +92,8 @@ enum kone_button_info_numbers {
 	kone_button_minus = 8,
 };
 
-struct kone_light_info {
+struct kone_light_info
+{
 	uint8_t number; /* number of light 1-5 */
 	uint8_t mod;   /* 1 = on, 2 = off */
 	uint8_t red;   /* range 0x00-0xff */
@@ -94,7 +101,8 @@ struct kone_light_info {
 	uint8_t blue;  /* range 0x00-0xff */
 } __attribute__ ((__packed__));
 
-struct kone_profile {
+struct kone_profile
+{
 	uint16_t size; /* always 975 */
 	uint16_t unused; /* always 0 */
 
@@ -129,13 +137,15 @@ struct kone_profile {
 	uint16_t checksum; /* \brief holds checksum of struct */
 } __attribute__ ((__packed__));
 
-enum kone_polling_rates {
+enum kone_polling_rates
+{
 	kone_polling_rate_125 = 1,
 	kone_polling_rate_500 = 2,
 	kone_polling_rate_1000 = 3
 };
 
-struct kone_settings {
+struct kone_settings
+{
 	uint16_t size; /* always 36 */
 	uint8_t  startup_profile; /* 1-5 */
 	uint8_t	 unknown1;
@@ -149,7 +159,8 @@ struct kone_settings {
 /*
  * 12 byte mouse event read by interrupt_read
  */
-struct kone_mouse_event {
+struct kone_mouse_event
+{
 	uint8_t report_number; /* always 1 */
 	uint8_t button;
 	uint16_t x;
@@ -162,7 +173,8 @@ struct kone_mouse_event {
 	uint8_t macro_key; /* 0 to 8 */
 } __attribute__ ((__packed__));
 
-enum kone_mouse_events {
+enum kone_mouse_events
+{
 	/* osd events are thought to be display on screen */
 	kone_mouse_event_osd_dpi = 0xa0,
 	kone_mouse_event_osd_profile = 0xb0,
@@ -175,7 +187,8 @@ enum kone_mouse_events {
 	kone_mouse_event_switch_profile = 0xf1
 };
 
-enum kone_commands {
+enum kone_commands
+{
 	kone_command_profile = 0x5a,
 	kone_command_settings = 0x15a,
 	kone_command_firmware_version = 0x25a,
@@ -185,13 +198,15 @@ enum kone_commands {
 	kone_command_firmware = 0xe5a
 };
 
-struct kone_roccat_report {
+struct kone_roccat_report
+{
 	uint8_t event;
 	uint8_t value; /* holds dpi or profile value */
 	uint8_t key; /* macro key on overlong macro execution */
 } __attribute__ ((__packed__));
 
-struct kone_device {
+struct kone_device
+{
 	/*
 	 * Storing actual values when we get informed about changes since there
 	 * is no way of getting this information from the device on demand

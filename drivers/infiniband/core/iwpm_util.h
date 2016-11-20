@@ -62,7 +62,8 @@
 #define IWPM_REG_VALID          0x02
 #define IWPM_REG_INCOMPL        0x04
 
-struct iwpm_nlmsg_request {
+struct iwpm_nlmsg_request
+{
 	struct list_head    inprocess_list;
 	__u32               nlmsg_seq;
 	void                *req_buffer;
@@ -73,14 +74,16 @@ struct iwpm_nlmsg_request {
 	struct kref         kref;
 };
 
-struct iwpm_mapping_info {
+struct iwpm_mapping_info
+{
 	struct hlist_node hlist_node;
 	struct sockaddr_storage local_sockaddr;
 	struct sockaddr_storage mapped_sockaddr;
 	u8     nl_client;
 };
 
-struct iwpm_remote_info {
+struct iwpm_remote_info
+{
 	struct hlist_node hlist_node;
 	struct sockaddr_storage remote_sockaddr;
 	struct sockaddr_storage mapped_loc_sockaddr;
@@ -88,7 +91,8 @@ struct iwpm_remote_info {
 	u8     nl_client;
 };
 
-struct iwpm_admin_data {
+struct iwpm_admin_data
+{
 	atomic_t refcount;
 	atomic_t nlmsg_seq;
 	int      client_list[RDMA_NL_NUM_CLIENTS];
@@ -105,7 +109,7 @@ struct iwpm_admin_data {
  * otherwise returns NULL
  */
 struct iwpm_nlmsg_request *iwpm_get_nlmsg_request(__u32 nlmsg_seq,
-						u8 nl_client, gfp_t gfp);
+		u8 nl_client, gfp_t gfp);
 
 /**
  * iwpm_free_nlmsg_request - Deallocate netlink message request
@@ -214,7 +218,7 @@ int iwpm_mapinfo_available(void);
  * otherwise returns 1
  */
 int iwpm_compare_sockaddr(struct sockaddr_storage *a_sockaddr,
-			struct sockaddr_storage *b_sockaddr);
+						  struct sockaddr_storage *b_sockaddr);
 
 /**
  * iwpm_validate_nlmsg_attr - Check for NULL netlink attributes
@@ -224,13 +228,18 @@ int iwpm_compare_sockaddr(struct sockaddr_storage *a_sockaddr,
  * Returns error if any of the nla_count attributes is NULL
  */
 static inline int iwpm_validate_nlmsg_attr(struct nlattr *nltb[],
-					   int nla_count)
+		int nla_count)
 {
 	int i;
-	for (i = 1; i < nla_count; i++) {
+
+	for (i = 1; i < nla_count; i++)
+	{
 		if (!nltb[i])
+		{
 			return -EINVAL;
+		}
 	}
+
 	return 0;
 }
 
@@ -244,7 +253,7 @@ static inline int iwpm_validate_nlmsg_attr(struct nlattr *nltb[],
  * is insufficient to store the message header and payload
  */
 struct sk_buff *iwpm_create_nlmsg(u32 nl_op, struct nlmsghdr **nlh,
-					int nl_client);
+								  int nl_client);
 
 /**
  * iwpm_parse_nlmsg - Validate and parse the received netlink message
@@ -257,8 +266,8 @@ struct sk_buff *iwpm_create_nlmsg(u32 nl_op, struct nlmsghdr **nlh,
  * Returns 0 on success or a negative error code
  */
 int iwpm_parse_nlmsg(struct netlink_callback *cb, int policy_max,
-				const struct nla_policy *nlmsg_policy,
-				struct nlattr *nltb[], const char *msg_type);
+					 const struct nla_policy *nlmsg_policy,
+					 struct nlattr *nltb[], const char *msg_type);
 
 /**
  * iwpm_print_sockaddr - Print IPv4/IPv6 address and TCP port

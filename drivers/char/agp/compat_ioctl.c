@@ -45,7 +45,7 @@ static int compat_agpioc_info_wrap(struct agp_file_private *priv, void __user *a
 	userinfo.version.major = kerninfo.version.major;
 	userinfo.version.minor = kerninfo.version.minor;
 	userinfo.bridge_id = kerninfo.device->vendor |
-	    (kerninfo.device->device << 16);
+						 (kerninfo.device->device << 16);
 	userinfo.agp_mode = kerninfo.mode;
 	userinfo.aper_base = (compat_long_t)kerninfo.aper_base;
 	userinfo.aper_size = kerninfo.aper_size;
@@ -53,7 +53,9 @@ static int compat_agpioc_info_wrap(struct agp_file_private *priv, void __user *a
 	userinfo.pg_used = kerninfo.current_memory;
 
 	if (copy_to_user(arg, &userinfo, sizeof(userinfo)))
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 }
@@ -66,56 +68,77 @@ static int compat_agpioc_reserve_wrap(struct agp_file_private *priv, void __user
 	struct agp_file_private *client_priv;
 
 	DBG("");
-	if (copy_from_user(&ureserve, arg, sizeof(ureserve)))
-		return -EFAULT;
 
-	if ((unsigned) ureserve.seg_count >= ~0U/sizeof(struct agp_segment32))
+	if (copy_from_user(&ureserve, arg, sizeof(ureserve)))
+	{
 		return -EFAULT;
+	}
+
+	if ((unsigned) ureserve.seg_count >= ~0U / sizeof(struct agp_segment32))
+	{
+		return -EFAULT;
+	}
 
 	kreserve.pid = ureserve.pid;
 	kreserve.seg_count = ureserve.seg_count;
 
 	client = agp_find_client_by_pid(kreserve.pid);
 
-	if (kreserve.seg_count == 0) {
+	if (kreserve.seg_count == 0)
+	{
 		/* remove a client */
 		client_priv = agp_find_private(kreserve.pid);
 
-		if (client_priv != NULL) {
+		if (client_priv != NULL)
+		{
 			set_bit(AGP_FF_IS_CLIENT, &client_priv->access_flags);
 			set_bit(AGP_FF_IS_VALID, &client_priv->access_flags);
 		}
-		if (client == NULL) {
+
+		if (client == NULL)
+		{
 			/* client is already removed */
 			return 0;
 		}
+
 		return agp_remove_client(kreserve.pid);
-	} else {
+	}
+	else
+	{
 		struct agp_segment32 *usegment;
 		struct agp_segment *ksegment;
 		int seg;
 
 		if (ureserve.seg_count >= 16384)
+		{
 			return -EINVAL;
+		}
 
 		usegment = kmalloc(sizeof(*usegment) * ureserve.seg_count, GFP_KERNEL);
+
 		if (!usegment)
+		{
 			return -ENOMEM;
+		}
 
 		ksegment = kmalloc(sizeof(*ksegment) * kreserve.seg_count, GFP_KERNEL);
-		if (!ksegment) {
+
+		if (!ksegment)
+		{
 			kfree(usegment);
 			return -ENOMEM;
 		}
 
 		if (copy_from_user(usegment, (void __user *) ureserve.seg_list,
-				   sizeof(*usegment) * ureserve.seg_count)) {
+						   sizeof(*usegment) * ureserve.seg_count))
+		{
 			kfree(usegment);
 			kfree(ksegment);
 			return -EFAULT;
 		}
 
-		for (seg = 0; seg < ureserve.seg_count; seg++) {
+		for (seg = 0; seg < ureserve.seg_count; seg++)
+		{
 			ksegment[seg].pg_start = usegment[seg].pg_start;
 			ksegment[seg].pg_count = usegment[seg].pg_count;
 			ksegment[seg].prot = usegment[seg].prot;
@@ -124,23 +147,29 @@ static int compat_agpioc_reserve_wrap(struct agp_file_private *priv, void __user
 		kfree(usegment);
 		kreserve.seg_list = ksegment;
 
-		if (client == NULL) {
+		if (client == NULL)
+		{
 			/* Create the client and add the segment */
 			client = agp_create_client(kreserve.pid);
 
-			if (client == NULL) {
+			if (client == NULL)
+			{
 				kfree(ksegment);
 				return -ENOMEM;
 			}
+
 			client_priv = agp_find_private(kreserve.pid);
 
-			if (client_priv != NULL) {
+			if (client_priv != NULL)
+			{
 				set_bit(AGP_FF_IS_CLIENT, &client_priv->access_flags);
 				set_bit(AGP_FF_IS_VALID, &client_priv->access_flags);
 			}
 		}
+
 		return agp_create_segment(client, &kreserve);
 	}
+
 	/* Will never really happen */
 	return -EINVAL;
 }
@@ -151,21 +180,28 @@ static int compat_agpioc_allocate_wrap(struct agp_file_private *priv, void __use
 	struct agp_allocate32 alloc;
 
 	DBG("");
+
 	if (copy_from_user(&alloc, arg, sizeof(alloc)))
+	{
 		return -EFAULT;
+	}
 
 	memory = agp_allocate_memory_wrap(alloc.pg_count, alloc.type);
 
 	if (memory == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	alloc.key = memory->key;
 	alloc.physical = memory->physical;
 
-	if (copy_to_user(arg, &alloc, sizeof(alloc))) {
+	if (copy_to_user(arg, &alloc, sizeof(alloc)))
+	{
 		agp_free_memory_wrap(memory);
 		return -EFAULT;
 	}
+
 	return 0;
 }
 
@@ -175,13 +211,18 @@ static int compat_agpioc_bind_wrap(struct agp_file_private *priv, void __user *a
 	struct agp_memory *memory;
 
 	DBG("");
+
 	if (copy_from_user(&bind_info, arg, sizeof(bind_info)))
+	{
 		return -EFAULT;
+	}
 
 	memory = agp_find_mem_by_key(bind_info.key);
 
 	if (memory == NULL)
+	{
 		return -EINVAL;
+	}
 
 	return agp_bind_memory(memory, bind_info.pg_start);
 }
@@ -192,13 +233,18 @@ static int compat_agpioc_unbind_wrap(struct agp_file_private *priv, void __user 
 	struct agp_unbind32 unbind;
 
 	DBG("");
+
 	if (copy_from_user(&unbind, arg, sizeof(unbind)))
+	{
 		return -EFAULT;
+	}
 
 	memory = agp_find_mem_by_key(unbind.key);
 
 	if (memory == NULL)
+	{
 		return -EINVAL;
+	}
 
 	return agp_unbind_memory(memory);
 }
@@ -211,72 +257,81 @@ long compat_agp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	mutex_lock(&(agp_fe.agp_mutex));
 
 	if ((agp_fe.current_controller == NULL) &&
-	    (cmd != AGPIOC_ACQUIRE32)) {
+		(cmd != AGPIOC_ACQUIRE32))
+	{
 		ret_val = -EINVAL;
 		goto ioctl_out;
 	}
+
 	if ((agp_fe.backend_acquired != true) &&
-	    (cmd != AGPIOC_ACQUIRE32)) {
+		(cmd != AGPIOC_ACQUIRE32))
+	{
 		ret_val = -EBUSY;
 		goto ioctl_out;
 	}
-	if (cmd != AGPIOC_ACQUIRE32) {
-		if (!(test_bit(AGP_FF_IS_CONTROLLER, &curr_priv->access_flags))) {
+
+	if (cmd != AGPIOC_ACQUIRE32)
+	{
+		if (!(test_bit(AGP_FF_IS_CONTROLLER, &curr_priv->access_flags)))
+		{
 			ret_val = -EPERM;
 			goto ioctl_out;
 		}
+
 		/* Use the original pid of the controller,
 		 * in case it's threaded */
 
-		if (agp_fe.current_controller->pid != curr_priv->my_pid) {
+		if (agp_fe.current_controller->pid != curr_priv->my_pid)
+		{
 			ret_val = -EBUSY;
 			goto ioctl_out;
 		}
 	}
 
-	switch (cmd) {
-	case AGPIOC_INFO32:
-		ret_val = compat_agpioc_info_wrap(curr_priv, (void __user *) arg);
-		break;
+	switch (cmd)
+	{
+		case AGPIOC_INFO32:
+			ret_val = compat_agpioc_info_wrap(curr_priv, (void __user *) arg);
+			break;
 
-	case AGPIOC_ACQUIRE32:
-		ret_val = agpioc_acquire_wrap(curr_priv);
-		break;
+		case AGPIOC_ACQUIRE32:
+			ret_val = agpioc_acquire_wrap(curr_priv);
+			break;
 
-	case AGPIOC_RELEASE32:
-		ret_val = agpioc_release_wrap(curr_priv);
-		break;
+		case AGPIOC_RELEASE32:
+			ret_val = agpioc_release_wrap(curr_priv);
+			break;
 
-	case AGPIOC_SETUP32:
-		ret_val = agpioc_setup_wrap(curr_priv, (void __user *) arg);
-		break;
+		case AGPIOC_SETUP32:
+			ret_val = agpioc_setup_wrap(curr_priv, (void __user *) arg);
+			break;
 
-	case AGPIOC_RESERVE32:
-		ret_val = compat_agpioc_reserve_wrap(curr_priv, (void __user *) arg);
-		break;
+		case AGPIOC_RESERVE32:
+			ret_val = compat_agpioc_reserve_wrap(curr_priv, (void __user *) arg);
+			break;
 
-	case AGPIOC_PROTECT32:
-		ret_val = agpioc_protect_wrap(curr_priv);
-		break;
+		case AGPIOC_PROTECT32:
+			ret_val = agpioc_protect_wrap(curr_priv);
+			break;
 
-	case AGPIOC_ALLOCATE32:
-		ret_val = compat_agpioc_allocate_wrap(curr_priv, (void __user *) arg);
-		break;
+		case AGPIOC_ALLOCATE32:
+			ret_val = compat_agpioc_allocate_wrap(curr_priv, (void __user *) arg);
+			break;
 
-	case AGPIOC_DEALLOCATE32:
-		ret_val = agpioc_deallocate_wrap(curr_priv, (int) arg);
-		break;
+		case AGPIOC_DEALLOCATE32:
+			ret_val = agpioc_deallocate_wrap(curr_priv, (int) arg);
+			break;
 
-	case AGPIOC_BIND32:
-		ret_val = compat_agpioc_bind_wrap(curr_priv, (void __user *) arg);
-		break;
+		case AGPIOC_BIND32:
+			ret_val = compat_agpioc_bind_wrap(curr_priv, (void __user *) arg);
+			break;
 
-	case AGPIOC_UNBIND32:
-		ret_val = compat_agpioc_unbind_wrap(curr_priv, (void __user *) arg);
-		break;
+		case AGPIOC_UNBIND32:
+			ret_val = compat_agpioc_unbind_wrap(curr_priv, (void __user *) arg);
+			break;
 
-	case AGPIOC_CHIPSET_FLUSH32:
-		break;
+		case AGPIOC_CHIPSET_FLUSH32:
+			break;
 	}
 
 ioctl_out:

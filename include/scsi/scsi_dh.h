@@ -25,7 +25,8 @@
 
 #include <scsi/scsi_device.h>
 
-enum {
+enum
+{
 	SCSI_DH_OK = 0,
 	/*
 	 * device errors
@@ -58,7 +59,8 @@ enum {
 };
 
 typedef void (*activate_complete)(void *, int);
-struct scsi_device_handler {
+struct scsi_device_handler
+{
 	/* Used by the infrastructure */
 	struct list_head list; /* list of scsi_device_handlers */
 
@@ -81,7 +83,7 @@ extern const char *scsi_dh_attached_handler_name(struct request_queue *, gfp_t);
 extern int scsi_dh_set_params(struct request_queue *, const char *);
 #else
 static inline int scsi_dh_activate(struct request_queue *req,
-					activate_complete fn, void *data)
+								   activate_complete fn, void *data)
 {
 	fn(data, 0);
 	return 0;
@@ -91,7 +93,7 @@ static inline int scsi_dh_attach(struct request_queue *req, const char *name)
 	return SCSI_DH_NOSYS;
 }
 static inline const char *scsi_dh_attached_handler_name(struct request_queue *q,
-							gfp_t gfp)
+		gfp_t gfp)
 {
 	return NULL;
 }

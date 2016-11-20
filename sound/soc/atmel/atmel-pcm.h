@@ -41,7 +41,8 @@
 /*
  * Registers and status bits that are required by the PCM driver.
  */
-struct atmel_pdc_regs {
+struct atmel_pdc_regs
+{
 	unsigned int	xpr;		/* PDC recv/trans pointer */
 	unsigned int	xcr;		/* PDC recv/trans counter */
 	unsigned int	xnpr;		/* PDC next recv/trans pointer */
@@ -49,7 +50,8 @@ struct atmel_pdc_regs {
 	unsigned int	ptcr;		/* PDC transfer control */
 };
 
-struct atmel_ssc_mask {
+struct atmel_ssc_mask
+{
 	u32	ssc_enable;		/* SSC recv/trans enable */
 	u32	ssc_disable;		/* SSC recv/trans disable */
 	u32	ssc_error;		/* SSC error conditions */
@@ -67,7 +69,8 @@ struct atmel_ssc_mask {
  * driver and called by the interface SSC interrupt handler if it is
  * non-NULL.
  */
-struct atmel_pcm_dma_params {
+struct atmel_pcm_dma_params
+{
 	char *name;			/* stream identifier */
 	int pdc_xfer_size;		/* PDC counter increment in bytes */
 	struct ssc_device *ssc;		/* SSC device for stream */

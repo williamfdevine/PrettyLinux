@@ -27,10 +27,12 @@
 #include "vc4_regs.h"
 
 #define HVS_REG(reg) { reg, #reg }
-static const struct {
+static const struct
+{
 	u32 reg;
 	const char *name;
-} hvs_regs[] = {
+} hvs_regs[] =
+{
 	HVS_REG(SCALER_DISPCTRL),
 	HVS_REG(SCALER_DISPSTAT),
 	HVS_REG(SCALER_DISPID),
@@ -65,20 +67,23 @@ void vc4_hvs_dump_state(struct drm_device *dev)
 	struct vc4_dev *vc4 = to_vc4_dev(dev);
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(hvs_regs); i++) {
+	for (i = 0; i < ARRAY_SIZE(hvs_regs); i++)
+	{
 		DRM_INFO("0x%04x (%s): 0x%08x\n",
-			 hvs_regs[i].reg, hvs_regs[i].name,
-			 HVS_READ(hvs_regs[i].reg));
+				 hvs_regs[i].reg, hvs_regs[i].name,
+				 HVS_READ(hvs_regs[i].reg));
 	}
 
 	DRM_INFO("HVS ctx:\n");
-	for (i = 0; i < 64; i += 4) {
+
+	for (i = 0; i < 64; i += 4)
+	{
 		DRM_INFO("0x%08x (%s): 0x%08x 0x%08x 0x%08x 0x%08x\n",
-			 i * 4, i < HVS_BOOTLOADER_DLIST_END ? "B" : "D",
-			 readl((u32 __iomem *)vc4->hvs->dlist + i + 0),
-			 readl((u32 __iomem *)vc4->hvs->dlist + i + 1),
-			 readl((u32 __iomem *)vc4->hvs->dlist + i + 2),
-			 readl((u32 __iomem *)vc4->hvs->dlist + i + 3));
+				 i * 4, i < HVS_BOOTLOADER_DLIST_END ? "B" : "D",
+				 readl((u32 __iomem *)vc4->hvs->dlist + i + 0),
+				 readl((u32 __iomem *)vc4->hvs->dlist + i + 1),
+				 readl((u32 __iomem *)vc4->hvs->dlist + i + 2),
+				 readl((u32 __iomem *)vc4->hvs->dlist + i + 3));
 	}
 }
 
@@ -90,10 +95,11 @@ int vc4_hvs_debugfs_regs(struct seq_file *m, void *unused)
 	struct vc4_dev *vc4 = to_vc4_dev(dev);
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(hvs_regs); i++) {
+	for (i = 0; i < ARRAY_SIZE(hvs_regs); i++)
+	{
 		seq_printf(m, "%s (0x%04x): 0x%08x\n",
-			   hvs_regs[i].name, hvs_regs[i].reg,
-			   HVS_READ(hvs_regs[i].reg));
+				   hvs_regs[i].name, hvs_regs[i].reg,
+				   HVS_READ(hvs_regs[i].reg));
 	}
 
 	return 0;
@@ -116,13 +122,13 @@ int vc4_hvs_debugfs_regs(struct seq_file *m, void *unused)
  * dwords matching the first 5, but reversed.
  */
 #define VC4_LINEAR_PHASE_KERNEL(c0, c1, c2, c3, c4, c5, c6, c7, c8,	\
-				c9, c10, c11, c12, c13, c14, c15)	\
-	{VC4_PPF_FILTER_WORD(c0, c1, c2),				\
-	 VC4_PPF_FILTER_WORD(c3, c4, c5),				\
-	 VC4_PPF_FILTER_WORD(c6, c7, c8),				\
-	 VC4_PPF_FILTER_WORD(c9, c10, c11),				\
-	 VC4_PPF_FILTER_WORD(c12, c13, c14),				\
-	 VC4_PPF_FILTER_WORD(c15, c15, 0)}
+								c9, c10, c11, c12, c13, c14, c15)	\
+{VC4_PPF_FILTER_WORD(c0, c1, c2),				\
+	VC4_PPF_FILTER_WORD(c3, c4, c5),				\
+	VC4_PPF_FILTER_WORD(c6, c7, c8),				\
+	VC4_PPF_FILTER_WORD(c9, c10, c11),				\
+	VC4_PPF_FILTER_WORD(c12, c13, c14),				\
+	VC4_PPF_FILTER_WORD(c15, c15, 0)}
 
 #define VC4_LINEAR_PHASE_KERNEL_DWORDS 6
 #define VC4_KERNEL_DWORDS (VC4_LINEAR_PHASE_KERNEL_DWORDS * 2 - 1)
@@ -132,31 +138,37 @@ int vc4_hvs_debugfs_regs(struct seq_file *m, void *unused)
  */
 static const u32 mitchell_netravali_1_3_1_3_kernel[] =
 	VC4_LINEAR_PHASE_KERNEL(0, -2, -6, -8, -10, -8, -3, 2, 18,
-				50, 82, 119, 155, 187, 213, 227);
+							50, 82, 119, 155, 187, 213, 227);
 
 static int vc4_hvs_upload_linear_kernel(struct vc4_hvs *hvs,
-					struct drm_mm_node *space,
-					const u32 *kernel)
+										struct drm_mm_node *space,
+										const u32 *kernel)
 {
 	int ret, i;
 	u32 __iomem *dst_kernel;
 
 	ret = drm_mm_insert_node(&hvs->dlist_mm, space, VC4_KERNEL_DWORDS, 1,
-				 0);
-	if (ret) {
+							 0);
+
+	if (ret)
+	{
 		DRM_ERROR("Failed to allocate space for filter kernel: %d\n",
-			  ret);
+				  ret);
 		return ret;
 	}
 
 	dst_kernel = hvs->dlist + space->start;
 
-	for (i = 0; i < VC4_KERNEL_DWORDS; i++) {
+	for (i = 0; i < VC4_KERNEL_DWORDS; i++)
+	{
 		if (i < VC4_LINEAR_PHASE_KERNEL_DWORDS)
+		{
 			writel(kernel[i], &dst_kernel[i]);
-		else {
+		}
+		else
+		{
 			writel(kernel[VC4_KERNEL_DWORDS - i - 1],
-			       &dst_kernel[i]);
+				   &dst_kernel[i]);
 		}
 	}
 
@@ -172,14 +184,20 @@ static int vc4_hvs_bind(struct device *dev, struct device *master, void *data)
 	int ret;
 
 	hvs = devm_kzalloc(&pdev->dev, sizeof(*hvs), GFP_KERNEL);
+
 	if (!hvs)
+	{
 		return -ENOMEM;
+	}
 
 	hvs->pdev = pdev;
 
 	hvs->regs = vc4_ioremap_regs(pdev, 0);
+
 	if (IS_ERR(hvs->regs))
+	{
 		return PTR_ERR(hvs->regs);
+	}
 
 	hvs->dlist = hvs->regs + SCALER_DLIST_START;
 
@@ -191,8 +209,8 @@ static int vc4_hvs_bind(struct device *dev, struct device *master, void *data)
 	 * transitioning from the firmware's boot setup to runtime.
 	 */
 	drm_mm_init(&hvs->dlist_mm,
-		    HVS_BOOTLOADER_DLIST_END,
-		    (SCALER_DLIST_SIZE >> 2) - HVS_BOOTLOADER_DLIST_END);
+				HVS_BOOTLOADER_DLIST_END,
+				(SCALER_DLIST_SIZE >> 2) - HVS_BOOTLOADER_DLIST_END);
 
 	/* Set up the HVS LBM memory manager.  We could have some more
 	 * complicated data structure that allowed reuse of LBM areas
@@ -205,23 +223,28 @@ static int vc4_hvs_bind(struct device *dev, struct device *master, void *data)
 	 * keep it around for the lifetime of the driver.
 	 */
 	ret = vc4_hvs_upload_linear_kernel(hvs,
-					   &hvs->mitchell_netravali_filter,
-					   mitchell_netravali_1_3_1_3_kernel);
+									   &hvs->mitchell_netravali_filter,
+									   mitchell_netravali_1_3_1_3_kernel);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	vc4->hvs = hvs;
 	return 0;
 }
 
 static void vc4_hvs_unbind(struct device *dev, struct device *master,
-			   void *data)
+						   void *data)
 {
 	struct drm_device *drm = dev_get_drvdata(master);
 	struct vc4_dev *vc4 = drm->dev_private;
 
 	if (vc4->hvs->mitchell_netravali_filter.allocated)
+	{
 		drm_mm_remove_node(&vc4->hvs->mitchell_netravali_filter);
+	}
 
 	drm_mm_takedown(&vc4->hvs->dlist_mm);
 	drm_mm_takedown(&vc4->hvs->lbm_mm);
@@ -229,7 +252,8 @@ static void vc4_hvs_unbind(struct device *dev, struct device *master,
 	vc4->hvs = NULL;
 }
 
-static const struct component_ops vc4_hvs_ops = {
+static const struct component_ops vc4_hvs_ops =
+{
 	.bind   = vc4_hvs_bind,
 	.unbind = vc4_hvs_unbind,
 };
@@ -245,12 +269,14 @@ static int vc4_hvs_dev_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id vc4_hvs_dt_match[] = {
+static const struct of_device_id vc4_hvs_dt_match[] =
+{
 	{ .compatible = "brcm,bcm2835-hvs" },
 	{}
 };
 
-struct platform_driver vc4_hvs_driver = {
+struct platform_driver vc4_hvs_driver =
+{
 	.probe = vc4_hvs_dev_probe,
 	.remove = vc4_hvs_dev_remove,
 	.driver = {

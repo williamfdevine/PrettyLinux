@@ -23,7 +23,8 @@ struct device;
  * @channel:		Full description of the channel.
  * @data:		Data about the channel used by consumer.
  */
-struct iio_channel {
+struct iio_channel
+{
 	struct iio_dev *indio_dev;
 	const struct iio_chan_spec *channel;
 	void *data;
@@ -40,7 +41,7 @@ struct iio_channel {
  *			the consumer. E.g. 'battery_voltage'
  */
 struct iio_channel *iio_channel_get(struct device *dev,
-				    const char *consumer_channel);
+									const char *consumer_channel);
 
 /**
  * iio_channel_release() - release channels obtained via iio_channel_get
@@ -65,7 +66,7 @@ void iio_channel_release(struct iio_channel *chan);
  * unbound.
  */
 struct iio_channel *devm_iio_channel_get(struct device *dev,
-					 const char *consumer_channel);
+		const char *consumer_channel);
 /**
  * devm_iio_channel_release() - Resource managed version of
  *				iio_channel_release().
@@ -130,9 +131,9 @@ struct iio_cb_buffer;
  * fail.
  */
 struct iio_cb_buffer *iio_channel_get_all_cb(struct device *dev,
-					     int (*cb)(const void *data,
-						       void *private),
-					     void *private);
+		int (*cb)(const void *data,
+				  void *private),
+		void *private);
 /**
  * iio_channel_release_all_cb() - release and unregister the callback.
  * @cb_buffer:		The callback buffer that was allocated.
@@ -185,7 +186,7 @@ struct iio_dev
  * scale will need to be applied if standard units required.
  */
 int iio_read_channel_raw(struct iio_channel *chan,
-			 int *val);
+						 int *val);
 
 /**
  * iio_read_channel_average_raw() - read from a given channel
@@ -233,7 +234,7 @@ int iio_write_channel_raw(struct iio_channel *chan, int val);
  * returns the enum iio_chan_type of the channel
  */
 int iio_get_channel_type(struct iio_channel *channel,
-			 enum iio_chan_type *type);
+						 enum iio_chan_type *type);
 
 /**
  * iio_read_channel_scale() - read the scale value for a channel
@@ -246,7 +247,7 @@ int iio_get_channel_type(struct iio_channel *channel,
  * + val2/1e6
  */
 int iio_read_channel_scale(struct iio_channel *chan, int *val,
-			   int *val2);
+						   int *val2);
 
 /**
  * iio_convert_raw_to_processed() - Converts a raw value to a processed value
@@ -269,6 +270,6 @@ int iio_read_channel_scale(struct iio_channel *chan, int *val,
  * nanovolts instead pass 1000000 as the scale factor.
  */
 int iio_convert_raw_to_processed(struct iio_channel *chan, int raw,
-	int *processed, unsigned int scale);
+								 int *processed, unsigned int scale);
 
 #endif

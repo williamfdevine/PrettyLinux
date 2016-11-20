@@ -31,14 +31,16 @@
 #include "../../codecs/rt5651.h"
 #include "../atom/sst-atom-controls.h"
 
-static const struct snd_soc_dapm_widget byt_rt5651_widgets[] = {
+static const struct snd_soc_dapm_widget byt_rt5651_widgets[] =
+{
 	SND_SOC_DAPM_HP("Headphone", NULL),
 	SND_SOC_DAPM_MIC("Headset Mic", NULL),
 	SND_SOC_DAPM_MIC("Internal Mic", NULL),
 	SND_SOC_DAPM_SPK("Speaker", NULL),
 };
 
-static const struct snd_soc_dapm_route byt_rt5651_audio_map[] = {
+static const struct snd_soc_dapm_route byt_rt5651_audio_map[] =
+{
 	{"AIF1 Playback", NULL, "ssp2 Tx"},
 	{"ssp2 Tx", NULL, "codec_out0"},
 	{"ssp2 Tx", NULL, "codec_out1"},
@@ -54,20 +56,24 @@ static const struct snd_soc_dapm_route byt_rt5651_audio_map[] = {
 	{"Speaker", NULL, "LOUTR"},
 };
 
-static const struct snd_soc_dapm_route byt_rt5651_intmic_dmic1_map[] = {
+static const struct snd_soc_dapm_route byt_rt5651_intmic_dmic1_map[] =
+{
 	{"DMIC1", NULL, "Internal Mic"},
 };
 
-static const struct snd_soc_dapm_route byt_rt5651_intmic_dmic2_map[] = {
+static const struct snd_soc_dapm_route byt_rt5651_intmic_dmic2_map[] =
+{
 	{"DMIC2", NULL, "Internal Mic"},
 };
 
-static const struct snd_soc_dapm_route byt_rt5651_intmic_in1_map[] = {
+static const struct snd_soc_dapm_route byt_rt5651_intmic_in1_map[] =
+{
 	{"Internal Mic", NULL, "micbias1"},
 	{"IN1P", NULL, "Internal Mic"},
 };
 
-enum {
+enum
+{
 	BYT_RT5651_DMIC1_MAP,
 	BYT_RT5651_DMIC2_MAP,
 	BYT_RT5651_IN1_MAP,
@@ -77,9 +83,10 @@ enum {
 #define BYT_RT5651_DMIC_EN	BIT(16)
 
 static unsigned long byt_rt5651_quirk = BYT_RT5651_DMIC1_MAP |
-					BYT_RT5651_DMIC_EN;
+										BYT_RT5651_DMIC_EN;
 
-static const struct snd_kcontrol_new byt_rt5651_controls[] = {
+static const struct snd_kcontrol_new byt_rt5651_controls[] =
+{
 	SOC_DAPM_PIN_SWITCH("Headphone"),
 	SOC_DAPM_PIN_SWITCH("Headset Mic"),
 	SOC_DAPM_PIN_SWITCH("Internal Mic"),
@@ -87,7 +94,7 @@ static const struct snd_kcontrol_new byt_rt5651_controls[] = {
 };
 
 static int byt_rt5651_aif1_hw_params(struct snd_pcm_substream *substream,
-					struct snd_pcm_hw_params *params)
+									 struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
@@ -96,17 +103,21 @@ static int byt_rt5651_aif1_hw_params(struct snd_pcm_substream *substream,
 	snd_soc_dai_set_bclk_ratio(codec_dai, 50);
 
 	ret = snd_soc_dai_set_sysclk(codec_dai, RT5651_SCLK_S_PLL1,
-				     params_rate(params) * 512,
-				     SND_SOC_CLOCK_IN);
-	if (ret < 0) {
+								 params_rate(params) * 512,
+								 SND_SOC_CLOCK_IN);
+
+	if (ret < 0)
+	{
 		dev_err(rtd->dev, "can't set codec clock %d\n", ret);
 		return ret;
 	}
 
 	ret = snd_soc_dai_set_pll(codec_dai, 0, RT5651_PLL1_S_BCLK1,
-				  params_rate(params) * 50,
-				  params_rate(params) * 512);
-	if (ret < 0) {
+							  params_rate(params) * 50,
+							  params_rate(params) * 512);
+
+	if (ret < 0)
+	{
 		dev_err(rtd->dev, "can't set codec pll: %d\n", ret);
 		return ret;
 	}
@@ -114,7 +125,8 @@ static int byt_rt5651_aif1_hw_params(struct snd_pcm_substream *substream,
 	return 0;
 }
 
-static const struct dmi_system_id byt_rt5651_quirk_table[] = {
+static const struct dmi_system_id byt_rt5651_quirk_table[] =
+{
 	{}
 };
 
@@ -128,33 +140,41 @@ static int byt_rt5651_init(struct snd_soc_pcm_runtime *runtime)
 	card->dapm.idle_bias_off = true;
 
 	dmi_check_system(byt_rt5651_quirk_table);
-	switch (BYT_RT5651_MAP(byt_rt5651_quirk)) {
-	case BYT_RT5651_IN1_MAP:
-		custom_map = byt_rt5651_intmic_in1_map;
-		num_routes = ARRAY_SIZE(byt_rt5651_intmic_in1_map);
-		break;
-	case BYT_RT5651_DMIC2_MAP:
-		custom_map = byt_rt5651_intmic_dmic2_map;
-		num_routes = ARRAY_SIZE(byt_rt5651_intmic_dmic2_map);
-		break;
-	default:
-		custom_map = byt_rt5651_intmic_dmic1_map;
-		num_routes = ARRAY_SIZE(byt_rt5651_intmic_dmic1_map);
+
+	switch (BYT_RT5651_MAP(byt_rt5651_quirk))
+	{
+		case BYT_RT5651_IN1_MAP:
+			custom_map = byt_rt5651_intmic_in1_map;
+			num_routes = ARRAY_SIZE(byt_rt5651_intmic_in1_map);
+			break;
+
+		case BYT_RT5651_DMIC2_MAP:
+			custom_map = byt_rt5651_intmic_dmic2_map;
+			num_routes = ARRAY_SIZE(byt_rt5651_intmic_dmic2_map);
+			break;
+
+		default:
+			custom_map = byt_rt5651_intmic_dmic1_map;
+			num_routes = ARRAY_SIZE(byt_rt5651_intmic_dmic1_map);
 	}
 
 	ret = snd_soc_add_card_controls(card, byt_rt5651_controls,
-					ARRAY_SIZE(byt_rt5651_controls));
-	if (ret) {
+									ARRAY_SIZE(byt_rt5651_controls));
+
+	if (ret)
+	{
 		dev_err(card->dev, "unable to add card controls\n");
 		return ret;
 	}
+
 	snd_soc_dapm_ignore_suspend(&card->dapm, "Headphone");
 	snd_soc_dapm_ignore_suspend(&card->dapm, "Speaker");
 
 	return ret;
 }
 
-static const struct snd_soc_pcm_stream byt_rt5651_dai_params = {
+static const struct snd_soc_pcm_stream byt_rt5651_dai_params =
+{
 	.formats = SNDRV_PCM_FMTBIT_S24_LE,
 	.rate_min = 48000,
 	.rate_max = 48000,
@@ -163,12 +183,12 @@ static const struct snd_soc_pcm_stream byt_rt5651_dai_params = {
 };
 
 static int byt_rt5651_codec_fixup(struct snd_soc_pcm_runtime *rtd,
-			    struct snd_pcm_hw_params *params)
+								  struct snd_pcm_hw_params *params)
 {
 	struct snd_interval *rate = hw_param_interval(params,
-			SNDRV_PCM_HW_PARAM_RATE);
+								SNDRV_PCM_HW_PARAM_RATE);
 	struct snd_interval *channels = hw_param_interval(params,
-						SNDRV_PCM_HW_PARAM_CHANNELS);
+									SNDRV_PCM_HW_PARAM_CHANNELS);
 	int ret;
 
 	/* The DSP will covert the FE rate to 48k, stereo, 24bits */
@@ -184,18 +204,21 @@ static int byt_rt5651_codec_fixup(struct snd_soc_pcm_runtime *rtd,
 	 * dai_set_tdm_slot() since there is no other API exposed
 	 */
 	ret = snd_soc_dai_set_fmt(rtd->cpu_dai,
-				  SND_SOC_DAIFMT_I2S     |
-				  SND_SOC_DAIFMT_NB_IF   |
-				  SND_SOC_DAIFMT_CBS_CFS
-				  );
+							  SND_SOC_DAIFMT_I2S     |
+							  SND_SOC_DAIFMT_NB_IF   |
+							  SND_SOC_DAIFMT_CBS_CFS
+							 );
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		dev_err(rtd->dev, "can't set format to I2S, err %d\n", ret);
 		return ret;
 	}
 
 	ret = snd_soc_dai_set_tdm_slot(rtd->cpu_dai, 0x3, 0x3, 2, 24);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(rtd->dev, "can't set I2S config, err %d\n", ret);
 		return ret;
 	}
@@ -203,11 +226,13 @@ static int byt_rt5651_codec_fixup(struct snd_soc_pcm_runtime *rtd,
 	return 0;
 }
 
-static unsigned int rates_48000[] = {
+static unsigned int rates_48000[] =
+{
 	48000,
 };
 
-static struct snd_pcm_hw_constraint_list constraints_48000 = {
+static struct snd_pcm_hw_constraint_list constraints_48000 =
+{
 	.count = ARRAY_SIZE(rates_48000),
 	.list  = rates_48000,
 };
@@ -215,19 +240,22 @@ static struct snd_pcm_hw_constraint_list constraints_48000 = {
 static int byt_rt5651_aif1_startup(struct snd_pcm_substream *substream)
 {
 	return snd_pcm_hw_constraint_list(substream->runtime, 0,
-			SNDRV_PCM_HW_PARAM_RATE,
-			&constraints_48000);
+									  SNDRV_PCM_HW_PARAM_RATE,
+									  &constraints_48000);
 }
 
-static struct snd_soc_ops byt_rt5651_aif1_ops = {
+static struct snd_soc_ops byt_rt5651_aif1_ops =
+{
 	.startup = byt_rt5651_aif1_startup,
 };
 
-static struct snd_soc_ops byt_rt5651_be_ssp2_ops = {
+static struct snd_soc_ops byt_rt5651_be_ssp2_ops =
+{
 	.hw_params = byt_rt5651_aif1_hw_params,
 };
 
-static struct snd_soc_dai_link byt_rt5651_dais[] = {
+static struct snd_soc_dai_link byt_rt5651_dais[] =
+{
 	[MERR_DPCM_AUDIO] = {
 		.name = "Audio Port",
 		.stream_name = "Audio",
@@ -274,7 +302,7 @@ static struct snd_soc_dai_link byt_rt5651_dais[] = {
 		.codec_dai_name = "rt5651-aif1",
 		.codec_name = "i2c-10EC5651:00",
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF
-						| SND_SOC_DAIFMT_CBS_CFS,
+		| SND_SOC_DAIFMT_CBS_CFS,
 		.be_hw_params_fixup = byt_rt5651_codec_fixup,
 		.ignore_suspend = 1,
 		.nonatomic = true,
@@ -286,7 +314,8 @@ static struct snd_soc_dai_link byt_rt5651_dais[] = {
 };
 
 /* SoC card */
-static struct snd_soc_card byt_rt5651_card = {
+static struct snd_soc_card byt_rt5651_card =
+{
 	.name = "bytcr-rt5651",
 	.owner = THIS_MODULE,
 	.dai_link = byt_rt5651_dais,
@@ -307,16 +336,19 @@ static int snd_byt_rt5651_mc_probe(struct platform_device *pdev)
 
 	ret_val = devm_snd_soc_register_card(&pdev->dev, &byt_rt5651_card);
 
-	if (ret_val) {
+	if (ret_val)
+	{
 		dev_err(&pdev->dev, "devm_snd_soc_register_card failed %d\n",
-			ret_val);
+				ret_val);
 		return ret_val;
 	}
+
 	platform_set_drvdata(pdev, &byt_rt5651_card);
 	return ret_val;
 }
 
-static struct platform_driver snd_byt_rt5651_mc_driver = {
+static struct platform_driver snd_byt_rt5651_mc_driver =
+{
 	.driver = {
 		.name = "bytcr_rt5651",
 		.pm = &snd_soc_pm_ops,

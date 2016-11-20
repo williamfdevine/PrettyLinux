@@ -43,13 +43,15 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 
-enum adreno_pa_su_sc_draw {
+enum adreno_pa_su_sc_draw
+{
 	PC_DRAW_POINTS = 0,
 	PC_DRAW_LINES = 1,
 	PC_DRAW_TRIANGLES = 2,
 };
 
-enum adreno_compare_func {
+enum adreno_compare_func
+{
 	FUNC_NEVER = 0,
 	FUNC_LESS = 1,
 	FUNC_EQUAL = 2,
@@ -60,7 +62,8 @@ enum adreno_compare_func {
 	FUNC_ALWAYS = 7,
 };
 
-enum adreno_stencil_op {
+enum adreno_stencil_op
+{
 	STENCIL_KEEP = 0,
 	STENCIL_ZERO = 1,
 	STENCIL_REPLACE = 2,
@@ -71,7 +74,8 @@ enum adreno_stencil_op {
 	STENCIL_DECR_WRAP = 7,
 };
 
-enum adreno_rb_blend_factor {
+enum adreno_rb_blend_factor
+{
 	FACTOR_ZERO = 0,
 	FACTOR_ONE = 1,
 	FACTOR_SRC_COLOR = 4,
@@ -93,7 +97,8 @@ enum adreno_rb_blend_factor {
 	FACTOR_ONE_MINUS_SRC1_ALPHA = 23,
 };
 
-enum adreno_rb_surface_endian {
+enum adreno_rb_surface_endian
+{
 	ENDIAN_NONE = 0,
 	ENDIAN_8IN16 = 1,
 	ENDIAN_8IN32 = 2,
@@ -102,25 +107,29 @@ enum adreno_rb_surface_endian {
 	ENDIAN_8IN128 = 5,
 };
 
-enum adreno_rb_dither_mode {
+enum adreno_rb_dither_mode
+{
 	DITHER_DISABLE = 0,
 	DITHER_ALWAYS = 1,
 	DITHER_IF_ALPHA_OFF = 2,
 };
 
-enum adreno_rb_depth_format {
+enum adreno_rb_depth_format
+{
 	DEPTHX_16 = 0,
 	DEPTHX_24_8 = 1,
 	DEPTHX_32 = 2,
 };
 
-enum adreno_rb_copy_control_mode {
+enum adreno_rb_copy_control_mode
+{
 	RB_COPY_RESOLVE = 1,
 	RB_COPY_CLEAR = 2,
 	RB_COPY_DEPTH_STENCIL = 5,
 };
 
-enum a3xx_rop_code {
+enum a3xx_rop_code
+{
 	ROP_CLEAR = 0,
 	ROP_NOR = 1,
 	ROP_AND_INVERTED = 2,
@@ -137,35 +146,41 @@ enum a3xx_rop_code {
 	ROP_SET = 15,
 };
 
-enum a3xx_render_mode {
+enum a3xx_render_mode
+{
 	RB_RENDERING_PASS = 0,
 	RB_TILING_PASS = 1,
 	RB_RESOLVE_PASS = 2,
 	RB_COMPUTE_PASS = 3,
 };
 
-enum a3xx_msaa_samples {
+enum a3xx_msaa_samples
+{
 	MSAA_ONE = 0,
 	MSAA_TWO = 1,
 	MSAA_FOUR = 2,
 };
 
-enum a3xx_threadmode {
+enum a3xx_threadmode
+{
 	MULTI = 0,
 	SINGLE = 1,
 };
 
-enum a3xx_instrbuffermode {
+enum a3xx_instrbuffermode
+{
 	CACHE = 0,
 	BUFFER = 1,
 };
 
-enum a3xx_threadsize {
+enum a3xx_threadsize
+{
 	TWO_QUADS = 0,
 	FOUR_QUADS = 1,
 };
 
-enum a3xx_color_swap {
+enum a3xx_color_swap
+{
 	WZYX = 0,
 	WXYZ = 1,
 	ZYXW = 2,

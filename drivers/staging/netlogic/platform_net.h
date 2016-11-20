@@ -34,7 +34,8 @@
 
 #define PORTS_PER_CONTROLLER		4
 
-struct xlr_net_data {
+struct xlr_net_data
+{
 	int cpu_mask;
 	u32 __iomem *mii_addr;
 	u32 __iomem *serdes_addr;

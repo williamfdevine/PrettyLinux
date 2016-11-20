@@ -23,7 +23,8 @@
  *	has not yet consumed the result. For all other threads, equivalent to
  *	%MCDI_STATE_RUNNING.
  */
-enum efx_mcdi_state {
+enum efx_mcdi_state
+{
 	MCDI_STATE_QUIESCENT,
 	MCDI_STATE_RUNNING_SYNC,
 	MCDI_STATE_RUNNING_ASYNC,
@@ -37,7 +38,8 @@ enum efx_mcdi_state {
  * @MCDI_MODE_EVENTS: wait for an mcdi_event.  On timeout, poll once
  * @MCDI_MODE_FAIL: we think MCDI is dead, so fail-fast all calls
  */
-enum efx_mcdi_mode {
+enum efx_mcdi_mode
+{
 	MCDI_MODE_POLL,
 	MCDI_MODE_EVENTS,
 	MCDI_MODE_FAIL,
@@ -67,7 +69,8 @@ enum efx_mcdi_mode {
  * @proxy_rx_status: Status of most recent proxy authorisation
  * @proxy_rx_wq: Wait queue for updates to proxy_rx_handle
  */
-struct efx_mcdi_iface {
+struct efx_mcdi_iface
+{
 	struct efx_nic *efx;
 	enum efx_mcdi_state state;
 	enum efx_mcdi_mode mode;
@@ -92,7 +95,8 @@ struct efx_mcdi_iface {
 	wait_queue_head_t proxy_rx_wq;
 };
 
-struct efx_mcdi_mon {
+struct efx_mcdi_mon
+{
 	struct efx_buffer dma_buf;
 	struct mutex update_lock;
 	unsigned long last_update;
@@ -103,7 +107,8 @@ struct efx_mcdi_mon {
 	unsigned int n_attrs;
 };
 
-struct efx_mcdi_mtd_partition {
+struct efx_mcdi_mtd_partition
+{
 	struct efx_mtd_partition common;
 	bool updating;
 	u16 nvram_type;
@@ -119,7 +124,8 @@ struct efx_mcdi_mtd_partition {
  * @hwmon: Hardware monitor state
  * @fn_flags: Flags for this function, as returned by %MC_CMD_DRV_ATTACH.
  */
-struct efx_mcdi_data {
+struct efx_mcdi_data
+{
 	struct efx_mcdi_iface iface;
 #ifdef CONFIG_SFC_MCDI_MON
 	struct efx_mcdi_mon hwmon;
@@ -145,39 +151,39 @@ int efx_mcdi_init(struct efx_nic *efx);
 void efx_mcdi_fini(struct efx_nic *efx);
 
 int efx_mcdi_rpc(struct efx_nic *efx, unsigned cmd, const efx_dword_t *inbuf,
-		 size_t inlen, efx_dword_t *outbuf, size_t outlen,
-		 size_t *outlen_actual);
+				 size_t inlen, efx_dword_t *outbuf, size_t outlen,
+				 size_t *outlen_actual);
 int efx_mcdi_rpc_quiet(struct efx_nic *efx, unsigned cmd,
-		       const efx_dword_t *inbuf, size_t inlen,
-		       efx_dword_t *outbuf, size_t outlen,
-		       size_t *outlen_actual);
+					   const efx_dword_t *inbuf, size_t inlen,
+					   efx_dword_t *outbuf, size_t outlen,
+					   size_t *outlen_actual);
 
 int efx_mcdi_rpc_start(struct efx_nic *efx, unsigned cmd,
-		       const efx_dword_t *inbuf, size_t inlen);
+					   const efx_dword_t *inbuf, size_t inlen);
 int efx_mcdi_rpc_finish(struct efx_nic *efx, unsigned cmd, size_t inlen,
-			efx_dword_t *outbuf, size_t outlen,
-			size_t *outlen_actual);
+						efx_dword_t *outbuf, size_t outlen,
+						size_t *outlen_actual);
 int efx_mcdi_rpc_finish_quiet(struct efx_nic *efx, unsigned cmd,
-			      size_t inlen, efx_dword_t *outbuf,
-			      size_t outlen, size_t *outlen_actual);
+							  size_t inlen, efx_dword_t *outbuf,
+							  size_t outlen, size_t *outlen_actual);
 
 typedef void efx_mcdi_async_completer(struct efx_nic *efx,
-				      unsigned long cookie, int rc,
-				      efx_dword_t *outbuf,
-				      size_t outlen_actual);
+									  unsigned long cookie, int rc,
+									  efx_dword_t *outbuf,
+									  size_t outlen_actual);
 int efx_mcdi_rpc_async(struct efx_nic *efx, unsigned int cmd,
-		       const efx_dword_t *inbuf, size_t inlen, size_t outlen,
-		       efx_mcdi_async_completer *complete,
-		       unsigned long cookie);
+					   const efx_dword_t *inbuf, size_t inlen, size_t outlen,
+					   efx_mcdi_async_completer *complete,
+					   unsigned long cookie);
 int efx_mcdi_rpc_async_quiet(struct efx_nic *efx, unsigned int cmd,
-			     const efx_dword_t *inbuf, size_t inlen,
-			     size_t outlen,
-			     efx_mcdi_async_completer *complete,
-			     unsigned long cookie);
+							 const efx_dword_t *inbuf, size_t inlen,
+							 size_t outlen,
+							 efx_mcdi_async_completer *complete,
+							 unsigned long cookie);
 
 void efx_mcdi_display_error(struct efx_nic *efx, unsigned cmd,
-			    size_t inlen, efx_dword_t *outbuf,
-			    size_t outlen, int rc);
+							size_t inlen, efx_dword_t *outbuf,
+							size_t outlen, int rc);
 
 int efx_mcdi_poll_reboot(struct efx_nic *efx);
 void efx_mcdi_mode_poll(struct efx_nic *efx);
@@ -216,75 +222,75 @@ void efx_mcdi_sensor_event(struct efx_nic *efx, efx_qword_t *ev);
 	EFX_DWORD_FIELD(*_MCDI_DWORD(_buf, _field), EFX_DWORD_0)
 #define MCDI_POPULATE_DWORD_1(_buf, _field, _name1, _value1)		\
 	EFX_POPULATE_DWORD_1(*_MCDI_DWORD(_buf, _field),		\
-			     MC_CMD_ ## _name1, _value1)
+						 MC_CMD_ ## _name1, _value1)
 #define MCDI_POPULATE_DWORD_2(_buf, _field, _name1, _value1,		\
-			      _name2, _value2)				\
-	EFX_POPULATE_DWORD_2(*_MCDI_DWORD(_buf, _field),		\
-			     MC_CMD_ ## _name1, _value1,		\
-			     MC_CMD_ ## _name2, _value2)
+							  _name2, _value2)				\
+EFX_POPULATE_DWORD_2(*_MCDI_DWORD(_buf, _field),		\
+					 MC_CMD_ ## _name1, _value1,		\
+					 MC_CMD_ ## _name2, _value2)
 #define MCDI_POPULATE_DWORD_3(_buf, _field, _name1, _value1,		\
-			      _name2, _value2, _name3, _value3)		\
-	EFX_POPULATE_DWORD_3(*_MCDI_DWORD(_buf, _field),		\
-			     MC_CMD_ ## _name1, _value1,		\
-			     MC_CMD_ ## _name2, _value2,		\
-			     MC_CMD_ ## _name3, _value3)
+							  _name2, _value2, _name3, _value3)		\
+EFX_POPULATE_DWORD_3(*_MCDI_DWORD(_buf, _field),		\
+					 MC_CMD_ ## _name1, _value1,		\
+					 MC_CMD_ ## _name2, _value2,		\
+					 MC_CMD_ ## _name3, _value3)
 #define MCDI_POPULATE_DWORD_4(_buf, _field, _name1, _value1,		\
-			      _name2, _value2, _name3, _value3,		\
-			      _name4, _value4)				\
-	EFX_POPULATE_DWORD_4(*_MCDI_DWORD(_buf, _field),		\
-			     MC_CMD_ ## _name1, _value1,		\
-			     MC_CMD_ ## _name2, _value2,		\
-			     MC_CMD_ ## _name3, _value3,		\
-			     MC_CMD_ ## _name4, _value4)
+							  _name2, _value2, _name3, _value3,		\
+							  _name4, _value4)				\
+EFX_POPULATE_DWORD_4(*_MCDI_DWORD(_buf, _field),		\
+					 MC_CMD_ ## _name1, _value1,		\
+					 MC_CMD_ ## _name2, _value2,		\
+					 MC_CMD_ ## _name3, _value3,		\
+					 MC_CMD_ ## _name4, _value4)
 #define MCDI_POPULATE_DWORD_5(_buf, _field, _name1, _value1,		\
-			      _name2, _value2, _name3, _value3,		\
-			      _name4, _value4, _name5, _value5)		\
-	EFX_POPULATE_DWORD_5(*_MCDI_DWORD(_buf, _field),		\
-			     MC_CMD_ ## _name1, _value1,		\
-			     MC_CMD_ ## _name2, _value2,		\
-			     MC_CMD_ ## _name3, _value3,		\
-			     MC_CMD_ ## _name4, _value4,		\
-			     MC_CMD_ ## _name5, _value5)
+							  _name2, _value2, _name3, _value3,		\
+							  _name4, _value4, _name5, _value5)		\
+EFX_POPULATE_DWORD_5(*_MCDI_DWORD(_buf, _field),		\
+					 MC_CMD_ ## _name1, _value1,		\
+					 MC_CMD_ ## _name2, _value2,		\
+					 MC_CMD_ ## _name3, _value3,		\
+					 MC_CMD_ ## _name4, _value4,		\
+					 MC_CMD_ ## _name5, _value5)
 #define MCDI_POPULATE_DWORD_6(_buf, _field, _name1, _value1,		\
-			      _name2, _value2, _name3, _value3,		\
-			      _name4, _value4, _name5, _value5,		\
-			      _name6, _value6)				\
-	EFX_POPULATE_DWORD_6(*_MCDI_DWORD(_buf, _field),		\
-			     MC_CMD_ ## _name1, _value1,		\
-			     MC_CMD_ ## _name2, _value2,		\
-			     MC_CMD_ ## _name3, _value3,		\
-			     MC_CMD_ ## _name4, _value4,		\
-			     MC_CMD_ ## _name5, _value5,		\
-			     MC_CMD_ ## _name6, _value6)
+							  _name2, _value2, _name3, _value3,		\
+							  _name4, _value4, _name5, _value5,		\
+							  _name6, _value6)				\
+EFX_POPULATE_DWORD_6(*_MCDI_DWORD(_buf, _field),		\
+					 MC_CMD_ ## _name1, _value1,		\
+					 MC_CMD_ ## _name2, _value2,		\
+					 MC_CMD_ ## _name3, _value3,		\
+					 MC_CMD_ ## _name4, _value4,		\
+					 MC_CMD_ ## _name5, _value5,		\
+					 MC_CMD_ ## _name6, _value6)
 #define MCDI_POPULATE_DWORD_7(_buf, _field, _name1, _value1,		\
-			      _name2, _value2, _name3, _value3,		\
-			      _name4, _value4, _name5, _value5,		\
-			      _name6, _value6, _name7, _value7)		\
-	EFX_POPULATE_DWORD_7(*_MCDI_DWORD(_buf, _field),		\
-			     MC_CMD_ ## _name1, _value1,		\
-			     MC_CMD_ ## _name2, _value2,		\
-			     MC_CMD_ ## _name3, _value3,		\
-			     MC_CMD_ ## _name4, _value4,		\
-			     MC_CMD_ ## _name5, _value5,		\
-			     MC_CMD_ ## _name6, _value6,		\
-			     MC_CMD_ ## _name7, _value7)
+							  _name2, _value2, _name3, _value3,		\
+							  _name4, _value4, _name5, _value5,		\
+							  _name6, _value6, _name7, _value7)		\
+EFX_POPULATE_DWORD_7(*_MCDI_DWORD(_buf, _field),		\
+					 MC_CMD_ ## _name1, _value1,		\
+					 MC_CMD_ ## _name2, _value2,		\
+					 MC_CMD_ ## _name3, _value3,		\
+					 MC_CMD_ ## _name4, _value4,		\
+					 MC_CMD_ ## _name5, _value5,		\
+					 MC_CMD_ ## _name6, _value6,		\
+					 MC_CMD_ ## _name7, _value7)
 #define MCDI_SET_QWORD(_buf, _field, _value)				\
 	do {								\
 		EFX_POPULATE_DWORD_1(_MCDI_DWORD(_buf, _field)[0],	\
-				     EFX_DWORD_0, (u32)(_value));	\
+							 EFX_DWORD_0, (u32)(_value));	\
 		EFX_POPULATE_DWORD_1(_MCDI_DWORD(_buf, _field)[1],	\
-				     EFX_DWORD_0, (u64)(_value) >> 32);	\
+							 EFX_DWORD_0, (u64)(_value) >> 32);	\
 	} while (0)
 #define MCDI_QWORD(_buf, _field)					\
 	(EFX_DWORD_FIELD(_MCDI_DWORD(_buf, _field)[0], EFX_DWORD_0) |	\
-	(u64)EFX_DWORD_FIELD(_MCDI_DWORD(_buf, _field)[1], EFX_DWORD_0) << 32)
+	 (u64)EFX_DWORD_FIELD(_MCDI_DWORD(_buf, _field)[1], EFX_DWORD_0) << 32)
 #define MCDI_FIELD(_ptr, _type, _field)					\
 	EFX_EXTRACT_DWORD(						\
-		*(efx_dword_t *)					\
-		_MCDI_PTR(_ptr, MC_CMD_ ## _type ## _ ## _field ## _OFST & ~3),\
-		MC_CMD_ ## _type ## _ ## _field ## _LBN & 0x1f,	\
-		(MC_CMD_ ## _type ## _ ## _field ## _LBN & 0x1f) +	\
-		MC_CMD_ ## _type ## _ ## _field ## _WIDTH - 1)
+											*(efx_dword_t *)					\
+											_MCDI_PTR(_ptr, MC_CMD_ ## _type ## _ ## _field ## _OFST & ~3),\
+											MC_CMD_ ## _type ## _ ## _field ## _LBN & 0x1f,	\
+											(MC_CMD_ ## _type ## _ ## _field ## _LBN & 0x1f) +	\
+											MC_CMD_ ## _type ## _ ## _field ## _WIDTH - 1)
 
 #define _MCDI_ARRAY_PTR(_buf, _field, _index, _align)			\
 	(_MCDI_PTR(_buf, _MCDI_CHECK_ALIGN(MC_CMD_ ## _field ## _OFST, _align))\
@@ -295,17 +301,17 @@ void efx_mcdi_sensor_event(struct efx_nic *efx, efx_qword_t *ev);
 	((efx_dword_t *)_MCDI_ARRAY_PTR(_buf, _field, _index, 4))
 #define MCDI_VAR_ARRAY_LEN(_len, _field)				\
 	min_t(size_t, MC_CMD_ ## _field ## _MAXNUM,			\
-	      ((_len) - MC_CMD_ ## _field ## _OFST) / MC_CMD_ ## _field ## _LEN)
+		  ((_len) - MC_CMD_ ## _field ## _OFST) / MC_CMD_ ## _field ## _LEN)
 #define MCDI_ARRAY_WORD(_buf, _field, _index)				\
 	(BUILD_BUG_ON_ZERO(MC_CMD_ ## _field ## _LEN != 2) +		\
 	 le16_to_cpu(*(__force const __le16 *)				\
-		     _MCDI_ARRAY_PTR(_buf, _field, _index, 2)))
+				 _MCDI_ARRAY_PTR(_buf, _field, _index, 2)))
 #define _MCDI_ARRAY_DWORD(_buf, _field, _index)				\
 	(BUILD_BUG_ON_ZERO(MC_CMD_ ## _field ## _LEN != 4) +		\
 	 (efx_dword_t *)_MCDI_ARRAY_PTR(_buf, _field, _index, 4))
 #define MCDI_SET_ARRAY_DWORD(_buf, _field, _index, _value)		\
 	EFX_SET_DWORD_FIELD(*_MCDI_ARRAY_DWORD(_buf, _field, _index),	\
-			    EFX_DWORD_0, _value)
+						EFX_DWORD_0, _value)
 #define MCDI_ARRAY_DWORD(_buf, _field, _index)				\
 	EFX_DWORD_FIELD(*_MCDI_ARRAY_DWORD(_buf, _field, _index), EFX_DWORD_0)
 #define _MCDI_ARRAY_QWORD(_buf, _field, _index)				\
@@ -314,30 +320,30 @@ void efx_mcdi_sensor_event(struct efx_nic *efx, efx_qword_t *ev);
 #define MCDI_SET_ARRAY_QWORD(_buf, _field, _index, _value)		\
 	do {								\
 		EFX_SET_DWORD_FIELD(_MCDI_ARRAY_QWORD(_buf, _field, _index)[0],\
-				    EFX_DWORD_0, (u32)(_value));	\
+							EFX_DWORD_0, (u32)(_value));	\
 		EFX_SET_DWORD_FIELD(_MCDI_ARRAY_QWORD(_buf, _field, _index)[1],\
-				    EFX_DWORD_0, (u64)(_value) >> 32);	\
+							EFX_DWORD_0, (u64)(_value) >> 32);	\
 	} while (0)
 #define MCDI_ARRAY_FIELD(_buf, _field1, _type, _index, _field2)		\
 	MCDI_FIELD(MCDI_ARRAY_STRUCT_PTR(_buf, _field1, _index),	\
-		   _type ## _TYPEDEF, _field2)
+			   _type ## _TYPEDEF, _field2)
 
 #define MCDI_EVENT_FIELD(_ev, _field)			\
 	EFX_QWORD_FIELD(_ev, MCDI_EVENT_ ## _field)
 
 void efx_mcdi_print_fwver(struct efx_nic *efx, char *buf, size_t len);
 int efx_mcdi_get_board_cfg(struct efx_nic *efx, u8 *mac_address,
-			   u16 *fw_subtype_list, u32 *capabilities);
+						   u16 *fw_subtype_list, u32 *capabilities);
 int efx_mcdi_log_ctrl(struct efx_nic *efx, bool evq, bool uart, u32 dest_evq);
 int efx_mcdi_nvram_types(struct efx_nic *efx, u32 *nvram_types_out);
 int efx_mcdi_nvram_info(struct efx_nic *efx, unsigned int type,
-			size_t *size_out, size_t *erase_size_out,
-			bool *protected_out);
+						size_t *size_out, size_t *erase_size_out,
+						bool *protected_out);
 int efx_mcdi_nvram_test_all(struct efx_nic *efx);
 int efx_mcdi_handle_assertion(struct efx_nic *efx);
 void efx_mcdi_set_id_led(struct efx_nic *efx, enum efx_led_mode mode);
 int efx_mcdi_wol_filter_set_magic(struct efx_nic *efx, const u8 *mac,
-				  int *id_out);
+								  int *id_out);
 int efx_mcdi_wol_filter_get_magic(struct efx_nic *efx, int *id_out);
 int efx_mcdi_wol_filter_remove(struct efx_nic *efx, int id);
 int efx_mcdi_wol_filter_reset(struct efx_nic *efx);
@@ -357,9 +363,9 @@ bool efx_mcdi_mac_check_fault(struct efx_nic *efx);
 enum reset_type efx_mcdi_map_reset_reason(enum reset_type reason);
 int efx_mcdi_reset(struct efx_nic *efx, enum reset_type method);
 int efx_mcdi_set_workaround(struct efx_nic *efx, u32 type, bool enabled,
-			    unsigned int *flags);
+							unsigned int *flags);
 int efx_mcdi_get_workarounds(struct efx_nic *efx, unsigned int *impl_out,
-			     unsigned int *enabled_out);
+							 unsigned int *enabled_out);
 
 #ifdef CONFIG_SFC_MCDI_MON
 int efx_mcdi_mon_probe(struct efx_nic *efx);
@@ -371,10 +377,10 @@ static inline void efx_mcdi_mon_remove(struct efx_nic *efx) {}
 
 #ifdef CONFIG_SFC_MTD
 int efx_mcdi_mtd_read(struct mtd_info *mtd, loff_t start, size_t len,
-		      size_t *retlen, u8 *buffer);
+					  size_t *retlen, u8 *buffer);
 int efx_mcdi_mtd_erase(struct mtd_info *mtd, loff_t start, size_t len);
 int efx_mcdi_mtd_write(struct mtd_info *mtd, loff_t start, size_t len,
-		       size_t *retlen, const u8 *buffer);
+					   size_t *retlen, const u8 *buffer);
 int efx_mcdi_mtd_sync(struct mtd_info *mtd);
 void efx_mcdi_mtd_rename(struct efx_mtd_partition *part);
 #endif

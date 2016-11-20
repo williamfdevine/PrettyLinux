@@ -27,7 +27,8 @@
 #define UNIPHIER_PERI_CLK_FI2C(idx, ch)					\
 	UNIPHIER_CLK_GATE("i2c" #ch, (idx), "i2c", 0x24, 24 + (ch))
 
-const struct uniphier_clk_data uniphier_ld4_peri_clk_data[] = {
+const struct uniphier_clk_data uniphier_ld4_peri_clk_data[] =
+{
 	UNIPHIER_PERI_CLK_UART(0, 0),
 	UNIPHIER_PERI_CLK_UART(1, 1),
 	UNIPHIER_PERI_CLK_UART(2, 2),
@@ -41,7 +42,8 @@ const struct uniphier_clk_data uniphier_ld4_peri_clk_data[] = {
 	{ /* sentinel */ }
 };
 
-const struct uniphier_clk_data uniphier_pro4_peri_clk_data[] = {
+const struct uniphier_clk_data uniphier_pro4_peri_clk_data[] =
+{
 	UNIPHIER_PERI_CLK_UART(0, 0),
 	UNIPHIER_PERI_CLK_UART(1, 1),
 	UNIPHIER_PERI_CLK_UART(2, 2),

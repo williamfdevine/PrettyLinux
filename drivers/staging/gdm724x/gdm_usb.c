@@ -31,23 +31,24 @@
 
 #define USB_DEVICE_CDC_DATA(vid, pid) \
 	.match_flags = USB_DEVICE_ID_MATCH_DEVICE | \
-		USB_DEVICE_ID_MATCH_INT_CLASS | \
-		USB_DEVICE_ID_MATCH_INT_SUBCLASS,\
-	.idVendor = vid,\
-	.idProduct = pid,\
-	.bInterfaceClass = USB_CLASS_COMM,\
-	.bInterfaceSubClass = USB_CDC_SUBCLASS_ETHERNET
+				   USB_DEVICE_ID_MATCH_INT_CLASS | \
+				   USB_DEVICE_ID_MATCH_INT_SUBCLASS,\
+				   .idVendor = vid,\
+							   .idProduct = pid,\
+											.bInterfaceClass = USB_CLASS_COMM,\
+													.bInterfaceSubClass = USB_CDC_SUBCLASS_ETHERNET
 
 #define USB_DEVICE_MASS_DATA(vid, pid) \
 	.match_flags = USB_DEVICE_ID_MATCH_DEVICE | \
-		USB_DEVICE_ID_MATCH_INT_INFO,\
-	.idVendor = vid,\
-	.idProduct = pid,\
-	.bInterfaceSubClass = USB_SC_SCSI, \
-	.bInterfaceClass = USB_CLASS_MASS_STORAGE,\
-	.bInterfaceProtocol = USB_PR_BULK
+				   USB_DEVICE_ID_MATCH_INT_INFO,\
+				   .idVendor = vid,\
+							   .idProduct = pid,\
+											.bInterfaceSubClass = USB_SC_SCSI, \
+													.bInterfaceClass = USB_CLASS_MASS_STORAGE,\
+															.bInterfaceProtocol = USB_PR_BULK
 
-static const struct usb_device_id id_table[] = {
+static const struct usb_device_id id_table[] =
+{
 	{ USB_DEVICE_CDC_DATA(VID_GCT, PID_GDM7240) }, /* GCT GDM7240 */
 	{ USB_DEVICE_CDC_DATA(VID_GCT, PID_GDM7243) }, /* GCT GDM7243 */
 	{ }
@@ -59,10 +60,10 @@ static void do_tx(struct work_struct *work);
 static void do_rx(struct work_struct *work);
 
 static int gdm_usb_recv(void *priv_dev,
-			int (*cb)(void *cb_data,
-				  void *data, int len, int context),
-			void *cb_data,
-			int context);
+						int (*cb)(void *cb_data,
+								  void *data, int len, int context),
+						void *cb_data,
+						int context);
 
 static int request_mac_address(struct lte_udev *udev)
 {
@@ -77,7 +78,7 @@ static int request_mac_address(struct lte_udev *udev)
 	hci->data[0] = MAC_ADDRESS;
 
 	ret = usb_bulk_msg(usbdev, usb_sndbulkpipe(usbdev, 2), buf, 5,
-			   &actual, 1000);
+					   &actual, 1000);
 
 	udev->request_mac_addr = 1;
 
@@ -90,28 +91,39 @@ static struct usb_tx *alloc_tx_struct(int len)
 	int ret = 0;
 
 	t = kzalloc(sizeof(*t), GFP_ATOMIC);
-	if (!t) {
+
+	if (!t)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	t->urb = usb_alloc_urb(0, GFP_ATOMIC);
+
 	if (!(len % 512))
+	{
 		len++;
+	}
 
 	t->buf = kmalloc(len, GFP_ATOMIC);
-	if (!t->urb || !t->buf) {
+
+	if (!t->urb || !t->buf)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
 out:
-	if (ret < 0) {
-		if (t) {
+
+	if (ret < 0)
+	{
+		if (t)
+		{
 			usb_free_urb(t->urb);
 			kfree(t->buf);
 			kfree(t);
 		}
+
 		return NULL;
 	}
 
@@ -123,11 +135,16 @@ static struct usb_tx_sdu *alloc_tx_sdu_struct(void)
 	struct usb_tx_sdu *t_sdu;
 
 	t_sdu = kzalloc(sizeof(*t_sdu), GFP_KERNEL);
+
 	if (!t_sdu)
+	{
 		return NULL;
+	}
 
 	t_sdu->buf = kmalloc(SDU_BUF_SIZE, GFP_KERNEL);
-	if (!t_sdu->buf) {
+
+	if (!t_sdu->buf)
+	{
 		kfree(t_sdu);
 		return NULL;
 	}
@@ -137,7 +154,8 @@ static struct usb_tx_sdu *alloc_tx_sdu_struct(void)
 
 static void free_tx_struct(struct usb_tx *t)
 {
-	if (t) {
+	if (t)
+	{
 		usb_free_urb(t->urb);
 		kfree(t->buf);
 		kfree(t);
@@ -146,7 +164,8 @@ static void free_tx_struct(struct usb_tx *t)
 
 static void free_tx_sdu_struct(struct usb_tx_sdu *t_sdu)
 {
-	if (t_sdu) {
+	if (t_sdu)
+	{
 		kfree(t_sdu->buf);
 		kfree(t_sdu);
 	}
@@ -157,7 +176,9 @@ static struct usb_tx_sdu *get_tx_sdu_struct(struct tx_cxt *tx, int *no_spc)
 	struct usb_tx_sdu *t_sdu;
 
 	if (list_empty(&tx->free_list))
+	{
 		return NULL;
+	}
 
 	t_sdu = list_entry(tx->free_list.next, struct usb_tx_sdu, list);
 	list_del(&t_sdu->list);
@@ -181,25 +202,33 @@ static struct usb_rx *alloc_rx_struct(void)
 	int ret = 0;
 
 	r = kmalloc(sizeof(*r), GFP_KERNEL);
-	if (!r) {
+
+	if (!r)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	r->urb = usb_alloc_urb(0, GFP_KERNEL);
 	r->buf = kmalloc(RX_BUF_SIZE, GFP_KERNEL);
-	if (!r->urb || !r->buf) {
+
+	if (!r->urb || !r->buf)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
+
 out:
 
-	if (ret < 0) {
-		if (r) {
+	if (ret < 0)
+	{
+		if (r)
+		{
 			usb_free_urb(r->urb);
 			kfree(r->buf);
 			kfree(r);
 		}
+
 		return NULL;
 	}
 
@@ -208,7 +237,8 @@ out:
 
 static void free_rx_struct(struct usb_rx *r)
 {
-	if (r) {
+	if (r)
+	{
 		usb_free_urb(r->urb);
 		kfree(r->buf);
 		kfree(r);
@@ -222,7 +252,8 @@ static struct usb_rx *get_rx_struct(struct rx_cxt *rx, int *no_spc)
 
 	spin_lock_irqsave(&rx->rx_lock, flags);
 
-	if (list_empty(&rx->free_list)) {
+	if (list_empty(&rx->free_list))
+	{
 		spin_unlock_irqrestore(&rx->rx_lock, flags);
 		return NULL;
 	}
@@ -261,17 +292,20 @@ static void release_usb(struct lte_udev *udev)
 	unsigned long flags;
 
 	spin_lock_irqsave(&tx->lock, flags);
-	list_for_each_entry_safe(t_sdu, t_sdu_next, &tx->sdu_list, list) {
+	list_for_each_entry_safe(t_sdu, t_sdu_next, &tx->sdu_list, list)
+	{
 		list_del(&t_sdu->list);
 		free_tx_sdu_struct(t_sdu);
 	}
 
-	list_for_each_entry_safe(t, t_next, &tx->hci_list, list) {
+	list_for_each_entry_safe(t, t_next, &tx->hci_list, list)
+	{
 		list_del(&t->list);
 		free_tx_struct(t);
 	}
 
-	list_for_each_entry_safe(t_sdu, t_sdu_next, &tx->free_list, list) {
+	list_for_each_entry_safe(t_sdu, t_sdu_next, &tx->free_list, list)
+	{
 		list_del(&t_sdu->list);
 		free_tx_sdu_struct(t_sdu);
 	}
@@ -279,7 +313,8 @@ static void release_usb(struct lte_udev *udev)
 
 	spin_lock_irqsave(&rx->submit_lock, flags);
 	list_for_each_entry_safe(r, r_next, &rx->rx_submit_list,
-				 rx_submit_list) {
+							 rx_submit_list)
+	{
 		spin_unlock_irqrestore(&rx->submit_lock, flags);
 		usb_kill_urb(r->urb);
 		spin_lock_irqsave(&rx->submit_lock, flags);
@@ -287,15 +322,18 @@ static void release_usb(struct lte_udev *udev)
 	spin_unlock_irqrestore(&rx->submit_lock, flags);
 
 	spin_lock_irqsave(&rx->rx_lock, flags);
-	list_for_each_entry_safe(r, r_next, &rx->free_list, free_list) {
+	list_for_each_entry_safe(r, r_next, &rx->free_list, free_list)
+	{
 		list_del(&r->free_list);
 		free_rx_struct(r);
 	}
 	spin_unlock_irqrestore(&rx->rx_lock, flags);
 
 	spin_lock_irqsave(&rx->to_host_lock, flags);
-	list_for_each_entry_safe(r, r_next, &rx->to_host_list, to_host_list) {
-		if (r->index == (void *)udev) {
+	list_for_each_entry_safe(r, r_next, &rx->to_host_list, to_host_list)
+	{
+		if (r->index == (void *)udev)
+		{
 			list_del(&r->to_host_list);
 			free_rx_struct(r);
 		}
@@ -333,9 +371,12 @@ static int init_usb(struct lte_udev *udev)
 
 	udev->rx_cb = NULL;
 
-	for (i = 0; i < MAX_NUM_SDU_BUF; i++) {
+	for (i = 0; i < MAX_NUM_SDU_BUF; i++)
+	{
 		t_sdu = alloc_tx_sdu_struct();
-		if (!t_sdu) {
+
+		if (!t_sdu)
+		{
 			ret = -ENOMEM;
 			goto fail;
 		}
@@ -344,9 +385,12 @@ static int init_usb(struct lte_udev *udev)
 		tx->avail_count++;
 	}
 
-	for (i = 0; i < MAX_RX_SUBMIT_COUNT * 2; i++) {
+	for (i = 0; i < MAX_RX_SUBMIT_COUNT * 2; i++)
+	{
 		r = alloc_rx_struct();
-		if (!r) {
+
+		if (!r)
+		{
 			ret = -ENOMEM;
 			goto fail;
 		}
@@ -354,6 +398,7 @@ static int init_usb(struct lte_udev *udev)
 		list_add(&r->free_list, &rx->free_list);
 		rx->avail_count++;
 	}
+
 	INIT_DELAYED_WORK(&udev->work_tx, do_tx);
 	INIT_DELAYED_WORK(&udev->work_rx, do_rx);
 	return 0;
@@ -369,12 +414,15 @@ static int set_mac_address(u8 *data, void *arg)
 	struct tlv *tlv = (struct tlv *)data;
 	u8 mac_address[ETH_ALEN] = {0, };
 
-	if (tlv->type == MAC_ADDRESS && udev->request_mac_addr) {
+	if (tlv->type == MAC_ADDRESS && udev->request_mac_addr)
+	{
 		memcpy(mac_address, tlv->data, tlv->len);
 
 		if (register_lte_device(phy_dev,
-					&udev->intf->dev, mac_address) < 0)
+								&udev->intf->dev, mac_address) < 0)
+		{
 			pr_err("register lte device failed\n");
+		}
 
 		udev->request_mac_addr = 0;
 
@@ -396,14 +444,18 @@ static void do_rx(struct work_struct *work)
 	int ret;
 	unsigned long flags;
 
-	while (1) {
+	while (1)
+	{
 		spin_lock_irqsave(&rx->to_host_lock, flags);
-		if (list_empty(&rx->to_host_list)) {
+
+		if (list_empty(&rx->to_host_list))
+		{
 			spin_unlock_irqrestore(&rx->to_host_lock, flags);
 			break;
 		}
+
 		r = list_entry(rx->to_host_list.next,
-			       struct usb_rx, to_host_list);
+					   struct usb_rx, to_host_list);
 		list_del(&r->to_host_list);
 		spin_unlock_irqrestore(&rx->to_host_lock, flags);
 
@@ -412,35 +464,42 @@ static void do_rx(struct work_struct *work)
 		hci = (struct hci_packet *)r->buf;
 		cmd_evt = gdm_dev16_to_cpu(&udev->gdm_ed, hci->cmd_evt);
 
-		switch (cmd_evt) {
-		case LTE_GET_INFORMATION_RESULT:
-			if (set_mac_address(hci->data, r->cb_data) == 0) {
-				r->callback(r->cb_data,
-					    r->buf,
-					    r->urb->actual_length,
-					    KERNEL_THREAD);
-			}
-			break;
+		switch (cmd_evt)
+		{
+			case LTE_GET_INFORMATION_RESULT:
+				if (set_mac_address(hci->data, r->cb_data) == 0)
+				{
+					r->callback(r->cb_data,
+								r->buf,
+								r->urb->actual_length,
+								KERNEL_THREAD);
+				}
 
-		default:
-			if (r->callback) {
-				ret = r->callback(r->cb_data,
-						  r->buf,
-						  r->urb->actual_length,
-						  KERNEL_THREAD);
+				break;
 
-				if (ret == -EAGAIN)
-					pr_err("failed to send received data\n");
-			}
-			break;
+			default:
+				if (r->callback)
+				{
+					ret = r->callback(r->cb_data,
+									  r->buf,
+									  r->urb->actual_length,
+									  KERNEL_THREAD);
+
+					if (ret == -EAGAIN)
+					{
+						pr_err("failed to send received data\n");
+					}
+				}
+
+				break;
 		}
 
 		put_rx_struct(rx, r);
 
 		gdm_usb_recv(udev,
-			     r->callback,
-			     r->cb_data,
-			     USB_COMPLETE);
+					 r->callback,
+					 r->cb_data,
+					 USB_COMPLETE);
 	}
 }
 
@@ -451,8 +510,10 @@ static void remove_rx_submit_list(struct usb_rx *r, struct rx_cxt *rx)
 
 	spin_lock_irqsave(&rx->submit_lock, flags);
 	list_for_each_entry_safe(r_remove, r_remove_next,
-				 &rx->rx_submit_list, rx_submit_list) {
-		if (r == r_remove) {
+							 &rx->rx_submit_list, rx_submit_list)
+	{
+		if (r == r_remove)
+		{
 			list_del(&r->rx_submit_list);
 			break;
 		}
@@ -470,15 +531,18 @@ static void gdm_usb_rcv_complete(struct urb *urb)
 
 	remove_rx_submit_list(r, rx);
 
-	if (!urb->status && r->callback) {
+	if (!urb->status && r->callback)
+	{
 		spin_lock_irqsave(&rx->to_host_lock, flags);
 		list_add_tail(&r->to_host_list, &rx->to_host_list);
 		schedule_work(&udev->work_rx.work);
 		spin_unlock_irqrestore(&rx->to_host_lock, flags);
-	} else {
+	}
+	else
+	{
 		if (urb->status && udev->usb_state == PM_NORMAL)
 			dev_err(&urb->dev->dev, "%s: urb status error %d\n",
-				__func__, urb->status);
+					__func__, urb->status);
 
 		put_rx_struct(rx, r);
 	}
@@ -487,10 +551,10 @@ static void gdm_usb_rcv_complete(struct urb *urb)
 }
 
 static int gdm_usb_recv(void *priv_dev,
-			int (*cb)(void *cb_data,
-				  void *data, int len, int context),
-			void *cb_data,
-			int context)
+						int (*cb)(void *cb_data,
+								  void *data, int len, int context),
+						void *cb_data,
+						int context)
 {
 	struct lte_udev *udev = priv_dev;
 	struct usb_device *usbdev = udev->usbdev;
@@ -500,13 +564,16 @@ static int gdm_usb_recv(void *priv_dev,
 	int ret;
 	unsigned long flags;
 
-	if (!udev->usbdev) {
+	if (!udev->usbdev)
+	{
 		pr_err("invalid device\n");
 		return -ENODEV;
 	}
 
 	r = get_rx_struct(rx, &no_spc);
-	if (!r) {
+
+	if (!r)
+	{
 		pr_err("Out of Memory\n");
 		return -ENOMEM;
 	}
@@ -518,23 +585,28 @@ static int gdm_usb_recv(void *priv_dev,
 	r->rx = rx;
 
 	usb_fill_bulk_urb(r->urb,
-			  usbdev,
-			  usb_rcvbulkpipe(usbdev, 0x83),
-			  r->buf,
-			  RX_BUF_SIZE,
-			  gdm_usb_rcv_complete,
-			  r);
+					  usbdev,
+					  usb_rcvbulkpipe(usbdev, 0x83),
+					  r->buf,
+					  RX_BUF_SIZE,
+					  gdm_usb_rcv_complete,
+					  r);
 
 	spin_lock_irqsave(&rx->submit_lock, flags);
 	list_add_tail(&r->rx_submit_list, &rx->rx_submit_list);
 	spin_unlock_irqrestore(&rx->submit_lock, flags);
 
 	if (context == KERNEL_THREAD)
+	{
 		ret = usb_submit_urb(r->urb, GFP_KERNEL);
+	}
 	else
+	{
 		ret = usb_submit_urb(r->urb, GFP_ATOMIC);
+	}
 
-	if (ret) {
+	if (ret)
+	{
 		spin_lock_irqsave(&rx->submit_lock, flags);
 		list_del(&r->rx_submit_list);
 		spin_unlock_irqrestore(&rx->submit_lock, flags);
@@ -553,13 +625,16 @@ static void gdm_usb_send_complete(struct urb *urb)
 	struct lte_udev *udev = container_of(tx, struct lte_udev, tx);
 	unsigned long flags;
 
-	if (urb->status == -ECONNRESET) {
+	if (urb->status == -ECONNRESET)
+	{
 		dev_info(&urb->dev->dev, "CONNRESET\n");
 		return;
 	}
 
 	if (t->callback)
+	{
 		t->callback(t->cb_data);
+	}
 
 	free_tx_struct(t);
 
@@ -574,21 +649,23 @@ static int send_tx_packet(struct usb_device *usbdev, struct usb_tx *t, u32 len)
 	int ret = 0;
 
 	if (!(len % 512))
+	{
 		len++;
+	}
 
 	usb_fill_bulk_urb(t->urb,
-			  usbdev,
-			  usb_sndbulkpipe(usbdev, 2),
-			  t->buf,
-			  len,
-			  gdm_usb_send_complete,
-			  t);
+					  usbdev,
+					  usb_sndbulkpipe(usbdev, 2),
+					  t->buf,
+					  len,
+					  gdm_usb_send_complete,
+					  t);
 
 	ret = usb_submit_urb(t->urb, GFP_ATOMIC);
 
 	if (ret)
 		dev_err(&usbdev->dev, "usb_submit_urb failed: %d\n",
-			ret);
+				ret);
 
 	usb_mark_last_busy(usbdev);
 
@@ -606,15 +683,20 @@ static u32 packet_aggregation(struct lte_udev *udev, u8 *send_buf)
 
 	multi_sdu->cmd_evt = gdm_cpu_to_dev16(&udev->gdm_ed, LTE_TX_MULTI_SDU);
 
-	while (num_packet < MAX_PACKET_IN_MULTI_SDU) {
+	while (num_packet < MAX_PACKET_IN_MULTI_SDU)
+	{
 		spin_lock_irqsave(&tx->lock, flags);
-		if (list_empty(&tx->sdu_list)) {
+
+		if (list_empty(&tx->sdu_list))
+		{
 			spin_unlock_irqrestore(&tx->lock, flags);
 			break;
 		}
 
 		t_sdu = list_entry(tx->sdu_list.next, struct usb_tx_sdu, list);
-		if (send_len + t_sdu->len > MAX_SDU_SIZE) {
+
+		if (send_len + t_sdu->len > MAX_SDU_SIZE)
+		{
 			spin_unlock_irqrestore(&tx->lock, flags);
 			break;
 		}
@@ -628,7 +710,9 @@ static u32 packet_aggregation(struct lte_udev *udev, u8 *send_buf)
 		num_packet++;
 
 		if (tx->avail_count > 10)
+		{
 			t_sdu->callback(t_sdu->cb_data);
+		}
 
 		spin_lock_irqsave(&tx->lock, flags);
 		put_tx_struct(tx, t_sdu);
@@ -653,53 +737,72 @@ static void do_tx(struct work_struct *work)
 	unsigned long flags;
 
 	if (!usb_autopm_get_interface(udev->intf))
+	{
 		usb_autopm_put_interface(udev->intf);
+	}
 
 	if (udev->usb_state == PM_SUSPEND)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&tx->lock, flags);
-	if (!udev->send_complete) {
+
+	if (!udev->send_complete)
+	{
 		spin_unlock_irqrestore(&tx->lock, flags);
 		return;
 	}
+
 	udev->send_complete = 0;
 
-	if (!list_empty(&tx->hci_list)) {
+	if (!list_empty(&tx->hci_list))
+	{
 		t = list_entry(tx->hci_list.next, struct usb_tx, list);
 		list_del(&t->list);
 		len = t->len;
 		t->is_sdu = 0;
 		is_send = 1;
-	} else if (!list_empty(&tx->sdu_list)) {
-		if (udev->tx_stop) {
+	}
+	else if (!list_empty(&tx->sdu_list))
+	{
+		if (udev->tx_stop)
+		{
 			udev->send_complete = 1;
 			spin_unlock_irqrestore(&tx->lock, flags);
 			return;
 		}
 
 		t = alloc_tx_struct(TX_BUF_SIZE);
-		if (!t) {
+
+		if (!t)
+		{
 			spin_unlock_irqrestore(&tx->lock, flags);
 			return;
 		}
+
 		t->callback = NULL;
 		t->tx = tx;
 		t->is_sdu = 1;
 		is_send = 1;
 	}
 
-	if (!is_send) {
+	if (!is_send)
+	{
 		udev->send_complete = 1;
 		spin_unlock_irqrestore(&tx->lock, flags);
 		return;
 	}
+
 	spin_unlock_irqrestore(&tx->lock, flags);
 
 	if (t->is_sdu)
+	{
 		len = packet_aggregation(udev, t->buf);
+	}
 
-	if (send_tx_packet(usbdev, t, len)) {
+	if (send_tx_packet(usbdev, t, len))
+	{
 		pr_err("send_tx_packet failed\n");
 		t->callback = NULL;
 		gdm_usb_send_complete(t->urb);
@@ -708,9 +811,9 @@ static void do_tx(struct work_struct *work)
 
 #define SDU_PARAM_LEN 12
 static int gdm_usb_sdu_send(void *priv_dev, void *data, int len,
-			    unsigned int dft_eps_ID, unsigned int eps_ID,
-			    void (*cb)(void *data), void *cb_data,
-			    int dev_idx, int nic_type)
+							unsigned int dft_eps_ID, unsigned int eps_ID,
+							void (*cb)(void *data), void *cb_data,
+							int dev_idx, int nic_type)
 {
 	struct lte_udev *udev = priv_dev;
 	struct tx_cxt *tx = &udev->tx;
@@ -720,7 +823,8 @@ static int gdm_usb_sdu_send(void *priv_dev, void *data, int len,
 	int no_spc = 0;
 	u16 send_len;
 
-	if (!udev->usbdev) {
+	if (!udev->usbdev)
+	{
 		pr_err("sdu send - invalid device\n");
 		return TX_NO_DEV;
 	}
@@ -729,20 +833,25 @@ static int gdm_usb_sdu_send(void *priv_dev, void *data, int len,
 	t_sdu = get_tx_sdu_struct(tx, &no_spc);
 	spin_unlock_irqrestore(&tx->lock, flags);
 
-	if (!t_sdu) {
+	if (!t_sdu)
+	{
 		pr_err("sdu send - free list empty\n");
 		return TX_NO_SPC;
 	}
 
 	sdu = (struct sdu *)t_sdu->buf;
 	sdu->cmd_evt = gdm_cpu_to_dev16(&udev->gdm_ed, LTE_TX_SDU);
-	if (nic_type == NIC_TYPE_ARP) {
+
+	if (nic_type == NIC_TYPE_ARP)
+	{
 		send_len = len + SDU_PARAM_LEN;
-	    memcpy(sdu->data, data, len);
-	} else {
-	    send_len = len - ETH_HLEN;
-	    send_len += SDU_PARAM_LEN;
-	    memcpy(sdu->data, data + ETH_HLEN, len - ETH_HLEN);
+		memcpy(sdu->data, data, len);
+	}
+	else
+	{
+		send_len = len - ETH_HLEN;
+		send_len += SDU_PARAM_LEN;
+		memcpy(sdu->data, data + ETH_HLEN, len - ETH_HLEN);
 	}
 
 	sdu->len = gdm_cpu_to_dev16(&udev->gdm_ed, send_len);
@@ -760,26 +869,31 @@ static int gdm_usb_sdu_send(void *priv_dev, void *data, int len,
 	spin_unlock_irqrestore(&tx->lock, flags);
 
 	if (no_spc)
+	{
 		return TX_NO_BUFFER;
+	}
 
 	return 0;
 }
 
 static int gdm_usb_hci_send(void *priv_dev, void *data, int len,
-			    void (*cb)(void *data), void *cb_data)
+							void (*cb)(void *data), void *cb_data)
 {
 	struct lte_udev *udev = priv_dev;
 	struct tx_cxt *tx = &udev->tx;
 	struct usb_tx *t;
 	unsigned long flags;
 
-	if (!udev->usbdev) {
+	if (!udev->usbdev)
+	{
 		pr_err("hci send - invalid device\n");
 		return -ENODEV;
 	}
 
 	t = alloc_tx_struct(len);
-	if (!t) {
+
+	if (!t)
+	{
 		pr_err("hci_send - out of memory\n");
 		return -ENOMEM;
 	}
@@ -807,7 +921,7 @@ static struct gdm_endian *gdm_usb_get_endian(void *priv_dev)
 }
 
 static int gdm_usb_probe(struct usb_interface *intf,
-			 const struct usb_device_id *id)
+						 const struct usb_device_id *id)
 {
 	int ret = 0;
 	struct phy_dev *phy_dev = NULL;
@@ -822,17 +936,23 @@ static int gdm_usb_probe(struct usb_interface *intf,
 
 	pr_info("net vid = 0x%04x pid = 0x%04x\n", idVendor, idProduct);
 
-	if (bInterfaceNumber > NETWORK_INTERFACE) {
+	if (bInterfaceNumber > NETWORK_INTERFACE)
+	{
 		pr_info("not a network device\n");
 		return -ENODEV;
 	}
 
 	phy_dev = kzalloc(sizeof(*phy_dev), GFP_KERNEL);
+
 	if (!phy_dev)
+	{
 		return -ENOMEM;
+	}
 
 	udev = kzalloc(sizeof(*udev), GFP_KERNEL);
-	if (!udev) {
+
+	if (!udev)
+	{
 		ret = -ENOMEM;
 		goto err_udev;
 	}
@@ -845,10 +965,13 @@ static int gdm_usb_probe(struct usb_interface *intf,
 
 	udev->usbdev = usbdev;
 	ret = init_usb(udev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(intf->usb_dev, "init_usb func failed\n");
 		goto err_init_usb;
 	}
+
 	udev->intf = intf;
 
 	intf->needs_remote_wakeup = 1;
@@ -859,12 +982,18 @@ static int gdm_usb_probe(struct usb_interface *intf,
 	 * defaults to little endian
 	 */
 	if (idProduct == PID_GDM7243)
+	{
 		gdm_set_endian(&udev->gdm_ed, ENDIANNESS_BIG);
+	}
 	else
+	{
 		gdm_set_endian(&udev->gdm_ed, ENDIANNESS_LITTLE);
+	}
 
 	ret = request_mac_address(udev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(intf->usb_dev, "request Mac address failed\n");
 		goto err_mac_address;
 	}
@@ -925,7 +1054,9 @@ static int gdm_usb_suspend(struct usb_interface *intf, pm_message_t pm_msg)
 	phy_dev = usb_get_intfdata(intf);
 	udev = phy_dev->priv_dev;
 	rx = &udev->rx;
-	if (udev->usb_state != PM_NORMAL) {
+
+	if (udev->usb_state != PM_NORMAL)
+	{
 		dev_err(intf->usb_dev, "usb suspend - invalid state\n");
 		return -1;
 	}
@@ -934,7 +1065,8 @@ static int gdm_usb_suspend(struct usb_interface *intf, pm_message_t pm_msg)
 
 	spin_lock_irqsave(&rx->submit_lock, flags);
 	list_for_each_entry_safe(r, r_next, &rx->rx_submit_list,
-				 rx_submit_list) {
+							 rx_submit_list)
+	{
 		spin_unlock_irqrestore(&rx->submit_lock, flags);
 		usb_kill_urb(r->urb);
 		spin_lock_irqsave(&rx->submit_lock, flags);
@@ -961,22 +1093,25 @@ static int gdm_usb_resume(struct usb_interface *intf)
 	udev = phy_dev->priv_dev;
 	rx = &udev->rx;
 
-	if (udev->usb_state != PM_SUSPEND) {
+	if (udev->usb_state != PM_SUSPEND)
+	{
 		dev_err(intf->usb_dev, "usb resume - invalid state\n");
 		return -1;
 	}
+
 	udev->usb_state = PM_NORMAL;
 
 	spin_lock_irqsave(&rx->rx_lock, flags);
 	issue_count = rx->avail_count - MAX_RX_SUBMIT_COUNT;
 	spin_unlock_irqrestore(&rx->rx_lock, flags);
 
-	if (issue_count >= 0) {
+	if (issue_count >= 0)
+	{
 		for (i = 0; i < issue_count; i++)
 			gdm_usb_recv(phy_dev->priv_dev,
-				     udev->rx_cb,
-				     phy_dev,
-				     USB_COMPLETE);
+						 udev->rx_cb,
+						 phy_dev,
+						 USB_COMPLETE);
 	}
 
 	tx = &udev->tx;
@@ -987,7 +1122,8 @@ static int gdm_usb_resume(struct usb_interface *intf)
 	return 0;
 }
 
-static struct usb_driver gdm_usb_lte_driver = {
+static struct usb_driver gdm_usb_lte_driver =
+{
 	.name = "gdm_lte",
 	.probe = gdm_usb_probe,
 	.disconnect = gdm_usb_disconnect,
@@ -1000,7 +1136,8 @@ static struct usb_driver gdm_usb_lte_driver = {
 
 static int __init gdm_usb_lte_init(void)
 {
-	if (gdm_lte_event_init() < 0) {
+	if (gdm_lte_event_init() < 0)
+	{
 		pr_err("error creating event\n");
 		return -1;
 	}

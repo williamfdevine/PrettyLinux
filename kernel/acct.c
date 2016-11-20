@@ -77,7 +77,8 @@ int acct_parm[3] = {4, 2, 30};
  * External references and all of the globals.
  */
 
-struct bsd_acct_struct {
+struct bsd_acct_struct
+{
 	struct fs_pin		pin;
 	atomic_long_t		count;
 	struct rcu_head		rcu;
@@ -100,29 +101,40 @@ static int check_free_space(struct bsd_acct_struct *acct)
 	struct kstatfs sbuf;
 
 	if (time_is_before_jiffies(acct->needcheck))
+	{
 		goto out;
+	}
 
 	/* May block */
 	if (vfs_statfs(&acct->file->f_path, &sbuf))
+	{
 		goto out;
+	}
 
-	if (acct->active) {
+	if (acct->active)
+	{
 		u64 suspend = sbuf.f_blocks * SUSPEND;
 		do_div(suspend, 100);
-		if (sbuf.f_bavail <= suspend) {
+
+		if (sbuf.f_bavail <= suspend)
+		{
 			acct->active = 0;
 			pr_info("Process accounting paused\n");
 		}
-	} else {
+	}
+	else
+	{
 		u64 resume = sbuf.f_blocks * RESUME;
 		do_div(resume, 100);
-		if (sbuf.f_bavail >= resume) {
+
+		if (sbuf.f_bavail >= resume)
+		{
 			acct->active = 1;
 			pr_info("Process accounting resumed\n");
 		}
 	}
 
-	acct->needcheck = jiffies + ACCT_TIMEOUT*HZ;
+	acct->needcheck = jiffies + ACCT_TIMEOUT * HZ;
 out:
 	return acct->active;
 }
@@ -130,7 +142,9 @@ out:
 static void acct_put(struct bsd_acct_struct *p)
 {
 	if (atomic_long_dec_and_test(&p->count))
+	{
 		kfree_rcu(p, rcu);
+	}
 }
 
 static inline struct bsd_acct_struct *to_acct(struct fs_pin *p)
@@ -145,22 +159,30 @@ again:
 	smp_rmb();
 	rcu_read_lock();
 	res = to_acct(ACCESS_ONCE(ns->bacct));
-	if (!res) {
+
+	if (!res)
+	{
 		rcu_read_unlock();
 		return NULL;
 	}
-	if (!atomic_long_inc_not_zero(&res->count)) {
+
+	if (!atomic_long_inc_not_zero(&res->count))
+	{
 		rcu_read_unlock();
 		cpu_relax();
 		goto again;
 	}
+
 	rcu_read_unlock();
 	mutex_lock(&res->lock);
-	if (res != to_acct(ACCESS_ONCE(ns->bacct))) {
+
+	if (res != to_acct(ACCESS_ONCE(ns->bacct)))
+	{
 		mutex_unlock(&res->lock);
 		acct_put(res);
 		goto again;
 	}
+
 	return res;
 }
 
@@ -181,8 +203,12 @@ static void close_work(struct work_struct *work)
 {
 	struct bsd_acct_struct *acct = container_of(work, struct bsd_acct_struct, work);
 	struct file *file = acct->file;
+
 	if (file->f_op->flush)
+	{
 		file->f_op->flush(file, NULL);
+	}
+
 	__fput_sync(file);
 	complete(&acct->done);
 }
@@ -197,40 +223,54 @@ static int acct_on(struct filename *pathname)
 	int err;
 
 	acct = kzalloc(sizeof(struct bsd_acct_struct), GFP_KERNEL);
+
 	if (!acct)
+	{
 		return -ENOMEM;
+	}
 
 	/* Difference from BSD - they don't do O_APPEND */
-	file = file_open_name(pathname, O_WRONLY|O_APPEND|O_LARGEFILE, 0);
-	if (IS_ERR(file)) {
+	file = file_open_name(pathname, O_WRONLY | O_APPEND | O_LARGEFILE, 0);
+
+	if (IS_ERR(file))
+	{
 		kfree(acct);
 		return PTR_ERR(file);
 	}
 
-	if (!S_ISREG(file_inode(file)->i_mode)) {
+	if (!S_ISREG(file_inode(file)->i_mode))
+	{
 		kfree(acct);
 		filp_close(file, NULL);
 		return -EACCES;
 	}
 
-	if (!(file->f_mode & FMODE_CAN_WRITE)) {
+	if (!(file->f_mode & FMODE_CAN_WRITE))
+	{
 		kfree(acct);
 		filp_close(file, NULL);
 		return -EIO;
 	}
+
 	internal = mnt_clone_internal(&file->f_path);
-	if (IS_ERR(internal)) {
+
+	if (IS_ERR(internal))
+	{
 		kfree(acct);
 		filp_close(file, NULL);
 		return PTR_ERR(internal);
 	}
+
 	err = mnt_want_write(internal);
-	if (err) {
+
+	if (err)
+	{
 		mntput(internal);
 		kfree(acct);
 		filp_close(file, NULL);
 		return err;
 	}
+
 	mnt = file->f_path.mnt;
 	file->f_path.mnt = internal;
 
@@ -272,18 +312,26 @@ SYSCALL_DEFINE1(acct, const char __user *, name)
 	int error = 0;
 
 	if (!capable(CAP_SYS_PACCT))
+	{
 		return -EPERM;
+	}
 
-	if (name) {
+	if (name)
+	{
 		struct filename *tmp = getname(name);
 
 		if (IS_ERR(tmp))
+		{
 			return PTR_ERR(tmp);
+		}
+
 		mutex_lock(&acct_on_mutex);
 		error = acct_on(tmp);
 		mutex_unlock(&acct_on_mutex);
 		putname(tmp);
-	} else {
+	}
+	else
+	{
 		rcu_read_lock();
 		pin_kill(task_active_pid_ns(current)->bacct);
 	}
@@ -314,7 +362,9 @@ static comp_t encode_comp_t(unsigned long value)
 	int exp, rnd;
 
 	exp = rnd = 0;
-	while (value > MAXFRACT) {
+
+	while (value > MAXFRACT)
+	{
 		rnd = value & (1 << (EXPSIZE - 1));	/* Round up? */
 		value >>= EXPSIZE;	/* Base 8 exponent == 3 bit shift. */
 		exp++;
@@ -323,7 +373,8 @@ static comp_t encode_comp_t(unsigned long value)
 	/*
 	 * If we need to round up, do it (and handle overflow correctly).
 	 */
-	if (rnd && (++value > MAXFRACT)) {
+	if (rnd && (++value > MAXFRACT))
+	{
 		value >>= EXPSIZE;
 		exp++;
 	}
@@ -355,9 +406,11 @@ static comp2_t encode_comp2_t(u64 value)
 {
 	int exp, rnd;
 
-	exp = (value > (MAXFRACT2>>1));
+	exp = (value > (MAXFRACT2 >> 1));
 	rnd = 0;
-	while (value > MAXFRACT2) {
+
+	while (value > MAXFRACT2)
+	{
 		rnd = value & 1;
 		value >>= 1;
 		exp++;
@@ -366,16 +419,20 @@ static comp2_t encode_comp2_t(u64 value)
 	/*
 	 * If we need to round up, do it (and handle overflow correctly).
 	 */
-	if (rnd && (++value > MAXFRACT2)) {
+	if (rnd && (++value > MAXFRACT2))
+	{
 		value >>= 1;
 		exp++;
 	}
 
-	if (exp > MAXEXP2) {
+	if (exp > MAXEXP2)
+	{
 		/* Overflow. Return largest representable number instead. */
-		return (1ul << (MANTSIZE2+EXPSIZE2-1)) - 1;
-	} else {
-		return (value & (MAXFRACT2>>1)) | (exp << (MANTSIZE2-1));
+		return (1ul << (MANTSIZE2 + EXPSIZE2 - 1)) - 1;
+	}
+	else
+	{
+		return (value & (MAXFRACT2 >> 1)) | (exp << (MANTSIZE2 - 1));
 	}
 }
 #endif
@@ -390,11 +447,16 @@ static u32 encode_float(u64 value)
 	unsigned u;
 
 	if (value == 0)
+	{
 		return 0;
-	while ((s64)value > 0) {
+	}
+
+	while ((s64)value > 0)
+	{
 		value <<= 1;
 		exp--;
 	}
+
 	u = (u32)(value >> 40) & 0x7fffffu;
 	return u | (exp << 23);
 }
@@ -432,8 +494,8 @@ static void fill_ac(acct_t *ac)
 #if ACCT_VERSION == 3
 	ac->ac_etime = encode_float(elapsed);
 #else
-	ac->ac_etime = encode_comp_t(elapsed < (unsigned long) -1l ?
-				(unsigned long) elapsed : (unsigned long) -1l);
+	ac->ac_etime = encode_comp_t(elapsed < (unsigned long) - 1l ?
+								 (unsigned long) elapsed : (unsigned long) - 1l);
 #endif
 #if ACCT_VERSION == 1 || ACCT_VERSION == 2
 	{
@@ -485,7 +547,9 @@ static void do_acct_process(struct bsd_acct_struct *acct)
 	 * the process accounting system.
 	 */
 	if (!check_free_space(acct))
+	{
 		goto out;
+	}
 
 	fill_ac(&ac);
 	/* we really need to bite the bullet and change layout */
@@ -503,20 +567,23 @@ static void do_acct_process(struct bsd_acct_struct *acct)
 		ac.ac_pid = task_tgid_nr_ns(current, ns);
 		rcu_read_lock();
 		ac.ac_ppid = task_tgid_nr_ns(rcu_dereference(current->real_parent),
-					     ns);
+									 ns);
 		rcu_read_unlock();
 	}
 #endif
+
 	/*
 	 * Get freeze protection. If the fs is frozen, just skip the write
 	 * as we could deadlock the system otherwise.
 	 */
-	if (file_start_write_trylock(file)) {
+	if (file_start_write_trylock(file))
+	{
 		/* it's been opened O_APPEND, so position is irrelevant */
 		loff_t pos = 0;
 		__kernel_write(file, (char *)&ac, sizeof(acct_t), &pos);
 		file_end_write(file);
 	}
+
 out:
 	current->signal->rlim[RLIMIT_FSIZE].rlim_cur = flim;
 	revert_creds(orig_cred);
@@ -533,32 +600,54 @@ void acct_collect(long exitcode, int group_dead)
 	cputime_t utime, stime;
 	unsigned long vsize = 0;
 
-	if (group_dead && current->mm) {
+	if (group_dead && current->mm)
+	{
 		struct vm_area_struct *vma;
 
 		down_read(&current->mm->mmap_sem);
 		vma = current->mm->mmap;
-		while (vma) {
+
+		while (vma)
+		{
 			vsize += vma->vm_end - vma->vm_start;
 			vma = vma->vm_next;
 		}
+
 		up_read(&current->mm->mmap_sem);
 	}
 
 	spin_lock_irq(&current->sighand->siglock);
+
 	if (group_dead)
+	{
 		pacct->ac_mem = vsize / 1024;
-	if (thread_group_leader(current)) {
-		pacct->ac_exitcode = exitcode;
-		if (current->flags & PF_FORKNOEXEC)
-			pacct->ac_flag |= AFORK;
 	}
+
+	if (thread_group_leader(current))
+	{
+		pacct->ac_exitcode = exitcode;
+
+		if (current->flags & PF_FORKNOEXEC)
+		{
+			pacct->ac_flag |= AFORK;
+		}
+	}
+
 	if (current->flags & PF_SUPERPRIV)
+	{
 		pacct->ac_flag |= ASU;
+	}
+
 	if (current->flags & PF_DUMPCORE)
+	{
 		pacct->ac_flag |= ACORE;
+	}
+
 	if (current->flags & PF_SIGNALED)
+	{
 		pacct->ac_flag |= AXSIG;
+	}
+
 	task_cputime(current, &utime, &stime);
 	pacct->ac_utime += utime;
 	pacct->ac_stime += stime;
@@ -569,9 +658,12 @@ void acct_collect(long exitcode, int group_dead)
 
 static void slow_acct_process(struct pid_namespace *ns)
 {
-	for ( ; ns; ns = ns->parent) {
+	for ( ; ns; ns = ns->parent)
+	{
 		struct bsd_acct_struct *acct = acct_get(ns);
-		if (acct) {
+
+		if (acct)
+		{
 			do_acct_process(acct);
 			mutex_unlock(&acct->lock);
 			acct_put(acct);
@@ -593,10 +685,16 @@ void acct_process(void)
 	 * alive and holds its namespace, which in turn holds
 	 * its parent.
 	 */
-	for (ns = task_active_pid_ns(current); ns != NULL; ns = ns->parent) {
+	for (ns = task_active_pid_ns(current); ns != NULL; ns = ns->parent)
+	{
 		if (ns->bacct)
+		{
 			break;
+		}
 	}
+
 	if (unlikely(ns))
+	{
 		slow_acct_process(ns);
+	}
 }

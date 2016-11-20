@@ -22,7 +22,7 @@
 #include <net/netns/netfilter.h>
 #include <net/netns/x_tables.h>
 #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
-#include <net/netns/conntrack.h>
+	#include <net/netns/conntrack.h>
 #endif
 #include <net/netns/nftables.h>
 #include <net/netns/xfrm.h>
@@ -44,7 +44,8 @@ struct netns_ipvs;
 #define NETDEV_HASHBITS    8
 #define NETDEV_HASHENTRIES (1 << NETDEV_HASHBITS)
 
-struct net {
+struct net
+{
 	atomic_t		passive;	/* To decided when the network
 						 * namespace should be freed.
 						 */
@@ -152,16 +153,19 @@ extern struct net init_net;
 
 #ifdef CONFIG_NET_NS
 struct net *copy_net_ns(unsigned long flags, struct user_namespace *user_ns,
-			struct net *old_net);
+						struct net *old_net);
 
 #else /* CONFIG_NET_NS */
 #include <linux/sched.h>
 #include <linux/nsproxy.h>
 static inline struct net *copy_net_ns(unsigned long flags,
-	struct user_namespace *user_ns, struct net *old_net)
+									  struct user_namespace *user_ns, struct net *old_net)
 {
 	if (flags & CLONE_NEWNET)
+	{
 		return ERR_PTR(-EINVAL);
+	}
+
 	return old_net;
 }
 #endif /* CONFIG_NET_NS */
@@ -173,11 +177,11 @@ struct net *get_net_ns_by_pid(pid_t pid);
 struct net *get_net_ns_by_fd(int pid);
 
 #ifdef CONFIG_SYSCTL
-void ipx_register_sysctl(void);
-void ipx_unregister_sysctl(void);
+	void ipx_register_sysctl(void);
+	void ipx_unregister_sysctl(void);
 #else
-#define ipx_register_sysctl()
-#define ipx_unregister_sysctl()
+	#define ipx_register_sysctl()
+	#define ipx_unregister_sysctl()
 #endif
 
 #ifdef CONFIG_NET_NS
@@ -197,14 +201,19 @@ static inline struct net *maybe_get_net(struct net *net)
 	 * function fails and returns NULL.
 	 */
 	if (!atomic_inc_not_zero(&net->count))
+	{
 		net = NULL;
+	}
+
 	return net;
 }
 
 static inline void put_net(struct net *net)
 {
 	if (atomic_dec_and_test(&net->count))
+	{
 		__put_net(net);
+	}
 }
 
 static inline
@@ -241,7 +250,8 @@ int net_eq(const struct net *net1, const struct net *net2)
 #endif
 
 
-typedef struct {
+typedef struct
+{
 #ifdef CONFIG_NET_NS
 	struct net *net;
 #endif
@@ -270,15 +280,15 @@ static inline struct net *read_pnet(const possible_net_t *pnet)
 	list_for_each_entry_rcu(VAR, &net_namespace_list, list)
 
 #ifdef CONFIG_NET_NS
-#define __net_init
-#define __net_exit
-#define __net_initdata
-#define __net_initconst
+	#define __net_init
+	#define __net_exit
+	#define __net_initdata
+	#define __net_initconst
 #else
-#define __net_init	__init
-#define __net_exit	__ref
-#define __net_initdata	__initdata
-#define __net_initconst	__initconst
+	#define __net_init	__init
+	#define __net_exit	__ref
+	#define __net_initdata	__initdata
+	#define __net_initconst	__initconst
 #endif
 
 int peernet2id_alloc(struct net *net, struct net *peer);
@@ -286,7 +296,8 @@ int peernet2id(struct net *net, struct net *peer);
 bool peernet_has_id(struct net *net, struct net *peer);
 struct net *get_net_ns_by_id(struct net *net, int id);
 
-struct pernet_operations {
+struct pernet_operations
+{
 	struct list_head list;
 	int (*init)(struct net *net);
 	void (*exit)(struct net *net);
@@ -325,12 +336,12 @@ struct ctl_table_header;
 #ifdef CONFIG_SYSCTL
 int net_sysctl_init(void);
 struct ctl_table_header *register_net_sysctl(struct net *net, const char *path,
-					     struct ctl_table *table);
+		struct ctl_table *table);
 void unregister_net_sysctl_table(struct ctl_table_header *header);
 #else
 static inline int net_sysctl_init(void) { return 0; }
 static inline struct ctl_table_header *register_net_sysctl(struct net *net,
-	const char *path, struct ctl_table *table)
+		const char *path, struct ctl_table *table)
 {
 	return NULL;
 }
@@ -353,7 +364,9 @@ extern void (*__fib6_flush_trees)(struct net *net);
 static inline void rt_genid_bump_ipv6(struct net *net)
 {
 	if (__fib6_flush_trees)
+	{
 		__fib6_flush_trees(net);
+	}
 }
 
 #if IS_ENABLED(CONFIG_IEEE802154_6LOWPAN)

@@ -86,7 +86,7 @@
 /* sizes */
 #define AK4113_REG_RXCSB_SIZE	((AK4113_REG_RXCSB4-AK4113_REG_RXCSB0)+1)
 #define AK4113_REG_QSUB_SIZE	((AK4113_REG_QSUB_ABSFRM-AK4113_REG_QSUB_ADDR)\
-		+1)
+								 +1)
 
 #define AK4113_WRITABLE_REGS	(AK4113_REG_DATDTS + 1)
 
@@ -278,10 +278,11 @@
 #define AK4113_CONTROLS		13
 
 typedef void (ak4113_write_t)(void *private_data, unsigned char addr,
-		unsigned char data);
+							  unsigned char data);
 typedef unsigned char (ak4113_read_t)(void *private_data, unsigned char addr);
 
-struct ak4113 {
+struct ak4113
+{
 	struct snd_card *card;
 	ak4113_write_t *write;
 	ak4113_read_t *read;
@@ -303,18 +304,18 @@ struct ak4113 {
 	unsigned int check_flags;
 	void *change_callback_private;
 	void (*change_callback)(struct ak4113 *ak4113, unsigned char c0,
-			unsigned char c1);
+							unsigned char c1);
 };
 
 int snd_ak4113_create(struct snd_card *card, ak4113_read_t *read,
-		ak4113_write_t *write,
-		const unsigned char *pgm,
-		void *private_data, struct ak4113 **r_ak4113);
+					  ak4113_write_t *write,
+					  const unsigned char *pgm,
+					  void *private_data, struct ak4113 **r_ak4113);
 void snd_ak4113_reg_write(struct ak4113 *ak4113, unsigned char reg,
-		unsigned char mask, unsigned char val);
+						  unsigned char mask, unsigned char val);
 void snd_ak4113_reinit(struct ak4113 *ak4113);
 int snd_ak4113_build(struct ak4113 *ak4113,
-		struct snd_pcm_substream *capture_substream);
+					 struct snd_pcm_substream *capture_substream);
 int snd_ak4113_external_rate(struct ak4113 *ak4113);
 int snd_ak4113_check_rate_and_errors(struct ak4113 *ak4113, unsigned int flags);
 

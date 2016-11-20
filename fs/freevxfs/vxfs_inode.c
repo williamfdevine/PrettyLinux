@@ -51,17 +51,22 @@ void
 vxfs_dumpi(struct vxfs_inode_info *vip, ino_t ino)
 {
 	printk(KERN_DEBUG "\n\n");
+
 	if (ino)
+	{
 		printk(KERN_DEBUG "dumping vxfs inode %ld\n", ino);
+	}
 	else
+	{
 		printk(KERN_DEBUG "dumping unknown vxfs inode\n");
+	}
 
 	printk(KERN_DEBUG "---------------------------\n");
 	printk(KERN_DEBUG "mode is %x\n", vip->vii_mode);
 	printk(KERN_DEBUG "nlink:%u, uid:%u, gid:%u\n",
-			vip->vii_nlink, vip->vii_uid, vip->vii_gid);
+		   vip->vii_nlink, vip->vii_uid, vip->vii_gid);
 	printk(KERN_DEBUG "size:%Lx, blocks:%u\n",
-			vip->vii_size, vip->vii_blocks);
+		   vip->vii_size, vip->vii_blocks);
 	printk(KERN_DEBUG "orgtype:%u\n", vip->vii_orgtype);
 }
 #endif
@@ -80,25 +85,45 @@ vxfs_transmod(struct vxfs_inode_info *vip)
 	umode_t			ret = vip->vii_mode & ~VXFS_TYPE_MASK;
 
 	if (VXFS_ISFIFO(vip))
+	{
 		ret |= S_IFIFO;
+	}
+
 	if (VXFS_ISCHR(vip))
+	{
 		ret |= S_IFCHR;
+	}
+
 	if (VXFS_ISDIR(vip))
+	{
 		ret |= S_IFDIR;
+	}
+
 	if (VXFS_ISBLK(vip))
+	{
 		ret |= S_IFBLK;
+	}
+
 	if (VXFS_ISLNK(vip))
+	{
 		ret |= S_IFLNK;
+	}
+
 	if (VXFS_ISREG(vip))
+	{
 		ret |= S_IFREG;
+	}
+
 	if (VXFS_ISSOC(vip))
+	{
 		ret |= S_IFSOCK;
+	}
 
 	return (ret);
 }
 
 static inline void dip2vip_cpy(struct vxfs_sb_info *sbi,
-		struct vxfs_inode_info *vip, struct vxfs_dinode *dip)
+							   struct vxfs_inode_info *vip, struct vxfs_dinode *dip)
 {
 	struct inode *inode = &vip->vfs_inode;
 
@@ -119,9 +144,13 @@ static inline void dip2vip_cpy(struct vxfs_sb_info *sbi,
 	vip->vii_gen = fs32_to_cpu(sbi, dip->vdi_gen);
 
 	if (VXFS_ISDIR(vip))
+	{
 		vip->vii_dotdot = fs32_to_cpu(sbi, dip->vdi_dotdot);
+	}
 	else if (!VXFS_ISREG(vip) && !VXFS_ISLNK(vip))
+	{
 		vip->vii_rdev = fs32_to_cpu(sbi, dip->vdi_rdev);
+	}
 
 	/* don't endian swap the fields that differ by orgtype */
 	memcpy(&vip->vii_org, &dip->vdi_org, sizeof(vip->vii_org));
@@ -168,15 +197,20 @@ vxfs_blkiget(struct super_block *sbp, u_long extent, ino_t ino)
 	u_long				block, offset;
 
 	inode = new_inode(sbp);
+
 	if (!inode)
+	{
 		return NULL;
+	}
+
 	inode->i_ino = get_next_ino();
 
 	block = extent + ((ino * VXFS_ISIZE) / sbp->s_blocksize);
 	offset = ((ino % (sbp->s_blocksize / VXFS_ISIZE)) * VXFS_ISIZE);
 	bp = sb_bread(sbp, block);
 
-	if (bp && buffer_mapped(bp)) {
+	if (bp && buffer_mapped(bp))
+	{
 		struct vxfs_inode_info	*vip = VXFS_INO(inode);
 		struct vxfs_dinode	*dip;
 
@@ -216,7 +250,8 @@ __vxfs_iget(struct inode *ilistp, struct vxfs_inode_info *vip, ino_t ino)
 	offset = (ino % (PAGE_SIZE / VXFS_ISIZE)) * VXFS_ISIZE;
 	pp = vxfs_get_page(ilistp->i_mapping, ino * VXFS_ISIZE / PAGE_SIZE);
 
-	if (!IS_ERR(pp)) {
+	if (!IS_ERR(pp))
+	{
 		struct vxfs_dinode	*dip;
 		caddr_t			kaddr = (char *)page_address(pp);
 
@@ -231,7 +266,7 @@ __vxfs_iget(struct inode *ilistp, struct vxfs_inode_info *vip, ino_t ino)
 	}
 
 	printk(KERN_WARNING "vxfs: error on page 0x%p for inode %ld\n",
-		pp, (unsigned long)ino);
+		   pp, (unsigned long)ino);
 	return PTR_ERR(pp);
 }
 
@@ -252,12 +287,18 @@ vxfs_stiget(struct super_block *sbp, ino_t ino)
 	int error;
 
 	inode = new_inode(sbp);
+
 	if (!inode)
+	{
 		return NULL;
+	}
+
 	inode->i_ino = get_next_ino();
 
 	error = __vxfs_iget(VXFS_SBI(sbp)->vsi_stilist, VXFS_INO(inode), ino);
-	if (error) {
+
+	if (error)
+	{
 		iput(inode);
 		return NULL;
 	}
@@ -283,43 +324,66 @@ vxfs_iget(struct super_block *sbp, ino_t ino)
 	int error;
 
 	ip = iget_locked(sbp, ino);
+
 	if (!ip)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	if (!(ip->i_state & I_NEW))
+	{
 		return ip;
+	}
 
 	vip = VXFS_INO(ip);
 	error = __vxfs_iget(VXFS_SBI(sbp)->vsi_ilist, vip, ino);
-	if (error) {
+
+	if (error)
+	{
 		iget_failed(ip);
 		return ERR_PTR(error);
 	}
 
 	if (VXFS_ISIMMED(vip))
+	{
 		aops = &vxfs_immed_aops;
+	}
 	else
+	{
 		aops = &vxfs_aops;
+	}
 
-	if (S_ISREG(ip->i_mode)) {
+	if (S_ISREG(ip->i_mode))
+	{
 		ip->i_fop = &generic_ro_fops;
 		ip->i_mapping->a_ops = aops;
-	} else if (S_ISDIR(ip->i_mode)) {
+	}
+	else if (S_ISDIR(ip->i_mode))
+	{
 		ip->i_op = &vxfs_dir_inode_ops;
 		ip->i_fop = &vxfs_dir_operations;
 		ip->i_mapping->a_ops = aops;
-	} else if (S_ISLNK(ip->i_mode)) {
-		if (!VXFS_ISIMMED(vip)) {
+	}
+	else if (S_ISLNK(ip->i_mode))
+	{
+		if (!VXFS_ISIMMED(vip))
+		{
 			ip->i_op = &page_symlink_inode_operations;
 			inode_nohighmem(ip);
 			ip->i_mapping->a_ops = &vxfs_aops;
-		} else {
+		}
+		else
+		{
 			ip->i_op = &simple_symlink_inode_operations;
 			ip->i_link = vip->vii_immed.vi_immed;
 			nd_terminate_link(ip->i_link, ip->i_size,
-					  sizeof(vip->vii_immed.vi_immed) - 1);
+							  sizeof(vip->vii_immed.vi_immed) - 1);
 		}
-	} else
+	}
+	else
+	{
 		init_special_inode(ip, ip->i_mode, old_decode_dev(vip->vii_rdev));
+	}
 
 	unlock_new_inode(ip);
 	return ip;

@@ -34,11 +34,11 @@
 #define NXP_NCI_HDR_LEN	4
 
 #define NXP_NCI_NFC_PROTOCOLS (NFC_PROTO_JEWEL_MASK | \
-			       NFC_PROTO_MIFARE_MASK | \
-			       NFC_PROTO_FELICA_MASK | \
-			       NFC_PROTO_ISO14443_MASK | \
-			       NFC_PROTO_ISO14443_B_MASK | \
-			       NFC_PROTO_NFC_DEP_MASK)
+							   NFC_PROTO_MIFARE_MASK | \
+							   NFC_PROTO_FELICA_MASK | \
+							   NFC_PROTO_ISO14443_MASK | \
+							   NFC_PROTO_ISO14443_B_MASK | \
+							   NFC_PROTO_NFC_DEP_MASK)
 
 static int nxp_nci_open(struct nci_dev *ndev)
 {
@@ -47,13 +47,16 @@ static int nxp_nci_open(struct nci_dev *ndev)
 
 	mutex_lock(&info->info_lock);
 
-	if (info->mode != NXP_NCI_MODE_COLD) {
+	if (info->mode != NXP_NCI_MODE_COLD)
+	{
 		r = -EBUSY;
 		goto open_exit;
 	}
 
 	if (info->phy_ops->set_mode)
+	{
 		r = info->phy_ops->set_mode(info->phy_id, NXP_NCI_MODE_NCI);
+	}
 
 	info->mode = NXP_NCI_MODE_NCI;
 
@@ -70,7 +73,9 @@ static int nxp_nci_close(struct nci_dev *ndev)
 	mutex_lock(&info->info_lock);
 
 	if (info->phy_ops->set_mode)
+	{
 		r = info->phy_ops->set_mode(info->phy_id, NXP_NCI_MODE_COLD);
+	}
 
 	info->mode = NXP_NCI_MODE_COLD;
 
@@ -83,25 +88,31 @@ static int nxp_nci_send(struct nci_dev *ndev, struct sk_buff *skb)
 	struct nxp_nci_info *info = nci_get_drvdata(ndev);
 	int r;
 
-	if (!info->phy_ops->write) {
+	if (!info->phy_ops->write)
+	{
 		r = -ENOTSUPP;
 		goto send_exit;
 	}
 
-	if (info->mode != NXP_NCI_MODE_NCI) {
+	if (info->mode != NXP_NCI_MODE_NCI)
+	{
 		r = -EINVAL;
 		goto send_exit;
 	}
 
 	r = info->phy_ops->write(info->phy_id, skb);
+
 	if (r < 0)
+	{
 		kfree_skb(skb);
+	}
 
 send_exit:
 	return r;
 }
 
-static struct nci_ops nxp_nci_ops = {
+static struct nci_ops nxp_nci_ops =
+{
 	.open = nxp_nci_open,
 	.close = nxp_nci_close,
 	.send = nxp_nci_send,
@@ -109,15 +120,17 @@ static struct nci_ops nxp_nci_ops = {
 };
 
 int nxp_nci_probe(void *phy_id, struct device *pdev,
-		  const struct nxp_nci_phy_ops *phy_ops,
-		  unsigned int max_payload,
-		  struct nci_dev **ndev)
+				  const struct nxp_nci_phy_ops *phy_ops,
+				  unsigned int max_payload,
+				  struct nci_dev **ndev)
 {
 	struct nxp_nci_info *info;
 	int r;
 
 	info = devm_kzalloc(pdev, sizeof(struct nxp_nci_info), GFP_KERNEL);
-	if (!info) {
+
+	if (!info)
+	{
 		r = -ENOMEM;
 		goto probe_exit;
 	}
@@ -130,17 +143,23 @@ int nxp_nci_probe(void *phy_id, struct device *pdev,
 	init_completion(&info->fw_info.cmd_completion);
 	mutex_init(&info->info_lock);
 
-	if (info->phy_ops->set_mode) {
+	if (info->phy_ops->set_mode)
+	{
 		r = info->phy_ops->set_mode(info->phy_id, NXP_NCI_MODE_COLD);
+
 		if (r < 0)
+		{
 			goto probe_exit;
+		}
 	}
 
 	info->mode = NXP_NCI_MODE_COLD;
 
 	info->ndev = nci_allocate_device(&nxp_nci_ops, NXP_NCI_NFC_PROTOCOLS,
-					 NXP_NCI_HDR_LEN, 0);
-	if (!info->ndev) {
+									 NXP_NCI_HDR_LEN, 0);
+
+	if (!info->ndev)
+	{
 		r = -ENOMEM;
 		goto probe_exit;
 	}
@@ -148,8 +167,11 @@ int nxp_nci_probe(void *phy_id, struct device *pdev,
 	nci_set_parent_dev(info->ndev, pdev);
 	nci_set_drvdata(info->ndev, info);
 	r = nci_register_device(info->ndev);
+
 	if (r < 0)
+	{
 		goto probe_exit_free_nci;
+	}
 
 	*ndev = info->ndev;
 
@@ -167,13 +189,18 @@ void nxp_nci_remove(struct nci_dev *ndev)
 	struct nxp_nci_info *info = nci_get_drvdata(ndev);
 
 	if (info->mode == NXP_NCI_MODE_FW)
+	{
 		nxp_nci_fw_work_complete(info, -ESHUTDOWN);
+	}
+
 	cancel_work_sync(&info->fw_info.work);
 
 	mutex_lock(&info->info_lock);
 
 	if (info->phy_ops->set_mode)
+	{
 		info->phy_ops->set_mode(info->phy_id, NXP_NCI_MODE_COLD);
+	}
 
 	nci_unregister_device(ndev);
 	nci_free_device(ndev);

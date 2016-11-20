@@ -32,7 +32,8 @@
 #define KEVENT_BASE			100
 #define ISCSI_ERR_BASE			1000
 
-enum iscsi_uevent_e {
+enum iscsi_uevent_e
+{
 	ISCSI_UEVENT_UNKNOWN		= 0,
 
 	/* down events */
@@ -87,118 +88,142 @@ enum iscsi_uevent_e {
 	ISCSI_KEVENT_PING_COMP		= KEVENT_BASE + 11,
 };
 
-enum iscsi_tgt_dscvr {
+enum iscsi_tgt_dscvr
+{
 	ISCSI_TGT_DSCVR_SEND_TARGETS	= 1,
 	ISCSI_TGT_DSCVR_ISNS		= 2,
 	ISCSI_TGT_DSCVR_SLP		= 3,
 };
 
-enum iscsi_host_event_code {
+enum iscsi_host_event_code
+{
 	ISCSI_EVENT_LINKUP		= 1,
 	ISCSI_EVENT_LINKDOWN,
 	/* must always be last */
 	ISCSI_EVENT_MAX,
 };
 
-struct iscsi_uevent {
+struct iscsi_uevent
+{
 	uint32_t type; /* k/u events type */
 	uint32_t iferror; /* carries interface or resource errors */
 	uint64_t transport_handle;
 
-	union {
+	union
+	{
 		/* messages u -> k */
-		struct msg_create_session {
+		struct msg_create_session
+		{
 			uint32_t	initial_cmdsn;
 			uint16_t	cmds_max;
 			uint16_t	queue_depth;
 		} c_session;
-		struct msg_create_bound_session {
+		struct msg_create_bound_session
+		{
 			uint64_t	ep_handle;
 			uint32_t	initial_cmdsn;
 			uint16_t	cmds_max;
 			uint16_t	queue_depth;
 		} c_bound_session;
-		struct msg_destroy_session {
+		struct msg_destroy_session
+		{
 			uint32_t	sid;
 		} d_session;
-		struct msg_create_conn {
+		struct msg_create_conn
+		{
 			uint32_t	sid;
 			uint32_t	cid;
 		} c_conn;
-		struct msg_bind_conn {
+		struct msg_bind_conn
+		{
 			uint32_t	sid;
 			uint32_t	cid;
 			uint64_t	transport_eph;
 			uint32_t	is_leading;
 		} b_conn;
-		struct msg_destroy_conn {
+		struct msg_destroy_conn
+		{
 			uint32_t	sid;
 			uint32_t	cid;
 		} d_conn;
-		struct msg_send_pdu {
+		struct msg_send_pdu
+		{
 			uint32_t	sid;
 			uint32_t	cid;
 			uint32_t	hdr_size;
 			uint32_t	data_size;
 		} send_pdu;
-		struct msg_set_param {
+		struct msg_set_param
+		{
 			uint32_t	sid;
 			uint32_t	cid;
 			uint32_t	param; /* enum iscsi_param */
 			uint32_t	len;
 		} set_param;
-		struct msg_start_conn {
+		struct msg_start_conn
+		{
 			uint32_t	sid;
 			uint32_t	cid;
 		} start_conn;
-		struct msg_stop_conn {
+		struct msg_stop_conn
+		{
 			uint32_t	sid;
 			uint32_t	cid;
 			uint64_t	conn_handle;
 			uint32_t	flag;
 		} stop_conn;
-		struct msg_get_stats {
+		struct msg_get_stats
+		{
 			uint32_t	sid;
 			uint32_t	cid;
 		} get_stats;
-		struct msg_transport_connect {
+		struct msg_transport_connect
+		{
 			uint32_t	non_blocking;
 		} ep_connect;
-		struct msg_transport_connect_through_host {
+		struct msg_transport_connect_through_host
+		{
 			uint32_t	host_no;
 			uint32_t	non_blocking;
 		} ep_connect_through_host;
-		struct msg_transport_poll {
+		struct msg_transport_poll
+		{
 			uint64_t	ep_handle;
 			uint32_t	timeout_ms;
 		} ep_poll;
-		struct msg_transport_disconnect {
+		struct msg_transport_disconnect
+		{
 			uint64_t	ep_handle;
 		} ep_disconnect;
-		struct msg_tgt_dscvr {
+		struct msg_tgt_dscvr
+		{
 			enum iscsi_tgt_dscvr	type;
 			uint32_t	host_no;
 			/*
- 			 * enable = 1 to establish a new connection
+			 * enable = 1 to establish a new connection
 			 * with the server. enable = 0 to disconnect
 			 * from the server. Used primarily to switch
 			 * from one iSNS server to another.
 			 */
 			uint32_t	enable;
 		} tgt_dscvr;
-		struct msg_set_host_param {
+		struct msg_set_host_param
+		{
 			uint32_t	host_no;
 			uint32_t	param; /* enum iscsi_host_param */
 			uint32_t	len;
 		} set_host_param;
-		struct msg_set_path {
+		struct msg_set_path
+		{
 			uint32_t	host_no;
 		} set_path;
-		struct msg_set_iface_params {
+		struct msg_set_iface_params
+		{
 			uint32_t	host_no;
 			uint32_t	count;
 		} set_iface_params;
-		struct msg_iscsi_ping {
+		struct msg_iscsi_ping
+		{
 			uint32_t        host_no;
 			uint32_t        iface_num;
 			uint32_t        iface_type;
@@ -206,7 +231,8 @@ struct iscsi_uevent {
 			uint32_t	pid;	/* unique ping id associated
 						   with each ping request */
 		} iscsi_ping;
-		struct msg_get_chap {
+		struct msg_get_chap
+		{
 			uint32_t	host_no;
 			uint32_t	num_entries; /* number of CHAP entries
 						      * on request, number of
@@ -214,88 +240,109 @@ struct iscsi_uevent {
 						      * response */
 			uint16_t	chap_tbl_idx;
 		} get_chap;
-		struct msg_delete_chap {
-		       uint32_t        host_no;
-		       uint16_t        chap_tbl_idx;
+		struct msg_delete_chap
+		{
+			uint32_t        host_no;
+			uint16_t        chap_tbl_idx;
 		} delete_chap;
-		struct msg_set_flashnode_param {
+		struct msg_set_flashnode_param
+		{
 			uint32_t	host_no;
 			uint32_t	flashnode_idx;
 			uint32_t	count;
 		} set_flashnode;
-		struct msg_new_flashnode {
+		struct msg_new_flashnode
+		{
 			uint32_t	host_no;
 			uint32_t	len;
 		} new_flashnode;
-		struct msg_del_flashnode {
+		struct msg_del_flashnode
+		{
 			uint32_t	host_no;
 			uint32_t	flashnode_idx;
 		} del_flashnode;
-		struct msg_login_flashnode {
+		struct msg_login_flashnode
+		{
 			uint32_t	host_no;
 			uint32_t	flashnode_idx;
 		} login_flashnode;
-		struct msg_logout_flashnode {
+		struct msg_logout_flashnode
+		{
 			uint32_t	host_no;
 			uint32_t	flashnode_idx;
 		} logout_flashnode;
-		struct msg_logout_flashnode_sid {
+		struct msg_logout_flashnode_sid
+		{
 			uint32_t	host_no;
 			uint32_t	sid;
 		} logout_flashnode_sid;
-		struct msg_get_host_stats {
+		struct msg_get_host_stats
+		{
 			uint32_t host_no;
 		} get_host_stats;
 	} u;
-	union {
+	union
+	{
 		/* messages k -> u */
 		int			retcode;
-		struct msg_create_session_ret {
+		struct msg_create_session_ret
+		{
 			uint32_t	sid;
 			uint32_t	host_no;
 		} c_session_ret;
-		struct msg_create_conn_ret {
+		struct msg_create_conn_ret
+		{
 			uint32_t	sid;
 			uint32_t	cid;
 		} c_conn_ret;
-		struct msg_unbind_session {
+		struct msg_unbind_session
+		{
 			uint32_t	sid;
 			uint32_t	host_no;
 		} unbind_session;
-		struct msg_recv_req {
+		struct msg_recv_req
+		{
 			uint32_t	sid;
 			uint32_t	cid;
 			uint64_t	recv_handle;
 		} recv_req;
-		struct msg_conn_login {
+		struct msg_conn_login
+		{
 			uint32_t        sid;
 			uint32_t        cid;
 			uint32_t        state; /* enum iscsi_conn_state */
 		} conn_login;
-		struct msg_conn_error {
+		struct msg_conn_error
+		{
 			uint32_t	sid;
 			uint32_t	cid;
 			uint32_t	error; /* enum iscsi_err */
 		} connerror;
-		struct msg_session_destroyed {
+		struct msg_session_destroyed
+		{
 			uint32_t	host_no;
 			uint32_t	sid;
 		} d_session;
-		struct msg_transport_connect_ret {
+		struct msg_transport_connect_ret
+		{
 			uint64_t	handle;
 		} ep_connect_ret;
-		struct msg_req_path {
+		struct msg_req_path
+		{
 			uint32_t	host_no;
 		} req_path;
-		struct msg_notify_if_down {
+		struct msg_notify_if_down
+		{
 			uint32_t	host_no;
 		} notify_if_down;
-		struct msg_host_event {
+		struct msg_host_event
+		{
 			uint32_t	host_no;
 			uint32_t	data_size;
 			enum iscsi_host_event_code code;
 		} host_event;
-		struct msg_ping_comp {
+		struct msg_ping_comp
+		{
 			uint32_t        host_no;
 			uint32_t        status; /* enum
 						 * iscsi_ping_status_code */
@@ -303,13 +350,15 @@ struct iscsi_uevent {
 						   with each ping request */
 			uint32_t        data_size;
 		} ping_comp;
-		struct msg_new_flashnode_ret {
+		struct msg_new_flashnode_ret
+		{
 			uint32_t	flashnode_idx;
 		} new_flashnode_ret;
 	} r;
 } __attribute__ ((aligned (sizeof(uint64_t))));
 
-enum iscsi_param_type {
+enum iscsi_param_type
+{
 	ISCSI_PARAM,		/* iscsi_param (session, conn, target, LU) */
 	ISCSI_HOST_PARAM,	/* iscsi_host_param */
 	ISCSI_NET_PARAM,	/* iscsi_net_param */
@@ -319,13 +368,15 @@ enum iscsi_param_type {
 };
 
 /* structure for minimalist usecase */
-struct iscsi_param_info {
+struct iscsi_param_info
+{
 	uint32_t len;		/* Actual length of the param value */
 	uint16_t param;		/* iscsi param */
 	uint8_t value[0];	/* length sized value follows */
 } __packed;
 
-struct iscsi_iface_param_info {
+struct iscsi_iface_param_info
+{
 	uint32_t iface_num;	/* iface number, 0 - n */
 	uint32_t len;		/* Actual length of the param */
 	uint16_t param;		/* iscsi param value */
@@ -340,16 +391,19 @@ struct iscsi_iface_param_info {
  * ISCSI_KEVENT_PATH_REQ is defined separately and comes after the
  * struct iscsi_uevent in the NETLINK_ISCSI message.
  */
-struct iscsi_path {
+struct iscsi_path
+{
 	uint64_t	handle;
 	uint8_t		mac_addr[6];
 	uint8_t		mac_addr_old[6];
 	uint32_t	ip_addr_len;	/* 4 or 16 */
-	union {
+	union
+	{
 		struct in_addr	v4_addr;
 		struct in6_addr	v6_addr;
 	} src;
-	union {
+	union
+	{
 		struct in_addr	v4_addr;
 		struct in6_addr	v6_addr;
 	} dst;
@@ -393,7 +447,8 @@ struct iscsi_path {
 #define ISCSI_NET_PARAM_ENABLE		0x02
 
 /* iSCSI network params */
-enum iscsi_net_param {
+enum iscsi_net_param
+{
 	ISCSI_NET_PARAM_IPV4_ADDR		= 1,
 	ISCSI_NET_PARAM_IPV4_SUBNET,
 	ISCSI_NET_PARAM_IPV4_GW,
@@ -451,7 +506,8 @@ enum iscsi_net_param {
 	ISCSI_NET_PARAM_REDIRECT_EN,
 };
 
-enum iscsi_ipaddress_state {
+enum iscsi_ipaddress_state
+{
 	ISCSI_IPDDRESS_STATE_UNCONFIGURED,
 	ISCSI_IPDDRESS_STATE_ACQUIRING,
 	ISCSI_IPDDRESS_STATE_TENTATIVE,
@@ -461,7 +517,8 @@ enum iscsi_ipaddress_state {
 	ISCSI_IPDDRESS_STATE_DEPRECATED,
 };
 
-enum iscsi_router_state {
+enum iscsi_router_state
+{
 	ISCSI_ROUTER_STATE_UNKNOWN,
 	ISCSI_ROUTER_STATE_ADVERTISED,
 	ISCSI_ROUTER_STATE_MANUAL,
@@ -469,7 +526,8 @@ enum iscsi_router_state {
 };
 
 /* iSCSI specific settings params for iface */
-enum iscsi_iface_param {
+enum iscsi_iface_param
+{
 	ISCSI_IFACE_PARAM_DEF_TASKMGMT_TMO,
 	ISCSI_IFACE_PARAM_HDRDGST_EN,
 	ISCSI_IFACE_PARAM_DATADGST_EN,
@@ -490,7 +548,8 @@ enum iscsi_iface_param {
 	ISCSI_IFACE_PARAM_INITIATOR_NAME,
 };
 
-enum iscsi_conn_state {
+enum iscsi_conn_state
+{
 	ISCSI_CONN_STATE_FREE,
 	ISCSI_CONN_STATE_XPT_WAIT,
 	ISCSI_CONN_STATE_IN_LOGIN,
@@ -503,7 +562,8 @@ enum iscsi_conn_state {
 /*
  * Common error codes
  */
-enum iscsi_err {
+enum iscsi_err
+{
 	ISCSI_OK			= 0,
 
 	ISCSI_ERR_DATASN		= ISCSI_ERR_BASE + 1,
@@ -533,7 +593,8 @@ enum iscsi_err {
 /*
  * iSCSI Parameters (RFC3720)
  */
-enum iscsi_param {
+enum iscsi_param
+{
 	/* passed in using netlink set param */
 	ISCSI_PARAM_MAX_RECV_DLENGTH,
 	ISCSI_PARAM_MAX_XMIT_DLENGTH,
@@ -625,7 +686,8 @@ enum iscsi_param {
 };
 
 /* iSCSI HBA params */
-enum iscsi_host_param {
+enum iscsi_host_param
+{
 	ISCSI_HOST_PARAM_HWADDRESS,
 	ISCSI_HOST_PARAM_INITIATOR_NAME,
 	ISCSI_HOST_PARAM_NETDEV_NAME,
@@ -640,7 +702,8 @@ enum iscsi_host_param {
 #define PORTAL_TYPE_IPV6	"ipv6"
 
 /* iSCSI Flash Target params */
-enum iscsi_flashnode_param {
+enum iscsi_flashnode_param
+{
 	ISCSI_FLASHNODE_IS_FW_ASSIGNED_IPV6,
 	ISCSI_FLASHNODE_PORTAL_TYPE,
 	ISCSI_FLASHNODE_AUTO_SND_TGT_DISABLE,
@@ -705,20 +768,23 @@ enum iscsi_flashnode_param {
 	ISCSI_FLASHNODE_MAX,
 };
 
-struct iscsi_flashnode_param_info {
+struct iscsi_flashnode_param_info
+{
 	uint32_t len;		/* Actual length of the param */
 	uint16_t param;		/* iscsi param value */
 	uint8_t value[0];	/* length sized value follows */
 } __packed;
 
-enum iscsi_discovery_parent_type {
+enum iscsi_discovery_parent_type
+{
 	ISCSI_DISC_PARENT_UNKNOWN	= 0x1,
 	ISCSI_DISC_PARENT_SENDTGT	= 0x2,
 	ISCSI_DISC_PARENT_ISNS		= 0x3,
 };
 
 /* iSCSI port Speed */
-enum iscsi_port_speed {
+enum iscsi_port_speed
+{
 	ISCSI_PORT_SPEED_UNKNOWN	= 0x1,
 	ISCSI_PORT_SPEED_10MBPS		= 0x2,
 	ISCSI_PORT_SPEED_100MBPS	= 0x4,
@@ -729,13 +795,15 @@ enum iscsi_port_speed {
 };
 
 /* iSCSI port state */
-enum iscsi_port_state {
+enum iscsi_port_state
+{
 	ISCSI_PORT_STATE_DOWN		= 0x1,
 	ISCSI_PORT_STATE_UP		= 0x2,
 };
 
 /* iSCSI PING status/error code */
-enum iscsi_ping_status_code {
+enum iscsi_ping_status_code
+{
 	ISCSI_PING_SUCCESS			= 0,
 	ISCSI_PING_FW_DISABLED			= 0x1,
 	ISCSI_PING_IPADDR_INVALID		= 0x2,
@@ -780,7 +848,8 @@ enum iscsi_ping_status_code {
 
 #define ISCSI_STATS_CUSTOM_MAX		32
 #define ISCSI_STATS_CUSTOM_DESC_MAX	64
-struct iscsi_stats_custom {
+struct iscsi_stats_custom
+{
 	char desc[ISCSI_STATS_CUSTOM_DESC_MAX];
 	uint64_t value;
 };
@@ -790,7 +859,8 @@ struct iscsi_stats_custom {
  *
  * Note: this structure contains counters collected on per-connection basis.
  */
-struct iscsi_stats {
+struct iscsi_stats
+{
 	/* octets */
 	uint64_t txdata_octets;
 	uint64_t rxdata_octets;
@@ -827,15 +897,17 @@ struct iscsi_stats {
 	 */
 	uint32_t custom_length;
 	struct iscsi_stats_custom custom[0]
-		__attribute__ ((aligned (sizeof(uint64_t))));
+	__attribute__ ((aligned (sizeof(uint64_t))));
 };
 
-enum chap_type_e {
+enum chap_type_e
+{
 	CHAP_TYPE_OUT,
 	CHAP_TYPE_IN,
 };
 
-enum iscsi_chap_param {
+enum iscsi_chap_param
+{
 	ISCSI_CHAP_PARAM_INDEX,
 	ISCSI_CHAP_PARAM_CHAP_TYPE,
 	ISCSI_CHAP_PARAM_USERNAME,
@@ -845,7 +917,8 @@ enum iscsi_chap_param {
 
 #define ISCSI_CHAP_AUTH_NAME_MAX_LEN	256
 #define ISCSI_CHAP_AUTH_SECRET_MAX_LEN	256
-struct iscsi_chap_rec {
+struct iscsi_chap_rec
+{
 	uint16_t chap_tbl_idx;
 	enum chap_type_e chap_type;
 	char username[ISCSI_CHAP_AUTH_NAME_MAX_LEN];
@@ -855,7 +928,8 @@ struct iscsi_chap_rec {
 
 #define ISCSI_HOST_STATS_CUSTOM_MAX             32
 #define ISCSI_HOST_STATS_CUSTOM_DESC_MAX        64
-struct iscsi_host_stats_custom {
+struct iscsi_host_stats_custom
+{
 	char desc[ISCSI_HOST_STATS_CUSTOM_DESC_MAX];
 	uint64_t value;
 };
@@ -863,7 +937,8 @@ struct iscsi_host_stats_custom {
 /* struct iscsi_offload_host_stats: Host statistics,
  * Include statistics for MAC, IP, TCP & iSCSI.
  */
-struct iscsi_offload_host_stats {
+struct iscsi_offload_host_stats
+{
 	/* MAC */
 	uint64_t mactx_frames;
 	uint64_t mactx_bytes;
@@ -958,7 +1033,7 @@ struct iscsi_offload_host_stats {
 	 */
 	uint32_t custom_length;
 	struct iscsi_host_stats_custom custom[0]
-		__aligned(sizeof(uint64_t));
+	__aligned(sizeof(uint64_t));
 };
 
 #endif

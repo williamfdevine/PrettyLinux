@@ -20,7 +20,8 @@
 #include "msm_gem.h"
 #include "msm_fence.h"
 
-struct msm_commit {
+struct msm_commit
+{
 	struct drm_device *dev;
 	struct drm_atomic_state *state;
 	struct work_struct work;
@@ -38,11 +39,14 @@ static int start_atomic(struct msm_drm_private *priv, uint32_t crtc_mask)
 
 	spin_lock(&priv->pending_crtcs_event.lock);
 	ret = wait_event_interruptible_locked(priv->pending_crtcs_event,
-			!(priv->pending_crtcs & crtc_mask));
-	if (ret == 0) {
+										  !(priv->pending_crtcs & crtc_mask));
+
+	if (ret == 0)
+	{
 		DBG("start: %08x", crtc_mask);
 		priv->pending_crtcs |= crtc_mask;
 	}
+
 	spin_unlock(&priv->pending_crtcs_event.lock);
 
 	return ret;
@@ -64,7 +68,9 @@ static struct msm_commit *commit_init(struct drm_atomic_state *state)
 	struct msm_commit *c = kzalloc(sizeof(*c), GFP_KERNEL);
 
 	if (!c)
+	{
 		return NULL;
+	}
 
 	c->dev = state->dev;
 	c->state = state;
@@ -89,14 +95,19 @@ static void msm_atomic_wait_for_commit_done(struct drm_device *dev,
 	struct msm_kms *kms = priv->kms;
 	int i;
 
-	for_each_crtc_in_state(old_state, crtc, crtc_state, i) {
+	for_each_crtc_in_state(old_state, crtc, crtc_state, i)
+	{
 		if (!crtc->state->enable)
+		{
 			continue;
+		}
 
 		/* Legacy cursor ioctls are completely unsynced, and userspace
 		 * relies on that (by doing tons of cursor updates). */
 		if (old_state->legacy_cursor_update)
+		{
 			continue;
+		}
 
 		kms->funcs->wait_for_crtc_commit_done(kms, crtc);
 	}
@@ -152,7 +163,7 @@ static void commit_worker(struct work_struct *work)
 }
 
 int msm_atomic_check(struct drm_device *dev,
-		     struct drm_atomic_state *state)
+					 struct drm_atomic_state *state)
 {
 	int ret;
 
@@ -161,12 +172,18 @@ int msm_atomic_check(struct drm_device *dev,
 	 * changes, hence must be run before we check the modeset changes.
 	 */
 	ret = drm_atomic_helper_check_planes(dev, state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = drm_atomic_helper_check_modeset(dev, state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return ret;
 }
@@ -184,7 +201,7 @@ int msm_atomic_check(struct drm_device *dev,
  * Zero for success or -errno.
  */
 int msm_atomic_commit(struct drm_device *dev,
-		struct drm_atomic_state *state, bool nonblock)
+					  struct drm_atomic_state *state, bool nonblock)
 {
 	struct msm_drm_private *priv = dev->dev_private;
 	struct msm_commit *c;
@@ -195,11 +212,16 @@ int msm_atomic_commit(struct drm_device *dev,
 	int i, ret;
 
 	ret = drm_atomic_helper_prepare_planes(dev, state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	c = commit_init(state);
-	if (!c) {
+
+	if (!c)
+	{
 		ret = -ENOMEM;
 		goto error;
 	}
@@ -208,13 +230,15 @@ int msm_atomic_commit(struct drm_device *dev,
 	 * Figure out what crtcs we have:
 	 */
 	for_each_crtc_in_state(state, crtc, crtc_state, i)
-		c->crtc_mask |= drm_crtc_mask(crtc);
+	c->crtc_mask |= drm_crtc_mask(crtc);
 
 	/*
 	 * Figure out what fence to wait for:
 	 */
-	for_each_plane_in_state(state, plane, plane_state, i) {
-		if ((plane->state->fb != plane_state->fb) && plane_state->fb) {
+	for_each_plane_in_state(state, plane, plane_state, i)
+	{
+		if ((plane->state->fb != plane_state->fb) && plane_state->fb)
+		{
 			struct drm_gem_object *obj = msm_framebuffer_bo(plane_state->fb, 0);
 			struct msm_gem_object *msm_obj = to_msm_bo(obj);
 
@@ -227,7 +251,9 @@ int msm_atomic_commit(struct drm_device *dev,
 	 * mark our set of crtc's as busy:
 	 */
 	ret = start_atomic(dev->dev_private, c->crtc_mask);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(c);
 		goto error;
 	}
@@ -256,7 +282,8 @@ int msm_atomic_commit(struct drm_device *dev,
 	 * current layout.
 	 */
 
-	if (nonblock) {
+	if (nonblock)
+	{
 		queue_work(priv->atomic_wq, &c->work);
 		return 0;
 	}

@@ -44,19 +44,27 @@ int pwc_get_size(struct pwc_device *pdev, int width, int height)
 
 	/* Find the largest size supported by the camera that fits into the
 	   requested size. */
-	for (i = PSZ_MAX - 1; i >= 0; i--) {
+	for (i = PSZ_MAX - 1; i >= 0; i--)
+	{
 		if (!(pdev->image_mask & (1 << i)))
+		{
 			continue;
+		}
 
 		if (pwc_image_sizes[i][0] <= width &&
-		    pwc_image_sizes[i][1] <= height)
+			pwc_image_sizes[i][1] <= height)
+		{
 			return i;
+		}
 	}
 
 	/* No mode found, return the smallest mode we have */
-	for (i = 0; i < PSZ_MAX; i++) {
+	for (i = 0; i < PSZ_MAX; i++)
+	{
 		if (pdev->image_mask & (1 << i))
+		{
 			return i;
+		}
 	}
 
 	/* Never reached there always is atleast one supported mode */
@@ -66,7 +74,8 @@ int pwc_get_size(struct pwc_device *pdev, int width, int height)
 /* initialize variables depending on type and decompressor */
 void pwc_construct(struct pwc_device *pdev)
 {
-	if (DEVICE_USE_CODEC1(pdev->type)) {
+	if (DEVICE_USE_CODEC1(pdev->type))
+	{
 
 		pdev->image_mask = 1 << PSZ_SQCIF | 1 << PSZ_QCIF | 1 << PSZ_CIF;
 		pdev->vcinterface = 2;
@@ -74,7 +83,9 @@ void pwc_construct(struct pwc_device *pdev)
 		pdev->frame_header_size = 0;
 		pdev->frame_trailer_size = 0;
 
-	} else if (DEVICE_USE_CODEC3(pdev->type)) {
+	}
+	else if (DEVICE_USE_CODEC3(pdev->type))
+	{
 
 		pdev->image_mask = 1 << PSZ_QSIF | 1 << PSZ_SIF | 1 << PSZ_VGA;
 		pdev->vcinterface = 3;
@@ -82,7 +93,9 @@ void pwc_construct(struct pwc_device *pdev)
 		pdev->frame_header_size = TOUCAM_HEADER_SIZE;
 		pdev->frame_trailer_size = TOUCAM_TRAILER_SIZE;
 
-	} else /* if (DEVICE_USE_CODEC2(pdev->type)) */ {
+	}
+	else /* if (DEVICE_USE_CODEC2(pdev->type)) */
+	{
 
 		pdev->image_mask = 1 << PSZ_SQCIF | 1 << PSZ_QSIF | 1 << PSZ_QCIF | 1 << PSZ_SIF | 1 << PSZ_CIF | 1 << PSZ_VGA;
 		pdev->vcinterface = 3;

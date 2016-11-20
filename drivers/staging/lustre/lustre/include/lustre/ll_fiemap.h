@@ -41,7 +41,8 @@
 #ifndef _LUSTRE_FIEMAP_H
 #define _LUSTRE_FIEMAP_H
 
-struct ll_fiemap_extent {
+struct ll_fiemap_extent
+{
 	__u64 fe_logical;  /* logical offset in bytes for the start of
 			    * the extent from the beginning of the file
 			    */
@@ -55,7 +56,8 @@ struct ll_fiemap_extent {
 	__u32 fe_reserved[2];
 };
 
-struct ll_user_fiemap {
+struct ll_user_fiemap
+{
 	__u64 fm_start;  /* logical offset (inclusive) at
 			  * which to start mapping (in)
 			  */
@@ -107,19 +109,19 @@ struct ll_user_fiemap {
 static inline size_t fiemap_count_to_size(size_t extent_count)
 {
 	return (sizeof(struct ll_user_fiemap) + extent_count *
-					       sizeof(struct ll_fiemap_extent));
+			sizeof(struct ll_fiemap_extent));
 }
 
 static inline unsigned fiemap_size_to_count(size_t array_size)
 {
 	return ((array_size - sizeof(struct ll_user_fiemap)) /
-					       sizeof(struct ll_fiemap_extent));
+			sizeof(struct ll_fiemap_extent));
 }
 
 #define FIEMAP_FLAG_DEVICE_ORDER 0x40000000 /* return device ordered mapping */
 
 #ifdef FIEMAP_FLAGS_COMPAT
-#undef FIEMAP_FLAGS_COMPAT
+	#undef FIEMAP_FLAGS_COMPAT
 #endif
 
 /* Lustre specific flags - use a high bit, don't conflict with upstream flag */

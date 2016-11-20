@@ -25,13 +25,15 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info,xfer=2,rc=4 (or-able))." DV
 
 DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
 
-struct az6027_device_state {
+struct az6027_device_state
+{
 	struct dvb_ca_en50221 ca;
 	struct mutex ca_mutex;
 	u8 power_state;
 };
 
-static const struct stb0899_s1_reg az6027_stb0899_s1_init_1[] = {
+static const struct stb0899_s1_reg az6027_stb0899_s1_init_1[] =
+{
 
 	/* 0x0000000b, SYSREG */
 	{ STB0899_DEV_ID		, 0x30 },
@@ -119,7 +121,8 @@ static const struct stb0899_s1_reg az6027_stb0899_s1_init_1[] = {
 	{ 0xffff			, 0xff },
 };
 
-static const struct stb0899_s1_reg az6027_stb0899_s1_init_3[] = {
+static const struct stb0899_s1_reg az6027_stb0899_s1_init_3[] =
+{
 	{ STB0899_DEMOD         	, 0x00 },
 	{ STB0899_RCOMPC        	, 0xc9 },
 	{ STB0899_AGC1CN        	, 0x01 },
@@ -254,7 +257,8 @@ static const struct stb0899_s1_reg az6027_stb0899_s1_init_3[] = {
 
 
 
-static struct stb0899_config az6027_stb0899_config = {
+static struct stb0899_config az6027_stb0899_config =
+{
 	.init_dev		= az6027_stb0899_s1_init_1,
 	.init_s2_demod		= stb0899_s2_init_2,
 	.init_s1_demod		= az6027_stb0899_s1_init_3,
@@ -291,7 +295,8 @@ static struct stb0899_config az6027_stb0899_config = {
 	.tuner_set_rfsiggain	= NULL,
 };
 
-static struct stb6100_config az6027_stb6100_config = {
+static struct stb6100_config az6027_stb6100_config =
+{
 	.tuner_address	= 0xc0,
 	.refclock	= 27000000,
 };
@@ -299,27 +304,34 @@ static struct stb6100_config az6027_stb6100_config = {
 
 /* check for mutex FIXME */
 static int az6027_usb_in_op(struct dvb_usb_device *d, u8 req,
-			    u16 value, u16 index, u8 *b, int blen)
+							u16 value, u16 index, u8 *b, int blen)
 {
 	int ret = -1;
+
 	if (mutex_lock_interruptible(&d->usb_mutex))
+	{
 		return -EAGAIN;
+	}
 
 	ret = usb_control_msg(d->udev,
-			      usb_rcvctrlpipe(d->udev, 0),
-			      req,
-			      USB_TYPE_VENDOR | USB_DIR_IN,
-			      value,
-			      index,
-			      b,
-			      blen,
-			      2000);
+						  usb_rcvctrlpipe(d->udev, 0),
+						  req,
+						  USB_TYPE_VENDOR | USB_DIR_IN,
+						  value,
+						  index,
+						  b,
+						  blen,
+						  2000);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		warn("usb in operation failed. (%d)", ret);
 		ret = -EIO;
-	} else
+	}
+	else
+	{
 		ret = 0;
+	}
 
 	deb_xfer("in: req. %02x, val: %04x, ind: %04x, buffer: ", req, value, index);
 	debug_dump(b, blen, deb_xfer);
@@ -329,11 +341,11 @@ static int az6027_usb_in_op(struct dvb_usb_device *d, u8 req,
 }
 
 static int az6027_usb_out_op(struct dvb_usb_device *d,
-			     u8 req,
-			     u16 value,
-			     u16 index,
-			     u8 *b,
-			     int blen)
+							 u8 req,
+							 u16 value,
+							 u16 index,
+							 u8 *b,
+							 int blen)
 {
 	int ret;
 
@@ -341,23 +353,28 @@ static int az6027_usb_out_op(struct dvb_usb_device *d,
 	debug_dump(b, blen, deb_xfer);
 
 	if (mutex_lock_interruptible(&d->usb_mutex))
+	{
 		return -EAGAIN;
+	}
 
 	ret = usb_control_msg(d->udev,
-			      usb_sndctrlpipe(d->udev, 0),
-			      req,
-			      USB_TYPE_VENDOR | USB_DIR_OUT,
-			      value,
-			      index,
-			      b,
-			      blen,
-			      2000);
+						  usb_sndctrlpipe(d->udev, 0),
+						  req,
+						  USB_TYPE_VENDOR | USB_DIR_OUT,
+						  value,
+						  index,
+						  b,
+						  blen,
+						  2000);
 
-	if (ret != blen) {
+	if (ret != blen)
+	{
 		warn("usb out operation failed. (%d)", ret);
 		mutex_unlock(&d->usb_mutex);
 		return -EIO;
-	} else{
+	}
+	else
+	{
 		mutex_unlock(&d->usb_mutex);
 		return 0;
 	}
@@ -379,14 +396,18 @@ static int az6027_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
 	blen = 0;
 
 	ret = az6027_usb_out_op(adap->dev, req, value, index, NULL, blen);
+
 	if (ret != 0)
+	{
 		warn("usb out operation failed. (%d)", ret);
+	}
 
 	return ret;
 }
 
 /* keys for the enclosed remote control */
-static struct rc_map_table rc_map_az6027_table[] = {
+static struct rc_map_table rc_map_az6027_table[] =
+{
 	{ 0x01, KEY_1 },
 	{ 0x02, KEY_2 },
 };
@@ -406,8 +427,8 @@ int az6027_power_ctrl(struct dvb_usb_device *d, int onoff)
 */
 
 static int az6027_ci_read_attribute_mem(struct dvb_ca_en50221 *ca,
-					int slot,
-					int address)
+										int slot,
+										int address)
 {
 	struct dvb_usb_device *d = (struct dvb_usb_device *)ca->data;
 	struct az6027_device_state *state = (struct az6027_device_state *)d->priv;
@@ -420,11 +441,16 @@ static int az6027_ci_read_attribute_mem(struct dvb_ca_en50221 *ca,
 	u8 *b;
 
 	if (slot != 0)
+	{
 		return -EINVAL;
+	}
 
 	b = kmalloc(12, GFP_KERNEL);
+
 	if (!b)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_lock(&state->ca_mutex);
 
@@ -434,10 +460,14 @@ static int az6027_ci_read_attribute_mem(struct dvb_ca_en50221 *ca,
 	blen = 1;
 
 	ret = az6027_usb_in_op(d, req, value, index, b, blen);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		warn("usb in operation failed. (%d)", ret);
 		ret = -EINVAL;
-	} else {
+	}
+	else
+	{
 		ret = b[0];
 	}
 
@@ -447,9 +477,9 @@ static int az6027_ci_read_attribute_mem(struct dvb_ca_en50221 *ca,
 }
 
 static int az6027_ci_write_attribute_mem(struct dvb_ca_en50221 *ca,
-					 int slot,
-					 int address,
-					 u8 value)
+		int slot,
+		int address,
+		u8 value)
 {
 	struct dvb_usb_device *d = (struct dvb_usb_device *)ca->data;
 	struct az6027_device_state *state = (struct az6027_device_state *)d->priv;
@@ -461,8 +491,11 @@ static int az6027_ci_write_attribute_mem(struct dvb_ca_en50221 *ca,
 	int blen;
 
 	deb_info("%s %d", __func__, slot);
+
 	if (slot != 0)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&state->ca_mutex);
 	req = 0xC2;
@@ -471,16 +504,19 @@ static int az6027_ci_write_attribute_mem(struct dvb_ca_en50221 *ca,
 	blen = 0;
 
 	ret = az6027_usb_out_op(d, req, value1, index, NULL, blen);
+
 	if (ret != 0)
+	{
 		warn("usb out operation failed. (%d)", ret);
+	}
 
 	mutex_unlock(&state->ca_mutex);
 	return ret;
 }
 
 static int az6027_ci_read_cam_control(struct dvb_ca_en50221 *ca,
-				      int slot,
-				      u8 address)
+									  int slot,
+									  u8 address)
 {
 	struct dvb_usb_device *d = (struct dvb_usb_device *)ca->data;
 	struct az6027_device_state *state = (struct az6027_device_state *)d->priv;
@@ -493,11 +529,16 @@ static int az6027_ci_read_cam_control(struct dvb_ca_en50221 *ca,
 	u8 *b;
 
 	if (slot != 0)
+	{
 		return -EINVAL;
+	}
 
 	b = kmalloc(12, GFP_KERNEL);
+
 	if (!b)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_lock(&state->ca_mutex);
 
@@ -507,12 +548,18 @@ static int az6027_ci_read_cam_control(struct dvb_ca_en50221 *ca,
 	blen = 2;
 
 	ret = az6027_usb_in_op(d, req, value, index, b, blen);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		warn("usb in operation failed. (%d)", ret);
 		ret = -EINVAL;
-	} else {
+	}
+	else
+	{
 		if (b[0] == 0)
+		{
 			warn("Read CI IO error");
+		}
 
 		ret = b[1];
 		deb_info("read cam data = %x from 0x%x", b[1], value);
@@ -524,9 +571,9 @@ static int az6027_ci_read_cam_control(struct dvb_ca_en50221 *ca,
 }
 
 static int az6027_ci_write_cam_control(struct dvb_ca_en50221 *ca,
-				       int slot,
-				       u8 address,
-				       u8 value)
+									   int slot,
+									   u8 address,
+									   u8 value)
 {
 	struct dvb_usb_device *d = (struct dvb_usb_device *)ca->data;
 	struct az6027_device_state *state = (struct az6027_device_state *)d->priv;
@@ -538,7 +585,9 @@ static int az6027_ci_write_cam_control(struct dvb_ca_en50221 *ca,
 	int blen;
 
 	if (slot != 0)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&state->ca_mutex);
 	req = 0xC4;
@@ -547,7 +596,9 @@ static int az6027_ci_write_cam_control(struct dvb_ca_en50221 *ca,
 	blen = 0;
 
 	ret = az6027_usb_out_op(d, req, value1, index, NULL, blen);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		warn("usb out operation failed. (%d)", ret);
 		goto failed;
 	}
@@ -569,8 +620,11 @@ static int CI_CamReady(struct dvb_ca_en50221 *ca, int slot)
 	u8 *b;
 
 	b = kmalloc(12, GFP_KERNEL);
+
 	if (!b)
+	{
 		return -ENOMEM;
+	}
 
 	req = 0xC8;
 	value = 0;
@@ -578,12 +632,17 @@ static int CI_CamReady(struct dvb_ca_en50221 *ca, int slot)
 	blen = 1;
 
 	ret = az6027_usb_in_op(d, req, value, index, b, blen);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		warn("usb in operation failed. (%d)", ret);
 		ret = -EIO;
-	} else{
+	}
+	else
+	{
 		ret = b[0];
 	}
+
 	kfree(b);
 	return ret;
 }
@@ -607,7 +666,9 @@ static int az6027_ci_slot_reset(struct dvb_ca_en50221 *ca, int slot)
 	blen = 0;
 
 	ret = az6027_usb_out_op(d, req, value, index, NULL, blen);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		warn("usb out operation failed. (%d)", ret);
 		goto failed;
 	}
@@ -619,19 +680,24 @@ static int az6027_ci_slot_reset(struct dvb_ca_en50221 *ca, int slot)
 	blen = 0;
 
 	ret = az6027_usb_out_op(d, req, value, index, NULL, blen);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		warn("usb out operation failed. (%d)", ret);
 		goto failed;
 	}
 
-	for (i = 0; i < 15; i++) {
+	for (i = 0; i < 15; i++)
+	{
 		msleep(100);
 
-		if (CI_CamReady(ca, slot)) {
+		if (CI_CamReady(ca, slot))
+		{
 			deb_info("CAM Ready");
 			break;
 		}
 	}
+
 	msleep(5000);
 
 failed:
@@ -663,7 +729,9 @@ static int az6027_ci_slot_ts_enable(struct dvb_ca_en50221 *ca, int slot)
 	blen = 0;
 
 	ret = az6027_usb_out_op(d, req, value, index, NULL, blen);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		warn("usb out operation failed. (%d)", ret);
 		goto failed;
 	}
@@ -685,8 +753,12 @@ static int az6027_ci_poll_slot_status(struct dvb_ca_en50221 *ca, int slot, int o
 	u8 *b;
 
 	b = kmalloc(12, GFP_KERNEL);
+
 	if (!b)
+	{
 		return -ENOMEM;
+	}
+
 	mutex_lock(&state->ca_mutex);
 
 	req = 0xC5;
@@ -695,15 +767,21 @@ static int az6027_ci_poll_slot_status(struct dvb_ca_en50221 *ca, int slot, int o
 	blen = 1;
 
 	ret = az6027_usb_in_op(d, req, value, index, b, blen);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		warn("usb in operation failed. (%d)", ret);
 		ret = -EIO;
-	} else
+	}
+	else
+	{
 		ret = 0;
+	}
 
-	if (!ret && b[0] == 1) {
+	if (!ret && b[0] == 1)
+	{
 		ret = DVB_CA_EN50221_POLL_CAM_PRESENT |
-		      DVB_CA_EN50221_POLL_CAM_READY;
+			  DVB_CA_EN50221_POLL_CAM_READY;
 	}
 
 	mutex_unlock(&state->ca_mutex);
@@ -719,14 +797,21 @@ static void az6027_ci_uninit(struct dvb_usb_device *d)
 	deb_info("%s", __func__);
 
 	if (NULL == d)
+	{
 		return;
+	}
 
 	state = (struct az6027_device_state *)d->priv;
+
 	if (NULL == state)
+	{
 		return;
+	}
 
 	if (NULL == state->ca.data)
+	{
 		return;
+	}
 
 	dvb_ca_en50221_release(&state->ca);
 
@@ -756,10 +841,12 @@ static int az6027_ci_init(struct dvb_usb_adapter *a)
 	state->ca.data			= d;
 
 	ret = dvb_ca_en50221_init(&a->dvb_adap,
-				  &state->ca,
-				  0, /* flags */
-				  1);/* n_slots */
-	if (ret != 0) {
+							  &state->ca,
+							  0, /* flags */
+							  1);/* n_slots */
+
+	if (ret != 0)
+	{
 		err("Cannot initialize CI: Error %d.", ret);
 		memset(&state->ca, 0, sizeof(state->ca));
 		return ret;
@@ -779,13 +866,14 @@ static int az6027_read_mac_addr(struct dvb_usb_device *d, u8 mac[6])
 */
 
 static int az6027_set_voltage(struct dvb_frontend *fe,
-			      enum fe_sec_voltage voltage)
+							  enum fe_sec_voltage voltage)
 {
 
 	u8 buf;
 	struct dvb_usb_adapter *adap = fe->dvb->priv;
 
-	struct i2c_msg i2c_msg = {
+	struct i2c_msg i2c_msg =
+	{
 		.addr	= 0x99,
 		.flags	= 0,
 		.buf	= &buf,
@@ -797,25 +885,27 @@ static int az6027_set_voltage(struct dvb_frontend *fe,
 	 * 1   --13v
 	 * 0   --off
 	 */
-	switch (voltage) {
-	case SEC_VOLTAGE_13:
-		buf = 1;
-		i2c_transfer(&adap->dev->i2c_adap, &i2c_msg, 1);
-		break;
+	switch (voltage)
+	{
+		case SEC_VOLTAGE_13:
+			buf = 1;
+			i2c_transfer(&adap->dev->i2c_adap, &i2c_msg, 1);
+			break;
 
-	case SEC_VOLTAGE_18:
-		buf = 2;
-		i2c_transfer(&adap->dev->i2c_adap, &i2c_msg, 1);
-		break;
+		case SEC_VOLTAGE_18:
+			buf = 2;
+			i2c_transfer(&adap->dev->i2c_adap, &i2c_msg, 1);
+			break;
 
-	case SEC_VOLTAGE_OFF:
-		buf = 0;
-		i2c_transfer(&adap->dev->i2c_adap, &i2c_msg, 1);
-		break;
+		case SEC_VOLTAGE_OFF:
+			buf = 0;
+			i2c_transfer(&adap->dev->i2c_adap, &i2c_msg, 1);
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -834,8 +924,11 @@ static int az6027_frontend_poweron(struct dvb_usb_adapter *adap)
 	blen = 0;
 
 	ret = az6027_usb_out_op(adap->dev, req, value, index, NULL, blen);
+
 	if (ret != 0)
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
@@ -854,8 +947,11 @@ static int az6027_frontend_reset(struct dvb_usb_adapter *adap)
 	blen = 0;
 
 	ret = az6027_usb_out_op(adap->dev, req, value, index, NULL, blen);
+
 	if (ret != 0)
+	{
 		return -EIO;
+	}
 
 	req = 0xC0;
 	value = 0; /* low */
@@ -864,8 +960,11 @@ static int az6027_frontend_reset(struct dvb_usb_adapter *adap)
 	msleep_interruptible(200);
 
 	ret = az6027_usb_out_op(adap->dev, req, value, index, NULL, blen);
+
 	if (ret != 0)
+	{
 		return -EIO;
+	}
 
 	msleep_interruptible(200);
 
@@ -875,8 +974,11 @@ static int az6027_frontend_reset(struct dvb_usb_adapter *adap)
 	blen = 0;
 
 	ret = az6027_usb_out_op(adap->dev, req, value, index, NULL, blen);
+
 	if (ret != 0)
+	{
 		return -EIO;
+	}
 
 	msleep_interruptible(200);
 	return 0;
@@ -897,8 +999,11 @@ static int az6027_frontend_tsbypass(struct dvb_usb_adapter *adap, int onoff)
 	blen = 0;
 
 	ret = az6027_usb_out_op(adap->dev, req, value, index, NULL, blen);
+
 	if (ret != 0)
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
@@ -912,17 +1017,25 @@ static int az6027_frontend_attach(struct dvb_usb_adapter *adap)
 	deb_info("adap = %p, dev = %p\n", adap, adap->dev);
 	adap->fe_adap[0].fe = stb0899_attach(&az6027_stb0899_config, &adap->dev->i2c_adap);
 
-	if (adap->fe_adap[0].fe) {
+	if (adap->fe_adap[0].fe)
+	{
 		deb_info("found STB0899 DVB-S/DVB-S2 frontend @0x%02x", az6027_stb0899_config.demod_address);
-		if (stb6100_attach(adap->fe_adap[0].fe, &az6027_stb6100_config, &adap->dev->i2c_adap)) {
+
+		if (stb6100_attach(adap->fe_adap[0].fe, &az6027_stb6100_config, &adap->dev->i2c_adap))
+		{
 			deb_info("found STB6100 DVB-S/DVB-S2 frontend @0x%02x", az6027_stb6100_config.tuner_address);
 			adap->fe_adap[0].fe->ops.set_voltage = az6027_set_voltage;
 			az6027_ci_init(adap);
-		} else {
+		}
+		else
+		{
 			adap->fe_adap[0].fe = NULL;
 		}
-	} else
+	}
+	else
+	{
 		warn("no front-end attached\n");
+	}
 
 	az6027_frontend_tsbypass(adap, 0);
 
@@ -940,13 +1053,13 @@ static void az6027_usb_disconnect(struct usb_interface *intf)
 
 
 static int az6027_usb_probe(struct usb_interface *intf,
-			    const struct usb_device_id *id)
+							const struct usb_device_id *id)
 {
 	return dvb_usb_device_init(intf,
-				   &az6027_properties,
-				   THIS_MODULE,
-				   NULL,
-				   adapter_nr);
+							   &az6027_properties,
+							   THIS_MODULE,
+							   NULL,
+							   adapter_nr);
 }
 
 /* I2C */
@@ -961,20 +1074,28 @@ static int az6027_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[], int n
 	u8 *data;
 
 	data = kmalloc(256, GFP_KERNEL);
-	if (!data)
-		return -ENOMEM;
 
-	if (mutex_lock_interruptible(&d->i2c_mutex) < 0) {
+	if (!data)
+	{
+		return -ENOMEM;
+	}
+
+	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+	{
 		kfree(data);
 		return -EAGAIN;
 	}
 
 	if (num > 2)
+	{
 		warn("more than 2 i2c messages at a time is not handled yet. TODO.");
+	}
 
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num; i++)
+	{
 
-		if (msg[i].addr == 0x99) {
+		if (msg[i].addr == 0x99)
+		{
 			req = 0xBE;
 			index = 0;
 			value = msg[i].buf[0] & 0x00ff;
@@ -982,20 +1103,27 @@ static int az6027_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[], int n
 			az6027_usb_out_op(d, req, value, index, data, length);
 		}
 
-		if (msg[i].addr == 0xd0) {
+		if (msg[i].addr == 0xd0)
+		{
 			/* write/read request */
-			if (i + 1 < num && (msg[i + 1].flags & I2C_M_RD)) {
+			if (i + 1 < num && (msg[i + 1].flags & I2C_M_RD))
+			{
 				req = 0xB9;
 				index = (((msg[i].buf[0] << 8) & 0xff00) | (msg[i].buf[1] & 0x00ff));
 				value = msg[i].addr + (msg[i].len << 8);
 				length = msg[i + 1].len + 6;
 				az6027_usb_in_op(d, req, value, index, data, length);
 				len = msg[i + 1].len;
+
 				for (j = 0; j < len; j++)
+				{
 					msg[i + 1].buf[j] = data[j + 5];
+				}
 
 				i++;
-			} else {
+			}
+			else
+			{
 
 				/* demod 16bit addr */
 				req = 0xBD;
@@ -1003,14 +1131,20 @@ static int az6027_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[], int n
 				value = msg[i].addr + (2 << 8);
 				length = msg[i].len - 2;
 				len = msg[i].len - 2;
+
 				for (j = 0; j < len; j++)
+				{
 					data[j] = msg[i].buf[j + 2];
+				}
+
 				az6027_usb_out_op(d, req, value, index, data, length);
 			}
 		}
 
-		if (msg[i].addr == 0xc0) {
-			if (msg[i].flags & I2C_M_RD) {
+		if (msg[i].addr == 0xc0)
+		{
+			if (msg[i].flags & I2C_M_RD)
+			{
 
 				req = 0xB9;
 				index = 0x0;
@@ -1018,10 +1152,15 @@ static int az6027_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[], int n
 				length = msg[i].len + 6;
 				az6027_usb_in_op(d, req, value, index, data, length);
 				len = msg[i].len;
-				for (j = 0; j < len; j++)
-					msg[i].buf[j] = data[j + 5];
 
-			} else {
+				for (j = 0; j < len; j++)
+				{
+					msg[i].buf[j] = data[j + 5];
+				}
+
+			}
+			else
+			{
 
 				req = 0xBD;
 				index = msg[i].buf[0] & 0x00FF;
@@ -1030,12 +1169,15 @@ static int az6027_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[], int n
 				len = msg[i].len - 1;
 
 				for (j = 0; j < len; j++)
+				{
 					data[j] = msg[i].buf[j + 1];
+				}
 
 				az6027_usb_out_op(d, req, value, index, data, length);
 			}
 		}
 	}
+
 	mutex_unlock(&d->i2c_mutex);
 	kfree(data);
 
@@ -1048,32 +1190,36 @@ static u32 az6027_i2c_func(struct i2c_adapter *adapter)
 	return I2C_FUNC_I2C;
 }
 
-static struct i2c_algorithm az6027_i2c_algo = {
+static struct i2c_algorithm az6027_i2c_algo =
+{
 	.master_xfer   = az6027_i2c_xfer,
 	.functionality = az6027_i2c_func,
 };
 
 static int az6027_identify_state(struct usb_device *udev,
-				 struct dvb_usb_device_properties *props,
-				 struct dvb_usb_device_description **desc,
-				 int *cold)
+								 struct dvb_usb_device_properties *props,
+								 struct dvb_usb_device_description **desc,
+								 int *cold)
 {
 	u8 *b;
 	s16 ret;
 
 	b = kmalloc(16, GFP_KERNEL);
+
 	if (!b)
+	{
 		return -ENOMEM;
+	}
 
 	ret = usb_control_msg(udev,
-				  usb_rcvctrlpipe(udev, 0),
-				  0xb7,
-				  USB_TYPE_VENDOR | USB_DIR_IN,
-				  6,
-				  0,
-				  b,
-				  6,
-				  USB_CTRL_GET_TIMEOUT);
+						  usb_rcvctrlpipe(udev, 0),
+						  0xb7,
+						  USB_TYPE_VENDOR | USB_DIR_IN,
+						  6,
+						  0,
+						  b,
+						  6,
+						  USB_CTRL_GET_TIMEOUT);
 
 	*cold = ret <= 0;
 	kfree(b);
@@ -1082,7 +1228,8 @@ static int az6027_identify_state(struct usb_device *udev,
 }
 
 
-static struct usb_device_id az6027_usb_table[] = {
+static struct usb_device_id az6027_usb_table[] =
+{
 	{ USB_DEVICE(USB_VID_AZUREWAVE, USB_PID_AZUREWAVE_AZ6027) },
 	{ USB_DEVICE(USB_VID_TERRATEC,  USB_PID_TERRATEC_DVBS2CI_V1) },
 	{ USB_DEVICE(USB_VID_TERRATEC,  USB_PID_TERRATEC_DVBS2CI_V2) },
@@ -1096,7 +1243,8 @@ static struct usb_device_id az6027_usb_table[] = {
 
 MODULE_DEVICE_TABLE(usb, az6027_usb_table);
 
-static struct dvb_usb_device_properties az6027_properties = {
+static struct dvb_usb_device_properties az6027_properties =
+{
 	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
 	.usb_ctrl = CYPRESS_FX2,
 	.firmware            = "dvb-usb-az6027-03.fw",
@@ -1107,29 +1255,30 @@ static struct dvb_usb_device_properties az6027_properties = {
 	.num_adapters = 1,
 	.adapter = {
 		{
-		.num_frontends = 1,
-		.fe = {{
-			.streaming_ctrl   = az6027_streaming_ctrl,
-			.frontend_attach  = az6027_frontend_attach,
+			.num_frontends = 1,
+			.fe = {{
+					.streaming_ctrl   = az6027_streaming_ctrl,
+					.frontend_attach  = az6027_frontend_attach,
 
-			/* parameter for the MPEG2-data transfer */
-			.stream = {
-				.type = USB_BULK,
-				.count = 10,
-				.endpoint = 0x02,
-				.u = {
-					.bulk = {
-						.buffersize = 4096,
-					}
+					/* parameter for the MPEG2-data transfer */
+					.stream = {
+						.type = USB_BULK,
+						.count = 10,
+						.endpoint = 0x02,
+						.u = {
+							.bulk = {
+								.buffersize = 4096,
+							}
+						}
+					},
 				}
 			},
-		}},
 		}
 	},
-/*
-	.power_ctrl       = az6027_power_ctrl,
-	.read_mac_address = az6027_read_mac_addr,
- */
+	/*
+		.power_ctrl       = az6027_power_ctrl,
+		.read_mac_address = az6027_read_mac_addr,
+	 */
 	.rc.legacy = {
 		.rc_map_table     = rc_map_az6027_table,
 		.rc_map_size      = ARRAY_SIZE(rc_map_az6027_table),
@@ -1179,7 +1328,8 @@ static struct dvb_usb_device_properties az6027_properties = {
 };
 
 /* usb specific object needed to register this driver with the usb subsystem */
-static struct usb_driver az6027_usb_driver = {
+static struct usb_driver az6027_usb_driver =
+{
 	.name		= "dvb_usb_az6027",
 	.probe 		= az6027_usb_probe,
 	.disconnect 	= az6027_usb_disconnect,

@@ -17,29 +17,34 @@
 struct bcma_device;
 struct bcma_bus;
 
-enum bcma_hosttype {
+enum bcma_hosttype
+{
 	BCMA_HOSTTYPE_PCI,
 	BCMA_HOSTTYPE_SDIO,
 	BCMA_HOSTTYPE_SOC,
 };
 
-struct bcma_chipinfo {
+struct bcma_chipinfo
+{
 	u16 id;
 	u8 rev;
 	u8 pkg;
 };
 
-struct bcma_boardinfo {
+struct bcma_boardinfo
+{
 	u16 vendor;
 	u16 type;
 };
 
-enum bcma_clkmode {
+enum bcma_clkmode
+{
 	BCMA_CLKMODE_FAST,
 	BCMA_CLKMODE_DYNAMIC,
 };
 
-struct bcma_host_ops {
+struct bcma_host_ops
+{
 	u8 (*read8)(struct bcma_device *core, u16 offset);
 	u16 (*read16)(struct bcma_device *core, u16 offset);
 	u32 (*read32)(struct bcma_device *core, u16 offset);
@@ -48,9 +53,9 @@ struct bcma_host_ops {
 	void (*write32)(struct bcma_device *core, u16 offset, u32 value);
 #ifdef CONFIG_BCMA_BLOCKIO
 	void (*block_read)(struct bcma_device *core, void *buffer,
-			   size_t count, u16 offset, u8 reg_width);
+					   size_t count, u16 offset, u8 reg_width);
 	void (*block_write)(struct bcma_device *core, const void *buffer,
-			    size_t count, u16 offset, u8 reg_width);
+						size_t count, u16 offset, u8 reg_width);
 #endif
 	/* Agent ops */
 	u32 (*aread32)(struct bcma_device *core, u16 offset);
@@ -263,7 +268,8 @@ struct bcma_host_ops {
 /* BCM43142 */
 #define BCMA_BOARD_TYPE_BCM943142HM	0X05E0
 
-struct bcma_device {
+struct bcma_device
+{
 	struct bcma_bus *bus;
 	struct bcma_device_id id;
 
@@ -296,7 +302,8 @@ static inline void bcma_set_drvdata(struct bcma_device *core, void *drvdata)
 	core->drvdata = drvdata;
 }
 
-struct bcma_driver {
+struct bcma_driver
+{
 	const char *name;
 	const struct bcma_device_id *id_table;
 
@@ -322,15 +329,16 @@ extern void bcma_driver_unregister(struct bcma_driver *drv);
  */
 #define module_bcma_driver(__bcma_driver) \
 	module_driver(__bcma_driver, bcma_driver_register, \
-			bcma_driver_unregister)
+				  bcma_driver_unregister)
 
 /* Set a fallback SPROM.
  * See kdoc at the function definition for complete documentation. */
 extern int bcma_arch_register_fallback_sprom(
-		int (*sprom_callback)(struct bcma_bus *bus,
-		struct ssb_sprom *out));
+	int (*sprom_callback)(struct bcma_bus *bus,
+						  struct ssb_sprom *out));
 
-struct bcma_bus {
+struct bcma_bus
+{
 	/* The MMIO area. */
 	void __iomem *mmio;
 
@@ -338,7 +346,8 @@ struct bcma_bus {
 
 	enum bcma_hosttype hosttype;
 	bool host_is_pcie2; /* Used for BCMA_HOSTTYPE_PCI only */
-	union {
+	union
+	{
 		/* Pointer to the PCI bus (only for BCMA_HOSTTYPE_PCI) */
 		struct pci_dev *host_pci;
 		/* Pointer to the SDIO device (only for BCMA_HOSTTYPE_SDIO) */
@@ -397,13 +406,13 @@ void bcma_write32(struct bcma_device *core, u16 offset, u32 value)
 }
 #ifdef CONFIG_BCMA_BLOCKIO
 static inline void bcma_block_read(struct bcma_device *core, void *buffer,
-				   size_t count, u16 offset, u8 reg_width)
+								   size_t count, u16 offset, u8 reg_width)
 {
 	core->bus->ops->block_read(core, buffer, count, offset, reg_width);
 }
 static inline void bcma_block_write(struct bcma_device *core,
-				    const void *buffer, size_t count,
-				    u16 offset, u8 reg_width)
+									const void *buffer, size_t count,
+									u16 offset, u8 reg_width)
 {
 	core->bus->ops->block_write(core, buffer, count, offset, reg_width);
 }
@@ -427,7 +436,7 @@ static inline void bcma_set32(struct bcma_device *cc, u16 offset, u32 set)
 	bcma_write32(cc, offset, bcma_read32(cc, offset) | set);
 }
 static inline void bcma_maskset32(struct bcma_device *cc,
-				  u16 offset, u32 mask, u32 set)
+								  u16 offset, u32 mask, u32 set)
 {
 	bcma_write32(cc, offset, (bcma_read32(cc, offset) & mask) | set);
 }
@@ -440,15 +449,15 @@ static inline void bcma_set16(struct bcma_device *cc, u16 offset, u16 set)
 	bcma_write16(cc, offset, bcma_read16(cc, offset) | set);
 }
 static inline void bcma_maskset16(struct bcma_device *cc,
-				  u16 offset, u16 mask, u16 set)
+								  u16 offset, u16 mask, u16 set)
 {
 	bcma_write16(cc, offset, (bcma_read16(cc, offset) & mask) | set);
 }
 
 extern struct bcma_device *bcma_find_core_unit(struct bcma_bus *bus, u16 coreid,
-					       u8 unit);
+		u8 unit);
 static inline struct bcma_device *bcma_find_core(struct bcma_bus *bus,
-						 u16 coreid)
+		u16 coreid)
 {
 	return bcma_find_core_unit(bus, coreid, 0);
 }
@@ -457,7 +466,7 @@ static inline struct bcma_device *bcma_find_core(struct bcma_bus *bus,
 extern void bcma_host_pci_up(struct bcma_bus *bus);
 extern void bcma_host_pci_down(struct bcma_bus *bus);
 extern int bcma_host_pci_irq_ctl(struct bcma_bus *bus,
-				 struct bcma_device *core, bool enable);
+								 struct bcma_device *core, bool enable);
 #else
 static inline void bcma_host_pci_up(struct bcma_bus *bus)
 {
@@ -466,10 +475,13 @@ static inline void bcma_host_pci_down(struct bcma_bus *bus)
 {
 }
 static inline int bcma_host_pci_irq_ctl(struct bcma_bus *bus,
-					struct bcma_device *core, bool enable)
+										struct bcma_device *core, bool enable)
 {
 	if (bus->hosttype == BCMA_HOSTTYPE_PCI)
+	{
 		return -ENOTSUPP;
+	}
+
 	return 0;
 }
 #endif
@@ -478,9 +490,9 @@ extern bool bcma_core_is_enabled(struct bcma_device *core);
 extern void bcma_core_disable(struct bcma_device *core, u32 flags);
 extern int bcma_core_enable(struct bcma_device *core, u32 flags);
 extern void bcma_core_set_clockmode(struct bcma_device *core,
-				    enum bcma_clkmode clkmode);
+									enum bcma_clkmode clkmode);
 extern void bcma_core_pll_ctl(struct bcma_device *core, u32 req, u32 status,
-			      bool on);
+							  bool on);
 extern u32 bcma_chipco_pll_read(struct bcma_drv_cc *cc, u32 offset);
 #define BCMA_DMA_TRANSLATION_MASK	0xC0000000
 #define  BCMA_DMA_TRANSLATION_NONE	0x00000000

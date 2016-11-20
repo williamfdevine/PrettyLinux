@@ -12,14 +12,16 @@
 #include <linux/perf_event.h>
 #include "percpu_freelist.h"
 
-struct stack_map_bucket {
+struct stack_map_bucket
+{
 	struct pcpu_freelist_node fnode;
 	u32 hash;
 	u32 nr;
 	u64 ip[];
 };
 
-struct bpf_stack_map {
+struct bpf_stack_map
+{
 	struct bpf_map map;
 	void *elems;
 	struct pcpu_freelist freelist;
@@ -33,15 +35,21 @@ static int prealloc_elems_and_freelist(struct bpf_stack_map *smap)
 	int err;
 
 	smap->elems = vzalloc(elem_size * smap->map.max_entries);
+
 	if (!smap->elems)
+	{
 		return -ENOMEM;
+	}
 
 	err = pcpu_freelist_init(&smap->freelist);
+
 	if (err)
+	{
 		goto free_elems;
+	}
 
 	pcpu_freelist_populate(&smap->freelist, smap->elems, elem_size,
-			       smap->map.max_entries);
+						   smap->map.max_entries);
 	return 0;
 
 free_elems:
@@ -58,35 +66,52 @@ static struct bpf_map *stack_map_alloc(union bpf_attr *attr)
 	int err;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return ERR_PTR(-EPERM);
+	}
 
 	if (attr->map_flags)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	/* check sanity of attributes */
 	if (attr->max_entries == 0 || attr->key_size != 4 ||
-	    value_size < 8 || value_size % 8 ||
-	    value_size / 8 > sysctl_perf_event_max_stack)
+		value_size < 8 || value_size % 8 ||
+		value_size / 8 > sysctl_perf_event_max_stack)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	/* hash table size must be power of 2 */
 	n_buckets = roundup_pow_of_two(attr->max_entries);
 
 	cost = n_buckets * sizeof(struct stack_map_bucket *) + sizeof(*smap);
+
 	if (cost >= U32_MAX - PAGE_SIZE)
+	{
 		return ERR_PTR(-E2BIG);
+	}
 
 	smap = kzalloc(cost, GFP_USER | __GFP_NOWARN);
-	if (!smap) {
+
+	if (!smap)
+	{
 		smap = vzalloc(cost);
+
 		if (!smap)
+		{
 			return ERR_PTR(-ENOMEM);
+		}
 	}
 
 	err = -E2BIG;
 	cost += n_buckets * (value_size + sizeof(struct stack_map_bucket));
+
 	if (cost >= U32_MAX - PAGE_SIZE)
+	{
 		goto free_smap;
+	}
 
 	smap->map.map_type = attr->map_type;
 	smap->map.key_size = attr->key_size;
@@ -96,16 +121,25 @@ static struct bpf_map *stack_map_alloc(union bpf_attr *attr)
 	smap->map.pages = round_up(cost, PAGE_SIZE) >> PAGE_SHIFT;
 
 	err = bpf_map_precharge_memlock(smap->map.pages);
+
 	if (err)
+	{
 		goto free_smap;
+	}
 
 	err = get_callchain_buffers(sysctl_perf_event_max_stack);
+
 	if (err)
+	{
 		goto free_smap;
+	}
 
 	err = prealloc_elems_and_freelist(smap);
+
 	if (err)
+	{
 		goto put_buffers;
+	}
 
 	return &smap->map;
 
@@ -117,7 +151,7 @@ free_smap:
 }
 
 BPF_CALL_3(bpf_get_stackid, struct pt_regs *, regs, struct bpf_map *, map,
-	   u64, flags)
+		   u64, flags)
 {
 	struct bpf_stack_map *smap = container_of(map, struct bpf_stack_map, map);
 	struct perf_callchain_entry *trace;
@@ -132,15 +166,19 @@ BPF_CALL_3(bpf_get_stackid, struct pt_regs *, regs, struct bpf_map *, map,
 	u64 *ips;
 
 	if (unlikely(flags & ~(BPF_F_SKIP_FIELD_MASK | BPF_F_USER_STACK |
-			       BPF_F_FAST_STACK_CMP | BPF_F_REUSE_STACKID)))
+						   BPF_F_FAST_STACK_CMP | BPF_F_REUSE_STACKID)))
+	{
 		return -EINVAL;
+	}
 
 	trace = get_perf_callchain(regs, init_nr, kernel, user,
-				   sysctl_perf_event_max_stack, false, false);
+							   sysctl_perf_event_max_stack, false, false);
 
 	if (unlikely(!trace))
 		/* couldn't fetch the stack trace */
+	{
 		return -EFAULT;
+	}
 
 	/* get_perf_callchain() guarantees that trace->nr >= init_nr
 	 * and trace-nr <= sysctl_perf_event_max_stack, so trace_nr <= max_depth
@@ -149,7 +187,9 @@ BPF_CALL_3(bpf_get_stackid, struct pt_regs *, regs, struct bpf_map *, map,
 
 	if (trace_nr <= skip)
 		/* skipping more than usable stack trace */
+	{
 		return -EFAULT;
+	}
 
 	trace_nr -= skip;
 	trace_len = trace_nr * sizeof(u64);
@@ -158,34 +198,50 @@ BPF_CALL_3(bpf_get_stackid, struct pt_regs *, regs, struct bpf_map *, map,
 	id = hash & (smap->n_buckets - 1);
 	bucket = READ_ONCE(smap->buckets[id]);
 
-	if (bucket && bucket->hash == hash) {
+	if (bucket && bucket->hash == hash)
+	{
 		if (flags & BPF_F_FAST_STACK_CMP)
+		{
 			return id;
+		}
+
 		if (bucket->nr == trace_nr &&
-		    memcmp(bucket->ip, ips, trace_len) == 0)
+			memcmp(bucket->ip, ips, trace_len) == 0)
+		{
 			return id;
+		}
 	}
 
 	/* this call stack is not in the map, try to add it */
 	if (bucket && !(flags & BPF_F_REUSE_STACKID))
+	{
 		return -EEXIST;
+	}
 
 	new_bucket = (struct stack_map_bucket *)
-		pcpu_freelist_pop(&smap->freelist);
+				 pcpu_freelist_pop(&smap->freelist);
+
 	if (unlikely(!new_bucket))
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(new_bucket->ip, ips, trace_len);
 	new_bucket->hash = hash;
 	new_bucket->nr = trace_nr;
 
 	old_bucket = xchg(&smap->buckets[id], new_bucket);
+
 	if (old_bucket)
+	{
 		pcpu_freelist_push(&smap->freelist, &old_bucket->fnode);
+	}
+
 	return id;
 }
 
-const struct bpf_func_proto bpf_get_stackid_proto = {
+const struct bpf_func_proto bpf_get_stackid_proto =
+{
 	.func		= bpf_get_stackid,
 	.gpl_only	= true,
 	.ret_type	= RET_INTEGER,
@@ -208,19 +264,28 @@ int bpf_stackmap_copy(struct bpf_map *map, void *key, void *value)
 	u32 id = *(u32 *)key, trace_len;
 
 	if (unlikely(id >= smap->n_buckets))
+	{
 		return -ENOENT;
+	}
 
 	bucket = xchg(&smap->buckets[id], NULL);
+
 	if (!bucket)
+	{
 		return -ENOENT;
+	}
 
 	trace_len = bucket->nr * sizeof(u64);
 	memcpy(value, bucket->ip, trace_len);
 	memset(value + trace_len, 0, map->value_size - trace_len);
 
 	old_bucket = xchg(&smap->buckets[id], bucket);
+
 	if (old_bucket)
+	{
 		pcpu_freelist_push(&smap->freelist, &old_bucket->fnode);
+	}
+
 	return 0;
 }
 
@@ -230,7 +295,7 @@ static int stack_map_get_next_key(struct bpf_map *map, void *key, void *next_key
 }
 
 static int stack_map_update_elem(struct bpf_map *map, void *key, void *value,
-				 u64 map_flags)
+								 u64 map_flags)
 {
 	return -EINVAL;
 }
@@ -243,13 +308,19 @@ static int stack_map_delete_elem(struct bpf_map *map, void *key)
 	u32 id = *(u32 *)key;
 
 	if (unlikely(id >= smap->n_buckets))
+	{
 		return -E2BIG;
+	}
 
 	old_bucket = xchg(&smap->buckets[id], NULL);
-	if (old_bucket) {
+
+	if (old_bucket)
+	{
 		pcpu_freelist_push(&smap->freelist, &old_bucket->fnode);
 		return 0;
-	} else {
+	}
+	else
+	{
 		return -ENOENT;
 	}
 }
@@ -268,7 +339,8 @@ static void stack_map_free(struct bpf_map *map)
 	put_callchain_buffers();
 }
 
-static const struct bpf_map_ops stack_map_ops = {
+static const struct bpf_map_ops stack_map_ops =
+{
 	.map_alloc = stack_map_alloc,
 	.map_free = stack_map_free,
 	.map_get_next_key = stack_map_get_next_key,
@@ -277,7 +349,8 @@ static const struct bpf_map_ops stack_map_ops = {
 	.map_delete_elem = stack_map_delete_elem,
 };
 
-static struct bpf_map_type_list stack_map_type __read_mostly = {
+static struct bpf_map_type_list stack_map_type __read_mostly =
+{
 	.ops = &stack_map_ops,
 	.type = BPF_MAP_TYPE_STACK_TRACE,
 };

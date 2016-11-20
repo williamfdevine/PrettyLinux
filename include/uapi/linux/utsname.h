@@ -3,7 +3,8 @@
 
 #define __OLD_UTS_LEN 8
 
-struct oldold_utsname {
+struct oldold_utsname
+{
 	char sysname[9];
 	char nodename[9];
 	char release[9];
@@ -13,7 +14,8 @@ struct oldold_utsname {
 
 #define __NEW_UTS_LEN 64
 
-struct old_utsname {
+struct old_utsname
+{
 	char sysname[65];
 	char nodename[65];
 	char release[65];
@@ -21,7 +23,8 @@ struct old_utsname {
 	char machine[65];
 };
 
-struct new_utsname {
+struct new_utsname
+{
 	char sysname[__NEW_UTS_LEN + 1];
 	char nodename[__NEW_UTS_LEN + 1];
 	char release[__NEW_UTS_LEN + 1];

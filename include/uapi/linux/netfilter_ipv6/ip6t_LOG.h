@@ -12,7 +12,8 @@
 #define IP6T_LOG_MACDECODE	0x20	/* Decode MAC header */
 #define IP6T_LOG_MASK		0x2f
 
-struct ip6t_log_info {
+struct ip6t_log_info
+{
 	unsigned char level;
 	unsigned char logflags;
 	char prefix[30];

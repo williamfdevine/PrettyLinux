@@ -80,7 +80,7 @@ static inline void WR(struct au1xpsc_audio_data *ctx, int reg, unsigned long v)
 }
 
 static unsigned short au1xac97c_ac97_read(struct snd_ac97 *ac97,
-					  unsigned short r)
+		unsigned short r)
 {
 	struct au1xpsc_audio_data *ctx = ac97_to_ctx(ac97);
 	unsigned int tmo, retry;
@@ -88,13 +88,20 @@ static unsigned short au1xac97c_ac97_read(struct snd_ac97 *ac97,
 
 	data = ~0;
 	retry = AC97_RW_RETRIES;
-	do {
+
+	do
+	{
 		mutex_lock(&ctx->lock);
 
 		tmo = 5;
+
 		while ((RD(ctx, AC97_STATUS) & STAT_CP) && tmo--)
-			udelay(21);	/* wait an ac97 frame time */
-		if (!tmo) {
+		{
+			udelay(21);    /* wait an ac97 frame time */
+		}
+
+		if (!tmo)
+		{
 			pr_debug("ac97rd timeout #1\n");
 			goto next;
 		}
@@ -105,16 +112,23 @@ static unsigned short au1xac97c_ac97_read(struct snd_ac97 *ac97,
 		 * poll, Forrest, poll...
 		 */
 		tmo = 0x10000;
+
 		while ((RD(ctx, AC97_STATUS) & STAT_CP) && tmo--)
+		{
 			asm volatile ("nop");
+		}
+
 		data = RD(ctx, AC97_CMDRESP);
 
 		if (!tmo)
+		{
 			pr_debug("ac97rd timeout #2\n");
+		}
 
 next:
 		mutex_unlock(&ctx->lock);
-	} while (--retry && !tmo);
+	}
+	while (--retry && !tmo);
 
 	pr_debug("AC97RD %04x %04lx %d\n", r, data, retry);
 
@@ -122,18 +136,24 @@ next:
 }
 
 static void au1xac97c_ac97_write(struct snd_ac97 *ac97, unsigned short r,
-				 unsigned short v)
+								 unsigned short v)
 {
 	struct au1xpsc_audio_data *ctx = ac97_to_ctx(ac97);
 	unsigned int tmo, retry;
 
 	retry = AC97_RW_RETRIES;
-	do {
+
+	do
+	{
 		mutex_lock(&ctx->lock);
 
 		for (tmo = 5; (RD(ctx, AC97_STATUS) & STAT_CP) && tmo; tmo--)
+		{
 			udelay(21);
-		if (!tmo) {
+		}
+
+		if (!tmo)
+		{
 			pr_debug("ac97wr timeout #1\n");
 			goto next;
 		}
@@ -141,12 +161,19 @@ static void au1xac97c_ac97_write(struct snd_ac97 *ac97, unsigned short r,
 		WR(ctx, AC97_CMDRESP, CMD_WRITE | CMD_IDX(r) | CMD_SET_DATA(v));
 
 		for (tmo = 10; (RD(ctx, AC97_STATUS) & STAT_CP) && tmo; tmo--)
+		{
 			udelay(21);
+		}
+
 		if (!tmo)
+		{
 			pr_debug("ac97wr timeout #2\n");
+		}
+
 next:
 		mutex_unlock(&ctx->lock);
-	} while (--retry && !tmo);
+	}
+	while (--retry && !tmo);
 
 	pr_debug("AC97WR %04x %04x %d\n", r, v, retry);
 }
@@ -172,14 +199,21 @@ static void au1xac97c_ac97_cold_reset(struct snd_ac97 *ac97)
 
 	/* wait for codec ready */
 	i = 50;
+
 	while (((RD(ctx, AC97_STATUS) & STAT_RD) == 0) && --i)
+	{
 		msleep(20);
+	}
+
 	if (!i)
+	{
 		printk(KERN_ERR "ac97c: codec not ready after cold reset\n");
+	}
 }
 
 /* AC97 controller operations */
-static struct snd_ac97_bus_ops ac97c_bus_ops = {
+static struct snd_ac97_bus_ops ac97c_bus_ops =
+{
 	.read		= au1xac97c_ac97_read,
 	.write		= au1xac97c_ac97_write,
 	.reset		= au1xac97c_ac97_cold_reset,
@@ -187,14 +221,15 @@ static struct snd_ac97_bus_ops ac97c_bus_ops = {
 };
 
 static int alchemy_ac97c_startup(struct snd_pcm_substream *substream,
-				 struct snd_soc_dai *dai)
+								 struct snd_soc_dai *dai)
 {
 	struct au1xpsc_audio_data *ctx = snd_soc_dai_get_drvdata(dai);
 	snd_soc_dai_set_dma_data(dai, substream, &ctx->dmaids[0]);
 	return 0;
 }
 
-static const struct snd_soc_dai_ops alchemy_ac97c_ops = {
+static const struct snd_soc_dai_ops alchemy_ac97c_ops =
+{
 	.startup		= alchemy_ac97c_startup,
 };
 
@@ -203,7 +238,8 @@ static int au1xac97c_dai_probe(struct snd_soc_dai *dai)
 	return ac97c_workdata ? 0 : -ENODEV;
 }
 
-static struct snd_soc_dai_driver au1xac97c_dai_driver = {
+static struct snd_soc_dai_driver au1xac97c_dai_driver =
+{
 	.name			= "alchemy-ac97c",
 	.bus_control		= true,
 	.probe			= au1xac97c_dai_probe,
@@ -222,7 +258,8 @@ static struct snd_soc_dai_driver au1xac97c_dai_driver = {
 	.ops			= &alchemy_ac97c_ops,
 };
 
-static const struct snd_soc_component_driver au1xac97c_component = {
+static const struct snd_soc_component_driver au1xac97c_component =
+{
 	.name		= "au1xac97c",
 };
 
@@ -233,33 +270,52 @@ static int au1xac97c_drvprobe(struct platform_device *pdev)
 	struct au1xpsc_audio_data *ctx;
 
 	ctx = devm_kzalloc(&pdev->dev, sizeof(*ctx), GFP_KERNEL);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&ctx->lock);
 
 	iores = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!iores)
+	{
 		return -ENODEV;
+	}
 
 	if (!devm_request_mem_region(&pdev->dev, iores->start,
-				     resource_size(iores),
-				     pdev->name))
+								 resource_size(iores),
+								 pdev->name))
+	{
 		return -EBUSY;
+	}
 
 	ctx->mmio = devm_ioremap_nocache(&pdev->dev, iores->start,
-					 resource_size(iores));
+									 resource_size(iores));
+
 	if (!ctx->mmio)
+	{
 		return -EBUSY;
+	}
 
 	dmares = platform_get_resource(pdev, IORESOURCE_DMA, 0);
+
 	if (!dmares)
+	{
 		return -EBUSY;
+	}
+
 	ctx->dmaids[SNDRV_PCM_STREAM_PLAYBACK] = dmares->start;
 
 	dmares = platform_get_resource(pdev, IORESOURCE_DMA, 1);
+
 	if (!dmares)
+	{
 		return -EBUSY;
+	}
+
 	ctx->dmaids[SNDRV_PCM_STREAM_CAPTURE] = dmares->start;
 
 	/* switch it on */
@@ -272,13 +328,19 @@ static int au1xac97c_drvprobe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, ctx);
 
 	ret = snd_soc_set_ac97_ops(&ac97c_bus_ops);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = snd_soc_register_component(&pdev->dev, &au1xac97c_component,
-					 &au1xac97c_dai_driver, 1);
+									 &au1xac97c_dai_driver, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ac97c_workdata = ctx;
 	return 0;
@@ -318,7 +380,8 @@ static int au1xac97c_drvresume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops au1xpscac97_pmops = {
+static const struct dev_pm_ops au1xpscac97_pmops =
+{
 	.suspend	= au1xac97c_drvsuspend,
 	.resume		= au1xac97c_drvresume,
 };
@@ -331,7 +394,8 @@ static const struct dev_pm_ops au1xpscac97_pmops = {
 
 #endif
 
-static struct platform_driver au1xac97c_driver = {
+static struct platform_driver au1xac97c_driver =
+{
 	.driver	= {
 		.name	= "alchemy-ac97c",
 		.pm	= AU1XPSCAC97_PMOPS,

@@ -17,7 +17,8 @@
  */
 static int zero_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 {
-	if (argc != 0) {
+	if (argc != 0)
+	{
 		ti->error = "No arguments required";
 		return -EINVAL;
 	}
@@ -35,19 +36,24 @@ static int zero_ctr(struct dm_target *ti, unsigned int argc, char **argv)
  */
 static int zero_map(struct dm_target *ti, struct bio *bio)
 {
-	switch (bio_op(bio)) {
-	case REQ_OP_READ:
-		if (bio->bi_opf & REQ_RAHEAD) {
-			/* readahead of null bytes only wastes buffer cache */
+	switch (bio_op(bio))
+	{
+		case REQ_OP_READ:
+			if (bio->bi_opf & REQ_RAHEAD)
+			{
+				/* readahead of null bytes only wastes buffer cache */
+				return -EIO;
+			}
+
+			zero_fill_bio(bio);
+			break;
+
+		case REQ_OP_WRITE:
+			/* writes get silently dropped */
+			break;
+
+		default:
 			return -EIO;
-		}
-		zero_fill_bio(bio);
-		break;
-	case REQ_OP_WRITE:
-		/* writes get silently dropped */
-		break;
-	default:
-		return -EIO;
 	}
 
 	bio_endio(bio);
@@ -56,7 +62,8 @@ static int zero_map(struct dm_target *ti, struct bio *bio)
 	return DM_MAPIO_SUBMITTED;
 }
 
-static struct target_type zero_target = {
+static struct target_type zero_target =
+{
 	.name   = "zero",
 	.version = {1, 1, 0},
 	.module = THIS_MODULE,
@@ -69,7 +76,9 @@ static int __init dm_zero_init(void)
 	int r = dm_register_target(&zero_target);
 
 	if (r < 0)
+	{
 		DMERR("register failed %d", r);
+	}
 
 	return r;
 }

@@ -35,7 +35,8 @@ gf100_ce_init(struct nvkm_falcon *ce)
 }
 
 static const struct nvkm_falcon_func
-gf100_ce0 = {
+	gf100_ce0 =
+{
 	.code.data = gf100_ce_code,
 	.code.size = sizeof(gf100_ce_code),
 	.data.data = gf100_ce_data,
@@ -49,7 +50,8 @@ gf100_ce0 = {
 };
 
 static const struct nvkm_falcon_func
-gf100_ce1 = {
+	gf100_ce1 =
+{
 	.code.data = gf100_ce_code,
 	.code.size = sizeof(gf100_ce_code),
 	.data.data = gf100_ce_data,
@@ -64,15 +66,18 @@ gf100_ce1 = {
 
 int
 gf100_ce_new(struct nvkm_device *device, int index,
-	     struct nvkm_engine **pengine)
+			 struct nvkm_engine **pengine)
 {
-	if (index == NVKM_ENGINE_CE0) {
+	if (index == NVKM_ENGINE_CE0)
+	{
 		return nvkm_falcon_new_(&gf100_ce0, device, index, true,
-					0x104000, pengine);
-	} else
-	if (index == NVKM_ENGINE_CE1) {
-		return nvkm_falcon_new_(&gf100_ce1, device, index, true,
-					0x105000, pengine);
+								0x104000, pengine);
 	}
+	else if (index == NVKM_ENGINE_CE1)
+	{
+		return nvkm_falcon_new_(&gf100_ce1, device, index, true,
+								0x105000, pengine);
+	}
+
 	return -ENODEV;
 }

@@ -7,13 +7,15 @@
 #ifndef EZX_PCAP_H
 #define EZX_PCAP_H
 
-struct pcap_subdev {
+struct pcap_subdev
+{
 	int id;
 	const char *name;
 	void *platform_data;
 };
 
-struct pcap_platform_data {
+struct pcap_platform_data
+{
 	unsigned int irq_base;
 	unsigned int config;
 	int gpio;

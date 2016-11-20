@@ -34,15 +34,24 @@ static void img_ir_refresh_raw(struct img_ir_priv *priv, u32 irq_status)
 	 * there's no point reporting it.
 	 */
 	ir_status = img_ir_read(priv, IMG_IR_STATUS) & IMG_IR_IRRXD;
+
 	if (multiple && ir_status == raw->last_status)
+	{
 		return;
+	}
+
 	raw->last_status = ir_status;
 
 	/* report the edge to the IR raw decoders */
 	if (ir_status) /* low */
+	{
 		ir_raw_event_store_edge(rc_dev, IR_SPACE);
+	}
 	else /* high */
+	{
 		ir_raw_event_store_edge(rc_dev, IR_PULSE);
+	}
+
 	ir_raw_event_handle(rc_dev);
 }
 
@@ -53,7 +62,9 @@ void img_ir_isr_raw(struct img_ir_priv *priv, u32 irq_status)
 
 	/* check not removing */
 	if (!raw->rdev)
+	{
 		return;
+	}
 
 	img_ir_refresh_raw(priv, irq_status);
 
@@ -79,7 +90,9 @@ static void img_ir_echo_timer(unsigned long arg)
 		 * It's safe to pass irq_status=0 since it's only used to check
 		 * for double edges.
 		 */
+	{
 		img_ir_refresh_raw(priv, 0);
+	}
 
 	spin_unlock_irq(&priv->lock);
 }
@@ -89,7 +102,9 @@ void img_ir_setup_raw(struct img_ir_priv *priv)
 	u32 irq_en;
 
 	if (!priv->raw.rdev)
+	{
 		return;
+	}
 
 	/* clear and enable edge interrupts */
 	spin_lock_irq(&priv->lock);
@@ -111,10 +126,13 @@ int img_ir_probe_raw(struct img_ir_priv *priv)
 
 	/* Allocate raw decoder */
 	raw->rdev = rdev = rc_allocate_device();
-	if (!rdev) {
+
+	if (!rdev)
+	{
 		dev_err(priv->dev, "cannot allocate raw input device\n");
 		return -ENOMEM;
 	}
+
 	rdev->priv = priv;
 	rdev->map_name = RC_MAP_EMPTY;
 	rdev->input_name = "IMG Infrared Decoder Raw";
@@ -122,7 +140,9 @@ int img_ir_probe_raw(struct img_ir_priv *priv)
 
 	/* Register raw decoder */
 	error = rc_register_device(rdev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(priv->dev, "failed to register raw IR input device\n");
 		rc_free_device(rdev);
 		raw->rdev = NULL;
@@ -139,7 +159,9 @@ void img_ir_remove_raw(struct img_ir_priv *priv)
 	u32 irq_en;
 
 	if (!rdev)
+	{
 		return;
+	}
 
 	/* switch off and disable raw (edge) interrupts */
 	spin_lock_irq(&priv->lock);

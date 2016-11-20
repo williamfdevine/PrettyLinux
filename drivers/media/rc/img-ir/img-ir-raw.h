@@ -22,7 +22,8 @@ struct img_ir_priv;
  * @timer:		Timer to echo samples to keep soft decoders happy.
  * @last_status:	Last raw status bits.
  */
-struct img_ir_priv_raw {
+struct img_ir_priv_raw
+{
 	struct rc_dev		*rdev;
 	struct timer_list	timer;
 	u32			last_status;
@@ -40,7 +41,8 @@ void img_ir_remove_raw(struct img_ir_priv *priv);
 
 #else
 
-struct img_ir_priv_raw {
+struct img_ir_priv_raw
+{
 };
 static inline bool img_ir_raw_enabled(struct img_ir_priv_raw *raw)
 {

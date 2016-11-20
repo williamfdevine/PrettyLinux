@@ -15,7 +15,8 @@
 
 /* Mike Baikov <mike@baikov.com> */
 
-static struct rc_map_table gotview7135[] = {
+static struct rc_map_table gotview7135[] =
+{
 
 	{ 0x11, KEY_POWER },
 	{ 0x35, KEY_TV },
@@ -54,7 +55,8 @@ static struct rc_map_table gotview7135[] = {
 	{ 0x38, KEY_F24 },	/* NORMAL TIMESHIFT */
 };
 
-static struct rc_map_list gotview7135_map = {
+static struct rc_map_list gotview7135_map =
+{
 	.map = {
 		.scan    = gotview7135,
 		.size    = ARRAY_SIZE(gotview7135),

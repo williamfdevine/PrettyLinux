@@ -42,11 +42,12 @@
 #define VMWARE_FOURCC_YUY2 0x32595559 /* 'Y' 'U' 'Y' '2' */
 #define VMWARE_FOURCC_UYVY 0x59565955 /* 'U' 'Y' 'V' 'Y' */
 
-typedef enum {
-   SVGA_OVERLAY_FORMAT_INVALID = 0,
-   SVGA_OVERLAY_FORMAT_YV12 = VMWARE_FOURCC_YV12,
-   SVGA_OVERLAY_FORMAT_YUY2 = VMWARE_FOURCC_YUY2,
-   SVGA_OVERLAY_FORMAT_UYVY = VMWARE_FOURCC_UYVY,
+typedef enum
+{
+	SVGA_OVERLAY_FORMAT_INVALID = 0,
+	SVGA_OVERLAY_FORMAT_YV12 = VMWARE_FOURCC_YV12,
+	SVGA_OVERLAY_FORMAT_YUY2 = VMWARE_FOURCC_YUY2,
+	SVGA_OVERLAY_FORMAT_UYVY = VMWARE_FOURCC_UYVY,
 } SVGAOverlayFormat;
 
 #define SVGA_VIDEO_COLORKEY_MASK             0x00ffffff
@@ -54,31 +55,35 @@ typedef enum {
 #define SVGA_ESCAPE_VMWARE_VIDEO             0x00020000
 
 #define SVGA_ESCAPE_VMWARE_VIDEO_SET_REGS    0x00020001
-        /* FIFO escape layout:
-         * Type, Stream Id, (Register Id, Value) pairs */
+/* FIFO escape layout:
+ * Type, Stream Id, (Register Id, Value) pairs */
 
 #define SVGA_ESCAPE_VMWARE_VIDEO_FLUSH       0x00020002
-        /* FIFO escape layout:
-         * Type, Stream Id */
+/* FIFO escape layout:
+ * Type, Stream Id */
 
 typedef
-struct SVGAEscapeVideoSetRegs {
-   struct {
-      uint32 cmdType;
-      uint32 streamId;
-   } header;
+struct SVGAEscapeVideoSetRegs
+{
+	struct
+	{
+		uint32 cmdType;
+		uint32 streamId;
+	} header;
 
-   /* May include zero or more items. */
-   struct {
-      uint32 registerId;
-      uint32 value;
-   } items[1];
+	/* May include zero or more items. */
+	struct
+	{
+		uint32 registerId;
+		uint32 value;
+	} items[1];
 } SVGAEscapeVideoSetRegs;
 
 typedef
-struct SVGAEscapeVideoFlush {
-   uint32 cmdType;
-   uint32 streamId;
+struct SVGAEscapeVideoFlush
+{
+	uint32 cmdType;
+	uint32 streamId;
 } SVGAEscapeVideoFlush;
 
 
@@ -87,32 +92,38 @@ struct SVGAEscapeVideoFlush {
  * SVGAFifoCmdEscape.
  */
 typedef
-struct {
-   uint32 command;
-   uint32 overlay;
+struct
+{
+	uint32 command;
+	uint32 overlay;
 } SVGAFifoEscapeCmdVideoBase;
 
 typedef
-struct {
-   SVGAFifoEscapeCmdVideoBase videoCmd;
+struct
+{
+	SVGAFifoEscapeCmdVideoBase videoCmd;
 } SVGAFifoEscapeCmdVideoFlush;
 
 typedef
-struct {
-   SVGAFifoEscapeCmdVideoBase videoCmd;
-   struct {
-      uint32 regId;
-      uint32 value;
-   } items[1];
+struct
+{
+	SVGAFifoEscapeCmdVideoBase videoCmd;
+	struct
+	{
+		uint32 regId;
+		uint32 value;
+	} items[1];
 } SVGAFifoEscapeCmdVideoSetRegs;
 
 typedef
-struct {
-   SVGAFifoEscapeCmdVideoBase videoCmd;
-   struct {
-      uint32 regId;
-      uint32 value;
-   } items[SVGA_VIDEO_NUM_REGS];
+struct
+{
+	SVGAFifoEscapeCmdVideoBase videoCmd;
+	struct
+	{
+		uint32 regId;
+		uint32 value;
+	} items[SVGA_VIDEO_NUM_REGS];
 } SVGAFifoEscapeCmdVideoSetAllRegs;
 
 
@@ -135,65 +146,72 @@ struct {
 
 static inline bool
 VMwareVideoGetAttributes(const SVGAOverlayFormat format,    /* IN */
-                         uint32 *width,                     /* IN / OUT */
-                         uint32 *height,                    /* IN / OUT */
-                         uint32 *size,                      /* OUT */
-                         uint32 *pitches,                   /* OUT (optional) */
-                         uint32 *offsets)                   /* OUT (optional) */
+						 uint32 *width,                     /* IN / OUT */
+						 uint32 *height,                    /* IN / OUT */
+						 uint32 *size,                      /* OUT */
+						 uint32 *pitches,                   /* OUT (optional) */
+						 uint32 *offsets)                   /* OUT (optional) */
 {
-    int tmp;
+	int tmp;
 
-    *width = (*width + 1) & ~1;
+	*width = (*width + 1) & ~1;
 
-    if (offsets) {
-        offsets[0] = 0;
-    }
+	if (offsets)
+	{
+		offsets[0] = 0;
+	}
 
-    switch (format) {
-    case VMWARE_FOURCC_YV12:
-       *height = (*height + 1) & ~1;
-       *size = (*width) * (*height);
+	switch (format)
+	{
+		case VMWARE_FOURCC_YV12:
+			*height = (*height + 1) & ~1;
+			*size = (*width) * (*height);
 
-       if (pitches) {
-          pitches[0] = *width;
-       }
+			if (pitches)
+			{
+				pitches[0] = *width;
+			}
 
-       if (offsets) {
-          offsets[1] = *size;
-       }
+			if (offsets)
+			{
+				offsets[1] = *size;
+			}
 
-       tmp = *width >> 1;
+			tmp = *width >> 1;
 
-       if (pitches) {
-          pitches[1] = pitches[2] = tmp;
-       }
+			if (pitches)
+			{
+				pitches[1] = pitches[2] = tmp;
+			}
 
-       tmp *= (*height >> 1);
-       *size += tmp;
+			tmp *= (*height >> 1);
+			*size += tmp;
 
-       if (offsets) {
-          offsets[2] = *size;
-       }
+			if (offsets)
+			{
+				offsets[2] = *size;
+			}
 
-       *size += tmp;
-       break;
+			*size += tmp;
+			break;
 
-    case VMWARE_FOURCC_YUY2:
-    case VMWARE_FOURCC_UYVY:
-       *size = *width * 2;
+		case VMWARE_FOURCC_YUY2:
+		case VMWARE_FOURCC_UYVY:
+			*size = *width * 2;
 
-       if (pitches) {
-          pitches[0] = *size;
-       }
+			if (pitches)
+			{
+				pitches[0] = *size;
+			}
 
-       *size *= *height;
-       break;
+			*size *= *height;
+			break;
 
-    default:
-       return false;
-    }
+		default:
+			return false;
+	}
 
-    return true;
+	return true;
 }
 
 #endif /* _SVGA_OVERLAY_H_ */

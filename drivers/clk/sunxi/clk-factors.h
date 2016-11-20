@@ -6,7 +6,8 @@
 
 #define SUNXI_FACTORS_NOT_APPLICABLE	(0)
 
-struct clk_factors_config {
+struct clk_factors_config
+{
 	u8 nshift;
 	u8 nwidth;
 	u8 kshift;
@@ -18,7 +19,8 @@ struct clk_factors_config {
 	u8 n_start;
 };
 
-struct factors_request {
+struct factors_request
+{
 	unsigned long rate;
 	unsigned long parent_rate;
 	u8 parent_index;
@@ -28,7 +30,8 @@ struct factors_request {
 	u8 p;
 };
 
-struct factors_data {
+struct factors_data
+{
 	int enable;
 	int mux;
 	int muxmask;
@@ -38,7 +41,8 @@ struct factors_data {
 	const char *name;
 };
 
-struct clk_factors {
+struct clk_factors
+{
 	struct clk_hw hw;
 	void __iomem *reg;
 	const struct clk_factors_config *config;
@@ -51,9 +55,9 @@ struct clk_factors {
 };
 
 struct clk *sunxi_factors_register(struct device_node *node,
-				   const struct factors_data *data,
-				   spinlock_t *lock,
-				   void __iomem *reg);
+								   const struct factors_data *data,
+								   spinlock_t *lock,
+								   void __iomem *reg);
 
 void sunxi_factors_unregister(struct device_node *node, struct clk *clk);
 

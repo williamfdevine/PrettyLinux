@@ -25,10 +25,10 @@
 
 #ifdef NTFS_RW
 
-#include "types.h"
-#include "volume.h"
+	#include "types.h"
+	#include "volume.h"
 
-extern bool ntfs_mark_quotas_out_of_date(ntfs_volume *vol);
+	extern bool ntfs_mark_quotas_out_of_date(ntfs_volume *vol);
 
 #endif /* NTFS_RW */
 

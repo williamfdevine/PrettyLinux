@@ -20,12 +20,14 @@
 
 #include <linux/soc/sunxi/sunxi_sram.h>
 
-struct sunxi_sram_func {
+struct sunxi_sram_func
+{
 	char	*func;
 	u8	val;
 };
 
-struct sunxi_sram_data {
+struct sunxi_sram_data
+{
 	char			*name;
 	u8			reg;
 	u8			offset;
@@ -34,7 +36,8 @@ struct sunxi_sram_data {
 	struct list_head	list;
 };
 
-struct sunxi_sram_desc {
+struct sunxi_sram_desc
+{
 	struct sunxi_sram_data	data;
 	bool			claimed;
 };
@@ -42,32 +45,35 @@ struct sunxi_sram_desc {
 #define SUNXI_SRAM_MAP(_val, _func)				\
 	{							\
 		.func = _func,					\
-		.val = _val,					\
+				.val = _val,					\
 	}
 
 #define SUNXI_SRAM_DATA(_name, _reg, _off, _width, ...)		\
 	{							\
 		.name = _name,					\
-		.reg = _reg,					\
-		.offset = _off,					\
-		.width = _width,				\
+				.reg = _reg,					\
+					   .offset = _off,					\
+								 .width = _width,				\
 		.func = (struct sunxi_sram_func[]){		\
 			__VA_ARGS__, { } },			\
 	}
 
-static struct sunxi_sram_desc sun4i_a10_sram_a3_a4 = {
+static struct sunxi_sram_desc sun4i_a10_sram_a3_a4 =
+{
 	.data	= SUNXI_SRAM_DATA("A3-A4", 0x4, 0x4, 2,
-				  SUNXI_SRAM_MAP(0, "cpu"),
-				  SUNXI_SRAM_MAP(1, "emac")),
+	SUNXI_SRAM_MAP(0, "cpu"),
+	SUNXI_SRAM_MAP(1, "emac")),
 };
 
-static struct sunxi_sram_desc sun4i_a10_sram_d = {
+static struct sunxi_sram_desc sun4i_a10_sram_d =
+{
 	.data	= SUNXI_SRAM_DATA("D", 0x4, 0x0, 1,
-				  SUNXI_SRAM_MAP(0, "cpu"),
-				  SUNXI_SRAM_MAP(1, "usb-otg")),
+	SUNXI_SRAM_MAP(0, "cpu"),
+	SUNXI_SRAM_MAP(1, "usb-otg")),
 };
 
-static const struct of_device_id sunxi_sram_dt_ids[] = {
+static const struct of_device_id sunxi_sram_dt_ids[] =
+{
 	{
 		.compatible	= "allwinner,sun4i-a10-sram-a3-a4",
 		.data		= &sun4i_a10_sram_a3_a4.data,
@@ -96,32 +102,39 @@ static int sunxi_sram_show(struct seq_file *s, void *data)
 	seq_puts(s, "Allwinner sunXi SRAM\n");
 	seq_puts(s, "--------------------\n\n");
 
-	for_each_child_of_node(sram_dev->of_node, sram_node) {
+	for_each_child_of_node(sram_dev->of_node, sram_node)
+	{
 		sram_addr_p = of_get_address(sram_node, 0, NULL, NULL);
 
 		seq_printf(s, "sram@%08x\n",
-			   be32_to_cpu(*sram_addr_p));
+				   be32_to_cpu(*sram_addr_p));
 
-		for_each_child_of_node(sram_node, section_node) {
+		for_each_child_of_node(sram_node, section_node)
+		{
 			match = of_match_node(sunxi_sram_dt_ids, section_node);
+
 			if (!match)
+			{
 				continue;
+			}
+
 			sram_data = match->data;
 
 			section_addr_p = of_get_address(section_node, 0,
-							NULL, NULL);
+											NULL, NULL);
 
 			seq_printf(s, "\tsection@%04x\t(%s)\n",
-				   be32_to_cpu(*section_addr_p),
-				   sram_data->name);
+					   be32_to_cpu(*section_addr_p),
+					   sram_data->name);
 
 			val = readl(base + sram_data->reg);
 			val >>= sram_data->offset;
 			val &= GENMASK(sram_data->width - 1, 0);
 
-			for (func = sram_data->func; func->func; func++) {
+			for (func = sram_data->func; func->func; func++)
+			{
 				seq_printf(s, "\t\t%s%c\n", func->func,
-					   func->val == val ? '*' : ' ');
+						   func->val == val ? '*' : ' ');
 			}
 		}
 
@@ -136,7 +149,8 @@ static int sunxi_sram_open(struct inode *inode, struct file *file)
 	return single_open(file, sunxi_sram_show, inode->i_private);
 }
 
-static const struct file_operations sunxi_sram_fops = {
+static const struct file_operations sunxi_sram_fops =
+{
 	.open = sunxi_sram_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
@@ -149,27 +163,35 @@ static inline struct sunxi_sram_desc *to_sram_desc(const struct sunxi_sram_data 
 }
 
 static const struct sunxi_sram_data *sunxi_sram_of_parse(struct device_node *node,
-							 unsigned int *value)
+		unsigned int *value)
 {
 	const struct of_device_id *match;
 	struct of_phandle_args args;
 	int ret;
 
 	ret = of_parse_phandle_with_fixed_args(node, "allwinner,sram", 1, 0,
-					       &args);
-	if (ret)
-		return ERR_PTR(ret);
+										   &args);
 
-	if (!of_device_is_available(args.np)) {
+	if (ret)
+	{
+		return ERR_PTR(ret);
+	}
+
+	if (!of_device_is_available(args.np))
+	{
 		ret = -EBUSY;
 		goto err;
 	}
 
 	if (value)
+	{
 		*value = args.args[0];
+	}
 
 	match = of_match_node(sunxi_sram_dt_ids, args.np);
-	if (!match) {
+
+	if (!match)
+	{
 		ret = -EINVAL;
 		goto err;
 	}
@@ -190,30 +212,38 @@ int sunxi_sram_claim(struct device *dev)
 	u32 val, mask;
 
 	if (IS_ERR(base))
+	{
 		return -EPROBE_DEFER;
+	}
 
 	if (!dev || !dev->of_node)
+	{
 		return -EINVAL;
+	}
 
 	sram_data = sunxi_sram_of_parse(dev->of_node, &device);
+
 	if (IS_ERR(sram_data))
+	{
 		return PTR_ERR(sram_data);
+	}
 
 	sram_desc = to_sram_desc(sram_data);
 
 	spin_lock(&sram_lock);
 
-	if (sram_desc->claimed) {
+	if (sram_desc->claimed)
+	{
 		spin_unlock(&sram_lock);
 		return -EBUSY;
 	}
 
 	mask = GENMASK(sram_data->offset + sram_data->width - 1,
-		       sram_data->offset);
+				   sram_data->offset);
 	val = readl(base + sram_data->reg);
 	val &= ~mask;
 	writel(val | ((device << sram_data->offset) & mask),
-	       base + sram_data->reg);
+		   base + sram_data->reg);
 
 	spin_unlock(&sram_lock);
 
@@ -227,11 +257,16 @@ int sunxi_sram_release(struct device *dev)
 	struct sunxi_sram_desc *sram_desc;
 
 	if (!dev || !dev->of_node)
+	{
 		return -EINVAL;
+	}
 
 	sram_data = sunxi_sram_of_parse(dev->of_node, NULL);
+
 	if (IS_ERR(sram_data))
+	{
 		return -EINVAL;
+	}
 
 	sram_desc = to_sram_desc(sram_data);
 
@@ -252,26 +287,34 @@ static int sunxi_sram_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	of_platform_populate(pdev->dev.of_node, NULL, NULL, &pdev->dev);
 
 	d = debugfs_create_file("sram", S_IRUGO, NULL, NULL,
-				&sunxi_sram_fops);
+							&sunxi_sram_fops);
+
 	if (!d)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
 
-static const struct of_device_id sunxi_sram_dt_match[] = {
+static const struct of_device_id sunxi_sram_dt_match[] =
+{
 	{ .compatible = "allwinner,sun4i-a10-sram-controller" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, sunxi_sram_dt_match);
 
-static struct platform_driver sunxi_sram_driver = {
+static struct platform_driver sunxi_sram_driver =
+{
 	.driver = {
 		.name		= "sunxi-sram",
 		.of_match_table	= sunxi_sram_dt_match,

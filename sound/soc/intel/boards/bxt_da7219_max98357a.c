@@ -33,7 +33,8 @@
 
 static struct snd_soc_jack broxton_headset;
 
-enum {
+enum
+{
 	BXT_DPCM_AUDIO_PB = 0,
 	BXT_DPCM_AUDIO_CP,
 	BXT_DPCM_AUDIO_REF_CP,
@@ -43,13 +44,15 @@ enum {
 	BXT_DPCM_AUDIO_HDMI3_PB,
 };
 
-static const struct snd_kcontrol_new broxton_controls[] = {
+static const struct snd_kcontrol_new broxton_controls[] =
+{
 	SOC_DAPM_PIN_SWITCH("Headphone Jack"),
 	SOC_DAPM_PIN_SWITCH("Headset Mic"),
 	SOC_DAPM_PIN_SWITCH("Spk"),
 };
 
-static const struct snd_soc_dapm_widget broxton_widgets[] = {
+static const struct snd_soc_dapm_widget broxton_widgets[] =
+{
 	SND_SOC_DAPM_HP("Headphone Jack", NULL),
 	SND_SOC_DAPM_MIC("Headset Mic", NULL),
 	SND_SOC_DAPM_SPK("Spk", NULL),
@@ -59,7 +62,8 @@ static const struct snd_soc_dapm_widget broxton_widgets[] = {
 	SND_SOC_DAPM_SPK("HDMI3", NULL),
 };
 
-static const struct snd_soc_dapm_route broxton_map[] = {
+static const struct snd_soc_dapm_route broxton_map[] =
+{
 	/* HP jack connectors - unknown if we have jack detection */
 	{"Headphone Jack", NULL, "HPL"},
 	{"Headphone Jack", NULL, "HPR"},
@@ -100,12 +104,12 @@ static const struct snd_soc_dapm_route broxton_map[] = {
 };
 
 static int broxton_ssp_fixup(struct snd_soc_pcm_runtime *rtd,
-			struct snd_pcm_hw_params *params)
+							 struct snd_pcm_hw_params *params)
 {
 	struct snd_interval *rate = hw_param_interval(params,
-			SNDRV_PCM_HW_PARAM_RATE);
+								SNDRV_PCM_HW_PARAM_RATE);
 	struct snd_interval *channels = hw_param_interval(params,
-			SNDRV_PCM_HW_PARAM_CHANNELS);
+									SNDRV_PCM_HW_PARAM_CHANNELS);
 	struct snd_mask *fmt = hw_param_mask(params, SNDRV_PCM_HW_PARAM_FORMAT);
 
 	/* The ADSP will convert the FE rate to 48k, stereo */
@@ -129,10 +133,12 @@ static int broxton_da7219_codec_init(struct snd_soc_pcm_runtime *rtd)
 	 * These can be configured by userspace.
 	 */
 	ret = snd_soc_card_jack_new(rtd->card, "Headset Jack",
-			SND_JACK_HEADSET | SND_JACK_BTN_0 | SND_JACK_BTN_1 |
-			SND_JACK_BTN_2 | SND_JACK_BTN_3 | SND_JACK_LINEOUT,
-			&broxton_headset, NULL, 0);
-	if (ret) {
+								SND_JACK_HEADSET | SND_JACK_BTN_0 | SND_JACK_BTN_1 |
+								SND_JACK_BTN_2 | SND_JACK_BTN_3 | SND_JACK_LINEOUT,
+								&broxton_headset, NULL, 0);
+
+	if (ret)
+	{
 		dev_err(rtd->dev, "Headset Jack creation failed: %d\n", ret);
 		return ret;
 	}
@@ -162,21 +168,25 @@ static int broxton_da7219_fe_init(struct snd_soc_pcm_runtime *rtd)
 	return 0;
 }
 
-static unsigned int rates[] = {
+static unsigned int rates[] =
+{
 	48000,
 };
 
-static struct snd_pcm_hw_constraint_list constraints_rates = {
+static struct snd_pcm_hw_constraint_list constraints_rates =
+{
 	.count = ARRAY_SIZE(rates),
 	.list  = rates,
 	.mask = 0,
 };
 
-static unsigned int channels[] = {
+static unsigned int channels[] =
+{
 	DUAL_CHANNEL,
 };
 
-static struct snd_pcm_hw_constraint_list constraints_channels = {
+static struct snd_pcm_hw_constraint_list constraints_channels =
+{
 	.count = ARRAY_SIZE(channels),
 	.list = channels,
 	.mask = 0,
@@ -195,36 +205,42 @@ static int bxt_fe_startup(struct snd_pcm_substream *substream)
 
 	runtime->hw.channels_max = DUAL_CHANNEL;
 	snd_pcm_hw_constraint_list(runtime, 0, SNDRV_PCM_HW_PARAM_CHANNELS,
-					   &constraints_channels);
+							   &constraints_channels);
 
 	runtime->hw.formats = SNDRV_PCM_FMTBIT_S16_LE;
 	snd_pcm_hw_constraint_msbits(runtime, 0, 16, 16);
 
 	snd_pcm_hw_constraint_list(runtime, 0,
-				SNDRV_PCM_HW_PARAM_RATE, &constraints_rates);
+							   SNDRV_PCM_HW_PARAM_RATE, &constraints_rates);
 
 	return 0;
 }
 
-static const struct snd_soc_ops broxton_da7219_fe_ops = {
+static const struct snd_soc_ops broxton_da7219_fe_ops =
+{
 	.startup = bxt_fe_startup,
 };
 
 static int broxton_da7219_hw_params(struct snd_pcm_substream *substream,
-				struct snd_pcm_hw_params *params)
+									struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
 	int ret;
 
 	ret = snd_soc_dai_set_sysclk(codec_dai,
-			DA7219_CLKSRC_MCLK, 19200000, SND_SOC_CLOCK_IN);
+								 DA7219_CLKSRC_MCLK, 19200000, SND_SOC_CLOCK_IN);
+
 	if (ret < 0)
+	{
 		dev_err(codec_dai->dev, "can't set codec sysclk configuration\n");
+	}
 
 	ret = snd_soc_dai_set_pll(codec_dai, 0,
-			DA7219_SYSCLK_PLL_SRM, 0, DA7219_PLL_FREQ_OUT_98304);
-	if (ret < 0) {
+							  DA7219_SYSCLK_PLL_SRM, 0, DA7219_PLL_FREQ_OUT_98304);
+
+	if (ret < 0)
+	{
 		dev_err(codec_dai->dev, "failed to start PLL: %d\n", ret);
 		return -EIO;
 	}
@@ -239,8 +255,10 @@ static int broxton_da7219_hw_free(struct snd_pcm_substream *substream)
 	int ret;
 
 	ret = snd_soc_dai_set_pll(codec_dai, 0,
-			DA7219_SYSCLK_MCLK, 0, 0);
-	if (ret < 0) {
+							  DA7219_SYSCLK_MCLK, 0, 0);
+
+	if (ret < 0)
+	{
 		dev_err(codec_dai->dev, "failed to stop PLL: %d\n", ret);
 		return -EIO;
 	}
@@ -248,16 +266,17 @@ static int broxton_da7219_hw_free(struct snd_pcm_substream *substream)
 	return ret;
 }
 
-static struct snd_soc_ops broxton_da7219_ops = {
+static struct snd_soc_ops broxton_da7219_ops =
+{
 	.hw_params = broxton_da7219_hw_params,
 	.hw_free = broxton_da7219_hw_free,
 };
 
 static int broxton_dmic_fixup(struct snd_soc_pcm_runtime *rtd,
-			struct snd_pcm_hw_params *params)
+							  struct snd_pcm_hw_params *params)
 {
 	struct snd_interval *channels = hw_param_interval(params,
-						SNDRV_PCM_HW_PARAM_CHANNELS);
+									SNDRV_PCM_HW_PARAM_CHANNELS);
 	channels->min = channels->max = DUAL_CHANNEL;
 
 	return 0;
@@ -269,21 +288,24 @@ static int broxton_dmic_startup(struct snd_pcm_substream *substream)
 
 	runtime->hw.channels_max = DUAL_CHANNEL;
 	snd_pcm_hw_constraint_list(runtime, 0, SNDRV_PCM_HW_PARAM_CHANNELS,
-			&constraints_channels);
+							   &constraints_channels);
 
 	return snd_pcm_hw_constraint_list(substream->runtime, 0,
-			SNDRV_PCM_HW_PARAM_RATE, &constraints_rates);
+									  SNDRV_PCM_HW_PARAM_RATE, &constraints_rates);
 }
 
-static const struct snd_soc_ops broxton_dmic_ops = {
+static const struct snd_soc_ops broxton_dmic_ops =
+{
 	.startup = broxton_dmic_startup,
 };
 
-static const unsigned int rates_16000[] = {
+static const unsigned int rates_16000[] =
+{
 	16000,
 };
 
-static const struct snd_pcm_hw_constraint_list constraints_16000 = {
+static const struct snd_pcm_hw_constraint_list constraints_16000 =
+{
 	.count = ARRAY_SIZE(rates_16000),
 	.list  = rates_16000,
 };
@@ -291,16 +313,18 @@ static const struct snd_pcm_hw_constraint_list constraints_16000 = {
 static int broxton_refcap_startup(struct snd_pcm_substream *substream)
 {
 	return snd_pcm_hw_constraint_list(substream->runtime, 0,
-			SNDRV_PCM_HW_PARAM_RATE,
-			&constraints_16000);
+									  SNDRV_PCM_HW_PARAM_RATE,
+									  &constraints_16000);
 };
 
-static struct snd_soc_ops broxton_refcap_ops = {
+static struct snd_soc_ops broxton_refcap_ops =
+{
 	.startup = broxton_refcap_startup,
 };
 
 /* broxton digital audio interface glue - connects codec <--> CPU */
-static struct snd_soc_dai_link broxton_dais[] = {
+static struct snd_soc_dai_link broxton_dais[] =
+{
 	/* Front End DAI links */
 	[BXT_DPCM_AUDIO_PB] =
 	{
@@ -314,7 +338,8 @@ static struct snd_soc_dai_link broxton_dais[] = {
 		.nonatomic = 1,
 		.init = broxton_da7219_fe_init,
 		.trigger = {
-			SND_SOC_DPCM_TRIGGER_POST, SND_SOC_DPCM_TRIGGER_POST},
+			SND_SOC_DPCM_TRIGGER_POST, SND_SOC_DPCM_TRIGGER_POST
+		},
 		.dpcm_playback = 1,
 		.ops = &broxton_da7219_fe_ops,
 	},
@@ -329,7 +354,8 @@ static struct snd_soc_dai_link broxton_dais[] = {
 		.codec_dai_name = "snd-soc-dummy-dai",
 		.nonatomic = 1,
 		.trigger = {
-			SND_SOC_DPCM_TRIGGER_POST, SND_SOC_DPCM_TRIGGER_POST},
+			SND_SOC_DPCM_TRIGGER_POST, SND_SOC_DPCM_TRIGGER_POST
+		},
 		.dpcm_capture = 1,
 		.ops = &broxton_da7219_fe_ops,
 	},
@@ -412,8 +438,8 @@ static struct snd_soc_dai_link broxton_dais[] = {
 		.codec_name = "MX98357A:00",
 		.codec_dai_name = BXT_MAXIM_CODEC_DAI,
 		.dai_fmt = SND_SOC_DAIFMT_I2S |
-			SND_SOC_DAIFMT_NB_NF |
-			SND_SOC_DAIFMT_CBS_CFS,
+		SND_SOC_DAIFMT_NB_NF |
+		SND_SOC_DAIFMT_CBS_CFS,
 		.ignore_pmdown_time = 1,
 		.be_hw_params_fixup = broxton_ssp_fixup,
 		.dpcm_playback = 1,
@@ -429,7 +455,7 @@ static struct snd_soc_dai_link broxton_dais[] = {
 		.codec_dai_name = BXT_DIALOG_CODEC_DAI,
 		.init = broxton_da7219_codec_init,
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
-			SND_SOC_DAIFMT_CBS_CFS,
+		SND_SOC_DAIFMT_CBS_CFS,
 		.ignore_pmdown_time = 1,
 		.be_hw_params_fixup = broxton_ssp_fixup,
 		.ops = &broxton_da7219_ops,
@@ -484,7 +510,8 @@ static struct snd_soc_dai_link broxton_dais[] = {
 };
 
 /* broxton audio machine driver for SPT + da7219 */
-static struct snd_soc_card broxton_audio_card = {
+static struct snd_soc_card broxton_audio_card =
+{
 	.name = "bxtda7219max",
 	.owner = THIS_MODULE,
 	.dai_link = broxton_dais,
@@ -504,7 +531,8 @@ static int broxton_audio_probe(struct platform_device *pdev)
 	return devm_snd_soc_register_card(&pdev->dev, &broxton_audio_card);
 }
 
-static struct platform_driver broxton_audio = {
+static struct platform_driver broxton_audio =
+{
 	.probe = broxton_audio_probe,
 	.driver = {
 		.name = "bxt_da7219_max98357a_i2s",

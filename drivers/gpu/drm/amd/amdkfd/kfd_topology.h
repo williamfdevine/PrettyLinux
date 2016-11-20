@@ -42,7 +42,8 @@
 #define HSA_CAP_RESERVED			0xfffff000
 #define HSA_CAP_DOORBELL_PACKET_TYPE		0x00001000
 
-struct kfd_node_properties {
+struct kfd_node_properties
+{
 	uint32_t cpu_cores_count;
 	uint32_t simd_count;
 	uint32_t mem_banks_count;
@@ -80,7 +81,8 @@ struct kfd_node_properties {
 #define HSA_MEM_FLAGS_NON_VOLATILE	0x00000002
 #define HSA_MEM_FLAGS_RESERVED		0xfffffffc
 
-struct kfd_mem_properties {
+struct kfd_mem_properties
+{
 	struct list_head	list;
 	uint32_t		heap_type;
 	uint64_t		size_in_bytes;
@@ -99,7 +101,8 @@ struct kfd_mem_properties {
 #define HSA_CACHE_TYPE_HSACU		0x00000008
 #define HSA_CACHE_TYPE_RESERVED		0xfffffff0
 
-struct kfd_cache_properties {
+struct kfd_cache_properties
+{
 	struct list_head	list;
 	uint32_t		processor_id_low;
 	uint32_t		cache_level;
@@ -114,7 +117,8 @@ struct kfd_cache_properties {
 	struct attribute	attr;
 };
 
-struct kfd_iolink_properties {
+struct kfd_iolink_properties
+{
 	struct list_head	list;
 	uint32_t		iolink_type;
 	uint32_t		ver_maj;
@@ -132,7 +136,8 @@ struct kfd_iolink_properties {
 	struct attribute	attr;
 };
 
-struct kfd_topology_device {
+struct kfd_topology_device
+{
 	struct list_head		list;
 	uint32_t			gpu_id;
 	struct kfd_node_properties	node_props;
@@ -152,7 +157,8 @@ struct kfd_topology_device {
 	struct attribute		attr_props;
 };
 
-struct kfd_system_properties {
+struct kfd_system_properties
+{
 	uint32_t		num_devices;     /* Number of H-NUMA nodes */
 	uint32_t		generation_count;
 	uint64_t		platform_oem;

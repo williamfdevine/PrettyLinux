@@ -57,7 +57,8 @@ MODULE_PARM_DESC(adjust_compression, " Set the ADPCM compression for the device.
  * Some cables and input device are wired differently. */
 static int switch_svideo_input;
 module_param(switch_svideo_input, int, 0444);
-MODULE_PARM_DESC(switch_svideo_input, " Set the S-Video input.  Some cables and input device are wired differently. Default: 0 (Off)");
+MODULE_PARM_DESC(switch_svideo_input,
+				 " Set the S-Video input.  Some cables and input device are wired differently. Default: 0 (Off)");
 
 static unsigned int adjust_x_offset = -1;
 module_param(adjust_x_offset, int, 0644);
@@ -72,13 +73,13 @@ MODULE_PARM_DESC(adjust_y_offset, "adjust Y offset display [core]");
 
 
 #ifdef USBVISION_DEBUG
-	#define PDEBUG(level, fmt, args...) { \
+#define PDEBUG(level, fmt, args...) { \
 		if (core_debug & (level)) \
 			printk(KERN_INFO KBUILD_MODNAME ":[%s:%d] " fmt, \
-				__func__, __LINE__ , ## args); \
+				   __func__, __LINE__ , ## args); \
 	}
 #else
-	#define PDEBUG(level, fmt, args...) do {} while (0)
+#define PDEBUG(level, fmt, args...) do {} while (0)
 #endif
 
 #define DBG_HEADER	(1 << 0)
@@ -119,12 +120,17 @@ static void *usbvision_rvmalloc(unsigned long size)
 
 	size = PAGE_ALIGN(size);
 	mem = vmalloc_32(size);
+
 	if (!mem)
+	{
 		return NULL;
+	}
 
 	memset(mem, 0, size); /* Clear the ram out, no junk to the user */
 	adr = (unsigned long) mem;
-	while (size > 0) {
+
+	while (size > 0)
+	{
 		SetPageReserved(vmalloc_to_page((void *)adr));
 		adr += PAGE_SIZE;
 		size -= PAGE_SIZE;
@@ -138,12 +144,16 @@ static void usbvision_rvfree(void *mem, unsigned long size)
 	unsigned long adr;
 
 	if (!mem)
+	{
 		return;
+	}
 
 	size = PAGE_ALIGN(size);
 
 	adr = (unsigned long) mem;
-	while ((long) size > 0) {
+
+	while ((long) size > 0)
+	{
 		ClearPageReserved(vmalloc_to_page((void *)adr));
 		adr += PAGE_SIZE;
 		size -= PAGE_SIZE;
@@ -159,15 +169,21 @@ static void usbvision_hexdump(const unsigned char *data, int len)
 	char tmp[80];
 	int i, k;
 
-	for (i = k = 0; len > 0; i++, len--) {
-		if (i > 0 && (i % 16 == 0)) {
+	for (i = k = 0; len > 0; i++, len--)
+	{
+		if (i > 0 && (i % 16 == 0))
+		{
 			printk("%s\n", tmp);
 			k = 0;
 		}
+
 		k += sprintf(&tmp[k], "%02x ", data[i]);
 	}
+
 	if (k > 0)
+	{
 		printk(KERN_CONT "%s\n", tmp);
+	}
 }
 #endif
 
@@ -179,7 +195,10 @@ static int scratch_len(struct usb_usbvision *usbvision)    /* This returns the a
 	int len = usbvision->scratch_write_ptr - usbvision->scratch_read_ptr;
 
 	if (len < 0)
+	{
 		len += scratch_buf_size;
+	}
+
 	PDEBUG(DBG_SCRATCH, "scratch_len() = %d\n", len);
 
 	return len;
@@ -190,12 +209,18 @@ static int scratch_len(struct usb_usbvision *usbvision)    /* This returns the a
 static int scratch_free(struct usb_usbvision *usbvision)
 {
 	int free = usbvision->scratch_read_ptr - usbvision->scratch_write_ptr;
+
 	if (free <= 0)
+	{
 		free += scratch_buf_size;
-	if (free) {
-		free -= 1;							/* at least one byte in the buffer must */
-										/* left blank, otherwise there is no chance to differ between full and empty */
 	}
+
+	if (free)
+	{
+		free -= 1;							/* at least one byte in the buffer must */
+		/* left blank, otherwise there is no chance to differ between full and empty */
+	}
+
 	PDEBUG(DBG_SCRATCH, "return %d\n", free);
 
 	return free;
@@ -204,19 +229,26 @@ static int scratch_free(struct usb_usbvision *usbvision)
 
 /* This puts data into the buffer */
 static int scratch_put(struct usb_usbvision *usbvision, unsigned char *data,
-		       int len)
+					   int len)
 {
 	int len_part;
 
-	if (usbvision->scratch_write_ptr + len < scratch_buf_size) {
+	if (usbvision->scratch_write_ptr + len < scratch_buf_size)
+	{
 		memcpy(usbvision->scratch + usbvision->scratch_write_ptr, data, len);
 		usbvision->scratch_write_ptr += len;
-	} else {
+	}
+	else
+	{
 		len_part = scratch_buf_size - usbvision->scratch_write_ptr;
 		memcpy(usbvision->scratch + usbvision->scratch_write_ptr, data, len_part);
-		if (len == len_part) {
+
+		if (len == len_part)
+		{
 			usbvision->scratch_write_ptr = 0;			/* just set write_ptr to zero */
-		} else {
+		}
+		else
+		{
 			memcpy(usbvision->scratch, data + len_part, len - len_part);
 			usbvision->scratch_write_ptr = len - len_part;
 		}
@@ -233,26 +265,33 @@ static void scratch_mark_header(struct usb_usbvision *usbvision)
 	PDEBUG(DBG_SCRATCH, "header at write_ptr=%d\n", usbvision->scratch_headermarker_write_ptr);
 
 	usbvision->scratch_headermarker[usbvision->scratch_headermarker_write_ptr] =
-				usbvision->scratch_write_ptr;
+		usbvision->scratch_write_ptr;
 	usbvision->scratch_headermarker_write_ptr += 1;
 	usbvision->scratch_headermarker_write_ptr %= USBVISION_NUM_HEADERMARKER;
 }
 
 /* This gets data from the buffer at the given "ptr" position */
 static int scratch_get_extra(struct usb_usbvision *usbvision,
-			     unsigned char *data, int *ptr, int len)
+							 unsigned char *data, int *ptr, int len)
 {
 	int len_part;
 
-	if (*ptr + len < scratch_buf_size) {
+	if (*ptr + len < scratch_buf_size)
+	{
 		memcpy(data, usbvision->scratch + *ptr, len);
 		*ptr += len;
-	} else {
+	}
+	else
+	{
 		len_part = scratch_buf_size - *ptr;
 		memcpy(data, usbvision->scratch + *ptr, len_part);
-		if (len == len_part) {
+
+		if (len == len_part)
+		{
 			*ptr = 0;							/* just set the y_ptr to zero */
-		} else {
+		}
+		else
+		{
 			memcpy(data + len_part, usbvision->scratch, len - len_part);
 			*ptr = len - len_part;
 		}
@@ -266,7 +305,7 @@ static int scratch_get_extra(struct usb_usbvision *usbvision,
 
 /* This sets the scratch extra read pointer */
 static void scratch_set_extra_ptr(struct usb_usbvision *usbvision, int *ptr,
-				  int len)
+								  int len)
 {
 	*ptr = (usbvision->scratch_read_ptr + len) % scratch_buf_size;
 
@@ -285,19 +324,26 @@ static void scratch_inc_extra_ptr(int *ptr, int len)
 
 /* This gets data from the buffer */
 static int scratch_get(struct usb_usbvision *usbvision, unsigned char *data,
-		       int len)
+					   int len)
 {
 	int len_part;
 
-	if (usbvision->scratch_read_ptr + len < scratch_buf_size) {
+	if (usbvision->scratch_read_ptr + len < scratch_buf_size)
+	{
 		memcpy(data, usbvision->scratch + usbvision->scratch_read_ptr, len);
 		usbvision->scratch_read_ptr += len;
-	} else {
+	}
+	else
+	{
 		len_part = scratch_buf_size - usbvision->scratch_read_ptr;
 		memcpy(data, usbvision->scratch + usbvision->scratch_read_ptr, len_part);
-		if (len == len_part) {
+
+		if (len == len_part)
+		{
 			usbvision->scratch_read_ptr = 0;				/* just set the read_ptr to zero */
-		} else {
+		}
+		else
+		{
 			memcpy(data + len_part, usbvision->scratch, len - len_part);
 			usbvision->scratch_read_ptr = len - len_part;
 		}
@@ -311,22 +357,25 @@ static int scratch_get(struct usb_usbvision *usbvision, unsigned char *data,
 
 /* This sets read pointer to next header and returns it */
 static int scratch_get_header(struct usb_usbvision *usbvision,
-			      struct usbvision_frame_header *header)
+							  struct usbvision_frame_header *header)
 {
 	int err_code = 0;
 
 	PDEBUG(DBG_SCRATCH, "from read_ptr=%d", usbvision->scratch_headermarker_read_ptr);
 
 	while (usbvision->scratch_headermarker_write_ptr -
-		usbvision->scratch_headermarker_read_ptr != 0) {
+		   usbvision->scratch_headermarker_read_ptr != 0)
+	{
 		usbvision->scratch_read_ptr =
 			usbvision->scratch_headermarker[usbvision->scratch_headermarker_read_ptr];
 		usbvision->scratch_headermarker_read_ptr += 1;
 		usbvision->scratch_headermarker_read_ptr %= USBVISION_NUM_HEADERMARKER;
 		scratch_get(usbvision, (unsigned char *)header, USBVISION_HEADER_LENGTH);
+
 		if ((header->magic_1 == USBVISION_MAGIC_1)
-			 && (header->magic_2 == USBVISION_MAGIC_2)
-			 && (header->header_length == USBVISION_HEADER_LENGTH)) {
+			&& (header->magic_2 == USBVISION_MAGIC_2)
+			&& (header->header_length == USBVISION_HEADER_LENGTH))
+		{
 			err_code = USBVISION_HEADER_LENGTH;
 			header->frame_width  = header->frame_width_lo  + (header->frame_width_hi << 8);
 			header->frame_height = header->frame_height_lo + (header->frame_height_hi << 8);
@@ -363,12 +412,15 @@ int usbvision_scratch_alloc(struct usb_usbvision *usbvision)
 {
 	usbvision->scratch = vmalloc_32(scratch_buf_size);
 	scratch_reset(usbvision);
-	if (usbvision->scratch == NULL) {
+
+	if (usbvision->scratch == NULL)
+	{
 		dev_err(&usbvision->dev->dev,
-			"%s: unable to allocate %d bytes for scratch\n",
+				"%s: unable to allocate %d bytes for scratch\n",
 				__func__, scratch_buf_size);
 		return -ENOMEM;
 	}
+
 	return 0;
 }
 
@@ -388,12 +440,15 @@ int usbvision_decompress_alloc(struct usb_usbvision *usbvision)
 	int IFB_size = MAX_FRAME_WIDTH * MAX_FRAME_HEIGHT * 3 / 2;
 
 	usbvision->intra_frame_buffer = vmalloc_32(IFB_size);
-	if (usbvision->intra_frame_buffer == NULL) {
+
+	if (usbvision->intra_frame_buffer == NULL)
+	{
 		dev_err(&usbvision->dev->dev,
-			"%s: unable to allocate %d for compr. frame buffer\n",
+				"%s: unable to allocate %d for compr. frame buffer\n",
 				__func__, IFB_size);
 		return -ENOMEM;
 	}
+
 	return 0;
 }
 
@@ -424,56 +479,69 @@ static enum parse_state usbvision_find_header(struct usb_usbvision *usbvision)
 
 	frame = usbvision->cur_frame;
 
-	while (scratch_get_header(usbvision, &frame->isoc_header) == USBVISION_HEADER_LENGTH) {
+	while (scratch_get_header(usbvision, &frame->isoc_header) == USBVISION_HEADER_LENGTH)
+	{
 		/* found header in scratch */
 		PDEBUG(DBG_HEADER, "found header: 0x%02x%02x %d %d %d %d %#x 0x%02x %u %u",
-				frame->isoc_header.magic_2,
-				frame->isoc_header.magic_1,
-				frame->isoc_header.header_length,
-				frame->isoc_header.frame_num,
-				frame->isoc_header.frame_phase,
-				frame->isoc_header.frame_latency,
-				frame->isoc_header.data_format,
-				frame->isoc_header.format_param,
-				frame->isoc_header.frame_width,
-				frame->isoc_header.frame_height);
+			   frame->isoc_header.magic_2,
+			   frame->isoc_header.magic_1,
+			   frame->isoc_header.header_length,
+			   frame->isoc_header.frame_num,
+			   frame->isoc_header.frame_phase,
+			   frame->isoc_header.frame_latency,
+			   frame->isoc_header.data_format,
+			   frame->isoc_header.format_param,
+			   frame->isoc_header.frame_width,
+			   frame->isoc_header.frame_height);
 
-		if (usbvision->request_intra) {
-			if (frame->isoc_header.format_param & 0x80) {
+		if (usbvision->request_intra)
+		{
+			if (frame->isoc_header.format_param & 0x80)
+			{
 				found_header = 1;
 				usbvision->last_isoc_frame_num = -1; /* do not check for lost frames this time */
 				usbvision_unrequest_intra(usbvision);
 				break;
 			}
-		} else {
+		}
+		else
+		{
 			found_header = 1;
 			break;
 		}
 	}
 
-	if (found_header) {
+	if (found_header)
+	{
 		frame->frmwidth = frame->isoc_header.frame_width * usbvision->stretch_width;
 		frame->frmheight = frame->isoc_header.frame_height * usbvision->stretch_height;
 		frame->v4l2_linesize = (frame->frmwidth * frame->v4l2_format.depth) >> 3;
-	} else { /* no header found */
+	}
+	else     /* no header found */
+	{
 		PDEBUG(DBG_HEADER, "skipping scratch data, no header");
 		scratch_reset(usbvision);
 		return parse_state_end_parse;
 	}
 
 	/* found header */
-	if (frame->isoc_header.data_format == ISOC_MODE_COMPRESS) {
+	if (frame->isoc_header.data_format == ISOC_MODE_COMPRESS)
+	{
 		/* check isoc_header.frame_num for lost frames */
-		if (usbvision->last_isoc_frame_num >= 0) {
-			if (((usbvision->last_isoc_frame_num + 1) % 32) != frame->isoc_header.frame_num) {
+		if (usbvision->last_isoc_frame_num >= 0)
+		{
+			if (((usbvision->last_isoc_frame_num + 1) % 32) != frame->isoc_header.frame_num)
+			{
 				/* unexpected frame drop: need to request new intra frame */
 				PDEBUG(DBG_HEADER, "Lost frame before %d on USB", frame->isoc_header.frame_num);
 				usbvision_request_intra(usbvision);
 				return parse_state_next_frame;
 			}
 		}
+
 		usbvision->last_isoc_frame_num = frame->isoc_header.frame_num;
 	}
+
 	usbvision->header_count++;
 	frame->scanstate = scan_state_lines;
 	frame->curline = 0;
@@ -482,7 +550,7 @@ static enum parse_state usbvision_find_header(struct usb_usbvision *usbvision)
 }
 
 static enum parse_state usbvision_parse_lines_422(struct usb_usbvision *usbvision,
-					   long *pcopylen)
+		long *pcopylen)
 {
 	volatile struct usbvision_frame *frame;
 	unsigned char *f;
@@ -498,87 +566,110 @@ static enum parse_state usbvision_parse_lines_422(struct usb_usbvision *usbvisio
 
 	/* Make sure there's enough data for the entire line */
 	len = (frame->isoc_header.frame_width * 2) + 5;
-	if (scratch_len(usbvision) < len) {
+
+	if (scratch_len(usbvision) < len)
+	{
 		PDEBUG(DBG_PARSE, "out of data in line %d, need %u.\n", frame->curline, len);
 		return parse_state_out;
 	}
 
 	if ((frame->curline + 1) >= frame->frmheight)
+	{
 		return parse_state_next_frame;
+	}
 
 	bytes_per_pixel = frame->v4l2_format.bytes_per_pixel;
 	stretch_bytes = (usbvision->stretch_width - 1) * bytes_per_pixel;
 	clipmask_index = frame->curline * MAX_FRAME_WIDTH;
 	clipmask_add = usbvision->stretch_width;
 
-	for (i = 0; i < frame->frmwidth; i += (2 * usbvision->stretch_width)) {
+	for (i = 0; i < frame->frmwidth; i += (2 * usbvision->stretch_width))
+	{
 		scratch_get(usbvision, &yuyv[0], 4);
 
-		if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+		if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV)
+		{
 			*f++ = yuyv[0]; /* Y */
 			*f++ = yuyv[3]; /* U */
-		} else {
+		}
+		else
+		{
 			YUV_TO_RGB_BY_THE_BOOK(yuyv[0], yuyv[1], yuyv[3], rv, gv, bv);
-			switch (frame->v4l2_format.format) {
-			case V4L2_PIX_FMT_RGB565:
-				*f++ = (0x1F & rv) |
-					(0xE0 & (gv << 5));
-				*f++ = (0x07 & (gv >> 3)) |
-					(0xF8 &  bv);
-				break;
-			case V4L2_PIX_FMT_RGB24:
-				*f++ = rv;
-				*f++ = gv;
-				*f++ = bv;
-				break;
-			case V4L2_PIX_FMT_RGB32:
-				*f++ = rv;
-				*f++ = gv;
-				*f++ = bv;
-				f++;
-				break;
-			case V4L2_PIX_FMT_RGB555:
-				*f++ = (0x1F & rv) |
-					(0xE0 & (gv << 5));
-				*f++ = (0x03 & (gv >> 3)) |
-					(0x7C & (bv << 2));
-				break;
+
+			switch (frame->v4l2_format.format)
+			{
+				case V4L2_PIX_FMT_RGB565:
+					*f++ = (0x1F & rv) |
+						   (0xE0 & (gv << 5));
+					*f++ = (0x07 & (gv >> 3)) |
+						   (0xF8 &  bv);
+					break;
+
+				case V4L2_PIX_FMT_RGB24:
+					*f++ = rv;
+					*f++ = gv;
+					*f++ = bv;
+					break;
+
+				case V4L2_PIX_FMT_RGB32:
+					*f++ = rv;
+					*f++ = gv;
+					*f++ = bv;
+					f++;
+					break;
+
+				case V4L2_PIX_FMT_RGB555:
+					*f++ = (0x1F & rv) |
+						   (0xE0 & (gv << 5));
+					*f++ = (0x03 & (gv >> 3)) |
+						   (0x7C & (bv << 2));
+					break;
 			}
 		}
+
 		clipmask_index += clipmask_add;
 		f += stretch_bytes;
 
-		if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+		if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV)
+		{
 			*f++ = yuyv[2]; /* Y */
 			*f++ = yuyv[1]; /* V */
-		} else {
+		}
+		else
+		{
 			YUV_TO_RGB_BY_THE_BOOK(yuyv[2], yuyv[1], yuyv[3], rv, gv, bv);
-			switch (frame->v4l2_format.format) {
-			case V4L2_PIX_FMT_RGB565:
-				*f++ = (0x1F & rv) |
-					(0xE0 & (gv << 5));
-				*f++ = (0x07 & (gv >> 3)) |
-					(0xF8 &  bv);
-				break;
-			case V4L2_PIX_FMT_RGB24:
-				*f++ = rv;
-				*f++ = gv;
-				*f++ = bv;
-				break;
-			case V4L2_PIX_FMT_RGB32:
-				*f++ = rv;
-				*f++ = gv;
-				*f++ = bv;
-				f++;
-				break;
-			case V4L2_PIX_FMT_RGB555:
-				*f++ = (0x1F & rv) |
-					(0xE0 & (gv << 5));
-				*f++ = (0x03 & (gv >> 3)) |
-					(0x7C & (bv << 2));
-				break;
+
+			switch (frame->v4l2_format.format)
+			{
+				case V4L2_PIX_FMT_RGB565:
+					*f++ = (0x1F & rv) |
+						   (0xE0 & (gv << 5));
+					*f++ = (0x07 & (gv >> 3)) |
+						   (0xF8 &  bv);
+					break;
+
+				case V4L2_PIX_FMT_RGB24:
+					*f++ = rv;
+					*f++ = gv;
+					*f++ = bv;
+					break;
+
+				case V4L2_PIX_FMT_RGB32:
+					*f++ = rv;
+					*f++ = gv;
+					*f++ = bv;
+					f++;
+					break;
+
+				case V4L2_PIX_FMT_RGB555:
+					*f++ = (0x1F & rv) |
+						   (0xE0 & (gv << 5));
+					*f++ = (0x03 & (gv >> 3)) |
+						   (0x7C & (bv << 2));
+					break;
 			}
 		}
+
 		clipmask_index += clipmask_add;
 		f += stretch_bytes;
 	}
@@ -587,7 +678,10 @@ static enum parse_state usbvision_parse_lines_422(struct usb_usbvision *usbvisio
 	*pcopylen += frame->v4l2_linesize * usbvision->stretch_height;
 
 	if (frame->curline >= frame->frmheight)
+	{
 		return parse_state_next_frame;
+	}
+
 	return parse_state_continue;
 }
 
@@ -611,65 +705,95 @@ static int usbvision_decompress(struct usb_usbvision *usbvision, unsigned char *
 	block_type_len = 0;
 	rest_pixel = len;
 
-	for (idx = 0; idx < len; idx++) {
-		if (block_len == 0) {
-			if (block_type_len == 0) {
+	for (idx = 0; idx < len; idx++)
+	{
+		if (block_len == 0)
+		{
+			if (block_type_len == 0)
+			{
 				block_type_byte = compressed[block_type_pos];
 				block_type_pos++;
 				block_type_len = 4;
 			}
+
 			block_type = (block_type_byte & 0xC0) >> 6;
 
 			/* statistic: */
 			usbvision->compr_block_types[block_type]++;
 
 			pos = extra_pos;
-			if (block_type == 0) {
-				if (rest_pixel >= 24) {
+
+			if (block_type == 0)
+			{
+				if (rest_pixel >= 24)
+				{
 					idx += 23;
 					rest_pixel -= 24;
 					integrator = decompressed[idx];
-				} else {
+				}
+				else
+				{
 					idx += rest_pixel - 1;
 					rest_pixel = 0;
 				}
-			} else {
+			}
+			else
+			{
 				block_code = compressed[pos];
 				pos++;
+
 				if (rest_pixel >= 24)
+				{
 					block_len  = 24;
+				}
 				else
+				{
 					block_len = rest_pixel;
+				}
+
 				rest_pixel -= block_len;
 				extra_pos = pos + (block_len / 4);
 			}
+
 			block_type_byte <<= 2;
 			block_type_len -= 1;
 		}
-		if (block_len > 0) {
-			if ((block_len % 4) == 0) {
+
+		if (block_len > 0)
+		{
+			if ((block_len % 4) == 0)
+			{
 				block_byte = compressed[pos];
 				pos++;
 			}
+
 			if (block_type == 1) /* inter Block */
+			{
 				integrator = decompressed[idx];
-			switch (block_byte & 0xC0) {
-			case 0x03 << 6:
-				integrator += compressed[extra_pos];
-				extra_pos++;
-				break;
-			case 0x02 << 6:
-				integrator += block_code;
-				break;
-			case 0x00:
-				integrator -= block_code;
-				break;
 			}
+
+			switch (block_byte & 0xC0)
+			{
+				case 0x03 << 6:
+					integrator += compressed[extra_pos];
+					extra_pos++;
+					break;
+
+				case 0x02 << 6:
+					integrator += block_code;
+					break;
+
+				case 0x00:
+					integrator -= block_code;
+					break;
+			}
+
 			decompressed[idx] = integrator;
 			block_byte <<= 2;
 			block_len -= 1;
 		}
 	}
+
 	*start_pos = extra_pos;
 	*block_typestart_pos = block_type_pos;
 	return idx;
@@ -685,7 +809,7 @@ static int usbvision_decompress(struct usb_usbvision *usbvision, unsigned char *
  *
  */
 static enum parse_state usbvision_parse_compress(struct usb_usbvision *usbvision,
-					   long *pcopylen)
+		long *pcopylen)
 {
 #define USBVISION_STRIP_MAGIC		0x5A
 #define USBVISION_STRIP_LEN_MAX		400
@@ -703,63 +827,83 @@ static enum parse_state usbvision_parse_compress(struct usb_usbvision *usbvision
 
 	frame = usbvision->cur_frame;
 	image_size = frame->frmwidth * frame->frmheight;
+
 	if ((frame->v4l2_format.format == V4L2_PIX_FMT_YUV422P) ||
-	    (frame->v4l2_format.format == V4L2_PIX_FMT_YVU420)) {       /* this is a planar format */
+		(frame->v4l2_format.format == V4L2_PIX_FMT_YVU420))         /* this is a planar format */
+	{
 		/* ... v4l2_linesize not used here. */
 		f = frame->data + (frame->width * frame->curline);
-	} else
+	}
+	else
+	{
 		f = frame->data + (frame->v4l2_linesize * frame->curline);
+	}
 
-	if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) { /* initialise u and v pointers */
+	if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV)   /* initialise u and v pointers */
+	{
 		/* get base of u and b planes add halfoffset */
 		u = frame->data
 			+ image_size
 			+ (frame->frmwidth >> 1) * frame->curline;
 		v = u + (image_size >> 1);
-	} else if (frame->v4l2_format.format == V4L2_PIX_FMT_YVU420) {
+	}
+	else if (frame->v4l2_format.format == V4L2_PIX_FMT_YVU420)
+	{
 		v = frame->data + image_size + ((frame->curline * (frame->width)) >> 2);
 		u = v + (image_size >> 2);
 	}
 
 	if (frame->curline == 0)
+	{
 		usbvision_adjust_compression(usbvision);
+	}
 
 	if (scratch_len(usbvision) < USBVISION_STRIP_HEADER_LEN)
+	{
 		return parse_state_out;
+	}
 
 	/* get strip header without changing the scratch_read_ptr */
 	scratch_set_extra_ptr(usbvision, &strip_ptr, 0);
 	scratch_get_extra(usbvision, &strip_header[0], &strip_ptr,
-				USBVISION_STRIP_HEADER_LEN);
+					  USBVISION_STRIP_HEADER_LEN);
 
-	if (strip_header[0] != USBVISION_STRIP_MAGIC) {
+	if (strip_header[0] != USBVISION_STRIP_MAGIC)
+	{
 		/* wrong strip magic */
 		usbvision->strip_magic_errors++;
 		return parse_state_next_frame;
 	}
 
-	if (frame->curline != (int)strip_header[2]) {
+	if (frame->curline != (int)strip_header[2])
+	{
 		/* line number mismatch error */
 		usbvision->strip_line_number_errors++;
 	}
 
 	strip_len = 2 * (unsigned int)strip_header[1];
-	if (strip_len > USBVISION_STRIP_LEN_MAX) {
+
+	if (strip_len > USBVISION_STRIP_LEN_MAX)
+	{
 		/* strip overrun */
 		/* I think this never happens */
 		usbvision_request_intra(usbvision);
 	}
 
-	if (scratch_len(usbvision) < strip_len) {
+	if (scratch_len(usbvision) < strip_len)
+	{
 		/* there is not enough data for the strip */
 		return parse_state_out;
 	}
 
-	if (usbvision->intra_frame_buffer) {
+	if (usbvision->intra_frame_buffer)
+	{
 		Y = usbvision->intra_frame_buffer + frame->frmwidth * frame->curline;
 		U = usbvision->intra_frame_buffer + image_size + (frame->frmwidth / 2) * (frame->curline / 2);
 		V = usbvision->intra_frame_buffer + image_size / 4 * 5 + (frame->frmwidth / 2) * (frame->curline / 2);
-	} else {
+	}
+	else
+	{
 		return parse_state_next_frame;
 	}
 
@@ -775,80 +919,122 @@ static enum parse_state usbvision_parse_compress(struct usb_usbvision *usbvision
 	usbvision->block_pos = block_pos;
 
 	usbvision_decompress(usbvision, strip_data, Y, &block_pos, &block_type_pos, idx_end);
+
 	if (strip_len > usbvision->max_strip_len)
+	{
 		usbvision->max_strip_len = strip_len;
+	}
 
 	if (frame->curline % 2)
+	{
 		usbvision_decompress(usbvision, strip_data, V, &block_pos, &block_type_pos, idx_end / 2);
+	}
 	else
+	{
 		usbvision_decompress(usbvision, strip_data, U, &block_pos, &block_type_pos, idx_end / 2);
+	}
 
 	if (block_pos > usbvision->comprblock_pos)
+	{
 		usbvision->comprblock_pos = block_pos;
-	if (block_pos > strip_len)
-		usbvision->strip_len_errors++;
+	}
 
-	for (idx = 0; idx < idx_end; idx++) {
-		if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+	if (block_pos > strip_len)
+	{
+		usbvision->strip_len_errors++;
+	}
+
+	for (idx = 0; idx < idx_end; idx++)
+	{
+		if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV)
+		{
 			*f++ = Y[idx];
 			*f++ = idx & 0x01 ? U[idx / 2] : V[idx / 2];
-		} else if (frame->v4l2_format.format == V4L2_PIX_FMT_YUV422P) {
+		}
+		else if (frame->v4l2_format.format == V4L2_PIX_FMT_YUV422P)
+		{
 			*f++ = Y[idx];
+
 			if (idx & 0x01)
+			{
 				*u++ = U[idx >> 1];
+			}
 			else
+			{
 				*v++ = V[idx >> 1];
-		} else if (frame->v4l2_format.format == V4L2_PIX_FMT_YVU420) {
+			}
+		}
+		else if (frame->v4l2_format.format == V4L2_PIX_FMT_YVU420)
+		{
 			*f++ = Y[idx];
-			if (!((idx & 0x01) | (frame->curline & 0x01))) {
+
+			if (!((idx & 0x01) | (frame->curline & 0x01)))
+			{
 				/* only need do this for 1 in 4 pixels */
 				/* intraframe buffer is YUV420 format */
 				*u++ = U[idx >> 1];
 				*v++ = V[idx >> 1];
 			}
-		} else {
+		}
+		else
+		{
 			YUV_TO_RGB_BY_THE_BOOK(Y[idx], U[idx / 2], V[idx / 2], rv, gv, bv);
-			switch (frame->v4l2_format.format) {
-			case V4L2_PIX_FMT_GREY:
-				*f++ = Y[idx];
-				break;
-			case V4L2_PIX_FMT_RGB555:
-				*f++ = (0x1F & rv) |
-					(0xE0 & (gv << 5));
-				*f++ = (0x03 & (gv >> 3)) |
-					(0x7C & (bv << 2));
-				break;
-			case V4L2_PIX_FMT_RGB565:
-				*f++ = (0x1F & rv) |
-					(0xE0 & (gv << 5));
-				*f++ = (0x07 & (gv >> 3)) |
-					(0xF8 & bv);
-				break;
-			case V4L2_PIX_FMT_RGB24:
-				*f++ = rv;
-				*f++ = gv;
-				*f++ = bv;
-				break;
-			case V4L2_PIX_FMT_RGB32:
-				*f++ = rv;
-				*f++ = gv;
-				*f++ = bv;
-				f++;
-				break;
+
+			switch (frame->v4l2_format.format)
+			{
+				case V4L2_PIX_FMT_GREY:
+					*f++ = Y[idx];
+					break;
+
+				case V4L2_PIX_FMT_RGB555:
+					*f++ = (0x1F & rv) |
+						   (0xE0 & (gv << 5));
+					*f++ = (0x03 & (gv >> 3)) |
+						   (0x7C & (bv << 2));
+					break;
+
+				case V4L2_PIX_FMT_RGB565:
+					*f++ = (0x1F & rv) |
+						   (0xE0 & (gv << 5));
+					*f++ = (0x07 & (gv >> 3)) |
+						   (0xF8 & bv);
+					break;
+
+				case V4L2_PIX_FMT_RGB24:
+					*f++ = rv;
+					*f++ = gv;
+					*f++ = bv;
+					break;
+
+				case V4L2_PIX_FMT_RGB32:
+					*f++ = rv;
+					*f++ = gv;
+					*f++ = bv;
+					f++;
+					break;
 			}
 		}
+
 		clipmask_index++;
 	}
+
 	/* Deal with non-integer no. of bytes for YUV420P */
 	if (frame->v4l2_format.format != V4L2_PIX_FMT_YVU420)
+	{
 		*pcopylen += frame->v4l2_linesize;
+	}
 	else
+	{
 		*pcopylen += frame->curline & 0x01 ? frame->v4l2_linesize : frame->v4l2_linesize << 1;
+	}
 
 	frame->curline += 1;
 
 	if (frame->curline >= frame->frmheight)
+	{
 		return parse_state_next_frame;
+	}
+
 	return parse_state_continue;
 
 }
@@ -863,7 +1049,7 @@ static enum parse_state usbvision_parse_compress(struct usb_usbvision *usbvision
  *
  */
 static enum parse_state usbvision_parse_lines_420(struct usb_usbvision *usbvision,
-					   long *pcopylen)
+		long *pcopylen)
 {
 	struct usbvision_frame *frame;
 	unsigned char *f_even = NULL, *f_odd = NULL;
@@ -896,26 +1082,31 @@ static enum parse_state usbvision_parse_lines_420(struct usb_usbvision *usbvisio
 	clipmask_add = usbvision->stretch_width;
 	pixel_per_line = frame->isoc_header.frame_width;
 
-	if (scratch_len(usbvision) < (int)pixel_per_line * 3) {
+	if (scratch_len(usbvision) < (int)pixel_per_line * 3)
+	{
 		/* printk(KERN_DEBUG "out of data, need %d\n", len); */
 		return parse_state_out;
 	}
 
 	if ((frame->curline + 1) >= frame->frmheight)
+	{
 		return parse_state_next_frame;
+	}
 
-	block_split = (pixel_per_line%y_block_size) ? 1 : 0;	/* are some blocks splitted into different lines? */
+	block_split = (pixel_per_line % y_block_size) ? 1 : 0;	/* are some blocks splitted into different lines? */
 
 	y_odd_offset = (pixel_per_line / y_block_size) * (y_block_size + uv_block_size)
-			+ block_split * uv_block_size;
+				   + block_split * uv_block_size;
 
 	scratch_set_extra_ptr(usbvision, &y_ptr, y_odd_offset);
 	scratch_set_extra_ptr(usbvision, &u_ptr, y_block_size);
 	scratch_set_extra_ptr(usbvision, &v_ptr, y_odd_offset
-			+ (4 - block_split) * sub_block_size);
+						  + (4 - block_split) * sub_block_size);
 
-	for (block = 0; block < (pixel_per_line / sub_block_size); block++) {
-		for (pixel = 0; pixel < sub_block_size; pixel += 2) {
+	for (block = 0; block < (pixel_per_line / sub_block_size); block++)
+	{
+		for (pixel = 0; pixel < sub_block_size; pixel += 2)
+		{
 			scratch_get(usbvision, &y[0], 2);
 			scratch_get_extra(usbvision, &u, &u_ptr, 1);
 			scratch_get_extra(usbvision, &v, &v_ptr, 1);
@@ -927,198 +1118,233 @@ static enum parse_state usbvision_parse_lines_420(struct usb_usbvision *usbvisio
 			uvg = -53281 * u_ - 25625 * v_;
 			ur = 104595 * u_;
 
-			if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+			if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV)
+			{
 				*f_even++ = y[0];
 				*f_even++ = v;
-			} else {
+			}
+			else
+			{
 				y_ = 76284 * (y[0] - 16);
 
 				b_ = (y_ + vb) >> 16;
 				g_ = (y_ + uvg) >> 16;
 				r_ = (y_ + ur) >> 16;
 
-				switch (frame->v4l2_format.format) {
-				case V4L2_PIX_FMT_RGB565:
-					g = LIMIT_RGB(g_);
-					*f_even++ =
-						(0x1F & LIMIT_RGB(r_)) |
-						(0xE0 & (g << 5));
-					*f_even++ =
-						(0x07 & (g >> 3)) |
-						(0xF8 &  LIMIT_RGB(b_));
-					break;
-				case V4L2_PIX_FMT_RGB24:
-					*f_even++ = LIMIT_RGB(r_);
-					*f_even++ = LIMIT_RGB(g_);
-					*f_even++ = LIMIT_RGB(b_);
-					break;
-				case V4L2_PIX_FMT_RGB32:
-					*f_even++ = LIMIT_RGB(r_);
-					*f_even++ = LIMIT_RGB(g_);
-					*f_even++ = LIMIT_RGB(b_);
-					f_even++;
-					break;
-				case V4L2_PIX_FMT_RGB555:
-					g = LIMIT_RGB(g_);
-					*f_even++ = (0x1F & LIMIT_RGB(r_)) |
-						(0xE0 & (g << 5));
-					*f_even++ = (0x03 & (g >> 3)) |
-						(0x7C & (LIMIT_RGB(b_) << 2));
-					break;
+				switch (frame->v4l2_format.format)
+				{
+					case V4L2_PIX_FMT_RGB565:
+						g = LIMIT_RGB(g_);
+						*f_even++ =
+							(0x1F & LIMIT_RGB(r_)) |
+							(0xE0 & (g << 5));
+						*f_even++ =
+							(0x07 & (g >> 3)) |
+							(0xF8 &  LIMIT_RGB(b_));
+						break;
+
+					case V4L2_PIX_FMT_RGB24:
+						*f_even++ = LIMIT_RGB(r_);
+						*f_even++ = LIMIT_RGB(g_);
+						*f_even++ = LIMIT_RGB(b_);
+						break;
+
+					case V4L2_PIX_FMT_RGB32:
+						*f_even++ = LIMIT_RGB(r_);
+						*f_even++ = LIMIT_RGB(g_);
+						*f_even++ = LIMIT_RGB(b_);
+						f_even++;
+						break;
+
+					case V4L2_PIX_FMT_RGB555:
+						g = LIMIT_RGB(g_);
+						*f_even++ = (0x1F & LIMIT_RGB(r_)) |
+									(0xE0 & (g << 5));
+						*f_even++ = (0x03 & (g >> 3)) |
+									(0x7C & (LIMIT_RGB(b_) << 2));
+						break;
 				}
 			}
+
 			clipmask_even_index += clipmask_add;
 			f_even += stretch_bytes;
 
-			if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+			if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV)
+			{
 				*f_even++ = y[1];
 				*f_even++ = u;
-			} else {
+			}
+			else
+			{
 				y_ = 76284 * (y[1] - 16);
 
 				b_ = (y_ + vb) >> 16;
 				g_ = (y_ + uvg) >> 16;
 				r_ = (y_ + ur) >> 16;
 
-				switch (frame->v4l2_format.format) {
-				case V4L2_PIX_FMT_RGB565:
-					g = LIMIT_RGB(g_);
-					*f_even++ =
-						(0x1F & LIMIT_RGB(r_)) |
-						(0xE0 & (g << 5));
-					*f_even++ =
-						(0x07 & (g >> 3)) |
-						(0xF8 &  LIMIT_RGB(b_));
-					break;
-				case V4L2_PIX_FMT_RGB24:
-					*f_even++ = LIMIT_RGB(r_);
-					*f_even++ = LIMIT_RGB(g_);
-					*f_even++ = LIMIT_RGB(b_);
-					break;
-				case V4L2_PIX_FMT_RGB32:
-					*f_even++ = LIMIT_RGB(r_);
-					*f_even++ = LIMIT_RGB(g_);
-					*f_even++ = LIMIT_RGB(b_);
-					f_even++;
-					break;
-				case V4L2_PIX_FMT_RGB555:
-					g = LIMIT_RGB(g_);
-					*f_even++ = (0x1F & LIMIT_RGB(r_)) |
-						(0xE0 & (g << 5));
-					*f_even++ = (0x03 & (g >> 3)) |
-						(0x7C & (LIMIT_RGB(b_) << 2));
-					break;
+				switch (frame->v4l2_format.format)
+				{
+					case V4L2_PIX_FMT_RGB565:
+						g = LIMIT_RGB(g_);
+						*f_even++ =
+							(0x1F & LIMIT_RGB(r_)) |
+							(0xE0 & (g << 5));
+						*f_even++ =
+							(0x07 & (g >> 3)) |
+							(0xF8 &  LIMIT_RGB(b_));
+						break;
+
+					case V4L2_PIX_FMT_RGB24:
+						*f_even++ = LIMIT_RGB(r_);
+						*f_even++ = LIMIT_RGB(g_);
+						*f_even++ = LIMIT_RGB(b_);
+						break;
+
+					case V4L2_PIX_FMT_RGB32:
+						*f_even++ = LIMIT_RGB(r_);
+						*f_even++ = LIMIT_RGB(g_);
+						*f_even++ = LIMIT_RGB(b_);
+						f_even++;
+						break;
+
+					case V4L2_PIX_FMT_RGB555:
+						g = LIMIT_RGB(g_);
+						*f_even++ = (0x1F & LIMIT_RGB(r_)) |
+									(0xE0 & (g << 5));
+						*f_even++ = (0x03 & (g >> 3)) |
+									(0x7C & (LIMIT_RGB(b_) << 2));
+						break;
 				}
 			}
+
 			clipmask_even_index += clipmask_add;
 			f_even += stretch_bytes;
 
 			scratch_get_extra(usbvision, &y[0], &y_ptr, 2);
 
-			if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+			if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV)
+			{
 				*f_odd++ = y[0];
 				*f_odd++ = v;
-			} else {
+			}
+			else
+			{
 				y_ = 76284 * (y[0] - 16);
 
 				b_ = (y_ + vb) >> 16;
 				g_ = (y_ + uvg) >> 16;
 				r_ = (y_ + ur) >> 16;
 
-				switch (frame->v4l2_format.format) {
-				case V4L2_PIX_FMT_RGB565:
-					g = LIMIT_RGB(g_);
-					*f_odd++ =
-						(0x1F & LIMIT_RGB(r_)) |
-						(0xE0 & (g << 5));
-					*f_odd++ =
-						(0x07 & (g >> 3)) |
-						(0xF8 &  LIMIT_RGB(b_));
-					break;
-				case V4L2_PIX_FMT_RGB24:
-					*f_odd++ = LIMIT_RGB(r_);
-					*f_odd++ = LIMIT_RGB(g_);
-					*f_odd++ = LIMIT_RGB(b_);
-					break;
-				case V4L2_PIX_FMT_RGB32:
-					*f_odd++ = LIMIT_RGB(r_);
-					*f_odd++ = LIMIT_RGB(g_);
-					*f_odd++ = LIMIT_RGB(b_);
-					f_odd++;
-					break;
-				case V4L2_PIX_FMT_RGB555:
-					g = LIMIT_RGB(g_);
-					*f_odd++ = (0x1F & LIMIT_RGB(r_)) |
-						(0xE0 & (g << 5));
-					*f_odd++ = (0x03 & (g >> 3)) |
-						(0x7C & (LIMIT_RGB(b_) << 2));
-					break;
+				switch (frame->v4l2_format.format)
+				{
+					case V4L2_PIX_FMT_RGB565:
+						g = LIMIT_RGB(g_);
+						*f_odd++ =
+							(0x1F & LIMIT_RGB(r_)) |
+							(0xE0 & (g << 5));
+						*f_odd++ =
+							(0x07 & (g >> 3)) |
+							(0xF8 &  LIMIT_RGB(b_));
+						break;
+
+					case V4L2_PIX_FMT_RGB24:
+						*f_odd++ = LIMIT_RGB(r_);
+						*f_odd++ = LIMIT_RGB(g_);
+						*f_odd++ = LIMIT_RGB(b_);
+						break;
+
+					case V4L2_PIX_FMT_RGB32:
+						*f_odd++ = LIMIT_RGB(r_);
+						*f_odd++ = LIMIT_RGB(g_);
+						*f_odd++ = LIMIT_RGB(b_);
+						f_odd++;
+						break;
+
+					case V4L2_PIX_FMT_RGB555:
+						g = LIMIT_RGB(g_);
+						*f_odd++ = (0x1F & LIMIT_RGB(r_)) |
+								   (0xE0 & (g << 5));
+						*f_odd++ = (0x03 & (g >> 3)) |
+								   (0x7C & (LIMIT_RGB(b_) << 2));
+						break;
 				}
 			}
+
 			clipmask_odd_index += clipmask_add;
 			f_odd += stretch_bytes;
 
-			if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV) {
+			if (frame->v4l2_format.format == V4L2_PIX_FMT_YUYV)
+			{
 				*f_odd++ = y[1];
 				*f_odd++ = u;
-			} else {
+			}
+			else
+			{
 				y_ = 76284 * (y[1] - 16);
 
 				b_ = (y_ + vb) >> 16;
 				g_ = (y_ + uvg) >> 16;
 				r_ = (y_ + ur) >> 16;
 
-				switch (frame->v4l2_format.format) {
-				case V4L2_PIX_FMT_RGB565:
-					g = LIMIT_RGB(g_);
-					*f_odd++ =
-						(0x1F & LIMIT_RGB(r_)) |
-						(0xE0 & (g << 5));
-					*f_odd++ =
-						(0x07 & (g >> 3)) |
-						(0xF8 &  LIMIT_RGB(b_));
-					break;
-				case V4L2_PIX_FMT_RGB24:
-					*f_odd++ = LIMIT_RGB(r_);
-					*f_odd++ = LIMIT_RGB(g_);
-					*f_odd++ = LIMIT_RGB(b_);
-					break;
-				case V4L2_PIX_FMT_RGB32:
-					*f_odd++ = LIMIT_RGB(r_);
-					*f_odd++ = LIMIT_RGB(g_);
-					*f_odd++ = LIMIT_RGB(b_);
-					f_odd++;
-					break;
-				case V4L2_PIX_FMT_RGB555:
-					g = LIMIT_RGB(g_);
-					*f_odd++ = (0x1F & LIMIT_RGB(r_)) |
-						(0xE0 & (g << 5));
-					*f_odd++ = (0x03 & (g >> 3)) |
-						(0x7C & (LIMIT_RGB(b_) << 2));
-					break;
+				switch (frame->v4l2_format.format)
+				{
+					case V4L2_PIX_FMT_RGB565:
+						g = LIMIT_RGB(g_);
+						*f_odd++ =
+							(0x1F & LIMIT_RGB(r_)) |
+							(0xE0 & (g << 5));
+						*f_odd++ =
+							(0x07 & (g >> 3)) |
+							(0xF8 &  LIMIT_RGB(b_));
+						break;
+
+					case V4L2_PIX_FMT_RGB24:
+						*f_odd++ = LIMIT_RGB(r_);
+						*f_odd++ = LIMIT_RGB(g_);
+						*f_odd++ = LIMIT_RGB(b_);
+						break;
+
+					case V4L2_PIX_FMT_RGB32:
+						*f_odd++ = LIMIT_RGB(r_);
+						*f_odd++ = LIMIT_RGB(g_);
+						*f_odd++ = LIMIT_RGB(b_);
+						f_odd++;
+						break;
+
+					case V4L2_PIX_FMT_RGB555:
+						g = LIMIT_RGB(g_);
+						*f_odd++ = (0x1F & LIMIT_RGB(r_)) |
+								   (0xE0 & (g << 5));
+						*f_odd++ = (0x03 & (g >> 3)) |
+								   (0x7C & (LIMIT_RGB(b_) << 2));
+						break;
 				}
 			}
+
 			clipmask_odd_index += clipmask_add;
 			f_odd += stretch_bytes;
 		}
 
 		scratch_rm_old(usbvision, y_step[block % y_step_size] * sub_block_size);
 		scratch_inc_extra_ptr(&y_ptr, y_step[(block + 2 * block_split) % y_step_size]
-				* sub_block_size);
+							  * sub_block_size);
 		scratch_inc_extra_ptr(&u_ptr, uv_step[block % uv_step_size]
-				* sub_block_size);
+							  * sub_block_size);
 		scratch_inc_extra_ptr(&v_ptr, uv_step[(block + 2 * block_split) % uv_step_size]
-				* sub_block_size);
+							  * sub_block_size);
 	}
 
 	scratch_rm_old(usbvision, pixel_per_line * 3 / 2
-			+ block_split * sub_block_size);
+				   + block_split * sub_block_size);
 
 	frame->curline += 2 * usbvision->stretch_height;
 	*pcopylen += frame->v4l2_linesize * 2 * usbvision->stretch_height;
 
 	if (frame->curline >= frame->frmheight)
+	{
 		return parse_state_next_frame;
+	}
+
 	return parse_state_continue;
 }
 
@@ -1141,28 +1367,48 @@ static void usbvision_parse_data(struct usb_usbvision *usbvision)
 
 	PDEBUG(DBG_PARSE, "parsing len=%d\n", scratch_len(usbvision));
 
-	while (1) {
+	while (1)
+	{
 		newstate = parse_state_out;
-		if (scratch_len(usbvision)) {
-			if (frame->scanstate == scan_state_scanning) {
+
+		if (scratch_len(usbvision))
+		{
+			if (frame->scanstate == scan_state_scanning)
+			{
 				newstate = usbvision_find_header(usbvision);
-			} else if (frame->scanstate == scan_state_lines) {
+			}
+			else if (frame->scanstate == scan_state_lines)
+			{
 				if (usbvision->isoc_mode == ISOC_MODE_YUV420)
+				{
 					newstate = usbvision_parse_lines_420(usbvision, &copylen);
+				}
 				else if (usbvision->isoc_mode == ISOC_MODE_YUV422)
+				{
 					newstate = usbvision_parse_lines_422(usbvision, &copylen);
+				}
 				else if (usbvision->isoc_mode == ISOC_MODE_COMPRESS)
+				{
 					newstate = usbvision_parse_compress(usbvision, &copylen);
+				}
 			}
 		}
+
 		if (newstate == parse_state_continue)
+		{
 			continue;
+		}
+
 		if ((newstate == parse_state_next_frame) || (newstate == parse_state_out))
+		{
 			break;
+		}
+
 		return;	/* parse_state_end_parse */
 	}
 
-	if (newstate == parse_state_next_frame) {
+	if (newstate == parse_state_next_frame)
+	{
 		frame->grabstate = frame_state_done;
 		v4l2_get_timestamp(&(frame->timestamp));
 		frame->sequence = usbvision->frame_num;
@@ -1175,11 +1421,14 @@ static void usbvision_parse_data(struct usb_usbvision *usbvision)
 		usbvision->frame_num++;
 
 		/* This will cause the process to request another frame. */
-		if (waitqueue_active(&usbvision->wait_frame)) {
+		if (waitqueue_active(&usbvision->wait_frame))
+		{
 			PDEBUG(DBG_PARSE, "Wake up !");
 			wake_up_interruptible(&usbvision->wait_frame);
 		}
-	} else {
+	}
+	else
+	{
 		frame->grabstate = frame_state_grabbing;
 	}
 
@@ -1192,35 +1441,42 @@ static void usbvision_parse_data(struct usb_usbvision *usbvision)
  * Make all of the blocks of data contiguous
  */
 static int usbvision_compress_isochronous(struct usb_usbvision *usbvision,
-					  struct urb *urb)
+		struct urb *urb)
 {
 	unsigned char *packet_data;
 	int i, totlen = 0;
 
-	for (i = 0; i < urb->number_of_packets; i++) {
+	for (i = 0; i < urb->number_of_packets; i++)
+	{
 		int packet_len = urb->iso_frame_desc[i].actual_length;
 		int packet_stat = urb->iso_frame_desc[i].status;
 
 		packet_data = urb->transfer_buffer + urb->iso_frame_desc[i].offset;
 
 		/* Detect and ignore errored packets */
-		if (packet_stat) {	/* packet_stat != 0 ????????????? */
+		if (packet_stat)  	/* packet_stat != 0 ????????????? */
+		{
 			PDEBUG(DBG_ISOC, "data error: [%d] len=%d, status=%X", i, packet_len, packet_stat);
 			usbvision->isoc_err_count++;
 			continue;
 		}
 
 		/* Detect and ignore empty packets */
-		if (packet_len < 0) {
+		if (packet_len < 0)
+		{
 			PDEBUG(DBG_ISOC, "error packet [%d]", i);
 			usbvision->isoc_skip_count++;
 			continue;
-		} else if (packet_len == 0) {	/* Frame end ????? */
+		}
+		else if (packet_len == 0)  	/* Frame end ????? */
+		{
 			PDEBUG(DBG_ISOC, "null packet [%d]", i);
 			usbvision->isocstate = isoc_state_no_frame;
 			usbvision->isoc_skip_count++;
 			continue;
-		} else if (packet_len > usbvision->isoc_packet_size) {
+		}
+		else if (packet_len > usbvision->isoc_packet_size)
+		{
 			PDEBUG(DBG_ISOC, "packet[%d] > isoc_packet_size", i);
 			usbvision->isoc_skip_count++;
 			continue;
@@ -1228,7 +1484,8 @@ static int usbvision_compress_isochronous(struct usb_usbvision *usbvision,
 
 		PDEBUG(DBG_ISOC, "packet ok [%d] len=%d", i, packet_len);
 
-		if (usbvision->isocstate == isoc_state_no_frame) { /* new frame begins */
+		if (usbvision->isocstate == isoc_state_no_frame)   /* new frame begins */
+		{
 			usbvision->isocstate = isoc_state_in_frame;
 			scratch_mark_header(usbvision);
 			usbvision_measure_bandwidth(usbvision);
@@ -1243,10 +1500,11 @@ static int usbvision_compress_isochronous(struct usb_usbvision *usbvision,
 		 * just drop new data then it's bad for new data... choose
 		 * your favorite evil here.
 		 */
-		if (scratch_free(usbvision) < packet_len) {
+		if (scratch_free(usbvision) < packet_len)
+		{
 			usbvision->scratch_ovf_count++;
 			PDEBUG(DBG_ISOC, "scratch buf overflow! scr_len: %d, n: %d",
-			       scratch_len(usbvision), packet_len);
+				   scratch_len(usbvision), packet_len);
 			scratch_rm_old(usbvision, packet_len - scratch_free(usbvision));
 		}
 
@@ -1256,16 +1514,21 @@ static int usbvision_compress_isochronous(struct usb_usbvision *usbvision,
 		usbvision->isoc_data_count += packet_len;
 		usbvision->isoc_packet_count++;
 	}
+
 #if ENABLE_HEXDUMP
-	if (totlen > 0) {
+
+	if (totlen > 0)
+	{
 		static int foo;
 
-		if (foo < 1) {
+		if (foo < 1)
+		{
 			printk(KERN_DEBUG "+%d.\n", usbvision->scratchlen);
 			usbvision_hexdump(data0, (totlen > 64) ? 64 : totlen);
 			++foo;
 		}
 	}
+
 #endif
 	return totlen;
 }
@@ -1281,21 +1544,29 @@ static void usbvision_isoc_irq(struct urb *urb)
 
 	/* We don't want to do anything if we are about to be removed! */
 	if (!USBVISION_IS_OPERATIONAL(usbvision))
+	{
 		return;
+	}
 
 	/* any urb with wrong status is ignored without acknowledgement */
 	if (urb->status == -ENOENT)
+	{
 		return;
+	}
 
 	f = &usbvision->cur_frame;
 
 	/* Manage streaming interruption */
-	if (usbvision->streaming == stream_interrupt) {
+	if (usbvision->streaming == stream_interrupt)
+	{
 		usbvision->streaming = stream_idle;
-		if ((*f)) {
+
+		if ((*f))
+		{
 			(*f)->grabstate = frame_state_ready;
 			(*f)->scanstate = scan_state_scanning;
 		}
+
 		PDEBUG(DBG_IRQ, "stream interrupted");
 		wake_up_interruptible(&usbvision->wait_stream);
 	}
@@ -1306,31 +1577,40 @@ static void usbvision_isoc_irq(struct urb *urb)
 	usbvision->isoc_urb_count++;
 	usbvision->urb_length = len;
 
-	if (usbvision->streaming == stream_on) {
+	if (usbvision->streaming == stream_on)
+	{
 		/* If we collected enough data let's parse! */
 		if (scratch_len(usbvision) > USBVISION_HEADER_LENGTH &&
-		    !list_empty(&(usbvision->inqueue))) {
-			if (!(*f)) {
+			!list_empty(&(usbvision->inqueue)))
+		{
+			if (!(*f))
+			{
 				(*f) = list_entry(usbvision->inqueue.next,
-						  struct usbvision_frame,
-						  frame);
+								  struct usbvision_frame,
+								  frame);
 			}
+
 			usbvision_parse_data(usbvision);
-		} else {
+		}
+		else
+		{
 			/* If we don't have a frame
 			  we're current working on, complain */
 			PDEBUG(DBG_IRQ,
-			       "received data, but no one needs it");
+				   "received data, but no one needs it");
 			scratch_reset(usbvision);
 		}
-	} else {
+	}
+	else
+	{
 		PDEBUG(DBG_IRQ, "received data, but no one needs it");
 		scratch_reset(usbvision);
 	}
 
 	usbvision->time_in_irq += jiffies - start_time;
 
-	for (i = 0; i < USBVISION_URB_FRAMES; i++) {
+	for (i = 0; i < USBVISION_URB_FRAMES; i++)
+	{
 		urb->iso_frame_desc[i].status = 0;
 		urb->iso_frame_desc[i].actual_length = 0;
 	}
@@ -1339,9 +1619,10 @@ static void usbvision_isoc_irq(struct urb *urb)
 	urb->dev = usbvision->dev;
 	err_code = usb_submit_urb(urb, GFP_ATOMIC);
 
-	if (err_code) {
+	if (err_code)
+	{
 		dev_err(&usbvision->dev->dev,
-			"%s: usb_submit_urb failed: error %d\n",
+				"%s: usb_submit_urb failed: error %d\n",
 				__func__, err_code);
 	}
 
@@ -1365,18 +1646,22 @@ int usbvision_read_reg(struct usb_usbvision *usbvision, unsigned char reg)
 	unsigned char *buffer = usbvision->ctrl_urb_buffer;
 
 	if (!USBVISION_IS_OPERATIONAL(usbvision))
+	{
 		return -1;
+	}
 
 	err_code = usb_control_msg(usbvision->dev, usb_rcvctrlpipe(usbvision->dev, 1),
-				USBVISION_OP_CODE,
-				USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_ENDPOINT,
-				0, (__u16) reg, buffer, 1, HZ);
+							   USBVISION_OP_CODE,
+							   USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_ENDPOINT,
+							   0, (__u16) reg, buffer, 1, HZ);
 
-	if (err_code < 0) {
+	if (err_code < 0)
+	{
 		dev_err(&usbvision->dev->dev,
-			"%s: failed: error %d\n", __func__, err_code);
+				"%s: failed: error %d\n", __func__, err_code);
 		return err_code;
 	}
+
 	return buffer[0];
 }
 
@@ -1389,24 +1674,28 @@ int usbvision_read_reg(struct usb_usbvision *usbvision, unsigned char reg)
  */
 
 int usbvision_write_reg(struct usb_usbvision *usbvision, unsigned char reg,
-			    unsigned char value)
+						unsigned char value)
 {
 	int err_code = 0;
 
 	if (!USBVISION_IS_OPERATIONAL(usbvision))
+	{
 		return 0;
+	}
 
 	usbvision->ctrl_urb_buffer[0] = value;
 	err_code = usb_control_msg(usbvision->dev, usb_sndctrlpipe(usbvision->dev, 1),
-				USBVISION_OP_CODE,
-				USB_DIR_OUT | USB_TYPE_VENDOR |
-				USB_RECIP_ENDPOINT, 0, (__u16) reg,
-				usbvision->ctrl_urb_buffer, 1, HZ);
+							   USBVISION_OP_CODE,
+							   USB_DIR_OUT | USB_TYPE_VENDOR |
+							   USB_RECIP_ENDPOINT, 0, (__u16) reg,
+							   usbvision->ctrl_urb_buffer, 1, HZ);
 
-	if (err_code < 0) {
+	if (err_code < 0)
+	{
 		dev_err(&usbvision->dev->dev,
-			"%s: failed: error %d\n", __func__, err_code);
+				"%s: failed: error %d\n", __func__, err_code);
 	}
+
 	return err_code;
 }
 
@@ -1417,21 +1706,31 @@ static void usbvision_ctrl_urb_complete(struct urb *urb)
 
 	PDEBUG(DBG_IRQ, "");
 	usbvision->ctrl_urb_busy = 0;
+
 	if (waitqueue_active(&usbvision->ctrl_urb_wq))
+	{
 		wake_up_interruptible(&usbvision->ctrl_urb_wq);
+	}
 }
 
 
 static int usbvision_write_reg_irq(struct usb_usbvision *usbvision, int address,
-				unsigned char *data, int len)
+								   unsigned char *data, int len)
 {
 	int err_code = 0;
 
 	PDEBUG(DBG_IRQ, "");
+
 	if (len > 8)
+	{
 		return -EFAULT;
+	}
+
 	if (usbvision->ctrl_urb_busy)
+	{
 		return -EBUSY;
+	}
+
 	usbvision->ctrl_urb_busy = 1;
 
 	usbvision->ctrl_urb_setup.bRequestType = USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_ENDPOINT;
@@ -1440,19 +1739,22 @@ static int usbvision_write_reg_irq(struct usb_usbvision *usbvision, int address,
 	usbvision->ctrl_urb_setup.wIndex       = cpu_to_le16(address);
 	usbvision->ctrl_urb_setup.wLength      = cpu_to_le16(len);
 	usb_fill_control_urb(usbvision->ctrl_urb, usbvision->dev,
-							usb_sndctrlpipe(usbvision->dev, 1),
-							(unsigned char *)&usbvision->ctrl_urb_setup,
-							(void *)usbvision->ctrl_urb_buffer, len,
-							usbvision_ctrl_urb_complete,
-							(void *)usbvision);
+						 usb_sndctrlpipe(usbvision->dev, 1),
+						 (unsigned char *)&usbvision->ctrl_urb_setup,
+						 (void *)usbvision->ctrl_urb_buffer, len,
+						 usbvision_ctrl_urb_complete,
+						 (void *)usbvision);
 
 	memcpy(usbvision->ctrl_urb_buffer, data, len);
 
 	err_code = usb_submit_urb(usbvision->ctrl_urb, GFP_ATOMIC);
-	if (err_code < 0) {
+
+	if (err_code < 0)
+	{
 		/* error in usb_submit_urb() */
 		usbvision->ctrl_urb_busy = 0;
 	}
+
 	PDEBUG(DBG_IRQ, "submit %d byte: error %d", len, err_code);
 	return err_code;
 }
@@ -1479,15 +1781,19 @@ static int usbvision_init_compression(struct usb_usbvision *usbvision)
  */
 static int usbvision_measure_bandwidth(struct usb_usbvision *usbvision)
 {
-	if (usbvision->isoc_measure_bandwidth_count < 2) { /* this gives an average bandwidth of 3 frames */
+	if (usbvision->isoc_measure_bandwidth_count < 2)   /* this gives an average bandwidth of 3 frames */
+	{
 		usbvision->isoc_measure_bandwidth_count++;
 		return 0;
 	}
-	if ((usbvision->isoc_packet_size > 0) && (usbvision->isoc_packet_count > 0)) {
+
+	if ((usbvision->isoc_packet_size > 0) && (usbvision->isoc_packet_count > 0))
+	{
 		usbvision->used_bandwidth = usbvision->isoc_data_count /
-					(usbvision->isoc_packet_count + usbvision->isoc_skip_count) *
-					100 / usbvision->isoc_packet_size;
+									(usbvision->isoc_packet_count + usbvision->isoc_skip_count) *
+									100 / usbvision->isoc_packet_size;
 	}
+
 	usbvision->isoc_measure_bandwidth_count = 0;
 	usbvision->isoc_data_count = 0;
 	usbvision->isoc_packet_count = 0;
@@ -1501,13 +1807,18 @@ static int usbvision_adjust_compression(struct usb_usbvision *usbvision)
 	unsigned char buffer[6];
 
 	PDEBUG(DBG_IRQ, "");
-	if ((adjust_compression) && (usbvision->used_bandwidth > 0)) {
+
+	if ((adjust_compression) && (usbvision->used_bandwidth > 0))
+	{
 		usbvision->compr_level += (usbvision->used_bandwidth - 90) / 2;
 		RESTRICT_TO_RANGE(usbvision->compr_level, 0, 100);
-		if (usbvision->compr_level != usbvision->last_compr_level) {
+
+		if (usbvision->compr_level != usbvision->last_compr_level)
+		{
 			int distortion;
 
-			if (usbvision->bridge_type == BRIDGE_NT1004 || usbvision->bridge_type == BRIDGE_NT1005) {
+			if (usbvision->bridge_type == BRIDGE_NT1004 || usbvision->bridge_type == BRIDGE_NT1005)
+			{
 				buffer[0] = (unsigned char)(4 + 16 * usbvision->compr_level / 100);	/* PCM Threshold 1 */
 				buffer[1] = (unsigned char)(4 + 8 * usbvision->compr_level / 100);	/* PCM Threshold 2 */
 				distortion = 7 + 248 * usbvision->compr_level / 100;
@@ -1516,7 +1827,9 @@ static int usbvision_adjust_compression(struct usb_usbvision *usbvision)
 				distortion = 1 + 42 * usbvision->compr_level / 100;
 				buffer[4] = (unsigned char)(distortion & 0xFF);				/* Maximum distortion Threshold (inter) */
 				buffer[5] = (unsigned char)(distortion & 0xFF);				/* Maximum distortion Threshold (intra) */
-			} else { /* BRIDGE_NT1003 */
+			}
+			else     /* BRIDGE_NT1003 */
+			{
 				buffer[0] = (unsigned char)(4 + 16 * usbvision->compr_level / 100);	/* PCM threshold 1 */
 				buffer[1] = (unsigned char)(4 + 8 * usbvision->compr_level / 100);	/* PCM threshold 2 */
 				distortion = 2 + 253 * usbvision->compr_level / 100;
@@ -1526,14 +1839,18 @@ static int usbvision_adjust_compression(struct usb_usbvision *usbvision)
 				buffer[4] = (unsigned char)(distortion & 0xFF);				/* maximum distortion bit0-7 */
 				buffer[5] = 0; /* (unsigned char)((distortion >> 8) & 0x01);		maximum distortion bit 8 */
 			}
+
 			err_code = usbvision_write_reg_irq(usbvision, USBVISION_PCM_THR1, buffer, 6);
-			if (err_code == 0) {
+
+			if (err_code == 0)
+			{
 				PDEBUG(DBG_IRQ, "new compr params %#02x %#02x %#02x %#02x %#02x %#02x", buffer[0],
-								buffer[1], buffer[2], buffer[3], buffer[4], buffer[5]);
+					   buffer[1], buffer[2], buffer[3], buffer[4], buffer[5]);
 				usbvision->last_compr_level = usbvision->compr_level;
 			}
 		}
 	}
+
 	return err_code;
 }
 
@@ -1570,8 +1887,12 @@ int usbvision_power_off(struct usb_usbvision *usbvision)
 	PDEBUG(DBG_FUNC, "");
 
 	err_code = usbvision_write_reg(usbvision, USBVISION_PWR_REG, USBVISION_SSPND_EN);
+
 	if (err_code == 1)
+	{
 		usbvision->power = 0;
+	}
+
 	PDEBUG(DBG_FUNC, "%s: err_code %d", (err_code != 1) ? "ERROR" : "power is off", err_code);
 	return err_code;
 }
@@ -1581,7 +1902,8 @@ static int usbvision_init_webcam(struct usb_usbvision *usbvision)
 {
 	int rc;
 	int i;
-	static char init_values[38][3] = {
+	static char init_values[38][3] =
+	{
 		{ 0x04, 0x12, 0x08 }, { 0x05, 0xff, 0xc8 }, { 0x06, 0x18, 0x07 }, { 0x07, 0x90, 0x00 },
 		{ 0x09, 0x00, 0x00 }, { 0x0a, 0x00, 0x00 }, { 0x0b, 0x08, 0x00 }, { 0x0d, 0xcc, 0xcc },
 		{ 0x0e, 0x13, 0x14 }, { 0x10, 0x9b, 0x83 }, { 0x11, 0x5a, 0x3f }, { 0x12, 0xe4, 0x73 },
@@ -1597,20 +1919,27 @@ static int usbvision_init_webcam(struct usb_usbvision *usbvision)
 
 	/* the only difference between PAL and NTSC init_values */
 	if (usbvision_device_data[usbvision->dev_model].video_norm == V4L2_STD_NTSC)
+	{
 		init_values[4][1] = 0x34;
+	}
 
-	for (i = 0; i < sizeof(init_values) / 3; i++) {
+	for (i = 0; i < sizeof(init_values) / 3; i++)
+	{
 		usbvision_write_reg(usbvision, USBVISION_SER_MODE, USBVISION_SER_MODE_SOFT);
 		memcpy(value, init_values[i], 3);
 		rc = usb_control_msg(usbvision->dev,
-				     usb_sndctrlpipe(usbvision->dev, 1),
-				     USBVISION_OP_CODE,
-				     USB_DIR_OUT | USB_TYPE_VENDOR |
-				     USB_RECIP_ENDPOINT, 0,
-				     (__u16) USBVISION_SER_DAT1, value,
-				     3, HZ);
+							 usb_sndctrlpipe(usbvision->dev, 1),
+							 USBVISION_OP_CODE,
+							 USB_DIR_OUT | USB_TYPE_VENDOR |
+							 USB_RECIP_ENDPOINT, 0,
+							 (__u16) USBVISION_SER_DAT1, value,
+							 3, HZ);
+
 		if (rc < 0)
+		{
 			return rc;
+		}
+
 		usbvision_write_reg(usbvision, USBVISION_SER_MODE, USBVISION_SER_MODE_SIO);
 		/* write 3 bytes to the serial port using SIO mode */
 		usbvision_write_reg(usbvision, USBVISION_SER_CONT, 3 | 0x10);
@@ -1636,29 +1965,35 @@ static int usbvision_set_video_format(struct usb_usbvision *usbvision, int forma
 	int rc;
 
 	if (!USBVISION_IS_OPERATIONAL(usbvision))
+	{
 		return 0;
+	}
 
 	PDEBUG(DBG_FUNC, "isoc_mode %#02x", format);
 
 	if ((format != ISOC_MODE_YUV422)
-	    && (format != ISOC_MODE_YUV420)
-	    && (format != ISOC_MODE_COMPRESS)) {
+		&& (format != ISOC_MODE_YUV420)
+		&& (format != ISOC_MODE_COMPRESS))
+	{
 		printk(KERN_ERR "usbvision: unknown video format %02x, using default YUV420",
-		       format);
+			   format);
 		format = ISOC_MODE_YUV420;
 	}
+
 	value[0] = 0x0A;  /* TODO: See the effect of the filter */
 	value[1] = format; /* Sets the VO_MODE register which follows FILT_CONT */
 	rc = usb_control_msg(usbvision->dev, usb_sndctrlpipe(usbvision->dev, 1),
-			     USBVISION_OP_CODE,
-			     USB_DIR_OUT | USB_TYPE_VENDOR |
-			     USB_RECIP_ENDPOINT, 0,
-			     (__u16) USBVISION_FILT_CONT, value, 2, HZ);
+						 USBVISION_OP_CODE,
+						 USB_DIR_OUT | USB_TYPE_VENDOR |
+						 USB_RECIP_ENDPOINT, 0,
+						 (__u16) USBVISION_FILT_CONT, value, 2, HZ);
 
-	if (rc < 0) {
+	if (rc < 0)
+	{
 		printk(KERN_ERR "%s: ERROR=%d. USBVISION stopped - "
-		       "reconnect or reload driver.\n", proc, rc);
+			   "reconnect or reload driver.\n", proc, rc);
 	}
+
 	usbvision->isoc_mode = format;
 	return rc;
 }
@@ -1669,7 +2004,7 @@ static int usbvision_set_video_format(struct usb_usbvision *usbvision, int forma
  */
 
 int usbvision_set_output(struct usb_usbvision *usbvision, int width,
-			 int height)
+						 int height)
 {
 	int err_code = 0;
 	int usb_width, usb_height;
@@ -1677,65 +2012,86 @@ int usbvision_set_output(struct usb_usbvision *usbvision, int width,
 	unsigned char *value = usbvision->ctrl_urb_buffer;
 
 	if (!USBVISION_IS_OPERATIONAL(usbvision))
+	{
 		return 0;
+	}
 
-	if (width > MAX_USB_WIDTH) {
+	if (width > MAX_USB_WIDTH)
+	{
 		usb_width = width / 2;
 		usbvision->stretch_width = 2;
-	} else {
+	}
+	else
+	{
 		usb_width = width;
 		usbvision->stretch_width = 1;
 	}
 
-	if (height > MAX_USB_HEIGHT) {
+	if (height > MAX_USB_HEIGHT)
+	{
 		usb_height = height / 2;
 		usbvision->stretch_height = 2;
-	} else {
+	}
+	else
+	{
 		usb_height = height;
 		usbvision->stretch_height = 1;
 	}
 
 	RESTRICT_TO_RANGE(usb_width, MIN_FRAME_WIDTH, MAX_USB_WIDTH);
-	usb_width &= ~(MIN_FRAME_WIDTH-1);
+	usb_width &= ~(MIN_FRAME_WIDTH - 1);
 	RESTRICT_TO_RANGE(usb_height, MIN_FRAME_HEIGHT, MAX_USB_HEIGHT);
 	usb_height &= ~(1);
 
 	PDEBUG(DBG_FUNC, "usb %dx%d; screen %dx%d; stretch %dx%d",
-						usb_width, usb_height, width, height,
-						usbvision->stretch_width, usbvision->stretch_height);
+		   usb_width, usb_height, width, height,
+		   usbvision->stretch_width, usbvision->stretch_height);
 
 	/* I'll not rewrite the same values */
-	if ((usb_width != usbvision->curwidth) || (usb_height != usbvision->curheight)) {
+	if ((usb_width != usbvision->curwidth) || (usb_height != usbvision->curheight))
+	{
 		value[0] = usb_width & 0xff;		/* LSB */
 		value[1] = (usb_width >> 8) & 0x03;	/* MSB */
 		value[2] = usb_height & 0xff;		/* LSB */
 		value[3] = (usb_height >> 8) & 0x03;	/* MSB */
 
 		err_code = usb_control_msg(usbvision->dev, usb_sndctrlpipe(usbvision->dev, 1),
-			     USBVISION_OP_CODE,
-			     USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_ENDPOINT,
-				 0, (__u16) USBVISION_LXSIZE_O, value, 4, HZ);
+								   USBVISION_OP_CODE,
+								   USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_ENDPOINT,
+								   0, (__u16) USBVISION_LXSIZE_O, value, 4, HZ);
 
-		if (err_code < 0) {
+		if (err_code < 0)
+		{
 			dev_err(&usbvision->dev->dev,
-				"%s failed: error %d\n", __func__, err_code);
+					"%s failed: error %d\n", __func__, err_code);
 			return err_code;
 		}
+
 		usbvision->curwidth = usbvision->stretch_width * usb_width;
 		usbvision->curheight = usbvision->stretch_height * usb_height;
 	}
 
 	if (usbvision->isoc_mode == ISOC_MODE_YUV422)
+	{
 		frame_rate = (usbvision->isoc_packet_size * 1000) / (usb_width * usb_height * 2);
+	}
 	else if (usbvision->isoc_mode == ISOC_MODE_YUV420)
+	{
 		frame_rate = (usbvision->isoc_packet_size * 1000) / ((usb_width * usb_height * 12) / 8);
+	}
 	else
+	{
 		frame_rate = FRAMERATE_MAX;
+	}
 
 	if (usbvision->tvnorm_id & V4L2_STD_625_50)
+	{
 		frame_drop = frame_rate * 32 / 25 - 1;
+	}
 	else if (usbvision->tvnorm_id & V4L2_STD_525_60)
+	{
 		frame_drop = frame_rate * 32 / 30 - 1;
+	}
 
 	RESTRICT_TO_RANGE(frame_drop, FRAMERATE_MIN, FRAMERATE_MAX);
 
@@ -1743,11 +2099,16 @@ int usbvision_set_output(struct usb_usbvision *usbvision, int width,
 
 	frame_drop = FRAMERATE_MAX;	/* We can allow the maximum here, because dropping is controlled */
 
-	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM) {
+	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM)
+	{
 		if (usbvision_device_data[usbvision->dev_model].video_norm == V4L2_STD_PAL)
+		{
 			frame_drop = 25;
+		}
 		else
+		{
 			frame_drop = 30;
+		}
 	}
 
 	/* frame_drop = 7; => frame_phase = 1, 5, 9, 13, 17, 21, 25, 0, 4, 8, ...
@@ -1773,25 +2134,32 @@ int usbvision_frames_alloc(struct usb_usbvision *usbvision, int number_of_frames
 
 	/* needs to be page aligned cause the buffers can be mapped individually! */
 	usbvision->max_frame_size = PAGE_ALIGN(usbvision->curwidth *
-						usbvision->curheight *
-						usbvision->palette.bytes_per_pixel);
+										   usbvision->curheight *
+										   usbvision->palette.bytes_per_pixel);
 
 	/* Try to do my best to allocate the frames the user want in the remaining memory */
 	usbvision->num_frames = number_of_frames;
-	while (usbvision->num_frames > 0) {
+
+	while (usbvision->num_frames > 0)
+	{
 		usbvision->fbuf_size = usbvision->num_frames * usbvision->max_frame_size;
 		usbvision->fbuf = usbvision_rvmalloc(usbvision->fbuf_size);
+
 		if (usbvision->fbuf)
+		{
 			break;
+		}
+
 		usbvision->num_frames--;
 	}
 
 	/* Allocate all buffers */
-	for (i = 0; i < usbvision->num_frames; i++) {
+	for (i = 0; i < usbvision->num_frames; i++)
+	{
 		usbvision->frame[i].index = i;
 		usbvision->frame[i].grabstate = frame_state_unused;
 		usbvision->frame[i].data = usbvision->fbuf +
-			i * usbvision->max_frame_size;
+								   i * usbvision->max_frame_size;
 		/*
 		 * Set default sizes for read operation.
 		 */
@@ -1801,8 +2169,9 @@ int usbvision_frames_alloc(struct usb_usbvision *usbvision, int number_of_frames
 		usbvision->frame[i].height = usbvision->curheight;
 		usbvision->frame[i].bytes_read = 0;
 	}
+
 	PDEBUG(DBG_FUNC, "allocated %d frames (%d bytes per frame)",
-			usbvision->num_frames, usbvision->max_frame_size);
+		   usbvision->num_frames, usbvision->max_frame_size);
 	return usbvision->num_frames;
 }
 
@@ -1815,7 +2184,8 @@ void usbvision_frames_free(struct usb_usbvision *usbvision)
 	/* Have to free all that memory */
 	PDEBUG(DBG_FUNC, "free %d frames", usbvision->num_frames);
 
-	if (usbvision->fbuf != NULL) {
+	if (usbvision->fbuf != NULL)
+	{
 		usbvision_rvfree(usbvision->fbuf, usbvision->fbuf_size);
 		usbvision->fbuf = NULL;
 
@@ -1833,7 +2203,8 @@ void usbvision_empty_framequeues(struct usb_usbvision *usbvision)
 	INIT_LIST_HEAD(&(usbvision->inqueue));
 	INIT_LIST_HEAD(&(usbvision->outqueue));
 
-	for (i = 0; i < USBVISION_NUMFRAMES; i++) {
+	for (i = 0; i < USBVISION_NUMFRAMES; i++)
+	{
 		usbvision->frame[i].grabstate = frame_state_unused;
 		usbvision->frame[i].bytes_read = 0;
 	}
@@ -1851,8 +2222,8 @@ int usbvision_stream_interrupt(struct usb_usbvision *usbvision)
 
 	usbvision->streaming = stream_interrupt;
 	ret = wait_event_timeout(usbvision->wait_stream,
-				 (usbvision->streaming == stream_idle),
-				 msecs_to_jiffies(USBVISION_NUMSBUF*USBVISION_URB_FRAMES));
+							 (usbvision->streaming == stream_idle),
+							 msecs_to_jiffies(USBVISION_NUMSBUF * USBVISION_URB_FRAMES));
 	return ret;
 }
 
@@ -1881,28 +2252,34 @@ static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
 	/* value[3] = 0x00; Strip size 400 Bytes; do not force up */
 	/* value[4] = 0xA2; */
 	if (!USBVISION_IS_OPERATIONAL(usbvision))
+	{
 		return 0;
+	}
 
 	rc = usb_control_msg(usbvision->dev, usb_sndctrlpipe(usbvision->dev, 1),
-			     USBVISION_OP_CODE,
-			     USB_DIR_OUT | USB_TYPE_VENDOR |
-			     USB_RECIP_ENDPOINT, 0,
-			     (__u16) USBVISION_INTRA_CYC, value, 5, HZ);
+						 USBVISION_OP_CODE,
+						 USB_DIR_OUT | USB_TYPE_VENDOR |
+						 USB_RECIP_ENDPOINT, 0,
+						 (__u16) USBVISION_INTRA_CYC, value, 5, HZ);
 
-	if (rc < 0) {
+	if (rc < 0)
+	{
 		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - "
-		       "reconnect or reload driver.\n", proc, rc);
+			   "reconnect or reload driver.\n", proc, rc);
 		return rc;
 	}
 
-	if (usbvision->bridge_type == BRIDGE_NT1004) {
+	if (usbvision->bridge_type == BRIDGE_NT1004)
+	{
 		value[0] =  20; /* PCM Threshold 1 */
 		value[1] =  12; /* PCM Threshold 2 */
 		value[2] = 255; /* Distortion Threshold inter */
 		value[3] = 255; /* Distortion Threshold intra */
 		value[4] =  43; /* Max Distortion inter */
 		value[5] =  43; /* Max Distortion intra */
-	} else {
+	}
+	else
+	{
 		value[0] =  20; /* PCM Threshold 1 */
 		value[1] =  12; /* PCM Threshold 2 */
 		value[2] = 255; /* Distortion Threshold d7-d0 */
@@ -1912,18 +2289,22 @@ static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
 	}
 
 	if (!USBVISION_IS_OPERATIONAL(usbvision))
+	{
 		return 0;
+	}
 
 	rc = usb_control_msg(usbvision->dev, usb_sndctrlpipe(usbvision->dev, 1),
-			     USBVISION_OP_CODE,
-			     USB_DIR_OUT | USB_TYPE_VENDOR |
-			     USB_RECIP_ENDPOINT, 0,
-			     (__u16) USBVISION_PCM_THR1, value, 6, HZ);
+						 USBVISION_OP_CODE,
+						 USB_DIR_OUT | USB_TYPE_VENDOR |
+						 USB_RECIP_ENDPOINT, 0,
+						 (__u16) USBVISION_PCM_THR1, value, 6, HZ);
 
-	if (rc < 0) {
+	if (rc < 0)
+	{
 		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - "
-		       "reconnect or reload driver.\n", proc, rc);
+			   "reconnect or reload driver.\n", proc, rc);
 	}
+
 	return rc;
 }
 
@@ -1943,15 +2324,22 @@ int usbvision_set_input(struct usb_usbvision *usbvision)
 	unsigned char dvi_yuv_value;
 
 	if (!USBVISION_IS_OPERATIONAL(usbvision))
+	{
 		return 0;
+	}
 
 	/* Set input format expected from decoder*/
-	if (usbvision_device_data[usbvision->dev_model].vin_reg1_override) {
+	if (usbvision_device_data[usbvision->dev_model].vin_reg1_override)
+	{
 		value[0] = usbvision_device_data[usbvision->dev_model].vin_reg1;
-	} else if (usbvision_device_data[usbvision->dev_model].codec == CODEC_SAA7113) {
+	}
+	else if (usbvision_device_data[usbvision->dev_model].codec == CODEC_SAA7113)
+	{
 		/* SAA7113 uses 8 bit output */
 		value[0] = USBVISION_8_422_SYNC;
-	} else {
+	}
+	else
+	{
 		/* I'm sure only about d2-d0 [010] 16 bit 4:2:2 usin sync pulses
 		 * as that is how saa7111 is configured */
 		value[0] = USBVISION_16_422_SYNC;
@@ -1959,14 +2347,17 @@ int usbvision_set_input(struct usb_usbvision *usbvision)
 	}
 
 	rc = usbvision_write_reg(usbvision, USBVISION_VIN_REG1, value[0]);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - "
-		       "reconnect or reload driver.\n", proc, rc);
+			   "reconnect or reload driver.\n", proc, rc);
 		return rc;
 	}
 
 
-	if (usbvision->tvnorm_id & V4L2_STD_PAL) {
+	if (usbvision->tvnorm_id & V4L2_STD_PAL)
+	{
 		value[0] = 0xC0;
 		value[1] = 0x02;	/* 0x02C0 -> 704 Input video line length */
 		value[2] = 0x20;
@@ -1975,7 +2366,9 @@ int usbvision_set_input(struct usb_usbvision *usbvision)
 		value[5] = 0x00;	/* 0x0060 -> 96 Input video h offset */
 		value[6] = 0x16;
 		value[7] = 0x00;	/* 0x0016 -> 22 Input video v offset */
-	} else if (usbvision->tvnorm_id & V4L2_STD_SECAM) {
+	}
+	else if (usbvision->tvnorm_id & V4L2_STD_SECAM)
+	{
 		value[0] = 0xC0;
 		value[1] = 0x02;	/* 0x02C0 -> 704 Input video line length */
 		value[2] = 0x20;
@@ -1984,7 +2377,9 @@ int usbvision_set_input(struct usb_usbvision *usbvision)
 		value[5] = 0x00;	/* 0x0001 -> 01 Input video h offset */
 		value[6] = 0x01;
 		value[7] = 0x00;	/* 0x0001 -> 01 Input video v offset */
-	} else {	/* V4L2_STD_NTSC */
+	}
+	else  	/* V4L2_STD_NTSC */
+	{
 		value[0] = 0xD0;
 		value[1] = 0x02;	/* 0x02D0 -> 720 Input video line length */
 		value[2] = 0xF0;
@@ -1996,47 +2391,57 @@ int usbvision_set_input(struct usb_usbvision *usbvision)
 	}
 
 	/* webcam is only 480 pixels wide, both PAL and NTSC version */
-	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM) {
+	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM)
+	{
 		value[0] = 0xe0;
 		value[1] = 0x01;	/* 0x01E0 -> 480 Input video line length */
 	}
 
-	if (usbvision_device_data[usbvision->dev_model].x_offset >= 0) {
+	if (usbvision_device_data[usbvision->dev_model].x_offset >= 0)
+	{
 		value[4] = usbvision_device_data[usbvision->dev_model].x_offset & 0xff;
 		value[5] = (usbvision_device_data[usbvision->dev_model].x_offset & 0x0300) >> 8;
 	}
 
-	if (adjust_x_offset != -1) {
+	if (adjust_x_offset != -1)
+	{
 		value[4] = adjust_x_offset & 0xff;
 		value[5] = (adjust_x_offset & 0x0300) >> 8;
 	}
 
-	if (usbvision_device_data[usbvision->dev_model].y_offset >= 0) {
+	if (usbvision_device_data[usbvision->dev_model].y_offset >= 0)
+	{
 		value[6] = usbvision_device_data[usbvision->dev_model].y_offset & 0xff;
 		value[7] = (usbvision_device_data[usbvision->dev_model].y_offset & 0x0300) >> 8;
 	}
 
-	if (adjust_y_offset != -1) {
+	if (adjust_y_offset != -1)
+	{
 		value[6] = adjust_y_offset & 0xff;
 		value[7] = (adjust_y_offset & 0x0300) >> 8;
 	}
 
 	rc = usb_control_msg(usbvision->dev, usb_sndctrlpipe(usbvision->dev, 1),
-			     USBVISION_OP_CODE,	/* USBVISION specific code */
-			     USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_ENDPOINT, 0,
-			     (__u16) USBVISION_LXSIZE_I, value, 8, HZ);
-	if (rc < 0) {
+						 USBVISION_OP_CODE,	/* USBVISION specific code */
+						 USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_ENDPOINT, 0,
+						 (__u16) USBVISION_LXSIZE_I, value, 8, HZ);
+
+	if (rc < 0)
+	{
 		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - "
-		       "reconnect or reload driver.\n", proc, rc);
+			   "reconnect or reload driver.\n", proc, rc);
 		return rc;
 	}
 
 
 	dvi_yuv_value = 0x00;	/* U comes after V, Ya comes after U/V, Yb comes after Yb */
 
-	if (usbvision_device_data[usbvision->dev_model].dvi_yuv_override) {
+	if (usbvision_device_data[usbvision->dev_model].dvi_yuv_override)
+	{
 		dvi_yuv_value = usbvision_device_data[usbvision->dev_model].dvi_yuv;
-	} else if (usbvision_device_data[usbvision->dev_model].codec == CODEC_SAA7113) {
+	}
+	else if (usbvision_device_data[usbvision->dev_model].codec == CODEC_SAA7113)
+	{
 		/* This changes as the fine sync control changes. Further investigation necessary */
 		dvi_yuv_value = 0x06;
 	}
@@ -2058,7 +2463,8 @@ static int usbvision_set_dram_settings(struct usb_usbvision *usbvision)
 	unsigned char *value = usbvision->ctrl_urb_buffer;
 	int rc;
 
-	if (usbvision->isoc_mode == ISOC_MODE_COMPRESS) {
+	if (usbvision->isoc_mode == ISOC_MODE_COMPRESS)
+	{
 		value[0] = 0x42;
 		value[1] = 0x71;
 		value[2] = 0xff;
@@ -2070,7 +2476,9 @@ static int usbvision_set_dram_settings(struct usb_usbvision *usbvision)
 		/* UR:  0x0E200-0x3FFFF = 204288 Words (1 Word = 2 Byte) */
 		/* FDL: 0x00000-0x0E099 =  57498 Words */
 		/* VDW: 0x0E3FF-0x3FFFF */
-	} else {
+	}
+	else
+	{
 		value[0] = 0x42;
 		value[1] = 0x00;
 		value[2] = 0xff;
@@ -2080,6 +2488,7 @@ static int usbvision_set_dram_settings(struct usb_usbvision *usbvision)
 		value[6] = 0x00;
 		value[7] = 0xff;
 	}
+
 	/* These are the values of the address of the video buffer,
 	 * they have to be loaded into the USBVISION_DRM_PRM1-8
 	 *
@@ -2094,24 +2503,31 @@ static int usbvision_set_dram_settings(struct usb_usbvision *usbvision)
 	 */
 
 	if (!USBVISION_IS_OPERATIONAL(usbvision))
+	{
 		return 0;
+	}
 
 	rc = usb_control_msg(usbvision->dev, usb_sndctrlpipe(usbvision->dev, 1),
-			     USBVISION_OP_CODE,	/* USBVISION specific code */
-			     USB_DIR_OUT | USB_TYPE_VENDOR |
-			     USB_RECIP_ENDPOINT, 0,
-			     (__u16) USBVISION_DRM_PRM1, value, 8, HZ);
+						 USBVISION_OP_CODE,	/* USBVISION specific code */
+						 USB_DIR_OUT | USB_TYPE_VENDOR |
+						 USB_RECIP_ENDPOINT, 0,
+						 (__u16) USBVISION_DRM_PRM1, value, 8, HZ);
 
-	if (rc < 0) {
+	if (rc < 0)
+	{
 		dev_err(&usbvision->dev->dev, "%s: ERROR=%d\n", __func__, rc);
 		return rc;
 	}
 
 	/* Restart the video buffer logic */
 	rc = usbvision_write_reg(usbvision, USBVISION_DRM_CONT, USBVISION_RES_UR |
-				   USBVISION_RES_FDL | USBVISION_RES_VDW);
+							 USBVISION_RES_FDL | USBVISION_RES_VDW);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
+
 	rc = usbvision_write_reg(usbvision, USBVISION_DRM_CONT, 0x00);
 
 	return rc;
@@ -2133,21 +2549,27 @@ int usbvision_power_on(struct usb_usbvision *usbvision)
 
 	usbvision_write_reg(usbvision, USBVISION_PWR_REG, USBVISION_SSPND_EN);
 	usbvision_write_reg(usbvision, USBVISION_PWR_REG,
-			USBVISION_SSPND_EN | USBVISION_RES2);
+						USBVISION_SSPND_EN | USBVISION_RES2);
 
-	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM) {
+	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM)
+	{
 		usbvision_write_reg(usbvision, USBVISION_VIN_REG1,
-				USBVISION_16_422_SYNC | USBVISION_HVALID_PO);
+							USBVISION_16_422_SYNC | USBVISION_HVALID_PO);
 		usbvision_write_reg(usbvision, USBVISION_VIN_REG2,
-				USBVISION_NOHVALID | USBVISION_KEEP_BLANK);
+							USBVISION_NOHVALID | USBVISION_KEEP_BLANK);
 	}
+
 	usbvision_write_reg(usbvision, USBVISION_PWR_REG,
-			USBVISION_SSPND_EN | USBVISION_PWR_VID);
+						USBVISION_SSPND_EN | USBVISION_PWR_VID);
 	mdelay(10);
 	err_code = usbvision_write_reg(usbvision, USBVISION_PWR_REG,
-			USBVISION_SSPND_EN | USBVISION_PWR_VID | USBVISION_RES2);
+								   USBVISION_SSPND_EN | USBVISION_PWR_VID | USBVISION_RES2);
+
 	if (err_code == 1)
+	{
 		usbvision->power = 1;
+	}
+
 	PDEBUG(DBG_FUNC, "%s: err_code %d", (err_code < 0) ? "ERROR" : "power is on", err_code);
 	return err_code;
 }
@@ -2161,9 +2583,12 @@ int usbvision_power_on(struct usb_usbvision *usbvision)
 int usbvision_begin_streaming(struct usb_usbvision *usbvision)
 {
 	if (usbvision->isoc_mode == ISOC_MODE_COMPRESS)
+	{
 		usbvision_init_compression(usbvision);
+	}
+
 	return usbvision_write_reg(usbvision, USBVISION_VIN_REG2,
-		USBVISION_NOHVALID | usbvision->vin_reg2_preset);
+							   USBVISION_NOHVALID | usbvision->vin_reg2_preset);
 }
 
 /*
@@ -2176,19 +2601,30 @@ int usbvision_restart_isoc(struct usb_usbvision *usbvision)
 	int ret;
 
 	ret = usbvision_write_reg(usbvision, USBVISION_PWR_REG,
-			      USBVISION_SSPND_EN | USBVISION_PWR_VID);
+							  USBVISION_SSPND_EN | USBVISION_PWR_VID);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	ret = usbvision_write_reg(usbvision, USBVISION_PWR_REG,
-			      USBVISION_SSPND_EN | USBVISION_PWR_VID |
-			      USBVISION_RES2);
+							  USBVISION_SSPND_EN | USBVISION_PWR_VID |
+							  USBVISION_RES2);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	ret = usbvision_write_reg(usbvision, USBVISION_VIN_REG2,
-			      USBVISION_KEEP_BLANK | USBVISION_NOHVALID |
-				  usbvision->vin_reg2_preset);
+							  USBVISION_KEEP_BLANK | USBVISION_NOHVALID |
+							  usbvision->vin_reg2_preset);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* TODO: schedule timeout */
 	while ((usbvision_read_reg(usbvision, USBVISION_STATUS_REG) & 0x01) != 1)
@@ -2199,10 +2635,12 @@ int usbvision_restart_isoc(struct usb_usbvision *usbvision)
 
 int usbvision_audio_off(struct usb_usbvision *usbvision)
 {
-	if (usbvision_write_reg(usbvision, USBVISION_IOPIN_REG, USBVISION_AUDIO_MUTE) < 0) {
+	if (usbvision_write_reg(usbvision, USBVISION_IOPIN_REG, USBVISION_AUDIO_MUTE) < 0)
+	{
 		printk(KERN_ERR "usbvision_audio_off: can't write reg\n");
 		return -1;
 	}
+
 	usbvision->audio_mute = 0;
 	usbvision->audio_channel = USBVISION_AUDIO_MUTE;
 	return 0;
@@ -2210,12 +2648,15 @@ int usbvision_audio_off(struct usb_usbvision *usbvision)
 
 int usbvision_set_audio(struct usb_usbvision *usbvision, int audio_channel)
 {
-	if (!usbvision->audio_mute) {
-		if (usbvision_write_reg(usbvision, USBVISION_IOPIN_REG, audio_channel) < 0) {
+	if (!usbvision->audio_mute)
+	{
+		if (usbvision_write_reg(usbvision, USBVISION_IOPIN_REG, audio_channel) < 0)
+		{
 			printk(KERN_ERR "usbvision_set_audio: can't write iopin register for audio switching\n");
 			return -1;
 		}
 	}
+
 	usbvision->audio_channel = audio_channel;
 	return 0;
 }
@@ -2223,7 +2664,10 @@ int usbvision_set_audio(struct usb_usbvision *usbvision, int audio_channel)
 int usbvision_setup(struct usb_usbvision *usbvision, int format)
 {
 	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM)
+	{
 		usbvision_init_webcam(usbvision);
+	}
+
 	usbvision_set_video_format(usbvision, format);
 	usbvision_set_dram_settings(usbvision);
 	usbvision_set_compress_params(usbvision);
@@ -2241,18 +2685,24 @@ int usbvision_set_alternate(struct usb_usbvision *dev)
 	int i;
 
 	dev->iface_alt = 0;
+
 	for (i = 0; i < dev->num_alt; i++)
 		if (dev->alt_max_pkt_size[i] > dev->alt_max_pkt_size[dev->iface_alt])
+		{
 			dev->iface_alt = i;
+		}
 
-	if (dev->iface_alt != prev_alt) {
+	if (dev->iface_alt != prev_alt)
+	{
 		dev->isoc_packet_size = dev->alt_max_pkt_size[dev->iface_alt];
 		PDEBUG(DBG_FUNC, "setting alternate %d with max_packet_size=%u",
-				dev->iface_alt, dev->isoc_packet_size);
+			   dev->iface_alt, dev->isoc_packet_size);
 		err_code = usb_set_interface(dev->dev, dev->iface, dev->iface_alt);
-		if (err_code < 0) {
+
+		if (err_code < 0)
+		{
 			dev_err(&dev->dev->dev,
-				"cannot change alternate number to %d (error=%i)\n",
+					"cannot change alternate number to %d (error=%i)\n",
 					dev->iface_alt, err_code);
 			return err_code;
 		}
@@ -2274,43 +2724,53 @@ int usbvision_init_isoc(struct usb_usbvision *usbvision)
 	int sb_size;
 
 	if (!USBVISION_IS_OPERATIONAL(usbvision))
+	{
 		return -EFAULT;
+	}
 
 	usbvision->cur_frame = NULL;
 	scratch_reset(usbvision);
 
 	/* Alternate interface 1 is is the biggest frame size */
 	err_code = usbvision_set_alternate(usbvision);
-	if (err_code < 0) {
+
+	if (err_code < 0)
+	{
 		usbvision->last_error = err_code;
 		return -EBUSY;
 	}
+
 	sb_size = USBVISION_URB_FRAMES * usbvision->isoc_packet_size;
 
 	reg_value = (16 - usbvision_read_reg(usbvision,
-					    USBVISION_ALTER_REG)) & 0x0F;
+										 USBVISION_ALTER_REG)) & 0x0F;
 
 	usbvision->usb_bandwidth = reg_value >> 1;
 	PDEBUG(DBG_ISOC, "USB Bandwidth Usage: %dMbit/Sec",
-	       usbvision->usb_bandwidth);
+		   usbvision->usb_bandwidth);
 
 
 
 	/* We double buffer the Iso lists */
 
-	for (buf_idx = 0; buf_idx < USBVISION_NUMSBUF; buf_idx++) {
+	for (buf_idx = 0; buf_idx < USBVISION_NUMSBUF; buf_idx++)
+	{
 		int j, k;
 		struct urb *urb;
 
 		urb = usb_alloc_urb(USBVISION_URB_FRAMES, GFP_KERNEL);
+
 		if (urb == NULL)
+		{
 			return -ENOMEM;
+		}
+
 		usbvision->sbuf[buf_idx].urb = urb;
 		usbvision->sbuf[buf_idx].data =
 			usb_alloc_coherent(usbvision->dev,
-					   sb_size,
-					   GFP_KERNEL,
-					   &urb->transfer_dma);
+							   sb_size,
+							   GFP_KERNEL,
+							   &urb->transfer_dma);
 		urb->dev = dev;
 		urb->context = usbvision;
 		urb->pipe = usb_rcvisocpipe(dev, usbvision->video_endp);
@@ -2320,9 +2780,11 @@ int usbvision_init_isoc(struct usb_usbvision *usbvision)
 		urb->complete = usbvision_isoc_irq;
 		urb->number_of_packets = USBVISION_URB_FRAMES;
 		urb->transfer_buffer_length =
-		    usbvision->isoc_packet_size * USBVISION_URB_FRAMES;
+			usbvision->isoc_packet_size * USBVISION_URB_FRAMES;
+
 		for (j = k = 0; j < USBVISION_URB_FRAMES; j++,
-		     k += usbvision->isoc_packet_size) {
+			 k += usbvision->isoc_packet_size)
+		{
 			urb->iso_frame_desc[j].offset = k;
 			urb->iso_frame_desc[j].length =
 				usbvision->isoc_packet_size;
@@ -2330,20 +2792,23 @@ int usbvision_init_isoc(struct usb_usbvision *usbvision)
 	}
 
 	/* Submit all URBs */
-	for (buf_idx = 0; buf_idx < USBVISION_NUMSBUF; buf_idx++) {
+	for (buf_idx = 0; buf_idx < USBVISION_NUMSBUF; buf_idx++)
+	{
 		err_code = usb_submit_urb(usbvision->sbuf[buf_idx].urb,
-					 GFP_KERNEL);
-		if (err_code) {
+								  GFP_KERNEL);
+
+		if (err_code)
+		{
 			dev_err(&usbvision->dev->dev,
-				"%s: usb_submit_urb(%d) failed: error %d\n",
+					"%s: usb_submit_urb(%d) failed: error %d\n",
 					__func__, buf_idx, err_code);
 		}
 	}
 
 	usbvision->streaming = stream_idle;
 	PDEBUG(DBG_ISOC, "%s: streaming=1 usbvision->video_endp=$%02x",
-	       __func__,
-	       usbvision->video_endp);
+		   __func__,
+		   usbvision->video_endp);
 	return 0;
 }
 
@@ -2360,17 +2825,23 @@ void usbvision_stop_isoc(struct usb_usbvision *usbvision)
 	int sb_size = USBVISION_URB_FRAMES * usbvision->isoc_packet_size;
 
 	if ((usbvision->streaming == stream_off) || (usbvision->dev == NULL))
+	{
 		return;
+	}
 
 	/* Unschedule all of the iso td's */
-	for (buf_idx = 0; buf_idx < USBVISION_NUMSBUF; buf_idx++) {
+	for (buf_idx = 0; buf_idx < USBVISION_NUMSBUF; buf_idx++)
+	{
 		usb_kill_urb(usbvision->sbuf[buf_idx].urb);
-		if (usbvision->sbuf[buf_idx].data) {
+
+		if (usbvision->sbuf[buf_idx].data)
+		{
 			usb_free_coherent(usbvision->dev,
-					  sb_size,
-					  usbvision->sbuf[buf_idx].data,
-					  usbvision->sbuf[buf_idx].urb->transfer_dma);
+							  sb_size,
+							  usbvision->sbuf[buf_idx].data,
+							  usbvision->sbuf[buf_idx].urb->transfer_dma);
 		}
+
 		usb_free_urb(usbvision->sbuf[buf_idx].urb);
 		usbvision->sbuf[buf_idx].urb = NULL;
 	}
@@ -2378,26 +2849,30 @@ void usbvision_stop_isoc(struct usb_usbvision *usbvision)
 	PDEBUG(DBG_ISOC, "%s: streaming=stream_off\n", __func__);
 	usbvision->streaming = stream_off;
 
-	if (!usbvision->remove_pending) {
+	if (!usbvision->remove_pending)
+	{
 		/* Set packet size to 0 */
 		usbvision->iface_alt = 0;
 		err_code = usb_set_interface(usbvision->dev, usbvision->iface,
-					    usbvision->iface_alt);
-		if (err_code < 0) {
+									 usbvision->iface_alt);
+
+		if (err_code < 0)
+		{
 			dev_err(&usbvision->dev->dev,
-				"%s: usb_set_interface() failed: error %d\n",
+					"%s: usb_set_interface() failed: error %d\n",
 					__func__, err_code);
 			usbvision->last_error = err_code;
 		}
-		reg_value = (16-usbvision_read_reg(usbvision, USBVISION_ALTER_REG)) & 0x0F;
+
+		reg_value = (16 - usbvision_read_reg(usbvision, USBVISION_ALTER_REG)) & 0x0F;
 		usbvision->isoc_packet_size =
 			(reg_value == 0) ? 0 : (reg_value * 64) - 1;
 		PDEBUG(DBG_ISOC, "ISO Packet Length:%d",
-		       usbvision->isoc_packet_size);
+			   usbvision->isoc_packet_size);
 
 		usbvision->usb_bandwidth = reg_value >> 1;
 		PDEBUG(DBG_ISOC, "USB Bandwidth Usage: %dMbit/Sec",
-		       usbvision->usb_bandwidth);
+			   usbvision->usb_bandwidth);
 	}
 }
 
@@ -2419,25 +2894,33 @@ int usbvision_muxsel(struct usb_usbvision *usbvision, int channel)
 	/* Regular USB TV Tuners -> channel: 0 = Television, 1 = Composite, 2 = S-Video */
 	/* Four video input devices -> channel: 0 = Chan White, 1 = Chan Green, 2 = Chan Yellow, 3 = Chan Red */
 
-	switch (usbvision_device_data[usbvision->dev_model].codec) {
-	case CODEC_SAA7113:
-		mode[1] = SAA7115_COMPOSITE2;
-		if (switch_svideo_input) {
-			/* To handle problems with S-Video Input for
-			 * some devices.  Use switch_svideo_input
-			 * parameter when loading the module.*/
-			mode[2] = SAA7115_COMPOSITE1;
-		} else {
+	switch (usbvision_device_data[usbvision->dev_model].codec)
+	{
+		case CODEC_SAA7113:
+			mode[1] = SAA7115_COMPOSITE2;
+
+			if (switch_svideo_input)
+			{
+				/* To handle problems with S-Video Input for
+				 * some devices.  Use switch_svideo_input
+				 * parameter when loading the module.*/
+				mode[2] = SAA7115_COMPOSITE1;
+			}
+			else
+			{
+				mode[2] = SAA7115_SVIDEO1;
+			}
+
+			break;
+
+		case CODEC_SAA7111:
+		default:
+			/* modes for saa7111 */
+			mode[1] = SAA7115_COMPOSITE1;
 			mode[2] = SAA7115_SVIDEO1;
-		}
-		break;
-	case CODEC_SAA7111:
-	default:
-		/* modes for saa7111 */
-		mode[1] = SAA7115_COMPOSITE1;
-		mode[2] = SAA7115_SVIDEO1;
-		break;
+			break;
 	}
+
 	call_all(usbvision, video, s_routing, mode[channel], 0, 0);
 	usbvision_set_audio(usbvision, audio[channel]);
 	return 0;

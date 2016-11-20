@@ -79,19 +79,19 @@
 #define DTSEC_IMASK_RDPEEN	0x00000001
 
 #define DTSEC_EVENTS_MASK		\
-	 ((u32)(DTSEC_IMASK_BREN    |	\
-		DTSEC_IMASK_RXCEN   |	\
-		DTSEC_IMASK_BTEN    |	\
-		DTSEC_IMASK_TXCEN   |	\
-		DTSEC_IMASK_TXEEN   |	\
-		DTSEC_IMASK_ABRTEN  |	\
-		DTSEC_IMASK_LCEN    |	\
-		DTSEC_IMASK_CRLEN   |	\
-		DTSEC_IMASK_XFUNEN  |	\
-		DTSEC_IMASK_IFERREN |	\
-		DTSEC_IMASK_MAGEN   |	\
-		DTSEC_IMASK_TDPEEN  |	\
-		DTSEC_IMASK_RDPEEN))
+	((u32)(DTSEC_IMASK_BREN    |	\
+		   DTSEC_IMASK_RXCEN   |	\
+		   DTSEC_IMASK_BTEN    |	\
+		   DTSEC_IMASK_TXCEN   |	\
+		   DTSEC_IMASK_TXEEN   |	\
+		   DTSEC_IMASK_ABRTEN  |	\
+		   DTSEC_IMASK_LCEN    |	\
+		   DTSEC_IMASK_CRLEN   |	\
+		   DTSEC_IMASK_XFUNEN  |	\
+		   DTSEC_IMASK_IFERREN |	\
+		   DTSEC_IMASK_MAGEN   |	\
+		   DTSEC_IMASK_TDPEEN  |	\
+		   DTSEC_IMASK_RDPEEN))
 
 /* dtsec timestamp event bits */
 #define TMR_PEMASK_TSREEN	0x00010000
@@ -177,7 +177,8 @@
 #define EXTENDED_HASH_TABLE_SIZE	512
 
 /* dTSEC Memory Map registers */
-struct dtsec_regs {
+struct dtsec_regs
+{
 	/* dTSEC General Control and Status Registers */
 	u32 tsec_id;		/* 0x000 ETSEC_ID register */
 	u32 tsec_id2;		/* 0x004 ETSEC_ID2 register */
@@ -207,7 +208,8 @@ struct dtsec_regs {
 	u32 ifstat;		/* 0x13C Interface status */
 	u32 macstnaddr1;	/* 0x140 Station Address,part 1 */
 	u32 macstnaddr2;	/* 0x144 Station Address,part 2 */
-	struct {
+	struct
+	{
 		u32 exact_match1;	/* octets 1-4 */
 		u32 exact_match2;	/* octets 5-6 */
 	} macaddr[15];		/* 0x148-0x1BC mac exact match addresses 1-15 */
@@ -300,7 +302,8 @@ struct dtsec_regs {
  * init() function. A default set of configuration values can be
  * obtained by calling set_dflts().
  */
-struct dtsec_cfg {
+struct dtsec_cfg
+{
 	u16 halfdup_retransmit;
 	u16 halfdup_coll_window;
 	bool tx_pad_crc;
@@ -317,7 +320,8 @@ struct dtsec_cfg {
 	u32 back_to_back_ipg;
 };
 
-struct fman_mac {
+struct fman_mac
+{
 	/* pointer to dTSEC memory mapped registers */
 	struct dtsec_regs __iomem *regs;
 	/* MAC address of device */
@@ -365,8 +369,8 @@ static void set_dflts(struct dtsec_cfg *cfg)
 }
 
 static int init(struct dtsec_regs __iomem *regs, struct dtsec_cfg *cfg,
-		phy_interface_t iface, u16 iface_speed, u8 *macaddr,
-		u32 exception_mask, u8 tbi_addr)
+				phy_interface_t iface, u16 iface_speed, u8 *macaddr,
+				u32 exception_mask, u8 tbi_addr)
 {
 	bool is_rgmii, is_sgmii, is_qsgmii;
 	int i;
@@ -381,40 +385,63 @@ static int init(struct dtsec_regs __iomem *regs, struct dtsec_cfg *cfg,
 
 	/* check RGMII support */
 	if (iface == PHY_INTERFACE_MODE_RGMII ||
-	    iface == PHY_INTERFACE_MODE_RMII)
+		iface == PHY_INTERFACE_MODE_RMII)
 		if (tmp & DTSEC_ID2_INT_REDUCED_OFF)
+		{
 			return -EINVAL;
+		}
 
 	if (iface == PHY_INTERFACE_MODE_SGMII ||
-	    iface == PHY_INTERFACE_MODE_MII)
+		iface == PHY_INTERFACE_MODE_MII)
 		if (tmp & DTSEC_ID2_INT_REDUCED_OFF)
+		{
 			return -EINVAL;
+		}
 
 	is_rgmii = iface == PHY_INTERFACE_MODE_RGMII;
 	is_sgmii = iface == PHY_INTERFACE_MODE_SGMII;
 	is_qsgmii = iface == PHY_INTERFACE_MODE_QSGMII;
 
 	tmp = 0;
+
 	if (is_rgmii || iface == PHY_INTERFACE_MODE_GMII)
+	{
 		tmp |= DTSEC_ECNTRL_GMIIM;
+	}
+
 	if (is_sgmii)
+	{
 		tmp |= (DTSEC_ECNTRL_SGMIIM | DTSEC_ECNTRL_TBIM);
+	}
+
 	if (is_qsgmii)
 		tmp |= (DTSEC_ECNTRL_SGMIIM | DTSEC_ECNTRL_TBIM |
-			DTSEC_ECNTRL_QSGMIIM);
+				DTSEC_ECNTRL_QSGMIIM);
+
 	if (is_rgmii)
+	{
 		tmp |= DTSEC_ECNTRL_RPM;
+	}
+
 	if (iface_speed == SPEED_100)
+	{
 		tmp |= DTSEC_ECNTRL_R100M;
+	}
 
 	iowrite32be(tmp, &regs->ecntrl);
 
 	tmp = 0;
 
 	if (cfg->tx_pause_time)
+	{
 		tmp |= cfg->tx_pause_time;
+	}
+
 	if (cfg->tx_pause_time_extd)
+	{
 		tmp |= cfg->tx_pause_time_extd << PTV_PTE_SHIFT;
+	}
+
 	iowrite32be(tmp, &regs->ptv);
 
 	tmp = 0;
@@ -432,12 +459,14 @@ static int init(struct dtsec_regs __iomem *regs, struct dtsec_cfg *cfg,
 
 	iowrite32be(0, &regs->tmr_ctrl);
 
-	if (cfg->ptp_tsu_en) {
+	if (cfg->ptp_tsu_en)
+	{
 		tmp = 0;
 		tmp |= TMR_PEVENT_TSRE;
 		iowrite32be(tmp, &regs->tmr_pevent);
 
-		if (cfg->ptp_exception_en) {
+		if (cfg->ptp_exception_en)
+		{
 			tmp = 0;
 			tmp |= TMR_PEMASK_TSREEN;
 			iowrite32be(tmp, &regs->tmr_pemask);
@@ -452,33 +481,41 @@ static int init(struct dtsec_regs __iomem *regs, struct dtsec_cfg *cfg,
 	tmp = 0;
 
 	if (iface_speed < SPEED_1000)
+	{
 		tmp |= MACCFG2_NIBBLE_MODE;
+	}
 	else if (iface_speed == SPEED_1000)
+	{
 		tmp |= MACCFG2_BYTE_MODE;
+	}
 
 	tmp |= (cfg->preamble_len << MACCFG2_PREAMBLE_LENGTH_SHIFT) &
-		MACCFG2_PREAMBLE_LENGTH_MASK;
+		   MACCFG2_PREAMBLE_LENGTH_MASK;
+
 	if (cfg->tx_pad_crc)
+	{
 		tmp |= MACCFG2_PAD_CRC_EN;
+	}
+
 	/* Full Duplex */
 	tmp |= MACCFG2_FULL_DUPLEX;
 	iowrite32be(tmp, &regs->maccfg2);
 
 	tmp = (((cfg->non_back_to_back_ipg1 <<
-		 IPGIFG_NON_BACK_TO_BACK_IPG_1_SHIFT)
-		& IPGIFG_NON_BACK_TO_BACK_IPG_1)
-	       | ((cfg->non_back_to_back_ipg2 <<
-		   IPGIFG_NON_BACK_TO_BACK_IPG_2_SHIFT)
-		 & IPGIFG_NON_BACK_TO_BACK_IPG_2)
-	       | ((cfg->min_ifg_enforcement << IPGIFG_MIN_IFG_ENFORCEMENT_SHIFT)
-		 & IPGIFG_MIN_IFG_ENFORCEMENT)
-	       | (cfg->back_to_back_ipg & IPGIFG_BACK_TO_BACK_IPG));
+			 IPGIFG_NON_BACK_TO_BACK_IPG_1_SHIFT)
+			& IPGIFG_NON_BACK_TO_BACK_IPG_1)
+		   | ((cfg->non_back_to_back_ipg2 <<
+			   IPGIFG_NON_BACK_TO_BACK_IPG_2_SHIFT)
+			  & IPGIFG_NON_BACK_TO_BACK_IPG_2)
+		   | ((cfg->min_ifg_enforcement << IPGIFG_MIN_IFG_ENFORCEMENT_SHIFT)
+			  & IPGIFG_MIN_IFG_ENFORCEMENT)
+		   | (cfg->back_to_back_ipg & IPGIFG_BACK_TO_BACK_IPG));
 	iowrite32be(tmp, &regs->ipgifg);
 
 	tmp = 0;
 	tmp |= HAFDUP_EXCESS_DEFER;
 	tmp |= ((cfg->halfdup_retransmit << HAFDUP_RETRANSMISSION_MAX_SHIFT)
-		& HAFDUP_RETRANSMISSION_MAX);
+			& HAFDUP_RETRANSMISSION_MAX);
 	tmp |= (cfg->halfdup_coll_window & HAFDUP_COLLISION_WINDOW);
 
 	iowrite32be(tmp, &regs->hafdup);
@@ -494,14 +531,15 @@ static int init(struct dtsec_regs __iomem *regs, struct dtsec_cfg *cfg,
 	iowrite32be(0xffffffff, &regs->ievent);
 
 	tmp = (u32)((macaddr[5] << 24) |
-		    (macaddr[4] << 16) | (macaddr[3] << 8) | macaddr[2]);
+				(macaddr[4] << 16) | (macaddr[3] << 8) | macaddr[2]);
 	iowrite32be(tmp, &regs->macstnaddr1);
 
 	tmp = (u32)((macaddr[1] << 24) | (macaddr[0] << 16));
 	iowrite32be(tmp, &regs->macstnaddr2);
 
 	/* HASH */
-	for (i = 0; i < NUM_OF_HASH_REGS; i++) {
+	for (i = 0; i < NUM_OF_HASH_REGS; i++)
+	{
 		/* Initialize IADDRx */
 		iowrite32be(0, &regs->igaddr[i]);
 		/* Initialize GADDRx */
@@ -516,7 +554,7 @@ static void set_mac_address(struct dtsec_regs __iomem *regs, u8 *adr)
 	u32 tmp;
 
 	tmp = (u32)((adr[5] << 24) |
-		    (adr[4] << 16) | (adr[3] << 8) | adr[2]);
+				(adr[4] << 16) | (adr[3] << 8) | adr[2]);
 	iowrite32be(tmp, &regs->macstnaddr1);
 
 	tmp = (u32)((adr[1] << 24) | (adr[0] << 16));
@@ -524,7 +562,7 @@ static void set_mac_address(struct dtsec_regs __iomem *regs, u8 *adr)
 }
 
 static void set_bucket(struct dtsec_regs __iomem *regs, int bucket,
-		       bool enable)
+					   bool enable)
 {
 	int reg_idx = (bucket >> 5) & 0xf;
 	int bit_idx = bucket & 0x1f;
@@ -532,62 +570,85 @@ static void set_bucket(struct dtsec_regs __iomem *regs, int bucket,
 	u32 __iomem *reg;
 
 	if (reg_idx > 7)
+	{
 		reg = &regs->gaddr[reg_idx - 8];
+	}
 	else
+	{
 		reg = &regs->igaddr[reg_idx];
+	}
 
 	if (enable)
+	{
 		iowrite32be(ioread32be(reg) | bit_mask, reg);
+	}
 	else
+	{
 		iowrite32be(ioread32be(reg) & (~bit_mask), reg);
+	}
 }
 
 static int check_init_parameters(struct fman_mac *dtsec)
 {
-	if (dtsec->max_speed >= SPEED_10000) {
+	if (dtsec->max_speed >= SPEED_10000)
+	{
 		pr_err("1G MAC driver supports 1G or lower speeds\n");
 		return -EINVAL;
 	}
-	if (dtsec->addr == 0) {
+
+	if (dtsec->addr == 0)
+	{
 		pr_err("Ethernet MAC Must have a valid MAC Address\n");
 		return -EINVAL;
 	}
+
 	if ((dtsec->dtsec_drv_param)->rx_prepend >
-	    MAX_PACKET_ALIGNMENT) {
+		MAX_PACKET_ALIGNMENT)
+	{
 		pr_err("packetAlignmentPadding can't be > than %d\n",
-		       MAX_PACKET_ALIGNMENT);
+			   MAX_PACKET_ALIGNMENT);
 		return -EINVAL;
 	}
+
 	if (((dtsec->dtsec_drv_param)->non_back_to_back_ipg1 >
-	     MAX_INTER_PACKET_GAP) ||
-	    ((dtsec->dtsec_drv_param)->non_back_to_back_ipg2 >
-	     MAX_INTER_PACKET_GAP) ||
-	     ((dtsec->dtsec_drv_param)->back_to_back_ipg >
-	      MAX_INTER_PACKET_GAP)) {
+		 MAX_INTER_PACKET_GAP) ||
+		((dtsec->dtsec_drv_param)->non_back_to_back_ipg2 >
+		 MAX_INTER_PACKET_GAP) ||
+		((dtsec->dtsec_drv_param)->back_to_back_ipg >
+		 MAX_INTER_PACKET_GAP))
+	{
 		pr_err("Inter packet gap can't be greater than %d\n",
-		       MAX_INTER_PACKET_GAP);
+			   MAX_INTER_PACKET_GAP);
 		return -EINVAL;
 	}
+
 	if ((dtsec->dtsec_drv_param)->halfdup_retransmit >
-	    MAX_RETRANSMISSION) {
+		MAX_RETRANSMISSION)
+	{
 		pr_err("maxRetransmission can't be greater than %d\n",
-		       MAX_RETRANSMISSION);
+			   MAX_RETRANSMISSION);
 		return -EINVAL;
 	}
+
 	if ((dtsec->dtsec_drv_param)->halfdup_coll_window >
-	    MAX_COLLISION_WINDOW) {
+		MAX_COLLISION_WINDOW)
+	{
 		pr_err("collisionWindow can't be greater than %d\n",
-		       MAX_COLLISION_WINDOW);
+			   MAX_COLLISION_WINDOW);
 		return -EINVAL;
-	/* If Auto negotiation process is disabled, need to set up the PHY
-	 * using the MII Management Interface
-	 */
+		/* If Auto negotiation process is disabled, need to set up the PHY
+		 * using the MII Management Interface
+		 */
 	}
-	if (!dtsec->exception_cb) {
+
+	if (!dtsec->exception_cb)
+	{
 		pr_err("uninitialized exception_cb\n");
 		return -EINVAL;
 	}
-	if (!dtsec->event_cb) {
+
+	if (!dtsec->event_cb)
+	{
 		pr_err("uninitialized event_cb\n");
 		return -EINVAL;
 	}
@@ -599,55 +660,71 @@ static int get_exception_flag(enum fman_mac_exceptions exception)
 {
 	u32 bit_mask;
 
-	switch (exception) {
-	case FM_MAC_EX_1G_BAB_RX:
-		bit_mask = DTSEC_IMASK_BREN;
-		break;
-	case FM_MAC_EX_1G_RX_CTL:
-		bit_mask = DTSEC_IMASK_RXCEN;
-		break;
-	case FM_MAC_EX_1G_GRATEFUL_TX_STP_COMPLET:
-		bit_mask = DTSEC_IMASK_GTSCEN;
-		break;
-	case FM_MAC_EX_1G_BAB_TX:
-		bit_mask = DTSEC_IMASK_BTEN;
-		break;
-	case FM_MAC_EX_1G_TX_CTL:
-		bit_mask = DTSEC_IMASK_TXCEN;
-		break;
-	case FM_MAC_EX_1G_TX_ERR:
-		bit_mask = DTSEC_IMASK_TXEEN;
-		break;
-	case FM_MAC_EX_1G_LATE_COL:
-		bit_mask = DTSEC_IMASK_LCEN;
-		break;
-	case FM_MAC_EX_1G_COL_RET_LMT:
-		bit_mask = DTSEC_IMASK_CRLEN;
-		break;
-	case FM_MAC_EX_1G_TX_FIFO_UNDRN:
-		bit_mask = DTSEC_IMASK_XFUNEN;
-		break;
-	case FM_MAC_EX_1G_MAG_PCKT:
-		bit_mask = DTSEC_IMASK_MAGEN;
-		break;
-	case FM_MAC_EX_1G_MII_MNG_RD_COMPLET:
-		bit_mask = DTSEC_IMASK_MMRDEN;
-		break;
-	case FM_MAC_EX_1G_MII_MNG_WR_COMPLET:
-		bit_mask = DTSEC_IMASK_MMWREN;
-		break;
-	case FM_MAC_EX_1G_GRATEFUL_RX_STP_COMPLET:
-		bit_mask = DTSEC_IMASK_GRSCEN;
-		break;
-	case FM_MAC_EX_1G_DATA_ERR:
-		bit_mask = DTSEC_IMASK_TDPEEN;
-		break;
-	case FM_MAC_EX_1G_RX_MIB_CNT_OVFL:
-		bit_mask = DTSEC_IMASK_MSROEN;
-		break;
-	default:
-		bit_mask = 0;
-		break;
+	switch (exception)
+	{
+		case FM_MAC_EX_1G_BAB_RX:
+			bit_mask = DTSEC_IMASK_BREN;
+			break;
+
+		case FM_MAC_EX_1G_RX_CTL:
+			bit_mask = DTSEC_IMASK_RXCEN;
+			break;
+
+		case FM_MAC_EX_1G_GRATEFUL_TX_STP_COMPLET:
+			bit_mask = DTSEC_IMASK_GTSCEN;
+			break;
+
+		case FM_MAC_EX_1G_BAB_TX:
+			bit_mask = DTSEC_IMASK_BTEN;
+			break;
+
+		case FM_MAC_EX_1G_TX_CTL:
+			bit_mask = DTSEC_IMASK_TXCEN;
+			break;
+
+		case FM_MAC_EX_1G_TX_ERR:
+			bit_mask = DTSEC_IMASK_TXEEN;
+			break;
+
+		case FM_MAC_EX_1G_LATE_COL:
+			bit_mask = DTSEC_IMASK_LCEN;
+			break;
+
+		case FM_MAC_EX_1G_COL_RET_LMT:
+			bit_mask = DTSEC_IMASK_CRLEN;
+			break;
+
+		case FM_MAC_EX_1G_TX_FIFO_UNDRN:
+			bit_mask = DTSEC_IMASK_XFUNEN;
+			break;
+
+		case FM_MAC_EX_1G_MAG_PCKT:
+			bit_mask = DTSEC_IMASK_MAGEN;
+			break;
+
+		case FM_MAC_EX_1G_MII_MNG_RD_COMPLET:
+			bit_mask = DTSEC_IMASK_MMRDEN;
+			break;
+
+		case FM_MAC_EX_1G_MII_MNG_WR_COMPLET:
+			bit_mask = DTSEC_IMASK_MMWREN;
+			break;
+
+		case FM_MAC_EX_1G_GRATEFUL_RX_STP_COMPLET:
+			bit_mask = DTSEC_IMASK_GRSCEN;
+			break;
+
+		case FM_MAC_EX_1G_DATA_ERR:
+			bit_mask = DTSEC_IMASK_TDPEEN;
+			break;
+
+		case FM_MAC_EX_1G_RX_MIB_CNT_OVFL:
+			bit_mask = DTSEC_IMASK_MSROEN;
+			break;
+
+		default:
+			bit_mask = 0;
+			break;
 	}
 
 	return bit_mask;
@@ -657,7 +734,9 @@ static bool is_init_done(struct dtsec_cfg *dtsec_drv_params)
 {
 	/* Checks if dTSEC driver parameters were initialized */
 	if (!dtsec_drv_params)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -667,7 +746,9 @@ static u16 dtsec_get_max_frame_length(struct fman_mac *dtsec)
 	struct dtsec_regs __iomem *regs = dtsec->regs;
 
 	if (is_init_done(dtsec->dtsec_drv_param))
+	{
 		return 0;
+	}
 
 	return (u16)ioread32be(&regs->maxfrm);
 }
@@ -680,32 +761,56 @@ static void dtsec_isr(void *handle)
 
 	/* do not handle MDIO events */
 	event = ioread32be(&regs->ievent) &
-		(u32)(~(DTSEC_IMASK_MMRDEN | DTSEC_IMASK_MMWREN));
+			(u32)(~(DTSEC_IMASK_MMRDEN | DTSEC_IMASK_MMWREN));
 
 	event &= ioread32be(&regs->imask);
 
 	iowrite32be(event, &regs->ievent);
 
 	if (event & DTSEC_IMASK_BREN)
+	{
 		dtsec->exception_cb(dtsec->dev_id, FM_MAC_EX_1G_BAB_RX);
+	}
+
 	if (event & DTSEC_IMASK_RXCEN)
+	{
 		dtsec->exception_cb(dtsec->dev_id, FM_MAC_EX_1G_RX_CTL);
+	}
+
 	if (event & DTSEC_IMASK_GTSCEN)
 		dtsec->exception_cb(dtsec->dev_id,
-				    FM_MAC_EX_1G_GRATEFUL_TX_STP_COMPLET);
+							FM_MAC_EX_1G_GRATEFUL_TX_STP_COMPLET);
+
 	if (event & DTSEC_IMASK_BTEN)
+	{
 		dtsec->exception_cb(dtsec->dev_id, FM_MAC_EX_1G_BAB_TX);
+	}
+
 	if (event & DTSEC_IMASK_TXCEN)
+	{
 		dtsec->exception_cb(dtsec->dev_id, FM_MAC_EX_1G_TX_CTL);
+	}
+
 	if (event & DTSEC_IMASK_TXEEN)
+	{
 		dtsec->exception_cb(dtsec->dev_id, FM_MAC_EX_1G_TX_ERR);
+	}
+
 	if (event & DTSEC_IMASK_LCEN)
+	{
 		dtsec->exception_cb(dtsec->dev_id, FM_MAC_EX_1G_LATE_COL);
+	}
+
 	if (event & DTSEC_IMASK_CRLEN)
+	{
 		dtsec->exception_cb(dtsec->dev_id, FM_MAC_EX_1G_COL_RET_LMT);
-	if (event & DTSEC_IMASK_XFUNEN) {
+	}
+
+	if (event & DTSEC_IMASK_XFUNEN)
+	{
 		/* FM_TX_LOCKUP_ERRATA_DTSEC6 Errata workaround */
-		if (dtsec->fm_rev_info.major == 2) {
+		if (dtsec->fm_rev_info.major == 2)
+		{
 			u32 tpkt1, tmp_reg1, tpkt2, tmp_reg2, i;
 			/* a. Write 0x00E0_0C00 to DTSEC_ID
 			 *	This is a read only register
@@ -720,16 +825,17 @@ static void dtsec_isr(void *handle)
 			 * register at address offset 0x32C.
 			 */
 			if ((tmp_reg1 & 0x007F0000) !=
-				(tmp_reg1 & 0x0000007F)) {
+				(tmp_reg1 & 0x0000007F))
+			{
 				/* If they are not equal, save the value of
 				 * this register and wait for at least
 				 * MAXFRM*16 ns
 				 */
 				usleep_range((u32)(min
-					(dtsec_get_max_frame_length(dtsec) *
-					16 / 1000, 1)), (u32)
-					(min(dtsec_get_max_frame_length
-					(dtsec) * 16 / 1000, 1) + 1));
+								   (dtsec_get_max_frame_length(dtsec) *
+									16 / 1000, 1)), (u32)
+							 (min(dtsec_get_max_frame_length
+								  (dtsec) * 16 / 1000, 1) + 1));
 			}
 
 			/* e. Read and save TPKT again and read the register
@@ -747,29 +853,37 @@ static void dtsec_isr(void *handle)
 			 * the user should proceed to the recover sequence.
 			 */
 			if ((tpkt1 == tpkt2) && ((tmp_reg1 & 0x007F0000) ==
-				(tmp_reg2 & 0x007F0000))) {
+									 (tmp_reg2 & 0x007F0000)))
+			{
 				/* recover sequence */
 
 				/* a.Write a 1 to RCTRL[GRS] */
 
 				iowrite32be(ioread32be(&regs->rctrl) |
-					    RCTRL_GRS, &regs->rctrl);
+							RCTRL_GRS, &regs->rctrl);
 
 				/* b.Wait until IEVENT[GRSC]=1, or at least
 				 * 100 us has elapsed.
 				 */
-				for (i = 0; i < 100; i++) {
+				for (i = 0; i < 100; i++)
+				{
 					if (ioread32be(&regs->ievent) &
-					    DTSEC_IMASK_GRSCEN)
+						DTSEC_IMASK_GRSCEN)
+					{
 						break;
+					}
+
 					udelay(1);
 				}
+
 				if (ioread32be(&regs->ievent) &
-				    DTSEC_IMASK_GRSCEN)
+					DTSEC_IMASK_GRSCEN)
 					iowrite32be(DTSEC_IMASK_GRSCEN,
-						    &regs->ievent);
+								&regs->ievent);
 				else
+				{
 					pr_debug("Rx lockup due to Tx lockup\n");
+				}
 
 				/* c.Write a 1 to bit n of FM_RSTC
 				 * (offset 0x0CC of FPM)
@@ -787,15 +901,25 @@ static void dtsec_isr(void *handle)
 
 		dtsec->exception_cb(dtsec->dev_id, FM_MAC_EX_1G_TX_FIFO_UNDRN);
 	}
+
 	if (event & DTSEC_IMASK_MAGEN)
+	{
 		dtsec->exception_cb(dtsec->dev_id, FM_MAC_EX_1G_MAG_PCKT);
+	}
+
 	if (event & DTSEC_IMASK_GRSCEN)
 		dtsec->exception_cb(dtsec->dev_id,
-				    FM_MAC_EX_1G_GRATEFUL_RX_STP_COMPLET);
+							FM_MAC_EX_1G_GRATEFUL_RX_STP_COMPLET);
+
 	if (event & DTSEC_IMASK_TDPEEN)
+	{
 		dtsec->exception_cb(dtsec->dev_id, FM_MAC_EX_1G_DATA_ERR);
+	}
+
 	if (event & DTSEC_IMASK_RDPEEN)
+	{
 		dtsec->exception_cb(dtsec->dev_id, FM_MAC_1G_RX_DATA_ERR);
+	}
 
 	/* masked interrupts */
 	WARN_ON(event & DTSEC_IMASK_ABRTEN);
@@ -808,15 +932,17 @@ static void dtsec_1588_isr(void *handle)
 	struct dtsec_regs __iomem *regs = dtsec->regs;
 	u32 event;
 
-	if (dtsec->ptp_tsu_enabled) {
+	if (dtsec->ptp_tsu_enabled)
+	{
 		event = ioread32be(&regs->tmr_pevent);
 		event &= ioread32be(&regs->tmr_pemask);
 
-		if (event) {
+		if (event)
+		{
 			iowrite32be(event, &regs->tmr_pevent);
 			WARN_ON(event & TMR_PEVENT_TSRE);
 			dtsec->exception_cb(dtsec->dev_id,
-					    FM_MAC_EX_1G_1588_TS_RX_ERR);
+								FM_MAC_EX_1G_1588_TS_RX_ERR);
 		}
 	}
 }
@@ -824,9 +950,9 @@ static void dtsec_1588_isr(void *handle)
 static void free_init_resources(struct fman_mac *dtsec)
 {
 	fman_unregister_intr(dtsec->fm, FMAN_MOD_MAC, dtsec->mac_id,
-			     FMAN_INTR_TYPE_ERR);
+						 FMAN_INTR_TYPE_ERR);
 	fman_unregister_intr(dtsec->fm, FMAN_MOD_MAC, dtsec->mac_id,
-			     FMAN_INTR_TYPE_NORMAL);
+						 FMAN_INTR_TYPE_NORMAL);
 
 	/* release the driver's group hash table */
 	free_hash_table(dtsec->multicast_addr_hash);
@@ -840,7 +966,9 @@ static void free_init_resources(struct fman_mac *dtsec)
 int dtsec_cfg_max_frame_len(struct fman_mac *dtsec, u16 new_val)
 {
 	if (is_init_done(dtsec->dtsec_drv_param))
+	{
 		return -EINVAL;
+	}
 
 	dtsec->dtsec_drv_param->maximum_frame = new_val;
 
@@ -850,7 +978,9 @@ int dtsec_cfg_max_frame_len(struct fman_mac *dtsec, u16 new_val)
 int dtsec_cfg_pad_and_crc(struct fman_mac *dtsec, bool new_val)
 {
 	if (is_init_done(dtsec->dtsec_drv_param))
+	{
 		return -EINVAL;
+	}
 
 	dtsec->dtsec_drv_param->tx_pad_crc = new_val;
 
@@ -863,24 +993,33 @@ int dtsec_enable(struct fman_mac *dtsec, enum comm_mode mode)
 	u32 tmp;
 
 	if (!is_init_done(dtsec->dtsec_drv_param))
+	{
 		return -EINVAL;
+	}
 
 	/* Enable */
 	tmp = ioread32be(&regs->maccfg1);
+
 	if (mode & COMM_MODE_RX)
+	{
 		tmp |= MACCFG1_RX_EN;
+	}
+
 	if (mode & COMM_MODE_TX)
+	{
 		tmp |= MACCFG1_TX_EN;
+	}
 
 	iowrite32be(tmp, &regs->maccfg1);
 
 	/* Graceful start - clear the graceful receive stop bit */
 	if (mode & COMM_MODE_TX)
 		iowrite32be(ioread32be(&regs->tctrl) & ~DTSEC_TCTRL_GTS,
-			    &regs->tctrl);
+					&regs->tctrl);
+
 	if (mode & COMM_MODE_RX)
 		iowrite32be(ioread32be(&regs->rctrl) & ~RCTRL_GRS,
-			    &regs->rctrl);
+					&regs->rctrl);
 
 	return 0;
 }
@@ -891,31 +1030,49 @@ int dtsec_disable(struct fman_mac *dtsec, enum comm_mode mode)
 	u32 tmp;
 
 	if (!is_init_done(dtsec->dtsec_drv_param))
+	{
 		return -EINVAL;
+	}
 
 	/* Gracefull stop - Assert the graceful transmit stop bit */
-	if (mode & COMM_MODE_RX) {
+	if (mode & COMM_MODE_RX)
+	{
 		tmp = ioread32be(&regs->rctrl) | RCTRL_GRS;
 		iowrite32be(tmp, &regs->rctrl);
 
 		if (dtsec->fm_rev_info.major == 2)
+		{
 			usleep_range(100, 200);
+		}
 		else
+		{
 			udelay(10);
+		}
 	}
 
-	if (mode & COMM_MODE_TX) {
+	if (mode & COMM_MODE_TX)
+	{
 		if (dtsec->fm_rev_info.major == 2)
+		{
 			pr_debug("GTS not supported due to DTSEC_A004 errata.\n");
+		}
 		else
+		{
 			pr_debug("GTS not supported due to DTSEC_A0014 errata.\n");
+		}
 	}
 
 	tmp = ioread32be(&regs->maccfg1);
+
 	if (mode & COMM_MODE_RX)
+	{
 		tmp &= ~MACCFG1_RX_EN;
+	}
+
 	if (mode & COMM_MODE_TX)
+	{
 		tmp &= ~MACCFG1_TX_EN;
+	}
 
 	iowrite32be(tmp, &regs->maccfg1);
 
@@ -923,20 +1080,24 @@ int dtsec_disable(struct fman_mac *dtsec, enum comm_mode mode)
 }
 
 int dtsec_set_tx_pause_frames(struct fman_mac *dtsec,
-			      u8 __maybe_unused priority,
-			      u16 pause_time, u16 __maybe_unused thresh_time)
+							  u8 __maybe_unused priority,
+							  u16 pause_time, u16 __maybe_unused thresh_time)
 {
 	struct dtsec_regs __iomem *regs = dtsec->regs;
 	u32 ptv = 0;
 
 	if (!is_init_done(dtsec->dtsec_drv_param))
+	{
 		return -EINVAL;
+	}
 
-	if (pause_time) {
+	if (pause_time)
+	{
 		/* FM_BAD_TX_TS_IN_B_2_B_ERRATA_DTSEC_A003 Errata workaround */
-		if (dtsec->fm_rev_info.major == 2 && pause_time <= 320) {
+		if (dtsec->fm_rev_info.major == 2 && pause_time <= 320)
+		{
 			pr_warn("pause-time: %d illegal.Should be > 320\n",
-				pause_time);
+					pause_time);
 			return -EINVAL;
 		}
 
@@ -947,10 +1108,11 @@ int dtsec_set_tx_pause_frames(struct fman_mac *dtsec,
 
 		/* trigger the transmission of a flow-control pause frame */
 		iowrite32be(ioread32be(&regs->maccfg1) | MACCFG1_TX_FLOW,
-			    &regs->maccfg1);
-	} else
+					&regs->maccfg1);
+	}
+	else
 		iowrite32be(ioread32be(&regs->maccfg1) & ~MACCFG1_TX_FLOW,
-			    &regs->maccfg1);
+					&regs->maccfg1);
 
 	return 0;
 }
@@ -961,13 +1123,21 @@ int dtsec_accept_rx_pause_frames(struct fman_mac *dtsec, bool en)
 	u32 tmp;
 
 	if (!is_init_done(dtsec->dtsec_drv_param))
+	{
 		return -EINVAL;
+	}
 
 	tmp = ioread32be(&regs->maccfg1);
+
 	if (en)
+	{
 		tmp |= MACCFG1_RX_FLOW;
+	}
 	else
+	{
 		tmp &= ~MACCFG1_RX_FLOW;
+	}
+
 	iowrite32be(tmp, &regs->maccfg1);
 
 	return 0;
@@ -976,7 +1146,9 @@ int dtsec_accept_rx_pause_frames(struct fman_mac *dtsec, bool en)
 int dtsec_modify_mac_address(struct fman_mac *dtsec, enet_addr_t *enet_addr)
 {
 	if (!is_init_done(dtsec->dtsec_drv_param))
+	{
 		return -EINVAL;
+	}
 
 	/* Initialize MAC Station Address registers (1 & 2)
 	 * Station address have to be swapped (big endian to little endian
@@ -997,7 +1169,9 @@ int dtsec_add_hash_mac_address(struct fman_mac *dtsec, enet_addr_t *eth_addr)
 	bool mcast, ghtx;
 
 	if (!is_init_done(dtsec->dtsec_drv_param))
+	{
 		return -EINVAL;
+	}
 
 	addr = ENET_ADDR_TO_UINT64(*eth_addr);
 
@@ -1005,10 +1179,12 @@ int dtsec_add_hash_mac_address(struct fman_mac *dtsec, enet_addr_t *eth_addr)
 	mcast = (bool)((addr & MAC_GROUP_ADDRESS) ? true : false);
 
 	/* Cannot handle unicast mac addr when GHTX is on */
-	if (ghtx && !mcast) {
+	if (ghtx && !mcast)
+	{
 		pr_err("Could not compute hash bucket\n");
 		return -EINVAL;
 	}
+
 	crc = crc32_le(crc, (u8 *)eth_addr, ETH_ALEN);
 	crc = bitrev32(crc);
 
@@ -1022,33 +1198,43 @@ int dtsec_add_hash_mac_address(struct fman_mac *dtsec, enet_addr_t *eth_addr)
 	 *bit, while the higher 4 bits identify the hash register
 	 */
 
-	if (ghtx) {
+	if (ghtx)
+	{
 		bucket = (s32)((crc >> 23) & 0x1ff);
-	} else {
+	}
+	else
+	{
 		bucket = (s32)((crc >> 24) & 0xff);
+
 		/* if !ghtx and mcast the bit must be set in gaddr instead of
 		 *igaddr.
 		 */
 		if (mcast)
+		{
 			bucket += 0x100;
+		}
 	}
 
 	set_bucket(dtsec->regs, bucket, true);
 
 	/* Create element to be added to the driver hash table */
 	hash_entry = kmalloc(sizeof(*hash_entry), GFP_KERNEL);
+
 	if (!hash_entry)
+	{
 		return -ENOMEM;
+	}
+
 	hash_entry->addr = addr;
 	INIT_LIST_HEAD(&hash_entry->node);
 
 	if (addr & MAC_GROUP_ADDRESS)
 		/* Group Address */
 		list_add_tail(&hash_entry->node,
-			      &dtsec->multicast_addr_hash->lsts[bucket]);
+					  &dtsec->multicast_addr_hash->lsts[bucket]);
 	else
 		list_add_tail(&hash_entry->node,
-			      &dtsec->unicast_addr_hash->lsts[bucket]);
+					  &dtsec->unicast_addr_hash->lsts[bucket]);
 
 	return 0;
 }
@@ -1064,7 +1250,9 @@ int dtsec_del_hash_mac_address(struct fman_mac *dtsec, enet_addr_t *eth_addr)
 	bool mcast, ghtx;
 
 	if (!is_init_done(dtsec->dtsec_drv_param))
+	{
 		return -EINVAL;
+	}
 
 	addr = ENET_ADDR_TO_UINT64(*eth_addr);
 
@@ -1072,50 +1260,73 @@ int dtsec_del_hash_mac_address(struct fman_mac *dtsec, enet_addr_t *eth_addr)
 	mcast = (bool)((addr & MAC_GROUP_ADDRESS) ? true : false);
 
 	/* Cannot handle unicast mac addr when GHTX is on */
-	if (ghtx && !mcast) {
+	if (ghtx && !mcast)
+	{
 		pr_err("Could not compute hash bucket\n");
 		return -EINVAL;
 	}
+
 	crc = crc32_le(crc, (u8 *)eth_addr, ETH_ALEN);
 	crc = bitrev32(crc);
 
-	if (ghtx) {
+	if (ghtx)
+	{
 		bucket = (s32)((crc >> 23) & 0x1ff);
-	} else {
+	}
+	else
+	{
 		bucket = (s32)((crc >> 24) & 0xff);
+
 		/* if !ghtx and mcast the bit must be set
 		 * in gaddr instead of igaddr.
 		 */
 		if (mcast)
+		{
 			bucket += 0x100;
+		}
 	}
 
-	if (addr & MAC_GROUP_ADDRESS) {
+	if (addr & MAC_GROUP_ADDRESS)
+	{
 		/* Group Address */
 		list_for_each(pos,
-			      &dtsec->multicast_addr_hash->lsts[bucket]) {
+					  &dtsec->multicast_addr_hash->lsts[bucket])
+		{
 			hash_entry = ETH_HASH_ENTRY_OBJ(pos);
-			if (hash_entry->addr == addr) {
+
+			if (hash_entry->addr == addr)
+			{
 				list_del_init(&hash_entry->node);
 				kfree(hash_entry);
 				break;
 			}
 		}
+
 		if (list_empty(&dtsec->multicast_addr_hash->lsts[bucket]))
+		{
 			set_bucket(dtsec->regs, bucket, false);
-	} else {
+		}
+	}
+	else
+	{
 		/* Individual Address */
 		list_for_each(pos,
-			      &dtsec->unicast_addr_hash->lsts[bucket]) {
+					  &dtsec->unicast_addr_hash->lsts[bucket])
+		{
 			hash_entry = ETH_HASH_ENTRY_OBJ(pos);
-			if (hash_entry->addr == addr) {
+
+			if (hash_entry->addr == addr)
+			{
 				list_del_init(&hash_entry->node);
 				kfree(hash_entry);
 				break;
 			}
 		}
+
 		if (list_empty(&dtsec->unicast_addr_hash->lsts[bucket]))
+		{
 			set_bucket(dtsec->regs, bucket, false);
+		}
 	}
 
 	/* address does not exist */
@@ -1130,23 +1341,35 @@ int dtsec_set_promiscuous(struct fman_mac *dtsec, bool new_val)
 	u32 tmp;
 
 	if (!is_init_done(dtsec->dtsec_drv_param))
+	{
 		return -EINVAL;
+	}
 
 	/* Set unicast promiscuous */
 	tmp = ioread32be(&regs->rctrl);
+
 	if (new_val)
+	{
 		tmp |= RCTRL_UPROM;
+	}
 	else
+	{
 		tmp &= ~RCTRL_UPROM;
+	}
 
 	iowrite32be(tmp, &regs->rctrl);
 
 	/* Set multicast promiscuous */
 	tmp = ioread32be(&regs->rctrl);
+
 	if (new_val)
+	{
 		tmp |= RCTRL_MPROM;
+	}
 	else
+	{
 		tmp &= ~RCTRL_MPROM;
+	}
 
 	iowrite32be(tmp, &regs->rctrl);
 
@@ -1159,7 +1382,9 @@ int dtsec_adjust_link(struct fman_mac *dtsec, u16 speed)
 	u32 tmp;
 
 	if (!is_init_done(dtsec->dtsec_drv_param))
+	{
 		return -EINVAL;
+	}
 
 	tmp = ioread32be(&regs->maccfg2);
 
@@ -1167,17 +1392,29 @@ int dtsec_adjust_link(struct fman_mac *dtsec, u16 speed)
 	tmp |= MACCFG2_FULL_DUPLEX;
 
 	tmp &= ~(MACCFG2_NIBBLE_MODE | MACCFG2_BYTE_MODE);
+
 	if (speed < SPEED_1000)
+	{
 		tmp |= MACCFG2_NIBBLE_MODE;
+	}
 	else if (speed == SPEED_1000)
+	{
 		tmp |= MACCFG2_BYTE_MODE;
+	}
+
 	iowrite32be(tmp, &regs->maccfg2);
 
 	tmp = ioread32be(&regs->ecntrl);
+
 	if (speed == SPEED_100)
+	{
 		tmp |= DTSEC_ECNTRL_R100M;
+	}
 	else
+	{
 		tmp &= ~DTSEC_ECNTRL_R100M;
+	}
+
 	iowrite32be(tmp, &regs->ecntrl);
 
 	return 0;
@@ -1188,13 +1425,15 @@ int dtsec_restart_autoneg(struct fman_mac *dtsec)
 	u16 tmp_reg16;
 
 	if (!is_init_done(dtsec->dtsec_drv_param))
+	{
 		return -EINVAL;
+	}
 
 	tmp_reg16 = phy_read(dtsec->tbiphy, MII_BMCR);
 
 	tmp_reg16 &= ~(BMCR_SPEED100 | BMCR_SPEED1000);
 	tmp_reg16 |= (BMCR_ANENABLE | BMCR_ANRESTART |
-		      BMCR_FULLDPLX | BMCR_SPEED1000);
+				  BMCR_FULLDPLX | BMCR_SPEED1000);
 
 	phy_write(dtsec->tbiphy, MII_BMCR, tmp_reg16);
 
@@ -1206,7 +1445,9 @@ int dtsec_get_version(struct fman_mac *dtsec, u32 *mac_version)
 	struct dtsec_regs __iomem *regs = dtsec->regs;
 
 	if (!is_init_done(dtsec->dtsec_drv_param))
+	{
 		return -EINVAL;
+	}
 
 	*mac_version = ioread32be(&regs->tsec_id);
 
@@ -1214,53 +1455,75 @@ int dtsec_get_version(struct fman_mac *dtsec, u32 *mac_version)
 }
 
 int dtsec_set_exception(struct fman_mac *dtsec,
-			enum fman_mac_exceptions exception, bool enable)
+						enum fman_mac_exceptions exception, bool enable)
 {
 	struct dtsec_regs __iomem *regs = dtsec->regs;
 	u32 bit_mask = 0;
 
 	if (!is_init_done(dtsec->dtsec_drv_param))
+	{
 		return -EINVAL;
+	}
 
-	if (exception != FM_MAC_EX_1G_1588_TS_RX_ERR) {
+	if (exception != FM_MAC_EX_1G_1588_TS_RX_ERR)
+	{
 		bit_mask = get_exception_flag(exception);
-		if (bit_mask) {
+
+		if (bit_mask)
+		{
 			if (enable)
+			{
 				dtsec->exceptions |= bit_mask;
+			}
 			else
+			{
 				dtsec->exceptions &= ~bit_mask;
-		} else {
+			}
+		}
+		else
+		{
 			pr_err("Undefined exception\n");
 			return -EINVAL;
 		}
+
 		if (enable)
 			iowrite32be(ioread32be(&regs->imask) | bit_mask,
-				    &regs->imask);
+						&regs->imask);
 		else
 			iowrite32be(ioread32be(&regs->imask) & ~bit_mask,
-				    &regs->imask);
-	} else {
-		if (!dtsec->ptp_tsu_enabled) {
+						&regs->imask);
+	}
+	else
+	{
+		if (!dtsec->ptp_tsu_enabled)
+		{
 			pr_err("Exception valid for 1588 only\n");
 			return -EINVAL;
 		}
-		switch (exception) {
-		case FM_MAC_EX_1G_1588_TS_RX_ERR:
-			if (enable) {
-				dtsec->en_tsu_err_exeption = true;
-				iowrite32be(ioread32be(&regs->tmr_pemask) |
-					    TMR_PEMASK_TSREEN,
-					    &regs->tmr_pemask);
-			} else {
-				dtsec->en_tsu_err_exeption = false;
-				iowrite32be(ioread32be(&regs->tmr_pemask) &
-					    ~TMR_PEMASK_TSREEN,
-					    &regs->tmr_pemask);
-			}
-			break;
-		default:
-			pr_err("Undefined exception\n");
-			return -EINVAL;
+
+		switch (exception)
+		{
+			case FM_MAC_EX_1G_1588_TS_RX_ERR:
+				if (enable)
+				{
+					dtsec->en_tsu_err_exeption = true;
+					iowrite32be(ioread32be(&regs->tmr_pemask) |
+								TMR_PEMASK_TSREEN,
+								&regs->tmr_pemask);
+				}
+				else
+				{
+					dtsec->en_tsu_err_exeption = false;
+					iowrite32be(ioread32be(&regs->tmr_pemask) &
+								~TMR_PEMASK_TSREEN,
+								&regs->tmr_pemask);
+				}
+
+				break;
+
+			default:
+				pr_err("Undefined exception\n");
+				return -EINVAL;
 		}
 	}
 
@@ -1276,32 +1539,41 @@ int dtsec_init(struct fman_mac *dtsec)
 	enet_addr_t eth_addr;
 
 	if (is_init_done(dtsec->dtsec_drv_param))
+	{
 		return -EINVAL;
+	}
 
 	if (DEFAULT_RESET_ON_INIT &&
-	    (fman_reset_mac(dtsec->fm, dtsec->mac_id) != 0)) {
+		(fman_reset_mac(dtsec->fm, dtsec->mac_id) != 0))
+	{
 		pr_err("Can't reset MAC!\n");
 		return -EINVAL;
 	}
 
 	err = check_init_parameters(dtsec);
+
 	if (err)
+	{
 		return err;
+	}
 
 	dtsec_drv_param = dtsec->dtsec_drv_param;
 
 	MAKE_ENET_ADDR_FROM_UINT64(dtsec->addr, eth_addr);
 
 	err = init(dtsec->regs, dtsec_drv_param, dtsec->phy_if,
-		   dtsec->max_speed, (u8 *)eth_addr, dtsec->exceptions,
-		   dtsec->tbiphy->mdio.addr);
-	if (err) {
+			   dtsec->max_speed, (u8 *)eth_addr, dtsec->exceptions,
+			   dtsec->tbiphy->mdio.addr);
+
+	if (err)
+	{
 		free_init_resources(dtsec);
 		pr_err("DTSEC version doesn't support this i/f mode\n");
 		return err;
 	}
 
-	if (dtsec->phy_if == PHY_INTERFACE_MODE_SGMII) {
+	if (dtsec->phy_if == PHY_INTERFACE_MODE_SGMII)
+	{
 		u16 tmp_reg16;
 
 		/* Configure the TBI PHY Control Register */
@@ -1312,17 +1584,22 @@ int dtsec_init(struct fman_mac *dtsec)
 		phy_write(dtsec->tbiphy, MII_TBICON, tmp_reg16);
 
 		tmp_reg16 = (BMCR_RESET | BMCR_ANENABLE |
-			     BMCR_FULLDPLX | BMCR_SPEED1000);
+					 BMCR_FULLDPLX | BMCR_SPEED1000);
 		phy_write(dtsec->tbiphy, MII_BMCR, tmp_reg16);
 
 		if (dtsec->basex_if)
+		{
 			tmp_reg16 = TBIANA_1000X;
+		}
 		else
+		{
 			tmp_reg16 = TBIANA_SGMII;
+		}
+
 		phy_write(dtsec->tbiphy, MII_ADVERTISE, tmp_reg16);
 
 		tmp_reg16 = (BMCR_ANENABLE | BMCR_ANRESTART |
-			     BMCR_FULLDPLX | BMCR_SPEED1000);
+					 BMCR_FULLDPLX | BMCR_SPEED1000);
 
 		phy_write(dtsec->tbiphy, MII_BMCR, tmp_reg16);
 	}
@@ -1330,22 +1607,28 @@ int dtsec_init(struct fman_mac *dtsec)
 	/* Max Frame Length */
 	max_frm_ln = (u16)ioread32be(&regs->maxfrm);
 	err = fman_set_mac_max_frame(dtsec->fm, dtsec->mac_id, max_frm_ln);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Setting max frame length failed\n");
 		free_init_resources(dtsec);
 		return -EINVAL;
 	}
 
 	dtsec->multicast_addr_hash =
-	alloc_hash_table(EXTENDED_HASH_TABLE_SIZE);
-	if (!dtsec->multicast_addr_hash) {
+		alloc_hash_table(EXTENDED_HASH_TABLE_SIZE);
+
+	if (!dtsec->multicast_addr_hash)
+	{
 		free_init_resources(dtsec);
 		pr_err("MC hash table is failed\n");
 		return -ENOMEM;
 	}
 
 	dtsec->unicast_addr_hash = alloc_hash_table(DTSEC_HASH_TABLE_SIZE);
-	if (!dtsec->unicast_addr_hash) {
+
+	if (!dtsec->unicast_addr_hash)
+	{
 		free_init_resources(dtsec);
 		pr_err("UC hash table is failed\n");
 		return -ENOMEM;
@@ -1353,10 +1636,10 @@ int dtsec_init(struct fman_mac *dtsec)
 
 	/* register err intr handler for dtsec to FPM (err) */
 	fman_register_intr(dtsec->fm, FMAN_MOD_MAC, dtsec->mac_id,
-			   FMAN_INTR_TYPE_ERR, dtsec_isr, dtsec);
+					   FMAN_INTR_TYPE_ERR, dtsec_isr, dtsec);
 	/* register 1588 intr handler for TMR to FPM (normal) */
 	fman_register_intr(dtsec->fm, FMAN_MOD_MAC, dtsec->mac_id,
-			   FMAN_INTR_TYPE_NORMAL, dtsec_1588_isr, dtsec);
+					   FMAN_INTR_TYPE_NORMAL, dtsec_1588_isr, dtsec);
 
 	kfree(dtsec_drv_param);
 	dtsec->dtsec_drv_param = NULL;
@@ -1385,13 +1668,19 @@ struct fman_mac *dtsec_config(struct fman_mac_params *params)
 
 	/* allocate memory for the UCC GETH data structure. */
 	dtsec = kzalloc(sizeof(*dtsec), GFP_KERNEL);
+
 	if (!dtsec)
+	{
 		return NULL;
+	}
 
 	/* allocate memory for the d_tsec driver parameters data structure. */
 	dtsec_drv_param = kzalloc(sizeof(*dtsec_drv_param), GFP_KERNEL);
+
 	if (!dtsec_drv_param)
+	{
 		goto err_dtsec;
+	}
 
 	/* Plant parameter structure pointer */
 	dtsec->dtsec_drv_param = dtsec_drv_param;
@@ -1404,18 +1693,18 @@ struct fman_mac *dtsec_config(struct fman_mac_params *params)
 	dtsec->phy_if = params->phy_if;
 	dtsec->mac_id = params->mac_id;
 	dtsec->exceptions = (DTSEC_IMASK_BREN	|
-			     DTSEC_IMASK_RXCEN	|
-			     DTSEC_IMASK_BTEN	|
-			     DTSEC_IMASK_TXCEN	|
-			     DTSEC_IMASK_TXEEN	|
-			     DTSEC_IMASK_ABRTEN	|
-			     DTSEC_IMASK_LCEN	|
-			     DTSEC_IMASK_CRLEN	|
-			     DTSEC_IMASK_XFUNEN	|
-			     DTSEC_IMASK_IFERREN |
-			     DTSEC_IMASK_MAGEN	|
-			     DTSEC_IMASK_TDPEEN	|
-			     DTSEC_IMASK_RDPEEN);
+						 DTSEC_IMASK_RXCEN	|
+						 DTSEC_IMASK_BTEN	|
+						 DTSEC_IMASK_TXCEN	|
+						 DTSEC_IMASK_TXEEN	|
+						 DTSEC_IMASK_ABRTEN	|
+						 DTSEC_IMASK_LCEN	|
+						 DTSEC_IMASK_CRLEN	|
+						 DTSEC_IMASK_XFUNEN	|
+						 DTSEC_IMASK_IFERREN |
+						 DTSEC_IMASK_MAGEN	|
+						 DTSEC_IMASK_TDPEEN	|
+						 DTSEC_IMASK_RDPEEN);
 	dtsec->exception_cb = params->exception_cb;
 	dtsec->event_cb = params->event_cb;
 	dtsec->dev_id = params->dev_id;
@@ -1425,13 +1714,16 @@ struct fman_mac *dtsec_config(struct fman_mac_params *params)
 	dtsec->fm = params->fm;
 	dtsec->basex_if = params->basex_if;
 
-	if (!params->internal_phy_node) {
+	if (!params->internal_phy_node)
+	{
 		pr_err("TBI PHY node is not available\n");
 		goto err_dtsec_drv_param;
 	}
 
 	dtsec->tbiphy = of_phy_find_device(params->internal_phy_node);
-	if (!dtsec->tbiphy) {
+
+	if (!dtsec->tbiphy)
+	{
 		pr_err("of_phy_find_device (TBI PHY) failed\n");
 		goto err_dtsec_drv_param;
 	}

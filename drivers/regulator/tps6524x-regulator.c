@@ -117,13 +117,15 @@
 #define STAT_INVALID		BIT(1)
 #define STAT_WP			BIT(0)
 
-struct field {
+struct field
+{
 	int		reg;
 	int		shift;
 	int		mask;
 };
 
-struct supply_info {
+struct supply_info
+{
 	const char	*name;
 	int		n_voltages;
 	const unsigned int *voltages;
@@ -132,7 +134,8 @@ struct supply_info {
 	struct field	enable, voltage, ilimsel;
 };
 
-struct tps6524x {
+struct tps6524x
+{
 	struct device		*dev;
 	struct spi_device	*spi;
 	struct mutex		lock;
@@ -167,17 +170,24 @@ static int __read_reg(struct tps6524x *hw, int reg)
 	spi_message_add_tail(&t[2], &m);
 
 	error = spi_sync(hw->spi, &m);
+
 	if (error < 0)
+	{
 		return error;
+	}
 
 	dev_dbg(hw->dev, "read reg %d, data %x, status %x\n",
-		reg, in, status);
+			reg, in, status);
 
 	if (!(status & STAT_CLK) || (status & STAT_WRITE))
+	{
 		return -EIO;
+	}
 
 	if (status & STAT_INVALID)
+	{
 		return -EINVAL;
+	}
 
 	return in;
 }
@@ -220,17 +230,24 @@ static int __write_reg(struct tps6524x *hw, int reg, int val)
 	spi_message_add_tail(&t[2], &m);
 
 	error = spi_sync(hw->spi, &m);
+
 	if (error < 0)
+	{
 		return error;
+	}
 
 	dev_dbg(hw->dev, "wrote reg %d, data %x, status %x\n",
-		reg, out, status);
+			reg, out, status);
 
 	if (!(status & STAT_CLK) || !(status & STAT_WRITE))
+	{
 		return -EIO;
+	}
 
 	if (status & (STAT_INVALID | STAT_WP))
+	{
 		return -EINVAL;
+	}
 
 	return error;
 }
@@ -240,8 +257,11 @@ static int __rmw_reg(struct tps6524x *hw, int reg, int mask, int val)
 	int ret;
 
 	ret = __read_reg(hw, reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret &= ~mask;
 	ret |= val;
@@ -258,17 +278,24 @@ static int rmw_protect(struct tps6524x *hw, int reg, int mask, int val)
 	mutex_lock(&hw->lock);
 
 	ret = __write_reg(hw, REG_WRITE_ENABLE, 1);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(hw->dev, "failed to set write enable\n");
 		goto error;
 	}
 
 	ret = __rmw_reg(hw, reg, mask, val);
+
 	if (ret)
+	{
 		dev_err(hw->dev, "failed to rmw register %d\n", reg);
+	}
 
 	ret = __write_reg(hw, REG_WRITE_ENABLE, 0);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(hw->dev, "failed to clear write enable\n");
 		goto error;
 	}
@@ -284,26 +311,32 @@ static int read_field(struct tps6524x *hw, const struct field *field)
 	int tmp;
 
 	tmp = read_reg(hw, field->reg);
+
 	if (tmp < 0)
+	{
 		return tmp;
+	}
 
 	return (tmp >> field->shift) & field->mask;
 }
 
 static int write_field(struct tps6524x *hw, const struct field *field,
-		       int val)
+					   int val)
 {
 	if (val & ~field->mask)
+	{
 		return -EOVERFLOW;
+	}
 
 	return rmw_protect(hw, field->reg,
-				    field->mask << field->shift,
-				    val << field->shift);
+					   field->mask << field->shift,
+					   val << field->shift);
 }
 
-static const unsigned int dcdc1_voltages[] = {
-	 800000,  825000,  850000,  875000,
-	 900000,  925000,  950000,  975000,
+static const unsigned int dcdc1_voltages[] =
+{
+	800000,  825000,  850000,  875000,
+	900000,  925000,  950000,  975000,
 	1000000, 1025000, 1050000, 1075000,
 	1100000, 1125000, 1150000, 1175000,
 	1200000, 1225000, 1250000, 1275000,
@@ -312,7 +345,8 @@ static const unsigned int dcdc1_voltages[] = {
 	1500000, 1525000, 1550000, 1575000,
 };
 
-static const unsigned int dcdc2_voltages[] = {
+static const unsigned int dcdc2_voltages[] =
+{
 	1400000, 1450000, 1500000, 1550000,
 	1600000, 1650000, 1700000, 1750000,
 	1800000, 1850000, 1900000, 1950000,
@@ -323,7 +357,8 @@ static const unsigned int dcdc2_voltages[] = {
 	2800000, 2850000, 2900000, 2950000,
 };
 
-static const unsigned int dcdc3_voltages[] = {
+static const unsigned int dcdc3_voltages[] =
+{
 	2400000, 2450000, 2500000, 2550000, 2600000,
 	2650000, 2700000, 2750000, 2800000, 2850000,
 	2900000, 2950000, 3000000, 3050000, 3100000,
@@ -331,48 +366,57 @@ static const unsigned int dcdc3_voltages[] = {
 	3400000, 3450000, 3500000, 3550000, 3600000,
 };
 
-static const unsigned int ldo1_voltages[] = {
+static const unsigned int ldo1_voltages[] =
+{
 	4300000, 4350000, 4400000, 4450000,
 	4500000, 4550000, 4600000, 4650000,
 	4700000, 4750000, 4800000, 4850000,
 	4900000, 4950000, 5000000, 5050000,
 };
 
-static const unsigned int ldo2_voltages[] = {
+static const unsigned int ldo2_voltages[] =
+{
 	1100000, 1150000, 1200000, 1250000,
 	1300000, 1700000, 1750000, 1800000,
 	1850000, 1900000, 3150000, 3200000,
 	3250000, 3300000, 3350000, 3400000,
 };
 
-static const unsigned int fixed_5000000_voltage[] = {
+static const unsigned int fixed_5000000_voltage[] =
+{
 	5000000
 };
 
-static const unsigned int ldo_ilimsel[] = {
+static const unsigned int ldo_ilimsel[] =
+{
 	400000, 1500000
 };
 
-static const unsigned int usb_ilimsel[] = {
+static const unsigned int usb_ilimsel[] =
+{
 	200000, 400000, 800000, 1000000
 };
 
-static const unsigned int fixed_2400000_ilimsel[] = {
+static const unsigned int fixed_2400000_ilimsel[] =
+{
 	2400000
 };
 
-static const unsigned int fixed_1200000_ilimsel[] = {
+static const unsigned int fixed_1200000_ilimsel[] =
+{
 	1200000
 };
 
-static const unsigned int fixed_400000_ilimsel[] = {
+static const unsigned int fixed_400000_ilimsel[] =
+{
 	400000
 };
 
 #define __MK_FIELD(_reg, _mask, _shift) \
 	{ .reg = (_reg), .mask = (_mask), .shift = (_shift), }
 
-static const struct supply_info supply_info[N_REGULATORS] = {
+static const struct supply_info supply_info[N_REGULATORS] =
+{
 	{
 		.name		= "DCDC1",
 		.n_voltages	= ARRAY_SIZE(dcdc1_voltages),
@@ -380,9 +424,9 @@ static const struct supply_info supply_info[N_REGULATORS] = {
 		.n_ilimsels	= ARRAY_SIZE(fixed_2400000_ilimsel),
 		.ilimsels	= fixed_2400000_ilimsel,
 		.enable		= __MK_FIELD(REG_DCDC_EN, DCDCDCDC_EN_MASK,
-					     DCDCDCDC1_EN_SHIFT),
+		DCDCDCDC1_EN_SHIFT),
 		.voltage	= __MK_FIELD(REG_DCDC_SET, DCDC_VDCDC_MASK,
-					     DCDC_VDCDC1_SHIFT),
+		DCDC_VDCDC1_SHIFT),
 	},
 	{
 		.name		= "DCDC2",
@@ -391,9 +435,9 @@ static const struct supply_info supply_info[N_REGULATORS] = {
 		.n_ilimsels	= ARRAY_SIZE(fixed_1200000_ilimsel),
 		.ilimsels	= fixed_1200000_ilimsel,
 		.enable		= __MK_FIELD(REG_DCDC_EN, DCDCDCDC_EN_MASK,
-					     DCDCDCDC2_EN_SHIFT),
+		DCDCDCDC2_EN_SHIFT),
 		.voltage	= __MK_FIELD(REG_DCDC_SET, DCDC_VDCDC_MASK,
-					     DCDC_VDCDC2_SHIFT),
+		DCDC_VDCDC2_SHIFT),
 	},
 	{
 		.name		= "DCDC3",
@@ -402,9 +446,9 @@ static const struct supply_info supply_info[N_REGULATORS] = {
 		.n_ilimsels	= ARRAY_SIZE(fixed_1200000_ilimsel),
 		.ilimsels	= fixed_1200000_ilimsel,
 		.enable		= __MK_FIELD(REG_DCDC_EN, DCDCDCDC_EN_MASK,
-					DCDCDCDC3_EN_SHIFT),
+		DCDCDCDC3_EN_SHIFT),
 		.voltage	= __MK_FIELD(REG_DCDC_SET, DCDC_VDCDC_MASK,
-					     DCDC_VDCDC3_SHIFT),
+		DCDC_VDCDC3_SHIFT),
 	},
 	{
 		.name		= "LDO1",
@@ -413,11 +457,11 @@ static const struct supply_info supply_info[N_REGULATORS] = {
 		.n_ilimsels	= ARRAY_SIZE(ldo_ilimsel),
 		.ilimsels	= ldo_ilimsel,
 		.enable		= __MK_FIELD(REG_BLOCK_EN, BLOCK_MASK,
-					     BLOCK_LDO1_SHIFT),
+		BLOCK_LDO1_SHIFT),
 		.voltage	= __MK_FIELD(REG_LDO_SET, LDO_VSEL_MASK,
-					     LDO1_VSEL_SHIFT),
+		LDO1_VSEL_SHIFT),
 		.ilimsel	= __MK_FIELD(REG_LDO_SET, LDO_ILIM_MASK,
-					     LDO1_ILIM_SHIFT),
+		LDO1_ILIM_SHIFT),
 	},
 	{
 		.name		= "LDO2",
@@ -426,11 +470,11 @@ static const struct supply_info supply_info[N_REGULATORS] = {
 		.n_ilimsels	= ARRAY_SIZE(ldo_ilimsel),
 		.ilimsels	= ldo_ilimsel,
 		.enable		= __MK_FIELD(REG_BLOCK_EN, BLOCK_MASK,
-					     BLOCK_LDO2_SHIFT),
+		BLOCK_LDO2_SHIFT),
 		.voltage	= __MK_FIELD(REG_LDO_SET, LDO_VSEL_MASK,
-					     LDO2_VSEL_SHIFT),
+		LDO2_VSEL_SHIFT),
 		.ilimsel	= __MK_FIELD(REG_LDO_SET, LDO_ILIM_MASK,
-					     LDO2_ILIM_SHIFT),
+		LDO2_ILIM_SHIFT),
 	},
 	{
 		.name		= "USB",
@@ -439,9 +483,9 @@ static const struct supply_info supply_info[N_REGULATORS] = {
 		.n_ilimsels	= ARRAY_SIZE(usb_ilimsel),
 		.ilimsels	= usb_ilimsel,
 		.enable		= __MK_FIELD(REG_BLOCK_EN, BLOCK_MASK,
-					     BLOCK_USB_SHIFT),
+		BLOCK_USB_SHIFT),
 		.ilimsel	= __MK_FIELD(REG_USB, USB_ILIM_MASK,
-					     USB_ILIM_SHIFT),
+		USB_ILIM_SHIFT),
 	},
 	{
 		.name		= "LCD",
@@ -450,7 +494,7 @@ static const struct supply_info supply_info[N_REGULATORS] = {
 		.n_ilimsels	= ARRAY_SIZE(fixed_400000_ilimsel),
 		.ilimsels	= fixed_400000_ilimsel,
 		.enable		= __MK_FIELD(REG_BLOCK_EN, BLOCK_MASK,
-					     BLOCK_LCD_SHIFT),
+		BLOCK_LCD_SHIFT),
 	},
 };
 
@@ -463,7 +507,9 @@ static int set_voltage_sel(struct regulator_dev *rdev, unsigned selector)
 	info	= &supply_info[rdev_get_id(rdev)];
 
 	if (rdev->desc->n_voltages == 1)
+	{
 		return -EINVAL;
+	}
 
 	return write_field(hw, &info->voltage, selector);
 }
@@ -478,19 +524,27 @@ static int get_voltage_sel(struct regulator_dev *rdev)
 	info	= &supply_info[rdev_get_id(rdev)];
 
 	if (rdev->desc->n_voltages == 1)
+	{
 		return 0;
+	}
 
 	ret = read_field(hw, &info->voltage);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (WARN_ON(ret >= info->n_voltages))
+	{
 		return -EIO;
+	}
 
 	return ret;
 }
 
 static int set_current_limit(struct regulator_dev *rdev, int min_uA,
-			     int max_uA)
+							 int max_uA)
 {
 	const struct supply_info *info;
 	struct tps6524x *hw;
@@ -500,12 +554,17 @@ static int set_current_limit(struct regulator_dev *rdev, int min_uA,
 	info	= &supply_info[rdev_get_id(rdev)];
 
 	if (info->n_ilimsels == 1)
+	{
 		return -EINVAL;
+	}
 
-	for (i = info->n_ilimsels - 1; i >= 0; i--) {
+	for (i = info->n_ilimsels - 1; i >= 0; i--)
+	{
 		if (min_uA <= info->ilimsels[i] &&
-		    max_uA >= info->ilimsels[i])
+			max_uA >= info->ilimsels[i])
+		{
 			return write_field(hw, &info->ilimsel, i);
+		}
 	}
 
 	return -EINVAL;
@@ -521,13 +580,21 @@ static int get_current_limit(struct regulator_dev *rdev)
 	info	= &supply_info[rdev_get_id(rdev)];
 
 	if (info->n_ilimsels == 1)
+	{
 		return info->ilimsels[0];
+	}
 
 	ret = read_field(hw, &info->ilimsel);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (WARN_ON(ret >= info->n_ilimsels))
+	{
 		return -EIO;
+	}
 
 	return info->ilimsels[ret];
 }
@@ -565,7 +632,8 @@ static int is_supply_enabled(struct regulator_dev *rdev)
 	return read_field(hw, &info->enable);
 }
 
-static struct regulator_ops regulator_ops = {
+static struct regulator_ops regulator_ops =
+{
 	.is_enabled		= is_supply_enabled,
 	.enable			= enable_supply,
 	.disable		= disable_supply,
@@ -587,14 +655,19 @@ static int pmic_probe(struct spi_device *spi)
 	int i;
 
 	init_data = dev_get_platdata(dev);
-	if (!init_data) {
+
+	if (!init_data)
+	{
 		dev_err(dev, "could not find regulator platform data\n");
 		return -EINVAL;
 	}
 
 	hw = devm_kzalloc(&spi->dev, sizeof(struct tps6524x), GFP_KERNEL);
+
 	if (!hw)
+	{
 		return -ENOMEM;
+	}
 
 	spi_set_drvdata(spi, hw);
 
@@ -603,7 +676,8 @@ static int pmic_probe(struct spi_device *spi)
 	hw->spi = spi;
 	mutex_init(&hw->lock);
 
-	for (i = 0; i < N_REGULATORS; i++, info++, init_data++) {
+	for (i = 0; i < N_REGULATORS; i++, info++, init_data++)
+	{
 		hw->desc[i].name	= info->name;
 		hw->desc[i].id		= i;
 		hw->desc[i].n_voltages	= info->n_voltages;
@@ -617,15 +691,19 @@ static int pmic_probe(struct spi_device *spi)
 		config.driver_data = hw;
 
 		hw->rdev[i] = devm_regulator_register(dev, &hw->desc[i],
-						      &config);
+											  &config);
+
 		if (IS_ERR(hw->rdev[i]))
+		{
 			return PTR_ERR(hw->rdev[i]);
+		}
 	}
 
 	return 0;
 }
 
-static struct spi_driver pmic_driver = {
+static struct spi_driver pmic_driver =
+{
 	.probe		= pmic_probe,
 	.driver		= {
 		.name	= "tps6524x",

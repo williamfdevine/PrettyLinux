@@ -11,7 +11,7 @@
 #include <linux/sunrpc/clnt.h>
 
 #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
-# define RPCDBG_FACILITY	RPCDBG_AUTH
+	#define RPCDBG_FACILITY	RPCDBG_AUTH
 #endif
 
 static struct rpc_auth null_auth;
@@ -36,7 +36,10 @@ static struct rpc_cred *
 nul_lookup_cred(struct rpc_auth *auth, struct auth_cred *acred, int flags)
 {
 	if (flags & RPCAUTH_LOOKUP_RCU)
+	{
 		return &null_cred;
+	}
+
 	return get_rpccred(&null_cred);
 }
 
@@ -88,13 +91,17 @@ nul_validate(struct rpc_task *task, __be32 *p)
 	u32			size;
 
 	flavor = ntohl(*p++);
-	if (flavor != RPC_AUTH_NULL) {
+
+	if (flavor != RPC_AUTH_NULL)
+	{
 		printk("RPC: bad verf flavor: %u\n", flavor);
 		return ERR_PTR(-EIO);
 	}
 
 	size = ntohl(*p++);
-	if (size != 0) {
+
+	if (size != 0)
+	{
 		printk("RPC: bad verf size: %u\n", size);
 		return ERR_PTR(-EIO);
 	}
@@ -102,7 +109,8 @@ nul_validate(struct rpc_task *task, __be32 *p)
 	return p;
 }
 
-const struct rpc_authops authnull_ops = {
+const struct rpc_authops authnull_ops =
+{
 	.owner		= THIS_MODULE,
 	.au_flavor	= RPC_AUTH_NULL,
 	.au_name	= "NULL",
@@ -112,7 +120,8 @@ const struct rpc_authops authnull_ops = {
 };
 
 static
-struct rpc_auth null_auth = {
+struct rpc_auth null_auth =
+{
 	.au_cslack	= NUL_CALLSLACK,
 	.au_rslack	= NUL_REPLYSLACK,
 	.au_flags	= RPCAUTH_AUTH_NO_CRKEY_TIMEOUT,
@@ -122,7 +131,8 @@ struct rpc_auth null_auth = {
 };
 
 static
-const struct rpc_credops null_credops = {
+const struct rpc_credops null_credops =
+{
 	.cr_name	= "AUTH_NULL",
 	.crdestroy	= nul_destroy_cred,
 	.crbind		= rpcauth_generic_bind_cred,
@@ -133,7 +143,8 @@ const struct rpc_credops null_credops = {
 };
 
 static
-struct rpc_cred null_cred = {
+struct rpc_cred null_cred =
+{
 	.cr_lru		= LIST_HEAD_INIT(null_cred.cr_lru),
 	.cr_auth	= &null_auth,
 	.cr_ops		= &null_credops,

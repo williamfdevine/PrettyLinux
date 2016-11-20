@@ -26,7 +26,8 @@
  */
 #define MAX_NBUTTONS	5
 
-struct soc_button_info {
+struct soc_button_info
+{
 	const char *name;
 	int acpi_index;
 	unsigned int event_type;
@@ -42,7 +43,8 @@ struct soc_button_info {
  */
 #define BUTTON_TYPES	2
 
-struct soc_button_data {
+struct soc_button_data
+{
 	struct platform_device *children[BUTTON_TYPES];
 };
 
@@ -55,8 +57,11 @@ static int soc_button_lookup_gpio(struct device *dev, int acpi_index)
 	int gpio;
 
 	desc = gpiod_get_index(dev, KBUILD_MODNAME, acpi_index, GPIOD_ASIS);
+
 	if (IS_ERR(desc))
+	{
 		return PTR_ERR(desc);
+	}
 
 	gpio = desc_to_gpio(desc);
 
@@ -67,8 +72,8 @@ static int soc_button_lookup_gpio(struct device *dev, int acpi_index)
 
 static struct platform_device *
 soc_button_device_create(struct platform_device *pdev,
-			 const struct soc_button_info *button_info,
-			 bool autorepeat)
+						 const struct soc_button_info *button_info,
+						 bool autorepeat)
 {
 	const struct soc_button_info *info;
 	struct platform_device *pd;
@@ -79,21 +84,30 @@ soc_button_device_create(struct platform_device *pdev,
 	int error;
 
 	gpio_keys_pdata = devm_kzalloc(&pdev->dev,
-				       sizeof(*gpio_keys_pdata) +
-					sizeof(*gpio_keys) * MAX_NBUTTONS,
-				       GFP_KERNEL);
+								   sizeof(*gpio_keys_pdata) +
+								   sizeof(*gpio_keys) * MAX_NBUTTONS,
+								   GFP_KERNEL);
+
 	if (!gpio_keys_pdata)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	gpio_keys = (void *)(gpio_keys_pdata + 1);
 
-	for (info = button_info; info->name; info++) {
+	for (info = button_info; info->name; info++)
+	{
 		if (info->autorepeat != autorepeat)
+		{
 			continue;
+		}
 
 		gpio = soc_button_lookup_gpio(&pdev->dev, info->acpi_index);
+
 		if (gpio < 0)
+		{
 			continue;
+		}
 
 		gpio_keys[n_buttons].type = info->event_type;
 		gpio_keys[n_buttons].code = info->event_code;
@@ -104,7 +118,8 @@ soc_button_device_create(struct platform_device *pdev,
 		n_buttons++;
 	}
 
-	if (n_buttons == 0) {
+	if (n_buttons == 0)
+	{
 		error = -ENODEV;
 		goto err_free_mem;
 	}
@@ -114,19 +129,27 @@ soc_button_device_create(struct platform_device *pdev,
 	gpio_keys_pdata->rep = autorepeat;
 
 	pd = platform_device_alloc("gpio-keys", PLATFORM_DEVID_AUTO);
-	if (!pd) {
+
+	if (!pd)
+	{
 		error = -ENOMEM;
 		goto err_free_mem;
 	}
 
 	error = platform_device_add_data(pd, gpio_keys_pdata,
-					 sizeof(*gpio_keys_pdata));
+									 sizeof(*gpio_keys_pdata));
+
 	if (error)
+	{
 		goto err_free_pdev;
+	}
 
 	error = platform_device_add(pd);
+
 	if (error)
+	{
 		goto err_free_pdev;
+	}
 
 	return pd;
 
@@ -145,7 +168,9 @@ static int soc_button_remove(struct platform_device *pdev)
 
 	for (i = 0; i < BUTTON_TYPES; i++)
 		if (priv->children[i])
+		{
 			platform_device_unregister(priv->children[i]);
+		}
 
 	return 0;
 }
@@ -161,25 +186,37 @@ static int soc_button_probe(struct platform_device *pdev)
 	int error;
 
 	id = acpi_match_device(dev->driver->acpi_match_table, dev);
+
 	if (!id)
+	{
 		return -ENODEV;
+	}
 
 	button_info = (struct soc_button_info *)id->driver_data;
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, priv);
 
-	for (i = 0; i < BUTTON_TYPES; i++) {
+	for (i = 0; i < BUTTON_TYPES; i++)
+	{
 		pd = soc_button_device_create(pdev, button_info, i == 0);
-		if (IS_ERR(pd)) {
+
+		if (IS_ERR(pd))
+		{
 			error = PTR_ERR(pd);
-			if (error != -ENODEV) {
+
+			if (error != -ENODEV)
+			{
 				soc_button_remove(pdev);
 				return error;
 			}
+
 			continue;
 		}
 
@@ -187,12 +224,15 @@ static int soc_button_probe(struct platform_device *pdev)
 	}
 
 	if (!priv->children[0] && !priv->children[1])
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
 
-static struct soc_button_info soc_button_PNP0C40[] = {
+static struct soc_button_info soc_button_PNP0C40[] =
+{
 	{ "power", 0, EV_KEY, KEY_POWER, false, true },
 	{ "home", 1, EV_KEY, KEY_LEFTMETA, false, true },
 	{ "volume_up", 2, EV_KEY, KEY_VOLUMEUP, true, false },
@@ -201,14 +241,16 @@ static struct soc_button_info soc_button_PNP0C40[] = {
 	{ }
 };
 
-static const struct acpi_device_id soc_button_acpi_match[] = {
+static const struct acpi_device_id soc_button_acpi_match[] =
+{
 	{ "PNP0C40", (unsigned long)soc_button_PNP0C40 },
 	{ }
 };
 
 MODULE_DEVICE_TABLE(acpi, soc_button_acpi_match);
 
-static struct platform_driver soc_button_driver = {
+static struct platform_driver soc_button_driver =
+{
 	.probe          = soc_button_probe,
 	.remove		= soc_button_remove,
 	.driver		= {

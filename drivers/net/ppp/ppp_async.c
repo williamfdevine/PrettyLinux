@@ -42,7 +42,8 @@
 #define OBUFSIZE	4096
 
 /* Structure for storing local state. */
-struct asyncppp {
+struct asyncppp
+{
 	struct tty_struct *tty;
 	unsigned int	flags;
 	unsigned int	state;
@@ -102,15 +103,16 @@ static int ppp_async_send(struct ppp_channel *chan, struct sk_buff *skb);
 static int ppp_async_push(struct asyncppp *ap);
 static void ppp_async_flush_output(struct asyncppp *ap);
 static void ppp_async_input(struct asyncppp *ap, const unsigned char *buf,
-			    char *flags, int count);
+							char *flags, int count);
 static int ppp_async_ioctl(struct ppp_channel *chan, unsigned int cmd,
-			   unsigned long arg);
+						   unsigned long arg);
 static void ppp_async_process(unsigned long arg);
 
 static void async_lcp_peek(struct asyncppp *ap, unsigned char *data,
-			   int len, int inbound);
+						   int len, int inbound);
 
-static const struct ppp_channel_ops async_ops = {
+static const struct ppp_channel_ops async_ops =
+{
 	.start_xmit = ppp_async_send,
 	.ioctl      = ppp_async_ioctl,
 };
@@ -139,8 +141,12 @@ static struct asyncppp *ap_get(struct tty_struct *tty)
 
 	read_lock(&disc_data_lock);
 	ap = tty->disc_data;
+
 	if (ap != NULL)
+	{
 		atomic_inc(&ap->refcnt);
+	}
+
 	read_unlock(&disc_data_lock);
 	return ap;
 }
@@ -148,7 +154,9 @@ static struct asyncppp *ap_get(struct tty_struct *tty)
 static void ap_put(struct asyncppp *ap)
 {
 	if (atomic_dec_and_test(&ap->refcnt))
+	{
 		up(&ap->dead_sem);
+	}
 }
 
 /*
@@ -163,12 +171,17 @@ ppp_asynctty_open(struct tty_struct *tty)
 	int speed;
 
 	if (tty->ops->write == NULL)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	err = -ENOMEM;
 	ap = kzalloc(sizeof(*ap), GFP_KERNEL);
+
 	if (!ap)
+	{
 		goto out;
+	}
 
 	/* initialize the asyncppp structure */
 	ap->tty = tty;
@@ -194,16 +207,19 @@ ppp_asynctty_open(struct tty_struct *tty)
 	speed = tty_get_baud_rate(tty);
 	ap->chan.speed = speed;
 	err = ppp_register_channel(&ap->chan);
+
 	if (err)
+	{
 		goto out_free;
+	}
 
 	tty->disc_data = ap;
 	tty->receive_room = 65536;
 	return 0;
 
- out_free:
+out_free:
 	kfree(ap);
- out:
+out:
 	return err;
 }
 
@@ -224,8 +240,11 @@ ppp_asynctty_close(struct tty_struct *tty)
 	ap = tty->disc_data;
 	tty->disc_data = NULL;
 	write_unlock_irq(&disc_data_lock);
+
 	if (!ap)
+	{
 		return;
+	}
 
 	/*
 	 * We have now ensured that nobody can start using ap from now
@@ -235,7 +254,10 @@ ppp_asynctty_close(struct tty_struct *tty)
 	 * by the time it returns.
 	 */
 	if (!atomic_dec_and_test(&ap->refcnt))
+	{
 		down(&ap->dead_sem);
+	}
+
 	tasklet_kill(&ap->tsk);
 
 	ppp_unregister_channel(&ap->chan);
@@ -263,7 +285,7 @@ static int ppp_asynctty_hangup(struct tty_struct *tty)
  */
 static ssize_t
 ppp_asynctty_read(struct tty_struct *tty, struct file *file,
-		  unsigned char __user *buf, size_t count)
+				  unsigned char __user *buf, size_t count)
 {
 	return -EAGAIN;
 }
@@ -274,7 +296,7 @@ ppp_asynctty_read(struct tty_struct *tty, struct file *file,
  */
 static ssize_t
 ppp_asynctty_write(struct tty_struct *tty, struct file *file,
-		   const unsigned char *buf, size_t count)
+				   const unsigned char *buf, size_t count)
 {
 	return -EAGAIN;
 }
@@ -286,47 +308,68 @@ ppp_asynctty_write(struct tty_struct *tty, struct file *file,
 
 static int
 ppp_asynctty_ioctl(struct tty_struct *tty, struct file *file,
-		   unsigned int cmd, unsigned long arg)
+				   unsigned int cmd, unsigned long arg)
 {
 	struct asyncppp *ap = ap_get(tty);
 	int err, val;
 	int __user *p = (int __user *)arg;
 
 	if (!ap)
+	{
 		return -ENXIO;
+	}
+
 	err = -EFAULT;
-	switch (cmd) {
-	case PPPIOCGCHAN:
-		err = -EFAULT;
-		if (put_user(ppp_channel_index(&ap->chan), p))
+
+	switch (cmd)
+	{
+		case PPPIOCGCHAN:
+			err = -EFAULT;
+
+			if (put_user(ppp_channel_index(&ap->chan), p))
+			{
+				break;
+			}
+
+			err = 0;
 			break;
-		err = 0;
-		break;
 
-	case PPPIOCGUNIT:
-		err = -EFAULT;
-		if (put_user(ppp_unit_number(&ap->chan), p))
+		case PPPIOCGUNIT:
+			err = -EFAULT;
+
+			if (put_user(ppp_unit_number(&ap->chan), p))
+			{
+				break;
+			}
+
+			err = 0;
 			break;
-		err = 0;
-		break;
 
-	case TCFLSH:
-		/* flush our buffers and the serial port's buffer */
-		if (arg == TCIOFLUSH || arg == TCOFLUSH)
-			ppp_async_flush_output(ap);
-		err = n_tty_ioctl_helper(tty, file, cmd, arg);
-		break;
+		case TCFLSH:
 
-	case FIONREAD:
-		val = 0;
-		if (put_user(val, p))
+			/* flush our buffers and the serial port's buffer */
+			if (arg == TCIOFLUSH || arg == TCOFLUSH)
+			{
+				ppp_async_flush_output(ap);
+			}
+
+			err = n_tty_ioctl_helper(tty, file, cmd, arg);
 			break;
-		err = 0;
-		break;
 
-	default:
-		/* Try the various mode ioctls */
-		err = tty_mode_ioctl(tty, file, cmd, arg);
+		case FIONREAD:
+			val = 0;
+
+			if (put_user(val, p))
+			{
+				break;
+			}
+
+			err = 0;
+			break;
+
+		default:
+			/* Try the various mode ioctls */
+			err = tty_mode_ioctl(tty, file, cmd, arg);
 	}
 
 	ap_put(ap);
@@ -343,18 +386,25 @@ ppp_asynctty_poll(struct tty_struct *tty, struct file *file, poll_table *wait)
 /* May sleep, don't call from interrupt level or with interrupts disabled */
 static void
 ppp_asynctty_receive(struct tty_struct *tty, const unsigned char *buf,
-		  char *cflags, int count)
+					 char *cflags, int count)
 {
 	struct asyncppp *ap = ap_get(tty);
 	unsigned long flags;
 
 	if (!ap)
+	{
 		return;
+	}
+
 	spin_lock_irqsave(&ap->recv_lock, flags);
 	ppp_async_input(ap, buf, cflags, count);
 	spin_unlock_irqrestore(&ap->recv_lock, flags);
+
 	if (!skb_queue_empty(&ap->rqueue))
+	{
 		tasklet_schedule(&ap->tsk);
+	}
+
 	ap_put(ap);
 	tty_unthrottle(tty);
 }
@@ -365,15 +415,20 @@ ppp_asynctty_wakeup(struct tty_struct *tty)
 	struct asyncppp *ap = ap_get(tty);
 
 	clear_bit(TTY_DO_WRITE_WAKEUP, &tty->flags);
+
 	if (!ap)
+	{
 		return;
+	}
+
 	set_bit(XMIT_WAKEUP, &ap->xmit_flags);
 	tasklet_schedule(&ap->tsk);
 	ap_put(ap);
 }
 
 
-static struct tty_ldisc_ops ppp_ldisc = {
+static struct tty_ldisc_ops ppp_ldisc =
+{
 	.owner  = THIS_MODULE,
 	.magic	= TTY_LDISC_MAGIC,
 	.name	= "ppp",
@@ -394,9 +449,11 @@ ppp_async_init(void)
 	int err;
 
 	err = tty_register_ldisc(N_PPP, &ppp_ldisc);
+
 	if (err != 0)
 		printk(KERN_ERR "PPP_async: error %d registering line disc.\n",
-		       err);
+			   err);
+
 	return err;
 }
 
@@ -413,75 +470,116 @@ ppp_async_ioctl(struct ppp_channel *chan, unsigned int cmd, unsigned long arg)
 	u32 accm[8];
 
 	err = -EFAULT;
-	switch (cmd) {
-	case PPPIOCGFLAGS:
-		val = ap->flags | ap->rbits;
-		if (put_user(val, p))
-			break;
-		err = 0;
-		break;
-	case PPPIOCSFLAGS:
-		if (get_user(val, p))
-			break;
-		ap->flags = val & ~SC_RCV_BITS;
-		spin_lock_irq(&ap->recv_lock);
-		ap->rbits = val & SC_RCV_BITS;
-		spin_unlock_irq(&ap->recv_lock);
-		err = 0;
-		break;
 
-	case PPPIOCGASYNCMAP:
-		if (put_user(ap->xaccm[0], (u32 __user *)argp))
-			break;
-		err = 0;
-		break;
-	case PPPIOCSASYNCMAP:
-		if (get_user(ap->xaccm[0], (u32 __user *)argp))
-			break;
-		err = 0;
-		break;
+	switch (cmd)
+	{
+		case PPPIOCGFLAGS:
+			val = ap->flags | ap->rbits;
 
-	case PPPIOCGRASYNCMAP:
-		if (put_user(ap->raccm, (u32 __user *)argp))
-			break;
-		err = 0;
-		break;
-	case PPPIOCSRASYNCMAP:
-		if (get_user(ap->raccm, (u32 __user *)argp))
-			break;
-		err = 0;
-		break;
+			if (put_user(val, p))
+			{
+				break;
+			}
 
-	case PPPIOCGXASYNCMAP:
-		if (copy_to_user(argp, ap->xaccm, sizeof(ap->xaccm)))
+			err = 0;
 			break;
-		err = 0;
-		break;
-	case PPPIOCSXASYNCMAP:
-		if (copy_from_user(accm, argp, sizeof(accm)))
-			break;
-		accm[2] &= ~0x40000000U;	/* can't escape 0x5e */
-		accm[3] |= 0x60000000U;		/* must escape 0x7d, 0x7e */
-		memcpy(ap->xaccm, accm, sizeof(ap->xaccm));
-		err = 0;
-		break;
 
-	case PPPIOCGMRU:
-		if (put_user(ap->mru, p))
-			break;
-		err = 0;
-		break;
-	case PPPIOCSMRU:
-		if (get_user(val, p))
-			break;
-		if (val < PPP_MRU)
-			val = PPP_MRU;
-		ap->mru = val;
-		err = 0;
-		break;
+		case PPPIOCSFLAGS:
+			if (get_user(val, p))
+			{
+				break;
+			}
 
-	default:
-		err = -ENOTTY;
+			ap->flags = val & ~SC_RCV_BITS;
+			spin_lock_irq(&ap->recv_lock);
+			ap->rbits = val & SC_RCV_BITS;
+			spin_unlock_irq(&ap->recv_lock);
+			err = 0;
+			break;
+
+		case PPPIOCGASYNCMAP:
+			if (put_user(ap->xaccm[0], (u32 __user *)argp))
+			{
+				break;
+			}
+
+			err = 0;
+			break;
+
+		case PPPIOCSASYNCMAP:
+			if (get_user(ap->xaccm[0], (u32 __user *)argp))
+			{
+				break;
+			}
+
+			err = 0;
+			break;
+
+		case PPPIOCGRASYNCMAP:
+			if (put_user(ap->raccm, (u32 __user *)argp))
+			{
+				break;
+			}
+
+			err = 0;
+			break;
+
+		case PPPIOCSRASYNCMAP:
+			if (get_user(ap->raccm, (u32 __user *)argp))
+			{
+				break;
+			}
+
+			err = 0;
+			break;
+
+		case PPPIOCGXASYNCMAP:
+			if (copy_to_user(argp, ap->xaccm, sizeof(ap->xaccm)))
+			{
+				break;
+			}
+
+			err = 0;
+			break;
+
+		case PPPIOCSXASYNCMAP:
+			if (copy_from_user(accm, argp, sizeof(accm)))
+			{
+				break;
+			}
+
+			accm[2] &= ~0x40000000U;	/* can't escape 0x5e */
+			accm[3] |= 0x60000000U;		/* must escape 0x7d, 0x7e */
+			memcpy(ap->xaccm, accm, sizeof(ap->xaccm));
+			err = 0;
+			break;
+
+		case PPPIOCGMRU:
+			if (put_user(ap->mru, p))
+			{
+				break;
+			}
+
+			err = 0;
+			break;
+
+		case PPPIOCSMRU:
+			if (get_user(val, p))
+			{
+				break;
+			}
+
+			if (val < PPP_MRU)
+			{
+				val = PPP_MRU;
+			}
+
+			ap->mru = val;
+			err = 0;
+			break;
+
+		default:
+			err = -ENOTTY;
 	}
 
 	return err;
@@ -498,15 +596,21 @@ static void ppp_async_process(unsigned long arg)
 	struct sk_buff *skb;
 
 	/* process received packets */
-	while ((skb = skb_dequeue(&ap->rqueue)) != NULL) {
+	while ((skb = skb_dequeue(&ap->rqueue)) != NULL)
+	{
 		if (skb->cb[0])
+		{
 			ppp_input_error(&ap->chan, 0);
+		}
+
 		ppp_input(&ap->chan, skb);
 	}
 
 	/* try to push more stuff out */
 	if (test_bit(XMIT_WAKEUP, &ap->xmit_flags) && ppp_async_push(ap))
+	{
 		ppp_output_wakeup(&ap->chan);
+	}
 }
 
 /*
@@ -522,12 +626,12 @@ static void ppp_async_process(unsigned long arg)
  */
 
 #define PUT_BYTE(ap, buf, c, islcp)	do {		\
-	if ((islcp && c < 0x20) || (ap->xaccm[c >> 5] & (1 << (c & 0x1f)))) {\
-		*buf++ = PPP_ESCAPE;			\
-		*buf++ = c ^ PPP_TRANS;			\
-	} else						\
-		*buf++ = c;				\
-} while (0)
+		if ((islcp && c < 0x20) || (ap->xaccm[c >> 5] & (1 << (c & 0x1f)))) {\
+			*buf++ = PPP_ESCAPE;			\
+			*buf++ = c ^ PPP_TRANS;			\
+		} else						\
+			*buf++ = c;				\
+	} while (0)
 
 static int
 ppp_async_encode(struct asyncppp *ap)
@@ -553,24 +657,31 @@ ppp_async_encode(struct asyncppp *ap)
 	 */
 	islcp = proto == PPP_LCP && 1 <= data[2] && data[2] <= 7;
 
-	if (i == 0) {
+	if (i == 0)
+	{
 		if (islcp)
+		{
 			async_lcp_peek(ap, data, count, 0);
+		}
 
 		/*
 		 * Start of a new packet - insert the leading FLAG
 		 * character if necessary.
 		 */
 		if (islcp || flag_time == 0 ||
-		    time_after_eq(jiffies, ap->last_xmit + flag_time))
+			time_after_eq(jiffies, ap->last_xmit + flag_time))
+		{
 			*buf++ = PPP_FLAG;
+		}
+
 		ap->last_xmit = jiffies;
 		fcs = PPP_INITFCS;
 
 		/*
 		 * Put in the address/control bytes if necessary
 		 */
-		if ((ap->flags & SC_COMP_AC) == 0 || islcp) {
+		if ((ap->flags & SC_COMP_AC) == 0 || islcp)
+		{
 			PUT_BYTE(ap, buf, 0xff, islcp);
 			fcs = PPP_FCS(fcs, 0xff);
 			PUT_BYTE(ap, buf, 0x03, islcp);
@@ -584,15 +695,22 @@ ppp_async_encode(struct asyncppp *ap)
 	 * of free space in the output buffer.
 	 */
 	buflim = ap->obuf + OBUFSIZE - 6;
-	while (i < count && buf < buflim) {
+
+	while (i < count && buf < buflim)
+	{
 		c = data[i++];
+
 		if (i == 1 && c == 0 && (ap->flags & SC_COMP_PROT))
-			continue;	/* compress protocol field */
+		{
+			continue;    /* compress protocol field */
+		}
+
 		fcs = PPP_FCS(fcs, c);
 		PUT_BYTE(ap, buf, c, islcp);
 	}
 
-	if (i < count) {
+	if (i < count)
+	{
 		/*
 		 * Remember where we are up to in this packet.
 		 */
@@ -636,7 +754,10 @@ ppp_async_send(struct ppp_channel *chan, struct sk_buff *skb)
 	ppp_async_push(ap);
 
 	if (test_and_set_bit(XMIT_FULL, &ap->xmit_flags))
-		return 0;	/* already full */
+	{
+		return 0;    /* already full */
+	}
+
 	ap->tpkt = skb;
 	ap->tpkt_pos = 0;
 
@@ -664,30 +785,52 @@ ppp_async_push(struct asyncppp *ap)
 	 * instance that it may now be able to write more now.
 	 */
 	if (test_and_set_bit(XMIT_BUSY, &ap->xmit_flags))
+	{
 		return 0;
+	}
+
 	spin_lock_bh(&ap->xmit_lock);
-	for (;;) {
+
+	for (;;)
+	{
 		if (test_and_clear_bit(XMIT_WAKEUP, &ap->xmit_flags))
+		{
 			tty_stuffed = 0;
-		if (!tty_stuffed && ap->optr < ap->olim) {
+		}
+
+		if (!tty_stuffed && ap->optr < ap->olim)
+		{
 			avail = ap->olim - ap->optr;
 			set_bit(TTY_DO_WRITE_WAKEUP, &tty->flags);
 			sent = tty->ops->write(tty, ap->optr, avail);
+
 			if (sent < 0)
-				goto flush;	/* error, e.g. loss of CD */
+			{
+				goto flush;    /* error, e.g. loss of CD */
+			}
+
 			ap->optr += sent;
+
 			if (sent < avail)
+			{
 				tty_stuffed = 1;
+			}
+
 			continue;
 		}
-		if (ap->optr >= ap->olim && ap->tpkt) {
-			if (ppp_async_encode(ap)) {
+
+		if (ap->optr >= ap->olim && ap->tpkt)
+		{
+			if (ppp_async_encode(ap))
+			{
 				/* finished processing ap->tpkt */
 				clear_bit(XMIT_FULL, &ap->xmit_flags);
 				done = 1;
 			}
+
 			continue;
 		}
+
 		/*
 		 * We haven't made any progress this time around.
 		 * Clear XMIT_BUSY to let other callers in, but
@@ -698,25 +841,35 @@ ppp_async_push(struct asyncppp *ap)
 		 * the other caller tried.
 		 */
 		clear_bit(XMIT_BUSY, &ap->xmit_flags);
+
 		/* any more work to do? if not, exit the loop */
 		if (!(test_bit(XMIT_WAKEUP, &ap->xmit_flags) ||
-		      (!tty_stuffed && ap->tpkt)))
+			  (!tty_stuffed && ap->tpkt)))
+		{
 			break;
+		}
+
 		/* more work to do, see if we can do it now */
 		if (test_and_set_bit(XMIT_BUSY, &ap->xmit_flags))
+		{
 			break;
+		}
 	}
+
 	spin_unlock_bh(&ap->xmit_lock);
 	return done;
 
 flush:
 	clear_bit(XMIT_BUSY, &ap->xmit_flags);
-	if (ap->tpkt) {
+
+	if (ap->tpkt)
+	{
 		kfree_skb(ap->tpkt);
 		ap->tpkt = NULL;
 		clear_bit(XMIT_FULL, &ap->xmit_flags);
 		done = 1;
 	}
+
 	ap->optr = ap->olim;
 	spin_unlock_bh(&ap->xmit_lock);
 	return done;
@@ -734,15 +887,21 @@ ppp_async_flush_output(struct asyncppp *ap)
 
 	spin_lock_bh(&ap->xmit_lock);
 	ap->optr = ap->olim;
-	if (ap->tpkt != NULL) {
+
+	if (ap->tpkt != NULL)
+	{
 		kfree_skb(ap->tpkt);
 		ap->tpkt = NULL;
 		clear_bit(XMIT_FULL, &ap->xmit_flags);
 		done = 1;
 	}
+
 	spin_unlock_bh(&ap->xmit_lock);
+
 	if (done)
+	{
 		ppp_output_wakeup(&ap->chan);
+	}
 }
 
 /*
@@ -755,12 +914,17 @@ scan_ordinary(struct asyncppp *ap, const unsigned char *buf, int count)
 {
 	int i, c;
 
-	for (i = 0; i < count; ++i) {
+	for (i = 0; i < count; ++i)
+	{
 		c = buf[i];
+
 		if (c == PPP_ESCAPE || c == PPP_FLAG ||
-		    (c < 0x20 && (ap->raccm & (1 << c)) != 0))
+			(c < 0x20 && (ap->raccm & (1 << c)) != 0))
+		{
 			break;
+		}
 	}
+
 	return i;
 }
 
@@ -773,42 +937,74 @@ process_input_packet(struct asyncppp *ap)
 	unsigned int len, fcs, proto;
 
 	skb = ap->rpkt;
+
 	if (ap->state & (SC_TOSS | SC_ESCAPE))
+	{
 		goto err;
+	}
 
 	if (skb == NULL)
-		return;		/* 0-length packet */
+	{
+		return;    /* 0-length packet */
+	}
 
 	/* check the FCS */
 	p = skb->data;
 	len = skb->len;
+
 	if (len < 3)
-		goto err;	/* too short */
+	{
+		goto err;    /* too short */
+	}
+
 	fcs = PPP_INITFCS;
+
 	for (; len > 0; --len)
+	{
 		fcs = PPP_FCS(fcs, *p++);
+	}
+
 	if (fcs != PPP_GOODFCS)
-		goto err;	/* bad FCS */
+	{
+		goto err;    /* bad FCS */
+	}
+
 	skb_trim(skb, skb->len - 2);
 
 	/* check for address/control and protocol compression */
 	p = skb->data;
-	if (p[0] == PPP_ALLSTATIONS) {
+
+	if (p[0] == PPP_ALLSTATIONS)
+	{
 		/* chop off address/control */
 		if (p[1] != PPP_UI || skb->len < 3)
+		{
 			goto err;
+		}
+
 		p = skb_pull(skb, 2);
 	}
+
 	proto = p[0];
-	if (proto & 1) {
+
+	if (proto & 1)
+	{
 		/* protocol is compressed */
 		skb_push(skb, 1)[0] = 0;
-	} else {
+	}
+	else
+	{
 		if (skb->len < 2)
+		{
 			goto err;
+		}
+
 		proto = (proto << 8) + p[1];
+
 		if (proto == PPP_LCP)
+		{
 			async_lcp_peek(ap, p, skb->len, 1);
+		}
 	}
 
 	/* queue the frame to be processed */
@@ -818,10 +1014,12 @@ process_input_packet(struct asyncppp *ap)
 	ap->state = 0;
 	return;
 
- err:
+err:
 	/* frame had an error, remember that, reset SC_TOSS & SC_ESCAPE */
 	ap->state = SC_PREV_ERROR;
-	if (skb) {
+
+	if (skb)
+	{
 		/* make skb appear as freshly allocated */
 		skb_trim(skb, 0);
 		skb_reserve(skb, - skb_headroom(skb));
@@ -833,70 +1031,107 @@ process_input_packet(struct asyncppp *ap)
 
 static void
 ppp_async_input(struct asyncppp *ap, const unsigned char *buf,
-		char *flags, int count)
+				char *flags, int count)
 {
 	struct sk_buff *skb;
 	int c, i, j, n, s, f;
 	unsigned char *sp;
 
 	/* update bits used for 8-bit cleanness detection */
-	if (~ap->rbits & SC_RCV_BITS) {
+	if (~ap->rbits & SC_RCV_BITS)
+	{
 		s = 0;
-		for (i = 0; i < count; ++i) {
+
+		for (i = 0; i < count; ++i)
+		{
 			c = buf[i];
+
 			if (flags && flags[i] != 0)
+			{
 				continue;
-			s |= (c & 0x80)? SC_RCV_B7_1: SC_RCV_B7_0;
+			}
+
+			s |= (c & 0x80) ? SC_RCV_B7_1 : SC_RCV_B7_0;
 			c = ((c >> 4) ^ c) & 0xf;
-			s |= (0x6996 & (1 << c))? SC_RCV_ODDP: SC_RCV_EVNP;
+			s |= (0x6996 & (1 << c)) ? SC_RCV_ODDP : SC_RCV_EVNP;
 		}
+
 		ap->rbits |= s;
 	}
 
-	while (count > 0) {
+	while (count > 0)
+	{
 		/* scan through and see how many chars we can do in bulk */
 		if ((ap->state & SC_ESCAPE) && buf[0] == PPP_ESCAPE)
+		{
 			n = 1;
+		}
 		else
+		{
 			n = scan_ordinary(ap, buf, count);
+		}
 
 		f = 0;
-		if (flags && (ap->state & SC_TOSS) == 0) {
+
+		if (flags && (ap->state & SC_TOSS) == 0)
+		{
 			/* check the flags to see if any char had an error */
 			for (j = 0; j < n; ++j)
 				if ((f = flags[j]) != 0)
+				{
 					break;
+				}
 		}
-		if (f != 0) {
+
+		if (f != 0)
+		{
 			/* start tossing */
 			ap->state |= SC_TOSS;
 
-		} else if (n > 0 && (ap->state & SC_TOSS) == 0) {
+		}
+		else if (n > 0 && (ap->state & SC_TOSS) == 0)
+		{
 			/* stuff the chars in the skb */
 			skb = ap->rpkt;
-			if (!skb) {
+
+			if (!skb)
+			{
 				skb = dev_alloc_skb(ap->mru + PPP_HDRLEN + 2);
+
 				if (!skb)
+				{
 					goto nomem;
- 				ap->rpkt = skb;
- 			}
- 			if (skb->len == 0) {
- 				/* Try to get the payload 4-byte aligned.
- 				 * This should match the
- 				 * PPP_ALLSTATIONS/PPP_UI/compressed tests in
- 				 * process_input_packet, but we do not have
- 				 * enough chars here to test buf[1] and buf[2].
- 				 */
-				if (buf[0] != PPP_ALLSTATIONS)
-					skb_reserve(skb, 2 + (buf[0] & 1));
+				}
+
+				ap->rpkt = skb;
 			}
-			if (n > skb_tailroom(skb)) {
+
+			if (skb->len == 0)
+			{
+				/* Try to get the payload 4-byte aligned.
+				 * This should match the
+				 * PPP_ALLSTATIONS/PPP_UI/compressed tests in
+				 * process_input_packet, but we do not have
+				 * enough chars here to test buf[1] and buf[2].
+				 */
+				if (buf[0] != PPP_ALLSTATIONS)
+				{
+					skb_reserve(skb, 2 + (buf[0] & 1));
+				}
+			}
+
+			if (n > skb_tailroom(skb))
+			{
 				/* packet overflowed MRU */
 				ap->state |= SC_TOSS;
-			} else {
+			}
+			else
+			{
 				sp = skb_put(skb, n);
 				memcpy(sp, buf, n);
-				if (ap->state & SC_ESCAPE) {
+
+				if (ap->state & SC_ESCAPE)
+				{
 					sp[0] ^= PPP_TRANS;
 					ap->state &= ~SC_ESCAPE;
 				}
@@ -904,32 +1139,52 @@ ppp_async_input(struct asyncppp *ap, const unsigned char *buf,
 		}
 
 		if (n >= count)
+		{
 			break;
+		}
 
 		c = buf[n];
-		if (flags != NULL && flags[n] != 0) {
+
+		if (flags != NULL && flags[n] != 0)
+		{
 			ap->state |= SC_TOSS;
-		} else if (c == PPP_FLAG) {
-			process_input_packet(ap);
-		} else if (c == PPP_ESCAPE) {
-			ap->state |= SC_ESCAPE;
-		} else if (I_IXON(ap->tty)) {
-			if (c == START_CHAR(ap->tty))
-				start_tty(ap->tty);
-			else if (c == STOP_CHAR(ap->tty))
-				stop_tty(ap->tty);
 		}
+		else if (c == PPP_FLAG)
+		{
+			process_input_packet(ap);
+		}
+		else if (c == PPP_ESCAPE)
+		{
+			ap->state |= SC_ESCAPE;
+		}
+		else if (I_IXON(ap->tty))
+		{
+			if (c == START_CHAR(ap->tty))
+			{
+				start_tty(ap->tty);
+			}
+			else if (c == STOP_CHAR(ap->tty))
+			{
+				stop_tty(ap->tty);
+			}
+		}
+
 		/* otherwise it's a char in the recv ACCM */
 		++n;
 
 		buf += n;
+
 		if (flags)
+		{
 			flags += n;
+		}
+
 		count -= n;
 	}
+
 	return;
 
- nomem:
+nomem:
 	printk(KERN_ERR "PPPasync: no memory (input pkt)\n");
 	ap->state |= SC_TOSS;
 }
@@ -953,32 +1208,48 @@ ppp_async_input(struct asyncppp *ap, const unsigned char *buf,
 #define LCP_ASYNCMAP	2
 
 static void async_lcp_peek(struct asyncppp *ap, unsigned char *data,
-			   int len, int inbound)
+						   int len, int inbound)
 {
 	int dlen, fcs, i, code;
 	u32 val;
 
 	data += 2;		/* skip protocol bytes */
 	len -= 2;
-	if (len < 4)		/* 4 = code, ID, length */
-		return;
-	code = data[0];
-	if (code != CONFACK && code != CONFREQ)
-		return;
-	dlen = get_unaligned_be16(data + 2);
-	if (len < dlen)
-		return;		/* packet got truncated or length is bogus */
 
-	if (code == (inbound? CONFACK: CONFREQ)) {
+	if (len < 4)		/* 4 = code, ID, length */
+	{
+		return;
+	}
+
+	code = data[0];
+
+	if (code != CONFACK && code != CONFREQ)
+	{
+		return;
+	}
+
+	dlen = get_unaligned_be16(data + 2);
+
+	if (len < dlen)
+	{
+		return;    /* packet got truncated or length is bogus */
+	}
+
+	if (code == (inbound ? CONFACK : CONFREQ))
+	{
 		/*
 		 * sent confreq or received confack:
 		 * calculate the crc of the data from the ID field on.
 		 */
 		fcs = PPP_INITFCS;
-		for (i = 1; i < dlen; ++i)
-			fcs = PPP_FCS(fcs, data[i]);
 
-		if (!inbound) {
+		for (i = 1; i < dlen; ++i)
+		{
+			fcs = PPP_FCS(fcs, data[i]);
+		}
+
+		if (!inbound)
+		{
 			/* outbound confreq - remember the crc for later */
 			ap->lcp_fcs = fcs;
 			return;
@@ -987,32 +1258,55 @@ static void async_lcp_peek(struct asyncppp *ap, unsigned char *data,
 		/* received confack, check the crc */
 		fcs ^= ap->lcp_fcs;
 		ap->lcp_fcs = -1;
+
 		if (fcs != 0)
+		{
 			return;
-	} else if (inbound)
-		return;	/* not interested in received confreq */
+		}
+	}
+	else if (inbound)
+	{
+		return;    /* not interested in received confreq */
+	}
 
 	/* process the options in the confack */
 	data += 4;
 	dlen -= 4;
+
 	/* data[0] is code, data[1] is length */
-	while (dlen >= 2 && dlen >= data[1] && data[1] >= 2) {
-		switch (data[0]) {
-		case LCP_MRU:
-			val = get_unaligned_be16(data + 2);
-			if (inbound)
-				ap->mru = val;
-			else
-				ap->chan.mtu = val;
-			break;
-		case LCP_ASYNCMAP:
-			val = get_unaligned_be32(data + 2);
-			if (inbound)
-				ap->raccm = val;
-			else
-				ap->xaccm[0] = val;
-			break;
+	while (dlen >= 2 && dlen >= data[1] && data[1] >= 2)
+	{
+		switch (data[0])
+		{
+			case LCP_MRU:
+				val = get_unaligned_be16(data + 2);
+
+				if (inbound)
+				{
+					ap->mru = val;
+				}
+				else
+				{
+					ap->chan.mtu = val;
+				}
+
+				break;
+
+			case LCP_ASYNCMAP:
+				val = get_unaligned_be32(data + 2);
+
+				if (inbound)
+				{
+					ap->raccm = val;
+				}
+				else
+				{
+					ap->xaccm[0] = val;
+				}
+
+				break;
 		}
+
 		dlen -= data[1];
 		data += data[1];
 	}
@@ -1021,7 +1315,9 @@ static void async_lcp_peek(struct asyncppp *ap, unsigned char *data,
 static void __exit ppp_async_cleanup(void)
 {
 	if (tty_unregister_ldisc(N_PPP) != 0)
+	{
 		printk(KERN_ERR "failed to unregister PPP line discipline\n");
+	}
 }
 
 module_init(ppp_async_init);

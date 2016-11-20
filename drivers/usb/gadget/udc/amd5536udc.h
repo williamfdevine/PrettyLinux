@@ -378,7 +378,8 @@
 
 /*---------------------------------------------------------------------------*/
 /* UDC CSR's */
-struct udc_csrs {
+struct udc_csrs
+{
 
 	/* sca - setup command address */
 	u32 sca;
@@ -388,7 +389,8 @@ struct udc_csrs {
 } __attribute__ ((packed));
 
 /* AHB subsystem CSR registers */
-struct udc_regs {
+struct udc_regs
+{
 
 	/* device configuration */
 	u32 cfg;
@@ -413,7 +415,8 @@ struct udc_regs {
 } __attribute__ ((packed));
 
 /* endpoint specific registers */
-struct udc_ep_regs {
+struct udc_ep_regs
+{
 
 	/* endpoint control */
 	u32 ctl;
@@ -442,7 +445,8 @@ struct udc_ep_regs {
 } __attribute__ ((packed));
 
 /* control data DMA desc */
-struct udc_stp_dma {
+struct udc_stp_dma
+{
 	/* status quadlet */
 	u32	status;
 	/* reserved */
@@ -454,7 +458,8 @@ struct udc_stp_dma {
 } __attribute__ ((aligned (16)));
 
 /* normal data DMA desc */
-struct udc_data_dma {
+struct udc_data_dma
+{
 	/* status quadlet */
 	u32	status;
 	/* reserved */
@@ -466,13 +471,14 @@ struct udc_data_dma {
 } __attribute__ ((aligned (16)));
 
 /* request packet */
-struct udc_request {
+struct udc_request
+{
 	/* embedded gadget ep */
 	struct usb_request		req;
 
 	/* flags */
 	unsigned			dma_going : 1,
-					dma_done : 1;
+						dma_done : 1;
 	/* phys. address */
 	dma_addr_t			td_phys;
 	/* first dma desc. of chain */
@@ -487,7 +493,8 @@ struct udc_request {
 };
 
 /* UDC specific endpoint parameters */
-struct udc_ep {
+struct udc_ep
+{
 	struct usb_ep			ep;
 	struct udc_ep_regs __iomem	*regs;
 	u32 __iomem			*txfifo;
@@ -514,12 +521,13 @@ struct udc_ep {
 	unsigned			halted;
 	unsigned			cancel_transfer;
 	unsigned			num : 5,
-					fifo_depth : 14,
-					in : 1;
+						fifo_depth : 14,
+						in : 1;
 };
 
 /* device struct */
-struct udc {
+struct udc
+{
 	struct usb_gadget		gadget;
 	spinlock_t			lock;	/* protects all state */
 	/* all endpoints */
@@ -527,12 +535,12 @@ struct udc {
 	struct usb_gadget_driver	*driver;
 	/* operational flags */
 	unsigned			stall_ep0in : 1,
-					waiting_zlp_ack_ep0in : 1,
-					set_cfg_not_acked : 1,
-					data_ep_enabled : 1,
-					data_ep_queued : 1,
-					sys_suspended : 1,
-					connected;
+						waiting_zlp_ack_ep0in : 1,
+						set_cfg_not_acked : 1,
+						data_ep_enabled : 1,
+						data_ep_queued : 1,
+						sys_suspended : 1,
+						connected;
 
 	u16				chiprev;
 
@@ -562,7 +570,8 @@ struct udc {
 #define to_amd5536_udc(g)	(container_of((g), struct udc, gadget))
 
 /* setup request data */
-union udc_setup_data {
+union udc_setup_data
+{
 	u32			data[2];
 	struct usb_ctrlrequest	request;
 };
@@ -579,7 +588,7 @@ union udc_setup_data {
  */
 #define AMD_ADDBITS(u32Val, bitfield_val, bitfield_stub_name)		\
 	(((u32Val) & (((u32) ~((u32) bitfield_stub_name##_MASK))))	\
-	| (((bitfield_val) << ((u32) bitfield_stub_name##_OFS))		\
+	 | (((bitfield_val) << ((u32) bitfield_stub_name##_OFS))		\
 		& ((u32) bitfield_stub_name##_MASK)))
 
 /*
@@ -588,13 +597,13 @@ union udc_setup_data {
  */
 #define AMD_INIT_SETBITS(u32Val, bitfield_val, bitfield_stub_name)	\
 	((u32Val)							\
-	| (((bitfield_val) << ((u32) bitfield_stub_name##_OFS))		\
+	 | (((bitfield_val) << ((u32) bitfield_stub_name##_OFS))		\
 		& ((u32) bitfield_stub_name##_MASK)))
 
 /* get bitfield value from u32 u32Val */
 #define AMD_GETBITS(u32Val, bitfield_stub_name)				\
 	((u32Val & ((u32) bitfield_stub_name##_MASK))			\
-		>> ((u32) bitfield_stub_name##_OFS))
+	 >> ((u32) bitfield_stub_name##_OFS))
 
 /* SET and GET bits in u32 values ------------------------------------------*/
 #define AMD_BIT(bit_stub_name) (1 << bit_stub_name)
@@ -606,9 +615,9 @@ union udc_setup_data {
 #define DBG(udc , args...)	dev_dbg(&(udc)->pdev->dev, args)
 
 #ifdef UDC_VERBOSE
-#define VDBG			DBG
+	#define VDBG			DBG
 #else
-#define VDBG(udc , args...)	do {} while (0)
+	#define VDBG(udc , args...)	do {} while (0)
 #endif
 
 #endif /* #ifdef AMD5536UDC_H */

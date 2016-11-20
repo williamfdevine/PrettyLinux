@@ -20,7 +20,7 @@ static struct cpufreq_frequency_table *freq_table;
 static struct clk *armss_clk;
 
 static int dbx500_cpufreq_target(struct cpufreq_policy *policy,
-				unsigned int index)
+								 unsigned int index)
 {
 	/* update armss clk frequency */
 	return clk_set_rate(armss_clk, freq_table[index].frequency * 1000);
@@ -32,9 +32,10 @@ static int dbx500_cpufreq_init(struct cpufreq_policy *policy)
 	return cpufreq_generic_init(policy, freq_table, 20 * 1000);
 }
 
-static struct cpufreq_driver dbx500_cpufreq_driver = {
+static struct cpufreq_driver dbx500_cpufreq_driver =
+{
 	.flags  = CPUFREQ_STICKY | CPUFREQ_CONST_LOOPS |
-			CPUFREQ_NEED_INITIAL_FREQ_CHECK,
+	CPUFREQ_NEED_INITIAL_FREQ_CHECK,
 	.verify = cpufreq_generic_frequency_table_verify,
 	.target_index = dbx500_cpufreq_target,
 	.get    = cpufreq_generic_get,
@@ -48,25 +49,30 @@ static int dbx500_cpufreq_probe(struct platform_device *pdev)
 	struct cpufreq_frequency_table *pos;
 
 	freq_table = dev_get_platdata(&pdev->dev);
-	if (!freq_table) {
+
+	if (!freq_table)
+	{
 		pr_err("dbx500-cpufreq: Failed to fetch cpufreq table\n");
 		return -ENODEV;
 	}
 
 	armss_clk = clk_get(&pdev->dev, "armss");
-	if (IS_ERR(armss_clk)) {
+
+	if (IS_ERR(armss_clk))
+	{
 		pr_err("dbx500-cpufreq: Failed to get armss clk\n");
 		return PTR_ERR(armss_clk);
 	}
 
 	pr_info("dbx500-cpufreq: Available frequencies:\n");
 	cpufreq_for_each_entry(pos, freq_table)
-		pr_info("  %d Mhz\n", pos->frequency / 1000);
+	pr_info("  %d Mhz\n", pos->frequency / 1000);
 
 	return cpufreq_register_driver(&dbx500_cpufreq_driver);
 }
 
-static struct platform_driver dbx500_cpufreq_plat_driver = {
+static struct platform_driver dbx500_cpufreq_plat_driver =
+{
 	.driver = {
 		.name = "cpufreq-ux500",
 	},

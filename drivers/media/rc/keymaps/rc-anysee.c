@@ -21,7 +21,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table anysee[] = {
+static struct rc_map_table anysee[] =
+{
 	{ 0x0800, KEY_0 },
 	{ 0x0801, KEY_1 },
 	{ 0x0802, KEY_2 },
@@ -68,7 +69,8 @@ static struct rc_map_table anysee[] = {
 	{ 0x0851, KEY_PAUSE },
 };
 
-static struct rc_map_list anysee_map = {
+static struct rc_map_list anysee_map =
+{
 	.map = {
 		.scan    = anysee,
 		.size    = ARRAY_SIZE(anysee),

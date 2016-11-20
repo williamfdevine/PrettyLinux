@@ -26,7 +26,8 @@
 #include <nvif/class.h>
 
 static const struct nvkm_engine_func
-g84_mpeg = {
+	g84_mpeg =
+{
 	.init = nv50_mpeg_init,
 	.intr = nv50_mpeg_intr,
 	.cclass = &nv50_mpeg_cclass,

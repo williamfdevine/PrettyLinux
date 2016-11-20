@@ -40,7 +40,8 @@
 #include "wm8903.h"
 
 /* Register defaults at reset */
-static const struct reg_default wm8903_reg_defaults[] = {
+static const struct reg_default wm8903_reg_defaults[] =
+{
 	{ 4,  0x0018 },     /* R4   - Bias Control 0 */
 	{ 5,  0x0000 },     /* R5   - VMID Control 0 */
 	{ 6,  0x0000 },     /* R6   - Mic Bias Control 0 */
@@ -115,7 +116,8 @@ static const struct reg_default wm8903_reg_defaults[] = {
 	{ 172, 0x0000 },    /* R172 - Analogue Output Bias 0 */
 };
 
-struct wm8903_priv {
+struct wm8903_priv
+{
 	struct wm8903_platform_data *pdata;
 	struct device *dev;
 	struct regmap *regmap;
@@ -146,110 +148,113 @@ struct wm8903_priv {
 
 static bool wm8903_readable_register(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case WM8903_SW_RESET_AND_ID:
-	case WM8903_REVISION_NUMBER:
-	case WM8903_BIAS_CONTROL_0:
-	case WM8903_VMID_CONTROL_0:
-	case WM8903_MIC_BIAS_CONTROL_0:
-	case WM8903_ANALOGUE_DAC_0:
-	case WM8903_ANALOGUE_ADC_0:
-	case WM8903_POWER_MANAGEMENT_0:
-	case WM8903_POWER_MANAGEMENT_1:
-	case WM8903_POWER_MANAGEMENT_2:
-	case WM8903_POWER_MANAGEMENT_3:
-	case WM8903_POWER_MANAGEMENT_4:
-	case WM8903_POWER_MANAGEMENT_5:
-	case WM8903_POWER_MANAGEMENT_6:
-	case WM8903_CLOCK_RATES_0:
-	case WM8903_CLOCK_RATES_1:
-	case WM8903_CLOCK_RATES_2:
-	case WM8903_AUDIO_INTERFACE_0:
-	case WM8903_AUDIO_INTERFACE_1:
-	case WM8903_AUDIO_INTERFACE_2:
-	case WM8903_AUDIO_INTERFACE_3:
-	case WM8903_DAC_DIGITAL_VOLUME_LEFT:
-	case WM8903_DAC_DIGITAL_VOLUME_RIGHT:
-	case WM8903_DAC_DIGITAL_0:
-	case WM8903_DAC_DIGITAL_1:
-	case WM8903_ADC_DIGITAL_VOLUME_LEFT:
-	case WM8903_ADC_DIGITAL_VOLUME_RIGHT:
-	case WM8903_ADC_DIGITAL_0:
-	case WM8903_DIGITAL_MICROPHONE_0:
-	case WM8903_DRC_0:
-	case WM8903_DRC_1:
-	case WM8903_DRC_2:
-	case WM8903_DRC_3:
-	case WM8903_ANALOGUE_LEFT_INPUT_0:
-	case WM8903_ANALOGUE_RIGHT_INPUT_0:
-	case WM8903_ANALOGUE_LEFT_INPUT_1:
-	case WM8903_ANALOGUE_RIGHT_INPUT_1:
-	case WM8903_ANALOGUE_LEFT_MIX_0:
-	case WM8903_ANALOGUE_RIGHT_MIX_0:
-	case WM8903_ANALOGUE_SPK_MIX_LEFT_0:
-	case WM8903_ANALOGUE_SPK_MIX_LEFT_1:
-	case WM8903_ANALOGUE_SPK_MIX_RIGHT_0:
-	case WM8903_ANALOGUE_SPK_MIX_RIGHT_1:
-	case WM8903_ANALOGUE_OUT1_LEFT:
-	case WM8903_ANALOGUE_OUT1_RIGHT:
-	case WM8903_ANALOGUE_OUT2_LEFT:
-	case WM8903_ANALOGUE_OUT2_RIGHT:
-	case WM8903_ANALOGUE_OUT3_LEFT:
-	case WM8903_ANALOGUE_OUT3_RIGHT:
-	case WM8903_ANALOGUE_SPK_OUTPUT_CONTROL_0:
-	case WM8903_DC_SERVO_0:
-	case WM8903_DC_SERVO_2:
-	case WM8903_DC_SERVO_READBACK_1:
-	case WM8903_DC_SERVO_READBACK_2:
-	case WM8903_DC_SERVO_READBACK_3:
-	case WM8903_DC_SERVO_READBACK_4:
-	case WM8903_ANALOGUE_HP_0:
-	case WM8903_ANALOGUE_LINEOUT_0:
-	case WM8903_CHARGE_PUMP_0:
-	case WM8903_CLASS_W_0:
-	case WM8903_WRITE_SEQUENCER_0:
-	case WM8903_WRITE_SEQUENCER_1:
-	case WM8903_WRITE_SEQUENCER_2:
-	case WM8903_WRITE_SEQUENCER_3:
-	case WM8903_WRITE_SEQUENCER_4:
-	case WM8903_CONTROL_INTERFACE:
-	case WM8903_GPIO_CONTROL_1:
-	case WM8903_GPIO_CONTROL_2:
-	case WM8903_GPIO_CONTROL_3:
-	case WM8903_GPIO_CONTROL_4:
-	case WM8903_GPIO_CONTROL_5:
-	case WM8903_INTERRUPT_STATUS_1:
-	case WM8903_INTERRUPT_STATUS_1_MASK:
-	case WM8903_INTERRUPT_POLARITY_1:
-	case WM8903_INTERRUPT_CONTROL:
-	case WM8903_CLOCK_RATE_TEST_4:
-	case WM8903_ANALOGUE_OUTPUT_BIAS_0:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case WM8903_SW_RESET_AND_ID:
+		case WM8903_REVISION_NUMBER:
+		case WM8903_BIAS_CONTROL_0:
+		case WM8903_VMID_CONTROL_0:
+		case WM8903_MIC_BIAS_CONTROL_0:
+		case WM8903_ANALOGUE_DAC_0:
+		case WM8903_ANALOGUE_ADC_0:
+		case WM8903_POWER_MANAGEMENT_0:
+		case WM8903_POWER_MANAGEMENT_1:
+		case WM8903_POWER_MANAGEMENT_2:
+		case WM8903_POWER_MANAGEMENT_3:
+		case WM8903_POWER_MANAGEMENT_4:
+		case WM8903_POWER_MANAGEMENT_5:
+		case WM8903_POWER_MANAGEMENT_6:
+		case WM8903_CLOCK_RATES_0:
+		case WM8903_CLOCK_RATES_1:
+		case WM8903_CLOCK_RATES_2:
+		case WM8903_AUDIO_INTERFACE_0:
+		case WM8903_AUDIO_INTERFACE_1:
+		case WM8903_AUDIO_INTERFACE_2:
+		case WM8903_AUDIO_INTERFACE_3:
+		case WM8903_DAC_DIGITAL_VOLUME_LEFT:
+		case WM8903_DAC_DIGITAL_VOLUME_RIGHT:
+		case WM8903_DAC_DIGITAL_0:
+		case WM8903_DAC_DIGITAL_1:
+		case WM8903_ADC_DIGITAL_VOLUME_LEFT:
+		case WM8903_ADC_DIGITAL_VOLUME_RIGHT:
+		case WM8903_ADC_DIGITAL_0:
+		case WM8903_DIGITAL_MICROPHONE_0:
+		case WM8903_DRC_0:
+		case WM8903_DRC_1:
+		case WM8903_DRC_2:
+		case WM8903_DRC_3:
+		case WM8903_ANALOGUE_LEFT_INPUT_0:
+		case WM8903_ANALOGUE_RIGHT_INPUT_0:
+		case WM8903_ANALOGUE_LEFT_INPUT_1:
+		case WM8903_ANALOGUE_RIGHT_INPUT_1:
+		case WM8903_ANALOGUE_LEFT_MIX_0:
+		case WM8903_ANALOGUE_RIGHT_MIX_0:
+		case WM8903_ANALOGUE_SPK_MIX_LEFT_0:
+		case WM8903_ANALOGUE_SPK_MIX_LEFT_1:
+		case WM8903_ANALOGUE_SPK_MIX_RIGHT_0:
+		case WM8903_ANALOGUE_SPK_MIX_RIGHT_1:
+		case WM8903_ANALOGUE_OUT1_LEFT:
+		case WM8903_ANALOGUE_OUT1_RIGHT:
+		case WM8903_ANALOGUE_OUT2_LEFT:
+		case WM8903_ANALOGUE_OUT2_RIGHT:
+		case WM8903_ANALOGUE_OUT3_LEFT:
+		case WM8903_ANALOGUE_OUT3_RIGHT:
+		case WM8903_ANALOGUE_SPK_OUTPUT_CONTROL_0:
+		case WM8903_DC_SERVO_0:
+		case WM8903_DC_SERVO_2:
+		case WM8903_DC_SERVO_READBACK_1:
+		case WM8903_DC_SERVO_READBACK_2:
+		case WM8903_DC_SERVO_READBACK_3:
+		case WM8903_DC_SERVO_READBACK_4:
+		case WM8903_ANALOGUE_HP_0:
+		case WM8903_ANALOGUE_LINEOUT_0:
+		case WM8903_CHARGE_PUMP_0:
+		case WM8903_CLASS_W_0:
+		case WM8903_WRITE_SEQUENCER_0:
+		case WM8903_WRITE_SEQUENCER_1:
+		case WM8903_WRITE_SEQUENCER_2:
+		case WM8903_WRITE_SEQUENCER_3:
+		case WM8903_WRITE_SEQUENCER_4:
+		case WM8903_CONTROL_INTERFACE:
+		case WM8903_GPIO_CONTROL_1:
+		case WM8903_GPIO_CONTROL_2:
+		case WM8903_GPIO_CONTROL_3:
+		case WM8903_GPIO_CONTROL_4:
+		case WM8903_GPIO_CONTROL_5:
+		case WM8903_INTERRUPT_STATUS_1:
+		case WM8903_INTERRUPT_STATUS_1_MASK:
+		case WM8903_INTERRUPT_POLARITY_1:
+		case WM8903_INTERRUPT_CONTROL:
+		case WM8903_CLOCK_RATE_TEST_4:
+		case WM8903_ANALOGUE_OUTPUT_BIAS_0:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
 static bool wm8903_volatile_register(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case WM8903_SW_RESET_AND_ID:
-	case WM8903_REVISION_NUMBER:
-	case WM8903_INTERRUPT_STATUS_1:
-	case WM8903_WRITE_SEQUENCER_4:
-	case WM8903_DC_SERVO_READBACK_1:
-	case WM8903_DC_SERVO_READBACK_2:
-	case WM8903_DC_SERVO_READBACK_3:
-	case WM8903_DC_SERVO_READBACK_4:
-		return 1;
+	switch (reg)
+	{
+		case WM8903_SW_RESET_AND_ID:
+		case WM8903_REVISION_NUMBER:
+		case WM8903_INTERRUPT_STATUS_1:
+		case WM8903_WRITE_SEQUENCER_4:
+		case WM8903_DC_SERVO_READBACK_1:
+		case WM8903_DC_SERVO_READBACK_2:
+		case WM8903_DC_SERVO_READBACK_3:
+		case WM8903_DC_SERVO_READBACK_4:
+			return 1;
 
-	default:
-		return 0;
+		default:
+			return 0;
 	}
 }
 
 static int wm8903_cp_event(struct snd_soc_dapm_widget *w,
-			   struct snd_kcontrol *kcontrol, int event)
+						   struct snd_kcontrol *kcontrol, int event)
 {
 	WARN_ON(event != SND_SOC_DAPM_POST_PMU);
 	mdelay(4);
@@ -258,19 +263,21 @@ static int wm8903_cp_event(struct snd_soc_dapm_widget *w,
 }
 
 static int wm8903_dcs_event(struct snd_soc_dapm_widget *w,
-			    struct snd_kcontrol *kcontrol, int event)
+							struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
 	struct wm8903_priv *wm8903 = snd_soc_codec_get_drvdata(codec);
 
-	switch (event) {
-	case SND_SOC_DAPM_POST_PMU:
-		wm8903->dcs_pending |= 1 << w->shift;
-		break;
-	case SND_SOC_DAPM_PRE_PMD:
-		snd_soc_update_bits(codec, WM8903_DC_SERVO_0,
-				    1 << w->shift, 0);
-		break;
+	switch (event)
+	{
+		case SND_SOC_DAPM_POST_PMU:
+			wm8903->dcs_pending |= 1 << w->shift;
+			break;
+
+		case SND_SOC_DAPM_PRE_PMD:
+			snd_soc_update_bits(codec, WM8903_DC_SERVO_0,
+								1 << w->shift, 0);
+			break;
 	}
 
 	return 0;
@@ -280,7 +287,7 @@ static int wm8903_dcs_event(struct snd_soc_dapm_widget *w,
 #define WM8903_DCS_MODE_START_STOP 2
 
 static void wm8903_seq_notifier(struct snd_soc_dapm_context *dapm,
-				enum snd_soc_dapm_type event, int subseq)
+								enum snd_soc_dapm_type event, int subseq)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(dapm);
 	struct wm8903_priv *wm8903 = snd_soc_codec_get_drvdata(codec);
@@ -288,65 +295,81 @@ static void wm8903_seq_notifier(struct snd_soc_dapm_context *dapm,
 	int i, val;
 
 	/* Complete any pending DC servo starts */
-	if (wm8903->dcs_pending) {
+	if (wm8903->dcs_pending)
+	{
 		dev_dbg(codec->dev, "Starting DC servo for %x\n",
-			wm8903->dcs_pending);
+				wm8903->dcs_pending);
 
 		/* If we've no cached values then we need to do startup */
-		for (i = 0; i < ARRAY_SIZE(wm8903->dcs_cache); i++) {
+		for (i = 0; i < ARRAY_SIZE(wm8903->dcs_cache); i++)
+		{
 			if (!(wm8903->dcs_pending & (1 << i)))
+			{
 				continue;
+			}
 
-			if (wm8903->dcs_cache[i]) {
+			if (wm8903->dcs_cache[i])
+			{
 				dev_dbg(codec->dev,
-					"Restore DC servo %d value %x\n",
-					3 - i, wm8903->dcs_cache[i]);
+						"Restore DC servo %d value %x\n",
+						3 - i, wm8903->dcs_cache[i]);
 
 				snd_soc_write(codec, WM8903_DC_SERVO_4 + i,
-					      wm8903->dcs_cache[i] & 0xff);
-			} else {
+							  wm8903->dcs_cache[i] & 0xff);
+			}
+			else
+			{
 				dev_dbg(codec->dev,
-					"Calibrate DC servo %d\n", 3 - i);
+						"Calibrate DC servo %d\n", 3 - i);
 				dcs_mode = WM8903_DCS_MODE_START_STOP;
 			}
 		}
 
 		/* Don't trust the cache for analogue */
 		if (wm8903->class_w_users)
+		{
 			dcs_mode = WM8903_DCS_MODE_START_STOP;
+		}
 
 		snd_soc_update_bits(codec, WM8903_DC_SERVO_2,
-				    WM8903_DCS_MODE_MASK, dcs_mode);
+							WM8903_DCS_MODE_MASK, dcs_mode);
 
 		snd_soc_update_bits(codec, WM8903_DC_SERVO_0,
-				    WM8903_DCS_ENA_MASK, wm8903->dcs_pending);
+							WM8903_DCS_ENA_MASK, wm8903->dcs_pending);
 
-		switch (dcs_mode) {
-		case WM8903_DCS_MODE_WRITE_STOP:
-			break;
-
-		case WM8903_DCS_MODE_START_STOP:
-			msleep(270);
-
-			/* Cache the measured offsets for digital */
-			if (wm8903->class_w_users)
+		switch (dcs_mode)
+		{
+			case WM8903_DCS_MODE_WRITE_STOP:
 				break;
 
-			for (i = 0; i < ARRAY_SIZE(wm8903->dcs_cache); i++) {
-				if (!(wm8903->dcs_pending & (1 << i)))
-					continue;
+			case WM8903_DCS_MODE_START_STOP:
+				msleep(270);
 
-				val = snd_soc_read(codec,
-						   WM8903_DC_SERVO_READBACK_1 + i);
-				dev_dbg(codec->dev, "DC servo %d: %x\n",
-					3 - i, val);
-				wm8903->dcs_cache[i] = val;
-			}
-			break;
+				/* Cache the measured offsets for digital */
+				if (wm8903->class_w_users)
+				{
+					break;
+				}
 
-		default:
-			pr_warn("DCS mode %d delay not set\n", dcs_mode);
-			break;
+				for (i = 0; i < ARRAY_SIZE(wm8903->dcs_cache); i++)
+				{
+					if (!(wm8903->dcs_pending & (1 << i)))
+					{
+						continue;
+					}
+
+					val = snd_soc_read(codec,
+									   WM8903_DC_SERVO_READBACK_1 + i);
+					dev_dbg(codec->dev, "DC servo %d: %x\n",
+							3 - i, val);
+					wm8903->dcs_cache[i] = val;
+				}
+
+				break;
+
+			default:
+				pr_warn("DCS mode %d delay not set\n", dcs_mode);
+				break;
 		}
 
 		wm8903->dcs_pending = 0;
@@ -362,7 +385,7 @@ static void wm8903_seq_notifier(struct snd_soc_dapm_context *dapm,
  * All the relevant controls are simple switches.
  */
 static int wm8903_class_w_put(struct snd_kcontrol *kcontrol,
-			      struct snd_ctl_elem_value *ucontrol)
+							  struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_kcontrol_codec(kcontrol);
 	struct wm8903_priv *wm8903 = snd_soc_codec_get_drvdata(codec);
@@ -372,12 +395,15 @@ static int wm8903_class_w_put(struct snd_kcontrol *kcontrol,
 	reg = snd_soc_read(codec, WM8903_CLASS_W_0);
 
 	/* Turn it off if we're about to enable bypass */
-	if (ucontrol->value.integer.value[0]) {
-		if (wm8903->class_w_users == 0) {
+	if (ucontrol->value.integer.value[0])
+	{
+		if (wm8903->class_w_users == 0)
+		{
 			dev_dbg(codec->dev, "Disabling Class W\n");
 			snd_soc_write(codec, WM8903_CLASS_W_0, reg &
-				     ~(WM8903_CP_DYN_FREQ | WM8903_CP_DYN_V));
+						  ~(WM8903_CP_DYN_FREQ | WM8903_CP_DYN_V));
 		}
+
 		wm8903->class_w_users++;
 	}
 
@@ -385,24 +411,27 @@ static int wm8903_class_w_put(struct snd_kcontrol *kcontrol,
 	ret = snd_soc_dapm_put_volsw(kcontrol, ucontrol);
 
 	/* If we've just disabled the last bypass path turn Class W on */
-	if (!ucontrol->value.integer.value[0]) {
-		if (wm8903->class_w_users == 1) {
+	if (!ucontrol->value.integer.value[0])
+	{
+		if (wm8903->class_w_users == 1)
+		{
 			dev_dbg(codec->dev, "Enabling Class W\n");
 			snd_soc_write(codec, WM8903_CLASS_W_0, reg |
-				     WM8903_CP_DYN_FREQ | WM8903_CP_DYN_V);
+						  WM8903_CP_DYN_FREQ | WM8903_CP_DYN_V);
 		}
+
 		wm8903->class_w_users--;
 	}
 
 	dev_dbg(codec->dev, "Bypass use count now %d\n",
-		wm8903->class_w_users);
+			wm8903->class_w_users);
 
 	return ret;
 }
 
 #define SOC_DAPM_SINGLE_W(xname, reg, shift, max, invert) \
 	SOC_SINGLE_EXT(xname, reg, shift, max, invert, \
-		snd_soc_dapm_get_volsw, wm8903_class_w_put)
+				   snd_soc_dapm_get_volsw, wm8903_class_w_put)
 
 
 static int wm8903_deemph[] = { 0, 32000, 44100, 48000 };
@@ -415,29 +444,36 @@ static int wm8903_set_deemph(struct snd_soc_codec *codec)
 	/* If we're using deemphasis select the nearest available sample
 	 * rate.
 	 */
-	if (wm8903->deemph) {
+	if (wm8903->deemph)
+	{
 		best = 1;
-		for (i = 2; i < ARRAY_SIZE(wm8903_deemph); i++) {
+
+		for (i = 2; i < ARRAY_SIZE(wm8903_deemph); i++)
+		{
 			if (abs(wm8903_deemph[i] - wm8903->fs) <
-			    abs(wm8903_deemph[best] - wm8903->fs))
+				abs(wm8903_deemph[best] - wm8903->fs))
+			{
 				best = i;
+			}
 		}
 
 		val = best << WM8903_DEEMPH_SHIFT;
-	} else {
+	}
+	else
+	{
 		best = 0;
 		val = 0;
 	}
 
 	dev_dbg(codec->dev, "Set deemphasis %d (%dHz)\n",
-		best, wm8903_deemph[best]);
+			best, wm8903_deemph[best]);
 
 	return snd_soc_update_bits(codec, WM8903_DAC_DIGITAL_1,
-				   WM8903_DEEMPH_MASK, val);
+							   WM8903_DEEMPH_MASK, val);
 }
 
 static int wm8903_get_deemph(struct snd_kcontrol *kcontrol,
-			     struct snd_ctl_elem_value *ucontrol)
+							 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
 	struct wm8903_priv *wm8903 = snd_soc_codec_get_drvdata(codec);
@@ -448,7 +484,7 @@ static int wm8903_get_deemph(struct snd_kcontrol *kcontrol,
 }
 
 static int wm8903_put_deemph(struct snd_kcontrol *kcontrol,
-			     struct snd_ctl_elem_value *ucontrol)
+							 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
 	struct wm8903_priv *wm8903 = snd_soc_codec_get_drvdata(codec);
@@ -456,16 +492,21 @@ static int wm8903_put_deemph(struct snd_kcontrol *kcontrol,
 	int ret = 0;
 
 	if (deemph > 1)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&wm8903->lock);
-	if (wm8903->deemph != deemph) {
+
+	if (wm8903->deemph != deemph)
+	{
 		wm8903->deemph = deemph;
 
 		wm8903_set_deemph(codec);
 
 		ret = 1;
 	}
+
 	mutex_unlock(&wm8903->lock);
 
 	return ret;
@@ -485,252 +526,270 @@ static const DECLARE_TLV_DB_SCALE(drc_tlv_min, 0, 600, 0);
 static const DECLARE_TLV_DB_SCALE(drc_tlv_max, 1200, 600, 0);
 static const DECLARE_TLV_DB_SCALE(drc_tlv_startup, -300, 50, 0);
 
-static const char *hpf_mode_text[] = {
+static const char *hpf_mode_text[] =
+{
 	"Hi-fi", "Voice 1", "Voice 2", "Voice 3"
 };
 
 static SOC_ENUM_SINGLE_DECL(hpf_mode,
-			    WM8903_ADC_DIGITAL_0, 5, hpf_mode_text);
+							WM8903_ADC_DIGITAL_0, 5, hpf_mode_text);
 
-static const char *osr_text[] = {
+static const char *osr_text[] =
+{
 	"Low power", "High performance"
 };
 
 static SOC_ENUM_SINGLE_DECL(adc_osr,
-			    WM8903_ANALOGUE_ADC_0, 0, osr_text);
+							WM8903_ANALOGUE_ADC_0, 0, osr_text);
 
 static SOC_ENUM_SINGLE_DECL(dac_osr,
-			    WM8903_DAC_DIGITAL_1, 0, osr_text);
+							WM8903_DAC_DIGITAL_1, 0, osr_text);
 
-static const char *drc_slope_text[] = {
+static const char *drc_slope_text[] =
+{
 	"1", "1/2", "1/4", "1/8", "1/16", "0"
 };
 
 static SOC_ENUM_SINGLE_DECL(drc_slope_r0,
-			    WM8903_DRC_2, 3, drc_slope_text);
+							WM8903_DRC_2, 3, drc_slope_text);
 
 static SOC_ENUM_SINGLE_DECL(drc_slope_r1,
-			    WM8903_DRC_2, 0, drc_slope_text);
+							WM8903_DRC_2, 0, drc_slope_text);
 
-static const char *drc_attack_text[] = {
+static const char *drc_attack_text[] =
+{
 	"instantaneous",
 	"363us", "762us", "1.45ms", "2.9ms", "5.8ms", "11.6ms", "23.2ms",
 	"46.4ms", "92.8ms", "185.6ms"
 };
 
 static SOC_ENUM_SINGLE_DECL(drc_attack,
-			    WM8903_DRC_1, 12, drc_attack_text);
+							WM8903_DRC_1, 12, drc_attack_text);
 
-static const char *drc_decay_text[] = {
+static const char *drc_decay_text[] =
+{
 	"186ms", "372ms", "743ms", "1.49s", "2.97s", "5.94s", "11.89s",
 	"23.87s", "47.56s"
 };
 
 static SOC_ENUM_SINGLE_DECL(drc_decay,
-			    WM8903_DRC_1, 8, drc_decay_text);
+							WM8903_DRC_1, 8, drc_decay_text);
 
-static const char *drc_ff_delay_text[] = {
+static const char *drc_ff_delay_text[] =
+{
 	"5 samples", "9 samples"
 };
 
 static SOC_ENUM_SINGLE_DECL(drc_ff_delay,
-			    WM8903_DRC_0, 5, drc_ff_delay_text);
+							WM8903_DRC_0, 5, drc_ff_delay_text);
 
-static const char *drc_qr_decay_text[] = {
+static const char *drc_qr_decay_text[] =
+{
 	"0.725ms", "1.45ms", "5.8ms"
 };
 
 static SOC_ENUM_SINGLE_DECL(drc_qr_decay,
-			    WM8903_DRC_1, 4, drc_qr_decay_text);
+							WM8903_DRC_1, 4, drc_qr_decay_text);
 
-static const char *drc_smoothing_text[] = {
+static const char *drc_smoothing_text[] =
+{
 	"Low", "Medium", "High"
 };
 
 static SOC_ENUM_SINGLE_DECL(drc_smoothing,
-			    WM8903_DRC_0, 11, drc_smoothing_text);
+							WM8903_DRC_0, 11, drc_smoothing_text);
 
-static const char *soft_mute_text[] = {
+static const char *soft_mute_text[] =
+{
 	"Fast (fs/2)", "Slow (fs/32)"
 };
 
 static SOC_ENUM_SINGLE_DECL(soft_mute,
-			    WM8903_DAC_DIGITAL_1, 10, soft_mute_text);
+							WM8903_DAC_DIGITAL_1, 10, soft_mute_text);
 
-static const char *mute_mode_text[] = {
+static const char *mute_mode_text[] =
+{
 	"Hard", "Soft"
 };
 
 static SOC_ENUM_SINGLE_DECL(mute_mode,
-			    WM8903_DAC_DIGITAL_1, 9, mute_mode_text);
+							WM8903_DAC_DIGITAL_1, 9, mute_mode_text);
 
-static const char *companding_text[] = {
+static const char *companding_text[] =
+{
 	"ulaw", "alaw"
 };
 
 static SOC_ENUM_SINGLE_DECL(dac_companding,
-			    WM8903_AUDIO_INTERFACE_0, 0, companding_text);
+							WM8903_AUDIO_INTERFACE_0, 0, companding_text);
 
 static SOC_ENUM_SINGLE_DECL(adc_companding,
-			    WM8903_AUDIO_INTERFACE_0, 2, companding_text);
+							WM8903_AUDIO_INTERFACE_0, 2, companding_text);
 
-static const char *input_mode_text[] = {
+static const char *input_mode_text[] =
+{
 	"Single-Ended", "Differential Line", "Differential Mic"
 };
 
 static SOC_ENUM_SINGLE_DECL(linput_mode_enum,
-			    WM8903_ANALOGUE_LEFT_INPUT_1, 0, input_mode_text);
+							WM8903_ANALOGUE_LEFT_INPUT_1, 0, input_mode_text);
 
 static SOC_ENUM_SINGLE_DECL(rinput_mode_enum,
-			    WM8903_ANALOGUE_RIGHT_INPUT_1, 0, input_mode_text);
+							WM8903_ANALOGUE_RIGHT_INPUT_1, 0, input_mode_text);
 
-static const char *linput_mux_text[] = {
+static const char *linput_mux_text[] =
+{
 	"IN1L", "IN2L", "IN3L"
 };
 
 static SOC_ENUM_SINGLE_DECL(linput_enum,
-			    WM8903_ANALOGUE_LEFT_INPUT_1, 2, linput_mux_text);
+							WM8903_ANALOGUE_LEFT_INPUT_1, 2, linput_mux_text);
 
 static SOC_ENUM_SINGLE_DECL(linput_inv_enum,
-			    WM8903_ANALOGUE_LEFT_INPUT_1, 4, linput_mux_text);
+							WM8903_ANALOGUE_LEFT_INPUT_1, 4, linput_mux_text);
 
-static const char *rinput_mux_text[] = {
+static const char *rinput_mux_text[] =
+{
 	"IN1R", "IN2R", "IN3R"
 };
 
 static SOC_ENUM_SINGLE_DECL(rinput_enum,
-			    WM8903_ANALOGUE_RIGHT_INPUT_1, 2, rinput_mux_text);
+							WM8903_ANALOGUE_RIGHT_INPUT_1, 2, rinput_mux_text);
 
 static SOC_ENUM_SINGLE_DECL(rinput_inv_enum,
-			    WM8903_ANALOGUE_RIGHT_INPUT_1, 4, rinput_mux_text);
+							WM8903_ANALOGUE_RIGHT_INPUT_1, 4, rinput_mux_text);
 
 
-static const char *sidetone_text[] = {
+static const char *sidetone_text[] =
+{
 	"None", "Left", "Right"
 };
 
 static SOC_ENUM_SINGLE_DECL(lsidetone_enum,
-			    WM8903_DAC_DIGITAL_0, 2, sidetone_text);
+							WM8903_DAC_DIGITAL_0, 2, sidetone_text);
 
 static SOC_ENUM_SINGLE_DECL(rsidetone_enum,
-			    WM8903_DAC_DIGITAL_0, 0, sidetone_text);
+							WM8903_DAC_DIGITAL_0, 0, sidetone_text);
 
-static const char *adcinput_text[] = {
+static const char *adcinput_text[] =
+{
 	"ADC", "DMIC"
 };
 
 static SOC_ENUM_SINGLE_DECL(adcinput_enum,
-			    WM8903_CLOCK_RATE_TEST_4, 9, adcinput_text);
+							WM8903_CLOCK_RATE_TEST_4, 9, adcinput_text);
 
-static const char *aif_text[] = {
+static const char *aif_text[] =
+{
 	"Left", "Right"
 };
 
 static SOC_ENUM_SINGLE_DECL(lcapture_enum,
-			    WM8903_AUDIO_INTERFACE_0, 7, aif_text);
+							WM8903_AUDIO_INTERFACE_0, 7, aif_text);
 
 static SOC_ENUM_SINGLE_DECL(rcapture_enum,
-			    WM8903_AUDIO_INTERFACE_0, 6, aif_text);
+							WM8903_AUDIO_INTERFACE_0, 6, aif_text);
 
 static SOC_ENUM_SINGLE_DECL(lplay_enum,
-			    WM8903_AUDIO_INTERFACE_0, 5, aif_text);
+							WM8903_AUDIO_INTERFACE_0, 5, aif_text);
 
 static SOC_ENUM_SINGLE_DECL(rplay_enum,
-			    WM8903_AUDIO_INTERFACE_0, 4, aif_text);
+							WM8903_AUDIO_INTERFACE_0, 4, aif_text);
 
-static const struct snd_kcontrol_new wm8903_snd_controls[] = {
+static const struct snd_kcontrol_new wm8903_snd_controls[] =
+{
 
-/* Input PGAs - No TLV since the scale depends on PGA mode */
-SOC_SINGLE("Left Input PGA Switch", WM8903_ANALOGUE_LEFT_INPUT_0,
-	   7, 1, 1),
-SOC_SINGLE("Left Input PGA Volume", WM8903_ANALOGUE_LEFT_INPUT_0,
-	   0, 31, 0),
-SOC_SINGLE("Left Input PGA Common Mode Switch", WM8903_ANALOGUE_LEFT_INPUT_1,
-	   6, 1, 0),
+	/* Input PGAs - No TLV since the scale depends on PGA mode */
+	SOC_SINGLE("Left Input PGA Switch", WM8903_ANALOGUE_LEFT_INPUT_0,
+	7, 1, 1),
+	SOC_SINGLE("Left Input PGA Volume", WM8903_ANALOGUE_LEFT_INPUT_0,
+	0, 31, 0),
+	SOC_SINGLE("Left Input PGA Common Mode Switch", WM8903_ANALOGUE_LEFT_INPUT_1,
+	6, 1, 0),
 
-SOC_SINGLE("Right Input PGA Switch", WM8903_ANALOGUE_RIGHT_INPUT_0,
-	   7, 1, 1),
-SOC_SINGLE("Right Input PGA Volume", WM8903_ANALOGUE_RIGHT_INPUT_0,
-	   0, 31, 0),
-SOC_SINGLE("Right Input PGA Common Mode Switch", WM8903_ANALOGUE_RIGHT_INPUT_1,
-	   6, 1, 0),
+	SOC_SINGLE("Right Input PGA Switch", WM8903_ANALOGUE_RIGHT_INPUT_0,
+	7, 1, 1),
+	SOC_SINGLE("Right Input PGA Volume", WM8903_ANALOGUE_RIGHT_INPUT_0,
+	0, 31, 0),
+	SOC_SINGLE("Right Input PGA Common Mode Switch", WM8903_ANALOGUE_RIGHT_INPUT_1,
+	6, 1, 0),
 
-/* ADCs */
-SOC_ENUM("ADC OSR", adc_osr),
-SOC_SINGLE("HPF Switch", WM8903_ADC_DIGITAL_0, 4, 1, 0),
-SOC_ENUM("HPF Mode", hpf_mode),
-SOC_SINGLE("DRC Switch", WM8903_DRC_0, 15, 1, 0),
-SOC_ENUM("DRC Compressor Slope R0", drc_slope_r0),
-SOC_ENUM("DRC Compressor Slope R1", drc_slope_r1),
-SOC_SINGLE_TLV("DRC Compressor Threshold Volume", WM8903_DRC_3, 5, 124, 1,
-	       drc_tlv_thresh),
-SOC_SINGLE_TLV("DRC Volume", WM8903_DRC_3, 0, 30, 1, drc_tlv_amp),
-SOC_SINGLE_TLV("DRC Minimum Gain Volume", WM8903_DRC_1, 2, 3, 1, drc_tlv_min),
-SOC_SINGLE_TLV("DRC Maximum Gain Volume", WM8903_DRC_1, 0, 3, 0, drc_tlv_max),
-SOC_ENUM("DRC Attack Rate", drc_attack),
-SOC_ENUM("DRC Decay Rate", drc_decay),
-SOC_ENUM("DRC FF Delay", drc_ff_delay),
-SOC_SINGLE("DRC Anticlip Switch", WM8903_DRC_0, 1, 1, 0),
-SOC_SINGLE("DRC QR Switch", WM8903_DRC_0, 2, 1, 0),
-SOC_SINGLE_TLV("DRC QR Threshold Volume", WM8903_DRC_0, 6, 3, 0, drc_tlv_max),
-SOC_ENUM("DRC QR Decay Rate", drc_qr_decay),
-SOC_SINGLE("DRC Smoothing Switch", WM8903_DRC_0, 3, 1, 0),
-SOC_SINGLE("DRC Smoothing Hysteresis Switch", WM8903_DRC_0, 0, 1, 0),
-SOC_ENUM("DRC Smoothing Threshold", drc_smoothing),
-SOC_SINGLE_TLV("DRC Startup Volume", WM8903_DRC_0, 6, 18, 0, drc_tlv_startup),
+	/* ADCs */
+	SOC_ENUM("ADC OSR", adc_osr),
+	SOC_SINGLE("HPF Switch", WM8903_ADC_DIGITAL_0, 4, 1, 0),
+	SOC_ENUM("HPF Mode", hpf_mode),
+	SOC_SINGLE("DRC Switch", WM8903_DRC_0, 15, 1, 0),
+	SOC_ENUM("DRC Compressor Slope R0", drc_slope_r0),
+	SOC_ENUM("DRC Compressor Slope R1", drc_slope_r1),
+	SOC_SINGLE_TLV("DRC Compressor Threshold Volume", WM8903_DRC_3, 5, 124, 1,
+	drc_tlv_thresh),
+	SOC_SINGLE_TLV("DRC Volume", WM8903_DRC_3, 0, 30, 1, drc_tlv_amp),
+	SOC_SINGLE_TLV("DRC Minimum Gain Volume", WM8903_DRC_1, 2, 3, 1, drc_tlv_min),
+	SOC_SINGLE_TLV("DRC Maximum Gain Volume", WM8903_DRC_1, 0, 3, 0, drc_tlv_max),
+	SOC_ENUM("DRC Attack Rate", drc_attack),
+	SOC_ENUM("DRC Decay Rate", drc_decay),
+	SOC_ENUM("DRC FF Delay", drc_ff_delay),
+	SOC_SINGLE("DRC Anticlip Switch", WM8903_DRC_0, 1, 1, 0),
+	SOC_SINGLE("DRC QR Switch", WM8903_DRC_0, 2, 1, 0),
+	SOC_SINGLE_TLV("DRC QR Threshold Volume", WM8903_DRC_0, 6, 3, 0, drc_tlv_max),
+	SOC_ENUM("DRC QR Decay Rate", drc_qr_decay),
+	SOC_SINGLE("DRC Smoothing Switch", WM8903_DRC_0, 3, 1, 0),
+	SOC_SINGLE("DRC Smoothing Hysteresis Switch", WM8903_DRC_0, 0, 1, 0),
+	SOC_ENUM("DRC Smoothing Threshold", drc_smoothing),
+	SOC_SINGLE_TLV("DRC Startup Volume", WM8903_DRC_0, 6, 18, 0, drc_tlv_startup),
 
-SOC_DOUBLE_R_TLV("Digital Capture Volume", WM8903_ADC_DIGITAL_VOLUME_LEFT,
-		 WM8903_ADC_DIGITAL_VOLUME_RIGHT, 1, 120, 0, digital_tlv),
-SOC_ENUM("ADC Companding Mode", adc_companding),
-SOC_SINGLE("ADC Companding Switch", WM8903_AUDIO_INTERFACE_0, 3, 1, 0),
+	SOC_DOUBLE_R_TLV("Digital Capture Volume", WM8903_ADC_DIGITAL_VOLUME_LEFT,
+	WM8903_ADC_DIGITAL_VOLUME_RIGHT, 1, 120, 0, digital_tlv),
+	SOC_ENUM("ADC Companding Mode", adc_companding),
+	SOC_SINGLE("ADC Companding Switch", WM8903_AUDIO_INTERFACE_0, 3, 1, 0),
 
-SOC_DOUBLE_TLV("Digital Sidetone Volume", WM8903_DAC_DIGITAL_0, 4, 8,
-	       12, 0, digital_sidetone_tlv),
+	SOC_DOUBLE_TLV("Digital Sidetone Volume", WM8903_DAC_DIGITAL_0, 4, 8,
+	12, 0, digital_sidetone_tlv),
 
-/* DAC */
-SOC_ENUM("DAC OSR", dac_osr),
-SOC_DOUBLE_R_TLV("Digital Playback Volume", WM8903_DAC_DIGITAL_VOLUME_LEFT,
-		 WM8903_DAC_DIGITAL_VOLUME_RIGHT, 1, 120, 0, digital_tlv),
-SOC_ENUM("DAC Soft Mute Rate", soft_mute),
-SOC_ENUM("DAC Mute Mode", mute_mode),
-SOC_SINGLE("DAC Mono Switch", WM8903_DAC_DIGITAL_1, 12, 1, 0),
-SOC_ENUM("DAC Companding Mode", dac_companding),
-SOC_SINGLE("DAC Companding Switch", WM8903_AUDIO_INTERFACE_0, 1, 1, 0),
-SOC_SINGLE_TLV("DAC Boost Volume", WM8903_AUDIO_INTERFACE_0, 9, 3, 0,
-	       dac_boost_tlv),
-SOC_SINGLE_BOOL_EXT("Playback Deemphasis Switch", 0,
-		    wm8903_get_deemph, wm8903_put_deemph),
+	/* DAC */
+	SOC_ENUM("DAC OSR", dac_osr),
+	SOC_DOUBLE_R_TLV("Digital Playback Volume", WM8903_DAC_DIGITAL_VOLUME_LEFT,
+	WM8903_DAC_DIGITAL_VOLUME_RIGHT, 1, 120, 0, digital_tlv),
+	SOC_ENUM("DAC Soft Mute Rate", soft_mute),
+	SOC_ENUM("DAC Mute Mode", mute_mode),
+	SOC_SINGLE("DAC Mono Switch", WM8903_DAC_DIGITAL_1, 12, 1, 0),
+	SOC_ENUM("DAC Companding Mode", dac_companding),
+	SOC_SINGLE("DAC Companding Switch", WM8903_AUDIO_INTERFACE_0, 1, 1, 0),
+	SOC_SINGLE_TLV("DAC Boost Volume", WM8903_AUDIO_INTERFACE_0, 9, 3, 0,
+	dac_boost_tlv),
+	SOC_SINGLE_BOOL_EXT("Playback Deemphasis Switch", 0,
+	wm8903_get_deemph, wm8903_put_deemph),
 
-/* Headphones */
-SOC_DOUBLE_R("Headphone Switch",
-	     WM8903_ANALOGUE_OUT1_LEFT, WM8903_ANALOGUE_OUT1_RIGHT,
-	     8, 1, 1),
-SOC_DOUBLE_R("Headphone ZC Switch",
-	     WM8903_ANALOGUE_OUT1_LEFT, WM8903_ANALOGUE_OUT1_RIGHT,
-	     6, 1, 0),
-SOC_DOUBLE_R_TLV("Headphone Volume",
-		 WM8903_ANALOGUE_OUT1_LEFT, WM8903_ANALOGUE_OUT1_RIGHT,
-		 0, 63, 0, out_tlv),
+	/* Headphones */
+	SOC_DOUBLE_R("Headphone Switch",
+	WM8903_ANALOGUE_OUT1_LEFT, WM8903_ANALOGUE_OUT1_RIGHT,
+	8, 1, 1),
+	SOC_DOUBLE_R("Headphone ZC Switch",
+	WM8903_ANALOGUE_OUT1_LEFT, WM8903_ANALOGUE_OUT1_RIGHT,
+	6, 1, 0),
+	SOC_DOUBLE_R_TLV("Headphone Volume",
+	WM8903_ANALOGUE_OUT1_LEFT, WM8903_ANALOGUE_OUT1_RIGHT,
+	0, 63, 0, out_tlv),
 
-/* Line out */
-SOC_DOUBLE_R("Line Out Switch",
-	     WM8903_ANALOGUE_OUT2_LEFT, WM8903_ANALOGUE_OUT2_RIGHT,
-	     8, 1, 1),
-SOC_DOUBLE_R("Line Out ZC Switch",
-	     WM8903_ANALOGUE_OUT2_LEFT, WM8903_ANALOGUE_OUT2_RIGHT,
-	     6, 1, 0),
-SOC_DOUBLE_R_TLV("Line Out Volume",
-		 WM8903_ANALOGUE_OUT2_LEFT, WM8903_ANALOGUE_OUT2_RIGHT,
-		 0, 63, 0, out_tlv),
+	/* Line out */
+	SOC_DOUBLE_R("Line Out Switch",
+	WM8903_ANALOGUE_OUT2_LEFT, WM8903_ANALOGUE_OUT2_RIGHT,
+	8, 1, 1),
+	SOC_DOUBLE_R("Line Out ZC Switch",
+	WM8903_ANALOGUE_OUT2_LEFT, WM8903_ANALOGUE_OUT2_RIGHT,
+	6, 1, 0),
+	SOC_DOUBLE_R_TLV("Line Out Volume",
+	WM8903_ANALOGUE_OUT2_LEFT, WM8903_ANALOGUE_OUT2_RIGHT,
+	0, 63, 0, out_tlv),
 
-/* Speaker */
-SOC_DOUBLE_R("Speaker Switch",
-	     WM8903_ANALOGUE_OUT3_LEFT, WM8903_ANALOGUE_OUT3_RIGHT, 8, 1, 1),
-SOC_DOUBLE_R("Speaker ZC Switch",
-	     WM8903_ANALOGUE_OUT3_LEFT, WM8903_ANALOGUE_OUT3_RIGHT, 6, 1, 0),
-SOC_DOUBLE_R_TLV("Speaker Volume",
-		 WM8903_ANALOGUE_OUT3_LEFT, WM8903_ANALOGUE_OUT3_RIGHT,
-		 0, 63, 0, out_tlv),
+	/* Speaker */
+	SOC_DOUBLE_R("Speaker Switch",
+	WM8903_ANALOGUE_OUT3_LEFT, WM8903_ANALOGUE_OUT3_RIGHT, 8, 1, 1),
+	SOC_DOUBLE_R("Speaker ZC Switch",
+	WM8903_ANALOGUE_OUT3_LEFT, WM8903_ANALOGUE_OUT3_RIGHT, 6, 1, 0),
+	SOC_DOUBLE_R_TLV("Speaker Volume",
+	WM8903_ANALOGUE_OUT3_LEFT, WM8903_ANALOGUE_OUT3_RIGHT,
+	0, 63, 0, out_tlv),
 };
 
 static const struct snd_kcontrol_new linput_mode_mux =
@@ -772,162 +831,168 @@ static const struct snd_kcontrol_new lplay_mux =
 static const struct snd_kcontrol_new rplay_mux =
 	SOC_DAPM_ENUM("Right Playback Mux", rplay_enum);
 
-static const struct snd_kcontrol_new left_output_mixer[] = {
-SOC_DAPM_SINGLE("DACL Switch", WM8903_ANALOGUE_LEFT_MIX_0, 3, 1, 0),
-SOC_DAPM_SINGLE("DACR Switch", WM8903_ANALOGUE_LEFT_MIX_0, 2, 1, 0),
-SOC_DAPM_SINGLE_W("Left Bypass Switch", WM8903_ANALOGUE_LEFT_MIX_0, 1, 1, 0),
-SOC_DAPM_SINGLE_W("Right Bypass Switch", WM8903_ANALOGUE_LEFT_MIX_0, 0, 1, 0),
+static const struct snd_kcontrol_new left_output_mixer[] =
+{
+	SOC_DAPM_SINGLE("DACL Switch", WM8903_ANALOGUE_LEFT_MIX_0, 3, 1, 0),
+	SOC_DAPM_SINGLE("DACR Switch", WM8903_ANALOGUE_LEFT_MIX_0, 2, 1, 0),
+	SOC_DAPM_SINGLE_W("Left Bypass Switch", WM8903_ANALOGUE_LEFT_MIX_0, 1, 1, 0),
+	SOC_DAPM_SINGLE_W("Right Bypass Switch", WM8903_ANALOGUE_LEFT_MIX_0, 0, 1, 0),
 };
 
-static const struct snd_kcontrol_new right_output_mixer[] = {
-SOC_DAPM_SINGLE("DACL Switch", WM8903_ANALOGUE_RIGHT_MIX_0, 3, 1, 0),
-SOC_DAPM_SINGLE("DACR Switch", WM8903_ANALOGUE_RIGHT_MIX_0, 2, 1, 0),
-SOC_DAPM_SINGLE_W("Left Bypass Switch", WM8903_ANALOGUE_RIGHT_MIX_0, 1, 1, 0),
-SOC_DAPM_SINGLE_W("Right Bypass Switch", WM8903_ANALOGUE_RIGHT_MIX_0, 0, 1, 0),
+static const struct snd_kcontrol_new right_output_mixer[] =
+{
+	SOC_DAPM_SINGLE("DACL Switch", WM8903_ANALOGUE_RIGHT_MIX_0, 3, 1, 0),
+	SOC_DAPM_SINGLE("DACR Switch", WM8903_ANALOGUE_RIGHT_MIX_0, 2, 1, 0),
+	SOC_DAPM_SINGLE_W("Left Bypass Switch", WM8903_ANALOGUE_RIGHT_MIX_0, 1, 1, 0),
+	SOC_DAPM_SINGLE_W("Right Bypass Switch", WM8903_ANALOGUE_RIGHT_MIX_0, 0, 1, 0),
 };
 
-static const struct snd_kcontrol_new left_speaker_mixer[] = {
-SOC_DAPM_SINGLE("DACL Switch", WM8903_ANALOGUE_SPK_MIX_LEFT_0, 3, 1, 0),
-SOC_DAPM_SINGLE("DACR Switch", WM8903_ANALOGUE_SPK_MIX_LEFT_0, 2, 1, 0),
-SOC_DAPM_SINGLE("Left Bypass Switch", WM8903_ANALOGUE_SPK_MIX_LEFT_0, 1, 1, 0),
-SOC_DAPM_SINGLE("Right Bypass Switch", WM8903_ANALOGUE_SPK_MIX_LEFT_0,
-		0, 1, 0),
+static const struct snd_kcontrol_new left_speaker_mixer[] =
+{
+	SOC_DAPM_SINGLE("DACL Switch", WM8903_ANALOGUE_SPK_MIX_LEFT_0, 3, 1, 0),
+	SOC_DAPM_SINGLE("DACR Switch", WM8903_ANALOGUE_SPK_MIX_LEFT_0, 2, 1, 0),
+	SOC_DAPM_SINGLE("Left Bypass Switch", WM8903_ANALOGUE_SPK_MIX_LEFT_0, 1, 1, 0),
+	SOC_DAPM_SINGLE("Right Bypass Switch", WM8903_ANALOGUE_SPK_MIX_LEFT_0,
+	0, 1, 0),
 };
 
-static const struct snd_kcontrol_new right_speaker_mixer[] = {
-SOC_DAPM_SINGLE("DACL Switch", WM8903_ANALOGUE_SPK_MIX_RIGHT_0, 3, 1, 0),
-SOC_DAPM_SINGLE("DACR Switch", WM8903_ANALOGUE_SPK_MIX_RIGHT_0, 2, 1, 0),
-SOC_DAPM_SINGLE("Left Bypass Switch", WM8903_ANALOGUE_SPK_MIX_RIGHT_0,
-		1, 1, 0),
-SOC_DAPM_SINGLE("Right Bypass Switch", WM8903_ANALOGUE_SPK_MIX_RIGHT_0,
-		0, 1, 0),
+static const struct snd_kcontrol_new right_speaker_mixer[] =
+{
+	SOC_DAPM_SINGLE("DACL Switch", WM8903_ANALOGUE_SPK_MIX_RIGHT_0, 3, 1, 0),
+	SOC_DAPM_SINGLE("DACR Switch", WM8903_ANALOGUE_SPK_MIX_RIGHT_0, 2, 1, 0),
+	SOC_DAPM_SINGLE("Left Bypass Switch", WM8903_ANALOGUE_SPK_MIX_RIGHT_0,
+	1, 1, 0),
+	SOC_DAPM_SINGLE("Right Bypass Switch", WM8903_ANALOGUE_SPK_MIX_RIGHT_0,
+	0, 1, 0),
 };
 
-static const struct snd_soc_dapm_widget wm8903_dapm_widgets[] = {
-SND_SOC_DAPM_INPUT("IN1L"),
-SND_SOC_DAPM_INPUT("IN1R"),
-SND_SOC_DAPM_INPUT("IN2L"),
-SND_SOC_DAPM_INPUT("IN2R"),
-SND_SOC_DAPM_INPUT("IN3L"),
-SND_SOC_DAPM_INPUT("IN3R"),
-SND_SOC_DAPM_INPUT("DMICDAT"),
+static const struct snd_soc_dapm_widget wm8903_dapm_widgets[] =
+{
+	SND_SOC_DAPM_INPUT("IN1L"),
+	SND_SOC_DAPM_INPUT("IN1R"),
+	SND_SOC_DAPM_INPUT("IN2L"),
+	SND_SOC_DAPM_INPUT("IN2R"),
+	SND_SOC_DAPM_INPUT("IN3L"),
+	SND_SOC_DAPM_INPUT("IN3R"),
+	SND_SOC_DAPM_INPUT("DMICDAT"),
 
-SND_SOC_DAPM_OUTPUT("HPOUTL"),
-SND_SOC_DAPM_OUTPUT("HPOUTR"),
-SND_SOC_DAPM_OUTPUT("LINEOUTL"),
-SND_SOC_DAPM_OUTPUT("LINEOUTR"),
-SND_SOC_DAPM_OUTPUT("LOP"),
-SND_SOC_DAPM_OUTPUT("LON"),
-SND_SOC_DAPM_OUTPUT("ROP"),
-SND_SOC_DAPM_OUTPUT("RON"),
+	SND_SOC_DAPM_OUTPUT("HPOUTL"),
+	SND_SOC_DAPM_OUTPUT("HPOUTR"),
+	SND_SOC_DAPM_OUTPUT("LINEOUTL"),
+	SND_SOC_DAPM_OUTPUT("LINEOUTR"),
+	SND_SOC_DAPM_OUTPUT("LOP"),
+	SND_SOC_DAPM_OUTPUT("LON"),
+	SND_SOC_DAPM_OUTPUT("ROP"),
+	SND_SOC_DAPM_OUTPUT("RON"),
 
-SND_SOC_DAPM_SUPPLY("MICBIAS", WM8903_MIC_BIAS_CONTROL_0, 0, 0, NULL, 0),
+	SND_SOC_DAPM_SUPPLY("MICBIAS", WM8903_MIC_BIAS_CONTROL_0, 0, 0, NULL, 0),
 
-SND_SOC_DAPM_MUX("Left Input Mux", SND_SOC_NOPM, 0, 0, &linput_mux),
-SND_SOC_DAPM_MUX("Left Input Inverting Mux", SND_SOC_NOPM, 0, 0,
-		 &linput_inv_mux),
-SND_SOC_DAPM_MUX("Left Input Mode Mux", SND_SOC_NOPM, 0, 0, &linput_mode_mux),
+	SND_SOC_DAPM_MUX("Left Input Mux", SND_SOC_NOPM, 0, 0, &linput_mux),
+	SND_SOC_DAPM_MUX("Left Input Inverting Mux", SND_SOC_NOPM, 0, 0,
+	&linput_inv_mux),
+	SND_SOC_DAPM_MUX("Left Input Mode Mux", SND_SOC_NOPM, 0, 0, &linput_mode_mux),
 
-SND_SOC_DAPM_MUX("Right Input Mux", SND_SOC_NOPM, 0, 0, &rinput_mux),
-SND_SOC_DAPM_MUX("Right Input Inverting Mux", SND_SOC_NOPM, 0, 0,
-		 &rinput_inv_mux),
-SND_SOC_DAPM_MUX("Right Input Mode Mux", SND_SOC_NOPM, 0, 0, &rinput_mode_mux),
+	SND_SOC_DAPM_MUX("Right Input Mux", SND_SOC_NOPM, 0, 0, &rinput_mux),
+	SND_SOC_DAPM_MUX("Right Input Inverting Mux", SND_SOC_NOPM, 0, 0,
+	&rinput_inv_mux),
+	SND_SOC_DAPM_MUX("Right Input Mode Mux", SND_SOC_NOPM, 0, 0, &rinput_mode_mux),
 
-SND_SOC_DAPM_PGA("Left Input PGA", WM8903_POWER_MANAGEMENT_0, 1, 0, NULL, 0),
-SND_SOC_DAPM_PGA("Right Input PGA", WM8903_POWER_MANAGEMENT_0, 0, 0, NULL, 0),
+	SND_SOC_DAPM_PGA("Left Input PGA", WM8903_POWER_MANAGEMENT_0, 1, 0, NULL, 0),
+	SND_SOC_DAPM_PGA("Right Input PGA", WM8903_POWER_MANAGEMENT_0, 0, 0, NULL, 0),
 
-SND_SOC_DAPM_MUX("Left ADC Input", SND_SOC_NOPM, 0, 0, &adcinput_mux),
-SND_SOC_DAPM_MUX("Right ADC Input", SND_SOC_NOPM, 0, 0, &adcinput_mux),
+	SND_SOC_DAPM_MUX("Left ADC Input", SND_SOC_NOPM, 0, 0, &adcinput_mux),
+	SND_SOC_DAPM_MUX("Right ADC Input", SND_SOC_NOPM, 0, 0, &adcinput_mux),
 
-SND_SOC_DAPM_ADC("ADCL", NULL, WM8903_POWER_MANAGEMENT_6, 1, 0),
-SND_SOC_DAPM_ADC("ADCR", NULL, WM8903_POWER_MANAGEMENT_6, 0, 0),
+	SND_SOC_DAPM_ADC("ADCL", NULL, WM8903_POWER_MANAGEMENT_6, 1, 0),
+	SND_SOC_DAPM_ADC("ADCR", NULL, WM8903_POWER_MANAGEMENT_6, 0, 0),
 
-SND_SOC_DAPM_MUX("Left Capture Mux", SND_SOC_NOPM, 0, 0, &lcapture_mux),
-SND_SOC_DAPM_MUX("Right Capture Mux", SND_SOC_NOPM, 0, 0, &rcapture_mux),
+	SND_SOC_DAPM_MUX("Left Capture Mux", SND_SOC_NOPM, 0, 0, &lcapture_mux),
+	SND_SOC_DAPM_MUX("Right Capture Mux", SND_SOC_NOPM, 0, 0, &rcapture_mux),
 
-SND_SOC_DAPM_AIF_OUT("AIFTXL", "Left HiFi Capture", 0, SND_SOC_NOPM, 0, 0),
-SND_SOC_DAPM_AIF_OUT("AIFTXR", "Right HiFi Capture", 0, SND_SOC_NOPM, 0, 0),
+	SND_SOC_DAPM_AIF_OUT("AIFTXL", "Left HiFi Capture", 0, SND_SOC_NOPM, 0, 0),
+	SND_SOC_DAPM_AIF_OUT("AIFTXR", "Right HiFi Capture", 0, SND_SOC_NOPM, 0, 0),
 
-SND_SOC_DAPM_MUX("DACL Sidetone", SND_SOC_NOPM, 0, 0, &lsidetone_mux),
-SND_SOC_DAPM_MUX("DACR Sidetone", SND_SOC_NOPM, 0, 0, &rsidetone_mux),
+	SND_SOC_DAPM_MUX("DACL Sidetone", SND_SOC_NOPM, 0, 0, &lsidetone_mux),
+	SND_SOC_DAPM_MUX("DACR Sidetone", SND_SOC_NOPM, 0, 0, &rsidetone_mux),
 
-SND_SOC_DAPM_AIF_IN("AIFRXL", "Left Playback", 0, SND_SOC_NOPM, 0, 0),
-SND_SOC_DAPM_AIF_IN("AIFRXR", "Right Playback", 0, SND_SOC_NOPM, 0, 0),
+	SND_SOC_DAPM_AIF_IN("AIFRXL", "Left Playback", 0, SND_SOC_NOPM, 0, 0),
+	SND_SOC_DAPM_AIF_IN("AIFRXR", "Right Playback", 0, SND_SOC_NOPM, 0, 0),
 
-SND_SOC_DAPM_MUX("Left Playback Mux", SND_SOC_NOPM, 0, 0, &lplay_mux),
-SND_SOC_DAPM_MUX("Right Playback Mux", SND_SOC_NOPM, 0, 0, &rplay_mux),
+	SND_SOC_DAPM_MUX("Left Playback Mux", SND_SOC_NOPM, 0, 0, &lplay_mux),
+	SND_SOC_DAPM_MUX("Right Playback Mux", SND_SOC_NOPM, 0, 0, &rplay_mux),
 
-SND_SOC_DAPM_DAC("DACL", NULL, WM8903_POWER_MANAGEMENT_6, 3, 0),
-SND_SOC_DAPM_DAC("DACR", NULL, WM8903_POWER_MANAGEMENT_6, 2, 0),
+	SND_SOC_DAPM_DAC("DACL", NULL, WM8903_POWER_MANAGEMENT_6, 3, 0),
+	SND_SOC_DAPM_DAC("DACR", NULL, WM8903_POWER_MANAGEMENT_6, 2, 0),
 
-SND_SOC_DAPM_MIXER("Left Output Mixer", WM8903_POWER_MANAGEMENT_1, 1, 0,
-		   left_output_mixer, ARRAY_SIZE(left_output_mixer)),
-SND_SOC_DAPM_MIXER("Right Output Mixer", WM8903_POWER_MANAGEMENT_1, 0, 0,
-		   right_output_mixer, ARRAY_SIZE(right_output_mixer)),
+	SND_SOC_DAPM_MIXER("Left Output Mixer", WM8903_POWER_MANAGEMENT_1, 1, 0,
+	left_output_mixer, ARRAY_SIZE(left_output_mixer)),
+	SND_SOC_DAPM_MIXER("Right Output Mixer", WM8903_POWER_MANAGEMENT_1, 0, 0,
+	right_output_mixer, ARRAY_SIZE(right_output_mixer)),
 
-SND_SOC_DAPM_MIXER("Left Speaker Mixer", WM8903_POWER_MANAGEMENT_4, 1, 0,
-		   left_speaker_mixer, ARRAY_SIZE(left_speaker_mixer)),
-SND_SOC_DAPM_MIXER("Right Speaker Mixer", WM8903_POWER_MANAGEMENT_4, 0, 0,
-		   right_speaker_mixer, ARRAY_SIZE(right_speaker_mixer)),
+	SND_SOC_DAPM_MIXER("Left Speaker Mixer", WM8903_POWER_MANAGEMENT_4, 1, 0,
+	left_speaker_mixer, ARRAY_SIZE(left_speaker_mixer)),
+	SND_SOC_DAPM_MIXER("Right Speaker Mixer", WM8903_POWER_MANAGEMENT_4, 0, 0,
+	right_speaker_mixer, ARRAY_SIZE(right_speaker_mixer)),
 
-SND_SOC_DAPM_PGA_S("Left Headphone Output PGA", 0, WM8903_POWER_MANAGEMENT_2,
-		   1, 0, NULL, 0),
-SND_SOC_DAPM_PGA_S("Right Headphone Output PGA", 0, WM8903_POWER_MANAGEMENT_2,
-		   0, 0, NULL, 0),
+	SND_SOC_DAPM_PGA_S("Left Headphone Output PGA", 0, WM8903_POWER_MANAGEMENT_2,
+	1, 0, NULL, 0),
+	SND_SOC_DAPM_PGA_S("Right Headphone Output PGA", 0, WM8903_POWER_MANAGEMENT_2,
+	0, 0, NULL, 0),
 
-SND_SOC_DAPM_PGA_S("Left Line Output PGA", 0, WM8903_POWER_MANAGEMENT_3, 1, 0,
-		   NULL, 0),
-SND_SOC_DAPM_PGA_S("Right Line Output PGA", 0, WM8903_POWER_MANAGEMENT_3, 0, 0,
-		   NULL, 0),
+	SND_SOC_DAPM_PGA_S("Left Line Output PGA", 0, WM8903_POWER_MANAGEMENT_3, 1, 0,
+	NULL, 0),
+	SND_SOC_DAPM_PGA_S("Right Line Output PGA", 0, WM8903_POWER_MANAGEMENT_3, 0, 0,
+	NULL, 0),
 
-SND_SOC_DAPM_PGA_S("HPL_RMV_SHORT", 4, WM8903_ANALOGUE_HP_0, 7, 0, NULL, 0),
-SND_SOC_DAPM_PGA_S("HPL_ENA_OUTP", 3, WM8903_ANALOGUE_HP_0, 6, 0, NULL, 0),
-SND_SOC_DAPM_PGA_S("HPL_ENA_DLY", 2, WM8903_ANALOGUE_HP_0, 5, 0, NULL, 0),
-SND_SOC_DAPM_PGA_S("HPL_ENA", 1, WM8903_ANALOGUE_HP_0, 4, 0, NULL, 0),
-SND_SOC_DAPM_PGA_S("HPR_RMV_SHORT", 4, WM8903_ANALOGUE_HP_0, 3, 0, NULL, 0),
-SND_SOC_DAPM_PGA_S("HPR_ENA_OUTP", 3, WM8903_ANALOGUE_HP_0, 2, 0, NULL, 0),
-SND_SOC_DAPM_PGA_S("HPR_ENA_DLY", 2, WM8903_ANALOGUE_HP_0, 1, 0, NULL, 0),
-SND_SOC_DAPM_PGA_S("HPR_ENA", 1, WM8903_ANALOGUE_HP_0, 0, 0, NULL, 0),
+	SND_SOC_DAPM_PGA_S("HPL_RMV_SHORT", 4, WM8903_ANALOGUE_HP_0, 7, 0, NULL, 0),
+	SND_SOC_DAPM_PGA_S("HPL_ENA_OUTP", 3, WM8903_ANALOGUE_HP_0, 6, 0, NULL, 0),
+	SND_SOC_DAPM_PGA_S("HPL_ENA_DLY", 2, WM8903_ANALOGUE_HP_0, 5, 0, NULL, 0),
+	SND_SOC_DAPM_PGA_S("HPL_ENA", 1, WM8903_ANALOGUE_HP_0, 4, 0, NULL, 0),
+	SND_SOC_DAPM_PGA_S("HPR_RMV_SHORT", 4, WM8903_ANALOGUE_HP_0, 3, 0, NULL, 0),
+	SND_SOC_DAPM_PGA_S("HPR_ENA_OUTP", 3, WM8903_ANALOGUE_HP_0, 2, 0, NULL, 0),
+	SND_SOC_DAPM_PGA_S("HPR_ENA_DLY", 2, WM8903_ANALOGUE_HP_0, 1, 0, NULL, 0),
+	SND_SOC_DAPM_PGA_S("HPR_ENA", 1, WM8903_ANALOGUE_HP_0, 0, 0, NULL, 0),
 
-SND_SOC_DAPM_PGA_S("LINEOUTL_RMV_SHORT", 4, WM8903_ANALOGUE_LINEOUT_0, 7, 0,
-		   NULL, 0),
-SND_SOC_DAPM_PGA_S("LINEOUTL_ENA_OUTP", 3, WM8903_ANALOGUE_LINEOUT_0, 6, 0,
-		   NULL, 0),
-SND_SOC_DAPM_PGA_S("LINEOUTL_ENA_DLY", 2, WM8903_ANALOGUE_LINEOUT_0, 5, 0,
-		   NULL, 0),
-SND_SOC_DAPM_PGA_S("LINEOUTL_ENA", 1, WM8903_ANALOGUE_LINEOUT_0, 4, 0,
-		   NULL, 0),
-SND_SOC_DAPM_PGA_S("LINEOUTR_RMV_SHORT", 4, WM8903_ANALOGUE_LINEOUT_0, 3, 0,
-		   NULL, 0),
-SND_SOC_DAPM_PGA_S("LINEOUTR_ENA_OUTP", 3, WM8903_ANALOGUE_LINEOUT_0, 2, 0,
-		   NULL, 0),
-SND_SOC_DAPM_PGA_S("LINEOUTR_ENA_DLY", 2, WM8903_ANALOGUE_LINEOUT_0, 1, 0,
-		   NULL, 0),
-SND_SOC_DAPM_PGA_S("LINEOUTR_ENA", 1, WM8903_ANALOGUE_LINEOUT_0, 0, 0,
-		   NULL, 0),
+	SND_SOC_DAPM_PGA_S("LINEOUTL_RMV_SHORT", 4, WM8903_ANALOGUE_LINEOUT_0, 7, 0,
+	NULL, 0),
+	SND_SOC_DAPM_PGA_S("LINEOUTL_ENA_OUTP", 3, WM8903_ANALOGUE_LINEOUT_0, 6, 0,
+	NULL, 0),
+	SND_SOC_DAPM_PGA_S("LINEOUTL_ENA_DLY", 2, WM8903_ANALOGUE_LINEOUT_0, 5, 0,
+	NULL, 0),
+	SND_SOC_DAPM_PGA_S("LINEOUTL_ENA", 1, WM8903_ANALOGUE_LINEOUT_0, 4, 0,
+	NULL, 0),
+	SND_SOC_DAPM_PGA_S("LINEOUTR_RMV_SHORT", 4, WM8903_ANALOGUE_LINEOUT_0, 3, 0,
+	NULL, 0),
+	SND_SOC_DAPM_PGA_S("LINEOUTR_ENA_OUTP", 3, WM8903_ANALOGUE_LINEOUT_0, 2, 0,
+	NULL, 0),
+	SND_SOC_DAPM_PGA_S("LINEOUTR_ENA_DLY", 2, WM8903_ANALOGUE_LINEOUT_0, 1, 0,
+	NULL, 0),
+	SND_SOC_DAPM_PGA_S("LINEOUTR_ENA", 1, WM8903_ANALOGUE_LINEOUT_0, 0, 0,
+	NULL, 0),
 
-SND_SOC_DAPM_SUPPLY("DCS Master", WM8903_DC_SERVO_0, 4, 0, NULL, 0),
-SND_SOC_DAPM_PGA_S("HPL_DCS", 3, SND_SOC_NOPM, 3, 0, wm8903_dcs_event,
-		   SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_PRE_PMD),
-SND_SOC_DAPM_PGA_S("HPR_DCS", 3, SND_SOC_NOPM, 2, 0, wm8903_dcs_event,
-		   SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_PRE_PMD),
-SND_SOC_DAPM_PGA_S("LINEOUTL_DCS", 3, SND_SOC_NOPM, 1, 0, wm8903_dcs_event,
-		   SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_PRE_PMD),
-SND_SOC_DAPM_PGA_S("LINEOUTR_DCS", 3, SND_SOC_NOPM, 0, 0, wm8903_dcs_event,
-		   SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_PRE_PMD),
+	SND_SOC_DAPM_SUPPLY("DCS Master", WM8903_DC_SERVO_0, 4, 0, NULL, 0),
+	SND_SOC_DAPM_PGA_S("HPL_DCS", 3, SND_SOC_NOPM, 3, 0, wm8903_dcs_event,
+	SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_PRE_PMD),
+	SND_SOC_DAPM_PGA_S("HPR_DCS", 3, SND_SOC_NOPM, 2, 0, wm8903_dcs_event,
+	SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_PRE_PMD),
+	SND_SOC_DAPM_PGA_S("LINEOUTL_DCS", 3, SND_SOC_NOPM, 1, 0, wm8903_dcs_event,
+	SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_PRE_PMD),
+	SND_SOC_DAPM_PGA_S("LINEOUTR_DCS", 3, SND_SOC_NOPM, 0, 0, wm8903_dcs_event,
+	SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_PRE_PMD),
 
-SND_SOC_DAPM_PGA("Left Speaker PGA", WM8903_POWER_MANAGEMENT_5, 1, 0,
-		 NULL, 0),
-SND_SOC_DAPM_PGA("Right Speaker PGA", WM8903_POWER_MANAGEMENT_5, 0, 0,
-		 NULL, 0),
+	SND_SOC_DAPM_PGA("Left Speaker PGA", WM8903_POWER_MANAGEMENT_5, 1, 0,
+	NULL, 0),
+	SND_SOC_DAPM_PGA("Right Speaker PGA", WM8903_POWER_MANAGEMENT_5, 0, 0,
+	NULL, 0),
 
-SND_SOC_DAPM_SUPPLY("Charge Pump", WM8903_CHARGE_PUMP_0, 0, 0,
-		    wm8903_cp_event, SND_SOC_DAPM_POST_PMU),
-SND_SOC_DAPM_SUPPLY("CLK_DSP", WM8903_CLOCK_RATES_2, 1, 0, NULL, 0),
-SND_SOC_DAPM_SUPPLY("CLK_SYS", WM8903_CLOCK_RATES_2, 2, 0, NULL, 0),
+	SND_SOC_DAPM_SUPPLY("Charge Pump", WM8903_CHARGE_PUMP_0, 0, 0,
+	wm8903_cp_event, SND_SOC_DAPM_POST_PMU),
+	SND_SOC_DAPM_SUPPLY("CLK_DSP", WM8903_CLOCK_RATES_2, 1, 0, NULL, 0),
+	SND_SOC_DAPM_SUPPLY("CLK_SYS", WM8903_CLOCK_RATES_2, 2, 0, NULL, 0),
 };
 
-static const struct snd_soc_dapm_route wm8903_intercon[] = {
+static const struct snd_soc_dapm_route wm8903_intercon[] =
+{
 
 	{ "CLK_DSP", NULL, "CLK_SYS" },
 	{ "MICBIAS", NULL, "CLK_SYS" },
@@ -953,25 +1018,43 @@ static const struct snd_soc_dapm_route wm8903_intercon[] = {
 	{ "Right Input Inverting Mux", "IN3R", "IN3R" },
 
 	{ "Left Input Mode Mux", "Single-Ended", "Left Input Inverting Mux" },
-	{ "Left Input Mode Mux", "Differential Line",
-	  "Left Input Mux" },
-	{ "Left Input Mode Mux", "Differential Line",
-	  "Left Input Inverting Mux" },
-	{ "Left Input Mode Mux", "Differential Mic",
-	  "Left Input Mux" },
-	{ "Left Input Mode Mux", "Differential Mic",
-	  "Left Input Inverting Mux" },
+	{
+		"Left Input Mode Mux", "Differential Line",
+		"Left Input Mux"
+	},
+	{
+		"Left Input Mode Mux", "Differential Line",
+		"Left Input Inverting Mux"
+	},
+	{
+		"Left Input Mode Mux", "Differential Mic",
+		"Left Input Mux"
+	},
+	{
+		"Left Input Mode Mux", "Differential Mic",
+		"Left Input Inverting Mux"
+	},
 
-	{ "Right Input Mode Mux", "Single-Ended",
-	  "Right Input Inverting Mux" },
-	{ "Right Input Mode Mux", "Differential Line",
-	  "Right Input Mux" },
-	{ "Right Input Mode Mux", "Differential Line",
-	  "Right Input Inverting Mux" },
-	{ "Right Input Mode Mux", "Differential Mic",
-	  "Right Input Mux" },
-	{ "Right Input Mode Mux", "Differential Mic",
-	  "Right Input Inverting Mux" },
+	{
+		"Right Input Mode Mux", "Single-Ended",
+		"Right Input Inverting Mux"
+	},
+	{
+		"Right Input Mode Mux", "Differential Line",
+		"Right Input Mux"
+	},
+	{
+		"Right Input Mode Mux", "Differential Line",
+		"Right Input Inverting Mux"
+	},
+	{
+		"Right Input Mode Mux", "Differential Mic",
+		"Right Input Mux"
+	},
+	{
+		"Right Input Mode Mux", "Differential Mic",
+		"Right Input Inverting Mux"
+	},
 
 	{ "Left Input PGA", NULL, "Left Input Mode Mux" },
 	{ "Right Input PGA", NULL, "Right Input Mode Mux" },
@@ -1092,119 +1175,121 @@ static const struct snd_soc_dapm_route wm8903_intercon[] = {
 };
 
 static int wm8903_set_bias_level(struct snd_soc_codec *codec,
-				 enum snd_soc_bias_level level)
+								 enum snd_soc_bias_level level)
 {
-	switch (level) {
-	case SND_SOC_BIAS_ON:
-		break;
+	switch (level)
+	{
+		case SND_SOC_BIAS_ON:
+			break;
 
-	case SND_SOC_BIAS_PREPARE:
-		snd_soc_update_bits(codec, WM8903_VMID_CONTROL_0,
-				    WM8903_VMID_RES_MASK,
-				    WM8903_VMID_RES_50K);
-		break;
+		case SND_SOC_BIAS_PREPARE:
+			snd_soc_update_bits(codec, WM8903_VMID_CONTROL_0,
+								WM8903_VMID_RES_MASK,
+								WM8903_VMID_RES_50K);
+			break;
 
-	case SND_SOC_BIAS_STANDBY:
-		if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF) {
+		case SND_SOC_BIAS_STANDBY:
+			if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF)
+			{
+				snd_soc_update_bits(codec, WM8903_BIAS_CONTROL_0,
+									WM8903_POBCTRL | WM8903_ISEL_MASK |
+									WM8903_STARTUP_BIAS_ENA |
+									WM8903_BIAS_ENA,
+									WM8903_POBCTRL |
+									(2 << WM8903_ISEL_SHIFT) |
+									WM8903_STARTUP_BIAS_ENA);
+
+				snd_soc_update_bits(codec,
+									WM8903_ANALOGUE_SPK_OUTPUT_CONTROL_0,
+									WM8903_SPK_DISCHARGE,
+									WM8903_SPK_DISCHARGE);
+
+				msleep(33);
+
+				snd_soc_update_bits(codec, WM8903_POWER_MANAGEMENT_5,
+									WM8903_SPKL_ENA | WM8903_SPKR_ENA,
+									WM8903_SPKL_ENA | WM8903_SPKR_ENA);
+
+				snd_soc_update_bits(codec,
+									WM8903_ANALOGUE_SPK_OUTPUT_CONTROL_0,
+									WM8903_SPK_DISCHARGE, 0);
+
+				snd_soc_update_bits(codec, WM8903_VMID_CONTROL_0,
+									WM8903_VMID_TIE_ENA |
+									WM8903_BUFIO_ENA |
+									WM8903_VMID_IO_ENA |
+									WM8903_VMID_SOFT_MASK |
+									WM8903_VMID_RES_MASK |
+									WM8903_VMID_BUF_ENA,
+									WM8903_VMID_TIE_ENA |
+									WM8903_BUFIO_ENA |
+									WM8903_VMID_IO_ENA |
+									(2 << WM8903_VMID_SOFT_SHIFT) |
+									WM8903_VMID_RES_250K |
+									WM8903_VMID_BUF_ENA);
+
+				msleep(129);
+
+				snd_soc_update_bits(codec, WM8903_POWER_MANAGEMENT_5,
+									WM8903_SPKL_ENA | WM8903_SPKR_ENA,
+									0);
+
+				snd_soc_update_bits(codec, WM8903_VMID_CONTROL_0,
+									WM8903_VMID_SOFT_MASK, 0);
+
+				snd_soc_update_bits(codec, WM8903_VMID_CONTROL_0,
+									WM8903_VMID_RES_MASK,
+									WM8903_VMID_RES_50K);
+
+				snd_soc_update_bits(codec, WM8903_BIAS_CONTROL_0,
+									WM8903_BIAS_ENA | WM8903_POBCTRL,
+									WM8903_BIAS_ENA);
+
+				/* By default no bypass paths are enabled so
+				 * enable Class W support.
+				 */
+				dev_dbg(codec->dev, "Enabling Class W\n");
+				snd_soc_update_bits(codec, WM8903_CLASS_W_0,
+									WM8903_CP_DYN_FREQ |
+									WM8903_CP_DYN_V,
+									WM8903_CP_DYN_FREQ |
+									WM8903_CP_DYN_V);
+			}
+
+			snd_soc_update_bits(codec, WM8903_VMID_CONTROL_0,
+								WM8903_VMID_RES_MASK,
+								WM8903_VMID_RES_250K);
+			break;
+
+		case SND_SOC_BIAS_OFF:
 			snd_soc_update_bits(codec, WM8903_BIAS_CONTROL_0,
-					    WM8903_POBCTRL | WM8903_ISEL_MASK |
-					    WM8903_STARTUP_BIAS_ENA |
-					    WM8903_BIAS_ENA,
-					    WM8903_POBCTRL |
-					    (2 << WM8903_ISEL_SHIFT) |
-					    WM8903_STARTUP_BIAS_ENA);
-
-			snd_soc_update_bits(codec,
-					    WM8903_ANALOGUE_SPK_OUTPUT_CONTROL_0,
-					    WM8903_SPK_DISCHARGE,
-					    WM8903_SPK_DISCHARGE);
-
-			msleep(33);
-
-			snd_soc_update_bits(codec, WM8903_POWER_MANAGEMENT_5,
-					    WM8903_SPKL_ENA | WM8903_SPKR_ENA,
-					    WM8903_SPKL_ENA | WM8903_SPKR_ENA);
-
-			snd_soc_update_bits(codec,
-					    WM8903_ANALOGUE_SPK_OUTPUT_CONTROL_0,
-					    WM8903_SPK_DISCHARGE, 0);
+								WM8903_BIAS_ENA, 0);
 
 			snd_soc_update_bits(codec, WM8903_VMID_CONTROL_0,
-					    WM8903_VMID_TIE_ENA |
-					    WM8903_BUFIO_ENA |
-					    WM8903_VMID_IO_ENA |
-					    WM8903_VMID_SOFT_MASK |
-					    WM8903_VMID_RES_MASK |
-					    WM8903_VMID_BUF_ENA,
-					    WM8903_VMID_TIE_ENA |
-					    WM8903_BUFIO_ENA |
-					    WM8903_VMID_IO_ENA |
-					    (2 << WM8903_VMID_SOFT_SHIFT) |
-					    WM8903_VMID_RES_250K |
-					    WM8903_VMID_BUF_ENA);
-
-			msleep(129);
-
-			snd_soc_update_bits(codec, WM8903_POWER_MANAGEMENT_5,
-					    WM8903_SPKL_ENA | WM8903_SPKR_ENA,
-					    0);
+								WM8903_VMID_SOFT_MASK,
+								2 << WM8903_VMID_SOFT_SHIFT);
 
 			snd_soc_update_bits(codec, WM8903_VMID_CONTROL_0,
-					    WM8903_VMID_SOFT_MASK, 0);
+								WM8903_VMID_BUF_ENA, 0);
+
+			msleep(290);
 
 			snd_soc_update_bits(codec, WM8903_VMID_CONTROL_0,
-					    WM8903_VMID_RES_MASK,
-					    WM8903_VMID_RES_50K);
+								WM8903_VMID_TIE_ENA | WM8903_BUFIO_ENA |
+								WM8903_VMID_IO_ENA | WM8903_VMID_RES_MASK |
+								WM8903_VMID_SOFT_MASK |
+								WM8903_VMID_BUF_ENA, 0);
 
 			snd_soc_update_bits(codec, WM8903_BIAS_CONTROL_0,
-					    WM8903_BIAS_ENA | WM8903_POBCTRL,
-					    WM8903_BIAS_ENA);
-
-			/* By default no bypass paths are enabled so
-			 * enable Class W support.
-			 */
-			dev_dbg(codec->dev, "Enabling Class W\n");
-			snd_soc_update_bits(codec, WM8903_CLASS_W_0,
-					    WM8903_CP_DYN_FREQ |
-					    WM8903_CP_DYN_V,
-					    WM8903_CP_DYN_FREQ |
-					    WM8903_CP_DYN_V);
-		}
-
-		snd_soc_update_bits(codec, WM8903_VMID_CONTROL_0,
-				    WM8903_VMID_RES_MASK,
-				    WM8903_VMID_RES_250K);
-		break;
-
-	case SND_SOC_BIAS_OFF:
-		snd_soc_update_bits(codec, WM8903_BIAS_CONTROL_0,
-				    WM8903_BIAS_ENA, 0);
-
-		snd_soc_update_bits(codec, WM8903_VMID_CONTROL_0,
-				    WM8903_VMID_SOFT_MASK,
-				    2 << WM8903_VMID_SOFT_SHIFT);
-
-		snd_soc_update_bits(codec, WM8903_VMID_CONTROL_0,
-				    WM8903_VMID_BUF_ENA, 0);
-
-		msleep(290);
-
-		snd_soc_update_bits(codec, WM8903_VMID_CONTROL_0,
-				    WM8903_VMID_TIE_ENA | WM8903_BUFIO_ENA |
-				    WM8903_VMID_IO_ENA | WM8903_VMID_RES_MASK |
-				    WM8903_VMID_SOFT_MASK |
-				    WM8903_VMID_BUF_ENA, 0);
-
-		snd_soc_update_bits(codec, WM8903_BIAS_CONTROL_0,
-				    WM8903_STARTUP_BIAS_ENA, 0);
-		break;
+								WM8903_STARTUP_BIAS_ENA, 0);
+			break;
 	}
 
 	return 0;
 }
 
 static int wm8903_set_dai_sysclk(struct snd_soc_dai *codec_dai,
-				 int clk_id, unsigned int freq, int dir)
+								 int clk_id, unsigned int freq, int dir)
 {
 	struct snd_soc_codec *codec = codec_dai->codec;
 	struct wm8903_priv *wm8903 = snd_soc_codec_get_drvdata(codec);
@@ -1215,85 +1300,110 @@ static int wm8903_set_dai_sysclk(struct snd_soc_dai *codec_dai,
 }
 
 static int wm8903_set_dai_fmt(struct snd_soc_dai *codec_dai,
-			      unsigned int fmt)
+							  unsigned int fmt)
 {
 	struct snd_soc_codec *codec = codec_dai->codec;
 	u16 aif1 = snd_soc_read(codec, WM8903_AUDIO_INTERFACE_1);
 
 	aif1 &= ~(WM8903_LRCLK_DIR | WM8903_BCLK_DIR | WM8903_AIF_FMT_MASK |
-		  WM8903_AIF_LRCLK_INV | WM8903_AIF_BCLK_INV);
+			  WM8903_AIF_LRCLK_INV | WM8903_AIF_BCLK_INV);
 
-	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
-	case SND_SOC_DAIFMT_CBS_CFS:
-		break;
-	case SND_SOC_DAIFMT_CBS_CFM:
-		aif1 |= WM8903_LRCLK_DIR;
-		break;
-	case SND_SOC_DAIFMT_CBM_CFM:
-		aif1 |= WM8903_LRCLK_DIR | WM8903_BCLK_DIR;
-		break;
-	case SND_SOC_DAIFMT_CBM_CFS:
-		aif1 |= WM8903_BCLK_DIR;
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK)
+	{
+		case SND_SOC_DAIFMT_CBS_CFS:
+			break;
+
+		case SND_SOC_DAIFMT_CBS_CFM:
+			aif1 |= WM8903_LRCLK_DIR;
+			break;
+
+		case SND_SOC_DAIFMT_CBM_CFM:
+			aif1 |= WM8903_LRCLK_DIR | WM8903_BCLK_DIR;
+			break;
+
+		case SND_SOC_DAIFMT_CBM_CFS:
+			aif1 |= WM8903_BCLK_DIR;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
-	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-	case SND_SOC_DAIFMT_DSP_A:
-		aif1 |= 0x3;
-		break;
-	case SND_SOC_DAIFMT_DSP_B:
-		aif1 |= 0x3 | WM8903_AIF_LRCLK_INV;
-		break;
-	case SND_SOC_DAIFMT_I2S:
-		aif1 |= 0x2;
-		break;
-	case SND_SOC_DAIFMT_RIGHT_J:
-		aif1 |= 0x1;
-		break;
-	case SND_SOC_DAIFMT_LEFT_J:
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK)
+	{
+		case SND_SOC_DAIFMT_DSP_A:
+			aif1 |= 0x3;
+			break;
+
+		case SND_SOC_DAIFMT_DSP_B:
+			aif1 |= 0x3 | WM8903_AIF_LRCLK_INV;
+			break;
+
+		case SND_SOC_DAIFMT_I2S:
+			aif1 |= 0x2;
+			break;
+
+		case SND_SOC_DAIFMT_RIGHT_J:
+			aif1 |= 0x1;
+			break;
+
+		case SND_SOC_DAIFMT_LEFT_J:
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* Clock inversion */
-	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-	case SND_SOC_DAIFMT_DSP_A:
-	case SND_SOC_DAIFMT_DSP_B:
-		/* frame inversion not valid for DSP modes */
-		switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
-		case SND_SOC_DAIFMT_NB_NF:
+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK)
+	{
+		case SND_SOC_DAIFMT_DSP_A:
+		case SND_SOC_DAIFMT_DSP_B:
+
+			/* frame inversion not valid for DSP modes */
+			switch (fmt & SND_SOC_DAIFMT_INV_MASK)
+			{
+				case SND_SOC_DAIFMT_NB_NF:
+					break;
+
+				case SND_SOC_DAIFMT_IB_NF:
+					aif1 |= WM8903_AIF_BCLK_INV;
+					break;
+
+				default:
+					return -EINVAL;
+			}
+
 			break;
-		case SND_SOC_DAIFMT_IB_NF:
-			aif1 |= WM8903_AIF_BCLK_INV;
+
+		case SND_SOC_DAIFMT_I2S:
+		case SND_SOC_DAIFMT_RIGHT_J:
+		case SND_SOC_DAIFMT_LEFT_J:
+			switch (fmt & SND_SOC_DAIFMT_INV_MASK)
+			{
+				case SND_SOC_DAIFMT_NB_NF:
+					break;
+
+				case SND_SOC_DAIFMT_IB_IF:
+					aif1 |= WM8903_AIF_BCLK_INV | WM8903_AIF_LRCLK_INV;
+					break;
+
+				case SND_SOC_DAIFMT_IB_NF:
+					aif1 |= WM8903_AIF_BCLK_INV;
+					break;
+
+				case SND_SOC_DAIFMT_NB_IF:
+					aif1 |= WM8903_AIF_LRCLK_INV;
+					break;
+
+				default:
+					return -EINVAL;
+			}
+
 			break;
+
 		default:
 			return -EINVAL;
-		}
-		break;
-	case SND_SOC_DAIFMT_I2S:
-	case SND_SOC_DAIFMT_RIGHT_J:
-	case SND_SOC_DAIFMT_LEFT_J:
-		switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
-		case SND_SOC_DAIFMT_NB_NF:
-			break;
-		case SND_SOC_DAIFMT_IB_IF:
-			aif1 |= WM8903_AIF_BCLK_INV | WM8903_AIF_LRCLK_INV;
-			break;
-		case SND_SOC_DAIFMT_IB_NF:
-			aif1 |= WM8903_AIF_BCLK_INV;
-			break;
-		case SND_SOC_DAIFMT_NB_IF:
-			aif1 |= WM8903_AIF_LRCLK_INV;
-			break;
-		default:
-			return -EINVAL;
-		}
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	snd_soc_write(codec, WM8903_AUDIO_INTERFACE_1, aif1);
@@ -1309,9 +1419,13 @@ static int wm8903_digital_mute(struct snd_soc_dai *codec_dai, int mute)
 	reg = snd_soc_read(codec, WM8903_DAC_DIGITAL_1);
 
 	if (mute)
+	{
 		reg |= WM8903_DAC_MUTE;
+	}
 	else
+	{
 		reg &= ~WM8903_DAC_MUTE;
+	}
 
 	snd_soc_write(codec, WM8903_DAC_DIGITAL_1, reg);
 
@@ -1321,12 +1435,14 @@ static int wm8903_digital_mute(struct snd_soc_dai *codec_dai, int mute)
 /* Lookup table for CLK_SYS/fs ratio.  256fs or more is recommended
  * for optimal performance so we list the lower rates first and match
  * on the last match we find. */
-static struct {
+static struct
+{
 	int div;
 	int rate;
 	int mode;
 	int mclk_div;
-} clk_sys_ratios[] = {
+} clk_sys_ratios[] =
+{
 	{   64, 0x0, 0x0, 1 },
 	{   68, 0x0, 0x1, 1 },
 	{  125, 0x0, 0x2, 1 },
@@ -1387,10 +1503,12 @@ static struct {
 };
 
 /* CLK_SYS/BCLK ratios - multiplied by 10 due to .5s */
-static struct {
+static struct
+{
 	int ratio;
 	int div;
-} bclk_divs[] = {
+} bclk_divs[] =
+{
 	{  10,  0 },
 	{  20,  2 },
 	{  30,  3 },
@@ -1411,10 +1529,12 @@ static struct {
 };
 
 /* Sample rates for DSP */
-static struct {
+static struct
+{
 	int rate;
 	int value;
-} sample_rates[] = {
+} sample_rates[] =
+{
 	{  8000,  0 },
 	{ 11025,  1 },
 	{ 12000,  2 },
@@ -1430,8 +1550,8 @@ static struct {
 };
 
 static int wm8903_hw_params(struct snd_pcm_substream *substream,
-			    struct snd_pcm_hw_params *params,
-			    struct snd_soc_dai *dai)
+							struct snd_pcm_hw_params *params,
+							struct snd_soc_dai *dai)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct wm8903_priv *wm8903 = snd_soc_codec_get_drvdata(codec);
@@ -1454,16 +1574,24 @@ static int wm8903_hw_params(struct snd_pcm_substream *substream,
 
 	/* Enable sloping stopband filter for low sample rates */
 	if (fs <= 24000)
+	{
 		dac_digital1 |= WM8903_DAC_SB_FILT;
+	}
 	else
+	{
 		dac_digital1 &= ~WM8903_DAC_SB_FILT;
+	}
 
 	/* Configure sample rate logic for DSP - choose nearest rate */
 	dsp_config = 0;
 	best_val = abs(sample_rates[dsp_config].rate - fs);
-	for (i = 1; i < ARRAY_SIZE(sample_rates); i++) {
+
+	for (i = 1; i < ARRAY_SIZE(sample_rates); i++)
+	{
 		cur_val = abs(sample_rates[i].rate - fs);
-		if (cur_val <= best_val) {
+
+		if (cur_val <= best_val)
+		{
 			dsp_config = i;
 			best_val = cur_val;
 		}
@@ -1475,28 +1603,34 @@ static int wm8903_hw_params(struct snd_pcm_substream *substream,
 
 	aif1 &= ~WM8903_AIF_WL_MASK;
 	bclk = 2 * fs;
-	switch (params_width(params)) {
-	case 16:
-		bclk *= 16;
-		break;
-	case 20:
-		bclk *= 20;
-		aif1 |= 0x4;
-		break;
-	case 24:
-		bclk *= 24;
-		aif1 |= 0x8;
-		break;
-	case 32:
-		bclk *= 32;
-		aif1 |= 0xc;
-		break;
-	default:
-		return -EINVAL;
+
+	switch (params_width(params))
+	{
+		case 16:
+			bclk *= 16;
+			break;
+
+		case 20:
+			bclk *= 20;
+			aif1 |= 0x4;
+			break;
+
+		case 24:
+			bclk *= 24;
+			aif1 |= 0x8;
+			break;
+
+		case 32:
+			bclk *= 32;
+			aif1 |= 0xc;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	dev_dbg(codec->dev, "MCLK = %dHz, target sample rate = %dHz\n",
-		wm8903->sysclk, fs);
+			wm8903->sysclk, fs);
 
 	/* We may not have an MCLK which allows us to generate exactly
 	 * the clock we want, particularly with USB derived inputs, so
@@ -1504,36 +1638,42 @@ static int wm8903_hw_params(struct snd_pcm_substream *substream,
 	 */
 	clk_config = 0;
 	best_val = abs((wm8903->sysclk /
-			(clk_sys_ratios[0].mclk_div *
-			 clk_sys_ratios[0].div)) - fs);
-	for (i = 1; i < ARRAY_SIZE(clk_sys_ratios); i++) {
-		cur_val = abs((wm8903->sysclk /
-			       (clk_sys_ratios[i].mclk_div *
-				clk_sys_ratios[i].div)) - fs);
+					(clk_sys_ratios[0].mclk_div *
+					 clk_sys_ratios[0].div)) - fs);
 
-		if (cur_val <= best_val) {
+	for (i = 1; i < ARRAY_SIZE(clk_sys_ratios); i++)
+	{
+		cur_val = abs((wm8903->sysclk /
+					   (clk_sys_ratios[i].mclk_div *
+						clk_sys_ratios[i].div)) - fs);
+
+		if (cur_val <= best_val)
+		{
 			clk_config = i;
 			best_val = cur_val;
 		}
 	}
 
-	if (clk_sys_ratios[clk_config].mclk_div == 2) {
+	if (clk_sys_ratios[clk_config].mclk_div == 2)
+	{
 		clock0 |= WM8903_MCLKDIV2;
 		clk_sys = wm8903->sysclk / 2;
-	} else {
+	}
+	else
+	{
 		clock0 &= ~WM8903_MCLKDIV2;
 		clk_sys = wm8903->sysclk;
 	}
 
 	clock1 &= ~(WM8903_CLK_SYS_RATE_MASK |
-		    WM8903_CLK_SYS_MODE_MASK);
+				WM8903_CLK_SYS_MODE_MASK);
 	clock1 |= clk_sys_ratios[clk_config].rate << WM8903_CLK_SYS_RATE_SHIFT;
 	clock1 |= clk_sys_ratios[clk_config].mode << WM8903_CLK_SYS_MODE_SHIFT;
 
 	dev_dbg(codec->dev, "CLK_SYS_RATE=%x, CLK_SYS_MODE=%x div=%d\n",
-		clk_sys_ratios[clk_config].rate,
-		clk_sys_ratios[clk_config].mode,
-		clk_sys_ratios[clk_config].div);
+			clk_sys_ratios[clk_config].rate,
+			clk_sys_ratios[clk_config].mode,
+			clk_sys_ratios[clk_config].div);
 
 	dev_dbg(codec->dev, "Actual CLK_SYS = %dHz\n", clk_sys);
 
@@ -1545,10 +1685,16 @@ static int wm8903_hw_params(struct snd_pcm_substream *substream,
 	bclk_div = 0;
 	best_val = ((clk_sys * 10) / bclk_divs[0].ratio) - bclk;
 	i = 1;
-	while (i < ARRAY_SIZE(bclk_divs)) {
+
+	while (i < ARRAY_SIZE(bclk_divs))
+	{
 		cur_val = ((clk_sys * 10) / bclk_divs[i].ratio) - bclk;
+
 		if (cur_val < 0) /* BCLK table is sorted */
+		{
 			break;
+		}
+
 		bclk_div = i;
 		best_val = cur_val;
 		i++;
@@ -1558,8 +1704,8 @@ static int wm8903_hw_params(struct snd_pcm_substream *substream,
 	aif3 &= ~WM8903_LRCLK_RATE_MASK;
 
 	dev_dbg(codec->dev, "BCLK ratio %d for %dHz - actual BCLK = %dHz\n",
-		bclk_divs[bclk_div].ratio / 10, bclk,
-		(clk_sys * 10) / bclk_divs[bclk_div].ratio);
+			bclk_divs[bclk_div].ratio / 10, bclk,
+			(clk_sys * 10) / bclk_divs[bclk_div].ratio);
 
 	aif2 |= bclk_divs[bclk_div].div;
 	aif3 |= bclk / fs;
@@ -1595,13 +1741,13 @@ static int wm8903_hw_params(struct snd_pcm_substream *substream,
  * the microphone bias for the device.
  */
 int wm8903_mic_detect(struct snd_soc_codec *codec, struct snd_soc_jack *jack,
-		      int det, int shrt)
+					  int det, int shrt)
 {
 	struct wm8903_priv *wm8903 = snd_soc_codec_get_drvdata(codec);
 	int irq_mask = WM8903_MICDET_EINT | WM8903_MICSHRT_EINT;
 
 	dev_dbg(codec->dev, "Enabling microphone detection: %x %x\n",
-		det, shrt);
+			det, shrt);
 
 	/* Store the configuration */
 	wm8903->mic_jack = jack;
@@ -1610,24 +1756,32 @@ int wm8903_mic_detect(struct snd_soc_codec *codec, struct snd_soc_jack *jack,
 
 	/* Enable interrupts we've got a report configured for */
 	if (det)
+	{
 		irq_mask &= ~WM8903_MICDET_EINT;
+	}
+
 	if (shrt)
+	{
 		irq_mask &= ~WM8903_MICSHRT_EINT;
+	}
 
 	snd_soc_update_bits(codec, WM8903_INTERRUPT_STATUS_1_MASK,
-			    WM8903_MICDET_EINT | WM8903_MICSHRT_EINT,
-			    irq_mask);
+						WM8903_MICDET_EINT | WM8903_MICSHRT_EINT,
+						irq_mask);
 
-	if (det || shrt) {
+	if (det || shrt)
+	{
 		/* Enable mic detection, this may not have been set through
 		 * platform data (eg, if the defaults are OK). */
 		snd_soc_update_bits(codec, WM8903_WRITE_SEQUENCER_0,
-				    WM8903_WSEQ_ENA, WM8903_WSEQ_ENA);
+							WM8903_WSEQ_ENA, WM8903_WSEQ_ENA);
 		snd_soc_update_bits(codec, WM8903_MIC_BIAS_CONTROL_0,
-				    WM8903_MICDET_ENA, WM8903_MICDET_ENA);
-	} else {
+							WM8903_MICDET_ENA, WM8903_MICDET_ENA);
+	}
+	else
+	{
 		snd_soc_update_bits(codec, WM8903_MIC_BIAS_CONTROL_0,
-				    WM8903_MICDET_ENA, 0);
+							WM8903_MICDET_ENA, 0);
 	}
 
 	return 0;
@@ -1641,21 +1795,26 @@ static irqreturn_t wm8903_irq(int irq, void *data)
 	unsigned int int_val, mask, int_pol;
 
 	ret = regmap_read(wm8903->regmap, WM8903_INTERRUPT_STATUS_1_MASK,
-			  &mask);
-	if (ret != 0) {
+					  &mask);
+
+	if (ret != 0)
+	{
 		dev_err(wm8903->dev, "Failed to read IRQ mask: %d\n", ret);
 		return IRQ_NONE;
 	}
 
 	ret = regmap_read(wm8903->regmap, WM8903_INTERRUPT_STATUS_1, &int_val);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		dev_err(wm8903->dev, "Failed to read IRQ status: %d\n", ret);
 		return IRQ_NONE;
 	}
 
 	int_val &= ~mask;
 
-	if (int_val & WM8903_WSEQ_BUSY_EINT) {
+	if (int_val & WM8903_WSEQ_BUSY_EINT)
+	{
 		dev_warn(wm8903->dev, "Write sequencer done\n");
 	}
 
@@ -1668,26 +1827,34 @@ static irqreturn_t wm8903_irq(int irq, void *data)
 	 */
 	mic_report = wm8903->mic_last_report;
 	ret = regmap_read(wm8903->regmap, WM8903_INTERRUPT_POLARITY_1,
-			  &int_pol);
-	if (ret != 0) {
+					  &int_pol);
+
+	if (ret != 0)
+	{
 		dev_err(wm8903->dev, "Failed to read interrupt polarity: %d\n",
-			ret);
+				ret);
 		return IRQ_HANDLED;
 	}
 
 #ifndef CONFIG_SND_SOC_WM8903_MODULE
+
 	if (int_val & (WM8903_MICSHRT_EINT | WM8903_MICDET_EINT))
+	{
 		trace_snd_soc_jack_irq(dev_name(wm8903->dev));
+	}
+
 #endif
 
-	if (int_val & WM8903_MICSHRT_EINT) {
+	if (int_val & WM8903_MICSHRT_EINT)
+	{
 		dev_dbg(wm8903->dev, "Microphone short (pol=%x)\n", int_pol);
 
 		mic_report ^= wm8903->mic_short;
 		int_pol ^= WM8903_MICSHRT_INV;
 	}
 
-	if (int_val & WM8903_MICDET_EINT) {
+	if (int_val & WM8903_MICDET_EINT)
+	{
 		dev_dbg(wm8903->dev, "Microphone detect (pol=%x)\n", int_pol);
 
 		mic_report ^= wm8903->mic_det;
@@ -1697,10 +1864,10 @@ static irqreturn_t wm8903_irq(int irq, void *data)
 	}
 
 	regmap_update_bits(wm8903->regmap, WM8903_INTERRUPT_POLARITY_1,
-			   WM8903_MICSHRT_INV | WM8903_MICDET_INV, int_pol);
+					   WM8903_MICSHRT_INV | WM8903_MICDET_INV, int_pol);
 
 	snd_soc_jack_report(wm8903->mic_jack, mic_report,
-			    wm8903->mic_short | wm8903->mic_det);
+						wm8903->mic_short | wm8903->mic_det);
 
 	wm8903->mic_last_report = mic_report;
 
@@ -1708,35 +1875,37 @@ static irqreturn_t wm8903_irq(int irq, void *data)
 }
 
 #define WM8903_PLAYBACK_RATES (SNDRV_PCM_RATE_8000 |\
-			       SNDRV_PCM_RATE_11025 |	\
-			       SNDRV_PCM_RATE_16000 |	\
-			       SNDRV_PCM_RATE_22050 |	\
-			       SNDRV_PCM_RATE_32000 |	\
-			       SNDRV_PCM_RATE_44100 |	\
-			       SNDRV_PCM_RATE_48000 |	\
-			       SNDRV_PCM_RATE_88200 |	\
-			       SNDRV_PCM_RATE_96000)
+							   SNDRV_PCM_RATE_11025 |	\
+							   SNDRV_PCM_RATE_16000 |	\
+							   SNDRV_PCM_RATE_22050 |	\
+							   SNDRV_PCM_RATE_32000 |	\
+							   SNDRV_PCM_RATE_44100 |	\
+							   SNDRV_PCM_RATE_48000 |	\
+							   SNDRV_PCM_RATE_88200 |	\
+							   SNDRV_PCM_RATE_96000)
 
 #define WM8903_CAPTURE_RATES (SNDRV_PCM_RATE_8000 |\
-			      SNDRV_PCM_RATE_11025 |	\
-			      SNDRV_PCM_RATE_16000 |	\
-			      SNDRV_PCM_RATE_22050 |	\
-			      SNDRV_PCM_RATE_32000 |	\
-			      SNDRV_PCM_RATE_44100 |	\
-			      SNDRV_PCM_RATE_48000)
+							  SNDRV_PCM_RATE_11025 |	\
+							  SNDRV_PCM_RATE_16000 |	\
+							  SNDRV_PCM_RATE_22050 |	\
+							  SNDRV_PCM_RATE_32000 |	\
+							  SNDRV_PCM_RATE_44100 |	\
+							  SNDRV_PCM_RATE_48000)
 
 #define WM8903_FORMATS (SNDRV_PCM_FMTBIT_S16_LE |\
-			SNDRV_PCM_FMTBIT_S20_3LE |\
-			SNDRV_PCM_FMTBIT_S24_LE)
+						SNDRV_PCM_FMTBIT_S20_3LE |\
+						SNDRV_PCM_FMTBIT_S24_LE)
 
-static const struct snd_soc_dai_ops wm8903_dai_ops = {
+static const struct snd_soc_dai_ops wm8903_dai_ops =
+{
 	.hw_params	= wm8903_hw_params,
 	.digital_mute	= wm8903_digital_mute,
 	.set_fmt	= wm8903_set_dai_fmt,
 	.set_sysclk	= wm8903_set_dai_sysclk,
 };
 
-static struct snd_soc_dai_driver wm8903_dai = {
+static struct snd_soc_dai_driver wm8903_dai =
+{
 	.name = "wm8903-hifi",
 	.playback = {
 		.stream_name = "Playback",
@@ -1746,12 +1915,12 @@ static struct snd_soc_dai_driver wm8903_dai = {
 		.formats = WM8903_FORMATS,
 	},
 	.capture = {
-		 .stream_name = "Capture",
-		 .channels_min = 2,
-		 .channels_max = 2,
-		 .rates = WM8903_CAPTURE_RATES,
-		 .formats = WM8903_FORMATS,
-	 },
+		.stream_name = "Capture",
+		.channels_min = 2,
+		.channels_max = 2,
+		.rates = WM8903_CAPTURE_RATES,
+		.formats = WM8903_FORMATS,
+	},
 	.ops = &wm8903_dai_ops,
 	.symmetric_rates = 1,
 };
@@ -1769,7 +1938,9 @@ static int wm8903_resume(struct snd_soc_codec *codec)
 static int wm8903_gpio_request(struct gpio_chip *chip, unsigned offset)
 {
 	if (offset >= WM8903_NUM_GPIO)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -1782,12 +1953,15 @@ static int wm8903_gpio_direction_in(struct gpio_chip *chip, unsigned offset)
 
 	mask = WM8903_GP1_FN_MASK | WM8903_GP1_DIR_MASK;
 	val = (WM8903_GPn_FN_GPIO_INPUT << WM8903_GP1_FN_SHIFT) |
-		WM8903_GP1_DIR;
+		  WM8903_GP1_DIR;
 
 	ret = regmap_update_bits(wm8903->regmap,
-				 WM8903_GPIO_CONTROL_1 + offset, mask, val);
+							 WM8903_GPIO_CONTROL_1 + offset, mask, val);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -1803,7 +1977,7 @@ static int wm8903_gpio_get(struct gpio_chip *chip, unsigned offset)
 }
 
 static int wm8903_gpio_direction_out(struct gpio_chip *chip,
-				     unsigned offset, int value)
+									 unsigned offset, int value)
 {
 	struct wm8903_priv *wm8903 = gpiochip_get_data(chip);
 	unsigned int mask, val;
@@ -1811,12 +1985,15 @@ static int wm8903_gpio_direction_out(struct gpio_chip *chip,
 
 	mask = WM8903_GP1_FN_MASK | WM8903_GP1_DIR_MASK | WM8903_GP1_LVL_MASK;
 	val = (WM8903_GPn_FN_GPIO_OUTPUT << WM8903_GP1_FN_SHIFT) |
-		(value << WM8903_GP2_LVL_SHIFT);
+		  (value << WM8903_GP2_LVL_SHIFT);
 
 	ret = regmap_update_bits(wm8903->regmap,
-				 WM8903_GPIO_CONTROL_1 + offset, mask, val);
+							 WM8903_GPIO_CONTROL_1 + offset, mask, val);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -1826,11 +2003,12 @@ static void wm8903_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 	struct wm8903_priv *wm8903 = gpiochip_get_data(chip);
 
 	regmap_update_bits(wm8903->regmap, WM8903_GPIO_CONTROL_1 + offset,
-			   WM8903_GP1_LVL_MASK,
-			   !!value << WM8903_GP1_LVL_SHIFT);
+					   WM8903_GP1_LVL_MASK,
+					   !!value << WM8903_GP1_LVL_SHIFT);
 }
 
-static const struct gpio_chip wm8903_template_chip = {
+static const struct gpio_chip wm8903_template_chip =
+{
 	.label			= "wm8903",
 	.owner			= THIS_MODULE,
 	.request		= wm8903_gpio_request,
@@ -1851,13 +2029,20 @@ static void wm8903_init_gpio(struct wm8903_priv *wm8903)
 	wm8903->gpio_chip.parent = wm8903->dev;
 
 	if (pdata->gpio_base)
+	{
 		wm8903->gpio_chip.base = pdata->gpio_base;
+	}
 	else
+	{
 		wm8903->gpio_chip.base = -1;
+	}
 
 	ret = gpiochip_add_data(&wm8903->gpio_chip, wm8903);
+
 	if (ret != 0)
+	{
 		dev_err(wm8903->dev, "Failed to add GPIOs: %d\n", ret);
+	}
 }
 
 static void wm8903_free_gpio(struct wm8903_priv *wm8903)
@@ -1874,7 +2059,8 @@ static void wm8903_free_gpio(struct wm8903_priv *wm8903)
 }
 #endif
 
-static const struct snd_soc_codec_driver soc_codec_dev_wm8903 = {
+static const struct snd_soc_codec_driver soc_codec_dev_wm8903 =
+{
 	.resume =	wm8903_resume,
 	.set_bias_level = wm8903_set_bias_level,
 	.seq_notifier = wm8903_seq_notifier,
@@ -1890,7 +2076,8 @@ static const struct snd_soc_codec_driver soc_codec_dev_wm8903 = {
 	},
 };
 
-static const struct regmap_config wm8903_regmap = {
+static const struct regmap_config wm8903_regmap =
+{
 	.reg_bits = 8,
 	.val_bits = 16,
 
@@ -1904,49 +2091,59 @@ static const struct regmap_config wm8903_regmap = {
 };
 
 static int wm8903_set_pdata_irq_trigger(struct i2c_client *i2c,
-					struct wm8903_platform_data *pdata)
+										struct wm8903_platform_data *pdata)
 {
 	struct irq_data *irq_data = irq_get_irq_data(i2c->irq);
-	if (!irq_data) {
+
+	if (!irq_data)
+	{
 		dev_err(&i2c->dev, "Invalid IRQ: %d\n",
-			i2c->irq);
+				i2c->irq);
 		return -EINVAL;
 	}
 
-	switch (irqd_get_trigger_type(irq_data)) {
-	case IRQ_TYPE_NONE:
-	default:
+	switch (irqd_get_trigger_type(irq_data))
+	{
+		case IRQ_TYPE_NONE:
+		default:
+
 		/*
 		* We assume the controller imposes no restrictions,
 		* so we are able to select active-high
 		*/
 		/* Fall-through */
-	case IRQ_TYPE_LEVEL_HIGH:
-		pdata->irq_active_low = false;
-		break;
-	case IRQ_TYPE_LEVEL_LOW:
-		pdata->irq_active_low = true;
-		break;
+		case IRQ_TYPE_LEVEL_HIGH:
+			pdata->irq_active_low = false;
+			break;
+
+		case IRQ_TYPE_LEVEL_LOW:
+			pdata->irq_active_low = true;
+			break;
 	}
 
 	return 0;
 }
 
 static int wm8903_set_pdata_from_of(struct i2c_client *i2c,
-				    struct wm8903_platform_data *pdata)
+									struct wm8903_platform_data *pdata)
 {
 	const struct device_node *np = i2c->dev.of_node;
 	u32 val32;
 	int i;
 
 	if (of_property_read_u32(np, "micdet-cfg", &val32) >= 0)
+	{
 		pdata->micdet_cfg = val32;
+	}
 
 	if (of_property_read_u32(np, "micdet-delay", &val32) >= 0)
+	{
 		pdata->micdet_delay = val32;
+	}
 
 	if (of_property_read_u32_array(np, "gpio-cfg", pdata->gpio_cfg,
-				       ARRAY_SIZE(pdata->gpio_cfg)) >= 0) {
+								   ARRAY_SIZE(pdata->gpio_cfg)) >= 0)
+	{
 		/*
 		 * In device tree: 0 means "write 0",
 		 * 0xffffffff means "don't touch".
@@ -1959,14 +2156,20 @@ static int wm8903_set_pdata_from_of(struct i2c_client *i2c,
 		 *  Convert from DT to pdata representation here,
 		 * so no other code needs to change.
 		 */
-		for (i = 0; i < ARRAY_SIZE(pdata->gpio_cfg); i++) {
-			if (pdata->gpio_cfg[i] == 0) {
+		for (i = 0; i < ARRAY_SIZE(pdata->gpio_cfg); i++)
+		{
+			if (pdata->gpio_cfg[i] == 0)
+			{
 				pdata->gpio_cfg[i] = WM8903_GPIO_CONFIG_ZERO;
-			} else if (pdata->gpio_cfg[i] == 0xffffffff) {
+			}
+			else if (pdata->gpio_cfg[i] == 0xffffffff)
+			{
 				pdata->gpio_cfg[i] = 0;
-			} else if (pdata->gpio_cfg[i] > 0x7fff) {
+			}
+			else if (pdata->gpio_cfg[i] > 0x7fff)
+			{
 				dev_err(&i2c->dev, "Invalid gpio-cfg[%d] %x\n",
-					i, pdata->gpio_cfg[i]);
+						i, pdata->gpio_cfg[i]);
 				return -EINVAL;
 			}
 		}
@@ -1976,7 +2179,7 @@ static int wm8903_set_pdata_from_of(struct i2c_client *i2c,
 }
 
 static int wm8903_i2c_probe(struct i2c_client *i2c,
-			    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct wm8903_platform_data *pdata = dev_get_platdata(&i2c->dev);
 	struct wm8903_priv *wm8903;
@@ -1986,68 +2189,93 @@ static int wm8903_i2c_probe(struct i2c_client *i2c,
 	int ret, i;
 
 	wm8903 = devm_kzalloc(&i2c->dev,  sizeof(struct wm8903_priv),
-			      GFP_KERNEL);
+						  GFP_KERNEL);
+
 	if (wm8903 == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&wm8903->lock);
 	wm8903->dev = &i2c->dev;
 
 	wm8903->regmap = devm_regmap_init_i2c(i2c, &wm8903_regmap);
-	if (IS_ERR(wm8903->regmap)) {
+
+	if (IS_ERR(wm8903->regmap))
+	{
 		ret = PTR_ERR(wm8903->regmap);
 		dev_err(&i2c->dev, "Failed to allocate register map: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
 	i2c_set_clientdata(i2c, wm8903);
 
 	/* If no platform data was supplied, create storage for defaults */
-	if (pdata) {
+	if (pdata)
+	{
 		wm8903->pdata = pdata;
-	} else {
+	}
+	else
+	{
 		wm8903->pdata = devm_kzalloc(&i2c->dev,
-					sizeof(struct wm8903_platform_data),
-					GFP_KERNEL);
-		if (wm8903->pdata == NULL) {
+									 sizeof(struct wm8903_platform_data),
+									 GFP_KERNEL);
+
+		if (wm8903->pdata == NULL)
+		{
 			dev_err(&i2c->dev, "Failed to allocate pdata\n");
 			return -ENOMEM;
 		}
 
-		if (i2c->irq) {
+		if (i2c->irq)
+		{
 			ret = wm8903_set_pdata_irq_trigger(i2c, wm8903->pdata);
+
 			if (ret != 0)
+			{
 				return ret;
+			}
 		}
 
-		if (i2c->dev.of_node) {
+		if (i2c->dev.of_node)
+		{
 			ret = wm8903_set_pdata_from_of(i2c, wm8903->pdata);
+
 			if (ret != 0)
+			{
 				return ret;
+			}
 		}
 	}
 
 	pdata = wm8903->pdata;
 
 	ret = regmap_read(wm8903->regmap, WM8903_SW_RESET_AND_ID, &val);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		dev_err(&i2c->dev, "Failed to read chip ID: %d\n", ret);
 		goto err;
 	}
-	if (val != 0x8903) {
+
+	if (val != 0x8903)
+	{
 		dev_err(&i2c->dev, "Device with ID %x is not a WM8903\n", val);
 		ret = -ENODEV;
 		goto err;
 	}
 
 	ret = regmap_read(wm8903->regmap, WM8903_REVISION_NUMBER, &val);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		dev_err(&i2c->dev, "Failed to read chip revision: %d\n", ret);
 		goto err;
 	}
+
 	dev_info(&i2c->dev, "WM8903 revision %c\n",
-		 (val & WM8903_CHIP_REV_MASK) + 'A');
+			 (val & WM8903_CHIP_REV_MASK) + 'A');
 
 	/* Reset the device */
 	regmap_write(wm8903->regmap, WM8903_SW_RESET_AND_ID, 0x8903);
@@ -2055,35 +2283,40 @@ static int wm8903_i2c_probe(struct i2c_client *i2c,
 	wm8903_init_gpio(wm8903);
 
 	/* Set up GPIO pin state, detect if any are MIC detect outputs */
-	for (i = 0; i < ARRAY_SIZE(pdata->gpio_cfg); i++) {
+	for (i = 0; i < ARRAY_SIZE(pdata->gpio_cfg); i++)
+	{
 		if ((!pdata->gpio_cfg[i]) ||
-		    (pdata->gpio_cfg[i] > WM8903_GPIO_CONFIG_ZERO))
+			(pdata->gpio_cfg[i] > WM8903_GPIO_CONFIG_ZERO))
+		{
 			continue;
+		}
 
 		regmap_write(wm8903->regmap, WM8903_GPIO_CONTROL_1 + i,
-				pdata->gpio_cfg[i] & 0x7fff);
+					 pdata->gpio_cfg[i] & 0x7fff);
 
 		val = (pdata->gpio_cfg[i] & WM8903_GP1_FN_MASK)
-			>> WM8903_GP1_FN_SHIFT;
+			  >> WM8903_GP1_FN_SHIFT;
 
-		switch (val) {
-		case WM8903_GPn_FN_MICBIAS_CURRENT_DETECT:
-		case WM8903_GPn_FN_MICBIAS_SHORT_DETECT:
-			mic_gpio = true;
-			break;
-		default:
-			break;
+		switch (val)
+		{
+			case WM8903_GPn_FN_MICBIAS_CURRENT_DETECT:
+			case WM8903_GPn_FN_MICBIAS_SHORT_DETECT:
+				mic_gpio = true;
+				break;
+
+			default:
+				break;
 		}
 	}
 
 	/* Set up microphone detection */
 	regmap_write(wm8903->regmap, WM8903_MIC_BIAS_CONTROL_0,
-		     pdata->micdet_cfg);
+				 pdata->micdet_cfg);
 
 	/* Microphone detection needs the WSEQ clock */
 	if (pdata->micdet_cfg)
 		regmap_update_bits(wm8903->regmap, WM8903_WRITE_SEQUENCER_0,
-				   WM8903_WSEQ_ENA, WM8903_WSEQ_ENA);
+						   WM8903_WSEQ_ENA, WM8903_WSEQ_ENA);
 
 	/* If microphone detection is enabled by pdata but
 	 * detected via IRQ then interrupts can be lost before
@@ -2095,68 +2328,77 @@ static int wm8903_i2c_probe(struct i2c_client *i2c,
 
 	wm8903->mic_delay = pdata->micdet_delay;
 
-	if (i2c->irq) {
-		if (pdata->irq_active_low) {
+	if (i2c->irq)
+	{
+		if (pdata->irq_active_low)
+		{
 			trigger = IRQF_TRIGGER_LOW;
 			irq_pol = WM8903_IRQ_POL;
-		} else {
+		}
+		else
+		{
 			trigger = IRQF_TRIGGER_HIGH;
 			irq_pol = 0;
 		}
 
 		regmap_update_bits(wm8903->regmap, WM8903_INTERRUPT_CONTROL,
-				   WM8903_IRQ_POL, irq_pol);
+						   WM8903_IRQ_POL, irq_pol);
 
 		ret = request_threaded_irq(i2c->irq, NULL, wm8903_irq,
-					   trigger | IRQF_ONESHOT,
-					   "wm8903", wm8903);
-		if (ret != 0) {
+								   trigger | IRQF_ONESHOT,
+								   "wm8903", wm8903);
+
+		if (ret != 0)
+		{
 			dev_err(wm8903->dev, "Failed to request IRQ: %d\n",
-				ret);
+					ret);
 			return ret;
 		}
 
 		/* Enable write sequencer interrupts */
 		regmap_update_bits(wm8903->regmap,
-				   WM8903_INTERRUPT_STATUS_1_MASK,
-				   WM8903_IM_WSEQ_BUSY_EINT, 0);
+						   WM8903_INTERRUPT_STATUS_1_MASK,
+						   WM8903_IM_WSEQ_BUSY_EINT, 0);
 	}
 
 	/* Latch volume update bits */
 	regmap_update_bits(wm8903->regmap, WM8903_ADC_DIGITAL_VOLUME_LEFT,
-			   WM8903_ADCVU, WM8903_ADCVU);
+					   WM8903_ADCVU, WM8903_ADCVU);
 	regmap_update_bits(wm8903->regmap, WM8903_ADC_DIGITAL_VOLUME_RIGHT,
-			   WM8903_ADCVU, WM8903_ADCVU);
+					   WM8903_ADCVU, WM8903_ADCVU);
 
 	regmap_update_bits(wm8903->regmap, WM8903_DAC_DIGITAL_VOLUME_LEFT,
-			   WM8903_DACVU, WM8903_DACVU);
+					   WM8903_DACVU, WM8903_DACVU);
 	regmap_update_bits(wm8903->regmap, WM8903_DAC_DIGITAL_VOLUME_RIGHT,
-			   WM8903_DACVU, WM8903_DACVU);
+					   WM8903_DACVU, WM8903_DACVU);
 
 	regmap_update_bits(wm8903->regmap, WM8903_ANALOGUE_OUT1_LEFT,
-			   WM8903_HPOUTVU, WM8903_HPOUTVU);
+					   WM8903_HPOUTVU, WM8903_HPOUTVU);
 	regmap_update_bits(wm8903->regmap, WM8903_ANALOGUE_OUT1_RIGHT,
-			   WM8903_HPOUTVU, WM8903_HPOUTVU);
+					   WM8903_HPOUTVU, WM8903_HPOUTVU);
 
 	regmap_update_bits(wm8903->regmap, WM8903_ANALOGUE_OUT2_LEFT,
-			   WM8903_LINEOUTVU, WM8903_LINEOUTVU);
+					   WM8903_LINEOUTVU, WM8903_LINEOUTVU);
 	regmap_update_bits(wm8903->regmap, WM8903_ANALOGUE_OUT2_RIGHT,
-			   WM8903_LINEOUTVU, WM8903_LINEOUTVU);
+					   WM8903_LINEOUTVU, WM8903_LINEOUTVU);
 
 	regmap_update_bits(wm8903->regmap, WM8903_ANALOGUE_OUT3_LEFT,
-			   WM8903_SPKVU, WM8903_SPKVU);
+					   WM8903_SPKVU, WM8903_SPKVU);
 	regmap_update_bits(wm8903->regmap, WM8903_ANALOGUE_OUT3_RIGHT,
-			   WM8903_SPKVU, WM8903_SPKVU);
+					   WM8903_SPKVU, WM8903_SPKVU);
 
 	/* Enable DAC soft mute by default */
 	regmap_update_bits(wm8903->regmap, WM8903_DAC_DIGITAL_1,
-			   WM8903_DAC_MUTEMODE | WM8903_DAC_MUTE,
-			   WM8903_DAC_MUTEMODE | WM8903_DAC_MUTE);
+					   WM8903_DAC_MUTEMODE | WM8903_DAC_MUTE,
+					   WM8903_DAC_MUTEMODE | WM8903_DAC_MUTE);
 
 	ret = snd_soc_register_codec(&i2c->dev,
-			&soc_codec_dev_wm8903, &wm8903_dai, 1);
+								 &soc_codec_dev_wm8903, &wm8903_dai, 1);
+
 	if (ret != 0)
+	{
 		goto err;
+	}
 
 	return 0;
 err:
@@ -2168,26 +2410,32 @@ static int wm8903_i2c_remove(struct i2c_client *client)
 	struct wm8903_priv *wm8903 = i2c_get_clientdata(client);
 
 	if (client->irq)
+	{
 		free_irq(client->irq, wm8903);
+	}
+
 	wm8903_free_gpio(wm8903);
 	snd_soc_unregister_codec(&client->dev);
 
 	return 0;
 }
 
-static const struct of_device_id wm8903_of_match[] = {
+static const struct of_device_id wm8903_of_match[] =
+{
 	{ .compatible = "wlf,wm8903", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, wm8903_of_match);
 
-static const struct i2c_device_id wm8903_i2c_id[] = {
+static const struct i2c_device_id wm8903_i2c_id[] =
+{
 	{ "wm8903", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, wm8903_i2c_id);
 
-static struct i2c_driver wm8903_i2c_driver = {
+static struct i2c_driver wm8903_i2c_driver =
+{
 	.driver = {
 		.name = "wm8903",
 		.of_match_table = wm8903_of_match,

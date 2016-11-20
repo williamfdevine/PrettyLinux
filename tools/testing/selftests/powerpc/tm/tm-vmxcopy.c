@@ -39,7 +39,7 @@ int test_vmxcopy()
 	unsigned long pgsize = getpagesize();
 	int i;
 	int fd;
-	int size = pgsize*16;
+	int size = pgsize * 16;
 	char tmpfile[] = "/tmp/page_faultXXXXXX";
 	char buf[pgsize];
 	char *a;
@@ -51,12 +51,15 @@ int test_vmxcopy()
 	assert(fd >= 0);
 
 	memset(buf, 0, pgsize);
+
 	for (i = 0; i < size; i += pgsize)
+	{
 		assert(write(fd, buf, pgsize) == pgsize);
+	}
 
 	unlink(tmpfile);
 
-	a = mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_PRIVATE, fd, 0);
+	a = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
 	assert(a != MAP_FAILED);
 
 	asm __volatile__(
@@ -80,13 +83,14 @@ int test_vmxcopy()
 		"stxvd2x 40,0,%[vecoutptr];"
 		: [res]"=r"(aborted)
 		: [vecinptr]"r"(&vecin),
-		  [vecoutptr]"r"(&vecout),
-		  [map]"r"(a)
+		[vecoutptr]"r"(&vecout),
+		[map]"r"(a)
 		: "memory", "r0", "r3", "r4", "r5", "r6", "r7");
 
-	if (aborted && (vecin != vecout)){
+	if (aborted && (vecin != vecout))
+	{
 		printf("FAILED: vector state leaked on abort %f != %f\n",
-		       (double)vecin, (double)vecout);
+			   (double)vecin, (double)vecout);
 		return 1;
 	}
 

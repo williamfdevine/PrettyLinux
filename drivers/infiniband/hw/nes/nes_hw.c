@@ -59,19 +59,20 @@ static const u8 nes_max_critical_error_count = 100;
 static void nes_cqp_ce_handler(struct nes_device *nesdev, struct nes_hw_cq *cq);
 static void nes_init_csr_ne020(struct nes_device *nesdev, u8 hw_rev, u8 port_count);
 static int nes_init_serdes(struct nes_device *nesdev, u8 hw_rev, u8 port_count,
-				struct nes_adapter *nesadapter, u8  OneG_Mode);
+						   struct nes_adapter *nesadapter, u8  OneG_Mode);
 static void nes_nic_napi_ce_handler(struct nes_device *nesdev, struct nes_hw_nic_cq *cq);
 static void nes_process_aeq(struct nes_device *nesdev, struct nes_hw_aeq *aeq);
 static void nes_process_ceq(struct nes_device *nesdev, struct nes_hw_ceq *ceq);
 static void nes_process_iwarp_aeqe(struct nes_device *nesdev,
-				   struct nes_hw_aeqe *aeqe);
+								   struct nes_hw_aeqe *aeqe);
 static void process_critical_error(struct nes_device *nesdev);
 static void nes_process_mac_intr(struct nes_device *nesdev, u32 mac_number);
 static unsigned int nes_reset_adapter_ne020(struct nes_device *nesdev, u8 *OneG_Mode);
 static void nes_terminate_start_timer(struct nes_qp *nesqp);
 
 #ifdef CONFIG_INFINIBAND_NES_DEBUG
-static unsigned char *nes_iwarp_state_str[] = {
+static unsigned char *nes_iwarp_state_str[] =
+{
 	"Non-Existent",
 	"Idle",
 	"RTS",
@@ -82,7 +83,8 @@ static unsigned char *nes_iwarp_state_str[] = {
 	"RSVD2",
 };
 
-static unsigned char *nes_tcp_state_str[] = {
+static unsigned char *nes_tcp_state_str[] =
+{
 	"Non-Existent",
 	"Closed",
 	"Listen",
@@ -105,7 +107,9 @@ static unsigned char *nes_tcp_state_str[] = {
 static inline void print_ip(struct nes_cm_node *cm_node)
 {
 	unsigned char *rem_addr;
-	if (cm_node) {
+
+	if (cm_node)
+	{
 		rem_addr = (unsigned char *)&cm_node->rem_addr;
 		printk(KERN_ERR PFX "Remote IP addr: %pI4\n", rem_addr);
 	}
@@ -124,11 +128,15 @@ void  nes_nic_init_timer_defaults(struct nes_device *nesdev, u8 jumbomode)
 
 	shared_timer->timer_in_use_min = NES_NIC_FAST_TIMER_LOW;
 	shared_timer->timer_in_use_max = NES_NIC_FAST_TIMER_HIGH;
-	if (jumbomode) {
+
+	if (jumbomode)
+	{
 		shared_timer->threshold_low    = DEFAULT_JUMBO_NES_QL_LOW;
 		shared_timer->threshold_target = DEFAULT_JUMBO_NES_QL_TARGET;
 		shared_timer->threshold_high   = DEFAULT_JUMBO_NES_QL_HIGH;
-	} else {
+	}
+	else
+	{
 		shared_timer->threshold_low    = DEFAULT_NES_QL_LOW;
 		shared_timer->threshold_target = DEFAULT_NES_QL_TARGET;
 		shared_timer->threshold_high   = DEFAULT_NES_QL_HIGH;
@@ -150,7 +158,8 @@ static void  nes_nic_init_timer(struct nes_device *nesdev)
 
 	spin_lock_irqsave(&nesadapter->periodic_timer_lock, flags);
 
-	if (shared_timer->timer_in_use_old == 0) {
+	if (shared_timer->timer_in_use_old == 0)
+	{
 		nesdev->deepcq_count = 0;
 		shared_timer->timer_direction_upward = 0;
 		shared_timer->timer_direction_downward = 0;
@@ -158,11 +167,14 @@ static void  nes_nic_init_timer(struct nes_device *nesdev)
 		shared_timer->timer_in_use_old = 0;
 
 	}
-	if (shared_timer->timer_in_use != shared_timer->timer_in_use_old) {
+
+	if (shared_timer->timer_in_use != shared_timer->timer_in_use_old)
+	{
 		shared_timer->timer_in_use_old = shared_timer->timer_in_use;
-		nes_write32(nesdev->regs+NES_PERIODIC_CONTROL,
-			0x80000000 | ((u32)(shared_timer->timer_in_use*8)));
+		nes_write32(nesdev->regs + NES_PERIODIC_CONTROL,
+					0x80000000 | ((u32)(shared_timer->timer_in_use * 8)));
 	}
+
 	/* todo use netdev->mtu to set thresholds */
 	spin_unlock_irqrestore(&nesadapter->periodic_timer_lock, flags);
 }
@@ -181,48 +193,70 @@ static void nes_nic_tune_timer(struct nes_device *nesdev)
 	spin_lock_irqsave(&nesadapter->periodic_timer_lock, flags);
 
 	if (shared_timer->cq_count_old <= cq_count)
+	{
 		shared_timer->cq_direction_downward = 0;
+	}
 	else
+	{
 		shared_timer->cq_direction_downward++;
+	}
+
 	shared_timer->cq_count_old = cq_count;
-	if (shared_timer->cq_direction_downward > NES_NIC_CQ_DOWNWARD_TREND) {
+
+	if (shared_timer->cq_direction_downward > NES_NIC_CQ_DOWNWARD_TREND)
+	{
 		if (cq_count <= shared_timer->threshold_low &&
-		    shared_timer->threshold_low > 4) {
-			shared_timer->threshold_low = shared_timer->threshold_low/2;
-			shared_timer->cq_direction_downward=0;
+			shared_timer->threshold_low > 4)
+		{
+			shared_timer->threshold_low = shared_timer->threshold_low / 2;
+			shared_timer->cq_direction_downward = 0;
 			nesdev->currcq_count = 0;
 			spin_unlock_irqrestore(&nesadapter->periodic_timer_lock, flags);
 			return;
 		}
 	}
 
-	if (cq_count > 1) {
+	if (cq_count > 1)
+	{
 		nesdev->deepcq_count += cq_count;
-		if (cq_count <= shared_timer->threshold_low) {       /* increase timer gently */
+
+		if (cq_count <= shared_timer->threshold_low)         /* increase timer gently */
+		{
 			shared_timer->timer_direction_upward++;
 			shared_timer->timer_direction_downward = 0;
-		} else if (cq_count <= shared_timer->threshold_target) { /* balanced */
+		}
+		else if (cq_count <= shared_timer->threshold_target)     /* balanced */
+		{
 			shared_timer->timer_direction_upward = 0;
 			shared_timer->timer_direction_downward = 0;
-		} else if (cq_count <= shared_timer->threshold_high) {  /* decrease timer gently */
+		}
+		else if (cq_count <= shared_timer->threshold_high)      /* decrease timer gently */
+		{
 			shared_timer->timer_direction_downward++;
 			shared_timer->timer_direction_upward = 0;
-		} else if (cq_count <= (shared_timer->threshold_high) * 2) {
+		}
+		else if (cq_count <= (shared_timer->threshold_high) * 2)
+		{
 			shared_timer->timer_in_use -= 2;
 			shared_timer->timer_direction_upward = 0;
 			shared_timer->timer_direction_downward++;
-		} else {
+		}
+		else
+		{
 			shared_timer->timer_in_use -= 4;
 			shared_timer->timer_direction_upward = 0;
 			shared_timer->timer_direction_downward++;
 		}
 
-		if (shared_timer->timer_direction_upward > 3 ) {  /* using history */
+		if (shared_timer->timer_direction_upward > 3 )    /* using history */
+		{
 			shared_timer->timer_in_use += 3;
 			shared_timer->timer_direction_upward = 0;
 			shared_timer->timer_direction_downward = 0;
 		}
-		if (shared_timer->timer_direction_downward > 5) { /* using history */
+
+		if (shared_timer->timer_direction_downward > 5)   /* using history */
+		{
 			shared_timer->timer_in_use -= 4 ;
 			shared_timer->timer_direction_downward = 0;
 			shared_timer->timer_direction_upward = 0;
@@ -231,9 +265,13 @@ static void nes_nic_tune_timer(struct nes_device *nesdev)
 
 	/* boundary checking */
 	if (shared_timer->timer_in_use > shared_timer->threshold_high)
+	{
 		shared_timer->timer_in_use = shared_timer->threshold_high;
+	}
 	else if (shared_timer->timer_in_use < shared_timer->threshold_low)
+	{
 		shared_timer->timer_in_use = shared_timer->threshold_low;
+	}
 
 	nesdev->currcq_count = 0;
 
@@ -244,7 +282,8 @@ static void nes_nic_tune_timer(struct nes_device *nesdev)
 /**
  * nes_init_adapter - initialize adapter
  */
-struct nes_adapter *nes_init_adapter(struct nes_device *nesdev, u8 hw_rev) {
+struct nes_adapter *nes_init_adapter(struct nes_device *nesdev, u8 hw_rev)
+{
 	struct nes_adapter *nesadapter = NULL;
 	unsigned long num_pds;
 	u32 u32temp;
@@ -266,16 +305,19 @@ struct nes_adapter *nes_init_adapter(struct nes_device *nesdev, u8 hw_rev) {
 	u8  func_index;
 
 	/* search the list of existing adapters */
-	list_for_each_entry(nesadapter, &nes_adapter_list, list) {
+	list_for_each_entry(nesadapter, &nes_adapter_list, list)
+	{
 		nes_debug(NES_DBG_INIT, "Searching Adapter list for PCI devfn = 0x%X,"
-				" adapter PCI slot/bus = %u/%u, pci devices PCI slot/bus = %u/%u, .\n",
-				nesdev->pcidev->devfn,
-				PCI_SLOT(nesadapter->devfn),
-				nesadapter->bus_number,
-				PCI_SLOT(nesdev->pcidev->devfn),
-				nesdev->pcidev->bus->number );
+				  " adapter PCI slot/bus = %u/%u, pci devices PCI slot/bus = %u/%u, .\n",
+				  nesdev->pcidev->devfn,
+				  PCI_SLOT(nesadapter->devfn),
+				  nesadapter->bus_number,
+				  PCI_SLOT(nesdev->pcidev->devfn),
+				  nesdev->pcidev->bus->number );
+
 		if ((PCI_SLOT(nesadapter->devfn) == PCI_SLOT(nesdev->pcidev->devfn)) &&
-				(nesadapter->bus_number == nesdev->pcidev->bus->number)) {
+			(nesadapter->bus_number == nesdev->pcidev->bus->number))
+		{
 			nesadapter->ref_count++;
 			return nesadapter;
 		}
@@ -283,51 +325,60 @@ struct nes_adapter *nes_init_adapter(struct nes_device *nesdev, u8 hw_rev) {
 
 	/* no adapter found */
 	num_pds = pci_resource_len(nesdev->pcidev, BAR_1) >> PAGE_SHIFT;
-	if ((hw_rev != NE020_REV) && (hw_rev != NE020_REV1)) {
+
+	if ((hw_rev != NE020_REV) && (hw_rev != NE020_REV1))
+	{
 		nes_debug(NES_DBG_INIT, "NE020 driver detected unknown hardware revision 0x%x\n",
-				hw_rev);
+				  hw_rev);
 		return NULL;
 	}
 
 	nes_debug(NES_DBG_INIT, "Determine Soft Reset, QP_control=0x%x, CPU0=0x%x, CPU1=0x%x, CPU2=0x%x\n",
-			nes_read_indexed(nesdev, NES_IDX_QP_CONTROL + PCI_FUNC(nesdev->pcidev->devfn) * 8),
-			nes_read_indexed(nesdev, NES_IDX_INT_CPU_STATUS),
-			nes_read_indexed(nesdev, NES_IDX_INT_CPU_STATUS + 4),
-			nes_read_indexed(nesdev, NES_IDX_INT_CPU_STATUS + 8));
+			  nes_read_indexed(nesdev, NES_IDX_QP_CONTROL + PCI_FUNC(nesdev->pcidev->devfn) * 8),
+			  nes_read_indexed(nesdev, NES_IDX_INT_CPU_STATUS),
+			  nes_read_indexed(nesdev, NES_IDX_INT_CPU_STATUS + 4),
+			  nes_read_indexed(nesdev, NES_IDX_INT_CPU_STATUS + 8));
 
 	nes_debug(NES_DBG_INIT, "Reset and init NE020\n");
 
 
 	if ((port_count = nes_reset_adapter_ne020(nesdev, &OneG_Mode)) == 0)
+	{
 		return NULL;
+	}
 
 	max_qp = nes_read_indexed(nesdev, NES_IDX_QP_CTX_SIZE);
 	nes_debug(NES_DBG_INIT, "QP_CTX_SIZE=%u\n", max_qp);
 
 	u32temp = nes_read_indexed(nesdev, NES_IDX_QUAD_HASH_TABLE_SIZE);
-	if (max_qp > ((u32)1 << (u32temp & 0x001f))) {
+
+	if (max_qp > ((u32)1 << (u32temp & 0x001f)))
+	{
 		nes_debug(NES_DBG_INIT, "Reducing Max QPs to %u due to hash table size = 0x%08X\n",
-				max_qp, u32temp);
+				  max_qp, u32temp);
 		max_qp = (u32)1 << (u32temp & 0x001f);
 	}
 
-	hte_index_mask = ((u32)1 << ((u32temp & 0x001f)+1))-1;
+	hte_index_mask = ((u32)1 << ((u32temp & 0x001f) + 1)) - 1;
 	nes_debug(NES_DBG_INIT, "Max QP = %u, hte_index_mask = 0x%08X.\n",
-			max_qp, hte_index_mask);
+			  max_qp, hte_index_mask);
 
 	u32temp = nes_read_indexed(nesdev, NES_IDX_IRRQ_COUNT);
 
 	max_irrq = 1 << (u32temp & 0x001f);
 
-	if (max_qp > max_irrq) {
+	if (max_qp > max_irrq)
+	{
 		max_qp = max_irrq;
 		nes_debug(NES_DBG_INIT, "Reducing Max QPs to %u due to Available Q1s.\n",
-				max_qp);
+				  max_qp);
 	}
 
 	/* there should be no reason to allocate more pds than qps */
 	if (num_pds > max_qp)
+	{
 		num_pds = max_qp;
+	}
 
 	u32temp = nes_read_indexed(nesdev, NES_IDX_MRT_SIZE);
 	max_mr = (u32)8192 << (u32temp & 0x7);
@@ -341,7 +392,7 @@ struct nes_adapter *nes_init_adapter(struct nes_device *nesdev, u8 hw_rev) {
 	arp_table_size = 1 << u32temp;
 
 	adapter_size = (sizeof(struct nes_adapter) +
-			(sizeof(unsigned long)-1)) & (~(sizeof(unsigned long)-1));
+					(sizeof(unsigned long) - 1)) & (~(sizeof(unsigned long) - 1));
 	adapter_size += sizeof(unsigned long) * BITS_TO_LONGS(max_qp);
 	adapter_size += sizeof(unsigned long) * BITS_TO_LONGS(max_mr);
 	adapter_size += sizeof(unsigned long) * BITS_TO_LONGS(max_cq);
@@ -351,35 +402,40 @@ struct nes_adapter *nes_init_adapter(struct nes_device *nesdev, u8 hw_rev) {
 
 	/* allocate a new adapter struct */
 	nesadapter = kzalloc(adapter_size, GFP_KERNEL);
-	if (nesadapter == NULL) {
+
+	if (nesadapter == NULL)
+	{
 		return NULL;
 	}
 
 	nes_debug(NES_DBG_INIT, "Allocating new nesadapter @ %p, size = %u (actual size = %u).\n",
-			nesadapter, (u32)sizeof(struct nes_adapter), adapter_size);
+			  nesadapter, (u32)sizeof(struct nes_adapter), adapter_size);
 
-	if (nes_read_eeprom_values(nesdev, nesadapter)) {
+	if (nes_read_eeprom_values(nesdev, nesadapter))
+	{
 		printk(KERN_ERR PFX "Unable to read EEPROM data.\n");
 		kfree(nesadapter);
 		return NULL;
 	}
 
 	nesadapter->vendor_id = (((u32) nesadapter->mac_addr_high) << 8) |
-				(nesadapter->mac_addr_low >> 24);
+							(nesadapter->mac_addr_low >> 24);
 
 	pci_bus_read_config_word(nesdev->pcidev->bus, nesdev->pcidev->devfn,
-				 PCI_DEVICE_ID, &device_id);
+							 PCI_DEVICE_ID, &device_id);
 	nesadapter->vendor_part_id = device_id;
 
 	if (nes_init_serdes(nesdev, hw_rev, port_count, nesadapter,
-							OneG_Mode)) {
+						OneG_Mode))
+	{
 		kfree(nesadapter);
 		return NULL;
 	}
+
 	nes_init_csr_ne020(nesdev, hw_rev, port_count);
 
 	memset(nesadapter->pft_mcast_map, 255,
-	       sizeof nesadapter->pft_mcast_map);
+		   sizeof nesadapter->pft_mcast_map);
 
 	/* populate the new nesadapter */
 	nesadapter->devfn = nesdev->pcidev->devfn;
@@ -406,31 +462,38 @@ struct nes_adapter *nes_init_adapter(struct nes_device *nesdev, u8 hw_rev) {
 	nesadapter->arp_table_size = arp_table_size;
 
 	nesadapter->et_pkt_rate_low = NES_TIMER_ENABLE_LIMIT;
-	if (nes_drv_opt & NES_DRV_OPT_DISABLE_INT_MOD) {
+
+	if (nes_drv_opt & NES_DRV_OPT_DISABLE_INT_MOD)
+	{
 		nesadapter->et_use_adaptive_rx_coalesce = 0;
 		nesadapter->timer_int_limit = NES_TIMER_INT_LIMIT;
 		nesadapter->et_rx_coalesce_usecs_irq = interrupt_mod_interval;
-	} else {
+	}
+	else
+	{
 		nesadapter->et_use_adaptive_rx_coalesce = 1;
 		nesadapter->timer_int_limit = NES_TIMER_INT_LIMIT_DYNAMIC;
 		nesadapter->et_rx_coalesce_usecs_irq = 0;
 		printk(PFX "%s: Using Adaptive Interrupt Moderation\n", __func__);
 	}
+
 	/* Setup and enable the periodic timer */
 	if (nesadapter->et_rx_coalesce_usecs_irq)
-		nes_write32(nesdev->regs+NES_PERIODIC_CONTROL, 0x80000000 |
-				((u32)(nesadapter->et_rx_coalesce_usecs_irq * 8)));
+		nes_write32(nesdev->regs + NES_PERIODIC_CONTROL, 0x80000000 |
+					((u32)(nesadapter->et_rx_coalesce_usecs_irq * 8)));
 	else
-		nes_write32(nesdev->regs+NES_PERIODIC_CONTROL, 0x00000000);
+	{
+		nes_write32(nesdev->regs + NES_PERIODIC_CONTROL, 0x00000000);
+	}
 
 	nesadapter->base_pd = 1;
 
 	nesadapter->device_cap_flags = IB_DEVICE_LOCAL_DMA_LKEY |
-				       IB_DEVICE_MEM_WINDOW |
-				       IB_DEVICE_MEM_MGT_EXTENSIONS;
+								   IB_DEVICE_MEM_WINDOW |
+								   IB_DEVICE_MEM_MGT_EXTENSIONS;
 
-	nesadapter->allocated_qps = (unsigned long *)&(((unsigned char *)nesadapter)
-			[(sizeof(struct nes_adapter)+(sizeof(unsigned long)-1))&(~(sizeof(unsigned long)-1))]);
+	nesadapter->allocated_qps = (unsigned long *) & (((unsigned char *)nesadapter)
+								[(sizeof(struct nes_adapter) + (sizeof(unsigned long) - 1)) & (~(sizeof(unsigned long) - 1))]);
 	nesadapter->allocated_cqs = &nesadapter->allocated_qps[BITS_TO_LONGS(max_qp)];
 	nesadapter->allocated_mrs = &nesadapter->allocated_cqs[BITS_TO_LONGS(max_cq)];
 	nesadapter->allocated_pds = &nesadapter->allocated_mrs[BITS_TO_LONGS(max_mr)];
@@ -439,54 +502,71 @@ struct nes_adapter *nes_init_adapter(struct nes_device *nesdev, u8 hw_rev) {
 
 
 	/* mark the usual suspect QPs, MR and CQs as in use */
-	for (u32temp = 0; u32temp < NES_FIRST_QPN; u32temp++) {
+	for (u32temp = 0; u32temp < NES_FIRST_QPN; u32temp++)
+	{
 		set_bit(u32temp, nesadapter->allocated_qps);
 		set_bit(u32temp, nesadapter->allocated_cqs);
 	}
+
 	set_bit(0, nesadapter->allocated_mrs);
 
 	for (u32temp = 0; u32temp < 20; u32temp++)
+	{
 		set_bit(u32temp, nesadapter->allocated_pds);
+	}
+
 	u32temp = nes_read_indexed(nesdev, NES_IDX_QP_MAX_CFG_SIZES);
 
 	max_rq_wrs = ((u32temp >> 8) & 3);
-	switch (max_rq_wrs) {
+
+	switch (max_rq_wrs)
+	{
 		case 0:
 			max_rq_wrs = 4;
 			break;
+
 		case 1:
 			max_rq_wrs = 16;
 			break;
+
 		case 2:
 			max_rq_wrs = 32;
 			break;
+
 		case 3:
 			max_rq_wrs = 512;
 			break;
 	}
 
 	max_sq_wrs = (u32temp & 3);
-	switch (max_sq_wrs) {
+
+	switch (max_sq_wrs)
+	{
 		case 0:
 			max_sq_wrs = 4;
 			break;
+
 		case 1:
 			max_sq_wrs = 16;
 			break;
+
 		case 2:
 			max_sq_wrs = 32;
 			break;
+
 		case 3:
 			max_sq_wrs = 512;
 			break;
 	}
+
 	nesadapter->max_qp_wr = min(max_rq_wrs, max_sq_wrs);
 	nesadapter->max_irrq_wr = (u32temp >> 16) & 3;
 
 	nesadapter->max_sge = 4;
 	nesadapter->max_cqe = 32766;
 
-	if (nes_read_eeprom_values(nesdev, nesadapter)) {
+	if (nes_read_eeprom_values(nesdev, nesadapter))
+	{
 		printk(KERN_ERR PFX "Unable to read EEPROM data.\n");
 		kfree(nesadapter);
 		return NULL;
@@ -494,31 +574,47 @@ struct nes_adapter *nes_init_adapter(struct nes_device *nesdev, u8 hw_rev) {
 
 	u32temp = nes_read_indexed(nesdev, NES_IDX_TCP_TIMER_CONFIG);
 	nes_write_indexed(nesdev, NES_IDX_TCP_TIMER_CONFIG,
-			(u32temp & 0xff000000) | (nesadapter->tcp_timer_core_clk_divisor & 0x00ffffff));
+					  (u32temp & 0xff000000) | (nesadapter->tcp_timer_core_clk_divisor & 0x00ffffff));
 
 	/* setup port configuration */
-	if (nesadapter->port_count == 1) {
+	if (nesadapter->port_count == 1)
+	{
 		nesadapter->log_port = 0x00000000;
+
 		if (nes_drv_opt & NES_DRV_OPT_DUAL_LOGICAL_PORT)
+		{
 			nes_write_indexed(nesdev, NES_IDX_TX_POOL_SIZE, 0x00000002);
-		else
-			nes_write_indexed(nesdev, NES_IDX_TX_POOL_SIZE, 0x00000003);
-	} else {
-		if (nesadapter->phy_type[0] == NES_PHY_TYPE_PUMA_1G) {
-			nesadapter->log_port = 0x000000D8;
-		} else {
-			if (nesadapter->port_count == 2)
-				nesadapter->log_port = 0x00000044;
-			else
-				nesadapter->log_port = 0x000000e4;
 		}
+		else
+		{
+			nes_write_indexed(nesdev, NES_IDX_TX_POOL_SIZE, 0x00000003);
+		}
+	}
+	else
+	{
+		if (nesadapter->phy_type[0] == NES_PHY_TYPE_PUMA_1G)
+		{
+			nesadapter->log_port = 0x000000D8;
+		}
+		else
+		{
+			if (nesadapter->port_count == 2)
+			{
+				nesadapter->log_port = 0x00000044;
+			}
+			else
+			{
+				nesadapter->log_port = 0x000000e4;
+			}
+		}
+
 		nes_write_indexed(nesdev, NES_IDX_TX_POOL_SIZE, 0x00000003);
 	}
 
 	nes_write_indexed(nesdev, NES_IDX_NIC_LOGPORT_TO_PHYPORT,
-						nesadapter->log_port);
+					  nesadapter->log_port);
 	nes_debug(NES_DBG_INIT, "Probe time, LOG2PHY=%u\n",
-			nes_read_indexed(nesdev, NES_IDX_NIC_LOGPORT_TO_PHYPORT));
+			  nes_read_indexed(nesdev, NES_IDX_NIC_LOGPORT_TO_PHYPORT));
 
 	spin_lock_init(&nesadapter->resource_lock);
 	spin_lock_init(&nesadapter->phy_lock);
@@ -530,7 +626,8 @@ struct nes_adapter *nes_init_adapter(struct nes_device *nesdev, u8 hw_rev) {
 	INIT_LIST_HEAD(&nesadapter->nesvnic_list[2]);
 	INIT_LIST_HEAD(&nesadapter->nesvnic_list[3]);
 
-	if ((!nesadapter->OneG_Mode) && (nesadapter->port_count == 2)) {
+	if ((!nesadapter->OneG_Mode) && (nesadapter->port_count == 2))
+	{
 		u32 pcs_control_status0, pcs_control_status1;
 		u32 reset_value;
 		u32 i = 0;
@@ -540,72 +637,89 @@ struct nes_adapter *nes_init_adapter(struct nes_device *nesdev, u8 hw_rev) {
 		u32 j = 0;
 
 		pcs_control_status0 = nes_read_indexed(nesdev,
-			NES_IDX_PHY_PCS_CONTROL_STATUS0);
+											   NES_IDX_PHY_PCS_CONTROL_STATUS0);
 		pcs_control_status1 = nes_read_indexed(nesdev,
-			NES_IDX_PHY_PCS_CONTROL_STATUS0 + 0x200);
+											   NES_IDX_PHY_PCS_CONTROL_STATUS0 + 0x200);
 
-		for (i = 0; i < NES_MAX_LINK_CHECK; i++) {
+		for (i = 0; i < NES_MAX_LINK_CHECK; i++)
+		{
 			pcs_control_status0 = nes_read_indexed(nesdev,
-					NES_IDX_PHY_PCS_CONTROL_STATUS0);
+												   NES_IDX_PHY_PCS_CONTROL_STATUS0);
 			pcs_control_status1 = nes_read_indexed(nesdev,
-					NES_IDX_PHY_PCS_CONTROL_STATUS0 + 0x200);
+												   NES_IDX_PHY_PCS_CONTROL_STATUS0 + 0x200);
+
 			if ((0x0F000100 == (pcs_control_status0 & 0x0F000100))
-			    || (0x0F000100 == (pcs_control_status1 & 0x0F000100)))
+				|| (0x0F000100 == (pcs_control_status1 & 0x0F000100)))
+			{
 				int_cnt++;
+			}
+
 			msleep(1);
 		}
-		if (int_cnt > 1) {
+
+		if (int_cnt > 1)
+		{
 			spin_lock_irqsave(&nesadapter->phy_lock, flags);
 			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL1, 0x0000F0C8);
 			mh_detected++;
-			reset_value = nes_read32(nesdev->regs+NES_SOFTWARE_RESET);
+			reset_value = nes_read32(nesdev->regs + NES_SOFTWARE_RESET);
 			reset_value |= 0x0000003d;
-			nes_write32(nesdev->regs+NES_SOFTWARE_RESET, reset_value);
+			nes_write32(nesdev->regs + NES_SOFTWARE_RESET, reset_value);
 
-			while (((nes_read32(nesdev->regs+NES_SOFTWARE_RESET)
-				& 0x00000040) != 0x00000040) && (j++ < 5000));
+			while (((nes_read32(nesdev->regs + NES_SOFTWARE_RESET)
+					 & 0x00000040) != 0x00000040) && (j++ < 5000));
+
 			spin_unlock_irqrestore(&nesadapter->phy_lock, flags);
 
 			pcs_control_status0 = nes_read_indexed(nesdev,
-					NES_IDX_PHY_PCS_CONTROL_STATUS0);
+												   NES_IDX_PHY_PCS_CONTROL_STATUS0);
 			pcs_control_status1 = nes_read_indexed(nesdev,
-					NES_IDX_PHY_PCS_CONTROL_STATUS0 + 0x200);
+												   NES_IDX_PHY_PCS_CONTROL_STATUS0 + 0x200);
 
-			for (i = 0; i < NES_MAX_LINK_CHECK; i++) {
+			for (i = 0; i < NES_MAX_LINK_CHECK; i++)
+			{
 				pcs_control_status0 = nes_read_indexed(nesdev,
-					NES_IDX_PHY_PCS_CONTROL_STATUS0);
+													   NES_IDX_PHY_PCS_CONTROL_STATUS0);
 				pcs_control_status1 = nes_read_indexed(nesdev,
-					NES_IDX_PHY_PCS_CONTROL_STATUS0 + 0x200);
+													   NES_IDX_PHY_PCS_CONTROL_STATUS0 + 0x200);
+
 				if ((0x0F000100 == (pcs_control_status0 & 0x0F000100))
-					|| (0x0F000100 == (pcs_control_status1 & 0x0F000100))) {
-					if (++ext_cnt > int_cnt) {
+					|| (0x0F000100 == (pcs_control_status1 & 0x0F000100)))
+				{
+					if (++ext_cnt > int_cnt)
+					{
 						spin_lock_irqsave(&nesadapter->phy_lock, flags);
 						nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL1,
-								0x0000F088);
+										  0x0000F088);
 						mh_detected++;
-						reset_value = nes_read32(nesdev->regs+NES_SOFTWARE_RESET);
+						reset_value = nes_read32(nesdev->regs + NES_SOFTWARE_RESET);
 						reset_value |= 0x0000003d;
-						nes_write32(nesdev->regs+NES_SOFTWARE_RESET, reset_value);
+						nes_write32(nesdev->regs + NES_SOFTWARE_RESET, reset_value);
 
-						while (((nes_read32(nesdev->regs+NES_SOFTWARE_RESET)
-							& 0x00000040) != 0x00000040) && (j++ < 5000));
+						while (((nes_read32(nesdev->regs + NES_SOFTWARE_RESET)
+								 & 0x00000040) != 0x00000040) && (j++ < 5000));
+
 						spin_unlock_irqrestore(&nesadapter->phy_lock, flags);
 						break;
 					}
 				}
+
 				msleep(1);
 			}
 		}
 	}
 
-	if (nesadapter->hw_rev == NE020_REV) {
+	if (nesadapter->hw_rev == NE020_REV)
+	{
 		init_timer(&nesadapter->mh_timer);
 		nesadapter->mh_timer.function = nes_mh_fix;
-		nesadapter->mh_timer.expires = jiffies + (HZ/5);  /* 1 second */
+		nesadapter->mh_timer.expires = jiffies + (HZ / 5); /* 1 second */
 		nesadapter->mh_timer.data = (unsigned long)nesdev;
 		add_timer(&nesadapter->mh_timer);
-	} else {
-		nes_write32(nesdev->regs+NES_INTF_INT_STAT, 0x0f000000);
+	}
+	else
+	{
+		nes_write32(nesdev->regs + NES_INTF_INT_STAT, 0x0f000000);
 	}
 
 	init_timer(&nesadapter->lc_timer);
@@ -616,15 +730,20 @@ struct nes_adapter *nes_init_adapter(struct nes_device *nesdev, u8 hw_rev) {
 
 	list_add_tail(&nesadapter->list, &nes_adapter_list);
 
-	for (func_index = 0; func_index < 8; func_index++) {
+	for (func_index = 0; func_index < 8; func_index++)
+	{
 		pci_bus_read_config_word(nesdev->pcidev->bus,
-					PCI_DEVFN(PCI_SLOT(nesdev->pcidev->devfn),
-					func_index), 0, &vendor_id);
+								 PCI_DEVFN(PCI_SLOT(nesdev->pcidev->devfn),
+										   func_index), 0, &vendor_id);
+
 		if (vendor_id == 0xffff)
+		{
 			break;
+		}
 	}
+
 	nes_debug(NES_DBG_INIT, "%s %d functions found for %s.\n", __func__,
-		func_index, pci_name(nesdev->pcidev));
+			  func_index, pci_name(nesdev->pcidev));
 	nesadapter->adapter_fcn_count = func_index;
 
 	return nesadapter;
@@ -640,94 +759,133 @@ static unsigned int nes_reset_adapter_ne020(struct nes_device *nesdev, u8 *OneG_
 	u32 u32temp;
 	u32 i;
 
-	u32temp = nes_read32(nesdev->regs+NES_SOFTWARE_RESET);
+	u32temp = nes_read32(nesdev->regs + NES_SOFTWARE_RESET);
 	port_count = ((u32temp & 0x00000300) >> 8) + 1;
 	/* TODO: assuming that both SERDES are set the same for now */
 	*OneG_Mode = (u32temp & 0x00003c00) ? 0 : 1;
 	nes_debug(NES_DBG_INIT, "Initial Software Reset = 0x%08X, port_count=%u\n",
-			u32temp, port_count);
+			  u32temp, port_count);
+
 	if (*OneG_Mode)
+	{
 		nes_debug(NES_DBG_INIT, "Running in 1G mode.\n");
+	}
+
 	u32temp &= 0xff00ffc0;
-	switch (port_count) {
+
+	switch (port_count)
+	{
 		case 1:
 			u32temp |= 0x00ee0000;
 			break;
+
 		case 2:
 			u32temp |= 0x00cc0000;
 			break;
+
 		case 4:
 			u32temp |= 0x00000000;
 			break;
+
 		default:
 			return 0;
 			break;
 	}
 
 	/* check and do full reset if needed */
-	if (nes_read_indexed(nesdev, NES_IDX_QP_CONTROL+(PCI_FUNC(nesdev->pcidev->devfn)*8))) {
+	if (nes_read_indexed(nesdev, NES_IDX_QP_CONTROL + (PCI_FUNC(nesdev->pcidev->devfn) * 8)))
+	{
 		nes_debug(NES_DBG_INIT, "Issuing Full Soft reset = 0x%08X\n", u32temp | 0xd);
-		nes_write32(nesdev->regs+NES_SOFTWARE_RESET, u32temp | 0xd);
+		nes_write32(nesdev->regs + NES_SOFTWARE_RESET, u32temp | 0xd);
 
 		i = 0;
-		while (((nes_read32(nesdev->regs+NES_SOFTWARE_RESET) & 0x00000040) == 0) && i++ < 10000)
+
+		while (((nes_read32(nesdev->regs + NES_SOFTWARE_RESET) & 0x00000040) == 0) && i++ < 10000)
+		{
 			mdelay(1);
-		if (i > 10000) {
+		}
+
+		if (i > 10000)
+		{
 			nes_debug(NES_DBG_INIT, "Did not see full soft reset done.\n");
 			return 0;
 		}
 
 		i = 0;
+
 		while ((nes_read_indexed(nesdev, NES_IDX_INT_CPU_STATUS) != 0x80) && i++ < 10000)
+		{
 			mdelay(1);
-		if (i > 10000) {
+		}
+
+		if (i > 10000)
+		{
 			printk(KERN_ERR PFX "Internal CPU not ready, status = %02X\n",
-			       nes_read_indexed(nesdev, NES_IDX_INT_CPU_STATUS));
+				   nes_read_indexed(nesdev, NES_IDX_INT_CPU_STATUS));
 			return 0;
 		}
 	}
 
 	/* port reset */
-	switch (port_count) {
+	switch (port_count)
+	{
 		case 1:
 			u32temp |= 0x00ee0010;
 			break;
+
 		case 2:
 			u32temp |= 0x00cc0030;
 			break;
+
 		case 4:
 			u32temp |= 0x00000030;
 			break;
 	}
 
 	nes_debug(NES_DBG_INIT, "Issuing Port Soft reset = 0x%08X\n", u32temp | 0xd);
-	nes_write32(nesdev->regs+NES_SOFTWARE_RESET, u32temp | 0xd);
+	nes_write32(nesdev->regs + NES_SOFTWARE_RESET, u32temp | 0xd);
 
 	i = 0;
-	while (((nes_read32(nesdev->regs+NES_SOFTWARE_RESET) & 0x00000040) == 0) && i++ < 10000)
+
+	while (((nes_read32(nesdev->regs + NES_SOFTWARE_RESET) & 0x00000040) == 0) && i++ < 10000)
+	{
 		mdelay(1);
-	if (i > 10000) {
+	}
+
+	if (i > 10000)
+	{
 		nes_debug(NES_DBG_INIT, "Did not see port soft reset done.\n");
 		return 0;
 	}
 
 	/* serdes 0 */
 	i = 0;
+
 	while (((u32temp = (nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_STATUS0)
-			& 0x0000000f)) != 0x0000000f) && i++ < 5000)
+						& 0x0000000f)) != 0x0000000f) && i++ < 5000)
+	{
 		mdelay(1);
-	if (i > 5000) {
+	}
+
+	if (i > 5000)
+	{
 		nes_debug(NES_DBG_INIT, "Serdes 0 not ready, status=%x\n", u32temp);
 		return 0;
 	}
 
 	/* serdes 1 */
-	if (port_count > 1) {
+	if (port_count > 1)
+	{
 		i = 0;
+
 		while (((u32temp = (nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_STATUS1)
-				& 0x0000000f)) != 0x0000000f) && i++ < 5000)
+							& 0x0000000f)) != 0x0000000f) && i++ < 5000)
+		{
 			mdelay(1);
-		if (i > 5000) {
+		}
+
+		if (i > 5000)
+		{
 			nes_debug(NES_DBG_INIT, "Serdes 1 not ready, status=%x\n", u32temp);
 			return 0;
 		}
@@ -741,104 +899,150 @@ static unsigned int nes_reset_adapter_ne020(struct nes_device *nesdev, u8 *OneG_
  * nes_init_serdes
  */
 static int nes_init_serdes(struct nes_device *nesdev, u8 hw_rev, u8 port_count,
-				struct nes_adapter *nesadapter, u8  OneG_Mode)
+						   struct nes_adapter *nesadapter, u8  OneG_Mode)
 {
 	int i;
 	u32 u32temp;
 	u32 sds;
 
-	if (hw_rev != NE020_REV) {
+	if (hw_rev != NE020_REV)
+	{
 		/* init serdes 0 */
-		switch (nesadapter->phy_type[0]) {
-		case NES_PHY_TYPE_CX4:
-			if (wide_ppm_offset)
-				nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_CDR_CONTROL0, 0x000FFFAA);
-			else
+		switch (nesadapter->phy_type[0])
+		{
+			case NES_PHY_TYPE_CX4:
+				if (wide_ppm_offset)
+				{
+					nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_CDR_CONTROL0, 0x000FFFAA);
+				}
+				else
+				{
+					nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_CDR_CONTROL0, 0x000000FF);
+				}
+
+				break;
+
+			case NES_PHY_TYPE_KR:
 				nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_CDR_CONTROL0, 0x000000FF);
-			break;
-		case NES_PHY_TYPE_KR:
-			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_CDR_CONTROL0, 0x000000FF);
-			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_TX_EMP0, 0x00000000);
-			break;
-		case NES_PHY_TYPE_PUMA_1G:
-			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_CDR_CONTROL0, 0x000000FF);
-			sds = nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL0);
-			sds |= 0x00000100;
-			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL0, sds);
-			break;
-		default:
-			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_CDR_CONTROL0, 0x000000FF);
-			break;
+				nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_TX_EMP0, 0x00000000);
+				break;
+
+			case NES_PHY_TYPE_PUMA_1G:
+				nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_CDR_CONTROL0, 0x000000FF);
+				sds = nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL0);
+				sds |= 0x00000100;
+				nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL0, sds);
+				break;
+
+			default:
+				nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_CDR_CONTROL0, 0x000000FF);
+				break;
 		}
 
 		if (!OneG_Mode)
+		{
 			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_TX_HIGHZ_LANE_MODE0, 0x11110000);
+		}
 
 		if (port_count < 2)
+		{
 			return 0;
+		}
 
 		/* init serdes 1 */
 		if (!(OneG_Mode && (nesadapter->phy_type[1] != NES_PHY_TYPE_PUMA_1G)))
+		{
 			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_CDR_CONTROL1, 0x000000FF);
-
-		switch (nesadapter->phy_type[1]) {
-		case NES_PHY_TYPE_ARGUS:
-		case NES_PHY_TYPE_SFP_D:
-			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_TX_EMP0, 0x00000000);
-			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_TX_EMP1, 0x00000000);
-			break;
-		case NES_PHY_TYPE_CX4:
-			if (wide_ppm_offset)
-				nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_CDR_CONTROL1, 0x000FFFAA);
-			break;
-		case NES_PHY_TYPE_KR:
-			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_TX_EMP1, 0x00000000);
-			break;
-		case NES_PHY_TYPE_PUMA_1G:
-			sds = nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL1);
-			sds |= 0x000000100;
-			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL1, sds);
 		}
-		if (!OneG_Mode) {
+
+		switch (nesadapter->phy_type[1])
+		{
+			case NES_PHY_TYPE_ARGUS:
+			case NES_PHY_TYPE_SFP_D:
+				nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_TX_EMP0, 0x00000000);
+				nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_TX_EMP1, 0x00000000);
+				break;
+
+			case NES_PHY_TYPE_CX4:
+				if (wide_ppm_offset)
+				{
+					nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_CDR_CONTROL1, 0x000FFFAA);
+				}
+
+				break;
+
+			case NES_PHY_TYPE_KR:
+				nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_TX_EMP1, 0x00000000);
+				break;
+
+			case NES_PHY_TYPE_PUMA_1G:
+				sds = nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL1);
+				sds |= 0x000000100;
+				nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL1, sds);
+		}
+
+		if (!OneG_Mode)
+		{
 			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_TX_HIGHZ_LANE_MODE1, 0x11110000);
 			sds = nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL1);
 			sds &= 0xFFFFFFBF;
 			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL1, sds);
 		}
-	} else {
+	}
+	else
+	{
 		/* init serdes 0 */
 		nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL0, 0x00000008);
 		i = 0;
+
 		while (((u32temp = (nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_STATUS0)
-				& 0x0000000f)) != 0x0000000f) && i++ < 5000)
+							& 0x0000000f)) != 0x0000000f) && i++ < 5000)
+		{
 			mdelay(1);
-		if (i > 5000) {
+		}
+
+		if (i > 5000)
+		{
 			nes_debug(NES_DBG_PHY, "Init: serdes 0 not ready, status=%x\n", u32temp);
 			return 1;
 		}
+
 		nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_TX_EMP0, 0x000bdef7);
 		nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_TX_DRIVE0, 0x9ce73000);
 		nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_RX_MODE0, 0x0ff00000);
 		nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_RX_SIGDET0, 0x00000000);
 		nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_BYPASS0, 0x00000000);
 		nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_LOOPBACK_CONTROL0, 0x00000000);
+
 		if (OneG_Mode)
+		{
 			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_RX_EQ_CONTROL0, 0xf0182222);
+		}
 		else
+		{
 			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_RX_EQ_CONTROL0, 0xf0042222);
+		}
 
 		nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_CDR_CONTROL0, 0x000000ff);
-		if (port_count > 1) {
+
+		if (port_count > 1)
+		{
 			/* init serdes 1 */
 			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL1, 0x00000048);
 			i = 0;
+
 			while (((u32temp = (nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_STATUS1)
-				& 0x0000000f)) != 0x0000000f) && (i++ < 5000))
+								& 0x0000000f)) != 0x0000000f) && (i++ < 5000))
+			{
 				mdelay(1);
-			if (i > 5000) {
+			}
+
+			if (i > 5000)
+			{
 				printk("%s: Init: serdes 1 not ready, status=%x\n", __func__, u32temp);
 				/* return 1; */
 			}
+
 			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_TX_EMP1, 0x000bdef7);
 			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_TX_DRIVE1, 0x9ce73000);
 			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_RX_MODE1, 0x0ff00000);
@@ -849,6 +1053,7 @@ static int nes_init_serdes(struct nes_device *nesdev, u8 hw_rev, u8 port_count,
 			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_CDR_CONTROL1, 0x000000ff);
 		}
 	}
+
 	return 0;
 }
 
@@ -879,7 +1084,9 @@ static void nes_init_csr_ne020(struct nes_device *nesdev, u8 hw_rev, u8 port_cou
 	nes_write_indexed(nesdev, 0x0000200C, 0x00000001);
 	nes_write_indexed(nesdev, 0x00002010, 0x000003c1);
 	nes_write_indexed(nesdev, 0x0000201C, 0x75345678);
-	if (port_count > 1) {
+
+	if (port_count > 1)
+	{
 		nes_write_indexed(nesdev, 0x00002200, 0x00000001);
 		nes_write_indexed(nesdev, 0x00002204, 0x00000001);
 		nes_write_indexed(nesdev, 0x00002208, 0x0000FFFF);
@@ -888,7 +1095,9 @@ static void nes_init_csr_ne020(struct nes_device *nesdev, u8 hw_rev, u8 port_cou
 		nes_write_indexed(nesdev, 0x0000221C, 0x75345678);
 		nes_write_indexed(nesdev, 0x00000908, 0x20000001);
 	}
-	if (port_count > 2) {
+
+	if (port_count > 2)
+	{
 		nes_write_indexed(nesdev, 0x00002400, 0x00000001);
 		nes_write_indexed(nesdev, 0x00002404, 0x00000001);
 		nes_write_indexed(nesdev, 0x00002408, 0x0000FFFF);
@@ -909,7 +1118,7 @@ static void nes_init_csr_ne020(struct nes_device *nesdev, u8 hw_rev, u8 port_cou
 	nes_write_indexed(nesdev, 0x00005000, 0x00018000);
 	/* nes_write_indexed(nesdev, 0x00005000, 0x00010000); */
 	nes_write_indexed(nesdev, NES_IDX_WQM_CONFIG1, (wqm_quanta << 1) |
-							 0x00000001);
+					  0x00000001);
 	nes_write_indexed(nesdev, 0x00005008, 0x1F1F1F1F);
 	nes_write_indexed(nesdev, 0x00005010, 0x1F1F1F1F);
 	nes_write_indexed(nesdev, 0x00005018, 0x1F1F1F1F);
@@ -924,7 +1133,8 @@ static void nes_init_csr_ne020(struct nes_device *nesdev, u8 hw_rev, u8 port_cou
 	nes_write_indexed(nesdev, 0x000001EC, 0x7b2625a0);
 	/* nes_write_indexed(nesdev, 0x000001EC, 0x5f2625a0); */
 
-	if (hw_rev != NE020_REV) {
+	if (hw_rev != NE020_REV)
+	{
 		u32temp = nes_read_indexed(nesdev, 0x000008e8);
 		u32temp |= 0x80000000;
 		nes_write_indexed(nesdev, 0x000008e8, u32temp);
@@ -932,7 +1142,9 @@ static void nes_init_csr_ne020(struct nes_device *nesdev, u8 hw_rev, u8 port_cou
 		u32temp &= 0x7fffffff;
 		u32temp |= 0x7fff0010;
 		nes_write_indexed(nesdev, 0x000021f8, u32temp);
-		if (port_count > 1) {
+
+		if (port_count > 1)
+		{
 			u32temp = nes_read_indexed(nesdev, 0x000023f8);
 			u32temp &= 0x7fffffff;
 			u32temp |= 0x7fff0010;
@@ -949,16 +1161,21 @@ void nes_destroy_adapter(struct nes_adapter *nesadapter)
 {
 	struct nes_adapter *tmp_adapter;
 
-	list_for_each_entry(tmp_adapter, &nes_adapter_list, list) {
+	list_for_each_entry(tmp_adapter, &nes_adapter_list, list)
+	{
 		nes_debug(NES_DBG_SHUTDOWN, "Nes Adapter list entry = 0x%p.\n",
-				tmp_adapter);
+				  tmp_adapter);
 	}
 
 	nesadapter->ref_count--;
-	if (!nesadapter->ref_count) {
-		if (nesadapter->hw_rev == NE020_REV) {
+
+	if (!nesadapter->ref_count)
+	{
+		if (nesadapter->hw_rev == NE020_REV)
+		{
 			del_timer(&nesadapter->mh_timer);
 		}
+
 		del_timer(&nesadapter->lc_timer);
 
 		list_del(&nesadapter->list);
@@ -980,7 +1197,7 @@ int nes_init_cqp(struct nes_device *nesdev)
 	struct nes_hw_aeq *aeq;
 	void *vmem;
 	dma_addr_t pmem;
-	u32 count=0;
+	u32 count = 0;
 	u32 cqp_head;
 	u64 u64temp;
 	u32 u32temp;
@@ -989,42 +1206,46 @@ int nes_init_cqp(struct nes_device *nesdev)
 	/* Need to add max_cq to the aeq size once cq overflow checking is added back */
 	/* SQ is 512 byte aligned, others are 256 byte aligned */
 	nesdev->cqp_mem_size = 512 +
-			(sizeof(struct nes_hw_cqp_wqe) * NES_CQP_SQ_SIZE) +
-			(sizeof(struct nes_hw_cqe) * NES_CCQ_SIZE) +
-			max(((u32)sizeof(struct nes_hw_ceqe) * NES_CCEQ_SIZE), (u32)256) +
-			max(((u32)sizeof(struct nes_hw_ceqe) * NES_NIC_CEQ_SIZE), (u32)256) +
-			(sizeof(struct nes_hw_aeqe) * nesadapter->max_qp) +
-			sizeof(struct nes_hw_cqp_qp_context);
+						   (sizeof(struct nes_hw_cqp_wqe) * NES_CQP_SQ_SIZE) +
+						   (sizeof(struct nes_hw_cqe) * NES_CCQ_SIZE) +
+						   max(((u32)sizeof(struct nes_hw_ceqe) * NES_CCEQ_SIZE), (u32)256) +
+						   max(((u32)sizeof(struct nes_hw_ceqe) * NES_NIC_CEQ_SIZE), (u32)256) +
+						   (sizeof(struct nes_hw_aeqe) * nesadapter->max_qp) +
+						   sizeof(struct nes_hw_cqp_qp_context);
 
 	nesdev->cqp_vbase = pci_zalloc_consistent(nesdev->pcidev,
-						  nesdev->cqp_mem_size,
-						  &nesdev->cqp_pbase);
-	if (!nesdev->cqp_vbase) {
+						nesdev->cqp_mem_size,
+						&nesdev->cqp_pbase);
+
+	if (!nesdev->cqp_vbase)
+	{
 		nes_debug(NES_DBG_INIT, "Unable to allocate memory for host descriptor rings\n");
 		return -ENOMEM;
 	}
 
 	/* Allocate a twice the number of CQP requests as the SQ size */
 	nesdev->nes_cqp_requests = kzalloc(sizeof(struct nes_cqp_request) *
-			2 * NES_CQP_SQ_SIZE, GFP_KERNEL);
-	if (nesdev->nes_cqp_requests == NULL) {
+									   2 * NES_CQP_SQ_SIZE, GFP_KERNEL);
+
+	if (nesdev->nes_cqp_requests == NULL)
+	{
 		nes_debug(NES_DBG_INIT, "Unable to allocate memory CQP request entries.\n");
 		pci_free_consistent(nesdev->pcidev, nesdev->cqp_mem_size, nesdev->cqp.sq_vbase,
-				nesdev->cqp.sq_pbase);
+							nesdev->cqp.sq_pbase);
 		return -ENOMEM;
 	}
 
 	nes_debug(NES_DBG_INIT, "Allocated CQP structures at %p (phys = %016lX), size = %u.\n",
-			nesdev->cqp_vbase, (unsigned long)nesdev->cqp_pbase, nesdev->cqp_mem_size);
+			  nesdev->cqp_vbase, (unsigned long)nesdev->cqp_pbase, nesdev->cqp_mem_size);
 
 	spin_lock_init(&nesdev->cqp.lock);
 	init_waitqueue_head(&nesdev->cqp.waitq);
 
 	/* Setup Various Structures */
 	vmem = (void *)(((unsigned long)nesdev->cqp_vbase + (512 - 1)) &
-			~(unsigned long)(512 - 1));
+					~(unsigned long)(512 - 1));
 	pmem = (dma_addr_t)(((unsigned long long)nesdev->cqp_pbase + (512 - 1)) &
-			~(unsigned long long)(512 - 1));
+						~(unsigned long long)(512 - 1));
 
 	nesdev->cqp.sq_vbase = vmem;
 	nesdev->cqp.sq_pbase = pmem;
@@ -1078,29 +1299,34 @@ int nes_init_cqp(struct nes_device *nesdev)
 
 	cqp_qp_context = vmem;
 	cqp_qp_context->context_words[0] =
-			cpu_to_le32((PCI_FUNC(nesdev->pcidev->devfn) << 12) + (2 << 10));
+		cpu_to_le32((PCI_FUNC(nesdev->pcidev->devfn) << 12) + (2 << 10));
 	cqp_qp_context->context_words[1] = 0;
 	cqp_qp_context->context_words[2] = cpu_to_le32((u32)nesdev->cqp.sq_pbase);
 	cqp_qp_context->context_words[3] = cpu_to_le32(((u64)nesdev->cqp.sq_pbase) >> 32);
 
 
 	/* Write the address to Create CQP */
-	if ((sizeof(dma_addr_t) > 4)) {
+	if ((sizeof(dma_addr_t) > 4))
+	{
 		nes_write_indexed(nesdev,
-				NES_IDX_CREATE_CQP_HIGH + (PCI_FUNC(nesdev->pcidev->devfn) * 8),
-				((u64)pmem) >> 32);
-	} else {
-		nes_write_indexed(nesdev,
-				NES_IDX_CREATE_CQP_HIGH + (PCI_FUNC(nesdev->pcidev->devfn) * 8), 0);
+						  NES_IDX_CREATE_CQP_HIGH + (PCI_FUNC(nesdev->pcidev->devfn) * 8),
+						  ((u64)pmem) >> 32);
 	}
+	else
+	{
+		nes_write_indexed(nesdev,
+						  NES_IDX_CREATE_CQP_HIGH + (PCI_FUNC(nesdev->pcidev->devfn) * 8), 0);
+	}
+
 	nes_write_indexed(nesdev,
-			NES_IDX_CREATE_CQP_LOW + (PCI_FUNC(nesdev->pcidev->devfn) * 8),
-			(u32)pmem);
+					  NES_IDX_CREATE_CQP_LOW + (PCI_FUNC(nesdev->pcidev->devfn) * 8),
+					  (u32)pmem);
 
 	INIT_LIST_HEAD(&nesdev->cqp_avail_reqs);
 	INIT_LIST_HEAD(&nesdev->cqp_pending_reqs);
 
-	for (count = 0; count < 2*NES_CQP_SQ_SIZE; count++) {
+	for (count = 0; count < 2 * NES_CQP_SQ_SIZE; count++)
+	{
 		init_waitqueue_head(&nesdev->nes_cqp_requests[count].waitq);
 		list_add_tail(&nesdev->nes_cqp_requests[count].list, &nesdev->cqp_avail_reqs);
 	}
@@ -1110,19 +1336,19 @@ int nes_init_cqp(struct nes_device *nesdev)
 	cqp_wqe = &nesdev->cqp.sq_vbase[cqp_head];
 	nes_fill_init_cqp_wqe(cqp_wqe, nesdev);
 	set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_OPCODE_IDX,
-			(NES_CQP_CREATE_CQ | NES_CQP_CQ_CEQ_VALID |
-			NES_CQP_CQ_CHK_OVERFLOW | ((u32)nesdev->ccq.cq_size << 16)));
+						(NES_CQP_CREATE_CQ | NES_CQP_CQ_CEQ_VALID |
+						 NES_CQP_CQ_CHK_OVERFLOW | ((u32)nesdev->ccq.cq_size << 16)));
 	set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_ID_IDX,
-			    (nesdev->ccq.cq_number |
-			     ((u32)nesdev->ceq_index << 16)));
+						(nesdev->ccq.cq_number |
+						 ((u32)nesdev->ceq_index << 16)));
 	u64temp = (u64)nesdev->ccq.cq_pbase;
 	set_wqe_64bit_value(cqp_wqe->wqe_words, NES_CQP_CQ_WQE_PBL_LOW_IDX, u64temp);
 	cqp_wqe->wqe_words[NES_CQP_CQ_WQE_CQ_CONTEXT_HIGH_IDX] = 0;
 	u64temp = (unsigned long)&nesdev->ccq;
 	cqp_wqe->wqe_words[NES_CQP_CQ_WQE_CQ_CONTEXT_LOW_IDX] =
-			cpu_to_le32((u32)(u64temp >> 1));
+		cpu_to_le32((u32)(u64temp >> 1));
 	cqp_wqe->wqe_words[NES_CQP_CQ_WQE_CQ_CONTEXT_HIGH_IDX] =
-			cpu_to_le32(((u32)((u64temp) >> 33)) & 0x7FFFFFFF);
+		cpu_to_le32(((u32)((u64temp) >> 33)) & 0x7FFFFFFF);
 	cqp_wqe->wqe_words[NES_CQP_CQ_WQE_DOORBELL_INDEX_HIGH_IDX] = 0;
 
 	/* Write Create CEQ WQE */
@@ -1130,7 +1356,7 @@ int nes_init_cqp(struct nes_device *nesdev)
 	cqp_wqe = &nesdev->cqp.sq_vbase[cqp_head];
 	nes_fill_init_cqp_wqe(cqp_wqe, nesdev);
 	set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_OPCODE_IDX,
-			    (NES_CQP_CREATE_CEQ + ((u32)nesdev->ceq_index << 8)));
+						(NES_CQP_CREATE_CEQ + ((u32)nesdev->ceq_index << 8)));
 	set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_CEQ_WQE_ELEMENT_COUNT_IDX, ceq->ceq_size);
 	u64temp = (u64)ceq->ceq_pbase;
 	set_wqe_64bit_value(cqp_wqe->wqe_words, NES_CQP_CQ_WQE_PBL_LOW_IDX, u64temp);
@@ -1140,7 +1366,7 @@ int nes_init_cqp(struct nes_device *nesdev)
 	cqp_wqe = &nesdev->cqp.sq_vbase[cqp_head];
 	nes_fill_init_cqp_wqe(cqp_wqe, nesdev);
 	set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_OPCODE_IDX,
-			(NES_CQP_CREATE_AEQ + ((u32)PCI_FUNC(nesdev->pcidev->devfn) << 8)));
+						(NES_CQP_CREATE_AEQ + ((u32)PCI_FUNC(nesdev->pcidev->devfn) << 8)));
 	set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_AEQ_WQE_ELEMENT_COUNT_IDX, aeq->aeq_size);
 	u64temp = (u64)aeq->aeq_pbase;
 	set_wqe_64bit_value(cqp_wqe->wqe_words, NES_CQP_CQ_WQE_PBL_LOW_IDX, u64temp);
@@ -1150,46 +1376,56 @@ int nes_init_cqp(struct nes_device *nesdev)
 	cqp_wqe = &nesdev->cqp.sq_vbase[cqp_head];
 	nes_fill_init_cqp_wqe(cqp_wqe, nesdev);
 	set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_OPCODE_IDX,
-			(NES_CQP_CREATE_CEQ + ((u32)nesdev->nic_ceq_index << 8)));
+						(NES_CQP_CREATE_CEQ + ((u32)nesdev->nic_ceq_index << 8)));
 	set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_CEQ_WQE_ELEMENT_COUNT_IDX, nic_ceq->ceq_size);
 	u64temp = (u64)nic_ceq->ceq_pbase;
 	set_wqe_64bit_value(cqp_wqe->wqe_words, NES_CQP_CQ_WQE_PBL_LOW_IDX, u64temp);
 
 	/* Poll until CCQP done */
 	count = 0;
-	do {
-		if (count++ > 1000) {
+
+	do
+	{
+		if (count++ > 1000)
+		{
 			printk(KERN_ERR PFX "Error creating CQP\n");
 			pci_free_consistent(nesdev->pcidev, nesdev->cqp_mem_size,
-					nesdev->cqp_vbase, nesdev->cqp_pbase);
+								nesdev->cqp_vbase, nesdev->cqp_pbase);
 			return -1;
 		}
+
 		udelay(10);
-	} while (!(nes_read_indexed(nesdev,
-			NES_IDX_QP_CONTROL + (PCI_FUNC(nesdev->pcidev->devfn) * 8)) & (1 << 8)));
+	}
+	while (!(nes_read_indexed(nesdev,
+							  NES_IDX_QP_CONTROL + (PCI_FUNC(nesdev->pcidev->devfn) * 8)) & (1 << 8)));
 
 	nes_debug(NES_DBG_INIT, "CQP Status = 0x%08X\n", nes_read_indexed(nesdev,
-			NES_IDX_QP_CONTROL+(PCI_FUNC(nesdev->pcidev->devfn)*8)));
+			  NES_IDX_QP_CONTROL + (PCI_FUNC(nesdev->pcidev->devfn) * 8)));
 
 	u32temp = 0x04800000;
-	nes_write32(nesdev->regs+NES_WQE_ALLOC, u32temp | nesdev->cqp.qp_id);
+	nes_write32(nesdev->regs + NES_WQE_ALLOC, u32temp | nesdev->cqp.qp_id);
 
 	/* wait for the CCQ, CEQ, and AEQ to get created */
 	count = 0;
-	do {
-		if (count++ > 1000) {
+
+	do
+	{
+		if (count++ > 1000)
+		{
 			printk(KERN_ERR PFX "Error creating CCQ, CEQ, and AEQ\n");
 			pci_free_consistent(nesdev->pcidev, nesdev->cqp_mem_size,
-					nesdev->cqp_vbase, nesdev->cqp_pbase);
+								nesdev->cqp_vbase, nesdev->cqp_pbase);
 			return -1;
 		}
+
 		udelay(10);
-	} while (((nes_read_indexed(nesdev,
-			NES_IDX_QP_CONTROL+(PCI_FUNC(nesdev->pcidev->devfn)*8)) & (15<<8)) != (15<<8)));
+	}
+	while (((nes_read_indexed(nesdev,
+							  NES_IDX_QP_CONTROL + (PCI_FUNC(nesdev->pcidev->devfn) * 8)) & (15 << 8)) != (15 << 8)));
 
 	/* dump the QP status value */
 	nes_debug(NES_DBG_INIT, "QP Status = 0x%08X\n", nes_read_indexed(nesdev,
-			NES_IDX_QP_CONTROL+(PCI_FUNC(nesdev->pcidev->devfn)*8)));
+			  NES_IDX_QP_CONTROL + (PCI_FUNC(nesdev->pcidev->devfn) * 8)));
 
 	nesdev->cqp.sq_tail++;
 
@@ -1207,24 +1443,29 @@ int nes_destroy_cqp(struct nes_device *nesdev)
 	u32 cqp_head;
 	unsigned long flags;
 
-	do {
+	do
+	{
 		if (count++ > 1000)
+		{
 			break;
+		}
+
 		udelay(10);
-	} while (!(nesdev->cqp.sq_head == nesdev->cqp.sq_tail));
+	}
+	while (!(nesdev->cqp.sq_head == nesdev->cqp.sq_tail));
 
 	/* Reset CCQ */
-	nes_write32(nesdev->regs+NES_CQE_ALLOC, NES_CQE_ALLOC_RESET |
-			nesdev->ccq.cq_number);
+	nes_write32(nesdev->regs + NES_CQE_ALLOC, NES_CQE_ALLOC_RESET |
+				nesdev->ccq.cq_number);
 
 	/* Disable device interrupts */
-	nes_write32(nesdev->regs+NES_INT_MASK, 0x7fffffff);
+	nes_write32(nesdev->regs + NES_INT_MASK, 0x7fffffff);
 
 	spin_lock_irqsave(&nesdev->cqp.lock, flags);
 
 	/* Destroy the AEQ */
 	cqp_head = nesdev->cqp.sq_head++;
-	nesdev->cqp.sq_head &= nesdev->cqp.sq_size-1;
+	nesdev->cqp.sq_head &= nesdev->cqp.sq_size - 1;
 	cqp_wqe = &nesdev->cqp.sq_vbase[cqp_head];
 	cqp_wqe->wqe_words[NES_CQP_WQE_OPCODE_IDX] = cpu_to_le32(NES_CQP_DESTROY_AEQ |
 			((u32)PCI_FUNC(nesdev->pcidev->devfn) << 8));
@@ -1232,21 +1473,21 @@ int nes_destroy_cqp(struct nes_device *nesdev)
 
 	/* Destroy the NIC CEQ */
 	cqp_head = nesdev->cqp.sq_head++;
-	nesdev->cqp.sq_head &= nesdev->cqp.sq_size-1;
+	nesdev->cqp.sq_head &= nesdev->cqp.sq_size - 1;
 	cqp_wqe = &nesdev->cqp.sq_vbase[cqp_head];
 	cqp_wqe->wqe_words[NES_CQP_WQE_OPCODE_IDX] = cpu_to_le32(NES_CQP_DESTROY_CEQ |
 			((u32)nesdev->nic_ceq_index << 8));
 
 	/* Destroy the CEQ */
 	cqp_head = nesdev->cqp.sq_head++;
-	nesdev->cqp.sq_head &= nesdev->cqp.sq_size-1;
+	nesdev->cqp.sq_head &= nesdev->cqp.sq_size - 1;
 	cqp_wqe = &nesdev->cqp.sq_vbase[cqp_head];
 	cqp_wqe->wqe_words[NES_CQP_WQE_OPCODE_IDX] = cpu_to_le32(NES_CQP_DESTROY_CEQ |
 			(nesdev->ceq_index << 8));
 
 	/* Destroy the CCQ */
 	cqp_head = nesdev->cqp.sq_head++;
-	nesdev->cqp.sq_head &= nesdev->cqp.sq_size-1;
+	nesdev->cqp.sq_head &= nesdev->cqp.sq_size - 1;
 	cqp_wqe = &nesdev->cqp.sq_vbase[cqp_head];
 	cqp_wqe->wqe_words[NES_CQP_WQE_OPCODE_IDX] = cpu_to_le32(NES_CQP_DESTROY_CQ);
 	cqp_wqe->wqe_words[NES_CQP_WQE_ID_IDX] = cpu_to_le32(nesdev->ccq.cq_number |
@@ -1254,7 +1495,7 @@ int nes_destroy_cqp(struct nes_device *nesdev)
 
 	/* Destroy CQP */
 	cqp_head = nesdev->cqp.sq_head++;
-	nesdev->cqp.sq_head &= nesdev->cqp.sq_size-1;
+	nesdev->cqp.sq_head &= nesdev->cqp.sq_size - 1;
 	cqp_wqe = &nesdev->cqp.sq_vbase[cqp_head];
 	cqp_wqe->wqe_words[NES_CQP_WQE_OPCODE_IDX] = cpu_to_le32(NES_CQP_DESTROY_QP |
 			NES_CQP_QP_TYPE_CQP);
@@ -1262,33 +1503,38 @@ int nes_destroy_cqp(struct nes_device *nesdev)
 
 	barrier();
 	/* Ring doorbell (5 WQEs) */
-	nes_write32(nesdev->regs+NES_WQE_ALLOC, 0x05800000 | nesdev->cqp.qp_id);
+	nes_write32(nesdev->regs + NES_WQE_ALLOC, 0x05800000 | nesdev->cqp.qp_id);
 
 	spin_unlock_irqrestore(&nesdev->cqp.lock, flags);
 
 	/* wait for the CCQ, CEQ, and AEQ to get destroyed */
 	count = 0;
-	do {
-		if (count++ > 1000) {
+
+	do
+	{
+		if (count++ > 1000)
+		{
 			printk(KERN_ERR PFX "Function%d: Error destroying CCQ, CEQ, and AEQ\n",
-					PCI_FUNC(nesdev->pcidev->devfn));
+				   PCI_FUNC(nesdev->pcidev->devfn));
 			break;
 		}
+
 		udelay(10);
-	} while (((nes_read_indexed(nesdev,
-			NES_IDX_QP_CONTROL + (PCI_FUNC(nesdev->pcidev->devfn)*8)) & (15 << 8)) != 0));
+	}
+	while (((nes_read_indexed(nesdev,
+							  NES_IDX_QP_CONTROL + (PCI_FUNC(nesdev->pcidev->devfn) * 8)) & (15 << 8)) != 0));
 
 	/* dump the QP status value */
 	nes_debug(NES_DBG_SHUTDOWN, "Function%d: QP Status = 0x%08X\n",
-			PCI_FUNC(nesdev->pcidev->devfn),
-			nes_read_indexed(nesdev,
-			NES_IDX_QP_CONTROL+(PCI_FUNC(nesdev->pcidev->devfn)*8)));
+			  PCI_FUNC(nesdev->pcidev->devfn),
+			  nes_read_indexed(nesdev,
+							   NES_IDX_QP_CONTROL + (PCI_FUNC(nesdev->pcidev->devfn) * 8)));
 
 	kfree(nesdev->nes_cqp_requests);
 
 	/* Free the control structures */
 	pci_free_consistent(nesdev->pcidev, nesdev->cqp_mem_size, nesdev->cqp.sq_vbase,
-			nesdev->cqp.sq_pbase);
+						nesdev->cqp.sq_pbase);
 
 	return 0;
 }
@@ -1310,13 +1556,18 @@ static int nes_init_1g_phy(struct nes_device *nesdev, u8 phy_type, u8 phy_index)
 	nes_write_1G_phy_reg(nesdev, 0, phy_index, 0x8000);
 	udelay(100);
 	counter = 0;
-	do {
+
+	do
+	{
 		nes_read_1G_phy_reg(nesdev, 0, phy_index, &phy_data);
-		if (counter++ > 100) {
+
+		if (counter++ > 100)
+		{
 			ret = -1;
 			break;
 		}
-	} while (phy_data & 0x8000);
+	}
+	while (phy_data & 0x8000);
 
 	/* Setting no phy loopback */
 	phy_data &= 0xbfff;
@@ -1368,11 +1619,16 @@ static int nes_init_2025_phy(struct nes_device *nesdev, u8 phy_type, u8 phy_inde
 	nes_read_10G_phy_reg(nesdev, phy_index, 0x3, 0xd7ee);
 	temp_phy_data2 = (u16)nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
 
-	if (temp_phy_data != temp_phy_data2) {
+	if (temp_phy_data != temp_phy_data2)
+	{
 		nes_read_10G_phy_reg(nesdev, phy_index, 0x3, 0xd7fd);
 		temp_phy_data = (u16)nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
+
 		if ((temp_phy_data & 0xff) > 0x20)
+		{
 			return 0;
+		}
+
 		printk(PFX "Reinitialize external PHY\n");
 	}
 
@@ -1382,54 +1638,55 @@ static int nes_init_2025_phy(struct nes_device *nesdev, u8 phy_type, u8 phy_inde
 	nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc316, 0x000A);
 	nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc318, 0x0052);
 
-	switch (phy_type) {
-	case NES_PHY_TYPE_ARGUS:
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc316, 0x000A);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc318, 0x0052);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc302, 0x000C);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc319, 0x0008);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0x0027, 0x0001);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc31a, 0x0098);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0x0026, 0x0E00);
+	switch (phy_type)
+	{
+		case NES_PHY_TYPE_ARGUS:
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc316, 0x000A);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc318, 0x0052);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc302, 0x000C);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc319, 0x0008);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0x0027, 0x0001);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc31a, 0x0098);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0x0026, 0x0E00);
 
-		/* setup LEDs */
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd006, 0x0007);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd007, 0x000A);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd008, 0x0009);
-		break;
+			/* setup LEDs */
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd006, 0x0007);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd007, 0x000A);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd008, 0x0009);
+			break;
 
-	case NES_PHY_TYPE_SFP_D:
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc316, 0x000A);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc318, 0x0052);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc302, 0x0004);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc319, 0x0038);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0x0027, 0x0013);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc31a, 0x0098);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0x0026, 0x0E00);
+		case NES_PHY_TYPE_SFP_D:
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc316, 0x000A);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc318, 0x0052);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc302, 0x0004);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc319, 0x0038);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0x0027, 0x0013);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc31a, 0x0098);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0x0026, 0x0E00);
 
-		/* setup LEDs */
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd006, 0x0007);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd007, 0x000A);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd008, 0x0009);
-		break;
+			/* setup LEDs */
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd006, 0x0007);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd007, 0x000A);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd008, 0x0009);
+			break;
 
-	case NES_PHY_TYPE_KR:
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc316, 0x000A);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc318, 0x0052);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc302, 0x000C);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc319, 0x0010);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0x0027, 0x0013);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc31a, 0x0080);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0x0026, 0x0E00);
+		case NES_PHY_TYPE_KR:
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc316, 0x000A);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc318, 0x0052);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc302, 0x000C);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc319, 0x0010);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0x0027, 0x0013);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc31a, 0x0080);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0x0026, 0x0E00);
 
-		/* setup LEDs */
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd006, 0x000B);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd007, 0x0003);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd008, 0x0004);
+			/* setup LEDs */
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd006, 0x000B);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd007, 0x0003);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd008, 0x0004);
 
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0x0022, 0x406D);
-		nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0x0023, 0x0020);
-		break;
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0x0022, 0x406D);
+			nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0x0023, 0x0020);
+			break;
 	}
 
 	nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0x0028, 0xA528);
@@ -1442,44 +1699,62 @@ static int nes_init_2025_phy(struct nes_device *nesdev, u8 phy_type, u8 phy_inde
 	mdelay(690);
 	nes_read_10G_phy_reg(nesdev, phy_index, 0x3, 0xd7ee);
 	temp_phy_data = (u16)nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
-	do {
-		if (counter++ > 150) {
+
+	do
+	{
+		if (counter++ > 150)
+		{
 			printk(PFX "No PHY heartbeat\n");
 			break;
 		}
+
 		mdelay(1);
 		nes_read_10G_phy_reg(nesdev, phy_index, 0x3, 0xd7ee);
 		temp_phy_data2 = (u16)nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
-	} while ((temp_phy_data2 == temp_phy_data));
+	}
+	while ((temp_phy_data2 == temp_phy_data));
 
 	/* wait for tracking */
 	counter = 0;
-	do {
+
+	do
+	{
 		nes_read_10G_phy_reg(nesdev, phy_index, 0x3, 0xd7fd);
 		temp_phy_data = (u16)nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
-		if (counter++ > 300) {
-			if (((temp_phy_data & 0xff) == 0x0) && first_attempt) {
+
+		if (counter++ > 300)
+		{
+			if (((temp_phy_data & 0xff) == 0x0) && first_attempt)
+			{
 				first_attempt = 0;
 				counter = 0;
 				/* reset AMCC PHY and try again */
 				nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0xe854, 0x00c0);
 				nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0xe854, 0x0040);
 				continue;
-			} else {
+			}
+			else
+			{
 				ret = 1;
 				break;
 			}
 		}
+
 		mdelay(10);
-	} while ((temp_phy_data & 0xff) < 0x30);
+	}
+	while ((temp_phy_data & 0xff) < 0x30);
 
 	/* setup signal integrity */
 	nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd003, 0x0000);
 	nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xF00D, 0x00FE);
 	nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xF00E, 0x0032);
-	if (phy_type == NES_PHY_TYPE_KR) {
+
+	if (phy_type == NES_PHY_TYPE_KR)
+	{
 		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xF00F, 0x000C);
-	} else {
+	}
+	else
+	{
 		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xF00F, 0x0002);
 		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xc314, 0x0063);
 	}
@@ -1492,8 +1767,9 @@ static int nes_init_2025_phy(struct nes_device *nesdev, u8 phy_type, u8 phy_inde
 	nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL0 + mac_index * 0x200, sds);
 
 	counter = 0;
+
 	while (((nes_read32(nesdev->regs + NES_SOFTWARE_RESET) & 0x00000040) != 0x00000040)
-			&& (counter++ < 5000))
+		   && (counter++ < 5000))
 		;
 
 	return ret;
@@ -1514,28 +1790,35 @@ int nes_init_phy(struct nes_device *nesdev)
 	int ret = 0;
 
 	tx_config = nes_read_indexed(nesdev, NES_IDX_MAC_TX_CONFIG);
-	if (phy_type == NES_PHY_TYPE_1G) {
+
+	if (phy_type == NES_PHY_TYPE_1G)
+	{
 		/* setup 1G MDIO operation */
 		tx_config &= 0xFFFFFFE3;
 		tx_config |= 0x04;
-	} else {
+	}
+	else
+	{
 		/* setup 10G MDIO operation */
 		tx_config &= 0xFFFFFFE3;
 		tx_config |= 0x1D;
 	}
+
 	nes_write_indexed(nesdev, NES_IDX_MAC_TX_CONFIG, tx_config);
 
 	spin_lock_irqsave(&nesdev->nesadapter->phy_lock, flags);
 
-	switch (phy_type) {
-	case NES_PHY_TYPE_1G:
-		ret = nes_init_1g_phy(nesdev, phy_type, phy_index);
-		break;
-	case NES_PHY_TYPE_ARGUS:
-	case NES_PHY_TYPE_SFP_D:
-	case NES_PHY_TYPE_KR:
-		ret = nes_init_2025_phy(nesdev, phy_type, phy_index);
-		break;
+	switch (phy_type)
+	{
+		case NES_PHY_TYPE_1G:
+			ret = nes_init_1g_phy(nesdev, phy_type, phy_index);
+			break;
+
+		case NES_PHY_TYPE_ARGUS:
+		case NES_PHY_TYPE_SFP_D:
+		case NES_PHY_TYPE_KR:
+			ret = nes_init_2025_phy(nesdev, phy_type, phy_index);
+			break;
 	}
 
 	spin_unlock_irqrestore(&nesdev->nesadapter->phy_lock, flags);
@@ -1561,63 +1844,91 @@ static void nes_replenish_nic_rq(struct nes_vnic *nesvnic)
 	nesnic = &nesvnic->nic;
 	nesdev = nesvnic->nesdev;
 	spin_lock_irqsave(&nesnic->rq_lock, flags);
-	if (nesnic->replenishing_rq !=0) {
-		if (((nesnic->rq_size-1) == atomic_read(&nesvnic->rx_skbs_needed)) &&
-				(atomic_read(&nesvnic->rx_skb_timer_running) == 0)) {
+
+	if (nesnic->replenishing_rq != 0)
+	{
+		if (((nesnic->rq_size - 1) == atomic_read(&nesvnic->rx_skbs_needed)) &&
+			(atomic_read(&nesvnic->rx_skb_timer_running) == 0))
+		{
 			atomic_set(&nesvnic->rx_skb_timer_running, 1);
 			spin_unlock_irqrestore(&nesnic->rq_lock, flags);
-			nesvnic->rq_wqes_timer.expires = jiffies + (HZ/2);	/* 1/2 second */
+			nesvnic->rq_wqes_timer.expires = jiffies + (HZ / 2);	/* 1/2 second */
 			add_timer(&nesvnic->rq_wqes_timer);
-		} else
-		spin_unlock_irqrestore(&nesnic->rq_lock, flags);
+		}
+		else
+		{
+			spin_unlock_irqrestore(&nesnic->rq_lock, flags);
+		}
+
 		return;
 	}
+
 	nesnic->replenishing_rq = 1;
 	spin_unlock_irqrestore(&nesnic->rq_lock, flags);
-	do {
+
+	do
+	{
 		skb = dev_alloc_skb(nesvnic->max_frame_size);
-		if (skb) {
+
+		if (skb)
+		{
 			skb->dev = nesvnic->netdev;
 
 			bus_address = pci_map_single(nesdev->pcidev,
-					skb->data, nesvnic->max_frame_size, PCI_DMA_FROMDEVICE);
+										 skb->data, nesvnic->max_frame_size, PCI_DMA_FROMDEVICE);
 			cb = (struct nes_rskb_cb *)&skb->cb[0];
 			cb->busaddr = bus_address;
 			cb->maplen = nesvnic->max_frame_size;
 
 			nic_rqe = &nesnic->rq_vbase[nesvnic->nic.rq_head];
 			nic_rqe->wqe_words[NES_NIC_RQ_WQE_LENGTH_1_0_IDX] =
-					cpu_to_le32(nesvnic->max_frame_size);
+				cpu_to_le32(nesvnic->max_frame_size);
 			nic_rqe->wqe_words[NES_NIC_RQ_WQE_LENGTH_3_2_IDX] = 0;
 			nic_rqe->wqe_words[NES_NIC_RQ_WQE_FRAG0_LOW_IDX] =
-					cpu_to_le32((u32)bus_address);
+				cpu_to_le32((u32)bus_address);
 			nic_rqe->wqe_words[NES_NIC_RQ_WQE_FRAG0_HIGH_IDX] =
-					cpu_to_le32((u32)((u64)bus_address >> 32));
+				cpu_to_le32((u32)((u64)bus_address >> 32));
 			nesnic->rx_skb[nesnic->rq_head] = skb;
 			nesnic->rq_head++;
 			nesnic->rq_head &= nesnic->rq_size - 1;
 			atomic_dec(&nesvnic->rx_skbs_needed);
 			barrier();
-			if (++rx_wqes_posted == 255) {
-				nes_write32(nesdev->regs+NES_WQE_ALLOC, (rx_wqes_posted << 24) | nesnic->qp_id);
+
+			if (++rx_wqes_posted == 255)
+			{
+				nes_write32(nesdev->regs + NES_WQE_ALLOC, (rx_wqes_posted << 24) | nesnic->qp_id);
 				rx_wqes_posted = 0;
 			}
-		} else {
+		}
+		else
+		{
 			spin_lock_irqsave(&nesnic->rq_lock, flags);
-			if (((nesnic->rq_size-1) == atomic_read(&nesvnic->rx_skbs_needed)) &&
-					(atomic_read(&nesvnic->rx_skb_timer_running) == 0)) {
+
+			if (((nesnic->rq_size - 1) == atomic_read(&nesvnic->rx_skbs_needed)) &&
+				(atomic_read(&nesvnic->rx_skb_timer_running) == 0))
+			{
 				atomic_set(&nesvnic->rx_skb_timer_running, 1);
 				spin_unlock_irqrestore(&nesnic->rq_lock, flags);
-				nesvnic->rq_wqes_timer.expires = jiffies + (HZ/2);	/* 1/2 second */
+				nesvnic->rq_wqes_timer.expires = jiffies + (HZ / 2);	/* 1/2 second */
 				add_timer(&nesvnic->rq_wqes_timer);
-			} else
+			}
+			else
+			{
 				spin_unlock_irqrestore(&nesnic->rq_lock, flags);
+			}
+
 			break;
 		}
-	} while (atomic_read(&nesvnic->rx_skbs_needed));
+	}
+	while (atomic_read(&nesvnic->rx_skbs_needed));
+
 	barrier();
+
 	if (rx_wqes_posted)
-		nes_write32(nesdev->regs+NES_WQE_ALLOC, (rx_wqes_posted << 24) | nesnic->qp_id);
+	{
+		nes_write32(nesdev->regs + NES_WQE_ALLOC, (rx_wqes_posted << 24) | nesnic->qp_id);
+	}
+
 	nesnic->replenishing_rq = 0;
 }
 
@@ -1630,8 +1941,11 @@ static void nes_rq_wqes_timeout(unsigned long parm)
 	struct nes_vnic *nesvnic = (struct nes_vnic *)parm;
 	printk("%s: Timer fired.\n", __func__);
 	atomic_set(&nesvnic->rx_skb_timer_running, 0);
+
 	if (atomic_read(&nesvnic->rx_skbs_needed))
+	{
 		nes_replenish_nic_rq(nesvnic);
+	}
 }
 
 
@@ -1655,35 +1969,39 @@ int nes_init_nic_qp(struct nes_device *nesdev, struct net_device *netdev)
 	u32 counter;
 	u32 wqe_count;
 	struct nes_rskb_cb *cb;
-	u8 jumbomode=0;
+	u8 jumbomode = 0;
 
 	/* Allocate fragment, SQ, RQ, and CQ; Reuse CEQ based on the PCI function */
 	nesvnic->nic_mem_size = 256 +
-			(NES_NIC_WQ_SIZE * sizeof(struct nes_first_frag)) +
-			(NES_NIC_WQ_SIZE * sizeof(struct nes_hw_nic_sq_wqe)) +
-			(NES_NIC_WQ_SIZE * sizeof(struct nes_hw_nic_rq_wqe)) +
-			(NES_NIC_WQ_SIZE * 2 * sizeof(struct nes_hw_nic_cqe)) +
-			sizeof(struct nes_hw_nic_qp_context);
+							(NES_NIC_WQ_SIZE * sizeof(struct nes_first_frag)) +
+							(NES_NIC_WQ_SIZE * sizeof(struct nes_hw_nic_sq_wqe)) +
+							(NES_NIC_WQ_SIZE * sizeof(struct nes_hw_nic_rq_wqe)) +
+							(NES_NIC_WQ_SIZE * 2 * sizeof(struct nes_hw_nic_cqe)) +
+							sizeof(struct nes_hw_nic_qp_context);
 
 	nesvnic->nic_vbase = pci_zalloc_consistent(nesdev->pcidev,
-						   nesvnic->nic_mem_size,
-						   &nesvnic->nic_pbase);
-	if (!nesvnic->nic_vbase) {
+						 nesvnic->nic_mem_size,
+						 &nesvnic->nic_pbase);
+
+	if (!nesvnic->nic_vbase)
+	{
 		nes_debug(NES_DBG_INIT, "Unable to allocate memory for NIC host descriptor rings\n");
 		return -ENOMEM;
 	}
+
 	nes_debug(NES_DBG_INIT, "Allocated NIC QP structures at %p (phys = %016lX), size = %u.\n",
-			nesvnic->nic_vbase, (unsigned long)nesvnic->nic_pbase, nesvnic->nic_mem_size);
+			  nesvnic->nic_vbase, (unsigned long)nesvnic->nic_pbase, nesvnic->nic_mem_size);
 
 	vmem = (void *)(((unsigned long)nesvnic->nic_vbase + (256 - 1)) &
-			~(unsigned long)(256 - 1));
+					~(unsigned long)(256 - 1));
 	pmem = (dma_addr_t)(((unsigned long long)nesvnic->nic_pbase + (256 - 1)) &
-			~(unsigned long long)(256 - 1));
+						~(unsigned long long)(256 - 1));
 
 	/* Setup the first Fragment buffers */
 	nesvnic->nic.first_frag_vbase = vmem;
 
-	for (counter = 0; counter < NES_NIC_WQ_SIZE; counter++) {
+	for (counter = 0; counter < NES_NIC_WQ_SIZE; counter++)
+	{
 		nesvnic->nic.frag_paddr[counter] = pmem;
 		pmem += sizeof(struct nes_first_frag);
 	}
@@ -1696,17 +2014,19 @@ int nes_init_nic_qp(struct nes_device *nesdev, struct net_device *netdev)
 	nesvnic->nic.sq_head = 0;
 	nesvnic->nic.sq_tail = 0;
 	nesvnic->nic.sq_size = NES_NIC_WQ_SIZE;
-	for (counter = 0; counter < NES_NIC_WQ_SIZE; counter++) {
+
+	for (counter = 0; counter < NES_NIC_WQ_SIZE; counter++)
+	{
 		nic_sqe = &nesvnic->nic.sq_vbase[counter];
 		nic_sqe->wqe_words[NES_NIC_SQ_WQE_MISC_IDX] =
-				cpu_to_le32(NES_NIC_SQ_WQE_DISABLE_CHKSUM |
-				NES_NIC_SQ_WQE_COMPLETION);
+			cpu_to_le32(NES_NIC_SQ_WQE_DISABLE_CHKSUM |
+						NES_NIC_SQ_WQE_COMPLETION);
 		nic_sqe->wqe_words[NES_NIC_SQ_WQE_LENGTH_0_TAG_IDX] =
-				cpu_to_le32((u32)NES_FIRST_FRAG_SIZE << 16);
+			cpu_to_le32((u32)NES_FIRST_FRAG_SIZE << 16);
 		nic_sqe->wqe_words[NES_NIC_SQ_WQE_FRAG0_LOW_IDX] =
-				cpu_to_le32((u32)nesvnic->nic.frag_paddr[counter]);
+			cpu_to_le32((u32)nesvnic->nic.frag_paddr[counter]);
 		nic_sqe->wqe_words[NES_NIC_SQ_WQE_FRAG0_HIGH_IDX] =
-				cpu_to_le32((u32)((u64)nesvnic->nic.frag_paddr[counter] >> 32));
+			cpu_to_le32((u32)((u64)nesvnic->nic.frag_paddr[counter] >> 32));
 	}
 
 	nesvnic->get_cqp_request = nes_get_cqp_request;
@@ -1731,9 +2051,13 @@ int nes_init_nic_qp(struct nes_device *nesdev, struct net_device *netdev)
 	pmem += (NES_NIC_WQ_SIZE * sizeof(struct nes_hw_nic_rq_wqe));
 
 	if (nesdev->nesadapter->netdev_count > 2)
+	{
 		nesvnic->mcrq_qp_id = nesvnic->nic_index + 32;
+	}
 	else
+	{
 		nesvnic->mcrq_qp_id = nesvnic->nic.qp_id + 4;
+	}
 
 	nesvnic->nic_cq.cq_vbase = vmem;
 	nesvnic->nic_cq.cq_pbase = pmem;
@@ -1750,32 +2074,38 @@ int nes_init_nic_qp(struct nes_device *nesdev, struct net_device *netdev)
 	nes_fill_init_cqp_wqe(cqp_wqe, nesdev);
 
 	cqp_wqe->wqe_words[NES_CQP_WQE_OPCODE_IDX] = cpu_to_le32(
-			NES_CQP_CREATE_CQ | NES_CQP_CQ_CEQ_VALID |
-			((u32)nesvnic->nic_cq.cq_size << 16));
+				NES_CQP_CREATE_CQ | NES_CQP_CQ_CEQ_VALID |
+				((u32)nesvnic->nic_cq.cq_size << 16));
 	cqp_wqe->wqe_words[NES_CQP_WQE_ID_IDX] = cpu_to_le32(
-			nesvnic->nic_cq.cq_number | ((u32)nesdev->nic_ceq_index << 16));
+				nesvnic->nic_cq.cq_number | ((u32)nesdev->nic_ceq_index << 16));
 	u64temp = (u64)nesvnic->nic_cq.cq_pbase;
 	set_wqe_64bit_value(cqp_wqe->wqe_words, NES_CQP_CQ_WQE_PBL_LOW_IDX, u64temp);
 	cqp_wqe->wqe_words[NES_CQP_CQ_WQE_CQ_CONTEXT_HIGH_IDX] =  0;
 	u64temp = (unsigned long)&nesvnic->nic_cq;
 	cqp_wqe->wqe_words[NES_CQP_CQ_WQE_CQ_CONTEXT_LOW_IDX] =  cpu_to_le32((u32)(u64temp >> 1));
 	cqp_wqe->wqe_words[NES_CQP_CQ_WQE_CQ_CONTEXT_HIGH_IDX] =
-			cpu_to_le32(((u32)((u64temp) >> 33)) & 0x7FFFFFFF);
+		cpu_to_le32(((u32)((u64temp) >> 33)) & 0x7FFFFFFF);
 	cqp_wqe->wqe_words[NES_CQP_CQ_WQE_DOORBELL_INDEX_HIGH_IDX] = 0;
+
 	if (++cqp_head >= nesdev->cqp.sq_size)
+	{
 		cqp_head = 0;
+	}
+
 	cqp_wqe = &nesdev->cqp.sq_vbase[cqp_head];
 	nes_fill_init_cqp_wqe(cqp_wqe, nesdev);
 
 	/* Send CreateQP request to CQP */
 	nic_context = (void *)(&nesvnic->nic_cq.cq_vbase[nesvnic->nic_cq.cq_size]);
 	nic_context->context_words[NES_NIC_CTX_MISC_IDX] =
-			cpu_to_le32((u32)NES_NIC_CTX_SIZE |
-			((u32)PCI_FUNC(nesdev->pcidev->devfn) << 12));
+		cpu_to_le32((u32)NES_NIC_CTX_SIZE |
+					((u32)PCI_FUNC(nesdev->pcidev->devfn) << 12));
 	nes_debug(NES_DBG_INIT, "RX_WINDOW_BUFFER_PAGE_TABLE_SIZE = 0x%08X, RX_WINDOW_BUFFER_SIZE = 0x%08X\n",
-			nes_read_indexed(nesdev, NES_IDX_RX_WINDOW_BUFFER_PAGE_TABLE_SIZE),
-			nes_read_indexed(nesdev, NES_IDX_RX_WINDOW_BUFFER_SIZE));
-	if (nes_read_indexed(nesdev, NES_IDX_RX_WINDOW_BUFFER_SIZE) != 0) {
+			  nes_read_indexed(nesdev, NES_IDX_RX_WINDOW_BUFFER_PAGE_TABLE_SIZE),
+			  nes_read_indexed(nesdev, NES_IDX_RX_WINDOW_BUFFER_SIZE));
+
+	if (nes_read_indexed(nesdev, NES_IDX_RX_WINDOW_BUFFER_SIZE) != 0)
+	{
 		nic_context->context_words[NES_NIC_CTX_MISC_IDX] |= cpu_to_le32(NES_NIC_BACK_STORE);
 	}
 
@@ -1790,37 +2120,45 @@ int nes_init_nic_qp(struct nes_device *nesdev, struct net_device *netdev)
 			NES_CQP_QP_TYPE_NIC);
 	cqp_wqe->wqe_words[NES_CQP_WQE_ID_IDX] = cpu_to_le32(nesvnic->nic.qp_id);
 	u64temp = (u64)nesvnic->nic_cq.cq_pbase +
-			(nesvnic->nic_cq.cq_size * sizeof(struct nes_hw_nic_cqe));
+			  (nesvnic->nic_cq.cq_size * sizeof(struct nes_hw_nic_cqe));
 	set_wqe_64bit_value(cqp_wqe->wqe_words, NES_CQP_QP_WQE_CONTEXT_LOW_IDX, u64temp);
 
 	if (++cqp_head >= nesdev->cqp.sq_size)
+	{
 		cqp_head = 0;
+	}
+
 	nesdev->cqp.sq_head = cqp_head;
 
 	barrier();
 
 	/* Ring doorbell (2 WQEs) */
-	nes_write32(nesdev->regs+NES_WQE_ALLOC, 0x02800000 | nesdev->cqp.qp_id);
+	nes_write32(nesdev->regs + NES_WQE_ALLOC, 0x02800000 | nesdev->cqp.qp_id);
 
 	spin_unlock_irqrestore(&nesdev->cqp.lock, flags);
 	nes_debug(NES_DBG_INIT, "Waiting for create NIC QP%u to complete.\n",
-			nesvnic->nic.qp_id);
+			  nesvnic->nic.qp_id);
 
 	ret = wait_event_timeout(nesdev->cqp.waitq, (nesdev->cqp.sq_tail == cqp_head),
-			NES_EVENT_TIMEOUT);
+							 NES_EVENT_TIMEOUT);
 	nes_debug(NES_DBG_INIT, "Create NIC QP%u completed, wait_event_timeout ret = %u.\n",
-			nesvnic->nic.qp_id, ret);
-	if (!ret) {
+			  nesvnic->nic.qp_id, ret);
+
+	if (!ret)
+	{
 		nes_debug(NES_DBG_INIT, "NIC QP%u create timeout expired\n", nesvnic->nic.qp_id);
 		pci_free_consistent(nesdev->pcidev, nesvnic->nic_mem_size, nesvnic->nic_vbase,
-				nesvnic->nic_pbase);
+							nesvnic->nic_pbase);
 		return -EIO;
 	}
 
 	/* Populate the RQ */
-	for (counter = 0; counter < (NES_NIC_WQ_SIZE - 1); counter++) {
+	for (counter = 0; counter < (NES_NIC_WQ_SIZE - 1); counter++)
+	{
 		skb = dev_alloc_skb(nesvnic->max_frame_size);
-		if (!skb) {
+
+		if (!skb)
+		{
 			nes_debug(NES_DBG_INIT, "%s: out of memory for receive skb\n", netdev->name);
 
 			nes_destroy_nic_qp(nesvnic);
@@ -1830,7 +2168,7 @@ int nes_init_nic_qp(struct nes_device *nesdev, struct net_device *netdev)
 		skb->dev = netdev;
 
 		pmem = pci_map_single(nesdev->pcidev, skb->data,
-				nesvnic->max_frame_size, PCI_DMA_FROMDEVICE);
+							  nesvnic->max_frame_size, PCI_DMA_FROMDEVICE);
 		cb = (struct nes_rskb_cb *)&skb->cb[0];
 		cb->busaddr = pmem;
 		cb->maplen = nesvnic->max_frame_size;
@@ -1846,26 +2184,37 @@ int nes_init_nic_qp(struct nes_device *nesdev, struct net_device *netdev)
 	wqe_count = NES_NIC_WQ_SIZE - 1;
 	nesvnic->nic.rq_head = wqe_count;
 	barrier();
-	do {
+
+	do
+	{
 		counter = min(wqe_count, ((u32)255));
 		wqe_count -= counter;
-		nes_write32(nesdev->regs+NES_WQE_ALLOC, (counter << 24) | nesvnic->nic.qp_id);
-	} while (wqe_count);
+		nes_write32(nesdev->regs + NES_WQE_ALLOC, (counter << 24) | nesvnic->nic.qp_id);
+	}
+	while (wqe_count);
+
 	init_timer(&nesvnic->rq_wqes_timer);
 	nesvnic->rq_wqes_timer.function = nes_rq_wqes_timeout;
 	nesvnic->rq_wqes_timer.data = (unsigned long)nesvnic;
 	nes_debug(NES_DBG_INIT, "NAPI support Enabled\n");
+
 	if (nesdev->nesadapter->et_use_adaptive_rx_coalesce)
 	{
 		nes_nic_init_timer(nesdev);
+
 		if (netdev->mtu > 1500)
+		{
 			jumbomode = 1;
+		}
+
 		nes_nic_init_timer_defaults(nesdev, jumbomode);
 	}
+
 	if ((nesdev->nesadapter->allow_unaligned_fpdus) &&
-		(nes_init_mgt_qp(nesdev, netdev, nesvnic))) {
-			nes_debug(NES_DBG_INIT, "%s: Out of memory for pau nic\n", netdev->name);
-			nes_destroy_nic_qp(nesvnic);
+		(nes_init_mgt_qp(nesdev, netdev, nesvnic)))
+	{
+		nes_debug(NES_DBG_INIT, "%s: Out of memory for pau nic\n", netdev->name);
+		nes_destroy_nic_qp(nesvnic);
 		return -ENOMEM;
 	}
 
@@ -1893,74 +2242,89 @@ void nes_destroy_nic_qp(struct nes_vnic *nesvnic)
 	int ret;
 
 	if (nesdev->nesadapter->allow_unaligned_fpdus)
+	{
 		nes_destroy_mgt(nesvnic);
+	}
 
 	/* clear wqe stall before destroying NIC QP */
 	wqm_cfg0 = nes_read_indexed(nesdev, NES_IDX_WQM_CONFIG0);
 	nes_write_indexed(nesdev, NES_IDX_WQM_CONFIG0, wqm_cfg0 & 0xFFFF7FFF);
 
 	/* Free remaining NIC receive buffers */
-	while (nesvnic->nic.rq_head != nesvnic->nic.rq_tail) {
+	while (nesvnic->nic.rq_head != nesvnic->nic.rq_tail)
+	{
 		rx_skb = nesvnic->nic.rx_skb[nesvnic->nic.rq_tail];
 		cb = (struct nes_rskb_cb *)&rx_skb->cb[0];
 		pci_unmap_single(nesdev->pcidev, cb->busaddr, cb->maplen,
-			PCI_DMA_FROMDEVICE);
+						 PCI_DMA_FROMDEVICE);
 
 		dev_kfree_skb(nesvnic->nic.rx_skb[nesvnic->nic.rq_tail++]);
 		nesvnic->nic.rq_tail &= (nesvnic->nic.rq_size - 1);
 	}
 
 	/* Free remaining NIC transmit buffers */
-	while (nesvnic->nic.sq_head != nesvnic->nic.sq_tail) {
+	while (nesvnic->nic.sq_head != nesvnic->nic.sq_tail)
+	{
 		nic_sqe = &nesvnic->nic.sq_vbase[nesvnic->nic.sq_tail];
 		wqe_fragment_index = 1;
 		wqe_fragment_length = (__le16 *)
-			&nic_sqe->wqe_words[NES_NIC_SQ_WQE_LENGTH_0_TAG_IDX];
+							  &nic_sqe->wqe_words[NES_NIC_SQ_WQE_LENGTH_0_TAG_IDX];
 		/* bump past the vlan tag */
 		wqe_fragment_length++;
-		if (le16_to_cpu(wqe_fragment_length[wqe_fragment_index]) != 0) {
+
+		if (le16_to_cpu(wqe_fragment_length[wqe_fragment_index]) != 0)
+		{
 			u64temp = (u64)le32_to_cpu(
-				nic_sqe->wqe_words[NES_NIC_SQ_WQE_FRAG0_LOW_IDX+
-				wqe_fragment_index*2]);
+						  nic_sqe->wqe_words[NES_NIC_SQ_WQE_FRAG0_LOW_IDX +
+											 wqe_fragment_index * 2]);
 			u64temp += ((u64)le32_to_cpu(
-				nic_sqe->wqe_words[NES_NIC_SQ_WQE_FRAG0_HIGH_IDX
-				+ wqe_fragment_index*2]))<<32;
+							nic_sqe->wqe_words[NES_NIC_SQ_WQE_FRAG0_HIGH_IDX
+											   + wqe_fragment_index * 2])) << 32;
 			bus_address = (dma_addr_t)u64temp;
+
 			if (test_and_clear_bit(nesvnic->nic.sq_tail,
-					nesvnic->nic.first_frag_overflow)) {
+								   nesvnic->nic.first_frag_overflow))
+			{
 				pci_unmap_single(nesdev->pcidev,
-						bus_address,
-						le16_to_cpu(wqe_fragment_length[
-							wqe_fragment_index++]),
-						PCI_DMA_TODEVICE);
+								 bus_address,
+								 le16_to_cpu(wqe_fragment_length[
+												 wqe_fragment_index++]),
+								 PCI_DMA_TODEVICE);
 			}
-			for (; wqe_fragment_index < 5; wqe_fragment_index++) {
-				if (wqe_fragment_length[wqe_fragment_index]) {
+
+			for (; wqe_fragment_index < 5; wqe_fragment_index++)
+			{
+				if (wqe_fragment_length[wqe_fragment_index])
+				{
 					u64temp = le32_to_cpu(
-						nic_sqe->wqe_words[
-						NES_NIC_SQ_WQE_FRAG0_LOW_IDX+
-						wqe_fragment_index*2]);
+								  nic_sqe->wqe_words[
+									  NES_NIC_SQ_WQE_FRAG0_LOW_IDX +
+									  wqe_fragment_index * 2]);
 					u64temp += ((u64)le32_to_cpu(
-						nic_sqe->wqe_words[
-						NES_NIC_SQ_WQE_FRAG0_HIGH_IDX+
-						wqe_fragment_index*2]))<<32;
+									nic_sqe->wqe_words[
+										NES_NIC_SQ_WQE_FRAG0_HIGH_IDX +
+										wqe_fragment_index * 2])) << 32;
 					bus_address = (dma_addr_t)u64temp;
 					pci_unmap_page(nesdev->pcidev,
-							bus_address,
-							le16_to_cpu(
-							wqe_fragment_length[
-							wqe_fragment_index]),
-							PCI_DMA_TODEVICE);
-				} else
+								   bus_address,
+								   le16_to_cpu(
+									   wqe_fragment_length[
+										   wqe_fragment_index]),
+								   PCI_DMA_TODEVICE);
+				}
+				else
+				{
 					break;
+				}
 			}
 		}
+
 		if (nesvnic->nic.tx_skb[nesvnic->nic.sq_tail])
 			dev_kfree_skb(
 				nesvnic->nic.tx_skb[nesvnic->nic.sq_tail]);
 
 		nesvnic->nic.sq_tail = (nesvnic->nic.sq_tail + 1)
-					& (nesvnic->nic.sq_size - 1);
+							   & (nesvnic->nic.sq_size - 1);
 	}
 
 	spin_lock_irqsave(&nesdev->cqp.lock, flags);
@@ -1971,50 +2335,56 @@ void nes_destroy_nic_qp(struct nes_vnic *nesvnic)
 	nes_fill_init_cqp_wqe(cqp_wqe, nesdev);
 
 	set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_OPCODE_IDX,
-		(NES_CQP_DESTROY_QP | NES_CQP_QP_TYPE_NIC));
+						(NES_CQP_DESTROY_QP | NES_CQP_QP_TYPE_NIC));
 	set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_ID_IDX,
-		nesvnic->nic.qp_id);
+						nesvnic->nic.qp_id);
 
 	if (++cqp_head >= nesdev->cqp.sq_size)
+	{
 		cqp_head = 0;
+	}
 
 	cqp_wqe = &nesdev->cqp.sq_vbase[cqp_head];
 
 	/* Destroy NIC CQ */
 	nes_fill_init_cqp_wqe(cqp_wqe, nesdev);
 	set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_OPCODE_IDX,
-		(NES_CQP_DESTROY_CQ | ((u32)nesvnic->nic_cq.cq_size << 16)));
+						(NES_CQP_DESTROY_CQ | ((u32)nesvnic->nic_cq.cq_size << 16)));
 	set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_ID_IDX,
-		(nesvnic->nic_cq.cq_number | ((u32)nesdev->nic_ceq_index << 16)));
+						(nesvnic->nic_cq.cq_number | ((u32)nesdev->nic_ceq_index << 16)));
 
 	if (++cqp_head >= nesdev->cqp.sq_size)
+	{
 		cqp_head = 0;
+	}
 
 	nesdev->cqp.sq_head = cqp_head;
 	barrier();
 
 	/* Ring doorbell (2 WQEs) */
-	nes_write32(nesdev->regs+NES_WQE_ALLOC, 0x02800000 | nesdev->cqp.qp_id);
+	nes_write32(nesdev->regs + NES_WQE_ALLOC, 0x02800000 | nesdev->cqp.qp_id);
 
 	spin_unlock_irqrestore(&nesdev->cqp.lock, flags);
 	nes_debug(NES_DBG_SHUTDOWN, "Waiting for CQP, cqp_head=%u, cqp.sq_head=%u,"
-			" cqp.sq_tail=%u, cqp.sq_size=%u\n",
-			cqp_head, nesdev->cqp.sq_head,
-			nesdev->cqp.sq_tail, nesdev->cqp.sq_size);
+			  " cqp.sq_tail=%u, cqp.sq_size=%u\n",
+			  cqp_head, nesdev->cqp.sq_head,
+			  nesdev->cqp.sq_tail, nesdev->cqp.sq_size);
 
 	ret = wait_event_timeout(nesdev->cqp.waitq, (nesdev->cqp.sq_tail == cqp_head),
-			NES_EVENT_TIMEOUT);
+							 NES_EVENT_TIMEOUT);
 
 	nes_debug(NES_DBG_SHUTDOWN, "Destroy NIC QP returned, wait_event_timeout ret = %u, cqp_head=%u,"
-			" cqp.sq_head=%u, cqp.sq_tail=%u\n",
-			ret, cqp_head, nesdev->cqp.sq_head, nesdev->cqp.sq_tail);
-	if (!ret) {
+			  " cqp.sq_head=%u, cqp.sq_tail=%u\n",
+			  ret, cqp_head, nesdev->cqp.sq_head, nesdev->cqp.sq_tail);
+
+	if (!ret)
+	{
 		nes_debug(NES_DBG_SHUTDOWN, "NIC QP%u destroy timeout expired\n",
-				nesvnic->nic.qp_id);
+				  nesvnic->nic.qp_id);
 	}
 
 	pci_free_consistent(nesdev->pcidev, nesvnic->nic_mem_size, nesvnic->nic_vbase,
-			nesvnic->nic_pbase);
+						nesvnic->nic_pbase);
 
 	/* restore old wqm_cfg0 value */
 	nes_write_indexed(nesdev, NES_IDX_WQM_CONFIG0, wqm_cfg0);
@@ -2028,56 +2398,69 @@ int nes_napi_isr(struct nes_device *nesdev)
 	struct nes_adapter *nesadapter = nesdev->nesadapter;
 	u32 int_stat;
 
-	if (nesdev->napi_isr_ran) {
+	if (nesdev->napi_isr_ran)
+	{
 		/* interrupt status has already been read in ISR */
 		int_stat = nesdev->int_stat;
-	} else {
+	}
+	else
+	{
 		int_stat = nes_read32(nesdev->regs + NES_INT_STAT);
 		nesdev->int_stat = int_stat;
 		nesdev->napi_isr_ran = 1;
 	}
 
 	int_stat &= nesdev->int_req;
+
 	/* iff NIC, process here, else wait for DPC */
-	if ((int_stat) && ((int_stat & 0x0000ff00) == int_stat)) {
+	if ((int_stat) && ((int_stat & 0x0000ff00) == int_stat))
+	{
 		nesdev->napi_isr_ran = 0;
 		nes_write32(nesdev->regs + NES_INT_STAT,
-			(int_stat &
-			~(NES_INT_INTF | NES_INT_TIMER | NES_INT_MAC0 | NES_INT_MAC1 | NES_INT_MAC2 | NES_INT_MAC3)));
+					(int_stat &
+					 ~(NES_INT_INTF | NES_INT_TIMER | NES_INT_MAC0 | NES_INT_MAC1 | NES_INT_MAC2 | NES_INT_MAC3)));
 
 		/* Process the CEQs */
 		nes_process_ceq(nesdev, &nesdev->nesadapter->ceq[nesdev->nic_ceq_index]);
 
 		if (unlikely((((nesadapter->et_rx_coalesce_usecs_irq) &&
-					(!nesadapter->et_use_adaptive_rx_coalesce)) ||
-					((nesadapter->et_use_adaptive_rx_coalesce) &&
-					 (nesdev->deepcq_count > nesadapter->et_pkt_rate_low))))) {
-			if ((nesdev->int_req & NES_INT_TIMER) == 0) {
+					   (!nesadapter->et_use_adaptive_rx_coalesce)) ||
+					  ((nesadapter->et_use_adaptive_rx_coalesce) &&
+					   (nesdev->deepcq_count > nesadapter->et_pkt_rate_low)))))
+		{
+			if ((nesdev->int_req & NES_INT_TIMER) == 0)
+			{
 				/* Enable Periodic timer interrupts */
 				nesdev->int_req |= NES_INT_TIMER;
 				/* ack any pending periodic timer interrupts so we don't get an immediate interrupt */
 				/* TODO: need to also ack other unused periodic timer values, get from nesadapter */
-				nes_write32(nesdev->regs+NES_TIMER_STAT,
-						nesdev->timer_int_req  | ~(nesdev->nesadapter->timer_int_req));
-				nes_write32(nesdev->regs+NES_INTF_INT_MASK,
-						~(nesdev->intf_int_req | NES_INTF_PERIODIC_TIMER));
+				nes_write32(nesdev->regs + NES_TIMER_STAT,
+							nesdev->timer_int_req  | ~(nesdev->nesadapter->timer_int_req));
+				nes_write32(nesdev->regs + NES_INTF_INT_MASK,
+							~(nesdev->intf_int_req | NES_INTF_PERIODIC_TIMER));
 			}
 
 			if (unlikely(nesadapter->et_use_adaptive_rx_coalesce))
 			{
 				nes_nic_init_timer(nesdev);
 			}
+
 			/* Enable interrupts, except CEQs */
-			nes_write32(nesdev->regs+NES_INT_MASK, 0x0000ffff | (~nesdev->int_req));
-		} else {
+			nes_write32(nesdev->regs + NES_INT_MASK, 0x0000ffff | (~nesdev->int_req));
+		}
+		else
+		{
 			/* Enable interrupts, make sure timer is off */
 			nesdev->int_req &= ~NES_INT_TIMER;
-			nes_write32(nesdev->regs+NES_INTF_INT_MASK, ~(nesdev->intf_int_req));
-			nes_write32(nesdev->regs+NES_INT_MASK, ~nesdev->int_req);
+			nes_write32(nesdev->regs + NES_INTF_INT_MASK, ~(nesdev->intf_int_req));
+			nes_write32(nesdev->regs + NES_INT_MASK, ~nesdev->int_req);
 		}
+
 		nesdev->deepcq_count = 0;
 		return 1;
-	} else {
+	}
+	else
+	{
 		return 0;
 	}
 }
@@ -2090,20 +2473,26 @@ static void process_critical_error(struct nes_device *nesdev)
 
 	debug_error = nes_read_indexed(nesdev, NES_IDX_DEBUG_ERROR_CONTROL_STATUS);
 	printk(KERN_ERR PFX "Critical Error reported by device!!! 0x%02X\n",
-			(u16)debug_error);
+		   (u16)debug_error);
 	nes_write_indexed(nesdev, NES_IDX_DEBUG_ERROR_CONTROL_STATUS,
-			0x01010000 | (debug_error & 0x0000ffff));
+					  0x01010000 | (debug_error & 0x0000ffff));
+
 	if (crit_err_count++ > 10)
+	{
 		nes_write_indexed(nesdev, NES_IDX_DEBUG_ERROR_MASKS1, 1 << 0x17);
+	}
+
 	error_module = (u16) (debug_error & 0x1F00) >> 8;
-	if (++nesdev->nesadapter->crit_error_count[error_module-1] >=
-			nes_max_critical_error_count) {
+
+	if (++nesdev->nesadapter->crit_error_count[error_module - 1] >=
+		nes_max_critical_error_count)
+	{
 		printk(KERN_ERR PFX "Masking off critical error for module "
-			"0x%02X\n", (u16)error_module);
+			   "0x%02X\n", (u16)error_module);
 		nes_idx_debug_error_masks0 = nes_read_indexed(nesdev,
-			NES_IDX_DEBUG_ERROR_MASKS0);
+									 NES_IDX_DEBUG_ERROR_MASKS0);
 		nes_write_indexed(nesdev, NES_IDX_DEBUG_ERROR_MASKS0,
-			nes_idx_debug_error_masks0 | (1 << error_module));
+						  nes_idx_debug_error_masks0 | (1 << error_module));
 	}
 }
 /**
@@ -2127,143 +2516,206 @@ void nes_dpc(unsigned long param)
 
 	/* nes_debug(NES_DBG_ISR, "\n"); */
 
-	do {
+	do
+	{
 		timer_stat = 0;
-		if (nesdev->napi_isr_ran) {
+
+		if (nesdev->napi_isr_ran)
+		{
 			nesdev->napi_isr_ran = 0;
 			int_stat = nesdev->int_stat;
-		} else
-			int_stat = nes_read32(nesdev->regs+NES_INT_STAT);
-		if (processed_intf_int != 0)
-			int_stat &= nesdev->int_req & ~NES_INT_INTF;
+		}
 		else
+		{
+			int_stat = nes_read32(nesdev->regs + NES_INT_STAT);
+		}
+
+		if (processed_intf_int != 0)
+		{
+			int_stat &= nesdev->int_req & ~NES_INT_INTF;
+		}
+		else
+		{
 			int_stat &= nesdev->int_req;
-		if (processed_timer_int == 0) {
+		}
+
+		if (processed_timer_int == 0)
+		{
 			processed_timer_int = 1;
-			if (int_stat & NES_INT_TIMER) {
+
+			if (int_stat & NES_INT_TIMER)
+			{
 				timer_stat = nes_read32(nesdev->regs + NES_TIMER_STAT);
-				if ((timer_stat & nesdev->timer_int_req) == 0) {
+
+				if ((timer_stat & nesdev->timer_int_req) == 0)
+				{
 					int_stat &= ~NES_INT_TIMER;
 				}
 			}
-		} else {
+		}
+		else
+		{
 			int_stat &= ~NES_INT_TIMER;
 		}
 
-		if (int_stat) {
-			if (int_stat & ~(NES_INT_INTF | NES_INT_TIMER | NES_INT_MAC0|
-					NES_INT_MAC1|NES_INT_MAC2 | NES_INT_MAC3)) {
+		if (int_stat)
+		{
+			if (int_stat & ~(NES_INT_INTF | NES_INT_TIMER | NES_INT_MAC0 |
+							 NES_INT_MAC1 | NES_INT_MAC2 | NES_INT_MAC3))
+			{
 				/* Ack the interrupts */
-				nes_write32(nesdev->regs+NES_INT_STAT,
-					(int_stat & ~(NES_INT_INTF | NES_INT_TIMER | NES_INT_MAC0|
-					NES_INT_MAC1 | NES_INT_MAC2 | NES_INT_MAC3)));
+				nes_write32(nesdev->regs + NES_INT_STAT,
+							(int_stat & ~(NES_INT_INTF | NES_INT_TIMER | NES_INT_MAC0 |
+										  NES_INT_MAC1 | NES_INT_MAC2 | NES_INT_MAC3)));
 			}
 
 			temp_int_stat = int_stat;
-			for (counter = 0, int_status_bit = 1; counter < 16; counter++) {
-				if (int_stat & int_status_bit) {
+
+			for (counter = 0, int_status_bit = 1; counter < 16; counter++)
+			{
+				if (int_stat & int_status_bit)
+				{
 					nes_process_ceq(nesdev, &nesadapter->ceq[counter]);
 					temp_int_stat &= ~int_status_bit;
 					completion_ints = 1;
 				}
+
 				if (!(temp_int_stat & 0x0000ffff))
+				{
 					break;
+				}
+
 				int_status_bit <<= 1;
 			}
 
 			/* Process the AEQ for this pci function */
 			int_status_bit = 1 << (16 + PCI_FUNC(nesdev->pcidev->devfn));
-			if (int_stat & int_status_bit) {
+
+			if (int_stat & int_status_bit)
+			{
 				nes_process_aeq(nesdev, &nesadapter->aeq[PCI_FUNC(nesdev->pcidev->devfn)]);
 			}
 
 			/* Process the MAC interrupt for this pci function */
 			int_status_bit = 1 << (24 + nesdev->mac_index);
-			if (int_stat & int_status_bit) {
+
+			if (int_stat & int_status_bit)
+			{
 				nes_process_mac_intr(nesdev, nesdev->mac_index);
 			}
 
-			if (int_stat & NES_INT_TIMER) {
-				if (timer_stat & nesdev->timer_int_req) {
+			if (int_stat & NES_INT_TIMER)
+			{
+				if (timer_stat & nesdev->timer_int_req)
+				{
 					nes_write32(nesdev->regs + NES_TIMER_STAT,
-							(timer_stat & nesdev->timer_int_req) |
-							~(nesdev->nesadapter->timer_int_req));
+								(timer_stat & nesdev->timer_int_req) |
+								~(nesdev->nesadapter->timer_int_req));
 					timer_ints = 1;
 				}
 			}
 
-			if (int_stat & NES_INT_INTF) {
+			if (int_stat & NES_INT_INTF)
+			{
 				processed_intf_int = 1;
-				intf_int_stat = nes_read32(nesdev->regs+NES_INTF_INT_STAT);
+				intf_int_stat = nes_read32(nesdev->regs + NES_INTF_INT_STAT);
 				intf_int_stat &= nesdev->intf_int_req;
-				if (NES_INTF_INT_CRITERR & intf_int_stat) {
+
+				if (NES_INTF_INT_CRITERR & intf_int_stat)
+				{
 					process_critical_error(nesdev);
 				}
-				if (NES_INTF_INT_PCIERR & intf_int_stat) {
+
+				if (NES_INTF_INT_PCIERR & intf_int_stat)
+				{
 					printk(KERN_ERR PFX "PCI Error reported by device!!!\n");
 					BUG();
 				}
-				if (NES_INTF_INT_AEQ_OFLOW & intf_int_stat) {
+
+				if (NES_INTF_INT_AEQ_OFLOW & intf_int_stat)
+				{
 					printk(KERN_ERR PFX "AEQ Overflow reported by device!!!\n");
 					BUG();
 				}
-				nes_write32(nesdev->regs+NES_INTF_INT_STAT, intf_int_stat);
+
+				nes_write32(nesdev->regs + NES_INTF_INT_STAT, intf_int_stat);
 			}
 
-			if (int_stat & NES_INT_TSW) {
+			if (int_stat & NES_INT_TSW)
+			{
 			}
 		}
+
 		/* Don't use the interface interrupt bit stay in loop */
 		int_stat &= ~NES_INT_INTF | NES_INT_TIMER | NES_INT_MAC0 |
-				NES_INT_MAC1 | NES_INT_MAC2 | NES_INT_MAC3;
-	} while ((int_stat != 0) && (loop_counter++ < MAX_DPC_ITERATIONS));
+					NES_INT_MAC1 | NES_INT_MAC2 | NES_INT_MAC3;
+	}
+	while ((int_stat != 0) && (loop_counter++ < MAX_DPC_ITERATIONS));
 
-	if (timer_ints == 1) {
-		if ((nesadapter->et_rx_coalesce_usecs_irq) || (nesadapter->et_use_adaptive_rx_coalesce)) {
-			if (completion_ints == 0) {
+	if (timer_ints == 1)
+	{
+		if ((nesadapter->et_rx_coalesce_usecs_irq) || (nesadapter->et_use_adaptive_rx_coalesce))
+		{
+			if (completion_ints == 0)
+			{
 				nesdev->timer_only_int_count++;
-				if (nesdev->timer_only_int_count>=nesadapter->timer_int_limit) {
+
+				if (nesdev->timer_only_int_count >= nesadapter->timer_int_limit)
+				{
 					nesdev->timer_only_int_count = 0;
 					nesdev->int_req &= ~NES_INT_TIMER;
 					nes_write32(nesdev->regs + NES_INTF_INT_MASK, ~(nesdev->intf_int_req));
 					nes_write32(nesdev->regs + NES_INT_MASK, ~nesdev->int_req);
-				} else {
-					nes_write32(nesdev->regs+NES_INT_MASK, 0x0000ffff | (~nesdev->int_req));
 				}
-			} else {
+				else
+				{
+					nes_write32(nesdev->regs + NES_INT_MASK, 0x0000ffff | (~nesdev->int_req));
+				}
+			}
+			else
+			{
 				if (unlikely(nesadapter->et_use_adaptive_rx_coalesce))
 				{
 					nes_nic_init_timer(nesdev);
 				}
+
 				nesdev->timer_only_int_count = 0;
-				nes_write32(nesdev->regs+NES_INT_MASK, 0x0000ffff | (~nesdev->int_req));
+				nes_write32(nesdev->regs + NES_INT_MASK, 0x0000ffff | (~nesdev->int_req));
 			}
-		} else {
+		}
+		else
+		{
 			nesdev->timer_only_int_count = 0;
 			nesdev->int_req &= ~NES_INT_TIMER;
-			nes_write32(nesdev->regs+NES_INTF_INT_MASK, ~(nesdev->intf_int_req));
-			nes_write32(nesdev->regs+NES_TIMER_STAT,
-					nesdev->timer_int_req | ~(nesdev->nesadapter->timer_int_req));
-			nes_write32(nesdev->regs+NES_INT_MASK, ~nesdev->int_req);
+			nes_write32(nesdev->regs + NES_INTF_INT_MASK, ~(nesdev->intf_int_req));
+			nes_write32(nesdev->regs + NES_TIMER_STAT,
+						nesdev->timer_int_req | ~(nesdev->nesadapter->timer_int_req));
+			nes_write32(nesdev->regs + NES_INT_MASK, ~nesdev->int_req);
 		}
-	} else {
+	}
+	else
+	{
 		if ( (completion_ints == 1) &&
 			 (((nesadapter->et_rx_coalesce_usecs_irq) &&
 			   (!nesadapter->et_use_adaptive_rx_coalesce)) ||
 			  ((nesdev->deepcq_count > nesadapter->et_pkt_rate_low) &&
-			   (nesadapter->et_use_adaptive_rx_coalesce) )) ) {
+			   (nesadapter->et_use_adaptive_rx_coalesce) )) )
+		{
 			/* nes_debug(NES_DBG_ISR, "Enabling periodic timer interrupt.\n" ); */
 			nesdev->timer_only_int_count = 0;
 			nesdev->int_req |= NES_INT_TIMER;
-			nes_write32(nesdev->regs+NES_TIMER_STAT,
-					nesdev->timer_int_req | ~(nesdev->nesadapter->timer_int_req));
-			nes_write32(nesdev->regs+NES_INTF_INT_MASK,
-					~(nesdev->intf_int_req | NES_INTF_PERIODIC_TIMER));
-			nes_write32(nesdev->regs+NES_INT_MASK, 0x0000ffff | (~nesdev->int_req));
-		} else {
-			nes_write32(nesdev->regs+NES_INT_MASK, ~nesdev->int_req);
+			nes_write32(nesdev->regs + NES_TIMER_STAT,
+						nesdev->timer_int_req | ~(nesdev->nesadapter->timer_int_req));
+			nes_write32(nesdev->regs + NES_INTF_INT_MASK,
+						~(nesdev->intf_int_req | NES_INTF_PERIODIC_TIMER));
+			nes_write32(nesdev->regs + NES_INT_MASK, 0x0000ffff | (~nesdev->int_req));
+		}
+		else
+		{
+			nes_write32(nesdev->regs + NES_INT_MASK, ~nesdev->int_req);
 		}
 	}
+
 	nesdev->deepcq_count = 0;
 }
 
@@ -2282,11 +2734,13 @@ static void nes_process_ceq(struct nes_device *nesdev, struct nes_hw_ceq *ceq)
 	head = ceq->ceq_head;
 	ceq_size = ceq->ceq_size;
 
-	do {
+	do
+	{
 		if (le32_to_cpu(ceq->ceq_vbase[head].ceqe_words[NES_CEQE_CQ_CTX_HIGH_IDX]) &
-				NES_CEQE_VALID) {
+			NES_CEQE_VALID)
+		{
 			u64temp = (((u64)(le32_to_cpu(ceq->ceq_vbase[head].ceqe_words[NES_CEQE_CQ_CTX_HIGH_IDX]))) << 32) |
-						((u64)(le32_to_cpu(ceq->ceq_vbase[head].ceqe_words[NES_CEQE_CQ_CTX_LOW_IDX])));
+					  ((u64)(le32_to_cpu(ceq->ceq_vbase[head].ceqe_words[NES_CEQE_CQ_CTX_LOW_IDX])));
 			u64temp <<= 1;
 			cq = *((struct nes_hw_cq **)&u64temp);
 			/* nes_debug(NES_DBG_CQ, "pCQ = %p\n", cq); */
@@ -2297,12 +2751,17 @@ static void nes_process_ceq(struct nes_device *nesdev, struct nes_hw_ceq *ceq)
 			cq->ce_handler(nesdev, cq);
 
 			if (++head >= ceq_size)
+			{
 				head = 0;
-		} else {
+			}
+		}
+		else
+		{
 			break;
 		}
 
-	} while (1);
+	}
+	while (1);
 
 	ceq->ceq_head = head;
 }
@@ -2323,35 +2782,48 @@ static void nes_process_aeq(struct nes_device *nesdev, struct nes_hw_aeq *aeq)
 	head = aeq->aeq_head;
 	aeq_size = aeq->aeq_size;
 
-	do {
+	do
+	{
 		aeqe = &aeq->aeq_vbase[head];
+
 		if ((le32_to_cpu(aeqe->aeqe_words[NES_AEQE_MISC_IDX]) & NES_AEQE_VALID) == 0)
+		{
 			break;
+		}
+
 		aeqe_misc  = le32_to_cpu(aeqe->aeqe_words[NES_AEQE_MISC_IDX]);
 		aeqe_cq_id = le32_to_cpu(aeqe->aeqe_words[NES_AEQE_COMP_QP_CQ_ID_IDX]);
-		if (aeqe_misc & (NES_AEQE_QP|NES_AEQE_CQ)) {
-			if (aeqe_cq_id >= NES_FIRST_QPN) {
+
+		if (aeqe_misc & (NES_AEQE_QP | NES_AEQE_CQ))
+		{
+			if (aeqe_cq_id >= NES_FIRST_QPN)
+			{
 				/* dealing with an accelerated QP related AE */
 				/*
 				 * u64temp = (((u64)(le32_to_cpu(aeqe->aeqe_words[NES_AEQE_COMP_CTXT_HIGH_IDX]))) << 32) |
 				 *	     ((u64)(le32_to_cpu(aeqe->aeqe_words[NES_AEQE_COMP_CTXT_LOW_IDX])));
 				 */
 				nes_process_iwarp_aeqe(nesdev, (struct nes_hw_aeqe *)aeqe);
-			} else {
+			}
+			else
+			{
 				/* TODO: dealing with a CQP related AE */
 				nes_debug(NES_DBG_AEQ, "Processing CQP related AE, misc = 0x%04X\n",
-						(u16)(aeqe_misc >> 16));
+						  (u16)(aeqe_misc >> 16));
 			}
 		}
 
 		aeqe->aeqe_words[NES_AEQE_MISC_IDX] = 0;
 
 		if (++head >= aeq_size)
+		{
 			head = 0;
+		}
 
 		nes_write32(nesdev->regs + NES_AEQ_ALLOC, 1 << 16);
 	}
 	while (1);
+
 	aeq->aeq_head = head;
 }
 
@@ -2359,66 +2831,94 @@ static void nes_reset_link(struct nes_device *nesdev, u32 mac_index)
 {
 	struct nes_adapter *nesadapter = nesdev->nesadapter;
 	u32 reset_value;
-	u32 i=0;
+	u32 i = 0;
 	u32 u32temp;
 
-	if (nesadapter->hw_rev == NE020_REV) {
+	if (nesadapter->hw_rev == NE020_REV)
+	{
 		return;
 	}
+
 	mh_detected++;
 
-	reset_value = nes_read32(nesdev->regs+NES_SOFTWARE_RESET);
+	reset_value = nes_read32(nesdev->regs + NES_SOFTWARE_RESET);
 
 	if ((mac_index == 0) || ((mac_index == 1) && (nesadapter->OneG_Mode)))
+	{
 		reset_value |= 0x0000001d;
+	}
 	else
+	{
 		reset_value |= 0x0000002d;
+	}
 
-	if (4 <= (nesadapter->link_interrupt_count[mac_index] / ((u16)NES_MAX_LINK_INTERRUPTS))) {
-		if ((!nesadapter->OneG_Mode) && (nesadapter->port_count == 2)) {
+	if (4 <= (nesadapter->link_interrupt_count[mac_index] / ((u16)NES_MAX_LINK_INTERRUPTS)))
+	{
+		if ((!nesadapter->OneG_Mode) && (nesadapter->port_count == 2))
+		{
 			nesadapter->link_interrupt_count[0] = 0;
 			nesadapter->link_interrupt_count[1] = 0;
 			u32temp = nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL1);
+
 			if (0x00000040 & u32temp)
+			{
 				nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL1, 0x0000F088);
+			}
 			else
+			{
 				nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL1, 0x0000F0C8);
+			}
 
 			reset_value |= 0x0000003d;
 		}
+
 		nesadapter->link_interrupt_count[mac_index] = 0;
 	}
 
-	nes_write32(nesdev->regs+NES_SOFTWARE_RESET, reset_value);
+	nes_write32(nesdev->regs + NES_SOFTWARE_RESET, reset_value);
 
-	while (((nes_read32(nesdev->regs+NES_SOFTWARE_RESET)
-			& 0x00000040) != 0x00000040) && (i++ < 5000));
+	while (((nes_read32(nesdev->regs + NES_SOFTWARE_RESET)
+			 & 0x00000040) != 0x00000040) && (i++ < 5000));
 
-	if (0x0000003d == (reset_value & 0x0000003d)) {
+	if (0x0000003d == (reset_value & 0x0000003d))
+	{
 		u32 pcs_control_status0, pcs_control_status1;
 
-		for (i = 0; i < 10; i++) {
+		for (i = 0; i < 10; i++)
+		{
 			pcs_control_status0 = nes_read_indexed(nesdev, NES_IDX_PHY_PCS_CONTROL_STATUS0);
 			pcs_control_status1 = nes_read_indexed(nesdev, NES_IDX_PHY_PCS_CONTROL_STATUS0 + 0x200);
-			if (((0x0F000000 == (pcs_control_status0 & 0x0F000000))
-			     && (pcs_control_status0 & 0x00100000))
-			    || ((0x0F000000 == (pcs_control_status1 & 0x0F000000))
-				&& (pcs_control_status1 & 0x00100000)))
-				continue;
-			else
-				break;
-		}
-		if (10 == i) {
-			u32temp = nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL1);
-			if (0x00000040 & u32temp)
-				nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL1, 0x0000F088);
-			else
-				nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL1, 0x0000F0C8);
 
-			nes_write32(nesdev->regs+NES_SOFTWARE_RESET, reset_value);
+			if (((0x0F000000 == (pcs_control_status0 & 0x0F000000))
+				 && (pcs_control_status0 & 0x00100000))
+				|| ((0x0F000000 == (pcs_control_status1 & 0x0F000000))
+					&& (pcs_control_status1 & 0x00100000)))
+			{
+				continue;
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		if (10 == i)
+		{
+			u32temp = nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL1);
+
+			if (0x00000040 & u32temp)
+			{
+				nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL1, 0x0000F088);
+			}
+			else
+			{
+				nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL1, 0x0000F0C8);
+			}
+
+			nes_write32(nesdev->regs + NES_SOFTWARE_RESET, reset_value);
 
 			while (((nes_read32(nesdev->regs + NES_SOFTWARE_RESET)
-				 & 0x00000040) != 0x00000040) && (i++ < 5000));
+					 & 0x00000040) != 0x00000040) && (i++ < 5000));
 		}
 	}
 }
@@ -2442,10 +2942,13 @@ static void nes_process_mac_intr(struct nes_device *nesdev, u32 mac_number)
 	u32 cdr_ctrl;
 
 	spin_lock_irqsave(&nesadapter->phy_lock, flags);
-	if (nesadapter->mac_sw_state[mac_number] != NES_MAC_SW_IDLE) {
+
+	if (nesadapter->mac_sw_state[mac_number] != NES_MAC_SW_IDLE)
+	{
 		spin_unlock_irqrestore(&nesadapter->phy_lock, flags);
 		return;
 	}
+
 	nesadapter->mac_sw_state[mac_number] = NES_MAC_SW_INTERRUPT;
 
 	/* ack the MAC interrupt */
@@ -2455,198 +2958,266 @@ static void nes_process_mac_intr(struct nes_device *nesdev, u32 mac_number)
 
 	nes_debug(NES_DBG_PHY, "MAC%u interrupt status = 0x%X.\n", mac_number, mac_status);
 
-	if (mac_status & (NES_MAC_INT_LINK_STAT_CHG | NES_MAC_INT_XGMII_EXT)) {
+	if (mac_status & (NES_MAC_INT_LINK_STAT_CHG | NES_MAC_INT_XGMII_EXT))
+	{
 		nesdev->link_status_interrupts++;
+
 		if (0 == (++nesadapter->link_interrupt_count[mac_index] % ((u16)NES_MAX_LINK_INTERRUPTS)))
+		{
 			nes_reset_link(nesdev, mac_index);
+		}
 
 		/* read the PHY interrupt status register */
 		if ((nesadapter->OneG_Mode) &&
-		(nesadapter->phy_type[mac_index] != NES_PHY_TYPE_PUMA_1G)) {
-			do {
+			(nesadapter->phy_type[mac_index] != NES_PHY_TYPE_PUMA_1G))
+		{
+			do
+			{
 				nes_read_1G_phy_reg(nesdev, 0x1a,
-						nesadapter->phy_index[mac_index], &phy_data);
+									nesadapter->phy_index[mac_index], &phy_data);
 				nes_debug(NES_DBG_PHY, "Phy%d data from register 0x1a = 0x%X.\n",
-						nesadapter->phy_index[mac_index], phy_data);
-			} while (phy_data&0x8000);
+						  nesadapter->phy_index[mac_index], phy_data);
+			}
+			while (phy_data & 0x8000);
 
 			temp_phy_data = 0;
-			do {
+
+			do
+			{
 				nes_read_1G_phy_reg(nesdev, 0x11,
-						nesadapter->phy_index[mac_index], &phy_data);
+									nesadapter->phy_index[mac_index], &phy_data);
 				nes_debug(NES_DBG_PHY, "Phy%d data from register 0x11 = 0x%X.\n",
-						nesadapter->phy_index[mac_index], phy_data);
+						  nesadapter->phy_index[mac_index], phy_data);
+
 				if (temp_phy_data == phy_data)
+				{
 					break;
+				}
+
 				temp_phy_data = phy_data;
-			} while (1);
+			}
+			while (1);
 
 			nes_read_1G_phy_reg(nesdev, 0x1e,
-					nesadapter->phy_index[mac_index], &phy_data);
+								nesadapter->phy_index[mac_index], &phy_data);
 			nes_debug(NES_DBG_PHY, "Phy%d data from register 0x1e = 0x%X.\n",
-					nesadapter->phy_index[mac_index], phy_data);
+					  nesadapter->phy_index[mac_index], phy_data);
 
 			nes_read_1G_phy_reg(nesdev, 1,
-					nesadapter->phy_index[mac_index], &phy_data);
+								nesadapter->phy_index[mac_index], &phy_data);
 			nes_debug(NES_DBG_PHY, "1G phy%u data from register 1 = 0x%X\n",
-					nesadapter->phy_index[mac_index], phy_data);
+					  nesadapter->phy_index[mac_index], phy_data);
 
-			if (temp_phy_data & 0x1000) {
+			if (temp_phy_data & 0x1000)
+			{
 				nes_debug(NES_DBG_PHY, "The Link is up according to the PHY\n");
 				phy_data = 4;
-			} else {
+			}
+			else
+			{
 				nes_debug(NES_DBG_PHY, "The Link is down according to the PHY\n");
 			}
 		}
-		nes_debug(NES_DBG_PHY, "Eth SERDES Common Status: 0=0x%08X, 1=0x%08X\n",
-				nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_STATUS0),
-				nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_STATUS0+0x200));
 
-		if (nesadapter->phy_type[mac_index] == NES_PHY_TYPE_PUMA_1G) {
-			switch (mac_index) {
-			case 1:
-			case 3:
-				pcs_control_status = nes_read_indexed(nesdev,
-						NES_IDX_PHY_PCS_CONTROL_STATUS0 + 0x200);
-				break;
-			default:
-				pcs_control_status = nes_read_indexed(nesdev,
-						NES_IDX_PHY_PCS_CONTROL_STATUS0);
-				break;
+		nes_debug(NES_DBG_PHY, "Eth SERDES Common Status: 0=0x%08X, 1=0x%08X\n",
+				  nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_STATUS0),
+				  nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_STATUS0 + 0x200));
+
+		if (nesadapter->phy_type[mac_index] == NES_PHY_TYPE_PUMA_1G)
+		{
+			switch (mac_index)
+			{
+				case 1:
+				case 3:
+					pcs_control_status = nes_read_indexed(nesdev,
+														  NES_IDX_PHY_PCS_CONTROL_STATUS0 + 0x200);
+					break;
+
+				default:
+					pcs_control_status = nes_read_indexed(nesdev,
+														  NES_IDX_PHY_PCS_CONTROL_STATUS0);
+					break;
 			}
-		} else {
+		}
+		else
+		{
 			pcs_control_status = nes_read_indexed(nesdev,
-					NES_IDX_PHY_PCS_CONTROL_STATUS0 + ((mac_index & 1) * 0x200));
+												  NES_IDX_PHY_PCS_CONTROL_STATUS0 + ((mac_index & 1) * 0x200));
 			pcs_control_status = nes_read_indexed(nesdev,
-					NES_IDX_PHY_PCS_CONTROL_STATUS0 + ((mac_index & 1) * 0x200));
+												  NES_IDX_PHY_PCS_CONTROL_STATUS0 + ((mac_index & 1) * 0x200));
 		}
 
 		nes_debug(NES_DBG_PHY, "PCS PHY Control/Status%u: 0x%08X\n",
-				mac_index, pcs_control_status);
+				  mac_index, pcs_control_status);
+
 		if ((nesadapter->OneG_Mode) &&
-				(nesadapter->phy_type[mac_index] != NES_PHY_TYPE_PUMA_1G)) {
+			(nesadapter->phy_type[mac_index] != NES_PHY_TYPE_PUMA_1G))
+		{
 			u32temp = 0x01010000;
-			if (nesadapter->port_count > 2) {
+
+			if (nesadapter->port_count > 2)
+			{
 				u32temp |= 0x02020000;
 			}
-			if ((pcs_control_status & u32temp)!= u32temp) {
+
+			if ((pcs_control_status & u32temp) != u32temp)
+			{
 				phy_data = 0;
 				nes_debug(NES_DBG_PHY, "PCS says the link is down\n");
 			}
-		} else {
-			switch (nesadapter->phy_type[mac_index]) {
-			case NES_PHY_TYPE_ARGUS:
-			case NES_PHY_TYPE_SFP_D:
-			case NES_PHY_TYPE_KR:
-				/* clear the alarms */
-				nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 4, 0x0008);
-				nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 4, 0xc001);
-				nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 4, 0xc002);
-				nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 4, 0xc005);
-				nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 4, 0xc006);
-				nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 1, 0x9003);
-				nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 1, 0x9004);
-				nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 1, 0x9005);
-				/* check link status */
-				nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 1, 0x9003);
-				temp_phy_data = (u16)nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
+		}
+		else
+		{
+			switch (nesadapter->phy_type[mac_index])
+			{
+				case NES_PHY_TYPE_ARGUS:
+				case NES_PHY_TYPE_SFP_D:
+				case NES_PHY_TYPE_KR:
+					/* clear the alarms */
+					nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 4, 0x0008);
+					nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 4, 0xc001);
+					nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 4, 0xc002);
+					nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 4, 0xc005);
+					nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 4, 0xc006);
+					nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 1, 0x9003);
+					nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 1, 0x9004);
+					nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 1, 0x9005);
+					/* check link status */
+					nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 1, 0x9003);
+					temp_phy_data = (u16)nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
 
-				nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 3, 0x0021);
-				nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
-				nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 3, 0x0021);
-				phy_data = (u16)nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
+					nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 3, 0x0021);
+					nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
+					nes_read_10G_phy_reg(nesdev, nesadapter->phy_index[mac_index], 3, 0x0021);
+					phy_data = (u16)nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
 
-				phy_data = (!temp_phy_data && (phy_data == 0x8000)) ? 0x4 : 0x0;
+					phy_data = (!temp_phy_data && (phy_data == 0x8000)) ? 0x4 : 0x0;
 
-				nes_debug(NES_DBG_PHY, "%s: Phy data = 0x%04X, link was %s.\n",
-					__func__, phy_data, nesadapter->mac_link_down[mac_index] ? "DOWN" : "UP");
-				break;
+					nes_debug(NES_DBG_PHY, "%s: Phy data = 0x%04X, link was %s.\n",
+							  __func__, phy_data, nesadapter->mac_link_down[mac_index] ? "DOWN" : "UP");
+					break;
 
-			case NES_PHY_TYPE_PUMA_1G:
-				if (mac_index < 2)
-					pcs_val = pcs_mask = 0x01010000;
-				else
-					pcs_val = pcs_mask = 0x02020000;
+				case NES_PHY_TYPE_PUMA_1G:
+					if (mac_index < 2)
+					{
+						pcs_val = pcs_mask = 0x01010000;
+					}
+					else
+					{
+						pcs_val = pcs_mask = 0x02020000;
+					}
+
 				/* fall through */
-			default:
-				phy_data = (pcs_val == (pcs_control_status & pcs_mask)) ? 0x4 : 0x0;
-				break;
+				default:
+					phy_data = (pcs_val == (pcs_control_status & pcs_mask)) ? 0x4 : 0x0;
+					break;
 			}
 		}
 
-		if (phy_data & 0x0004) {
+		if (phy_data & 0x0004)
+		{
 			if (wide_ppm_offset &&
-			    (nesadapter->phy_type[mac_index] == NES_PHY_TYPE_CX4) &&
-			    (nesadapter->hw_rev != NE020_REV)) {
+				(nesadapter->phy_type[mac_index] == NES_PHY_TYPE_CX4) &&
+				(nesadapter->hw_rev != NE020_REV))
+			{
 				cdr_ctrl = nes_read_indexed(nesdev,
-							    NES_IDX_ETH_SERDES_CDR_CONTROL0 +
-							    mac_index * 0x200);
+											NES_IDX_ETH_SERDES_CDR_CONTROL0 +
+											mac_index * 0x200);
 				nes_write_indexed(nesdev,
-						  NES_IDX_ETH_SERDES_CDR_CONTROL0 +
-						  mac_index * 0x200,
-						  cdr_ctrl | 0x000F0000);
+								  NES_IDX_ETH_SERDES_CDR_CONTROL0 +
+								  mac_index * 0x200,
+								  cdr_ctrl | 0x000F0000);
 			}
+
 			nesadapter->mac_link_down[mac_index] = 0;
-			list_for_each_entry(nesvnic, &nesadapter->nesvnic_list[mac_index], list) {
+			list_for_each_entry(nesvnic, &nesadapter->nesvnic_list[mac_index], list)
+			{
 				nes_debug(NES_DBG_PHY, "The Link is UP!!.  linkup was %d\n",
-						nesvnic->linkup);
-				if (nesvnic->linkup == 0) {
+						  nesvnic->linkup);
+
+				if (nesvnic->linkup == 0)
+				{
 					printk(PFX "The Link is now up for port %s, netdev %p.\n",
-							nesvnic->netdev->name, nesvnic->netdev);
+						   nesvnic->netdev->name, nesvnic->netdev);
+
 					if (netif_queue_stopped(nesvnic->netdev))
+					{
 						netif_start_queue(nesvnic->netdev);
+					}
+
 					nesvnic->linkup = 1;
 					netif_carrier_on(nesvnic->netdev);
 
 					spin_lock(&nesvnic->port_ibevent_lock);
-					if (nesvnic->of_device_registered) {
-						if (nesdev->iw_status == 0) {
+
+					if (nesvnic->of_device_registered)
+					{
+						if (nesdev->iw_status == 0)
+						{
 							nesdev->iw_status = 1;
 							nes_port_ibevent(nesvnic);
 						}
 					}
-					spin_unlock(&nesvnic->port_ibevent_lock);
-				}
-			}
-		} else {
-			if (wide_ppm_offset &&
-			    (nesadapter->phy_type[mac_index] == NES_PHY_TYPE_CX4) &&
-			    (nesadapter->hw_rev != NE020_REV)) {
-				cdr_ctrl = nes_read_indexed(nesdev,
-							    NES_IDX_ETH_SERDES_CDR_CONTROL0 +
-							    mac_index * 0x200);
-				nes_write_indexed(nesdev,
-						  NES_IDX_ETH_SERDES_CDR_CONTROL0 +
-						  mac_index * 0x200,
-						  cdr_ctrl & 0xFFF0FFFF);
-			}
-			nesadapter->mac_link_down[mac_index] = 1;
-			list_for_each_entry(nesvnic, &nesadapter->nesvnic_list[mac_index], list) {
-				nes_debug(NES_DBG_PHY, "The Link is Down!!. linkup was %d\n",
-						nesvnic->linkup);
-				if (nesvnic->linkup == 1) {
-					printk(PFX "The Link is now down for port %s, netdev %p.\n",
-							nesvnic->netdev->name, nesvnic->netdev);
-					if (!(netif_queue_stopped(nesvnic->netdev)))
-						netif_stop_queue(nesvnic->netdev);
-					nesvnic->linkup = 0;
-					netif_carrier_off(nesvnic->netdev);
 
-					spin_lock(&nesvnic->port_ibevent_lock);
-					if (nesvnic->of_device_registered) {
-						if (nesdev->iw_status == 1) {
-							nesdev->iw_status = 0;
-							nes_port_ibevent(nesvnic);
-						}
-					}
 					spin_unlock(&nesvnic->port_ibevent_lock);
 				}
 			}
 		}
-		if (nesadapter->phy_type[mac_index] == NES_PHY_TYPE_SFP_D) {
+		else
+		{
+			if (wide_ppm_offset &&
+				(nesadapter->phy_type[mac_index] == NES_PHY_TYPE_CX4) &&
+				(nesadapter->hw_rev != NE020_REV))
+			{
+				cdr_ctrl = nes_read_indexed(nesdev,
+											NES_IDX_ETH_SERDES_CDR_CONTROL0 +
+											mac_index * 0x200);
+				nes_write_indexed(nesdev,
+								  NES_IDX_ETH_SERDES_CDR_CONTROL0 +
+								  mac_index * 0x200,
+								  cdr_ctrl & 0xFFF0FFFF);
+			}
+
+			nesadapter->mac_link_down[mac_index] = 1;
+			list_for_each_entry(nesvnic, &nesadapter->nesvnic_list[mac_index], list)
+			{
+				nes_debug(NES_DBG_PHY, "The Link is Down!!. linkup was %d\n",
+						  nesvnic->linkup);
+
+				if (nesvnic->linkup == 1)
+				{
+					printk(PFX "The Link is now down for port %s, netdev %p.\n",
+						   nesvnic->netdev->name, nesvnic->netdev);
+
+					if (!(netif_queue_stopped(nesvnic->netdev)))
+					{
+						netif_stop_queue(nesvnic->netdev);
+					}
+
+					nesvnic->linkup = 0;
+					netif_carrier_off(nesvnic->netdev);
+
+					spin_lock(&nesvnic->port_ibevent_lock);
+
+					if (nesvnic->of_device_registered)
+					{
+						if (nesdev->iw_status == 1)
+						{
+							nesdev->iw_status = 0;
+							nes_port_ibevent(nesvnic);
+						}
+					}
+
+					spin_unlock(&nesvnic->port_ibevent_lock);
+				}
+			}
+		}
+
+		if (nesadapter->phy_type[mac_index] == NES_PHY_TYPE_SFP_D)
+		{
 			nesdev->link_recheck = 1;
 			mod_delayed_work(system_wq, &nesdev->work,
-					 NES_LINK_RECHECK_DELAY);
+							 NES_LINK_RECHECK_DELAY);
 		}
 	}
 
@@ -2679,57 +3250,85 @@ void nes_recheck_link_status(struct work_struct *work)
 	phy_data = (!temp_phy_data && (phy_data == 0x8000)) ? 0x4 : 0x0;
 
 	nes_debug(NES_DBG_PHY, "%s: Phy data = 0x%04X, link was %s.\n",
-		__func__, phy_data,
-		nesadapter->mac_link_down[mac_index] ? "DOWN" : "UP");
+			  __func__, phy_data,
+			  nesadapter->mac_link_down[mac_index] ? "DOWN" : "UP");
 
-	if (phy_data & 0x0004) {
+	if (phy_data & 0x0004)
+	{
 		nesadapter->mac_link_down[mac_index] = 0;
-		list_for_each_entry(nesvnic, &nesadapter->nesvnic_list[mac_index], list) {
-			if (nesvnic->linkup == 0) {
+		list_for_each_entry(nesvnic, &nesadapter->nesvnic_list[mac_index], list)
+		{
+			if (nesvnic->linkup == 0)
+			{
 				printk(PFX "The Link is now up for port %s, netdev %p.\n",
-						nesvnic->netdev->name, nesvnic->netdev);
+					   nesvnic->netdev->name, nesvnic->netdev);
+
 				if (netif_queue_stopped(nesvnic->netdev))
+				{
 					netif_start_queue(nesvnic->netdev);
+				}
+
 				nesvnic->linkup = 1;
 				netif_carrier_on(nesvnic->netdev);
 
 				spin_lock(&nesvnic->port_ibevent_lock);
-				if (nesvnic->of_device_registered) {
-					if (nesdev->iw_status == 0) {
+
+				if (nesvnic->of_device_registered)
+				{
+					if (nesdev->iw_status == 0)
+					{
 						nesdev->iw_status = 1;
 						nes_port_ibevent(nesvnic);
 					}
 				}
+
 				spin_unlock(&nesvnic->port_ibevent_lock);
 			}
 		}
 
-	} else {
+	}
+	else
+	{
 		nesadapter->mac_link_down[mac_index] = 1;
-		list_for_each_entry(nesvnic, &nesadapter->nesvnic_list[mac_index], list) {
-			if (nesvnic->linkup == 1) {
+		list_for_each_entry(nesvnic, &nesadapter->nesvnic_list[mac_index], list)
+		{
+			if (nesvnic->linkup == 1)
+			{
 				printk(PFX "The Link is now down for port %s, netdev %p.\n",
-						nesvnic->netdev->name, nesvnic->netdev);
+					   nesvnic->netdev->name, nesvnic->netdev);
+
 				if (!(netif_queue_stopped(nesvnic->netdev)))
+				{
 					netif_stop_queue(nesvnic->netdev);
+				}
+
 				nesvnic->linkup = 0;
 				netif_carrier_off(nesvnic->netdev);
 
 				spin_lock(&nesvnic->port_ibevent_lock);
-				if (nesvnic->of_device_registered) {
-					if (nesdev->iw_status == 1) {
+
+				if (nesvnic->of_device_registered)
+				{
+					if (nesdev->iw_status == 1)
+					{
 						nesdev->iw_status = 0;
 						nes_port_ibevent(nesvnic);
 					}
 				}
+
 				spin_unlock(&nesvnic->port_ibevent_lock);
 			}
 		}
 	}
+
 	if (nesdev->link_recheck++ < NES_LINK_RECHECK_MAX)
+	{
 		schedule_delayed_work(&nesdev->work, NES_LINK_RECHECK_DELAY);
+	}
 	else
+	{
 		nesdev->link_recheck = 0;
+	}
 
 	spin_unlock_irqrestore(&nesadapter->phy_lock, flags);
 }
@@ -2767,7 +3366,7 @@ void nes_nic_ce_handler(struct nes_device *nesdev, struct nes_hw_nic_cq *cq)
 	u32 head;
 	u32 cq_size;
 	u32 rx_pkt_size;
-	u32 cqe_count=0;
+	u32 cqe_count = 0;
 	u32 cqe_errv;
 	u32 cqe_misc;
 	u16 wqe_fragment_index = 1;	/* first fragment (0) is used by copy buffer */
@@ -2779,12 +3378,17 @@ void nes_nic_ce_handler(struct nes_device *nesdev, struct nes_hw_nic_cq *cq)
 	head = cq->cq_head;
 	cq_size = cq->cq_size;
 	cq->cqes_pending = 1;
-	do {
+
+	do
+	{
 		if (le32_to_cpu(cq->cq_vbase[head].cqe_words[NES_NIC_CQE_MISC_IDX]) &
-				NES_NIC_CQE_VALID) {
+			NES_NIC_CQE_VALID)
+		{
 			nesnic = &nesvnic->nic;
 			cqe_misc = le32_to_cpu(cq->cq_vbase[head].cqe_words[NES_NIC_CQE_MISC_IDX]);
-			if (cqe_misc & NES_NIC_CQE_SQ) {
+
+			if (cqe_misc & NES_NIC_CQE_SQ)
+			{
 				sq_cqes++;
 				wqe_fragment_index = 1;
 				nic_sqe = &nesnic->sq_vbase[nesnic->sq_tail];
@@ -2792,45 +3396,67 @@ void nes_nic_ce_handler(struct nes_device *nesdev, struct nes_hw_nic_cq *cq)
 				wqe_fragment_length = (__le16 *)&nic_sqe->wqe_words[NES_NIC_SQ_WQE_LENGTH_0_TAG_IDX];
 				/* bump past the vlan tag */
 				wqe_fragment_length++;
-				if (le16_to_cpu(wqe_fragment_length[wqe_fragment_index]) != 0) {
+
+				if (le16_to_cpu(wqe_fragment_length[wqe_fragment_index]) != 0)
+				{
 					u64temp = (u64) le32_to_cpu(nic_sqe->wqe_words[NES_NIC_SQ_WQE_FRAG0_LOW_IDX +
-							wqe_fragment_index * 2]);
+												wqe_fragment_index * 2]);
 					u64temp += ((u64)le32_to_cpu(nic_sqe->wqe_words[NES_NIC_SQ_WQE_FRAG0_HIGH_IDX +
-							wqe_fragment_index * 2])) << 32;
+												 wqe_fragment_index * 2])) << 32;
 					bus_address = (dma_addr_t)u64temp;
-					if (test_and_clear_bit(nesnic->sq_tail, nesnic->first_frag_overflow)) {
+
+					if (test_and_clear_bit(nesnic->sq_tail, nesnic->first_frag_overflow))
+					{
 						pci_unmap_single(nesdev->pcidev,
-								bus_address,
-								le16_to_cpu(wqe_fragment_length[wqe_fragment_index++]),
-								PCI_DMA_TODEVICE);
+										 bus_address,
+										 le16_to_cpu(wqe_fragment_length[wqe_fragment_index++]),
+										 PCI_DMA_TODEVICE);
 					}
-					for (; wqe_fragment_index < 5; wqe_fragment_index++) {
-						if (wqe_fragment_length[wqe_fragment_index]) {
+
+					for (; wqe_fragment_index < 5; wqe_fragment_index++)
+					{
+						if (wqe_fragment_length[wqe_fragment_index])
+						{
 							u64temp = le32_to_cpu(nic_sqe->wqe_words[NES_NIC_SQ_WQE_FRAG0_LOW_IDX +
-										wqe_fragment_index * 2]);
+												  wqe_fragment_index * 2]);
 							u64temp += ((u64)le32_to_cpu(nic_sqe->wqe_words[NES_NIC_SQ_WQE_FRAG0_HIGH_IDX
-										+ wqe_fragment_index * 2])) <<32;
+														 + wqe_fragment_index * 2])) << 32;
 							bus_address = (dma_addr_t)u64temp;
 							pci_unmap_page(nesdev->pcidev,
-									bus_address,
-									le16_to_cpu(wqe_fragment_length[wqe_fragment_index]),
-									PCI_DMA_TODEVICE);
-						} else
+										   bus_address,
+										   le16_to_cpu(wqe_fragment_length[wqe_fragment_index]),
+										   PCI_DMA_TODEVICE);
+						}
+						else
+						{
 							break;
+						}
 					}
 				}
+
 				if (skb)
+				{
 					dev_kfree_skb_any(skb);
+				}
+
 				nesnic->sq_tail++;
-				nesnic->sq_tail &= nesnic->sq_size-1;
-				if (sq_cqes > 128) {
+				nesnic->sq_tail &= nesnic->sq_size - 1;
+
+				if (sq_cqes > 128)
+				{
 					barrier();
+
 					/* restart the queue if it had been stopped */
 					if (netif_queue_stopped(nesvnic->netdev))
+					{
 						netif_wake_queue(nesvnic->netdev);
+					}
+
 					sq_cqes = 0;
 				}
-			} else {
+			}
+			else
+			{
 				rqes_processed ++;
 
 				cq->rx_cqes_completed++;
@@ -2843,7 +3469,7 @@ void nes_nic_ce_handler(struct nes_device *nesdev, struct nes_hw_nic_cq *cq)
 				bus_address = (dma_addr_t)le32_to_cpu(nic_rqe->wqe_words[NES_NIC_RQ_WQE_FRAG0_LOW_IDX]);
 				bus_address += ((u64)le32_to_cpu(nic_rqe->wqe_words[NES_NIC_RQ_WQE_FRAG0_HIGH_IDX])) << 32;
 				pci_unmap_single(nesdev->pcidev, bus_address,
-						nesvnic->max_frame_size, PCI_DMA_FROMDEVICE);
+								 nesvnic->max_frame_size, PCI_DMA_FROMDEVICE);
 				cb = (struct nes_rskb_cb *)&rx_skb->cb[0];
 				cb->busaddr = 0;
 				/* rx_skb->tail = rx_skb->data + rx_pkt_size; */
@@ -2855,64 +3481,86 @@ void nes_nic_ce_handler(struct nes_device *nesdev, struct nes_hw_nic_cq *cq)
 				nesnic->rq_tail &= nesnic->rq_size - 1;
 
 				atomic_inc(&nesvnic->rx_skbs_needed);
-				if (atomic_read(&nesvnic->rx_skbs_needed) > (nesvnic->nic.rq_size>>1)) {
-					nes_write32(nesdev->regs+NES_CQE_ALLOC,
-							cq->cq_number | (cqe_count << 16));
+
+				if (atomic_read(&nesvnic->rx_skbs_needed) > (nesvnic->nic.rq_size >> 1))
+				{
+					nes_write32(nesdev->regs + NES_CQE_ALLOC,
+								cq->cq_number | (cqe_count << 16));
 					/* nesadapter->tune_timer.cq_count += cqe_count; */
 					nesdev->currcq_count += cqe_count;
 					cqe_count = 0;
 					nes_replenish_nic_rq(nesvnic);
 				}
+
 				pkt_type = (u16)(le32_to_cpu(cq->cq_vbase[head].cqe_words[NES_NIC_CQE_TAG_PKT_TYPE_IDX]));
 				cqe_errv = (cqe_misc & NES_NIC_CQE_ERRV_MASK) >> NES_NIC_CQE_ERRV_SHIFT;
 				rx_skb->ip_summed = CHECKSUM_NONE;
 
 				if ((NES_PKT_TYPE_TCPV4_BITS == (pkt_type & NES_PKT_TYPE_TCPV4_MASK)) ||
-						(NES_PKT_TYPE_UDPV4_BITS == (pkt_type & NES_PKT_TYPE_UDPV4_MASK))) {
+					(NES_PKT_TYPE_UDPV4_BITS == (pkt_type & NES_PKT_TYPE_UDPV4_MASK)))
+				{
 					if ((cqe_errv &
-							(NES_NIC_ERRV_BITS_IPV4_CSUM_ERR | NES_NIC_ERRV_BITS_TCPUDP_CSUM_ERR |
-							NES_NIC_ERRV_BITS_IPH_ERR | NES_NIC_ERRV_BITS_WQE_OVERRUN)) == 0) {
+						 (NES_NIC_ERRV_BITS_IPV4_CSUM_ERR | NES_NIC_ERRV_BITS_TCPUDP_CSUM_ERR |
+						  NES_NIC_ERRV_BITS_IPH_ERR | NES_NIC_ERRV_BITS_WQE_OVERRUN)) == 0)
+					{
 						if (nesvnic->netdev->features & NETIF_F_RXCSUM)
+						{
 							rx_skb->ip_summed = CHECKSUM_UNNECESSARY;
-					} else
+						}
+					}
+					else
 						nes_debug(NES_DBG_CQ, "%s: unsuccessfully checksummed TCP or UDP packet."
-								" errv = 0x%X, pkt_type = 0x%X.\n",
-								nesvnic->netdev->name, cqe_errv, pkt_type);
+								  " errv = 0x%X, pkt_type = 0x%X.\n",
+								  nesvnic->netdev->name, cqe_errv, pkt_type);
 
-				} else if ((pkt_type & NES_PKT_TYPE_IPV4_MASK) == NES_PKT_TYPE_IPV4_BITS) {
+				}
+				else if ((pkt_type & NES_PKT_TYPE_IPV4_MASK) == NES_PKT_TYPE_IPV4_BITS)
+				{
 					if ((cqe_errv &
-							(NES_NIC_ERRV_BITS_IPV4_CSUM_ERR | NES_NIC_ERRV_BITS_IPH_ERR |
-							NES_NIC_ERRV_BITS_WQE_OVERRUN)) == 0) {
-						if (nesvnic->netdev->features & NETIF_F_RXCSUM) {
+						 (NES_NIC_ERRV_BITS_IPV4_CSUM_ERR | NES_NIC_ERRV_BITS_IPH_ERR |
+						  NES_NIC_ERRV_BITS_WQE_OVERRUN)) == 0)
+					{
+						if (nesvnic->netdev->features & NETIF_F_RXCSUM)
+						{
 							rx_skb->ip_summed = CHECKSUM_UNNECESSARY;
 							/* nes_debug(NES_DBG_CQ, "%s: Reporting successfully checksummed IPv4 packet.\n",
 								  nesvnic->netdev->name); */
 						}
-					} else
-						nes_debug(NES_DBG_CQ, "%s: unsuccessfully checksummed TCP or UDP packet."
-								" errv = 0x%X, pkt_type = 0x%X.\n",
-								nesvnic->netdev->name, cqe_errv, pkt_type);
 					}
+					else
+						nes_debug(NES_DBG_CQ, "%s: unsuccessfully checksummed TCP or UDP packet."
+								  " errv = 0x%X, pkt_type = 0x%X.\n",
+								  nesvnic->netdev->name, cqe_errv, pkt_type);
+				}
+
 				/* nes_debug(NES_DBG_CQ, "pkt_type=%x, APBVT_MASK=%x\n",
 							pkt_type, (pkt_type & NES_PKT_TYPE_APBVT_MASK)); */
 
-				if ((pkt_type & NES_PKT_TYPE_APBVT_MASK) == NES_PKT_TYPE_APBVT_BITS) {
+				if ((pkt_type & NES_PKT_TYPE_APBVT_MASK) == NES_PKT_TYPE_APBVT_BITS)
+				{
 					if (nes_cm_recv(rx_skb, nesvnic->netdev))
+					{
 						rx_skb = NULL;
+					}
 				}
+
 				if (rx_skb == NULL)
+				{
 					goto skip_rx_indicate0;
+				}
 
 
-				if (cqe_misc & NES_NIC_CQE_TAG_VALID) {
+				if (cqe_misc & NES_NIC_CQE_TAG_VALID)
+				{
 					vlan_tag = (u16)(le32_to_cpu(
-							cq->cq_vbase[head].cqe_words[NES_NIC_CQE_TAG_PKT_TYPE_IDX])
-							>> 16);
+										 cq->cq_vbase[head].cqe_words[NES_NIC_CQE_TAG_PKT_TYPE_IDX])
+									 >> 16);
 					nes_debug(NES_DBG_CQ, "%s: Reporting stripped VLAN packet. Tag = 0x%04X\n",
-							nesvnic->netdev->name, vlan_tag);
+							  nesvnic->netdev->name, vlan_tag);
 
 					__vlan_hwaccel_put_tag(rx_skb, htons(ETH_P_8021Q), vlan_tag);
 				}
+
 				napi_gro_receive(&nesvnic->napi, rx_skb);
 
 skip_rx_indicate0:
@@ -2924,44 +3572,63 @@ skip_rx_indicate0:
 			cq->cq_vbase[head].cqe_words[NES_NIC_CQE_MISC_IDX] = 0;
 			/* Accounting... */
 			cqe_count++;
+
 			if (++head >= cq_size)
+			{
 				head = 0;
-			if (cqe_count == 255) {
+			}
+
+			if (cqe_count == 255)
+			{
 				/* Replenish Nic CQ */
-				nes_write32(nesdev->regs+NES_CQE_ALLOC,
-						cq->cq_number | (cqe_count << 16));
+				nes_write32(nesdev->regs + NES_CQE_ALLOC,
+							cq->cq_number | (cqe_count << 16));
 				/* nesdev->nesadapter->tune_timer.cq_count += cqe_count; */
 				nesdev->currcq_count += cqe_count;
 				cqe_count = 0;
 			}
 
 			if (cq->rx_cqes_completed >= nesvnic->budget)
+			{
 				break;
-		} else {
+			}
+		}
+		else
+		{
 			cq->cqes_pending = 0;
 			break;
 		}
 
-	} while (1);
+	}
+	while (1);
 
-	if (sq_cqes) {
+	if (sq_cqes)
+	{
 		barrier();
+
 		/* restart the queue if it had been stopped */
 		if (netif_queue_stopped(nesvnic->netdev))
+		{
 			netif_wake_queue(nesvnic->netdev);
+		}
 	}
+
 	cq->cq_head = head;
 	/* nes_debug(NES_DBG_CQ, "CQ%u Processed = %u cqes, new head = %u.\n",
 			cq->cq_number, cqe_count, cq->cq_head); */
 	cq->cqe_allocs_pending = cqe_count;
+
 	if (unlikely(nesadapter->et_use_adaptive_rx_coalesce))
 	{
 		/* nesdev->nesadapter->tune_timer.cq_count += cqe_count; */
 		nesdev->currcq_count += cqe_count;
 		nes_nic_tune_timer(nesdev);
 	}
+
 	if (atomic_read(&nesvnic->rx_skbs_needed))
+	{
 		nes_replenish_nic_rq(nesvnic);
+	}
 }
 
 
@@ -2978,7 +3645,7 @@ static void nes_cqp_ce_handler(struct nes_device *nesdev, struct nes_hw_cq *cq)
 	struct nes_hw_cqp_wqe *cqp_wqe;
 	u32 head;
 	u32 cq_size;
-	u32 cqe_count=0;
+	u32 cqe_count = 0;
 	u32 error_code;
 	u32 opcode;
 	u32 ctx_index;
@@ -2987,32 +3654,40 @@ static void nes_cqp_ce_handler(struct nes_device *nesdev, struct nes_hw_cq *cq)
 	head = cq->cq_head;
 	cq_size = cq->cq_size;
 
-	do {
+	do
+	{
 		/* process the CQE */
 		/* nes_debug(NES_DBG_CQP, "head=%u cqe_words=%08X\n", head,
 			  le32_to_cpu(cq->cq_vbase[head].cqe_words[NES_CQE_OPCODE_IDX])); */
 
 		opcode = le32_to_cpu(cq->cq_vbase[head].cqe_words[NES_CQE_OPCODE_IDX]);
-		if (opcode & NES_CQE_VALID) {
+
+		if (opcode & NES_CQE_VALID)
+		{
 			cqp = &nesdev->cqp;
 
 			error_code = le32_to_cpu(cq->cq_vbase[head].cqe_words[NES_CQE_ERROR_CODE_IDX]);
-			if (error_code) {
+
+			if (error_code)
+			{
 				nes_debug(NES_DBG_CQP, "Bad Completion code for opcode 0x%02X from CQP,"
-						" Major/Minor codes = 0x%04X:%04X.\n",
-						le32_to_cpu(cq->cq_vbase[head].cqe_words[NES_CQE_OPCODE_IDX])&0x3f,
-						(u16)(error_code >> 16),
-						(u16)error_code);
+						  " Major/Minor codes = 0x%04X:%04X.\n",
+						  le32_to_cpu(cq->cq_vbase[head].cqe_words[NES_CQE_OPCODE_IDX]) & 0x3f,
+						  (u16)(error_code >> 16),
+						  (u16)error_code);
 			}
 
 			u64temp = (((u64)(le32_to_cpu(cq->cq_vbase[head].
-					cqe_words[NES_CQE_COMP_COMP_CTX_HIGH_IDX]))) << 32) |
-					((u64)(le32_to_cpu(cq->cq_vbase[head].
-					cqe_words[NES_CQE_COMP_COMP_CTX_LOW_IDX])));
+										  cqe_words[NES_CQE_COMP_COMP_CTX_HIGH_IDX]))) << 32) |
+					  ((u64)(le32_to_cpu(cq->cq_vbase[head].
+										 cqe_words[NES_CQE_COMP_COMP_CTX_LOW_IDX])));
 
 			cqp_request = (struct nes_cqp_request *)(unsigned long)u64temp;
-			if (cqp_request) {
-				if (cqp_request->waiting) {
+
+			if (cqp_request)
+			{
+				if (cqp_request->waiting)
+				{
 					/* nes_debug(NES_DBG_CQP, "%s: Waking up requestor\n"); */
 					cqp_request->major_code = (u16)(error_code >> 16);
 					cqp_request->minor_code = (u16)error_code;
@@ -3020,69 +3695,96 @@ static void nes_cqp_ce_handler(struct nes_device *nesdev, struct nes_hw_cq *cq)
 					cqp_request->request_done = 1;
 					wake_up(&cqp_request->waitq);
 					nes_put_cqp_request(nesdev, cqp_request);
-				} else {
+				}
+				else
+				{
 					if (cqp_request->callback)
+					{
 						cqp_request->cqp_callback(nesdev, cqp_request);
+					}
+
 					nes_free_cqp_request(nesdev, cqp_request);
 				}
-			} else {
+			}
+			else
+			{
 				wake_up(&nesdev->cqp.waitq);
 			}
 
 			cq->cq_vbase[head].cqe_words[NES_CQE_OPCODE_IDX] = 0;
 			nes_write32(nesdev->regs + NES_CQE_ALLOC, cq->cq_number | (1 << 16));
+
 			if (++cqp->sq_tail >= cqp->sq_size)
+			{
 				cqp->sq_tail = 0;
+			}
 
 			/* Accounting... */
 			cqe_count++;
+
 			if (++head >= cq_size)
+			{
 				head = 0;
-		} else {
+			}
+		}
+		else
+		{
 			break;
 		}
-	} while (1);
+	}
+	while (1);
+
 	cq->cq_head = head;
 
 	spin_lock_irqsave(&nesdev->cqp.lock, flags);
+
 	while ((!list_empty(&nesdev->cqp_pending_reqs)) &&
-			((((nesdev->cqp.sq_tail+nesdev->cqp.sq_size)-nesdev->cqp.sq_head) &
-			(nesdev->cqp.sq_size - 1)) != 1)) {
+		   ((((nesdev->cqp.sq_tail + nesdev->cqp.sq_size) - nesdev->cqp.sq_head) &
+			 (nesdev->cqp.sq_size - 1)) != 1))
+	{
 		cqp_request = list_entry(nesdev->cqp_pending_reqs.next,
-				struct nes_cqp_request, list);
+								 struct nes_cqp_request, list);
 		list_del_init(&cqp_request->list);
 		head = nesdev->cqp.sq_head++;
-		nesdev->cqp.sq_head &= nesdev->cqp.sq_size-1;
+		nesdev->cqp.sq_head &= nesdev->cqp.sq_size - 1;
 		cqp_wqe = &nesdev->cqp.sq_vbase[head];
 		memcpy(cqp_wqe, &cqp_request->cqp_wqe, sizeof(*cqp_wqe));
 		barrier();
 
 		opcode = cqp_wqe->wqe_words[NES_CQP_WQE_OPCODE_IDX];
+
 		if ((opcode & NES_CQP_OPCODE_MASK) == NES_CQP_DOWNLOAD_SEGMENT)
+		{
 			ctx_index = NES_CQP_WQE_DL_COMP_CTX_LOW_IDX;
+		}
 		else
+		{
 			ctx_index = NES_CQP_WQE_COMP_CTX_LOW_IDX;
+		}
+
 		cqp_wqe->wqe_words[ctx_index] =
 			cpu_to_le32((u32)((unsigned long)cqp_request));
 		cqp_wqe->wqe_words[ctx_index + 1] =
 			cpu_to_le32((u32)(upper_32_bits((unsigned long)cqp_request)));
 		nes_debug(NES_DBG_CQP, "CQP request %p (opcode 0x%02X) put on CQPs SQ wqe%u.\n",
-				cqp_request, le32_to_cpu(cqp_wqe->wqe_words[NES_CQP_WQE_OPCODE_IDX])&0x3f, head);
+				  cqp_request, le32_to_cpu(cqp_wqe->wqe_words[NES_CQP_WQE_OPCODE_IDX]) & 0x3f, head);
 		/* Ring doorbell (1 WQEs) */
 		barrier();
-		nes_write32(nesdev->regs+NES_WQE_ALLOC, 0x01800000 | nesdev->cqp.qp_id);
+		nes_write32(nesdev->regs + NES_WQE_ALLOC, 0x01800000 | nesdev->cqp.qp_id);
 	}
+
 	spin_unlock_irqrestore(&nesdev->cqp.lock, flags);
 
 	/* Arm the CCQ */
-	nes_write32(nesdev->regs+NES_CQE_ALLOC, NES_CQE_ALLOC_NOTIFY_NEXT |
-			cq->cq_number);
-	nes_read32(nesdev->regs+NES_CQE_ALLOC);
+	nes_write32(nesdev->regs + NES_CQE_ALLOC, NES_CQE_ALLOC_NOTIFY_NEXT |
+				cq->cq_number);
+	nes_read32(nesdev->regs + NES_CQE_ALLOC);
 }
 
 static u8 *locate_mpa(u8 *pkt, u32 aeq_info)
 {
-	if (aeq_info & NES_AEQE_Q2_DATA_ETHERNET) {
+	if (aeq_info & NES_AEQE_Q2_DATA_ETHERNET)
+	{
 		/* skip over ethernet header */
 		pkt += ETH_HLEN;
 
@@ -3090,6 +3792,7 @@ static u8 *locate_mpa(u8 *pkt, u32 aeq_info)
 		pkt += 4 * (pkt[0] & 0x0f);
 		pkt += 4 * ((pkt[12] >> 4) & 0x0f);
 	}
+
 	return pkt;
 }
 
@@ -3100,7 +3803,8 @@ static u32 iwarp_opcode(struct nes_qp *nesqp, u32 aeq_info)
 	u16 *mpa;
 	u32 opcode = 0xffffffff;
 
-	if (aeq_info & NES_AEQE_Q2_DATA_WRITTEN) {
+	if (aeq_info & NES_AEQE_Q2_DATA_WRITTEN)
+	{
 		pkt = nesqp->hwqp.q2_vbase + BAD_FRAME_OFFSET;
 		mpa = (u16 *)locate_mpa(pkt, aeq_info);
 		opcode = be16_to_cpu(mpa[1]) & 0xf;
@@ -3122,28 +3826,40 @@ static int nes_bld_terminate_hdr(struct nes_qp *nesqp, u16 async_event_id, u32 a
 	termhdr = (struct nes_terminate_hdr *)nesqp->hwqp.q2_vbase;
 	memset(termhdr, 0, 64);
 
-	if (aeq_info & NES_AEQE_Q2_DATA_WRITTEN) {
+	if (aeq_info & NES_AEQE_Q2_DATA_WRITTEN)
+	{
 
 		/* Use data from offending packet to fill in ddp & rdma hdrs */
 		pkt = locate_mpa(pkt, aeq_info);
 		ddp_seg_len = be16_to_cpu(*(u16 *)pkt);
-		if (ddp_seg_len) {
+
+		if (ddp_seg_len)
+		{
 			copy_len = 2;
 			termhdr->hdrct = DDP_LEN_FLAG;
-			if (pkt[2] & 0x80) {
+
+			if (pkt[2] & 0x80)
+			{
 				is_tagged = 1;
-				if (ddp_seg_len >= TERM_DDP_LEN_TAGGED) {
+
+				if (ddp_seg_len >= TERM_DDP_LEN_TAGGED)
+				{
 					copy_len += TERM_DDP_LEN_TAGGED;
 					termhdr->hdrct |= DDP_HDR_FLAG;
 				}
-			} else {
-				if (ddp_seg_len >= TERM_DDP_LEN_UNTAGGED) {
+			}
+			else
+			{
+				if (ddp_seg_len >= TERM_DDP_LEN_UNTAGGED)
+				{
 					copy_len += TERM_DDP_LEN_UNTAGGED;
 					termhdr->hdrct |= DDP_HDR_FLAG;
 				}
 
-				if (ddp_seg_len >= (TERM_DDP_LEN_UNTAGGED + TERM_RDMA_LEN)) {
-					if ((pkt[3] & RDMA_OPCODE_MASK) == RDMA_READ_REQ_OPCODE) {
+				if (ddp_seg_len >= (TERM_DDP_LEN_UNTAGGED + TERM_RDMA_LEN))
+				{
+					if ((pkt[3] & RDMA_OPCODE_MASK) == RDMA_READ_REQ_OPCODE)
+					{
 						copy_len += TERM_RDMA_LEN;
 						termhdr->hdrct |= RDMA_HDR_FLAG;
 					}
@@ -3152,177 +3868,224 @@ static int nes_bld_terminate_hdr(struct nes_qp *nesqp, u16 async_event_id, u32 a
 		}
 	}
 
-	switch (async_event_id) {
-	case NES_AEQE_AEID_AMP_UNALLOCATED_STAG:
-		switch (iwarp_opcode(nesqp, aeq_info)) {
-		case IWARP_OPCODE_WRITE:
-			flush_code = IB_WC_LOC_PROT_ERR;
-			termhdr->layer_etype = (LAYER_DDP << 4) | DDP_TAGGED_BUFFER;
-			termhdr->error_code = DDP_TAGGED_INV_STAG;
+	switch (async_event_id)
+	{
+		case NES_AEQE_AEID_AMP_UNALLOCATED_STAG:
+			switch (iwarp_opcode(nesqp, aeq_info))
+			{
+				case IWARP_OPCODE_WRITE:
+					flush_code = IB_WC_LOC_PROT_ERR;
+					termhdr->layer_etype = (LAYER_DDP << 4) | DDP_TAGGED_BUFFER;
+					termhdr->error_code = DDP_TAGGED_INV_STAG;
+					break;
+
+				default:
+					flush_code = IB_WC_REM_ACCESS_ERR;
+					termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_PROT;
+					termhdr->error_code = RDMAP_INV_STAG;
+			}
+
 			break;
-		default:
+
+		case NES_AEQE_AEID_AMP_INVALID_STAG:
 			flush_code = IB_WC_REM_ACCESS_ERR;
 			termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_PROT;
 			termhdr->error_code = RDMAP_INV_STAG;
-		}
-		break;
-	case NES_AEQE_AEID_AMP_INVALID_STAG:
-		flush_code = IB_WC_REM_ACCESS_ERR;
-		termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_PROT;
-		termhdr->error_code = RDMAP_INV_STAG;
-		break;
-	case NES_AEQE_AEID_AMP_BAD_QP:
-		flush_code = IB_WC_LOC_QP_OP_ERR;
-		termhdr->layer_etype = (LAYER_DDP << 4) | DDP_UNTAGGED_BUFFER;
-		termhdr->error_code = DDP_UNTAGGED_INV_QN;
-		break;
-	case NES_AEQE_AEID_AMP_BAD_STAG_KEY:
-	case NES_AEQE_AEID_AMP_BAD_STAG_INDEX:
-		switch (iwarp_opcode(nesqp, aeq_info)) {
-		case IWARP_OPCODE_SEND_INV:
-		case IWARP_OPCODE_SEND_SE_INV:
-			flush_code = IB_WC_REM_OP_ERR;
-			termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_OP;
-			termhdr->error_code = RDMAP_CANT_INV_STAG;
 			break;
-		default:
-			flush_code = IB_WC_REM_ACCESS_ERR;
-			termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_PROT;
-			termhdr->error_code = RDMAP_INV_STAG;
-		}
-		break;
-	case NES_AEQE_AEID_AMP_BOUNDS_VIOLATION:
-		if (aeq_info & (NES_AEQE_Q2_DATA_ETHERNET | NES_AEQE_Q2_DATA_MPA)) {
-			flush_code = IB_WC_LOC_PROT_ERR;
-			termhdr->layer_etype = (LAYER_DDP << 4) | DDP_TAGGED_BUFFER;
-			termhdr->error_code = DDP_TAGGED_BOUNDS;
-		} else {
-			flush_code = IB_WC_REM_ACCESS_ERR;
-			termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_PROT;
-			termhdr->error_code = RDMAP_INV_BOUNDS;
-		}
-		break;
-	case NES_AEQE_AEID_AMP_RIGHTS_VIOLATION:
-	case NES_AEQE_AEID_AMP_INVALIDATE_NO_REMOTE_ACCESS_RIGHTS:
-	case NES_AEQE_AEID_PRIV_OPERATION_DENIED:
-		flush_code = IB_WC_REM_ACCESS_ERR;
-		termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_PROT;
-		termhdr->error_code = RDMAP_ACCESS;
-		break;
-	case NES_AEQE_AEID_AMP_TO_WRAP:
-		flush_code = IB_WC_REM_ACCESS_ERR;
-		termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_PROT;
-		termhdr->error_code = RDMAP_TO_WRAP;
-		break;
-	case NES_AEQE_AEID_AMP_BAD_PD:
-		switch (iwarp_opcode(nesqp, aeq_info)) {
-		case IWARP_OPCODE_WRITE:
-			flush_code = IB_WC_LOC_PROT_ERR;
-			termhdr->layer_etype = (LAYER_DDP << 4) | DDP_TAGGED_BUFFER;
-			termhdr->error_code = DDP_TAGGED_UNASSOC_STAG;
-			break;
-		case IWARP_OPCODE_SEND_INV:
-		case IWARP_OPCODE_SEND_SE_INV:
-			flush_code = IB_WC_REM_ACCESS_ERR;
-			termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_PROT;
-			termhdr->error_code = RDMAP_CANT_INV_STAG;
-			break;
-		default:
-			flush_code = IB_WC_REM_ACCESS_ERR;
-			termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_PROT;
-			termhdr->error_code = RDMAP_UNASSOC_STAG;
-		}
-		break;
-	case NES_AEQE_AEID_LLP_RECEIVED_MARKER_AND_LENGTH_FIELDS_DONT_MATCH:
-		flush_code = IB_WC_LOC_LEN_ERR;
-		termhdr->layer_etype = (LAYER_MPA << 4) | DDP_LLP;
-		termhdr->error_code = MPA_MARKER;
-		break;
-	case NES_AEQE_AEID_LLP_RECEIVED_MPA_CRC_ERROR:
-		flush_code = IB_WC_GENERAL_ERR;
-		termhdr->layer_etype = (LAYER_MPA << 4) | DDP_LLP;
-		termhdr->error_code = MPA_CRC;
-		break;
-	case NES_AEQE_AEID_LLP_SEGMENT_TOO_LARGE:
-	case NES_AEQE_AEID_LLP_SEGMENT_TOO_SMALL:
-		flush_code = IB_WC_LOC_LEN_ERR;
-		termhdr->layer_etype = (LAYER_DDP << 4) | DDP_CATASTROPHIC;
-		termhdr->error_code = DDP_CATASTROPHIC_LOCAL;
-		break;
-	case NES_AEQE_AEID_DDP_LCE_LOCAL_CATASTROPHIC:
-	case NES_AEQE_AEID_DDP_NO_L_BIT:
-		flush_code = IB_WC_FATAL_ERR;
-		termhdr->layer_etype = (LAYER_DDP << 4) | DDP_CATASTROPHIC;
-		termhdr->error_code = DDP_CATASTROPHIC_LOCAL;
-		break;
-	case NES_AEQE_AEID_DDP_INVALID_MSN_GAP_IN_MSN:
-	case NES_AEQE_AEID_DDP_INVALID_MSN_RANGE_IS_NOT_VALID:
-		flush_code = IB_WC_GENERAL_ERR;
-		termhdr->layer_etype = (LAYER_DDP << 4) | DDP_UNTAGGED_BUFFER;
-		termhdr->error_code = DDP_UNTAGGED_INV_MSN_RANGE;
-		break;
-	case NES_AEQE_AEID_DDP_UBE_DDP_MESSAGE_TOO_LONG_FOR_AVAILABLE_BUFFER:
-		flush_code = IB_WC_LOC_LEN_ERR;
-		termhdr->layer_etype = (LAYER_DDP << 4) | DDP_UNTAGGED_BUFFER;
-		termhdr->error_code = DDP_UNTAGGED_INV_TOO_LONG;
-		break;
-	case NES_AEQE_AEID_DDP_UBE_INVALID_DDP_VERSION:
-		flush_code = IB_WC_GENERAL_ERR;
-		if (is_tagged) {
-			termhdr->layer_etype = (LAYER_DDP << 4) | DDP_TAGGED_BUFFER;
-			termhdr->error_code = DDP_TAGGED_INV_DDP_VER;
-		} else {
+
+		case NES_AEQE_AEID_AMP_BAD_QP:
+			flush_code = IB_WC_LOC_QP_OP_ERR;
 			termhdr->layer_etype = (LAYER_DDP << 4) | DDP_UNTAGGED_BUFFER;
-			termhdr->error_code = DDP_UNTAGGED_INV_DDP_VER;
-		}
-		break;
-	case NES_AEQE_AEID_DDP_UBE_INVALID_MO:
-		flush_code = IB_WC_GENERAL_ERR;
-		termhdr->layer_etype = (LAYER_DDP << 4) | DDP_UNTAGGED_BUFFER;
-		termhdr->error_code = DDP_UNTAGGED_INV_MO;
-		break;
-	case NES_AEQE_AEID_DDP_UBE_INVALID_MSN_NO_BUFFER_AVAILABLE:
-		flush_code = IB_WC_REM_OP_ERR;
-		termhdr->layer_etype = (LAYER_DDP << 4) | DDP_UNTAGGED_BUFFER;
-		termhdr->error_code = DDP_UNTAGGED_INV_MSN_NO_BUF;
-		break;
-	case NES_AEQE_AEID_DDP_UBE_INVALID_QN:
-		flush_code = IB_WC_GENERAL_ERR;
-		termhdr->layer_etype = (LAYER_DDP << 4) | DDP_UNTAGGED_BUFFER;
-		termhdr->error_code = DDP_UNTAGGED_INV_QN;
-		break;
-	case NES_AEQE_AEID_RDMAP_ROE_INVALID_RDMAP_VERSION:
-		flush_code = IB_WC_GENERAL_ERR;
-		termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_OP;
-		termhdr->error_code = RDMAP_INV_RDMAP_VER;
-		break;
-	case NES_AEQE_AEID_RDMAP_ROE_UNEXPECTED_OPCODE:
-		flush_code = IB_WC_LOC_QP_OP_ERR;
-		termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_OP;
-		termhdr->error_code = RDMAP_UNEXPECTED_OP;
-		break;
-	default:
-		flush_code = IB_WC_FATAL_ERR;
-		termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_OP;
-		termhdr->error_code = RDMAP_UNSPECIFIED;
-		break;
+			termhdr->error_code = DDP_UNTAGGED_INV_QN;
+			break;
+
+		case NES_AEQE_AEID_AMP_BAD_STAG_KEY:
+		case NES_AEQE_AEID_AMP_BAD_STAG_INDEX:
+			switch (iwarp_opcode(nesqp, aeq_info))
+			{
+				case IWARP_OPCODE_SEND_INV:
+				case IWARP_OPCODE_SEND_SE_INV:
+					flush_code = IB_WC_REM_OP_ERR;
+					termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_OP;
+					termhdr->error_code = RDMAP_CANT_INV_STAG;
+					break;
+
+				default:
+					flush_code = IB_WC_REM_ACCESS_ERR;
+					termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_PROT;
+					termhdr->error_code = RDMAP_INV_STAG;
+			}
+
+			break;
+
+		case NES_AEQE_AEID_AMP_BOUNDS_VIOLATION:
+			if (aeq_info & (NES_AEQE_Q2_DATA_ETHERNET | NES_AEQE_Q2_DATA_MPA))
+			{
+				flush_code = IB_WC_LOC_PROT_ERR;
+				termhdr->layer_etype = (LAYER_DDP << 4) | DDP_TAGGED_BUFFER;
+				termhdr->error_code = DDP_TAGGED_BOUNDS;
+			}
+			else
+			{
+				flush_code = IB_WC_REM_ACCESS_ERR;
+				termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_PROT;
+				termhdr->error_code = RDMAP_INV_BOUNDS;
+			}
+
+			break;
+
+		case NES_AEQE_AEID_AMP_RIGHTS_VIOLATION:
+		case NES_AEQE_AEID_AMP_INVALIDATE_NO_REMOTE_ACCESS_RIGHTS:
+		case NES_AEQE_AEID_PRIV_OPERATION_DENIED:
+			flush_code = IB_WC_REM_ACCESS_ERR;
+			termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_PROT;
+			termhdr->error_code = RDMAP_ACCESS;
+			break;
+
+		case NES_AEQE_AEID_AMP_TO_WRAP:
+			flush_code = IB_WC_REM_ACCESS_ERR;
+			termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_PROT;
+			termhdr->error_code = RDMAP_TO_WRAP;
+			break;
+
+		case NES_AEQE_AEID_AMP_BAD_PD:
+			switch (iwarp_opcode(nesqp, aeq_info))
+			{
+				case IWARP_OPCODE_WRITE:
+					flush_code = IB_WC_LOC_PROT_ERR;
+					termhdr->layer_etype = (LAYER_DDP << 4) | DDP_TAGGED_BUFFER;
+					termhdr->error_code = DDP_TAGGED_UNASSOC_STAG;
+					break;
+
+				case IWARP_OPCODE_SEND_INV:
+				case IWARP_OPCODE_SEND_SE_INV:
+					flush_code = IB_WC_REM_ACCESS_ERR;
+					termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_PROT;
+					termhdr->error_code = RDMAP_CANT_INV_STAG;
+					break;
+
+				default:
+					flush_code = IB_WC_REM_ACCESS_ERR;
+					termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_PROT;
+					termhdr->error_code = RDMAP_UNASSOC_STAG;
+			}
+
+			break;
+
+		case NES_AEQE_AEID_LLP_RECEIVED_MARKER_AND_LENGTH_FIELDS_DONT_MATCH:
+			flush_code = IB_WC_LOC_LEN_ERR;
+			termhdr->layer_etype = (LAYER_MPA << 4) | DDP_LLP;
+			termhdr->error_code = MPA_MARKER;
+			break;
+
+		case NES_AEQE_AEID_LLP_RECEIVED_MPA_CRC_ERROR:
+			flush_code = IB_WC_GENERAL_ERR;
+			termhdr->layer_etype = (LAYER_MPA << 4) | DDP_LLP;
+			termhdr->error_code = MPA_CRC;
+			break;
+
+		case NES_AEQE_AEID_LLP_SEGMENT_TOO_LARGE:
+		case NES_AEQE_AEID_LLP_SEGMENT_TOO_SMALL:
+			flush_code = IB_WC_LOC_LEN_ERR;
+			termhdr->layer_etype = (LAYER_DDP << 4) | DDP_CATASTROPHIC;
+			termhdr->error_code = DDP_CATASTROPHIC_LOCAL;
+			break;
+
+		case NES_AEQE_AEID_DDP_LCE_LOCAL_CATASTROPHIC:
+		case NES_AEQE_AEID_DDP_NO_L_BIT:
+			flush_code = IB_WC_FATAL_ERR;
+			termhdr->layer_etype = (LAYER_DDP << 4) | DDP_CATASTROPHIC;
+			termhdr->error_code = DDP_CATASTROPHIC_LOCAL;
+			break;
+
+		case NES_AEQE_AEID_DDP_INVALID_MSN_GAP_IN_MSN:
+		case NES_AEQE_AEID_DDP_INVALID_MSN_RANGE_IS_NOT_VALID:
+			flush_code = IB_WC_GENERAL_ERR;
+			termhdr->layer_etype = (LAYER_DDP << 4) | DDP_UNTAGGED_BUFFER;
+			termhdr->error_code = DDP_UNTAGGED_INV_MSN_RANGE;
+			break;
+
+		case NES_AEQE_AEID_DDP_UBE_DDP_MESSAGE_TOO_LONG_FOR_AVAILABLE_BUFFER:
+			flush_code = IB_WC_LOC_LEN_ERR;
+			termhdr->layer_etype = (LAYER_DDP << 4) | DDP_UNTAGGED_BUFFER;
+			termhdr->error_code = DDP_UNTAGGED_INV_TOO_LONG;
+			break;
+
+		case NES_AEQE_AEID_DDP_UBE_INVALID_DDP_VERSION:
+			flush_code = IB_WC_GENERAL_ERR;
+
+			if (is_tagged)
+			{
+				termhdr->layer_etype = (LAYER_DDP << 4) | DDP_TAGGED_BUFFER;
+				termhdr->error_code = DDP_TAGGED_INV_DDP_VER;
+			}
+			else
+			{
+				termhdr->layer_etype = (LAYER_DDP << 4) | DDP_UNTAGGED_BUFFER;
+				termhdr->error_code = DDP_UNTAGGED_INV_DDP_VER;
+			}
+
+			break;
+
+		case NES_AEQE_AEID_DDP_UBE_INVALID_MO:
+			flush_code = IB_WC_GENERAL_ERR;
+			termhdr->layer_etype = (LAYER_DDP << 4) | DDP_UNTAGGED_BUFFER;
+			termhdr->error_code = DDP_UNTAGGED_INV_MO;
+			break;
+
+		case NES_AEQE_AEID_DDP_UBE_INVALID_MSN_NO_BUFFER_AVAILABLE:
+			flush_code = IB_WC_REM_OP_ERR;
+			termhdr->layer_etype = (LAYER_DDP << 4) | DDP_UNTAGGED_BUFFER;
+			termhdr->error_code = DDP_UNTAGGED_INV_MSN_NO_BUF;
+			break;
+
+		case NES_AEQE_AEID_DDP_UBE_INVALID_QN:
+			flush_code = IB_WC_GENERAL_ERR;
+			termhdr->layer_etype = (LAYER_DDP << 4) | DDP_UNTAGGED_BUFFER;
+			termhdr->error_code = DDP_UNTAGGED_INV_QN;
+			break;
+
+		case NES_AEQE_AEID_RDMAP_ROE_INVALID_RDMAP_VERSION:
+			flush_code = IB_WC_GENERAL_ERR;
+			termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_OP;
+			termhdr->error_code = RDMAP_INV_RDMAP_VER;
+			break;
+
+		case NES_AEQE_AEID_RDMAP_ROE_UNEXPECTED_OPCODE:
+			flush_code = IB_WC_LOC_QP_OP_ERR;
+			termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_OP;
+			termhdr->error_code = RDMAP_UNEXPECTED_OP;
+			break;
+
+		default:
+			flush_code = IB_WC_FATAL_ERR;
+			termhdr->layer_etype = (LAYER_RDMA << 4) | RDMAP_REMOTE_OP;
+			termhdr->error_code = RDMAP_UNSPECIFIED;
+			break;
 	}
 
 	if (copy_len)
+	{
 		memcpy(termhdr + 1, pkt, copy_len);
+	}
 
-	if ((flush_code) && ((NES_AEQE_INBOUND_RDMA & aeq_info) == 0)) {
+	if ((flush_code) && ((NES_AEQE_INBOUND_RDMA & aeq_info) == 0))
+	{
 		if (aeq_info & NES_AEQE_SQ)
+		{
 			nesqp->term_sq_flush_code = flush_code;
+		}
 		else
+		{
 			nesqp->term_rq_flush_code = flush_code;
+		}
 	}
 
 	return sizeof(struct nes_terminate_hdr) + copy_len;
 }
 
 static void nes_terminate_connection(struct nes_device *nesdev, struct nes_qp *nesqp,
-		 struct nes_hw_aeqe *aeqe, enum ib_event_type eventtype)
+									 struct nes_hw_aeqe *aeqe, enum ib_event_type eventtype)
 {
 	u64 context;
 	unsigned long flags;
@@ -3332,11 +4095,13 @@ static void nes_terminate_connection(struct nes_device *nesdev, struct nes_qp *n
 	u8 iwarp_state;
 	u32 termlen = 0;
 	u32 mod_qp_flags = NES_CQP_QP_IWARP_STATE_TERMINATE |
-			   NES_CQP_QP_TERM_DONT_SEND_FIN;
+					   NES_CQP_QP_TERM_DONT_SEND_FIN;
 	struct nes_adapter *nesadapter = nesdev->nesadapter;
 
 	if (nesqp->term_flags & NES_TERM_SENT)
-		return; /* Sanity check */
+	{
+		return;    /* Sanity check */
+	}
 
 	aeq_info = le32_to_cpu(aeqe->aeqe_words[NES_AEQE_MISC_IDX]);
 	tcp_state = (aeq_info & NES_AEQE_TCP_STATE_MASK) >> NES_AEQE_TCP_STATE_SHIFT;
@@ -3344,8 +4109,10 @@ static void nes_terminate_connection(struct nes_device *nesdev, struct nes_qp *n
 	async_event_id = (u16)aeq_info;
 
 	context = (unsigned long)nesadapter->qp_table[le32_to_cpu(
-		aeqe->aeqe_words[NES_AEQE_COMP_QP_CQ_ID_IDX]) - NES_FIRST_QPN];
-	if (!context) {
+				  aeqe->aeqe_words[NES_AEQE_COMP_QP_CQ_ID_IDX]) - NES_FIRST_QPN];
+
+	if (!context)
+	{
 		WARN_ON(!context);
 		return;
 	}
@@ -3359,15 +4126,22 @@ static void nes_terminate_connection(struct nes_device *nesdev, struct nes_qp *n
 	spin_unlock_irqrestore(&nesqp->lock, flags);
 
 	if (nesadapter->send_term_ok)
+	{
 		termlen = nes_bld_terminate_hdr(nesqp, async_event_id, aeq_info);
+	}
 	else
+	{
 		mod_qp_flags |= NES_CQP_QP_TERM_DONT_SEND_TERM_MSG;
+	}
 
-	if (!nesdev->iw_status)  {
+	if (!nesdev->iw_status)
+	{
 		nesqp->term_flags = NES_TERM_DONE;
 		nes_hw_modify_qp(nesdev, nesqp, NES_CQP_QP_IWARP_STATE_ERROR, 0, 0);
 		nes_cm_disconn(nesqp);
-	} else {
+	}
+	else
+	{
 		nes_terminate_start_timer(nesqp);
 		nesqp->term_flags |= NES_TERM_SENT;
 		nes_hw_modify_qp(nesdev, nesqp, mod_qp_flags, termlen, 0);
@@ -3375,7 +4149,7 @@ static void nes_terminate_connection(struct nes_device *nesdev, struct nes_qp *n
 }
 
 static void nes_terminate_send_fin(struct nes_device *nesdev,
-			  struct nes_qp *nesqp, struct nes_hw_aeqe *aeqe)
+								   struct nes_qp *nesqp, struct nes_hw_aeqe *aeqe)
 {
 	u32 aeq_info;
 	u16 async_event_id;
@@ -3396,7 +4170,7 @@ static void nes_terminate_send_fin(struct nes_device *nesdev,
 
 	/* Send the fin only */
 	nes_hw_modify_qp(nesdev, nesqp, NES_CQP_QP_IWARP_STATE_TERMINATE |
-		NES_CQP_QP_TERM_DONT_SEND_TERM_MSG, 0, 0);
+					 NES_CQP_QP_TERM_DONT_SEND_TERM_MSG, 0, 0);
 }
 
 /* Cleanup after a terminate sent or received */
@@ -3409,7 +4183,9 @@ static void nes_terminate_done(struct nes_qp *nesqp, int timeout_occurred)
 	u8 first_time = 0;
 
 	spin_lock_irqsave(&nesqp->lock, flags);
-	if (nesqp->hte_added) {
+
+	if (nesqp->hte_added)
+	{
 		nesqp->hte_added = 0;
 		next_iwarp_state |= NES_CQP_QP_DEL_HTE;
 	}
@@ -3419,11 +4195,16 @@ static void nes_terminate_done(struct nes_qp *nesqp, int timeout_occurred)
 	spin_unlock_irqrestore(&nesqp->lock, flags);
 
 	/* Make sure we go through this only once */
-	if (first_time) {
+	if (first_time)
+	{
 		if (timeout_occurred == 0)
+		{
 			del_timer(&nesqp->terminate_timer);
+		}
 		else
+		{
 			next_iwarp_state |= NES_CQP_QP_RESET;
+		}
 
 		nes_hw_modify_qp(nesdev, nesqp, next_iwarp_state, 0, 0);
 		nes_cm_disconn(nesqp);
@@ -3431,7 +4212,7 @@ static void nes_terminate_done(struct nes_qp *nesqp, int timeout_occurred)
 }
 
 static void nes_terminate_received(struct nes_device *nesdev,
-				struct nes_qp *nesqp, struct nes_hw_aeqe *aeqe)
+								   struct nes_qp *nesqp, struct nes_hw_aeqe *aeqe)
 {
 	u32 aeq_info;
 	u8 *pkt;
@@ -3441,27 +4222,43 @@ static void nes_terminate_received(struct nes_device *nesdev,
 	u16 aeq_id = 0;
 
 	aeq_info = le32_to_cpu(aeqe->aeqe_words[NES_AEQE_MISC_IDX]);
-	if (aeq_info & NES_AEQE_Q2_DATA_WRITTEN) {
+
+	if (aeq_info & NES_AEQE_Q2_DATA_WRITTEN)
+	{
 		/* Terminate is not a performance path so the silicon */
 		/* did not validate the frame - do it now */
 		pkt = nesqp->hwqp.q2_vbase + BAD_FRAME_OFFSET;
 		mpa = (u32 *)locate_mpa(pkt, aeq_info);
 		ddp_ctl = (be32_to_cpu(mpa[0]) >> 8) & 0xff;
 		rdma_ctl = be32_to_cpu(mpa[0]) & 0xff;
-		if ((ddp_ctl & 0xc0) != 0x40)
-			aeq_id = NES_AEQE_AEID_DDP_LCE_LOCAL_CATASTROPHIC;
-		else if ((ddp_ctl & 0x03) != 1)
-			aeq_id = NES_AEQE_AEID_DDP_UBE_INVALID_DDP_VERSION;
-		else if (be32_to_cpu(mpa[2]) != 2)
-			aeq_id = NES_AEQE_AEID_DDP_UBE_INVALID_QN;
-		else if (be32_to_cpu(mpa[3]) != 1)
-			aeq_id = NES_AEQE_AEID_DDP_INVALID_MSN_GAP_IN_MSN;
-		else if (be32_to_cpu(mpa[4]) != 0)
-			aeq_id = NES_AEQE_AEID_DDP_UBE_INVALID_MO;
-		else if ((rdma_ctl & 0xc0) != 0x40)
-			aeq_id = NES_AEQE_AEID_RDMAP_ROE_INVALID_RDMAP_VERSION;
 
-		if (aeq_id) {
+		if ((ddp_ctl & 0xc0) != 0x40)
+		{
+			aeq_id = NES_AEQE_AEID_DDP_LCE_LOCAL_CATASTROPHIC;
+		}
+		else if ((ddp_ctl & 0x03) != 1)
+		{
+			aeq_id = NES_AEQE_AEID_DDP_UBE_INVALID_DDP_VERSION;
+		}
+		else if (be32_to_cpu(mpa[2]) != 2)
+		{
+			aeq_id = NES_AEQE_AEID_DDP_UBE_INVALID_QN;
+		}
+		else if (be32_to_cpu(mpa[3]) != 1)
+		{
+			aeq_id = NES_AEQE_AEID_DDP_INVALID_MSN_GAP_IN_MSN;
+		}
+		else if (be32_to_cpu(mpa[4]) != 0)
+		{
+			aeq_id = NES_AEQE_AEID_DDP_UBE_INVALID_MO;
+		}
+		else if ((rdma_ctl & 0xc0) != 0x40)
+		{
+			aeq_id = NES_AEQE_AEID_RDMAP_ROE_INVALID_RDMAP_VERSION;
+		}
+
+		if (aeq_id)
+		{
 			/* Bad terminate recvd - send back a terminate */
 			aeq_info = (aeq_info & 0xffff0000) | aeq_id;
 			aeqe->aeqe_words[NES_AEQE_MISC_IDX] = cpu_to_le32(aeq_info);
@@ -3494,7 +4291,7 @@ static void nes_terminate_start_timer(struct nes_qp *nesqp)
  * nes_process_iwarp_aeqe
  */
 static void nes_process_iwarp_aeqe(struct nes_device *nesdev,
-				   struct nes_hw_aeqe *aeqe)
+								   struct nes_hw_aeqe *aeqe)
 {
 	u64 context;
 	unsigned long flags;
@@ -3513,12 +4310,16 @@ static void nes_process_iwarp_aeqe(struct nes_device *nesdev,
 
 	nes_debug(NES_DBG_AEQ, "\n");
 	aeq_info = le32_to_cpu(aeqe->aeqe_words[NES_AEQE_MISC_IDX]);
-	if ((NES_AEQE_INBOUND_RDMA & aeq_info) || (!(NES_AEQE_QP & aeq_info))) {
+
+	if ((NES_AEQE_INBOUND_RDMA & aeq_info) || (!(NES_AEQE_QP & aeq_info)))
+	{
 		context  = le32_to_cpu(aeqe->aeqe_words[NES_AEQE_COMP_CTXT_LOW_IDX]);
 		context += ((u64)le32_to_cpu(aeqe->aeqe_words[NES_AEQE_COMP_CTXT_HIGH_IDX])) << 32;
-	} else {
+	}
+	else
+	{
 		context = (unsigned long)nesadapter->qp_table[le32_to_cpu(
-						aeqe->aeqe_words[NES_AEQE_COMP_QP_CQ_ID_IDX]) - NES_FIRST_QPN];
+					  aeqe->aeqe_words[NES_AEQE_COMP_QP_CQ_ID_IDX]) - NES_FIRST_QPN];
 		BUG_ON(!context);
 	}
 
@@ -3528,27 +4329,36 @@ static void nes_process_iwarp_aeqe(struct nes_device *nesdev,
 	tcp_state = (aeq_info & NES_AEQE_TCP_STATE_MASK) >> NES_AEQE_TCP_STATE_SHIFT;
 	iwarp_state = (aeq_info & NES_AEQE_IWARP_STATE_MASK) >> NES_AEQE_IWARP_STATE_SHIFT;
 	nes_debug(NES_DBG_AEQ, "aeid = 0x%04X, qp-cq id = %d, aeqe = %p,"
-			" Tcp state = %s, iWARP state = %s\n",
-			async_event_id,
-			le32_to_cpu(aeqe->aeqe_words[NES_AEQE_COMP_QP_CQ_ID_IDX]), aeqe,
-			nes_tcp_state_str[tcp_state], nes_iwarp_state_str[iwarp_state]);
+			  " Tcp state = %s, iWARP state = %s\n",
+			  async_event_id,
+			  le32_to_cpu(aeqe->aeqe_words[NES_AEQE_COMP_QP_CQ_ID_IDX]), aeqe,
+			  nes_tcp_state_str[tcp_state], nes_iwarp_state_str[iwarp_state]);
 
 	aeqe_cq_id = le32_to_cpu(aeqe->aeqe_words[NES_AEQE_COMP_QP_CQ_ID_IDX]);
-	if (aeq_info & NES_AEQE_QP) {
+
+	if (aeq_info & NES_AEQE_QP)
+	{
 		if (!nes_is_resource_allocated(nesadapter,
-				nesadapter->allocated_qps,
-				aeqe_cq_id))
+									   nesadapter->allocated_qps,
+									   aeqe_cq_id))
+		{
 			return;
+		}
 	}
 
-	switch (async_event_id) {
+	switch (async_event_id)
+	{
 		case NES_AEQE_AEID_LLP_FIN_RECEIVED:
 			if (nesqp->term_flags)
-				return; /* Ignore it, wait for close complete */
+			{
+				return;    /* Ignore it, wait for close complete */
+			}
 
-			if (atomic_inc_return(&nesqp->close_timer_started) == 1) {
+			if (atomic_inc_return(&nesqp->close_timer_started) == 1)
+			{
 				if ((tcp_state == NES_AEQE_TCP_STATE_CLOSE_WAIT) &&
-					(nesqp->ibqp_state == IB_QPS_RTS)) {
+					(nesqp->ibqp_state == IB_QPS_RTS))
+				{
 					spin_lock_irqsave(&nesqp->lock, flags);
 					nesqp->hw_iwarp_state = iwarp_state;
 					nesqp->hw_tcp_state = tcp_state;
@@ -3559,16 +4369,19 @@ static void nes_process_iwarp_aeqe(struct nes_device *nesdev,
 					nes_hw_modify_qp(nesdev, nesqp, next_iwarp_state, 0, 0);
 					nes_cm_disconn(nesqp);
 				}
+
 				nesqp->cm_id->add_ref(nesqp->cm_id);
 				schedule_nes_timer(nesqp->cm_node, (struct sk_buff *)nesqp,
-						NES_TIMER_TYPE_CLOSE, 1, 0);
+								   NES_TIMER_TYPE_CLOSE, 1, 0);
 				nes_debug(NES_DBG_AEQ, "QP%u Not decrementing QP refcount (%d),"
-						" need ae to finish up, original_last_aeq = 0x%04X."
-						" last_aeq = 0x%04X, scheduling timer. TCP state = %d\n",
-						nesqp->hwqp.qp_id, atomic_read(&nesqp->refcount),
-						async_event_id, nesqp->last_aeq, tcp_state);
+						  " need ae to finish up, original_last_aeq = 0x%04X."
+						  " last_aeq = 0x%04X, scheduling timer. TCP state = %d\n",
+						  nesqp->hwqp.qp_id, atomic_read(&nesqp->refcount),
+						  async_event_id, nesqp->last_aeq, tcp_state);
 			}
+
 			break;
+
 		case NES_AEQE_AEID_LLP_CLOSE_COMPLETE:
 			spin_lock_irqsave(&nesqp->lock, flags);
 			nesqp->hw_iwarp_state = iwarp_state;
@@ -3593,7 +4406,10 @@ static void nes_process_iwarp_aeqe(struct nes_device *nesdev,
 
 		case NES_AEQE_AEID_LLP_CONNECTION_RESET:
 			if (atomic_read(&nesqp->close_timer_started))
+			{
 				return;
+			}
+
 			spin_lock_irqsave(&nesqp->lock, flags);
 			nesqp->hw_iwarp_state = iwarp_state;
 			nesqp->hw_tcp_state = tcp_state;
@@ -3621,7 +4437,7 @@ static void nes_process_iwarp_aeqe(struct nes_device *nesdev,
 		case NES_AEQE_AEID_AMP_BOUNDS_VIOLATION:
 		case NES_AEQE_AEID_AMP_TO_WRAP:
 			printk(KERN_ERR PFX "QP[%u] async_event_id=0x%04X IB_EVENT_QP_ACCESS_ERR\n",
-					nesqp->hwqp.qp_id, async_event_id);
+				   nesqp->hwqp.qp_id, async_event_id);
 			nes_terminate_connection(nesdev, nesqp, aeqe, IB_EVENT_QP_ACCESS_ERR);
 			break;
 
@@ -3629,7 +4445,8 @@ static void nes_process_iwarp_aeqe(struct nes_device *nesdev,
 		case NES_AEQE_AEID_LLP_SEGMENT_TOO_SMALL:
 		case NES_AEQE_AEID_DDP_UBE_INVALID_MO:
 		case NES_AEQE_AEID_DDP_UBE_INVALID_QN:
-			if (iwarp_opcode(nesqp, aeq_info) > IWARP_OPCODE_TERM) {
+			if (iwarp_opcode(nesqp, aeq_info) > IWARP_OPCODE_TERM)
+			{
 				aeq_info &= 0xffff0000;
 				aeq_info |= NES_AEQE_AEID_RDMAP_ROE_UNEXPECTED_OPCODE;
 				aeqe->aeqe_words[NES_AEQE_MISC_IDX] = cpu_to_le32(aeq_info);
@@ -3671,25 +4488,35 @@ static void nes_process_iwarp_aeqe(struct nes_device *nesdev,
 		case NES_AEQE_AEID_ROE_INVALID_RDMA_READ_REQUEST:
 		case NES_AEQE_AEID_ROE_INVALID_RDMA_WRITE_OR_READ_RESP:
 			printk(KERN_ERR PFX "QP[%u] async_event_id=0x%04X IB_EVENT_QP_FATAL\n",
-					nesqp->hwqp.qp_id, async_event_id);
+				   nesqp->hwqp.qp_id, async_event_id);
 			print_ip(nesqp->cm_node);
+
 			if (!atomic_read(&nesqp->close_timer_started))
+			{
 				nes_terminate_connection(nesdev, nesqp, aeqe, IB_EVENT_QP_FATAL);
+			}
+
 			break;
 
 		case NES_AEQE_AEID_CQ_OPERATION_ERROR:
 			context <<= 1;
 			nes_debug(NES_DBG_AEQ, "Processing an NES_AEQE_AEID_CQ_OPERATION_ERROR event on CQ%u, %p\n",
-					le32_to_cpu(aeqe->aeqe_words[NES_AEQE_COMP_QP_CQ_ID_IDX]), (void *)(unsigned long)context);
+					  le32_to_cpu(aeqe->aeqe_words[NES_AEQE_COMP_QP_CQ_ID_IDX]), (void *)(unsigned long)context);
 			resource_allocated = nes_is_resource_allocated(nesadapter, nesadapter->allocated_cqs,
-					le32_to_cpu(aeqe->aeqe_words[NES_AEQE_COMP_QP_CQ_ID_IDX]));
-			if (resource_allocated) {
+								 le32_to_cpu(aeqe->aeqe_words[NES_AEQE_COMP_QP_CQ_ID_IDX]));
+
+			if (resource_allocated)
+			{
 				printk(KERN_ERR PFX "%s: Processing an NES_AEQE_AEID_CQ_OPERATION_ERROR event on CQ%u\n",
-						__func__, le32_to_cpu(aeqe->aeqe_words[NES_AEQE_COMP_QP_CQ_ID_IDX]));
+					   __func__, le32_to_cpu(aeqe->aeqe_words[NES_AEQE_COMP_QP_CQ_ID_IDX]));
 				hw_cq = (struct nes_hw_cq *)(unsigned long)context;
-				if (hw_cq) {
+
+				if (hw_cq)
+				{
 					nescq = container_of(hw_cq, struct nes_cq, hw_cq);
-					if (nescq->ibcq.event_handler) {
+
+					if (nescq->ibcq.event_handler)
+					{
 						ibevent.device = nescq->ibcq.device;
 						ibevent.event = IB_EVENT_CQ_ERR;
 						ibevent.element.cq = &nescq->ibcq;
@@ -3697,11 +4524,12 @@ static void nes_process_iwarp_aeqe(struct nes_device *nesdev,
 					}
 				}
 			}
+
 			break;
 
 		default:
 			nes_debug(NES_DBG_AEQ, "Processing an iWARP related AE for QP, misc = 0x%04X\n",
-					async_event_id);
+					  async_event_id);
 			break;
 	}
 
@@ -3716,10 +4544,12 @@ void nes_iwarp_ce_handler(struct nes_device *nesdev, struct nes_hw_cq *hw_cq)
 
 	/* nes_debug(NES_DBG_CQ, "Processing completion event for iWARP CQ%u.\n",
 			nescq->hw_cq.cq_number); */
-	nes_write32(nesdev->regs+NES_CQ_ACK, nescq->hw_cq.cq_number);
+	nes_write32(nesdev->regs + NES_CQ_ACK, nescq->hw_cq.cq_number);
 
 	if (nescq->ibcq.comp_handler)
+	{
 		nescq->ibcq.comp_handler(&nescq->ibcq, nescq->ibcq.cq_context);
+	}
 
 	return;
 }
@@ -3729,7 +4559,7 @@ void nes_iwarp_ce_handler(struct nes_device *nesdev, struct nes_hw_cq *hw_cq)
  * nes_manage_apbvt()
  */
 int nes_manage_apbvt(struct nes_vnic *nesvnic, u32 accel_local_port,
-		u32 nic_index, u32 add_port)
+					 u32 nic_index, u32 add_port)
 {
 	struct nes_device *nesdev = nesvnic->nesdev;
 	struct nes_hw_cqp_wqe *cqp_wqe;
@@ -3739,22 +4569,25 @@ int nes_manage_apbvt(struct nes_vnic *nesvnic, u32 accel_local_port,
 
 	/* Send manage APBVT request to CQP */
 	cqp_request = nes_get_cqp_request(nesdev);
-	if (cqp_request == NULL) {
+
+	if (cqp_request == NULL)
+	{
 		nes_debug(NES_DBG_QP, "Failed to get a cqp_request.\n");
 		return -ENOMEM;
 	}
+
 	cqp_request->waiting = 1;
 	cqp_wqe = &cqp_request->cqp_wqe;
 
 	nes_debug(NES_DBG_QP, "%s APBV for local port=%u(0x%04x), nic_index=%u\n",
-			(add_port == NES_MANAGE_APBVT_ADD) ? "ADD" : "DEL",
-			accel_local_port, accel_local_port, nic_index);
+			  (add_port == NES_MANAGE_APBVT_ADD) ? "ADD" : "DEL",
+			  accel_local_port, accel_local_port, nic_index);
 
 	nes_fill_init_cqp_wqe(cqp_wqe, nesdev);
 	set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_OPCODE_IDX, (NES_CQP_MANAGE_APBVT |
-			((add_port == NES_MANAGE_APBVT_ADD) ? NES_CQP_APBVT_ADD : 0)));
+						((add_port == NES_MANAGE_APBVT_ADD) ? NES_CQP_APBVT_ADD : 0)));
 	set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_ID_IDX,
-			((nic_index << NES_CQP_APBVT_NIC_SHIFT) | accel_local_port));
+						((nic_index << NES_CQP_APBVT_NIC_SHIFT) | accel_local_port));
 
 	nes_debug(NES_DBG_QP, "Waiting for CQP completion for APBVT.\n");
 
@@ -3763,19 +4596,26 @@ int nes_manage_apbvt(struct nes_vnic *nesvnic, u32 accel_local_port,
 
 	if (add_port == NES_MANAGE_APBVT_ADD)
 		ret = wait_event_timeout(cqp_request->waitq, (cqp_request->request_done != 0),
-				NES_EVENT_TIMEOUT);
+								 NES_EVENT_TIMEOUT);
+
 	nes_debug(NES_DBG_QP, "Completed, ret=%u,  CQP Major:Minor codes = 0x%04X:0x%04X\n",
-			ret, cqp_request->major_code, cqp_request->minor_code);
+			  ret, cqp_request->major_code, cqp_request->minor_code);
 	major_code = cqp_request->major_code;
 
 	nes_put_cqp_request(nesdev, cqp_request);
 
 	if (!ret)
+	{
 		return -ETIME;
+	}
 	else if (major_code)
+	{
 		return -EIO;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 
@@ -3783,7 +4623,7 @@ int nes_manage_apbvt(struct nes_vnic *nesvnic, u32 accel_local_port,
  * nes_manage_arp_cache
  */
 void nes_manage_arp_cache(struct net_device *netdev, unsigned char *mac_addr,
-		u32 ip_addr, u32 action)
+						  u32 ip_addr, u32 action)
 {
 	struct nes_hw_cqp_wqe *cqp_wqe;
 	struct nes_vnic *nesvnic = netdev_priv(netdev);
@@ -3793,40 +4633,48 @@ void nes_manage_arp_cache(struct net_device *netdev, unsigned char *mac_addr,
 
 	nesdev = nesvnic->nesdev;
 	arp_index = nes_arp_table(nesdev, ip_addr, mac_addr, action);
-	if (arp_index == -1) {
+
+	if (arp_index == -1)
+	{
 		return;
 	}
 
 	/* update the ARP entry */
 	cqp_request = nes_get_cqp_request(nesdev);
-	if (cqp_request == NULL) {
+
+	if (cqp_request == NULL)
+	{
 		nes_debug(NES_DBG_NETDEV, "Failed to get a cqp_request.\n");
 		return;
 	}
+
 	cqp_request->waiting = 0;
 	cqp_wqe = &cqp_request->cqp_wqe;
 	nes_fill_init_cqp_wqe(cqp_wqe, nesdev);
 
 	cqp_wqe->wqe_words[NES_CQP_WQE_OPCODE_IDX] = cpu_to_le32(
-			NES_CQP_MANAGE_ARP_CACHE | NES_CQP_ARP_PERM);
+				NES_CQP_MANAGE_ARP_CACHE | NES_CQP_ARP_PERM);
 	cqp_wqe->wqe_words[NES_CQP_WQE_OPCODE_IDX] |= cpu_to_le32(
-			(u32)PCI_FUNC(nesdev->pcidev->devfn) << NES_CQP_ARP_AEQ_INDEX_SHIFT);
+				(u32)PCI_FUNC(nesdev->pcidev->devfn) << NES_CQP_ARP_AEQ_INDEX_SHIFT);
 	cqp_wqe->wqe_words[NES_CQP_WQE_ID_IDX] = cpu_to_le32(arp_index);
 
-	if (action == NES_ARP_ADD) {
+	if (action == NES_ARP_ADD)
+	{
 		cqp_wqe->wqe_words[NES_CQP_WQE_OPCODE_IDX] |= cpu_to_le32(NES_CQP_ARP_VALID);
 		cqp_wqe->wqe_words[NES_CQP_ARP_WQE_MAC_ADDR_LOW_IDX] = cpu_to_le32(
-				(((u32)mac_addr[2]) << 24) | (((u32)mac_addr[3]) << 16) |
-				(((u32)mac_addr[4]) << 8)  | (u32)mac_addr[5]);
+					(((u32)mac_addr[2]) << 24) | (((u32)mac_addr[3]) << 16) |
+					(((u32)mac_addr[4]) << 8)  | (u32)mac_addr[5]);
 		cqp_wqe->wqe_words[NES_CQP_ARP_WQE_MAC_HIGH_IDX] = cpu_to_le32(
-				(((u32)mac_addr[0]) << 8) | (u32)mac_addr[1]);
-	} else {
+					(((u32)mac_addr[0]) << 8) | (u32)mac_addr[1]);
+	}
+	else
+	{
 		cqp_wqe->wqe_words[NES_CQP_ARP_WQE_MAC_ADDR_LOW_IDX] = 0;
 		cqp_wqe->wqe_words[NES_CQP_ARP_WQE_MAC_HIGH_IDX] = 0;
 	}
 
 	nes_debug(NES_DBG_NETDEV, "Not waiting for CQP, cqp.sq_head=%u, cqp.sq_tail=%u\n",
-			nesdev->cqp.sq_head, nesdev->cqp.sq_tail);
+			  nesdev->cqp.sq_head, nesdev->cqp.sq_tail);
 
 	atomic_set(&cqp_request->refcount, 1);
 	nes_post_cqp_request(nesdev, cqp_request);
@@ -3837,7 +4685,7 @@ void nes_manage_arp_cache(struct net_device *netdev, unsigned char *mac_addr,
  * flush_wqes
  */
 void flush_wqes(struct nes_device *nesdev, struct nes_qp *nesqp,
-		u32 which_wq, u32 wait_completion)
+				u32 which_wq, u32 wait_completion)
 {
 	struct nes_cqp_request *cqp_request;
 	struct nes_hw_cqp_wqe *cqp_wqe;
@@ -3846,50 +4694,61 @@ void flush_wqes(struct nes_device *nesdev, struct nes_qp *nesqp,
 	int ret;
 
 	cqp_request = nes_get_cqp_request(nesdev);
-	if (cqp_request == NULL) {
+
+	if (cqp_request == NULL)
+	{
 		nes_debug(NES_DBG_QP, "Failed to get a cqp_request.\n");
 		return;
 	}
-	if (wait_completion) {
+
+	if (wait_completion)
+	{
 		cqp_request->waiting = 1;
 		atomic_set(&cqp_request->refcount, 2);
-	} else {
+	}
+	else
+	{
 		cqp_request->waiting = 0;
 	}
+
 	cqp_wqe = &cqp_request->cqp_wqe;
 	nes_fill_init_cqp_wqe(cqp_wqe, nesdev);
 
 	/* If wqe in error was identified, set code to be put into cqe */
-	if ((nesqp->term_sq_flush_code) && (which_wq & NES_CQP_FLUSH_SQ)) {
+	if ((nesqp->term_sq_flush_code) && (which_wq & NES_CQP_FLUSH_SQ))
+	{
 		which_wq |= NES_CQP_FLUSH_MAJ_MIN;
 		sq_code = (CQE_MAJOR_DRV << 16) | nesqp->term_sq_flush_code;
 		nesqp->term_sq_flush_code = 0;
 	}
 
-	if ((nesqp->term_rq_flush_code) && (which_wq & NES_CQP_FLUSH_RQ)) {
+	if ((nesqp->term_rq_flush_code) && (which_wq & NES_CQP_FLUSH_RQ))
+	{
 		which_wq |= NES_CQP_FLUSH_MAJ_MIN;
 		rq_code = (CQE_MAJOR_DRV << 16) | nesqp->term_rq_flush_code;
 		nesqp->term_rq_flush_code = 0;
 	}
 
-	if (which_wq & NES_CQP_FLUSH_MAJ_MIN) {
+	if (which_wq & NES_CQP_FLUSH_MAJ_MIN)
+	{
 		cqp_wqe->wqe_words[NES_CQP_QP_WQE_FLUSH_SQ_CODE] = cpu_to_le32(sq_code);
 		cqp_wqe->wqe_words[NES_CQP_QP_WQE_FLUSH_RQ_CODE] = cpu_to_le32(rq_code);
 	}
 
 	cqp_wqe->wqe_words[NES_CQP_WQE_OPCODE_IDX] =
-			cpu_to_le32(NES_CQP_FLUSH_WQES | which_wq);
+		cpu_to_le32(NES_CQP_FLUSH_WQES | which_wq);
 	cqp_wqe->wqe_words[NES_CQP_WQE_ID_IDX] = cpu_to_le32(nesqp->hwqp.qp_id);
 
 	nes_post_cqp_request(nesdev, cqp_request);
 
-	if (wait_completion) {
+	if (wait_completion)
+	{
 		/* Wait for CQP */
 		ret = wait_event_timeout(cqp_request->waitq, (cqp_request->request_done != 0),
-				NES_EVENT_TIMEOUT);
+								 NES_EVENT_TIMEOUT);
 		nes_debug(NES_DBG_QP, "Flush SQ QP WQEs completed, ret=%u,"
-				" CQP Major:Minor codes = 0x%04X:0x%04X\n",
-				ret, cqp_request->major_code, cqp_request->minor_code);
+				  " CQP Major:Minor codes = 0x%04X:0x%04X\n",
+				  ret, cqp_request->major_code, cqp_request->minor_code);
 		nes_put_cqp_request(nesdev, cqp_request);
 	}
 }

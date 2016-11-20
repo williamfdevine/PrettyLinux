@@ -38,7 +38,7 @@ static void audit_cb(struct audit_buffer *ab, void *va)
  * Returns: %0 or error code
  */
 static int aa_audit_ptrace(struct aa_profile *profile,
-			   struct aa_profile *target, int error)
+						   struct aa_profile *target, int error)
 {
 	struct common_audit_data sa;
 	struct apparmor_audit_data aad = {0,};
@@ -49,7 +49,7 @@ static int aa_audit_ptrace(struct aa_profile *profile,
 	aad.error = error;
 
 	return aa_audit(AUDIT_APPARMOR_AUTO, profile, GFP_ATOMIC, &sa,
-			audit_cb);
+					audit_cb);
 }
 
 /**
@@ -61,7 +61,7 @@ static int aa_audit_ptrace(struct aa_profile *profile,
  * Returns: %0 else error code if permission denied or error
  */
 int aa_may_ptrace(struct aa_profile *tracer, struct aa_profile *tracee,
-		  unsigned int mode)
+				  unsigned int mode)
 {
 	/* TODO: currently only based on capability, not extended ptrace
 	 *       rules,
@@ -69,7 +69,10 @@ int aa_may_ptrace(struct aa_profile *tracer, struct aa_profile *tracee,
 	 */
 
 	if (unconfined(tracer) || tracer == tracee)
+	{
 		return 0;
+	}
+
 	/* log this capability request */
 	return aa_capable(tracer, CAP_SYS_PTRACE, 1);
 }
@@ -83,7 +86,7 @@ int aa_may_ptrace(struct aa_profile *tracer, struct aa_profile *tracee,
  * Returns: %0 else error code if permission denied or error
  */
 int aa_ptrace(struct task_struct *tracer, struct task_struct *tracee,
-	      unsigned int mode)
+			  unsigned int mode)
 {
 	/*
 	 * tracer can ptrace tracee when
@@ -97,7 +100,8 @@ int aa_ptrace(struct task_struct *tracer, struct task_struct *tracee,
 	struct aa_profile *tracer_p = aa_get_task_profile(tracer);
 	int error = 0;
 
-	if (!unconfined(tracer_p)) {
+	if (!unconfined(tracer_p))
+	{
 		struct aa_profile *tracee_p = aa_get_task_profile(tracee);
 
 		error = aa_may_ptrace(tracer_p, tracee_p, mode);
@@ -105,6 +109,7 @@ int aa_ptrace(struct task_struct *tracer, struct task_struct *tracee,
 
 		aa_put_profile(tracee_p);
 	}
+
 	aa_put_profile(tracer_p);
 
 	return error;

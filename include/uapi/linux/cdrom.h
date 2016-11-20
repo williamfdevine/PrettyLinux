@@ -1,13 +1,13 @@
 /*
  * -- <linux/cdrom.h>
- * General header file for linux CD-ROM drivers 
+ * General header file for linux CD-ROM drivers
  * Copyright (C) 1992         David Giller, rafetmad@oxy.edu
  *               1994, 1995   Eberhard Mönkeberg, emoenke@gwdg.de
  *               1996         David van Leeuwen, david@tm.tno.nl
  *               1997, 1998   Erik Andersen, andersee@debian.org
  *               1998-2002    Jens Axboe, axboe@suse.de
  */
- 
+
 #ifndef _UAPI_LINUX_CDROM_H
 #define _UAPI_LINUX_CDROM_H
 
@@ -15,17 +15,17 @@
 #include <asm/byteorder.h>
 
 /*******************************************************
- * As of Linux 2.1.x, all Linux CD-ROM application programs will use this 
+ * As of Linux 2.1.x, all Linux CD-ROM application programs will use this
  * (and only this) include file.  It is my hope to provide Linux with
- * a uniform interface between software accessing CD-ROMs and the various 
+ * a uniform interface between software accessing CD-ROMs and the various
  * device drivers that actually talk to the drives.  There may still be
- * 23 different kinds of strange CD-ROM drives, but at least there will 
+ * 23 different kinds of strange CD-ROM drives, but at least there will
  * now be one, and only one, Linux CD-ROM interface.
  *
- * Additionally, as of Linux 2.1.x, all Linux application programs 
- * should use the O_NONBLOCK option when opening a CD-ROM device 
- * for subsequent ioctl commands.  This allows for neat system errors 
- * like "No medium found" or "Wrong medium type" upon attempting to 
+ * Additionally, as of Linux 2.1.x, all Linux application programs
+ * should use the O_NONBLOCK option when opening a CD-ROM device
+ * for subsequent ioctl commands.  This allows for neat system errors
+ * like "No medium found" or "Wrong medium type" upon attempting to
  * mount or play an empty slot, mount an audio disc, or play a data disc.
  * Generally, changing an application program to support O_NONBLOCK
  * is as easy as the following:
@@ -35,22 +35,22 @@
  *
  *  Patches for many common CD programs (provided by David A. van Leeuwen)
  *  can be found at:  ftp://ftp.gwdg.de/pub/linux/cdrom/drivers/cm206/
- * 
+ *
  *******************************************************/
 
-/* When a driver supports a certain function, but the cdrom drive we are 
- * using doesn't, we will return the error EDRIVE_CANT_DO_THIS.  We will 
- * borrow the "Operation not supported" error from the network folks to 
- * accomplish this.  Maybe someday we will get a more targeted error code, 
+/* When a driver supports a certain function, but the cdrom drive we are
+ * using doesn't, we will return the error EDRIVE_CANT_DO_THIS.  We will
+ * borrow the "Operation not supported" error from the network folks to
+ * accomplish this.  Maybe someday we will get a more targeted error code,
  * but this will do for now... */
 #define EDRIVE_CANT_DO_THIS  EOPNOTSUPP
 
 /*******************************************************
- * The CD-ROM IOCTL commands  -- these should be supported by 
- * all the various cdrom drivers.  For the CD-ROM ioctls, we 
+ * The CD-ROM IOCTL commands  -- these should be supported by
+ * all the various cdrom drivers.  For the CD-ROM ioctls, we
  * will commandeer byte 0x53, or 'S'.
  *******************************************************/
-#define CDROMPAUSE		0x5301 /* Pause Audio Operation */ 
+#define CDROMPAUSE		0x5301 /* Pause Audio Operation */
 #define CDROMRESUME		0x5302 /* Resume paused Audio Operation */
 #define CDROMPLAYMSF		0x5303 /* Play Audio MSF (struct cdrom_msf) */
 #define CDROMPLAYTRKIND		0x5304 /* Play Audio Track/index 
@@ -84,25 +84,25 @@
                                           (struct cdrom_volctrl) */
 #define CDROMREADRAW		0x5314	/* read data in raw mode (2352 Bytes)
                                            (struct cdrom_read) */
-/* 
+/*
  * These ioctls are used only used in aztcd.c and optcd.c
  */
 #define CDROMREADCOOKED		0x5315	/* read data in cooked mode */
 #define CDROMSEEK		0x5316  /* seek msf address */
-  
+
 /*
- * This ioctl is only used by the scsi-cd driver.  
+ * This ioctl is only used by the scsi-cd driver.
    It is for playing audio in logical block addressing mode.
  */
 #define CDROMPLAYBLK		0x5317	/* (struct cdrom_blk) */
 
-/* 
+/*
  * These ioctls are only used in optcd.c
  */
 #define CDROMREADALL		0x5318	/* read all 2646 bytes */
 
-/* 
- * These ioctls are (now) only in ide-cd.c for controlling 
+/*
+ * These ioctls are (now) only in ide-cd.c for controlling
  * drive spindown time.  They should be implemented in the
  * Uniform driver, via generic packet commands, GPCMD_MODE_SELECT_10,
  * GPCMD_MODE_SENSE_10 and the GPMODE_POWER_PAGE...
@@ -111,7 +111,7 @@
 #define CDROMGETSPINDOWN        0x531d
 #define CDROMSETSPINDOWN        0x531e
 
-/* 
+/*
  * These ioctls are implemented through the uniform CD-ROM driver
  * They _will_ be adopted by all CD-ROM drivers, when all the CD-ROM
  * drivers are eventually ported to the uniform CD-ROM driver interface.
@@ -135,7 +135,7 @@
 
 /* This ioctl is only used by sbpcd at the moment */
 #define CDROMAUDIOBUFSIZ        0x5382	/* set the audio buffer size */
-					/* conflict with SCSI_IOCTL_GET_IDLUN */
+/* conflict with SCSI_IOCTL_GET_IDLUN */
 
 /* DVD-ROM Specific ioctls */
 #define DVD_READ_STRUCT		0x5390  /* Read structure */
@@ -151,7 +151,7 @@
  *******************************************************/
 
 /* Address in MSF format */
-struct cdrom_msf0		
+struct cdrom_msf0
 {
 	__u8	minute;
 	__u8	second;
@@ -159,14 +159,14 @@ struct cdrom_msf0
 };
 
 /* Address in either MSF or logical format */
-union cdrom_addr		
+union cdrom_addr
 {
 	struct cdrom_msf0	msf;
 	int			lba;
 };
 
-/* This struct is used by the CDROMPLAYMSF ioctl */ 
-struct cdrom_msf 
+/* This struct is used by the CDROMPLAYMSF ioctl */
+struct cdrom_msf
 {
 	__u8	cdmsf_min0;	/* start minute */
 	__u8	cdmsf_sec0;	/* start second */
@@ -177,7 +177,7 @@ struct cdrom_msf
 };
 
 /* This struct is used by the CDROMPLAYTRKIND ioctl */
-struct cdrom_ti 
+struct cdrom_ti
 {
 	__u8	cdti_trk0;	/* start track */
 	__u8	cdti_ind0;	/* start index */
@@ -186,7 +186,7 @@ struct cdrom_ti
 };
 
 /* This struct is used by the CDROMREADTOCHDR ioctl */
-struct cdrom_tochdr 	
+struct cdrom_tochdr
 {
 	__u8	cdth_trk0;	/* start track */
 	__u8	cdth_trk1;	/* end track */
@@ -202,7 +202,7 @@ struct cdrom_volctrl
 };
 
 /* This struct is used by the CDROMSUBCHNL ioctl */
-struct cdrom_subchnl 
+struct cdrom_subchnl
 {
 	__u8	cdsc_format;
 	__u8	cdsc_audiostatus;
@@ -216,18 +216,18 @@ struct cdrom_subchnl
 
 
 /* This struct is used by the CDROMREADTOCENTRY ioctl */
-struct cdrom_tocentry 
+struct cdrom_tocentry
 {
 	__u8	cdte_track;
-	__u8	cdte_adr	:4;
-	__u8	cdte_ctrl	:4;
+	__u8	cdte_adr	: 4;
+	__u8	cdte_ctrl	: 4;
 	__u8	cdte_format;
 	union cdrom_addr cdte_addr;
 	__u8	cdte_datamode;
 };
 
 /* This struct is used by the CDROMREADMODE1, and CDROMREADMODE2 ioctls */
-struct cdrom_read      
+struct cdrom_read
 {
 	int	cdread_lba;
 	char 	*cdread_bufaddr;
@@ -246,25 +246,25 @@ struct cdrom_read_audio
 /* This struct is used with the CDROMMULTISESSION ioctl */
 struct cdrom_multisession
 {
-	union cdrom_addr addr; /* frame address: start-of-last-session 
+	union cdrom_addr addr; /* frame address: start-of-last-session
 	                           (not the new "frame 16"!).  Only valid
 	                           if the "xa_flag" is true. */
 	__u8 xa_flag;        /* 1: "is XA disk" */
 	__u8 addr_format;    /* CDROM_LBA or CDROM_MSF */
 };
 
-/* This struct is used with the CDROM_GET_MCN ioctl.  
- * Very few audio discs actually have Universal Product Code information, 
- * which should just be the Medium Catalog Number on the box.  Also note 
+/* This struct is used with the CDROM_GET_MCN ioctl.
+ * Very few audio discs actually have Universal Product Code information,
+ * which should just be the Medium Catalog Number on the box.  Also note
  * that the way the codeis written on CD is _not_ uniform across all discs!
- */  
-struct cdrom_mcn 
+ */
+struct cdrom_mcn
 {
-  __u8 medium_catalog_number[14]; /* 13 ASCII digits, null-terminated */
+	__u8 medium_catalog_number[14]; /* 13 ASCII digits, null-terminated */
 };
 
 /* This is used by the CDROMPLAYBLK ioctl */
-struct cdrom_blk 
+struct cdrom_blk
 {
 	unsigned from;
 	unsigned short len;
@@ -292,8 +292,8 @@ struct cdrom_generic_command
 };
 
 /*
- * A CD-ROM physical sector size is 2048, 2052, 2056, 2324, 2332, 2336, 
- * 2340, or 2352 bytes long.  
+ * A CD-ROM physical sector size is 2048, 2052, 2056, 2324, 2332, 2336,
+ * 2340, or 2352 bytes long.
 
 *         Sector types of the standard CD-ROM data formats:
  *
@@ -341,7 +341,7 @@ struct cdrom_generic_command
 #define CD_ECC_SIZE         276 /* bytes ECC per most raw data frame types */
 #define CD_FRAMESIZE       2048 /* bytes per frame, "cooked" mode */
 #define CD_FRAMESIZE_RAW   2352 /* bytes per frame, "raw" mode */
-#define CD_FRAMESIZE_RAWER 2646 /* The maximum possible returned bytes */ 
+#define CD_FRAMESIZE_RAWER 2646 /* The maximum possible returned bytes */
 /* most drives don't deliver everything: */
 #define CD_FRAMESIZE_RAW1 (CD_FRAMESIZE_RAW-CD_SYNC_SIZE) /*2340*/
 #define CD_FRAMESIZE_RAW0 (CD_FRAMESIZE_RAW-CD_SYNC_SIZE-CD_HEAD_SIZE) /*2336*/
@@ -368,7 +368,7 @@ struct cdrom_generic_command
 #define	CDROM_AUDIO_ERROR	0x14	/* audio play stopped due to error */
 #define	CDROM_AUDIO_NO_STATUS	0x15	/* no current audio status to return */
 
-/* capability flags used with the uniform CD-ROM driver */ 
+/* capability flags used with the uniform CD-ROM driver */
 #define CDC_CLOSE_TRAY		0x1     /* caddy systems _can't_ close */
 #define CDC_OPEN_TRAY		0x2     /* but _can_ eject.  */
 #define CDC_LOCK		0x4     /* disable manual eject */
@@ -430,8 +430,8 @@ struct cdrom_generic_command
  * Generic Packet commands, MMC commands, and such
  *********************************************************************/
 
- /* The generic packet command opcodes for CD/DVD Logical Units,
- * From Table 57 of the SFF8090 Ver. 3 (Mt. Fuji) draft standard. */
+/* The generic packet command opcodes for CD/DVD Logical Units,
+* From Table 57 of the SFF8090 Ver. 3 (Mt. Fuji) draft standard. */
 #define GPCMD_BLANK			    0xa1
 #define GPCMD_CLOSE_TRACK		    0x5b
 #define GPCMD_FLUSH_CACHE		    0x35
@@ -485,12 +485,12 @@ struct cdrom_generic_command
 #define GPCMD_WRITE_12			    0xaa
 #define GPCMD_WRITE_AND_VERIFY_10	    0x2e
 #define GPCMD_WRITE_BUFFER		    0x3b
-/* This is listed as optional in ATAPI 2.6, but is (curiously) 
+/* This is listed as optional in ATAPI 2.6, but is (curiously)
  * missing from Mt. Fuji, Table 57.  It _is_ mentioned in Mt. Fuji
  * Table 377 as an MMC command for SCSi devices though...  Most ATAPI
  * drives support it. */
 #define GPCMD_SET_SPEED			    0xbb
-/* This seems to be a SCSI specific CD-ROM opcode 
+/* This seems to be a SCSI specific CD-ROM opcode
  * to play data at track/index */
 #define GPCMD_PLAYAUDIO_TI		    0x48
 /*
@@ -523,7 +523,8 @@ struct cdrom_generic_command
 #define DVD_STRUCT_BCA		0x03
 #define DVD_STRUCT_MANUFACT	0x04
 
-struct dvd_layer {
+struct dvd_layer
+{
 	__u8 book_version	: 4;
 	__u8 book_type		: 4;
 	__u8 min_rate		: 4;
@@ -541,13 +542,15 @@ struct dvd_layer {
 
 #define DVD_LAYERS	4
 
-struct dvd_physical {
+struct dvd_physical
+{
 	__u8 type;
 	__u8 layer_num;
 	struct dvd_layer layer[DVD_LAYERS];
 };
 
-struct dvd_copyright {
+struct dvd_copyright
+{
 	__u8 type;
 
 	__u8 layer_num;
@@ -555,21 +558,24 @@ struct dvd_copyright {
 	__u8 rmi;
 };
 
-struct dvd_disckey {
+struct dvd_disckey
+{
 	__u8 type;
 
 	unsigned agid		: 2;
 	__u8 value[2048];
 };
 
-struct dvd_bca {
+struct dvd_bca
+{
 	__u8 type;
 
 	int len;
 	__u8 value[188];
 };
 
-struct dvd_manufact {
+struct dvd_manufact
+{
 	__u8 type;
 
 	__u8 layer_num;
@@ -577,7 +583,8 @@ struct dvd_manufact {
 	__u8 value[2048];
 };
 
-typedef union {
+typedef union
+{
 	__u8 type;
 
 	struct dvd_physical	physical;
@@ -613,26 +620,30 @@ typedef union {
 typedef __u8 dvd_key[5];		/* 40-bit value, MSB is first elem. */
 typedef __u8 dvd_challenge[10];	/* 80-bit value, MSB is first elem. */
 
-struct dvd_lu_send_agid {
+struct dvd_lu_send_agid
+{
 	__u8 type;
 	unsigned agid		: 2;
 };
 
-struct dvd_host_send_challenge {
+struct dvd_host_send_challenge
+{
 	__u8 type;
 	unsigned agid		: 2;
 
 	dvd_challenge chal;
 };
 
-struct dvd_send_key {
+struct dvd_send_key
+{
 	__u8 type;
 	unsigned agid		: 2;
 
 	dvd_key key;
 };
 
-struct dvd_lu_send_challenge {
+struct dvd_lu_send_challenge
+{
 	__u8 type;
 	unsigned agid		: 2;
 
@@ -649,7 +660,8 @@ struct dvd_lu_send_challenge {
 #define DVD_CGMS_SINGLE		2
 #define DVD_CGMS_RESTRICTED	3
 
-struct dvd_lu_send_title_key {
+struct dvd_lu_send_title_key
+{
 	__u8 type;
 	unsigned agid		: 2;
 
@@ -660,19 +672,22 @@ struct dvd_lu_send_title_key {
 	unsigned cgms		: 2;
 };
 
-struct dvd_lu_send_asf {
+struct dvd_lu_send_asf
+{
 	__u8 type;
 	unsigned agid		: 2;
 
 	unsigned asf		: 1;
 };
 
-struct dvd_host_send_rpcstate {
+struct dvd_host_send_rpcstate
+{
 	__u8 type;
 	__u8 pdrc;
 };
 
-struct dvd_lu_send_rpcstate {
+struct dvd_lu_send_rpcstate
+{
 	__u8 type		: 2;
 	__u8 vra		: 3;
 	__u8 ucca		: 3;
@@ -680,7 +695,8 @@ struct dvd_lu_send_rpcstate {
 	__u8 rpc_scheme;
 };
 
-typedef union {
+typedef union
+{
 	__u8 type;
 
 	struct dvd_lu_send_agid		lsa;
@@ -694,7 +710,8 @@ typedef union {
 	struct dvd_lu_send_rpcstate	lrpcs;
 } dvd_authinfo;
 
-struct request_sense {
+struct request_sense
+{
 #if defined(__BIG_ENDIAN_BITFIELD)
 	__u8 valid		: 1;
 	__u8 error_code		: 7;
@@ -752,7 +769,8 @@ struct request_sense {
 #define MRW_MODE_PC_PRE1		0x2c
 #define MRW_MODE_PC			0x03
 
-struct mrw_feature_desc {
+struct mrw_feature_desc
+{
 	__be16 feature_code;
 #if defined(__BIG_ENDIAN_BITFIELD)
 	__u8 reserved1		: 2;
@@ -779,7 +797,8 @@ struct mrw_feature_desc {
 };
 
 /* cf. mmc4r02g.pdf 5.3.10 Random Writable Feature (0020h) pg 197 of 635 */
-struct rwrt_feature_desc {
+struct rwrt_feature_desc
+{
 	__be16 feature_code;
 #if defined(__BIG_ENDIAN_BITFIELD)
 	__u8 reserved1		: 2;
@@ -806,17 +825,18 @@ struct rwrt_feature_desc {
 	__u8 reserved3;
 };
 
-typedef struct {
+typedef struct
+{
 	__be16 disc_information_length;
 #if defined(__BIG_ENDIAN_BITFIELD)
 	__u8 reserved1			: 3;
-        __u8 erasable			: 1;
-        __u8 border_status		: 2;
-        __u8 disc_status		: 2;
+	__u8 erasable			: 1;
+	__u8 border_status		: 2;
+	__u8 disc_status		: 2;
 #elif defined(__LITTLE_ENDIAN_BITFIELD)
-        __u8 disc_status		: 2;
-        __u8 border_status		: 2;
-        __u8 erasable			: 1;
+	__u8 disc_status		: 2;
+	__u8 border_status		: 2;
+	__u8 erasable			: 1;
 	__u8 reserved1			: 3;
 #else
 #error "Please fix <asm/byteorder.h>"
@@ -827,17 +847,17 @@ typedef struct {
 	__u8 last_track_lsb;
 #if defined(__BIG_ENDIAN_BITFIELD)
 	__u8 did_v			: 1;
-        __u8 dbc_v			: 1;
-        __u8 uru			: 1;
-        __u8 reserved2			: 2;
+	__u8 dbc_v			: 1;
+	__u8 uru			: 1;
+	__u8 reserved2			: 2;
 	__u8 dbit			: 1;
 	__u8 mrw_status			: 2;
 #elif defined(__LITTLE_ENDIAN_BITFIELD)
 	__u8 mrw_status			: 2;
 	__u8 dbit			: 1;
-        __u8 reserved2			: 2;
-        __u8 uru			: 1;
-        __u8 dbc_v			: 1;
+	__u8 reserved2			: 2;
+	__u8 uru			: 1;
+	__u8 dbc_v			: 1;
 	__u8 did_v			: 1;
 #endif
 	__u8 disc_type;
@@ -852,16 +872,17 @@ typedef struct {
 	__u8 n_opc;
 } disc_information;
 
-typedef struct {
+typedef struct
+{
 	__be16 track_information_length;
 	__u8 track_lsb;
 	__u8 session_lsb;
 	__u8 reserved1;
 #if defined(__BIG_ENDIAN_BITFIELD)
 	__u8 reserved2			: 2;
-        __u8 damage			: 1;
-        __u8 copy			: 1;
-        __u8 track_mode			: 4;
+	__u8 damage			: 1;
+	__u8 copy			: 1;
+	__u8 track_mode			: 4;
 	__u8 rt				: 1;
 	__u8 blank			: 1;
 	__u8 packet			: 1;
@@ -871,9 +892,9 @@ typedef struct {
 	__u8 lra_v			: 1;
 	__u8 nwa_v			: 1;
 #elif defined(__LITTLE_ENDIAN_BITFIELD)
-        __u8 track_mode			: 4;
-        __u8 copy			: 1;
-        __u8 damage			: 1;
+	__u8 track_mode			: 4;
+	__u8 copy			: 1;
+	__u8 damage			: 1;
 	__u8 reserved2			: 2;
 	__u8 data_mode			: 4;
 	__u8 fp				: 1;
@@ -892,14 +913,16 @@ typedef struct {
 	__be32 last_rec_address;
 } track_information;
 
-struct feature_header {
+struct feature_header
+{
 	__u32 data_len;
 	__u8 reserved1;
 	__u8 reserved2;
 	__u16 curr_profile;
 };
 
-struct mode_page_header {
+struct mode_page_header
+{
 	__be16 mode_data_length;
 	__u8 medium_type;
 	__u8 reserved1;
@@ -909,34 +932,35 @@ struct mode_page_header {
 };
 
 /* removable medium feature descriptor */
-struct rm_feature_desc {
+struct rm_feature_desc
+{
 	__be16 feature_code;
 #if defined(__BIG_ENDIAN_BITFIELD)
-	__u8 reserved1:2;
-	__u8 feature_version:4;
-	__u8 persistent:1;
-	__u8 curr:1;
+	__u8 reserved1: 2;
+	__u8 feature_version: 4;
+	__u8 persistent: 1;
+	__u8 curr: 1;
 #elif defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8 curr:1;
-	__u8 persistent:1;
-	__u8 feature_version:4;
-	__u8 reserved1:2;
+	__u8 curr: 1;
+	__u8 persistent: 1;
+	__u8 feature_version: 4;
+	__u8 reserved1: 2;
 #endif
 	__u8 add_len;
 #if defined(__BIG_ENDIAN_BITFIELD)
-	__u8 mech_type:3;
-	__u8 load:1;
-	__u8 eject:1;
-	__u8 pvnt_jmpr:1;
-	__u8 dbml:1;
-	__u8 lock:1;
+	__u8 mech_type: 3;
+	__u8 load: 1;
+	__u8 eject: 1;
+	__u8 pvnt_jmpr: 1;
+	__u8 dbml: 1;
+	__u8 lock: 1;
 #elif defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8 lock:1;
-	__u8 dbml:1;
-	__u8 pvnt_jmpr:1;
-	__u8 eject:1;
-	__u8 load:1;
-	__u8 mech_type:3;
+	__u8 lock: 1;
+	__u8 dbml: 1;
+	__u8 pvnt_jmpr: 1;
+	__u8 eject: 1;
+	__u8 load: 1;
+	__u8 mech_type: 3;
 #endif
 	__u8 reserved2;
 	__u8 reserved3;

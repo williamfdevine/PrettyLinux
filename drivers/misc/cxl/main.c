@@ -40,18 +40,26 @@ int cxl_afu_slbia(struct cxl_afu *afu)
 
 	pr_devel("cxl_afu_slbia issuing SLBIA command\n");
 	cxl_p2n_write(afu, CXL_SLBIA_An, CXL_TLB_SLB_IQ_ALL);
-	while (cxl_p2n_read(afu, CXL_SLBIA_An) & CXL_TLB_SLB_P) {
-		if (time_after_eq(jiffies, timeout)) {
+
+	while (cxl_p2n_read(afu, CXL_SLBIA_An) & CXL_TLB_SLB_P)
+	{
+		if (time_after_eq(jiffies, timeout))
+		{
 			dev_warn(&afu->dev, "WARNING: CXL AFU SLBIA timed out!\n");
 			return -EBUSY;
 		}
+
 		/* If the adapter has gone down, we can assume that we
 		 * will PERST it and that will invalidate everything.
 		 */
 		if (!cxl_ops->link_ok(afu->adapter, afu))
+		{
 			return -EIO;
+		}
+
 		cpu_relax();
 	}
+
 	return 0;
 }
 
@@ -59,17 +67,21 @@ static inline void _cxl_slbia(struct cxl_context *ctx, struct mm_struct *mm)
 {
 	struct task_struct *task;
 	unsigned long flags;
-	if (!(task = get_pid_task(ctx->pid, PIDTYPE_PID))) {
+
+	if (!(task = get_pid_task(ctx->pid, PIDTYPE_PID)))
+	{
 		pr_devel("%s unable to get task %i\n",
-			 __func__, pid_nr(ctx->pid));
+				 __func__, pid_nr(ctx->pid));
 		return;
 	}
 
 	if (task->mm != mm)
+	{
 		goto out_put;
+	}
 
 	pr_devel("%s matched mm - card: %i afu: %i pe: %i\n", __func__,
-		 ctx->afu->adapter->adapter_num, ctx->afu->slice, ctx->pe);
+			 ctx->afu->adapter->adapter_num, ctx->afu->slice, ctx->pe);
 
 	spin_lock_irqsave(&ctx->sste_lock, flags);
 	trace_cxl_slbia(ctx);
@@ -91,24 +103,33 @@ static inline void cxl_slbia_core(struct mm_struct *mm)
 	pr_devel("%s called\n", __func__);
 
 	spin_lock(&adapter_idr_lock);
-	idr_for_each_entry(&cxl_adapter_idr, adapter, card) {
+	idr_for_each_entry(&cxl_adapter_idr, adapter, card)
+	{
 		/* XXX: Make this lookup faster with link from mm to ctx */
 		spin_lock(&adapter->afu_list_lock);
-		for (slice = 0; slice < adapter->slices; slice++) {
+
+		for (slice = 0; slice < adapter->slices; slice++)
+		{
 			afu = adapter->afu[slice];
+
 			if (!afu || !afu->enabled)
+			{
 				continue;
+			}
+
 			rcu_read_lock();
 			idr_for_each_entry(&afu->contexts_idr, ctx, id)
-				_cxl_slbia(ctx, mm);
+			_cxl_slbia(ctx, mm);
 			rcu_read_unlock();
 		}
+
 		spin_unlock(&adapter->afu_list_lock);
 	}
 	spin_unlock(&adapter_idr_lock);
 }
 
-static struct cxl_calls cxl_calls = {
+static struct cxl_calls cxl_calls =
+{
 	.cxl_slbia = cxl_slbia_core,
 	.cxl_pci_associate_default_context = _cxl_pci_associate_default_context,
 	.cxl_pci_disable_device = _cxl_pci_disable_device,
@@ -129,10 +150,13 @@ int cxl_alloc_sst(struct cxl_context *ctx)
 	ctx->sst_size = PAGE_SIZE;
 	ctx->sst_lru = 0;
 	ctx->sstp = (struct cxl_sste *)get_zeroed_page(GFP_KERNEL);
-	if (!ctx->sstp) {
+
+	if (!ctx->sstp)
+	{
 		pr_err("cxl_alloc_sst: Unable to allocate segment table\n");
 		return -ENOMEM;
 	}
+
 	pr_devel("SSTP allocated at 0x%p\n", ctx->sstp);
 
 	vsid  = get_kernel_vsid((u64)ctx->sstp, mmu_kernel_ssize) << 12;
@@ -141,24 +165,31 @@ int cxl_alloc_sst(struct cxl_context *ctx)
 	sstp0 |= (SLB_VSID_KERNEL | mmu_psize_defs[mmu_linear_psize].sllp) << 50;
 
 	size = (((u64)ctx->sst_size >> 8) - 1) << CXL_SSTP0_An_SegTableSize_SHIFT;
-	if (unlikely(size & ~CXL_SSTP0_An_SegTableSize_MASK)) {
+
+	if (unlikely(size & ~CXL_SSTP0_An_SegTableSize_MASK))
+	{
 		WARN(1, "Impossible segment table size\n");
 		return -EINVAL;
 	}
+
 	sstp0 |= size;
 
 	if (mmu_kernel_ssize == MMU_SEGSIZE_256M)
+	{
 		ea_mask = 0xfffff00ULL;
+	}
 	else
+	{
 		ea_mask = 0xffffffff00ULL;
+	}
 
-	sstp0 |=  vsid >>     (50-14);  /*   Top 14 bits of VSID */
-	sstp1 |= (vsid << (64-(50-14))) & ~ea_mask;
+	sstp0 |=  vsid >>     (50 - 14); /*   Top 14 bits of VSID */
+	sstp1 |= (vsid << (64 - (50 - 14))) & ~ea_mask;
 	sstp1 |= (u64)ctx->sstp & ea_mask;
 	sstp1 |= CXL_SSTP1_An_V;
 
 	pr_devel("Looked up %#llx: slbfee. %#llx (ssize: %x, vsid: %#lx), copied to SSTP0: %#llx, SSTP1: %#llx\n",
-			(u64)ctx->sstp, (u64)ctx->sstp & ESID_MASK, mmu_kernel_ssize, vsid, sstp0, sstp1);
+			 (u64)ctx->sstp, (u64)ctx->sstp & ESID_MASK, mmu_kernel_ssize, vsid, sstp0, sstp1);
 
 	/* Store calculated sstp hardware points for use later */
 	ctx->sstp0 = sstp0;
@@ -178,18 +209,25 @@ void cxl_dump_debug_buffer(void *buf, size_t buf_len)
 	 * need to be in the same pr_devel() statement
 	 */
 	ptr = (int *) buf;
-	for (i = 0; i * 4 < buf_len; i += 4) {
+
+	for (i = 0; i * 4 < buf_len; i += 4)
+	{
 		if ((i + 3) * 4 < buf_len)
 			pr_devel("%.8x %.8x %.8x %.8x\n", ptr[i], ptr[i + 1],
-				ptr[i + 2], ptr[i + 3]);
+					 ptr[i + 2], ptr[i + 3]);
 		else if ((i + 2) * 4 < buf_len)
 			pr_devel("%.8x %.8x %.8x\n", ptr[i], ptr[i + 1],
-				ptr[i + 2]);
+					 ptr[i + 2]);
 		else if ((i + 1) * 4 < buf_len)
+		{
 			pr_devel("%.8x %.8x\n", ptr[i], ptr[i + 1]);
+		}
 		else
+		{
 			pr_devel("%.8x\n", ptr[i]);
+		}
 	}
+
 #endif /* DEBUG */
 }
 
@@ -199,8 +237,12 @@ struct cxl *get_cxl_adapter(int num)
 	struct cxl *adapter;
 
 	spin_lock(&adapter_idr_lock);
+
 	if ((adapter = idr_find(&cxl_adapter_idr, num)))
+	{
 		get_device(&adapter->dev);
+	}
+
 	spin_unlock(&adapter_idr_lock);
 
 	return adapter;
@@ -215,8 +257,11 @@ static int cxl_alloc_adapter_nr(struct cxl *adapter)
 	i = idr_alloc(&cxl_adapter_idr, adapter, 0, 0, GFP_NOWAIT);
 	spin_unlock(&adapter_idr_lock);
 	idr_preload_end();
+
 	if (i < 0)
+	{
 		return i;
+	}
 
 	adapter->adapter_num = i;
 
@@ -233,15 +278,21 @@ struct cxl *cxl_alloc_adapter(void)
 	struct cxl *adapter;
 
 	if (!(adapter = kzalloc(sizeof(struct cxl), GFP_KERNEL)))
+	{
 		return NULL;
+	}
 
 	spin_lock_init(&adapter->afu_list_lock);
 
 	if (cxl_alloc_adapter_nr(adapter))
+	{
 		goto err1;
+	}
 
 	if (dev_set_name(&adapter->dev, "card%i", adapter->adapter_num))
+	{
 		goto err2;
+	}
 
 	/* start with context lock taken */
 	atomic_set(&adapter->contexts_num, -1);
@@ -259,7 +310,9 @@ struct cxl_afu *cxl_alloc_afu(struct cxl *adapter, int slice)
 	struct cxl_afu *afu;
 
 	if (!(afu = kzalloc(sizeof(struct cxl_afu), GFP_KERNEL)))
+	{
 		return NULL;
+	}
 
 	afu->adapter = adapter;
 	afu->dev.parent = &adapter->dev;
@@ -278,10 +331,14 @@ struct cxl_afu *cxl_alloc_afu(struct cxl *adapter, int slice)
 int cxl_afu_select_best_mode(struct cxl_afu *afu)
 {
 	if (afu->modes_supported & CXL_MODE_DIRECTED)
+	{
 		return cxl_ops->afu_activate_mode(afu, CXL_MODE_DIRECTED);
+	}
 
 	if (afu->modes_supported & CXL_MODE_DEDICATED)
+	{
 		return cxl_ops->afu_activate_mode(afu, CXL_MODE_DEDICATED);
+	}
 
 	dev_warn(&afu->dev, "No supported programming modes available\n");
 	/* We don't fail this so the user can inspect sysfs */
@@ -319,10 +376,11 @@ void cxl_adapter_context_unlock(struct cxl *adapter)
 	 * This will happen when context_unlock was requested without
 	 * doing a context_lock.
 	 */
-	if (val != -1) {
+	if (val != -1)
+	{
 		atomic_set(&adapter->contexts_num, 0);
 		WARN(1, "Adapter context unlocked with %d active contexts",
-		     val);
+			 val);
 	}
 }
 
@@ -331,25 +389,36 @@ static int __init init_cxl(void)
 	int rc = 0;
 
 	if ((rc = cxl_file_init()))
+	{
 		return rc;
+	}
 
 	cxl_debugfs_init();
 
 	if ((rc = register_cxl_calls(&cxl_calls)))
+	{
 		goto err;
+	}
 
-	if (cpu_has_feature(CPU_FTR_HVMODE)) {
+	if (cpu_has_feature(CPU_FTR_HVMODE))
+	{
 		cxl_ops = &cxl_native_ops;
 		rc = pci_register_driver(&cxl_pci_driver);
 	}
+
 #ifdef CONFIG_PPC_PSERIES
-	else {
+	else
+	{
 		cxl_ops = &cxl_guest_ops;
 		rc = platform_driver_register(&cxl_of_driver);
 	}
+
 #endif
+
 	if (rc)
+	{
 		goto err1;
+	}
 
 	return 0;
 err1:
@@ -364,10 +433,16 @@ err:
 static void exit_cxl(void)
 {
 	if (cpu_has_feature(CPU_FTR_HVMODE))
+	{
 		pci_unregister_driver(&cxl_pci_driver);
+	}
+
 #ifdef CONFIG_PPC_PSERIES
 	else
+	{
 		platform_driver_unregister(&cxl_of_driver);
+	}
+
 #endif
 
 	cxl_debugfs_exit();

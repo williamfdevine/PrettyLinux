@@ -46,8 +46,8 @@
 static int vendorsupport;
 module_param(vendorsupport, int, 0);
 MODULE_PARM_DESC(vendorsupport, "iTCO vendor specific support mode, default="
-			"0 (none), 1=SuperMicro Pent3, 2=SuperMicro Pent4+, "
-							"911=Broken SMI BIOS");
+				 "0 (none), 1=SuperMicro Pent3, 2=SuperMicro Pent4+, "
+				 "911=Broken SMI BIOS");
 
 /*
  *	Vendor Specific Support
@@ -154,13 +154,13 @@ static void supermicro_old_pre_stop(struct resource *smires)
 #define SM_ENDWATCH	0xAA	/* Watchdog lock control page */
 
 #define SM_COUNTMODE	0xf5	/* Watchdog count mode select */
-				/* (Bit 3: 0 = seconds, 1 = minutes */
+/* (Bit 3: 0 = seconds, 1 = minutes */
 
 #define SM_WATCHTIMER	0xf6	/* 8-bits, Watchdog timer counter (RW) */
 
 #define SM_RESETCONTROL	0xf7	/* Watchdog reset control */
-				/* Bit 6: timer is reset by kbd interrupt */
-				/* Bit 7: timer is reset by mouse interrupt */
+/* Bit 6: timer is reset by kbd interrupt */
+/* Bit 7: timer is reset by mouse interrupt */
 
 static void supermicro_new_unlock_watchdog(void)
 {
@@ -292,34 +292,40 @@ static void broken_bios_stop(struct resource *smires)
  */
 
 void iTCO_vendor_pre_start(struct resource *smires,
-			   unsigned int heartbeat)
+						   unsigned int heartbeat)
 {
-	switch (vendorsupport) {
-	case SUPERMICRO_OLD_BOARD:
-		supermicro_old_pre_start(smires);
-		break;
-	case SUPERMICRO_NEW_BOARD:
-		supermicro_new_pre_start(heartbeat);
-		break;
-	case BROKEN_BIOS:
-		broken_bios_start(smires);
-		break;
+	switch (vendorsupport)
+	{
+		case SUPERMICRO_OLD_BOARD:
+			supermicro_old_pre_start(smires);
+			break;
+
+		case SUPERMICRO_NEW_BOARD:
+			supermicro_new_pre_start(heartbeat);
+			break;
+
+		case BROKEN_BIOS:
+			broken_bios_start(smires);
+			break;
 	}
 }
 EXPORT_SYMBOL(iTCO_vendor_pre_start);
 
 void iTCO_vendor_pre_stop(struct resource *smires)
 {
-	switch (vendorsupport) {
-	case SUPERMICRO_OLD_BOARD:
-		supermicro_old_pre_stop(smires);
-		break;
-	case SUPERMICRO_NEW_BOARD:
-		supermicro_new_pre_stop();
-		break;
-	case BROKEN_BIOS:
-		broken_bios_stop(smires);
-		break;
+	switch (vendorsupport)
+	{
+		case SUPERMICRO_OLD_BOARD:
+			supermicro_old_pre_stop(smires);
+			break;
+
+		case SUPERMICRO_NEW_BOARD:
+			supermicro_new_pre_stop();
+			break;
+
+		case BROKEN_BIOS:
+			broken_bios_stop(smires);
+			break;
 	}
 }
 EXPORT_SYMBOL(iTCO_vendor_pre_stop);
@@ -327,24 +333,30 @@ EXPORT_SYMBOL(iTCO_vendor_pre_stop);
 void iTCO_vendor_pre_keepalive(struct resource *smires, unsigned int heartbeat)
 {
 	if (vendorsupport == SUPERMICRO_NEW_BOARD)
+	{
 		supermicro_new_pre_set_heartbeat(heartbeat);
+	}
 }
 EXPORT_SYMBOL(iTCO_vendor_pre_keepalive);
 
 void iTCO_vendor_pre_set_heartbeat(unsigned int heartbeat)
 {
 	if (vendorsupport == SUPERMICRO_NEW_BOARD)
+	{
 		supermicro_new_pre_set_heartbeat(heartbeat);
+	}
 }
 EXPORT_SYMBOL(iTCO_vendor_pre_set_heartbeat);
 
 int iTCO_vendor_check_noreboot_on(void)
 {
-	switch (vendorsupport) {
-	case SUPERMICRO_OLD_BOARD:
-		return 0;
-	default:
-		return 1;
+	switch (vendorsupport)
+	{
+		case SUPERMICRO_OLD_BOARD:
+			return 0;
+
+		default:
+			return 1;
 	}
 }
 EXPORT_SYMBOL(iTCO_vendor_check_noreboot_on);
@@ -364,7 +376,7 @@ module_init(iTCO_vendor_init_module);
 module_exit(iTCO_vendor_exit_module);
 
 MODULE_AUTHOR("Wim Van Sebroeck <wim@iguana.be>, "
-		"R. Seretny <lkpatches@paypc.com>");
+			  "R. Seretny <lkpatches@paypc.com>");
 MODULE_DESCRIPTION("Intel TCO Vendor Specific WatchDog Timer Driver Support");
 MODULE_VERSION(DRV_VERSION);
 MODULE_LICENSE("GPL");

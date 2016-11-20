@@ -53,7 +53,10 @@ extern bool __cpuset_node_allowed(int node, gfp_t gfp_mask);
 static inline bool cpuset_node_allowed(int node, gfp_t gfp_mask)
 {
 	if (cpusets_enabled())
+	{
 		return __cpuset_node_allowed(node, gfp_mask);
+	}
+
 	return true;
 }
 
@@ -65,12 +68,15 @@ static inline bool __cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
 static inline bool cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
 {
 	if (cpusets_enabled())
+	{
 		return __cpuset_zone_allowed(z, gfp_mask);
+	}
+
 	return true;
 }
 
 extern int cpuset_mems_allowed_intersects(const struct task_struct *tsk1,
-					  const struct task_struct *tsk2);
+		const struct task_struct *tsk2);
 
 #define cpuset_memory_pressure_bump() 				\
 	do {							\
@@ -81,9 +87,9 @@ extern int cpuset_memory_pressure_enabled;
 extern void __cpuset_memory_pressure_bump(void);
 
 extern void cpuset_task_status_allowed(struct seq_file *m,
-					struct task_struct *task);
+									   struct task_struct *task);
 extern int proc_cpuset_show(struct seq_file *m, struct pid_namespace *ns,
-			    struct pid *pid, struct task_struct *tsk);
+							struct pid *pid, struct task_struct *tsk);
 
 extern int cpuset_mem_spread_node(void);
 extern int cpuset_slab_spread_node(void);
@@ -114,7 +120,9 @@ extern void cpuset_print_current_mems_allowed(void);
 static inline unsigned int read_mems_allowed_begin(void)
 {
 	if (!cpusets_enabled())
+	{
 		return 0;
+	}
 
 	return read_seqcount_begin(&current->mems_allowed_seq);
 }
@@ -128,7 +136,9 @@ static inline unsigned int read_mems_allowed_begin(void)
 static inline bool read_mems_allowed_retry(unsigned int seq)
 {
 	if (!cpusets_enabled())
+	{
 		return false;
+	}
 
 	return read_seqcount_retry(&current->mems_allowed_seq, seq);
 }
@@ -159,7 +169,7 @@ static inline void cpuset_update_active_cpus(bool cpu_online)
 }
 
 static inline void cpuset_cpus_allowed(struct task_struct *p,
-				       struct cpumask *mask)
+									   struct cpumask *mask)
 {
 	cpumask_copy(mask, cpu_possible_mask);
 }
@@ -197,7 +207,7 @@ static inline bool cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
 }
 
 static inline int cpuset_mems_allowed_intersects(const struct task_struct *tsk1,
-						 const struct task_struct *tsk2)
+		const struct task_struct *tsk2)
 {
 	return 1;
 }
@@ -205,7 +215,7 @@ static inline int cpuset_mems_allowed_intersects(const struct task_struct *tsk1,
 static inline void cpuset_memory_pressure_bump(void) {}
 
 static inline void cpuset_task_status_allowed(struct seq_file *m,
-						struct task_struct *task)
+		struct task_struct *task)
 {
 }
 

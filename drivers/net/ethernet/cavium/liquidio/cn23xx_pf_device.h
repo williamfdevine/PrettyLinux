@@ -33,7 +33,8 @@
  * If device specific changes need to be made then add a struct to include
  * device specific fields as shown in the commented section
  */
-struct octeon_cn23xx_pf {
+struct octeon_cn23xx_pf
+{
 	/** PCI interrupt summary register */
 	u8 __iomem *intr_sum_reg64;
 
@@ -49,7 +50,7 @@ struct octeon_cn23xx_pf {
 int setup_cn23xx_octeon_pf_device(struct octeon_device *oct);
 
 int validate_cn23xx_pf_config_info(struct octeon_device *oct,
-				   struct octeon_config *conf23xx);
+								   struct octeon_config *conf23xx);
 
 u32 cn23xx_pf_get_oq_ticks(struct octeon_device *oct, u32 time_intr_in_us);
 

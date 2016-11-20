@@ -10,7 +10,8 @@
 
 #include <linux/platform_device.h>
 
-struct omap_usb_config {
+struct omap_usb_config
+{
 	/* Configure drivers according to the connectors on your board:
 	 *  - "A" connector (rectagular)
 	 *	... for host/OHCI use, set "register_host".
@@ -19,8 +20,8 @@ struct omap_usb_config {
 	 *  - "Mini-AB" connector (very similar to Mini-B)
 	 *	... for OTG use as device OR host, initialize "otg"
 	 */
-	unsigned	register_host:1;
-	unsigned	register_dev:1;
+	unsigned	register_host: 1;
+	unsigned	register_dev: 1;
 	u8		otg;	/* port number, 1-based:  usb1 == 2 */
 
 	const char	*extcon;	/* extcon device for OTG */

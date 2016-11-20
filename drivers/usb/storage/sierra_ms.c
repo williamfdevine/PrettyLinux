@@ -25,9 +25,10 @@
 static unsigned int swi_tru_install = 1;
 module_param(swi_tru_install, uint, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(swi_tru_install, "TRU-Install mode (1=Full Logic (def),"
-		 " 2=Force CD-Rom, 3=Force Modem)");
+				 " 2=Force CD-Rom, 3=Force Modem)");
 
-struct swoc_info {
+struct swoc_info
+{
 	__u8 rev;
 	__u8 reserved[8];
 	__u16 LinuxSKU;
@@ -38,10 +39,14 @@ struct swoc_info {
 static bool containsFullLinuxPackage(struct swoc_info *swocInfo)
 {
 	if ((swocInfo->LinuxSKU >= 0x2100 && swocInfo->LinuxSKU <= 0x2FFF) ||
-	   (swocInfo->LinuxSKU >= 0x7100 && swocInfo->LinuxSKU <= 0x7FFF))
+		(swocInfo->LinuxSKU >= 0x7100 && swocInfo->LinuxSKU <= 0x7FFF))
+	{
 		return true;
+	}
 	else
+	{
 		return false;
+	}
 }
 
 static int sierra_set_ms_mode(struct usb_device *udev, __u16 eSWocMode)
@@ -49,32 +54,32 @@ static int sierra_set_ms_mode(struct usb_device *udev, __u16 eSWocMode)
 	int result;
 	dev_dbg(&udev->dev, "SWIMS: %s", "DEVICE MODE SWITCH\n");
 	result = usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
-			SWIMS_USB_REQUEST_SetSwocMode,	/* __u8 request      */
-			USB_TYPE_VENDOR | USB_DIR_OUT,	/* __u8 request type */
-			eSWocMode,			/* __u16 value       */
-			0x0000,				/* __u16 index       */
-			NULL,				/* void *data        */
-			0,				/* __u16 size 	     */
-			USB_CTRL_SET_TIMEOUT);		/* int timeout       */
+							 SWIMS_USB_REQUEST_SetSwocMode,	/* __u8 request      */
+							 USB_TYPE_VENDOR | USB_DIR_OUT,	/* __u8 request type */
+							 eSWocMode,			/* __u16 value       */
+							 0x0000,				/* __u16 index       */
+							 NULL,				/* void *data        */
+							 0,				/* __u16 size 	     */
+							 USB_CTRL_SET_TIMEOUT);		/* int timeout       */
 	return result;
 }
 
 
 static int sierra_get_swoc_info(struct usb_device *udev,
-				struct swoc_info *swocInfo)
+								struct swoc_info *swocInfo)
 {
 	int result;
 
 	dev_dbg(&udev->dev, "SWIMS: Attempting to get TRU-Install info\n");
 
 	result = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
-			SWIMS_USB_REQUEST_GetSwocInfo,	/* __u8 request      */
-			USB_TYPE_VENDOR | USB_DIR_IN,	/* __u8 request type */
-			0,				/* __u16 value       */
-			0,				/* __u16 index       */
-			(void *) swocInfo,		/* void *data        */
-			sizeof(struct swoc_info),	/* __u16 size 	     */
-			USB_CTRL_SET_TIMEOUT);		/* int timeout 	     */
+							 SWIMS_USB_REQUEST_GetSwocInfo,	/* __u8 request      */
+							 USB_TYPE_VENDOR | USB_DIR_IN,	/* __u8 request type */
+							 0,				/* __u16 value       */
+							 0,				/* __u16 index       */
+							 (void *) swocInfo,		/* void *data        */
+							 sizeof(struct swoc_info),	/* __u16 size 	     */
+							 USB_CTRL_SET_TIMEOUT);		/* int timeout 	     */
 
 	swocInfo->LinuxSKU = le16_to_cpu(swocInfo->LinuxSKU);
 	swocInfo->LinuxVer = le16_to_cpu(swocInfo->LinuxVer);
@@ -90,35 +95,46 @@ static void debug_swoc(const struct device *dev, struct swoc_info *swocInfo)
 
 
 static ssize_t show_truinst(struct device *dev, struct device_attribute *attr,
-			char *buf)
+							char *buf)
 {
 	struct swoc_info *swocInfo;
 	struct usb_interface *intf = to_usb_interface(dev);
 	struct usb_device *udev = interface_to_usbdev(intf);
 	int result;
-	if (swi_tru_install == TRU_FORCE_MS) {
+
+	if (swi_tru_install == TRU_FORCE_MS)
+	{
 		result = snprintf(buf, PAGE_SIZE, "Forced Mass Storage\n");
-	} else {
+	}
+	else
+	{
 		swocInfo = kmalloc(sizeof(struct swoc_info), GFP_KERNEL);
-		if (!swocInfo) {
+
+		if (!swocInfo)
+		{
 			snprintf(buf, PAGE_SIZE, "Error\n");
 			return -ENOMEM;
 		}
+
 		result = sierra_get_swoc_info(udev, swocInfo);
-		if (result < 0) {
+
+		if (result < 0)
+		{
 			dev_dbg(dev, "SWIMS: failed SWoC query\n");
 			kfree(swocInfo);
 			snprintf(buf, PAGE_SIZE, "Error\n");
 			return -EIO;
 		}
+
 		debug_swoc(dev, swocInfo);
 		result = snprintf(buf, PAGE_SIZE,
-			"REV=%02d SKU=%04X VER=%04X\n",
-			swocInfo->rev,
-			swocInfo->LinuxSKU,
-			swocInfo->LinuxVer);
+						  "REV=%02d SKU=%04X VER=%04X\n",
+						  swocInfo->rev,
+						  swocInfo->LinuxSKU,
+						  swocInfo->LinuxVer);
 		kfree(swocInfo);
 	}
+
 	return result;
 }
 static DEVICE_ATTR(truinst, S_IRUGO, show_truinst, NULL);
@@ -138,38 +154,54 @@ int sierra_ms_init(struct us_data *us)
 	scsi_get_host_dev(sh);
 
 	/* Force Modem mode */
-	if (swi_tru_install == TRU_FORCE_MODEM) {
+	if (swi_tru_install == TRU_FORCE_MODEM)
+	{
 		usb_stor_dbg(us, "SWIMS: Forcing Modem Mode\n");
 		result = sierra_set_ms_mode(udev, SWIMS_SET_MODE_Modem);
+
 		if (result < 0)
+		{
 			usb_stor_dbg(us, "SWIMS: Failed to switch to modem mode\n");
+		}
+
 		return -EIO;
 	}
 	/* Force Mass Storage mode (keep CD-Rom) */
-	else if (swi_tru_install == TRU_FORCE_MS) {
+	else if (swi_tru_install == TRU_FORCE_MS)
+	{
 		usb_stor_dbg(us, "SWIMS: Forcing Mass Storage Mode\n");
 		goto complete;
 	}
 	/* Normal TRU-Install Logic */
-	else {
+	else
+	{
 		usb_stor_dbg(us, "SWIMS: Normal SWoC Logic\n");
 
 		swocInfo = kmalloc(sizeof(struct swoc_info),
-				GFP_KERNEL);
+						   GFP_KERNEL);
+
 		if (!swocInfo)
+		{
 			return -ENOMEM;
+		}
 
 		retries = 3;
-		do {
+
+		do
+		{
 			retries--;
 			result = sierra_get_swoc_info(udev, swocInfo);
-			if (result < 0) {
-				usb_stor_dbg(us, "SWIMS: Failed SWoC query\n");
-				schedule_timeout_uninterruptible(2*HZ);
-			}
-		} while (retries && result < 0);
 
-		if (result < 0) {
+			if (result < 0)
+			{
+				usb_stor_dbg(us, "SWIMS: Failed SWoC query\n");
+				schedule_timeout_uninterruptible(2 * HZ);
+			}
+		}
+		while (retries && result < 0);
+
+		if (result < 0)
+		{
 			usb_stor_dbg(us, "SWIMS: Completely failed SWoC query\n");
 			kfree(swocInfo);
 			return -EIO;
@@ -181,17 +213,24 @@ int sierra_ms_init(struct us_data *us)
 		 * If there is not Linux software on the TRU-Install device
 		 * then switch to modem mode
 		 */
-		if (!containsFullLinuxPackage(swocInfo)) {
+		if (!containsFullLinuxPackage(swocInfo))
+		{
 			usb_stor_dbg(us, "SWIMS: Switching to Modem Mode\n");
 			result = sierra_set_ms_mode(udev,
-				SWIMS_SET_MODE_Modem);
+										SWIMS_SET_MODE_Modem);
+
 			if (result < 0)
+			{
 				usb_stor_dbg(us, "SWIMS: Failed to switch modem\n");
+			}
+
 			kfree(swocInfo);
 			return -EIO;
 		}
+
 		kfree(swocInfo);
 	}
+
 complete:
 	result = device_create_file(&us->pusb_intf->dev, &dev_attr_truinst);
 

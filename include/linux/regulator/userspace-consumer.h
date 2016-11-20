@@ -13,7 +13,8 @@ struct regulator_consumer_supply;
  * @init_on: Set if the regulators supplying the line should be
  *           enabled during initialisation
  */
-struct regulator_userspace_consumer_data {
+struct regulator_userspace_consumer_data
+{
 	const char *name;
 
 	int num_supplies;

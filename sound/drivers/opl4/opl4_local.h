@@ -131,7 +131,8 @@
 #define SNDRV_SEQ_DEV_ID_OPL4 "opl4-synth"
 
 
-struct opl4_sound {
+struct opl4_sound
+{
 	u16 tone;
 	s16 pitch_offset;
 	u8 key_scaling;
@@ -146,17 +147,20 @@ struct opl4_sound {
 	u8 reg_tremolo;
 };
 
-struct opl4_region {
+struct opl4_region
+{
 	u8 key_min, key_max;
 	struct opl4_sound sound;
 };
 
-struct opl4_region_ptr {
+struct opl4_region_ptr
+{
 	int count;
 	const struct opl4_region *regions;
 };
 
-struct opl4_voice {
+struct opl4_voice
+{
 	struct list_head list;
 	int number;
 	struct snd_midi_channel *chan;
@@ -169,7 +173,8 @@ struct opl4_voice {
 	u8 reg_lfo_vibrato;
 };
 
-struct snd_opl4 {
+struct snd_opl4
+{
 	unsigned long fm_port;
 	unsigned long pcm_port;
 	struct resource *res_fm_port;

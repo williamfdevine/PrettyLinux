@@ -36,7 +36,8 @@
 #define SRC_SF_F32	0x4
 
 /* Define the descriptor of a src resource */
-enum SRCMODE {
+enum SRCMODE
+{
 	MEMRD,		/* Read data from host memory */
 	MEMWR,		/* Write data to host memory */
 	ARCRW,		/* Read from and write to audio ring channel */
@@ -45,7 +46,8 @@ enum SRCMODE {
 
 struct src_rsc_ops;
 
-struct src {
+struct src
+{
 	struct rsc rsc; /* Basic resource info */
 	struct src *intlv; /* Pointer to next interleaved SRC in a series */
 	const struct src_rsc_ops *ops; /* SRC specific operations */
@@ -54,7 +56,8 @@ struct src {
 	unsigned char mode; /* Working mode of this SRC resource */
 };
 
-struct src_rsc_ops {
+struct src_rsc_ops
+{
 	int (*set_state)(struct src *src, unsigned int state);
 	int (*set_bm)(struct src *src, unsigned int bm);
 	int (*set_sf)(struct src *src, unsigned int sf);
@@ -72,11 +75,12 @@ struct src_rsc_ops {
 	int (*commit_write)(struct src *src);
 	int (*get_ca)(struct src *src);
 	int (*init)(struct src *src);
-	struct src* (*next_interleave)(struct src *src);
+	struct src *(*next_interleave)(struct src *src);
 };
 
 /* Define src resource request description info */
-struct src_desc {
+struct src_desc
+{
 	/* Number of contiguous master srcs for interleaved usage */
 	unsigned char multi;
 	unsigned char msr;
@@ -84,14 +88,15 @@ struct src_desc {
 };
 
 /* Define src manager object */
-struct src_mgr {
+struct src_mgr
+{
 	struct rsc_mgr mgr;	/* Basic resource manager info */
 	struct snd_card *card;	/* pointer to this card */
 	spinlock_t mgr_lock;
 
-	 /* request src resource */
+	/* request src resource */
 	int (*get_src)(struct src_mgr *mgr,
-		       const struct src_desc *desc, struct src **rsrc);
+				   const struct src_desc *desc, struct src **rsrc);
 	/* return src resource */
 	int (*put_src)(struct src_mgr *mgr, struct src *src);
 	int (*src_enable_s)(struct src_mgr *mgr, struct src *src);
@@ -104,7 +109,8 @@ struct src_mgr {
 struct srcimp_mgr;
 struct srcimp_rsc_ops;
 
-struct srcimp {
+struct srcimp
+{
 	struct rsc rsc;
 	unsigned char idx[8];
 	struct imapper *imappers;
@@ -113,17 +119,20 @@ struct srcimp {
 	const struct srcimp_rsc_ops *ops;
 };
 
-struct srcimp_rsc_ops {
+struct srcimp_rsc_ops
+{
 	int (*map)(struct srcimp *srcimp, struct src *user, struct rsc *input);
 	int (*unmap)(struct srcimp *srcimp);
 };
 
 /* Define SRCIMP resource request description info */
-struct srcimp_desc {
+struct srcimp_desc
+{
 	unsigned int msr;
 };
 
-struct srcimp_mgr {
+struct srcimp_mgr
+{
 	struct rsc_mgr mgr;	/* Basic resource manager info */
 	struct snd_card *card;	/* pointer to this card */
 	spinlock_t mgr_lock;
@@ -132,10 +141,10 @@ struct srcimp_mgr {
 	struct imapper *init_imap;
 	unsigned int init_imap_added;
 
-	 /* request srcimp resource */
+	/* request srcimp resource */
 	int (*get_srcimp)(struct srcimp_mgr *mgr,
-			  const struct srcimp_desc *desc,
-			  struct srcimp **rsrcimp);
+					  const struct srcimp_desc *desc,
+					  struct srcimp **rsrcimp);
 	/* return srcimp resource */
 	int (*put_srcimp)(struct srcimp_mgr *mgr, struct srcimp *srcimp);
 	int (*imap_add)(struct srcimp_mgr *mgr, struct imapper *entry);

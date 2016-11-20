@@ -23,7 +23,8 @@
 static int mt9m111_s_ctrl(struct v4l2_ctrl *ctrl);
 static void mt9m111_dump_registers(struct sd *sd);
 
-static const unsigned char preinit_mt9m111[][4] = {
+static const unsigned char preinit_mt9m111[][4] =
+{
 	{BRIDGE, M5602_XB_MCU_CLK_DIV, 0x02, 0x00},
 	{BRIDGE, M5602_XB_MCU_CLK_CTRL, 0xb0, 0x00},
 	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00, 0x00},
@@ -34,14 +35,16 @@ static const unsigned char preinit_mt9m111[][4] = {
 	{BRIDGE, M5602_XB_SENSOR_TYPE, 0x09, 0x00},
 
 	{SENSOR, MT9M111_PAGE_MAP, 0x00, 0x00},
-	{SENSOR, MT9M111_SC_RESET,
+	{
+		SENSOR, MT9M111_SC_RESET,
 		MT9M111_RESET |
 		MT9M111_RESTART |
 		MT9M111_ANALOG_STANDBY |
 		MT9M111_CHIP_DISABLE,
 		MT9M111_SHOW_BAD_FRAMES |
 		MT9M111_RESTART_BAD_FRAMES |
-		MT9M111_SYNCHRONIZE_CHANGES},
+		MT9M111_SYNCHRONIZE_CHANGES
+	},
 
 	{BRIDGE, M5602_XB_GPIO_DIR, 0x05, 0x00},
 	{BRIDGE, M5602_XB_GPIO_DAT, 0x04, 0x00},
@@ -62,7 +65,8 @@ static const unsigned char preinit_mt9m111[][4] = {
 	{BRIDGE, M5602_XB_I2C_CLK_DIV, 0x0a, 0x00}
 };
 
-static const unsigned char init_mt9m111[][4] = {
+static const unsigned char init_mt9m111[][4] =
+{
 	{BRIDGE, M5602_XB_MCU_CLK_DIV, 0x02, 0x00},
 	{BRIDGE, M5602_XB_MCU_CLK_CTRL, 0xb0, 0x00},
 	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00, 0x00},
@@ -85,13 +89,19 @@ static const unsigned char init_mt9m111[][4] = {
 	{SENSOR, MT9M111_PAGE_MAP, 0x00, 0x00},
 	{SENSOR, MT9M111_SC_RESET, 0x00, 0x08},
 	{SENSOR, MT9M111_PAGE_MAP, 0x00, 0x01},
-	{SENSOR, MT9M111_CP_OPERATING_MODE_CTL, 0x00,
-			MT9M111_CP_OPERATING_MODE_CTL},
+	{
+		SENSOR, MT9M111_CP_OPERATING_MODE_CTL, 0x00,
+		MT9M111_CP_OPERATING_MODE_CTL
+	},
 	{SENSOR, MT9M111_CP_LENS_CORRECTION_1, 0x04, 0x2a},
-	{SENSOR, MT9M111_CP_DEFECT_CORR_CONTEXT_A, 0x00,
-				MT9M111_2D_DEFECT_CORRECTION_ENABLE},
-	{SENSOR, MT9M111_CP_DEFECT_CORR_CONTEXT_B, 0x00,
-				MT9M111_2D_DEFECT_CORRECTION_ENABLE},
+	{
+		SENSOR, MT9M111_CP_DEFECT_CORR_CONTEXT_A, 0x00,
+		MT9M111_2D_DEFECT_CORRECTION_ENABLE
+	},
+	{
+		SENSOR, MT9M111_CP_DEFECT_CORR_CONTEXT_B, 0x00,
+		MT9M111_2D_DEFECT_CORRECTION_ENABLE
+	},
 	{SENSOR, MT9M111_CP_LUMA_OFFSET, 0x00, 0x00},
 	{SENSOR, MT9M111_CP_LUMA_CLIP, 0xff, 0x00},
 	{SENSOR, MT9M111_CP_OUTPUT_FORMAT_CTL2_CONTEXT_A, 0x14, 0x00},
@@ -153,7 +163,8 @@ static const unsigned char init_mt9m111[][4] = {
 	{SENSOR, MT9M111_SC_SHUTTER_WIDTH, 0x01, 0x90},
 };
 
-static const unsigned char start_mt9m111[][4] = {
+static const unsigned char start_mt9m111[][4] =
+{
 	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x06, 0x00},
 	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0, 0x00},
 	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0, 0x00},
@@ -167,7 +178,8 @@ static const unsigned char start_mt9m111[][4] = {
 	{BRIDGE, M5602_XB_VSYNC_PARA, 0x00, 0x00},
 };
 
-static struct v4l2_pix_format mt9m111_modes[] = {
+static struct v4l2_pix_format mt9m111_modes[] =
+{
 	{
 		640,
 		480,
@@ -180,11 +192,13 @@ static struct v4l2_pix_format mt9m111_modes[] = {
 	}
 };
 
-static const struct v4l2_ctrl_ops mt9m111_ctrl_ops = {
+static const struct v4l2_ctrl_ops mt9m111_ctrl_ops =
+{
 	.s_ctrl = mt9m111_s_ctrl,
 };
 
-static const struct v4l2_ctrl_config mt9m111_greenbal_cfg = {
+static const struct v4l2_ctrl_config mt9m111_greenbal_cfg =
+{
 	.ops	= &mt9m111_ctrl_ops,
 	.id	= M5602_V4L2_CID_GREEN_BALANCE,
 	.name	= "Green Balance",
@@ -202,11 +216,14 @@ int mt9m111_probe(struct sd *sd)
 	int i;
 	struct gspca_dev *gspca_dev = (struct gspca_dev *)sd;
 
-	if (force_sensor) {
-		if (force_sensor == MT9M111_SENSOR) {
+	if (force_sensor)
+	{
+		if (force_sensor == MT9M111_SENSOR)
+		{
 			pr_info("Forcing a %s sensor\n", mt9m111.name);
 			goto sensor_found;
 		}
+
 		/* If we want to force another sensor, don't try to probe this
 		 * one */
 		return -ENODEV;
@@ -215,23 +232,30 @@ int mt9m111_probe(struct sd *sd)
 	PDEBUG(D_PROBE, "Probing for a mt9m111 sensor");
 
 	/* Do the preinit */
-	for (i = 0; i < ARRAY_SIZE(preinit_mt9m111); i++) {
-		if (preinit_mt9m111[i][0] == BRIDGE) {
+	for (i = 0; i < ARRAY_SIZE(preinit_mt9m111); i++)
+	{
+		if (preinit_mt9m111[i][0] == BRIDGE)
+		{
 			m5602_write_bridge(sd,
-				preinit_mt9m111[i][1],
-				preinit_mt9m111[i][2]);
-		} else {
+							   preinit_mt9m111[i][1],
+							   preinit_mt9m111[i][2]);
+		}
+		else
+		{
 			data[0] = preinit_mt9m111[i][2];
 			data[1] = preinit_mt9m111[i][3];
 			m5602_write_sensor(sd,
-				preinit_mt9m111[i][1], data, 2);
+							   preinit_mt9m111[i][1], data, 2);
 		}
 	}
 
 	if (m5602_read_sensor(sd, MT9M111_SC_CHIPVER, data, 2))
+	{
 		return -ENODEV;
+	}
 
-	if ((data[0] == 0x14) && (data[1] == 0x3a)) {
+	if ((data[0] == 0x14) && (data[1] == 0x3a))
+	{
 		pr_info("Detected a mt9m111 sensor\n");
 		goto sensor_found;
 	}
@@ -250,23 +274,29 @@ int mt9m111_init(struct sd *sd)
 	int i, err = 0;
 
 	/* Init the sensor */
-	for (i = 0; i < ARRAY_SIZE(init_mt9m111) && !err; i++) {
+	for (i = 0; i < ARRAY_SIZE(init_mt9m111) && !err; i++)
+	{
 		u8 data[2];
 
-		if (init_mt9m111[i][0] == BRIDGE) {
+		if (init_mt9m111[i][0] == BRIDGE)
+		{
 			err = m5602_write_bridge(sd,
-				init_mt9m111[i][1],
-				init_mt9m111[i][2]);
-		} else {
+									 init_mt9m111[i][1],
+									 init_mt9m111[i][2]);
+		}
+		else
+		{
 			data[0] = init_mt9m111[i][2];
 			data[1] = init_mt9m111[i][3];
 			err = m5602_write_sensor(sd,
-				init_mt9m111[i][1], data, 2);
+									 init_mt9m111[i][1], data, 2);
 		}
 	}
 
 	if (dump_sensor)
+	{
 		mt9m111_dump_registers(sd);
+	}
 
 	return 0;
 }
@@ -279,26 +309,27 @@ int mt9m111_init_controls(struct sd *sd)
 	v4l2_ctrl_handler_init(hdl, 7);
 
 	sd->auto_white_bal = v4l2_ctrl_new_std(hdl, &mt9m111_ctrl_ops,
-					       V4L2_CID_AUTO_WHITE_BALANCE,
-					       0, 1, 1, 0);
+										   V4L2_CID_AUTO_WHITE_BALANCE,
+										   0, 1, 1, 0);
 	sd->green_bal = v4l2_ctrl_new_custom(hdl, &mt9m111_greenbal_cfg, NULL);
 	sd->red_bal = v4l2_ctrl_new_std(hdl, &mt9m111_ctrl_ops,
-					V4L2_CID_RED_BALANCE, 0, 0x7ff, 1,
-					MT9M111_RED_GAIN_DEFAULT);
+									V4L2_CID_RED_BALANCE, 0, 0x7ff, 1,
+									MT9M111_RED_GAIN_DEFAULT);
 	sd->blue_bal = v4l2_ctrl_new_std(hdl, &mt9m111_ctrl_ops,
-					V4L2_CID_BLUE_BALANCE, 0, 0x7ff, 1,
-					MT9M111_BLUE_GAIN_DEFAULT);
+									 V4L2_CID_BLUE_BALANCE, 0, 0x7ff, 1,
+									 MT9M111_BLUE_GAIN_DEFAULT);
 
 	v4l2_ctrl_new_std(hdl, &mt9m111_ctrl_ops, V4L2_CID_GAIN, 0,
-			  (INITIAL_MAX_GAIN - 1) * 2 * 2 * 2, 1,
-			  MT9M111_DEFAULT_GAIN);
+					  (INITIAL_MAX_GAIN - 1) * 2 * 2 * 2, 1,
+					  MT9M111_DEFAULT_GAIN);
 
 	sd->hflip = v4l2_ctrl_new_std(hdl, &mt9m111_ctrl_ops, V4L2_CID_HFLIP,
-				      0, 1, 1, 0);
+								  0, 1, 1, 0);
 	sd->vflip = v4l2_ctrl_new_std(hdl, &mt9m111_ctrl_ops, V4L2_CID_VFLIP,
-				      0, 1, 1, 0);
+								  0, 1, 1, 0);
 
-	if (hdl->error) {
+	if (hdl->error)
+	{
 		pr_err("Could not initialize controls\n");
 		return hdl->error;
 	}
@@ -319,69 +350,109 @@ int mt9m111_start(struct sd *sd)
 	int width = cam->cam_mode[sd->gspca_dev.curr_mode].width - 1;
 	int height = cam->cam_mode[sd->gspca_dev.curr_mode].height;
 
-	for (i = 0; i < ARRAY_SIZE(start_mt9m111) && !err; i++) {
-		if (start_mt9m111[i][0] == BRIDGE) {
+	for (i = 0; i < ARRAY_SIZE(start_mt9m111) && !err; i++)
+	{
+		if (start_mt9m111[i][0] == BRIDGE)
+		{
 			err = m5602_write_bridge(sd,
-				start_mt9m111[i][1],
-				start_mt9m111[i][2]);
-		} else {
+									 start_mt9m111[i][1],
+									 start_mt9m111[i][2]);
+		}
+		else
+		{
 			data[0] = start_mt9m111[i][2];
 			data[1] = start_mt9m111[i][3];
 			err = m5602_write_sensor(sd,
-				start_mt9m111[i][1], data, 2);
+									 start_mt9m111[i][1], data, 2);
 		}
 	}
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_VSYNC_PARA, (height >> 8) & 0xff);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_VSYNC_PARA, (height & 0xff));
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	for (i = 0; i < 2 && !err; i++)
+	{
 		err = m5602_write_bridge(sd, M5602_XB_VSYNC_PARA, 0);
+	}
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_SIG_INI, 0);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_SIG_INI, 2);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	for (i = 0; i < 2 && !err; i++)
+	{
 		err = m5602_write_bridge(sd, M5602_XB_HSYNC_PARA, 0);
+	}
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_HSYNC_PARA,
-				 (width >> 8) & 0xff);
+							 (width >> 8) & 0xff);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_HSYNC_PARA, width & 0xff);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_SIG_INI, 0);
+
 	if (err < 0)
+	{
 		return err;
-
-	switch (width) {
-	case 640:
-		PDEBUG(D_CONF, "Configuring camera for VGA mode");
-		break;
-
-	case 320:
-		PDEBUG(D_CONF, "Configuring camera for QVGA mode");
-		break;
 	}
+
+	switch (width)
+	{
+		case 640:
+			PDEBUG(D_CONF, "Configuring camera for VGA mode");
+			break;
+
+		case 320:
+			PDEBUG(D_CONF, "Configuring camera for QVGA mode");
+			break;
+	}
+
 	return err;
 }
 
@@ -406,34 +477,45 @@ static int mt9m111_set_hvflip(struct gspca_dev *gspca_dev)
 
 	/* Set the correct page map */
 	err = m5602_write_sensor(sd, MT9M111_PAGE_MAP, data, 2);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	data[0] = MT9M111_RMB_OVER_SIZED;
-	if (gspca_dev->pixfmt.width == 640) {
+
+	if (gspca_dev->pixfmt.width == 640)
+	{
 		data[1] = MT9M111_RMB_ROW_SKIP_2X |
-			  MT9M111_RMB_COLUMN_SKIP_2X |
-			  (hflip << 1) | vflip;
-	} else {
-		data[1] = MT9M111_RMB_ROW_SKIP_4X |
-			  MT9M111_RMB_COLUMN_SKIP_4X |
-			  (hflip << 1) | vflip;
+				  MT9M111_RMB_COLUMN_SKIP_2X |
+				  (hflip << 1) | vflip;
 	}
+	else
+	{
+		data[1] = MT9M111_RMB_ROW_SKIP_4X |
+				  MT9M111_RMB_COLUMN_SKIP_4X |
+				  (hflip << 1) | vflip;
+	}
+
 	err = m5602_write_sensor(sd, MT9M111_SC_R_MODE_CONTEXT_B,
-					data, 2);
+							 data, 2);
 	return err;
 }
 
 static int mt9m111_set_auto_white_balance(struct gspca_dev *gspca_dev,
-					  __s32 val)
+		__s32 val)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 	int err;
 	u8 data[2];
 
 	err = m5602_read_sensor(sd, MT9M111_CP_OPERATING_MODE_CTL, data, 2);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	data[1] = ((data[1] & 0xfd) | ((val & 0x01) << 1));
 
@@ -451,32 +533,43 @@ static int mt9m111_set_gain(struct gspca_dev *gspca_dev, __s32 val)
 
 	/* Set the correct page map */
 	err = m5602_write_sensor(sd, MT9M111_PAGE_MAP, data, 2);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if (val >= INITIAL_MAX_GAIN * 2 * 2 * 2)
+	{
 		return -EINVAL;
+	}
 
 	if ((val >= INITIAL_MAX_GAIN * 2 * 2) &&
-	    (val < (INITIAL_MAX_GAIN - 1) * 2 * 2 * 2))
+		(val < (INITIAL_MAX_GAIN - 1) * 2 * 2 * 2))
 		tmp = (1 << 10) | (val << 9) |
-				(val << 8) | (val / 8);
+			  (val << 8) | (val / 8);
 	else if ((val >= INITIAL_MAX_GAIN * 2) &&
-		 (val <  INITIAL_MAX_GAIN * 2 * 2))
+			 (val <  INITIAL_MAX_GAIN * 2 * 2))
+	{
 		tmp = (1 << 9) | (1 << 8) | (val / 4);
+	}
 	else if ((val >= INITIAL_MAX_GAIN) &&
-		 (val < INITIAL_MAX_GAIN * 2))
+			 (val < INITIAL_MAX_GAIN * 2))
+	{
 		tmp = (1 << 8) | (val / 2);
+	}
 	else
+	{
 		tmp = val;
+	}
 
 	data[1] = (tmp & 0xff);
 	data[0] = (tmp & 0xff00) >> 8;
 	PDEBUG(D_CONF, "tmp=%d, data[1]=%d, data[0]=%d", tmp,
-	       data[1], data[0]);
+		   data[1], data[0]);
 
 	err = m5602_write_sensor(sd, MT9M111_SC_GLOBAL_GAIN,
-				   data, 2);
+							 data, 2);
 
 	return err;
 }
@@ -492,12 +585,15 @@ static int mt9m111_set_green_balance(struct gspca_dev *gspca_dev, __s32 val)
 
 	PDEBUG(D_CONF, "Set green balance %d", val);
 	err = m5602_write_sensor(sd, MT9M111_SC_GREEN_1_GAIN,
-				 data, 2);
+							 data, 2);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return m5602_write_sensor(sd, MT9M111_SC_GREEN_2_GAIN,
-				  data, 2);
+							  data, 2);
 }
 
 static int mt9m111_set_blue_balance(struct gspca_dev *gspca_dev, __s32 val)
@@ -511,7 +607,7 @@ static int mt9m111_set_blue_balance(struct gspca_dev *gspca_dev, __s32 val)
 	PDEBUG(D_CONF, "Set blue balance %d", val);
 
 	return m5602_write_sensor(sd, MT9M111_SC_BLUE_GAIN,
-				  data, 2);
+							  data, 2);
 }
 
 static int mt9m111_set_red_balance(struct gspca_dev *gspca_dev, __s32 val)
@@ -525,7 +621,7 @@ static int mt9m111_set_red_balance(struct gspca_dev *gspca_dev, __s32 val)
 	PDEBUG(D_CONF, "Set red balance %d", val);
 
 	return m5602_write_sensor(sd, MT9M111_SC_RED_GAIN,
-				  data, 2);
+							  data, 2);
 }
 
 static int mt9m111_s_ctrl(struct v4l2_ctrl *ctrl)
@@ -536,29 +632,47 @@ static int mt9m111_s_ctrl(struct v4l2_ctrl *ctrl)
 	int err;
 
 	if (!gspca_dev->streaming)
+	{
 		return 0;
+	}
 
-	switch (ctrl->id) {
-	case V4L2_CID_AUTO_WHITE_BALANCE:
-		err = mt9m111_set_auto_white_balance(gspca_dev, ctrl->val);
-		if (err || ctrl->val)
-			return err;
-		err = mt9m111_set_green_balance(gspca_dev, sd->green_bal->val);
-		if (err)
-			return err;
-		err = mt9m111_set_red_balance(gspca_dev, sd->red_bal->val);
-		if (err)
-			return err;
-		err = mt9m111_set_blue_balance(gspca_dev, sd->blue_bal->val);
-		break;
-	case V4L2_CID_GAIN:
-		err = mt9m111_set_gain(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_HFLIP:
-		err = mt9m111_set_hvflip(gspca_dev);
-		break;
-	default:
-		return -EINVAL;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_AUTO_WHITE_BALANCE:
+			err = mt9m111_set_auto_white_balance(gspca_dev, ctrl->val);
+
+			if (err || ctrl->val)
+			{
+				return err;
+			}
+
+			err = mt9m111_set_green_balance(gspca_dev, sd->green_bal->val);
+
+			if (err)
+			{
+				return err;
+			}
+
+			err = mt9m111_set_red_balance(gspca_dev, sd->red_bal->val);
+
+			if (err)
+			{
+				return err;
+			}
+
+			err = mt9m111_set_blue_balance(gspca_dev, sd->blue_bal->val);
+			break;
+
+		case V4L2_CID_GAIN:
+			err = mt9m111_set_gain(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_HFLIP:
+			err = mt9m111_set_hvflip(gspca_dev);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return err;
@@ -573,28 +687,34 @@ static void mt9m111_dump_registers(struct sd *sd)
 	pr_info("Dumping the mt9m111 sensor core registers\n");
 	value[1] = MT9M111_SENSOR_CORE;
 	m5602_write_sensor(sd, MT9M111_PAGE_MAP, value, 2);
-	for (address = 0; address < 0xff; address++) {
+
+	for (address = 0; address < 0xff; address++)
+	{
 		m5602_read_sensor(sd, address, value, 2);
 		pr_info("register 0x%x contains 0x%x%x\n",
-			address, value[0], value[1]);
+				address, value[0], value[1]);
 	}
 
 	pr_info("Dumping the mt9m111 color pipeline registers\n");
 	value[1] = MT9M111_COLORPIPE;
 	m5602_write_sensor(sd, MT9M111_PAGE_MAP, value, 2);
-	for (address = 0; address < 0xff; address++) {
+
+	for (address = 0; address < 0xff; address++)
+	{
 		m5602_read_sensor(sd, address, value, 2);
 		pr_info("register 0x%x contains 0x%x%x\n",
-			address, value[0], value[1]);
+				address, value[0], value[1]);
 	}
 
 	pr_info("Dumping the mt9m111 camera control registers\n");
 	value[1] = MT9M111_CAMERA_CONTROL;
 	m5602_write_sensor(sd, MT9M111_PAGE_MAP, value, 2);
-	for (address = 0; address < 0xff; address++) {
+
+	for (address = 0; address < 0xff; address++)
+	{
 		m5602_read_sensor(sd, address, value, 2);
 		pr_info("register 0x%x contains 0x%x%x\n",
-			address, value[0], value[1]);
+				address, value[0], value[1]);
 	}
 
 	pr_info("mt9m111 register state dump complete\n");

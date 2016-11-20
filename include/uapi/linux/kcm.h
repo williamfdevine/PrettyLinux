@@ -14,16 +14,19 @@
 #ifndef KCM_KERNEL_H
 #define KCM_KERNEL_H
 
-struct kcm_attach {
+struct kcm_attach
+{
 	int fd;
 	int bpf_fd;
 };
 
-struct kcm_unattach {
+struct kcm_unattach
+{
 	int fd;
 };
 
-struct kcm_clone {
+struct kcm_clone
+{
 	int fd;
 };
 

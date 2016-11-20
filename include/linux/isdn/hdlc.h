@@ -29,7 +29,8 @@
 #ifndef __ISDNHDLC_H__
 #define __ISDNHDLC_H__
 
-struct isdnhdlc_vars {
+struct isdnhdlc_vars
+{
 	int bit_shift;
 	int hdlc_bits1;
 	int data_bits;
@@ -44,15 +45,15 @@ struct isdnhdlc_vars {
 	u8 ffvalue;
 
 	/* set if transferring data */
-	u32 data_received:1;
+	u32 data_received: 1;
 	/* set if D channel (send idle instead of flags) */
-	u32 dchannel:1;
+	u32 dchannel: 1;
 	/* set if 56K adaptation */
-	u32 do_adapt56:1;
+	u32 do_adapt56: 1;
 	/* set if in closing phase (need to send CRC + flag) */
-	u32 do_closing:1;
+	u32 do_closing: 1;
 	/* set if data is bitreverse */
-	u32 do_bitreverse:1;
+	u32 do_bitreverse: 1;
 };
 
 /* Feature Flags */
@@ -72,11 +73,11 @@ struct isdnhdlc_vars {
 extern void	isdnhdlc_rcv_init(struct isdnhdlc_vars *hdlc, u32 features);
 
 extern int	isdnhdlc_decode(struct isdnhdlc_vars *hdlc, const u8 *src,
-			int slen, int *count, u8 *dst, int dsize);
+							int slen, int *count, u8 *dst, int dsize);
 
 extern void	isdnhdlc_out_init(struct isdnhdlc_vars *hdlc, u32 features);
 
 extern int	isdnhdlc_encode(struct isdnhdlc_vars *hdlc, const u8 *src,
-			u16 slen, int *count, u8 *dst, int dsize);
+							u16 slen, int *count, u8 *dst, int dsize);
 
 #endif /* __ISDNHDLC_H__ */

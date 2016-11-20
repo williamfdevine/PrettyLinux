@@ -14,7 +14,8 @@
 #include <linux/platform_device.h>
 
 /* AB8500 regulators */
-enum ab8500_regulator_id {
+enum ab8500_regulator_id
+{
 	AB8500_LDO_AUX1,
 	AB8500_LDO_AUX2,
 	AB8500_LDO_AUX3,
@@ -29,7 +30,8 @@ enum ab8500_regulator_id {
 };
 
 /* AB8505 regulators */
-enum ab8505_regulator_id {
+enum ab8505_regulator_id
+{
 	AB8505_LDO_AUX1,
 	AB8505_LDO_AUX2,
 	AB8505_LDO_AUX3,
@@ -50,7 +52,8 @@ enum ab8505_regulator_id {
 };
 
 /* AB9540 regulators */
-enum ab9540_regulator_id {
+enum ab9540_regulator_id
+{
 	AB9540_LDO_AUX1,
 	AB9540_LDO_AUX2,
 	AB9540_LDO_AUX3,
@@ -69,7 +72,8 @@ enum ab9540_regulator_id {
 };
 
 /* AB8540 regulators */
-enum ab8540_regulator_id {
+enum ab8540_regulator_id
+{
 	AB8540_LDO_AUX1,
 	AB8540_LDO_AUX2,
 	AB8540_LDO_AUX3,
@@ -90,7 +94,8 @@ enum ab8540_regulator_id {
 };
 
 /* AB8500, AB8505, and AB9540 register initialization */
-struct ab8500_regulator_reg_init {
+struct ab8500_regulator_reg_init
+{
 	int id;
 	u8 mask;
 	u8 value;
@@ -99,12 +104,13 @@ struct ab8500_regulator_reg_init {
 #define INIT_REGULATOR_REGISTER(_id, _mask, _value)	\
 	{						\
 		.id = _id,				\
-		.mask = _mask,				\
-		.value = _value,			\
+			  .mask = _mask,				\
+					  .value = _value,			\
 	}
 
 /* AB8500 registers */
-enum ab8500_regulator_reg {
+enum ab8500_regulator_reg
+{
 	AB8500_REGUREQUESTCTRL2,
 	AB8500_REGUREQUESTCTRL3,
 	AB8500_REGUREQUESTCTRL4,
@@ -136,7 +142,8 @@ enum ab8500_regulator_reg {
 };
 
 /* AB8505 registers */
-enum ab8505_regulator_reg {
+enum ab8505_regulator_reg
+{
 	AB8505_REGUREQUESTCTRL1,
 	AB8505_REGUREQUESTCTRL2,
 	AB8505_REGUREQUESTCTRL3,
@@ -186,7 +193,8 @@ enum ab8505_regulator_reg {
 };
 
 /* AB9540 registers */
-enum ab9540_regulator_reg {
+enum ab9540_regulator_reg
+{
 	AB9540_REGUREQUESTCTRL1,
 	AB9540_REGUREQUESTCTRL2,
 	AB9540_REGUREQUESTCTRL3,
@@ -234,7 +242,8 @@ enum ab9540_regulator_reg {
 };
 
 /* AB8540 registers */
-enum ab8540_regulator_reg {
+enum ab8540_regulator_reg
+{
 	AB8540_REGUREQUESTCTRL1,
 	AB8540_REGUREQUESTCTRL2,
 	AB8540_REGUREQUESTCTRL3,
@@ -301,11 +310,13 @@ enum ab8540_regulator_reg {
 };
 
 /* AB8500 external regulators */
-struct ab8500_ext_regulator_cfg {
+struct ab8500_ext_regulator_cfg
+{
 	bool hwreq; /* requires hw mode or high power mode */
 };
 
-enum ab8500_ext_regulator_id {
+enum ab8500_ext_regulator_id
+{
 	AB8500_EXT_SUPPLY1,
 	AB8500_EXT_SUPPLY2,
 	AB8500_EXT_SUPPLY3,
@@ -313,7 +324,8 @@ enum ab8500_ext_regulator_id {
 };
 
 /* AB8500 regulator platform data */
-struct ab8500_regulator_platform_data {
+struct ab8500_regulator_platform_data
+{
 	int num_reg_init;
 	struct ab8500_regulator_reg_init *reg_init;
 	int num_regulator;

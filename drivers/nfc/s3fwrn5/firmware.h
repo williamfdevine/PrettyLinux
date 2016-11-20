@@ -39,7 +39,8 @@
 /* ---- FW Packet structures ---- */
 #define S3FWRN5_FW_HDR_SIZE 4
 
-struct s3fwrn5_fw_header {
+struct s3fwrn5_fw_header
+{
 	__u8 type;
 	__u8 code;
 	__u16 len;
@@ -49,7 +50,8 @@ struct s3fwrn5_fw_header {
 
 #define S3FWRN5_FW_CMD_GET_BOOTINFO		0x01
 
-struct s3fwrn5_fw_cmd_get_bootinfo_rsp {
+struct s3fwrn5_fw_cmd_get_bootinfo_rsp
+{
 	__u8 hw_version[4];
 	__u16 sector_size;
 	__u16 page_size;
@@ -59,20 +61,23 @@ struct s3fwrn5_fw_cmd_get_bootinfo_rsp {
 
 #define S3FWRN5_FW_CMD_ENTER_UPDATE_MODE	0x02
 
-struct s3fwrn5_fw_cmd_enter_updatemode {
+struct s3fwrn5_fw_cmd_enter_updatemode
+{
 	__u16 hashcode_size;
 	__u16 signature_size;
 };
 
 #define S3FWRN5_FW_CMD_UPDATE_SECTOR		0x04
 
-struct s3fwrn5_fw_cmd_update_sector {
+struct s3fwrn5_fw_cmd_update_sector
+{
 	__u32 base_address;
 };
 
 #define S3FWRN5_FW_CMD_COMPLETE_UPDATE_MODE	0x05
 
-struct s3fwrn5_fw_image {
+struct s3fwrn5_fw_image
+{
 	const struct firmware *fw;
 
 	char date[13];
@@ -85,7 +90,8 @@ struct s3fwrn5_fw_image {
 	u32 custom_sig_size;
 };
 
-struct s3fwrn5_fw_info {
+struct s3fwrn5_fw_info
+{
 	struct nci_dev *ndev;
 	struct s3fwrn5_fw_image fw;
 	char fw_name[NFC_FIRMWARE_NAME_MAXSIZE + 1];

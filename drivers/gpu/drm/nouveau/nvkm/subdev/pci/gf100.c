@@ -55,8 +55,12 @@ gf100_pcie_cap_speed(struct nvkm_pci *pci)
 {
 	struct nvkm_device *device = pci->subdev.device;
 	u8 punits_pci_cap_speed = nvkm_rd32(device, 0x02241c) & 0x80;
+
 	if (punits_pci_cap_speed == 0x80)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -77,7 +81,8 @@ gf100_pcie_set_link(struct nvkm_pci *pci, enum nvkm_pcie_speed speed, u8 width)
 }
 
 static const struct nvkm_pci_func
-gf100_pci_func = {
+	gf100_pci_func =
+{
 	.init = g84_pci_init,
 	.rd32 = nv40_pci_rd32,
 	.wr08 = nv40_pci_wr08,

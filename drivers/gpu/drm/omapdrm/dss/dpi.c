@@ -38,7 +38,8 @@
 #include "dss.h"
 #include "dss_features.h"
 
-struct dpi_data {
+struct dpi_data
+{
 	struct platform_device *pdev;
 
 	struct regulator *vdds_dsi_reg;
@@ -74,56 +75,68 @@ static enum dss_clk_source dpi_get_clk_src(enum omap_channel channel)
 	 * would also be used for DISPC fclk. Meaning, when the DPI output is
 	 * disabled, DISPC clock will be disabled, and TV out will stop.
 	 */
-	switch (omapdss_get_version()) {
-	case OMAPDSS_VER_OMAP24xx:
-	case OMAPDSS_VER_OMAP34xx_ES1:
-	case OMAPDSS_VER_OMAP34xx_ES3:
-	case OMAPDSS_VER_OMAP3630:
-	case OMAPDSS_VER_AM35xx:
-	case OMAPDSS_VER_AM43xx:
-		return DSS_CLK_SRC_FCK;
+	switch (omapdss_get_version())
+	{
+		case OMAPDSS_VER_OMAP24xx:
+				case OMAPDSS_VER_OMAP34xx_ES1:
+					case OMAPDSS_VER_OMAP34xx_ES3:
+						case OMAPDSS_VER_OMAP3630:
+							case OMAPDSS_VER_AM35xx:
+								case OMAPDSS_VER_AM43xx:
+										return DSS_CLK_SRC_FCK;
 
-	case OMAPDSS_VER_OMAP4430_ES1:
-	case OMAPDSS_VER_OMAP4430_ES2:
-	case OMAPDSS_VER_OMAP4:
-		switch (channel) {
-		case OMAP_DSS_CHANNEL_LCD:
-			return DSS_CLK_SRC_PLL1_1;
-		case OMAP_DSS_CHANNEL_LCD2:
-			return DSS_CLK_SRC_PLL2_1;
+			case OMAPDSS_VER_OMAP4430_ES1:
+			case OMAPDSS_VER_OMAP4430_ES2:
+			case OMAPDSS_VER_OMAP4:
+				switch (channel)
+			{
+				case OMAP_DSS_CHANNEL_LCD:
+					return DSS_CLK_SRC_PLL1_1;
+
+				case OMAP_DSS_CHANNEL_LCD2:
+					return DSS_CLK_SRC_PLL2_1;
+
+				default:
+					return DSS_CLK_SRC_FCK;
+			}
+
+		case OMAPDSS_VER_OMAP5:
+			switch (channel)
+			{
+				case OMAP_DSS_CHANNEL_LCD:
+					return DSS_CLK_SRC_PLL1_1;
+
+				case OMAP_DSS_CHANNEL_LCD3:
+					return DSS_CLK_SRC_PLL2_1;
+
+				case OMAP_DSS_CHANNEL_LCD2:
+				default:
+					return DSS_CLK_SRC_FCK;
+			}
+
+		case OMAPDSS_VER_DRA7xx:
+			switch (channel)
+			{
+				case OMAP_DSS_CHANNEL_LCD:
+					return DSS_CLK_SRC_PLL1_1;
+
+				case OMAP_DSS_CHANNEL_LCD2:
+					return DSS_CLK_SRC_PLL1_3;
+
+				case OMAP_DSS_CHANNEL_LCD3:
+					return DSS_CLK_SRC_PLL2_1;
+
+				default:
+					return DSS_CLK_SRC_FCK;
+			}
+
 		default:
 			return DSS_CLK_SRC_FCK;
-		}
-
-	case OMAPDSS_VER_OMAP5:
-		switch (channel) {
-		case OMAP_DSS_CHANNEL_LCD:
-			return DSS_CLK_SRC_PLL1_1;
-		case OMAP_DSS_CHANNEL_LCD3:
-			return DSS_CLK_SRC_PLL2_1;
-		case OMAP_DSS_CHANNEL_LCD2:
-		default:
-			return DSS_CLK_SRC_FCK;
-		}
-
-	case OMAPDSS_VER_DRA7xx:
-		switch (channel) {
-		case OMAP_DSS_CHANNEL_LCD:
-			return DSS_CLK_SRC_PLL1_1;
-		case OMAP_DSS_CHANNEL_LCD2:
-			return DSS_CLK_SRC_PLL1_3;
-		case OMAP_DSS_CHANNEL_LCD3:
-			return DSS_CLK_SRC_PLL2_1;
-		default:
-			return DSS_CLK_SRC_FCK;
-		}
-
-	default:
-		return DSS_CLK_SRC_FCK;
 	}
 }
 
-struct dpi_clk_calc_ctx {
+struct dpi_clk_calc_ctx
+{
 	struct dss_pll *pll;
 	unsigned clkout_idx;
 
@@ -139,7 +152,7 @@ struct dpi_clk_calc_ctx {
 };
 
 static bool dpi_calc_dispc_cb(int lckd, int pckd, unsigned long lck,
-		unsigned long pck, void *data)
+							  unsigned long pck, void *data)
 {
 	struct dpi_clk_calc_ctx *ctx = data;
 
@@ -148,12 +161,17 @@ static bool dpi_calc_dispc_cb(int lckd, int pckd, unsigned long lck,
 	 * shifted. So skip all odd dividers when the pixel clock is on the
 	 * higher side.
 	 */
-	if (ctx->pck_min >= 100000000) {
+	if (ctx->pck_min >= 100000000)
+	{
 		if (lckd > 1 && lckd % 2 != 0)
+		{
 			return false;
+		}
 
 		if (pckd > 1 && pckd % 2 != 0)
+		{
 			return false;
+		}
 	}
 
 	ctx->dispc_cinfo.lck_div = lckd;
@@ -166,7 +184,7 @@ static bool dpi_calc_dispc_cb(int lckd, int pckd, unsigned long lck,
 
 
 static bool dpi_calc_hsdiv_cb(int m_dispc, unsigned long dispc,
-		void *data)
+							  void *data)
 {
 	struct dpi_clk_calc_ctx *ctx = data;
 
@@ -176,19 +194,21 @@ static bool dpi_calc_hsdiv_cb(int m_dispc, unsigned long dispc,
 	 * higher side.
 	 */
 	if (m_dispc > 1 && m_dispc % 2 != 0 && ctx->pck_min >= 100000000)
+	{
 		return false;
+	}
 
 	ctx->pll_cinfo.mX[ctx->clkout_idx] = m_dispc;
 	ctx->pll_cinfo.clkout[ctx->clkout_idx] = dispc;
 
 	return dispc_div_calc(dispc, ctx->pck_min, ctx->pck_max,
-			dpi_calc_dispc_cb, ctx);
+						  dpi_calc_dispc_cb, ctx);
 }
 
 
 static bool dpi_calc_pll_cb(int n, int m, unsigned long fint,
-		unsigned long clkdco,
-		void *data)
+							unsigned long clkdco,
+							void *data)
 {
 	struct dpi_clk_calc_ctx *ctx = data;
 
@@ -198,8 +218,8 @@ static bool dpi_calc_pll_cb(int n, int m, unsigned long fint,
 	ctx->pll_cinfo.clkdco = clkdco;
 
 	return dss_pll_hsdiv_calc_a(ctx->pll, clkdco,
-		ctx->pck_min, dss_feat_get_param_max(FEAT_PARAM_DSS_FCK),
-		dpi_calc_hsdiv_cb, ctx);
+								ctx->pck_min, dss_feat_get_param_max(FEAT_PARAM_DSS_FCK),
+								dpi_calc_hsdiv_cb, ctx);
 }
 
 static bool dpi_calc_dss_cb(unsigned long fck, void *data)
@@ -209,11 +229,11 @@ static bool dpi_calc_dss_cb(unsigned long fck, void *data)
 	ctx->fck = fck;
 
 	return dispc_div_calc(fck, ctx->pck_min, ctx->pck_max,
-			dpi_calc_dispc_cb, ctx);
+						  dpi_calc_dispc_cb, ctx);
 }
 
 static bool dpi_pll_clk_calc(struct dpi_data *dpi, unsigned long pck,
-		struct dpi_clk_calc_ctx *ctx)
+							 struct dpi_clk_calc_ctx *ctx)
 {
 	unsigned long clkin;
 
@@ -223,7 +243,8 @@ static bool dpi_pll_clk_calc(struct dpi_data *dpi, unsigned long pck,
 
 	clkin = clk_get_rate(dpi->pll->clkin);
 
-	if (dpi->pll->hw->type == DSS_PLL_TYPE_A) {
+	if (dpi->pll->hw->type == DSS_PLL_TYPE_A)
+	{
 		unsigned long pll_min, pll_max;
 
 		ctx->pck_min = pck - 1000;
@@ -233,9 +254,11 @@ static bool dpi_pll_clk_calc(struct dpi_data *dpi, unsigned long pck,
 		pll_max = 0;
 
 		return dss_pll_calc_a(ctx->pll, clkin,
-				pll_min, pll_max,
-				dpi_calc_pll_cb, ctx);
-	} else { /* DSS_PLL_TYPE_B */
+							  pll_min, pll_max,
+							  dpi_calc_pll_cb, ctx);
+	}
+	else     /* DSS_PLL_TYPE_B */
+	{
 		dss_pll_calc_b(dpi->pll, clkin, pck, &ctx->pll_cinfo);
 
 		ctx->dispc_cinfo.lck_div = 1;
@@ -258,19 +281,29 @@ static bool dpi_dss_clk_calc(unsigned long pck, struct dpi_clk_calc_ctx *ctx)
 	 * +/- ~15MHz.
 	 */
 
-	for (i = 0; i < 25; ++i) {
+	for (i = 0; i < 25; ++i)
+	{
 		bool ok;
 
 		memset(ctx, 0, sizeof(*ctx));
+
 		if (pck > 1000 * i * i * i)
+		{
 			ctx->pck_min = max(pck - 1000 * i * i * i, 0lu);
+		}
 		else
+		{
 			ctx->pck_min = 0;
+		}
+
 		ctx->pck_max = pck + 1000 * i * i * i;
 
 		ok = dss_div_calc(pck, ctx->pck_min, dpi_calc_dss_cb, ctx);
+
 		if (ok)
+		{
 			return ok;
+		}
 	}
 
 	return false;
@@ -279,20 +312,26 @@ static bool dpi_dss_clk_calc(unsigned long pck, struct dpi_clk_calc_ctx *ctx)
 
 
 static int dpi_set_pll_clk(struct dpi_data *dpi, enum omap_channel channel,
-		unsigned long pck_req, unsigned long *fck, int *lck_div,
-		int *pck_div)
+						   unsigned long pck_req, unsigned long *fck, int *lck_div,
+						   int *pck_div)
 {
 	struct dpi_clk_calc_ctx ctx;
 	int r;
 	bool ok;
 
 	ok = dpi_pll_clk_calc(dpi, pck_req, &ctx);
+
 	if (!ok)
+	{
 		return -EINVAL;
+	}
 
 	r = dss_pll_set_config(dpi->pll, &ctx.pll_cinfo);
+
 	if (r)
+	{
 		return r;
+	}
 
 	dss_select_lcd_clk_source(channel, dpi->clk_src);
 
@@ -306,19 +345,25 @@ static int dpi_set_pll_clk(struct dpi_data *dpi, enum omap_channel channel,
 }
 
 static int dpi_set_dispc_clk(struct dpi_data *dpi, unsigned long pck_req,
-		unsigned long *fck, int *lck_div, int *pck_div)
+							 unsigned long *fck, int *lck_div, int *pck_div)
 {
 	struct dpi_clk_calc_ctx ctx;
 	int r;
 	bool ok;
 
 	ok = dpi_dss_clk_calc(pck_req, &ctx);
+
 	if (!ok)
+	{
 		return -EINVAL;
+	}
 
 	r = dss_set_fck_rate(ctx.fck);
+
 	if (r)
+	{
 		return r;
+	}
 
 	dpi->mgr_config.clock_info = ctx.dispc_cinfo;
 
@@ -341,18 +386,22 @@ static int dpi_set_mode(struct dpi_data *dpi)
 
 	if (dpi->pll)
 		r = dpi_set_pll_clk(dpi, channel, t->pixelclock, &fck,
-				&lck_div, &pck_div);
+							&lck_div, &pck_div);
 	else
 		r = dpi_set_dispc_clk(dpi, t->pixelclock, &fck,
-				&lck_div, &pck_div);
+							  &lck_div, &pck_div);
+
 	if (r)
+	{
 		return r;
+	}
 
 	pck = fck / lck_div / pck_div;
 
-	if (pck != t->pixelclock) {
+	if (pck != t->pixelclock)
+	{
 		DSSWARN("Could not find exact pixel clock. Requested %d Hz, got %lu Hz\n",
-			t->pixelclock, pck);
+				t->pixelclock, pck);
 
 		t->pixelclock = pck;
 	}
@@ -388,49 +437,71 @@ static int dpi_display_enable(struct omap_dss_device *dssdev)
 
 	mutex_lock(&dpi->lock);
 
-	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI) && !dpi->vdds_dsi_reg) {
+	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI) && !dpi->vdds_dsi_reg)
+	{
 		DSSERR("no VDSS_DSI regulator\n");
 		r = -ENODEV;
 		goto err_no_reg;
 	}
 
-	if (!out->dispc_channel_connected) {
+	if (!out->dispc_channel_connected)
+	{
 		DSSERR("failed to enable display: no output/manager\n");
 		r = -ENODEV;
 		goto err_no_out_mgr;
 	}
 
-	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI)) {
+	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI))
+	{
 		r = regulator_enable(dpi->vdds_dsi_reg);
+
 		if (r)
+		{
 			goto err_reg_enable;
+		}
 	}
 
 	r = dispc_runtime_get();
+
 	if (r)
+	{
 		goto err_get_dispc;
+	}
 
 	r = dss_dpi_select_source(out->port_num, channel);
-	if (r)
-		goto err_src_sel;
 
-	if (dpi->pll) {
+	if (r)
+	{
+		goto err_src_sel;
+	}
+
+	if (dpi->pll)
+	{
 		r = dss_pll_enable(dpi->pll);
+
 		if (r)
+		{
 			goto err_pll_init;
+		}
 	}
 
 	r = dpi_set_mode(dpi);
+
 	if (r)
+	{
 		goto err_set_mode;
+	}
 
 	dpi_config_lcd_manager(dpi);
 
 	mdelay(2);
 
 	r = dss_mgr_enable(channel);
+
 	if (r)
+	{
 		goto err_mgr_enable;
+	}
 
 	mutex_unlock(&dpi->lock);
 
@@ -438,14 +509,22 @@ static int dpi_display_enable(struct omap_dss_device *dssdev)
 
 err_mgr_enable:
 err_set_mode:
+
 	if (dpi->pll)
+	{
 		dss_pll_disable(dpi->pll);
+	}
+
 err_pll_init:
 err_src_sel:
 	dispc_runtime_put();
 err_get_dispc:
+
 	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI))
+	{
 		regulator_disable(dpi->vdds_dsi_reg);
+	}
+
 err_reg_enable:
 err_no_out_mgr:
 err_no_reg:
@@ -462,7 +541,8 @@ static void dpi_display_disable(struct omap_dss_device *dssdev)
 
 	dss_mgr_disable(channel);
 
-	if (dpi->pll) {
+	if (dpi->pll)
+	{
 		dss_select_lcd_clk_source(channel, DSS_CLK_SRC_FCK);
 		dss_pll_disable(dpi->pll);
 	}
@@ -470,13 +550,15 @@ static void dpi_display_disable(struct omap_dss_device *dssdev)
 	dispc_runtime_put();
 
 	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI))
+	{
 		regulator_disable(dpi->vdds_dsi_reg);
+	}
 
 	mutex_unlock(&dpi->lock);
 }
 
 static void dpi_set_timings(struct omap_dss_device *dssdev,
-		struct omap_video_timings *timings)
+							struct omap_video_timings *timings)
 {
 	struct dpi_data *dpi = dpi_get_data_from_dssdev(dssdev);
 
@@ -490,7 +572,7 @@ static void dpi_set_timings(struct omap_dss_device *dssdev,
 }
 
 static void dpi_get_timings(struct omap_dss_device *dssdev,
-		struct omap_video_timings *timings)
+							struct omap_video_timings *timings)
 {
 	struct dpi_data *dpi = dpi_get_data_from_dssdev(dssdev);
 
@@ -502,7 +584,7 @@ static void dpi_get_timings(struct omap_dss_device *dssdev,
 }
 
 static int dpi_check_timings(struct omap_dss_device *dssdev,
-			struct omap_video_timings *timings)
+							 struct omap_video_timings *timings)
 {
 	struct dpi_data *dpi = dpi_get_data_from_dssdev(dssdev);
 	enum omap_channel channel = dpi->output.dispc_channel;
@@ -513,24 +595,39 @@ static int dpi_check_timings(struct omap_dss_device *dssdev,
 	bool ok;
 
 	if (timings->x_res % 8 != 0)
+	{
 		return -EINVAL;
+	}
 
 	if (!dispc_mgr_timings_ok(channel, timings))
+	{
 		return -EINVAL;
+	}
 
 	if (timings->pixelclock == 0)
+	{
 		return -EINVAL;
+	}
 
-	if (dpi->pll) {
+	if (dpi->pll)
+	{
 		ok = dpi_pll_clk_calc(dpi, timings->pixelclock, &ctx);
+
 		if (!ok)
+		{
 			return -EINVAL;
+		}
 
 		fck = ctx.pll_cinfo.clkout[ctx.clkout_idx];
-	} else {
+	}
+	else
+	{
 		ok = dpi_dss_clk_calc(timings->pixelclock, &ctx);
+
 		if (!ok)
+		{
 			return -EINVAL;
+		}
 
 		fck = ctx.fck;
 	}
@@ -563,8 +660,11 @@ static int dpi_verify_pll(struct dss_pll *pll)
 	/* do initial setup with the PLL to see if it is operational */
 
 	r = dss_pll_enable(pll);
+
 	if (r)
+	{
 		return r;
+	}
 
 	dss_pll_disable(pll);
 
@@ -576,15 +676,24 @@ static int dpi_init_regulator(struct dpi_data *dpi)
 	struct regulator *vdds_dsi;
 
 	if (!dss_has_feature(FEAT_DPI_USES_VDDS_DSI))
+	{
 		return 0;
+	}
 
 	if (dpi->vdds_dsi_reg)
+	{
 		return 0;
+	}
 
 	vdds_dsi = devm_regulator_get(&dpi->pdev->dev, "vdds_dsi");
-	if (IS_ERR(vdds_dsi)) {
+
+	if (IS_ERR(vdds_dsi))
+	{
 		if (PTR_ERR(vdds_dsi) != -EPROBE_DEFER)
+		{
 			DSSERR("can't get VDDS_DSI regulator\n");
+		}
+
 		return PTR_ERR(vdds_dsi);
 	}
 
@@ -598,15 +707,21 @@ static void dpi_init_pll(struct dpi_data *dpi)
 	struct dss_pll *pll;
 
 	if (dpi->pll)
+	{
 		return;
+	}
 
 	dpi->clk_src = dpi_get_clk_src(dpi->output.dispc_channel);
 
 	pll = dss_pll_find_by_src(dpi->clk_src);
-	if (!pll)
-		return;
 
-	if (dpi_verify_pll(pll)) {
+	if (!pll)
+	{
+		return;
+	}
+
+	if (dpi_verify_pll(pll))
+	{
 		DSSWARN("PLL not operational\n");
 		return;
 	}
@@ -622,61 +737,73 @@ static void dpi_init_pll(struct dpi_data *dpi)
  */
 static enum omap_channel dpi_get_channel(int port_num)
 {
-	switch (omapdss_get_version()) {
-	case OMAPDSS_VER_OMAP24xx:
-	case OMAPDSS_VER_OMAP34xx_ES1:
-	case OMAPDSS_VER_OMAP34xx_ES3:
-	case OMAPDSS_VER_OMAP3630:
-	case OMAPDSS_VER_AM35xx:
-	case OMAPDSS_VER_AM43xx:
-		return OMAP_DSS_CHANNEL_LCD;
+	switch (omapdss_get_version())
+	{
+		case OMAPDSS_VER_OMAP24xx:
+				case OMAPDSS_VER_OMAP34xx_ES1:
+					case OMAPDSS_VER_OMAP34xx_ES3:
+						case OMAPDSS_VER_OMAP3630:
+							case OMAPDSS_VER_AM35xx:
+								case OMAPDSS_VER_AM43xx:
+										return OMAP_DSS_CHANNEL_LCD;
 
-	case OMAPDSS_VER_DRA7xx:
-		switch (port_num) {
-		case 2:
-			return OMAP_DSS_CHANNEL_LCD3;
-		case 1:
+			case OMAPDSS_VER_DRA7xx:
+				switch (port_num)
+			{
+				case 2:
+					return OMAP_DSS_CHANNEL_LCD3;
+
+				case 1:
+					return OMAP_DSS_CHANNEL_LCD2;
+
+				case 0:
+				default:
+					return OMAP_DSS_CHANNEL_LCD;
+			}
+
+		case OMAPDSS_VER_OMAP4430_ES1:
+		case OMAPDSS_VER_OMAP4430_ES2:
+		case OMAPDSS_VER_OMAP4:
 			return OMAP_DSS_CHANNEL_LCD2;
-		case 0:
+
+		case OMAPDSS_VER_OMAP5:
+			return OMAP_DSS_CHANNEL_LCD3;
+
 		default:
+			DSSWARN("unsupported DSS version\n");
 			return OMAP_DSS_CHANNEL_LCD;
-		}
-
-	case OMAPDSS_VER_OMAP4430_ES1:
-	case OMAPDSS_VER_OMAP4430_ES2:
-	case OMAPDSS_VER_OMAP4:
-		return OMAP_DSS_CHANNEL_LCD2;
-
-	case OMAPDSS_VER_OMAP5:
-		return OMAP_DSS_CHANNEL_LCD3;
-
-	default:
-		DSSWARN("unsupported DSS version\n");
-		return OMAP_DSS_CHANNEL_LCD;
 	}
 }
 
 static int dpi_connect(struct omap_dss_device *dssdev,
-		struct omap_dss_device *dst)
+					   struct omap_dss_device *dst)
 {
 	struct dpi_data *dpi = dpi_get_data_from_dssdev(dssdev);
 	enum omap_channel channel = dpi->output.dispc_channel;
 	int r;
 
 	r = dpi_init_regulator(dpi);
+
 	if (r)
+	{
 		return r;
+	}
 
 	dpi_init_pll(dpi);
 
 	r = dss_mgr_connect(channel, dssdev);
+
 	if (r)
+	{
 		return r;
+	}
 
 	r = omapdss_output_set_device(dssdev, dst);
-	if (r) {
+
+	if (r)
+	{
 		DSSERR("failed to connect output to new device: %s\n",
-				dst->name);
+			   dst->name);
 		dss_mgr_disconnect(channel, dssdev);
 		return r;
 	}
@@ -685,7 +812,7 @@ static int dpi_connect(struct omap_dss_device *dssdev,
 }
 
 static void dpi_disconnect(struct omap_dss_device *dssdev,
-		struct omap_dss_device *dst)
+						   struct omap_dss_device *dst)
 {
 	struct dpi_data *dpi = dpi_get_data_from_dssdev(dssdev);
 	enum omap_channel channel = dpi->output.dispc_channel;
@@ -693,14 +820,17 @@ static void dpi_disconnect(struct omap_dss_device *dssdev,
 	WARN_ON(dst != dssdev->dst);
 
 	if (dst != dssdev->dst)
+	{
 		return;
+	}
 
 	omapdss_output_unset_device(dssdev);
 
 	dss_mgr_disconnect(channel, dssdev);
 }
 
-static const struct omapdss_dpi_ops dpi_ops = {
+static const struct omapdss_dpi_ops dpi_ops =
+{
 	.connect = dpi_connect,
 	.disconnect = dpi_disconnect,
 
@@ -739,7 +869,7 @@ static void dpi_uninit_output(struct platform_device *pdev)
 }
 
 static void dpi_init_output_port(struct platform_device *pdev,
-	struct device_node *port)
+								 struct device_node *port)
 {
 	struct dpi_data *dpi = port->data;
 	struct omap_dss_device *out = &dpi->output;
@@ -747,20 +877,26 @@ static void dpi_init_output_port(struct platform_device *pdev,
 	u32 port_num;
 
 	r = of_property_read_u32(port, "reg", &port_num);
-	if (r)
-		port_num = 0;
 
-	switch (port_num) {
-	case 2:
-		out->name = "dpi.2";
-		break;
-	case 1:
-		out->name = "dpi.1";
-		break;
-	case 0:
-	default:
-		out->name = "dpi.0";
-		break;
+	if (r)
+	{
+		port_num = 0;
+	}
+
+	switch (port_num)
+	{
+		case 2:
+			out->name = "dpi.2";
+			break;
+
+		case 1:
+			out->name = "dpi.1";
+			break;
+
+		case 0:
+		default:
+			out->name = "dpi.0";
+			break;
 	}
 
 	out->dev = &pdev->dev;
@@ -788,8 +924,11 @@ static int dpi_bind(struct device *dev, struct device *master, void *data)
 	struct dpi_data *dpi;
 
 	dpi = devm_kzalloc(&pdev->dev, sizeof(*dpi), GFP_KERNEL);
+
 	if (!dpi)
+	{
 		return -ENOMEM;
+	}
 
 	dpi->pdev = pdev;
 
@@ -809,7 +948,8 @@ static void dpi_unbind(struct device *dev, struct device *master, void *data)
 	dpi_uninit_output(pdev);
 }
 
-static const struct component_ops dpi_component_ops = {
+static const struct component_ops dpi_component_ops =
+{
 	.bind	= dpi_bind,
 	.unbind	= dpi_unbind,
 };
@@ -825,7 +965,8 @@ static int dpi_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver omap_dpi_driver = {
+static struct platform_driver omap_dpi_driver =
+{
 	.probe		= dpi_probe,
 	.remove		= dpi_remove,
 	.driver         = {
@@ -852,15 +993,23 @@ int dpi_init_port(struct platform_device *pdev, struct device_node *port)
 	int r;
 
 	dpi = devm_kzalloc(&pdev->dev, sizeof(*dpi), GFP_KERNEL);
+
 	if (!dpi)
+	{
 		return -ENOMEM;
+	}
 
 	ep = omapdss_of_get_next_endpoint(port, NULL);
+
 	if (!ep)
+	{
 		return 0;
+	}
 
 	r = of_property_read_u32(ep, "data-lines", &datalines);
-	if (r) {
+
+	if (r)
+	{
 		DSSERR("failed to parse datalines\n");
 		goto err_datalines;
 	}
@@ -891,7 +1040,9 @@ void dpi_uninit_port(struct device_node *port)
 	struct dpi_data *dpi = port->data;
 
 	if (!dpi->port_initialized)
+	{
 		return;
+	}
 
 	dpi_uninit_output_port(port);
 }

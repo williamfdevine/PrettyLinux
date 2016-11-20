@@ -43,7 +43,7 @@ unsigned long __sw_hweight64(__u64 w)
 {
 #if BITS_PER_LONG == 32
 	return __sw_hweight32((unsigned int)(w >> 32)) +
-	       __sw_hweight32((unsigned int)w);
+		   __sw_hweight32((unsigned int)w);
 #elif BITS_PER_LONG == 64
 #ifdef CONFIG_ARCH_HAS_FAST_MULTIPLIER
 	w -= (w >> 1) & 0x5555555555555555ul;

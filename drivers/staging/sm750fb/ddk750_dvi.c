@@ -11,7 +11,8 @@
  * function API. Please set the function pointer to NULL whenever the function
  * is not supported.
  */
-static dvi_ctrl_device_t g_dcftSupportedDviController[] = {
+static dvi_ctrl_device_t g_dcftSupportedDviController[] =
+{
 #ifdef DVI_CTRL_SII164
 	{
 		.pfnInit = sii164InitChip,
@@ -42,16 +43,19 @@ int dviInit(
 	unsigned char continuousSyncEnable,
 	unsigned char pllFilterEnable,
 	unsigned char pllFilterValue
-			)
+)
 {
 	dvi_ctrl_device_t *pCurrentDviCtrl;
 
 	pCurrentDviCtrl = g_dcftSupportedDviController;
-	if (pCurrentDviCtrl->pfnInit != NULL) {
+
+	if (pCurrentDviCtrl->pfnInit != NULL)
+	{
 		return pCurrentDviCtrl->pfnInit(edgeSelect, busSelect, dualEdgeClkSelect, hsyncEnable,
-						vsyncEnable, deskewEnable, deskewSetting, continuousSyncEnable,
-						pllFilterEnable, pllFilterValue);
+										vsyncEnable, deskewEnable, deskewSetting, continuousSyncEnable,
+										pllFilterEnable, pllFilterValue);
 	}
+
 	return -1; /* error */
 }
 

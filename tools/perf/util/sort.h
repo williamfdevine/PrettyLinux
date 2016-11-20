@@ -44,7 +44,8 @@ extern struct sort_entry sort_srcline;
 extern enum sort_type sort__first_dimension;
 extern const char default_mem_sort_order[];
 
-struct he_stat {
+struct he_stat
+{
 	u64			period;
 	u64			period_sys;
 	u64			period_us;
@@ -54,9 +55,11 @@ struct he_stat {
 	u32			nr_events;
 };
 
-struct hist_entry_diff {
+struct hist_entry_diff
+{
 	bool	computed;
-	union {
+	union
+	{
 		/* PERF_HPP__DELTA */
 		double	period_ratio_delta;
 
@@ -68,7 +71,8 @@ struct hist_entry_diff {
 	};
 };
 
-struct hist_entry_ops {
+struct hist_entry_ops
+{
 	void	*(*new)(size_t size);
 	void	(*free)(void *ptr);
 };
@@ -79,10 +83,12 @@ struct hist_entry_ops {
  * @row_offset - offset from the first callchain expanded to appear on screen
  * @nr_rows - rows expanded in callchain, recalculated on folding/unfolding
  */
-struct hist_entry {
+struct hist_entry
+{
 	struct rb_node		rb_node_in;
 	struct rb_node		rb_node;
-	union {
+	union
+	{
 		struct list_head node;
 		struct list_head head;
 	} pairs;
@@ -104,14 +110,16 @@ struct hist_entry {
 
 	char			level;
 	u8			filtered;
-	union {
+	union
+	{
 		/*
 		 * Since perf diff only supports the stdio output, TUI
 		 * fields are only accessed from perf report (or perf
 		 * top).  So make it an union to reduce memory usage.
 		 */
 		struct hist_entry_diff	diff;
-		struct /* for TUI */ {
+		struct /* for TUI */
+		{
 			u16	row_offset;
 			u16	nr_rows;
 			bool	init_have_children;
@@ -132,9 +140,11 @@ struct hist_entry {
 	struct perf_hpp_list	*hpp_list;
 	struct hist_entry	*parent_he;
 	struct hist_entry_ops	*ops;
-	union {
+	union
+	{
 		/* this is for hierarchical entry structure */
-		struct {
+		struct
+		{
 			struct rb_root	hroot_in;
 			struct rb_root  hroot_out;
 		};				/* non-leaf entries */
@@ -151,12 +161,15 @@ static inline bool hist_entry__has_pairs(struct hist_entry *he)
 static inline struct hist_entry *hist_entry__next_pair(struct hist_entry *he)
 {
 	if (hist_entry__has_pairs(he))
+	{
 		return list_entry(he->pairs.node.next, struct hist_entry, pairs.node);
+	}
+
 	return NULL;
 }
 
 static inline void hist_entry__add_pair(struct hist_entry *pair,
-					struct hist_entry *he)
+										struct hist_entry *he)
 {
 	list_add_tail(&pair->pairs.node, &he->pairs.head);
 }
@@ -167,10 +180,14 @@ static inline float hist_entry__get_percent_limit(struct hist_entry *he)
 	u64 total_period = hists__total_period(he->hists);
 
 	if (unlikely(total_period == 0))
+	{
 		return 0;
+	}
 
 	if (symbol_conf.cumulate_callchain)
+	{
 		period = he->stat_acc->period;
+	}
 
 	return period * 100.0 / total_period;
 }
@@ -187,7 +204,8 @@ static inline u64 cl_offset(u64 address)
 	return (address & (cacheline_size - 1));
 }
 
-enum sort_mode {
+enum sort_mode
+{
 	SORT_MODE__NORMAL,
 	SORT_MODE__BRANCH,
 	SORT_MODE__MEMORY,
@@ -196,7 +214,8 @@ enum sort_mode {
 	SORT_MODE__TRACEPOINT,
 };
 
-enum sort_type {
+enum sort_type
+{
 	/* common sort keys */
 	SORT_PID,
 	SORT_COMM,
@@ -241,14 +260,15 @@ enum sort_type {
  * configurable sorting bits
  */
 
-struct sort_entry {
+struct sort_entry
+{
 	const char *se_header;
 
 	int64_t (*se_cmp)(struct hist_entry *, struct hist_entry *);
 	int64_t (*se_collapse)(struct hist_entry *, struct hist_entry *);
 	int64_t	(*se_sort)(struct hist_entry *, struct hist_entry *);
 	int	(*se_snprintf)(struct hist_entry *he, char *bf, size_t size,
-			       unsigned int width);
+					   unsigned int width);
 	int	(*se_filter)(struct hist_entry *he, int type, const void *arg);
 	u8	se_width_idx;
 };
@@ -271,8 +291,8 @@ bool is_strict_order(const char *order);
 int hpp_dimension__add_output(unsigned col);
 void reset_dimensions(void);
 int sort_dimension__add(struct perf_hpp_list *list, const char *tok,
-			struct perf_evlist *evlist,
-			int level);
+						struct perf_evlist *evlist,
+						int level);
 int output_field_add(struct perf_hpp_list *list, char *tok);
 int64_t
 sort__iaddr_cmp(struct hist_entry *left, struct hist_entry *right);

@@ -175,8 +175,8 @@
 
 #define MCI_IRQENABLE	\
 	(MCI_CMDCRCFAILMASK|MCI_DATACRCFAILMASK|MCI_CMDTIMEOUTMASK|	\
-	MCI_DATATIMEOUTMASK|MCI_TXUNDERRUNMASK|MCI_RXOVERRUNMASK|	\
-	MCI_CMDRESPENDMASK|MCI_CMDSENTMASK|MCI_STARTBITERRMASK)
+	 MCI_DATATIMEOUTMASK|MCI_TXUNDERRUNMASK|MCI_RXOVERRUNMASK|	\
+	 MCI_CMDRESPENDMASK|MCI_CMDSENTMASK|MCI_STARTBITERRMASK)
 
 /* These interrupts are directed to IRQ1 when two IRQ lines are available */
 #define MCI_IRQ1MASK \
@@ -189,13 +189,15 @@ struct clk;
 struct variant_data;
 struct dma_chan;
 
-struct mmci_host_next {
+struct mmci_host_next
+{
 	struct dma_async_tx_descriptor	*dma_desc;
 	struct dma_chan			*dma_chan;
 	s32				cookie;
 };
 
-struct mmci_host {
+struct mmci_host
+{
 	phys_addr_t		phybase;
 	void __iomem		*base;
 	struct mmc_request	*mrq;
@@ -221,7 +223,7 @@ struct mmci_host {
 	struct variant_data	*variant;
 
 	u8			hw_designer;
-	u8			hw_revision:4;
+	u8			hw_revision: 4;
 
 	struct timer_list	timer;
 	unsigned int		oldstat;

@@ -27,7 +27,8 @@
 #ifdef CONFIG_BNX2X_SRIOV
 
 /* Common definitions for all HVs */
-struct vf_pf_resc_request {
+struct vf_pf_resc_request
+{
 	u8  num_rxqs;
 	u8  num_txqs;
 	u8  num_sbs;
@@ -36,7 +37,8 @@ struct vf_pf_resc_request {
 	u8  num_mc_filters; /* No limit  so superfluous */
 };
 
-struct hw_sb_info {
+struct hw_sb_info
+{
 	u8 hw_sb_id;	/* aka absolute igu id, used to ack the sb */
 	u8 sb_qid;	/* used to update DHC for sb */
 };
@@ -77,7 +79,8 @@ struct hw_sb_info {
 #define BULLETIN_ATTEMPTS	5 /* crc failures before throwing towel */
 #define BULLETIN_CRC_SEED	0
 
-enum {
+enum
+{
 	PFVF_STATUS_WAITING = 0,
 	PFVF_STATUS_SUCCESS,
 	PFVF_STATUS_FAILURE,
@@ -87,7 +90,8 @@ enum {
 
 /* vf pf channel tlvs */
 /* general tlv header (used for both vf->pf request and pf->vf response) */
-struct channel_tlv {
+struct channel_tlv
+{
 	u16 type;
 	u16 length;
 };
@@ -95,34 +99,40 @@ struct channel_tlv {
 /* header of first vf->pf tlv carries the offset used to calculate response
  * buffer address
  */
-struct vfpf_first_tlv {
+struct vfpf_first_tlv
+{
 	struct channel_tlv tl;
 	u32 resp_msg_offset;
 };
 
 /* header of pf->vf tlvs, carries the status of handling the request */
-struct pfvf_tlv {
+struct pfvf_tlv
+{
 	struct channel_tlv tl;
 	u8 status;
 	u8 padding[3];
 };
 
 /* response tlv used for most tlvs */
-struct pfvf_general_resp_tlv {
+struct pfvf_general_resp_tlv
+{
 	struct pfvf_tlv hdr;
 };
 
 /* used to terminate and pad a tlv list */
-struct channel_list_end_tlv {
+struct channel_list_end_tlv
+{
 	struct channel_tlv tl;
 	u8 padding[4];
 };
 
 /* Acquire */
-struct vfpf_acquire_tlv {
+struct vfpf_acquire_tlv
+{
 	struct vfpf_first_tlv first_tlv;
 
-	struct vf_pf_vfdev_info {
+	struct vf_pf_vfdev_info
+	{
 		/* the following fields are for debug purposes */
 		u8  vf_id;		/* ME register value */
 		u8  vf_os;		/* e.g. Linux, W2K8 */
@@ -144,14 +154,16 @@ struct vfpf_acquire_tlv {
 };
 
 /* simple operation request on queue */
-struct vfpf_q_op_tlv {
+struct vfpf_q_op_tlv
+{
 	struct vfpf_first_tlv	first_tlv;
 	u8 vf_qid;
 	u8 padding[3];
 };
 
 /* receive side scaling tlv */
-struct vfpf_rss_tlv {
+struct vfpf_rss_tlv
+{
 	struct vfpf_first_tlv	first_tlv;
 	u32			rss_flags;
 #define VFPF_RSS_MODE_DISABLED	(1 << 0)
@@ -172,9 +184,11 @@ struct vfpf_rss_tlv {
 };
 
 /* acquire response tlv - carries the allocated resources */
-struct pfvf_acquire_resp_tlv {
+struct pfvf_acquire_resp_tlv
+{
 	struct pfvf_tlv hdr;
-	struct pf_vf_pfdev_info {
+	struct pf_vf_pfdev_info
+	{
 		u32 chip_num;
 		u32 pf_cap;
 #define PFVF_CAP_RSS          0x00000001
@@ -188,7 +202,8 @@ struct pfvf_acquire_resp_tlv {
 		u8  indices_per_sb;
 		u8  padding;
 	} pfdev_info;
-	struct pf_vf_resc {
+	struct pf_vf_resc
+	{
 		/* in case of status NO_RESOURCE in message hdr, pf will fill
 		 * this struct with suggested amount of resources for next
 		 * acquire request
@@ -209,13 +224,15 @@ struct pfvf_acquire_resp_tlv {
 	} resc;
 };
 
-struct vfpf_port_phys_id_resp_tlv {
+struct vfpf_port_phys_id_resp_tlv
+{
 	struct channel_tlv tl;
 	u8 id[ETH_ALEN];
 	u8 padding[2];
 };
 
-struct vfpf_fp_hsi_resp_tlv {
+struct vfpf_fp_hsi_resp_tlv
+{
 	struct channel_tlv tl;
 	u8 is_supported;
 	u8 padding[3];
@@ -227,7 +244,8 @@ struct vfpf_fp_hsi_resp_tlv {
 						  */
 
 /* Init VF */
-struct vfpf_init_tlv {
+struct vfpf_init_tlv
+{
 	struct vfpf_first_tlv first_tlv;
 	aligned_u64 sb_addr[PFVF_MAX_SBS_PER_VF]; /* vf_sb based */
 	aligned_u64 spq_addr;
@@ -238,10 +256,12 @@ struct vfpf_init_tlv {
 };
 
 /* Setup Queue */
-struct vfpf_setup_q_tlv {
+struct vfpf_setup_q_tlv
+{
 	struct vfpf_first_tlv first_tlv;
 
-	struct vf_pf_rxq_params {
+	struct vf_pf_rxq_params
+	{
 		/* physical addresses */
 		aligned_u64 rcq_addr;
 		aligned_u64 rcq_np_addr;
@@ -252,7 +272,7 @@ struct vfpf_setup_q_tlv {
 		u8  vf_sb;		/* index in hw_sbs[] */
 		u8  sb_index;		/* Index in the SB */
 		u16 hc_rate;		/* desired interrupts per sec. */
-					/* valid iff VFPF_QUEUE_FLG_HC */
+		/* valid iff VFPF_QUEUE_FLG_HC */
 		/* rx buffer info */
 		u16 mtu;
 		u16 buf_sz;
@@ -272,7 +292,8 @@ struct vfpf_setup_q_tlv {
 		u8 padding;
 	} rxq;
 
-	struct vf_pf_txq_params {
+	struct vf_pf_txq_params
+	{
 		/* physical addresses */
 		aligned_u64 txq_addr;
 
@@ -280,7 +301,7 @@ struct vfpf_setup_q_tlv {
 		u8  vf_sb;		/* index in hw_sbs[] */
 		u8  sb_index;		/* Index in the SB */
 		u16 hc_rate;		/* desired interrupts per sec. */
-					/* valid iff VFPF_QUEUE_FLG_HC */
+		/* valid iff VFPF_QUEUE_FLG_HC */
 		u32 flags;		/* VFPF_QUEUE_FLG_X flags */
 		u16 stat_id;		/* valid iff VFPF_QUEUE_FLG_STATS */
 		u8  traffic_type;	/* see in setup_context() */
@@ -295,7 +316,8 @@ struct vfpf_setup_q_tlv {
 };
 
 /* Set Queue Filters */
-struct vfpf_q_mac_vlan_filter {
+struct vfpf_q_mac_vlan_filter
+{
 	u32 flags;
 #define VFPF_Q_FILTER_DEST_MAC_VALID	0x01
 #define VFPF_Q_FILTER_VLAN_TAG_VALID	0x02
@@ -305,7 +327,8 @@ struct vfpf_q_mac_vlan_filter {
 };
 
 /* configure queue filters */
-struct vfpf_set_q_filters_tlv {
+struct vfpf_set_q_filters_tlv
+{
 	struct vfpf_first_tlv first_tlv;
 
 	u32 flags;
@@ -321,7 +344,7 @@ struct vfpf_set_q_filters_tlv {
 #define PFVF_MAX_MAC_FILTERS                   16
 #define PFVF_MAX_VLAN_FILTERS                  16
 #define PFVF_MAX_FILTERS               (PFVF_MAX_MAC_FILTERS +\
-					 PFVF_MAX_VLAN_FILTERS)
+										PFVF_MAX_VLAN_FILTERS)
 	struct vfpf_q_mac_vlan_filter filters[PFVF_MAX_FILTERS];
 
 #define PFVF_MAX_MULTICAST_PER_VF              32
@@ -330,10 +353,12 @@ struct vfpf_set_q_filters_tlv {
 	u32 rx_mask;	/* see mask constants at the top of the file */
 };
 
-struct vfpf_tpa_tlv {
+struct vfpf_tpa_tlv
+{
 	struct vfpf_first_tlv	first_tlv;
 
-	struct vf_pf_tpa_client_info {
+	struct vf_pf_tpa_client_info
+	{
 		aligned_u64 sge_addr[PFVF_MAX_QUEUES_PER_VF];
 		u8 update_ipv4;
 		u8 update_ipv6;
@@ -350,24 +375,28 @@ struct vfpf_tpa_tlv {
 };
 
 /* close VF (disable VF) */
-struct vfpf_close_tlv {
+struct vfpf_close_tlv
+{
 	struct vfpf_first_tlv   first_tlv;
 	u16			vf_id;  /* for debug */
 	u8 padding[2];
 };
 
 /* release the VF's acquired resources */
-struct vfpf_release_tlv {
+struct vfpf_release_tlv
+{
 	struct vfpf_first_tlv	first_tlv;
 	u16			vf_id;
 	u8 padding[2];
 };
 
-struct tlv_buffer_size {
+struct tlv_buffer_size
+{
 	u8 tlv_buffer[TLV_BUFFER_SIZE];
 };
 
-union vfpf_tlvs {
+union vfpf_tlvs
+{
 	struct vfpf_first_tlv		first_tlv;
 	struct vfpf_acquire_tlv		acquire;
 	struct vfpf_init_tlv		init;
@@ -382,7 +411,8 @@ union vfpf_tlvs {
 	struct tlv_buffer_size		tlv_buf_size;
 };
 
-union pfvf_tlvs {
+union pfvf_tlvs
+{
 	struct pfvf_general_resp_tlv	general_resp;
 	struct pfvf_acquire_resp_tlv	acquire_resp;
 	struct channel_list_end_tlv	list_end;
@@ -394,11 +424,13 @@ union pfvf_tlvs {
  * periodically by the VF. A copy per VF is maintained in the PF (to prevent
  * loss of data upon multiple updates (or the need for read modify write)).
  */
-struct pf_vf_bulletin_size {
+struct pf_vf_bulletin_size
+{
 	u8 size[PF_VF_BULLETIN_SIZE];
 };
 
-struct pf_vf_bulletin_content {
+struct pf_vf_bulletin_content
+{
 	u32 crc;			/* crc of structure to ensure is not in
 					 * mid-update
 					 */
@@ -438,14 +470,16 @@ struct pf_vf_bulletin_content {
 	u8 link_flags_padding[4];
 };
 
-union pf_vf_bulletin {
+union pf_vf_bulletin
+{
 	struct pf_vf_bulletin_content content;
 	struct pf_vf_bulletin_size size;
 };
 
 #define MAX_TLVS_IN_LIST 50
 
-enum channel_tlvs {
+enum channel_tlvs
+{
 	CHANNEL_TLV_NONE,
 	CHANNEL_TLV_ACQUIRE,
 	CHANNEL_TLV_INIT,

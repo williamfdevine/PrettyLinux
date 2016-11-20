@@ -38,11 +38,16 @@
 #include "qxl_object.h"
 
 extern int qxl_max_ioctls;
-static const struct pci_device_id pciidlist[] = {
-	{ 0x1b36, 0x100, PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_DISPLAY_VGA << 8,
-	  0xffff00, 0 },
-	{ 0x1b36, 0x100, PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_DISPLAY_OTHER << 8,
-	  0xffff00, 0 },
+static const struct pci_device_id pciidlist[] =
+{
+	{
+		0x1b36, 0x100, PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_DISPLAY_VGA << 8,
+		0xffff00, 0
+	},
+	{
+		0x1b36, 0x100, PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_DISPLAY_OTHER << 8,
+		0xffff00, 0
+	},
 	{ 0, 0, 0 },
 };
 MODULE_DEVICE_TABLE(pci, pciidlist);
@@ -62,11 +67,13 @@ static struct pci_driver qxl_pci_driver;
 static int
 qxl_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 {
-	if (pdev->revision < 4) {
+	if (pdev->revision < 4)
+	{
 		DRM_ERROR("qxl too old, doesn't support client_monitors_config,"
-			  " use xf86-video-qxl in user mode");
+				  " use xf86-video-qxl in user mode");
 		return -EINVAL; /* TODO: ENODEV ? */
 	}
+
 	return drm_get_pci_dev(pdev, ent, &qxl_driver);
 }
 
@@ -78,7 +85,8 @@ qxl_pci_remove(struct pci_dev *pdev)
 	drm_put_dev(dev);
 }
 
-static const struct file_operations qxl_fops = {
+static const struct file_operations qxl_fops =
+{
 	.owner = THIS_MODULE,
 	.open = drm_open,
 	.release = drm_release,
@@ -101,10 +109,14 @@ static int qxl_drm_freeze(struct drm_device *dev)
 	console_unlock();
 
 	/* unpin the front buffers */
-	list_for_each_entry(crtc, &dev->mode_config.crtc_list, head) {
+	list_for_each_entry(crtc, &dev->mode_config.crtc_list, head)
+	{
 		const struct drm_crtc_helper_funcs *crtc_funcs = crtc->helper_private;
+
 		if (crtc->enabled)
+		{
 			(*crtc_funcs->disable)(crtc);
+		}
 	}
 
 	qxl_destroy_monitors_object(qdev);
@@ -112,8 +124,11 @@ static int qxl_drm_freeze(struct drm_device *dev)
 	qxl_vram_evict(qdev);
 
 	while (!qxl_check_idle(qdev->command_ring));
+
 	while (!qxl_check_idle(qdev->release_ring))
+	{
 		qxl_queue_garbage_collect(qdev, 1);
+	}
 
 	pci_save_state(pdev);
 
@@ -125,7 +140,9 @@ static int qxl_drm_resume(struct drm_device *dev, bool thaw)
 	struct qxl_device *qdev = dev->dev_private;
 
 	qdev->ram_header->int_mask = QXL_INTERRUPT_MASK;
-	if (!thaw) {
+
+	if (!thaw)
+	{
 		qxl_reinit_memslots(qdev);
 		qxl_ring_init_hdr(qdev->release_ring);
 	}
@@ -148,8 +165,11 @@ static int qxl_pm_suspend(struct device *dev)
 	int error;
 
 	error = qxl_drm_freeze(drm_dev);
+
 	if (error)
+	{
 		return error;
+	}
 
 	pci_disable_device(pdev);
 	pci_set_power_state(pdev, PCI_D3hot);
@@ -163,7 +183,9 @@ static int qxl_pm_resume(struct device *dev)
 
 	pci_set_power_state(pdev, PCI_D0);
 	pci_restore_state(pdev);
-	if (pci_enable_device(pdev)) {
+
+	if (pci_enable_device(pdev))
+	{
 		return -EIO;
 	}
 
@@ -197,7 +219,7 @@ static int qxl_pm_restore(struct device *dev)
 }
 
 static u32 qxl_noop_get_vblank_counter(struct drm_device *dev,
-				       unsigned int pipe)
+									   unsigned int pipe)
 {
 	return 0;
 }
@@ -211,7 +233,8 @@ static void qxl_noop_disable_vblank(struct drm_device *dev, unsigned int pipe)
 {
 }
 
-static const struct dev_pm_ops qxl_pm_ops = {
+static const struct dev_pm_ops qxl_pm_ops =
+{
 	.suspend = qxl_pm_suspend,
 	.resume = qxl_pm_resume,
 	.freeze = qxl_pm_freeze,
@@ -219,17 +242,19 @@ static const struct dev_pm_ops qxl_pm_ops = {
 	.poweroff = qxl_pm_freeze,
 	.restore = qxl_pm_restore,
 };
-static struct pci_driver qxl_pci_driver = {
-	 .name = DRIVER_NAME,
-	 .id_table = pciidlist,
-	 .probe = qxl_pci_probe,
-	 .remove = qxl_pci_remove,
-	 .driver.pm = &qxl_pm_ops,
+static struct pci_driver qxl_pci_driver =
+{
+	.name = DRIVER_NAME,
+	.id_table = pciidlist,
+	.probe = qxl_pci_probe,
+	.remove = qxl_pci_remove,
+	.driver.pm = &qxl_pm_ops,
 };
 
-static struct drm_driver qxl_driver = {
+static struct drm_driver qxl_driver =
+{
 	.driver_features = DRIVER_GEM | DRIVER_MODESET | DRIVER_PRIME |
-			   DRIVER_HAVE_IRQ | DRIVER_IRQ_SHARED,
+	DRIVER_HAVE_IRQ | DRIVER_IRQ_SHARED,
 	.load = qxl_driver_load,
 	.unload = qxl_driver_unload,
 	.get_vblank_counter = qxl_noop_get_vblank_counter,
@@ -273,10 +298,15 @@ static struct drm_driver qxl_driver = {
 static int __init qxl_init(void)
 {
 	if (vgacon_text_force() && qxl_modeset == -1)
+	{
 		return -EINVAL;
+	}
 
 	if (qxl_modeset == 0)
+	{
 		return -EINVAL;
+	}
+
 	qxl_driver.num_ioctls = qxl_max_ioctls;
 	return drm_pci_init(&qxl_driver, &qxl_pci_driver);
 }

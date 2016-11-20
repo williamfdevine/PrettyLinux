@@ -33,14 +33,15 @@
 
 /* Debug options for code which may be removed completely in a final version */
 #ifdef CONFIG_SND_DEBUG
-#define SND_PCM_INDIRECT2_STAT    /* turn on some "statistics" about the
-				   * process of copying bytes from the
-				   * intermediate buffer to the hardware
-				   * fifo and the other way round
-				   */
+	#define SND_PCM_INDIRECT2_STAT    /* turn on some "statistics" about the
+	* process of copying bytes from the
+	* intermediate buffer to the hardware
+	* fifo and the other way round
+	*/
 #endif
 
-struct snd_pcm_indirect2 {
+struct snd_pcm_indirect2
+{
 	unsigned int hw_buffer_size;  /* Byte size of hardware buffer */
 	int hw_ready;		      /* playback: 1 = hw fifo has room left,
 				       * 0 = hw fifo is full
@@ -113,28 +114,28 @@ struct snd_pcm_indirect2 {
 };
 
 typedef size_t (*snd_pcm_indirect2_copy_t) (struct snd_pcm_substream *substream,
-					   struct snd_pcm_indirect2 *rec,
-					   size_t bytes);
+		struct snd_pcm_indirect2 *rec,
+		size_t bytes);
 typedef size_t (*snd_pcm_indirect2_zero_t) (struct snd_pcm_substream *substream,
-					   struct snd_pcm_indirect2 *rec);
+		struct snd_pcm_indirect2 *rec);
 
 #ifdef SND_PCM_INDIRECT2_STAT
 void snd_pcm_indirect2_stat(struct snd_pcm_substream *substream,
-				   struct snd_pcm_indirect2 *rec);
+							struct snd_pcm_indirect2 *rec);
 #endif
 
 snd_pcm_uframes_t
 snd_pcm_indirect2_pointer(struct snd_pcm_substream *substream,
-			  struct snd_pcm_indirect2 *rec);
+						  struct snd_pcm_indirect2 *rec);
 void
 snd_pcm_indirect2_playback_interrupt(struct snd_pcm_substream *substream,
-				     struct snd_pcm_indirect2 *rec,
-				     snd_pcm_indirect2_copy_t copy,
-				     snd_pcm_indirect2_zero_t zero);
+									 struct snd_pcm_indirect2 *rec,
+									 snd_pcm_indirect2_copy_t copy,
+									 snd_pcm_indirect2_zero_t zero);
 void
 snd_pcm_indirect2_capture_interrupt(struct snd_pcm_substream *substream,
-				    struct snd_pcm_indirect2 *rec,
-				    snd_pcm_indirect2_copy_t copy,
-				    snd_pcm_indirect2_zero_t null);
+									struct snd_pcm_indirect2 *rec,
+									snd_pcm_indirect2_copy_t copy,
+									snd_pcm_indirect2_zero_t null);
 
 #endif /* __SOUND_PCM_INDIRECT2_H */

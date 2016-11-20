@@ -27,7 +27,8 @@
 #define PPRCONTROL	_IOR(PP_IOCTL, 0x83, unsigned char)
 #define PPWCONTROL	_IOW(PP_IOCTL, 0x84, unsigned char)
 
-struct ppdev_frob_struct {
+struct ppdev_frob_struct
+{
 	unsigned char mask;
 	unsigned char val;
 };

@@ -6,23 +6,26 @@
 #include "debug.h"
 
 static bool has_term(struct stat_config_event *config,
-		     u64 tag, u64 val)
+					 u64 tag, u64 val)
 {
 	unsigned i;
 
-	for (i = 0; i < config->nr; i++) {
+	for (i = 0; i < config->nr; i++)
+	{
 		if ((config->data[i].tag == tag) &&
-		    (config->data[i].val == val))
+			(config->data[i].val == val))
+		{
 			return true;
+		}
 	}
 
 	return false;
 }
 
 static int process_stat_config_event(struct perf_tool *tool __maybe_unused,
-				     union perf_event *event,
-				     struct perf_sample *sample __maybe_unused,
-				     struct machine *machine __maybe_unused)
+									 union perf_event *event,
+									 struct perf_sample *sample __maybe_unused,
+									 struct machine *machine __maybe_unused)
 {
 	struct stat_config_event *config = &event->stat_config;
 	struct perf_stat_config stat_config;
@@ -47,22 +50,23 @@ static int process_stat_config_event(struct perf_tool *tool __maybe_unused,
 
 int test__synthesize_stat_config(int subtest __maybe_unused)
 {
-	struct perf_stat_config stat_config = {
+	struct perf_stat_config stat_config =
+	{
 		.aggr_mode	= AGGR_CORE,
 		.scale		= 1,
 		.interval	= 1,
 	};
 
 	TEST_ASSERT_VAL("failed to synthesize stat_config",
-		!perf_event__synthesize_stat_config(NULL, &stat_config, process_stat_config_event, NULL));
+					!perf_event__synthesize_stat_config(NULL, &stat_config, process_stat_config_event, NULL));
 
 	return 0;
 }
 
 static int process_stat_event(struct perf_tool *tool __maybe_unused,
-			      union perf_event *event,
-			      struct perf_sample *sample __maybe_unused,
-			      struct machine *machine __maybe_unused)
+							  union perf_event *event,
+							  struct perf_sample *sample __maybe_unused,
+							  struct machine *machine __maybe_unused)
 {
 	struct stat_event *st = &event->stat;
 
@@ -84,15 +88,15 @@ int test__synthesize_stat(int subtest __maybe_unused)
 	count.run = 300;
 
 	TEST_ASSERT_VAL("failed to synthesize stat_config",
-		!perf_event__synthesize_stat(NULL, 1, 2, 3, &count, process_stat_event, NULL));
+					!perf_event__synthesize_stat(NULL, 1, 2, 3, &count, process_stat_event, NULL));
 
 	return 0;
 }
 
 static int process_stat_round_event(struct perf_tool *tool __maybe_unused,
-				    union perf_event *event,
-				    struct perf_sample *sample __maybe_unused,
-				    struct machine *machine __maybe_unused)
+									union perf_event *event,
+									struct perf_sample *sample __maybe_unused,
+									struct machine *machine __maybe_unused)
 {
 	struct stat_round_event *stat_round = &event->stat_round;
 
@@ -104,8 +108,8 @@ static int process_stat_round_event(struct perf_tool *tool __maybe_unused,
 int test__synthesize_stat_round(int subtest __maybe_unused)
 {
 	TEST_ASSERT_VAL("failed to synthesize stat_config",
-		!perf_event__synthesize_stat_round(NULL, 0xdeadbeef, PERF_STAT_ROUND_TYPE__INTERVAL,
-						   process_stat_round_event, NULL));
+					!perf_event__synthesize_stat_round(NULL, 0xdeadbeef, PERF_STAT_ROUND_TYPE__INTERVAL,
+							process_stat_round_event, NULL));
 
 	return 0;
 }

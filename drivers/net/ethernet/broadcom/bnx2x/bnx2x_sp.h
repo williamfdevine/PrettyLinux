@@ -25,7 +25,8 @@ struct bnx2x;
 struct eth_context;
 
 /* Bits representing general command's configuration */
-enum {
+enum
+{
 	RAMROD_TX,
 	RAMROD_RX,
 	/* Wait until all pending commands complete */
@@ -34,7 +35,7 @@ enum {
 	RAMROD_DRV_CLR_ONLY,
 	/* Configure HW according to the current object state */
 	RAMROD_RESTORE,
-	 /* Execute the next command now */
+	/* Execute the next command now */
 	RAMROD_EXEC,
 	/* Don't add a new command and continue execution of postponed
 	 * commands. If not set a new command will be added to the
@@ -49,14 +50,16 @@ enum {
 	RAMROD_RETRY,
 };
 
-typedef enum {
+typedef enum
+{
 	BNX2X_OBJ_TYPE_RX,
 	BNX2X_OBJ_TYPE_TX,
 	BNX2X_OBJ_TYPE_RX_TX,
 } bnx2x_obj_type;
 
 /* Public slow path states */
-enum {
+enum
+{
 	BNX2X_FILTER_MAC_PENDING,
 	BNX2X_FILTER_VLAN_PENDING,
 	BNX2X_FILTER_VLAN_MAC_PENDING,
@@ -73,7 +76,8 @@ enum {
 	BNX2X_AFEX_PENDING_VIFSET_MCP_ACK
 };
 
-struct bnx2x_raw_obj {
+struct bnx2x_raw_obj
+{
 	u8		func_id;
 
 	/* Queue params */
@@ -91,7 +95,7 @@ struct bnx2x_raw_obj {
 	bnx2x_obj_type	obj_type;
 
 	int (*wait_comp)(struct bnx2x *bp,
-			 struct bnx2x_raw_obj *o);
+					 struct bnx2x_raw_obj *o);
 
 	bool (*check_pending)(struct bnx2x_raw_obj *o);
 	void (*clear_pending)(struct bnx2x_raw_obj *o);
@@ -99,35 +103,41 @@ struct bnx2x_raw_obj {
 };
 
 /************************* VLAN-MAC commands related parameters ***************/
-struct bnx2x_mac_ramrod_data {
+struct bnx2x_mac_ramrod_data
+{
 	u8 mac[ETH_ALEN];
 	u8 is_inner_mac;
 };
 
-struct bnx2x_vlan_ramrod_data {
+struct bnx2x_vlan_ramrod_data
+{
 	u16 vlan;
 };
 
-struct bnx2x_vlan_mac_ramrod_data {
+struct bnx2x_vlan_mac_ramrod_data
+{
 	u8 mac[ETH_ALEN];
 	u8 is_inner_mac;
 	u16 vlan;
 };
 
-union bnx2x_classification_ramrod_data {
+union bnx2x_classification_ramrod_data
+{
 	struct bnx2x_mac_ramrod_data mac;
 	struct bnx2x_vlan_ramrod_data vlan;
 	struct bnx2x_vlan_mac_ramrod_data vlan_mac;
 };
 
 /* VLAN_MAC commands */
-enum bnx2x_vlan_mac_cmd {
+enum bnx2x_vlan_mac_cmd
+{
 	BNX2X_VLAN_MAC_ADD,
 	BNX2X_VLAN_MAC_DEL,
 	BNX2X_VLAN_MAC_MOVE,
 };
 
-struct bnx2x_vlan_mac_data {
+struct bnx2x_vlan_mac_data
+{
 	/* Requested command: BNX2X_VLAN_MAC_XX */
 	enum bnx2x_vlan_mac_cmd cmd;
 	/* used to contain the data related vlan_mac_flags bits from
@@ -142,15 +152,18 @@ struct bnx2x_vlan_mac_data {
 };
 
 /*************************** Exe Queue obj ************************************/
-union bnx2x_exe_queue_cmd_data {
+union bnx2x_exe_queue_cmd_data
+{
 	struct bnx2x_vlan_mac_data vlan_mac;
 
-	struct {
+	struct
+	{
 		/* TODO */
 	} mcast;
 };
 
-struct bnx2x_exeq_elem {
+struct bnx2x_exeq_elem
+{
 	struct list_head		link;
 
 	/* Length of this element in the exe_chunk. */
@@ -161,35 +174,37 @@ struct bnx2x_exeq_elem {
 
 union bnx2x_qable_obj;
 
-union bnx2x_exeq_comp_elem {
+union bnx2x_exeq_comp_elem
+{
 	union event_ring_elem *elem;
 };
 
 struct bnx2x_exe_queue_obj;
 
 typedef int (*exe_q_validate)(struct bnx2x *bp,
-			      union bnx2x_qable_obj *o,
-			      struct bnx2x_exeq_elem *elem);
+							  union bnx2x_qable_obj *o,
+							  struct bnx2x_exeq_elem *elem);
 
 typedef int (*exe_q_remove)(struct bnx2x *bp,
-			    union bnx2x_qable_obj *o,
-			    struct bnx2x_exeq_elem *elem);
+							union bnx2x_qable_obj *o,
+							struct bnx2x_exeq_elem *elem);
 
 /* Return positive if entry was optimized, 0 - if not, negative
  * in case of an error.
  */
 typedef int (*exe_q_optimize)(struct bnx2x *bp,
-			      union bnx2x_qable_obj *o,
-			      struct bnx2x_exeq_elem *elem);
+							  union bnx2x_qable_obj *o,
+							  struct bnx2x_exeq_elem *elem);
 typedef int (*exe_q_execute)(struct bnx2x *bp,
-			     union bnx2x_qable_obj *o,
-			     struct list_head *exe_chunk,
-			     unsigned long *ramrod_flags);
+							 union bnx2x_qable_obj *o,
+							 struct list_head *exe_chunk,
+							 unsigned long *ramrod_flags);
 typedef struct bnx2x_exeq_elem *
-			(*exe_q_get)(struct bnx2x_exe_queue_obj *o,
-				     struct bnx2x_exeq_elem *elem);
+(*exe_q_get)(struct bnx2x_exe_queue_obj *o,
+			 struct bnx2x_exeq_elem *elem);
 
-struct bnx2x_exe_queue_obj {
+struct bnx2x_exe_queue_obj
+{
 	/* Commands pending for an execution. */
 	struct list_head	exe_queue;
 
@@ -216,7 +231,7 @@ struct bnx2x_exe_queue_obj {
 	 * Called before removing pending commands, cleaning allocated
 	 * resources (e.g., credits from validate)
 	 */
-	 exe_q_remove		remove;
+	exe_q_remove		remove;
 
 	/**
 	 * This will try to cancel the current pending commands list
@@ -244,7 +259,8 @@ struct bnx2x_exe_queue_obj {
  * Element in the VLAN_MAC registry list having all currently configured
  * rules.
  */
-struct bnx2x_vlan_mac_registry_elem {
+struct bnx2x_vlan_mac_registry_elem
+{
 	struct list_head	link;
 
 	/* Used to store the cam offset used for the mac/vlan/vlan-mac.
@@ -260,7 +276,8 @@ struct bnx2x_vlan_mac_registry_elem {
 };
 
 /* Bits representing VLAN_MAC commands specific flags */
-enum {
+enum
+{
 	BNX2X_UC_LIST_MAC,
 	BNX2X_ETH_MAC,
 	BNX2X_ISCSI_ETH_MAC,
@@ -270,13 +287,14 @@ enum {
 };
 /* When looking for matching filters, some flags are not interesting */
 #define BNX2X_VLAN_MAC_CMP_MASK	(1 << BNX2X_UC_LIST_MAC | \
-				 1 << BNX2X_ETH_MAC | \
-				 1 << BNX2X_ISCSI_ETH_MAC | \
-				 1 << BNX2X_NETQ_ETH_MAC)
+								 1 << BNX2X_ETH_MAC | \
+								 1 << BNX2X_ISCSI_ETH_MAC | \
+								 1 << BNX2X_NETQ_ETH_MAC)
 #define BNX2X_VLAN_MAC_CMP_FLAGS(flags) \
 	((flags) & BNX2X_VLAN_MAC_CMP_MASK)
 
-struct bnx2x_vlan_mac_ramrod_params {
+struct bnx2x_vlan_mac_ramrod_params
+{
 	/* Object to run the command from */
 	struct bnx2x_vlan_mac_obj *vlan_mac_obj;
 
@@ -287,7 +305,8 @@ struct bnx2x_vlan_mac_ramrod_params {
 	struct bnx2x_vlan_mac_data user_req;
 };
 
-struct bnx2x_vlan_mac_obj {
+struct bnx2x_vlan_mac_obj
+{
 	struct bnx2x_raw_obj raw;
 
 	/* Bookkeeping list: will prevent the addition of already existing
@@ -324,8 +343,8 @@ struct bnx2x_vlan_mac_obj {
 	 * @return number of copied bytes
 	 */
 	int (*get_n_elements)(struct bnx2x *bp,
-			      struct bnx2x_vlan_mac_obj *o, int n, u8 *base,
-			      u8 stride, u8 size);
+						  struct bnx2x_vlan_mac_obj *o, int n, u8 *base,
+						  u8 stride, u8 size);
 
 	/**
 	 * Checks if ADD-ramrod with the given params may be performed.
@@ -334,8 +353,8 @@ struct bnx2x_vlan_mac_obj {
 	 */
 
 	int (*check_add)(struct bnx2x *bp,
-			 struct bnx2x_vlan_mac_obj *o,
-			 union bnx2x_classification_ramrod_data *data);
+					 struct bnx2x_vlan_mac_obj *o,
+					 union bnx2x_classification_ramrod_data *data);
 
 	/**
 	 * Checks if DEL-ramrod with the given params may be performed.
@@ -343,9 +362,9 @@ struct bnx2x_vlan_mac_obj {
 	 * @return true if the element may be deleted
 	 */
 	struct bnx2x_vlan_mac_registry_elem *
-		(*check_del)(struct bnx2x *bp,
-			     struct bnx2x_vlan_mac_obj *o,
-			     union bnx2x_classification_ramrod_data *data);
+	(*check_del)(struct bnx2x *bp,
+				 struct bnx2x_vlan_mac_obj *o,
+				 union bnx2x_classification_ramrod_data *data);
 
 	/**
 	 * Checks if DEL-ramrod with the given params may be performed.
@@ -353,9 +372,9 @@ struct bnx2x_vlan_mac_obj {
 	 * @return true if the element may be deleted
 	 */
 	bool (*check_move)(struct bnx2x *bp,
-			   struct bnx2x_vlan_mac_obj *src_o,
-			   struct bnx2x_vlan_mac_obj *dst_o,
-			   union bnx2x_classification_ramrod_data *data);
+					   struct bnx2x_vlan_mac_obj *src_o,
+					   struct bnx2x_vlan_mac_obj *dst_o,
+					   union bnx2x_classification_ramrod_data *data);
 
 	/**
 	 *  Update the relevant credit object(s) (consume/return
@@ -370,9 +389,9 @@ struct bnx2x_vlan_mac_obj {
 	 * Configures one rule in the ramrod data buffer.
 	 */
 	void (*set_one_rule)(struct bnx2x *bp,
-			     struct bnx2x_vlan_mac_obj *o,
-			     struct bnx2x_exeq_elem *elem, int rule_idx,
-			     int cam_offset);
+						 struct bnx2x_vlan_mac_obj *o,
+						 struct bnx2x_exeq_elem *elem, int rule_idx,
+						 int cam_offset);
 
 	/**
 	*  Delete all configured elements having the given
@@ -392,9 +411,9 @@ struct bnx2x_vlan_mac_obj {
 	 *         negative value in case of failure.
 	 */
 	int (*delete_all)(struct bnx2x *bp,
-			  struct bnx2x_vlan_mac_obj *o,
-			  unsigned long *vlan_mac_flags,
-			  unsigned long *ramrod_flags);
+					  struct bnx2x_vlan_mac_obj *o,
+					  unsigned long *vlan_mac_flags,
+					  unsigned long *ramrod_flags);
 
 	/**
 	 * Reconfigures the next MAC/VLAN/VLAN-MAC element from the previously
@@ -412,8 +431,8 @@ struct bnx2x_vlan_mac_obj {
 	 * @return int
 	 */
 	int (*restore)(struct bnx2x *bp,
-		       struct bnx2x_vlan_mac_ramrod_params *p,
-		       struct bnx2x_vlan_mac_registry_elem **ppos);
+				   struct bnx2x_vlan_mac_ramrod_params *p,
+				   struct bnx2x_vlan_mac_registry_elem **ppos);
 
 	/**
 	 * Should be called on a completion arrival.
@@ -433,8 +452,8 @@ struct bnx2x_vlan_mac_obj {
 	 *         error in the cqe).
 	 */
 	int (*complete)(struct bnx2x *bp, struct bnx2x_vlan_mac_obj *o,
-			union event_ring_elem *cqe,
-			unsigned long *ramrod_flags);
+					union event_ring_elem *cqe,
+					unsigned long *ramrod_flags);
 
 	/**
 	 * Wait for completion of all commands. Don't schedule new ones,
@@ -444,7 +463,8 @@ struct bnx2x_vlan_mac_obj {
 	int (*wait)(struct bnx2x *bp, struct bnx2x_vlan_mac_obj *o);
 };
 
-enum {
+enum
+{
 	BNX2X_LLH_CAM_ISCSI_ETH_LINE = 0,
 	BNX2X_LLH_CAM_ETH_LINE,
 	BNX2X_LLH_CAM_MAX_PF_LINE = NIG_REG_LLH1_FUNC_MEM_SIZE / 2
@@ -455,12 +475,14 @@ enum {
 /* RX_MODE ramrod special flags: set in rx_mode_flags field in
  * a bnx2x_rx_mode_ramrod_params.
  */
-enum {
+enum
+{
 	BNX2X_RX_MODE_FCOE_ETH,
 	BNX2X_RX_MODE_ISCSI_ETH,
 };
 
-enum {
+enum
+{
 	BNX2X_ACCEPT_UNICAST,
 	BNX2X_ACCEPT_MULTICAST,
 	BNX2X_ACCEPT_ALL_UNICAST,
@@ -470,7 +492,8 @@ enum {
 	BNX2X_ACCEPT_ANY_VLAN
 };
 
-struct bnx2x_rx_mode_ramrod_params {
+struct bnx2x_rx_mode_ramrod_params
+{
 	struct bnx2x_rx_mode_obj *rx_mode_obj;
 	unsigned long *pstate;
 	int state;
@@ -493,27 +516,31 @@ struct bnx2x_rx_mode_ramrod_params {
 	unsigned long tx_accept_flags;
 };
 
-struct bnx2x_rx_mode_obj {
+struct bnx2x_rx_mode_obj
+{
 	int (*config_rx_mode)(struct bnx2x *bp,
-			      struct bnx2x_rx_mode_ramrod_params *p);
+						  struct bnx2x_rx_mode_ramrod_params *p);
 
 	int (*wait_comp)(struct bnx2x *bp,
-			 struct bnx2x_rx_mode_ramrod_params *p);
+					 struct bnx2x_rx_mode_ramrod_params *p);
 };
 
 /********************** Set multicast group ***********************************/
 
-struct bnx2x_mcast_list_elem {
+struct bnx2x_mcast_list_elem
+{
 	struct list_head link;
 	u8 *mac;
 };
 
-union bnx2x_mcast_config_data {
+union bnx2x_mcast_config_data
+{
 	u8 *mac;
 	u8 bin; /* used in a RESTORE flow */
 };
 
-struct bnx2x_mcast_ramrod_params {
+struct bnx2x_mcast_ramrod_params
+{
 	struct bnx2x_mcast_obj *mcast_obj;
 
 	/* Relevant options are RAMROD_COMP_WAIT and RAMROD_DRV_CLR_ONLY */
@@ -531,7 +558,8 @@ struct bnx2x_mcast_ramrod_params {
 	int mcast_list_len;
 };
 
-enum bnx2x_mcast_cmd {
+enum bnx2x_mcast_cmd
+{
 	BNX2X_MCAST_CMD_ADD,
 	BNX2X_MCAST_CMD_CONT,
 	BNX2X_MCAST_CMD_DEL,
@@ -547,13 +575,16 @@ enum bnx2x_mcast_cmd {
 	BNX2X_MCAST_CMD_SET_DEL,
 };
 
-struct bnx2x_mcast_obj {
+struct bnx2x_mcast_obj
+{
 	struct bnx2x_raw_obj raw;
 
-	union {
-		struct {
-		#define BNX2X_MCAST_BINS_NUM	256
-		#define BNX2X_MCAST_VEC_SZ	(BNX2X_MCAST_BINS_NUM / 64)
+	union
+	{
+		struct
+		{
+#define BNX2X_MCAST_BINS_NUM	256
+#define BNX2X_MCAST_VEC_SZ	(BNX2X_MCAST_BINS_NUM / 64)
 			u64 vec[BNX2X_MCAST_VEC_SZ];
 
 			/** Number of BINs to clear. Should be updated
@@ -563,7 +594,8 @@ struct bnx2x_mcast_obj {
 			int num_bins_set;
 		} aprox_match;
 
-		struct {
+		struct
+		{
 			struct list_head macs;
 			int num_macs_set;
 		} exact_match;
@@ -589,8 +621,8 @@ struct bnx2x_mcast_obj {
 	 * @param cmd command to execute (BNX2X_MCAST_CMD_X, see above)
 	 */
 	int (*config_mcast)(struct bnx2x *bp,
-			    struct bnx2x_mcast_ramrod_params *p,
-			    enum bnx2x_mcast_cmd cmd);
+						struct bnx2x_mcast_ramrod_params *p,
+						enum bnx2x_mcast_cmd cmd);
 
 	/**
 	 * Fills the ramrod data during the RESTORE flow.
@@ -604,16 +636,16 @@ struct bnx2x_mcast_obj {
 	 *         handled registry element.
 	 */
 	int (*hdl_restore)(struct bnx2x *bp, struct bnx2x_mcast_obj *o,
-			   int start_bin, int *rdata_idx);
+					   int start_bin, int *rdata_idx);
 
 	int (*enqueue_cmd)(struct bnx2x *bp, struct bnx2x_mcast_obj *o,
-			   struct bnx2x_mcast_ramrod_params *p,
-			   enum bnx2x_mcast_cmd cmd);
+					   struct bnx2x_mcast_ramrod_params *p,
+					   enum bnx2x_mcast_cmd cmd);
 
 	void (*set_one_rule)(struct bnx2x *bp,
-			     struct bnx2x_mcast_obj *o, int idx,
-			     union bnx2x_mcast_config_data *cfg_data,
-			     enum bnx2x_mcast_cmd cmd);
+						 struct bnx2x_mcast_obj *o, int idx,
+						 union bnx2x_mcast_config_data *cfg_data,
+						 enum bnx2x_mcast_cmd cmd);
 
 	/** Checks if there are more mcast MACs to be set or a previous
 	 *  command is still pending.
@@ -636,23 +668,24 @@ struct bnx2x_mcast_obj {
 	 * feasible.
 	 */
 	int (*validate)(struct bnx2x *bp,
-			struct bnx2x_mcast_ramrod_params *p,
-			enum bnx2x_mcast_cmd cmd);
+					struct bnx2x_mcast_ramrod_params *p,
+					enum bnx2x_mcast_cmd cmd);
 
 	/**
 	 * Restore the values of internal counters in case of a failure.
 	 */
 	void (*revert)(struct bnx2x *bp,
-		       struct bnx2x_mcast_ramrod_params *p,
-		       int old_num_bins,
-		       enum bnx2x_mcast_cmd cmd);
+				   struct bnx2x_mcast_ramrod_params *p,
+				   int old_num_bins,
+				   enum bnx2x_mcast_cmd cmd);
 
 	int (*get_registry_size)(struct bnx2x_mcast_obj *o);
 	void (*set_registry_size)(struct bnx2x_mcast_obj *o, int n);
 };
 
 /*************************** Credit handling **********************************/
-struct bnx2x_credit_pool_obj {
+struct bnx2x_credit_pool_obj
+{
 
 	/* Current amount of credit in the pool */
 	atomic_t	credit;
@@ -710,7 +743,8 @@ struct bnx2x_credit_pool_obj {
 };
 
 /*************************** RSS configuration ********************************/
-enum {
+enum
+{
 	/* RSS_MODE bits are mutually exclusive */
 	BNX2X_RSS_MODE_DISABLED,
 	BNX2X_RSS_MODE_REGULAR,
@@ -729,7 +763,8 @@ enum {
 	BNX2X_RSS_TUNN_INNER_HDRS,
 };
 
-struct bnx2x_config_rss_params {
+struct bnx2x_config_rss_params
+{
 	struct bnx2x_rss_config_obj *rss_obj;
 
 	/* may have RAMROD_COMP_WAIT set only */
@@ -751,7 +786,8 @@ struct bnx2x_config_rss_params {
 	u16		toe_rss_bitmap;
 };
 
-struct bnx2x_rss_config_obj {
+struct bnx2x_rss_config_obj
+{
 	struct bnx2x_raw_obj	raw;
 
 	/* RSS engine to use */
@@ -765,13 +801,14 @@ struct bnx2x_rss_config_obj {
 	u8			udp_rss_v6;
 
 	int (*config_rss)(struct bnx2x *bp,
-			  struct bnx2x_config_rss_params *p);
+					  struct bnx2x_config_rss_params *p);
 };
 
 /*********************** Queue state update ***********************************/
 
 /* UPDATE command options */
-enum {
+enum
+{
 	BNX2X_Q_UPDATE_IN_VLAN_REM,
 	BNX2X_Q_UPDATE_IN_VLAN_REM_CHNG,
 	BNX2X_Q_UPDATE_OUT_VLAN_REM,
@@ -791,7 +828,8 @@ enum {
 };
 
 /* Allowed Queue states */
-enum bnx2x_q_state {
+enum bnx2x_q_state
+{
 	BNX2X_Q_STATE_RESET,
 	BNX2X_Q_STATE_INITIALIZED,
 	BNX2X_Q_STATE_ACTIVE,
@@ -805,13 +843,15 @@ enum bnx2x_q_state {
 };
 
 /* Allowed Queue states */
-enum bnx2x_q_logical_state {
+enum bnx2x_q_logical_state
+{
 	BNX2X_Q_LOGICAL_STATE_ACTIVE,
 	BNX2X_Q_LOGICAL_STATE_STOPPED,
 };
 
 /* Allowed commands */
-enum bnx2x_queue_cmd {
+enum bnx2x_queue_cmd
+{
 	BNX2X_Q_CMD_INIT,
 	BNX2X_Q_CMD_SETUP,
 	BNX2X_Q_CMD_SETUP_TX_ONLY,
@@ -827,7 +867,8 @@ enum bnx2x_queue_cmd {
 };
 
 /* queue SETUP + INIT flags */
-enum {
+enum
+{
 	BNX2X_Q_FLG_TPA,
 	BNX2X_Q_FLG_TPA_IPV6,
 	BNX2X_Q_FLG_TPA_GRO,
@@ -855,7 +896,8 @@ enum {
 };
 
 /* Queue type options: queue type may be a combination of below. */
-enum bnx2x_q_type {
+enum bnx2x_q_type
+{
 	/** TODO: Consider moving both these flags into the init()
 	 *        ramrod params.
 	 */
@@ -875,15 +917,18 @@ enum bnx2x_q_type {
  */
 #define FW_DMAE_CMD_ID 6
 
-struct bnx2x_queue_init_params {
-	struct {
+struct bnx2x_queue_init_params
+{
+	struct
+	{
 		unsigned long	flags;
 		u16		hc_rate;
 		u8		fw_sb_id;
 		u8		sb_cq_index;
 	} tx;
 
-	struct {
+	struct
+	{
 		unsigned long	flags;
 		u16		hc_rate;
 		u8		fw_sb_id;
@@ -897,26 +942,30 @@ struct bnx2x_queue_init_params {
 	u8 max_cos;
 };
 
-struct bnx2x_queue_terminate_params {
+struct bnx2x_queue_terminate_params
+{
 	/* index within the tx_only cids of this queue object */
 	u8 cid_index;
 };
 
-struct bnx2x_queue_cfc_del_params {
+struct bnx2x_queue_cfc_del_params
+{
 	/* index within the tx_only cids of this queue object */
 	u8 cid_index;
 };
 
-struct bnx2x_queue_update_params {
+struct bnx2x_queue_update_params
+{
 	unsigned long	update_flags; /* BNX2X_Q_UPDATE_XX bits */
 	u16		def_vlan;
 	u16		silent_removal_value;
 	u16		silent_removal_mask;
-/* index within the tx_only cids of this queue object */
+	/* index within the tx_only cids of this queue object */
 	u8		cid_index;
 };
 
-struct bnx2x_queue_update_tpa_params {
+struct bnx2x_queue_update_tpa_params
+{
 	dma_addr_t sge_map;
 	u8 update_ipv4;
 	u8 update_ipv6;
@@ -934,7 +983,8 @@ struct bnx2x_queue_update_tpa_params {
 	u16 sge_pause_thr_high;
 };
 
-struct rxq_pause_params {
+struct rxq_pause_params
+{
 	u16		bd_th_lo;
 	u16		bd_th_hi;
 	u16		rcq_th_lo;
@@ -945,7 +995,8 @@ struct rxq_pause_params {
 };
 
 /* general */
-struct bnx2x_general_setup_params {
+struct bnx2x_general_setup_params
+{
 	/* valid iff BNX2X_Q_FLG_STATS */
 	u8		stat_id;
 
@@ -956,7 +1007,8 @@ struct bnx2x_general_setup_params {
 	u8		fp_hsi;
 };
 
-struct bnx2x_rxq_setup_params {
+struct bnx2x_rxq_setup_params
+{
 	/* dma */
 	dma_addr_t	dscr_map;
 	dma_addr_t	sge_map;
@@ -987,7 +1039,8 @@ struct bnx2x_rxq_setup_params {
 	u16 silent_removal_mask;
 };
 
-struct bnx2x_txq_setup_params {
+struct bnx2x_txq_setup_params
+{
 	/* dma */
 	dma_addr_t	dscr_map;
 
@@ -1002,7 +1055,8 @@ struct bnx2x_txq_setup_params {
 	u16		default_vlan;
 };
 
-struct bnx2x_queue_setup_params {
+struct bnx2x_queue_setup_params
+{
 	struct bnx2x_general_setup_params gen_params;
 	struct bnx2x_txq_setup_params txq_params;
 	struct bnx2x_rxq_setup_params rxq_params;
@@ -1010,7 +1064,8 @@ struct bnx2x_queue_setup_params {
 	unsigned long flags;
 };
 
-struct bnx2x_queue_setup_tx_only_params {
+struct bnx2x_queue_setup_tx_only_params
+{
 	struct bnx2x_general_setup_params	gen_params;
 	struct bnx2x_txq_setup_params		txq_params;
 	unsigned long				flags;
@@ -1018,7 +1073,8 @@ struct bnx2x_queue_setup_tx_only_params {
 	u8					cid_index;
 };
 
-struct bnx2x_queue_state_params {
+struct bnx2x_queue_state_params
+{
 	struct bnx2x_queue_sp_obj *q_obj;
 
 	/* Current command */
@@ -1028,7 +1084,8 @@ struct bnx2x_queue_state_params {
 	unsigned long ramrod_flags;
 
 	/* Params according to the current command */
-	union {
+	union
+	{
 		struct bnx2x_queue_update_params	update;
 		struct bnx2x_queue_update_tpa_params    update_tpa;
 		struct bnx2x_queue_setup_params		setup;
@@ -1039,12 +1096,14 @@ struct bnx2x_queue_state_params {
 	} params;
 };
 
-struct bnx2x_viflist_params {
+struct bnx2x_viflist_params
+{
 	u8 echo_res;
 	u8 func_bit_map_res;
 };
 
-struct bnx2x_queue_sp_obj {
+struct bnx2x_queue_sp_obj
+{
 	u32		cids[BNX2X_MULTI_TX_COS];
 	u8		cl_id;
 	u8		func_id;
@@ -1082,37 +1141,38 @@ struct bnx2x_queue_sp_obj {
 	 * @return 0 in case of success and negative value otherwise.
 	 */
 	int (*send_cmd)(struct bnx2x *bp,
-			struct bnx2x_queue_state_params *params);
+					struct bnx2x_queue_state_params *params);
 
 	/**
 	 * Sets the pending bit according to the requested transition.
 	 */
 	int (*set_pending)(struct bnx2x_queue_sp_obj *o,
-			   struct bnx2x_queue_state_params *params);
+					   struct bnx2x_queue_state_params *params);
 
 	/**
 	 * Checks that the requested state transition is legal.
 	 */
 	int (*check_transition)(struct bnx2x *bp,
-				struct bnx2x_queue_sp_obj *o,
-				struct bnx2x_queue_state_params *params);
+							struct bnx2x_queue_sp_obj *o,
+							struct bnx2x_queue_state_params *params);
 
 	/**
 	 * Completes the pending command.
 	 */
 	int (*complete_cmd)(struct bnx2x *bp,
-			    struct bnx2x_queue_sp_obj *o,
-			    enum bnx2x_queue_cmd);
+						struct bnx2x_queue_sp_obj *o,
+						enum bnx2x_queue_cmd);
 
 	int (*wait_comp)(struct bnx2x *bp,
-			 struct bnx2x_queue_sp_obj *o,
-			 enum bnx2x_queue_cmd cmd);
+					 struct bnx2x_queue_sp_obj *o,
+					 enum bnx2x_queue_cmd cmd);
 };
 
 /********************** Function state update *********************************/
 
 /* UPDATE command options */
-enum {
+enum
+{
 	BNX2X_F_UPDATE_TX_SWITCH_SUSPEND_CHNG,
 	BNX2X_F_UPDATE_TX_SWITCH_SUSPEND,
 	BNX2X_F_UPDATE_SD_VLAN_TAG_CHNG,
@@ -1127,7 +1187,8 @@ enum {
 };
 
 /* Allowed Function states */
-enum bnx2x_func_state {
+enum bnx2x_func_state
+{
 	BNX2X_F_STATE_RESET,
 	BNX2X_F_STATE_INITIALIZED,
 	BNX2X_F_STATE_STARTED,
@@ -1136,7 +1197,8 @@ enum bnx2x_func_state {
 };
 
 /* Allowed Function commands */
-enum bnx2x_func_cmd {
+enum bnx2x_func_cmd
+{
 	BNX2X_F_CMD_HW_INIT,
 	BNX2X_F_CMD_START,
 	BNX2X_F_CMD_STOP,
@@ -1150,7 +1212,8 @@ enum bnx2x_func_cmd {
 	BNX2X_F_CMD_MAX,
 };
 
-struct bnx2x_func_hw_init_params {
+struct bnx2x_func_hw_init_params
+{
 	/* A load phase returned by MCP.
 	 *
 	 * May be:
@@ -1162,7 +1225,8 @@ struct bnx2x_func_hw_init_params {
 	u32 load_phase;
 };
 
-struct bnx2x_func_hw_reset_params {
+struct bnx2x_func_hw_reset_params
+{
 	/* A load phase returned by MCP.
 	 *
 	 * May be:
@@ -1174,7 +1238,8 @@ struct bnx2x_func_hw_reset_params {
 	u32 reset_phase;
 };
 
-struct bnx2x_func_start_params {
+struct bnx2x_func_start_params
+{
 	/* Multi Function mode:
 	 *	- Single Function
 	 *	- Switch Dependent
@@ -1228,7 +1293,8 @@ struct bnx2x_func_start_params {
 	u8 c2s_pri_valid;
 };
 
-struct bnx2x_func_switch_update_params {
+struct bnx2x_func_switch_update_params
+{
 	unsigned long changes; /* BNX2X_F_UPDATE_XX bits */
 	u16 vlan;
 	u16 vlan_eth_type;
@@ -1237,20 +1303,23 @@ struct bnx2x_func_switch_update_params {
 	u16 geneve_dst_port;
 };
 
-struct bnx2x_func_afex_update_params {
+struct bnx2x_func_afex_update_params
+{
 	u16 vif_id;
 	u16 afex_default_vlan;
 	u8 allowed_priorities;
 };
 
-struct bnx2x_func_afex_viflists_params {
+struct bnx2x_func_afex_viflists_params
+{
 	u16 vif_list_index;
 	u8 func_bit_map;
 	u8 afex_vif_list_command;
 	u8 func_to_clear;
 };
 
-struct bnx2x_func_tx_start_params {
+struct bnx2x_func_tx_start_params
+{
 	struct priority_cos traffic_type_to_priority_cos[MAX_TRAFFIC_TYPES];
 	u8 dcb_enabled;
 	u8 dcb_version;
@@ -1258,7 +1327,8 @@ struct bnx2x_func_tx_start_params {
 	u8 dcb_outer_pri[MAX_TRAFFIC_TYPES];
 };
 
-struct bnx2x_func_set_timesync_params {
+struct bnx2x_func_set_timesync_params
+{
 	/* Reset, set or keep the current drift value */
 	u8 drift_adjust_cmd;
 
@@ -1276,7 +1346,8 @@ struct bnx2x_func_set_timesync_params {
 	u64 offset_delta;
 };
 
-struct bnx2x_func_state_params {
+struct bnx2x_func_state_params
+{
 	struct bnx2x_func_sp_obj *f_obj;
 
 	/* Current command */
@@ -1286,7 +1357,8 @@ struct bnx2x_func_state_params {
 	unsigned long	ramrod_flags;
 
 	/* Params according to the current command */
-	union {
+	union
+	{
 		struct bnx2x_func_hw_init_params hw_init;
 		struct bnx2x_func_hw_reset_params hw_reset;
 		struct bnx2x_func_start_params start;
@@ -1298,7 +1370,8 @@ struct bnx2x_func_state_params {
 	} params;
 };
 
-struct bnx2x_func_sp_drv_ops {
+struct bnx2x_func_sp_drv_ops
+{
 	/* Init tool + runtime initialization:
 	 *      - Common Chip
 	 *      - Common (per Path)
@@ -1324,7 +1397,8 @@ struct bnx2x_func_sp_drv_ops {
 	void (*release_fw)(struct bnx2x *bp);
 };
 
-struct bnx2x_func_sp_obj {
+struct bnx2x_func_sp_obj
+{
 	enum bnx2x_func_state	state, next_state;
 
 	/* BNX2X_FUNC_CMD_XX bits. This object implements "one
@@ -1359,95 +1433,96 @@ struct bnx2x_func_sp_obj {
 	 * @return 0 in case of success and negative value otherwise.
 	 */
 	int (*send_cmd)(struct bnx2x *bp,
-			struct bnx2x_func_state_params *params);
+					struct bnx2x_func_state_params *params);
 
 	/**
 	 * Checks that the requested state transition is legal.
 	 */
 	int (*check_transition)(struct bnx2x *bp,
-				struct bnx2x_func_sp_obj *o,
-				struct bnx2x_func_state_params *params);
+							struct bnx2x_func_sp_obj *o,
+							struct bnx2x_func_state_params *params);
 
 	/**
 	 * Completes the pending command.
 	 */
 	int (*complete_cmd)(struct bnx2x *bp,
-			    struct bnx2x_func_sp_obj *o,
-			    enum bnx2x_func_cmd cmd);
+						struct bnx2x_func_sp_obj *o,
+						enum bnx2x_func_cmd cmd);
 
 	int (*wait_comp)(struct bnx2x *bp, struct bnx2x_func_sp_obj *o,
-			 enum bnx2x_func_cmd cmd);
+					 enum bnx2x_func_cmd cmd);
 };
 
 /********************** Interfaces ********************************************/
 /* Queueable objects set */
-union bnx2x_qable_obj {
+union bnx2x_qable_obj
+{
 	struct bnx2x_vlan_mac_obj vlan_mac;
 };
 /************** Function state update *********/
 void bnx2x_init_func_obj(struct bnx2x *bp,
-			 struct bnx2x_func_sp_obj *obj,
-			 void *rdata, dma_addr_t rdata_mapping,
-			 void *afex_rdata, dma_addr_t afex_rdata_mapping,
-			 struct bnx2x_func_sp_drv_ops *drv_iface);
+						 struct bnx2x_func_sp_obj *obj,
+						 void *rdata, dma_addr_t rdata_mapping,
+						 void *afex_rdata, dma_addr_t afex_rdata_mapping,
+						 struct bnx2x_func_sp_drv_ops *drv_iface);
 
 int bnx2x_func_state_change(struct bnx2x *bp,
-			    struct bnx2x_func_state_params *params);
+							struct bnx2x_func_state_params *params);
 
 enum bnx2x_func_state bnx2x_func_get_state(struct bnx2x *bp,
-					   struct bnx2x_func_sp_obj *o);
+		struct bnx2x_func_sp_obj *o);
 /******************* Queue State **************/
 void bnx2x_init_queue_obj(struct bnx2x *bp,
-			  struct bnx2x_queue_sp_obj *obj, u8 cl_id, u32 *cids,
-			  u8 cid_cnt, u8 func_id, void *rdata,
-			  dma_addr_t rdata_mapping, unsigned long type);
+						  struct bnx2x_queue_sp_obj *obj, u8 cl_id, u32 *cids,
+						  u8 cid_cnt, u8 func_id, void *rdata,
+						  dma_addr_t rdata_mapping, unsigned long type);
 
 int bnx2x_queue_state_change(struct bnx2x *bp,
-			     struct bnx2x_queue_state_params *params);
+							 struct bnx2x_queue_state_params *params);
 
 int bnx2x_get_q_logical_state(struct bnx2x *bp,
-			       struct bnx2x_queue_sp_obj *obj);
+							  struct bnx2x_queue_sp_obj *obj);
 
 /********************* VLAN-MAC ****************/
 void bnx2x_init_mac_obj(struct bnx2x *bp,
-			struct bnx2x_vlan_mac_obj *mac_obj,
-			u8 cl_id, u32 cid, u8 func_id, void *rdata,
-			dma_addr_t rdata_mapping, int state,
-			unsigned long *pstate, bnx2x_obj_type type,
-			struct bnx2x_credit_pool_obj *macs_pool);
+						struct bnx2x_vlan_mac_obj *mac_obj,
+						u8 cl_id, u32 cid, u8 func_id, void *rdata,
+						dma_addr_t rdata_mapping, int state,
+						unsigned long *pstate, bnx2x_obj_type type,
+						struct bnx2x_credit_pool_obj *macs_pool);
 
 void bnx2x_init_vlan_obj(struct bnx2x *bp,
-			 struct bnx2x_vlan_mac_obj *vlan_obj,
-			 u8 cl_id, u32 cid, u8 func_id, void *rdata,
-			 dma_addr_t rdata_mapping, int state,
-			 unsigned long *pstate, bnx2x_obj_type type,
-			 struct bnx2x_credit_pool_obj *vlans_pool);
+						 struct bnx2x_vlan_mac_obj *vlan_obj,
+						 u8 cl_id, u32 cid, u8 func_id, void *rdata,
+						 dma_addr_t rdata_mapping, int state,
+						 unsigned long *pstate, bnx2x_obj_type type,
+						 struct bnx2x_credit_pool_obj *vlans_pool);
 
 void bnx2x_init_vlan_mac_obj(struct bnx2x *bp,
-			     struct bnx2x_vlan_mac_obj *vlan_mac_obj,
-			     u8 cl_id, u32 cid, u8 func_id, void *rdata,
-			     dma_addr_t rdata_mapping, int state,
-			     unsigned long *pstate, bnx2x_obj_type type,
-			     struct bnx2x_credit_pool_obj *macs_pool,
-			     struct bnx2x_credit_pool_obj *vlans_pool);
+							 struct bnx2x_vlan_mac_obj *vlan_mac_obj,
+							 u8 cl_id, u32 cid, u8 func_id, void *rdata,
+							 dma_addr_t rdata_mapping, int state,
+							 unsigned long *pstate, bnx2x_obj_type type,
+							 struct bnx2x_credit_pool_obj *macs_pool,
+							 struct bnx2x_credit_pool_obj *vlans_pool);
 
 int bnx2x_vlan_mac_h_read_lock(struct bnx2x *bp,
-					struct bnx2x_vlan_mac_obj *o);
+							   struct bnx2x_vlan_mac_obj *o);
 void bnx2x_vlan_mac_h_read_unlock(struct bnx2x *bp,
-				  struct bnx2x_vlan_mac_obj *o);
+								  struct bnx2x_vlan_mac_obj *o);
 int bnx2x_vlan_mac_h_write_lock(struct bnx2x *bp,
-				struct bnx2x_vlan_mac_obj *o);
+								struct bnx2x_vlan_mac_obj *o);
 int bnx2x_config_vlan_mac(struct bnx2x *bp,
-			   struct bnx2x_vlan_mac_ramrod_params *p);
+						  struct bnx2x_vlan_mac_ramrod_params *p);
 
 int bnx2x_vlan_mac_move(struct bnx2x *bp,
-			struct bnx2x_vlan_mac_ramrod_params *p,
-			struct bnx2x_vlan_mac_obj *dest_o);
+						struct bnx2x_vlan_mac_ramrod_params *p,
+						struct bnx2x_vlan_mac_obj *dest_o);
 
 /********************* RX MODE ****************/
 
 void bnx2x_init_rx_mode_obj(struct bnx2x *bp,
-			    struct bnx2x_rx_mode_obj *o);
+							struct bnx2x_rx_mode_obj *o);
 
 /**
  * bnx2x_config_rx_mode - Send and RX_MODE ramrod according to the provided parameters.
@@ -1459,16 +1534,16 @@ void bnx2x_init_rx_mode_obj(struct bnx2x *bp,
  *         negative - if there were errors
  */
 int bnx2x_config_rx_mode(struct bnx2x *bp,
-			 struct bnx2x_rx_mode_ramrod_params *p);
+						 struct bnx2x_rx_mode_ramrod_params *p);
 
 /****************** MULTICASTS ****************/
 
 void bnx2x_init_mcast_obj(struct bnx2x *bp,
-			  struct bnx2x_mcast_obj *mcast_obj,
-			  u8 mcast_cl_id, u32 mcast_cid, u8 func_id,
-			  u8 engine_id, void *rdata, dma_addr_t rdata_mapping,
-			  int state, unsigned long *pstate,
-			  bnx2x_obj_type type);
+						  struct bnx2x_mcast_obj *mcast_obj,
+						  u8 mcast_cl_id, u32 mcast_cid, u8 func_id,
+						  u8 engine_id, void *rdata, dma_addr_t rdata_mapping,
+						  int state, unsigned long *pstate,
+						  bnx2x_obj_type type);
 
 /**
  * bnx2x_config_mcast - Configure multicast MACs list.
@@ -1491,26 +1566,26 @@ void bnx2x_init_mcast_obj(struct bnx2x *bp,
  *         completions.
  */
 int bnx2x_config_mcast(struct bnx2x *bp,
-		       struct bnx2x_mcast_ramrod_params *p,
-		       enum bnx2x_mcast_cmd cmd);
+					   struct bnx2x_mcast_ramrod_params *p,
+					   enum bnx2x_mcast_cmd cmd);
 
 /****************** CREDIT POOL ****************/
 void bnx2x_init_mac_credit_pool(struct bnx2x *bp,
-				struct bnx2x_credit_pool_obj *p, u8 func_id,
-				u8 func_num);
+								struct bnx2x_credit_pool_obj *p, u8 func_id,
+								u8 func_num);
 void bnx2x_init_vlan_credit_pool(struct bnx2x *bp,
-				 struct bnx2x_credit_pool_obj *p, u8 func_id,
-				 u8 func_num);
+								 struct bnx2x_credit_pool_obj *p, u8 func_id,
+								 u8 func_num);
 void bnx2x_init_credit_pool(struct bnx2x_credit_pool_obj *p,
-			    int base, int credit);
+							int base, int credit);
 
 /****************** RSS CONFIGURATION ****************/
 void bnx2x_init_rss_config_obj(struct bnx2x *bp,
-			       struct bnx2x_rss_config_obj *rss_obj,
-			       u8 cl_id, u32 cid, u8 func_id, u8 engine_id,
-			       void *rdata, dma_addr_t rdata_mapping,
-			       int state, unsigned long *pstate,
-			       bnx2x_obj_type type);
+							   struct bnx2x_rss_config_obj *rss_obj,
+							   u8 cl_id, u32 cid, u8 func_id, u8 engine_id,
+							   void *rdata, dma_addr_t rdata_mapping,
+							   int state, unsigned long *pstate,
+							   bnx2x_obj_type type);
 
 /**
  * bnx2x_config_rss - Updates RSS configuration according to provided parameters
@@ -1518,7 +1593,7 @@ void bnx2x_init_rss_config_obj(struct bnx2x *bp,
  * Return: 0 in case of success
  */
 int bnx2x_config_rss(struct bnx2x *bp,
-		     struct bnx2x_config_rss_params *p);
+					 struct bnx2x_config_rss_params *p);
 
 /**
  * bnx2x_get_rss_ind_table - Return the current ind_table configuration.
@@ -1528,7 +1603,7 @@ int bnx2x_config_rss(struct bnx2x *bp,
  *                  T_ETH_INDIRECTION_TABLE_SIZE bytes long.
  */
 void bnx2x_get_rss_ind_table(struct bnx2x_rss_config_obj *rss_obj,
-			     u8 *ind_table);
+							 u8 *ind_table);
 
 #define PF_MAC_CREDIT_E2(bp, func_num)					\
 	((MAX_MAC_CREDIT_E2 - GET_NUM_VFS_PER_PATH(bp) * VF_MAC_CREDIT_CNT) / \

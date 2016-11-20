@@ -36,7 +36,8 @@
 #define MIN_OUT_HEIGHT	32
 
 /* ipipe input format's */
-static const unsigned int ipipe_input_fmts[] = {
+static const unsigned int ipipe_input_fmts[] =
+{
 	MEDIA_BUS_FMT_UYVY8_2X8,
 	MEDIA_BUS_FMT_SGRBG12_1X12,
 	MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8,
@@ -44,7 +45,8 @@ static const unsigned int ipipe_input_fmts[] = {
 };
 
 /* ipipe output format's */
-static const unsigned int ipipe_output_fmts[] = {
+static const unsigned int ipipe_output_fmts[] =
+{
 	MEDIA_BUS_FMT_UYVY8_2X8,
 };
 
@@ -53,16 +55,22 @@ static int ipipe_validate_lutdpc_params(struct vpfe_ipipe_lutdpc *lutdpc)
 	int i;
 
 	if (lutdpc->en > 1 || lutdpc->repl_white > 1 ||
-	    lutdpc->dpc_size > LUT_DPC_MAX_SIZE)
+		lutdpc->dpc_size > LUT_DPC_MAX_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	if (lutdpc->en && !lutdpc->table)
+	{
 		return -EINVAL;
+	}
 
 	for (i = 0; i < lutdpc->dpc_size; i++)
 		if (lutdpc->table[i].horz_pos > LUT_DPC_H_POS_MASK ||
-		   lutdpc->table[i].vert_pos > LUT_DPC_V_POS_MASK)
+			lutdpc->table[i].vert_pos > LUT_DPC_V_POS_MASK)
+		{
 			return -EINVAL;
+		}
 
 	return 0;
 }
@@ -73,7 +81,8 @@ static int ipipe_set_lutdpc_params(struct vpfe_ipipe_device *ipipe, void *param)
 	struct vpfe_ipipe_lutdpc *dpc_param;
 	struct device *dev;
 
-	if (!param) {
+	if (!param)
+	{
 		memset((void *)lutdpc, 0, sizeof(struct vpfe_ipipe_lutdpc));
 		goto success;
 	}
@@ -84,9 +93,12 @@ static int ipipe_set_lutdpc_params(struct vpfe_ipipe_device *ipipe, void *param)
 	lutdpc->repl_white = dpc_param->repl_white;
 	lutdpc->dpc_size = dpc_param->dpc_size;
 	memcpy(&lutdpc->table, &dpc_param->table,
-	       (dpc_param->dpc_size * sizeof(struct vpfe_ipipe_lutdpc_entry)));
+		   (dpc_param->dpc_size * sizeof(struct vpfe_ipipe_lutdpc_entry)));
+
 	if (ipipe_validate_lutdpc_params(lutdpc) < 0)
+	{
 		return -EINVAL;
+	}
 
 success:
 	ipipe_set_lutdpc_regs(ipipe->base_addr, ipipe->isp5_base_addr, lutdpc);
@@ -103,7 +115,7 @@ static int ipipe_get_lutdpc_params(struct vpfe_ipipe_device *ipipe, void *param)
 	lut_param->repl_white = lutdpc->repl_white;
 	lut_param->dpc_size = lutdpc->dpc_size;
 	memcpy(&lut_param->table, &lutdpc->table,
-	   (lutdpc->dpc_size * sizeof(struct vpfe_ipipe_lutdpc_entry)));
+		   (lutdpc->dpc_size * sizeof(struct vpfe_ipipe_lutdpc_entry)));
 
 	return 0;
 }
@@ -113,9 +125,14 @@ static int ipipe_set_input_config(struct vpfe_ipipe_device *ipipe, void *param)
 	struct vpfe_ipipe_input_config *config = &ipipe->config.input_config;
 
 	if (!param)
+	{
 		memset(config, 0, sizeof(struct vpfe_ipipe_input_config));
+	}
 	else
+	{
 		memcpy(config, param, sizeof(struct vpfe_ipipe_input_config));
+	}
+
 	return 0;
 }
 
@@ -124,7 +141,9 @@ static int ipipe_get_input_config(struct vpfe_ipipe_device *ipipe, void *param)
 	struct vpfe_ipipe_input_config *config = &ipipe->config.input_config;
 
 	if (!param)
+	{
 		return -EINVAL;
+	}
 
 	memcpy(param, config, sizeof(struct vpfe_ipipe_input_config));
 
@@ -137,34 +156,43 @@ static int ipipe_validate_otfdpc_params(struct vpfe_ipipe_otfdpc *dpc_param)
 	struct vpfe_ipipe_otfdpc_3_0_cfg *dpc_3_0;
 
 	if (dpc_param->en > 1)
+	{
 		return -EINVAL;
+	}
 
-	if (dpc_param->alg == VPFE_IPIPE_OTFDPC_2_0) {
+	if (dpc_param->alg == VPFE_IPIPE_OTFDPC_2_0)
+	{
 		dpc_2_0 = &dpc_param->alg_cfg.dpc_2_0;
+
 		if (dpc_2_0->det_thr.r > OTFDPC_DPC2_THR_MASK ||
-		    dpc_2_0->det_thr.gr > OTFDPC_DPC2_THR_MASK ||
-		    dpc_2_0->det_thr.gb > OTFDPC_DPC2_THR_MASK ||
-		    dpc_2_0->det_thr.b > OTFDPC_DPC2_THR_MASK ||
-		    dpc_2_0->corr_thr.r > OTFDPC_DPC2_THR_MASK ||
-		    dpc_2_0->corr_thr.gr > OTFDPC_DPC2_THR_MASK ||
-		    dpc_2_0->corr_thr.gb > OTFDPC_DPC2_THR_MASK ||
-		    dpc_2_0->corr_thr.b > OTFDPC_DPC2_THR_MASK)
+			dpc_2_0->det_thr.gr > OTFDPC_DPC2_THR_MASK ||
+			dpc_2_0->det_thr.gb > OTFDPC_DPC2_THR_MASK ||
+			dpc_2_0->det_thr.b > OTFDPC_DPC2_THR_MASK ||
+			dpc_2_0->corr_thr.r > OTFDPC_DPC2_THR_MASK ||
+			dpc_2_0->corr_thr.gr > OTFDPC_DPC2_THR_MASK ||
+			dpc_2_0->corr_thr.gb > OTFDPC_DPC2_THR_MASK ||
+			dpc_2_0->corr_thr.b > OTFDPC_DPC2_THR_MASK)
+		{
 			return -EINVAL;
+		}
+
 		return 0;
 	}
 
 	dpc_3_0 = &dpc_param->alg_cfg.dpc_3_0;
 
 	if (dpc_3_0->act_adj_shf > OTF_DPC3_0_SHF_MASK ||
-	    dpc_3_0->det_thr > OTF_DPC3_0_DET_MASK ||
-	    dpc_3_0->det_slp > OTF_DPC3_0_SLP_MASK ||
-	    dpc_3_0->det_thr_min > OTF_DPC3_0_DET_MASK ||
-	    dpc_3_0->det_thr_max > OTF_DPC3_0_DET_MASK ||
-	    dpc_3_0->corr_thr > OTF_DPC3_0_CORR_MASK ||
-	    dpc_3_0->corr_slp > OTF_DPC3_0_SLP_MASK ||
-	    dpc_3_0->corr_thr_min > OTF_DPC3_0_CORR_MASK ||
-	    dpc_3_0->corr_thr_max > OTF_DPC3_0_CORR_MASK)
+		dpc_3_0->det_thr > OTF_DPC3_0_DET_MASK ||
+		dpc_3_0->det_slp > OTF_DPC3_0_SLP_MASK ||
+		dpc_3_0->det_thr_min > OTF_DPC3_0_DET_MASK ||
+		dpc_3_0->det_thr_max > OTF_DPC3_0_DET_MASK ||
+		dpc_3_0->corr_thr > OTF_DPC3_0_CORR_MASK ||
+		dpc_3_0->corr_slp > OTF_DPC3_0_SLP_MASK ||
+		dpc_3_0->corr_thr_min > OTF_DPC3_0_CORR_MASK ||
+		dpc_3_0->corr_thr_max > OTF_DPC3_0_CORR_MASK)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -175,13 +203,17 @@ static int ipipe_set_otfdpc_params(struct vpfe_ipipe_device *ipipe, void *param)
 	struct vpfe_ipipe_otfdpc *otfdpc = &ipipe->config.otfdpc;
 	struct device *dev;
 
-	if (!param) {
+	if (!param)
+	{
 		memset((void *)otfdpc, 0, sizeof(struct ipipe_otfdpc_2_0));
 		goto success;
 	}
+
 	dev = ipipe->subdev.v4l2_dev->dev;
 	memcpy(otfdpc, dpc_param, sizeof(struct vpfe_ipipe_otfdpc));
-	if (ipipe_validate_otfdpc_params(otfdpc) < 0) {
+
+	if (ipipe_validate_otfdpc_params(otfdpc) < 0)
+	{
 		dev_err(dev, "Invalid otfdpc params\n");
 		return -EINVAL;
 	}
@@ -206,41 +238,52 @@ static int ipipe_validate_nf_params(struct vpfe_ipipe_nf *nf_param)
 	int i;
 
 	if (nf_param->en > 1 || nf_param->shft_val > D2F_SHFT_VAL_MASK ||
-	    nf_param->spread_val > D2F_SPR_VAL_MASK ||
-	    nf_param->apply_lsc_gain > 1 ||
-	    nf_param->edge_det_min_thr > D2F_EDGE_DET_THR_MASK ||
-	    nf_param->edge_det_max_thr > D2F_EDGE_DET_THR_MASK)
+		nf_param->spread_val > D2F_SPR_VAL_MASK ||
+		nf_param->apply_lsc_gain > 1 ||
+		nf_param->edge_det_min_thr > D2F_EDGE_DET_THR_MASK ||
+		nf_param->edge_det_max_thr > D2F_EDGE_DET_THR_MASK)
+	{
 		return -EINVAL;
+	}
 
 	for (i = 0; i < VPFE_IPIPE_NF_THR_TABLE_SIZE; i++)
 		if (nf_param->thr[i] > D2F_THR_VAL_MASK)
+		{
 			return -EINVAL;
+		}
 
 	for (i = 0; i < VPFE_IPIPE_NF_STR_TABLE_SIZE; i++)
 		if (nf_param->str[i] > D2F_STR_VAL_MASK)
+		{
 			return -EINVAL;
+		}
 
 	return 0;
 }
 
 static int ipipe_set_nf_params(struct vpfe_ipipe_device *ipipe,
-			       unsigned int id, void *param)
+							   unsigned int id, void *param)
 {
 	struct vpfe_ipipe_nf *nf_param = param;
 	struct vpfe_ipipe_nf *nf = &ipipe->config.nf1;
 	struct device *dev;
 
 	if (id == IPIPE_D2F_2ND)
+	{
 		nf = &ipipe->config.nf2;
+	}
 
-	if (!nf_param) {
+	if (!nf_param)
+	{
 		memset((void *)nf, 0, sizeof(struct vpfe_ipipe_nf));
 		goto success;
 	}
 
 	dev = ipipe->subdev.v4l2_dev->dev;
 	memcpy(nf, nf_param, sizeof(struct vpfe_ipipe_nf));
-	if (ipipe_validate_nf_params(nf) < 0) {
+
+	if (ipipe_validate_nf_params(nf) < 0)
+	{
 		dev_err(dev, "Invalid nf params\n");
 		return -EINVAL;
 	}
@@ -262,13 +305,15 @@ static int ipipe_set_nf2_params(struct vpfe_ipipe_device *ipipe, void *param)
 }
 
 static int ipipe_get_nf_params(struct vpfe_ipipe_device *ipipe,
-			       unsigned int id, void *param)
+							   unsigned int id, void *param)
 {
 	struct vpfe_ipipe_nf *nf_param = param;
 	struct vpfe_ipipe_nf *nf = &ipipe->config.nf1;
 
 	if (id == IPIPE_D2F_2ND)
+	{
 		nf = &ipipe->config.nf2;
+	}
 
 	memcpy(nf_param, nf, sizeof(struct vpfe_ipipe_nf));
 
@@ -288,11 +333,13 @@ static int ipipe_get_nf2_params(struct vpfe_ipipe_device *ipipe, void *param)
 static int ipipe_validate_gic_params(struct vpfe_ipipe_gic *gic)
 {
 	if (gic->en > 1 || gic->gain > GIC_GAIN_MASK ||
-	    gic->thr > GIC_THR_MASK || gic->slope > GIC_SLOPE_MASK ||
-	    gic->apply_lsc_gain > 1 ||
-	    gic->nf2_thr_gain.integer > GIC_NFGAN_INT_MASK ||
-	    gic->nf2_thr_gain.decimal > GIC_NFGAN_DECI_MASK)
+		gic->thr > GIC_THR_MASK || gic->slope > GIC_SLOPE_MASK ||
+		gic->apply_lsc_gain > 1 ||
+		gic->nf2_thr_gain.integer > GIC_NFGAN_INT_MASK ||
+		gic->nf2_thr_gain.decimal > GIC_NFGAN_DECI_MASK)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -303,13 +350,16 @@ static int ipipe_set_gic_params(struct vpfe_ipipe_device *ipipe, void *param)
 	struct device *dev = ipipe->subdev.v4l2_dev->dev;
 	struct vpfe_ipipe_gic *gic = &ipipe->config.gic;
 
-	if (!gic_param) {
+	if (!gic_param)
+	{
 		memset((void *)gic, 0, sizeof(struct vpfe_ipipe_gic));
 		goto success;
 	}
 
 	memcpy(gic, gic_param, sizeof(struct vpfe_ipipe_gic));
-	if (ipipe_validate_gic_params(gic) < 0) {
+
+	if (ipipe_validate_gic_params(gic) < 0)
+	{
 		dev_err(dev, "Invalid gic params\n");
 		return -EINVAL;
 	}
@@ -333,18 +383,20 @@ static int ipipe_get_gic_params(struct vpfe_ipipe_device *ipipe, void *param)
 static int ipipe_validate_wb_params(struct vpfe_ipipe_wb *wbal)
 {
 	if (wbal->ofst_r > WB_OFFSET_MASK ||
-	    wbal->ofst_gr > WB_OFFSET_MASK ||
-	    wbal->ofst_gb > WB_OFFSET_MASK ||
-	    wbal->ofst_b > WB_OFFSET_MASK ||
-	    wbal->gain_r.integer > WB_GAIN_INT_MASK ||
-	    wbal->gain_r.decimal > WB_GAIN_DECI_MASK ||
-	    wbal->gain_gr.integer > WB_GAIN_INT_MASK ||
-	    wbal->gain_gr.decimal > WB_GAIN_DECI_MASK ||
-	    wbal->gain_gb.integer > WB_GAIN_INT_MASK ||
-	    wbal->gain_gb.decimal > WB_GAIN_DECI_MASK ||
-	    wbal->gain_b.integer > WB_GAIN_INT_MASK ||
-	    wbal->gain_b.decimal > WB_GAIN_DECI_MASK)
+		wbal->ofst_gr > WB_OFFSET_MASK ||
+		wbal->ofst_gb > WB_OFFSET_MASK ||
+		wbal->ofst_b > WB_OFFSET_MASK ||
+		wbal->gain_r.integer > WB_GAIN_INT_MASK ||
+		wbal->gain_r.decimal > WB_GAIN_DECI_MASK ||
+		wbal->gain_gr.integer > WB_GAIN_INT_MASK ||
+		wbal->gain_gr.decimal > WB_GAIN_DECI_MASK ||
+		wbal->gain_gb.integer > WB_GAIN_INT_MASK ||
+		wbal->gain_gb.decimal > WB_GAIN_DECI_MASK ||
+		wbal->gain_b.integer > WB_GAIN_INT_MASK ||
+		wbal->gain_b.decimal > WB_GAIN_DECI_MASK)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -354,8 +406,10 @@ static int ipipe_set_wb_params(struct vpfe_ipipe_device *ipipe, void *param)
 	struct vpfe_ipipe_wb *wb_param = param;
 	struct vpfe_ipipe_wb *wbal = &ipipe->config.wbal;
 
-	if (!wb_param) {
-		const struct vpfe_ipipe_wb wb_defaults = {
+	if (!wb_param)
+	{
+		const struct vpfe_ipipe_wb wb_defaults =
+		{
 			.gain_r  = {2, 0x0},
 			.gain_gr = {2, 0x0},
 			.gain_gb = {2, 0x0},
@@ -366,8 +420,11 @@ static int ipipe_set_wb_params(struct vpfe_ipipe_device *ipipe, void *param)
 	}
 
 	memcpy(wbal, wb_param, sizeof(struct vpfe_ipipe_wb));
+
 	if (ipipe_validate_wb_params(wbal) < 0)
+	{
 		return -EINVAL;
+	}
 
 success:
 	ipipe_set_wb_regs(ipipe->base_addr, wbal);
@@ -387,20 +444,22 @@ static int ipipe_get_wb_params(struct vpfe_ipipe_device *ipipe, void *param)
 static int ipipe_validate_cfa_params(struct vpfe_ipipe_cfa *cfa)
 {
 	if (cfa->hpf_thr_2dir > CFA_HPF_THR_2DIR_MASK ||
-	    cfa->hpf_slp_2dir > CFA_HPF_SLOPE_2DIR_MASK ||
-	    cfa->hp_mix_thr_2dir > CFA_HPF_MIX_THR_2DIR_MASK ||
-	    cfa->hp_mix_slope_2dir > CFA_HPF_MIX_SLP_2DIR_MASK ||
-	    cfa->dir_thr_2dir > CFA_DIR_THR_2DIR_MASK ||
-	    cfa->dir_slope_2dir > CFA_DIR_SLP_2DIR_MASK ||
-	    cfa->nd_wt_2dir > CFA_ND_WT_2DIR_MASK ||
-	    cfa->hue_fract_daa > CFA_DAA_HUE_FRA_MASK ||
-	    cfa->edge_thr_daa > CFA_DAA_EDG_THR_MASK ||
-	    cfa->thr_min_daa > CFA_DAA_THR_MIN_MASK ||
-	    cfa->thr_slope_daa > CFA_DAA_THR_SLP_MASK ||
-	    cfa->slope_min_daa > CFA_DAA_SLP_MIN_MASK ||
-	    cfa->slope_slope_daa > CFA_DAA_SLP_SLP_MASK ||
-	    cfa->lp_wt_daa > CFA_DAA_LP_WT_MASK)
+		cfa->hpf_slp_2dir > CFA_HPF_SLOPE_2DIR_MASK ||
+		cfa->hp_mix_thr_2dir > CFA_HPF_MIX_THR_2DIR_MASK ||
+		cfa->hp_mix_slope_2dir > CFA_HPF_MIX_SLP_2DIR_MASK ||
+		cfa->dir_thr_2dir > CFA_DIR_THR_2DIR_MASK ||
+		cfa->dir_slope_2dir > CFA_DIR_SLP_2DIR_MASK ||
+		cfa->nd_wt_2dir > CFA_ND_WT_2DIR_MASK ||
+		cfa->hue_fract_daa > CFA_DAA_HUE_FRA_MASK ||
+		cfa->edge_thr_daa > CFA_DAA_EDG_THR_MASK ||
+		cfa->thr_min_daa > CFA_DAA_THR_MIN_MASK ||
+		cfa->thr_slope_daa > CFA_DAA_THR_SLP_MASK ||
+		cfa->slope_min_daa > CFA_DAA_SLP_MIN_MASK ||
+		cfa->slope_slope_daa > CFA_DAA_SLP_SLP_MASK ||
+		cfa->lp_wt_daa > CFA_DAA_LP_WT_MASK)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -410,15 +469,19 @@ static int ipipe_set_cfa_params(struct vpfe_ipipe_device *ipipe, void *param)
 	struct vpfe_ipipe_cfa *cfa_param = param;
 	struct vpfe_ipipe_cfa *cfa = &ipipe->config.cfa;
 
-	if (!cfa_param) {
+	if (!cfa_param)
+	{
 		memset(cfa, 0, sizeof(struct vpfe_ipipe_cfa));
 		cfa->alg = VPFE_IPIPE_CFA_ALG_2DIRAC;
 		goto success;
 	}
 
 	memcpy(cfa, cfa_param, sizeof(struct vpfe_ipipe_cfa));
+
 	if (ipipe_validate_cfa_params(cfa) < 0)
+	{
 		return -EINVAL;
+	}
 
 success:
 	ipipe_set_cfa_regs(ipipe->base_addr, cfa);
@@ -437,62 +500,83 @@ static int ipipe_get_cfa_params(struct vpfe_ipipe_device *ipipe, void *param)
 
 static int
 ipipe_validate_rgb2rgb_params(struct vpfe_ipipe_rgb2rgb *rgb2rgb,
-			      unsigned int id)
+							  unsigned int id)
 {
 	u32 gain_int_upper = RGB2RGB_1_GAIN_INT_MASK;
 	u32 offset_upper = RGB2RGB_1_OFST_MASK;
 
-	if (id == IPIPE_RGB2RGB_2) {
+	if (id == IPIPE_RGB2RGB_2)
+	{
 		offset_upper = RGB2RGB_2_OFST_MASK;
 		gain_int_upper = RGB2RGB_2_GAIN_INT_MASK;
 	}
 
 	if (rgb2rgb->coef_rr.decimal > RGB2RGB_GAIN_DECI_MASK ||
-	    rgb2rgb->coef_rr.integer > gain_int_upper)
+		rgb2rgb->coef_rr.integer > gain_int_upper)
+	{
 		return -EINVAL;
+	}
 
 	if (rgb2rgb->coef_gr.decimal > RGB2RGB_GAIN_DECI_MASK ||
-	    rgb2rgb->coef_gr.integer > gain_int_upper)
+		rgb2rgb->coef_gr.integer > gain_int_upper)
+	{
 		return -EINVAL;
+	}
 
 	if (rgb2rgb->coef_br.decimal > RGB2RGB_GAIN_DECI_MASK ||
-	    rgb2rgb->coef_br.integer > gain_int_upper)
+		rgb2rgb->coef_br.integer > gain_int_upper)
+	{
 		return -EINVAL;
+	}
 
 	if (rgb2rgb->coef_rg.decimal > RGB2RGB_GAIN_DECI_MASK ||
-	    rgb2rgb->coef_rg.integer > gain_int_upper)
+		rgb2rgb->coef_rg.integer > gain_int_upper)
+	{
 		return -EINVAL;
+	}
 
 	if (rgb2rgb->coef_gg.decimal > RGB2RGB_GAIN_DECI_MASK ||
-	    rgb2rgb->coef_gg.integer > gain_int_upper)
+		rgb2rgb->coef_gg.integer > gain_int_upper)
+	{
 		return -EINVAL;
+	}
 
 	if (rgb2rgb->coef_bg.decimal > RGB2RGB_GAIN_DECI_MASK ||
-	    rgb2rgb->coef_bg.integer > gain_int_upper)
+		rgb2rgb->coef_bg.integer > gain_int_upper)
+	{
 		return -EINVAL;
+	}
 
 	if (rgb2rgb->coef_rb.decimal > RGB2RGB_GAIN_DECI_MASK ||
-	    rgb2rgb->coef_rb.integer > gain_int_upper)
+		rgb2rgb->coef_rb.integer > gain_int_upper)
+	{
 		return -EINVAL;
+	}
 
 	if (rgb2rgb->coef_gb.decimal > RGB2RGB_GAIN_DECI_MASK ||
-	    rgb2rgb->coef_gb.integer > gain_int_upper)
+		rgb2rgb->coef_gb.integer > gain_int_upper)
+	{
 		return -EINVAL;
+	}
 
 	if (rgb2rgb->coef_bb.decimal > RGB2RGB_GAIN_DECI_MASK ||
-	    rgb2rgb->coef_bb.integer > gain_int_upper)
+		rgb2rgb->coef_bb.integer > gain_int_upper)
+	{
 		return -EINVAL;
+	}
 
 	if (rgb2rgb->out_ofst_r > offset_upper ||
-	    rgb2rgb->out_ofst_g > offset_upper ||
-	    rgb2rgb->out_ofst_b > offset_upper)
+		rgb2rgb->out_ofst_g > offset_upper ||
+		rgb2rgb->out_ofst_b > offset_upper)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 static int ipipe_set_rgb2rgb_params(struct vpfe_ipipe_device *ipipe,
-			      unsigned int id, void *param)
+									unsigned int id, void *param)
 {
 	struct vpfe_ipipe_rgb2rgb *rgb2rgb = &ipipe->config.rgb2rgb1;
 	struct device *dev = ipipe->subdev.v4l2_dev->dev;
@@ -501,10 +585,14 @@ static int ipipe_set_rgb2rgb_params(struct vpfe_ipipe_device *ipipe,
 	rgb2rgb_param = param;
 
 	if (id == IPIPE_RGB2RGB_2)
+	{
 		rgb2rgb = &ipipe->config.rgb2rgb2;
+	}
 
-	if (!rgb2rgb_param) {
-		const struct vpfe_ipipe_rgb2rgb rgb2rgb_defaults = {
+	if (!rgb2rgb_param)
+	{
+		const struct vpfe_ipipe_rgb2rgb rgb2rgb_defaults =
+		{
 			.coef_rr = {1, 0},	/* 256 */
 			.coef_gr = {0, 0},
 			.coef_br = {0, 0},
@@ -517,12 +605,14 @@ static int ipipe_set_rgb2rgb_params(struct vpfe_ipipe_device *ipipe,
 		};
 		/* Copy defaults for rgb2rgb conversion */
 		memcpy(rgb2rgb, &rgb2rgb_defaults,
-		       sizeof(struct vpfe_ipipe_rgb2rgb));
+			   sizeof(struct vpfe_ipipe_rgb2rgb));
 		goto success;
 	}
 
 	memcpy(rgb2rgb, rgb2rgb_param, sizeof(struct vpfe_ipipe_rgb2rgb));
-	if (ipipe_validate_rgb2rgb_params(rgb2rgb, id) < 0) {
+
+	if (ipipe_validate_rgb2rgb_params(rgb2rgb, id) < 0)
+	{
 		dev_err(dev, "Invalid rgb2rgb params\n");
 		return -EINVAL;
 	}
@@ -546,7 +636,7 @@ ipipe_set_rgb2rgb_2_params(struct vpfe_ipipe_device *ipipe, void *param)
 }
 
 static int ipipe_get_rgb2rgb_params(struct vpfe_ipipe_device *ipipe,
-			      unsigned int id, void *param)
+									unsigned int id, void *param)
 {
 	struct vpfe_ipipe_rgb2rgb *rgb2rgb = &ipipe->config.rgb2rgb1;
 	struct vpfe_ipipe_rgb2rgb *rgb2rgb_param;
@@ -554,7 +644,9 @@ static int ipipe_get_rgb2rgb_params(struct vpfe_ipipe_device *ipipe,
 	rgb2rgb_param = param;
 
 	if (id == IPIPE_RGB2RGB_2)
+	{
 		rgb2rgb = &ipipe->config.rgb2rgb2;
+	}
 
 	memcpy(rgb2rgb_param, rgb2rgb, sizeof(struct vpfe_ipipe_rgb2rgb));
 
@@ -579,12 +671,16 @@ ipipe_validate_gamma_entry(struct vpfe_ipipe_gamma_entry *table, int size)
 	int i;
 
 	if (!table)
+	{
 		return -EINVAL;
+	}
 
 	for (i = 0; i < size; i++)
 		if (table[i].slope > GAMMA_MASK ||
-		    table[i].offset > GAMMA_MASK)
+			table[i].offset > GAMMA_MASK)
+		{
 			return -EINVAL;
+		}
 
 	return 0;
 }
@@ -596,33 +692,47 @@ ipipe_validate_gamma_params(struct vpfe_ipipe_gamma *gamma, struct device *dev)
 	int err;
 
 	if (gamma->bypass_r > 1 ||
-	    gamma->bypass_b > 1 ||
-	    gamma->bypass_g > 1)
+		gamma->bypass_b > 1 ||
+		gamma->bypass_g > 1)
+	{
 		return -EINVAL;
+	}
 
 	if (gamma->tbl_sel != VPFE_IPIPE_GAMMA_TBL_RAM)
+	{
 		return 0;
+	}
 
 	table_size = gamma->tbl_size;
-	if (!gamma->bypass_r) {
+
+	if (!gamma->bypass_r)
+	{
 		err = ipipe_validate_gamma_entry(gamma->table_r, table_size);
-		if (err) {
+
+		if (err)
+		{
 			dev_err(dev, "GAMMA R - table entry invalid\n");
 			return err;
 		}
 	}
 
-	if (!gamma->bypass_b) {
+	if (!gamma->bypass_b)
+	{
 		err = ipipe_validate_gamma_entry(gamma->table_b, table_size);
-		if (err) {
+
+		if (err)
+		{
 			dev_err(dev, "GAMMA B - table entry invalid\n");
 			return err;
 		}
 	}
 
-	if (!gamma->bypass_g) {
+	if (!gamma->bypass_g)
+	{
 		err = ipipe_validate_gamma_entry(gamma->table_g, table_size);
-		if (err) {
+
+		if (err)
+		{
 			dev_err(dev, "GAMMA G - table entry invalid\n");
 			return err;
 		}
@@ -639,7 +749,8 @@ ipipe_set_gamma_params(struct vpfe_ipipe_device *ipipe, void *param)
 	struct device *dev = ipipe->subdev.v4l2_dev->dev;
 	int table_size;
 
-	if (!gamma_param) {
+	if (!gamma_param)
+	{
 		memset(gamma, 0, sizeof(struct vpfe_ipipe_gamma));
 		gamma->tbl_sel = VPFE_IPIPE_GAMMA_TBL_ROM;
 		goto success;
@@ -652,23 +763,28 @@ ipipe_set_gamma_params(struct vpfe_ipipe_device *ipipe, void *param)
 	gamma->tbl_size = gamma_param->tbl_size;
 
 	if (ipipe_validate_gamma_params(gamma, dev) < 0)
+	{
 		return -EINVAL;
+	}
 
 	if (gamma_param->tbl_sel != VPFE_IPIPE_GAMMA_TBL_RAM)
+	{
 		goto success;
+	}
 
 	table_size = gamma->tbl_size;
+
 	if (!gamma_param->bypass_r)
 		memcpy(&gamma->table_r, &gamma_param->table_r,
-		       (table_size * sizeof(struct vpfe_ipipe_gamma_entry)));
+			   (table_size * sizeof(struct vpfe_ipipe_gamma_entry)));
 
 	if (!gamma_param->bypass_b)
 		memcpy(&gamma->table_b, &gamma_param->table_b,
-		       (table_size * sizeof(struct vpfe_ipipe_gamma_entry)));
+			   (table_size * sizeof(struct vpfe_ipipe_gamma_entry)));
 
 	if (!gamma_param->bypass_g)
 		memcpy(&gamma->table_g, &gamma_param->table_g,
-		       (table_size * sizeof(struct vpfe_ipipe_gamma_entry)));
+			   (table_size * sizeof(struct vpfe_ipipe_gamma_entry)));
 
 success:
 	ipipe_set_gamma_regs(ipipe->base_addr, ipipe->isp5_base_addr, gamma);
@@ -690,31 +806,39 @@ static int ipipe_get_gamma_params(struct vpfe_ipipe_device *ipipe, void *param)
 	gamma_param->tbl_size = gamma->tbl_size;
 
 	if (gamma->tbl_sel != VPFE_IPIPE_GAMMA_TBL_RAM)
+	{
 		return 0;
+	}
 
 	table_size = gamma->tbl_size;
 
-	if (!gamma->bypass_r && !gamma_param->table_r) {
+	if (!gamma->bypass_r && !gamma_param->table_r)
+	{
 		dev_err(dev,
-			"ipipe_get_gamma_params: table ptr empty for R\n");
+				"ipipe_get_gamma_params: table ptr empty for R\n");
 		return -EINVAL;
 	}
-	memcpy(gamma_param->table_r, gamma->table_r,
-	       (table_size * sizeof(struct vpfe_ipipe_gamma_entry)));
 
-	if (!gamma->bypass_g && !gamma_param->table_g) {
+	memcpy(gamma_param->table_r, gamma->table_r,
+		   (table_size * sizeof(struct vpfe_ipipe_gamma_entry)));
+
+	if (!gamma->bypass_g && !gamma_param->table_g)
+	{
 		dev_err(dev, "ipipe_get_gamma_params: table ptr empty for G\n");
 		return -EINVAL;
 	}
-	memcpy(gamma_param->table_g, gamma->table_g,
-	       (table_size * sizeof(struct vpfe_ipipe_gamma_entry)));
 
-	if (!gamma->bypass_b && !gamma_param->table_b) {
+	memcpy(gamma_param->table_g, gamma->table_g,
+		   (table_size * sizeof(struct vpfe_ipipe_gamma_entry)));
+
+	if (!gamma->bypass_b && !gamma_param->table_b)
+	{
 		dev_err(dev, "ipipe_get_gamma_params: table ptr empty for B\n");
 		return -EINVAL;
 	}
+
 	memcpy(gamma_param->table_b, gamma->table_b,
-	       (table_size * sizeof(struct vpfe_ipipe_gamma_entry)));
+		   (table_size * sizeof(struct vpfe_ipipe_gamma_entry)));
 
 	return 0;
 }
@@ -724,13 +848,17 @@ static int ipipe_validate_3d_lut_params(struct vpfe_ipipe_3d_lut *lut)
 	int i;
 
 	if (!lut->en)
+	{
 		return 0;
+	}
 
 	for (i = 0; i < VPFE_IPIPE_MAX_SIZE_3D_LUT; i++)
 		if (lut->table[i].r > D3_LUT_ENTRY_MASK ||
-		    lut->table[i].g > D3_LUT_ENTRY_MASK ||
-		    lut->table[i].b > D3_LUT_ENTRY_MASK)
+			lut->table[i].g > D3_LUT_ENTRY_MASK ||
+			lut->table[i].b > D3_LUT_ENTRY_MASK)
+		{
 			return -EINVAL;
+		}
 
 	return 0;
 }
@@ -742,14 +870,16 @@ static int ipipe_get_3d_lut_params(struct vpfe_ipipe_device *ipipe, void *param)
 	struct device *dev = ipipe->subdev.v4l2_dev->dev;
 
 	lut_param->en = lut->en;
-	if (!lut_param->table) {
+
+	if (!lut_param->table)
+	{
 		dev_err(dev, "ipipe_get_3d_lut_params: Invalid table ptr\n");
 		return -EINVAL;
 	}
 
 	memcpy(lut_param->table, &lut->table,
-	       (VPFE_IPIPE_MAX_SIZE_3D_LUT *
-	       sizeof(struct vpfe_ipipe_3d_lut_entry)));
+		   (VPFE_IPIPE_MAX_SIZE_3D_LUT *
+			sizeof(struct vpfe_ipipe_3d_lut_entry)));
 
 	return 0;
 }
@@ -761,13 +891,16 @@ ipipe_set_3d_lut_params(struct vpfe_ipipe_device *ipipe, void *param)
 	struct vpfe_ipipe_3d_lut *lut = &ipipe->config.lut;
 	struct device *dev = ipipe->subdev.v4l2_dev->dev;
 
-	if (!lut_param) {
+	if (!lut_param)
+	{
 		memset(lut, 0, sizeof(struct vpfe_ipipe_3d_lut));
 		goto success;
 	}
 
 	memcpy(lut, lut_param, sizeof(struct vpfe_ipipe_3d_lut));
-	if (ipipe_validate_3d_lut_params(lut) < 0) {
+
+	if (ipipe_validate_3d_lut_params(lut) < 0)
+	{
 		dev_err(dev, "Invalid 3D-LUT Params\n");
 		return -EINVAL;
 	}
@@ -781,45 +914,65 @@ success:
 static int ipipe_validate_rgb2yuv_params(struct vpfe_ipipe_rgb2yuv *rgb2yuv)
 {
 	if (rgb2yuv->coef_ry.decimal > RGB2YCBCR_COEF_DECI_MASK ||
-	   rgb2yuv->coef_ry.integer > RGB2YCBCR_COEF_INT_MASK)
+		rgb2yuv->coef_ry.integer > RGB2YCBCR_COEF_INT_MASK)
+	{
 		return -EINVAL;
+	}
 
 	if (rgb2yuv->coef_gy.decimal > RGB2YCBCR_COEF_DECI_MASK ||
-	   rgb2yuv->coef_gy.integer > RGB2YCBCR_COEF_INT_MASK)
+		rgb2yuv->coef_gy.integer > RGB2YCBCR_COEF_INT_MASK)
+	{
 		return -EINVAL;
+	}
 
 	if (rgb2yuv->coef_by.decimal > RGB2YCBCR_COEF_DECI_MASK ||
-	   rgb2yuv->coef_by.integer > RGB2YCBCR_COEF_INT_MASK)
+		rgb2yuv->coef_by.integer > RGB2YCBCR_COEF_INT_MASK)
+	{
 		return -EINVAL;
+	}
 
 	if (rgb2yuv->coef_rcb.decimal > RGB2YCBCR_COEF_DECI_MASK ||
-	   rgb2yuv->coef_rcb.integer > RGB2YCBCR_COEF_INT_MASK)
+		rgb2yuv->coef_rcb.integer > RGB2YCBCR_COEF_INT_MASK)
+	{
 		return -EINVAL;
+	}
 
 	if (rgb2yuv->coef_gcb.decimal > RGB2YCBCR_COEF_DECI_MASK ||
-	   rgb2yuv->coef_gcb.integer > RGB2YCBCR_COEF_INT_MASK)
+		rgb2yuv->coef_gcb.integer > RGB2YCBCR_COEF_INT_MASK)
+	{
 		return -EINVAL;
+	}
 
 	if (rgb2yuv->coef_bcb.decimal > RGB2YCBCR_COEF_DECI_MASK ||
-	   rgb2yuv->coef_bcb.integer > RGB2YCBCR_COEF_INT_MASK)
+		rgb2yuv->coef_bcb.integer > RGB2YCBCR_COEF_INT_MASK)
+	{
 		return -EINVAL;
+	}
 
 	if (rgb2yuv->coef_rcr.decimal > RGB2YCBCR_COEF_DECI_MASK ||
-	   rgb2yuv->coef_rcr.integer > RGB2YCBCR_COEF_INT_MASK)
+		rgb2yuv->coef_rcr.integer > RGB2YCBCR_COEF_INT_MASK)
+	{
 		return -EINVAL;
+	}
 
 	if (rgb2yuv->coef_gcr.decimal > RGB2YCBCR_COEF_DECI_MASK ||
-	   rgb2yuv->coef_gcr.integer > RGB2YCBCR_COEF_INT_MASK)
+		rgb2yuv->coef_gcr.integer > RGB2YCBCR_COEF_INT_MASK)
+	{
 		return -EINVAL;
+	}
 
 	if (rgb2yuv->coef_bcr.decimal > RGB2YCBCR_COEF_DECI_MASK ||
-	   rgb2yuv->coef_bcr.integer > RGB2YCBCR_COEF_INT_MASK)
+		rgb2yuv->coef_bcr.integer > RGB2YCBCR_COEF_INT_MASK)
+	{
 		return -EINVAL;
+	}
 
 	if (rgb2yuv->out_ofst_y > RGB2YCBCR_OFST_MASK ||
-	   rgb2yuv->out_ofst_cb > RGB2YCBCR_OFST_MASK ||
-	   rgb2yuv->out_ofst_cr > RGB2YCBCR_OFST_MASK)
+		rgb2yuv->out_ofst_cb > RGB2YCBCR_OFST_MASK ||
+		rgb2yuv->out_ofst_cr > RGB2YCBCR_OFST_MASK)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -832,9 +985,12 @@ ipipe_set_rgb2yuv_params(struct vpfe_ipipe_device *ipipe, void *param)
 	struct vpfe_ipipe_rgb2yuv *rgb2yuv_param;
 
 	rgb2yuv_param = param;
-	if (!rgb2yuv_param) {
+
+	if (!rgb2yuv_param)
+	{
 		/* Defaults for rgb2yuv conversion */
-		const struct vpfe_ipipe_rgb2yuv rgb2yuv_defaults = {
+		const struct vpfe_ipipe_rgb2yuv rgb2yuv_defaults =
+		{
 			.coef_ry  = {0, 0x4d},
 			.coef_gy  = {0, 0x96},
 			.coef_by  = {0, 0x1d},
@@ -849,12 +1005,14 @@ ipipe_set_rgb2yuv_params(struct vpfe_ipipe_device *ipipe, void *param)
 		};
 		/* Copy defaults for rgb2yuv conversion  */
 		memcpy(rgb2yuv, &rgb2yuv_defaults,
-		       sizeof(struct vpfe_ipipe_rgb2yuv));
+			   sizeof(struct vpfe_ipipe_rgb2yuv));
 		goto success;
 	}
 
 	memcpy(rgb2yuv, rgb2yuv_param, sizeof(struct vpfe_ipipe_rgb2yuv));
-	if (ipipe_validate_rgb2yuv_params(rgb2yuv) < 0) {
+
+	if (ipipe_validate_rgb2yuv_params(rgb2yuv) < 0)
+	{
 		dev_err(dev, "Invalid rgb2yuv params\n");
 		return -EINVAL;
 	}
@@ -882,14 +1040,20 @@ static int ipipe_validate_gbce_params(struct vpfe_ipipe_gbce *gbce)
 	int i;
 
 	if (!gbce->en)
+	{
 		return 0;
+	}
 
 	if (gbce->type == VPFE_IPIPE_GBCE_GAIN_TBL)
+	{
 		max = GBCE_GAIN_VAL_MASK;
+	}
 
 	for (i = 0; i < VPFE_IPIPE_MAX_SIZE_GBCE_LUT; i++)
 		if (gbce->table[i] > max)
+		{
 			return -EINVAL;
+		}
 
 	return 0;
 }
@@ -900,11 +1064,16 @@ static int ipipe_set_gbce_params(struct vpfe_ipipe_device *ipipe, void *param)
 	struct vpfe_ipipe_gbce *gbce = &ipipe->config.gbce;
 	struct device *dev = ipipe->subdev.v4l2_dev->dev;
 
-	if (!gbce_param) {
+	if (!gbce_param)
+	{
 		memset(gbce, 0, sizeof(struct vpfe_ipipe_gbce));
-	} else {
+	}
+	else
+	{
 		memcpy(gbce, gbce_param, sizeof(struct vpfe_ipipe_gbce));
-		if (ipipe_validate_gbce_params(gbce) < 0) {
+
+		if (ipipe_validate_gbce_params(gbce) < 0)
+		{
 			dev_err(dev, "Invalid gbce params\n");
 			return -EINVAL;
 		}
@@ -923,13 +1092,15 @@ static int ipipe_get_gbce_params(struct vpfe_ipipe_device *ipipe, void *param)
 
 	gbce_param->en = gbce->en;
 	gbce_param->type = gbce->type;
-	if (!gbce_param->table) {
+
+	if (!gbce_param->table)
+	{
 		dev_err(dev, "ipipe_get_gbce_params: Invalid table ptr\n");
 		return -EINVAL;
 	}
 
 	memcpy(gbce_param->table, gbce->table,
-		(VPFE_IPIPE_MAX_SIZE_GBCE_LUT * sizeof(unsigned short)));
+		   (VPFE_IPIPE_MAX_SIZE_GBCE_LUT * sizeof(unsigned short)));
 
 	return 0;
 }
@@ -938,7 +1109,9 @@ static int
 ipipe_validate_yuv422_conv_params(struct vpfe_ipipe_yuv422_conv *yuv422_conv)
 {
 	if (yuv422_conv->en_chrom_lpf > 1)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -951,13 +1124,19 @@ ipipe_set_yuv422_conv_params(struct vpfe_ipipe_device *ipipe, void *param)
 	struct device *dev = ipipe->subdev.v4l2_dev->dev;
 
 	yuv422_conv_param = param;
-	if (!yuv422_conv_param) {
+
+	if (!yuv422_conv_param)
+	{
 		memset(yuv422_conv, 0, sizeof(struct vpfe_ipipe_yuv422_conv));
 		yuv422_conv->chrom_pos = VPFE_IPIPE_YUV422_CHR_POS_COSITE;
-	} else {
+	}
+	else
+	{
 		memcpy(yuv422_conv, yuv422_conv_param,
-			sizeof(struct vpfe_ipipe_yuv422_conv));
-		if (ipipe_validate_yuv422_conv_params(yuv422_conv) < 0) {
+			   sizeof(struct vpfe_ipipe_yuv422_conv));
+
+		if (ipipe_validate_yuv422_conv_params(yuv422_conv) < 0)
+		{
 			dev_err(dev, "Invalid yuv422 params\n");
 			return -EINVAL;
 		}
@@ -976,7 +1155,7 @@ ipipe_get_yuv422_conv_params(struct vpfe_ipipe_device *ipipe, void *param)
 
 	yuv422_conv_param = param;
 	memcpy(yuv422_conv_param, yuv422_conv,
-	       sizeof(struct vpfe_ipipe_yuv422_conv));
+		   sizeof(struct vpfe_ipipe_yuv422_conv));
 
 	return 0;
 }
@@ -986,32 +1165,40 @@ static int ipipe_validate_yee_params(struct vpfe_ipipe_yee *yee)
 	int i;
 
 	if (yee->en > 1 ||
-	    yee->en_halo_red > 1 ||
-	    yee->hpf_shft > YEE_HPF_SHIFT_MASK)
+		yee->en_halo_red > 1 ||
+		yee->hpf_shft > YEE_HPF_SHIFT_MASK)
+	{
 		return -EINVAL;
+	}
 
 	if (yee->hpf_coef_00 > YEE_COEF_MASK ||
-	    yee->hpf_coef_01 > YEE_COEF_MASK ||
-	    yee->hpf_coef_02 > YEE_COEF_MASK ||
-	    yee->hpf_coef_10 > YEE_COEF_MASK ||
-	    yee->hpf_coef_11 > YEE_COEF_MASK ||
-	    yee->hpf_coef_12 > YEE_COEF_MASK ||
-	    yee->hpf_coef_20 > YEE_COEF_MASK ||
-	    yee->hpf_coef_21 > YEE_COEF_MASK ||
-	    yee->hpf_coef_22 > YEE_COEF_MASK)
+		yee->hpf_coef_01 > YEE_COEF_MASK ||
+		yee->hpf_coef_02 > YEE_COEF_MASK ||
+		yee->hpf_coef_10 > YEE_COEF_MASK ||
+		yee->hpf_coef_11 > YEE_COEF_MASK ||
+		yee->hpf_coef_12 > YEE_COEF_MASK ||
+		yee->hpf_coef_20 > YEE_COEF_MASK ||
+		yee->hpf_coef_21 > YEE_COEF_MASK ||
+		yee->hpf_coef_22 > YEE_COEF_MASK)
+	{
 		return -EINVAL;
+	}
 
 	if (yee->yee_thr > YEE_THR_MASK ||
-	    yee->es_gain > YEE_ES_GAIN_MASK ||
-	    yee->es_thr1 > YEE_ES_THR1_MASK ||
-	    yee->es_thr2 > YEE_THR_MASK ||
-	    yee->es_gain_grad > YEE_THR_MASK ||
-	    yee->es_ofst_grad > YEE_THR_MASK)
+		yee->es_gain > YEE_ES_GAIN_MASK ||
+		yee->es_thr1 > YEE_ES_THR1_MASK ||
+		yee->es_thr2 > YEE_THR_MASK ||
+		yee->es_gain_grad > YEE_THR_MASK ||
+		yee->es_ofst_grad > YEE_THR_MASK)
+	{
 		return -EINVAL;
+	}
 
 	for (i = 0; i < VPFE_IPIPE_MAX_SIZE_YEE_LUT; i++)
 		if (yee->table[i] > YEE_ENTRY_MASK)
+		{
 			return -EINVAL;
+		}
 
 	return 0;
 }
@@ -1022,11 +1209,16 @@ static int ipipe_set_yee_params(struct vpfe_ipipe_device *ipipe, void *param)
 	struct device *dev = ipipe->subdev.v4l2_dev->dev;
 	struct vpfe_ipipe_yee *yee = &ipipe->config.yee;
 
-	if (!yee_param) {
+	if (!yee_param)
+	{
 		memset(yee, 0, sizeof(struct vpfe_ipipe_yee));
-	} else {
+	}
+	else
+	{
 		memcpy(yee, yee_param, sizeof(struct vpfe_ipipe_yee));
-		if (ipipe_validate_yee_params(yee) < 0) {
+
+		if (ipipe_validate_yee_params(yee) < 0)
+		{
 			dev_err(dev, "Invalid yee params\n");
 			return -EINVAL;
 		}
@@ -1062,7 +1254,7 @@ static int ipipe_get_yee_params(struct vpfe_ipipe_device *ipipe, void *param)
 	yee_param->es_gain_grad = yee->es_gain_grad;
 	yee_param->es_ofst_grad = yee->es_ofst_grad;
 	memcpy(yee_param->table, &yee->table,
-	       (VPFE_IPIPE_MAX_SIZE_YEE_LUT * sizeof(short)));
+		   (VPFE_IPIPE_MAX_SIZE_YEE_LUT * sizeof(short)));
 
 	return 0;
 }
@@ -1070,11 +1262,13 @@ static int ipipe_get_yee_params(struct vpfe_ipipe_device *ipipe, void *param)
 static int ipipe_validate_car_params(struct vpfe_ipipe_car *car)
 {
 	if (car->en > 1 || car->hpf_shft > CAR_HPF_SHIFT_MASK ||
-	    car->gain1.shft > CAR_GAIN1_SHFT_MASK ||
-	    car->gain1.gain_min > CAR_GAIN_MIN_MASK ||
-	    car->gain2.shft > CAR_GAIN2_SHFT_MASK ||
-	    car->gain2.gain_min > CAR_GAIN_MIN_MASK)
+		car->gain1.shft > CAR_GAIN1_SHFT_MASK ||
+		car->gain1.gain_min > CAR_GAIN_MIN_MASK ||
+		car->gain2.shft > CAR_GAIN2_SHFT_MASK ||
+		car->gain2.gain_min > CAR_GAIN_MIN_MASK)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -1085,11 +1279,16 @@ static int ipipe_set_car_params(struct vpfe_ipipe_device *ipipe, void *param)
 	struct device *dev = ipipe->subdev.v4l2_dev->dev;
 	struct vpfe_ipipe_car *car = &ipipe->config.car;
 
-	if (!car_param) {
+	if (!car_param)
+	{
 		memset(car, 0, sizeof(struct vpfe_ipipe_car));
-	} else {
+	}
+	else
+	{
 		memcpy(car, car_param, sizeof(struct vpfe_ipipe_car));
-		if (ipipe_validate_car_params(car) < 0) {
+
+		if (ipipe_validate_car_params(car) < 0)
+		{
 			dev_err(dev, "Invalid car params\n");
 			return -EINVAL;
 		}
@@ -1112,7 +1311,9 @@ static int ipipe_get_car_params(struct vpfe_ipipe_device *ipipe, void *param)
 static int ipipe_validate_cgs_params(struct vpfe_ipipe_cgs *cgs)
 {
 	if (cgs->en > 1 || cgs->h_shft > CAR_SHIFT_MASK)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -1123,11 +1324,16 @@ static int ipipe_set_cgs_params(struct vpfe_ipipe_device *ipipe, void *param)
 	struct device *dev = ipipe->subdev.v4l2_dev->dev;
 	struct vpfe_ipipe_cgs *cgs = &ipipe->config.cgs;
 
-	if (!cgs_param) {
+	if (!cgs_param)
+	{
 		memset(cgs, 0, sizeof(struct vpfe_ipipe_cgs));
-	} else {
+	}
+	else
+	{
 		memcpy(cgs, cgs_param, sizeof(struct vpfe_ipipe_cgs));
-		if (ipipe_validate_cgs_params(cgs) < 0) {
+
+		if (ipipe_validate_cgs_params(cgs) < 0)
+		{
 			dev_err(dev, "Invalid cgs params\n");
 			return -EINVAL;
 		}
@@ -1148,7 +1354,8 @@ static int ipipe_get_cgs_params(struct vpfe_ipipe_device *ipipe, void *param)
 	return 0;
 }
 
-static const struct ipipe_module_if ipipe_modules[VPFE_IPIPE_MAX_MODULES] = {
+static const struct ipipe_module_if ipipe_modules[VPFE_IPIPE_MAX_MODULES] =
+{
 	/* VPFE_IPIPE_INPUT_CONFIG */ {
 		offsetof(struct ipipe_module_params, input_config),
 		FIELD_SIZEOF(struct ipipe_module_params, input_config),
@@ -1266,39 +1473,54 @@ static int ipipe_s_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
 	unsigned int i;
 	int rval = 0;
 
-	for (i = 0; i < ARRAY_SIZE(ipipe_modules); i++) {
+	for (i = 0; i < ARRAY_SIZE(ipipe_modules); i++)
+	{
 		unsigned int bit = 1 << i;
 
-		if (cfg->flag & bit) {
+		if (cfg->flag & bit)
+		{
 			const struct ipipe_module_if *module_if =
-						&ipipe_modules[i];
+					&ipipe_modules[i];
 			struct ipipe_module_params *params;
-			void __user *from = *(void * __user *)
-				((void *)cfg + module_if->config_offset);
+			void __user *from = *(void *__user *)
+								((void *)cfg + module_if->config_offset);
 			size_t size;
 			void *to;
 
 			params = kmalloc(sizeof(struct ipipe_module_params),
-					 GFP_KERNEL);
+							 GFP_KERNEL);
 			to = (void *)params + module_if->param_offset;
 			size = module_if->param_size;
 
-			if (to && from && size) {
-				if (copy_from_user(to, from, size)) {
+			if (to && from && size)
+			{
+				if (copy_from_user(to, from, size))
+				{
 					rval = -EFAULT;
 					break;
 				}
+
 				rval = module_if->set(ipipe, to);
+
 				if (rval)
+				{
 					goto error;
-			} else if (to && !from && size) {
-				rval = module_if->set(ipipe, NULL);
-				if (rval)
-					goto error;
+				}
 			}
+			else if (to && !from && size)
+			{
+				rval = module_if->set(ipipe, NULL);
+
+				if (rval)
+				{
+					goto error;
+				}
+			}
+
 			kfree(params);
 		}
 	}
+
 error:
 	return rval;
 }
@@ -1309,35 +1531,45 @@ static int ipipe_g_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
 	unsigned int i;
 	int rval = 0;
 
-	for (i = 1; i < ARRAY_SIZE(ipipe_modules); i++) {
+	for (i = 1; i < ARRAY_SIZE(ipipe_modules); i++)
+	{
 		unsigned int bit = 1 << i;
 
-		if (cfg->flag & bit) {
+		if (cfg->flag & bit)
+		{
 			const struct ipipe_module_if *module_if =
-						&ipipe_modules[i];
+					&ipipe_modules[i];
 			struct ipipe_module_params *params;
-			void __user *to = *(void * __user *)
-				((void *)cfg + module_if->config_offset);
+			void __user *to = *(void *__user *)
+							  ((void *)cfg + module_if->config_offset);
 			size_t size;
 			void *from;
 
 			params =  kmalloc(sizeof(struct ipipe_module_params),
-						GFP_KERNEL);
+							  GFP_KERNEL);
 			from = (void *)params + module_if->param_offset;
 			size = module_if->param_size;
 
-			if (to && from && size) {
+			if (to && from && size)
+			{
 				rval = module_if->get(ipipe, from);
+
 				if (rval)
+				{
 					goto error;
-				if (copy_to_user(to, from, size)) {
+				}
+
+				if (copy_to_user(to, from, size))
+				{
 					rval = -EFAULT;
 					break;
 				}
 			}
+
 			kfree(params);
 		}
 	}
+
 error:
 	return rval;
 }
@@ -1350,15 +1582,16 @@ error:
  */
 static long ipipe_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 {
-	switch (cmd) {
-	case VIDIOC_VPFE_IPIPE_S_CONFIG:
-		return ipipe_s_config(sd, arg);
+	switch (cmd)
+	{
+		case VIDIOC_VPFE_IPIPE_S_CONFIG:
+			return ipipe_s_config(sd, arg);
 
-	case VIDIOC_VPFE_IPIPE_G_CONFIG:
-		return ipipe_g_config(sd, arg);
+		case VIDIOC_VPFE_IPIPE_G_CONFIG:
+			return ipipe_g_config(sd, arg);
 
-	default:
-		return -ENOIOCTLCMD;
+		default:
+			return -ENOIOCTLCMD;
 	}
 }
 
@@ -1369,18 +1602,24 @@ void vpfe_ipipe_enable(struct vpfe_device *vpfe_dev, int en)
 	unsigned char val;
 
 	if (ipipe->input == IPIPE_INPUT_NONE)
+	{
 		return;
+	}
 
 	/* ipipe is set to single shot */
-	if (ipipeif->input == IPIPEIF_INPUT_MEMORY && en) {
+	if (ipipeif->input == IPIPEIF_INPUT_MEMORY && en)
+	{
 		/* for single-shot mode, need to wait for h/w to
 		 * reset many register bits
 		 */
-		do {
+		do
+		{
 			val = regr_ip(vpfe_dev->vpfe_ipipe.base_addr,
-				      IPIPE_SRC_EN);
-		} while (val);
+						  IPIPE_SRC_EN);
+		}
+		while (val);
 	}
+
 	regw_ip(vpfe_dev->vpfe_ipipe.base_addr, en, IPIPE_SRC_EN);
 }
 
@@ -1395,9 +1634,12 @@ static int ipipe_set_stream(struct v4l2_subdev *sd, int enable)
 	struct vpfe_device *vpfe_dev = to_vpfe_device(ipipe);
 
 	if (enable && ipipe->input != IPIPE_INPUT_NONE &&
-		ipipe->output != IPIPE_OUTPUT_NONE) {
+		ipipe->output != IPIPE_OUTPUT_NONE)
+	{
 		if (config_ipipe_hw(ipipe) < 0)
+		{
 			return -EINVAL;
+		}
 	}
 
 	vpfe_ipipe_enable(vpfe_dev, enable);
@@ -1415,11 +1657,13 @@ static int ipipe_set_stream(struct v4l2_subdev *sd, int enable)
  */
 static struct v4l2_mbus_framefmt *
 __ipipe_get_format(struct vpfe_ipipe_device *ipipe,
-		       struct v4l2_subdev_pad_config *cfg, unsigned int pad,
-		       enum v4l2_subdev_format_whence which)
+				   struct v4l2_subdev_pad_config *cfg, unsigned int pad,
+				   enum v4l2_subdev_format_whence which)
 {
 	if (which == V4L2_SUBDEV_FORMAT_TRY)
+	{
 		return v4l2_subdev_get_try_format(&ipipe->subdev, cfg, pad);
+	}
 
 	return &ipipe->formats[pad];
 }
@@ -1434,9 +1678,9 @@ __ipipe_get_format(struct vpfe_ipipe_device *ipipe,
  */
 static void
 ipipe_try_format(struct vpfe_ipipe_device *ipipe,
-		   struct v4l2_subdev_pad_config *cfg, unsigned int pad,
-		   struct v4l2_mbus_framefmt *fmt,
-		   enum v4l2_subdev_format_whence which)
+				 struct v4l2_subdev_pad_config *cfg, unsigned int pad,
+				 struct v4l2_mbus_framefmt *fmt,
+				 enum v4l2_subdev_format_whence which)
 {
 	unsigned int max_out_height;
 	unsigned int max_out_width;
@@ -1445,22 +1689,33 @@ ipipe_try_format(struct vpfe_ipipe_device *ipipe,
 	max_out_width = IPIPE_MAX_OUTPUT_WIDTH_A;
 	max_out_height = IPIPE_MAX_OUTPUT_HEIGHT_A;
 
-	if (pad == IPIPE_PAD_SINK) {
+	if (pad == IPIPE_PAD_SINK)
+	{
 		for (i = 0; i < ARRAY_SIZE(ipipe_input_fmts); i++)
 			if (fmt->code == ipipe_input_fmts[i])
+			{
 				break;
+			}
 
 		/* If not found, use SBGGR10 as default */
 		if (i >= ARRAY_SIZE(ipipe_input_fmts))
+		{
 			fmt->code = MEDIA_BUS_FMT_SGRBG12_1X12;
-	} else if (pad == IPIPE_PAD_SOURCE) {
+		}
+	}
+	else if (pad == IPIPE_PAD_SOURCE)
+	{
 		for (i = 0; i < ARRAY_SIZE(ipipe_output_fmts); i++)
 			if (fmt->code == ipipe_output_fmts[i])
+			{
 				break;
+			}
 
 		/* If not found, use UYVY as default */
 		if (i >= ARRAY_SIZE(ipipe_output_fmts))
+		{
 			fmt->code = MEDIA_BUS_FMT_UYVY8_2X8;
+		}
 	}
 
 	fmt->width = clamp_t(u32, fmt->width, MIN_OUT_HEIGHT, max_out_width);
@@ -1476,30 +1731,41 @@ ipipe_try_format(struct vpfe_ipipe_device *ipipe,
  */
 static int
 ipipe_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
-		     struct v4l2_subdev_format *fmt)
+				 struct v4l2_subdev_format *fmt)
 {
 	struct vpfe_ipipe_device *ipipe = v4l2_get_subdevdata(sd);
 	struct v4l2_mbus_framefmt *format;
 
 	format = __ipipe_get_format(ipipe, cfg, fmt->pad, fmt->which);
+
 	if (format == NULL)
+	{
 		return -EINVAL;
+	}
 
 	ipipe_try_format(ipipe, cfg, fmt->pad, &fmt->format, fmt->which);
 	*format = fmt->format;
 
 	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
+	{
 		return 0;
+	}
 
 	if (fmt->pad == IPIPE_PAD_SINK &&
-	   (ipipe->input == IPIPE_INPUT_CCDC ||
-	    ipipe->input == IPIPE_INPUT_MEMORY))
+		(ipipe->input == IPIPE_INPUT_CCDC ||
+		 ipipe->input == IPIPE_INPUT_MEMORY))
+	{
 		ipipe->formats[fmt->pad] = fmt->format;
+	}
 	else if (fmt->pad == IPIPE_PAD_SOURCE &&
-		ipipe->output == IPIPE_OUTPUT_RESIZER)
+			 ipipe->output == IPIPE_OUTPUT_RESIZER)
+	{
 		ipipe->formats[fmt->pad] = fmt->format;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -1512,14 +1778,18 @@ ipipe_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
  */
 static int
 ipipe_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
-		     struct v4l2_subdev_format *fmt)
+				 struct v4l2_subdev_format *fmt)
 {
 	struct vpfe_ipipe_device *ipipe = v4l2_get_subdevdata(sd);
 
 	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+	{
 		fmt->format = ipipe->formats[fmt->pad];
+	}
 	else
+	{
 		fmt->format = *(v4l2_subdev_get_try_format(sd, cfg, fmt->pad));
+	}
 
 	return 0;
 }
@@ -1532,14 +1802,16 @@ ipipe_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
  */
 static int
 ipipe_enum_frame_size(struct v4l2_subdev *sd,
-		       struct v4l2_subdev_pad_config *cfg,
-		       struct v4l2_subdev_frame_size_enum *fse)
+					  struct v4l2_subdev_pad_config *cfg,
+					  struct v4l2_subdev_frame_size_enum *fse)
 {
 	struct vpfe_ipipe_device *ipipe = v4l2_get_subdevdata(sd);
 	struct v4l2_mbus_framefmt format;
 
 	if (fse->index != 0)
+	{
 		return -EINVAL;
+	}
 
 	format.code = fse->code;
 	format.width = 1;
@@ -1549,7 +1821,9 @@ ipipe_enum_frame_size(struct v4l2_subdev *sd,
 	fse->min_height = format.height;
 
 	if (format.code != fse->code)
+	{
 		return -EINVAL;
+	}
 
 	format.code = fse->code;
 	format.width = -1;
@@ -1569,23 +1843,30 @@ ipipe_enum_frame_size(struct v4l2_subdev *sd,
  */
 static int
 ipipe_enum_mbus_code(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
-		     struct v4l2_subdev_mbus_code_enum *code)
+					 struct v4l2_subdev_mbus_code_enum *code)
 {
-	switch (code->pad) {
-	case IPIPE_PAD_SINK:
-		if (code->index >= ARRAY_SIZE(ipipe_input_fmts))
-			return -EINVAL;
-		code->code = ipipe_input_fmts[code->index];
-		break;
+	switch (code->pad)
+	{
+		case IPIPE_PAD_SINK:
+			if (code->index >= ARRAY_SIZE(ipipe_input_fmts))
+			{
+				return -EINVAL;
+			}
 
-	case IPIPE_PAD_SOURCE:
-		if (code->index >= ARRAY_SIZE(ipipe_output_fmts))
-			return -EINVAL;
-		code->code = ipipe_output_fmts[code->index];
-		break;
+			code->code = ipipe_input_fmts[code->index];
+			break;
 
-	default:
-		return -EINVAL;
+		case IPIPE_PAD_SOURCE:
+			if (code->index >= ARRAY_SIZE(ipipe_output_fmts))
+			{
+				return -EINVAL;
+			}
+
+			code->code = ipipe_output_fmts[code->index];
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -1598,22 +1879,23 @@ ipipe_enum_mbus_code(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
 static int ipipe_s_ctrl(struct v4l2_ctrl *ctrl)
 {
 	struct vpfe_ipipe_device *ipipe =
-	     container_of(ctrl->handler, struct vpfe_ipipe_device, ctrls);
+		container_of(ctrl->handler, struct vpfe_ipipe_device, ctrls);
 	struct ipipe_lum_adj *lum_adj = &ipipe->config.lum_adj;
 
-	switch (ctrl->id) {
-	case V4L2_CID_BRIGHTNESS:
-		lum_adj->brightness = ctrl->val;
-		ipipe_set_lum_adj_regs(ipipe->base_addr, lum_adj);
-		break;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_BRIGHTNESS:
+			lum_adj->brightness = ctrl->val;
+			ipipe_set_lum_adj_regs(ipipe->base_addr, lum_adj);
+			break;
 
-	case V4L2_CID_CONTRAST:
-		lum_adj->contrast = ctrl->val;
-		ipipe_set_lum_adj_regs(ipipe->base_addr, lum_adj);
-		break;
+		case V4L2_CID_CONTRAST:
+			lum_adj->contrast = ctrl->val;
+			ipipe_set_lum_adj_regs(ipipe->base_addr, lum_adj);
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -1652,26 +1934,31 @@ ipipe_init_formats(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
 }
 
 /* subdev core operations */
-static const struct v4l2_subdev_core_ops ipipe_v4l2_core_ops = {
+static const struct v4l2_subdev_core_ops ipipe_v4l2_core_ops =
+{
 	.ioctl = ipipe_ioctl,
 };
 
-static const struct v4l2_ctrl_ops ipipe_ctrl_ops = {
+static const struct v4l2_ctrl_ops ipipe_ctrl_ops =
+{
 	.s_ctrl = ipipe_s_ctrl,
 };
 
 /* subdev file operations */
-static const struct  v4l2_subdev_internal_ops ipipe_v4l2_internal_ops = {
+static const struct  v4l2_subdev_internal_ops ipipe_v4l2_internal_ops =
+{
 	.open = ipipe_init_formats,
 };
 
 /* subdev video operations */
-static const struct v4l2_subdev_video_ops ipipe_v4l2_video_ops = {
+static const struct v4l2_subdev_video_ops ipipe_v4l2_video_ops =
+{
 	.s_stream = ipipe_set_stream,
 };
 
 /* subdev pad operations */
-static const struct v4l2_subdev_pad_ops ipipe_v4l2_pad_ops = {
+static const struct v4l2_subdev_pad_ops ipipe_v4l2_pad_ops =
+{
 	.enum_mbus_code = ipipe_enum_mbus_code,
 	.enum_frame_size = ipipe_enum_frame_size,
 	.get_fmt = ipipe_get_format,
@@ -1679,7 +1966,8 @@ static const struct v4l2_subdev_pad_ops ipipe_v4l2_pad_ops = {
 };
 
 /* v4l2 subdev operation */
-static const struct v4l2_subdev_ops ipipe_v4l2_ops = {
+static const struct v4l2_subdev_ops ipipe_v4l2_ops =
+{
 	.core = &ipipe_v4l2_core_ops,
 	.video = &ipipe_v4l2_video_ops,
 	.pad = &ipipe_v4l2_pad_ops,
@@ -1700,7 +1988,7 @@ static const struct v4l2_subdev_ops ipipe_v4l2_ops = {
  */
 static int
 ipipe_link_setup(struct media_entity *entity, const struct media_pad *local,
-		     const struct media_pad *remote, u32 flags)
+				 const struct media_pad *remote, u32 flags)
 {
 	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
 	struct vpfe_ipipe_device *ipipe = v4l2_get_subdevdata(sd);
@@ -1708,38 +1996,58 @@ ipipe_link_setup(struct media_entity *entity, const struct media_pad *local,
 	u16 ipipeif_sink = vpfe_dev->vpfe_ipipeif.input;
 
 	if (!is_media_entity_v4l2_subdev(remote->entity))
+	{
 		return -EINVAL;
+	}
 
-	switch (local->index) {
-	case IPIPE_PAD_SINK:
-		if (!(flags & MEDIA_LNK_FL_ENABLED)) {
-			ipipe->input = IPIPE_INPUT_NONE;
+	switch (local->index)
+	{
+		case IPIPE_PAD_SINK:
+			if (!(flags & MEDIA_LNK_FL_ENABLED))
+			{
+				ipipe->input = IPIPE_INPUT_NONE;
+				break;
+			}
+
+			if (ipipe->input != IPIPE_INPUT_NONE)
+			{
+				return -EBUSY;
+			}
+
+			if (ipipeif_sink == IPIPEIF_INPUT_MEMORY)
+			{
+				ipipe->input = IPIPE_INPUT_MEMORY;
+			}
+			else
+			{
+				ipipe->input = IPIPE_INPUT_CCDC;
+			}
+
 			break;
-		}
-		if (ipipe->input != IPIPE_INPUT_NONE)
-			return -EBUSY;
-		if (ipipeif_sink == IPIPEIF_INPUT_MEMORY)
-			ipipe->input = IPIPE_INPUT_MEMORY;
-		else
-			ipipe->input = IPIPE_INPUT_CCDC;
-		break;
 
-	case IPIPE_PAD_SOURCE:
-		/* out to RESIZER */
-		if (flags & MEDIA_LNK_FL_ENABLED)
-			ipipe->output = IPIPE_OUTPUT_RESIZER;
-		else
-			ipipe->output = IPIPE_OUTPUT_NONE;
-		break;
+		case IPIPE_PAD_SOURCE:
 
-	default:
-		return -EINVAL;
+			/* out to RESIZER */
+			if (flags & MEDIA_LNK_FL_ENABLED)
+			{
+				ipipe->output = IPIPE_OUTPUT_RESIZER;
+			}
+			else
+			{
+				ipipe->output = IPIPE_OUTPUT_NONE;
+			}
+
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
-static const struct media_entity_operations ipipe_media_ops = {
+static const struct media_entity_operations ipipe_media_ops =
+{
 	.link_setup = ipipe_link_setup,
 };
 
@@ -1762,13 +2070,15 @@ void vpfe_ipipe_unregister_entities(struct vpfe_ipipe_device *vpfe_ipipe)
  */
 int
 vpfe_ipipe_register_entities(struct vpfe_ipipe_device *ipipe,
-				 struct v4l2_device *vdev)
+							 struct v4l2_device *vdev)
 {
 	int ret;
 
 	/* Register the subdev */
 	ret = v4l2_device_register_subdev(vdev, &ipipe->subdev);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Failed to register ipipe as v4l2 subdevice\n");
 		return ret;
 	}
@@ -1794,23 +2104,40 @@ vpfe_ipipe_init(struct vpfe_ipipe_device *ipipe, struct platform_device *pdev)
 	struct resource *res;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 4);
+
 	if (!res)
+	{
 		return -ENOENT;
+	}
 
 	res_len = resource_size(res);
 	res = request_mem_region(res->start, res_len, res->name);
+
 	if (!res)
+	{
 		return -EBUSY;
+	}
+
 	ipipe->base_addr = ioremap_nocache(res->start, res_len);
+
 	if (!ipipe->base_addr)
+	{
 		return -EBUSY;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 6);
+
 	if (!res)
+	{
 		return -ENOENT;
+	}
+
 	ipipe->isp5_base_addr = ioremap_nocache(res->start, res_len);
+
 	if (!ipipe->isp5_base_addr)
+	{
 		return -EBUSY;
+	}
 
 	v4l2_subdev_init(sd, &ipipe_v4l2_ops);
 	sd->internal_ops = &ipipe_v4l2_internal_ops;
@@ -1828,11 +2155,11 @@ vpfe_ipipe_init(struct vpfe_ipipe_device *ipipe, struct platform_device *pdev)
 	me->ops = &ipipe_media_ops;
 	v4l2_ctrl_handler_init(&ipipe->ctrls, 2);
 	v4l2_ctrl_new_std(&ipipe->ctrls, &ipipe_ctrl_ops,
-			  V4L2_CID_BRIGHTNESS, 0,
-			  IPIPE_BRIGHT_HIGH, 1, 16);
+					  V4L2_CID_BRIGHTNESS, 0,
+					  IPIPE_BRIGHT_HIGH, 1, 16);
 	v4l2_ctrl_new_std(&ipipe->ctrls, &ipipe_ctrl_ops,
-			  V4L2_CID_CONTRAST, 0,
-			  IPIPE_CONTRAST_HIGH, 1, 16);
+					  V4L2_CID_CONTRAST, 0,
+					  IPIPE_CONTRAST_HIGH, 1, 16);
 
 
 	v4l2_ctrl_handler_setup(&ipipe->ctrls);
@@ -1847,7 +2174,7 @@ vpfe_ipipe_init(struct vpfe_ipipe_device *ipipe, struct platform_device *pdev)
  * @dev: pointer to platform device
  */
 void vpfe_ipipe_cleanup(struct vpfe_ipipe_device *ipipe,
-			struct platform_device *pdev)
+						struct platform_device *pdev)
 {
 	struct resource *res;
 
@@ -1856,6 +2183,9 @@ void vpfe_ipipe_cleanup(struct vpfe_ipipe_device *ipipe,
 	iounmap(ipipe->base_addr);
 	iounmap(ipipe->isp5_base_addr);
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 4);
+
 	if (res)
+	{
 		release_mem_region(res->start, resource_size(res));
+	}
 }

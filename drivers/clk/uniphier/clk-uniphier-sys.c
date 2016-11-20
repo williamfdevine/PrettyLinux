@@ -41,7 +41,8 @@
 #define UNIPHIER_PRO4_SYS_CLK_USB3(idx, ch)				\
 	UNIPHIER_CLK_GATE("usb3" #ch, (idx), NULL, 0x2104, 16 + (ch))
 
-const struct uniphier_clk_data uniphier_sld3_sys_clk_data[] = {
+const struct uniphier_clk_data uniphier_sld3_sys_clk_data[] =
+{
 	UNIPHIER_CLK_FACTOR("spll", -1, "ref", 65, 1),		/* 1597.44 MHz */
 	UNIPHIER_CLK_FACTOR("upll", -1, "ref", 6000, 512),	/* 288 MHz */
 	UNIPHIER_CLK_FACTOR("a2pll", -1, "ref", 24, 1),		/* 589.824 MHz */
@@ -54,7 +55,8 @@ const struct uniphier_clk_data uniphier_sld3_sys_clk_data[] = {
 	{ /* sentinel */ }
 };
 
-const struct uniphier_clk_data uniphier_ld4_sys_clk_data[] = {
+const struct uniphier_clk_data uniphier_ld4_sys_clk_data[] =
+{
 	UNIPHIER_CLK_FACTOR("spll", -1, "ref", 65, 1),		/* 1597.44 MHz */
 	UNIPHIER_CLK_FACTOR("upll", -1, "ref", 6000, 512),	/* 288 MHz */
 	UNIPHIER_CLK_FACTOR("a2pll", -1, "ref", 24, 1),		/* 589.824 MHz */
@@ -67,7 +69,8 @@ const struct uniphier_clk_data uniphier_ld4_sys_clk_data[] = {
 	{ /* sentinel */ }
 };
 
-const struct uniphier_clk_data uniphier_pro4_sys_clk_data[] = {
+const struct uniphier_clk_data uniphier_pro4_sys_clk_data[] =
+{
 	UNIPHIER_CLK_FACTOR("spll", -1, "ref", 64, 1),		/* 1600 MHz */
 	UNIPHIER_CLK_FACTOR("upll", -1, "ref", 288, 25),	/* 288 MHz */
 	UNIPHIER_CLK_FACTOR("a2pll", -1, "upll", 256, 125),	/* 589.824 MHz */
@@ -83,7 +86,8 @@ const struct uniphier_clk_data uniphier_pro4_sys_clk_data[] = {
 	{ /* sentinel */ }
 };
 
-const struct uniphier_clk_data uniphier_sld8_sys_clk_data[] = {
+const struct uniphier_clk_data uniphier_sld8_sys_clk_data[] =
+{
 	UNIPHIER_CLK_FACTOR("spll", -1, "ref", 64, 1),		/* 1600 MHz */
 	UNIPHIER_CLK_FACTOR("upll", -1, "ref", 288, 25),	/* 288 MHz */
 	UNIPHIER_CLK_FACTOR("vpll27a", -1, "ref", 270, 25),	/* 270 MHz */
@@ -95,7 +99,8 @@ const struct uniphier_clk_data uniphier_sld8_sys_clk_data[] = {
 	{ /* sentinel */ }
 };
 
-const struct uniphier_clk_data uniphier_pro5_sys_clk_data[] = {
+const struct uniphier_clk_data uniphier_pro5_sys_clk_data[] =
+{
 	UNIPHIER_CLK_FACTOR("spll", -1, "ref", 120, 1),		/* 2400 MHz */
 	UNIPHIER_CLK_FACTOR("dapll1", -1, "ref", 128, 1),	/* 2560 MHz */
 	UNIPHIER_CLK_FACTOR("dapll2", -1, "ref", 144, 125),	/* 2949.12 MHz */
@@ -109,7 +114,8 @@ const struct uniphier_clk_data uniphier_pro5_sys_clk_data[] = {
 	{ /* sentinel */ }
 };
 
-const struct uniphier_clk_data uniphier_pxs2_sys_clk_data[] = {
+const struct uniphier_clk_data uniphier_pxs2_sys_clk_data[] =
+{
 	UNIPHIER_CLK_FACTOR("spll", -1, "ref", 96, 1),		/* 2400 MHz */
 	UNIPHIER_CLK_FACTOR("uart", 0, "spll", 1, 27),
 	UNIPHIER_CLK_FACTOR("i2c", 1, "spll", 1, 48),
@@ -124,7 +130,8 @@ const struct uniphier_clk_data uniphier_pxs2_sys_clk_data[] = {
 	{ /* sentinel */ }
 };
 
-const struct uniphier_clk_data uniphier_ld11_sys_clk_data[] = {
+const struct uniphier_clk_data uniphier_ld11_sys_clk_data[] =
+{
 	UNIPHIER_CLK_FACTOR("spll", -1, "ref", 80, 1),		/* 2000 MHz */
 	UNIPHIER_CLK_FACTOR("uart", 0, "spll", 1, 34),
 	UNIPHIER_CLK_FACTOR("i2c", 1, "spll", 1, 40),
@@ -133,7 +140,8 @@ const struct uniphier_clk_data uniphier_ld11_sys_clk_data[] = {
 	{ /* sentinel */ }
 };
 
-const struct uniphier_clk_data uniphier_ld20_sys_clk_data[] = {
+const struct uniphier_clk_data uniphier_ld20_sys_clk_data[] =
+{
 	UNIPHIER_CLK_FACTOR("spll", -1, "ref", 80, 1),		/* 2000 MHz */
 	UNIPHIER_CLK_FACTOR("uart", 0, "spll", 1, 34),
 	UNIPHIER_CLK_FACTOR("i2c", 1, "spll", 1, 40),

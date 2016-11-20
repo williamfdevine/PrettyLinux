@@ -18,7 +18,8 @@
 #ifndef _RX_DESC_H_
 #define _RX_DESC_H_
 
-enum rx_attention_flags {
+enum rx_attention_flags
+{
 	RX_ATTENTION_FLAGS_FIRST_MPDU          = 1 << 0,
 	RX_ATTENTION_FLAGS_LAST_MPDU           = 1 << 1,
 	RX_ATTENTION_FLAGS_MCAST_BCAST         = 1 << 2,
@@ -53,7 +54,8 @@ enum rx_attention_flags {
 	RX_ATTENTION_FLAGS_MSDU_DONE           = 1 << 31,
 };
 
-struct rx_attention {
+struct rx_attention
+{
 	__le32 flags; /* %RX_ATTENTION_FLAGS_ */
 } __packed;
 
@@ -205,7 +207,8 @@ struct rx_attention {
  *		descriptor.
  */
 
-struct rx_frag_info {
+struct rx_frag_info
+{
 	u8 ring0_more_count;
 	u8 ring1_more_count;
 	u8 ring2_more_count;
@@ -230,7 +233,8 @@ struct rx_frag_info {
  *		ring 3. Field is filled in by the RX_DMA.
  */
 
-enum htt_rx_mpdu_encrypt_type {
+enum htt_rx_mpdu_encrypt_type
+{
 	HTT_RX_MPDU_ENCRYPT_WEP40            = 0,
 	HTT_RX_MPDU_ENCRYPT_WEP104           = 1,
 	HTT_RX_MPDU_ENCRYPT_TKIP_WITHOUT_MIC = 2,
@@ -257,14 +261,18 @@ enum htt_rx_mpdu_encrypt_type {
 #define RX_MPDU_START_INFO1_TID_LSB  28
 #define RX_MPDU_START_INFO1_DIRECTED (1 << 16)
 
-struct rx_mpdu_start {
+struct rx_mpdu_start
+{
 	__le32 info0;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__le32 pn31_0;
 			__le32 info1; /* %RX_MPDU_START_INFO1_ */
 		} __packed;
-		struct {
+		struct
+		{
 			u8 pn[6];
 		} __packed;
 	} __packed;
@@ -358,7 +366,8 @@ struct rx_mpdu_start {
 #define RX_MPDU_END_INFO0_DECRYPT_ERR         (1 << 30)
 #define RX_MPDU_END_INFO0_FCS_ERR             (1 << 31)
 
-struct rx_mpdu_end {
+struct rx_mpdu_end
+{
 	__le32 info0;
 } __packed;
 
@@ -440,7 +449,8 @@ struct rx_mpdu_end {
  *  d) LLC/SNAP (RFC1042, 8 bytes)
  *
  * In case of A-MSDU only first frame in sequence contains (a) and (b). */
-enum rx_msdu_decap_format {
+enum rx_msdu_decap_format
+{
 	RX_MSDU_DECAP_RAW = 0,
 
 	/* Note: QoS frames are reported as non-QoS. The rx_hdr_status in
@@ -455,19 +465,23 @@ enum rx_msdu_decap_format {
 	RX_MSDU_DECAP_8023_SNAP_LLC = 3
 };
 
-struct rx_msdu_start_common {
+struct rx_msdu_start_common
+{
 	__le32 info0; /* %RX_MSDU_START_INFO0_ */
 	__le32 flow_id_crc;
 	__le32 info1; /* %RX_MSDU_START_INFO1_ */
 } __packed;
 
-struct rx_msdu_start_qca99x0 {
+struct rx_msdu_start_qca99x0
+{
 	__le32 info2; /* %RX_MSDU_START_INFO2_ */
 } __packed;
 
-struct rx_msdu_start {
+struct rx_msdu_start
+{
 	struct rx_msdu_start_common common;
-	union {
+	union
+	{
 		struct rx_msdu_start_qca99x0 qca99x0;
 	} __packed;
 } __packed;
@@ -557,7 +571,8 @@ struct rx_msdu_start {
 #define RX_MSDU_END_INFO0_PRE_DELIM_ERR             (1 << 30)
 #define RX_MSDU_END_INFO0_RESERVED_3B               (1 << 31)
 
-struct rx_msdu_end_common {
+struct rx_msdu_end_common
+{
 	__le16 ip_hdr_cksum;
 	__le16 tcp_hdr_cksum;
 	u8 key_id_octet;
@@ -581,7 +596,8 @@ struct rx_msdu_end_common {
 #define RX_MSDU_END_INFO2_TYPE_OFFSET_MASK  0x0003f000
 #define RX_MSDU_END_INFO2_TYPE_OFFSET_LSB   12
 
-struct rx_msdu_end_qca99x0 {
+struct rx_msdu_end_qca99x0
+{
 	__le32 ipv6_crc;
 	__le32 tcp_seq_no;
 	__le32 tcp_ack_no;
@@ -589,9 +605,11 @@ struct rx_msdu_end_qca99x0 {
 	__le32 info2;
 } __packed;
 
-struct rx_msdu_end {
+struct rx_msdu_end
+{
 	struct rx_msdu_end_common common;
-	union {
+	union
+	{
 		struct rx_msdu_end_qca99x0 qca99x0;
 	} __packed;
 } __packed;
@@ -691,8 +709,10 @@ struct rx_msdu_end {
 /* No idea what this flag means. It seems to be always set in rate. */
 #define RX_PPDU_START_RATE_FLAG BIT(3)
 
-struct rx_ppdu_start {
-	struct {
+struct rx_ppdu_start
+{
+	struct
+	{
 		u8 pri20_mhz;
 		u8 ext20_mhz;
 		u8 ext40_mhz;
@@ -884,7 +904,8 @@ struct rx_ppdu_start {
 #define RX_PPDU_END_INFO1_PEER_IDX_VALID      BIT(1)
 #define RX_PPDU_END_INFO1_PPDU_DONE           BIT(15)
 
-struct rx_ppdu_end_common {
+struct rx_ppdu_end_common
+{
 	__le32 evm_p0;
 	__le32 evm_p1;
 	__le32 evm_p2;
@@ -905,7 +926,8 @@ struct rx_ppdu_end_common {
 	__le32 wb_timestamp;
 } __packed;
 
-struct rx_ppdu_end_qca988x {
+struct rx_ppdu_end_qca988x
+{
 	u8 locationing_timestamp;
 	u8 phy_err_code;
 	__le16 flags; /* %RX_PPDU_END_FLAGS_ */
@@ -920,7 +942,8 @@ struct rx_ppdu_end_qca988x {
 #define RX_PPDU_END_RTT_UNUSED_LSB             24
 #define RX_PPDU_END_RTT_NORMAL_MODE            BIT(31)
 
-struct rx_ppdu_end_qca6174 {
+struct rx_ppdu_end_qca6174
+{
 	u8 locationing_timestamp;
 	u8 phy_err_code;
 	__le16 flags; /* %RX_PPDU_END_FLAGS_ */
@@ -951,7 +974,8 @@ struct rx_ppdu_end_qca6174 {
 #define RX_LOCATION_INFO_HW_IFFT_MODE            BIT(30)
 #define RX_LOCATION_INFO_RX_LOCATION_VALID       BIT(31)
 
-struct rx_pkt_end {
+struct rx_pkt_end
+{
 	__le32 info0; /* %RX_PKT_END_INFO0_ */
 	__le32 phy_timestamp_1;
 	__le32 phy_timestamp_2;
@@ -987,12 +1011,14 @@ struct rx_pkt_end {
 #define RX_LOCATION_INFO1_RTT_TX_DATA_START_X_PHASE	BIT(30)
 #define RX_LOCATION_INFO1_RX_LOCATION_VALID		BIT(31)
 
-struct rx_location_info {
+struct rx_location_info
+{
 	__le32 rx_location_info0; /* %RX_LOCATION_INFO0_ */
 	__le32 rx_location_info1; /* %RX_LOCATION_INFO1_ */
 } __packed;
 
-enum rx_phy_ppdu_end_info0 {
+enum rx_phy_ppdu_end_info0
+{
 	RX_PHY_PPDU_END_INFO0_ERR_RADAR           = BIT(2),
 	RX_PHY_PPDU_END_INFO0_ERR_RX_ABORT        = BIT(3),
 	RX_PHY_PPDU_END_INFO0_ERR_RX_NAP          = BIT(4),
@@ -1025,7 +1051,8 @@ enum rx_phy_ppdu_end_info0 {
 	RX_PHY_PPDU_END_INFO0_ERR_VHT_LSIG        = BIT(31),
 };
 
-enum rx_phy_ppdu_end_info1 {
+enum rx_phy_ppdu_end_info1
+{
 	RX_PHY_PPDU_END_INFO1_ERR_VHT_NDP            = BIT(0),
 	RX_PHY_PPDU_END_INFO1_ERR_VHT_NSYM           = BIT(1),
 	RX_PHY_PPDU_END_INFO1_ERR_VHT_RX_EXT_SYM     = BIT(2),
@@ -1042,7 +1069,8 @@ enum rx_phy_ppdu_end_info1 {
 	RX_PHY_PPDU_END_INFO1_ERR_RX_CBF             = BIT(13),
 };
 
-struct rx_phy_ppdu_end {
+struct rx_phy_ppdu_end
+{
 	__le32 info0; /* %RX_PHY_PPDU_END_INFO0_ */
 	__le32 info1; /* %RX_PHY_PPDU_END_INFO1_ */
 } __packed;
@@ -1060,7 +1088,8 @@ struct rx_phy_ppdu_end {
 #define RX_PPDU_END_RX_INFO_UNSUPPORTED_MU_NC      BIT(29)
 #define RX_PPDU_END_RX_INFO_OTP_TXBF_DISABLE       BIT(30)
 
-struct rx_ppdu_end_qca99x0 {
+struct rx_ppdu_end_qca99x0
+{
 	struct rx_pkt_end rx_pkt_end;
 	__le32 rx_location_info; /* %RX_LOCATION_INFO_ */
 	struct rx_phy_ppdu_end rx_phy_ppdu_end;
@@ -1070,7 +1099,8 @@ struct rx_ppdu_end_qca99x0 {
 	__le16 info1; /* %RX_PPDU_END_INFO1_ */
 } __packed;
 
-struct rx_ppdu_end_qca9984 {
+struct rx_ppdu_end_qca9984
+{
 	struct rx_pkt_end rx_pkt_end;
 	struct rx_location_info rx_location_info;
 	struct rx_phy_ppdu_end rx_phy_ppdu_end;
@@ -1080,9 +1110,11 @@ struct rx_ppdu_end_qca9984 {
 	__le16 info1; /* %RX_PPDU_END_INFO1_ */
 } __packed;
 
-struct rx_ppdu_end {
+struct rx_ppdu_end
+{
 	struct rx_ppdu_end_common common;
-	union {
+	union
+	{
 		struct rx_ppdu_end_qca988x qca988x;
 		struct rx_ppdu_end_qca6174 qca6174;
 		struct rx_ppdu_end_qca99x0 qca99x0;
@@ -1215,7 +1247,8 @@ struct rx_ppdu_end {
 #define FW_RX_DESC_INFO0_EXT_MASK 0xC0
 #define FW_RX_DESC_INFO0_EXT_LSB  6
 
-struct fw_rx_desc_base {
+struct fw_rx_desc_base
+{
 	u8 info0;
 } __packed;
 

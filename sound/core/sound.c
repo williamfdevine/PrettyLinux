@@ -69,9 +69,15 @@ static DEFINE_MUTEX(sound_mutex);
 void snd_request_card(int card)
 {
 	if (snd_card_locked(card))
+	{
 		return;
+	}
+
 	if (card < 0 || card >= cards_limit)
+	{
 		return;
+	}
+
 	request_module("snd-card-%i", card);
 }
 
@@ -81,11 +87,15 @@ static void snd_request_other(int minor)
 {
 	char *str;
 
-	switch (minor) {
-	case SNDRV_MINOR_SEQUENCER:	str = "snd-seq";	break;
-	case SNDRV_MINOR_TIMER:		str = "snd-timer";	break;
-	default:			return;
+	switch (minor)
+	{
+		case SNDRV_MINOR_SEQUENCER:	str = "snd-seq";	break;
+
+		case SNDRV_MINOR_TIMER:		str = "snd-timer";	break;
+
+		default:			return;
 	}
+
 	request_module(str);
 }
 
@@ -112,15 +122,27 @@ void *snd_lookup_minor_data(unsigned int minor, int type)
 	void *private_data;
 
 	if (minor >= ARRAY_SIZE(snd_minors))
+	{
 		return NULL;
+	}
+
 	mutex_lock(&sound_mutex);
 	mreg = snd_minors[minor];
-	if (mreg && mreg->type == type) {
+
+	if (mreg && mreg->type == type)
+	{
 		private_data = mreg->private_data;
+
 		if (private_data && mreg->card_ptr)
+		{
 			get_device(&mreg->card_ptr->card_dev);
-	} else
+		}
+	}
+	else
+	{
 		private_data = NULL;
+	}
+
 	mutex_unlock(&sound_mutex);
 	return private_data;
 }
@@ -133,15 +155,23 @@ static struct snd_minor *autoload_device(unsigned int minor)
 	int dev;
 	mutex_unlock(&sound_mutex); /* release lock temporarily */
 	dev = SNDRV_MINOR_DEVICE(minor);
-	if (dev == SNDRV_MINOR_CONTROL) {
+
+	if (dev == SNDRV_MINOR_CONTROL)
+	{
 		/* /dev/aloadC? */
 		int card = SNDRV_MINOR_CARD(minor);
+
 		if (snd_cards[card] == NULL)
+		{
 			snd_request_card(card);
-	} else if (dev == SNDRV_MINOR_GLOBAL) {
+		}
+	}
+	else if (dev == SNDRV_MINOR_GLOBAL)
+	{
 		/* /dev/aloadSEQ */
 		snd_request_other(minor);
 	}
+
 	mutex_lock(&sound_mutex); /* reacuire lock */
 	return snd_minors[minor];
 }
@@ -157,24 +187,39 @@ static int snd_open(struct inode *inode, struct file *file)
 	int err = 0;
 
 	if (minor >= ARRAY_SIZE(snd_minors))
+	{
 		return -ENODEV;
+	}
+
 	mutex_lock(&sound_mutex);
 	mptr = snd_minors[minor];
-	if (mptr == NULL) {
+
+	if (mptr == NULL)
+	{
 		mptr = autoload_device(minor);
-		if (!mptr) {
+
+		if (!mptr)
+		{
 			mutex_unlock(&sound_mutex);
 			return -ENODEV;
 		}
 	}
+
 	new_fops = fops_get(mptr->f_ops);
 	mutex_unlock(&sound_mutex);
+
 	if (!new_fops)
+	{
 		return -ENODEV;
+	}
+
 	replace_fops(file, new_fops);
 
 	if (file->f_op->open)
+	{
 		err = file->f_op->open(inode, file);
+	}
+
 	return err;
 }
 
@@ -192,20 +237,35 @@ static int snd_find_free_minor(int type, struct snd_card *card, int dev)
 
 	/* static minors for module auto loading */
 	if (type == SNDRV_DEVICE_TYPE_SEQUENCER)
+	{
 		return SNDRV_MINOR_SEQUENCER;
-	if (type == SNDRV_DEVICE_TYPE_TIMER)
-		return SNDRV_MINOR_TIMER;
+	}
 
-	for (minor = 0; minor < ARRAY_SIZE(snd_minors); ++minor) {
+	if (type == SNDRV_DEVICE_TYPE_TIMER)
+	{
+		return SNDRV_MINOR_TIMER;
+	}
+
+	for (minor = 0; minor < ARRAY_SIZE(snd_minors); ++minor)
+	{
 		/* skip static minors still used for module auto loading */
 		if (SNDRV_MINOR_DEVICE(minor) == SNDRV_MINOR_CONTROL)
+		{
 			continue;
+		}
+
 		if (minor == SNDRV_MINOR_SEQUENCER ||
-		    minor == SNDRV_MINOR_TIMER)
+			minor == SNDRV_MINOR_TIMER)
+		{
 			continue;
+		}
+
 		if (!snd_minors[minor])
+		{
 			return minor;
+		}
 	}
+
 	return -EBUSY;
 }
 #else
@@ -213,32 +273,49 @@ static int snd_find_free_minor(int type, struct snd_card *card, int dev)
 {
 	int minor;
 
-	switch (type) {
-	case SNDRV_DEVICE_TYPE_SEQUENCER:
-	case SNDRV_DEVICE_TYPE_TIMER:
-		minor = type;
-		break;
-	case SNDRV_DEVICE_TYPE_CONTROL:
-		if (snd_BUG_ON(!card))
+	switch (type)
+	{
+		case SNDRV_DEVICE_TYPE_SEQUENCER:
+		case SNDRV_DEVICE_TYPE_TIMER:
+			minor = type;
+			break;
+
+		case SNDRV_DEVICE_TYPE_CONTROL:
+			if (snd_BUG_ON(!card))
+			{
+				return -EINVAL;
+			}
+
+			minor = SNDRV_MINOR(card->number, type);
+			break;
+
+		case SNDRV_DEVICE_TYPE_HWDEP:
+		case SNDRV_DEVICE_TYPE_RAWMIDI:
+		case SNDRV_DEVICE_TYPE_PCM_PLAYBACK:
+		case SNDRV_DEVICE_TYPE_PCM_CAPTURE:
+		case SNDRV_DEVICE_TYPE_COMPRESS:
+			if (snd_BUG_ON(!card))
+			{
+				return -EINVAL;
+			}
+
+			minor = SNDRV_MINOR(card->number, type + dev);
+			break;
+
+		default:
 			return -EINVAL;
-		minor = SNDRV_MINOR(card->number, type);
-		break;
-	case SNDRV_DEVICE_TYPE_HWDEP:
-	case SNDRV_DEVICE_TYPE_RAWMIDI:
-	case SNDRV_DEVICE_TYPE_PCM_PLAYBACK:
-	case SNDRV_DEVICE_TYPE_PCM_CAPTURE:
-	case SNDRV_DEVICE_TYPE_COMPRESS:
-		if (snd_BUG_ON(!card))
-			return -EINVAL;
-		minor = SNDRV_MINOR(card->number, type + dev);
-		break;
-	default:
+	}
+
+	if (snd_BUG_ON(minor < 0 || minor >= SNDRV_OS_MINORS))
+	{
 		return -EINVAL;
 	}
-	if (snd_BUG_ON(minor < 0 || minor >= SNDRV_OS_MINORS))
-		return -EINVAL;
+
 	if (snd_minors[minor])
+	{
 		return -EBUSY;
+	}
+
 	return minor;
 }
 #endif
@@ -258,19 +335,25 @@ static int snd_find_free_minor(int type, struct snd_card *card, int dev)
  * Return: Zero if successful, or a negative error code on failure.
  */
 int snd_register_device(int type, struct snd_card *card, int dev,
-			const struct file_operations *f_ops,
-			void *private_data, struct device *device)
+						const struct file_operations *f_ops,
+						void *private_data, struct device *device)
 {
 	int minor;
 	int err = 0;
 	struct snd_minor *preg;
 
 	if (snd_BUG_ON(!device))
+	{
 		return -EINVAL;
+	}
 
-	preg = kmalloc(sizeof *preg, GFP_KERNEL);
+	preg = kmalloc(sizeof * preg, GFP_KERNEL);
+
 	if (preg == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	preg->type = type;
 	preg->card = card ? card->number : -1;
 	preg->device = dev;
@@ -279,7 +362,9 @@ int snd_register_device(int type, struct snd_card *card, int dev,
 	preg->card_ptr = card;
 	mutex_lock(&sound_mutex);
 	minor = snd_find_free_minor(type, card, dev);
-	if (minor < 0) {
+
+	if (minor < 0)
+	{
 		err = minor;
 		goto error;
 	}
@@ -287,14 +372,21 @@ int snd_register_device(int type, struct snd_card *card, int dev,
 	preg->dev = device;
 	device->devt = MKDEV(major, minor);
 	err = device_add(device);
+
 	if (err < 0)
+	{
 		goto error;
+	}
 
 	snd_minors[minor] = preg;
- error:
+error:
 	mutex_unlock(&sound_mutex);
+
 	if (err < 0)
+	{
 		kfree(preg);
+	}
+
 	return err;
 }
 EXPORT_SYMBOL(snd_register_device);
@@ -314,18 +406,27 @@ int snd_unregister_device(struct device *dev)
 	struct snd_minor *preg;
 
 	mutex_lock(&sound_mutex);
-	for (minor = 0; minor < ARRAY_SIZE(snd_minors); ++minor) {
+
+	for (minor = 0; minor < ARRAY_SIZE(snd_minors); ++minor)
+	{
 		preg = snd_minors[minor];
-		if (preg && preg->dev == dev) {
+
+		if (preg && preg->dev == dev)
+		{
 			snd_minors[minor] = NULL;
 			device_del(dev);
 			kfree(preg);
 			break;
 		}
 	}
+
 	mutex_unlock(&sound_mutex);
+
 	if (minor >= ARRAY_SIZE(snd_minors))
+	{
 		return -ENOENT;
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL(snd_unregister_device);
@@ -336,23 +437,31 @@ EXPORT_SYMBOL(snd_unregister_device);
  */
 static const char *snd_device_type_name(int type)
 {
-	switch (type) {
-	case SNDRV_DEVICE_TYPE_CONTROL:
-		return "control";
-	case SNDRV_DEVICE_TYPE_HWDEP:
-		return "hardware dependent";
-	case SNDRV_DEVICE_TYPE_RAWMIDI:
-		return "raw midi";
-	case SNDRV_DEVICE_TYPE_PCM_PLAYBACK:
-		return "digital audio playback";
-	case SNDRV_DEVICE_TYPE_PCM_CAPTURE:
-		return "digital audio capture";
-	case SNDRV_DEVICE_TYPE_SEQUENCER:
-		return "sequencer";
-	case SNDRV_DEVICE_TYPE_TIMER:
-		return "timer";
-	default:
-		return "?";
+	switch (type)
+	{
+		case SNDRV_DEVICE_TYPE_CONTROL:
+			return "control";
+
+		case SNDRV_DEVICE_TYPE_HWDEP:
+			return "hardware dependent";
+
+		case SNDRV_DEVICE_TYPE_RAWMIDI:
+			return "raw midi";
+
+		case SNDRV_DEVICE_TYPE_PCM_PLAYBACK:
+			return "digital audio playback";
+
+		case SNDRV_DEVICE_TYPE_PCM_CAPTURE:
+			return "digital audio capture";
+
+		case SNDRV_DEVICE_TYPE_SEQUENCER:
+			return "sequencer";
+
+		case SNDRV_DEVICE_TYPE_TIMER:
+			return "timer";
+
+		default:
+			return "?";
 	}
 }
 
@@ -362,22 +471,30 @@ static void snd_minor_info_read(struct snd_info_entry *entry, struct snd_info_bu
 	struct snd_minor *mptr;
 
 	mutex_lock(&sound_mutex);
-	for (minor = 0; minor < SNDRV_OS_MINORS; ++minor) {
+
+	for (minor = 0; minor < SNDRV_OS_MINORS; ++minor)
+	{
 		if (!(mptr = snd_minors[minor]))
+		{
 			continue;
-		if (mptr->card >= 0) {
+		}
+
+		if (mptr->card >= 0)
+		{
 			if (mptr->device >= 0)
 				snd_iprintf(buffer, "%3i: [%2i-%2i]: %s\n",
-					    minor, mptr->card, mptr->device,
-					    snd_device_type_name(mptr->type));
+							minor, mptr->card, mptr->device,
+							snd_device_type_name(mptr->type));
 			else
 				snd_iprintf(buffer, "%3i: [%2i]   : %s\n",
-					    minor, mptr->card,
-					    snd_device_type_name(mptr->type));
-		} else
+							minor, mptr->card,
+							snd_device_type_name(mptr->type));
+		}
+		else
 			snd_iprintf(buffer, "%3i:        : %s\n", minor,
-				    snd_device_type_name(mptr->type));
+						snd_device_type_name(mptr->type));
 	}
+
 	mutex_unlock(&sound_mutex);
 }
 
@@ -386,8 +503,12 @@ int __init snd_minor_info_init(void)
 	struct snd_info_entry *entry;
 
 	entry = snd_info_create_module_entry(THIS_MODULE, "devices", NULL);
+
 	if (!entry)
+	{
 		return -ENOMEM;
+	}
+
 	entry->c.text.read = snd_minor_info_read;
 	return snd_info_register(entry); /* freed in error path */
 }
@@ -401,14 +522,19 @@ static int __init alsa_sound_init(void)
 {
 	snd_major = major;
 	snd_ecards_limit = cards_limit;
-	if (register_chrdev(major, "alsa", &snd_fops)) {
+
+	if (register_chrdev(major, "alsa", &snd_fops))
+	{
 		pr_err("ALSA core: unable to register native major device number %d\n", major);
 		return -EIO;
 	}
-	if (snd_info_init() < 0) {
+
+	if (snd_info_init() < 0)
+	{
 		unregister_chrdev(major, "alsa");
 		return -ENOMEM;
 	}
+
 #ifndef MODULE
 	pr_info("Advanced Linux Sound Architecture Driver Initialized.\n");
 #endif

@@ -38,7 +38,8 @@ static const char stih407_lpm[] = "st,stih407-lpm-syscfg";
 #define SYSSTAT_4520	0x820
 #define SYSCFG_4002	0x8
 
-static const struct syscfg_reset_channel_data stih407_powerdowns[] = {
+static const struct syscfg_reset_channel_data stih407_powerdowns[] =
+{
 	[STIH407_EMISS_POWERDOWN] = STIH407_PDN_0(1),
 	[STIH407_NAND_POWERDOWN] = STIH407_PDN_0(0),
 	[STIH407_USB3_POWERDOWN] = STIH407_PDN_1(6),
@@ -67,7 +68,8 @@ static const struct syscfg_reset_channel_data stih407_powerdowns[] = {
 #define STIH407_SRST_LPM(_reg, _bit) \
 	_SYSCFG_RST_CH_NO_ACK(stih407_lpm, _reg, _bit)
 
-static const struct syscfg_reset_channel_data stih407_softresets[] = {
+static const struct syscfg_reset_channel_data stih407_softresets[] =
+{
 	[STIH407_ETH1_SOFTRESET] = STIH407_SRST_SBC(SYSCFG_4002, 4),
 	[STIH407_MMC1_SOFTRESET] = STIH407_SRST_CORE(SYSCFG_5132, 3),
 	[STIH407_USB2_PORT0_SOFTRESET] = STIH407_SRST_CORE(SYSCFG_5132, 28),
@@ -106,32 +108,37 @@ static const struct syscfg_reset_channel_data stih407_softresets[] = {
 /* PicoPHY reset/control */
 #define SYSCFG_5061	0x0f4
 
-static const struct syscfg_reset_channel_data stih407_picophyresets[] = {
+static const struct syscfg_reset_channel_data stih407_picophyresets[] =
+{
 	[STIH407_PICOPHY0_RESET] = STIH407_SRST_CORE(SYSCFG_5061, 5),
 	[STIH407_PICOPHY1_RESET] = STIH407_SRST_CORE(SYSCFG_5061, 6),
 	[STIH407_PICOPHY2_RESET] = STIH407_SRST_CORE(SYSCFG_5061, 7),
 };
 
-static const struct syscfg_reset_controller_data stih407_powerdown_controller = {
+static const struct syscfg_reset_controller_data stih407_powerdown_controller =
+{
 	.wait_for_ack = true,
 	.nr_channels = ARRAY_SIZE(stih407_powerdowns),
 	.channels = stih407_powerdowns,
 };
 
-static const struct syscfg_reset_controller_data stih407_softreset_controller = {
+static const struct syscfg_reset_controller_data stih407_softreset_controller =
+{
 	.wait_for_ack = false,
 	.active_low = true,
 	.nr_channels = ARRAY_SIZE(stih407_softresets),
 	.channels = stih407_softresets,
 };
 
-static const struct syscfg_reset_controller_data stih407_picophyreset_controller = {
+static const struct syscfg_reset_controller_data stih407_picophyreset_controller =
+{
 	.wait_for_ack = false,
 	.nr_channels = ARRAY_SIZE(stih407_picophyresets),
 	.channels = stih407_picophyresets,
 };
 
-static const struct of_device_id stih407_reset_match[] = {
+static const struct of_device_id stih407_reset_match[] =
+{
 	{
 		.compatible = "st,stih407-powerdown",
 		.data = &stih407_powerdown_controller,
@@ -147,7 +154,8 @@ static const struct of_device_id stih407_reset_match[] = {
 	{ /* sentinel */ },
 };
 
-static struct platform_driver stih407_reset_driver = {
+static struct platform_driver stih407_reset_driver =
+{
 	.probe = syscfg_reset_probe,
 	.driver = {
 		.name = "reset-stih407",

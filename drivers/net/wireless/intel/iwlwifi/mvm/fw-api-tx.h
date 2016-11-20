@@ -96,7 +96,8 @@
  * @TX_CMD_FLG_PAPD_TYPE: 0 for reference power, 1 for nominal power
  * @TX_CMD_FLG_HCCA_CHUNK: mark start of TSPEC chunk
  */
-enum iwl_tx_flags {
+enum iwl_tx_flags
+{
 	TX_CMD_FLG_PROT_REQUIRE		= BIT(0),
 	TX_CMD_FLG_WRITE_TX_POWER	= BIT(1),
 	TX_CMD_FLG_ACK			= BIT(3),
@@ -129,7 +130,8 @@ enum iwl_tx_flags {
  * @PM_FRAME_MGMT: fw suspend sleep mode for 100TU
  * @PM_FRAME_ASSOC: fw suspend sleep mode for 10sec
  */
-enum iwl_tx_pm_timeouts {
+enum iwl_tx_pm_timeouts
+{
 	PM_FRAME_NONE		= 0,
 	PM_FRAME_MGMT		= 2,
 	PM_FRAME_ASSOC		= 3,
@@ -152,7 +154,8 @@ enum iwl_tx_pm_timeouts {
  *	If the key is taken from the key table its index should be given by the
  *	first byte of the TX command key field.
  */
-enum iwl_tx_cmd_sec_ctrl {
+enum iwl_tx_cmd_sec_ctrl
+{
 	TX_CMD_SEC_WEP			= 0x01,
 	TX_CMD_SEC_CCM			= 0x02,
 	TX_CMD_SEC_TKIP			= 0x03,
@@ -224,7 +227,8 @@ enum iwl_tx_cmd_sec_ctrl {
  *	alignment
  * @TX_CMD_OFFLD_AMSDU: mark TX command is A-MSDU
  */
-enum iwl_tx_offload_assist_flags_pos {
+enum iwl_tx_offload_assist_flags_pos
+{
 	TX_CMD_OFFLD_IP_HDR =		0,
 	TX_CMD_OFFLD_L4_EN =		6,
 	TX_CMD_OFFLD_L3_EN =		7,
@@ -273,11 +277,13 @@ enum iwl_tx_offload_assist_flags_pos {
  * After the struct fields the MAC header is placed, plus any padding,
  * and then the actial payload.
  */
-struct iwl_tx_cmd {
+struct iwl_tx_cmd
+{
 	__le16 len;
 	__le16 offload_assist;
 	__le32 tx_flags;
-	struct {
+	struct
+	{
 		u8 try_cnt;
 		u8 btkill_cnt;
 		__le16 reserved;
@@ -342,7 +348,8 @@ struct iwl_tx_cmd {
  * Valid only if frame_count =1
  * TODO: complete documentation
  */
-enum iwl_tx_status {
+enum iwl_tx_status
+{
 	TX_STATUS_MSK = 0x000000ff,
 	TX_STATUS_SUCCESS = 0x01,
 	TX_STATUS_DIRECT_DONE = 0x02,
@@ -407,7 +414,8 @@ enum iwl_tx_status {
  *
  * TODO: complete documentation
  */
-enum iwl_tx_agg_status {
+enum iwl_tx_agg_status
+{
 	AGG_TX_STATE_STATUS_MSK = 0x00fff,
 	AGG_TX_STATE_TRANSMITTED = 0x000,
 	AGG_TX_STATE_UNDERRUN = 0x001,
@@ -427,8 +435,8 @@ enum iwl_tx_agg_status {
 };
 
 #define AGG_TX_STATE_LAST_SENT_MSK  (AGG_TX_STATE_LAST_SENT_TTL| \
-				     AGG_TX_STATE_LAST_SENT_TRY_CNT| \
-				     AGG_TX_STATE_LAST_SENT_BT_KILL)
+									 AGG_TX_STATE_LAST_SENT_TRY_CNT| \
+									 AGG_TX_STATE_LAST_SENT_BT_KILL)
 
 /*
  * The mask below describes a status where we are absolutely sure that the MPDU
@@ -436,8 +444,8 @@ enum iwl_tx_agg_status {
  * written the bytes to the TXE, but we know nothing about what the DSP did.
  */
 #define AGG_TX_STAT_FRAME_NOT_SENT (AGG_TX_STATE_FEW_BYTES | \
-				    AGG_TX_STATE_ABORT | \
-				    AGG_TX_STATE_SCD_QUERY)
+									AGG_TX_STATE_ABORT | \
+									AGG_TX_STATE_SCD_QUERY)
 
 /*
  * REPLY_TX = 0x1c (response)
@@ -467,7 +475,8 @@ enum iwl_tx_agg_status {
  * @status: enum iwl_tx_agg_status
  * @sequence: Sequence # for this frame's Tx cmd (not SSN!)
  */
-struct agg_tx_status {
+struct agg_tx_status
+{
 	__le16 status;
 	__le16 sequence;
 } __packed;
@@ -515,7 +524,8 @@ struct agg_tx_status {
  * After the array of statuses comes the SSN of the SCD. Look at
  * %iwl_mvm_get_scd_ssn for more details.
  */
-struct iwl_mvm_tx_resp {
+struct iwl_mvm_tx_resp
+{
 	u8 frame_count;
 	u8 bt_kill_count;
 	u8 failure_rts;
@@ -558,7 +568,8 @@ struct iwl_mvm_tx_resp {
  *	not a copy from the LQ command. Thus, if not the first rate was used
  *	for Tx-ing then this value will be set to 0 by FW.
  */
-struct iwl_mvm_ba_notif {
+struct iwl_mvm_ba_notif
+{
 	__le32 sta_addr_lo32;
 	__le16 sta_addr_hi16;
 	__le16 reserved;
@@ -580,7 +591,8 @@ struct iwl_mvm_ba_notif {
  * @q_num: TFD queue number
  * @tfd_index: Index of first un-acked frame in the  TFD queue
  */
-struct iwl_mvm_compressed_ba_tfd {
+struct iwl_mvm_compressed_ba_tfd
+{
 	u8 q_num;
 	u8 reserved;
 	__le16 tfd_index;
@@ -592,7 +604,8 @@ struct iwl_mvm_compressed_ba_tfd {
  * @tid: TID of the queue
  * @ssn: BA window current SSN
  */
-struct iwl_mvm_compressed_ba_ratid {
+struct iwl_mvm_compressed_ba_ratid
+{
 	u8 q_num;
 	u8 tid;
 	__le16 ssn;
@@ -608,7 +621,8 @@ struct iwl_mvm_compressed_ba_ratid {
  * @IWL_MVM_BA_RESP_TX_DSP_TIMEOUT: aggregation didn't finish within the
  *	expected time
  */
-enum iwl_mvm_ba_resp_flags {
+enum iwl_mvm_ba_resp_flags
+{
 	IWL_MVM_BA_RESP_TX_AGG,
 	IWL_MVM_BA_RESP_TX_BAR,
 	IWL_MVM_BA_RESP_TX_AGG_FAIL,
@@ -636,7 +650,8 @@ enum iwl_mvm_ba_resp_flags {
  * @tfd_cnt: number of TFD-Q elements
  * @ra_tid_cnt: number of RATID-Q elements
  */
-struct iwl_mvm_compressed_ba_notif {
+struct iwl_mvm_compressed_ba_notif
+{
 	__le32 flags;
 	u8 sta_id;
 	u8 reduced_txp;
@@ -663,7 +678,8 @@ struct iwl_mvm_compressed_ba_notif {
  * @tim_size: the length of the tim IE
  * @frame: the template of the beacon frame
  */
-struct iwl_mac_beacon_cmd_v6 {
+struct iwl_mac_beacon_cmd_v6
+{
 	struct iwl_tx_cmd tx;
 	__le32 template_id;
 	__le32 tim_idx;
@@ -682,7 +698,8 @@ struct iwl_mac_beacon_cmd_v6 {
  * @csa_offset: offset to the CSA IE if present
  * @frame: the template of the beacon frame
  */
-struct iwl_mac_beacon_cmd {
+struct iwl_mac_beacon_cmd
+{
 	struct iwl_tx_cmd tx;
 	__le32 template_id;
 	__le32 tim_idx;
@@ -692,7 +709,8 @@ struct iwl_mac_beacon_cmd {
 	struct ieee80211_hdr frame[0];
 } __packed; /* BEACON_TEMPLATE_CMD_API_S_VER_7 */
 
-struct iwl_beacon_notif {
+struct iwl_beacon_notif
+{
 	struct iwl_mvm_tx_resp beacon_notify_hdr;
 	__le64 tsf;
 	__le32 ibss_mgr_status;
@@ -705,7 +723,8 @@ struct iwl_beacon_notif {
  * @ibss_mgr_status: whether IBSS is manager
  * @gp2: last beacon time in gp2
  */
-struct iwl_extended_beacon_notif {
+struct iwl_extended_beacon_notif
+{
 	struct iwl_mvm_tx_resp beacon_notify_hdr;
 	__le64 tsf;
 	__le32 ibss_mgr_status;
@@ -717,7 +736,8 @@ struct iwl_extended_beacon_notif {
  * @DUMP_TX_FIFO_FLUSH: Dump MSDUs until the the FIFO is empty
  *	and the TFD queues are empty.
  */
-enum iwl_dump_control {
+enum iwl_dump_control
+{
 	DUMP_TX_FIFO_FLUSH	= BIT(1),
 };
 
@@ -727,7 +747,8 @@ enum iwl_dump_control {
  * @flush_ctl: control flags
  * @reserved: reserved
  */
-struct iwl_tx_path_flush_cmd {
+struct iwl_tx_path_flush_cmd
+{
 	__le32 queues_ctl;
 	__le16 flush_ctl;
 	__le16 reserved;
@@ -749,11 +770,12 @@ struct iwl_tx_path_flush_cmd {
 static inline u32 iwl_mvm_get_scd_ssn(struct iwl_mvm_tx_resp *tx_resp)
 {
 	return le32_to_cpup((__le32 *)&tx_resp->status +
-			    tx_resp->frame_count) & 0xfff;
+						tx_resp->frame_count) & 0xfff;
 }
 
 /* Available options for the SCD_QUEUE_CFG HCMD */
-enum iwl_scd_cfg_actions {
+enum iwl_scd_cfg_actions
+{
 	SCD_CFG_DISABLE_QUEUE		= 0x0,
 	SCD_CFG_ENABLE_QUEUE		= 0x1,
 	SCD_CFG_UPDATE_QUEUE_TID	= 0x2,
@@ -772,7 +794,8 @@ enum iwl_scd_cfg_actions {
  * @window: BA window size
  * @ssn: SSN for the BA agreement
  */
-struct iwl_scd_txq_cfg_cmd {
+struct iwl_scd_txq_cfg_cmd
+{
 	u8 token;
 	u8 sta_id;
 	u8 tid;
@@ -792,7 +815,8 @@ struct iwl_scd_txq_cfg_cmd {
  * @tid: tid from the command
  * @scd_queue: scd_queue from the command
  */
-struct iwl_scd_txq_cfg_rsp {
+struct iwl_scd_txq_cfg_rsp
+{
 	u8 token;
 	u8 sta_id;
 	u8 tid;

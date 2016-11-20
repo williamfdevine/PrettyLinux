@@ -1,6 +1,7 @@
 #ifndef __NVBIOS_GPIO_H__
 #define __NVBIOS_GPIO_H__
-enum dcb_gpio_func_name {
+enum dcb_gpio_func_name
+{
 	DCB_GPIO_PANEL_POWER = 0x01,
 	DCB_GPIO_TVDAC0 = 0x0c,
 	DCB_GPIO_TVDAC1 = 0x2d,
@@ -25,7 +26,8 @@ enum dcb_gpio_func_name {
 #define DCB_GPIO_LOG_VAL_LO  0x00
 #define DCB_GPIO_LOG_VAL_HI  0x01
 
-struct dcb_gpio_func {
+struct dcb_gpio_func
+{
 	u8 func;
 	u8 line;
 	u8 log[2];
@@ -41,7 +43,7 @@ struct dcb_gpio_func {
 u16 dcb_gpio_table(struct nvkm_bios *, u8 *ver, u8 *hdr, u8 *cnt, u8 *len);
 u16 dcb_gpio_entry(struct nvkm_bios *, int idx, int ent, u8 *ver, u8 *len);
 u16 dcb_gpio_parse(struct nvkm_bios *, int idx, int ent, u8 *ver, u8 *len,
-		   struct dcb_gpio_func *);
+				   struct dcb_gpio_func *);
 u16 dcb_gpio_match(struct nvkm_bios *, int idx, u8 func, u8 line,
-		   u8 *ver, u8 *len, struct dcb_gpio_func *);
+				   u8 *ver, u8 *len, struct dcb_gpio_func *);
 #endif

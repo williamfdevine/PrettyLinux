@@ -20,13 +20,15 @@
 
 #include "ipu-prv.h"
 
-struct ipu_smfc {
+struct ipu_smfc
+{
 	struct ipu_smfc_priv *priv;
 	int chno;
 	bool inuse;
 };
 
-struct ipu_smfc_priv {
+struct ipu_smfc_priv
+{
 	void __iomem *base;
 	spinlock_t lock;
 	struct ipu_soc *ipu;
@@ -107,7 +109,9 @@ int ipu_smfc_enable(struct ipu_smfc *smfc)
 	spin_lock_irqsave(&priv->lock, flags);
 
 	if (!priv->use_count)
+	{
 		ipu_module_enable(priv->ipu, IPU_CONF_SMFC_EN);
+	}
 
 	priv->use_count++;
 
@@ -127,10 +131,14 @@ int ipu_smfc_disable(struct ipu_smfc *smfc)
 	priv->use_count--;
 
 	if (!priv->use_count)
+	{
 		ipu_module_disable(priv->ipu, IPU_CONF_SMFC_EN);
+	}
 
 	if (priv->use_count < 0)
+	{
 		priv->use_count = 0;
+	}
 
 	spin_unlock_irqrestore(&priv->lock, flags);
 
@@ -145,14 +153,17 @@ struct ipu_smfc *ipu_smfc_get(struct ipu_soc *ipu, unsigned int chno)
 	unsigned long flags;
 
 	if (chno >= 4)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	smfc = &priv->channel[chno];
 	ret = smfc;
 
 	spin_lock_irqsave(&priv->lock, flags);
 
-	if (smfc->inuse) {
+	if (smfc->inuse)
+	{
 		ret = ERR_PTR(-EBUSY);
 		goto unlock;
 	}
@@ -176,24 +187,31 @@ void ipu_smfc_put(struct ipu_smfc *smfc)
 EXPORT_SYMBOL_GPL(ipu_smfc_put);
 
 int ipu_smfc_init(struct ipu_soc *ipu, struct device *dev,
-		  unsigned long base)
+				  unsigned long base)
 {
 	struct ipu_smfc_priv *priv;
 	int i;
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	ipu->smfc_priv = priv;
 	spin_lock_init(&priv->lock);
 	priv->ipu = ipu;
 
 	priv->base = devm_ioremap(dev, base, PAGE_SIZE);
-	if (!priv->base)
-		return -ENOMEM;
 
-	for (i = 0; i < 4; i++) {
+	if (!priv->base)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < 4; i++)
+	{
 		priv->channel[i].priv = priv;
 		priv->channel[i].chno = i;
 	}

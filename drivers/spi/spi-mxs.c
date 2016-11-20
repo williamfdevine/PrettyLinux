@@ -63,25 +63,28 @@
 #define TXRX_WRITE		(1<<0)	/* This is a write */
 #define TXRX_DEASSERT_CS	(1<<1)	/* De-assert CS at end of txrx */
 
-struct mxs_spi {
+struct mxs_spi
+{
 	struct mxs_ssp		ssp;
 	struct completion	c;
 	unsigned int		sck;	/* Rate requested (vs actual) */
 };
 
 static int mxs_spi_setup_transfer(struct spi_device *dev,
-				  const struct spi_transfer *t)
+								  const struct spi_transfer *t)
 {
 	struct mxs_spi *spi = spi_master_get_devdata(dev->master);
 	struct mxs_ssp *ssp = &spi->ssp;
 	const unsigned int hz = min(dev->max_speed_hz, t->speed_hz);
 
-	if (hz == 0) {
+	if (hz == 0)
+	{
 		dev_err(&dev->dev, "SPI clock rate of zero not allowed\n");
 		return -EINVAL;
 	}
 
-	if (hz != spi->sck) {
+	if (hz != spi->sck)
+	{
 		mxs_ssp_set_clk_rate(ssp, hz);
 		/*
 		 * Save requested rate, hz, rather than the actual rate,
@@ -96,13 +99,13 @@ static int mxs_spi_setup_transfer(struct spi_device *dev,
 	}
 
 	writel(BM_SSP_CTRL0_LOCK_CS,
-		ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_SET);
+		   ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_SET);
 
 	writel(BF_SSP_CTRL1_SSP_MODE(BV_SSP_CTRL1_SSP_MODE__SPI) |
-	       BF_SSP_CTRL1_WORD_LENGTH(BV_SSP_CTRL1_WORD_LENGTH__EIGHT_BITS) |
-	       ((dev->mode & SPI_CPOL) ? BM_SSP_CTRL1_POLARITY : 0) |
-	       ((dev->mode & SPI_CPHA) ? BM_SSP_CTRL1_PHASE : 0),
-	       ssp->base + HW_SSP_CTRL1(ssp));
+		   BF_SSP_CTRL1_WORD_LENGTH(BV_SSP_CTRL1_WORD_LENGTH__EIGHT_BITS) |
+		   ((dev->mode & SPI_CPOL) ? BM_SSP_CTRL1_POLARITY : 0) |
+		   ((dev->mode & SPI_CPHA) ? BM_SSP_CTRL1_PHASE : 0),
+		   ssp->base + HW_SSP_CTRL1(ssp));
 
 	writel(0x0, ssp->base + HW_SSP_CMD0);
 	writel(0x0, ssp->base + HW_SSP_CMD1);
@@ -123,9 +126,14 @@ static u32 mxs_spi_cs_to_reg(unsigned cs)
 	 * toggle the chip-select lines (nCS pins).
 	 */
 	if (cs & 1)
+	{
 		select |= BM_SSP_CTRL0_WAIT_FOR_CMD;
+	}
+
 	if (cs & 2)
+	{
 		select |= BM_SSP_CTRL0_WAIT_FOR_IRQ;
+	}
 
 	return select;
 }
@@ -136,17 +144,23 @@ static int mxs_ssp_wait(struct mxs_spi *spi, int offset, int mask, bool set)
 	struct mxs_ssp *ssp = &spi->ssp;
 	u32 reg;
 
-	do {
+	do
+	{
 		reg = readl_relaxed(ssp->base + offset);
 
 		if (!set)
+		{
 			reg = ~reg;
+		}
 
 		reg &= mask;
 
 		if (reg == mask)
+		{
 			return 0;
-	} while (time_before(jiffies, timeout));
+		}
+	}
+	while (time_before(jiffies, timeout));
 
 	return -ETIMEDOUT;
 }
@@ -163,15 +177,15 @@ static irqreturn_t mxs_ssp_irq_handler(int irq, void *dev_id)
 	struct mxs_ssp *ssp = dev_id;
 
 	dev_err(ssp->dev, "%s[%i] CTRL1=%08x STATUS=%08x\n",
-		__func__, __LINE__,
-		readl(ssp->base + HW_SSP_CTRL1(ssp)),
-		readl(ssp->base + HW_SSP_STATUS(ssp)));
+			__func__, __LINE__,
+			readl(ssp->base + HW_SSP_CTRL1(ssp)),
+			readl(ssp->base + HW_SSP_STATUS(ssp)));
 	return IRQ_HANDLED;
 }
 
 static int mxs_spi_txrx_dma(struct mxs_spi *spi,
-			    unsigned char *buf, int len,
-			    unsigned int flags)
+							unsigned char *buf, int len,
+							unsigned int flags)
 {
 	struct mxs_ssp *ssp = &spi->ssp;
 	struct dma_async_tx_descriptor *desc = NULL;
@@ -182,31 +196,40 @@ static int mxs_spi_txrx_dma(struct mxs_spi *spi,
 	int min, ret;
 	u32 ctrl0;
 	struct page *vm_page;
-	struct {
+	struct
+	{
 		u32			pio[4];
 		struct scatterlist	sg;
 	} *dma_xfer;
 
 	if (!len)
+	{
 		return -EINVAL;
+	}
 
 	dma_xfer = kcalloc(sgs, sizeof(*dma_xfer), GFP_KERNEL);
+
 	if (!dma_xfer)
+	{
 		return -ENOMEM;
+	}
 
 	reinit_completion(&spi->c);
 
 	/* Chip select was already programmed into CTRL0 */
 	ctrl0 = readl(ssp->base + HW_SSP_CTRL0);
 	ctrl0 &= ~(BM_SSP_CTRL0_XFER_COUNT | BM_SSP_CTRL0_IGNORE_CRC |
-		 BM_SSP_CTRL0_READ);
+			   BM_SSP_CTRL0_READ);
 	ctrl0 |= BM_SSP_CTRL0_DATA_XFER;
 
 	if (!(flags & TXRX_WRITE))
+	{
 		ctrl0 |= BM_SSP_CTRL0_READ;
+	}
 
 	/* Queue the DMA data transfer. */
-	for (sg_count = 0; sg_count < sgs; sg_count++) {
+	for (sg_count = 0; sg_count < sgs; sg_count++)
+	{
 		/* Prepare the transfer descriptor. */
 		min = min(len, desc_len);
 
@@ -215,9 +238,12 @@ static int mxs_spi_txrx_dma(struct mxs_spi *spi,
 		 * transfers will follow)
 		 */
 		if ((sg_count + 1 == sgs) && (flags & TXRX_DEASSERT_CS))
+		{
 			ctrl0 |= BM_SSP_CTRL0_IGNORE_CRC;
+		}
 
-		if (ssp->devid == IMX23_SSP) {
+		if (ssp->devid == IMX23_SSP)
+		{
 			ctrl0 &= ~BM_SSP_CTRL0_XFER_COUNT;
 			ctrl0 |= min;
 		}
@@ -225,47 +251,55 @@ static int mxs_spi_txrx_dma(struct mxs_spi *spi,
 		dma_xfer[sg_count].pio[0] = ctrl0;
 		dma_xfer[sg_count].pio[3] = min;
 
-		if (vmalloced_buf) {
+		if (vmalloced_buf)
+		{
 			vm_page = vmalloc_to_page(buf);
-			if (!vm_page) {
+
+			if (!vm_page)
+			{
 				ret = -ENOMEM;
 				goto err_vmalloc;
 			}
 
 			sg_init_table(&dma_xfer[sg_count].sg, 1);
 			sg_set_page(&dma_xfer[sg_count].sg, vm_page,
-				    min, offset_in_page(buf));
-		} else {
+						min, offset_in_page(buf));
+		}
+		else
+		{
 			sg_init_one(&dma_xfer[sg_count].sg, buf, min);
 		}
 
 		ret = dma_map_sg(ssp->dev, &dma_xfer[sg_count].sg, 1,
-			(flags & TXRX_WRITE) ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
+						 (flags & TXRX_WRITE) ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
 
 		len -= min;
 		buf += min;
 
 		/* Queue the PIO register write transfer. */
 		desc = dmaengine_prep_slave_sg(ssp->dmach,
-				(struct scatterlist *)dma_xfer[sg_count].pio,
-				(ssp->devid == IMX23_SSP) ? 1 : 4,
-				DMA_TRANS_NONE,
-				sg_count ? DMA_PREP_INTERRUPT : 0);
-		if (!desc) {
+									   (struct scatterlist *)dma_xfer[sg_count].pio,
+									   (ssp->devid == IMX23_SSP) ? 1 : 4,
+									   DMA_TRANS_NONE,
+									   sg_count ? DMA_PREP_INTERRUPT : 0);
+
+		if (!desc)
+		{
 			dev_err(ssp->dev,
-				"Failed to get PIO reg. write descriptor.\n");
+					"Failed to get PIO reg. write descriptor.\n");
 			ret = -EINVAL;
 			goto err_mapped;
 		}
 
 		desc = dmaengine_prep_slave_sg(ssp->dmach,
-				&dma_xfer[sg_count].sg, 1,
-				(flags & TXRX_WRITE) ? DMA_MEM_TO_DEV : DMA_DEV_TO_MEM,
-				DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+									   &dma_xfer[sg_count].sg, 1,
+									   (flags & TXRX_WRITE) ? DMA_MEM_TO_DEV : DMA_DEV_TO_MEM,
+									   DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
 
-		if (!desc) {
+		if (!desc)
+		{
 			dev_err(ssp->dev,
-				"Failed to get DMA data write descriptor.\n");
+					"Failed to get DMA data write descriptor.\n");
 			ret = -EINVAL;
 			goto err_mapped;
 		}
@@ -283,7 +317,8 @@ static int mxs_spi_txrx_dma(struct mxs_spi *spi,
 	dma_async_issue_pending(ssp->dmach);
 
 	if (!wait_for_completion_timeout(&spi->c,
-					 msecs_to_jiffies(SSP_TIMEOUT))) {
+									 msecs_to_jiffies(SSP_TIMEOUT)))
+	{
 		dev_err(ssp->dev, "DMA transfer timeout\n");
 		ret = -ETIMEDOUT;
 		dmaengine_terminate_all(ssp->dmach);
@@ -293,10 +328,12 @@ static int mxs_spi_txrx_dma(struct mxs_spi *spi,
 	ret = 0;
 
 err_vmalloc:
-	while (--sg_count >= 0) {
+
+	while (--sg_count >= 0)
+	{
 err_mapped:
 		dma_unmap_sg(ssp->dev, &dma_xfer[sg_count].sg, 1,
-			(flags & TXRX_WRITE) ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
+					 (flags & TXRX_WRITE) ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
 	}
 
 	kfree(dma_xfer);
@@ -305,69 +342,84 @@ err_mapped:
 }
 
 static int mxs_spi_txrx_pio(struct mxs_spi *spi,
-			    unsigned char *buf, int len,
-			    unsigned int flags)
+							unsigned char *buf, int len,
+							unsigned int flags)
 {
 	struct mxs_ssp *ssp = &spi->ssp;
 
 	writel(BM_SSP_CTRL0_IGNORE_CRC,
-	       ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_CLR);
+		   ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_CLR);
 
-	while (len--) {
+	while (len--)
+	{
 		if (len == 0 && (flags & TXRX_DEASSERT_CS))
 			writel(BM_SSP_CTRL0_IGNORE_CRC,
-			       ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_SET);
+				   ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_SET);
 
-		if (ssp->devid == IMX23_SSP) {
+		if (ssp->devid == IMX23_SSP)
+		{
 			writel(BM_SSP_CTRL0_XFER_COUNT,
-				ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_CLR);
+				   ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_CLR);
 			writel(1,
-				ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_SET);
-		} else {
+				   ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_SET);
+		}
+		else
+		{
 			writel(1, ssp->base + HW_SSP_XFER_SIZE);
 		}
 
 		if (flags & TXRX_WRITE)
 			writel(BM_SSP_CTRL0_READ,
-				ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_CLR);
+				   ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_CLR);
 		else
 			writel(BM_SSP_CTRL0_READ,
-				ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_SET);
+				   ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_SET);
 
 		writel(BM_SSP_CTRL0_RUN,
-				ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_SET);
+			   ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_SET);
 
 		if (mxs_ssp_wait(spi, HW_SSP_CTRL0, BM_SSP_CTRL0_RUN, 1))
+		{
 			return -ETIMEDOUT;
+		}
 
 		if (flags & TXRX_WRITE)
+		{
 			writel(*buf, ssp->base + HW_SSP_DATA(ssp));
+		}
 
 		writel(BM_SSP_CTRL0_DATA_XFER,
-			     ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_SET);
+			   ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_SET);
 
-		if (!(flags & TXRX_WRITE)) {
+		if (!(flags & TXRX_WRITE))
+		{
 			if (mxs_ssp_wait(spi, HW_SSP_STATUS(ssp),
-						BM_SSP_STATUS_FIFO_EMPTY, 0))
+							 BM_SSP_STATUS_FIFO_EMPTY, 0))
+			{
 				return -ETIMEDOUT;
+			}
 
 			*buf = (readl(ssp->base + HW_SSP_DATA(ssp)) & 0xff);
 		}
 
 		if (mxs_ssp_wait(spi, HW_SSP_CTRL0, BM_SSP_CTRL0_RUN, 0))
+		{
 			return -ETIMEDOUT;
+		}
 
 		buf++;
 	}
 
 	if (len <= 0)
+	{
 		return 0;
+	}
 
 	return -ETIMEDOUT;
 }
 
 static int mxs_spi_transfer_one(struct spi_master *master,
-				struct spi_message *m)
+								struct spi_message *m)
 {
 	struct mxs_spi *spi = spi_master_get_devdata(master);
 	struct mxs_ssp *ssp = &spi->ssp;
@@ -377,19 +429,23 @@ static int mxs_spi_transfer_one(struct spi_master *master,
 
 	/* Program CS register bits here, it will be used for all transfers. */
 	writel(BM_SSP_CTRL0_WAIT_FOR_CMD | BM_SSP_CTRL0_WAIT_FOR_IRQ,
-	       ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_CLR);
+		   ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_CLR);
 	writel(mxs_spi_cs_to_reg(m->spi->chip_select),
-	       ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_SET);
+		   ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_SET);
 
-	list_for_each_entry(t, &m->transfers, transfer_list) {
+	list_for_each_entry(t, &m->transfers, transfer_list)
+	{
 
 		status = mxs_spi_setup_transfer(m->spi, t);
+
 		if (status)
+		{
 			break;
+		}
 
 		/* De-assert on last transfer, inverted by cs_change flag */
 		flag = (&t->transfer_list == m->transfers.prev) ^ t->cs_change ?
-		       TXRX_DEASSERT_CS : 0;
+			   TXRX_DEASSERT_CS : 0;
 
 		/*
 		 * Small blocks can be transfered via PIO.
@@ -400,35 +456,41 @@ static int mxs_spi_transfer_one(struct spi_master *master,
 		 * DMA only: 2.164808 seconds, 473.0KB/s
 		 * Combined: 1.676276 seconds, 610.9KB/s
 		 */
-		if (t->len < 32) {
+		if (t->len < 32)
+		{
 			writel(BM_SSP_CTRL1_DMA_ENABLE,
-				ssp->base + HW_SSP_CTRL1(ssp) +
-				STMP_OFFSET_REG_CLR);
+				   ssp->base + HW_SSP_CTRL1(ssp) +
+				   STMP_OFFSET_REG_CLR);
 
 			if (t->tx_buf)
 				status = mxs_spi_txrx_pio(spi,
-						(void *)t->tx_buf,
-						t->len, flag | TXRX_WRITE);
+										  (void *)t->tx_buf,
+										  t->len, flag | TXRX_WRITE);
+
 			if (t->rx_buf)
 				status = mxs_spi_txrx_pio(spi,
-						t->rx_buf, t->len,
-						flag);
-		} else {
+										  t->rx_buf, t->len,
+										  flag);
+		}
+		else
+		{
 			writel(BM_SSP_CTRL1_DMA_ENABLE,
-				ssp->base + HW_SSP_CTRL1(ssp) +
-				STMP_OFFSET_REG_SET);
+				   ssp->base + HW_SSP_CTRL1(ssp) +
+				   STMP_OFFSET_REG_SET);
 
 			if (t->tx_buf)
 				status = mxs_spi_txrx_dma(spi,
-						(void *)t->tx_buf, t->len,
-						flag | TXRX_WRITE);
+										  (void *)t->tx_buf, t->len,
+										  flag | TXRX_WRITE);
+
 			if (t->rx_buf)
 				status = mxs_spi_txrx_dma(spi,
-						t->rx_buf, t->len,
-						flag);
+										  t->rx_buf, t->len,
+										  flag);
 		}
 
-		if (status) {
+		if (status)
+		{
 			stmp_reset_block(ssp->base);
 			break;
 		}
@@ -442,7 +504,8 @@ static int mxs_spi_transfer_one(struct spi_master *master,
 	return status;
 }
 
-static const struct of_device_id mxs_spi_dt_ids[] = {
+static const struct of_device_id mxs_spi_dt_ids[] =
+{
 	{ .compatible = "fsl,imx23-spi", .data = (void *) IMX23_SSP, },
 	{ .compatible = "fsl,imx28-spi", .data = (void *) IMX28_SSP, },
 	{ /* sentinel */ }
@@ -452,7 +515,7 @@ MODULE_DEVICE_TABLE(of, mxs_spi_dt_ids);
 static int mxs_spi_probe(struct platform_device *pdev)
 {
 	const struct of_device_id *of_id =
-			of_match_device(mxs_spi_dt_ids, &pdev->dev);
+		of_match_device(mxs_spi_dt_ids, &pdev->dev);
 	struct device_node *np = pdev->dev.of_node;
 	struct spi_master *master;
 	struct mxs_spi *spi;
@@ -472,26 +535,41 @@ static int mxs_spi_probe(struct platform_device *pdev)
 
 	iores = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	irq_err = platform_get_irq(pdev, 0);
+
 	if (irq_err < 0)
+	{
 		return irq_err;
+	}
 
 	base = devm_ioremap_resource(&pdev->dev, iores);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(clk))
+	{
 		return PTR_ERR(clk);
+	}
 
 	devid = (enum mxs_ssp_id) of_id->data;
 	ret = of_property_read_u32(np, "clock-frequency",
-				   &clk_freq);
+							   &clk_freq);
+
 	if (ret)
+	{
 		clk_freq = clk_freq_default;
+	}
 
 	master = spi_alloc_master(&pdev->dev, sizeof(*spi));
+
 	if (!master)
+	{
 		return -ENOMEM;
+	}
 
 	master->transfer_one_message = mxs_spi_transfer_one;
 	master->bits_per_word_mask = SPI_BPW_MASK(8);
@@ -510,31 +588,44 @@ static int mxs_spi_probe(struct platform_device *pdev)
 	init_completion(&spi->c);
 
 	ret = devm_request_irq(&pdev->dev, irq_err, mxs_ssp_irq_handler, 0,
-			       dev_name(&pdev->dev), ssp);
+						   dev_name(&pdev->dev), ssp);
+
 	if (ret)
+	{
 		goto out_master_free;
+	}
 
 	ssp->dmach = dma_request_slave_channel(&pdev->dev, "rx-tx");
-	if (!ssp->dmach) {
+
+	if (!ssp->dmach)
+	{
 		dev_err(ssp->dev, "Failed to request DMA\n");
 		ret = -ENODEV;
 		goto out_master_free;
 	}
 
 	ret = clk_prepare_enable(ssp->clk);
+
 	if (ret)
+	{
 		goto out_dma_release;
+	}
 
 	clk_set_rate(ssp->clk, clk_freq);
 
 	ret = stmp_reset_block(ssp->base);
+
 	if (ret)
+	{
 		goto out_disable_clk;
+	}
 
 	platform_set_drvdata(pdev, master);
 
 	ret = devm_spi_register_master(&pdev->dev, master);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Cannot register SPI master, %d\n", ret);
 		goto out_disable_clk;
 	}
@@ -566,7 +657,8 @@ static int mxs_spi_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver mxs_spi_driver = {
+static struct platform_driver mxs_spi_driver =
+{
 	.probe	= mxs_spi_probe,
 	.remove	= mxs_spi_remove,
 	.driver	= {

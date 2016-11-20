@@ -44,8 +44,12 @@ int mlx5_core_alloc_pd(struct mlx5_core_dev *dev, u32 *pdn)
 
 	MLX5_SET(alloc_pd_in, in, opcode, MLX5_CMD_OP_ALLOC_PD);
 	err = mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
+
 	if (!err)
+	{
 		*pdn = MLX5_GET(alloc_pd_out, out, pd);
+	}
+
 	return err;
 }
 EXPORT_SYMBOL(mlx5_core_alloc_pd);

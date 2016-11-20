@@ -14,9 +14,9 @@
 #include "ccu_div.h"
 
 static unsigned long ccu_div_round_rate(struct ccu_mux_internal *mux,
-					unsigned long parent_rate,
-					unsigned long rate,
-					void *data)
+										unsigned long parent_rate,
+										unsigned long rate,
+										void *data)
 {
 	struct ccu_div *cd = data;
 	unsigned long val;
@@ -27,10 +27,10 @@ static unsigned long ccu_div_round_rate(struct ccu_mux_internal *mux,
 	 * several different parents.
 	 */
 	val = divider_get_val(rate, parent_rate, cd->div.table, cd->div.width,
-			      cd->div.flags);
+						  cd->div.flags);
 
 	return divider_recalc_rate(&cd->common.hw, parent_rate, val,
-				   cd->div.table, cd->div.flags);
+							   cd->div.table, cd->div.flags);
 }
 
 static void ccu_div_disable(struct clk_hw *hw)
@@ -55,7 +55,7 @@ static int ccu_div_is_enabled(struct clk_hw *hw)
 }
 
 static unsigned long ccu_div_recalc_rate(struct clk_hw *hw,
-					unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct ccu_div *cd = hw_to_ccu_div(hw);
 	unsigned long val;
@@ -66,23 +66,23 @@ static unsigned long ccu_div_recalc_rate(struct clk_hw *hw,
 	val &= (1 << cd->div.width) - 1;
 
 	ccu_mux_helper_adjust_parent_for_prediv(&cd->common, &cd->mux, -1,
-						&parent_rate);
+											&parent_rate);
 
 	return divider_recalc_rate(hw, parent_rate, val, cd->div.table,
-				   cd->div.flags);
+							   cd->div.flags);
 }
 
 static int ccu_div_determine_rate(struct clk_hw *hw,
-				struct clk_rate_request *req)
+								  struct clk_rate_request *req)
 {
 	struct ccu_div *cd = hw_to_ccu_div(hw);
 
 	return ccu_mux_helper_determine_rate(&cd->common, &cd->mux,
-					     req, ccu_div_round_rate, cd);
+										 req, ccu_div_round_rate, cd);
 }
 
 static int ccu_div_set_rate(struct clk_hw *hw, unsigned long rate,
-			   unsigned long parent_rate)
+							unsigned long parent_rate)
 {
 	struct ccu_div *cd = hw_to_ccu_div(hw);
 	unsigned long flags;
@@ -90,10 +90,10 @@ static int ccu_div_set_rate(struct clk_hw *hw, unsigned long rate,
 	u32 reg;
 
 	ccu_mux_helper_adjust_parent_for_prediv(&cd->common, &cd->mux, -1,
-						&parent_rate);
+											&parent_rate);
 
 	val = divider_get_val(rate, parent_rate, cd->div.table, cd->div.width,
-			      cd->div.flags);
+						  cd->div.flags);
 
 	spin_lock_irqsave(cd->common.lock, flags);
 
@@ -101,7 +101,7 @@ static int ccu_div_set_rate(struct clk_hw *hw, unsigned long rate,
 	reg &= ~GENMASK(cd->div.width + cd->div.shift - 1, cd->div.shift);
 
 	writel(reg | (val << cd->div.shift),
-	       cd->common.base + cd->common.reg);
+		   cd->common.base + cd->common.reg);
 
 	spin_unlock_irqrestore(cd->common.lock, flags);
 
@@ -122,7 +122,8 @@ static int ccu_div_set_parent(struct clk_hw *hw, u8 index)
 	return ccu_mux_helper_set_parent(&cd->common, &cd->mux, index);
 }
 
-const struct clk_ops ccu_div_ops = {
+const struct clk_ops ccu_div_ops =
+{
 	.disable	= ccu_div_disable,
 	.enable		= ccu_div_enable,
 	.is_enabled	= ccu_div_is_enabled,

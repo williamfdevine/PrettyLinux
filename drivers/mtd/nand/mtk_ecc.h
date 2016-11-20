@@ -22,13 +22,15 @@ enum mtk_ecc_operation {ECC_ENCODE, ECC_DECODE};
 struct device_node;
 struct mtk_ecc;
 
-struct mtk_ecc_stats {
+struct mtk_ecc_stats
+{
 	u32 corrected;
 	u32 bitflips;
 	u32 failed;
 };
 
-struct mtk_ecc_config {
+struct mtk_ecc_config
+{
 	enum mtk_ecc_operation op;
 	enum mtk_ecc_mode mode;
 	dma_addr_t addr;

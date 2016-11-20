@@ -27,22 +27,31 @@
 
 /* to convert between channel and freq */
 static const int frequency_list_bg[] = { 2412, 2417, 2422, 2427, 2432,
-	2437, 2442, 2447, 2452, 2457, 2462, 2467, 2472, 2484
-};
+										 2437, 2442, 2447, 2452, 2457, 2462, 2467, 2472, 2484
+									   };
 
 int
 channel_of_freq(int f)
 {
 	int c = 0;
 
-	if ((f >= 2412) && (f <= 2484)) {
+	if ((f >= 2412) && (f <= 2484))
+	{
 		while ((c < 14) && (f != frequency_list_bg[c]))
+		{
 			c++;
+		}
+
 		return (c >= 14) ? 0 : ++c;
-	} else if ((f >= (int) 5000) && (f <= (int) 6000)) {
+	}
+	else if ((f >= (int) 5000) && (f <= (int) 6000))
+	{
 		return ( (f - 5000) / 5 );
-	} else
+	}
+	else
+	{
 		return 0;
+	}
 }
 
 #define OID_STRUCT(name,oid,s,t) [name] = {oid, 0, sizeof(s), t}
@@ -54,7 +63,8 @@ channel_of_freq(int f)
 
 #define OID_UNKNOWN(name,oid) OID_STRUCT(name,oid,0,0)
 
-struct oid_t isl_oid[] = {
+struct oid_t isl_oid[] =
+{
 	OID_STRUCT(GEN_OID_MACADDRESS, 0x00000000, u8[6], OID_TYPE_ADDR),
 	OID_U32(GEN_OID_LINKSTATE, 0x00000001),
 	OID_UNKNOWN(GEN_OID_WATCHDOG, 0x00000002),
@@ -66,12 +76,12 @@ struct oid_t isl_oid[] = {
 	OID_U32_C(DOT11_OID_BSSTYPE, 0x10000000),
 	OID_STRUCT_C(DOT11_OID_BSSID, 0x10000001, u8[6], OID_TYPE_RAW),
 	OID_STRUCT_C(DOT11_OID_SSID, 0x10000002, struct obj_ssid,
-		     OID_TYPE_SSID),
+	OID_TYPE_SSID),
 	OID_U32(DOT11_OID_STATE, 0x10000003),
 	OID_U32(DOT11_OID_AID, 0x10000004),
 	OID_STRUCT(DOT11_OID_COUNTRYSTRING, 0x10000005, u8[4], OID_TYPE_RAW),
 	OID_STRUCT_C(DOT11_OID_SSIDOVERRIDE, 0x10000006, struct obj_ssid,
-		     OID_TYPE_SSID),
+	OID_TYPE_SSID),
 
 	OID_U32(DOT11_OID_MEDIUMLIMIT, 0x11000000),
 	OID_U32_C(DOT11_OID_BEACONPERIOD, 0x11000001),
@@ -85,8 +95,10 @@ struct oid_t isl_oid[] = {
 	OID_U32_C(DOT11_OID_PRIVACYINVOKED, 0x12000001),
 	OID_U32_C(DOT11_OID_EXUNENCRYPTED, 0x12000002),
 	OID_U32_C(DOT11_OID_DEFKEYID, 0x12000003),
-	[DOT11_OID_DEFKEYX] = {0x12000004, 3, sizeof (struct obj_key),
-			       OID_FLAG_CACHED | OID_TYPE_KEY},	/* DOT11_OID_DEFKEY1,...DOT11_OID_DEFKEY4 */
+	[DOT11_OID_DEFKEYX] = {
+		0x12000004, 3, sizeof (struct obj_key),
+		OID_FLAG_CACHED | OID_TYPE_KEY
+	},	/* DOT11_OID_DEFKEY1,...DOT11_OID_DEFKEY4 */
 	OID_UNKNOWN(DOT11_OID_STAKEY, 0x12000008),
 	OID_U32(DOT11_OID_REKEYTHRESHOLD, 0x12000009),
 	OID_UNKNOWN(DOT11_OID_STASC, 0x1200000a),
@@ -160,29 +172,31 @@ struct oid_t isl_oid[] = {
 	OID_U32_C(DOT11_OID_EDTHRESHOLD, 0x17000008),
 	OID_U32(DOT11_OID_PREAMBLESETTINGS, 0x17000009),
 	OID_STRUCT(DOT11_OID_RATES, 0x1700000A, u8[IWMAX_BITRATES + 1],
-		   OID_TYPE_RAW),
+	OID_TYPE_RAW),
 	OID_U32(DOT11_OID_CCAMODESUPPORTED, 0x1700000B),
 	OID_U32(DOT11_OID_CCAMODE, 0x1700000C),
 	OID_UNKNOWN(DOT11_OID_RSSIVECTOR, 0x1700000D),
 	OID_UNKNOWN(DOT11_OID_OUTPUTPOWERTABLE, 0x1700000E),
 	OID_U32(DOT11_OID_OUTPUTPOWER, 0x1700000F),
 	OID_STRUCT(DOT11_OID_SUPPORTEDRATES, 0x17000010,
-		   u8[IWMAX_BITRATES + 1], OID_TYPE_RAW),
+	u8[IWMAX_BITRATES + 1], OID_TYPE_RAW),
 	OID_U32_C(DOT11_OID_FREQUENCY, 0x17000011),
 	[DOT11_OID_SUPPORTEDFREQUENCIES] =
-	    {0x17000012, 0, sizeof (struct obj_frequencies)
-	     + sizeof (u16) * IWMAX_FREQ, OID_TYPE_FREQUENCIES},
+	{
+		0x17000012, 0, sizeof (struct obj_frequencies)
+		+ sizeof (u16) *IWMAX_FREQ, OID_TYPE_FREQUENCIES
+	},
 
 	OID_U32(DOT11_OID_NOISEFLOOR, 0x17000013),
 	OID_STRUCT(DOT11_OID_FREQUENCYACTIVITY, 0x17000014, u8[IWMAX_FREQ + 1],
-		   OID_TYPE_RAW),
+	OID_TYPE_RAW),
 	OID_UNKNOWN(DOT11_OID_IQCALIBRATIONTABLE, 0x17000015),
 	OID_U32(DOT11_OID_NONERPPROTECTION, 0x17000016),
 	OID_U32(DOT11_OID_SLOTSETTINGS, 0x17000017),
 	OID_U32(DOT11_OID_NONERPTIMEOUT, 0x17000018),
 	OID_U32(DOT11_OID_PROFILES, 0x17000019),
 	OID_STRUCT(DOT11_OID_EXTENDEDRATES, 0x17000020,
-		   u8[IWMAX_BITRATES + 1], OID_TYPE_RAW),
+	u8[IWMAX_BITRATES + 1], OID_TYPE_RAW),
 
 	OID_STRUCT_MLME(DOT11_OID_DEAUTHENTICATE, 0x18000000),
 	OID_STRUCT_MLME(DOT11_OID_AUTHENTICATE, 0x18000001),
@@ -203,19 +217,25 @@ struct oid_t isl_oid[] = {
 	OID_U32(DOT11_OID_STATIMEOUT, 0x19000000),
 	OID_U32_C(DOT11_OID_MLMEAUTOLEVEL, 0x19000001),
 	OID_U32(DOT11_OID_BSSTIMEOUT, 0x19000002),
-	[DOT11_OID_ATTACHMENT] = {0x19000003, 0,
-		sizeof(struct obj_attachment), OID_TYPE_ATTACH},
+	[DOT11_OID_ATTACHMENT] = {
+		0x19000003, 0,
+		sizeof(struct obj_attachment), OID_TYPE_ATTACH
+	},
 	OID_STRUCT_C(DOT11_OID_PSMBUFFER, 0x19000004, struct obj_buffer,
-		     OID_TYPE_BUFFER),
+	OID_TYPE_BUFFER),
 
 	OID_U32(DOT11_OID_BSSS, 0x1C000000),
-	[DOT11_OID_BSSX] = {0x1C000001, 63, sizeof (struct obj_bss),
-			    OID_TYPE_BSS},	/*DOT11_OID_BSS1,...,DOT11_OID_BSS64 */
+	[DOT11_OID_BSSX] = {
+		0x1C000001, 63, sizeof (struct obj_bss),
+		OID_TYPE_BSS
+	},	/*DOT11_OID_BSS1,...,DOT11_OID_BSS64 */
 	OID_STRUCT(DOT11_OID_BSSFIND, 0x1C000042, struct obj_bss, OID_TYPE_BSS),
-	[DOT11_OID_BSSLIST] = {0x1C000043, 0, sizeof (struct
-						      obj_bsslist) +
-			       sizeof (struct obj_bss[IWMAX_BSS]),
-			       OID_TYPE_BSSLIST},
+	[DOT11_OID_BSSLIST] = {
+		0x1C000043, 0, sizeof (struct
+		obj_bsslist) +
+		sizeof (struct obj_bss[IWMAX_BSS]),
+		OID_TYPE_BSSLIST
+	},
 
 	OID_UNKNOWN(OID_INL_TUNNEL, 0xFF020000),
 	OID_UNKNOWN(OID_INL_MEMADDR, 0xFF020001),
@@ -238,19 +258,30 @@ mgt_init(islpci_private *priv)
 	int i;
 
 	priv->mib = kcalloc(OID_NUM_LAST, sizeof (void *), GFP_KERNEL);
+
 	if (!priv->mib)
+	{
 		return -ENOMEM;
+	}
 
 	/* Alloc the cache */
-	for (i = 0; i < OID_NUM_LAST; i++) {
-		if (isl_oid[i].flags & OID_FLAG_CACHED) {
+	for (i = 0; i < OID_NUM_LAST; i++)
+	{
+		if (isl_oid[i].flags & OID_FLAG_CACHED)
+		{
 			priv->mib[i] = kzalloc(isl_oid[i].size *
-					       (isl_oid[i].range + 1),
-					       GFP_KERNEL);
+								   (isl_oid[i].range + 1),
+								   GFP_KERNEL);
+
 			if (!priv->mib[i])
+			{
 				return -ENOMEM;
-		} else
+			}
+		}
+		else
+		{
 			priv->mib[i] = NULL;
+		}
 	}
 
 	init_rwsem(&priv->mib_sem);
@@ -265,11 +296,16 @@ mgt_clean(islpci_private *priv)
 	int i;
 
 	if (!priv->mib)
+	{
 		return;
-	for (i = 0; i < OID_NUM_LAST; i++) {
+	}
+
+	for (i = 0; i < OID_NUM_LAST; i++)
+	{
 		kfree(priv->mib[i]);
 		priv->mib[i] = NULL;
 	}
+
 	kfree(priv->mib);
 	priv->mib = NULL;
 }
@@ -277,138 +313,188 @@ mgt_clean(islpci_private *priv)
 void
 mgt_le_to_cpu(int type, void *data)
 {
-	switch (type) {
-	case OID_TYPE_U32:
-		*(u32 *) data = le32_to_cpu(*(u32 *) data);
-		break;
-	case OID_TYPE_BUFFER:{
-			struct obj_buffer *buff = data;
-			buff->size = le32_to_cpu(buff->size);
-			buff->addr = le32_to_cpu(buff->addr);
+	switch (type)
+	{
+		case OID_TYPE_U32:
+			*(u32 *) data = le32_to_cpu(*(u32 *) data);
 			break;
-		}
-	case OID_TYPE_BSS:{
-			struct obj_bss *bss = data;
-			bss->age = le16_to_cpu(bss->age);
-			bss->channel = le16_to_cpu(bss->channel);
-			bss->capinfo = le16_to_cpu(bss->capinfo);
-			bss->rates = le16_to_cpu(bss->rates);
-			bss->basic_rates = le16_to_cpu(bss->basic_rates);
+
+		case OID_TYPE_BUFFER:
+			{
+				struct obj_buffer *buff = data;
+				buff->size = le32_to_cpu(buff->size);
+				buff->addr = le32_to_cpu(buff->addr);
+				break;
+			}
+
+		case OID_TYPE_BSS:
+			{
+				struct obj_bss *bss = data;
+				bss->age = le16_to_cpu(bss->age);
+				bss->channel = le16_to_cpu(bss->channel);
+				bss->capinfo = le16_to_cpu(bss->capinfo);
+				bss->rates = le16_to_cpu(bss->rates);
+				bss->basic_rates = le16_to_cpu(bss->basic_rates);
+				break;
+			}
+
+		case OID_TYPE_BSSLIST:
+			{
+				struct obj_bsslist *list = data;
+				int i;
+				list->nr = le32_to_cpu(list->nr);
+
+				for (i = 0; i < list->nr; i++)
+				{
+					mgt_le_to_cpu(OID_TYPE_BSS, &list->bsslist[i]);
+				}
+
+				break;
+			}
+
+		case OID_TYPE_FREQUENCIES:
+			{
+				struct obj_frequencies *freq = data;
+				int i;
+				freq->nr = le16_to_cpu(freq->nr);
+
+				for (i = 0; i < freq->nr; i++)
+				{
+					freq->mhz[i] = le16_to_cpu(freq->mhz[i]);
+				}
+
+				break;
+			}
+
+		case OID_TYPE_MLME:
+			{
+				struct obj_mlme *mlme = data;
+				mlme->id = le16_to_cpu(mlme->id);
+				mlme->state = le16_to_cpu(mlme->state);
+				mlme->code = le16_to_cpu(mlme->code);
+				break;
+			}
+
+		case OID_TYPE_MLMEEX:
+			{
+				struct obj_mlmeex *mlme = data;
+				mlme->id = le16_to_cpu(mlme->id);
+				mlme->state = le16_to_cpu(mlme->state);
+				mlme->code = le16_to_cpu(mlme->code);
+				mlme->size = le16_to_cpu(mlme->size);
+				break;
+			}
+
+		case OID_TYPE_ATTACH:
+			{
+				struct obj_attachment *attach = data;
+				attach->id = le16_to_cpu(attach->id);
+				attach->size = le16_to_cpu(attach->size);
+				break;
+			}
+
+		case OID_TYPE_SSID:
+		case OID_TYPE_KEY:
+		case OID_TYPE_ADDR:
+		case OID_TYPE_RAW:
 			break;
-		}
-	case OID_TYPE_BSSLIST:{
-			struct obj_bsslist *list = data;
-			int i;
-			list->nr = le32_to_cpu(list->nr);
-			for (i = 0; i < list->nr; i++)
-				mgt_le_to_cpu(OID_TYPE_BSS, &list->bsslist[i]);
-			break;
-		}
-	case OID_TYPE_FREQUENCIES:{
-			struct obj_frequencies *freq = data;
-			int i;
-			freq->nr = le16_to_cpu(freq->nr);
-			for (i = 0; i < freq->nr; i++)
-				freq->mhz[i] = le16_to_cpu(freq->mhz[i]);
-			break;
-		}
-	case OID_TYPE_MLME:{
-			struct obj_mlme *mlme = data;
-			mlme->id = le16_to_cpu(mlme->id);
-			mlme->state = le16_to_cpu(mlme->state);
-			mlme->code = le16_to_cpu(mlme->code);
-			break;
-		}
-	case OID_TYPE_MLMEEX:{
-			struct obj_mlmeex *mlme = data;
-			mlme->id = le16_to_cpu(mlme->id);
-			mlme->state = le16_to_cpu(mlme->state);
-			mlme->code = le16_to_cpu(mlme->code);
-			mlme->size = le16_to_cpu(mlme->size);
-			break;
-		}
-	case OID_TYPE_ATTACH:{
-			struct obj_attachment *attach = data;
-			attach->id = le16_to_cpu(attach->id);
-			attach->size = le16_to_cpu(attach->size);
-			break;
-	}
-	case OID_TYPE_SSID:
-	case OID_TYPE_KEY:
-	case OID_TYPE_ADDR:
-	case OID_TYPE_RAW:
-		break;
-	default:
-		BUG();
+
+		default:
+			BUG();
 	}
 }
 
 static void
 mgt_cpu_to_le(int type, void *data)
 {
-	switch (type) {
-	case OID_TYPE_U32:
-		*(u32 *) data = cpu_to_le32(*(u32 *) data);
-		break;
-	case OID_TYPE_BUFFER:{
-			struct obj_buffer *buff = data;
-			buff->size = cpu_to_le32(buff->size);
-			buff->addr = cpu_to_le32(buff->addr);
+	switch (type)
+	{
+		case OID_TYPE_U32:
+			*(u32 *) data = cpu_to_le32(*(u32 *) data);
 			break;
-		}
-	case OID_TYPE_BSS:{
-			struct obj_bss *bss = data;
-			bss->age = cpu_to_le16(bss->age);
-			bss->channel = cpu_to_le16(bss->channel);
-			bss->capinfo = cpu_to_le16(bss->capinfo);
-			bss->rates = cpu_to_le16(bss->rates);
-			bss->basic_rates = cpu_to_le16(bss->basic_rates);
+
+		case OID_TYPE_BUFFER:
+			{
+				struct obj_buffer *buff = data;
+				buff->size = cpu_to_le32(buff->size);
+				buff->addr = cpu_to_le32(buff->addr);
+				break;
+			}
+
+		case OID_TYPE_BSS:
+			{
+				struct obj_bss *bss = data;
+				bss->age = cpu_to_le16(bss->age);
+				bss->channel = cpu_to_le16(bss->channel);
+				bss->capinfo = cpu_to_le16(bss->capinfo);
+				bss->rates = cpu_to_le16(bss->rates);
+				bss->basic_rates = cpu_to_le16(bss->basic_rates);
+				break;
+			}
+
+		case OID_TYPE_BSSLIST:
+			{
+				struct obj_bsslist *list = data;
+				int i;
+				list->nr = cpu_to_le32(list->nr);
+
+				for (i = 0; i < list->nr; i++)
+				{
+					mgt_cpu_to_le(OID_TYPE_BSS, &list->bsslist[i]);
+				}
+
+				break;
+			}
+
+		case OID_TYPE_FREQUENCIES:
+			{
+				struct obj_frequencies *freq = data;
+				int i;
+				freq->nr = cpu_to_le16(freq->nr);
+
+				for (i = 0; i < freq->nr; i++)
+				{
+					freq->mhz[i] = cpu_to_le16(freq->mhz[i]);
+				}
+
+				break;
+			}
+
+		case OID_TYPE_MLME:
+			{
+				struct obj_mlme *mlme = data;
+				mlme->id = cpu_to_le16(mlme->id);
+				mlme->state = cpu_to_le16(mlme->state);
+				mlme->code = cpu_to_le16(mlme->code);
+				break;
+			}
+
+		case OID_TYPE_MLMEEX:
+			{
+				struct obj_mlmeex *mlme = data;
+				mlme->id = cpu_to_le16(mlme->id);
+				mlme->state = cpu_to_le16(mlme->state);
+				mlme->code = cpu_to_le16(mlme->code);
+				mlme->size = cpu_to_le16(mlme->size);
+				break;
+			}
+
+		case OID_TYPE_ATTACH:
+			{
+				struct obj_attachment *attach = data;
+				attach->id = cpu_to_le16(attach->id);
+				attach->size = cpu_to_le16(attach->size);
+				break;
+			}
+
+		case OID_TYPE_SSID:
+		case OID_TYPE_KEY:
+		case OID_TYPE_ADDR:
+		case OID_TYPE_RAW:
 			break;
-		}
-	case OID_TYPE_BSSLIST:{
-			struct obj_bsslist *list = data;
-			int i;
-			list->nr = cpu_to_le32(list->nr);
-			for (i = 0; i < list->nr; i++)
-				mgt_cpu_to_le(OID_TYPE_BSS, &list->bsslist[i]);
-			break;
-		}
-	case OID_TYPE_FREQUENCIES:{
-			struct obj_frequencies *freq = data;
-			int i;
-			freq->nr = cpu_to_le16(freq->nr);
-			for (i = 0; i < freq->nr; i++)
-				freq->mhz[i] = cpu_to_le16(freq->mhz[i]);
-			break;
-		}
-	case OID_TYPE_MLME:{
-			struct obj_mlme *mlme = data;
-			mlme->id = cpu_to_le16(mlme->id);
-			mlme->state = cpu_to_le16(mlme->state);
-			mlme->code = cpu_to_le16(mlme->code);
-			break;
-		}
-	case OID_TYPE_MLMEEX:{
-			struct obj_mlmeex *mlme = data;
-			mlme->id = cpu_to_le16(mlme->id);
-			mlme->state = cpu_to_le16(mlme->state);
-			mlme->code = cpu_to_le16(mlme->code);
-			mlme->size = cpu_to_le16(mlme->size);
-			break;
-		}
-	case OID_TYPE_ATTACH:{
-			struct obj_attachment *attach = data;
-			attach->id = cpu_to_le16(attach->id);
-			attach->size = cpu_to_le16(attach->size);
-			break;
-	}
-	case OID_TYPE_SSID:
-	case OID_TYPE_KEY:
-	case OID_TYPE_ADDR:
-	case OID_TYPE_RAW:
-		break;
-	default:
-		BUG();
+
+		default:
+			BUG();
 	}
 }
 
@@ -429,18 +515,25 @@ mgt_set_request(islpci_private *priv, enum oid_num_t n, int extra, void *data)
 
 	if (!priv->mib)
 		/* memory has been freed */
+	{
 		return -1;
+	}
 
 	dlen = isl_oid[n].size;
 	cache = priv->mib[n];
-	cache += (cache ? extra * dlen : 0);
+	cache += (cache ? extra *dlen : 0);
 	oid = isl_oid[n].oid + extra;
 
 	if (_data == NULL)
 		/* we are requested to re-set a cached value */
+	{
 		_data = cache;
+	}
 	else
+	{
 		mgt_cpu_to_le(isl_oid[n].flags & OID_FLAG_TYPE, _data);
+	}
+
 	/* If we are going to write to the cache, we don't want anyone to read
 	 * it -> acquire write lock.
 	 * Else we could acquire a read lock to be sure we don't bother the
@@ -448,29 +541,46 @@ mgt_set_request(islpci_private *priv, enum oid_num_t n, int extra, void *data)
 	 * needed.
 	 */
 	if (cache)
+	{
 		down_write(&priv->mib_sem);
+	}
 
-	if (islpci_get_state(priv) >= PRV_STATE_READY) {
+	if (islpci_get_state(priv) >= PRV_STATE_READY)
+	{
 		ret = islpci_mgt_transaction(priv->ndev, PIMFOR_OP_SET, oid,
-					     _data, dlen, &response);
-		if (!ret) {
+									 _data, dlen, &response);
+
+		if (!ret)
+		{
 			response_op = response->header->operation;
 			islpci_mgt_release(response);
 		}
-		if (ret || response_op == PIMFOR_OP_ERROR)
-			ret = -EIO;
-	} else if (!cache)
-		ret = -EIO;
 
-	if (cache) {
+		if (ret || response_op == PIMFOR_OP_ERROR)
+		{
+			ret = -EIO;
+		}
+	}
+	else if (!cache)
+	{
+		ret = -EIO;
+	}
+
+	if (cache)
+	{
 		if (!ret && data)
+		{
 			memcpy(cache, _data, dlen);
+		}
+
 		up_write(&priv->mib_sem);
 	}
 
 	/* re-set given data to what it was */
 	if (data)
+	{
 		mgt_le_to_cpu(isl_oid[n].flags & OID_FLAG_TYPE, data);
+	}
 
 	return ret;
 }
@@ -492,28 +602,39 @@ mgt_set_varlen(islpci_private *priv, enum oid_num_t n, void *data, int extra_len
 
 	mgt_cpu_to_le(isl_oid[n].flags & OID_FLAG_TYPE, data);
 
-	if (islpci_get_state(priv) >= PRV_STATE_READY) {
+	if (islpci_get_state(priv) >= PRV_STATE_READY)
+	{
 		ret = islpci_mgt_transaction(priv->ndev, PIMFOR_OP_SET, oid,
-					     data, dlen + extra_len, &response);
-		if (!ret) {
+									 data, dlen + extra_len, &response);
+
+		if (!ret)
+		{
 			response_op = response->header->operation;
 			islpci_mgt_release(response);
 		}
+
 		if (ret || response_op == PIMFOR_OP_ERROR)
+		{
 			ret = -EIO;
-	} else
+		}
+	}
+	else
+	{
 		ret = -EIO;
+	}
 
 	/* re-set given data to what it was */
 	if (data)
+	{
 		mgt_le_to_cpu(isl_oid[n].flags & OID_FLAG_TYPE, data);
+	}
 
 	return ret;
 }
 
 int
 mgt_get_request(islpci_private *priv, enum oid_num_t n, int extra, void *data,
-		union oid_res_t *res)
+				union oid_res_t *res)
 {
 
 	int ret = -EIO;
@@ -531,7 +652,9 @@ mgt_get_request(islpci_private *priv, enum oid_num_t n, int extra, void *data,
 
 	if (!priv->mib)
 		/* memory has been freed */
+	{
 		return -1;
+	}
 
 	dlen = isl_oid[n].size;
 	cache = priv->mib[n];
@@ -540,49 +663,74 @@ mgt_get_request(islpci_private *priv, enum oid_num_t n, int extra, void *data,
 	reslen = dlen;
 
 	if (cache)
+	{
 		down_read(&priv->mib_sem);
+	}
 
-	if (islpci_get_state(priv) >= PRV_STATE_READY) {
+	if (islpci_get_state(priv) >= PRV_STATE_READY)
+	{
 		ret = islpci_mgt_transaction(priv->ndev, PIMFOR_OP_GET,
-					     oid, data, dlen, &response);
+									 oid, data, dlen, &response);
+
 		if (ret || !response ||
-		    response->header->operation == PIMFOR_OP_ERROR) {
+			response->header->operation == PIMFOR_OP_ERROR)
+		{
 			if (response)
+			{
 				islpci_mgt_release(response);
+			}
+
 			ret = -EIO;
 		}
-		if (!ret) {
+
+		if (!ret)
+		{
 			_res = response->data;
 			reslen = response->header->length;
 		}
-	} else if (cache) {
+	}
+	else if (cache)
+	{
 		_res = cache;
 		ret = 0;
 	}
+
 	if ((isl_oid[n].flags & OID_FLAG_TYPE) == OID_TYPE_U32)
+	{
 		res->u = ret ? 0 : le32_to_cpu(*(u32 *) _res);
-	else {
+	}
+	else
+	{
 		res->ptr = kmalloc(reslen, GFP_KERNEL);
 		BUG_ON(res->ptr == NULL);
+
 		if (ret)
+		{
 			memset(res->ptr, 0, reslen);
-		else {
+		}
+		else
+		{
 			memcpy(res->ptr, _res, reslen);
 			mgt_le_to_cpu(isl_oid[n].flags & OID_FLAG_TYPE,
-				      res->ptr);
+						  res->ptr);
 		}
 	}
+
 	if (cache)
+	{
 		up_read(&priv->mib_sem);
+	}
 
 	if (response && !ret)
+	{
 		islpci_mgt_release(response);
+	}
 
 	if (reslen > isl_oid[n].size)
 		printk(KERN_DEBUG
-		       "mgt_get_request(0x%x): received data length was bigger "
-		       "than expected (%d > %d). Memory is probably corrupted...",
-		       oid, reslen, isl_oid[n].size);
+			   "mgt_get_request(0x%x): received data length was bigger "
+			   "than expected (%d > %d). Memory is probably corrupted...",
+			   oid, reslen, isl_oid[n].size);
 
 	return ret;
 }
@@ -594,30 +742,38 @@ mgt_commit_list(islpci_private *priv, enum oid_num_t *l, int n)
 	int i, ret = 0;
 	struct islpci_mgmtframe *response;
 
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		struct oid_t *t = &(isl_oid[l[i]]);
 		void *data = priv->mib[l[i]];
 		int j = 0;
 		u32 oid = t->oid;
 		BUG_ON(data == NULL);
-		while (j <= t->range) {
+
+		while (j <= t->range)
+		{
 			int r = islpci_mgt_transaction(priv->ndev, PIMFOR_OP_SET,
-						      oid, data, t->size,
-						      &response);
-			if (response) {
+										   oid, data, t->size,
+										   &response);
+
+			if (response)
+			{
 				r |= (response->header->operation == PIMFOR_OP_ERROR);
 				islpci_mgt_release(response);
 			}
+
 			if (r)
 				printk(KERN_ERR "%s: mgt_commit_list: failure. "
-					"oid=%08x err=%d\n",
-					priv->ndev->name, oid, r);
+					   "oid=%08x err=%d\n",
+					   priv->ndev->name, oid, r);
+
 			ret |= r;
 			j++;
 			oid++;
 			data += t->size;
 		}
 	}
+
 	return ret;
 }
 
@@ -646,7 +802,8 @@ mgt_get(islpci_private *priv, enum oid_num_t n, void *res)
 
 /* Commits the cache. Lock outside. */
 
-static enum oid_num_t commit_part1[] = {
+static enum oid_num_t commit_part1[] =
+{
 	OID_INL_CONFIG,
 	OID_INL_MODE,
 	DOT11_OID_BSSTYPE,
@@ -654,7 +811,8 @@ static enum oid_num_t commit_part1[] = {
 	DOT11_OID_MLMEAUTOLEVEL
 };
 
-static enum oid_num_t commit_part2[] = {
+static enum oid_num_t commit_part2[] =
+{
 	DOT11_OID_SSID,
 	DOT11_OID_PSMBUFFER,
 	DOT11_OID_AUTHENABLE,
@@ -677,18 +835,28 @@ mgt_update_addr(islpci_private *priv)
 	int ret;
 
 	ret = islpci_mgt_transaction(priv->ndev, PIMFOR_OP_GET,
-				     isl_oid[GEN_OID_MACADDRESS].oid, NULL,
-				     isl_oid[GEN_OID_MACADDRESS].size, &res);
+								 isl_oid[GEN_OID_MACADDRESS].oid, NULL,
+								 isl_oid[GEN_OID_MACADDRESS].size, &res);
 
 	if ((ret == 0) && res && (res->header->operation != PIMFOR_OP_ERROR))
+	{
 		memcpy(priv->ndev->dev_addr, res->data, ETH_ALEN);
+	}
 	else
+	{
 		ret = -EIO;
+	}
+
 	if (res)
+	{
 		islpci_mgt_release(res);
+	}
 
 	if (ret)
+	{
 		printk(KERN_ERR "%s: mgt_update_addr: failure\n", priv->ndev->name);
+	}
+
 	return ret;
 }
 
@@ -699,22 +867,28 @@ mgt_commit(islpci_private *priv)
 	enum oid_num_t u;
 
 	if (islpci_get_state(priv) < PRV_STATE_INIT)
+	{
 		return 0;
+	}
 
 	rvalue = mgt_commit_list(priv, commit_part1, ARRAY_SIZE(commit_part1));
 
 	if (priv->iw_mode != IW_MODE_MONITOR)
+	{
 		rvalue |= mgt_commit_list(priv, commit_part2, ARRAY_SIZE(commit_part2));
+	}
 
 	u = OID_INL_MODE;
 	rvalue |= mgt_commit_list(priv, &u, 1);
 	rvalue |= mgt_update_addr(priv);
 
-	if (rvalue) {
+	if (rvalue)
+	{
 		/* some request have failed. The device might be in an
 		   incoherent state. We should reset it ! */
 		printk(KERN_DEBUG "%s: mgt_commit: failure\n", priv->ndev->name);
 	}
+
 	return rvalue;
 }
 
@@ -733,7 +907,9 @@ mgt_unlatch_all(islpci_private *priv)
 	int rvalue = 0;
 
 	if (islpci_get_state(priv) < PRV_STATE_INIT)
+	{
 		return;
+	}
 
 	u = DOT11_OID_SSID;
 	rvalue = mgt_commit_list(priv, &u, 1);
@@ -750,7 +926,9 @@ mgt_unlatch_all(islpci_private *priv)
 #endif
 
 	if (rvalue)
+	{
 		printk(KERN_DEBUG "%s: Unlatching OIDs failed\n", priv->ndev->name);
+	}
 }
 #endif
 
@@ -766,11 +944,11 @@ mgt_mlme_answer(islpci_private *priv)
 	 */
 	down_read(&priv->mib_sem);
 	mlmeautolevel =
-	    le32_to_cpu(*(u32 *) priv->mib[DOT11_OID_MLMEAUTOLEVEL]);
+		le32_to_cpu(*(u32 *) priv->mib[DOT11_OID_MLMEAUTOLEVEL]);
 	up_read(&priv->mib_sem);
 
 	return ((priv->iw_mode == IW_MODE_MASTER) &&
-		(mlmeautolevel >= DOT11_MLME_INTERMEDIATE));
+			(mlmeautolevel >= DOT11_MLME_INTERMEDIATE));
 }
 
 enum oid_num_t
@@ -780,7 +958,9 @@ mgt_oidtonum(u32 oid)
 
 	for (i = 0; i < OID_NUM_LAST; i++)
 		if (isl_oid[i].oid == oid)
+		{
 			return i;
+		}
 
 	printk(KERN_DEBUG "looking for an unknown oid 0x%x", oid);
 
@@ -790,112 +970,143 @@ mgt_oidtonum(u32 oid)
 int
 mgt_response_to_str(enum oid_num_t n, union oid_res_t *r, char *str)
 {
-	switch (isl_oid[n].flags & OID_FLAG_TYPE) {
-	case OID_TYPE_U32:
-		return snprintf(str, PRIV_STR_SIZE, "%u\n", r->u);
-	case OID_TYPE_BUFFER:{
-			struct obj_buffer *buff = r->ptr;
-			return snprintf(str, PRIV_STR_SIZE,
-					"size=%u\naddr=0x%X\n", buff->size,
-					buff->addr);
-		}
-		break;
-	case OID_TYPE_BSS:{
-			struct obj_bss *bss = r->ptr;
-			return snprintf(str, PRIV_STR_SIZE,
-					"age=%u\nchannel=%u\n"
-					"capinfo=0x%X\nrates=0x%X\n"
-					"basic_rates=0x%X\n", bss->age,
-					bss->channel, bss->capinfo,
-					bss->rates, bss->basic_rates);
-		}
-		break;
-	case OID_TYPE_BSSLIST:{
-			struct obj_bsslist *list = r->ptr;
-			int i, k;
-			k = snprintf(str, PRIV_STR_SIZE, "nr=%u\n", list->nr);
-			for (i = 0; i < list->nr; i++)
-				k += snprintf(str + k, PRIV_STR_SIZE - k,
-					      "bss[%u] :\nage=%u\nchannel=%u\n"
-					      "capinfo=0x%X\nrates=0x%X\n"
-					      "basic_rates=0x%X\n",
-					      i, list->bsslist[i].age,
-					      list->bsslist[i].channel,
-					      list->bsslist[i].capinfo,
-					      list->bsslist[i].rates,
-					      list->bsslist[i].basic_rates);
-			return k;
-		}
-		break;
-	case OID_TYPE_FREQUENCIES:{
-			struct obj_frequencies *freq = r->ptr;
-			int i, t;
-			printk("nr : %u\n", freq->nr);
-			t = snprintf(str, PRIV_STR_SIZE, "nr=%u\n", freq->nr);
-			for (i = 0; i < freq->nr; i++)
-				t += snprintf(str + t, PRIV_STR_SIZE - t,
-					      "mhz[%u]=%u\n", i, freq->mhz[i]);
-			return t;
-		}
-		break;
-	case OID_TYPE_MLME:{
-			struct obj_mlme *mlme = r->ptr;
-			return snprintf(str, PRIV_STR_SIZE,
-					"id=0x%X\nstate=0x%X\ncode=0x%X\n",
-					mlme->id, mlme->state, mlme->code);
-		}
-		break;
-	case OID_TYPE_MLMEEX:{
-			struct obj_mlmeex *mlme = r->ptr;
-			return snprintf(str, PRIV_STR_SIZE,
-					"id=0x%X\nstate=0x%X\n"
-					"code=0x%X\nsize=0x%X\n", mlme->id,
-					mlme->state, mlme->code, mlme->size);
-		}
-		break;
-	case OID_TYPE_ATTACH:{
-			struct obj_attachment *attach = r->ptr;
-			return snprintf(str, PRIV_STR_SIZE,
-					"id=%d\nsize=%d\n",
-					attach->id,
-					attach->size);
-		}
-		break;
-	case OID_TYPE_SSID:{
-			struct obj_ssid *ssid = r->ptr;
-			return snprintf(str, PRIV_STR_SIZE,
-					"length=%u\noctets=%.*s\n",
-					ssid->length, ssid->length,
-					ssid->octets);
-		}
-		break;
-	case OID_TYPE_KEY:{
-			struct obj_key *key = r->ptr;
-			int t, i;
-			t = snprintf(str, PRIV_STR_SIZE,
-				     "type=0x%X\nlength=0x%X\nkey=0x",
-				     key->type, key->length);
-			for (i = 0; i < key->length; i++)
-				t += snprintf(str + t, PRIV_STR_SIZE - t,
-					      "%02X:", key->key[i]);
-			t += snprintf(str + t, PRIV_STR_SIZE - t, "\n");
-			return t;
-		}
-		break;
-	case OID_TYPE_RAW:
-	case OID_TYPE_ADDR:{
-			unsigned char *buff = r->ptr;
-			int t, i;
-			t = snprintf(str, PRIV_STR_SIZE, "hex data=");
-			for (i = 0; i < isl_oid[n].size; i++)
-				t += snprintf(str + t, PRIV_STR_SIZE - t,
-					      "%02X:", buff[i]);
-			t += snprintf(str + t, PRIV_STR_SIZE - t, "\n");
-			return t;
-		}
-		break;
-	default:
-		BUG();
+	switch (isl_oid[n].flags & OID_FLAG_TYPE)
+	{
+		case OID_TYPE_U32:
+			return snprintf(str, PRIV_STR_SIZE, "%u\n", r->u);
+
+		case OID_TYPE_BUFFER:
+			{
+				struct obj_buffer *buff = r->ptr;
+				return snprintf(str, PRIV_STR_SIZE,
+								"size=%u\naddr=0x%X\n", buff->size,
+								buff->addr);
+			}
+			break;
+
+		case OID_TYPE_BSS:
+			{
+				struct obj_bss *bss = r->ptr;
+				return snprintf(str, PRIV_STR_SIZE,
+								"age=%u\nchannel=%u\n"
+								"capinfo=0x%X\nrates=0x%X\n"
+								"basic_rates=0x%X\n", bss->age,
+								bss->channel, bss->capinfo,
+								bss->rates, bss->basic_rates);
+			}
+			break;
+
+		case OID_TYPE_BSSLIST:
+			{
+				struct obj_bsslist *list = r->ptr;
+				int i, k;
+				k = snprintf(str, PRIV_STR_SIZE, "nr=%u\n", list->nr);
+
+				for (i = 0; i < list->nr; i++)
+					k += snprintf(str + k, PRIV_STR_SIZE - k,
+								  "bss[%u] :\nage=%u\nchannel=%u\n"
+								  "capinfo=0x%X\nrates=0x%X\n"
+								  "basic_rates=0x%X\n",
+								  i, list->bsslist[i].age,
+								  list->bsslist[i].channel,
+								  list->bsslist[i].capinfo,
+								  list->bsslist[i].rates,
+								  list->bsslist[i].basic_rates);
+
+				return k;
+			}
+			break;
+
+		case OID_TYPE_FREQUENCIES:
+			{
+				struct obj_frequencies *freq = r->ptr;
+				int i, t;
+				printk("nr : %u\n", freq->nr);
+				t = snprintf(str, PRIV_STR_SIZE, "nr=%u\n", freq->nr);
+
+				for (i = 0; i < freq->nr; i++)
+					t += snprintf(str + t, PRIV_STR_SIZE - t,
+								  "mhz[%u]=%u\n", i, freq->mhz[i]);
+
+				return t;
+			}
+			break;
+
+		case OID_TYPE_MLME:
+			{
+				struct obj_mlme *mlme = r->ptr;
+				return snprintf(str, PRIV_STR_SIZE,
+								"id=0x%X\nstate=0x%X\ncode=0x%X\n",
+								mlme->id, mlme->state, mlme->code);
+			}
+			break;
+
+		case OID_TYPE_MLMEEX:
+			{
+				struct obj_mlmeex *mlme = r->ptr;
+				return snprintf(str, PRIV_STR_SIZE,
+								"id=0x%X\nstate=0x%X\n"
+								"code=0x%X\nsize=0x%X\n", mlme->id,
+								mlme->state, mlme->code, mlme->size);
+			}
+			break;
+
+		case OID_TYPE_ATTACH:
+			{
+				struct obj_attachment *attach = r->ptr;
+				return snprintf(str, PRIV_STR_SIZE,
+								"id=%d\nsize=%d\n",
+								attach->id,
+								attach->size);
+			}
+			break;
+
+		case OID_TYPE_SSID:
+			{
+				struct obj_ssid *ssid = r->ptr;
+				return snprintf(str, PRIV_STR_SIZE,
+								"length=%u\noctets=%.*s\n",
+								ssid->length, ssid->length,
+								ssid->octets);
+			}
+			break;
+
+		case OID_TYPE_KEY:
+			{
+				struct obj_key *key = r->ptr;
+				int t, i;
+				t = snprintf(str, PRIV_STR_SIZE,
+							 "type=0x%X\nlength=0x%X\nkey=0x",
+							 key->type, key->length);
+
+				for (i = 0; i < key->length; i++)
+					t += snprintf(str + t, PRIV_STR_SIZE - t,
+								  "%02X:", key->key[i]);
+
+				t += snprintf(str + t, PRIV_STR_SIZE - t, "\n");
+				return t;
+			}
+			break;
+
+		case OID_TYPE_RAW:
+		case OID_TYPE_ADDR:
+			{
+				unsigned char *buff = r->ptr;
+				int t, i;
+				t = snprintf(str, PRIV_STR_SIZE, "hex data=");
+
+				for (i = 0; i < isl_oid[n].size; i++)
+					t += snprintf(str + t, PRIV_STR_SIZE - t,
+								  "%02X:", buff[i]);
+
+				t += snprintf(str + t, PRIV_STR_SIZE - t, "\n");
+				return t;
+			}
+			break;
+
+		default:
+			BUG();
 	}
+
 	return 0;
 }

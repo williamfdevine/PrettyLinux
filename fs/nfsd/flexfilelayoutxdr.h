@@ -15,14 +15,16 @@ struct xdr_stream;
 
 #define FF_NETID_LEN		(4)
 #define FF_ADDR_LEN		(INET6_ADDRSTRLEN + 8)
-struct pnfs_ff_netaddr {
+struct pnfs_ff_netaddr
+{
 	char				netid[FF_NETID_LEN + 1];
 	char				addr[FF_ADDR_LEN + 1];
 	u32				netid_len;
 	u32				addr_len;
 };
 
-struct pnfs_ff_device_addr {
+struct pnfs_ff_device_addr
+{
 	struct pnfs_ff_netaddr		netaddr;
 	u32				version;
 	u32				minor_version;
@@ -31,7 +33,8 @@ struct pnfs_ff_device_addr {
 	bool				tightly_coupled;
 };
 
-struct pnfs_ff_layout {
+struct pnfs_ff_layout
+{
 	u32				flags;
 	u32				stats_collect_hint;
 	kuid_t				uid;
@@ -42,8 +45,8 @@ struct pnfs_ff_layout {
 };
 
 __be32 nfsd4_ff_encode_getdeviceinfo(struct xdr_stream *xdr,
-		struct nfsd4_getdeviceinfo *gdp);
+									 struct nfsd4_getdeviceinfo *gdp);
 __be32 nfsd4_ff_encode_layoutget(struct xdr_stream *xdr,
-		struct nfsd4_layoutget *lgp);
+								 struct nfsd4_layoutget *lgp);
 
 #endif /* _NFSD_FLEXFILELAYOUTXDR_H */

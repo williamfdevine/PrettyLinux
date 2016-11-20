@@ -65,13 +65,14 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
 #define PCTV_LED_ORANGE 0x02
 
 #define ci_dbg(format, arg...)				\
-do {							\
-	if (0)						\
-		printk(KERN_DEBUG DVB_USB_LOG_PREFIX	\
-			": " format "\n" , ## arg);	\
-} while (0)
+	do {							\
+		if (0)						\
+			printk(KERN_DEBUG DVB_USB_LOG_PREFIX	\
+				   ": " format "\n" , ## arg);	\
+	} while (0)
 
-enum {
+enum
+{
 	TT3650_CMD_CI_TEST = 0x40,
 	TT3650_CMD_CI_RD_CTRL,
 	TT3650_CMD_CI_WR_CTRL,
@@ -82,7 +83,8 @@ enum {
 };
 
 
-static struct stb0899_postproc pctv45e_postproc[] = {
+static struct stb0899_postproc pctv45e_postproc[] =
+{
 	{ PCTV_LED_GPIO, STB0899_GPIOPULLUP },
 	{ 0, 0 }
 };
@@ -90,7 +92,8 @@ static struct stb0899_postproc pctv45e_postproc[] = {
 /*
  * stores all private variables for communication with the PCTV452e DVB-S2
  */
-struct pctv452e_state {
+struct pctv452e_state
+{
 	struct dvb_ca_en50221 ca;
 	struct mutex ca_mutex;
 
@@ -102,14 +105,15 @@ struct pctv452e_state {
 };
 
 static int tt3650_ci_msg(struct dvb_usb_device *d, u8 cmd, u8 *data,
-			 unsigned int write_len, unsigned int read_len)
+						 unsigned int write_len, unsigned int read_len)
 {
 	struct pctv452e_state *state = (struct pctv452e_state *)d->priv;
 	u8 id;
 	unsigned int rlen;
 	int ret;
 
-	if (!data || (write_len > 64 - 4) || (read_len > 64 - 4)) {
+	if (!data || (write_len > 64 - 4) || (read_len > 64 - 4))
+	{
 		err("%s: transfer data invalid", __func__);
 		return -EIO;
 	}
@@ -126,13 +130,19 @@ static int tt3650_ci_msg(struct dvb_usb_device *d, u8 cmd, u8 *data,
 
 	rlen = (read_len > 0) ? 64 : 0;
 	ret = dvb_usb_generic_rw(d, state->data, 4 + write_len,
-				  state->data, rlen, /* delay_ms */ 0);
+							 state->data, rlen, /* delay_ms */ 0);
+
 	if (0 != ret)
+	{
 		goto failed;
+	}
 
 	ret = -EIO;
+
 	if (SYNC_BYTE_IN != state->data[0] || id != state->data[1])
+	{
 		goto failed;
+	}
 
 	memcpy(data, state->data + 4, read_len);
 
@@ -141,15 +151,15 @@ static int tt3650_ci_msg(struct dvb_usb_device *d, u8 cmd, u8 *data,
 
 failed:
 	err("CI error %d; %02X %02X %02X -> %*ph.",
-	     ret, SYNC_BYTE_OUT, id, cmd, 3, state->data);
+		ret, SYNC_BYTE_OUT, id, cmd, 3, state->data);
 
 	mutex_unlock(&state->ca_mutex);
 	return ret;
 }
 
 static int tt3650_ci_msg_locked(struct dvb_ca_en50221 *ca,
-				u8 cmd, u8 *data, unsigned int write_len,
-				unsigned int read_len)
+								u8 cmd, u8 *data, unsigned int write_len,
+								unsigned int read_len)
 {
 	struct dvb_usb_device *d = (struct dvb_usb_device *)ca->data;
 	struct pctv452e_state *state = (struct pctv452e_state *)d->priv;
@@ -163,13 +173,15 @@ static int tt3650_ci_msg_locked(struct dvb_ca_en50221 *ca,
 }
 
 static int tt3650_ci_read_attribute_mem(struct dvb_ca_en50221 *ca,
-				 int slot, int address)
+										int slot, int address)
 {
 	u8 buf[3];
 	int ret;
 
 	if (0 != slot)
+	{
 		return -EINVAL;
+	}
 
 	buf[0] = (address >> 8) & 0x0F;
 	buf[1] = address;
@@ -177,24 +189,28 @@ static int tt3650_ci_read_attribute_mem(struct dvb_ca_en50221 *ca,
 	ret = tt3650_ci_msg_locked(ca, TT3650_CMD_CI_RD_ATTR, buf, 2, 3);
 
 	ci_dbg("%s %04x -> %d 0x%02x",
-		__func__, address, ret, buf[2]);
+		   __func__, address, ret, buf[2]);
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return buf[2];
 }
 
 static int tt3650_ci_write_attribute_mem(struct dvb_ca_en50221 *ca,
-				 int slot, int address, u8 value)
+		int slot, int address, u8 value)
 {
 	u8 buf[3];
 
 	ci_dbg("%s %d 0x%04x 0x%02x",
-		__func__, slot, address, value);
+		   __func__, slot, address, value);
 
 	if (0 != slot)
+	{
 		return -EINVAL;
+	}
 
 	buf[0] = (address >> 8) & 0x0F;
 	buf[1] = address;
@@ -204,40 +220,46 @@ static int tt3650_ci_write_attribute_mem(struct dvb_ca_en50221 *ca,
 }
 
 static int tt3650_ci_read_cam_control(struct dvb_ca_en50221 *ca,
-				 int			slot,
-				 u8			address)
+									  int			slot,
+									  u8			address)
 {
 	u8 buf[2];
 	int ret;
 
 	if (0 != slot)
+	{
 		return -EINVAL;
+	}
 
 	buf[0] = address & 3;
 
 	ret = tt3650_ci_msg_locked(ca, TT3650_CMD_CI_RD_CTRL, buf, 1, 2);
 
 	ci_dbg("%s 0x%02x -> %d 0x%02x",
-		__func__, address, ret, buf[1]);
+		   __func__, address, ret, buf[1]);
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return buf[1];
 }
 
 static int tt3650_ci_write_cam_control(struct dvb_ca_en50221 *ca,
-				 int			slot,
-				 u8			address,
-				 u8			value)
+									   int			slot,
+									   u8			address,
+									   u8			value)
 {
 	u8 buf[2];
 
 	ci_dbg("%s %d 0x%02x 0x%02x",
-		__func__, slot, address, value);
+		   __func__, slot, address, value);
 
 	if (0 != slot)
+	{
 		return -EINVAL;
+	}
 
 	buf[0] = address;
 	buf[1] = value;
@@ -246,8 +268,8 @@ static int tt3650_ci_write_cam_control(struct dvb_ca_en50221 *ca,
 }
 
 static int tt3650_ci_set_video_port(struct dvb_ca_en50221 *ca,
-				 int			slot,
-				 int			enable)
+									int			slot,
+									int			enable)
 {
 	u8 buf[1];
 	int ret;
@@ -255,16 +277,22 @@ static int tt3650_ci_set_video_port(struct dvb_ca_en50221 *ca,
 	ci_dbg("%s %d %d", __func__, slot, enable);
 
 	if (0 != slot)
+	{
 		return -EINVAL;
+	}
 
 	enable = !!enable;
 	buf[0] = enable;
 
 	ret = tt3650_ci_msg_locked(ca, TT3650_CMD_CI_SET_VIDEO_PORT, buf, 1, 1);
-	if (ret < 0)
-		return ret;
 
-	if (enable != buf[0]) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (enable != buf[0])
+	{
 		err("CI not %sabled.", enable ? "en" : "dis");
 		return -EIO;
 	}
@@ -292,23 +320,31 @@ static int tt3650_ci_slot_reset(struct dvb_ca_en50221 *ca, int slot)
 	ci_dbg("%s %d", __func__, slot);
 
 	if (0 != slot)
+	{
 		return -EINVAL;
+	}
 
 	buf[0] = 0;
 
 	mutex_lock(&state->ca_mutex);
 
 	ret = tt3650_ci_msg(d, TT3650_CMD_CI_RESET, buf, 1, 1);
+
 	if (0 != ret)
+	{
 		goto failed;
+	}
 
 	msleep(500);
 
 	buf[0] = 1;
 
 	ret = tt3650_ci_msg(d, TT3650_CMD_CI_RESET, buf, 1, 1);
+
 	if (0 != ret)
+	{
 		goto failed;
+	}
 
 	msleep(500);
 
@@ -316,29 +352,34 @@ static int tt3650_ci_slot_reset(struct dvb_ca_en50221 *ca, int slot)
 
 	ret = tt3650_ci_msg(d, TT3650_CMD_CI_SET_VIDEO_PORT, buf, 1, 1);
 
- failed:
+failed:
 	mutex_unlock(&state->ca_mutex);
 
 	return ret;
 }
 
 static int tt3650_ci_poll_slot_status(struct dvb_ca_en50221 *ca,
-				 int			slot,
-				 int			open)
+									  int			slot,
+									  int			open)
 {
 	u8 buf[1];
 	int ret;
 
 	if (0 != slot)
+	{
 		return -EINVAL;
+	}
 
 	ret = tt3650_ci_msg_locked(ca, TT3650_CMD_CI_TEST, buf, 0, 1);
+
 	if (0 != ret)
+	{
 		return ret;
+	}
 
 	if (1 == buf[0])
 		return DVB_CA_EN50221_POLL_CAM_PRESENT |
-			DVB_CA_EN50221_POLL_CAM_READY;
+			   DVB_CA_EN50221_POLL_CAM_READY;
 
 	return 0;
 
@@ -351,14 +392,21 @@ static void tt3650_ci_uninit(struct dvb_usb_device *d)
 	ci_dbg("%s", __func__);
 
 	if (NULL == d)
+	{
 		return;
+	}
 
 	state = (struct pctv452e_state *)d->priv;
+
 	if (NULL == state)
+	{
 		return;
+	}
 
 	if (NULL == state->ca.data)
+	{
 		return;
+	}
 
 	/* Error ignored. */
 	tt3650_ci_set_video_port(&state->ca, /* slot */ 0, /* enable */ 0);
@@ -390,10 +438,12 @@ static int tt3650_ci_init(struct dvb_usb_adapter *a)
 	state->ca.data = d;
 
 	ret = dvb_ca_en50221_init(&a->dvb_adap,
-				   &state->ca,
-				   /* flags */ 0,
-				   /* n_slots */ 1);
-	if (0 != ret) {
+							  &state->ca,
+							  /* flags */ 0,
+							  /* n_slots */ 1);
+
+	if (0 != ret)
+	{
 		err("Cannot initialize CI: Error %d.", ret);
 		memset(&state->ca, 0, sizeof(state->ca));
 		return ret;
@@ -406,8 +456,8 @@ static int tt3650_ci_init(struct dvb_usb_adapter *a)
 
 #define CMD_BUFFER_SIZE 0x28
 static int pctv452e_i2c_msg(struct dvb_usb_device *d, u8 addr,
-				const u8 *snd_buf, u8 snd_len,
-				u8 *rcv_buf, u8 rcv_len)
+							const u8 *snd_buf, u8 snd_len,
+							u8 *rcv_buf, u8 rcv_len)
 {
 	struct pctv452e_state *state = (struct pctv452e_state *)d->priv;
 	u8 id;
@@ -417,8 +467,11 @@ static int pctv452e_i2c_msg(struct dvb_usb_device *d, u8 addr,
 	id = state->c++;
 
 	ret = -EINVAL;
+
 	if (snd_len > 64 - 7 || rcv_len > 64 - 7)
+	{
 		goto failed;
+	}
 
 	state->data[0] = SYNC_BYTE_OUT;
 	state->data[1] = id;
@@ -431,20 +484,29 @@ static int pctv452e_i2c_msg(struct dvb_usb_device *d, u8 addr,
 	memcpy(state->data + 7, snd_buf, snd_len);
 
 	ret = dvb_usb_generic_rw(d, state->data, 7 + snd_len,
-				  state->data, /* rcv_len */ 64,
-				  /* delay_ms */ 0);
+							 state->data, /* rcv_len */ 64,
+							 /* delay_ms */ 0);
+
 	if (ret < 0)
+	{
 		goto failed;
+	}
 
 	/* TT USB protocol error. */
 	ret = -EIO;
+
 	if (SYNC_BYTE_IN != state->data[0] || id != state->data[1])
+	{
 		goto failed;
+	}
 
 	/* I2C device didn't respond as expected. */
 	ret = -EREMOTEIO;
+
 	if (state->data[5] < snd_len || state->data[6] < rcv_len)
+	{
 		goto failed;
+	}
 
 	memcpy(rcv_buf, state->data + 7, rcv_len);
 	mutex_unlock(&state->ca_mutex);
@@ -453,33 +515,39 @@ static int pctv452e_i2c_msg(struct dvb_usb_device *d, u8 addr,
 
 failed:
 	err("I2C error %d; %02X %02X  %02X %02X %02X -> %*ph",
-	     ret, SYNC_BYTE_OUT, id, addr << 1, snd_len, rcv_len,
-	     7, state->data);
+		ret, SYNC_BYTE_OUT, id, addr << 1, snd_len, rcv_len,
+		7, state->data);
 
 	mutex_unlock(&state->ca_mutex);
 	return ret;
 }
 
 static int pctv452e_i2c_xfer(struct i2c_adapter *adapter, struct i2c_msg *msg,
-				int num)
+							 int num)
 {
 	struct dvb_usb_device *d = i2c_get_adapdata(adapter);
 	int i;
 
 	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+	{
 		return -EAGAIN;
+	}
 
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num; i++)
+	{
 		u8 addr, snd_len, rcv_len, *snd_buf, *rcv_buf;
 		int ret;
 
-		if (msg[i].flags & I2C_M_RD) {
+		if (msg[i].flags & I2C_M_RD)
+		{
 			addr = msg[i].addr;
 			snd_buf = NULL;
 			snd_len = 0;
 			rcv_buf = msg[i].buf;
 			rcv_len = msg[i].len;
-		} else {
+		}
+		else
+		{
 			addr = msg[i].addr;
 			snd_buf = msg[i].buf;
 			snd_len = msg[i].len;
@@ -488,9 +556,12 @@ static int pctv452e_i2c_xfer(struct i2c_adapter *adapter, struct i2c_msg *msg,
 		}
 
 		ret = pctv452e_i2c_msg(d, addr, snd_buf, snd_len, rcv_buf,
-					rcv_len);
+							   rcv_len);
+
 		if (ret < rcv_len)
+		{
 			break;
+		}
 	}
 
 	mutex_unlock(&d->i2c_mutex);
@@ -511,21 +582,29 @@ static int pctv452e_power_ctrl(struct dvb_usb_device *d, int i)
 	info("%s: %d\n", __func__, i);
 
 	if (!i)
+	{
 		return 0;
+	}
 
 	if (state->initialized)
+	{
 		return 0;
+	}
 
 	rx = kmalloc(PCTV_ANSWER_LEN, GFP_KERNEL);
+
 	if (!rx)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_lock(&state->ca_mutex);
 	/* hmm where shoud this should go? */
 	ret = usb_set_interface(d->udev, 0, ISOC_INTERFACE_ALTERNATIVE);
+
 	if (ret != 0)
 		info("%s: Warning set interface returned: %d\n",
-			__func__, ret);
+			 __func__, ret);
 
 	/* this is a one-time initialization, dont know where to put */
 	state->data[0] = 0xaa;
@@ -535,15 +614,21 @@ static int pctv452e_power_ctrl(struct dvb_usb_device *d, int i)
 	state->data[4] = 0;
 	/* reset board */
 	ret = dvb_usb_generic_rw(d, state->data, 5, rx, PCTV_ANSWER_LEN, 0);
+
 	if (ret)
+	{
 		goto ret;
+	}
 
 	state->data[1] = state->c++;
 	state->data[4] = 1;
 	/* reset board (again?) */
 	ret = dvb_usb_generic_rw(d, state->data, 5, rx, PCTV_ANSWER_LEN, 0);
+
 	if (ret)
+	{
 		goto ret;
+	}
 
 	state->initialized = 1;
 
@@ -570,30 +655,42 @@ static int pctv452e_rc_query(struct dvb_usb_device *d)
 
 	/* send ir request */
 	ret = dvb_usb_generic_rw(d, state->data, 4,
-				 state->data, PCTV_ANSWER_LEN, 0);
-	if (ret != 0)
-		goto ret;
+							 state->data, PCTV_ANSWER_LEN, 0);
 
-	if (debug > 3) {
+	if (ret != 0)
+	{
+		goto ret;
+	}
+
+	if (debug > 3)
+	{
 		info("%s: read: %2d: %*ph: ", __func__, ret, 3, state->data);
+
 		for (i = 0; (i < state->data[3]) && ((i + 3) < PCTV_ANSWER_LEN); i++)
+		{
 			info(" %02x", state->data[i + 3]);
+		}
 
 		info("\n");
 	}
 
-	if ((state->data[3] == 9) &&  (state->data[12] & 0x01)) {
+	if ((state->data[3] == 9) &&  (state->data[12] & 0x01))
+	{
 		/* got a "press" event */
 		state->last_rc_key = RC_SCANCODE_RC5(state->data[7], state->data[6]);
+
 		if (debug > 2)
 			info("%s: cmd=0x%02x sys=0x%02x\n",
-				__func__, state->data[6], state->data[7]);
+				 __func__, state->data[6], state->data[7]);
 
 		rc_keydown(d->rc_dev, RC_TYPE_RC5, state->last_rc_key, 0);
-	} else if (state->last_rc_key) {
+	}
+	else if (state->last_rc_key)
+	{
 		rc_keyup(d->rc_dev);
 		state->last_rc_key = 0;
 	}
+
 ret:
 	mutex_unlock(&state->ca_mutex);
 	return ret;
@@ -606,27 +703,36 @@ static int pctv452e_read_mac_address(struct dvb_usb_device *d, u8 mac[6])
 	int ret;
 
 	ret = -EAGAIN;
+
 	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+	{
 		goto failed;
+	}
 
 	ret = pctv452e_i2c_msg(d, I2C_ADDR_24C16,
-				mem_addr + 1, /* snd_len */ 1,
-				encoded_mac, /* rcv_len */ 20);
+						   mem_addr + 1, /* snd_len */ 1,
+						   encoded_mac, /* rcv_len */ 20);
+
 	if (-EREMOTEIO == ret)
 		/* Caution! A 24C16 interprets 0xA2 0x1F 0xCC as a
 		   byte write if /WC is low. */
 		ret = pctv452e_i2c_msg(d, I2C_ADDR_24C64,
-					mem_addr, 2,
-					encoded_mac, 20);
+							   mem_addr, 2,
+							   encoded_mac, 20);
 
 	mutex_unlock(&d->i2c_mutex);
 
 	if (20 != ret)
+	{
 		goto failed;
+	}
 
 	ret = ttpci_eeprom_decode_mac(mac, encoded_mac);
+
 	if (0 != ret)
+	{
 		goto failed;
+	}
 
 	return 0;
 
@@ -636,7 +742,8 @@ failed:
 	return ret;
 }
 
-static const struct stb0899_s1_reg pctv452e_init_dev[] = {
+static const struct stb0899_s1_reg pctv452e_init_dev[] =
+{
 	{ STB0899_DISCNTRL1,	0x26 },
 	{ STB0899_DISCNTRL2,	0x80 },
 	{ STB0899_DISRX_ST0,	0x04 },
@@ -704,7 +811,8 @@ static const struct stb0899_s1_reg pctv452e_init_dev[] = {
 	{ 0xffff,		0xff },
 };
 
-static const struct stb0899_s1_reg pctv452e_init_s1_demod[] = {
+static const struct stb0899_s1_reg pctv452e_init_s1_demod[] =
+{
 	{ STB0899_DEMOD,	0x00 },
 	{ STB0899_RCOMPC,	0xc9 },
 	{ STB0899_AGC1CN,	0x01 },
@@ -837,7 +945,8 @@ static const struct stb0899_s1_reg pctv452e_init_s1_demod[] = {
 	{ 0xffff,		0xff },
 };
 
-static struct stb0899_config stb0899_config = {
+static struct stb0899_config stb0899_config =
+{
 	.init_dev	= pctv452e_init_dev,
 	.init_s2_demod	= stb0899_s2_init_2,
 	.init_s1_demod	= pctv452e_init_s1_demod,
@@ -883,13 +992,15 @@ static struct stb0899_config stb0899_config = {
 	.postproc = pctv45e_postproc
 };
 
-static struct stb6100_config stb6100_config = {
+static struct stb6100_config stb6100_config =
+{
 	.tuner_address = I2C_ADDR_STB6100,
 	.refclock      = 27000000
 };
 
 
-static struct i2c_algorithm pctv452e_i2c_algo = {
+static struct i2c_algorithm pctv452e_i2c_algo =
+{
 	.master_xfer   = pctv452e_i2c_xfer,
 	.functionality = pctv452e_i2c_func
 };
@@ -899,18 +1010,27 @@ static int pctv452e_frontend_attach(struct dvb_usb_adapter *a)
 	struct usb_device_id *id;
 
 	a->fe_adap[0].fe = dvb_attach(stb0899_attach, &stb0899_config,
-						&a->dev->i2c_adap);
+								  &a->dev->i2c_adap);
+
 	if (!a->fe_adap[0].fe)
+	{
 		return -ENODEV;
+	}
+
 	if ((dvb_attach(lnbp22_attach, a->fe_adap[0].fe,
 					&a->dev->i2c_adap)) == NULL)
+	{
 		err("Cannot attach lnbp22\n");
+	}
 
 	id = a->dev->desc->warm_ids[0];
+
 	if (USB_VID_TECHNOTREND == id->idVendor
-	    && USB_PID_TECHNOTREND_CONNECT_S2_3650_CI == id->idProduct)
+		&& USB_PID_TECHNOTREND_CONNECT_S2_3650_CI == id->idProduct)
 		/* Error ignored. */
+	{
 		tt3650_ci_init(a);
+	}
 
 	return 0;
 }
@@ -918,9 +1038,13 @@ static int pctv452e_frontend_attach(struct dvb_usb_adapter *a)
 static int pctv452e_tuner_attach(struct dvb_usb_adapter *a)
 {
 	if (!a->fe_adap[0].fe)
+	{
 		return -ENODEV;
+	}
+
 	if (dvb_attach(stb6100_attach, a->fe_adap[0].fe, &stb6100_config,
-					&a->dev->i2c_adap) == NULL) {
+				   &a->dev->i2c_adap) == NULL)
+	{
 		err("%s failed\n", __func__);
 		return -ENODEV;
 	}
@@ -928,16 +1052,20 @@ static int pctv452e_tuner_attach(struct dvb_usb_adapter *a)
 	return 0;
 }
 
-static struct usb_device_id pctv452e_usb_table[] = {
+static struct usb_device_id pctv452e_usb_table[] =
+{
 	{USB_DEVICE(USB_VID_PINNACLE, USB_PID_PCTV_452E)},
 	{USB_DEVICE(USB_VID_TECHNOTREND, USB_PID_TECHNOTREND_CONNECT_S2_3600)},
-	{USB_DEVICE(USB_VID_TECHNOTREND,
-				USB_PID_TECHNOTREND_CONNECT_S2_3650_CI)},
+	{
+		USB_DEVICE(USB_VID_TECHNOTREND,
+		USB_PID_TECHNOTREND_CONNECT_S2_3650_CI)
+	},
 	{}
 };
 MODULE_DEVICE_TABLE(usb, pctv452e_usb_table);
 
-static struct dvb_usb_device_properties pctv452e_properties = {
+static struct dvb_usb_device_properties pctv452e_properties =
+{
 	.caps = DVB_USB_IS_AN_I2C_ADAPTER, /* more ? */
 	.usb_ctrl = DEVICE_SPECIFIC,
 
@@ -954,26 +1082,28 @@ static struct dvb_usb_device_properties pctv452e_properties = {
 
 	.num_adapters     = 1,
 	.adapter = {{
-		.num_frontends = 1,
-		.fe = {{
-			.frontend_attach  = pctv452e_frontend_attach,
-			.tuner_attach     = pctv452e_tuner_attach,
+			.num_frontends = 1,
+			.fe = {{
+					.frontend_attach  = pctv452e_frontend_attach,
+					.tuner_attach     = pctv452e_tuner_attach,
 
-			/* parameter for the MPEG2-data transfer */
-			.stream = {
-				.type     = USB_ISOC,
-				.count    = 4,
-				.endpoint = 0x02,
-				.u = {
-					.isoc = {
-						.framesperurb = 4,
-						.framesize    = 940,
-						.interval     = 1
-					}
+					/* parameter for the MPEG2-data transfer */
+					.stream = {
+						.type     = USB_ISOC,
+						.count    = 4,
+						.endpoint = 0x02,
+						.u = {
+							.isoc = {
+								.framesperurb = 4,
+								.framesize    = 940,
+								.interval     = 1
+							}
+						}
+					},
 				}
 			},
-		} },
-	} },
+		}
+	},
 
 	.i2c_algo = &pctv452e_i2c_algo,
 
@@ -981,15 +1111,17 @@ static struct dvb_usb_device_properties pctv452e_properties = {
 
 	.num_device_descs = 1,
 	.devices = {
-		{ .name = "PCTV HDTV USB",
-		  .cold_ids = { NULL, NULL }, /* this is a warm only device */
-		  .warm_ids = { &pctv452e_usb_table[0], NULL }
+		{
+			.name = "PCTV HDTV USB",
+			.cold_ids = { NULL, NULL }, /* this is a warm only device */
+			.warm_ids = { &pctv452e_usb_table[0], NULL }
 		},
 		{ NULL },
 	}
 };
 
-static struct dvb_usb_device_properties tt_connect_s2_3600_properties = {
+static struct dvb_usb_device_properties tt_connect_s2_3600_properties =
+{
 	.caps = DVB_USB_IS_AN_I2C_ADAPTER, /* more ? */
 	.usb_ctrl = DEVICE_SPECIFIC,
 
@@ -1007,27 +1139,29 @@ static struct dvb_usb_device_properties tt_connect_s2_3600_properties = {
 
 	.num_adapters		= 1,
 	.adapter = {{
-		.num_frontends = 1,
-		.fe = {{
-			.frontend_attach = pctv452e_frontend_attach,
-			.tuner_attach = pctv452e_tuner_attach,
+			.num_frontends = 1,
+			.fe = {{
+					.frontend_attach = pctv452e_frontend_attach,
+					.tuner_attach = pctv452e_tuner_attach,
 
-			/* parameter for the MPEG2-data transfer */
-			.stream = {
-				.type = USB_ISOC,
-				.count = 4,
-				.endpoint = 0x02,
-				.u = {
-					.isoc = {
-						.framesperurb = 64,
-						.framesize = 940,
-						.interval = 1
-					}
+					/* parameter for the MPEG2-data transfer */
+					.stream = {
+						.type = USB_ISOC,
+						.count = 4,
+						.endpoint = 0x02,
+						.u = {
+							.isoc = {
+								.framesperurb = 64,
+								.framesize = 940,
+								.interval = 1
+							}
+						}
+					},
+
 				}
 			},
-
-		} },
-	} },
+		}
+	},
 
 	.i2c_algo = &pctv452e_i2c_algo,
 
@@ -1035,13 +1169,15 @@ static struct dvb_usb_device_properties tt_connect_s2_3600_properties = {
 
 	.num_device_descs = 2,
 	.devices = {
-		{ .name = "Technotrend TT Connect S2-3600",
-		  .cold_ids = { NULL, NULL }, /* this is a warm only device */
-		  .warm_ids = { &pctv452e_usb_table[1], NULL }
+		{
+			.name = "Technotrend TT Connect S2-3600",
+			.cold_ids = { NULL, NULL }, /* this is a warm only device */
+			.warm_ids = { &pctv452e_usb_table[1], NULL }
 		},
-		{ .name = "Technotrend TT Connect S2-3650-CI",
-		  .cold_ids = { NULL, NULL },
-		  .warm_ids = { &pctv452e_usb_table[2], NULL }
+		{
+			.name = "Technotrend TT Connect S2-3650-CI",
+			.cold_ids = { NULL, NULL },
+			.warm_ids = { &pctv452e_usb_table[2], NULL }
 		},
 		{ NULL },
 	}
@@ -1056,18 +1192,21 @@ static void pctv452e_usb_disconnect(struct usb_interface *intf)
 }
 
 static int pctv452e_usb_probe(struct usb_interface *intf,
-				const struct usb_device_id *id)
+							  const struct usb_device_id *id)
 {
 	if (0 == dvb_usb_device_init(intf, &pctv452e_properties,
-					THIS_MODULE, NULL, adapter_nr) ||
-	    0 == dvb_usb_device_init(intf, &tt_connect_s2_3600_properties,
-					THIS_MODULE, NULL, adapter_nr))
+								 THIS_MODULE, NULL, adapter_nr) ||
+		0 == dvb_usb_device_init(intf, &tt_connect_s2_3600_properties,
+								 THIS_MODULE, NULL, adapter_nr))
+	{
 		return 0;
+	}
 
 	return -ENODEV;
 }
 
-static struct usb_driver pctv452e_usb_driver = {
+static struct usb_driver pctv452e_usb_driver =
+{
 	.name       = "pctv452e",
 	.probe      = pctv452e_usb_probe,
 	.disconnect = pctv452e_usb_disconnect,

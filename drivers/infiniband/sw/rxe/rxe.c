@@ -153,7 +153,7 @@ static int rxe_init_port_param(struct rxe_port *port)
 	port->attr.active_speed		= RXE_PORT_ACTIVE_SPEED;
 	port->attr.phys_state		= RXE_PORT_PHYS_STATE;
 	port->mtu_cap			=
-				ib_mtu_enum_to_int(RXE_PORT_ACTIVE_MTU);
+		ib_mtu_enum_to_int(RXE_PORT_ACTIVE_MTU);
 	port->subnet_prefix		= cpu_to_be64(RXE_PORT_SUBNET_PREFIX);
 
 	return 0;
@@ -169,13 +169,17 @@ static int rxe_init_ports(struct rxe_dev *rxe)
 	rxe_init_port_param(port);
 
 	if (!port->attr.pkey_tbl_len || !port->attr.gid_tbl_len)
+	{
 		return -EINVAL;
+	}
 
 	port->pkey_tbl = kcalloc(port->attr.pkey_tbl_len,
-			sizeof(*port->pkey_tbl), GFP_KERNEL);
+							 sizeof(*port->pkey_tbl), GFP_KERNEL);
 
 	if (!port->pkey_tbl)
+	{
 		return -ENOMEM;
+	}
 
 	port->pkey_tbl[0] = 0xffff;
 	port->port_guid = rxe->ifc_ops->port_guid(rxe);
@@ -191,54 +195,84 @@ static int rxe_init_pools(struct rxe_dev *rxe)
 	int err;
 
 	err = rxe_pool_init(rxe, &rxe->uc_pool, RXE_TYPE_UC,
-			    rxe->max_ucontext);
+						rxe->max_ucontext);
+
 	if (err)
+	{
 		goto err1;
+	}
 
 	err = rxe_pool_init(rxe, &rxe->pd_pool, RXE_TYPE_PD,
-			    rxe->attr.max_pd);
+						rxe->attr.max_pd);
+
 	if (err)
+	{
 		goto err2;
+	}
 
 	err = rxe_pool_init(rxe, &rxe->ah_pool, RXE_TYPE_AH,
-			    rxe->attr.max_ah);
+						rxe->attr.max_ah);
+
 	if (err)
+	{
 		goto err3;
+	}
 
 	err = rxe_pool_init(rxe, &rxe->srq_pool, RXE_TYPE_SRQ,
-			    rxe->attr.max_srq);
+						rxe->attr.max_srq);
+
 	if (err)
+	{
 		goto err4;
+	}
 
 	err = rxe_pool_init(rxe, &rxe->qp_pool, RXE_TYPE_QP,
-			    rxe->attr.max_qp);
+						rxe->attr.max_qp);
+
 	if (err)
+	{
 		goto err5;
+	}
 
 	err = rxe_pool_init(rxe, &rxe->cq_pool, RXE_TYPE_CQ,
-			    rxe->attr.max_cq);
+						rxe->attr.max_cq);
+
 	if (err)
+	{
 		goto err6;
+	}
 
 	err = rxe_pool_init(rxe, &rxe->mr_pool, RXE_TYPE_MR,
-			    rxe->attr.max_mr);
+						rxe->attr.max_mr);
+
 	if (err)
+	{
 		goto err7;
+	}
 
 	err = rxe_pool_init(rxe, &rxe->mw_pool, RXE_TYPE_MW,
-			    rxe->attr.max_mw);
+						rxe->attr.max_mw);
+
 	if (err)
+	{
 		goto err8;
+	}
 
 	err = rxe_pool_init(rxe, &rxe->mc_grp_pool, RXE_TYPE_MC_GRP,
-			    rxe->attr.max_mcast_grp);
+						rxe->attr.max_mcast_grp);
+
 	if (err)
+	{
 		goto err9;
+	}
 
 	err = rxe_pool_init(rxe, &rxe->mc_elem_pool, RXE_TYPE_MC_ELEM,
-			    rxe->attr.max_total_mcast_qp_attach);
+						rxe->attr.max_total_mcast_qp_attach);
+
 	if (err)
+	{
 		goto err10;
+	}
 
 	return 0;
 
@@ -273,12 +307,18 @@ static int rxe_init(struct rxe_dev *rxe)
 	rxe_init_device_param(rxe);
 
 	err = rxe_init_ports(rxe);
+
 	if (err)
+	{
 		goto err1;
+	}
 
 	err = rxe_init_pools(rxe);
+
 	if (err)
+	{
 		goto err2;
+	}
 
 	/* init pending mmap list */
 	spin_lock_init(&rxe->mmap_offset_lock);
@@ -323,16 +363,25 @@ int rxe_add(struct rxe_dev *rxe, unsigned int mtu)
 	kref_init(&rxe->ref_cnt);
 
 	err = rxe_init(rxe);
+
 	if (err)
+	{
 		goto err1;
+	}
 
 	err = rxe_set_mtu(rxe, mtu);
+
 	if (err)
+	{
 		goto err1;
+	}
 
 	err = rxe_register_device(rxe);
+
 	if (err)
+	{
 		goto err1;
+	}
 
 	return 0;
 
@@ -357,14 +406,19 @@ static int __init rxe_module_init(void)
 
 	/* initialize slab caches for managed objects */
 	err = rxe_cache_init();
-	if (err) {
+
+	if (err)
+	{
 		pr_err("unable to init object pools\n");
 		return err;
 	}
 
 	err = rxe_net_init();
+
 	if (err)
+	{
 		return err;
+	}
 
 	pr_info("loaded\n");
 	return 0;

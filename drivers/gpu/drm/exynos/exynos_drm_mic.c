@@ -84,7 +84,8 @@
 
 #define MIC_BS_SIZE_2D(x)	((x) & 0x3fff)
 
-enum {
+enum
+{
 	ENDPOINT_DECON_NODE,
 	ENDPOINT_DSI_NODE,
 	NUM_ENDPOINTS
@@ -94,7 +95,8 @@ static char *clk_names[] = { "pclk_mic0", "sclk_rgb_vclk_to_mic0" };
 #define NUM_CLKS		ARRAY_SIZE(clk_names)
 static DEFINE_MUTEX(mic_mutex);
 
-struct exynos_mic {
+struct exynos_mic
+{
 	struct device *dev;
 	void __iomem *reg;
 	struct regmap *sysreg;
@@ -114,24 +116,37 @@ static void mic_set_path(struct exynos_mic *mic, bool enable)
 	unsigned int val;
 
 	ret = regmap_read(mic->sysreg, DSD_CFG_MUX, &val);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("mic: Failed to read system register\n");
 		return;
 	}
 
-	if (enable) {
+	if (enable)
+	{
 		if (mic->i80_mode)
+		{
 			val |= MIC0_I80_MUX;
+		}
 		else
+		{
 			val |= MIC0_RGB_MUX;
+		}
 
 		val |=  MIC0_ON_MUX;
-	} else
+	}
+	else
+	{
 		val &= ~(MIC0_RGB_MUX | MIC0_I80_MUX | MIC0_ON_MUX);
+	}
 
 	ret = regmap_write(mic->sysreg, DSD_CFG_MUX, val);
+
 	if (ret)
+	{
 		DRM_ERROR("mic: Failed to read system register\n");
+	}
 }
 
 static int mic_sw_reset(struct exynos_mic *mic)
@@ -141,10 +156,14 @@ static int mic_sw_reset(struct exynos_mic *mic)
 
 	writel(MIC_SW_RST, mic->reg + MIC_OP);
 
-	while (retry-- > 0) {
+	while (retry-- > 0)
+	{
 		ret = readl(mic->reg + MIC_OP);
+
 		if (!(ret & MIC_SW_RST))
+		{
 			return 0;
+		}
 
 		udelay(10);
 	}
@@ -158,21 +177,21 @@ static void mic_set_porch_timing(struct exynos_mic *mic)
 	u32 reg;
 
 	reg = MIC_V_PULSE_WIDTH(vm.vsync_len) +
-		MIC_V_PERIOD_LINE(vm.vsync_len + vm.vactive +
-				vm.vback_porch + vm.vfront_porch);
+		  MIC_V_PERIOD_LINE(vm.vsync_len + vm.vactive +
+							vm.vback_porch + vm.vfront_porch);
 	writel(reg, mic->reg + MIC_V_TIMING_0);
 
 	reg = MIC_VBP_SIZE(vm.vback_porch) +
-		MIC_VFP_SIZE(vm.vfront_porch);
+		  MIC_VFP_SIZE(vm.vfront_porch);
 	writel(reg, mic->reg + MIC_V_TIMING_1);
 
 	reg = MIC_V_PULSE_WIDTH(vm.hsync_len) +
-		MIC_V_PERIOD_LINE(vm.hsync_len + vm.hactive +
-				vm.hback_porch + vm.hfront_porch);
+		  MIC_V_PERIOD_LINE(vm.hsync_len + vm.hactive +
+							vm.hback_porch + vm.hfront_porch);
 	writel(reg, mic->reg + MIC_INPUT_TIMING_0);
 
 	reg = MIC_VBP_SIZE(vm.hback_porch) +
-		MIC_VFP_SIZE(vm.hfront_porch);
+		  MIC_VFP_SIZE(vm.hfront_porch);
 	writel(reg, mic->reg + MIC_INPUT_TIMING_1);
 }
 
@@ -182,7 +201,7 @@ static void mic_set_img_size(struct exynos_mic *mic)
 	u32 reg;
 
 	reg = MIC_IMG_H_SIZE(vm->hactive) +
-		MIC_IMG_V_SIZE(vm->vactive);
+		  MIC_IMG_V_SIZE(vm->vactive);
 
 	writel(reg, mic->reg + MIC_IMG_SIZE);
 }
@@ -197,14 +216,15 @@ static void mic_set_output_timing(struct exynos_mic *mic)
 	reg = MIC_BS_SIZE_2D(bs_size_2d);
 	writel(reg, mic->reg + MIC_2D_OUTPUT_TIMING_2);
 
-	if (!mic->i80_mode) {
+	if (!mic->i80_mode)
+	{
 		reg = MIC_H_PULSE_WIDTH_2D(vm.hsync_len) +
-			MIC_H_PERIOD_PIXEL_2D(vm.hsync_len + bs_size_2d +
-					vm.hback_porch + vm.hfront_porch);
+			  MIC_H_PERIOD_PIXEL_2D(vm.hsync_len + bs_size_2d +
+									vm.hback_porch + vm.hfront_porch);
 		writel(reg, mic->reg + MIC_2D_OUTPUT_TIMING_0);
 
 		reg = MIC_HBP_SIZE_2D(vm.hback_porch) +
-			MIC_H_PERIOD_PIXEL_2D(vm.hfront_porch);
+			  MIC_H_PERIOD_PIXEL_2D(vm.hfront_porch);
 		writel(reg, mic->reg + MIC_2D_OUTPUT_TIMING_1);
 	}
 }
@@ -213,14 +233,20 @@ static void mic_set_reg_on(struct exynos_mic *mic, bool enable)
 {
 	u32 reg = readl(mic->reg + MIC_OP);
 
-	if (enable) {
+	if (enable)
+	{
 		reg &= ~(MIC_MODE_SEL_MASK | MIC_CORE_VER_CONTROL | MIC_PSR_EN);
 		reg |= (MIC_CORE_EN | MIC_BS_CHG_OUT | MIC_ON_REG);
 
 		reg  &= ~MIC_MODE_SEL_COMMAND_MODE;
+
 		if (mic->i80_mode)
+		{
 			reg |= MIC_MODE_SEL_COMMAND_MODE;
-	} else {
+		}
+	}
+	else
+	{
 		reg &= ~MIC_CORE_EN;
 	}
 
@@ -233,16 +259,20 @@ static struct device_node *get_remote_node(struct device_node *from, int reg)
 	struct device_node *endpoint = NULL, *remote_node = NULL;
 
 	endpoint = of_graph_get_endpoint_by_regs(from, reg, -1);
-	if (!endpoint) {
+
+	if (!endpoint)
+	{
 		DRM_ERROR("mic: Failed to find remote port from %s",
-				from->full_name);
+				  from->full_name);
 		goto exit;
 	}
 
 	remote_node = of_graph_get_remote_port_parent(endpoint);
-	if (!remote_node) {
+
+	if (!remote_node)
+	{
 		DRM_ERROR("mic: Failed to find remote port parent from %s",
-							from->full_name);
+				  from->full_name);
 		goto exit;
 	}
 
@@ -261,48 +291,66 @@ static int parse_dt(struct exynos_mic *mic)
 	 * The order of endpoints does matter.
 	 * The first node must be for decon and the second one must be for dsi.
 	 */
-	for (i = 0, j = 0; i < NUM_ENDPOINTS; i++) {
+	for (i = 0, j = 0; i < NUM_ENDPOINTS; i++)
+	{
 		remote_node = get_remote_node(mic->dev->of_node, i);
-		if (!remote_node) {
+
+		if (!remote_node)
+		{
 			ret = -EPIPE;
 			goto exit;
 		}
+
 		nodes[j++] = remote_node;
 
-		switch (i) {
-		case ENDPOINT_DECON_NODE:
-			/* decon node */
-			if (of_get_child_by_name(remote_node,
-						"i80-if-timings"))
-				mic->i80_mode = 1;
+		switch (i)
+		{
+			case ENDPOINT_DECON_NODE:
 
-			break;
-		case ENDPOINT_DSI_NODE:
-			/* panel node */
-			remote_node = get_remote_node(remote_node, 1);
-			if (!remote_node) {
-				ret = -EPIPE;
-				goto exit;
-			}
-			nodes[j++] = remote_node;
+				/* decon node */
+				if (of_get_child_by_name(remote_node,
+										 "i80-if-timings"))
+				{
+					mic->i80_mode = 1;
+				}
 
-			ret = of_get_videomode(remote_node,
-							&mic->vm, 0);
-			if (ret) {
-				DRM_ERROR("mic: failed to get videomode");
-				goto exit;
-			}
+				break;
 
-			break;
-		default:
-			DRM_ERROR("mic: Unknown endpoint from MIC");
-			break;
+			case ENDPOINT_DSI_NODE:
+				/* panel node */
+				remote_node = get_remote_node(remote_node, 1);
+
+				if (!remote_node)
+				{
+					ret = -EPIPE;
+					goto exit;
+				}
+
+				nodes[j++] = remote_node;
+
+				ret = of_get_videomode(remote_node,
+									   &mic->vm, 0);
+
+				if (ret)
+				{
+					DRM_ERROR("mic: failed to get videomode");
+					goto exit;
+				}
+
+				break;
+
+			default:
+				DRM_ERROR("mic: Unknown endpoint from MIC");
+				break;
 		}
 	}
 
 exit:
+
 	while (--j > -1)
+	{
 		of_node_put(nodes[j]);
+	}
 
 	return ret;
 }
@@ -315,13 +363,18 @@ static void mic_post_disable(struct drm_bridge *bridge)
 	int i;
 
 	mutex_lock(&mic_mutex);
+
 	if (!mic->enabled)
+	{
 		goto already_disabled;
+	}
 
 	mic_set_path(mic, 0);
 
 	for (i = NUM_CLKS - 1; i > -1; i--)
+	{
 		clk_disable_unprepare(mic->clks[i]);
+	}
 
 	mic->enabled = 0;
 
@@ -335,14 +388,20 @@ static void mic_pre_enable(struct drm_bridge *bridge)
 	int ret, i;
 
 	mutex_lock(&mic_mutex);
-	if (mic->enabled)
-		goto already_enabled;
 
-	for (i = 0; i < NUM_CLKS; i++) {
+	if (mic->enabled)
+	{
+		goto already_enabled;
+	}
+
+	for (i = 0; i < NUM_CLKS; i++)
+	{
 		ret = clk_prepare_enable(mic->clks[i]);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			DRM_ERROR("Failed to enable clock (%s)\n",
-							clk_names[i]);
+					  clk_names[i]);
 			goto turn_off_clks;
 		}
 	}
@@ -350,13 +409,18 @@ static void mic_pre_enable(struct drm_bridge *bridge)
 	mic_set_path(mic, 1);
 
 	ret = mic_sw_reset(mic);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("Failed to reset\n");
 		goto turn_off_clks;
 	}
 
 	if (!mic->i80_mode)
+	{
 		mic_set_porch_timing(mic);
+	}
+
 	mic_set_img_size(mic);
 	mic_set_output_timing(mic);
 	mic_set_reg_on(mic, 1);
@@ -366,15 +430,20 @@ static void mic_pre_enable(struct drm_bridge *bridge)
 	return;
 
 turn_off_clks:
+
 	while (--i > -1)
+	{
 		clk_disable_unprepare(mic->clks[i]);
+	}
+
 already_enabled:
 	mutex_unlock(&mic_mutex);
 }
 
 static void mic_enable(struct drm_bridge *bridge) { }
 
-static const struct drm_bridge_funcs mic_bridge_funcs = {
+static const struct drm_bridge_funcs mic_bridge_funcs =
+{
 	.disable = mic_disable,
 	.post_disable = mic_post_disable,
 	.pre_enable = mic_pre_enable,
@@ -382,7 +451,7 @@ static const struct drm_bridge_funcs mic_bridge_funcs = {
 };
 
 static int exynos_mic_bind(struct device *dev, struct device *master,
-			   void *data)
+						   void *data)
 {
 	struct exynos_mic *mic = dev_get_drvdata(dev);
 	int ret;
@@ -391,24 +460,32 @@ static int exynos_mic_bind(struct device *dev, struct device *master,
 	mic->bridge.of_node = dev->of_node;
 	mic->bridge.driver_private = mic;
 	ret = drm_bridge_add(&mic->bridge);
+
 	if (ret)
+	{
 		DRM_ERROR("mic: Failed to add MIC to the global bridge list\n");
+	}
 
 	return ret;
 }
 
 static void exynos_mic_unbind(struct device *dev, struct device *master,
-			      void *data)
+							  void *data)
 {
 	struct exynos_mic *mic = dev_get_drvdata(dev);
 	int i;
 
 	mutex_lock(&mic_mutex);
+
 	if (!mic->enabled)
+	{
 		goto already_disabled;
+	}
 
 	for (i = NUM_CLKS - 1; i > -1; i--)
+	{
 		clk_disable_unprepare(mic->clks[i]);
+	}
 
 already_disabled:
 	mutex_unlock(&mic_mutex);
@@ -416,7 +493,8 @@ already_disabled:
 	drm_bridge_remove(&mic->bridge);
 }
 
-static const struct component_ops exynos_mic_component_ops = {
+static const struct component_ops exynos_mic_component_ops =
+{
 	.bind	= exynos_mic_bind,
 	.unbind	= exynos_mic_unbind,
 };
@@ -429,7 +507,9 @@ static int exynos_mic_probe(struct platform_device *pdev)
 	int ret, i;
 
 	mic = devm_kzalloc(dev, sizeof(*mic), GFP_KERNEL);
-	if (!mic) {
+
+	if (!mic)
+	{
 		DRM_ERROR("mic: Failed to allocate memory for MIC object\n");
 		ret = -ENOMEM;
 		goto err;
@@ -438,34 +518,47 @@ static int exynos_mic_probe(struct platform_device *pdev)
 	mic->dev = dev;
 
 	ret = parse_dt(mic);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = of_address_to_resource(dev->of_node, 0, &res);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("mic: Failed to get mem region for MIC\n");
 		goto err;
 	}
+
 	mic->reg = devm_ioremap(dev, res.start, resource_size(&res));
-	if (!mic->reg) {
+
+	if (!mic->reg)
+	{
 		DRM_ERROR("mic: Failed to remap for MIC\n");
 		ret = -ENOMEM;
 		goto err;
 	}
 
 	mic->sysreg = syscon_regmap_lookup_by_phandle(dev->of_node,
-							"samsung,disp-syscon");
-	if (IS_ERR(mic->sysreg)) {
+				  "samsung,disp-syscon");
+
+	if (IS_ERR(mic->sysreg))
+	{
 		DRM_ERROR("mic: Failed to get system register.\n");
 		ret = PTR_ERR(mic->sysreg);
 		goto err;
 	}
 
-	for (i = 0; i < NUM_CLKS; i++) {
+	for (i = 0; i < NUM_CLKS; i++)
+	{
 		mic->clks[i] = devm_clk_get(dev, clk_names[i]);
-		if (IS_ERR(mic->clks[i])) {
+
+		if (IS_ERR(mic->clks[i]))
+		{
 			DRM_ERROR("mic: Failed to get clock (%s)\n",
-								clk_names[i]);
+					  clk_names[i]);
 			ret = PTR_ERR(mic->clks[i]);
 			goto err;
 		}
@@ -486,13 +579,15 @@ static int exynos_mic_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id exynos_mic_of_match[] = {
+static const struct of_device_id exynos_mic_of_match[] =
+{
 	{ .compatible = "samsung,exynos5433-mic" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, exynos_mic_of_match);
 
-struct platform_driver mic_driver = {
+struct platform_driver mic_driver =
+{
 	.probe		= exynos_mic_probe,
 	.remove		= exynos_mic_remove,
 	.driver		= {

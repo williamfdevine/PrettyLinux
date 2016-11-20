@@ -31,7 +31,8 @@
 
 #define RPC_IOSTATS_VERS	"1.0"
 
-struct rpc_iostats {
+struct rpc_iostats
+{
 	spinlock_t		om_lock;
 
 	/*
@@ -43,8 +44,8 @@ struct rpc_iostats {
 	 * requests are large and the network is congested.
 	 */
 	unsigned long		om_ops,		/* count of operations */
-				om_ntrans,	/* count of RPC transmissions */
-				om_timeouts;	/* count of major timeouts */
+				  om_ntrans,	/* count of RPC transmissions */
+				  om_timeouts;	/* count of major timeouts */
 
 	/*
 	 * These count how many bytes are sent and received for a
@@ -54,7 +55,7 @@ struct rpc_iostats {
 	 * payload.
 	 */
 	unsigned long long      om_bytes_sent,	/* count of bytes out */
-				om_bytes_recv;	/* count of bytes in */
+			 om_bytes_recv;	/* count of bytes in */
 
 	/*
 	 * The length of time an RPC request waits in queue before
@@ -63,8 +64,8 @@ struct rpc_iostats {
 	 * are measured.
 	 */
 	ktime_t			om_queue,	/* queued for xmit */
-				om_rtt,		/* RPC RTT */
-				om_execute;	/* RPC execution */
+					om_rtt,		/* RPC RTT */
+					om_execute;	/* RPC execution */
 } ____cacheline_aligned;
 
 struct rpc_task;
@@ -76,11 +77,11 @@ struct rpc_clnt;
 
 #ifdef CONFIG_PROC_FS
 
-struct rpc_iostats *	rpc_alloc_iostats(struct rpc_clnt *);
+struct rpc_iostats 	*rpc_alloc_iostats(struct rpc_clnt *);
 void			rpc_count_iostats(const struct rpc_task *,
-					  struct rpc_iostats *);
+								  struct rpc_iostats *);
 void			rpc_count_iostats_metrics(const struct rpc_task *,
-					  struct rpc_iostats *);
+		struct rpc_iostats *);
 void			rpc_print_iostats(struct seq_file *, struct rpc_clnt *);
 void			rpc_free_iostats(struct rpc_iostats *);
 
@@ -88,9 +89,9 @@ void			rpc_free_iostats(struct rpc_iostats *);
 
 static inline struct rpc_iostats *rpc_alloc_iostats(struct rpc_clnt *clnt) { return NULL; }
 static inline void rpc_count_iostats(const struct rpc_task *task,
-				     struct rpc_iostats *stats) {}
+									 struct rpc_iostats *stats) {}
 static inline void rpc_count_iostats_metrics(const struct rpc_task *task,
-					     struct rpc_iostats *stats)
+		struct rpc_iostats *stats)
 {
 }
 

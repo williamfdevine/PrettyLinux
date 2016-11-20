@@ -25,7 +25,8 @@
 #define SYNCIO_FRMLEN(x)	((x) << 8)
 #define SYNCIO_TXFRMEN		(1 << 14)
 
-struct spi_clps711x_data {
+struct spi_clps711x_data
+{
 	void __iomem		*syncio;
 	struct regmap		*syscon;
 	struct clk		*spi_clk;
@@ -38,13 +39,17 @@ struct spi_clps711x_data {
 
 static int spi_clps711x_setup(struct spi_device *spi)
 {
-	if (!spi->controller_state) {
+	if (!spi->controller_state)
+	{
 		int ret;
 
 		ret = devm_gpio_request(&spi->master->dev, spi->cs_gpio,
-					dev_name(&spi->master->dev));
+								dev_name(&spi->master->dev));
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		spi->controller_state = spi;
 	}
@@ -56,20 +61,20 @@ static int spi_clps711x_setup(struct spi_device *spi)
 }
 
 static int spi_clps711x_prepare_message(struct spi_master *master,
-					struct spi_message *msg)
+										struct spi_message *msg)
 {
 	struct spi_clps711x_data *hw = spi_master_get_devdata(master);
 	struct spi_device *spi = msg->spi;
 
 	/* Setup mode for transfer */
 	return regmap_update_bits(hw->syscon, SYSCON_OFFSET, SYSCON3_ADCCKNSEN,
-				  (spi->mode & SPI_CPHA) ?
-				  SYSCON3_ADCCKNSEN : 0);
+							  (spi->mode & SPI_CPHA) ?
+							  SYSCON3_ADCCKNSEN : 0);
 }
 
 static int spi_clps711x_transfer_one(struct spi_master *master,
-				     struct spi_device *spi,
-				     struct spi_transfer *xfer)
+									 struct spi_device *spi,
+									 struct spi_transfer *xfer)
 {
 	struct spi_clps711x_data *hw = spi_master_get_devdata(master);
 	u8 data;
@@ -96,16 +101,23 @@ static irqreturn_t spi_clps711x_isr(int irq, void *dev_id)
 
 	/* Handle RX */
 	data = readb(hw->syncio);
+
 	if (hw->rx_buf)
+	{
 		*hw->rx_buf++ = data;
+	}
 
 	/* Handle TX */
-	if (--hw->len > 0) {
+	if (--hw->len > 0)
+	{
 		data = hw->tx_buf ? *hw->tx_buf++ : 0;
 		writel(data | SYNCIO_FRMLEN(hw->bpw) | SYNCIO_TXFRMEN,
-		       hw->syncio);
-	} else
+			   hw->syncio);
+	}
+	else
+	{
 		spi_finalize_current_transfer(master);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -118,12 +130,18 @@ static int spi_clps711x_probe(struct platform_device *pdev)
 	int irq, ret;
 
 	irq = platform_get_irq(pdev, 0);
+
 	if (irq < 0)
+	{
 		return irq;
+	}
 
 	master = spi_alloc_master(&pdev->dev, sizeof(*hw));
+
 	if (!master)
+	{
 		return -ENOMEM;
+	}
 
 	master->bus_num = -1;
 	master->mode_bits = SPI_CPHA | SPI_CS_HIGH;
@@ -136,21 +154,27 @@ static int spi_clps711x_probe(struct platform_device *pdev)
 	hw = spi_master_get_devdata(master);
 
 	hw->spi_clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(hw->spi_clk)) {
+
+	if (IS_ERR(hw->spi_clk))
+	{
 		ret = PTR_ERR(hw->spi_clk);
 		goto err_out;
 	}
 
 	hw->syscon =
 		syscon_regmap_lookup_by_compatible("cirrus,ep7209-syscon3");
-	if (IS_ERR(hw->syscon)) {
+
+	if (IS_ERR(hw->syscon))
+	{
 		ret = PTR_ERR(hw->syscon);
 		goto err_out;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	hw->syncio = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(hw->syncio)) {
+
+	if (IS_ERR(hw->syncio))
+	{
 		ret = PTR_ERR(hw->syncio);
 		goto err_out;
 	}
@@ -162,13 +186,19 @@ static int spi_clps711x_probe(struct platform_device *pdev)
 	readl(hw->syncio);
 
 	ret = devm_request_irq(&pdev->dev, irq, spi_clps711x_isr, 0,
-			       dev_name(&pdev->dev), master);
+						   dev_name(&pdev->dev), master);
+
 	if (ret)
+	{
 		goto err_out;
+	}
 
 	ret = devm_spi_register_master(&pdev->dev, master);
+
 	if (!ret)
+	{
 		return 0;
+	}
 
 err_out:
 	spi_master_put(master);
@@ -176,13 +206,15 @@ err_out:
 	return ret;
 }
 
-static const struct of_device_id clps711x_spi_dt_ids[] = {
+static const struct of_device_id clps711x_spi_dt_ids[] =
+{
 	{ .compatible = "cirrus,ep7209-spi", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, clps711x_spi_dt_ids);
 
-static struct platform_driver clps711x_spi_driver = {
+static struct platform_driver clps711x_spi_driver =
+{
 	.driver	= {
 		.name	= DRIVER_NAME,
 		.of_match_table = clps711x_spi_dt_ids,

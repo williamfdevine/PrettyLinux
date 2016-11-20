@@ -1,7 +1,8 @@
 #ifndef __NVIF_CL507A_H__
 #define __NVIF_CL507A_H__
 
-struct nv50_disp_cursor_v0 {
+struct nv50_disp_cursor_v0
+{
 	__u8  version;
 	__u8  head;
 	__u8  pad02[6];

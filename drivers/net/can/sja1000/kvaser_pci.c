@@ -49,10 +49,11 @@ MODULE_LICENSE("GPL v2");
 
 #define MAX_NO_OF_CHANNELS        4 /* max no of channels on a single card */
 
-struct kvaser_pci {
+struct kvaser_pci
+{
 	int channel;
 	struct pci_dev *pci_dev;
-	struct net_device *slave_dev[MAX_NO_OF_CHANNELS-1];
+	struct net_device *slave_dev[MAX_NO_OF_CHANNELS - 1];
 	void __iomem *conf_addr;
 	void __iomem *res_addr;
 	int no_channels;
@@ -107,7 +108,8 @@ struct kvaser_pci {
 #define KVASER_PCI_VENDOR_ID2     0x1a07    /* the PCI device and vendor IDs */
 #define KVASER_PCI_DEVICE_ID2     0x0008
 
-static const struct pci_device_id kvaser_pci_tbl[] = {
+static const struct pci_device_id kvaser_pci_tbl[] =
+{
 	{KVASER_PCI_VENDOR_ID1, KVASER_PCI_DEVICE_ID1, PCI_ANY_ID, PCI_ANY_ID,},
 	{KVASER_PCI_VENDOR_ID2, KVASER_PCI_DEVICE_ID2, PCI_ANY_ID, PCI_ANY_ID,},
 	{ 0,}
@@ -121,7 +123,7 @@ static u8 kvaser_pci_read_reg(const struct sja1000_priv *priv, int port)
 }
 
 static void kvaser_pci_write_reg(const struct sja1000_priv *priv,
-				 int port, u8 val)
+								 int port, u8 val)
 {
 	iowrite8(val, priv->reg_base + port);
 }
@@ -155,15 +157,19 @@ static int number_of_sja1000_chip(void __iomem *base_addr)
 	u8 status;
 	int i;
 
-	for (i = 0; i < MAX_NO_OF_CHANNELS; i++) {
+	for (i = 0; i < MAX_NO_OF_CHANNELS; i++)
+	{
 		/* reset chip */
 		iowrite8(MOD_RM, base_addr +
-			 (i * KVASER_PCI_PORT_BYTES) + SJA1000_MOD);
-		status = ioread8(base_addr +
 				 (i * KVASER_PCI_PORT_BYTES) + SJA1000_MOD);
+		status = ioread8(base_addr +
+						 (i * KVASER_PCI_PORT_BYTES) + SJA1000_MOD);
+
 		/* check reset bit */
 		if (!(status & MOD_RM))
+		{
 			break;
+		}
 	}
 
 	return i;
@@ -176,26 +182,35 @@ static void kvaser_pci_del_chan(struct net_device *dev)
 	int i;
 
 	if (!dev)
+	{
 		return;
+	}
+
 	priv = netdev_priv(dev);
 	board = priv->priv;
+
 	if (!board)
+	{
 		return;
+	}
 
 	dev_info(&board->pci_dev->dev, "Removing device %s\n",
-		 dev->name);
+			 dev->name);
 
 	/* Disable PCI interrupts */
 	kvaser_pci_disable_irq(dev);
 
-	for (i = 0; i < board->no_channels - 1; i++) {
-		if (board->slave_dev[i]) {
+	for (i = 0; i < board->no_channels - 1; i++)
+	{
+		if (board->slave_dev[i])
+		{
 			dev_info(&board->pci_dev->dev, "Removing device %s\n",
-				 board->slave_dev[i]->name);
+					 board->slave_dev[i]->name);
 			unregister_sja1000dev(board->slave_dev[i]);
 			free_sja1000dev(board->slave_dev[i]);
 		}
 	}
+
 	unregister_sja1000dev(dev);
 
 	pci_iounmap(board->pci_dev, priv->reg_base);
@@ -206,10 +221,10 @@ static void kvaser_pci_del_chan(struct net_device *dev)
 }
 
 static int kvaser_pci_add_chan(struct pci_dev *pdev, int channel,
-			       struct net_device **master_dev,
-			       void __iomem *conf_addr,
-			       void __iomem *res_addr,
-			       void __iomem *base_addr)
+							   struct net_device **master_dev,
+							   void __iomem *conf_addr,
+							   void __iomem *res_addr,
+							   void __iomem *base_addr)
 {
 	struct net_device *dev;
 	struct sja1000_priv *priv;
@@ -217,8 +232,11 @@ static int kvaser_pci_add_chan(struct pci_dev *pdev, int channel,
 	int err;
 
 	dev = alloc_sja1000dev(sizeof(struct kvaser_pci));
+
 	if (dev == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	priv = netdev_priv(dev);
 	board = priv->priv;
@@ -232,7 +250,8 @@ static int kvaser_pci_add_chan(struct pci_dev *pdev, int channel,
 	/* XILINX board wide address */
 	board->res_addr = res_addr;
 
-	if (channel == 0) {
+	if (channel == 0)
+	{
 		board->xilinx_ver =
 			ioread8(board->res_addr + XILINX_VERINT) >> 4;
 
@@ -242,7 +261,9 @@ static int kvaser_pci_add_chan(struct pci_dev *pdev, int channel,
 
 		/* Enable interrupts from card */
 		kvaser_pci_enable_irq(dev);
-	} else {
+	}
+	else
+	{
 		struct sja1000_priv *master_priv = netdev_priv(*master_dev);
 		struct kvaser_pci *master_board = master_priv->priv;
 		master_board->slave_dev[channel - 1] = dev;
@@ -264,21 +285,25 @@ static int kvaser_pci_add_chan(struct pci_dev *pdev, int channel,
 	dev->irq = pdev->irq;
 
 	dev_info(&pdev->dev, "reg_base=%p conf_addr=%p irq=%d\n",
-		 priv->reg_base, board->conf_addr, dev->irq);
+			 priv->reg_base, board->conf_addr, dev->irq);
 
 	SET_NETDEV_DEV(dev, &pdev->dev);
 	dev->dev_id = channel;
 
 	/* Register SJA1000 device */
 	err = register_sja1000dev(dev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Registering device failed (err=%d)\n",
-			err);
+				err);
 		goto failure;
 	}
 
 	if (channel == 0)
+	{
 		*master_dev = dev;
+	}
 
 	return 0;
 
@@ -288,7 +313,7 @@ failure:
 }
 
 static int kvaser_pci_init_one(struct pci_dev *pdev,
-			       const struct pci_device_id *ent)
+							   const struct pci_device_id *ent)
 {
 	int err;
 	struct net_device *master_dev = NULL;
@@ -301,55 +326,73 @@ static int kvaser_pci_init_one(struct pci_dev *pdev,
 	int i;
 
 	dev_info(&pdev->dev, "initializing device %04x:%04x\n",
-		 pdev->vendor, pdev->device);
+			 pdev->vendor, pdev->device);
 
 	err = pci_enable_device(pdev);
+
 	if (err)
+	{
 		goto failure;
+	}
 
 	err = pci_request_regions(pdev, DRV_NAME);
+
 	if (err)
+	{
 		goto failure_release_pci;
+	}
 
 	/* S5920 */
 	conf_addr = pci_iomap(pdev, 0, PCI_CONFIG_PORT_SIZE);
-	if (conf_addr == NULL) {
+
+	if (conf_addr == NULL)
+	{
 		err = -ENODEV;
 		goto failure_release_regions;
 	}
 
 	/* XILINX board wide address */
 	res_addr = pci_iomap(pdev, 2, PCI_PORT_XILINX_SIZE);
-	if (res_addr == NULL) {
+
+	if (res_addr == NULL)
+	{
 		err = -ENOMEM;
 		goto failure_iounmap;
 	}
 
 	base_addr = pci_iomap(pdev, 1, PCI_PORT_SIZE);
-	if (base_addr == NULL) {
+
+	if (base_addr == NULL)
+	{
 		err = -ENOMEM;
 		goto failure_iounmap;
 	}
 
 	no_channels = number_of_sja1000_chip(base_addr);
-	if (no_channels == 0) {
+
+	if (no_channels == 0)
+	{
 		err = -ENOMEM;
 		goto failure_iounmap;
 	}
 
-	for (i = 0; i < no_channels; i++) {
+	for (i = 0; i < no_channels; i++)
+	{
 		err = kvaser_pci_add_chan(pdev, i, &master_dev,
-					  conf_addr, res_addr,
-					  base_addr);
+								  conf_addr, res_addr,
+								  base_addr);
+
 		if (err)
+		{
 			goto failure_cleanup;
+		}
 	}
 
 	priv = netdev_priv(master_dev);
 	board = priv->priv;
 
 	dev_info(&pdev->dev, "xilinx version=%d number of channels=%d\n",
-		 board->xilinx_ver, board->no_channels);
+			 board->xilinx_ver, board->no_channels);
 
 	pci_set_drvdata(pdev, master_dev);
 	return 0;
@@ -358,12 +401,21 @@ failure_cleanup:
 	kvaser_pci_del_chan(master_dev);
 
 failure_iounmap:
+
 	if (conf_addr != NULL)
+	{
 		pci_iounmap(pdev, conf_addr);
+	}
+
 	if (res_addr != NULL)
+	{
 		pci_iounmap(pdev, res_addr);
+	}
+
 	if (base_addr != NULL)
+	{
 		pci_iounmap(pdev, base_addr);
+	}
 
 failure_release_regions:
 	pci_release_regions(pdev);
@@ -386,7 +438,8 @@ static void kvaser_pci_remove_one(struct pci_dev *pdev)
 	pci_disable_device(pdev);
 }
 
-static struct pci_driver kvaser_pci_driver = {
+static struct pci_driver kvaser_pci_driver =
+{
 	.name = DRV_NAME,
 	.id_table = kvaser_pci_tbl,
 	.probe = kvaser_pci_init_one,

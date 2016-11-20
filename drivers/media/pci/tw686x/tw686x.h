@@ -35,37 +35,43 @@
 #define TW686X_DMA_MODE_CONTIG		1
 #define TW686X_DMA_MODE_SG		2
 
-struct tw686x_format {
+struct tw686x_format
+{
 	char *name;
 	unsigned int fourcc;
 	unsigned int depth;
 	unsigned int mode;
 };
 
-struct tw686x_dma_desc {
+struct tw686x_dma_desc
+{
 	dma_addr_t phys;
 	void *virt;
 	unsigned int size;
 };
 
-struct tw686x_sg_desc {
+struct tw686x_sg_desc
+{
 	/* 3 MSBits for flags, 13 LSBits for length */
 	__le32 flags_length;
 	__le32 phys;
 };
 
-struct tw686x_audio_buf {
+struct tw686x_audio_buf
+{
 	dma_addr_t dma;
 	void *virt;
 	struct list_head list;
 };
 
-struct tw686x_v4l2_buf {
+struct tw686x_v4l2_buf
+{
 	struct vb2_v4l2_buffer vb;
 	struct list_head list;
 };
 
-struct tw686x_audio_channel {
+struct tw686x_audio_channel
+{
 	struct tw686x_dev *dev;
 	struct snd_pcm_substream *ss;
 	unsigned int ch;
@@ -78,7 +84,8 @@ struct tw686x_audio_channel {
 	spinlock_t lock;
 };
 
-struct tw686x_video_channel {
+struct tw686x_video_channel
+{
 	struct tw686x_dev *dev;
 
 	struct vb2_queue vidq;
@@ -104,7 +111,8 @@ struct tw686x_video_channel {
 	bool no_signal;
 };
 
-struct tw686x_dma_ops {
+struct tw686x_dma_ops
+{
 	int (*setup)(struct tw686x_dev *dev);
 	int (*alloc)(struct tw686x_video_channel *vc, unsigned int pb);
 	void (*free)(struct tw686x_video_channel *vc, unsigned int pb);
@@ -119,7 +127,8 @@ struct tw686x_dma_ops {
  * @lock: spinlock controlling access to the
  *        shared device registers (DMA enable/disable).
  */
-struct tw686x_dev {
+struct tw686x_dev
+{
 	spinlock_t lock;
 
 	struct v4l2_device v4l2_dev;
@@ -151,7 +160,7 @@ static inline uint32_t reg_read(struct tw686x_dev *dev, unsigned int reg)
 }
 
 static inline void reg_write(struct tw686x_dev *dev, unsigned int reg,
-			     uint32_t value)
+							 uint32_t value)
 {
 	writel(value, dev->mmio + reg);
 }
@@ -173,10 +182,10 @@ void tw686x_disable_channel(struct tw686x_dev *dev, unsigned int channel);
 int tw686x_video_init(struct tw686x_dev *dev);
 void tw686x_video_free(struct tw686x_dev *dev);
 void tw686x_video_irq(struct tw686x_dev *dev, unsigned long requests,
-		      unsigned int pb_status, unsigned int fifo_status,
-		      unsigned int *reset_ch);
+					  unsigned int pb_status, unsigned int fifo_status,
+					  unsigned int *reset_ch);
 
 int tw686x_audio_init(struct tw686x_dev *dev);
 void tw686x_audio_free(struct tw686x_dev *dev);
 void tw686x_audio_irq(struct tw686x_dev *dev, unsigned long requests,
-		      unsigned int pb_status);
+					  unsigned int pb_status);

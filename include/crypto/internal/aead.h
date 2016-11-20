@@ -1,11 +1,11 @@
 /*
  * AEAD: Authenticated Encryption with Associated Data
- * 
+ *
  * Copyright (c) 2007-2015 Herbert Xu <herbert@gondor.apana.org.au>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option) 
+ * Software Foundation; either version 2 of the License, or (at your option)
  * any later version.
  *
  */
@@ -20,10 +20,13 @@
 
 struct rtattr;
 
-struct aead_instance {
+struct aead_instance
+{
 	void (*free)(struct aead_instance *inst);
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			char head[offsetof(struct aead_alg, base)];
 			struct crypto_instance base;
 		} s;
@@ -31,11 +34,13 @@ struct aead_instance {
 	};
 };
 
-struct crypto_aead_spawn {
+struct crypto_aead_spawn
+{
 	struct crypto_spawn base;
 };
 
-struct aead_queue {
+struct aead_queue
+{
 	struct crypto_queue base;
 };
 
@@ -93,7 +98,7 @@ static inline void crypto_set_aead_spawn(
 }
 
 int crypto_grab_aead(struct crypto_aead_spawn *spawn, const char *name,
-		     u32 type, u32 mask);
+					 u32 type, u32 mask);
 
 static inline void crypto_drop_aead(struct crypto_aead_spawn *spawn)
 {
@@ -113,7 +118,7 @@ static inline struct crypto_aead *crypto_spawn_aead(
 }
 
 static inline void crypto_aead_set_reqsize(struct crypto_aead *aead,
-					   unsigned int reqsize)
+		unsigned int reqsize)
 {
 	aead->reqsize = reqsize;
 }
@@ -129,13 +134,13 @@ static inline unsigned int crypto_aead_maxauthsize(struct crypto_aead *aead)
 }
 
 static inline void aead_init_queue(struct aead_queue *queue,
-				   unsigned int max_qlen)
+								   unsigned int max_qlen)
 {
 	crypto_init_queue(&queue->base, max_qlen);
 }
 
 static inline int aead_enqueue_request(struct aead_queue *queue,
-				       struct aead_request *request)
+									   struct aead_request *request)
 {
 	return crypto_enqueue_request(&queue->base, &request->base);
 }
@@ -185,7 +190,7 @@ void crypto_unregister_aead(struct aead_alg *alg);
 int crypto_register_aeads(struct aead_alg *algs, int count);
 void crypto_unregister_aeads(struct aead_alg *algs, int count);
 int aead_register_instance(struct crypto_template *tmpl,
-			   struct aead_instance *inst);
+						   struct aead_instance *inst);
 
 #endif	/* _CRYPTO_INTERNAL_AEAD_H */
 

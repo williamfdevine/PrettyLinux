@@ -32,12 +32,17 @@ module_param_named(bpp, cirrus_bpp, int, 0400);
 static struct drm_driver driver;
 
 /* only bind to the cirrus chip in qemu */
-static const struct pci_device_id pciidlist[] = {
-	{ PCI_VENDOR_ID_CIRRUS, PCI_DEVICE_ID_CIRRUS_5446,
-	  PCI_SUBVENDOR_ID_REDHAT_QUMRANET, PCI_SUBDEVICE_ID_QEMU,
-	  0, 0, 0 },
-	{ PCI_VENDOR_ID_CIRRUS, PCI_DEVICE_ID_CIRRUS_5446, PCI_VENDOR_ID_XEN,
-	  0x0001, 0, 0, 0 },
+static const struct pci_device_id pciidlist[] =
+{
+	{
+		PCI_VENDOR_ID_CIRRUS, PCI_DEVICE_ID_CIRRUS_5446,
+		PCI_SUBVENDOR_ID_REDHAT_QUMRANET, PCI_SUBDEVICE_ID_QEMU,
+		0, 0, 0
+	},
+	{
+		PCI_VENDOR_ID_CIRRUS, PCI_DEVICE_ID_CIRRUS_5446, PCI_VENDOR_ID_XEN,
+		0x0001, 0, 0, 0
+	},
 	{0,}
 };
 
@@ -48,8 +53,11 @@ static int cirrus_kick_out_firmware_fb(struct pci_dev *pdev)
 	bool primary = false;
 
 	ap = alloc_apertures(1);
+
 	if (!ap)
+	{
 		return -ENOMEM;
+	}
 
 	ap->ranges[0].base = pci_resource_start(pdev, 0);
 	ap->ranges[0].size = pci_resource_len(pdev, 0);
@@ -64,13 +72,16 @@ static int cirrus_kick_out_firmware_fb(struct pci_dev *pdev)
 }
 
 static int cirrus_pci_probe(struct pci_dev *pdev,
-			    const struct pci_device_id *ent)
+							const struct pci_device_id *ent)
 {
 	int ret;
 
 	ret = cirrus_kick_out_firmware_fb(pdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return drm_get_pci_dev(pdev, ent, &driver);
 }
@@ -91,7 +102,8 @@ static int cirrus_pm_suspend(struct device *dev)
 
 	drm_kms_helper_poll_disable(drm_dev);
 
-	if (cdev->mode_info.gfbdev) {
+	if (cdev->mode_info.gfbdev)
+	{
 		console_lock();
 		drm_fb_helper_set_suspend(&cdev->mode_info.gfbdev->helper, 1);
 		console_unlock();
@@ -108,7 +120,8 @@ static int cirrus_pm_resume(struct device *dev)
 
 	drm_helper_resume_force_mode(drm_dev);
 
-	if (cdev->mode_info.gfbdev) {
+	if (cdev->mode_info.gfbdev)
+	{
 		console_lock();
 		drm_fb_helper_set_suspend(&cdev->mode_info.gfbdev->helper, 0);
 		console_unlock();
@@ -119,7 +132,8 @@ static int cirrus_pm_resume(struct device *dev)
 }
 #endif
 
-static const struct file_operations cirrus_driver_fops = {
+static const struct file_operations cirrus_driver_fops =
+{
 	.owner = THIS_MODULE,
 	.open = drm_open,
 	.release = drm_release,
@@ -130,7 +144,8 @@ static const struct file_operations cirrus_driver_fops = {
 	.compat_ioctl = drm_compat_ioctl,
 #endif
 };
-static struct drm_driver driver = {
+static struct drm_driver driver =
+{
 	.driver_features = DRIVER_MODESET | DRIVER_GEM,
 	.load = cirrus_driver_load,
 	.unload = cirrus_driver_unload,
@@ -148,12 +163,14 @@ static struct drm_driver driver = {
 	.dumb_destroy = drm_gem_dumb_destroy,
 };
 
-static const struct dev_pm_ops cirrus_pm_ops = {
+static const struct dev_pm_ops cirrus_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(cirrus_pm_suspend,
-				cirrus_pm_resume)
+	cirrus_pm_resume)
 };
 
-static struct pci_driver cirrus_pci_driver = {
+static struct pci_driver cirrus_pci_driver =
+{
 	.name = DRIVER_NAME,
 	.id_table = pciidlist,
 	.probe = cirrus_pci_probe,
@@ -164,10 +181,15 @@ static struct pci_driver cirrus_pci_driver = {
 static int __init cirrus_init(void)
 {
 	if (vgacon_text_force() && cirrus_modeset == -1)
+	{
 		return -EINVAL;
+	}
 
 	if (cirrus_modeset == 0)
+	{
 		return -EINVAL;
+	}
+
 	return drm_pci_init(&driver, &cirrus_pci_driver);
 }
 

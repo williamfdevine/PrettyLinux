@@ -42,13 +42,13 @@
 #define MAX_DEV_ADDR_SIZE			8
 #define MAX_FIRMWARE_INFORMATION_SIZE		32
 #define MAX_802_11_HEADER_LENGTH		(40 + \
-						MAX_FIRMWARE_INFORMATION_SIZE)
+		MAX_FIRMWARE_INFORMATION_SIZE)
 #define ENCRYPTION_MAX_OVERHEAD			128
 #define MAX_FRAGMENT_COUNT			8
 #define MAX_TRANSMIT_BUFFER_SIZE		(1600 + \
-						(MAX_802_11_HEADER_LENGTH + \
-						ENCRYPTION_MAX_OVERHEAD) *\
-						MAX_FRAGMENT_COUNT)
+		(MAX_802_11_HEADER_LENGTH + \
+		 ENCRYPTION_MAX_OVERHEAD) *\
+		MAX_FRAGMENT_COUNT)
 
 #define H2C_TX_CMD_HDR_LEN			8
 
@@ -68,13 +68,15 @@
 #define	FW_PWR_TRK_PARAM_CLR			0x0000ffff
 #define	FW_RA_PARAM_CLR				0xffff0000
 
-enum desc_packet_type {
+enum desc_packet_type
+{
 	DESC_PACKET_TYPE_INIT = 0,
 	DESC_PACKET_TYPE_NORMAL = 1,
 };
 
 /* 8-bytes alignment required */
-struct fw_priv {
+struct fw_priv
+{
 	/* --- long word 0 ---- */
 	/* 0x12: CE product, 0x92: IT product */
 	u8 signature_0;
@@ -172,7 +174,8 @@ struct fw_priv {
 };
 
 /* 8-byte alinment required */
-struct fw_hdr {
+struct fw_hdr
+{
 
 	/* --- LONG WORD 0 ---- */
 	u16 signature;
@@ -202,7 +205,8 @@ struct fw_hdr {
 
 } ;
 
-enum fw_status {
+enum fw_status
+{
 	FW_STATUS_INIT = 0,
 	FW_STATUS_LOAD_IMEM = 1,
 	FW_STATUS_LOAD_EMEM = 2,
@@ -210,7 +214,8 @@ enum fw_status {
 	FW_STATUS_READY = 4,
 };
 
-struct rt_firmware {
+struct rt_firmware
+{
 	struct fw_hdr *pfwheader;
 	enum fw_status fwstatus;
 	u16 firmwareversion;
@@ -223,7 +228,8 @@ struct rt_firmware {
 	u16 cmdpacket_fragthresold;
 };
 
-struct h2c_set_pwrmode_parm {
+struct h2c_set_pwrmode_parm
+{
 	u8 mode;
 	u8 flag_low_traffic_en;
 	u8 flag_lpnav_en;
@@ -243,7 +249,8 @@ struct h2c_set_pwrmode_parm {
 	u8 bcn_pass_period;
 };
 
-struct h2c_joinbss_rpt_parm {
+struct h2c_joinbss_rpt_parm
+{
 	u8 opmode;
 	u8 ps_qos_info;
 	u8 bssid[6];
@@ -251,31 +258,36 @@ struct h2c_joinbss_rpt_parm {
 	u16 aid;
 } ;
 
-struct h2c_wpa_ptk {
+struct h2c_wpa_ptk
+{
 	/* EAPOL-Key Key Confirmation Key (KCK) */
 	u8 kck[16];
 	/* EAPOL-Key Key Encryption Key (KEK) */
 	u8 kek[16];
 	/* Temporal Key 1 (TK1) */
 	u8 tk1[16];
-	union {
+	union
+	{
 		/* Temporal Key 2 (TK2) */
 		u8 tk2[16];
-		struct {
+		struct
+		{
 			u8 tx_mic_key[8];
 			u8 rx_mic_key[8];
 		} athu;
 	} u;
 };
 
-struct h2c_wpa_two_way_parm {
+struct h2c_wpa_two_way_parm
+{
 	/* algorithm TKIP or AES */
 	u8 pairwise_en_alg;
 	u8 group_en_alg;
 	struct h2c_wpa_ptk wpa_ptk_value;
 } ;
 
-enum h2c_cmd {
+enum h2c_cmd
+{
 	FW_H2C_SETPWRMODE = 0,
 	FW_H2C_JOINBSSRPT = 1,
 	FW_H2C_WOWLAN_UPDATE_GTK = 2,
@@ -283,7 +295,8 @@ enum h2c_cmd {
 	FW_H2C_WOWLAN_OFFLOAD = 4,
 };
 
-enum fw_h2c_cmd {
+enum fw_h2c_cmd
+{
 	H2C_READ_MACREG_CMD,				/*0*/
 	H2C_WRITE_MACREG_CMD,
 	H2C_READBB_CMD,
@@ -369,7 +382,7 @@ enum fw_h2c_cmd {
 int rtl92s_download_fw(struct ieee80211_hw *hw);
 void rtl92s_set_fw_pwrmode_cmd(struct ieee80211_hw *hw, u8 mode);
 void rtl92s_set_fw_joinbss_report_cmd(struct ieee80211_hw *hw,
-				      u8 mstatus, u8 ps_qosinfo);
+									  u8 mstatus, u8 ps_qosinfo);
 
 #endif
 

@@ -3,7 +3,8 @@
 
 #define TRANSPORT_FLAG_PASSTHROUGH		1
 
-struct target_backend_ops {
+struct target_backend_ops
+{
 	char name[16];
 	char inquiry_prod[16];
 	char inquiry_rev[4];
@@ -20,12 +21,12 @@ struct target_backend_ops {
 	void (*free_device)(struct se_device *device);
 
 	ssize_t (*set_configfs_dev_params)(struct se_device *,
-					   const char *, ssize_t);
+									   const char *, ssize_t);
 	ssize_t (*show_configfs_dev_params)(struct se_device *, char *);
 
 	void (*transport_complete)(struct se_cmd *cmd,
-				   struct scatterlist *,
-				   unsigned char *);
+							   struct scatterlist *,
+							   unsigned char *);
 
 	sense_reason_t (*parse_cdb)(struct se_cmd *cmd);
 	u32 (*get_device_type)(struct se_device *);
@@ -44,13 +45,14 @@ struct target_backend_ops {
 	struct configfs_attribute **tb_dev_attrib_attrs;
 };
 
-struct sbc_ops {
+struct sbc_ops
+{
 	sense_reason_t (*execute_rw)(struct se_cmd *cmd, struct scatterlist *,
-				     u32, enum dma_data_direction);
+								 u32, enum dma_data_direction);
 	sense_reason_t (*execute_sync_cache)(struct se_cmd *cmd);
 	sense_reason_t (*execute_write_same)(struct se_cmd *cmd);
 	sense_reason_t (*execute_unmap)(struct se_cmd *cmd,
-				sector_t lba, sector_t nolb);
+									sector_t lba, sector_t nolb);
 };
 
 int	transport_backend_register(const struct target_backend_ops *);
@@ -70,9 +72,9 @@ u32	sbc_get_device_type(struct se_device *dev);
 sector_t	sbc_get_write_same_sectors(struct se_cmd *cmd);
 void	sbc_dif_generate(struct se_cmd *);
 sense_reason_t	sbc_dif_verify(struct se_cmd *, sector_t, unsigned int,
-				     unsigned int, struct scatterlist *, int);
+							   unsigned int, struct scatterlist *, int);
 void sbc_dif_copy_prot(struct se_cmd *, unsigned int, bool,
-		       struct scatterlist *, int);
+					   struct scatterlist *, int);
 void	transport_set_vpd_proto_id(struct t10_vpd *, unsigned char *);
 int	transport_set_vpd_assoc(struct t10_vpd *, unsigned char *);
 int	transport_set_vpd_ident_type(struct t10_vpd *, unsigned char *);
@@ -90,11 +92,11 @@ sense_reason_t	transport_generic_map_mem_to_cmd(struct se_cmd *,
 
 bool	target_lun_is_rdonly(struct se_cmd *);
 sense_reason_t passthrough_parse_cdb(struct se_cmd *cmd,
-	sense_reason_t (*exec_cmd)(struct se_cmd *cmd));
+									 sense_reason_t (*exec_cmd)(struct se_cmd *cmd));
 
 bool target_sense_desc_format(struct se_device *dev);
 sector_t target_to_linux_sector(struct se_device *dev, sector_t lb);
 bool target_configure_unmap_from_queue(struct se_dev_attrib *attrib,
-				       struct request_queue *q);
+									   struct request_queue *q);
 
 #endif /* TARGET_CORE_BACKEND_H */

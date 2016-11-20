@@ -15,7 +15,8 @@
  */
 
 /* Policies */
-enum {
+enum
+{
 	MPOL_DEFAULT,
 	MPOL_PREFERRED,
 	MPOL_BIND,
@@ -24,7 +25,8 @@ enum {
 	MPOL_MAX,	/* always last member of enum */
 };
 
-enum mpol_rebind_step {
+enum mpol_rebind_step
+{
 	MPOL_REBIND_ONCE,	/* do rebind work at once(not by two step) */
 	MPOL_REBIND_STEP1,	/* first step(set all the newly nodes) */
 	MPOL_REBIND_STEP2,	/* second step(clean all the disallowed nodes)*/
@@ -55,8 +57,8 @@ enum mpol_rebind_step {
 #define MPOL_MF_INTERNAL (1<<4)	/* Internal flags start here */
 
 #define MPOL_MF_VALID	(MPOL_MF_STRICT   | 	\
-			 MPOL_MF_MOVE     | 	\
-			 MPOL_MF_MOVE_ALL)
+						 MPOL_MF_MOVE     | 	\
+						 MPOL_MF_MOVE_ALL)
 
 /*
  * Internal flags that share the struct mempolicy flags word with

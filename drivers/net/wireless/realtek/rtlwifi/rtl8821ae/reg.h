@@ -46,7 +46,7 @@
 #define REG_LDOHCI12_CTRL			0x0022
 #define REG_LPLDO_CTRL				0x0023
 #define REG_AFE_XTAL_CTRL			0x0024
- /* 1.5v for 8188EE test chip, 1.4v for MP chip */
+/* 1.5v for 8188EE test chip, 1.4v for MP chip */
 #define REG_AFE_LDO_CTRL			0x0027
 #define REG_AFE_PLL_CTRL			0x0028
 #define REG_MAC_PHY_CTRL			0x002c
@@ -157,9 +157,9 @@
 #define REG_RQPN_NPQ				0x0214
 
 #define REG_RXDMA_AGG_PG_TH			0x0280
- /* FW shall update this register before FW write RXPKT_RELEASE_POLL to 1 */
+/* FW shall update this register before FW write RXPKT_RELEASE_POLL to 1 */
 #define REG_FW_UPD_RDPTR			0x0284
- /* Control the RX DMA.*/
+/* Control the RX DMA.*/
 #define REG_RXDMA_CONTROL			0x0286
 /* The number of packets in RXPKTBUF.	*/
 #define REG_RXPKT_NUM				0x0287
@@ -519,13 +519,13 @@
 
 #define	RATE_ALL_CCK		(RATR_1M | RATR_2M | RATR_55M | RATR_11M)
 #define	RATE_ALL_OFDM_AG	(RATR_6M | RATR_9M | RATR_12M | RATR_18M |\
-				RATR_24M | RATR_36M | RATR_48M | RATR_54M)
+							 RATR_24M | RATR_36M | RATR_48M | RATR_54M)
 #define	RATE_ALL_OFDM_1SS	(RATR_MCS0 | RATR_MCS1 | RATR_MCS2 |\
-				RATR_MCS3 | RATR_MCS4 | RATR_MCS5 |\
-				RATR_MCS6 | RATR_MCS7)
+							 RATR_MCS3 | RATR_MCS4 | RATR_MCS5 |\
+							 RATR_MCS6 | RATR_MCS7)
 #define	RATE_ALL_OFDM_2SS	(RATR_MCS8 | RATR_MCS9 | RATR_MCS10 |\
-				RATR_MCS11 | RATR_MCS12 | RATR_MCS13 |\
-				RATR_MCS14 | RATR_MCS15)
+							 RATR_MCS11 | RATR_MCS12 | RATR_MCS13 |\
+							 RATR_MCS14 | RATR_MCS15)
 
 #define	BW_OPMODE_20MHZ				BIT(2)
 #define	BW_OPMODE_5G				BIT(1)
@@ -2381,7 +2381,7 @@
 #define	RB_RXIQC_CD			0xe14
 /*bit mask for IQC matrix element A & C*/
 #define	RXIQC_AC			0x02ff
- /*bit mask for IQC matrix element A & C*/
+/*bit mask for IQC matrix element A & C*/
 #define	RXIQC_BD			0x02ff0000
 
 /* 2 EFUSE_TEST (For RTL8723 partially) */
@@ -2449,7 +2449,8 @@
 #define	ODM_BIT_CCK_RPT_FORMAT_11AC	BIT16
 #define	ODM_BIT_BB_RX_PATH_11AC		0xF
 
-enum AGGRE_SIZE {
+enum AGGRE_SIZE
+{
 	HT_AGG_SIZE_8K = 0,
 	HT_AGG_SIZE_16K = 1,
 	HT_AGG_SIZE_32K = 2,

@@ -32,9 +32,9 @@ typedef void (*llc_failure_t) (struct nfc_hci_dev *hdev, int err);
 struct nfc_llc;
 
 struct nfc_llc *nfc_llc_allocate(const char *name, struct nfc_hci_dev *hdev,
-				 xmit_to_drv_t xmit_to_drv,
-				 rcv_to_hci_t rcv_to_hci, int tx_headroom,
-				 int tx_tailroom, llc_failure_t llc_failure);
+								 xmit_to_drv_t xmit_to_drv,
+								 rcv_to_hci_t rcv_to_hci, int tx_headroom,
+								 int tx_tailroom, llc_failure_t llc_failure);
 void nfc_llc_free(struct nfc_llc *llc);
 
 int nfc_llc_start(struct nfc_llc *llc);

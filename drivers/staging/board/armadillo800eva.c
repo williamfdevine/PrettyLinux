@@ -27,7 +27,8 @@
 
 #include "board.h"
 
-static struct fb_videomode lcdc0_mode = {
+static struct fb_videomode lcdc0_mode =
+{
 	.name		= "AMPIER/AM-800480",
 	.xres		= 800,
 	.yres		= 480,
@@ -40,7 +41,8 @@ static struct fb_videomode lcdc0_mode = {
 	.sync		= 0,
 };
 
-static struct sh_mobile_lcdc_info lcdc0_info = {
+static struct sh_mobile_lcdc_info lcdc0_info =
+{
 	.clock_source	= LCDC_CLK_BUS,
 	.ch[0] = {
 		.chan		= LCDC_CHAN_MAINLCD,
@@ -57,7 +59,8 @@ static struct sh_mobile_lcdc_info lcdc0_info = {
 	},
 };
 
-static struct resource lcdc0_resources[] = {
+static struct resource lcdc0_resources[] =
+{
 	[0] = {
 		.name	= "LCD0",
 		.start	= 0xfe940000,
@@ -70,7 +73,8 @@ static struct resource lcdc0_resources[] = {
 	},
 };
 
-static struct platform_device lcdc0_device = {
+static struct platform_device lcdc0_device =
+{
 	.name		= "sh_mobile_lcdc_fb",
 	.num_resources	= ARRAY_SIZE(lcdc0_resources),
 	.resource	= lcdc0_resources,
@@ -81,11 +85,13 @@ static struct platform_device lcdc0_device = {
 	},
 };
 
-static const struct board_staging_clk lcdc0_clocks[] __initconst = {
+static const struct board_staging_clk lcdc0_clocks[] __initconst =
+{
 	{ "lcdc0", NULL, "sh_mobile_lcdc_fb.0" },
 };
 
-static const struct board_staging_dev armadillo800eva_devices[] __initconst = {
+static const struct board_staging_dev armadillo800eva_devices[] __initconst =
+{
 	{
 		.pdev	 = &lcdc0_device,
 		.clocks	 = lcdc0_clocks,
@@ -98,7 +104,7 @@ static void __init armadillo800eva_init(void)
 {
 	board_staging_gic_setup_xlate("arm,pl390", 32);
 	board_staging_register_devices(armadillo800eva_devices,
-				       ARRAY_SIZE(armadillo800eva_devices));
+								   ARRAY_SIZE(armadillo800eva_devices));
 }
 
 board_staging("renesas,armadillo800eva", armadillo800eva_init);

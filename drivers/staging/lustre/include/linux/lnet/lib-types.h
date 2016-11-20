@@ -46,15 +46,16 @@
 /* Max payload size */
 #define LNET_MAX_PAYLOAD      CONFIG_LNET_MAX_PAYLOAD
 #if (LNET_MAX_PAYLOAD < LNET_MTU)
-# error "LNET_MAX_PAYLOAD too small - error in configure --with-max-payload-mb"
+	# error "LNET_MAX_PAYLOAD too small - error in configure --with-max-payload-mb"
 #elif (LNET_MAX_PAYLOAD > (PAGE_SIZE * LNET_MAX_IOV))
-# error "LNET_MAX_PAYLOAD too large - error in configure --with-max-payload-mb"
+	# error "LNET_MAX_PAYLOAD too large - error in configure --with-max-payload-mb"
 #endif
 
 /* forward refs */
 struct lnet_libmd;
 
-typedef struct lnet_msg {
+typedef struct lnet_msg
+{
 	struct list_head	msg_activelist;
 	struct list_head	msg_list;	   /* Q for credits/MD */
 
@@ -64,32 +65,32 @@ typedef struct lnet_msg {
 	__u32			msg_type;
 
 	/* committed for sending */
-	unsigned int		msg_tx_committed:1;
+	unsigned int		msg_tx_committed: 1;
 	/* CPT # this message committed for sending */
-	unsigned int		msg_tx_cpt:15;
+	unsigned int		msg_tx_cpt: 15;
 	/* committed for receiving */
-	unsigned int		msg_rx_committed:1;
+	unsigned int		msg_rx_committed: 1;
 	/* CPT # this message committed for receiving */
-	unsigned int		msg_rx_cpt:15;
+	unsigned int		msg_rx_cpt: 15;
 	/* queued for tx credit */
-	unsigned int		msg_tx_delayed:1;
+	unsigned int		msg_tx_delayed: 1;
 	/* queued for RX buffer */
-	unsigned int		msg_rx_delayed:1;
+	unsigned int		msg_rx_delayed: 1;
 	/* ready for pending on RX delay list */
-	unsigned int		msg_rx_ready_delay:1;
+	unsigned int		msg_rx_ready_delay: 1;
 
-	unsigned int	msg_vmflush:1;		/* VM trying to free memory */
-	unsigned int	msg_target_is_router:1; /* sending to a router */
-	unsigned int	msg_routing:1;		/* being forwarded */
-	unsigned int	msg_ack:1;		/* ack on finalize (PUT) */
-	unsigned int	msg_sending:1;		/* outgoing message */
-	unsigned int	msg_receiving:1;	/* being received */
-	unsigned int	msg_txcredit:1;		/* taken an NI send credit */
-	unsigned int	msg_peertxcredit:1;	/* taken a peer send credit */
-	unsigned int	msg_rtrcredit:1;	/* taken a global router credit */
-	unsigned int	msg_peerrtrcredit:1;	/* taken a peer router credit */
-	unsigned int	msg_onactivelist:1;	/* on the activelist */
-	unsigned int	msg_rdma_get:1;
+	unsigned int	msg_vmflush: 1;		/* VM trying to free memory */
+	unsigned int	msg_target_is_router: 1; /* sending to a router */
+	unsigned int	msg_routing: 1;		/* being forwarded */
+	unsigned int	msg_ack: 1;		/* ack on finalize (PUT) */
+	unsigned int	msg_sending: 1;		/* outgoing message */
+	unsigned int	msg_receiving: 1;	/* being received */
+	unsigned int	msg_txcredit: 1;		/* taken an NI send credit */
+	unsigned int	msg_peertxcredit: 1;	/* taken a peer send credit */
+	unsigned int	msg_rtrcredit: 1;	/* taken a global router credit */
+	unsigned int	msg_peerrtrcredit: 1;	/* taken a peer router credit */
+	unsigned int	msg_onactivelist: 1;	/* on the activelist */
+	unsigned int	msg_rdma_get: 1;
 
 	struct lnet_peer	*msg_txpeer;	 /* peer I'm sending to */
 	struct lnet_peer	*msg_rxpeer;	 /* peer I received from */
@@ -108,7 +109,8 @@ typedef struct lnet_msg {
 	lnet_hdr_t		 msg_hdr;
 } lnet_msg_t;
 
-typedef struct lnet_libhandle {
+typedef struct lnet_libhandle
+{
 	struct list_head	lh_hash_chain;
 	__u64			lh_cookie;
 } lnet_libhandle_t;
@@ -116,7 +118,8 @@ typedef struct lnet_libhandle {
 #define lh_entry(ptr, type, member) \
 	((type *)((char *)(ptr) - (char *)(&((type *)0)->member)))
 
-typedef struct lnet_eq {
+typedef struct lnet_eq
+{
 	struct list_head	  eq_list;
 	lnet_libhandle_t	  eq_lh;
 	lnet_seq_t		  eq_enq_seq;
@@ -127,7 +130,8 @@ typedef struct lnet_eq {
 	int			**eq_refs;	/* percpt refcount for EQ */
 } lnet_eq_t;
 
-typedef struct lnet_me {
+typedef struct lnet_me
+{
 	struct list_head	 me_list;
 	lnet_libhandle_t	 me_lh;
 	lnet_process_id_t	 me_match_id;
@@ -139,7 +143,8 @@ typedef struct lnet_me {
 	struct lnet_libmd	*me_md;
 } lnet_me_t;
 
-typedef struct lnet_libmd {
+typedef struct lnet_libmd
+{
 	struct list_head	 md_list;
 	lnet_libhandle_t	 md_lh;
 	lnet_me_t		*md_me;
@@ -154,7 +159,8 @@ typedef struct lnet_libmd {
 	void			*md_user_ptr;
 	lnet_eq_t		*md_eq;
 	unsigned int		 md_niov;	/* # frags */
-	union {
+	union
+	{
 		struct kvec	iov[LNET_MAX_IOV];
 		lnet_kiov_t	kiov[LNET_MAX_IOV];
 	} md_iov;
@@ -164,7 +170,8 @@ typedef struct lnet_libmd {
 #define LNET_MD_FLAG_AUTO_UNLINK	(1 << 1)
 #define LNET_MD_FLAG_ABORTED		(1 << 2)
 
-typedef struct {
+typedef struct
+{
 	/* info about peers we are trying to fail */
 	struct list_head	tp_list;	/* ln_test_peers */
 	lnet_nid_t		tp_nid;		/* matching nid */
@@ -179,7 +186,8 @@ typedef struct {
 
 struct lnet_ni;			/* forward ref */
 
-typedef struct lnet_lnd {
+typedef struct lnet_lnd
+{
 	/* fields managed by portals */
 	struct list_head	lnd_list;	/* stash in the LND table */
 	int			lnd_refcount;	/* # active instances */
@@ -220,7 +228,7 @@ typedef struct lnet_lnd {
 	 * credit if the LND does flow control.
 	 */
 	int (*lnd_recv)(struct lnet_ni *ni, void *private, lnet_msg_t *msg,
-			int delayed, struct iov_iter *to, unsigned int rlen);
+					int delayed, struct iov_iter *to, unsigned int rlen);
 
 	/*
 	 * lnet_parse() has had to delay processing of this message
@@ -231,27 +239,29 @@ typedef struct lnet_lnd {
 	 * release resources; lnd_recv() will not be called.
 	 */
 	int (*lnd_eager_recv)(struct lnet_ni *ni, void *private,
-			      lnet_msg_t *msg, void **new_privatep);
+						  lnet_msg_t *msg, void **new_privatep);
 
 	/* notification of peer health */
 	void (*lnd_notify)(struct lnet_ni *ni, lnet_nid_t peer, int alive);
 
 	/* query of peer aliveness */
 	void (*lnd_query)(struct lnet_ni *ni, lnet_nid_t peer,
-			  unsigned long *when);
+					  unsigned long *when);
 
 	/* accept a new connection */
 	int (*lnd_accept)(struct lnet_ni *ni, struct socket *sock);
 } lnd_t;
 
-struct lnet_tx_queue {
+struct lnet_tx_queue
+{
 	int			tq_credits;	/* # tx credits free */
 	int			tq_credits_min;	/* lowest it's been */
 	int			tq_credits_max;	/* total # tx credits */
 	struct list_head	tq_delayed;	/* delayed TXs */
 };
 
-typedef struct lnet_ni {
+typedef struct lnet_ni
+{
 	spinlock_t		  ni_lock;
 	struct list_head	  ni_list;	/* chain on ln_nis */
 	struct list_head	  ni_cptlist;	/* chain on ln_nis_cpt */
@@ -291,12 +301,13 @@ typedef struct lnet_ni {
 #define LNET_PING_FEAT_RTE_DISABLED	(1 << 2)	/* Routing enabled */
 
 #define LNET_PING_FEAT_MASK		(LNET_PING_FEAT_BASE | \
-					 LNET_PING_FEAT_NI_STATUS)
+								 LNET_PING_FEAT_NI_STATUS)
 
 /* router checker data, per router */
 #define LNET_MAX_RTR_NIS   16
 #define LNET_PINGINFO_SIZE offsetof(lnet_ping_info_t, pi_ni[LNET_MAX_RTR_NIS])
-typedef struct {
+typedef struct
+{
 	/* chain on the_lnet.ln_zombie_rcd or ln_deathrow_rcd */
 	struct list_head	 rcd_list;
 	lnet_handle_md_t	 rcd_mdh;	/* ping buffer MD */
@@ -304,7 +315,8 @@ typedef struct {
 	lnet_ping_info_t	*rcd_pinginfo;	/* ping buffer */
 } lnet_rc_data_t;
 
-typedef struct lnet_peer {
+typedef struct lnet_peer
+{
 	struct list_head	 lp_hashlist;	/* chain on peer hash */
 	struct list_head	 lp_txq;	/* messages blocking for
 						   tx credits */
@@ -315,11 +327,11 @@ typedef struct lnet_peer {
 	int			 lp_mintxcredits;  /* low water mark */
 	int			 lp_rtrcredits;	   /* # router credits */
 	int			 lp_minrtrcredits; /* low water mark */
-	unsigned int		 lp_alive:1;	   /* alive/dead? */
-	unsigned int		 lp_notify:1;	/* notification outstanding? */
-	unsigned int		 lp_notifylnd:1;/* outstanding notification
+	unsigned int		 lp_alive: 1;	  /* alive/dead? */
+	unsigned int		 lp_notify: 1;	/* notification outstanding? */
+	unsigned int		 lp_notifylnd: 1;/* outstanding notification
 						   for LND? */
-	unsigned int		 lp_notifying:1; /* some thread is handling
+	unsigned int		 lp_notifying: 1; /* some thread is handling
 						    notification */
 	unsigned int		 lp_ping_notsent;/* SEND event outstanding
 						    from ping */
@@ -352,7 +364,8 @@ typedef struct lnet_peer {
 #define LNET_PEER_HASH_SIZE	(1 << LNET_PEER_HASH_BITS)
 
 /* peer hash table */
-struct lnet_peer_table {
+struct lnet_peer_table
+{
 	int			 pt_version;	/* /proc validity stamp */
 	int			 pt_number;	/* # peers extant */
 	/* # zombies to go to deathrow (and not there yet) */
@@ -366,9 +379,10 @@ struct lnet_peer_table {
  * lnet_ni_t::ni_peertimeout has been set to a positive value
  */
 #define lnet_peer_aliveness_enabled(lp) (the_lnet.ln_routing && \
-					 (lp)->lp_ni->ni_peertimeout > 0)
+		(lp)->lp_ni->ni_peertimeout > 0)
 
-typedef struct {
+typedef struct
+{
 	struct list_head	 lr_list;	/* chain on net */
 	struct list_head	 lr_gwlist;	/* chain on gateway */
 	lnet_peer_t		*lr_gateway;	/* router node */
@@ -383,7 +397,8 @@ typedef struct {
 #define LNET_REMOTE_NETS_HASH_MAX	(1U << 16)
 #define LNET_REMOTE_NETS_HASH_SIZE	(1 << the_lnet.ln_remote_nets_hbits)
 
-typedef struct {
+typedef struct
+{
 	struct list_head	lrn_list;	/* chain on
 						   ln_remote_nets_hash */
 	struct list_head	lrn_routes;	/* routes to me */
@@ -395,7 +410,8 @@ typedef struct {
 /** lnet message is waiting for credit */
 #define LNET_CREDIT_WAIT	1
 
-typedef struct {
+typedef struct
+{
 	struct list_head	rbp_bufs;	/* my free buffer pool */
 	struct list_head	rbp_msgs;	/* messages blocking
 						   for a buffer */
@@ -409,7 +425,8 @@ typedef struct {
 	int			rbp_mincredits;	/* low water mark */
 } lnet_rtrbufpool_t;
 
-typedef struct {
+typedef struct
+{
 	struct list_head	 rb_list;	/* chain on rbp_bufs */
 	lnet_rtrbufpool_t	*rb_pool;	/* owning pool */
 	lnet_kiov_t		 rb_kiov[0];	/* the buffer space */
@@ -424,7 +441,8 @@ typedef struct {
 /* # different router buffer pools */
 #define LNET_NRBPOOLS		(LNET_LARGE_BUF_IDX + 1)
 
-enum {
+enum
+{
 	/* Didn't match anything */
 	LNET_MATCHMD_NONE	= (1 << 0),
 	/* Matched OK */
@@ -444,7 +462,8 @@ enum {
 						   request portal */
 
 /* parameter for matching operations (GET, PUT) */
-struct lnet_match_info {
+struct lnet_match_info
+{
 	__u64			mi_mbits;
 	lnet_process_id_t	mi_id;
 	unsigned int		mi_opc;
@@ -472,7 +491,8 @@ struct lnet_match_info {
 #define LNET_MT_EXHAUSTED_BMAP		((1 << LNET_MT_EXHAUSTED_BITS) + 1)
 
 /* portal match table */
-struct lnet_match_table {
+struct lnet_match_table
+{
 	/* reserved for upcoming patches, CPU partition ID */
 	unsigned int		 mt_cpt;
 	unsigned int		 mt_portal;	/* portal index */
@@ -496,7 +516,8 @@ struct lnet_match_table {
 /* dispatch routed PUT message by hashing source NID for wildcard portals */
 #define	LNET_PTL_ROTOR_HASH_RT	3
 
-typedef struct lnet_portal {
+typedef struct lnet_portal
+{
 	spinlock_t		  ptl_lock;
 	unsigned int		  ptl_index;	/* portal ID, reserved */
 	/* flags on this portal: lazy, unique... */
@@ -520,7 +541,8 @@ typedef struct lnet_portal {
 #define LNET_LH_HASH_MASK	(LNET_LH_HASH_SIZE - 1)
 
 /* resource container (ME, MD, EQ) */
-struct lnet_res_container {
+struct lnet_res_container
+{
 	unsigned int		 rec_type;	/* container type */
 	__u64			 rec_lh_cookie;	/* cookie generator */
 	struct list_head	 rec_active;	/* active resource list */
@@ -528,7 +550,8 @@ struct lnet_res_container {
 };
 
 /* message container */
-struct lnet_msg_container {
+struct lnet_msg_container
+{
 	int			  msc_init;	/* initialized or not */
 	/* max # threads finalizing */
 	int			  msc_nfinalizers;
@@ -544,7 +567,8 @@ struct lnet_msg_container {
 #define LNET_RC_STATE_RUNNING		1	/* started up OK */
 #define LNET_RC_STATE_STOPPING		2	/* telling thread to stop */
 
-typedef struct {
+typedef struct
+{
 	/* CPU partition table of LNet */
 	struct cfs_cpt_table		 *ln_cpt_table;
 	/* number of CPTs in ln_cpt_table */

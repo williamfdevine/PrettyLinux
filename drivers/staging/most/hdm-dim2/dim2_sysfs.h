@@ -18,7 +18,8 @@
 
 #include <linux/kobject.h>
 
-struct medialb_bus {
+struct medialb_bus
+{
 	struct kobject kobj_group;
 };
 

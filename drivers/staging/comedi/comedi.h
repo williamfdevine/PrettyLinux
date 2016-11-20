@@ -226,7 +226,8 @@
  * @COMEDI_SUBD_SERIAL:		Serial I/O.
  * @COMEDI_SUBD_PWM:		Pulse-Width Modulation output.
  */
-enum comedi_subdevice_type {
+enum comedi_subdevice_type
+{
 	COMEDI_SUBD_UNUSED,
 	COMEDI_SUBD_AI,
 	COMEDI_SUBD_AO,
@@ -295,14 +296,15 @@ enum comedi_subdevice_type {
  *				a relay simultaneously.
  * @INSN_CONFIG_PWM_GET_H_BRIDGE: Get PWM H bridge duty cycle and polarity.
  */
-enum configuration_ids {
+enum configuration_ids
+{
 	INSN_CONFIG_DIO_INPUT = 0,
 	INSN_CONFIG_DIO_OUTPUT = 1,
 	INSN_CONFIG_DIO_OPENDRAIN = 2,
 	INSN_CONFIG_ANALOG_TRIG = 16,
-/*	INSN_CONFIG_WAVEFORM = 17, */
-/*	INSN_CONFIG_TRIG = 18, */
-/*	INSN_CONFIG_COUNTER = 19, */
+	/*	INSN_CONFIG_WAVEFORM = 17, */
+	/*	INSN_CONFIG_TRIG = 18, */
+	/*	INSN_CONFIG_COUNTER = 19, */
 	INSN_CONFIG_ALT_SOURCE = 20,
 	INSN_CONFIG_DIGITAL_TRIG = 21,
 	INSN_CONFIG_BLOCK_SIZE = 22,
@@ -390,7 +392,8 @@ enum configuration_ids {
  * when setting up a trigger that has more than 32 inputs, or has a combination
  * of edge- and level-triggered inputs.
  */
-enum comedi_digital_trig_op {
+enum comedi_digital_trig_op
+{
 	COMEDI_DIGITAL_TRIG_DISABLE = 0,
 	COMEDI_DIGITAL_TRIG_ENABLE_EDGES = 1,
 	COMEDI_DIGITAL_TRIG_ENABLE_LEVELS = 2
@@ -406,7 +409,8 @@ enum comedi_digital_trig_op {
  * report a direction.  They may also be used in other places where a direction
  * needs to be specified.
  */
-enum comedi_io_direction {
+enum comedi_io_direction
+{
 	COMEDI_INPUT = 0,
 	COMEDI_OUTPUT = 1,
 	COMEDI_OPENDRAIN = 2
@@ -418,7 +422,8 @@ enum comedi_io_direction {
  * @COMEDI_SUPPORTED:		Feature is supported.
  * @COMEDI_UNSUPPORTED:		Feature is unsupported.
  */
-enum comedi_support_level {
+enum comedi_support_level
+{
 	COMEDI_UNKNOWN_SUPPORT = 0,
 	COMEDI_SUPPORTED,
 	COMEDI_UNSUPPORTED
@@ -433,7 +438,8 @@ enum comedi_support_level {
  * These bitwise values are used by the %INSN_CONFIG_GET_COUNTER_STATUS
  * configuration instruction to report the status of a counter.
  */
-enum comedi_counter_status_flags {
+enum comedi_counter_status_flags
+{
 	COMEDI_COUNTER_ARMED = 0x1,
 	COMEDI_COUNTER_COUNTING = 0x2,
 	COMEDI_COUNTER_TERMINAL_COUNT = 0x4,
@@ -476,7 +482,8 @@ enum comedi_counter_status_flags {
  * This is used with the %COMEDI_INSN ioctl, and indirectly with the
  * %COMEDI_INSNLIST ioctl.
  */
-struct comedi_insn {
+struct comedi_insn
+{
 	unsigned int insn;
 	unsigned int n;
 	unsigned int __user *data;
@@ -492,7 +499,8 @@ struct comedi_insn {
  *
  * This is used with the %COMEDI_INSNLIST ioctl.
  */
-struct comedi_insnlist {
+struct comedi_insnlist
+{
 	unsigned int n_insns;
 	struct comedi_insn __user *insns;
 };
@@ -574,7 +582,8 @@ struct comedi_insnlist {
  *
  * %TRIG_OTHER - trigger on other, driver-defined signal specified by '_arg'.
  */
-struct comedi_cmd {
+struct comedi_cmd
+{
 	unsigned int subdev;
 	unsigned int flags;
 
@@ -618,7 +627,8 @@ struct comedi_cmd {
  * %SDF_RANGETYPE subdevice flag is set.  Otherwise, the arrays they point to
  * must be at least as long as the number of channels.
  */
-struct comedi_chaninfo {
+struct comedi_chaninfo
+{
 	unsigned int subdev;
 	unsigned int __user *maxdata_list;
 	unsigned int __user *flaglist;
@@ -643,7 +653,8 @@ struct comedi_chaninfo {
  * use of the %COMEDI_SUBDINFO ioctl (if the %SDF_RANGETYPE flag is clear),
  * or the %COMEDI_CHANINFO ioctl (if the %SDF_RANGETYPE flag is set).
  */
-struct comedi_rangeinfo {
+struct comedi_rangeinfo
+{
 	unsigned int range_type;
 	void __user *range_ptr;
 };
@@ -670,7 +681,8 @@ struct comedi_rangeinfo {
  * The only defined flag value is %RF_EXTERNAL (%0x100), indicating that the
  * the range needs to be multiplied by an external reference.
  */
-struct comedi_krange {
+struct comedi_krange
+{
 	int min;
 	int max;
 	unsigned int flags;
@@ -769,7 +781,8 @@ struct comedi_krange {
  *
  * No "channel flags" (@flags) values are currently defined.
  */
-struct comedi_subdinfo {
+struct comedi_subdinfo
+{
 	unsigned int type;
 	unsigned int n_chan;
 	unsigned int subd_flags;
@@ -796,7 +809,8 @@ struct comedi_subdinfo {
  * This is used with the %COMEDI_DEVINFO ioctl to get basic information about
  * the device.
  */
-struct comedi_devinfo {
+struct comedi_devinfo
+{
 	unsigned int version_code;
 	unsigned int n_subdevs;
 	char driver_name[COMEDI_NAMELEN];
@@ -819,7 +833,8 @@ struct comedi_devinfo {
  * to match the COMEDI driver name itself.  The configuration options are
  * handled in a driver-specific manner.
  */
-struct comedi_devconfig {
+struct comedi_devconfig
+{
 	char board_name[COMEDI_NAMELEN];
 	int options[COMEDI_NDEVCONFOPTS];
 };
@@ -845,7 +860,8 @@ struct comedi_devconfig {
  * On ioctl output, @maximum_size and @size and set to the current maximum
  * buffer size and current buffer size, respectively.
  */
-struct comedi_bufconfig {
+struct comedi_bufconfig
+{
 	unsigned int subdevice;
 	unsigned int flags;
 
@@ -872,7 +888,8 @@ struct comedi_bufconfig {
  * current read or write position in an asynchronous acquisition data buffer,
  * and to get the current read and write positions in the buffer.
  */
-struct comedi_bufinfo {
+struct comedi_bufinfo
+{
 	unsigned int subdevice;
 	unsigned int bytes_read;
 
@@ -924,7 +941,8 @@ struct comedi_bufinfo {
  * B5 - B0 Current mode.
  */
 
-enum i8254_mode {
+enum i8254_mode
+{
 	I8254_MODE0 = (0 << 1),	/* Interrupt on terminal count */
 	I8254_MODE1 = (1 << 1),	/* Hardware retriggerable one-shot */
 	I8254_MODE2 = (2 << 1),	/* Rate generator */
@@ -947,7 +965,8 @@ enum i8254_mode {
 #define NI_GPCT_COUNTING_MODE_SHIFT 16
 #define NI_GPCT_INDEX_PHASE_BITSHIFT 20
 #define NI_GPCT_COUNTING_DIRECTION_SHIFT 24
-enum ni_gpct_mode_bits {
+enum ni_gpct_mode_bits
+{
 	NI_GPCT_GATE_ON_BOTH_EDGES_BIT = 0x4,
 	NI_GPCT_EDGE_GATE_MODE_MASK = 0x18,
 	NI_GPCT_EDGE_GATE_STARTS_STOPS_BITS = 0x0,
@@ -1015,7 +1034,8 @@ enum ni_gpct_mode_bits {
  * Bits for setting a clock source with
  * INSN_CONFIG_SET_CLOCK_SRC when using NI general-purpose counters.
  */
-enum ni_gpct_clock_source_bits {
+enum ni_gpct_clock_source_bits
+{
 	NI_GPCT_CLOCK_SRC_SELECT_MASK = 0x3f,
 	NI_GPCT_TIMEBASE_1_CLOCK_SRC_BITS = 0x0,
 	NI_GPCT_TIMEBASE_2_CLOCK_SRC_BITS = 0x1,
@@ -1050,7 +1070,8 @@ enum ni_gpct_clock_source_bits {
  * INSN_CONFIG_SET_GATE_SRC when using NI general-purpose counters.
  * May be bitwise-or'd with CR_EDGE or CR_INVERT.
  */
-enum ni_gpct_gate_select {
+enum ni_gpct_gate_select
+{
 	/* m-series gates */
 	NI_GPCT_TIMESTAMP_MUX_GATE_SELECT = 0x0,
 	NI_GPCT_AI_START2_GATE_SELECT = 0x12,
@@ -1083,13 +1104,15 @@ enum ni_gpct_gate_select {
  * Possibilities for setting a source with
  * INSN_CONFIG_SET_OTHER_SRC when using NI general-purpose counters.
  */
-enum ni_gpct_other_index {
+enum ni_gpct_other_index
+{
 	NI_GPCT_SOURCE_ENCODER_A,
 	NI_GPCT_SOURCE_ENCODER_B,
 	NI_GPCT_SOURCE_ENCODER_Z
 };
 
-enum ni_gpct_other_select {
+enum ni_gpct_other_select
+{
 	/* m-series gates */
 	/* Still unknown, probably only need NI_GPCT_PFI_OTHER_SELECT */
 	NI_GPCT_DISABLED_OTHER_SELECT = 0x8000,
@@ -1101,7 +1124,8 @@ enum ni_gpct_other_select {
  * start sources for ni general-purpose counters for use with
  * INSN_CONFIG_ARM
  */
-enum ni_gpct_arm_source {
+enum ni_gpct_arm_source
+{
 	NI_GPCT_ARM_IMMEDIATE = 0x0,
 	/*
 	 * Start both the counter and the adjacent pared
@@ -1119,7 +1143,8 @@ enum ni_gpct_arm_source {
 };
 
 /* digital filtering options for ni 660x for use with INSN_CONFIG_FILTER. */
-enum ni_gpct_filter_select {
+enum ni_gpct_filter_select
+{
 	NI_GPCT_FILTER_OFF = 0x0,
 	NI_GPCT_FILTER_TIMEBASE_3_SYNC = 0x1,
 	NI_GPCT_FILTER_100x_TIMEBASE_1 = 0x2,
@@ -1133,7 +1158,8 @@ enum ni_gpct_filter_select {
  * PFI digital filtering options for ni m-series for use with
  * INSN_CONFIG_FILTER.
  */
-enum ni_pfi_filter_select {
+enum ni_pfi_filter_select
+{
 	NI_PFI_FILTER_OFF = 0x0,
 	NI_PFI_FILTER_125ns = 0x1,
 	NI_PFI_FILTER_6425ns = 0x2,
@@ -1141,7 +1167,8 @@ enum ni_pfi_filter_select {
 };
 
 /* master clock sources for ni mio boards and INSN_CONFIG_SET_CLOCK_SRC */
-enum ni_mio_clock_source {
+enum ni_mio_clock_source
+{
 	NI_MIO_INTERNAL_CLOCK = 0,
 	/*
 	 * Doesn't work for m-series, use NI_MIO_PLL_RTSI_CLOCK()
@@ -1160,7 +1187,8 @@ enum ni_mio_clock_source {
  * The numbers assigned are not arbitrary, they correspond to the bits required
  * to program the board.
  */
-enum ni_rtsi_routing {
+enum ni_rtsi_routing
+{
 	NI_RTSI_OUTPUT_ADR_START1 = 0,
 	NI_RTSI_OUTPUT_ADR_START2 = 1,
 	NI_RTSI_OUTPUT_SCLKG = 2,
@@ -1183,7 +1211,8 @@ enum ni_rtsi_routing {
  * cannot be changed.  The numbers assigned are not arbitrary, they correspond
  * to the bits required to program the board.
  */
-enum ni_pfi_routing {
+enum ni_pfi_routing
+{
 	NI_PFI_OUTPUT_PFI_DEFAULT = 0,
 	NI_PFI_OUTPUT_AI_START1 = 1,
 	NI_PFI_OUTPUT_AI_START2 = 2,
@@ -1220,7 +1249,8 @@ enum ni_pfi_routing {
  * NI_660X_PFI_OUTPUT_DIO.  Lines 32 to 39 can only be set to
  * NI_660X_PFI_OUTPUT_COUNTER.
  */
-enum ni_660x_pfi_routing {
+enum ni_660x_pfi_routing
+{
 	NI_660X_PFI_OUTPUT_COUNTER = 1,	/* counter */
 	NI_660X_PFI_OUTPUT_DIO = 2,	/* static digital output */
 };
@@ -1238,7 +1268,8 @@ enum ni_660x_pfi_routing {
  * scan_begin_arg for a comedi_command. These sources may also be bitwise-or'd
  * with CR_INVERT to change polarity.
  */
-enum ni_m_series_cdio_scan_begin_src {
+enum ni_m_series_cdio_scan_begin_src
+{
 	NI_CDIO_SCAN_BEGIN_SRC_GROUND = 0,
 	NI_CDIO_SCAN_BEGIN_SRC_AI_START = 18,
 	NI_CDIO_SCAN_BEGIN_SRC_AI_CONVERT = 19,
@@ -1266,7 +1297,8 @@ enum ni_m_series_cdio_scan_begin_src {
  * Bits for setting a clock source with
  * INSN_CONFIG_SET_CLOCK_SRC when using NI frequency output subdevice.
  */
-enum ni_freq_out_clock_source_bits {
+enum ni_freq_out_clock_source_bits
+{
 	NI_FREQ_OUT_TIMEBASE_1_DIV_2_CLOCK_SRC,	/* 10 MHz */
 	NI_FREQ_OUT_TIMEBASE_2_CLOCK_SRC	/* 100 KHz */
 };
@@ -1275,7 +1307,8 @@ enum ni_freq_out_clock_source_bits {
  * Values for setting a clock source with INSN_CONFIG_SET_CLOCK_SRC for
  * 8254 counter subdevices on Amplicon DIO boards (amplc_dio200 driver).
  */
-enum amplc_dio_clock_source {
+enum amplc_dio_clock_source
+{
 	/*
 	 * Per channel external clock
 	 * input/output pin (pin is only an
@@ -1310,7 +1343,8 @@ enum amplc_dio_clock_source {
  * Values for setting a clock source with INSN_CONFIG_SET_CLOCK_SRC for
  * timer subdevice on some Amplicon DIO PCIe boards (amplc_dio200 driver).
  */
-enum amplc_dio_ts_clock_src {
+enum amplc_dio_ts_clock_src
+{
 	AMPLC_DIO_TS_CLK_1GHZ,	/* 1 ns period with 20 ns granularity */
 	AMPLC_DIO_TS_CLK_1MHZ,	/* 1 us period */
 	AMPLC_DIO_TS_CLK_1KHZ	/* 1 ms period */
@@ -1320,7 +1354,8 @@ enum amplc_dio_ts_clock_src {
  * Values for setting a gate source with INSN_CONFIG_SET_GATE_SRC for
  * 8254 counter subdevices on Amplicon DIO boards (amplc_dio200 driver).
  */
-enum amplc_dio_gate_source {
+enum amplc_dio_gate_source
+{
 	AMPLC_DIO_GAT_VCC,	/* internal high logic level */
 	AMPLC_DIO_GAT_GND,	/* internal low logic level */
 	AMPLC_DIO_GAT_GATN,	/* per channel external gate input */
@@ -1352,7 +1387,8 @@ enum amplc_dio_gate_source {
  * the counter subdevice on the Kolter Electronic PCI-Counter board
  * (ke_counter driver).
  */
-enum ke_counter_clock_source {
+enum ke_counter_clock_source
+{
 	KE_CLK_20MHZ,	/* internal 20MHz (default) */
 	KE_CLK_4MHZ,	/* internal 4MHz (option) */
 	KE_CLK_EXT	/* external clock on pin 21 of D-Sub */

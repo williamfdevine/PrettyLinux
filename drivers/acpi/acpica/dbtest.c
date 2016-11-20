@@ -55,7 +55,7 @@ static void acpi_db_test_all_objects(void);
 
 static acpi_status
 acpi_db_test_one_object(acpi_handle obj_handle,
-			u32 nesting_level, void *context, void **return_value);
+						u32 nesting_level, void *context, void **return_value);
 
 static acpi_status
 acpi_db_test_integer_type(struct acpi_namespace_node *node, u32 bit_length);
@@ -68,24 +68,25 @@ acpi_db_test_string_type(struct acpi_namespace_node *node, u32 byte_length);
 
 static acpi_status
 acpi_db_read_from_object(struct acpi_namespace_node *node,
-			 acpi_object_type expected_type,
-			 union acpi_object **value);
+						 acpi_object_type expected_type,
+						 union acpi_object **value);
 
 static acpi_status
 acpi_db_write_to_object(struct acpi_namespace_node *node,
-			union acpi_object *value);
+						union acpi_object *value);
 
 static void acpi_db_evaluate_all_predefined_names(char *count_arg);
 
 static acpi_status
 acpi_db_evaluate_one_predefined_name(acpi_handle obj_handle,
-				     u32 nesting_level,
-				     void *context, void **return_value);
+									 u32 nesting_level,
+									 void *context, void **return_value);
 
 /*
  * Test subcommands
  */
-static struct acpi_db_argument_info acpi_db_test_types[] = {
+static struct acpi_db_argument_info acpi_db_test_types[] =
+{
 	{"OBJECTS"},
 	{"PREDEFINED"},
 	{NULL}			/* Must be null terminated */
@@ -113,20 +114,23 @@ static acpi_handle write_handle = NULL;
 #if 0
 definition_block("ssdt.aml", "SSDT", 2, "Intel", "DEBUG", 0x00000001)
 {
-	method(_T98, 1, not_serialized) {	/* Read */
+	method(_T98, 1, not_serialized)  	/* Read */
+	{
 		return (de_ref_of(arg0))
 	}
 }
 
 definition_block("ssdt2.aml", "SSDT", 2, "Intel", "DEBUG", 0x00000001)
 {
-	method(_T99, 2, not_serialized) {	/* Write */
+	method(_T99, 2, not_serialized)  	/* Write */
+	{
 		store(arg1, arg0)
 	}
 }
 #endif
 
-static unsigned char read_method_code[] = {
+static unsigned char read_method_code[] =
+{
 	0x53, 0x53, 0x44, 0x54, 0x2E, 0x00, 0x00, 0x00,	/* 00000000    "SSDT...." */
 	0x02, 0xC9, 0x49, 0x6E, 0x74, 0x65, 0x6C, 0x00,	/* 00000008    "..Intel." */
 	0x44, 0x45, 0x42, 0x55, 0x47, 0x00, 0x00, 0x00,	/* 00000010    "DEBUG..." */
@@ -135,7 +139,8 @@ static unsigned char read_method_code[] = {
 	0x39, 0x38, 0x01, 0xA4, 0x83, 0x68	/* 00000028    "98...h"   */
 };
 
-static unsigned char write_method_code[] = {
+static unsigned char write_method_code[] =
+{
 	0x53, 0x53, 0x44, 0x54, 0x2E, 0x00, 0x00, 0x00,	/* 00000000    "SSDT...." */
 	0x02, 0x15, 0x49, 0x6E, 0x74, 0x65, 0x6C, 0x00,	/* 00000008    "..Intel." */
 	0x44, 0x45, 0x42, 0x55, 0x47, 0x00, 0x00, 0x00,	/* 00000010    "DEBUG..." */
@@ -164,24 +169,27 @@ void acpi_db_execute_test(char *type_arg)
 
 	acpi_ut_strupr(type_arg);
 	temp = acpi_db_match_argument(type_arg, acpi_db_test_types);
-	if (temp == ACPI_TYPE_NOT_FOUND) {
+
+	if (temp == ACPI_TYPE_NOT_FOUND)
+	{
 		acpi_os_printf("Invalid or unsupported argument\n");
 		return;
 	}
 
-	switch (temp) {
-	case CMD_TEST_OBJECTS:
+	switch (temp)
+	{
+		case CMD_TEST_OBJECTS:
 
-		acpi_db_test_all_objects();
-		break;
+			acpi_db_test_all_objects();
+			break;
 
-	case CMD_TEST_PREDEFINED:
+		case CMD_TEST_PREDEFINED:
 
-		acpi_db_evaluate_all_predefined_names(NULL);
-		break;
+			acpi_db_evaluate_all_predefined_names(NULL);
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 }
 
@@ -205,42 +213,52 @@ static void acpi_db_test_all_objects(void)
 
 	/* Install the debugger read-object control method if necessary */
 
-	if (!read_handle) {
+	if (!read_handle)
+	{
 		status = acpi_install_method(read_method_code);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			acpi_os_printf
-			    ("%s, Could not install debugger read method\n",
-			     acpi_format_exception(status));
+			("%s, Could not install debugger read method\n",
+			 acpi_format_exception(status));
 			return;
 		}
 
 		status =
-		    acpi_get_handle(NULL, ACPI_DB_READ_METHOD, &read_handle);
-		if (ACPI_FAILURE(status)) {
+			acpi_get_handle(NULL, ACPI_DB_READ_METHOD, &read_handle);
+
+		if (ACPI_FAILURE(status))
+		{
 			acpi_os_printf
-			    ("Could not obtain handle for debug method %s\n",
-			     ACPI_DB_READ_METHOD);
+			("Could not obtain handle for debug method %s\n",
+			 ACPI_DB_READ_METHOD);
 			return;
 		}
 	}
 
 	/* Install the debugger write-object control method if necessary */
 
-	if (!write_handle) {
+	if (!write_handle)
+	{
 		status = acpi_install_method(write_method_code);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			acpi_os_printf
-			    ("%s, Could not install debugger write method\n",
-			     acpi_format_exception(status));
+			("%s, Could not install debugger write method\n",
+			 acpi_format_exception(status));
 			return;
 		}
 
 		status =
-		    acpi_get_handle(NULL, ACPI_DB_WRITE_METHOD, &write_handle);
-		if (ACPI_FAILURE(status)) {
+			acpi_get_handle(NULL, ACPI_DB_WRITE_METHOD, &write_handle);
+
+		if (ACPI_FAILURE(status))
+		{
 			acpi_os_printf
-			    ("Could not obtain handle for debug method %s\n",
-			     ACPI_DB_WRITE_METHOD);
+			("Could not obtain handle for debug method %s\n",
+			 ACPI_DB_WRITE_METHOD);
 			return;
 		}
 	}
@@ -248,8 +266,8 @@ static void acpi_db_test_all_objects(void)
 	/* Walk the entire namespace, testing each supported named data object */
 
 	(void)acpi_walk_namespace(ACPI_TYPE_ANY, ACPI_ROOT_OBJECT,
-				  ACPI_UINT32_MAX, acpi_db_test_one_object,
-				  NULL, NULL, NULL);
+							  ACPI_UINT32_MAX, acpi_db_test_one_object,
+							  NULL, NULL, NULL);
 }
 
 /*******************************************************************************
@@ -270,7 +288,7 @@ static void acpi_db_test_all_objects(void)
 
 static acpi_status
 acpi_db_test_one_object(acpi_handle obj_handle,
-			u32 nesting_level, void *context, void **return_value)
+						u32 nesting_level, void *context, void **return_value)
 {
 	struct acpi_namespace_node *node;
 	union acpi_operand_object *obj_desc;
@@ -287,61 +305,69 @@ acpi_db_test_one_object(acpi_handle obj_handle,
 	 * For the supported types, get the actual bit length or
 	 * byte length. Map the type to one of Integer/String/Buffer.
 	 */
-	switch (node->type) {
-	case ACPI_TYPE_INTEGER:
+	switch (node->type)
+	{
+		case ACPI_TYPE_INTEGER:
 
-		/* Integer width is either 32 or 64 */
+			/* Integer width is either 32 or 64 */
 
-		local_type = ACPI_TYPE_INTEGER;
-		bit_length = acpi_gbl_integer_bit_width;
-		break;
+			local_type = ACPI_TYPE_INTEGER;
+			bit_length = acpi_gbl_integer_bit_width;
+			break;
 
-	case ACPI_TYPE_STRING:
+		case ACPI_TYPE_STRING:
 
-		local_type = ACPI_TYPE_STRING;
-		byte_length = obj_desc->string.length;
-		break;
+			local_type = ACPI_TYPE_STRING;
+			byte_length = obj_desc->string.length;
+			break;
 
-	case ACPI_TYPE_BUFFER:
+		case ACPI_TYPE_BUFFER:
 
-		local_type = ACPI_TYPE_BUFFER;
-		byte_length = obj_desc->buffer.length;
-		bit_length = byte_length * 8;
-		break;
+			local_type = ACPI_TYPE_BUFFER;
+			byte_length = obj_desc->buffer.length;
+			bit_length = byte_length * 8;
+			break;
 
-	case ACPI_TYPE_FIELD_UNIT:
-	case ACPI_TYPE_BUFFER_FIELD:
-	case ACPI_TYPE_LOCAL_REGION_FIELD:
-	case ACPI_TYPE_LOCAL_INDEX_FIELD:
-	case ACPI_TYPE_LOCAL_BANK_FIELD:
+		case ACPI_TYPE_FIELD_UNIT:
+		case ACPI_TYPE_BUFFER_FIELD:
+		case ACPI_TYPE_LOCAL_REGION_FIELD:
+		case ACPI_TYPE_LOCAL_INDEX_FIELD:
+		case ACPI_TYPE_LOCAL_BANK_FIELD:
 
-		local_type = ACPI_TYPE_INTEGER;
-		if (obj_desc) {
-			/*
-			 * Returned object will be a Buffer if the field length
-			 * is larger than the size of an Integer (32 or 64 bits
-			 * depending on the DSDT version).
-			 */
-			bit_length = obj_desc->common_field.bit_length;
-			byte_length = ACPI_ROUND_BITS_UP_TO_BYTES(bit_length);
-			if (bit_length > acpi_gbl_integer_bit_width) {
-				local_type = ACPI_TYPE_BUFFER;
+			local_type = ACPI_TYPE_INTEGER;
+
+			if (obj_desc)
+			{
+				/*
+				 * Returned object will be a Buffer if the field length
+				 * is larger than the size of an Integer (32 or 64 bits
+				 * depending on the DSDT version).
+				 */
+				bit_length = obj_desc->common_field.bit_length;
+				byte_length = ACPI_ROUND_BITS_UP_TO_BYTES(bit_length);
+
+				if (bit_length > acpi_gbl_integer_bit_width)
+				{
+					local_type = ACPI_TYPE_BUFFER;
+				}
 			}
-		}
-		break;
 
-	default:
+			break;
 
-		/* Ignore all other types */
+		default:
 
-		return (AE_OK);
+			/* Ignore all other types */
+
+			return (AE_OK);
 	}
 
 	/* Emit the common prefix: Type:Name */
 
 	acpi_os_printf("%14s: %4.4s",
-		       acpi_ut_get_type_name(node->type), node->name.ascii);
-	if (!obj_desc) {
+				   acpi_ut_get_type_name(node->type), node->name.ascii);
+
+	if (!obj_desc)
+	{
 		acpi_os_printf(" Ignoring, no attached object\n");
 		return (AE_OK);
 	}
@@ -350,69 +376,75 @@ acpi_db_test_one_object(acpi_handle obj_handle,
 	 * Check for unsupported region types. Note: acpi_exec simulates
 	 * access to system_memory, system_IO, PCI_Config, and EC.
 	 */
-	switch (node->type) {
-	case ACPI_TYPE_LOCAL_REGION_FIELD:
+	switch (node->type)
+	{
+		case ACPI_TYPE_LOCAL_REGION_FIELD:
 
-		region_obj = obj_desc->field.region_obj;
-		switch (region_obj->region.space_id) {
-		case ACPI_ADR_SPACE_SYSTEM_MEMORY:
-		case ACPI_ADR_SPACE_SYSTEM_IO:
-		case ACPI_ADR_SPACE_PCI_CONFIG:
-		case ACPI_ADR_SPACE_EC:
+			region_obj = obj_desc->field.region_obj;
+
+			switch (region_obj->region.space_id)
+			{
+				case ACPI_ADR_SPACE_SYSTEM_MEMORY:
+				case ACPI_ADR_SPACE_SYSTEM_IO:
+				case ACPI_ADR_SPACE_PCI_CONFIG:
+				case ACPI_ADR_SPACE_EC:
+
+					break;
+
+				default:
+
+					acpi_os_printf
+					("    %s space is not supported [%4.4s]\n",
+					 acpi_ut_get_region_name(region_obj->region.
+											 space_id),
+					 region_obj->region.node->name.ascii);
+					return (AE_OK);
+			}
 
 			break;
 
 		default:
-
-			acpi_os_printf
-			    ("    %s space is not supported [%4.4s]\n",
-			     acpi_ut_get_region_name(region_obj->region.
-						     space_id),
-			     region_obj->region.node->name.ascii);
-			return (AE_OK);
-		}
-		break;
-
-	default:
-		break;
+			break;
 	}
 
 	/* At this point, we have resolved the object to one of the major types */
 
-	switch (local_type) {
-	case ACPI_TYPE_INTEGER:
+	switch (local_type)
+	{
+		case ACPI_TYPE_INTEGER:
 
-		status = acpi_db_test_integer_type(node, bit_length);
-		break;
+			status = acpi_db_test_integer_type(node, bit_length);
+			break;
 
-	case ACPI_TYPE_STRING:
+		case ACPI_TYPE_STRING:
 
-		status = acpi_db_test_string_type(node, byte_length);
-		break;
+			status = acpi_db_test_string_type(node, byte_length);
+			break;
 
-	case ACPI_TYPE_BUFFER:
+		case ACPI_TYPE_BUFFER:
 
-		status = acpi_db_test_buffer_type(node, bit_length);
-		break;
+			status = acpi_db_test_buffer_type(node, bit_length);
+			break;
 
-	default:
+		default:
 
-		acpi_os_printf(" Ignoring, type not implemented (%2.2X)",
-			       local_type);
-		break;
+			acpi_os_printf(" Ignoring, type not implemented (%2.2X)",
+						   local_type);
+			break;
 	}
 
-	switch (node->type) {
-	case ACPI_TYPE_LOCAL_REGION_FIELD:
+	switch (node->type)
+	{
+		case ACPI_TYPE_LOCAL_REGION_FIELD:
 
-		region_obj = obj_desc->field.region_obj;
-		acpi_os_printf(" (%s)",
-			       acpi_ut_get_region_name(region_obj->region.
-						       space_id));
-		break;
+			region_obj = obj_desc->field.region_obj;
+			acpi_os_printf(" (%s)",
+						   acpi_ut_get_region_name(region_obj->region.
+												   space_id));
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 	acpi_os_printf("\n");
@@ -446,25 +478,30 @@ acpi_db_test_integer_type(struct acpi_namespace_node *node, u32 bit_length)
 	u64 value_to_write;
 	acpi_status status;
 
-	if (bit_length > 64) {
+	if (bit_length > 64)
+	{
 		acpi_os_printf(" Invalid length for an Integer: %u",
-			       bit_length);
+					   bit_length);
 		return (AE_OK);
 	}
 
 	/* Read the original value */
 
 	status = acpi_db_read_from_object(node, ACPI_TYPE_INTEGER, &temp1);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
 	acpi_os_printf(" (%4.4X/%3.3X) %8.8X%8.8X",
-		       bit_length, ACPI_ROUND_BITS_UP_TO_BYTES(bit_length),
-		       ACPI_FORMAT_UINT64(temp1->integer.value));
+				   bit_length, ACPI_ROUND_BITS_UP_TO_BYTES(bit_length),
+				   ACPI_FORMAT_UINT64(temp1->integer.value));
 
 	value_to_write = ACPI_UINT64_MAX >> (64 - bit_length);
-	if (temp1->integer.value == value_to_write) {
+
+	if (temp1->integer.value == value_to_write)
+	{
 		value_to_write = 0;
 	}
 
@@ -473,54 +510,71 @@ acpi_db_test_integer_type(struct acpi_namespace_node *node, u32 bit_length)
 	write_value.type = ACPI_TYPE_INTEGER;
 	write_value.integer.value = value_to_write;
 	status = acpi_db_write_to_object(node, &write_value);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		goto exit;
 	}
 
 	/* Ensure that we can read back the new value */
 
 	status = acpi_db_read_from_object(node, ACPI_TYPE_INTEGER, &temp2);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		goto exit;
 	}
 
-	if (temp2->integer.value != value_to_write) {
+	if (temp2->integer.value != value_to_write)
+	{
 		acpi_os_printf(" MISMATCH 2: %8.8X%8.8X, expecting %8.8X%8.8X",
-			       ACPI_FORMAT_UINT64(temp2->integer.value),
-			       ACPI_FORMAT_UINT64(value_to_write));
+					   ACPI_FORMAT_UINT64(temp2->integer.value),
+					   ACPI_FORMAT_UINT64(value_to_write));
 	}
 
 	/* Write back the original value */
 
 	write_value.integer.value = temp1->integer.value;
 	status = acpi_db_write_to_object(node, &write_value);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		goto exit;
 	}
 
 	/* Ensure that we can read back the original value */
 
 	status = acpi_db_read_from_object(node, ACPI_TYPE_INTEGER, &temp3);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		goto exit;
 	}
 
-	if (temp3->integer.value != temp1->integer.value) {
+	if (temp3->integer.value != temp1->integer.value)
+	{
 		acpi_os_printf(" MISMATCH 3: %8.8X%8.8X, expecting %8.8X%8.8X",
-			       ACPI_FORMAT_UINT64(temp3->integer.value),
-			       ACPI_FORMAT_UINT64(temp1->integer.value));
+					   ACPI_FORMAT_UINT64(temp3->integer.value),
+					   ACPI_FORMAT_UINT64(temp1->integer.value));
 	}
 
 exit:
-	if (temp1) {
+
+	if (temp1)
+	{
 		acpi_os_free(temp1);
 	}
-	if (temp2) {
+
+	if (temp2)
+	{
 		acpi_os_free(temp2);
 	}
-	if (temp3) {
+
+	if (temp3)
+	{
 		acpi_os_free(temp3);
 	}
+
 	return (AE_OK);
 }
 
@@ -553,7 +607,9 @@ acpi_db_test_buffer_type(struct acpi_namespace_node *node, u32 bit_length)
 	u8 extra_bits;
 
 	byte_length = ACPI_ROUND_BITS_UP_TO_BYTES(bit_length);
-	if (byte_length == 0) {
+
+	if (byte_length == 0)
+	{
 		acpi_os_printf(" Ignoring zero length buffer");
 		return (AE_OK);
 	}
@@ -561,23 +617,30 @@ acpi_db_test_buffer_type(struct acpi_namespace_node *node, u32 bit_length)
 	/* Allocate a local buffer */
 
 	buffer = ACPI_ALLOCATE_ZEROED(byte_length);
-	if (!buffer) {
+
+	if (!buffer)
+	{
 		return (AE_NO_MEMORY);
 	}
 
 	/* Read the original value */
 
 	status = acpi_db_read_from_object(node, ACPI_TYPE_BUFFER, &temp1);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		goto exit;
 	}
 
 	/* Emit a few bytes of the buffer */
 
 	acpi_os_printf(" (%4.4X/%3.3X)", bit_length, temp1->buffer.length);
-	for (i = 0; ((i < 4) && (i < byte_length)); i++) {
+
+	for (i = 0; ((i < 4) && (i < byte_length)); i++)
+	{
 		acpi_os_printf(" %2.2X", temp1->buffer.pointer[i]);
 	}
+
 	acpi_os_printf("... ");
 
 	/*
@@ -590,7 +653,9 @@ acpi_db_test_buffer_type(struct acpi_namespace_node *node, u32 bit_length)
 	 */
 	memset(buffer, BUFFER_FILL_VALUE, byte_length);
 	extra_bits = bit_length % 8;
-	if (extra_bits) {
+
+	if (extra_bits)
+	{
 		buffer[byte_length - 1] = ACPI_MASK_BITS_ABOVE(extra_bits);
 	}
 
@@ -599,18 +664,23 @@ acpi_db_test_buffer_type(struct acpi_namespace_node *node, u32 bit_length)
 	write_value.buffer.pointer = buffer;
 
 	status = acpi_db_write_to_object(node, &write_value);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		goto exit;
 	}
 
 	/* Ensure that we can read back the new value */
 
 	status = acpi_db_read_from_object(node, ACPI_TYPE_BUFFER, &temp2);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		goto exit;
 	}
 
-	if (memcmp(temp2->buffer.pointer, buffer, byte_length)) {
+	if (memcmp(temp2->buffer.pointer, buffer, byte_length))
+	{
 		acpi_os_printf(" MISMATCH 2: New buffer value");
 	}
 
@@ -620,32 +690,44 @@ acpi_db_test_buffer_type(struct acpi_namespace_node *node, u32 bit_length)
 	write_value.buffer.pointer = temp1->buffer.pointer;
 
 	status = acpi_db_write_to_object(node, &write_value);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		goto exit;
 	}
 
 	/* Ensure that we can read back the original value */
 
 	status = acpi_db_read_from_object(node, ACPI_TYPE_BUFFER, &temp3);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		goto exit;
 	}
 
-	if (memcmp(temp1->buffer.pointer, temp3->buffer.pointer, byte_length)) {
+	if (memcmp(temp1->buffer.pointer, temp3->buffer.pointer, byte_length))
+	{
 		acpi_os_printf(" MISMATCH 3: While restoring original buffer");
 	}
 
 exit:
 	ACPI_FREE(buffer);
-	if (temp1) {
+
+	if (temp1)
+	{
 		acpi_os_free(temp1);
 	}
-	if (temp2) {
+
+	if (temp2)
+	{
 		acpi_os_free(temp2);
 	}
-	if (temp3) {
+
+	if (temp3)
+	{
 		acpi_os_free(temp3);
 	}
+
 	return (status);
 }
 
@@ -677,12 +759,14 @@ acpi_db_test_string_type(struct acpi_namespace_node *node, u32 byte_length)
 	/* Read the original value */
 
 	status = acpi_db_read_from_object(node, ACPI_TYPE_STRING, &temp1);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
 	acpi_os_printf(" (%4.4X/%3.3X) \"%s\"", (temp1->string.length * 8),
-		       temp1->string.length, temp1->string.pointer);
+				   temp1->string.length, temp1->string.pointer);
 
 	/* Write a new value */
 
@@ -691,20 +775,25 @@ acpi_db_test_string_type(struct acpi_namespace_node *node, u32 byte_length)
 	write_value.string.pointer = value_to_write;
 
 	status = acpi_db_write_to_object(node, &write_value);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		goto exit;
 	}
 
 	/* Ensure that we can read back the new value */
 
 	status = acpi_db_read_from_object(node, ACPI_TYPE_STRING, &temp2);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		goto exit;
 	}
 
-	if (strcmp(temp2->string.pointer, value_to_write)) {
+	if (strcmp(temp2->string.pointer, value_to_write))
+	{
 		acpi_os_printf(" MISMATCH 2: %s, expecting %s",
-			       temp2->string.pointer, value_to_write);
+					   temp2->string.pointer, value_to_write);
 	}
 
 	/* Write back the original value */
@@ -713,32 +802,44 @@ acpi_db_test_string_type(struct acpi_namespace_node *node, u32 byte_length)
 	write_value.string.pointer = temp1->string.pointer;
 
 	status = acpi_db_write_to_object(node, &write_value);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		goto exit;
 	}
 
 	/* Ensure that we can read back the original value */
 
 	status = acpi_db_read_from_object(node, ACPI_TYPE_STRING, &temp3);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		goto exit;
 	}
 
-	if (strcmp(temp1->string.pointer, temp3->string.pointer)) {
+	if (strcmp(temp1->string.pointer, temp3->string.pointer))
+	{
 		acpi_os_printf(" MISMATCH 3: %s, expecting %s",
-			       temp3->string.pointer, temp1->string.pointer);
+					   temp3->string.pointer, temp1->string.pointer);
 	}
 
 exit:
-	if (temp1) {
+
+	if (temp1)
+	{
 		acpi_os_free(temp1);
 	}
-	if (temp2) {
+
+	if (temp2)
+	{
 		acpi_os_free(temp2);
 	}
-	if (temp3) {
+
+	if (temp3)
+	{
 		acpi_os_free(temp3);
 	}
+
 	return (status);
 }
 
@@ -761,8 +862,8 @@ exit:
 
 static acpi_status
 acpi_db_read_from_object(struct acpi_namespace_node *node,
-			 acpi_object_type expected_type,
-			 union acpi_object **value)
+						 acpi_object_type expected_type,
+						 union acpi_object **value)
 {
 	union acpi_object *ret_value;
 	struct acpi_object_list param_objects;
@@ -781,45 +882,49 @@ acpi_db_read_from_object(struct acpi_namespace_node *node,
 
 	acpi_gbl_method_executing = TRUE;
 	status = acpi_evaluate_object(read_handle, NULL,
-				      &param_objects, &return_obj);
+								  &param_objects, &return_obj);
 	acpi_gbl_method_executing = FALSE;
 
-	if (ACPI_FAILURE(status)) {
+	if (ACPI_FAILURE(status))
+	{
 		acpi_os_printf("Could not read from object, %s",
-			       acpi_format_exception(status));
+					   acpi_format_exception(status));
 		return (status);
 	}
 
 	ret_value = (union acpi_object *)return_obj.pointer;
 
-	switch (ret_value->type) {
-	case ACPI_TYPE_INTEGER:
-	case ACPI_TYPE_BUFFER:
-	case ACPI_TYPE_STRING:
-		/*
-		 * Did we receive the type we wanted? Most important for the
-		 * Integer/Buffer case (when a field is larger than an Integer,
-		 * it should return a Buffer).
-		 */
-		if (ret_value->type != expected_type) {
-			acpi_os_printf
-			    (" Type mismatch: Expected %s, Received %s",
-			     acpi_ut_get_type_name(expected_type),
-			     acpi_ut_get_type_name(ret_value->type));
+	switch (ret_value->type)
+	{
+		case ACPI_TYPE_INTEGER:
+		case ACPI_TYPE_BUFFER:
+		case ACPI_TYPE_STRING:
 
+			/*
+			 * Did we receive the type we wanted? Most important for the
+			 * Integer/Buffer case (when a field is larger than an Integer,
+			 * it should return a Buffer).
+			 */
+			if (ret_value->type != expected_type)
+			{
+				acpi_os_printf
+				(" Type mismatch: Expected %s, Received %s",
+				 acpi_ut_get_type_name(expected_type),
+				 acpi_ut_get_type_name(ret_value->type));
+
+				return (AE_TYPE);
+			}
+
+			*value = ret_value;
+			break;
+
+		default:
+
+			acpi_os_printf(" Unsupported return object type, %s",
+						   acpi_ut_get_type_name(ret_value->type));
+
+			acpi_os_free(return_obj.pointer);
 			return (AE_TYPE);
-		}
-
-		*value = ret_value;
-		break;
-
-	default:
-
-		acpi_os_printf(" Unsupported return object type, %s",
-			       acpi_ut_get_type_name(ret_value->type));
-
-		acpi_os_free(return_obj.pointer);
-		return (AE_TYPE);
 	}
 
 	return (status);
@@ -843,7 +948,7 @@ acpi_db_read_from_object(struct acpi_namespace_node *node,
 
 static acpi_status
 acpi_db_write_to_object(struct acpi_namespace_node *node,
-			union acpi_object *value)
+						union acpi_object *value)
 {
 	struct acpi_object_list param_objects;
 	union acpi_object params[2];
@@ -864,9 +969,10 @@ acpi_db_write_to_object(struct acpi_namespace_node *node,
 	status = acpi_evaluate_object(write_handle, NULL, &param_objects, NULL);
 	acpi_gbl_method_executing = FALSE;
 
-	if (ACPI_FAILURE(status)) {
+	if (ACPI_FAILURE(status))
+	{
 		acpi_os_printf("Could not write to object, %s",
-			       acpi_format_exception(status));
+					   acpi_format_exception(status));
 	}
 
 	return (status);
@@ -892,19 +998,20 @@ static void acpi_db_evaluate_all_predefined_names(char *count_arg)
 	info.count = 0;
 	info.max_count = ACPI_UINT32_MAX;
 
-	if (count_arg) {
+	if (count_arg)
+	{
 		info.max_count = strtoul(count_arg, NULL, 0);
 	}
 
 	/* Search all nodes in namespace */
 
 	(void)acpi_walk_namespace(ACPI_TYPE_ANY, ACPI_ROOT_OBJECT,
-				  ACPI_UINT32_MAX,
-				  acpi_db_evaluate_one_predefined_name, NULL,
-				  (void *)&info, NULL);
+							  ACPI_UINT32_MAX,
+							  acpi_db_evaluate_one_predefined_name, NULL,
+							  (void *)&info, NULL);
 
 	acpi_os_printf("Evaluated %u predefined names in the namespace\n",
-		       info.count);
+				   info.count);
 }
 
 /*******************************************************************************
@@ -922,13 +1029,13 @@ static void acpi_db_evaluate_all_predefined_names(char *count_arg)
 
 static acpi_status
 acpi_db_evaluate_one_predefined_name(acpi_handle obj_handle,
-				     u32 nesting_level,
-				     void *context, void **return_value)
+									 u32 nesting_level,
+									 void *context, void **return_value)
 {
 	struct acpi_namespace_node *node =
-	    (struct acpi_namespace_node *)obj_handle;
+		(struct acpi_namespace_node *)obj_handle;
 	struct acpi_db_execute_walk *info =
-	    (struct acpi_db_execute_walk *)context;
+		(struct acpi_db_execute_walk *)context;
 	char *pathname;
 	const union acpi_predefined_info *predefined;
 	struct acpi_device_info *obj_info;
@@ -945,23 +1052,30 @@ acpi_db_evaluate_one_predefined_name(acpi_handle obj_handle,
 	/* The name must be a predefined ACPI name */
 
 	predefined = acpi_ut_match_predefined_method(node->name.ascii);
-	if (!predefined) {
+
+	if (!predefined)
+	{
 		return (AE_OK);
 	}
 
-	if (node->type == ACPI_TYPE_LOCAL_SCOPE) {
+	if (node->type == ACPI_TYPE_LOCAL_SCOPE)
+	{
 		return (AE_OK);
 	}
 
 	pathname = acpi_ns_get_normalized_pathname(node, TRUE);
-	if (!pathname) {
+
+	if (!pathname)
+	{
 		return (AE_OK);
 	}
 
 	/* Get the object info for number of method parameters */
 
 	status = acpi_get_object_info(obj_handle, &obj_info);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_FREE(pathname);
 		return (status);
 	}
@@ -969,7 +1083,8 @@ acpi_db_evaluate_one_predefined_name(acpi_handle obj_handle,
 	param_objects.count = 0;
 	param_objects.pointer = NULL;
 
-	if (obj_info->type == ACPI_TYPE_METHOD) {
+	if (obj_info->type == ACPI_TYPE_METHOD)
+	{
 
 		/* Setup default parameters (with proper types) */
 
@@ -982,42 +1097,45 @@ acpi_db_evaluate_one_predefined_name(acpi_handle obj_handle,
 		 * method is wrong and a warning will be issued during execution.
 		 */
 		this_param = params;
-		for (i = 0; i < arg_count; i++) {
+
+		for (i = 0; i < arg_count; i++)
+		{
 			arg_type = METHOD_GET_NEXT_TYPE(arg_type_list);
 			this_param->type = arg_type;
 
-			switch (arg_type) {
-			case ACPI_TYPE_INTEGER:
+			switch (arg_type)
+			{
+				case ACPI_TYPE_INTEGER:
 
-				this_param->integer.value = 1;
-				break;
+					this_param->integer.value = 1;
+					break;
 
-			case ACPI_TYPE_STRING:
+				case ACPI_TYPE_STRING:
 
-				this_param->string.pointer =
-				    "This is the default argument string";
-				this_param->string.length =
-				    strlen(this_param->string.pointer);
-				break;
+					this_param->string.pointer =
+						"This is the default argument string";
+					this_param->string.length =
+						strlen(this_param->string.pointer);
+					break;
 
-			case ACPI_TYPE_BUFFER:
+				case ACPI_TYPE_BUFFER:
 
-				this_param->buffer.pointer = (u8 *)params;	/* just a garbage buffer */
-				this_param->buffer.length = 48;
-				break;
+					this_param->buffer.pointer = (u8 *)params;	/* just a garbage buffer */
+					this_param->buffer.length = 48;
+					break;
 
-			case ACPI_TYPE_PACKAGE:
+				case ACPI_TYPE_PACKAGE:
 
-				this_param->package.elements = NULL;
-				this_param->package.count = 0;
-				break;
+					this_param->package.elements = NULL;
+					this_param->package.count = 0;
+					break;
 
-			default:
+				default:
 
-				acpi_os_printf
-				    ("%s: Unsupported argument type: %u\n",
-				     pathname, arg_type);
-				break;
+					acpi_os_printf
+					("%s: Unsupported argument type: %u\n",
+					 pathname, arg_type);
+					break;
 			}
 
 			this_param++;
@@ -1038,7 +1156,7 @@ acpi_db_evaluate_one_predefined_name(acpi_handle obj_handle,
 	status = acpi_evaluate_object(node, NULL, &param_objects, &return_obj);
 
 	acpi_os_printf("%-32s returned %s\n",
-		       pathname, acpi_format_exception(status));
+				   pathname, acpi_format_exception(status));
 	acpi_gbl_method_executing = FALSE;
 	ACPI_FREE(pathname);
 
@@ -1049,7 +1167,9 @@ acpi_db_evaluate_one_predefined_name(acpi_handle obj_handle,
 	/* Update count, check if we have executed enough methods */
 
 	info->count++;
-	if (info->count >= info->max_count) {
+
+	if (info->count >= info->max_count)
+	{
 		status = AE_CTRL_TERMINATE;
 	}
 

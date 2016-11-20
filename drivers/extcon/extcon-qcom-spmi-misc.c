@@ -26,14 +26,16 @@
 
 #define USB_ID_DEBOUNCE_MS	5	/* ms */
 
-struct qcom_usb_extcon_info {
+struct qcom_usb_extcon_info
+{
 	struct extcon_dev *edev;
 	int irq;
 	struct delayed_work wq_detcable;
 	unsigned long debounce_jiffies;
 };
 
-static const unsigned int qcom_usb_extcon_cable[] = {
+static const unsigned int qcom_usb_extcon_cable[] =
+{
 	EXTCON_USB_HOST,
 	EXTCON_NONE,
 };
@@ -43,13 +45,16 @@ static void qcom_usb_extcon_detect_cable(struct work_struct *work)
 	bool id;
 	int ret;
 	struct qcom_usb_extcon_info *info = container_of(to_delayed_work(work),
-						    struct qcom_usb_extcon_info,
-						    wq_detcable);
+										struct qcom_usb_extcon_info,
+										wq_detcable);
 
 	/* check ID and update cable state */
 	ret = irq_get_irqchip_state(info->irq, IRQCHIP_STATE_LINE_LEVEL, &id);
+
 	if (ret)
+	{
 		return;
+	}
 
 	extcon_set_state_sync(info->edev, EXTCON_USB_HOST, !id);
 }
@@ -59,7 +64,7 @@ static irqreturn_t qcom_usb_irq_handler(int irq, void *dev_id)
 	struct qcom_usb_extcon_info *info = dev_id;
 
 	queue_delayed_work(system_power_efficient_wq, &info->wq_detcable,
-			   info->debounce_jiffies);
+					   info->debounce_jiffies);
 
 	return IRQ_HANDLED;
 }
@@ -71,17 +76,24 @@ static int qcom_usb_extcon_probe(struct platform_device *pdev)
 	int ret;
 
 	info = devm_kzalloc(dev, sizeof(*info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	info->edev = devm_extcon_dev_allocate(dev, qcom_usb_extcon_cable);
-	if (IS_ERR(info->edev)) {
+
+	if (IS_ERR(info->edev))
+	{
 		dev_err(dev, "failed to allocate extcon device\n");
 		return -ENOMEM;
 	}
 
 	ret = devm_extcon_dev_register(dev, info->edev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to register extcon device\n");
 		return ret;
 	}
@@ -90,15 +102,20 @@ static int qcom_usb_extcon_probe(struct platform_device *pdev)
 	INIT_DELAYED_WORK(&info->wq_detcable, qcom_usb_extcon_detect_cable);
 
 	info->irq = platform_get_irq_byname(pdev, "usb_id");
+
 	if (info->irq < 0)
+	{
 		return info->irq;
+	}
 
 	ret = devm_request_threaded_irq(dev, info->irq, NULL,
-					qcom_usb_irq_handler,
-					IRQF_TRIGGER_RISING |
-					IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-					pdev->name, info);
-	if (ret < 0) {
+									qcom_usb_irq_handler,
+									IRQF_TRIGGER_RISING |
+									IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+									pdev->name, info);
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to request handler for ID IRQ\n");
 		return ret;
 	}
@@ -128,7 +145,9 @@ static int qcom_usb_extcon_suspend(struct device *dev)
 	int ret = 0;
 
 	if (device_may_wakeup(dev))
+	{
 		ret = enable_irq_wake(info->irq);
+	}
 
 	return ret;
 }
@@ -139,22 +158,26 @@ static int qcom_usb_extcon_resume(struct device *dev)
 	int ret = 0;
 
 	if (device_may_wakeup(dev))
+	{
 		ret = disable_irq_wake(info->irq);
+	}
 
 	return ret;
 }
 #endif
 
 static SIMPLE_DEV_PM_OPS(qcom_usb_extcon_pm_ops,
-			 qcom_usb_extcon_suspend, qcom_usb_extcon_resume);
+						 qcom_usb_extcon_suspend, qcom_usb_extcon_resume);
 
-static const struct of_device_id qcom_usb_extcon_dt_match[] = {
+static const struct of_device_id qcom_usb_extcon_dt_match[] =
+{
 	{ .compatible = "qcom,pm8941-misc", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, qcom_usb_extcon_dt_match);
 
-static struct platform_driver qcom_usb_extcon_driver = {
+static struct platform_driver qcom_usb_extcon_driver =
+{
 	.probe		= qcom_usb_extcon_probe,
 	.remove		= qcom_usb_extcon_remove,
 	.driver		= {

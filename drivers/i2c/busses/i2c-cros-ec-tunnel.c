@@ -29,7 +29,8 @@
  * @response_buf: Buffer for receiving data; we expect most transfers to fit.
  */
 
-struct ec_i2c_device {
+struct ec_i2c_device
+{
 	struct device *dev;
 	struct i2c_adapter adap;
 	struct cros_ec_device *ec;
@@ -55,9 +56,12 @@ static int ec_i2c_count_message(const struct i2c_msg i2c_msgs[], int num)
 
 	size = sizeof(struct ec_params_i2c_passthru);
 	size += num * sizeof(struct ec_params_i2c_passthru_msg);
+
 	for (i = 0; i < num; i++)
 		if (!(i2c_msgs[i].flags & I2C_M_RD))
+		{
 			size += i2c_msgs[i].len;
+		}
 
 	return size;
 }
@@ -76,19 +80,21 @@ static int ec_i2c_count_message(const struct i2c_msg i2c_msgs[], int num)
  * Returns 0 or a negative error number.
  */
 static int ec_i2c_construct_message(u8 *buf, const struct i2c_msg i2c_msgs[],
-				    int num, u16 bus_num)
+									int num, u16 bus_num)
 {
 	struct ec_params_i2c_passthru *params;
 	u8 *out_data;
 	int i;
 
 	out_data = buf + sizeof(struct ec_params_i2c_passthru) +
-		   num * sizeof(struct ec_params_i2c_passthru_msg);
+			   num * sizeof(struct ec_params_i2c_passthru_msg);
 
 	params = (struct ec_params_i2c_passthru *)buf;
 	params->port = bus_num;
 	params->num_msgs = num;
-	for (i = 0; i < num; i++) {
+
+	for (i = 0; i < num; i++)
+	{
 		const struct i2c_msg *i2c_msg = &i2c_msgs[i];
 		struct ec_params_i2c_passthru_msg *msg = &params->msg[i];
 
@@ -96,11 +102,16 @@ static int ec_i2c_construct_message(u8 *buf, const struct i2c_msg i2c_msgs[],
 		msg->addr_flags = i2c_msg->addr;
 
 		if (i2c_msg->flags & I2C_M_TEN)
+		{
 			return -EINVAL;
+		}
 
-		if (i2c_msg->flags & I2C_M_RD) {
+		if (i2c_msg->flags & I2C_M_RD)
+		{
 			msg->addr_flags |= EC_I2C_FLAG_READ;
-		} else {
+		}
+		else
+		{
 			memcpy(out_data, i2c_msg->buf, msg->len);
 			out_data += msg->len;
 		}
@@ -123,9 +134,12 @@ static int ec_i2c_count_response(struct i2c_msg i2c_msgs[], int num)
 	int i;
 
 	size = sizeof(struct ec_response_i2c_passthru);
+
 	for (i = 0; i < num; i++)
 		if (i2c_msgs[i].flags & I2C_M_RD)
+		{
 			size += i2c_msgs[i].len;
+		}
 
 	return size;
 }
@@ -143,7 +157,7 @@ static int ec_i2c_count_response(struct i2c_msg i2c_msgs[], int num)
  * Returns 0 or a negative error number.
  */
 static int ec_i2c_parse_response(const u8 *buf, struct i2c_msg i2c_msgs[],
-				 int *num)
+								 int *num)
 {
 	const struct ec_response_i2c_passthru *resp;
 	const u8 *in_data;
@@ -152,20 +166,30 @@ static int ec_i2c_parse_response(const u8 *buf, struct i2c_msg i2c_msgs[],
 	in_data = buf + sizeof(struct ec_response_i2c_passthru);
 
 	resp = (const struct ec_response_i2c_passthru *)buf;
+
 	if (resp->i2c_status & EC_I2C_STATUS_TIMEOUT)
+	{
 		return -ETIMEDOUT;
+	}
 	else if (resp->i2c_status & EC_I2C_STATUS_ERROR)
+	{
 		return -EREMOTEIO;
+	}
 
 	/* Other side could send us back fewer messages, but not more */
 	if (resp->num_msgs > *num)
+	{
 		return -EPROTO;
+	}
+
 	*num = resp->num_msgs;
 
-	for (i = 0; i < *num; i++) {
+	for (i = 0; i < *num; i++)
+	{
 		struct i2c_msg *i2c_msg = &i2c_msgs[i];
 
-		if (i2c_msgs[i].flags & I2C_M_RD) {
+		if (i2c_msgs[i].flags & I2C_M_RD)
+		{
 			memcpy(i2c_msg->buf, in_data, i2c_msg->len);
 			in_data += i2c_msg->len;
 		}
@@ -175,7 +199,7 @@ static int ec_i2c_parse_response(const u8 *buf, struct i2c_msg i2c_msgs[],
 }
 
 static int ec_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg i2c_msgs[],
-		       int num)
+					   int num)
 {
 	struct ec_i2c_device *bus = adap->algo_data;
 	struct device *dev = bus->dev;
@@ -187,13 +211,17 @@ static int ec_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg i2c_msgs[],
 	struct cros_ec_command *msg;
 
 	request_len = ec_i2c_count_message(i2c_msgs, num);
-	if (request_len < 0) {
+
+	if (request_len < 0)
+	{
 		dev_warn(dev, "Error constructing message %d\n", request_len);
 		return request_len;
 	}
 
 	response_len = ec_i2c_count_response(i2c_msgs, num);
-	if (response_len < 0) {
+
+	if (response_len < 0)
+	{
 		/* Unexpected; no errors should come when NULL response */
 		dev_warn(dev, "Error preparing response %d\n", response_len);
 		return response_len;
@@ -201,11 +229,16 @@ static int ec_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg i2c_msgs[],
 
 	alloc_size = max(request_len, response_len);
 	msg = kmalloc(sizeof(*msg) + alloc_size, GFP_KERNEL);
+
 	if (!msg)
+	{
 		return -ENOMEM;
+	}
 
 	result = ec_i2c_construct_message(msg->data, i2c_msgs, num, bus_num);
-	if (result) {
+
+	if (result)
+	{
 		dev_err(dev, "Error constructing EC i2c message %d\n", result);
 		goto exit;
 	}
@@ -216,13 +249,17 @@ static int ec_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg i2c_msgs[],
 	msg->insize = response_len;
 
 	result = cros_ec_cmd_xfer_status(bus->ec, msg);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		dev_err(dev, "Error transferring EC i2c message %d\n", result);
 		goto exit;
 	}
 
 	result = ec_i2c_parse_response(msg->data, i2c_msgs, &num);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		dev_err(dev, "Error parsing EC i2c message %d\n", result);
 		goto exit;
 	}
@@ -239,7 +276,8 @@ static u32 ec_i2c_functionality(struct i2c_adapter *adap)
 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
 }
 
-static const struct i2c_algorithm ec_i2c_algorithm = {
+static const struct i2c_algorithm ec_i2c_algorithm =
+{
 	.master_xfer	= ec_i2c_xfer,
 	.functionality	= ec_i2c_functionality,
 };
@@ -253,20 +291,27 @@ static int ec_i2c_probe(struct platform_device *pdev)
 	u32 remote_bus;
 	int err;
 
-	if (!ec->cmd_xfer) {
+	if (!ec->cmd_xfer)
+	{
 		dev_err(dev, "Missing sendrecv\n");
 		return -EINVAL;
 	}
 
 	bus = devm_kzalloc(dev, sizeof(*bus), GFP_KERNEL);
+
 	if (bus == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	err = of_property_read_u32(np, "google,remote-bus", &remote_bus);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "Couldn't read remote-bus property\n");
 		return err;
 	}
+
 	bus->remote_bus = remote_bus;
 
 	bus->ec = ec;
@@ -281,8 +326,12 @@ static int ec_i2c_probe(struct platform_device *pdev)
 	bus->adap.retries = I2C_MAX_RETRIES;
 
 	err = i2c_add_adapter(&bus->adap);
+
 	if (err)
+	{
 		return err;
+	}
+
 	platform_set_drvdata(pdev, bus);
 
 	return err;
@@ -298,14 +347,16 @@ static int ec_i2c_remove(struct platform_device *dev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id cros_ec_i2c_of_match[] = {
+static const struct of_device_id cros_ec_i2c_of_match[] =
+{
 	{ .compatible = "google,cros-ec-i2c-tunnel" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, cros_ec_i2c_of_match);
 #endif
 
-static struct platform_driver ec_i2c_tunnel_driver = {
+static struct platform_driver ec_i2c_tunnel_driver =
+{
 	.probe = ec_i2c_probe,
 	.remove = ec_i2c_remove,
 	.driver = {

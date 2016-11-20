@@ -43,7 +43,8 @@
  * entities (files, extent locks), and "sub" entities (stripes and stripe
  * locks). This is used only for debugging counters right now.
  */
-enum clt_nesting_level {
+enum clt_nesting_level
+{
 	CNL_TOP,
 	CNL_SUB,
 	CNL_NR
@@ -52,7 +53,8 @@ enum clt_nesting_level {
 /**
  * Counters used to check correctness of cl_lock interface usage.
  */
-struct cl_thread_counters {
+struct cl_thread_counters
+{
 	/**
 	 * Number of outstanding calls to cl_lock_mutex_get() made by the
 	 * current thread. For debugging.
@@ -71,7 +73,8 @@ struct cl_thread_counters {
 /**
  * Thread local state internal for generic cl-code.
  */
-struct cl_thread_info {
+struct cl_thread_info
+{
 	/*
 	 * Common fields.
 	 */

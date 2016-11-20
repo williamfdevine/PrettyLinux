@@ -33,7 +33,8 @@
 #define LP8755_EVENT_TEMP_SHDN REGULATOR_EVENT_OVER_TEMP
 #define LP8755_EVENT_I_LOAD	0x40000
 
-enum lp8755_bucks {
+enum lp8755_bucks
+{
 	LP8755_BUCK0 = 0,
 	LP8755_BUCK1,
 	LP8755_BUCK2,
@@ -46,7 +47,8 @@ enum lp8755_bucks {
 /**
  * multiphase configuration options
  */
-enum lp8755_mphase_config {
+enum lp8755_mphase_config
+{
 	MPHASE_CONF0,
 	MPHASE_CONF1,
 	MPHASE_CONF2,
@@ -64,7 +66,8 @@ enum lp8755_mphase_config {
  * @mphase_type : Multiphase Switcher Configurations.
  * @buck_data   : buck0~6 init voltage in uV
  */
-struct lp8755_platform_data {
+struct lp8755_platform_data
+{
 	int mphase;
 	struct regulator_init_data *buck_data[LP8755_BUCK_MAX];
 };

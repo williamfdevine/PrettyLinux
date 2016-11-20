@@ -60,7 +60,7 @@ static u32 atl1_hash_mc_addr(struct atl1_hw *hw, u8 *mc_addr);
 static void atl1_hash_set(struct atl1_hw *hw, u32 hash_value);
 static void atl1_set_mac_addr(struct atl1_hw *hw);
 static int atl1_mii_ioctl(struct net_device *netdev, struct ifreq *ifr,
-	int cmd);
+						  int cmd);
 static u32 atl1_check_link(struct atl1_adapter *adapter);
 
 /* hardware definitions specific to L1 */
@@ -277,34 +277,34 @@ static u32 atl1_check_link(struct atl1_adapter *adapter);
 
 /* Normal Interrupt mask without RX/TX enabled */
 #define IMR_NORXTX_MASK	(\
-	ISR_SMB		|\
-	ISR_GPHY	|\
-	ISR_PHY_LINKDOWN|\
-	ISR_DMAR_TO_RST	|\
-	ISR_DMAW_TO_RST)
+						 ISR_SMB		|\
+						 ISR_GPHY	|\
+						 ISR_PHY_LINKDOWN|\
+						 ISR_DMAR_TO_RST	|\
+						 ISR_DMAW_TO_RST)
 
 /* Normal Interrupt mask  */
 #define IMR_NORMAL_MASK	(\
-	IMR_NORXTX_MASK	|\
-	ISR_CMB_TX	|\
-	ISR_CMB_RX)
+						 IMR_NORXTX_MASK	|\
+						 ISR_CMB_TX	|\
+						 ISR_CMB_RX)
 
 /* Debug Interrupt Mask  (enable all interrupt) */
 #define IMR_DEBUG_MASK	(\
-	ISR_SMB		|\
-	ISR_TIMER	|\
-	ISR_MANUAL	|\
-	ISR_RXF_OV	|\
-	ISR_RFD_UNRUN	|\
-	ISR_RRD_OV	|\
-	ISR_TXF_UNRUN	|\
-	ISR_LINK	|\
-	ISR_CMB_TX	|\
-	ISR_CMB_RX	|\
-	ISR_RX_PKT	|\
-	ISR_TX_PKT	|\
-	ISR_MAC_RX	|\
-	ISR_MAC_TX)
+						 ISR_SMB		|\
+						 ISR_TIMER	|\
+						 ISR_MANUAL	|\
+						 ISR_RXF_OV	|\
+						 ISR_RFD_UNRUN	|\
+						 ISR_RRD_OV	|\
+						 ISR_TXF_UNRUN	|\
+						 ISR_LINK	|\
+						 ISR_CMB_TX	|\
+						 ISR_CMB_RX	|\
+						 ISR_RX_PKT	|\
+						 ISR_TX_PKT	|\
+						 ISR_MAC_RX	|\
+						 ISR_MAC_TX)
 
 #define MEDIA_TYPE_1000M_FULL			1
 #define MEDIA_TYPE_100M_FULL			2
@@ -319,7 +319,8 @@ static u32 atl1_check_link(struct atl1_adapter *adapter);
 #define ATL1_EEDUMP_LEN				48
 
 /* Statistics counters collected by the MAC */
-struct stats_msg_block {
+struct stats_msg_block
+{
 	/* rx */
 	u32 rx_ok;		/* good RX packets */
 	u32 rx_bcast;		/* good RX broadcast packets */
@@ -381,7 +382,8 @@ struct stats_msg_block {
 };
 
 /* Coalescing Message Block */
-struct coals_msg_block {
+struct coals_msg_block
+{
 	u32 int_stats;		/* interrupt status */
 	u16 rrd_prod_idx;	/* TRD Producer Index. */
 	u16 rfd_cons_idx;	/* RFD Consumer Index. */
@@ -392,13 +394,16 @@ struct coals_msg_block {
 };
 
 /* RRD descriptor */
-struct rx_return_desc {
+struct rx_return_desc
+{
 	u8 num_buf;	/* Number of RFD buffers used by the received packet */
 	u8 resved;
 	u16 buf_indx;	/* RFD Index of the first buffer */
-	union {
+	union
+	{
 		u32 valid;
-		struct {
+		struct
+		{
 			u16 rx_chksum;
 			u16 pkt_size;
 		} xsum_sz;
@@ -432,7 +437,8 @@ struct rx_return_desc {
 #define ERR_FLAG_DES_ADDR	0x0200
 
 /* RFD descriptor */
-struct rx_free_desc {
+struct rx_free_desc
+{
 	__le64 buffer_addr;	/* Address of the descriptor's data buffer */
 	__le16 buf_len;		/* Size of the receive buffer in host memory */
 	u16 coalese;		/* Update consumer index to host after the
@@ -545,25 +551,29 @@ struct rx_free_desc {
 #define TPD_CCSUMOFFSET_MASK	0x00FF
 #define TPD_CCSUMOFFSET_SHIFT	24
 
-struct tx_packet_desc {
+struct tx_packet_desc
+{
 	__le64 buffer_addr;
 	__le32 word2;
 	__le32 word3;
 };
 
 /* DMA Order Settings */
-enum atl1_dma_order {
+enum atl1_dma_order
+{
 	atl1_dma_ord_in = 1,
 	atl1_dma_ord_enh = 2,
 	atl1_dma_ord_out = 4
 };
 
-enum atl1_dma_rcb {
+enum atl1_dma_rcb
+{
 	atl1_rcb_64 = 0,
 	atl1_rcb_128 = 1
 };
 
-enum atl1_dma_req_block {
+enum atl1_dma_req_block
+{
 	atl1_dma_req_128 = 0,
 	atl1_dma_req_256 = 1,
 	atl1_dma_req_512 = 2,
@@ -593,7 +603,8 @@ enum atl1_dma_req_block {
  * mapped for the three descriptor rings (tpd, rfd, rrd) and the two
  * message blocks (cmb, smb) described below
  */
-struct atl1_ring_header {
+struct atl1_ring_header
+{
 	void *desc;		/* virtual address */
 	dma_addr_t dma;		/* physical address*/
 	unsigned int size;	/* length in bytes */
@@ -603,7 +614,8 @@ struct atl1_ring_header {
  * atl1_buffer is wrapper around a pointer to a socket buffer
  * so a DMA handle can be stored along with the skb
  */
-struct atl1_buffer {
+struct atl1_buffer
+{
 	struct sk_buff *skb;	/* socket buffer */
 	u16 length;		/* rx buffer length */
 	u16 alloced;		/* 1 if skb allocated */
@@ -611,7 +623,8 @@ struct atl1_buffer {
 };
 
 /* transmit packet descriptor (tpd) ring */
-struct atl1_tpd_ring {
+struct atl1_tpd_ring
+{
 	void *desc;		/* descriptor ring virtual address */
 	dma_addr_t dma;		/* descriptor ring physical address */
 	u16 size;		/* descriptor ring length in bytes */
@@ -623,7 +636,8 @@ struct atl1_tpd_ring {
 };
 
 /* receive free descriptor (rfd) ring */
-struct atl1_rfd_ring {
+struct atl1_rfd_ring
+{
 	void *desc;		/* descriptor ring virtual address */
 	dma_addr_t dma;		/* descriptor ring physical address */
 	u16 size;		/* descriptor ring length in bytes */
@@ -634,7 +648,8 @@ struct atl1_rfd_ring {
 };
 
 /* receive return descriptor (rrd) ring */
-struct atl1_rrd_ring {
+struct atl1_rrd_ring
+{
 	void *desc;		/* descriptor ring virtual address */
 	dma_addr_t dma;		/* descriptor ring physical address */
 	unsigned int size;	/* descriptor ring length in bytes */
@@ -644,19 +659,22 @@ struct atl1_rrd_ring {
 };
 
 /* coalescing message block (cmb) */
-struct atl1_cmb {
+struct atl1_cmb
+{
 	struct coals_msg_block *cmb;
 	dma_addr_t dma;
 };
 
 /* statistics message block (smb) */
-struct atl1_smb {
+struct atl1_smb
+{
 	struct stats_msg_block *smb;
 	dma_addr_t dma;
 };
 
 /* Statistics counters */
-struct atl1_sft_stats {
+struct atl1_sft_stats
+{
 	u64 rx_packets;
 	u64 tx_packets;
 	u64 rx_bytes;
@@ -690,7 +708,8 @@ struct atl1_sft_stats {
 };
 
 /* hardware structure */
-struct atl1_hw {
+struct atl1_hw
+{
 	u8 __iomem *hw_addr;
 	struct atl1_adapter *back;
 	enum atl1_dma_order dma_ord;
@@ -753,7 +772,8 @@ struct atl1_hw {
 	bool phy_configured;
 };
 
-struct atl1_adapter {
+struct atl1_adapter
+{
 	struct net_device *netdev;
 	struct pci_dev *pdev;
 

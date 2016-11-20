@@ -26,13 +26,14 @@
 #define to_berlin_reset_priv(p)		\
 	container_of((p), struct berlin_reset_priv, rcdev)
 
-struct berlin_reset_priv {
+struct berlin_reset_priv
+{
 	struct regmap			*regmap;
 	struct reset_controller_dev	rcdev;
 };
 
 static int berlin_reset_reset(struct reset_controller_dev *rcdev,
-			      unsigned long id)
+							  unsigned long id)
 {
 	struct berlin_reset_priv *priv = to_berlin_reset_priv(rcdev);
 	int offset = id >> 8;
@@ -46,12 +47,13 @@ static int berlin_reset_reset(struct reset_controller_dev *rcdev,
 	return 0;
 }
 
-static const struct reset_control_ops berlin_reset_ops = {
+static const struct reset_control_ops berlin_reset_ops =
+{
 	.reset	= berlin_reset_reset,
 };
 
 static int berlin_reset_xlate(struct reset_controller_dev *rcdev,
-			      const struct of_phandle_args *reset_spec)
+							  const struct of_phandle_args *reset_spec)
 {
 	unsigned offset, bit;
 
@@ -59,7 +61,9 @@ static int berlin_reset_xlate(struct reset_controller_dev *rcdev,
 	bit = reset_spec->args[1];
 
 	if (bit >= BERLIN_MAX_RESETS)
+	{
 		return -EINVAL;
+	}
 
 	return (offset << 8) | bit;
 }
@@ -70,13 +74,19 @@ static int berlin2_reset_probe(struct platform_device *pdev)
 	struct berlin_reset_priv *priv;
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	priv->regmap = syscon_node_to_regmap(parent_np);
 	of_node_put(parent_np);
+
 	if (IS_ERR(priv->regmap))
+	{
 		return PTR_ERR(priv->regmap);
+	}
 
 	priv->rcdev.owner = THIS_MODULE;
 	priv->rcdev.ops = &berlin_reset_ops;
@@ -87,13 +97,15 @@ static int berlin2_reset_probe(struct platform_device *pdev)
 	return reset_controller_register(&priv->rcdev);
 }
 
-static const struct of_device_id berlin_reset_dt_match[] = {
+static const struct of_device_id berlin_reset_dt_match[] =
+{
 	{ .compatible = "marvell,berlin2-reset" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, berlin_reset_dt_match);
 
-static struct platform_driver berlin_reset_driver = {
+static struct platform_driver berlin_reset_driver =
+{
 	.probe	= berlin2_reset_probe,
 	.driver	= {
 		.name = "berlin2-reset",

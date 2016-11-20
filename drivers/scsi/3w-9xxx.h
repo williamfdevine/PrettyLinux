@@ -51,13 +51,15 @@
 #define _3W_9XXX_H
 
 /* AEN string type */
-typedef struct TAG_twa_message_type {
-  unsigned int   code;
-  char*          text;
+typedef struct TAG_twa_message_type
+{
+	unsigned int   code;
+	char          *text;
 } twa_message_type;
 
 /* AEN strings */
-static twa_message_type twa_aen_table[] = {
+static twa_message_type twa_aen_table[] =
+{
 	{0x0000, "AEN queue empty"},
 	{0x0001, "Controller reset occurred"},
 	{0x0002, "Degraded unit detected"},
@@ -128,17 +130,18 @@ static twa_message_type twa_aen_table[] = {
 	{0x00FD, "Handler lockup"},
 	{0x00FE, "Retrying PCI transfer"},
 	{0x00FF, "AEN queue is full"},
-	{0xFFFFFFFF, (char*) 0}
+	{0xFFFFFFFF, (char *) 0}
 };
 
 /* AEN severity table */
 static char *twa_aen_severity_table[] =
 {
-	"None", "ERROR", "WARNING", "INFO", "DEBUG", (char*) 0
+	"None", "ERROR", "WARNING", "INFO", "DEBUG", (char *) 0
 };
 
 /* Error strings */
-static twa_message_type twa_error_table[] = {
+static twa_message_type twa_error_table[] =
+{
 	{0x0100, "SGL entry contains zero data"},
 	{0x0101, "Invalid command opcode"},
 	{0x0102, "SGL entry has unaligned address"},
@@ -251,7 +254,7 @@ static twa_message_type twa_error_table[] = {
 	{0x025B, "Invalid LBA offset specified in CreateUnit descriptor"},
 	{0x025C, "Invalid stripelet size specified in CreateUnit descriptor"},
 	{0x0260, "SMART attribute exceeded threshold"},
-	{0xFFFFFFFF, (char*) 0}
+	{0xFFFFFFFF, (char *) 0}
 };
 
 /* Control register bit definitions */
@@ -408,16 +411,16 @@ static twa_message_type twa_error_table[] = {
 #define TW_MESSAGE_SOURCE_LINUX_OS            9
 #define TW_OS TW_MESSAGE_SOURCE_LINUX_OS
 #ifndef PCI_DEVICE_ID_3WARE_9000
-#define PCI_DEVICE_ID_3WARE_9000 0x1002
+	#define PCI_DEVICE_ID_3WARE_9000 0x1002
 #endif
 #ifndef PCI_DEVICE_ID_3WARE_9550SX
-#define PCI_DEVICE_ID_3WARE_9550SX 0x1003
+	#define PCI_DEVICE_ID_3WARE_9550SX 0x1003
 #endif
 #ifndef PCI_DEVICE_ID_3WARE_9650SE
-#define PCI_DEVICE_ID_3WARE_9650SE 0x1004
+	#define PCI_DEVICE_ID_3WARE_9650SE 0x1004
 #endif
 #ifndef PCI_DEVICE_ID_3WARE_9690SA
-#define PCI_DEVICE_ID_3WARE_9690SA 0x1005
+	#define PCI_DEVICE_ID_3WARE_9690SA 0x1005
 #endif
 
 /* Bitmask macros to eliminate bitfields */
@@ -455,18 +458,18 @@ static twa_message_type twa_error_table[] = {
 #define TW_MASK_COMMAND_INTERRUPT(x) (writel(TW_CONTROL_MASK_COMMAND_INTERRUPT, TW_CONTROL_REG_ADDR(x)))
 #define TW_UNMASK_COMMAND_INTERRUPT(x) (writel(TW_CONTROL_UNMASK_COMMAND_INTERRUPT, TW_CONTROL_REG_ADDR(x)))
 #define TW_SOFT_RESET(x) (writel(TW_CONTROL_ISSUE_SOFT_RESET | \
-			TW_CONTROL_CLEAR_HOST_INTERRUPT | \
-			TW_CONTROL_CLEAR_ATTENTION_INTERRUPT | \
-			TW_CONTROL_MASK_COMMAND_INTERRUPT | \
-			TW_CONTROL_MASK_RESPONSE_INTERRUPT | \
-			TW_CONTROL_CLEAR_ERROR_STATUS | \
-			TW_CONTROL_DISABLE_INTERRUPTS, TW_CONTROL_REG_ADDR(x)))
+								 TW_CONTROL_CLEAR_HOST_INTERRUPT | \
+								 TW_CONTROL_CLEAR_ATTENTION_INTERRUPT | \
+								 TW_CONTROL_MASK_COMMAND_INTERRUPT | \
+								 TW_CONTROL_MASK_RESPONSE_INTERRUPT | \
+								 TW_CONTROL_CLEAR_ERROR_STATUS | \
+								 TW_CONTROL_DISABLE_INTERRUPTS, TW_CONTROL_REG_ADDR(x)))
 #define TW_PRINTK(h,a,b,c) { \
-if (h) \
-printk(KERN_WARNING "3w-9xxx: scsi%d: ERROR: (0x%02X:0x%04X): %s.\n",h->host_no,a,b,c); \
-else \
-printk(KERN_WARNING "3w-9xxx: ERROR: (0x%02X:0x%04X): %s.\n",a,b,c); \
-}
+		if (h) \
+			printk(KERN_WARNING "3w-9xxx: scsi%d: ERROR: (0x%02X:0x%04X): %s.\n",h->host_no,a,b,c); \
+		else \
+			printk(KERN_WARNING "3w-9xxx: ERROR: (0x%02X:0x%04X): %s.\n",a,b,c); \
+	}
 #define TW_MAX_LUNS(srl) (srl < TW_FW_SRL_LUNS_SUPPORTED ? 1 : 16)
 #define TW_COMMAND_SIZE (sizeof(dma_addr_t) > 4 ? 5 : 4)
 #define TW_APACHE_MAX_SGL_LENGTH (sizeof(dma_addr_t) > 4 ? 72 : 109)
@@ -477,13 +480,15 @@ printk(KERN_WARNING "3w-9xxx: ERROR: (0x%02X:0x%04X): %s.\n",a,b,c); \
 #pragma pack(1)
 
 /* Scatter Gather List Entry */
-typedef struct TAG_TW_SG_Entry {
+typedef struct TAG_TW_SG_Entry
+{
 	dma_addr_t address;
 	u32 length;
 } TW_SG_Entry;
 
 /* Command Packet */
-typedef struct TW_Command {
+typedef struct TW_Command
+{
 	unsigned char opcode__sgloffset;
 	unsigned char size;
 	unsigned char request_id;
@@ -491,17 +496,21 @@ typedef struct TW_Command {
 	/* Second DWORD */
 	unsigned char status;
 	unsigned char flags;
-	union {
+	union
+	{
 		unsigned short block_count;
 		unsigned short parameter_count;
 	} byte6_offset;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u32 lba;
 			TW_SG_Entry sgl[TW_ESCALADE_MAX_SGL_LENGTH];
 			dma_addr_t padding;
 		} io;
-		struct {
+		struct
+		{
 			TW_SG_Entry sgl[TW_ESCALADE_MAX_SGL_LENGTH];
 			u32 padding;
 			dma_addr_t padding2;
@@ -510,7 +519,8 @@ typedef struct TW_Command {
 } TW_Command;
 
 /* Command Packet for 9000+ controllers */
-typedef struct TAG_TW_Command_Apache {
+typedef struct TAG_TW_Command_Apache
+{
 	unsigned char opcode__reserved;
 	unsigned char unit;
 	unsigned short request_id__lunl;
@@ -523,16 +533,19 @@ typedef struct TAG_TW_Command_Apache {
 } TW_Command_Apache;
 
 /* New command packet header */
-typedef struct TAG_TW_Command_Apache_Header {
+typedef struct TAG_TW_Command_Apache_Header
+{
 	unsigned char sense_data[TW_SENSE_DATA_LENGTH];
-	struct {
+	struct
+	{
 		char reserved[4];
 		unsigned short error;
 		unsigned char padding;
 		unsigned char severity__reserved;
 	} status_block;
 	unsigned char err_specific_desc[98];
-	struct {
+	struct
+	{
 		unsigned char size_header;
 		unsigned short reserved;
 		unsigned char size_sense;
@@ -540,16 +553,19 @@ typedef struct TAG_TW_Command_Apache_Header {
 } TW_Command_Apache_Header;
 
 /* This struct is a union of the 2 command packets */
-typedef struct TAG_TW_Command_Full {
+typedef struct TAG_TW_Command_Full
+{
 	TW_Command_Apache_Header header;
-	union {
+	union
+	{
 		TW_Command oldcommand;
 		TW_Command_Apache newcommand;
 	} command;
 } TW_Command_Full;
 
 /* Initconnection structure */
-typedef struct TAG_TW_Initconnect {
+typedef struct TAG_TW_Initconnect
+{
 	unsigned char opcode__reserved;
 	unsigned char size;
 	unsigned char request_id;
@@ -578,7 +594,8 @@ typedef struct TAG_TW_Event
 	unsigned char parameter_data[98];
 } TW_Event;
 
-typedef struct TAG_TW_Ioctl_Driver_Command {
+typedef struct TAG_TW_Ioctl_Driver_Command
+{
 	unsigned int control_code;
 	unsigned int status;
 	unsigned int unique_id;
@@ -587,22 +604,25 @@ typedef struct TAG_TW_Ioctl_Driver_Command {
 	unsigned int buffer_length;
 } TW_Ioctl_Driver_Command;
 
-typedef struct TAG_TW_Ioctl_Apache {
+typedef struct TAG_TW_Ioctl_Apache
+{
 	TW_Ioctl_Driver_Command driver_command;
-        char padding[488];
+	char padding[488];
 	TW_Command_Full firmware_command;
 	char data_buffer[1];
 } TW_Ioctl_Buf_Apache;
 
 /* Lock structure for ioctl get/release lock */
-typedef struct TAG_TW_Lock {
+typedef struct TAG_TW_Lock
+{
 	unsigned long timeout_msec;
 	unsigned long time_remaining_msec;
 	unsigned long force_flag;
 } TW_Lock;
 
 /* GetParam descriptor */
-typedef struct {
+typedef struct
+{
 	unsigned short	table_id;
 	unsigned short	parameter_id;
 	unsigned short	parameter_size_bytes;
@@ -611,7 +631,8 @@ typedef struct {
 } TW_Param_Apache, *PTW_Param_Apache;
 
 /* Response queue */
-typedef union TAG_TW_Response_Queue {
+typedef union TAG_TW_Response_Queue
+{
 	u32 response_id;
 	u32 value;
 } TW_Response_Queue;
@@ -636,7 +657,8 @@ typedef struct TAG_TW_Compatibility_Info
 
 #pragma pack()
 
-typedef struct TAG_TW_Device_Extension {
+typedef struct TAG_TW_Device_Extension
+{
 	u32                     __iomem *base_addr;
 	unsigned long	       	*generic_buffer_virt[TW_Q_LENGTH];
 	dma_addr_t	       	generic_buffer_phys[TW_Q_LENGTH];

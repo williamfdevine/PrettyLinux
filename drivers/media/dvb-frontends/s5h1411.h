@@ -27,7 +27,8 @@
 #define S5H1411_I2C_TOP_ADDR (0x32 >> 1)
 #define S5H1411_I2C_QAM_ADDR (0x34 >> 1)
 
-struct s5h1411_config {
+struct s5h1411_config
+{
 
 	/* serial/parallel output */
 #define S5H1411_PARALLEL_OUTPUT 0
@@ -70,7 +71,7 @@ struct s5h1411_config {
 
 #if IS_REACHABLE(CONFIG_DVB_S5H1411)
 extern struct dvb_frontend *s5h1411_attach(const struct s5h1411_config *config,
-					   struct i2c_adapter *i2c);
+		struct i2c_adapter *i2c);
 #else
 static inline struct dvb_frontend *s5h1411_attach(
 	const struct s5h1411_config *config,

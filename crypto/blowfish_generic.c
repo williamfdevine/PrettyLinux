@@ -34,7 +34,7 @@
 #define GET32_0(x) (((x) >> (24)) & (0xff))
 
 #define bf_F(x) (((S[GET32_0(x)] + S[256 + GET32_1(x)]) ^ \
-		S[512 + GET32_2(x)]) + S[768 + GET32_3(x)])
+				  S[512 + GET32_2(x)]) + S[768 + GET32_3(x)])
 
 #define ROUND(a, b, n) ({ b ^= P[n]; a ^= bf_F(b); })
 
@@ -106,7 +106,8 @@ static void bf_decrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 	out_blk[1] = cpu_to_be32(yl);
 }
 
-static struct crypto_alg alg = {
+static struct crypto_alg alg =
+{
 	.cra_name		=	"blowfish",
 	.cra_driver_name	=	"blowfish-generic",
 	.cra_priority		=	100,
@@ -115,12 +116,15 @@ static struct crypto_alg alg = {
 	.cra_ctxsize		=	sizeof(struct bf_ctx),
 	.cra_alignmask		=	3,
 	.cra_module		=	THIS_MODULE,
-	.cra_u			=	{ .cipher = {
-	.cia_min_keysize	=	BF_MIN_KEY_SIZE,
-	.cia_max_keysize	=	BF_MAX_KEY_SIZE,
-	.cia_setkey		=	blowfish_setkey,
-	.cia_encrypt		=	bf_encrypt,
-	.cia_decrypt		=	bf_decrypt } }
+	.cra_u			=	{
+		.cipher = {
+			.cia_min_keysize	=	BF_MIN_KEY_SIZE,
+			.cia_max_keysize	=	BF_MAX_KEY_SIZE,
+			.cia_setkey		=	blowfish_setkey,
+			.cia_encrypt		=	bf_encrypt,
+			.cia_decrypt		=	bf_decrypt
+		}
+	}
 };
 
 static int __init blowfish_mod_init(void)

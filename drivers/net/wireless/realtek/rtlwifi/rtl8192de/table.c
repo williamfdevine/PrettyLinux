@@ -32,7 +32,8 @@
 
 #include "table.h"
 
-u32 rtl8192de_phy_reg_2tarray[PHY_REG_2T_ARRAYLENGTH] = {
+u32 rtl8192de_phy_reg_2tarray[PHY_REG_2T_ARRAYLENGTH] =
+{
 	0x024, 0x0011800d,
 	0x028, 0x00ffdb83,
 	0x014, 0x088ba955,
@@ -225,7 +226,8 @@ u32 rtl8192de_phy_reg_2tarray[PHY_REG_2T_ARRAYLENGTH] = {
 	0xf00, 0x00000300,
 };
 
-u32 rtl8192de_phy_reg_array_pg[PHY_REG_ARRAY_PG_LENGTH] = {
+u32 rtl8192de_phy_reg_array_pg[PHY_REG_ARRAY_PG_LENGTH] =
+{
 	0xe00, 0xffffffff, 0x07090c0c,
 	0xe04, 0xffffffff, 0x01020405,
 	0xe08, 0x0000ff00, 0x00000000,
@@ -436,7 +438,8 @@ u32 rtl8192de_phy_reg_array_pg[PHY_REG_ARRAY_PG_LENGTH] = {
 	0x868, 0xffffffff, 0x00000000,
 };
 
-u32 rtl8192de_radioa_2tarray[RADIOA_2T_ARRAYLENGTH] = {
+u32 rtl8192de_radioa_2tarray[RADIOA_2T_ARRAYLENGTH] =
+{
 	0x000, 0x00030000,
 	0x001, 0x00030000,
 	0x002, 0x00000000,
@@ -628,7 +631,8 @@ u32 rtl8192de_radioa_2tarray[RADIOA_2T_ARRAYLENGTH] = {
 	0x02e, 0x0005510c,
 };
 
-u32 rtl8192de_radiob_2tarray[RADIOB_2T_ARRAYLENGTH] = {
+u32 rtl8192de_radiob_2tarray[RADIOB_2T_ARRAYLENGTH] =
+{
 	0x000, 0x00030000,
 	0x001, 0x00030000,
 	0x002, 0x00000000,
@@ -823,7 +827,8 @@ u32 rtl8192de_radiob_2tarray[RADIOB_2T_ARRAYLENGTH] = {
 	0x02e, 0x000c480e,
 };
 
-u32 rtl8192de_radioa_2t_int_paarray[RADIOA_2T_INT_PA_ARRAYLENGTH] = {
+u32 rtl8192de_radioa_2t_int_paarray[RADIOA_2T_INT_PA_ARRAYLENGTH] =
+{
 	0x000, 0x00030000,
 	0x001, 0x00030000,
 	0x002, 0x00000000,
@@ -1015,7 +1020,8 @@ u32 rtl8192de_radioa_2t_int_paarray[RADIOA_2T_INT_PA_ARRAYLENGTH] = {
 	0x02e, 0x0005510c,
 };
 
-u32 rtl8192de_radiob_2t_int_paarray[RADIOB_2T_INT_PA_ARRAYLENGTH] = {
+u32 rtl8192de_radiob_2t_int_paarray[RADIOB_2T_INT_PA_ARRAYLENGTH] =
+{
 	0x000, 0x00030000,
 	0x001, 0x00030000,
 	0x002, 0x00000000,
@@ -1210,7 +1216,8 @@ u32 rtl8192de_radiob_2t_int_paarray[RADIOB_2T_INT_PA_ARRAYLENGTH] = {
 	0x02e, 0x000c480e,
 };
 
-u32 rtl8192de_mac_2tarray[MAC_2T_ARRAYLENGTH] = {
+u32 rtl8192de_mac_2tarray[MAC_2T_ARRAYLENGTH] =
+{
 	0x420, 0x00000080,
 	0x423, 0x00000000,
 	0x430, 0x00000000,
@@ -1293,7 +1300,8 @@ u32 rtl8192de_mac_2tarray[MAC_2T_ARRAYLENGTH] = {
 	0x70b, 0x00000087,
 };
 
-u32 rtl8192de_agctab_array[AGCTAB_ARRAYLENGTH] = {
+u32 rtl8192de_agctab_array[AGCTAB_ARRAYLENGTH] =
+{
 	0xc78, 0x7b000001,
 	0xc78, 0x7b010001,
 	0xc78, 0x7b020001,
@@ -1489,7 +1497,8 @@ u32 rtl8192de_agctab_array[AGCTAB_ARRAYLENGTH] = {
 	0xc78, 0x6e1f0000,
 };
 
-u32 rtl8192de_agctab_5garray[AGCTAB_5G_ARRAYLENGTH] = {
+u32 rtl8192de_agctab_5garray[AGCTAB_5G_ARRAYLENGTH] =
+{
 	0xc78, 0x7b000001,
 	0xc78, 0x7b010001,
 	0xc78, 0x7a020001,
@@ -1589,7 +1598,8 @@ u32 rtl8192de_agctab_5garray[AGCTAB_5G_ARRAYLENGTH] = {
 	0xc78, 0x6e1f0000,
 };
 
-u32 rtl8192de_agctab_2garray[AGCTAB_2G_ARRAYLENGTH] = {
+u32 rtl8192de_agctab_2garray[AGCTAB_2G_ARRAYLENGTH] =
+{
 	0xc78, 0x7b000001,
 	0xc78, 0x7b010001,
 	0xc78, 0x7b020001,

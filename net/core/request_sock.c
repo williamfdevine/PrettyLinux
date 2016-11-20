@@ -95,7 +95,7 @@ void reqsk_queue_alloc(struct request_sock_queue *queue)
  * fastopenq->lock in this function.
  */
 void reqsk_fastopen_remove(struct sock *sk, struct request_sock *req,
-			   bool reset)
+						   bool reset)
 {
 	struct sock *lsk = req->rsk_listener;
 	struct fastopen_queue *fastopenq;
@@ -106,10 +106,14 @@ void reqsk_fastopen_remove(struct sock *sk, struct request_sock *req,
 	spin_lock_bh(&fastopenq->lock);
 	fastopenq->qlen--;
 	tcp_rsk(req)->tfo_listener = false;
-	if (req->sk)	/* the child socket hasn't been accepted yet */
-		goto out;
 
-	if (!reset || lsk->sk_state != TCP_LISTEN) {
+	if (req->sk)	/* the child socket hasn't been accepted yet */
+	{
+		goto out;
+	}
+
+	if (!reset || lsk->sk_state != TCP_LISTEN)
+	{
 		/* If the listener has been closed don't bother with the
 		 * special RST handling below.
 		 */
@@ -117,6 +121,7 @@ void reqsk_fastopen_remove(struct sock *sk, struct request_sock *req,
 		reqsk_put(req);
 		return;
 	}
+
 	/* Wait for 60secs before removing a req that has triggered RST.
 	 * This is a simple defense against TFO spoofing attack - by
 	 * counting the req against fastopen.max_qlen, and disabling
@@ -124,11 +129,16 @@ void reqsk_fastopen_remove(struct sock *sk, struct request_sock *req,
 	 *
 	 * For more details see CoNext'11 "TCP Fast Open" paper.
 	 */
-	req->rsk_timer.expires = jiffies + 60*HZ;
+	req->rsk_timer.expires = jiffies + 60 * HZ;
+
 	if (fastopenq->rskq_rst_head == NULL)
+	{
 		fastopenq->rskq_rst_head = req;
+	}
 	else
+	{
 		fastopenq->rskq_rst_tail->dl_next = req;
+	}
 
 	req->dl_next = NULL;
 	fastopenq->rskq_rst_tail = req;

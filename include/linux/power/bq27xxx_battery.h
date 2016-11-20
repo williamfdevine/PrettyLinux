@@ -1,7 +1,8 @@
 #ifndef __LINUX_BQ27X00_BATTERY_H__
 #define __LINUX_BQ27X00_BATTERY_H__
 
-enum bq27xxx_chip {
+enum bq27xxx_chip
+{
 	BQ27000 = 1, /* bq27000, bq27200 */
 	BQ27010, /* bq27010, bq27210 */
 	BQ27500, /* bq27500, bq27510, bq27520 */
@@ -22,18 +23,21 @@ enum bq27xxx_chip {
  *	register to be read. The return value should either be the content of
  *	the passed register or an error value.
  */
-struct bq27xxx_platform_data {
+struct bq27xxx_platform_data
+{
 	const char *name;
 	enum bq27xxx_chip chip;
 	int (*read)(struct device *dev, unsigned int);
 };
 
 struct bq27xxx_device_info;
-struct bq27xxx_access_methods {
+struct bq27xxx_access_methods
+{
 	int (*read)(struct bq27xxx_device_info *di, u8 reg, bool single);
 };
 
-struct bq27xxx_reg_cache {
+struct bq27xxx_reg_cache
+{
 	int temperature;
 	int time_to_empty;
 	int time_to_empty_avg;
@@ -47,7 +51,8 @@ struct bq27xxx_reg_cache {
 	int health;
 };
 
-struct bq27xxx_device_info {
+struct bq27xxx_device_info
+{
 	struct device *dev;
 	int id;
 	enum bq27xxx_chip chip;

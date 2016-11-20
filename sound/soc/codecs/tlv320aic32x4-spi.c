@@ -46,19 +46,22 @@ static int aic32x4_spi_remove(struct spi_device *spi)
 	return aic32x4_remove(&spi->dev);
 }
 
-static const struct spi_device_id aic32x4_spi_id[] = {
+static const struct spi_device_id aic32x4_spi_id[] =
+{
 	{ "tlv320aic32x4", 0 },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(spi, aic32x4_spi_id);
 
-static const struct of_device_id aic32x4_of_id[] = {
+static const struct of_device_id aic32x4_of_id[] =
+{
 	{ .compatible = "ti,tlv320aic32x4", },
 	{ /* senitel */ }
 };
 MODULE_DEVICE_TABLE(of, aic32x4_of_id);
 
-static struct spi_driver aic32x4_spi_driver = {
+static struct spi_driver aic32x4_spi_driver =
+{
 	.driver = {
 		.name = "tlv320aic32x4",
 		.owner = THIS_MODULE,

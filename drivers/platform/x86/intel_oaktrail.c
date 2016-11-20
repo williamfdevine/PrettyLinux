@@ -115,36 +115,46 @@ static int oaktrail_rfkill_set(void *data, bool blocked)
 	ec_read(OT_EC_DEVICE_STATE_ADDRESS, &result);
 
 	if (!blocked)
+	{
 		value = (u8) (result | radio);
+	}
 	else
+	{
 		value = (u8) (result & ~radio);
+	}
 
 	ec_write(OT_EC_DEVICE_STATE_ADDRESS, value);
 
 	return 0;
 }
 
-static const struct rfkill_ops oaktrail_rfkill_ops = {
+static const struct rfkill_ops oaktrail_rfkill_ops =
+{
 	.set_block = oaktrail_rfkill_set,
 };
 
 static struct rfkill *oaktrail_rfkill_new(char *name, enum rfkill_type type,
-					  unsigned long mask)
+		unsigned long mask)
 {
 	struct rfkill *rfkill_dev;
 	u8 value;
 	int err;
 
 	rfkill_dev = rfkill_alloc(name, &oaktrail_device->dev, type,
-				  &oaktrail_rfkill_ops, (void *)mask);
+							  &oaktrail_rfkill_ops, (void *)mask);
+
 	if (!rfkill_dev)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	ec_read(OT_EC_DEVICE_STATE_ADDRESS, &value);
 	rfkill_init_sw_state(rfkill_dev, (value & mask) != 1);
 
 	err = rfkill_register(rfkill_dev);
-	if (err) {
+
+	if (err)
+	{
 		rfkill_destroy(rfkill_dev);
 		return ERR_PTR(err);
 	}
@@ -154,7 +164,8 @@ static struct rfkill *oaktrail_rfkill_new(char *name, enum rfkill_type type,
 
 static inline void __oaktrail_rfkill_cleanup(struct rfkill *rf)
 {
-	if (rf) {
+	if (rf)
+	{
 		rfkill_unregister(rf);
 		rfkill_destroy(rf);
 	}
@@ -173,36 +184,44 @@ static int oaktrail_rfkill_init(void)
 	int ret;
 
 	wifi_rfkill = oaktrail_rfkill_new("oaktrail-wifi",
-					  RFKILL_TYPE_WLAN,
-					  OT_EC_WIFI_MASK);
-	if (IS_ERR(wifi_rfkill)) {
+									  RFKILL_TYPE_WLAN,
+									  OT_EC_WIFI_MASK);
+
+	if (IS_ERR(wifi_rfkill))
+	{
 		ret = PTR_ERR(wifi_rfkill);
 		wifi_rfkill = NULL;
 		goto cleanup;
 	}
 
 	bt_rfkill = oaktrail_rfkill_new("oaktrail-bluetooth",
-					RFKILL_TYPE_BLUETOOTH,
-					OT_EC_BT_MASK);
-	if (IS_ERR(bt_rfkill)) {
+									RFKILL_TYPE_BLUETOOTH,
+									OT_EC_BT_MASK);
+
+	if (IS_ERR(bt_rfkill))
+	{
 		ret = PTR_ERR(bt_rfkill);
 		bt_rfkill = NULL;
 		goto cleanup;
 	}
 
 	gps_rfkill = oaktrail_rfkill_new("oaktrail-gps",
-					 RFKILL_TYPE_GPS,
-					 OT_EC_GPS_MASK);
-	if (IS_ERR(gps_rfkill)) {
+									 RFKILL_TYPE_GPS,
+									 OT_EC_GPS_MASK);
+
+	if (IS_ERR(gps_rfkill))
+	{
 		ret = PTR_ERR(gps_rfkill);
 		gps_rfkill = NULL;
 		goto cleanup;
 	}
 
 	wwan_rfkill = oaktrail_rfkill_new("oaktrail-wwan",
-					  RFKILL_TYPE_WWAN,
-					  OT_EC_WWAN_MASK);
-	if (IS_ERR(wwan_rfkill)) {
+									  RFKILL_TYPE_WWAN,
+									  OT_EC_WWAN_MASK);
+
+	if (IS_ERR(wwan_rfkill))
+	{
 		ret = PTR_ERR(wwan_rfkill);
 		wwan_rfkill = NULL;
 		goto cleanup;
@@ -228,8 +247,11 @@ static int get_backlight_brightness(struct backlight_device *b)
 static int set_backlight_brightness(struct backlight_device *b)
 {
 	u8 percent = (u8) b->props.brightness;
+
 	if (percent < 0 || percent > OT_EC_BL_BRIGHTNESS_MAX)
+	{
 		return -EINVAL;
+	}
 
 	ec_write(OT_EC_BL_BRIGHTNESS_ADDRESS, percent);
 	ec_write(OT_EC_BL_CONTROL_ADDRESS, OT_EC_BL_CONTROL_ON_DATA);
@@ -237,7 +259,8 @@ static int set_backlight_brightness(struct backlight_device *b)
 	return 0;
 }
 
-static const struct backlight_ops oaktrail_bl_ops = {
+static const struct backlight_ops oaktrail_bl_ops =
+{
 	.get_brightness = get_backlight_brightness,
 	.update_status	= set_backlight_brightness,
 };
@@ -251,11 +274,12 @@ static int oaktrail_backlight_init(void)
 	props.type = BACKLIGHT_PLATFORM;
 	props.max_brightness = OT_EC_BL_BRIGHTNESS_MAX;
 	bd = backlight_device_register(DRIVER_NAME,
-				       &oaktrail_device->dev, NULL,
-				       &oaktrail_bl_ops,
-				       &props);
+								   &oaktrail_device->dev, NULL,
+								   &oaktrail_bl_ops,
+								   &props);
 
-	if (IS_ERR(bd)) {
+	if (IS_ERR(bd))
+	{
 		oaktrail_bl_device = NULL;
 		pr_warning("Unable to register backlight device\n");
 		return PTR_ERR(bd);
@@ -285,7 +309,8 @@ static int oaktrail_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver oaktrail_driver = {
+static struct platform_driver oaktrail_driver =
+{
 	.driver = {
 		.name = DRIVER_NAME,
 	},
@@ -299,7 +324,8 @@ static int dmi_check_cb(const struct dmi_system_id *id)
 	return 0;
 }
 
-static struct dmi_system_id __initdata oaktrail_dmi_table[] = {
+static struct dmi_system_id __initdata oaktrail_dmi_table[] =
+{
 	{
 		.ident = "OakTrail platform",
 		.matches = {
@@ -315,43 +341,57 @@ static int __init oaktrail_init(void)
 {
 	int ret;
 
-	if (acpi_disabled) {
+	if (acpi_disabled)
+	{
 		pr_err("ACPI needs to be enabled for this driver to work!\n");
 		return -ENODEV;
 	}
 
-	if (!force && !dmi_check_system(oaktrail_dmi_table)) {
+	if (!force && !dmi_check_system(oaktrail_dmi_table))
+	{
 		pr_err("Platform not recognized (You could try the module's force-parameter)");
 		return -ENODEV;
 	}
 
 	ret = platform_driver_register(&oaktrail_driver);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_warning("Unable to register platform driver\n");
 		goto err_driver_reg;
 	}
 
 	oaktrail_device = platform_device_alloc(DRIVER_NAME, -1);
-	if (!oaktrail_device) {
+
+	if (!oaktrail_device)
+	{
 		pr_warning("Unable to allocate platform device\n");
 		ret = -ENOMEM;
 		goto err_device_alloc;
 	}
 
 	ret = platform_device_add(oaktrail_device);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_warning("Unable to add platform device\n");
 		goto err_device_add;
 	}
 
-	if (acpi_video_get_backlight_type() == acpi_backlight_vendor) {
+	if (acpi_video_get_backlight_type() == acpi_backlight_vendor)
+	{
 		ret = oaktrail_backlight_init();
+
 		if (ret)
+		{
 			goto err_backlight;
+		}
 	}
 
 	ret = oaktrail_rfkill_init();
-	if (ret) {
+
+	if (ret)
+	{
 		pr_warning("Setup rfkill failed\n");
 		goto err_rfkill;
 	}

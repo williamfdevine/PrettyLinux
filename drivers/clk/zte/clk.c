@@ -29,12 +29,17 @@ static int rate_to_idx(struct clk_zx_pll *zx_pll, unsigned long rate)
 	const struct zx_pll_config *config = zx_pll->lookup_table;
 	int i;
 
-	for (i = 0; i < zx_pll->count; i++) {
+	for (i = 0; i < zx_pll->count; i++)
+	{
 		if (config[i].rate > rate)
+		{
 			return i > 0 ? i - 1 : 0;
+		}
 
 		if (config[i].rate == rate)
+		{
 			return i;
+		}
 	}
 
 	return i - 1;
@@ -53,29 +58,35 @@ static int hw_to_idx(struct clk_zx_pll *zx_pll)
 	hw_cfg0 &= ~BIT(zx_pll->lock_bit);
 	hw_cfg0 |= BIT(zx_pll->pd_bit);
 
-	for (i = 0; i < zx_pll->count; i++) {
+	for (i = 0; i < zx_pll->count; i++)
+	{
 		if (hw_cfg0 == config[i].cfg0 && hw_cfg1 == config[i].cfg1)
+		{
 			return i;
+		}
 	}
 
 	return -EINVAL;
 }
 
 static unsigned long zx_pll_recalc_rate(struct clk_hw *hw,
-					unsigned long parent_rate)
+										unsigned long parent_rate)
 {
 	struct clk_zx_pll *zx_pll = to_clk_zx_pll(hw);
 	int idx;
 
 	idx = hw_to_idx(zx_pll);
+
 	if (unlikely(idx == -EINVAL))
+	{
 		return 0;
+	}
 
 	return zx_pll->lookup_table[idx].rate;
 }
 
 static long zx_pll_round_rate(struct clk_hw *hw, unsigned long rate,
-			      unsigned long *prate)
+							  unsigned long *prate)
 {
 	struct clk_zx_pll *zx_pll = to_clk_zx_pll(hw);
 	int idx;
@@ -86,7 +97,7 @@ static long zx_pll_round_rate(struct clk_hw *hw, unsigned long rate,
 }
 
 static int zx_pll_set_rate(struct clk_hw *hw, unsigned long rate,
-			   unsigned long parent_rate)
+						   unsigned long parent_rate)
 {
 	/* Assume current cpu is not running on current PLL */
 	struct clk_zx_pll *zx_pll = to_clk_zx_pll(hw);
@@ -111,7 +122,7 @@ static int zx_pll_enable(struct clk_hw *hw)
 	writel_relaxed(reg & ~BIT(zx_pll->pd_bit), zx_pll->reg_base);
 
 	return readl_relaxed_poll_timeout(zx_pll->reg_base, reg,
-					  reg & BIT(zx_pll->lock_bit), 0, 100);
+									  reg & BIT(zx_pll->lock_bit), 0, 100);
 }
 
 static void zx_pll_disable(struct clk_hw *hw)
@@ -133,7 +144,8 @@ static int zx_pll_is_enabled(struct clk_hw *hw)
 	return !(reg & BIT(zx_pll->pd_bit));
 }
 
-const struct clk_ops zx_pll_ops = {
+const struct clk_ops zx_pll_ops =
+{
 	.recalc_rate = zx_pll_recalc_rate,
 	.round_rate = zx_pll_round_rate,
 	.set_rate = zx_pll_set_rate,
@@ -144,17 +156,20 @@ const struct clk_ops zx_pll_ops = {
 EXPORT_SYMBOL(zx_pll_ops);
 
 struct clk *clk_register_zx_pll(const char *name, const char *parent_name,
-				unsigned long flags, void __iomem *reg_base,
-				const struct zx_pll_config *lookup_table,
-				int count, spinlock_t *lock)
+								unsigned long flags, void __iomem *reg_base,
+								const struct zx_pll_config *lookup_table,
+								int count, spinlock_t *lock)
 {
 	struct clk_zx_pll *zx_pll;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	zx_pll = kzalloc(sizeof(*zx_pll), GFP_KERNEL);
+
 	if (!zx_pll)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = &zx_pll_ops;
@@ -171,8 +186,11 @@ struct clk *clk_register_zx_pll(const char *name, const char *parent_name,
 	zx_pll->hw.init = &init;
 
 	clk = clk_register(NULL, &zx_pll->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(zx_pll);
+	}
 
 	return clk;
 }
@@ -221,7 +239,7 @@ static u32 calc_rate(u32 reg, u32 parent_rate)
 }
 
 static unsigned long zx_audio_recalc_rate(struct clk_hw *hw,
-					  unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_zx_audio *zx_audio = to_clk_zx_audio(hw);
 	u32 reg;
@@ -231,19 +249,21 @@ static unsigned long zx_audio_recalc_rate(struct clk_hw *hw,
 }
 
 static long zx_audio_round_rate(struct clk_hw *hw, unsigned long rate,
-				unsigned long *prate)
+								unsigned long *prate)
 {
 	u32 reg;
 
 	if (rate * 2 > *prate)
+	{
 		return -EINVAL;
+	}
 
 	reg = calc_reg(*prate, rate);
 	return calc_rate(reg, *prate);
 }
 
 static int zx_audio_set_rate(struct clk_hw *hw, unsigned long rate,
-			     unsigned long parent_rate)
+							 unsigned long parent_rate)
 {
 	struct clk_zx_audio *zx_audio = to_clk_zx_audio(hw);
 	u32 reg;
@@ -274,7 +294,8 @@ static void zx_audio_disable(struct clk_hw *hw)
 	writel_relaxed(reg | ZX_AUDIO_EN, zx_audio->reg_base);
 }
 
-static const struct clk_ops zx_audio_ops = {
+static const struct clk_ops zx_audio_ops =
+{
 	.recalc_rate = zx_audio_recalc_rate,
 	.round_rate = zx_audio_round_rate,
 	.set_rate = zx_audio_set_rate,
@@ -283,17 +304,20 @@ static const struct clk_ops zx_audio_ops = {
 };
 
 struct clk *clk_register_zx_audio(const char *name,
-				  const char * const parent_name,
-				  unsigned long flags,
-				  void __iomem *reg_base)
+								  const char *const parent_name,
+								  unsigned long flags,
+								  void __iomem *reg_base)
 {
 	struct clk_zx_audio *zx_audio;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	zx_audio = kzalloc(sizeof(*zx_audio), GFP_KERNEL);
+
 	if (!zx_audio)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = &zx_audio_ops;
@@ -305,8 +329,11 @@ struct clk *clk_register_zx_audio(const char *name,
 	zx_audio->hw.init = &init;
 
 	clk = clk_register(NULL, &zx_audio->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(zx_audio);
+	}
 
 	return clk;
 }

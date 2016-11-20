@@ -34,11 +34,19 @@ proc_bus_zorro_read(struct file *file, char __user *buf, size_t nbytes, loff_t *
 	loff_t pos = *ppos;
 
 	if (pos >= sizeof(struct ConfigDev))
+	{
 		return 0;
+	}
+
 	if (nbytes >= sizeof(struct ConfigDev))
+	{
 		nbytes = sizeof(struct ConfigDev);
+	}
+
 	if (pos + nbytes > sizeof(struct ConfigDev))
+	{
 		nbytes = sizeof(struct ConfigDev) - pos;
+	}
 
 	/* Construct a ConfigDev */
 	memset(&cd, 0, sizeof(cd));
@@ -49,24 +57,28 @@ proc_bus_zorro_read(struct file *file, char __user *buf, size_t nbytes, loff_t *
 	cd.cd_BoardSize = cpu_to_be32(zorro_resource_len(z));
 
 	if (copy_to_user(buf, (void *)&cd + pos, nbytes))
+	{
 		return -EFAULT;
+	}
+
 	*ppos += nbytes;
 
 	return nbytes;
 }
 
-static const struct file_operations proc_bus_zorro_operations = {
+static const struct file_operations proc_bus_zorro_operations =
+{
 	.owner		= THIS_MODULE,
 	.llseek		= proc_bus_zorro_lseek,
 	.read		= proc_bus_zorro_read,
 };
 
-static void * zorro_seq_start(struct seq_file *m, loff_t *pos)
+static void *zorro_seq_start(struct seq_file *m, loff_t *pos)
 {
 	return (*pos < zorro_num_autocon) ? pos : NULL;
 }
 
-static void * zorro_seq_next(struct seq_file *m, void *v, loff_t *pos)
+static void *zorro_seq_next(struct seq_file *m, void *v, loff_t *pos)
 {
 	(*pos)++;
 	return (*pos < zorro_num_autocon) ? pos : NULL;
@@ -82,13 +94,14 @@ static int zorro_seq_show(struct seq_file *m, void *v)
 	struct zorro_dev *z = &zorro_autocon[slot];
 
 	seq_printf(m, "%02x\t%08x\t%08lx\t%08lx\t%02x\n", slot, z->id,
-		   (unsigned long)zorro_resource_start(z),
-		   (unsigned long)zorro_resource_len(z),
-		   z->rom.er_Type);
+			   (unsigned long)zorro_resource_start(z),
+			   (unsigned long)zorro_resource_len(z),
+			   z->rom.er_Type);
 	return 0;
 }
 
-static const struct seq_operations zorro_devices_seq_ops = {
+static const struct seq_operations zorro_devices_seq_ops =
+{
 	.start = zorro_seq_start,
 	.next  = zorro_seq_next,
 	.stop  = zorro_seq_stop,
@@ -100,7 +113,8 @@ static int zorro_devices_proc_open(struct inode *inode, struct file *file)
 	return seq_open(file, &zorro_devices_seq_ops);
 }
 
-static const struct file_operations zorro_devices_proc_fops = {
+static const struct file_operations zorro_devices_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= zorro_devices_proc_open,
 	.read		= seq_read,
@@ -117,10 +131,14 @@ static int __init zorro_proc_attach_device(unsigned int slot)
 
 	sprintf(name, "%02x", slot);
 	entry = proc_create_data(name, 0, proc_bus_zorro_dir,
-				 &proc_bus_zorro_operations,
-				 &zorro_autocon[slot]);
+							 &proc_bus_zorro_operations,
+							 &zorro_autocon[slot]);
+
 	if (!entry)
+	{
 		return -ENOMEM;
+	}
+
 	proc_set_size(entry, sizeof(struct zorro_dev));
 	return 0;
 }
@@ -129,13 +147,18 @@ static int __init zorro_proc_init(void)
 {
 	unsigned int slot;
 
-	if (MACH_IS_AMIGA && AMIGAHW_PRESENT(ZORRO)) {
+	if (MACH_IS_AMIGA && AMIGAHW_PRESENT(ZORRO))
+	{
 		proc_bus_zorro_dir = proc_mkdir("bus/zorro", NULL);
 		proc_create("devices", 0, proc_bus_zorro_dir,
-			    &zorro_devices_proc_fops);
+					&zorro_devices_proc_fops);
+
 		for (slot = 0; slot < zorro_num_autocon; slot++)
+		{
 			zorro_proc_attach_device(slot);
+		}
 	}
+
 	return 0;
 }
 

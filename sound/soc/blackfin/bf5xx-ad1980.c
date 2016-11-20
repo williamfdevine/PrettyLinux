@@ -50,7 +50,8 @@
 
 static struct snd_soc_card bf5xx_board;
 
-static struct snd_soc_dai_link bf5xx_board_dai[] = {
+static struct snd_soc_dai_link bf5xx_board_dai[] =
+{
 	{
 		.name = "AC97",
 		.stream_name = "AC97 HiFi",
@@ -69,7 +70,8 @@ static struct snd_soc_dai_link bf5xx_board_dai[] = {
 	},
 };
 
-static struct snd_soc_card bf5xx_board = {
+static struct snd_soc_card bf5xx_board =
+{
 	.name = "bfin-ad1980",
 	.owner = THIS_MODULE,
 	.dai_link = &bf5xx_board_dai[CONFIG_SND_BF5XX_SPORT_NUM],
@@ -83,14 +85,19 @@ static int __init bf5xx_board_init(void)
 	int ret;
 
 	bf5xx_board_snd_device = platform_device_alloc("soc-audio", -1);
+
 	if (!bf5xx_board_snd_device)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(bf5xx_board_snd_device, &bf5xx_board);
 	ret = platform_device_add(bf5xx_board_snd_device);
 
 	if (ret)
+	{
 		platform_device_put(bf5xx_board_snd_device);
+	}
 
 	return ret;
 }

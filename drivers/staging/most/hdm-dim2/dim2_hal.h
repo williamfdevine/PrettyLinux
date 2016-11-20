@@ -22,7 +22,8 @@
  * The values below are specified in the hardware specification.
  * So, they should not be changed until the hardware specification changes.
  */
-enum mlb_clk_speed {
+enum mlb_clk_speed
+{
 	CLK_256FS = 0,
 	CLK_512FS = 1,
 	CLK_1024FS = 2,
@@ -33,12 +34,14 @@ enum mlb_clk_speed {
 	CLK_8192FS = 7,
 };
 
-struct dim_ch_state_t {
+struct dim_ch_state_t
+{
 	bool ready; /* Shows readiness to enqueue next buffer */
 	u16 done_buffers; /* Number of completed buffers */
 };
 
-struct int_ch_state {
+struct int_ch_state
+{
 	/* changed only in interrupt context */
 	volatile int request_counter;
 
@@ -50,7 +53,8 @@ struct int_ch_state {
 	u8 level; /* [0..2], buffering level */
 };
 
-struct dim_channel {
+struct dim_channel
+{
 	struct int_ch_state state;
 	u8 addr;
 	u16 dbr_addr;
@@ -61,7 +65,7 @@ struct dim_channel {
 };
 
 u8 dim_startup(struct dim2_regs __iomem *dim_base_address, u32 mlb_clock,
-	       u32 fcnt);
+			   u32 fcnt);
 
 void dim_shutdown(void);
 
@@ -74,16 +78,16 @@ u16 dim_norm_isoc_buffer_size(u16 buf_size, u16 packet_length);
 u16 dim_norm_sync_buffer_size(u16 buf_size, u16 bytes_per_frame);
 
 u8 dim_init_control(struct dim_channel *ch, u8 is_tx, u16 ch_address,
-		    u16 max_buffer_size);
+					u16 max_buffer_size);
 
 u8 dim_init_async(struct dim_channel *ch, u8 is_tx, u16 ch_address,
-		  u16 max_buffer_size);
+				  u16 max_buffer_size);
 
 u8 dim_init_isoc(struct dim_channel *ch, u8 is_tx, u16 ch_address,
-		 u16 packet_length);
+				 u16 packet_length);
 
 u8 dim_init_sync(struct dim_channel *ch, u8 is_tx, u16 ch_address,
-		 u16 bytes_per_frame);
+				 u16 bytes_per_frame);
 
 u8 dim_destroy_channel(struct dim_channel *ch);
 
@@ -94,12 +98,12 @@ void dim_service_ahb_int_irq(struct dim_channel *const *channels);
 u8 dim_service_channel(struct dim_channel *ch);
 
 struct dim_ch_state_t *dim_get_channel_state(struct dim_channel *ch,
-					     struct dim_ch_state_t *state_ptr);
+		struct dim_ch_state_t *state_ptr);
 
 u16 dim_dbr_space(struct dim_channel *ch);
 
 bool dim_enqueue_buffer(struct dim_channel *ch, u32 buffer_addr,
-			u16 buffer_size);
+						u16 buffer_size);
 
 bool dim_detach_buffers(struct dim_channel *ch, u16 buffers_number);
 

@@ -32,13 +32,15 @@
 #define PS2_STAT_TX_ISNOT_FUL           (1 << 4)
 #define PS2_STAT_TX_INT_EN              (1 << 5)
 
-struct arc_ps2_port {
+struct arc_ps2_port
+{
 	void __iomem *data_addr;
 	void __iomem *status_addr;
 	struct serio *io;
 };
 
-struct arc_ps2_data {
+struct arc_ps2_data
+{
 	struct arc_ps2_port port[ARC_PS2_PORTS];
 	void __iomem *addr;
 	unsigned int frame_error;
@@ -47,31 +49,40 @@ struct arc_ps2_data {
 };
 
 static void arc_ps2_check_rx(struct arc_ps2_data *arc_ps2,
-			     struct arc_ps2_port *port)
+							 struct arc_ps2_port *port)
 {
 	unsigned int timeout = 1000;
 	unsigned int flag, status;
 	unsigned char data;
 
-	do {
+	do
+	{
 		status = ioread32(port->status_addr);
+
 		if (!(status & PS2_STAT_RX_VAL))
+		{
 			return;
+		}
 
 		data = ioread32(port->data_addr) & 0xff;
 
 		flag = 0;
 		arc_ps2->total_int++;
-		if (status & PS2_STAT_RX_FRM_ERR) {
+
+		if (status & PS2_STAT_RX_FRM_ERR)
+		{
 			arc_ps2->frame_error++;
 			flag |= SERIO_PARITY;
-		} else if (status & PS2_STAT_RX_BUF_OVER) {
+		}
+		else if (status & PS2_STAT_RX_BUF_OVER)
+		{
 			arc_ps2->buf_overflow++;
 			flag |= SERIO_FRAME;
 		}
 
 		serio_interrupt(port->io, data, flag);
-	} while (--timeout);
+	}
+	while (--timeout);
 
 	dev_err(&port->io->dev, "PS/2 hardware stuck\n");
 }
@@ -82,7 +93,9 @@ static irqreturn_t arc_ps2_interrupt(int irq, void *dev)
 	int i;
 
 	for (i = 0; i < ARC_PS2_PORTS; i++)
+	{
 		arc_ps2_check_rx(arc_ps2, &arc_ps2->port[i]);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -93,16 +106,19 @@ static int arc_ps2_write(struct serio *io, unsigned char val)
 	struct arc_ps2_port *port = io->port_data;
 	int timeout = STAT_TIMEOUT;
 
-	do {
+	do
+	{
 		status = ioread32(port->status_addr);
 		cpu_relax();
 
-		if (status & PS2_STAT_TX_ISNOT_FUL) {
+		if (status & PS2_STAT_TX_ISNOT_FUL)
+		{
 			iowrite32(val & 0xff, port->data_addr);
 			return 0;
 		}
 
-	} while (--timeout);
+	}
+	while (--timeout);
 
 	dev_err(&io->dev, "write timeout\n");
 	return -ETIMEDOUT;
@@ -122,17 +138,20 @@ static void arc_ps2_close(struct serio *io)
 	struct arc_ps2_port *port = io->port_data;
 
 	iowrite32(ioread32(port->status_addr) & ~PS2_STAT_RX_INT_EN,
-		  port->status_addr);
+			  port->status_addr);
 }
 
 static void __iomem *arc_ps2_calc_addr(struct arc_ps2_data *arc_ps2,
-						  int index, bool status)
+									   int index, bool status)
 {
 	void __iomem *addr;
 
 	addr = arc_ps2->addr + 4 + 4 * index;
+
 	if (status)
+	{
 		addr += ARC_PS2_PORTS * 4;
+	}
 
 	return addr;
 }
@@ -143,7 +162,8 @@ static void arc_ps2_inhibit_ports(struct arc_ps2_data *arc_ps2)
 	u32 val;
 	int i;
 
-	for (i = 0; i < ARC_PS2_PORTS; i++) {
+	for (i = 0; i < ARC_PS2_PORTS; i++)
+	{
 		addr = arc_ps2_calc_addr(arc_ps2, i, true);
 		val = ioread32(addr);
 		val &= ~(PS2_STAT_RX_INT_EN | PS2_STAT_TX_INT_EN);
@@ -152,15 +172,18 @@ static void arc_ps2_inhibit_ports(struct arc_ps2_data *arc_ps2)
 }
 
 static int arc_ps2_create_port(struct platform_device *pdev,
-					 struct arc_ps2_data *arc_ps2,
-					 int index)
+							   struct arc_ps2_data *arc_ps2,
+							   int index)
 {
 	struct arc_ps2_port *port = &arc_ps2->port[index];
 	struct serio *io;
 
 	io = kzalloc(sizeof(struct serio), GFP_KERNEL);
+
 	if (!io)
+	{
 		return -ENOMEM;
+	}
 
 	io->id.type = SERIO_8042;
 	io->write = arc_ps2_write;
@@ -176,7 +199,7 @@ static int arc_ps2_create_port(struct platform_device *pdev,
 	port->status_addr = arc_ps2_calc_addr(arc_ps2, index, true);
 
 	dev_dbg(&pdev->dev, "port%d is allocated (data = 0x%p, status = 0x%p)\n",
-		index, port->data_addr, port->status_addr);
+			index, port->data_addr, port->status_addr);
 
 	serio_register_port(port->io);
 	return 0;
@@ -190,28 +213,37 @@ static int arc_ps2_probe(struct platform_device *pdev)
 	int error, id, i;
 
 	irq = platform_get_irq_byname(pdev, "arc_ps2_irq");
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "no IRQ defined\n");
 		return -EINVAL;
 	}
 
 	arc_ps2 = devm_kzalloc(&pdev->dev, sizeof(struct arc_ps2_data),
-				GFP_KERNEL);
-	if (!arc_ps2) {
+						   GFP_KERNEL);
+
+	if (!arc_ps2)
+	{
 		dev_err(&pdev->dev, "out of memory\n");
 		return -ENOMEM;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	arc_ps2->addr = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(arc_ps2->addr))
+	{
 		return PTR_ERR(arc_ps2->addr);
+	}
 
 	dev_info(&pdev->dev, "irq = %d, address = 0x%p, ports = %i\n",
-		 irq, arc_ps2->addr, ARC_PS2_PORTS);
+			 irq, arc_ps2->addr, ARC_PS2_PORTS);
 
 	id = ioread32(arc_ps2->addr);
-	if (id != ARC_ARC_PS2_ID) {
+
+	if (id != ARC_ARC_PS2_ID)
+	{
 		dev_err(&pdev->dev, "device id does not match\n");
 		return -ENXIO;
 	}
@@ -219,17 +251,25 @@ static int arc_ps2_probe(struct platform_device *pdev)
 	arc_ps2_inhibit_ports(arc_ps2);
 
 	error = devm_request_irq(&pdev->dev, irq, arc_ps2_interrupt,
-				 0, "arc_ps2", arc_ps2);
-	if (error) {
+							 0, "arc_ps2", arc_ps2);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "Could not allocate IRQ\n");
 		return error;
 	}
 
-	for (i = 0; i < ARC_PS2_PORTS; i++) {
+	for (i = 0; i < ARC_PS2_PORTS; i++)
+	{
 		error = arc_ps2_create_port(pdev, arc_ps2, i);
-		if (error) {
+
+		if (error)
+		{
 			while (--i >= 0)
+			{
 				serio_unregister_port(arc_ps2->port[i].io);
+			}
+
 			return error;
 		}
 	}
@@ -245,25 +285,29 @@ static int arc_ps2_remove(struct platform_device *pdev)
 	int i;
 
 	for (i = 0; i < ARC_PS2_PORTS; i++)
+	{
 		serio_unregister_port(arc_ps2->port[i].io);
+	}
 
 	dev_dbg(&pdev->dev, "interrupt count = %i\n", arc_ps2->total_int);
 	dev_dbg(&pdev->dev, "frame error count = %i\n", arc_ps2->frame_error);
 	dev_dbg(&pdev->dev, "buffer overflow count = %i\n",
-		arc_ps2->buf_overflow);
+			arc_ps2->buf_overflow);
 
 	return 0;
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id arc_ps2_match[] = {
+static const struct of_device_id arc_ps2_match[] =
+{
 	{ .compatible = "snps,arc_ps2" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, arc_ps2_match);
 #endif
 
-static struct platform_driver arc_ps2_driver = {
+static struct platform_driver arc_ps2_driver =
+{
 	.driver	= {
 		.name		= "arc_ps2",
 		.of_match_table	= of_match_ptr(arc_ps2_match),

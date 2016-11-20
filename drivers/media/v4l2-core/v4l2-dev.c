@@ -39,7 +39,7 @@
  */
 
 static ssize_t index_show(struct device *cd,
-			  struct device_attribute *attr, char *buf)
+						  struct device_attribute *attr, char *buf)
 {
 	struct video_device *vdev = to_video_device(cd);
 
@@ -48,7 +48,7 @@ static ssize_t index_show(struct device *cd,
 static DEVICE_ATTR_RO(index);
 
 static ssize_t dev_debug_show(struct device *cd,
-			  struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	struct video_device *vdev = to_video_device(cd);
 
@@ -56,15 +56,18 @@ static ssize_t dev_debug_show(struct device *cd,
 }
 
 static ssize_t dev_debug_store(struct device *cd, struct device_attribute *attr,
-			  const char *buf, size_t len)
+							   const char *buf, size_t len)
 {
 	struct video_device *vdev = to_video_device(cd);
 	int res = 0;
 	u16 value;
 
 	res = kstrtou16(buf, 0, &value);
+
 	if (res)
+	{
 		return res;
+	}
 
 	vdev->dev_debug = value;
 	return len;
@@ -72,7 +75,7 @@ static ssize_t dev_debug_store(struct device *cd, struct device_attribute *attr,
 static DEVICE_ATTR_RW(dev_debug);
 
 static ssize_t name_show(struct device *cd,
-			 struct device_attribute *attr, char *buf)
+						 struct device_attribute *attr, char *buf)
 {
 	struct video_device *vdev = to_video_device(cd);
 
@@ -80,7 +83,8 @@ static ssize_t name_show(struct device *cd,
 }
 static DEVICE_ATTR_RO(name);
 
-static struct attribute *video_device_attrs[] = {
+static struct attribute *video_device_attrs[] =
+{
 	&dev_attr_name.attr,
 	&dev_attr_dev_debug.attr,
 	&dev_attr_index.attr,
@@ -173,7 +177,9 @@ static void v4l2_device_release(struct device *cd)
 	struct v4l2_device *v4l2_dev = vdev->v4l2_dev;
 
 	mutex_lock(&videodev_lock);
-	if (WARN_ON(video_device[vdev->minor] != vdev)) {
+
+	if (WARN_ON(video_device[vdev->minor] != vdev))
+	{
 		/* should not happen */
 		mutex_unlock(&videodev_lock);
 		return;
@@ -194,12 +200,18 @@ static void v4l2_device_release(struct device *cd)
 	mutex_unlock(&videodev_lock);
 
 #if defined(CONFIG_MEDIA_CONTROLLER)
-	if (v4l2_dev->mdev) {
+
+	if (v4l2_dev->mdev)
+	{
 		/* Remove interfaces and interface links */
 		media_devnode_remove(vdev->intf_devnode);
+
 		if (vdev->entity.function != MEDIA_ENT_F_UNKNOWN)
+		{
 			media_device_unregister_entity(&vdev->entity);
+		}
 	}
+
 #endif
 
 	/* Do not call v4l2_device_put if there is no release callback set.
@@ -211,7 +223,9 @@ static void v4l2_device_release(struct device *cd)
 	 * v4l2_device release callback. This check will then be unnecessary.
 	 */
 	if (v4l2_dev->release == NULL)
+	{
 		v4l2_dev = NULL;
+	}
 
 	/* Release video_device and perform other
 	   cleanups as needed. */
@@ -219,13 +233,16 @@ static void v4l2_device_release(struct device *cd)
 
 	/* Decrease v4l2_device refcount */
 	if (v4l2_dev)
+	{
 		v4l2_device_put(v4l2_dev);
+	}
 }
 
-static struct class video_class = {
-	.name = VIDEO_NAME,
-	.dev_groups = video_device_groups,
-};
+static struct class video_class =
+	{
+			.name = VIDEO_NAME,
+			.dev_groups = video_device_groups,
+	};
 
 struct video_device *video_devdata(struct file *file)
 {
@@ -239,8 +256,8 @@ EXPORT_SYMBOL(video_devdata);
 static inline bool prio_is_valid(enum v4l2_priority prio)
 {
 	return prio == V4L2_PRIORITY_BACKGROUND ||
-	       prio == V4L2_PRIORITY_INTERACTIVE ||
-	       prio == V4L2_PRIORITY_RECORD;
+		   prio == V4L2_PRIORITY_INTERACTIVE ||
+		   prio == V4L2_PRIORITY_RECORD;
 }
 
 void v4l2_prio_init(struct v4l2_prio_state *global)
@@ -250,16 +267,25 @@ void v4l2_prio_init(struct v4l2_prio_state *global)
 EXPORT_SYMBOL(v4l2_prio_init);
 
 int v4l2_prio_change(struct v4l2_prio_state *global, enum v4l2_priority *local,
-		     enum v4l2_priority new)
+					 enum v4l2_priority new)
 {
 	if (!prio_is_valid(new))
+	{
 		return -EINVAL;
+	}
+
 	if (*local == new)
+	{
 		return 0;
+	}
 
 	atomic_inc(&global->prios[new]);
+
 	if (prio_is_valid(*local))
+	{
 		atomic_dec(&global->prios[*local]);
+	}
+
 	*local = new;
 	return 0;
 }
@@ -274,18 +300,29 @@ EXPORT_SYMBOL(v4l2_prio_open);
 void v4l2_prio_close(struct v4l2_prio_state *global, enum v4l2_priority local)
 {
 	if (prio_is_valid(local))
+	{
 		atomic_dec(&global->prios[local]);
+	}
 }
 EXPORT_SYMBOL(v4l2_prio_close);
 
 enum v4l2_priority v4l2_prio_max(struct v4l2_prio_state *global)
 {
 	if (atomic_read(&global->prios[V4L2_PRIORITY_RECORD]) > 0)
+	{
 		return V4L2_PRIORITY_RECORD;
+	}
+
 	if (atomic_read(&global->prios[V4L2_PRIORITY_INTERACTIVE]) > 0)
+	{
 		return V4L2_PRIORITY_INTERACTIVE;
+	}
+
 	if (atomic_read(&global->prios[V4L2_PRIORITY_BACKGROUND]) > 0)
+	{
 		return V4L2_PRIORITY_BACKGROUND;
+	}
+
 	return V4L2_PRIORITY_UNSET;
 }
 EXPORT_SYMBOL(v4l2_prio_max);
@@ -298,36 +335,50 @@ EXPORT_SYMBOL(v4l2_prio_check);
 
 
 static ssize_t v4l2_read(struct file *filp, char __user *buf,
-		size_t sz, loff_t *off)
+						 size_t sz, loff_t *off)
 {
 	struct video_device *vdev = video_devdata(filp);
 	int ret = -ENODEV;
 
 	if (!vdev->fops->read)
+	{
 		return -EINVAL;
+	}
+
 	if (video_is_registered(vdev))
+	{
 		ret = vdev->fops->read(filp, buf, sz, off);
+	}
+
 	if ((vdev->dev_debug & V4L2_DEV_DEBUG_FOP) &&
-	    (vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING))
+		(vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING))
 		printk(KERN_DEBUG "%s: read: %zd (%d)\n",
-			video_device_node_name(vdev), sz, ret);
+			   video_device_node_name(vdev), sz, ret);
+
 	return ret;
 }
 
 static ssize_t v4l2_write(struct file *filp, const char __user *buf,
-		size_t sz, loff_t *off)
+						  size_t sz, loff_t *off)
 {
 	struct video_device *vdev = video_devdata(filp);
 	int ret = -ENODEV;
 
 	if (!vdev->fops->write)
+	{
 		return -EINVAL;
+	}
+
 	if (video_is_registered(vdev))
+	{
 		ret = vdev->fops->write(filp, buf, sz, off);
+	}
+
 	if ((vdev->dev_debug & V4L2_DEV_DEBUG_FOP) &&
-	    (vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING))
+		(vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING))
 		printk(KERN_DEBUG "%s: write: %zd (%d)\n",
-			video_device_node_name(vdev), sz, ret);
+			   video_device_node_name(vdev), sz, ret);
+
 	return ret;
 }
 
@@ -337,12 +388,19 @@ static unsigned int v4l2_poll(struct file *filp, struct poll_table_struct *poll)
 	unsigned int res = POLLERR | POLLHUP;
 
 	if (!vdev->fops->poll)
+	{
 		return DEFAULT_POLLMASK;
+	}
+
 	if (video_is_registered(vdev))
+	{
 		res = vdev->fops->poll(filp, poll);
+	}
+
 	if (vdev->dev_debug & V4L2_DEV_DEBUG_POLL)
 		printk(KERN_DEBUG "%s: poll: %08x\n",
-			video_device_node_name(vdev), res);
+			   video_device_node_name(vdev), res);
+
 	return res;
 }
 
@@ -351,17 +409,29 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	struct video_device *vdev = video_devdata(filp);
 	int ret = -ENODEV;
 
-	if (vdev->fops->unlocked_ioctl) {
+	if (vdev->fops->unlocked_ioctl)
+	{
 		struct mutex *lock = v4l2_ioctl_get_lock(vdev, cmd);
 
 		if (lock && mutex_lock_interruptible(lock))
+		{
 			return -ERESTARTSYS;
+		}
+
 		if (video_is_registered(vdev))
+		{
 			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+		}
+
 		if (lock)
+		{
 			mutex_unlock(lock);
-	} else
+		}
+	}
+	else
+	{
 		ret = -ENOTTY;
+	}
 
 	return ret;
 }
@@ -377,13 +447,21 @@ static unsigned long v4l2_get_unmapped_area(struct file *filp,
 	int ret;
 
 	if (!vdev->fops->get_unmapped_area)
+	{
 		return -ENOSYS;
+	}
+
 	if (!video_is_registered(vdev))
+	{
 		return -ENODEV;
+	}
+
 	ret = vdev->fops->get_unmapped_area(filp, addr, len, pgoff, flags);
+
 	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
 		printk(KERN_DEBUG "%s: get_unmapped_area (%d)\n",
-			video_device_node_name(vdev), ret);
+			   video_device_node_name(vdev), ret);
+
 	return ret;
 }
 #endif
@@ -394,12 +472,19 @@ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
 	int ret = -ENODEV;
 
 	if (!vdev->fops->mmap)
+	{
 		return -ENODEV;
+	}
+
 	if (video_is_registered(vdev))
+	{
 		ret = vdev->fops->mmap(filp, vm);
+	}
+
 	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
 		printk(KERN_DEBUG "%s: mmap (%d)\n",
-			video_device_node_name(vdev), ret);
+			   video_device_node_name(vdev), ret);
+
 	return ret;
 }
 
@@ -412,27 +497,40 @@ static int v4l2_open(struct inode *inode, struct file *filp)
 	/* Check if the video device is available */
 	mutex_lock(&videodev_lock);
 	vdev = video_devdata(filp);
+
 	/* return ENODEV if the video device has already been removed. */
-	if (vdev == NULL || !video_is_registered(vdev)) {
+	if (vdev == NULL || !video_is_registered(vdev))
+	{
 		mutex_unlock(&videodev_lock);
 		return -ENODEV;
 	}
+
 	/* and increase the device refcount */
 	video_get(vdev);
 	mutex_unlock(&videodev_lock);
-	if (vdev->fops->open) {
+
+	if (vdev->fops->open)
+	{
 		if (video_is_registered(vdev))
+		{
 			ret = vdev->fops->open(filp);
+		}
 		else
+		{
 			ret = -ENODEV;
+		}
 	}
 
 	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
 		printk(KERN_DEBUG "%s: open (%d)\n",
-			video_device_node_name(vdev), ret);
+			   video_device_node_name(vdev), ret);
+
 	/* decrease the refcount in case of an error */
 	if (ret)
+	{
 		video_put(vdev);
+	}
+
 	return ret;
 }
 
@@ -443,10 +541,13 @@ static int v4l2_release(struct inode *inode, struct file *filp)
 	int ret = 0;
 
 	if (vdev->fops->release)
+	{
 		ret = vdev->fops->release(filp);
+	}
+
 	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
 		printk(KERN_DEBUG "%s: release\n",
-			video_device_node_name(vdev));
+			   video_device_node_name(vdev));
 
 	/* decrease the refcount unconditionally since the release()
 	   return value is ignored. */
@@ -454,7 +555,8 @@ static int v4l2_release(struct inode *inode, struct file *filp)
 	return ret;
 }
 
-static const struct file_operations v4l2_fops = {
+static const struct file_operations v4l2_fops =
+{
 	.owner = THIS_MODULE,
 	.read = v4l2_read,
 	.write = v4l2_write,
@@ -492,9 +594,11 @@ static int get_index(struct video_device *vdev)
 
 	bitmap_zero(used, VIDEO_NUM_DEVICES);
 
-	for (i = 0; i < VIDEO_NUM_DEVICES; i++) {
+	for (i = 0; i < VIDEO_NUM_DEVICES; i++)
+	{
 		if (video_device[i] != NULL &&
-		    video_device[i]->v4l2_dev == vdev->v4l2_dev) {
+			video_device[i]->v4l2_dev == vdev->v4l2_dev)
+		{
 			set_bit(video_device[i]->index, used);
 		}
 	}
@@ -544,21 +648,45 @@ static void determine_valid_ioctls(struct video_device *vdev)
 	   is set, then the ioctl is valid. But if it is 0, then it can still
 	   be valid if the filehandle passed the control handler. */
 	if (vdev->ctrl_handler || ops->vidioc_queryctrl)
+	{
 		set_bit(_IOC_NR(VIDIOC_QUERYCTRL), valid_ioctls);
+	}
+
 	if (vdev->ctrl_handler || ops->vidioc_query_ext_ctrl)
+	{
 		set_bit(_IOC_NR(VIDIOC_QUERY_EXT_CTRL), valid_ioctls);
+	}
+
 	if (vdev->ctrl_handler || ops->vidioc_g_ctrl || ops->vidioc_g_ext_ctrls)
+	{
 		set_bit(_IOC_NR(VIDIOC_G_CTRL), valid_ioctls);
+	}
+
 	if (vdev->ctrl_handler || ops->vidioc_s_ctrl || ops->vidioc_s_ext_ctrls)
+	{
 		set_bit(_IOC_NR(VIDIOC_S_CTRL), valid_ioctls);
+	}
+
 	if (vdev->ctrl_handler || ops->vidioc_g_ext_ctrls)
+	{
 		set_bit(_IOC_NR(VIDIOC_G_EXT_CTRLS), valid_ioctls);
+	}
+
 	if (vdev->ctrl_handler || ops->vidioc_s_ext_ctrls)
+	{
 		set_bit(_IOC_NR(VIDIOC_S_EXT_CTRLS), valid_ioctls);
+	}
+
 	if (vdev->ctrl_handler || ops->vidioc_try_ext_ctrls)
+	{
 		set_bit(_IOC_NR(VIDIOC_TRY_EXT_CTRLS), valid_ioctls);
+	}
+
 	if (vdev->ctrl_handler || ops->vidioc_querymenu)
+	{
 		set_bit(_IOC_NR(VIDIOC_QUERYMENU), valid_ioctls);
+	}
+
 	SET_VALID_IOCTL(ops, VIDIOC_G_FREQUENCY, vidioc_g_frequency);
 	SET_VALID_IOCTL(ops, VIDIOC_S_FREQUENCY, vidioc_s_frequency);
 	SET_VALID_IOCTL(ops, VIDIOC_LOG_STATUS, vidioc_log_status);
@@ -571,38 +699,54 @@ static void determine_valid_ioctls(struct video_device *vdev)
 	SET_VALID_IOCTL(ops, VIDIOC_DQEVENT, vidioc_subscribe_event);
 	SET_VALID_IOCTL(ops, VIDIOC_SUBSCRIBE_EVENT, vidioc_subscribe_event);
 	SET_VALID_IOCTL(ops, VIDIOC_UNSUBSCRIBE_EVENT, vidioc_unsubscribe_event);
-	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
-		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
 
-	if (is_vid || is_tch) {
+	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
+	{
+		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
+	}
+
+	if (is_vid || is_tch)
+	{
 		/* video specific ioctls */
 		if ((is_rx && (ops->vidioc_enum_fmt_vid_cap ||
-			       ops->vidioc_enum_fmt_vid_cap_mplane ||
-			       ops->vidioc_enum_fmt_vid_overlay)) ||
-		    (is_tx && (ops->vidioc_enum_fmt_vid_out ||
-			       ops->vidioc_enum_fmt_vid_out_mplane)))
+					   ops->vidioc_enum_fmt_vid_cap_mplane ||
+					   ops->vidioc_enum_fmt_vid_overlay)) ||
+			(is_tx && (ops->vidioc_enum_fmt_vid_out ||
+					   ops->vidioc_enum_fmt_vid_out_mplane)))
+		{
 			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
+		}
+
 		if ((is_rx && (ops->vidioc_g_fmt_vid_cap ||
-			       ops->vidioc_g_fmt_vid_cap_mplane ||
-			       ops->vidioc_g_fmt_vid_overlay)) ||
-		    (is_tx && (ops->vidioc_g_fmt_vid_out ||
-			       ops->vidioc_g_fmt_vid_out_mplane ||
-			       ops->vidioc_g_fmt_vid_out_overlay)))
-			 set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
+					   ops->vidioc_g_fmt_vid_cap_mplane ||
+					   ops->vidioc_g_fmt_vid_overlay)) ||
+			(is_tx && (ops->vidioc_g_fmt_vid_out ||
+					   ops->vidioc_g_fmt_vid_out_mplane ||
+					   ops->vidioc_g_fmt_vid_out_overlay)))
+		{
+			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
+		}
+
 		if ((is_rx && (ops->vidioc_s_fmt_vid_cap ||
-			       ops->vidioc_s_fmt_vid_cap_mplane ||
-			       ops->vidioc_s_fmt_vid_overlay)) ||
-		    (is_tx && (ops->vidioc_s_fmt_vid_out ||
-			       ops->vidioc_s_fmt_vid_out_mplane ||
-			       ops->vidioc_s_fmt_vid_out_overlay)))
-			 set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
+					   ops->vidioc_s_fmt_vid_cap_mplane ||
+					   ops->vidioc_s_fmt_vid_overlay)) ||
+			(is_tx && (ops->vidioc_s_fmt_vid_out ||
+					   ops->vidioc_s_fmt_vid_out_mplane ||
+					   ops->vidioc_s_fmt_vid_out_overlay)))
+		{
+			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
+		}
+
 		if ((is_rx && (ops->vidioc_try_fmt_vid_cap ||
-			       ops->vidioc_try_fmt_vid_cap_mplane ||
-			       ops->vidioc_try_fmt_vid_overlay)) ||
-		    (is_tx && (ops->vidioc_try_fmt_vid_out ||
-			       ops->vidioc_try_fmt_vid_out_mplane ||
-			       ops->vidioc_try_fmt_vid_out_overlay)))
-			 set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+					   ops->vidioc_try_fmt_vid_cap_mplane ||
+					   ops->vidioc_try_fmt_vid_overlay)) ||
+			(is_tx && (ops->vidioc_try_fmt_vid_out ||
+					   ops->vidioc_try_fmt_vid_out_mplane ||
+					   ops->vidioc_try_fmt_vid_out_overlay)))
+		{
+			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+		}
+
 		SET_VALID_IOCTL(ops, VIDIOC_OVERLAY, vidioc_overlay);
 		SET_VALID_IOCTL(ops, VIDIOC_G_FBUF, vidioc_g_fbuf);
 		SET_VALID_IOCTL(ops, VIDIOC_S_FBUF, vidioc_s_fbuf);
@@ -615,55 +759,103 @@ static void determine_valid_ioctls(struct video_device *vdev)
 		SET_VALID_IOCTL(ops, VIDIOC_TRY_DECODER_CMD, vidioc_try_decoder_cmd);
 		SET_VALID_IOCTL(ops, VIDIOC_ENUM_FRAMESIZES, vidioc_enum_framesizes);
 		SET_VALID_IOCTL(ops, VIDIOC_ENUM_FRAMEINTERVALS, vidioc_enum_frameintervals);
+
 		if (ops->vidioc_g_crop || ops->vidioc_g_selection)
+		{
 			set_bit(_IOC_NR(VIDIOC_G_CROP), valid_ioctls);
+		}
+
 		if (ops->vidioc_s_crop || ops->vidioc_s_selection)
+		{
 			set_bit(_IOC_NR(VIDIOC_S_CROP), valid_ioctls);
+		}
+
 		SET_VALID_IOCTL(ops, VIDIOC_G_SELECTION, vidioc_g_selection);
 		SET_VALID_IOCTL(ops, VIDIOC_S_SELECTION, vidioc_s_selection);
+
 		if (ops->vidioc_cropcap || ops->vidioc_g_selection)
+		{
 			set_bit(_IOC_NR(VIDIOC_CROPCAP), valid_ioctls);
-	} else if (is_vbi) {
+		}
+	}
+	else if (is_vbi)
+	{
 		/* vbi specific ioctls */
 		if ((is_rx && (ops->vidioc_g_fmt_vbi_cap ||
-			       ops->vidioc_g_fmt_sliced_vbi_cap)) ||
-		    (is_tx && (ops->vidioc_g_fmt_vbi_out ||
-			       ops->vidioc_g_fmt_sliced_vbi_out)))
+					   ops->vidioc_g_fmt_sliced_vbi_cap)) ||
+			(is_tx && (ops->vidioc_g_fmt_vbi_out ||
+					   ops->vidioc_g_fmt_sliced_vbi_out)))
+		{
 			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
+		}
+
 		if ((is_rx && (ops->vidioc_s_fmt_vbi_cap ||
-			       ops->vidioc_s_fmt_sliced_vbi_cap)) ||
-		    (is_tx && (ops->vidioc_s_fmt_vbi_out ||
-			       ops->vidioc_s_fmt_sliced_vbi_out)))
+					   ops->vidioc_s_fmt_sliced_vbi_cap)) ||
+			(is_tx && (ops->vidioc_s_fmt_vbi_out ||
+					   ops->vidioc_s_fmt_sliced_vbi_out)))
+		{
 			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
+		}
+
 		if ((is_rx && (ops->vidioc_try_fmt_vbi_cap ||
-			       ops->vidioc_try_fmt_sliced_vbi_cap)) ||
-		    (is_tx && (ops->vidioc_try_fmt_vbi_out ||
-			       ops->vidioc_try_fmt_sliced_vbi_out)))
+					   ops->vidioc_try_fmt_sliced_vbi_cap)) ||
+			(is_tx && (ops->vidioc_try_fmt_vbi_out ||
+					   ops->vidioc_try_fmt_sliced_vbi_out)))
+		{
 			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+		}
+
 		SET_VALID_IOCTL(ops, VIDIOC_G_SLICED_VBI_CAP, vidioc_g_sliced_vbi_cap);
-	} else if (is_sdr && is_rx) {
+	}
+	else if (is_sdr && is_rx)
+	{
 		/* SDR receiver specific ioctls */
 		if (ops->vidioc_enum_fmt_sdr_cap)
+		{
 			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
+		}
+
 		if (ops->vidioc_g_fmt_sdr_cap)
+		{
 			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
+		}
+
 		if (ops->vidioc_s_fmt_sdr_cap)
+		{
 			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
+		}
+
 		if (ops->vidioc_try_fmt_sdr_cap)
+		{
 			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
-	} else if (is_sdr && is_tx) {
+		}
+	}
+	else if (is_sdr && is_tx)
+	{
 		/* SDR transmitter specific ioctls */
 		if (ops->vidioc_enum_fmt_sdr_out)
+		{
 			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
+		}
+
 		if (ops->vidioc_g_fmt_sdr_out)
+		{
 			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
+		}
+
 		if (ops->vidioc_s_fmt_sdr_out)
+		{
 			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
+		}
+
 		if (ops->vidioc_try_fmt_sdr_out)
+		{
 			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+		}
 	}
 
-	if (is_vid || is_vbi || is_sdr || is_tch) {
+	if (is_vid || is_vbi || is_sdr || is_tch)
+	{
 		/* ioctls valid for video, vbi or sdr */
 		SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
 		SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
@@ -676,13 +868,19 @@ static void determine_valid_ioctls(struct video_device *vdev)
 		SET_VALID_IOCTL(ops, VIDIOC_STREAMOFF, vidioc_streamoff);
 	}
 
-	if (is_vid || is_vbi || is_tch) {
+	if (is_vid || is_vbi || is_tch)
+	{
 		/* ioctls valid for video or vbi */
 		if (ops->vidioc_s_std)
+		{
 			set_bit(_IOC_NR(VIDIOC_ENUMSTD), valid_ioctls);
+		}
+
 		SET_VALID_IOCTL(ops, VIDIOC_S_STD, vidioc_s_std);
 		SET_VALID_IOCTL(ops, VIDIOC_G_STD, vidioc_g_std);
-		if (is_rx) {
+
+		if (is_rx)
+		{
 			SET_VALID_IOCTL(ops, VIDIOC_QUERYSTD, vidioc_querystd);
 			SET_VALID_IOCTL(ops, VIDIOC_ENUMINPUT, vidioc_enum_input);
 			SET_VALID_IOCTL(ops, VIDIOC_G_INPUT, vidioc_g_input);
@@ -693,7 +891,9 @@ static void determine_valid_ioctls(struct video_device *vdev)
 			SET_VALID_IOCTL(ops, VIDIOC_QUERY_DV_TIMINGS, vidioc_query_dv_timings);
 			SET_VALID_IOCTL(ops, VIDIOC_S_EDID, vidioc_s_edid);
 		}
-		if (is_tx) {
+
+		if (is_tx)
+		{
 			SET_VALID_IOCTL(ops, VIDIOC_ENUMOUTPUT, vidioc_enum_output);
 			SET_VALID_IOCTL(ops, VIDIOC_G_OUTPUT, vidioc_g_output);
 			SET_VALID_IOCTL(ops, VIDIOC_S_OUTPUT, vidioc_s_output);
@@ -701,9 +901,13 @@ static void determine_valid_ioctls(struct video_device *vdev)
 			SET_VALID_IOCTL(ops, VIDIOC_G_AUDOUT, vidioc_g_audout);
 			SET_VALID_IOCTL(ops, VIDIOC_S_AUDOUT, vidioc_s_audout);
 		}
+
 		if (ops->vidioc_g_parm || (vdev->vfl_type == VFL_TYPE_GRABBER &&
-					ops->vidioc_g_std))
+								   ops->vidioc_g_std))
+		{
 			set_bit(_IOC_NR(VIDIOC_G_PARM), valid_ioctls);
+		}
+
 		SET_VALID_IOCTL(ops, VIDIOC_S_PARM, vidioc_s_parm);
 		SET_VALID_IOCTL(ops, VIDIOC_S_DV_TIMINGS, vidioc_s_dv_timings);
 		SET_VALID_IOCTL(ops, VIDIOC_G_DV_TIMINGS, vidioc_g_dv_timings);
@@ -711,12 +915,16 @@ static void determine_valid_ioctls(struct video_device *vdev)
 		SET_VALID_IOCTL(ops, VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap);
 		SET_VALID_IOCTL(ops, VIDIOC_G_EDID, vidioc_g_edid);
 	}
-	if (is_tx && (is_radio || is_sdr)) {
+
+	if (is_tx && (is_radio || is_sdr))
+	{
 		/* radio transmitter only ioctls */
 		SET_VALID_IOCTL(ops, VIDIOC_G_MODULATOR, vidioc_g_modulator);
 		SET_VALID_IOCTL(ops, VIDIOC_S_MODULATOR, vidioc_s_modulator);
 	}
-	if (is_rx) {
+
+	if (is_rx)
+	{
 		/* receiver only ioctls */
 		SET_VALID_IOCTL(ops, VIDIOC_G_TUNER, vidioc_g_tuner);
 		SET_VALID_IOCTL(ops, VIDIOC_S_TUNER, vidioc_s_tuner);
@@ -724,7 +932,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
 	}
 
 	bitmap_andnot(vdev->valid_ioctls, valid_ioctls, vdev->valid_ioctls,
-			BASE_VIDIOC_PRIVATE);
+				  BASE_VIDIOC_PRIVATE);
 }
 
 static int video_register_media_controller(struct video_device *vdev, int type)
@@ -734,45 +942,55 @@ static int video_register_media_controller(struct video_device *vdev, int type)
 	int ret;
 
 	if (!vdev->v4l2_dev->mdev)
+	{
 		return 0;
+	}
 
 	vdev->entity.obj_type = MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
 	vdev->entity.function = MEDIA_ENT_F_UNKNOWN;
 
-	switch (type) {
-	case VFL_TYPE_GRABBER:
-		intf_type = MEDIA_INTF_T_V4L_VIDEO;
-		vdev->entity.function = MEDIA_ENT_F_IO_V4L;
-		break;
-	case VFL_TYPE_VBI:
-		intf_type = MEDIA_INTF_T_V4L_VBI;
-		vdev->entity.function = MEDIA_ENT_F_IO_VBI;
-		break;
-	case VFL_TYPE_SDR:
-		intf_type = MEDIA_INTF_T_V4L_SWRADIO;
-		vdev->entity.function = MEDIA_ENT_F_IO_SWRADIO;
-		break;
-	case VFL_TYPE_TOUCH:
-		intf_type = MEDIA_INTF_T_V4L_TOUCH;
-		vdev->entity.function = MEDIA_ENT_F_IO_V4L;
-		break;
-	case VFL_TYPE_RADIO:
-		intf_type = MEDIA_INTF_T_V4L_RADIO;
-		/*
-		 * Radio doesn't have an entity at the V4L2 side to represent
-		 * radio input or output. Instead, the audio input/output goes
-		 * via either physical wires or ALSA.
-		 */
-		break;
-	case VFL_TYPE_SUBDEV:
-		intf_type = MEDIA_INTF_T_V4L_SUBDEV;
-		/* Entity will be created via v4l2_device_register_subdev() */
-		break;
-	default:
-		return 0;
+	switch (type)
+	{
+		case VFL_TYPE_GRABBER:
+			intf_type = MEDIA_INTF_T_V4L_VIDEO;
+			vdev->entity.function = MEDIA_ENT_F_IO_V4L;
+			break;
+
+		case VFL_TYPE_VBI:
+			intf_type = MEDIA_INTF_T_V4L_VBI;
+			vdev->entity.function = MEDIA_ENT_F_IO_VBI;
+			break;
+
+		case VFL_TYPE_SDR:
+			intf_type = MEDIA_INTF_T_V4L_SWRADIO;
+			vdev->entity.function = MEDIA_ENT_F_IO_SWRADIO;
+			break;
+
+		case VFL_TYPE_TOUCH:
+			intf_type = MEDIA_INTF_T_V4L_TOUCH;
+			vdev->entity.function = MEDIA_ENT_F_IO_V4L;
+			break;
+
+		case VFL_TYPE_RADIO:
+			intf_type = MEDIA_INTF_T_V4L_RADIO;
+			/*
+			 * Radio doesn't have an entity at the V4L2 side to represent
+			 * radio input or output. Instead, the audio input/output goes
+			 * via either physical wires or ALSA.
+			 */
+			break;
+
+		case VFL_TYPE_SUBDEV:
+			intf_type = MEDIA_INTF_T_V4L_SUBDEV;
+			/* Entity will be created via v4l2_device_register_subdev() */
+			break;
+
+		default:
+			return 0;
 	}
 
-	if (vdev->entity.function != MEDIA_ENT_F_UNKNOWN) {
+	if (vdev->entity.function != MEDIA_ENT_F_UNKNOWN)
+	{
 		vdev->entity.name = vdev->name;
 
 		/* Needed just for backward compatibility with legacy MC API */
@@ -780,31 +998,38 @@ static int video_register_media_controller(struct video_device *vdev, int type)
 		vdev->entity.info.dev.minor = vdev->minor;
 
 		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
-						   &vdev->entity);
-		if (ret < 0) {
+										   &vdev->entity);
+
+		if (ret < 0)
+		{
 			printk(KERN_WARNING
-				"%s: media_device_register_entity failed\n",
-				__func__);
+				   "%s: media_device_register_entity failed\n",
+				   __func__);
 			return ret;
 		}
 	}
 
 	vdev->intf_devnode = media_devnode_create(vdev->v4l2_dev->mdev,
-						  intf_type,
-						  0, VIDEO_MAJOR,
-						  vdev->minor);
-	if (!vdev->intf_devnode) {
+						 intf_type,
+						 0, VIDEO_MAJOR,
+						 vdev->minor);
+
+	if (!vdev->intf_devnode)
+	{
 		media_device_unregister_entity(&vdev->entity);
 		return -ENOMEM;
 	}
 
-	if (vdev->entity.function != MEDIA_ENT_F_UNKNOWN) {
+	if (vdev->entity.function != MEDIA_ENT_F_UNKNOWN)
+	{
 		struct media_link *link;
 
 		link = media_create_intf_link(&vdev->entity,
-					      &vdev->intf_devnode->intf,
-					      MEDIA_LNK_FL_ENABLED);
-		if (!link) {
+									  &vdev->intf_devnode->intf,
+									  MEDIA_LNK_FL_ENABLED);
+
+		if (!link)
+		{
 			media_devnode_remove(vdev->intf_devnode);
 			media_device_unregister_entity(&vdev->entity);
 			return -ENOMEM;
@@ -818,7 +1043,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
 }
 
 int __video_register_device(struct video_device *vdev, int type, int nr,
-		int warn_if_nr_in_use, struct module *owner)
+							int warn_if_nr_in_use, struct module *owner)
 {
 	int i = 0;
 	int ret;
@@ -832,104 +1057,143 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
 
 	/* the release callback MUST be present */
 	if (WARN_ON(!vdev->release))
+	{
 		return -EINVAL;
+	}
+
 	/* the v4l2_dev pointer MUST be present */
 	if (WARN_ON(!vdev->v4l2_dev))
+	{
 		return -EINVAL;
+	}
 
 	/* v4l2_fh support */
 	spin_lock_init(&vdev->fh_lock);
 	INIT_LIST_HEAD(&vdev->fh_list);
 
 	/* Part 1: check device type */
-	switch (type) {
-	case VFL_TYPE_GRABBER:
-		name_base = "video";
-		break;
-	case VFL_TYPE_VBI:
-		name_base = "vbi";
-		break;
-	case VFL_TYPE_RADIO:
-		name_base = "radio";
-		break;
-	case VFL_TYPE_SUBDEV:
-		name_base = "v4l-subdev";
-		break;
-	case VFL_TYPE_SDR:
-		/* Use device name 'swradio' because 'sdr' was already taken. */
-		name_base = "swradio";
-		break;
-	case VFL_TYPE_TOUCH:
-		name_base = "v4l-touch";
-		break;
-	default:
-		printk(KERN_ERR "%s called with unknown type: %d\n",
-		       __func__, type);
-		return -EINVAL;
+	switch (type)
+	{
+		case VFL_TYPE_GRABBER:
+			name_base = "video";
+			break;
+
+		case VFL_TYPE_VBI:
+			name_base = "vbi";
+			break;
+
+		case VFL_TYPE_RADIO:
+			name_base = "radio";
+			break;
+
+		case VFL_TYPE_SUBDEV:
+			name_base = "v4l-subdev";
+			break;
+
+		case VFL_TYPE_SDR:
+			/* Use device name 'swradio' because 'sdr' was already taken. */
+			name_base = "swradio";
+			break;
+
+		case VFL_TYPE_TOUCH:
+			name_base = "v4l-touch";
+			break;
+
+		default:
+			printk(KERN_ERR "%s called with unknown type: %d\n",
+				   __func__, type);
+			return -EINVAL;
 	}
 
 	vdev->vfl_type = type;
 	vdev->cdev = NULL;
+
 	if (vdev->dev_parent == NULL)
+	{
 		vdev->dev_parent = vdev->v4l2_dev->dev;
+	}
+
 	if (vdev->ctrl_handler == NULL)
+	{
 		vdev->ctrl_handler = vdev->v4l2_dev->ctrl_handler;
+	}
+
 	/* If the prio state pointer is NULL, then use the v4l2_device
 	   prio state. */
 	if (vdev->prio == NULL)
+	{
 		vdev->prio = &vdev->v4l2_dev->prio;
+	}
 
 	/* Part 2: find a free minor, device node number and device index. */
 #ifdef CONFIG_VIDEO_FIXED_MINOR_RANGES
+
 	/* Keep the ranges for the first four types for historical
 	 * reasons.
 	 * Newer devices (not yet in place) should use the range
 	 * of 128-191 and just pick the first free minor there
 	 * (new style). */
-	switch (type) {
-	case VFL_TYPE_GRABBER:
-		minor_offset = 0;
-		minor_cnt = 64;
-		break;
-	case VFL_TYPE_RADIO:
-		minor_offset = 64;
-		minor_cnt = 64;
-		break;
-	case VFL_TYPE_VBI:
-		minor_offset = 224;
-		minor_cnt = 32;
-		break;
-	default:
-		minor_offset = 128;
-		minor_cnt = 64;
-		break;
+	switch (type)
+	{
+		case VFL_TYPE_GRABBER:
+			minor_offset = 0;
+			minor_cnt = 64;
+			break;
+
+		case VFL_TYPE_RADIO:
+			minor_offset = 64;
+			minor_cnt = 64;
+			break;
+
+		case VFL_TYPE_VBI:
+			minor_offset = 224;
+			minor_cnt = 32;
+			break;
+
+		default:
+			minor_offset = 128;
+			minor_cnt = 64;
+			break;
 	}
+
 #endif
 
 	/* Pick a device node number */
 	mutex_lock(&videodev_lock);
 	nr = devnode_find(vdev, nr == -1 ? 0 : nr, minor_cnt);
+
 	if (nr == minor_cnt)
+	{
 		nr = devnode_find(vdev, 0, minor_cnt);
-	if (nr == minor_cnt) {
+	}
+
+	if (nr == minor_cnt)
+	{
 		printk(KERN_ERR "could not get a free device node number\n");
 		mutex_unlock(&videodev_lock);
 		return -ENFILE;
 	}
+
 #ifdef CONFIG_VIDEO_FIXED_MINOR_RANGES
 	/* 1-on-1 mapping of device node number to minor number */
 	i = nr;
 #else
+
 	/* The device node number and minor numbers are independent, so
 	   we just find the first free minor number. */
 	for (i = 0; i < VIDEO_NUM_DEVICES; i++)
 		if (video_device[i] == NULL)
+		{
 			break;
-	if (i == VIDEO_NUM_DEVICES) {
+		}
+
+	if (i == VIDEO_NUM_DEVICES)
+	{
 		mutex_unlock(&videodev_lock);
 		printk(KERN_ERR "could not get a free minor\n");
 		return -ENFILE;
 	}
+
 #endif
 	vdev->minor = i + minor_offset;
 	vdev->num = nr;
@@ -942,18 +1206,25 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
 	mutex_unlock(&videodev_lock);
 
 	if (vdev->ioctl_ops)
+	{
 		determine_valid_ioctls(vdev);
+	}
 
 	/* Part 3: Initialize the character device */
 	vdev->cdev = cdev_alloc();
-	if (vdev->cdev == NULL) {
+
+	if (vdev->cdev == NULL)
+	{
 		ret = -ENOMEM;
 		goto cleanup;
 	}
+
 	vdev->cdev->ops = &v4l2_fops;
 	vdev->cdev->owner = owner;
 	ret = cdev_add(vdev->cdev, MKDEV(VIDEO_MAJOR, vdev->minor), 1);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		printk(KERN_ERR "%s: cdev_add failed\n", __func__);
 		kfree(vdev->cdev);
 		vdev->cdev = NULL;
@@ -966,17 +1237,20 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
 	vdev->dev.parent = vdev->dev_parent;
 	dev_set_name(&vdev->dev, "%s%d", name_base, vdev->num);
 	ret = device_register(&vdev->dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		printk(KERN_ERR "%s: device_register failed\n", __func__);
 		goto cleanup;
 	}
+
 	/* Register the release callback that will be called when the last
 	   reference to the device goes away. */
 	vdev->dev.release = v4l2_device_release;
 
 	if (nr != -1 && nr != vdev->num && warn_if_nr_in_use)
 		printk(KERN_WARNING "%s: requested %s%d, got %s\n", __func__,
-			name_base, nr, video_device_node_name(vdev));
+			   name_base, nr, video_device_node_name(vdev));
 
 	/* Increase v4l2_device refcount */
 	v4l2_device_get(vdev->v4l2_dev);
@@ -991,8 +1265,12 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
 
 cleanup:
 	mutex_lock(&videodev_lock);
+
 	if (vdev->cdev)
+	{
 		cdev_del(vdev->cdev);
+	}
+
 	video_device[vdev->minor] = NULL;
 	devnode_clear(vdev);
 	mutex_unlock(&videodev_lock);
@@ -1013,7 +1291,9 @@ void video_unregister_device(struct video_device *vdev)
 {
 	/* Check if vdev was ever registered at all */
 	if (!vdev || !video_is_registered(vdev))
+	{
 		return;
+	}
 
 	mutex_lock(&videodev_lock);
 	/* This must be in a critical section to prevent a race with v4l2_open.
@@ -1035,14 +1315,18 @@ static int __init videodev_init(void)
 
 	printk(KERN_INFO "Linux video capture interface: v2.00\n");
 	ret = register_chrdev_region(dev, VIDEO_NUM_DEVICES, VIDEO_NAME);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		printk(KERN_WARNING "videodev: unable to get major %d\n",
-				VIDEO_MAJOR);
+			   VIDEO_MAJOR);
 		return ret;
 	}
 
 	ret = class_register(&video_class);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		unregister_chrdev_region(dev, VIDEO_NUM_DEVICES);
 		printk(KERN_WARNING "video_dev: class_register failed\n");
 		return -EIO;

@@ -42,7 +42,8 @@
  * @parallel: Parallel execution function.
  * @serial: Serial complete function.
  */
-struct padata_priv {
+struct padata_priv
+{
 	struct list_head	list;
 	struct parallel_data	*pd;
 	int			cb_cpu;
@@ -57,7 +58,8 @@ struct padata_priv {
  * @list: List head.
  * @lock: List lock.
  */
-struct padata_list {
+struct padata_list
+{
 	struct list_head        list;
 	spinlock_t              lock;
 };
@@ -69,10 +71,11 @@ struct padata_list {
 * @work: work struct for serialization.
 * @pd: Backpointer to the internal control structure.
 */
-struct padata_serial_queue {
-       struct padata_list    serial;
-       struct work_struct    work;
-       struct parallel_data *pd;
+struct padata_serial_queue
+{
+	struct padata_list    serial;
+	struct work_struct    work;
+	struct parallel_data *pd;
 };
 
 /**
@@ -88,13 +91,14 @@ struct padata_serial_queue {
  * @num_obj: Number of objects that are processed by this cpu.
  * @cpu_index: Index of the cpu.
  */
-struct padata_parallel_queue {
-       struct padata_list    parallel;
-       struct padata_list    reorder;
-       struct parallel_data *pd;
-       struct work_struct    work;
-       atomic_t              num_obj;
-       int                   cpu_index;
+struct padata_parallel_queue
+{
+	struct padata_list    parallel;
+	struct padata_list    reorder;
+	struct parallel_data *pd;
+	struct work_struct    work;
+	atomic_t              num_obj;
+	int                   cpu_index;
 };
 
 /**
@@ -103,7 +107,8 @@ struct padata_parallel_queue {
  * @pcpu: cpumask for the parallel workers.
  * @cbcpu: cpumask for the serial (callback) workers.
  */
-struct padata_cpumask {
+struct padata_cpumask
+{
 	cpumask_var_t	pcpu;
 	cpumask_var_t	cbcpu;
 };
@@ -123,7 +128,8 @@ struct padata_cpumask {
  * @processed: Number of already processed objects.
  * @timer: Reorder timer.
  */
-struct parallel_data {
+struct parallel_data
+{
 	struct padata_instance		*pinst;
 	struct padata_parallel_queue	__percpu *pqueue;
 	struct padata_serial_queue	__percpu *squeue;
@@ -150,7 +156,8 @@ struct parallel_data {
  * @lock: padata instance lock.
  * @flags: padata flags.
  */
-struct padata_instance {
+struct padata_instance
+{
 	struct hlist_node		 node;
 	struct workqueue_struct		*wq;
 	struct parallel_data		*pd;
@@ -165,20 +172,20 @@ struct padata_instance {
 };
 
 extern struct padata_instance *padata_alloc_possible(
-					struct workqueue_struct *wq);
+	struct workqueue_struct *wq);
 extern struct padata_instance *padata_alloc(struct workqueue_struct *wq,
-					    const struct cpumask *pcpumask,
-					    const struct cpumask *cbcpumask);
+		const struct cpumask *pcpumask,
+		const struct cpumask *cbcpumask);
 extern void padata_free(struct padata_instance *pinst);
 extern int padata_do_parallel(struct padata_instance *pinst,
-			      struct padata_priv *padata, int cb_cpu);
+							  struct padata_priv *padata, int cb_cpu);
 extern void padata_do_serial(struct padata_priv *padata);
 extern int padata_set_cpumask(struct padata_instance *pinst, int cpumask_type,
-			      cpumask_var_t cpumask);
+							  cpumask_var_t cpumask);
 extern int padata_start(struct padata_instance *pinst);
 extern void padata_stop(struct padata_instance *pinst);
 extern int padata_register_cpumask_notifier(struct padata_instance *pinst,
-					    struct notifier_block *nblock);
+		struct notifier_block *nblock);
 extern int padata_unregister_cpumask_notifier(struct padata_instance *pinst,
-					      struct notifier_block *nblock);
+		struct notifier_block *nblock);
 #endif

@@ -16,7 +16,8 @@
 #include <linux/platform_device.h>
 #include <linux/pwm.h>
 
-struct clps711x_chip {
+struct clps711x_chip
+{
 	struct pwm_chip chip;
 	void __iomem *pmpcon;
 	struct clk *clk;
@@ -57,7 +58,9 @@ static int clps711x_pwm_request(struct pwm_chip *chip, struct pwm_device *pwm)
 	unsigned int freq = clk_get_rate(priv->clk);
 
 	if (!freq)
+	{
 		return -EINVAL;
+	}
 
 	/* Store constant period value */
 	pwm->args.period = DIV_ROUND_CLOSEST(NSEC_PER_SEC, freq);
@@ -66,13 +69,15 @@ static int clps711x_pwm_request(struct pwm_chip *chip, struct pwm_device *pwm)
 }
 
 static int clps711x_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
-			       int duty_ns, int period_ns)
+							   int duty_ns, int period_ns)
 {
 	struct clps711x_chip *priv = to_clps711x_chip(chip);
 	unsigned int duty;
 
 	if (period_ns != pwm_get_period(pwm))
+	{
 		return -EINVAL;
+	}
 
 	duty = clps711x_get_duty(pwm, duty_ns);
 	clps711x_pwm_update_val(priv, pwm->hwpwm, duty);
@@ -98,7 +103,8 @@ static void clps711x_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 	clps711x_pwm_update_val(priv, pwm->hwpwm, 0);
 }
 
-static const struct pwm_ops clps711x_pwm_ops = {
+static const struct pwm_ops clps711x_pwm_ops =
+{
 	.request = clps711x_pwm_request,
 	.config = clps711x_pwm_config,
 	.enable = clps711x_pwm_enable,
@@ -107,10 +113,12 @@ static const struct pwm_ops clps711x_pwm_ops = {
 };
 
 static struct pwm_device *clps711x_pwm_xlate(struct pwm_chip *chip,
-					     const struct of_phandle_args *args)
+		const struct of_phandle_args *args)
 {
 	if (args->args[0] >= chip->npwm)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	return pwm_request_from_chip(chip, args->args[0], NULL);
 }
@@ -121,17 +129,26 @@ static int clps711x_pwm_probe(struct platform_device *pdev)
 	struct resource *res;
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->pmpcon = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(priv->pmpcon))
+	{
 		return PTR_ERR(priv->pmpcon);
+	}
 
 	priv->clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(priv->clk))
+	{
 		return PTR_ERR(priv->clk);
+	}
 
 	priv->chip.ops = &clps711x_pwm_ops;
 	priv->chip.dev = &pdev->dev;
@@ -154,13 +171,15 @@ static int clps711x_pwm_remove(struct platform_device *pdev)
 	return pwmchip_remove(&priv->chip);
 }
 
-static const struct of_device_id __maybe_unused clps711x_pwm_dt_ids[] = {
+static const struct of_device_id __maybe_unused clps711x_pwm_dt_ids[] =
+{
 	{ .compatible = "cirrus,ep7209-pwm", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, clps711x_pwm_dt_ids);
 
-static struct platform_driver clps711x_pwm_driver = {
+static struct platform_driver clps711x_pwm_driver =
+{
 	.driver = {
 		.name = "clps711x-pwm",
 		.of_match_table = of_match_ptr(clps711x_pwm_dt_ids),

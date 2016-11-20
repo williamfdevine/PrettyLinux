@@ -23,7 +23,8 @@
 #include <linux/pm_domain.h>
 #include <linux/scpi_protocol.h>
 
-struct scpi_pm_domain {
+struct scpi_pm_domain
+{
 	struct generic_pm_domain genpd;
 	struct scpi_ops *ops;
 	u32 domain;
@@ -35,7 +36,8 @@ struct scpi_pm_domain {
  * In case, different implementations use different values, we can make these
  * specific to compatibles rather than getting these values from device tree.
  */
-enum scpi_power_domain_state {
+enum scpi_power_domain_state
+{
 	SCPI_PD_STATE_ON = 0,
 	SCPI_PD_STATE_OFF = 3,
 };
@@ -48,13 +50,20 @@ static int scpi_pd_power(struct scpi_pm_domain *pd, bool power_on)
 	enum scpi_power_domain_state state;
 
 	if (power_on)
+	{
 		state = SCPI_PD_STATE_ON;
+	}
 	else
+	{
 		state = SCPI_PD_STATE_OFF;
+	}
 
 	ret = pd->ops->device_set_power_state(pd->domain, state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return !(state == pd->ops->device_get_power_state(pd->domain));
 }
@@ -84,39 +93,56 @@ static int scpi_pm_domain_probe(struct platform_device *pdev)
 	int ret, num_domains, i;
 
 	scpi_ops = get_scpi_ops();
-	if (!scpi_ops)
-		return -EPROBE_DEFER;
 
-	if (!np) {
+	if (!scpi_ops)
+	{
+		return -EPROBE_DEFER;
+	}
+
+	if (!np)
+	{
 		dev_err(dev, "device tree node not found\n");
 		return -ENODEV;
 	}
 
 	if (!scpi_ops->device_set_power_state ||
-	    !scpi_ops->device_get_power_state) {
+		!scpi_ops->device_get_power_state)
+	{
 		dev_err(dev, "power domains not supported in the firmware\n");
 		return -ENODEV;
 	}
 
 	ret = of_property_read_u32(np, "num-domains", &num_domains);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "number of domains not found\n");
 		return -EINVAL;
 	}
 
 	scpi_pd = devm_kcalloc(dev, num_domains, sizeof(*scpi_pd), GFP_KERNEL);
+
 	if (!scpi_pd)
+	{
 		return -ENOMEM;
+	}
 
 	scpi_pd_data = devm_kzalloc(dev, sizeof(*scpi_pd_data), GFP_KERNEL);
+
 	if (!scpi_pd_data)
+	{
 		return -ENOMEM;
+	}
 
 	domains = devm_kcalloc(dev, num_domains, sizeof(*domains), GFP_KERNEL);
-	if (!domains)
-		return -ENOMEM;
 
-	for (i = 0; i < num_domains; i++, scpi_pd++) {
+	if (!domains)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < num_domains; i++, scpi_pd++)
+	{
 		domains[i] = &scpi_pd->genpd;
 
 		scpi_pd->domain = i;
@@ -143,13 +169,15 @@ static int scpi_pm_domain_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id scpi_power_domain_ids[] = {
+static const struct of_device_id scpi_power_domain_ids[] =
+{
 	{ .compatible = "arm,scpi-power-domains", },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, scpi_power_domain_ids);
 
-static struct platform_driver scpi_power_domain_driver = {
+static struct platform_driver scpi_power_domain_driver =
+{
 	.driver	= {
 		.name = "scpi_power_domain",
 		.of_match_table = scpi_power_domain_ids,

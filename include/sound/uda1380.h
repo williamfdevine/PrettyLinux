@@ -11,7 +11,8 @@
 #ifndef __UDA1380_H
 #define __UDA1380_H
 
-struct uda1380_platform_data {
+struct uda1380_platform_data
+{
 	int gpio_power;
 	int gpio_reset;
 	int dac_clk;

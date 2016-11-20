@@ -127,11 +127,13 @@
  * common phy structure (struct ufs_qcom_phy) out of it
  * regardless of the relevant specific phy.
  */
-struct ufs_qcom_phy_qmp_20nm {
+struct ufs_qcom_phy_qmp_20nm
+{
 	struct ufs_qcom_phy common_cfg;
 };
 
-static struct ufs_qcom_phy_calibration phy_cal_table_rate_A_1_2_0[] = {
+static struct ufs_qcom_phy_calibration phy_cal_table_rate_A_1_2_0[] =
+{
 	UFS_QCOM_PHY_CAL_ENTRY(UFS_PHY_POWER_DOWN_CONTROL, 0x01),
 	UFS_QCOM_PHY_CAL_ENTRY(UFS_PHY_RX_SIGDET_CTRL3, 0x0D),
 	UFS_QCOM_PHY_CAL_ENTRY(QSERDES_COM_PLL_VCOTAIL_EN, 0xe1),
@@ -179,7 +181,8 @@ static struct ufs_qcom_phy_calibration phy_cal_table_rate_A_1_2_0[] = {
 	UFS_QCOM_PHY_CAL_ENTRY(QSERDES_COM_BIAS_EN_CLKBUFLR_EN, 0x3),
 };
 
-static struct ufs_qcom_phy_calibration phy_cal_table_rate_A_1_3_0[] = {
+static struct ufs_qcom_phy_calibration phy_cal_table_rate_A_1_3_0[] =
+{
 	UFS_QCOM_PHY_CAL_ENTRY(UFS_PHY_POWER_DOWN_CONTROL, 0x01),
 	UFS_QCOM_PHY_CAL_ENTRY(UFS_PHY_RX_SIGDET_CTRL3, 0x0D),
 	UFS_QCOM_PHY_CAL_ENTRY(QSERDES_COM_PLL_VCOTAIL_EN, 0xe1),
@@ -226,7 +229,8 @@ static struct ufs_qcom_phy_calibration phy_cal_table_rate_A_1_3_0[] = {
 	UFS_QCOM_PHY_CAL_ENTRY(QSERDES_COM_BIAS_EN_CLKBUFLR_EN, 0x3),
 };
 
-static struct ufs_qcom_phy_calibration phy_cal_table_rate_B[] = {
+static struct ufs_qcom_phy_calibration phy_cal_table_rate_B[] =
+{
 	UFS_QCOM_PHY_CAL_ENTRY(QSERDES_COM_DEC_START1, 0x98),
 	UFS_QCOM_PHY_CAL_ENTRY(QSERDES_COM_PLLLOCK_CMP1, 0x65),
 	UFS_QCOM_PHY_CAL_ENTRY(QSERDES_COM_PLLLOCK_CMP2, 0x1e),

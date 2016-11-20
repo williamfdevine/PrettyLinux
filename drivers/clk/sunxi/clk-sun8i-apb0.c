@@ -21,7 +21,7 @@
 #include <linux/platform_device.h>
 
 static struct clk *sun8i_a23_apb0_register(struct device_node *node,
-					   void __iomem *reg)
+		void __iomem *reg)
 {
 	const char *clk_name = node->name;
 	const char *clk_parent;
@@ -29,20 +29,29 @@ static struct clk *sun8i_a23_apb0_register(struct device_node *node,
 	int ret;
 
 	clk_parent = of_clk_get_parent_name(node, 0);
+
 	if (!clk_parent)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	of_property_read_string(node, "clock-output-names", &clk_name);
 
 	/* The A23 APB0 clock is a standard 2 bit wide divider clock */
 	clk = clk_register_divider(NULL, clk_name, clk_parent, 0, reg,
-				   0, 2, 0, NULL);
+							   0, 2, 0, NULL);
+
 	if (IS_ERR(clk))
+	{
 		return clk;
+	}
 
 	ret = of_clk_add_provider(node, of_clk_src_simple_get, clk);
+
 	if (ret)
+	{
 		goto err_unregister;
+	}
 
 	return clk;
 
@@ -59,21 +68,28 @@ static void sun8i_a23_apb0_setup(struct device_node *node)
 	struct clk *clk;
 
 	reg = of_io_request_and_map(node, 0, of_node_full_name(node));
-	if (IS_ERR(reg)) {
+
+	if (IS_ERR(reg))
+	{
 		/*
 		 * This happens with clk nodes instantiated through mfd,
 		 * as those do not have their resources assigned in the
 		 * device tree. Do not print an error in this case.
 		 */
 		if (PTR_ERR(reg) != -EINVAL)
+		{
 			pr_err("Could not get registers for a23-apb0-clk\n");
+		}
 
 		return;
 	}
 
 	clk = sun8i_a23_apb0_register(node, reg);
+
 	if (IS_ERR(clk))
+	{
 		goto err_unmap;
+	}
 
 	return;
 
@@ -83,7 +99,7 @@ err_unmap:
 	release_mem_region(res.start, resource_size(&res));
 }
 CLK_OF_DECLARE_DRIVER(sun8i_a23_apb0, "allwinner,sun8i-a23-apb0-clk",
-		      sun8i_a23_apb0_setup);
+					  sun8i_a23_apb0_setup);
 
 static int sun8i_a23_apb0_clk_probe(struct platform_device *pdev)
 {
@@ -94,22 +110,30 @@ static int sun8i_a23_apb0_clk_probe(struct platform_device *pdev)
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	reg = devm_ioremap_resource(&pdev->dev, r);
+
 	if (IS_ERR(reg))
+	{
 		return PTR_ERR(reg);
+	}
 
 	clk = sun8i_a23_apb0_register(np, reg);
+
 	if (IS_ERR(clk))
+	{
 		return PTR_ERR(clk);
+	}
 
 	return 0;
 }
 
-static const struct of_device_id sun8i_a23_apb0_clk_dt_ids[] = {
+static const struct of_device_id sun8i_a23_apb0_clk_dt_ids[] =
+{
 	{ .compatible = "allwinner,sun8i-a23-apb0-clk" },
 	{ /* sentinel */ }
 };
 
-static struct platform_driver sun8i_a23_apb0_clk_driver = {
+static struct platform_driver sun8i_a23_apb0_clk_driver =
+{
 	.driver = {
 		.name = "sun8i-a23-apb0-clk",
 		.of_match_table = sun8i_a23_apb0_clk_dt_ids,

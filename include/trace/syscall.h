@@ -21,7 +21,8 @@
  * @enter_event: associated syscall_enter trace event
  * @exit_event: associated syscall_exit trace event
  */
-struct syscall_metadata {
+struct syscall_metadata
+{
 	const char	*name;
 	int		syscall_nr;
 	int		nb_args;
@@ -37,9 +38,13 @@ struct syscall_metadata {
 static inline void syscall_tracepoint_update(struct task_struct *p)
 {
 	if (test_thread_flag(TIF_SYSCALL_TRACEPOINT))
+	{
 		set_tsk_thread_flag(p, TIF_SYSCALL_TRACEPOINT);
+	}
 	else
+	{
 		clear_tsk_thread_flag(p, TIF_SYSCALL_TRACEPOINT);
+	}
 }
 #else
 static inline void syscall_tracepoint_update(struct task_struct *p)

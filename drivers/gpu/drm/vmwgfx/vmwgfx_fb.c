@@ -36,7 +36,8 @@
 
 #define VMW_DIRTY_DELAY (HZ / 30)
 
-struct vmw_fb_par {
+struct vmw_fb_par
+{
 	struct vmw_private *vmw_priv;
 
 	void *vmalloc;
@@ -57,7 +58,8 @@ struct vmw_fb_par {
 	unsigned max_width;
 	unsigned max_height;
 
-	struct {
+	struct
+	{
 		spinlock_t lock;
 		bool active;
 		unsigned x1;
@@ -72,84 +74,94 @@ struct vmw_fb_par {
 };
 
 static int vmw_fb_setcolreg(unsigned regno, unsigned red, unsigned green,
-			    unsigned blue, unsigned transp,
-			    struct fb_info *info)
+							unsigned blue, unsigned transp,
+							struct fb_info *info)
 {
 	struct vmw_fb_par *par = info->par;
 	u32 *pal = par->pseudo_palette;
 
-	if (regno > 15) {
+	if (regno > 15)
+	{
 		DRM_ERROR("Bad regno %u.\n", regno);
 		return 1;
 	}
 
-	switch (par->set_fb->depth) {
-	case 24:
-	case 32:
-		pal[regno] = ((red & 0xff00) << 8) |
-			      (green & 0xff00) |
-			     ((blue  & 0xff00) >> 8);
-		break;
-	default:
-		DRM_ERROR("Bad depth %u, bpp %u.\n", par->set_fb->depth,
-			  par->set_fb->bits_per_pixel);
-		return 1;
+	switch (par->set_fb->depth)
+	{
+		case 24:
+		case 32:
+			pal[regno] = ((red & 0xff00) << 8) |
+						 (green & 0xff00) |
+						 ((blue  & 0xff00) >> 8);
+			break;
+
+		default:
+			DRM_ERROR("Bad depth %u, bpp %u.\n", par->set_fb->depth,
+					  par->set_fb->bits_per_pixel);
+			return 1;
 	}
 
 	return 0;
 }
 
 static int vmw_fb_check_var(struct fb_var_screeninfo *var,
-			    struct fb_info *info)
+							struct fb_info *info)
 {
 	int depth = var->bits_per_pixel;
 	struct vmw_fb_par *par = info->par;
 	struct vmw_private *vmw_priv = par->vmw_priv;
 
-	switch (var->bits_per_pixel) {
-	case 32:
-		depth = (var->transp.length > 0) ? 32 : 24;
-		break;
-	default:
-		DRM_ERROR("Bad bpp %u.\n", var->bits_per_pixel);
-		return -EINVAL;
+	switch (var->bits_per_pixel)
+	{
+		case 32:
+			depth = (var->transp.length > 0) ? 32 : 24;
+			break;
+
+		default:
+			DRM_ERROR("Bad bpp %u.\n", var->bits_per_pixel);
+			return -EINVAL;
 	}
 
-	switch (depth) {
-	case 24:
-		var->red.offset = 16;
-		var->green.offset = 8;
-		var->blue.offset = 0;
-		var->red.length = 8;
-		var->green.length = 8;
-		var->blue.length = 8;
-		var->transp.length = 0;
-		var->transp.offset = 0;
-		break;
-	case 32:
-		var->red.offset = 16;
-		var->green.offset = 8;
-		var->blue.offset = 0;
-		var->red.length = 8;
-		var->green.length = 8;
-		var->blue.length = 8;
-		var->transp.length = 8;
-		var->transp.offset = 24;
-		break;
-	default:
-		DRM_ERROR("Bad depth %u.\n", depth);
-		return -EINVAL;
+	switch (depth)
+	{
+		case 24:
+			var->red.offset = 16;
+			var->green.offset = 8;
+			var->blue.offset = 0;
+			var->red.length = 8;
+			var->green.length = 8;
+			var->blue.length = 8;
+			var->transp.length = 0;
+			var->transp.offset = 0;
+			break;
+
+		case 32:
+			var->red.offset = 16;
+			var->green.offset = 8;
+			var->blue.offset = 0;
+			var->red.length = 8;
+			var->green.length = 8;
+			var->blue.length = 8;
+			var->transp.length = 8;
+			var->transp.offset = 24;
+			break;
+
+		default:
+			DRM_ERROR("Bad depth %u.\n", depth);
+			return -EINVAL;
 	}
 
 	if ((var->xoffset + var->xres) > par->max_width ||
-	    (var->yoffset + var->yres) > par->max_height) {
+		(var->yoffset + var->yres) > par->max_height)
+	{
 		DRM_ERROR("Requested geom can not fit in framebuffer\n");
 		return -EINVAL;
 	}
 
 	if (!vmw_kms_validate_mode_vram(vmw_priv,
-					var->xres * var->bits_per_pixel/8,
-					var->yoffset + var->yres)) {
+									var->xres * var->bits_per_pixel / 8,
+									var->yoffset + var->yres))
+	{
 		DRM_ERROR("Requested geom can not fit in framebuffer\n");
 		return -EINVAL;
 	}
@@ -169,7 +181,7 @@ static int vmw_fb_blank(int blank, struct fb_info *info)
 static void vmw_fb_dirty_flush(struct work_struct *work)
 {
 	struct vmw_fb_par *par = container_of(work, struct vmw_fb_par,
-					      local_work.work);
+										  local_work.work);
 	struct vmw_private *vmw_priv = par->vmw_priv;
 	struct fb_info *info = vmw_priv->fb_info;
 	unsigned long irq_flags;
@@ -180,15 +192,22 @@ static void vmw_fb_dirty_flush(struct work_struct *work)
 	u8 *src_ptr, *dst_ptr;
 
 	if (vmw_priv->suspended)
+	{
 		return;
+	}
 
 	mutex_lock(&par->bo_mutex);
 	cur_fb = par->set_fb;
+
 	if (!cur_fb)
+	{
 		goto out_unlock;
+	}
 
 	spin_lock_irqsave(&par->dirty.lock, irq_flags);
-	if (!par->dirty.active) {
+
+	if (!par->dirty.active)
+	{
 		spin_unlock_irqrestore(&par->dirty.lock, irq_flags);
 		goto out_unlock;
 	}
@@ -219,15 +238,17 @@ static void vmw_fb_dirty_flush(struct work_struct *work)
 	par->dirty.y1 = par->dirty.y2 = 0;
 	spin_unlock_irqrestore(&par->dirty.lock, irq_flags);
 
-	if (w && h) {
+	if (w && h)
+	{
 		dst_ptr = (u8 *)par->bo_ptr  +
-			(dst_y1 * par->set_fb->pitches[0] + dst_x1 * cpp);
+				  (dst_y1 * par->set_fb->pitches[0] + dst_x1 * cpp);
 		src_ptr = (u8 *)par->vmalloc +
-			((dst_y1 + par->fb_y) * info->fix.line_length +
-			 (dst_x1 + par->fb_x) * cpp);
+				  ((dst_y1 + par->fb_y) * info->fix.line_length +
+				   (dst_x1 + par->fb_x) * cpp);
 
-		while (h-- > 0) {
-			memcpy(dst_ptr, src_ptr, w*cpp);
+		while (h-- > 0)
+		{
+			memcpy(dst_ptr, src_ptr, w * cpp);
 			dst_ptr += par->set_fb->pitches[0];
 			src_ptr += info->fix.line_length;
 		}
@@ -238,52 +259,71 @@ static void vmw_fb_dirty_flush(struct work_struct *work)
 		clip.y2 = dst_y2;
 
 		WARN_ON_ONCE(par->set_fb->funcs->dirty(cur_fb, NULL, 0, 0,
-						       &clip, 1));
+											   &clip, 1));
 		vmw_fifo_flush(vmw_priv, false);
 	}
+
 out_unlock:
 	mutex_unlock(&par->bo_mutex);
 }
 
 static void vmw_fb_dirty_mark(struct vmw_fb_par *par,
-			      unsigned x1, unsigned y1,
-			      unsigned width, unsigned height)
+							  unsigned x1, unsigned y1,
+							  unsigned width, unsigned height)
 {
 	unsigned long flags;
 	unsigned x2 = x1 + width;
 	unsigned y2 = y1 + height;
 
 	spin_lock_irqsave(&par->dirty.lock, flags);
-	if (par->dirty.x1 == par->dirty.x2) {
+
+	if (par->dirty.x1 == par->dirty.x2)
+	{
 		par->dirty.x1 = x1;
 		par->dirty.y1 = y1;
 		par->dirty.x2 = x2;
 		par->dirty.y2 = y2;
+
 		/* if we are active start the dirty work
 		 * we share the work with the defio system */
 		if (par->dirty.active)
 			schedule_delayed_work(&par->local_work,
-					      VMW_DIRTY_DELAY);
-	} else {
-		if (x1 < par->dirty.x1)
-			par->dirty.x1 = x1;
-		if (y1 < par->dirty.y1)
-			par->dirty.y1 = y1;
-		if (x2 > par->dirty.x2)
-			par->dirty.x2 = x2;
-		if (y2 > par->dirty.y2)
-			par->dirty.y2 = y2;
+								  VMW_DIRTY_DELAY);
 	}
+	else
+	{
+		if (x1 < par->dirty.x1)
+		{
+			par->dirty.x1 = x1;
+		}
+
+		if (y1 < par->dirty.y1)
+		{
+			par->dirty.y1 = y1;
+		}
+
+		if (x2 > par->dirty.x2)
+		{
+			par->dirty.x2 = x2;
+		}
+
+		if (y2 > par->dirty.y2)
+		{
+			par->dirty.y2 = y2;
+		}
+	}
+
 	spin_unlock_irqrestore(&par->dirty.lock, flags);
 }
 
 static int vmw_fb_pan_display(struct fb_var_screeninfo *var,
-			      struct fb_info *info)
+							  struct fb_info *info)
 {
 	struct vmw_fb_par *par = info->par;
 
 	if ((var->xoffset + var->xres) > var->xres_virtual ||
-	    (var->yoffset + var->yres) > var->yres_virtual) {
+		(var->yoffset + var->yres) > var->yres_virtual)
+	{
 		DRM_ERROR("Requested panning can not fit in framebuffer\n");
 		return -EINVAL;
 	}
@@ -291,16 +331,18 @@ static int vmw_fb_pan_display(struct fb_var_screeninfo *var,
 	mutex_lock(&par->bo_mutex);
 	par->fb_x = var->xoffset;
 	par->fb_y = var->yoffset;
+
 	if (par->set_fb)
 		vmw_fb_dirty_mark(par, par->fb_x, par->fb_y, par->set_fb->width,
-				  par->set_fb->height);
+						  par->set_fb->height);
+
 	mutex_unlock(&par->bo_mutex);
 
 	return 0;
 }
 
 static void vmw_deferred_io(struct fb_info *info,
-			    struct list_head *pagelist)
+							struct list_head *pagelist)
 {
 	struct vmw_fb_par *par = info->par;
 	unsigned long start, end, min, max;
@@ -310,14 +352,16 @@ static void vmw_deferred_io(struct fb_info *info,
 
 	min = ULONG_MAX;
 	max = 0;
-	list_for_each_entry(page, pagelist, lru) {
+	list_for_each_entry(page, pagelist, lru)
+	{
 		start = page->index << PAGE_SHIFT;
 		end = start + PAGE_SIZE - 1;
 		min = min(min, start);
 		max = max(max, end);
 	}
 
-	if (min < max) {
+	if (min < max)
+	{
 		y1 = min / info->fix.line_length;
 		y2 = (max / info->fix.line_length) + 1;
 
@@ -337,7 +381,8 @@ static void vmw_deferred_io(struct fb_info *info,
 	}
 };
 
-static struct fb_deferred_io vmw_defio = {
+static struct fb_deferred_io vmw_defio =
+{
 	.delay		= VMW_DIRTY_DELAY,
 	.deferred_io	= vmw_deferred_io,
 };
@@ -350,21 +395,21 @@ static void vmw_fb_fillrect(struct fb_info *info, const struct fb_fillrect *rect
 {
 	cfb_fillrect(info, rect);
 	vmw_fb_dirty_mark(info->par, rect->dx, rect->dy,
-			  rect->width, rect->height);
+					  rect->width, rect->height);
 }
 
 static void vmw_fb_copyarea(struct fb_info *info, const struct fb_copyarea *region)
 {
 	cfb_copyarea(info, region);
 	vmw_fb_dirty_mark(info->par, region->dx, region->dy,
-			  region->width, region->height);
+					  region->width, region->height);
 }
 
 static void vmw_fb_imageblit(struct fb_info *info, const struct fb_image *image)
 {
 	cfb_imageblit(info, image);
 	vmw_fb_dirty_mark(info->par, image->dx, image->dy,
-			  image->width, image->height);
+					  image->width, image->height);
 }
 
 /*
@@ -372,7 +417,7 @@ static void vmw_fb_imageblit(struct fb_info *info, const struct fb_image *image)
  */
 
 static int vmw_fb_create_bo(struct vmw_private *vmw_priv,
-			    size_t size, struct vmw_dma_buffer **out)
+							size_t size, struct vmw_dma_buffer **out)
 {
 	struct vmw_dma_buffer *vmw_bo;
 	int ret;
@@ -380,17 +425,22 @@ static int vmw_fb_create_bo(struct vmw_private *vmw_priv,
 	(void) ttm_write_lock(&vmw_priv->reservation_sem, false);
 
 	vmw_bo = kmalloc(sizeof(*vmw_bo), GFP_KERNEL);
-	if (!vmw_bo) {
+
+	if (!vmw_bo)
+	{
 		ret = -ENOMEM;
 		goto err_unlock;
 	}
 
 	ret = vmw_dmabuf_init(vmw_priv, vmw_bo, size,
-			      &vmw_sys_placement,
-			      false,
-			      &vmw_dmabuf_bo_free);
+						  &vmw_sys_placement,
+						  false,
+						  &vmw_dmabuf_bo_free);
+
 	if (unlikely(ret != 0))
-		goto err_unlock; /* init frees the buffer on failure */
+	{
+		goto err_unlock;    /* init frees the buffer on failure */
+	}
 
 	*out = vmw_bo;
 	ttm_write_unlock(&vmw_priv->reservation_sem);
@@ -403,29 +453,32 @@ err_unlock:
 }
 
 static int vmw_fb_compute_depth(struct fb_var_screeninfo *var,
-				int *depth)
+								int *depth)
 {
-	switch (var->bits_per_pixel) {
-	case 32:
-		*depth = (var->transp.length > 0) ? 32 : 24;
-		break;
-	default:
-		DRM_ERROR("Bad bpp %u.\n", var->bits_per_pixel);
-		return -EINVAL;
+	switch (var->bits_per_pixel)
+	{
+		case 32:
+			*depth = (var->transp.length > 0) ? 32 : 24;
+			break;
+
+		default:
+			DRM_ERROR("Bad bpp %u.\n", var->bits_per_pixel);
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
 static int vmw_fb_kms_detach(struct vmw_fb_par *par,
-			     bool detach_bo,
-			     bool unref_bo)
+							 bool detach_bo,
+							 bool unref_bo)
 {
 	struct drm_framebuffer *cur_fb = par->set_fb;
 	int ret;
 
 	/* Detach the KMS framebuffer from crtcs */
-	if (par->set_mode) {
+	if (par->set_mode)
+	{
 		struct drm_mode_set set;
 
 		set.crtc = par->crtc;
@@ -436,28 +489,39 @@ static int vmw_fb_kms_detach(struct vmw_fb_par *par,
 		set.num_connectors = 1;
 		set.connectors = &par->con;
 		ret = drm_mode_set_config_internal(&set);
-		if (ret) {
+
+		if (ret)
+		{
 			DRM_ERROR("Could not unset a mode.\n");
 			return ret;
 		}
+
 		drm_mode_destroy(par->vmw_priv->dev, par->set_mode);
 		par->set_mode = NULL;
 	}
 
-	if (cur_fb) {
+	if (cur_fb)
+	{
 		drm_framebuffer_unreference(cur_fb);
 		par->set_fb = NULL;
 	}
 
-	if (par->vmw_bo && detach_bo) {
-		if (par->bo_ptr) {
+	if (par->vmw_bo && detach_bo)
+	{
+		if (par->bo_ptr)
+		{
 			ttm_bo_kunmap(&par->map);
 			par->bo_ptr = NULL;
 		}
+
 		if (unref_bo)
+		{
 			vmw_dmabuf_unreference(&par->vmw_bo);
+		}
 		else
+		{
 			vmw_dmabuf_unpin(par->vmw_priv, par->vmw_bo, false);
+		}
 	}
 
 	return 0;
@@ -474,8 +538,11 @@ static int vmw_fb_kms_framebuffer(struct fb_info *info)
 	size_t new_bo_size;
 
 	ret = vmw_fb_compute_depth(var, &mode_cmd.depth);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mode_cmd.width = var->xres;
 	mode_cmd.height = var->yres;
@@ -483,37 +550,50 @@ static int vmw_fb_kms_framebuffer(struct fb_info *info)
 	mode_cmd.pitch = ((mode_cmd.bpp + 7) / 8) * mode_cmd.width;
 
 	cur_fb = par->set_fb;
+
 	if (cur_fb && cur_fb->width == mode_cmd.width &&
-	    cur_fb->height == mode_cmd.height &&
-	    cur_fb->bits_per_pixel == mode_cmd.bpp &&
-	    cur_fb->depth == mode_cmd.depth &&
-	    cur_fb->pitches[0] == mode_cmd.pitch)
+		cur_fb->height == mode_cmd.height &&
+		cur_fb->bits_per_pixel == mode_cmd.bpp &&
+		cur_fb->depth == mode_cmd.depth &&
+		cur_fb->pitches[0] == mode_cmd.pitch)
+	{
 		return 0;
+	}
 
 	/* Need new buffer object ? */
 	new_bo_size = (size_t) mode_cmd.pitch * (size_t) mode_cmd.height;
 	ret = vmw_fb_kms_detach(par,
-				par->bo_size < new_bo_size ||
-				par->bo_size > 2*new_bo_size,
-				true);
-	if (ret)
-		return ret;
+							par->bo_size < new_bo_size ||
+							par->bo_size > 2 * new_bo_size,
+							true);
 
-	if (!par->vmw_bo) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (!par->vmw_bo)
+	{
 		ret = vmw_fb_create_bo(par->vmw_priv, new_bo_size,
-				       &par->vmw_bo);
-		if (ret) {
+							   &par->vmw_bo);
+
+		if (ret)
+		{
 			DRM_ERROR("Failed creating a buffer object for "
-				  "fbdev.\n");
+					  "fbdev.\n");
 			return ret;
 		}
+
 		par->bo_size = new_bo_size;
 	}
 
 	vfb = vmw_kms_new_framebuffer(par->vmw_priv, par->vmw_bo, NULL,
-				      true, &mode_cmd);
+								  true, &mode_cmd);
+
 	if (IS_ERR(vfb))
+	{
 		return PTR_ERR(vfb);
+	}
 
 	par->set_fb = &vfb->base;
 
@@ -527,9 +607,9 @@ static int vmw_fb_set_par(struct fb_info *info)
 	struct drm_mode_set set;
 	struct fb_var_screeninfo *var = &info->var;
 	struct drm_display_mode new_mode = { DRM_MODE("fb_mode",
-		DRM_MODE_TYPE_DRIVER,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_PVSYNC)
+				DRM_MODE_TYPE_DRIVER,
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_PVSYNC)
 	};
 	struct drm_display_mode *old_mode;
 	struct drm_display_mode *mode;
@@ -537,7 +617,9 @@ static int vmw_fb_set_par(struct fb_info *info)
 
 	old_mode = par->set_mode;
 	mode = drm_mode_duplicate(vmw_priv->dev, &new_mode);
-	if (!mode) {
+
+	if (!mode)
+	{
 		DRM_ERROR("Could not create new fb mode.\n");
 		return -ENOMEM;
 	}
@@ -546,14 +628,17 @@ static int vmw_fb_set_par(struct fb_info *info)
 	mode->vdisplay = var->yres;
 	vmw_guess_mode_timing(mode);
 
-	if (old_mode && drm_mode_equal(old_mode, mode)) {
+	if (old_mode && drm_mode_equal(old_mode, mode))
+	{
 		drm_mode_destroy(vmw_priv->dev, mode);
 		mode = old_mode;
 		old_mode = NULL;
-	} else if (!vmw_kms_validate_mode_vram(vmw_priv,
-					mode->hdisplay *
-					DIV_ROUND_UP(var->bits_per_pixel, 8),
-					mode->vdisplay)) {
+	}
+	else if (!vmw_kms_validate_mode_vram(vmw_priv,
+										 mode->hdisplay *
+										 DIV_ROUND_UP(var->bits_per_pixel, 8),
+										 mode->vdisplay))
+	{
 		drm_mode_destroy(vmw_priv->dev, mode);
 		return -EINVAL;
 	}
@@ -561,8 +646,11 @@ static int vmw_fb_set_par(struct fb_info *info)
 	mutex_lock(&par->bo_mutex);
 	drm_modeset_lock_all(vmw_priv->dev);
 	ret = vmw_fb_kms_framebuffer(info);
+
 	if (ret)
+	{
 		goto out_unlock;
+	}
 
 	par->fb_x = var->xoffset;
 	par->fb_y = var->yoffset;
@@ -576,10 +664,14 @@ static int vmw_fb_set_par(struct fb_info *info)
 	set.connectors = &par->con;
 
 	ret = drm_mode_set_config_internal(&set);
-	if (ret)
-		goto out_unlock;
 
-	if (!par->bo_ptr) {
+	if (ret)
+	{
+		goto out_unlock;
+	}
+
+	if (!par->bo_ptr)
+	{
 		struct vmw_framebuffer *vfb = vmw_framebuffer_to_vfb(set.fb);
 
 		/*
@@ -587,14 +679,18 @@ static int vmw_fb_set_par(struct fb_info *info)
 		 * to pin, call into KMS to do it for us.
 		 */
 		ret = vfb->pin(vfb);
-		if (ret) {
+
+		if (ret)
+		{
 			DRM_ERROR("Could not pin the fbdev framebuffer.\n");
 			goto out_unlock;
 		}
 
 		ret = ttm_bo_kmap(&par->vmw_bo->base, 0,
-				  par->vmw_bo->base.num_pages, &par->map);
-		if (ret) {
+						  par->vmw_bo->base.num_pages, &par->map);
+
+		if (ret)
+		{
 			vfb->unpin(vfb);
 			DRM_ERROR("Could not map the fbdev framebuffer.\n");
 			goto out_unlock;
@@ -605,7 +701,7 @@ static int vmw_fb_set_par(struct fb_info *info)
 
 
 	vmw_fb_dirty_mark(par, par->fb_x, par->fb_y,
-			  par->set_fb->width, par->set_fb->height);
+					  par->set_fb->width, par->set_fb->height);
 
 	/* If there already was stuff dirty we wont
 	 * schedule a new work, so lets do it now */
@@ -613,8 +709,12 @@ static int vmw_fb_set_par(struct fb_info *info)
 	schedule_delayed_work(&par->local_work, 0);
 
 out_unlock:
+
 	if (old_mode)
+	{
 		drm_mode_destroy(vmw_priv->dev, old_mode);
+	}
+
 	par->set_mode = mode;
 
 	drm_modeset_unlock_all(vmw_priv->dev);
@@ -624,7 +724,8 @@ out_unlock:
 }
 
 
-static struct fb_ops vmw_fb_ops = {
+static struct fb_ops vmw_fb_ops =
+{
 	.owner = THIS_MODULE,
 	.fb_check_var = vmw_fb_check_var,
 	.fb_set_par = vmw_fb_set_par,
@@ -658,8 +759,11 @@ int vmw_fb_init(struct vmw_private *vmw_priv)
 	fb_offset = vmw_read(vmw_priv, SVGA_REG_FB_OFFSET);
 
 	info = framebuffer_alloc(sizeof(*par), device);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * Par
@@ -675,9 +779,11 @@ int vmw_fb_init(struct vmw_private *vmw_priv)
 
 	drm_modeset_lock_all(vmw_priv->dev);
 	ret = vmw_kms_fbdev_init_data(vmw_priv, 0, par->max_width,
-				      par->max_height, &par->con,
-				      &par->crtc, &init_mode);
-	if (ret) {
+								  par->max_height, &par->con,
+								  &par->crtc, &init_mode);
+
+	if (ret)
+	{
 		drm_modeset_unlock_all(vmw_priv->dev);
 		goto err_kms;
 	}
@@ -690,7 +796,9 @@ int vmw_fb_init(struct vmw_private *vmw_priv)
 	 * Create buffers and alloc memory
 	 */
 	par->vmalloc = vzalloc(fb_size);
-	if (unlikely(par->vmalloc == NULL)) {
+
+	if (unlikely(par->vmalloc == NULL))
+	{
 		ret = -ENOMEM;
 		goto err_free;
 	}
@@ -739,10 +847,13 @@ int vmw_fb_init(struct vmw_private *vmw_priv)
 
 	/* Use default scratch pixmap (info->pixmap.flags = FB_PIXMAP_SYSTEM) */
 	info->apertures = alloc_apertures(1);
-	if (!info->apertures) {
+
+	if (!info->apertures)
+	{
 		ret = -ENOMEM;
 		goto err_aper;
 	}
+
 	info->apertures->ranges[0].base = vmw_priv->vram_start;
 	info->apertures->ranges[0].size = vmw_priv->vram_size;
 
@@ -758,8 +869,11 @@ int vmw_fb_init(struct vmw_private *vmw_priv)
 	fb_deferred_io_init(info);
 
 	ret = register_framebuffer(info);
+
 	if (unlikely(ret != 0))
+	{
 		goto err_defio;
+	}
 
 	vmw_fb_set_par(info);
 
@@ -783,7 +897,9 @@ int vmw_fb_close(struct vmw_private *vmw_priv)
 	struct vmw_fb_par *par;
 
 	if (!vmw_priv->fb_info)
+	{
 		return 0;
+	}
 
 	info = vmw_priv->fb_info;
 	par = info->par;
@@ -808,7 +924,9 @@ int vmw_fb_off(struct vmw_private *vmw_priv)
 	unsigned long flags;
 
 	if (!vmw_priv->fb_info)
+	{
 		return -EINVAL;
+	}
 
 	info = vmw_priv->fb_info;
 	par = info->par;
@@ -834,7 +952,9 @@ int vmw_fb_on(struct vmw_private *vmw_priv)
 	unsigned long flags;
 
 	if (!vmw_priv->fb_info)
+	{
 		return -EINVAL;
+	}
 
 	info = vmw_priv->fb_info;
 	par = info->par;
@@ -843,6 +963,6 @@ int vmw_fb_on(struct vmw_private *vmw_priv)
 	spin_lock_irqsave(&par->dirty.lock, flags);
 	par->dirty.active = true;
 	spin_unlock_irqrestore(&par->dirty.lock, flags);
- 
+
 	return 0;
 }

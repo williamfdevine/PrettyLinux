@@ -13,16 +13,19 @@
 #include <linux/rcupdate.h>
 #include <uapi/linux/posix_acl.h>
 
-struct posix_acl_entry {
+struct posix_acl_entry
+{
 	short			e_tag;
 	unsigned short		e_perm;
-	union {
+	union
+	{
 		kuid_t		e_uid;
 		kgid_t		e_gid;
 	};
 };
 
-struct posix_acl {
+struct posix_acl
+{
 	atomic_t		a_refcount;
 	struct rcu_head		a_rcu;
 	unsigned int		a_count;
@@ -40,7 +43,10 @@ static inline struct posix_acl *
 posix_acl_dup(struct posix_acl *acl)
 {
 	if (acl)
+	{
 		atomic_inc(&acl->a_refcount);
+	}
+
 	return acl;
 }
 
@@ -51,7 +57,9 @@ static inline void
 posix_acl_release(struct posix_acl *acl)
 {
 	if (acl && atomic_dec_and_test(&acl->a_refcount))
+	{
 		kfree_rcu(acl, a_rcu);
+	}
 }
 
 
@@ -72,7 +80,7 @@ extern int set_posix_acl(struct inode *, int, struct posix_acl *);
 #ifdef CONFIG_FS_POSIX_ACL
 extern int posix_acl_chmod(struct inode *, umode_t);
 extern int posix_acl_create(struct inode *, umode_t *, struct posix_acl **,
-		struct posix_acl **);
+							struct posix_acl **);
 extern int posix_acl_update_mode(struct inode *, umode_t *, struct posix_acl **);
 
 extern int simple_set_acl(struct inode *, struct posix_acl *, int);
@@ -106,7 +114,7 @@ static inline void cache_no_acl(struct inode *inode)
 }
 
 static inline int posix_acl_create(struct inode *inode, umode_t *mode,
-		struct posix_acl **default_acl, struct posix_acl **acl)
+								   struct posix_acl **default_acl, struct posix_acl **acl)
 {
 	*default_acl = *acl = NULL;
 	return 0;

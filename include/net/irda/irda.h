@@ -1,5 +1,5 @@
 /*********************************************************************
- *                
+ *
  * Filename:      irda.h
  * Version:       1.0
  * Description:   IrDA common include file for kernel internal use
@@ -8,19 +8,19 @@
  * Created at:    Tue Dec  9 21:13:12 1997
  * Modified at:   Fri Jan 28 13:16:32 2000
  * Modified by:   Dag Brattli <dagb@cs.uit.no>
- * 
+ *
  *     Copyright (c) 1998-2000 Dag Brattli, All Rights Reserved.
  *     Copyright (c) 2000-2002 Jean Tourrilhes <jt@hpl.hp.com>
- *      
- *     This program is free software; you can redistribute it and/or 
- *     modify it under the terms of the GNU General Public License as 
- *     published by the Free Software Foundation; either version 2 of 
+ *
+ *     This program is free software; you can redistribute it and/or
+ *     modify it under the terms of the GNU General Public License as
+ *     published by the Free Software Foundation; either version 2 of
  *     the License, or (at your option) any later version.
- *  
+ *
  *     Neither Dag Brattli nor University of Tromsø admit liability nor
- *     provide warranty for any of this software. This material is 
+ *     provide warranty for any of this software. This material is
  *     provided "AS-IS" and at no charge.
- *     
+ *
  ********************************************************************/
 
 #ifndef NET_IRDA_H
@@ -34,32 +34,32 @@
 typedef __u32 magic_t;
 
 #ifndef TRUE
-#define TRUE 1
+	#define TRUE 1
 #endif
 
-#ifndef FALSE 
-#define FALSE 0
+#ifndef FALSE
+	#define FALSE 0
 #endif
 
 /* Hack to do small backoff when setting media busy in IrLAP */
 #ifndef SMALL
-#define SMALL 5
+	#define SMALL 5
 #endif
 
 #ifndef IRDA_MIN /* Lets not mix this MIN with other header files */
-#define IRDA_MIN(a, b) (((a) < (b)) ? (a) : (b))
+	#define IRDA_MIN(a, b) (((a) < (b)) ? (a) : (b))
 #endif
 
 #ifndef IRDA_ALIGN
-#  define IRDA_ALIGN __attribute__((aligned))
+	#define IRDA_ALIGN __attribute__((aligned))
 #endif
 
 #ifdef CONFIG_IRDA_DEBUG
 #define IRDA_ASSERT(expr, func) \
-do { if(!(expr)) { \
-	printk( "Assertion failed! %s:%s:%d %s\n", \
-		__FILE__,__func__,__LINE__,(#expr) ); \
-	func } } while (0)
+	do { if(!(expr)) { \
+			printk( "Assertion failed! %s:%s:%d %s\n", \
+					__FILE__,__func__,__LINE__,(#expr) ); \
+			func } } while (0)
 #define IRDA_ASSERT_LABEL(label)	label
 #else
 #define IRDA_ASSERT(expr, func) do { (void)(expr); } while (0)
@@ -67,7 +67,7 @@ do { if(!(expr)) { \
 #endif /* CONFIG_IRDA_DEBUG */
 
 /*
- *  Magic numbers used by Linux-IrDA. Random numbers which must be unique to 
+ *  Magic numbers used by Linux-IrDA. Random numbers which must be unique to
  *  give the best protection
  */
 
@@ -110,6 +110,6 @@ int irda_nl_register(void);
 void irda_nl_unregister(void);
 
 int irlap_driver_rcv(struct sk_buff *skb, struct net_device *dev,
-		     struct packet_type *ptype, struct net_device *orig_dev);
+					 struct packet_type *ptype, struct net_device *orig_dev);
 
 #endif /* NET_IRDA_H */

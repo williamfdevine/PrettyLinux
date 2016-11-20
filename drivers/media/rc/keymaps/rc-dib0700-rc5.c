@@ -18,7 +18,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table dib0700_rc5_table[] = {
+static struct rc_map_table dib0700_rc5_table[] =
+{
 	/* Key codes for the tiny Pinnacle remote*/
 	{ 0x0700, KEY_MUTE },
 	{ 0x0701, KEY_MENU }, /* Pinnacle logo */
@@ -210,7 +211,8 @@ static struct rc_map_table dib0700_rc5_table[] = {
 	{ 0x1d3d, KEY_POWER },
 };
 
-static struct rc_map_list dib0700_rc5_map = {
+static struct rc_map_list dib0700_rc5_map =
+{
 	.map = {
 		.scan    = dib0700_rc5_table,
 		.size    = ARRAY_SIZE(dib0700_rc5_table),

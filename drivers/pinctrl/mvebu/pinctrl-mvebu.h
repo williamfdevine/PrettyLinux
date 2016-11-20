@@ -32,7 +32,8 @@
  * specific mode. The optional mpp_gpio_req/_dir functions can be used
  * to allow pin settings with varying gpio pins.
  */
-struct mvebu_mpp_ctrl {
+struct mvebu_mpp_ctrl
+{
 	const char *name;
 	u8 pid;
 	u8 npins;
@@ -66,7 +67,8 @@ struct mvebu_mpp_ctrl {
  * common pinctrl driver. It is matched (AND) with variant of soc_info to
  * determine if a setting is available on the current SoC revision.
  */
-struct mvebu_mpp_ctrl_setting {
+struct mvebu_mpp_ctrl_setting
+{
 	u8 val;
 	const char *name;
 	const char *subname;
@@ -84,7 +86,8 @@ struct mvebu_mpp_ctrl_setting {
  * A mode connects all available settings with the corresponding mpp_ctrl
  * given by pid.
  */
-struct mvebu_mpp_mode {
+struct mvebu_mpp_mode
+{
 	u8 pid;
 	struct mvebu_mpp_ctrl_setting *settings;
 };
@@ -103,7 +106,8 @@ struct mvebu_mpp_mode {
  * If variant is unequal 0 it will be matched (AND) with variant of each
  * setting and allows to distinguish between different revisions of one SoC.
  */
-struct mvebu_pinctrl_soc_info {
+struct mvebu_pinctrl_soc_info
+{
 	u8 variant;
 	struct mvebu_mpp_ctrl *controls;
 	int ncontrols;
@@ -116,34 +120,34 @@ struct mvebu_pinctrl_soc_info {
 #define MPP_FUNC_CTRL(_idl, _idh, _name, _func)			\
 	{							\
 		.name = _name,					\
-		.pid = _idl,					\
-		.npins = _idh - _idl + 1,			\
+				.pid = _idl,					\
+					   .npins = _idh - _idl + 1,			\
 		.pins = (unsigned[_idh - _idl + 1]) { },	\
 		.mpp_get = _func ## _get,			\
-		.mpp_set = _func ## _set,			\
-		.mpp_gpio_req = NULL,				\
-		.mpp_gpio_dir = NULL,				\
+				   .mpp_set = _func ## _set,			\
+							  .mpp_gpio_req = NULL,				\
+											  .mpp_gpio_dir = NULL,				\
 	}
 
 #define MPP_FUNC_GPIO_CTRL(_idl, _idh, _name, _func)		\
 	{							\
 		.name = _name,					\
-		.pid = _idl,					\
-		.npins = _idh - _idl + 1,			\
+				.pid = _idl,					\
+					   .npins = _idh - _idl + 1,			\
 		.pins = (unsigned[_idh - _idl + 1]) { },	\
 		.mpp_get = _func ## _get,			\
-		.mpp_set = _func ## _set,			\
-		.mpp_gpio_req = _func ## _gpio_req,		\
-		.mpp_gpio_dir = _func ## _gpio_dir,		\
+				   .mpp_set = _func ## _set,			\
+							  .mpp_gpio_req = _func ## _gpio_req,		\
+											  .mpp_gpio_dir = _func ## _gpio_dir,		\
 	}
 
 #define _MPP_VAR_FUNCTION(_val, _name, _subname, _mask)		\
 	{							\
 		.val = _val,					\
-		.name = _name,					\
-		.subname = _subname,				\
-		.variant = _mask,				\
-		.flags = 0,					\
+			   .name = _name,					\
+					   .subname = _subname,				\
+								  .variant = _mask,				\
+											 .flags = 0,					\
 	}
 
 #if defined(CONFIG_DEBUG_FS)
@@ -167,10 +171,10 @@ struct mvebu_pinctrl_soc_info {
 #define MPP_GPIO_RANGE(_id, _pinbase, _gpiobase, _npins)	\
 	{							\
 		.name = "mvebu-gpio",				\
-		.id = _id,					\
-		.pin_base = _pinbase,				\
-		.base = _gpiobase,				\
-		.npins = _npins,				\
+				.id = _id,					\
+					  .pin_base = _pinbase,				\
+								  .base = _gpiobase,				\
+										  .npins = _npins,				\
 	}
 
 #define MVEBU_MPPS_PER_REG	8
@@ -178,7 +182,7 @@ struct mvebu_pinctrl_soc_info {
 #define MVEBU_MPP_MASK		0xf
 
 static inline int default_mpp_ctrl_get(void __iomem *base, unsigned int pid,
-				       unsigned long *config)
+									   unsigned long *config)
 {
 	unsigned off = (pid / MVEBU_MPPS_PER_REG) * MVEBU_MPP_BITS;
 	unsigned shift = (pid % MVEBU_MPPS_PER_REG) * MVEBU_MPP_BITS;
@@ -189,7 +193,7 @@ static inline int default_mpp_ctrl_get(void __iomem *base, unsigned int pid,
 }
 
 static inline int default_mpp_ctrl_set(void __iomem *base, unsigned int pid,
-				       unsigned long config)
+									   unsigned long config)
 {
 	unsigned off = (pid / MVEBU_MPPS_PER_REG) * MVEBU_MPP_BITS;
 	unsigned shift = (pid % MVEBU_MPPS_PER_REG) * MVEBU_MPP_BITS;

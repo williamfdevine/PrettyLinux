@@ -21,7 +21,8 @@
 #define PIC32_UART_RX		0x30
 #define PIC32_UART_BRG		0x40
 
-struct pic32_console_opt {
+struct pic32_console_opt
+{
 	int baud;
 	int parity;
 	int bits;
@@ -43,7 +44,8 @@ struct pic32_console_opt {
  * @cts_gpio: clear to send gpio
  * @dev: device descriptor
  **/
-struct pic32_sport {
+struct pic32_sport
+{
 	struct uart_port port;
 	struct pic32_console_opt opt;
 	int idx;
@@ -73,7 +75,7 @@ struct pic32_sport {
 #define tx_irq_enabled(sport) (sport->enable_tx_irq)
 
 static inline void pic32_uart_writel(struct pic32_sport *sport,
-					u32 reg, u32 val)
+									 u32 reg, u32 val)
 {
 	struct uart_port *port = pic32_get_port(sport);
 

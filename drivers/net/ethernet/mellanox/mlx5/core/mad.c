@@ -37,7 +37,7 @@
 #include "mlx5_core.h"
 
 int mlx5_core_mad_ifc(struct mlx5_core_dev *dev, const void *inb, void *outb,
-		      u16 opmod, u8 port)
+					  u16 opmod, u8 port)
 {
 	int outlen = MLX5_ST_SZ_BYTES(mad_ifc_out);
 	int inlen = MLX5_ST_SZ_BYTES(mad_ifc_in);
@@ -49,8 +49,11 @@ int mlx5_core_mad_ifc(struct mlx5_core_dev *dev, const void *inb, void *outb,
 
 	in = kzalloc(inlen, GFP_KERNEL);
 	out = kzalloc(outlen, GFP_KERNEL);
+
 	if (!in || !out)
+	{
 		goto out;
+	}
 
 	MLX5_SET(mad_ifc_in, in, opcode, MLX5_CMD_OP_MAD_IFC);
 	MLX5_SET(mad_ifc_in, in, op_mod, opmod);
@@ -60,12 +63,15 @@ int mlx5_core_mad_ifc(struct mlx5_core_dev *dev, const void *inb, void *outb,
 	memcpy(data, inb, MLX5_FLD_SZ_BYTES(mad_ifc_in, mad));
 
 	err = mlx5_cmd_exec(dev, in, inlen, out, outlen);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	resp = MLX5_ADDR_OF(mad_ifc_out, out, response_mad_packet);
 	memcpy(outb, resp,
-	       MLX5_FLD_SZ_BYTES(mad_ifc_out, response_mad_packet));
+		   MLX5_FLD_SZ_BYTES(mad_ifc_out, response_mad_packet));
 
 out:
 	kfree(out);

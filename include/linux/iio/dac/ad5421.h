@@ -8,7 +8,8 @@
  * @AD5421_CURRENT_RANGE_3mA2_24mA: 3.2 mA to 24 mA (RANGE1,0 pins = 10)
  */
 
-enum ad5421_current_range {
+enum ad5421_current_range
+{
 	AD5421_CURRENT_RANGE_4mA_20mA,
 	AD5421_CURRENT_RANGE_3mA8_21mA,
 	AD5421_CURRENT_RANGE_3mA2_24mA,
@@ -20,7 +21,8 @@ enum ad5421_current_range {
  * @current_range: Current range the AD5421 is configured for
  */
 
-struct ad5421_platform_data {
+struct ad5421_platform_data
+{
 	bool external_vref;
 	enum ad5421_current_range current_range;
 };

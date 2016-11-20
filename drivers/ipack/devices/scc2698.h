@@ -21,15 +21,18 @@
  * dn value are only spacer.
  *
  */
-union scc2698_channel {
-	struct {
+union scc2698_channel
+{
+	struct
+	{
 		u8 d0, mr;  /* Mode register 1/2*/
 		u8 d1, sr;  /* Status register */
 		u8 d2, r1;  /* reserved */
 		u8 d3, rhr; /* Receive holding register (R) */
 		u8 junk[8]; /* other crap for block control */
 	} __packed r; /* Read access */
-	struct {
+	struct
+	{
 		u8 d0, mr;  /* Mode register 1/2 */
 		u8 d1, csr; /* Clock select register */
 		u8 d2, cr;  /* Command register */
@@ -46,8 +49,10 @@ union scc2698_channel {
  * dn value are only spacer.
  *
  */
-union scc2698_block {
-	struct {
+union scc2698_block
+{
+	struct
+	{
 		u8 d0, mra;  /* Mode register 1/2 (a) */
 		u8 d1, sra;  /* Status register (a) */
 		u8 d2, r1;   /* reserved */
@@ -65,7 +70,8 @@ union scc2698_block {
 		u8 de, ctg;  /* Start counter timer of block */
 		u8 df, cts;  /* Stop counter timer of block */
 	} __packed r; /* Read access */
-	struct {
+	struct
+	{
 		u8 d0, mra;  /* Mode register 1/2 (a) */
 		u8 d1, csra; /* Clock select register (a) */
 		u8 d2, cra;  /* Command register (a) */

@@ -3,7 +3,8 @@
 #include <core/subdev.h>
 struct nvkm_devinit;
 
-struct nvkm_devinit {
+struct nvkm_devinit
+{
 	const struct nvkm_devinit_func *func;
 	struct nvkm_subdev subdev;
 	bool post;

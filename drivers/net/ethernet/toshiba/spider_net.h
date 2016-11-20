@@ -62,8 +62,8 @@ extern char spider_net_driver_name[];
 #define SPIDER_NET_FIRMWARE_SEQS	6
 #define SPIDER_NET_FIRMWARE_SEQWORDS	1024
 #define SPIDER_NET_FIRMWARE_LEN		(SPIDER_NET_FIRMWARE_SEQS * \
-					 SPIDER_NET_FIRMWARE_SEQWORDS * \
-					 sizeof(u32))
+									 SPIDER_NET_FIRMWARE_SEQWORDS * \
+									 sizeof(u32))
 #define SPIDER_NET_FIRMWARE_NAME	"spider_fw.bin"
 
 /** spider_net SMMIO registers */
@@ -178,7 +178,7 @@ extern char spider_net_driver_name[];
 #define SPIDER_NET_RESTART_VALUE	0x00000000
 #define SPIDER_NET_WOL_VALUE		0x00001111
 #if 0
-#define SPIDER_NET_WOL_VALUE		0x00000000
+	#define SPIDER_NET_WOL_VALUE		0x00000000
 #endif
 #define SPIDER_NET_IPSECINIT_VALUE	0x6f716f71
 
@@ -221,8 +221,8 @@ extern char spider_net_driver_name[];
 #define SPIDER_NET_GDTBSTA             0x00000300
 #define SPIDER_NET_GDTDCEIDIS          0x00000002
 #define SPIDER_NET_DMA_TX_VALUE        SPIDER_NET_TX_DMA_EN | \
-                                       SPIDER_NET_GDTDCEIDIS | \
-                                       SPIDER_NET_GDTBSTA
+	SPIDER_NET_GDTDCEIDIS | \
+	SPIDER_NET_GDTBSTA
 
 #define SPIDER_NET_DMA_TX_FEND_VALUE	0x00030003
 
@@ -243,7 +243,8 @@ extern char spider_net_driver_name[];
 
 /* SPIDER_NET_GHIINT0STS bits, in reverse order so that they can be used
  * with 1 << SPIDER_NET_... */
-enum spider_net_int0_status {
+enum spider_net_int0_status
+{
 	SPIDER_NET_GPHYINT = 0,
 	SPIDER_NET_GMAC2INT,
 	SPIDER_NET_GMAC1INT,
@@ -278,7 +279,8 @@ enum spider_net_int0_status {
 	SPIDER_NET_GFREECNTINT
 };
 /* GHIINT1STS bits */
-enum spider_net_int1_status {
+enum spider_net_int1_status
+{
 	SPIDER_NET_GTMFLLINT = 0,
 	SPIDER_NET_GRMFLLINT,
 	SPIDER_NET_GTMSHTINT,
@@ -308,7 +310,8 @@ enum spider_net_int1_status {
 	SPIDER_NET_GDAPTERINT
 };
 /* GHIINT2STS bits */
-enum spider_net_int2_status {
+enum spider_net_int2_status
+{
 	SPIDER_NET_GPROPERINT = 0,
 	SPIDER_NET_GMCTCRSNGINT,
 	SPIDER_NET_GMCTLCOLINT,
@@ -340,9 +343,9 @@ enum spider_net_int2_status {
 #define SPIDER_NET_LINKINT	( 1 << SPIDER_NET_GMAC2INT )
 
 #define SPIDER_NET_ERRINT	( 0xffffffff & \
-				  (~SPIDER_NET_TXINT) & \
-				  (~SPIDER_NET_RXINT) & \
-				  (~SPIDER_NET_LINKINT) )
+							  (~SPIDER_NET_TXINT) & \
+							  (~SPIDER_NET_RXINT) & \
+							  (~SPIDER_NET_LINKINT) )
 
 #define SPIDER_NET_GPREXEC			0x80000000
 #define SPIDER_NET_GPRDAT_MASK			0x0000ffff
@@ -376,14 +379,15 @@ enum spider_net_int2_status {
 #define SPIDER_NET_DESCR_TXDESFLG		0x00800000
 
 #define SPIDER_NET_DESCR_BAD_STATUS   (SPIDER_NET_DESCR_RXDEN0IS | \
-                                       SPIDER_NET_DESCR_RXRERRIS | \
-                                       SPIDER_NET_DESCR_RXDEN0IMS | \
-                                       SPIDER_NET_DESCR_RXINVDIMS | \
-                                       SPIDER_NET_DESCR_RXRERRMIS | \
-                                       SPIDER_NET_DESCR_UNUSED)
+									   SPIDER_NET_DESCR_RXRERRIS | \
+									   SPIDER_NET_DESCR_RXDEN0IMS | \
+									   SPIDER_NET_DESCR_RXINVDIMS | \
+									   SPIDER_NET_DESCR_RXRERRMIS | \
+									   SPIDER_NET_DESCR_UNUSED)
 
 /* Descriptor, as defined by the hardware */
-struct spider_net_hw_descr {
+struct spider_net_hw_descr
+{
 	u32 buf_addr;
 	u32 buf_size;
 	u32 next_descr_addr;
@@ -394,7 +398,8 @@ struct spider_net_hw_descr {
 	u32 data_error;	/* all zeroes for tx */
 } __attribute__((aligned(32)));
 
-struct spider_net_descr {
+struct spider_net_descr
+{
 	struct spider_net_hw_descr *hwdescr;
 	struct sk_buff *skb;
 	u32 bus_addr;
@@ -402,7 +407,8 @@ struct spider_net_descr {
 	struct spider_net_descr *prev;
 };
 
-struct spider_net_descr_chain {
+struct spider_net_descr_chain
+{
 	spinlock_t lock;
 	struct spider_net_descr *head;
 	struct spider_net_descr *tail;
@@ -417,7 +423,7 @@ struct spider_net_descr_chain {
 #define SPIDER_NET_RX_TCPCHK		28
 #define SPIDER_NET_VLAN_PACKET		21
 #define SPIDER_NET_DATA_STATUS_CKSUM_MASK ( (1 << SPIDER_NET_RX_IPCHK) | \
-					  (1 << SPIDER_NET_RX_TCPCHK) )
+		(1 << SPIDER_NET_RX_TCPCHK) )
 
 /* descriptor data_error bits */
 #define SPIDER_NET_RX_IPCHKERR		27
@@ -430,22 +436,23 @@ struct spider_net_descr_chain {
 #define SPIDER_NET_DESTROY_RX_FLAGS	0x700b8000
 
 #define SPIDER_NET_DEFAULT_MSG		( NETIF_MSG_DRV | \
-					  NETIF_MSG_PROBE | \
-					  NETIF_MSG_LINK | \
-					  NETIF_MSG_TIMER | \
-					  NETIF_MSG_IFDOWN | \
-					  NETIF_MSG_IFUP | \
-					  NETIF_MSG_RX_ERR | \
-					  NETIF_MSG_TX_ERR | \
-					  NETIF_MSG_TX_QUEUED | \
-					  NETIF_MSG_INTR | \
-					  NETIF_MSG_TX_DONE | \
-					  NETIF_MSG_RX_STATUS | \
-					  NETIF_MSG_PKTDATA | \
-					  NETIF_MSG_HW | \
-					  NETIF_MSG_WOL )
+									  NETIF_MSG_PROBE | \
+									  NETIF_MSG_LINK | \
+									  NETIF_MSG_TIMER | \
+									  NETIF_MSG_IFDOWN | \
+									  NETIF_MSG_IFUP | \
+									  NETIF_MSG_RX_ERR | \
+									  NETIF_MSG_TX_ERR | \
+									  NETIF_MSG_TX_QUEUED | \
+									  NETIF_MSG_INTR | \
+									  NETIF_MSG_TX_DONE | \
+									  NETIF_MSG_RX_STATUS | \
+									  NETIF_MSG_PKTDATA | \
+									  NETIF_MSG_HW | \
+									  NETIF_MSG_WOL )
 
-struct spider_net_extra_stats {
+struct spider_net_extra_stats
+{
 	unsigned long rx_desc_error;
 	unsigned long tx_timeouts;
 	unsigned long alloc_rx_skb_error;
@@ -454,7 +461,8 @@ struct spider_net_extra_stats {
 	unsigned long rx_desc_unk_state;
 };
 
-struct spider_net_card {
+struct spider_net_card
+{
 	struct net_device *netdev;
 	struct pci_dev *pdev;
 	struct mii_phy phy;

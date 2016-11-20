@@ -17,7 +17,8 @@
  * The list of control codes is listed in Table 27: User Control Codes p. 95
  */
 
-static struct rc_map_table cec[] = {
+static struct rc_map_table cec[] =
+{
 	{ 0x00, KEY_OK },
 	{ 0x01, KEY_UP },
 	{ 0x02, KEY_DOWN },
@@ -156,7 +157,8 @@ static struct rc_map_table cec[] = {
 	/* 0x77-0xff: Reserved */
 };
 
-static struct rc_map_list cec_map = {
+static struct rc_map_list cec_map =
+{
 	.map = {
 		.scan		= cec,
 		.size		= ARRAY_SIZE(cec),

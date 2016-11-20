@@ -23,7 +23,8 @@
 
 #define DRV_NAME "amd74xx"
 
-enum {
+enum
+{
 	AMD_IDE_CONFIG		= 0x41,
 	AMD_CABLE_DETECT	= 0x42,
 	AMD_DRIVE_TIMING	= 0x48,
@@ -48,7 +49,7 @@ static inline u8 amd_offset(struct pci_dev *dev)
  */
 
 static void amd_set_speed(struct pci_dev *dev, u8 dn, u8 udma_mask,
-			  struct ide_timing *timing)
+						  struct ide_timing *timing)
 {
 	u8 t = 0, offset = amd_offset(dev);
 
@@ -57,21 +58,28 @@ static void amd_set_speed(struct pci_dev *dev, u8 dn, u8 udma_mask,
 	pci_write_config_byte(dev, AMD_ADDRESS_SETUP + offset, t);
 
 	pci_write_config_byte(dev, AMD_8BIT_TIMING + offset + (1 - (dn >> 1)),
-		((clamp_val(timing->act8b, 1, 16) - 1) << 4) | (clamp_val(timing->rec8b, 1, 16) - 1));
+						  ((clamp_val(timing->act8b, 1, 16) - 1) << 4) | (clamp_val(timing->rec8b, 1, 16) - 1));
 
 	pci_write_config_byte(dev, AMD_DRIVE_TIMING + offset + (3 - dn),
-		((clamp_val(timing->active, 1, 16) - 1) << 4) | (clamp_val(timing->recover, 1, 16) - 1));
+						  ((clamp_val(timing->active, 1, 16) - 1) << 4) | (clamp_val(timing->recover, 1, 16) - 1));
 
-	switch (udma_mask) {
-	case ATA_UDMA2: t = timing->udma ? (0xc0 | (clamp_val(timing->udma, 2, 5) - 2)) : 0x03; break;
-	case ATA_UDMA4: t = timing->udma ? (0xc0 | amd_cyc2udma[clamp_val(timing->udma, 2, 10)]) : 0x03; break;
-	case ATA_UDMA5: t = timing->udma ? (0xc0 | amd_cyc2udma[clamp_val(timing->udma, 1, 10)]) : 0x03; break;
-	case ATA_UDMA6: t = timing->udma ? (0xc0 | amd_cyc2udma[clamp_val(timing->udma, 1, 15)]) : 0x03; break;
-	default: return;
+	switch (udma_mask)
+	{
+		case ATA_UDMA2: t = timing->udma ? (0xc0 | (clamp_val(timing->udma, 2, 5) - 2)) : 0x03; break;
+
+		case ATA_UDMA4: t = timing->udma ? (0xc0 | amd_cyc2udma[clamp_val(timing->udma, 2, 10)]) : 0x03; break;
+
+		case ATA_UDMA5: t = timing->udma ? (0xc0 | amd_cyc2udma[clamp_val(timing->udma, 1, 10)]) : 0x03; break;
+
+		case ATA_UDMA6: t = timing->udma ? (0xc0 | amd_cyc2udma[clamp_val(timing->udma, 1, 15)]) : 0x03; break;
+
+		default: return;
 	}
 
 	if (timing->udma)
+	{
 		pci_write_config_byte(dev, AMD_UDMA_TIMING + offset + 3 - dn, t);
+	}
 }
 
 /*
@@ -93,13 +101,15 @@ static void amd_set_drive(ide_hwif_t *hwif, ide_drive_t *drive)
 
 	ide_timing_compute(drive, speed, &t, T, UT);
 
-	if (peer) {
+	if (peer)
+	{
 		ide_timing_compute(peer, peer->pio_mode, &p, T, UT);
 		ide_timing_merge(&p, &t, &t, IDE_TIMING_8BIT);
 	}
 
-	if (speed == XFER_UDMA_5 && amd_clock <= 33333) t.udma = 1;
-	if (speed == XFER_UDMA_6 && amd_clock <= 33333) t.udma = 15;
+	if (speed == XFER_UDMA_5 && amd_clock <= 33333) { t.udma = 1; }
+
+	if (speed == XFER_UDMA_6 && amd_clock <= 33333) { t.udma = 15; }
 
 	amd_set_speed(dev, drive->dn, udma_mask, &t);
 }
@@ -129,11 +139,13 @@ static void amd7411_cable_detect(struct pci_dev *dev)
 	pci_read_config_byte(dev, AMD_CABLE_DETECT + offset, &t);
 	pci_read_config_dword(dev, AMD_UDMA_TIMING + offset, &u);
 	amd_80w = ((t & 0x3) ? 1 : 0) | ((t & 0xc) ? 2 : 0);
+
 	for (i = 24; i >= 0; i -= 8)
-		if (((u >> i) & 4) && !(amd_80w & (1 << (1 - (i >> 4))))) {
+		if (((u >> i) & 4) && !(amd_80w & (1 << (1 - (i >> 4)))))
+		{
 			printk(KERN_WARNING DRV_NAME " %s: BIOS didn't set "
-				"cable bits correctly. Enabling workaround.\n",
-				pci_name(dev));
+				   "cable bits correctly. Enabling workaround.\n",
+				   pci_name(dev));
 			amd_80w |= (1 << (1 - (i >> 4)));
 		}
 }
@@ -146,32 +158,42 @@ static int init_chipset_amd74xx(struct pci_dev *dev)
 {
 	u8 t = 0, offset = amd_offset(dev);
 
-/*
- * Check 80-wire cable presence.
- */
+	/*
+	 * Check 80-wire cable presence.
+	 */
 
 	if (dev->vendor == PCI_VENDOR_ID_AMD &&
-	    dev->device == PCI_DEVICE_ID_AMD_COBRA_7401)
+		dev->device == PCI_DEVICE_ID_AMD_COBRA_7401)
 		; /* no UDMA > 2 */
 	else if (dev->vendor == PCI_VENDOR_ID_AMD &&
-		 dev->device == PCI_DEVICE_ID_AMD_VIPER_7409)
+			 dev->device == PCI_DEVICE_ID_AMD_VIPER_7409)
+	{
 		amd7409_cable_detect(dev);
+	}
 	else
+	{
 		amd7411_cable_detect(dev);
+	}
 
-/*
- * Take care of prefetch & postwrite.
- */
+	/*
+	 * Take care of prefetch & postwrite.
+	 */
 
 	pci_read_config_byte(dev, AMD_IDE_CONFIG + offset, &t);
+
 	/*
 	 * Check for broken FIFO support.
 	 */
 	if (dev->vendor == PCI_VENDOR_ID_AMD &&
-	    dev->device == PCI_DEVICE_ID_AMD_VIPER_7411)
+		dev->device == PCI_DEVICE_ID_AMD_VIPER_7411)
+	{
 		t &= 0x0f;
+	}
 	else
+	{
 		t |= 0xf0;
+	}
+
 	pci_write_config_byte(dev, AMD_IDE_CONFIG + offset, t);
 
 	return 0;
@@ -180,12 +202,17 @@ static int init_chipset_amd74xx(struct pci_dev *dev)
 static u8 amd_cable_detect(ide_hwif_t *hwif)
 {
 	if ((amd_80w >> hwif->channel) & 1)
+	{
 		return ATA_CBL_PATA80;
+	}
 	else
+	{
 		return ATA_CBL_PATA40;
+	}
 }
 
-static const struct ide_port_ops amd_port_ops = {
+static const struct ide_port_ops amd_port_ops =
+{
 	.set_pio_mode		= amd_set_pio_mode,
 	.set_dma_mode		= amd_set_drive,
 	.cable_detect		= amd_cable_detect,
@@ -200,30 +227,31 @@ static const struct ide_port_ops amd_port_ops = {
 #define DECLARE_AMD_DEV(swdma, udma)				\
 	{								\
 		.name		= DRV_NAME,				\
-		.init_chipset	= init_chipset_amd74xx,			\
+					  .init_chipset	= init_chipset_amd74xx,			\
 		.enablebits	= {{0x40,0x02,0x02}, {0x40,0x01,0x01}},	\
 		.port_ops	= &amd_port_ops,			\
-		.host_flags	= IDE_HFLAGS_AMD,			\
-		.pio_mask	= ATA_PIO5,				\
-		.swdma_mask	= swdma,				\
-		.mwdma_mask	= ATA_MWDMA2,				\
-		.udma_mask	= udma,					\
+					  .host_flags	= IDE_HFLAGS_AMD,			\
+									.pio_mask	= ATA_PIO5,				\
+											.swdma_mask	= swdma,				\
+													.mwdma_mask	= ATA_MWDMA2,				\
+															.udma_mask	= udma,					\
 	}
 
 #define DECLARE_NV_DEV(udma)					\
 	{								\
 		.name		= DRV_NAME,				\
-		.init_chipset	= init_chipset_amd74xx,			\
+					  .init_chipset	= init_chipset_amd74xx,			\
 		.enablebits	= {{0x50,0x02,0x02}, {0x50,0x01,0x01}},	\
 		.port_ops	= &amd_port_ops,			\
-		.host_flags	= IDE_HFLAGS_AMD,			\
-		.pio_mask	= ATA_PIO5,				\
-		.swdma_mask	= ATA_SWDMA2,				\
-		.mwdma_mask	= ATA_MWDMA2,				\
-		.udma_mask	= udma,					\
+					  .host_flags	= IDE_HFLAGS_AMD,			\
+									.pio_mask	= ATA_PIO5,				\
+											.swdma_mask	= ATA_SWDMA2,				\
+													.mwdma_mask	= ATA_MWDMA2,				\
+															.udma_mask	= udma,					\
 	}
 
-static const struct ide_port_info amd74xx_chipsets[] = {
+static const struct ide_port_info amd74xx_chipsets[] =
+{
 	/* 0: AMD7401 */	DECLARE_AMD_DEV(0x00, ATA_UDMA2),
 	/* 1: AMD7409 */	DECLARE_AMD_DEV(ATA_SWDMA2, ATA_UDMA4),
 	/* 2: AMD7411/7441 */	DECLARE_AMD_DEV(ATA_SWDMA2, ATA_UDMA5),
@@ -245,14 +273,22 @@ static int amd74xx_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	/*
 	 * Check for bad SWDMA and incorrectly wired Serenade mainboards.
 	 */
-	if (idx == 1) {
+	if (idx == 1)
+	{
 		if (dev->revision <= 7)
+		{
 			d.swdma_mask = 0;
+		}
+
 		d.host_flags |= IDE_HFLAG_CLEAR_SIMPLEX;
-	} else if (idx == 3) {
+	}
+	else if (idx == 3)
+	{
 		if (dev->subsystem_vendor == PCI_VENDOR_ID_AMD &&
-		    dev->subsystem_device == PCI_DEVICE_ID_AMD_SERENADE)
+			dev->subsystem_device == PCI_DEVICE_ID_AMD_SERENADE)
+		{
 			d.udma_mask = ATA_UDMA5;
+		}
 	}
 
 	/*
@@ -261,34 +297,41 @@ static int amd74xx_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	 * if the device is in Compatibility Mode.
 	 */
 	if (dev->vendor == PCI_VENDOR_ID_NVIDIA &&
-	    ide_pci_is_in_compatibility_mode(dev))
+		ide_pci_is_in_compatibility_mode(dev))
+	{
 		d.host_flags |= IDE_HFLAG_BROKEN_ALTSTATUS;
+	}
 
 	printk(KERN_INFO "%s %s: UDMA%s controller\n",
-		d.name, pci_name(dev), amd_dma[fls(d.udma_mask) - 1]);
+		   d.name, pci_name(dev), amd_dma[fls(d.udma_mask) - 1]);
 
 	/*
 	* Determine the system bus clock.
 	*/
 	amd_clock = (ide_pci_clk ? ide_pci_clk : 33) * 1000;
 
-	switch (amd_clock) {
-	case 33000: amd_clock = 33333; break;
-	case 37000: amd_clock = 37500; break;
-	case 41000: amd_clock = 41666; break;
+	switch (amd_clock)
+	{
+		case 33000: amd_clock = 33333; break;
+
+		case 37000: amd_clock = 37500; break;
+
+		case 41000: amd_clock = 41666; break;
 	}
 
-	if (amd_clock < 20000 || amd_clock > 50000) {
+	if (amd_clock < 20000 || amd_clock > 50000)
+	{
 		printk(KERN_WARNING "%s: User given PCI clock speed impossible"
-				    " (%d), using 33 MHz instead.\n",
-				    d.name, amd_clock);
+			   " (%d), using 33 MHz instead.\n",
+			   d.name, amd_clock);
 		amd_clock = 33333;
 	}
 
 	return ide_pci_init_one(dev, &d, NULL);
 }
 
-static const struct pci_device_id amd74xx_pci_tbl[] = {
+static const struct pci_device_id amd74xx_pci_tbl[] =
+{
 	{ PCI_VDEVICE(AMD,	PCI_DEVICE_ID_AMD_COBRA_7401),		 0 },
 	{ PCI_VDEVICE(AMD,	PCI_DEVICE_ID_AMD_VIPER_7409),		 1 },
 	{ PCI_VDEVICE(AMD,	PCI_DEVICE_ID_AMD_VIPER_7411),		 2 },
@@ -320,7 +363,8 @@ static const struct pci_device_id amd74xx_pci_tbl[] = {
 };
 MODULE_DEVICE_TABLE(pci, amd74xx_pci_tbl);
 
-static struct pci_driver amd74xx_pci_driver = {
+static struct pci_driver amd74xx_pci_driver =
+{
 	.name		= "AMD_IDE",
 	.id_table	= amd74xx_pci_tbl,
 	.probe		= amd74xx_probe,

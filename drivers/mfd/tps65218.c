@@ -41,7 +41,7 @@
  * @val: Contians the value
  */
 int tps65218_reg_read(struct tps65218 *tps, unsigned int reg,
-			unsigned int *val)
+					  unsigned int *val)
 {
 	return regmap_read(tps->regmap, reg, val);
 }
@@ -56,24 +56,30 @@ EXPORT_SYMBOL_GPL(tps65218_reg_read);
  * @level: Password protected level
  */
 int tps65218_reg_write(struct tps65218 *tps, unsigned int reg,
-			unsigned int val, unsigned int level)
+					   unsigned int val, unsigned int level)
 {
 	int ret;
 	unsigned int xor_reg_val;
 
-	switch (level) {
-	case TPS65218_PROTECT_NONE:
-		return regmap_write(tps->regmap, reg, val);
-	case TPS65218_PROTECT_L1:
-		xor_reg_val = reg ^ TPS65218_PASSWORD_REGS_UNLOCK;
-		ret = regmap_write(tps->regmap, TPS65218_REG_PASSWORD,
-							xor_reg_val);
-		if (ret < 0)
-			return ret;
+	switch (level)
+	{
+		case TPS65218_PROTECT_NONE:
+			return regmap_write(tps->regmap, reg, val);
 
-		return regmap_write(tps->regmap, reg, val);
-	default:
-		return -EINVAL;
+		case TPS65218_PROTECT_L1:
+			xor_reg_val = reg ^ TPS65218_PASSWORD_REGS_UNLOCK;
+			ret = regmap_write(tps->regmap, TPS65218_REG_PASSWORD,
+							   xor_reg_val);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			return regmap_write(tps->regmap, reg, val);
+
+		default:
+			return -EINVAL;
 	}
 }
 EXPORT_SYMBOL_GPL(tps65218_reg_write);
@@ -88,13 +94,15 @@ EXPORT_SYMBOL_GPL(tps65218_reg_write);
  * @level: Password protected level
  */
 static int tps65218_update_bits(struct tps65218 *tps, unsigned int reg,
-		unsigned int mask, unsigned int val, unsigned int level)
+								unsigned int mask, unsigned int val, unsigned int level)
 {
 	int ret;
 	unsigned int data;
 
 	ret = tps65218_reg_read(tps, reg, &data);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(tps->dev, "Read from reg 0x%x failed\n", reg);
 		return ret;
 	}
@@ -104,45 +112,53 @@ static int tps65218_update_bits(struct tps65218 *tps, unsigned int reg,
 
 	mutex_lock(&tps->tps_lock);
 	ret = tps65218_reg_write(tps, reg, data, level);
+
 	if (ret)
+	{
 		dev_err(tps->dev, "Write for reg 0x%x failed\n", reg);
+	}
+
 	mutex_unlock(&tps->tps_lock);
 
 	return ret;
 }
 
 int tps65218_set_bits(struct tps65218 *tps, unsigned int reg,
-		unsigned int mask, unsigned int val, unsigned int level)
+					  unsigned int mask, unsigned int val, unsigned int level)
 {
 	return tps65218_update_bits(tps, reg, mask, val, level);
 }
 EXPORT_SYMBOL_GPL(tps65218_set_bits);
 
 int tps65218_clear_bits(struct tps65218 *tps, unsigned int reg,
-		unsigned int mask, unsigned int level)
+						unsigned int mask, unsigned int level)
 {
 	return tps65218_update_bits(tps, reg, mask, 0, level);
 }
 EXPORT_SYMBOL_GPL(tps65218_clear_bits);
 
-static const struct regmap_range tps65218_yes_ranges[] = {
+static const struct regmap_range tps65218_yes_ranges[] =
+{
 	regmap_reg_range(TPS65218_REG_INT1, TPS65218_REG_INT2),
 	regmap_reg_range(TPS65218_REG_STATUS, TPS65218_REG_STATUS),
 };
 
-static const struct regmap_access_table tps65218_volatile_table = {
+static const struct regmap_access_table tps65218_volatile_table =
+{
 	.yes_ranges = tps65218_yes_ranges,
 	.n_yes_ranges = ARRAY_SIZE(tps65218_yes_ranges),
 };
 
-static const struct regmap_config tps65218_regmap_config = {
+static const struct regmap_config tps65218_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 	.cache_type = REGCACHE_RBTREE,
 	.volatile_table = &tps65218_volatile_table,
 };
 
-static const struct regmap_irq tps65218_irqs[] = {
+static const struct regmap_irq tps65218_irqs[] =
+{
 	/* INT1 IRQs */
 	[TPS65218_PRGC_IRQ] = {
 		.mask = TPS65218_INT1_PRGC,
@@ -197,7 +213,8 @@ static const struct regmap_irq tps65218_irqs[] = {
 	},
 };
 
-static struct regmap_irq_chip tps65218_irq_chip = {
+static struct regmap_irq_chip tps65218_irq_chip =
+{
 	.name = "tps65218",
 	.irqs = tps65218_irqs,
 	.num_irqs = ARRAY_SIZE(tps65218_irqs),
@@ -207,14 +224,15 @@ static struct regmap_irq_chip tps65218_irq_chip = {
 	.status_base = TPS65218_REG_INT1,
 };
 
-static const struct of_device_id of_tps65218_match_table[] = {
+static const struct of_device_id of_tps65218_match_table[] =
+{
 	{ .compatible = "ti,tps65218", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, of_tps65218_match_table);
 
 static int tps65218_probe(struct i2c_client *client,
-				const struct i2c_device_id *ids)
+						  const struct i2c_device_id *ids)
 {
 	struct tps65218 *tps;
 	const struct of_device_id *match;
@@ -222,37 +240,49 @@ static int tps65218_probe(struct i2c_client *client,
 	unsigned int chipid;
 
 	match = of_match_device(of_tps65218_match_table, &client->dev);
-	if (!match) {
+
+	if (!match)
+	{
 		dev_err(&client->dev,
-			"Failed to find matching dt id\n");
+				"Failed to find matching dt id\n");
 		return -EINVAL;
 	}
 
 	tps = devm_kzalloc(&client->dev, sizeof(*tps), GFP_KERNEL);
+
 	if (!tps)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(client, tps);
 	tps->dev = &client->dev;
 	tps->irq = client->irq;
 	tps->regmap = devm_regmap_init_i2c(client, &tps65218_regmap_config);
-	if (IS_ERR(tps->regmap)) {
+
+	if (IS_ERR(tps->regmap))
+	{
 		ret = PTR_ERR(tps->regmap);
 		dev_err(tps->dev, "Failed to allocate register map: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
 	mutex_init(&tps->tps_lock);
 
 	ret = regmap_add_irq_chip(tps->regmap, tps->irq,
-			IRQF_ONESHOT, 0, &tps65218_irq_chip,
-			&tps->irq_data);
+							  IRQF_ONESHOT, 0, &tps65218_irq_chip,
+							  &tps->irq_data);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = tps65218_reg_read(tps, TPS65218_REG_CHIPID, &chipid);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(tps->dev, "Failed to read chipid: %d\n", ret);
 		return ret;
 	}
@@ -260,9 +290,12 @@ static int tps65218_probe(struct i2c_client *client,
 	tps->rev = chipid & TPS65218_CHIPID_REV_MASK;
 
 	ret = of_platform_populate(client->dev.of_node, NULL, NULL,
-				   &client->dev);
+							   &client->dev);
+
 	if (ret < 0)
+	{
 		goto err_irq;
+	}
 
 	return 0;
 
@@ -281,13 +314,15 @@ static int tps65218_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id tps65218_id_table[] = {
+static const struct i2c_device_id tps65218_id_table[] =
+{
 	{ "tps65218", TPS65218 },
 	{ },
 };
 MODULE_DEVICE_TABLE(i2c, tps65218_id_table);
 
-static struct i2c_driver tps65218_driver = {
+static struct i2c_driver tps65218_driver =
+{
 	.driver		= {
 		.name	= "tps65218",
 		.of_match_table = of_tps65218_match_table,

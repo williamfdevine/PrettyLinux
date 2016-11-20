@@ -15,7 +15,8 @@
  *       clocks are cut and it can only be brought out of this mode
  *	 using the RESET pin.
  */
-enum pixcir_power_mode {
+enum pixcir_power_mode
+{
 	PIXCIR_POWER_ACTIVE,
 	PIXCIR_POWER_IDLE,
 	PIXCIR_POWER_HALT,
@@ -32,7 +33,8 @@ enum pixcir_power_mode {
  * pulse on touch: interrupt pulse asserted druing touch
  *
  */
-enum pixcir_int_mode {
+enum pixcir_int_mode
+{
 	PIXCIR_INT_PERIODICAL,
 	PIXCIR_INT_DIFF_COORD,
 	PIXCIR_INT_LEVEL_TOUCH,
@@ -49,12 +51,14 @@ enum pixcir_int_mode {
  * @has_hw_ids:		Hardware supports finger tracking IDs
  *
  */
-struct pixcir_i2c_chip_data {
+struct pixcir_i2c_chip_data
+{
 	u8 max_fingers;
 	bool has_hw_ids;
 };
 
-struct pixcir_ts_platform_data {
+struct pixcir_ts_platform_data
+{
 	int x_max;
 	int y_max;
 	struct pixcir_i2c_chip_data chip;

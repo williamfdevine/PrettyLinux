@@ -178,7 +178,8 @@
 #define VSCSIIF_MAX_COMMAND_SIZE	16
 #define VSCSIIF_SENSE_BUFFERSIZE	96
 
-struct scsiif_request_segment {
+struct scsiif_request_segment
+{
 	grant_ref_t gref;
 	uint16_t offset;
 	uint16_t length;
@@ -187,7 +188,8 @@ struct scsiif_request_segment {
 #define VSCSIIF_SG_PER_PAGE (PAGE_SIZE / sizeof(struct scsiif_request_segment))
 
 /* Size of one request is 252 bytes */
-struct vscsiif_request {
+struct vscsiif_request
+{
 	uint16_t rqid;		/* private guest value, echoed in resp  */
 	uint8_t act;		/* command between backend and frontend */
 	uint8_t cmd_len;	/* valid CDB bytes */
@@ -200,12 +202,12 @@ struct vscsiif_request {
 					   DMA_FROM_DEVICE(2)
 					   DMA_NONE(3) requests */
 	uint8_t nr_segments;		/* Number of pieces of scatter-gather */
-/*
- * flag in nr_segments: SG elements via grant page
- *
- * If VSCSIIF_SG_GRANT is set, the low 7 bits of nr_segments specify the number
- * of grant pages containing SG elements. Usable if "feature-sg-grant" set.
- */
+	/*
+	 * flag in nr_segments: SG elements via grant page
+	 *
+	 * If VSCSIIF_SG_GRANT is set, the low 7 bits of nr_segments specify the number
+	 * of grant pages containing SG elements. Usable if "feature-sg-grant" set.
+	 */
 #define VSCSIIF_SG_GRANT	0x80
 
 	struct scsiif_request_segment seg[VSCSIIF_SG_TABLESIZE];
@@ -213,7 +215,8 @@ struct vscsiif_request {
 };
 
 /* Size of one response is 252 bytes */
-struct vscsiif_response {
+struct vscsiif_response
+{
 	uint16_t rqid;		/* identifies request */
 	uint8_t padding;
 	uint8_t sense_len;

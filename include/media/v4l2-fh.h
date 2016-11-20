@@ -48,7 +48,8 @@ struct v4l2_ctrl_handler;
  * @sequence: event sequence number
  * @m2m_ctx: pointer to &struct v4l2_m2m_ctx
  */
-struct v4l2_fh {
+struct v4l2_fh
+{
 	struct list_head	list;
 	struct video_device	*vdev;
 	struct v4l2_ctrl_handler *ctrl_handler;

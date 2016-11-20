@@ -32,13 +32,15 @@
 
 #define CEIL(a, b)	(((a) + (b-1)) / (b))
 
-enum ipipe_noise_filter {
+enum ipipe_noise_filter
+{
 	IPIPE_D2F_1ST = 0,
 	IPIPE_D2F_2ND = 1,
 };
 
 /* Used for driver storage */
-struct ipipe_otfdpc_2_0 {
+struct ipipe_otfdpc_2_0
+{
 	/* 0 - disable, 1 - enable */
 	unsigned char en;
 	/* defect detection method */
@@ -50,7 +52,8 @@ struct ipipe_otfdpc_2_0 {
 	struct vpfe_ipipe_otfdpc_2_0_cfg otfdpc_2_0;
 };
 
-struct ipipe_otfdpc_3_0 {
+struct ipipe_otfdpc_3_0
+{
 	/* 0 - disable, 1 - enable */
 	unsigned char en;
 	/* defect detection method */
@@ -63,19 +66,22 @@ struct ipipe_otfdpc_3_0 {
 };
 
 /* Structure for configuring Luminance Adjustment module */
-struct ipipe_lum_adj {
+struct ipipe_lum_adj
+{
 	/* Brightness adjustments */
 	unsigned char brightness;
 	/* contrast adjustments */
 	unsigned char contrast;
 };
 
-enum ipipe_rgb2rgb {
+enum ipipe_rgb2rgb
+{
 	IPIPE_RGB2RGB_1 = 0,
 	IPIPE_RGB2RGB_2 = 1,
 };
 
-struct ipipe_module_params {
+struct ipipe_module_params
+{
 	__u32 flag;
 	struct vpfe_ipipe_input_config input_config;
 	struct vpfe_ipipe_lutdpc lutdpc;
@@ -106,14 +112,16 @@ struct ipipe_module_params {
 #define IPIPE_OUTPUT_NONE		0
 #define IPIPE_OUTPUT_RESIZER		(1 << 0)
 
-enum ipipe_input_entity {
+enum ipipe_input_entity
+{
 	IPIPE_INPUT_NONE = 0,
 	IPIPE_INPUT_MEMORY = 1,
 	IPIPE_INPUT_CCDC = 2,
 };
 
 
-struct vpfe_ipipe_device {
+struct vpfe_ipipe_device
+{
 	struct v4l2_subdev subdev;
 	struct media_pad pads[IPIPE_PADS_NUM];
 	struct v4l2_mbus_framefmt formats[IPIPE_PADS_NUM];
@@ -125,7 +133,8 @@ struct vpfe_ipipe_device {
 	struct ipipe_module_params config;
 };
 
-struct ipipe_module_if {
+struct ipipe_module_if
+{
 	unsigned int param_offset;
 	unsigned int param_size;
 	unsigned int config_offset;
@@ -134,7 +143,8 @@ struct ipipe_module_if {
 };
 
 /* data paths */
-enum ipipe_data_paths {
+enum ipipe_data_paths
+{
 	IPIPE_RAW2YUV,
 	/* Bayer RAW input to YCbCr output */
 	IPIPE_RAW2RAW,
@@ -157,23 +167,23 @@ enum ipipe_data_paths {
 
 #define ipipe_sgrbg_pattern \
 	(IPIPE_COLPTN_Gr_Cy <<  COLPAT_EE_SHIFT | \
-	IPIPE_COLPTN_R_Ye  << COLPAT_EO_SHIFT | \
-	IPIPE_COLPTN_B_Mg  << COLPAT_OE_SHIFT | \
-	IPIPE_COLPTN_Gb_G  << COLPAT_OO_SHIFT)
+	 IPIPE_COLPTN_R_Ye  << COLPAT_EO_SHIFT | \
+	 IPIPE_COLPTN_B_Mg  << COLPAT_OE_SHIFT | \
+	 IPIPE_COLPTN_Gb_G  << COLPAT_OO_SHIFT)
 
 #define ipipe_srggb_pattern \
 	(IPIPE_COLPTN_R_Ye <<  COLPAT_EE_SHIFT | \
-	IPIPE_COLPTN_Gr_Cy  << COLPAT_EO_SHIFT | \
-	IPIPE_COLPTN_Gb_G  << COLPAT_OE_SHIFT | \
-	IPIPE_COLPTN_B_Mg  << COLPAT_OO_SHIFT)
+	 IPIPE_COLPTN_Gr_Cy  << COLPAT_EO_SHIFT | \
+	 IPIPE_COLPTN_Gb_G  << COLPAT_OE_SHIFT | \
+	 IPIPE_COLPTN_B_Mg  << COLPAT_OO_SHIFT)
 
 int vpfe_ipipe_register_entities(struct vpfe_ipipe_device *ipipe,
-		struct v4l2_device *v4l2_dev);
+								 struct v4l2_device *v4l2_dev);
 int vpfe_ipipe_init(struct vpfe_ipipe_device *ipipe,
-		struct platform_device *pdev);
+					struct platform_device *pdev);
 void vpfe_ipipe_unregister_entities(struct vpfe_ipipe_device *ipipe);
 void vpfe_ipipe_cleanup(struct vpfe_ipipe_device *ipipe,
-		struct platform_device *pdev);
+						struct platform_device *pdev);
 void vpfe_ipipe_enable(struct vpfe_device *vpfe_dev, int en);
 
 #endif		/* _DAVINCI_VPFE_DM365_IPIPE_H */

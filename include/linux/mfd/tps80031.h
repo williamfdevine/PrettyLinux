@@ -370,8 +370,8 @@
 #define TPS80031_TRANS_OFF_MASK				0x30
 
 #define TPS80031_EXT_PWR_REQ		(TPS80031_PWR_REQ_INPUT_PREQ1 | \
-					TPS80031_PWR_REQ_INPUT_PREQ2 | \
-					TPS80031_PWR_REQ_INPUT_PREQ3)
+									 TPS80031_PWR_REQ_INPUT_PREQ2 | \
+									 TPS80031_PWR_REQ_INPUT_PREQ3)
 
 /* TPS80031_BBSPOR_CFG bit field */
 #define TPS80031_BBSPOR_CHG_EN				0x8
@@ -380,12 +380,14 @@
 struct i2c_client;
 
 /* Supported chips */
-enum chips {
+enum chips
+{
 	TPS80031 = 0x00000001,
 	TPS80032 = 0x00000002,
 };
 
-enum {
+enum
+{
 	TPS80031_INT_PWRON,
 	TPS80031_INT_RPWRON,
 	TPS80031_INT_SYS_VLOW,
@@ -434,7 +436,8 @@ enum {
 #define TPS80031_I2C_ID2_ADDR				0x49
 #define TPS80031_I2C_ID3_ADDR				0x4A
 
-enum {
+enum
+{
 	TPS80031_REGULATOR_VIO,
 	TPS80031_REGULATOR_SMPS1,
 	TPS80031_REGULATOR_SMPS2,
@@ -458,7 +461,8 @@ enum {
 };
 
 /* Different configurations for the rails */
-enum {
+enum
+{
 	/* USBLDO input selection */
 	TPS80031_USBLDO_INPUT_VSYS		= 0x00000001,
 	TPS80031_USBLDO_INPUT_PMID		= 0x00000002,
@@ -473,7 +477,8 @@ enum {
 };
 
 /* External controls requests */
-enum tps80031_ext_control {
+enum tps80031_ext_control
+{
 	TPS80031_PWR_REQ_INPUT_NONE		= 0x00000000,
 	TPS80031_PWR_REQ_INPUT_PREQ1		= 0x00000001,
 	TPS80031_PWR_REQ_INPUT_PREQ2		= 0x00000002,
@@ -482,7 +487,8 @@ enum tps80031_ext_control {
 	TPS80031_PWR_ON_ON_SLEEP		= 0x00000010,
 };
 
-enum tps80031_pupd_pins {
+enum tps80031_pupd_pins
+{
 	TPS80031_PREQ1 = 0,
 	TPS80031_PREQ2A,
 	TPS80031_PREQ2B,
@@ -500,13 +506,15 @@ enum tps80031_pupd_pins {
 	TPS80031_CTLI2C_SDA,
 };
 
-enum tps80031_pupd_settings {
+enum tps80031_pupd_settings
+{
 	TPS80031_PUPD_NORMAL,
 	TPS80031_PUPD_PULLDOWN,
 	TPS80031_PUPD_PULLUP,
 };
 
-struct tps80031 {
+struct tps80031
+{
 	struct device		*dev;
 	unsigned long		chip_info;
 	int			es_version;
@@ -515,7 +523,8 @@ struct tps80031 {
 	struct regmap_irq_chip_data *irq_data;
 };
 
-struct tps80031_pupd_init_data {
+struct tps80031_pupd_init_data
+{
 	int input_pin;
 	int setting;
 };
@@ -529,23 +538,25 @@ struct tps80031_pupd_init_data {
  *		  It should be ORed of config enums.
  */
 
-struct tps80031_regulator_platform_data {
+struct tps80031_regulator_platform_data
+{
 	struct regulator_init_data *reg_init_data;
 	unsigned int ext_ctrl_flag;
 	unsigned int config_flags;
 };
 
-struct tps80031_platform_data {
+struct tps80031_platform_data
+{
 	int irq_base;
 	bool use_power_off;
 	struct tps80031_pupd_init_data *pupd_init_data;
 	int pupd_init_data_size;
 	struct tps80031_regulator_platform_data
-			*regulator_pdata[TPS80031_REGULATOR_MAX];
+		*regulator_pdata[TPS80031_REGULATOR_MAX];
 };
 
 static inline int tps80031_write(struct device *dev, int sid,
-		int reg, uint8_t val)
+								 int reg, uint8_t val)
 {
 	struct tps80031 *tps80031 = dev_get_drvdata(dev);
 
@@ -553,7 +564,7 @@ static inline int tps80031_write(struct device *dev, int sid,
 }
 
 static inline int tps80031_writes(struct device *dev, int sid, int reg,
-		int len, uint8_t *val)
+								  int len, uint8_t *val)
 {
 	struct tps80031 *tps80031 = dev_get_drvdata(dev);
 
@@ -561,14 +572,16 @@ static inline int tps80031_writes(struct device *dev, int sid, int reg,
 }
 
 static inline int tps80031_read(struct device *dev, int sid,
-		int reg, uint8_t *val)
+								int reg, uint8_t *val)
 {
 	struct tps80031 *tps80031 = dev_get_drvdata(dev);
 	unsigned int ival;
 	int ret;
 
 	ret = regmap_read(tps80031->regmap[sid], reg, &ival);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed reading from reg 0x%02x\n", reg);
 		return ret;
 	}
@@ -578,7 +591,7 @@ static inline int tps80031_read(struct device *dev, int sid,
 }
 
 static inline int tps80031_reads(struct device *dev, int sid,
-		int reg, int len, uint8_t *val)
+								 int reg, int len, uint8_t *val)
 {
 	struct tps80031 *tps80031 = dev_get_drvdata(dev);
 
@@ -586,16 +599,16 @@ static inline int tps80031_reads(struct device *dev, int sid,
 }
 
 static inline int tps80031_set_bits(struct device *dev, int sid,
-		int reg, uint8_t bit_mask)
+									int reg, uint8_t bit_mask)
 {
 	struct tps80031 *tps80031 = dev_get_drvdata(dev);
 
 	return regmap_update_bits(tps80031->regmap[sid], reg,
-				bit_mask, bit_mask);
+							  bit_mask, bit_mask);
 }
 
 static inline int tps80031_clr_bits(struct device *dev, int sid,
-		int reg, uint8_t bit_mask)
+									int reg, uint8_t bit_mask)
 {
 	struct tps80031 *tps80031 = dev_get_drvdata(dev);
 
@@ -603,7 +616,7 @@ static inline int tps80031_clr_bits(struct device *dev, int sid,
 }
 
 static inline int tps80031_update(struct device *dev, int sid,
-		int reg, uint8_t val, uint8_t mask)
+								  int reg, uint8_t val, uint8_t mask)
 {
 	struct tps80031 *tps80031 = dev_get_drvdata(dev);
 

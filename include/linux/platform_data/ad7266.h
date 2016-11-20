@@ -16,7 +16,8 @@
  * @AD7266_RANGE_2VREF: Device is configured for input range 0V - 2VREF
  *			(RANGE pin set to high)
  */
-enum ad7266_range {
+enum ad7266_range
+{
 	AD7266_RANGE_VREF,
 	AD7266_RANGE_2VREF,
 };
@@ -30,7 +31,8 @@ enum ad7266_range {
  * @AD7266_MODE_SINGLE_ENDED: Device is configured for single-ended mode
  *				(SGL/DIFF pin set to high)
  */
-enum ad7266_mode {
+enum ad7266_mode
+{
 	AD7266_MODE_DIFF,
 	AD7266_MODE_PSEUDO_DIFF,
 	AD7266_MODE_SINGLE_ENDED,
@@ -44,7 +46,8 @@ enum ad7266_mode {
  * @addr_gpios: GPIOs used for controlling the address pins, only used if
  *		fixed_addr is set to false.
  */
-struct ad7266_platform_data {
+struct ad7266_platform_data
+{
 	enum ad7266_range range;
 	enum ad7266_mode mode;
 	bool fixed_addr;

@@ -131,7 +131,8 @@
 #define HIP04_MAX_TX_COALESCE_FRAMES	200
 #define HIP04_MIN_TX_COALESCE_FRAMES	100
 
-struct tx_desc {
+struct tx_desc
+{
 	u32 send_addr;
 	u32 send_size;
 	u32 next_addr;
@@ -139,7 +140,8 @@ struct tx_desc {
 	u32 wb_addr;
 } __aligned(64);
 
-struct rx_desc {
+struct rx_desc
+{
 	u16 reserved_16;
 	u16 pkt_len;
 	u32 reserve1[3];
@@ -147,7 +149,8 @@ struct rx_desc {
 	u32 reserve2[4];
 };
 
-struct hip04_priv {
+struct hip04_priv
+{
 	void __iomem *base;
 	int phy_mode;
 	int chan;
@@ -196,26 +199,42 @@ static void hip04_config_port(struct net_device *ndev, u32 speed, u32 duplex)
 	priv->speed = speed;
 	priv->duplex = duplex;
 
-	switch (priv->phy_mode) {
-	case PHY_INTERFACE_MODE_SGMII:
-		if (speed == SPEED_1000)
-			val = SGMII_SPEED_1000;
-		else if (speed == SPEED_100)
-			val = SGMII_SPEED_100;
-		else
-			val = SGMII_SPEED_10;
-		break;
-	case PHY_INTERFACE_MODE_MII:
-		if (speed == SPEED_100)
-			val = MII_SPEED_100;
-		else
+	switch (priv->phy_mode)
+	{
+		case PHY_INTERFACE_MODE_SGMII:
+			if (speed == SPEED_1000)
+			{
+				val = SGMII_SPEED_1000;
+			}
+			else if (speed == SPEED_100)
+			{
+				val = SGMII_SPEED_100;
+			}
+			else
+			{
+				val = SGMII_SPEED_10;
+			}
+
+			break;
+
+		case PHY_INTERFACE_MODE_MII:
+			if (speed == SPEED_100)
+			{
+				val = MII_SPEED_100;
+			}
+			else
+			{
+				val = MII_SPEED_10;
+			}
+
+			break;
+
+		default:
+			netdev_warn(ndev, "not supported mode\n");
 			val = MII_SPEED_10;
-		break;
-	default:
-		netdev_warn(ndev, "not supported mode\n");
-		val = MII_SPEED_10;
-		break;
+			break;
 	}
+
 	writel_relaxed(val, priv->base + GE_PORT_MODE);
 
 	val = duplex ? GE_DUPLEX_FULL : GE_DUPLEX_HALF;
@@ -229,12 +248,17 @@ static void hip04_reset_ppe(struct hip04_priv *priv)
 {
 	u32 val, tmp, timeout = 0;
 
-	do {
+	do
+	{
 		regmap_read(priv->map, priv->port * 4 + PPE_CURR_BUF_CNT, &val);
 		regmap_read(priv->map, priv->port * 4 + PPE_CFG_RX_ADDR, &tmp);
+
 		if (timeout++ > RESET_TIMEOUT)
+		{
 			break;
-	} while (val & 0xfff);
+		}
+	}
+	while (val & 0xfff);
 }
 
 static void hip04_config_fifo(struct hip04_priv *priv)
@@ -351,10 +375,10 @@ static void hip04_update_mac_address(struct net_device *ndev)
 	struct hip04_priv *priv = netdev_priv(ndev);
 
 	writel_relaxed(((ndev->dev_addr[0] << 8) | (ndev->dev_addr[1])),
-		       priv->base + GE_STATION_MAC_ADDRESS);
+				   priv->base + GE_STATION_MAC_ADDRESS);
 	writel_relaxed(((ndev->dev_addr[2] << 24) | (ndev->dev_addr[3] << 16) |
-			(ndev->dev_addr[4] << 8) | (ndev->dev_addr[5])),
-		       priv->base + GE_STATION_MAC_ADDRESS + 4);
+					(ndev->dev_addr[4] << 8) | (ndev->dev_addr[5])),
+				   priv->base + GE_STATION_MAC_ADDRESS + 4);
 }
 
 static int hip04_set_mac_address(struct net_device *ndev, void *addr)
@@ -374,24 +398,36 @@ static int hip04_tx_reclaim(struct net_device *ndev, bool force)
 
 	smp_rmb();
 	count = tx_count(ACCESS_ONCE(priv->tx_head), tx_tail);
-	if (count == 0)
-		goto out;
 
-	while (count) {
+	if (count == 0)
+	{
+		goto out;
+	}
+
+	while (count)
+	{
 		desc = &priv->tx_desc[tx_tail];
-		if (desc->send_addr != 0) {
+
+		if (desc->send_addr != 0)
+		{
 			if (force)
+			{
 				desc->send_addr = 0;
+			}
 			else
+			{
 				break;
+			}
 		}
 
-		if (priv->tx_phys[tx_tail]) {
+		if (priv->tx_phys[tx_tail])
+		{
 			dma_unmap_single(&ndev->dev, priv->tx_phys[tx_tail],
-					 priv->tx_skb[tx_tail]->len,
-					 DMA_TO_DEVICE);
+							 priv->tx_skb[tx_tail]->len,
+							 DMA_TO_DEVICE);
 			priv->tx_phys[tx_tail] = 0;
 		}
+
 		pkts_compl++;
 		bytes_compl += priv->tx_skb[tx_tail]->len;
 		dev_kfree_skb(priv->tx_skb[tx_tail]);
@@ -404,11 +440,16 @@ static int hip04_tx_reclaim(struct net_device *ndev, bool force)
 	smp_wmb(); /* Ensure tx_tail visible to xmit */
 
 out:
+
 	if (pkts_compl || bytes_compl)
+	{
 		netdev_completed_queue(ndev, pkts_compl, bytes_compl);
+	}
 
 	if (unlikely(netif_queue_stopped(ndev)) && (count < (TX_DESC_NUM - 1)))
+	{
 		netif_wake_queue(ndev);
+	}
 
 	return count;
 }
@@ -419,7 +460,7 @@ static void hip04_start_tx_timer(struct hip04_priv *priv)
 
 	/* allow timer to fire after half the time at the earliest */
 	hrtimer_start_range_ns(&priv->tx_coalesce_timer, ns_to_ktime(ns),
-			       ns, HRTIMER_MODE_REL);
+						   ns, HRTIMER_MODE_REL);
 }
 
 static int hip04_mac_start_xmit(struct sk_buff *skb, struct net_device *ndev)
@@ -432,13 +473,17 @@ static int hip04_mac_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 
 	smp_rmb();
 	count = tx_count(tx_head, ACCESS_ONCE(priv->tx_tail));
-	if (count == (TX_DESC_NUM - 1)) {
+
+	if (count == (TX_DESC_NUM - 1))
+	{
 		netif_stop_queue(ndev);
 		return NETDEV_TX_BUSY;
 	}
 
 	phys = dma_map_single(&ndev->dev, skb->data, skb->len, DMA_TO_DEVICE);
-	if (dma_mapping_error(&ndev->dev, phys)) {
+
+	if (dma_mapping_error(&ndev->dev, phys))
+	{
 		dev_kfree_skb(skb);
 		return NETDEV_TX_OK;
 	}
@@ -464,16 +509,20 @@ static int hip04_mac_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 	smp_wmb();
 
 	/* queue is getting full, better start cleaning up now */
-	if (count >= priv->tx_coalesce_frames) {
-		if (napi_schedule_prep(&priv->napi)) {
+	if (count >= priv->tx_coalesce_frames)
+	{
+		if (napi_schedule_prep(&priv->napi))
+		{
 			/* disable rx interrupt and timer */
 			priv->reg_inten &= ~(RCV_INT);
 			writel_relaxed(DEF_INT_MASK & ~RCV_INT,
-				       priv->base + PPE_INTEN);
+						   priv->base + PPE_INTEN);
 			hrtimer_cancel(&priv->tx_coalesce_timer);
 			__napi_schedule(&priv->napi);
 		}
-	} else if (!hrtimer_is_queued(&priv->tx_coalesce_timer)) {
+	}
+	else if (!hrtimer_is_queued(&priv->tx_coalesce_timer))
+	{
 		/* cleanup not pending yet, start a new timer */
 		hip04_start_tx_timer(priv);
 	}
@@ -497,30 +546,38 @@ static int hip04_rx_poll(struct napi_struct *napi, int budget)
 	u16 len;
 	u32 err;
 
-	while (cnt && !last) {
+	while (cnt && !last)
+	{
 		buf = priv->rx_buf[priv->rx_head];
 		skb = build_skb(buf, priv->rx_buf_size);
-		if (unlikely(!skb)) {
+
+		if (unlikely(!skb))
+		{
 			net_dbg_ratelimited("build_skb failed\n");
 			goto refill;
 		}
 
 		dma_unmap_single(&ndev->dev, priv->rx_phys[priv->rx_head],
-				 RX_BUF_SIZE, DMA_FROM_DEVICE);
+						 RX_BUF_SIZE, DMA_FROM_DEVICE);
 		priv->rx_phys[priv->rx_head] = 0;
 
 		desc = (struct rx_desc *)skb->data;
 		len = be16_to_cpu(desc->pkt_len);
 		err = be32_to_cpu(desc->pkt_err);
 
-		if (0 == len) {
+		if (0 == len)
+		{
 			dev_kfree_skb_any(skb);
 			last = true;
-		} else if ((err & RX_PKT_ERR) || (len >= GMAC_MAX_PKT_LEN)) {
+		}
+		else if ((err & RX_PKT_ERR) || (len >= GMAC_MAX_PKT_LEN))
+		{
 			dev_kfree_skb_any(skb);
 			stats->rx_dropped++;
 			stats->rx_errors++;
-		} else {
+		}
+		else
+		{
 			skb_reserve(skb, NET_SKB_PAD + NET_IP_ALIGN);
 			skb_put(skb, len);
 			skb->protocol = eth_type_trans(skb, ndev);
@@ -532,35 +589,53 @@ static int hip04_rx_poll(struct napi_struct *napi, int budget)
 
 refill:
 		buf = netdev_alloc_frag(priv->rx_buf_size);
+
 		if (!buf)
+		{
 			goto done;
+		}
+
 		phys = dma_map_single(&ndev->dev, buf,
-				      RX_BUF_SIZE, DMA_FROM_DEVICE);
+							  RX_BUF_SIZE, DMA_FROM_DEVICE);
+
 		if (dma_mapping_error(&ndev->dev, phys))
+		{
 			goto done;
+		}
+
 		priv->rx_buf[priv->rx_head] = buf;
 		priv->rx_phys[priv->rx_head] = phys;
 		hip04_set_recv_desc(priv, phys);
 
 		priv->rx_head = RX_NEXT(priv->rx_head);
+
 		if (rx >= budget)
+		{
 			goto done;
+		}
 
 		if (--cnt == 0)
+		{
 			cnt = hip04_recv_cnt(priv);
+		}
 	}
 
-	if (!(priv->reg_inten & RCV_INT)) {
+	if (!(priv->reg_inten & RCV_INT))
+	{
 		/* enable rx interrupt */
 		priv->reg_inten |= RCV_INT;
 		writel_relaxed(priv->reg_inten, priv->base + PPE_INTEN);
 	}
+
 	napi_complete(napi);
 done:
 	/* clean up tx descriptors and start a new timer if necessary */
 	tx_remaining = hip04_tx_reclaim(ndev, false);
+
 	if (rx < budget && tx_remaining)
+	{
 		hip04_start_tx_timer(priv);
+	}
 
 	return rx;
 }
@@ -573,23 +648,30 @@ static irqreturn_t hip04_mac_interrupt(int irq, void *dev_id)
 	u32 ists = readl_relaxed(priv->base + PPE_INTSTS);
 
 	if (!ists)
+	{
 		return IRQ_NONE;
+	}
 
 	writel_relaxed(DEF_INT_MASK, priv->base + PPE_RINT);
 
-	if (unlikely(ists & DEF_INT_ERR)) {
-		if (ists & (RCV_NOBUF | RCV_DROP)) {
+	if (unlikely(ists & DEF_INT_ERR))
+	{
+		if (ists & (RCV_NOBUF | RCV_DROP))
+		{
 			stats->rx_errors++;
 			stats->rx_dropped++;
 			netdev_err(ndev, "rx drop\n");
 		}
-		if (ists & TX_DROP) {
+
+		if (ists & TX_DROP)
+		{
 			stats->tx_dropped++;
 			netdev_err(ndev, "tx drop\n");
 		}
 	}
 
-	if (ists & RCV_INT && napi_schedule_prep(&priv->napi)) {
+	if (ists & RCV_INT && napi_schedule_prep(&priv->napi))
+	{
 		/* disable rx interrupt */
 		priv->reg_inten &= ~(RCV_INT);
 		writel_relaxed(DEF_INT_MASK & ~RCV_INT, priv->base + PPE_INTEN);
@@ -606,7 +688,8 @@ static enum hrtimer_restart tx_done(struct hrtimer *hrtimer)
 
 	priv = container_of(hrtimer, struct hip04_priv, tx_coalesce_timer);
 
-	if (napi_schedule_prep(&priv->napi)) {
+	if (napi_schedule_prep(&priv->napi))
+	{
 		/* disable rx interrupt */
 		priv->reg_inten &= ~(RCV_INT);
 		writel_relaxed(DEF_INT_MASK & ~RCV_INT, priv->base + PPE_INTEN);
@@ -621,7 +704,8 @@ static void hip04_adjust_link(struct net_device *ndev)
 	struct hip04_priv *priv = netdev_priv(ndev);
 	struct phy_device *phy = priv->phy;
 
-	if ((priv->speed != phy->speed) || (priv->duplex != phy->duplex)) {
+	if ((priv->speed != phy->speed) || (priv->duplex != phy->duplex))
+	{
 		hip04_config_port(ndev, phy->speed, phy->duplex);
 		phy_print_status(phy);
 	}
@@ -637,20 +721,26 @@ static int hip04_mac_open(struct net_device *ndev)
 	priv->tx_tail = 0;
 	hip04_reset_ppe(priv);
 
-	for (i = 0; i < RX_DESC_NUM; i++) {
+	for (i = 0; i < RX_DESC_NUM; i++)
+	{
 		dma_addr_t phys;
 
 		phys = dma_map_single(&ndev->dev, priv->rx_buf[i],
-				      RX_BUF_SIZE, DMA_FROM_DEVICE);
+							  RX_BUF_SIZE, DMA_FROM_DEVICE);
+
 		if (dma_mapping_error(&ndev->dev, phys))
+		{
 			return -EIO;
+		}
 
 		priv->rx_phys[i] = phys;
 		hip04_set_recv_desc(priv, phys);
 	}
 
 	if (priv->phy)
+	{
 		phy_start(priv->phy);
+	}
 
 	netdev_reset_queue(ndev);
 	netif_start_queue(ndev);
@@ -672,12 +762,16 @@ static int hip04_mac_stop(struct net_device *ndev)
 	hip04_reset_ppe(priv);
 
 	if (priv->phy)
+	{
 		phy_stop(priv->phy);
+	}
 
-	for (i = 0; i < RX_DESC_NUM; i++) {
-		if (priv->rx_phys[i]) {
+	for (i = 0; i < RX_DESC_NUM; i++)
+	{
+		if (priv->rx_phys[i])
+		{
 			dma_unmap_single(&ndev->dev, priv->rx_phys[i],
-					 RX_BUF_SIZE, DMA_FROM_DEVICE);
+							 RX_BUF_SIZE, DMA_FROM_DEVICE);
 			priv->rx_phys[i] = 0;
 		}
 	}
@@ -707,7 +801,7 @@ static struct net_device_stats *hip04_get_stats(struct net_device *ndev)
 }
 
 static int hip04_get_coalesce(struct net_device *netdev,
-			      struct ethtool_coalesce *ec)
+							  struct ethtool_coalesce *ec)
 {
 	struct hip04_priv *priv = netdev_priv(netdev);
 
@@ -718,29 +812,33 @@ static int hip04_get_coalesce(struct net_device *netdev,
 }
 
 static int hip04_set_coalesce(struct net_device *netdev,
-			      struct ethtool_coalesce *ec)
+							  struct ethtool_coalesce *ec)
 {
 	struct hip04_priv *priv = netdev_priv(netdev);
 
 	/* Check not supported parameters  */
 	if ((ec->rx_max_coalesced_frames) || (ec->rx_coalesce_usecs_irq) ||
-	    (ec->rx_max_coalesced_frames_irq) || (ec->tx_coalesce_usecs_irq) ||
-	    (ec->use_adaptive_rx_coalesce) || (ec->use_adaptive_tx_coalesce) ||
-	    (ec->pkt_rate_low) || (ec->rx_coalesce_usecs_low) ||
-	    (ec->rx_max_coalesced_frames_low) || (ec->tx_coalesce_usecs_high) ||
-	    (ec->tx_max_coalesced_frames_low) || (ec->pkt_rate_high) ||
-	    (ec->tx_coalesce_usecs_low) || (ec->rx_coalesce_usecs_high) ||
-	    (ec->rx_max_coalesced_frames_high) || (ec->rx_coalesce_usecs) ||
-	    (ec->tx_max_coalesced_frames_irq) ||
-	    (ec->stats_block_coalesce_usecs) ||
-	    (ec->tx_max_coalesced_frames_high) || (ec->rate_sample_interval))
+		(ec->rx_max_coalesced_frames_irq) || (ec->tx_coalesce_usecs_irq) ||
+		(ec->use_adaptive_rx_coalesce) || (ec->use_adaptive_tx_coalesce) ||
+		(ec->pkt_rate_low) || (ec->rx_coalesce_usecs_low) ||
+		(ec->rx_max_coalesced_frames_low) || (ec->tx_coalesce_usecs_high) ||
+		(ec->tx_max_coalesced_frames_low) || (ec->pkt_rate_high) ||
+		(ec->tx_coalesce_usecs_low) || (ec->rx_coalesce_usecs_high) ||
+		(ec->rx_max_coalesced_frames_high) || (ec->rx_coalesce_usecs) ||
+		(ec->tx_max_coalesced_frames_irq) ||
+		(ec->stats_block_coalesce_usecs) ||
+		(ec->tx_max_coalesced_frames_high) || (ec->rate_sample_interval))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if ((ec->tx_coalesce_usecs > HIP04_MAX_TX_COALESCE_USECS ||
-	     ec->tx_coalesce_usecs < HIP04_MIN_TX_COALESCE_USECS) ||
-	    (ec->tx_max_coalesced_frames > HIP04_MAX_TX_COALESCE_FRAMES ||
-	     ec->tx_max_coalesced_frames < HIP04_MIN_TX_COALESCE_FRAMES))
+		 ec->tx_coalesce_usecs < HIP04_MIN_TX_COALESCE_USECS) ||
+		(ec->tx_max_coalesced_frames > HIP04_MAX_TX_COALESCE_FRAMES ||
+		 ec->tx_max_coalesced_frames < HIP04_MIN_TX_COALESCE_FRAMES))
+	{
 		return -EINVAL;
+	}
 
 	priv->tx_coalesce_usecs = ec->tx_coalesce_usecs;
 	priv->tx_coalesce_frames = ec->tx_max_coalesced_frames;
@@ -749,19 +847,21 @@ static int hip04_set_coalesce(struct net_device *netdev,
 }
 
 static void hip04_get_drvinfo(struct net_device *netdev,
-			      struct ethtool_drvinfo *drvinfo)
+							  struct ethtool_drvinfo *drvinfo)
 {
 	strlcpy(drvinfo->driver, DRV_NAME, sizeof(drvinfo->driver));
 	strlcpy(drvinfo->version, DRV_VERSION, sizeof(drvinfo->version));
 }
 
-static const struct ethtool_ops hip04_ethtool_ops = {
+static const struct ethtool_ops hip04_ethtool_ops =
+{
 	.get_coalesce		= hip04_get_coalesce,
 	.set_coalesce		= hip04_set_coalesce,
 	.get_drvinfo		= hip04_get_drvinfo,
 };
 
-static const struct net_device_ops hip04_netdev_ops = {
+static const struct net_device_ops hip04_netdev_ops =
+{
 	.ndo_open		= hip04_mac_open,
 	.ndo_stop		= hip04_mac_stop,
 	.ndo_get_stats		= hip04_get_stats,
@@ -778,17 +878,25 @@ static int hip04_alloc_ring(struct net_device *ndev, struct device *d)
 	int i;
 
 	priv->tx_desc = dma_alloc_coherent(d,
-					   TX_DESC_NUM * sizeof(struct tx_desc),
-					   &priv->tx_desc_dma, GFP_KERNEL);
+									   TX_DESC_NUM * sizeof(struct tx_desc),
+									   &priv->tx_desc_dma, GFP_KERNEL);
+
 	if (!priv->tx_desc)
+	{
 		return -ENOMEM;
+	}
 
 	priv->rx_buf_size = RX_BUF_SIZE +
-			    SKB_DATA_ALIGN(sizeof(struct skb_shared_info));
-	for (i = 0; i < RX_DESC_NUM; i++) {
+						SKB_DATA_ALIGN(sizeof(struct skb_shared_info));
+
+	for (i = 0; i < RX_DESC_NUM; i++)
+	{
 		priv->rx_buf[i] = netdev_alloc_frag(priv->rx_buf_size);
+
 		if (!priv->rx_buf[i])
+		{
 			return -ENOMEM;
+		}
 	}
 
 	return 0;
@@ -801,14 +909,18 @@ static void hip04_free_ring(struct net_device *ndev, struct device *d)
 
 	for (i = 0; i < RX_DESC_NUM; i++)
 		if (priv->rx_buf[i])
+		{
 			skb_free_frag(priv->rx_buf[i]);
+		}
 
 	for (i = 0; i < TX_DESC_NUM; i++)
 		if (priv->tx_skb[i])
+		{
 			dev_kfree_skb_any(priv->tx_skb[i]);
+		}
 
 	dma_free_coherent(d, TX_DESC_NUM * sizeof(struct tx_desc),
-			  priv->tx_desc, priv->tx_desc_dma);
+					  priv->tx_desc, priv->tx_desc_dma);
 }
 
 static int hip04_mac_probe(struct platform_device *pdev)
@@ -823,8 +935,11 @@ static int hip04_mac_probe(struct platform_device *pdev)
 	int ret;
 
 	ndev = alloc_etherdev(sizeof(struct hip04_priv));
+
 	if (!ndev)
+	{
 		return -ENOMEM;
+	}
 
 	priv = netdev_priv(ndev);
 	priv->ndev = ndev;
@@ -832,13 +947,17 @@ static int hip04_mac_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->base = devm_ioremap_resource(d, res);
-	if (IS_ERR(priv->base)) {
+
+	if (IS_ERR(priv->base))
+	{
 		ret = PTR_ERR(priv->base);
 		goto init_fail;
 	}
 
 	ret = of_parse_phandle_with_fixed_args(node, "port-handle", 2, 0, &arg);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_warn(d, "no port-handle\n");
 		goto init_fail;
 	}
@@ -859,38 +978,50 @@ static int hip04_mac_probe(struct platform_device *pdev)
 	priv->tx_coalesce_timer.function = tx_done;
 
 	priv->map = syscon_node_to_regmap(arg.np);
-	if (IS_ERR(priv->map)) {
+
+	if (IS_ERR(priv->map))
+	{
 		dev_warn(d, "no syscon hisilicon,hip04-ppe\n");
 		ret = PTR_ERR(priv->map);
 		goto init_fail;
 	}
 
 	priv->phy_mode = of_get_phy_mode(node);
-	if (priv->phy_mode < 0) {
+
+	if (priv->phy_mode < 0)
+	{
 		dev_warn(d, "not find phy-mode\n");
 		ret = -EINVAL;
 		goto init_fail;
 	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		ret = -EINVAL;
 		goto init_fail;
 	}
 
 	ret = devm_request_irq(d, irq, hip04_mac_interrupt,
-			       0, pdev->name, ndev);
-	if (ret) {
+						   0, pdev->name, ndev);
+
+	if (ret)
+	{
 		netdev_err(ndev, "devm_request_irq failed\n");
 		goto init_fail;
 	}
 
 	priv->phy_node = of_parse_phandle(node, "phy-handle", 0);
-	if (priv->phy_node) {
+
+	if (priv->phy_node)
+	{
 		priv->phy = of_phy_connect(ndev, priv->phy_node,
-					   &hip04_adjust_link,
-					   0, priv->phy_mode);
-		if (!priv->phy) {
+								   &hip04_adjust_link,
+								   0, priv->phy_mode);
+
+		if (!priv->phy)
+		{
 			ret = -EPROBE_DEFER;
 			goto init_fail;
 		}
@@ -908,21 +1039,28 @@ static int hip04_mac_probe(struct platform_device *pdev)
 	SET_NETDEV_DEV(ndev, &pdev->dev);
 
 	hip04_reset_ppe(priv);
+
 	if (priv->phy_mode == PHY_INTERFACE_MODE_MII)
+	{
 		hip04_config_port(ndev, SPEED_100, DUPLEX_FULL);
+	}
 
 	hip04_config_fifo(priv);
 	random_ether_addr(ndev->dev_addr);
 	hip04_update_mac_address(ndev);
 
 	ret = hip04_alloc_ring(ndev, d);
-	if (ret) {
+
+	if (ret)
+	{
 		netdev_err(ndev, "alloc ring fail\n");
 		goto alloc_fail;
 	}
 
 	ret = register_netdev(ndev);
-	if (ret) {
+
+	if (ret)
+	{
 		free_netdev(ndev);
 		goto alloc_fail;
 	}
@@ -944,7 +1082,9 @@ static int hip04_remove(struct platform_device *pdev)
 	struct device *d = &pdev->dev;
 
 	if (priv->phy)
+	{
 		phy_disconnect(priv->phy);
+	}
 
 	hip04_free_ring(ndev, d);
 	unregister_netdev(ndev);
@@ -956,14 +1096,16 @@ static int hip04_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id hip04_mac_match[] = {
+static const struct of_device_id hip04_mac_match[] =
+{
 	{ .compatible = "hisilicon,hip04-mac" },
 	{ }
 };
 
 MODULE_DEVICE_TABLE(of, hip04_mac_match);
 
-static struct platform_driver hip04_mac_driver = {
+static struct platform_driver hip04_mac_driver =
+{
 	.probe	= hip04_mac_probe,
 	.remove	= hip04_remove,
 	.driver	= {

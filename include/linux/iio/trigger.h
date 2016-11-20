@@ -14,7 +14,8 @@
 #define _IIO_TRIGGER_H_
 
 #ifdef CONFIG_IIO_TRIGGER
-struct iio_subirq {
+struct iio_subirq
+{
 	bool enabled;
 };
 
@@ -33,12 +34,13 @@ struct iio_trigger;
  * This is typically static const within a driver and shared by
  * instances of a given device.
  **/
-struct iio_trigger_ops {
+struct iio_trigger_ops
+{
 	struct module *owner;
 	int (*set_trigger_state)(struct iio_trigger *trig, bool state);
 	int (*try_reenable)(struct iio_trigger *trig);
 	int (*validate_device)(struct iio_trigger *trig,
-			       struct iio_dev *indio_dev);
+						   struct iio_dev *indio_dev);
 };
 
 
@@ -60,7 +62,8 @@ struct iio_trigger_ops {
  *			i.e. if we registered a poll function to the same
  *			device as the one providing the trigger.
  **/
-struct iio_trigger {
+struct iio_trigger
+{
 	const struct iio_trigger_ops	*ops;
 	int				id;
 	const char			*name;
@@ -130,7 +133,7 @@ static inline void *iio_trigger_get_drvdata(struct iio_trigger *trig)
 int iio_trigger_register(struct iio_trigger *trig_info);
 
 int devm_iio_trigger_register(struct device *dev,
-			      struct iio_trigger *trig_info);
+							  struct iio_trigger *trig_info);
 
 /**
  * iio_trigger_unregister() - unregister a trigger from the core
@@ -139,7 +142,7 @@ int devm_iio_trigger_register(struct device *dev,
 void iio_trigger_unregister(struct iio_trigger *trig_info);
 
 void devm_iio_trigger_unregister(struct device *dev,
-				 struct iio_trigger *trig_info);
+								 struct iio_trigger *trig_info);
 
 /**
  * iio_trigger_set_immutable() - set an immutable trigger on destination

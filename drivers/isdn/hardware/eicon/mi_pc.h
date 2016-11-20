@@ -67,7 +67,8 @@
 #define _MP_RISC_RESET   0x81        /* active hi, bit 7 for compatibility with old boards */
 /* CPU exception context structure in MP shared ram after trap */
 typedef struct mp_xcptcontext_s MP_XCPTC;
-struct mp_xcptcontext_s {
+struct mp_xcptcontext_s
+{
 	dword       sr;
 	dword       cr;
 	dword       epc;
@@ -79,7 +80,8 @@ struct mp_xcptcontext_s {
 	dword       xclass;
 };
 /* boot interface structure for PRI */
-struct mp_load {
+struct mp_load
+{
 	dword     volatile cmd;
 	dword     volatile addr;
 	dword     volatile len;
@@ -150,7 +152,7 @@ struct mp_load {
 #define CS_BASEREG    0x0018
 #define BOOT_BASEREG  0x001c
 #define GTREGS_BASEREG 0x0024   /*GTRegsBase reg-contain the base addr where*/
-				/*the GT64010 internal regs where mapped    */
+/*the GT64010 internal regs where mapped    */
 /*
  *  GT64010 internal registers
  */

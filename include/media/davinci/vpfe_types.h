@@ -20,12 +20,14 @@
 
 #ifdef __KERNEL__
 
-enum vpfe_pin_pol {
+enum vpfe_pin_pol
+{
 	VPFE_PINPOL_POSITIVE,
 	VPFE_PINPOL_NEGATIVE
 };
 
-enum vpfe_hw_if_type {
+enum vpfe_hw_if_type
+{
 	/* BT656 - 8 bit */
 	VPFE_BT656,
 	/* BT1120 - 16 bit */
@@ -41,7 +43,8 @@ enum vpfe_hw_if_type {
 };
 
 /* interface description */
-struct vpfe_hw_if_param {
+struct vpfe_hw_if_param
+{
 	enum vpfe_hw_if_type if_type;
 	enum vpfe_pin_pol hdpol;
 	enum vpfe_pin_pol vdpol;

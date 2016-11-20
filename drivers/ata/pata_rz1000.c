@@ -37,7 +37,8 @@ static int rz1000_set_mode(struct ata_link *link, struct ata_device **unused)
 {
 	struct ata_device *dev;
 
-	ata_for_each_dev(dev, link, ENABLED) {
+	ata_for_each_dev(dev, link, ENABLED)
+	{
 		/* We don't really care */
 		dev->pio_mode = XFER_PIO_0;
 		dev->xfer_mode = XFER_PIO_0;
@@ -49,11 +50,13 @@ static int rz1000_set_mode(struct ata_link *link, struct ata_device **unused)
 }
 
 
-static struct scsi_host_template rz1000_sht = {
+static struct scsi_host_template rz1000_sht =
+{
 	ATA_PIO_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations rz1000_port_ops = {
+static struct ata_port_operations rz1000_port_ops =
+{
 	.inherits	= &ata_sff_port_ops,
 	.cable_detect	= ata_cable_40wire,
 	.set_mode	= rz1000_set_mode,
@@ -62,12 +65,20 @@ static struct ata_port_operations rz1000_port_ops = {
 static int rz1000_fifo_disable(struct pci_dev *pdev)
 {
 	u16 reg;
+
 	/* Be exceptionally paranoid as we must be sure to apply the fix */
 	if (pci_read_config_word(pdev, 0x40, &reg) != 0)
+	{
 		return -1;
+	}
+
 	reg &= 0xDFFF;
+
 	if (pci_write_config_word(pdev, 0x40, reg) != 0)
+	{
 		return -1;
+	}
+
 	printk(KERN_INFO DRV_NAME ": disabled chipset readahead.\n");
 	return 0;
 }
@@ -84,7 +95,8 @@ static int rz1000_fifo_disable(struct pci_dev *pdev)
 
 static int rz1000_init_one (struct pci_dev *pdev, const struct pci_device_id *ent)
 {
-	static const struct ata_port_info info = {
+	static const struct ata_port_info info =
+	{
 		.flags = ATA_FLAG_SLAVE_POSS,
 		.pio_mask = ATA_PIO4,
 		.port_ops = &rz1000_port_ops
@@ -94,7 +106,9 @@ static int rz1000_init_one (struct pci_dev *pdev, const struct pci_device_id *en
 	ata_print_version_once(&pdev->dev, DRV_VERSION);
 
 	if (rz1000_fifo_disable(pdev) == 0)
+	{
 		return ata_pci_sff_init_one(pdev, ppi, &rz1000_sht, NULL, 0);
+	}
 
 	printk(KERN_ERR DRV_NAME ": failed to disable read-ahead on chipset..\n");
 	/* Not safe to use so skip */
@@ -108,27 +122,34 @@ static int rz1000_reinit_one(struct pci_dev *pdev)
 	int rc;
 
 	rc = ata_pci_device_do_resume(pdev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* If this fails on resume (which is a "can't happen" case), we
 	   must stop as any progress risks data loss */
 	if (rz1000_fifo_disable(pdev))
+	{
 		panic("rz1000 fifo");
+	}
 
 	ata_host_resume(host);
 	return 0;
 }
 #endif
 
-static const struct pci_device_id pata_rz1000[] = {
+static const struct pci_device_id pata_rz1000[] =
+{
 	{ PCI_VDEVICE(PCTECH, PCI_DEVICE_ID_PCTECH_RZ1000), },
 	{ PCI_VDEVICE(PCTECH, PCI_DEVICE_ID_PCTECH_RZ1001), },
 
 	{ },
 };
 
-static struct pci_driver rz1000_pci_driver = {
+static struct pci_driver rz1000_pci_driver =
+{
 	.name 		= DRV_NAME,
 	.id_table	= pata_rz1000,
 	.probe 		= rz1000_init_one,

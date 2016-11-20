@@ -54,7 +54,8 @@
 #define write_addr_reg(dev, val)	\
 	__raw_writel((val), (dev)->reg + REG_SMADDR)
 
-struct nuc900_nand {
+struct nuc900_nand
+{
 	struct nand_chip chip;
 	void __iomem *reg;
 	struct clk *clk;
@@ -66,16 +67,17 @@ static inline struct nuc900_nand *mtd_to_nuc900(struct mtd_info *mtd)
 	return container_of(mtd_to_nand(mtd), struct nuc900_nand, chip);
 }
 
-static const struct mtd_partition partitions[] = {
+static const struct mtd_partition partitions[] =
+{
 	{
-	 .name = "NAND FS 0",
-	 .offset = 0,
-	 .size = 8 * 1024 * 1024
+		.name = "NAND FS 0",
+		.offset = 0,
+		.size = 8 * 1024 * 1024
 	},
 	{
-	 .name = "NAND FS 1",
-	 .offset = MTDPART_OFS_APPEND,
-	 .size = MTDPART_SIZ_FULL
+		.name = "NAND FS 1",
+		.offset = MTDPART_OFS_APPEND,
+		.size = MTDPART_SIZ_FULL
 	}
 };
 
@@ -90,23 +92,27 @@ static unsigned char nuc900_nand_read_byte(struct mtd_info *mtd)
 }
 
 static void nuc900_nand_read_buf(struct mtd_info *mtd,
-				 unsigned char *buf, int len)
+								 unsigned char *buf, int len)
 {
 	int i;
 	struct nuc900_nand *nand = mtd_to_nuc900(mtd);
 
 	for (i = 0; i < len; i++)
+	{
 		buf[i] = (unsigned char)read_data_reg(nand);
+	}
 }
 
 static void nuc900_nand_write_buf(struct mtd_info *mtd,
-				  const unsigned char *buf, int len)
+								  const unsigned char *buf, int len)
 {
 	int i;
 	struct nuc900_nand *nand = mtd_to_nuc900(mtd);
 
 	for (i = 0; i < len; i++)
+	{
 		write_data_reg(nand, buf[i]);
+	}
 }
 
 static int nuc900_check_rb(struct nuc900_nand *nand)
@@ -130,75 +136,92 @@ static int nuc900_nand_devready(struct mtd_info *mtd)
 }
 
 static void nuc900_nand_command_lp(struct mtd_info *mtd, unsigned int command,
-				   int column, int page_addr)
+								   int column, int page_addr)
 {
 	register struct nand_chip *chip = mtd_to_nand(mtd);
 	struct nuc900_nand *nand = mtd_to_nuc900(mtd);
 
-	if (command == NAND_CMD_READOOB) {
+	if (command == NAND_CMD_READOOB)
+	{
 		column += mtd->writesize;
 		command = NAND_CMD_READ0;
 	}
 
 	write_cmd_reg(nand, command & 0xff);
 
-	if (column != -1 || page_addr != -1) {
+	if (column != -1 || page_addr != -1)
+	{
 
-		if (column != -1) {
+		if (column != -1)
+		{
 			if (chip->options & NAND_BUSWIDTH_16 &&
-					!nand_opcode_8bits(command))
+				!nand_opcode_8bits(command))
+			{
 				column >>= 1;
+			}
+
 			write_addr_reg(nand, column);
 			write_addr_reg(nand, column >> 8 | ENDADDR);
 		}
-		if (page_addr != -1) {
+
+		if (page_addr != -1)
+		{
 			write_addr_reg(nand, page_addr);
 
-			if (chip->chipsize > (128 << 20)) {
+			if (chip->chipsize > (128 << 20))
+			{
 				write_addr_reg(nand, page_addr >> 8);
 				write_addr_reg(nand, page_addr >> 16 | ENDADDR);
-			} else {
+			}
+			else
+			{
 				write_addr_reg(nand, page_addr >> 8 | ENDADDR);
 			}
 		}
 	}
 
-	switch (command) {
-	case NAND_CMD_CACHEDPROG:
-	case NAND_CMD_PAGEPROG:
-	case NAND_CMD_ERASE1:
-	case NAND_CMD_ERASE2:
-	case NAND_CMD_SEQIN:
-	case NAND_CMD_RNDIN:
-	case NAND_CMD_STATUS:
-		return;
-
-	case NAND_CMD_RESET:
-		if (chip->dev_ready)
-			break;
-		udelay(chip->chip_delay);
-
-		write_cmd_reg(nand, NAND_CMD_STATUS);
-		write_cmd_reg(nand, command);
-
-		while (!nuc900_check_rb(nand))
-			;
-
-		return;
-
-	case NAND_CMD_RNDOUT:
-		write_cmd_reg(nand, NAND_CMD_RNDOUTSTART);
-		return;
-
-	case NAND_CMD_READ0:
-
-		write_cmd_reg(nand, NAND_CMD_READSTART);
-	default:
-
-		if (!chip->dev_ready) {
-			udelay(chip->chip_delay);
+	switch (command)
+	{
+		case NAND_CMD_CACHEDPROG:
+		case NAND_CMD_PAGEPROG:
+		case NAND_CMD_ERASE1:
+		case NAND_CMD_ERASE2:
+		case NAND_CMD_SEQIN:
+		case NAND_CMD_RNDIN:
+		case NAND_CMD_STATUS:
 			return;
-		}
+
+		case NAND_CMD_RESET:
+			if (chip->dev_ready)
+			{
+				break;
+			}
+
+			udelay(chip->chip_delay);
+
+			write_cmd_reg(nand, NAND_CMD_STATUS);
+			write_cmd_reg(nand, command);
+
+			while (!nuc900_check_rb(nand))
+				;
+
+			return;
+
+		case NAND_CMD_RNDOUT:
+			write_cmd_reg(nand, NAND_CMD_RNDOUTSTART);
+			return;
+
+		case NAND_CMD_READ0:
+
+			write_cmd_reg(nand, NAND_CMD_READSTART);
+
+		default:
+
+			if (!chip->dev_ready)
+			{
+				udelay(chip->chip_delay);
+				return;
+			}
 	}
 
 	/* Apply this short delay always to ensure that we do wait tWB in
@@ -219,11 +242,13 @@ static void nuc900_nand_enable(struct nuc900_nand *nand)
 	val = __raw_readl(nand->reg + REG_FMICSR);
 
 	if (!(val & NAND_EN))
+	{
 		__raw_writel(val | NAND_EN, nand->reg + REG_FMICSR);
+	}
 
 	val = __raw_readl(nand->reg + REG_SMCSR);
 
-	val &= ~(SWRST|PSIZE|DMARWEN|BUSWID|ECC4EN|NANDCS);
+	val &= ~(SWRST | PSIZE | DMARWEN | BUSWID | ECC4EN | NANDCS);
 	val |= WP;
 
 	__raw_writel(val, nand->reg + REG_SMCSR);
@@ -239,9 +264,13 @@ static int nuc900_nand_probe(struct platform_device *pdev)
 	struct resource *res;
 
 	nuc900_nand = devm_kzalloc(&pdev->dev, sizeof(struct nuc900_nand),
-				   GFP_KERNEL);
+							   GFP_KERNEL);
+
 	if (!nuc900_nand)
+	{
 		return -ENOMEM;
+	}
+
 	chip = &(nuc900_nand->chip);
 	mtd = nand_to_mtd(chip);
 
@@ -249,8 +278,12 @@ static int nuc900_nand_probe(struct platform_device *pdev)
 	spin_lock_init(&nuc900_nand->lock);
 
 	nuc900_nand->clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(nuc900_nand->clk))
+	{
 		return -ENOENT;
+	}
+
 	clk_enable(nuc900_nand->clk);
 
 	chip->cmdfunc		= nuc900_nand_command_lp;
@@ -265,13 +298,18 @@ static int nuc900_nand_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	nuc900_nand->reg = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(nuc900_nand->reg))
+	{
 		return PTR_ERR(nuc900_nand->reg);
+	}
 
 	nuc900_nand_enable(nuc900_nand);
 
 	if (nand_scan(mtd, 1))
+	{
 		return -ENXIO;
+	}
 
 	mtd_device_register(mtd, partitions, ARRAY_SIZE(partitions));
 
@@ -290,7 +328,8 @@ static int nuc900_nand_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver nuc900_nand_driver = {
+static struct platform_driver nuc900_nand_driver =
+{
 	.probe		= nuc900_nand_probe,
 	.remove		= nuc900_nand_remove,
 	.driver		= {

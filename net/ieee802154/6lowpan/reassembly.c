@@ -35,17 +35,17 @@ static const char lowpan_frags_cache_name[] = "lowpan-frags";
 static struct inet_frags lowpan_frags;
 
 static int lowpan_frag_reasm(struct lowpan_frag_queue *fq,
-			     struct sk_buff *prev, struct net_device *ldev);
+							 struct sk_buff *prev, struct net_device *ldev);
 
 static unsigned int lowpan_hash_frag(u16 tag, u16 d_size,
-				     const struct ieee802154_addr *saddr,
-				     const struct ieee802154_addr *daddr)
+									 const struct ieee802154_addr *saddr,
+									 const struct ieee802154_addr *daddr)
 {
 	net_get_random_once(&lowpan_frags.rnd, sizeof(lowpan_frags.rnd));
 	return jhash_3words(ieee802154_addr_hash(saddr),
-			    ieee802154_addr_hash(daddr),
-			    (__force u32)(tag + (d_size << 16)),
-			    lowpan_frags.rnd);
+						ieee802154_addr_hash(daddr),
+						(__force u32)(tag + (d_size << 16)),
+						lowpan_frags.rnd);
 }
 
 static unsigned int lowpan_hashfn(const struct inet_frag_queue *q)
@@ -63,8 +63,8 @@ static bool lowpan_frag_match(const struct inet_frag_queue *q, const void *a)
 
 	fq = container_of(q, struct lowpan_frag_queue, q);
 	return	fq->tag == arg->tag && fq->d_size == arg->d_size &&
-		ieee802154_addr_equal(&fq->saddr, arg->src) &&
-		ieee802154_addr_equal(&fq->daddr, arg->dst);
+			ieee802154_addr_equal(&fq->saddr, arg->src) &&
+			ieee802154_addr_equal(&fq->daddr, arg->dst);
 }
 
 static void lowpan_frag_init(struct inet_frag_queue *q, const void *a)
@@ -91,7 +91,9 @@ static void lowpan_frag_expire(unsigned long data)
 	spin_lock(&fq->q.lock);
 
 	if (fq->q.flags & INET_FRAG_COMPLETE)
+	{
 		goto out;
+	}
 
 	inet_frag_kill(&fq->q, &lowpan_frags);
 out:
@@ -101,8 +103,8 @@ out:
 
 static inline struct lowpan_frag_queue *
 fq_find(struct net *net, const struct lowpan_802154_cb *cb,
-	const struct ieee802154_addr *src,
-	const struct ieee802154_addr *dst)
+		const struct ieee802154_addr *src,
+		const struct ieee802154_addr *dst)
 {
 	struct inet_frag_queue *q;
 	struct lowpan_create_arg arg;
@@ -118,42 +120,57 @@ fq_find(struct net *net, const struct lowpan_802154_cb *cb,
 	hash = lowpan_hash_frag(cb->d_tag, cb->d_size, src, dst);
 
 	q = inet_frag_find(&ieee802154_lowpan->frags,
-			   &lowpan_frags, &arg, hash);
-	if (IS_ERR_OR_NULL(q)) {
+					   &lowpan_frags, &arg, hash);
+
+	if (IS_ERR_OR_NULL(q))
+	{
 		inet_frag_maybe_warn_overflow(q, pr_fmt());
 		return NULL;
 	}
+
 	return container_of(q, struct lowpan_frag_queue, q);
 }
 
 static int lowpan_frag_queue(struct lowpan_frag_queue *fq,
-			     struct sk_buff *skb, u8 frag_type)
+							 struct sk_buff *skb, u8 frag_type)
 {
 	struct sk_buff *prev, *next;
 	struct net_device *ldev;
 	int end, offset;
 
 	if (fq->q.flags & INET_FRAG_COMPLETE)
+	{
 		goto err;
+	}
 
 	offset = lowpan_802154_cb(skb)->d_offset << 3;
 	end = lowpan_802154_cb(skb)->d_size;
 
 	/* Is this the final fragment? */
-	if (offset + skb->len == end) {
+	if (offset + skb->len == end)
+	{
 		/* If we already have some bits beyond end
 		 * or have different end, the segment is corrupted.
 		 */
 		if (end < fq->q.len ||
-		    ((fq->q.flags & INET_FRAG_LAST_IN) && end != fq->q.len))
+			((fq->q.flags & INET_FRAG_LAST_IN) && end != fq->q.len))
+		{
 			goto err;
+		}
+
 		fq->q.flags |= INET_FRAG_LAST_IN;
 		fq->q.len = end;
-	} else {
-		if (end > fq->q.len) {
+	}
+	else
+	{
+		if (end > fq->q.len)
+		{
 			/* Some bits beyond end -> corruption. */
 			if (fq->q.flags & INET_FRAG_LAST_IN)
+			{
 				goto err;
+			}
+
 			fq->q.len = end;
 		}
 	}
@@ -163,43 +180,66 @@ static int lowpan_frag_queue(struct lowpan_frag_queue *fq,
 	 * this fragment, right?
 	 */
 	prev = fq->q.fragments_tail;
+
 	if (!prev ||
-	    lowpan_802154_cb(prev)->d_offset <
-	    lowpan_802154_cb(skb)->d_offset) {
+		lowpan_802154_cb(prev)->d_offset <
+		lowpan_802154_cb(skb)->d_offset)
+	{
 		next = NULL;
 		goto found;
 	}
+
 	prev = NULL;
-	for (next = fq->q.fragments; next != NULL; next = next->next) {
+
+	for (next = fq->q.fragments; next != NULL; next = next->next)
+	{
 		if (lowpan_802154_cb(next)->d_offset >=
-		    lowpan_802154_cb(skb)->d_offset)
-			break;	/* bingo! */
+			lowpan_802154_cb(skb)->d_offset)
+		{
+			break;    /* bingo! */
+		}
+
 		prev = next;
 	}
 
 found:
 	/* Insert this fragment in the chain of fragments. */
 	skb->next = next;
+
 	if (!next)
+	{
 		fq->q.fragments_tail = skb;
+	}
+
 	if (prev)
+	{
 		prev->next = skb;
+	}
 	else
+	{
 		fq->q.fragments = skb;
+	}
 
 	ldev = skb->dev;
+
 	if (ldev)
+	{
 		skb->dev = NULL;
+	}
 
 	fq->q.stamp = skb->tstamp;
+
 	if (frag_type == LOWPAN_DISPATCH_FRAG1)
+	{
 		fq->q.flags |= INET_FRAG_FIRST_IN;
+	}
 
 	fq->q.meat += skb->len;
 	add_frag_mem_limit(fq->q.net, skb->truesize);
 
 	if (fq->q.flags == (INET_FRAG_FIRST_IN | INET_FRAG_LAST_IN) &&
-	    fq->q.meat == fq->q.len) {
+		fq->q.meat == fq->q.len)
+	{
 		int res;
 		unsigned long orefdst = skb->_skb_refdst;
 
@@ -224,7 +264,7 @@ err:
  *	the last and the first frames arrived and all the bits are here.
  */
 static int lowpan_frag_reasm(struct lowpan_frag_queue *fq, struct sk_buff *prev,
-			     struct net_device *ldev)
+							 struct net_device *ldev)
 {
 	struct sk_buff *fp, *head = fq->q.fragments;
 	int sum_truesize;
@@ -232,16 +272,23 @@ static int lowpan_frag_reasm(struct lowpan_frag_queue *fq, struct sk_buff *prev,
 	inet_frag_kill(&fq->q, &lowpan_frags);
 
 	/* Make the one we just received the head. */
-	if (prev) {
+	if (prev)
+	{
 		head = prev->next;
 		fp = skb_clone(head, GFP_ATOMIC);
 
 		if (!fp)
+		{
 			goto out_oom;
+		}
 
 		fp->next = head->next;
+
 		if (!fp->next)
+		{
 			fq->q.fragments_tail = fp;
+		}
+
 		prev->next = fp;
 
 		skb_morph(head, fq->q.fragments);
@@ -253,25 +300,36 @@ static int lowpan_frag_reasm(struct lowpan_frag_queue *fq, struct sk_buff *prev,
 
 	/* Head of list must not be cloned. */
 	if (skb_unclone(head, GFP_ATOMIC))
+	{
 		goto out_oom;
+	}
 
 	/* If the first fragment is fragmented itself, we split
 	 * it to two chunks: the first with data and paged part
 	 * and the second, holding only fragments.
 	 */
-	if (skb_has_frag_list(head)) {
+	if (skb_has_frag_list(head))
+	{
 		struct sk_buff *clone;
 		int i, plen = 0;
 
 		clone = alloc_skb(0, GFP_ATOMIC);
+
 		if (!clone)
+		{
 			goto out_oom;
+		}
+
 		clone->next = head->next;
 		head->next = clone;
 		skb_shinfo(clone)->frag_list = skb_shinfo(head)->frag_list;
 		skb_frag_list_init(head);
+
 		for (i = 0; i < skb_shinfo(head)->nr_frags; i++)
+		{
 			plen += skb_frag_size(&skb_shinfo(head)->frags[i]);
+		}
+
 		clone->len = head->data_len - plen;
 		clone->data_len = clone->len;
 		head->data_len -= clone->len;
@@ -282,23 +340,34 @@ static int lowpan_frag_reasm(struct lowpan_frag_queue *fq, struct sk_buff *prev,
 	WARN_ON(head == NULL);
 
 	sum_truesize = head->truesize;
-	for (fp = head->next; fp;) {
+
+	for (fp = head->next; fp;)
+	{
 		bool headstolen;
 		int delta;
 		struct sk_buff *next = fp->next;
 
 		sum_truesize += fp->truesize;
-		if (skb_try_coalesce(head, fp, &headstolen, &delta)) {
+
+		if (skb_try_coalesce(head, fp, &headstolen, &delta))
+		{
 			kfree_skb_partial(fp, headstolen);
-		} else {
+		}
+		else
+		{
 			if (!skb_shinfo(head)->frag_list)
+			{
 				skb_shinfo(head)->frag_list = fp;
+			}
+
 			head->data_len += fp->len;
 			head->len += fp->len;
 			head->truesize += fp->truesize;
 		}
+
 		fp = next;
 	}
+
 	sub_frag_mem_limit(fq->q.net, sum_truesize);
 
 	head->next = NULL;
@@ -315,20 +384,22 @@ out_oom:
 }
 
 static int lowpan_frag_rx_handlers_result(struct sk_buff *skb,
-					  lowpan_rx_result res)
+		lowpan_rx_result res)
 {
-	switch (res) {
-	case RX_QUEUED:
-		return NET_RX_SUCCESS;
-	case RX_CONTINUE:
-		/* nobody cared about this packet */
-		net_warn_ratelimited("%s: received unknown dispatch\n",
-				     __func__);
+	switch (res)
+	{
+		case RX_QUEUED:
+			return NET_RX_SUCCESS;
+
+		case RX_CONTINUE:
+			/* nobody cared about this packet */
+			net_warn_ratelimited("%s: received unknown dispatch\n",
+								 __func__);
 
 		/* fall-through */
-	default:
-		/* all others failure */
-		return NET_RX_DROP;
+		default:
+			/* all others failure */
+			return NET_RX_DROP;
 	}
 }
 
@@ -337,11 +408,16 @@ static lowpan_rx_result lowpan_frag_rx_h_iphc(struct sk_buff *skb)
 	int ret;
 
 	if (!lowpan_is_iphc(*skb_network_header(skb)))
+	{
 		return RX_CONTINUE;
+	}
 
 	ret = lowpan_iphc_decompress(skb);
+
 	if (ret < 0)
+	{
 		return RX_DROP;
+	}
 
 	return RX_QUEUED;
 }
@@ -370,7 +446,7 @@ rxh_next:
 #define LOWPAN_FRAG_DGRAM_SIZE_HIGH_SHIFT	8
 
 static int lowpan_get_cb(struct sk_buff *skb, u8 frag_type,
-			 struct lowpan_802154_cb *cb)
+						 struct lowpan_802154_cb *cb)
 {
 	bool fail;
 	u8 high = 0, low = 0;
@@ -382,13 +458,16 @@ static int lowpan_get_cb(struct sk_buff *skb, u8 frag_type,
 	 * for the datagram size
 	 */
 	cb->d_size = (high & LOWPAN_FRAG_DGRAM_SIZE_HIGH_MASK) <<
-		LOWPAN_FRAG_DGRAM_SIZE_HIGH_SHIFT | low;
+				 LOWPAN_FRAG_DGRAM_SIZE_HIGH_SHIFT | low;
 	fail |= lowpan_fetch_skb(skb, &d_tag, 2);
 	cb->d_tag = ntohs(d_tag);
 
-	if (frag_type == LOWPAN_DISPATCH_FRAGN) {
+	if (frag_type == LOWPAN_DISPATCH_FRAGN)
+	{
 		fail |= lowpan_fetch_skb(skb, &cb->d_offset, 1);
-	} else {
+	}
+	else
+	{
 		skb_reset_network_header(skb);
 		cb->d_offset = 0;
 		/* check if datagram_size has ipv6hdr on FRAG1 */
@@ -398,7 +477,9 @@ static int lowpan_get_cb(struct sk_buff *skb, u8 frag_type,
 	}
 
 	if (unlikely(fail))
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
@@ -412,25 +493,37 @@ int lowpan_frag_rcv(struct sk_buff *skb, u8 frag_type)
 	int err;
 
 	if (ieee802154_hdr_peek_addrs(skb, &hdr) < 0)
+	{
 		goto err;
-
-	err = lowpan_get_cb(skb, frag_type, cb);
-	if (err < 0)
-		goto err;
-
-	if (frag_type == LOWPAN_DISPATCH_FRAG1) {
-		err = lowpan_invoke_frag_rx_handlers(skb);
-		if (err == NET_RX_DROP)
-			goto err;
 	}
 
-	if (cb->d_size > IPV6_MIN_MTU) {
+	err = lowpan_get_cb(skb, frag_type, cb);
+
+	if (err < 0)
+	{
+		goto err;
+	}
+
+	if (frag_type == LOWPAN_DISPATCH_FRAG1)
+	{
+		err = lowpan_invoke_frag_rx_handlers(skb);
+
+		if (err == NET_RX_DROP)
+		{
+			goto err;
+		}
+	}
+
+	if (cb->d_size > IPV6_MIN_MTU)
+	{
 		net_warn_ratelimited("lowpan_frag_rcv: datagram size exceeds MTU\n");
 		goto err;
 	}
 
 	fq = fq_find(net, cb, &hdr.source, &hdr.dest);
-	if (fq != NULL) {
+
+	if (fq != NULL)
+	{
 		int ret;
 
 		spin_lock(&fq->q.lock);
@@ -449,7 +542,8 @@ err:
 #ifdef CONFIG_SYSCTL
 static int zero;
 
-static struct ctl_table lowpan_frags_ns_ctl_table[] = {
+static struct ctl_table lowpan_frags_ns_ctl_table[] =
+{
 	{
 		.procname	= "6lowpanfrag_high_thresh",
 		.data		= &init_net.ieee802154_lowpan.frags.high_thresh,
@@ -479,7 +573,8 @@ static struct ctl_table lowpan_frags_ns_ctl_table[] = {
 
 /* secret interval has been deprecated */
 static int lowpan_frags_secret_interval_unused;
-static struct ctl_table lowpan_frags_ctl_table[] = {
+static struct ctl_table lowpan_frags_ctl_table[] =
+{
 	{
 		.procname	= "6lowpanfrag_secret_interval",
 		.data		= &lowpan_frags_secret_interval_unused,
@@ -498,11 +593,16 @@ static int __net_init lowpan_frags_ns_sysctl_register(struct net *net)
 		net_ieee802154_lowpan(net);
 
 	table = lowpan_frags_ns_ctl_table;
-	if (!net_eq(net, &init_net)) {
+
+	if (!net_eq(net, &init_net))
+	{
 		table = kmemdup(table, sizeof(lowpan_frags_ns_ctl_table),
-				GFP_KERNEL);
+						GFP_KERNEL);
+
 		if (table == NULL)
+		{
 			goto err_alloc;
+		}
 
 		table[0].data = &ieee802154_lowpan->frags.high_thresh;
 		table[0].extra1 = &ieee802154_lowpan->frags.low_thresh;
@@ -513,19 +613,28 @@ static int __net_init lowpan_frags_ns_sysctl_register(struct net *net)
 
 		/* Don't export sysctls to unprivileged users */
 		if (net->user_ns != &init_user_ns)
+		{
 			table[0].procname = NULL;
+		}
 	}
 
 	hdr = register_net_sysctl(net, "net/ieee802154/6lowpan", table);
+
 	if (hdr == NULL)
+	{
 		goto err_reg;
+	}
 
 	ieee802154_lowpan->sysctl.frags_hdr = hdr;
 	return 0;
 
 err_reg:
+
 	if (!net_eq(net, &init_net))
+	{
 		kfree(table);
+	}
+
 err_alloc:
 	return -ENOMEM;
 }
@@ -538,8 +647,11 @@ static void __net_exit lowpan_frags_ns_sysctl_unregister(struct net *net)
 
 	table = ieee802154_lowpan->sysctl.frags_hdr->ctl_table_arg;
 	unregister_net_sysctl_table(ieee802154_lowpan->sysctl.frags_hdr);
+
 	if (!net_eq(net, &init_net))
+	{
 		kfree(table);
+	}
 }
 
 static struct ctl_table_header *lowpan_ctl_header;
@@ -547,8 +659,8 @@ static struct ctl_table_header *lowpan_ctl_header;
 static int __init lowpan_frags_sysctl_register(void)
 {
 	lowpan_ctl_header = register_net_sysctl(&init_net,
-						"net/ieee802154/6lowpan",
-						lowpan_frags_ctl_table);
+											"net/ieee802154/6lowpan",
+											lowpan_frags_ctl_table);
 	return lowpan_ctl_header == NULL ? -ENOMEM : 0;
 }
 
@@ -587,11 +699,19 @@ static int __net_init lowpan_frags_init_net(struct net *net)
 	ieee802154_lowpan->frags.timeout = IPV6_FRAG_TIMEOUT;
 
 	res = inet_frags_init_net(&ieee802154_lowpan->frags);
+
 	if (res)
+	{
 		return res;
+	}
+
 	res = lowpan_frags_ns_sysctl_register(net);
+
 	if (res)
+	{
 		inet_frags_uninit_net(&ieee802154_lowpan->frags);
+	}
+
 	return res;
 }
 
@@ -604,7 +724,8 @@ static void __net_exit lowpan_frags_exit_net(struct net *net)
 	inet_frags_exit_net(&ieee802154_lowpan->frags, &lowpan_frags);
 }
 
-static struct pernet_operations lowpan_frags_ops = {
+static struct pernet_operations lowpan_frags_ops =
+{
 	.init = lowpan_frags_init_net,
 	.exit = lowpan_frags_exit_net,
 };
@@ -614,12 +735,18 @@ int __init lowpan_net_frag_init(void)
 	int ret;
 
 	ret = lowpan_frags_sysctl_register();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = register_pernet_subsys(&lowpan_frags_ops);
+
 	if (ret)
+	{
 		goto err_pernet;
+	}
 
 	lowpan_frags.hashfn = lowpan_hashfn;
 	lowpan_frags.constructor = lowpan_frag_init;
@@ -629,8 +756,11 @@ int __init lowpan_net_frag_init(void)
 	lowpan_frags.frag_expire = lowpan_frag_expire;
 	lowpan_frags.frags_cache_name = lowpan_frags_cache_name;
 	ret = inet_frags_init(&lowpan_frags);
+
 	if (ret)
+	{
 		goto err_pernet;
+	}
 
 	return ret;
 err_pernet:

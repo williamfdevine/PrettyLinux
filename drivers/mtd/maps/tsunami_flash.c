@@ -31,7 +31,9 @@ static void tsunami_flash_copy_from(
 {
 	unsigned char *dest;
 	dest = addr;
-	while(len && (offset < MAX_TIG_FLASH_SIZE)) {
+
+	while (len && (offset < MAX_TIG_FLASH_SIZE))
+	{
 		*dest = tsunami_tig_readb(offset);
 		offset++;
 		dest++;
@@ -45,7 +47,9 @@ static void tsunami_flash_copy_to(
 {
 	const unsigned char *src;
 	src = addr;
-	while(len && (offset < MAX_TIG_FLASH_SIZE)) {
+
+	while (len && (offset < MAX_TIG_FLASH_SIZE))
+	{
 		tsunami_tig_writeb(*src, offset);
 		offset++;
 		src++;
@@ -58,7 +62,8 @@ static void tsunami_flash_copy_to(
  * have then and it scares me to think how you could mess up if
  * you tried to use them.   Buswidth is correctly so I'm safe.
  */
-static struct map_info tsunami_flash_map = {
+static struct map_info tsunami_flash_map =
+{
 	.name = "flash chip on the Tsunami TIG bus",
 	.size = MAX_TIG_FLASH_SIZE,
 	.phys = NO_XIP,
@@ -75,32 +80,42 @@ static void __exit  cleanup_tsunami_flash(void)
 {
 	struct mtd_info *mtd;
 	mtd = tsunami_flash_mtd;
-	if (mtd) {
+
+	if (mtd)
+	{
 		mtd_device_unregister(mtd);
 		map_destroy(mtd);
 	}
+
 	tsunami_flash_mtd = 0;
 }
 
-static const char * const rom_probe_types[] = {
-	"cfi_probe", "jedec_probe", "map_rom", NULL };
+static const char *const rom_probe_types[] =
+{
+	"cfi_probe", "jedec_probe", "map_rom", NULL
+};
 
 static int __init init_tsunami_flash(void)
 {
-	const char * const *type;
+	const char *const *type;
 
 	tsunami_tig_writeb(FLASH_ENABLE_BYTE, FLASH_ENABLE_PORT);
 
 	tsunami_flash_mtd = 0;
 	type = rom_probe_types;
-	for(; !tsunami_flash_mtd && *type; type++) {
+
+	for (; !tsunami_flash_mtd && *type; type++)
+	{
 		tsunami_flash_mtd = do_map_probe(*type, &tsunami_flash_map);
 	}
-	if (tsunami_flash_mtd) {
+
+	if (tsunami_flash_mtd)
+	{
 		tsunami_flash_mtd->owner = THIS_MODULE;
 		mtd_device_register(tsunami_flash_mtd, NULL, 0);
 		return 0;
 	}
+
 	return -ENXIO;
 }
 

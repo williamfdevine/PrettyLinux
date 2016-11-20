@@ -30,12 +30,14 @@
 #define IEEE80211_CHAN_NO_IBSS IEEE80211_CHAN_NO_IR
 #define IEEE80211_CHAN_PASSIVE_SCAN IEEE80211_CHAN_NO_IR
 
-struct country_code_to_enum_rd {
+struct country_code_to_enum_rd
+{
 	u16 countrycode;
 	const char *iso_name;
 };
 
-enum country_code_type_t {
+enum country_code_type_t
+{
 	COUNTRY_CODE_FCC = 0,
 	COUNTRY_CODE_IC = 1,
 	COUNTRY_CODE_ETSI = 2,
@@ -56,8 +58,8 @@ enum country_code_type_t {
 };
 
 int rtl_regd_init(struct ieee80211_hw *hw,
-		  void (*reg_notifier) (struct wiphy *wiphy,
-		  struct regulatory_request *request));
+				  void (*reg_notifier) (struct wiphy *wiphy,
+										struct regulatory_request *request));
 void rtl_reg_notifier(struct wiphy *wiphy, struct regulatory_request *request);
 
 #endif

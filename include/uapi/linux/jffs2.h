@@ -16,7 +16,7 @@
 #include <linux/types.h>
 #include <linux/magic.h>
 
-/* You must include something which defines the C99 uintXX_t types. 
+/* You must include something which defines the C99 uintXX_t types.
    We don't do it from here because this file is used in too many
    different environments. */
 
@@ -92,15 +92,18 @@
 /* These can go once we've made sure we've caught all uses without
    byteswapping */
 
-typedef struct {
+typedef struct
+{
 	__u32 v32;
 } __attribute__((packed)) jint32_t;
 
-typedef struct {
+typedef struct
+{
 	__u32 m;
 } __attribute__((packed)) jmode_t;
 
-typedef struct {
+typedef struct
+{
 	__u16 v16;
 } __attribute__((packed)) jint16_t;
 
@@ -163,7 +166,8 @@ struct jffs2_raw_inode
 	__u8 data[0];
 };
 
-struct jffs2_raw_xattr {
+struct jffs2_raw_xattr
+{
 	jint16_t magic;
 	jint16_t nodetype;	/* = JFFS2_NODETYPE_XATTR */
 	jint32_t totlen;
@@ -215,7 +219,8 @@ union jffs2_node_union
 };
 
 /* Data payload for device nodes. */
-union jffs2_device_node {
+union jffs2_device_node
+{
 	jint16_t old_id;
 	jint32_t new_id;
 };

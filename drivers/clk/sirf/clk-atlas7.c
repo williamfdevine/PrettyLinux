@@ -211,26 +211,30 @@
 #define SIRFSOC_NOC_CLK_SLVRDY_CLR		0x02EC
 #define SIRFSOC_NOC_CLK_IDLE_STATUS		0x02F4
 
-struct clk_pll {
+struct clk_pll
+{
 	struct clk_hw hw;
 	u16 regofs;  /* register offset */
 };
 #define to_pllclk(_hw) container_of(_hw, struct clk_pll, hw)
 
-struct clk_dto {
+struct clk_dto
+{
 	struct clk_hw hw;
 	u16 inc_offset;  /* dto increment offset */
 	u16 src_offset;  /* dto src offset */
 };
 #define to_dtoclk(_hw) container_of(_hw, struct clk_dto, hw)
 
-enum clk_unit_type {
+enum clk_unit_type
+{
 	CLK_UNIT_NOC_OTHER,
 	CLK_UNIT_NOC_CLOCK,
 	CLK_UNIT_NOC_SOCKET,
 };
 
-struct clk_unit {
+struct clk_unit
+{
 	struct clk_hw hw;
 	u16 regofs;
 	u16 bit;
@@ -240,7 +244,8 @@ struct clk_unit {
 };
 #define to_unitclk(_hw) container_of(_hw, struct clk_unit, hw)
 
-struct atlas7_div_init_data {
+struct atlas7_div_init_data
+{
 	const char *div_name;
 	const char *parent_name;
 	const char *gate_name;
@@ -255,9 +260,10 @@ struct atlas7_div_init_data {
 	spinlock_t *lock;
 };
 
-struct atlas7_mux_init_data {
+struct atlas7_mux_init_data
+{
 	const char *mux_name;
-	const char * const *parent_names;
+	const char *const *parent_names;
 	u8 parent_num;
 	unsigned long flags;
 	u8 mux_flags;
@@ -266,7 +272,8 @@ struct atlas7_mux_init_data {
 	u8 width;
 };
 
-struct atlas7_unit_init_data {
+struct atlas7_unit_init_data
+{
 	u32 index;
 	const char *unit_name;
 	const char *parent_name;
@@ -278,7 +285,8 @@ struct atlas7_unit_init_data {
 	spinlock_t *lock;
 };
 
-struct atlas7_reset_desc {
+struct atlas7_reset_desc
+{
 	const char *name;
 	u32 clk_ofs;
 	u8  clk_bit;
@@ -290,7 +298,8 @@ struct atlas7_reset_desc {
 static void __iomem *sirfsoc_clk_vbase;
 static struct clk_onecell_data clk_data;
 
-static const struct clk_div_table pll_div_table[] = {
+static const struct clk_div_table pll_div_table[] =
+{
 	{ .val = 0, .div = 1 },
 	{ .val = 1, .div = 2 },
 	{ .val = 2, .div = 4 },
@@ -351,16 +360,16 @@ static inline void clkc_writel(u32 val, unsigned reg)
 *  SSN = 2^24 / (256 * ((ssdiv >> ssdepth) << ssdepth) + (ssmod << ssdepth))
 */
 static unsigned long pll_clk_recalc_rate(struct clk_hw *hw,
-	unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	unsigned long fin = parent_rate;
 	struct clk_pll *clk = to_pllclk(hw);
 	u64 rate;
 	u32 regctrl0 = clkc_readl(clk->regofs + SIRFSOC_CLKC_MEMPLL_AB_CTRL0 -
-			SIRFSOC_CLKC_MEMPLL_AB_FREQ);
+							  SIRFSOC_CLKC_MEMPLL_AB_FREQ);
 	u32 regfreq = clkc_readl(clk->regofs);
 	u32 regssc = clkc_readl(clk->regofs + SIRFSOC_CLKC_MEMPLL_AB_SSC -
-			SIRFSOC_CLKC_MEMPLL_AB_FREQ);
+							SIRFSOC_CLKC_MEMPLL_AB_FREQ);
 	u32 nr = (regfreq  >> 16 & (BIT(3) - 1)) + 1;
 	u32 nf = (regfreq & (BIT(9) - 1)) + 1;
 	u32 ssdiv = regssc >> 8 & (BIT(12) - 1);
@@ -368,108 +377,128 @@ static unsigned long pll_clk_recalc_rate(struct clk_hw *hw,
 	u32 ssmod = regssc & (BIT(8) - 1);
 
 	if (regctrl0 & SIRFSOC_ABPLL_CTRL0_BYPASS)
+	{
 		return fin;
+	}
 
-	if (regctrl0 & SIRFSOC_ABPLL_CTRL0_SSEN) {
+	if (regctrl0 & SIRFSOC_ABPLL_CTRL0_SSEN)
+	{
 		rate = fin;
 		rate *= 1 << 24;
 		do_div(rate, nr);
 		do_div(rate, (256 * ((ssdiv >> ssdepth) << ssdepth)
-			+ (ssmod << ssdepth)));
-	} else {
+					  + (ssmod << ssdepth)));
+	}
+	else
+	{
 		rate = 2 * fin;
 		rate *= nf;
 		do_div(rate, nr);
 	}
+
 	return rate;
 }
 
-static const struct clk_ops ab_pll_ops = {
+static const struct clk_ops ab_pll_ops =
+{
 	.recalc_rate = pll_clk_recalc_rate,
 };
 
-static const char * const pll_clk_parents[] = {
+static const char *const pll_clk_parents[] =
+{
 	"xin",
 };
 
-static struct clk_init_data clk_cpupll_init = {
+static struct clk_init_data clk_cpupll_init =
+{
 	.name = "cpupll_vco",
 	.ops = &ab_pll_ops,
 	.parent_names = pll_clk_parents,
 	.num_parents = ARRAY_SIZE(pll_clk_parents),
 };
 
-static struct clk_pll clk_cpupll = {
+static struct clk_pll clk_cpupll =
+{
 	.regofs = SIRFSOC_CLKC_CPUPLL_AB_FREQ,
 	.hw = {
 		.init = &clk_cpupll_init,
 	},
 };
 
-static struct clk_init_data clk_mempll_init = {
+static struct clk_init_data clk_mempll_init =
+{
 	.name = "mempll_vco",
 	.ops = &ab_pll_ops,
 	.parent_names = pll_clk_parents,
 	.num_parents = ARRAY_SIZE(pll_clk_parents),
 };
 
-static struct clk_pll clk_mempll = {
+static struct clk_pll clk_mempll =
+{
 	.regofs = SIRFSOC_CLKC_MEMPLL_AB_FREQ,
 	.hw = {
 		.init = &clk_mempll_init,
 	},
 };
 
-static struct clk_init_data clk_sys0pll_init = {
+static struct clk_init_data clk_sys0pll_init =
+{
 	.name = "sys0pll_vco",
 	.ops = &ab_pll_ops,
 	.parent_names = pll_clk_parents,
 	.num_parents = ARRAY_SIZE(pll_clk_parents),
 };
 
-static struct clk_pll clk_sys0pll = {
+static struct clk_pll clk_sys0pll =
+{
 	.regofs = SIRFSOC_CLKC_SYS0PLL_AB_FREQ,
 	.hw = {
 		.init = &clk_sys0pll_init,
 	},
 };
 
-static struct clk_init_data clk_sys1pll_init = {
+static struct clk_init_data clk_sys1pll_init =
+{
 	.name = "sys1pll_vco",
 	.ops = &ab_pll_ops,
 	.parent_names = pll_clk_parents,
 	.num_parents = ARRAY_SIZE(pll_clk_parents),
 };
 
-static struct clk_pll clk_sys1pll = {
+static struct clk_pll clk_sys1pll =
+{
 	.regofs = SIRFSOC_CLKC_SYS1PLL_AB_FREQ,
 	.hw = {
 		.init = &clk_sys1pll_init,
 	},
 };
 
-static struct clk_init_data clk_sys2pll_init = {
+static struct clk_init_data clk_sys2pll_init =
+{
 	.name = "sys2pll_vco",
 	.ops = &ab_pll_ops,
 	.parent_names = pll_clk_parents,
 	.num_parents = ARRAY_SIZE(pll_clk_parents),
 };
 
-static struct clk_pll clk_sys2pll = {
+static struct clk_pll clk_sys2pll =
+{
 	.regofs = SIRFSOC_CLKC_SYS2PLL_AB_FREQ,
 	.hw = {
 		.init = &clk_sys2pll_init,
 	},
 };
 
-static struct clk_init_data clk_sys3pll_init = {
+static struct clk_init_data clk_sys3pll_init =
+{
 	.name = "sys3pll_vco",
 	.ops = &ab_pll_ops,
 	.parent_names = pll_clk_parents,
 	.num_parents = ARRAY_SIZE(pll_clk_parents),
 };
 
-static struct clk_pll clk_sys3pll = {
+static struct clk_pll clk_sys3pll =
+{
 	.regofs = SIRFSOC_CLKC_SYS3PLL_AB_FREQ,
 	.hw = {
 		.init = &clk_sys3pll_init,
@@ -518,7 +547,7 @@ static void dto_clk_disable(struct clk_hw *hw)
 }
 
 static unsigned long dto_clk_recalc_rate(struct clk_hw *hw,
-	unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	u64 rate = parent_rate;
 	struct clk_dto *clk = to_dtoclk(hw);
@@ -526,17 +555,22 @@ static unsigned long dto_clk_recalc_rate(struct clk_hw *hw,
 	u32 droff = clkc_readl(clk->src_offset + SIRFSOC_CLKC_AUDIO_DTO_DROFF - SIRFSOC_CLKC_AUDIO_DTO_SRC);
 
 	rate *= finc;
+
 	if (droff & BIT(0))
 		/* Double resolution off */
+	{
 		do_div(rate, DTO_RESL_NORMAL);
+	}
 	else
+	{
 		do_div(rate, DTO_RESL_DOUBLE);
+	}
 
 	return rate;
 }
 
 static long dto_clk_round_rate(struct clk_hw *hw, unsigned long rate,
-	unsigned long *parent_rate)
+							   unsigned long *parent_rate)
 {
 	u64 dividend = rate * DTO_RESL_DOUBLE;
 
@@ -548,7 +582,7 @@ static long dto_clk_round_rate(struct clk_hw *hw, unsigned long rate,
 }
 
 static int dto_clk_set_rate(struct clk_hw *hw, unsigned long rate,
-	unsigned long parent_rate)
+							unsigned long parent_rate)
 {
 	u64 dividend = rate * DTO_RESL_DOUBLE;
 	struct clk_dto *clk = to_dtoclk(hw);
@@ -578,7 +612,8 @@ static int dto_clk_set_parent(struct clk_hw *hw, u8 index)
 	return 0;
 }
 
-static const struct clk_ops dto_ops = {
+static const struct clk_ops dto_ops =
+{
 	.is_enabled = dto_clk_is_enabled,
 	.enable = dto_clk_enable,
 	.disable = dto_clk_disable,
@@ -590,20 +625,23 @@ static const struct clk_ops dto_ops = {
 };
 
 /* dto parent clock as syspllvco/clk1 */
-static const char * const audiodto_clk_parents[] = {
+static const char *const audiodto_clk_parents[] =
+{
 	"sys0pll_clk1",
 	"sys1pll_clk1",
 	"sys3pll_clk1",
 };
 
-static struct clk_init_data clk_audiodto_init = {
+static struct clk_init_data clk_audiodto_init =
+{
 	.name = "audio_dto",
 	.ops = &dto_ops,
 	.parent_names = audiodto_clk_parents,
 	.num_parents = ARRAY_SIZE(audiodto_clk_parents),
 };
 
-static struct clk_dto clk_audio_dto = {
+static struct clk_dto clk_audio_dto =
+{
 	.inc_offset = SIRFSOC_CLKC_AUDIO_DTO_INC,
 	.src_offset = SIRFSOC_CLKC_AUDIO_DTO_SRC,
 	.hw = {
@@ -611,20 +649,23 @@ static struct clk_dto clk_audio_dto = {
 	},
 };
 
-static const char * const disp0dto_clk_parents[] = {
+static const char *const disp0dto_clk_parents[] =
+{
 	"sys0pll_clk1",
 	"sys1pll_clk1",
 	"sys3pll_clk1",
 };
 
-static struct clk_init_data clk_disp0dto_init = {
+static struct clk_init_data clk_disp0dto_init =
+{
 	.name = "disp0_dto",
 	.ops = &dto_ops,
 	.parent_names = disp0dto_clk_parents,
 	.num_parents = ARRAY_SIZE(disp0dto_clk_parents),
 };
 
-static struct clk_dto clk_disp0_dto = {
+static struct clk_dto clk_disp0_dto =
+{
 	.inc_offset = SIRFSOC_CLKC_DISP0_DTO_INC,
 	.src_offset = SIRFSOC_CLKC_DISP0_DTO_SRC,
 	.hw = {
@@ -632,20 +673,23 @@ static struct clk_dto clk_disp0_dto = {
 	},
 };
 
-static const char * const disp1dto_clk_parents[] = {
+static const char *const disp1dto_clk_parents[] =
+{
 	"sys0pll_clk1",
 	"sys1pll_clk1",
 	"sys3pll_clk1",
 };
 
-static struct clk_init_data clk_disp1dto_init = {
+static struct clk_init_data clk_disp1dto_init =
+{
 	.name = "disp1_dto",
 	.ops = &dto_ops,
 	.parent_names = disp1dto_clk_parents,
 	.num_parents = ARRAY_SIZE(disp1dto_clk_parents),
 };
 
-static struct clk_dto clk_disp1_dto = {
+static struct clk_dto clk_disp1_dto =
+{
 	.inc_offset = SIRFSOC_CLKC_DISP1_DTO_INC,
 	.src_offset = SIRFSOC_CLKC_DISP1_DTO_SRC,
 	.hw = {
@@ -653,7 +697,8 @@ static struct clk_dto clk_disp1_dto = {
 	},
 };
 
-static struct atlas7_div_init_data divider_list[] __initdata = {
+static struct atlas7_div_init_data divider_list[] __initdata =
+{
 	/* div_name, parent_name, gate_name, clk_flag, divider_flag, gate_flag, div_offset, shift, wdith, gate_offset, bit_enable, lock */
 	{ "sys0pll_qa1", "sys0pll_fixdiv", "sys0pll_a1", 0, 0, 0, SIRFSOC_CLKC_USBPHY_CLKDIV_CFG, 0, 6, SIRFSOC_CLKC_USBPHY_CLKDIV_ENA, 0, &usbphy_div_lock },
 	{ "sys1pll_qa1", "sys1pll_fixdiv", "sys1pll_a1", 0, 0, 0, SIRFSOC_CLKC_USBPHY_CLKDIV_CFG, 8, 6, SIRFSOC_CLKC_USBPHY_CLKDIV_ENA, 4, &usbphy_div_lock },
@@ -721,14 +766,16 @@ static struct atlas7_div_init_data divider_list[] __initdata = {
 	{ "sys0pll_qa20", "sys0pll_fixdiv", "sys0pll_a20", 0, 0, 0, SIRFSOC_CLKC_SHARED_DIVIDER_CFG1, 0, 6, SIRFSOC_CLKC_SHARED_DIVIDER_ENA, 16, &share_div_lock },
 };
 
-static const char * const i2s_clk_parents[] = {
+static const char *const i2s_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"audio_dto",
 	/* "pwm_i2s01" */
 };
 
-static const char * const usbphy_clk_parents[] = {
+static const char *const usbphy_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys0pll_a1",
@@ -737,7 +784,8 @@ static const char * const usbphy_clk_parents[] = {
 	"sys3pll_a1",
 };
 
-static const char * const btss_clk_parents[] = {
+static const char *const btss_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys0pll_a2",
@@ -746,7 +794,8 @@ static const char * const btss_clk_parents[] = {
 	"sys3pll_a2",
 };
 
-static const char * const rgmii_clk_parents[] = {
+static const char *const rgmii_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys0pll_a3",
@@ -755,7 +804,8 @@ static const char * const rgmii_clk_parents[] = {
 	"sys3pll_a3",
 };
 
-static const char * const cpu_clk_parents[] = {
+static const char *const cpu_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys0pll_a4",
@@ -763,7 +813,8 @@ static const char * const cpu_clk_parents[] = {
 	"cpupll_clk1",
 };
 
-static const char * const sdphy01_clk_parents[] = {
+static const char *const sdphy01_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys0pll_a5",
@@ -772,7 +823,8 @@ static const char * const sdphy01_clk_parents[] = {
 	"sys3pll_a5",
 };
 
-static const char * const sdphy23_clk_parents[] = {
+static const char *const sdphy23_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys0pll_a6",
@@ -781,7 +833,8 @@ static const char * const sdphy23_clk_parents[] = {
 	"sys3pll_a6",
 };
 
-static const char * const sdphy45_clk_parents[] = {
+static const char *const sdphy45_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys0pll_a7",
@@ -790,7 +843,8 @@ static const char * const sdphy45_clk_parents[] = {
 	"sys3pll_a7",
 };
 
-static const char * const sdphy67_clk_parents[] = {
+static const char *const sdphy67_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys0pll_a8",
@@ -799,7 +853,8 @@ static const char * const sdphy67_clk_parents[] = {
 	"sys3pll_a8",
 };
 
-static const char * const can_clk_parents[] = {
+static const char *const can_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys0pll_a9",
@@ -808,7 +863,8 @@ static const char * const can_clk_parents[] = {
 	"sys3pll_a9",
 };
 
-static const char * const deint_clk_parents[] = {
+static const char *const deint_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys0pll_a10",
@@ -817,7 +873,8 @@ static const char * const deint_clk_parents[] = {
 	"sys3pll_a10",
 };
 
-static const char * const nand_clk_parents[] = {
+static const char *const nand_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys0pll_a11",
@@ -826,7 +883,8 @@ static const char * const nand_clk_parents[] = {
 	"sys3pll_a11",
 };
 
-static const char * const disp0_clk_parents[] = {
+static const char *const disp0_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys0pll_a12",
@@ -836,7 +894,8 @@ static const char * const disp0_clk_parents[] = {
 	"disp0_dto",
 };
 
-static const char * const disp1_clk_parents[] = {
+static const char *const disp1_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys0pll_a13",
@@ -846,7 +905,8 @@ static const char * const disp1_clk_parents[] = {
 	"disp1_dto",
 };
 
-static const char * const gpu_clk_parents[] = {
+static const char *const gpu_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys0pll_a14",
@@ -855,7 +915,8 @@ static const char * const gpu_clk_parents[] = {
 	"sys3pll_a14",
 };
 
-static const char * const gnss_clk_parents[] = {
+static const char *const gnss_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys0pll_a15",
@@ -864,7 +925,8 @@ static const char * const gnss_clk_parents[] = {
 	"sys3pll_a15",
 };
 
-static const char * const sys_clk_parents[] = {
+static const char *const sys_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys2pll_a20",
@@ -875,7 +937,8 @@ static const char * const sys_clk_parents[] = {
 	"sys1pll_a17",
 };
 
-static const char * const io_clk_parents[] = {
+static const char *const io_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys2pll_a20",
@@ -886,7 +949,8 @@ static const char * const io_clk_parents[] = {
 	"sys1pll_a17",
 };
 
-static const char * const g2d_clk_parents[] = {
+static const char *const g2d_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys2pll_a20",
@@ -897,7 +961,8 @@ static const char * const g2d_clk_parents[] = {
 	"sys1pll_a17",
 };
 
-static const char * const jpenc_clk_parents[] = {
+static const char *const jpenc_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys2pll_a20",
@@ -908,7 +973,8 @@ static const char * const jpenc_clk_parents[] = {
 	"sys1pll_a17",
 };
 
-static const char * const vdec_clk_parents[] = {
+static const char *const vdec_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys2pll_a20",
@@ -919,7 +985,8 @@ static const char * const vdec_clk_parents[] = {
 	"sys1pll_a17",
 };
 
-static const char * const gmac_clk_parents[] = {
+static const char *const gmac_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys2pll_a20",
@@ -930,7 +997,8 @@ static const char * const gmac_clk_parents[] = {
 	"sys1pll_a17",
 };
 
-static const char * const usb_clk_parents[] = {
+static const char *const usb_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys2pll_a20",
@@ -941,7 +1009,8 @@ static const char * const usb_clk_parents[] = {
 	"sys1pll_a17",
 };
 
-static const char * const kas_clk_parents[] = {
+static const char *const kas_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys2pll_a20",
@@ -952,7 +1021,8 @@ static const char * const kas_clk_parents[] = {
 	"sys1pll_a17",
 };
 
-static const char * const sec_clk_parents[] = {
+static const char *const sec_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys2pll_a20",
@@ -963,7 +1033,8 @@ static const char * const sec_clk_parents[] = {
 	"sys1pll_a17",
 };
 
-static const char * const sdr_clk_parents[] = {
+static const char *const sdr_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys2pll_a20",
@@ -974,7 +1045,8 @@ static const char * const sdr_clk_parents[] = {
 	"sys1pll_a17",
 };
 
-static const char * const vip_clk_parents[] = {
+static const char *const vip_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys2pll_a20",
@@ -985,7 +1057,8 @@ static const char * const vip_clk_parents[] = {
 	"sys1pll_a17",
 };
 
-static const char * const nocd_clk_parents[] = {
+static const char *const nocd_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys2pll_a20",
@@ -996,7 +1069,8 @@ static const char * const nocd_clk_parents[] = {
 	"sys1pll_a17",
 };
 
-static const char * const nocr_clk_parents[] = {
+static const char *const nocr_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys2pll_a20",
@@ -1007,7 +1081,8 @@ static const char * const nocr_clk_parents[] = {
 	"sys1pll_a17",
 };
 
-static const char * const tpiu_clk_parents[] = {
+static const char *const tpiu_clk_parents[] =
+{
 	"xin",
 	"xinw",
 	"sys2pll_a20",
@@ -1018,7 +1093,8 @@ static const char * const tpiu_clk_parents[] = {
 	"sys1pll_a17",
 };
 
-static struct atlas7_mux_init_data mux_list[] __initdata = {
+static struct atlas7_mux_init_data mux_list[] __initdata =
+{
 	/* mux_name, parent_names, parent_num, flags, mux_flags, mux_offset, shift, width */
 	{ "i2s_mux", i2s_clk_parents, ARRAY_SIZE(i2s_clk_parents), 0, 0, SIRFSOC_CLKC_I2S_CLK_SEL, 0, 2 },
 	{ "usbphy_mux", usbphy_clk_parents, ARRAY_SIZE(usbphy_clk_parents), 0, 0, SIRFSOC_CLKC_I2S_CLK_SEL, 0, 3 },
@@ -1052,8 +1128,9 @@ static struct atlas7_mux_init_data mux_list[] __initdata = {
 	{ "tpiu_mux", tpiu_clk_parents, ARRAY_SIZE(tpiu_clk_parents), 0, 0, SIRFSOC_CLKC_TPIU_CLK_SEL, 0, 3 },
 };
 
-	/* new unit should add start from the tail of list */
-static struct atlas7_unit_init_data unit_list[] __initdata = {
+/* new unit should add start from the tail of list */
+static struct atlas7_unit_init_data unit_list[] __initdata =
+{
 	/* unit_name, parent_name, flags, regofs, bit, lock */
 	{ 0, "audmscm_kas", "kas_mux", 0, SIRFSOC_CLKC_ROOT_CLK_EN0_SET, 0, 0, 0, &root0_gate_lock },
 	{ 1, "gnssm_gnss", "gnss_mux", 0, SIRFSOC_CLKC_ROOT_CLK_EN0_SET, 1, 0, 0, &root0_gate_lock },
@@ -1221,10 +1298,15 @@ static int unit_clk_enable(struct clk_hw *hw)
 
 	spin_lock_irqsave(clk->lock, flags);
 	clkc_writel(BIT(clk->bit), reg);
+
 	if (clk->type == CLK_UNIT_NOC_CLOCK)
+	{
 		clkc_writel(BIT(clk->idle_bit), SIRFSOC_NOC_CLK_IDLEREQ_CLR);
+	}
 	else if (clk->type == CLK_UNIT_NOC_SOCKET)
+	{
 		clkc_writel(BIT(clk->idle_bit), SIRFSOC_NOC_CLK_SLVRDY_SET);
+	}
 
 	spin_unlock_irqrestore(clk->lock, flags);
 	return 0;
@@ -1239,47 +1321,59 @@ static void unit_clk_disable(struct clk_hw *hw)
 
 	reg = clk->regofs + SIRFSOC_CLKC_ROOT_CLK_EN0_CLR - SIRFSOC_CLKC_ROOT_CLK_EN0_SET;
 	spin_lock_irqsave(clk->lock, flags);
-	if (clk->type == CLK_UNIT_NOC_CLOCK) {
+
+	if (clk->type == CLK_UNIT_NOC_CLOCK)
+	{
 		clkc_writel(BIT(clk->idle_bit), SIRFSOC_NOC_CLK_IDLEREQ_SET);
+
 		while (!(clkc_readl(SIRFSOC_NOC_CLK_IDLE_STATUS) &
-				BIT(clk->idle_bit)) && (i++ < 100)) {
+				 BIT(clk->idle_bit)) && (i++ < 100))
+		{
 			cpu_relax();
 			udelay(10);
 		}
 
-		if (i == 100) {
+		if (i == 100)
+		{
 			pr_err("unit NoC Clock disconnect Error:timeout\n");
 			/*once timeout, undo idlereq by CLR*/
 			clkc_writel(BIT(clk->idle_bit), SIRFSOC_NOC_CLK_IDLEREQ_CLR);
 			goto err;
 		}
 
-	} else if (clk->type == CLK_UNIT_NOC_SOCKET)
+	}
+	else if (clk->type == CLK_UNIT_NOC_SOCKET)
+	{
 		clkc_writel(BIT(clk->idle_bit), SIRFSOC_NOC_CLK_SLVRDY_CLR);
+	}
 
 	clkc_writel(BIT(clk->bit), reg);
 err:
 	spin_unlock_irqrestore(clk->lock, flags);
 }
 
-static const struct clk_ops unit_clk_ops = {
+static const struct clk_ops unit_clk_ops =
+{
 	.is_enabled = unit_clk_is_enabled,
 	.enable = unit_clk_enable,
 	.disable = unit_clk_disable,
 };
 
-static struct clk * __init
+static struct clk *__init
 atlas7_unit_clk_register(struct device *dev, const char *name,
-		 const char * const parent_name, unsigned long flags,
-		 u32 regofs, u8 bit, u32 type, u8 idle_bit, spinlock_t *lock)
+						 const char *const parent_name, unsigned long flags,
+						 u32 regofs, u8 bit, u32 type, u8 idle_bit, spinlock_t *lock)
 {
 	struct clk *clk;
 	struct clk_unit *unit;
 	struct clk_init_data init;
 
 	unit = kzalloc(sizeof(*unit), GFP_KERNEL);
+
 	if (!unit)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.parent_names = &parent_name;
@@ -1296,13 +1390,17 @@ atlas7_unit_clk_register(struct device *dev, const char *name,
 	unit->lock = lock;
 
 	clk = clk_register(dev, &unit->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(unit);
+	}
 
 	return clk;
 }
 
-static struct atlas7_reset_desc atlas7_reset_unit[] = {
+static struct atlas7_reset_desc atlas7_reset_unit[] =
+{
 	{ "PWM", 0x0244, 0, 0x0320, 0, &leaf0_gate_lock }, /* 0-5 */
 	{ "THCGUM", 0x0244, 3, 0x0320, 1, &leaf0_gate_lock },
 	{ "CVD", 0x04A0, 0, 0x032C, 0, &leaf1_gate_lock },
@@ -1387,7 +1485,7 @@ static struct atlas7_reset_desc atlas7_reset_unit[] = {
 };
 
 static int atlas7_reset_module(struct reset_controller_dev *rcdev,
-					unsigned long reset_idx)
+							   unsigned long reset_idx)
 {
 	struct atlas7_reset_desc *reset = &atlas7_reset_unit[reset_idx];
 	unsigned long flags;
@@ -1403,31 +1501,38 @@ static int atlas7_reset_module(struct reset_controller_dev *rcdev,
 	 */
 
 	spin_lock_irqsave(reset->lock, flags);
+
 	/* clock enable or not */
-	if (clkc_readl(reset->clk_ofs + 8) & (1 << reset->clk_bit)) {
+	if (clkc_readl(reset->clk_ofs + 8) & (1 << reset->clk_bit))
+	{
 		clkc_writel(1 << reset->rst_bit, reset->rst_ofs + 4);
 		udelay(2);
 		clkc_writel(1 << reset->clk_bit, reset->clk_ofs + 4);
 		clkc_writel(1 << reset->rst_bit, reset->rst_ofs);
 		/* restore clock enable */
 		clkc_writel(1 << reset->clk_bit, reset->clk_ofs);
-	} else {
+	}
+	else
+	{
 		clkc_writel(1 << reset->rst_bit, reset->rst_ofs + 4);
 		clkc_writel(1 << reset->clk_bit, reset->clk_ofs);
 		udelay(2);
 		clkc_writel(1 << reset->clk_bit, reset->clk_ofs + 4);
 		clkc_writel(1 << reset->rst_bit, reset->rst_ofs);
 	}
+
 	spin_unlock_irqrestore(reset->lock, flags);
 
 	return 0;
 }
 
-static const struct reset_control_ops atlas7_rst_ops = {
+static const struct reset_control_ops atlas7_rst_ops =
+{
 	.reset = atlas7_reset_module,
 };
 
-static struct reset_controller_dev atlas7_rst_ctlr = {
+static struct reset_controller_dev atlas7_rst_ctlr =
+{
 	.ops = &atlas7_rst_ops,
 	.owner = THIS_MODULE,
 	.of_reset_n_cells = 1,
@@ -1443,8 +1548,11 @@ static void __init atlas7_clk_init(struct device_node *np)
 	int ret;
 
 	sirfsoc_clk_vbase = of_iomap(np, 0);
+
 	if (!sirfsoc_clk_vbase)
+	{
 		panic("unable to map clkc registers\n");
+	}
 
 	of_node_put(np);
 
@@ -1462,173 +1570,173 @@ static void __init atlas7_clk_init(struct device_node *np)
 	BUG_ON(!clk);
 
 	clk = clk_register_divider_table(NULL, "cpupll_div1", "cpupll_vco", 0,
-			 sirfsoc_clk_vbase + SIRFSOC_CLKC_CPUPLL_AB_CTRL1, 0, 3, 0,
-			 pll_div_table, &cpupll_ctrl1_lock);
+									 sirfsoc_clk_vbase + SIRFSOC_CLKC_CPUPLL_AB_CTRL1, 0, 3, 0,
+									 pll_div_table, &cpupll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_divider_table(NULL, "cpupll_div2", "cpupll_vco", 0,
-			 sirfsoc_clk_vbase + SIRFSOC_CLKC_CPUPLL_AB_CTRL1, 4, 3, 0,
-			 pll_div_table, &cpupll_ctrl1_lock);
+									 sirfsoc_clk_vbase + SIRFSOC_CLKC_CPUPLL_AB_CTRL1, 4, 3, 0,
+									 pll_div_table, &cpupll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_divider_table(NULL, "cpupll_div3", "cpupll_vco", 0,
-			 sirfsoc_clk_vbase + SIRFSOC_CLKC_CPUPLL_AB_CTRL1, 8, 3, 0,
-			 pll_div_table, &cpupll_ctrl1_lock);
+									 sirfsoc_clk_vbase + SIRFSOC_CLKC_CPUPLL_AB_CTRL1, 8, 3, 0,
+									 pll_div_table, &cpupll_ctrl1_lock);
 	BUG_ON(!clk);
 
 	clk = clk_register_divider_table(NULL, "mempll_div1", "mempll_vco", 0,
-			 sirfsoc_clk_vbase + SIRFSOC_CLKC_MEMPLL_AB_CTRL1, 0, 3, 0,
-			 pll_div_table, &mempll_ctrl1_lock);
+									 sirfsoc_clk_vbase + SIRFSOC_CLKC_MEMPLL_AB_CTRL1, 0, 3, 0,
+									 pll_div_table, &mempll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_divider_table(NULL, "mempll_div2", "mempll_vco", 0,
-			 sirfsoc_clk_vbase + SIRFSOC_CLKC_MEMPLL_AB_CTRL1, 4, 3, 0,
-			 pll_div_table, &mempll_ctrl1_lock);
+									 sirfsoc_clk_vbase + SIRFSOC_CLKC_MEMPLL_AB_CTRL1, 4, 3, 0,
+									 pll_div_table, &mempll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_divider_table(NULL, "mempll_div3", "mempll_vco", 0,
-			 sirfsoc_clk_vbase + SIRFSOC_CLKC_MEMPLL_AB_CTRL1, 8, 3, 0,
-			 pll_div_table, &mempll_ctrl1_lock);
+									 sirfsoc_clk_vbase + SIRFSOC_CLKC_MEMPLL_AB_CTRL1, 8, 3, 0,
+									 pll_div_table, &mempll_ctrl1_lock);
 	BUG_ON(!clk);
 
 	clk = clk_register_divider_table(NULL, "sys0pll_div1", "sys0pll_vco", 0,
-			 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS0PLL_AB_CTRL1, 0, 3, 0,
-			 pll_div_table, &sys0pll_ctrl1_lock);
+									 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS0PLL_AB_CTRL1, 0, 3, 0,
+									 pll_div_table, &sys0pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_divider_table(NULL, "sys0pll_div2", "sys0pll_vco", 0,
-			 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS0PLL_AB_CTRL1, 4, 3, 0,
-			 pll_div_table, &sys0pll_ctrl1_lock);
+									 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS0PLL_AB_CTRL1, 4, 3, 0,
+									 pll_div_table, &sys0pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_divider_table(NULL, "sys0pll_div3", "sys0pll_vco", 0,
-			 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS0PLL_AB_CTRL1, 8, 3, 0,
-			 pll_div_table, &sys0pll_ctrl1_lock);
+									 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS0PLL_AB_CTRL1, 8, 3, 0,
+									 pll_div_table, &sys0pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_fixed_factor(NULL, "sys0pll_fixdiv", "sys0pll_vco",
-					CLK_SET_RATE_PARENT, 1, 2);
+									CLK_SET_RATE_PARENT, 1, 2);
 
 	clk = clk_register_divider_table(NULL, "sys1pll_div1", "sys1pll_vco", 0,
-			 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS1PLL_AB_CTRL1, 0, 3, 0,
-			 pll_div_table, &sys1pll_ctrl1_lock);
+									 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS1PLL_AB_CTRL1, 0, 3, 0,
+									 pll_div_table, &sys1pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_divider_table(NULL, "sys1pll_div2", "sys1pll_vco", 0,
-			 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS1PLL_AB_CTRL1, 4, 3, 0,
-			 pll_div_table, &sys1pll_ctrl1_lock);
+									 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS1PLL_AB_CTRL1, 4, 3, 0,
+									 pll_div_table, &sys1pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_divider_table(NULL, "sys1pll_div3", "sys1pll_vco", 0,
-			 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS1PLL_AB_CTRL1, 8, 3, 0,
-			 pll_div_table, &sys1pll_ctrl1_lock);
+									 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS1PLL_AB_CTRL1, 8, 3, 0,
+									 pll_div_table, &sys1pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_fixed_factor(NULL, "sys1pll_fixdiv", "sys1pll_vco",
-					CLK_SET_RATE_PARENT, 1, 2);
+									CLK_SET_RATE_PARENT, 1, 2);
 
 	clk = clk_register_divider_table(NULL, "sys2pll_div1", "sys2pll_vco", 0,
-			 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS2PLL_AB_CTRL1, 0, 3, 0,
-			 pll_div_table, &sys2pll_ctrl1_lock);
+									 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS2PLL_AB_CTRL1, 0, 3, 0,
+									 pll_div_table, &sys2pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_divider_table(NULL, "sys2pll_div2", "sys2pll_vco", 0,
-			 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS2PLL_AB_CTRL1, 4, 3, 0,
-			 pll_div_table, &sys2pll_ctrl1_lock);
+									 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS2PLL_AB_CTRL1, 4, 3, 0,
+									 pll_div_table, &sys2pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_divider_table(NULL, "sys2pll_div3", "sys2pll_vco", 0,
-			 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS2PLL_AB_CTRL1, 8, 3, 0,
-			 pll_div_table, &sys2pll_ctrl1_lock);
+									 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS2PLL_AB_CTRL1, 8, 3, 0,
+									 pll_div_table, &sys2pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_fixed_factor(NULL, "sys2pll_fixdiv", "sys2pll_vco",
-					CLK_SET_RATE_PARENT, 1, 2);
+									CLK_SET_RATE_PARENT, 1, 2);
 
 	clk = clk_register_divider_table(NULL, "sys3pll_div1", "sys3pll_vco", 0,
-			 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS3PLL_AB_CTRL1, 0, 3, 0,
-			 pll_div_table, &sys3pll_ctrl1_lock);
+									 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS3PLL_AB_CTRL1, 0, 3, 0,
+									 pll_div_table, &sys3pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_divider_table(NULL, "sys3pll_div2", "sys3pll_vco", 0,
-			 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS3PLL_AB_CTRL1, 4, 3, 0,
-			 pll_div_table, &sys3pll_ctrl1_lock);
+									 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS3PLL_AB_CTRL1, 4, 3, 0,
+									 pll_div_table, &sys3pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_divider_table(NULL, "sys3pll_div3", "sys3pll_vco", 0,
-			 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS3PLL_AB_CTRL1, 8, 3, 0,
-			 pll_div_table, &sys3pll_ctrl1_lock);
+									 sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS3PLL_AB_CTRL1, 8, 3, 0,
+									 pll_div_table, &sys3pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_fixed_factor(NULL, "sys3pll_fixdiv", "sys3pll_vco",
-					CLK_SET_RATE_PARENT, 1, 2);
+									CLK_SET_RATE_PARENT, 1, 2);
 
 	BUG_ON(!clk);
 	clk = clk_register_fixed_factor(NULL, "xinw_fixdiv_btslow", "xinw",
-					CLK_SET_RATE_PARENT, 1, 4);
+									CLK_SET_RATE_PARENT, 1, 4);
 
 	BUG_ON(!clk);
 	clk = clk_register_gate(NULL, "cpupll_clk1", "cpupll_div1",
-		CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_CPUPLL_AB_CTRL1,
-				12, 0, &cpupll_ctrl1_lock);
+							CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_CPUPLL_AB_CTRL1,
+							12, 0, &cpupll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_gate(NULL, "cpupll_clk2", "cpupll_div2",
-		CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_CPUPLL_AB_CTRL1,
-				13, 0, &cpupll_ctrl1_lock);
+							CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_CPUPLL_AB_CTRL1,
+							13, 0, &cpupll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_gate(NULL, "cpupll_clk3", "cpupll_div3",
-		CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_CPUPLL_AB_CTRL1,
-				14, 0, &cpupll_ctrl1_lock);
+							CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_CPUPLL_AB_CTRL1,
+							14, 0, &cpupll_ctrl1_lock);
 	BUG_ON(!clk);
 
 	clk = clk_register_gate(NULL, "mempll_clk1", "mempll_div1",
-		CLK_SET_RATE_PARENT | CLK_IGNORE_UNUSED,
-		sirfsoc_clk_vbase + SIRFSOC_CLKC_MEMPLL_AB_CTRL1,
-		12, 0, &mempll_ctrl1_lock);
+							CLK_SET_RATE_PARENT | CLK_IGNORE_UNUSED,
+							sirfsoc_clk_vbase + SIRFSOC_CLKC_MEMPLL_AB_CTRL1,
+							12, 0, &mempll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_gate(NULL, "mempll_clk2", "mempll_div2",
-		CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_MEMPLL_AB_CTRL1,
-				13, 0, &mempll_ctrl1_lock);
+							CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_MEMPLL_AB_CTRL1,
+							13, 0, &mempll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_gate(NULL, "mempll_clk3", "mempll_div3",
-		CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_MEMPLL_AB_CTRL1,
-				14, 0, &mempll_ctrl1_lock);
+							CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_MEMPLL_AB_CTRL1,
+							14, 0, &mempll_ctrl1_lock);
 	BUG_ON(!clk);
 
 	clk = clk_register_gate(NULL, "sys0pll_clk1", "sys0pll_div1",
-		CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS0PLL_AB_CTRL1,
-				12, 0, &sys0pll_ctrl1_lock);
+							CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS0PLL_AB_CTRL1,
+							12, 0, &sys0pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_gate(NULL, "sys0pll_clk2", "sys0pll_div2",
-		CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS0PLL_AB_CTRL1,
-				13, 0, &sys0pll_ctrl1_lock);
+							CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS0PLL_AB_CTRL1,
+							13, 0, &sys0pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_gate(NULL, "sys0pll_clk3", "sys0pll_div3",
-		CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS0PLL_AB_CTRL1,
-				14, 0, &sys0pll_ctrl1_lock);
+							CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS0PLL_AB_CTRL1,
+							14, 0, &sys0pll_ctrl1_lock);
 	BUG_ON(!clk);
 
 	clk = clk_register_gate(NULL, "sys1pll_clk1", "sys1pll_div1",
-		CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS1PLL_AB_CTRL1,
-				12, 0, &sys1pll_ctrl1_lock);
+							CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS1PLL_AB_CTRL1,
+							12, 0, &sys1pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_gate(NULL, "sys1pll_clk2", "sys1pll_div2",
-		CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS1PLL_AB_CTRL1,
-				13, 0, &sys1pll_ctrl1_lock);
+							CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS1PLL_AB_CTRL1,
+							13, 0, &sys1pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_gate(NULL, "sys1pll_clk3", "sys1pll_div3",
-		CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS1PLL_AB_CTRL1,
-				14, 0, &sys1pll_ctrl1_lock);
+							CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS1PLL_AB_CTRL1,
+							14, 0, &sys1pll_ctrl1_lock);
 	BUG_ON(!clk);
 
 	clk = clk_register_gate(NULL, "sys2pll_clk1", "sys2pll_div1",
-		CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS2PLL_AB_CTRL1,
-				12, 0, &sys2pll_ctrl1_lock);
+							CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS2PLL_AB_CTRL1,
+							12, 0, &sys2pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_gate(NULL, "sys2pll_clk2", "sys2pll_div2",
-		CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS2PLL_AB_CTRL1,
-				13, 0, &sys2pll_ctrl1_lock);
+							CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS2PLL_AB_CTRL1,
+							13, 0, &sys2pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_gate(NULL, "sys2pll_clk3", "sys2pll_div3",
-		CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS2PLL_AB_CTRL1,
-				14, 0, &sys2pll_ctrl1_lock);
+							CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS2PLL_AB_CTRL1,
+							14, 0, &sys2pll_ctrl1_lock);
 	BUG_ON(!clk);
 
 	clk = clk_register_gate(NULL, "sys3pll_clk1", "sys3pll_div1",
-		CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS3PLL_AB_CTRL1,
-				12, 0, &sys3pll_ctrl1_lock);
+							CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS3PLL_AB_CTRL1,
+							12, 0, &sys3pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_gate(NULL, "sys3pll_clk2", "sys3pll_div2",
-		CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS3PLL_AB_CTRL1,
-				13, 0, &sys3pll_ctrl1_lock);
+							CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS3PLL_AB_CTRL1,
+							13, 0, &sys3pll_ctrl1_lock);
 	BUG_ON(!clk);
 	clk = clk_register_gate(NULL, "sys3pll_clk3", "sys3pll_div3",
-		CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS3PLL_AB_CTRL1,
-				14, 0, &sys3pll_ctrl1_lock);
+							CLK_SET_RATE_PARENT, sirfsoc_clk_vbase + SIRFSOC_CLKC_SYS3PLL_AB_CTRL1,
+							14, 0, &sys3pll_ctrl1_lock);
 	BUG_ON(!clk);
 
 	clk = clk_register(NULL, &clk_audio_dto.hw);
@@ -1640,33 +1748,37 @@ static void __init atlas7_clk_init(struct device_node *np)
 	clk = clk_register(NULL, &clk_disp1_dto.hw);
 	BUG_ON(!clk);
 
-	for (i = 0; i < ARRAY_SIZE(divider_list); i++) {
+	for (i = 0; i < ARRAY_SIZE(divider_list); i++)
+	{
 		div = &divider_list[i];
 		clk = clk_register_divider(NULL, div->div_name,
-			div->parent_name, div->divider_flags, sirfsoc_clk_vbase + div->div_offset,
-			div->shift, div->width, 0, div->lock);
+								   div->parent_name, div->divider_flags, sirfsoc_clk_vbase + div->div_offset,
+								   div->shift, div->width, 0, div->lock);
 		BUG_ON(!clk);
 		clk = clk_register_gate(NULL, div->gate_name, div->div_name,
-			div->gate_flags, sirfsoc_clk_vbase + div->gate_offset,
-				div->gate_bit, 0, div->lock);
+								div->gate_flags, sirfsoc_clk_vbase + div->gate_offset,
+								div->gate_bit, 0, div->lock);
 		BUG_ON(!clk);
 	}
+
 	/* ignore selector status register check */
-	for (i = 0; i < ARRAY_SIZE(mux_list); i++) {
+	for (i = 0; i < ARRAY_SIZE(mux_list); i++)
+	{
 		mux = &mux_list[i];
 		clk = clk_register_mux(NULL, mux->mux_name, mux->parent_names,
-			       mux->parent_num, mux->flags,
-			       sirfsoc_clk_vbase + mux->mux_offset,
-			       mux->shift, mux->width,
-			       mux->mux_flags, NULL);
+							   mux->parent_num, mux->flags,
+							   sirfsoc_clk_vbase + mux->mux_offset,
+							   mux->shift, mux->width,
+							   mux->mux_flags, NULL);
 		atlas7_clks[ARRAY_SIZE(unit_list) + i] = clk;
 		BUG_ON(!clk);
 	}
 
-	for (i = 0; i < ARRAY_SIZE(unit_list); i++) {
+	for (i = 0; i < ARRAY_SIZE(unit_list); i++)
+	{
 		unit = &unit_list[i];
 		atlas7_clks[i] = atlas7_unit_clk_register(NULL, unit->unit_name, unit->parent_name,
-				unit->flags, unit->regofs, unit->bit, unit->type, unit->idle_bit, unit->lock);
+						 unit->flags, unit->regofs, unit->bit, unit->type, unit->idle_bit, unit->lock);
 		BUG_ON(!atlas7_clks[i]);
 	}
 

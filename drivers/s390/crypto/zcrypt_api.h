@@ -42,7 +42,8 @@
  * This structure is deprecated and the corresponding ioctl() has been
  * replaced with individual ioctl()s for each piece of data!
  */
-struct ica_z90_status {
+struct ica_z90_status
+{
 	int totalcount;
 	int leedslitecount; // PCICA
 	int leeds2count;    // PCICC
@@ -86,10 +87,11 @@ struct ica_z90_status {
 
 struct zcrypt_device;
 
-struct zcrypt_ops {
+struct zcrypt_ops
+{
 	long (*rsa_modexpo)(struct zcrypt_device *, struct ica_rsa_modexpo *);
 	long (*rsa_modexpo_crt)(struct zcrypt_device *,
-				struct ica_rsa_modexpo_crt *);
+							struct ica_rsa_modexpo_crt *);
 	long (*send_cprb)(struct zcrypt_device *, struct ica_xcRB *);
 	long (*send_ep11_cprb)(struct zcrypt_device *, struct ep11_urb *);
 	long (*rng)(struct zcrypt_device *, char *);
@@ -99,7 +101,8 @@ struct zcrypt_ops {
 	char name[128];
 };
 
-struct zcrypt_device {
+struct zcrypt_device
+{
 	struct list_head list;		/* Device list. */
 	spinlock_t lock;		/* Per device lock. */
 	struct kref refcount;		/* device refcounting */

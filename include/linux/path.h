@@ -4,7 +4,8 @@
 struct dentry;
 struct vfsmount;
 
-struct path {
+struct path
+{
 	struct vfsmount *mnt;
 	struct dentry *dentry;
 };

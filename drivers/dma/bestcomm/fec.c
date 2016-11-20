@@ -30,7 +30,8 @@ extern u32 bcom_fec_rx_task[];
 extern u32 bcom_fec_tx_task[];
 
 /* rx task vars that need to be set before enabling the task */
-struct bcom_fec_rx_var {
+struct bcom_fec_rx_var
+{
 	u32 enable;		/* (u16*) address of task's control register */
 	u32 fifo;		/* (u32*) address of fec's fifo */
 	u32 bd_base;		/* (struct bcom_bd*) beginning of ring buffer */
@@ -40,7 +41,8 @@ struct bcom_fec_rx_var {
 };
 
 /* rx task incs that need to be set before enabling the task */
-struct bcom_fec_rx_inc {
+struct bcom_fec_rx_inc
+{
 	u16 pad0;
 	s16 incr_bytes;
 	u16 pad1;
@@ -50,7 +52,8 @@ struct bcom_fec_rx_inc {
 };
 
 /* tx task vars that need to be set before enabling the task */
-struct bcom_fec_tx_var {
+struct bcom_fec_tx_var
+{
 	u32 DRD;		/* (u32*) address of self-modified DRD */
 	u32 fifo;		/* (u32*) address of fec's fifo */
 	u32 enable;		/* (u16*) address of task's control register */
@@ -61,7 +64,8 @@ struct bcom_fec_tx_var {
 };
 
 /* tx task incs that need to be set before enabling the task */
-struct bcom_fec_tx_inc {
+struct bcom_fec_tx_inc
+{
 	u16 pad0;
 	s16 incr_bytes;
 	u16 pad1;
@@ -71,7 +75,8 @@ struct bcom_fec_tx_inc {
 };
 
 /* private structure in the task */
-struct bcom_fec_priv {
+struct bcom_fec_priv
+{
 	phys_addr_t	fifo;
 	int		maxbufsize;
 };
@@ -88,9 +93,12 @@ bcom_fec_rx_init(int queue_len, phys_addr_t fifo, int maxbufsize)
 	struct bcom_fec_priv *priv;
 
 	tsk = bcom_task_alloc(queue_len, sizeof(struct bcom_fec_bd),
-				sizeof(struct bcom_fec_priv));
+						  sizeof(struct bcom_fec_priv));
+
 	if (!tsk)
+	{
 		return NULL;
+	}
 
 	tsk->flags = BCOM_FLAGS_NONE;
 
@@ -98,7 +106,8 @@ bcom_fec_rx_init(int queue_len, phys_addr_t fifo, int maxbufsize)
 	priv->fifo = fifo;
 	priv->maxbufsize = maxbufsize;
 
-	if (bcom_fec_rx_reset(tsk)) {
+	if (bcom_fec_rx_reset(tsk))
+	{
 		bcom_task_free(tsk);
 		return NULL;
 	}
@@ -122,19 +131,21 @@ bcom_fec_rx_reset(struct bcom_task *tsk)
 	inc = (struct bcom_fec_rx_inc *) bcom_task_inc(tsk->tasknum);
 
 	if (bcom_load_image(tsk->tasknum, bcom_fec_rx_task))
+	{
 		return -1;
+	}
 
 	var->enable	= bcom_eng->regs_base +
-				offsetof(struct mpc52xx_sdma, tcr[tsk->tasknum]);
+				  offsetof(struct mpc52xx_sdma, tcr[tsk->tasknum]);
 	var->fifo	= (u32) priv->fifo;
 	var->bd_base	= tsk->bd_pa;
-	var->bd_last	= tsk->bd_pa + ((tsk->num_bd-1) * tsk->bd_size);
+	var->bd_last	= tsk->bd_pa + ((tsk->num_bd - 1) * tsk->bd_size);
 	var->bd_start	= tsk->bd_pa;
 	var->buffer_size = priv->maxbufsize;
 
 	inc->incr_bytes	= -(s16)sizeof(u32);	/* These should be in the   */
 	inc->incr_dst	= sizeof(u32);		/* task image, but we stick */
-	inc->incr_dst_ma= sizeof(u8);		/* to the official ones     */
+	inc->incr_dst_ma = sizeof(u8);		/* to the official ones     */
 
 	/* Reset the BDs */
 	tsk->index = 0;
@@ -148,7 +159,7 @@ bcom_fec_rx_reset(struct bcom_task *tsk)
 
 	out_8(&bcom_eng->regs->ipr[BCOM_INITIATOR_FEC_RX], BCOM_IPR_FEC_RX);
 
-	out_be32(&bcom_eng->regs->IntPend, 1<<tsk->tasknum);	/* Clear ints */
+	out_be32(&bcom_eng->regs->IntPend, 1 << tsk->tasknum);	/* Clear ints */
 
 	return 0;
 }
@@ -164,9 +175,9 @@ EXPORT_SYMBOL_GPL(bcom_fec_rx_release);
 
 
 
-	/* Return 2nd to last DRD */
-	/* This is an ugly hack, but at least it's only done
-	   once at initialization */
+/* Return 2nd to last DRD */
+/* This is an ugly hack, but at least it's only done
+   once at initialization */
 static u32 *self_modified_drd(int tasknum)
 {
 	u32 *desc;
@@ -177,9 +188,13 @@ static u32 *self_modified_drd(int tasknum)
 	num_descs = bcom_task_num_descs(tasknum);
 	desc = bcom_task_desc(tasknum) + num_descs - 1;
 	drd_count = 0;
-	for (i=0; i<num_descs; i++, desc--)
+
+	for (i = 0; i < num_descs; i++, desc--)
 		if (bcom_desc_is_drd(*desc) && ++drd_count == 3)
+		{
 			break;
+		}
+
 	return desc;
 }
 
@@ -190,16 +205,20 @@ bcom_fec_tx_init(int queue_len, phys_addr_t fifo)
 	struct bcom_fec_priv *priv;
 
 	tsk = bcom_task_alloc(queue_len, sizeof(struct bcom_fec_bd),
-				sizeof(struct bcom_fec_priv));
+						  sizeof(struct bcom_fec_priv));
+
 	if (!tsk)
+	{
 		return NULL;
+	}
 
 	tsk->flags = BCOM_FLAGS_ENABLE_TASK;
 
 	priv = tsk->priv;
 	priv->fifo = fifo;
 
-	if (bcom_fec_tx_reset(tsk)) {
+	if (bcom_fec_tx_reset(tsk))
+	{
 		bcom_task_free(tsk);
 		return NULL;
 	}
@@ -223,19 +242,21 @@ bcom_fec_tx_reset(struct bcom_task *tsk)
 	inc = (struct bcom_fec_tx_inc *) bcom_task_inc(tsk->tasknum);
 
 	if (bcom_load_image(tsk->tasknum, bcom_fec_tx_task))
+	{
 		return -1;
+	}
 
 	var->enable	= bcom_eng->regs_base +
-				offsetof(struct mpc52xx_sdma, tcr[tsk->tasknum]);
+				  offsetof(struct mpc52xx_sdma, tcr[tsk->tasknum]);
 	var->fifo	= (u32) priv->fifo;
 	var->DRD	= bcom_sram_va2pa(self_modified_drd(tsk->tasknum));
 	var->bd_base	= tsk->bd_pa;
-	var->bd_last	= tsk->bd_pa + ((tsk->num_bd-1) * tsk->bd_size);
+	var->bd_last	= tsk->bd_pa + ((tsk->num_bd - 1) * tsk->bd_size);
 	var->bd_start	= tsk->bd_pa;
 
 	inc->incr_bytes	= -(s16)sizeof(u32);	/* These should be in the   */
 	inc->incr_src	= sizeof(u32);		/* task image, but we stick */
-	inc->incr_src_ma= sizeof(u8);		/* to the official ones     */
+	inc->incr_src_ma = sizeof(u8);		/* to the official ones     */
 
 	/* Reset the BDs */
 	tsk->index = 0;
@@ -249,7 +270,7 @@ bcom_fec_tx_reset(struct bcom_task *tsk)
 
 	out_8(&bcom_eng->regs->ipr[BCOM_INITIATOR_FEC_TX], BCOM_IPR_FEC_TX);
 
-	out_be32(&bcom_eng->regs->IntPend, 1<<tsk->tasknum);	/* Clear ints */
+	out_be32(&bcom_eng->regs->IntPend, 1 << tsk->tasknum);	/* Clear ints */
 
 	return 0;
 }

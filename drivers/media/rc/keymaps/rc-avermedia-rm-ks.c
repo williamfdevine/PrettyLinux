@@ -24,7 +24,8 @@
 /* Initial keytable is from Jose Alberto Reguero <jareguero@telefonica.net>
    and Felipe Morales Moreno <felipe.morales.moreno@gmail.com> */
 /* Keytable fixed by Philippe Valembois <lephilousophe@users.sourceforge.net> */
-static struct rc_map_table avermedia_rm_ks[] = {
+static struct rc_map_table avermedia_rm_ks[] =
+{
 	{ 0x0501, KEY_POWER2 }, /* Power (RED POWER BUTTON) */
 	{ 0x0502, KEY_CHANNELUP }, /* Channel+ */
 	{ 0x0503, KEY_CHANNELDOWN }, /* Channel- */
@@ -54,7 +55,8 @@ static struct rc_map_table avermedia_rm_ks[] = {
 	{ 0x0556, KEY_ZOOM }, /* Fullscreen */
 };
 
-static struct rc_map_list avermedia_rm_ks_map = {
+static struct rc_map_list avermedia_rm_ks_map =
+{
 	.map = {
 		.scan    = avermedia_rm_ks,
 		.size    = ARRAY_SIZE(avermedia_rm_ks),

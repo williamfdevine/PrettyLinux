@@ -71,7 +71,7 @@ u64 sst_shim_read64(void __iomem *addr, int offset)
 }
 
 void sst_set_fw_state_locked(
-		struct intel_sst_drv *sst_drv_ctx, int sst_state)
+	struct intel_sst_drv *sst_drv_ctx, int sst_state)
 {
 	mutex_lock(&sst_drv_ctx->sst_lock);
 	sst_drv_ctx->sst_state = sst_state;
@@ -88,25 +88,32 @@ void sst_set_fw_state_locked(
  * given block event
  */
 int sst_wait_interruptible(struct intel_sst_drv *sst_drv_ctx,
-				struct sst_block *block)
+						   struct sst_block *block)
 {
 	int retval = 0;
 
 	if (!wait_event_interruptible(sst_drv_ctx->wait_queue,
-				block->condition)) {
+								  block->condition))
+	{
 		/* event wake */
-		if (block->ret_code < 0) {
+		if (block->ret_code < 0)
+		{
 			dev_err(sst_drv_ctx->dev,
-				"stream failed %d\n", block->ret_code);
+					"stream failed %d\n", block->ret_code);
 			retval = -EBUSY;
-		} else {
+		}
+		else
+		{
 			dev_dbg(sst_drv_ctx->dev, "event up\n");
 			retval = 0;
 		}
-	} else {
+	}
+	else
+	{
 		dev_err(sst_drv_ctx->dev, "signal interrupted\n");
 		retval = -EINTR;
 	}
+
 	return retval;
 
 }
@@ -130,26 +137,31 @@ int sst_wait_timeout(struct intel_sst_drv *sst_drv_ctx, struct sst_block *block)
 	 * before the alloc thread has finished execution
 	 */
 	dev_dbg(sst_drv_ctx->dev,
-		"waiting for condition %x ipc %d drv_id %d\n",
-		block->condition, block->msg_id, block->drv_id);
+			"waiting for condition %x ipc %d drv_id %d\n",
+			block->condition, block->msg_id, block->drv_id);
+
 	if (wait_event_timeout(sst_drv_ctx->wait_queue,
-				block->condition,
-				msecs_to_jiffies(SST_BLOCK_TIMEOUT))) {
+						   block->condition,
+						   msecs_to_jiffies(SST_BLOCK_TIMEOUT)))
+	{
 		/* event wake */
 		dev_dbg(sst_drv_ctx->dev, "Event wake %x\n",
 				block->condition);
 		dev_dbg(sst_drv_ctx->dev, "message ret: %d\n",
 				block->ret_code);
 		retval = -block->ret_code;
-	} else {
+	}
+	else
+	{
 		block->on = false;
 		dev_err(sst_drv_ctx->dev,
-			"Wait timed-out condition:%#x, msg_id:%#x fw_state %#x\n",
-			block->condition, block->msg_id, sst_drv_ctx->sst_state);
+				"Wait timed-out condition:%#x, msg_id:%#x fw_state %#x\n",
+				block->condition, block->msg_id, sst_drv_ctx->sst_state);
 		sst_drv_ctx->sst_state = SST_RESET;
 
 		retval = -EBUSY;
 	}
+
 	return retval;
 }
 
@@ -167,17 +179,27 @@ int sst_create_ipc_msg(struct ipc_post **arg, bool large)
 	struct ipc_post *msg;
 
 	msg = kzalloc(sizeof(struct ipc_post), GFP_ATOMIC);
+
 	if (!msg)
+	{
 		return -ENOMEM;
-	if (large) {
+	}
+
+	if (large)
+	{
 		msg->mailbox_data = kzalloc(SST_MAILBOX_SIZE, GFP_ATOMIC);
-		if (!msg->mailbox_data) {
+
+		if (!msg->mailbox_data)
+		{
 			kfree(msg);
 			return -ENOMEM;
 		}
-	} else {
+	}
+	else
+	{
 		msg->mailbox_data = NULL;
 	}
+
 	msg->is_large = large;
 	*arg = msg;
 	return 0;
@@ -193,19 +215,26 @@ int sst_create_ipc_msg(struct ipc_post **arg, bool large)
  * @drv_id: stream id or private id
  */
 int sst_create_block_and_ipc_msg(struct ipc_post **arg, bool large,
-		struct intel_sst_drv *sst_drv_ctx, struct sst_block **block,
-		u32 msg_id, u32 drv_id)
+								 struct intel_sst_drv *sst_drv_ctx, struct sst_block **block,
+								 u32 msg_id, u32 drv_id)
 {
 	int retval = 0;
 
 	retval = sst_create_ipc_msg(arg, large);
+
 	if (retval)
+	{
 		return retval;
+	}
+
 	*block = sst_create_block(sst_drv_ctx, msg_id, drv_id);
-	if (*block == NULL) {
+
+	if (*block == NULL)
+	{
 		kfree(*arg);
 		return -ENOMEM;
 	}
+
 	return retval;
 }
 
@@ -227,9 +256,9 @@ void sst_clean_stream(struct stream_info *stream)
 }
 
 int sst_prepare_and_post_msg(struct intel_sst_drv *sst,
-		int task_id, int ipc_msg, int cmd_id, int pipe_id,
-		size_t mbox_data_len, const void *mbox_data, void **data,
-		bool large, bool fill_dsp, bool sync, bool response)
+							 int task_id, int ipc_msg, int cmd_id, int pipe_id,
+							 size_t mbox_data_len, const void *mbox_data, void **data,
+							 bool large, bool fill_dsp, bool sync, bool response)
 {
 	struct ipc_post *msg = NULL;
 	struct ipc_dsp_hdr dsp_hdr;
@@ -237,24 +266,30 @@ int sst_prepare_and_post_msg(struct intel_sst_drv *sst,
 	int ret = 0, pvt_id;
 
 	pvt_id = sst_assign_pvt_id(sst);
+
 	if (pvt_id < 0)
+	{
 		return pvt_id;
+	}
 
 	if (response)
 		ret = sst_create_block_and_ipc_msg(
-				&msg, large, sst, &block, ipc_msg, pvt_id);
+				  &msg, large, sst, &block, ipc_msg, pvt_id);
 	else
+	{
 		ret = sst_create_ipc_msg(&msg, large);
+	}
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		test_and_clear_bit(pvt_id, &sst->pvt_id);
 		return -ENOMEM;
 	}
 
 	dev_dbg(sst->dev, "pvt_id = %d, pipe id = %d, task = %d ipc_msg: %d\n",
-		 pvt_id, pipe_id, task_id, ipc_msg);
+			pvt_id, pipe_id, task_id, ipc_msg);
 	sst_fill_header_mrfld(&msg->mrfld_header, ipc_msg,
-					task_id, large, pvt_id);
+						  task_id, large, pvt_id);
 	msg->mrfld_header.p.header_low_payload = sizeof(dsp_hdr) + mbox_data_len;
 	msg->mrfld_header.p.header_high.part.res_rqd = !sync;
 	dev_dbg(sst->dev, "header:%x\n",
@@ -263,36 +298,56 @@ int sst_prepare_and_post_msg(struct intel_sst_drv *sst,
 			msg->mrfld_header.p.header_high.part.res_rqd);
 	dev_dbg(sst->dev, "msg->mrfld_header.p.header_low_payload:%d",
 			msg->mrfld_header.p.header_low_payload);
-	if (fill_dsp) {
+
+	if (fill_dsp)
+	{
 		sst_fill_header_dsp(&dsp_hdr, cmd_id, pipe_id, mbox_data_len);
 		memcpy(msg->mailbox_data, &dsp_hdr, sizeof(dsp_hdr));
-		if (mbox_data_len) {
+
+		if (mbox_data_len)
+		{
 			memcpy(msg->mailbox_data + sizeof(dsp_hdr),
-					mbox_data, mbox_data_len);
+				   mbox_data, mbox_data_len);
 		}
 	}
 
 	if (sync)
+	{
 		sst->ops->post_message(sst, msg, true);
+	}
 	else
+	{
 		sst_add_to_dispatch_list_and_post(sst, msg);
+	}
 
-	if (response) {
+	if (response)
+	{
 		ret = sst_wait_timeout(sst, block);
-		if (ret < 0)
-			goto out;
 
-		if (data && block->data) {
+		if (ret < 0)
+		{
+			goto out;
+		}
+
+		if (data && block->data)
+		{
 			*data = kmemdup(block->data, block->size, GFP_KERNEL);
-			if (!*data) {
+
+			if (!*data)
+			{
 				ret = -ENOMEM;
 				goto out;
 			}
 		}
 	}
+
 out:
+
 	if (response)
+	{
 		sst_free_block(sst, block);
+	}
+
 	test_and_clear_bit(pvt_id, &sst->pvt_id);
 	return ret;
 }
@@ -303,13 +358,17 @@ int sst_pm_runtime_put(struct intel_sst_drv *sst_drv)
 
 	pm_runtime_mark_last_busy(sst_drv->dev);
 	ret = pm_runtime_put_autosuspend(sst_drv->dev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return 0;
 }
 
 void sst_fill_header_mrfld(union ipc_header_mrfld *header,
-				int msg, int task_id, int large, int drv_id)
+						   int msg, int task_id, int large, int drv_id)
 {
 	header->full = 0;
 	header->p.header_high.part.msg_id = msg;
@@ -322,7 +381,7 @@ void sst_fill_header_mrfld(union ipc_header_mrfld *header,
 }
 
 void sst_fill_header_dsp(struct ipc_dsp_hdr *dsp, int msg,
-					int pipe_id, int len)
+						 int pipe_id, int len)
 {
 	dsp->cmd_id = msg;
 	dsp->mod_index_id = 0xff;
@@ -349,11 +408,14 @@ int sst_assign_pvt_id(struct intel_sst_drv *drv)
 	/* find first zero index from lsb */
 	local = ffz(drv->pvt_id);
 	dev_dbg(drv->dev, "pvt_id assigned --> %d\n", local);
-	if (local >= SST_MAX_BLOCKS){
+
+	if (local >= SST_MAX_BLOCKS)
+	{
 		spin_unlock(&drv->block_lock);
 		dev_err(drv->dev, "PVT _ID error: no free id blocks ");
 		return -EINVAL;
 	}
+
 	/* toggle the index */
 	change_bit(local, &drv->pvt_id);
 	spin_unlock(&drv->block_lock);
@@ -361,7 +423,7 @@ int sst_assign_pvt_id(struct intel_sst_drv *drv)
 }
 
 void sst_init_stream(struct stream_info *stream,
-		int codec, int sst_id, int ops, u8 slot)
+					 int codec, int sst_id, int ops, u8 slot)
 {
 	stream->status = STREAM_INIT;
 	stream->prev = STREAM_UN_INIT;
@@ -369,12 +431,13 @@ void sst_init_stream(struct stream_info *stream,
 }
 
 int sst_validate_strid(
-		struct intel_sst_drv *sst_drv_ctx, int str_id)
+	struct intel_sst_drv *sst_drv_ctx, int str_id)
 {
-	if (str_id <= 0 || str_id > sst_drv_ctx->info.max_streams) {
+	if (str_id <= 0 || str_id > sst_drv_ctx->info.max_streams)
+	{
 		dev_err(sst_drv_ctx->dev,
-			"SST ERR: invalid stream id : %d, max %d\n",
-			str_id, sst_drv_ctx->info.max_streams);
+				"SST ERR: invalid stream id : %d, max %d\n",
+				str_id, sst_drv_ctx->info.max_streams);
 		return -EINVAL;
 	}
 
@@ -382,21 +445,26 @@ int sst_validate_strid(
 }
 
 struct stream_info *get_stream_info(
-		struct intel_sst_drv *sst_drv_ctx, int str_id)
+	struct intel_sst_drv *sst_drv_ctx, int str_id)
 {
 	if (sst_validate_strid(sst_drv_ctx, str_id))
+	{
 		return NULL;
+	}
+
 	return &sst_drv_ctx->streams[str_id];
 }
 
 int get_stream_id_mrfld(struct intel_sst_drv *sst_drv_ctx,
-		u32 pipe_id)
+						u32 pipe_id)
 {
 	int i;
 
 	for (i = 1; i <= sst_drv_ctx->info.max_streams; i++)
 		if (pipe_id == sst_drv_ctx->streams[i].pipe_id)
+		{
 			return i;
+		}
 
 	dev_dbg(sst_drv_ctx->dev, "no such pipe_id(%u)", pipe_id);
 	return -1;
@@ -412,7 +480,7 @@ u32 relocate_imr_addr_mrfld(u32 base_addr)
 EXPORT_SYMBOL_GPL(relocate_imr_addr_mrfld);
 
 void sst_add_to_dispatch_list_and_post(struct intel_sst_drv *sst,
-						struct ipc_post *msg)
+									   struct ipc_post *msg)
 {
 	unsigned long irq_flags;
 

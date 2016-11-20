@@ -14,7 +14,8 @@
 #include <net/af_rxrpc.h>
 #include "ar-internal.h"
 
-static const char *const rxrpc_conn_states[RXRPC_CONN__NR_STATES] = {
+static const char *const rxrpc_conn_states[RXRPC_CONN__NR_STATES] =
+{
 	[RXRPC_CONN_UNUSED]			= "Unused  ",
 	[RXRPC_CONN_CLIENT]			= "Client  ",
 	[RXRPC_CONN_SERVICE_PREALLOC]		= "SvPrealc",
@@ -54,52 +55,68 @@ static int rxrpc_call_seq_show(struct seq_file *seq, void *v)
 	struct rxrpc_call *call;
 	char lbuff[50], rbuff[50];
 
-	if (v == &rxrpc_calls) {
+	if (v == &rxrpc_calls)
+	{
 		seq_puts(seq,
-			 "Proto Local                                          "
-			 " Remote                                         "
-			 " SvID ConnID   CallID   End Use State    Abort   "
-			 " UserID\n");
+				 "Proto Local                                          "
+				 " Remote                                         "
+				 " SvID ConnID   CallID   End Use State    Abort   "
+				 " UserID\n");
 		return 0;
 	}
 
 	call = list_entry(v, struct rxrpc_call, link);
 
 	rx = rcu_dereference(call->socket);
-	if (rx) {
+
+	if (rx)
+	{
 		local = READ_ONCE(rx->local);
+
 		if (local)
+		{
 			sprintf(lbuff, "%pISpc", &local->srx.transport);
+		}
 		else
+		{
 			strcpy(lbuff, "no_local");
-	} else {
+		}
+	}
+	else
+	{
 		strcpy(lbuff, "no_socket");
 	}
 
 	peer = call->peer;
+
 	if (peer)
+	{
 		sprintf(rbuff, "%pISpc", &peer->srx.transport);
+	}
 	else
+	{
 		strcpy(rbuff, "no_connection");
+	}
 
 	seq_printf(seq,
-		   "UDP   %-47.47s %-47.47s %4x %08x %08x %s %3u"
-		   " %-8.8s %08x %lx\n",
-		   lbuff,
-		   rbuff,
-		   call->service_id,
-		   call->cid,
-		   call->call_id,
-		   rxrpc_is_service_call(call) ? "Svc" : "Clt",
-		   atomic_read(&call->usage),
-		   rxrpc_call_states[call->state],
-		   call->abort_code,
-		   call->user_call_ID);
+			   "UDP   %-47.47s %-47.47s %4x %08x %08x %s %3u"
+			   " %-8.8s %08x %lx\n",
+			   lbuff,
+			   rbuff,
+			   call->service_id,
+			   call->cid,
+			   call->call_id,
+			   rxrpc_is_service_call(call) ? "Svc" : "Clt",
+			   atomic_read(&call->usage),
+			   rxrpc_call_states[call->state],
+			   call->abort_code,
+			   call->user_call_ID);
 
 	return 0;
 }
 
-static const struct seq_operations rxrpc_call_seq_ops = {
+static const struct seq_operations rxrpc_call_seq_ops =
+{
 	.start  = rxrpc_call_seq_start,
 	.next   = rxrpc_call_seq_next,
 	.stop   = rxrpc_call_seq_stop,
@@ -111,7 +128,8 @@ static int rxrpc_call_seq_open(struct inode *inode, struct file *file)
 	return seq_open(file, &rxrpc_call_seq_ops);
 }
 
-const struct file_operations rxrpc_call_seq_fops = {
+const struct file_operations rxrpc_call_seq_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= rxrpc_call_seq_open,
 	.read		= seq_read,
@@ -129,7 +147,7 @@ static void *rxrpc_connection_seq_start(struct seq_file *seq, loff_t *_pos)
 }
 
 static void *rxrpc_connection_seq_next(struct seq_file *seq, void *v,
-				       loff_t *pos)
+									   loff_t *pos)
 {
 	return seq_list_next(v, &rxrpc_connection_proc_list, pos);
 }
@@ -144,18 +162,21 @@ static int rxrpc_connection_seq_show(struct seq_file *seq, void *v)
 	struct rxrpc_connection *conn;
 	char lbuff[50], rbuff[50];
 
-	if (v == &rxrpc_connection_proc_list) {
+	if (v == &rxrpc_connection_proc_list)
+	{
 		seq_puts(seq,
-			 "Proto Local                                          "
-			 " Remote                                         "
-			 " SvID ConnID   End Use State    Key     "
-			 " Serial   ISerial\n"
-			 );
+				 "Proto Local                                          "
+				 " Remote                                         "
+				 " SvID ConnID   End Use State    Key     "
+				 " Serial   ISerial\n"
+				);
 		return 0;
 	}
 
 	conn = list_entry(v, struct rxrpc_connection, proc_link);
-	if (conn->state == RXRPC_CONN_SERVICE_PREALLOC) {
+
+	if (conn->state == RXRPC_CONN_SERVICE_PREALLOC)
+	{
 		strcpy(lbuff, "no_local");
 		strcpy(rbuff, "no_connection");
 		goto print;
@@ -166,23 +187,24 @@ static int rxrpc_connection_seq_show(struct seq_file *seq, void *v)
 	sprintf(rbuff, "%pISpc", &conn->params.peer->srx.transport);
 print:
 	seq_printf(seq,
-		   "UDP   %-47.47s %-47.47s %4x %08x %s %3u"
-		   " %s %08x %08x %08x\n",
-		   lbuff,
-		   rbuff,
-		   conn->params.service_id,
-		   conn->proto.cid,
-		   rxrpc_conn_is_service(conn) ? "Svc" : "Clt",
-		   atomic_read(&conn->usage),
-		   rxrpc_conn_states[conn->state],
-		   key_serial(conn->params.key),
-		   atomic_read(&conn->serial),
-		   conn->hi_serial);
+			   "UDP   %-47.47s %-47.47s %4x %08x %s %3u"
+			   " %s %08x %08x %08x\n",
+			   lbuff,
+			   rbuff,
+			   conn->params.service_id,
+			   conn->proto.cid,
+			   rxrpc_conn_is_service(conn) ? "Svc" : "Clt",
+			   atomic_read(&conn->usage),
+			   rxrpc_conn_states[conn->state],
+			   key_serial(conn->params.key),
+			   atomic_read(&conn->serial),
+			   conn->hi_serial);
 
 	return 0;
 }
 
-static const struct seq_operations rxrpc_connection_seq_ops = {
+static const struct seq_operations rxrpc_connection_seq_ops =
+{
 	.start  = rxrpc_connection_seq_start,
 	.next   = rxrpc_connection_seq_next,
 	.stop   = rxrpc_connection_seq_stop,
@@ -195,7 +217,8 @@ static int rxrpc_connection_seq_open(struct inode *inode, struct file *file)
 	return seq_open(file, &rxrpc_connection_seq_ops);
 }
 
-const struct file_operations rxrpc_connection_seq_fops = {
+const struct file_operations rxrpc_connection_seq_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= rxrpc_connection_seq_open,
 	.read		= seq_read,

@@ -183,16 +183,17 @@
 #define  ENE_HW_D		3	/* 3926D or later */
 
 #define __dbg(level, format, ...)				\
-do {								\
-	if (debug >= level)					\
-		pr_info(format "\n", ## __VA_ARGS__);		\
-} while (0)
+	do {								\
+		if (debug >= level)					\
+			pr_info(format "\n", ## __VA_ARGS__);		\
+	} while (0)
 
 #define dbg(format, ...)		__dbg(1, format, ## __VA_ARGS__)
 #define dbg_verbose(format, ...)	__dbg(2, format, ## __VA_ARGS__)
 #define dbg_regs(format, ...)		__dbg(3, format, ## __VA_ARGS__)
 
-struct ene_device {
+struct ene_device
+{
 	struct pnp_dev *pnp_dev;
 	struct rc_dev *rdev;
 
@@ -230,7 +231,7 @@ struct ene_device {
 	int tx_pos;				/* position in that buffer */
 	int tx_len;				/* current len of tx buffer */
 	int tx_done;				/* done transmitting */
-						/* one more sample pending*/
+	/* one more sample pending*/
 	struct completion tx_complete;		/* TX completion */
 	struct timer_list tx_sim_timer;
 

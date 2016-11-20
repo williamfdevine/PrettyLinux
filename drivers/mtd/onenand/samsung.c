@@ -29,7 +29,8 @@
 
 #include "samsung.h"
 
-enum soc_type {
+enum soc_type
+{
 	TYPE_S3C6400,
 	TYPE_S3C6410,
 	TYPE_S5PC110,
@@ -101,17 +102,17 @@ enum soc_type {
 #define S5PC110_DMA_CFG_32BIT		(0x2 << 0)
 
 #define S5PC110_DMA_SRC_CFG_READ	(S5PC110_DMA_CFG_16BURST | \
-					S5PC110_DMA_CFG_INC | \
-					S5PC110_DMA_CFG_16BIT)
+									 S5PC110_DMA_CFG_INC | \
+									 S5PC110_DMA_CFG_16BIT)
 #define S5PC110_DMA_DST_CFG_READ	(S5PC110_DMA_CFG_16BURST | \
-					S5PC110_DMA_CFG_INC | \
-					S5PC110_DMA_CFG_32BIT)
+									 S5PC110_DMA_CFG_INC | \
+									 S5PC110_DMA_CFG_32BIT)
 #define S5PC110_DMA_SRC_CFG_WRITE	(S5PC110_DMA_CFG_16BURST | \
-					S5PC110_DMA_CFG_INC | \
-					S5PC110_DMA_CFG_32BIT)
+									 S5PC110_DMA_CFG_INC | \
+									 S5PC110_DMA_CFG_32BIT)
 #define S5PC110_DMA_DST_CFG_WRITE	(S5PC110_DMA_CFG_16BURST | \
-					S5PC110_DMA_CFG_INC | \
-					S5PC110_DMA_CFG_16BIT)
+									 S5PC110_DMA_CFG_INC | \
+									 S5PC110_DMA_CFG_16BIT)
 
 #define S5PC110_DMA_TRANS_CMD_TDC	(0x1 << 18)
 #define S5PC110_DMA_TRANS_CMD_TEC	(0x1 << 16)
@@ -124,7 +125,8 @@ enum soc_type {
 #define S5PC110_DMA_DIR_READ		0x0
 #define S5PC110_DMA_DIR_WRITE		0x1
 
-struct s3c_onenand {
+struct s3c_onenand
+{
 	struct mtd_info	*mtd;
 	struct platform_device	*pdev;
 	enum soc_type	type;
@@ -175,11 +177,12 @@ static void s3c_dump_reg(void)
 {
 	int i;
 
-	for (i = 0; i < 0x400; i += 0x40) {
+	for (i = 0; i < 0x400; i += 0x40)
+	{
 		printk(KERN_INFO "0x%08X: 0x%08x 0x%08x 0x%08x 0x%08x\n",
-			(unsigned int) onenand->base + i,
-			s3c_read_reg(i), s3c_read_reg(i + 0x10),
-			s3c_read_reg(i + 0x20), s3c_read_reg(i + 0x30));
+			   (unsigned int) onenand->base + i,
+			   s3c_read_reg(i), s3c_read_reg(i + 0x10),
+			   s3c_read_reg(i + 0x20), s3c_read_reg(i + 0x30));
 	}
 }
 #endif
@@ -192,13 +195,13 @@ static unsigned int s3c64xx_cmd_map(unsigned type, unsigned val)
 static unsigned int s3c6400_mem_addr(int fba, int fpa, int fsa)
 {
 	return (fba << S3C6400_FBA_SHIFT) | (fpa << S3C6400_FPA_SHIFT) |
-		(fsa << S3C6400_FSA_SHIFT);
+		   (fsa << S3C6400_FSA_SHIFT);
 }
 
 static unsigned int s3c6410_mem_addr(int fba, int fpa, int fsa)
 {
 	return (fba << S3C6410_FBA_SHIFT) | (fpa << S3C6410_FPA_SHIFT) |
-		(fsa << S3C6410_FSA_SHIFT);
+		   (fsa << S3C6410_FSA_SHIFT);
 }
 
 static void s3c_onenand_reset(void)
@@ -207,11 +210,17 @@ static void s3c_onenand_reset(void)
 	int stat;
 
 	s3c_write_reg(ONENAND_MEM_RESET_COLD, MEM_RESET_OFFSET);
-	while (1 && timeout--) {
+
+	while (1 && timeout--)
+	{
 		stat = s3c_read_reg(INT_ERR_STAT_OFFSET);
+
 		if (stat & RST_CMP)
+		{
 			break;
+		}
 	}
+
 	stat = s3c_read_reg(INT_ERR_STAT_OFFSET);
 	s3c_write_reg(stat, INT_ERR_ACK_OFFSET);
 
@@ -230,44 +239,59 @@ static unsigned short s3c_onenand_readw(void __iomem *addr)
 	int value;
 
 	/* It's used for probing time */
-	switch (reg) {
-	case ONENAND_REG_MANUFACTURER_ID:
-		return s3c_read_reg(MANUFACT_ID_OFFSET);
-	case ONENAND_REG_DEVICE_ID:
-		return s3c_read_reg(DEVICE_ID_OFFSET);
-	case ONENAND_REG_VERSION_ID:
-		return s3c_read_reg(FLASH_VER_ID_OFFSET);
-	case ONENAND_REG_DATA_BUFFER_SIZE:
-		return s3c_read_reg(DATA_BUF_SIZE_OFFSET);
-	case ONENAND_REG_TECHNOLOGY:
-		return s3c_read_reg(TECH_OFFSET);
-	case ONENAND_REG_SYS_CFG1:
-		return s3c_read_reg(MEM_CFG_OFFSET);
+	switch (reg)
+	{
+		case ONENAND_REG_MANUFACTURER_ID:
+			return s3c_read_reg(MANUFACT_ID_OFFSET);
 
-	/* Used at unlock all status */
-	case ONENAND_REG_CTRL_STATUS:
-		return 0;
+		case ONENAND_REG_DEVICE_ID:
+			return s3c_read_reg(DEVICE_ID_OFFSET);
 
-	case ONENAND_REG_WP_STATUS:
-		return ONENAND_WP_US;
+		case ONENAND_REG_VERSION_ID:
+			return s3c_read_reg(FLASH_VER_ID_OFFSET);
 
-	default:
-		break;
+		case ONENAND_REG_DATA_BUFFER_SIZE:
+			return s3c_read_reg(DATA_BUF_SIZE_OFFSET);
+
+		case ONENAND_REG_TECHNOLOGY:
+			return s3c_read_reg(TECH_OFFSET);
+
+		case ONENAND_REG_SYS_CFG1:
+			return s3c_read_reg(MEM_CFG_OFFSET);
+
+		/* Used at unlock all status */
+		case ONENAND_REG_CTRL_STATUS:
+			return 0;
+
+		case ONENAND_REG_WP_STATUS:
+			return ONENAND_WP_US;
+
+		default:
+			break;
 	}
 
 	/* BootRAM access control */
-	if ((unsigned int) addr < ONENAND_DATARAM && onenand->bootram_command) {
+	if ((unsigned int) addr < ONENAND_DATARAM && onenand->bootram_command)
+	{
 		if (word_addr == 0)
+		{
 			return s3c_read_reg(MANUFACT_ID_OFFSET);
+		}
+
 		if (word_addr == 1)
+		{
 			return s3c_read_reg(DEVICE_ID_OFFSET);
+		}
+
 		if (word_addr == 2)
+		{
 			return s3c_read_reg(FLASH_VER_ID_OFFSET);
+		}
 	}
 
 	value = s3c_read_cmd(CMD_MAP_11(onenand, word_addr)) & 0xffff;
 	dev_info(dev, "%s: Illegal access at reg 0x%x, value 0x%x\n", __func__,
-		 word_addr, value);
+			 word_addr, value);
 	return value;
 }
 
@@ -279,30 +303,35 @@ static void s3c_onenand_writew(unsigned short value, void __iomem *addr)
 	unsigned int word_addr = reg >> 1;
 
 	/* It's used for probing time */
-	switch (reg) {
-	case ONENAND_REG_SYS_CFG1:
-		s3c_write_reg(value, MEM_CFG_OFFSET);
-		return;
+	switch (reg)
+	{
+		case ONENAND_REG_SYS_CFG1:
+			s3c_write_reg(value, MEM_CFG_OFFSET);
+			return;
 
-	case ONENAND_REG_START_ADDRESS1:
-	case ONENAND_REG_START_ADDRESS2:
-		return;
+		case ONENAND_REG_START_ADDRESS1:
+		case ONENAND_REG_START_ADDRESS2:
+			return;
 
-	/* Lock/lock-tight/unlock/unlock_all */
-	case ONENAND_REG_START_BLOCK_ADDRESS:
-		return;
+		/* Lock/lock-tight/unlock/unlock_all */
+		case ONENAND_REG_START_BLOCK_ADDRESS:
+			return;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 	/* BootRAM access control */
-	if ((unsigned int)addr < ONENAND_DATARAM) {
-		if (value == ONENAND_CMD_READID) {
+	if ((unsigned int)addr < ONENAND_DATARAM)
+	{
+		if (value == ONENAND_CMD_READID)
+		{
 			onenand->bootram_command = 1;
 			return;
 		}
-		if (value == ONENAND_CMD_RESET) {
+
+		if (value == ONENAND_CMD_RESET)
+		{
 			s3c_write_reg(ONENAND_MEM_RESET_COLD, MEM_RESET_OFFSET);
 			onenand->bootram_command = 0;
 			return;
@@ -310,7 +339,7 @@ static void s3c_onenand_writew(unsigned short value, void __iomem *addr)
 	}
 
 	dev_info(dev, "%s: Illegal access at reg 0x%x, value 0x%x\n", __func__,
-		 word_addr, value);
+			 word_addr, value);
 
 	s3c_write_cmd(value, CMD_MAP_11(onenand, word_addr));
 }
@@ -322,33 +351,46 @@ static int s3c_onenand_wait(struct mtd_info *mtd, int state)
 	unsigned int stat, ecc;
 	unsigned long timeout;
 
-	switch (state) {
-	case FL_READING:
-		flags |= BLK_RW_CMP | LOAD_CMP;
-		break;
-	case FL_WRITING:
-		flags |= BLK_RW_CMP | PGM_CMP;
-		break;
-	case FL_ERASING:
-		flags |= BLK_RW_CMP | ERS_CMP;
-		break;
-	case FL_LOCKING:
-		flags |= BLK_RW_CMP;
-		break;
-	default:
-		break;
+	switch (state)
+	{
+		case FL_READING:
+			flags |= BLK_RW_CMP | LOAD_CMP;
+			break;
+
+		case FL_WRITING:
+			flags |= BLK_RW_CMP | PGM_CMP;
+			break;
+
+		case FL_ERASING:
+			flags |= BLK_RW_CMP | ERS_CMP;
+			break;
+
+		case FL_LOCKING:
+			flags |= BLK_RW_CMP;
+			break;
+
+		default:
+			break;
 	}
 
 	/* The 20 msec is enough */
 	timeout = jiffies + msecs_to_jiffies(20);
-	while (time_before(jiffies, timeout)) {
+
+	while (time_before(jiffies, timeout))
+	{
 		stat = s3c_read_reg(INT_ERR_STAT_OFFSET);
+
 		if (stat & flags)
+		{
 			break;
+		}
 
 		if (state != FL_READING)
+		{
 			cond_resched();
+		}
 	}
+
 	/* To get correct interrupt status in timeout case */
 	stat = s3c_read_reg(INT_ERR_STAT_OFFSET);
 	s3c_write_reg(stat, INT_ERR_ACK_OFFSET);
@@ -358,22 +400,27 @@ static int s3c_onenand_wait(struct mtd_info *mtd, int state)
 	 * However if you get the correct information in case of
 	 * power off recovery (POR) test, it should read ECC status first
 	 */
-	if (stat & LOAD_CMP) {
+	if (stat & LOAD_CMP)
+	{
 		ecc = s3c_read_reg(ECC_ERR_STAT_OFFSET);
-		if (ecc & ONENAND_ECC_4BIT_UNCORRECTABLE) {
+
+		if (ecc & ONENAND_ECC_4BIT_UNCORRECTABLE)
+		{
 			dev_info(dev, "%s: ECC error = 0x%04x\n", __func__,
-				 ecc);
+					 ecc);
 			mtd->ecc_stats.failed++;
 			return -EBADMSG;
 		}
 	}
 
-	if (stat & (LOCKED_BLK | ERS_FAIL | PGM_FAIL | LD_FAIL_ECC_ERR)) {
+	if (stat & (LOCKED_BLK | ERS_FAIL | PGM_FAIL | LD_FAIL_ECC_ERR))
+	{
 		dev_info(dev, "%s: controller error = 0x%04x\n", __func__,
-			 stat);
+				 stat);
+
 		if (stat & LOCKED_BLK)
 			dev_info(dev, "%s: it's locked error = 0x%04x\n",
-				 __func__, stat);
+					 __func__, stat);
 
 		return -EIO;
 	}
@@ -382,7 +429,7 @@ static int s3c_onenand_wait(struct mtd_info *mtd, int state)
 }
 
 static int s3c_onenand_command(struct mtd_info *mtd, int cmd, loff_t addr,
-			       size_t len)
+							   size_t len)
 {
 	struct onenand_chip *this = mtd->priv;
 	unsigned int *m, *s;
@@ -399,13 +446,15 @@ static int s3c_onenand_command(struct mtd_info *mtd, int cmd, loff_t addr,
 	cmd_map_01 = CMD_MAP_01(onenand, mem_addr);
 	cmd_map_10 = CMD_MAP_10(onenand, mem_addr);
 
-	switch (cmd) {
-	case ONENAND_CMD_READ:
-	case ONENAND_CMD_READOOB:
-	case ONENAND_CMD_BUFFERRAM:
-		ONENAND_SET_NEXT_BUFFERRAM(this);
-	default:
-		break;
+	switch (cmd)
+	{
+		case ONENAND_CMD_READ:
+		case ONENAND_CMD_READOOB:
+		case ONENAND_CMD_BUFFERRAM:
+			ONENAND_SET_NEXT_BUFFERRAM(this);
+
+		default:
+			break;
 	}
 
 	index = ONENAND_CURRENT_BUFFERRAM(this);
@@ -416,7 +465,8 @@ static int s3c_onenand_command(struct mtd_info *mtd, int cmd, loff_t addr,
 	m = (unsigned int *) onenand->page_buf;
 	s = (unsigned int *) onenand->oob_buf;
 
-	if (index) {
+	if (index)
+	{
 		m += (this->writesize >> 2);
 		s += (mtd->oobsize >> 2);
 	}
@@ -424,56 +474,74 @@ static int s3c_onenand_command(struct mtd_info *mtd, int cmd, loff_t addr,
 	mcount = mtd->writesize >> 2;
 	scount = mtd->oobsize >> 2;
 
-	switch (cmd) {
-	case ONENAND_CMD_READ:
-		/* Main */
-		for (i = 0; i < mcount; i++)
-			*m++ = s3c_read_cmd(cmd_map_01);
-		return 0;
+	switch (cmd)
+	{
+		case ONENAND_CMD_READ:
 
-	case ONENAND_CMD_READOOB:
-		s3c_write_reg(TSRF, TRANS_SPARE_OFFSET);
-		/* Main */
-		for (i = 0; i < mcount; i++)
-			*m++ = s3c_read_cmd(cmd_map_01);
+			/* Main */
+			for (i = 0; i < mcount; i++)
+			{
+				*m++ = s3c_read_cmd(cmd_map_01);
+			}
 
-		/* Spare */
-		for (i = 0; i < scount; i++)
-			*s++ = s3c_read_cmd(cmd_map_01);
+			return 0;
 
-		s3c_write_reg(0, TRANS_SPARE_OFFSET);
-		return 0;
+		case ONENAND_CMD_READOOB:
+			s3c_write_reg(TSRF, TRANS_SPARE_OFFSET);
 
-	case ONENAND_CMD_PROG:
-		/* Main */
-		for (i = 0; i < mcount; i++)
-			s3c_write_cmd(*m++, cmd_map_01);
-		return 0;
+			/* Main */
+			for (i = 0; i < mcount; i++)
+			{
+				*m++ = s3c_read_cmd(cmd_map_01);
+			}
 
-	case ONENAND_CMD_PROGOOB:
-		s3c_write_reg(TSRF, TRANS_SPARE_OFFSET);
+			/* Spare */
+			for (i = 0; i < scount; i++)
+			{
+				*s++ = s3c_read_cmd(cmd_map_01);
+			}
 
-		/* Main - dummy write */
-		for (i = 0; i < mcount; i++)
-			s3c_write_cmd(0xffffffff, cmd_map_01);
+			s3c_write_reg(0, TRANS_SPARE_OFFSET);
+			return 0;
 
-		/* Spare */
-		for (i = 0; i < scount; i++)
-			s3c_write_cmd(*s++, cmd_map_01);
+		case ONENAND_CMD_PROG:
 
-		s3c_write_reg(0, TRANS_SPARE_OFFSET);
-		return 0;
+			/* Main */
+			for (i = 0; i < mcount; i++)
+			{
+				s3c_write_cmd(*m++, cmd_map_01);
+			}
 
-	case ONENAND_CMD_UNLOCK_ALL:
-		s3c_write_cmd(ONENAND_UNLOCK_ALL, cmd_map_10);
-		return 0;
+			return 0;
 
-	case ONENAND_CMD_ERASE:
-		s3c_write_cmd(ONENAND_ERASE_START, cmd_map_10);
-		return 0;
+		case ONENAND_CMD_PROGOOB:
+			s3c_write_reg(TSRF, TRANS_SPARE_OFFSET);
 
-	default:
-		break;
+			/* Main - dummy write */
+			for (i = 0; i < mcount; i++)
+			{
+				s3c_write_cmd(0xffffffff, cmd_map_01);
+			}
+
+			/* Spare */
+			for (i = 0; i < scount; i++)
+			{
+				s3c_write_cmd(*s++, cmd_map_01);
+			}
+
+			s3c_write_reg(0, TRANS_SPARE_OFFSET);
+			return 0;
+
+		case ONENAND_CMD_UNLOCK_ALL:
+			s3c_write_cmd(ONENAND_UNLOCK_ALL, cmd_map_10);
+			return 0;
+
+		case ONENAND_CMD_ERASE:
+			s3c_write_cmd(ONENAND_ERASE_START, cmd_map_10);
+			return 0;
+
+		default:
+			break;
 	}
 
 	return 0;
@@ -485,22 +553,31 @@ static unsigned char *s3c_get_bufferram(struct mtd_info *mtd, int area)
 	int index = ONENAND_CURRENT_BUFFERRAM(this);
 	unsigned char *p;
 
-	if (area == ONENAND_DATARAM) {
+	if (area == ONENAND_DATARAM)
+	{
 		p = (unsigned char *) onenand->page_buf;
+
 		if (index == 1)
+		{
 			p += this->writesize;
-	} else {
+		}
+	}
+	else
+	{
 		p = (unsigned char *) onenand->oob_buf;
+
 		if (index == 1)
+		{
 			p += mtd->oobsize;
+		}
 	}
 
 	return p;
 }
 
 static int onenand_read_bufferram(struct mtd_info *mtd, int area,
-				  unsigned char *buffer, int offset,
-				  size_t count)
+								  unsigned char *buffer, int offset,
+								  size_t count)
 {
 	unsigned char *p;
 
@@ -510,8 +587,8 @@ static int onenand_read_bufferram(struct mtd_info *mtd, int area,
 }
 
 static int onenand_write_bufferram(struct mtd_info *mtd, int area,
-				   const unsigned char *buffer, int offset,
-				   size_t count)
+								   const unsigned char *buffer, int offset,
+								   size_t count)
 {
 	unsigned char *p;
 
@@ -531,10 +608,13 @@ static int s5pc110_dma_poll(dma_addr_t dst, dma_addr_t src, size_t count, int di
 	writel(src, base + S5PC110_DMA_SRC_ADDR);
 	writel(dst, base + S5PC110_DMA_DST_ADDR);
 
-	if (direction == S5PC110_DMA_DIR_READ) {
+	if (direction == S5PC110_DMA_DIR_READ)
+	{
 		writel(S5PC110_DMA_SRC_CFG_READ, base + S5PC110_DMA_SRC_CFG);
 		writel(S5PC110_DMA_DST_CFG_READ, base + S5PC110_DMA_DST_CFG);
-	} else {
+	}
+	else
+	{
 		writel(S5PC110_DMA_SRC_CFG_WRITE, base + S5PC110_DMA_SRC_CFG);
 		writel(S5PC110_DMA_DST_CFG_WRITE, base + S5PC110_DMA_DST_CFG);
 	}
@@ -551,15 +631,19 @@ static int s5pc110_dma_poll(dma_addr_t dst, dma_addr_t src, size_t count, int di
 	 */
 	timeout = jiffies + msecs_to_jiffies(20);
 
-	do {
+	do
+	{
 		status = readl(base + S5PC110_DMA_TRANS_STATUS);
-		if (status & S5PC110_DMA_TRANS_STATUS_TE) {
+
+		if (status & S5PC110_DMA_TRANS_STATUS_TE)
+		{
 			writel(S5PC110_DMA_TRANS_CMD_TEC,
-					base + S5PC110_DMA_TRANS_CMD);
+				   base + S5PC110_DMA_TRANS_CMD);
 			return -EIO;
 		}
-	} while (!(status & S5PC110_DMA_TRANS_STATUS_TD) &&
-		time_before(jiffies, timeout));
+	}
+	while (!(status & S5PC110_DMA_TRANS_STATUS_TD) &&
+		   time_before(jiffies, timeout));
 
 	writel(S5PC110_DMA_TRANS_CMD_TDC, base + S5PC110_DMA_TRANS_CMD);
 
@@ -574,16 +658,22 @@ static irqreturn_t s5pc110_onenand_irq(int irq, void *data)
 	status = readl(base + S5PC110_INTC_DMA_STATUS);
 
 	if (likely(status & S5PC110_INTC_DMA_TD))
+	{
 		cmd = S5PC110_DMA_TRANS_CMD_TDC;
+	}
 
 	if (unlikely(status & S5PC110_INTC_DMA_TE))
+	{
 		cmd = S5PC110_DMA_TRANS_CMD_TEC;
+	}
 
 	writel(cmd, base + S5PC110_DMA_TRANS_CMD);
 	writel(status, base + S5PC110_INTC_DMA_CLR);
 
 	if (!onenand->complete.done)
+	{
 		complete(&onenand->complete);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -594,7 +684,9 @@ static int s5pc110_dma_irq(dma_addr_t dst, dma_addr_t src, size_t count, int dir
 	int status;
 
 	status = readl(base + S5PC110_INTC_DMA_MASK);
-	if (status) {
+
+	if (status)
+	{
 		status &= ~(S5PC110_INTC_DMA_TD | S5PC110_INTC_DMA_TE);
 		writel(status, base + S5PC110_INTC_DMA_MASK);
 	}
@@ -602,10 +694,13 @@ static int s5pc110_dma_irq(dma_addr_t dst, dma_addr_t src, size_t count, int dir
 	writel(src, base + S5PC110_DMA_SRC_ADDR);
 	writel(dst, base + S5PC110_DMA_DST_ADDR);
 
-	if (direction == S5PC110_DMA_DIR_READ) {
+	if (direction == S5PC110_DMA_DIR_READ)
+	{
 		writel(S5PC110_DMA_SRC_CFG_READ, base + S5PC110_DMA_SRC_CFG);
 		writel(S5PC110_DMA_DST_CFG_READ, base + S5PC110_DMA_DST_CFG);
-	} else {
+	}
+	else
+	{
 		writel(S5PC110_DMA_SRC_CFG_WRITE, base + S5PC110_DMA_SRC_CFG);
 		writel(S5PC110_DMA_DST_CFG_WRITE, base + S5PC110_DMA_DST_CFG);
 	}
@@ -621,7 +716,7 @@ static int s5pc110_dma_irq(dma_addr_t dst, dma_addr_t src, size_t count, int dir
 }
 
 static int s5pc110_read_bufferram(struct mtd_info *mtd, int area,
-		unsigned char *buffer, int offset, size_t count)
+								  unsigned char *buffer, int offset, size_t count)
 {
 	struct onenand_chip *this = mtd->priv;
 	void __iomem *p;
@@ -631,27 +726,42 @@ static int s5pc110_read_bufferram(struct mtd_info *mtd, int area,
 	struct device *dev = &onenand->pdev->dev;
 
 	p = this->base + area;
-	if (ONENAND_CURRENT_BUFFERRAM(this)) {
+
+	if (ONENAND_CURRENT_BUFFERRAM(this))
+	{
 		if (area == ONENAND_DATARAM)
+		{
 			p += this->writesize;
+		}
 		else
+		{
 			p += mtd->oobsize;
+		}
 	}
 
 	if (offset & 3 || (size_t) buf & 3 ||
 		!onenand->dma_addr || count != mtd->writesize)
+	{
 		goto normal;
+	}
 
 	/* Handle vmalloc address */
-	if (buf >= high_memory) {
+	if (buf >= high_memory)
+	{
 		struct page *page;
 
 		if (((size_t) buf & PAGE_MASK) !=
-		    ((size_t) (buf + count - 1) & PAGE_MASK))
+			((size_t) (buf + count - 1) & PAGE_MASK))
+		{
 			goto normal;
+		}
+
 		page = vmalloc_to_page(buf);
+
 		if (!page)
+		{
 			goto normal;
+		}
 
 		/* Page offset */
 		ofs = ((size_t) buf & ~PAGE_MASK);
@@ -660,28 +770,41 @@ static int s5pc110_read_bufferram(struct mtd_info *mtd, int area,
 		/* DMA routine */
 		dma_src = onenand->phys_base + (p - this->base);
 		dma_dst = dma_map_page(dev, page, ofs, count, DMA_FROM_DEVICE);
-	} else {
+	}
+	else
+	{
 		/* DMA routine */
 		dma_src = onenand->phys_base + (p - this->base);
 		dma_dst = dma_map_single(dev, buf, count, DMA_FROM_DEVICE);
 	}
-	if (dma_mapping_error(dev, dma_dst)) {
+
+	if (dma_mapping_error(dev, dma_dst))
+	{
 		dev_err(dev, "Couldn't map a %d byte buffer for DMA\n", count);
 		goto normal;
 	}
+
 	err = s5pc110_dma_ops(dma_dst, dma_src,
-			count, S5PC110_DMA_DIR_READ);
+						  count, S5PC110_DMA_DIR_READ);
 
 	if (page_dma)
+	{
 		dma_unmap_page(dev, dma_dst, count, DMA_FROM_DEVICE);
+	}
 	else
+	{
 		dma_unmap_single(dev, dma_dst, count, DMA_FROM_DEVICE);
+	}
 
 	if (!err)
+	{
 		return 0;
+	}
 
 normal:
-	if (count != mtd->writesize) {
+
+	if (count != mtd->writesize)
+	{
 		/* Copy the bufferram to memory to prevent unaligned access */
 		memcpy(this->page_buf, p, mtd->writesize);
 		p = this->page_buf + offset;
@@ -706,23 +829,33 @@ static int s3c_onenand_bbt_wait(struct mtd_info *mtd, int state)
 
 	/* The 20 msec is enough */
 	timeout = jiffies + msecs_to_jiffies(20);
-	while (time_before(jiffies, timeout)) {
+
+	while (time_before(jiffies, timeout))
+	{
 		stat = s3c_read_reg(INT_ERR_STAT_OFFSET);
+
 		if (stat & flags)
+		{
 			break;
+		}
 	}
+
 	/* To get correct interrupt status in timeout case */
 	stat = s3c_read_reg(INT_ERR_STAT_OFFSET);
 	s3c_write_reg(stat, INT_ERR_ACK_OFFSET);
 
-	if (stat & LD_FAIL_ECC_ERR) {
+	if (stat & LD_FAIL_ECC_ERR)
+	{
 		s3c_onenand_reset();
 		return ONENAND_BBT_READ_ERROR;
 	}
 
-	if (stat & LOAD_CMP) {
+	if (stat & LOAD_CMP)
+	{
 		int ecc = s3c_read_reg(ECC_ERR_STAT_OFFSET);
-		if (ecc & ONENAND_ECC_4BIT_UNCORRECTABLE) {
+
+		if (ecc & ONENAND_ECC_4BIT_UNCORRECTABLE)
+		{
 			s3c_onenand_reset();
 			return ONENAND_BBT_READ_ERROR;
 		}
@@ -740,11 +873,13 @@ static void s3c_onenand_check_lock_status(struct mtd_info *mtd)
 
 	end = this->chipsize >> this->erase_shift;
 
-	for (block = 0; block < end; block++) {
+	for (block = 0; block < end; block++)
+	{
 		unsigned int mem_addr = onenand->mem_addr(block, 0, 0);
 		tmp = s3c_read_cmd(CMD_MAP_01(onenand, mem_addr));
 
-		if (s3c_read_reg(INT_ERR_STAT_OFFSET) & LOCKED_BLK) {
+		if (s3c_read_reg(INT_ERR_STAT_OFFSET) & LOCKED_BLK)
+		{
 			dev_err(dev, "block %d is write-protected!\n", block);
 			s3c_write_reg(LOCKED_BLK, INT_ERR_ACK_OFFSET);
 		}
@@ -752,7 +887,7 @@ static void s3c_onenand_check_lock_status(struct mtd_info *mtd)
 }
 
 static void s3c_onenand_do_lock_cmd(struct mtd_info *mtd, loff_t ofs,
-				    size_t len, int cmd)
+									size_t len, int cmd)
 {
 	struct onenand_chip *this = mtd->priv;
 	int start, end, start_mem_addr, end_mem_addr;
@@ -762,16 +897,19 @@ static void s3c_onenand_do_lock_cmd(struct mtd_info *mtd, loff_t ofs,
 	end = start + (len >> this->erase_shift) - 1;
 	end_mem_addr = onenand->mem_addr(end, 0, 0);
 
-	if (cmd == ONENAND_CMD_LOCK) {
+	if (cmd == ONENAND_CMD_LOCK)
+	{
 		s3c_write_cmd(ONENAND_LOCK_START, CMD_MAP_10(onenand,
-							     start_mem_addr));
+					  start_mem_addr));
 		s3c_write_cmd(ONENAND_LOCK_END, CMD_MAP_10(onenand,
-							   end_mem_addr));
-	} else {
+					  end_mem_addr));
+	}
+	else
+	{
 		s3c_write_cmd(ONENAND_UNLOCK_START, CMD_MAP_10(onenand,
-							       start_mem_addr));
+					  start_mem_addr));
 		s3c_write_cmd(ONENAND_UNLOCK_END, CMD_MAP_10(onenand,
-							     end_mem_addr));
+					  end_mem_addr));
 	}
 
 	this->wait(mtd, FL_LOCKING);
@@ -783,7 +921,8 @@ static void s3c_unlock_all(struct mtd_info *mtd)
 	loff_t ofs = 0;
 	size_t len = this->chipsize;
 
-	if (this->options & ONENAND_HAS_UNLOCK_ALL) {
+	if (this->options & ONENAND_HAS_UNLOCK_ALL)
+	{
 		/* Write unlock command */
 		this->command(mtd, ONENAND_CMD_UNLOCK_ALL, 0, 0);
 
@@ -791,7 +930,8 @@ static void s3c_unlock_all(struct mtd_info *mtd)
 		this->wait(mtd, FL_LOCKING);
 
 		/* Workaround for all block unlock in DDP */
-		if (!ONENAND_IS_DDP(this)) {
+		if (!ONENAND_IS_DDP(this))
+		{
 			s3c_onenand_check_lock_status(mtd);
 			return;
 		}
@@ -812,18 +952,25 @@ static void s3c_onenand_setup(struct mtd_info *mtd)
 
 	onenand->mtd = mtd;
 
-	if (onenand->type == TYPE_S3C6400) {
+	if (onenand->type == TYPE_S3C6400)
+	{
 		onenand->mem_addr = s3c6400_mem_addr;
 		onenand->cmd_map = s3c64xx_cmd_map;
-	} else if (onenand->type == TYPE_S3C6410) {
+	}
+	else if (onenand->type == TYPE_S3C6410)
+	{
 		onenand->mem_addr = s3c6410_mem_addr;
 		onenand->cmd_map = s3c64xx_cmd_map;
-	} else if (onenand->type == TYPE_S5PC110) {
+	}
+	else if (onenand->type == TYPE_S5PC110)
+	{
 		/* Use generic onenand functions */
 		this->read_bufferram = s5pc110_read_bufferram;
 		this->chip_probe = s5pc110_chip_probe;
 		return;
-	} else {
+	}
+	else
+	{
 		BUG();
 	}
 
@@ -852,11 +999,16 @@ static int s3c_onenand_probe(struct platform_device *pdev)
 
 	size = sizeof(struct mtd_info) + sizeof(struct onenand_chip);
 	mtd = kzalloc(size, GFP_KERNEL);
+
 	if (!mtd)
+	{
 		return -ENOMEM;
+	}
 
 	onenand = kzalloc(sizeof(struct s3c_onenand), GFP_KERNEL);
-	if (!onenand) {
+
+	if (!onenand)
+	{
 		err = -ENOMEM;
 		goto onenand_fail;
 	}
@@ -870,50 +1022,64 @@ static int s3c_onenand_probe(struct platform_device *pdev)
 	s3c_onenand_setup(mtd);
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!r) {
+
+	if (!r)
+	{
 		dev_err(&pdev->dev, "no memory resource defined\n");
 		return -ENOENT;
 		goto ahb_resource_failed;
 	}
 
 	onenand->base_res = request_mem_region(r->start, resource_size(r),
-					       pdev->name);
-	if (!onenand->base_res) {
+										   pdev->name);
+
+	if (!onenand->base_res)
+	{
 		dev_err(&pdev->dev, "failed to request memory resource\n");
 		err = -EBUSY;
 		goto resource_failed;
 	}
 
 	onenand->base = ioremap(r->start, resource_size(r));
-	if (!onenand->base) {
+
+	if (!onenand->base)
+	{
 		dev_err(&pdev->dev, "failed to map memory resource\n");
 		err = -EFAULT;
 		goto ioremap_failed;
 	}
+
 	/* Set onenand_chip also */
 	this->base = onenand->base;
 
 	/* Use runtime badblock check */
 	this->options |= ONENAND_SKIP_UNLOCK_CHECK;
 
-	if (onenand->type != TYPE_S5PC110) {
+	if (onenand->type != TYPE_S5PC110)
+	{
 		r = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-		if (!r) {
+
+		if (!r)
+		{
 			dev_err(&pdev->dev, "no buffer memory resource defined\n");
 			err = -ENOENT;
 			goto ahb_resource_failed;
 		}
 
 		onenand->ahb_res = request_mem_region(r->start, resource_size(r),
-						      pdev->name);
-		if (!onenand->ahb_res) {
+											  pdev->name);
+
+		if (!onenand->ahb_res)
+		{
 			dev_err(&pdev->dev, "failed to request buffer memory resource\n");
 			err = -EBUSY;
 			goto ahb_resource_failed;
 		}
 
 		onenand->ahb_addr = ioremap(r->start, resource_size(r));
-		if (!onenand->ahb_addr) {
+
+		if (!onenand->ahb_addr)
+		{
 			dev_err(&pdev->dev, "failed to map buffer memory resource\n");
 			err = -EINVAL;
 			goto ahb_ioremap_failed;
@@ -921,14 +1087,18 @@ static int s3c_onenand_probe(struct platform_device *pdev)
 
 		/* Allocate 4KiB BufferRAM */
 		onenand->page_buf = kzalloc(SZ_4K, GFP_KERNEL);
-		if (!onenand->page_buf) {
+
+		if (!onenand->page_buf)
+		{
 			err = -ENOMEM;
 			goto page_buf_fail;
 		}
 
 		/* Allocate 128 SpareRAM */
 		onenand->oob_buf = kzalloc(128, GFP_KERNEL);
-		if (!onenand->oob_buf) {
+
+		if (!onenand->oob_buf)
+		{
 			err = -ENOMEM;
 			goto oob_buf_fail;
 		}
@@ -937,24 +1107,32 @@ static int s3c_onenand_probe(struct platform_device *pdev)
 		mtd->subpage_sft = 0;
 		this->subpagesize = mtd->writesize;
 
-	} else { /* S5PC110 */
+	}
+	else     /* S5PC110 */
+	{
 		r = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-		if (!r) {
+
+		if (!r)
+		{
 			dev_err(&pdev->dev, "no dma memory resource defined\n");
 			err = -ENOENT;
 			goto dma_resource_failed;
 		}
 
 		onenand->dma_res = request_mem_region(r->start, resource_size(r),
-						      pdev->name);
-		if (!onenand->dma_res) {
+											  pdev->name);
+
+		if (!onenand->dma_res)
+		{
 			dev_err(&pdev->dev, "failed to request dma memory resource\n");
 			err = -EBUSY;
 			goto dma_resource_failed;
 		}
 
 		onenand->dma_addr = ioremap(r->start, resource_size(r));
-		if (!onenand->dma_addr) {
+
+		if (!onenand->dma_addr)
+		{
 			dev_err(&pdev->dev, "failed to map dma memory resource\n");
 			err = -EINVAL;
 			goto dma_ioremap_failed;
@@ -965,64 +1143,86 @@ static int s3c_onenand_probe(struct platform_device *pdev)
 		s5pc110_dma_ops = s5pc110_dma_poll;
 		/* Interrupt support */
 		r = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-		if (r) {
+
+		if (r)
+		{
 			init_completion(&onenand->complete);
 			s5pc110_dma_ops = s5pc110_dma_irq;
 			err = request_irq(r->start, s5pc110_onenand_irq,
-					IRQF_SHARED, "onenand", &onenand);
-			if (err) {
+							  IRQF_SHARED, "onenand", &onenand);
+
+			if (err)
+			{
 				dev_err(&pdev->dev, "failed to get irq\n");
 				goto scan_failed;
 			}
 		}
 	}
 
-	if (onenand_scan(mtd, 1)) {
+	if (onenand_scan(mtd, 1))
+	{
 		err = -EFAULT;
 		goto scan_failed;
 	}
 
-	if (onenand->type != TYPE_S5PC110) {
+	if (onenand->type != TYPE_S5PC110)
+	{
 		/* S3C doesn't handle subpage write */
 		mtd->subpage_sft = 0;
 		this->subpagesize = mtd->writesize;
 	}
 
 	if (s3c_read_reg(MEM_CFG_OFFSET) & ONENAND_SYS_CFG1_SYNC_READ)
+	{
 		dev_info(&onenand->pdev->dev, "OneNAND Sync. Burst Read enabled\n");
+	}
 
 	err = mtd_device_parse_register(mtd, NULL, NULL,
-					pdata ? pdata->parts : NULL,
-					pdata ? pdata->nr_parts : 0);
+									pdata ? pdata->parts : NULL,
+									pdata ? pdata->nr_parts : 0);
 
 	platform_set_drvdata(pdev, mtd);
 
 	return 0;
 
 scan_failed:
+
 	if (onenand->dma_addr)
+	{
 		iounmap(onenand->dma_addr);
+	}
+
 dma_ioremap_failed:
+
 	if (onenand->dma_res)
 		release_mem_region(onenand->dma_res->start,
-				   resource_size(onenand->dma_res));
+						   resource_size(onenand->dma_res));
+
 	kfree(onenand->oob_buf);
 oob_buf_fail:
 	kfree(onenand->page_buf);
 page_buf_fail:
+
 	if (onenand->ahb_addr)
+	{
 		iounmap(onenand->ahb_addr);
+	}
+
 ahb_ioremap_failed:
+
 	if (onenand->ahb_res)
 		release_mem_region(onenand->ahb_res->start,
-				   resource_size(onenand->ahb_res));
+						   resource_size(onenand->ahb_res));
+
 dma_resource_failed:
 ahb_resource_failed:
 	iounmap(onenand->base);
 ioremap_failed:
+
 	if (onenand->base_res)
 		release_mem_region(onenand->base_res->start,
-				   resource_size(onenand->base_res));
+						   resource_size(onenand->base_res));
+
 resource_failed:
 	kfree(onenand);
 onenand_fail:
@@ -1035,20 +1235,28 @@ static int s3c_onenand_remove(struct platform_device *pdev)
 	struct mtd_info *mtd = platform_get_drvdata(pdev);
 
 	onenand_release(mtd);
+
 	if (onenand->ahb_addr)
+	{
 		iounmap(onenand->ahb_addr);
+	}
+
 	if (onenand->ahb_res)
 		release_mem_region(onenand->ahb_res->start,
-				   resource_size(onenand->ahb_res));
+						   resource_size(onenand->ahb_res));
+
 	if (onenand->dma_addr)
+	{
 		iounmap(onenand->dma_addr);
+	}
+
 	if (onenand->dma_res)
 		release_mem_region(onenand->dma_res->start,
-				   resource_size(onenand->dma_res));
+						   resource_size(onenand->dma_res));
 
 	iounmap(onenand->base);
 	release_mem_region(onenand->base_res->start,
-			   resource_size(onenand->base_res));
+					   resource_size(onenand->base_res));
 
 	kfree(onenand->oob_buf);
 	kfree(onenand->page_buf);
@@ -1077,12 +1285,14 @@ static  int s3c_pm_ops_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops s3c_pm_ops = {
+static const struct dev_pm_ops s3c_pm_ops =
+{
 	.suspend	= s3c_pm_ops_suspend,
 	.resume		= s3c_pm_ops_resume,
 };
 
-static const struct platform_device_id s3c_onenand_driver_ids[] = {
+static const struct platform_device_id s3c_onenand_driver_ids[] =
+{
 	{
 		.name		= "s3c6400-onenand",
 		.driver_data	= TYPE_S3C6400,
@@ -1096,7 +1306,8 @@ static const struct platform_device_id s3c_onenand_driver_ids[] = {
 };
 MODULE_DEVICE_TABLE(platform, s3c_onenand_driver_ids);
 
-static struct platform_driver s3c_onenand_driver = {
+static struct platform_driver s3c_onenand_driver =
+{
 	.driver         = {
 		.name	= "samsung-onenand",
 		.pm	= &s3c_pm_ops,

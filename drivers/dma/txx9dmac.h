@@ -43,16 +43,16 @@ static inline bool txx9_dma_have_SMPCHN(void)
 #endif
 
 #ifdef __LITTLE_ENDIAN
-#ifdef CONFIG_MACH_TX49XX
-#define CCR_LE	TXX9_DMA_CCR_LE
-#define MCR_LE	0
+	#ifdef CONFIG_MACH_TX49XX
+		#define CCR_LE	TXX9_DMA_CCR_LE
+		#define MCR_LE	0
+	#else
+		#define CCR_LE	0
+		#define MCR_LE	TXX9_DMA_MCR_LE
+	#endif
 #else
-#define CCR_LE	0
-#define MCR_LE	TXX9_DMA_MCR_LE
-#endif
-#else
-#define CCR_LE	0
-#define MCR_LE	0
+	#define CCR_LE	0
+	#define MCR_LE	0
 #endif
 
 /*
@@ -60,13 +60,14 @@ static inline bool txx9_dma_have_SMPCHN(void)
  * addressing, big vs. little endian, etc.
  */
 #ifdef __BIG_ENDIAN
-#define TXX9_DMA_REG32(name)		u32 __pad_##name; u32 name
+	#define TXX9_DMA_REG32(name)		u32 __pad_##name; u32 name
 #else
-#define TXX9_DMA_REG32(name)		u32 name; u32 __pad_##name
+	#define TXX9_DMA_REG32(name)		u32 name; u32 __pad_##name
 #endif
 
 /* Hardware register definitions. */
-struct txx9dmac_cregs {
+struct txx9dmac_cregs
+{
 #if defined(CONFIG_32BIT) && !defined(CONFIG_PHYS_ADDR_T_64BIT)
 	TXX9_DMA_REG32(CHAR);	/* Chain Address Register */
 #else
@@ -80,7 +81,8 @@ struct txx9dmac_cregs {
 	TXX9_DMA_REG32(CCR);	/* Channel Control Register */
 	TXX9_DMA_REG32(CSR);	/* Channel Status Register */
 };
-struct txx9dmac_cregs32 {
+struct txx9dmac_cregs32
+{
 	u32 CHAR;
 	u32 SAR;
 	u32 DAR;
@@ -91,14 +93,16 @@ struct txx9dmac_cregs32 {
 	u32 CSR;
 };
 
-struct txx9dmac_regs {
+struct txx9dmac_regs
+{
 	/* per-channel registers */
 	struct txx9dmac_cregs	CHAN[TXX9_DMA_MAX_NR_CHANNELS];
 	u64	__pad[9];
 	u64	MFDR;		/* Memory Fill Data Register */
 	TXX9_DMA_REG32(MCR);	/* Master Control Register */
 };
-struct txx9dmac_regs32 {
+struct txx9dmac_regs32
+{
 	struct txx9dmac_cregs32	CHAN[TXX9_DMA_MAX_NR_CHANNELS];
 	u32	__pad[9];
 	u32	MFDR;
@@ -160,7 +164,8 @@ struct txx9dmac_regs32 {
 #define TXX9_DMA_CSR_DESERR	0x00000002
 #define TXX9_DMA_CSR_SORERR	0x00000001
 
-struct txx9dmac_chan {
+struct txx9dmac_chan
+{
 	struct dma_chan		chan;
 	struct dma_device	dma;
 	struct txx9dmac_dev	*ddev;
@@ -179,7 +184,8 @@ struct txx9dmac_chan {
 	unsigned int		descs_allocated;
 };
 
-struct txx9dmac_dev {
+struct txx9dmac_dev
+{
 	void __iomem		*regs;
 	struct tasklet_struct	tasklet;
 	int			irq;
@@ -200,7 +206,8 @@ static inline bool is_dmac64(const struct txx9dmac_chan *dc)
 
 #ifdef TXX9_DMA_USE_SIMPLE_CHAIN
 /* Hardware descriptor definition. (for simple-chain) */
-struct txx9dmac_hwdesc {
+struct txx9dmac_hwdesc
+{
 #if defined(CONFIG_32BIT) && !defined(CONFIG_PHYS_ADDR_T_64BIT)
 	TXX9_DMA_REG32(CHAR);
 #else
@@ -210,7 +217,8 @@ struct txx9dmac_hwdesc {
 	u64 DAR;
 	TXX9_DMA_REG32(CNTR);
 };
-struct txx9dmac_hwdesc32 {
+struct txx9dmac_hwdesc32
+{
 	u32 CHAR;
 	u32 SAR;
 	u32 DAR;
@@ -221,9 +229,11 @@ struct txx9dmac_hwdesc32 {
 #define txx9dmac_hwdesc32 txx9dmac_cregs32
 #endif
 
-struct txx9dmac_desc {
+struct txx9dmac_desc
+{
 	/* FIRST values the hardware uses */
-	union {
+	union
+	{
 		struct txx9dmac_hwdesc hwdesc;
 		struct txx9dmac_hwdesc32 hwdesc32;
 	};
@@ -248,7 +258,7 @@ static inline void txx9dmac_chan_set_INTENT(struct txx9dmac_chan *dc)
 }
 
 static inline void txx9dmac_desc_set_INTENT(struct txx9dmac_dev *ddev,
-					    struct txx9dmac_desc *desc)
+		struct txx9dmac_desc *desc)
 {
 }
 
@@ -258,8 +268,8 @@ static inline void txx9dmac_chan_set_SMPCHN(struct txx9dmac_chan *dc)
 }
 
 static inline void txx9dmac_desc_set_nosimple(struct txx9dmac_dev *ddev,
-					      struct txx9dmac_desc *desc,
-					      u32 sair, u32 dair, u32 ccr)
+		struct txx9dmac_desc *desc,
+		u32 sair, u32 dair, u32 ccr)
 {
 }
 
@@ -275,12 +285,16 @@ static void txx9dmac_chan_set_INTENT(struct txx9dmac_chan *dc)
 }
 
 static inline void txx9dmac_desc_set_INTENT(struct txx9dmac_dev *ddev,
-					    struct txx9dmac_desc *desc)
+		struct txx9dmac_desc *desc)
 {
 	if (__is_dmac64(ddev))
+	{
 		desc->hwdesc.CCR |= TXX9_DMA_CCR_INTENT;
+	}
 	else
+	{
 		desc->hwdesc32.CCR |= TXX9_DMA_CCR_INTENT;
+	}
 }
 
 static inline void txx9dmac_chan_set_SMPCHN(struct txx9dmac_chan *dc)
@@ -288,14 +302,17 @@ static inline void txx9dmac_chan_set_SMPCHN(struct txx9dmac_chan *dc)
 }
 
 static inline void txx9dmac_desc_set_nosimple(struct txx9dmac_dev *ddev,
-					      struct txx9dmac_desc *desc,
-					      u32 sai, u32 dai, u32 ccr)
+		struct txx9dmac_desc *desc,
+		u32 sai, u32 dai, u32 ccr)
 {
-	if (__is_dmac64(ddev)) {
+	if (__is_dmac64(ddev))
+	{
 		desc->hwdesc.SAIR = sai;
 		desc->hwdesc.DAIR = dai;
 		desc->hwdesc.CCR = ccr;
-	} else {
+	}
+	else
+	{
 		desc->hwdesc32.SAIR = sai;
 		desc->hwdesc32.DAIR = dai;
 		desc->hwdesc32.CCR = ccr;

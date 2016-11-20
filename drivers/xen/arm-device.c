@@ -23,26 +23,34 @@
 #include <asm/xen/hypercall.h>
 
 static int xen_unmap_device_mmio(const struct resource *resources,
-				 unsigned int count)
+								 unsigned int count)
 {
 	unsigned int i, j, nr;
 	int rc = 0;
 	const struct resource *r;
 	struct xen_remove_from_physmap xrp;
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		r = &resources[i];
 		nr = DIV_ROUND_UP(resource_size(r), XEN_PAGE_SIZE);
-		if ((resource_type(r) != IORESOURCE_MEM) || (nr == 0))
-			continue;
 
-		for (j = 0; j < nr; j++) {
+		if ((resource_type(r) != IORESOURCE_MEM) || (nr == 0))
+		{
+			continue;
+		}
+
+		for (j = 0; j < nr; j++)
+		{
 			xrp.domid = DOMID_SELF;
 			xrp.gpfn = XEN_PFN_DOWN(r->start) + j;
 			rc = HYPERVISOR_memory_op(XENMEM_remove_from_physmap,
-						  &xrp);
+									  &xrp);
+
 			if (rc)
+			{
 				return rc;
+			}
 		}
 	}
 
@@ -50,7 +58,7 @@ static int xen_unmap_device_mmio(const struct resource *resources,
 }
 
 static int xen_map_device_mmio(const struct resource *resources,
-			       unsigned int count)
+							   unsigned int count)
 {
 	unsigned int i, j, nr;
 	int rc = 0;
@@ -60,16 +68,22 @@ static int xen_map_device_mmio(const struct resource *resources,
 	int *errs;
 	struct xen_add_to_physmap_range xatp;
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		r = &resources[i];
 		nr = DIV_ROUND_UP(resource_size(r), XEN_PAGE_SIZE);
+
 		if ((resource_type(r) != IORESOURCE_MEM) || (nr == 0))
+		{
 			continue;
+		}
 
 		gpfns = kzalloc(sizeof(xen_pfn_t) * nr, GFP_KERNEL);
 		idxs = kzalloc(sizeof(xen_ulong_t) * nr, GFP_KERNEL);
 		errs = kzalloc(sizeof(int) * nr, GFP_KERNEL);
-		if (!gpfns || !idxs || !errs) {
+
+		if (!gpfns || !idxs || !errs)
+		{
 			kfree(gpfns);
 			kfree(idxs);
 			kfree(errs);
@@ -77,7 +91,8 @@ static int xen_map_device_mmio(const struct resource *resources,
 			goto unmap;
 		}
 
-		for (j = 0; j < nr; j++) {
+		for (j = 0; j < nr; j++)
+		{
 			/*
 			 * The regions are always mapped 1:1 to DOM0 and this is
 			 * fine because the memory map for DOM0 is the same as
@@ -99,8 +114,11 @@ static int xen_map_device_mmio(const struct resource *resources,
 		kfree(gpfns);
 		kfree(idxs);
 		kfree(errs);
+
 		if (rc)
+		{
 			goto unmap;
+		}
 	}
 
 	return rc;
@@ -111,41 +129,50 @@ unmap:
 }
 
 static int xen_platform_notifier(struct notifier_block *nb,
-				 unsigned long action, void *data)
+								 unsigned long action, void *data)
 {
 	struct platform_device *pdev = to_platform_device(data);
 	int r = 0;
 
 	if (pdev->num_resources == 0 || pdev->resource == NULL)
+	{
 		return NOTIFY_OK;
-
-	switch (action) {
-	case BUS_NOTIFY_ADD_DEVICE:
-		r = xen_map_device_mmio(pdev->resource, pdev->num_resources);
-		break;
-	case BUS_NOTIFY_DEL_DEVICE:
-		r = xen_unmap_device_mmio(pdev->resource, pdev->num_resources);
-		break;
-	default:
-		return NOTIFY_DONE;
 	}
+
+	switch (action)
+	{
+		case BUS_NOTIFY_ADD_DEVICE:
+			r = xen_map_device_mmio(pdev->resource, pdev->num_resources);
+			break;
+
+		case BUS_NOTIFY_DEL_DEVICE:
+			r = xen_unmap_device_mmio(pdev->resource, pdev->num_resources);
+			break;
+
+		default:
+			return NOTIFY_DONE;
+	}
+
 	if (r)
 		dev_err(&pdev->dev, "Platform: Failed to %s device %s MMIO!\n",
-			action == BUS_NOTIFY_ADD_DEVICE ? "map" :
-			(action == BUS_NOTIFY_DEL_DEVICE ? "unmap" : "?"),
-			pdev->name);
+				action == BUS_NOTIFY_ADD_DEVICE ? "map" :
+				(action == BUS_NOTIFY_DEL_DEVICE ? "unmap" : "?"),
+				pdev->name);
 
 	return NOTIFY_OK;
 }
 
-static struct notifier_block platform_device_nb = {
+static struct notifier_block platform_device_nb =
+{
 	.notifier_call = xen_platform_notifier,
 };
 
 static int __init register_xen_platform_notifier(void)
 {
 	if (!xen_initial_domain() || acpi_disabled)
+	{
 		return 0;
+	}
 
 	return bus_register_notifier(&platform_bus_type, &platform_device_nb);
 }
@@ -156,38 +183,45 @@ arch_initcall(register_xen_platform_notifier);
 #include <linux/amba/bus.h>
 
 static int xen_amba_notifier(struct notifier_block *nb,
-			     unsigned long action, void *data)
+							 unsigned long action, void *data)
 {
 	struct amba_device *adev = to_amba_device(data);
 	int r = 0;
 
-	switch (action) {
-	case BUS_NOTIFY_ADD_DEVICE:
-		r = xen_map_device_mmio(&adev->res, 1);
-		break;
-	case BUS_NOTIFY_DEL_DEVICE:
-		r = xen_unmap_device_mmio(&adev->res, 1);
-		break;
-	default:
-		return NOTIFY_DONE;
+	switch (action)
+	{
+		case BUS_NOTIFY_ADD_DEVICE:
+			r = xen_map_device_mmio(&adev->res, 1);
+			break;
+
+		case BUS_NOTIFY_DEL_DEVICE:
+			r = xen_unmap_device_mmio(&adev->res, 1);
+			break;
+
+		default:
+			return NOTIFY_DONE;
 	}
+
 	if (r)
 		dev_err(&adev->dev, "AMBA: Failed to %s device %s MMIO!\n",
-			action == BUS_NOTIFY_ADD_DEVICE ? "map" :
-			(action == BUS_NOTIFY_DEL_DEVICE ? "unmap" : "?"),
-			adev->dev.init_name);
+				action == BUS_NOTIFY_ADD_DEVICE ? "map" :
+				(action == BUS_NOTIFY_DEL_DEVICE ? "unmap" : "?"),
+				adev->dev.init_name);
 
 	return NOTIFY_OK;
 }
 
-static struct notifier_block amba_device_nb = {
+static struct notifier_block amba_device_nb =
+{
 	.notifier_call = xen_amba_notifier,
 };
 
 static int __init register_xen_amba_notifier(void)
 {
 	if (!xen_initial_domain() || acpi_disabled)
+	{
 		return 0;
+	}
 
 	return bus_register_notifier(&amba_bustype, &amba_device_nb);
 }

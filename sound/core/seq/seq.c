@@ -85,30 +85,42 @@ static int __init alsa_seq_init(void)
 	int err;
 
 	if ((err = client_init_data()) < 0)
+	{
 		goto error;
+	}
 
 	/* init memory, room for selected events */
 	if ((err = snd_sequencer_memory_init()) < 0)
+	{
 		goto error;
+	}
 
 	/* init event queues */
 	if ((err = snd_seq_queues_init()) < 0)
+	{
 		goto error;
+	}
 
 	/* register sequencer device */
 	if ((err = snd_sequencer_device_init()) < 0)
+	{
 		goto error;
+	}
 
 	/* register proc interface */
 	if ((err = snd_seq_info_init()) < 0)
+	{
 		goto error;
+	}
 
 	/* register our internal client */
 	if ((err = snd_seq_system_client_init()) < 0)
+	{
 		goto error;
+	}
 
 	snd_seq_autoload_init();
- error:
+error:
 	return err;
 }
 
@@ -119,7 +131,7 @@ static void __exit alsa_seq_exit(void)
 
 	/* unregister proc interface */
 	snd_seq_info_done();
-	
+
 	/* delete timing queues */
 	snd_seq_queues_delete();
 

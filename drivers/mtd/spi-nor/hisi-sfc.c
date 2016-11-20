@@ -83,7 +83,8 @@
 #define FMC_OP_WRITE			0x1
 #define FMC_WAIT_TIMEOUT		1000000
 
-enum hifmc_iftype {
+enum hifmc_iftype
+{
 	IF_TYPE_STD,
 	IF_TYPE_DUAL,
 	IF_TYPE_DIO,
@@ -91,14 +92,16 @@ enum hifmc_iftype {
 	IF_TYPE_QIO,
 };
 
-struct hifmc_priv {
+struct hifmc_priv
+{
 	u32 chipselect;
 	u32 clkrate;
 	struct hifmc_host *host;
 };
 
 #define HIFMC_MAX_CHIP_NUM		2
-struct hifmc_host {
+struct hifmc_host
+{
 	struct device *dev;
 	struct mutex lock;
 
@@ -117,25 +120,28 @@ static inline int wait_op_finish(struct hifmc_host *host)
 	u32 reg;
 
 	return readl_poll_timeout(host->regbase + FMC_INT, reg,
-		(reg & FMC_INT_OP_DONE), 0, FMC_WAIT_TIMEOUT);
+							  (reg & FMC_INT_OP_DONE), 0, FMC_WAIT_TIMEOUT);
 }
 
 static int get_if_type(enum read_mode flash_read)
 {
 	enum hifmc_iftype if_type;
 
-	switch (flash_read) {
-	case SPI_NOR_DUAL:
-		if_type = IF_TYPE_DUAL;
-		break;
-	case SPI_NOR_QUAD:
-		if_type = IF_TYPE_QUAD;
-		break;
-	case SPI_NOR_NORMAL:
-	case SPI_NOR_FAST:
-	default:
-		if_type = IF_TYPE_STD;
-		break;
+	switch (flash_read)
+	{
+		case SPI_NOR_DUAL:
+			if_type = IF_TYPE_DUAL;
+			break;
+
+		case SPI_NOR_QUAD:
+			if_type = IF_TYPE_QUAD;
+			break;
+
+		case SPI_NOR_NORMAL:
+		case SPI_NOR_FAST:
+		default:
+			if_type = IF_TYPE_STD;
+			break;
 	}
 
 	return if_type;
@@ -146,8 +152,8 @@ static void hisi_spi_nor_init(struct hifmc_host *host)
 	u32 reg;
 
 	reg = TIMING_CFG_TCSH(CS_HOLD_TIME)
-		| TIMING_CFG_TCSS(CS_SETUP_TIME)
-		| TIMING_CFG_TSHSL(CS_DESELECT_TIME);
+		  | TIMING_CFG_TCSS(CS_SETUP_TIME)
+		  | TIMING_CFG_TSHSL(CS_DESELECT_TIME);
 	writel(reg, host->regbase + FMC_SPI_TIMING_CFG);
 }
 
@@ -160,12 +166,18 @@ static int hisi_spi_nor_prep(struct spi_nor *nor, enum spi_nor_ops ops)
 	mutex_lock(&host->lock);
 
 	ret = clk_set_rate(host->clk, priv->clkrate);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ret = clk_prepare_enable(host->clk);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	return 0;
 
@@ -184,7 +196,7 @@ static void hisi_spi_nor_unprep(struct spi_nor *nor, enum spi_nor_ops ops)
 }
 
 static int hisi_spi_nor_op_reg(struct spi_nor *nor,
-				u8 opcode, int len, u8 optype)
+							   u8 opcode, int len, u8 optype)
 {
 	struct hifmc_priv *priv = nor->priv;
 	struct hifmc_host *host = priv->host;
@@ -207,34 +219,39 @@ static int hisi_spi_nor_op_reg(struct spi_nor *nor,
 }
 
 static int hisi_spi_nor_read_reg(struct spi_nor *nor, u8 opcode, u8 *buf,
-		int len)
+								 int len)
 {
 	struct hifmc_priv *priv = nor->priv;
 	struct hifmc_host *host = priv->host;
 	int ret;
 
 	ret = hisi_spi_nor_op_reg(nor, opcode, len, FMC_OP_READ_DATA_EN);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	memcpy_fromio(buf, host->iobase, len);
 	return 0;
 }
 
 static int hisi_spi_nor_write_reg(struct spi_nor *nor, u8 opcode,
-				u8 *buf, int len)
+								  u8 *buf, int len)
 {
 	struct hifmc_priv *priv = nor->priv;
 	struct hifmc_host *host = priv->host;
 
 	if (len)
+	{
 		memcpy_toio(host->iobase, buf, len);
+	}
 
 	return hisi_spi_nor_op_reg(nor, opcode, len, FMC_OP_WRITE_DATA_EN);
 }
 
 static int hisi_spi_nor_dma_transfer(struct spi_nor *nor, loff_t start_off,
-		dma_addr_t dma_buf, size_t len, u8 op_type)
+									 dma_addr_t dma_buf, size_t len, u8 op_type)
 {
 	struct hifmc_priv *priv = nor->priv;
 	struct hifmc_host *host = priv->host;
@@ -245,7 +262,7 @@ static int hisi_spi_nor_dma_transfer(struct spi_nor *nor, loff_t start_off,
 	reg &= ~(FMC_CFG_OP_MODE_MASK | SPI_NOR_ADDR_MODE_MASK);
 	reg |= FMC_CFG_OP_MODE_NORMAL;
 	reg |= (nor->addr_width == 4) ? SPI_NOR_ADDR_MODE_4BYTES
-		: SPI_NOR_ADDR_MODE_3BYTES;
+		   : SPI_NOR_ADDR_MODE_3BYTES;
 	writel(reg, host->regbase + FMC_CFG);
 
 	writel(start_off, host->regbase + FMC_ADDRL);
@@ -255,37 +272,45 @@ static int hisi_spi_nor_dma_transfer(struct spi_nor *nor, loff_t start_off,
 	reg = OP_CFG_FM_CS(priv->chipselect);
 	if_type = get_if_type(nor->flash_read);
 	reg |= OP_CFG_MEM_IF_TYPE(if_type);
+
 	if (op_type == FMC_OP_READ)
+	{
 		reg |= OP_CFG_DUMMY_NUM(nor->read_dummy >> 3);
+	}
+
 	writel(reg, host->regbase + FMC_OP_CFG);
 
 	writel(0xff, host->regbase + FMC_INT_CLR);
 	reg = OP_CTRL_RW_OP(op_type) | OP_CTRL_DMA_OP_READY;
 	reg |= (op_type == FMC_OP_READ)
-		? OP_CTRL_RD_OPCODE(nor->read_opcode)
-		: OP_CTRL_WR_OPCODE(nor->program_opcode);
+		   ? OP_CTRL_RD_OPCODE(nor->read_opcode)
+		   : OP_CTRL_WR_OPCODE(nor->program_opcode);
 	writel(reg, host->regbase + FMC_OP_DMA);
 
 	return wait_op_finish(host);
 }
 
 static ssize_t hisi_spi_nor_read(struct spi_nor *nor, loff_t from, size_t len,
-		u_char *read_buf)
+								 u_char *read_buf)
 {
 	struct hifmc_priv *priv = nor->priv;
 	struct hifmc_host *host = priv->host;
 	size_t offset;
 	int ret;
 
-	for (offset = 0; offset < len; offset += HIFMC_DMA_MAX_LEN) {
+	for (offset = 0; offset < len; offset += HIFMC_DMA_MAX_LEN)
+	{
 		size_t trans = min_t(size_t, HIFMC_DMA_MAX_LEN, len - offset);
 
 		ret = hisi_spi_nor_dma_transfer(nor,
-			from + offset, host->dma_buffer, trans, FMC_OP_READ);
-		if (ret) {
+										from + offset, host->dma_buffer, trans, FMC_OP_READ);
+
+		if (ret)
+		{
 			dev_warn(nor->dev, "DMA read timeout\n");
 			return ret;
 		}
+
 		memcpy(read_buf + offset, host->buffer, trans);
 	}
 
@@ -293,20 +318,23 @@ static ssize_t hisi_spi_nor_read(struct spi_nor *nor, loff_t from, size_t len,
 }
 
 static ssize_t hisi_spi_nor_write(struct spi_nor *nor, loff_t to,
-			size_t len, const u_char *write_buf)
+								  size_t len, const u_char *write_buf)
 {
 	struct hifmc_priv *priv = nor->priv;
 	struct hifmc_host *host = priv->host;
 	size_t offset;
 	int ret;
 
-	for (offset = 0; offset < len; offset += HIFMC_DMA_MAX_LEN) {
+	for (offset = 0; offset < len; offset += HIFMC_DMA_MAX_LEN)
+	{
 		size_t trans = min_t(size_t, HIFMC_DMA_MAX_LEN, len - offset);
 
 		memcpy(host->buffer, write_buf + offset, trans);
 		ret = hisi_spi_nor_dma_transfer(nor,
-			to + offset, host->dma_buffer, trans, FMC_OP_WRITE);
-		if (ret) {
+										to + offset, host->dma_buffer, trans, FMC_OP_WRITE);
+
+		if (ret)
+		{
 			dev_warn(nor->dev, "DMA write timeout\n");
 			return ret;
 		}
@@ -319,7 +347,7 @@ static ssize_t hisi_spi_nor_write(struct spi_nor *nor, loff_t to,
  * Get spi flash device information and register it as a mtd device.
  */
 static int hisi_spi_nor_register(struct device_node *np,
-				struct hifmc_host *host)
+								 struct hifmc_host *host)
 {
 	struct device *dev = host->dev;
 	struct spi_nor *nor;
@@ -328,30 +356,41 @@ static int hisi_spi_nor_register(struct device_node *np,
 	int ret;
 
 	nor = devm_kzalloc(dev, sizeof(*nor), GFP_KERNEL);
+
 	if (!nor)
+	{
 		return -ENOMEM;
+	}
 
 	nor->dev = dev;
 	spi_nor_set_flash_node(nor, np);
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	ret = of_property_read_u32(np, "reg", &priv->chipselect);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "There's no reg property for %s\n",
-			np->full_name);
+				np->full_name);
 		return ret;
 	}
 
 	ret = of_property_read_u32(np, "spi-max-frequency",
-			&priv->clkrate);
-	if (ret) {
+							   &priv->clkrate);
+
+	if (ret)
+	{
 		dev_err(dev, "There's no spi-max-frequency property for %s\n",
-			np->full_name);
+				np->full_name);
 		return ret;
 	}
+
 	priv->host = host;
 	nor->priv = priv;
 
@@ -363,14 +402,20 @@ static int hisi_spi_nor_register(struct device_node *np,
 	nor->write = hisi_spi_nor_write;
 	nor->erase = NULL;
 	ret = spi_nor_scan(nor, NULL, SPI_NOR_QUAD);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mtd = &nor->mtd;
 	mtd->name = np->name;
 	ret = mtd_device_register(mtd, NULL, 0);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	host->nor[host->num_chip] = nor;
 	host->num_chip++;
@@ -382,7 +427,9 @@ static void hisi_spi_nor_unregister_all(struct hifmc_host *host)
 	int i;
 
 	for (i = 0; i < host->num_chip; i++)
+	{
 		mtd_device_unregister(&host->nor[i]->mtd);
+	}
 }
 
 static int hisi_spi_nor_register_all(struct hifmc_host *host)
@@ -391,12 +438,17 @@ static int hisi_spi_nor_register_all(struct hifmc_host *host)
 	struct device_node *np;
 	int ret;
 
-	for_each_available_child_of_node(dev->of_node, np) {
+	for_each_available_child_of_node(dev->of_node, np)
+	{
 		ret = hisi_spi_nor_register(np, host);
-		if (ret)
-			goto fail;
 
-		if (host->num_chip == HIFMC_MAX_CHIP_NUM) {
+		if (ret)
+		{
+			goto fail;
+		}
+
+		if (host->num_chip == HIFMC_MAX_CHIP_NUM)
+		{
 			dev_warn(dev, "Flash device number exceeds the maximum chipselect number\n");
 			break;
 		}
@@ -417,43 +469,63 @@ static int hisi_spi_nor_probe(struct platform_device *pdev)
 	int ret;
 
 	host = devm_kzalloc(dev, sizeof(*host), GFP_KERNEL);
+
 	if (!host)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, host);
 	host->dev = dev;
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "control");
 	host->regbase = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(host->regbase))
+	{
 		return PTR_ERR(host->regbase);
+	}
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "memory");
 	host->iobase = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(host->iobase))
+	{
 		return PTR_ERR(host->iobase);
+	}
 
 	host->clk = devm_clk_get(dev, NULL);
+
 	if (IS_ERR(host->clk))
+	{
 		return PTR_ERR(host->clk);
+	}
 
 	ret = dma_set_mask_and_coherent(dev, DMA_BIT_MASK(32));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_warn(dev, "Unable to set dma mask\n");
 		return ret;
 	}
 
 	host->buffer = dmam_alloc_coherent(dev, HIFMC_DMA_MAX_LEN,
-			&host->dma_buffer, GFP_KERNEL);
+									   &host->dma_buffer, GFP_KERNEL);
+
 	if (!host->buffer)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&host->lock);
 	clk_prepare_enable(host->clk);
 	hisi_spi_nor_init(host);
 	ret = hisi_spi_nor_register_all(host);
+
 	if (ret)
+	{
 		mutex_destroy(&host->lock);
+	}
 
 	clk_disable_unprepare(host->clk);
 	return ret;
@@ -469,13 +541,15 @@ static int hisi_spi_nor_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id hisi_spi_nor_dt_ids[] = {
+static const struct of_device_id hisi_spi_nor_dt_ids[] =
+{
 	{ .compatible = "hisilicon,fmc-spi-nor"},
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, hisi_spi_nor_dt_ids);
 
-static struct platform_driver hisi_spi_nor_driver = {
+static struct platform_driver hisi_spi_nor_driver =
+{
 	.driver = {
 		.name	= "hisi-sfc",
 		.of_match_table = hisi_spi_nor_dt_ids,

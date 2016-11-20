@@ -26,7 +26,8 @@ struct cfcnfg;
  *				responses.
  *
  */
-enum cfcnfg_phy_preference {
+enum cfcnfg_phy_preference
+{
 	CFPHYPREF_UNSPECIFIED,
 	CFPHYPREF_LOW_LAT,
 	CFPHYPREF_HIGH_BW,
@@ -64,10 +65,10 @@ void cfcnfg_remove(struct cfcnfg *cfg);
  */
 void
 cfcnfg_add_phy_layer(struct cfcnfg *cnfg,
-		     struct net_device *dev, struct cflayer *phy_layer,
-		     enum cfcnfg_phy_preference pref,
-		     struct cflayer *link_support,
-		     bool fcs, int head_room);
+					 struct net_device *dev, struct cflayer *phy_layer,
+					 enum cfcnfg_phy_preference pref,
+					 struct cflayer *link_support,
+					 bool fcs, int head_room);
 
 /**
  * cfcnfg_del_phy_layer - Deletes an phy layer from the CAIF stack.
@@ -85,6 +86,6 @@ int cfcnfg_del_phy_layer(struct cfcnfg *cnfg, struct cflayer *phy_layer);
  * @up:	State of device
  */
 int cfcnfg_set_phy_state(struct cfcnfg *cnfg, struct cflayer *phy_layer,
-				bool up);
+						 bool up);
 
 #endif				/* CFCNFG_H_ */

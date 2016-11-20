@@ -41,7 +41,8 @@
 #define RNGRCNT		0x20
 #define  RCNT_MASK	0x7F
 
-struct pic32_rng {
+struct pic32_rng
+{
 	void __iomem	*base;
 	struct hwrng	rng;
 	struct clk	*clk;
@@ -55,7 +56,7 @@ struct pic32_rng {
 #define RNG_TIMEOUT 500
 
 static int pic32_rng_read(struct hwrng *rng, void *buf, size_t max,
-			  bool wait)
+						  bool wait)
 {
 	struct pic32_rng *priv = container_of(rng, struct pic32_rng, rng);
 	u64 *data = buf;
@@ -63,17 +64,23 @@ static int pic32_rng_read(struct hwrng *rng, void *buf, size_t max,
 	unsigned int timeout = RNG_TIMEOUT;
 
 	if (max < 8)
+	{
 		return 0;
+	}
 
-	do {
+	do
+	{
 		t = readl(priv->base + RNGRCNT) & RCNT_MASK;
-		if (t == 64) {
+
+		if (t == 64)
+		{
 			/* TRNG value comes through the seed registers */
 			*data = ((u64)readl(priv->base + RNGSEED2) << 32) +
-				readl(priv->base + RNGSEED1);
+					readl(priv->base + RNGSEED1);
 			return 8;
 		}
-	} while (wait && --timeout);
+	}
+	while (wait && --timeout);
 
 	return -EIO;
 }
@@ -86,21 +93,33 @@ static int pic32_rng_probe(struct platform_device *pdev)
 	int ret;
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(priv->base))
+	{
 		return PTR_ERR(priv->base);
+	}
 
 	priv->clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(priv->clk))
+	{
 		return PTR_ERR(priv->clk);
+	}
 
 	ret = clk_prepare_enable(priv->clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* enable TRNG in enhanced mode */
 	v = TRNGEN | TRNGMOD;
@@ -110,8 +129,11 @@ static int pic32_rng_probe(struct platform_device *pdev)
 	priv->rng.read = pic32_rng_read;
 
 	ret = hwrng_register(&priv->rng);
+
 	if (ret)
+	{
 		goto err_register;
+	}
 
 	platform_set_drvdata(pdev, priv);
 
@@ -132,13 +154,15 @@ static int pic32_rng_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id pic32_rng_of_match[] = {
+static const struct of_device_id pic32_rng_of_match[] =
+{
 	{ .compatible	= "microchip,pic32mzda-rng", },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, pic32_rng_of_match);
 
-static struct platform_driver pic32_rng_driver = {
+static struct platform_driver pic32_rng_driver =
+{
 	.probe		= pic32_rng_probe,
 	.remove		= pic32_rng_remove,
 	.driver		= {

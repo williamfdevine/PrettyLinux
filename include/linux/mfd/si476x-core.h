@@ -41,19 +41,22 @@
 
 /* -------------------- si476x-i2c.c ----------------------- */
 
-enum si476x_freq_supported_chips {
+enum si476x_freq_supported_chips
+{
 	SI476X_CHIP_SI4761 = 1,
 	SI476X_CHIP_SI4764,
 	SI476X_CHIP_SI4768,
 };
 
-enum si476x_part_revisions {
+enum si476x_part_revisions
+{
 	SI476X_REVISION_A10 = 0,
 	SI476X_REVISION_A20 = 1,
 	SI476X_REVISION_A30 = 2,
 };
 
-enum si476x_mfd_cells {
+enum si476x_mfd_cells
+{
 	SI476X_RADIO_CELL = 0,
 	SI476X_CODEC_CELL,
 	SI476X_MFD_CELLS,
@@ -75,7 +78,8 @@ enum si476x_mfd_cells {
  * not turned down and thus use of the device, without power-cycling
  * is impossible.
  */
-enum si476x_power_state {
+enum si476x_power_state
+{
 	SI476X_POWER_DOWN		= 0,
 	SI476X_POWER_UP_FULL		= 1,
 	SI476X_POWER_INCONSISTENT	= 2,
@@ -121,7 +125,8 @@ enum si476x_power_state {
  * command set support).
  */
 
-struct si476x_core {
+struct si476x_core
+{
 	struct i2c_client *client;
 	struct regmap *regmap;
 	int chip_id;
@@ -157,8 +162,8 @@ struct si476x_core {
 
 	struct delayed_work status_monitor;
 #define SI476X_WORK_TO_CORE(w) container_of(to_delayed_work(w),	\
-					    struct si476x_core,	\
-					    status_monitor)
+		struct si476x_core,	\
+		status_monitor)
 
 	int revision;
 
@@ -196,14 +201,16 @@ static inline u16 hz_to_si476x(struct si476x_core *core, int freq)
 {
 	u16 result;
 
-	switch (core->power_up_parameters.func) {
-	default:
-	case SI476X_FUNC_FM_RECEIVER:
-		result = freq / 10000;
-		break;
-	case SI476X_FUNC_AM_RECEIVER:
-		result = freq / 1000;
-		break;
+	switch (core->power_up_parameters.func)
+	{
+		default:
+		case SI476X_FUNC_FM_RECEIVER:
+			result = freq / 10000;
+			break;
+
+		case SI476X_FUNC_AM_RECEIVER:
+			result = freq / 1000;
+			break;
 	}
 
 	return result;
@@ -213,14 +220,16 @@ static inline int si476x_to_hz(struct si476x_core *core, u16 freq)
 {
 	int result;
 
-	switch (core->power_up_parameters.func) {
-	default:
-	case SI476X_FUNC_FM_RECEIVER:
-		result = freq * 10000;
-		break;
-	case SI476X_FUNC_AM_RECEIVER:
-		result = freq * 1000;
-		break;
+	switch (core->power_up_parameters.func)
+	{
+		default:
+		case SI476X_FUNC_FM_RECEIVER:
+			result = freq * 10000;
+			break;
+
+		case SI476X_FUNC_AM_RECEIVER:
+			result = freq * 1000;
+			break;
 	}
 
 	return result;
@@ -260,8 +269,10 @@ static inline int si476x_to_v4l2(struct si476x_core *core, u16 freq)
  * @patch_id:
  * @func: Mode tuner is working in.
  */
-struct si476x_func_info {
-	struct {
+struct si476x_func_info
+{
+	struct
+	{
 		u8 major, minor[2];
 	} firmware;
 	u16 patch_id;
@@ -275,7 +286,8 @@ struct si476x_func_info {
  * @xosc: true - Power down, but leav oscillator running.
  *        false - Full power down.
  */
-struct si476x_power_down_args {
+struct si476x_power_down_args
+{
 	bool xosc;
 };
 
@@ -291,7 +303,8 @@ struct si476x_power_down_args {
  * @SI476X_TM_VALIDATED_AF_CHECK: Unconditionally jump back to the
  * previous channel.
  */
-enum si476x_tunemode {
+enum si476x_tunemode
+{
 	SI476X_TM_VALIDATED_NORMAL_TUNE = 0,
 	SI476X_TM_INVALIDATED_FAST_TUNE = 1,
 	SI476X_TM_VALIDATED_AF_TUNE     = 2,
@@ -306,7 +319,8 @@ enum si476x_tunemode {
  * @SI476X_SM_TRANSITION_AUDIO: Transition audio state from previous
  * channel values to the new values
  */
-enum si476x_smoothmetrics {
+enum si476x_smoothmetrics
+{
 	SI476X_SM_INITIALIZE_AUDIO = 0,
 	SI476X_SM_TRANSITION_AUDIO = 1,
 };
@@ -330,7 +344,8 @@ enum si476x_smoothmetrics {
  * @rdsfifoused: Number of blocks remaining in the RDS FIFO (0 if
  * empty).
  */
-struct si476x_rds_status_report {
+struct si476x_rds_status_report
+{
 	bool rdstpptyint, rdspiint, rdssyncint, rdsfifoint;
 	bool tpptyvalid, pivalid, rdssync, rdsfifolost;
 	bool tp;
@@ -344,7 +359,8 @@ struct si476x_rds_status_report {
 	struct v4l2_rds_data rds[4];
 };
 
-struct si476x_rsq_status_args {
+struct si476x_rsq_status_args
+{
 	bool primary;
 	bool rsqack;
 	bool attune;
@@ -352,13 +368,15 @@ struct si476x_rsq_status_args {
 	bool stcack;
 };
 
-enum si476x_injside {
+enum si476x_injside
+{
 	SI476X_INJSIDE_AUTO	= 0,
 	SI476X_INJSIDE_LOW	= 1,
 	SI476X_INJSIDE_HIGH	= 2,
 };
 
-struct si476x_tune_freq_args {
+struct si476x_tune_freq_args
+{
 	bool zifsr;
 	bool hd;
 	enum si476x_injside injside;
@@ -378,14 +396,15 @@ bool si476x_core_is_a_primary_tuner(struct si476x_core *);
 bool si476x_core_is_in_am_receiver_mode(struct si476x_core *core);
 bool si476x_core_is_powered_up(struct si476x_core *core);
 
-enum si476x_i2c_type {
+enum si476x_i2c_type
+{
 	SI476X_I2C_SEND,
 	SI476X_I2C_RECV
 };
 
 int si476x_core_i2c_xfer(struct si476x_core *,
-			 enum si476x_i2c_type,
-			 char *, int);
+						 enum si476x_i2c_type,
+						 char *, int);
 
 
 /* -------------------- si476x-cmd.c ----------------------- */
@@ -394,63 +413,65 @@ int si476x_core_cmd_func_info(struct si476x_core *, struct si476x_func_info *);
 int si476x_core_cmd_set_property(struct si476x_core *, u16, u16);
 int si476x_core_cmd_get_property(struct si476x_core *, u16);
 int si476x_core_cmd_dig_audio_pin_cfg(struct si476x_core *,
-				      enum si476x_dclk_config,
-				      enum si476x_dfs_config,
-				      enum si476x_dout_config,
-				      enum si476x_xout_config);
+									  enum si476x_dclk_config,
+									  enum si476x_dfs_config,
+									  enum si476x_dout_config,
+									  enum si476x_xout_config);
 int si476x_core_cmd_zif_pin_cfg(struct si476x_core *,
-				enum si476x_iqclk_config,
-				enum si476x_iqfs_config,
-				enum si476x_iout_config,
-				enum si476x_qout_config);
+								enum si476x_iqclk_config,
+								enum si476x_iqfs_config,
+								enum si476x_iout_config,
+								enum si476x_qout_config);
 int si476x_core_cmd_ic_link_gpo_ctl_pin_cfg(struct si476x_core *,
-					    enum si476x_icin_config,
-					    enum si476x_icip_config,
-					    enum si476x_icon_config,
-					    enum si476x_icop_config);
+		enum si476x_icin_config,
+		enum si476x_icip_config,
+		enum si476x_icon_config,
+		enum si476x_icop_config);
 int si476x_core_cmd_ana_audio_pin_cfg(struct si476x_core *,
-				      enum si476x_lrout_config);
+									  enum si476x_lrout_config);
 int si476x_core_cmd_intb_pin_cfg(struct si476x_core *, enum si476x_intb_config,
-				 enum si476x_a1_config);
+								 enum si476x_a1_config);
 int si476x_core_cmd_fm_seek_start(struct si476x_core *, bool, bool);
 int si476x_core_cmd_am_seek_start(struct si476x_core *, bool, bool);
 int si476x_core_cmd_fm_rds_status(struct si476x_core *, bool, bool, bool,
-				  struct si476x_rds_status_report *);
+								  struct si476x_rds_status_report *);
 int si476x_core_cmd_fm_rds_blockcount(struct si476x_core *, bool,
-				      struct si476x_rds_blockcount_report *);
+									  struct si476x_rds_blockcount_report *);
 int si476x_core_cmd_fm_tune_freq(struct si476x_core *,
-				 struct si476x_tune_freq_args *);
+								 struct si476x_tune_freq_args *);
 int si476x_core_cmd_am_tune_freq(struct si476x_core *,
-				 struct si476x_tune_freq_args *);
+								 struct si476x_tune_freq_args *);
 int si476x_core_cmd_am_rsq_status(struct si476x_core *,
-				  struct si476x_rsq_status_args *,
-				  struct si476x_rsq_status_report *);
+								  struct si476x_rsq_status_args *,
+								  struct si476x_rsq_status_report *);
 int si476x_core_cmd_fm_rsq_status(struct si476x_core *,
-				  struct si476x_rsq_status_args *,
-				  struct si476x_rsq_status_report *);
+								  struct si476x_rsq_status_args *,
+								  struct si476x_rsq_status_report *);
 int si476x_core_cmd_power_up(struct si476x_core *,
-			     struct si476x_power_up_args *);
+							 struct si476x_power_up_args *);
 int si476x_core_cmd_power_down(struct si476x_core *,
-			       struct si476x_power_down_args *);
+							   struct si476x_power_down_args *);
 int si476x_core_cmd_fm_phase_div_status(struct si476x_core *);
 int si476x_core_cmd_fm_phase_diversity(struct si476x_core *,
-				       enum si476x_phase_diversity_mode);
+									   enum si476x_phase_diversity_mode);
 
 int si476x_core_cmd_fm_acf_status(struct si476x_core *,
-				  struct si476x_acf_status_report *);
+								  struct si476x_acf_status_report *);
 int si476x_core_cmd_am_acf_status(struct si476x_core *,
-				  struct si476x_acf_status_report *);
+								  struct si476x_acf_status_report *);
 int si476x_core_cmd_agc_status(struct si476x_core *,
-			       struct si476x_agc_status_report *);
+							   struct si476x_agc_status_report *);
 
-enum si476x_power_grid_type {
+enum si476x_power_grid_type
+{
 	SI476X_POWER_GRID_50HZ = 0,
 	SI476X_POWER_GRID_60HZ,
 };
 
 /* Properties  */
 
-enum si476x_interrupt_flags {
+enum si476x_interrupt_flags
+{
 	SI476X_STCIEN = (1 << 0),
 	SI476X_ACFIEN = (1 << 1),
 	SI476X_RDSIEN = (1 << 2),
@@ -465,14 +486,16 @@ enum si476x_interrupt_flags {
 	SI476X_RSQREP = (1 << 11),
 };
 
-enum si476x_rdsint_sources {
+enum si476x_rdsint_sources
+{
 	SI476X_RDSTPPTY = (1 << 4),
 	SI476X_RDSPI    = (1 << 3),
 	SI476X_RDSSYNC	= (1 << 1),
 	SI476X_RDSRECV	= (1 << 0),
 };
 
-enum si476x_status_response_bits {
+enum si476x_status_response_bits
+{
 	SI476X_CTS	  = (1 << 7),
 	SI476X_ERR	  = (1 << 6),
 	/* Status response for WB receiver */
@@ -486,7 +509,8 @@ enum si476x_status_response_bits {
 
 /* -------------------- si476x-prop.c ----------------------- */
 
-enum si476x_common_receiver_properties {
+enum si476x_common_receiver_properties
+{
 	SI476X_PROP_INT_CTL_ENABLE			= 0x0000,
 	SI476X_PROP_DIGITAL_IO_INPUT_SAMPLE_RATE	= 0x0200,
 	SI476X_PROP_DIGITAL_IO_INPUT_FORMAT		= 0x0201,
@@ -502,11 +526,13 @@ enum si476x_common_receiver_properties {
 	SI476X_PROP_VALID_RSSI_THRESHOLD		= 0x2004,
 };
 
-enum si476x_am_receiver_properties {
+enum si476x_am_receiver_properties
+{
 	SI476X_PROP_AUDIO_PWR_LINE_FILTER		= 0x0303,
 };
 
-enum si476x_fm_receiver_properties {
+enum si476x_fm_receiver_properties
+{
 	SI476X_PROP_AUDIO_DEEMPHASIS			= 0x0302,
 
 	SI476X_PROP_FM_RDS_INTERRUPT_SOURCE		= 0x4000,
@@ -514,7 +540,8 @@ enum si476x_fm_receiver_properties {
 	SI476X_PROP_FM_RDS_CONFIG			= 0x4002,
 };
 
-enum si476x_prop_audio_pwr_line_filter_bits {
+enum si476x_prop_audio_pwr_line_filter_bits
+{
 	SI476X_PROP_PWR_HARMONICS_MASK	= 0x001f,
 	SI476X_PROP_PWR_GRID_MASK	= 0x0100,
 	SI476X_PROP_PWR_ENABLE_MASK	= 0x0200,
@@ -522,7 +549,8 @@ enum si476x_prop_audio_pwr_line_filter_bits {
 	SI476X_PROP_PWR_GRID_60HZ	= 0x0100,
 };
 
-enum si476x_prop_fm_rds_config_bits {
+enum si476x_prop_fm_rds_config_bits
+{
 	SI476X_PROP_RDSEN_MASK	= 0x1,
 	SI476X_PROP_RDSEN	= 0x1,
 };

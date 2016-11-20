@@ -110,7 +110,8 @@
 #define AUO_PIXCIR_MAX_AREA		0xff
 #define AUO_PIXCIR_PENUP_TIMEOUT_MS	10
 
-struct auo_pixcir_ts {
+struct auo_pixcir_ts
+{
 	struct i2c_client	*client;
 	struct input_dev	*input;
 	const struct auo_pixcir_ts_platdata *pdata;
@@ -123,7 +124,8 @@ struct auo_pixcir_ts {
 	bool			stopped;
 };
 
-struct auo_point_t {
+struct auo_point_t
+{
 	int	coord_x;
 	int	coord_y;
 	int	area_major;
@@ -132,7 +134,7 @@ struct auo_point_t {
 };
 
 static int auo_pixcir_collect_data(struct auo_pixcir_ts *ts,
-				   struct auo_point_t *point)
+								   struct auo_point_t *point)
 {
 	struct i2c_client *client = ts->client;
 	const struct auo_pixcir_ts_platdata *pdata = ts->pdata;
@@ -142,30 +144,36 @@ static int auo_pixcir_collect_data(struct auo_pixcir_ts *ts,
 
 	/* touch coordinates */
 	ret = i2c_smbus_read_i2c_block_data(client, AUO_PIXCIR_REG_X1_LSB,
-					    8, raw_coord);
-	if (ret < 0) {
+										8, raw_coord);
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "failed to read coordinate, %d\n", ret);
 		return ret;
 	}
 
 	/* touch area */
 	ret = i2c_smbus_read_i2c_block_data(client, AUO_PIXCIR_REG_TOUCHAREA_X1,
-					    4, raw_area);
-	if (ret < 0) {
+										4, raw_area);
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "could not read touch area, %d\n", ret);
 		return ret;
 	}
 
-	for (i = 0; i < AUO_PIXCIR_REPORT_POINTS; i++) {
+	for (i = 0; i < AUO_PIXCIR_REPORT_POINTS; i++)
+	{
 		point[i].coord_x =
 			raw_coord[4 * i + 1] << 8 | raw_coord[4 * i];
 		point[i].coord_y =
 			raw_coord[4 * i + 3] << 8 | raw_coord[4 * i + 2];
 
 		if (point[i].coord_x > pdata->x_max ||
-		    point[i].coord_y > pdata->y_max) {
+			point[i].coord_y > pdata->y_max)
+		{
 			dev_warn(&client->dev, "coordinates (%d,%d) invalid\n",
-				point[i].coord_x, point[i].coord_y);
+					 point[i].coord_x, point[i].coord_y);
 			point[i].coord_x = point[i].coord_y = 0;
 		}
 
@@ -188,11 +196,14 @@ static irqreturn_t auo_pixcir_interrupt(int irq, void *dev_id)
 	int fingers = 0;
 	int abs = -1;
 
-	while (!ts->stopped) {
+	while (!ts->stopped)
+	{
 
 		/* check for up event in touch touch_ind_mode */
-		if (ts->touch_ind_mode) {
-			if (gpio_get_value(pdata->gpio_int) == 0) {
+		if (ts->touch_ind_mode)
+		{
+			if (gpio_get_value(pdata->gpio_int) == 0)
+			{
 				input_mt_sync(ts->input);
 				input_report_key(ts->input, BTN_TOUCH, 0);
 				input_sync(ts->input);
@@ -201,33 +212,41 @@ static irqreturn_t auo_pixcir_interrupt(int irq, void *dev_id)
 		}
 
 		ret = auo_pixcir_collect_data(ts, point);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			/* we want to loop only in touch_ind_mode */
 			if (!ts->touch_ind_mode)
+			{
 				break;
+			}
 
 			wait_event_timeout(ts->wait, ts->stopped,
-				msecs_to_jiffies(AUO_PIXCIR_PENUP_TIMEOUT_MS));
+							   msecs_to_jiffies(AUO_PIXCIR_PENUP_TIMEOUT_MS));
 			continue;
 		}
 
-		for (i = 0; i < AUO_PIXCIR_REPORT_POINTS; i++) {
-			if (point[i].coord_x > 0 || point[i].coord_y > 0) {
+		for (i = 0; i < AUO_PIXCIR_REPORT_POINTS; i++)
+		{
+			if (point[i].coord_x > 0 || point[i].coord_y > 0)
+			{
 				input_report_abs(ts->input, ABS_MT_POSITION_X,
-						 point[i].coord_x);
+								 point[i].coord_x);
 				input_report_abs(ts->input, ABS_MT_POSITION_Y,
-						 point[i].coord_y);
+								 point[i].coord_y);
 				input_report_abs(ts->input, ABS_MT_TOUCH_MAJOR,
-						 point[i].area_major);
+								 point[i].area_major);
 				input_report_abs(ts->input, ABS_MT_TOUCH_MINOR,
-						 point[i].area_minor);
+								 point[i].area_minor);
 				input_report_abs(ts->input, ABS_MT_ORIENTATION,
-						 point[i].orientation);
+								 point[i].orientation);
 				input_mt_sync(ts->input);
 
 				/* use first finger as source for singletouch */
 				if (fingers == 0)
+				{
 					abs = i;
+				}
 
 				/* number of touch points could also be queried
 				 * via i2c but would require an additional call
@@ -238,7 +257,8 @@ static irqreturn_t auo_pixcir_interrupt(int irq, void *dev_id)
 
 		input_report_key(ts->input, BTN_TOUCH, fingers > 0);
 
-		if (abs > -1) {
+		if (abs > -1)
+		{
 			input_report_abs(ts->input, ABS_X, point[abs].coord_x);
 			input_report_abs(ts->input, ABS_Y, point[abs].coord_y);
 		}
@@ -247,10 +267,12 @@ static irqreturn_t auo_pixcir_interrupt(int irq, void *dev_id)
 
 		/* we want to loop only in touch_ind_mode */
 		if (!ts->touch_ind_mode)
+		{
 			break;
+		}
 
 		wait_event_timeout(ts->wait, ts->stopped,
-				 msecs_to_jiffies(AUO_PIXCIR_PENUP_TIMEOUT_MS));
+						   msecs_to_jiffies(AUO_PIXCIR_PENUP_TIMEOUT_MS));
 	}
 
 	return IRQ_HANDLED;
@@ -269,9 +291,11 @@ static int auo_pixcir_power_mode(struct auo_pixcir_ts *ts, int mode)
 	int ret;
 
 	ret = i2c_smbus_read_byte_data(client, AUO_PIXCIR_REG_POWER_MODE);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "unable to read reg %Xh, %d\n",
-			AUO_PIXCIR_REG_POWER_MODE, ret);
+				AUO_PIXCIR_REG_POWER_MODE, ret);
 		return ret;
 	}
 
@@ -279,9 +303,11 @@ static int auo_pixcir_power_mode(struct auo_pixcir_ts *ts, int mode)
 	ret |= mode;
 
 	ret = i2c_smbus_write_byte_data(client, AUO_PIXCIR_REG_POWER_MODE, ret);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&client->dev, "unable to write reg %Xh, %d\n",
-			AUO_PIXCIR_REG_POWER_MODE, ret);
+				AUO_PIXCIR_REG_POWER_MODE, ret);
 		return ret;
 	}
 
@@ -289,16 +315,18 @@ static int auo_pixcir_power_mode(struct auo_pixcir_ts *ts, int mode)
 }
 
 static int auo_pixcir_int_config(struct auo_pixcir_ts *ts,
-					   int int_setting)
+								 int int_setting)
 {
 	struct i2c_client *client = ts->client;
 	const struct auo_pixcir_ts_platdata *pdata = ts->pdata;
 	int ret;
 
 	ret = i2c_smbus_read_byte_data(client, AUO_PIXCIR_REG_INT_SETTING);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "unable to read reg %Xh, %d\n",
-			AUO_PIXCIR_REG_INT_SETTING, ret);
+				AUO_PIXCIR_REG_INT_SETTING, ret);
 		return ret;
 	}
 
@@ -307,10 +335,12 @@ static int auo_pixcir_int_config(struct auo_pixcir_ts *ts,
 	ret |= AUO_PIXCIR_INT_POL_HIGH; /* always use high for interrupts */
 
 	ret = i2c_smbus_write_byte_data(client, AUO_PIXCIR_REG_INT_SETTING,
-					ret);
-	if (ret < 0) {
+									ret);
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "unable to write reg %Xh, %d\n",
-			AUO_PIXCIR_REG_INT_SETTING, ret);
+				AUO_PIXCIR_REG_INT_SETTING, ret);
 		return ret;
 	}
 
@@ -326,22 +356,30 @@ static int auo_pixcir_int_toggle(struct auo_pixcir_ts *ts, bool enable)
 	int ret;
 
 	ret = i2c_smbus_read_byte_data(client, AUO_PIXCIR_REG_INT_SETTING);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "unable to read reg %Xh, %d\n",
-			AUO_PIXCIR_REG_INT_SETTING, ret);
+				AUO_PIXCIR_REG_INT_SETTING, ret);
 		return ret;
 	}
 
 	if (enable)
+	{
 		ret |= AUO_PIXCIR_INT_ENABLE;
+	}
 	else
+	{
 		ret &= ~AUO_PIXCIR_INT_ENABLE;
+	}
 
 	ret = i2c_smbus_write_byte_data(client, AUO_PIXCIR_REG_INT_SETTING,
-					ret);
-	if (ret < 0) {
+									ret);
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "unable to write reg %Xh, %d\n",
-			AUO_PIXCIR_REG_INT_SETTING, ret);
+				AUO_PIXCIR_REG_INT_SETTING, ret);
 		return ret;
 	}
 
@@ -354,9 +392,11 @@ static int auo_pixcir_start(struct auo_pixcir_ts *ts)
 	int ret;
 
 	ret = auo_pixcir_power_mode(ts, AUO_PIXCIR_POWER_ACTIVE);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "could not set power mode, %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
@@ -365,9 +405,11 @@ static int auo_pixcir_start(struct auo_pixcir_ts *ts)
 	enable_irq(client->irq);
 
 	ret = auo_pixcir_int_toggle(ts, 1);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "could not enable interrupt, %d\n",
-			ret);
+				ret);
 		disable_irq(client->irq);
 		return ret;
 	}
@@ -381,9 +423,11 @@ static int auo_pixcir_stop(struct auo_pixcir_ts *ts)
 	int ret;
 
 	ret = auo_pixcir_int_toggle(ts, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "could not disable interrupt, %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
@@ -424,17 +468,24 @@ static int __maybe_unused auo_pixcir_suspend(struct device *dev)
 	/* when configured as wakeup source, device should always wake system
 	 * therefore start device if necessary
 	 */
-	if (device_may_wakeup(&client->dev)) {
+	if (device_may_wakeup(&client->dev))
+	{
 		/* need to start device if not open, to be wakeup source */
-		if (!input->users) {
+		if (!input->users)
+		{
 			ret = auo_pixcir_start(ts);
+
 			if (ret)
+			{
 				goto unlock;
+			}
 		}
 
 		enable_irq_wake(client->irq);
 		ret = auo_pixcir_power_mode(ts, AUO_PIXCIR_POWER_SLEEP);
-	} else if (input->users) {
+	}
+	else if (input->users)
+	{
 		ret = auo_pixcir_stop(ts);
 	}
 
@@ -453,18 +504,25 @@ static int __maybe_unused auo_pixcir_resume(struct device *dev)
 
 	mutex_lock(&input->mutex);
 
-	if (device_may_wakeup(&client->dev)) {
+	if (device_may_wakeup(&client->dev))
+	{
 		disable_irq_wake(client->irq);
 
 		/* need to stop device if it was not open on suspend */
-		if (!input->users) {
+		if (!input->users)
+		{
 			ret = auo_pixcir_stop(ts);
+
 			if (ret)
+			{
 				goto unlock;
+			}
 		}
 
 		/* device wakes automatically from SLEEP */
-	} else if (input->users) {
+	}
+	else if (input->users)
+	{
 		ret = auo_pixcir_start(ts);
 	}
 
@@ -475,7 +533,7 @@ unlock:
 }
 
 static SIMPLE_DEV_PM_OPS(auo_pixcir_pm_ops,
-			 auo_pixcir_suspend, auo_pixcir_resume);
+						 auo_pixcir_suspend, auo_pixcir_resume);
 
 #ifdef CONFIG_OF
 static struct auo_pixcir_ts_platdata *auo_pixcir_parse_dt(struct device *dev)
@@ -484,32 +542,42 @@ static struct auo_pixcir_ts_platdata *auo_pixcir_parse_dt(struct device *dev)
 	struct device_node *np = dev->of_node;
 
 	if (!np)
+	{
 		return ERR_PTR(-ENOENT);
+	}
 
 	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-	if (!pdata) {
+
+	if (!pdata)
+	{
 		dev_err(dev, "failed to allocate platform data\n");
 		return ERR_PTR(-ENOMEM);
 	}
 
 	pdata->gpio_int = of_get_gpio(np, 0);
-	if (!gpio_is_valid(pdata->gpio_int)) {
+
+	if (!gpio_is_valid(pdata->gpio_int))
+	{
 		dev_err(dev, "failed to get interrupt gpio\n");
 		return ERR_PTR(-EINVAL);
 	}
 
 	pdata->gpio_rst = of_get_gpio(np, 1);
-	if (!gpio_is_valid(pdata->gpio_rst)) {
+
+	if (!gpio_is_valid(pdata->gpio_rst))
+	{
 		dev_err(dev, "failed to get reset gpio\n");
 		return ERR_PTR(-EINVAL);
 	}
 
-	if (of_property_read_u32(np, "x-size", &pdata->x_max)) {
+	if (of_property_read_u32(np, "x-size", &pdata->x_max))
+	{
 		dev_err(dev, "failed to get x-size property\n");
 		return ERR_PTR(-EINVAL);
 	}
 
-	if (of_property_read_u32(np, "y-size", &pdata->y_max)) {
+	if (of_property_read_u32(np, "y-size", &pdata->y_max))
+	{
 		dev_err(dev, "failed to get y-size property\n");
 		return ERR_PTR(-EINVAL);
 	}
@@ -534,7 +602,7 @@ static void auo_pixcir_reset(void *data)
 }
 
 static int auo_pixcir_probe(struct i2c_client *client,
-			    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	const struct auo_pixcir_ts_platdata *pdata;
 	struct auo_pixcir_ts *ts;
@@ -543,19 +611,29 @@ static int auo_pixcir_probe(struct i2c_client *client,
 	int error;
 
 	pdata = dev_get_platdata(&client->dev);
-	if (!pdata) {
+
+	if (!pdata)
+	{
 		pdata = auo_pixcir_parse_dt(&client->dev);
+
 		if (IS_ERR(pdata))
+		{
 			return PTR_ERR(pdata);
+		}
 	}
 
 	ts = devm_kzalloc(&client->dev,
-			  sizeof(struct auo_pixcir_ts), GFP_KERNEL);
+					  sizeof(struct auo_pixcir_ts), GFP_KERNEL);
+
 	if (!ts)
+	{
 		return -ENOMEM;
+	}
 
 	input_dev = devm_input_allocate_device(&client->dev);
-	if (!input_dev) {
+
+	if (!input_dev)
+	{
 		dev_err(&client->dev, "could not allocate input device\n");
 		return -ENOMEM;
 	}
@@ -568,7 +646,7 @@ static int auo_pixcir_probe(struct i2c_client *client,
 	init_waitqueue_head(&ts->wait);
 
 	snprintf(ts->phys, sizeof(ts->phys),
-		 "%s/input0", dev_name(&client->dev));
+			 "%s/input0", dev_name(&client->dev));
 
 	input_dev->name = "AUO-Pixcir touchscreen";
 	input_dev->phys = ts->phys;
@@ -588,46 +666,54 @@ static int auo_pixcir_probe(struct i2c_client *client,
 
 	/* For multi touch */
 	input_set_abs_params(input_dev, ABS_MT_POSITION_X, 0,
-			     pdata->x_max, 0, 0);
+						 pdata->x_max, 0, 0);
 	input_set_abs_params(input_dev, ABS_MT_POSITION_Y, 0,
-			     pdata->y_max, 0, 0);
+						 pdata->y_max, 0, 0);
 	input_set_abs_params(input_dev, ABS_MT_TOUCH_MAJOR, 0,
-			     AUO_PIXCIR_MAX_AREA, 0, 0);
+						 AUO_PIXCIR_MAX_AREA, 0, 0);
 	input_set_abs_params(input_dev, ABS_MT_TOUCH_MINOR, 0,
-			     AUO_PIXCIR_MAX_AREA, 0, 0);
+						 AUO_PIXCIR_MAX_AREA, 0, 0);
 	input_set_abs_params(input_dev, ABS_MT_ORIENTATION, 0, 1, 0, 0);
 
 	input_set_drvdata(ts->input, ts);
 
 	error = devm_gpio_request_one(&client->dev, pdata->gpio_int,
-				      GPIOF_DIR_IN, "auo_pixcir_ts_int");
-	if (error) {
+								  GPIOF_DIR_IN, "auo_pixcir_ts_int");
+
+	if (error)
+	{
 		dev_err(&client->dev, "request of gpio %d failed, %d\n",
-			pdata->gpio_int, error);
+				pdata->gpio_int, error);
 		return error;
 	}
 
 	error = devm_gpio_request_one(&client->dev, pdata->gpio_rst,
-				      GPIOF_DIR_OUT | GPIOF_INIT_HIGH,
-				      "auo_pixcir_ts_rst");
-	if (error) {
+								  GPIOF_DIR_OUT | GPIOF_INIT_HIGH,
+								  "auo_pixcir_ts_rst");
+
+	if (error)
+	{
 		dev_err(&client->dev, "request of gpio %d failed, %d\n",
-			pdata->gpio_rst, error);
+				pdata->gpio_rst, error);
 		return error;
 	}
 
 	error = devm_add_action(&client->dev, auo_pixcir_reset, ts);
-	if (error) {
+
+	if (error)
+	{
 		auo_pixcir_reset(ts);
 		dev_err(&client->dev, "failed to register reset action, %d\n",
-			error);
+				error);
 		return error;
 	}
 
 	msleep(200);
 
 	version = i2c_smbus_read_byte_data(client, AUO_PIXCIR_REG_VERSION);
-	if (version < 0) {
+
+	if (version < 0)
+	{
 		error = version;
 		return error;
 	}
@@ -635,28 +721,38 @@ static int auo_pixcir_probe(struct i2c_client *client,
 	dev_info(&client->dev, "firmware version 0x%X\n", version);
 
 	error = auo_pixcir_int_config(ts, pdata->int_setting);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = devm_request_threaded_irq(&client->dev, client->irq,
-					  NULL, auo_pixcir_interrupt,
-					  IRQF_TRIGGER_RISING | IRQF_ONESHOT,
-					  input_dev->name, ts);
-	if (error) {
+									  NULL, auo_pixcir_interrupt,
+									  IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+									  input_dev->name, ts);
+
+	if (error)
+	{
 		dev_err(&client->dev, "irq %d requested failed, %d\n",
-			client->irq, error);
+				client->irq, error);
 		return error;
 	}
 
 	/* stop device and put it into deep sleep until it is opened */
 	error = auo_pixcir_stop(ts);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = input_register_device(input_dev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&client->dev, "could not register input device, %d\n",
-			error);
+				error);
 		return error;
 	}
 
@@ -665,21 +761,24 @@ static int auo_pixcir_probe(struct i2c_client *client,
 	return 0;
 }
 
-static const struct i2c_device_id auo_pixcir_idtable[] = {
+static const struct i2c_device_id auo_pixcir_idtable[] =
+{
 	{ "auo_pixcir_ts", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, auo_pixcir_idtable);
 
 #ifdef CONFIG_OF
-static const struct of_device_id auo_pixcir_ts_dt_idtable[] = {
+static const struct of_device_id auo_pixcir_ts_dt_idtable[] =
+{
 	{ .compatible = "auo,auo_pixcir_ts" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, auo_pixcir_ts_dt_idtable);
 #endif
 
-static struct i2c_driver auo_pixcir_driver = {
+static struct i2c_driver auo_pixcir_driver =
+{
 	.driver = {
 		.name	= "auo_pixcir_ts",
 		.pm	= &auo_pixcir_pm_ops,

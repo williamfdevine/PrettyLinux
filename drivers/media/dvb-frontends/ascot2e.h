@@ -33,7 +33,8 @@
  * @set_tuner_callback:	Callback function that notifies the parent driver
  *			which tuner is active now
  */
-struct ascot2e_config {
+struct ascot2e_config
+{
 	u8	i2c_address;
 	u8	xtal_freq_mhz;
 	void	*set_tuner_priv;
@@ -42,12 +43,12 @@ struct ascot2e_config {
 
 #if IS_REACHABLE(CONFIG_DVB_ASCOT2E)
 extern struct dvb_frontend *ascot2e_attach(struct dvb_frontend *fe,
-					const struct ascot2e_config *config,
-					struct i2c_adapter *i2c);
+		const struct ascot2e_config *config,
+		struct i2c_adapter *i2c);
 #else
 static inline struct dvb_frontend *ascot2e_attach(struct dvb_frontend *fe,
-					const struct ascot2e_config *config,
-					struct i2c_adapter *i2c)
+		const struct ascot2e_config *config,
+		struct i2c_adapter *i2c)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

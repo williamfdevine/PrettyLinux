@@ -20,7 +20,8 @@
  * KMSG_DUMP_OOPS will not be logged by default unless printk.always_kmsg_dump
  * is passed to the kernel.
  */
-enum kmsg_dump_reason {
+enum kmsg_dump_reason
+{
 	KMSG_DUMP_UNDEF,
 	KMSG_DUMP_PANIC,
 	KMSG_DUMP_OOPS,
@@ -38,7 +39,8 @@ enum kmsg_dump_reason {
  * @max_reason:	filter for highest reason number that should be dumped
  * @registered:	Flag that specifies if this is already registered
  */
-struct kmsg_dumper {
+struct kmsg_dumper
+{
 	struct list_head list;
 	void (*dump)(struct kmsg_dumper *dumper, enum kmsg_dump_reason reason);
 	enum kmsg_dump_reason max_reason;
@@ -56,13 +58,13 @@ struct kmsg_dumper {
 void kmsg_dump(enum kmsg_dump_reason reason);
 
 bool kmsg_dump_get_line_nolock(struct kmsg_dumper *dumper, bool syslog,
-			       char *line, size_t size, size_t *len);
+							   char *line, size_t size, size_t *len);
 
 bool kmsg_dump_get_line(struct kmsg_dumper *dumper, bool syslog,
-			char *line, size_t size, size_t *len);
+						char *line, size_t size, size_t *len);
 
 bool kmsg_dump_get_buffer(struct kmsg_dumper *dumper, bool syslog,
-			  char *buf, size_t size, size_t *len);
+						  char *buf, size_t size, size_t *len);
 
 void kmsg_dump_rewind_nolock(struct kmsg_dumper *dumper);
 
@@ -77,20 +79,20 @@ static inline void kmsg_dump(enum kmsg_dump_reason reason)
 }
 
 static inline bool kmsg_dump_get_line_nolock(struct kmsg_dumper *dumper,
-					     bool syslog, const char *line,
-					     size_t size, size_t *len)
+		bool syslog, const char *line,
+		size_t size, size_t *len)
 {
 	return false;
 }
 
 static inline bool kmsg_dump_get_line(struct kmsg_dumper *dumper, bool syslog,
-				const char *line, size_t size, size_t *len)
+									  const char *line, size_t size, size_t *len)
 {
 	return false;
 }
 
 static inline bool kmsg_dump_get_buffer(struct kmsg_dumper *dumper, bool syslog,
-					char *buf, size_t size, size_t *len)
+										char *buf, size_t size, size_t *len)
 {
 	return false;
 }

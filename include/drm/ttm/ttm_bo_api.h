@@ -60,7 +60,8 @@ struct ttm_placement;
  *
  * Structure indicating the bus placement of an object.
  */
-struct ttm_bus_placement {
+struct ttm_bus_placement
+{
 	void		*addr;
 	phys_addr_t	base;
 	unsigned long	size;
@@ -85,7 +86,8 @@ struct ttm_bus_placement {
  * buffer object.
  */
 
-struct ttm_mem_reg {
+struct ttm_mem_reg
+{
 	void *mm_node;
 	unsigned long start;
 	unsigned long size;
@@ -110,7 +112,8 @@ struct ttm_mem_reg {
  * driver.
  */
 
-enum ttm_bo_type {
+enum ttm_bo_type
+{
 	ttm_bo_type_device,
 	ttm_bo_type_kernel,
 	ttm_bo_type_sg
@@ -162,7 +165,8 @@ struct ttm_tt;
  * to derive driver specific types.
  */
 
-struct ttm_buffer_object {
+struct ttm_buffer_object
+{
 	/**
 	 * Members constant at init.
 	 */
@@ -243,10 +247,12 @@ struct ttm_buffer_object {
  */
 
 #define TTM_BO_MAP_IOMEM_MASK 0x80
-struct ttm_bo_kmap_obj {
+struct ttm_bo_kmap_obj
+{
 	void *virtual;
 	struct page *page;
-	enum {
+	enum
+	{
 		ttm_bo_map_iomap        = 1 | TTM_BO_MAP_IOMEM_MASK,
 		ttm_bo_map_vmap         = 2,
 		ttm_bo_map_kmap         = 3,
@@ -285,7 +291,7 @@ ttm_bo_reference(struct ttm_buffer_object *bo)
  * Returns -ERESTARTSYS if interrupted by a signal.
  */
 extern int ttm_bo_wait(struct ttm_buffer_object *bo,
-		       bool interruptible, bool no_wait);
+					   bool interruptible, bool no_wait);
 
 /**
  * ttm_bo_mem_compat - Check if proposed placement is compatible with a bo
@@ -297,8 +303,8 @@ extern int ttm_bo_wait(struct ttm_buffer_object *bo,
  * Returns true if the placement is compatible
  */
 extern bool ttm_bo_mem_compat(struct ttm_placement *placement,
-			      struct ttm_mem_reg *mem,
-			      uint32_t *new_flags);
+							  struct ttm_mem_reg *mem,
+							  uint32_t *new_flags);
 
 /**
  * ttm_bo_validate
@@ -317,9 +323,9 @@ extern bool ttm_bo_mem_compat(struct ttm_placement *placement,
  * -ERESTARTSYS if interrupted by a signal.
  */
 extern int ttm_bo_validate(struct ttm_buffer_object *bo,
-				struct ttm_placement *placement,
-				bool interruptible,
-				bool no_wait_gpu);
+						   struct ttm_placement *placement,
+						   bool interruptible,
+						   bool no_wait_gpu);
 
 /**
  * ttm_bo_unref
@@ -341,7 +347,7 @@ extern void ttm_bo_unref(struct ttm_buffer_object **bo);
  * Release @count lru list references to this buffer object.
  */
 extern void ttm_bo_list_ref_sub(struct ttm_buffer_object *bo, int count,
-				bool never_free);
+								bool never_free);
 
 /**
  * ttm_bo_add_to_lru
@@ -393,7 +399,7 @@ extern int ttm_bo_lock_delayed_workqueue(struct ttm_bo_device *bdev);
  * Allows the delayed workqueue to run.
  */
 extern void ttm_bo_unlock_delayed_workqueue(struct ttm_bo_device *bdev,
-					    int resched);
+		int resched);
 
 /**
  * ttm_bo_synccpu_write_grab
@@ -431,11 +437,11 @@ extern void ttm_bo_synccpu_write_release(struct ttm_buffer_object *bo);
  * Returns size to account for a buffer object
  */
 size_t ttm_bo_acc_size(struct ttm_bo_device *bdev,
-		       unsigned long bo_size,
-		       unsigned struct_size);
+					   unsigned long bo_size,
+					   unsigned struct_size);
 size_t ttm_bo_dma_acc_size(struct ttm_bo_device *bdev,
-			   unsigned long bo_size,
-			   unsigned struct_size);
+						   unsigned long bo_size,
+						   unsigned struct_size);
 
 /**
  * ttm_bo_init
@@ -473,17 +479,17 @@ size_t ttm_bo_dma_acc_size(struct ttm_bo_device *bdev,
  */
 
 extern int ttm_bo_init(struct ttm_bo_device *bdev,
-			struct ttm_buffer_object *bo,
-			unsigned long size,
-			enum ttm_bo_type type,
-			struct ttm_placement *placement,
-			uint32_t page_alignment,
-			bool interrubtible,
-			struct file *persistent_swap_storage,
-			size_t acc_size,
-			struct sg_table *sg,
-			struct reservation_object *resv,
-			void (*destroy) (struct ttm_buffer_object *));
+					   struct ttm_buffer_object *bo,
+					   unsigned long size,
+					   enum ttm_bo_type type,
+					   struct ttm_placement *placement,
+					   uint32_t page_alignment,
+					   bool interrubtible,
+					   struct file *persistent_swap_storage,
+					   size_t acc_size,
+					   struct sg_table *sg,
+					   struct reservation_object *resv,
+					   void (*destroy) (struct ttm_buffer_object *));
 
 /**
  * ttm_bo_create
@@ -511,13 +517,13 @@ extern int ttm_bo_init(struct ttm_bo_device *bdev,
  */
 
 extern int ttm_bo_create(struct ttm_bo_device *bdev,
-				unsigned long size,
-				enum ttm_bo_type type,
-				struct ttm_placement *placement,
-				uint32_t page_alignment,
-				bool interruptible,
-				struct file *persistent_swap_storage,
-				struct ttm_buffer_object **p_bo);
+						 unsigned long size,
+						 enum ttm_bo_type type,
+						 struct ttm_placement *placement,
+						 uint32_t page_alignment,
+						 bool interruptible,
+						 struct file *persistent_swap_storage,
+						 struct ttm_buffer_object **p_bo);
 
 /**
  * ttm_bo_init_mm
@@ -536,7 +542,7 @@ extern int ttm_bo_create(struct ttm_bo_device *bdev,
  */
 
 extern int ttm_bo_init_mm(struct ttm_bo_device *bdev, unsigned type,
-				unsigned long p_size);
+						  unsigned long p_size);
 /**
  * ttm_bo_clean_mm
  *
@@ -600,7 +606,7 @@ extern int ttm_bo_evict_mm(struct ttm_bo_device *bdev, unsigned mem_type);
  */
 
 static inline void *ttm_kmap_obj_virtual(struct ttm_bo_kmap_obj *map,
-					 bool *is_iomem)
+		bool *is_iomem)
 {
 	*is_iomem = !!(map->bo_kmap_type & TTM_BO_MAP_IOMEM_MASK);
 	return map->virtual;
@@ -624,7 +630,7 @@ static inline void *ttm_kmap_obj_virtual(struct ttm_bo_kmap_obj *map,
  */
 
 extern int ttm_bo_kmap(struct ttm_buffer_object *bo, unsigned long start_page,
-		       unsigned long num_pages, struct ttm_bo_kmap_obj *map);
+					   unsigned long num_pages, struct ttm_bo_kmap_obj *map);
 
 /**
  * ttm_bo_kunmap
@@ -648,7 +654,7 @@ extern void ttm_bo_kunmap(struct ttm_bo_kmap_obj *map);
  */
 
 extern int ttm_fbdev_mmap(struct vm_area_struct *vma,
-			  struct ttm_buffer_object *bo);
+						  struct ttm_buffer_object *bo);
 
 /**
  * ttm_bo_mmap - mmap out of the ttm device address space.
@@ -662,7 +668,7 @@ extern int ttm_fbdev_mmap(struct vm_area_struct *vma,
  */
 
 extern int ttm_bo_mmap(struct file *filp, struct vm_area_struct *vma,
-		       struct ttm_bo_device *bdev);
+					   struct ttm_bo_device *bdev);
 
 /**
  * ttm_bo_io
@@ -686,8 +692,8 @@ extern int ttm_bo_mmap(struct file *filp, struct vm_area_struct *vma,
  */
 
 extern ssize_t ttm_bo_io(struct ttm_bo_device *bdev, struct file *filp,
-			 const char __user *wbuf, char __user *rbuf,
-			 size_t count, loff_t *f_pos, bool write);
+						 const char __user *wbuf, char __user *rbuf,
+						 size_t count, loff_t *f_pos, bool write);
 
 extern void ttm_bo_swapout_all(struct ttm_bo_device *bdev);
 extern int ttm_bo_wait_unreserved(struct ttm_buffer_object *bo);

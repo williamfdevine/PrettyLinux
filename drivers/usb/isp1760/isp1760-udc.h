@@ -23,14 +23,16 @@
 struct isp1760_device;
 struct isp1760_udc;
 
-enum isp1760_ctrl_state {
+enum isp1760_ctrl_state
+{
 	ISP1760_CTRL_SETUP,		/* Waiting for a SETUP transaction */
 	ISP1760_CTRL_DATA_IN,		/* Setup received, data IN stage */
 	ISP1760_CTRL_DATA_OUT,		/* Setup received, data OUT stage */
 	ISP1760_CTRL_STATUS,		/* 0-length request in status stage */
 };
 
-struct isp1760_ep {
+struct isp1760_ep
+{
 	struct isp1760_udc *udc;
 	struct usb_ep ep;
 
@@ -61,7 +63,8 @@ struct isp1760_ep {
  * ep0_length: Length of the current control request
  * connected: Tracks gadget driver bus connection state
  */
-struct isp1760_udc {
+struct isp1760_udc
+{
 #ifdef CONFIG_USB_ISP1761_UDC
 	struct isp1760_device *isp;
 
@@ -89,11 +92,11 @@ struct isp1760_udc {
 
 #ifdef CONFIG_USB_ISP1761_UDC
 int isp1760_udc_register(struct isp1760_device *isp, int irq,
-			 unsigned long irqflags);
+						 unsigned long irqflags);
 void isp1760_udc_unregister(struct isp1760_device *isp);
 #else
 static inline int isp1760_udc_register(struct isp1760_device *isp, int irq,
-				       unsigned long irqflags)
+									   unsigned long irqflags)
 {
 	return 0;
 }

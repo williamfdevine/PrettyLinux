@@ -59,22 +59,23 @@ static unsigned long max_autoclose_max =
 	? UINT_MAX : MAX_SCHEDULE_TIMEOUT / HZ;
 
 static int proc_sctp_do_hmac_alg(struct ctl_table *ctl, int write,
-				void __user *buffer, size_t *lenp,
-				loff_t *ppos);
+								 void __user *buffer, size_t *lenp,
+								 loff_t *ppos);
 static int proc_sctp_do_rto_min(struct ctl_table *ctl, int write,
-				void __user *buffer, size_t *lenp,
-				loff_t *ppos);
+								void __user *buffer, size_t *lenp,
+								loff_t *ppos);
 static int proc_sctp_do_rto_max(struct ctl_table *ctl, int write,
-				void __user *buffer, size_t *lenp,
-				loff_t *ppos);
+								void __user *buffer, size_t *lenp,
+								loff_t *ppos);
 static int proc_sctp_do_alpha_beta(struct ctl_table *ctl, int write,
-				   void __user *buffer, size_t *lenp,
-				   loff_t *ppos);
+								   void __user *buffer, size_t *lenp,
+								   loff_t *ppos);
 static int proc_sctp_do_auth(struct ctl_table *ctl, int write,
-			     void __user *buffer, size_t *lenp,
-			     loff_t *ppos);
+							 void __user *buffer, size_t *lenp,
+							 loff_t *ppos);
 
-static struct ctl_table sctp_table[] = {
+static struct ctl_table sctp_table[] =
+{
 	{
 		.procname	= "sctp_mem",
 		.data		= &sysctl_sctp_mem,
@@ -100,7 +101,8 @@ static struct ctl_table sctp_table[] = {
 	{ /* sentinel */ }
 };
 
-static struct ctl_table sctp_net_table[] = {
+static struct ctl_table sctp_net_table[] =
+{
 	{
 		.procname	= "rto_initial",
 		.data		= &init_net.sctp.rto_initial,
@@ -320,8 +322,8 @@ static struct ctl_table sctp_net_table[] = {
 };
 
 static int proc_sctp_do_hmac_alg(struct ctl_table *ctl, int write,
-				void __user *buffer, size_t *lenp,
-				loff_t *ppos)
+								 void __user *buffer, size_t *lenp,
+								 loff_t *ppos)
 {
 	struct net *net = current->nsproxy->net_ns;
 	struct ctl_table tbl;
@@ -332,42 +334,58 @@ static int proc_sctp_do_hmac_alg(struct ctl_table *ctl, int write,
 
 	memset(&tbl, 0, sizeof(struct ctl_table));
 
-	if (write) {
+	if (write)
+	{
 		tbl.data = tmp;
 		tbl.maxlen = sizeof(tmp);
-	} else {
+	}
+	else
+	{
 		tbl.data = net->sctp.sctp_hmac_alg ? : none;
 		tbl.maxlen = strlen(tbl.data);
 	}
 
 	ret = proc_dostring(&tbl, write, buffer, lenp, ppos);
-	if (write && ret == 0) {
+
+	if (write && ret == 0)
+	{
 #ifdef CONFIG_CRYPTO_MD5
-		if (!strncmp(tmp, "md5", 3)) {
+
+		if (!strncmp(tmp, "md5", 3))
+		{
 			net->sctp.sctp_hmac_alg = "md5";
 			changed = true;
 		}
+
 #endif
 #ifdef CONFIG_CRYPTO_SHA1
-		if (!strncmp(tmp, "sha1", 4)) {
+
+		if (!strncmp(tmp, "sha1", 4))
+		{
 			net->sctp.sctp_hmac_alg = "sha1";
 			changed = true;
 		}
+
 #endif
-		if (!strncmp(tmp, "none", 4)) {
+
+		if (!strncmp(tmp, "none", 4))
+		{
 			net->sctp.sctp_hmac_alg = NULL;
 			changed = true;
 		}
+
 		if (!changed)
+		{
 			ret = -EINVAL;
+		}
 	}
 
 	return ret;
 }
 
 static int proc_sctp_do_rto_min(struct ctl_table *ctl, int write,
-				void __user *buffer, size_t *lenp,
-				loff_t *ppos)
+								void __user *buffer, size_t *lenp,
+								loff_t *ppos)
 {
 	struct net *net = current->nsproxy->net_ns;
 	unsigned int min = *(unsigned int *) ctl->extra1;
@@ -379,14 +397,22 @@ static int proc_sctp_do_rto_min(struct ctl_table *ctl, int write,
 	tbl.maxlen = sizeof(unsigned int);
 
 	if (write)
+	{
 		tbl.data = &new_value;
+	}
 	else
+	{
 		tbl.data = &net->sctp.rto_min;
+	}
 
 	ret = proc_dointvec(&tbl, write, buffer, lenp, ppos);
-	if (write && ret == 0) {
+
+	if (write && ret == 0)
+	{
 		if (new_value > max || new_value < min)
+		{
 			return -EINVAL;
+		}
 
 		net->sctp.rto_min = new_value;
 	}
@@ -395,8 +421,8 @@ static int proc_sctp_do_rto_min(struct ctl_table *ctl, int write,
 }
 
 static int proc_sctp_do_rto_max(struct ctl_table *ctl, int write,
-				void __user *buffer, size_t *lenp,
-				loff_t *ppos)
+								void __user *buffer, size_t *lenp,
+								loff_t *ppos)
 {
 	struct net *net = current->nsproxy->net_ns;
 	unsigned int min = *(unsigned int *) ctl->extra1;
@@ -408,14 +434,22 @@ static int proc_sctp_do_rto_max(struct ctl_table *ctl, int write,
 	tbl.maxlen = sizeof(unsigned int);
 
 	if (write)
+	{
 		tbl.data = &new_value;
+	}
 	else
+	{
 		tbl.data = &net->sctp.rto_max;
+	}
 
 	ret = proc_dointvec(&tbl, write, buffer, lenp, ppos);
-	if (write && ret == 0) {
+
+	if (write && ret == 0)
+	{
 		if (new_value > max || new_value < min)
+		{
 			return -EINVAL;
+		}
 
 		net->sctp.rto_max = new_value;
 	}
@@ -424,19 +458,19 @@ static int proc_sctp_do_rto_max(struct ctl_table *ctl, int write,
 }
 
 static int proc_sctp_do_alpha_beta(struct ctl_table *ctl, int write,
-				   void __user *buffer, size_t *lenp,
-				   loff_t *ppos)
+								   void __user *buffer, size_t *lenp,
+								   loff_t *ppos)
 {
 	if (write)
 		pr_warn_once("Changing rto_alpha or rto_beta may lead to "
-			     "suboptimal rtt/srtt estimations!\n");
+					 "suboptimal rtt/srtt estimations!\n");
 
 	return proc_dointvec_minmax(ctl, write, buffer, lenp, ppos);
 }
 
 static int proc_sctp_do_auth(struct ctl_table *ctl, int write,
-			     void __user *buffer, size_t *lenp,
-			     loff_t *ppos)
+							 void __user *buffer, size_t *lenp,
+							 loff_t *ppos)
 {
 	struct net *net = current->nsproxy->net_ns;
 	struct ctl_table tbl;
@@ -446,12 +480,18 @@ static int proc_sctp_do_auth(struct ctl_table *ctl, int write,
 	tbl.maxlen = sizeof(unsigned int);
 
 	if (write)
+	{
 		tbl.data = &new_value;
+	}
 	else
+	{
 		tbl.data = &net->sctp.auth_enable;
+	}
 
 	ret = proc_dointvec(&tbl, write, buffer, lenp, ppos);
-	if (write && ret == 0) {
+
+	if (write && ret == 0)
+	{
 		struct sock *sk = net->sctp.ctl_sock;
 
 		net->sctp.auth_enable = new_value;
@@ -470,17 +510,25 @@ int sctp_sysctl_net_register(struct net *net)
 	int i;
 
 	table = kmemdup(sctp_net_table, sizeof(sctp_net_table), GFP_KERNEL);
+
 	if (!table)
+	{
 		return -ENOMEM;
+	}
 
 	for (i = 0; table[i].data; i++)
+	{
 		table[i].data += (char *)(&net->sctp) - (char *)&init_net.sctp;
+	}
 
 	net->sctp.sysctl_header = register_net_sysctl(net, "net/sctp", table);
-	if (net->sctp.sysctl_header == NULL) {
+
+	if (net->sctp.sysctl_header == NULL)
+	{
 		kfree(table);
 		return -ENOMEM;
 	}
+
 	return 0;
 }
 

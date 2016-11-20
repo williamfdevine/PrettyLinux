@@ -161,7 +161,8 @@
  * instead. The following list contains all registers that
  * require saving.
  */
-static const uint16_t backup_addresses[] = {
+static const uint16_t backup_addresses[] =
+{
 	0x11, 0x12,
 	0x18, 0x19, 0x1a, 0x1f,
 	0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27,
@@ -171,7 +172,8 @@ static const uint16_t backup_addresses[] = {
 };
 
 
-struct ivch_priv {
+struct ivch_priv
+{
 	bool quiet;
 
 	uint16_t width, height;
@@ -195,7 +197,8 @@ static bool ivch_read(struct intel_dvo_device *dvo, int addr, uint16_t *data)
 	u8 out_buf[1];
 	u8 in_buf[2];
 
-	struct i2c_msg msgs[] = {
+	struct i2c_msg msgs[] =
+	{
 		{
 			.addr = dvo->slave_addr,
 			.flags = I2C_M_RD,
@@ -217,16 +220,19 @@ static bool ivch_read(struct intel_dvo_device *dvo, int addr, uint16_t *data)
 
 	out_buf[0] = addr;
 
-	if (i2c_transfer(adapter, msgs, 3) == 3) {
+	if (i2c_transfer(adapter, msgs, 3) == 3)
+	{
 		*data = (in_buf[1] << 8) | in_buf[0];
 		return true;
 	}
 
-	if (!priv->quiet) {
+	if (!priv->quiet)
+	{
 		DRM_DEBUG_KMS("Unable to read register 0x%02x from "
-				"%s:%02x.\n",
-			  addr, adapter->name, dvo->slave_addr);
+					  "%s:%02x.\n",
+					  addr, adapter->name, dvo->slave_addr);
 	}
+
 	return false;
 }
 
@@ -236,7 +242,8 @@ static bool ivch_write(struct intel_dvo_device *dvo, int addr, uint16_t data)
 	struct ivch_priv *priv = dvo->dev_priv;
 	struct i2c_adapter *adapter = dvo->i2c_bus;
 	u8 out_buf[3];
-	struct i2c_msg msg = {
+	struct i2c_msg msg =
+	{
 		.addr = dvo->slave_addr,
 		.flags = 0,
 		.len = 3,
@@ -248,11 +255,14 @@ static bool ivch_write(struct intel_dvo_device *dvo, int addr, uint16_t data)
 	out_buf[2] = data >> 8;
 
 	if (i2c_transfer(adapter, &msg, 1) == 1)
+	{
 		return true;
+	}
 
-	if (!priv->quiet) {
+	if (!priv->quiet)
+	{
 		DRM_DEBUG_KMS("Unable to write register 0x%02x to %s:%d.\n",
-			  addr, adapter->name, dvo->slave_addr);
+					  addr, adapter->name, dvo->slave_addr);
 	}
 
 	return false;
@@ -260,32 +270,39 @@ static bool ivch_write(struct intel_dvo_device *dvo, int addr, uint16_t data)
 
 /** Probes the given bus and slave address for an ivch */
 static bool ivch_init(struct intel_dvo_device *dvo,
-		      struct i2c_adapter *adapter)
+					  struct i2c_adapter *adapter)
 {
 	struct ivch_priv *priv;
 	uint16_t temp;
 	int i;
 
 	priv = kzalloc(sizeof(struct ivch_priv), GFP_KERNEL);
+
 	if (priv == NULL)
+	{
 		return false;
+	}
 
 	dvo->i2c_bus = adapter;
 	dvo->dev_priv = priv;
 	priv->quiet = true;
 
 	if (!ivch_read(dvo, VR00, &temp))
+	{
 		goto out;
+	}
+
 	priv->quiet = false;
 
 	/* Since the identification bits are probably zeroes, which doesn't seem
 	 * very unique, check that the value in the base address field matches
 	 * the address it's responding on.
 	 */
-	if ((temp & VR00_BASE_ADDRESS_MASK) != dvo->slave_addr) {
+	if ((temp & VR00_BASE_ADDRESS_MASK) != dvo->slave_addr)
+	{
 		DRM_DEBUG_KMS("ivch detect failed due to address mismatch "
-			  "(%d vs %d)\n",
-			  (temp & VR00_BASE_ADDRESS_MASK), dvo->slave_addr);
+					  "(%d vs %d)\n",
+					  (temp & VR00_BASE_ADDRESS_MASK), dvo->slave_addr);
 		goto out;
 	}
 
@@ -296,7 +313,9 @@ static bool ivch_init(struct intel_dvo_device *dvo,
 	 * upon suspend.
 	 */
 	for (i = 0; i < ARRAY_SIZE(backup_addresses); i++)
+	{
 		ivch_read(dvo, backup_addresses[i], priv->reg_backup + i);
+	}
 
 	ivch_dump_regs(dvo);
 
@@ -313,10 +332,12 @@ static enum drm_connector_status ivch_detect(struct intel_dvo_device *dvo)
 }
 
 static enum drm_mode_status ivch_mode_valid(struct intel_dvo_device *dvo,
-					    struct drm_display_mode *mode)
+		struct drm_display_mode *mode)
 {
 	if (mode->clock > 112000)
+	{
 		return MODE_CLOCK_HIGH;
+	}
 
 	return MODE_OK;
 }
@@ -335,7 +356,9 @@ static void ivch_reset(struct intel_dvo_device *dvo)
 	ivch_write(dvo, VR10, 0x0000);
 
 	for (i = 0; i < ARRAY_SIZE(backup_addresses); i++)
+	{
 		ivch_write(dvo, backup_addresses[i], priv->reg_backup[i]);
+	}
 }
 
 /** Sets the power state of the panel connected to the ivch */
@@ -348,31 +371,48 @@ static void ivch_dpms(struct intel_dvo_device *dvo, bool enable)
 
 	/* Set the new power state of the panel. */
 	if (!ivch_read(dvo, VR01, &vr01))
+	{
 		return;
+	}
 
 	if (enable)
+	{
 		backlight = 1;
+	}
 	else
+	{
 		backlight = 0;
+	}
 
 	ivch_write(dvo, VR80, backlight);
 
 	if (enable)
+	{
 		vr01 |= VR01_LCD_ENABLE | VR01_DVO_ENABLE;
+	}
 	else
+	{
 		vr01 &= ~(VR01_LCD_ENABLE | VR01_DVO_ENABLE);
+	}
 
 	ivch_write(dvo, VR01, vr01);
 
 	/* Wait for the panel to make its state transition */
-	for (i = 0; i < 100; i++) {
+	for (i = 0; i < 100; i++)
+	{
 		if (!ivch_read(dvo, VR30, &vr30))
+		{
 			break;
+		}
 
 		if (((vr30 & VR30_PANEL_ON) != 0) == enable)
+		{
 			break;
+		}
+
 		udelay(1000);
 	}
+
 	/* wait some more; vch may fail to resync sometimes without this */
 	udelay(16 * 1000);
 }
@@ -385,17 +425,23 @@ static bool ivch_get_hw_state(struct intel_dvo_device *dvo)
 
 	/* Set the new power state of the panel. */
 	if (!ivch_read(dvo, VR01, &vr01))
+	{
 		return false;
+	}
 
 	if (vr01 & VR01_LCD_ENABLE)
+	{
 		return true;
+	}
 	else
+	{
 		return false;
+	}
 }
 
 static void ivch_mode_set(struct intel_dvo_device *dvo,
-			  const struct drm_display_mode *mode,
-			  const struct drm_display_mode *adjusted_mode)
+						  const struct drm_display_mode *mode,
+						  const struct drm_display_mode *adjusted_mode)
 {
 	struct ivch_priv *priv = dvo->dev_priv;
 	uint16_t vr40 = 0;
@@ -408,28 +454,35 @@ static void ivch_mode_set(struct intel_dvo_device *dvo,
 
 	/* Enable dithering for 18 bpp pipelines */
 	vr10 &= VR10_INTERFACE_DEPTH_MASK;
+
 	if (vr10 == VR10_INTERFACE_2X18 || vr10 == VR10_INTERFACE_1X18)
+	{
 		vr01 = VR01_DITHER_ENABLE;
+	}
 
 	vr40 = (VR40_STALL_ENABLE | VR40_VERTICAL_INTERP_ENABLE |
-		VR40_HORIZONTAL_INTERP_ENABLE);
+			VR40_HORIZONTAL_INTERP_ENABLE);
 
 	if (mode->hdisplay != adjusted_mode->crtc_hdisplay ||
-	    mode->vdisplay != adjusted_mode->crtc_vdisplay) {
+		mode->vdisplay != adjusted_mode->crtc_vdisplay)
+	{
 		uint16_t x_ratio, y_ratio;
 
 		vr01 |= VR01_PANEL_FIT_ENABLE;
 		vr40 |= VR40_CLOCK_GATING_ENABLE;
 		x_ratio = (((mode->hdisplay - 1) << 16) /
-			   (adjusted_mode->crtc_hdisplay - 1)) >> 2;
+				   (adjusted_mode->crtc_hdisplay - 1)) >> 2;
 		y_ratio = (((mode->vdisplay - 1) << 16) /
-			   (adjusted_mode->crtc_vdisplay - 1)) >> 2;
+				   (adjusted_mode->crtc_vdisplay - 1)) >> 2;
 		ivch_write(dvo, VR42, x_ratio);
 		ivch_write(dvo, VR41, y_ratio);
-	} else {
+	}
+	else
+	{
 		vr01 &= ~VR01_PANEL_FIT_ENABLE;
 		vr40 &= ~VR40_CLOCK_GATING_ENABLE;
 	}
+
 	vr40 &= ~VR40_AUTO_RATIO_ENABLE;
 
 	ivch_write(dvo, VR01, vr01);
@@ -484,13 +537,15 @@ static void ivch_destroy(struct intel_dvo_device *dvo)
 {
 	struct ivch_priv *priv = dvo->dev_priv;
 
-	if (priv) {
+	if (priv)
+	{
 		kfree(priv);
 		dvo->dev_priv = NULL;
 	}
 }
 
-const struct intel_dvo_dev_ops ivch_ops = {
+const struct intel_dvo_dev_ops ivch_ops =
+{
 	.init = ivch_init,
 	.dpms = ivch_dpms,
 	.get_hw_state = ivch_get_hw_state,

@@ -2064,7 +2064,8 @@
 #define RT5645_WND_WIND_SFT			13
 #define RT5645_WND_STRONG_MASK			(0x1 << 12) /* Read-Only */
 #define RT5645_WND_STRONG_SFT			12
-enum {
+enum
+{
 	RT5645_NO_WIND,
 	RT5645_BREEZE,
 	RT5645_STORM,
@@ -2145,26 +2146,30 @@ enum {
 
 
 /* System Clock Source */
-enum {
+enum
+{
 	RT5645_SCLK_S_MCLK,
 	RT5645_SCLK_S_PLL1,
 	RT5645_SCLK_S_RCCLK,
 };
 
 /* PLL1 Source */
-enum {
+enum
+{
 	RT5645_PLL1_S_MCLK,
 	RT5645_PLL1_S_BCLK1,
 	RT5645_PLL1_S_BCLK2,
 };
 
-enum {
+enum
+{
 	RT5645_AIF1,
 	RT5645_AIF2,
 	RT5645_AIFS,
 };
 
-enum {
+enum
+{
 	RT5645_DMIC1_DISABLE,
 	RT5645_DMIC_DATA_IN2P,
 	RT5645_DMIC_DATA_GPIO6,
@@ -2172,20 +2177,23 @@ enum {
 	RT5645_DMIC_DATA_GPIO12,
 };
 
-enum {
+enum
+{
 	RT5645_DMIC2_DISABLE,
 	RT5645_DMIC_DATA_IN2N,
 	RT5645_DMIC_DATA_GPIO5,
 	RT5645_DMIC_DATA_GPIO11,
 };
 
-enum {
+enum
+{
 	CODEC_TYPE_RT5645,
 	CODEC_TYPE_RT5650,
 };
 
 /* filter mask */
-enum {
+enum
+{
 	RT5645_DA_STEREO_FILTER = 0x1,
 	RT5645_DA_MONO_L_FILTER = (0x1 << 1),
 	RT5645_DA_MONO_R_FILTER = (0x1 << 2),
@@ -2195,9 +2203,9 @@ enum {
 };
 
 int rt5645_sel_asrc_clk_src(struct snd_soc_codec *codec,
-		unsigned int filter_mask, unsigned int clk_src);
+							unsigned int filter_mask, unsigned int clk_src);
 
 int rt5645_set_jack_detect(struct snd_soc_codec *codec,
-	struct snd_soc_jack *hp_jack, struct snd_soc_jack *mic_jack,
-	struct snd_soc_jack *btn_jack);
+						   struct snd_soc_jack *hp_jack, struct snd_soc_jack *mic_jack,
+						   struct snd_soc_jack *btn_jack);
 #endif /* __RT5645_H__ */

@@ -9,7 +9,8 @@ static int cpuinfo_open(struct inode *inode, struct file *file)
 	return seq_open(file, &cpuinfo_op);
 }
 
-static const struct file_operations proc_cpuinfo_operations = {
+static const struct file_operations proc_cpuinfo_operations =
+{
 	.open		= cpuinfo_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,

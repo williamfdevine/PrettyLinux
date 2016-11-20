@@ -54,7 +54,8 @@
  *   'delayed_bios' fields of the regions.  This is used from irq
  *   context, so all other uses will have to suspend local irqs.
  *---------------------------------------------------------------*/
-struct dm_region_hash {
+struct dm_region_hash
+{
 	uint32_t region_size;
 	unsigned region_shift;
 
@@ -98,7 +99,8 @@ struct dm_region_hash {
 	void (*wakeup_all_recovery_waiters)(void *context);
 };
 
-struct dm_region {
+struct dm_region
+{
 	struct dm_region_hash *rh;	/* FIXME: can we get rid of this ? */
 	region_t key;
 	int state;
@@ -127,7 +129,7 @@ EXPORT_SYMBOL_GPL(dm_rh_region_to_sector);
 region_t dm_rh_bio_to_region(struct dm_region_hash *rh, struct bio *bio)
 {
 	return dm_rh_sector_to_region(rh, bio->bi_iter.bi_sector -
-				      rh->target_begin);
+								  rh->target_begin);
 }
 EXPORT_SYMBOL_GPL(dm_rh_bio_to_region);
 
@@ -158,13 +160,13 @@ EXPORT_SYMBOL_GPL(dm_rh_get_region_size);
 
 #define MIN_REGIONS 64
 struct dm_region_hash *dm_region_hash_create(
-		void *context, void (*dispatch_bios)(void *context,
-						     struct bio_list *bios),
-		void (*wakeup_workers)(void *context),
-		void (*wakeup_all_recovery_waiters)(void *context),
-		sector_t target_begin, unsigned max_recovery,
-		struct dm_dirty_log *log, uint32_t region_size,
-		region_t nr_regions)
+	void *context, void (*dispatch_bios)(void *context,
+			struct bio_list *bios),
+	void (*wakeup_workers)(void *context),
+	void (*wakeup_all_recovery_waiters)(void *context),
+	sector_t target_begin, unsigned max_recovery,
+	struct dm_dirty_log *log, uint32_t region_size,
+	region_t nr_regions)
 {
 	struct dm_region_hash *rh;
 	unsigned nr_buckets, max_buckets;
@@ -175,12 +177,16 @@ struct dm_region_hash *dm_region_hash_create(
 	 * table.
 	 */
 	max_buckets = nr_regions >> 6;
+
 	for (nr_buckets = 128u; nr_buckets < max_buckets; nr_buckets <<= 1)
 		;
+
 	nr_buckets >>= 1;
 
 	rh = kmalloc(sizeof(*rh), GFP_KERNEL);
-	if (!rh) {
+
+	if (!rh)
+	{
 		DMERR("unable to allocate region hash memory");
 		return ERR_PTR(-ENOMEM);
 	}
@@ -202,14 +208,18 @@ struct dm_region_hash *dm_region_hash_create(
 	rh->prime = RH_HASH_MULT;
 
 	rh->buckets = vmalloc(nr_buckets * sizeof(*rh->buckets));
-	if (!rh->buckets) {
+
+	if (!rh->buckets)
+	{
 		DMERR("unable to allocate region hash bucket memory");
 		kfree(rh);
 		return ERR_PTR(-ENOMEM);
 	}
 
 	for (i = 0; i < nr_buckets; i++)
+	{
 		INIT_LIST_HEAD(rh->buckets + i);
+	}
 
 	spin_lock_init(&rh->region_lock);
 	sema_init(&rh->recovery_count, 0);
@@ -221,8 +231,10 @@ struct dm_region_hash *dm_region_hash_create(
 	rh->flush_failure = 0;
 
 	rh->region_pool = mempool_create_kmalloc_pool(MIN_REGIONS,
-						      sizeof(struct dm_region));
-	if (!rh->region_pool) {
+					  sizeof(struct dm_region));
+
+	if (!rh->region_pool)
+	{
 		vfree(rh->buckets);
 		kfree(rh);
 		rh = ERR_PTR(-ENOMEM);
@@ -238,16 +250,21 @@ void dm_region_hash_destroy(struct dm_region_hash *rh)
 	struct dm_region *reg, *nreg;
 
 	BUG_ON(!list_empty(&rh->quiesced_regions));
-	for (h = 0; h < rh->nr_buckets; h++) {
+
+	for (h = 0; h < rh->nr_buckets; h++)
+	{
 		list_for_each_entry_safe(reg, nreg, rh->buckets + h,
-					 hash_list) {
+								 hash_list)
+		{
 			BUG_ON(atomic_read(&reg->pending));
 			mempool_free(reg, rh->region_pool);
 		}
 	}
 
 	if (rh->log)
+	{
 		dm_dirty_log_destroy(rh->log);
+	}
 
 	mempool_destroy(rh->region_pool);
 	vfree(rh->buckets);
@@ -272,8 +289,11 @@ static struct dm_region *__rh_lookup(struct dm_region_hash *rh, region_t region)
 	struct list_head *bucket = rh->buckets + rh_hash(rh, region);
 
 	list_for_each_entry(reg, bucket, hash_list)
-		if (reg->key == region)
-			return reg;
+
+	if (reg->key == region)
+	{
+		return reg;
+	}
 
 	return NULL;
 }
@@ -288,11 +308,14 @@ static struct dm_region *__rh_alloc(struct dm_region_hash *rh, region_t region)
 	struct dm_region *reg, *nreg;
 
 	nreg = mempool_alloc(rh->region_pool, GFP_ATOMIC);
+
 	if (unlikely(!nreg))
+	{
 		nreg = kmalloc(sizeof(*nreg), GFP_NOIO | __GFP_NOFAIL);
+	}
 
 	nreg->state = rh->log->type->in_sync(rh->log, region, 1) ?
-		      DM_RH_CLEAN : DM_RH_NOSYNC;
+				  DM_RH_CLEAN : DM_RH_NOSYNC;
 	nreg->rh = rh;
 	nreg->key = region;
 	INIT_LIST_HEAD(&nreg->list);
@@ -301,12 +324,18 @@ static struct dm_region *__rh_alloc(struct dm_region_hash *rh, region_t region)
 
 	write_lock_irq(&rh->hash_lock);
 	reg = __rh_lookup(rh, region);
+
 	if (reg)
 		/* We lost the race. */
+	{
 		mempool_free(nreg, rh->region_pool);
-	else {
+	}
+	else
+	{
 		__rh_insert(rh, nreg);
-		if (nreg->state == DM_RH_CLEAN) {
+
+		if (nreg->state == DM_RH_CLEAN)
+		{
 			spin_lock(&rh->region_lock);
 			list_add(&nreg->list, &rh->clean_regions);
 			spin_unlock(&rh->region_lock);
@@ -314,6 +343,7 @@ static struct dm_region *__rh_alloc(struct dm_region_hash *rh, region_t region)
 
 		reg = nreg;
 	}
+
 	write_unlock_irq(&rh->hash_lock);
 
 	return reg;
@@ -324,7 +354,9 @@ static struct dm_region *__rh_find(struct dm_region_hash *rh, region_t region)
 	struct dm_region *reg;
 
 	reg = __rh_lookup(rh, region);
-	if (!reg) {
+
+	if (!reg)
+	{
 		read_unlock(&rh->hash_lock);
 		reg = __rh_alloc(rh, region);
 		read_lock(&rh->hash_lock);
@@ -343,7 +375,9 @@ int dm_rh_get_state(struct dm_region_hash *rh, region_t region, int may_block)
 	read_unlock(&rh->hash_lock);
 
 	if (reg)
+	{
 		return reg->state;
+	}
 
 	/*
 	 * The region wasn't in the hash, so we fall back to the
@@ -375,8 +409,12 @@ static void complete_resync_work(struct dm_region *reg, int success)
 	 * has been properly flushed.
 	 */
 	rh->dispatch_bios(rh->context, &reg->delayed_bios);
+
 	if (atomic_dec_and_test(&rh->recovery_in_flight))
+	{
 		rh->wakeup_all_recovery_waiters(rh->context);
+	}
+
 	up(&rh->recovery_count);
 }
 
@@ -398,13 +436,16 @@ void dm_rh_mark_nosync(struct dm_region_hash *rh, struct bio *bio)
 	region_t region = dm_rh_bio_to_region(rh, bio);
 	int recovering = 0;
 
-	if (bio->bi_opf & REQ_PREFLUSH) {
+	if (bio->bi_opf & REQ_PREFLUSH)
+	{
 		rh->flush_failure = 1;
 		return;
 	}
 
 	if (bio_op(bio) == REQ_OP_DISCARD)
+	{
 		return;
+	}
 
 	/* We must inform the log that the sync count has changed. */
 	log->type->set_region_sync(log, region, 0);
@@ -431,7 +472,9 @@ void dm_rh_mark_nosync(struct dm_region_hash *rh, struct bio *bio)
 	spin_unlock_irqrestore(&rh->region_lock, flags);
 
 	if (recovering)
+	{
 		complete_resync_work(reg, 0);
+	}
 }
 EXPORT_SYMBOL_GPL(dm_rh_mark_nosync);
 
@@ -448,26 +491,30 @@ void dm_rh_update_states(struct dm_region_hash *rh, int errors_handled)
 	 */
 	write_lock_irq(&rh->hash_lock);
 	spin_lock(&rh->region_lock);
-	if (!list_empty(&rh->clean_regions)) {
+
+	if (!list_empty(&rh->clean_regions))
+	{
 		list_splice_init(&rh->clean_regions, &clean);
 
 		list_for_each_entry(reg, &clean, list)
-			list_del(&reg->hash_list);
+		list_del(&reg->hash_list);
 	}
 
-	if (!list_empty(&rh->recovered_regions)) {
+	if (!list_empty(&rh->recovered_regions))
+	{
 		list_splice_init(&rh->recovered_regions, &recovered);
 
 		list_for_each_entry(reg, &recovered, list)
-			list_del(&reg->hash_list);
+		list_del(&reg->hash_list);
 	}
 
-	if (!list_empty(&rh->failed_recovered_regions)) {
+	if (!list_empty(&rh->failed_recovered_regions))
+	{
 		list_splice_init(&rh->failed_recovered_regions,
-				 &failed_recovered);
+						 &failed_recovered);
 
 		list_for_each_entry(reg, &failed_recovered, list)
-			list_del(&reg->hash_list);
+		list_del(&reg->hash_list);
 	}
 
 	spin_unlock(&rh->region_lock);
@@ -478,18 +525,21 @@ void dm_rh_update_states(struct dm_region_hash *rh, int errors_handled)
 	 * now been pulled out of the system, so no need to do
 	 * any more locking.
 	 */
-	list_for_each_entry_safe(reg, next, &recovered, list) {
+	list_for_each_entry_safe(reg, next, &recovered, list)
+	{
 		rh->log->type->clear_region(rh->log, reg->key);
 		complete_resync_work(reg, 1);
 		mempool_free(reg, rh->region_pool);
 	}
 
-	list_for_each_entry_safe(reg, next, &failed_recovered, list) {
+	list_for_each_entry_safe(reg, next, &failed_recovered, list)
+	{
 		complete_resync_work(reg, errors_handled ? 0 : 1);
 		mempool_free(reg, rh->region_pool);
 	}
 
-	list_for_each_entry_safe(reg, next, &clean, list) {
+	list_for_each_entry_safe(reg, next, &clean, list)
+	{
 		rh->log->type->clear_region(rh->log, reg->key);
 		mempool_free(reg, rh->region_pool);
 	}
@@ -508,14 +558,18 @@ static void rh_inc(struct dm_region_hash *rh, region_t region)
 	spin_lock_irq(&rh->region_lock);
 	atomic_inc(&reg->pending);
 
-	if (reg->state == DM_RH_CLEAN) {
+	if (reg->state == DM_RH_CLEAN)
+	{
 		reg->state = DM_RH_DIRTY;
 		list_del_init(&reg->list);	/* take off the clean list */
 		spin_unlock_irq(&rh->region_lock);
 
 		rh->log->type->mark_region(rh->log, reg->key);
-	} else
+	}
+	else
+	{
 		spin_unlock_irq(&rh->region_lock);
+	}
 
 
 	read_unlock(&rh->hash_lock);
@@ -525,9 +579,13 @@ void dm_rh_inc_pending(struct dm_region_hash *rh, struct bio_list *bios)
 {
 	struct bio *bio;
 
-	for (bio = bios->head; bio; bio = bio->bi_next) {
+	for (bio = bios->head; bio; bio = bio->bi_next)
+	{
 		if (bio->bi_opf & REQ_PREFLUSH || bio_op(bio) == REQ_OP_DISCARD)
+		{
 			continue;
+		}
+
 		rh_inc(rh, dm_rh_bio_to_region(rh, bio));
 	}
 }
@@ -544,7 +602,9 @@ void dm_rh_dec(struct dm_region_hash *rh, region_t region)
 	read_unlock(&rh->hash_lock);
 
 	spin_lock_irqsave(&rh->region_lock, flags);
-	if (atomic_dec_and_test(&reg->pending)) {
+
+	if (atomic_dec_and_test(&reg->pending))
+	{
 		/*
 		 * There is no pending I/O for this region.
 		 * We can move the region to corresponding list for next action.
@@ -557,25 +617,34 @@ void dm_rh_dec(struct dm_region_hash *rh, region_t region)
 		 */
 
 		/* do nothing for DM_RH_NOSYNC */
-		if (unlikely(rh->flush_failure)) {
+		if (unlikely(rh->flush_failure))
+		{
 			/*
 			 * If a write flush failed some time ago, we
 			 * don't know whether or not this write made it
 			 * to the disk, so we must resync the device.
 			 */
 			reg->state = DM_RH_NOSYNC;
-		} else if (reg->state == DM_RH_RECOVERING) {
+		}
+		else if (reg->state == DM_RH_RECOVERING)
+		{
 			list_add_tail(&reg->list, &rh->quiesced_regions);
-		} else if (reg->state == DM_RH_DIRTY) {
+		}
+		else if (reg->state == DM_RH_DIRTY)
+		{
 			reg->state = DM_RH_CLEAN;
 			list_add(&reg->list, &rh->clean_regions);
 		}
+
 		should_wake = 1;
 	}
+
 	spin_unlock_irqrestore(&rh->region_lock, flags);
 
 	if (should_wake)
+	{
 		rh->wakeup_workers(rh->context);
+	}
 }
 EXPORT_SYMBOL_GPL(dm_rh_dec);
 
@@ -592,8 +661,11 @@ static int __rh_recovery_prepare(struct dm_region_hash *rh)
 	 * Ask the dirty log what's next.
 	 */
 	r = rh->log->type->get_resync_work(rh->log, &region);
+
 	if (r <= 0)
+	{
 		return r;
+	}
 
 	/*
 	 * Get this region, and start it quiescing by setting the
@@ -608,9 +680,13 @@ static int __rh_recovery_prepare(struct dm_region_hash *rh)
 
 	/* Already quiesced ? */
 	if (atomic_read(&reg->pending))
+	{
 		list_del_init(&reg->list);
+	}
 	else
+	{
 		list_move(&reg->list, &rh->quiesced_regions);
+	}
 
 	spin_unlock_irq(&rh->region_lock);
 
@@ -622,9 +698,12 @@ void dm_rh_recovery_prepare(struct dm_region_hash *rh)
 	/* Extra reference to avoid race with dm_rh_stop_recovery */
 	atomic_inc(&rh->recovery_in_flight);
 
-	while (!down_trylock(&rh->recovery_count)) {
+	while (!down_trylock(&rh->recovery_count))
+	{
 		atomic_inc(&rh->recovery_in_flight);
-		if (__rh_recovery_prepare(rh) <= 0) {
+
+		if (__rh_recovery_prepare(rh) <= 0)
+		{
 			atomic_dec(&rh->recovery_in_flight);
 			up(&rh->recovery_count);
 			break;
@@ -633,7 +712,9 @@ void dm_rh_recovery_prepare(struct dm_region_hash *rh)
 
 	/* Drop the extra reference */
 	if (atomic_dec_and_test(&rh->recovery_in_flight))
+	{
 		rh->wakeup_all_recovery_waiters(rh->context);
+	}
 }
 EXPORT_SYMBOL_GPL(dm_rh_recovery_prepare);
 
@@ -645,11 +726,14 @@ struct dm_region *dm_rh_recovery_start(struct dm_region_hash *rh)
 	struct dm_region *reg = NULL;
 
 	spin_lock_irq(&rh->region_lock);
-	if (!list_empty(&rh->quiesced_regions)) {
+
+	if (!list_empty(&rh->quiesced_regions))
+	{
 		reg = list_entry(rh->quiesced_regions.next,
-				 struct dm_region, list);
+						 struct dm_region, list);
 		list_del_init(&reg->list);  /* remove from the quiesced list */
 	}
+
 	spin_unlock_irq(&rh->region_lock);
 
 	return reg;
@@ -661,10 +745,15 @@ void dm_rh_recovery_end(struct dm_region *reg, int success)
 	struct dm_region_hash *rh = reg->rh;
 
 	spin_lock_irq(&rh->region_lock);
+
 	if (success)
+	{
 		list_add(&reg->list, &reg->rh->recovered_regions);
+	}
 	else
+	{
 		list_add(&reg->list, &reg->rh->failed_recovered_regions);
+	}
 
 	spin_unlock_irq(&rh->region_lock);
 
@@ -702,7 +791,9 @@ void dm_rh_stop_recovery(struct dm_region_hash *rh)
 
 	/* wait for any recovering regions */
 	for (i = 0; i < rh->max_recovery; i++)
+	{
 		down(&rh->recovery_count);
+	}
 }
 EXPORT_SYMBOL_GPL(dm_rh_stop_recovery);
 
@@ -711,7 +802,9 @@ void dm_rh_start_recovery(struct dm_region_hash *rh)
 	int i;
 
 	for (i = 0; i < rh->max_recovery; i++)
+	{
 		up(&rh->recovery_count);
+	}
 
 	rh->wakeup_workers(rh->context);
 }

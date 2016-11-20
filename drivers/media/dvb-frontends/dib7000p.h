@@ -3,7 +3,8 @@
 
 #include "dibx000_common.h"
 
-struct dib7000p_config {
+struct dib7000p_config
+{
 	u8 output_mpeg2_in_188_bytes;
 	u8 hostbus_diversity;
 	u8 tuner_is_baseband;
@@ -33,21 +34,22 @@ struct dib7000p_config {
 	int (*agc_control) (struct dvb_frontend *, u8 before);
 
 	u8 output_mode;
-	u8 disable_sample_and_hold:1;
+	u8 disable_sample_and_hold: 1;
 
-	u8 enable_current_mirror:1;
+	u8 enable_current_mirror: 1;
 	u16 diversity_delay;
 
 	u8 default_i2c_addr;
-	u8 enMpegOutput:1;
+	u8 enMpegOutput: 1;
 };
 
 #define DEFAULT_DIB7000P_I2C_ADDRESS 18
 
-struct dib7000p_ops {
+struct dib7000p_ops
+{
 	int (*set_wbd_ref)(struct dvb_frontend *demod, u16 value);
 	int (*get_agc_values)(struct dvb_frontend *fe,
-		u16 *agc_global, u16 *agc1, u16 *agc2, u16 *wbd);
+						  u16 *agc_global, u16 *agc1, u16 *agc2, u16 *wbd);
 	int (*set_agc1_min)(struct dvb_frontend *fe, u16 v);
 	int (*update_pll)(struct dvb_frontend *fe, struct dibx000_bandwidth_config *bw);
 	int (*set_gpio)(struct dvb_frontend *demod, u8 num, u8 dir, u8 val);

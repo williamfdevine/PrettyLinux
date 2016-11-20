@@ -43,7 +43,8 @@
  * MIC_INTR_ERR: The source is an error interrupt e.g. SBOX ERR
  * MIC_NUM_INTR_TYPES: Total number of interrupt sources.
  */
-enum mic_intr_type {
+enum mic_intr_type
+{
 	MIC_INTR_DB = 0,
 	MIC_INTR_DMA,
 	MIC_INTR_ERR,
@@ -58,7 +59,8 @@ enum mic_intr_type {
  * interrupt types.
  * @intr_len: Contains the length of the interrupt types.
  */
-struct mic_intr_info {
+struct mic_intr_info
+{
 	u16 intr_start_idx[MIC_NUM_INTR_TYPES];
 	u16 intr_len[MIC_NUM_INTR_TYPES];
 };
@@ -78,7 +80,8 @@ struct mic_intr_info {
  * @cb_list: Array of callback lists one for each source.
  * @mask: Mask used by the main thread fn to call the underlying thread fns.
  */
-struct mic_irq_info {
+struct mic_irq_info
+{
 	int next_avail_src;
 	struct msix_entry *msix_entries;
 	u32 *mic_msi_map;
@@ -99,7 +102,8 @@ struct mic_irq_info {
  * @cb_id: The callback id. Identifies this callback.
  * @list: list head pointing to the next callback structure.
  */
-struct mic_intr_cb {
+struct mic_intr_cb
+{
 	irq_handler_t handler;
 	irq_handler_t thread_fn;
 	void *data;
@@ -125,24 +129,25 @@ struct mic_device;
  * @read_msi_to_src_map: Read MSI mapping registers containing
  * irq information.
  */
-struct mic_hw_intr_ops {
+struct mic_hw_intr_ops
+{
 	void (*intr_init)(struct mic_device *mdev);
 	void (*enable_interrupts)(struct mic_device *mdev);
 	void (*disable_interrupts)(struct mic_device *mdev);
 	void (*program_msi_to_src_map) (struct mic_device *mdev,
-			int idx, int intr_src, bool set);
+									int idx, int intr_src, bool set);
 	u32 (*read_msi_to_src_map) (struct mic_device *mdev,
-			int idx);
+								int idx);
 };
 
 int mic_next_db(struct mic_device *mdev);
 struct mic_irq *
 mic_request_threaded_irq(struct mic_device *mdev,
-			 irq_handler_t handler, irq_handler_t thread_fn,
-			 const char *name, void *data, int intr_src,
-			 enum mic_intr_type type);
+						 irq_handler_t handler, irq_handler_t thread_fn,
+						 const char *name, void *data, int intr_src,
+						 enum mic_intr_type type);
 void mic_free_irq(struct mic_device *mdev,
-		struct mic_irq *cookie, void *data);
+				  struct mic_irq *cookie, void *data);
 int mic_setup_interrupts(struct mic_device *mdev, struct pci_dev *pdev);
 void mic_free_interrupts(struct mic_device *mdev, struct pci_dev *pdev);
 void mic_intr_restore(struct mic_device *mdev);

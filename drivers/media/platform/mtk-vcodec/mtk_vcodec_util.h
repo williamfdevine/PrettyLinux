@@ -19,7 +19,8 @@
 #include <linux/types.h>
 #include <linux/dma-direction.h>
 
-struct mtk_vcodec_mem {
+struct mtk_vcodec_mem
+{
 	size_t size;
 	void *va;
 	dma_addr_t dma_addr;
@@ -38,12 +39,12 @@ extern bool mtk_vcodec_dbg;
 	do {								 \
 		if (mtk_v4l2_dbg_level >= level)			 \
 			pr_info("[MTK_V4L2] level=%d %s(),%d: " fmt "\n",\
-				level, __func__, __LINE__, ##args);	 \
+					level, __func__, __LINE__, ##args);	 \
 	} while (0)
 
 #define mtk_v4l2_err(fmt, args...)                \
 	pr_err("[MTK_V4L2][ERROR] %s:%d: " fmt "\n", __func__, __LINE__, \
-	       ##args)
+		   ##args)
 
 
 #define mtk_v4l2_debug_enter()  mtk_v4l2_debug(3, "+")
@@ -53,13 +54,13 @@ extern bool mtk_vcodec_dbg;
 	do {								\
 		if (mtk_vcodec_dbg)					\
 			pr_info("[MTK_VCODEC][%d]: %s() " fmt "\n",	\
-				((struct mtk_vcodec_ctx *)h->ctx)->id, \
-				__func__, ##args);			\
+					((struct mtk_vcodec_ctx *)h->ctx)->id, \
+					__func__, ##args);			\
 	} while (0)
 
 #define mtk_vcodec_err(h, fmt, args...)					\
 	pr_err("[MTK_VCODEC][ERROR][%d]: %s() " fmt "\n",		\
-	       ((struct mtk_vcodec_ctx *)h->ctx)->id, __func__, ##args)
+		   ((struct mtk_vcodec_ctx *)h->ctx)->id, __func__, ##args)
 
 #define mtk_vcodec_debug_enter(h)  mtk_vcodec_debug(h, "+")
 #define mtk_vcodec_debug_leave(h)  mtk_vcodec_debug(h, "-")
@@ -79,9 +80,9 @@ extern bool mtk_vcodec_dbg;
 #endif
 
 void __iomem *mtk_vcodec_get_reg_addr(struct mtk_vcodec_ctx *data,
-				unsigned int reg_idx);
+									  unsigned int reg_idx);
 int mtk_vcodec_mem_alloc(struct mtk_vcodec_ctx *data,
-				struct mtk_vcodec_mem *mem);
+						 struct mtk_vcodec_mem *mem);
 void mtk_vcodec_mem_free(struct mtk_vcodec_ctx *data,
-				struct mtk_vcodec_mem *mem);
+						 struct mtk_vcodec_mem *mem);
 #endif /* _MTK_VCODEC_UTIL_H_ */

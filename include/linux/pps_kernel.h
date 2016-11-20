@@ -34,19 +34,21 @@
 struct pps_device;
 
 /* The specific PPS source info */
-struct pps_source_info {
+struct pps_source_info
+{
 	char name[PPS_MAX_NAME_LEN];		/* simbolic name */
 	char path[PPS_MAX_NAME_LEN];		/* path of connected device */
 	int mode;				/* PPS's allowed mode */
 
 	void (*echo)(struct pps_device *pps,
-			int event, void *data);	/* PPS echo function */
+				 int event, void *data);	/* PPS echo function */
 
 	struct module *owner;
 	struct device *dev;		/* Parent device for device_create */
 };
 
-struct pps_event_time {
+struct pps_event_time
+{
 #ifdef CONFIG_NTP_PPS
 	struct timespec64 ts_raw;
 #endif /* CONFIG_NTP_PPS */
@@ -54,7 +56,8 @@ struct pps_event_time {
 };
 
 /* The main struct */
-struct pps_device {
+struct pps_device
+{
 	struct pps_source_info info;		/* PSS source info */
 
 	struct pps_kparams params;		/* PPS's current params */
@@ -97,10 +100,10 @@ extern void pps_unregister_cdev(struct pps_device *pps);
  */
 
 extern struct pps_device *pps_register_source(
-		struct pps_source_info *info, int default_params);
+	struct pps_source_info *info, int default_params);
 extern void pps_unregister_source(struct pps_device *pps);
 extern void pps_event(struct pps_device *pps,
-		struct pps_event_time *ts, int event, void *data);
+					  struct pps_event_time *ts, int event, void *data);
 /* Look up a pps device by magic cookie */
 struct pps_device *pps_lookup_dev(void const *cookie);
 

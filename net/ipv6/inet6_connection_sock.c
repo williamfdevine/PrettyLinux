@@ -29,7 +29,7 @@
 #include <net/sock_reuseport.h>
 
 int inet6_csk_bind_conflict(const struct sock *sk,
-			    const struct inet_bind_bucket *tb, bool relax)
+							const struct inet_bind_bucket *tb, bool relax)
 {
 	const struct sock *sk2;
 	int reuse = sk->sk_reuse;
@@ -41,25 +41,33 @@ int inet6_csk_bind_conflict(const struct sock *sk,
 	 * See comment in inet_csk_bind_conflict about sock lookup
 	 * vs net namespaces issues.
 	 */
-	sk_for_each_bound(sk2, &tb->owners) {
+	sk_for_each_bound(sk2, &tb->owners)
+	{
 		if (sk != sk2 &&
-		    (!sk->sk_bound_dev_if ||
-		     !sk2->sk_bound_dev_if ||
-		     sk->sk_bound_dev_if == sk2->sk_bound_dev_if)) {
+			(!sk->sk_bound_dev_if ||
+			 !sk2->sk_bound_dev_if ||
+			 sk->sk_bound_dev_if == sk2->sk_bound_dev_if))
+		{
 			if ((!reuse || !sk2->sk_reuse ||
-			     sk2->sk_state == TCP_LISTEN) &&
-			    (!reuseport || !sk2->sk_reuseport ||
-			     rcu_access_pointer(sk->sk_reuseport_cb) ||
-			     (sk2->sk_state != TCP_TIME_WAIT &&
-			      !uid_eq(uid,
-				      sock_i_uid((struct sock *)sk2))))) {
+				 sk2->sk_state == TCP_LISTEN) &&
+				(!reuseport || !sk2->sk_reuseport ||
+				 rcu_access_pointer(sk->sk_reuseport_cb) ||
+				 (sk2->sk_state != TCP_TIME_WAIT &&
+				  !uid_eq(uid,
+						  sock_i_uid((struct sock *)sk2)))))
+			{
 				if (ipv6_rcv_saddr_equal(sk, sk2, true))
+				{
 					break;
+				}
 			}
+
 			if (!relax && reuse && sk2->sk_reuse &&
-			    sk2->sk_state != TCP_LISTEN &&
-			    ipv6_rcv_saddr_equal(sk, sk2, true))
+				sk2->sk_state != TCP_LISTEN &&
+				ipv6_rcv_saddr_equal(sk, sk2, true))
+			{
 				break;
+			}
 		}
 	}
 
@@ -68,9 +76,9 @@ int inet6_csk_bind_conflict(const struct sock *sk,
 EXPORT_SYMBOL_GPL(inet6_csk_bind_conflict);
 
 struct dst_entry *inet6_csk_route_req(const struct sock *sk,
-				      struct flowi6 *fl6,
-				      const struct request_sock *req,
-				      u8 proto)
+									  struct flowi6 *fl6,
+									  const struct request_sock *req,
+									  u8 proto)
 {
 	struct inet_request_sock *ireq = inet_rsk(req);
 	const struct ipv6_pinfo *np = inet6_sk(sk);
@@ -91,8 +99,11 @@ struct dst_entry *inet6_csk_route_req(const struct sock *sk,
 	security_req_classify_flow(req, flowi6_to_flowi(fl6));
 
 	dst = ip6_dst_lookup_flow(sk, fl6, final_p);
+
 	if (IS_ERR(dst))
+	{
 		return NULL;
+	}
 
 	return dst;
 }
@@ -119,7 +130,7 @@ struct dst_entry *__inet6_csk_dst_check(struct sock *sk, u32 cookie)
 }
 
 static struct dst_entry *inet6_csk_route_socket(struct sock *sk,
-						struct flowi6 *fl6)
+		struct flowi6 *fl6)
 {
 	struct inet_sock *inet = inet_sk(sk);
 	struct ipv6_pinfo *np = inet6_sk(sk);
@@ -143,12 +154,17 @@ static struct dst_entry *inet6_csk_route_socket(struct sock *sk,
 	rcu_read_unlock();
 
 	dst = __inet6_csk_dst_check(sk, np->dst_cookie);
-	if (!dst) {
+
+	if (!dst)
+	{
 		dst = ip6_dst_lookup_flow(sk, fl6, final_p);
 
 		if (!IS_ERR(dst))
+		{
 			ip6_dst_store(sk, dst, NULL, NULL);
+		}
 	}
+
 	return dst;
 }
 
@@ -160,7 +176,9 @@ int inet6_csk_xmit(struct sock *sk, struct sk_buff *skb, struct flowi *fl_unused
 	int res;
 
 	dst = inet6_csk_route_socket(sk, &fl6);
-	if (IS_ERR(dst)) {
+
+	if (IS_ERR(dst))
+	{
 		sk->sk_err_soft = -PTR_ERR(dst);
 		sk->sk_route_caps = 0;
 		kfree_skb(skb);
@@ -174,7 +192,7 @@ int inet6_csk_xmit(struct sock *sk, struct sk_buff *skb, struct flowi *fl_unused
 	fl6.daddr = sk->sk_v6_daddr;
 
 	res = ip6_xmit(sk, skb, &fl6, rcu_dereference(np->opt),
-		       np->tclass);
+				   np->tclass);
 	rcu_read_unlock();
 	return res;
 }
@@ -186,7 +204,10 @@ struct dst_entry *inet6_csk_update_pmtu(struct sock *sk, u32 mtu)
 	struct dst_entry *dst = inet6_csk_route_socket(sk, &fl6);
 
 	if (IS_ERR(dst))
+	{
 		return NULL;
+	}
+
 	dst->ops->update_pmtu(dst, sk, NULL, mtu);
 
 	dst = inet6_csk_route_socket(sk, &fl6);

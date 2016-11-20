@@ -15,17 +15,20 @@
 
 #include <sound/soc.h>
 
-static const struct snd_soc_dapm_widget bt_sco_widgets[] = {
+static const struct snd_soc_dapm_widget bt_sco_widgets[] =
+{
 	SND_SOC_DAPM_INPUT("RX"),
 	SND_SOC_DAPM_OUTPUT("TX"),
 };
 
-static const struct snd_soc_dapm_route bt_sco_routes[] = {
+static const struct snd_soc_dapm_route bt_sco_routes[] =
+{
 	{ "Capture", NULL, "RX" },
 	{ "TX", NULL, "Playback" },
 };
 
-static struct snd_soc_dai_driver bt_sco_dai[] = {
+static struct snd_soc_dai_driver bt_sco_dai[] =
+{
 	{
 		.name = "bt-sco-pcm",
 		.playback = {
@@ -36,7 +39,7 @@ static struct snd_soc_dai_driver bt_sco_dai[] = {
 			.formats = SNDRV_PCM_FMTBIT_S16_LE,
 		},
 		.capture = {
-			 .stream_name = "Capture",
+			.stream_name = "Capture",
 			.channels_min = 1,
 			.channels_max = 1,
 			.rates = SNDRV_PCM_RATE_8000,
@@ -53,7 +56,7 @@ static struct snd_soc_dai_driver bt_sco_dai[] = {
 			.formats = SNDRV_PCM_FMTBIT_S16_LE,
 		},
 		.capture = {
-			 .stream_name = "Capture",
+			.stream_name = "Capture",
 			.channels_min = 1,
 			.channels_max = 1,
 			.rates = SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_16000,
@@ -62,7 +65,8 @@ static struct snd_soc_dai_driver bt_sco_dai[] = {
 	}
 };
 
-static struct snd_soc_codec_driver soc_codec_dev_bt_sco = {
+static struct snd_soc_codec_driver soc_codec_dev_bt_sco =
+{
 	.component_driver = {
 		.dapm_widgets		= bt_sco_widgets,
 		.num_dapm_widgets	= ARRAY_SIZE(bt_sco_widgets),
@@ -74,7 +78,7 @@ static struct snd_soc_codec_driver soc_codec_dev_bt_sco = {
 static int bt_sco_probe(struct platform_device *pdev)
 {
 	return snd_soc_register_codec(&pdev->dev, &soc_codec_dev_bt_sco,
-				      bt_sco_dai, ARRAY_SIZE(bt_sco_dai));
+								  bt_sco_dai, ARRAY_SIZE(bt_sco_dai));
 }
 
 static int bt_sco_remove(struct platform_device *pdev)
@@ -84,7 +88,8 @@ static int bt_sco_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct platform_device_id bt_sco_driver_ids[] = {
+static const struct platform_device_id bt_sco_driver_ids[] =
+{
 	{
 		.name		= "dfbmcs320",
 	},
@@ -96,7 +101,8 @@ static const struct platform_device_id bt_sco_driver_ids[] = {
 MODULE_DEVICE_TABLE(platform, bt_sco_driver_ids);
 
 #if defined(CONFIG_OF)
-static const struct of_device_id bt_sco_codec_of_match[] = {
+static const struct of_device_id bt_sco_codec_of_match[] =
+{
 	{ .compatible = "delta,dfbmcs320", },
 	{ .compatible = "linux,bt-sco", },
 	{},
@@ -104,7 +110,8 @@ static const struct of_device_id bt_sco_codec_of_match[] = {
 MODULE_DEVICE_TABLE(of, bt_sco_codec_of_match);
 #endif
 
-static struct platform_driver bt_sco_driver = {
+static struct platform_driver bt_sco_driver =
+{
 	.driver = {
 		.name = "bt-sco",
 		.of_match_table = of_match_ptr(bt_sco_codec_of_match),

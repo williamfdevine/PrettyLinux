@@ -56,42 +56,43 @@ void cma_ref_dev(struct cma_device *cma_dev);
 void cma_deref_dev(struct cma_device *cma_dev);
 typedef bool (*cma_device_filter)(struct ib_device *, void *);
 struct cma_device *cma_enum_devices_by_ibdev(cma_device_filter	filter,
-					     void		*cookie);
+		void		*cookie);
 int cma_get_default_gid_type(struct cma_device *cma_dev,
-			     unsigned int port);
+							 unsigned int port);
 int cma_set_default_gid_type(struct cma_device *cma_dev,
-			     unsigned int port,
-			     enum ib_gid_type default_gid_type);
+							 unsigned int port,
+							 enum ib_gid_type default_gid_type);
 struct ib_device *cma_get_ib_dev(struct cma_device *cma_dev);
 
 int  ib_device_register_sysfs(struct ib_device *device,
-			      int (*port_callback)(struct ib_device *,
-						   u8, struct kobject *));
+							  int (*port_callback)(struct ib_device *,
+									  u8, struct kobject *));
 void ib_device_unregister_sysfs(struct ib_device *device);
 
 void ib_cache_setup(void);
 void ib_cache_cleanup(void);
 
 int ib_resolve_eth_dmac(struct ib_qp *qp,
-			struct ib_qp_attr *qp_attr, int *qp_attr_mask);
+						struct ib_qp_attr *qp_attr, int *qp_attr_mask);
 
 typedef void (*roce_netdev_callback)(struct ib_device *device, u8 port,
-	      struct net_device *idev, void *cookie);
+									 struct net_device *idev, void *cookie);
 
 typedef int (*roce_netdev_filter)(struct ib_device *device, u8 port,
-	     struct net_device *idev, void *cookie);
+								  struct net_device *idev, void *cookie);
 
 void ib_enum_roce_netdev(struct ib_device *ib_dev,
-			 roce_netdev_filter filter,
-			 void *filter_cookie,
-			 roce_netdev_callback cb,
-			 void *cookie);
+						 roce_netdev_filter filter,
+						 void *filter_cookie,
+						 roce_netdev_callback cb,
+						 void *cookie);
 void ib_enum_all_roce_netdevs(roce_netdev_filter filter,
-			      void *filter_cookie,
-			      roce_netdev_callback cb,
-			      void *cookie);
+							  void *filter_cookie,
+							  roce_netdev_callback cb,
+							  void *cookie);
 
-enum ib_cache_gid_default_mode {
+enum ib_cache_gid_default_mode
+{
 	IB_CACHE_GID_DEFAULT_MODE_SET,
 	IB_CACHE_GID_DEFAULT_MODE_DELETE
 };
@@ -101,18 +102,18 @@ int ib_cache_gid_parse_type_str(const char *buf);
 const char *ib_cache_gid_type_str(enum ib_gid_type gid_type);
 
 void ib_cache_gid_set_default_gid(struct ib_device *ib_dev, u8 port,
-				  struct net_device *ndev,
-				  unsigned long gid_type_mask,
-				  enum ib_cache_gid_default_mode mode);
+								  struct net_device *ndev,
+								  unsigned long gid_type_mask,
+								  enum ib_cache_gid_default_mode mode);
 
 int ib_cache_gid_add(struct ib_device *ib_dev, u8 port,
-		     union ib_gid *gid, struct ib_gid_attr *attr);
+					 union ib_gid *gid, struct ib_gid_attr *attr);
 
 int ib_cache_gid_del(struct ib_device *ib_dev, u8 port,
-		     union ib_gid *gid, struct ib_gid_attr *attr);
+					 union ib_gid *gid, struct ib_gid_attr *attr);
 
 int ib_cache_gid_del_all_netdev_gids(struct ib_device *ib_dev, u8 port,
-				     struct net_device *ndev);
+									 struct net_device *ndev);
 
 int roce_gid_mgmt_init(void);
 void roce_gid_mgmt_cleanup(void);
@@ -125,14 +126,17 @@ void ib_cache_cleanup_one(struct ib_device *device);
 void ib_cache_release_one(struct ib_device *device);
 
 static inline bool rdma_is_upper_dev_rcu(struct net_device *dev,
-					 struct net_device *upper)
+		struct net_device *upper)
 {
 	struct net_device *_upper = NULL;
 	struct list_head *iter;
 
 	netdev_for_each_all_upper_dev_rcu(dev, _upper, iter)
-		if (_upper == upper)
-			break;
+
+	if (_upper == upper)
+	{
+		break;
+	}
 
 	return _upper == upper;
 }
@@ -147,10 +151,10 @@ int ib_sa_init(void);
 void ib_sa_cleanup(void);
 
 int ib_nl_handle_resolve_resp(struct sk_buff *skb,
-			      struct netlink_callback *cb);
+							  struct netlink_callback *cb);
 int ib_nl_handle_set_timeout(struct sk_buff *skb,
-			     struct netlink_callback *cb);
+							 struct netlink_callback *cb);
 int ib_nl_handle_ip_res_resp(struct sk_buff *skb,
-			     struct netlink_callback *cb);
+							 struct netlink_callback *cb);
 
 #endif /* _CORE_PRIV_H */

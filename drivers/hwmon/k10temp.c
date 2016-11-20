@@ -62,40 +62,44 @@ static DEFINE_MUTEX(nb_smu_ind_mutex);
 #define F15H_M60H_REPORTED_TEMP_CTRL_OFFSET	0xd8200ca4
 
 static void amd_nb_smu_index_read(struct pci_dev *pdev, unsigned int devfn,
-				  int offset, u32 *val)
+								  int offset, u32 *val)
 {
 	mutex_lock(&nb_smu_ind_mutex);
 	pci_bus_write_config_dword(pdev->bus, devfn,
-				   0xb8, offset);
+							   0xb8, offset);
 	pci_bus_read_config_dword(pdev->bus, devfn,
-				  0xbc, val);
+							  0xbc, val);
 	mutex_unlock(&nb_smu_ind_mutex);
 }
 
 static ssize_t show_temp(struct device *dev,
-			 struct device_attribute *attr, char *buf)
+						 struct device_attribute *attr, char *buf)
 {
 	u32 regval;
 	struct pci_dev *pdev = dev_get_drvdata(dev);
 
-	if (boot_cpu_data.x86 == 0x15 && boot_cpu_data.x86_model == 0x60) {
+	if (boot_cpu_data.x86 == 0x15 && boot_cpu_data.x86_model == 0x60)
+	{
 		amd_nb_smu_index_read(pdev, PCI_DEVFN(0, 0),
-				      F15H_M60H_REPORTED_TEMP_CTRL_OFFSET,
-				      &regval);
-	} else {
+							  F15H_M60H_REPORTED_TEMP_CTRL_OFFSET,
+							  &regval);
+	}
+	else
+	{
 		pci_read_config_dword(pdev, REG_REPORTED_TEMPERATURE, &regval);
 	}
+
 	return sprintf(buf, "%u\n", (regval >> 21) * 125);
 }
 
 static ssize_t show_temp_max(struct device *dev,
-			     struct device_attribute *attr, char *buf)
+							 struct device_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%d\n", 70 * 1000);
 }
 
 static ssize_t show_temp_crit(struct device *dev,
-			      struct device_attribute *devattr, char *buf)
+							  struct device_attribute *devattr, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	int show_hyst = attr->index;
@@ -103,10 +107,14 @@ static ssize_t show_temp_crit(struct device *dev,
 	int value;
 
 	pci_read_config_dword(dev_get_drvdata(dev),
-			      REG_HARDWARE_THERMAL_CONTROL, &regval);
+						  REG_HARDWARE_THERMAL_CONTROL, &regval);
 	value = ((regval >> 16) & 0x7f) * 500 + 52000;
+
 	if (show_hyst)
+	{
 		value -= ((regval >> 24) & 0xf) * 500;
+	}
+
 	return sprintf(buf, "%d\n", value);
 }
 
@@ -116,25 +124,31 @@ static SENSOR_DEVICE_ATTR(temp1_crit, S_IRUGO, show_temp_crit, NULL, 0);
 static SENSOR_DEVICE_ATTR(temp1_crit_hyst, S_IRUGO, show_temp_crit, NULL, 1);
 
 static umode_t k10temp_is_visible(struct kobject *kobj,
-				  struct attribute *attr, int index)
+								  struct attribute *attr, int index)
 {
 	struct device *dev = container_of(kobj, struct device, kobj);
 	struct pci_dev *pdev = dev_get_drvdata(dev);
 
-	if (index >= 2) {
+	if (index >= 2)
+	{
 		u32 reg_caps, reg_htc;
 
 		pci_read_config_dword(pdev, REG_NORTHBRIDGE_CAPABILITIES,
-				      &reg_caps);
+							  &reg_caps);
 		pci_read_config_dword(pdev, REG_HARDWARE_THERMAL_CONTROL,
-				      &reg_htc);
+							  &reg_htc);
+
 		if (!(reg_caps & NB_CAP_HTC) || !(reg_htc & HTC_ENABLE))
+		{
 			return 0;
+		}
 	}
+
 	return attr->mode;
 }
 
-static struct attribute *k10temp_attrs[] = {
+static struct attribute *k10temp_attrs[] =
+{
 	&dev_attr_temp1_input.attr,
 	&dev_attr_temp1_max.attr,
 	&sensor_dev_attr_temp1_crit.dev_attr.attr,
@@ -142,7 +156,8 @@ static struct attribute *k10temp_attrs[] = {
 	NULL
 };
 
-static const struct attribute_group k10temp_group = {
+static const struct attribute_group k10temp_group =
+{
 	.attrs = k10temp_attrs,
 	.is_visible = k10temp_is_visible,
 };
@@ -153,24 +168,35 @@ static bool has_erratum_319(struct pci_dev *pdev)
 	u32 pkg_type, reg_dram_cfg;
 
 	if (boot_cpu_data.x86 != 0x10)
+	{
 		return false;
+	}
 
 	/*
 	 * Erratum 319: The thermal sensor of Socket F/AM2+ processors
 	 *              may be unreliable.
 	 */
 	pkg_type = cpuid_ebx(0x80000001) & CPUID_PKGTYPE_MASK;
+
 	if (pkg_type == CPUID_PKGTYPE_F)
+	{
 		return true;
+	}
+
 	if (pkg_type != CPUID_PKGTYPE_AM2R2_AM3)
+	{
 		return false;
+	}
 
 	/* DDR3 memory implies socket AM3, which is good */
 	pci_bus_read_config_dword(pdev->bus,
-				  PCI_DEVFN(PCI_SLOT(pdev->devfn), 2),
-				  REG_DCT0_CONFIG_HIGH, &reg_dram_cfg);
+							  PCI_DEVFN(PCI_SLOT(pdev->devfn), 2),
+							  REG_DCT0_CONFIG_HIGH, &reg_dram_cfg);
+
 	if (reg_dram_cfg & DDR3_MODE)
+	{
 		return false;
+	}
 
 	/*
 	 * Unfortunately it is possible to run a socket AM3 CPU with DDR2
@@ -179,32 +205,36 @@ static bool has_erratum_319(struct pci_dev *pdev)
 	 * and AM3 formats, but that's the best we can do.
 	 */
 	return boot_cpu_data.x86_model < 4 ||
-	       (boot_cpu_data.x86_model == 4 && boot_cpu_data.x86_mask <= 2);
+		   (boot_cpu_data.x86_model == 4 && boot_cpu_data.x86_mask <= 2);
 }
 
 static int k10temp_probe(struct pci_dev *pdev,
-				   const struct pci_device_id *id)
+						 const struct pci_device_id *id)
 {
 	int unreliable = has_erratum_319(pdev);
 	struct device *dev = &pdev->dev;
 	struct device *hwmon_dev;
 
-	if (unreliable) {
-		if (!force) {
+	if (unreliable)
+	{
+		if (!force)
+		{
 			dev_err(dev,
-				"unreliable CPU thermal sensor; monitoring disabled\n");
+					"unreliable CPU thermal sensor; monitoring disabled\n");
 			return -ENODEV;
 		}
+
 		dev_warn(dev,
-			 "unreliable CPU thermal sensor; check erratum 319\n");
+				 "unreliable CPU thermal sensor; check erratum 319\n");
 	}
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, "k10temp", pdev,
-							   k10temp_groups);
+				k10temp_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
-static const struct pci_device_id k10temp_id_table[] = {
+static const struct pci_device_id k10temp_id_table[] =
+{
 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_10H_NB_MISC) },
 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_11H_NB_MISC) },
 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_CNB17H_F3) },
@@ -218,7 +248,8 @@ static const struct pci_device_id k10temp_id_table[] = {
 };
 MODULE_DEVICE_TABLE(pci, k10temp_id_table);
 
-static struct pci_driver k10temp_driver = {
+static struct pci_driver k10temp_driver =
+{
 	.name = "k10temp",
 	.id_table = k10temp_id_table,
 	.probe = k10temp_probe,

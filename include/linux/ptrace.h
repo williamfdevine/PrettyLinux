@@ -43,15 +43,15 @@
 #define PT_BLOCKSTEP		(1<<PT_BLOCKSTEP_BIT)
 
 extern long arch_ptrace(struct task_struct *child, long request,
-			unsigned long addr, unsigned long data);
+						unsigned long addr, unsigned long data);
 extern int ptrace_readdata(struct task_struct *tsk, unsigned long src, char __user *dst, int len);
 extern int ptrace_writedata(struct task_struct *tsk, char __user *src, unsigned long dst, int len);
 extern void ptrace_disable(struct task_struct *);
 extern int ptrace_request(struct task_struct *child, long request,
-			  unsigned long addr, unsigned long data);
+						  unsigned long addr, unsigned long data);
 extern void ptrace_notify(int exit_code);
 extern void __ptrace_link(struct task_struct *child,
-			  struct task_struct *new_parent);
+						  struct task_struct *new_parent);
 extern void __ptrace_unlink(struct task_struct *child);
 extern void exit_ptrace(struct task_struct *tracer, struct list_head *dead);
 #define PTRACE_MODE_READ	0x01
@@ -90,13 +90,15 @@ static inline int ptrace_reparented(struct task_struct *child)
 static inline void ptrace_unlink(struct task_struct *child)
 {
 	if (unlikely(child->ptrace))
+	{
 		__ptrace_unlink(child);
+	}
 }
 
 int generic_ptrace_peekdata(struct task_struct *tsk, unsigned long addr,
-			    unsigned long data);
+							unsigned long data);
 int generic_ptrace_pokedata(struct task_struct *tsk, unsigned long addr,
-			    unsigned long data);
+							unsigned long data);
 
 /**
  * ptrace_parent - return the task that is tracing the given task
@@ -112,7 +114,10 @@ int generic_ptrace_pokedata(struct task_struct *tsk, unsigned long addr,
 static inline struct task_struct *ptrace_parent(struct task_struct *task)
 {
 	if (unlikely(task->ptrace))
+	{
 		return rcu_dereference(task->parent);
+	}
+
 	return NULL;
 }
 
@@ -142,13 +147,18 @@ static inline bool ptrace_event_enabled(struct task_struct *task, int event)
  */
 static inline void ptrace_event(int event, unsigned long message)
 {
-	if (unlikely(ptrace_event_enabled(current, event))) {
+	if (unlikely(ptrace_event_enabled(current, event)))
+	{
 		current->ptrace_message = message;
 		ptrace_notify((event << 8) | SIGTRAP);
-	} else if (event == PTRACE_EVENT_EXEC) {
+	}
+	else if (event == PTRACE_EVENT_EXEC)
+	{
 		/* legacy EXEC report via SIGTRAP */
-		if ((current->ptrace & (PT_PTRACED|PT_SEIZED)) == PT_PTRACED)
+		if ((current->ptrace & (PT_PTRACED | PT_SEIZED)) == PT_PTRACED)
+		{
 			send_sig(SIGTRAP, current, 0);
+		}
 	}
 }
 
@@ -176,8 +186,12 @@ static inline void ptrace_event_pid(int event, struct pid *pid)
 
 	rcu_read_lock();
 	ns = task_active_pid_ns(rcu_dereference(current->parent));
+
 	if (ns)
+	{
 		message = pid_nr_ns(pid, ns);
+	}
+
 	rcu_read_unlock();
 
 	ptrace_event(event, message);
@@ -201,14 +215,19 @@ static inline void ptrace_init_task(struct task_struct *child, bool ptrace)
 	child->ptrace = 0;
 	child->parent = child->real_parent;
 
-	if (unlikely(ptrace) && current->ptrace) {
+	if (unlikely(ptrace) && current->ptrace)
+	{
 		child->ptrace = current->ptrace;
 		__ptrace_link(child, current->parent);
 
 		if (child->ptrace & PT_SEIZED)
+		{
 			task_set_jobctl_pending(child, JOBCTL_TRAP_STOP);
+		}
 		else
+		{
 			sigaddset(&child->pending.signal, SIGSTOP);
+		}
 
 		set_tsk_thread_flag(child, TIF_SIGPENDING);
 	}
@@ -228,27 +247,27 @@ static inline void ptrace_release_task(struct task_struct *task)
 }
 
 #ifndef force_successful_syscall_return
-/*
- * System call handlers that, upon successful completion, need to return a
- * negative value should call force_successful_syscall_return() right before
- * returning.  On architectures where the syscall convention provides for a
- * separate error flag (e.g., alpha, ia64, ppc{,64}, sparc{,64}, possibly
- * others), this macro can be used to ensure that the error flag will not get
- * set.  On architectures which do not support a separate error flag, the macro
- * is a no-op and the spurious error condition needs to be filtered out by some
- * other means (e.g., in user-level, by passing an extra argument to the
- * syscall handler, or something along those lines).
- */
-#define force_successful_syscall_return() do { } while (0)
+	/*
+	* System call handlers that, upon successful completion, need to return a
+	* negative value should call force_successful_syscall_return() right before
+	* returning.  On architectures where the syscall convention provides for a
+	* separate error flag (e.g., alpha, ia64, ppc{,64}, sparc{,64}, possibly
+	* others), this macro can be used to ensure that the error flag will not get
+	* set.  On architectures which do not support a separate error flag, the macro
+	* is a no-op and the spurious error condition needs to be filtered out by some
+	* other means (e.g., in user-level, by passing an extra argument to the
+	* syscall handler, or something along those lines).
+	*/
+	#define force_successful_syscall_return() do { } while (0)
 #endif
 
 #ifndef is_syscall_success
-/*
- * On most systems we can tell if a syscall is a success based on if the retval
- * is an error value.  On some systems like ia64 and powerpc they have different
- * indicators of success/failure and must define their own.
- */
-#define is_syscall_success(regs) (!IS_ERR_VALUE((unsigned long)(regs_return_value(regs))))
+	/*
+	* On most systems we can tell if a syscall is a success based on if the retval
+	* is an error value.  On some systems like ia64 and powerpc they have different
+	* indicators of success/failure and must define their own.
+	*/
+	#define is_syscall_success(regs) (!IS_ERR_VALUE((unsigned long)(regs_return_value(regs))))
 #endif
 
 /*
@@ -333,10 +352,10 @@ extern void user_enable_block_step(struct task_struct *);
 
 #ifdef ARCH_HAS_USER_SINGLE_STEP_INFO
 extern void user_single_step_siginfo(struct task_struct *tsk,
-				struct pt_regs *regs, siginfo_t *info);
+									 struct pt_regs *regs, siginfo_t *info);
 #else
 static inline void user_single_step_siginfo(struct task_struct *tsk,
-				struct pt_regs *regs, siginfo_t *info)
+		struct pt_regs *regs, siginfo_t *info)
 {
 	memset(info, 0, sizeof(*info));
 	info->si_signo = SIGTRAP;
@@ -344,49 +363,49 @@ static inline void user_single_step_siginfo(struct task_struct *tsk,
 #endif
 
 #ifndef arch_ptrace_stop_needed
-/**
- * arch_ptrace_stop_needed - Decide whether arch_ptrace_stop() should be called
- * @code:	current->exit_code value ptrace will stop with
- * @info:	siginfo_t pointer (or %NULL) for signal ptrace will stop with
- *
- * This is called with the siglock held, to decide whether or not it's
- * necessary to release the siglock and call arch_ptrace_stop() with the
- * same @code and @info arguments.  It can be defined to a constant if
- * arch_ptrace_stop() is never required, or always is.  On machines where
- * this makes sense, it should be defined to a quick test to optimize out
- * calling arch_ptrace_stop() when it would be superfluous.  For example,
- * if the thread has not been back to user mode since the last stop, the
- * thread state might indicate that nothing needs to be done.
- *
- * This is guaranteed to be invoked once before a task stops for ptrace and
- * may include arch-specific operations necessary prior to a ptrace stop.
- */
-#define arch_ptrace_stop_needed(code, info)	(0)
+	/**
+	* arch_ptrace_stop_needed - Decide whether arch_ptrace_stop() should be called
+	* @code:	current->exit_code value ptrace will stop with
+	* @info:	siginfo_t pointer (or %NULL) for signal ptrace will stop with
+	*
+	* This is called with the siglock held, to decide whether or not it's
+	* necessary to release the siglock and call arch_ptrace_stop() with the
+	* same @code and @info arguments.  It can be defined to a constant if
+	* arch_ptrace_stop() is never required, or always is.  On machines where
+	* this makes sense, it should be defined to a quick test to optimize out
+	* calling arch_ptrace_stop() when it would be superfluous.  For example,
+	* if the thread has not been back to user mode since the last stop, the
+	* thread state might indicate that nothing needs to be done.
+	*
+	* This is guaranteed to be invoked once before a task stops for ptrace and
+	* may include arch-specific operations necessary prior to a ptrace stop.
+	*/
+	#define arch_ptrace_stop_needed(code, info)	(0)
 #endif
 
 #ifndef arch_ptrace_stop
-/**
- * arch_ptrace_stop - Do machine-specific work before stopping for ptrace
- * @code:	current->exit_code value ptrace will stop with
- * @info:	siginfo_t pointer (or %NULL) for signal ptrace will stop with
- *
- * This is called with no locks held when arch_ptrace_stop_needed() has
- * just returned nonzero.  It is allowed to block, e.g. for user memory
- * access.  The arch can have machine-specific work to be done before
- * ptrace stops.  On ia64, register backing store gets written back to user
- * memory here.  Since this can be costly (requires dropping the siglock),
- * we only do it when the arch requires it for this particular stop, as
- * indicated by arch_ptrace_stop_needed().
- */
-#define arch_ptrace_stop(code, info)		do { } while (0)
+	/**
+	* arch_ptrace_stop - Do machine-specific work before stopping for ptrace
+	* @code:	current->exit_code value ptrace will stop with
+	* @info:	siginfo_t pointer (or %NULL) for signal ptrace will stop with
+	*
+	* This is called with no locks held when arch_ptrace_stop_needed() has
+	* just returned nonzero.  It is allowed to block, e.g. for user memory
+	* access.  The arch can have machine-specific work to be done before
+	* ptrace stops.  On ia64, register backing store gets written back to user
+	* memory here.  Since this can be costly (requires dropping the siglock),
+	* we only do it when the arch requires it for this particular stop, as
+	* indicated by arch_ptrace_stop_needed().
+	*/
+	#define arch_ptrace_stop(code, info)		do { } while (0)
 #endif
 
 #ifndef current_pt_regs
-#define current_pt_regs() task_pt_regs(current)
+	#define current_pt_regs() task_pt_regs(current)
 #endif
 
 #ifndef ptrace_signal_deliver
-#define ptrace_signal_deliver() ((void)0)
+	#define ptrace_signal_deliver() ((void)0)
 #endif
 
 /*
@@ -395,15 +414,15 @@ static inline void user_single_step_siginfo(struct task_struct *tsk,
  * is optimisation.
  */
 #ifndef signal_pt_regs
-#define signal_pt_regs() task_pt_regs(current)
+	#define signal_pt_regs() task_pt_regs(current)
 #endif
 
 #ifndef current_user_stack_pointer
-#define current_user_stack_pointer() user_stack_pointer(current_pt_regs())
+	#define current_user_stack_pointer() user_stack_pointer(current_pt_regs())
 #endif
 
 extern int task_current_syscall(struct task_struct *target, long *callno,
-				unsigned long args[6], unsigned int maxargs,
-				unsigned long *sp, unsigned long *pc);
+								unsigned long args[6], unsigned int maxargs,
+								unsigned long *sp, unsigned long *pc);
 
 #endif

@@ -25,16 +25,22 @@ static int st_magn_spi_probe(struct spi_device *spi)
 	int err;
 
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*mdata));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	mdata = iio_priv(indio_dev);
 
 	st_sensors_spi_configure(indio_dev, spi, mdata);
 
 	err = st_magn_common_probe(indio_dev);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -47,7 +53,8 @@ static int st_magn_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct spi_device_id st_magn_id_table[] = {
+static const struct spi_device_id st_magn_id_table[] =
+{
 	{ LSM303DLHC_MAGN_DEV_NAME },
 	{ LSM303DLM_MAGN_DEV_NAME },
 	{ LIS3MDL_MAGN_DEV_NAME },
@@ -56,7 +63,8 @@ static const struct spi_device_id st_magn_id_table[] = {
 };
 MODULE_DEVICE_TABLE(spi, st_magn_id_table);
 
-static struct spi_driver st_magn_driver = {
+static struct spi_driver st_magn_driver =
+{
 	.driver = {
 		.name = "st-magn-spi",
 	},

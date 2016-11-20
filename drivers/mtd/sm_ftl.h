@@ -19,13 +19,15 @@
 
 
 
-struct ftl_zone {
+struct ftl_zone
+{
 	bool initialized;
 	int16_t *lba_to_phys_table;		/* LBA to physical table */
 	struct kfifo free_sectors;	/* queue of free sectors */
 };
 
-struct sm_ftl {
+struct sm_ftl
+{
 	struct mtd_blktrans_dev *trans;
 
 	struct mutex mutex;		/* protects the structure */
@@ -64,7 +66,8 @@ struct sm_ftl {
 	struct attribute_group *disk_attributes;
 };
 
-struct chs_entry {
+struct chs_entry
+{
 	unsigned long size;
 	unsigned short cyl;
 	unsigned char head;
@@ -88,7 +91,7 @@ struct chs_entry {
 
 static void sm_erase_callback(struct erase_info *self);
 static int sm_erase_block(struct sm_ftl *ftl, int zone_num, uint16_t block,
-								int put_free);
+						  int put_free);
 static void sm_mark_block_bad(struct sm_ftl *ftl, int zone_num, int block);
 
 static int sm_recheck_media(struct sm_ftl *ftl);

@@ -96,7 +96,8 @@
 #define IDMA64_CFG_DMA_EN		(1 << 0)
 
 /* Hardware descriptor for Linked LIst transfers */
-struct idma64_lli {
+struct idma64_lli
+{
 	u64		sar;
 	u64		dar;
 	u64		llp;
@@ -106,14 +107,16 @@ struct idma64_lli {
 	u32		dstat;
 };
 
-struct idma64_hw_desc {
+struct idma64_hw_desc
+{
 	struct idma64_lli *lli;
 	dma_addr_t llp;
 	dma_addr_t phys;
 	unsigned int len;
 };
 
-struct idma64_desc {
+struct idma64_desc
+{
 	struct virt_dma_desc vdesc;
 	enum dma_transfer_direction direction;
 	struct idma64_hw_desc *hw;
@@ -127,7 +130,8 @@ static inline struct idma64_desc *to_idma64_desc(struct virt_dma_desc *vdesc)
 	return container_of(vdesc, struct idma64_desc, vdesc);
 }
 
-struct idma64_chan {
+struct idma64_chan
+{
 	struct virt_dma_chan vchan;
 
 	void __iomem *regs;
@@ -157,7 +161,7 @@ static inline u32 idma64c_readl(struct idma64_chan *idma64c, int offset)
 }
 
 static inline void idma64c_writel(struct idma64_chan *idma64c, int offset,
-				  u32 value)
+								  u32 value)
 {
 	writel(value, idma64c->regs + offset);
 }
@@ -173,7 +177,7 @@ static inline u64 idma64c_readq(struct idma64_chan *idma64c, int offset)
 }
 
 static inline void idma64c_writeq(struct idma64_chan *idma64c, int offset,
-				  u64 value)
+								  u64 value)
 {
 	lo_hi_writeq(value, idma64c->regs + offset);
 }
@@ -183,7 +187,8 @@ static inline void idma64c_writeq(struct idma64_chan *idma64c, int offset,
 #define channel_writeq(idma64c, reg, value)	\
 	idma64c_writeq(idma64c, IDMA64_CH_##reg, (value))
 
-struct idma64 {
+struct idma64
+{
 	struct dma_device dma;
 
 	void __iomem *regs;
@@ -220,7 +225,8 @@ static inline void idma64_writel(struct idma64 *idma64, int offset, u32 value)
  * @regs:		memory mapped I/O space
  * @idma64:		struct idma64 that is filed by idma64_probe()
  */
-struct idma64_chip {
+struct idma64_chip
+{
 	struct device	*dev;
 	int		irq;
 	void __iomem	*regs;

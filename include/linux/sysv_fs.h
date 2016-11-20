@@ -5,8 +5,8 @@
 
 
 #ifndef __KERNEL__
-typedef u16 __fs16;
-typedef u32 __fs16;
+	typedef u16 __fs16;
+	typedef u32 __fs16;
 #endif
 
 /* inode numbers are 16 bit */
@@ -25,7 +25,8 @@ typedef __fs32 sysv_zone_t;
 /* Xenix super-block data on disk */
 #define XENIX_NICINOD	100	/* number of inode cache entries */
 #define XENIX_NICFREE	100	/* number of free block list chunk entries */
-struct xenix_super_block {
+struct xenix_super_block
+{
 	__fs16		s_isize; /* index of first data zone */
 	__fs32		s_fsize __packed2__; /* total number of zones of this fs */
 	/* the start of the free block list: */
@@ -51,7 +52,7 @@ struct xenix_super_block {
 	__fs32		s_type;		/* type of file system: 1 for 512 byte blocks
 								2 for 1024 byte blocks
 								3 for 2048 byte blocks */
-								
+
 };
 
 /*
@@ -63,7 +64,8 @@ struct xenix_super_block {
 #define SYSV_NICFREE	50	/* number of free block list chunk entries */
 
 /* SystemV4 super-block data on disk */
-struct sysv4_super_block {
+struct sysv4_super_block
+{
 	__fs16	s_isize;	/* index of first data zone */
 	u16	s_pad0;
 	__fs32	s_fsize;	/* total number of zones of this fs */
@@ -95,7 +97,8 @@ struct sysv4_super_block {
 };
 
 /* SystemV2 super-block data on disk */
-struct sysv2_super_block {
+struct sysv2_super_block
+{
 	__fs16	s_isize; 		/* index of first data zone */
 	__fs32	s_fsize __packed2__;	/* total number of zones of this fs */
 	/* the start of the free block list: */
@@ -125,7 +128,8 @@ struct sysv2_super_block {
 /* V7 super-block data on disk */
 #define V7_NICINOD     100     /* number of inode cache entries */
 #define V7_NICFREE     50      /* number of free block list chunk entries */
-struct v7_super_block {
+struct v7_super_block
+{
 	__fs16 s_isize;        /* index of first data zone */
 	__fs32 s_fsize __packed2__; /* total number of zones of this fs */
 	/* the start of the free block list: */
@@ -163,7 +167,8 @@ struct v7_super_block {
 /* Coherent super-block data on disk */
 #define COH_NICINOD	100	/* number of inode cache entries */
 #define COH_NICFREE	64	/* number of free block list chunk entries */
-struct coh_super_block {
+struct coh_super_block
+{
 	__fs16		s_isize;	/* index of first data zone */
 	__fs32		s_fsize __packed2__; /* total number of zones of this fs */
 	/* the start of the free block list: */
@@ -188,13 +193,14 @@ struct coh_super_block {
 };
 
 /* SystemV/Coherent inode data on disk */
-struct sysv_inode {
+struct sysv_inode
+{
 	__fs16 i_mode;
 	__fs16 i_nlink;
 	__fs16 i_uid;
 	__fs16 i_gid;
 	__fs32 i_size;
-	u8  i_data[3*(10+1+1+1)];
+	u8  i_data[3 * (10 + 1 + 1 + 1)];
 	u8  i_gen;
 	__fs32 i_atime;	/* time of last access */
 	__fs32 i_mtime;	/* time of last modification */
@@ -203,7 +209,8 @@ struct sysv_inode {
 
 /* SystemV/Coherent directory entry on disk */
 #define SYSV_NAMELEN	14	/* max size of name in struct sysv_dir_entry */
-struct sysv_dir_entry {
+struct sysv_dir_entry
+{
 	sysv_ino_t inode;
 	char name[SYSV_NAMELEN]; /* up to 14 characters, the rest are zeroes */
 };

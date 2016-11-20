@@ -32,7 +32,8 @@ extern struct ath_dfs_pool_stats global_dfs_pool_stats;
  * @last_ts: time stamp of last pulse in usecs
  * @deadline_ts: deadline when this sequence becomes invalid (first_ts + dur)
  */
-struct pri_sequence {
+struct pri_sequence
+{
 	struct list_head head;
 	u32 pri;
 	u32 dur;
@@ -56,13 +57,14 @@ struct pri_sequence {
  * @max_count: maximum number of pulses to be queued
  * @window_size: window size back from newest pulse time stamp in usecs
  */
-struct pri_detector {
+struct pri_detector
+{
 	void (*exit)     (struct pri_detector *de);
 	struct pri_sequence *
-	     (*add_pulse)(struct pri_detector *de, struct pulse_event *e);
+	(*add_pulse)(struct pri_detector *de, struct pulse_event *e);
 	void (*reset)    (struct pri_detector *de, u64 ts);
 
-/* private: internal use only */
+	/* private: internal use only */
 	const struct radar_detector_specs *rs;
 	u64 last_ts;
 	struct list_head sequences;

@@ -36,7 +36,8 @@
 * the fade should take. The lower the value the higher the fade time.
 * Valid range 0-255
 */
-struct pcf50633_bl_platform_data {
+struct pcf50633_bl_platform_data
+{
 	unsigned int	default_brightness;
 	unsigned int	default_brightness_limit;
 	uint8_t		ramp_time;

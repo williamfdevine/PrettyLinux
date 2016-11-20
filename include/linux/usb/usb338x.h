@@ -44,11 +44,12 @@
 #define     OUT_ENDPOINT_ENABLE                 10
 #define     OUT_ENDPOINT_TYPE                    8
 #define USB3380_EP_CFG_MASK_IN ((0x3 << IN_ENDPOINT_TYPE) | \
-				BIT(IN_ENDPOINT_ENABLE))
+								BIT(IN_ENDPOINT_ENABLE))
 #define USB3380_EP_CFG_MASK_OUT ((0x3 << OUT_ENDPOINT_TYPE) | \
-				BIT(OUT_ENDPOINT_ENABLE))
+								 BIT(OUT_ENDPOINT_ENABLE))
 
-struct usb338x_usb_ext_regs {
+struct usb338x_usb_ext_regs
+{
 	u32     usbclass;
 #define     DEVICE_PROTOCOL                     16
 #define     DEVICE_SUB_CLASS                     8
@@ -91,7 +92,8 @@ struct usb338x_usb_ext_regs {
 #define     ISOCHRONOUS_DELAY                    0
 } __packed;
 
-struct usb338x_fifo_regs {
+struct usb338x_fifo_regs
+{
 	/* offset 0x0500, 0x0520, 0x0540, 0x0560, 0x0580 */
 	u32     ep_fifo_size_base;
 #define     IN_FIFO_BASE_ADDRESS                                22
@@ -107,7 +109,8 @@ struct usb338x_fifo_regs {
 
 
 /* Link layer */
-struct usb338x_ll_regs {
+struct usb338x_ll_regs
+{
 	/* offset 0x700 */
 	u32   ll_ltssm_ctrl1;
 	u32   ll_ltssm_ctrl2;
@@ -140,7 +143,8 @@ struct usb338x_ll_regs {
 	u32   ll_error_gen;
 } __packed;
 
-struct usb338x_ll_lfps_regs {
+struct usb338x_ll_lfps_regs
+{
 	/* offset 0x748 */
 	u32   ll_lfps_5;
 #define     TIMER_LFPS_6US                                      16
@@ -148,7 +152,8 @@ struct usb338x_ll_lfps_regs {
 #define     TIMER_LFPS_80US                                     0
 } __packed;
 
-struct usb338x_ll_tsn_regs {
+struct usb338x_ll_tsn_regs
+{
 	/* offset 0x77C */
 	u32   ll_tsn_counters_2;
 #define     HOT_TX_NORESET_TS2                                  24
@@ -156,14 +161,16 @@ struct usb338x_ll_tsn_regs {
 #define     HOT_RX_RESET_TS2                                    0
 } __packed;
 
-struct usb338x_ll_chi_regs {
+struct usb338x_ll_chi_regs
+{
 	/* offset 0x79C */
 	u32   ll_tsn_chicken_bit;
 #define     RECOVERY_IDLE_TO_RECOVER_FMW                        3
 } __packed;
 
 /* protocol layer */
-struct usb338x_pl_regs {
+struct usb338x_pl_regs
+{
 	/* offset 0x800 */
 	u32   pl_reg_1;
 	u32   pl_reg_2;

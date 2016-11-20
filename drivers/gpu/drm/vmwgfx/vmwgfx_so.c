@@ -57,7 +57,8 @@
  * device level.
  * @cmd: The SVGA3D define view command copied from the command stream.
  */
-struct vmw_view {
+struct vmw_view
+{
 	struct rcu_head rcu;
 	struct vmw_resource res;
 	struct vmw_resource *ctx;      /* Immutable */
@@ -76,9 +77,10 @@ static int vmw_view_create(struct vmw_resource *res);
 static int vmw_view_destroy(struct vmw_resource *res);
 static void vmw_hw_view_destroy(struct vmw_resource *res);
 static void vmw_view_commit_notify(struct vmw_resource *res,
-				   enum vmw_cmdbuf_res_state state);
+								   enum vmw_cmdbuf_res_state state);
 
-static const struct vmw_res_func vmw_view_func = {
+static const struct vmw_res_func vmw_view_func =
+{
 	.res_type = vmw_res_view,
 	.needs_backup = false,
 	.may_evict = false,
@@ -97,7 +99,8 @@ static const struct vmw_res_func vmw_view_func = {
  * This generic struct is used by the code to change @view_id and @sid of a
  * saved view define command.
  */
-struct vmw_view_define {
+struct vmw_view_define
+{
 	uint32 view_id;
 	uint32 sid;
 };
@@ -123,13 +126,15 @@ static struct vmw_view *vmw_view(struct vmw_resource *res)
  *
  */
 static void vmw_view_commit_notify(struct vmw_resource *res,
-				   enum vmw_cmdbuf_res_state state)
+								   enum vmw_cmdbuf_res_state state)
 {
 	struct vmw_view *view = vmw_view(res);
 	struct vmw_private *dev_priv = res->dev_priv;
 
 	mutex_lock(&dev_priv->binding_mutex);
-	if (state == VMW_CMDBUF_RES_ADD) {
+
+	if (state == VMW_CMDBUF_RES_ADD)
+	{
 		struct vmw_surface *srf = vmw_res_to_srf(view->srf);
 
 		list_add_tail(&view->srf_head, &srf->view_list);
@@ -137,12 +142,15 @@ static void vmw_view_commit_notify(struct vmw_resource *res,
 		view->committed = true;
 		res->id = view->view_id;
 
-	} else {
+	}
+	else
+	{
 		list_del_init(&view->cotable_head);
 		list_del_init(&view->srf_head);
 		view->committed = false;
 		res->id = -1;
 	}
+
 	mutex_unlock(&dev_priv->binding_mutex);
 }
 
@@ -159,24 +167,30 @@ static int vmw_view_create(struct vmw_resource *res)
 	struct vmw_view *view = vmw_view(res);
 	struct vmw_surface *srf = vmw_res_to_srf(view->srf);
 	struct vmw_private *dev_priv = res->dev_priv;
-	struct {
+	struct
+	{
 		SVGA3dCmdHeader header;
 		struct vmw_view_define body;
 	} *cmd;
 
 	mutex_lock(&dev_priv->binding_mutex);
-	if (!view->committed) {
+
+	if (!view->committed)
+	{
 		mutex_unlock(&dev_priv->binding_mutex);
 		return 0;
 	}
 
 	cmd = vmw_fifo_reserve_dx(res->dev_priv, view->cmd_size,
-				  view->ctx->id);
-	if (!cmd) {
+							  view->ctx->id);
+
+	if (!cmd)
+	{
 		DRM_ERROR("Failed reserving FIFO space for view creation.\n");
 		mutex_unlock(&dev_priv->binding_mutex);
 		return -ENOMEM;
 	}
+
 	memcpy(cmd, &view->cmd, view->cmd_size);
 	WARN_ON(cmd->body.view_id != view->view_id);
 	/* Sid may have changed due to surface eviction. */
@@ -203,7 +217,8 @@ static int vmw_view_destroy(struct vmw_resource *res)
 {
 	struct vmw_private *dev_priv = res->dev_priv;
 	struct vmw_view *view = vmw_view(res);
-	struct {
+	struct
+	{
 		SVGA3dCmdHeader header;
 		union vmw_view_destroy body;
 	} *cmd;
@@ -212,12 +227,16 @@ static int vmw_view_destroy(struct vmw_resource *res)
 	vmw_binding_res_list_scrub(&res->binding_head);
 
 	if (!view->committed || res->id == -1)
+	{
 		return 0;
+	}
 
 	cmd = vmw_fifo_reserve_dx(dev_priv, sizeof(*cmd), view->ctx->id);
-	if (!cmd) {
+
+	if (!cmd)
+	{
 		DRM_ERROR("Failed reserving FIFO space for view "
-			  "destruction.\n");
+				  "destruction.\n");
 		return -ENOMEM;
 	}
 
@@ -274,7 +293,7 @@ static u32 vmw_view_key(u32 user_key, enum vmw_view_type view_type)
 static bool vmw_view_id_ok(u32 user_key, enum vmw_view_type view_type)
 {
 	return (user_key < SVGA_COTABLE_MAX_IDS &&
-		view_type < vmw_view_max);
+			view_type < vmw_view_max);
 }
 
 /**
@@ -312,15 +331,16 @@ static void vmw_view_res_free(struct vmw_resource *res)
  * @list: Caller's list of staged command buffer resource actions.
  */
 int vmw_view_add(struct vmw_cmdbuf_res_manager *man,
-		 struct vmw_resource *ctx,
-		 struct vmw_resource *srf,
-		 enum vmw_view_type view_type,
-		 u32 user_key,
-		 const void *cmd,
-		 size_t cmd_size,
-		 struct list_head *list)
+				 struct vmw_resource *ctx,
+				 struct vmw_resource *srf,
+				 enum vmw_view_type view_type,
+				 u32 user_key,
+				 const void *cmd,
+				 size_t cmd_size,
+				 struct list_head *list)
 {
-	static const size_t vmw_view_define_sizes[] = {
+	static const size_t vmw_view_define_sizes[] =
+	{
 		[vmw_view_sr] = sizeof(SVGA3dCmdDXDefineShaderResourceView),
 		[vmw_view_rt] = sizeof(SVGA3dCmdDXDefineRenderTargetView),
 		[vmw_view_ds] = sizeof(SVGA3dCmdDXDefineDepthStencilView)
@@ -333,12 +353,14 @@ int vmw_view_add(struct vmw_cmdbuf_res_manager *man,
 	int ret;
 
 	if (cmd_size != vmw_view_define_sizes[view_type] +
-	    sizeof(SVGA3dCmdHeader)) {
+		sizeof(SVGA3dCmdHeader))
+	{
 		DRM_ERROR("Illegal view create command size.\n");
 		return -EINVAL;
 	}
 
-	if (!vmw_view_id_ok(user_key, view_type)) {
+	if (!vmw_view_id_ok(user_key, view_type))
+	{
 		DRM_ERROR("Illegal view add view id.\n");
 		return -EINVAL;
 	}
@@ -346,15 +368,20 @@ int vmw_view_add(struct vmw_cmdbuf_res_manager *man,
 	size = offsetof(struct vmw_view, cmd) + cmd_size;
 
 	ret = ttm_mem_global_alloc(vmw_mem_glob(dev_priv), size, false, true);
-	if (ret) {
+
+	if (ret)
+	{
 		if (ret != -ERESTARTSYS)
 			DRM_ERROR("Out of graphics memory for view"
-				  " creation.\n");
+					  " creation.\n");
+
 		return ret;
 	}
 
 	view = kmalloc(size, GFP_KERNEL);
-	if (!view) {
+
+	if (!view)
+	{
 		ttm_mem_global_free(vmw_mem_glob(dev_priv), size);
 		return -ENOMEM;
 	}
@@ -371,15 +398,21 @@ int vmw_view_add(struct vmw_cmdbuf_res_manager *man,
 	INIT_LIST_HEAD(&view->cotable_head);
 	memcpy(&view->cmd, cmd, cmd_size);
 	ret = vmw_resource_init(dev_priv, res, true,
-				vmw_view_res_free, &vmw_view_func);
+							vmw_view_res_free, &vmw_view_func);
+
 	if (ret)
+	{
 		goto out_resource_init;
+	}
 
 	ret = vmw_cmdbuf_res_add(man, vmw_cmdbuf_res_view,
-				 vmw_view_key(user_key, view_type),
-				 res, list);
+							 vmw_view_key(user_key, view_type),
+							 res, list);
+
 	if (ret)
+	{
 		goto out_resource_init;
+	}
 
 	res->id = view->view_id;
 	vmw_resource_activate(res, vmw_hw_view_destroy);
@@ -403,18 +436,19 @@ out_resource_init:
  * non ref-counted.
  */
 int vmw_view_remove(struct vmw_cmdbuf_res_manager *man,
-		    u32 user_key, enum vmw_view_type view_type,
-		    struct list_head *list,
-		    struct vmw_resource **res_p)
+					u32 user_key, enum vmw_view_type view_type,
+					struct list_head *list,
+					struct vmw_resource **res_p)
 {
-	if (!vmw_view_id_ok(user_key, view_type)) {
+	if (!vmw_view_id_ok(user_key, view_type))
+	{
 		DRM_ERROR("Illegal view remove view id.\n");
 		return -EINVAL;
 	}
 
 	return vmw_cmdbuf_res_remove(man, vmw_cmdbuf_res_view,
-				     vmw_view_key(user_key, view_type),
-				     list, res_p);
+								 vmw_view_key(user_key, view_type),
+								 list, res_p);
 }
 
 /**
@@ -430,15 +464,15 @@ int vmw_view_remove(struct vmw_cmdbuf_res_manager *man,
  * cotable is paged out.
  */
 void vmw_view_cotable_list_destroy(struct vmw_private *dev_priv,
-				   struct list_head *list,
-				   bool readback)
+								   struct list_head *list,
+								   bool readback)
 {
 	struct vmw_view *entry, *next;
 
 	WARN_ON_ONCE(!mutex_is_locked(&dev_priv->binding_mutex));
 
 	list_for_each_entry_safe(entry, next, list, cotable_head)
-		WARN_ON(vmw_view_destroy(&entry->res));
+	WARN_ON(vmw_view_destroy(&entry->res));
 }
 
 /**
@@ -451,14 +485,14 @@ void vmw_view_cotable_list_destroy(struct vmw_private *dev_priv,
  * called before the surface is evicted.
  */
 void vmw_view_surface_list_destroy(struct vmw_private *dev_priv,
-				   struct list_head *list)
+								   struct list_head *list)
 {
 	struct vmw_view *entry, *next;
 
 	WARN_ON_ONCE(!mutex_is_locked(&dev_priv->binding_mutex));
 
 	list_for_each_entry_safe(entry, next, list, srf_head)
-		WARN_ON(vmw_view_destroy(&entry->res));
+	WARN_ON(vmw_view_destroy(&entry->res));
 }
 
 /**
@@ -485,26 +519,29 @@ struct vmw_resource *vmw_view_srf(struct vmw_resource *res)
  * returns a refcounted pointer to a view or an error pointer if not found.
  */
 struct vmw_resource *vmw_view_lookup(struct vmw_cmdbuf_res_manager *man,
-				     enum vmw_view_type view_type,
-				     u32 user_key)
+									 enum vmw_view_type view_type,
+									 u32 user_key)
 {
 	return vmw_cmdbuf_res_lookup(man, vmw_cmdbuf_res_view,
-				     vmw_view_key(user_key, view_type));
+								 vmw_view_key(user_key, view_type));
 }
 
-const u32 vmw_view_destroy_cmds[] = {
+const u32 vmw_view_destroy_cmds[] =
+{
 	[vmw_view_sr] = SVGA_3D_CMD_DX_DESTROY_SHADERRESOURCE_VIEW,
 	[vmw_view_rt] = SVGA_3D_CMD_DX_DESTROY_RENDERTARGET_VIEW,
 	[vmw_view_ds] = SVGA_3D_CMD_DX_DESTROY_DEPTHSTENCIL_VIEW,
 };
 
-const SVGACOTableType vmw_view_cotables[] = {
+const SVGACOTableType vmw_view_cotables[] =
+{
 	[vmw_view_sr] = SVGA_COTABLE_SRVIEW,
 	[vmw_view_rt] = SVGA_COTABLE_RTVIEW,
 	[vmw_view_ds] = SVGA_COTABLE_DSVIEW,
 };
 
-const SVGACOTableType vmw_so_cotables[] = {
+const SVGACOTableType vmw_so_cotables[] =
+{
 	[vmw_so_el] = SVGA_COTABLE_ELEMENTLAYOUT,
 	[vmw_so_bs] = SVGA_COTABLE_BLENDSTATE,
 	[vmw_so_ds] = SVGA_COTABLE_DEPTHSTENCIL,
@@ -526,15 +563,15 @@ static void vmw_so_build_asserts(void)
 {
 	/* Assert that our vmw_view_cmd_to_type() function is correct. */
 	BUILD_BUG_ON(SVGA_3D_CMD_DX_DESTROY_SHADERRESOURCE_VIEW !=
-		     SVGA_3D_CMD_DX_DEFINE_SHADERRESOURCE_VIEW + 1);
+				 SVGA_3D_CMD_DX_DEFINE_SHADERRESOURCE_VIEW + 1);
 	BUILD_BUG_ON(SVGA_3D_CMD_DX_DEFINE_RENDERTARGET_VIEW !=
-		     SVGA_3D_CMD_DX_DEFINE_SHADERRESOURCE_VIEW + 2);
+				 SVGA_3D_CMD_DX_DEFINE_SHADERRESOURCE_VIEW + 2);
 	BUILD_BUG_ON(SVGA_3D_CMD_DX_DESTROY_RENDERTARGET_VIEW !=
-		     SVGA_3D_CMD_DX_DEFINE_SHADERRESOURCE_VIEW + 3);
+				 SVGA_3D_CMD_DX_DEFINE_SHADERRESOURCE_VIEW + 3);
 	BUILD_BUG_ON(SVGA_3D_CMD_DX_DEFINE_DEPTHSTENCIL_VIEW !=
-		     SVGA_3D_CMD_DX_DEFINE_SHADERRESOURCE_VIEW + 4);
+				 SVGA_3D_CMD_DX_DEFINE_SHADERRESOURCE_VIEW + 4);
 	BUILD_BUG_ON(SVGA_3D_CMD_DX_DESTROY_DEPTHSTENCIL_VIEW !=
-		     SVGA_3D_CMD_DX_DEFINE_SHADERRESOURCE_VIEW + 5);
+				 SVGA_3D_CMD_DX_DEFINE_SHADERRESOURCE_VIEW + 5);
 
 	/* Assert that our "one body fits all" assumption is valid */
 	BUILD_BUG_ON(sizeof(union vmw_view_destroy) != sizeof(u32));
@@ -547,9 +584,9 @@ static void vmw_so_build_asserts(void)
 	 * is what we assume it to be.
 	 */
 	BUILD_BUG_ON(offsetof(struct vmw_view_define, sid) !=
-		     offsetof(SVGA3dCmdDXDefineShaderResourceView, sid));
+				 offsetof(SVGA3dCmdDXDefineShaderResourceView, sid));
 	BUILD_BUG_ON(offsetof(struct vmw_view_define, sid) !=
-		     offsetof(SVGA3dCmdDXDefineRenderTargetView, sid));
+				 offsetof(SVGA3dCmdDXDefineRenderTargetView, sid));
 	BUILD_BUG_ON(offsetof(struct vmw_view_define, sid) !=
-		     offsetof(SVGA3dCmdDXDefineDepthStencilView, sid));
+				 offsetof(SVGA3dCmdDXDefineDepthStencilView, sid));
 }

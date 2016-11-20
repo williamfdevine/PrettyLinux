@@ -26,7 +26,8 @@
 #include "smumgr.h"
 #include "smu73.h"
 
-struct fiji_pt_defaults {
+struct fiji_pt_defaults
+{
 	uint8_t   SviLoadLineEn;
 	uint8_t   SviLoadLineVddC;
 	uint8_t   TDC_VDDC_ThrottleReleaseLimitPerc;

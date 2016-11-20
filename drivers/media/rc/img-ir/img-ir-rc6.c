@@ -13,7 +13,7 @@
 
 /* Convert RC6 data to a scancode */
 static int img_ir_rc6_scancode(int len, u64 raw, u64 enabled_protocols,
-				struct img_ir_scancode_req *request)
+							   struct img_ir_scancode_req *request)
 {
 	unsigned int addr, cmd, mode, trl1, trl2;
 
@@ -48,11 +48,15 @@ static int img_ir_rc6_scancode(int len, u64 raw, u64 enabled_protocols,
 	 * have the same value.
 	 */
 	if (trl1 == trl2)
+	{
 		return -EINVAL;
+	}
 
 	/* Only mode 0 supported for now */
 	if (mode)
+	{
 		return -EINVAL;
+	}
 
 	request->protocol = RC_TYPE_RC6_0;
 	request->scancode = addr << 8 | cmd;
@@ -62,7 +66,7 @@ static int img_ir_rc6_scancode(int len, u64 raw, u64 enabled_protocols,
 
 /* Convert RC6 scancode to RC6 data filter */
 static int img_ir_rc6_filter(const struct rc_scancode_filter *in,
-				 struct img_ir_filter *out, u64 protocols)
+							 struct img_ir_filter *out, u64 protocols)
 {
 	/* Not supported by the hw. */
 	return -EINVAL;
@@ -72,7 +76,8 @@ static int img_ir_rc6_filter(const struct rc_scancode_filter *in,
  * RC-6 decoder
  * see http://www.sbprojects.com/knowledge/ir/rc6.php
  */
-struct img_ir_decoder img_ir_rc6 = {
+struct img_ir_decoder img_ir_rc6 =
+{
 	.type		= RC_BIT_RC6_0,
 	.control	= {
 		.bitorien	= 1,

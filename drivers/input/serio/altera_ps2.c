@@ -22,7 +22,8 @@
 
 #define DRV_NAME "altera_ps2"
 
-struct ps2if {
+struct ps2if
+{
 	struct serio *io;
 	void __iomem *base;
 };
@@ -37,7 +38,8 @@ static irqreturn_t altera_ps2_rxint(int irq, void *dev_id)
 	unsigned int status;
 	irqreturn_t handled = IRQ_NONE;
 
-	while ((status = readl(ps2if->base)) & 0xffff0000) {
+	while ((status = readl(ps2if->base)) & 0xffff0000)
+	{
 		serio_interrupt(ps2if->io, status & 0xff, 0);
 		handled = IRQ_HANDLED;
 	}
@@ -86,28 +88,42 @@ static int altera_ps2_probe(struct platform_device *pdev)
 	int error, irq;
 
 	ps2if = devm_kzalloc(&pdev->dev, sizeof(struct ps2if), GFP_KERNEL);
+
 	if (!ps2if)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ps2if->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(ps2if->base))
+	{
 		return PTR_ERR(ps2if->base);
+	}
 
 	irq = platform_get_irq(pdev, 0);
+
 	if (irq < 0)
+	{
 		return -ENXIO;
+	}
 
 	error = devm_request_irq(&pdev->dev, irq, altera_ps2_rxint, 0,
-				 pdev->name, ps2if);
-	if (error) {
+							 pdev->name, ps2if);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "could not request IRQ %d\n", irq);
 		return error;
 	}
 
 	serio = kzalloc(sizeof(struct serio), GFP_KERNEL);
+
 	if (!serio)
+	{
 		return -ENOMEM;
+	}
 
 	serio->id.type		= SERIO_8042;
 	serio->write		= altera_ps2_write;
@@ -140,7 +156,8 @@ static int altera_ps2_remove(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id altera_ps2_match[] = {
+static const struct of_device_id altera_ps2_match[] =
+{
 	{ .compatible = "ALTR,ps2-1.0", },
 	{ .compatible = "altr,ps2-1.0", },
 	{},
@@ -151,7 +168,8 @@ MODULE_DEVICE_TABLE(of, altera_ps2_match);
 /*
  * Our device driver structure
  */
-static struct platform_driver altera_ps2_driver = {
+static struct platform_driver altera_ps2_driver =
+{
 	.probe		= altera_ps2_probe,
 	.remove		= altera_ps2_remove,
 	.driver	= {

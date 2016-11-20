@@ -25,7 +25,8 @@
 
 #include <linux/types.h>
 
-struct cik_ih_ring_entry {
+struct cik_ih_ring_entry
+{
 	uint32_t source_id;
 	uint32_t data;
 	uint32_t ring_id;

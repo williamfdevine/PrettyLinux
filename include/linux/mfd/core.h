@@ -20,7 +20,8 @@ struct irq_domain;
 struct property_entry;
 
 /* Matches ACPI PNP id, either _HID or _CID, or ACPI _ADR */
-struct mfd_cell_acpi_match {
+struct mfd_cell_acpi_match
+{
 	const char			*pnpid;
 	const unsigned long long	adr;
 };
@@ -30,7 +31,8 @@ struct mfd_cell_acpi_match {
  * After registration the copy of this structure will become the platform data
  * of the resulting platform_device
  */
-struct mfd_cell {
+struct mfd_cell
+{
 	const char		*name;
 	int			id;
 
@@ -77,7 +79,7 @@ struct mfd_cell {
 	/* A list of regulator supplies that should be mapped to the MFD
 	 * device rather than the child device when requested
 	 */
-	const char * const	*parent_supplies;
+	const char *const	*parent_supplies;
 	int			num_parent_supplies;
 };
 
@@ -106,7 +108,7 @@ extern int mfd_cell_disable(struct platform_device *pdev);
  * resource contention.
  */
 extern int mfd_clone_cell(const char *cell, const char **clones,
-		size_t n_clones);
+						  size_t n_clones);
 
 /*
  * Given a platform device that's been created by mfd_add_devices(), fetch
@@ -118,21 +120,21 @@ static inline const struct mfd_cell *mfd_get_cell(struct platform_device *pdev)
 }
 
 extern int mfd_add_devices(struct device *parent, int id,
-			   const struct mfd_cell *cells, int n_devs,
-			   struct resource *mem_base,
-			   int irq_base, struct irq_domain *irq_domain);
+						   const struct mfd_cell *cells, int n_devs,
+						   struct resource *mem_base,
+						   int irq_base, struct irq_domain *irq_domain);
 
 static inline int mfd_add_hotplug_devices(struct device *parent,
 		const struct mfd_cell *cells, int n_devs)
 {
 	return mfd_add_devices(parent, PLATFORM_DEVID_AUTO, cells, n_devs,
-			NULL, 0, NULL);
+						   NULL, 0, NULL);
 }
 
 extern void mfd_remove_devices(struct device *parent);
 
 extern int devm_mfd_add_devices(struct device *dev, int id,
-				const struct mfd_cell *cells, int n_devs,
-				struct resource *mem_base,
-				int irq_base, struct irq_domain *irq_domain);
+								const struct mfd_cell *cells, int n_devs,
+								struct resource *mem_base,
+								int irq_base, struct irq_domain *irq_domain);
 #endif

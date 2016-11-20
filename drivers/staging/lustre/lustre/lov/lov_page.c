@@ -56,9 +56,9 @@
  * sure it's not beyond one stripe.
  */
 static int lov_raid0_page_is_under_lock(const struct lu_env *env,
-					const struct cl_page_slice *slice,
-					struct cl_io *unused,
-					pgoff_t *max_index)
+										const struct cl_page_slice *slice,
+										struct cl_io *unused,
+										pgoff_t *max_index)
 {
 	struct lov_object *loo = cl2lov(slice->cpl_obj);
 	struct lov_layout_raid0 *r0 = lov_r0(loo);
@@ -66,16 +66,21 @@ static int lov_raid0_page_is_under_lock(const struct lu_env *env,
 	unsigned int pps; /* pages per stripe */
 
 	CDEBUG(D_READA, DFID "*max_index = %lu, nr = %d\n",
-	       PFID(lu_object_fid(lov2lu(loo))), index, r0->lo_nr);
+		   PFID(lu_object_fid(lov2lu(loo))), index, r0->lo_nr);
 
 	if (index == 0) /* the page is not covered by any lock */
+	{
 		return 0;
+	}
 
 	if (r0->lo_nr == 1) /* single stripe file */
+	{
 		return 0;
+	}
 
 	/* max_index is stripe level, convert it into file level */
-	if (index != CL_PAGE_EOF) {
+	if (index != CL_PAGE_EOF)
+	{
 		int stripeno = lov_page_stripe(slice->cpl_page);
 		*max_index = lov_stripe_pgoff(loo->lo_lsm, index, stripeno);
 	}
@@ -85,9 +90,9 @@ static int lov_raid0_page_is_under_lock(const struct lu_env *env,
 	index = slice->cpl_index + pps - slice->cpl_index % pps - 1;
 
 	CDEBUG(D_READA, DFID "*max_index = %lu, index = %lu, pps = %u, stripe_size = %u, stripe no = %u, page index = %lu\n",
-	       PFID(lu_object_fid(lov2lu(loo))), *max_index, index, pps,
-	       loo->lo_lsm->lsm_stripe_size, lov_page_stripe(slice->cpl_page),
-	       slice->cpl_index);
+		   PFID(lu_object_fid(lov2lu(loo))), *max_index, index, pps,
+		   loo->lo_lsm->lsm_stripe_size, lov_page_stripe(slice->cpl_page),
+		   slice->cpl_index);
 
 	/* never exceed the end of the stripe */
 	*max_index = min_t(pgoff_t, *max_index, index);
@@ -95,21 +100,22 @@ static int lov_raid0_page_is_under_lock(const struct lu_env *env,
 }
 
 static int lov_raid0_page_print(const struct lu_env *env,
-				const struct cl_page_slice *slice,
-				void *cookie, lu_printer_t printer)
+								const struct cl_page_slice *slice,
+								void *cookie, lu_printer_t printer)
 {
 	struct lov_page *lp = cl2lov_page(slice);
 
 	return (*printer)(env, cookie, LUSTRE_LOV_NAME "-page@%p, raid0\n", lp);
 }
 
-static const struct cl_page_operations lov_raid0_page_ops = {
+static const struct cl_page_operations lov_raid0_page_ops =
+{
 	.cpo_is_under_lock = lov_raid0_page_is_under_lock,
 	.cpo_print  = lov_raid0_page_print
 };
 
 int lov_page_init_raid0(const struct lu_env *env, struct cl_object *obj,
-			struct cl_page *page, pgoff_t index)
+						struct cl_page *page, pgoff_t index)
 {
 	struct lov_object *loo = cl2lov(obj);
 	struct lov_layout_raid0 *r0 = lov_r0(loo);
@@ -133,17 +139,25 @@ int lov_page_init_raid0(const struct lu_env *env, struct cl_object *obj,
 	cl_page_slice_add(page, &lpg->lps_cl, obj, index, &lov_raid0_page_ops);
 
 	sub = lov_sub_get(env, lio, stripe);
+
 	if (IS_ERR(sub))
+	{
 		return PTR_ERR(sub);
+	}
 
 	subobj = lovsub2cl(r0->lo_sub[stripe]);
 	list_for_each_entry(o, &subobj->co_lu.lo_header->loh_layers,
-			    co_lu.lo_linkage) {
-		if (o->co_ops->coo_page_init) {
+						co_lu.lo_linkage)
+	{
+		if (o->co_ops->coo_page_init)
+		{
 			rc = o->co_ops->coo_page_init(sub->sub_env, o, page,
-						      cl_index(subobj, suboff));
+										  cl_index(subobj, suboff));
+
 			if (rc != 0)
+			{
 				break;
+			}
 		}
 	}
 	lov_sub_put(sub);
@@ -152,21 +166,22 @@ int lov_page_init_raid0(const struct lu_env *env, struct cl_object *obj,
 }
 
 static int lov_empty_page_print(const struct lu_env *env,
-				const struct cl_page_slice *slice,
-				void *cookie, lu_printer_t printer)
+								const struct cl_page_slice *slice,
+								void *cookie, lu_printer_t printer)
 {
 	struct lov_page *lp = cl2lov_page(slice);
 
 	return (*printer)(env, cookie, LUSTRE_LOV_NAME "-page@%p, empty.\n",
-			  lp);
+					  lp);
 }
 
-static const struct cl_page_operations lov_empty_page_ops = {
+static const struct cl_page_operations lov_empty_page_ops =
+{
 	.cpo_print = lov_empty_page_print
 };
 
 int lov_page_init_empty(const struct lu_env *env, struct cl_object *obj,
-			struct cl_page *page, pgoff_t index)
+						struct cl_page *page, pgoff_t index)
 {
 	struct lov_page *lpg = cl_object_page_slice(obj, page);
 	void *addr;

@@ -43,7 +43,8 @@ MODULE_PARM_DESC(base, "Diamond Systems GPIO-MM base addresses");
  * @lock:	synchronization lock to prevent I/O race conditions
  * @base:	base port address of the GPIO device
  */
-struct gpiomm_gpio {
+struct gpiomm_gpio
+{
 	struct gpio_chip chip;
 	unsigned char io_state[6];
 	unsigned char out_state[6];
@@ -53,7 +54,7 @@ struct gpiomm_gpio {
 };
 
 static int gpiomm_gpio_get_direction(struct gpio_chip *chip,
-	unsigned int offset)
+									 unsigned int offset)
 {
 	struct gpiomm_gpio *const gpiommgpio = gpiochip_get_data(chip);
 	const unsigned int port = offset / 8;
@@ -63,33 +64,44 @@ static int gpiomm_gpio_get_direction(struct gpio_chip *chip,
 }
 
 static int gpiomm_gpio_direction_input(struct gpio_chip *chip,
-	unsigned int offset)
+									   unsigned int offset)
 {
 	struct gpiomm_gpio *const gpiommgpio = gpiochip_get_data(chip);
 	const unsigned int io_port = offset / 8;
 	const unsigned int control_port = io_port / 3;
-	const unsigned int control_addr = gpiommgpio->base + 3 + control_port*4;
+	const unsigned int control_addr = gpiommgpio->base + 3 + control_port * 4;
 	unsigned long flags;
 	unsigned int control;
 
 	spin_lock_irqsave(&gpiommgpio->lock, flags);
 
 	/* Check if configuring Port C */
-	if (io_port == 2 || io_port == 5) {
+	if (io_port == 2 || io_port == 5)
+	{
 		/* Port C can be configured by nibble */
-		if (offset % 8 > 3) {
+		if (offset % 8 > 3)
+		{
 			gpiommgpio->io_state[io_port] |= 0xF0;
 			gpiommgpio->control[control_port] |= BIT(3);
-		} else {
+		}
+		else
+		{
 			gpiommgpio->io_state[io_port] |= 0x0F;
 			gpiommgpio->control[control_port] |= BIT(0);
 		}
-	} else {
+	}
+	else
+	{
 		gpiommgpio->io_state[io_port] |= 0xFF;
+
 		if (io_port == 0 || io_port == 3)
+		{
 			gpiommgpio->control[control_port] |= BIT(4);
+		}
 		else
+		{
 			gpiommgpio->control[control_port] |= BIT(1);
+		}
 	}
 
 	control = BIT(7) | gpiommgpio->control[control_port];
@@ -101,13 +113,13 @@ static int gpiomm_gpio_direction_input(struct gpio_chip *chip,
 }
 
 static int gpiomm_gpio_direction_output(struct gpio_chip *chip,
-	unsigned int offset, int value)
+										unsigned int offset, int value)
 {
 	struct gpiomm_gpio *const gpiommgpio = gpiochip_get_data(chip);
 	const unsigned int io_port = offset / 8;
 	const unsigned int control_port = io_port / 3;
 	const unsigned int mask = BIT(offset % 8);
-	const unsigned int control_addr = gpiommgpio->base + 3 + control_port*4;
+	const unsigned int control_addr = gpiommgpio->base + 3 + control_port * 4;
 	const unsigned int out_port = (io_port > 2) ? io_port + 1 : io_port;
 	unsigned long flags;
 	unsigned int control;
@@ -115,27 +127,42 @@ static int gpiomm_gpio_direction_output(struct gpio_chip *chip,
 	spin_lock_irqsave(&gpiommgpio->lock, flags);
 
 	/* Check if configuring Port C */
-	if (io_port == 2 || io_port == 5) {
+	if (io_port == 2 || io_port == 5)
+	{
 		/* Port C can be configured by nibble */
-		if (offset % 8 > 3) {
+		if (offset % 8 > 3)
+		{
 			gpiommgpio->io_state[io_port] &= 0x0F;
 			gpiommgpio->control[control_port] &= ~BIT(3);
-		} else {
+		}
+		else
+		{
 			gpiommgpio->io_state[io_port] &= 0xF0;
 			gpiommgpio->control[control_port] &= ~BIT(0);
 		}
-	} else {
+	}
+	else
+	{
 		gpiommgpio->io_state[io_port] &= 0x00;
+
 		if (io_port == 0 || io_port == 3)
+		{
 			gpiommgpio->control[control_port] &= ~BIT(4);
+		}
 		else
+		{
 			gpiommgpio->control[control_port] &= ~BIT(1);
+		}
 	}
 
 	if (value)
+	{
 		gpiommgpio->out_state[io_port] |= mask;
+	}
 	else
+	{
 		gpiommgpio->out_state[io_port] &= ~mask;
+	}
 
 	control = BIT(7) | gpiommgpio->control[control_port];
 	outb(control, control_addr);
@@ -159,7 +186,8 @@ static int gpiomm_gpio_get(struct gpio_chip *chip, unsigned int offset)
 	spin_lock_irqsave(&gpiommgpio->lock, flags);
 
 	/* ensure that GPIO is set for input */
-	if (!(gpiommgpio->io_state[port] & mask)) {
+	if (!(gpiommgpio->io_state[port] & mask))
+	{
 		spin_unlock_irqrestore(&gpiommgpio->lock, flags);
 		return -EINVAL;
 	}
@@ -172,7 +200,7 @@ static int gpiomm_gpio_get(struct gpio_chip *chip, unsigned int offset)
 }
 
 static void gpiomm_gpio_set(struct gpio_chip *chip, unsigned int offset,
-	int value)
+							int value)
 {
 	struct gpiomm_gpio *const gpiommgpio = gpiochip_get_data(chip);
 	const unsigned int port = offset / 8;
@@ -183,9 +211,13 @@ static void gpiomm_gpio_set(struct gpio_chip *chip, unsigned int offset,
 	spin_lock_irqsave(&gpiommgpio->lock, flags);
 
 	if (value)
+	{
 		gpiommgpio->out_state[port] |= mask;
+	}
 	else
+	{
 		gpiommgpio->out_state[port] &= ~mask;
+	}
 
 	outb(gpiommgpio->out_state[port], gpiommgpio->base + out_port);
 
@@ -199,12 +231,16 @@ static int gpiomm_probe(struct device *dev, unsigned int id)
 	int err;
 
 	gpiommgpio = devm_kzalloc(dev, sizeof(*gpiommgpio), GFP_KERNEL);
-	if (!gpiommgpio)
-		return -ENOMEM;
 
-	if (!devm_request_region(dev, base[id], GPIOMM_EXTENT, name)) {
+	if (!gpiommgpio)
+	{
+		return -ENOMEM;
+	}
+
+	if (!devm_request_region(dev, base[id], GPIOMM_EXTENT, name))
+	{
 		dev_err(dev, "Unable to lock port addresses (0x%X-0x%X)\n",
-			base[id], base[id] + GPIOMM_EXTENT);
+				base[id], base[id] + GPIOMM_EXTENT);
 		return -EBUSY;
 	}
 
@@ -225,7 +261,9 @@ static int gpiomm_probe(struct device *dev, unsigned int id)
 	dev_set_drvdata(dev, gpiommgpio);
 
 	err = gpiochip_add_data(&gpiommgpio->chip, gpiommgpio);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "GPIO registering failed (%d)\n", err);
 		return err;
 	}
@@ -252,7 +290,8 @@ static int gpiomm_remove(struct device *dev, unsigned int id)
 	return 0;
 }
 
-static struct isa_driver gpiomm_driver = {
+static struct isa_driver gpiomm_driver =
+{
 	.probe = gpiomm_probe,
 	.driver = {
 		.name = "gpio-mm"

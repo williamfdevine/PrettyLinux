@@ -19,7 +19,8 @@ static const char cachefiles_charmap[64] =
 	"_-"				/* 62 - 63 */
 	;
 
-static const char cachefiles_filecharmap[256] = {
+static const char cachefiles_filecharmap[256] =
+{
 	/* we skip space and tab and control chars */
 	[33 ... 46] = 1,		/* '!' -> '.' */
 	/* we skip '/' as it's significant to pathwalk */
@@ -47,13 +48,16 @@ char *cachefiles_cook_key(const u8 *raw, int keylen, uint8_t type)
 
 	csum = raw[0] + raw[1];
 	print = 1;
-	for (loop = 2; loop < keylen; loop++) {
+
+	for (loop = 2; loop < keylen; loop++)
+	{
 		ch = raw[loop];
 		csum += ch;
 		print &= cachefiles_filecharmap[ch];
 	}
 
-	if (print) {
+	if (print)
+	{
 		/* if the path is usable ASCII, then we render it directly */
 		max = keylen - 2;
 		max += 2;	/* two base64'd length chars on the front */
@@ -62,7 +66,9 @@ char *cachefiles_cook_key(const u8 *raw, int keylen, uint8_t type)
 				 * is ((514 + 251) / 252) = 3
 				 */
 		max += 1;	/* NUL on end */
-	} else {
+	}
+	else
+	{
 		/* calculate the maximum length of the cooked key */
 		keylen = (keylen + 2) / 3;
 
@@ -79,8 +85,11 @@ char *cachefiles_cook_key(const u8 *raw, int keylen, uint8_t type)
 	_debug("max: %d", max);
 
 	key = kmalloc(max, cachefiles_gfp);
+
 	if (!key)
+	{
 		return NULL;
+	}
 
 	len = 0;
 
@@ -89,7 +98,8 @@ char *cachefiles_cook_key(const u8 *raw, int keylen, uint8_t type)
 	len = 5;
 	mark = len - 1;
 
-	if (print) {
+	if (print)
+	{
 		acc = *(uint16_t *) raw;
 		raw += 2;
 
@@ -99,8 +109,11 @@ char *cachefiles_cook_key(const u8 *raw, int keylen, uint8_t type)
 		len += 2;
 
 		seg = 250;
-		for (loop = keylen; loop > 0; loop--) {
-			if (seg <= 0) {
+
+		for (loop = keylen; loop > 0; loop--)
+		{
+			if (seg <= 0)
+			{
 				key[len++] = '\0';
 				mark = len;
 				key[len++] = '+';
@@ -111,15 +124,23 @@ char *cachefiles_cook_key(const u8 *raw, int keylen, uint8_t type)
 			ASSERT(len < max);
 		}
 
-		switch (type) {
-		case FSCACHE_COOKIE_TYPE_INDEX:		type = 'I';	break;
-		case FSCACHE_COOKIE_TYPE_DATAFILE:	type = 'D';	break;
-		default:				type = 'S';	break;
+		switch (type)
+		{
+			case FSCACHE_COOKIE_TYPE_INDEX:		type = 'I';	break;
+
+			case FSCACHE_COOKIE_TYPE_DATAFILE:	type = 'D';	break;
+
+			default:				type = 'S';	break;
 		}
-	} else {
+	}
+	else
+	{
 		seg = 252;
-		for (loop = keylen; loop > 0; loop--) {
-			if (seg <= 0) {
+
+		for (loop = keylen; loop > 0; loop--)
+		{
+			if (seg <= 0)
+			{
 				key[len++] = '\0';
 				mark = len;
 				key[len++] = '+';
@@ -143,10 +164,13 @@ char *cachefiles_cook_key(const u8 *raw, int keylen, uint8_t type)
 			ASSERT(len < max);
 		}
 
-		switch (type) {
-		case FSCACHE_COOKIE_TYPE_INDEX:		type = 'J';	break;
-		case FSCACHE_COOKIE_TYPE_DATAFILE:	type = 'E';	break;
-		default:				type = 'T';	break;
+		switch (type)
+		{
+			case FSCACHE_COOKIE_TYPE_INDEX:		type = 'J';	break;
+
+			case FSCACHE_COOKIE_TYPE_DATAFILE:	type = 'E';	break;
+
+			default:				type = 'T';	break;
 		}
 	}
 

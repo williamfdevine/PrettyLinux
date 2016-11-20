@@ -16,24 +16,33 @@
 static struct spilib_ops *spilib_ops;
 
 static int gb_spi_probe(struct gbphy_device *gbphy_dev,
-			const struct gbphy_device_id *id)
+						const struct gbphy_device_id *id)
 {
 	struct gb_connection *connection;
 	int ret;
 
 	connection = gb_connection_create(gbphy_dev->bundle,
-					  le16_to_cpu(gbphy_dev->cport_desc->id),
-					  NULL);
+									  le16_to_cpu(gbphy_dev->cport_desc->id),
+									  NULL);
+
 	if (IS_ERR(connection))
+	{
 		return PTR_ERR(connection);
+	}
 
 	ret = gb_connection_enable(connection);
+
 	if (ret)
+	{
 		goto exit_connection_destroy;
+	}
 
 	ret = gb_spilib_master_init(connection, &gbphy_dev->dev, spilib_ops);
+
 	if (ret)
+	{
 		goto exit_connection_disable;
+	}
 
 	gb_gbphy_set_data(gbphy_dev, connection);
 
@@ -54,21 +63,26 @@ static void gb_spi_remove(struct gbphy_device *gbphy_dev)
 	int ret;
 
 	ret = gbphy_runtime_get_sync(gbphy_dev);
+
 	if (ret)
+	{
 		gbphy_runtime_get_noresume(gbphy_dev);
+	}
 
 	gb_spilib_master_exit(connection);
 	gb_connection_disable(connection);
 	gb_connection_destroy(connection);
 }
 
-static const struct gbphy_device_id gb_spi_id_table[] = {
+static const struct gbphy_device_id gb_spi_id_table[] =
+{
 	{ GBPHY_PROTOCOL(GREYBUS_PROTOCOL_SPI) },
 	{ },
 };
 MODULE_DEVICE_TABLE(gbphy, gb_spi_id_table);
 
-static struct gbphy_driver spi_driver = {
+static struct gbphy_driver spi_driver =
+{
 	.name		= "spi",
 	.probe		= gb_spi_probe,
 	.remove		= gb_spi_remove,

@@ -170,7 +170,7 @@ static int bcm7xxx_28nm_config_init(struct phy_device *phydev)
 	int ret = 0;
 
 	pr_info_once("%s: %s PHY revision: 0x%02x, patch: %d\n",
-		     phydev_name(phydev), phydev->drv->name, rev, patch);
+				 phydev_name(phydev), phydev->drv->name, rev, patch);
 
 	/* Dummy read to a register to workaround an issue upon reset where the
 	 * internal inverter may not allow the first MDIO transaction to pass
@@ -179,29 +179,39 @@ static int bcm7xxx_28nm_config_init(struct phy_device *phydev)
 	 */
 	phy_read(phydev, MII_BMSR);
 
-	switch (rev) {
-	case 0xb0:
-		ret = bcm7xxx_28nm_b0_afe_config_init(phydev);
-		break;
-	case 0xd0:
-		ret = bcm7xxx_28nm_d0_afe_config_init(phydev);
-		break;
-	case 0xe0:
-	case 0xf0:
-	/* Rev G0 introduces a roll over */
-	case 0x10:
-		ret = bcm7xxx_28nm_e0_plus_afe_config_init(phydev);
-		break;
-	default:
-		break;
+	switch (rev)
+	{
+		case 0xb0:
+			ret = bcm7xxx_28nm_b0_afe_config_init(phydev);
+			break;
+
+		case 0xd0:
+			ret = bcm7xxx_28nm_d0_afe_config_init(phydev);
+			break;
+
+		case 0xe0:
+		case 0xf0:
+
+		/* Rev G0 introduces a roll over */
+		case 0x10:
+			ret = bcm7xxx_28nm_e0_plus_afe_config_init(phydev);
+			break;
+
+		default:
+			break;
 	}
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = bcm_phy_enable_eee(phydev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return bcm_phy_enable_apd(phydev, true);
 }
@@ -212,8 +222,11 @@ static int bcm7xxx_28nm_resume(struct phy_device *phydev)
 
 	/* Re-apply workarounds coming out suspend/resume */
 	ret = bcm7xxx_28nm_config_init(phydev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* 28nm Gigabit PHYs come out of reset without any half-duplex
 	 * or "hub" compliant advertised mode, fix that. This does not
@@ -224,20 +237,26 @@ static int bcm7xxx_28nm_resume(struct phy_device *phydev)
 }
 
 static int phy_set_clr_bits(struct phy_device *dev, int location,
-					int set_mask, int clr_mask)
+							int set_mask, int clr_mask)
 {
 	int v, ret;
 
 	v = phy_read(dev, location);
+
 	if (v < 0)
+	{
 		return v;
+	}
 
 	v &= ~clr_mask;
 	v |= set_mask;
 
 	ret = phy_write(dev, location, v);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return v;
 }
@@ -252,9 +271,12 @@ static int bcm7xxx_config_init(struct phy_device *phydev)
 
 	/* set shadow mode 2 */
 	ret = phy_set_clr_bits(phydev, MII_BCM7XXX_TEST,
-			MII_BCM7XXX_SHD_MODE_2, MII_BCM7XXX_SHD_MODE_2);
+						   MII_BCM7XXX_SHD_MODE_2, MII_BCM7XXX_SHD_MODE_2);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* set iddq_clkbias */
 	phy_write(phydev, MII_BCM7XXX_100TX_DISC, 0x0F00);
@@ -267,8 +289,11 @@ static int bcm7xxx_config_init(struct phy_device *phydev)
 
 	/* reset shadow mode 2 */
 	ret = phy_set_clr_bits(phydev, MII_BCM7XXX_TEST, 0, MII_BCM7XXX_SHD_MODE_2);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -279,10 +304,12 @@ static int bcm7xxx_config_init(struct phy_device *phydev)
 static int bcm7xxx_suspend(struct phy_device *phydev)
 {
 	int ret;
-	const struct bcm7xxx_regs {
+	const struct bcm7xxx_regs
+	{
 		int reg;
 		u16 value;
-	} bcm7xxx_suspend_cfg[] = {
+	} bcm7xxx_suspend_cfg[] =
+	{
 		{ MII_BCM7XXX_TEST, 0x008b },
 		{ MII_BCM7XXX_100TX_AUX_CTL, 0x01c0 },
 		{ MII_BCM7XXX_100TX_DISC, 0x7000 },
@@ -292,47 +319,52 @@ static int bcm7xxx_suspend(struct phy_device *phydev)
 	};
 	unsigned int i;
 
-	for (i = 0; i < ARRAY_SIZE(bcm7xxx_suspend_cfg); i++) {
+	for (i = 0; i < ARRAY_SIZE(bcm7xxx_suspend_cfg); i++)
+	{
 		ret = phy_write(phydev,
-				bcm7xxx_suspend_cfg[i].reg,
-				bcm7xxx_suspend_cfg[i].value);
+						bcm7xxx_suspend_cfg[i].reg,
+						bcm7xxx_suspend_cfg[i].value);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
 }
 
 #define BCM7XXX_28NM_GPHY(_oui, _name)					\
-{									\
-	.phy_id		= (_oui),					\
-	.phy_id_mask	= 0xfffffff0,					\
-	.name		= _name,					\
-	.features	= PHY_GBIT_FEATURES |				\
-			  SUPPORTED_Pause | SUPPORTED_Asym_Pause,	\
-	.flags		= PHY_IS_INTERNAL,				\
-	.config_init	= bcm7xxx_28nm_config_init,			\
-	.config_aneg	= genphy_config_aneg,				\
-	.read_status	= genphy_read_status,				\
-	.resume		= bcm7xxx_28nm_resume,				\
-}
+	{									\
+		.phy_id		= (_oui),					\
+					  .phy_id_mask	= 0xfffffff0,					\
+										.name		= _name,					\
+												.features	= PHY_GBIT_FEATURES |				\
+														SUPPORTED_Pause | SUPPORTED_Asym_Pause,	\
+														.flags		= PHY_IS_INTERNAL,				\
+																.config_init	= bcm7xxx_28nm_config_init,			\
+																		.config_aneg	= genphy_config_aneg,				\
+																				.read_status	= genphy_read_status,				\
+																						.resume		= bcm7xxx_28nm_resume,				\
+	}
 
 #define BCM7XXX_40NM_EPHY(_oui, _name)					\
-{									\
-	.phy_id         = (_oui),					\
-	.phy_id_mask    = 0xfffffff0,					\
-	.name           = _name,					\
-	.features       = PHY_BASIC_FEATURES |				\
-			  SUPPORTED_Pause | SUPPORTED_Asym_Pause,	\
-	.flags          = PHY_IS_INTERNAL,				\
-	.config_init    = bcm7xxx_config_init,				\
-	.config_aneg    = genphy_config_aneg,				\
-	.read_status    = genphy_read_status,				\
-	.suspend        = bcm7xxx_suspend,				\
-	.resume         = bcm7xxx_config_init,				\
-}
+	{									\
+		.phy_id         = (_oui),					\
+						  .phy_id_mask    = 0xfffffff0,					\
+											.name           = _name,					\
+													.features       = PHY_BASIC_FEATURES |				\
+															SUPPORTED_Pause | SUPPORTED_Asym_Pause,	\
+															.flags          = PHY_IS_INTERNAL,				\
+																	.config_init    = bcm7xxx_config_init,				\
+																			.config_aneg    = genphy_config_aneg,				\
+																					.read_status    = genphy_read_status,				\
+																							.suspend        = bcm7xxx_suspend,				\
+																									.resume         = bcm7xxx_config_init,				\
+	}
 
-static struct phy_driver bcm7xxx_driver[] = {
+static struct phy_driver bcm7xxx_driver[] =
+{
 	BCM7XXX_28NM_GPHY(PHY_ID_BCM7250, "Broadcom BCM7250"),
 	BCM7XXX_28NM_GPHY(PHY_ID_BCM7364, "Broadcom BCM7364"),
 	BCM7XXX_28NM_GPHY(PHY_ID_BCM7366, "Broadcom BCM7366"),
@@ -346,7 +378,8 @@ static struct phy_driver bcm7xxx_driver[] = {
 	BCM7XXX_40NM_EPHY(PHY_ID_BCM7435, "Broadcom BCM7435"),
 };
 
-static struct mdio_device_id __maybe_unused bcm7xxx_tbl[] = {
+static struct mdio_device_id __maybe_unused bcm7xxx_tbl[] =
+{
 	{ PHY_ID_BCM7250, 0xfffffff0, },
 	{ PHY_ID_BCM7364, 0xfffffff0, },
 	{ PHY_ID_BCM7366, 0xfffffff0, },

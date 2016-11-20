@@ -43,12 +43,14 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 
-enum a2xx_rb_dither_type {
+enum a2xx_rb_dither_type
+{
 	DITHER_PIXEL = 0,
 	DITHER_SUBPIXEL = 1,
 };
 
-enum a2xx_colorformatx {
+enum a2xx_colorformatx
+{
 	COLORX_4_4_4_4 = 0,
 	COLORX_1_5_5_5 = 1,
 	COLORX_5_6_5 = 2,
@@ -66,7 +68,8 @@ enum a2xx_colorformatx {
 	COLORX_8_8_8 = 14,
 };
 
-enum a2xx_sq_surfaceformat {
+enum a2xx_sq_surfaceformat
+{
 	FMT_1_REVERSE = 0,
 	FMT_1 = 1,
 	FMT_8 = 2,
@@ -130,7 +133,8 @@ enum a2xx_sq_surfaceformat {
 	FMT_DXT3A_AS_1_1_1_1 = 61,
 };
 
-enum a2xx_sq_ps_vtx_mode {
+enum a2xx_sq_ps_vtx_mode
+{
 	POSITION_1_VECTOR = 0,
 	POSITION_2_VECTORS_UNUSED = 1,
 	POSITION_2_VECTORS_SPRITE = 2,
@@ -141,53 +145,62 @@ enum a2xx_sq_ps_vtx_mode {
 	MULTIPASS = 7,
 };
 
-enum a2xx_sq_sample_cntl {
+enum a2xx_sq_sample_cntl
+{
 	CENTROIDS_ONLY = 0,
 	CENTERS_ONLY = 1,
 	CENTROIDS_AND_CENTERS = 2,
 };
 
-enum a2xx_dx_clip_space {
+enum a2xx_dx_clip_space
+{
 	DXCLIP_OPENGL = 0,
 	DXCLIP_DIRECTX = 1,
 };
 
-enum a2xx_pa_su_sc_polymode {
+enum a2xx_pa_su_sc_polymode
+{
 	POLY_DISABLED = 0,
 	POLY_DUALMODE = 1,
 };
 
-enum a2xx_rb_edram_mode {
+enum a2xx_rb_edram_mode
+{
 	EDRAM_NOP = 0,
 	COLOR_DEPTH = 4,
 	DEPTH_ONLY = 5,
 	EDRAM_COPY = 6,
 };
 
-enum a2xx_pa_sc_pattern_bit_order {
+enum a2xx_pa_sc_pattern_bit_order
+{
 	LITTLE = 0,
 	BIG = 1,
 };
 
-enum a2xx_pa_sc_auto_reset_cntl {
+enum a2xx_pa_sc_auto_reset_cntl
+{
 	NEVER = 0,
 	EACH_PRIMITIVE = 1,
 	EACH_PACKET = 2,
 };
 
-enum a2xx_pa_pixcenter {
+enum a2xx_pa_pixcenter
+{
 	PIXCENTER_D3D = 0,
 	PIXCENTER_OGL = 1,
 };
 
-enum a2xx_pa_roundmode {
+enum a2xx_pa_roundmode
+{
 	TRUNCATE = 0,
 	ROUND = 1,
 	ROUNDTOEVEN = 2,
 	ROUNDTOODD = 3,
 };
 
-enum a2xx_pa_quantmode {
+enum a2xx_pa_quantmode
+{
 	ONE_SIXTEENTH = 0,
 	ONE_EIGTH = 1,
 	ONE_QUARTER = 2,
@@ -195,7 +208,8 @@ enum a2xx_pa_quantmode {
 	ONE = 4,
 };
 
-enum a2xx_rb_copy_sample_select {
+enum a2xx_rb_copy_sample_select
+{
 	SAMPLE_0 = 0,
 	SAMPLE_1 = 1,
 	SAMPLE_2 = 2,
@@ -205,7 +219,8 @@ enum a2xx_rb_copy_sample_select {
 	SAMPLE_0123 = 6,
 };
 
-enum a2xx_rb_blend_opcode {
+enum a2xx_rb_blend_opcode
+{
 	BLEND_DST_PLUS_SRC = 0,
 	BLEND_SRC_MINUS_DST = 1,
 	BLEND_MIN_DST_SRC = 2,
@@ -214,13 +229,15 @@ enum a2xx_rb_blend_opcode {
 	BLEND_DST_PLUS_SRC_BIAS = 5,
 };
 
-enum adreno_mmu_clnt_beh {
+enum adreno_mmu_clnt_beh
+{
 	BEH_NEVR = 0,
 	BEH_TRAN_RNG = 1,
 	BEH_TRAN_FLT = 2,
 };
 
-enum sq_tex_clamp {
+enum sq_tex_clamp
+{
 	SQ_TEX_WRAP = 0,
 	SQ_TEX_MIRROR = 1,
 	SQ_TEX_CLAMP_LAST_TEXEL = 2,
@@ -231,7 +248,8 @@ enum sq_tex_clamp {
 	SQ_TEX_MIRROR_ONCE_BORDER = 7,
 };
 
-enum sq_tex_swiz {
+enum sq_tex_swiz
+{
 	SQ_TEX_X = 0,
 	SQ_TEX_Y = 1,
 	SQ_TEX_Z = 2,
@@ -240,7 +258,8 @@ enum sq_tex_swiz {
 	SQ_TEX_ONE = 5,
 };
 
-enum sq_tex_filter {
+enum sq_tex_filter
+{
 	SQ_TEX_FILTER_POINT = 0,
 	SQ_TEX_FILTER_BILINEAR = 1,
 	SQ_TEX_FILTER_BICUBIC = 2,
@@ -453,13 +472,13 @@ static inline uint32_t A2XX_A220_VSC_BIN_SIZE_HEIGHT(uint32_t val)
 	return ((val >> 5) << A2XX_A220_VSC_BIN_SIZE_HEIGHT__SHIFT) & A2XX_A220_VSC_BIN_SIZE_HEIGHT__MASK;
 }
 
-static inline uint32_t REG_A2XX_VSC_PIPE(uint32_t i0) { return 0x00000c06 + 0x3*i0; }
+static inline uint32_t REG_A2XX_VSC_PIPE(uint32_t i0) { return 0x00000c06 + 0x3 * i0; }
 
-static inline uint32_t REG_A2XX_VSC_PIPE_CONFIG(uint32_t i0) { return 0x00000c06 + 0x3*i0; }
+static inline uint32_t REG_A2XX_VSC_PIPE_CONFIG(uint32_t i0) { return 0x00000c06 + 0x3 * i0; }
 
-static inline uint32_t REG_A2XX_VSC_PIPE_DATA_ADDRESS(uint32_t i0) { return 0x00000c07 + 0x3*i0; }
+static inline uint32_t REG_A2XX_VSC_PIPE_DATA_ADDRESS(uint32_t i0) { return 0x00000c07 + 0x3 * i0; }
 
-static inline uint32_t REG_A2XX_VSC_PIPE_DATA_LENGTH(uint32_t i0) { return 0x00000c08 + 0x3*i0; }
+static inline uint32_t REG_A2XX_VSC_PIPE_DATA_LENGTH(uint32_t i0) { return 0x00000c08 + 0x3 * i0; }
 
 #define REG_A2XX_PC_DEBUG_CNTL					0x00000c38
 
@@ -576,7 +595,8 @@ static inline uint32_t A2XX_RB_BC_CONTROL_ACCUM_DATA_FIFO_LIMIT(uint32_t val)
 #define A2XX_RB_BC_CONTROL_MEM_EXPORT_TIMEOUT_SELECT__SHIFT	27
 static inline uint32_t A2XX_RB_BC_CONTROL_MEM_EXPORT_TIMEOUT_SELECT(uint32_t val)
 {
-	return ((val) << A2XX_RB_BC_CONTROL_MEM_EXPORT_TIMEOUT_SELECT__SHIFT) & A2XX_RB_BC_CONTROL_MEM_EXPORT_TIMEOUT_SELECT__MASK;
+	return ((val) << A2XX_RB_BC_CONTROL_MEM_EXPORT_TIMEOUT_SELECT__SHIFT) &
+		   A2XX_RB_BC_CONTROL_MEM_EXPORT_TIMEOUT_SELECT__MASK;
 }
 #define A2XX_RB_BC_CONTROL_MEM_EXPORT_LINEAR_MODE_ENABLE	0x20000000
 #define A2XX_RB_BC_CONTROL_CRC_SYSTEM				0x40000000
@@ -1111,7 +1131,8 @@ static inline uint32_t A2XX_VGT_CURRENT_BIN_ID_MAX_ROW(uint32_t val)
 #define A2XX_VGT_CURRENT_BIN_ID_MAX_GUARD_BAND_MASK__SHIFT	6
 static inline uint32_t A2XX_VGT_CURRENT_BIN_ID_MAX_GUARD_BAND_MASK(uint32_t val)
 {
-	return ((val) << A2XX_VGT_CURRENT_BIN_ID_MAX_GUARD_BAND_MASK__SHIFT) & A2XX_VGT_CURRENT_BIN_ID_MAX_GUARD_BAND_MASK__MASK;
+	return ((val) << A2XX_VGT_CURRENT_BIN_ID_MAX_GUARD_BAND_MASK__SHIFT) &
+		   A2XX_VGT_CURRENT_BIN_ID_MAX_GUARD_BAND_MASK__MASK;
 }
 
 #define REG_A2XX_PA_CL_CLIP_CNTL				0x00002204
@@ -1197,7 +1218,8 @@ static inline uint32_t A2XX_VGT_CURRENT_BIN_ID_MIN_ROW(uint32_t val)
 #define A2XX_VGT_CURRENT_BIN_ID_MIN_GUARD_BAND_MASK__SHIFT	6
 static inline uint32_t A2XX_VGT_CURRENT_BIN_ID_MIN_GUARD_BAND_MASK(uint32_t val)
 {
-	return ((val) << A2XX_VGT_CURRENT_BIN_ID_MIN_GUARD_BAND_MASK__SHIFT) & A2XX_VGT_CURRENT_BIN_ID_MIN_GUARD_BAND_MASK__MASK;
+	return ((val) << A2XX_VGT_CURRENT_BIN_ID_MIN_GUARD_BAND_MASK__SHIFT) &
+		   A2XX_VGT_CURRENT_BIN_ID_MIN_GUARD_BAND_MASK__MASK;
 }
 
 #define REG_A2XX_RB_MODECONTROL					0x00002208

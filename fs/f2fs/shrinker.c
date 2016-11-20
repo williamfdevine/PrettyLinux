@@ -27,18 +27,21 @@ static unsigned long __count_nat_entries(struct f2fs_sb_info *sbi)
 static unsigned long __count_free_nids(struct f2fs_sb_info *sbi)
 {
 	if (NM_I(sbi)->fcnt > MAX_FREE_NIDS)
+	{
 		return NM_I(sbi)->fcnt - MAX_FREE_NIDS;
+	}
+
 	return 0;
 }
 
 static unsigned long __count_extent_cache(struct f2fs_sb_info *sbi)
 {
 	return atomic_read(&sbi->total_zombie_tree) +
-				atomic_read(&sbi->total_ext_node);
+		   atomic_read(&sbi->total_ext_node);
 }
 
 unsigned long f2fs_shrink_count(struct shrinker *shrink,
-				struct shrink_control *sc)
+								struct shrink_control *sc)
 {
 	struct f2fs_sb_info *sbi;
 	struct list_head *p;
@@ -46,14 +49,18 @@ unsigned long f2fs_shrink_count(struct shrinker *shrink,
 
 	spin_lock(&f2fs_list_lock);
 	p = f2fs_list.next;
-	while (p != &f2fs_list) {
+
+	while (p != &f2fs_list)
+	{
 		sbi = list_entry(p, struct f2fs_sb_info, s_list);
 
 		/* stop f2fs_put_super */
-		if (!mutex_trylock(&sbi->umount_mutex)) {
+		if (!mutex_trylock(&sbi->umount_mutex))
+		{
 			p = p->next;
 			continue;
 		}
+
 		spin_unlock(&f2fs_list_lock);
 
 		/* count extent cache entries */
@@ -69,12 +76,13 @@ unsigned long f2fs_shrink_count(struct shrinker *shrink,
 		p = p->next;
 		mutex_unlock(&sbi->umount_mutex);
 	}
+
 	spin_unlock(&f2fs_list_lock);
 	return count;
 }
 
 unsigned long f2fs_shrink_scan(struct shrinker *shrink,
-				struct shrink_control *sc)
+							   struct shrink_control *sc)
 {
 	unsigned long nr = sc->nr_to_scan;
 	struct f2fs_sb_info *sbi;
@@ -83,21 +91,31 @@ unsigned long f2fs_shrink_scan(struct shrinker *shrink,
 	unsigned long freed = 0;
 
 	spin_lock(&f2fs_list_lock);
-	do {
+
+	do
+	{
 		run_no = ++shrinker_run_no;
-	} while (run_no == 0);
+	}
+	while (run_no == 0);
+
 	p = f2fs_list.next;
-	while (p != &f2fs_list) {
+
+	while (p != &f2fs_list)
+	{
 		sbi = list_entry(p, struct f2fs_sb_info, s_list);
 
 		if (sbi->shrinker_run_no == run_no)
+		{
 			break;
+		}
 
 		/* stop f2fs_put_super */
-		if (!mutex_trylock(&sbi->umount_mutex)) {
+		if (!mutex_trylock(&sbi->umount_mutex))
+		{
 			p = p->next;
 			continue;
 		}
+
 		spin_unlock(&f2fs_list_lock);
 
 		sbi->shrinker_run_no = run_no;
@@ -107,19 +125,27 @@ unsigned long f2fs_shrink_scan(struct shrinker *shrink,
 
 		/* shrink clean nat cache entries */
 		if (freed < nr)
+		{
 			freed += try_to_free_nats(sbi, nr - freed);
+		}
 
 		/* shrink free nids cache entries */
 		if (freed < nr)
+		{
 			freed += try_to_free_nids(sbi, nr - freed);
+		}
 
 		spin_lock(&f2fs_list_lock);
 		p = p->next;
 		list_move_tail(&sbi->s_list, &f2fs_list);
 		mutex_unlock(&sbi->umount_mutex);
+
 		if (freed >= nr)
+		{
 			break;
+		}
 	}
+
 	spin_unlock(&f2fs_list_lock);
 	return freed;
 }

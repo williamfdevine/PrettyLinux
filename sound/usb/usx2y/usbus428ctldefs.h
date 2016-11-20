@@ -17,7 +17,8 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  */
 
-enum E_In84{
+enum E_In84
+{
 	eFader0 = 0,
 	eFader1,
 	eFader2,
@@ -51,7 +52,8 @@ enum E_In84{
 #define T_NULL  0x80
 
 
-struct us428_ctls {
+struct us428_ctls
+{
 	unsigned char   Fader[9];
 	unsigned char 	Transport;
 	unsigned char 	Modifier;
@@ -59,35 +61,41 @@ struct us428_ctls {
 	unsigned char 	Select;
 	unsigned char   Mute;
 	unsigned char   UNKNOWN;
-	unsigned char   Switch;	     
+	unsigned char   Switch;
 	unsigned char   Wheel[5];
 };
 
-struct us428_setByte {
+struct us428_setByte
+{
 	unsigned char Offset,
-		Value;
+			 Value;
 };
 
-enum {
+enum
+{
 	eLT_Volume = 0,
 	eLT_Light
 };
 
-struct usX2Y_volume {
+struct usX2Y_volume
+{
 	unsigned char Channel,
-		LH,
-		LL,
-		RH,
-		RL;
+			 LH,
+			 LL,
+			 RH,
+			 RL;
 };
 
-struct us428_lights {
+struct us428_lights
+{
 	struct us428_setByte Light[7];
 };
 
-struct us428_p4out {
+struct us428_p4out
+{
 	char type;
-	union {
+	union
+	{
 		struct usX2Y_volume vol;
 		struct us428_lights lights;
 	} val;
@@ -95,7 +103,8 @@ struct us428_p4out {
 
 #define N_us428_ctl_BUFS 16
 #define N_us428_p4out_BUFS 16
-struct us428ctls_sharedmem{
+struct us428ctls_sharedmem
+{
 	struct us428_ctls	CtlSnapShot[N_us428_ctl_BUFS];
 	int			CtlSnapShotDiffersAt[N_us428_ctl_BUFS];
 	int			CtlSnapShotLast, CtlSnapShotRed;

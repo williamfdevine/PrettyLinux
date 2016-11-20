@@ -17,7 +17,8 @@
 
 const char *iio_dir = "/sys/bus/iio/devices/";
 
-static char * const iio_direction[] = {
+static char *const iio_direction[] =
+{
 	"in",
 	"out",
 };
@@ -38,17 +39,23 @@ int iioutils_break_up_name(const char *full_name, char **generic_name)
 
 	for (i = 0; i < ARRAY_SIZE(iio_direction); i++)
 		if (!strncmp(full_name, iio_direction[i],
-			     strlen(iio_direction[i]))) {
+					 strlen(iio_direction[i])))
+		{
 			prefix = iio_direction[i];
 			break;
 		}
 
 	current = strdup(full_name + strlen(prefix) + 1);
+
 	if (!current)
+	{
 		return -ENOMEM;
+	}
 
 	working = strtok(current, "_\0");
-	if (!working) {
+
+	if (!working)
+	{
 		free(current);
 		return -EINVAL;
 	}
@@ -56,14 +63,17 @@ int iioutils_break_up_name(const char *full_name, char **generic_name)
 	w = working;
 	r = working;
 
-	while (*r != '\0') {
-		if (!isdigit(*r)) {
+	while (*r != '\0')
+	{
+		if (!isdigit(*r))
+		{
 			*w = *r;
 			w++;
 		}
 
 		r++;
 	}
+
 	*w = '\0';
 	ret = asprintf(generic_name, "%s_%s", prefix, working);
 	free(current);
@@ -86,9 +96,9 @@ int iioutils_break_up_name(const char *full_name, char **generic_name)
  * Returns a value >= 0 on success, otherwise a negative error code.
  **/
 int iioutils_get_type(unsigned *is_signed, unsigned *bytes, unsigned *bits_used,
-		      unsigned *shift, uint64_t *mask, unsigned *be,
-		      const char *device_dir, const char *name,
-		      const char *generic_name)
+					  unsigned *shift, uint64_t *mask, unsigned *be,
+					  const char *device_dir, const char *name,
+					  const char *generic_name)
 {
 	FILE *sysfsfp;
 	int ret;
@@ -99,75 +109,102 @@ int iioutils_get_type(unsigned *is_signed, unsigned *bytes, unsigned *bits_used,
 	const struct dirent *ent;
 
 	ret = asprintf(&scan_el_dir, FORMAT_SCAN_ELEMENTS_DIR, device_dir);
+
 	if (ret < 0)
+	{
 		return -ENOMEM;
+	}
 
 	ret = asprintf(&builtname, FORMAT_TYPE_FILE, name);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		ret = -ENOMEM;
 		goto error_free_scan_el_dir;
 	}
+
 	ret = asprintf(&builtname_generic, FORMAT_TYPE_FILE, generic_name);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		ret = -ENOMEM;
 		goto error_free_builtname;
 	}
 
 	dp = opendir(scan_el_dir);
-	if (!dp) {
+
+	if (!dp)
+	{
 		ret = -errno;
 		goto error_free_builtname_generic;
 	}
 
 	ret = -ENOENT;
+
 	while (ent = readdir(dp), ent)
 		if ((strcmp(builtname, ent->d_name) == 0) ||
-		    (strcmp(builtname_generic, ent->d_name) == 0)) {
+			(strcmp(builtname_generic, ent->d_name) == 0))
+		{
 			ret = asprintf(&filename,
-				       "%s/%s", scan_el_dir, ent->d_name);
-			if (ret < 0) {
+						   "%s/%s", scan_el_dir, ent->d_name);
+
+			if (ret < 0)
+			{
 				ret = -ENOMEM;
 				goto error_closedir;
 			}
 
 			sysfsfp = fopen(filename, "r");
-			if (!sysfsfp) {
+
+			if (!sysfsfp)
+			{
 				ret = -errno;
 				fprintf(stderr, "failed to open %s\n",
-					filename);
+						filename);
 				goto error_free_filename;
 			}
 
 			ret = fscanf(sysfsfp,
-				     "%ce:%c%u/%u>>%u",
-				     &endianchar,
-				     &signchar,
-				     bits_used,
-				     &padint, shift);
-			if (ret < 0) {
+						 "%ce:%c%u/%u>>%u",
+						 &endianchar,
+						 &signchar,
+						 bits_used,
+						 &padint, shift);
+
+			if (ret < 0)
+			{
 				ret = -errno;
 				fprintf(stderr,
-					"failed to pass scan type description\n");
+						"failed to pass scan type description\n");
 				goto error_close_sysfsfp;
-			} else if (ret != 5) {
+			}
+			else if (ret != 5)
+			{
 				ret = -EIO;
 				fprintf(stderr,
-					"scan type description didn't match\n");
+						"scan type description didn't match\n");
 				goto error_close_sysfsfp;
 			}
 
 			*be = (endianchar == 'b');
 			*bytes = padint / 8;
+
 			if (*bits_used == 64)
+			{
 				*mask = ~0;
+			}
 			else
+			{
 				*mask = (1ULL << *bits_used) - 1;
+			}
 
 			*is_signed = (signchar == 's');
-			if (fclose(sysfsfp)) {
+
+			if (fclose(sysfsfp))
+			{
 				ret = -errno;
 				fprintf(stderr, "Failed to close %s\n",
-					filename);
+						filename);
 				goto error_free_filename;
 			}
 
@@ -180,21 +217,32 @@ int iioutils_get_type(unsigned *is_signed, unsigned *bytes, unsigned *bits_used,
 			 * the settings.
 			 */
 			if (strcmp(builtname, ent->d_name) == 0)
+			{
 				break;
+			}
 		}
 
 error_close_sysfsfp:
+
 	if (sysfsfp)
 		if (fclose(sysfsfp))
+		{
 			perror("iioutils_get_type(): Failed to close file");
+		}
 
 error_free_filename:
+
 	if (filename)
+	{
 		free(filename);
+	}
 
 error_closedir:
+
 	if (closedir(dp) == -1)
+	{
 		perror("iioutils_get_type(): Failed to close directory");
+	}
 
 error_free_builtname_generic:
 	free(builtname_generic);
@@ -217,8 +265,8 @@ error_free_scan_el_dir:
  * Returns a value >= 0 on success, otherwise a negative error code.
  **/
 int iioutils_get_param_float(float *output, const char *param_name,
-			     const char *device_dir, const char *name,
-			     const char *generic_name)
+							 const char *device_dir, const char *name,
+							 const char *generic_name)
 {
 	FILE *sysfsfp;
 	int ret;
@@ -228,52 +276,75 @@ int iioutils_get_param_float(float *output, const char *param_name,
 	const struct dirent *ent;
 
 	ret = asprintf(&builtname, "%s_%s", name, param_name);
+
 	if (ret < 0)
+	{
 		return -ENOMEM;
+	}
 
 	ret = asprintf(&builtname_generic,
-		       "%s_%s", generic_name, param_name);
-	if (ret < 0) {
+				   "%s_%s", generic_name, param_name);
+
+	if (ret < 0)
+	{
 		ret = -ENOMEM;
 		goto error_free_builtname;
 	}
 
 	dp = opendir(device_dir);
-	if (!dp) {
+
+	if (!dp)
+	{
 		ret = -errno;
 		goto error_free_builtname_generic;
 	}
 
 	ret = -ENOENT;
+
 	while (ent = readdir(dp), ent)
 		if ((strcmp(builtname, ent->d_name) == 0) ||
-		    (strcmp(builtname_generic, ent->d_name) == 0)) {
+			(strcmp(builtname_generic, ent->d_name) == 0))
+		{
 			ret = asprintf(&filename,
-				       "%s/%s", device_dir, ent->d_name);
-			if (ret < 0) {
+						   "%s/%s", device_dir, ent->d_name);
+
+			if (ret < 0)
+			{
 				ret = -ENOMEM;
 				goto error_closedir;
 			}
 
 			sysfsfp = fopen(filename, "r");
-			if (!sysfsfp) {
+
+			if (!sysfsfp)
+			{
 				ret = -errno;
 				goto error_free_filename;
 			}
 
 			errno = 0;
+
 			if (fscanf(sysfsfp, "%f", output) != 1)
+			{
 				ret = errno ? -errno : -ENODATA;
+			}
 
 			break;
 		}
+
 error_free_filename:
+
 	if (filename)
+	{
 		free(filename);
+	}
 
 error_closedir:
+
 	if (closedir(dp) == -1)
+	{
 		perror("iioutils_get_param_float(): Failed to close directory");
+	}
 
 error_free_builtname_generic:
 	free(builtname_generic);
@@ -296,7 +367,8 @@ void bsort_channel_array_by_index(struct iio_channel_info *ci_array, int cnt)
 
 	for (x = 0; x < cnt; x++)
 		for (y = 0; y < (cnt - 1); y++)
-			if (ci_array[y].index > ci_array[y + 1].index) {
+			if (ci_array[y].index > ci_array[y + 1].index)
+			{
 				temp = ci_array[y + 1];
 				ci_array[y + 1] = ci_array[y];
 				ci_array[y] = temp;
@@ -312,7 +384,7 @@ void bsort_channel_array_by_index(struct iio_channel_info *ci_array, int cnt)
  * Returns 0 on success, otherwise a negative error code.
  **/
 int build_channel_array(const char *device_dir,
-			struct iio_channel_info **ci_array, int *counter)
+						struct iio_channel_info **ci_array, int *counter)
 {
 	DIR *dp;
 	FILE *sysfsfp;
@@ -325,45 +397,64 @@ int build_channel_array(const char *device_dir,
 
 	*counter = 0;
 	ret = asprintf(&scan_el_dir, FORMAT_SCAN_ELEMENTS_DIR, device_dir);
+
 	if (ret < 0)
+	{
 		return -ENOMEM;
+	}
 
 	dp = opendir(scan_el_dir);
-	if (!dp) {
+
+	if (!dp)
+	{
 		ret = -errno;
 		goto error_free_name;
 	}
 
 	while (ent = readdir(dp), ent)
 		if (strcmp(ent->d_name + strlen(ent->d_name) - strlen("_en"),
-			   "_en") == 0) {
+				   "_en") == 0)
+		{
 			ret = asprintf(&filename,
-				       "%s/%s", scan_el_dir, ent->d_name);
-			if (ret < 0) {
+						   "%s/%s", scan_el_dir, ent->d_name);
+
+			if (ret < 0)
+			{
 				ret = -ENOMEM;
 				goto error_close_dir;
 			}
 
 			sysfsfp = fopen(filename, "r");
-			if (!sysfsfp) {
+
+			if (!sysfsfp)
+			{
 				ret = -errno;
 				free(filename);
 				goto error_close_dir;
 			}
 
 			errno = 0;
-			if (fscanf(sysfsfp, "%i", &ret) != 1) {
+
+			if (fscanf(sysfsfp, "%i", &ret) != 1)
+			{
 				ret = errno ? -errno : -ENODATA;
+
 				if (fclose(sysfsfp))
+				{
 					perror("build_channel_array(): Failed to close file");
+				}
 
 				free(filename);
 				goto error_close_dir;
 			}
-			if (ret == 1)
-				(*counter)++;
 
-			if (fclose(sysfsfp)) {
+			if (ret == 1)
+			{
+				(*counter)++;
+			}
+
+			if (fclose(sysfsfp))
+			{
 				ret = -errno;
 				free(filename);
 				goto error_close_dir;
@@ -373,21 +464,28 @@ int build_channel_array(const char *device_dir,
 		}
 
 	*ci_array = malloc(sizeof(**ci_array) * (*counter));
-	if (!*ci_array) {
+
+	if (!*ci_array)
+	{
 		ret = -ENOMEM;
 		goto error_close_dir;
 	}
 
 	seekdir(dp, 0);
-	while (ent = readdir(dp), ent) {
+
+	while (ent = readdir(dp), ent)
+	{
 		if (strcmp(ent->d_name + strlen(ent->d_name) - strlen("_en"),
-			   "_en") == 0) {
+				   "_en") == 0)
+		{
 			int current_enabled = 0;
 
 			current = &(*ci_array)[count++];
 			ret = asprintf(&filename,
-				       "%s/%s", scan_el_dir, ent->d_name);
-			if (ret < 0) {
+						   "%s/%s", scan_el_dir, ent->d_name);
+
+			if (ret < 0)
+			{
 				ret = -ENOMEM;
 				/* decrement count to avoid freeing name */
 				count--;
@@ -395,7 +493,9 @@ int build_channel_array(const char *device_dir,
 			}
 
 			sysfsfp = fopen(filename, "r");
-			if (!sysfsfp) {
+
+			if (!sysfsfp)
+			{
 				ret = -errno;
 				free(filename);
 				count--;
@@ -403,21 +503,25 @@ int build_channel_array(const char *device_dir,
 			}
 
 			errno = 0;
-			if (fscanf(sysfsfp, "%i", &current_enabled) != 1) {
+
+			if (fscanf(sysfsfp, "%i", &current_enabled) != 1)
+			{
 				ret = errno ? -errno : -ENODATA;
 				free(filename);
 				count--;
 				goto error_cleanup_array;
 			}
 
-			if (fclose(sysfsfp)) {
+			if (fclose(sysfsfp))
+			{
 				ret = -errno;
 				free(filename);
 				count--;
 				goto error_cleanup_array;
 			}
 
-			if (!current_enabled) {
+			if (!current_enabled)
+			{
 				free(filename);
 				count--;
 				continue;
@@ -426,9 +530,11 @@ int build_channel_array(const char *device_dir,
 			current->scale = 1.0;
 			current->offset = 0;
 			current->name = strndup(ent->d_name,
-						strlen(ent->d_name) -
-						strlen("_en"));
-			if (!current->name) {
+									strlen(ent->d_name) -
+									strlen("_en"));
+
+			if (!current->name)
+			{
 				free(filename);
 				ret = -ENOMEM;
 				count--;
@@ -437,8 +543,10 @@ int build_channel_array(const char *device_dir,
 
 			/* Get the generic and specific name elements */
 			ret = iioutils_break_up_name(current->name,
-						     &current->generic_name);
-			if (ret) {
+										 &current->generic_name);
+
+			if (ret)
+			{
 				free(filename);
 				free(current->name);
 				count--;
@@ -446,35 +554,45 @@ int build_channel_array(const char *device_dir,
 			}
 
 			ret = asprintf(&filename,
-				       "%s/%s_index",
-				       scan_el_dir,
-				       current->name);
-			if (ret < 0) {
+						   "%s/%s_index",
+						   scan_el_dir,
+						   current->name);
+
+			if (ret < 0)
+			{
 				free(filename);
 				ret = -ENOMEM;
 				goto error_cleanup_array;
 			}
 
 			sysfsfp = fopen(filename, "r");
-			if (!sysfsfp) {
+
+			if (!sysfsfp)
+			{
 				ret = -errno;
 				fprintf(stderr, "failed to open %s\n",
-					filename);
+						filename);
 				free(filename);
 				goto error_cleanup_array;
 			}
 
 			errno = 0;
-			if (fscanf(sysfsfp, "%u", &current->index) != 1) {
+
+			if (fscanf(sysfsfp, "%u", &current->index) != 1)
+			{
 				ret = errno ? -errno : -ENODATA;
+
 				if (fclose(sysfsfp))
+				{
 					perror("build_channel_array(): Failed to close file");
+				}
 
 				free(filename);
 				goto error_cleanup_array;
 			}
 
-			if (fclose(sysfsfp)) {
+			if (fclose(sysfsfp))
+			{
 				ret = -errno;
 				free(filename);
 				goto error_cleanup_array;
@@ -483,36 +601,46 @@ int build_channel_array(const char *device_dir,
 			free(filename);
 			/* Find the scale */
 			ret = iioutils_get_param_float(&current->scale,
-						       "scale",
-						       device_dir,
-						       current->name,
-						       current->generic_name);
+										   "scale",
+										   device_dir,
+										   current->name,
+										   current->generic_name);
+
 			if ((ret < 0) && (ret != -ENOENT))
+			{
 				goto error_cleanup_array;
+			}
 
 			ret = iioutils_get_param_float(&current->offset,
-						       "offset",
-						       device_dir,
-						       current->name,
-						       current->generic_name);
+										   "offset",
+										   device_dir,
+										   current->name,
+										   current->generic_name);
+
 			if ((ret < 0) && (ret != -ENOENT))
+			{
 				goto error_cleanup_array;
+			}
 
 			ret = iioutils_get_type(&current->is_signed,
-						&current->bytes,
-						&current->bits_used,
-						&current->shift,
-						&current->mask,
-						&current->be,
-						device_dir,
-						current->name,
-						current->generic_name);
+									&current->bytes,
+									&current->bits_used,
+									&current->shift,
+									&current->mask,
+									&current->be,
+									device_dir,
+									current->name,
+									current->generic_name);
+
 			if (ret < 0)
+			{
 				goto error_cleanup_array;
+			}
 		}
 	}
 
-	if (closedir(dp) == -1) {
+	if (closedir(dp) == -1)
+	{
 		ret = -errno;
 		goto error_cleanup_array;
 	}
@@ -524,17 +652,23 @@ int build_channel_array(const char *device_dir,
 	return 0;
 
 error_cleanup_array:
-	for (i = count - 1;  i >= 0; i--) {
+
+	for (i = count - 1;  i >= 0; i--)
+	{
 		free((*ci_array)[i].name);
 		free((*ci_array)[i].generic_name);
 	}
+
 	free(*ci_array);
 	*ci_array = NULL;
 	*counter = 0;
 error_close_dir:
+
 	if (dp)
 		if (closedir(dp) == -1)
+		{
 			perror("build_channel_array(): Failed to close dir");
+		}
 
 error_free_name:
 	free(scan_el_dir);
@@ -546,7 +680,8 @@ static int calc_digits(int num)
 {
 	int count = 0;
 
-	while (num != 0) {
+	while (num != 0)
+	{
 		num /= 10;
 		count++;
 	}
@@ -574,89 +709,117 @@ int find_type_by_name(const char *name, const char *type)
 	char *filename;
 
 	dp = opendir(iio_dir);
-	if (!dp) {
+
+	if (!dp)
+	{
 		fprintf(stderr, "No industrialio devices available\n");
 		return -ENODEV;
 	}
 
-	while (ent = readdir(dp), ent) {
+	while (ent = readdir(dp), ent)
+	{
 		if (strcmp(ent->d_name, ".") != 0 &&
-		    strcmp(ent->d_name, "..") != 0 &&
-		    strlen(ent->d_name) > strlen(type) &&
-		    strncmp(ent->d_name, type, strlen(type)) == 0) {
+			strcmp(ent->d_name, "..") != 0 &&
+			strlen(ent->d_name) > strlen(type) &&
+			strncmp(ent->d_name, type, strlen(type)) == 0)
+		{
 			errno = 0;
 			ret = sscanf(ent->d_name + strlen(type), "%d", &number);
-			if (ret < 0) {
+
+			if (ret < 0)
+			{
 				ret = -errno;
 				fprintf(stderr,
-					"failed to read element number\n");
+						"failed to read element number\n");
 				goto error_close_dir;
-			} else if (ret != 1) {
+			}
+			else if (ret != 1)
+			{
 				ret = -EIO;
 				fprintf(stderr,
-					"failed to match element number\n");
+						"failed to match element number\n");
 				goto error_close_dir;
 			}
 
 			numstrlen = calc_digits(number);
+
 			/* verify the next character is not a colon */
 			if (strncmp(ent->d_name + strlen(type) + numstrlen,
-			    ":", 1) != 0) {
+						":", 1) != 0)
+			{
 				filename = malloc(strlen(iio_dir) + strlen(type)
-						  + numstrlen + 6);
-				if (!filename) {
+								  + numstrlen + 6);
+
+				if (!filename)
+				{
 					ret = -ENOMEM;
 					goto error_close_dir;
 				}
 
 				ret = sprintf(filename, "%s%s%d/name", iio_dir,
-					      type, number);
-				if (ret < 0) {
+							  type, number);
+
+				if (ret < 0)
+				{
 					free(filename);
 					goto error_close_dir;
 				}
 
 				namefp = fopen(filename, "r");
-				if (!namefp) {
+
+				if (!namefp)
+				{
 					free(filename);
 					continue;
 				}
 
 				free(filename);
 				errno = 0;
-				if (fscanf(namefp, "%s", thisname) != 1) {
+
+				if (fscanf(namefp, "%s", thisname) != 1)
+				{
 					ret = errno ? -errno : -ENODATA;
 					goto error_close_dir;
 				}
 
-				if (fclose(namefp)) {
+				if (fclose(namefp))
+				{
 					ret = -errno;
 					goto error_close_dir;
 				}
 
-				if (strcmp(name, thisname) == 0) {
+				if (strcmp(name, thisname) == 0)
+				{
 					if (closedir(dp) == -1)
+					{
 						return -errno;
+					}
 
 					return number;
 				}
 			}
 		}
 	}
+
 	if (closedir(dp) == -1)
+	{
 		return -errno;
+	}
 
 	return -ENODEV;
 
 error_close_dir:
+
 	if (closedir(dp) == -1)
+	{
 		perror("find_type_by_name(): Failed to close directory");
+	}
 
 	return ret;
 }
 
 static int _write_sysfs_int(const char *filename, const char *basedir, int val,
-			    int verify)
+							int verify)
 {
 	int ret = 0;
 	FILE *sysfsfp;
@@ -664,57 +827,78 @@ static int _write_sysfs_int(const char *filename, const char *basedir, int val,
 	char *temp = malloc(strlen(basedir) + strlen(filename) + 2);
 
 	if (!temp)
+	{
 		return -ENOMEM;
+	}
 
 	ret = sprintf(temp, "%s/%s", basedir, filename);
+
 	if (ret < 0)
+	{
 		goto error_free;
+	}
 
 	sysfsfp = fopen(temp, "w");
-	if (!sysfsfp) {
+
+	if (!sysfsfp)
+	{
 		ret = -errno;
 		fprintf(stderr, "failed to open %s\n", temp);
 		goto error_free;
 	}
 
 	ret = fprintf(sysfsfp, "%d", val);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		if (fclose(sysfsfp))
+		{
 			perror("_write_sysfs_int(): Failed to close dir");
+		}
 
 		goto error_free;
 	}
 
-	if (fclose(sysfsfp)) {
+	if (fclose(sysfsfp))
+	{
 		ret = -errno;
 		goto error_free;
 	}
 
-	if (verify) {
+	if (verify)
+	{
 		sysfsfp = fopen(temp, "r");
-		if (!sysfsfp) {
+
+		if (!sysfsfp)
+		{
 			ret = -errno;
 			fprintf(stderr, "failed to open %s\n", temp);
 			goto error_free;
 		}
 
-		if (fscanf(sysfsfp, "%d", &test) != 1) {
+		if (fscanf(sysfsfp, "%d", &test) != 1)
+		{
 			ret = errno ? -errno : -ENODATA;
+
 			if (fclose(sysfsfp))
+			{
 				perror("_write_sysfs_int(): Failed to close dir");
+			}
 
 			goto error_free;
 		}
 
-		if (fclose(sysfsfp)) {
+		if (fclose(sysfsfp))
+		{
 			ret = -errno;
 			goto error_free;
 		}
 
-		if (test != val) {
+		if (test != val)
+		{
 			fprintf(stderr,
-				"Possible failure in int write %d to %s/%s\n",
-				val, basedir, filename);
+					"Possible failure in int write %d to %s/%s\n",
+					val, basedir, filename);
 			ret = -1;
 		}
 	}
@@ -747,73 +931,93 @@ int write_sysfs_int(const char *filename, const char *basedir, int val)
  * Returns a value >= 0 on success, otherwise a negative error code.
  **/
 int write_sysfs_int_and_verify(const char *filename, const char *basedir,
-			       int val)
+							   int val)
 {
 	return _write_sysfs_int(filename, basedir, val, 1);
 }
 
 static int _write_sysfs_string(const char *filename, const char *basedir,
-			       const char *val, int verify)
+							   const char *val, int verify)
 {
 	int ret = 0;
 	FILE  *sysfsfp;
 	char *temp = malloc(strlen(basedir) + strlen(filename) + 2);
 
-	if (!temp) {
+	if (!temp)
+	{
 		fprintf(stderr, "Memory allocation failed\n");
 		return -ENOMEM;
 	}
 
 	ret = sprintf(temp, "%s/%s", basedir, filename);
+
 	if (ret < 0)
+	{
 		goto error_free;
+	}
 
 	sysfsfp = fopen(temp, "w");
-	if (!sysfsfp) {
+
+	if (!sysfsfp)
+	{
 		ret = -errno;
 		fprintf(stderr, "Could not open %s\n", temp);
 		goto error_free;
 	}
 
 	ret = fprintf(sysfsfp, "%s", val);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		if (fclose(sysfsfp))
+		{
 			perror("_write_sysfs_string(): Failed to close dir");
+		}
 
 		goto error_free;
 	}
 
-	if (fclose(sysfsfp)) {
+	if (fclose(sysfsfp))
+	{
 		ret = -errno;
 		goto error_free;
 	}
 
-	if (verify) {
+	if (verify)
+	{
 		sysfsfp = fopen(temp, "r");
-		if (!sysfsfp) {
+
+		if (!sysfsfp)
+		{
 			ret = -errno;
 			fprintf(stderr, "Could not open file to verify\n");
 			goto error_free;
 		}
 
-		if (fscanf(sysfsfp, "%s", temp) != 1) {
+		if (fscanf(sysfsfp, "%s", temp) != 1)
+		{
 			ret = errno ? -errno : -ENODATA;
+
 			if (fclose(sysfsfp))
+			{
 				perror("_write_sysfs_string(): Failed to close dir");
+			}
 
 			goto error_free;
 		}
 
-		if (fclose(sysfsfp)) {
+		if (fclose(sysfsfp))
+		{
 			ret = -errno;
 			goto error_free;
 		}
 
-		if (strcmp(temp, val) != 0) {
+		if (strcmp(temp, val) != 0)
+		{
 			fprintf(stderr,
-				"Possible failure in string write of %s "
-				"Should be %s written to %s/%s\n", temp, val,
-				basedir, filename);
+					"Possible failure in string write of %s "
+					"Should be %s written to %s/%s\n", temp, val,
+					basedir, filename);
 			ret = -1;
 		}
 	}
@@ -833,7 +1037,7 @@ error_free:
  * Returns a value >= 0 on success, otherwise a negative error code.
  **/
 int write_sysfs_string_and_verify(const char *filename, const char *basedir,
-				  const char *val)
+								  const char *val)
 {
 	return _write_sysfs_string(filename, basedir, val, 1);
 }
@@ -847,7 +1051,7 @@ int write_sysfs_string_and_verify(const char *filename, const char *basedir,
  * Returns a value >= 0 on success, otherwise a negative error code.
  **/
 int write_sysfs_string(const char *filename, const char *basedir,
-		       const char *val)
+					   const char *val)
 {
 	return _write_sysfs_string(filename, basedir, val, 0);
 }
@@ -866,32 +1070,45 @@ int read_sysfs_posint(const char *filename, const char *basedir)
 	FILE  *sysfsfp;
 	char *temp = malloc(strlen(basedir) + strlen(filename) + 2);
 
-	if (!temp) {
+	if (!temp)
+	{
 		fprintf(stderr, "Memory allocation failed");
 		return -ENOMEM;
 	}
 
 	ret = sprintf(temp, "%s/%s", basedir, filename);
+
 	if (ret < 0)
+	{
 		goto error_free;
+	}
 
 	sysfsfp = fopen(temp, "r");
-	if (!sysfsfp) {
+
+	if (!sysfsfp)
+	{
 		ret = -errno;
 		goto error_free;
 	}
 
 	errno = 0;
-	if (fscanf(sysfsfp, "%d\n", &ret) != 1) {
+
+	if (fscanf(sysfsfp, "%d\n", &ret) != 1)
+	{
 		ret = errno ? -errno : -ENODATA;
+
 		if (fclose(sysfsfp))
+		{
 			perror("read_sysfs_posint(): Failed to close dir");
+		}
 
 		goto error_free;
 	}
 
 	if (fclose(sysfsfp))
+	{
 		ret = -errno;
+	}
 
 error_free:
 	free(temp);
@@ -913,32 +1130,45 @@ int read_sysfs_float(const char *filename, const char *basedir, float *val)
 	FILE  *sysfsfp;
 	char *temp = malloc(strlen(basedir) + strlen(filename) + 2);
 
-	if (!temp) {
+	if (!temp)
+	{
 		fprintf(stderr, "Memory allocation failed");
 		return -ENOMEM;
 	}
 
 	ret = sprintf(temp, "%s/%s", basedir, filename);
+
 	if (ret < 0)
+	{
 		goto error_free;
+	}
 
 	sysfsfp = fopen(temp, "r");
-	if (!sysfsfp) {
+
+	if (!sysfsfp)
+	{
 		ret = -errno;
 		goto error_free;
 	}
 
 	errno = 0;
-	if (fscanf(sysfsfp, "%f\n", val) != 1) {
+
+	if (fscanf(sysfsfp, "%f\n", val) != 1)
+	{
 		ret = errno ? -errno : -ENODATA;
+
 		if (fclose(sysfsfp))
+		{
 			perror("read_sysfs_float(): Failed to close dir");
+		}
 
 		goto error_free;
 	}
 
 	if (fclose(sysfsfp))
+	{
 		ret = -errno;
+	}
 
 error_free:
 	free(temp);
@@ -960,32 +1190,45 @@ int read_sysfs_string(const char *filename, const char *basedir, char *str)
 	FILE  *sysfsfp;
 	char *temp = malloc(strlen(basedir) + strlen(filename) + 2);
 
-	if (!temp) {
+	if (!temp)
+	{
 		fprintf(stderr, "Memory allocation failed");
 		return -ENOMEM;
 	}
 
 	ret = sprintf(temp, "%s/%s", basedir, filename);
+
 	if (ret < 0)
+	{
 		goto error_free;
+	}
 
 	sysfsfp = fopen(temp, "r");
-	if (!sysfsfp) {
+
+	if (!sysfsfp)
+	{
 		ret = -errno;
 		goto error_free;
 	}
 
 	errno = 0;
-	if (fscanf(sysfsfp, "%s\n", str) != 1) {
+
+	if (fscanf(sysfsfp, "%s\n", str) != 1)
+	{
 		ret = errno ? -errno : -ENODATA;
+
 		if (fclose(sysfsfp))
+		{
 			perror("read_sysfs_string(): Failed to close dir");
+		}
 
 		goto error_free;
 	}
 
 	if (fclose(sysfsfp))
+	{
 		ret = -errno;
+	}
 
 error_free:
 	free(temp);

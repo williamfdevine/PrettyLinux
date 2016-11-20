@@ -16,24 +16,27 @@
 #if IS_ENABLED(CONFIG_NFS_V4)
 
 /* Sessions slot seqid */
-struct nfs4_slot {
+struct nfs4_slot
+{
 	struct nfs4_slot_table	*table;
 	struct nfs4_slot	*next;
 	unsigned long		generation;
 	u32			slot_nr;
 	u32		 	seq_nr;
 	unsigned int		interrupted : 1,
-				privileged : 1,
-				seq_done : 1;
+				   privileged : 1,
+				   seq_done : 1;
 };
 
 /* Sessions */
-enum nfs4_slot_tbl_state {
+enum nfs4_slot_tbl_state
+{
 	NFS4_SLOT_TBL_DRAINING,
 };
 
 #define SLOT_TABLE_SZ DIV_ROUND_UP(NFS4_MAX_SLOT_TABLE, 8*sizeof(long))
-struct nfs4_slot_table {
+struct nfs4_slot_table
+{
 	struct nfs4_session *session;		/* Parent session */
 	struct nfs4_slot *slots;		/* seqid per slot */
 	unsigned long   used_slots[SLOT_TABLE_SZ]; /* used/unused bitmap */
@@ -57,7 +60,8 @@ struct nfs4_slot_table {
 /*
  * Session related parameters
  */
-struct nfs4_session {
+struct nfs4_session
+{
 	struct nfs4_sessionid		sess_id;
 	u32				flags;
 	unsigned long			session_state;
@@ -72,24 +76,25 @@ struct nfs4_session {
 	struct nfs_client		*clp;
 };
 
-enum nfs4_session_state {
+enum nfs4_session_state
+{
 	NFS4_SESSION_INITING,
 	NFS4_SESSION_ESTABLISHED,
 };
 
 extern int nfs4_setup_slot_table(struct nfs4_slot_table *tbl,
-		unsigned int max_reqs, const char *queue);
+								 unsigned int max_reqs, const char *queue);
 extern void nfs4_shutdown_slot_table(struct nfs4_slot_table *tbl);
 extern struct nfs4_slot *nfs4_alloc_slot(struct nfs4_slot_table *tbl);
 extern struct nfs4_slot *nfs4_lookup_slot(struct nfs4_slot_table *tbl, u32 slotid);
 extern int nfs4_slot_wait_on_seqid(struct nfs4_slot_table *tbl,
-		u32 slotid, u32 seq_nr,
-		unsigned long timeout);
+								   u32 slotid, u32 seq_nr,
+								   unsigned long timeout);
 extern bool nfs4_try_to_lock_slot(struct nfs4_slot_table *tbl, struct nfs4_slot *slot);
 extern void nfs4_free_slot(struct nfs4_slot_table *tbl, struct nfs4_slot *slot);
 extern void nfs4_slot_tbl_drain_complete(struct nfs4_slot_table *tbl);
 bool nfs41_wake_and_assign_slot(struct nfs4_slot_table *tbl,
-		struct nfs4_slot *slot);
+								struct nfs4_slot *slot);
 void nfs41_wake_slot_table(struct nfs4_slot_table *tbl);
 
 static inline bool nfs4_slot_tbl_draining(struct nfs4_slot_table *tbl)
@@ -105,10 +110,10 @@ static inline bool nfs4_test_locked_slot(const struct nfs4_slot_table *tbl,
 
 #if defined(CONFIG_NFS_V4_1)
 extern void nfs41_set_target_slotid(struct nfs4_slot_table *tbl,
-		u32 target_highest_slotid);
+									u32 target_highest_slotid);
 extern void nfs41_update_target_slotid(struct nfs4_slot_table *tbl,
-		struct nfs4_slot *slot,
-		struct nfs4_sequence_res *res);
+									   struct nfs4_slot *slot,
+									   struct nfs4_sequence_res *res);
 
 extern int nfs4_setup_session_slot_tables(struct nfs4_session *ses);
 
@@ -123,19 +128,25 @@ extern int nfs4_init_ds_session(struct nfs_client *, unsigned long);
 static inline int nfs4_has_session(const struct nfs_client *clp)
 {
 	if (clp->cl_session)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
 static inline int nfs4_has_persistent_session(const struct nfs_client *clp)
 {
 	if (nfs4_has_session(clp))
+	{
 		return (clp->cl_session->flags & SESSION4_PERSIST);
+	}
+
 	return 0;
 }
 
 static inline void nfs4_copy_sessionid(struct nfs4_sessionid *dst,
-		const struct nfs4_sessionid *src)
+									   const struct nfs4_sessionid *src)
 {
 	memcpy(dst->data, src->data, NFS4_MAX_SESSIONID_LEN);
 }

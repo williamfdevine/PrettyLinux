@@ -19,19 +19,22 @@
 #include <linux/spi/lms283gf05.h>
 #include <linux/module.h>
 
-struct lms283gf05_state {
+struct lms283gf05_state
+{
 	struct spi_device	*spi;
 	struct lcd_device	*ld;
 };
 
-struct lms283gf05_seq {
+struct lms283gf05_seq
+{
 	unsigned char		reg;
 	unsigned short		value;
 	unsigned char		delay;
 };
 
 /* Magic sequences supplied by manufacturer, for details refer to datasheet */
-static const struct lms283gf05_seq disp_initseq[] = {
+static const struct lms283gf05_seq disp_initseq[] =
+{
 	/* REG, VALUE, DELAY */
 	{ 0x07, 0x0000, 0 },
 	{ 0x13, 0x0000, 10 },
@@ -78,7 +81,8 @@ static const struct lms283gf05_seq disp_initseq[] = {
 	{ 0x22, 0x0000, 0 }
 };
 
-static const struct lms283gf05_seq disp_pdwnseq[] = {
+static const struct lms283gf05_seq disp_pdwnseq[] =
+{
 	{ 0x07, 0x0016, 30 },
 
 	{ 0x07, 0x0004, 0 },
@@ -104,12 +108,13 @@ static void lms283gf05_reset(unsigned long gpio, bool inverted)
 }
 
 static void lms283gf05_toggle(struct spi_device *spi,
-				const struct lms283gf05_seq *seq, int sz)
+							  const struct lms283gf05_seq *seq, int sz)
 {
 	char buf[3];
 	int i;
 
-	for (i = 0; i < sz; i++) {
+	for (i = 0; i < sz; i++)
+	{
 		buf[0] = 0x74;
 		buf[1] = 0x00;
 		buf[2] = seq[i].reg;
@@ -130,22 +135,28 @@ static int lms283gf05_power_set(struct lcd_device *ld, int power)
 	struct spi_device *spi = st->spi;
 	struct lms283gf05_pdata *pdata = dev_get_platdata(&spi->dev);
 
-	if (power <= FB_BLANK_NORMAL) {
+	if (power <= FB_BLANK_NORMAL)
+	{
 		if (pdata)
 			lms283gf05_reset(pdata->reset_gpio,
-					pdata->reset_inverted);
+							 pdata->reset_inverted);
+
 		lms283gf05_toggle(spi, disp_initseq, ARRAY_SIZE(disp_initseq));
-	} else {
+	}
+	else
+	{
 		lms283gf05_toggle(spi, disp_pdwnseq, ARRAY_SIZE(disp_pdwnseq));
+
 		if (pdata)
 			gpio_set_value(pdata->reset_gpio,
-					pdata->reset_inverted);
+						   pdata->reset_inverted);
 	}
 
 	return 0;
 }
 
-static struct lcd_ops lms_ops = {
+static struct lcd_ops lms_ops =
+{
 	.set_power	= lms283gf05_power_set,
 	.get_power	= NULL,
 };
@@ -157,24 +168,34 @@ static int lms283gf05_probe(struct spi_device *spi)
 	struct lcd_device *ld;
 	int ret = 0;
 
-	if (pdata != NULL) {
+	if (pdata != NULL)
+	{
 		ret = devm_gpio_request_one(&spi->dev, pdata->reset_gpio,
-				GPIOF_DIR_OUT | (!pdata->reset_inverted ?
-				GPIOF_INIT_HIGH : GPIOF_INIT_LOW),
-				"LMS285GF05 RESET");
+									GPIOF_DIR_OUT | (!pdata->reset_inverted ?
+											GPIOF_INIT_HIGH : GPIOF_INIT_LOW),
+									"LMS285GF05 RESET");
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	st = devm_kzalloc(&spi->dev, sizeof(struct lms283gf05_state),
-				GFP_KERNEL);
+					  GFP_KERNEL);
+
 	if (st == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	ld = devm_lcd_device_register(&spi->dev, "lms283gf05", &spi->dev, st,
-					&lms_ops);
+								  &lms_ops);
+
 	if (IS_ERR(ld))
+	{
 		return PTR_ERR(ld);
+	}
 
 	st->spi = spi;
 	st->ld = ld;
@@ -183,13 +204,17 @@ static int lms283gf05_probe(struct spi_device *spi)
 
 	/* kick in the LCD */
 	if (pdata)
+	{
 		lms283gf05_reset(pdata->reset_gpio, pdata->reset_inverted);
+	}
+
 	lms283gf05_toggle(spi, disp_initseq, ARRAY_SIZE(disp_initseq));
 
 	return 0;
 }
 
-static struct spi_driver lms283gf05_driver = {
+static struct spi_driver lms283gf05_driver =
+{
 	.driver = {
 		.name	= "lms283gf05",
 	},

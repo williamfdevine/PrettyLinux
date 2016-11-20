@@ -38,7 +38,8 @@
 /* Size of a PFN in the balloon interface. */
 #define VIRTIO_BALLOON_PFN_SHIFT 12
 
-struct virtio_balloon_config {
+struct virtio_balloon_config
+{
 	/* Number of pages host wants Guest to give up. */
 	__u32 num_pages;
 	/* Number of pages we've actually got in balloon. */
@@ -77,7 +78,8 @@ struct virtio_balloon_config {
  * structure boundaries at field size, avoiding compiler padding
  * without the packed attribute.
  */
-struct virtio_balloon_stat {
+struct virtio_balloon_stat
+{
 	__virtio16 tag;
 	__virtio64 val;
 } __attribute__((packed));

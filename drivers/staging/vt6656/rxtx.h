@@ -34,7 +34,8 @@
 #define DEFAULT_MSDU_LIFETIME_RES_64us  8000
 
 /* MIC HDR data header */
-struct vnt_mic_hdr {
+struct vnt_mic_hdr
+{
 	u8 id;
 	u8 tx_priority;
 	u8 mic_addr2[6];
@@ -51,7 +52,8 @@ struct vnt_mic_hdr {
 } __packed;
 
 /* RsvTime buffer header */
-struct vnt_rrv_time_rts {
+struct vnt_rrv_time_rts
+{
 	__le16 rts_rrv_time_ba;
 	__le16 rts_rrv_time_aa;
 	__le16 rts_rrv_time_bb;
@@ -60,20 +62,23 @@ struct vnt_rrv_time_rts {
 	__le16 rrv_time_a;
 } __packed;
 
-struct vnt_rrv_time_cts {
+struct vnt_rrv_time_cts
+{
 	__le16 cts_rrv_time_ba;
 	u16 wReserved;
 	__le16 rrv_time_b;
 	__le16 rrv_time_a;
 } __packed;
 
-struct vnt_rrv_time_ab {
+struct vnt_rrv_time_ab
+{
 	__le16 rts_rrv_time;
 	__le16 rrv_time;
 } __packed;
 
 /* TX data header */
-struct vnt_tx_datahead_g {
+struct vnt_tx_datahead_g
+{
 	struct vnt_phy_field b;
 	struct vnt_phy_field a;
 	__le16 duration_b;
@@ -83,7 +88,8 @@ struct vnt_tx_datahead_g {
 	struct ieee80211_hdr hdr;
 } __packed;
 
-struct vnt_tx_datahead_g_fb {
+struct vnt_tx_datahead_g_fb
+{
 	struct vnt_phy_field b;
 	struct vnt_phy_field a;
 	__le16 duration_b;
@@ -95,14 +101,16 @@ struct vnt_tx_datahead_g_fb {
 	struct ieee80211_hdr hdr;
 } __packed;
 
-struct vnt_tx_datahead_ab {
+struct vnt_tx_datahead_ab
+{
 	struct vnt_phy_field ab;
 	__le16 duration;
 	__le16 time_stamp_off;
 	struct ieee80211_hdr hdr;
 } __packed;
 
-struct vnt_tx_datahead_a_fb {
+struct vnt_tx_datahead_a_fb
+{
 	struct vnt_phy_field a;
 	__le16 duration;
 	__le16 time_stamp_off;
@@ -112,7 +120,8 @@ struct vnt_tx_datahead_a_fb {
 } __packed;
 
 /* RTS buffer header */
-struct vnt_rts_g {
+struct vnt_rts_g
+{
 	struct vnt_phy_field b;
 	struct vnt_phy_field a;
 	__le16 duration_ba;
@@ -123,7 +132,8 @@ struct vnt_rts_g {
 	struct vnt_tx_datahead_g data_head;
 } __packed;
 
-struct vnt_rts_g_fb {
+struct vnt_rts_g_fb
+{
 	struct vnt_phy_field b;
 	struct vnt_phy_field a;
 	__le16 duration_ba;
@@ -138,7 +148,8 @@ struct vnt_rts_g_fb {
 	struct vnt_tx_datahead_g_fb data_head;
 } __packed;
 
-struct vnt_rts_ab {
+struct vnt_rts_ab
+{
 	struct vnt_phy_field ab;
 	__le16 duration;
 	u16 wReserved;
@@ -146,7 +157,8 @@ struct vnt_rts_ab {
 	struct vnt_tx_datahead_ab data_head;
 } __packed;
 
-struct vnt_rts_a_fb {
+struct vnt_rts_a_fb
+{
 	struct vnt_phy_field a;
 	__le16 duration;
 	u16 wReserved;
@@ -157,7 +169,8 @@ struct vnt_rts_a_fb {
 } __packed;
 
 /* CTS buffer header */
-struct vnt_cts {
+struct vnt_cts
+{
 	struct vnt_phy_field b;
 	__le16 duration_ba;
 	u16 wReserved;
@@ -166,7 +179,8 @@ struct vnt_cts {
 	struct vnt_tx_datahead_g data_head;
 } __packed;
 
-struct vnt_cts_fb {
+struct vnt_cts_fb
+{
 	struct vnt_phy_field b;
 	__le16 duration_ba;
 	u16 wReserved;
@@ -177,7 +191,8 @@ struct vnt_cts_fb {
 	struct vnt_tx_datahead_g_fb data_head;
 } __packed;
 
-union vnt_tx_data_head {
+union vnt_tx_data_head
+{
 	/* rts g */
 	struct vnt_rts_g rts_g;
 	struct vnt_rts_g_fb rts_g_fb;
@@ -192,32 +207,39 @@ union vnt_tx_data_head {
 	struct vnt_tx_datahead_ab data_head_ab;
 };
 
-struct vnt_tx_mic_hdr {
+struct vnt_tx_mic_hdr
+{
 	struct vnt_mic_hdr hdr;
 	union vnt_tx_data_head head;
 } __packed;
 
-union vnt_tx {
+union vnt_tx
+{
 	struct vnt_tx_mic_hdr mic;
 	union vnt_tx_data_head head;
 };
 
-union vnt_tx_head {
-	struct {
+union vnt_tx_head
+{
+	struct
+	{
 		struct vnt_rrv_time_rts rts;
 		union vnt_tx tx;
 	} __packed tx_rts;
-	struct {
+	struct
+	{
 		struct vnt_rrv_time_cts cts;
 		union vnt_tx tx;
 	} __packed tx_cts;
-	struct {
+	struct
+	{
 		struct vnt_rrv_time_ab ab;
 		union vnt_tx tx;
 	} __packed tx_ab;
 };
 
-struct vnt_tx_fifo_head {
+struct vnt_tx_fifo_head
+{
 	u8 tx_key[WLAN_KEY_LEN_CCMP];
 	__le16 fifo_ctl;
 	__le16 time_stamp;
@@ -225,7 +247,8 @@ struct vnt_tx_fifo_head {
 	__le16 current_rate;
 } __packed;
 
-struct vnt_tx_buffer {
+struct vnt_tx_buffer
+{
 	u8 type;
 	u8 pkt_no;
 	__le16 tx_byte_count;
@@ -233,7 +256,8 @@ struct vnt_tx_buffer {
 	union vnt_tx_head tx_head;
 } __packed;
 
-struct vnt_tx_short_buf_head {
+struct vnt_tx_short_buf_head
+{
 	__le16 fifo_ctl;
 	u16 time_stamp;
 	struct vnt_phy_field ab;
@@ -241,7 +265,8 @@ struct vnt_tx_short_buf_head {
 	__le16 time_stamp_off;
 } __packed;
 
-struct vnt_beacon_buffer {
+struct vnt_beacon_buffer
+{
 	u8 type;
 	u8 pkt_no;
 	__le16 tx_byte_count;
@@ -252,6 +277,6 @@ struct vnt_beacon_buffer {
 int vnt_tx_packet(struct vnt_private *, struct sk_buff *);
 int vnt_beacon_make(struct vnt_private *, struct ieee80211_vif *);
 int vnt_beacon_enable(struct vnt_private *, struct ieee80211_vif *,
-	struct ieee80211_bss_conf *);
+					  struct ieee80211_bss_conf *);
 
 #endif /* __RXTX_H__ */

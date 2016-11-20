@@ -18,7 +18,8 @@
 #define SDIAS_EVSTATE_NO_DATA		0x3
 #define SDIAS_EVSTATE_PART_STORED	0x10
 
-struct sdias_evbuf {
+struct sdias_evbuf
+{
 	struct	evbuf_header hdr;
 	u8	event_qual;
 	u8	data_id;
@@ -38,7 +39,8 @@ struct sdias_evbuf {
 	u16	dbs;
 } __packed;
 
-struct sdias_sccb {
+struct sdias_sccb
+{
 	struct sccb_header	hdr;
 	struct sdias_evbuf	evbuf;
 } __packed;

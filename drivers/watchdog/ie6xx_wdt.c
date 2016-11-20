@@ -63,23 +63,24 @@
 static unsigned int timeout = DEFAULT_TIME;
 module_param(timeout, uint, 0);
 MODULE_PARM_DESC(timeout,
-		"Default Watchdog timer setting ("
-		__MODULE_STRING(DEFAULT_TIME) "s)."
-		"The range is from 1 to 600");
+				 "Default Watchdog timer setting ("
+				 __MODULE_STRING(DEFAULT_TIME) "s)."
+				 "The range is from 1 to 600");
 
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-	"Watchdog cannot be stopped once started (default="
-		__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 static u8 resetmode = 0x10;
 module_param(resetmode, byte, 0);
 MODULE_PARM_DESC(resetmode,
-	"Resetmode bits: 0x08 warm reset (cold reset otherwise), "
-	"0x10 reset enable, 0x20 disable toggle GPIO[4] (default=0x10)");
+				 "Resetmode bits: 0x08 warm reset (cold reset otherwise), "
+				 "0x10 reset enable, 0x20 disable toggle GPIO[4] (default=0x10)");
 
-static struct {
+static struct
+{
 	unsigned short sch_wdtba;
 	struct spinlock unlock_sequence;
 #ifdef CONFIG_DEBUG_FS
@@ -159,7 +160,9 @@ static int ie6xx_wdt_start(struct watchdog_device *wdd)
 static int ie6xx_wdt_stop(struct watchdog_device *wdd)
 {
 	if (inb(ie6xx_wdt_data.sch_wdtba + WDTLR) & WDT_LOCK)
+	{
 		return -1;
+	}
 
 	/* Disable the watchdog timer */
 	spin_lock(&ie6xx_wdt_data.unlock_sequence);
@@ -169,14 +172,16 @@ static int ie6xx_wdt_stop(struct watchdog_device *wdd)
 	return 0;
 }
 
-static const struct watchdog_info ie6xx_wdt_info = {
+static const struct watchdog_info ie6xx_wdt_info =
+{
 	.identity =	"Intel Atom E6xx Watchdog",
 	.options =	WDIOF_SETTIMEOUT |
-			WDIOF_MAGICCLOSE |
-			WDIOF_KEEPALIVEPING,
+	WDIOF_MAGICCLOSE |
+	WDIOF_KEEPALIVEPING,
 };
 
-static const struct watchdog_ops ie6xx_wdt_ops = {
+static const struct watchdog_ops ie6xx_wdt_ops =
+{
 	.owner =	THIS_MODULE,
 	.start =	ie6xx_wdt_start,
 	.stop =		ie6xx_wdt_stop,
@@ -184,7 +189,8 @@ static const struct watchdog_ops ie6xx_wdt_ops = {
 	.set_timeout =	ie6xx_wdt_set_timeout,
 };
 
-static struct watchdog_device ie6xx_wdt_dev = {
+static struct watchdog_device ie6xx_wdt_dev =
+{
 	.info =		&ie6xx_wdt_info,
 	.ops =		&ie6xx_wdt_ops,
 	.min_timeout =	MIN_TIME,
@@ -196,17 +202,17 @@ static struct watchdog_device ie6xx_wdt_dev = {
 static int ie6xx_wdt_dbg_show(struct seq_file *s, void *unused)
 {
 	seq_printf(s, "PV1   = 0x%08x\n",
-		inl(ie6xx_wdt_data.sch_wdtba + PV1));
+			   inl(ie6xx_wdt_data.sch_wdtba + PV1));
 	seq_printf(s, "PV2   = 0x%08x\n",
-		inl(ie6xx_wdt_data.sch_wdtba + PV2));
+			   inl(ie6xx_wdt_data.sch_wdtba + PV2));
 	seq_printf(s, "RR    = 0x%08x\n",
-		inw(ie6xx_wdt_data.sch_wdtba + RR0));
+			   inw(ie6xx_wdt_data.sch_wdtba + RR0));
 	seq_printf(s, "WDTCR = 0x%08x\n",
-		inw(ie6xx_wdt_data.sch_wdtba + WDTCR));
+			   inw(ie6xx_wdt_data.sch_wdtba + WDTCR));
 	seq_printf(s, "DCR   = 0x%08x\n",
-		inl(ie6xx_wdt_data.sch_wdtba + DCR));
+			   inl(ie6xx_wdt_data.sch_wdtba + DCR));
 	seq_printf(s, "WDTLR = 0x%08x\n",
-		inw(ie6xx_wdt_data.sch_wdtba + WDTLR));
+			   inw(ie6xx_wdt_data.sch_wdtba + WDTLR));
 
 	seq_printf(s, "\n");
 	return 0;
@@ -217,7 +223,8 @@ static int ie6xx_wdt_dbg_open(struct inode *inode, struct file *file)
 	return single_open(file, ie6xx_wdt_dbg_show, NULL);
 }
 
-static const struct file_operations ie6xx_wdt_dbg_operations = {
+static const struct file_operations ie6xx_wdt_dbg_operations =
+{
 	.open		= ie6xx_wdt_dbg_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -228,7 +235,7 @@ static void ie6xx_wdt_debugfs_init(void)
 {
 	/* /sys/kernel/debug/ie6xx_wdt */
 	ie6xx_wdt_data.debugfs = debugfs_create_file("ie6xx_wdt",
-		S_IFREG | S_IRUGO, NULL, NULL, &ie6xx_wdt_dbg_operations);
+							 S_IFREG | S_IRUGO, NULL, NULL, &ie6xx_wdt_dbg_operations);
 }
 
 static void ie6xx_wdt_debugfs_exit(void)
@@ -253,12 +260,16 @@ static int ie6xx_wdt_probe(struct platform_device *pdev)
 	int ret;
 
 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
-	if (!res)
-		return -ENODEV;
 
-	if (!request_region(res->start, resource_size(res), pdev->name)) {
+	if (!res)
+	{
+		return -ENODEV;
+	}
+
+	if (!request_region(res->start, resource_size(res), pdev->name))
+	{
 		dev_err(&pdev->dev, "Watchdog region 0x%llx already in use!\n",
-			(u64)res->start);
+				(u64)res->start);
 		return -EBUSY;
 	}
 
@@ -272,17 +283,20 @@ static int ie6xx_wdt_probe(struct platform_device *pdev)
 	spin_lock_init(&ie6xx_wdt_data.unlock_sequence);
 
 	wdtlr = inb(ie6xx_wdt_data.sch_wdtba + WDTLR);
+
 	if (wdtlr & WDT_LOCK)
 		dev_warn(&pdev->dev,
-			"Watchdog Timer is Locked (Reg=0x%x)\n", wdtlr);
+				 "Watchdog Timer is Locked (Reg=0x%x)\n", wdtlr);
 
 	ie6xx_wdt_debugfs_init();
 
 	ret = watchdog_register_device(&ie6xx_wdt_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev,
-			"Watchdog timer: cannot register device (err =%d)\n",
-									ret);
+				"Watchdog timer: cannot register device (err =%d)\n",
+				ret);
 		goto misc_register_error;
 	}
 
@@ -309,7 +323,8 @@ static int ie6xx_wdt_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ie6xx_wdt_driver = {
+static struct platform_driver ie6xx_wdt_driver =
+{
 	.probe		= ie6xx_wdt_probe,
 	.remove		= ie6xx_wdt_remove,
 	.driver		= {
@@ -322,10 +337,11 @@ static int __init ie6xx_wdt_init(void)
 	/* Check boot parameters to verify that their initial values */
 	/* are in range. */
 	if ((timeout < MIN_TIME) ||
-	    (timeout > MAX_TIME)) {
+		(timeout > MAX_TIME))
+	{
 		pr_err("Watchdog timer: value of timeout %d (dec) "
-		  "is out of range from %d to %d (dec)\n",
-		  timeout, MIN_TIME, MAX_TIME);
+			   "is out of range from %d to %d (dec)\n",
+			   timeout, MIN_TIME, MAX_TIME);
 		return -EINVAL;
 	}
 

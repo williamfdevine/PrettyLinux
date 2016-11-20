@@ -21,7 +21,8 @@
 #ifndef	__MACH_PATA_PXA_H__
 #define	__MACH_PATA_PXA_H__
 
-struct pata_pxa_pdata {
+struct pata_pxa_pdata
+{
 	/* PXA DMA DREQ<0:2> pin */
 	uint32_t	dma_dreq;
 	/* Register shift */

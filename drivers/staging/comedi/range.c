@@ -55,7 +55,7 @@ EXPORT_SYMBOL_GPL(range_unknown);
  *	array of comedi_krange structures to rangeinfo->range_ptr pointer
  */
 int do_rangeinfo_ioctl(struct comedi_device *dev,
-		       struct comedi_rangeinfo __user *arg)
+					   struct comedi_rangeinfo __user *arg)
 {
 	struct comedi_rangeinfo it;
 	int subd, chan;
@@ -63,36 +63,57 @@ int do_rangeinfo_ioctl(struct comedi_device *dev,
 	struct comedi_subdevice *s;
 
 	if (copy_from_user(&it, arg, sizeof(struct comedi_rangeinfo)))
+	{
 		return -EFAULT;
+	}
+
 	subd = (it.range_type >> 24) & 0xf;
 	chan = (it.range_type >> 16) & 0xff;
 
 	if (!dev->attached)
-		return -EINVAL;
-	if (subd >= dev->n_subdevices)
-		return -EINVAL;
-	s = &dev->subdevices[subd];
-	if (s->range_table) {
-		lr = s->range_table;
-	} else if (s->range_table_list) {
-		if (chan >= s->n_chan)
-			return -EINVAL;
-		lr = s->range_table_list[chan];
-	} else {
+	{
 		return -EINVAL;
 	}
 
-	if (RANGE_LENGTH(it.range_type) != lr->length) {
+	if (subd >= dev->n_subdevices)
+	{
+		return -EINVAL;
+	}
+
+	s = &dev->subdevices[subd];
+
+	if (s->range_table)
+	{
+		lr = s->range_table;
+	}
+	else if (s->range_table_list)
+	{
+		if (chan >= s->n_chan)
+		{
+			return -EINVAL;
+		}
+
+		lr = s->range_table_list[chan];
+	}
+	else
+	{
+		return -EINVAL;
+	}
+
+	if (RANGE_LENGTH(it.range_type) != lr->length)
+	{
 		dev_dbg(dev->class_dev,
-			"wrong length %d should be %d (0x%08x)\n",
-			RANGE_LENGTH(it.range_type),
-			lr->length, it.range_type);
+				"wrong length %d should be %d (0x%08x)\n",
+				RANGE_LENGTH(it.range_type),
+				lr->length, it.range_type);
 		return -EINVAL;
 	}
 
 	if (copy_to_user(it.range_ptr, lr->range,
-			 sizeof(struct comedi_krange) * lr->length))
+					 sizeof(struct comedi_krange) * lr->length))
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 }
@@ -115,29 +136,40 @@ int do_rangeinfo_ioctl(struct comedi_device *dev,
  *         %-EINVAL if one or more elements are invalid.
  */
 int comedi_check_chanlist(struct comedi_subdevice *s, int n,
-			  unsigned int *chanlist)
+						  unsigned int *chanlist)
 {
 	struct comedi_device *dev = s->device;
 	unsigned int chanspec;
 	int chan, range_len, i;
 
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		chanspec = chanlist[i];
 		chan = CR_CHAN(chanspec);
+
 		if (s->range_table)
+		{
 			range_len = s->range_table->length;
+		}
 		else if (s->range_table_list && chan < s->n_chan)
+		{
 			range_len = s->range_table_list[chan]->length;
+		}
 		else
+		{
 			range_len = 0;
+		}
+
 		if (chan >= s->n_chan ||
-		    CR_RANGE(chanspec) >= range_len) {
+			CR_RANGE(chanspec) >= range_len)
+		{
 			dev_warn(dev->class_dev,
-				 "bad chanlist[%d]=0x%08x chan=%d range length=%d\n",
-				 i, chanspec, chan, range_len);
+					 "bad chanlist[%d]=0x%08x chan=%d range length=%d\n",
+					 i, chanspec, chan, range_len);
 			return -EINVAL;
 		}
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(comedi_check_chanlist);

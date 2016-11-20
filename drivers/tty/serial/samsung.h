@@ -14,7 +14,8 @@
 
 #include <linux/dmaengine.h>
 
-struct s3c24xx_uart_info {
+struct s3c24xx_uart_info
+{
 	char			*name;
 	unsigned int		type;
 	unsigned int		fifosize;
@@ -31,19 +32,21 @@ struct s3c24xx_uart_info {
 
 	/* uart port features */
 
-	unsigned int		has_divslot:1;
+	unsigned int		has_divslot: 1;
 
 	/* uart controls */
 	int (*reset_port)(struct uart_port *, struct s3c2410_uartcfg *);
 };
 
-struct s3c24xx_serial_drv_data {
+struct s3c24xx_serial_drv_data
+{
 	struct s3c24xx_uart_info	*info;
 	struct s3c2410_uartcfg		*def_cfg;
 	unsigned int			fifosize[CONFIG_SERIAL_SAMSUNG_UARTS];
 };
 
-struct s3c24xx_uart_dma {
+struct s3c24xx_uart_dma
+{
 	dma_filter_fn			fn;
 	void				*rx_param;
 	void				*tx_param;
@@ -77,7 +80,8 @@ struct s3c24xx_uart_dma {
 	int				rx_bytes_requested;
 };
 
-struct s3c24xx_uart_port {
+struct s3c24xx_uart_port
+{
 	unsigned char			rx_claimed;
 	unsigned char			tx_claimed;
 	unsigned int			pm_level;
@@ -126,7 +130,7 @@ struct s3c24xx_uart_port {
 /* Byte-order aware bit setting/clearing functions. */
 
 static inline void s3c24xx_set_bit(struct uart_port *port, int idx,
-				   unsigned int reg)
+								   unsigned int reg)
 {
 	unsigned long flags;
 	u32 val;
@@ -139,7 +143,7 @@ static inline void s3c24xx_set_bit(struct uart_port *port, int idx,
 }
 
 static inline void s3c24xx_clear_bit(struct uart_port *port, int idx,
-				     unsigned int reg)
+									 unsigned int reg)
 {
 	unsigned long flags;
 	u32 val;

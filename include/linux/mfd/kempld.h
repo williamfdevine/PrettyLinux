@@ -64,7 +64,8 @@
  * @spec_minor:	PLD FW specification minor revision
  * @version:	PLD version string
  */
-struct kempld_info {
+struct kempld_info
+{
 	unsigned int major;
 	unsigned int minor;
 	unsigned int buildnr;
@@ -86,7 +87,8 @@ struct kempld_info {
  * @info:		KEMPLD info structure
  * @lock:		PLD mutex
  */
-struct kempld_device_data {
+struct kempld_device_data
+{
 	void __iomem		*io_base;
 	void __iomem		*io_index;
 	void __iomem		*io_data;
@@ -107,7 +109,8 @@ struct kempld_device_data {
  * @get_info:			PLD specific get_info callback
  * @register_cells:		PLD specific register_cells callback
  */
-struct kempld_platform_data {
+struct kempld_platform_data
+{
 	u32				pld_clock;
 	int				gpio_base;
 	struct resource			*ioresource;

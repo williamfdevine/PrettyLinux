@@ -9,12 +9,13 @@
 #include <video/mach64.h>
 #include "atyfb.h"
 
-    /*
-     *  Generic Mach64 routines
-     */
+/*
+ *  Generic Mach64 routines
+ */
 
 /* this is for DMA GUI engine! work in progress */
-typedef struct {
+typedef struct
+{
 	u32 frame_buf_offset;
 	u32 system_mem_addr;
 	u32 command;
@@ -27,9 +28,13 @@ typedef struct {
 static u32 rotation24bpp(u32 dx, u32 direction)
 {
 	u32 rotation;
-	if (direction & DST_X_LEFT_TO_RIGHT) {
+
+	if (direction & DST_X_LEFT_TO_RIGHT)
+	{
 		rotation = (dx / 4) % 6;
-	} else {
+	}
+	else
+	{
 		rotation = ((dx + 2) / 4) % 6;
 	}
 
@@ -40,15 +45,15 @@ void aty_reset_engine(const struct atyfb_par *par)
 {
 	/* reset engine */
 	aty_st_le32(GEN_TEST_CNTL,
-		aty_ld_le32(GEN_TEST_CNTL, par) &
-		~(GUI_ENGINE_ENABLE | HWCURSOR_ENABLE), par);
+				aty_ld_le32(GEN_TEST_CNTL, par) &
+				~(GUI_ENGINE_ENABLE | HWCURSOR_ENABLE), par);
 	/* enable engine */
 	aty_st_le32(GEN_TEST_CNTL,
-		aty_ld_le32(GEN_TEST_CNTL, par) | GUI_ENGINE_ENABLE, par);
+				aty_ld_le32(GEN_TEST_CNTL, par) | GUI_ENGINE_ENABLE, par);
 	/* ensure engine is not locked up by clearing any FIFO or */
 	/* HOST errors */
 	aty_st_le32(BUS_CNTL,
-		aty_ld_le32(BUS_CNTL, par) | BUS_HOST_ERR_ACK | BUS_FIFO_ERR_ACK, par);
+				aty_ld_le32(BUS_CNTL, par) | BUS_HOST_ERR_ACK | BUS_FIFO_ERR_ACK, par);
 }
 
 static void reset_GTC_3D_engine(const struct atyfb_par *par)
@@ -70,7 +75,8 @@ void aty_init_engine(struct atyfb_par *par, struct fb_info *info)
 	pitch_value = info->fix.line_length / (info->var.bits_per_pixel / 8);
 	vxres = info->var.xres_virtual;
 
-	if (info->var.bits_per_pixel == 24) {
+	if (info->var.bits_per_pixel == 24)
+	{
 		/* In 24 bpp, the engine is in 8 bpp - this requires that all */
 		/* horizontal coordinates and widths must be adjusted */
 		pitch_value *= 3;
@@ -79,7 +85,9 @@ void aty_init_engine(struct atyfb_par *par, struct fb_info *info)
 
 	/* On GTC (RagePro), we need to reset the 3D engine before */
 	if (M64_HAS(RESET_3D))
+	{
 		reset_GTC_3D_engine(par);
+	}
 
 	/* Reset engine, enable, and clear any engine errors */
 	aty_reset_engine(par);
@@ -110,7 +118,7 @@ void aty_init_engine(struct atyfb_par *par, struct fb_info *info)
 
 	/* set destination drawing attributes */
 	aty_st_le32(DST_CNTL, DST_LAST_PEL | DST_Y_TOP_TO_BOTTOM |
-		    DST_X_LEFT_TO_RIGHT, par);
+				DST_X_LEFT_TO_RIGHT, par);
 
 	/* set source pitch to modal pitch, set offset to zero */
 	aty_st_le32(SRC_OFF_PITCH, (pitch_value / 8) << 22, par);
@@ -169,22 +177,22 @@ void aty_init_engine(struct atyfb_par *par, struct fb_info *info)
 	aty_st_le32(DP_CHAIN_MASK, par->crtc.dp_chain_mask, par);
 
 	wait_for_fifo(5, par);
- 	aty_st_le32(SCALE_3D_CNTL, 0, par);
+	aty_st_le32(SCALE_3D_CNTL, 0, par);
 	aty_st_le32(Z_CNTL, 0, par);
 	aty_st_le32(CRTC_INT_CNTL, aty_ld_le32(CRTC_INT_CNTL, par) & ~0x20,
-		    par);
+				par);
 	aty_st_le32(GUI_TRAJ_CNTL, 0x100023, par);
 
 	/* insure engine is idle before leaving */
 	wait_for_idle(par);
 }
 
-    /*
-     *  Accelerated functions
-     */
+/*
+ *  Accelerated functions
+ */
 
 static inline void draw_rect(s16 x, s16 y, u16 width, u16 height,
-			     struct atyfb_par *par)
+							 struct atyfb_par *par)
 {
 	/* perform rectangle fill */
 	wait_for_fifo(2, par);
@@ -200,15 +208,23 @@ void atyfb_copyarea(struct fb_info *info, const struct fb_copyarea *area)
 	u32 sx = area->sx, dx = area->dx, width = area->width, rotation = 0;
 
 	if (par->asleep)
+	{
 		return;
+	}
+
 	if (!area->width || !area->height)
+	{
 		return;
-	if (!par->accel_flags) {
+	}
+
+	if (!par->accel_flags)
+	{
 		cfb_copyarea(info, area);
 		return;
 	}
 
-	if (info->var.bits_per_pixel == 24) {
+	if (info->var.bits_per_pixel == 24)
+	{
 		/* In 24 bpp, the engine is in 8 bpp - this requires that all */
 		/* horizontal coordinates and widths must be adjusted */
 		sx *= 3;
@@ -216,19 +232,28 @@ void atyfb_copyarea(struct fb_info *info, const struct fb_copyarea *area)
 		width *= 3;
 	}
 
-	if (area->sy < area->dy) {
+	if (area->sy < area->dy)
+	{
 		dy += area->height - 1;
 		sy += area->height - 1;
-	} else
+	}
+	else
+	{
 		direction |= DST_Y_TOP_TO_BOTTOM;
+	}
 
-	if (sx < dx) {
+	if (sx < dx)
+	{
 		dx += width - 1;
 		sx += width - 1;
-	} else
+	}
+	else
+	{
 		direction |= DST_X_LEFT_TO_RIGHT;
+	}
 
-	if (info->var.bits_per_pixel == 24) {
+	if (info->var.bits_per_pixel == 24)
+	{
 		rotation = rotation24bpp(dx, direction);
 	}
 
@@ -246,21 +271,33 @@ void atyfb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
 	u32 color, dx = rect->dx, width = rect->width, rotation = 0;
 
 	if (par->asleep)
+	{
 		return;
+	}
+
 	if (!rect->width || !rect->height)
+	{
 		return;
-	if (!par->accel_flags) {
+	}
+
+	if (!par->accel_flags)
+	{
 		cfb_fillrect(info, rect);
 		return;
 	}
 
 	if (info->fix.visual == FB_VISUAL_TRUECOLOR ||
-	    info->fix.visual == FB_VISUAL_DIRECTCOLOR)
+		info->fix.visual == FB_VISUAL_DIRECTCOLOR)
+	{
 		color = ((u32 *)(info->pseudo_palette))[rect->color];
+	}
 	else
+	{
 		color = rect->color;
+	}
 
-	if (info->var.bits_per_pixel == 24) {
+	if (info->var.bits_per_pixel == 24)
+	{
 		/* In 24 bpp, the engine is in 8 bpp - this requires that all */
 		/* horizontal coordinates and widths must be adjusted */
 		dx *= 3;
@@ -271,11 +308,11 @@ void atyfb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
 	wait_for_fifo(3, par);
 	aty_st_le32(DP_FRGD_CLR, color, par);
 	aty_st_le32(DP_SRC,
-		    BKGD_SRC_BKGD_CLR | FRGD_SRC_FRGD_CLR | MONO_SRC_ONE,
-		    par);
+				BKGD_SRC_BKGD_CLR | FRGD_SRC_FRGD_CLR | MONO_SRC_ONE,
+				par);
 	aty_st_le32(DST_CNTL,
-		    DST_LAST_PEL | DST_Y_TOP_TO_BOTTOM |
-		    DST_X_LEFT_TO_RIGHT | rotation, par);
+				DST_LAST_PEL | DST_Y_TOP_TO_BOTTOM |
+				DST_X_LEFT_TO_RIGHT | rotation, par);
 	draw_rect(dx, rect->dy, width, rect->height, par);
 }
 
@@ -286,11 +323,18 @@ void atyfb_imageblit(struct fb_info *info, const struct fb_image *image)
 	u32 pix_width_save, pix_width, host_cntl, rotation = 0, src, mix;
 
 	if (par->asleep)
+	{
 		return;
+	}
+
 	if (!image->width || !image->height)
+	{
 		return;
+	}
+
 	if (!par->accel_flags ||
-	    (image->depth != 1 && info->var.bits_per_pixel != image->depth)) {
+		(image->depth != 1 && info->var.bits_per_pixel != image->depth))
+	{
 		cfb_imageblit(info, image);
 		return;
 	}
@@ -298,38 +342,46 @@ void atyfb_imageblit(struct fb_info *info, const struct fb_image *image)
 	pix_width = pix_width_save = aty_ld_le32(DP_PIX_WIDTH, par);
 	host_cntl = aty_ld_le32(HOST_CNTL, par) | HOST_BYTE_ALIGN;
 
-	switch (image->depth) {
-	case 1:
-	    pix_width &= ~(BYTE_ORDER_MASK | HOST_MASK);
-	    pix_width |= (BYTE_ORDER_MSB_TO_LSB | HOST_1BPP);
-	    break;
-	case 4:
-	    pix_width &= ~(BYTE_ORDER_MASK | HOST_MASK);
-	    pix_width |= (BYTE_ORDER_MSB_TO_LSB | HOST_4BPP);
-	    break;
-	case 8:
-	    pix_width &= ~HOST_MASK;
-	    pix_width |= HOST_8BPP;
-	    break;
-	case 15:
-	    pix_width &= ~HOST_MASK;
-	    pix_width |= HOST_15BPP;
-	    break;
-	case 16:
-	    pix_width &= ~HOST_MASK;
-	    pix_width |= HOST_16BPP;
-	    break;
-	case 24:
-	    pix_width &= ~HOST_MASK;
-	    pix_width |= HOST_24BPP;
-	    break;
-	case 32:
-	    pix_width &= ~HOST_MASK;
-	    pix_width |= HOST_32BPP;
-	    break;
+	switch (image->depth)
+	{
+		case 1:
+			pix_width &= ~(BYTE_ORDER_MASK | HOST_MASK);
+			pix_width |= (BYTE_ORDER_MSB_TO_LSB | HOST_1BPP);
+			break;
+
+		case 4:
+			pix_width &= ~(BYTE_ORDER_MASK | HOST_MASK);
+			pix_width |= (BYTE_ORDER_MSB_TO_LSB | HOST_4BPP);
+			break;
+
+		case 8:
+			pix_width &= ~HOST_MASK;
+			pix_width |= HOST_8BPP;
+			break;
+
+		case 15:
+			pix_width &= ~HOST_MASK;
+			pix_width |= HOST_15BPP;
+			break;
+
+		case 16:
+			pix_width &= ~HOST_MASK;
+			pix_width |= HOST_16BPP;
+			break;
+
+		case 24:
+			pix_width &= ~HOST_MASK;
+			pix_width |= HOST_24BPP;
+			break;
+
+		case 32:
+			pix_width &= ~HOST_MASK;
+			pix_width |= HOST_32BPP;
+			break;
 	}
 
-	if (info->var.bits_per_pixel == 24) {
+	if (info->var.bits_per_pixel == 24)
+	{
 		/* In 24 bpp, the engine is in 8 bpp - this requires that all */
 		/* horizontal coordinates and widths must be adjusted */
 		dx *= 3;
@@ -345,16 +397,23 @@ void atyfb_imageblit(struct fb_info *info, const struct fb_image *image)
 		 * this hwaccelerated triple has an issue with not aligned data
 		 */
 		if (M64_HAS(HW_TRIPLE) && image->width % 8 == 0)
+		{
 			pix_width |= DP_HOST_TRIPLE_EN;
+		}
 	}
 
-	if (image->depth == 1) {
+	if (image->depth == 1)
+	{
 		u32 fg, bg;
+
 		if (info->fix.visual == FB_VISUAL_TRUECOLOR ||
-		    info->fix.visual == FB_VISUAL_DIRECTCOLOR) {
-			fg = ((u32*)(info->pseudo_palette))[image->fg_color];
-			bg = ((u32*)(info->pseudo_palette))[image->bg_color];
-		} else {
+			info->fix.visual == FB_VISUAL_DIRECTCOLOR)
+		{
+			fg = ((u32 *)(info->pseudo_palette))[image->fg_color];
+			bg = ((u32 *)(info->pseudo_palette))[image->bg_color];
+		}
+		else
+		{
 			fg = image->fg_color;
 			bg = image->bg_color;
 		}
@@ -364,7 +423,9 @@ void atyfb_imageblit(struct fb_info *info, const struct fb_image *image)
 		aty_st_le32(DP_FRGD_CLR, fg, par);
 		src = MONO_SRC_HOST | FRGD_SRC_FRGD_CLR | BKGD_SRC_BKGD_CLR;
 		mix = FRGD_MIX_S | BKGD_MIX_S;
-	} else {
+	}
+	else
+	{
 		src = MONO_SRC_ONE | FRGD_SRC_HOST;
 		mix = FRGD_MIX_D_XOR_S | BKGD_MIX_D;
 	}
@@ -381,44 +442,57 @@ void atyfb_imageblit(struct fb_info *info, const struct fb_image *image)
 	src_bytes = (((image->width * image->depth) + 7) / 8) * image->height;
 
 	/* manual triple each pixel */
-	if (info->var.bits_per_pixel == 24 && !(pix_width & DP_HOST_TRIPLE_EN)) {
+	if (info->var.bits_per_pixel == 24 && !(pix_width & DP_HOST_TRIPLE_EN))
+	{
 		int inbit, outbit, mult24, byte_id_in_dword, width;
-		u8 *pbitmapin = (u8*)image->data, *pbitmapout;
+		u8 *pbitmapin = (u8 *)image->data, *pbitmapout;
 		u32 hostdword;
 
-		for (width = image->width, inbit = 7, mult24 = 0; src_bytes; ) {
-			for (hostdword = 0, pbitmapout = (u8*)&hostdword, byte_id_in_dword = 0;
-				byte_id_in_dword < 4 && src_bytes;
-				byte_id_in_dword++, pbitmapout++) {
-				for (outbit = 7; outbit >= 0; outbit--) {
+		for (width = image->width, inbit = 7, mult24 = 0; src_bytes; )
+		{
+			for (hostdword = 0, pbitmapout = (u8 *)&hostdword, byte_id_in_dword = 0;
+				 byte_id_in_dword < 4 && src_bytes;
+				 byte_id_in_dword++, pbitmapout++)
+			{
+				for (outbit = 7; outbit >= 0; outbit--)
+				{
 					*pbitmapout |= (((*pbitmapin >> inbit) & 1) << outbit);
 					mult24++;
+
 					/* next bit */
-					if (mult24 == 3) {
+					if (mult24 == 3)
+					{
 						mult24 = 0;
 						inbit--;
 						width--;
 					}
 
 					/* next byte */
-					if (inbit < 0 || width == 0) {
+					if (inbit < 0 || width == 0)
+					{
 						src_bytes--;
 						pbitmapin++;
 						inbit = 7;
 
-						if (width == 0) {
-						    width = image->width;
-						    outbit = 0;
+						if (width == 0)
+						{
+							width = image->width;
+							outbit = 0;
 						}
 					}
 				}
 			}
+
 			wait_for_fifo(1, par);
 			aty_st_le32(HOST_DATA0, hostdword, par);
 		}
-	} else {
+	}
+	else
+	{
 		u32 *pbitmap, dwords = (src_bytes + 3) / 4;
-		for (pbitmap = (u32*)(image->data); dwords; dwords--, pbitmap++) {
+
+		for (pbitmap = (u32 *)(image->data); dwords; dwords--, pbitmap++)
+		{
 			wait_for_fifo(1, par);
 			aty_st_le32(HOST_DATA0, get_unaligned_le32(pbitmap), par);
 		}

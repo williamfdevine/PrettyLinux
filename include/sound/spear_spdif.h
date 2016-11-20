@@ -19,7 +19,8 @@
 #ifndef __SOUND_SPDIF_H
 #define __SOUND_SPDIF_H
 
-struct spear_spdif_platform_data {
+struct spear_spdif_platform_data
+{
 	/* DMA params */
 	void *dma_params;
 	bool (*filter)(struct dma_chan *chan, void *slave);

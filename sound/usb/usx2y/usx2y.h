@@ -30,7 +30,8 @@
 #define SND_USX2Y_USBPCM_ID		"USX2Y USBPCM"
 
 /* hardware type */
-enum {
+enum
+{
 	USX2Y_TYPE_122,
 	USX2Y_TYPE_224,
 	USX2Y_TYPE_428,
@@ -42,7 +43,8 @@ enum {
 #define USB_ID_US428 0x8001
 
 /* chip status */
-enum {
+enum
+{
 	USX2Y_STAT_CHIP_INIT	=	(1 << 0),	/* all operational */
 	USX2Y_STAT_CHIP_MMAP_PCM_URBS = (1 << 1),	/* pcm transport over mmaped urbs */
 	USX2Y_STAT_CHIP_HUP	=	(1 << 31),	/* all operational */

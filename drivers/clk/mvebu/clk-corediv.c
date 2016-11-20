@@ -26,7 +26,8 @@
  * therefore typically instantiated statically to describe the
  * hardware details.
  */
-struct clk_corediv_desc {
+struct clk_corediv_desc
+{
 	unsigned int mask;
 	unsigned int offset;
 	unsigned int fieldbit;
@@ -38,7 +39,8 @@ struct clk_corediv_desc {
  * array of core divider clock descriptors for this SoC, as well as
  * the corresponding operations to manipulate them.
  */
-struct clk_corediv_soc_desc {
+struct clk_corediv_soc_desc
+{
 	const struct clk_corediv_desc *descs;
 	unsigned int ndescs;
 	const struct clk_ops ops;
@@ -52,7 +54,8 @@ struct clk_corediv_soc_desc {
  * framework, and is dynamically allocated for each core divider clock
  * existing in the current SoC.
  */
-struct clk_corediv {
+struct clk_corediv
+{
 	struct clk_hw hw;
 	void __iomem *reg;
 	const struct clk_corediv_desc *desc;
@@ -67,7 +70,8 @@ static struct clk_onecell_data clk_data;
  * support only NAND, and it is available at the same register
  * locations regardless of the SoC.
  */
-static const struct clk_corediv_desc mvebu_corediv_desc[] = {
+static const struct clk_corediv_desc mvebu_corediv_desc[] =
+{
 	{ .mask = 0x3f, .offset = 8, .fieldbit = 1 }, /* NAND clock */
 };
 
@@ -120,7 +124,7 @@ static void clk_corediv_disable(struct clk_hw *hwclk)
 }
 
 static unsigned long clk_corediv_recalc_rate(struct clk_hw *hwclk,
-					 unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_corediv *corediv = to_corediv_clk(hwclk);
 	const struct clk_corediv_soc_desc *soc_desc = corediv->soc_desc;
@@ -133,22 +137,27 @@ static unsigned long clk_corediv_recalc_rate(struct clk_hw *hwclk,
 }
 
 static long clk_corediv_round_rate(struct clk_hw *hwclk, unsigned long rate,
-			       unsigned long *parent_rate)
+								   unsigned long *parent_rate)
 {
 	/* Valid ratio are 1:4, 1:5, 1:6 and 1:8 */
 	u32 div;
 
 	div = *parent_rate / rate;
+
 	if (div < 4)
+	{
 		div = 4;
+	}
 	else if (div > 6)
+	{
 		div = 8;
+	}
 
 	return *parent_rate / div;
 }
 
 static int clk_corediv_set_rate(struct clk_hw *hwclk, unsigned long rate,
-			    unsigned long parent_rate)
+								unsigned long parent_rate)
 {
 	struct clk_corediv *corediv = to_corediv_clk(hwclk);
 	const struct clk_corediv_soc_desc *soc_desc = corediv->soc_desc;
@@ -188,7 +197,8 @@ static int clk_corediv_set_rate(struct clk_hw *hwclk, unsigned long rate,
 	return 0;
 }
 
-static const struct clk_corediv_soc_desc armada370_corediv_soc = {
+static const struct clk_corediv_soc_desc armada370_corediv_soc =
+{
 	.descs = mvebu_corediv_desc,
 	.ndescs = ARRAY_SIZE(mvebu_corediv_desc),
 	.ops = {
@@ -204,7 +214,8 @@ static const struct clk_corediv_soc_desc armada370_corediv_soc = {
 	.ratio_offset = 0x8,
 };
 
-static const struct clk_corediv_soc_desc armada380_corediv_soc = {
+static const struct clk_corediv_soc_desc armada380_corediv_soc =
+{
 	.descs = mvebu_corediv_desc,
 	.ndescs = ARRAY_SIZE(mvebu_corediv_desc),
 	.ops = {
@@ -220,7 +231,8 @@ static const struct clk_corediv_soc_desc armada380_corediv_soc = {
 	.ratio_offset = 0x4,
 };
 
-static const struct clk_corediv_soc_desc armada375_corediv_soc = {
+static const struct clk_corediv_soc_desc armada375_corediv_soc =
+{
 	.descs = mvebu_corediv_desc,
 	.ndescs = ARRAY_SIZE(mvebu_corediv_desc),
 	.ops = {
@@ -234,7 +246,7 @@ static const struct clk_corediv_soc_desc armada375_corediv_soc = {
 
 static void __init
 mvebu_corediv_clk_init(struct device_node *node,
-		       const struct clk_corediv_soc_desc *soc_desc)
+					   const struct clk_corediv_soc_desc *soc_desc)
 {
 	struct clk_init_data init;
 	struct clk_corediv *corediv;
@@ -245,8 +257,11 @@ mvebu_corediv_clk_init(struct device_node *node,
 	int i;
 
 	base = of_iomap(node, 0);
+
 	if (WARN_ON(!base))
+	{
 		return;
+	}
 
 	parent_name = of_clk_get_parent_name(node, 0);
 
@@ -254,20 +269,28 @@ mvebu_corediv_clk_init(struct device_node *node,
 
 	/* clks holds the clock array */
 	clks = kcalloc(clk_data.clk_num, sizeof(struct clk *),
-				GFP_KERNEL);
+				   GFP_KERNEL);
+
 	if (WARN_ON(!clks))
+	{
 		goto err_unmap;
+	}
+
 	/* corediv holds the clock specific array */
 	corediv = kcalloc(clk_data.clk_num, sizeof(struct clk_corediv),
-				GFP_KERNEL);
+					  GFP_KERNEL);
+
 	if (WARN_ON(!corediv))
+	{
 		goto err_free_clks;
+	}
 
 	spin_lock_init(&corediv->lock);
 
-	for (i = 0; i < clk_data.clk_num; i++) {
+	for (i = 0; i < clk_data.clk_num; i++)
+	{
 		of_property_read_string_index(node, "clock-output-names",
-					      i, &clk_name);
+									  i, &clk_name);
 		init.num_parents = 1;
 		init.parent_names = &parent_name;
 		init.name = clk_name;
@@ -298,18 +321,18 @@ static void __init armada370_corediv_clk_init(struct device_node *node)
 	return mvebu_corediv_clk_init(node, &armada370_corediv_soc);
 }
 CLK_OF_DECLARE(armada370_corediv_clk, "marvell,armada-370-corediv-clock",
-	       armada370_corediv_clk_init);
+			   armada370_corediv_clk_init);
 
 static void __init armada375_corediv_clk_init(struct device_node *node)
 {
 	return mvebu_corediv_clk_init(node, &armada375_corediv_soc);
 }
 CLK_OF_DECLARE(armada375_corediv_clk, "marvell,armada-375-corediv-clock",
-	       armada375_corediv_clk_init);
+			   armada375_corediv_clk_init);
 
 static void __init armada380_corediv_clk_init(struct device_node *node)
 {
 	return mvebu_corediv_clk_init(node, &armada380_corediv_soc);
 }
 CLK_OF_DECLARE(armada380_corediv_clk, "marvell,armada-380-corediv-clock",
-	       armada380_corediv_clk_init);
+			   armada380_corediv_clk_init);

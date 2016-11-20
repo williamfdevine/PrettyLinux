@@ -32,29 +32,34 @@ extern "C" {
 #define DRM_TEGRA_GEM_CREATE_TILED     (1 << 0)
 #define DRM_TEGRA_GEM_CREATE_BOTTOM_UP (1 << 1)
 
-struct drm_tegra_gem_create {
+struct drm_tegra_gem_create
+{
 	__u64 size;
 	__u32 flags;
 	__u32 handle;
 };
 
-struct drm_tegra_gem_mmap {
+struct drm_tegra_gem_mmap
+{
 	__u32 handle;
 	__u32 pad;
 	__u64 offset;
 };
 
-struct drm_tegra_syncpt_read {
+struct drm_tegra_syncpt_read
+{
 	__u32 id;
 	__u32 value;
 };
 
-struct drm_tegra_syncpt_incr {
+struct drm_tegra_syncpt_incr
+{
 	__u32 id;
 	__u32 pad;
 };
 
-struct drm_tegra_syncpt_wait {
+struct drm_tegra_syncpt_wait
+{
 	__u32 id;
 	__u32 thresh;
 	__u32 timeout;
@@ -63,46 +68,55 @@ struct drm_tegra_syncpt_wait {
 
 #define DRM_TEGRA_NO_TIMEOUT	(0xffffffff)
 
-struct drm_tegra_open_channel {
+struct drm_tegra_open_channel
+{
 	__u32 client;
 	__u32 pad;
 	__u64 context;
 };
 
-struct drm_tegra_close_channel {
+struct drm_tegra_close_channel
+{
 	__u64 context;
 };
 
-struct drm_tegra_get_syncpt {
+struct drm_tegra_get_syncpt
+{
 	__u64 context;
 	__u32 index;
 	__u32 id;
 };
 
-struct drm_tegra_get_syncpt_base {
+struct drm_tegra_get_syncpt_base
+{
 	__u64 context;
 	__u32 syncpt;
 	__u32 id;
 };
 
-struct drm_tegra_syncpt {
+struct drm_tegra_syncpt
+{
 	__u32 id;
 	__u32 incrs;
 };
 
-struct drm_tegra_cmdbuf {
+struct drm_tegra_cmdbuf
+{
 	__u32 handle;
 	__u32 offset;
 	__u32 words;
 	__u32 pad;
 };
 
-struct drm_tegra_reloc {
-	struct {
+struct drm_tegra_reloc
+{
+	struct
+	{
 		__u32 handle;
 		__u32 offset;
 	} cmdbuf;
-	struct {
+	struct
+	{
 		__u32 handle;
 		__u32 offset;
 	} target;
@@ -110,14 +124,16 @@ struct drm_tegra_reloc {
 	__u32 pad;
 };
 
-struct drm_tegra_waitchk {
+struct drm_tegra_waitchk
+{
 	__u32 handle;
 	__u32 offset;
 	__u32 syncpt;
 	__u32 thresh;
 };
 
-struct drm_tegra_submit {
+struct drm_tegra_submit
+{
 	__u64 context;
 	__u32 num_syncpts;
 	__u32 num_cmdbufs;
@@ -138,7 +154,8 @@ struct drm_tegra_submit {
 #define DRM_TEGRA_GEM_TILING_MODE_TILED 1
 #define DRM_TEGRA_GEM_TILING_MODE_BLOCK 2
 
-struct drm_tegra_gem_set_tiling {
+struct drm_tegra_gem_set_tiling
+{
 	/* input */
 	__u32 handle;
 	__u32 mode;
@@ -146,7 +163,8 @@ struct drm_tegra_gem_set_tiling {
 	__u32 pad;
 };
 
-struct drm_tegra_gem_get_tiling {
+struct drm_tegra_gem_get_tiling
+{
 	/* input */
 	__u32 handle;
 	/* output */
@@ -158,14 +176,16 @@ struct drm_tegra_gem_get_tiling {
 #define DRM_TEGRA_GEM_BOTTOM_UP		(1 << 0)
 #define DRM_TEGRA_GEM_FLAGS		(DRM_TEGRA_GEM_BOTTOM_UP)
 
-struct drm_tegra_gem_set_flags {
+struct drm_tegra_gem_set_flags
+{
 	/* input */
 	__u32 handle;
 	/* output */
 	__u32 flags;
 };
 
-struct drm_tegra_gem_get_flags {
+struct drm_tegra_gem_get_flags
+{
 	/* input */
 	__u32 handle;
 	/* output */

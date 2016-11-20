@@ -18,13 +18,15 @@
 #define NAME_SIZE	32
 #define MAX_DAIS	2	/* APB1, APB2 */
 
-enum {
+enum
+{
 	APB1_PCM = 0,
 	APB2_PCM,
 	NUM_CODEC_DAIS,
 };
 
-enum gbcodec_reg_index {
+enum gbcodec_reg_index
+{
 	GBCODEC_CTL_REG,
 	GBCODEC_MUTE_REG,
 	GBCODEC_PB_LVOL_REG,
@@ -37,7 +39,8 @@ enum gbcodec_reg_index {
 };
 
 /* device_type should be same as defined in audio.h (Android media layer) */
-enum {
+enum
+{
 	GBAUDIO_DEVICE_NONE                     = 0x0,
 	/* reserved bits */
 	GBAUDIO_DEVICE_BIT_IN                   = 0x80000000,
@@ -76,7 +79,8 @@ enum {
 #define GBCODEC_JACK_MASK		0x0000FFFF
 #define GBCODEC_JACK_BUTTON_MASK	0xFFFF0000
 
-static const u8 gbcodec_reg_defaults[GBCODEC_REG_COUNT] = {
+static const u8 gbcodec_reg_defaults[GBCODEC_REG_COUNT] =
+{
 	GBCODEC_CTL_REG_DEFAULT,
 	GBCODEC_MUTE_REG_DEFAULT,
 	GBCODEC_PB_VOL_REG_DEFAULT,
@@ -87,7 +91,8 @@ static const u8 gbcodec_reg_defaults[GBCODEC_REG_COUNT] = {
 	GBCODEC_APB2_MUX_REG_DEFAULT,
 };
 
-enum gbaudio_codec_state {
+enum gbaudio_codec_state
+{
 	GBAUDIO_CODEC_SHUTDOWN = 0,
 	GBAUDIO_CODEC_STARTUP,
 	GBAUDIO_CODEC_HWPARAMS,
@@ -96,20 +101,23 @@ enum gbaudio_codec_state {
 	GBAUDIO_CODEC_STOP,
 };
 
-struct gbaudio_stream_params {
+struct gbaudio_stream_params
+{
 	int state;
 	u8 sig_bits, channels;
 	uint32_t format, rate;
 };
 
-struct gbaudio_codec_dai {
+struct gbaudio_codec_dai
+{
 	int id;
 	/* runtime params for playback/capture streams */
 	struct gbaudio_stream_params params[2];
 	struct list_head list;
 };
 
-struct gbaudio_codec_info {
+struct gbaudio_codec_info
+{
 	struct device *dev;
 	struct snd_soc_codec *codec;
 	struct list_head module_list;
@@ -119,22 +127,25 @@ struct gbaudio_codec_info {
 	u8 reg[GBCODEC_REG_COUNT];
 };
 
-struct gbaudio_widget {
+struct gbaudio_widget
+{
 	__u8 id;
 	const char *name;
 	struct list_head list;
 };
 
-struct gbaudio_control {
+struct gbaudio_control
+{
 	__u8 id;
 	char *name;
 	char *wname;
-	const char * const *texts;
+	const char *const *texts;
 	int items;
 	struct list_head list;
 };
 
-struct gbaudio_data_connection {
+struct gbaudio_data_connection
+{
 	int id;
 	__le16 data_cport;
 	struct gb_connection *connection;
@@ -147,12 +158,14 @@ struct gbaudio_data_connection {
 #define GB_PLAYBACK	BIT(0)
 #define GB_CAPTURE	BIT(1)
 
-enum gbaudio_module_state {
+enum gbaudio_module_state
+{
 	GBAUDIO_MODULE_OFF = 0,
 	GBAUDIO_MODULE_ON,
 };
 
-struct gbaudio_module_info {
+struct gbaudio_module_info
+{
 	/* module info */
 	struct device *dev;
 	int dev_id;	/* check if it should be bundle_id/hd_cport_id */
@@ -207,77 +220,77 @@ struct gbaudio_module_info {
 };
 
 int gbaudio_tplg_parse_data(struct gbaudio_module_info *module,
-			       struct gb_audio_topology *tplg_data);
+							struct gb_audio_topology *tplg_data);
 void gbaudio_tplg_release(struct gbaudio_module_info *module);
 
 int gbaudio_module_update(struct gbaudio_codec_info *codec,
-			  struct snd_soc_dapm_widget *w,
-			  struct gbaudio_module_info *module,
-			  int enable);
+						  struct snd_soc_dapm_widget *w,
+						  struct gbaudio_module_info *module,
+						  int enable);
 int gbaudio_register_module(struct gbaudio_module_info *module);
 void gbaudio_unregister_module(struct gbaudio_module_info *module);
 
 /* protocol related */
 extern int gb_audio_gb_get_topology(struct gb_connection *connection,
-				    struct gb_audio_topology **topology);
+									struct gb_audio_topology **topology);
 extern int gb_audio_gb_get_control(struct gb_connection *connection,
-				   u8 control_id, u8 index,
-				   struct gb_audio_ctl_elem_value *value);
+								   u8 control_id, u8 index,
+								   struct gb_audio_ctl_elem_value *value);
 extern int gb_audio_gb_set_control(struct gb_connection *connection,
-				   u8 control_id, u8 index,
-				   struct gb_audio_ctl_elem_value *value);
+								   u8 control_id, u8 index,
+								   struct gb_audio_ctl_elem_value *value);
 extern int gb_audio_gb_enable_widget(struct gb_connection *connection,
-				     u8 widget_id);
+									 u8 widget_id);
 extern int gb_audio_gb_disable_widget(struct gb_connection *connection,
-				      u8 widget_id);
+									  u8 widget_id);
 extern int gb_audio_gb_get_pcm(struct gb_connection *connection,
-			       u16 data_cport, uint32_t *format,
-			       uint32_t *rate, u8 *channels,
-			       u8 *sig_bits);
+							   u16 data_cport, uint32_t *format,
+							   uint32_t *rate, u8 *channels,
+							   u8 *sig_bits);
 extern int gb_audio_gb_set_pcm(struct gb_connection *connection,
-			       u16 data_cport, uint32_t format,
-			       uint32_t rate, u8 channels,
-			       u8 sig_bits);
+							   u16 data_cport, uint32_t format,
+							   uint32_t rate, u8 channels,
+							   u8 sig_bits);
 extern int gb_audio_gb_set_tx_data_size(struct gb_connection *connection,
-					u16 data_cport, u16 size);
+										u16 data_cport, u16 size);
 extern int gb_audio_gb_activate_tx(struct gb_connection *connection,
-				   u16 data_cport);
+								   u16 data_cport);
 extern int gb_audio_gb_deactivate_tx(struct gb_connection *connection,
-				     u16 data_cport);
+									 u16 data_cport);
 extern int gb_audio_gb_set_rx_data_size(struct gb_connection *connection,
-					u16 data_cport, u16 size);
+										u16 data_cport, u16 size);
 extern int gb_audio_gb_activate_rx(struct gb_connection *connection,
-				   u16 data_cport);
+								   u16 data_cport);
 extern int gb_audio_gb_deactivate_rx(struct gb_connection *connection,
-				     u16 data_cport);
+									 u16 data_cport);
 extern int gb_audio_apbridgea_set_config(struct gb_connection *connection,
-					 __u16 i2s_port, __u32 format,
-					 __u32 rate, __u32 mclk_freq);
+		__u16 i2s_port, __u32 format,
+		__u32 rate, __u32 mclk_freq);
 extern int gb_audio_apbridgea_register_cport(struct gb_connection *connection,
-					     __u16 i2s_port, __u16 cportid,
-					     __u8 direction);
+		__u16 i2s_port, __u16 cportid,
+		__u8 direction);
 extern int gb_audio_apbridgea_unregister_cport(struct gb_connection *connection,
-					       __u16 i2s_port, __u16 cportid,
-					       __u8 direction);
+		__u16 i2s_port, __u16 cportid,
+		__u8 direction);
 extern int gb_audio_apbridgea_set_tx_data_size(struct gb_connection *connection,
-					       __u16 i2s_port, __u16 size);
+		__u16 i2s_port, __u16 size);
 extern int gb_audio_apbridgea_prepare_tx(struct gb_connection *connection,
-					 __u16 i2s_port);
+		__u16 i2s_port);
 extern int gb_audio_apbridgea_start_tx(struct gb_connection *connection,
-				       __u16 i2s_port, __u64 timestamp);
+									   __u16 i2s_port, __u64 timestamp);
 extern int gb_audio_apbridgea_stop_tx(struct gb_connection *connection,
-				      __u16 i2s_port);
+									  __u16 i2s_port);
 extern int gb_audio_apbridgea_shutdown_tx(struct gb_connection *connection,
-					  __u16 i2s_port);
+		__u16 i2s_port);
 extern int gb_audio_apbridgea_set_rx_data_size(struct gb_connection *connection,
-					       __u16 i2s_port, __u16 size);
+		__u16 i2s_port, __u16 size);
 extern int gb_audio_apbridgea_prepare_rx(struct gb_connection *connection,
-					 __u16 i2s_port);
+		__u16 i2s_port);
 extern int gb_audio_apbridgea_start_rx(struct gb_connection *connection,
-				       __u16 i2s_port);
+									   __u16 i2s_port);
 extern int gb_audio_apbridgea_stop_rx(struct gb_connection *connection,
-				      __u16 i2s_port);
+									  __u16 i2s_port);
 extern int gb_audio_apbridgea_shutdown_rx(struct gb_connection *connection,
-					  __u16 i2s_port);
+		__u16 i2s_port);
 
 #endif /* __LINUX_GBAUDIO_CODEC_H */

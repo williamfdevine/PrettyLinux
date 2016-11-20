@@ -154,9 +154,9 @@
  */
 #define FRMR_INFO_SET_REJ_CNTRL(info,rej_ctrl) \
 	info->rej_pdu_ctrl = ((*((u8 *) rej_ctrl) & \
-				LLC_PDU_TYPE_U) != LLC_PDU_TYPE_U ? \
-				(u16)*((u16 *) rej_ctrl) : \
-				(((u16) *((u8 *) rej_ctrl)) & 0x00FF))
+						   LLC_PDU_TYPE_U) != LLC_PDU_TYPE_U ? \
+						  (u16)*((u16 *) rej_ctrl) : \
+						  (((u16) *((u8 *) rej_ctrl)) & 0x00FF))
 
 /*
  * Info is pointer to FRMR info field structure; 'vs' is a byte containing
@@ -178,22 +178,23 @@
  * lowest-order bit)
  */
 #define FRMR_INFO_SET_INVALID_PDU_CTRL_IND(info, ind) \
-       (info->ind_bits = ((info->ind_bits & 0xFE) | (((u8) ind) & 0x01)))
+	(info->ind_bits = ((info->ind_bits & 0xFE) | (((u8) ind) & 0x01)))
 
 #define FRMR_INFO_SET_INVALID_PDU_INFO_IND(info, ind) \
-       (info->ind_bits = ( (info->ind_bits & 0xFD) | (((u8) ind) & 0x02)))
+	(info->ind_bits = ( (info->ind_bits & 0xFD) | (((u8) ind) & 0x02)))
 
 #define FRMR_INFO_SET_PDU_INFO_2LONG_IND(info, ind) \
-       (info->ind_bits = ( (info->ind_bits & 0xFB) | (((u8) ind) & 0x04)))
+	(info->ind_bits = ( (info->ind_bits & 0xFB) | (((u8) ind) & 0x04)))
 
 #define FRMR_INFO_SET_PDU_INVALID_Nr_IND(info, ind) \
-       (info->ind_bits = ( (info->ind_bits & 0xF7) | (((u8) ind) & 0x08)))
+	(info->ind_bits = ( (info->ind_bits & 0xF7) | (((u8) ind) & 0x08)))
 
 #define FRMR_INFO_SET_PDU_INVALID_Ns_IND(info, ind) \
-       (info->ind_bits = ( (info->ind_bits & 0xEF) | (((u8) ind) & 0x10)))
+	(info->ind_bits = ( (info->ind_bits & 0xEF) | (((u8) ind) & 0x10)))
 
 /* Sequence-numbered PDU format (4 bytes in length) */
-struct llc_pdu_sn {
+struct llc_pdu_sn
+{
 	u8 dsap;
 	u8 ssap;
 	u8 ctrl_1;
@@ -206,7 +207,8 @@ static inline struct llc_pdu_sn *llc_pdu_sn_hdr(struct sk_buff *skb)
 }
 
 /* Un-numbered PDU format (3 bytes in length) */
-struct llc_pdu_un {
+struct llc_pdu_un
+{
 	u8 dsap;
 	u8 ssap;
 	u8 ctrl_1;
@@ -228,7 +230,7 @@ static inline struct llc_pdu_un *llc_pdu_un_hdr(struct sk_buff *skb)
  *	This function sets DSAP, SSAP and command/Response bit in LLC header.
  */
 static inline void llc_pdu_header_init(struct sk_buff *skb, u8 type,
-				       u8 ssap, u8 dsap, u8 cr)
+									   u8 ssap, u8 dsap, u8 cr)
 {
 	const int hlen = type == LLC_PDU_TYPE_U ? 3 : 4;
 	struct llc_pdu_un *pdu;
@@ -251,7 +253,9 @@ static inline void llc_pdu_header_init(struct sk_buff *skb, u8 type,
 static inline void llc_pdu_decode_sa(struct sk_buff *skb, u8 *sa)
 {
 	if (skb->protocol == htons(ETH_P_802_2))
+	{
 		memcpy(sa, eth_hdr(skb)->h_source, ETH_ALEN);
+	}
 }
 
 /**
@@ -264,7 +268,9 @@ static inline void llc_pdu_decode_sa(struct sk_buff *skb, u8 *sa)
 static inline void llc_pdu_decode_da(struct sk_buff *skb, u8 *da)
 {
 	if (skb->protocol == htons(ETH_P_802_2))
+	{
 		memcpy(da, eth_hdr(skb)->h_dest, ETH_ALEN);
+	}
 }
 
 /**
@@ -330,14 +336,16 @@ static inline void llc_pdu_init_as_test_cmd(struct sk_buff *skb)
  *	Builds a pdu frame as a TEST response.
  */
 static inline void llc_pdu_init_as_test_rsp(struct sk_buff *skb,
-					    struct sk_buff *ev_skb)
+		struct sk_buff *ev_skb)
 {
 	struct llc_pdu_un *pdu = llc_pdu_un_hdr(skb);
 
 	pdu->ctrl_1  = LLC_PDU_TYPE_U;
 	pdu->ctrl_1 |= LLC_1_PDU_CMD_TEST;
 	pdu->ctrl_1 |= LLC_U_PF_BIT_MASK;
-	if (ev_skb->protocol == htons(ETH_P_802_2)) {
+
+	if (ev_skb->protocol == htons(ETH_P_802_2))
+	{
 		struct llc_pdu_un *ev_pdu = llc_pdu_un_hdr(ev_skb);
 		int dsize;
 
@@ -348,7 +356,8 @@ static inline void llc_pdu_init_as_test_rsp(struct sk_buff *skb,
 }
 
 /* LLC Type 1 XID command/response information fields format */
-struct llc_xid_info {
+struct llc_xid_info
+{
 	u8 fmt_id;	/* always 0x81 for LLC */
 	u8 type;	/* different if NULL/non-NULL LSAP */
 	u8 rw;		/* sender receive window */
@@ -362,7 +371,7 @@ struct llc_xid_info {
  *	a XID PDU.
  */
 static inline void llc_pdu_init_as_xid_cmd(struct sk_buff *skb,
-					   u8 svcs_supported, u8 rx_window)
+		u8 svcs_supported, u8 rx_window)
 {
 	struct llc_xid_info *xid_info;
 	struct llc_pdu_un *pdu = llc_pdu_un_hdr(skb);
@@ -386,7 +395,7 @@ static inline void llc_pdu_init_as_xid_cmd(struct sk_buff *skb,
  *	Builds a pdu frame as an XID response.
  */
 static inline void llc_pdu_init_as_xid_rsp(struct sk_buff *skb,
-					   u8 svcs_supported, u8 rx_window)
+		u8 svcs_supported, u8 rx_window)
 {
 	struct llc_xid_info *xid_info;
 	struct llc_pdu_un *pdu = llc_pdu_un_hdr(skb);
@@ -403,7 +412,8 @@ static inline void llc_pdu_init_as_xid_rsp(struct sk_buff *skb,
 }
 
 /* LLC Type 2 FRMR response information field format */
-struct llc_frmr_info {
+struct llc_frmr_info
+{
 	u16 rej_pdu_ctrl;	/* bits 1-8 if U-PDU */
 	u8  curr_ssv;		/* current send state variable val */
 	u8  curr_rsv;		/* current receive state variable */
@@ -421,7 +431,7 @@ void llc_pdu_init_as_rr_cmd(struct sk_buff *skb, u8 p_bit, u8 nr);
 void llc_pdu_init_as_sabme_cmd(struct sk_buff *skb, u8 p_bit);
 void llc_pdu_init_as_dm_rsp(struct sk_buff *skb, u8 f_bit);
 void llc_pdu_init_as_frmr_rsp(struct sk_buff *skb, struct llc_pdu_sn *prev_pdu,
-			      u8 f_bit, u8 vs, u8 vr, u8 vzyxw);
+							  u8 f_bit, u8 vs, u8 vr, u8 vzyxw);
 void llc_pdu_init_as_rr_rsp(struct sk_buff *skb, u8 f_bit, u8 nr);
 void llc_pdu_init_as_rej_rsp(struct sk_buff *skb, u8 f_bit, u8 nr);
 void llc_pdu_init_as_rnr_rsp(struct sk_buff *skb, u8 f_bit, u8 nr);

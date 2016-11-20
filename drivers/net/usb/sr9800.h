@@ -163,7 +163,8 @@
 #define SR9800_MAX_BULKIN_24K		6
 #define SR9800_MAX_BULKIN_32K		7
 
-struct {unsigned short size, byte_cnt, threshold; } SR9800_BULKIN_SIZE[] = {
+struct {unsigned short size, byte_cnt, threshold; } SR9800_BULKIN_SIZE[] =
+{
 	/* 2k */
 	{2048, 0x8000, 0x8001},
 	/* 4k */
@@ -183,7 +184,8 @@ struct {unsigned short size, byte_cnt, threshold; } SR9800_BULKIN_SIZE[] = {
 };
 
 /* This structure cannot exceed sizeof(unsigned long [5]) AKA 20 bytes */
-struct sr_data {
+struct sr_data
+{
 	u8 multi_filter[SR_MCAST_FILTER_SIZE];
 	u8 mac_addr[ETH_ALEN];
 	u8 phymode;
@@ -191,7 +193,8 @@ struct sr_data {
 	u8 eeprom_len;
 };
 
-struct sr9800_int_data {
+struct sr9800_int_data
+{
 	__le16 res1;
 	u8 link;
 	__le16 res2;

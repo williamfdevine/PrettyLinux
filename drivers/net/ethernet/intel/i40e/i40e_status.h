@@ -28,7 +28,8 @@
 #define _I40E_STATUS_H_
 
 /* Error Codes */
-enum i40e_status_code {
+enum i40e_status_code
+{
 	I40E_SUCCESS				= 0,
 	I40E_ERR_NVM				= -1,
 	I40E_ERR_NVM_CHECKSUM			= -2,

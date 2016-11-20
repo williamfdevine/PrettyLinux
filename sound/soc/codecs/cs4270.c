@@ -39,11 +39,11 @@
  * way, ALSA will always match the bit patterns.
  */
 #define CS4270_FORMATS (SNDRV_PCM_FMTBIT_S8      | \
-			SNDRV_PCM_FMTBIT_S16_LE  | SNDRV_PCM_FMTBIT_S16_BE  | \
-			SNDRV_PCM_FMTBIT_S18_3LE | SNDRV_PCM_FMTBIT_S18_3BE | \
-			SNDRV_PCM_FMTBIT_S20_3LE | SNDRV_PCM_FMTBIT_S20_3BE | \
-			SNDRV_PCM_FMTBIT_S24_3LE | SNDRV_PCM_FMTBIT_S24_3BE | \
-			SNDRV_PCM_FMTBIT_S24_LE  | SNDRV_PCM_FMTBIT_S24_BE)
+						SNDRV_PCM_FMTBIT_S16_LE  | SNDRV_PCM_FMTBIT_S16_BE  | \
+						SNDRV_PCM_FMTBIT_S18_3LE | SNDRV_PCM_FMTBIT_S18_3BE | \
+						SNDRV_PCM_FMTBIT_S20_3LE | SNDRV_PCM_FMTBIT_S20_3BE | \
+						SNDRV_PCM_FMTBIT_S24_3LE | SNDRV_PCM_FMTBIT_S24_3BE | \
+						SNDRV_PCM_FMTBIT_S24_LE  | SNDRV_PCM_FMTBIT_S24_BE)
 
 /* CS4270 registers addresses */
 #define CS4270_CHIPID	0x01	/* Chip ID */
@@ -113,7 +113,8 @@
  * exception of the "CHIPID" register (01h).  The lower four bits of that
  * register contain the hardware revision, so it is treated as volatile.
  */
-static const struct reg_default cs4270_reg_defaults[] = {
+static const struct reg_default cs4270_reg_defaults[] =
+{
 	{ 2, 0x00 },
 	{ 3, 0x30 },
 	{ 4, 0x00 },
@@ -123,12 +124,14 @@ static const struct reg_default cs4270_reg_defaults[] = {
 	{ 8, 0x00 },
 };
 
-static const char *supply_names[] = {
+static const char *supply_names[] =
+{
 	"va", "vd", "vlc"
 };
 
 /* Private data for the CS4270 */
-struct cs4270_private {
+struct cs4270_private
+{
 	struct regmap *regmap;
 	unsigned int mclk; /* Input frequency of the MCLK pin */
 	unsigned int mode; /* The mode (I2S or left-justified) */
@@ -139,15 +142,17 @@ struct cs4270_private {
 	struct regulator_bulk_data supplies[ARRAY_SIZE(supply_names)];
 };
 
-static const struct snd_soc_dapm_widget cs4270_dapm_widgets[] = {
-SND_SOC_DAPM_INPUT("AINL"),
-SND_SOC_DAPM_INPUT("AINR"),
+static const struct snd_soc_dapm_widget cs4270_dapm_widgets[] =
+{
+	SND_SOC_DAPM_INPUT("AINL"),
+	SND_SOC_DAPM_INPUT("AINR"),
 
-SND_SOC_DAPM_OUTPUT("AOUTL"),
-SND_SOC_DAPM_OUTPUT("AOUTR"),
+	SND_SOC_DAPM_OUTPUT("AOUTL"),
+	SND_SOC_DAPM_OUTPUT("AOUTR"),
 };
 
-static const struct snd_soc_dapm_route cs4270_dapm_routes[] = {
+static const struct snd_soc_dapm_route cs4270_dapm_routes[] =
+{
 	{ "Capture", NULL, "AINL" },
 	{ "Capture", NULL, "AINR" },
 
@@ -187,13 +192,15 @@ static const struct snd_soc_dapm_route cs4270_dapm_routes[] = {
  * CONFIG_SND_SOC_CS4270_VD33_ERRATA Kconfig option, and the driver will
  * never select any sample rates that require divide-by-1.5.
  */
-struct cs4270_mode_ratios {
+struct cs4270_mode_ratios
+{
 	unsigned int ratio;
 	u8 speed_mode;
 	u8 mclk;
 };
 
-static struct cs4270_mode_ratios cs4270_mode_ratios[] = {
+static struct cs4270_mode_ratios cs4270_mode_ratios[] =
+{
 	{64, CS4270_MODE_4X, CS4270_MODE_DIV1},
 #ifndef CONFIG_SND_SOC_CS4270_VD33_ERRATA
 	{96, CS4270_MODE_4X, CS4270_MODE_DIV15},
@@ -219,7 +226,9 @@ static bool cs4270_reg_is_volatile(struct device *dev, unsigned int reg)
 {
 	/* Unreadable registers are considered volatile */
 	if ((reg < CS4270_FIRSTREG) || (reg > CS4270_LASTREG))
+	{
 		return 1;
+	}
 
 	return reg == CS4270_CHIPID;
 }
@@ -252,7 +261,7 @@ static bool cs4270_reg_is_volatile(struct device *dev, unsigned int reg)
  * that from a machine's driver 'hw_param' hook.
  */
 static int cs4270_set_dai_sysclk(struct snd_soc_dai *codec_dai,
-				 int clk_id, unsigned int freq, int dir)
+								 int clk_id, unsigned int freq, int dir)
 {
 	struct snd_soc_codec *codec = codec_dai->codec;
 	struct cs4270_private *cs4270 = snd_soc_codec_get_drvdata(codec);
@@ -275,34 +284,39 @@ static int cs4270_set_dai_sysclk(struct snd_soc_dai *codec_dai,
  * formats for playback vs. record.
  */
 static int cs4270_set_dai_fmt(struct snd_soc_dai *codec_dai,
-			      unsigned int format)
+							  unsigned int format)
 {
 	struct snd_soc_codec *codec = codec_dai->codec;
 	struct cs4270_private *cs4270 = snd_soc_codec_get_drvdata(codec);
 
 	/* set DAI format */
-	switch (format & SND_SOC_DAIFMT_FORMAT_MASK) {
-	case SND_SOC_DAIFMT_I2S:
-	case SND_SOC_DAIFMT_LEFT_J:
-		cs4270->mode = format & SND_SOC_DAIFMT_FORMAT_MASK;
-		break;
-	default:
-		dev_err(codec->dev, "invalid dai format\n");
-		return -EINVAL;
+	switch (format & SND_SOC_DAIFMT_FORMAT_MASK)
+	{
+		case SND_SOC_DAIFMT_I2S:
+		case SND_SOC_DAIFMT_LEFT_J:
+			cs4270->mode = format & SND_SOC_DAIFMT_FORMAT_MASK;
+			break;
+
+		default:
+			dev_err(codec->dev, "invalid dai format\n");
+			return -EINVAL;
 	}
 
 	/* set master/slave audio interface */
-	switch (format & SND_SOC_DAIFMT_MASTER_MASK) {
-	case SND_SOC_DAIFMT_CBS_CFS:
-		cs4270->slave_mode = 1;
-		break;
-	case SND_SOC_DAIFMT_CBM_CFM:
-		cs4270->slave_mode = 0;
-		break;
-	default:
-		/* all other modes are unsupported by the hardware */
-		dev_err(codec->dev, "Unknown master/slave configuration\n");
-		return -EINVAL;
+	switch (format & SND_SOC_DAIFMT_MASTER_MASK)
+	{
+		case SND_SOC_DAIFMT_CBS_CFS:
+			cs4270->slave_mode = 1;
+			break;
+
+		case SND_SOC_DAIFMT_CBM_CFM:
+			cs4270->slave_mode = 0;
+			break;
+
+		default:
+			/* all other modes are unsupported by the hardware */
+			dev_err(codec->dev, "Unknown master/slave configuration\n");
+			return -EINVAL;
 	}
 
 	return 0;
@@ -323,8 +337,8 @@ static int cs4270_set_dai_fmt(struct snd_soc_dai *codec_dai,
  * hardware accordingly.
  */
 static int cs4270_hw_params(struct snd_pcm_substream *substream,
-			    struct snd_pcm_hw_params *params,
-			    struct snd_soc_dai *dai)
+							struct snd_pcm_hw_params *params,
+							struct snd_soc_dai *dai)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct cs4270_private *cs4270 = snd_soc_codec_get_drvdata(codec);
@@ -339,12 +353,16 @@ static int cs4270_hw_params(struct snd_pcm_substream *substream,
 	rate = params_rate(params);	/* Sampling rate, in Hz */
 	ratio = cs4270->mclk / rate;	/* MCLK/LRCK ratio */
 
-	for (i = 0; i < NUM_MCLK_RATIOS; i++) {
+	for (i = 0; i < NUM_MCLK_RATIOS; i++)
+	{
 		if (cs4270_mode_ratios[i].ratio == ratio)
+		{
 			break;
+		}
 	}
 
-	if (i == NUM_MCLK_RATIOS) {
+	if (i == NUM_MCLK_RATIOS)
+	{
 		/* We did not find a matching ratio */
 		dev_err(codec->dev, "could not find matching ratio\n");
 		return -EINVAL;
@@ -357,12 +375,18 @@ static int cs4270_hw_params(struct snd_pcm_substream *substream,
 	reg |= cs4270_mode_ratios[i].mclk;
 
 	if (cs4270->slave_mode)
+	{
 		reg |= CS4270_MODE_SLAVE;
+	}
 	else
+	{
 		reg |= cs4270_mode_ratios[i].speed_mode;
+	}
 
 	ret = snd_soc_write(codec, CS4270_MODE, reg);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(codec->dev, "i2c write failed\n");
 		return ret;
 	}
@@ -372,20 +396,25 @@ static int cs4270_hw_params(struct snd_pcm_substream *substream,
 	reg = snd_soc_read(codec, CS4270_FORMAT);
 	reg &= ~(CS4270_FORMAT_DAC_MASK | CS4270_FORMAT_ADC_MASK);
 
-	switch (cs4270->mode) {
-	case SND_SOC_DAIFMT_I2S:
-		reg |= CS4270_FORMAT_DAC_I2S | CS4270_FORMAT_ADC_I2S;
-		break;
-	case SND_SOC_DAIFMT_LEFT_J:
-		reg |= CS4270_FORMAT_DAC_LJ | CS4270_FORMAT_ADC_LJ;
-		break;
-	default:
-		dev_err(codec->dev, "unknown dai format\n");
-		return -EINVAL;
+	switch (cs4270->mode)
+	{
+		case SND_SOC_DAIFMT_I2S:
+			reg |= CS4270_FORMAT_DAC_I2S | CS4270_FORMAT_ADC_I2S;
+			break;
+
+		case SND_SOC_DAIFMT_LEFT_J:
+			reg |= CS4270_FORMAT_DAC_LJ | CS4270_FORMAT_ADC_LJ;
+			break;
+
+		default:
+			dev_err(codec->dev, "unknown dai format\n");
+			return -EINVAL;
 	}
 
 	ret = snd_soc_write(codec, CS4270_FORMAT, reg);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(codec->dev, "i2c write failed\n");
 		return ret;
 	}
@@ -412,8 +441,11 @@ static int cs4270_dai_mute(struct snd_soc_dai *dai, int mute)
 	reg6 = snd_soc_read(codec, CS4270_MUTE);
 
 	if (mute)
+	{
 		reg6 |= CS4270_MUTE_DAC_A | CS4270_MUTE_DAC_B;
-	else {
+	}
+	else
+	{
 		reg6 &= ~(CS4270_MUTE_DAC_A | CS4270_MUTE_DAC_B);
 		reg6 |= cs4270->manual_mute;
 	}
@@ -436,7 +468,7 @@ static int cs4270_dai_mute(struct snd_soc_dai *dai, int mute)
  * Returns 0 for success.
  */
 static int cs4270_soc_put_mute(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+							   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
 	struct cs4270_private *cs4270 = snd_soc_codec_get_drvdata(codec);
@@ -444,15 +476,16 @@ static int cs4270_soc_put_mute(struct snd_kcontrol *kcontrol,
 	int right = !ucontrol->value.integer.value[1];
 
 	cs4270->manual_mute = (left ? CS4270_MUTE_DAC_A : 0) |
-			      (right ? CS4270_MUTE_DAC_B : 0);
+						  (right ? CS4270_MUTE_DAC_B : 0);
 
 	return snd_soc_put_volsw(kcontrol, ucontrol);
 }
 
 /* A list of non-DAPM controls that the CS4270 supports */
-static const struct snd_kcontrol_new cs4270_snd_controls[] = {
+static const struct snd_kcontrol_new cs4270_snd_controls[] =
+{
 	SOC_DOUBLE_R("Master Playback Volume",
-		CS4270_VOLA, CS4270_VOLB, 0, 0xFF, 1),
+	CS4270_VOLA, CS4270_VOLB, 0, 0xFF, 1),
 	SOC_SINGLE("Digital Sidetone Switch", CS4270_FORMAT, 5, 1, 0),
 	SOC_SINGLE("Soft Ramp Switch", CS4270_TRANS, 6, 1, 0),
 	SOC_SINGLE("Zero Cross Switch", CS4270_TRANS, 5, 1, 0),
@@ -461,17 +494,19 @@ static const struct snd_kcontrol_new cs4270_snd_controls[] = {
 	SOC_SINGLE("Auto-Mute Switch", CS4270_MUTE, 5, 1, 0),
 	SOC_DOUBLE("Master Capture Switch", CS4270_MUTE, 3, 4, 1, 1),
 	SOC_DOUBLE_EXT("Master Playback Switch", CS4270_MUTE, 0, 1, 1, 1,
-		snd_soc_get_volsw, cs4270_soc_put_mute),
+	snd_soc_get_volsw, cs4270_soc_put_mute),
 };
 
-static const struct snd_soc_dai_ops cs4270_dai_ops = {
+static const struct snd_soc_dai_ops cs4270_dai_ops =
+{
 	.hw_params	= cs4270_hw_params,
 	.set_sysclk	= cs4270_set_dai_sysclk,
 	.set_fmt	= cs4270_set_dai_fmt,
 	.digital_mute	= cs4270_dai_mute,
 };
 
-static struct snd_soc_dai_driver cs4270_dai = {
+static struct snd_soc_dai_driver cs4270_dai =
+{
 	.name = "cs4270-hifi",
 	.playback = {
 		.stream_name = "Playback",
@@ -512,7 +547,9 @@ static int cs4270_probe(struct snd_soc_codec *codec)
 	 * re-enabled it by using the controls.
 	 */
 	ret = snd_soc_update_bits(codec, CS4270_MUTE, CS4270_MUTE_AUTO, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(codec->dev, "i2c write failed\n");
 		return ret;
 	}
@@ -523,14 +560,16 @@ static int cs4270_probe(struct snd_soc_codec *codec)
 	 * re-enabled it by using the controls.
 	 */
 	ret = snd_soc_update_bits(codec, CS4270_TRANS,
-		CS4270_TRANS_SOFT | CS4270_TRANS_ZERO, 0);
-	if (ret < 0) {
+							  CS4270_TRANS_SOFT | CS4270_TRANS_ZERO, 0);
+
+	if (ret < 0)
+	{
 		dev_err(codec->dev, "i2c write failed\n");
 		return ret;
 	}
 
 	ret = regulator_bulk_enable(ARRAY_SIZE(cs4270->supplies),
-				    cs4270->supplies);
+								cs4270->supplies);
 
 	return ret;
 }
@@ -567,15 +606,21 @@ static int cs4270_soc_suspend(struct snd_soc_codec *codec)
 	int reg, ret;
 
 	reg = snd_soc_read(codec, CS4270_PWRCTL) | CS4270_PWRCTL_PDN_ALL;
+
 	if (reg < 0)
+	{
 		return reg;
+	}
 
 	ret = snd_soc_write(codec, CS4270_PWRCTL, reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	regulator_bulk_disable(ARRAY_SIZE(cs4270->supplies),
-			       cs4270->supplies);
+						   cs4270->supplies);
 
 	return 0;
 }
@@ -586,9 +631,12 @@ static int cs4270_soc_resume(struct snd_soc_codec *codec)
 	int reg, ret;
 
 	ret = regulator_bulk_enable(ARRAY_SIZE(cs4270->supplies),
-				    cs4270->supplies);
+								cs4270->supplies);
+
 	if (ret != 0)
+	{
 		return ret;
+	}
 
 	/* In case the device was put to hard reset during sleep, we need to
 	 * wait 500ns here before any I2C communication. */
@@ -611,7 +659,8 @@ static int cs4270_soc_resume(struct snd_soc_codec *codec)
 /*
  * ASoC codec driver structure
  */
-static const struct snd_soc_codec_driver soc_codec_device_cs4270 = {
+static const struct snd_soc_codec_driver soc_codec_device_cs4270 =
+{
 	.probe =		cs4270_probe,
 	.remove =		cs4270_remove,
 	.suspend =		cs4270_soc_suspend,
@@ -630,13 +679,15 @@ static const struct snd_soc_codec_driver soc_codec_device_cs4270 = {
 /*
  * cs4270_of_match - the device tree bindings
  */
-static const struct of_device_id cs4270_of_match[] = {
+static const struct of_device_id cs4270_of_match[] =
+{
 	{ .compatible = "cirrus,cs4270", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, cs4270_of_match);
 
-static const struct regmap_config cs4270_regmap = {
+static const struct regmap_config cs4270_regmap =
+{
 	.reg_bits =		8,
 	.val_bits =		8,
 	.max_register =		CS4270_LASTREG,
@@ -657,7 +708,7 @@ static const struct regmap_config cs4270_regmap = {
  * matches the device ID given via a prior call to i2c_add_driver().
  */
 static int cs4270_i2c_probe(struct i2c_client *i2c_client,
-	const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct device_node *np = i2c_client->dev.of_node;
 	struct cs4270_private *cs4270;
@@ -665,61 +716,81 @@ static int cs4270_i2c_probe(struct i2c_client *i2c_client,
 	int ret, i;
 
 	cs4270 = devm_kzalloc(&i2c_client->dev, sizeof(struct cs4270_private),
-			      GFP_KERNEL);
+						  GFP_KERNEL);
+
 	if (!cs4270)
+	{
 		return -ENOMEM;
+	}
 
 	/* get the power supply regulators */
 	for (i = 0; i < ARRAY_SIZE(supply_names); i++)
+	{
 		cs4270->supplies[i].supply = supply_names[i];
+	}
 
 	ret = devm_regulator_bulk_get(&i2c_client->dev,
-				      ARRAY_SIZE(cs4270->supplies),
-				      cs4270->supplies);
+								  ARRAY_SIZE(cs4270->supplies),
+								  cs4270->supplies);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* See if we have a way to bring the codec out of reset */
-	if (np) {
+	if (np)
+	{
 		enum of_gpio_flags flags;
 		int gpio = of_get_named_gpio_flags(np, "reset-gpio", 0, &flags);
 
-		if (gpio_is_valid(gpio)) {
+		if (gpio_is_valid(gpio))
+		{
 			ret = devm_gpio_request_one(&i2c_client->dev, gpio,
-				     flags & OF_GPIO_ACTIVE_LOW ?
-					GPIOF_OUT_INIT_LOW : GPIOF_OUT_INIT_HIGH,
-				     "cs4270 reset");
+										flags & OF_GPIO_ACTIVE_LOW ?
+										GPIOF_OUT_INIT_LOW : GPIOF_OUT_INIT_HIGH,
+										"cs4270 reset");
+
 			if (ret < 0)
+			{
 				return ret;
+			}
 		}
 	}
 
 	cs4270->regmap = devm_regmap_init_i2c(i2c_client, &cs4270_regmap);
+
 	if (IS_ERR(cs4270->regmap))
+	{
 		return PTR_ERR(cs4270->regmap);
+	}
 
 	/* Verify that we have a CS4270 */
 	ret = regmap_read(cs4270->regmap, CS4270_CHIPID, &val);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&i2c_client->dev, "failed to read i2c at addr %X\n",
-		       i2c_client->addr);
+				i2c_client->addr);
 		return ret;
 	}
+
 	/* The top four bits of the chip ID should be 1100. */
-	if ((val & 0xF0) != 0xC0) {
+	if ((val & 0xF0) != 0xC0)
+	{
 		dev_err(&i2c_client->dev, "device at addr %X is not a CS4270\n",
-		       i2c_client->addr);
+				i2c_client->addr);
 		return -ENODEV;
 	}
 
 	dev_info(&i2c_client->dev, "found device at i2c address %X\n",
-		i2c_client->addr);
+			 i2c_client->addr);
 	dev_info(&i2c_client->dev, "hardware revision %X\n", val & 0xF);
 
 	i2c_set_clientdata(i2c_client, cs4270);
 
 	ret = snd_soc_register_codec(&i2c_client->dev,
-			&soc_codec_device_cs4270, &cs4270_dai, 1);
+								 &soc_codec_device_cs4270, &cs4270_dai, 1);
 	return ret;
 }
 
@@ -738,7 +809,8 @@ static int cs4270_i2c_remove(struct i2c_client *i2c_client)
 /*
  * cs4270_id - I2C device IDs supported by this driver
  */
-static const struct i2c_device_id cs4270_id[] = {
+static const struct i2c_device_id cs4270_id[] =
+{
 	{"cs4270", 0},
 	{}
 };
@@ -750,7 +822,8 @@ MODULE_DEVICE_TABLE(i2c, cs4270_id);
  * This structure tells the I2C subsystem how to identify and support a
  * given I2C device type.
  */
-static struct i2c_driver cs4270_i2c_driver = {
+static struct i2c_driver cs4270_i2c_driver =
+{
 	.driver = {
 		.name = "cs4270",
 		.of_match_table = cs4270_of_match,

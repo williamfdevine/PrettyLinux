@@ -27,7 +27,8 @@
 #include <nvif/class.h>
 
 const struct nv50_disp_mthd_list
-g84_disp_core_mthd_dac = {
+	g84_disp_core_mthd_dac =
+{
 	.mthd = 0x0080,
 	.addr = 0x000008,
 	.data = {
@@ -39,7 +40,8 @@ g84_disp_core_mthd_dac = {
 };
 
 const struct nv50_disp_mthd_list
-g84_disp_core_mthd_head = {
+	g84_disp_core_mthd_head =
+{
 	.mthd = 0x0400,
 	.addr = 0x000540,
 	.data = {
@@ -91,7 +93,8 @@ g84_disp_core_mthd_head = {
 };
 
 const struct nv50_disp_chan_mthd
-g84_disp_core_chan_mthd = {
+	g84_disp_core_chan_mthd =
+{
 	.name = "Core",
 	.addr = 0x000000,
 	.prev = 0x000004,
@@ -106,7 +109,8 @@ g84_disp_core_chan_mthd = {
 };
 
 const struct nv50_disp_dmac_oclass
-g84_disp_core_oclass = {
+	g84_disp_core_oclass =
+{
 	.base.oclass = G82_DISP_CORE_CHANNEL_DMA,
 	.base.minver = 0,
 	.base.maxver = 0,

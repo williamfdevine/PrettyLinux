@@ -86,14 +86,16 @@
  * VCO frequency =
  * ((ndiv_int + ndiv_frac / 2^20) * (ref freqeuncy  / pdiv)
  */
-struct iproc_pll_vco_param {
+struct iproc_pll_vco_param
+{
 	unsigned long rate;
 	unsigned int ndiv_int;
 	unsigned int ndiv_frac;
 	unsigned int pdiv;
 };
 
-struct iproc_clk_reg_op {
+struct iproc_clk_reg_op
+{
 	unsigned int offset;
 	unsigned int shift;
 	unsigned int width;
@@ -102,7 +104,8 @@ struct iproc_clk_reg_op {
 /*
  * Clock gating control at the top ASIU level
  */
-struct iproc_asiu_gate {
+struct iproc_asiu_gate
+{
 	unsigned int offset;
 	unsigned int en_shift;
 };
@@ -112,7 +115,8 @@ struct iproc_asiu_gate {
  *
  * Before powering off a PLL, input isolation (ISO) needs to be enabled
  */
-struct iproc_pll_aon_pwr_ctrl {
+struct iproc_pll_aon_pwr_ctrl
+{
 	unsigned int offset;
 	unsigned int pwr_width;
 	unsigned int pwr_shift;
@@ -122,7 +126,8 @@ struct iproc_pll_aon_pwr_ctrl {
 /*
  * Control of the PLL reset
  */
-struct iproc_pll_reset_ctrl {
+struct iproc_pll_reset_ctrl
+{
 	unsigned int offset;
 	unsigned int reset_shift;
 	unsigned int p_reset_shift;
@@ -131,7 +136,8 @@ struct iproc_pll_reset_ctrl {
 /*
  * Control of the Ki, Kp, and Ka parameters
  */
-struct iproc_pll_dig_filter_ctrl {
+struct iproc_pll_dig_filter_ctrl
+{
 	unsigned int offset;
 	unsigned int ki_shift;
 	unsigned int ki_width;
@@ -144,12 +150,14 @@ struct iproc_pll_dig_filter_ctrl {
 /*
  * To enable SW control of the PLL
  */
-struct iproc_pll_sw_ctrl {
+struct iproc_pll_sw_ctrl
+{
 	unsigned int offset;
 	unsigned int shift;
 };
 
-struct iproc_pll_vco_ctrl {
+struct iproc_pll_vco_ctrl
+{
 	unsigned int u_offset;
 	unsigned int l_offset;
 };
@@ -157,7 +165,8 @@ struct iproc_pll_vco_ctrl {
 /*
  * Main PLL control parameters
  */
-struct iproc_pll_ctrl {
+struct iproc_pll_ctrl
+{
 	unsigned long flags;
 	struct iproc_pll_aon_pwr_ctrl aon;
 	struct iproc_asiu_gate asiu;
@@ -175,7 +184,8 @@ struct iproc_pll_ctrl {
 /*
  * Controls enabling/disabling a PLL derived clock
  */
-struct iproc_clk_enable_ctrl {
+struct iproc_clk_enable_ctrl
+{
 	unsigned int offset;
 	unsigned int enable_shift;
 	unsigned int hold_shift;
@@ -185,7 +195,8 @@ struct iproc_clk_enable_ctrl {
 /*
  * Main clock control parameters for clocks derived from the PLLs
  */
-struct iproc_clk_ctrl {
+struct iproc_clk_ctrl
+{
 	unsigned int channel;
 	unsigned long flags;
 	struct iproc_clk_enable_ctrl enable;
@@ -195,7 +206,8 @@ struct iproc_clk_ctrl {
 /*
  * Divisor of the ASIU clocks
  */
-struct iproc_asiu_div {
+struct iproc_asiu_div
+{
 	unsigned int offset;
 	unsigned int en_shift;
 	unsigned int high_shift;
@@ -206,14 +218,14 @@ struct iproc_asiu_div {
 
 void iproc_armpll_setup(struct device_node *node);
 void iproc_pll_clk_setup(struct device_node *node,
-			 const struct iproc_pll_ctrl *pll_ctrl,
-			 const struct iproc_pll_vco_param *vco,
-			 unsigned int num_vco_entries,
-			 const struct iproc_clk_ctrl *clk_ctrl,
-			 unsigned int num_clks);
+						 const struct iproc_pll_ctrl *pll_ctrl,
+						 const struct iproc_pll_vco_param *vco,
+						 unsigned int num_vco_entries,
+						 const struct iproc_clk_ctrl *clk_ctrl,
+						 unsigned int num_clks);
 void iproc_asiu_setup(struct device_node *node,
-		      const struct iproc_asiu_div *div,
-		      const struct iproc_asiu_gate *gate,
-		      unsigned int num_clks);
+					  const struct iproc_asiu_div *div,
+					  const struct iproc_asiu_gate *gate,
+					  unsigned int num_clks);
 
 #endif /* _CLK_IPROC_H */

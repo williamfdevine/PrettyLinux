@@ -37,13 +37,17 @@
 #include "qib.h"
 
 static void __qib_release_user_pages(struct page **p, size_t num_pages,
-				     int dirty)
+									 int dirty)
 {
 	size_t i;
 
-	for (i = 0; i < num_pages; i++) {
+	for (i = 0; i < num_pages; i++)
+	{
 		if (dirty)
+		{
 			set_page_dirty_lock(p[i]);
+		}
+
 		put_page(p[i]);
 	}
 }
@@ -52,7 +56,7 @@ static void __qib_release_user_pages(struct page **p, size_t num_pages,
  * Call with current->mm->mmap_sem held.
  */
 static int __qib_get_user_pages(unsigned long start_page, size_t num_pages,
-				struct page **p)
+								struct page **p)
 {
 	unsigned long lock_limit;
 	size_t got;
@@ -60,18 +64,23 @@ static int __qib_get_user_pages(unsigned long start_page, size_t num_pages,
 
 	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
 
-	if (num_pages > lock_limit && !capable(CAP_IPC_LOCK)) {
+	if (num_pages > lock_limit && !capable(CAP_IPC_LOCK))
+	{
 		ret = -ENOMEM;
 		goto bail;
 	}
 
-	for (got = 0; got < num_pages; got += ret) {
+	for (got = 0; got < num_pages; got += ret)
+	{
 		ret = get_user_pages(start_page + got * PAGE_SIZE,
-				     num_pages - got,
-				     FOLL_WRITE | FOLL_FORCE,
-				     p + got, NULL);
+							 num_pages - got,
+							 FOLL_WRITE | FOLL_FORCE,
+							 p + got, NULL);
+
 		if (ret < 0)
+		{
 			goto bail_release;
+		}
 	}
 
 	current->mm->pinned_vm += num_pages;
@@ -99,13 +108,14 @@ bail:
  * I'm sure we won't be so lucky with other iommu's, so FIXME.
  */
 dma_addr_t qib_map_page(struct pci_dev *hwdev, struct page *page,
-			unsigned long offset, size_t size, int direction)
+						unsigned long offset, size_t size, int direction)
 {
 	dma_addr_t phys;
 
 	phys = pci_map_page(hwdev, page, offset, size, direction);
 
-	if (phys == 0) {
+	if (phys == 0)
+	{
 		pci_unmap_page(hwdev, phys, size, direction);
 		phys = pci_map_page(hwdev, page, offset, size, direction);
 		/*
@@ -130,7 +140,7 @@ dma_addr_t qib_map_page(struct pci_dev *hwdev, struct page *page,
  * buffer, so we can do all pages at once).
  */
 int qib_get_user_pages(unsigned long start_page, size_t num_pages,
-		       struct page **p)
+					   struct page **p)
 {
 	int ret;
 
@@ -146,11 +156,14 @@ int qib_get_user_pages(unsigned long start_page, size_t num_pages,
 void qib_release_user_pages(struct page **p, size_t num_pages)
 {
 	if (current->mm) /* during close after signal, mm can be NULL */
+	{
 		down_write(&current->mm->mmap_sem);
+	}
 
 	__qib_release_user_pages(p, num_pages, 1);
 
-	if (current->mm) {
+	if (current->mm)
+	{
 		current->mm->pinned_vm -= num_pages;
 		up_write(&current->mm->mmap_sem);
 	}

@@ -46,7 +46,7 @@
  * that contains ino.
  */
 #define INOPBLK(pxd,ino,l2nbperpg)	(addressPXD((pxd)) +		\
-	((((ino) & (INOSPEREXT-1)) >> L2INOSPERPAGE) << (l2nbperpg)))
+									 ((((ino) & (INOSPEREXT-1)) >> L2INOSPERPAGE) << (l2nbperpg)))
 
 /*
  *	inode allocation map:
@@ -59,7 +59,8 @@
 /*
  *	inode allocation group page (per 4096 inodes of an AG)
  */
-struct iag {
+struct iag
+{
 	__le64 agstart;		/* 8: starting block of ag		*/
 	__le32 iagnum;		/* 4: inode allocation group number	*/
 	__le32 inofreefwd;	/* 4: ag inode free list forward	*/
@@ -92,14 +93,16 @@ struct iag {
 /*
  *	per AG control information (in inode map control page)
  */
-struct iagctl_disk {
+struct iagctl_disk
+{
 	__le32 inofree;		/* 4: free inode list anchor		*/
 	__le32 extfree;		/* 4: free extent list anchor		*/
 	__le32 numinos;		/* 4: number of backed inodes		*/
 	__le32 numfree;		/* 4: number of free inodes		*/
 };				/* (16) */
 
-struct iagctl {
+struct iagctl
+{
 	int inofree;		/* free inode list anchor		*/
 	int extfree;		/* free extent list anchor		*/
 	int numinos;		/* number of backed inodes		*/
@@ -109,7 +112,8 @@ struct iagctl {
 /*
  *	per fileset/aggregate inode map control page
  */
-struct dinomap_disk {
+struct dinomap_disk
+{
 	__le32 in_freeiag;	/* 4: free iag list anchor	*/
 	__le32 in_nextiag;	/* 4: next free iag number	*/
 	__le32 in_numinos;	/* 4: num of backed inodes	*/
@@ -122,7 +126,8 @@ struct dinomap_disk {
 	struct iagctl_disk in_agctl[MAXAG]; /* 2048: AG control information */
 };				/* (4096) */
 
-struct dinomap {
+struct dinomap
+{
 	int in_freeiag;		/* free iag list anchor		*/
 	int in_nextiag;		/* next free iag number		*/
 	int in_numinos;		/* num of backed inodes		*/
@@ -137,7 +142,8 @@ struct dinomap {
 /*
  *	In-core inode map control page
  */
-struct inomap {
+struct inomap
+{
 	struct dinomap im_imap;		/* 4096: inode allocation control */
 	struct inode *im_ipimap;	/* 4: ptr to inode for imap	*/
 	struct mutex im_freelock;	/* 4: iag free list lock	*/
@@ -163,7 +169,7 @@ extern int diAlloc(struct inode *, bool, struct inode *);
 extern int diSync(struct inode *);
 /* external references */
 extern int diUpdatePMap(struct inode *ipimap, unsigned long inum,
-			bool is_free, struct tblock * tblk);
+						bool is_free, struct tblock *tblk);
 extern int diExtendFS(struct inode *ipimap, struct inode *ipbmap);
 extern int diMount(struct inode *);
 extern int diUnmount(struct inode *, int);

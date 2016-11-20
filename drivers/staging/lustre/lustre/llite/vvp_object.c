@@ -55,32 +55,35 @@ int vvp_object_invariant(const struct cl_object *obj)
 	struct ll_inode_info *lli = ll_i2info(inode);
 
 	return (S_ISREG(inode->i_mode) || inode->i_mode == 0) &&
-		lli->lli_clob == obj;
+		   lli->lli_clob == obj;
 }
 
 static int vvp_object_print(const struct lu_env *env, void *cookie,
-			    lu_printer_t p, const struct lu_object *o)
+							lu_printer_t p, const struct lu_object *o)
 {
 	struct vvp_object    *obj   = lu2vvp(o);
 	struct inode	 *inode = obj->vob_inode;
 	struct ll_inode_info *lli;
 
 	(*p)(env, cookie, "(%s %d %d) inode: %p ",
-	     list_empty(&obj->vob_pending_list) ? "-" : "+",
-	     atomic_read(&obj->vob_transient_pages),
-	     atomic_read(&obj->vob_mmap_cnt), inode);
-	if (inode) {
+		 list_empty(&obj->vob_pending_list) ? "-" : "+",
+		 atomic_read(&obj->vob_transient_pages),
+		 atomic_read(&obj->vob_mmap_cnt), inode);
+
+	if (inode)
+	{
 		lli = ll_i2info(inode);
 		(*p)(env, cookie, "%lu/%u %o %u %d %p "DFID,
-		     inode->i_ino, inode->i_generation, inode->i_mode,
-		     inode->i_nlink, atomic_read(&inode->i_count),
-		     lli->lli_clob, PFID(&lli->lli_fid));
+			 inode->i_ino, inode->i_generation, inode->i_mode,
+			 inode->i_nlink, atomic_read(&inode->i_count),
+			 lli->lli_clob, PFID(&lli->lli_fid));
 	}
+
 	return 0;
 }
 
 static int vvp_attr_get(const struct lu_env *env, struct cl_object *obj,
-			struct cl_attr *attr)
+						struct cl_attr *attr)
 {
 	struct inode *inode = vvp_object_inode(obj);
 
@@ -102,36 +105,58 @@ static int vvp_attr_get(const struct lu_env *env, struct cl_object *obj,
 }
 
 static int vvp_attr_update(const struct lu_env *env, struct cl_object *obj,
-			   const struct cl_attr *attr, unsigned int valid)
+						   const struct cl_attr *attr, unsigned int valid)
 {
 	struct inode *inode = vvp_object_inode(obj);
 
 	if (valid & CAT_UID)
+	{
 		inode->i_uid = make_kuid(&init_user_ns, attr->cat_uid);
+	}
+
 	if (valid & CAT_GID)
+	{
 		inode->i_gid = make_kgid(&init_user_ns, attr->cat_gid);
+	}
+
 	if (valid & CAT_ATIME)
+	{
 		inode->i_atime.tv_sec = attr->cat_atime;
+	}
+
 	if (valid & CAT_MTIME)
+	{
 		inode->i_mtime.tv_sec = attr->cat_mtime;
+	}
+
 	if (valid & CAT_CTIME)
+	{
 		inode->i_ctime.tv_sec = attr->cat_ctime;
+	}
+
 	if (0 && valid & CAT_SIZE)
+	{
 		i_size_write(inode, attr->cat_size);
+	}
+
 	/* not currently necessary */
 	if (0 && valid & (CAT_UID | CAT_GID | CAT_SIZE))
+	{
 		mark_inode_dirty(inode);
+	}
+
 	return 0;
 }
 
 static int vvp_conf_set(const struct lu_env *env, struct cl_object *obj,
-			const struct cl_object_conf *conf)
+						const struct cl_object_conf *conf)
 {
 	struct ll_inode_info *lli = ll_i2info(conf->coc_inode);
 
-	if (conf->coc_opc == OBJECT_CONF_INVALIDATE) {
+	if (conf->coc_opc == OBJECT_CONF_INVALIDATE)
+	{
 		CDEBUG(D_VFSTRACE, DFID ": losing layout lock\n",
-		       PFID(&lli->lli_fid));
+			   PFID(&lli->lli_fid));
 
 		ll_layout_version_set(lli, LL_LAYOUT_GEN_NONE);
 
@@ -145,28 +170,34 @@ static int vvp_conf_set(const struct lu_env *env, struct cl_object *obj,
 		 * a price themselves.
 		 */
 		unmap_mapping_range(conf->coc_inode->i_mapping,
-				    0, OBD_OBJECT_EOF, 0);
+							0, OBD_OBJECT_EOF, 0);
 
 		return 0;
 	}
 
 	if (conf->coc_opc != OBJECT_CONF_SET)
+	{
 		return 0;
+	}
 
-	if (conf->u.coc_md && conf->u.coc_md->lsm) {
+	if (conf->u.coc_md && conf->u.coc_md->lsm)
+	{
 		CDEBUG(D_VFSTRACE, DFID ": layout version change: %u -> %u\n",
-		       PFID(&lli->lli_fid), lli->lli_layout_gen,
-		       conf->u.coc_md->lsm->lsm_layout_gen);
+			   PFID(&lli->lli_fid), lli->lli_layout_gen,
+			   conf->u.coc_md->lsm->lsm_layout_gen);
 
 		lli->lli_has_smd = lsm_has_objects(conf->u.coc_md->lsm);
 		ll_layout_version_set(lli, conf->u.coc_md->lsm->lsm_layout_gen);
-	} else {
+	}
+	else
+	{
 		CDEBUG(D_VFSTRACE, DFID ": layout nuked: %u.\n",
-		       PFID(&lli->lli_fid), lli->lli_layout_gen);
+			   PFID(&lli->lli_fid), lli->lli_layout_gen);
 
 		lli->lli_has_smd = false;
 		ll_layout_version_set(lli, LL_LAYOUT_GEN_EMPTY);
 	}
+
 	return 0;
 }
 
@@ -176,9 +207,11 @@ static int vvp_prune(const struct lu_env *env, struct cl_object *obj)
 	int rc;
 
 	rc = cl_sync_file_range(inode, 0, OBD_OBJECT_EOF, CL_FSYNC_LOCAL, 1);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		CDEBUG(D_VFSTRACE, DFID ": writeback failed: %d\n",
-		       PFID(lu_object_fid(&obj->co_lu)), rc);
+			   PFID(lu_object_fid(&obj->co_lu)), rc);
 		return rc;
 	}
 
@@ -187,24 +220,29 @@ static int vvp_prune(const struct lu_env *env, struct cl_object *obj)
 }
 
 static int vvp_object_glimpse(const struct lu_env *env,
-			      const struct cl_object *obj, struct ost_lvb *lvb)
+							  const struct cl_object *obj, struct ost_lvb *lvb)
 {
 	struct inode *inode = vvp_object_inode(obj);
 
 	lvb->lvb_mtime = LTIME_S(inode->i_mtime);
 	lvb->lvb_atime = LTIME_S(inode->i_atime);
 	lvb->lvb_ctime = LTIME_S(inode->i_ctime);
+
 	/*
 	 * LU-417: Add dirty pages block count lest i_blocks reports 0, some
 	 * "cp" or "tar" on remote node may think it's a completely sparse file
 	 * and skip it.
 	 */
 	if (lvb->lvb_size > 0 && lvb->lvb_blocks == 0)
+	{
 		lvb->lvb_blocks = dirty_cnt(inode);
+	}
+
 	return 0;
 }
 
-static const struct cl_object_operations vvp_ops = {
+static const struct cl_object_operations vvp_ops =
+{
 	.coo_page_init = vvp_page_init,
 	.coo_lock_init = vvp_lock_init,
 	.coo_io_init   = vvp_io_init,
@@ -216,8 +254,8 @@ static const struct cl_object_operations vvp_ops = {
 };
 
 static int vvp_object_init0(const struct lu_env *env,
-			    struct vvp_object *vob,
-			    const struct cl_object_conf *conf)
+							struct vvp_object *vob,
+							const struct cl_object_conf *conf)
 {
 	vob->vob_inode = conf->coc_inode;
 	atomic_set(&vob->vob_transient_pages, 0);
@@ -226,7 +264,7 @@ static int vvp_object_init0(const struct lu_env *env,
 }
 
 static int vvp_object_init(const struct lu_env *env, struct lu_object *obj,
-			   const struct lu_object_conf *conf)
+						   const struct lu_object_conf *conf)
 {
 	struct vvp_device *dev = lu2vvp_dev(obj->lo_dev);
 	struct vvp_object *vob = lu2vvp(obj);
@@ -236,14 +274,18 @@ static int vvp_object_init(const struct lu_env *env, struct lu_object *obj,
 
 	under = &dev->vdv_next->cd_lu_dev;
 	below = under->ld_ops->ldo_object_alloc(env, obj->lo_header, under);
-	if (below) {
+
+	if (below)
+	{
 		const struct cl_object_conf *cconf;
 
 		cconf = lu2cl_conf(conf);
 		INIT_LIST_HEAD(&vob->vob_pending_list);
 		lu_object_add(obj, below);
 		result = vvp_object_init0(env, vob, cconf);
-	} else {
+	}
+	else
+	{
 		result = -ENOMEM;
 	}
 
@@ -259,7 +301,8 @@ static void vvp_object_free(const struct lu_env *env, struct lu_object *obj)
 	kmem_cache_free(vvp_object_kmem, vob);
 }
 
-static const struct lu_object_operations vvp_lu_obj_ops = {
+static const struct lu_object_operations vvp_lu_obj_ops =
+{
 	.loo_object_init	= vvp_object_init,
 	.loo_object_free	= vvp_object_free,
 	.loo_object_print	= vvp_object_print,
@@ -277,14 +320,16 @@ struct vvp_object *cl_inode2vvp(struct inode *inode)
 }
 
 struct lu_object *vvp_object_alloc(const struct lu_env *env,
-				   const struct lu_object_header *unused,
-				   struct lu_device *dev)
+								   const struct lu_object_header *unused,
+								   struct lu_device *dev)
 {
 	struct vvp_object *vob;
 	struct lu_object  *obj;
 
 	vob = kmem_cache_zalloc(vvp_object_kmem, GFP_NOFS);
-	if (vob) {
+
+	if (vob)
+	{
 		struct cl_object_header *hdr;
 
 		obj = &vob->vob_cl.co_lu;
@@ -297,8 +342,11 @@ struct lu_object *vvp_object_alloc(const struct lu_env *env,
 
 		vob->vob_cl.co_ops = &vvp_ops;
 		obj->lo_ops = &vvp_lu_obj_ops;
-	} else {
+	}
+	else
+	{
 		obj = NULL;
 	}
+
 	return obj;
 }

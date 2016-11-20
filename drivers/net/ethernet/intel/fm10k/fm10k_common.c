@@ -34,109 +34,135 @@ s32 fm10k_get_bus_info_generic(struct fm10k_hw *hw)
 	/* Get the maximum link width and speed from PCIe config space */
 	link_cap = fm10k_read_pci_cfg_word(hw, FM10K_PCIE_LINK_CAP);
 
-	switch (link_cap & FM10K_PCIE_LINK_WIDTH) {
-	case FM10K_PCIE_LINK_WIDTH_1:
-		hw->bus_caps.width = fm10k_bus_width_pcie_x1;
-		break;
-	case FM10K_PCIE_LINK_WIDTH_2:
-		hw->bus_caps.width = fm10k_bus_width_pcie_x2;
-		break;
-	case FM10K_PCIE_LINK_WIDTH_4:
-		hw->bus_caps.width = fm10k_bus_width_pcie_x4;
-		break;
-	case FM10K_PCIE_LINK_WIDTH_8:
-		hw->bus_caps.width = fm10k_bus_width_pcie_x8;
-		break;
-	default:
-		hw->bus_caps.width = fm10k_bus_width_unknown;
-		break;
+	switch (link_cap & FM10K_PCIE_LINK_WIDTH)
+	{
+		case FM10K_PCIE_LINK_WIDTH_1:
+			hw->bus_caps.width = fm10k_bus_width_pcie_x1;
+			break;
+
+		case FM10K_PCIE_LINK_WIDTH_2:
+			hw->bus_caps.width = fm10k_bus_width_pcie_x2;
+			break;
+
+		case FM10K_PCIE_LINK_WIDTH_4:
+			hw->bus_caps.width = fm10k_bus_width_pcie_x4;
+			break;
+
+		case FM10K_PCIE_LINK_WIDTH_8:
+			hw->bus_caps.width = fm10k_bus_width_pcie_x8;
+			break;
+
+		default:
+			hw->bus_caps.width = fm10k_bus_width_unknown;
+			break;
 	}
 
-	switch (link_cap & FM10K_PCIE_LINK_SPEED) {
-	case FM10K_PCIE_LINK_SPEED_2500:
-		hw->bus_caps.speed = fm10k_bus_speed_2500;
-		break;
-	case FM10K_PCIE_LINK_SPEED_5000:
-		hw->bus_caps.speed = fm10k_bus_speed_5000;
-		break;
-	case FM10K_PCIE_LINK_SPEED_8000:
-		hw->bus_caps.speed = fm10k_bus_speed_8000;
-		break;
-	default:
-		hw->bus_caps.speed = fm10k_bus_speed_unknown;
-		break;
+	switch (link_cap & FM10K_PCIE_LINK_SPEED)
+	{
+		case FM10K_PCIE_LINK_SPEED_2500:
+			hw->bus_caps.speed = fm10k_bus_speed_2500;
+			break;
+
+		case FM10K_PCIE_LINK_SPEED_5000:
+			hw->bus_caps.speed = fm10k_bus_speed_5000;
+			break;
+
+		case FM10K_PCIE_LINK_SPEED_8000:
+			hw->bus_caps.speed = fm10k_bus_speed_8000;
+			break;
+
+		default:
+			hw->bus_caps.speed = fm10k_bus_speed_unknown;
+			break;
 	}
 
 	/* Get the PCIe maximum payload size for the PCIe function */
 	device_cap = fm10k_read_pci_cfg_word(hw, FM10K_PCIE_DEV_CAP);
 
-	switch (device_cap & FM10K_PCIE_DEV_CAP_PAYLOAD) {
-	case FM10K_PCIE_DEV_CAP_PAYLOAD_128:
-		hw->bus_caps.payload = fm10k_bus_payload_128;
-		break;
-	case FM10K_PCIE_DEV_CAP_PAYLOAD_256:
-		hw->bus_caps.payload = fm10k_bus_payload_256;
-		break;
-	case FM10K_PCIE_DEV_CAP_PAYLOAD_512:
-		hw->bus_caps.payload = fm10k_bus_payload_512;
-		break;
-	default:
-		hw->bus_caps.payload = fm10k_bus_payload_unknown;
-		break;
+	switch (device_cap & FM10K_PCIE_DEV_CAP_PAYLOAD)
+	{
+		case FM10K_PCIE_DEV_CAP_PAYLOAD_128:
+			hw->bus_caps.payload = fm10k_bus_payload_128;
+			break;
+
+		case FM10K_PCIE_DEV_CAP_PAYLOAD_256:
+			hw->bus_caps.payload = fm10k_bus_payload_256;
+			break;
+
+		case FM10K_PCIE_DEV_CAP_PAYLOAD_512:
+			hw->bus_caps.payload = fm10k_bus_payload_512;
+			break;
+
+		default:
+			hw->bus_caps.payload = fm10k_bus_payload_unknown;
+			break;
 	}
 
 	/* Get the negotiated link width and speed from PCIe config space */
 	link_status = fm10k_read_pci_cfg_word(hw, FM10K_PCIE_LINK_STATUS);
 
-	switch (link_status & FM10K_PCIE_LINK_WIDTH) {
-	case FM10K_PCIE_LINK_WIDTH_1:
-		hw->bus.width = fm10k_bus_width_pcie_x1;
-		break;
-	case FM10K_PCIE_LINK_WIDTH_2:
-		hw->bus.width = fm10k_bus_width_pcie_x2;
-		break;
-	case FM10K_PCIE_LINK_WIDTH_4:
-		hw->bus.width = fm10k_bus_width_pcie_x4;
-		break;
-	case FM10K_PCIE_LINK_WIDTH_8:
-		hw->bus.width = fm10k_bus_width_pcie_x8;
-		break;
-	default:
-		hw->bus.width = fm10k_bus_width_unknown;
-		break;
+	switch (link_status & FM10K_PCIE_LINK_WIDTH)
+	{
+		case FM10K_PCIE_LINK_WIDTH_1:
+			hw->bus.width = fm10k_bus_width_pcie_x1;
+			break;
+
+		case FM10K_PCIE_LINK_WIDTH_2:
+			hw->bus.width = fm10k_bus_width_pcie_x2;
+			break;
+
+		case FM10K_PCIE_LINK_WIDTH_4:
+			hw->bus.width = fm10k_bus_width_pcie_x4;
+			break;
+
+		case FM10K_PCIE_LINK_WIDTH_8:
+			hw->bus.width = fm10k_bus_width_pcie_x8;
+			break;
+
+		default:
+			hw->bus.width = fm10k_bus_width_unknown;
+			break;
 	}
 
-	switch (link_status & FM10K_PCIE_LINK_SPEED) {
-	case FM10K_PCIE_LINK_SPEED_2500:
-		hw->bus.speed = fm10k_bus_speed_2500;
-		break;
-	case FM10K_PCIE_LINK_SPEED_5000:
-		hw->bus.speed = fm10k_bus_speed_5000;
-		break;
-	case FM10K_PCIE_LINK_SPEED_8000:
-		hw->bus.speed = fm10k_bus_speed_8000;
-		break;
-	default:
-		hw->bus.speed = fm10k_bus_speed_unknown;
-		break;
+	switch (link_status & FM10K_PCIE_LINK_SPEED)
+	{
+		case FM10K_PCIE_LINK_SPEED_2500:
+			hw->bus.speed = fm10k_bus_speed_2500;
+			break;
+
+		case FM10K_PCIE_LINK_SPEED_5000:
+			hw->bus.speed = fm10k_bus_speed_5000;
+			break;
+
+		case FM10K_PCIE_LINK_SPEED_8000:
+			hw->bus.speed = fm10k_bus_speed_8000;
+			break;
+
+		default:
+			hw->bus.speed = fm10k_bus_speed_unknown;
+			break;
 	}
 
 	/* Get the negotiated PCIe maximum payload size for the PCIe function */
 	device_control = fm10k_read_pci_cfg_word(hw, FM10K_PCIE_DEV_CTRL);
 
-	switch (device_control & FM10K_PCIE_DEV_CTRL_PAYLOAD) {
-	case FM10K_PCIE_DEV_CTRL_PAYLOAD_128:
-		hw->bus.payload = fm10k_bus_payload_128;
-		break;
-	case FM10K_PCIE_DEV_CTRL_PAYLOAD_256:
-		hw->bus.payload = fm10k_bus_payload_256;
-		break;
-	case FM10K_PCIE_DEV_CTRL_PAYLOAD_512:
-		hw->bus.payload = fm10k_bus_payload_512;
-		break;
-	default:
-		hw->bus.payload = fm10k_bus_payload_unknown;
-		break;
+	switch (device_control & FM10K_PCIE_DEV_CTRL_PAYLOAD)
+	{
+		case FM10K_PCIE_DEV_CTRL_PAYLOAD_128:
+			hw->bus.payload = fm10k_bus_payload_128;
+			break;
+
+		case FM10K_PCIE_DEV_CTRL_PAYLOAD_256:
+			hw->bus.payload = fm10k_bus_payload_256;
+			break;
+
+		case FM10K_PCIE_DEV_CTRL_PAYLOAD_512:
+			hw->bus.payload = fm10k_bus_payload_512;
+			break;
+
+		default:
+			hw->bus.payload = fm10k_bus_payload_unknown;
+			break;
 	}
 
 	return 0;
@@ -154,7 +180,9 @@ static u16 fm10k_get_pcie_msix_count_generic(struct fm10k_hw *hw)
 	msix_count++;
 
 	if (msix_count > FM10K_MAX_MSIX_VECTORS)
+	{
 		msix_count = FM10K_MAX_MSIX_VECTORS;
+	}
 
 	return msix_count;
 }
@@ -208,32 +236,42 @@ s32 fm10k_disable_queues_generic(struct fm10k_hw *hw, u16 q_cnt)
 	hw->mac.tx_ready = false;
 
 	if (FM10K_REMOVED(hw->hw_addr))
+	{
 		return 0;
+	}
 
 	/* clear the enable bit for all rings */
-	for (i = 0; i < q_cnt; i++) {
+	for (i = 0; i < q_cnt; i++)
+	{
 		reg = fm10k_read_reg(hw, FM10K_TXDCTL(i));
 		fm10k_write_reg(hw, FM10K_TXDCTL(i),
-				reg & ~FM10K_TXDCTL_ENABLE);
+						reg & ~FM10K_TXDCTL_ENABLE);
 		reg = fm10k_read_reg(hw, FM10K_RXQCTL(i));
 		fm10k_write_reg(hw, FM10K_RXQCTL(i),
-				reg & ~FM10K_RXQCTL_ENABLE);
+						reg & ~FM10K_RXQCTL_ENABLE);
 	}
 
 	fm10k_write_flush(hw);
 	udelay(1);
 
 	/* loop through all queues to verify that they are all disabled */
-	for (i = 0, time = FM10K_QUEUE_DISABLE_TIMEOUT; time;) {
+	for (i = 0, time = FM10K_QUEUE_DISABLE_TIMEOUT; time;)
+	{
 		/* if we are at end of rings all rings are disabled */
 		if (i == q_cnt)
+		{
 			return 0;
+		}
 
 		/* if queue enables cleared, then move to next ring pair */
 		reg = fm10k_read_reg(hw, FM10K_TXDCTL(i));
-		if (!~reg || !(reg & FM10K_TXDCTL_ENABLE)) {
+
+		if (!~reg || !(reg & FM10K_TXDCTL_ENABLE))
+		{
 			reg = fm10k_read_reg(hw, FM10K_RXQCTL(i));
-			if (!~reg || !(reg & FM10K_RXQCTL_ENABLE)) {
+
+			if (!~reg || !(reg & FM10K_RXQCTL_ENABLE))
+			{
 				i++;
 				continue;
 			}
@@ -241,8 +279,11 @@ s32 fm10k_disable_queues_generic(struct fm10k_hw *hw, u16 q_cnt)
 
 		/* decrement time and wait 1 usec */
 		time--;
+
 		if (time)
+		{
 			udelay(1);
+		}
 	}
 
 	return FM10K_ERR_REQUESTS_PENDING;
@@ -267,12 +308,14 @@ s32 fm10k_stop_hw_generic(struct fm10k_hw *hw)
  *  between the base and the current value.
  *  **/
 u32 fm10k_read_hw_stats_32b(struct fm10k_hw *hw, u32 addr,
-			    struct fm10k_hw_stat *stat)
+							struct fm10k_hw_stat *stat)
 {
 	u32 delta = fm10k_read_reg(hw, addr) - stat->base_l;
 
 	if (FM10K_REMOVED(hw->hw_addr))
+	{
 		stat->base_h = 0;
+	}
 
 	return delta;
 }
@@ -288,7 +331,7 @@ u32 fm10k_read_hw_stats_32b(struct fm10k_hw *hw, u32 addr,
  *  values stored in registers and values stored in the statistic counters.
  *  **/
 static u64 fm10k_read_hw_stats_48b(struct fm10k_hw *hw, u32 addr,
-				   struct fm10k_hw_stat *stat)
+								   struct fm10k_hw_stat *stat)
 {
 	u32 count_l;
 	u32 count_h;
@@ -298,11 +341,13 @@ static u64 fm10k_read_hw_stats_48b(struct fm10k_hw *hw, u32 addr,
 	count_h = fm10k_read_reg(hw, addr + 1);
 
 	/* Check for overflow */
-	do {
+	do
+	{
 		count_tmp = count_h;
 		count_l = fm10k_read_reg(hw, addr);
 		count_h = fm10k_read_reg(hw, addr + 1);
-	} while (count_h != count_tmp);
+	}
+	while (count_h != count_tmp);
 
 	delta = ((u64)(count_h - stat->base_h) << 32) + count_l;
 	delta -= stat->base_l;
@@ -321,7 +366,9 @@ static u64 fm10k_read_hw_stats_48b(struct fm10k_hw *hw, u32 addr,
 static void fm10k_update_hw_base_48b(struct fm10k_hw_stat *stat, u64 delta)
 {
 	if (!delta)
+	{
 		return;
+	}
 
 	/* update lower 32 bits */
 	delta += stat->base_l;
@@ -341,8 +388,8 @@ static void fm10k_update_hw_base_48b(struct fm10k_hw_stat *stat, u64 delta)
  *  hardware.
  **/
 static void fm10k_update_hw_stats_tx_q(struct fm10k_hw *hw,
-				       struct fm10k_hw_stats_q *q,
-				       u32 idx)
+									   struct fm10k_hw_stats_q *q,
+									   u32 idx)
 {
 	u32 id_tx, id_tx_prev, tx_packets;
 	u64 tx_bytes = 0;
@@ -351,26 +398,29 @@ static void fm10k_update_hw_stats_tx_q(struct fm10k_hw *hw,
 	id_tx = fm10k_read_reg(hw, FM10K_TXQCTL(idx));
 
 	/* Process TX Ring */
-	do {
+	do
+	{
 		tx_packets = fm10k_read_hw_stats_32b(hw, FM10K_QPTC(idx),
-						     &q->tx_packets);
+											 &q->tx_packets);
 
 		if (tx_packets)
 			tx_bytes = fm10k_read_hw_stats_48b(hw,
-							   FM10K_QBTC_L(idx),
-							   &q->tx_bytes);
+											   FM10K_QBTC_L(idx),
+											   &q->tx_bytes);
 
 		/* Re-Check Owner Data */
 		id_tx_prev = id_tx;
 		id_tx = fm10k_read_reg(hw, FM10K_TXQCTL(idx));
-	} while ((id_tx ^ id_tx_prev) & FM10K_TXQCTL_ID_MASK);
+	}
+	while ((id_tx ^ id_tx_prev) & FM10K_TXQCTL_ID_MASK);
 
 	/* drop non-ID bits and set VALID ID bit */
 	id_tx &= FM10K_TXQCTL_ID_MASK;
 	id_tx |= FM10K_STAT_VALID;
 
 	/* update packet counts */
-	if (q->tx_stats_idx == id_tx) {
+	if (q->tx_stats_idx == id_tx)
+	{
 		q->tx_packets.count += tx_packets;
 		q->tx_bytes.count += tx_bytes;
 	}
@@ -392,8 +442,8 @@ static void fm10k_update_hw_stats_tx_q(struct fm10k_hw *hw,
  *  hardware.
  **/
 static void fm10k_update_hw_stats_rx_q(struct fm10k_hw *hw,
-				       struct fm10k_hw_stats_q *q,
-				       u32 idx)
+									   struct fm10k_hw_stats_q *q,
+									   u32 idx)
 {
 	u32 id_rx, id_rx_prev, rx_packets, rx_drops;
 	u64 rx_bytes = 0;
@@ -402,29 +452,32 @@ static void fm10k_update_hw_stats_rx_q(struct fm10k_hw *hw,
 	id_rx = fm10k_read_reg(hw, FM10K_RXQCTL(idx));
 
 	/* Process RX Ring */
-	do {
+	do
+	{
 		rx_drops = fm10k_read_hw_stats_32b(hw, FM10K_QPRDC(idx),
-						   &q->rx_drops);
+										   &q->rx_drops);
 
 		rx_packets = fm10k_read_hw_stats_32b(hw, FM10K_QPRC(idx),
-						     &q->rx_packets);
+											 &q->rx_packets);
 
 		if (rx_packets)
 			rx_bytes = fm10k_read_hw_stats_48b(hw,
-							   FM10K_QBRC_L(idx),
-							   &q->rx_bytes);
+											   FM10K_QBRC_L(idx),
+											   &q->rx_bytes);
 
 		/* Re-Check Owner Data */
 		id_rx_prev = id_rx;
 		id_rx = fm10k_read_reg(hw, FM10K_RXQCTL(idx));
-	} while ((id_rx ^ id_rx_prev) & FM10K_RXQCTL_ID_MASK);
+	}
+	while ((id_rx ^ id_rx_prev) & FM10K_RXQCTL_ID_MASK);
 
 	/* drop non-ID bits and set VALID ID bit */
 	id_rx &= FM10K_RXQCTL_ID_MASK;
 	id_rx |= FM10K_STAT_VALID;
 
 	/* update packet counts */
-	if (q->rx_stats_idx == id_rx) {
+	if (q->rx_stats_idx == id_rx)
+	{
 		q->rx_drops.count += rx_drops;
 		q->rx_packets.count += rx_packets;
 		q->rx_bytes.count += rx_bytes;
@@ -449,11 +502,12 @@ static void fm10k_update_hw_stats_rx_q(struct fm10k_hw *hw,
  *  hardware.
  **/
 void fm10k_update_hw_stats_q(struct fm10k_hw *hw, struct fm10k_hw_stats_q *q,
-			     u32 idx, u32 count)
+							 u32 idx, u32 count)
 {
 	u32 i;
 
-	for (i = 0; i < count; i++, idx++, q++) {
+	for (i = 0; i < count; i++, idx++, q++)
+	{
 		fm10k_update_hw_stats_tx_q(hw, q, idx);
 		fm10k_update_hw_stats_rx_q(hw, q, idx);
 	}
@@ -473,7 +527,8 @@ void fm10k_unbind_hw_stats_q(struct fm10k_hw_stats_q *q, u32 idx, u32 count)
 {
 	u32 i;
 
-	for (i = 0; i < count; i++, idx++, q++) {
+	for (i = 0; i < count; i++, idx++, q++)
+	{
 		q->rx_stats_idx = 0;
 		q->tx_stats_idx = 0;
 	}
@@ -499,32 +554,43 @@ s32 fm10k_get_host_state_generic(struct fm10k_hw *hw, bool *host_ready)
 
 	/* If Tx is no longer enabled link should come down */
 	if (!(~txdctl) || !(txdctl & FM10K_TXDCTL_ENABLE))
+	{
 		mac->get_host_state = true;
+	}
 
 	/* exit if not checking for link, or link cannot be changed */
 	if (!mac->get_host_state || !(~txdctl))
+	{
 		goto out;
+	}
 
 	/* if we somehow dropped the Tx enable we should reset */
-	if (hw->mac.tx_ready && !(txdctl & FM10K_TXDCTL_ENABLE)) {
+	if (hw->mac.tx_ready && !(txdctl & FM10K_TXDCTL_ENABLE))
+	{
 		ret_val = FM10K_ERR_RESET_REQUESTED;
 		goto out;
 	}
 
 	/* if Mailbox timed out we should request reset */
-	if (!mbx->timeout) {
+	if (!mbx->timeout)
+	{
 		ret_val = FM10K_ERR_RESET_REQUESTED;
 		goto out;
 	}
 
 	/* verify Mailbox is still valid */
 	if (!mbx->ops.tx_ready(mbx, FM10K_VFMBX_MSG_MTU))
+	{
 		goto out;
+	}
 
 	/* interface cannot receive traffic without logical ports */
-	if (mac->dglort_map == FM10K_DGLORTMAP_NONE) {
+	if (mac->dglort_map == FM10K_DGLORTMAP_NONE)
+	{
 		if (hw->mac.ops.request_lport_map)
+		{
 			ret_val = hw->mac.ops.request_lport_map(hw);
+		}
 
 		goto out;
 	}

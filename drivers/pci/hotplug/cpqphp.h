@@ -43,7 +43,8 @@
 
 
 
-struct smbios_system_slot {
+struct smbios_system_slot
+{
 	u8 type;
 	u8 length;
 	u16 handle;
@@ -58,7 +59,8 @@ struct smbios_system_slot {
 } __attribute__ ((packed));
 
 /* offsets to the smbios generic type based on the above structure layout */
-enum smbios_system_slot_offsets {
+enum smbios_system_slot_offsets
+{
 	SMBIOS_SLOT_GENERIC_TYPE =	offsetof(struct smbios_system_slot, type),
 	SMBIOS_SLOT_GENERIC_LENGTH =	offsetof(struct smbios_system_slot, length),
 	SMBIOS_SLOT_GENERIC_HANDLE =	offsetof(struct smbios_system_slot, handle),
@@ -72,20 +74,23 @@ enum smbios_system_slot_offsets {
 	SMBIOS_SLOT_PROPERTIES2 =	offsetof(struct smbios_system_slot, properties2),
 };
 
-struct smbios_generic {
+struct smbios_generic
+{
 	u8 type;
 	u8 length;
 	u16 handle;
 } __attribute__ ((packed));
 
 /* offsets to the smbios generic type based on the above structure layout */
-enum smbios_generic_offsets {
+enum smbios_generic_offsets
+{
 	SMBIOS_GENERIC_TYPE =	offsetof(struct smbios_generic, type),
 	SMBIOS_GENERIC_LENGTH =	offsetof(struct smbios_generic, length),
 	SMBIOS_GENERIC_HANDLE =	offsetof(struct smbios_generic, handle),
 };
 
-struct smbios_entry_point {
+struct smbios_entry_point
+{
 	char anchor[4];
 	u8 ep_checksum;
 	u8 ep_length;
@@ -103,7 +108,8 @@ struct smbios_entry_point {
 } __attribute__ ((packed));
 
 /* offsets to the smbios entry point based on the above structure layout */
-enum smbios_entry_point_offsets {
+enum smbios_entry_point_offsets
+{
 	ANCHOR =		offsetof(struct smbios_entry_point, anchor[0]),
 	EP_CHECKSUM =		offsetof(struct smbios_entry_point, ep_checksum),
 	EP_LENGTH =		offsetof(struct smbios_entry_point, ep_length),
@@ -119,7 +125,8 @@ enum smbios_entry_point_offsets {
 	BCD_REV =		offsetof(struct smbios_entry_point, bcd_rev),
 };
 
-struct ctrl_reg {			/* offset */
+struct ctrl_reg  			/* offset */
+{
 	u8	slot_RST;		/* 0x00 */
 	u8	slot_enable;		/* 0x01 */
 	u16	misc;			/* 0x02 */
@@ -150,7 +157,8 @@ struct ctrl_reg {			/* offset */
 } __attribute__ ((packed));
 
 /* offsets to the controller registers based on the above structure layout */
-enum ctrl_offsets {
+enum ctrl_offsets
+{
 	SLOT_RST =		offsetof(struct ctrl_reg, slot_RST),
 	SLOT_ENABLE =		offsetof(struct ctrl_reg, slot_enable),
 	MISC =			offsetof(struct ctrl_reg, misc),
@@ -178,7 +186,8 @@ enum ctrl_offsets {
 	RESET_FREQ_MODE =	offsetof(struct ctrl_reg, reset_freq_mode),
 };
 
-struct hrt {
+struct hrt
+{
 	char sig0;
 	char sig1;
 	char sig2;
@@ -194,7 +203,8 @@ struct hrt {
 /* offsets to the hotplug resource table registers based on the above
  * structure layout
  */
-enum hrt_offsets {
+enum hrt_offsets
+{
 	SIG0 =			offsetof(struct hrt, sig0),
 	SIG1 =			offsetof(struct hrt, sig1),
 	SIG2 =			offsetof(struct hrt, sig2),
@@ -207,7 +217,8 @@ enum hrt_offsets {
 	HRT_RESERVED2 =		offsetof(struct hrt, reserved2),
 };
 
-struct slot_rt {
+struct slot_rt
+{
 	u8 dev_func;
 	u8 primary_bus;
 	u8 secondary_bus;
@@ -223,7 +234,8 @@ struct slot_rt {
 /* offsets to the hotplug slot resource table registers based on the above
  * structure layout
  */
-enum slot_rt_offsets {
+enum slot_rt_offsets
+{
 	DEV_FUNC =		offsetof(struct slot_rt, dev_func),
 	PRIMARY_BUS =		offsetof(struct slot_rt, primary_bus),
 	SECONDARY_BUS =		offsetof(struct slot_rt, secondary_bus),
@@ -236,7 +248,8 @@ enum slot_rt_offsets {
 	PRE_MEM_LENGTH =	offsetof(struct slot_rt, pre_mem_length),
 };
 
-struct pci_func {
+struct pci_func
+{
 	struct pci_func *next;
 	u8 bus;
 	u8 device;
@@ -258,7 +271,8 @@ struct pci_func {
 	struct pci_dev *pci_dev;
 };
 
-struct slot {
+struct slot
+{
 	struct slot *next;
 	u8 bus;
 	u8 device;
@@ -277,18 +291,21 @@ struct slot {
 	struct hotplug_slot *hotplug_slot;
 };
 
-struct pci_resource {
+struct pci_resource
+{
 	struct pci_resource *next;
 	u32 base;
 	u32 length;
 };
 
-struct event_info {
+struct event_info
+{
 	u32 event_type;
 	u8 hp_slot;
 };
 
-struct controller {
+struct controller
+{
 	struct controller *next;
 	u32 ctrl_int_comp;
 	struct mutex crit_sect;	/* critical section mutex */
@@ -323,13 +340,15 @@ struct controller {
 	struct dentry *dentry;		/* debugfs dentry */
 };
 
-struct irq_mapping {
+struct irq_mapping
+{
 	u8 barber_pole;
 	u8 valid_INT;
 	u8 interrupt[4];
 };
 
-struct resource_lists {
+struct resource_lists
+{
 	struct pci_resource *mem_head;
 	struct pci_resource *p_mem_head;
 	struct pci_resource *io_head;
@@ -413,12 +432,12 @@ void cpqhp_remove_debugfs_files(struct controller *ctrl);
 void cpqhp_pushbutton_thread(unsigned long event_pointer);
 irqreturn_t cpqhp_ctrl_intr(int IRQ, void *data);
 int cpqhp_find_available_resources(struct controller *ctrl,
-				   void __iomem *rom_start);
+								   void __iomem *rom_start);
 int cpqhp_event_start_thread(void);
 void cpqhp_event_stop_thread(void);
 struct pci_func *cpqhp_slot_create(unsigned char busnumber);
 struct pci_func *cpqhp_slot_find(unsigned char bus, unsigned char device,
-				 unsigned char index);
+								 unsigned char index);
 int cpqhp_process_SI(struct controller *ctrl, struct pci_func *func);
 int cpqhp_process_SS(struct controller *ctrl, struct pci_func *func);
 int cpqhp_hardware_test(struct controller *ctrl, int test_num);
@@ -429,7 +448,7 @@ int	cpqhp_resource_sort_and_combine(struct pci_resource **head);
 /* pci functions */
 int cpqhp_set_irq(u8 bus_num, u8 dev_num, u8 int_pin, u8 irq_num);
 int cpqhp_get_bus_dev(struct controller *ctrl, u8 *bus_num, u8 *dev_num,
-		      u8 slot);
+					  u8 slot);
 int cpqhp_save_config(struct controller *ctrl, int busnumber, int is_hot_plug);
 int cpqhp_save_base_addr_length(struct controller *ctrl, struct pci_func *func);
 int cpqhp_save_used_resources(struct controller *ctrl, struct pci_func *func);
@@ -438,7 +457,7 @@ int cpqhp_save_slot_config(struct controller *ctrl, struct pci_func *new_slot);
 int cpqhp_valid_replace(struct controller *ctrl, struct pci_func *func);
 void cpqhp_destroy_board_resources(struct pci_func *func);
 int cpqhp_return_board_resources(struct pci_func *func,
-				 struct resource_lists *resources);
+								 struct resource_lists *resources);
 void cpqhp_destroy_resource_list(struct resource_lists *resources);
 int cpqhp_configure_device(struct controller *ctrl, struct pci_func *func);
 int cpqhp_unconfigure_device(struct pci_func *func);
@@ -468,10 +487,13 @@ static inline const char *slot_name(struct slot *slot)
  * Puts node back in the resource list pointed to by head
  */
 static inline void return_resource(struct pci_resource **head,
-				   struct pci_resource *node)
+								   struct pci_resource *node)
 {
 	if (!node || !head)
+	{
 		return;
+	}
+
 	node->next = *head;
 	*head = node;
 }
@@ -595,16 +617,29 @@ static inline u8 get_controller_speed(struct controller *ctrl)
 	u8 curr_freq;
 	u16 misc;
 
-	if (ctrl->pcix_support) {
+	if (ctrl->pcix_support)
+	{
 		curr_freq = readb(ctrl->hpc_reg + NEXT_CURR_FREQ);
+
 		if ((curr_freq & 0xB0) == 0xB0)
+		{
 			return PCI_SPEED_133MHz_PCIX;
+		}
+
 		if ((curr_freq & 0xA0) == 0xA0)
+		{
 			return PCI_SPEED_100MHz_PCIX;
+		}
+
 		if ((curr_freq & 0x90) == 0x90)
+		{
 			return PCI_SPEED_66MHz_PCIX;
+		}
+
 		if (curr_freq & 0x10)
+		{
 			return PCI_SPEED_66MHz;
+		}
 
 		return PCI_SPEED_33MHz;
 	}
@@ -626,15 +661,24 @@ static inline u8 get_adapter_speed(struct controller *ctrl, u8 hp_slot)
 {
 	u32 temp_dword = readl(ctrl->hpc_reg + NON_INT_INPUT);
 	dbg("slot: %d, PCIXCAP: %8x\n", hp_slot, temp_dword);
-	if (ctrl->pcix_support) {
+
+	if (ctrl->pcix_support)
+	{
 		if (temp_dword & (0x10000 << hp_slot))
+		{
 			return PCI_SPEED_133MHz_PCIX;
+		}
+
 		if (temp_dword & (0x100 << hp_slot))
+		{
 			return PCI_SPEED_66MHz_PCIX;
+		}
 	}
 
 	if (temp_dword & (0x01 << hp_slot))
+	{
 		return PCI_SPEED_66MHz;
+	}
 
 	return PCI_SPEED_33MHz;
 }
@@ -679,14 +723,14 @@ static inline int get_slot_enabled(struct controller *ctrl, struct slot *slot)
 
 
 static inline int cpq_get_latch_status(struct controller *ctrl,
-				       struct slot *slot)
+									   struct slot *slot)
 {
 	u32 status;
 	u8 hp_slot;
 
 	hp_slot = slot->device - ctrl->slot_device_offset;
 	dbg("%s: slot->device = %d, ctrl->slot_device_offset = %d\n",
-	    __func__, slot->device, ctrl->slot_device_offset);
+		__func__, slot->device, ctrl->slot_device_offset);
 
 	status = (readl(ctrl->hpc_reg + INT_INPUT_CLEAR) & (0x01L << hp_slot));
 
@@ -695,7 +739,7 @@ static inline int cpq_get_latch_status(struct controller *ctrl,
 
 
 static inline int get_presence_status(struct controller *ctrl,
-				      struct slot *slot)
+									  struct slot *slot)
 {
 	int presence_save = 0;
 	u8 hp_slot;
@@ -705,7 +749,7 @@ static inline int get_presence_status(struct controller *ctrl,
 
 	tempdword = readl(ctrl->hpc_reg + INT_INPUT_CLEAR);
 	presence_save = (int) ((((~tempdword) >> 23) | ((~tempdword) >> 15))
-				>> hp_slot) & 0x02;
+						   >> hp_slot) & 0x02;
 
 	return presence_save;
 }
@@ -720,8 +764,11 @@ static inline int wait_for_ctrl_irq(struct controller *ctrl)
 	/* Sleep for up to 1 second to wait for the LED to change. */
 	msleep_interruptible(1000);
 	remove_wait_queue(&ctrl->queue, &wait);
+
 	if (signal_pending(current))
+	{
 		retval =  -EINTR;
+	}
 
 	dbg("%s - end\n", __func__);
 	return retval;
@@ -732,7 +779,7 @@ static inline int cpqhp_routing_table_length(void)
 {
 	BUG_ON(cpqhp_routing_table == NULL);
 	return ((cpqhp_routing_table->size - sizeof(struct irq_routing_table)) /
-		sizeof(struct irq_info));
+			sizeof(struct irq_info));
 }
 
 #endif

@@ -42,23 +42,24 @@ lolnd_send(lnet_ni_t *ni, void *private, lnet_msg_t *lntmsg)
 
 static int
 lolnd_recv(lnet_ni_t *ni, void *private, lnet_msg_t *lntmsg,
-	   int delayed, struct iov_iter *to, unsigned int rlen)
+		   int delayed, struct iov_iter *to, unsigned int rlen)
 {
 	lnet_msg_t *sendmsg = private;
 
-	if (lntmsg) {		   /* not discarding */
+	if (lntmsg)  		   /* not discarding */
+	{
 		if (sendmsg->msg_iov)
 			lnet_copy_iov2iter(to,
-					   sendmsg->msg_niov,
-					   sendmsg->msg_iov,
-					   sendmsg->msg_offset,
-					   iov_iter_count(to));
+							   sendmsg->msg_niov,
+							   sendmsg->msg_iov,
+							   sendmsg->msg_offset,
+							   iov_iter_count(to));
 		else
 			lnet_copy_kiov2iter(to,
-					    sendmsg->msg_niov,
-					    sendmsg->msg_kiov,
-					    sendmsg->msg_offset,
-					    iov_iter_count(to));
+								sendmsg->msg_niov,
+								sendmsg->msg_kiov,
+								sendmsg->msg_offset,
+								iov_iter_count(to));
 
 		lnet_finalize(ni, lntmsg, 0);
 	}
@@ -88,7 +89,8 @@ lolnd_startup(lnet_ni_t *ni)
 	return 0;
 }
 
-lnd_t the_lolnd = {
+lnd_t the_lolnd =
+{
 	/* .lnd_list       = */ {&the_lolnd.lnd_list, &the_lolnd.lnd_list},
 	/* .lnd_refcount   = */ 0,
 	/* .lnd_type       = */ LOLND,

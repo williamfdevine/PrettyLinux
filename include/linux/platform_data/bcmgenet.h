@@ -5,7 +5,8 @@
 #include <linux/if_ether.h>
 #include <linux/phy.h>
 
-struct bcmgenet_platform_data {
+struct bcmgenet_platform_data
+{
 	bool		mdio_enabled;
 	phy_interface_t	phy_interface;
 	int		phy_address;

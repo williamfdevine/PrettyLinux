@@ -37,7 +37,8 @@
 #define DEFLATE_DEF_WINBITS		11
 #define DEFLATE_DEF_MEMLEVEL		MAX_MEM_LEVEL
 
-struct deflate_ctx {
+struct deflate_ctx
+{
 	struct z_stream_s comp_stream;
 	struct z_stream_s decomp_stream;
 };
@@ -48,18 +49,24 @@ static int deflate_comp_init(struct deflate_ctx *ctx)
 	struct z_stream_s *stream = &ctx->comp_stream;
 
 	stream->workspace = vzalloc(zlib_deflate_workspacesize(
-				-DEFLATE_DEF_WINBITS, DEFLATE_DEF_MEMLEVEL));
-	if (!stream->workspace) {
+									-DEFLATE_DEF_WINBITS, DEFLATE_DEF_MEMLEVEL));
+
+	if (!stream->workspace)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
+
 	ret = zlib_deflateInit2(stream, DEFLATE_DEF_LEVEL, Z_DEFLATED,
-	                        -DEFLATE_DEF_WINBITS, DEFLATE_DEF_MEMLEVEL,
-	                        Z_DEFAULT_STRATEGY);
-	if (ret != Z_OK) {
+							-DEFLATE_DEF_WINBITS, DEFLATE_DEF_MEMLEVEL,
+							Z_DEFAULT_STRATEGY);
+
+	if (ret != Z_OK)
+	{
 		ret = -EINVAL;
 		goto out_free;
 	}
+
 out:
 	return ret;
 out_free:
@@ -73,15 +80,21 @@ static int deflate_decomp_init(struct deflate_ctx *ctx)
 	struct z_stream_s *stream = &ctx->decomp_stream;
 
 	stream->workspace = vzalloc(zlib_inflate_workspacesize());
-	if (!stream->workspace) {
+
+	if (!stream->workspace)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
+
 	ret = zlib_inflateInit2(stream, -DEFLATE_DEF_WINBITS);
-	if (ret != Z_OK) {
+
+	if (ret != Z_OK)
+	{
 		ret = -EINVAL;
 		goto out_free;
 	}
+
 out:
 	return ret;
 out_free:
@@ -107,11 +120,19 @@ static int deflate_init(struct crypto_tfm *tfm)
 	int ret;
 
 	ret = deflate_comp_init(ctx);
+
 	if (ret)
+	{
 		goto out;
+	}
+
 	ret = deflate_decomp_init(ctx);
+
 	if (ret)
+	{
 		deflate_comp_exit(ctx);
+	}
+
 out:
 	return ret;
 }
@@ -125,14 +146,16 @@ static void deflate_exit(struct crypto_tfm *tfm)
 }
 
 static int deflate_compress(struct crypto_tfm *tfm, const u8 *src,
-			    unsigned int slen, u8 *dst, unsigned int *dlen)
+							unsigned int slen, u8 *dst, unsigned int *dlen)
 {
 	int ret = 0;
 	struct deflate_ctx *dctx = crypto_tfm_ctx(tfm);
 	struct z_stream_s *stream = &dctx->comp_stream;
 
 	ret = zlib_deflateReset(stream);
-	if (ret != Z_OK) {
+
+	if (ret != Z_OK)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
@@ -143,10 +166,13 @@ static int deflate_compress(struct crypto_tfm *tfm, const u8 *src,
 	stream->avail_out = *dlen;
 
 	ret = zlib_deflate(stream, Z_FINISH);
-	if (ret != Z_STREAM_END) {
+
+	if (ret != Z_STREAM_END)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
+
 	ret = 0;
 	*dlen = stream->total_out;
 out:
@@ -154,7 +180,7 @@ out:
 }
 
 static int deflate_decompress(struct crypto_tfm *tfm, const u8 *src,
-			      unsigned int slen, u8 *dst, unsigned int *dlen)
+							  unsigned int slen, u8 *dst, unsigned int *dlen)
 {
 
 	int ret = 0;
@@ -162,7 +188,9 @@ static int deflate_decompress(struct crypto_tfm *tfm, const u8 *src,
 	struct z_stream_s *stream = &dctx->decomp_stream;
 
 	ret = zlib_inflateReset(stream);
-	if (ret != Z_OK) {
+
+	if (ret != Z_OK)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
@@ -173,37 +201,46 @@ static int deflate_decompress(struct crypto_tfm *tfm, const u8 *src,
 	stream->avail_out = *dlen;
 
 	ret = zlib_inflate(stream, Z_SYNC_FLUSH);
+
 	/*
 	 * Work around a bug in zlib, which sometimes wants to taste an extra
 	 * byte when being used in the (undocumented) raw deflate mode.
 	 * (From USAGI).
 	 */
-	if (ret == Z_OK && !stream->avail_in && stream->avail_out) {
+	if (ret == Z_OK && !stream->avail_in && stream->avail_out)
+	{
 		u8 zerostuff = 0;
 		stream->next_in = &zerostuff;
 		stream->avail_in = 1;
 		ret = zlib_inflate(stream, Z_FINISH);
 	}
-	if (ret != Z_STREAM_END) {
+
+	if (ret != Z_STREAM_END)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
+
 	ret = 0;
 	*dlen = stream->total_out;
 out:
 	return ret;
 }
 
-static struct crypto_alg alg = {
+static struct crypto_alg alg =
+{
 	.cra_name		= "deflate",
 	.cra_flags		= CRYPTO_ALG_TYPE_COMPRESS,
 	.cra_ctxsize		= sizeof(struct deflate_ctx),
 	.cra_module		= THIS_MODULE,
 	.cra_init		= deflate_init,
 	.cra_exit		= deflate_exit,
-	.cra_u			= { .compress = {
-	.coa_compress 		= deflate_compress,
-	.coa_decompress  	= deflate_decompress } }
+	.cra_u			= {
+		.compress = {
+			.coa_compress 		= deflate_compress,
+			.coa_decompress  	= deflate_decompress
+		}
+	}
 };
 
 static int __init deflate_mod_init(void)

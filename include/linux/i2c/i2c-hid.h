@@ -29,7 +29,8 @@
  *	gpio_request(intr_gpio, "elan-irq");
  *	s3c_gpio_setpull(intr_gpio, S3C_GPIO_PULL_UP);
  */
-struct i2c_hid_platform_data {
+struct i2c_hid_platform_data
+{
 	u16 hid_descriptor_address;
 };
 

@@ -21,7 +21,8 @@
 #define TPS658640v2	0x02
 #define TPS658643	0x03
 
-enum {
+enum
+{
 	TPS6586X_ID_SYS,
 	TPS6586X_ID_SM_0,
 	TPS6586X_ID_SM_1,
@@ -40,7 +41,8 @@ enum {
 	TPS6586X_ID_MAX_REGULATOR,
 };
 
-enum {
+enum
+{
 	TPS6586X_INT_PLDO_0,
 	TPS6586X_INT_PLDO_1,
 	TPS6586X_INT_PLDO_2,
@@ -70,18 +72,21 @@ enum {
 	TPS6586X_INT_RTC_ALM2,
 };
 
-struct tps6586x_settings {
+struct tps6586x_settings
+{
 	int slew_rate;
 };
 
-struct tps6586x_subdev_info {
+struct tps6586x_subdev_info
+{
 	int		id;
 	const char	*name;
 	void		*platform_data;
 	struct device_node *of_node;
 };
 
-struct tps6586x_platform_data {
+struct tps6586x_platform_data
+{
 	int num_subdevs;
 	struct tps6586x_subdev_info *subdevs;
 
@@ -103,7 +108,7 @@ extern int tps6586x_reads(struct device *dev, int reg, int len, uint8_t *val);
 extern int tps6586x_set_bits(struct device *dev, int reg, uint8_t bit_mask);
 extern int tps6586x_clr_bits(struct device *dev, int reg, uint8_t bit_mask);
 extern int tps6586x_update(struct device *dev, int reg, uint8_t val,
-			   uint8_t mask);
+						   uint8_t mask);
 extern int tps6586x_irq_get_virq(struct device *dev, int irq);
 extern int tps6586x_get_version(struct device *dev);
 

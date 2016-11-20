@@ -69,14 +69,15 @@
 #include "orinoco.h"
 
 #ifndef URB_ASYNC_UNLINK
-#define URB_ASYNC_UNLINK 0
+	#define URB_ASYNC_UNLINK 0
 #endif
 
 /* 802.2 LLC/SNAP header used for Ethernet encapsulation over 802.11 */
 static const u8 encaps_hdr[] = {0xaa, 0xaa, 0x03, 0x00, 0x00, 0x00};
 #define ENCAPS_OVERHEAD		(sizeof(encaps_hdr) + 2)
 
-struct header_struct {
+struct header_struct
+{
 	/* 802.3 */
 	u8 dest[ETH_ALEN];
 	u8 src[ETH_ALEN];
@@ -90,12 +91,14 @@ struct header_struct {
 	__be16 ethertype;
 } __packed;
 
-struct ez_usb_fw {
+struct ez_usb_fw
+{
 	u16 size;
 	const u8 *code;
 };
 
-static struct ez_usb_fw firmware = {
+static struct ez_usb_fw firmware =
+{
 	.size = 0,
 	.code = NULL,
 };
@@ -196,7 +199,8 @@ MODULE_FIRMWARE("orinoco_ezusb_fw");
 #define FW_HOLE_START			0x100
 #define FW_HOLE_END			0x300
 
-struct ezusb_packet {
+struct ezusb_packet
+{
 	__le16 magic;		/* 0x0210 */
 	u8 req_reply_count;
 	u8 ans_reply_count;
@@ -209,7 +213,8 @@ struct ezusb_packet {
 } __packed;
 
 /* Table of devices that work or may work with this driver */
-static struct usb_device_id ezusb_table[] = {
+static struct usb_device_id ezusb_table[] =
+{
 	{USB_DEVICE(USB_COMPAQ_VENDOR_ID, USB_COMPAQ_WL215_ID)},
 	{USB_DEVICE(USB_COMPAQ_VENDOR_ID, USB_HP_WL215_ID)},
 	{USB_DEVICE(USB_COMPAQ_VENDOR_ID, USB_COMPAQ_W200_ID)},
@@ -223,8 +228,10 @@ static struct usb_device_id ezusb_table[] = {
 	{USB_DEVICE(USB_AGERE_VENDOR_ID, USB_AGERE_MODEL0802_ID)},
 	{USB_DEVICE(USB_ELSA_VENDOR_ID, USB_ELSA_AIRLANCER_ID)},
 	{USB_DEVICE(USB_LEGEND_VENDOR_ID, USB_LEGEND_JOYNET_ID)},
-	{USB_DEVICE_VER(USB_SAMSUNG_VENDOR_ID, USB_SAMSUNG_SEW2001U1_ID,
-			0, 0)},
+	{
+		USB_DEVICE_VER(USB_SAMSUNG_VENDOR_ID, USB_SAMSUNG_SEW2001U1_ID,
+		0, 0)
+	},
 	{USB_DEVICE(USB_SAMSUNG_VENDOR_ID, USB_SAMSUNG_SEW2001U2_ID)},
 	{USB_DEVICE(USB_SAMSUNG_VENDOR_ID, USB_SAMSUNG_SEW2003U_ID)},
 	{USB_DEVICE(USB_IGATE_VENDOR_ID, USB_IGATE_IGATE_11M_ID)},
@@ -237,7 +244,8 @@ static struct usb_device_id ezusb_table[] = {
 MODULE_DEVICE_TABLE(usb, ezusb_table);
 
 /* Structure to hold all of our device specific stuff */
-struct ezusb_priv {
+struct ezusb_priv
+{
 	struct usb_device *udev;
 	struct net_device *dev;
 	struct mutex mtx;
@@ -253,7 +261,8 @@ struct ezusb_priv {
 	u8 reply_count;
 };
 
-enum ezusb_state {
+enum ezusb_state
+{
 	EZUSB_CTX_START,
 	EZUSB_CTX_QUEUED,
 	EZUSB_CTX_REQ_SUBMITTED,
@@ -266,7 +275,8 @@ enum ezusb_state {
 	EZUSB_CTX_COMPLETE,
 };
 
-struct request_context {
+struct request_context
+{
 	struct list_head list;
 	atomic_t refcount;
 	struct completion done;	/* Signals that CTX is dead */
@@ -291,15 +301,21 @@ static void ezusb_bulk_in_callback(struct urb *urb);
 static inline u8 ezusb_reply_inc(u8 count)
 {
 	if (count < 0x7F)
+	{
 		return count + 1;
+	}
 	else
+	{
 		return 1;
+	}
 }
 
 static void ezusb_request_context_put(struct request_context *ctx)
 {
 	if (!atomic_dec_and_test(&ctx->refcount))
+	{
 		return;
+	}
 
 	WARN_ON(!ctx->done.done);
 	BUG_ON(ctx->outurb->status == -EINPROGRESS);
@@ -310,11 +326,14 @@ static void ezusb_request_context_put(struct request_context *ctx)
 }
 
 static inline void ezusb_mod_timer(struct ezusb_priv *upriv,
-				   struct timer_list *timer,
-				   unsigned long expire)
+								   struct timer_list *timer,
+								   unsigned long expire)
 {
 	if (!upriv->udev)
+	{
 		return;
+	}
+
 	mod_timer(timer, expire);
 }
 
@@ -323,9 +342,13 @@ static void ezusb_request_timerfn(u_long _ctx)
 	struct request_context *ctx = (void *) _ctx;
 
 	ctx->outurb->transfer_flags |= URB_ASYNC_UNLINK;
-	if (usb_unlink_urb(ctx->outurb) == -EINPROGRESS) {
+
+	if (usb_unlink_urb(ctx->outurb) == -EINPROGRESS)
+	{
 		ctx->state = EZUSB_CTX_REQ_TIMEOUT;
-	} else {
+	}
+	else
+	{
 		ctx->state = EZUSB_CTX_RESP_TIMEOUT;
 		dev_dbg(&ctx->outurb->dev->dev, "couldn't unlink\n");
 		atomic_inc(&ctx->refcount);
@@ -336,21 +359,29 @@ static void ezusb_request_timerfn(u_long _ctx)
 };
 
 static struct request_context *ezusb_alloc_ctx(struct ezusb_priv *upriv,
-					       u16 out_rid, u16 in_rid)
+		u16 out_rid, u16 in_rid)
 {
 	struct request_context *ctx;
 
 	ctx = kzalloc(sizeof(*ctx), GFP_ATOMIC);
+
 	if (!ctx)
+	{
 		return NULL;
+	}
 
 	ctx->buf = kmalloc(BULK_BUF_SIZE, GFP_ATOMIC);
-	if (!ctx->buf) {
+
+	if (!ctx->buf)
+	{
 		kfree(ctx);
 		return NULL;
 	}
+
 	ctx->outurb = usb_alloc_urb(0, GFP_ATOMIC);
-	if (!ctx->outurb) {
+
+	if (!ctx->outurb)
+	{
 		kfree(ctx->buf);
 		kfree(ctx);
 		return NULL;
@@ -387,54 +418,65 @@ static void ezusb_ctx_complete(struct request_context *ctx)
 	spin_lock_irqsave(&upriv->req_lock, flags);
 
 	list_del_init(&ctx->list);
-	if (upriv->udev) {
+
+	if (upriv->udev)
+	{
 		spin_unlock_irqrestore(&upriv->req_lock, flags);
 		ezusb_req_queue_run(upriv);
 		spin_lock_irqsave(&upriv->req_lock, flags);
 	}
 
-	switch (ctx->state) {
-	case EZUSB_CTX_COMPLETE:
-	case EZUSB_CTX_REQSUBMIT_FAIL:
-	case EZUSB_CTX_REQ_FAILED:
-	case EZUSB_CTX_REQ_TIMEOUT:
-	case EZUSB_CTX_RESP_TIMEOUT:
-		spin_unlock_irqrestore(&upriv->req_lock, flags);
+	switch (ctx->state)
+	{
+		case EZUSB_CTX_COMPLETE:
+		case EZUSB_CTX_REQSUBMIT_FAIL:
+		case EZUSB_CTX_REQ_FAILED:
+		case EZUSB_CTX_REQ_TIMEOUT:
+		case EZUSB_CTX_RESP_TIMEOUT:
+			spin_unlock_irqrestore(&upriv->req_lock, flags);
 
-		if ((ctx->out_rid == EZUSB_RID_TX) && upriv->dev) {
-			struct net_device *dev = upriv->dev;
-			struct orinoco_private *priv = ndev_priv(dev);
-			struct net_device_stats *stats = &priv->stats;
+			if ((ctx->out_rid == EZUSB_RID_TX) && upriv->dev)
+			{
+				struct net_device *dev = upriv->dev;
+				struct orinoco_private *priv = ndev_priv(dev);
+				struct net_device_stats *stats = &priv->stats;
 
-			if (ctx->state != EZUSB_CTX_COMPLETE)
-				stats->tx_errors++;
-			else
-				stats->tx_packets++;
+				if (ctx->state != EZUSB_CTX_COMPLETE)
+				{
+					stats->tx_errors++;
+				}
+				else
+				{
+					stats->tx_packets++;
+				}
 
-			netif_wake_queue(dev);
-		}
-		ezusb_complete_all(&ctx->done);
-		ezusb_request_context_put(ctx);
-		break;
+				netif_wake_queue(dev);
+			}
 
-	default:
-		spin_unlock_irqrestore(&upriv->req_lock, flags);
-		if (!upriv->udev) {
-			/* This is normal, as all request contexts get flushed
-			 * when the device is disconnected */
-			err("Called, CTX not terminating, but device gone");
 			ezusb_complete_all(&ctx->done);
 			ezusb_request_context_put(ctx);
 			break;
-		}
 
-		err("Called, CTX not in terminating state.");
-		/* Things are really bad if this happens. Just leak
-		 * the CTX because it may still be linked to the
-		 * queue or the OUT urb may still be active.
-		 * Just leaking at least prevents an Oops or Panic.
-		 */
-		break;
+		default:
+			spin_unlock_irqrestore(&upriv->req_lock, flags);
+
+			if (!upriv->udev)
+			{
+				/* This is normal, as all request contexts get flushed
+				 * when the device is disconnected */
+				err("Called, CTX not terminating, but device gone");
+				ezusb_complete_all(&ctx->done);
+				ezusb_request_context_put(ctx);
+				break;
+			}
+
+			err("Called, CTX not in terminating state.");
+			/* Things are really bad if this happens. Just leak
+			 * the CTX because it may still be linked to the
+			 * queue or the OUT urb may still be active.
+			 * Just leaking at least prevents an Oops or Panic.
+			 */
+			break;
 	}
 }
 
@@ -454,31 +496,40 @@ static void ezusb_req_queue_run(struct ezusb_priv *upriv)
 	spin_lock_irqsave(&upriv->req_lock, flags);
 
 	if (!list_empty(&upriv->req_active))
+	{
 		goto unlock;
+	}
 
 	if (list_empty(&upriv->req_pending))
+	{
 		goto unlock;
+	}
 
 	ctx =
-	    list_entry(upriv->req_pending.next, struct request_context,
-		       list);
+		list_entry(upriv->req_pending.next, struct request_context,
+				   list);
 
 	if (!ctx->upriv->udev)
+	{
 		goto unlock;
+	}
 
 	/* We need to split this off to avoid a race condition */
 	list_move_tail(&ctx->list, &upriv->req_active);
 
-	if (ctx->state == EZUSB_CTX_QUEUED) {
+	if (ctx->state == EZUSB_CTX_QUEUED)
+	{
 		atomic_inc(&ctx->refcount);
 		result = usb_submit_urb(ctx->outurb, GFP_ATOMIC);
-		if (result) {
+
+		if (result)
+		{
 			ctx->state = EZUSB_CTX_REQSUBMIT_FAIL;
 
 			spin_unlock_irqrestore(&upriv->req_lock, flags);
 
 			err("Fatal, failed to submit command urb."
-			    " error=%d\n", result);
+				" error=%d\n", result);
 
 			ezusb_ctx_complete(ctx);
 			ezusb_request_context_put(ctx);
@@ -487,27 +538,29 @@ static void ezusb_req_queue_run(struct ezusb_priv *upriv)
 
 		ctx->state = EZUSB_CTX_REQ_SUBMITTED;
 		ezusb_mod_timer(ctx->upriv, &ctx->timer,
-				jiffies + DEF_TIMEOUT);
+						jiffies + DEF_TIMEOUT);
 	}
 
- unlock:
+unlock:
 	spin_unlock_irqrestore(&upriv->req_lock, flags);
 
- done:
+done:
 	return;
 }
 
 static void ezusb_req_enqueue_run(struct ezusb_priv *upriv,
-				  struct request_context *ctx)
+								  struct request_context *ctx)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&upriv->req_lock, flags);
 
-	if (!ctx->upriv->udev) {
+	if (!ctx->upriv->udev)
+	{
 		spin_unlock_irqrestore(&upriv->req_lock, flags);
 		goto done;
 	}
+
 	atomic_inc(&ctx->refcount);
 	list_add_tail(&ctx->list, &upriv->req_pending);
 	spin_unlock_irqrestore(&upriv->req_lock, flags);
@@ -515,7 +568,7 @@ static void ezusb_req_enqueue_run(struct ezusb_priv *upriv,
 	ctx->state = EZUSB_CTX_QUEUED;
 	ezusb_req_queue_run(upriv);
 
- done:
+done:
 	return;
 }
 
@@ -530,7 +583,8 @@ static void ezusb_request_out_callback(struct urb *urb)
 
 	del_timer(&ctx->timer);
 
-	if (ctx->killed) {
+	if (ctx->killed)
+	{
 		spin_unlock_irqrestore(&upriv->req_lock, flags);
 		pr_warn("interrupt called with dead ctx\n");
 		goto out;
@@ -538,63 +592,72 @@ static void ezusb_request_out_callback(struct urb *urb)
 
 	state = ctx->state;
 
-	if (urb->status == 0) {
-		switch (state) {
-		case EZUSB_CTX_REQ_SUBMITTED:
-			if (ctx->in_rid) {
-				ctx->state = EZUSB_CTX_REQ_COMPLETE;
-				/* reply URB still pending */
-				ezusb_mod_timer(upriv, &ctx->timer,
-						jiffies + DEF_TIMEOUT);
-				spin_unlock_irqrestore(&upriv->req_lock,
-						       flags);
-				break;
-			}
-			/* fall through */
-		case EZUSB_CTX_RESP_RECEIVED:
-			/* IN already received before this OUT-ACK */
-			ctx->state = EZUSB_CTX_COMPLETE;
-			spin_unlock_irqrestore(&upriv->req_lock, flags);
-			ezusb_ctx_complete(ctx);
-			break;
+	if (urb->status == 0)
+	{
+		switch (state)
+		{
+			case EZUSB_CTX_REQ_SUBMITTED:
+				if (ctx->in_rid)
+				{
+					ctx->state = EZUSB_CTX_REQ_COMPLETE;
+					/* reply URB still pending */
+					ezusb_mod_timer(upriv, &ctx->timer,
+									jiffies + DEF_TIMEOUT);
+					spin_unlock_irqrestore(&upriv->req_lock,
+										   flags);
+					break;
+				}
 
-		default:
-			spin_unlock_irqrestore(&upriv->req_lock, flags);
-			err("Unexpected state(0x%x, %d) in OUT URB",
-			    state, urb->status);
-			break;
+			/* fall through */
+			case EZUSB_CTX_RESP_RECEIVED:
+				/* IN already received before this OUT-ACK */
+				ctx->state = EZUSB_CTX_COMPLETE;
+				spin_unlock_irqrestore(&upriv->req_lock, flags);
+				ezusb_ctx_complete(ctx);
+				break;
+
+			default:
+				spin_unlock_irqrestore(&upriv->req_lock, flags);
+				err("Unexpected state(0x%x, %d) in OUT URB",
+					state, urb->status);
+				break;
 		}
-	} else {
+	}
+	else
+	{
 		/* If someone cancels the OUT URB then its status
 		 * should be either -ECONNRESET or -ENOENT.
 		 */
-		switch (state) {
-		case EZUSB_CTX_REQ_SUBMITTED:
-		case EZUSB_CTX_RESP_RECEIVED:
-			ctx->state = EZUSB_CTX_REQ_FAILED;
+		switch (state)
+		{
+			case EZUSB_CTX_REQ_SUBMITTED:
+			case EZUSB_CTX_RESP_RECEIVED:
+				ctx->state = EZUSB_CTX_REQ_FAILED;
+
 			/* fall through */
 
-		case EZUSB_CTX_REQ_FAILED:
-		case EZUSB_CTX_REQ_TIMEOUT:
-			spin_unlock_irqrestore(&upriv->req_lock, flags);
+			case EZUSB_CTX_REQ_FAILED:
+			case EZUSB_CTX_REQ_TIMEOUT:
+				spin_unlock_irqrestore(&upriv->req_lock, flags);
 
-			ezusb_ctx_complete(ctx);
-			break;
+				ezusb_ctx_complete(ctx);
+				break;
 
-		default:
-			spin_unlock_irqrestore(&upriv->req_lock, flags);
+			default:
+				spin_unlock_irqrestore(&upriv->req_lock, flags);
 
-			err("Unexpected state(0x%x, %d) in OUT URB",
-			    state, urb->status);
-			break;
+				err("Unexpected state(0x%x, %d) in OUT URB",
+					state, urb->status);
+				break;
 		}
 	}
- out:
+
+out:
 	ezusb_request_context_put(ctx);
 }
 
 static void ezusb_request_in_callback(struct ezusb_priv *upriv,
-				      struct urb *urb)
+									  struct urb *urb)
 {
 	struct ezusb_packet *ans = urb->transfer_buffer;
 	struct request_context *ctx = NULL;
@@ -603,31 +666,38 @@ static void ezusb_request_in_callback(struct ezusb_priv *upriv,
 
 	/* Find the CTX on the active queue that requested this URB */
 	spin_lock_irqsave(&upriv->req_lock, flags);
-	if (upriv->udev) {
+
+	if (upriv->udev)
+	{
 		struct list_head *item;
 
-		list_for_each(item, &upriv->req_active) {
+		list_for_each(item, &upriv->req_active)
+		{
 			struct request_context *c;
 			int reply_count;
 
 			c = list_entry(item, struct request_context, list);
 			reply_count =
-			    ezusb_reply_inc(c->buf->req_reply_count);
+				ezusb_reply_inc(c->buf->req_reply_count);
+
 			if ((ans->ans_reply_count == reply_count)
-			    && (le16_to_cpu(ans->hermes_rid) == c->in_rid)) {
+				&& (le16_to_cpu(ans->hermes_rid) == c->in_rid))
+			{
 				ctx = c;
 				break;
 			}
+
 			netdev_dbg(upriv->dev, "Skipped (0x%x/0x%x) (%d/%d)\n",
-				   le16_to_cpu(ans->hermes_rid), c->in_rid,
-				   ans->ans_reply_count, reply_count);
+					   le16_to_cpu(ans->hermes_rid), c->in_rid,
+					   ans->ans_reply_count, reply_count);
 		}
 	}
 
-	if (ctx == NULL) {
+	if (ctx == NULL)
+	{
 		spin_unlock_irqrestore(&upriv->req_lock, flags);
 		err("%s: got unexpected RID: 0x%04X", __func__,
-		    le16_to_cpu(ans->hermes_rid));
+			le16_to_cpu(ans->hermes_rid));
 		ezusb_req_queue_run(upriv);
 		return;
 	}
@@ -638,72 +708,83 @@ static void ezusb_request_in_callback(struct ezusb_priv *upriv,
 	ctx->buf_length = urb->actual_length;
 
 	state = ctx->state;
-	switch (state) {
-	case EZUSB_CTX_REQ_SUBMITTED:
-		/* We have received our response URB before
-		 * our request has been acknowledged. Do NOT
-		 * destroy our CTX yet, because our OUT URB
-		 * is still alive ...
-		 */
-		ctx->state = EZUSB_CTX_RESP_RECEIVED;
-		spin_unlock_irqrestore(&upriv->req_lock, flags);
 
-		/* Let the machine continue running. */
-		break;
+	switch (state)
+	{
+		case EZUSB_CTX_REQ_SUBMITTED:
+			/* We have received our response URB before
+			 * our request has been acknowledged. Do NOT
+			 * destroy our CTX yet, because our OUT URB
+			 * is still alive ...
+			 */
+			ctx->state = EZUSB_CTX_RESP_RECEIVED;
+			spin_unlock_irqrestore(&upriv->req_lock, flags);
 
-	case EZUSB_CTX_REQ_COMPLETE:
-		/* This is the usual path: our request
-		 * has already been acknowledged, and
-		 * we have now received the reply.
-		 */
-		ctx->state = EZUSB_CTX_COMPLETE;
+			/* Let the machine continue running. */
+			break;
 
-		/* Stop the intimer */
-		del_timer(&ctx->timer);
-		spin_unlock_irqrestore(&upriv->req_lock, flags);
+		case EZUSB_CTX_REQ_COMPLETE:
+			/* This is the usual path: our request
+			 * has already been acknowledged, and
+			 * we have now received the reply.
+			 */
+			ctx->state = EZUSB_CTX_COMPLETE;
 
-		/* Call the completion handler */
-		ezusb_ctx_complete(ctx);
-		break;
+			/* Stop the intimer */
+			del_timer(&ctx->timer);
+			spin_unlock_irqrestore(&upriv->req_lock, flags);
 
-	default:
-		spin_unlock_irqrestore(&upriv->req_lock, flags);
+			/* Call the completion handler */
+			ezusb_ctx_complete(ctx);
+			break;
 
-		pr_warn("Matched IN URB, unexpected context state(0x%x)\n",
-			state);
-		/* Throw this CTX away and try submitting another */
-		del_timer(&ctx->timer);
-		ctx->outurb->transfer_flags |= URB_ASYNC_UNLINK;
-		usb_unlink_urb(ctx->outurb);
-		ezusb_req_queue_run(upriv);
-		break;
+		default:
+			spin_unlock_irqrestore(&upriv->req_lock, flags);
+
+			pr_warn("Matched IN URB, unexpected context state(0x%x)\n",
+					state);
+			/* Throw this CTX away and try submitting another */
+			del_timer(&ctx->timer);
+			ctx->outurb->transfer_flags |= URB_ASYNC_UNLINK;
+			usb_unlink_urb(ctx->outurb);
+			ezusb_req_queue_run(upriv);
+			break;
 	}			/* switch */
 }
 
 
 static void ezusb_req_ctx_wait(struct ezusb_priv *upriv,
-			       struct request_context *ctx)
+							   struct request_context *ctx)
 {
-	switch (ctx->state) {
-	case EZUSB_CTX_QUEUED:
-	case EZUSB_CTX_REQ_SUBMITTED:
-	case EZUSB_CTX_REQ_COMPLETE:
-	case EZUSB_CTX_RESP_RECEIVED:
-		if (in_softirq()) {
-			/* If we get called from a timer, timeout timers don't
-			 * get the chance to run themselves. So we make sure
-			 * that we don't sleep for ever */
-			int msecs = DEF_TIMEOUT * (1000 / HZ);
-			while (!ctx->done.done && msecs--)
-				udelay(1000);
-		} else {
-			wait_event_interruptible(ctx->done.wait,
-						 ctx->done.done);
-		}
-		break;
-	default:
-		/* Done or failed - nothing to wait for */
-		break;
+	switch (ctx->state)
+	{
+		case EZUSB_CTX_QUEUED:
+		case EZUSB_CTX_REQ_SUBMITTED:
+		case EZUSB_CTX_REQ_COMPLETE:
+		case EZUSB_CTX_RESP_RECEIVED:
+			if (in_softirq())
+			{
+				/* If we get called from a timer, timeout timers don't
+				 * get the chance to run themselves. So we make sure
+				 * that we don't sleep for ever */
+				int msecs = DEF_TIMEOUT * (1000 / HZ);
+
+				while (!ctx->done.done && msecs--)
+				{
+					udelay(1000);
+				}
+			}
+			else
+			{
+				wait_event_interruptible(ctx->done.wait,
+										 ctx->done.done);
+			}
+
+			break;
+
+		default:
+			/* Done or failed - nothing to wait for */
+			break;
 	}
 }
 
@@ -714,7 +795,9 @@ static inline u16 build_crc(struct ezusb_packet *data)
 	int i;
 
 	for (i = 0; i < 8; i++)
+	{
 		crc = (crc << 1) + bytes[i];
+	}
 
 	return crc;
 }
@@ -727,7 +810,7 @@ static inline u16 build_crc(struct ezusb_packet *data)
  *
  */
 static int ezusb_fill_req(struct ezusb_packet *req, u16 length, u16 rid,
-			  const void *data, u16 frame_type, u8 reply_count)
+						  const void *data, u16 frame_type, u8 reply_count)
 {
 	int total_size = sizeof(*req) + length;
 
@@ -741,8 +824,12 @@ static int ezusb_fill_req(struct ezusb_packet *req, u16 length, u16 rid,
 	req->crc = cpu_to_le16(build_crc(req));
 	req->hermes_len = cpu_to_le16(HERMES_BYTES_TO_RECLEN(length));
 	req->hermes_rid = cpu_to_le16(rid);
+
 	if (data)
+	{
 		memcpy(req->data, data, length);
+	}
+
 	return total_size;
 }
 
@@ -751,20 +838,25 @@ static int ezusb_submit_in_urb(struct ezusb_priv *upriv)
 	int retval = 0;
 	void *cur_buf = upriv->read_urb->transfer_buffer;
 
-	if (upriv->read_urb->status == -EINPROGRESS) {
+	if (upriv->read_urb->status == -EINPROGRESS)
+	{
 		netdev_dbg(upriv->dev, "urb busy, not resubmiting\n");
 		retval = -EBUSY;
 		goto exit;
 	}
+
 	usb_fill_bulk_urb(upriv->read_urb, upriv->udev, upriv->read_pipe,
-			  cur_buf, BULK_BUF_SIZE,
-			  ezusb_bulk_in_callback, upriv);
+					  cur_buf, BULK_BUF_SIZE,
+					  ezusb_bulk_in_callback, upriv);
 	upriv->read_urb->transfer_flags = 0;
 	retval = usb_submit_urb(upriv->read_urb, GFP_ATOMIC);
-	if (retval)
-		err("%s submit failed %d", __func__, retval);
 
- exit:
+	if (retval)
+	{
+		err("%s submit failed %d", __func__, retval);
+	}
+
+exit:
 	return retval;
 }
 
@@ -772,30 +864,35 @@ static inline int ezusb_8051_cpucs(struct ezusb_priv *upriv, int reset)
 {
 	u8 res_val = reset;	/* avoid argument promotion */
 
-	if (!upriv->udev) {
+	if (!upriv->udev)
+	{
 		err("%s: !upriv->udev", __func__);
 		return -EFAULT;
 	}
+
 	return usb_control_msg(upriv->udev,
-			       usb_sndctrlpipe(upriv->udev, 0),
-			       EZUSB_REQUEST_FW_TRANS,
-			       USB_TYPE_VENDOR | USB_RECIP_DEVICE |
-			       USB_DIR_OUT, EZUSB_CPUCS_REG, 0, &res_val,
-			       sizeof(res_val), DEF_TIMEOUT);
+						   usb_sndctrlpipe(upriv->udev, 0),
+						   EZUSB_REQUEST_FW_TRANS,
+						   USB_TYPE_VENDOR | USB_RECIP_DEVICE |
+						   USB_DIR_OUT, EZUSB_CPUCS_REG, 0, &res_val,
+						   sizeof(res_val), DEF_TIMEOUT);
 }
 
 static int ezusb_firmware_download(struct ezusb_priv *upriv,
-				   struct ez_usb_fw *fw)
+								   struct ez_usb_fw *fw)
 {
 	u8 *fw_buffer;
 	int retval, addr;
 	int variant_offset;
 
 	fw_buffer = kmalloc(FW_BUF_SIZE, GFP_KERNEL);
-	if (!fw_buffer) {
+
+	if (!fw_buffer)
+	{
 		printk(KERN_ERR PFX "Out of memory for firmware buffer.\n");
 		return -ENOMEM;
 	}
+
 	/*
 	 * This byte is 1 and should be replaced with 0.  The offset is
 	 * 0x10AD in version 0.0.6.  The byte in question should follow
@@ -803,59 +900,77 @@ static int ezusb_firmware_download(struct ezusb_priv *upriv,
 	 * of the firmware.  Also, it is read by code located at 0x358.
 	 */
 	variant_offset = be16_to_cpup((__be16 *) &fw->code[FW_VAR_OFFSET_PTR]);
-	if (variant_offset >= fw->size) {
+
+	if (variant_offset >= fw->size)
+	{
 		printk(KERN_ERR PFX "Invalid firmware variant offset: "
-		       "0x%04x\n", variant_offset);
+			   "0x%04x\n", variant_offset);
 		retval = -EINVAL;
 		goto fail;
 	}
 
 	retval = ezusb_8051_cpucs(upriv, 1);
+
 	if (retval < 0)
+	{
 		goto fail;
-	for (addr = 0; addr < fw->size; addr += FW_BUF_SIZE) {
+	}
+
+	for (addr = 0; addr < fw->size; addr += FW_BUF_SIZE)
+	{
 		/* 0x100-0x300 should be left alone, it contains card
 		 * specific data, like USB enumeration information */
 		if ((addr >= FW_HOLE_START) && (addr < FW_HOLE_END))
+		{
 			continue;
+		}
 
 		memcpy(fw_buffer, &fw->code[addr], FW_BUF_SIZE);
+
 		if (variant_offset >= addr &&
-		    variant_offset < addr + FW_BUF_SIZE) {
+			variant_offset < addr + FW_BUF_SIZE)
+		{
 			netdev_dbg(upriv->dev,
-				   "Patching card_variant byte at 0x%04X\n",
-				   variant_offset);
+					   "Patching card_variant byte at 0x%04X\n",
+					   variant_offset);
 			fw_buffer[variant_offset - addr] = FW_VAR_VALUE;
 		}
+
 		retval = usb_control_msg(upriv->udev,
-					 usb_sndctrlpipe(upriv->udev, 0),
-					 EZUSB_REQUEST_FW_TRANS,
-					 USB_TYPE_VENDOR | USB_RECIP_DEVICE
-					 | USB_DIR_OUT,
-					 addr, 0x0,
-					 fw_buffer, FW_BUF_SIZE,
-					 DEF_TIMEOUT);
+								 usb_sndctrlpipe(upriv->udev, 0),
+								 EZUSB_REQUEST_FW_TRANS,
+								 USB_TYPE_VENDOR | USB_RECIP_DEVICE
+								 | USB_DIR_OUT,
+								 addr, 0x0,
+								 fw_buffer, FW_BUF_SIZE,
+								 DEF_TIMEOUT);
 
 		if (retval < 0)
+		{
 			goto fail;
+		}
 	}
+
 	retval = ezusb_8051_cpucs(upriv, 0);
+
 	if (retval < 0)
+	{
 		goto fail;
+	}
 
 	goto exit;
- fail:
+fail:
 	printk(KERN_ERR PFX "Firmware download failed, error %d\n",
-	       retval);
- exit:
+		   retval);
+exit:
 	kfree(fw_buffer);
 	return retval;
 }
 
 static int ezusb_access_ltv(struct ezusb_priv *upriv,
-			    struct request_context *ctx,
-			    u16 length, const void *data, u16 frame_type,
-			    void *ans_buff, unsigned ans_size, u16 *ans_length)
+							struct request_context *ctx,
+							u16 length, const void *data, u16 frame_type,
+							void *ans_buff, unsigned ans_size, u16 *ans_length)
 {
 	int req_size;
 	int retval = 0;
@@ -863,167 +978,219 @@ static int ezusb_access_ltv(struct ezusb_priv *upriv,
 
 	BUG_ON(in_irq());
 
-	if (!upriv->udev) {
+	if (!upriv->udev)
+	{
 		retval = -ENODEV;
 		goto exit;
 	}
 
 	if (upriv->read_urb->status != -EINPROGRESS)
+	{
 		err("%s: in urb not pending", __func__);
+	}
 
 	/* protect upriv->reply_count, guarantee sequential numbers */
 	spin_lock_bh(&upriv->reply_count_lock);
 	req_size = ezusb_fill_req(ctx->buf, length, ctx->out_rid, data,
-				  frame_type, upriv->reply_count);
+							  frame_type, upriv->reply_count);
 	usb_fill_bulk_urb(ctx->outurb, upriv->udev, upriv->write_pipe,
-			  ctx->buf, req_size,
-			  ezusb_request_out_callback, ctx);
+					  ctx->buf, req_size,
+					  ezusb_request_out_callback, ctx);
 
 	if (ctx->in_rid)
+	{
 		upriv->reply_count = ezusb_reply_inc(upriv->reply_count);
+	}
 
 	ezusb_req_enqueue_run(upriv, ctx);
 
 	spin_unlock_bh(&upriv->reply_count_lock);
 
 	if (ctx->in_rid)
+	{
 		ezusb_req_ctx_wait(upriv, ctx);
+	}
 
 	state = ctx->state;
-	switch (state) {
-	case EZUSB_CTX_COMPLETE:
-		retval = ctx->outurb->status;
-		break;
 
-	case EZUSB_CTX_QUEUED:
-	case EZUSB_CTX_REQ_SUBMITTED:
-		if (!ctx->in_rid)
+	switch (state)
+	{
+		case EZUSB_CTX_COMPLETE:
+			retval = ctx->outurb->status;
 			break;
-	default:
-		err("%s: Unexpected context state %d", __func__,
-		    state);
+
+		case EZUSB_CTX_QUEUED:
+		case EZUSB_CTX_REQ_SUBMITTED:
+			if (!ctx->in_rid)
+			{
+				break;
+			}
+
+		default:
+			err("%s: Unexpected context state %d", __func__,
+				state);
+
 		/* fall though */
-	case EZUSB_CTX_REQ_TIMEOUT:
-	case EZUSB_CTX_REQ_FAILED:
-	case EZUSB_CTX_RESP_TIMEOUT:
-	case EZUSB_CTX_REQSUBMIT_FAIL:
-		printk(KERN_ERR PFX "Access failed, resetting (state %d,"
-		       " reply_count %d)\n", state, upriv->reply_count);
-		upriv->reply_count = 0;
-		if (state == EZUSB_CTX_REQ_TIMEOUT
-		    || state == EZUSB_CTX_RESP_TIMEOUT) {
-			printk(KERN_ERR PFX "ctx timed out\n");
-			retval = -ETIMEDOUT;
-		} else {
-			printk(KERN_ERR PFX "ctx failed\n");
-			retval = -EFAULT;
-		}
-		goto exit;
+		case EZUSB_CTX_REQ_TIMEOUT:
+		case EZUSB_CTX_REQ_FAILED:
+		case EZUSB_CTX_RESP_TIMEOUT:
+		case EZUSB_CTX_REQSUBMIT_FAIL:
+			printk(KERN_ERR PFX "Access failed, resetting (state %d,"
+				   " reply_count %d)\n", state, upriv->reply_count);
+			upriv->reply_count = 0;
+
+			if (state == EZUSB_CTX_REQ_TIMEOUT
+				|| state == EZUSB_CTX_RESP_TIMEOUT)
+			{
+				printk(KERN_ERR PFX "ctx timed out\n");
+				retval = -ETIMEDOUT;
+			}
+			else
+			{
+				printk(KERN_ERR PFX "ctx failed\n");
+				retval = -EFAULT;
+			}
+
+			goto exit;
 	}
-	if (ctx->in_rid) {
+
+	if (ctx->in_rid)
+	{
 		struct ezusb_packet *ans = ctx->buf;
 		unsigned exp_len;
 
 		if (ans->hermes_len != 0)
+		{
 			exp_len = le16_to_cpu(ans->hermes_len) * 2 + 12;
+		}
 		else
+		{
 			exp_len = 14;
+		}
 
-		if (exp_len != ctx->buf_length) {
+		if (exp_len != ctx->buf_length)
+		{
 			err("%s: length mismatch for RID 0x%04x: "
-			    "expected %d, got %d", __func__,
-			    ctx->in_rid, exp_len, ctx->buf_length);
+				"expected %d, got %d", __func__,
+				ctx->in_rid, exp_len, ctx->buf_length);
 			retval = -EIO;
 			goto exit;
 		}
 
 		if (ans_buff)
+		{
 			memcpy(ans_buff, ans->data, min(exp_len, ans_size));
+		}
+
 		if (ans_length)
+		{
 			*ans_length = le16_to_cpu(ans->hermes_len);
+		}
 	}
- exit:
+
+exit:
 	ezusb_request_context_put(ctx);
 	return retval;
 }
 
 static int ezusb_write_ltv(struct hermes *hw, int bap, u16 rid,
-			   u16 length, const void *data)
+						   u16 length, const void *data)
 {
 	struct ezusb_priv *upriv = hw->priv;
 	u16 frame_type;
 	struct request_context *ctx;
 
 	if (length == 0)
+	{
 		return -EINVAL;
+	}
 
 	length = HERMES_RECLEN_TO_BYTES(length);
 
 	/* On memory mapped devices HERMES_RID_CNFGROUPADDRESSES can be
 	 * set to be empty, but the USB bridge doesn't like it */
 	if (length == 0)
+	{
 		return 0;
+	}
 
 	ctx = ezusb_alloc_ctx(upriv, rid, EZUSB_RID_ACK);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	if (rid == EZUSB_RID_TX)
+	{
 		frame_type = EZUSB_FRAME_DATA;
+	}
 	else
+	{
 		frame_type = EZUSB_FRAME_CONTROL;
+	}
 
 	return ezusb_access_ltv(upriv, ctx, length, data, frame_type,
-				NULL, 0, NULL);
+							NULL, 0, NULL);
 }
 
 static int ezusb_read_ltv(struct hermes *hw, int bap, u16 rid,
-			  unsigned bufsize, u16 *length, void *buf)
+						  unsigned bufsize, u16 *length, void *buf)
 {
 	struct ezusb_priv *upriv = hw->priv;
 	struct request_context *ctx;
 
 	if (bufsize % 2)
+	{
 		return -EINVAL;
+	}
 
 	ctx = ezusb_alloc_ctx(upriv, rid, rid);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	return ezusb_access_ltv(upriv, ctx, 0, NULL, EZUSB_FRAME_CONTROL,
-				buf, bufsize, length);
+							buf, bufsize, length);
 }
 
 static int ezusb_doicmd_wait(struct hermes *hw, u16 cmd, u16 parm0, u16 parm1,
-			     u16 parm2, struct hermes_response *resp)
+							 u16 parm2, struct hermes_response *resp)
 {
 	struct ezusb_priv *upriv = hw->priv;
 	struct request_context *ctx;
 
-	__le16 data[4] = {
+	__le16 data[4] =
+	{
 		cpu_to_le16(cmd),
 		cpu_to_le16(parm0),
 		cpu_to_le16(parm1),
 		cpu_to_le16(parm2),
 	};
 	netdev_dbg(upriv->dev,
-		   "0x%04X, parm0 0x%04X, parm1 0x%04X, parm2 0x%04X\n", cmd,
-		   parm0, parm1, parm2);
+			   "0x%04X, parm0 0x%04X, parm1 0x%04X, parm2 0x%04X\n", cmd,
+			   parm0, parm1, parm2);
 	ctx = ezusb_alloc_ctx(upriv, EZUSB_RID_DOCMD, EZUSB_RID_ACK);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	return ezusb_access_ltv(upriv, ctx, sizeof(data), &data,
-				EZUSB_FRAME_CONTROL, NULL, 0, NULL);
+							EZUSB_FRAME_CONTROL, NULL, 0, NULL);
 }
 
 static int ezusb_docmd_wait(struct hermes *hw, u16 cmd, u16 parm0,
-			    struct hermes_response *resp)
+							struct hermes_response *resp)
 {
 	struct ezusb_priv *upriv = hw->priv;
 	struct request_context *ctx;
 
-	__le16 data[4] = {
+	__le16 data[4] =
+	{
 		cpu_to_le16(cmd),
 		cpu_to_le16(parm0),
 		0,
@@ -1031,39 +1198,50 @@ static int ezusb_docmd_wait(struct hermes *hw, u16 cmd, u16 parm0,
 	};
 	netdev_dbg(upriv->dev, "0x%04X, parm0 0x%04X\n", cmd, parm0);
 	ctx = ezusb_alloc_ctx(upriv, EZUSB_RID_DOCMD, EZUSB_RID_ACK);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	return ezusb_access_ltv(upriv, ctx, sizeof(data), &data,
-				EZUSB_FRAME_CONTROL, NULL, 0, NULL);
+							EZUSB_FRAME_CONTROL, NULL, 0, NULL);
 }
 
 static int ezusb_bap_pread(struct hermes *hw, int bap,
-			   void *buf, int len, u16 id, u16 offset)
+						   void *buf, int len, u16 id, u16 offset)
 {
 	struct ezusb_priv *upriv = hw->priv;
 	struct ezusb_packet *ans = (void *) upriv->read_urb->transfer_buffer;
 	int actual_length = upriv->read_urb->actual_length;
 
-	if (id == EZUSB_RID_RX) {
-		if ((sizeof(*ans) + offset + len) > actual_length) {
+	if (id == EZUSB_RID_RX)
+	{
+		if ((sizeof(*ans) + offset + len) > actual_length)
+		{
 			printk(KERN_ERR PFX "BAP read beyond buffer end "
-			       "in rx frame\n");
+				   "in rx frame\n");
 			return -EINVAL;
 		}
+
 		memcpy(buf, ans->data + offset, len);
 		return 0;
 	}
 
-	if (EZUSB_IS_INFO(id)) {
+	if (EZUSB_IS_INFO(id))
+	{
 		/* Include 4 bytes for length/type */
-		if ((sizeof(*ans) + offset + len - 4) > actual_length) {
+		if ((sizeof(*ans) + offset + len - 4) > actual_length)
+		{
 			printk(KERN_ERR PFX "BAP read beyond buffer end "
-			       "in info frame\n");
+				   "in info frame\n");
 			return -EFAULT;
 		}
+
 		memcpy(buf, ans->data + offset - 4, len);
-	} else {
+	}
+	else
+	{
 		printk(KERN_ERR PFX "Unexpected fid 0x%04x\n", id);
 		return -EINVAL;
 	}
@@ -1072,17 +1250,21 @@ static int ezusb_bap_pread(struct hermes *hw, int bap,
 }
 
 static int ezusb_read_pda(struct hermes *hw, __le16 *pda,
-			  u32 pda_addr, u16 pda_len)
+						  u32 pda_addr, u16 pda_len)
 {
 	struct ezusb_priv *upriv = hw->priv;
 	struct request_context *ctx;
-	__le16 data[] = {
+	__le16 data[] =
+	{
 		cpu_to_le16(pda_addr & 0xffff),
 		cpu_to_le16(pda_len - 4)
 	};
 	ctx = ezusb_alloc_ctx(upriv, EZUSB_RID_READ_PDA, EZUSB_RID_READ_PDA);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	/* wl_lkm does not include PDA size in the PDA area.
 	 * We will pad the information into pda, so other routines
@@ -1092,8 +1274,8 @@ static int ezusb_read_pda(struct hermes *hw, __le16 *pda,
 	pda[1] = cpu_to_le16(0x0800); /* CFG_PROD_DATA */
 
 	return ezusb_access_ltv(upriv, ctx, sizeof(data), &data,
-				EZUSB_FRAME_CONTROL, &pda[2], pda_len - 4,
-				NULL);
+							EZUSB_FRAME_CONTROL, &pda[2], pda_len - 4,
+							NULL);
 }
 
 static int ezusb_program_init(struct hermes *hw, u32 entry_point)
@@ -1103,11 +1285,14 @@ static int ezusb_program_init(struct hermes *hw, u32 entry_point)
 	__le32 data = cpu_to_le32(entry_point);
 
 	ctx = ezusb_alloc_ctx(upriv, EZUSB_RID_PROG_INIT, EZUSB_RID_ACK);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	return ezusb_access_ltv(upriv, ctx, sizeof(data), &data,
-				EZUSB_FRAME_CONTROL, NULL, 0, NULL);
+							EZUSB_FRAME_CONTROL, NULL, 0, NULL);
 }
 
 static int ezusb_program_end(struct hermes *hw)
@@ -1116,15 +1301,18 @@ static int ezusb_program_end(struct hermes *hw)
 	struct request_context *ctx;
 
 	ctx = ezusb_alloc_ctx(upriv, EZUSB_RID_PROG_END, EZUSB_RID_ACK);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	return ezusb_access_ltv(upriv, ctx, 0, NULL,
-				EZUSB_FRAME_CONTROL, NULL, 0, NULL);
+							EZUSB_FRAME_CONTROL, NULL, 0, NULL);
 }
 
 static int ezusb_program_bytes(struct hermes *hw, const char *buf,
-			       u32 addr, u32 len)
+							   u32 addr, u32 len)
 {
 	struct ezusb_priv *upriv = hw->priv;
 	struct request_context *ctx;
@@ -1132,24 +1320,33 @@ static int ezusb_program_bytes(struct hermes *hw, const char *buf,
 	int err;
 
 	ctx = ezusb_alloc_ctx(upriv, EZUSB_RID_PROG_SET_ADDR, EZUSB_RID_ACK);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	err = ezusb_access_ltv(upriv, ctx, sizeof(data), &data,
-			       EZUSB_FRAME_CONTROL, NULL, 0, NULL);
+						   EZUSB_FRAME_CONTROL, NULL, 0, NULL);
+
 	if (err)
+	{
 		return err;
+	}
 
 	ctx = ezusb_alloc_ctx(upriv, EZUSB_RID_PROG_BYTES, EZUSB_RID_ACK);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	return ezusb_access_ltv(upriv, ctx, len, buf,
-				EZUSB_FRAME_CONTROL, NULL, 0, NULL);
+							EZUSB_FRAME_CONTROL, NULL, 0, NULL);
 }
 
 static int ezusb_program(struct hermes *hw, const char *buf,
-			 u32 addr, u32 len)
+						 u32 addr, u32 len)
 {
 	u32 ch_addr;
 	u32 ch_len;
@@ -1162,19 +1359,23 @@ static int ezusb_program(struct hermes *hw, const char *buf,
 	ch_len = (len < MAX_DL_SIZE) ? len : MAX_DL_SIZE;
 	ch_addr = addr;
 
-	while (ch_addr < (addr + len)) {
+	while (ch_addr < (addr + len))
+	{
 		pr_debug("Programming subblock of length %d "
-			 "to address 0x%08x. Data @ %p\n",
-			 ch_len, ch_addr, &buf[ch_addr - addr]);
+				 "to address 0x%08x. Data @ %p\n",
+				 ch_len, ch_addr, &buf[ch_addr - addr]);
 
 		err = ezusb_program_bytes(hw, &buf[ch_addr - addr],
-					  ch_addr, ch_len);
+								  ch_addr, ch_len);
+
 		if (err)
+		{
 			break;
+		}
 
 		ch_addr += ch_len;
 		ch_len = ((addr + len - ch_addr) < MAX_DL_SIZE) ?
-			(addr + len - ch_addr) : MAX_DL_SIZE;
+				 (addr + len - ch_addr) : MAX_DL_SIZE;
 	}
 
 	return err;
@@ -1193,27 +1394,31 @@ static netdev_tx_t ezusb_xmit(struct sk_buff *skb, struct net_device *dev)
 	u8 *buf;
 	int tx_size;
 
-	if (!netif_running(dev)) {
+	if (!netif_running(dev))
+	{
 		printk(KERN_ERR "%s: Tx on stopped device!\n",
-		       dev->name);
+			   dev->name);
 		return NETDEV_TX_BUSY;
 	}
 
-	if (netif_queue_stopped(dev)) {
+	if (netif_queue_stopped(dev))
+	{
 		printk(KERN_DEBUG "%s: Tx while transmitter busy!\n",
-		       dev->name);
+			   dev->name);
 		return NETDEV_TX_BUSY;
 	}
 
-	if (orinoco_lock(priv, &flags) != 0) {
+	if (orinoco_lock(priv, &flags) != 0)
+	{
 		printk(KERN_ERR
-		       "%s: ezusb_xmit() called while hw_unavailable\n",
-		       dev->name);
+			   "%s: ezusb_xmit() called while hw_unavailable\n",
+			   dev->name);
 		return NETDEV_TX_BUSY;
 	}
 
 	if (!netif_carrier_ok(dev) ||
-	    (priv->iw_mode == NL80211_IFTYPE_MONITOR)) {
+		(priv->iw_mode == NL80211_IFTYPE_MONITOR))
+	{
 		/* Oops, the firmware hasn't established a connection,
 		   silently drop the packet (this seems to be the
 		   safest approach). */
@@ -1222,11 +1427,16 @@ static netdev_tx_t ezusb_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	/* Check packet length */
 	if (skb->len < ETH_HLEN)
+	{
 		goto drop;
+	}
 
 	ctx = ezusb_alloc_ctx(upriv, EZUSB_RID_TX, 0);
+
 	if (!ctx)
+	{
 		goto busy;
+	}
 
 	memset(ctx->buf, 0, BULK_BUF_SIZE);
 	buf = ctx->buf->data;
@@ -1234,9 +1444,12 @@ static netdev_tx_t ezusb_xmit(struct sk_buff *skb, struct net_device *dev)
 	tx_control = 0;
 
 	err = orinoco_process_xmit_skb(skb, dev, priv, &tx_control,
-				       &mic[0]);
+								   &mic[0]);
+
 	if (err)
+	{
 		goto drop;
+	}
 
 	{
 		__le16 *tx_cntl = (__le16 *)buf;
@@ -1247,13 +1460,18 @@ static netdev_tx_t ezusb_xmit(struct sk_buff *skb, struct net_device *dev)
 	memcpy(buf, skb->data, skb->len);
 	buf += skb->len;
 
-	if (tx_control & HERMES_TXCTRL_MIC) {
+	if (tx_control & HERMES_TXCTRL_MIC)
+	{
 		u8 *m = mic;
+
 		/* Mic has been offset so it can be copied to an even
 		 * address. We're copying eveything anyway, so we
 		 * don't need to copy that first byte. */
 		if (skb->len % 2)
+		{
 			m++;
+		}
+
 		memcpy(buf, m, MICHAEL_MIC_LEN);
 		buf += MICHAEL_MIC_LEN;
 	}
@@ -1265,13 +1483,16 @@ static netdev_tx_t ezusb_xmit(struct sk_buff *skb, struct net_device *dev)
 	tx_size = ALIGN(buf - ctx->buf->data, 2);
 
 	err = ezusb_access_ltv(upriv, ctx, tx_size, NULL,
-			       EZUSB_FRAME_DATA, NULL, 0, NULL);
+						   EZUSB_FRAME_DATA, NULL, 0, NULL);
 
-	if (err) {
+	if (err)
+	{
 		netif_start_queue(dev);
+
 		if (net_ratelimit())
 			printk(KERN_ERR "%s: Error %d transmitting packet\n",
-				dev->name, err);
+				   dev->name, err);
+
 		goto busy;
 	}
 
@@ -1279,16 +1500,16 @@ static netdev_tx_t ezusb_xmit(struct sk_buff *skb, struct net_device *dev)
 	stats->tx_bytes += skb->len;
 	goto ok;
 
- drop:
+drop:
 	stats->tx_errors++;
 	stats->tx_dropped++;
 
- ok:
+ok:
 	orinoco_unlock(priv, &flags);
 	dev_kfree_skb(skb);
 	return NETDEV_TX_OK;
 
- busy:
+busy:
 	orinoco_unlock(priv, &flags);
 	return NETDEV_TX_BUSY;
 }
@@ -1305,40 +1526,49 @@ static int ezusb_hard_reset(struct orinoco_private *priv)
 	struct ezusb_priv *upriv = priv->card;
 	int retval = ezusb_8051_cpucs(upriv, 1);
 
-	if (retval < 0) {
+	if (retval < 0)
+	{
 		err("Failed to reset");
 		return retval;
 	}
 
 	retval = ezusb_8051_cpucs(upriv, 0);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		err("Failed to unreset");
 		return retval;
 	}
 
 	netdev_dbg(upriv->dev, "sending control message\n");
 	retval = usb_control_msg(upriv->udev,
-				 usb_sndctrlpipe(upriv->udev, 0),
-				 EZUSB_REQUEST_TRIGER,
-				 USB_TYPE_VENDOR | USB_RECIP_DEVICE |
-				 USB_DIR_OUT, 0x0, 0x0, NULL, 0,
-				 DEF_TIMEOUT);
-	if (retval < 0) {
+							 usb_sndctrlpipe(upriv->udev, 0),
+							 EZUSB_REQUEST_TRIGER,
+							 USB_TYPE_VENDOR | USB_RECIP_DEVICE |
+							 USB_DIR_OUT, 0x0, 0x0, NULL, 0,
+							 DEF_TIMEOUT);
+
+	if (retval < 0)
+	{
 		err("EZUSB_REQUEST_TRIGER failed retval %d", retval);
 		return retval;
 	}
+
 #if 0
 	dbg("Sending EZUSB_REQUEST_TRIG_AC");
 	retval = usb_control_msg(upriv->udev,
-				 usb_sndctrlpipe(upriv->udev, 0),
-				 EZUSB_REQUEST_TRIG_AC,
-				 USB_TYPE_VENDOR | USB_RECIP_DEVICE |
-				 USB_DIR_OUT, 0x00FA, 0x0, NULL, 0,
-				 DEF_TIMEOUT);
-	if (retval < 0) {
+							 usb_sndctrlpipe(upriv->udev, 0),
+							 EZUSB_REQUEST_TRIG_AC,
+							 USB_TYPE_VENDOR | USB_RECIP_DEVICE |
+							 USB_DIR_OUT, 0x00FA, 0x0, NULL, 0,
+							 DEF_TIMEOUT);
+
+	if (retval < 0)
+	{
 		err("EZUSB_REQUEST_TRIG_AC failed retval %d", retval);
 		return retval;
 	}
+
 #endif
 
 	return 0;
@@ -1363,14 +1593,18 @@ static int ezusb_init(struct hermes *hw)
 	ezusb_submit_in_urb(upriv);
 
 	retval = ezusb_write_ltv(hw, 0, EZUSB_RID_INIT1,
-				 HERMES_BYTES_TO_RECLEN(2), "\x10\x00");
-	if (retval < 0) {
+							 HERMES_BYTES_TO_RECLEN(2), "\x10\x00");
+
+	if (retval < 0)
+	{
 		printk(KERN_ERR PFX "EZUSB_RID_INIT1 error %d\n", retval);
 		return retval;
 	}
 
 	retval = ezusb_docmd_wait(hw, HERMES_CMD_INIT, 0, NULL);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		printk(KERN_ERR PFX "HERMES_CMD_INIT error %d\n", retval);
 		return retval;
 	}
@@ -1386,60 +1620,83 @@ static void ezusb_bulk_in_callback(struct urb *urb)
 	u16 hermes_rid;
 
 	if (upriv->udev == NULL)
+	{
 		return;
+	}
 
-	if (urb->status == -ETIMEDOUT) {
+	if (urb->status == -ETIMEDOUT)
+	{
 		/* When a device gets unplugged we get this every time
 		 * we resubmit, flooding the logs.  Since we don't use
 		 * USB timeouts, it shouldn't happen any other time*/
 		pr_warn("%s: urb timed out, not resubmitting\n", __func__);
 		return;
 	}
-	if (urb->status == -ECONNABORTED) {
+
+	if (urb->status == -ECONNABORTED)
+	{
 		pr_warn("%s: connection abort, resubmitting urb\n",
-			__func__);
+				__func__);
 		goto resubmit;
 	}
+
 	if ((urb->status == -EILSEQ)
-	    || (urb->status == -ENOENT)
-	    || (urb->status == -ECONNRESET)) {
+		|| (urb->status == -ENOENT)
+		|| (urb->status == -ECONNRESET))
+	{
 		netdev_dbg(upriv->dev, "status %d, not resubmiting\n",
-			   urb->status);
+				   urb->status);
 		return;
 	}
+
 	if (urb->status)
 		netdev_dbg(upriv->dev, "status: %d length: %d\n",
-			   urb->status, urb->actual_length);
-	if (urb->actual_length < sizeof(*ans)) {
+				   urb->status, urb->actual_length);
+
+	if (urb->actual_length < sizeof(*ans))
+	{
 		err("%s: short read, ignoring", __func__);
 		goto resubmit;
 	}
+
 	crc = build_crc(ans);
-	if (le16_to_cpu(ans->crc) != crc) {
+
+	if (le16_to_cpu(ans->crc) != crc)
+	{
 		err("CRC error, ignoring packet");
 		goto resubmit;
 	}
 
 	hermes_rid = le16_to_cpu(ans->hermes_rid);
-	if ((hermes_rid != EZUSB_RID_RX) && !EZUSB_IS_INFO(hermes_rid)) {
+
+	if ((hermes_rid != EZUSB_RID_RX) && !EZUSB_IS_INFO(hermes_rid))
+	{
 		ezusb_request_in_callback(upriv, urb);
-	} else if (upriv->dev) {
+	}
+	else if (upriv->dev)
+	{
 		struct net_device *dev = upriv->dev;
 		struct orinoco_private *priv = ndev_priv(dev);
 		struct hermes *hw = &priv->hw;
 
-		if (hermes_rid == EZUSB_RID_RX) {
+		if (hermes_rid == EZUSB_RID_RX)
+		{
 			__orinoco_ev_rx(dev, hw);
-		} else {
+		}
+		else
+		{
 			hermes_write_regn(hw, INFOFID,
-					  le16_to_cpu(ans->hermes_rid));
+							  le16_to_cpu(ans->hermes_rid));
 			__orinoco_ev_info(dev, hw);
 		}
 	}
 
- resubmit:
+resubmit:
+
 	if (upriv->udev)
+	{
 		ezusb_submit_in_urb(upriv);
+	}
 }
 
 static inline void ezusb_delete(struct ezusb_priv *upriv)
@@ -1460,7 +1717,8 @@ static inline void ezusb_delete(struct ezusb_priv *upriv)
 	usb_kill_urb(upriv->read_urb);
 
 	spin_lock_irqsave(&upriv->req_lock, flags);
-	list_for_each_safe(item, tmp_item, &upriv->req_active) {
+	list_for_each_safe(item, tmp_item, &upriv->req_active)
+	{
 		struct request_context *ctx;
 		int err;
 
@@ -1471,14 +1729,20 @@ static inline void ezusb_delete(struct ezusb_priv *upriv)
 		err = usb_unlink_urb(ctx->outurb);
 
 		spin_unlock_irqrestore(&upriv->req_lock, flags);
+
 		if (err == -EINPROGRESS)
+		{
 			wait_for_completion(&ctx->done);
+		}
 
 		del_timer_sync(&ctx->timer);
+
 		/* FIXME: there is an slight chance for the irq handler to
 		 * be running */
 		if (!list_empty(&ctx->list))
+		{
 			ezusb_ctx_complete(ctx);
+		}
 
 		ezusb_request_context_put(ctx);
 		spin_lock_irqsave(&upriv->req_lock, flags);
@@ -1486,20 +1750,26 @@ static inline void ezusb_delete(struct ezusb_priv *upriv)
 	spin_unlock_irqrestore(&upriv->req_lock, flags);
 
 	list_for_each_safe(item, tmp_item, &upriv->req_pending)
-	    ezusb_ctx_complete(list_entry(item,
-					  struct request_context, list));
+	ezusb_ctx_complete(list_entry(item,
+								  struct request_context, list));
 
 	if (upriv->read_urb && upriv->read_urb->status == -EINPROGRESS)
+	{
 		printk(KERN_ERR PFX "Some URB in progress\n");
+	}
 
 	mutex_unlock(&upriv->mtx);
 
-	if (upriv->read_urb) {
+	if (upriv->read_urb)
+	{
 		kfree(upriv->read_urb->transfer_buffer);
 		usb_free_urb(upriv->read_urb);
 	}
+
 	kfree(upriv->bap_buf);
-	if (upriv->dev) {
+
+	if (upriv->dev)
+	{
 		struct orinoco_private *priv = ndev_priv(upriv->dev);
 		orinoco_if_del(priv);
 		wiphy_unregister(priv_to_wiphy(upriv));
@@ -1508,13 +1778,13 @@ static inline void ezusb_delete(struct ezusb_priv *upriv)
 }
 
 static void ezusb_lock_irqsave(spinlock_t *lock,
-			       unsigned long *flags) __acquires(lock)
+							   unsigned long *flags) __acquires(lock)
 {
 	spin_lock_bh(lock);
 }
 
 static void ezusb_unlock_irqrestore(spinlock_t *lock,
-				    unsigned long *flags) __releases(lock)
+									unsigned long *flags) __releases(lock)
 {
 	spin_unlock_bh(lock);
 }
@@ -1529,7 +1799,8 @@ static void ezusb_unlock_irq(spinlock_t *lock) __releases(lock)
 	spin_unlock_bh(lock);
 }
 
-static const struct hermes_ops ezusb_ops = {
+static const struct hermes_ops ezusb_ops =
+{
 	.init = ezusb_init,
 	.cmd_wait = ezusb_docmd_wait,
 	.init_cmd_wait = ezusb_doicmd_wait,
@@ -1547,7 +1818,8 @@ static const struct hermes_ops ezusb_ops = {
 	.unlock_irq = ezusb_unlock_irq,
 };
 
-static const struct net_device_ops ezusb_netdev_ops = {
+static const struct net_device_ops ezusb_netdev_ops =
+{
 	.ndo_open		= orinoco_open,
 	.ndo_stop		= orinoco_stop,
 	.ndo_start_xmit		= ezusb_xmit,
@@ -1560,7 +1832,7 @@ static const struct net_device_ops ezusb_netdev_ops = {
 };
 
 static int ezusb_probe(struct usb_interface *interface,
-		       const struct usb_device_id *id)
+					   const struct usb_device_id *id)
 {
 	struct usb_device *udev = interface_to_usbdev(interface);
 	struct orinoco_private *priv;
@@ -1573,8 +1845,10 @@ static int ezusb_probe(struct usb_interface *interface,
 	int i;
 
 	priv = alloc_orinocodev(sizeof(*upriv), &udev->dev,
-				ezusb_hard_reset, NULL);
-	if (!priv) {
+							ezusb_hard_reset, NULL);
+
+	if (!priv)
+	{
 		err("Couldn't allocate orinocodev");
 		retval = -ENOMEM;
 		goto exit;
@@ -1602,76 +1876,108 @@ static int ezusb_probe(struct usb_interface *interface,
 	/* check out the endpoints */
 
 	iface_desc = &interface->altsetting[0].desc;
-	for (i = 0; i < iface_desc->bNumEndpoints; ++i) {
+
+	for (i = 0; i < iface_desc->bNumEndpoints; ++i)
+	{
 		ep = &interface->altsetting[0].endpoint[i].desc;
 
-		if (usb_endpoint_is_bulk_in(ep)) {
+		if (usb_endpoint_is_bulk_in(ep))
+		{
 			/* we found a bulk in endpoint */
-			if (upriv->read_urb != NULL) {
+			if (upriv->read_urb != NULL)
+			{
 				pr_warn("Found a second bulk in ep, ignored\n");
 				continue;
 			}
 
 			upriv->read_urb = usb_alloc_urb(0, GFP_KERNEL);
+
 			if (!upriv->read_urb)
+			{
 				goto error;
+			}
+
 			if (le16_to_cpu(ep->wMaxPacketSize) != 64)
+			{
 				pr_warn("bulk in: wMaxPacketSize!= 64\n");
+			}
+
 			if (ep->bEndpointAddress != (2 | USB_DIR_IN))
 				pr_warn("bulk in: bEndpointAddress: %d\n",
-					ep->bEndpointAddress);
+						ep->bEndpointAddress);
+
 			upriv->read_pipe = usb_rcvbulkpipe(udev,
-							 ep->
-							 bEndpointAddress);
+											   ep->
+											   bEndpointAddress);
 			upriv->read_urb->transfer_buffer =
-			    kmalloc(BULK_BUF_SIZE, GFP_KERNEL);
-			if (!upriv->read_urb->transfer_buffer) {
+				kmalloc(BULK_BUF_SIZE, GFP_KERNEL);
+
+			if (!upriv->read_urb->transfer_buffer)
+			{
 				err("Couldn't allocate IN buffer");
 				goto error;
 			}
 		}
 
-		if (usb_endpoint_is_bulk_out(ep)) {
+		if (usb_endpoint_is_bulk_out(ep))
+		{
 			/* we found a bulk out endpoint */
-			if (upriv->bap_buf != NULL) {
+			if (upriv->bap_buf != NULL)
+			{
 				pr_warn("Found a second bulk out ep, ignored\n");
 				continue;
 			}
 
 			if (le16_to_cpu(ep->wMaxPacketSize) != 64)
+			{
 				pr_warn("bulk out: wMaxPacketSize != 64\n");
+			}
+
 			if (ep->bEndpointAddress != 2)
 				pr_warn("bulk out: bEndpointAddress: %d\n",
-					ep->bEndpointAddress);
+						ep->bEndpointAddress);
+
 			upriv->write_pipe = usb_sndbulkpipe(udev,
-							  ep->
-							  bEndpointAddress);
+												ep->
+												bEndpointAddress);
 			upriv->bap_buf = kmalloc(BULK_BUF_SIZE, GFP_KERNEL);
-			if (!upriv->bap_buf) {
+
+			if (!upriv->bap_buf)
+			{
 				err("Couldn't allocate bulk_out_buffer");
 				goto error;
 			}
 		}
 	}
-	if (!upriv->bap_buf || !upriv->read_urb) {
+
+	if (!upriv->bap_buf || !upriv->read_urb)
+	{
 		err("Didn't find the required bulk endpoints");
 		goto error;
 	}
 
 	if (request_firmware(&fw_entry, "orinoco_ezusb_fw",
-			     &interface->dev) == 0) {
+						 &interface->dev) == 0)
+	{
 		firmware.size = fw_entry->size;
 		firmware.code = fw_entry->data;
 	}
-	if (firmware.size && firmware.code) {
+
+	if (firmware.size && firmware.code)
+	{
 		if (ezusb_firmware_download(upriv, &firmware) < 0)
+		{
 			goto error;
-	} else {
+		}
+	}
+	else
+	{
 		err("No firmware to download");
 		goto error;
 	}
 
-	if (ezusb_hard_reset(priv) < 0) {
+	if (ezusb_hard_reset(priv) < 0)
+	{
 		err("Cannot reset the device");
 		goto error;
 	}
@@ -1680,42 +1986,52 @@ static int ezusb_probe(struct usb_interface *interface,
 	 * ezusb_init but if the firmware is not already there, that will make
 	 * the kernel very unstable, so we try initializing here and quit in
 	 * case of error */
-	if (ezusb_init(hw) < 0) {
+	if (ezusb_init(hw) < 0)
+	{
 		err("Couldn't initialize the device");
 		err("Firmware may not be downloaded or may be wrong.");
 		goto error;
 	}
 
 	/* Initialise the main driver */
-	if (orinoco_init(priv) != 0) {
+	if (orinoco_init(priv) != 0)
+	{
 		err("orinoco_init() failed\n");
 		goto error;
 	}
 
-	if (orinoco_if_add(priv, 0, 0, &ezusb_netdev_ops) != 0) {
+	if (orinoco_if_add(priv, 0, 0, &ezusb_netdev_ops) != 0)
+	{
 		upriv->dev = NULL;
 		err("%s: orinoco_if_add() failed", __func__);
 		wiphy_unregister(priv_to_wiphy(priv));
 		goto error;
 	}
+
 	upriv->dev = priv->ndev;
 
 	goto exit;
 
- error:
+error:
 	ezusb_delete(upriv);
-	if (upriv->dev) {
+
+	if (upriv->dev)
+	{
 		/* upriv->dev was 0, so ezusb_delete() didn't free it */
 		free_orinocodev(priv);
 	}
+
 	upriv = NULL;
 	retval = -EFAULT;
- exit:
-	if (fw_entry) {
+exit:
+
+	if (fw_entry)
+	{
 		firmware.code = NULL;
 		firmware.size = 0;
 		release_firmware(fw_entry);
 	}
+
 	usb_set_intfdata(interface, upriv);
 	return retval;
 }
@@ -1731,7 +2047,8 @@ static void ezusb_disconnect(struct usb_interface *intf)
 
 
 /* usb specific object needed to register this driver with the usb subsystem */
-static struct usb_driver orinoco_driver = {
+static struct usb_driver orinoco_driver =
+{
 	.name = DRIVER_NAME,
 	.probe = ezusb_probe,
 	.disconnect = ezusb_disconnect,

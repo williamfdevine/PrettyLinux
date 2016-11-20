@@ -6,10 +6,11 @@
 #define WBIT(n) (1 << (n))
 
 #ifndef ETH_ALEN
-#define ETH_ALEN 6
+	#define ETH_ALEN 6
 #endif
 
-struct ether_hdr {
+struct ether_hdr
+{
 	unsigned char h_dest[ETH_ALEN];	/* destination eth addr */
 	unsigned char h_source[ETH_ALEN];	/* source ether addr    */
 	unsigned char h_dest_snap;
@@ -23,7 +24,8 @@ struct ether_hdr {
 	/* followed by length octets of data */
 } __packed;
 
-struct ieee802_1x_hdr {
+struct ieee802_1x_hdr
+{
 	unsigned char version;
 	unsigned char type;
 	unsigned short length;
@@ -33,15 +35,15 @@ struct ieee802_1x_hdr {
 #define EAPOL_VERSION 2
 
 enum { IEEE802_1X_TYPE_EAP_PACKET = 0,
-	IEEE802_1X_TYPE_EAPOL_START = 1,
-	IEEE802_1X_TYPE_EAPOL_LOGOFF = 2,
-	IEEE802_1X_TYPE_EAPOL_KEY = 3,
-	IEEE802_1X_TYPE_EAPOL_ENCAPSULATED_ASF_ALERT = 4
-};
+	   IEEE802_1X_TYPE_EAPOL_START = 1,
+	   IEEE802_1X_TYPE_EAPOL_LOGOFF = 2,
+	   IEEE802_1X_TYPE_EAPOL_KEY = 3,
+	   IEEE802_1X_TYPE_EAPOL_ENCAPSULATED_ASF_ALERT = 4
+	 };
 
 enum { EAPOL_KEY_TYPE_RC4 = 1, EAPOL_KEY_TYPE_RSN = 2,
-	EAPOL_KEY_TYPE_WPA = 254
-};
+	   EAPOL_KEY_TYPE_WPA = 254
+	 };
 
 #define IEEE8021X_REPLAY_COUNTER_LEN 8
 #define IEEE8021X_KEY_SIGN_LEN 16
@@ -50,7 +52,8 @@ enum { EAPOL_KEY_TYPE_RC4 = 1, EAPOL_KEY_TYPE_RSN = 2,
 #define IEEE8021X_KEY_INDEX_FLAG 0x80
 #define IEEE8021X_KEY_INDEX_MASK 0x03
 
-struct ieee802_1x_eapol_key {
+struct ieee802_1x_eapol_key
+{
 	unsigned char type;
 	unsigned short key_length;
 	/*
@@ -84,7 +87,8 @@ struct ieee802_1x_eapol_key {
 #define WPA_NONCE_LEN 32
 #define WPA_REPLAY_COUNTER_LEN 8
 
-struct wpa_eapol_key {
+struct wpa_eapol_key
+{
 	unsigned char type;
 	unsigned short key_info;
 	unsigned short key_length;
@@ -119,7 +123,8 @@ struct wpa_eapol_key {
 #define GENERIC_INFO_ELEM 0xdd
 #define RSN_INFO_ELEM 0x30
 
-enum {
+enum
+{
 	REASON_UNSPECIFIED = 1,
 	REASON_DEAUTH_LEAVING = 3,
 	REASON_INVALID_IE = 13,

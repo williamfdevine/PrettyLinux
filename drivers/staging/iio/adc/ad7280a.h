@@ -28,7 +28,8 @@
 #define AD7280A_ALERT_REMOVE_AUX5		BIT(0)
 #define AD7280A_ALERT_REMOVE_AUX4_AUX5		BIT(1)
 
-struct ad7280_platform_data {
+struct ad7280_platform_data
+{
 	unsigned int		acquisition_time;
 	unsigned int		conversion_averaging;
 	unsigned int		chain_last_alert_ignore;

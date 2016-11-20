@@ -42,19 +42,23 @@ int w1_register_family(struct w1_family *newf)
 	int ret = 0;
 
 	spin_lock(&w1_flock);
-	list_for_each_safe(ent, n, &w1_families) {
+	list_for_each_safe(ent, n, &w1_families)
+	{
 		f = list_entry(ent, struct w1_family, family_entry);
 
-		if (f->fid == newf->fid) {
+		if (f->fid == newf->fid)
+		{
 			ret = -EEXIST;
 			break;
 		}
 	}
 
-	if (!ret) {
+	if (!ret)
+	{
 		atomic_set(&newf->refcnt, 0);
 		list_add_tail(&newf->family_entry, &w1_families);
 	}
+
 	spin_unlock(&w1_flock);
 
 	/* check default devices against the new set of drivers */
@@ -73,10 +77,12 @@ void w1_unregister_family(struct w1_family *fent)
 	struct w1_family *f;
 
 	spin_lock(&w1_flock);
-	list_for_each_safe(ent, n, &w1_families) {
+	list_for_each_safe(ent, n, &w1_families)
+	{
 		f = list_entry(ent, struct w1_family, family_entry);
 
-		if (f->fid == fent->fid) {
+		if (f->fid == fent->fid)
+		{
 			list_del(&fent->family_entry);
 			break;
 		}
@@ -86,28 +92,33 @@ void w1_unregister_family(struct w1_family *fent)
 	/* deatch devices using this family code */
 	w1_reconnect_slaves(fent, 0);
 
-	while (atomic_read(&fent->refcnt)) {
+	while (atomic_read(&fent->refcnt))
+	{
 		pr_info("Waiting for family %u to become free: refcnt=%d.\n",
 				fent->fid, atomic_read(&fent->refcnt));
 
 		if (msleep_interruptible(1000))
+		{
 			flush_signals(current);
+		}
 	}
 }
 
 /*
  * Should be called under w1_flock held.
  */
-struct w1_family * w1_family_registered(u8 fid)
+struct w1_family *w1_family_registered(u8 fid)
 {
 	struct list_head *ent, *n;
 	struct w1_family *f = NULL;
 	int ret = 0;
 
-	list_for_each_safe(ent, n, &w1_families) {
+	list_for_each_safe(ent, n, &w1_families)
+	{
 		f = list_entry(ent, struct w1_family, family_entry);
 
-		if (f->fid == fid) {
+		if (f->fid == fid)
+		{
 			ret = 1;
 			break;
 		}

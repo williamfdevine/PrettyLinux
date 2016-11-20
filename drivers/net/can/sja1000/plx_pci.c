@@ -35,23 +35,24 @@
 
 MODULE_AUTHOR("Pavel Cheblakov <P.B.Cheblakov@inp.nsk.su>");
 MODULE_DESCRIPTION("Socket-CAN driver for PLX90xx PCI-bridge cards with "
-		   "the SJA1000 chips");
+				   "the SJA1000 chips");
 MODULE_SUPPORTED_DEVICE("Adlink PCI-7841/cPCI-7841, "
-			"Adlink PCI-7841/cPCI-7841 SE, "
-			"Marathon CAN-bus-PCI, "
-			"Marathon CAN-bus-PCIe, "
-			"TEWS TECHNOLOGIES TPMC810, "
-			"esd CAN-PCI/CPCI/PCI104/200, "
-			"esd CAN-PCI/PMC/266, "
-			"esd CAN-PCIe/2000, "
-			"Connect Tech Inc. CANpro/104-Plus Opto (CRG001), "
-			"IXXAT PC-I 04/PCI, "
-			"ELCUS CAN-200-PCI")
+						"Adlink PCI-7841/cPCI-7841 SE, "
+						"Marathon CAN-bus-PCI, "
+						"Marathon CAN-bus-PCIe, "
+						"TEWS TECHNOLOGIES TPMC810, "
+						"esd CAN-PCI/CPCI/PCI104/200, "
+						"esd CAN-PCI/PMC/266, "
+						"esd CAN-PCIe/2000, "
+						"Connect Tech Inc. CANpro/104-Plus Opto (CRG001), "
+						"IXXAT PC-I 04/PCI, "
+						"ELCUS CAN-200-PCI")
 MODULE_LICENSE("GPL v2");
 
 #define PLX_PCI_MAX_CHAN 2
 
-struct plx_pci_card {
+struct plx_pci_card
+{
 	int channels;			/* detected channels count */
 	struct net_device *net_dev[PLX_PCI_MAX_CHAN];
 	void __iomem *conf_addr;
@@ -150,13 +151,15 @@ static void plx9056_pci_reset_common(struct pci_dev *pdev);
 static void plx_pci_reset_marathon_pci(struct pci_dev *pdev);
 static void plx_pci_reset_marathon_pcie(struct pci_dev *pdev);
 
-struct plx_pci_channel_map {
+struct plx_pci_channel_map
+{
 	u32 bar;
 	u32 offset;
 	u32 size;		/* 0x00 - auto, e.g. length of entire bar */
 };
 
-struct plx_pci_card_info {
+struct plx_pci_card_info
+{
 	const char *name;
 	int channel_count;
 	u32 can_clock;
@@ -173,7 +176,8 @@ struct plx_pci_card_info {
 	void (*reset_func)(struct pci_dev *pdev);
 };
 
-static struct plx_pci_card_info plx_pci_card_info_adlink = {
+static struct plx_pci_card_info plx_pci_card_info_adlink =
+{
 	"Adlink PCI-7841/cPCI-7841", 2,
 	PLX_PCI_CAN_CLOCK, PLX_PCI_OCR, PLX_PCI_CDR,
 	{1, 0x00, 0x00}, { {2, 0x00, 0x80}, {2, 0x80, 0x80} },
@@ -181,7 +185,8 @@ static struct plx_pci_card_info plx_pci_card_info_adlink = {
 	/* based on PLX9052 */
 };
 
-static struct plx_pci_card_info plx_pci_card_info_adlink_se = {
+static struct plx_pci_card_info plx_pci_card_info_adlink_se =
+{
 	"Adlink PCI-7841/cPCI-7841 SE", 2,
 	PLX_PCI_CAN_CLOCK, PLX_PCI_OCR, PLX_PCI_CDR,
 	{0, 0x00, 0x00}, { {2, 0x00, 0x80}, {2, 0x80, 0x80} },
@@ -189,7 +194,8 @@ static struct plx_pci_card_info plx_pci_card_info_adlink_se = {
 	/* based on PLX9052 */
 };
 
-static struct plx_pci_card_info plx_pci_card_info_esd200 = {
+static struct plx_pci_card_info plx_pci_card_info_esd200 =
+{
 	"esd CAN-PCI/CPCI/PCI104/200", 2,
 	PLX_PCI_CAN_CLOCK, PLX_PCI_OCR, PLX_PCI_CDR,
 	{0, 0x00, 0x00}, { {2, 0x00, 0x80}, {2, 0x100, 0x80} },
@@ -197,7 +203,8 @@ static struct plx_pci_card_info plx_pci_card_info_esd200 = {
 	/* based on PLX9030/9050 */
 };
 
-static struct plx_pci_card_info plx_pci_card_info_esd266 = {
+static struct plx_pci_card_info plx_pci_card_info_esd266 =
+{
 	"esd CAN-PCI/PMC/266", 2,
 	PLX_PCI_CAN_CLOCK, PLX_PCI_OCR, PLX_PCI_CDR,
 	{0, 0x00, 0x00}, { {2, 0x00, 0x80}, {2, 0x100, 0x80} },
@@ -205,7 +212,8 @@ static struct plx_pci_card_info plx_pci_card_info_esd266 = {
 	/* based on PLX9056 */
 };
 
-static struct plx_pci_card_info plx_pci_card_info_esd2000 = {
+static struct plx_pci_card_info plx_pci_card_info_esd2000 =
+{
 	"esd CAN-PCIe/2000", 2,
 	PLX_PCI_CAN_CLOCK, PLX_PCI_OCR, PLX_PCI_CDR,
 	{0, 0x00, 0x00}, { {2, 0x00, 0x80}, {2, 0x100, 0x80} },
@@ -213,7 +221,8 @@ static struct plx_pci_card_info plx_pci_card_info_esd2000 = {
 	/* based on PEX8311 */
 };
 
-static struct plx_pci_card_info plx_pci_card_info_ixxat = {
+static struct plx_pci_card_info plx_pci_card_info_ixxat =
+{
 	"IXXAT PC-I 04/PCI", 2,
 	PLX_PCI_CAN_CLOCK, PLX_PCI_OCR, PLX_PCI_CDR,
 	{0, 0x00, 0x00}, { {2, 0x00, 0x80}, {2, 0x200, 0x80} },
@@ -221,7 +230,8 @@ static struct plx_pci_card_info plx_pci_card_info_ixxat = {
 	/* based on PLX9050 */
 };
 
-static struct plx_pci_card_info plx_pci_card_info_marathon_pci = {
+static struct plx_pci_card_info plx_pci_card_info_marathon_pci =
+{
 	"Marathon CAN-bus-PCI", 2,
 	PLX_PCI_CAN_CLOCK, PLX_PCI_OCR, PLX_PCI_CDR,
 	{0, 0x00, 0x00}, { {2, 0x00, 0x00}, {4, 0x00, 0x00} },
@@ -229,7 +239,8 @@ static struct plx_pci_card_info plx_pci_card_info_marathon_pci = {
 	/* based on PLX9052 */
 };
 
-static struct plx_pci_card_info plx_pci_card_info_marathon_pcie = {
+static struct plx_pci_card_info plx_pci_card_info_marathon_pcie =
+{
 	"Marathon CAN-bus-PCIe", 2,
 	PLX_PCI_CAN_CLOCK, PLX_PCI_OCR, PLX_PCI_CDR,
 	{0, 0x00, 0x00}, { {2, 0x00, 0x00}, {3, 0x80, 0x00} },
@@ -237,7 +248,8 @@ static struct plx_pci_card_info plx_pci_card_info_marathon_pcie = {
 	/* based on PEX8311 */
 };
 
-static struct plx_pci_card_info plx_pci_card_info_tews = {
+static struct plx_pci_card_info plx_pci_card_info_tews =
+{
 	"TEWS TECHNOLOGIES TPMC810", 2,
 	PLX_PCI_CAN_CLOCK, PLX_PCI_OCR, PLX_PCI_CDR,
 	{0, 0x00, 0x00}, { {2, 0x000, 0x80}, {2, 0x100, 0x80} },
@@ -245,7 +257,8 @@ static struct plx_pci_card_info plx_pci_card_info_tews = {
 	/* based on PLX9030 */
 };
 
-static struct plx_pci_card_info plx_pci_card_info_cti = {
+static struct plx_pci_card_info plx_pci_card_info_cti =
+{
 	"Connect Tech Inc. CANpro/104-Plus Opto (CRG001)", 2,
 	PLX_PCI_CAN_CLOCK, PLX_PCI_OCR, PLX_PCI_CDR,
 	{0, 0x00, 0x00}, { {2, 0x000, 0x80}, {2, 0x100, 0x80} },
@@ -253,7 +266,8 @@ static struct plx_pci_card_info plx_pci_card_info_cti = {
 	/* based on PLX9030 */
 };
 
-static struct plx_pci_card_info plx_pci_card_info_elcus = {
+static struct plx_pci_card_info plx_pci_card_info_elcus =
+{
 	"Eclus CAN-200-PCI", 2,
 	PLX_PCI_CAN_CLOCK, PLX_PCI_OCR, PLX_PCI_CDR,
 	{1, 0x00, 0x00}, { {2, 0x00, 0x80}, {3, 0x00, 0x80} },
@@ -261,119 +275,121 @@ static struct plx_pci_card_info plx_pci_card_info_elcus = {
 	/* based on PLX9030 */
 };
 
-static struct plx_pci_card_info plx_pci_card_info_moxa = {
+static struct plx_pci_card_info plx_pci_card_info_moxa =
+{
 	"MOXA", 2,
 	PLX_PCI_CAN_CLOCK, PLX_PCI_OCR, PLX_PCI_CDR,
 	{0, 0x00, 0x00}, { {0, 0x00, 0x80}, {1, 0x00, 0x80} },
 	&plx_pci_reset_common
-	 /* based on PLX9052 */
+	/* based on PLX9052 */
 };
 
-static const struct pci_device_id plx_pci_tbl[] = {
+static const struct pci_device_id plx_pci_tbl[] =
+{
 	{
 		/* Adlink PCI-7841/cPCI-7841 */
 		ADLINK_PCI_VENDOR_ID, ADLINK_PCI_DEVICE_ID,
 		PCI_ANY_ID, PCI_ANY_ID,
 		PCI_CLASS_NETWORK_OTHER << 8, ~0,
-		(kernel_ulong_t)&plx_pci_card_info_adlink
+		(kernel_ulong_t) &plx_pci_card_info_adlink
 	},
 	{
 		/* Adlink PCI-7841/cPCI-7841 SE */
 		ADLINK_PCI_VENDOR_ID, ADLINK_PCI_DEVICE_ID,
 		PCI_ANY_ID, PCI_ANY_ID,
 		PCI_CLASS_COMMUNICATION_OTHER << 8, ~0,
-		(kernel_ulong_t)&plx_pci_card_info_adlink_se
+		(kernel_ulong_t) &plx_pci_card_info_adlink_se
 	},
 	{
 		/* esd CAN-PCI/200 */
 		PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
 		PCI_VENDOR_ID_ESDGMBH, ESD_PCI_SUB_SYS_ID_PCI200,
 		0, 0,
-		(kernel_ulong_t)&plx_pci_card_info_esd200
+		(kernel_ulong_t) &plx_pci_card_info_esd200
 	},
 	{
 		/* esd CAN-CPCI/200 */
 		PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9030,
 		PCI_VENDOR_ID_ESDGMBH, ESD_PCI_SUB_SYS_ID_CPCI200,
 		0, 0,
-		(kernel_ulong_t)&plx_pci_card_info_esd200
+		(kernel_ulong_t) &plx_pci_card_info_esd200
 	},
 	{
 		/* esd CAN-PCI104/200 */
 		PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9030,
 		PCI_VENDOR_ID_ESDGMBH, ESD_PCI_SUB_SYS_ID_PCI104200,
 		0, 0,
-		(kernel_ulong_t)&plx_pci_card_info_esd200
+		(kernel_ulong_t) &plx_pci_card_info_esd200
 	},
 	{
 		/* esd CAN-PCI/266 */
 		PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9056,
 		PCI_VENDOR_ID_ESDGMBH, ESD_PCI_SUB_SYS_ID_PCI266,
 		0, 0,
-		(kernel_ulong_t)&plx_pci_card_info_esd266
+		(kernel_ulong_t) &plx_pci_card_info_esd266
 	},
 	{
 		/* esd CAN-PMC/266 */
 		PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9056,
 		PCI_VENDOR_ID_ESDGMBH, ESD_PCI_SUB_SYS_ID_PMC266,
 		0, 0,
-		(kernel_ulong_t)&plx_pci_card_info_esd266
+		(kernel_ulong_t) &plx_pci_card_info_esd266
 	},
 	{
 		/* esd CAN-PCIE/2000 */
 		PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9056,
 		PCI_VENDOR_ID_ESDGMBH, ESD_PCI_SUB_SYS_ID_PCIE2000,
 		0, 0,
-		(kernel_ulong_t)&plx_pci_card_info_esd2000
+		(kernel_ulong_t) &plx_pci_card_info_esd2000
 	},
 	{
 		/* IXXAT PC-I 04/PCI card */
 		IXXAT_PCI_VENDOR_ID, IXXAT_PCI_DEVICE_ID,
 		PCI_ANY_ID, IXXAT_PCI_SUB_SYS_ID,
 		0, 0,
-		(kernel_ulong_t)&plx_pci_card_info_ixxat
+		(kernel_ulong_t) &plx_pci_card_info_ixxat
 	},
 	{
 		/* Marathon CAN-bus-PCI card */
 		PCI_VENDOR_ID_PLX, MARATHON_PCI_DEVICE_ID,
 		PCI_ANY_ID, PCI_ANY_ID,
 		0, 0,
-		(kernel_ulong_t)&plx_pci_card_info_marathon_pci
+		(kernel_ulong_t) &plx_pci_card_info_marathon_pci
 	},
 	{
 		/* Marathon CAN-bus-PCIe card */
 		PCI_VENDOR_ID_PLX, MARATHON_PCIE_DEVICE_ID,
 		PCI_ANY_ID, PCI_ANY_ID,
 		0, 0,
-		(kernel_ulong_t)&plx_pci_card_info_marathon_pcie
+		(kernel_ulong_t) &plx_pci_card_info_marathon_pcie
 	},
 	{
 		/* TEWS TECHNOLOGIES TPMC810 card */
 		TEWS_PCI_VENDOR_ID, TEWS_PCI_DEVICE_ID_TMPC810,
 		PCI_ANY_ID, PCI_ANY_ID,
 		0, 0,
-		(kernel_ulong_t)&plx_pci_card_info_tews
+		(kernel_ulong_t) &plx_pci_card_info_tews
 	},
 	{
 		/* Connect Tech Inc. CANpro/104-Plus Opto (CRG001) card */
 		PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9030,
 		CTI_PCI_VENDOR_ID, CTI_PCI_DEVICE_ID_CRG001,
 		0, 0,
-		(kernel_ulong_t)&plx_pci_card_info_cti
+		(kernel_ulong_t) &plx_pci_card_info_cti
 	},
 	{
 		/* Elcus CAN-200-PCI */
 		CAN200PCI_VENDOR_ID, CAN200PCI_DEVICE_ID,
 		CAN200PCI_SUB_VENDOR_ID, CAN200PCI_SUB_DEVICE_ID,
 		0, 0,
-		(kernel_ulong_t)&plx_pci_card_info_elcus
+		(kernel_ulong_t) &plx_pci_card_info_elcus
 	},
 	{
 		/* moxa */
 		MOXA_PCI_VENDOR_ID, MOXA_PCI_DEVICE_ID,
 		PCI_ANY_ID, PCI_ANY_ID,
 		0, 0,
-		(kernel_ulong_t)&plx_pci_card_info_moxa
+		(kernel_ulong_t) &plx_pci_card_info_moxa
 	},
 	{ 0,}
 };
@@ -403,10 +419,12 @@ static inline int plx_pci_check_sja1000(const struct sja1000_priv *priv)
 	 * See states on p. 10 of the Datasheet.
 	 */
 	if ((priv->read_reg(priv, REG_CR) & REG_CR_BASICCAN_INITIAL_MASK) ==
-	    REG_CR_BASICCAN_INITIAL &&
-	    (priv->read_reg(priv, SJA1000_SR) == REG_SR_BASICCAN_INITIAL) &&
-	    (priv->read_reg(priv, SJA1000_IR) == REG_IR_BASICCAN_INITIAL))
+		REG_CR_BASICCAN_INITIAL &&
+		(priv->read_reg(priv, SJA1000_SR) == REG_SR_BASICCAN_INITIAL) &&
+		(priv->read_reg(priv, SJA1000_IR) == REG_IR_BASICCAN_INITIAL))
+	{
 		flag = 1;
+	}
 
 	/* Bring the SJA1000 into the PeliCAN mode*/
 	priv->write_reg(priv, SJA1000_CDR, CDR_PELICAN);
@@ -416,9 +434,11 @@ static inline int plx_pci_check_sja1000(const struct sja1000_priv *priv)
 	 * See states on p. 23 of the Datasheet.
 	 */
 	if (priv->read_reg(priv, SJA1000_MOD) == REG_MOD_PELICAN_INITIAL &&
-	    priv->read_reg(priv, SJA1000_SR) == REG_SR_PELICAN_INITIAL &&
-	    priv->read_reg(priv, SJA1000_IR) == REG_IR_PELICAN_INITIAL)
+		priv->read_reg(priv, SJA1000_SR) == REG_SR_PELICAN_INITIAL &&
+		priv->read_reg(priv, SJA1000_IR) == REG_IR_PELICAN_INITIAL)
+	{
 		return flag;
+	}
 
 	return 0;
 }
@@ -482,12 +502,17 @@ static void plx_pci_reset_marathon_pci(struct pci_dev *pdev)
 
 	plx_pci_reset_common(pdev);
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		reset_addr = pci_iomap(pdev, reset_bar[i], 0);
-		if (!reset_addr) {
+
+		if (!reset_addr)
+		{
 			dev_err(&pdev->dev, "Failed to remap reset "
-				"space %d (BAR%d)\n", i, reset_bar[i]);
-		} else {
+					"space %d (BAR%d)\n", i, reset_bar[i]);
+		}
+		else
+		{
 			/* reset the SJA1000 chip */
 			iowrite8(0x1, reset_addr);
 			udelay(100);
@@ -505,18 +530,23 @@ static void plx_pci_reset_marathon_pcie(struct pci_dev *pdev)
 
 	plx9056_pci_reset_common(pdev);
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		struct plx_pci_channel_map *chan_map =
-			&plx_pci_card_info_marathon_pcie.chan_map_tbl[i];
+				&plx_pci_card_info_marathon_pcie.chan_map_tbl[i];
 		addr = pci_iomap(pdev, chan_map->bar, chan_map->size);
-		if (!addr) {
+
+		if (!addr)
+		{
 			dev_err(&pdev->dev, "Failed to remap reset "
-				"space %d (BAR%d)\n", i, chan_map->bar);
-		} else {
+					"space %d (BAR%d)\n", i, chan_map->bar);
+		}
+		else
+		{
 			/* reset the SJA1000 chip */
-			#define MARATHON_PCIE_RESET_OFFSET 32
+#define MARATHON_PCIE_RESET_OFFSET 32
 			reset_addr = addr + chan_map->offset +
-			             MARATHON_PCIE_RESET_OFFSET;
+						 MARATHON_PCIE_RESET_OFFSET;
 			iowrite8(0x1, reset_addr);
 			udelay(100);
 			pci_iounmap(pdev, addr);
@@ -531,16 +561,24 @@ static void plx_pci_del_card(struct pci_dev *pdev)
 	struct sja1000_priv *priv;
 	int i = 0;
 
-	for (i = 0; i < PLX_PCI_MAX_CHAN; i++) {
+	for (i = 0; i < PLX_PCI_MAX_CHAN; i++)
+	{
 		dev = card->net_dev[i];
+
 		if (!dev)
+		{
 			continue;
+		}
 
 		dev_info(&pdev->dev, "Removing %s\n", dev->name);
 		unregister_sja1000dev(dev);
 		priv = netdev_priv(dev);
+
 		if (priv->reg_base)
+		{
 			pci_iounmap(pdev, priv->reg_base);
+		}
+
 		free_sja1000dev(dev);
 	}
 
@@ -551,13 +589,19 @@ static void plx_pci_del_card(struct pci_dev *pdev)
 	 * interrupts
 	 */
 	if (pdev->device != PCI_DEVICE_ID_PLX_9056 &&
-	    pdev->device != MARATHON_PCIE_DEVICE_ID)
+		pdev->device != MARATHON_PCIE_DEVICE_ID)
+	{
 		iowrite32(0x0, card->conf_addr + PLX_INTCSR);
+	}
 	else
+	{
 		iowrite32(0x0, card->conf_addr + PLX9056_INTCSR);
+	}
 
 	if (card->conf_addr)
+	{
 		pci_iounmap(pdev, card->conf_addr);
+	}
 
 	kfree(card);
 
@@ -569,7 +613,7 @@ static void plx_pci_del_card(struct pci_dev *pdev)
  * available CAN channel to SJA1000 Socket-CAN subsystem.
  */
 static int plx_pci_add_card(struct pci_dev *pdev,
-			    const struct pci_device_id *ent)
+							const struct pci_device_id *ent)
 {
 	struct sja1000_priv *priv;
 	struct net_device *dev;
@@ -581,17 +625,20 @@ static int plx_pci_add_card(struct pci_dev *pdev,
 
 	ci = (struct plx_pci_card_info *)ent->driver_data;
 
-	if (pci_enable_device(pdev) < 0) {
+	if (pci_enable_device(pdev) < 0)
+	{
 		dev_err(&pdev->dev, "Failed to enable PCI device\n");
 		return -ENODEV;
 	}
 
 	dev_info(&pdev->dev, "Detected \"%s\" card at slot #%i\n",
-		 ci->name, PCI_SLOT(pdev->devfn));
+			 ci->name, PCI_SLOT(pdev->devfn));
 
 	/* Allocate card structures to hold addresses, ... */
 	card = kzalloc(sizeof(*card), GFP_KERNEL);
-	if (!card) {
+
+	if (!card)
+	{
 		pci_disable_device(pdev);
 		return -ENOMEM;
 	}
@@ -602,23 +649,29 @@ static int plx_pci_add_card(struct pci_dev *pdev,
 
 	/* Remap PLX90xx configuration space */
 	addr = pci_iomap(pdev, ci->conf_map.bar, ci->conf_map.size);
-	if (!addr) {
+
+	if (!addr)
+	{
 		err = -ENOMEM;
 		dev_err(&pdev->dev, "Failed to remap configuration space "
-			"(BAR%d)\n", ci->conf_map.bar);
+				"(BAR%d)\n", ci->conf_map.bar);
 		goto failure_cleanup;
 	}
+
 	card->conf_addr = addr + ci->conf_map.offset;
 
 	ci->reset_func(pdev);
 	card->reset_func = ci->reset_func;
 
 	/* Detect available channels */
-	for (i = 0; i < ci->channel_count; i++) {
+	for (i = 0; i < ci->channel_count; i++)
+	{
 		struct plx_pci_channel_map *cm = &ci->chan_map_tbl[i];
 
 		dev = alloc_sja1000dev(0);
-		if (!dev) {
+
+		if (!dev)
+		{
 			err = -ENOMEM;
 			goto failure_cleanup;
 		}
@@ -635,7 +688,9 @@ static int plx_pci_add_card(struct pci_dev *pdev,
 		 * This is device-dependent mapping
 		 */
 		addr = pci_iomap(pdev, cm->bar, cm->size);
-		if (!addr) {
+
+		if (!addr)
+		{
 			err = -ENOMEM;
 			dev_err(&pdev->dev, "Failed to remap BAR%d\n", cm->bar);
 			goto failure_cleanup;
@@ -646,7 +701,8 @@ static int plx_pci_add_card(struct pci_dev *pdev,
 		priv->write_reg = plx_pci_write_reg;
 
 		/* Check if channel is present */
-		if (plx_pci_check_sja1000(priv)) {
+		if (plx_pci_check_sja1000(priv))
+		{
 			priv->can.clock.freq = ci->can_clock;
 			priv->ocr = ci->ocr;
 			priv->cdr = ci->cdr;
@@ -656,26 +712,31 @@ static int plx_pci_add_card(struct pci_dev *pdev,
 
 			/* Register SJA1000 device */
 			err = register_sja1000dev(dev);
-			if (err) {
+
+			if (err)
+			{
 				dev_err(&pdev->dev, "Registering device failed "
-					"(err=%d)\n", err);
+						"(err=%d)\n", err);
 				goto failure_cleanup;
 			}
 
 			card->channels++;
 
 			dev_info(&pdev->dev, "Channel #%d at 0x%p, irq %d "
-				 "registered as %s\n", i + 1, priv->reg_base,
-				 dev->irq, dev->name);
-		} else {
+					 "registered as %s\n", i + 1, priv->reg_base,
+					 dev->irq, dev->name);
+		}
+		else
+		{
 			dev_err(&pdev->dev, "Channel #%d not detected\n",
-				i + 1);
+					i + 1);
 			free_sja1000dev(dev);
 			card->net_dev[i] = NULL;
 		}
 	}
 
-	if (!card->channels) {
+	if (!card->channels)
+	{
 		err = -ENODEV;
 		goto failure_cleanup;
 	}
@@ -685,17 +746,27 @@ static int plx_pci_add_card(struct pci_dev *pdev,
 	 * Local_2 interrupts from the SJA1000 chips
 	 */
 	if (pdev->device != PCI_DEVICE_ID_PLX_9056 &&
-	    pdev->device != MARATHON_PCIE_DEVICE_ID) {
+		pdev->device != MARATHON_PCIE_DEVICE_ID)
+	{
 		val = ioread32(card->conf_addr + PLX_INTCSR);
+
 		if (pdev->subsystem_vendor == PCI_VENDOR_ID_ESDGMBH)
+		{
 			val |= PLX_LINT1_EN | PLX_PCI_INT_EN;
+		}
 		else
+		{
 			val |= PLX_LINT1_EN | PLX_LINT2_EN | PLX_PCI_INT_EN;
+		}
+
 		iowrite32(val, card->conf_addr + PLX_INTCSR);
-	} else {
-		iowrite32(PLX9056_LINTI | PLX9056_PCI_INT_EN,
-			  card->conf_addr + PLX9056_INTCSR);
 	}
+	else
+	{
+		iowrite32(PLX9056_LINTI | PLX9056_PCI_INT_EN,
+				  card->conf_addr + PLX9056_INTCSR);
+	}
+
 	return 0;
 
 failure_cleanup:
@@ -706,7 +777,8 @@ failure_cleanup:
 	return err;
 }
 
-static struct pci_driver plx_pci_driver = {
+static struct pci_driver plx_pci_driver =
+{
 	.name = DRV_NAME,
 	.id_table = plx_pci_tbl,
 	.probe = plx_pci_add_card,

@@ -353,16 +353,19 @@
 #define MMUEXT_UNMARK_SUPER     20
 
 #ifndef __ASSEMBLY__
-struct mmuext_op {
+struct mmuext_op
+{
 	unsigned int cmd;
-	union {
+	union
+	{
 		/* [UN]PIN_TABLE, NEW_BASEPTR, NEW_USER_BASEPTR
 		 * CLEAR_PAGE, COPY_PAGE, [UN]MARK_SUPER */
 		xen_pfn_t mfn;
 		/* INVLPG_LOCAL, INVLPG_ALL, SET_LDT */
 		unsigned long linear_addr;
 	} arg1;
-	union {
+	union
+	{
 		/* SET_LDT */
 		unsigned int nr_ents;
 		/* TLB_FLUSH_MULTI, INVLPG_MULTI */
@@ -472,9 +475,10 @@ typedef uint16_t domid_t;
  * Send an array of these to HYPERVISOR_mmu_update().
  * NB. The fields are natural pointer/address size for this architecture.
  */
-struct mmu_update {
-    uint64_t ptr;       /* Machine address of PTE. */
-    uint64_t val;       /* New contents of PTE.    */
+struct mmu_update
+{
+	uint64_t ptr;       /* Machine address of PTE. */
+	uint64_t val;       /* New contents of PTE.    */
 };
 DEFINE_GUEST_HANDLE_STRUCT(mmu_update);
 
@@ -484,14 +488,16 @@ DEFINE_GUEST_HANDLE_STRUCT(mmu_update);
  * architecture. In cases where xen_ulong_t is larger than this then
  * any unused bits in the upper portion must be zero.
  */
-struct multicall_entry {
-    xen_ulong_t op;
-    xen_long_t result;
-    xen_ulong_t args[6];
+struct multicall_entry
+{
+	xen_ulong_t op;
+	xen_long_t result;
+	xen_ulong_t args[6];
 };
 DEFINE_GUEST_HANDLE_STRUCT(multicall_entry);
 
-struct vcpu_time_info {
+struct vcpu_time_info
+{
 	/*
 	 * Updates to the following values are preceded and followed
 	 * by an increment of 'version'. The guest can therefore
@@ -517,7 +523,8 @@ struct vcpu_time_info {
 	int8_t   pad1[3];
 }; /* 32 bytes */
 
-struct vcpu_info {
+struct vcpu_info
+{
 	/*
 	 * 'evtchn_upcall_pending' is written non-zero by Xen to indicate
 	 * a pending notification for a particular VCPU. It is then cleared
@@ -554,7 +561,8 @@ struct vcpu_info {
  * Xen/kernel shared data -- pointer provided in start_info.
  * NB. We expect that this struct is smaller than a page.
  */
-struct shared_info {
+struct shared_info
+{
 	struct vcpu_info vcpu_info[MAX_VIRT_CPUS];
 
 	/*
@@ -630,7 +638,8 @@ struct shared_info {
  */
 
 #define MAX_GUEST_CMDLINE 1024
-struct start_info {
+struct start_info
+{
 	/* THE FOLLOWING ARE FILLED IN BOTH ON INITIAL BOOT AND ON RESUME.    */
 	char magic[32];             /* "xen-<version>-<platform>".            */
 	unsigned long nr_pages;     /* Total pages allocated to this domain.  */
@@ -638,12 +647,15 @@ struct start_info {
 	uint32_t flags;             /* SIF_xxx flags.                         */
 	xen_pfn_t store_mfn;        /* MACHINE page number of shared page.    */
 	uint32_t store_evtchn;      /* Event channel for store communication. */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			xen_pfn_t mfn;      /* MACHINE page number of console page.   */
 			uint32_t  evtchn;   /* Event channel for console page.        */
 		} domU;
-		struct {
+		struct
+		{
 			uint32_t info_off;  /* Offset of console_info struct.         */
 			uint32_t info_size; /* Size of console_info struct from start.*/
 		} dom0;
@@ -666,7 +678,7 @@ struct start_info {
 #define SIF_MULTIBOOT_MOD   (1<<2)  /* Is mod_start a multiboot module? */
 #define SIF_MOD_START_PFN   (1<<3)  /* Is mod_start a PFN? */
 #define SIF_VIRT_P2M_4TOOLS (1<<4)  /* Do Xen tools understand a virt. mapped */
-				    /* P->M making the 3 level tree obsolete? */
+/* P->M making the 3 level tree obsolete? */
 #define SIF_PM_MASK       (0xFF<<8) /* reserve 1 byte for xen-pm options */
 
 /*
@@ -683,7 +695,8 @@ struct start_info {
  * file, and let the PV guest easily rebase the addresses to virtual addresses
  * and at the same time count the number of modules.
  */
-struct xen_multiboot_mod_list {
+struct xen_multiboot_mod_list
+{
 	/* Address of first byte of the module */
 	uint32_t mod_start;
 	/* Address of last byte of the module (inclusive) */
@@ -699,14 +712,17 @@ struct xen_multiboot_mod_list {
  * This structure includes a variety of information required to
  * have a working VGA/VESA console.
  */
-struct dom0_vga_console_info {
+struct dom0_vga_console_info
+{
 	uint8_t video_type;
 #define XEN_VGATYPE_TEXT_MODE_3 0x03
 #define XEN_VGATYPE_VESA_LFB    0x23
 #define XEN_VGATYPE_EFI_LFB     0x70
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			/* Font height, in pixels. */
 			uint16_t font_height;
 			/* Cursor location (column, row). */
@@ -715,7 +731,8 @@ struct dom0_vga_console_info {
 			uint16_t rows, columns;
 		} text_mode_3;
 
-		struct {
+		struct
+		{
 			/* Width and height, in pixels. */
 			uint16_t width, height;
 			/* Bytes per scan line. */
@@ -749,15 +766,19 @@ typedef uint8_t xen_domain_handle_t[16];
 
 #define TMEM_SPEC_VERSION 1
 
-struct tmem_op {
+struct tmem_op
+{
 	uint32_t cmd;
 	int32_t pool_id;
-	union {
-		struct {  /* for cmd == TMEM_NEW_POOL */
+	union
+	{
+		struct    /* for cmd == TMEM_NEW_POOL */
+		{
 			uint64_t uuid[2];
 			uint32_t flags;
 		} new;
-		struct {
+		struct
+		{
 			uint64_t oid[3];
 			uint32_t index;
 			uint32_t tmem_offset;

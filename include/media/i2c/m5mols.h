@@ -24,7 +24,8 @@
  *		to be called after enabling and before disabling
  *		the sensor's supply regulators
  */
-struct m5mols_platform_data {
+struct m5mols_platform_data
+{
 	int gpio_reset;
 	u8 reset_polarity;
 	int (*set_power)(struct device *dev, int on);

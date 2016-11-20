@@ -26,9 +26,13 @@ static void _rtl92e_gpio_write_bit(struct net_device *dev, int no, bool val)
 	u8 reg = rtl92e_readb(dev, EPROM_CMD);
 
 	if (val)
+	{
 		reg |= 1 << no;
+	}
 	else
+	{
 		reg &= ~(1 << no);
+	}
 
 	rtl92e_writeb(dev, EPROM_CMD, reg);
 	udelay(EPROM_DELAY);
@@ -55,15 +59,17 @@ static u16 _rtl92e_eeprom_xfer(struct net_device *dev, u16 data, int tx_len)
 	_rtl92e_gpio_write_bit(dev, EPROM_CS_BIT, 1);
 	_rtl92e_eeprom_ck_cycle(dev);
 
-	while (tx_len--) {
+	while (tx_len--)
+	{
 		_rtl92e_gpio_write_bit(dev, EPROM_W_BIT,
-				       (data >> tx_len) & 0x1);
+							   (data >> tx_len) & 0x1);
 		_rtl92e_eeprom_ck_cycle(dev);
 	}
 
 	_rtl92e_gpio_write_bit(dev, EPROM_W_BIT, 0);
 
-	while (rx_len--) {
+	while (rx_len--)
+	{
 		_rtl92e_eeprom_ck_cycle(dev);
 		ret |= _rtl92e_gpio_get_bit(dev, EPROM_R_BIT) << rx_len;
 	}
@@ -80,16 +86,20 @@ u32 rtl92e_eeprom_read(struct net_device *dev, u32 addr)
 	u32 ret = 0;
 
 	rtl92e_writeb(dev, EPROM_CMD,
-		      (EPROM_CMD_PROGRAM << EPROM_CMD_OPERATING_MODE_SHIFT));
+				  (EPROM_CMD_PROGRAM << EPROM_CMD_OPERATING_MODE_SHIFT));
 	udelay(EPROM_DELAY);
 
 	/* EEPROM is configured as x16 */
 	if (priv->epromtype == EEPROM_93C56)
+	{
 		ret = _rtl92e_eeprom_xfer(dev, (addr & 0xFF) | (0x6 << 8), 11);
+	}
 	else
+	{
 		ret = _rtl92e_eeprom_xfer(dev, (addr & 0x3F) | (0x6 << 6), 9);
+	}
 
 	rtl92e_writeb(dev, EPROM_CMD,
-		      (EPROM_CMD_NORMAL<<EPROM_CMD_OPERATING_MODE_SHIFT));
+				  (EPROM_CMD_NORMAL << EPROM_CMD_OPERATING_MODE_SHIFT));
 	return ret;
 }

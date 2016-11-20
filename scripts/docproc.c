@@ -54,16 +54,16 @@ int exitstatus = 0;
 typedef void DFL(char *);
 DFL *defaultline;
 
-typedef void FILEONLY(char * file);
+typedef void FILEONLY(char *file);
 FILEONLY *internalfunctions;
 FILEONLY *externalfunctions;
 FILEONLY *symbolsonly;
 FILEONLY *findall;
 
-typedef void FILELINE(char * file, char * line);
-FILELINE * singlefunctions;
-FILELINE * entity_system;
-FILELINE * docsection;
+typedef void FILELINE(char *file, char *line);
+FILELINE *singlefunctions;
+FILELINE *entity_system;
+FILELINE *docsection;
 
 #define MAXLINESZ     2048
 #define MAXFILES      250
@@ -77,7 +77,8 @@ FILELINE * docsection;
 #define NODOCSECTIONS "-no-doc-sections"
 #define SHOWNOTFOUND  "-show-not-found"
 
-enum file_format {
+enum file_format
+{
 	FORMAT_AUTO,
 	FORMAT_DOCBOOK,
 	FORMAT_RST,
@@ -96,11 +97,18 @@ static void consume_symbol(const char *sym)
 {
 	int i;
 
-	for (i = 0; i < all_list_len; i++) {
+	for (i = 0; i < all_list_len; i++)
+	{
 		if (!all_list[i])
+		{
 			continue;
+		}
+
 		if (strcmp(sym, all_list[i]))
+		{
 			continue;
+		}
+
 		all_list[i] = NULL;
 		break;
 	}
@@ -126,10 +134,13 @@ static void exec_kernel_doc(char **svec)
 	char real_filename[PATH_MAX + 1];
 	/* Make sure output generated so far are flushed */
 	fflush(stdout);
-	switch (pid=fork()) {
+
+	switch (pid = fork())
+	{
 		case -1:
 			perror("fork");
 			exit(1);
+
 		case  0:
 			memset(real_filename, 0, sizeof(real_filename));
 			strncat(real_filename, kernsrctree, PATH_MAX);
@@ -139,13 +150,19 @@ static void exec_kernel_doc(char **svec)
 			fprintf(stderr, "exec ");
 			perror(real_filename);
 			exit(1);
+
 		default:
-			waitpid(pid, &ret ,0);
+			waitpid(pid, &ret , 0);
 	}
+
 	if (WIFEXITED(ret))
+	{
 		exitstatus |= WEXITSTATUS(ret);
+	}
 	else
+	{
 		exitstatus = 0xff;
+	}
 }
 
 /* Types used to create list of all exported symbols in a number of files */
@@ -164,27 +181,31 @@ struct symfile
 struct symfile symfilelist[MAXFILES];
 int symfilecnt = 0;
 
-static void add_new_symbol(struct symfile *sym, char * symname)
+static void add_new_symbol(struct symfile *sym, char *symname)
 {
 	sym->symbollist =
-	  realloc(sym->symbollist, (sym->symbolcnt + 1) * sizeof(char *));
+		realloc(sym->symbollist, (sym->symbolcnt + 1) * sizeof(char *));
 	sym->symbollist[sym->symbolcnt++].name = strdup(symname);
 }
 
 /* Add a filename to the list */
-static struct symfile * add_new_file(char * filename)
+static struct symfile *add_new_file(char *filename)
 {
 	symfilelist[symfilecnt++].filename = strdup(filename);
 	return &symfilelist[symfilecnt - 1];
 }
 
 /* Check if file already are present in the list */
-static struct symfile * filename_exist(char * filename)
+static struct symfile *filename_exist(char *filename)
 {
 	int i;
-	for (i=0; i < symfilecnt; i++)
+
+	for (i = 0; i < symfilecnt; i++)
 		if (strcmp(symfilelist[i].filename, filename) == 0)
+		{
 			return &symfilelist[i];
+		}
+
 	return NULL;
 }
 
@@ -192,25 +213,27 @@ static struct symfile * filename_exist(char * filename)
  * List all files referenced within the template file.
  * Files are separated by tabs.
  */
-static void adddep(char * file)		   { printf("\t%s", file); }
-static void adddep2(char * file, char * line)     { line = line; adddep(file); }
-static void noaction(char * line)		   { line = line; }
-static void noaction2(char * file, char * line)   { file = file; line = line; }
+static void adddep(char *file)		   { printf("\t%s", file); }
+static void adddep2(char *file, char *line)     { line = line; adddep(file); }
+static void noaction(char *line)		   { line = line; }
+static void noaction2(char *file, char *line)   { file = file; line = line; }
 
 /* Echo the line without further action */
-static void printline(char * line)               { printf("%s", line); }
+static void printline(char *line)               { printf("%s", line); }
 
 /*
  * Find all symbols in filename that are exported with EXPORT_SYMBOL &
  * EXPORT_SYMBOL_GPL (& EXPORT_SYMBOL_GPL_FUTURE implicitly).
  * All symbols located are stored in symfilelist.
  */
-static void find_export_symbols(char * filename)
+static void find_export_symbols(char *filename)
 {
-	FILE * fp;
+	FILE *fp;
 	struct symfile *sym;
 	char line[MAXLINESZ];
-	if (filename_exist(filename) == NULL) {
+
+	if (filename_exist(filename) == NULL)
+	{
 		char real_filename[PATH_MAX + 1];
 		memset(real_filename, 0, sizeof(real_filename));
 		strncat(real_filename, srctree, PATH_MAX);
@@ -219,35 +242,60 @@ static void find_export_symbols(char * filename)
 				PATH_MAX - strlen(real_filename));
 		sym = add_new_file(filename);
 		fp = fopen(real_filename, "r");
-		if (fp == NULL)	{
+
+		if (fp == NULL)
+		{
 			fprintf(stderr, "docproc: ");
 			perror(real_filename);
 			exit(1);
 		}
-		while (fgets(line, MAXLINESZ, fp)) {
+
+		while (fgets(line, MAXLINESZ, fp))
+		{
 			char *p;
 			char *e;
+
 			if (((p = strstr(line, "EXPORT_SYMBOL_GPL")) != NULL) ||
-			    ((p = strstr(line, "EXPORT_SYMBOL")) != NULL)) {
+				((p = strstr(line, "EXPORT_SYMBOL")) != NULL))
+			{
 				/* Skip EXPORT_SYMBOL{_GPL} */
 				while (isalnum(*p) || *p == '_')
+				{
 					p++;
+				}
+
 				/* Remove parentheses & additional whitespace */
 				while (isspace(*p))
+				{
 					p++;
+				}
+
 				if (*p != '(')
-					continue; /* Syntax error? */
+				{
+					continue;    /* Syntax error? */
+				}
 				else
+				{
 					p++;
+				}
+
 				while (isspace(*p))
+				{
 					p++;
+				}
+
 				e = p;
+
 				while (isalnum(*e) || *e == '_')
+				{
 					e++;
+				}
+
 				*e = '\0';
 				add_new_symbol(sym, p);
 			}
 		}
+
 		fclose(fp);
 	}
 }
@@ -261,50 +309,67 @@ static void find_export_symbols(char * filename)
  * intfunc uses -nofunction
  * extfunc uses -function
  */
-static void docfunctions(char * filename, char * type)
+static void docfunctions(char *filename, char *type)
 {
-	int i,j;
+	int i, j;
 	int symcnt = 0;
 	int idx = 0;
 	char **vec;
 
-	for (i=0; i <= symfilecnt; i++)
+	for (i = 0; i <= symfilecnt; i++)
+	{
 		symcnt += symfilelist[i].symbolcnt;
+	}
+
 	vec = malloc((2 + 2 * symcnt + 3) * sizeof(char *));
-	if (vec == NULL) {
+
+	if (vec == NULL)
+	{
 		perror("docproc: ");
 		exit(1);
 	}
+
 	vec[idx++] = KERNELDOC;
 	vec[idx++] = KERNELDOC_FORMAT;
 	vec[idx++] = NODOCSECTIONS;
-	for (i=0; i < symfilecnt; i++) {
-		struct symfile * sym = &symfilelist[i];
-		for (j=0; j < sym->symbolcnt; j++) {
+
+	for (i = 0; i < symfilecnt; i++)
+	{
+		struct symfile *sym = &symfilelist[i];
+
+		for (j = 0; j < sym->symbolcnt; j++)
+		{
 			vec[idx++]     = type;
 			consume_symbol(sym->symbollist[j].name);
 			vec[idx++] = sym->symbollist[j].name;
 		}
 	}
+
 	vec[idx++]     = filename;
 	vec[idx] = NULL;
+
 	if (file_format == FORMAT_RST)
+	{
 		printf(".. %s\n", filename);
+	}
 	else
+	{
 		printf("<!-- %s -->\n", filename);
+	}
+
 	exec_kernel_doc(vec);
 	fflush(stdout);
 	free(vec);
 }
-static void intfunc(char * filename) {	docfunctions(filename, NOFUNCTION); }
-static void extfunc(char * filename) { docfunctions(filename, FUNCTION);   }
+static void intfunc(char *filename) {	docfunctions(filename, NOFUNCTION); }
+static void extfunc(char *filename) { docfunctions(filename, FUNCTION);   }
 
 /*
  * Document specific function(s) in a file.
  * Call kernel-doc with the following parameters:
  * kernel-doc -docbook -function function1 [-function function2]
  */
-static void singfunc(char * filename, char * line)
+static void singfunc(char *filename, char *line)
 {
 	char *vec[200]; /* Enough for specific functions */
 	int i, idx = 0;
@@ -314,23 +379,33 @@ static void singfunc(char * filename, char * line)
 	vec[idx++] = SHOWNOTFOUND;
 
 	/* Split line up in individual parameters preceded by FUNCTION */
-	for (i=0; line[i]; i++) {
-		if (isspace(line[i])) {
+	for (i = 0; line[i]; i++)
+	{
+		if (isspace(line[i]))
+		{
 			line[i] = '\0';
 			startofsym = 1;
 			continue;
 		}
-		if (startofsym) {
+
+		if (startofsym)
+		{
 			startofsym = 0;
 			vec[idx++] = FUNCTION;
 			vec[idx++] = &line[i];
 		}
 	}
-	for (i = 0; i < idx; i++) {
+
+	for (i = 0; i < idx; i++)
+	{
 		if (strcmp(vec[i], FUNCTION))
+		{
 			continue;
+		}
+
 		consume_symbol(vec[i + 1]);
 	}
+
 	vec[idx++] = filename;
 	vec[idx] = NULL;
 	exec_kernel_doc(vec);
@@ -349,12 +424,16 @@ static void docsect(char *filename, char *line)
 
 	for (s = line; *s; s++)
 		if (*s == '\n')
+		{
 			*s = '\0';
+		}
 
-	if (asprintf(&s, "DOC: %s", line) < 0) {
+	if (asprintf(&s, "DOC: %s", line) < 0)
+	{
 		perror("asprintf");
 		exit(1);
 	}
+
 	consume_symbol(s);
 	free(s);
 
@@ -383,15 +462,18 @@ static void find_all_symbols(char *filename)
 	vec[2] = filename;
 	vec[3] = NULL;
 
-	if (pipe(pipefd)) {
+	if (pipe(pipefd))
+	{
 		perror("pipe");
 		exit(1);
 	}
 
-	switch (pid=fork()) {
+	switch (pid = fork())
+	{
 		case -1:
 			perror("fork");
 			exit(1);
+
 		case  0:
 			close(pipefd[0]);
 			dup2(pipefd[1], 1);
@@ -403,42 +485,62 @@ static void find_all_symbols(char *filename)
 			fprintf(stderr, "exec ");
 			perror(real_filename);
 			exit(1);
+
 		default:
 			close(pipefd[1]);
 			data = malloc(4096);
-			do {
+
+			do
+			{
 				while ((ret = read(pipefd[0],
-						   data + data_len,
-						   4096)) > 0) {
+								   data + data_len,
+								   4096)) > 0)
+				{
 					data_len += ret;
 					data = realloc(data, data_len + 4096);
 				}
-			} while (ret == -EAGAIN);
-			if (ret != 0) {
+			}
+			while (ret == -EAGAIN);
+
+			if (ret != 0)
+			{
 				perror("read");
 				exit(1);
 			}
-			waitpid(pid, &ret ,0);
+
+			waitpid(pid, &ret , 0);
 	}
+
 	if (WIFEXITED(ret))
+	{
 		exitstatus |= WEXITSTATUS(ret);
+	}
 	else
+	{
 		exitstatus = 0xff;
+	}
 
 	count = 0;
+
 	/* poor man's strtok, but with counting */
-	for (i = 0; i < data_len; i++) {
-		if (data[i] == '\n') {
+	for (i = 0; i < data_len; i++)
+	{
+		if (data[i] == '\n')
+		{
 			count++;
 			data[i] = '\0';
 		}
 	}
+
 	start = all_list_len;
 	all_list_len += count;
 	all_list = realloc(all_list, sizeof(char *) * all_list_len);
 	str = data;
-	for (i = 0; i < data_len && start != all_list_len; i++) {
-		if (data[i] == '\0') {
+
+	for (i = 0; i < data_len && start != all_list_len; i++)
+	{
+		if (data[i] == '\0')
+		{
 			all_list[start] = str;
 			str = data + i + 1;
 			start++;
@@ -453,10 +555,14 @@ static void find_all_symbols(char *filename)
 static char *chomp(char *s)
 {
 	while (*s && !isspace(*s))
+	{
 		s++;
+	}
 
 	if (*s)
+	{
 		*s++ = '\0';
+	}
 
 	return s;
 }
@@ -465,9 +571,13 @@ static char *chomp(char *s)
 static char *is_directive(char *line)
 {
 	if (file_format == FORMAT_DOCBOOK && line[0] == '!')
+	{
 		return line + 1;
+	}
 	else if (file_format == FORMAT_RST && !strncmp(line, ".. !", 4))
+	{
 		return line + 4;
+	}
 
 	return NULL;
 }
@@ -486,51 +596,75 @@ static void parse_file(FILE *infile)
 {
 	char line[MAXLINESZ];
 	char *p, *s;
-	while (fgets(line, MAXLINESZ, infile)) {
+
+	while (fgets(line, MAXLINESZ, infile))
+	{
 		p = is_directive(line);
-		if (!p) {
+
+		if (!p)
+		{
 			defaultline(line);
 			continue;
 		}
 
-		switch (*p++) {
-		case 'E':
-			chomp(p);
-			externalfunctions(p);
-			break;
-		case 'I':
-			chomp(p);
-			internalfunctions(p);
-			break;
-		case 'D':
-			chomp(p);
-			symbolsonly(p);
-			break;
-		case 'F':
-			/* filename */
-			s = chomp(p);
-			/* function names */
-			while (isspace(*s))
-				s++;
-			singlefunctions(p, s);
-			break;
-		case 'P':
-			/* filename */
-			s = chomp(p);
-			/* DOC: section name */
-			while (isspace(*s))
-				s++;
-			docsection(p, s);
-			break;
-		case 'C':
-			chomp(p);
-			if (findall)
-				findall(p);
-			break;
-		default:
-			defaultline(line);
+		switch (*p++)
+		{
+			case 'E':
+				chomp(p);
+				externalfunctions(p);
+				break;
+
+			case 'I':
+				chomp(p);
+				internalfunctions(p);
+				break;
+
+			case 'D':
+				chomp(p);
+				symbolsonly(p);
+				break;
+
+			case 'F':
+				/* filename */
+				s = chomp(p);
+
+				/* function names */
+				while (isspace(*s))
+				{
+					s++;
+				}
+
+				singlefunctions(p, s);
+				break;
+
+			case 'P':
+				/* filename */
+				s = chomp(p);
+
+				/* DOC: section name */
+				while (isspace(*s))
+				{
+					s++;
+				}
+
+				docsection(p, s);
+				break;
+
+			case 'C':
+				chomp(p);
+
+				if (findall)
+				{
+					findall(p);
+				}
+
+				break;
+
+			default:
+				defaultline(line);
 		}
 	}
+
 	fflush(stdout);
 }
 
@@ -545,7 +679,8 @@ static int is_rst(const char *file)
 	return dot && !strcmp(dot + 1, "rst");
 }
 
-enum opts {
+enum opts
+{
 	OPT_DOCBOOK,
 	OPT_RST,
 	OPT_HELP,
@@ -554,19 +689,28 @@ enum opts {
 int main(int argc, char *argv[])
 {
 	const char *subcommand, *filename;
-	FILE * infile;
+	FILE *infile;
 	int i;
 
 	srctree = getenv("SRCTREE");
-	if (!srctree)
-		srctree = getcwd(NULL, 0);
-	kernsrctree = getenv("KBUILD_SRC");
-	if (!kernsrctree || !*kernsrctree)
-		kernsrctree = srctree;
 
-	for (;;) {
+	if (!srctree)
+	{
+		srctree = getcwd(NULL, 0);
+	}
+
+	kernsrctree = getenv("KBUILD_SRC");
+
+	if (!kernsrctree || !*kernsrctree)
+	{
+		kernsrctree = srctree;
+	}
+
+	for (;;)
+	{
 		int c;
-		struct option opts[] = {
+		struct option opts[] =
+		{
 			{ "docbook",	no_argument, NULL, OPT_DOCBOOK },
 			{ "rst",	no_argument, NULL, OPT_RST },
 			{ "help",	no_argument, NULL, OPT_HELP },
@@ -574,30 +718,38 @@ int main(int argc, char *argv[])
 		};
 
 		c = getopt_long_only(argc, argv, "", opts, NULL);
-		if (c == -1)
-			break;
 
-		switch (c) {
-		case OPT_DOCBOOK:
-			file_format = FORMAT_DOCBOOK;
+		if (c == -1)
+		{
 			break;
-		case OPT_RST:
-			file_format = FORMAT_RST;
-			break;
-		case OPT_HELP:
-			usage();
-			return 0;
-		default:
-		case '?':
-			usage();
-			return 1;
+		}
+
+		switch (c)
+		{
+			case OPT_DOCBOOK:
+				file_format = FORMAT_DOCBOOK;
+				break;
+
+			case OPT_RST:
+				file_format = FORMAT_RST;
+				break;
+
+			case OPT_HELP:
+				usage();
+				return 0;
+
+			default:
+			case '?':
+				usage();
+				return 1;
 		}
 	}
 
 	argc -= optind;
 	argv += optind;
 
-	if (argc != 2) {
+	if (argc != 2)
+	{
 		usage();
 		exit(1);
 	}
@@ -606,21 +758,27 @@ int main(int argc, char *argv[])
 	filename = argv[1];
 
 	if (file_format == FORMAT_AUTO)
+	{
 		file_format = is_rst(filename) ? FORMAT_RST : FORMAT_DOCBOOK;
+	}
 
 	/* Open file, exit on error */
 	infile = fopen(filename, "r");
-	if (infile == NULL) {
+
+	if (infile == NULL)
+	{
 		fprintf(stderr, "docproc: ");
 		perror(filename);
 		exit(2);
 	}
 
-	if (strcmp("doc", subcommand) == 0) {
-		if (file_format == FORMAT_RST) {
+	if (strcmp("doc", subcommand) == 0)
+	{
+		if (file_format == FORMAT_RST)
+		{
 			time_t t = time(NULL);
 			printf(".. generated from %s by docproc %s\n",
-			       filename, ctime(&t));
+				   filename, ctime(&t));
 		}
 
 		/* Need to do this in two passes.
@@ -652,13 +810,19 @@ int main(int argc, char *argv[])
 
 		parse_file(infile);
 
-		for (i = 0; i < all_list_len; i++) {
+		for (i = 0; i < all_list_len; i++)
+		{
 			if (!all_list[i])
+			{
 				continue;
+			}
+
 			fprintf(stderr, "Warning: didn't use docs for %s\n",
-				all_list[i]);
+					all_list[i]);
 		}
-	} else if (strcmp("depend", subcommand) == 0) {
+	}
+	else if (strcmp("depend", subcommand) == 0)
+	{
 		/* Create first part of dependency chain
 		 * file.tmpl */
 		printf("%s\t", filename);
@@ -671,10 +835,13 @@ int main(int argc, char *argv[])
 		findall           = adddep;
 		parse_file(infile);
 		printf("\n");
-	} else {
+	}
+	else
+	{
 		fprintf(stderr, "Unknown option: %s\n", subcommand);
 		exit(1);
 	}
+
 	fclose(infile);
 	fflush(stdout);
 	return exitstatus;

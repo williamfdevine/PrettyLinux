@@ -6,14 +6,16 @@
 #ifndef __FLEXCOP_REG_H__
 #define __FLEXCOP_REG_H__
 
-typedef enum {
+typedef enum
+{
 	FLEXCOP_UNK = 0,
 	FLEXCOP_II,
 	FLEXCOP_IIB,
 	FLEXCOP_III,
 } flexcop_revision_t;
 
-typedef enum {
+typedef enum
+{
 	FC_UNK = 0,
 	FC_CABLE,
 	FC_AIR_DVBT,
@@ -27,20 +29,21 @@ typedef enum {
 	FC_SKYS2_REV33,
 } flexcop_device_type_t;
 
-typedef enum {
+typedef enum
+{
 	FC_USB = 0,
 	FC_PCI,
 } flexcop_bus_t;
 
 /* FlexCop IBI Registers */
 #if defined(__LITTLE_ENDIAN)
-#include "flexcop_ibi_value_le.h"
+	#include "flexcop_ibi_value_le.h"
 #else
-#if defined(__BIG_ENDIAN)
-#include "flexcop_ibi_value_be.h"
-#else
-#error no endian defined
-#endif
+	#if defined(__BIG_ENDIAN)
+		#include "flexcop_ibi_value_be.h"
+	#else
+		#error no endian defined
+	#endif
 #endif
 
 #define fc_data_Tag_ID_DVB  0x3e
@@ -53,57 +56,66 @@ typedef enum {
 
 extern flexcop_ibi_value ibi_zero;
 
-typedef enum {
+typedef enum
+{
 	FC_I2C_PORT_DEMOD  = 1,
 	FC_I2C_PORT_EEPROM = 2,
 	FC_I2C_PORT_TUNER  = 3,
 } flexcop_i2c_port_t;
 
-typedef enum {
+typedef enum
+{
 	FC_WRITE = 0,
 	FC_READ  = 1,
 } flexcop_access_op_t;
 
-typedef enum {
+typedef enum
+{
 	FC_SRAM_DEST_NET   = 1,
 	FC_SRAM_DEST_CAI   = 2,
 	FC_SRAM_DEST_CAO   = 4,
 	FC_SRAM_DEST_MEDIA = 8
 } flexcop_sram_dest_t;
 
-typedef enum {
+typedef enum
+{
 	FC_SRAM_DEST_TARGET_WAN_USB = 0,
 	FC_SRAM_DEST_TARGET_DMA1    = 1,
 	FC_SRAM_DEST_TARGET_DMA2    = 2,
 	FC_SRAM_DEST_TARGET_FC3_CA  = 3
 } flexcop_sram_dest_target_t;
 
-typedef enum {
+typedef enum
+{
 	FC_SRAM_2_32KB  = 0, /*  64KB */
 	FC_SRAM_1_32KB  = 1, /*  32KB - default fow FCII */
 	FC_SRAM_1_128KB = 2, /* 128KB */
 	FC_SRAM_1_48KB  = 3, /*  48KB - default for FCIII */
 } flexcop_sram_type_t;
 
-typedef enum {
+typedef enum
+{
 	FC_WAN_SPEED_4MBITS  = 0,
 	FC_WAN_SPEED_8MBITS  = 1,
 	FC_WAN_SPEED_12MBITS = 2,
 	FC_WAN_SPEED_16MBITS = 3,
 } flexcop_wan_speed_t;
 
-typedef enum {
+typedef enum
+{
 	FC_DMA_1 = 1,
 	FC_DMA_2 = 2,
 } flexcop_dma_index_t;
 
-typedef enum {
+typedef enum
+{
 	FC_DMA_SUBADDR_0 = 1,
 	FC_DMA_SUBADDR_1 = 2,
 } flexcop_dma_addr_index_t;
 
 /* names of the particular registers */
-typedef enum {
+typedef enum
+{
 	dma1_000            = 0x000,
 	dma1_004            = 0x004,
 	dma1_008            = 0x008,
@@ -159,9 +171,9 @@ typedef enum {
 } flexcop_ibi_register;
 
 #define flexcop_set_ibi_value(reg,attr,val) { \
-	flexcop_ibi_value v = fc->read_ibi_reg(fc,reg); \
-	v.reg.attr = val; \
-	fc->write_ibi_reg(fc,reg,v); \
-}
+		flexcop_ibi_value v = fc->read_ibi_reg(fc,reg); \
+		v.reg.attr = val; \
+		fc->write_ibi_reg(fc,reg,v); \
+	}
 
 #endif

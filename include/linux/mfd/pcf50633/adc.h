@@ -65,8 +65,8 @@
 
 extern int
 pcf50633_adc_async_read(struct pcf50633 *pcf, int mux, int avg,
-		void (*callback)(struct pcf50633 *, void *, int),
-		void *callback_param);
+						void (*callback)(struct pcf50633 *, void *, int),
+						void *callback_param);
 extern int
 pcf50633_adc_sync_read(struct pcf50633 *pcf, int mux, int avg);
 

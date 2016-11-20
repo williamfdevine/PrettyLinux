@@ -29,18 +29,20 @@
 
 #include <linux/uaccess.h>
 
-struct i40evf_stats {
+struct i40evf_stats
+{
 	char stat_string[ETH_GSTRING_LEN];
 	int stat_offset;
 };
 
 #define I40EVF_STAT(_name, _stat) { \
-	.stat_string = _name, \
-	.stat_offset = offsetof(struct i40evf_adapter, _stat) \
-}
+		.stat_string = _name, \
+					   .stat_offset = offsetof(struct i40evf_adapter, _stat) \
+	}
 
 /* All stats are u64, so we don't need to track the size of the field. */
-static const struct i40evf_stats i40evf_gstrings_stats[] = {
+static const struct i40evf_stats i40evf_gstrings_stats[] =
+{
 	I40EVF_STAT("rx_bytes", current_stats.rx_bytes),
 	I40EVF_STAT("rx_unicast", current_stats.rx_unicast),
 	I40EVF_STAT("rx_multicast", current_stats.rx_multicast),
@@ -58,8 +60,8 @@ static const struct i40evf_stats i40evf_gstrings_stats[] = {
 #define I40EVF_GLOBAL_STATS_LEN ARRAY_SIZE(i40evf_gstrings_stats)
 #define I40EVF_QUEUE_STATS_LEN(_dev) \
 	(((struct i40evf_adapter *)\
-		netdev_priv(_dev))->num_active_queues \
-		  * 2 * (sizeof(struct i40e_queue_stats) / sizeof(u64)))
+	  netdev_priv(_dev))->num_active_queues \
+	 * 2 * (sizeof(struct i40e_queue_stats) / sizeof(u64)))
 #define I40EVF_STATS_LEN(_dev) \
 	(I40EVF_GLOBAL_STATS_LEN + I40EVF_QUEUE_STATS_LEN(_dev))
 
@@ -72,7 +74,7 @@ static const struct i40evf_stats i40evf_gstrings_stats[] = {
  * kind of link we really have, so we fake it.
  **/
 static int i40evf_get_settings(struct net_device *netdev,
-			       struct ethtool_cmd *ecmd)
+							   struct ethtool_cmd *ecmd)
 {
 	struct i40evf_adapter *adapter = netdev_priv(netdev);
 
@@ -80,26 +82,34 @@ static int i40evf_get_settings(struct net_device *netdev,
 	ecmd->autoneg = AUTONEG_DISABLE;
 	ecmd->transceiver = XCVR_DUMMY1;
 	ecmd->port = PORT_NONE;
+
 	/* Set speed and duplex */
-	switch (adapter->link_speed) {
-	case I40E_LINK_SPEED_40GB:
-		ethtool_cmd_speed_set(ecmd, SPEED_40000);
-		break;
-	case I40E_LINK_SPEED_20GB:
-		ethtool_cmd_speed_set(ecmd, SPEED_20000);
-		break;
-	case I40E_LINK_SPEED_10GB:
-		ethtool_cmd_speed_set(ecmd, SPEED_10000);
-		break;
-	case I40E_LINK_SPEED_1GB:
-		ethtool_cmd_speed_set(ecmd, SPEED_1000);
-		break;
-	case I40E_LINK_SPEED_100MB:
-		ethtool_cmd_speed_set(ecmd, SPEED_100);
-		break;
-	default:
-		break;
+	switch (adapter->link_speed)
+	{
+		case I40E_LINK_SPEED_40GB:
+			ethtool_cmd_speed_set(ecmd, SPEED_40000);
+			break;
+
+		case I40E_LINK_SPEED_20GB:
+			ethtool_cmd_speed_set(ecmd, SPEED_20000);
+			break;
+
+		case I40E_LINK_SPEED_10GB:
+			ethtool_cmd_speed_set(ecmd, SPEED_10000);
+			break;
+
+		case I40E_LINK_SPEED_1GB:
+			ethtool_cmd_speed_set(ecmd, SPEED_1000);
+			break;
+
+		case I40E_LINK_SPEED_100MB:
+			ethtool_cmd_speed_set(ecmd, SPEED_100);
+			break;
+
+		default:
+			break;
 	}
+
 	ecmd->duplex = DUPLEX_FULL;
 
 	return 0;
@@ -116,9 +126,13 @@ static int i40evf_get_settings(struct net_device *netdev,
 static int i40evf_get_sset_count(struct net_device *netdev, int sset)
 {
 	if (sset == ETH_SS_STATS)
+	{
 		return I40EVF_STATS_LEN(netdev);
+	}
 	else
+	{
 		return -EINVAL;
+	}
 }
 
 /**
@@ -130,21 +144,26 @@ static int i40evf_get_sset_count(struct net_device *netdev, int sset)
  * All statistics are added to the data buffer as an array of u64.
  **/
 static void i40evf_get_ethtool_stats(struct net_device *netdev,
-				     struct ethtool_stats *stats, u64 *data)
+									 struct ethtool_stats *stats, u64 *data)
 {
 	struct i40evf_adapter *adapter = netdev_priv(netdev);
 	int i, j;
 	char *p;
 
-	for (i = 0; i < I40EVF_GLOBAL_STATS_LEN; i++) {
+	for (i = 0; i < I40EVF_GLOBAL_STATS_LEN; i++)
+	{
 		p = (char *)adapter + i40evf_gstrings_stats[i].stat_offset;
 		data[i] =  *(u64 *)p;
 	}
-	for (j = 0; j < adapter->num_active_queues; j++) {
+
+	for (j = 0; j < adapter->num_active_queues; j++)
+	{
 		data[i++] = adapter->tx_rings[j].stats.packets;
 		data[i++] = adapter->tx_rings[j].stats.bytes;
 	}
-	for (j = 0; j < adapter->num_active_queues; j++) {
+
+	for (j = 0; j < adapter->num_active_queues; j++)
+	{
 		data[i++] = adapter->rx_rings[j].stats.packets;
 		data[i++] = adapter->rx_rings[j].stats.bytes;
 	}
@@ -164,19 +183,25 @@ static void i40evf_get_strings(struct net_device *netdev, u32 sset, u8 *data)
 	u8 *p = data;
 	int i;
 
-	if (sset == ETH_SS_STATS) {
-		for (i = 0; i < I40EVF_GLOBAL_STATS_LEN; i++) {
+	if (sset == ETH_SS_STATS)
+	{
+		for (i = 0; i < I40EVF_GLOBAL_STATS_LEN; i++)
+		{
 			memcpy(p, i40evf_gstrings_stats[i].stat_string,
-			       ETH_GSTRING_LEN);
+				   ETH_GSTRING_LEN);
 			p += ETH_GSTRING_LEN;
 		}
-		for (i = 0; i < adapter->num_active_queues; i++) {
+
+		for (i = 0; i < adapter->num_active_queues; i++)
+		{
 			snprintf(p, ETH_GSTRING_LEN, "tx-%u.packets", i);
 			p += ETH_GSTRING_LEN;
 			snprintf(p, ETH_GSTRING_LEN, "tx-%u.bytes", i);
 			p += ETH_GSTRING_LEN;
 		}
-		for (i = 0; i < adapter->num_active_queues; i++) {
+
+		for (i = 0; i < adapter->num_active_queues; i++)
+		{
 			snprintf(p, ETH_GSTRING_LEN, "rx-%u.packets", i);
 			p += ETH_GSTRING_LEN;
 			snprintf(p, ETH_GSTRING_LEN, "rx-%u.bytes", i);
@@ -211,7 +236,10 @@ static void i40evf_set_msglevel(struct net_device *netdev, u32 data)
 	struct i40evf_adapter *adapter = netdev_priv(netdev);
 
 	if (I40E_DEBUG_USER & data)
+	{
 		adapter->hw.debug_mask = data;
+	}
+
 	adapter->msg_enable = data;
 }
 
@@ -223,7 +251,7 @@ static void i40evf_set_msglevel(struct net_device *netdev, u32 data)
  * Returns information about the driver and device for display to the user.
  **/
 static void i40evf_get_drvinfo(struct net_device *netdev,
-			       struct ethtool_drvinfo *drvinfo)
+							   struct ethtool_drvinfo *drvinfo)
 {
 	struct i40evf_adapter *adapter = netdev_priv(netdev);
 
@@ -242,7 +270,7 @@ static void i40evf_get_drvinfo(struct net_device *netdev,
  * but the number of rings is not reported.
  **/
 static void i40evf_get_ringparam(struct net_device *netdev,
-				 struct ethtool_ringparam *ring)
+								 struct ethtool_ringparam *ring)
 {
 	struct i40evf_adapter *adapter = netdev_priv(netdev);
 
@@ -261,33 +289,38 @@ static void i40evf_get_ringparam(struct net_device *netdev,
  * number of rings is not specified, so all rings get the same settings.
  **/
 static int i40evf_set_ringparam(struct net_device *netdev,
-				struct ethtool_ringparam *ring)
+								struct ethtool_ringparam *ring)
 {
 	struct i40evf_adapter *adapter = netdev_priv(netdev);
 	u32 new_rx_count, new_tx_count;
 
 	if ((ring->rx_mini_pending) || (ring->rx_jumbo_pending))
+	{
 		return -EINVAL;
+	}
 
 	new_tx_count = clamp_t(u32, ring->tx_pending,
-			       I40EVF_MIN_TXD,
-			       I40EVF_MAX_TXD);
+						   I40EVF_MIN_TXD,
+						   I40EVF_MAX_TXD);
 	new_tx_count = ALIGN(new_tx_count, I40EVF_REQ_DESCRIPTOR_MULTIPLE);
 
 	new_rx_count = clamp_t(u32, ring->rx_pending,
-			       I40EVF_MIN_RXD,
-			       I40EVF_MAX_RXD);
+						   I40EVF_MIN_RXD,
+						   I40EVF_MAX_RXD);
 	new_rx_count = ALIGN(new_rx_count, I40EVF_REQ_DESCRIPTOR_MULTIPLE);
 
 	/* if nothing to do return success */
 	if ((new_tx_count == adapter->tx_desc_count) &&
-	    (new_rx_count == adapter->rx_desc_count))
+		(new_rx_count == adapter->rx_desc_count))
+	{
 		return 0;
+	}
 
 	adapter->tx_desc_count = new_tx_count;
 	adapter->rx_desc_count = new_rx_count;
 
-	if (netif_running(netdev)) {
+	if (netif_running(netdev))
+	{
 		adapter->flags |= I40EVF_FLAG_RESET_NEEDED;
 		schedule_work(&adapter->reset_task);
 	}
@@ -306,8 +339,8 @@ static int i40evf_set_ringparam(struct net_device *netdev,
  * representative value.
  **/
 static int __i40evf_get_coalesce(struct net_device *netdev,
-				 struct ethtool_coalesce *ec,
-				 int queue)
+								 struct ethtool_coalesce *ec,
+								 int queue)
 {
 	struct i40evf_adapter *adapter = netdev_priv(netdev);
 	struct i40e_vsi *vsi = &adapter->vsi;
@@ -320,18 +353,26 @@ static int __i40evf_get_coalesce(struct net_device *netdev,
 	 * queue, return queue 0's value to represent.
 	 */
 	if (queue < 0)
+	{
 		queue = 0;
+	}
 	else if (queue >= adapter->num_active_queues)
+	{
 		return -EINVAL;
+	}
 
 	rx_ring = &adapter->rx_rings[queue];
 	tx_ring = &adapter->tx_rings[queue];
 
 	if (ITR_IS_DYNAMIC(rx_ring->rx_itr_setting))
+	{
 		ec->use_adaptive_rx_coalesce = 1;
+	}
 
 	if (ITR_IS_DYNAMIC(tx_ring->tx_itr_setting))
+	{
 		ec->use_adaptive_tx_coalesce = 1;
+	}
 
 	ec->rx_coalesce_usecs = rx_ring->rx_itr_setting & ~I40E_ITR_DYNAMIC;
 	ec->tx_coalesce_usecs = tx_ring->tx_itr_setting & ~I40E_ITR_DYNAMIC;
@@ -350,7 +391,7 @@ static int __i40evf_get_coalesce(struct net_device *netdev,
  * only represents the settings of queue 0.
  **/
 static int i40evf_get_coalesce(struct net_device *netdev,
-			       struct ethtool_coalesce *ec)
+							   struct ethtool_coalesce *ec)
 {
 	return __i40evf_get_coalesce(netdev, ec, -1);
 }
@@ -364,8 +405,8 @@ static int i40evf_get_coalesce(struct net_device *netdev,
  * Read specific queue's coalesce settings.
  **/
 static int i40evf_get_per_queue_coalesce(struct net_device *netdev,
-					 u32 queue,
-					 struct ethtool_coalesce *ec)
+		u32 queue,
+		struct ethtool_coalesce *ec)
 {
 	return __i40evf_get_coalesce(netdev, ec, queue);
 }
@@ -379,8 +420,8 @@ static int i40evf_get_per_queue_coalesce(struct net_device *netdev,
  * Change the ITR settings for a specific queue.
  **/
 static void i40evf_set_itr_per_queue(struct i40evf_adapter *adapter,
-				     struct ethtool_coalesce *ec,
-				     int queue)
+									 struct ethtool_coalesce *ec,
+									 int queue)
 {
 	struct i40e_vsi *vsi = &adapter->vsi;
 	struct i40e_hw *hw = &adapter->hw;
@@ -391,14 +432,22 @@ static void i40evf_set_itr_per_queue(struct i40evf_adapter *adapter,
 	adapter->tx_rings[queue].tx_itr_setting = ec->tx_coalesce_usecs;
 
 	if (ec->use_adaptive_rx_coalesce)
+	{
 		adapter->rx_rings[queue].rx_itr_setting |= I40E_ITR_DYNAMIC;
+	}
 	else
+	{
 		adapter->rx_rings[queue].rx_itr_setting &= ~I40E_ITR_DYNAMIC;
+	}
 
 	if (ec->use_adaptive_tx_coalesce)
+	{
 		adapter->tx_rings[queue].tx_itr_setting |= I40E_ITR_DYNAMIC;
+	}
 	else
+	{
 		adapter->tx_rings[queue].tx_itr_setting &= ~I40E_ITR_DYNAMIC;
+	}
 
 	q_vector = adapter->rx_rings[queue].q_vector;
 	q_vector->rx.itr = ITR_TO_REG(adapter->rx_rings[queue].rx_itr_setting);
@@ -422,31 +471,42 @@ static void i40evf_set_itr_per_queue(struct i40evf_adapter *adapter,
  * Sets the coalesce settings for a particular queue.
  **/
 static int __i40evf_set_coalesce(struct net_device *netdev,
-				 struct ethtool_coalesce *ec,
-				 int queue)
+								 struct ethtool_coalesce *ec,
+								 int queue)
 {
 	struct i40evf_adapter *adapter = netdev_priv(netdev);
 	struct i40e_vsi *vsi = &adapter->vsi;
 	int i;
 
 	if (ec->tx_max_coalesced_frames_irq || ec->rx_max_coalesced_frames_irq)
+	{
 		vsi->work_limit = ec->tx_max_coalesced_frames_irq;
+	}
 
-	if (ec->rx_coalesce_usecs == 0) {
+	if (ec->rx_coalesce_usecs == 0)
+	{
 		if (ec->use_adaptive_rx_coalesce)
+		{
 			netif_info(adapter, drv, netdev, "rx-usecs=0, need to disable adaptive-rx for a complete disable\n");
-	} else if ((ec->rx_coalesce_usecs < (I40E_MIN_ITR << 1)) ||
-		   (ec->rx_coalesce_usecs > (I40E_MAX_ITR << 1))) {
+		}
+	}
+	else if ((ec->rx_coalesce_usecs < (I40E_MIN_ITR << 1)) ||
+			 (ec->rx_coalesce_usecs > (I40E_MAX_ITR << 1)))
+	{
 		netif_info(adapter, drv, netdev, "Invalid value, rx-usecs range is 0-8160\n");
 		return -EINVAL;
 	}
 
-	else
-	if (ec->tx_coalesce_usecs == 0) {
+	else if (ec->tx_coalesce_usecs == 0)
+	{
 		if (ec->use_adaptive_tx_coalesce)
+		{
 			netif_info(adapter, drv, netdev, "tx-usecs=0, need to disable adaptive-tx for a complete disable\n");
-	} else if ((ec->tx_coalesce_usecs < (I40E_MIN_ITR << 1)) ||
-		   (ec->tx_coalesce_usecs > (I40E_MAX_ITR << 1))) {
+		}
+	}
+	else if ((ec->tx_coalesce_usecs < (I40E_MIN_ITR << 1)) ||
+			 (ec->tx_coalesce_usecs > (I40E_MAX_ITR << 1)))
+	{
 		netif_info(adapter, drv, netdev, "Invalid value, tx-usecs range is 0-8160\n");
 		return -EINVAL;
 	}
@@ -454,14 +514,21 @@ static int __i40evf_set_coalesce(struct net_device *netdev,
 	/* Rx and Tx usecs has per queue value. If user doesn't specify the
 	 * queue, apply to all queues.
 	 */
-	if (queue < 0) {
+	if (queue < 0)
+	{
 		for (i = 0; i < adapter->num_active_queues; i++)
+		{
 			i40evf_set_itr_per_queue(adapter, ec, i);
-	} else if (queue < adapter->num_active_queues) {
+		}
+	}
+	else if (queue < adapter->num_active_queues)
+	{
 		i40evf_set_itr_per_queue(adapter, ec, queue);
-	} else {
+	}
+	else
+	{
 		netif_info(adapter, drv, netdev, "Invalid queue value, queue range is 0 - %d\n",
-			   adapter->num_active_queues - 1);
+				   adapter->num_active_queues - 1);
 		return -EINVAL;
 	}
 
@@ -476,7 +543,7 @@ static int __i40evf_set_coalesce(struct net_device *netdev,
  * Change current coalescing settings for every queue.
  **/
 static int i40evf_set_coalesce(struct net_device *netdev,
-			       struct ethtool_coalesce *ec)
+							   struct ethtool_coalesce *ec)
 {
 	return __i40evf_set_coalesce(netdev, ec, -1);
 }
@@ -490,8 +557,8 @@ static int i40evf_set_coalesce(struct net_device *netdev,
  * Modifies a specific queue's coalesce settings.
  */
 static int i40evf_set_per_queue_coalesce(struct net_device *netdev,
-					 u32 queue,
-					 struct ethtool_coalesce *ec)
+		u32 queue,
+		struct ethtool_coalesce *ec)
 {
 	return __i40evf_set_coalesce(netdev, ec, queue);
 }
@@ -504,23 +571,26 @@ static int i40evf_set_per_queue_coalesce(struct net_device *netdev,
  * Returns Success if the command is supported.
  **/
 static int i40evf_get_rxnfc(struct net_device *netdev,
-			    struct ethtool_rxnfc *cmd,
-			    u32 *rule_locs)
+							struct ethtool_rxnfc *cmd,
+							u32 *rule_locs)
 {
 	struct i40evf_adapter *adapter = netdev_priv(netdev);
 	int ret = -EOPNOTSUPP;
 
-	switch (cmd->cmd) {
-	case ETHTOOL_GRXRINGS:
-		cmd->data = adapter->num_active_queues;
-		ret = 0;
-		break;
-	case ETHTOOL_GRXFH:
-		netdev_info(netdev,
-			    "RSS hash info is not available to vf, use pf.\n");
-		break;
-	default:
-		break;
+	switch (cmd->cmd)
+	{
+		case ETHTOOL_GRXRINGS:
+			cmd->data = adapter->num_active_queues;
+			ret = 0;
+			break;
+
+		case ETHTOOL_GRXFH:
+			netdev_info(netdev,
+						"RSS hash info is not available to vf, use pf.\n");
+			break;
+
+		default:
+			break;
 	}
 
 	return ret;
@@ -534,7 +604,7 @@ static int i40evf_get_rxnfc(struct net_device *netdev,
  * queue pair. Report one extra channel to match our "other" MSI-X vector.
  **/
 static void i40evf_get_channels(struct net_device *netdev,
-				struct ethtool_channels *ch)
+								struct ethtool_channels *ch)
 {
 	struct i40evf_adapter *adapter = netdev_priv(netdev);
 
@@ -582,21 +652,28 @@ static u32 i40evf_get_rxfh_indir_size(struct net_device *netdev)
  * Reads the indirection table directly from the hardware. Always returns 0.
  **/
 static int i40evf_get_rxfh(struct net_device *netdev, u32 *indir, u8 *key,
-			   u8 *hfunc)
+						   u8 *hfunc)
 {
 	struct i40evf_adapter *adapter = netdev_priv(netdev);
 	u16 i;
 
 	if (hfunc)
+	{
 		*hfunc = ETH_RSS_HASH_TOP;
+	}
+
 	if (!indir)
+	{
 		return 0;
+	}
 
 	memcpy(key, adapter->rss_key, adapter->rss_key_size);
 
 	/* Each 32 bits pointed by 'indir' is stored with a lut entry */
 	for (i = 0; i < adapter->rss_lut_size; i++)
+	{
 		indir[i] = (u32)adapter->rss_lut[i];
+	}
 
 	return 0;
 }
@@ -611,30 +688,39 @@ static int i40evf_get_rxfh(struct net_device *netdev, u32 *indir, u8 *key,
  * returns 0 after programming the table.
  **/
 static int i40evf_set_rxfh(struct net_device *netdev, const u32 *indir,
-			   const u8 *key, const u8 hfunc)
+						   const u8 *key, const u8 hfunc)
 {
 	struct i40evf_adapter *adapter = netdev_priv(netdev);
 	u16 i;
 
 	/* We do not allow change in unsupported parameters */
 	if (key ||
-	    (hfunc != ETH_RSS_HASH_NO_CHANGE && hfunc != ETH_RSS_HASH_TOP))
+		(hfunc != ETH_RSS_HASH_NO_CHANGE && hfunc != ETH_RSS_HASH_TOP))
+	{
 		return -EOPNOTSUPP;
-	if (!indir)
-		return 0;
+	}
 
-	if (key) {
+	if (!indir)
+	{
+		return 0;
+	}
+
+	if (key)
+	{
 		memcpy(adapter->rss_key, key, adapter->rss_key_size);
 	}
 
 	/* Each 32 bits pointed by 'indir' is stored with a lut entry */
 	for (i = 0; i < adapter->rss_lut_size; i++)
+	{
 		adapter->rss_lut[i] = (u8)(indir[i]);
+	}
 
 	return i40evf_config_rss(adapter);
 }
 
-static const struct ethtool_ops i40evf_ethtool_ops = {
+static const struct ethtool_ops i40evf_ethtool_ops =
+{
 	.get_settings		= i40evf_get_settings,
 	.get_drvinfo		= i40evf_get_drvinfo,
 	.get_link		= ethtool_op_get_link,

@@ -5,11 +5,11 @@
 #define virt_wmb() barrier()
 /* Atomic store should be enough, but gcc generates worse code in that case. */
 #define virt_store_mb(var, value)  do { \
-	typeof(var) virt_store_mb_value = (value); \
-	__atomic_exchange(&(var), &virt_store_mb_value, &virt_store_mb_value, \
-			  __ATOMIC_SEQ_CST); \
-	barrier(); \
-} while (0);
+		typeof(var) virt_store_mb_value = (value); \
+		__atomic_exchange(&(var), &virt_store_mb_value, &virt_store_mb_value, \
+						  __ATOMIC_SEQ_CST); \
+		barrier(); \
+	} while (0);
 /* Weak barriers should be used. If not - it's a bug */
 # define mb() abort()
 # define rmb() abort()

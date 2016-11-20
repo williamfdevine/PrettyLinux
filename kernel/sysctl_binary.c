@@ -21,7 +21,7 @@
 
 struct bin_table;
 typedef ssize_t bin_convert_t(struct file *file,
-	void __user *oldval, size_t oldlen, void __user *newval, size_t newlen);
+							  void __user *oldval, size_t oldlen, void __user *newval, size_t newlen);
 
 static bin_convert_t bin_dir;
 static bin_convert_t bin_string;
@@ -39,14 +39,16 @@ static bin_convert_t bin_dn_node_address;
 
 #define BUFSZ 256
 
-struct bin_table {
+struct bin_table
+{
 	bin_convert_t		*convert;
 	int			ctl_name;
 	const char		*procname;
 	const struct bin_table	*child;
 };
 
-static const struct bin_table bin_random_table[] = {
+static const struct bin_table bin_random_table[] =
+{
 	{ CTL_INT,	RANDOM_POOLSIZE,	"poolsize" },
 	{ CTL_INT,	RANDOM_ENTROPY_COUNT,	"entropy_avail" },
 	{ CTL_INT,	RANDOM_READ_THRESH,	"read_wakeup_threshold" },
@@ -56,13 +58,15 @@ static const struct bin_table bin_random_table[] = {
 	{}
 };
 
-static const struct bin_table bin_pty_table[] = {
+static const struct bin_table bin_pty_table[] =
+{
 	{ CTL_INT,	PTY_MAX,	"max" },
 	{ CTL_INT,	PTY_NR,		"nr" },
 	{}
 };
 
-static const struct bin_table bin_kern_table[] = {
+static const struct bin_table bin_kern_table[] =
+{
 	{ CTL_STR,	KERN_OSTYPE,			"ostype" },
 	{ CTL_STR,	KERN_OSRELEASE,			"osrelease" },
 	/* KERN_OSREV not used */
@@ -142,7 +146,8 @@ static const struct bin_table bin_kern_table[] = {
 	{}
 };
 
-static const struct bin_table bin_vm_table[] = {
+static const struct bin_table bin_vm_table[] =
+{
 	{ CTL_INT,	VM_OVERCOMMIT_MEMORY,		"overcommit_memory" },
 	{ CTL_INT,	VM_PAGE_CLUSTER,		"page-cluster" },
 	{ CTL_INT,	VM_DIRTY_BACKGROUND,		"dirty_background_ratio" },
@@ -174,7 +179,8 @@ static const struct bin_table bin_vm_table[] = {
 	{}
 };
 
-static const struct bin_table bin_net_core_table[] = {
+static const struct bin_table bin_net_core_table[] =
+{
 	{ CTL_INT,	NET_CORE_WMEM_MAX,	"wmem_max" },
 	{ CTL_INT,	NET_CORE_RMEM_MAX,	"rmem_max" },
 	{ CTL_INT,	NET_CORE_WMEM_DEFAULT,	"wmem_default" },
@@ -200,14 +206,16 @@ static const struct bin_table bin_net_core_table[] = {
 	{},
 };
 
-static const struct bin_table bin_net_unix_table[] = {
+static const struct bin_table bin_net_unix_table[] =
+{
 	/* NET_UNIX_DESTROY_DELAY unused */
 	/* NET_UNIX_DELETE_DELAY unused */
 	{ CTL_INT,	NET_UNIX_MAX_DGRAM_QLEN,	"max_dgram_qlen" },
 	{}
 };
 
-static const struct bin_table bin_net_ipv4_route_table[] = {
+static const struct bin_table bin_net_ipv4_route_table[] =
+{
 	{ CTL_INT,	NET_IPV4_ROUTE_FLUSH,			"flush" },
 	/* NET_IPV4_ROUTE_MIN_DELAY "min_delay" no longer used */
 	/* NET_IPV4_ROUTE_MAX_DELAY "max_delay" no longer used */
@@ -229,7 +237,8 @@ static const struct bin_table bin_net_ipv4_route_table[] = {
 	{}
 };
 
-static const struct bin_table bin_net_ipv4_conf_vars_table[] = {
+static const struct bin_table bin_net_ipv4_conf_vars_table[] =
+{
 	{ CTL_INT,	NET_IPV4_CONF_FORWARDING,		"forwarding" },
 	{ CTL_INT,	NET_IPV4_CONF_MC_FORWARDING,		"mc_forwarding" },
 
@@ -257,14 +266,16 @@ static const struct bin_table bin_net_ipv4_conf_vars_table[] = {
 	{}
 };
 
-static const struct bin_table bin_net_ipv4_conf_table[] = {
+static const struct bin_table bin_net_ipv4_conf_table[] =
+{
 	{ CTL_DIR,	NET_PROTO_CONF_ALL,	"all",		bin_net_ipv4_conf_vars_table },
 	{ CTL_DIR,	NET_PROTO_CONF_DEFAULT,	"default",	bin_net_ipv4_conf_vars_table },
 	{ CTL_DIR,	0, NULL, bin_net_ipv4_conf_vars_table },
 	{}
 };
 
-static const struct bin_table bin_net_neigh_vars_table[] = {
+static const struct bin_table bin_net_neigh_vars_table[] =
+{
 	{ CTL_INT,	NET_NEIGH_MCAST_SOLICIT,	"mcast_solicit" },
 	{ CTL_INT,	NET_NEIGH_UCAST_SOLICIT,	"ucast_solicit" },
 	{ CTL_INT,	NET_NEIGH_APP_SOLICIT,		"app_solicit" },
@@ -286,13 +297,15 @@ static const struct bin_table bin_net_neigh_vars_table[] = {
 	{}
 };
 
-static const struct bin_table bin_net_neigh_table[] = {
+static const struct bin_table bin_net_neigh_table[] =
+{
 	{ CTL_DIR,	NET_PROTO_CONF_DEFAULT, "default", bin_net_neigh_vars_table },
 	{ CTL_DIR,	0, NULL, bin_net_neigh_vars_table },
 	{}
 };
 
-static const struct bin_table bin_net_ipv4_netfilter_table[] = {
+static const struct bin_table bin_net_ipv4_netfilter_table[] =
+{
 	{ CTL_INT,	NET_IPV4_NF_CONNTRACK_MAX,		"ip_conntrack_max" },
 
 	/* NET_IPV4_NF_CONNTRACK_TCP_TIMEOUT_SYN_SENT "ip_conntrack_tcp_timeout_syn_sent" no longer used */
@@ -329,7 +342,8 @@ static const struct bin_table bin_net_ipv4_netfilter_table[] = {
 	{}
 };
 
-static const struct bin_table bin_net_ipv4_table[] = {
+static const struct bin_table bin_net_ipv4_table[] =
+{
 	{CTL_INT,	NET_IPV4_FORWARD,			"ip_forward" },
 
 	{ CTL_DIR,	NET_IPV4_CONF,		"conf",		bin_net_ipv4_conf_table },
@@ -431,13 +445,15 @@ static const struct bin_table bin_net_ipv4_table[] = {
 	{}
 };
 
-static const struct bin_table bin_net_ipx_table[] = {
+static const struct bin_table bin_net_ipx_table[] =
+{
 	{ CTL_INT,	NET_IPX_PPROP_BROADCASTING,	"ipx_pprop_broadcasting" },
 	/* NET_IPX_FORWARDING unused */
 	{}
 };
 
-static const struct bin_table bin_net_atalk_table[] = {
+static const struct bin_table bin_net_atalk_table[] =
+{
 	{ CTL_INT,	NET_ATALK_AARP_EXPIRY_TIME,		"aarp-expiry-time" },
 	{ CTL_INT,	NET_ATALK_AARP_TICK_TIME,		"aarp-tick-time" },
 	{ CTL_INT,	NET_ATALK_AARP_RETRANSMIT_LIMIT,	"aarp-retransmit-limit" },
@@ -445,7 +461,8 @@ static const struct bin_table bin_net_atalk_table[] = {
 	{},
 };
 
-static const struct bin_table bin_net_netrom_table[] = {
+static const struct bin_table bin_net_netrom_table[] =
+{
 	{ CTL_INT,	NET_NETROM_DEFAULT_PATH_QUALITY,		"default_path_quality" },
 	{ CTL_INT,	NET_NETROM_OBSOLESCENCE_COUNT_INITIALISER,	"obsolescence_count_initialiser" },
 	{ CTL_INT,	NET_NETROM_NETWORK_TTL_INITIALISER,		"network_ttl_initialiser" },
@@ -461,7 +478,8 @@ static const struct bin_table bin_net_netrom_table[] = {
 	{}
 };
 
-static const struct bin_table bin_net_ax25_param_table[] = {
+static const struct bin_table bin_net_ax25_param_table[] =
+{
 	{ CTL_INT,	NET_AX25_IP_DEFAULT_MODE,	"ip_default_mode" },
 	{ CTL_INT,	NET_AX25_DEFAULT_MODE,		"ax25_default_mode" },
 	{ CTL_INT,	NET_AX25_BACKOFF_TYPE,		"backoff_type" },
@@ -479,12 +497,14 @@ static const struct bin_table bin_net_ax25_param_table[] = {
 	{}
 };
 
-static const struct bin_table bin_net_ax25_table[] = {
+static const struct bin_table bin_net_ax25_table[] =
+{
 	{ CTL_DIR,	0, NULL, bin_net_ax25_param_table },
 	{}
 };
 
-static const struct bin_table bin_net_rose_table[] = {
+static const struct bin_table bin_net_rose_table[] =
+{
 	{ CTL_INT,	NET_ROSE_RESTART_REQUEST_TIMEOUT,	"restart_request_timeout" },
 	{ CTL_INT,	NET_ROSE_CALL_REQUEST_TIMEOUT,		"call_request_timeout" },
 	{ CTL_INT,	NET_ROSE_RESET_REQUEST_TIMEOUT,		"reset_request_timeout" },
@@ -498,7 +518,8 @@ static const struct bin_table bin_net_rose_table[] = {
 	{}
 };
 
-static const struct bin_table bin_net_ipv6_conf_var_table[] = {
+static const struct bin_table bin_net_ipv6_conf_var_table[] =
+{
 	{ CTL_INT,	NET_IPV6_FORWARDING,			"forwarding" },
 	{ CTL_INT,	NET_IPV6_HOP_LIMIT,			"hop_limit" },
 	{ CTL_INT,	NET_IPV6_MTU,				"mtu" },
@@ -527,14 +548,16 @@ static const struct bin_table bin_net_ipv6_conf_var_table[] = {
 	{}
 };
 
-static const struct bin_table bin_net_ipv6_conf_table[] = {
+static const struct bin_table bin_net_ipv6_conf_table[] =
+{
 	{ CTL_DIR,	NET_PROTO_CONF_ALL,		"all",	bin_net_ipv6_conf_var_table },
 	{ CTL_DIR,	NET_PROTO_CONF_DEFAULT, 	"default", bin_net_ipv6_conf_var_table },
 	{ CTL_DIR,	0, NULL, bin_net_ipv6_conf_var_table },
 	{}
 };
 
-static const struct bin_table bin_net_ipv6_route_table[] = {
+static const struct bin_table bin_net_ipv6_route_table[] =
+{
 	/* NET_IPV6_ROUTE_FLUSH	"flush"  no longer used */
 	{ CTL_INT,	NET_IPV6_ROUTE_GC_THRESH,		"gc_thresh" },
 	{ CTL_INT,	NET_IPV6_ROUTE_MAX_SIZE,		"max_size" },
@@ -548,12 +571,14 @@ static const struct bin_table bin_net_ipv6_route_table[] = {
 	{}
 };
 
-static const struct bin_table bin_net_ipv6_icmp_table[] = {
+static const struct bin_table bin_net_ipv6_icmp_table[] =
+{
 	{ CTL_INT,	NET_IPV6_ICMP_RATELIMIT,	"ratelimit" },
 	{}
 };
 
-static const struct bin_table bin_net_ipv6_table[] = {
+static const struct bin_table bin_net_ipv6_table[] =
+{
 	{ CTL_DIR,	NET_IPV6_CONF,		"conf",		bin_net_ipv6_conf_table },
 	{ CTL_DIR,	NET_IPV6_NEIGH,		"neigh",	bin_net_neigh_table },
 	{ CTL_DIR,	NET_IPV6_ROUTE,		"route",	bin_net_ipv6_route_table },
@@ -568,7 +593,8 @@ static const struct bin_table bin_net_ipv6_table[] = {
 	{}
 };
 
-static const struct bin_table bin_net_x25_table[] = {
+static const struct bin_table bin_net_x25_table[] =
+{
 	{ CTL_INT,	NET_X25_RESTART_REQUEST_TIMEOUT,	"restart_request_timeout" },
 	{ CTL_INT,	NET_X25_CALL_REQUEST_TIMEOUT,		"call_request_timeout" },
 	{ CTL_INT,	NET_X25_RESET_REQUEST_TIMEOUT,	"reset_request_timeout" },
@@ -578,13 +604,15 @@ static const struct bin_table bin_net_x25_table[] = {
 	{}
 };
 
-static const struct bin_table bin_net_tr_table[] = {
+static const struct bin_table bin_net_tr_table[] =
+{
 	{ CTL_INT,	NET_TR_RIF_TIMEOUT,	"rif_timeout" },
 	{}
 };
 
 
-static const struct bin_table bin_net_decnet_conf_vars[] = {
+static const struct bin_table bin_net_decnet_conf_vars[] =
+{
 	{ CTL_INT,	NET_DECNET_CONF_DEV_FORWARDING,	"forwarding" },
 	{ CTL_INT,	NET_DECNET_CONF_DEV_PRIORITY,	"priority" },
 	{ CTL_INT,	NET_DECNET_CONF_DEV_T2,		"t2" },
@@ -592,7 +620,8 @@ static const struct bin_table bin_net_decnet_conf_vars[] = {
 	{}
 };
 
-static const struct bin_table bin_net_decnet_conf[] = {
+static const struct bin_table bin_net_decnet_conf[] =
+{
 	{ CTL_DIR, NET_DECNET_CONF_ETHER,    "ethernet", bin_net_decnet_conf_vars },
 	{ CTL_DIR, NET_DECNET_CONF_GRE,	     "ipgre",    bin_net_decnet_conf_vars },
 	{ CTL_DIR, NET_DECNET_CONF_X25,	     "x25",      bin_net_decnet_conf_vars },
@@ -603,7 +632,8 @@ static const struct bin_table bin_net_decnet_conf[] = {
 	{}
 };
 
-static const struct bin_table bin_net_decnet_table[] = {
+static const struct bin_table bin_net_decnet_table[] =
+{
 	{ CTL_DIR,	NET_DECNET_CONF,		"conf",	bin_net_decnet_conf },
 	{ CTL_DNADR,	NET_DECNET_NODE_ADDRESS,	"node_address" },
 	{ CTL_STR,	NET_DECNET_NODE_NAME,		"node_name" },
@@ -621,7 +651,8 @@ static const struct bin_table bin_net_decnet_table[] = {
 	{}
 };
 
-static const struct bin_table bin_net_sctp_table[] = {
+static const struct bin_table bin_net_sctp_table[] =
+{
 	{ CTL_INT,	NET_SCTP_RTO_INITIAL,		"rto_initial" },
 	{ CTL_INT,	NET_SCTP_RTO_MIN,		"rto_min" },
 	{ CTL_INT,	NET_SCTP_RTO_MAX,		"rto_max" },
@@ -642,7 +673,8 @@ static const struct bin_table bin_net_sctp_table[] = {
 	{}
 };
 
-static const struct bin_table bin_net_llc_llc2_timeout_table[] = {
+static const struct bin_table bin_net_llc_llc2_timeout_table[] =
+{
 	{ CTL_INT,	NET_LLC2_ACK_TIMEOUT,	"ack" },
 	{ CTL_INT,	NET_LLC2_P_TIMEOUT,	"p" },
 	{ CTL_INT,	NET_LLC2_REJ_TIMEOUT,	"rej" },
@@ -650,23 +682,27 @@ static const struct bin_table bin_net_llc_llc2_timeout_table[] = {
 	{}
 };
 
-static const struct bin_table bin_net_llc_station_table[] = {
+static const struct bin_table bin_net_llc_station_table[] =
+{
 	{ CTL_INT,	NET_LLC_STATION_ACK_TIMEOUT,	"ack_timeout" },
 	{}
 };
 
-static const struct bin_table bin_net_llc_llc2_table[] = {
+static const struct bin_table bin_net_llc_llc2_table[] =
+{
 	{ CTL_DIR,	NET_LLC2,		"timeout",	bin_net_llc_llc2_timeout_table },
 	{}
 };
 
-static const struct bin_table bin_net_llc_table[] = {
+static const struct bin_table bin_net_llc_table[] =
+{
 	{ CTL_DIR,	NET_LLC2,		"llc2",		bin_net_llc_llc2_table },
 	{ CTL_DIR,	NET_LLC_STATION,	"station",	bin_net_llc_station_table },
 	{}
 };
 
-static const struct bin_table bin_net_netfilter_table[] = {
+static const struct bin_table bin_net_netfilter_table[] =
+{
 	{ CTL_INT,	NET_NF_CONNTRACK_MAX,			"nf_conntrack_max" },
 	/* NET_NF_CONNTRACK_TCP_TIMEOUT_SYN_SENT "nf_conntrack_tcp_timeout_syn_sent" no longer used */
 	/* NET_NF_CONNTRACK_TCP_TIMEOUT_SYN_RECV "nf_conntrack_tcp_timeout_syn_recv" no longer used */
@@ -703,7 +739,8 @@ static const struct bin_table bin_net_netfilter_table[] = {
 	{}
 };
 
-static const struct bin_table bin_net_irda_table[] = {
+static const struct bin_table bin_net_irda_table[] =
+{
 	{ CTL_INT,	NET_IRDA_DISCOVERY,		"discovery" },
 	{ CTL_STR,	NET_IRDA_DEVNAME,		"devname" },
 	{ CTL_INT,	NET_IRDA_DEBUG,			"debug" },
@@ -721,7 +758,8 @@ static const struct bin_table bin_net_irda_table[] = {
 	{}
 };
 
-static const struct bin_table bin_net_table[] = {
+static const struct bin_table bin_net_table[] =
+{
 	{ CTL_DIR,	NET_CORE,		"core",		bin_net_core_table },
 	/* NET_ETHER not used */
 	/* NET_802 not used */
@@ -747,7 +785,8 @@ static const struct bin_table bin_net_table[] = {
 	{}
 };
 
-static const struct bin_table bin_fs_quota_table[] = {
+static const struct bin_table bin_fs_quota_table[] =
+{
 	{ CTL_INT,	FS_DQ_LOOKUPS,		"lookups" },
 	{ CTL_INT,	FS_DQ_DROPS,		"drops" },
 	{ CTL_INT,	FS_DQ_READS,		"reads" },
@@ -760,7 +799,8 @@ static const struct bin_table bin_fs_quota_table[] = {
 	{}
 };
 
-static const struct bin_table bin_fs_xfs_table[] = {
+static const struct bin_table bin_fs_xfs_table[] =
+{
 	{ CTL_INT,	XFS_SGID_INHERIT,	"irix_sgid_inherit" },
 	{ CTL_INT,	XFS_SYMLINK_MODE,	"irix_symlink_mode" },
 	{ CTL_INT,	XFS_PANIC_MASK,		"panic_mask" },
@@ -780,24 +820,28 @@ static const struct bin_table bin_fs_xfs_table[] = {
 	{}
 };
 
-static const struct bin_table bin_fs_ocfs2_nm_table[] = {
+static const struct bin_table bin_fs_ocfs2_nm_table[] =
+{
 	{ CTL_STR,	1, "hb_ctl_path" },
 	{}
 };
 
-static const struct bin_table bin_fs_ocfs2_table[] = {
+static const struct bin_table bin_fs_ocfs2_table[] =
+{
 	{ CTL_DIR,	1,	"nm",	bin_fs_ocfs2_nm_table },
 	{}
 };
 
-static const struct bin_table bin_inotify_table[] = {
+static const struct bin_table bin_inotify_table[] =
+{
 	{ CTL_INT,	INOTIFY_MAX_USER_INSTANCES,	"max_user_instances" },
 	{ CTL_INT,	INOTIFY_MAX_USER_WATCHES,	"max_user_watches" },
 	{ CTL_INT,	INOTIFY_MAX_QUEUED_EVENTS,	"max_queued_events" },
 	{}
 };
 
-static const struct bin_table bin_fs_table[] = {
+static const struct bin_table bin_fs_table[] =
+{
 	{ CTL_INT,	FS_NRINODE,		"inode-nr" },
 	{ CTL_INT,	FS_STATINODE,		"inode-state" },
 	/* FS_MAXINODE unused */
@@ -823,12 +867,14 @@ static const struct bin_table bin_fs_table[] = {
 	{}
 };
 
-static const struct bin_table bin_ipmi_table[] = {
+static const struct bin_table bin_ipmi_table[] =
+{
 	{ CTL_INT,	DEV_IPMI_POWEROFF_POWERCYCLE,	"poweroff_powercycle" },
 	{}
 };
 
-static const struct bin_table bin_mac_hid_files[] = {
+static const struct bin_table bin_mac_hid_files[] =
+{
 	/* DEV_MAC_HID_KEYBOARD_SENDS_LINUX_KEYCODES unused */
 	/* DEV_MAC_HID_KEYBOARD_LOCK_KEYCODES unused */
 	{ CTL_INT,	DEV_MAC_HID_MOUSE_BUTTON_EMULATION,	"mouse_button_emulation" },
@@ -838,18 +884,21 @@ static const struct bin_table bin_mac_hid_files[] = {
 	{}
 };
 
-static const struct bin_table bin_raid_table[] = {
+static const struct bin_table bin_raid_table[] =
+{
 	{ CTL_INT,	DEV_RAID_SPEED_LIMIT_MIN,	"speed_limit_min" },
 	{ CTL_INT,	DEV_RAID_SPEED_LIMIT_MAX,	"speed_limit_max" },
 	{}
 };
 
-static const struct bin_table bin_scsi_table[] = {
+static const struct bin_table bin_scsi_table[] =
+{
 	{ CTL_INT, DEV_SCSI_LOGGING_LEVEL, "logging_level" },
 	{}
 };
 
-static const struct bin_table bin_dev_table[] = {
+static const struct bin_table bin_dev_table[] =
+{
 	/* DEV_CDROM	"cdrom" no longer used */
 	/* DEV_HWMON unused */
 	/* DEV_PARPORT	"parport" no longer used */
@@ -860,26 +909,30 @@ static const struct bin_table bin_dev_table[] = {
 	{}
 };
 
-static const struct bin_table bin_bus_isa_table[] = {
+static const struct bin_table bin_bus_isa_table[] =
+{
 	{ CTL_INT,	BUS_ISA_MEM_BASE,	"membase" },
 	{ CTL_INT,	BUS_ISA_PORT_BASE,	"portbase" },
 	{ CTL_INT,	BUS_ISA_PORT_SHIFT,	"portshift" },
 	{}
 };
 
-static const struct bin_table bin_bus_table[] = {
+static const struct bin_table bin_bus_table[] =
+{
 	{ CTL_DIR,	CTL_BUS_ISA,	"isa",	bin_bus_isa_table },
 	{}
 };
 
 
-static const struct bin_table bin_s390dbf_table[] = {
+static const struct bin_table bin_s390dbf_table[] =
+{
 	{ CTL_INT,	5678 /* CTL_S390DBF_STOPPABLE */, "debug_stoppable" },
 	{ CTL_INT,	5679 /* CTL_S390DBF_ACTIVE */,	  "debug_active" },
 	{}
 };
 
-static const struct bin_table bin_sunrpc_table[] = {
+static const struct bin_table bin_sunrpc_table[] =
+{
 	/* CTL_RPCDEBUG	"rpc_debug"  no longer used */
 	/* CTL_NFSDEBUG "nfs_debug"  no longer used */
 	/* CTL_NFSDDEBUG "nfsd_debug" no longer used  */
@@ -892,7 +945,8 @@ static const struct bin_table bin_sunrpc_table[] = {
 	{}
 };
 
-static const struct bin_table bin_pm_table[] = {
+static const struct bin_table bin_pm_table[] =
+{
 	/* frv specific */
 	/* 1 == CTL_PM_SUSPEND	"suspend"  no longer used" */
 	{ CTL_INT,	2 /* CTL_PM_CMODE */,		"cmode" },
@@ -901,7 +955,8 @@ static const struct bin_table bin_pm_table[] = {
 	{}
 };
 
-static const struct bin_table bin_root_table[] = {
+static const struct bin_table bin_root_table[] =
+{
 	{ CTL_DIR,	CTL_KERN,	"kernel",	bin_kern_table },
 	{ CTL_DIR,	CTL_VM,		"vm",		bin_vm_table },
 	{ CTL_DIR,	CTL_NET,	"net",		bin_net_table },
@@ -920,48 +975,64 @@ static const struct bin_table bin_root_table[] = {
 };
 
 static ssize_t bin_dir(struct file *file,
-	void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
+					   void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
 {
 	return -ENOTDIR;
 }
 
 
 static ssize_t bin_string(struct file *file,
-	void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
+						  void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
 {
 	ssize_t result, copied = 0;
 
-	if (oldval && oldlen) {
+	if (oldval && oldlen)
+	{
 		char __user *lastp;
 		loff_t pos = 0;
 		int ch;
 
 		result = vfs_read(file, oldval, oldlen, &pos);
+
 		if (result < 0)
+		{
 			goto out;
+		}
 
 		copied = result;
 		lastp = oldval + copied - 1;
 
 		result = -EFAULT;
+
 		if (get_user(ch, lastp))
+		{
 			goto out;
+		}
 
 		/* Trim off the trailing newline */
-		if (ch == '\n') {
+		if (ch == '\n')
+		{
 			result = -EFAULT;
+
 			if (put_user('\0', lastp))
+			{
 				goto out;
+			}
+
 			copied -= 1;
 		}
 	}
 
-	if (newval && newlen) {
+	if (newval && newlen)
+	{
 		loff_t pos = 0;
 
 		result = vfs_write(file, newval, newlen, &pos);
+
 		if (result < 0)
+		{
 			goto out;
+		}
 	}
 
 	result = copied;
@@ -970,7 +1041,7 @@ out:
 }
 
 static ssize_t bin_intvec(struct file *file,
-	void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
+						  void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
 {
 	ssize_t copied = 0;
 	char *buffer;
@@ -978,40 +1049,59 @@ static ssize_t bin_intvec(struct file *file,
 
 	result = -ENOMEM;
 	buffer = kmalloc(BUFSZ, GFP_KERNEL);
-	if (!buffer)
-		goto out;
 
-	if (oldval && oldlen) {
+	if (!buffer)
+	{
+		goto out;
+	}
+
+	if (oldval && oldlen)
+	{
 		unsigned __user *vec = oldval;
 		size_t length = oldlen / sizeof(*vec);
 		char *str, *end;
 		int i;
 
 		result = kernel_read(file, 0, buffer, BUFSZ - 1);
+
 		if (result < 0)
+		{
 			goto out_kfree;
+		}
 
 		str = buffer;
 		end = str + result;
 		*end++ = '\0';
-		for (i = 0; i < length; i++) {
+
+		for (i = 0; i < length; i++)
+		{
 			unsigned long value;
 
 			value = simple_strtoul(str, &str, 10);
+
 			while (isspace(*str))
+			{
 				str++;
-			
+			}
+
 			result = -EFAULT;
+
 			if (put_user(value, vec + i))
+			{
 				goto out_kfree;
+			}
 
 			copied += sizeof(*vec);
+
 			if (!isdigit(*str))
+			{
 				break;
+			}
 		}
 	}
 
-	if (newval && newlen) {
+	if (newval && newlen)
+	{
 		unsigned __user *vec = newval;
 		size_t length = newlen / sizeof(*vec);
 		char *str, *end;
@@ -1019,20 +1109,29 @@ static ssize_t bin_intvec(struct file *file,
 
 		str = buffer;
 		end = str + BUFSZ;
-		for (i = 0; i < length; i++) {
+
+		for (i = 0; i < length; i++)
+		{
 			unsigned long value;
 
 			result = -EFAULT;
+
 			if (get_user(value, vec + i))
+			{
 				goto out_kfree;
+			}
 
 			str += scnprintf(str, end - str, "%lu\t", value);
 		}
 
 		result = kernel_write(file, buffer, str - buffer, 0);
+
 		if (result < 0)
+		{
 			goto out_kfree;
+		}
 	}
+
 	result = copied;
 out_kfree:
 	kfree(buffer);
@@ -1041,7 +1140,7 @@ out:
 }
 
 static ssize_t bin_ulongvec(struct file *file,
-	void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
+							void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
 {
 	ssize_t copied = 0;
 	char *buffer;
@@ -1049,40 +1148,59 @@ static ssize_t bin_ulongvec(struct file *file,
 
 	result = -ENOMEM;
 	buffer = kmalloc(BUFSZ, GFP_KERNEL);
-	if (!buffer)
-		goto out;
 
-	if (oldval && oldlen) {
+	if (!buffer)
+	{
+		goto out;
+	}
+
+	if (oldval && oldlen)
+	{
 		unsigned long __user *vec = oldval;
 		size_t length = oldlen / sizeof(*vec);
 		char *str, *end;
 		int i;
 
 		result = kernel_read(file, 0, buffer, BUFSZ - 1);
+
 		if (result < 0)
+		{
 			goto out_kfree;
+		}
 
 		str = buffer;
 		end = str + result;
 		*end++ = '\0';
-		for (i = 0; i < length; i++) {
+
+		for (i = 0; i < length; i++)
+		{
 			unsigned long value;
 
 			value = simple_strtoul(str, &str, 10);
+
 			while (isspace(*str))
+			{
 				str++;
-			
+			}
+
 			result = -EFAULT;
+
 			if (put_user(value, vec + i))
+			{
 				goto out_kfree;
+			}
 
 			copied += sizeof(*vec);
+
 			if (!isdigit(*str))
+			{
 				break;
+			}
 		}
 	}
 
-	if (newval && newlen) {
+	if (newval && newlen)
+	{
 		unsigned long __user *vec = newval;
 		size_t length = newlen / sizeof(*vec);
 		char *str, *end;
@@ -1090,20 +1208,29 @@ static ssize_t bin_ulongvec(struct file *file,
 
 		str = buffer;
 		end = str + BUFSZ;
-		for (i = 0; i < length; i++) {
+
+		for (i = 0; i < length; i++)
+		{
 			unsigned long value;
 
 			result = -EFAULT;
+
 			if (get_user(value, vec + i))
+			{
 				goto out_kfree;
+			}
 
 			str += scnprintf(str, end - str, "%lu\t", value);
 		}
 
 		result = kernel_write(file, buffer, str - buffer, 0);
+
 		if (result < 0)
+		{
 			goto out_kfree;
+		}
 	}
+
 	result = copied;
 out_kfree:
 	kfree(buffer);
@@ -1112,98 +1239,135 @@ out:
 }
 
 static ssize_t bin_uuid(struct file *file,
-	void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
+						void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
 {
 	ssize_t result, copied = 0;
 
 	/* Only supports reads */
-	if (oldval && oldlen) {
+	if (oldval && oldlen)
+	{
 		char buf[UUID_STRING_LEN + 1];
 		uuid_be uuid;
 
 		result = kernel_read(file, 0, buf, sizeof(buf) - 1);
+
 		if (result < 0)
+		{
 			goto out;
+		}
 
 		buf[result] = '\0';
 
 		result = -EIO;
+
 		if (uuid_be_to_bin(buf, &uuid))
+		{
 			goto out;
+		}
 
 		if (oldlen > 16)
+		{
 			oldlen = 16;
+		}
 
 		result = -EFAULT;
+
 		if (copy_to_user(oldval, &uuid, oldlen))
+		{
 			goto out;
+		}
 
 		copied = oldlen;
 	}
+
 	result = copied;
 out:
 	return result;
 }
 
 static ssize_t bin_dn_node_address(struct file *file,
-	void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
+								   void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
 {
 	ssize_t result, copied = 0;
 
-	if (oldval && oldlen) {
+	if (oldval && oldlen)
+	{
 		char buf[15], *nodep;
 		unsigned long area, node;
 		__le16 dnaddr;
 
 		result = kernel_read(file, 0, buf, sizeof(buf) - 1);
+
 		if (result < 0)
+		{
 			goto out;
+		}
 
 		buf[result] = '\0';
 
 		/* Convert the decnet address to binary */
 		result = -EIO;
 		nodep = strchr(buf, '.');
+
 		if (!nodep)
+		{
 			goto out;
+		}
+
 		++nodep;
 
 		area = simple_strtoul(buf, NULL, 10);
 		node = simple_strtoul(nodep, NULL, 10);
 
 		result = -EIO;
-		if ((area > 63)||(node > 1023))
+
+		if ((area > 63) || (node > 1023))
+		{
 			goto out;
+		}
 
 		dnaddr = cpu_to_le16((area << 10) | node);
 
 		result = -EFAULT;
+
 		if (put_user(dnaddr, (__le16 __user *)oldval))
+		{
 			goto out;
+		}
 
 		copied = sizeof(dnaddr);
 	}
 
-	if (newval && newlen) {
+	if (newval && newlen)
+	{
 		__le16 dnaddr;
 		char buf[15];
 		int len;
 
 		result = -EINVAL;
+
 		if (newlen != sizeof(dnaddr))
+		{
 			goto out;
+		}
 
 		result = -EFAULT;
+
 		if (get_user(dnaddr, (__le16 __user *)newval))
+		{
 			goto out;
+		}
 
 		len = scnprintf(buf, sizeof(buf), "%hu.%hu",
-				le16_to_cpu(dnaddr) >> 10,
-				le16_to_cpu(dnaddr) & 0x3ff);
+						le16_to_cpu(dnaddr) >> 10,
+						le16_to_cpu(dnaddr) & 0x3ff);
 
 		result = kernel_write(file, buf, len, 0);
+
 		if (result < 0)
+		{
 			goto out;
+		}
 	}
 
 	result = copied;
@@ -1224,45 +1388,63 @@ static const struct bin_table *get_sysctl(const int *name, int nlen, char *path)
 	path += 4;
 
 repeat:
+
 	if (!nlen)
+	{
 		return ERR_PTR(-ENOTDIR);
+	}
+
 	ctl_name = *name;
 	name++;
 	nlen--;
-	for ( ; table->convert; table++) {
+
+	for ( ; table->convert; table++)
+	{
 		int len = 0;
 
 		/*
 		 * For a wild card entry map from ifindex to network
 		 * device name.
 		 */
-		if (!table->ctl_name) {
+		if (!table->ctl_name)
+		{
 #ifdef CONFIG_NET
 			struct net *net = current->nsproxy->net_ns;
 			struct net_device *dev;
 			dev = dev_get_by_index(net, ctl_name);
-			if (dev) {
+
+			if (dev)
+			{
 				len = strlen(dev->name);
 				memcpy(path, dev->name, len);
 				dev_put(dev);
 			}
+
 #endif
-		/* Use the well known sysctl number to proc name mapping */
-		} else if (ctl_name == table->ctl_name) {
+			/* Use the well known sysctl number to proc name mapping */
+		}
+		else if (ctl_name == table->ctl_name)
+		{
 			len = strlen(table->procname);
 			memcpy(path, table->procname, len);
 		}
-		if (len) {
+
+		if (len)
+		{
 			path += len;
-			if (table->child) {
+
+			if (table->child)
+			{
 				*path++ = '/';
 				table = table->child;
 				goto repeat;
 			}
+
 			*path = '\0';
 			return table;
 		}
 	}
+
 	return ERR_PTR(-ENOTDIR);
 }
 
@@ -1272,20 +1454,25 @@ static char *sysctl_getname(const int *name, int nlen, const struct bin_table **
 
 	result = ERR_PTR(-ENOMEM);
 	tmp = __getname();
-	if (tmp) {
+
+	if (tmp)
+	{
 		const struct bin_table *table = get_sysctl(name, nlen, tmp);
 		result = tmp;
 		*tablep = table;
-		if (IS_ERR(table)) {
+
+		if (IS_ERR(table))
+		{
 			__putname(tmp);
 			result = ERR_CAST(table);
 		}
 	}
+
 	return result;
 }
 
 static ssize_t binary_sysctl(const int *name, int nlen,
-	void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
+							 void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
 {
 	const struct bin_table *table = NULL;
 	struct vfsmount *mnt;
@@ -1296,17 +1483,27 @@ static ssize_t binary_sysctl(const int *name, int nlen,
 
 	pathname = sysctl_getname(name, nlen, &table);
 	result = PTR_ERR(pathname);
+
 	if (IS_ERR(pathname))
+	{
 		goto out;
+	}
 
 	/* How should the sysctl be accessed? */
-	if (oldval && oldlen && newval && newlen) {
+	if (oldval && oldlen && newval && newlen)
+	{
 		flags = O_RDWR;
-	} else if (newval && newlen) {
+	}
+	else if (newval && newlen)
+	{
 		flags = O_WRONLY;
-	} else if (oldval && oldlen) {
+	}
+	else if (oldval && oldlen)
+	{
 		flags = O_RDONLY;
-	} else {
+	}
+	else
+	{
 		result = 0;
 		goto out_putname;
 	}
@@ -1314,8 +1511,11 @@ static ssize_t binary_sysctl(const int *name, int nlen,
 	mnt = task_active_pid_ns(current)->proc_mnt;
 	file = file_open_root(mnt->mnt_root, mnt, pathname, flags, 0);
 	result = PTR_ERR(file);
+
 	if (IS_ERR(file))
+	{
 		goto out_putname;
+	}
 
 	result = table->convert(file, oldval, oldlen, newval, newlen);
 
@@ -1330,7 +1530,7 @@ out:
 #else /* CONFIG_SYSCTL_SYSCALL */
 
 static ssize_t binary_sysctl(const int *name, int nlen,
-	void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
+							 void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
 {
 	return -ENOSYS;
 }
@@ -1347,16 +1547,24 @@ static void deprecated_sysctl_warning(const int *name, int nlen)
 	 * ever go away.
 	 */
 	if (name[0] == CTL_KERN && name[1] == KERN_VERSION)
+	{
 		return;
+	}
 
-	if (printk_ratelimit()) {
+	if (printk_ratelimit())
+	{
 		printk(KERN_INFO
-			"warning: process `%s' used the deprecated sysctl "
-			"system call with ", current->comm);
+			   "warning: process `%s' used the deprecated sysctl "
+			   "system call with ", current->comm);
+
 		for (i = 0; i < nlen; i++)
+		{
 			printk("%d.", name[i]);
+		}
+
 		printk("\n");
 	}
+
 	return;
 }
 
@@ -1382,26 +1590,38 @@ static void warn_on_bintable(const int *name, int nlen)
 	u32 hash = FNV32_OFFSET;
 
 	for (i = 0; i < nlen; i++)
+	{
 		hash = (hash ^ name[i]) * FNV32_PRIME;
+	}
+
 	hash %= WARN_ONCE_HASH_SIZE;
+
 	if (__test_and_set_bit(hash, warn_once_bitmap))
+	{
 		return;
+	}
+
 	deprecated_sysctl_warning(name, nlen);
 }
 
 static ssize_t do_sysctl(int __user *args_name, int nlen,
-	void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
+						 void __user *oldval, size_t oldlen, void __user *newval, size_t newlen)
 {
 	int name[CTL_MAXNAME];
 	int i;
 
 	/* Check args->nlen. */
 	if (nlen < 0 || nlen > CTL_MAXNAME)
+	{
 		return -ENOTDIR;
+	}
+
 	/* Read in the sysctl name for simplicity */
 	for (i = 0; i < nlen; i++)
 		if (get_user(name[i], args_name + i))
+		{
 			return -EFAULT;
+		}
 
 	warn_on_bintable(name, nlen);
 
@@ -1415,24 +1635,33 @@ SYSCALL_DEFINE1(sysctl, struct __sysctl_args __user *, args)
 	ssize_t result;
 
 	if (copy_from_user(&tmp, args, sizeof(tmp)))
+	{
 		return -EFAULT;
+	}
 
 	if (tmp.oldval && !tmp.oldlenp)
+	{
 		return -EFAULT;
+	}
 
 	if (tmp.oldlenp && get_user(oldlen, tmp.oldlenp))
+	{
 		return -EFAULT;
+	}
 
 	result = do_sysctl(tmp.name, tmp.nlen, tmp.oldval, oldlen,
-			   tmp.newval, tmp.newlen);
+					   tmp.newval, tmp.newlen);
 
-	if (result >= 0) {
+	if (result >= 0)
+	{
 		oldlen = result;
 		result = 0;
 	}
 
 	if (tmp.oldlenp && put_user(oldlen, tmp.oldlenp))
+	{
 		return -EFAULT;
+	}
 
 	return result;
 }
@@ -1440,7 +1669,8 @@ SYSCALL_DEFINE1(sysctl, struct __sysctl_args __user *, args)
 
 #ifdef CONFIG_COMPAT
 
-struct compat_sysctl_args {
+struct compat_sysctl_args
+{
 	compat_uptr_t	name;
 	int		nlen;
 	compat_uptr_t	oldval;
@@ -1458,26 +1688,36 @@ COMPAT_SYSCALL_DEFINE1(sysctl, struct compat_sysctl_args __user *, args)
 	ssize_t result;
 
 	if (copy_from_user(&tmp, args, sizeof(tmp)))
+	{
 		return -EFAULT;
+	}
 
 	if (tmp.oldval && !tmp.oldlenp)
+	{
 		return -EFAULT;
+	}
 
 	compat_oldlenp = compat_ptr(tmp.oldlenp);
+
 	if (compat_oldlenp && get_user(oldlen, compat_oldlenp))
+	{
 		return -EFAULT;
+	}
 
 	result = do_sysctl(compat_ptr(tmp.name), tmp.nlen,
-			   compat_ptr(tmp.oldval), oldlen,
-			   compat_ptr(tmp.newval), tmp.newlen);
+					   compat_ptr(tmp.oldval), oldlen,
+					   compat_ptr(tmp.newval), tmp.newlen);
 
-	if (result >= 0) {
+	if (result >= 0)
+	{
 		oldlen = result;
 		result = 0;
 	}
 
 	if (compat_oldlenp && put_user(oldlen, compat_oldlenp))
+	{
 		return -EFAULT;
+	}
 
 	return result;
 }

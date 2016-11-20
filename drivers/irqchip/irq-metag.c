@@ -25,7 +25,8 @@
  * @domain:		IRQ domain for all internal Meta IRQs (HWSTATMETA)
  * @unmasked:		Record of unmasked IRQs
  */
-struct metag_internal_irq_priv {
+struct metag_internal_irq_priv
+{
 	struct irq_domain	*domain;
 
 	unsigned long		unmasked;
@@ -41,10 +42,11 @@ static void metag_internal_irq_mask(struct irq_data *data);
 static void metag_internal_irq_unmask(struct irq_data *data);
 #ifdef CONFIG_SMP
 static int metag_internal_irq_set_affinity(struct irq_data *data,
-			const struct cpumask *cpumask, bool force);
+		const struct cpumask *cpumask, bool force);
 #endif
 
-static struct irq_chip internal_irq_edge_chip = {
+static struct irq_chip internal_irq_edge_chip =
+{
 	.name = "HWSTATMETA-IRQ",
 	.irq_startup = metag_internal_irq_startup,
 	.irq_shutdown = metag_internal_irq_shutdown,
@@ -67,17 +69,21 @@ static inline void __iomem *metag_hwvec_addr(irq_hw_number_t hw)
 {
 	void __iomem *addr;
 
-	switch (hw) {
-	case PERF0TRIG_OFFSET:
-		addr = (void __iomem *)PERF0VECINT;
-		break;
-	case PERF1TRIG_OFFSET:
-		addr = (void __iomem *)PERF1VECINT;
-		break;
-	default:
-		addr = NULL;
-		break;
+	switch (hw)
+	{
+		case PERF0TRIG_OFFSET:
+			addr = (void __iomem *)PERF0VECINT;
+			break;
+
+		case PERF1TRIG_OFFSET:
+			addr = (void __iomem *)PERF1VECINT;
+			break;
+
+		default:
+			addr = NULL;
+			break;
 	}
+
 	return addr;
 }
 
@@ -125,7 +131,9 @@ static void metag_internal_irq_ack(struct irq_data *data)
 	unsigned int bit = 1 << hw;
 
 	if (metag_in32(HWSTATMETA) & bit)
+	{
 		metag_out32(bit, HWSTATMETA);
+	}
 }
 
 /**
@@ -178,10 +186,14 @@ static void metag_internal_irq_unmask(struct irq_data *data)
 	 * thinking it hasn't fired. Therefore we need to keep trying to
 	 * retrigger until the bit is set.
 	 */
-	if (metag_in32(HWSTATMETA) & bit) {
+	if (metag_in32(HWSTATMETA) & bit)
+	{
 		metag_out32(bit, HWSTATMETA);
+
 		while (!(metag_in32(HWSTATMETA) & bit))
+		{
 			metag_out32(bit, HWSTATMETA);
+		}
 	}
 }
 
@@ -190,7 +202,7 @@ static void metag_internal_irq_unmask(struct irq_data *data)
  *	metag_internal_irq_set_affinity - set the affinity for an interrupt
  */
 static int metag_internal_irq_set_affinity(struct irq_data *data,
-			const struct cpumask *cpumask, bool force)
+		const struct cpumask *cpumask, bool force)
 {
 	unsigned int cpu, thread;
 	irq_hw_number_t hw = data->hwirq;
@@ -205,7 +217,7 @@ static int metag_internal_irq_set_affinity(struct irq_data *data,
 	thread = cpu_2_hwthread_id[cpu];
 
 	metag_out32(TBI_TRIG_VEC(TBID_SIGNUM_TR1(thread)),
-		    metag_hwvec_addr(hw));
+				metag_hwvec_addr(hw));
 
 	return 0;
 }
@@ -230,8 +242,10 @@ static void metag_internal_irq_demux(struct irq_desc *desc)
 recalculate:
 	status = metag_in32(HWSTATMETA) & priv->unmasked;
 
-	for (hw = 0; status != 0; status >>= 1, ++hw) {
-		if (status & 0x1) {
+	for (hw = 0; status != 0; status >>= 1, ++hw)
+	{
+		if (status & 0x1)
+		{
 			/*
 			 * Map the hardware IRQ number to a virtual Linux IRQ
 			 * number.
@@ -267,8 +281,12 @@ recalculate:
 int internal_irq_map(unsigned int hw)
 {
 	struct metag_internal_irq_priv *priv = &metag_internal_irq_priv;
+
 	if (!priv->domain)
+	{
 		return -ENODEV;
+	}
+
 	return irq_create_mapping(priv->domain, hw);
 }
 
@@ -279,7 +297,7 @@ int internal_irq_map(unsigned int hw)
  *	Configure @cpu's TR1 irq so that we can demux irqs.
  */
 static void metag_internal_irq_init_cpu(struct metag_internal_irq_priv *priv,
-					int cpu)
+										int cpu)
 {
 	unsigned int thread = cpu_2_hwthread_id[cpu];
 	unsigned int signum = TBID_SIGNUM_TR1(thread);
@@ -300,18 +318,21 @@ static void metag_internal_irq_init_cpu(struct metag_internal_irq_priv *priv,
  * and handler is configured.
  */
 static int metag_internal_intc_map(struct irq_domain *d, unsigned int irq,
-				   irq_hw_number_t hw)
+								   irq_hw_number_t hw)
 {
 	/* only register interrupt if it is mapped */
 	if (!metag_hwvec_addr(hw))
+	{
 		return -EINVAL;
+	}
 
 	irq_set_chip_and_handler(irq, &internal_irq_edge_chip,
-				 handle_edge_irq);
+							 handle_edge_irq);
 	return 0;
 }
 
-static const struct irq_domain_ops metag_internal_intc_domain_ops = {
+static const struct irq_domain_ops metag_internal_intc_domain_ops =
+{
 	.map	= metag_internal_intc_map,
 };
 
@@ -327,16 +348,18 @@ int __init init_internal_IRQ(void)
 
 	/* Set up an IRQ domain */
 	priv->domain = irq_domain_add_linear(NULL, 32,
-					     &metag_internal_intc_domain_ops,
-					     priv);
-	if (unlikely(!priv->domain)) {
+										 &metag_internal_intc_domain_ops,
+										 priv);
+
+	if (unlikely(!priv->domain))
+	{
 		pr_err("meta-internal-intc: cannot add IRQ domain\n");
 		return -ENOMEM;
 	}
 
 	/* Setup TR1 for all cpus. */
 	for_each_possible_cpu(cpu)
-		metag_internal_irq_init_cpu(priv, cpu);
+	metag_internal_irq_init_cpu(priv, cpu);
 
 	return 0;
 };

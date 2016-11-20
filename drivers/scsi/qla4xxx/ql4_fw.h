@@ -20,7 +20,8 @@
  *
  *************************************************************************/
 
-struct port_ctrl_stat_regs {
+struct port_ctrl_stat_regs
+{
 	__le32 ext_hw_conf;	/* 0x50  R/W */
 	__le32 rsrvd0;		/* 0x54 */
 	__le32 port_ctrl;	/* 0x58 */
@@ -32,7 +33,8 @@ struct port_ctrl_stat_regs {
 	__le32 port_err_status; /* 0xfc */
 };
 
-struct host_mem_cfg_regs {
+struct host_mem_cfg_regs
+{
 	__le32 rsrvd0[12];	/* 0x50-0x79 */
 	__le32 req_q_out;	/* 0x80 */
 	__le32 rsrvd1[31];	/* 0x84-0xFF */
@@ -41,7 +43,8 @@ struct host_mem_cfg_regs {
 /*
  * ISP 82xx I/O Register Set structure definitions.
  */
-struct device_reg_82xx {
+struct device_reg_82xx
+{
 	__le32 req_q_out;	/* 0x0000 (R): Request Queue out-Pointer. */
 	__le32 reserve1[63];	/* Request Queue out-Pointer. (64 * 4) */
 	__le32 rsp_q_in;	/* 0x0100 (R/W): Response Queue In-Pointer. */
@@ -66,7 +69,8 @@ struct device_reg_82xx {
 };
 
 /* ISP 83xx I/O Register Set structure */
-struct device_reg_83xx {
+struct device_reg_83xx
+{
 	__le32 mailbox_in[16];	/* 0x0000 */
 	__le32 reserve1[496];	/* 0x0040 */
 	__le32 mailbox_out[16];	/* 0x0800 */
@@ -100,7 +104,8 @@ struct device_reg_83xx {
 #define INT_MASK_FW_MB		(1 << 2)
 
 /*  remote register set (access via PCI memory read/write) */
-struct isp_reg {
+struct isp_reg
+{
 #define MBOX_REG_COUNT 8
 	__le32 mailbox[MBOX_REG_COUNT];
 
@@ -108,12 +113,15 @@ struct isp_reg {
 	__le32 flash_data;
 	__le32 ctrl_status;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__le32 nvram;
 			__le32 reserved1[2]; /* 0x30 */
 		} __attribute__ ((packed)) isp4010;
-		struct {
+		struct
+		{
 			__le32 intr_mask;
 			__le32 nvram; /* 0x30 */
 			__le32 semaphore;
@@ -125,8 +133,10 @@ struct isp_reg {
 
 	__le32 reserved2[4];	/* 0x40 */
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__le32 ext_hw_conf; /* 0x50 */
 			__le32 flow_ctrl;
 			__le32 port_ctrl;
@@ -145,8 +155,10 @@ struct isp_reg {
 
 			__le32 port_err_status; /* 0xfc */
 		} __attribute__ ((packed)) isp4010;
-		struct {
-			union {
+		struct
+		{
+			union
+			{
 				struct port_ctrl_stat_regs p0;
 				struct host_mem_cfg_regs p1;
 			};
@@ -227,8 +239,8 @@ static inline uint32_t clr_rmask(uint32_t val)
 #define ISP_CONTROL_FN1_SCSI			0x0700
 
 #define INTR_PENDING				(CSR_SCSI_COMPLETION_INTR |\
-						 CSR_SCSI_PROCESSOR_INTR |\
-						 CSR_SCSI_RESET_INTR)
+									 CSR_SCSI_PROCESSOR_INTR |\
+									 CSR_SCSI_RESET_INTR)
 
 /* ISP InterruptMask definitions */
 #define IMR_SCSI_INTR_ENABLE			0x00000004	/* 4022 */
@@ -247,7 +259,8 @@ static inline uint32_t clr_rmask(uint32_t val)
 #define GPOR_TOPCAT_RESET			0x00000004
 
 /*  shadow registers (DMA'd from HA to system memory.  read only) */
-struct shadow_regs {
+struct shadow_regs
+{
 	/* SCSI Request Queue Consumer Index */
 	__le32 req_q_out;	/*  0 x0   R */
 
@@ -257,23 +270,25 @@ struct shadow_regs {
 
 
 /*  External hardware configuration register */
-union external_hw_config_reg {
-	struct {
+union external_hw_config_reg
+{
+	struct
+	{
 		/* FIXME: Do we even need this?	 All values are
 		 * referred to by 16 bit quantities.  Platform and
 		 * endianess issues. */
-		__le32 bReserved0:1;
-		__le32 bSDRAMProtectionMethod:2;
-		__le32 bSDRAMBanks:1;
-		__le32 bSDRAMChipWidth:1;
-		__le32 bSDRAMChipSize:2;
-		__le32 bParityDisable:1;
-		__le32 bExternalMemoryType:1;
-		__le32 bFlashBIOSWriteEnable:1;
-		__le32 bFlashUpperBankSelect:1;
-		__le32 bWriteBurst:2;
-		__le32 bReserved1:3;
-		__le32 bMask:16;
+		__le32 bReserved0: 1;
+		__le32 bSDRAMProtectionMethod: 2;
+		__le32 bSDRAMBanks: 1;
+		__le32 bSDRAMChipWidth: 1;
+		__le32 bSDRAMChipSize: 2;
+		__le32 bParityDisable: 1;
+		__le32 bExternalMemoryType: 1;
+		__le32 bFlashBIOSWriteEnable: 1;
+		__le32 bFlashUpperBankSelect: 1;
+		__le32 bWriteBurst: 2;
+		__le32 bReserved1: 3;
+		__le32 bMask: 16;
 	};
 	uint32_t Asuint32_t;
 };
@@ -292,7 +307,8 @@ union external_hw_config_reg {
 #define FA_FLASH_DDB_SIZE		0x080000
 
 /* Flash Description Table */
-struct qla_fdt_layout {
+struct qla_fdt_layout
+{
 	uint8_t sig[4];
 	uint16_t version;
 	uint16_t len;
@@ -324,7 +340,8 @@ struct qla_fdt_layout {
 
 /* Flash Layout Table */
 
-struct qla_flt_location {
+struct qla_flt_location
+{
 	uint8_t sig[4];
 	uint16_t start_lo;
 	uint16_t start_hi;
@@ -333,7 +350,8 @@ struct qla_flt_location {
 	uint16_t checksum;
 };
 
-struct qla_flt_header {
+struct qla_flt_header
+{
 	uint16_t version;
 	uint16_t length;
 	uint16_t checksum;
@@ -352,7 +370,8 @@ struct qla_flt_header {
 #define FLT_REG_ISCSI_CHAP	0x63
 #define FLT_REG_ISCSI_DDB	0x6A
 
-struct qla_flt_region {
+struct qla_flt_region
+{
 	uint32_t code;
 	uint32_t size;
 	uint32_t start;
@@ -553,7 +572,8 @@ struct qla_flt_region {
 /*************************************************************************/
 
 /* Host Adapter Initialization Control Block (from host) */
-struct addr_ctrl_blk {
+struct addr_ctrl_blk
+{
 	uint8_t version;	/* 00 */
 #define  IFCB_VER_MIN			0x01
 #define  IFCB_VER_MAX			0x02
@@ -727,15 +747,17 @@ struct addr_ctrl_blk {
 #define IP_STATE_MASK	0x0F000000
 #define IP_STATE_SHIFT	24
 
-struct init_fw_ctrl_blk {
+struct init_fw_ctrl_blk
+{
 	struct addr_ctrl_blk pri;
-/*	struct addr_ctrl_blk sec;*/
+	/*	struct addr_ctrl_blk sec;*/
 };
 
 #define PRIMARI_ACB		0
 #define SECONDARY_ACB		1
 
-struct addr_ctrl_blk_def {
+struct addr_ctrl_blk_def
+{
 	uint8_t reserved1[1];	/* 00 */
 	uint8_t control;	/* 01 */
 	uint8_t reserved2[11];	/* 02-0C */
@@ -810,7 +832,8 @@ struct addr_ctrl_blk_def {
 #define MAX_RESRV_CHAP_IDX	3
 #define FLASH_CHAP_OFFSET	0x06000000
 
-struct ql4_chap_table {
+struct ql4_chap_table
+{
 	uint16_t link;
 	uint8_t flags;
 	uint8_t secret_len;
@@ -825,7 +848,8 @@ struct ql4_chap_table {
 	uint16_t cookie;
 };
 
-struct dev_db_entry {
+struct dev_db_entry
+{
 	uint16_t options;	/* 00-01 */
 #define DDB_OPT_DISC_SESSION  0x10
 #define DDB_OPT_TARGET	      0x02 /* device is a target */
@@ -933,12 +957,14 @@ struct dev_db_entry {
 #define FLASH_OFFSET_DB_END	(FLASH_OFFSET_DB_INFO + 0x7fff)
 
 
-struct sys_info_phys_addr {
+struct sys_info_phys_addr
+{
 	uint8_t address[6];	/* 00-05 */
 	uint8_t filler[2];	/* 06-07 */
 };
 
-struct flash_sys_info {
+struct flash_sys_info
+{
 	uint32_t cookie;	/* 00-03 */
 	uint32_t physAddrCount; /* 04-07 */
 	struct sys_info_phys_addr physAddr[4]; /* 08-27 */
@@ -969,13 +995,14 @@ struct flash_sys_info {
 	uint32_t reserved1[39]; /* 170-1ff */
 };	/* 200 */
 
-struct mbx_sys_info {
+struct mbx_sys_info
+{
 	uint8_t board_id_str[16];   /*  0-f  Keep board ID string first */
-				/* in this structure for GUI. */
+	/* in this structure for GUI. */
 	uint16_t board_id;	/* 10-11 board ID code */
 	uint16_t phys_port_cnt;	/* 12-13 number of physical network ports */
 	uint16_t port_num;	/* 14-15 network port for this PCI function */
-				/* (port 0 is first port) */
+	/* (port 0 is first port) */
 	uint8_t mac_addr[6];	/* 16-1b MAC address for this PCI function */
 	uint32_t iscsi_pci_func_cnt;  /* 1c-1f number of iSCSI PCI functions */
 	uint32_t pci_func;	      /* 20-23 this PCI function */
@@ -983,7 +1010,8 @@ struct mbx_sys_info {
 	uint8_t reserved[12];		  /* 34-3f */
 };
 
-struct about_fw_info {
+struct about_fw_info
+{
 	uint16_t fw_major;		/* 00 - 01 */
 	uint16_t fw_minor;		/* 02 - 03 */
 	uint16_t fw_patch;		/* 04 - 05 */
@@ -992,10 +1020,10 @@ struct about_fw_info {
 	uint8_t fw_build_time[16];	/* 18 - 27 ASCII String */
 	uint8_t fw_build_user[16];	/* 28 - 37 ASCII String */
 	uint16_t fw_load_source;	/* 38 - 39 */
-					/* 1 = Flash Primary,
-					   2 = Flash Secondary,
-					   3 = Host Download
-					*/
+	/* 1 = Flash Primary,
+	   2 = Flash Secondary,
+	   3 = Host Download
+	*/
 	uint8_t reserved1[6];		/* 3A - 3F */
 	uint16_t iscsi_major;		/* 40 - 41 */
 	uint16_t iscsi_minor;		/* 42 - 43 */
@@ -1006,7 +1034,8 @@ struct about_fw_info {
 	uint8_t extended_timestamp[180];/* 4C - FF */
 };
 
-struct crash_record {
+struct crash_record
+{
 	uint16_t fw_major_version;	/* 00 - 01 */
 	uint16_t fw_minor_version;	/* 02 - 03 */
 	uint16_t fw_patch_version;	/* 04 - 05 */
@@ -1032,7 +1061,8 @@ struct crash_record {
 	uint8_t in_out_RISC_stack_dump[0];	/*280 - ??? */
 };
 
-struct conn_event_log_entry {
+struct conn_event_log_entry
+{
 #define MAX_CONN_EVENT_LOG_ENTRIES	100
 	uint32_t timestamp_sec; /* 00 - 03 seconds since boot */
 	uint32_t timestamp_ms;	/* 04 - 07 milliseconds since boot */
@@ -1055,7 +1085,8 @@ struct conn_event_log_entry {
 #define IOCB_MAX_EXT_SENSEDATA_LEN  60  /* Bytes of extended sense data */
 
 /* IOCB header structure */
-struct qla4_header {
+struct qla4_header
+{
 	uint8_t entryType;
 #define ET_STATUS		 0x03
 #define ET_MARKER		 0x04
@@ -1076,7 +1107,8 @@ struct qla4_header {
 };
 
 /* Generic queue entry structure*/
-struct queue_entry {
+struct queue_entry
+{
 	uint8_t data[60];
 	uint32_t signature;
 
@@ -1089,8 +1121,10 @@ struct queue_entry {
 
 /* 64 bit addressing segment definition*/
 
-struct data_seg_a64 {
-	struct {
+struct data_seg_a64
+{
+	struct
+	{
 		uint32_t addrLow;
 		uint32_t addrHigh;
 
@@ -1102,7 +1136,8 @@ struct data_seg_a64 {
 
 /* Command Type 3 entry structure*/
 
-struct command_t3_entry {
+struct command_t3_entry
+{
 	struct qla4_header hdr;	/* 00-03 */
 
 	uint32_t handle;	/* 04-07 */
@@ -1141,7 +1176,8 @@ struct command_t3_entry {
 
 
 /* Continuation Type 1 entry structure*/
-struct continuation_t1_entry {
+struct continuation_t1_entry
+{
 	struct qla4_header hdr;
 
 	struct data_seg_a64 dataseg[CONTINUE_SEG_A64];
@@ -1156,7 +1192,8 @@ struct continuation_t1_entry {
 #define ET_CONTINUE	ET_CONT_T1
 
 /* Marker entry structure*/
-struct qla4_marker_entry {
+struct qla4_marker_entry
+{
 	struct qla4_header hdr;	/* 00-03 */
 
 	uint32_t system_defined; /* 04-07 */
@@ -1176,7 +1213,8 @@ struct qla4_marker_entry {
 };
 
 /* Status entry structure*/
-struct status_entry {
+struct status_entry
+{
 	struct qla4_header hdr;	/* 00-03 */
 
 	uint32_t handle;	/* 04-07 */
@@ -1218,12 +1256,14 @@ struct status_entry {
 };
 
 /* Status Continuation entry */
-struct status_cont_entry {
-       struct qla4_header hdr; /* 00-03 */
-       uint8_t ext_sense_data[IOCB_MAX_EXT_SENSEDATA_LEN]; /* 04-63 */
+struct status_cont_entry
+{
+	struct qla4_header hdr; /* 00-03 */
+	uint8_t ext_sense_data[IOCB_MAX_EXT_SENSEDATA_LEN]; /* 04-63 */
 };
 
-struct passthru0 {
+struct passthru0
+{
 	struct qla4_header hdr;		       /* 00-03 */
 	uint32_t handle;	/* 04-07 */
 	uint16_t target;	/* 08-09 */
@@ -1246,7 +1286,8 @@ struct passthru0 {
 	uint8_t res2[20];	/* 2C-3F */
 };
 
-struct passthru_status {
+struct passthru_status
+{
 	struct qla4_header hdr;		       /* 00-03 */
 	uint32_t handle;	/* 04-07 */
 	uint16_t target;	/* 08-09 */
@@ -1266,14 +1307,16 @@ struct passthru_status {
 	uint8_t res4[16];	/* 30-3F */
 };
 
-struct mbox_cmd_iocb {
+struct mbox_cmd_iocb
+{
 	struct qla4_header hdr;	/* 00-03 */
 	uint32_t handle;	/* 04-07 */
 	uint32_t in_mbox[8];	/* 08-25 */
 	uint32_t res1[6];	/* 26-3F */
 };
 
-struct mbox_status_iocb {
+struct mbox_status_iocb
+{
 	struct qla4_header hdr;	/* 00-03 */
 	uint32_t handle;	/* 04-07 */
 	uint32_t out_mbox[8];	/* 08-25 */
@@ -1283,13 +1326,15 @@ struct mbox_status_iocb {
 /*
  * ISP queue - response queue entry definition.
  */
-struct response {
+struct response
+{
 	uint8_t data[60];
 	uint32_t signature;
 #define RESPONSE_PROCESSED	0xDEADDEAD	/* Signature */
 };
 
-struct ql_iscsi_stats {
+struct ql_iscsi_stats
+{
 	uint64_t mac_tx_frames; /* 0000–0007 */
 	uint64_t mac_tx_bytes; /* 0008–000F */
 	uint64_t mac_tx_multicast_frames; /* 0010–0017 */
@@ -1419,7 +1464,8 @@ struct ql_iscsi_stats {
 #define QLA83XX_TEMPLATE_CAP_OFFSET		268
 #define QLA80XX_TEMPLATE_RESERVED_BITS		16
 
-struct qla4_8xxx_minidump_template_hdr {
+struct qla4_8xxx_minidump_template_hdr
+{
 	uint32_t entry_type;
 	uint32_t first_entry_offset;
 	uint32_t size_of_template;

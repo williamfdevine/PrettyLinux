@@ -17,12 +17,13 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
- */      
+ */
 
 #ifndef __SOUND_PT2258_H
 #define __SOUND_PT2258_H
 
-struct snd_pt2258 {
+struct snd_pt2258
+{
 	struct snd_card *card;
 	struct snd_i2c_bus *i2c_bus;
 	struct snd_i2c_device *i2c_dev;

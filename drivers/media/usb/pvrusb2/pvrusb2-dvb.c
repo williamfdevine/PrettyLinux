@@ -43,27 +43,37 @@ static int pvr2_dvb_feed_func(struct pvr2_dvb_adapter *adap)
 
 	stream = adap->channel.stream->stream;
 
-	for (;;) {
-		if (kthread_should_stop()) break;
+	for (;;)
+	{
+		if (kthread_should_stop()) { break; }
 
 		/* Not sure about this... */
 		try_to_freeze();
 
 		bp = pvr2_stream_get_ready_buffer(stream);
-		if (bp != NULL) {
+
+		if (bp != NULL)
+		{
 			count = pvr2_buffer_get_count(bp);
-			if (count) {
+
+			if (count)
+			{
 				dvb_dmx_swfilter(
 					&adap->demux,
 					adap->buffer_storage[
-					    pvr2_buffer_get_id(bp)],
+						pvr2_buffer_get_id(bp)],
 					count);
-			} else {
-				ret = pvr2_buffer_get_status(bp);
-				if (ret < 0) break;
 			}
+			else
+			{
+				ret = pvr2_buffer_get_status(bp);
+
+				if (ret < 0) { break; }
+			}
+
 			ret = pvr2_buffer_queue(bp);
-			if (ret < 0) break;
+
+			if (ret < 0) { break; }
 
 			/* Since we know we did something to a buffer,
 			   just go back and try again.  No point in
@@ -76,10 +86,11 @@ static int pvr2_dvb_feed_func(struct pvr2_dvb_adapter *adap)
 		/* Wait until more buffers become available or we're
 		   told not to wait any longer. */
 		ret = wait_event_interruptible(
-		    adap->buffer_wait_data,
-		    (pvr2_stream_get_ready_count(stream) > 0) ||
-		    kthread_should_stop());
-		if (ret < 0) break;
+				  adap->buffer_wait_data,
+				  (pvr2_stream_get_ready_count(stream) > 0) ||
+				  kthread_should_stop());
+
+		if (ret < 0) { break; }
 	}
 
 	/* If we get here and ret is < 0, then an error has occurred.
@@ -93,11 +104,14 @@ static int pvr2_dvb_feed_func(struct pvr2_dvb_adapter *adap)
 static int pvr2_dvb_feed_thread(void *data)
 {
 	int stat = pvr2_dvb_feed_func(data);
+
 	/* from videobuf-dvb.c: */
-	while (!kthread_should_stop()) {
+	while (!kthread_should_stop())
+	{
 		set_current_state(TASK_INTERRUPTIBLE);
 		schedule();
 	}
+
 	return stat;
 }
 
@@ -111,17 +125,23 @@ static void pvr2_dvb_stream_end(struct pvr2_dvb_adapter *adap)
 	unsigned int idx;
 	struct pvr2_stream *stream;
 
-	if (adap->thread) {
+	if (adap->thread)
+	{
 		kthread_stop(adap->thread);
 		adap->thread = NULL;
 	}
 
-	if (adap->channel.stream) {
+	if (adap->channel.stream)
+	{
 		stream = adap->channel.stream->stream;
-	} else {
+	}
+	else
+	{
 		stream = NULL;
 	}
-	if (stream) {
+
+	if (stream)
+	{
 		pvr2_hdw_set_streaming(adap->channel.hdw, 0);
 		pvr2_stream_set_callback(stream, NULL, NULL);
 		pvr2_stream_kill(stream);
@@ -129,12 +149,16 @@ static void pvr2_dvb_stream_end(struct pvr2_dvb_adapter *adap)
 		pvr2_channel_claim_stream(&adap->channel, NULL);
 	}
 
-	if (adap->stream_run) {
-		for (idx = 0; idx < PVR2_DVB_BUFFER_COUNT; idx++) {
-			if (!(adap->buffer_storage[idx])) continue;
+	if (adap->stream_run)
+	{
+		for (idx = 0; idx < PVR2_DVB_BUFFER_COUNT; idx++)
+		{
+			if (!(adap->buffer_storage[idx])) { continue; }
+
 			kfree(adap->buffer_storage[idx]);
 			adap->buffer_storage[idx] = NULL;
 		}
+
 		adap->stream_run = 0;
 	}
 }
@@ -147,44 +171,53 @@ static int pvr2_dvb_stream_do_start(struct pvr2_dvb_adapter *adap)
 	struct pvr2_buffer *bp;
 	struct pvr2_stream *stream = NULL;
 
-	if (adap->stream_run) return -EIO;
+	if (adap->stream_run) { return -EIO; }
 
 	ret = pvr2_channel_claim_stream(&adap->channel, &pvr->video_stream);
+
 	/* somebody else already has the stream */
-	if (ret < 0) return ret;
+	if (ret < 0) { return ret; }
 
 	stream = adap->channel.stream->stream;
 
-	for (idx = 0; idx < PVR2_DVB_BUFFER_COUNT; idx++) {
+	for (idx = 0; idx < PVR2_DVB_BUFFER_COUNT; idx++)
+	{
 		adap->buffer_storage[idx] = kmalloc(PVR2_DVB_BUFFER_SIZE,
-						    GFP_KERNEL);
-		if (!(adap->buffer_storage[idx])) return -ENOMEM;
+											GFP_KERNEL);
+
+		if (!(adap->buffer_storage[idx])) { return -ENOMEM; }
 	}
 
 	pvr2_stream_set_callback(pvr->video_stream.stream,
-				 (pvr2_stream_callback) pvr2_dvb_notify, adap);
+							 (pvr2_stream_callback) pvr2_dvb_notify, adap);
 
 	ret = pvr2_stream_set_buffer_count(stream, PVR2_DVB_BUFFER_COUNT);
-	if (ret < 0) return ret;
 
-	for (idx = 0; idx < PVR2_DVB_BUFFER_COUNT; idx++) {
+	if (ret < 0) { return ret; }
+
+	for (idx = 0; idx < PVR2_DVB_BUFFER_COUNT; idx++)
+	{
 		bp = pvr2_stream_get_buffer(stream, idx);
 		pvr2_buffer_set_buffer(bp,
-				       adap->buffer_storage[idx],
-				       PVR2_DVB_BUFFER_SIZE);
+							   adap->buffer_storage[idx],
+							   PVR2_DVB_BUFFER_SIZE);
 	}
 
 	ret = pvr2_hdw_set_streaming(adap->channel.hdw, 1);
-	if (ret < 0) return ret;
 
-	while ((bp = pvr2_stream_get_idle_buffer(stream)) != NULL) {
+	if (ret < 0) { return ret; }
+
+	while ((bp = pvr2_stream_get_idle_buffer(stream)) != NULL)
+	{
 		ret = pvr2_buffer_queue(bp);
-		if (ret < 0) return ret;
+
+		if (ret < 0) { return ret; }
 	}
 
 	adap->thread = kthread_run(pvr2_dvb_feed_thread, adap, "pvrusb2-dvb");
 
-	if (IS_ERR(adap->thread)) {
+	if (IS_ERR(adap->thread))
+	{
 		ret = PTR_ERR(adap->thread);
 		adap->thread = NULL;
 		return ret;
@@ -198,7 +231,9 @@ static int pvr2_dvb_stream_do_start(struct pvr2_dvb_adapter *adap)
 static int pvr2_dvb_stream_start(struct pvr2_dvb_adapter *adap)
 {
 	int ret = pvr2_dvb_stream_do_start(adap);
-	if (ret < 0) pvr2_dvb_stream_end(adap);
+
+	if (ret < 0) { pvr2_dvb_stream_end(adap); }
+
 	return ret;
 }
 
@@ -207,27 +242,39 @@ static int pvr2_dvb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
 	struct pvr2_dvb_adapter *adap = dvbdmxfeed->demux->priv;
 	int ret = 0;
 
-	if (adap == NULL) return -ENODEV;
+	if (adap == NULL) { return -ENODEV; }
 
 	mutex_lock(&adap->lock);
-	do {
-		if (onoff) {
-			if (!adap->feedcount) {
+
+	do
+	{
+		if (onoff)
+		{
+			if (!adap->feedcount)
+			{
 				pvr2_trace(PVR2_TRACE_DVB_FEED,
-					   "start feeding demux");
+						   "start feeding demux");
 				ret = pvr2_dvb_stream_start(adap);
-				if (ret < 0) break;
+
+				if (ret < 0) { break; }
 			}
+
 			(adap->feedcount)++;
-		} else if (adap->feedcount > 0) {
+		}
+		else if (adap->feedcount > 0)
+		{
 			(adap->feedcount)--;
-			if (!adap->feedcount) {
+
+			if (!adap->feedcount)
+			{
 				pvr2_trace(PVR2_TRACE_DVB_FEED,
-					   "stop feeding demux");
+						   "stop feeding demux");
 				pvr2_dvb_stream_end(adap);
 			}
 		}
-	} while (0);
+	}
+	while (0);
+
 	mutex_unlock(&adap->lock);
 
 	return ret;
@@ -249,8 +296,8 @@ static int pvr2_dvb_bus_ctrl(struct dvb_frontend *fe, int acquire)
 {
 	struct pvr2_dvb_adapter *adap = fe->dvb->priv;
 	return pvr2_channel_limit_inputs(
-	    &adap->channel,
-	    (acquire ? (1 << PVR2_CVAL_INPUT_DTV) : 0));
+			   &adap->channel,
+			   (acquire ? (1 << PVR2_CVAL_INPUT_DTV) : 0));
 }
 
 static int pvr2_dvb_adapter_init(struct pvr2_dvb_adapter *adap)
@@ -258,19 +305,22 @@ static int pvr2_dvb_adapter_init(struct pvr2_dvb_adapter *adap)
 	int ret;
 
 	ret = dvb_register_adapter(&adap->dvb_adap, "pvrusb2-dvb",
-				   THIS_MODULE/*&hdw->usb_dev->owner*/,
-				   &adap->channel.hdw->usb_dev->dev,
-				   adapter_nr);
-	if (ret < 0) {
+							   THIS_MODULE/*&hdw->usb_dev->owner*/,
+							   &adap->channel.hdw->usb_dev->dev,
+							   adapter_nr);
+
+	if (ret < 0)
+	{
 		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
-			   "dvb_register_adapter failed: error %d", ret);
+				   "dvb_register_adapter failed: error %d", ret);
 		goto err;
 	}
+
 	adap->dvb_adap.priv = adap;
 
 	adap->demux.dmx.capabilities = DMX_TS_FILTERING |
-				       DMX_SECTION_FILTERING |
-				       DMX_MEMORY_BASED_FILTERING;
+								   DMX_SECTION_FILTERING |
+								   DMX_MEMORY_BASED_FILTERING;
 	adap->demux.priv             = adap;
 	adap->demux.filternum        = 256;
 	adap->demux.feednum          = 256;
@@ -279,9 +329,11 @@ static int pvr2_dvb_adapter_init(struct pvr2_dvb_adapter *adap)
 	adap->demux.write_to_decoder = NULL;
 
 	ret = dvb_dmx_init(&adap->demux);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
-			   "dvb_dmx_init failed: error %d", ret);
+				   "dvb_dmx_init failed: error %d", ret);
 		goto err_dmx;
 	}
 
@@ -290,9 +342,11 @@ static int pvr2_dvb_adapter_init(struct pvr2_dvb_adapter *adap)
 	adap->dmxdev.capabilities    = 0;
 
 	ret = dvb_dmxdev_init(&adap->dmxdev, &adap->dvb_adap);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
-			   "dvb_dmxdev_init failed: error %d", ret);
+				   "dvb_dmxdev_init failed: error %d", ret);
 		goto err_dmx_dev;
 	}
 
@@ -325,33 +379,39 @@ static int pvr2_dvb_frontend_init(struct pvr2_dvb_adapter *adap)
 	const struct pvr2_dvb_props *dvb_props = hdw->hdw_desc->dvb_props;
 	int ret = 0;
 
-	if (dvb_props == NULL) {
+	if (dvb_props == NULL)
+	{
 		pvr2_trace(PVR2_TRACE_ERROR_LEGS, "fe_props not defined!");
 		return -EINVAL;
 	}
 
 	ret = pvr2_channel_limit_inputs(
-	    &adap->channel,
-	    (1 << PVR2_CVAL_INPUT_DTV));
-	if (ret) {
+			  &adap->channel,
+			  (1 << PVR2_CVAL_INPUT_DTV));
+
+	if (ret)
+	{
 		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
-			   "failed to grab control of dtv input (code=%d)",
-		    ret);
+				   "failed to grab control of dtv input (code=%d)",
+				   ret);
 		return ret;
 	}
 
-	if (dvb_props->frontend_attach == NULL) {
+	if (dvb_props->frontend_attach == NULL)
+	{
 		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
-			   "frontend_attach not defined!");
+				   "frontend_attach not defined!");
 		ret = -EINVAL;
 		goto done;
 	}
 
-	if ((dvb_props->frontend_attach(adap) == 0) && (adap->fe)) {
+	if ((dvb_props->frontend_attach(adap) == 0) && (adap->fe))
+	{
 
-		if (dvb_register_frontend(&adap->dvb_adap, adap->fe)) {
+		if (dvb_register_frontend(&adap->dvb_adap, adap->fe))
+		{
 			pvr2_trace(PVR2_TRACE_ERROR_LEGS,
-				   "frontend registration failed!");
+					   "frontend registration failed!");
 			dvb_frontend_detach(adap->fe);
 			adap->fe = NULL;
 			ret = -ENODEV;
@@ -359,32 +419,40 @@ static int pvr2_dvb_frontend_init(struct pvr2_dvb_adapter *adap)
 		}
 
 		if (dvb_props->tuner_attach)
+		{
 			dvb_props->tuner_attach(adap);
+		}
 
 		if (adap->fe->ops.analog_ops.standby)
+		{
 			adap->fe->ops.analog_ops.standby(adap->fe);
+		}
 
 		/* Ensure all frontends negotiate bus access */
 		adap->fe->ops.ts_bus_ctrl = pvr2_dvb_bus_ctrl;
 
-	} else {
+	}
+	else
+	{
 		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
-			   "no frontend was attached!");
+				   "no frontend was attached!");
 		ret = -ENODEV;
 		return ret;
 	}
 
- done:
+done:
 	pvr2_channel_limit_inputs(&adap->channel, 0);
 	return ret;
 }
 
 static int pvr2_dvb_frontend_exit(struct pvr2_dvb_adapter *adap)
 {
-	if (adap->fe != NULL) {
+	if (adap->fe != NULL)
+	{
 		dvb_unregister_frontend(adap->fe);
 		dvb_frontend_detach(adap->fe);
 	}
+
 	return 0;
 }
 
@@ -401,7 +469,9 @@ static void pvr2_dvb_internal_check(struct pvr2_channel *chp)
 {
 	struct pvr2_dvb_adapter *adap;
 	adap = container_of(chp, struct pvr2_dvb_adapter, channel);
-	if (!adap->channel.mc_head->disconnect_flag) return;
+
+	if (!adap->channel.mc_head->disconnect_flag) { return; }
+
 	pvr2_dvb_destroy(adap);
 }
 
@@ -409,21 +479,30 @@ struct pvr2_dvb_adapter *pvr2_dvb_create(struct pvr2_context *pvr)
 {
 	int ret = 0;
 	struct pvr2_dvb_adapter *adap;
-	if (!pvr->hdw->hdw_desc->dvb_props) {
+
+	if (!pvr->hdw->hdw_desc->dvb_props)
+	{
 		/* Device lacks a digital interface so don't set up
 		   the DVB side of the driver either.  For now. */
 		return NULL;
 	}
+
 	adap = kzalloc(sizeof(*adap), GFP_KERNEL);
-	if (!adap) return adap;
+
+	if (!adap) { return adap; }
+
 	pvr2_channel_init(&adap->channel, pvr);
 	adap->channel.check_func = pvr2_dvb_internal_check;
 	init_waitqueue_head(&adap->buffer_wait_data);
 	mutex_init(&adap->lock);
 	ret = pvr2_dvb_adapter_init(adap);
-	if (ret < 0) goto fail1;
+
+	if (ret < 0) { goto fail1; }
+
 	ret = pvr2_dvb_frontend_init(adap);
-	if (ret < 0) goto fail2;
+
+	if (ret < 0) { goto fail2; }
+
 	return adap;
 
 fail2:

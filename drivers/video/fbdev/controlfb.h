@@ -20,7 +20,8 @@
 /*
  * Structure of the registers for the RADACAL colormap device.
  */
-struct cmap_regs {
+struct cmap_regs
+{
 	unsigned char addr;	/* index for both cmap and misc registers */
 	char pad1[15];
 	unsigned char crsr;	/* cursor palette */
@@ -36,12 +37,14 @@ struct cmap_regs {
  */
 #define PAD(x)	char x[12]
 
-struct preg {			/* padded register */
+struct preg  			/* padded register */
+{
 	unsigned r;
 	char pad[12];
 };
 
-struct control_regs {
+struct control_regs
+{
 	struct preg vcount;	/* vertical counter */
 	/* Vertical parameters are in units of 1/2 scan line */
 	struct preg vswin;	/* between vsblank and vssync */
@@ -74,7 +77,8 @@ struct control_regs {
 	struct preg res[5];
 };
 
-struct control_regints {
+struct control_regints
+{
 	/* Vertical parameters are in units of 1/2 scan line */
 	unsigned vswin;	/* between vsblank and vssync */
 	unsigned vsblank;	/* vert start blank */
@@ -95,12 +99,13 @@ struct control_regints {
 	unsigned hlfln;		/* half horiz period */
 	unsigned hserr;		/* horiz period - horiz sync len */
 };
-	
+
 /*
  * Dot clock rate is
  * 3.9064MHz * 2**clock_params[2] * clock_params[1] / clock_params[0].
  */
-struct control_regvals {
+struct control_regvals
+{
 	unsigned regs[16];		/* for vswin .. hserr */
 	unsigned char mode;
 	unsigned char radacal_ctrl;
@@ -113,22 +118,24 @@ struct control_regvals {
 /*
  * Best cmode supported by control
  */
-struct max_cmodes {
+struct max_cmodes
+{
 	int m[2];	/* 0: 2MB vram, 1: 4MB vram */
 };
 
 /*
  * Video modes supported by macmodes.c
  */
-static struct max_cmodes control_mac_modes[] = {
-	{{-1,-1}},	/* 512x384, 60Hz interlaced (NTSC) */
-	{{-1,-1}},	/* 512x384, 60Hz */
-	{{-1,-1}},	/* 640x480, 50Hz interlaced (PAL) */
-	{{-1,-1}},	/* 640x480, 60Hz interlaced (NTSC) */
+static struct max_cmodes control_mac_modes[] =
+{
+	{{ -1, -1}},	/* 512x384, 60Hz interlaced (NTSC) */
+	{{ -1, -1}},	/* 512x384, 60Hz */
+	{{ -1, -1}},	/* 640x480, 50Hz interlaced (PAL) */
+	{{ -1, -1}},	/* 640x480, 60Hz interlaced (NTSC) */
 	{{ 2, 2}},	/* 640x480, 60Hz (VGA) */
 	{{ 2, 2}},	/* 640x480, 67Hz */
-	{{-1,-1}},	/* 640x870, 75Hz (portrait) */
-	{{-1,-1}},	/* 768x576, 50Hz (PAL full frame) */
+	{{ -1, -1}},	/* 640x870, 75Hz (portrait) */
+	{{ -1, -1}},	/* 768x576, 50Hz (PAL full frame) */
 	{{ 2, 2}},	/* 800x600, 56Hz */
 	{{ 2, 2}},	/* 800x600, 60Hz */
 	{{ 2, 2}},	/* 800x600, 72Hz */

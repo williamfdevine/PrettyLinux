@@ -18,7 +18,8 @@
 #ifndef __XFS_SUPPORT_UUID_H__
 #define __XFS_SUPPORT_UUID_H__
 
-typedef struct {
+typedef struct
+{
 	unsigned char	__u_bits[16];
 } uuid_t;
 

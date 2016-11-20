@@ -19,15 +19,24 @@
 
 #include "hysdn_defs.h"
 
-static struct pci_device_id hysdn_pci_tbl[] = {
-	{ PCI_VENDOR_ID_HYPERCOPE, PCI_DEVICE_ID_HYPERCOPE_PLX,
-	  PCI_ANY_ID, PCI_SUBDEVICE_ID_HYPERCOPE_METRO, 0, 0, BD_METRO },
-	{ PCI_VENDOR_ID_HYPERCOPE, PCI_DEVICE_ID_HYPERCOPE_PLX,
-	  PCI_ANY_ID, PCI_SUBDEVICE_ID_HYPERCOPE_CHAMP2, 0, 0, BD_CHAMP2 },
-	{ PCI_VENDOR_ID_HYPERCOPE, PCI_DEVICE_ID_HYPERCOPE_PLX,
-	  PCI_ANY_ID, PCI_SUBDEVICE_ID_HYPERCOPE_ERGO, 0, 0, BD_ERGO },
-	{ PCI_VENDOR_ID_HYPERCOPE, PCI_DEVICE_ID_HYPERCOPE_PLX,
-	  PCI_ANY_ID, PCI_SUBDEVICE_ID_HYPERCOPE_OLD_ERGO, 0, 0, BD_ERGO },
+static struct pci_device_id hysdn_pci_tbl[] =
+{
+	{
+		PCI_VENDOR_ID_HYPERCOPE, PCI_DEVICE_ID_HYPERCOPE_PLX,
+		PCI_ANY_ID, PCI_SUBDEVICE_ID_HYPERCOPE_METRO, 0, 0, BD_METRO
+	},
+	{
+		PCI_VENDOR_ID_HYPERCOPE, PCI_DEVICE_ID_HYPERCOPE_PLX,
+		PCI_ANY_ID, PCI_SUBDEVICE_ID_HYPERCOPE_CHAMP2, 0, 0, BD_CHAMP2
+	},
+	{
+		PCI_VENDOR_ID_HYPERCOPE, PCI_DEVICE_ID_HYPERCOPE_PLX,
+		PCI_ANY_ID, PCI_SUBDEVICE_ID_HYPERCOPE_ERGO, 0, 0, BD_ERGO
+	},
+	{
+		PCI_VENDOR_ID_HYPERCOPE, PCI_DEVICE_ID_HYPERCOPE_PLX,
+		PCI_ANY_ID, PCI_SUBDEVICE_ID_HYPERCOPE_OLD_ERGO, 0, 0, BD_ERGO
+	},
 
 	{ }				/* Terminating entry */
 };
@@ -57,20 +66,25 @@ static hysdn_card *card_last = NULL;	/* pointer to first card */
 /****************************************************************************/
 
 static int hysdn_pci_init_one(struct pci_dev *akt_pcidev,
-			      const struct pci_device_id *ent)
+							  const struct pci_device_id *ent)
 {
 	hysdn_card *card;
 	int rc;
 
 	rc = pci_enable_device(akt_pcidev);
-	if (rc)
-		return rc;
 
-	if (!(card = kzalloc(sizeof(hysdn_card), GFP_KERNEL))) {
+	if (rc)
+	{
+		return rc;
+	}
+
+	if (!(card = kzalloc(sizeof(hysdn_card), GFP_KERNEL)))
+	{
 		printk(KERN_ERR "HYSDN: unable to alloc device mem \n");
 		rc = -ENOMEM;
 		goto err_out;
 	}
+
 	card->myid = cardmax;	/* set own id */
 	card->bus = akt_pcidev->bus->number;
 	card->devfn = akt_pcidev->devfn;	/* slot + function */
@@ -85,7 +99,8 @@ static int hysdn_pci_init_one(struct pci_dev *akt_pcidev,
 	card->bchans = 2;	/* and 2 b-channels */
 	card->brdtype = ent->driver_data;
 
-	if (ergo_inithardware(card)) {
+	if (ergo_inithardware(card))
+	{
 		printk(KERN_WARNING "HYSDN: card at io 0x%04x already in use\n", card->iobase);
 		rc = -EBUSY;
 		goto err_out_card;
@@ -93,10 +108,16 @@ static int hysdn_pci_init_one(struct pci_dev *akt_pcidev,
 
 	cardmax++;
 	card->next = NULL;	/*end of chain */
+
 	if (card_last)
-		card_last->next = card;		/* pointer to next card */
+	{
+		card_last->next = card;    /* pointer to next card */
+	}
 	else
+	{
 		card_root = card;
+	}
+
 	card_last = card;	/* new chain end */
 
 	pci_set_drvdata(akt_pcidev, card);
@@ -116,24 +137,39 @@ static void hysdn_pci_remove_one(struct pci_dev *akt_pcidev)
 	pci_set_drvdata(akt_pcidev, NULL);
 
 	if (card->stopcard)
+	{
 		card->stopcard(card);
+	}
 
 #ifdef CONFIG_HYSDN_CAPI
 	hycapi_capi_release(card);
 #endif
 
 	if (card->releasehardware)
-		card->releasehardware(card);   /* free all hardware resources */
+	{
+		card->releasehardware(card);    /* free all hardware resources */
+	}
 
-	if (card == card_root) {
+	if (card == card_root)
+	{
 		card_root = card_root->next;
+
 		if (!card_root)
+		{
 			card_last = NULL;
-	} else {
+		}
+	}
+	else
+	{
 		hysdn_card *tmp = card_root;
-		while (tmp) {
+
+		while (tmp)
+		{
 			if (tmp->next == card)
+			{
 				tmp->next = card->next;
+			}
+
 			card_last = tmp;
 			tmp = tmp->next;
 		}
@@ -143,7 +179,8 @@ static void hysdn_pci_remove_one(struct pci_dev *akt_pcidev)
 	pci_disable_device(akt_pcidev);
 }
 
-static struct pci_driver hysdn_pci_driver = {
+static struct pci_driver hysdn_pci_driver =
+{
 	.name		= "hysdn",
 	.id_table	= hysdn_pci_tbl,
 	.probe		= hysdn_pci_init_one,
@@ -160,26 +197,37 @@ hysdn_init(void)
 	printk(KERN_NOTICE "HYSDN: module loaded\n");
 
 	rc = pci_register_driver(&hysdn_pci_driver);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	printk(KERN_INFO "HYSDN: %d card(s) found.\n", cardmax);
 
 	if (!hysdn_procconf_init())
+	{
 		hysdn_have_procfs = 1;
+	}
 
 #ifdef CONFIG_HYSDN_CAPI
-	if (cardmax > 0) {
-		if (hycapi_init()) {
+
+	if (cardmax > 0)
+	{
+		if (hycapi_init())
+		{
 			printk(KERN_ERR "HYCAPI: init failed\n");
 
 			if (hysdn_have_procfs)
+			{
 				hysdn_procconf_release();
+			}
 
 			pci_unregister_driver(&hysdn_pci_driver);
 			return -ESPIPE;
 		}
 	}
+
 #endif /* CONFIG_HYSDN_CAPI */
 
 	return 0;		/* no error */
@@ -198,7 +246,9 @@ static void __exit
 hysdn_exit(void)
 {
 	if (hysdn_have_procfs)
+	{
 		hysdn_procconf_release();
+	}
 
 	pci_unregister_driver(&hysdn_pci_driver);
 

@@ -98,7 +98,8 @@ extern "C" {
  * enum drm_vmw_handle_type - handle type for ref ioctls
  *
  */
-enum drm_vmw_handle_type {
+enum drm_vmw_handle_type
+{
 	DRM_VMW_HANDLE_LEGACY = 0,
 	DRM_VMW_HANDLE_PRIME = 1
 };
@@ -112,7 +113,8 @@ enum drm_vmw_handle_type {
  * Argument to the DRM_VMW_GET_PARAM Ioctl.
  */
 
-struct drm_vmw_getparam_arg {
+struct drm_vmw_getparam_arg
+{
 	__u64 value;
 	__u32 param;
 	__u32 pad64;
@@ -135,7 +137,8 @@ struct drm_vmw_getparam_arg {
  * Input argument to the DRM_VMW_UNREF_CONTEXT Ioctl.
  */
 
-struct drm_vmw_context_arg {
+struct drm_vmw_context_arg
+{
 	__s32 cid;
 	__u32 pad64;
 };
@@ -178,7 +181,8 @@ struct drm_vmw_context_arg {
  * Output data from the DRM_VMW_REF_SURFACE Ioctl.
  */
 
-struct drm_vmw_surface_create_req {
+struct drm_vmw_surface_create_req
+{
 	__u32 flags;
 	__u32 format;
 	__u32 mip_levels[DRM_VMW_MAX_SURFACE_FACES];
@@ -198,7 +202,8 @@ struct drm_vmw_surface_create_req {
  * Input argument to the DRM_VMW_REF_SURFACE Ioctl.
  */
 
-struct drm_vmw_surface_arg {
+struct drm_vmw_surface_arg
+{
 	__s32 sid;
 	enum drm_vmw_handle_type handle_type;
 };
@@ -214,7 +219,8 @@ struct drm_vmw_surface_arg {
  * Input data to the DRM_WMW_CREATE_SURFACE Ioctl.
  */
 
-struct drm_vmw_size {
+struct drm_vmw_size
+{
 	__u32 width;
 	__u32 height;
 	__u32 depth;
@@ -230,7 +236,8 @@ struct drm_vmw_size {
  * Argument to the DRM_VMW_CREATE_SURFACE Ioctl.
  */
 
-union drm_vmw_surface_create_arg {
+union drm_vmw_surface_create_arg
+{
 	struct drm_vmw_surface_arg rep;
 	struct drm_vmw_surface_create_req req;
 };
@@ -258,7 +265,8 @@ union drm_vmw_surface_create_arg {
  * Argument to the DRM_VMW_REF_SURFACE Ioctl.
  */
 
-union drm_vmw_surface_reference_arg {
+union drm_vmw_surface_reference_arg
+{
 	struct drm_vmw_surface_create_req rep;
 	struct drm_vmw_surface_arg req;
 };
@@ -303,7 +311,8 @@ union drm_vmw_surface_reference_arg {
 
 #define DRM_VMW_EXECBUF_VERSION 2
 
-struct drm_vmw_execbuf_arg {
+struct drm_vmw_execbuf_arg
+{
 	__u64 commands;
 	__u32 command_size;
 	__u32 throttle_us;
@@ -339,7 +348,8 @@ struct drm_vmw_execbuf_arg {
  * Input / Output data to the DRM_VMW_EXECBUF Ioctl.
  */
 
-struct drm_vmw_fence_rep {
+struct drm_vmw_fence_rep
+{
 	__u32 handle;
 	__u32 mask;
 	__u32 seqno;
@@ -374,7 +384,8 @@ struct drm_vmw_fence_rep {
  * Input data to the DRM_VMW_ALLOC_DMABUF Ioctl.
  */
 
-struct drm_vmw_alloc_dmabuf_req {
+struct drm_vmw_alloc_dmabuf_req
+{
 	__u32 size;
 	__u32 pad64;
 };
@@ -392,7 +403,8 @@ struct drm_vmw_alloc_dmabuf_req {
  * Output data from the DRM_VMW_ALLOC_DMABUF Ioctl.
  */
 
-struct drm_vmw_dmabuf_rep {
+struct drm_vmw_dmabuf_rep
+{
 	__u64 map_handle;
 	__u32 handle;
 	__u32 cur_gmr_id;
@@ -409,7 +421,8 @@ struct drm_vmw_dmabuf_rep {
  * Argument to the DRM_VMW_ALLOC_DMABUF Ioctl.
  */
 
-union drm_vmw_alloc_dmabuf_arg {
+union drm_vmw_alloc_dmabuf_arg
+{
 	struct drm_vmw_alloc_dmabuf_req req;
 	struct drm_vmw_dmabuf_rep rep;
 };
@@ -429,7 +442,8 @@ union drm_vmw_alloc_dmabuf_arg {
  * Argument to the DRM_VMW_UNREF_DMABUF Ioctl.
  */
 
-struct drm_vmw_unref_dmabuf_arg {
+struct drm_vmw_unref_dmabuf_arg
+{
 	__u32 handle;
 	__u32 pad64;
 };
@@ -453,7 +467,8 @@ struct drm_vmw_unref_dmabuf_arg {
  * source and destination rectangle.
  */
 
-struct drm_vmw_rect {
+struct drm_vmw_rect
+{
 	__s32 x;
 	__s32 y;
 	__u32 w;
@@ -478,7 +493,8 @@ struct drm_vmw_rect {
  * Argument to the DRM_VMW_CONTROL_STREAM Ioctl.
  */
 
-struct drm_vmw_control_stream_arg {
+struct drm_vmw_control_stream_arg
+{
 	__u32 stream_id;
 	__u32 enabled;
 
@@ -520,7 +536,8 @@ struct drm_vmw_control_stream_arg {
  * Argument to the DRM_VMW_CURSOR_BYPASS Ioctl.
  */
 
-struct drm_vmw_cursor_bypass_arg {
+struct drm_vmw_cursor_bypass_arg
+{
 	__u32 flags;
 	__u32 crtc_id;
 	__s32 xpos;
@@ -543,7 +560,8 @@ struct drm_vmw_cursor_bypass_arg {
  * Input argument to the DRM_VMW_UNREF_CONTEXT Ioctl.
  */
 
-struct drm_vmw_stream_arg {
+struct drm_vmw_stream_arg
+{
 	__u32 stream_id;
 	__u32 pad64;
 };
@@ -574,7 +592,8 @@ struct drm_vmw_stream_arg {
  * ioctls.
  */
 
-struct drm_vmw_get_3d_cap_arg {
+struct drm_vmw_get_3d_cap_arg
+{
 	__u64 buffer;
 	__u32 max_size;
 	__u32 pad64;
@@ -625,7 +644,8 @@ struct drm_vmw_get_3d_cap_arg {
  * Input argument to the DRM_VMW_FENCE_WAIT ioctl.
  */
 
-struct drm_vmw_fence_wait_arg {
+struct drm_vmw_fence_wait_arg
+{
 	__u32 handle;
 	__s32  cookie_valid;
 	__u64 kernel_cookie;
@@ -656,13 +676,14 @@ struct drm_vmw_fence_wait_arg {
  * ioctls.
  */
 
-struct drm_vmw_fence_signaled_arg {
-	 __u32 handle;
-	 __u32 flags;
-	 __s32 signaled;
-	 __u32 passed_seqno;
-	 __u32 signaled_flags;
-	 __u32 pad64;
+struct drm_vmw_fence_signaled_arg
+{
+	__u32 handle;
+	__u32 flags;
+	__s32 signaled;
+	__u32 passed_seqno;
+	__u32 signaled_flags;
+	__u32 pad64;
 };
 
 /*************************************************************************/
@@ -682,9 +703,10 @@ struct drm_vmw_fence_signaled_arg {
  * Input/Output argument to the DRM_VMW_FENCE_UNREF ioctl..
  */
 
-struct drm_vmw_fence_arg {
-	 __u32 handle;
-	 __u32 pad64;
+struct drm_vmw_fence_arg
+{
+	__u32 handle;
+	__u32 pad64;
 };
 
 
@@ -703,7 +725,8 @@ struct drm_vmw_fence_arg {
  */
 #define DRM_VMW_EVENT_FENCE_SIGNALED 0x80000000
 
-struct drm_vmw_event_fence {
+struct drm_vmw_event_fence
+{
 	struct drm_event base;
 	__u64 user_data;
 	__u32 tv_sec;
@@ -725,7 +748,8 @@ struct drm_vmw_event_fence {
  * @handle: Attach the event to this fence only.
  * @flags: A set of flags as defined above.
  */
-struct drm_vmw_fence_event_arg {
+struct drm_vmw_fence_event_arg
+{
 	__u64 fence_rep;
 	__u64 user_data;
 	__u32 handle;
@@ -757,7 +781,8 @@ struct drm_vmw_fence_event_arg {
  * Input argument to the DRM_VMW_PRESENT ioctl.
  */
 
-struct drm_vmw_present_arg {
+struct drm_vmw_present_arg
+{
 	__u32 fb_id;
 	__u32 sid;
 	__s32 dest_x;
@@ -787,11 +812,12 @@ struct drm_vmw_present_arg {
  * If this member is NULL, then the ioctl should not return a fence.
  */
 
-struct drm_vmw_present_readback_arg {
-	 __u32 fb_id;
-	 __u32 num_clips;
-	 __u64 clips_ptr;
-	 __u64 fence_rep;
+struct drm_vmw_present_readback_arg
+{
+	__u32 fb_id;
+	__u32 num_clips;
+	__u64 clips_ptr;
+	__u64 fence_rep;
 };
 
 /*************************************************************************/
@@ -811,7 +837,8 @@ struct drm_vmw_present_readback_arg {
  *
  * Input argument to the DRM_VMW_UPDATE_LAYOUT Ioctl.
  */
-struct drm_vmw_update_layout_arg {
+struct drm_vmw_update_layout_arg
+{
 	__u32 num_outputs;
 	__u32 pad64;
 	__u64 rects;
@@ -829,7 +856,8 @@ struct drm_vmw_update_layout_arg {
 /**
  * enum drm_vmw_shader_type - Shader types
  */
-enum drm_vmw_shader_type {
+enum drm_vmw_shader_type
+{
 	drm_vmw_shader_type_vs = 0,
 	drm_vmw_shader_type_ps,
 };
@@ -849,7 +877,8 @@ enum drm_vmw_shader_type {
  *
  * Input / Output argument to the DRM_VMW_CREATE_SHADER Ioctl.
  */
-struct drm_vmw_shader_create_arg {
+struct drm_vmw_shader_create_arg
+{
 	enum drm_vmw_shader_type shader_type;
 	__u32 size;
 	__u32 buffer_handle;
@@ -872,7 +901,8 @@ struct drm_vmw_shader_create_arg {
  *
  * Input argument to the DRM_VMW_UNREF_SHADER ioctl.
  */
-struct drm_vmw_shader_arg {
+struct drm_vmw_shader_arg
+{
 	__u32 handle;
 	__u32 pad64;
 };
@@ -895,7 +925,8 @@ struct drm_vmw_shader_arg {
  * @drm_vmw_surface_flag_create_buffer: Create a backup buffer if none is
  *                                      given.
  */
-enum drm_vmw_surface_flags {
+enum drm_vmw_surface_flags
+{
 	drm_vmw_surface_flag_shareable = (1 << 0),
 	drm_vmw_surface_flag_scanout = (1 << 1),
 	drm_vmw_surface_flag_create_buffer = (1 << 2)
@@ -919,7 +950,8 @@ enum drm_vmw_surface_flags {
  * Input argument to the  DRM_VMW_GB_SURFACE_CREATE Ioctl.
  * Part of output argument for the DRM_VMW_GB_SURFACE_REF Ioctl.
  */
-struct drm_vmw_gb_surface_create_req {
+struct drm_vmw_gb_surface_create_req
+{
 	__u32 svga3d_flags;
 	__u32 format;
 	__u32 mip_levels;
@@ -945,7 +977,8 @@ struct drm_vmw_gb_surface_create_req {
  * Part of output argument for the DRM_VMW_GB_SURFACE_REF ioctl.
  * Output argument for the DRM_VMW_GB_SURFACE_CREATE ioctl.
  */
-struct drm_vmw_gb_surface_create_rep {
+struct drm_vmw_gb_surface_create_rep
+{
 	__u32 handle;
 	__u32 backup_size;
 	__u32 buffer_handle;
@@ -961,7 +994,8 @@ struct drm_vmw_gb_surface_create_rep {
  *
  * Argument to the DRM_VMW_GB_SURFACE_CREATE ioctl.
  */
-union drm_vmw_gb_surface_create_arg {
+union drm_vmw_gb_surface_create_arg
+{
 	struct drm_vmw_gb_surface_create_rep rep;
 	struct drm_vmw_gb_surface_create_req req;
 };
@@ -990,7 +1024,8 @@ union drm_vmw_gb_surface_create_arg {
  *
  * Output Argument to the DRM_VMW_GB_SURFACE_REF ioctl.
  */
-struct drm_vmw_gb_surface_ref_rep {
+struct drm_vmw_gb_surface_ref_rep
+{
 	struct drm_vmw_gb_surface_create_req creq;
 	struct drm_vmw_gb_surface_create_rep crep;
 };
@@ -1003,7 +1038,8 @@ struct drm_vmw_gb_surface_ref_rep {
  *
  * Argument to the DRM_VMW_GB_SURFACE_REF Ioctl.
  */
-union drm_vmw_gb_surface_reference_arg {
+union drm_vmw_gb_surface_reference_arg
+{
 	struct drm_vmw_gb_surface_ref_rep rep;
 	struct drm_vmw_surface_arg req;
 };
@@ -1035,7 +1071,8 @@ union drm_vmw_gb_surface_reference_arg {
  * while the buffer is synced for CPU. This is similar to the GEM bo idle
  * behavior.
  */
-enum drm_vmw_synccpu_flags {
+enum drm_vmw_synccpu_flags
+{
 	drm_vmw_synccpu_read = (1 << 0),
 	drm_vmw_synccpu_write = (1 << 1),
 	drm_vmw_synccpu_dontblock = (1 << 2),
@@ -1048,7 +1085,8 @@ enum drm_vmw_synccpu_flags {
  * @drm_vmw_synccpu_grab:    Grab the buffer for CPU operations
  * @drm_vmw_synccpu_release: Release a previous grab.
  */
-enum drm_vmw_synccpu_op {
+enum drm_vmw_synccpu_op
+{
 	drm_vmw_synccpu_grab,
 	drm_vmw_synccpu_release
 };
@@ -1060,7 +1098,8 @@ enum drm_vmw_synccpu_op {
  * @handle:		     Handle identifying the buffer object.
  * @flags:		     Flags as described above.
  */
-struct drm_vmw_synccpu_arg {
+struct drm_vmw_synccpu_arg
+{
 	enum drm_vmw_synccpu_op op;
 	enum drm_vmw_synccpu_flags flags;
 	__u32 handle;
@@ -1074,7 +1113,8 @@ struct drm_vmw_synccpu_arg {
  * Allocates a device unique context id, and queues a create context command
  * for the host. Does not wait for host completion.
  */
-enum drm_vmw_extended_context {
+enum drm_vmw_extended_context
+{
 	drm_vmw_context_legacy,
 	drm_vmw_context_dx
 };
@@ -1087,7 +1127,8 @@ enum drm_vmw_extended_context {
  *
  * Argument to the DRM_VMW_CREATE_EXTENDED_CONTEXT Ioctl.
  */
-union drm_vmw_extended_context_arg {
+union drm_vmw_extended_context_arg
+{
 	enum drm_vmw_extended_context req;
 	struct drm_vmw_context_arg rep;
 };

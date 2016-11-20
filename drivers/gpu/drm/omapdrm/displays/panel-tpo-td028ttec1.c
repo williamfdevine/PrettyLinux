@@ -31,7 +31,8 @@
 
 #include "../dss/omapdss.h"
 
-struct panel_drv_data {
+struct panel_drv_data
+{
 	struct omap_dss_device dssdev;
 	struct omap_dss_device *in;
 
@@ -42,7 +43,8 @@ struct panel_drv_data {
 	struct spi_device *spi_dev;
 };
 
-static struct omap_video_timings td028ttec1_panel_timings = {
+static struct omap_video_timings td028ttec1_panel_timings =
+{
 	.x_res		= 480,
 	.y_res		= 640,
 	.pixelclock	= 22153000,
@@ -70,10 +72,11 @@ static int jbt_ret_write_0(struct panel_drv_data *ddata, u8 reg)
 	u16 tx_buf = JBT_COMMAND | reg;
 
 	rc = spi_write(ddata->spi_dev, (u8 *)&tx_buf,
-			1*sizeof(u16));
+				   1 * sizeof(u16));
+
 	if (rc != 0)
 		dev_err(&ddata->spi_dev->dev,
-			"jbt_ret_write_0 spi_write ret %d\n", rc);
+				"jbt_ret_write_0 spi_write ret %d\n", rc);
 
 	return rc;
 }
@@ -86,10 +89,11 @@ static int jbt_reg_write_1(struct panel_drv_data *ddata, u8 reg, u8 data)
 	tx_buf[0] = JBT_COMMAND | reg;
 	tx_buf[1] = JBT_DATA | data;
 	rc = spi_write(ddata->spi_dev, (u8 *)tx_buf,
-			2*sizeof(u16));
+				   2 * sizeof(u16));
+
 	if (rc != 0)
 		dev_err(&ddata->spi_dev->dev,
-			"jbt_reg_write_1 spi_write ret %d\n", rc);
+				"jbt_reg_write_1 spi_write ret %d\n", rc);
 
 	return rc;
 }
@@ -104,16 +108,17 @@ static int jbt_reg_write_2(struct panel_drv_data *ddata, u8 reg, u16 data)
 	tx_buf[2] = JBT_DATA | (data & 0xff);
 
 	rc = spi_write(ddata->spi_dev, (u8 *)tx_buf,
-			3*sizeof(u16));
+				   3 * sizeof(u16));
 
 	if (rc != 0)
 		dev_err(&ddata->spi_dev->dev,
-			"jbt_reg_write_2 spi_write ret %d\n", rc);
+				"jbt_reg_write_2 spi_write ret %d\n", rc);
 
 	return rc;
 }
 
-enum jbt_register {
+enum jbt_register
+{
 	JBT_REG_SLEEP_IN		= 0x10,
 	JBT_REG_SLEEP_OUT		= 0x11,
 
@@ -174,11 +179,16 @@ static int td028ttec1_panel_connect(struct omap_dss_device *dssdev)
 	int r;
 
 	if (omapdss_device_is_connected(dssdev))
+	{
 		return 0;
+	}
 
 	r = in->ops.dpi->connect(in, dssdev);
+
 	if (r)
+	{
 		return r;
+	}
 
 	return 0;
 }
@@ -189,7 +199,9 @@ static void td028ttec1_panel_disconnect(struct omap_dss_device *dssdev)
 	struct omap_dss_device *in = ddata->in;
 
 	if (!omapdss_device_is_connected(dssdev))
+	{
 		return;
+	}
 
 	in->ops.dpi->disconnect(in, dssdev);
 }
@@ -201,21 +213,31 @@ static int td028ttec1_panel_enable(struct omap_dss_device *dssdev)
 	int r;
 
 	if (!omapdss_device_is_connected(dssdev))
+	{
 		return -ENODEV;
+	}
 
 	if (omapdss_device_is_enabled(dssdev))
+	{
 		return 0;
+	}
 
 	if (ddata->data_lines)
+	{
 		in->ops.dpi->set_data_lines(in, ddata->data_lines);
+	}
+
 	in->ops.dpi->set_timings(in, &ddata->videomode);
 
 	r = in->ops.dpi->enable(in);
+
 	if (r)
+	{
 		return r;
+	}
 
 	dev_dbg(dssdev->dev, "td028ttec1_panel_enable() - state %d\n",
-		dssdev->state);
+			dssdev->state);
 
 	/* three times command zero */
 	r |= jbt_ret_write_0(ddata, 0x00);
@@ -225,7 +247,8 @@ static int td028ttec1_panel_enable(struct omap_dss_device *dssdev)
 	r |= jbt_ret_write_0(ddata, 0x00);
 	usleep_range(1000, 2000);
 
-	if (r) {
+	if (r)
+	{
 		dev_warn(dssdev->dev, "transfer error\n");
 		goto transfer_err;
 	}
@@ -310,7 +333,9 @@ static void td028ttec1_panel_disable(struct omap_dss_device *dssdev)
 	struct omap_dss_device *in = ddata->in;
 
 	if (!omapdss_device_is_enabled(dssdev))
+	{
 		return;
+	}
 
 	dev_dbg(dssdev->dev, "td028ttec1_panel_disable()\n");
 
@@ -353,7 +378,8 @@ static int td028ttec1_panel_check_timings(struct omap_dss_device *dssdev,
 	return in->ops.dpi->check_timings(in, timings);
 }
 
-static struct omap_dss_driver td028ttec1_ops = {
+static struct omap_dss_driver td028ttec1_ops =
+{
 	.connect	= td028ttec1_panel_connect,
 	.disconnect	= td028ttec1_panel_disconnect,
 
@@ -372,7 +398,9 @@ static int td028ttec1_probe_of(struct spi_device *spi)
 	struct omap_dss_device *in;
 
 	in = omapdss_of_find_source_for_first_ep(node);
-	if (IS_ERR(in)) {
+
+	if (IS_ERR(in))
+	{
 		dev_err(&spi->dev, "failed to find video source\n");
 		return PTR_ERR(in);
 	}
@@ -394,25 +422,35 @@ static int td028ttec1_panel_probe(struct spi_device *spi)
 	spi->mode = SPI_MODE_3;
 
 	r = spi_setup(spi);
-	if (r < 0) {
+
+	if (r < 0)
+	{
 		dev_err(&spi->dev, "spi_setup failed: %d\n", r);
 		return r;
 	}
 
 	ddata = devm_kzalloc(&spi->dev, sizeof(*ddata), GFP_KERNEL);
+
 	if (ddata == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	dev_set_drvdata(&spi->dev, ddata);
 
 	ddata->spi_dev = spi;
 
 	if (!spi->dev.of_node)
+	{
 		return -ENODEV;
+	}
 
 	r = td028ttec1_probe_of(spi);
+
 	if (r)
+	{
 		return r;
+	}
 
 	ddata->videomode = td028ttec1_panel_timings;
 
@@ -425,7 +463,9 @@ static int td028ttec1_panel_probe(struct spi_device *spi)
 	dssdev->phy.dpi.data_lines = ddata->data_lines;
 
 	r = omapdss_register_display(dssdev);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(&spi->dev, "Failed to register panel\n");
 		goto err_reg;
 	}
@@ -455,14 +495,16 @@ static int td028ttec1_panel_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct of_device_id td028ttec1_of_match[] = {
+static const struct of_device_id td028ttec1_of_match[] =
+{
 	{ .compatible = "omapdss,toppoly,td028ttec1", },
 	{},
 };
 
 MODULE_DEVICE_TABLE(of, td028ttec1_of_match);
 
-static struct spi_driver td028ttec1_spi_driver = {
+static struct spi_driver td028ttec1_spi_driver =
+{
 	.probe		= td028ttec1_panel_probe,
 	.remove		= td028ttec1_panel_remove,
 

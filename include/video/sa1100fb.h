@@ -3,7 +3,7 @@
  *
  * Copyright (C) 1999 Eric A. Thomas
  *  Based on acornfb.c Copyright (C) Russell King.
- *  
+ *
  * This file is subject to the terms and conditions of the GNU General Public
  * License.  See the file COPYING in the main directory of this archive
  * for more details.
@@ -20,7 +20,8 @@
 #define NR_RGB	3
 
 /* These are the bitfields for each display depth that we support. */
-struct sa1100fb_rgb {
+struct sa1100fb_rgb
+{
 	struct fb_bitfield	red;
 	struct fb_bitfield	green;
 	struct fb_bitfield	blue;
@@ -28,7 +29,8 @@ struct sa1100fb_rgb {
 };
 
 /* This structure describes the machine which we are running on. */
-struct sa1100fb_mach_info {
+struct sa1100fb_mach_info
+{
 	u_long		pixclock;
 
 	u_short		xres;
@@ -44,10 +46,10 @@ struct sa1100fb_mach_info {
 	u_char		lower_margin;
 	u_char		sync;
 
-	u_int		cmap_greyscale:1,
-			cmap_inverse:1,
-			cmap_static:1,
-			unused:29;
+	u_int		cmap_greyscale: 1,
+				cmap_inverse: 1,
+				cmap_static: 1,
+				unused: 29;
 
 	u_int		lccr0;
 	u_int		lccr3;

@@ -29,7 +29,8 @@ static void kdb_setsinglestep(struct pt_regs *regs)
 	KDB_STATE_SET(DOING_SS);
 }
 
-static char *kdb_rwtypes[] = {
+static char *kdb_rwtypes[] =
+{
 	"Instruction(i)",
 	"Instruction(Register)",
 	"Data Write",
@@ -40,7 +41,9 @@ static char *kdb_rwtypes[] = {
 static char *kdb_bptype(kdb_bp_t *bp)
 {
 	if (bp->bp_type < 0 || bp->bp_type > 4)
+	{
 		return "";
+	}
 
 	return kdb_rwtypes[bp->bp_type];
 }
@@ -51,38 +54,56 @@ static int kdb_parsebp(int argc, const char **argv, int *nextargp, kdb_bp_t *bp)
 	int diag;
 
 	bp->bph_length = 1;
-	if ((argc + 1) != nextarg) {
+
+	if ((argc + 1) != nextarg)
+	{
 		if (strncasecmp(argv[nextarg], "datar", sizeof("datar")) == 0)
+		{
 			bp->bp_type = BP_ACCESS_WATCHPOINT;
+		}
 		else if (strncasecmp(argv[nextarg], "dataw", sizeof("dataw")) == 0)
+		{
 			bp->bp_type = BP_WRITE_WATCHPOINT;
+		}
 		else if (strncasecmp(argv[nextarg], "inst", sizeof("inst")) == 0)
+		{
 			bp->bp_type = BP_HARDWARE_BREAKPOINT;
+		}
 		else
+		{
 			return KDB_ARGCOUNT;
+		}
 
 		bp->bph_length = 1;
 
 		nextarg++;
 
-		if ((argc + 1) != nextarg) {
+		if ((argc + 1) != nextarg)
+		{
 			unsigned long len;
 
 			diag = kdbgetularg((char *)argv[nextarg],
-					   &len);
+							   &len);
+
 			if (diag)
+			{
 				return diag;
+			}
 
 
 			if (len > 8)
+			{
 				return KDB_BADLENGTH;
+			}
 
 			bp->bph_length = len;
 			nextarg++;
 		}
 
 		if ((argc + 1) != nextarg)
+		{
 			return KDB_ARGCOUNT;
+		}
 	}
 
 	*nextargp = nextarg;
@@ -92,23 +113,35 @@ static int kdb_parsebp(int argc, const char **argv, int *nextargp, kdb_bp_t *bp)
 static int _kdb_bp_remove(kdb_bp_t *bp)
 {
 	int ret = 1;
+
 	if (!bp->bp_installed)
+	{
 		return ret;
+	}
+
 	if (!bp->bp_type)
+	{
 		ret = dbg_remove_sw_break(bp->bp_addr);
+	}
 	else
 		ret = arch_kgdb_ops.remove_hw_breakpoint(bp->bp_addr,
-			 bp->bph_length,
-			 bp->bp_type);
+				bp->bph_length,
+				bp->bp_type);
+
 	if (ret == 0)
+	{
 		bp->bp_installed = 0;
+	}
+
 	return ret;
 }
 
 static void kdb_handle_bp(struct pt_regs *regs, kdb_bp_t *bp)
 {
 	if (KDB_DEBUG(BP))
+	{
 		kdb_printf("regs->ip = 0x%lx\n", instruction_pointer(regs));
+	}
 
 	/*
 	 * Setup single step
@@ -131,35 +164,57 @@ static int _kdb_bp_install(struct pt_regs *regs, kdb_bp_t *bp)
 
 	if (KDB_DEBUG(BP))
 		kdb_printf("%s: bp_installed %d\n",
-			   __func__, bp->bp_installed);
+				   __func__, bp->bp_installed);
+
 	if (!KDB_STATE(SSBPT))
+	{
 		bp->bp_delay = 0;
+	}
+
 	if (bp->bp_installed)
+	{
 		return 1;
-	if (bp->bp_delay || (bp->bp_delayed && KDB_STATE(DOING_SS))) {
+	}
+
+	if (bp->bp_delay || (bp->bp_delayed && KDB_STATE(DOING_SS)))
+	{
 		if (KDB_DEBUG(BP))
+		{
 			kdb_printf("%s: delayed bp\n", __func__);
+		}
+
 		kdb_handle_bp(regs, bp);
 		return 0;
 	}
+
 	if (!bp->bp_type)
+	{
 		ret = dbg_set_sw_break(bp->bp_addr);
+	}
 	else
 		ret = arch_kgdb_ops.set_hw_breakpoint(bp->bp_addr,
-			 bp->bph_length,
-			 bp->bp_type);
-	if (ret == 0) {
+											  bp->bph_length,
+											  bp->bp_type);
+
+	if (ret == 0)
+	{
 		bp->bp_installed = 1;
-	} else {
+	}
+	else
+	{
 		kdb_printf("%s: failed to set breakpoint at 0x%lx\n",
-			   __func__, bp->bp_addr);
-		if (!bp->bp_type) {
+				   __func__, bp->bp_addr);
+
+		if (!bp->bp_type)
+		{
 			kdb_printf("Software breakpoints are unavailable.\n"
-				   "  Boot the kernel with rodata=off\n"
-				   "  OR use hw breaks: help bph\n");
+					   "  Boot the kernel with rodata=off\n"
+					   "  OR use hw breaks: help bph\n");
 		}
+
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -175,15 +230,20 @@ void kdb_bp_install(struct pt_regs *regs)
 {
 	int i;
 
-	for (i = 0; i < KDB_MAXBPT; i++) {
+	for (i = 0; i < KDB_MAXBPT; i++)
+	{
 		kdb_bp_t *bp = &kdb_breakpoints[i];
 
-		if (KDB_DEBUG(BP)) {
+		if (KDB_DEBUG(BP))
+		{
 			kdb_printf("%s: bp %d bp_enabled %d\n",
-				   __func__, i, bp->bp_enabled);
+					   __func__, i, bp->bp_enabled);
 		}
+
 		if (bp->bp_enabled)
+		{
 			_kdb_bp_install(regs, bp);
+		}
 	}
 }
 
@@ -206,15 +266,20 @@ void kdb_bp_remove(void)
 {
 	int i;
 
-	for (i = KDB_MAXBPT - 1; i >= 0; i--) {
+	for (i = KDB_MAXBPT - 1; i >= 0; i--)
+	{
 		kdb_bp_t *bp = &kdb_breakpoints[i];
 
-		if (KDB_DEBUG(BP)) {
+		if (KDB_DEBUG(BP))
+		{
 			kdb_printf("%s: bp %d bp_enabled %d\n",
-				   __func__, i, bp->bp_enabled);
+					   __func__, i, bp->bp_enabled);
 		}
+
 		if (bp->bp_enabled)
+		{
 			_kdb_bp_remove(bp);
+		}
 	}
 }
 
@@ -242,12 +307,16 @@ static void kdb_printbp(kdb_bp_t *bp, int i)
 	kdb_symbol_print(bp->bp_addr, NULL, KDB_SP_DEFAULT);
 
 	if (bp->bp_enabled)
+	{
 		kdb_printf("\n    is enabled");
+	}
 	else
+	{
 		kdb_printf("\n    is disabled");
+	}
 
 	kdb_printf("\taddr at %016lx, hardtype=%d installed=%d\n",
-		   bp->bp_addr, bp->bp_type, bp->bp_installed);
+			   bp->bp_addr, bp->bp_type, bp->bp_installed);
 
 	kdb_printf("\n");
 }
@@ -284,14 +353,19 @@ static int kdb_bp(int argc, const char **argv)
 	int nextarg;
 	kdb_bp_t template = {0};
 
-	if (argc == 0) {
+	if (argc == 0)
+	{
 		/*
 		 * Display breakpoint table
 		 */
 		for (bpno = 0, bp = kdb_breakpoints; bpno < KDB_MAXBPT;
-		     bpno++, bp++) {
+				bpno++, bp++)
+		{
 			if (bp->bp_free)
+			{
 				continue;
+			}
+
 			kdb_printbp(bp, bpno);
 		}
 
@@ -300,29 +374,46 @@ static int kdb_bp(int argc, const char **argv)
 
 	nextarg = 1;
 	diag = kdbgetaddrarg(argc, argv, &nextarg, &template.bp_addr,
-			     &offset, &symname);
+						 &offset, &symname);
+
 	if (diag)
+	{
 		return diag;
+	}
+
 	if (!template.bp_addr)
+	{
 		return KDB_BADINT;
+	}
 
 	/*
 	 * Find an empty bp structure to allocate
 	 */
-	for (bpno = 0, bp = kdb_breakpoints; bpno < KDB_MAXBPT; bpno++, bp++) {
+	for (bpno = 0, bp = kdb_breakpoints; bpno < KDB_MAXBPT; bpno++, bp++)
+	{
 		if (bp->bp_free)
+		{
 			break;
+		}
 	}
 
 	if (bpno == KDB_MAXBPT)
+	{
 		return KDB_TOOMANYBPT;
+	}
 
-	if (strcmp(argv[0], "bph") == 0) {
+	if (strcmp(argv[0], "bph") == 0)
+	{
 		template.bp_type = BP_HARDWARE_BREAKPOINT;
 		diag = kdb_parsebp(argc, argv, &nextarg, &template);
+
 		if (diag)
+		{
 			return diag;
-	} else {
+		}
+	}
+	else
+	{
 		template.bp_type = BP_BREAKPOINT;
 	}
 
@@ -333,11 +424,13 @@ static int kdb_bp(int argc, const char **argv)
 	 * enabled for both read and write on the same address.
 	 */
 	for (i = 0, bp_check = kdb_breakpoints; i < KDB_MAXBPT;
-	     i++, bp_check++) {
+			i++, bp_check++)
+	{
 		if (!bp_check->bp_free &&
-		    bp_check->bp_addr == template.bp_addr) {
+			bp_check->bp_addr == template.bp_addr)
+		{
 			kdb_printf("You already have a breakpoint at "
-				   kdb_bfd_vma_fmt0 "\n", template.bp_addr);
+					   kdb_bfd_vma_fmt0 "\n", template.bp_addr);
 			return KDB_DUPBPT;
 		}
 	}
@@ -390,35 +483,54 @@ static int kdb_bc(int argc, const char **argv)
 #define KDBCMD_BD	2
 
 	if (strcmp(argv[0], "be") == 0)
+	{
 		cmd = KDBCMD_BE;
+	}
 	else if (strcmp(argv[0], "bd") == 0)
+	{
 		cmd = KDBCMD_BD;
+	}
 	else
+	{
 		cmd = KDBCMD_BC;
+	}
 
 	if (argc != 1)
+	{
 		return KDB_ARGCOUNT;
+	}
 
-	if (strcmp(argv[1], "*") == 0) {
+	if (strcmp(argv[1], "*") == 0)
+	{
 		lowbp = 0;
 		highbp = KDB_MAXBPT;
-	} else {
+	}
+	else
+	{
 		diag = kdbgetularg(argv[1], &addr);
+
 		if (diag)
+		{
 			return diag;
+		}
 
 		/*
 		 * For addresses less than the maximum breakpoint number,
 		 * assume that the breakpoint number is desired.
 		 */
-		if (addr < KDB_MAXBPT) {
+		if (addr < KDB_MAXBPT)
+		{
 			bp = &kdb_breakpoints[addr];
 			lowbp = highbp = addr;
 			highbp++;
-		} else {
+		}
+		else
+		{
 			for (i = 0, bp = kdb_breakpoints; i < KDB_MAXBPT;
-			    i++, bp++) {
-				if (bp->bp_addr == addr) {
+												  i++, bp++)
+			{
+				if (bp->bp_addr == addr)
+				{
 					lowbp = highbp = i;
 					highbp++;
 					break;
@@ -432,47 +544,57 @@ static int kdb_bc(int argc, const char **argv)
 	 * criteria (either '*' for all, or an individual breakpoint).
 	 */
 	for (bp = &kdb_breakpoints[lowbp], i = lowbp;
-	    i < highbp;
-	    i++, bp++) {
+		 i < highbp;
+			 i++, bp++)
+	{
 		if (bp->bp_free)
+		{
 			continue;
+		}
 
 		done++;
 
-		switch (cmd) {
-		case KDBCMD_BC:
-			bp->bp_enabled = 0;
+		switch (cmd)
+		{
+			case KDBCMD_BC:
+				bp->bp_enabled = 0;
 
-			kdb_printf("Breakpoint %d at "
-				   kdb_bfd_vma_fmt " cleared\n",
-				   i, bp->bp_addr);
+				kdb_printf("Breakpoint %d at "
+						   kdb_bfd_vma_fmt " cleared\n",
+						   i, bp->bp_addr);
 
-			bp->bp_addr = 0;
-			bp->bp_free = 1;
+				bp->bp_addr = 0;
+				bp->bp_free = 1;
 
-			break;
-		case KDBCMD_BE:
-			bp->bp_enabled = 1;
-
-			kdb_printf("Breakpoint %d at "
-				   kdb_bfd_vma_fmt " enabled",
-				   i, bp->bp_addr);
-
-			kdb_printf("\n");
-			break;
-		case KDBCMD_BD:
-			if (!bp->bp_enabled)
 				break;
 
-			bp->bp_enabled = 0;
+			case KDBCMD_BE:
+				bp->bp_enabled = 1;
 
-			kdb_printf("Breakpoint %d at "
-				   kdb_bfd_vma_fmt " disabled\n",
-				   i, bp->bp_addr);
+				kdb_printf("Breakpoint %d at "
+						   kdb_bfd_vma_fmt " enabled",
+						   i, bp->bp_addr);
 
-			break;
+				kdb_printf("\n");
+				break;
+
+			case KDBCMD_BD:
+				if (!bp->bp_enabled)
+				{
+					break;
+				}
+
+				bp->bp_enabled = 0;
+
+				kdb_printf("Breakpoint %d at "
+						   kdb_bfd_vma_fmt " disabled\n",
+						   i, bp->bp_addr);
+
+				break;
 		}
-		if (bp->bp_delay && (cmd == KDBCMD_BC || cmd == KDBCMD_BD)) {
+
+		if (bp->bp_delay && (cmd == KDBCMD_BC || cmd == KDBCMD_BD))
+		{
 			bp->bp_delay = 0;
 			KDB_STATE_CLEAR(SSBPT);
 		}
@@ -506,7 +628,10 @@ static int kdb_bc(int argc, const char **argv)
 static int kdb_ss(int argc, const char **argv)
 {
 	if (argc != 0)
+	{
 		return KDB_ARGCOUNT;
+	}
+
 	/*
 	 * Set trace flag and go.
 	 */
@@ -527,31 +652,35 @@ void __init kdb_initbptab(void)
 	memset(&kdb_breakpoints, '\0', sizeof(kdb_breakpoints));
 
 	for (i = 0, bp = kdb_breakpoints; i < KDB_MAXBPT; i++, bp++)
+	{
 		bp->bp_free = 1;
+	}
 
 	kdb_register_flags("bp", kdb_bp, "[<vaddr>]",
-		"Set/Display breakpoints", 0,
-		KDB_ENABLE_FLOW_CTRL | KDB_REPEAT_NO_ARGS);
+					   "Set/Display breakpoints", 0,
+					   KDB_ENABLE_FLOW_CTRL | KDB_REPEAT_NO_ARGS);
 	kdb_register_flags("bl", kdb_bp, "[<vaddr>]",
-		"Display breakpoints", 0,
-		KDB_ENABLE_FLOW_CTRL | KDB_REPEAT_NO_ARGS);
+					   "Display breakpoints", 0,
+					   KDB_ENABLE_FLOW_CTRL | KDB_REPEAT_NO_ARGS);
+
 	if (arch_kgdb_ops.flags & KGDB_HW_BREAKPOINT)
 		kdb_register_flags("bph", kdb_bp, "[<vaddr>]",
-		"[datar [length]|dataw [length]]   Set hw brk", 0,
-		KDB_ENABLE_FLOW_CTRL | KDB_REPEAT_NO_ARGS);
+						   "[datar [length]|dataw [length]]   Set hw brk", 0,
+						   KDB_ENABLE_FLOW_CTRL | KDB_REPEAT_NO_ARGS);
+
 	kdb_register_flags("bc", kdb_bc, "<bpnum>",
-		"Clear Breakpoint", 0,
-		KDB_ENABLE_FLOW_CTRL);
+					   "Clear Breakpoint", 0,
+					   KDB_ENABLE_FLOW_CTRL);
 	kdb_register_flags("be", kdb_bc, "<bpnum>",
-		"Enable Breakpoint", 0,
-		KDB_ENABLE_FLOW_CTRL);
+					   "Enable Breakpoint", 0,
+					   KDB_ENABLE_FLOW_CTRL);
 	kdb_register_flags("bd", kdb_bc, "<bpnum>",
-		"Disable Breakpoint", 0,
-		KDB_ENABLE_FLOW_CTRL);
+					   "Disable Breakpoint", 0,
+					   KDB_ENABLE_FLOW_CTRL);
 
 	kdb_register_flags("ss", kdb_ss, "",
-		"Single Step", 1,
-		KDB_ENABLE_FLOW_CTRL | KDB_REPEAT_NO_ARGS);
+					   "Single Step", 1,
+					   KDB_ENABLE_FLOW_CTRL | KDB_REPEAT_NO_ARGS);
 	/*
 	 * Architecture dependent initialization.
 	 */

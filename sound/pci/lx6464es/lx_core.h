@@ -36,7 +36,8 @@ struct lx6464es;
 /* low-level register access */
 
 /* dsp register access */
-enum {
+enum
+{
 	eReg_BASE,
 	eReg_CSM,
 	eReg_CRM1,
@@ -75,30 +76,32 @@ unsigned long lx_dsp_reg_read(struct lx6464es *chip, int port);
 void lx_dsp_reg_write(struct lx6464es *chip, int port, unsigned data);
 
 /* plx register access */
-enum {
-    ePLX_PCICR,
+enum
+{
+	ePLX_PCICR,
 
-    ePLX_MBOX0,
-    ePLX_MBOX1,
-    ePLX_MBOX2,
-    ePLX_MBOX3,
-    ePLX_MBOX4,
-    ePLX_MBOX5,
-    ePLX_MBOX6,
-    ePLX_MBOX7,
+	ePLX_MBOX0,
+	ePLX_MBOX1,
+	ePLX_MBOX2,
+	ePLX_MBOX3,
+	ePLX_MBOX4,
+	ePLX_MBOX5,
+	ePLX_MBOX6,
+	ePLX_MBOX7,
 
-    ePLX_L2PCIDB,
-    ePLX_IRQCS,
-    ePLX_CHIPSC,
+	ePLX_L2PCIDB,
+	ePLX_IRQCS,
+	ePLX_CHIPSC,
 
-    eMaxPort
+	eMaxPort
 };
 
 unsigned long lx_plx_reg_read(struct lx6464es *chip, int port);
 void lx_plx_reg_write(struct lx6464es *chip, int port, u32 data);
 
 /* rhm */
-struct lx_rmh {
+struct lx_rmh
+{
 	u16	cmd_len;	/* length of the command to send (WORDs) */
 	u16	stat_len;	/* length of the status received (WORDs) */
 	u16	dsp_stat;	/* status type, RMP_SSIZE_XXX */
@@ -118,10 +121,10 @@ int lx_dsp_get_mac(struct lx6464es *chip);
 
 /* low-level pipe handling */
 int lx_pipe_allocate(struct lx6464es *chip, u32 pipe, int is_capture,
-		     int channels);
+					 int channels);
 int lx_pipe_release(struct lx6464es *chip, u32 pipe, int is_capture);
 int lx_pipe_sample_count(struct lx6464es *chip, u32 pipe, int is_capture,
-			 u64 *rsample_count);
+						 u64 *rsample_count);
 int lx_pipe_state(struct lx6464es *chip, u32 pipe, int is_capture, u16 *rstate);
 int lx_pipe_stop(struct lx6464es *chip, u32 pipe, int is_capture);
 int lx_pipe_start(struct lx6464es *chip, u32 pipe, int is_capture);
@@ -132,31 +135,31 @@ int lx_pipe_wait_for_idle(struct lx6464es *chip, u32 pipe, int is_capture);
 
 /* low-level stream handling */
 int lx_stream_set_format(struct lx6464es *chip, struct snd_pcm_runtime *runtime,
-			 u32 pipe, int is_capture);
+						 u32 pipe, int is_capture);
 int lx_stream_state(struct lx6464es *chip, u32 pipe, int is_capture,
-		    int *rstate);
+					int *rstate);
 int lx_stream_sample_position(struct lx6464es *chip, u32 pipe, int is_capture,
-			      u64 *r_bytepos);
+							  u64 *r_bytepos);
 
 int lx_stream_set_state(struct lx6464es *chip, u32 pipe,
-			int is_capture, enum stream_state_t state);
+						int is_capture, enum stream_state_t state);
 
 static inline int lx_stream_start(struct lx6464es *chip, u32 pipe,
-				  int is_capture)
+								  int is_capture)
 {
 	snd_printdd("->lx_stream_start\n");
 	return lx_stream_set_state(chip, pipe, is_capture, SSTATE_RUN);
 }
 
 static inline int lx_stream_pause(struct lx6464es *chip, u32 pipe,
-				  int is_capture)
+								  int is_capture)
 {
 	snd_printdd("->lx_stream_pause\n");
 	return lx_stream_set_state(chip, pipe, is_capture, SSTATE_PAUSE);
 }
 
 static inline int lx_stream_stop(struct lx6464es *chip, u32 pipe,
-				 int is_capture)
+								 int is_capture)
 {
 	snd_printdd("->lx_stream_stop\n");
 	return lx_stream_set_state(chip, pipe, is_capture, SSTATE_STOP);
@@ -164,19 +167,19 @@ static inline int lx_stream_stop(struct lx6464es *chip, u32 pipe,
 
 /* low-level buffer handling */
 int lx_buffer_ask(struct lx6464es *chip, u32 pipe, int is_capture,
-		  u32 *r_needed, u32 *r_freed, u32 *size_array);
+				  u32 *r_needed, u32 *r_freed, u32 *size_array);
 int lx_buffer_give(struct lx6464es *chip, u32 pipe, int is_capture,
-		   u32 buffer_size, u32 buf_address_lo, u32 buf_address_hi,
-		   u32 *r_buffer_index);
+				   u32 buffer_size, u32 buf_address_lo, u32 buf_address_hi,
+				   u32 *r_buffer_index);
 int lx_buffer_free(struct lx6464es *chip, u32 pipe, int is_capture,
-		   u32 *r_buffer_size);
+				   u32 *r_buffer_size);
 int lx_buffer_cancel(struct lx6464es *chip, u32 pipe, int is_capture,
-		     u32 buffer_index);
+					 u32 buffer_index);
 
 /* low-level gain/peak handling */
 int lx_level_unmute(struct lx6464es *chip, int is_capture, int unmute);
 int lx_level_peaks(struct lx6464es *chip, int is_capture, int channels,
-		   u32 *r_levels);
+				   u32 *r_levels);
 
 
 /* interrupt handling */
@@ -230,7 +233,7 @@ static inline void unpack_pointer(dma_addr_t ptr, u32 *r_low, u32 *r_high)
 #if BITS_PER_LONG == 32
 	*r_high = 0;
 #else
-	*r_high = (u32)((u64)ptr>>32);
+	*r_high = (u32)((u64)ptr >> 32);
 #endif
 }
 

@@ -5,7 +5,7 @@
  */
 
 #ifndef __i386__
-# error wrong architecture
+	# error wrong architecture
 #endif
 
 #include <stdio.h>

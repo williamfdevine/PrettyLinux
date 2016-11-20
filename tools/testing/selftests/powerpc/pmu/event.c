@@ -14,10 +14,10 @@
 
 
 int perf_event_open(struct perf_event_attr *attr, pid_t pid, int cpu,
-		int group_fd, unsigned long flags)
+					int group_fd, unsigned long flags)
 {
 	return syscall(__NR_perf_event_open, attr, pid, cpu,
-			   group_fd, flags);
+				   group_fd, flags);
 }
 
 void event_init_opts(struct event *e, u64 config, int type, char *name)
@@ -31,7 +31,7 @@ void event_init_opts(struct event *e, u64 config, int type, char *name)
 	e->attr.size = sizeof(e->attr);
 	/* This has to match the structure layout in the header */
 	e->attr.read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | \
-				  PERF_FORMAT_TOTAL_TIME_RUNNING;
+						  PERF_FORMAT_TOTAL_TIME_RUNNING;
 }
 
 void event_init_named(struct event *e, u64 config, char *name)
@@ -52,7 +52,9 @@ void event_init(struct event *e, u64 config)
 int event_open_with_options(struct event *e, pid_t pid, int cpu, int group_fd)
 {
 	e->fd = perf_event_open(&e->attr, pid, cpu, group_fd, 0);
-	if (e->fd == -1) {
+
+	if (e->fd == -1)
+	{
 		perror("perf_event_open");
 		return -1;
 	}
@@ -105,7 +107,9 @@ int event_read(struct event *e)
 	int rc;
 
 	rc = read(e->fd, &e->result, sizeof(e->result));
-	if (rc != sizeof(e->result)) {
+
+	if (rc != sizeof(e->result))
+	{
 		fprintf(stderr, "read error on event %p!\n", e);
 		return -1;
 	}
@@ -116,13 +120,15 @@ int event_read(struct event *e)
 void event_report_justified(struct event *e, int name_width, int result_width)
 {
 	printf("%*s: result %*llu ", name_width, e->name, result_width,
-	       e->result.value);
+		   e->result.value);
 
 	if (e->result.running == e->result.enabled)
+	{
 		printf("running/enabled %llu\n", e->result.running);
+	}
 	else
 		printf("running %llu enabled %llu\n", e->result.running,
-			e->result.enabled);
+			   e->result.enabled);
 }
 
 void event_report(struct event *e)

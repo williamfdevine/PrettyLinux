@@ -18,12 +18,13 @@
 #include <linux/scatterlist.h>
 #include <linux/slab.h>
 
-struct crypto_ecb_ctx {
+struct crypto_ecb_ctx
+{
 	struct crypto_cipher *child;
 };
 
 static int crypto_ecb_setkey(struct crypto_tfm *parent, const u8 *key,
-			     unsigned int keylen)
+							 unsigned int keylen)
 {
 	struct crypto_ecb_ctx *ctx = crypto_tfm_ctx(parent);
 	struct crypto_cipher *child = ctx->child;
@@ -31,17 +32,17 @@ static int crypto_ecb_setkey(struct crypto_tfm *parent, const u8 *key,
 
 	crypto_cipher_clear_flags(child, CRYPTO_TFM_REQ_MASK);
 	crypto_cipher_set_flags(child, crypto_tfm_get_flags(parent) &
-				       CRYPTO_TFM_REQ_MASK);
+							CRYPTO_TFM_REQ_MASK);
 	err = crypto_cipher_setkey(child, key, keylen);
 	crypto_tfm_set_flags(parent, crypto_cipher_get_flags(child) &
-				     CRYPTO_TFM_RES_MASK);
+						 CRYPTO_TFM_RES_MASK);
 	return err;
 }
 
 static int crypto_ecb_crypt(struct blkcipher_desc *desc,
-			    struct blkcipher_walk *walk,
-			    struct crypto_cipher *tfm,
-			    void (*fn)(struct crypto_tfm *, u8 *, const u8 *))
+							struct blkcipher_walk *walk,
+							struct crypto_cipher *tfm,
+							void (*fn)(struct crypto_tfm *, u8 *, const u8 *))
 {
 	int bsize = crypto_cipher_blocksize(tfm);
 	unsigned int nbytes;
@@ -49,16 +50,19 @@ static int crypto_ecb_crypt(struct blkcipher_desc *desc,
 
 	err = blkcipher_walk_virt(desc, walk);
 
-	while ((nbytes = walk->nbytes)) {
+	while ((nbytes = walk->nbytes))
+	{
 		u8 *wsrc = walk->src.virt.addr;
 		u8 *wdst = walk->dst.virt.addr;
 
-		do {
+		do
+		{
 			fn(crypto_cipher_tfm(tfm), wdst, wsrc);
 
 			wsrc += bsize;
 			wdst += bsize;
-		} while ((nbytes -= bsize) >= bsize);
+		}
+		while ((nbytes -= bsize) >= bsize);
 
 		err = blkcipher_walk_done(desc, walk, nbytes);
 	}
@@ -67,8 +71,8 @@ static int crypto_ecb_crypt(struct blkcipher_desc *desc,
 }
 
 static int crypto_ecb_encrypt(struct blkcipher_desc *desc,
-			      struct scatterlist *dst, struct scatterlist *src,
-			      unsigned int nbytes)
+							  struct scatterlist *dst, struct scatterlist *src,
+							  unsigned int nbytes)
 {
 	struct blkcipher_walk walk;
 	struct crypto_blkcipher *tfm = desc->tfm;
@@ -77,12 +81,12 @@ static int crypto_ecb_encrypt(struct blkcipher_desc *desc,
 
 	blkcipher_walk_init(&walk, dst, src, nbytes);
 	return crypto_ecb_crypt(desc, &walk, child,
-				crypto_cipher_alg(child)->cia_encrypt);
+							crypto_cipher_alg(child)->cia_encrypt);
 }
 
 static int crypto_ecb_decrypt(struct blkcipher_desc *desc,
-			      struct scatterlist *dst, struct scatterlist *src,
-			      unsigned int nbytes)
+							  struct scatterlist *dst, struct scatterlist *src,
+							  unsigned int nbytes)
 {
 	struct blkcipher_walk walk;
 	struct crypto_blkcipher *tfm = desc->tfm;
@@ -91,7 +95,7 @@ static int crypto_ecb_decrypt(struct blkcipher_desc *desc,
 
 	blkcipher_walk_init(&walk, dst, src, nbytes);
 	return crypto_ecb_crypt(desc, &walk, child,
-				crypto_cipher_alg(child)->cia_decrypt);
+							crypto_cipher_alg(child)->cia_decrypt);
 }
 
 static int crypto_ecb_init_tfm(struct crypto_tfm *tfm)
@@ -102,8 +106,11 @@ static int crypto_ecb_init_tfm(struct crypto_tfm *tfm)
 	struct crypto_cipher *cipher;
 
 	cipher = crypto_spawn_cipher(spawn);
+
 	if (IS_ERR(cipher))
+	{
 		return PTR_ERR(cipher);
+	}
 
 	ctx->child = cipher;
 	return 0;
@@ -122,17 +129,26 @@ static struct crypto_instance *crypto_ecb_alloc(struct rtattr **tb)
 	int err;
 
 	err = crypto_check_attr_type(tb, CRYPTO_ALG_TYPE_BLKCIPHER);
+
 	if (err)
+	{
 		return ERR_PTR(err);
+	}
 
 	alg = crypto_get_attr_alg(tb, CRYPTO_ALG_TYPE_CIPHER,
-				  CRYPTO_ALG_TYPE_MASK);
+							  CRYPTO_ALG_TYPE_MASK);
+
 	if (IS_ERR(alg))
+	{
 		return ERR_CAST(alg);
+	}
 
 	inst = crypto_alloc_instance("ecb", alg);
+
 	if (IS_ERR(inst))
+	{
 		goto out_put_alg;
+	}
 
 	inst->alg.cra_flags = CRYPTO_ALG_TYPE_BLKCIPHER;
 	inst->alg.cra_priority = alg->cra_priority;
@@ -163,7 +179,8 @@ static void crypto_ecb_free(struct crypto_instance *inst)
 	kfree(inst);
 }
 
-static struct crypto_template crypto_ecb_tmpl = {
+static struct crypto_template crypto_ecb_tmpl =
+{
 	.name = "ecb",
 	.alloc = crypto_ecb_alloc,
 	.free = crypto_ecb_free,

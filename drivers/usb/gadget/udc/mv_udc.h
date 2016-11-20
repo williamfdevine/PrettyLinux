@@ -132,7 +132,8 @@
 #define USB_DEVICE_ADDRESS_MASK			(0xfe000000)
 #define USB_DEVICE_ADDRESS_BIT_SHIFT		(25)
 
-struct mv_cap_regs {
+struct mv_cap_regs
+{
 	u32	caplength_hciversion;
 	u32	hcsparams;	/* HC structural parameters */
 	u32	hccparams;	/* HC Capability Parameters*/
@@ -141,7 +142,8 @@ struct mv_cap_regs {
 	u32	dccparams;	/* DC Capability Parameters */
 };
 
-struct mv_op_regs {
+struct mv_op_regs
+{
 	u32	usbcmd;		/* Command register */
 	u32	usbsts;		/* Status register */
 	u32	usbintr;	/* Interrupt enable */
@@ -170,7 +172,8 @@ struct mv_op_regs {
 	u32	ier;		/* Interrupt Enable */
 };
 
-struct mv_udc {
+struct mv_udc
+{
 	struct usb_gadget		gadget;
 	struct usb_gadget_driver	*driver;
 	spinlock_t			lock;
@@ -205,14 +208,14 @@ struct mv_udc {
 	unsigned int		test_mode;
 
 	int			errors;
-	unsigned		softconnect:1,
-				vbus_active:1,
-				remote_wakeup:1,
-				softconnected:1,
-				force_fs:1,
-				clock_gating:1,
-				active:1,
-				stopped:1;      /* stop bit is setted */
+	unsigned		softconnect: 1,
+					vbus_active: 1,
+					remote_wakeup: 1,
+					softconnected: 1,
+					force_fs: 1,
+					clock_gating: 1,
+					active: 1,
+					stopped: 1;     /* stop bit is setted */
 
 	struct work_struct	vbus_work;
 	struct workqueue_struct *qwork;
@@ -226,28 +229,30 @@ struct mv_udc {
 };
 
 /* endpoint data structure */
-struct mv_ep {
+struct mv_ep
+{
 	struct usb_ep		ep;
 	struct mv_udc		*udc;
 	struct list_head	queue;
 	struct mv_dqh		*dqh;
 	u32			direction;
 	char			name[14];
-	unsigned		stopped:1,
-				wedge:1,
-				ep_type:2,
-				ep_num:8;
+	unsigned		stopped: 1,
+					wedge: 1,
+					ep_type: 2,
+					ep_num: 8;
 };
 
 /* request data structure */
-struct mv_req {
+struct mv_req
+{
 	struct usb_request	req;
 	struct mv_dtd		*dtd, *head, *tail;
 	struct mv_ep		*ep;
 	struct list_head	queue;
 	unsigned int            test_mode;
 	unsigned		dtd_count;
-	unsigned		mapped:1;
+	unsigned		mapped: 1;
 };
 
 #define EP_QUEUE_HEAD_MULT_POS			30
@@ -265,7 +270,8 @@ struct mv_req {
 #define EP_QUEUE_FRINDEX_MASK			0x000007FF
 #define EP_MAX_LENGTH_TRANSFER			0x4000
 
-struct mv_dqh {
+struct mv_dqh
+{
 	/* Bits 16..26 Bit 15 is Interrupt On Setup */
 	u32	max_packet_length;
 	u32	curr_dtd_ptr;		/* Current dTD Pointer */
@@ -296,7 +302,8 @@ struct mv_dqh {
 #define DTD_PACKET_SIZE			0x7FFF0000
 #define DTD_LENGTH_BIT_POS		(16)
 
-struct mv_dtd {
+struct mv_dtd
+{
 	u32	dtd_next;
 	u32	size_ioc_sts;
 	u32	buff_ptr0;		/* Buffer pointer Page 0 */

@@ -30,7 +30,8 @@
  * | consts (block size * 2)
  * +------------------------
  */
-struct cmac_tfm_ctx {
+struct cmac_tfm_ctx
+{
 	struct crypto_cipher *child;
 	u8 ctx[];
 };
@@ -46,13 +47,14 @@ struct cmac_tfm_ctx {
  * | prev (block size)
  * +------------------------
  */
-struct cmac_desc_ctx {
+struct cmac_desc_ctx
+{
 	unsigned int len;
 	u8 ctx[];
 };
 
 static int crypto_cmac_digest_setkey(struct crypto_shash *parent,
-				     const u8 *inkey, unsigned int keylen)
+									 const u8 *inkey, unsigned int keylen)
 {
 	unsigned long alignmask = crypto_shash_alignmask(parent);
 	struct cmac_tfm_ctx *ctx = crypto_shash_ctx(parent);
@@ -63,43 +65,50 @@ static int crypto_cmac_digest_setkey(struct crypto_shash *parent,
 	u8 msb_mask, gfmask;
 
 	err = crypto_cipher_setkey(ctx->child, inkey, keylen);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* encrypt the zero block */
 	memset(consts, 0, bs);
 	crypto_cipher_encrypt_one(ctx->child, (u8 *)consts, (u8 *)consts);
 
-	switch (bs) {
-	case 16:
-		gfmask = 0x87;
-		_const[0] = be64_to_cpu(consts[1]);
-		_const[1] = be64_to_cpu(consts[0]);
+	switch (bs)
+	{
+		case 16:
+			gfmask = 0x87;
+			_const[0] = be64_to_cpu(consts[1]);
+			_const[1] = be64_to_cpu(consts[0]);
 
-		/* gf(2^128) multiply zero-ciphertext with u and u^2 */
-		for (i = 0; i < 4; i += 2) {
-			msb_mask = ((s64)_const[1] >> 63) & gfmask;
-			_const[1] = (_const[1] << 1) | (_const[0] >> 63);
-			_const[0] = (_const[0] << 1) ^ msb_mask;
+			/* gf(2^128) multiply zero-ciphertext with u and u^2 */
+			for (i = 0; i < 4; i += 2)
+			{
+				msb_mask = ((s64)_const[1] >> 63) & gfmask;
+				_const[1] = (_const[1] << 1) | (_const[0] >> 63);
+				_const[0] = (_const[0] << 1) ^ msb_mask;
 
-			consts[i + 0] = cpu_to_be64(_const[1]);
-			consts[i + 1] = cpu_to_be64(_const[0]);
-		}
+				consts[i + 0] = cpu_to_be64(_const[1]);
+				consts[i + 1] = cpu_to_be64(_const[0]);
+			}
 
-		break;
-	case 8:
-		gfmask = 0x1B;
-		_const[0] = be64_to_cpu(consts[0]);
+			break;
 
-		/* gf(2^64) multiply zero-ciphertext with u and u^2 */
-		for (i = 0; i < 2; i++) {
-			msb_mask = ((s64)_const[0] >> 63) & gfmask;
-			_const[0] = (_const[0] << 1) ^ msb_mask;
+		case 8:
+			gfmask = 0x1B;
+			_const[0] = be64_to_cpu(consts[0]);
 
-			consts[i] = cpu_to_be64(_const[0]);
-		}
+			/* gf(2^64) multiply zero-ciphertext with u and u^2 */
+			for (i = 0; i < 2; i++)
+			{
+				msb_mask = ((s64)_const[0] >> 63) & gfmask;
+				_const[0] = (_const[0] << 1) ^ msb_mask;
 
-		break;
+				consts[i] = cpu_to_be64(_const[0]);
+			}
+
+			break;
 	}
 
 	return 0;
@@ -119,7 +128,7 @@ static int crypto_cmac_digest_init(struct shash_desc *pdesc)
 }
 
 static int crypto_cmac_digest_update(struct shash_desc *pdesc, const u8 *p,
-				     unsigned int len)
+									 unsigned int len)
 {
 	struct crypto_shash *parent = pdesc->tfm;
 	unsigned long alignmask = crypto_shash_alignmask(parent);
@@ -131,7 +140,8 @@ static int crypto_cmac_digest_update(struct shash_desc *pdesc, const u8 *p,
 	u8 *prev = odds + bs;
 
 	/* checking the data can fill the block */
-	if ((ctx->len + len) <= bs) {
+	if ((ctx->len + len) <= bs)
+	{
 		memcpy(odds + ctx->len, p, len);
 		ctx->len += len;
 		return 0;
@@ -149,7 +159,8 @@ static int crypto_cmac_digest_update(struct shash_desc *pdesc, const u8 *p,
 	ctx->len = 0;
 
 	/* encrypting the rest of data */
-	while (len > bs) {
+	while (len > bs)
+	{
 		crypto_xor(prev, p, bs);
 		crypto_cipher_encrypt_one(tfm, prev, prev);
 		p += bs;
@@ -157,7 +168,8 @@ static int crypto_cmac_digest_update(struct shash_desc *pdesc, const u8 *p,
 	}
 
 	/* keeping the surplus of blocksize */
-	if (len) {
+	if (len)
+	{
 		memcpy(odds, p, len);
 		ctx->len = len;
 	}
@@ -178,7 +190,8 @@ static int crypto_cmac_digest_final(struct shash_desc *pdesc, u8 *out)
 	u8 *prev = odds + bs;
 	unsigned int offset = 0;
 
-	if (ctx->len != bs) {
+	if (ctx->len != bs)
+	{
 		unsigned int rlen;
 		u8 *p = odds + ctx->len;
 
@@ -186,8 +199,11 @@ static int crypto_cmac_digest_final(struct shash_desc *pdesc, u8 *out)
 		p++;
 
 		rlen = bs - ctx->len - 1;
+
 		if (rlen)
+		{
 			memset(p, 0, rlen);
+		}
 
 		offset += bs;
 	}
@@ -208,8 +224,11 @@ static int cmac_init_tfm(struct crypto_tfm *tfm)
 	struct cmac_tfm_ctx *ctx = crypto_tfm_ctx(tfm);
 
 	cipher = crypto_spawn_cipher(spawn);
+
 	if (IS_ERR(cipher))
+	{
 		return PTR_ERR(cipher);
+	}
 
 	ctx->child = cipher;
 
@@ -230,32 +249,46 @@ static int cmac_create(struct crypto_template *tmpl, struct rtattr **tb)
 	int err;
 
 	err = crypto_check_attr_type(tb, CRYPTO_ALG_TYPE_SHASH);
+
 	if (err)
+	{
 		return err;
+	}
 
 	alg = crypto_get_attr_alg(tb, CRYPTO_ALG_TYPE_CIPHER,
-				  CRYPTO_ALG_TYPE_MASK);
-	if (IS_ERR(alg))
-		return PTR_ERR(alg);
+							  CRYPTO_ALG_TYPE_MASK);
 
-	switch (alg->cra_blocksize) {
-	case 16:
-	case 8:
-		break;
-	default:
-		goto out_put_alg;
+	if (IS_ERR(alg))
+	{
+		return PTR_ERR(alg);
+	}
+
+	switch (alg->cra_blocksize)
+	{
+		case 16:
+		case 8:
+			break;
+
+		default:
+			goto out_put_alg;
 	}
 
 	inst = shash_alloc_instance("cmac", alg);
 	err = PTR_ERR(inst);
+
 	if (IS_ERR(inst))
+	{
 		goto out_put_alg;
+	}
 
 	err = crypto_init_spawn(shash_instance_ctx(inst), alg,
-				shash_crypto_instance(inst),
-				CRYPTO_ALG_TYPE_MASK);
+							shash_crypto_instance(inst),
+							CRYPTO_ALG_TYPE_MASK);
+
 	if (err)
+	{
 		goto out_free_inst;
+	}
 
 	alignmask = alg->cra_alignmask | (sizeof(long) - 1);
 	inst->alg.base.cra_alignmask = alignmask;
@@ -281,7 +314,9 @@ static int cmac_create(struct crypto_template *tmpl, struct rtattr **tb)
 	inst->alg.setkey = crypto_cmac_digest_setkey;
 
 	err = shash_register_instance(tmpl, inst);
-	if (err) {
+
+	if (err)
+	{
 out_free_inst:
 		shash_free_instance(shash_crypto_instance(inst));
 	}
@@ -291,7 +326,8 @@ out_put_alg:
 	return err;
 }
 
-static struct crypto_template crypto_cmac_tmpl = {
+static struct crypto_template crypto_cmac_tmpl =
+{
 	.name = "cmac",
 	.create = cmac_create,
 	.free = shash_free_instance,

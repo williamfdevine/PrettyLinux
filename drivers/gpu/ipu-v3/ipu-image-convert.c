@@ -59,18 +59,21 @@
 #define MAX_W     4096
 #define MAX_H     4096
 
-enum ipu_image_convert_type {
+enum ipu_image_convert_type
+{
 	IMAGE_CONVERT_IN = 0,
 	IMAGE_CONVERT_OUT,
 };
 
-struct ipu_image_convert_dma_buf {
+struct ipu_image_convert_dma_buf
+{
 	void          *virt;
 	dma_addr_t    phys;
 	unsigned long len;
 };
 
-struct ipu_image_convert_dma_chan {
+struct ipu_image_convert_dma_chan
+{
 	int in;
 	int out;
 	int rot_in;
@@ -81,7 +84,8 @@ struct ipu_image_convert_dma_chan {
 };
 
 /* dimensions of one tile */
-struct ipu_image_tile {
+struct ipu_image_tile
+{
 	u32 width;
 	u32 height;
 	/* size and strides are in bytes */
@@ -96,7 +100,8 @@ struct ipu_image_tile {
 	u32 v_off;
 };
 
-struct ipu_image_convert_image {
+struct ipu_image_convert_image
+{
 	struct ipu_image base;
 	enum ipu_image_convert_type type;
 
@@ -111,7 +116,8 @@ struct ipu_image_convert_image {
 	struct ipu_image_tile tile[MAX_TILES];
 };
 
-struct ipu_image_pixfmt {
+struct ipu_image_pixfmt
+{
 	u32	fourcc;        /* V4L2 fourcc */
 	int     bpp;           /* total bpp */
 	int     uv_width_dec;  /* decimation in width for U/V planes */
@@ -125,7 +131,8 @@ struct ipu_image_convert_ctx;
 struct ipu_image_convert_chan;
 struct ipu_image_convert_priv;
 
-struct ipu_image_convert_ctx {
+struct ipu_image_convert_ctx
+{
 	struct ipu_image_convert_chan *chan;
 
 	ipu_image_convert_cb_t complete;
@@ -157,7 +164,8 @@ struct ipu_image_convert_ctx {
 	struct list_head list;
 };
 
-struct ipu_image_convert_chan {
+struct ipu_image_convert_chan
+{
 	struct ipu_image_convert_priv *priv;
 
 	enum ipu_ic_task ic_task;
@@ -186,13 +194,15 @@ struct ipu_image_convert_chan {
 	struct ipu_image_convert_run *current_run;
 };
 
-struct ipu_image_convert_priv {
+struct ipu_image_convert_priv
+{
 	struct ipu_image_convert_chan chan[IC_NUM_TASKS];
 	struct ipu_soc *ipu;
 };
 
 static const struct ipu_image_convert_dma_chan
-image_convert_dma_chan[IC_NUM_TASKS] = {
+	image_convert_dma_chan[IC_NUM_TASKS] =
+{
 	[IC_TASK_VIEWFINDER] = {
 		.in = IPUV3_CHANNEL_MEM_IC_PRP_VF,
 		.out = IPUV3_CHANNEL_IC_PRP_VF_MEM,
@@ -210,7 +220,8 @@ image_convert_dma_chan[IC_NUM_TASKS] = {
 	},
 };
 
-static const struct ipu_image_pixfmt image_convert_formats[] = {
+static const struct ipu_image_pixfmt image_convert_formats[] =
+{
 	{
 		.fourcc	= V4L2_PIX_FMT_RGB565,
 		.bpp    = 16,
@@ -277,8 +288,10 @@ static const struct ipu_image_pixfmt *get_format(u32 fourcc)
 	const struct ipu_image_pixfmt *ret = NULL;
 	unsigned int i;
 
-	for (i = 0; i < ARRAY_SIZE(image_convert_formats); i++) {
-		if (image_convert_formats[i].fourcc == fourcc) {
+	for (i = 0; i < ARRAY_SIZE(image_convert_formats); i++)
+	{
+		if (image_convert_formats[i].fourcc == fourcc)
+		{
 			ret = &image_convert_formats[i];
 			break;
 		}
@@ -288,22 +301,22 @@ static const struct ipu_image_pixfmt *get_format(u32 fourcc)
 }
 
 static void dump_format(struct ipu_image_convert_ctx *ctx,
-			struct ipu_image_convert_image *ic_image)
+						struct ipu_image_convert_image *ic_image)
 {
 	struct ipu_image_convert_chan *chan = ctx->chan;
 	struct ipu_image_convert_priv *priv = chan->priv;
 
 	dev_dbg(priv->ipu->dev,
-		"task %u: ctx %p: %s format: %dx%d (%dx%d tiles of size %dx%d), %c%c%c%c\n",
-		chan->ic_task, ctx,
-		ic_image->type == IMAGE_CONVERT_OUT ? "Output" : "Input",
-		ic_image->base.pix.width, ic_image->base.pix.height,
-		ic_image->num_cols, ic_image->num_rows,
-		ic_image->tile[0].width, ic_image->tile[0].height,
-		ic_image->fmt->fourcc & 0xff,
-		(ic_image->fmt->fourcc >> 8) & 0xff,
-		(ic_image->fmt->fourcc >> 16) & 0xff,
-		(ic_image->fmt->fourcc >> 24) & 0xff);
+			"task %u: ctx %p: %s format: %dx%d (%dx%d tiles of size %dx%d), %c%c%c%c\n",
+			chan->ic_task, ctx,
+			ic_image->type == IMAGE_CONVERT_OUT ? "Output" : "Input",
+			ic_image->base.pix.width, ic_image->base.pix.height,
+			ic_image->num_cols, ic_image->num_rows,
+			ic_image->tile[0].width, ic_image->tile[0].height,
+			ic_image->fmt->fourcc & 0xff,
+			(ic_image->fmt->fourcc >> 8) & 0xff,
+			(ic_image->fmt->fourcc >> 16) & 0xff,
+			(ic_image->fmt->fourcc >> 24) & 0xff);
 }
 
 int ipu_image_convert_enum_format(int index, u32 *fourcc)
@@ -311,7 +324,9 @@ int ipu_image_convert_enum_format(int index, u32 *fourcc)
 	const struct ipu_image_pixfmt *fmt;
 
 	if (index >= (int)ARRAY_SIZE(image_convert_formats))
+	{
 		return -EINVAL;
+	}
 
 	/* Format found */
 	fmt = &image_convert_formats[index];
@@ -321,23 +336,26 @@ int ipu_image_convert_enum_format(int index, u32 *fourcc)
 EXPORT_SYMBOL_GPL(ipu_image_convert_enum_format);
 
 static void free_dma_buf(struct ipu_image_convert_priv *priv,
-			 struct ipu_image_convert_dma_buf *buf)
+						 struct ipu_image_convert_dma_buf *buf)
 {
 	if (buf->virt)
 		dma_free_coherent(priv->ipu->dev,
-				  buf->len, buf->virt, buf->phys);
+						  buf->len, buf->virt, buf->phys);
+
 	buf->virt = NULL;
 	buf->phys = 0;
 }
 
 static int alloc_dma_buf(struct ipu_image_convert_priv *priv,
-			 struct ipu_image_convert_dma_buf *buf,
-			 int size)
+						 struct ipu_image_convert_dma_buf *buf,
+						 int size)
 {
 	buf->len = PAGE_ALIGN(size);
 	buf->virt = dma_alloc_coherent(priv->ipu->dev, buf->len, &buf->phys,
-				       GFP_DMA | GFP_KERNEL);
-	if (!buf->virt) {
+								   GFP_DMA | GFP_KERNEL);
+
+	if (!buf->virt)
+	{
 		dev_err(priv->ipu->dev, "failed to alloc dma buffer\n");
 		return -ENOMEM;
 	}
@@ -348,30 +366,40 @@ static int alloc_dma_buf(struct ipu_image_convert_priv *priv,
 static inline int num_stripes(int dim)
 {
 	if (dim <= 1024)
+	{
 		return 1;
+	}
 	else if (dim <= 2048)
+	{
 		return 2;
+	}
 	else
+	{
 		return 4;
+	}
 }
 
 static void calc_tile_dimensions(struct ipu_image_convert_ctx *ctx,
-				 struct ipu_image_convert_image *image)
+								 struct ipu_image_convert_image *image)
 {
 	int i;
 
-	for (i = 0; i < ctx->num_tiles; i++) {
+	for (i = 0; i < ctx->num_tiles; i++)
+	{
 		struct ipu_image_tile *tile = &image->tile[i];
 
 		tile->height = image->base.pix.height / image->num_rows;
 		tile->width = image->base.pix.width / image->num_cols;
 		tile->size = ((tile->height * image->fmt->bpp) >> 3) *
-			tile->width;
+					 tile->width;
 
-		if (image->fmt->planar) {
+		if (image->fmt->planar)
+		{
 			tile->stride = tile->width;
 			tile->rot_stride = tile->height;
-		} else {
+		}
+		else
+		{
 			tile->stride =
 				(image->fmt->bpp * tile->width) >> 3;
 			tile->rot_stride =
@@ -387,7 +415,7 @@ static void calc_tile_dimensions(struct ipu_image_convert_ctx *ctx,
  * coordinate is then converted to a tile index.
  */
 static int transform_tile_index(struct ipu_image_convert_ctx *ctx,
-				int src_row, int src_col)
+								int src_row, int src_col)
 {
 	struct ipu_image_convert_chan *chan = ctx->chan;
 	struct ipu_image_convert_priv *priv = chan->priv;
@@ -397,7 +425,9 @@ static int transform_tile_index(struct ipu_image_convert_ctx *ctx,
 
 	/* with no rotation it's a 1:1 mapping */
 	if (ctx->rot_mode == IPU_ROTATE_NONE)
+	{
 		return src_row * s_image->num_cols + src_col;
+	}
 
 	/*
 	 * before doing the transform, first we have to translate
@@ -407,22 +437,30 @@ static int transform_tile_index(struct ipu_image_convert_ctx *ctx,
 	src_col = src_col * 2 - (s_image->num_cols - 1);
 
 	/* do the rotation transform */
-	if (ctx->rot_mode & IPU_ROT_BIT_90) {
+	if (ctx->rot_mode & IPU_ROT_BIT_90)
+	{
 		dst_col = -src_row;
 		dst_row = src_col;
-	} else {
+	}
+	else
+	{
 		dst_col = src_col;
 		dst_row = src_row;
 	}
 
 	/* apply flip */
 	if (ctx->rot_mode & IPU_ROT_BIT_HFLIP)
+	{
 		dst_col = -dst_col;
+	}
+
 	if (ctx->rot_mode & IPU_ROT_BIT_VFLIP)
+	{
 		dst_row = -dst_row;
+	}
 
 	dev_dbg(priv->ipu->dev, "task %u: ctx %p: [%d,%d] --> [%d,%d]\n",
-		chan->ic_task, ctx, src_col, src_row, dst_col, dst_row);
+			chan->ic_task, ctx, src_col, src_row, dst_col, dst_row);
 
 	/*
 	 * finally translate dest row,col using an origin in upper
@@ -444,8 +482,10 @@ static void calc_out_tile_map(struct ipu_image_convert_ctx *ctx)
 	struct ipu_image_convert_image *s_image = &ctx->in;
 	unsigned int row, col, tile = 0;
 
-	for (row = 0; row < s_image->num_rows; row++) {
-		for (col = 0; col < s_image->num_cols; col++) {
+	for (row = 0; row < s_image->num_rows; row++)
+	{
+		for (col = 0; col < s_image->num_cols; col++)
+		{
 			ctx->out_tile_map[tile] =
 				transform_tile_index(ctx, row, col);
 			tile++;
@@ -454,7 +494,7 @@ static void calc_out_tile_map(struct ipu_image_convert_ctx *ctx)
 }
 
 static void calc_tile_offsets_planar(struct ipu_image_convert_ctx *ctx,
-				     struct ipu_image_convert_image *image)
+									 struct ipu_image_convert_image *image)
 {
 	struct ipu_image_convert_chan *chan = ctx->chan;
 	struct ipu_image_convert_priv *priv = chan->priv;
@@ -470,30 +510,40 @@ static void calc_tile_offsets_planar(struct ipu_image_convert_ctx *ctx,
 
 	y_stride = image->stride;
 	uv_stride = y_stride / fmt->uv_width_dec;
+
 	if (fmt->uv_packed)
+	{
 		uv_stride *= 2;
+	}
 
 	y_size = H * y_stride;
 	uv_size = y_size / (fmt->uv_width_dec * fmt->uv_height_dec);
 
-	for (row = 0; row < image->num_rows; row++) {
+	for (row = 0; row < image->num_rows; row++)
+	{
 		w = image->tile[tile].width;
 		h = image->tile[tile].height;
 		y_row_off = row * h * y_stride;
 		uv_row_off = (row * h * uv_stride) / fmt->uv_height_dec;
 
-		for (col = 0; col < image->num_cols; col++) {
+		for (col = 0; col < image->num_cols; col++)
+		{
 			y_col_off = col * w;
 			uv_col_off = y_col_off / fmt->uv_width_dec;
+
 			if (fmt->uv_packed)
+			{
 				uv_col_off *= 2;
+			}
 
 			y_off = y_row_off + y_col_off;
 			uv_off = uv_row_off + uv_col_off;
 
 			u_off = y_size - y_off + uv_off;
 			v_off = (fmt->uv_packed) ? 0 : u_off + uv_size;
-			if (fmt->uv_swapped) {
+
+			if (fmt->uv_swapped)
+			{
 				tmp = u_off;
 				u_off = v_off;
 				v_off = tmp;
@@ -504,17 +554,17 @@ static void calc_tile_offsets_planar(struct ipu_image_convert_ctx *ctx,
 			image->tile[tile++].v_off = v_off;
 
 			dev_dbg(priv->ipu->dev,
-				"task %u: ctx %p: %s@[%d,%d]: y_off %08x, u_off %08x, v_off %08x\n",
-				chan->ic_task, ctx,
-				image->type == IMAGE_CONVERT_IN ?
-				"Input" : "Output", row, col,
-				y_off, u_off, v_off);
+					"task %u: ctx %p: %s@[%d,%d]: y_off %08x, u_off %08x, v_off %08x\n",
+					chan->ic_task, ctx,
+					image->type == IMAGE_CONVERT_IN ?
+					"Input" : "Output", row, col,
+					y_off, u_off, v_off);
 		}
 	}
 }
 
 static void calc_tile_offsets_packed(struct ipu_image_convert_ctx *ctx,
-				     struct ipu_image_convert_image *image)
+									 struct ipu_image_convert_image *image)
 {
 	struct ipu_image_convert_chan *chan = ctx->chan;
 	struct ipu_image_convert_priv *priv = chan->priv;
@@ -527,12 +577,14 @@ static void calc_tile_offsets_packed(struct ipu_image_convert_ctx *ctx,
 	stride = image->stride;
 	bpp = fmt->bpp;
 
-	for (row = 0; row < image->num_rows; row++) {
+	for (row = 0; row < image->num_rows; row++)
+	{
 		w = image->tile[tile].width;
 		h = image->tile[tile].height;
 		row_off = row * h * stride;
 
-		for (col = 0; col < image->num_cols; col++) {
+		for (col = 0; col < image->num_cols; col++)
+		{
 			col_off = (col * w * bpp) >> 3;
 
 			image->tile[tile].offset = row_off + col_off;
@@ -540,22 +592,26 @@ static void calc_tile_offsets_packed(struct ipu_image_convert_ctx *ctx,
 			image->tile[tile++].v_off = 0;
 
 			dev_dbg(priv->ipu->dev,
-				"task %u: ctx %p: %s@[%d,%d]: phys %08x\n",
-				chan->ic_task, ctx,
-				image->type == IMAGE_CONVERT_IN ?
-				"Input" : "Output", row, col,
-				row_off + col_off);
+					"task %u: ctx %p: %s@[%d,%d]: phys %08x\n",
+					chan->ic_task, ctx,
+					image->type == IMAGE_CONVERT_IN ?
+					"Input" : "Output", row, col,
+					row_off + col_off);
 		}
 	}
 }
 
 static void calc_tile_offsets(struct ipu_image_convert_ctx *ctx,
-			      struct ipu_image_convert_image *image)
+							  struct ipu_image_convert_image *image)
 {
 	if (image->fmt->planar)
+	{
 		calc_tile_offsets_planar(ctx, image);
+	}
 	else
+	{
 		calc_tile_offsets_packed(ctx, image);
+	}
 }
 
 /*
@@ -563,16 +619,19 @@ static void calc_tile_offsets(struct ipu_image_convert_ctx *ctx,
  * for this context. hold irqlock when calling.
  */
 static int get_run_count(struct ipu_image_convert_ctx *ctx,
-			 struct list_head *q)
+						 struct list_head *q)
 {
 	struct ipu_image_convert_run *run;
 	int count = 0;
 
 	lockdep_assert_held(&ctx->chan->irqlock);
 
-	list_for_each_entry(run, q, list) {
+	list_for_each_entry(run, q, list)
+	{
 		if (run->ctx == ctx)
+		{
 			count++;
+		}
 	}
 
 	return count;
@@ -585,14 +644,15 @@ static void convert_stop(struct ipu_image_convert_run *run)
 	struct ipu_image_convert_priv *priv = chan->priv;
 
 	dev_dbg(priv->ipu->dev, "%s: task %u: stopping ctx %p run %p\n",
-		__func__, chan->ic_task, ctx, run);
+			__func__, chan->ic_task, ctx, run);
 
 	/* disable IC tasks and the channels */
 	ipu_ic_task_disable(chan->ic);
 	ipu_idmac_disable_channel(chan->in_chan);
 	ipu_idmac_disable_channel(chan->out_chan);
 
-	if (ipu_rot_mode_is_irt(ctx->rot_mode)) {
+	if (ipu_rot_mode_is_irt(ctx->rot_mode))
+	{
 		ipu_idmac_disable_channel(chan->rotation_in_chan);
 		ipu_idmac_disable_channel(chan->rotation_out_chan);
 		ipu_idmac_unlink(chan->out_chan, chan->rotation_in_chan);
@@ -602,10 +662,10 @@ static void convert_stop(struct ipu_image_convert_run *run)
 }
 
 static void init_idmac_channel(struct ipu_image_convert_ctx *ctx,
-			       struct ipuv3_channel *channel,
-			       struct ipu_image_convert_image *image,
-			       enum ipu_rotate_mode rot_mode,
-			       bool rot_swap_width_height)
+							   struct ipuv3_channel *channel,
+							   struct ipu_image_convert_image *image,
+							   enum ipu_rotate_mode rot_mode,
+							   bool rot_swap_width_height)
 {
 	struct ipu_image_convert_chan *chan = ctx->chan;
 	unsigned int burst_size;
@@ -614,30 +674,40 @@ static void init_idmac_channel(struct ipu_image_convert_ctx *ctx,
 	struct ipu_image tile_image;
 	unsigned int tile_idx[2];
 
-	if (image->type == IMAGE_CONVERT_OUT) {
+	if (image->type == IMAGE_CONVERT_OUT)
+	{
 		tile_idx[0] = ctx->out_tile_map[0];
 		tile_idx[1] = ctx->out_tile_map[1];
-	} else {
+	}
+	else
+	{
 		tile_idx[0] = 0;
 		tile_idx[1] = 1;
 	}
 
-	if (rot_swap_width_height) {
+	if (rot_swap_width_height)
+	{
 		width = image->tile[0].height;
 		height = image->tile[0].width;
 		stride = image->tile[0].rot_stride;
 		addr0 = ctx->rot_intermediate[0].phys;
+
 		if (ctx->double_buffering)
+		{
 			addr1 = ctx->rot_intermediate[1].phys;
-	} else {
+		}
+	}
+	else
+	{
 		width = image->tile[0].width;
 		height = image->tile[0].height;
 		stride = image->stride;
 		addr0 = image->base.phys0 +
-			image->tile[tile_idx[0]].offset;
+				image->tile[tile_idx[0]].offset;
+
 		if (ctx->double_buffering)
 			addr1 = image->base.phys0 +
-				image->tile[tile_idx[1]].offset;
+					image->tile[tile_idx[1]].offset;
 	}
 
 	ipu_cpmem_zero(channel);
@@ -653,23 +723,29 @@ static void init_idmac_channel(struct ipu_image_convert_ctx *ctx,
 
 	if (image->fmt->planar && !rot_swap_width_height)
 		ipu_cpmem_set_uv_offset(channel,
-					image->tile[tile_idx[0]].u_off,
-					image->tile[tile_idx[0]].v_off);
+								image->tile[tile_idx[0]].u_off,
+								image->tile[tile_idx[0]].v_off);
 
 	if (rot_mode)
+	{
 		ipu_cpmem_set_rotation(channel, rot_mode);
+	}
 
 	if (channel == chan->rotation_in_chan ||
-	    channel == chan->rotation_out_chan) {
+		channel == chan->rotation_out_chan)
+	{
 		burst_size = 8;
 		ipu_cpmem_set_block_mode(channel);
-	} else
+	}
+	else
+	{
 		burst_size = (width % 16) ? 8 : 16;
+	}
 
 	ipu_cpmem_set_burstsize(channel, burst_size);
 
 	ipu_ic_task_idma_init(chan->ic, channel, width, height,
-			      burst_size, rot_mode);
+						  burst_size, rot_mode);
 
 	ipu_cpmem_set_axi_id(channel, 1);
 
@@ -688,55 +764,63 @@ static int convert_start(struct ipu_image_convert_run *run)
 	int ret;
 
 	dev_dbg(priv->ipu->dev, "%s: task %u: starting ctx %p run %p\n",
-		__func__, chan->ic_task, ctx, run);
+			__func__, chan->ic_task, ctx, run);
 
 	src_cs = ipu_pixelformat_to_colorspace(s_image->fmt->fourcc);
 	dest_cs = ipu_pixelformat_to_colorspace(d_image->fmt->fourcc);
 
-	if (ipu_rot_mode_is_irt(ctx->rot_mode)) {
+	if (ipu_rot_mode_is_irt(ctx->rot_mode))
+	{
 		/* swap width/height for resizer */
 		dest_width = d_image->tile[0].height;
 		dest_height = d_image->tile[0].width;
-	} else {
+	}
+	else
+	{
 		dest_width = d_image->tile[0].width;
 		dest_height = d_image->tile[0].height;
 	}
 
 	/* setup the IC resizer and CSC */
 	ret = ipu_ic_task_init(chan->ic,
-			       s_image->tile[0].width,
-			       s_image->tile[0].height,
-			       dest_width,
-			       dest_height,
-			       src_cs, dest_cs);
-	if (ret) {
+						   s_image->tile[0].width,
+						   s_image->tile[0].height,
+						   dest_width,
+						   dest_height,
+						   src_cs, dest_cs);
+
+	if (ret)
+	{
 		dev_err(priv->ipu->dev, "ipu_ic_task_init failed, %d\n", ret);
 		return ret;
 	}
 
 	/* init the source MEM-->IC PP IDMAC channel */
 	init_idmac_channel(ctx, chan->in_chan, s_image,
-			   IPU_ROTATE_NONE, false);
+					   IPU_ROTATE_NONE, false);
 
-	if (ipu_rot_mode_is_irt(ctx->rot_mode)) {
+	if (ipu_rot_mode_is_irt(ctx->rot_mode))
+	{
 		/* init the IC PP-->MEM IDMAC channel */
 		init_idmac_channel(ctx, chan->out_chan, d_image,
-				   IPU_ROTATE_NONE, true);
+						   IPU_ROTATE_NONE, true);
 
 		/* init the MEM-->IC PP ROT IDMAC channel */
 		init_idmac_channel(ctx, chan->rotation_in_chan, d_image,
-				   ctx->rot_mode, true);
+						   ctx->rot_mode, true);
 
 		/* init the destination IC PP ROT-->MEM IDMAC channel */
 		init_idmac_channel(ctx, chan->rotation_out_chan, d_image,
-				   IPU_ROTATE_NONE, false);
+						   IPU_ROTATE_NONE, false);
 
 		/* now link IC PP-->MEM to MEM-->IC PP ROT */
 		ipu_idmac_link(chan->out_chan, chan->rotation_in_chan);
-	} else {
+	}
+	else
+	{
 		/* init the destination IC PP-->MEM IDMAC channel */
 		init_idmac_channel(ctx, chan->out_chan, d_image,
-				   ctx->rot_mode, false);
+						   ctx->rot_mode, false);
 	}
 
 	/* enable the IC */
@@ -745,19 +829,29 @@ static int convert_start(struct ipu_image_convert_run *run)
 	/* set buffers ready */
 	ipu_idmac_select_buffer(chan->in_chan, 0);
 	ipu_idmac_select_buffer(chan->out_chan, 0);
+
 	if (ipu_rot_mode_is_irt(ctx->rot_mode))
+	{
 		ipu_idmac_select_buffer(chan->rotation_out_chan, 0);
-	if (ctx->double_buffering) {
+	}
+
+	if (ctx->double_buffering)
+	{
 		ipu_idmac_select_buffer(chan->in_chan, 1);
 		ipu_idmac_select_buffer(chan->out_chan, 1);
+
 		if (ipu_rot_mode_is_irt(ctx->rot_mode))
+		{
 			ipu_idmac_select_buffer(chan->rotation_out_chan, 1);
+		}
 	}
 
 	/* enable the channels! */
 	ipu_idmac_enable_channel(chan->in_chan);
 	ipu_idmac_enable_channel(chan->out_chan);
-	if (ipu_rot_mode_is_irt(ctx->rot_mode)) {
+
+	if (ipu_rot_mode_is_irt(ctx->rot_mode))
+	{
 		ipu_idmac_enable_channel(chan->rotation_in_chan);
 		ipu_idmac_enable_channel(chan->rotation_out_chan);
 	}
@@ -766,7 +860,9 @@ static int convert_start(struct ipu_image_convert_run *run)
 
 	ipu_cpmem_dump(chan->in_chan);
 	ipu_cpmem_dump(chan->out_chan);
-	if (ipu_rot_mode_is_irt(ctx->rot_mode)) {
+
+	if (ipu_rot_mode_is_irt(ctx->rot_mode))
+	{
 		ipu_cpmem_dump(chan->rotation_in_chan);
 		ipu_cpmem_dump(chan->rotation_out_chan);
 	}
@@ -806,18 +902,23 @@ static void run_next(struct ipu_image_convert_chan *chan)
 
 	lockdep_assert_held(&chan->irqlock);
 
-	list_for_each_entry_safe(run, tmp, &chan->pending_q, list) {
+	list_for_each_entry_safe(run, tmp, &chan->pending_q, list)
+	{
 		/* skip contexts that are aborting */
-		if (run->ctx->aborting) {
+		if (run->ctx->aborting)
+		{
 			dev_dbg(priv->ipu->dev,
-				"%s: task %u: skipping aborting ctx %p run %p\n",
-				__func__, chan->ic_task, run->ctx, run);
+					"%s: task %u: skipping aborting ctx %p run %p\n",
+					__func__, chan->ic_task, run->ctx, run);
 			continue;
 		}
 
 		ret = do_run(run);
+
 		if (!ret)
+		{
 			break;
+		}
 
 		/*
 		 * something went wrong with start, add the run
@@ -838,16 +939,17 @@ static void empty_done_q(struct ipu_image_convert_chan *chan)
 
 	spin_lock_irqsave(&chan->irqlock, flags);
 
-	while (!list_empty(&chan->done_q)) {
+	while (!list_empty(&chan->done_q))
+	{
 		run = list_entry(chan->done_q.next,
-				 struct ipu_image_convert_run,
-				 list);
+						 struct ipu_image_convert_run,
+						 list);
 
 		list_del(&run->list);
 
 		dev_dbg(priv->ipu->dev,
-			"%s: task %u: completing ctx %p run %p with %d\n",
-			__func__, chan->ic_task, run->ctx, run, run->status);
+				"%s: task %u: completing ctx %p run %p with %d\n",
+				__func__, chan->ic_task, run->ctx, run, run->status);
 
 		/* call the completion callback and free the run */
 		spin_unlock_irqrestore(&chan->irqlock, flags);
@@ -870,7 +972,7 @@ static irqreturn_t do_bh(int irq, void *dev_id)
 	unsigned long flags;
 
 	dev_dbg(priv->ipu->dev, "%s: task %u: enter\n", __func__,
-		chan->ic_task);
+			chan->ic_task);
 
 	empty_done_q(chan);
 
@@ -880,11 +982,13 @@ static irqreturn_t do_bh(int irq, void *dev_id)
 	 * the done_q is cleared out, signal any contexts
 	 * that are aborting that abort can complete.
 	 */
-	list_for_each_entry(ctx, &chan->ctx_list, list) {
-		if (ctx->aborting) {
+	list_for_each_entry(ctx, &chan->ctx_list, list)
+	{
+		if (ctx->aborting)
+		{
 			dev_dbg(priv->ipu->dev,
-				"%s: task %u: signaling abort for ctx %p\n",
-				__func__, chan->ic_task, ctx);
+					"%s: task %u: signaling abort for ctx %p\n",
+					__func__, chan->ic_task, ctx);
 			complete(&ctx->aborted);
 		}
 	}
@@ -892,7 +996,7 @@ static irqreturn_t do_bh(int irq, void *dev_id)
 	spin_unlock_irqrestore(&chan->irqlock, flags);
 
 	dev_dbg(priv->ipu->dev, "%s: task %u: exit\n", __func__,
-		chan->ic_task);
+			chan->ic_task);
 
 	return IRQ_HANDLED;
 }
@@ -911,7 +1015,7 @@ static irqreturn_t do_irq(struct ipu_image_convert_run *run)
 	lockdep_assert_held(&chan->irqlock);
 
 	outch = ipu_rot_mode_is_irt(ctx->rot_mode) ?
-		chan->rotation_out_chan : chan->out_chan;
+			chan->rotation_out_chan : chan->out_chan;
 
 	/*
 	 * It is difficult to stop the channel DMA before the channels
@@ -921,13 +1025,15 @@ static irqreturn_t do_irq(struct ipu_image_convert_run *run)
 	 * just ignore the abort until the operation completes, when it
 	 * is safe to shut down.
 	 */
-	if (ctx->aborting && !ctx->double_buffering) {
+	if (ctx->aborting && !ctx->double_buffering)
+	{
 		convert_stop(run);
 		run->status = -EIO;
 		goto done;
 	}
 
-	if (ctx->next_tile == ctx->num_tiles) {
+	if (ctx->next_tile == ctx->num_tiles)
+	{
 		/*
 		 * the conversion is complete
 		 */
@@ -939,38 +1045,43 @@ static irqreturn_t do_irq(struct ipu_image_convert_run *run)
 	/*
 	 * not done, place the next tile buffers.
 	 */
-	if (!ctx->double_buffering) {
+	if (!ctx->double_buffering)
+	{
 
 		src_tile = &s_image->tile[ctx->next_tile];
 		dst_idx = ctx->out_tile_map[ctx->next_tile];
 		dst_tile = &d_image->tile[dst_idx];
 
 		ipu_cpmem_set_buffer(chan->in_chan, 0,
-				     s_image->base.phys0 + src_tile->offset);
+							 s_image->base.phys0 + src_tile->offset);
 		ipu_cpmem_set_buffer(outch, 0,
-				     d_image->base.phys0 + dst_tile->offset);
+							 d_image->base.phys0 + dst_tile->offset);
+
 		if (s_image->fmt->planar)
 			ipu_cpmem_set_uv_offset(chan->in_chan,
-						src_tile->u_off,
-						src_tile->v_off);
+									src_tile->u_off,
+									src_tile->v_off);
+
 		if (d_image->fmt->planar)
 			ipu_cpmem_set_uv_offset(outch,
-						dst_tile->u_off,
-						dst_tile->v_off);
+									dst_tile->u_off,
+									dst_tile->v_off);
 
 		ipu_idmac_select_buffer(chan->in_chan, 0);
 		ipu_idmac_select_buffer(outch, 0);
 
-	} else if (ctx->next_tile < ctx->num_tiles - 1) {
+	}
+	else if (ctx->next_tile < ctx->num_tiles - 1)
+	{
 
 		src_tile = &s_image->tile[ctx->next_tile + 1];
 		dst_idx = ctx->out_tile_map[ctx->next_tile + 1];
 		dst_tile = &d_image->tile[dst_idx];
 
 		ipu_cpmem_set_buffer(chan->in_chan, ctx->cur_buf_num,
-				     s_image->base.phys0 + src_tile->offset);
+							 s_image->base.phys0 + src_tile->offset);
 		ipu_cpmem_set_buffer(outch, ctx->cur_buf_num,
-				     d_image->base.phys0 + dst_tile->offset);
+							 d_image->base.phys0 + dst_tile->offset);
 
 		ipu_idmac_select_buffer(chan->in_chan, ctx->cur_buf_num);
 		ipu_idmac_select_buffer(outch, ctx->cur_buf_num);
@@ -999,14 +1110,17 @@ static irqreturn_t norotate_irq(int irq, void *data)
 
 	/* get current run and its context */
 	run = chan->current_run;
-	if (!run) {
+
+	if (!run)
+	{
 		ret = IRQ_NONE;
 		goto out;
 	}
 
 	ctx = run->ctx;
 
-	if (ipu_rot_mode_is_irt(ctx->rot_mode)) {
+	if (ipu_rot_mode_is_irt(ctx->rot_mode))
+	{
 		/* this is a rotation operation, just ignore */
 		spin_unlock_irqrestore(&chan->irqlock, flags);
 		return IRQ_HANDLED;
@@ -1031,14 +1145,17 @@ static irqreturn_t rotate_irq(int irq, void *data)
 
 	/* get current run and its context */
 	run = chan->current_run;
-	if (!run) {
+
+	if (!run)
+	{
 		ret = IRQ_NONE;
 		goto out;
 	}
 
 	ctx = run->ctx;
 
-	if (!ipu_rot_mode_is_irt(ctx->rot_mode)) {
+	if (!ipu_rot_mode_is_irt(ctx->rot_mode))
+	{
 		/* this was NOT a rotation operation, shouldn't happen */
 		dev_err(priv->ipu->dev, "Unexpected rotation interrupt\n");
 		spin_unlock_irqrestore(&chan->irqlock, flags);
@@ -1064,7 +1181,9 @@ static void force_abort(struct ipu_image_convert_ctx *ctx)
 	spin_lock_irqsave(&chan->irqlock, flags);
 
 	run = chan->current_run;
-	if (run && run->ctx == ctx) {
+
+	if (run && run->ctx == ctx)
+	{
 		convert_stop(run);
 		run->status = -EIO;
 		list_add_tail(&run->list, &chan->done_q);
@@ -1080,23 +1199,42 @@ static void force_abort(struct ipu_image_convert_ctx *ctx)
 static void release_ipu_resources(struct ipu_image_convert_chan *chan)
 {
 	if (chan->out_eof_irq >= 0)
+	{
 		free_irq(chan->out_eof_irq, chan);
+	}
+
 	if (chan->rot_out_eof_irq >= 0)
+	{
 		free_irq(chan->rot_out_eof_irq, chan);
+	}
 
 	if (!IS_ERR_OR_NULL(chan->in_chan))
+	{
 		ipu_idmac_put(chan->in_chan);
+	}
+
 	if (!IS_ERR_OR_NULL(chan->out_chan))
+	{
 		ipu_idmac_put(chan->out_chan);
+	}
+
 	if (!IS_ERR_OR_NULL(chan->rotation_in_chan))
+	{
 		ipu_idmac_put(chan->rotation_in_chan);
+	}
+
 	if (!IS_ERR_OR_NULL(chan->rotation_out_chan))
+	{
 		ipu_idmac_put(chan->rotation_out_chan);
+	}
+
 	if (!IS_ERR_OR_NULL(chan->ic))
+	{
 		ipu_ic_put(chan->ic);
+	}
 
 	chan->in_chan = chan->out_chan = chan->rotation_in_chan =
-		chan->rotation_out_chan = NULL;
+										 chan->rotation_out_chan = NULL;
 	chan->out_eof_irq = chan->rot_out_eof_irq = -1;
 }
 
@@ -1108,7 +1246,9 @@ static int get_ipu_resources(struct ipu_image_convert_chan *chan)
 
 	/* get IC */
 	chan->ic = ipu_ic_get(priv->ipu, chan->ic_task);
-	if (IS_ERR(chan->ic)) {
+
+	if (IS_ERR(chan->ic))
+	{
 		dev_err(priv->ipu->dev, "could not acquire IC\n");
 		ret = PTR_ERR(chan->ic);
 		goto err;
@@ -1117,7 +1257,9 @@ static int get_ipu_resources(struct ipu_image_convert_chan *chan)
 	/* get IDMAC channels */
 	chan->in_chan = ipu_idmac_get(priv->ipu, dma->in);
 	chan->out_chan = ipu_idmac_get(priv->ipu, dma->out);
-	if (IS_ERR(chan->in_chan) || IS_ERR(chan->out_chan)) {
+
+	if (IS_ERR(chan->in_chan) || IS_ERR(chan->out_chan))
+	{
 		dev_err(priv->ipu->dev, "could not acquire idmac channels\n");
 		ret = -EBUSY;
 		goto err;
@@ -1125,36 +1267,42 @@ static int get_ipu_resources(struct ipu_image_convert_chan *chan)
 
 	chan->rotation_in_chan = ipu_idmac_get(priv->ipu, dma->rot_in);
 	chan->rotation_out_chan = ipu_idmac_get(priv->ipu, dma->rot_out);
-	if (IS_ERR(chan->rotation_in_chan) || IS_ERR(chan->rotation_out_chan)) {
+
+	if (IS_ERR(chan->rotation_in_chan) || IS_ERR(chan->rotation_out_chan))
+	{
 		dev_err(priv->ipu->dev,
-			"could not acquire idmac rotation channels\n");
+				"could not acquire idmac rotation channels\n");
 		ret = -EBUSY;
 		goto err;
 	}
 
 	/* acquire the EOF interrupts */
 	chan->out_eof_irq = ipu_idmac_channel_irq(priv->ipu,
-						  chan->out_chan,
-						  IPU_IRQ_EOF);
+						chan->out_chan,
+						IPU_IRQ_EOF);
 
 	ret = request_threaded_irq(chan->out_eof_irq, norotate_irq, do_bh,
-				   0, "ipu-ic", chan);
-	if (ret < 0) {
+							   0, "ipu-ic", chan);
+
+	if (ret < 0)
+	{
 		dev_err(priv->ipu->dev, "could not acquire irq %d\n",
-			 chan->out_eof_irq);
+				chan->out_eof_irq);
 		chan->out_eof_irq = -1;
 		goto err;
 	}
 
 	chan->rot_out_eof_irq = ipu_idmac_channel_irq(priv->ipu,
-						     chan->rotation_out_chan,
-						     IPU_IRQ_EOF);
+							chan->rotation_out_chan,
+							IPU_IRQ_EOF);
 
 	ret = request_threaded_irq(chan->rot_out_eof_irq, rotate_irq, do_bh,
-				   0, "ipu-ic", chan);
-	if (ret < 0) {
+							   0, "ipu-ic", chan);
+
+	if (ret < 0)
+	{
 		dev_err(priv->ipu->dev, "could not acquire irq %d\n",
-			chan->rot_out_eof_irq);
+				chan->rot_out_eof_irq);
 		chan->rot_out_eof_irq = -1;
 		goto err;
 	}
@@ -1166,9 +1314,9 @@ err:
 }
 
 static int fill_image(struct ipu_image_convert_ctx *ctx,
-		      struct ipu_image_convert_image *ic_image,
-		      struct ipu_image *image,
-		      enum ipu_image_convert_type type)
+					  struct ipu_image_convert_image *ic_image,
+					  struct ipu_image *image,
+					  enum ipu_image_convert_type type)
 {
 	struct ipu_image_convert_priv *priv = ctx->chan->priv;
 
@@ -1176,16 +1324,22 @@ static int fill_image(struct ipu_image_convert_ctx *ctx,
 	ic_image->type = type;
 
 	ic_image->fmt = get_format(image->pix.pixelformat);
-	if (!ic_image->fmt) {
+
+	if (!ic_image->fmt)
+	{
 		dev_err(priv->ipu->dev, "pixelformat not supported for %s\n",
-			type == IMAGE_CONVERT_OUT ? "Output" : "Input");
+				type == IMAGE_CONVERT_OUT ? "Output" : "Input");
 		return -EINVAL;
 	}
 
 	if (ic_image->fmt->planar)
+	{
 		ic_image->stride = ic_image->base.pix.width;
+	}
 	else
+	{
 		ic_image->stride  = ic_image->base.pix.bytesperline;
+	}
 
 	calc_tile_dimensions(ctx, ic_image);
 	calc_tile_offsets(ctx, ic_image);
@@ -1195,7 +1349,7 @@ static int fill_image(struct ipu_image_convert_ctx *ctx,
 
 /* borrowed from drivers/media/v4l2-core/v4l2-common.c */
 static unsigned int clamp_align(unsigned int x, unsigned int min,
-				unsigned int max, unsigned int align)
+								unsigned int max, unsigned int align)
 {
 	/* Bits that must be zero to be aligned */
 	unsigned int mask = ~((1 << align) - 1);
@@ -1205,7 +1359,9 @@ static unsigned int clamp_align(unsigned int x, unsigned int min,
 
 	/* Round to nearest aligned value */
 	if (align)
+	{
 		x = (x + (1 << (align - 1))) & mask;
+	}
 
 	return x;
 }
@@ -1231,15 +1387,15 @@ static inline u32 tile_width_align(const struct ipu_image_pixfmt *fmt)
  * 2 lines are good enough.
  */
 static inline u32 tile_height_align(enum ipu_image_convert_type type,
-				    enum ipu_rotate_mode rot_mode)
+									enum ipu_rotate_mode rot_mode)
 {
 	return (type == IMAGE_CONVERT_OUT &&
-		ipu_rot_mode_is_irt(rot_mode)) ? 8 : 2;
+			ipu_rot_mode_is_irt(rot_mode)) ? 8 : 2;
 }
 
 /* Adjusts input/output images to IPU restrictions */
 void ipu_image_convert_adjust(struct ipu_image *in, struct ipu_image *out,
-			      enum ipu_rotate_mode rot_mode)
+							  enum ipu_rotate_mode rot_mode)
 {
 	const struct ipu_image_pixfmt *infmt, *outfmt;
 	unsigned int num_in_rows, num_in_cols;
@@ -1250,11 +1406,14 @@ void ipu_image_convert_adjust(struct ipu_image *in, struct ipu_image *out,
 	outfmt = get_format(out->pix.pixelformat);
 
 	/* set some default pixel formats if needed */
-	if (!infmt) {
+	if (!infmt)
+	{
 		in->pix.pixelformat = V4L2_PIX_FMT_RGB24;
 		infmt = get_format(V4L2_PIX_FMT_RGB24);
 	}
-	if (!outfmt) {
+
+	if (!outfmt)
+	{
 		out->pix.pixelformat = V4L2_PIX_FMT_RGB24;
 		outfmt = get_format(V4L2_PIX_FMT_RGB24);
 	}
@@ -1263,25 +1422,32 @@ void ipu_image_convert_adjust(struct ipu_image *in, struct ipu_image *out,
 	in->pix.field = out->pix.field = V4L2_FIELD_NONE;
 
 	/* resizer cannot downsize more than 4:1 */
-	if (ipu_rot_mode_is_irt(rot_mode)) {
+	if (ipu_rot_mode_is_irt(rot_mode))
+	{
 		out->pix.height = max_t(__u32, out->pix.height,
-					in->pix.width / 4);
+								in->pix.width / 4);
 		out->pix.width = max_t(__u32, out->pix.width,
-				       in->pix.height / 4);
-	} else {
+							   in->pix.height / 4);
+	}
+	else
+	{
 		out->pix.width = max_t(__u32, out->pix.width,
-				       in->pix.width / 4);
+							   in->pix.width / 4);
 		out->pix.height = max_t(__u32, out->pix.height,
-					in->pix.height / 4);
+								in->pix.height / 4);
 	}
 
 	/* get tiling rows/cols from output format */
 	num_out_rows = num_stripes(out->pix.height);
 	num_out_cols = num_stripes(out->pix.width);
-	if (ipu_rot_mode_is_irt(rot_mode)) {
+
+	if (ipu_rot_mode_is_irt(rot_mode))
+	{
 		num_in_rows = num_out_cols;
 		num_in_cols = num_out_rows;
-	} else {
+	}
+	else
+	{
 		num_in_rows = num_out_rows;
 		num_in_cols = num_out_cols;
 	}
@@ -1289,14 +1455,14 @@ void ipu_image_convert_adjust(struct ipu_image *in, struct ipu_image *out,
 	/* align input width/height */
 	w_align = ilog2(tile_width_align(infmt) * num_in_cols);
 	h_align = ilog2(tile_height_align(IMAGE_CONVERT_IN, rot_mode) *
-			num_in_rows);
+					num_in_rows);
 	in->pix.width = clamp_align(in->pix.width, MIN_W, MAX_W, w_align);
 	in->pix.height = clamp_align(in->pix.height, MIN_H, MAX_H, h_align);
 
 	/* align output width/height */
 	w_align = ilog2(tile_width_align(outfmt) * num_out_cols);
 	h_align = ilog2(tile_height_align(IMAGE_CONVERT_OUT, rot_mode) *
-			num_out_rows);
+					num_out_rows);
 	out->pix.width = clamp_align(out->pix.width, MIN_W, MAX_W, w_align);
 	out->pix.height = clamp_align(out->pix.height, MIN_H, MAX_H, h_align);
 
@@ -1314,7 +1480,7 @@ EXPORT_SYMBOL_GPL(ipu_image_convert_adjust);
  * also call it before calling ipu_image_convert_prepare().
  */
 int ipu_image_convert_verify(struct ipu_image *in, struct ipu_image *out,
-			     enum ipu_rotate_mode rot_mode)
+							 enum ipu_rotate_mode rot_mode)
 {
 	struct ipu_image testin, testout;
 
@@ -1324,10 +1490,12 @@ int ipu_image_convert_verify(struct ipu_image *in, struct ipu_image *out,
 	ipu_image_convert_adjust(&testin, &testout, rot_mode);
 
 	if (testin.pix.width != in->pix.width ||
-	    testin.pix.height != in->pix.height ||
-	    testout.pix.width != out->pix.width ||
-	    testout.pix.height != out->pix.height)
+		testin.pix.height != in->pix.height ||
+		testout.pix.width != out->pix.width ||
+		testout.pix.height != out->pix.height)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -1339,10 +1507,10 @@ EXPORT_SYMBOL_GPL(ipu_image_convert_verify);
  */
 struct ipu_image_convert_ctx *
 ipu_image_convert_prepare(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
-			  struct ipu_image *in, struct ipu_image *out,
-			  enum ipu_rotate_mode rot_mode,
-			  ipu_image_convert_cb_t complete,
-			  void *complete_context)
+						  struct ipu_image *in, struct ipu_image *out,
+						  enum ipu_rotate_mode rot_mode,
+						  ipu_image_convert_cb_t complete,
+						  void *complete_context)
 {
 	struct ipu_image_convert_priv *priv = ipu->image_convert_priv;
 	struct ipu_image_convert_image *s_image, *d_image;
@@ -1353,26 +1521,33 @@ ipu_image_convert_prepare(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
 	int ret;
 
 	if (!in || !out || !complete ||
-	    (ic_task != IC_TASK_VIEWFINDER &&
-	     ic_task != IC_TASK_POST_PROCESSOR))
+		(ic_task != IC_TASK_VIEWFINDER &&
+		 ic_task != IC_TASK_POST_PROCESSOR))
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	/* verify the in/out images before continuing */
 	ret = ipu_image_convert_verify(in, out, rot_mode);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(priv->ipu->dev, "%s: in/out formats invalid\n",
-			__func__);
+				__func__);
 		return ERR_PTR(ret);
 	}
 
 	chan = &priv->chan[ic_task];
 
 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+
 	if (!ctx)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	dev_dbg(priv->ipu->dev, "%s: task %u: ctx %p\n", __func__,
-		chan->ic_task, ctx);
+			chan->ic_task, ctx);
 
 	ctx->chan = chan;
 	init_completion(&ctx->aborted);
@@ -1383,10 +1558,14 @@ ipu_image_convert_prepare(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
 	/* set tiling and rotation */
 	d_image->num_rows = num_stripes(out->pix.height);
 	d_image->num_cols = num_stripes(out->pix.width);
-	if (ipu_rot_mode_is_irt(rot_mode)) {
+
+	if (ipu_rot_mode_is_irt(rot_mode))
+	{
 		s_image->num_rows = d_image->num_cols;
 		s_image->num_cols = d_image->num_rows;
-	} else {
+	}
+	else
+	{
 		s_image->num_rows = d_image->num_rows;
 		s_image->num_cols = d_image->num_cols;
 	}
@@ -1395,11 +1574,18 @@ ipu_image_convert_prepare(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
 	ctx->rot_mode = rot_mode;
 
 	ret = fill_image(ctx, s_image, in, IMAGE_CONVERT_IN);
+
 	if (ret)
+	{
 		goto out_free;
+	}
+
 	ret = fill_image(ctx, d_image, out, IMAGE_CONVERT_OUT);
+
 	if (ret)
+	{
 		goto out_free;
+	}
 
 	calc_out_tile_map(ctx);
 
@@ -1421,20 +1607,29 @@ ipu_image_convert_prepare(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
 	 * a planar format (YUV420, YUV422P, etc.).
 	 */
 	ctx->double_buffering = (ctx->num_tiles > 1 &&
-				 !s_image->fmt->planar &&
-				 !d_image->fmt->planar);
+							 !s_image->fmt->planar &&
+							 !d_image->fmt->planar);
 
-	if (ipu_rot_mode_is_irt(ctx->rot_mode)) {
+	if (ipu_rot_mode_is_irt(ctx->rot_mode))
+	{
 		ret = alloc_dma_buf(priv, &ctx->rot_intermediate[0],
-				    d_image->tile[0].size);
+							d_image->tile[0].size);
+
 		if (ret)
+		{
 			goto out_free;
-		if (ctx->double_buffering) {
+		}
+
+		if (ctx->double_buffering)
+		{
 			ret = alloc_dma_buf(priv,
-					    &ctx->rot_intermediate[1],
-					    d_image->tile[0].size);
+								&ctx->rot_intermediate[1],
+								d_image->tile[0].size);
+
 			if (ret)
+			{
 				goto out_free_dmabuf0;
+			}
 		}
 	}
 
@@ -1446,10 +1641,14 @@ ipu_image_convert_prepare(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
 
 	spin_unlock_irqrestore(&chan->irqlock, flags);
 
-	if (get_res) {
+	if (get_res)
+	{
 		ret = get_ipu_resources(chan);
+
 		if (ret)
+		{
 			goto out_free_dmabuf1;
+		}
 	}
 
 	return ctx;
@@ -1481,31 +1680,39 @@ int ipu_image_convert_queue(struct ipu_image_convert_run *run)
 	int ret = 0;
 
 	if (!run || !run->ctx || !run->in_phys || !run->out_phys)
+	{
 		return -EINVAL;
+	}
 
 	ctx = run->ctx;
 	chan = ctx->chan;
 	priv = chan->priv;
 
 	dev_dbg(priv->ipu->dev, "%s: task %u: ctx %p run %p\n", __func__,
-		chan->ic_task, ctx, run);
+			chan->ic_task, ctx, run);
 
 	INIT_LIST_HEAD(&run->list);
 
 	spin_lock_irqsave(&chan->irqlock, flags);
 
-	if (ctx->aborting) {
+	if (ctx->aborting)
+	{
 		ret = -EIO;
 		goto unlock;
 	}
 
 	list_add_tail(&run->list, &chan->pending_q);
 
-	if (!chan->current_run) {
+	if (!chan->current_run)
+	{
 		ret = do_run(run);
+
 		if (ret)
+		{
 			chan->current_run = NULL;
+		}
 	}
+
 unlock:
 	spin_unlock_irqrestore(&chan->irqlock, flags);
 	return ret;
@@ -1527,16 +1734,20 @@ void ipu_image_convert_abort(struct ipu_image_convert_ctx *ctx)
 	spin_lock_irqsave(&chan->irqlock, flags);
 
 	/* move all remaining pending runs in this context to done_q */
-	list_for_each_entry_safe(run, tmp, &chan->pending_q, list) {
+	list_for_each_entry_safe(run, tmp, &chan->pending_q, list)
+	{
 		if (run->ctx != ctx)
+		{
 			continue;
+		}
+
 		run->status = -EIO;
 		list_move_tail(&run->list, &chan->done_q);
 	}
 
 	run_count = get_run_count(ctx, &chan->done_q);
 	active_run = (chan->current_run && chan->current_run->ctx == ctx) ?
-		chan->current_run : NULL;
+				 chan->current_run : NULL;
 
 	need_abort = (run_count || active_run);
 
@@ -1544,20 +1755,23 @@ void ipu_image_convert_abort(struct ipu_image_convert_ctx *ctx)
 
 	spin_unlock_irqrestore(&chan->irqlock, flags);
 
-	if (!need_abort) {
+	if (!need_abort)
+	{
 		dev_dbg(priv->ipu->dev,
-			"%s: task %u: no abort needed for ctx %p\n",
-			__func__, chan->ic_task, ctx);
+				"%s: task %u: no abort needed for ctx %p\n",
+				__func__, chan->ic_task, ctx);
 		return;
 	}
 
 	dev_dbg(priv->ipu->dev,
-		"%s: task %u: wait for completion: %d runs, active run %p\n",
-		__func__, chan->ic_task, run_count, active_run);
+			"%s: task %u: wait for completion: %d runs, active run %p\n",
+			__func__, chan->ic_task, run_count, active_run);
 
 	ret = wait_for_completion_timeout(&ctx->aborted,
-					  msecs_to_jiffies(10000));
-	if (ret == 0) {
+									  msecs_to_jiffies(10000));
+
+	if (ret == 0)
+	{
 		dev_warn(priv->ipu->dev, "%s: timeout\n", __func__);
 		force_abort(ctx);
 	}
@@ -1578,7 +1792,7 @@ void ipu_image_convert_unprepare(struct ipu_image_convert_ctx *ctx)
 	ipu_image_convert_abort(ctx);
 
 	dev_dbg(priv->ipu->dev, "%s: task %u: removing ctx %p\n", __func__,
-		chan->ic_task, ctx);
+			chan->ic_task, ctx);
 
 	spin_lock_irqsave(&chan->irqlock, flags);
 
@@ -1589,7 +1803,9 @@ void ipu_image_convert_unprepare(struct ipu_image_convert_ctx *ctx)
 	spin_unlock_irqrestore(&chan->irqlock, flags);
 
 	if (put_res)
+	{
 		release_ipu_resources(chan);
+	}
 
 	free_dma_buf(priv, &ctx->rot_intermediate[1]);
 	free_dma_buf(priv, &ctx->rot_intermediate[0]);
@@ -1605,22 +1821,27 @@ EXPORT_SYMBOL_GPL(ipu_image_convert_unprepare);
  */
 struct ipu_image_convert_run *
 ipu_image_convert(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
-		  struct ipu_image *in, struct ipu_image *out,
-		  enum ipu_rotate_mode rot_mode,
-		  ipu_image_convert_cb_t complete,
-		  void *complete_context)
+				  struct ipu_image *in, struct ipu_image *out,
+				  enum ipu_rotate_mode rot_mode,
+				  ipu_image_convert_cb_t complete,
+				  void *complete_context)
 {
 	struct ipu_image_convert_ctx *ctx;
 	struct ipu_image_convert_run *run;
 	int ret;
 
 	ctx = ipu_image_convert_prepare(ipu, ic_task, in, out, rot_mode,
-					complete, complete_context);
+									complete, complete_context);
+
 	if (IS_ERR(ctx))
+	{
 		return ERR_CAST(ctx);
+	}
 
 	run = kzalloc(sizeof(*run), GFP_KERNEL);
-	if (!run) {
+
+	if (!run)
+	{
 		ipu_image_convert_unprepare(ctx);
 		return ERR_PTR(-ENOMEM);
 	}
@@ -1630,7 +1851,9 @@ ipu_image_convert(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
 	run->out_phys = out->phys0;
 
 	ret = ipu_image_convert_queue(run);
-	if (ret) {
+
+	if (ret)
+	{
 		ipu_image_convert_unprepare(ctx);
 		kfree(run);
 		return ERR_PTR(ret);
@@ -1642,7 +1865,7 @@ EXPORT_SYMBOL_GPL(ipu_image_convert);
 
 /* "Canned" synchronous single image conversion */
 static void image_convert_sync_complete(struct ipu_image_convert_run *run,
-					void *data)
+										void *data)
 {
 	struct completion *comp = data;
 
@@ -1650,8 +1873,8 @@ static void image_convert_sync_complete(struct ipu_image_convert_run *run,
 }
 
 int ipu_image_convert_sync(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
-			   struct ipu_image *in, struct ipu_image *out,
-			   enum ipu_rotate_mode rot_mode)
+						   struct ipu_image *in, struct ipu_image *out,
+						   enum ipu_rotate_mode rot_mode)
 {
 	struct ipu_image_convert_run *run;
 	struct completion comp;
@@ -1660,9 +1883,12 @@ int ipu_image_convert_sync(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
 	init_completion(&comp);
 
 	run = ipu_image_convert(ipu, ic_task, in, out, rot_mode,
-				image_convert_sync_complete, &comp);
+							image_convert_sync_complete, &comp);
+
 	if (IS_ERR(run))
+	{
 		return PTR_ERR(run);
+	}
 
 	ret = wait_for_completion_timeout(&comp, msecs_to_jiffies(10000));
 	ret = (ret == 0) ? -ETIMEDOUT : 0;
@@ -1680,13 +1906,17 @@ int ipu_image_convert_init(struct ipu_soc *ipu, struct device *dev)
 	int i;
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	ipu->image_convert_priv = priv;
 	priv->ipu = ipu;
 
-	for (i = 0; i < IC_NUM_TASKS; i++) {
+	for (i = 0; i < IC_NUM_TASKS; i++)
+	{
 		struct ipu_image_convert_chan *chan = &priv->chan[i];
 
 		chan->ic_task = i;

@@ -7,7 +7,7 @@
  */
 #include <features.h>
 #ifndef HAVE_LONG_LONG
-#define HAVE_LONG_LONG __GLIBC_HAVE_LONG_LONG
+	#define HAVE_LONG_LONG __GLIBC_HAVE_LONG_LONG
 #endif
 #include <slang.h>
 

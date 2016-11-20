@@ -42,39 +42,46 @@
 #define USNIC_QP_GRP_MAX_RQS		8
 #define USNIC_QP_GRP_MAX_CQS		16
 
-enum usnic_transport_type {
+enum usnic_transport_type
+{
 	USNIC_TRANSPORT_UNKNOWN		= 0,
 	USNIC_TRANSPORT_ROCE_CUSTOM	= 1,
 	USNIC_TRANSPORT_IPV4_UDP	= 2,
 	USNIC_TRANSPORT_MAX		= 3,
 };
 
-struct usnic_transport_spec {
+struct usnic_transport_spec
+{
 	enum usnic_transport_type	trans_type;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			uint16_t	port_num;
 		} usnic_roce;
-		struct {
+		struct
+		{
 			uint32_t	sock_fd;
 		} udp;
 	};
 };
 
-struct usnic_ib_create_qp_cmd {
+struct usnic_ib_create_qp_cmd
+{
 	struct usnic_transport_spec	spec;
 };
 
 /*TODO: Future - usnic_modify_qp needs to pass in generic filters */
-struct usnic_ib_create_qp_resp {
+struct usnic_ib_create_qp_resp
+{
 	u32				vfid;
 	u32				qp_grp_id;
 	u64				bar_bus_addr;
 	u32				bar_len;
-/*
- * WQ, RQ, CQ are explicity specified bc exposing a generic resources inteface
- * expands the scope of ABI to many files.
- */
+	/*
+	 * WQ, RQ, CQ are explicity specified bc exposing a generic resources inteface
+	 * expands the scope of ABI to many files.
+	 */
 	u32				wq_cnt;
 	u32				rq_cnt;
 	u32				cq_cnt;

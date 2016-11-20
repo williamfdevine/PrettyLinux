@@ -26,7 +26,8 @@
 #define I2C_ADDR_MUIC	(0x4A >> 1)
 #define I2C_ADDR_FG	(0x6C >> 1)
 
-enum maxim_device_type {
+enum maxim_device_type
+{
 	MAXIM_DEVICE_TYPE_UNKNOWN	= 0,
 	MAXIM_DEVICE_TYPE_MAX14577,
 	MAXIM_DEVICE_TYPE_MAX77836,
@@ -35,7 +36,8 @@ enum maxim_device_type {
 };
 
 /* Slave addr = 0x4A: MUIC and Charger */
-enum max14577_reg {
+enum max14577_reg
+{
 	MAX14577_REG_DEVICEID		= 0x00,
 	MAX14577_REG_INT1		= 0x01,
 	MAX14577_REG_INT2		= 0x02,
@@ -63,7 +65,8 @@ enum max14577_reg {
 };
 
 /* Slave addr = 0x4A: MUIC */
-enum max14577_muic_reg {
+enum max14577_muic_reg
+{
 	MAX14577_MUIC_REG_STATUS1	= 0x04,
 	MAX14577_MUIC_REG_STATUS2	= 0x05,
 	MAX14577_MUIC_REG_CONTROL1	= 0x0C,
@@ -80,7 +83,8 @@ enum max14577_muic_reg {
  * To indicate the difference enum has two additional values for max77836.
  * These values are just a register value bitwise OR with 0x8.
  */
-enum max14577_muic_charger_type {
+enum max14577_muic_charger_type
+{
 	MAX14577_CHARGER_TYPE_NONE		= 0x0,
 	MAX14577_CHARGER_TYPE_USB		= 0x1,
 	MAX14577_CHARGER_TYPE_DOWNSTREAM_PORT	= 0x2,
@@ -162,13 +166,13 @@ enum max14577_muic_charger_type {
 #define IDBEN_MASK			BIT(IDBEN_SHIFT)
 #define CLEAR_IDBEN_MICEN_MASK		(COMN1SW_MASK | COMP2SW_MASK)
 #define CTRL1_SW_USB			((1 << COMP2SW_SHIFT) \
-						| (1 << COMN1SW_SHIFT))
+								 | (1 << COMN1SW_SHIFT))
 #define CTRL1_SW_AUDIO			((2 << COMP2SW_SHIFT) \
-						| (2 << COMN1SW_SHIFT))
+								 | (2 << COMN1SW_SHIFT))
 #define CTRL1_SW_UART			((3 << COMP2SW_SHIFT) \
-						| (3 << COMN1SW_SHIFT))
+								 | (3 << COMN1SW_SHIFT))
 #define CTRL1_SW_OPEN			((0 << COMP2SW_SHIFT) \
-						| (0 << COMN1SW_SHIFT))
+								 | (0 << COMN1SW_SHIFT))
 
 /* MAX14577 CONTROL2 register */
 #define CTRL2_LOWPWR_SHIFT		(0)
@@ -189,9 +193,9 @@ enum max14577_muic_charger_type {
 #define CTRL2_RCPS_MASK			BIT(CTRL2_RCPS_SHIFT)
 
 #define CTRL2_CPEN1_LOWPWR0 ((1 << CTRL2_CPEN_SHIFT) | \
-				(0 << CTRL2_LOWPWR_SHIFT))
+							 (0 << CTRL2_LOWPWR_SHIFT))
 #define CTRL2_CPEN0_LOWPWR1 ((0 << CTRL2_CPEN_SHIFT) | \
-				(1 << CTRL2_LOWPWR_SHIFT))
+							 (1 << CTRL2_LOWPWR_SHIFT))
 
 /* MAX14577 CONTROL3 register */
 #define CTRL3_JIGSET_SHIFT		0
@@ -204,7 +208,8 @@ enum max14577_muic_charger_type {
 #define CTRL3_WBTH_MASK			(0x3 << CTRL3_WBTH_SHIFT)
 
 /* Slave addr = 0x4A: Charger */
-enum max14577_charger_reg {
+enum max14577_charger_reg
+{
 	MAX14577_CHG_REG_STATUS3	= 0x06,
 	MAX14577_CHG_REG_CHG_CTRL1	= 0x0F,
 	MAX14577_CHG_REG_CHG_CTRL2	= 0x10,
@@ -322,7 +327,8 @@ enum max14577_charger_reg {
 #define MAX77836_REGULATOR_LDO_VOLTAGE_STEPS_NUM	64
 
 /* Slave addr = 0x46: PMIC */
-enum max77836_pmic_reg {
+enum max77836_pmic_reg
+{
 	MAX77836_PMIC_REG_PMIC_ID		= 0x20,
 	MAX77836_PMIC_REG_PMIC_REV		= 0x21,
 	MAX77836_PMIC_REG_INTSRC		= 0x22,
@@ -376,7 +382,8 @@ enum max77836_pmic_reg {
 #define MAX77836_CNFG2_LDO_SS_MASK		BIT(MAX77836_CNFG2_LDO_SS_SHIFT)
 
 /* Slave addr = 0x6C: Fuel-Gauge/Battery */
-enum max77836_fg_reg {
+enum max77836_fg_reg
+{
 	MAX77836_FG_REG_VCELL_MSB	= 0x02,
 	MAX77836_FG_REG_VCELL_LSB	= 0x03,
 	MAX77836_FG_REG_SOC_MSB		= 0x04,
@@ -405,7 +412,8 @@ enum max77836_fg_reg {
 	MAX77836_FG_REG_END,
 };
 
-enum max14577_irq {
+enum max14577_irq
+{
 	/* INT1 */
 	MAX14577_IRQ_INT1_ADC,
 	MAX14577_IRQ_INT1_ADCLOW,
@@ -433,7 +441,8 @@ enum max14577_irq {
 	MAX14577_IRQ_NUM,
 };
 
-struct max14577 {
+struct max14577
+{
 	struct device *dev;
 	struct i2c_client *i2c; /* Slave addr = 0x4A */
 	struct i2c_client *i2c_pmic; /* Slave addr = 0x46 */
@@ -460,7 +469,7 @@ static inline int max14577_read_reg(struct regmap *map, u8 reg, u8 *dest)
 }
 
 static inline int max14577_bulk_read(struct regmap *map, u8 reg, u8 *buf,
-		int count)
+									 int count)
 {
 	return regmap_bulk_read(map, reg, buf, count);
 }
@@ -471,13 +480,13 @@ static inline int max14577_write_reg(struct regmap *map, u8 reg, u8 value)
 }
 
 static inline int max14577_bulk_write(struct regmap *map, u8 reg, u8 *buf,
-		int count)
+									  int count)
 {
 	return regmap_bulk_write(map, reg, buf, count);
 }
 
 static inline int max14577_update_reg(struct regmap *map, u8 reg, u8 mask,
-		u8 val)
+									  u8 val)
 {
 	return regmap_update_bits(map, reg, mask, val);
 }

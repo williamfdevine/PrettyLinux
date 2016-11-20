@@ -1363,7 +1363,7 @@
 #define MCP_REG_CPU_MODE \
 	0xe05000UL
 #define MCP_REG_CPU_MODE_SOFT_HALT \
-		(0x1 << 10)
+	(0x1 << 10)
 #define BRB_REG_BIG_RAM_ADDRESS \
 	0x340800UL
 #define BRB_REG_BIG_RAM_DATA \

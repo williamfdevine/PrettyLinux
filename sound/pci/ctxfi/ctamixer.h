@@ -24,24 +24,27 @@
 #include <sound/core.h>
 
 /* Define the descriptor of a summation node resource */
-struct sum {
+struct sum
+{
 	struct rsc rsc;		/* Basic resource info */
 	unsigned char idx[8];
 };
 
 /* Define sum resource request description info */
-struct sum_desc {
+struct sum_desc
+{
 	unsigned int msr;
 };
 
-struct sum_mgr {
+struct sum_mgr
+{
 	struct rsc_mgr mgr;	/* Basic resource manager info */
 	struct snd_card *card;	/* pointer to this card */
 	spinlock_t mgr_lock;
 
-	 /* request one sum resource */
+	/* request one sum resource */
 	int (*get_sum)(struct sum_mgr *mgr,
-			const struct sum_desc *desc, struct sum **rsum);
+				   const struct sum_desc *desc, struct sum **rsum);
 	/* return one sum resource */
 	int (*put_sum)(struct sum_mgr *mgr, struct sum *sum);
 };
@@ -53,7 +56,8 @@ int sum_mgr_destroy(struct sum_mgr *sum_mgr);
 /* Define the descriptor of a amixer resource */
 struct amixer_rsc_ops;
 
-struct amixer {
+struct amixer
+{
 	struct rsc rsc;		/* Basic resource info */
 	unsigned char idx[8];
 	struct rsc *input;	/* pointer to a resource acting as source */
@@ -61,7 +65,8 @@ struct amixer {
 	const struct amixer_rsc_ops *ops;	/* AMixer specific operations */
 };
 
-struct amixer_rsc_ops {
+struct amixer_rsc_ops
+{
 	int (*set_input)(struct amixer *amixer, struct rsc *rsc);
 	int (*set_scale)(struct amixer *amixer, unsigned int scale);
 	int (*set_invalid_squash)(struct amixer *amixer, unsigned int iv);
@@ -70,24 +75,26 @@ struct amixer_rsc_ops {
 	/* Only for interleaved recording */
 	int (*commit_raw_write)(struct amixer *amixer);
 	int (*setup)(struct amixer *amixer, struct rsc *input,
-			unsigned int scale, struct sum *sum);
+				 unsigned int scale, struct sum *sum);
 	int (*get_scale)(struct amixer *amixer);
 };
 
 /* Define amixer resource request description info */
-struct amixer_desc {
+struct amixer_desc
+{
 	unsigned int msr;
 };
 
-struct amixer_mgr {
+struct amixer_mgr
+{
 	struct rsc_mgr mgr;	/* Basic resource manager info */
 	struct snd_card *card;	/* pointer to this card */
 	spinlock_t mgr_lock;
 
-	 /* request one amixer resource */
+	/* request one amixer resource */
 	int (*get_amixer)(struct amixer_mgr *mgr,
-			  const struct amixer_desc *desc,
-			  struct amixer **ramixer);
+					  const struct amixer_desc *desc,
+					  struct amixer **ramixer);
 	/* return one amixer resource */
 	int (*put_amixer)(struct amixer_mgr *mgr, struct amixer *amixer);
 };

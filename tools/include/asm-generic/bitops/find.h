@@ -12,7 +12,7 @@
  * If no bits are set, returns @size.
  */
 extern unsigned long find_next_bit(const unsigned long *addr, unsigned long
-		size, unsigned long offset);
+								   size, unsigned long offset);
 #endif
 
 #ifndef find_first_bit
@@ -26,7 +26,7 @@ extern unsigned long find_next_bit(const unsigned long *addr, unsigned long
  * If no bits are set, returns @size.
  */
 extern unsigned long find_first_bit(const unsigned long *addr,
-				    unsigned long size);
+									unsigned long size);
 
 #endif /* find_first_bit */
 

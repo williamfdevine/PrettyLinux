@@ -23,7 +23,8 @@ struct vsp1_device;
 #define LIF_PAD_SINK				0
 #define LIF_PAD_SOURCE				1
 
-struct vsp1_lif {
+struct vsp1_lif
+{
 	struct vsp1_entity entity;
 };
 

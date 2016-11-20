@@ -22,7 +22,7 @@
  * contains exactly one complete HDLC frame. Calling mgsl_put_char
  * will start assembling an HDLC frame that will not be sent until
  * mgsl_flush_chars or mgsl_write is called.
- * 
+ *
  * Synchronous receive data is reported as complete frames. To accomplish
  * this, the TTY flip buffer is bypassed (too small to hold largest
  * frame and may fragment frames) and the line discipline
@@ -52,9 +52,9 @@
  */
 
 #if defined(__i386__)
-#  define BREAKPOINT() asm("   int $3");
+	#define BREAKPOINT() asm("   int $3");
 #else
-#  define BREAKPOINT() { }
+	#define BREAKPOINT() { }
 #endif
 
 #define MAX_ISA_DEVICES 10
@@ -97,9 +97,9 @@
 #include <linux/dma-mapping.h>
 
 #if defined(CONFIG_HDLC) || (defined(CONFIG_HDLC_MODULE) && defined(CONFIG_SYNCLINK_MODULE))
-#define SYNCLINK_GENERIC_HDLC 1
+	#define SYNCLINK_GENERIC_HDLC 1
 #else
-#define SYNCLINK_GENERIC_HDLC 0
+	#define SYNCLINK_GENERIC_HDLC 0
 #endif
 
 #define GET_USER(error,value,addr) error = get_user(value,addr)
@@ -111,7 +111,8 @@
 
 #define RCLRVALUE 0xffff
 
-static MGSL_PARAMS default_params = {
+static MGSL_PARAMS default_params =
+{
 	MGSL_MODE_HDLC,			/* unsigned long mode */
 	0,				/* unsigned char loopback; */
 	HDLC_FLAG_UNDERRUN_ABORT15,	/* unsigned short flags; */
@@ -153,8 +154,9 @@ typedef struct _DMABUFFERENTRY
 
 #define IO_PIN_SHUTDOWN_LIMIT 100
 
-struct	_input_signal_events {
-	int	ri_up;	
+struct	_input_signal_events
+{
+	int	ri_up;
 	int	ri_down;
 	int	dsr_up;
 	int	dsr_down;
@@ -166,38 +168,40 @@ struct	_input_signal_events {
 
 /* transmit holding buffer definitions*/
 #define MAX_TX_HOLDING_BUFFERS 5
-struct tx_holding_buffer {
+struct tx_holding_buffer
+{
 	int	buffer_size;
-	unsigned char *	buffer;
+	unsigned char 	*buffer;
 };
 
 
 /*
  * Device instance data structure
  */
- 
-struct mgsl_struct {
+
+struct mgsl_struct
+{
 	int			magic;
 	struct tty_port		port;
 	int			line;
 	int                     hw_version;
-	
+
 	struct mgsl_icount	icount;
-	
+
 	int			timeout;
 	int			x_char;		/* xon/xoff character */
 	u16			read_status_mask;
-	u16			ignore_status_mask;	
+	u16			ignore_status_mask;
 	unsigned char 		*xmit_buf;
 	int			xmit_head;
 	int			xmit_tail;
 	int			xmit_cnt;
-	
+
 	wait_queue_head_t	status_event_wait_q;
 	wait_queue_head_t	event_wait_q;
 	struct timer_list	tx_timer;	/* HDLC transmit timeout timer */
 	struct mgsl_struct	*next_device;	/* device list link */
-	
+
 	spinlock_t irq_spinlock;		/* spinlock for synchronizing with ISR */
 	struct work_struct task;		/* task structure for scheduling bh */
 
@@ -211,7 +215,7 @@ struct mgsl_struct {
 	bool bh_running;		/* Protection from multiple */
 	int isr_overflow;
 	bool bh_requested;
-	
+
 	int dcd_chkcount;		/* check counts to prevent */
 	int cts_chkcount;		/* too many IRQs if a signal */
 	int dsr_chkcount;		/* is floating */
@@ -226,12 +230,12 @@ struct mgsl_struct {
 	unsigned int current_rx_buffer;
 
 	int num_tx_dma_buffers;		/* number of tx dma frames required */
- 	int tx_dma_buffers_used;
+	int tx_dma_buffers_used;
 	unsigned int tx_buffer_count;	/* count of total allocated Tx buffers */
 	DMABUFFERENTRY *tx_buffer_list;	/* list of transmit buffer entries */
 	int start_tx_dma_buffer;	/* tx dma buffer to start tx dma operation */
 	int current_tx_buffer;          /* next tx dma buffer to be loaded */
-	
+
 	unsigned char *intermediate_rxbuffer;
 
 	int num_tx_holding_buffers;	/* number of tx holding buffer allocated */
@@ -260,11 +264,11 @@ struct mgsl_struct {
 	unsigned int io_base;		/* base I/O address of adapter */
 	unsigned int io_addr_size;	/* size of the I/O address range */
 	bool io_addr_requested;		/* true if I/O address requested */
-	
+
 	unsigned int irq_level;		/* interrupt level */
 	unsigned long irq_flags;
 	bool irq_requested;		/* true if IRQ requested */
-	
+
 	unsigned int dma_level;		/* DMA channel */
 	bool dma_requested;		/* true if dma channel requested */
 
@@ -281,11 +285,11 @@ struct mgsl_struct {
 	int	fDiagnosticsmode;	/* Driver in Diagnostic mode?			(DIAGS)	*/
 
 	u32 last_mem_alloc;
-	unsigned char* memory_base;	/* shared memory address (PCI only) */
+	unsigned char *memory_base;	/* shared memory address (PCI only) */
 	u32 phys_memory_base;
 	bool shared_mem_requested;
 
-	unsigned char* lcr_base;	/* local config registers (PCI only) */
+	unsigned char *lcr_base;	/* local config registers (PCI only) */
 	u32 phys_lcr_base;
 	u32 lcr_offset;
 	bool lcr_mem_requested;
@@ -296,7 +300,7 @@ struct mgsl_struct {
 
 	bool loopmode_insert_requested;
 	bool loopmode_send_done_requested;
-	
+
 	struct	_input_signal_events	input_signal_events;
 
 	/* generic HDLC device parts */
@@ -314,7 +318,7 @@ struct mgsl_struct {
  * The size of the serial xmit buffer is 1 page, or 4096 bytes
  */
 #ifndef SERIAL_XMIT_SIZE
-#define SERIAL_XMIT_SIZE 4096
+	#define SERIAL_XMIT_SIZE 4096
 #endif
 
 /*
@@ -377,7 +381,7 @@ struct mgsl_struct {
 #define DCR	0x06	/* DMA Control Register (shared) */
 #define DACR	0x08	/* DMA Array count Register (shared) */
 #define BDCR	0x12	/* Burst/Dwell Control Register (shared) */
-#define DIVR	0x14	/* DMA Interrupt Vector Register (shared) */	
+#define DIVR	0x14	/* DMA Interrupt Vector Register (shared) */
 #define DICR	0x18	/* DMA Interrupt Control Register (shared) */
 #define CDIR	0x1a	/* Clear DMA Interrupt Register (shared) */
 #define SDIR	0x1c	/* Set DMA Interrupt Register (shared) */
@@ -487,7 +491,7 @@ struct mgsl_struct {
 /*
  * Bits for enabling and disabling IRQs in Interrupt Control Register (ICR)
  */
- 
+
 #define RECEIVE_STATUS		BIT5
 #define RECEIVE_DATA		BIT4
 #define TRANSMIT_STATUS		BIT3
@@ -517,7 +521,7 @@ struct mgsl_struct {
 #define usc_UnlatchRxstatusBits(a,b) usc_OutReg( (a), RCSR, (u16)((b) & RXSTATUS_ALL) )
 
 /*
- * Values for setting transmit idle mode in 
+ * Values for setting transmit idle mode in
  * Transmit Control/status Register (TCSR)
  */
 #define IDLEMODE_FLAGS			0x0000
@@ -553,7 +557,7 @@ struct mgsl_struct {
 #define TXSTATUS_FIFO_EMPTY		BIT0
 #define TXSTATUS_ALL			0x00fa
 #define usc_UnlatchTxstatusBits(a,b) usc_OutReg( (a), TCSR, (u16)((a)->tcsr_value + ((b) & 0x00FF)) )
-				
+
 
 #define MISCSTATUS_RXC_LATCHED		BIT15
 #define MISCSTATUS_RXC			BIT14
@@ -704,19 +708,19 @@ static void usc_loopback_frame( struct mgsl_struct *info );
 static void mgsl_tx_timeout(unsigned long context);
 
 
-static void usc_loopmode_cancel_transmit( struct mgsl_struct * info );
-static void usc_loopmode_insert_request( struct mgsl_struct * info );
-static int usc_loopmode_active( struct mgsl_struct * info);
-static void usc_loopmode_send_done( struct mgsl_struct * info );
+static void usc_loopmode_cancel_transmit( struct mgsl_struct *info );
+static void usc_loopmode_insert_request( struct mgsl_struct *info );
+static int usc_loopmode_active( struct mgsl_struct *info);
+static void usc_loopmode_send_done( struct mgsl_struct *info );
 
 static int mgsl_ioctl_common(struct mgsl_struct *info, unsigned int cmd, unsigned long arg);
 
 #if SYNCLINK_GENERIC_HDLC
-#define dev_to_port(D) (dev_to_hdlc(D)->priv)
-static void hdlcdev_tx_done(struct mgsl_struct *info);
-static void hdlcdev_rx(struct mgsl_struct *info, char *buf, int size);
-static int  hdlcdev_init(struct mgsl_struct *info);
-static void hdlcdev_exit(struct mgsl_struct *info);
+	#define dev_to_port(D) (dev_to_hdlc(D)->priv)
+	static void hdlcdev_tx_done(struct mgsl_struct *info);
+	static void hdlcdev_rx(struct mgsl_struct *info, char *buf, int size);
+	static int  hdlcdev_init(struct mgsl_struct *info);
+	static void hdlcdev_exit(struct mgsl_struct *info);
 #endif
 
 /*
@@ -725,17 +729,17 @@ static void hdlcdev_exit(struct mgsl_struct *info);
  */
 
 #define BUS_DESCRIPTOR( WrHold, WrDly, RdDly, Nwdd, Nwad, Nxda, Nrdd, Nrad ) \
-(0x00400020 + \
-((WrHold) << 30) + \
-((WrDly)  << 28) + \
-((RdDly)  << 26) + \
-((Nwdd)   << 20) + \
-((Nwad)   << 15) + \
-((Nxda)   << 13) + \
-((Nrdd)   << 11) + \
-((Nrad)   <<  6) )
+	(0x00400020 + \
+	 ((WrHold) << 30) + \
+	 ((WrDly)  << 28) + \
+	 ((RdDly)  << 26) + \
+	 ((Nwdd)   << 20) + \
+	 ((Nwad)   << 15) + \
+	 ((Nxda)   << 13) + \
+	 ((Nrdd)   << 11) + \
+	 ((Nrad)   <<  6) )
 
-static void mgsl_trace_block(struct mgsl_struct *info,const char* data, int count, int xmit);
+static void mgsl_trace_block(struct mgsl_struct *info, const char *data, int count, int xmit);
 
 /*
  * Adapter diagnostic routines
@@ -752,7 +756,7 @@ static int mgsl_adapter_test( struct mgsl_struct *info );
 static int mgsl_claim_resources(struct mgsl_struct *info);
 static void mgsl_release_resources(struct mgsl_struct *info);
 static void mgsl_add_device(struct mgsl_struct *info);
-static struct mgsl_struct* mgsl_allocate_device(void);
+static struct mgsl_struct *mgsl_allocate_device(void);
 
 /*
  * DMA buffer manupulation functions.
@@ -764,15 +768,15 @@ static void mgsl_reset_rx_dma_buffers( struct mgsl_struct *info );
 static void mgsl_reset_tx_dma_buffers( struct mgsl_struct *info );
 static int num_free_tx_dma_buffers(struct mgsl_struct *info);
 static void mgsl_load_tx_dma_buffer( struct mgsl_struct *info, const char *Buffer, unsigned int BufferSize);
-static void mgsl_load_pci_memory(char* TargetPtr, const char* SourcePtr, unsigned short count);
+static void mgsl_load_pci_memory(char *TargetPtr, const char *SourcePtr, unsigned short count);
 
 /*
  * DMA and Shared Memory buffer allocation and formatting
  */
 static int  mgsl_allocate_dma_buffers(struct mgsl_struct *info);
 static void mgsl_free_dma_buffers(struct mgsl_struct *info);
-static int  mgsl_alloc_frame_memory(struct mgsl_struct *info, DMABUFFERENTRY *BufferList,int Buffercount);
-static void mgsl_free_frame_memory(struct mgsl_struct *info, DMABUFFERENTRY *BufferList,int Buffercount);
+static int  mgsl_alloc_frame_memory(struct mgsl_struct *info, DMABUFFERENTRY *BufferList, int Buffercount);
+static void mgsl_free_frame_memory(struct mgsl_struct *info, DMABUFFERENTRY *BufferList, int Buffercount);
 static int  mgsl_alloc_buffer_list_memory(struct mgsl_struct *info);
 static void mgsl_free_buffer_list_memory(struct mgsl_struct *info);
 static int mgsl_alloc_intermediate_rxbuffer_memory(struct mgsl_struct *info);
@@ -780,7 +784,7 @@ static void mgsl_free_intermediate_rxbuffer_memory(struct mgsl_struct *info);
 static int mgsl_alloc_intermediate_txbuffer_memory(struct mgsl_struct *info);
 static void mgsl_free_intermediate_txbuffer_memory(struct mgsl_struct *info);
 static bool load_next_tx_holding_buffer(struct mgsl_struct *info);
-static int save_tx_buffer_request(struct mgsl_struct *info,const char *Buffer, unsigned int BufferSize);
+static int save_tx_buffer_request(struct mgsl_struct *info, const char *Buffer, unsigned int BufferSize);
 
 /*
  * Bottom half interrupt handlers
@@ -821,18 +825,18 @@ static isr_dispatch_func UscIsrTable[7] =
  */
 static int tiocmget(struct tty_struct *tty);
 static int tiocmset(struct tty_struct *tty,
-		    unsigned int set, unsigned int clear);
-static int mgsl_get_stats(struct mgsl_struct * info, struct mgsl_icount
-	__user *user_icount);
-static int mgsl_get_params(struct mgsl_struct * info, MGSL_PARAMS  __user *user_params);
-static int mgsl_set_params(struct mgsl_struct * info, MGSL_PARAMS  __user *new_params);
-static int mgsl_get_txidle(struct mgsl_struct * info, int __user *idle_mode);
-static int mgsl_set_txidle(struct mgsl_struct * info, int idle_mode);
-static int mgsl_txenable(struct mgsl_struct * info, int enable);
-static int mgsl_txabort(struct mgsl_struct * info);
-static int mgsl_rxenable(struct mgsl_struct * info, int enable);
-static int mgsl_wait_event(struct mgsl_struct * info, int __user *mask);
-static int mgsl_loopmode_send_done( struct mgsl_struct * info );
+					unsigned int set, unsigned int clear);
+static int mgsl_get_stats(struct mgsl_struct *info, struct mgsl_icount
+						  __user *user_icount);
+static int mgsl_get_params(struct mgsl_struct *info, MGSL_PARAMS  __user *user_params);
+static int mgsl_set_params(struct mgsl_struct *info, MGSL_PARAMS  __user *new_params);
+static int mgsl_get_txidle(struct mgsl_struct *info, int __user *idle_mode);
+static int mgsl_set_txidle(struct mgsl_struct *info, int idle_mode);
+static int mgsl_txenable(struct mgsl_struct *info, int enable);
+static int mgsl_txabort(struct mgsl_struct *info);
+static int mgsl_rxenable(struct mgsl_struct *info, int enable);
+static int mgsl_wait_event(struct mgsl_struct *info, int __user *mask);
+static int mgsl_loopmode_send_done( struct mgsl_struct *info );
 
 /* set non-zero on successful registration with PCI subsystem */
 static bool pci_registered;
@@ -866,7 +870,7 @@ static int debug_level;
 static int maxframe[MAX_TOTAL_DEVICES];
 static int txdmabufs[MAX_TOTAL_DEVICES];
 static int txholdbufs[MAX_TOTAL_DEVICES];
-	
+
 module_param(break_on_load, bool, 0);
 module_param(ttymajor, int, 0);
 module_param_array(io, int, NULL, 0);
@@ -881,10 +885,11 @@ static char *driver_name = "SyncLink serial driver";
 static char *driver_version = "$Revision: 4.38 $";
 
 static int synclink_init_one (struct pci_dev *dev,
-				     const struct pci_device_id *ent);
+							  const struct pci_device_id *ent);
 static void synclink_remove_one (struct pci_dev *dev);
 
-static struct pci_device_id synclink_pci_tbl[] = {
+static struct pci_device_id synclink_pci_tbl[] =
+{
 	{ PCI_VENDOR_ID_MICROGATE, PCI_DEVICE_ID_MICROGATE_USC, PCI_ANY_ID, PCI_ANY_ID, },
 	{ PCI_VENDOR_ID_MICROGATE, 0x0210, PCI_ANY_ID, PCI_ANY_ID, },
 	{ 0, }, /* terminate list */
@@ -893,7 +898,8 @@ MODULE_DEVICE_TABLE(pci, synclink_pci_tbl);
 
 MODULE_LICENSE("GPL");
 
-static struct pci_driver synclink_pci_driver = {
+static struct pci_driver synclink_pci_driver =
+{
 	.name		= "synclink",
 	.id_table	= synclink_pci_tbl,
 	.probe		= synclink_init_one,
@@ -915,13 +921,13 @@ static void mgsl_wait_until_sent(struct tty_struct *tty, int timeout);
  * (gdb) to get the .text address for the add-symbol-file command.
  * This allows remote debugging of dynamically loadable modules.
  */
-static void* mgsl_get_text_ptr(void)
+static void *mgsl_get_text_ptr(void)
 {
 	return mgsl_get_text_ptr;
 }
 
 static inline int mgsl_paranoia_check(struct mgsl_struct *info,
-					char *name, const char *routine)
+									  char *name, const char *routine)
 {
 #ifdef MGSL_PARANOIA_CHECK
 	static const char *badmagic =
@@ -929,17 +935,25 @@ static inline int mgsl_paranoia_check(struct mgsl_struct *info,
 	static const char *badinfo =
 		"Warning: null mgsl_struct for (%s) in %s\n";
 
-	if (!info) {
+	if (!info)
+	{
 		printk(badinfo, name, routine);
 		return 1;
 	}
-	if (info->magic != MGSL_MAGIC) {
+
+	if (info->magic != MGSL_MAGIC)
+	{
 		printk(badmagic, name, routine);
 		return 1;
 	}
+
 #else
+
 	if (!info)
+	{
 		return 1;
+	}
+
 #endif
 	return 0;
 }
@@ -954,21 +968,30 @@ static inline int mgsl_paranoia_check(struct mgsl_struct *info,
  */
 
 static void ldisc_receive_buf(struct tty_struct *tty,
-			      const __u8 *data, char *flags, int count)
+							  const __u8 *data, char *flags, int count)
 {
 	struct tty_ldisc *ld;
+
 	if (!tty)
+	{
 		return;
+	}
+
 	ld = tty_ldisc_ref(tty);
-	if (ld) {
+
+	if (ld)
+	{
 		if (ld->ops->receive_buf)
+		{
 			ld->ops->receive_buf(tty, data, flags, count);
+		}
+
 		tty_ldisc_deref(ld);
 	}
 }
 
 /* mgsl_stop()		throttle (stop) transmitter
- * 	
+ *
  * Arguments:		tty	pointer to tty info structure
  * Return Value:	None
  */
@@ -976,22 +999,30 @@ static void mgsl_stop(struct tty_struct *tty)
 {
 	struct mgsl_struct *info = tty->driver_data;
 	unsigned long flags;
-	
+
 	if (mgsl_paranoia_check(info, tty->name, "mgsl_stop"))
+	{
 		return;
-	
+	}
+
 	if ( debug_level >= DEBUG_LEVEL_INFO )
-		printk("mgsl_stop(%s)\n",info->device_name);	
-		
-	spin_lock_irqsave(&info->irq_spinlock,flags);
+	{
+		printk("mgsl_stop(%s)\n", info->device_name);
+	}
+
+	spin_lock_irqsave(&info->irq_spinlock, flags);
+
 	if (info->tx_enabled)
-	 	usc_stop_transmitter(info);
-	spin_unlock_irqrestore(&info->irq_spinlock,flags);
-	
+	{
+		usc_stop_transmitter(info);
+	}
+
+	spin_unlock_irqrestore(&info->irq_spinlock, flags);
+
 }	/* end of mgsl_stop() */
 
 /* mgsl_start()		release (start) transmitter
- * 	
+ *
  * Arguments:		tty	pointer to tty info structure
  * Return Value:	None
  */
@@ -999,18 +1030,26 @@ static void mgsl_start(struct tty_struct *tty)
 {
 	struct mgsl_struct *info = tty->driver_data;
 	unsigned long flags;
-	
+
 	if (mgsl_paranoia_check(info, tty->name, "mgsl_start"))
+	{
 		return;
-	
+	}
+
 	if ( debug_level >= DEBUG_LEVEL_INFO )
-		printk("mgsl_start(%s)\n",info->device_name);	
-		
-	spin_lock_irqsave(&info->irq_spinlock,flags);
+	{
+		printk("mgsl_start(%s)\n", info->device_name);
+	}
+
+	spin_lock_irqsave(&info->irq_spinlock, flags);
+
 	if (!info->tx_enabled)
-	 	usc_start_transmitter(info);
-	spin_unlock_irqrestore(&info->irq_spinlock,flags);
-	
+	{
+		usc_start_transmitter(info);
+	}
+
+	spin_unlock_irqrestore(&info->irq_spinlock, flags);
+
 }	/* end of mgsl_start() */
 
 /*
@@ -1024,28 +1063,34 @@ static int mgsl_bh_action(struct mgsl_struct *info)
 {
 	unsigned long flags;
 	int rc = 0;
-	
-	spin_lock_irqsave(&info->irq_spinlock,flags);
 
-	if (info->pending_bh & BH_RECEIVE) {
+	spin_lock_irqsave(&info->irq_spinlock, flags);
+
+	if (info->pending_bh & BH_RECEIVE)
+	{
 		info->pending_bh &= ~BH_RECEIVE;
 		rc = BH_RECEIVE;
-	} else if (info->pending_bh & BH_TRANSMIT) {
+	}
+	else if (info->pending_bh & BH_TRANSMIT)
+	{
 		info->pending_bh &= ~BH_TRANSMIT;
 		rc = BH_TRANSMIT;
-	} else if (info->pending_bh & BH_STATUS) {
+	}
+	else if (info->pending_bh & BH_STATUS)
+	{
 		info->pending_bh &= ~BH_STATUS;
 		rc = BH_STATUS;
 	}
 
-	if (!rc) {
+	if (!rc)
+	{
 		/* Mark BH routine as complete */
 		info->bh_running = false;
 		info->bh_requested = false;
 	}
-	
-	spin_unlock_irqrestore(&info->irq_spinlock,flags);
-	
+
+	spin_unlock_irqrestore(&info->irq_spinlock, flags);
+
 	return rc;
 }
 
@@ -1060,87 +1105,100 @@ static void mgsl_bh_handler(struct work_struct *work)
 
 	if ( debug_level >= DEBUG_LEVEL_BH )
 		printk( "%s(%d):mgsl_bh_handler(%s) entry\n",
-			__FILE__,__LINE__,info->device_name);
-	
+				__FILE__, __LINE__, info->device_name);
+
 	info->bh_running = true;
 
-	while((action = mgsl_bh_action(info)) != 0) {
-	
+	while ((action = mgsl_bh_action(info)) != 0)
+	{
+
 		/* Process work item */
 		if ( debug_level >= DEBUG_LEVEL_BH )
 			printk( "%s(%d):mgsl_bh_handler() work item action=%d\n",
-				__FILE__,__LINE__,action);
+					__FILE__, __LINE__, action);
 
-		switch (action) {
-		
-		case BH_RECEIVE:
-			mgsl_bh_receive(info);
-			break;
-		case BH_TRANSMIT:
-			mgsl_bh_transmit(info);
-			break;
-		case BH_STATUS:
-			mgsl_bh_status(info);
-			break;
-		default:
-			/* unknown work item ID */
-			printk("Unknown work item ID=%08X!\n", action);
-			break;
+		switch (action)
+		{
+
+			case BH_RECEIVE:
+				mgsl_bh_receive(info);
+				break;
+
+			case BH_TRANSMIT:
+				mgsl_bh_transmit(info);
+				break;
+
+			case BH_STATUS:
+				mgsl_bh_status(info);
+				break;
+
+			default:
+				/* unknown work item ID */
+				printk("Unknown work item ID=%08X!\n", action);
+				break;
 		}
 	}
 
 	if ( debug_level >= DEBUG_LEVEL_BH )
 		printk( "%s(%d):mgsl_bh_handler(%s) exit\n",
-			__FILE__,__LINE__,info->device_name);
+				__FILE__, __LINE__, info->device_name);
 }
 
 static void mgsl_bh_receive(struct mgsl_struct *info)
 {
-	bool (*get_rx_frame)(struct mgsl_struct *info) =
+	bool (*get_rx_frame)(struct mgsl_struct * info) =
 		(info->params.mode == MGSL_MODE_HDLC ? mgsl_get_rx_frame : mgsl_get_raw_rx_frame);
 
 	if ( debug_level >= DEBUG_LEVEL_BH )
 		printk( "%s(%d):mgsl_bh_receive(%s)\n",
-			__FILE__,__LINE__,info->device_name);
-	
+				__FILE__, __LINE__, info->device_name);
+
 	do
 	{
-		if (info->rx_rcc_underrun) {
+		if (info->rx_rcc_underrun)
+		{
 			unsigned long flags;
-			spin_lock_irqsave(&info->irq_spinlock,flags);
+			spin_lock_irqsave(&info->irq_spinlock, flags);
 			usc_start_receiver(info);
-			spin_unlock_irqrestore(&info->irq_spinlock,flags);
+			spin_unlock_irqrestore(&info->irq_spinlock, flags);
 			return;
 		}
-	} while(get_rx_frame(info));
+	}
+	while (get_rx_frame(info));
 }
 
 static void mgsl_bh_transmit(struct mgsl_struct *info)
 {
 	struct tty_struct *tty = info->port.tty;
 	unsigned long flags;
-	
+
 	if ( debug_level >= DEBUG_LEVEL_BH )
 		printk( "%s(%d):mgsl_bh_transmit() entry on %s\n",
-			__FILE__,__LINE__,info->device_name);
+				__FILE__, __LINE__, info->device_name);
 
 	if (tty)
+	{
 		tty_wakeup(tty);
+	}
 
 	/* if transmitter idle and loopmode_send_done_requested
 	 * then start echoing RxD to TxD
 	 */
-	spin_lock_irqsave(&info->irq_spinlock,flags);
- 	if ( !info->tx_active && info->loopmode_send_done_requested )
- 		usc_loopmode_send_done( info );
-	spin_unlock_irqrestore(&info->irq_spinlock,flags);
+	spin_lock_irqsave(&info->irq_spinlock, flags);
+
+	if ( !info->tx_active && info->loopmode_send_done_requested )
+	{
+		usc_loopmode_send_done( info );
+	}
+
+	spin_unlock_irqrestore(&info->irq_spinlock, flags);
 }
 
 static void mgsl_bh_status(struct mgsl_struct *info)
 {
 	if ( debug_level >= DEBUG_LEVEL_BH )
 		printk( "%s(%d):mgsl_bh_status() entry on %s\n",
-			__FILE__,__LINE__,info->device_name);
+				__FILE__, __LINE__, info->device_name);
 
 	info->ri_chkcount = 0;
 	info->dsr_chkcount = 0;
@@ -1149,7 +1207,7 @@ static void mgsl_bh_status(struct mgsl_struct *info)
 }
 
 /* mgsl_isr_receive_status()
- * 
+ *
  *	Service a receive status interrupt. The type of status
  *	interrupt is indicated by the state of the RCSR.
  *	This is only used for HDLC mode.
@@ -1163,33 +1221,41 @@ static void mgsl_isr_receive_status( struct mgsl_struct *info )
 
 	if ( debug_level >= DEBUG_LEVEL_ISR )
 		printk("%s(%d):mgsl_isr_receive_status status=%04X\n",
-			__FILE__,__LINE__,status);
-			
- 	if ( (status & RXSTATUS_ABORT_RECEIVED) && 
-		info->loopmode_insert_requested &&
- 		usc_loopmode_active(info) )
- 	{
-		++info->icount.rxabort;
-	 	info->loopmode_insert_requested = false;
- 
- 		/* clear CMR:13 to start echoing RxD to TxD */
-		info->cmr_value &= ~BIT13;
- 		usc_OutReg(info, CMR, info->cmr_value);
- 
-		/* disable received abort irq (no longer required) */
-	 	usc_OutReg(info, RICR,
- 			(usc_InReg(info, RICR) & ~RXSTATUS_ABORT_RECEIVED));
- 	}
+			   __FILE__, __LINE__, status);
 
-	if (status & (RXSTATUS_EXITED_HUNT | RXSTATUS_IDLE_RECEIVED)) {
+	if ( (status & RXSTATUS_ABORT_RECEIVED) &&
+		 info->loopmode_insert_requested &&
+		 usc_loopmode_active(info) )
+	{
+		++info->icount.rxabort;
+		info->loopmode_insert_requested = false;
+
+		/* clear CMR:13 to start echoing RxD to TxD */
+		info->cmr_value &= ~BIT13;
+		usc_OutReg(info, CMR, info->cmr_value);
+
+		/* disable received abort irq (no longer required) */
+		usc_OutReg(info, RICR,
+				   (usc_InReg(info, RICR) & ~RXSTATUS_ABORT_RECEIVED));
+	}
+
+	if (status & (RXSTATUS_EXITED_HUNT | RXSTATUS_IDLE_RECEIVED))
+	{
 		if (status & RXSTATUS_EXITED_HUNT)
+		{
 			info->icount.exithunt++;
+		}
+
 		if (status & RXSTATUS_IDLE_RECEIVED)
+		{
 			info->icount.rxidle++;
+		}
+
 		wake_up_interruptible(&info->event_wait_q);
 	}
 
-	if (status & RXSTATUS_OVERRUN){
+	if (status & RXSTATUS_OVERRUN)
+	{
 		info->icount.rxover++;
 		usc_process_rxoverrun_sync( info );
 	}
@@ -1200,12 +1266,12 @@ static void mgsl_isr_receive_status( struct mgsl_struct *info )
 }	/* end of mgsl_isr_receive_status() */
 
 /* mgsl_isr_transmit_status()
- * 
+ *
  * 	Service a transmit status interrupt
  *	HDLC mode :end of transmit frame
  *	Async mode:all data is sent
  * 	transmit status is indicated by bits in the TCSR.
- * 
+ *
  * Arguments:		info	       pointer to device instance data
  * Return Value:	None
  */
@@ -1213,13 +1279,13 @@ static void mgsl_isr_transmit_status( struct mgsl_struct *info )
 {
 	u16 status = usc_InReg( info, TCSR );
 
-	if ( debug_level >= DEBUG_LEVEL_ISR )	
+	if ( debug_level >= DEBUG_LEVEL_ISR )
 		printk("%s(%d):mgsl_isr_transmit_status status=%04X\n",
-			__FILE__,__LINE__,status);
-	
+			   __FILE__, __LINE__, status);
+
 	usc_ClearIrqPendingBits( info, TRANSMIT_STATUS );
 	usc_UnlatchTxstatusBits( info, status );
-	
+
 	if ( status & (TXSTATUS_UNDERRUN | TXSTATUS_ABORT_SENT) )
 	{
 		/* finished sending HDLC abort. This may leave	*/
@@ -1227,151 +1293,242 @@ static void mgsl_isr_transmit_status( struct mgsl_struct *info )
 		/* so purge the TxFifo. Also shutdown the DMA	*/
 		/* channel in case there is data remaining in 	*/
 		/* the DMA buffer				*/
- 		usc_DmaCmd( info, DmaCmd_ResetTxChannel );
- 		usc_RTCmd( info, RTCmd_PurgeTxFifo );
+		usc_DmaCmd( info, DmaCmd_ResetTxChannel );
+		usc_RTCmd( info, RTCmd_PurgeTxFifo );
 	}
- 
+
 	if ( status & TXSTATUS_EOF_SENT )
+	{
 		info->icount.txok++;
+	}
 	else if ( status & TXSTATUS_UNDERRUN )
+	{
 		info->icount.txunder++;
+	}
 	else if ( status & TXSTATUS_ABORT_SENT )
+	{
 		info->icount.txabort++;
+	}
 	else
+	{
 		info->icount.txunder++;
-			
+	}
+
 	info->tx_active = false;
 	info->xmit_cnt = info->xmit_head = info->xmit_tail = 0;
-	del_timer(&info->tx_timer);	
-	
-	if ( info->drop_rts_on_tx_done ) {
+	del_timer(&info->tx_timer);
+
+	if ( info->drop_rts_on_tx_done )
+	{
 		usc_get_serial_signals( info );
-		if ( info->serial_signals & SerialSignal_RTS ) {
+
+		if ( info->serial_signals & SerialSignal_RTS )
+		{
 			info->serial_signals &= ~SerialSignal_RTS;
 			usc_set_serial_signals( info );
 		}
+
 		info->drop_rts_on_tx_done = false;
 	}
 
 #if SYNCLINK_GENERIC_HDLC
+
 	if (info->netcount)
+	{
 		hdlcdev_tx_done(info);
-	else 
+	}
+	else
 #endif
 	{
-		if (info->port.tty->stopped || info->port.tty->hw_stopped) {
+		if (info->port.tty->stopped || info->port.tty->hw_stopped)
+		{
 			usc_stop_transmitter(info);
 			return;
 		}
+
 		info->pending_bh |= BH_TRANSMIT;
 	}
 
 }	/* end of mgsl_isr_transmit_status() */
 
 /* mgsl_isr_io_pin()
- * 
+ *
  * 	Service an Input/Output pin interrupt. The type of
  * 	interrupt is indicated by bits in the MISR
- * 	
+ *
  * Arguments:		info	       pointer to device instance data
  * Return Value:	None
  */
 static void mgsl_isr_io_pin( struct mgsl_struct *info )
 {
- 	struct	mgsl_icount *icount;
+	struct	mgsl_icount *icount;
 	u16 status = usc_InReg( info, MISR );
 
-	if ( debug_level >= DEBUG_LEVEL_ISR )	
+	if ( debug_level >= DEBUG_LEVEL_ISR )
 		printk("%s(%d):mgsl_isr_io_pin status=%04X\n",
-			__FILE__,__LINE__,status);
-			
+			   __FILE__, __LINE__, status);
+
 	usc_ClearIrqPendingBits( info, IO_PIN );
 	usc_UnlatchIostatusBits( info, status );
 
 	if (status & (MISCSTATUS_CTS_LATCHED | MISCSTATUS_DCD_LATCHED |
-	              MISCSTATUS_DSR_LATCHED | MISCSTATUS_RI_LATCHED) ) {
+				  MISCSTATUS_DSR_LATCHED | MISCSTATUS_RI_LATCHED) )
+	{
 		icount = &info->icount;
+
 		/* update input line counters */
-		if (status & MISCSTATUS_RI_LATCHED) {
+		if (status & MISCSTATUS_RI_LATCHED)
+		{
 			if ((info->ri_chkcount)++ >= IO_PIN_SHUTDOWN_LIMIT)
-				usc_DisablestatusIrqs(info,SICR_RI);
-			icount->rng++;
-			if ( status & MISCSTATUS_RI )
-				info->input_signal_events.ri_up++;	
-			else
-				info->input_signal_events.ri_down++;	
-		}
-		if (status & MISCSTATUS_DSR_LATCHED) {
-			if ((info->dsr_chkcount)++ >= IO_PIN_SHUTDOWN_LIMIT)
-				usc_DisablestatusIrqs(info,SICR_DSR);
-			icount->dsr++;
-			if ( status & MISCSTATUS_DSR )
-				info->input_signal_events.dsr_up++;
-			else
-				info->input_signal_events.dsr_down++;
-		}
-		if (status & MISCSTATUS_DCD_LATCHED) {
-			if ((info->dcd_chkcount)++ >= IO_PIN_SHUTDOWN_LIMIT)
-				usc_DisablestatusIrqs(info,SICR_DCD);
-			icount->dcd++;
-			if (status & MISCSTATUS_DCD) {
-				info->input_signal_events.dcd_up++;
-			} else
-				info->input_signal_events.dcd_down++;
-#if SYNCLINK_GENERIC_HDLC
-			if (info->netcount) {
-				if (status & MISCSTATUS_DCD)
-					netif_carrier_on(info->netdev);
-				else
-					netif_carrier_off(info->netdev);
+			{
+				usc_DisablestatusIrqs(info, SICR_RI);
 			}
+
+			icount->rng++;
+
+			if ( status & MISCSTATUS_RI )
+			{
+				info->input_signal_events.ri_up++;
+			}
+			else
+			{
+				info->input_signal_events.ri_down++;
+			}
+		}
+
+		if (status & MISCSTATUS_DSR_LATCHED)
+		{
+			if ((info->dsr_chkcount)++ >= IO_PIN_SHUTDOWN_LIMIT)
+			{
+				usc_DisablestatusIrqs(info, SICR_DSR);
+			}
+
+			icount->dsr++;
+
+			if ( status & MISCSTATUS_DSR )
+			{
+				info->input_signal_events.dsr_up++;
+			}
+			else
+			{
+				info->input_signal_events.dsr_down++;
+			}
+		}
+
+		if (status & MISCSTATUS_DCD_LATCHED)
+		{
+			if ((info->dcd_chkcount)++ >= IO_PIN_SHUTDOWN_LIMIT)
+			{
+				usc_DisablestatusIrqs(info, SICR_DCD);
+			}
+
+			icount->dcd++;
+
+			if (status & MISCSTATUS_DCD)
+			{
+				info->input_signal_events.dcd_up++;
+			}
+			else
+			{
+				info->input_signal_events.dcd_down++;
+			}
+
+#if SYNCLINK_GENERIC_HDLC
+
+			if (info->netcount)
+			{
+				if (status & MISCSTATUS_DCD)
+				{
+					netif_carrier_on(info->netdev);
+				}
+				else
+				{
+					netif_carrier_off(info->netdev);
+				}
+			}
+
 #endif
 		}
+
 		if (status & MISCSTATUS_CTS_LATCHED)
 		{
 			if ((info->cts_chkcount)++ >= IO_PIN_SHUTDOWN_LIMIT)
-				usc_DisablestatusIrqs(info,SICR_CTS);
+			{
+				usc_DisablestatusIrqs(info, SICR_CTS);
+			}
+
 			icount->cts++;
+
 			if ( status & MISCSTATUS_CTS )
+			{
 				info->input_signal_events.cts_up++;
+			}
 			else
+			{
 				info->input_signal_events.cts_down++;
+			}
 		}
+
 		wake_up_interruptible(&info->status_event_wait_q);
 		wake_up_interruptible(&info->event_wait_q);
 
 		if (tty_port_check_carrier(&info->port) &&
-		     (status & MISCSTATUS_DCD_LATCHED) ) {
+			(status & MISCSTATUS_DCD_LATCHED) )
+		{
 			if ( debug_level >= DEBUG_LEVEL_ISR )
 				printk("%s CD now %s...", info->device_name,
-				       (status & MISCSTATUS_DCD) ? "on" : "off");
+					   (status & MISCSTATUS_DCD) ? "on" : "off");
+
 			if (status & MISCSTATUS_DCD)
+			{
 				wake_up_interruptible(&info->port.open_wait);
-			else {
+			}
+			else
+			{
 				if ( debug_level >= DEBUG_LEVEL_ISR )
+				{
 					printk("doing serial hangup...");
+				}
+
 				if (info->port.tty)
+				{
 					tty_hangup(info->port.tty);
+				}
 			}
 		}
-	
+
 		if (tty_port_cts_enabled(&info->port) &&
-		     (status & MISCSTATUS_CTS_LATCHED) ) {
-			if (info->port.tty->hw_stopped) {
-				if (status & MISCSTATUS_CTS) {
+			(status & MISCSTATUS_CTS_LATCHED) )
+		{
+			if (info->port.tty->hw_stopped)
+			{
+				if (status & MISCSTATUS_CTS)
+				{
 					if ( debug_level >= DEBUG_LEVEL_ISR )
+					{
 						printk("CTS tx start...");
+					}
+
 					info->port.tty->hw_stopped = 0;
 					usc_start_transmitter(info);
 					info->pending_bh |= BH_TRANSMIT;
 					return;
 				}
-			} else {
-				if (!(status & MISCSTATUS_CTS)) {
+			}
+			else
+			{
+				if (!(status & MISCSTATUS_CTS))
+				{
 					if ( debug_level >= DEBUG_LEVEL_ISR )
+					{
 						printk("CTS tx stop...");
+					}
+
 					if (info->port.tty)
+					{
 						info->port.tty->hw_stopped = 1;
+					}
+
 					usc_stop_transmitter(info);
 				}
 			}
@@ -1379,11 +1536,12 @@ static void mgsl_isr_io_pin( struct mgsl_struct *info )
 	}
 
 	info->pending_bh |= BH_STATUS;
-	
+
 	/* for diagnostics set IRQ flag */
-	if ( status & MISCSTATUS_TXC_LATCHED ){
+	if ( status & MISCSTATUS_TXC_LATCHED )
+	{
 		usc_OutReg( info, SICR,
-			(unsigned short)(usc_InReg(info,SICR) & ~(SICR_TXC_ACTIVE+SICR_TXC_INACTIVE)) );
+					(unsigned short)(usc_InReg(info, SICR) & ~(SICR_TXC_ACTIVE + SICR_TXC_INACTIVE)) );
 		usc_UnlatchIostatusBits( info, MISCSTATUS_TXC_LATCHED );
 		info->irq_occurred = true;
 	}
@@ -1391,41 +1549,48 @@ static void mgsl_isr_io_pin( struct mgsl_struct *info )
 }	/* end of mgsl_isr_io_pin() */
 
 /* mgsl_isr_transmit_data()
- * 
+ *
  * 	Service a transmit data interrupt (async mode only).
- * 
+ *
  * Arguments:		info	pointer to device instance data
  * Return Value:	None
  */
 static void mgsl_isr_transmit_data( struct mgsl_struct *info )
 {
-	if ( debug_level >= DEBUG_LEVEL_ISR )	
+	if ( debug_level >= DEBUG_LEVEL_ISR )
 		printk("%s(%d):mgsl_isr_transmit_data xmit_cnt=%d\n",
-			__FILE__,__LINE__,info->xmit_cnt);
-			
+			   __FILE__, __LINE__, info->xmit_cnt);
+
 	usc_ClearIrqPendingBits( info, TRANSMIT_DATA );
-	
-	if (info->port.tty->stopped || info->port.tty->hw_stopped) {
+
+	if (info->port.tty->stopped || info->port.tty->hw_stopped)
+	{
 		usc_stop_transmitter(info);
 		return;
 	}
-	
+
 	if ( info->xmit_cnt )
+	{
 		usc_load_txfifo( info );
+	}
 	else
+	{
 		info->tx_active = false;
-		
+	}
+
 	if (info->xmit_cnt < WAKEUP_CHARS)
+	{
 		info->pending_bh |= BH_TRANSMIT;
+	}
 
 }	/* end of mgsl_isr_transmit_data() */
 
 /* mgsl_isr_receive_data()
- * 
+ *
  * 	Service a receive data interrupt. This occurs
  * 	when operating in asynchronous interrupt transfer mode.
- *	The receive data FIFO is flushed to the receive data buffers. 
- * 
+ *	The receive data FIFO is flushed to the receive data buffers.
+ *
  * Arguments:		info		pointer to device instance data
  * Return Value:	None
  */
@@ -1435,75 +1600,103 @@ static void mgsl_isr_receive_data( struct mgsl_struct *info )
 	u16 status;
 	int work = 0;
 	unsigned char DataByte;
- 	struct	mgsl_icount *icount = &info->icount;
-	
-	if ( debug_level >= DEBUG_LEVEL_ISR )	
+	struct	mgsl_icount *icount = &info->icount;
+
+	if ( debug_level >= DEBUG_LEVEL_ISR )
 		printk("%s(%d):mgsl_isr_receive_data\n",
-			__FILE__,__LINE__);
+			   __FILE__, __LINE__);
 
 	usc_ClearIrqPendingBits( info, RECEIVE_DATA );
-	
+
 	/* select FIFO status for RICR readback */
 	usc_RCmd( info, RCmd_SelectRicrRxFifostatus );
 
 	/* clear the Wordstatus bit so that status readback */
 	/* only reflects the status of this byte */
-	usc_OutReg( info, RICR+LSBONLY, (u16)(usc_InReg(info, RICR+LSBONLY) & ~BIT3 ));
+	usc_OutReg( info, RICR + LSBONLY, (u16)(usc_InReg(info, RICR + LSBONLY) & ~BIT3 ));
 
 	/* flush the receive FIFO */
 
-	while( (Fifocount = (usc_InReg(info,RICR) >> 8)) ) {
+	while ( (Fifocount = (usc_InReg(info, RICR) >> 8)) )
+	{
 		int flag;
 
 		/* read one byte from RxFIFO */
-		outw( (inw(info->io_base + CCAR) & 0x0780) | (RDR+LSBONLY),
-		      info->io_base + CCAR );
+		outw( (inw(info->io_base + CCAR) & 0x0780) | (RDR + LSBONLY),
+			  info->io_base + CCAR );
 		DataByte = inb( info->io_base + CCAR );
 
 		/* get the status of the received byte */
 		status = usc_InReg(info, RCSR);
+
 		if ( status & (RXSTATUS_FRAMING_ERROR | RXSTATUS_PARITY_ERROR |
-				RXSTATUS_OVERRUN | RXSTATUS_BREAK_RECEIVED) )
-			usc_UnlatchRxstatusBits(info,RXSTATUS_ALL);
-		
+					   RXSTATUS_OVERRUN | RXSTATUS_BREAK_RECEIVED) )
+		{
+			usc_UnlatchRxstatusBits(info, RXSTATUS_ALL);
+		}
+
 		icount->rx++;
-		
+
 		flag = 0;
+
 		if ( status & (RXSTATUS_FRAMING_ERROR | RXSTATUS_PARITY_ERROR |
-				RXSTATUS_OVERRUN | RXSTATUS_BREAK_RECEIVED) ) {
-			printk("rxerr=%04X\n",status);
+					   RXSTATUS_OVERRUN | RXSTATUS_BREAK_RECEIVED) )
+		{
+			printk("rxerr=%04X\n", status);
+
 			/* update error statistics */
-			if ( status & RXSTATUS_BREAK_RECEIVED ) {
+			if ( status & RXSTATUS_BREAK_RECEIVED )
+			{
 				status &= ~(RXSTATUS_FRAMING_ERROR | RXSTATUS_PARITY_ERROR);
 				icount->brk++;
-			} else if (status & RXSTATUS_PARITY_ERROR)
+			}
+			else if (status & RXSTATUS_PARITY_ERROR)
+			{
 				icount->parity++;
+			}
 			else if (status & RXSTATUS_FRAMING_ERROR)
+			{
 				icount->frame++;
-			else if (status & RXSTATUS_OVERRUN) {
+			}
+			else if (status & RXSTATUS_OVERRUN)
+			{
 				/* must issue purge fifo cmd before */
 				/* 16C32 accepts more receive chars */
-				usc_RTCmd(info,RTCmd_PurgeRxFifo);
+				usc_RTCmd(info, RTCmd_PurgeRxFifo);
 				icount->overrun++;
 			}
 
 			/* discard char if tty control flags say so */
 			if (status & info->ignore_status_mask)
+			{
 				continue;
-				
+			}
+
 			status &= info->read_status_mask;
-		
-			if (status & RXSTATUS_BREAK_RECEIVED) {
+
+			if (status & RXSTATUS_BREAK_RECEIVED)
+			{
 				flag = TTY_BREAK;
+
 				if (info->port.flags & ASYNC_SAK)
+				{
 					do_SAK(info->port.tty);
-			} else if (status & RXSTATUS_PARITY_ERROR)
+				}
+			}
+			else if (status & RXSTATUS_PARITY_ERROR)
+			{
 				flag = TTY_PARITY;
+			}
 			else if (status & RXSTATUS_FRAMING_ERROR)
+			{
 				flag = TTY_FRAME;
+			}
 		}	/* end of if (error) */
+
 		tty_insert_flip_char(&info->port, DataByte, flag);
-		if (status & RXSTATUS_OVERRUN) {
+
+		if (status & RXSTATUS_OVERRUN)
+		{
 			/* Overrun is special, since it's
 			 * reported immediately, and doesn't
 			 * affect the current character
@@ -1512,20 +1705,23 @@ static void mgsl_isr_receive_data( struct mgsl_struct *info )
 		}
 	}
 
-	if ( debug_level >= DEBUG_LEVEL_ISR ) {
+	if ( debug_level >= DEBUG_LEVEL_ISR )
+	{
 		printk("%s(%d):rx=%d brk=%d parity=%d frame=%d overrun=%d\n",
-			__FILE__,__LINE__,icount->rx,icount->brk,
-			icount->parity,icount->frame,icount->overrun);
+			   __FILE__, __LINE__, icount->rx, icount->brk,
+			   icount->parity, icount->frame, icount->overrun);
 	}
-			
-	if(work)
+
+	if (work)
+	{
 		tty_flip_buffer_push(&info->port);
+	}
 }
 
 /* mgsl_isr_misc()
- * 
+ *
  * 	Service a miscellaneous interrupt source.
- * 	
+ *
  * Arguments:		info		pointer to device extension (instance data)
  * Return Value:	None
  */
@@ -1533,15 +1729,16 @@ static void mgsl_isr_misc( struct mgsl_struct *info )
 {
 	u16 status = usc_InReg( info, MISR );
 
-	if ( debug_level >= DEBUG_LEVEL_ISR )	
+	if ( debug_level >= DEBUG_LEVEL_ISR )
 		printk("%s(%d):mgsl_isr_misc status=%04X\n",
-			__FILE__,__LINE__,status);
-			
+			   __FILE__, __LINE__, status);
+
 	if ((status & MISCSTATUS_RCC_UNDERRUN) &&
-	    (info->params.mode == MGSL_MODE_HDLC)) {
+		(info->params.mode == MGSL_MODE_HDLC))
+	{
 
 		/* turn off receiver and rx DMA */
-		usc_EnableReceiver(info,DISABLE_UNCONDITIONAL);
+		usc_EnableReceiver(info, DISABLE_UNCONDITIONAL);
 		usc_DmaCmd(info, DmaCmd_ResetRxChannel);
 		usc_UnlatchRxstatusBits(info, RXSTATUS_ALL);
 		usc_ClearIrqPendingBits(info, RECEIVE_DATA | RECEIVE_STATUS);
@@ -1561,7 +1758,7 @@ static void mgsl_isr_misc( struct mgsl_struct *info )
  *
  * 	Services undefined interrupt vectors from the
  * 	USC. (hence this function SHOULD never be called)
- * 
+ *
  * Arguments:		info		pointer to device extension (instance data)
  * Return Value:	None
  */
@@ -1571,28 +1768,28 @@ static void mgsl_isr_null( struct mgsl_struct *info )
 }	/* end of mgsl_isr_null() */
 
 /* mgsl_isr_receive_dma()
- * 
+ *
  * 	Service a receive DMA channel interrupt.
  * 	For this driver there are two sources of receive DMA interrupts
  * 	as identified in the Receive DMA mode Register (RDMR):
- * 
+ *
  * 	BIT3	EOA/EOL		End of List, all receive buffers in receive
  * 				buffer list have been filled (no more free buffers
  * 				available). The DMA controller has shut down.
- * 
+ *
  * 	BIT2	EOB		End of Buffer. This interrupt occurs when a receive
  * 				DMA buffer is terminated in response to completion
  * 				of a good frame or a frame with errors. The status
  * 				of the frame is stored in the buffer entry in the
  * 				list of receive buffer entries.
- * 
+ *
  * Arguments:		info		pointer to device instance data
  * Return Value:	None
  */
 static void mgsl_isr_receive_dma( struct mgsl_struct *info )
 {
 	u16 status;
-	
+
 	/* clear interrupt pending and IUS bit for Rx DMA IRQ */
 	usc_OutDmaReg( info, CDIR, BIT9 | BIT1 );
 
@@ -1600,13 +1797,14 @@ static void mgsl_isr_receive_dma( struct mgsl_struct *info )
 	/* This also clears the status bits. */
 	status = usc_InDmaReg( info, RDMR );
 
-	if ( debug_level >= DEBUG_LEVEL_ISR )	
+	if ( debug_level >= DEBUG_LEVEL_ISR )
 		printk("%s(%d):mgsl_isr_receive_dma(%s) status=%04X\n",
-			__FILE__,__LINE__,info->device_name,status);
-			
+			   __FILE__, __LINE__, info->device_name, status);
+
 	info->pending_bh |= BH_RECEIVE;
-	
-	if ( status & BIT3 ) {
+
+	if ( status & BIT3 )
+	{
 		info->rx_overflow = true;
 		info->icount.buf_overrun++;
 	}
@@ -1647,15 +1845,17 @@ static void mgsl_isr_transmit_dma( struct mgsl_struct *info )
 
 	if ( debug_level >= DEBUG_LEVEL_ISR )
 		printk("%s(%d):mgsl_isr_transmit_dma(%s) status=%04X\n",
-			__FILE__,__LINE__,info->device_name,status);
+			   __FILE__, __LINE__, info->device_name, status);
 
-	if ( status & BIT2 ) {
+	if ( status & BIT2 )
+	{
 		--info->tx_dma_buffers_used;
 
 		/* if there are transmit frames queued,
 		 *  try to load the next one
 		 */
-		if ( load_next_tx_holding_buffer(info) ) {
+		if ( load_next_tx_holding_buffer(info) )
+		{
 			/* if call returns non-zero value, we have
 			 * at least one free tx holding buffer
 			 */
@@ -1666,14 +1866,14 @@ static void mgsl_isr_transmit_dma( struct mgsl_struct *info )
 }	/* end of mgsl_isr_transmit_dma() */
 
 /* mgsl_interrupt()
- * 
+ *
  * 	Interrupt service routine entry point.
- * 	
+ *
  * Arguments:
- * 
+ *
  * 	irq		interrupt number that caused interrupt
  * 	dev_id		device ID supplied during interrupt registration
- * 	
+ *
  * Return Value: None
  */
 static irqreturn_t mgsl_interrupt(int dummy, void *dev_id)
@@ -1682,83 +1882,102 @@ static irqreturn_t mgsl_interrupt(int dummy, void *dev_id)
 	u16 UscVector;
 	u16 DmaVector;
 
-	if ( debug_level >= DEBUG_LEVEL_ISR )	
+	if ( debug_level >= DEBUG_LEVEL_ISR )
 		printk(KERN_DEBUG "%s(%d):mgsl_interrupt(%d)entry.\n",
-			__FILE__, __LINE__, info->irq_level);
+			   __FILE__, __LINE__, info->irq_level);
 
 	spin_lock(&info->irq_spinlock);
 
-	for(;;) {
+	for (;;)
+	{
 		/* Read the interrupt vectors from hardware. */
 		UscVector = usc_InReg(info, IVR) >> 9;
 		DmaVector = usc_InDmaReg(info, DIVR);
-		
-		if ( debug_level >= DEBUG_LEVEL_ISR )	
+
+		if ( debug_level >= DEBUG_LEVEL_ISR )
 			printk("%s(%d):%s UscVector=%08X DmaVector=%08X\n",
-				__FILE__,__LINE__,info->device_name,UscVector,DmaVector);
-			
+				   __FILE__, __LINE__, info->device_name, UscVector, DmaVector);
+
 		if ( !UscVector && !DmaVector )
+		{
 			break;
-			
+		}
+
 		/* Dispatch interrupt vector */
 		if ( UscVector )
+		{
 			(*UscIsrTable[UscVector])(info);
-		else if ( (DmaVector&(BIT10|BIT9)) == BIT10)
+		}
+		else if ( (DmaVector & (BIT10 | BIT9)) == BIT10)
+		{
 			mgsl_isr_transmit_dma(info);
+		}
 		else
+		{
 			mgsl_isr_receive_dma(info);
+		}
 
-		if ( info->isr_overflow ) {
+		if ( info->isr_overflow )
+		{
 			printk(KERN_ERR "%s(%d):%s isr overflow irq=%d\n",
-				__FILE__, __LINE__, info->device_name, info->irq_level);
+				   __FILE__, __LINE__, info->device_name, info->irq_level);
 			usc_DisableMasterIrqBit(info);
-			usc_DisableDmaInterrupts(info,DICR_MASTER);
+			usc_DisableDmaInterrupts(info, DICR_MASTER);
 			break;
 		}
 	}
-	
-	/* Request bottom half processing if there's something 
+
+	/* Request bottom half processing if there's something
 	 * for it to do and the bh is not already running
 	 */
 
-	if ( info->pending_bh && !info->bh_running && !info->bh_requested ) {
-		if ( debug_level >= DEBUG_LEVEL_ISR )	
+	if ( info->pending_bh && !info->bh_running && !info->bh_requested )
+	{
+		if ( debug_level >= DEBUG_LEVEL_ISR )
 			printk("%s(%d):%s queueing bh task.\n",
-				__FILE__,__LINE__,info->device_name);
+				   __FILE__, __LINE__, info->device_name);
+
 		schedule_work(&info->task);
 		info->bh_requested = true;
 	}
 
 	spin_unlock(&info->irq_spinlock);
-	
-	if ( debug_level >= DEBUG_LEVEL_ISR )	
+
+	if ( debug_level >= DEBUG_LEVEL_ISR )
 		printk(KERN_DEBUG "%s(%d):mgsl_interrupt(%d)exit.\n",
-			__FILE__, __LINE__, info->irq_level);
+			   __FILE__, __LINE__, info->irq_level);
 
 	return IRQ_HANDLED;
 }	/* end of mgsl_interrupt() */
 
 /* startup()
- * 
+ *
  * 	Initialize and start device.
- * 	
+ *
  * Arguments:		info	pointer to device instance data
  * Return Value:	0 if success, otherwise error code
  */
-static int startup(struct mgsl_struct * info)
+static int startup(struct mgsl_struct *info)
 {
 	int retval = 0;
 
 	if ( debug_level >= DEBUG_LEVEL_INFO )
-		printk("%s(%d):mgsl_startup(%s)\n",__FILE__,__LINE__,info->device_name);
+	{
+		printk("%s(%d):mgsl_startup(%s)\n", __FILE__, __LINE__, info->device_name);
+	}
 
 	if (tty_port_initialized(&info->port))
+	{
 		return 0;
+	}
 
-	if (!info->xmit_buf) {
+	if (!info->xmit_buf)
+	{
 		/* allocate a page of memory for a transmit buffer */
 		info->xmit_buf = (unsigned char *)get_zeroed_page(GFP_KERNEL);
-		if (!info->xmit_buf) {
+
+		if (!info->xmit_buf)
+		{
 			printk(KERN_ERR"%s(%d):%s can't allocate transmit buffer\n",
 				__FILE__,__LINE__,info->device_name);
 			return -ENOMEM;
@@ -2473,7 +2692,7 @@ static int mgsl_set_params(struct mgsl_struct * info, MGSL_PARAMS __user *new_pa
  	unsigned long flags;
 	MGSL_PARAMS tmp_params;
 	int err;
- 
+
 	if (debug_level >= DEBUG_LEVEL_INFO)
 		printk("%s(%d):mgsl_set_params %s\n", __FILE__,__LINE__,
 			info->device_name );
@@ -2536,7 +2755,7 @@ static int mgsl_get_txidle(struct mgsl_struct * info, int __user *idle_mode)
 static int mgsl_set_txidle(struct mgsl_struct * info, int idle_mode)
 {
  	unsigned long flags;
- 
+
 	if (debug_level >= DEBUG_LEVEL_INFO)
 		printk("%s(%d):mgsl_set_txidle(%s,%d)\n", __FILE__,__LINE__,
 			info->device_name, idle_mode );
@@ -2563,7 +2782,7 @@ static int mgsl_set_txidle(struct mgsl_struct * info, int idle_mode)
 static int mgsl_txenable(struct mgsl_struct * info, int enable)
 {
  	unsigned long flags;
- 
+
 	if (debug_level >= DEBUG_LEVEL_INFO)
 		printk("%s(%d):mgsl_txenable(%s,%d)\n", __FILE__,__LINE__,
 			info->device_name, enable);
@@ -2600,7 +2819,7 @@ static int mgsl_txenable(struct mgsl_struct * info, int enable)
 static int mgsl_txabort(struct mgsl_struct * info)
 {
  	unsigned long flags;
- 
+
 	if (debug_level >= DEBUG_LEVEL_INFO)
 		printk("%s(%d):mgsl_txabort(%s)\n", __FILE__,__LINE__,
 			info->device_name);
@@ -2627,7 +2846,7 @@ static int mgsl_txabort(struct mgsl_struct * info)
 static int mgsl_rxenable(struct mgsl_struct * info, int enable)
 {
  	unsigned long flags;
- 
+
 	if (debug_level >= DEBUG_LEVEL_INFO)
 		printk("%s(%d):mgsl_rxenable(%s,%d)\n", __FILE__,__LINE__,
 			info->device_name, enable);
@@ -4531,7 +4750,7 @@ static void usc_OutDmaReg( struct mgsl_struct *info, u16 RegAddr, u16 RegValue )
 		inw( info->io_base );
 
 }	/* end of usc_OutDmaReg() */
- 
+
 /*
  * usc_InDmaReg()
  *
@@ -4646,7 +4865,7 @@ static void usc_set_sdlc_mode( struct mgsl_struct *info )
  	   ** 1000 1110 0000 0110 = 0x8e06
  	   */
  	   RegValue = 0x8e06;
- 
+
  	   /*--------------------------------------------------
  	    * ignore user options for UnderRun Actions and
  	    * preambles
@@ -7598,7 +7817,7 @@ static void usc_loopmode_cancel_transmit( struct mgsl_struct * info )
 static void usc_loopmode_insert_request( struct mgsl_struct * info )
 {
  	info->loopmode_insert_requested = true;
- 
+
  	/* enable RxAbort irq. On next RxAbort, clear CMR:13 to
  	 * begin repeating TxData on RxData (complete insertion)
 	 */

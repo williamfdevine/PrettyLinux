@@ -1,6 +1,7 @@
 #ifndef _INCLUDE_SOUND_ALC5623_H
 #define _INCLUDE_SOUND_ALC5623_H
-struct alc5623_platform_data {
+struct alc5623_platform_data
+{
 	/* configure :                              */
 	/* Lineout/Speaker Amps Vmid ratio control  */
 	/* enable/disable adc/dac high pass filters */

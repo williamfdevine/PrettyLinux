@@ -72,18 +72,21 @@ void acpi_ut_dump_buffer(u8 *buffer, u32 count, u32 display, u32 base_offset)
 	u32 temp32;
 	u8 buf_char;
 
-	if (!buffer) {
+	if (!buffer)
+	{
 		acpi_os_printf("Null Buffer Pointer in DumpBuffer!\n");
 		return;
 	}
 
-	if ((count < 4) || (count & 0x01)) {
+	if ((count < 4) || (count & 0x01))
+	{
 		display = DB_BYTE_DISPLAY;
 	}
 
 	/* Nasty little dump buffer routine! */
 
-	while (i < count) {
+	while (i < count)
+	{
 
 		/* Print current offset */
 
@@ -91,8 +94,10 @@ void acpi_ut_dump_buffer(u8 *buffer, u32 count, u32 display, u32 base_offset)
 
 		/* Print 16 hex chars */
 
-		for (j = 0; j < 16;) {
-			if (i + j >= count) {
+		for (j = 0; j < 16;)
+		{
+			if (i + j >= count)
+			{
 
 				/* Dump fill spaces */
 
@@ -101,39 +106,40 @@ void acpi_ut_dump_buffer(u8 *buffer, u32 count, u32 display, u32 base_offset)
 				continue;
 			}
 
-			switch (display) {
-			case DB_BYTE_DISPLAY:
-			default:	/* Default is BYTE display */
+			switch (display)
+			{
+				case DB_BYTE_DISPLAY:
+				default:	/* Default is BYTE display */
 
-				acpi_os_printf("%02X ",
-					       buffer[(acpi_size)i + j]);
-				break;
+					acpi_os_printf("%02X ",
+								   buffer[(acpi_size)i + j]);
+					break;
 
-			case DB_WORD_DISPLAY:
+				case DB_WORD_DISPLAY:
 
-				ACPI_MOVE_16_TO_32(&temp32,
-						   &buffer[(acpi_size)i + j]);
-				acpi_os_printf("%04X ", temp32);
-				break;
+					ACPI_MOVE_16_TO_32(&temp32,
+									   &buffer[(acpi_size)i + j]);
+					acpi_os_printf("%04X ", temp32);
+					break;
 
-			case DB_DWORD_DISPLAY:
+				case DB_DWORD_DISPLAY:
 
-				ACPI_MOVE_32_TO_32(&temp32,
-						   &buffer[(acpi_size)i + j]);
-				acpi_os_printf("%08X ", temp32);
-				break;
+					ACPI_MOVE_32_TO_32(&temp32,
+									   &buffer[(acpi_size)i + j]);
+					acpi_os_printf("%08X ", temp32);
+					break;
 
-			case DB_QWORD_DISPLAY:
+				case DB_QWORD_DISPLAY:
 
-				ACPI_MOVE_32_TO_32(&temp32,
-						   &buffer[(acpi_size)i + j]);
-				acpi_os_printf("%08X", temp32);
+					ACPI_MOVE_32_TO_32(&temp32,
+									   &buffer[(acpi_size)i + j]);
+					acpi_os_printf("%08X", temp32);
 
-				ACPI_MOVE_32_TO_32(&temp32,
-						   &buffer[(acpi_size)i + j +
-							   4]);
-				acpi_os_printf("%08X ", temp32);
-				break;
+					ACPI_MOVE_32_TO_32(&temp32,
+									   &buffer[(acpi_size)i + j +
+											   4]);
+					acpi_os_printf("%08X ", temp32);
+					break;
 			}
 
 			j += display;
@@ -144,8 +150,11 @@ void acpi_ut_dump_buffer(u8 *buffer, u32 count, u32 display, u32 base_offset)
 		 * unprintable ones (printable chars are 0x20 through 0x7E)
 		 */
 		acpi_os_printf(" ");
-		for (j = 0; j < 16; j++) {
-			if (i + j >= count) {
+
+		for (j = 0; j < 16; j++)
+		{
+			if (i + j >= count)
+			{
 				acpi_os_printf("\n");
 				return;
 			}
@@ -154,14 +163,19 @@ void acpi_ut_dump_buffer(u8 *buffer, u32 count, u32 display, u32 base_offset)
 			 * Add comment characters so rest of line is ignored when
 			 * compiled
 			 */
-			if (j == 0) {
+			if (j == 0)
+			{
 				acpi_os_printf("// ");
 			}
 
 			buf_char = buffer[(acpi_size)i + j];
-			if (isprint(buf_char)) {
+
+			if (isprint(buf_char))
+			{
 				acpi_os_printf("%c", buf_char);
-			} else {
+			}
+			else
+			{
 				acpi_os_printf(".");
 			}
 		}
@@ -201,7 +215,8 @@ acpi_ut_debug_dump_buffer(u8 *buffer, u32 count, u32 display, u32 component_id)
 	/* Only dump the buffer if tracing is enabled */
 
 	if (!((ACPI_LV_TABLES & acpi_dbg_level) &&
-	      (component_id & acpi_dbg_layer))) {
+		  (component_id & acpi_dbg_layer)))
+	{
 		return;
 	}
 
@@ -231,25 +246,28 @@ acpi_ut_debug_dump_buffer(u8 *buffer, u32 count, u32 display, u32 component_id)
 
 void
 acpi_ut_dump_buffer_to_file(ACPI_FILE file,
-			    u8 *buffer, u32 count, u32 display, u32 base_offset)
+							u8 *buffer, u32 count, u32 display, u32 base_offset)
 {
 	u32 i = 0;
 	u32 j;
 	u32 temp32;
 	u8 buf_char;
 
-	if (!buffer) {
+	if (!buffer)
+	{
 		fprintf(file, "Null Buffer Pointer in DumpBuffer!\n");
 		return;
 	}
 
-	if ((count < 4) || (count & 0x01)) {
+	if ((count < 4) || (count & 0x01))
+	{
 		display = DB_BYTE_DISPLAY;
 	}
 
 	/* Nasty little dump buffer routine! */
 
-	while (i < count) {
+	while (i < count)
+	{
 
 		/* Print current offset */
 
@@ -257,8 +275,10 @@ acpi_ut_dump_buffer_to_file(ACPI_FILE file,
 
 		/* Print 16 hex chars */
 
-		for (j = 0; j < 16;) {
-			if (i + j >= count) {
+		for (j = 0; j < 16;)
+		{
+			if (i + j >= count)
+			{
 
 				/* Dump fill spaces */
 
@@ -267,39 +287,40 @@ acpi_ut_dump_buffer_to_file(ACPI_FILE file,
 				continue;
 			}
 
-			switch (display) {
-			case DB_BYTE_DISPLAY:
-			default:	/* Default is BYTE display */
+			switch (display)
+			{
+				case DB_BYTE_DISPLAY:
+				default:	/* Default is BYTE display */
 
-				fprintf(file, "%02X ",
-					buffer[(acpi_size)i + j]);
-				break;
+					fprintf(file, "%02X ",
+							buffer[(acpi_size)i + j]);
+					break;
 
-			case DB_WORD_DISPLAY:
+				case DB_WORD_DISPLAY:
 
-				ACPI_MOVE_16_TO_32(&temp32,
-						   &buffer[(acpi_size)i + j]);
-				fprintf(file, "%04X ", temp32);
-				break;
+					ACPI_MOVE_16_TO_32(&temp32,
+									   &buffer[(acpi_size)i + j]);
+					fprintf(file, "%04X ", temp32);
+					break;
 
-			case DB_DWORD_DISPLAY:
+				case DB_DWORD_DISPLAY:
 
-				ACPI_MOVE_32_TO_32(&temp32,
-						   &buffer[(acpi_size)i + j]);
-				fprintf(file, "%08X ", temp32);
-				break;
+					ACPI_MOVE_32_TO_32(&temp32,
+									   &buffer[(acpi_size)i + j]);
+					fprintf(file, "%08X ", temp32);
+					break;
 
-			case DB_QWORD_DISPLAY:
+				case DB_QWORD_DISPLAY:
 
-				ACPI_MOVE_32_TO_32(&temp32,
-						   &buffer[(acpi_size)i + j]);
-				fprintf(file, "%08X", temp32);
+					ACPI_MOVE_32_TO_32(&temp32,
+									   &buffer[(acpi_size)i + j]);
+					fprintf(file, "%08X", temp32);
 
-				ACPI_MOVE_32_TO_32(&temp32,
-						   &buffer[(acpi_size)i + j +
-							   4]);
-				fprintf(file, "%08X ", temp32);
-				break;
+					ACPI_MOVE_32_TO_32(&temp32,
+									   &buffer[(acpi_size)i + j +
+											   4]);
+					fprintf(file, "%08X ", temp32);
+					break;
 			}
 
 			j += display;
@@ -310,16 +331,23 @@ acpi_ut_dump_buffer_to_file(ACPI_FILE file,
 		 * unprintable ones (printable chars are 0x20 through 0x7E)
 		 */
 		fprintf(file, " ");
-		for (j = 0; j < 16; j++) {
-			if (i + j >= count) {
+
+		for (j = 0; j < 16; j++)
+		{
+			if (i + j >= count)
+			{
 				fprintf(file, "\n");
 				return;
 			}
 
 			buf_char = buffer[(acpi_size)i + j];
-			if (isprint(buf_char)) {
+
+			if (isprint(buf_char))
+			{
 				fprintf(file, "%c", buf_char);
-			} else {
+			}
+			else
+			{
 				fprintf(file, ".");
 			}
 		}

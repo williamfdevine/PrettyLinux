@@ -52,8 +52,8 @@
 static struct dentry *seq_debugfs_dir;
 
 static int seq_client_rpc(struct lu_client_seq *seq,
-			  struct lu_seq_range *output, __u32 opc,
-			  const char *opcname)
+						  struct lu_seq_range *output, __u32 opc,
+						  const char *opcname)
 {
 	struct obd_export     *exp = seq->lcs_exp;
 	struct ptlrpc_request *req;
@@ -64,9 +64,12 @@ static int seq_client_rpc(struct lu_client_seq *seq,
 
 	LASSERT(exp && !IS_ERR(exp));
 	req = ptlrpc_request_alloc_pack(class_exp2cliimp(exp), &RQF_SEQ_QUERY,
-					LUSTRE_MDS_VERSION, SEQ_QUERY);
+									LUSTRE_MDS_VERSION, SEQ_QUERY);
+
 	if (!req)
+	{
 		return -ENOMEM;
+	}
 
 	/* Init operation code */
 	op = req_capsule_client_get(&req->rq_pill, &RMF_SEQ_OPC);
@@ -79,14 +82,21 @@ static int seq_client_rpc(struct lu_client_seq *seq,
 	ptlrpc_request_set_replen(req);
 
 	in->lsr_index = seq->lcs_space.lsr_index;
-	if (seq->lcs_type == LUSTRE_SEQ_METADATA)
-		fld_range_set_mdt(in);
-	else
-		fld_range_set_ost(in);
 
-	if (opc == SEQ_ALLOC_SUPER) {
+	if (seq->lcs_type == LUSTRE_SEQ_METADATA)
+	{
+		fld_range_set_mdt(in);
+	}
+	else
+	{
+		fld_range_set_ost(in);
+	}
+
+	if (opc == SEQ_ALLOC_SUPER)
+	{
 		req->rq_request_portal = SEQ_CONTROLLER_PORTAL;
 		req->rq_reply_portal = MDC_REPLY_PORTAL;
+
 		/* During allocating super sequence for data object,
 		 * the current thread might hold the export of MDT0(MDT0
 		 * precreating objects on this OST), and it will send the
@@ -94,51 +104,70 @@ static int seq_client_rpc(struct lu_client_seq *seq,
 		 * request here, otherwise if MDT0 is failed(umounted),
 		 * it can not release the export of MDT0
 		 */
-		if (seq->lcs_type == LUSTRE_SEQ_DATA) {
+		if (seq->lcs_type == LUSTRE_SEQ_DATA)
+		{
 			req->rq_no_delay = 1;
 			req->rq_no_resend = 1;
 		}
+
 		debug_mask = D_CONSOLE;
-	} else {
-		if (seq->lcs_type == LUSTRE_SEQ_METADATA) {
+	}
+	else
+	{
+		if (seq->lcs_type == LUSTRE_SEQ_METADATA)
+		{
 			req->rq_reply_portal = MDC_REPLY_PORTAL;
 			req->rq_request_portal = SEQ_METADATA_PORTAL;
-		} else {
+		}
+		else
+		{
 			req->rq_reply_portal = OSC_REPLY_PORTAL;
 			req->rq_request_portal = SEQ_DATA_PORTAL;
 		}
+
 		debug_mask = D_INFO;
 	}
 
 	ptlrpc_at_set_req_timeout(req);
 
 	if (opc != SEQ_ALLOC_SUPER && seq->lcs_type == LUSTRE_SEQ_METADATA)
+	{
 		mdc_get_rpc_lock(exp->exp_obd->u.cli.cl_rpc_lock, NULL);
+	}
+
 	rc = ptlrpc_queue_wait(req);
+
 	if (opc != SEQ_ALLOC_SUPER && seq->lcs_type == LUSTRE_SEQ_METADATA)
+	{
 		mdc_put_rpc_lock(exp->exp_obd->u.cli.cl_rpc_lock, NULL);
+	}
+
 	if (rc)
+	{
 		goto out_req;
+	}
 
 	out = req_capsule_server_get(&req->rq_pill, &RMF_SEQ_RANGE);
 	*output = *out;
 
-	if (!range_is_sane(output)) {
+	if (!range_is_sane(output))
+	{
 		CERROR("%s: Invalid range received from server: "
-		       DRANGE "\n", seq->lcs_name, PRANGE(output));
+			   DRANGE "\n", seq->lcs_name, PRANGE(output));
 		rc = -EINVAL;
 		goto out_req;
 	}
 
-	if (range_is_exhausted(output)) {
+	if (range_is_exhausted(output))
+	{
 		CERROR("%s: Range received from server is exhausted: "
-		       DRANGE "]\n", seq->lcs_name, PRANGE(output));
+			   DRANGE "]\n", seq->lcs_name, PRANGE(output));
 		rc = -EINVAL;
 		goto out_req;
 	}
 
 	CDEBUG_LIMIT(debug_mask, "%s: Allocated %s-sequence " DRANGE "]\n",
-		     seq->lcs_name, opcname, PRANGE(output));
+				 seq->lcs_name, opcname, PRANGE(output));
 
 out_req:
 	ptlrpc_req_finished(req);
@@ -147,41 +176,49 @@ out_req:
 
 /* Request sequence-controller node to allocate new meta-sequence. */
 static int seq_client_alloc_meta(const struct lu_env *env,
-				 struct lu_client_seq *seq)
+								 struct lu_client_seq *seq)
 {
 	int rc;
 
-	do {
+	do
+	{
 		/* If meta server return -EINPROGRESS or EAGAIN,
 		 * it means meta server might not be ready to
 		 * allocate super sequence from sequence controller
 		 * (MDT0)yet
 		 */
 		rc = seq_client_rpc(seq, &seq->lcs_space,
-				    SEQ_ALLOC_META, "meta");
-	} while (rc == -EINPROGRESS || rc == -EAGAIN);
+							SEQ_ALLOC_META, "meta");
+	}
+	while (rc == -EINPROGRESS || rc == -EAGAIN);
 
 	return rc;
 }
 
 /* Allocate new sequence for client. */
 static int seq_client_alloc_seq(const struct lu_env *env,
-				struct lu_client_seq *seq, u64 *seqnr)
+								struct lu_client_seq *seq, u64 *seqnr)
 {
 	int rc;
 
 	LASSERT(range_is_sane(&seq->lcs_space));
 
-	if (range_is_exhausted(&seq->lcs_space)) {
+	if (range_is_exhausted(&seq->lcs_space))
+	{
 		rc = seq_client_alloc_meta(env, seq);
-		if (rc) {
+
+		if (rc)
+		{
 			CERROR("%s: Can't allocate new meta-sequence, rc %d\n",
-			       seq->lcs_name, rc);
+				   seq->lcs_name, rc);
 			return rc;
 		}
+
 		CDEBUG(D_INFO, "%s: New range - " DRANGE "\n",
-		       seq->lcs_name, PRANGE(&seq->lcs_space));
-	} else {
+			   seq->lcs_name, PRANGE(&seq->lcs_space));
+	}
+	else
+	{
 		rc = 0;
 	}
 
@@ -190,15 +227,16 @@ static int seq_client_alloc_seq(const struct lu_env *env,
 	seq->lcs_space.lsr_start += 1;
 
 	CDEBUG(D_INFO, "%s: Allocated sequence [%#llx]\n", seq->lcs_name,
-	       *seqnr);
+		   *seqnr);
 
 	return rc;
 }
 
 static int seq_fid_alloc_prep(struct lu_client_seq *seq,
-			      wait_queue_t *link)
+							  wait_queue_t *link)
 {
-	if (seq->lcs_update) {
+	if (seq->lcs_update)
+	{
 		add_wait_queue(&seq->lcs_waitq, link);
 		set_current_state(TASK_UNINTERRUPTIBLE);
 		mutex_unlock(&seq->lcs_mutex);
@@ -210,6 +248,7 @@ static int seq_fid_alloc_prep(struct lu_client_seq *seq,
 		set_current_state(TASK_RUNNING);
 		return -EAGAIN;
 	}
+
 	++seq->lcs_update;
 	mutex_unlock(&seq->lcs_mutex);
 	return 0;
@@ -225,7 +264,7 @@ static void seq_fid_alloc_fini(struct lu_client_seq *seq)
 
 /* Allocate new fid on passed client @seq and save it to @fid. */
 int seq_client_alloc_fid(const struct lu_env *env,
-			 struct lu_client_seq *seq, struct lu_fid *fid)
+						 struct lu_client_seq *seq, struct lu_fid *fid)
 {
 	wait_queue_t link;
 	int rc;
@@ -237,13 +276,17 @@ int seq_client_alloc_fid(const struct lu_env *env,
 	mutex_lock(&seq->lcs_mutex);
 
 	if (OBD_FAIL_CHECK(OBD_FAIL_SEQ_EXHAUST))
+	{
 		seq->lcs_fid.f_oid = seq->lcs_width;
+	}
 
-	while (1) {
+	while (1)
+	{
 		u64 seqnr;
 
 		if (!fid_is_zero(&seq->lcs_fid) &&
-		    fid_oid(&seq->lcs_fid) < seq->lcs_width) {
+			fid_oid(&seq->lcs_fid) < seq->lcs_width)
+		{
 			/* Just bump last allocated fid and return to caller. */
 			seq->lcs_fid.f_oid += 1;
 			rc = 0;
@@ -251,20 +294,25 @@ int seq_client_alloc_fid(const struct lu_env *env,
 		}
 
 		rc = seq_fid_alloc_prep(seq, &link);
+
 		if (rc)
+		{
 			continue;
+		}
 
 		rc = seq_client_alloc_seq(env, seq, &seqnr);
-		if (rc) {
+
+		if (rc)
+		{
 			CERROR("%s: Can't allocate new sequence, rc %d\n",
-			       seq->lcs_name, rc);
+				   seq->lcs_name, rc);
 			seq_fid_alloc_fini(seq);
 			mutex_unlock(&seq->lcs_mutex);
 			return rc;
 		}
 
 		CDEBUG(D_INFO, "%s: Switch to sequence [0x%16.16Lx]\n",
-		       seq->lcs_name, seqnr);
+			   seq->lcs_name, seqnr);
 
 		seq->lcs_fid.f_oid = LUSTRE_FID_INIT_OID;
 		seq->lcs_fid.f_seq = seqnr;
@@ -300,7 +348,8 @@ void seq_client_flush(struct lu_client_seq *seq)
 	init_waitqueue_entry(&link, current);
 	mutex_lock(&seq->lcs_mutex);
 
-	while (seq->lcs_update) {
+	while (seq->lcs_update)
+	{
 		add_wait_queue(&seq->lcs_waitq, &link);
 		set_current_state(TASK_UNINTERRUPTIBLE);
 		mutex_unlock(&seq->lcs_mutex);
@@ -328,7 +377,9 @@ EXPORT_SYMBOL(seq_client_flush);
 static void seq_client_debugfs_fini(struct lu_client_seq *seq)
 {
 	if (!IS_ERR_OR_NULL(seq->lcs_debugfs_entry))
+	{
 		ldebugfs_remove(&seq->lcs_debugfs_entry);
+	}
 }
 
 static int seq_client_debugfs_init(struct lu_client_seq *seq)
@@ -336,22 +387,25 @@ static int seq_client_debugfs_init(struct lu_client_seq *seq)
 	int rc;
 
 	seq->lcs_debugfs_entry = ldebugfs_register(seq->lcs_name,
-						   seq_debugfs_dir,
-						   NULL, NULL);
+							 seq_debugfs_dir,
+							 NULL, NULL);
 
-	if (IS_ERR_OR_NULL(seq->lcs_debugfs_entry)) {
+	if (IS_ERR_OR_NULL(seq->lcs_debugfs_entry))
+	{
 		CERROR("%s: LdebugFS failed in seq-init\n", seq->lcs_name);
 		rc = seq->lcs_debugfs_entry ? PTR_ERR(seq->lcs_debugfs_entry)
-					    : -ENOMEM;
+			 : -ENOMEM;
 		seq->lcs_debugfs_entry = NULL;
 		return rc;
 	}
 
 	rc = ldebugfs_add_vars(seq->lcs_debugfs_entry,
-			       seq_client_debugfs_list, seq);
-	if (rc) {
+						   seq_client_debugfs_list, seq);
+
+	if (rc)
+	{
 		CERROR("%s: Can't init sequence manager debugfs, rc %d\n",
-		       seq->lcs_name, rc);
+			   seq->lcs_name, rc);
 		goto out_cleanup;
 	}
 
@@ -366,16 +420,17 @@ static void seq_client_fini(struct lu_client_seq *seq)
 {
 	seq_client_debugfs_fini(seq);
 
-	if (seq->lcs_exp) {
+	if (seq->lcs_exp)
+	{
 		class_export_put(seq->lcs_exp);
 		seq->lcs_exp = NULL;
 	}
 }
 
 static int seq_client_init(struct lu_client_seq *seq,
-			   struct obd_export *exp,
-			   enum lu_cli_type type,
-			   const char *prefix)
+						   struct obd_export *exp,
+						   enum lu_cli_type type,
+						   const char *prefix)
 {
 	int rc;
 
@@ -385,10 +440,15 @@ static int seq_client_init(struct lu_client_seq *seq,
 	seq->lcs_type = type;
 
 	mutex_init(&seq->lcs_mutex);
+
 	if (type == LUSTRE_SEQ_METADATA)
+	{
 		seq->lcs_width = LUSTRE_METADATA_SEQ_MAX_WIDTH;
+	}
 	else
+	{
 		seq->lcs_width = LUSTRE_DATA_SEQ_MAX_WIDTH;
+	}
 
 	init_waitqueue_head(&seq->lcs_waitq);
 	/* Make sure that things are clear before work is started. */
@@ -397,27 +457,36 @@ static int seq_client_init(struct lu_client_seq *seq,
 	seq->lcs_exp = class_export_get(exp);
 
 	snprintf(seq->lcs_name, sizeof(seq->lcs_name),
-		 "cli-%s", prefix);
+			 "cli-%s", prefix);
 
 	rc = seq_client_debugfs_init(seq);
+
 	if (rc)
+	{
 		seq_client_fini(seq);
+	}
+
 	return rc;
 }
 
 int client_fid_init(struct obd_device *obd,
-		    struct obd_export *exp, enum lu_cli_type type)
+					struct obd_export *exp, enum lu_cli_type type)
 {
 	struct client_obd *cli = &obd->u.cli;
 	char *prefix;
 	int rc;
 
 	cli->cl_seq = kzalloc(sizeof(*cli->cl_seq), GFP_NOFS);
+
 	if (!cli->cl_seq)
+	{
 		return -ENOMEM;
+	}
 
 	prefix = kzalloc(MAX_OBD_NAME + 5, GFP_NOFS);
-	if (!prefix) {
+
+	if (!prefix)
+	{
 		rc = -ENOMEM;
 		goto out_free_seq;
 	}
@@ -427,8 +496,11 @@ int client_fid_init(struct obd_device *obd,
 	/* Init client side sequence-manager */
 	rc = seq_client_init(cli->cl_seq, exp, type, prefix);
 	kfree(prefix);
+
 	if (rc)
+	{
 		goto out_free_seq;
+	}
 
 	return rc;
 out_free_seq:
@@ -442,7 +514,8 @@ int client_fid_fini(struct obd_device *obd)
 {
 	struct client_obd *cli = &obd->u.cli;
 
-	if (cli->cl_seq) {
+	if (cli->cl_seq)
+	{
 		seq_client_fini(cli->cl_seq);
 		kfree(cli->cl_seq);
 		cli->cl_seq = NULL;
@@ -455,15 +528,17 @@ EXPORT_SYMBOL(client_fid_fini);
 static int __init fid_init(void)
 {
 	seq_debugfs_dir = ldebugfs_register(LUSTRE_SEQ_NAME,
-					    debugfs_lustre_root,
-					    NULL, NULL);
+										debugfs_lustre_root,
+										NULL, NULL);
 	return PTR_ERR_OR_ZERO(seq_debugfs_dir);
 }
 
 static void __exit fid_exit(void)
 {
 	if (!IS_ERR_OR_NULL(seq_debugfs_dir))
+	{
 		ldebugfs_remove(&seq_debugfs_dir);
+	}
 }
 
 MODULE_AUTHOR("OpenSFS, Inc. <http://www.lustre.org/>");

@@ -9,7 +9,8 @@
 #define CAST5_MIN_KEY_SIZE 5
 #define CAST5_MAX_KEY_SIZE 16
 
-struct cast5_ctx {
+struct cast5_ctx
+{
 	u32 Km[16];
 	u8 Kr[16];
 	int rr;	/* rr ? rounds = 12 : rounds = 16; (rfc 2144) */

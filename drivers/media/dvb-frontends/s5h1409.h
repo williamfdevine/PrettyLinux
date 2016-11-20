@@ -24,7 +24,8 @@
 
 #include <linux/dvb/frontend.h>
 
-struct s5h1409_config {
+struct s5h1409_config
+{
 	/* the demodulator's i2c address */
 	u8 demod_address;
 
@@ -68,7 +69,7 @@ struct s5h1409_config {
 
 #if IS_REACHABLE(CONFIG_DVB_S5H1409)
 extern struct dvb_frontend *s5h1409_attach(const struct s5h1409_config *config,
-					   struct i2c_adapter *i2c);
+		struct i2c_adapter *i2c);
 #else
 static inline struct dvb_frontend *s5h1409_attach(
 	const struct s5h1409_config *config,

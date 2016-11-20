@@ -33,7 +33,8 @@
 
 typedef __le32 netxen_crbword_t;	/* single word in CRB space */
 
-enum {
+enum
+{
 	NETXEN_HW_H0_CH_HUB_ADR = 0x05,
 	NETXEN_HW_H1_CH_HUB_ADR = 0x0E,
 	NETXEN_HW_H2_CH_HUB_ADR = 0x03,
@@ -44,13 +45,15 @@ enum {
 };
 
 /*  Hub 0 */
-enum {
+enum
+{
 	NETXEN_HW_MN_CRB_AGT_ADR = 0x15,
 	NETXEN_HW_MS_CRB_AGT_ADR = 0x25
 };
 
 /*  Hub 1 */
-enum {
+enum
+{
 	NETXEN_HW_PS_CRB_AGT_ADR = 0x73,
 	NETXEN_HW_SS_CRB_AGT_ADR = 0x20,
 	NETXEN_HW_RPMX3_CRB_AGT_ADR = 0x0b,
@@ -70,7 +73,8 @@ enum {
 };
 
 /*  Hub 2 */
-enum {
+enum
+{
 	NETXEN_HW_NIU_CRB_AGT_ADR = 0x31,
 	NETXEN_HW_I2C0_CRB_AGT_ADR = 0x19,
 	NETXEN_HW_I2C1_CRB_AGT_ADR = 0x29,
@@ -91,7 +95,8 @@ enum {
 };
 
 /*  Hub 3 */
-enum {
+enum
+{
 	NETXEN_HW_PH_CRB_AGT_ADR = 0x1A,
 	NETXEN_HW_SRE_CRB_AGT_ADR = 0x50,
 	NETXEN_HW_EG_CRB_AGT_ADR = 0x51,
@@ -99,7 +104,8 @@ enum {
 };
 
 /*  Hub 4 */
-enum {
+enum
+{
 	NETXEN_HW_PEGN0_CRB_AGT_ADR = 0x40,
 	NETXEN_HW_PEGN1_CRB_AGT_ADR,
 	NETXEN_HW_PEGN2_CRB_AGT_ADR,
@@ -115,7 +121,8 @@ enum {
 };
 
 /*  Hub 5 */
-enum {
+enum
+{
 	NETXEN_HW_PEGS0_CRB_AGT_ADR = 0x40,
 	NETXEN_HW_PEGS1_CRB_AGT_ADR,
 	NETXEN_HW_PEGS2_CRB_AGT_ADR,
@@ -126,7 +133,8 @@ enum {
 };
 
 /*  Hub 6 */
-enum {
+enum
+{
 	NETXEN_HW_CAS0_CRB_AGT_ADR = 0x46,
 	NETXEN_HW_CAS1_CRB_AGT_ADR = 0x47,
 	NETXEN_HW_CAS2_CRB_AGT_ADR = 0x48,
@@ -142,7 +150,8 @@ enum {
 #define NETXEN_HW_EFC_RPMX0_CRB_AGT_ADR	0x67
 
 /*  This field defines PCI/X adr [25:20] of agents on the CRB */
-enum {
+enum
+{
 	NETXEN_HW_PX_MAP_CRB_PH = 0,
 	NETXEN_HW_PX_MAP_CRB_PS,
 	NETXEN_HW_PX_MAP_CRB_MN,
@@ -495,9 +504,9 @@ enum {
 #define	NETXEN_MIU_CONTROL	(0x000)
 #define	NETXEN_MIU_MN_CONTROL	(NETXEN_CRB_DDR_NET+NETXEN_MIU_CONTROL)
 
-	/* 200ms delay in each loop */
+/* 200ms delay in each loop */
 #define	NETXEN_NIU_PHY_WAITLEN		200000
-	/* 10 seconds before we give up */
+/* 10 seconds before we give up */
 #define	NETXEN_NIU_PHY_WAITMAX		50
 #define	NETXEN_NIU_MAX_GBE_PORTS	4
 #define	NETXEN_NIU_MAX_XG_PORTS		2
@@ -808,7 +817,8 @@ enum {
 /*
  * Temperature control.
  */
-enum {
+enum
+{
 	NX_TEMP_NORMAL = 0x1,	/* Normal operating range */
 	NX_TEMP_WARN,		/* Sound alert, temperature getting high */
 	NX_TEMP_PANIC		/* Fatal error, hardware has shut down. */
@@ -835,8 +845,8 @@ enum {
 #define PCIX_CRB_WINDOW_F6	(0x102cc)
 #define PCIX_CRB_WINDOW_F7	(0x102dc)
 #define PCIE_CRB_WINDOW_REG(func)	(((func) < 4) ? \
-		(PCIX_CRB_WINDOW_F0 + (0x20 * (func))) :\
-		(PCIX_CRB_WINDOW_F4 + (0x10 * ((func)-4))))
+									 (PCIX_CRB_WINDOW_F0 + (0x20 * (func))) :\
+									 (PCIX_CRB_WINDOW_F4 + (0x10 * ((func)-4))))
 
 #define PCIX_MN_WINDOW		(0x10200)
 #define PCIX_MN_WINDOW_F0	(0x10200)
@@ -848,8 +858,8 @@ enum {
 #define PCIX_MN_WINDOW_F6	(0x102c0)
 #define PCIX_MN_WINDOW_F7	(0x102d0)
 #define PCIE_MN_WINDOW_REG(func)	(((func) < 4) ? \
-		(PCIX_MN_WINDOW_F0 + (0x20 * (func))) :\
-		(PCIX_MN_WINDOW_F4 + (0x10 * ((func)-4))))
+									 (PCIX_MN_WINDOW_F0 + (0x20 * (func))) :\
+									 (PCIX_MN_WINDOW_F4 + (0x10 * ((func)-4))))
 
 #define PCIX_SN_WINDOW		(0x10208)
 #define PCIX_SN_WINDOW_F0	(0x10208)
@@ -861,8 +871,8 @@ enum {
 #define PCIX_SN_WINDOW_F6	(0x102c8)
 #define PCIX_SN_WINDOW_F7	(0x102d8)
 #define PCIE_SN_WINDOW_REG(func)	(((func) < 4) ? \
-		(PCIX_SN_WINDOW_F0 + (0x20 * (func))) :\
-		(PCIX_SN_WINDOW_F4 + (0x10 * ((func)-4))))
+									 (PCIX_SN_WINDOW_F0 + (0x20 * (func))) :\
+									 (PCIX_SN_WINDOW_F4 + (0x10 * ((func)-4))))
 
 #define PCIX_OCM_WINDOW		(0x10800)
 #define PCIX_OCM_WINDOW_REG(func)	(PCIX_OCM_WINDOW + 0x20 * (func))
@@ -1018,7 +1028,8 @@ enum {
 #define	PCIX_INT_VECTOR_BIT_F6	0x2000
 #define	PCIX_INT_VECTOR_BIT_F7	0x4000
 
-struct netxen_legacy_intr_set {
+struct netxen_legacy_intr_set
+{
 	uint32_t	int_vec_bit;
 	uint32_t	tgt_status_reg;
 	uint32_t	tgt_mask_reg;
@@ -1026,54 +1037,54 @@ struct netxen_legacy_intr_set {
 };
 
 #define	NX_LEGACY_INTR_CONFIG						\
-{									\
-	{								\
-		.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F0,		\
-		.tgt_status_reg	=	ISR_INT_TARGET_STATUS,		\
-		.tgt_mask_reg	=	ISR_INT_TARGET_MASK,		\
-		.pci_int_reg	=	ISR_MSI_INT_TRIGGER(0) },	\
-									\
-	{								\
-		.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F1,		\
-		.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F1,	\
-		.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F1,		\
-		.pci_int_reg	=	ISR_MSI_INT_TRIGGER(1) },	\
-									\
-	{								\
-		.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F2,		\
-		.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F2,	\
-		.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F2,		\
-		.pci_int_reg	=	ISR_MSI_INT_TRIGGER(2) },	\
-									\
-	{								\
-		.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F3,		\
-		.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F3,	\
-		.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F3,		\
-		.pci_int_reg	=	ISR_MSI_INT_TRIGGER(3) },	\
-									\
-	{								\
-		.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F4,		\
-		.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F4,	\
-		.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F4,		\
-		.pci_int_reg	=	ISR_MSI_INT_TRIGGER(4) },	\
-									\
-	{								\
-		.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F5,		\
-		.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F5,	\
-		.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F5,		\
-		.pci_int_reg	=	ISR_MSI_INT_TRIGGER(5) },	\
-									\
-	{								\
-		.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F6,		\
-		.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F6,	\
-		.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F6,		\
-		.pci_int_reg	=	ISR_MSI_INT_TRIGGER(6) },	\
-									\
-	{								\
-		.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F7,		\
-		.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F7,	\
-		.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F7,		\
-		.pci_int_reg	=	ISR_MSI_INT_TRIGGER(7) },	\
-}
+	{									\
+		{								\
+			.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F0,		\
+								.tgt_status_reg	=	ISR_INT_TARGET_STATUS,		\
+													.tgt_mask_reg	=	ISR_INT_TARGET_MASK,		\
+															.pci_int_reg	=	ISR_MSI_INT_TRIGGER(0) },	\
+		\
+		{								\
+										.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F1,		\
+										.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F1,	\
+										.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F1,		\
+										.pci_int_reg	=	ISR_MSI_INT_TRIGGER(1) },	\
+		\
+		{								\
+										.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F2,		\
+										.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F2,	\
+										.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F2,		\
+										.pci_int_reg	=	ISR_MSI_INT_TRIGGER(2) },	\
+		\
+		{								\
+										.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F3,		\
+										.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F3,	\
+										.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F3,		\
+										.pci_int_reg	=	ISR_MSI_INT_TRIGGER(3) },	\
+		\
+		{								\
+										.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F4,		\
+										.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F4,	\
+										.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F4,		\
+										.pci_int_reg	=	ISR_MSI_INT_TRIGGER(4) },	\
+		\
+		{								\
+										.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F5,		\
+										.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F5,	\
+										.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F5,		\
+										.pci_int_reg	=	ISR_MSI_INT_TRIGGER(5) },	\
+		\
+		{								\
+										.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F6,		\
+										.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F6,	\
+										.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F6,		\
+										.pci_int_reg	=	ISR_MSI_INT_TRIGGER(6) },	\
+		\
+		{								\
+										.int_vec_bit	=	PCIX_INT_VECTOR_BIT_F7,		\
+										.tgt_status_reg	=	ISR_INT_TARGET_STATUS_F7,	\
+										.tgt_mask_reg	=	ISR_INT_TARGET_MASK_F7,		\
+										.pci_int_reg	=	ISR_MSI_INT_TRIGGER(7) },	\
+	}
 
 #endif				/* __NETXEN_NIC_HDR_H_ */

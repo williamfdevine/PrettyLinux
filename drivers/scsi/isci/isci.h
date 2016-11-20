@@ -90,10 +90,10 @@
 #define SCU_MAX_UNSOLICITED_FRAMES        (128)
 #define SCU_MAX_COMPLETION_QUEUE_SCRATCH  (128)
 #define SCU_MAX_COMPLETION_QUEUE_ENTRIES  (SCU_MAX_CRITICAL_NOTIFICATIONS \
-					   + SCU_MAX_EVENTS \
-					   + SCU_MAX_UNSOLICITED_FRAMES	\
-					   + SCI_MAX_IO_REQUESTS \
-					   + SCU_MAX_COMPLETION_QUEUE_SCRATCH)
+		+ SCU_MAX_EVENTS \
+		+ SCU_MAX_UNSOLICITED_FRAMES	\
+		+ SCI_MAX_IO_REQUESTS \
+		+ SCU_MAX_COMPLETION_QUEUE_SCRATCH)
 #define SCU_MAX_COMPLETION_QUEUE_SHIFT	  (ilog2(SCU_MAX_COMPLETION_QUEUE_ENTRIES))
 
 #define SCU_ABSOLUTE_MAX_UNSOLICITED_FRAMES (4096)
@@ -120,7 +120,8 @@ static inline void check_sizes(void)
  *
  *
  */
-enum sci_status {
+enum sci_status
+{
 	/**
 	 * This member indicates successful completion.
 	 */
@@ -406,7 +407,8 @@ enum sci_status {
  * following status are properly handled: - SCI_IO_FAILURE_UNSUPPORTED_PROTOCOL
  * - SCI_IO_FAILURE_INVALID_IO_TAG
  */
-enum sci_io_status {
+enum sci_io_status
+{
 	SCI_IO_SUCCESS                         = SCI_SUCCESS,
 	SCI_IO_FAILURE                         = SCI_FAILURE,
 	SCI_IO_SUCCESS_COMPLETE_BEFORE_START   = SCI_SUCCESS_IO_COMPLETE_BEFORE_START,
@@ -437,7 +439,8 @@ enum sci_io_status {
  *
  * Check to see that the following status are properly handled:
  */
-enum sci_task_status {
+enum sci_task_status
+{
 	SCI_TASK_SUCCESS                         = SCI_SUCCESS,
 	SCI_TASK_FAILURE                         = SCI_FAILURE,
 	SCI_TASK_FAILURE_INVALID_STATE           = SCI_FAILURE_INVALID_STATE,
@@ -470,7 +473,9 @@ static inline void sci_swab32_cpy(void *_dest, void *_src, ssize_t word_cnt)
 	u32 *dest = _dest, *src = _src;
 
 	while (--word_cnt >= 0)
+	{
 		dest[word_cnt] = swab32(src[word_cnt]);
+	}
 }
 
 extern unsigned char no_outbound_task_to;
@@ -492,7 +497,8 @@ irqreturn_t isci_error_isr(int vec, void *data);
  * is needed since del_timer_sync() cannot be called with sci_lock held.
  * For deinit however, del_timer_sync() is used without holding the lock.
  */
-struct sci_timer {
+struct sci_timer
+{
 	struct timer_list	timer;
 	bool			cancel;
 };
@@ -518,7 +524,8 @@ static inline void sci_del_timer(struct sci_timer *tmr)
 	del_timer(&tmr->timer);
 }
 
-struct sci_base_state_machine {
+struct sci_base_state_machine
+{
 	const struct sci_base_state *state_table;
 	u32 initial_state_id;
 	u32 current_state_id;
@@ -527,13 +534,14 @@ struct sci_base_state_machine {
 
 typedef void (*sci_state_transition_t)(struct sci_base_state_machine *sm);
 
-struct sci_base_state {
+struct sci_base_state
+{
 	sci_state_transition_t enter_state;	/* Called on state entry */
 	sci_state_transition_t exit_state;	/* Called on state exit */
 };
 
 extern void sci_init_sm(struct sci_base_state_machine *sm,
-			const struct sci_base_state *state_table,
-			u32 initial_state);
+						const struct sci_base_state *state_table,
+						u32 initial_state);
 extern void sci_change_state(struct sci_base_state_machine *sm, u32 next_state);
 #endif  /* __ISCI_H__ */

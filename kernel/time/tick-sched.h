@@ -3,17 +3,20 @@
 
 #include <linux/hrtimer.h>
 
-enum tick_device_mode {
+enum tick_device_mode
+{
 	TICKDEV_MODE_PERIODIC,
 	TICKDEV_MODE_ONESHOT,
 };
 
-struct tick_device {
+struct tick_device
+{
 	struct clock_event_device *evtdev;
 	enum tick_device_mode mode;
 };
 
-enum tick_nohz_mode {
+enum tick_nohz_mode
+{
 	NOHZ_MODE_INACTIVE,
 	NOHZ_MODE_LOWRES,
 	NOHZ_MODE_HIGHRES,
@@ -39,7 +42,8 @@ enum tick_nohz_mode {
  * @sleep_length:	Duration of the current idle sleep
  * @do_timer_lst:	CPU was the last one doing do_timer before going idle
  */
-struct tick_sched {
+struct tick_sched
+{
 	struct hrtimer			sched_timer;
 	unsigned long			check_clocks;
 	enum tick_nohz_mode		nohz_mode;

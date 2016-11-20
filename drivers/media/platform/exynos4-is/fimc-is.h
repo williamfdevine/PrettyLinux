@@ -51,11 +51,11 @@
 #define FIMC_IS_FW_INFO_LEN		31
 #define FIMC_IS_FW_VER_LEN		7
 #define FIMC_IS_FW_DESC_LEN		(FIMC_IS_FW_INFO_LEN + \
-					 FIMC_IS_FW_VER_LEN)
+								 FIMC_IS_FW_VER_LEN)
 #define FIMC_IS_SETFILE_INFO_LEN	39
 
 #define FIMC_IS_EXTRA_MEM_SIZE		(FIMC_IS_EXTRA_FW_SIZE + \
-					 FIMC_IS_EXTRA_SETFILE_SIZE + 0x1000)
+									 FIMC_IS_EXTRA_SETFILE_SIZE + 0x1000)
 #define FIMC_IS_EXTRA_FW_SIZE		0x180000
 #define FIMC_IS_EXTRA_SETFILE_SIZE	0x4b000
 
@@ -67,7 +67,8 @@
 #define ATCLK_MCUISP_FREQUENCY		100000000UL
 #define ACLK_AXI_FREQUENCY		100000000UL
 
-enum {
+enum
+{
 	ISS_CLK_PPMUISPX,
 	ISS_CLK_PPMUISPMX,
 	ISS_CLK_LITE0,
@@ -94,7 +95,8 @@ enum {
 };
 
 /* The driver's internal state flags */
-enum {
+enum
+{
 	IS_ST_IDLE,
 	IS_ST_PWR_ON,
 	IS_ST_A5_PWR_ON,
@@ -111,7 +113,8 @@ enum {
 	IS_ST_END,
 };
 
-enum af_state {
+enum af_state
+{
 	FIMC_IS_AF_IDLE		= 0,
 	FIMC_IS_AF_SETCONFIG	= 1,
 	FIMC_IS_AF_RUNNING	= 2,
@@ -120,22 +123,26 @@ enum af_state {
 	FIMC_IS_AF_FAILED	= 5,
 };
 
-enum af_lock_state {
+enum af_lock_state
+{
 	FIMC_IS_AF_UNLOCKED	= 0,
 	FIMC_IS_AF_LOCKED	= 2
 };
 
-enum ae_lock_state {
+enum ae_lock_state
+{
 	FIMC_IS_AE_UNLOCKED	= 0,
 	FIMC_IS_AE_LOCKED	= 1
 };
 
-enum awb_lock_state {
+enum awb_lock_state
+{
 	FIMC_IS_AWB_UNLOCKED	= 0,
 	FIMC_IS_AWB_LOCKED	= 1
 };
 
-enum {
+enum
+{
 	IS_METERING_CONFIG_CMD,
 	IS_METERING_CONFIG_WIN_POS_X,
 	IS_METERING_CONFIG_WIN_POS_Y,
@@ -144,7 +151,8 @@ enum {
 	IS_METERING_CONFIG_MAX
 };
 
-struct is_setfile {
+struct is_setfile
+{
 	const struct firmware *info;
 	int state;
 	u32 sub_index;
@@ -152,7 +160,8 @@ struct is_setfile {
 	size_t size;
 };
 
-struct is_fd_result_header {
+struct is_fd_result_header
+{
 	u32 offset;
 	u32 count;
 	u32 index;
@@ -161,7 +170,8 @@ struct is_fd_result_header {
 	u32 height;
 };
 
-struct is_af_info {
+struct is_af_info
+{
 	u16 mode;
 	u32 af_state;
 	u32 af_lock_state;
@@ -174,7 +184,8 @@ struct is_af_info {
 	u16 use_af;
 };
 
-struct fimc_is_firmware {
+struct fimc_is_firmware
+{
 	const struct firmware *f_w;
 
 	dma_addr_t paddr;
@@ -187,7 +198,8 @@ struct fimc_is_firmware {
 	u8 state;
 };
 
-struct fimc_is_memory {
+struct fimc_is_memory
+{
 	/* physical base address */
 	dma_addr_t paddr;
 	/* virtual base address */
@@ -198,14 +210,16 @@ struct fimc_is_memory {
 
 #define FIMC_IS_I2H_MAX_ARGS	12
 
-struct i2h_cmd {
+struct i2h_cmd
+{
 	u32 cmd;
 	u32 sensor_id;
 	u16 num_args;
 	u32 args[FIMC_IS_I2H_MAX_ARGS];
 };
 
-struct h2i_cmd {
+struct h2i_cmd
+{
 	u16 cmd_type;
 	u32 entry_id;
 };
@@ -213,7 +227,8 @@ struct h2i_cmd {
 #define FIMC_IS_DEBUG_MSG	0x3f
 #define FIMC_IS_DEBUG_LEVEL	3
 
-struct fimc_is_setfile {
+struct fimc_is_setfile
+{
 	const struct firmware *info;
 	unsigned int state;
 	unsigned int size;
@@ -221,7 +236,8 @@ struct fimc_is_setfile {
 	u32 base;
 };
 
-struct chain_config {
+struct chain_config
+{
 	struct global_param	global;
 	struct sensor_param	sensor;
 	struct isp_param	isp;
@@ -245,7 +261,8 @@ struct chain_config {
  * @lpm: low power mode flag
  * @state: internal driver's state flags
  */
-struct fimc_is {
+struct fimc_is
+{
 	struct platform_device		*pdev;
 	struct pinctrl			*pctrl;
 	struct v4l2_device		*v4l2_dev;
@@ -336,7 +353,7 @@ static inline u32 pmuisp_read(struct fimc_is *is, unsigned int offset)
 }
 
 int fimc_is_wait_event(struct fimc_is *is, unsigned long bit,
-		       unsigned int state, unsigned int timeout);
+					   unsigned int state, unsigned int timeout);
 int fimc_is_cpu_set_power(struct fimc_is *is, int on);
 int fimc_is_start_firmware(struct fimc_is *is);
 int fimc_is_hw_initialize(struct fimc_is *is);

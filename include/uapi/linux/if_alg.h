@@ -15,7 +15,8 @@
 
 #include <linux/types.h>
 
-struct sockaddr_alg {
+struct sockaddr_alg
+{
 	__u16	salg_family;
 	__u8	salg_type[14];
 	__u32	salg_feat;
@@ -23,7 +24,8 @@ struct sockaddr_alg {
 	__u8	salg_name[64];
 };
 
-struct af_alg_iv {
+struct af_alg_iv
+{
 	__u32	ivlen;
 	__u8	iv[0];
 };

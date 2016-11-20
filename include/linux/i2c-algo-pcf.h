@@ -26,7 +26,8 @@
 #ifndef _LINUX_I2C_ALGO_PCF_H
 #define _LINUX_I2C_ALGO_PCF_H
 
-struct i2c_algo_pcf_data {
+struct i2c_algo_pcf_data
+{
 	void *data;		/* private data for lolevel routines	*/
 	void (*setpcf) (void *data, int ctl, int val);
 	int  (*getpcf) (void *data, int ctl);

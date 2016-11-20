@@ -2,9 +2,9 @@
 #define CEPH_CRUSH_CRUSH_H
 
 #ifdef __KERNEL__
-# include <linux/types.h>
+	#include <linux/types.h>
 #else
-# include "crush_compat.h"
+	#include "crush_compat.h"
 #endif
 
 /*
@@ -38,18 +38,20 @@
  * mapped to devices.  A rule consists of sequence of steps to perform
  * to generate the set of output devices.
  */
-struct crush_rule_step {
+struct crush_rule_step
+{
 	__u32 op;
 	__s32 arg1;
 	__s32 arg2;
 };
 
 /* step op codes */
-enum {
+enum
+{
 	CRUSH_RULE_NOOP = 0,
 	CRUSH_RULE_TAKE = 1,          /* arg1 = value to start with */
 	CRUSH_RULE_CHOOSE_FIRSTN = 2, /* arg1 = num items to pick */
-				      /* arg2 = type */
+	/* arg2 = type */
 	CRUSH_RULE_CHOOSE_INDEP = 3,  /* same */
 	CRUSH_RULE_EMIT = 4,          /* no args */
 	CRUSH_RULE_CHOOSELEAF_FIRSTN = 6,
@@ -75,21 +77,23 @@ enum {
  * Given a ruleset and size of output set, we search through the
  * rule list for a matching rule_mask.
  */
-struct crush_rule_mask {
+struct crush_rule_mask
+{
 	__u8 ruleset;
 	__u8 type;
 	__u8 min_size;
 	__u8 max_size;
 };
 
-struct crush_rule {
+struct crush_rule
+{
 	__u32 len;
 	struct crush_rule_mask mask;
 	struct crush_rule_step steps[0];
 };
 
 #define crush_rule_size(len) (sizeof(struct crush_rule) + \
-			      (len)*sizeof(struct crush_rule_step))
+							  (len)*sizeof(struct crush_rule_step))
 
 
 
@@ -108,7 +112,8 @@ struct crush_rule {
  *  straw           O(n)       better       better
  *  straw2          O(n)       optimal      optimal
  */
-enum {
+enum
+{
 	CRUSH_BUCKET_UNIFORM = 1,
 	CRUSH_BUCKET_LIST = 2,
 	CRUSH_BUCKET_TREE = 3,
@@ -126,7 +131,8 @@ extern const char *crush_bucket_alg_name(int alg);
 		(1 << CRUSH_BUCKET_LIST) |	\
 		(1 << CRUSH_BUCKET_STRAW))
 
-struct crush_bucket {
+struct crush_bucket
+{
 	__s32 id;        /* this'll be negative */
 	__u16 type;      /* non-zero; type=0 is reserved for devices */
 	__u8 alg;        /* one of CRUSH_BUCKET_* */
@@ -144,32 +150,37 @@ struct crush_bucket {
 	__u32 *perm;
 };
 
-struct crush_bucket_uniform {
+struct crush_bucket_uniform
+{
 	struct crush_bucket h;
 	__u32 item_weight;  /* 16-bit fixed point; all items equally weighted */
 };
 
-struct crush_bucket_list {
+struct crush_bucket_list
+{
 	struct crush_bucket h;
 	__u32 *item_weights;  /* 16-bit fixed point */
 	__u32 *sum_weights;   /* 16-bit fixed point.  element i is sum
 				 of weights 0..i, inclusive */
 };
 
-struct crush_bucket_tree {
+struct crush_bucket_tree
+{
 	struct crush_bucket h;  /* note: h.size is _tree_ size, not number of
 				   actual items */
 	__u8 num_nodes;
 	__u32 *node_weights;
 };
 
-struct crush_bucket_straw {
+struct crush_bucket_straw
+{
 	struct crush_bucket h;
 	__u32 *item_weights;   /* 16-bit fixed point */
 	__u32 *straws;         /* 16-bit fixed point */
 };
 
-struct crush_bucket_straw2 {
+struct crush_bucket_straw2
+{
 	struct crush_bucket h;
 	__u32 *item_weights;   /* 16-bit fixed point */
 };
@@ -179,7 +190,8 @@ struct crush_bucket_straw2 {
 /*
  * CRUSH map includes all buckets, rules, etc.
  */
-struct crush_map {
+struct crush_map
+{
 	struct crush_bucket **buckets;
 	struct crush_rule **rules;
 
@@ -245,7 +257,7 @@ extern void crush_destroy(struct crush_map *map);
 
 static inline int crush_calc_tree_node(int i)
 {
-	return ((i+1) << 1)-1;
+	return ((i + 1) << 1) - 1;
 }
 
 #endif

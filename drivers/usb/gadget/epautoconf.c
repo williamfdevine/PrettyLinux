@@ -75,16 +75,23 @@ struct usb_ep *usb_ep_autoconfig_ss(
 
 	type = desc->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK;
 
-	if (gadget->ops->match_ep) {
+	if (gadget->ops->match_ep)
+	{
 		ep = gadget->ops->match_ep(gadget, desc, ep_comp);
+
 		if (ep)
+		{
 			goto found_ep;
+		}
 	}
 
 	/* Second, look at endpoints until an unclaimed one looks usable */
-	list_for_each_entry (ep, &gadget->ep_list, ep_list) {
+	list_for_each_entry (ep, &gadget->ep_list, ep_list)
+	{
 		if (usb_gadget_ep_match_desc(gadget, ep, desc, ep_comp))
+		{
 			goto found_ep;
+		}
 	}
 
 	/* Fail */
@@ -96,30 +103,48 @@ found_ep:
 	 * and wants to know the maximum possible, provide the info.
 	 */
 	if (desc->wMaxPacketSize == 0)
+	{
 		desc->wMaxPacketSize = cpu_to_le16(ep->maxpacket_limit);
+	}
 
 	/* report address */
 	desc->bEndpointAddress &= USB_DIR_IN;
-	if (isdigit(ep->name[2])) {
+
+	if (isdigit(ep->name[2]))
+	{
 		u8 num = simple_strtoul(&ep->name[2], NULL, 10);
 		desc->bEndpointAddress |= num;
-	} else if (desc->bEndpointAddress & USB_DIR_IN) {
+	}
+	else if (desc->bEndpointAddress & USB_DIR_IN)
+	{
 		if (++gadget->in_epnum > 15)
+		{
 			return NULL;
+		}
+
 		desc->bEndpointAddress = USB_DIR_IN | gadget->in_epnum;
-	} else {
+	}
+	else
+	{
 		if (++gadget->out_epnum > 15)
+		{
 			return NULL;
+		}
+
 		desc->bEndpointAddress |= gadget->out_epnum;
 	}
 
 	/* report (variable) full speed bulk maxpacket */
-	if ((type == USB_ENDPOINT_XFER_BULK) && !ep_comp) {
+	if ((type == USB_ENDPOINT_XFER_BULK) && !ep_comp)
+	{
 		int size = ep->maxpacket_limit;
 
 		/* min() doesn't work on bitfields with gcc-3.5 */
 		if (size > 64)
+		{
 			size = 64;
+		}
+
 		desc->wMaxPacketSize = cpu_to_le16(size);
 	}
 
@@ -201,7 +226,8 @@ void usb_ep_autoconfig_reset (struct usb_gadget *gadget)
 {
 	struct usb_ep	*ep;
 
-	list_for_each_entry (ep, &gadget->ep_list, ep_list) {
+	list_for_each_entry (ep, &gadget->ep_list, ep_list)
+	{
 		ep->claimed = false;
 		ep->driver_data = NULL;
 	}

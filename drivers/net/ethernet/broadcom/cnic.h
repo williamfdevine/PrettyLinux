@@ -96,8 +96,8 @@
 #define KCQ_IDX(x) ((x) & MAX_KCQE_CNT)
 
 #define BNX2X_NEXT_KCQE(x) (((x) & (MAX_KCQE_CNT - 1)) ==		\
-		(MAX_KCQE_CNT - 1)) ?					\
-		(x) + 2 : (x) + 1
+							(MAX_KCQE_CNT - 1)) ?					\
+(x) + 2 : (x) + 1
 
 #define BNX2X_KWQ_DATA_PG(cp, x) ((x) / (cp)->kwq_16_data_pp)
 #define BNX2X_KWQ_DATA_IDX(cp, x) ((x) % (cp)->kwq_16_data_pp)
@@ -120,7 +120,8 @@
 #define DEF_SWS_TIMER		1000
 #define DEF_MAX_CWND		0xffff
 
-struct cnic_ctx {
+struct cnic_ctx
+{
 	u32		cid;
 	void		*ctx;
 	dma_addr_t	mapping;
@@ -128,7 +129,8 @@ struct cnic_ctx {
 
 #define BNX2_MAX_CID		0x2000
 
-struct cnic_dma {
+struct cnic_dma
+{
 	int		num_pages;
 	void		**pg_arr;
 	dma_addr_t	*pg_map_arr;
@@ -137,7 +139,8 @@ struct cnic_dma {
 	dma_addr_t	pgtbl_map;
 };
 
-struct cnic_id_tbl {
+struct cnic_id_tbl
+{
 	spinlock_t	lock;
 	u32		start;
 	u32		max;
@@ -147,17 +150,20 @@ struct cnic_id_tbl {
 
 #define CNIC_KWQ16_DATA_SIZE	128
 
-struct kwqe_16_data {
+struct kwqe_16_data
+{
 	u8	data[CNIC_KWQ16_DATA_SIZE];
 };
 
-struct cnic_iscsi {
+struct cnic_iscsi
+{
 	struct cnic_dma		task_array_info;
 	struct cnic_dma		r2tq_info;
 	struct cnic_dma		hq_info;
 };
 
-struct cnic_context {
+struct cnic_context
+{
 	u32			cid;
 	struct kwqe_16_data	*kwqe_data;
 	dma_addr_t		kwqe_data_mapping;
@@ -169,12 +175,14 @@ struct cnic_context {
 #define	CTX_FL_DELETE_WAIT	1
 #define	CTX_FL_CID_ERROR	2
 	u8			ulp_proto_id;
-	union {
+	union
+	{
 		struct cnic_iscsi	*iscsi;
 	} proto;
 };
 
-struct kcq_info {
+struct kcq_info
+{
 	struct cnic_dma	dma;
 	struct kcqe	**kcq;
 
@@ -189,7 +197,8 @@ struct kcq_info {
 
 #define UIO_USE_TX_DOORBELL 0x017855DB
 
-struct cnic_uio_dev {
+struct cnic_uio_dev
+{
 	struct uio_info		cnic_uinfo;
 	u32			uio_dev;
 
@@ -206,7 +215,8 @@ struct cnic_uio_dev {
 	struct list_head	list;
 };
 
-struct cnic_local {
+struct cnic_local
+{
 
 	spinlock_t cnic_ulp_lock;
 	void *ulp_handle[MAX_CNIC_ULP_TYPE];
@@ -252,13 +262,14 @@ struct cnic_local {
 	struct kcq_info	kcq1;
 	struct kcq_info	kcq2;
 
-	union {
+	union
+	{
 		void				*gen;
 		struct status_block_msix	*bnx2;
 		struct host_hc_status_block_e1x	*bnx2x_e1x;
 		/* index values - which counter to update */
-		#define SM_RX_ID		0
-		#define SM_TX_ID		1
+#define SM_RX_ID		0
+#define SM_TX_ID		1
 	} status_blk;
 
 	struct host_sp_status_block	*bnx2x_def_status_blk;
@@ -313,7 +324,7 @@ struct cnic_local {
 	int			(*start_hw)(struct cnic_dev *);
 	void			(*stop_hw)(struct cnic_dev *);
 	void			(*setup_pgtbl)(struct cnic_dev *,
-					       struct cnic_dma *);
+								   struct cnic_dma *);
 	int			(*alloc_resc)(struct cnic_dev *);
 	void			(*free_resc)(struct cnic_dev *);
 	int			(*start_cm)(struct cnic_dev *);
@@ -325,7 +336,8 @@ struct cnic_local {
 	void			(*close_conn)(struct cnic_sock *, u32 opcode);
 };
 
-struct bnx2x_bd_chain_next {
+struct bnx2x_bd_chain_next
+{
 	u32	addr_lo;
 	u32	addr_hi;
 	u8	reserved[8];
@@ -340,13 +352,13 @@ struct bnx2x_bd_chain_next {
 #define CDU_REGION_NUMBER_UCM_AG 4
 
 #define CDU_VALID_DATA(_cid, _region, _type)	\
-	(((_cid) << 8) | (((_region)&0xf)<<4) | (((_type)&0xf)))
+					   (((_cid) << 8) | (((_region)&0xf)<<4) | (((_type)&0xf)))
 
 #define CDU_CRC8(_cid, _region, _type)	\
-	(calc_crc8(CDU_VALID_DATA(_cid, _region, _type), 0xff))
+				 (calc_crc8(CDU_VALID_DATA(_cid, _region, _type), 0xff))
 
 #define CDU_RSRVD_VALUE_TYPE_A(_cid, _region, _type)	\
-	(0x80 | ((CDU_CRC8(_cid, _region, _type)) & 0x7f))
+							   (0x80 | ((CDU_CRC8(_cid, _region, _type)) & 0x7f))
 
 #define BNX2X_CONTEXT_MEM_SIZE		1024
 #define BNX2X_FCOE_CID			16
@@ -368,48 +380,48 @@ struct bnx2x_bd_chain_next {
 #define BNX2X_CHIP_IS_E2_PLUS(bp) (CHIP_IS_E2(bp) || CHIP_IS_E3(bp))
 
 #define BNX2X_RX_DESC_CNT		(BNX2_PAGE_SIZE / \
-					 sizeof(struct eth_rx_bd))
+								 sizeof(struct eth_rx_bd))
 #define BNX2X_MAX_RX_DESC_CNT		(BNX2X_RX_DESC_CNT - 2)
 #define BNX2X_RCQ_DESC_CNT		(BNX2_PAGE_SIZE / \
-					 sizeof(union eth_rx_cqe))
+								 sizeof(union eth_rx_cqe))
 #define BNX2X_MAX_RCQ_DESC_CNT		(BNX2X_RCQ_DESC_CNT - 1)
 
 #define BNX2X_NEXT_RCQE(x) (((x) & BNX2X_MAX_RCQ_DESC_CNT) ==		\
-		(BNX2X_MAX_RCQ_DESC_CNT - 1)) ?				\
-		((x) + 2) : ((x) + 1)
+							(BNX2X_MAX_RCQ_DESC_CNT - 1)) ?				\
+((x) + 2) : ((x) + 1)
 
 #define BNX2X_DEF_SB_ID			HC_SP_SB_ID
 
 #define BNX2X_SHMEM_MF_BLK_OFFSET	0x7e4
 
 #define BNX2X_SHMEM_ADDR(base, field)	(base + \
-					 offsetof(struct shmem_region, field))
+		offsetof(struct shmem_region, field))
 
 #define BNX2X_SHMEM2_ADDR(base, field)	(base + \
-					 offsetof(struct shmem2_region, field))
+		offsetof(struct shmem2_region, field))
 
 #define BNX2X_SHMEM2_HAS(base, field)				\
-		((base) &&					\
-		 (CNIC_RD(dev, BNX2X_SHMEM2_ADDR(base, size)) >	\
-		  offsetof(struct shmem2_region, field)))
+	((base) &&					\
+	 (CNIC_RD(dev, BNX2X_SHMEM2_ADDR(base, size)) >	\
+	  offsetof(struct shmem2_region, field)))
 
 #define BNX2X_MF_CFG_ADDR(base, field)				\
-			((base) + offsetof(struct mf_cfg, field))
+	((base) + offsetof(struct mf_cfg, field))
 
 #ifndef ETH_MAX_RX_CLIENTS_E2
-#define ETH_MAX_RX_CLIENTS_E2 		ETH_MAX_RX_CLIENTS_E1H
+	#define ETH_MAX_RX_CLIENTS_E2 		ETH_MAX_RX_CLIENTS_E1H
 #endif
 
 #define CNIC_FUNC(cp)			((cp)->func)
 
 #define BNX2X_HW_CID(bp, x)		((BP_PORT(bp) << 23) | \
-					 (BP_VN(bp) << 17) | (x))
+								 (BP_VN(bp) << 17) | (x))
 
 #define BNX2X_SW_CID(x)			(x & 0x1ffff)
 
 #define BNX2X_CL_QZONE_ID(bp, cli)					\
-		(BNX2X_CHIP_IS_E2_PLUS(bp) ? cli :			\
-		 cli + (BP_PORT(bp) * ETH_MAX_RX_CLIENTS_E1H))
+	(BNX2X_CHIP_IS_E2_PLUS(bp) ? cli :			\
+	 cli + (BP_PORT(bp) * ETH_MAX_RX_CLIENTS_E1H))
 
 #ifndef MAX_STAT_COUNTER_ID
 #define MAX_STAT_COUNTER_ID						\

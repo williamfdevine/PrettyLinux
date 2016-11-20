@@ -22,7 +22,8 @@
  * strength also control Auto or Manual Edge Control Mode
  * see also OV772X_MANUAL_EDGE_CTRL
  */
-struct ov772x_edge_ctrl {
+struct ov772x_edge_ctrl
+{
 	unsigned char strength;
 	unsigned char threshold;
 	unsigned char upper;
@@ -36,22 +37,23 @@ struct ov772x_edge_ctrl {
 #define OV772X_EDGE_LOWER_MASK		0xFF
 
 #define OV772X_AUTO_EDGECTRL(u, l)	\
-{					\
-	.upper = (u & OV772X_EDGE_UPPER_MASK),	\
-	.lower = (l & OV772X_EDGE_LOWER_MASK),	\
-}
+	{					\
+		.upper = (u & OV772X_EDGE_UPPER_MASK),	\
+				 .lower = (l & OV772X_EDGE_LOWER_MASK),	\
+	}
 
 #define OV772X_MANUAL_EDGECTRL(s, t)			\
-{							\
-	.strength  = (s & OV772X_EDGE_STRENGTH_MASK) |	\
-			OV772X_MANUAL_EDGE_CTRL,	\
-	.threshold = (t & OV772X_EDGE_THRESHOLD_MASK),	\
-}
+	{							\
+		.strength  = (s & OV772X_EDGE_STRENGTH_MASK) |	\
+					 OV772X_MANUAL_EDGE_CTRL,	\
+					 .threshold = (t & OV772X_EDGE_THRESHOLD_MASK),	\
+	}
 
 /*
  * ov772x camera info
  */
-struct ov772x_camera_info {
+struct ov772x_camera_info
+{
 	unsigned long		flags;
 	struct ov772x_edge_ctrl	edgectrl;
 };

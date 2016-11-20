@@ -19,8 +19,8 @@
 /*---------------------------------------------------------------------------*/
 /*----------------- Default undef */
 #if 0
-#define DEBUG
-#define UDC_DEBUG_DUMP
+	#define DEBUG
+	#define UDC_DEBUG_DUMP
 #endif
 
 /*----------------- Default define */
@@ -28,8 +28,8 @@
 #define USE_SUSPEND_WAIT	1
 
 #ifndef TRUE
-#define TRUE	1
-#define FALSE	0
+	#define TRUE	1
+	#define FALSE	0
 #endif
 
 /*------------ Board dependence(Resource) */
@@ -445,7 +445,8 @@
 /*===========================================================================*/
 /* Struct */
 /*------- ep_regs */
-struct ep_regs {
+struct ep_regs
+{
 	u32 EP_CONTROL;			/* EP Control */
 	u32 EP_STATUS;			/* EP Status */
 	u32 EP_INT_ENA;			/* EP Interrupt Enable */
@@ -457,7 +458,8 @@ struct ep_regs {
 };
 
 /*------- ep_dcr */
-struct ep_dcr {
+struct ep_dcr
+{
 	u32 EP_DCR1;			/* EP_DCR1 */
 	u32 EP_DCR2;			/* EP_DCR2 */
 	u32 EP_TADR;			/* EP_TADR */
@@ -465,7 +467,8 @@ struct ep_dcr {
 };
 
 /*------- Function Registers */
-struct fc_regs {
+struct fc_regs
+{
 	u32 USB_CONTROL;		/* (0x0000) USB Control */
 	u32 USB_STATUS;			/* (0x0004) USB Status */
 	u32 USB_ADDRESS;		/* (0x0008) USB Address */
@@ -518,7 +521,8 @@ struct fc_regs {
 
 struct nbu2ss_udc;
 
-enum ep0_state {
+enum ep0_state
+{
 	EP0_IDLE,
 	EP0_IN_DATA_PHASE,
 	EP0_OUT_DATA_PHASE,
@@ -529,7 +533,8 @@ enum ep0_state {
 	EP0_STALL,
 };
 
-struct nbu2ss_req {
+struct nbu2ss_req
+{
 	struct usb_request		req;
 	struct list_head		queue;
 
@@ -539,10 +544,11 @@ struct nbu2ss_req {
 
 	bool		unaligned;
 
-	unsigned			mapped:1;
+	unsigned			mapped: 1;
 };
 
-struct nbu2ss_ep {
+struct nbu2ss_ep
+{
 	struct usb_ep			ep;
 	struct list_head		queue;
 
@@ -554,15 +560,16 @@ struct nbu2ss_ep {
 	u8		direct;
 	u8		ep_type;
 
-	unsigned		wedged:1;
-	unsigned		halted:1;
-	unsigned		stalled:1;
+	unsigned		wedged: 1;
+	unsigned		halted: 1;
+	unsigned		stalled: 1;
 
 	u8		*virt_buf;
 	dma_addr_t	phys_buf;
 };
 
-struct nbu2ss_udc {
+struct nbu2ss_udc
+{
 	struct usb_gadget gadget;
 	struct usb_gadget_driver *driver;
 	struct platform_device *pdev;
@@ -578,13 +585,13 @@ struct nbu2ss_udc {
 
 	struct nbu2ss_ep	ep[NUM_ENDPOINTS];
 
-	unsigned		softconnect:1;
-	unsigned		vbus_active:1;
-	unsigned		linux_suspended:1;
-	unsigned		linux_resume:1;
-	unsigned		usb_suspended:1;
-	unsigned		remote_wakeup:1;
-	unsigned		udc_enabled:1;
+	unsigned		softconnect: 1;
+	unsigned		vbus_active: 1;
+	unsigned		linux_suspended: 1;
+	unsigned		linux_resume: 1;
+	unsigned		usb_suspended: 1;
+	unsigned		remote_wakeup: 1;
+	unsigned		udc_enabled: 1;
 
 	unsigned int		mA;
 
@@ -594,8 +601,10 @@ struct nbu2ss_udc {
 };
 
 /* USB register access structure */
-union usb_reg_access {
-	struct {
+union usb_reg_access
+{
+	struct
+	{
 		unsigned char	DATA[4];
 	} byte;
 	unsigned int		dw;

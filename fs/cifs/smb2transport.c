@@ -46,10 +46,14 @@ smb2_crypto_shash_allocate(struct TCP_Server_Info *server)
 	unsigned int size;
 
 	if (server->secmech.sdeschmacsha256 != NULL)
-		return 0; /* already allocated */
+	{
+		return 0;    /* already allocated */
+	}
 
 	server->secmech.hmacsha256 = crypto_alloc_shash("hmac(sha256)", 0, 0);
-	if (IS_ERR(server->secmech.hmacsha256)) {
+
+	if (IS_ERR(server->secmech.hmacsha256))
+	{
 		cifs_dbg(VFS, "could not allocate crypto hmacsha256\n");
 		rc = PTR_ERR(server->secmech.hmacsha256);
 		server->secmech.hmacsha256 = NULL;
@@ -57,13 +61,16 @@ smb2_crypto_shash_allocate(struct TCP_Server_Info *server)
 	}
 
 	size = sizeof(struct shash_desc) +
-			crypto_shash_descsize(server->secmech.hmacsha256);
+		   crypto_shash_descsize(server->secmech.hmacsha256);
 	server->secmech.sdeschmacsha256 = kmalloc(size, GFP_KERNEL);
-	if (!server->secmech.sdeschmacsha256) {
+
+	if (!server->secmech.sdeschmacsha256)
+	{
 		crypto_free_shash(server->secmech.hmacsha256);
 		server->secmech.hmacsha256 = NULL;
 		return -ENOMEM;
 	}
+
 	server->secmech.sdeschmacsha256->shash.tfm = server->secmech.hmacsha256;
 	server->secmech.sdeschmacsha256->shash.flags = 0x0;
 
@@ -77,14 +84,21 @@ smb3_crypto_shash_allocate(struct TCP_Server_Info *server)
 	int rc;
 
 	if (server->secmech.sdesccmacaes != NULL)
-		return 0;  /* already allocated */
+	{
+		return 0;    /* already allocated */
+	}
 
 	rc = smb2_crypto_shash_allocate(server);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	server->secmech.cmacaes = crypto_alloc_shash("cmac(aes)", 0, 0);
-	if (IS_ERR(server->secmech.cmacaes)) {
+
+	if (IS_ERR(server->secmech.cmacaes))
+	{
 		cifs_dbg(VFS, "could not allocate crypto cmac-aes");
 		kfree(server->secmech.sdeschmacsha256);
 		server->secmech.sdeschmacsha256 = NULL;
@@ -96,9 +110,11 @@ smb3_crypto_shash_allocate(struct TCP_Server_Info *server)
 	}
 
 	size = sizeof(struct shash_desc) +
-			crypto_shash_descsize(server->secmech.cmacaes);
+		   crypto_shash_descsize(server->secmech.cmacaes);
 	server->secmech.sdesccmacaes = kmalloc(size, GFP_KERNEL);
-	if (!server->secmech.sdesccmacaes) {
+
+	if (!server->secmech.sdesccmacaes)
+	{
 		cifs_dbg(VFS, "%s: Can't alloc cmacaes\n", __func__);
 		kfree(server->secmech.sdeschmacsha256);
 		server->secmech.sdeschmacsha256 = NULL;
@@ -108,6 +124,7 @@ smb3_crypto_shash_allocate(struct TCP_Server_Info *server)
 		server->secmech.cmacaes = NULL;
 		return -ENOMEM;
 	}
+
 	server->secmech.sdesccmacaes->shash.tfm = server->secmech.cmacaes;
 	server->secmech.sdesccmacaes->shash.flags = 0x0;
 
@@ -120,9 +137,13 @@ smb2_find_smb_ses(struct smb2_hdr *smb2hdr, struct TCP_Server_Info *server)
 	struct cifs_ses *ses;
 
 	spin_lock(&cifs_tcp_ses_lock);
-	list_for_each_entry(ses, &server->smb_ses_list, smb_ses_list) {
+	list_for_each_entry(ses, &server->smb_ses_list, smb_ses_list)
+	{
 		if (ses->Suid != smb2hdr->SessionId)
+		{
 			continue;
+		}
+
 		spin_unlock(&cifs_tcp_ses_lock);
 		return ses;
 	}
@@ -143,7 +164,9 @@ smb2_calc_signature(struct smb_rqst *rqst, struct TCP_Server_Info *server)
 	struct cifs_ses *ses;
 
 	ses = smb2_find_smb_ses(smb2_pdu, server);
-	if (!ses) {
+
+	if (!ses)
+	{
 		cifs_dbg(VFS, "%s: Could not find session\n", __func__);
 		return 0;
 	}
@@ -152,35 +175,43 @@ smb2_calc_signature(struct smb_rqst *rqst, struct TCP_Server_Info *server)
 	memset(smb2_pdu->Signature, 0x0, SMB2_SIGNATURE_SIZE);
 
 	rc = smb2_crypto_shash_allocate(server);
-	if (rc) {
+
+	if (rc)
+	{
 		cifs_dbg(VFS, "%s: shah256 alloc failed\n", __func__);
 		return rc;
 	}
 
 	rc = crypto_shash_setkey(server->secmech.hmacsha256,
-		ses->auth_key.response, SMB2_NTLMV2_SESSKEY_SIZE);
-	if (rc) {
+							 ses->auth_key.response, SMB2_NTLMV2_SESSKEY_SIZE);
+
+	if (rc)
+	{
 		cifs_dbg(VFS, "%s: Could not update with response\n", __func__);
 		return rc;
 	}
 
 	rc = crypto_shash_init(&server->secmech.sdeschmacsha256->shash);
-	if (rc) {
+
+	if (rc)
+	{
 		cifs_dbg(VFS, "%s: Could not init sha256", __func__);
 		return rc;
 	}
 
 	rc = __cifs_calc_signature(rqst, server, sigptr,
-		&server->secmech.sdeschmacsha256->shash);
+							   &server->secmech.sdeschmacsha256->shash);
 
 	if (!rc)
+	{
 		memcpy(smb2_pdu->Signature, sigptr, SMB2_SIGNATURE_SIZE);
+	}
 
 	return rc;
 }
 
 static int generate_key(struct cifs_ses *ses, struct kvec label,
-			struct kvec context, __u8 *key, unsigned int key_size)
+						struct kvec context, __u8 *key, unsigned int key_size)
 {
 	unsigned char zero = 0x0;
 	__u8 i[4] = {0, 0, 0, 1};
@@ -193,62 +224,80 @@ static int generate_key(struct cifs_ses *ses, struct kvec label,
 	memset(key, 0x0, key_size);
 
 	rc = smb3_crypto_shash_allocate(ses->server);
-	if (rc) {
+
+	if (rc)
+	{
 		cifs_dbg(VFS, "%s: crypto alloc failed\n", __func__);
 		goto smb3signkey_ret;
 	}
 
 	rc = crypto_shash_setkey(ses->server->secmech.hmacsha256,
-		ses->auth_key.response, SMB2_NTLMV2_SESSKEY_SIZE);
-	if (rc) {
+							 ses->auth_key.response, SMB2_NTLMV2_SESSKEY_SIZE);
+
+	if (rc)
+	{
 		cifs_dbg(VFS, "%s: Could not set with session key\n", __func__);
 		goto smb3signkey_ret;
 	}
 
 	rc = crypto_shash_init(&ses->server->secmech.sdeschmacsha256->shash);
-	if (rc) {
+
+	if (rc)
+	{
 		cifs_dbg(VFS, "%s: Could not init sign hmac\n", __func__);
 		goto smb3signkey_ret;
 	}
 
 	rc = crypto_shash_update(&ses->server->secmech.sdeschmacsha256->shash,
-				i, 4);
-	if (rc) {
+							 i, 4);
+
+	if (rc)
+	{
 		cifs_dbg(VFS, "%s: Could not update with n\n", __func__);
 		goto smb3signkey_ret;
 	}
 
 	rc = crypto_shash_update(&ses->server->secmech.sdeschmacsha256->shash,
-				label.iov_base, label.iov_len);
-	if (rc) {
+							 label.iov_base, label.iov_len);
+
+	if (rc)
+	{
 		cifs_dbg(VFS, "%s: Could not update with label\n", __func__);
 		goto smb3signkey_ret;
 	}
 
 	rc = crypto_shash_update(&ses->server->secmech.sdeschmacsha256->shash,
-				&zero, 1);
-	if (rc) {
+							 &zero, 1);
+
+	if (rc)
+	{
 		cifs_dbg(VFS, "%s: Could not update with zero\n", __func__);
 		goto smb3signkey_ret;
 	}
 
 	rc = crypto_shash_update(&ses->server->secmech.sdeschmacsha256->shash,
-				context.iov_base, context.iov_len);
-	if (rc) {
+							 context.iov_base, context.iov_len);
+
+	if (rc)
+	{
 		cifs_dbg(VFS, "%s: Could not update with context\n", __func__);
 		goto smb3signkey_ret;
 	}
 
 	rc = crypto_shash_update(&ses->server->secmech.sdeschmacsha256->shash,
-				L, 4);
-	if (rc) {
+							 L, 4);
+
+	if (rc)
+	{
 		cifs_dbg(VFS, "%s: Could not update with L\n", __func__);
 		goto smb3signkey_ret;
 	}
 
 	rc = crypto_shash_final(&ses->server->secmech.sdeschmacsha256->shash,
-				hashptr);
-	if (rc) {
+							hashptr);
+
+	if (rc)
+	{
 		cifs_dbg(VFS, "%s: Could not generate sha256 hash\n", __func__);
 		goto smb3signkey_ret;
 	}
@@ -259,12 +308,14 @@ smb3signkey_ret:
 	return rc;
 }
 
-struct derivation {
+struct derivation
+{
 	struct kvec label;
 	struct kvec context;
 };
 
-struct derivation_triplet {
+struct derivation_triplet
+{
 	struct derivation signing;
 	struct derivation encryption;
 	struct derivation decryption;
@@ -272,25 +323,31 @@ struct derivation_triplet {
 
 static int
 generate_smb3signingkey(struct cifs_ses *ses,
-			const struct derivation_triplet *ptriplet)
+						const struct derivation_triplet *ptriplet)
 {
 	int rc;
 
 	rc = generate_key(ses, ptriplet->signing.label,
-			  ptriplet->signing.context, ses->smb3signingkey,
-			  SMB3_SIGN_KEY_SIZE);
+					  ptriplet->signing.context, ses->smb3signingkey,
+					  SMB3_SIGN_KEY_SIZE);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = generate_key(ses, ptriplet->encryption.label,
-			  ptriplet->encryption.context, ses->smb3encryptionkey,
-			  SMB3_SIGN_KEY_SIZE);
+					  ptriplet->encryption.context, ses->smb3encryptionkey,
+					  SMB3_SIGN_KEY_SIZE);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	return generate_key(ses, ptriplet->decryption.label,
-			    ptriplet->decryption.context,
-			    ses->smb3decryptionkey, SMB3_SIGN_KEY_SIZE);
+						ptriplet->decryption.context,
+						ses->smb3decryptionkey, SMB3_SIGN_KEY_SIZE);
 }
 
 int
@@ -360,7 +417,9 @@ smb3_calc_signature(struct smb_rqst *rqst, struct TCP_Server_Info *server)
 	struct cifs_ses *ses;
 
 	ses = smb2_find_smb_ses(smb2_pdu, server);
-	if (!ses) {
+
+	if (!ses)
+	{
 		cifs_dbg(VFS, "%s: Could not find session\n", __func__);
 		return 0;
 	}
@@ -369,9 +428,10 @@ smb3_calc_signature(struct smb_rqst *rqst, struct TCP_Server_Info *server)
 	memset(smb2_pdu->Signature, 0x0, SMB2_SIGNATURE_SIZE);
 
 	rc = crypto_shash_setkey(server->secmech.cmacaes,
-		ses->smb3signingkey, SMB2_CMACAES_SIZE);
+							 ses->smb3signingkey, SMB2_CMACAES_SIZE);
 
-	if (rc) {
+	if (rc)
+	{
 		cifs_dbg(VFS, "%s: Could not set key for cmac aes\n", __func__);
 		return rc;
 	}
@@ -382,16 +442,20 @@ smb3_calc_signature(struct smb_rqst *rqst, struct TCP_Server_Info *server)
 	 * initialized
 	 */
 	rc = crypto_shash_init(&server->secmech.sdesccmacaes->shash);
-	if (rc) {
+
+	if (rc)
+	{
 		cifs_dbg(VFS, "%s: Could not init cmac aes\n", __func__);
 		return rc;
 	}
-	
+
 	rc = __cifs_calc_signature(rqst, server, sigptr,
-				   &server->secmech.sdesccmacaes->shash);
+							   &server->secmech.sdesccmacaes->shash);
 
 	if (!rc)
+	{
 		memcpy(smb2_pdu->Signature, sigptr, SMB2_SIGNATURE_SIZE);
+	}
 
 	return rc;
 }
@@ -404,10 +468,13 @@ smb2_sign_rqst(struct smb_rqst *rqst, struct TCP_Server_Info *server)
 	struct smb2_hdr *smb2_pdu = rqst->rq_iov[0].iov_base;
 
 	if (!(smb2_pdu->Flags & SMB2_FLAGS_SIGNED) ||
-	    server->tcpStatus == CifsNeedNegotiate)
+		server->tcpStatus == CifsNeedNegotiate)
+	{
 		return rc;
+	}
 
-	if (!server->session_estab) {
+	if (!server->session_estab)
+	{
 		strncpy(smb2_pdu->Signature, "BSRSPYL", 8);
 		return rc;
 	}
@@ -425,10 +492,12 @@ smb2_verify_signature(struct smb_rqst *rqst, struct TCP_Server_Info *server)
 	struct smb2_hdr *smb2_pdu = (struct smb2_hdr *)rqst->rq_iov[0].iov_base;
 
 	if ((smb2_pdu->Command == SMB2_NEGOTIATE) ||
-	    (smb2_pdu->Command == SMB2_SESSION_SETUP) ||
-	    (smb2_pdu->Command == SMB2_OPLOCK_BREAK) ||
-	    (!server->session_estab))
+		(smb2_pdu->Command == SMB2_SESSION_SETUP) ||
+		(smb2_pdu->Command == SMB2_OPLOCK_BREAK) ||
+		(!server->session_estab))
+	{
 		return 0;
+	}
 
 	/*
 	 * BB what if signatures are supposed to be on for session but
@@ -438,7 +507,7 @@ smb2_verify_signature(struct smb_rqst *rqst, struct TCP_Server_Info *server)
 	/* Do not need to verify session setups with signature "BSRSPYL " */
 	if (memcmp(smb2_pdu->Signature, "BSRSPYL ", 8) == 0)
 		cifs_dbg(FYI, "dummy signature received for smb command 0x%x\n",
-			 smb2_pdu->Command);
+				 smb2_pdu->Command);
 
 	/*
 	 * Save off the origiginal signature so we can modify the smb and check
@@ -453,13 +522,19 @@ smb2_verify_signature(struct smb_rqst *rqst, struct TCP_Server_Info *server)
 	mutex_unlock(&server->srv_mutex);
 
 	if (rc)
+	{
 		return rc;
+	}
 
 	if (memcmp(server_response_sig, smb2_pdu->Signature,
-		   SMB2_SIGNATURE_SIZE))
+			   SMB2_SIGNATURE_SIZE))
+	{
 		return -EACCES;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 /*
@@ -472,26 +547,34 @@ smb2_seq_num_into_buf(struct TCP_Server_Info *server, struct smb2_hdr *hdr)
 	unsigned int i, num = le16_to_cpu(hdr->CreditCharge);
 
 	hdr->MessageId = get_next_mid64(server);
+
 	/* skip message numbers according to CreditCharge field */
 	for (i = 1; i < num; i++)
+	{
 		get_next_mid(server);
+	}
 }
 
 static struct mid_q_entry *
 smb2_mid_entry_alloc(const struct smb2_hdr *smb_buffer,
-		     struct TCP_Server_Info *server)
+					 struct TCP_Server_Info *server)
 {
 	struct mid_q_entry *temp;
 
-	if (server == NULL) {
+	if (server == NULL)
+	{
 		cifs_dbg(VFS, "Null TCP session in smb2_mid_entry_alloc\n");
 		return NULL;
 	}
 
 	temp = mempool_alloc(cifs_mid_poolp, GFP_NOFS);
+
 	if (temp == NULL)
+	{
 		return temp;
-	else {
+	}
+	else
+	{
 		memset(temp, 0, sizeof(struct mid_q_entry));
 		temp->mid = le64_to_cpu(smb_buffer->MessageId);
 		temp->pid = current->pid;
@@ -514,32 +597,47 @@ smb2_mid_entry_alloc(const struct smb2_hdr *smb_buffer,
 
 static int
 smb2_get_mid_entry(struct cifs_ses *ses, struct smb2_hdr *buf,
-		   struct mid_q_entry **mid)
+				   struct mid_q_entry **mid)
 {
 	if (ses->server->tcpStatus == CifsExiting)
+	{
 		return -ENOENT;
+	}
 
-	if (ses->server->tcpStatus == CifsNeedReconnect) {
+	if (ses->server->tcpStatus == CifsNeedReconnect)
+	{
 		cifs_dbg(FYI, "tcp session dead - return to caller to retry\n");
 		return -EAGAIN;
 	}
 
-	if (ses->status == CifsNew) {
+	if (ses->status == CifsNew)
+	{
 		if ((buf->Command != SMB2_SESSION_SETUP) &&
-		    (buf->Command != SMB2_NEGOTIATE))
+			(buf->Command != SMB2_NEGOTIATE))
+		{
 			return -EAGAIN;
+		}
+
 		/* else ok - we are setting up session */
 	}
 
-	if (ses->status == CifsExiting) {
+	if (ses->status == CifsExiting)
+	{
 		if (buf->Command != SMB2_LOGOFF)
+		{
 			return -EAGAIN;
+		}
+
 		/* else ok - we are shutting down the session */
 	}
 
 	*mid = smb2_mid_entry_alloc(buf, ses->server);
+
 	if (*mid == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	spin_lock(&GlobalMid_Lock);
 	list_add_tail(&(*mid)->qhead, &ses->server->pending_mid_q);
 	spin_unlock(&GlobalMid_Lock);
@@ -548,25 +646,29 @@ smb2_get_mid_entry(struct cifs_ses *ses, struct smb2_hdr *buf,
 
 int
 smb2_check_receive(struct mid_q_entry *mid, struct TCP_Server_Info *server,
-		   bool log_error)
+				   bool log_error)
 {
 	unsigned int len = get_rfc1002_length(mid->resp_buf);
 	struct kvec iov;
 	struct smb_rqst rqst = { .rq_iov = &iov,
-				 .rq_nvec = 1 };
+			   .rq_nvec = 1
+	};
 
 	iov.iov_base = (char *)mid->resp_buf;
 	iov.iov_len = get_rfc1002_length(mid->resp_buf) + 4;
 
 	dump_smb(mid->resp_buf, min_t(u32, 80, len));
+
 	/* convert the length into a more usable form */
-	if (len > 24 && server->sign) {
+	if (len > 24 && server->sign)
+	{
 		int rc;
 
 		rc = smb2_verify_signature(&rqst, server);
+
 		if (rc)
 			cifs_dbg(VFS, "SMB signature verification returned error = %d\n",
-				 rc);
+					 rc);
 	}
 
 	return map_smb2_to_linux_error(mid->resp_buf, log_error);
@@ -582,13 +684,20 @@ smb2_setup_request(struct cifs_ses *ses, struct smb_rqst *rqst)
 	smb2_seq_num_into_buf(ses->server, hdr);
 
 	rc = smb2_get_mid_entry(ses, hdr, &mid);
+
 	if (rc)
+	{
 		return ERR_PTR(rc);
+	}
+
 	rc = smb2_sign_rqst(rqst, ses->server);
-	if (rc) {
+
+	if (rc)
+	{
 		cifs_delete_mid(mid);
 		return ERR_PTR(rc);
 	}
+
 	return mid;
 }
 
@@ -602,11 +711,16 @@ smb2_setup_async_request(struct TCP_Server_Info *server, struct smb_rqst *rqst)
 	smb2_seq_num_into_buf(server, hdr);
 
 	mid = smb2_mid_entry_alloc(hdr, server);
+
 	if (mid == NULL)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	rc = smb2_sign_rqst(rqst, server);
-	if (rc) {
+
+	if (rc)
+	{
 		DeleteMidQEntry(mid);
 		return ERR_PTR(rc);
 	}

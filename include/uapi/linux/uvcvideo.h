@@ -33,12 +33,14 @@
 	 UVC_CTRL_FLAG_GET_MAX | UVC_CTRL_FLAG_GET_RES | \
 	 UVC_CTRL_FLAG_GET_DEF)
 
-struct uvc_menu_info {
+struct uvc_menu_info
+{
 	__u32 value;
 	__u8 name[32];
 };
 
-struct uvc_xu_control_mapping {
+struct uvc_xu_control_mapping
+{
 	__u32 id;
 	__u8 name[32];
 	__u8 entity[16];
@@ -55,11 +57,12 @@ struct uvc_xu_control_mapping {
 	__u32 reserved[4];
 };
 
-struct uvc_xu_control_query {
+struct uvc_xu_control_query
+{
 	__u8 unit;
 	__u8 selector;
 	__u8 query;		/* Video Class-Specific Request Code, */
-				/* defined in linux/usb/video.h A.8.  */
+	/* defined in linux/usb/video.h A.8.  */
 	__u16 size;
 	__u8 __user *data;
 };

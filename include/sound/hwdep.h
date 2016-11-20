@@ -2,7 +2,7 @@
 #define __SOUND_HWDEP_H
 
 /*
- *  Hardware dependent layer 
+ *  Hardware dependent layer
  *  Copyright (c) by Jaroslav Kysela <perex@perex.cz>
  *
  *
@@ -28,30 +28,32 @@
 struct snd_hwdep;
 
 /* hwdep file ops; all ops can be NULL */
-struct snd_hwdep_ops {
+struct snd_hwdep_ops
+{
 	long long (*llseek)(struct snd_hwdep *hw, struct file *file,
-			    long long offset, int orig);
+						long long offset, int orig);
 	long (*read)(struct snd_hwdep *hw, char __user *buf,
-		     long count, loff_t *offset);
+				 long count, loff_t *offset);
 	long (*write)(struct snd_hwdep *hw, const char __user *buf,
-		      long count, loff_t *offset);
-	int (*open)(struct snd_hwdep *hw, struct file * file);
-	int (*release)(struct snd_hwdep *hw, struct file * file);
+				  long count, loff_t *offset);
+	int (*open)(struct snd_hwdep *hw, struct file *file);
+	int (*release)(struct snd_hwdep *hw, struct file *file);
 	unsigned int (*poll)(struct snd_hwdep *hw, struct file *file,
-			     poll_table *wait);
+						 poll_table *wait);
 	int (*ioctl)(struct snd_hwdep *hw, struct file *file,
-		     unsigned int cmd, unsigned long arg);
+				 unsigned int cmd, unsigned long arg);
 	int (*ioctl_compat)(struct snd_hwdep *hw, struct file *file,
-			    unsigned int cmd, unsigned long arg);
+						unsigned int cmd, unsigned long arg);
 	int (*mmap)(struct snd_hwdep *hw, struct file *file,
-		    struct vm_area_struct *vma);
+				struct vm_area_struct *vma);
 	int (*dsp_status)(struct snd_hwdep *hw,
-			  struct snd_hwdep_dsp_status *status);
+					  struct snd_hwdep_dsp_status *status);
 	int (*dsp_load)(struct snd_hwdep *hw,
-			struct snd_hwdep_dsp_image *image);
+					struct snd_hwdep_dsp_image *image);
 };
 
-struct snd_hwdep {
+struct snd_hwdep
+{
 	struct snd_card *card;
 	struct list_head list;
 	int device;
@@ -73,10 +75,10 @@ struct snd_hwdep {
 	struct mutex open_mutex;
 	int used;			/* reference counter */
 	unsigned int dsp_loaded;	/* bit fields of loaded dsp indices */
-	unsigned int exclusive:1;	/* exclusive access mode */
+	unsigned int exclusive: 1;	/* exclusive access mode */
 };
 
 extern int snd_hwdep_new(struct snd_card *card, char *id, int device,
-			 struct snd_hwdep **rhwdep);
+						 struct snd_hwdep **rhwdep);
 
 #endif /* __SOUND_HWDEP_H */

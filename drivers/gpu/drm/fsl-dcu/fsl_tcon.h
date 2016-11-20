@@ -19,7 +19,8 @@
 #define FSL_TCON_CTRL1			0x0
 #define FSL_TCON_CTRL1_TCON_BYPASS	BIT(29)
 
-struct fsl_tcon {
+struct fsl_tcon
+{
 	struct regmap		*regs;
 	struct clk		*ipg_clk;
 };

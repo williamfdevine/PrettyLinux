@@ -85,35 +85,40 @@ static void mtk_cg_disable_inv(struct clk_hw *hw)
 	mtk_cg_clr_bit(hw);
 }
 
-const struct clk_ops mtk_clk_gate_ops_setclr = {
+const struct clk_ops mtk_clk_gate_ops_setclr =
+{
 	.is_enabled	= mtk_cg_bit_is_cleared,
 	.enable		= mtk_cg_enable,
 	.disable	= mtk_cg_disable,
 };
 
-const struct clk_ops mtk_clk_gate_ops_setclr_inv = {
+const struct clk_ops mtk_clk_gate_ops_setclr_inv =
+{
 	.is_enabled	= mtk_cg_bit_is_set,
 	.enable		= mtk_cg_enable_inv,
 	.disable	= mtk_cg_disable_inv,
 };
 
 struct clk *mtk_clk_register_gate(
-		const char *name,
-		const char *parent_name,
-		struct regmap *regmap,
-		int set_ofs,
-		int clr_ofs,
-		int sta_ofs,
-		u8 bit,
-		const struct clk_ops *ops)
+	const char *name,
+	const char *parent_name,
+	struct regmap *regmap,
+	int set_ofs,
+	int clr_ofs,
+	int sta_ofs,
+	u8 bit,
+	const struct clk_ops *ops)
 {
 	struct mtk_clk_gate *cg;
 	struct clk *clk;
 	struct clk_init_data init = {};
 
 	cg = kzalloc(sizeof(*cg), GFP_KERNEL);
+
 	if (!cg)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.flags = CLK_SET_RATE_PARENT;
@@ -130,8 +135,11 @@ struct clk *mtk_clk_register_gate(
 	cg->hw.init = &init;
 
 	clk = clk_register(NULL, &cg->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(cg);
+	}
 
 	return clk;
 }

@@ -31,14 +31,16 @@
 #define PTP_MAX_TIMESTAMPS 128
 #define PTP_BUF_TIMESTAMPS 30
 
-struct timestamp_event_queue {
+struct timestamp_event_queue
+{
 	struct ptp_extts_event buf[PTP_MAX_TIMESTAMPS];
 	int head;
 	int tail;
 	spinlock_t lock;
 };
 
-struct ptp_clock {
+struct ptp_clock
+{
 	struct posix_clock clock;
 	struct device *dev;
 	struct ptp_clock_info *info;
@@ -75,18 +77,18 @@ static inline int queue_cnt(struct timestamp_event_queue *q)
 
 /* caller must hold pincfg_mux */
 int ptp_set_pinfunc(struct ptp_clock *ptp, unsigned int pin,
-		    enum ptp_pin_function func, unsigned int chan);
+					enum ptp_pin_function func, unsigned int chan);
 
 long ptp_ioctl(struct posix_clock *pc,
-	       unsigned int cmd, unsigned long arg);
+			   unsigned int cmd, unsigned long arg);
 
 int ptp_open(struct posix_clock *pc, fmode_t fmode);
 
 ssize_t ptp_read(struct posix_clock *pc,
-		 uint flags, char __user *buf, size_t cnt);
+				 uint flags, char __user *buf, size_t cnt);
 
 uint ptp_poll(struct posix_clock *pc,
-	      struct file *fp, poll_table *wait);
+			  struct file *fp, poll_table *wait);
 
 /*
  * see ptp_sysfs.c

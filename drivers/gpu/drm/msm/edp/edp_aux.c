@@ -20,12 +20,13 @@
 
 #define EDP_INTR_AUX_I2C_ERR	\
 	(EDP_INTERRUPT_REG_1_WRONG_ADDR | EDP_INTERRUPT_REG_1_TIMEOUT | \
-	EDP_INTERRUPT_REG_1_NACK_DEFER | EDP_INTERRUPT_REG_1_WRONG_DATA_CNT | \
-	EDP_INTERRUPT_REG_1_I2C_NACK | EDP_INTERRUPT_REG_1_I2C_DEFER)
+	 EDP_INTERRUPT_REG_1_NACK_DEFER | EDP_INTERRUPT_REG_1_WRONG_DATA_CNT | \
+	 EDP_INTERRUPT_REG_1_I2C_NACK | EDP_INTERRUPT_REG_1_I2C_DEFER)
 #define EDP_INTR_TRANS_STATUS	\
 	(EDP_INTERRUPT_REG_1_AUX_I2C_DONE | EDP_INTR_AUX_I2C_ERR)
 
-struct edp_aux {
+struct edp_aux
+{
 	void __iomem *base;
 	bool msg_err;
 
@@ -48,36 +49,53 @@ static int edp_msg_fifo_tx(struct edp_aux *aux, struct drm_dp_aux_msg *msg)
 	int i;
 
 	if (read)
+	{
 		len = 4;
+	}
 	else
+	{
 		len = msg->size + 4;
+	}
 
 	/*
 	 * cmd fifo only has depth of 144 bytes
 	 */
 	if (len > AUX_CMD_FIFO_LEN)
+	{
 		return -EINVAL;
+	}
 
 	/* Pack cmd and write to HW */
 	data[0] = (msg->address >> 16) & 0xf;	/* addr[19:16] */
+
 	if (read)
-		data[0] |=  BIT(4);		/* R/W */
+	{
+		data[0] |=  BIT(4);    /* R/W */
+	}
 
 	data[1] = (msg->address >> 8) & 0xff;	/* addr[15:8] */
 	data[2] = msg->address & 0xff;		/* addr[7:0] */
 	data[3] = (msg->size - 1) & 0xff;	/* len[7:0] */
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		reg = (i < 4) ? data[i] : msgdata[i - 4];
 		reg = EDP_AUX_DATA_DATA(reg); /* index = 0, write */
+
 		if (i == 0)
+		{
 			reg |= EDP_AUX_DATA_INDEX_WRITE;
+		}
+
 		edp_write(aux->base + REG_EDP_AUX_DATA, reg);
 	}
 
 	reg = 0; /* Transaction number is always 1 */
+
 	if (!native) /* i2c */
+	{
 		reg |= EDP_AUX_TRANS_CTRL_I2C;
+	}
 
 	reg |= EDP_AUX_TRANS_CTRL_GO;
 	edp_write(aux->base + REG_EDP_AUX_TRANS_CTRL, reg);
@@ -93,13 +111,15 @@ static int edp_msg_fifo_rx(struct edp_aux *aux, struct drm_dp_aux_msg *msg)
 	u32 len = msg->size;
 
 	edp_write(aux->base + REG_EDP_AUX_DATA,
-		EDP_AUX_DATA_INDEX_WRITE | EDP_AUX_DATA_READ); /* index = 0 */
+			  EDP_AUX_DATA_INDEX_WRITE | EDP_AUX_DATA_READ); /* index = 0 */
 
 	dp = msg->buffer;
 
 	/* discard first byte */
 	data = edp_read(aux->base + REG_EDP_AUX_DATA);
-	for (i = 0; i < len; i++) {
+
+	for (i = 0; i < len; i++)
+	{
 		data = edp_read(aux->base + REG_EDP_AUX_DATA);
 		dp[i] = (u8)((data >> 8) & 0xff);
 	}
@@ -116,7 +136,7 @@ static int edp_msg_fifo_rx(struct edp_aux *aux, struct drm_dp_aux_msg *msg)
  * start transaction only when AUX channel is fully enabled.
  */
 static ssize_t edp_aux_transfer(struct drm_dp_aux *drm_aux,
-		struct drm_dp_aux_msg *msg)
+								struct drm_dp_aux_msg *msg)
 {
 	struct edp_aux *aux = to_edp_aux(drm_aux);
 	ssize_t ret;
@@ -125,17 +145,19 @@ static ssize_t edp_aux_transfer(struct drm_dp_aux *drm_aux,
 	bool read = msg->request & (DP_AUX_I2C_READ & DP_AUX_NATIVE_READ);
 
 	/* Ignore address only message */
-	if ((msg->size == 0) || (msg->buffer == NULL)) {
+	if ((msg->size == 0) || (msg->buffer == NULL))
+	{
 		msg->reply = native ?
-			DP_AUX_NATIVE_REPLY_ACK : DP_AUX_I2C_REPLY_ACK;
+					 DP_AUX_NATIVE_REPLY_ACK : DP_AUX_I2C_REPLY_ACK;
 		return msg->size;
 	}
 
 	/* msg sanity check */
 	if ((native && (msg->size > AUX_CMD_NATIVE_MAX)) ||
-		(msg->size > AUX_CMD_I2C_MAX)) {
+		(msg->size > AUX_CMD_I2C_MAX))
+	{
 		pr_err("%s: invalid msg: size(%zu), request(%x)\n",
-			__func__, msg->size, msg->request);
+			   __func__, msg->size, msg->request);
 		return -EINVAL;
 	}
 
@@ -145,13 +167,18 @@ static ssize_t edp_aux_transfer(struct drm_dp_aux *drm_aux,
 	reinit_completion(&aux->msg_comp);
 
 	ret = edp_msg_fifo_tx(aux, msg);
+
 	if (ret < 0)
+	{
 		goto unlock_exit;
+	}
 
 	DBG("wait_for_completion");
 	time_left = wait_for_completion_timeout(&aux->msg_comp,
-						msecs_to_jiffies(300));
-	if (!time_left) {
+											msecs_to_jiffies(300));
+
+	if (!time_left)
+	{
 		/*
 		 * Clear GO and reset AUX channel
 		 * to cancel the current transaction.
@@ -162,21 +189,29 @@ static ssize_t edp_aux_transfer(struct drm_dp_aux *drm_aux,
 		ret = -ETIMEDOUT;
 		goto unlock_exit;
 	}
+
 	DBG("completion");
 
-	if (!aux->msg_err) {
-		if (read) {
+	if (!aux->msg_err)
+	{
+		if (read)
+		{
 			ret = edp_msg_fifo_rx(aux, msg);
+
 			if (ret < 0)
+			{
 				goto unlock_exit;
+			}
 		}
 
 		msg->reply = native ?
-			DP_AUX_NATIVE_REPLY_ACK : DP_AUX_I2C_REPLY_ACK;
-	} else {
+					 DP_AUX_NATIVE_REPLY_ACK : DP_AUX_I2C_REPLY_ACK;
+	}
+	else
+	{
 		/* Reply defer to retry */
 		msg->reply = native ?
-			DP_AUX_NATIVE_REPLY_DEFER : DP_AUX_I2C_REPLY_DEFER;
+					 DP_AUX_NATIVE_REPLY_DEFER : DP_AUX_I2C_REPLY_DEFER;
 		/*
 		 * The sleep time in caller is not long enough to make sure
 		 * our H/W completes transactions. Add more defer time here.
@@ -193,15 +228,18 @@ unlock_exit:
 }
 
 void *msm_edp_aux_init(struct device *dev, void __iomem *regbase,
-	struct drm_dp_aux **drm_aux)
+					   struct drm_dp_aux **drm_aux)
 {
 	struct edp_aux *aux = NULL;
 	int ret;
 
 	DBG("");
 	aux = devm_kzalloc(dev, sizeof(*aux), GFP_KERNEL);
+
 	if (!aux)
+	{
 		return NULL;
+	}
 
 	aux->base = regbase;
 	mutex_init(&aux->msg_mutex);
@@ -211,20 +249,25 @@ void *msm_edp_aux_init(struct device *dev, void __iomem *regbase,
 	aux->drm_aux.dev = dev;
 	aux->drm_aux.transfer = edp_aux_transfer;
 	ret = drm_dp_aux_register(&aux->drm_aux);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s: failed to register drm aux: %d\n", __func__, ret);
 		mutex_destroy(&aux->msg_mutex);
 	}
 
 	if (drm_aux && aux)
+	{
 		*drm_aux = &aux->drm_aux;
+	}
 
 	return aux;
 }
 
 void msm_edp_aux_destroy(struct device *dev, struct edp_aux *aux)
 {
-	if (aux) {
+	if (aux)
+	{
 		drm_dp_aux_unregister(&aux->drm_aux);
 		mutex_destroy(&aux->msg_mutex);
 	}
@@ -232,14 +275,19 @@ void msm_edp_aux_destroy(struct device *dev, struct edp_aux *aux)
 
 irqreturn_t msm_edp_aux_irq(struct edp_aux *aux, u32 isr)
 {
-	if (isr & EDP_INTR_TRANS_STATUS) {
+	if (isr & EDP_INTR_TRANS_STATUS)
+	{
 		DBG("isr=%x", isr);
 		edp_write(aux->base + REG_EDP_AUX_TRANS_CTRL, 0);
 
 		if (isr & EDP_INTR_AUX_I2C_ERR)
+		{
 			aux->msg_err = true;
+		}
 		else
+		{
 			aux->msg_err = false;
+		}
 
 		complete(&aux->msg_comp);
 	}
@@ -254,7 +302,8 @@ void msm_edp_aux_ctrl(struct edp_aux *aux, int enable)
 	DBG("enable=%d", enable);
 	data = edp_read(aux->base + REG_EDP_AUX_CTRL);
 
-	if (enable) {
+	if (enable)
+	{
 		data |= EDP_AUX_CTRL_RESET;
 		edp_write(aux->base + REG_EDP_AUX_CTRL, data);
 		/* Make sure full reset */
@@ -264,7 +313,9 @@ void msm_edp_aux_ctrl(struct edp_aux *aux, int enable)
 		data &= ~EDP_AUX_CTRL_RESET;
 		data |= EDP_AUX_CTRL_ENABLE;
 		edp_write(aux->base + REG_EDP_AUX_CTRL, data);
-	} else {
+	}
+	else
+	{
 		data &= ~EDP_AUX_CTRL_ENABLE;
 		edp_write(aux->base + REG_EDP_AUX_CTRL, data);
 	}

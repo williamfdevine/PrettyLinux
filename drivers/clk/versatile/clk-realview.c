@@ -24,7 +24,8 @@
  * Implementation of the ARM RealView clock trees.
  */
 
-static const struct icst_params realview_oscvco_params = {
+static const struct icst_params realview_oscvco_params =
+{
 	.ref		= 24000000,
 	.vco_max	= ICST307_VCO_MAX,
 	.vco_min	= ICST307_VCO_MIN,
@@ -36,13 +37,15 @@ static const struct icst_params realview_oscvco_params = {
 	.idx2s		= icst307_idx2s,
 };
 
-static const struct clk_icst_desc realview_osc0_desc __initconst = {
+static const struct clk_icst_desc realview_osc0_desc __initconst =
+{
 	.params = &realview_oscvco_params,
 	.vco_offset = REALVIEW_SYS_OSC0_OFFSET,
 	.lock_offset = REALVIEW_SYS_LOCK_OFFSET,
 };
 
-static const struct clk_icst_desc realview_osc4_desc __initconst = {
+static const struct clk_icst_desc realview_osc4_desc __initconst =
+{
 	.params = &realview_oscvco_params,
 	.vco_offset = REALVIEW_SYS_OSC4_OFFSET,
 	.lock_offset = REALVIEW_SYS_LOCK_OFFSET,
@@ -68,15 +71,20 @@ void __init realview_clk_init(void __iomem *sysbase, bool is_pb1176)
 	clk_register_clkdev(clk, NULL, "fpga:kmi1");
 	clk_register_clkdev(clk, NULL, "fpga:mmc0");
 	clk_register_clkdev(clk, NULL, "dev:ssp0");
-	if (is_pb1176) {
+
+	if (is_pb1176)
+	{
 		/*
 		 * UART3 is on the dev chip in PB1176
 		 * UART4 only exists in PB1176
 		 */
 		clk_register_clkdev(clk, NULL, "dev:uart3");
 		clk_register_clkdev(clk, NULL, "dev:uart4");
-	} else
+	}
+	else
+	{
 		clk_register_clkdev(clk, NULL, "fpga:uart3");
+	}
 
 
 	/* 1 MHz clock */
@@ -86,10 +94,10 @@ void __init realview_clk_init(void __iomem *sysbase, bool is_pb1176)
 	/* ICST VCO clock */
 	if (is_pb1176)
 		clk = icst_clk_register(NULL, &realview_osc0_desc,
-					"osc0", NULL, sysbase);
+								"osc0", NULL, sysbase);
 	else
 		clk = icst_clk_register(NULL, &realview_osc4_desc,
-					"osc4", NULL, sysbase);
+								"osc4", NULL, sysbase);
 
 	clk_register_clkdev(clk, NULL, "dev:clcd");
 	clk_register_clkdev(clk, NULL, "issp:clcd");

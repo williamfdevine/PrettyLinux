@@ -46,14 +46,15 @@
 #include <net/checksum.h>
 
 #if IS_ENABLED(CONFIG_IPV6)
-#include <linux/in6.h>
-#include <linux/icmpv6.h>
-#include <net/addrconf.h>
-#include <net/ipv6.h>
-#include <net/transp_v6.h>
+	#include <linux/in6.h>
+	#include <linux/icmpv6.h>
+	#include <net/addrconf.h>
+	#include <net/ipv6.h>
+	#include <net/transp_v6.h>
 #endif
 
-struct ping_table {
+struct ping_table
+{
 	struct hlist_nulls_head	hash[PING_HTABLE_SIZE];
 	rwlock_t		lock;
 };
@@ -74,7 +75,7 @@ static inline u32 ping_hashfn(const struct net *net, u32 num, u32 mask)
 EXPORT_SYMBOL_GPL(ping_hash);
 
 static inline struct hlist_nulls_head *ping_hashslot(struct ping_table *table,
-					     struct net *net, unsigned int num)
+		struct net *net, unsigned int num)
 {
 	return &table->hash[ping_hashfn(net, num, PING_HTABLE_MASK)];
 }
@@ -88,20 +89,29 @@ int ping_get_port(struct sock *sk, unsigned short ident)
 
 	isk = inet_sk(sk);
 	write_lock_bh(&ping_table.lock);
-	if (ident == 0) {
+
+	if (ident == 0)
+	{
 		u32 i;
 		u16 result = ping_port_rover + 1;
 
-		for (i = 0; i < (1L << 16); i++, result++) {
+		for (i = 0; i < (1L << 16); i++, result++)
+		{
 			if (!result)
-				result++; /* avoid zero */
+			{
+				result++;    /* avoid zero */
+			}
+
 			hlist = ping_hashslot(&ping_table, sock_net(sk),
-					    result);
-			ping_portaddr_for_each_entry(sk2, node, hlist) {
+								  result);
+			ping_portaddr_for_each_entry(sk2, node, hlist)
+			{
 				isk2 = inet_sk(sk2);
 
 				if (isk2->inet_num == result)
+				{
 					goto next_port;
+				}
 			}
 
 			/* found */
@@ -110,11 +120,17 @@ int ping_get_port(struct sock *sk, unsigned short ident)
 next_port:
 			;
 		}
+
 		if (i >= (1L << 16))
+		{
 			goto fail;
-	} else {
+		}
+	}
+	else
+	{
 		hlist = ping_hashslot(&ping_table, sock_net(sk), ident);
-		ping_portaddr_for_each_entry(sk2, node, hlist) {
+		ping_portaddr_for_each_entry(sk2, node, hlist)
+		{
 			isk2 = inet_sk(sk2);
 
 			/* BUG? Why is this reuse and not reuseaddr? ping.c
@@ -122,20 +138,25 @@ next_port:
 			 * that other ping processes can steal its packets.
 			 */
 			if ((isk2->inet_num == ident) &&
-			    (sk2 != sk) &&
-			    (!sk2->sk_reuse || !sk->sk_reuse))
+				(sk2 != sk) &&
+				(!sk2->sk_reuse || !sk->sk_reuse))
+			{
 				goto fail;
+			}
 		}
 	}
 
 	pr_debug("found port/ident = %d\n", ident);
 	isk->inet_num = ident;
-	if (sk_unhashed(sk)) {
+
+	if (sk_unhashed(sk))
+	{
 		pr_debug("was not hashed\n");
 		sock_hold(sk);
 		hlist_nulls_add_head(&sk->sk_nulls_node, hlist);
 		sock_prot_inuse_add(sock_net(sk), sk->sk_prot, 1);
 	}
+
 	write_unlock_bh(&ping_table.lock);
 	return 0;
 
@@ -157,7 +178,9 @@ void ping_unhash(struct sock *sk)
 {
 	struct inet_sock *isk = inet_sk(sk);
 	pr_debug("ping_unhash(isk=%p,isk->num=%u)\n", isk, isk->inet_num);
-	if (sk_hashed(sk)) {
+
+	if (sk_hashed(sk))
+	{
 		write_lock_bh(&ping_table.lock);
 		hlist_nulls_del(&sk->sk_nulls_node);
 		sk_nulls_node_init(&sk->sk_nulls_node);
@@ -178,54 +201,74 @@ static struct sock *ping_lookup(struct net *net, struct sk_buff *skb, u16 ident)
 	struct hlist_nulls_node *hnode;
 	int dif = skb->dev->ifindex;
 
-	if (skb->protocol == htons(ETH_P_IP)) {
+	if (skb->protocol == htons(ETH_P_IP))
+	{
 		pr_debug("try to find: num = %d, daddr = %pI4, dif = %d\n",
-			 (int)ident, &ip_hdr(skb)->daddr, dif);
+				 (int)ident, &ip_hdr(skb)->daddr, dif);
 #if IS_ENABLED(CONFIG_IPV6)
-	} else if (skb->protocol == htons(ETH_P_IPV6)) {
+	}
+	else if (skb->protocol == htons(ETH_P_IPV6))
+	{
 		pr_debug("try to find: num = %d, daddr = %pI6c, dif = %d\n",
-			 (int)ident, &ipv6_hdr(skb)->daddr, dif);
+				 (int)ident, &ipv6_hdr(skb)->daddr, dif);
 #endif
 	}
 
 	read_lock_bh(&ping_table.lock);
 
-	ping_portaddr_for_each_entry(sk, hnode, hslot) {
+	ping_portaddr_for_each_entry(sk, hnode, hslot)
+	{
 		isk = inet_sk(sk);
 
 		pr_debug("iterate\n");
+
 		if (isk->inet_num != ident)
+		{
 			continue;
+		}
 
 		if (skb->protocol == htons(ETH_P_IP) &&
-		    sk->sk_family == AF_INET) {
+			sk->sk_family == AF_INET)
+		{
 			pr_debug("found: %p: num=%d, daddr=%pI4, dif=%d\n", sk,
-				 (int) isk->inet_num, &isk->inet_rcv_saddr,
-				 sk->sk_bound_dev_if);
+					 (int) isk->inet_num, &isk->inet_rcv_saddr,
+					 sk->sk_bound_dev_if);
 
 			if (isk->inet_rcv_saddr &&
-			    isk->inet_rcv_saddr != ip_hdr(skb)->daddr)
+				isk->inet_rcv_saddr != ip_hdr(skb)->daddr)
+			{
 				continue;
+			}
+
 #if IS_ENABLED(CONFIG_IPV6)
-		} else if (skb->protocol == htons(ETH_P_IPV6) &&
-			   sk->sk_family == AF_INET6) {
+		}
+		else if (skb->protocol == htons(ETH_P_IPV6) &&
+				 sk->sk_family == AF_INET6)
+		{
 
 			pr_debug("found: %p: num=%d, daddr=%pI6c, dif=%d\n", sk,
-				 (int) isk->inet_num,
-				 &sk->sk_v6_rcv_saddr,
-				 sk->sk_bound_dev_if);
+					 (int) isk->inet_num,
+					 &sk->sk_v6_rcv_saddr,
+					 sk->sk_bound_dev_if);
 
 			if (!ipv6_addr_any(&sk->sk_v6_rcv_saddr) &&
-			    !ipv6_addr_equal(&sk->sk_v6_rcv_saddr,
-					     &ipv6_hdr(skb)->daddr))
+				!ipv6_addr_equal(&sk->sk_v6_rcv_saddr,
+								 &ipv6_hdr(skb)->daddr))
+			{
 				continue;
+			}
+
 #endif
-		} else {
+		}
+		else
+		{
 			continue;
 		}
 
 		if (sk->sk_bound_dev_if && sk->sk_bound_dev_if != dif)
+		{
 			continue;
+		}
 
 		sock_hold(sk);
 		goto exit;
@@ -239,17 +282,19 @@ exit:
 }
 
 static void inet_get_ping_group_range_net(struct net *net, kgid_t *low,
-					  kgid_t *high)
+		kgid_t *high)
 {
 	kgid_t *data = net->ipv4.ping_group_range.range;
 	unsigned int seq;
 
-	do {
+	do
+	{
 		seq = read_seqbegin(&net->ipv4.ping_group_range.lock);
 
 		*low = data[0];
 		*high = data[1];
-	} while (read_seqretry(&net->ipv4.ping_group_range.lock, seq));
+	}
+	while (read_seqretry(&net->ipv4.ping_group_range.lock, seq));
 }
 
 
@@ -263,18 +308,27 @@ int ping_init_sock(struct sock *sk)
 	int ret = 0;
 
 	if (sk->sk_family == AF_INET6)
+	{
 		sk->sk_ipv6only = 1;
+	}
 
 	inet_get_ping_group_range_net(net, &low, &high);
+
 	if (gid_lte(low, group) && gid_lte(group, high))
+	{
 		return 0;
+	}
 
 	group_info = get_current_groups();
-	for (i = 0; i < group_info->ngroups; i++) {
+
+	for (i = 0; i < group_info->ngroups; i++)
+	{
 		kgid_t gid = group_info->gid[i];
 
 		if (gid_lte(low, gid) && gid_lte(gid, high))
+		{
 			goto out_release_group;
+		}
 	}
 
 	ret = -EACCES;
@@ -288,7 +342,7 @@ EXPORT_SYMBOL_GPL(ping_init_sock);
 void ping_close(struct sock *sk, long timeout)
 {
 	pr_debug("ping_close(sk=%p,sk->num=%u)\n",
-		 inet_sk(sk), inet_sk(sk)->inet_num);
+			 inet_sk(sk), inet_sk(sk)->inet_num);
 	pr_debug("isk->refcnt = %d\n", sk->sk_refcnt.counter);
 
 	sk_common_release(sk);
@@ -297,91 +351,127 @@ EXPORT_SYMBOL_GPL(ping_close);
 
 /* Checks the bind address and possibly modifies sk->sk_bound_dev_if. */
 static int ping_check_bind_addr(struct sock *sk, struct inet_sock *isk,
-				struct sockaddr *uaddr, int addr_len) {
+								struct sockaddr *uaddr, int addr_len)
+{
 	struct net *net = sock_net(sk);
-	if (sk->sk_family == AF_INET) {
+
+	if (sk->sk_family == AF_INET)
+	{
 		struct sockaddr_in *addr = (struct sockaddr_in *) uaddr;
 		int chk_addr_ret;
 
 		if (addr_len < sizeof(*addr))
+		{
 			return -EINVAL;
+		}
 
 		if (addr->sin_family != AF_INET &&
-		    !(addr->sin_family == AF_UNSPEC &&
-		      addr->sin_addr.s_addr == htonl(INADDR_ANY)))
+			!(addr->sin_family == AF_UNSPEC &&
+			  addr->sin_addr.s_addr == htonl(INADDR_ANY)))
+		{
 			return -EAFNOSUPPORT;
+		}
 
 		pr_debug("ping_check_bind_addr(sk=%p,addr=%pI4,port=%d)\n",
-			 sk, &addr->sin_addr.s_addr, ntohs(addr->sin_port));
+				 sk, &addr->sin_addr.s_addr, ntohs(addr->sin_port));
 
 		chk_addr_ret = inet_addr_type(net, addr->sin_addr.s_addr);
 
 		if (addr->sin_addr.s_addr == htonl(INADDR_ANY))
+		{
 			chk_addr_ret = RTN_LOCAL;
+		}
 
 		if ((net->ipv4.sysctl_ip_nonlocal_bind == 0 &&
-		    isk->freebind == 0 && isk->transparent == 0 &&
-		     chk_addr_ret != RTN_LOCAL) ||
-		    chk_addr_ret == RTN_MULTICAST ||
-		    chk_addr_ret == RTN_BROADCAST)
+			 isk->freebind == 0 && isk->transparent == 0 &&
+			 chk_addr_ret != RTN_LOCAL) ||
+			chk_addr_ret == RTN_MULTICAST ||
+			chk_addr_ret == RTN_BROADCAST)
+		{
 			return -EADDRNOTAVAIL;
+		}
 
 #if IS_ENABLED(CONFIG_IPV6)
-	} else if (sk->sk_family == AF_INET6) {
+	}
+	else if (sk->sk_family == AF_INET6)
+	{
 		struct sockaddr_in6 *addr = (struct sockaddr_in6 *) uaddr;
 		int addr_type, scoped, has_addr;
 		struct net_device *dev = NULL;
 
 		if (addr_len < sizeof(*addr))
+		{
 			return -EINVAL;
+		}
 
 		if (addr->sin6_family != AF_INET6)
+		{
 			return -EAFNOSUPPORT;
+		}
 
 		pr_debug("ping_check_bind_addr(sk=%p,addr=%pI6c,port=%d)\n",
-			 sk, addr->sin6_addr.s6_addr, ntohs(addr->sin6_port));
+				 sk, addr->sin6_addr.s6_addr, ntohs(addr->sin6_port));
 
 		addr_type = ipv6_addr_type(&addr->sin6_addr);
 		scoped = __ipv6_addr_needs_scope_id(addr_type);
+
 		if ((addr_type != IPV6_ADDR_ANY &&
-		     !(addr_type & IPV6_ADDR_UNICAST)) ||
-		    (scoped && !addr->sin6_scope_id))
+			 !(addr_type & IPV6_ADDR_UNICAST)) ||
+			(scoped && !addr->sin6_scope_id))
+		{
 			return -EINVAL;
+		}
 
 		rcu_read_lock();
-		if (addr->sin6_scope_id) {
+
+		if (addr->sin6_scope_id)
+		{
 			dev = dev_get_by_index_rcu(net, addr->sin6_scope_id);
-			if (!dev) {
+
+			if (!dev)
+			{
 				rcu_read_unlock();
 				return -ENODEV;
 			}
 		}
+
 		has_addr = pingv6_ops.ipv6_chk_addr(net, &addr->sin6_addr, dev,
-						    scoped);
+											scoped);
 		rcu_read_unlock();
 
 		if (!(net->ipv6.sysctl.ip_nonlocal_bind ||
-		      isk->freebind || isk->transparent || has_addr ||
-		      addr_type == IPV6_ADDR_ANY))
+			  isk->freebind || isk->transparent || has_addr ||
+			  addr_type == IPV6_ADDR_ANY))
+		{
 			return -EADDRNOTAVAIL;
+		}
 
 		if (scoped)
+		{
 			sk->sk_bound_dev_if = addr->sin6_scope_id;
+		}
+
 #endif
-	} else {
+	}
+	else
+	{
 		return -EAFNOSUPPORT;
 	}
+
 	return 0;
 }
 
 static void ping_set_saddr(struct sock *sk, struct sockaddr *saddr)
 {
-	if (saddr->sa_family == AF_INET) {
+	if (saddr->sa_family == AF_INET)
+	{
 		struct inet_sock *isk = inet_sk(sk);
 		struct sockaddr_in *addr = (struct sockaddr_in *) saddr;
 		isk->inet_rcv_saddr = isk->inet_saddr = addr->sin_addr.s_addr;
 #if IS_ENABLED(CONFIG_IPV6)
-	} else if (saddr->sa_family == AF_INET6) {
+	}
+	else if (saddr->sa_family == AF_INET6)
+	{
 		struct sockaddr_in6 *addr = (struct sockaddr_in6 *) saddr;
 		struct ipv6_pinfo *np = inet6_sk(sk);
 		sk->sk_v6_rcv_saddr = np->saddr = addr->sin6_addr;
@@ -392,11 +482,15 @@ static void ping_set_saddr(struct sock *sk, struct sockaddr *saddr)
 static void ping_clear_saddr(struct sock *sk, int dif)
 {
 	sk->sk_bound_dev_if = dif;
-	if (sk->sk_family == AF_INET) {
+
+	if (sk->sk_family == AF_INET)
+	{
 		struct inet_sock *isk = inet_sk(sk);
 		isk->inet_rcv_saddr = isk->inet_saddr = 0;
 #if IS_ENABLED(CONFIG_IPV6)
-	} else if (sk->sk_family == AF_INET6) {
+	}
+	else if (sk->sk_family == AF_INET6)
+	{
 		struct ipv6_pinfo *np = inet6_sk(sk);
 		memset(&sk->sk_v6_rcv_saddr, 0, sizeof(sk->sk_v6_rcv_saddr));
 		memset(&np->saddr, 0, sizeof(np->saddr));
@@ -416,44 +510,67 @@ int ping_bind(struct sock *sk, struct sockaddr *uaddr, int addr_len)
 	int dif = sk->sk_bound_dev_if;
 
 	err = ping_check_bind_addr(sk, isk, uaddr, addr_len);
+
 	if (err)
+	{
 		return err;
+	}
 
 	lock_sock(sk);
 
 	err = -EINVAL;
+
 	if (isk->inet_num != 0)
+	{
 		goto out;
+	}
 
 	err = -EADDRINUSE;
 	ping_set_saddr(sk, uaddr);
 	snum = ntohs(((struct sockaddr_in *)uaddr)->sin_port);
-	if (ping_get_port(sk, snum) != 0) {
+
+	if (ping_get_port(sk, snum) != 0)
+	{
 		ping_clear_saddr(sk, dif);
 		goto out;
 	}
 
 	pr_debug("after bind(): num = %d, dif = %d\n",
-		 (int)isk->inet_num,
-		 (int)sk->sk_bound_dev_if);
+			 (int)isk->inet_num,
+			 (int)sk->sk_bound_dev_if);
 
 	err = 0;
+
 	if (sk->sk_family == AF_INET && isk->inet_rcv_saddr)
+	{
 		sk->sk_userlocks |= SOCK_BINDADDR_LOCK;
+	}
+
 #if IS_ENABLED(CONFIG_IPV6)
+
 	if (sk->sk_family == AF_INET6 && !ipv6_addr_any(&sk->sk_v6_rcv_saddr))
+	{
 		sk->sk_userlocks |= SOCK_BINDADDR_LOCK;
+	}
+
 #endif
 
 	if (snum)
+	{
 		sk->sk_userlocks |= SOCK_BINDPORT_LOCK;
+	}
+
 	isk->inet_sport = htons(isk->inet_num);
 	isk->inet_daddr = 0;
 	isk->inet_dport = 0;
 
 #if IS_ENABLED(CONFIG_IPV6)
+
 	if (sk->sk_family == AF_INET6)
+	{
 		memset(&sk->sk_v6_daddr, 0, sizeof(sk->sk_v6_daddr));
+	}
+
 #endif
 
 	sk_dst_reset(sk);
@@ -471,7 +588,7 @@ EXPORT_SYMBOL_GPL(ping_bind);
 static inline int ping_supported(int family, int type, int code)
 {
 	return (family == AF_INET && type == ICMP_ECHO && code == 0) ||
-	       (family == AF_INET6 && type == ICMPV6_ECHO_REQUEST && code == 0);
+		   (family == AF_INET6 && type == ICMPV6_ECHO_REQUEST && code == 0);
 }
 
 /*
@@ -491,80 +608,107 @@ void ping_err(struct sk_buff *skb, int offset, u32 info)
 	int harderr;
 	int err;
 
-	if (skb->protocol == htons(ETH_P_IP)) {
+	if (skb->protocol == htons(ETH_P_IP))
+	{
 		family = AF_INET;
 		type = icmp_hdr(skb)->type;
 		code = icmp_hdr(skb)->code;
 		icmph = (struct icmphdr *)(skb->data + offset);
-	} else if (skb->protocol == htons(ETH_P_IPV6)) {
+	}
+	else if (skb->protocol == htons(ETH_P_IPV6))
+	{
 		family = AF_INET6;
 		type = icmp6_hdr(skb)->icmp6_type;
 		code = icmp6_hdr(skb)->icmp6_code;
 		icmph = (struct icmphdr *) (skb->data + offset);
-	} else {
+	}
+	else
+	{
 		BUG();
 	}
 
 	/* We assume the packet has already been checked by icmp_unreach */
 
 	if (!ping_supported(family, icmph->type, icmph->code))
+	{
 		return;
+	}
 
 	pr_debug("ping_err(proto=0x%x,type=%d,code=%d,id=%04x,seq=%04x)\n",
-		 skb->protocol, type, code, ntohs(icmph->un.echo.id),
-		 ntohs(icmph->un.echo.sequence));
+			 skb->protocol, type, code, ntohs(icmph->un.echo.id),
+			 ntohs(icmph->un.echo.sequence));
 
 	sk = ping_lookup(net, skb, ntohs(icmph->un.echo.id));
-	if (!sk) {
+
+	if (!sk)
+	{
 		pr_debug("no socket, dropping\n");
 		return;	/* No socket for error */
 	}
+
 	pr_debug("err on socket %p\n", sk);
 
 	err = 0;
 	harderr = 0;
 	inet_sock = inet_sk(sk);
 
-	if (skb->protocol == htons(ETH_P_IP)) {
-		switch (type) {
-		default:
-		case ICMP_TIME_EXCEEDED:
-			err = EHOSTUNREACH;
-			break;
-		case ICMP_SOURCE_QUENCH:
-			/* This is not a real error but ping wants to see it.
-			 * Report it with some fake errno.
-			 */
-			err = EREMOTEIO;
-			break;
-		case ICMP_PARAMETERPROB:
-			err = EPROTO;
-			harderr = 1;
-			break;
-		case ICMP_DEST_UNREACH:
-			if (code == ICMP_FRAG_NEEDED) { /* Path MTU discovery */
-				ipv4_sk_update_pmtu(skb, sk, info);
-				if (inet_sock->pmtudisc != IP_PMTUDISC_DONT) {
-					err = EMSGSIZE;
-					harderr = 1;
-					break;
+	if (skb->protocol == htons(ETH_P_IP))
+	{
+		switch (type)
+		{
+			default:
+			case ICMP_TIME_EXCEEDED:
+				err = EHOSTUNREACH;
+				break;
+
+			case ICMP_SOURCE_QUENCH:
+				/* This is not a real error but ping wants to see it.
+				 * Report it with some fake errno.
+				 */
+				err = EREMOTEIO;
+				break;
+
+			case ICMP_PARAMETERPROB:
+				err = EPROTO;
+				harderr = 1;
+				break;
+
+			case ICMP_DEST_UNREACH:
+				if (code == ICMP_FRAG_NEEDED)   /* Path MTU discovery */
+				{
+					ipv4_sk_update_pmtu(skb, sk, info);
+
+					if (inet_sock->pmtudisc != IP_PMTUDISC_DONT)
+					{
+						err = EMSGSIZE;
+						harderr = 1;
+						break;
+					}
+
+					goto out;
 				}
-				goto out;
-			}
-			err = EHOSTUNREACH;
-			if (code <= NR_ICMP_UNREACH) {
-				harderr = icmp_err_convert[code].fatal;
-				err = icmp_err_convert[code].errno;
-			}
-			break;
-		case ICMP_REDIRECT:
-			/* See ICMP_SOURCE_QUENCH */
-			ipv4_sk_redirect(skb, sk);
-			err = EREMOTEIO;
-			break;
+
+				err = EHOSTUNREACH;
+
+				if (code <= NR_ICMP_UNREACH)
+				{
+					harderr = icmp_err_convert[code].fatal;
+					err = icmp_err_convert[code].errno;
+				}
+
+				break;
+
+			case ICMP_REDIRECT:
+				/* See ICMP_SOURCE_QUENCH */
+				ipv4_sk_redirect(skb, sk);
+				err = EREMOTEIO;
+				break;
 		}
+
 #if IS_ENABLED(CONFIG_IPV6)
-	} else if (skb->protocol == htons(ETH_P_IPV6)) {
+	}
+	else if (skb->protocol == htons(ETH_P_IPV6))
+	{
 		harderr = pingv6_ops.icmpv6_err_convert(type, code, &err);
 #endif
 	}
@@ -574,20 +718,29 @@ void ping_err(struct sk_buff *skb, int offset, u32 info)
 	 *	4.1.3.3.
 	 */
 	if ((family == AF_INET && !inet_sock->recverr) ||
-	    (family == AF_INET6 && !inet6_sk(sk)->recverr)) {
+		(family == AF_INET6 && !inet6_sk(sk)->recverr))
+	{
 		if (!harderr || sk->sk_state != TCP_ESTABLISHED)
+		{
 			goto out;
-	} else {
-		if (family == AF_INET) {
+		}
+	}
+	else
+	{
+		if (family == AF_INET)
+		{
 			ip_icmp_error(sk, skb, err, 0 /* no remote port */,
-				      info, (u8 *)icmph);
+						  info, (u8 *)icmph);
 #if IS_ENABLED(CONFIG_IPV6)
-		} else if (family == AF_INET6) {
+		}
+		else if (family == AF_INET6)
+		{
 			pingv6_ops.ipv6_icmp_error(sk, skb, err, 0,
-						   info, (u8 *)icmph);
+									   info, (u8 *)icmph);
 #endif
 		}
 	}
+
 	sk->sk_err = err;
 	sk->sk_error_report(sk);
 out:
@@ -601,36 +754,52 @@ EXPORT_SYMBOL_GPL(ping_err);
  */
 
 int ping_getfrag(void *from, char *to,
-		 int offset, int fraglen, int odd, struct sk_buff *skb)
+				 int offset, int fraglen, int odd, struct sk_buff *skb)
 {
 	struct pingfakehdr *pfh = (struct pingfakehdr *)from;
 
-	if (offset == 0) {
+	if (offset == 0)
+	{
 		fraglen -= sizeof(struct icmphdr);
+
 		if (fraglen < 0)
+		{
 			BUG();
+		}
+
 		if (csum_and_copy_from_iter(to + sizeof(struct icmphdr),
-			    fraglen, &pfh->wcheck,
-			    &pfh->msg->msg_iter) != fraglen)
+									fraglen, &pfh->wcheck,
+									&pfh->msg->msg_iter) != fraglen)
+		{
 			return -EFAULT;
-	} else if (offset < sizeof(struct icmphdr)) {
-			BUG();
-	} else {
+		}
+	}
+	else if (offset < sizeof(struct icmphdr))
+	{
+		BUG();
+	}
+	else
+	{
 		if (csum_and_copy_from_iter(to, fraglen, &pfh->wcheck,
-					    &pfh->msg->msg_iter) != fraglen)
+									&pfh->msg->msg_iter) != fraglen)
+		{
 			return -EFAULT;
+		}
 	}
 
 #if IS_ENABLED(CONFIG_IPV6)
+
 	/* For IPv6, checksum each skb as we go along, as expected by
 	 * icmpv6_push_pending_frames. For IPv4, accumulate the checksum in
 	 * wcheck, it will be finalized in ping_v4_push_pending_frames.
 	 */
-	if (pfh->family == AF_INET6) {
+	if (pfh->family == AF_INET6)
+	{
 		skb->csum = pfh->wcheck;
 		skb->ip_summed = CHECKSUM_NONE;
 		pfh->wcheck = 0;
 	}
+
 #endif
 
 	return 0;
@@ -638,12 +807,12 @@ int ping_getfrag(void *from, char *to,
 EXPORT_SYMBOL_GPL(ping_getfrag);
 
 static int ping_v4_push_pending_frames(struct sock *sk, struct pingfakehdr *pfh,
-				       struct flowi4 *fl4)
+									   struct flowi4 *fl4)
 {
 	struct sk_buff *skb = skb_peek(&sk->sk_write_queue);
 
 	pfh->wcheck = csum_partial((char *)&pfh->icmph,
-		sizeof(struct icmphdr), pfh->wcheck);
+							   sizeof(struct icmphdr), pfh->wcheck);
 	pfh->icmph.checksum = csum_fold(pfh->wcheck);
 	memcpy(icmp_hdr(skb), &pfh->icmph, sizeof(struct icmphdr));
 	skb->ip_summed = CHECKSUM_NONE;
@@ -651,11 +820,14 @@ static int ping_v4_push_pending_frames(struct sock *sk, struct pingfakehdr *pfh,
 }
 
 int ping_common_sendmsg(int family, struct msghdr *msg, size_t len,
-			void *user_icmph, size_t icmph_len) {
+						void *user_icmph, size_t icmph_len)
+{
 	u8 type, code;
 
 	if (len > 0xFFFF)
+	{
 		return -EMSGSIZE;
+	}
 
 	/*
 	 *	Check the flags.
@@ -663,29 +835,40 @@ int ping_common_sendmsg(int family, struct msghdr *msg, size_t len,
 
 	/* Mirror BSD error message compatibility */
 	if (msg->msg_flags & MSG_OOB)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	/*
 	 *	Fetch the ICMP header provided by the userland.
 	 *	iovec is modified! The ICMP header is consumed.
 	 */
 	if (memcpy_from_msg(user_icmph, msg, icmph_len))
+	{
 		return -EFAULT;
+	}
 
-	if (family == AF_INET) {
+	if (family == AF_INET)
+	{
 		type = ((struct icmphdr *) user_icmph)->type;
 		code = ((struct icmphdr *) user_icmph)->code;
 #if IS_ENABLED(CONFIG_IPV6)
-	} else if (family == AF_INET6) {
+	}
+	else if (family == AF_INET6)
+	{
 		type = ((struct icmp6hdr *) user_icmph)->icmp6_type;
 		code = ((struct icmp6hdr *) user_icmph)->icmp6_code;
 #endif
-	} else {
+	}
+	else
+	{
 		BUG();
 	}
 
 	if (!ping_supported(family, type, code))
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -709,25 +892,41 @@ static int ping_v4_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
 	pr_debug("ping_v4_sendmsg(sk=%p,sk->num=%u)\n", inet, inet->inet_num);
 
 	err = ping_common_sendmsg(AF_INET, msg, len, &user_icmph,
-				  sizeof(user_icmph));
+							  sizeof(user_icmph));
+
 	if (err)
+	{
 		return err;
+	}
 
 	/*
 	 *	Get and verify the address.
 	 */
 
-	if (msg->msg_name) {
+	if (msg->msg_name)
+	{
 		DECLARE_SOCKADDR(struct sockaddr_in *, usin, msg->msg_name);
+
 		if (msg->msg_namelen < sizeof(*usin))
+		{
 			return -EINVAL;
+		}
+
 		if (usin->sin_family != AF_INET)
+		{
 			return -EAFNOSUPPORT;
+		}
+
 		daddr = usin->sin_addr.s_addr;
 		/* no remote port */
-	} else {
+	}
+	else
+	{
 		if (sk->sk_state != TCP_ESTABLISHED)
+		{
 			return -EDESTADDRREQ;
+		}
+
 		daddr = inet->inet_daddr;
 		/* no remote port */
 	}
@@ -740,25 +939,36 @@ static int ping_v4_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
 	ipc.ttl = 0;
 	ipc.tos = -1;
 
-	if (msg->msg_controllen) {
+	if (msg->msg_controllen)
+	{
 		err = ip_cmsg_send(sk, msg, &ipc, false);
-		if (unlikely(err)) {
+
+		if (unlikely(err))
+		{
 			kfree(ipc.opt);
 			return err;
 		}
+
 		if (ipc.opt)
+		{
 			free = 1;
+		}
 	}
-	if (!ipc.opt) {
+
+	if (!ipc.opt)
+	{
 		struct ip_options_rcu *inet_opt;
 
 		rcu_read_lock();
 		inet_opt = rcu_dereference(inet->inet_opt);
-		if (inet_opt) {
+
+		if (inet_opt)
+		{
 			memcpy(&opt_copy, inet_opt,
-			       sizeof(*inet_opt) + inet_opt->opt.optlen);
+				   sizeof(*inet_opt) + inet_opt->opt.optlen);
 			ipc.opt = &opt_copy.opt;
 		}
+
 		rcu_read_unlock();
 	}
 
@@ -767,51 +977,81 @@ static int ping_v4_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
 	saddr = ipc.addr;
 	ipc.addr = faddr = daddr;
 
-	if (ipc.opt && ipc.opt->opt.srr) {
+	if (ipc.opt && ipc.opt->opt.srr)
+	{
 		if (!daddr)
+		{
 			return -EINVAL;
+		}
+
 		faddr = ipc.opt->opt.faddr;
 	}
+
 	tos = get_rttos(&ipc, inet);
+
 	if (sock_flag(sk, SOCK_LOCALROUTE) ||
-	    (msg->msg_flags & MSG_DONTROUTE) ||
-	    (ipc.opt && ipc.opt->opt.is_strictroute)) {
+		(msg->msg_flags & MSG_DONTROUTE) ||
+		(ipc.opt && ipc.opt->opt.is_strictroute))
+	{
 		tos |= RTO_ONLINK;
 	}
 
-	if (ipv4_is_multicast(daddr)) {
+	if (ipv4_is_multicast(daddr))
+	{
 		if (!ipc.oif)
+		{
 			ipc.oif = inet->mc_index;
+		}
+
 		if (!saddr)
+		{
 			saddr = inet->mc_addr;
-	} else if (!ipc.oif)
+		}
+	}
+	else if (!ipc.oif)
+	{
 		ipc.oif = inet->uc_index;
+	}
 
 	flowi4_init_output(&fl4, ipc.oif, sk->sk_mark, tos,
-			   RT_SCOPE_UNIVERSE, sk->sk_protocol,
-			   inet_sk_flowi_flags(sk), faddr, saddr, 0, 0);
+					   RT_SCOPE_UNIVERSE, sk->sk_protocol,
+					   inet_sk_flowi_flags(sk), faddr, saddr, 0, 0);
 
 	security_sk_classify_flow(sk, flowi4_to_flowi(&fl4));
 	rt = ip_route_output_flow(net, &fl4, sk);
-	if (IS_ERR(rt)) {
+
+	if (IS_ERR(rt))
+	{
 		err = PTR_ERR(rt);
 		rt = NULL;
+
 		if (err == -ENETUNREACH)
+		{
 			IP_INC_STATS(net, IPSTATS_MIB_OUTNOROUTES);
+		}
+
 		goto out;
 	}
 
 	err = -EACCES;
+
 	if ((rt->rt_flags & RTCF_BROADCAST) &&
-	    !sock_flag(sk, SOCK_BROADCAST))
+		!sock_flag(sk, SOCK_BROADCAST))
+	{
 		goto out;
+	}
 
 	if (msg->msg_flags & MSG_CONFIRM)
+	{
 		goto do_confirm;
+	}
+
 back_from_confirm:
 
 	if (!ipc.addr)
+	{
 		ipc.addr = fl4.daddr;
+	}
 
 	lock_sock(sk);
 
@@ -825,33 +1065,49 @@ back_from_confirm:
 	pfh.family = AF_INET;
 
 	err = ip_append_data(sk, &fl4, ping_getfrag, &pfh, len,
-			0, &ipc, &rt, msg->msg_flags);
+						 0, &ipc, &rt, msg->msg_flags);
+
 	if (err)
+	{
 		ip_flush_pending_frames(sk);
+	}
 	else
+	{
 		err = ping_v4_push_pending_frames(sk, &pfh, &fl4);
+	}
+
 	release_sock(sk);
 
 out:
 	ip_rt_put(rt);
+
 	if (free)
+	{
 		kfree(ipc.opt);
-	if (!err) {
+	}
+
+	if (!err)
+	{
 		icmp_out_count(sock_net(sk), user_icmph.type);
 		return len;
 	}
+
 	return err;
 
 do_confirm:
 	dst_confirm(&rt->dst);
+
 	if (!(msg->msg_flags & MSG_PROBE) || len)
+	{
 		goto back_from_confirm;
+	}
+
 	err = 0;
 	goto out;
 }
 
 int ping_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int noblock,
-		 int flags, int *addr_len)
+				 int flags, int *addr_len)
 {
 	struct inet_sock *isk = inet_sk(sk);
 	int family = sk->sk_family;
@@ -861,34 +1117,49 @@ int ping_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int noblock,
 	pr_debug("ping_recvmsg(sk=%p,sk->num=%u)\n", isk, isk->inet_num);
 
 	err = -EOPNOTSUPP;
+
 	if (flags & MSG_OOB)
+	{
 		goto out;
+	}
 
 	if (flags & MSG_ERRQUEUE)
+	{
 		return inet_recv_error(sk, msg, len, addr_len);
+	}
 
 	skb = skb_recv_datagram(sk, flags, noblock, &err);
+
 	if (!skb)
+	{
 		goto out;
+	}
 
 	copied = skb->len;
-	if (copied > len) {
+
+	if (copied > len)
+	{
 		msg->msg_flags |= MSG_TRUNC;
 		copied = len;
 	}
 
 	/* Don't bother checking the checksum */
 	err = skb_copy_datagram_msg(skb, 0, msg, copied);
+
 	if (err)
+	{
 		goto done;
+	}
 
 	sock_recv_timestamp(msg, sk, skb);
 
 	/* Copy the address and add cmsg data. */
-	if (family == AF_INET) {
+	if (family == AF_INET)
+	{
 		DECLARE_SOCKADDR(struct sockaddr_in *, sin, msg->msg_name);
 
-		if (sin) {
+		if (sin)
+		{
 			sin->sin_family = AF_INET;
 			sin->sin_port = 0 /* skb->h.uh->source */;
 			sin->sin_addr.s_addr = ip_hdr(skb)->saddr;
@@ -897,36 +1168,55 @@ int ping_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int noblock,
 		}
 
 		if (isk->cmsg_flags)
+		{
 			ip_cmsg_recv(msg, skb);
+		}
 
 #if IS_ENABLED(CONFIG_IPV6)
-	} else if (family == AF_INET6) {
+	}
+	else if (family == AF_INET6)
+	{
 		struct ipv6_pinfo *np = inet6_sk(sk);
 		struct ipv6hdr *ip6 = ipv6_hdr(skb);
 		DECLARE_SOCKADDR(struct sockaddr_in6 *, sin6, msg->msg_name);
 
-		if (sin6) {
+		if (sin6)
+		{
 			sin6->sin6_family = AF_INET6;
 			sin6->sin6_port = 0;
 			sin6->sin6_addr = ip6->saddr;
 			sin6->sin6_flowinfo = 0;
+
 			if (np->sndflow)
+			{
 				sin6->sin6_flowinfo = ip6_flowinfo(ip6);
+			}
+
 			sin6->sin6_scope_id =
 				ipv6_iface_scope_id(&sin6->sin6_addr,
-						    inet6_iif(skb));
+									inet6_iif(skb));
 			*addr_len = sizeof(*sin6);
 		}
 
 		if (inet6_sk(sk)->rxopt.all)
+		{
 			pingv6_ops.ip6_datagram_recv_common_ctl(sk, msg, skb);
+		}
+
 		if (skb->protocol == htons(ETH_P_IPV6) &&
-		    inet6_sk(sk)->rxopt.all)
+			inet6_sk(sk)->rxopt.all)
+		{
 			pingv6_ops.ip6_datagram_recv_specific_ctl(sk, msg, skb);
+		}
 		else if (skb->protocol == htons(ETH_P_IP) && isk->cmsg_flags)
+		{
 			ip_cmsg_recv(msg, skb);
+		}
+
 #endif
-	} else {
+	}
+	else
+	{
 		BUG();
 	}
 
@@ -943,12 +1233,15 @@ EXPORT_SYMBOL_GPL(ping_recvmsg);
 int ping_queue_rcv_skb(struct sock *sk, struct sk_buff *skb)
 {
 	pr_debug("ping_queue_rcv_skb(sk=%p,sk->num=%d,skb=%p)\n",
-		 inet_sk(sk), inet_sk(sk)->inet_num, skb);
-	if (sock_queue_rcv_skb(sk, skb) < 0) {
+			 inet_sk(sk), inet_sk(sk)->inet_num, skb);
+
+	if (sock_queue_rcv_skb(sk, skb) < 0)
+	{
 		kfree_skb(skb);
 		pr_debug("ping_queue_rcv_skb -> failed\n");
 		return -1;
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(ping_queue_rcv_skb);
@@ -967,28 +1260,36 @@ bool ping_rcv(struct sk_buff *skb)
 	/* We assume the packet has already been checked by icmp_rcv */
 
 	pr_debug("ping_rcv(skb=%p,id=%04x,seq=%04x)\n",
-		 skb, ntohs(icmph->un.echo.id), ntohs(icmph->un.echo.sequence));
+			 skb, ntohs(icmph->un.echo.id), ntohs(icmph->un.echo.sequence));
 
 	/* Push ICMP header back */
 	skb_push(skb, skb->data - (u8 *)icmph);
 
 	sk = ping_lookup(net, skb, ntohs(icmph->un.echo.id));
-	if (sk) {
+
+	if (sk)
+	{
 		struct sk_buff *skb2 = skb_clone(skb, GFP_ATOMIC);
 
 		pr_debug("rcv on socket %p\n", sk);
+
 		if (skb2)
+		{
 			ping_queue_rcv_skb(sk, skb2);
+		}
+
 		sock_put(sk);
 		return true;
 	}
+
 	pr_debug("no socket, dropping\n");
 
 	return false;
 }
 EXPORT_SYMBOL_GPL(ping_rcv);
 
-struct proto ping_prot = {
+struct proto ping_prot =
+{
 	.name =		"PING",
 	.owner =	THIS_MODULE,
 	.init =		ping_init_sock,
@@ -1018,21 +1319,28 @@ static struct sock *ping_get_first(struct seq_file *seq, int start)
 	struct net *net = seq_file_net(seq);
 
 	for (state->bucket = start; state->bucket < PING_HTABLE_SIZE;
-	     ++state->bucket) {
+		 ++state->bucket)
+	{
 		struct hlist_nulls_node *node;
 		struct hlist_nulls_head *hslot;
 
 		hslot = &ping_table.hash[state->bucket];
 
 		if (hlist_nulls_empty(hslot))
+		{
 			continue;
+		}
 
-		sk_nulls_for_each(sk, node, hslot) {
+		sk_nulls_for_each(sk, node, hslot)
+		{
 			if (net_eq(sock_net(sk), net) &&
-			    sk->sk_family == state->family)
+				sk->sk_family == state->family)
+			{
 				goto found;
+			}
 		}
 	}
+
 	sk = NULL;
 found:
 	return sk;
@@ -1043,12 +1351,17 @@ static struct sock *ping_get_next(struct seq_file *seq, struct sock *sk)
 	struct ping_iter_state *state = seq->private;
 	struct net *net = seq_file_net(seq);
 
-	do {
+	do
+	{
 		sk = sk_nulls_next(sk);
-	} while (sk && (!net_eq(sock_net(sk), net)));
+	}
+	while (sk && (!net_eq(sock_net(sk), net)));
 
 	if (!sk)
+	{
 		return ping_get_first(seq, state->bucket + 1);
+	}
+
 	return sk;
 }
 
@@ -1058,12 +1371,15 @@ static struct sock *ping_get_idx(struct seq_file *seq, loff_t pos)
 
 	if (sk)
 		while (pos && (sk = ping_get_next(seq, sk)) != NULL)
+		{
 			--pos;
+		}
+
 	return pos ? NULL : sk;
 }
 
 void *ping_seq_start(struct seq_file *seq, loff_t *pos, sa_family_t family)
-	__acquires(ping_table.lock)
+__acquires(ping_table.lock)
 {
 	struct ping_iter_state *state = seq->private;
 	state->bucket = 0;
@@ -1071,7 +1387,7 @@ void *ping_seq_start(struct seq_file *seq, loff_t *pos, sa_family_t family)
 
 	read_lock_bh(&ping_table.lock);
 
-	return *pos ? ping_get_idx(seq, *pos-1) : SEQ_START_TOKEN;
+	return *pos ? ping_get_idx(seq, *pos - 1) : SEQ_START_TOKEN;
 }
 EXPORT_SYMBOL_GPL(ping_seq_start);
 
@@ -1085,9 +1401,13 @@ void *ping_seq_next(struct seq_file *seq, void *v, loff_t *pos)
 	struct sock *sk;
 
 	if (v == SEQ_START_TOKEN)
+	{
 		sk = ping_get_idx(seq, 0);
+	}
 	else
+	{
 		sk = ping_get_next(seq, v);
+	}
 
 	++*pos;
 	return sk;
@@ -1095,14 +1415,14 @@ void *ping_seq_next(struct seq_file *seq, void *v, loff_t *pos)
 EXPORT_SYMBOL_GPL(ping_seq_next);
 
 void ping_seq_stop(struct seq_file *seq, void *v)
-	__releases(ping_table.lock)
+__releases(ping_table.lock)
 {
 	read_unlock_bh(&ping_table.lock);
 }
 EXPORT_SYMBOL_GPL(ping_seq_stop);
 
 static void ping_v4_format_sock(struct sock *sp, struct seq_file *f,
-		int bucket)
+								int bucket)
 {
 	struct inet_sock *inet = inet_sk(sp);
 	__be32 dest = inet->inet_daddr;
@@ -1111,29 +1431,32 @@ static void ping_v4_format_sock(struct sock *sp, struct seq_file *f,
 	__u16 srcp = ntohs(inet->inet_sport);
 
 	seq_printf(f, "%5d: %08X:%04X %08X:%04X"
-		" %02X %08X:%08X %02X:%08lX %08X %5u %8d %lu %d %pK %d",
-		bucket, src, srcp, dest, destp, sp->sk_state,
-		sk_wmem_alloc_get(sp),
-		sk_rmem_alloc_get(sp),
-		0, 0L, 0,
-		from_kuid_munged(seq_user_ns(f), sock_i_uid(sp)),
-		0, sock_i_ino(sp),
-		atomic_read(&sp->sk_refcnt), sp,
-		atomic_read(&sp->sk_drops));
+			   " %02X %08X:%08X %02X:%08lX %08X %5u %8d %lu %d %pK %d",
+			   bucket, src, srcp, dest, destp, sp->sk_state,
+			   sk_wmem_alloc_get(sp),
+			   sk_rmem_alloc_get(sp),
+			   0, 0L, 0,
+			   from_kuid_munged(seq_user_ns(f), sock_i_uid(sp)),
+			   0, sock_i_ino(sp),
+			   atomic_read(&sp->sk_refcnt), sp,
+			   atomic_read(&sp->sk_drops));
 }
 
 static int ping_v4_seq_show(struct seq_file *seq, void *v)
 {
 	seq_setwidth(seq, 127);
+
 	if (v == SEQ_START_TOKEN)
 		seq_puts(seq, "  sl  local_address rem_address   st tx_queue "
-			   "rx_queue tr tm->when retrnsmt   uid  timeout "
-			   "inode ref pointer drops");
-	else {
+				 "rx_queue tr tm->when retrnsmt   uid  timeout "
+				 "inode ref pointer drops");
+	else
+	{
 		struct ping_iter_state *state = seq->private;
 
 		ping_v4_format_sock(v, seq, state->bucket);
 	}
+
 	seq_pad(seq, '\n');
 	return 0;
 }
@@ -1142,10 +1465,11 @@ static int ping_seq_open(struct inode *inode, struct file *file)
 {
 	struct ping_seq_afinfo *afinfo = PDE_DATA(inode);
 	return seq_open_net(inode, file, &afinfo->seq_ops,
-			   sizeof(struct ping_iter_state));
+						sizeof(struct ping_iter_state));
 }
 
-const struct file_operations ping_seq_fops = {
+const struct file_operations ping_seq_fops =
+{
 	.open		= ping_seq_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -1153,7 +1477,8 @@ const struct file_operations ping_seq_fops = {
 };
 EXPORT_SYMBOL_GPL(ping_seq_fops);
 
-static struct ping_seq_afinfo ping_v4_seq_afinfo = {
+static struct ping_seq_afinfo ping_v4_seq_afinfo =
+{
 	.name		= "icmp",
 	.family		= AF_INET,
 	.seq_fops	= &ping_seq_fops,
@@ -1169,9 +1494,13 @@ int ping_proc_register(struct net *net, struct ping_seq_afinfo *afinfo)
 {
 	struct proc_dir_entry *p;
 	p = proc_create_data(afinfo->name, S_IRUGO, net->proc_net,
-			     afinfo->seq_fops, afinfo);
+						 afinfo->seq_fops, afinfo);
+
 	if (!p)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(ping_proc_register);
@@ -1192,7 +1521,8 @@ static void __net_exit ping_v4_proc_exit_net(struct net *net)
 	ping_proc_unregister(net, &ping_v4_seq_afinfo);
 }
 
-static struct pernet_operations ping_v4_net_ops = {
+static struct pernet_operations ping_v4_net_ops =
+{
 	.init = ping_v4_proc_init_net,
 	.exit = ping_v4_proc_exit_net,
 };
@@ -1214,6 +1544,9 @@ void __init ping_init(void)
 	int i;
 
 	for (i = 0; i < PING_HTABLE_SIZE; i++)
+	{
 		INIT_HLIST_NULLS_HEAD(&ping_table.hash[i], i);
+	}
+
 	rwlock_init(&ping_table.lock);
 }

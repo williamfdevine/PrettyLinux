@@ -37,12 +37,12 @@ MODULE_AUTHOR("Nestor Lopez Casado <nlopezcasad@logitech.com>");
 static bool disable_raw_mode;
 module_param(disable_raw_mode, bool, 0644);
 MODULE_PARM_DESC(disable_raw_mode,
-	"Disable Raw mode reporting for touchpads and keep firmware gestures.");
+				 "Disable Raw mode reporting for touchpads and keep firmware gestures.");
 
 static bool disable_tap_to_click;
 module_param(disable_tap_to_click, bool, 0644);
 MODULE_PARM_DESC(disable_tap_to_click,
-	"Disable Tap-To-Click mode reporting for touchpads (only on the K400 currently).");
+				 "Disable Tap-To-Click mode reporting for touchpads (only on the K400 currently).");
 
 #define REPORT_ID_HIDPP_SHORT			0x10
 #define REPORT_ID_HIDPP_LONG			0x11
@@ -64,7 +64,7 @@ MODULE_PARM_DESC(disable_tap_to_click,
 #define HIDPP_QUIRK_FORCE_OUTPUT_REPORTS	BIT(24)
 
 #define HIDPP_QUIRK_DELAYED_INIT		(HIDPP_QUIRK_NO_HIDINPUT | \
-						 HIDPP_QUIRK_CONNECT_EVENTS)
+		HIDPP_QUIRK_CONNECT_EVENTS)
 
 /*
  * There are two hidpp protocols in use, the first version hidpp10 is known
@@ -88,29 +88,34 @@ MODULE_PARM_DESC(disable_tap_to_click,
  * from the Unifiying receiver.
  */
 
-struct fap {
+struct fap
+{
 	u8 feature_index;
 	u8 funcindex_clientid;
 	u8 params[HIDPP_REPORT_VERY_LONG_LENGTH - 4U];
 };
 
-struct rap {
+struct rap
+{
 	u8 sub_id;
 	u8 reg_address;
 	u8 params[HIDPP_REPORT_VERY_LONG_LENGTH - 4U];
 };
 
-struct hidpp_report {
+struct hidpp_report
+{
 	u8 report_id;
 	u8 device_index;
-	union {
+	union
+	{
 		struct fap fap;
 		struct rap rap;
 		u8 rawbytes[sizeof(struct fap)];
 	};
 } __packed;
 
-struct hidpp_device {
+struct hidpp_device
+{
 	struct hid_device *hid_dev;
 	struct mutex send_mutex;
 	void *send_receive_buf;
@@ -152,25 +157,29 @@ struct hidpp_device {
 static void hidpp_connect_event(struct hidpp_device *hidpp_dev);
 
 static int __hidpp_send_report(struct hid_device *hdev,
-				struct hidpp_report *hidpp_report)
+							   struct hidpp_report *hidpp_report)
 {
 	struct hidpp_device *hidpp = hid_get_drvdata(hdev);
 	int fields_count, ret;
 
 	hidpp = hid_get_drvdata(hdev);
 
-	switch (hidpp_report->report_id) {
-	case REPORT_ID_HIDPP_SHORT:
-		fields_count = HIDPP_REPORT_SHORT_LENGTH;
-		break;
-	case REPORT_ID_HIDPP_LONG:
-		fields_count = HIDPP_REPORT_LONG_LENGTH;
-		break;
-	case REPORT_ID_HIDPP_VERY_LONG:
-		fields_count = HIDPP_REPORT_VERY_LONG_LENGTH;
-		break;
-	default:
-		return -ENODEV;
+	switch (hidpp_report->report_id)
+	{
+		case REPORT_ID_HIDPP_SHORT:
+			fields_count = HIDPP_REPORT_SHORT_LENGTH;
+			break;
+
+		case REPORT_ID_HIDPP_LONG:
+			fields_count = HIDPP_REPORT_LONG_LENGTH;
+			break;
+
+		case REPORT_ID_HIDPP_VERY_LONG:
+			fields_count = HIDPP_REPORT_VERY_LONG_LENGTH;
+			break;
+
+		default:
+			return -ENODEV;
 	}
 
 	/*
@@ -179,12 +188,15 @@ static int __hidpp_send_report(struct hid_device *hdev,
 	 */
 	hidpp_report->device_index = 0xff;
 
-	if (hidpp->quirks & HIDPP_QUIRK_FORCE_OUTPUT_REPORTS) {
+	if (hidpp->quirks & HIDPP_QUIRK_FORCE_OUTPUT_REPORTS)
+	{
 		ret = hid_hw_output_report(hdev, (u8 *)hidpp_report, fields_count);
-	} else {
+	}
+	else
+	{
 		ret = hid_hw_raw_request(hdev, hidpp_report->report_id,
-			(u8 *)hidpp_report, fields_count, HID_OUTPUT_REPORT,
-			HID_REQ_SET_REPORT);
+								 (u8 *)hidpp_report, fields_count, HID_OUTPUT_REPORT,
+								 HID_REQ_SET_REPORT);
 	}
 
 	return ret == fields_count ? 0 : -1;
@@ -199,8 +211,8 @@ static int __hidpp_send_report(struct hid_device *hdev,
  *   (-ENOMEM, -EPIPE, etc...)
  */
 static int hidpp_send_message_sync(struct hidpp_device *hidpp,
-	struct hidpp_report *message,
-	struct hidpp_report *response)
+								   struct hidpp_report *message,
+								   struct hidpp_report *response)
 {
 	int ret;
 
@@ -217,29 +229,33 @@ static int hidpp_send_message_sync(struct hidpp_device *hidpp,
 
 	ret = __hidpp_send_report(hidpp->hid_dev, message);
 
-	if (ret) {
+	if (ret)
+	{
 		dbg_hid("__hidpp_send_report returned err: %d\n", ret);
 		memset(response, 0, sizeof(struct hidpp_report));
 		goto exit;
 	}
 
 	if (!wait_event_timeout(hidpp->wait, hidpp->answer_available,
-				5*HZ)) {
+							5 * HZ))
+	{
 		dbg_hid("%s:timeout waiting for response\n", __func__);
 		memset(response, 0, sizeof(struct hidpp_report));
 		ret = -ETIMEDOUT;
 	}
 
 	if (response->report_id == REPORT_ID_HIDPP_SHORT &&
-	    response->rap.sub_id == HIDPP_ERROR) {
+		response->rap.sub_id == HIDPP_ERROR)
+	{
 		ret = response->rap.params[1];
 		dbg_hid("%s:got hidpp error %02X\n", __func__, ret);
 		goto exit;
 	}
 
 	if ((response->report_id == REPORT_ID_HIDPP_LONG ||
-			response->report_id == REPORT_ID_HIDPP_VERY_LONG) &&
-			response->fap.feature_index == HIDPP20_ERROR) {
+		 response->report_id == REPORT_ID_HIDPP_VERY_LONG) &&
+		response->fap.feature_index == HIDPP20_ERROR)
+	{
 		ret = response->fap.params[1];
 		dbg_hid("%s:got hidpp 2.0 error %02X\n", __func__, ret);
 		goto exit;
@@ -252,23 +268,33 @@ exit:
 }
 
 static int hidpp_send_fap_command_sync(struct hidpp_device *hidpp,
-	u8 feat_index, u8 funcindex_clientid, u8 *params, int param_count,
-	struct hidpp_report *response)
+									   u8 feat_index, u8 funcindex_clientid, u8 *params, int param_count,
+									   struct hidpp_report *response)
 {
 	struct hidpp_report *message;
 	int ret;
 
 	if (param_count > sizeof(message->fap.params))
+	{
 		return -EINVAL;
+	}
 
 	message = kzalloc(sizeof(struct hidpp_report), GFP_KERNEL);
+
 	if (!message)
+	{
 		return -ENOMEM;
+	}
 
 	if (param_count > (HIDPP_REPORT_LONG_LENGTH - 4))
+	{
 		message->report_id = REPORT_ID_HIDPP_VERY_LONG;
+	}
 	else
+	{
 		message->report_id = REPORT_ID_HIDPP_LONG;
+	}
+
 	message->fap.feature_index = feat_index;
 	message->fap.funcindex_clientid = funcindex_clientid;
 	memcpy(&message->fap.params, params, param_count);
@@ -279,32 +305,42 @@ static int hidpp_send_fap_command_sync(struct hidpp_device *hidpp,
 }
 
 static int hidpp_send_rap_command_sync(struct hidpp_device *hidpp_dev,
-	u8 report_id, u8 sub_id, u8 reg_address, u8 *params, int param_count,
-	struct hidpp_report *response)
+									   u8 report_id, u8 sub_id, u8 reg_address, u8 *params, int param_count,
+									   struct hidpp_report *response)
 {
 	struct hidpp_report *message;
 	int ret, max_count;
 
-	switch (report_id) {
-	case REPORT_ID_HIDPP_SHORT:
-		max_count = HIDPP_REPORT_SHORT_LENGTH - 4;
-		break;
-	case REPORT_ID_HIDPP_LONG:
-		max_count = HIDPP_REPORT_LONG_LENGTH - 4;
-		break;
-	case REPORT_ID_HIDPP_VERY_LONG:
-		max_count = HIDPP_REPORT_VERY_LONG_LENGTH - 4;
-		break;
-	default:
-		return -EINVAL;
+	switch (report_id)
+	{
+		case REPORT_ID_HIDPP_SHORT:
+			max_count = HIDPP_REPORT_SHORT_LENGTH - 4;
+			break;
+
+		case REPORT_ID_HIDPP_LONG:
+			max_count = HIDPP_REPORT_LONG_LENGTH - 4;
+			break;
+
+		case REPORT_ID_HIDPP_VERY_LONG:
+			max_count = HIDPP_REPORT_VERY_LONG_LENGTH - 4;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	if (param_count > max_count)
+	{
 		return -EINVAL;
+	}
 
 	message = kzalloc(sizeof(struct hidpp_report), GFP_KERNEL);
+
 	if (!message)
+	{
 		return -ENOMEM;
+	}
+
 	message->report_id = report_id;
 	message->rap.sub_id = sub_id;
 	message->rap.reg_address = reg_address;
@@ -318,30 +354,30 @@ static int hidpp_send_rap_command_sync(struct hidpp_device *hidpp_dev,
 static void delayed_work_cb(struct work_struct *work)
 {
 	struct hidpp_device *hidpp = container_of(work, struct hidpp_device,
-							work);
+								 work);
 	hidpp_connect_event(hidpp);
 }
 
 static inline bool hidpp_match_answer(struct hidpp_report *question,
-		struct hidpp_report *answer)
+									  struct hidpp_report *answer)
 {
 	return (answer->fap.feature_index == question->fap.feature_index) &&
-	   (answer->fap.funcindex_clientid == question->fap.funcindex_clientid);
+		   (answer->fap.funcindex_clientid == question->fap.funcindex_clientid);
 }
 
 static inline bool hidpp_match_error(struct hidpp_report *question,
-		struct hidpp_report *answer)
+									 struct hidpp_report *answer)
 {
 	return ((answer->rap.sub_id == HIDPP_ERROR) ||
-	    (answer->fap.feature_index == HIDPP20_ERROR)) &&
-	    (answer->fap.funcindex_clientid == question->fap.feature_index) &&
-	    (answer->fap.params[0] == question->fap.funcindex_clientid);
+			(answer->fap.feature_index == HIDPP20_ERROR)) &&
+		   (answer->fap.funcindex_clientid == question->fap.feature_index) &&
+		   (answer->fap.params[0] == question->fap.funcindex_clientid);
 }
 
 static inline bool hidpp_report_is_connect_event(struct hidpp_report *report)
 {
 	return (report->report_id == REPORT_ID_HIDPP_SHORT) &&
-		(report->rap.sub_id == 0x41);
+		   (report->rap.sub_id == 0x41);
 }
 
 /**
@@ -355,14 +391,19 @@ static void hidpp_prefix_name(char **name, int name_length)
 	char *new_name;
 
 	if (name_length > PREFIX_LENGTH &&
-	    strncmp(*name, "Logitech ", PREFIX_LENGTH) == 0)
+		strncmp(*name, "Logitech ", PREFIX_LENGTH) == 0)
 		/* The prefix has is already in the name */
+	{
 		return;
+	}
 
 	new_length = PREFIX_LENGTH + name_length;
 	new_name = kzalloc(new_length, GFP_KERNEL);
+
 	if (!new_name)
+	{
 		return;
+	}
 
 	snprintf(new_name, new_length, "Logitech %s", *name);
 
@@ -393,21 +434,29 @@ static char *hidpp_get_unifying_name(struct hidpp_device *hidpp_dev)
 	int len;
 
 	ret = hidpp_send_rap_command_sync(hidpp_dev,
-					REPORT_ID_HIDPP_SHORT,
-					HIDPP_GET_LONG_REGISTER,
-					HIDPP_REG_PAIRING_INFORMATION,
-					params, 1, &response);
+									  REPORT_ID_HIDPP_SHORT,
+									  HIDPP_GET_LONG_REGISTER,
+									  HIDPP_REG_PAIRING_INFORMATION,
+									  params, 1, &response);
+
 	if (ret)
+	{
 		return NULL;
+	}
 
 	len = response.rap.params[1];
 
 	if (2 + len > sizeof(response.rap.params))
+	{
 		return NULL;
+	}
 
 	name = kzalloc(len + 1, GFP_KERNEL);
+
 	if (!name)
+	{
 		return NULL;
+	}
 
 	memcpy(name, &response.rap.params[2], len);
 
@@ -428,18 +477,21 @@ static char *hidpp_get_unifying_name(struct hidpp_device *hidpp_dev)
 #define CMD_ROOT_GET_PROTOCOL_VERSION			0x11
 
 static int hidpp_root_get_feature(struct hidpp_device *hidpp, u16 feature,
-	u8 *feature_index, u8 *feature_type)
+								  u8 *feature_index, u8 *feature_type)
 {
 	struct hidpp_report response;
 	int ret;
 	u8 params[2] = { feature >> 8, feature & 0x00FF };
 
 	ret = hidpp_send_fap_command_sync(hidpp,
-			HIDPP_PAGE_ROOT_IDX,
-			CMD_ROOT_GET_FEATURE,
-			params, 2, &response);
+									  HIDPP_PAGE_ROOT_IDX,
+									  CMD_ROOT_GET_FEATURE,
+									  params, 2, &response);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	*feature_index = response.fap.params[0];
 	*feature_type = response.fap.params[1];
@@ -453,11 +505,12 @@ static int hidpp_root_get_protocol_version(struct hidpp_device *hidpp)
 	int ret;
 
 	ret = hidpp_send_fap_command_sync(hidpp,
-			HIDPP_PAGE_ROOT_IDX,
-			CMD_ROOT_GET_PROTOCOL_VERSION,
-			NULL, 0, &response);
+									  HIDPP_PAGE_ROOT_IDX,
+									  CMD_ROOT_GET_PROTOCOL_VERSION,
+									  NULL, 0, &response);
 
-	if (ret == HIDPP_ERROR_INVALID_SUBID) {
+	if (ret == HIDPP_ERROR_INVALID_SUBID)
+	{
 		hidpp->protocol_major = 1;
 		hidpp->protocol_minor = 0;
 		return 0;
@@ -465,15 +518,21 @@ static int hidpp_root_get_protocol_version(struct hidpp_device *hidpp)
 
 	/* the device might not be connected */
 	if (ret == HIDPP_ERROR_RESOURCE_ERROR)
+	{
 		return -EIO;
+	}
 
-	if (ret > 0) {
+	if (ret > 0)
+	{
 		hid_err(hidpp->hid_dev, "%s: received protocol error 0x%02x\n",
-			__func__, ret);
+				__func__, ret);
 		return -EPROTO;
 	}
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	hidpp->protocol_major = response.fap.params[0];
 	hidpp->protocol_minor = response.fap.params[1];
@@ -486,9 +545,11 @@ static bool hidpp_is_connected(struct hidpp_device *hidpp)
 	int ret;
 
 	ret = hidpp_root_get_protocol_version(hidpp);
+
 	if (!ret)
 		hid_dbg(hidpp->hid_dev, "HID++ %u.%u device connected.\n",
-			hidpp->protocol_major, hidpp->protocol_minor);
+				hidpp->protocol_major, hidpp->protocol_minor);
+
 	return ret == 0;
 }
 
@@ -503,21 +564,25 @@ static bool hidpp_is_connected(struct hidpp_device *hidpp)
 #define CMD_GET_DEVICE_NAME_TYPE_GET_TYPE		0x21
 
 static int hidpp_devicenametype_get_count(struct hidpp_device *hidpp,
-	u8 feature_index, u8 *nameLength)
+		u8 feature_index, u8 *nameLength)
 {
 	struct hidpp_report response;
 	int ret;
 
 	ret = hidpp_send_fap_command_sync(hidpp, feature_index,
-		CMD_GET_DEVICE_NAME_TYPE_GET_COUNT, NULL, 0, &response);
+									  CMD_GET_DEVICE_NAME_TYPE_GET_COUNT, NULL, 0, &response);
 
-	if (ret > 0) {
+	if (ret > 0)
+	{
 		hid_err(hidpp->hid_dev, "%s: received protocol error 0x%02x\n",
-			__func__, ret);
+				__func__, ret);
 		return -EPROTO;
 	}
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	*nameLength = response.fap.params[0];
 
@@ -525,43 +590,55 @@ static int hidpp_devicenametype_get_count(struct hidpp_device *hidpp,
 }
 
 static int hidpp_devicenametype_get_device_name(struct hidpp_device *hidpp,
-	u8 feature_index, u8 char_index, char *device_name, int len_buf)
+		u8 feature_index, u8 char_index, char *device_name, int len_buf)
 {
 	struct hidpp_report response;
 	int ret, i;
 	int count;
 
 	ret = hidpp_send_fap_command_sync(hidpp, feature_index,
-		CMD_GET_DEVICE_NAME_TYPE_GET_DEVICE_NAME, &char_index, 1,
-		&response);
+									  CMD_GET_DEVICE_NAME_TYPE_GET_DEVICE_NAME, &char_index, 1,
+									  &response);
 
-	if (ret > 0) {
+	if (ret > 0)
+	{
 		hid_err(hidpp->hid_dev, "%s: received protocol error 0x%02x\n",
-			__func__, ret);
+				__func__, ret);
 		return -EPROTO;
 	}
-	if (ret)
-		return ret;
 
-	switch (response.report_id) {
-	case REPORT_ID_HIDPP_VERY_LONG:
-		count = HIDPP_REPORT_VERY_LONG_LENGTH - 4;
-		break;
-	case REPORT_ID_HIDPP_LONG:
-		count = HIDPP_REPORT_LONG_LENGTH - 4;
-		break;
-	case REPORT_ID_HIDPP_SHORT:
-		count = HIDPP_REPORT_SHORT_LENGTH - 4;
-		break;
-	default:
-		return -EPROTO;
+	if (ret)
+	{
+		return ret;
+	}
+
+	switch (response.report_id)
+	{
+		case REPORT_ID_HIDPP_VERY_LONG:
+			count = HIDPP_REPORT_VERY_LONG_LENGTH - 4;
+			break;
+
+		case REPORT_ID_HIDPP_LONG:
+			count = HIDPP_REPORT_LONG_LENGTH - 4;
+			break;
+
+		case REPORT_ID_HIDPP_SHORT:
+			count = HIDPP_REPORT_SHORT_LENGTH - 4;
+			break;
+
+		default:
+			return -EPROTO;
 	}
 
 	if (len_buf < count)
+	{
 		count = len_buf;
+	}
 
 	for (i = 0; i < count; i++)
+	{
 		device_name[i] = response.fap.params[i];
+	}
 
 	return count;
 }
@@ -576,27 +653,40 @@ static char *hidpp_get_device_name(struct hidpp_device *hidpp)
 	int ret;
 
 	ret = hidpp_root_get_feature(hidpp, HIDPP_PAGE_GET_DEVICE_NAME_TYPE,
-		&feature_index, &feature_type);
+								 &feature_index, &feature_type);
+
 	if (ret)
+	{
 		return NULL;
+	}
 
 	ret = hidpp_devicenametype_get_count(hidpp, feature_index,
-		&__name_length);
+										 &__name_length);
+
 	if (ret)
+	{
 		return NULL;
+	}
 
 	name = kzalloc(__name_length + 1, GFP_KERNEL);
-	if (!name)
-		return NULL;
 
-	while (index < __name_length) {
+	if (!name)
+	{
+		return NULL;
+	}
+
+	while (index < __name_length)
+	{
 		ret = hidpp_devicenametype_get_device_name(hidpp,
-			feature_index, index, name + index,
-			__name_length - index);
-		if (ret <= 0) {
+				feature_index, index, name + index,
+				__name_length - index);
+
+		if (ret <= 0)
+		{
 			kfree(name);
 			return NULL;
 		}
+
 		index += ret;
 	}
 
@@ -614,7 +704,8 @@ static char *hidpp_get_device_name(struct hidpp_device *hidpp)
 
 #define CMD_TOUCHPAD_FW_ITEMS_SET			0x10
 
-struct hidpp_touchpad_fw_items {
+struct hidpp_touchpad_fw_items
+{
 	uint8_t presence;
 	uint8_t desired_state;
 	uint8_t state;
@@ -626,23 +717,27 @@ struct hidpp_touchpad_fw_items {
  * field. items is then filled with the current state.
  */
 static int hidpp_touchpad_fw_items_set(struct hidpp_device *hidpp,
-				       u8 feature_index,
-				       struct hidpp_touchpad_fw_items *items)
+									   u8 feature_index,
+									   struct hidpp_touchpad_fw_items *items)
 {
 	struct hidpp_report response;
 	int ret;
 	u8 *params = (u8 *)response.fap.params;
 
 	ret = hidpp_send_fap_command_sync(hidpp, feature_index,
-		CMD_TOUCHPAD_FW_ITEMS_SET, &items->state, 1, &response);
+									  CMD_TOUCHPAD_FW_ITEMS_SET, &items->state, 1, &response);
 
-	if (ret > 0) {
+	if (ret > 0)
+	{
 		hid_err(hidpp->hid_dev, "%s: received protocol error 0x%02x\n",
-			__func__, ret);
+				__func__, ret);
 		return -EPROTO;
 	}
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	items->presence = params[0];
 	items->desired_state = params[1];
@@ -666,7 +761,8 @@ static int hidpp_touchpad_fw_items_set(struct hidpp_device *hidpp,
 #define TOUCHPAD_RAW_XY_ORIGIN_LOWER_LEFT		0x01
 #define TOUCHPAD_RAW_XY_ORIGIN_UPPER_LEFT		0x03
 
-struct hidpp_touchpad_raw_info {
+struct hidpp_touchpad_raw_info
+{
 	u16 x_size;
 	u16 y_size;
 	u8 z_range;
@@ -677,7 +773,8 @@ struct hidpp_touchpad_raw_info {
 	u16 res;
 };
 
-struct hidpp_touchpad_raw_xy_finger {
+struct hidpp_touchpad_raw_xy_finger
+{
 	u8 contact_type;
 	u8 contact_status;
 	u16 x;
@@ -687,7 +784,8 @@ struct hidpp_touchpad_raw_xy_finger {
 	u8 finger_id;
 };
 
-struct hidpp_touchpad_raw_xy {
+struct hidpp_touchpad_raw_xy
+{
 	u16 timestamp;
 	struct hidpp_touchpad_raw_xy_finger fingers[2];
 	u8 spurious_flag;
@@ -697,22 +795,26 @@ struct hidpp_touchpad_raw_xy {
 };
 
 static int hidpp_touchpad_get_raw_info(struct hidpp_device *hidpp,
-	u8 feature_index, struct hidpp_touchpad_raw_info *raw_info)
+									   u8 feature_index, struct hidpp_touchpad_raw_info *raw_info)
 {
 	struct hidpp_report response;
 	int ret;
 	u8 *params = (u8 *)response.fap.params;
 
 	ret = hidpp_send_fap_command_sync(hidpp, feature_index,
-		CMD_TOUCHPAD_GET_RAW_INFO, NULL, 0, &response);
+									  CMD_TOUCHPAD_GET_RAW_INFO, NULL, 0, &response);
 
-	if (ret > 0) {
+	if (ret > 0)
+	{
 		hid_err(hidpp->hid_dev, "%s: received protocol error 0x%02x\n",
-			__func__, ret);
+				__func__, ret);
 		return -EPROTO;
 	}
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	raw_info->x_size = get_unaligned_be16(&params[0]);
 	raw_info->y_size = get_unaligned_be16(&params[2]);
@@ -744,11 +846,11 @@ static int hidpp_touchpad_set_raw_report_state(struct hidpp_device *hidpp_dev,
 	u8 params = send_raw_reports | (sensor_enhanced_settings << 2);
 
 	return hidpp_send_fap_command_sync(hidpp_dev, feature_index,
-		CMD_TOUCHPAD_SET_RAW_REPORT_STATE, &params, 1, &response);
+									   CMD_TOUCHPAD_SET_RAW_REPORT_STATE, &params, 1, &response);
 }
 
 static void hidpp_touchpad_touch_event(u8 *data,
-	struct hidpp_touchpad_raw_xy_finger *finger)
+									   struct hidpp_touchpad_raw_xy_finger *finger)
 {
 	u8 x_m = data[0] << 2;
 	u8 y_m = data[2] << 2;
@@ -765,7 +867,7 @@ static void hidpp_touchpad_touch_event(u8 *data,
 }
 
 static void hidpp_touchpad_raw_xy_event(struct hidpp_device *hidpp_dev,
-		u8 *data, struct hidpp_touchpad_raw_xy *raw_xy)
+										u8 *data, struct hidpp_touchpad_raw_xy *raw_xy)
 {
 	memset(raw_xy, 0, sizeof(struct hidpp_touchpad_raw_xy));
 	raw_xy->end_of_frame = data[8] & 0x01;
@@ -773,7 +875,8 @@ static void hidpp_touchpad_raw_xy_event(struct hidpp_device *hidpp_dev,
 	raw_xy->finger_count = data[15] & 0x0f;
 	raw_xy->button = (data[8] >> 2) & 0x01;
 
-	if (raw_xy->finger_count) {
+	if (raw_xy->finger_count)
+	{
 		hidpp_touchpad_touch_event(&data[2], &raw_xy->fingers[0]);
 		hidpp_touchpad_touch_event(&data[9], &raw_xy->fingers[1]);
 	}
@@ -818,7 +921,8 @@ static void hidpp_touchpad_raw_xy_event(struct hidpp_device *hidpp_dev,
 #define HIDPP_FF_MAX_PARAMS	20
 #define HIDPP_FF_RESERVED_SLOTS	1
 
-struct hidpp_ff_private_data {
+struct hidpp_ff_private_data
+{
 	struct hidpp_device *hidpp;
 	u8 feature_index;
 	u8 version;
@@ -831,7 +935,8 @@ struct hidpp_ff_private_data {
 	atomic_t workqueue_size;
 };
 
-struct hidpp_ff_work_data {
+struct hidpp_ff_work_data
+{
 	struct work_struct work;
 	struct hidpp_ff_private_data *data;
 	int effect_id;
@@ -840,7 +945,8 @@ struct hidpp_ff_work_data {
 	u8 size;
 };
 
-static const signed short hiddpp_ff_effects[] = {
+static const signed short hiddpp_ff_effects[] =
+{
 	FF_CONSTANT,
 	FF_PERIODIC,
 	FF_SINE,
@@ -855,21 +961,24 @@ static const signed short hiddpp_ff_effects[] = {
 	-1
 };
 
-static const signed short hiddpp_ff_effects_v2[] = {
+static const signed short hiddpp_ff_effects_v2[] =
+{
 	FF_RAMP,
 	FF_FRICTION,
 	FF_INERTIA,
 	-1
 };
 
-static const u8 HIDPP_FF_CONDITION_CMDS[] = {
+static const u8 HIDPP_FF_CONDITION_CMDS[] =
+{
 	HIDPP_FF_EFFECT_SPRING,
 	HIDPP_FF_EFFECT_FRICTION,
 	HIDPP_FF_EFFECT_DAMPER,
 	HIDPP_FF_EFFECT_INERTIA
 };
 
-static const char *HIDPP_FF_CONDITION_NAMES[] = {
+static const char *HIDPP_FF_CONDITION_NAMES[] =
+{
 	"spring",
 	"friction",
 	"damper",
@@ -883,7 +992,9 @@ static u8 hidpp_ff_find_effect(struct hidpp_ff_private_data *data, int effect_id
 
 	for (i = 0; i < data->num_effects; i++)
 		if (data->effect_ids[i] == effect_id)
-			return i+1;
+		{
+			return i + 1;
+		}
 
 	return 0;
 }
@@ -897,58 +1008,79 @@ static void hidpp_ff_work_handler(struct work_struct *w)
 	int ret;
 
 	/* add slot number if needed */
-	switch (wd->effect_id) {
-	case HIDPP_FF_EFFECTID_AUTOCENTER:
-		wd->params[0] = data->slot_autocenter;
-		break;
-	case HIDPP_FF_EFFECTID_NONE:
-		/* leave slot as zero */
-		break;
-	default:
-		/* find current slot for effect */
-		wd->params[0] = hidpp_ff_find_effect(data, wd->effect_id);
-		break;
+	switch (wd->effect_id)
+	{
+		case HIDPP_FF_EFFECTID_AUTOCENTER:
+			wd->params[0] = data->slot_autocenter;
+			break;
+
+		case HIDPP_FF_EFFECTID_NONE:
+			/* leave slot as zero */
+			break;
+
+		default:
+			/* find current slot for effect */
+			wd->params[0] = hidpp_ff_find_effect(data, wd->effect_id);
+			break;
 	}
 
 	/* send command and wait for reply */
 	ret = hidpp_send_fap_command_sync(data->hidpp, data->feature_index,
-		wd->command, wd->params, wd->size, &response);
+									  wd->command, wd->params, wd->size, &response);
 
-	if (ret) {
+	if (ret)
+	{
 		hid_err(data->hidpp->hid_dev, "Failed to send command to device!\n");
 		goto out;
 	}
 
 	/* parse return data */
-	switch (wd->command) {
-	case HIDPP_FF_DOWNLOAD_EFFECT:
-		slot = response.fap.params[0];
-		if (slot > 0 && slot <= data->num_effects) {
+	switch (wd->command)
+	{
+		case HIDPP_FF_DOWNLOAD_EFFECT:
+			slot = response.fap.params[0];
+
+			if (slot > 0 && slot <= data->num_effects)
+			{
+				if (wd->effect_id >= 0)
+					/* regular effect uploaded */
+				{
+					data->effect_ids[slot - 1] = wd->effect_id;
+				}
+				else if (wd->effect_id >= HIDPP_FF_EFFECTID_AUTOCENTER)
+					/* autocenter spring uploaded */
+				{
+					data->slot_autocenter = slot;
+				}
+			}
+
+			break;
+
+		case HIDPP_FF_DESTROY_EFFECT:
 			if (wd->effect_id >= 0)
-				/* regular effect uploaded */
-				data->effect_ids[slot-1] = wd->effect_id;
+				/* regular effect destroyed */
+			{
+				data->effect_ids[wd->params[0] - 1] = -1;
+			}
 			else if (wd->effect_id >= HIDPP_FF_EFFECTID_AUTOCENTER)
-				/* autocenter spring uploaded */
-				data->slot_autocenter = slot;
-		}
-		break;
-	case HIDPP_FF_DESTROY_EFFECT:
-		if (wd->effect_id >= 0)
-			/* regular effect destroyed */
-			data->effect_ids[wd->params[0]-1] = -1;
-		else if (wd->effect_id >= HIDPP_FF_EFFECTID_AUTOCENTER)
-			/* autocenter spring destoyed */
-			data->slot_autocenter = 0;
-		break;
-	case HIDPP_FF_SET_GLOBAL_GAINS:
-		data->gain = (wd->params[0] << 8) + wd->params[1];
-		break;
-	case HIDPP_FF_SET_APERTURE:
-		data->range = (wd->params[0] << 8) + wd->params[1];
-		break;
-	default:
-		/* no action needed */
-		break;
+				/* autocenter spring destoyed */
+			{
+				data->slot_autocenter = 0;
+			}
+
+			break;
+
+		case HIDPP_FF_SET_GLOBAL_GAINS:
+			data->gain = (wd->params[0] << 8) + wd->params[1];
+			break;
+
+		case HIDPP_FF_SET_APERTURE:
+			data->range = (wd->params[0] << 8) + wd->params[1];
+			break;
+
+		default:
+			/* no action needed */
+			break;
 	}
 
 out:
@@ -962,7 +1094,9 @@ static int hidpp_ff_queue_work(struct hidpp_ff_private_data *data, int effect_id
 	int s;
 
 	if (!wd)
+	{
 		return -ENOMEM;
+	}
 
 	INIT_WORK(&wd->work, hidpp_ff_work_handler);
 
@@ -977,8 +1111,11 @@ static int hidpp_ff_queue_work(struct hidpp_ff_private_data *data, int effect_id
 
 	/* warn about excessive queue size */
 	s = atomic_read(&data->workqueue_size);
+
 	if (s >= 20 && s % 20 == 0)
+	{
 		hid_warn(data->hidpp->hid_dev, "Force feedback command queue contains %d commands, causing substantial delays!", s);
+	}
 
 	return 0;
 }
@@ -996,134 +1133,146 @@ static int hidpp_ff_upload_effect(struct input_dev *dev, struct ff_effect *effec
 	params[4] = effect->replay.delay >> 8;
 	params[5] = effect->replay.delay & 255;
 
-	switch (effect->type) {
-	case FF_CONSTANT:
-		force = (effect->u.constant.level * fixp_sin16((effect->direction * 360) >> 16)) >> 15;
-		params[1] = HIDPP_FF_EFFECT_CONSTANT;
-		params[6] = force >> 8;
-		params[7] = force & 255;
-		params[8] = effect->u.constant.envelope.attack_level >> 7;
-		params[9] = effect->u.constant.envelope.attack_length >> 8;
-		params[10] = effect->u.constant.envelope.attack_length & 255;
-		params[11] = effect->u.constant.envelope.fade_level >> 7;
-		params[12] = effect->u.constant.envelope.fade_length >> 8;
-		params[13] = effect->u.constant.envelope.fade_length & 255;
-		size = 14;
-		dbg_hid("Uploading constant force level=%d in dir %d = %d\n",
-				effect->u.constant.level,
-				effect->direction, force);
-		dbg_hid("          envelope attack=(%d, %d ms) fade=(%d, %d ms)\n",
-				effect->u.constant.envelope.attack_level,
-				effect->u.constant.envelope.attack_length,
-				effect->u.constant.envelope.fade_level,
-				effect->u.constant.envelope.fade_length);
-		break;
-	case FF_PERIODIC:
+	switch (effect->type)
 	{
-		switch (effect->u.periodic.waveform) {
-		case FF_SINE:
-			params[1] = HIDPP_FF_EFFECT_PERIODIC_SINE;
+		case FF_CONSTANT:
+			force = (effect->u.constant.level * fixp_sin16((effect->direction * 360) >> 16)) >> 15;
+			params[1] = HIDPP_FF_EFFECT_CONSTANT;
+			params[6] = force >> 8;
+			params[7] = force & 255;
+			params[8] = effect->u.constant.envelope.attack_level >> 7;
+			params[9] = effect->u.constant.envelope.attack_length >> 8;
+			params[10] = effect->u.constant.envelope.attack_length & 255;
+			params[11] = effect->u.constant.envelope.fade_level >> 7;
+			params[12] = effect->u.constant.envelope.fade_length >> 8;
+			params[13] = effect->u.constant.envelope.fade_length & 255;
+			size = 14;
+			dbg_hid("Uploading constant force level=%d in dir %d = %d\n",
+					effect->u.constant.level,
+					effect->direction, force);
+			dbg_hid("          envelope attack=(%d, %d ms) fade=(%d, %d ms)\n",
+					effect->u.constant.envelope.attack_level,
+					effect->u.constant.envelope.attack_length,
+					effect->u.constant.envelope.fade_level,
+					effect->u.constant.envelope.fade_length);
 			break;
-		case FF_SQUARE:
-			params[1] = HIDPP_FF_EFFECT_PERIODIC_SQUARE;
+
+		case FF_PERIODIC:
+			{
+				switch (effect->u.periodic.waveform)
+				{
+					case FF_SINE:
+						params[1] = HIDPP_FF_EFFECT_PERIODIC_SINE;
+						break;
+
+					case FF_SQUARE:
+						params[1] = HIDPP_FF_EFFECT_PERIODIC_SQUARE;
+						break;
+
+					case FF_SAW_UP:
+						params[1] = HIDPP_FF_EFFECT_PERIODIC_SAWTOOTHUP;
+						break;
+
+					case FF_SAW_DOWN:
+						params[1] = HIDPP_FF_EFFECT_PERIODIC_SAWTOOTHDOWN;
+						break;
+
+					case FF_TRIANGLE:
+						params[1] = HIDPP_FF_EFFECT_PERIODIC_TRIANGLE;
+						break;
+
+					default:
+						hid_err(data->hidpp->hid_dev, "Unexpected periodic waveform type %i!\n", effect->u.periodic.waveform);
+						return -EINVAL;
+				}
+
+				force = (effect->u.periodic.magnitude * fixp_sin16((effect->direction * 360) >> 16)) >> 15;
+				params[6] = effect->u.periodic.magnitude >> 8;
+				params[7] = effect->u.periodic.magnitude & 255;
+				params[8] = effect->u.periodic.offset >> 8;
+				params[9] = effect->u.periodic.offset & 255;
+				params[10] = effect->u.periodic.period >> 8;
+				params[11] = effect->u.periodic.period & 255;
+				params[12] = effect->u.periodic.phase >> 8;
+				params[13] = effect->u.periodic.phase & 255;
+				params[14] = effect->u.periodic.envelope.attack_level >> 7;
+				params[15] = effect->u.periodic.envelope.attack_length >> 8;
+				params[16] = effect->u.periodic.envelope.attack_length & 255;
+				params[17] = effect->u.periodic.envelope.fade_level >> 7;
+				params[18] = effect->u.periodic.envelope.fade_length >> 8;
+				params[19] = effect->u.periodic.envelope.fade_length & 255;
+				size = 20;
+				dbg_hid("Uploading periodic force mag=%d/dir=%d, offset=%d, period=%d ms, phase=%d\n",
+						effect->u.periodic.magnitude, effect->direction,
+						effect->u.periodic.offset,
+						effect->u.periodic.period,
+						effect->u.periodic.phase);
+				dbg_hid("          envelope attack=(%d, %d ms) fade=(%d, %d ms)\n",
+						effect->u.periodic.envelope.attack_level,
+						effect->u.periodic.envelope.attack_length,
+						effect->u.periodic.envelope.fade_level,
+						effect->u.periodic.envelope.fade_length);
+				break;
+			}
+
+		case FF_RAMP:
+			params[1] = HIDPP_FF_EFFECT_RAMP;
+			force = (effect->u.ramp.start_level * fixp_sin16((effect->direction * 360) >> 16)) >> 15;
+			params[6] = force >> 8;
+			params[7] = force & 255;
+			force = (effect->u.ramp.end_level * fixp_sin16((effect->direction * 360) >> 16)) >> 15;
+			params[8] = force >> 8;
+			params[9] = force & 255;
+			params[10] = effect->u.ramp.envelope.attack_level >> 7;
+			params[11] = effect->u.ramp.envelope.attack_length >> 8;
+			params[12] = effect->u.ramp.envelope.attack_length & 255;
+			params[13] = effect->u.ramp.envelope.fade_level >> 7;
+			params[14] = effect->u.ramp.envelope.fade_length >> 8;
+			params[15] = effect->u.ramp.envelope.fade_length & 255;
+			size = 16;
+			dbg_hid("Uploading ramp force level=%d -> %d in dir %d = %d\n",
+					effect->u.ramp.start_level,
+					effect->u.ramp.end_level,
+					effect->direction, force);
+			dbg_hid("          envelope attack=(%d, %d ms) fade=(%d, %d ms)\n",
+					effect->u.ramp.envelope.attack_level,
+					effect->u.ramp.envelope.attack_length,
+					effect->u.ramp.envelope.fade_level,
+					effect->u.ramp.envelope.fade_length);
 			break;
-		case FF_SAW_UP:
-			params[1] = HIDPP_FF_EFFECT_PERIODIC_SAWTOOTHUP;
+
+		case FF_FRICTION:
+		case FF_INERTIA:
+		case FF_SPRING:
+		case FF_DAMPER:
+			params[1] = HIDPP_FF_CONDITION_CMDS[effect->type - FF_SPRING];
+			params[6] = effect->u.condition[0].left_saturation >> 9;
+			params[7] = (effect->u.condition[0].left_saturation >> 1) & 255;
+			params[8] = effect->u.condition[0].left_coeff >> 8;
+			params[9] = effect->u.condition[0].left_coeff & 255;
+			params[10] = effect->u.condition[0].deadband >> 9;
+			params[11] = (effect->u.condition[0].deadband >> 1) & 255;
+			params[12] = effect->u.condition[0].center >> 8;
+			params[13] = effect->u.condition[0].center & 255;
+			params[14] = effect->u.condition[0].right_coeff >> 8;
+			params[15] = effect->u.condition[0].right_coeff & 255;
+			params[16] = effect->u.condition[0].right_saturation >> 9;
+			params[17] = (effect->u.condition[0].right_saturation >> 1) & 255;
+			size = 18;
+			dbg_hid("Uploading %s force left coeff=%d, left sat=%d, right coeff=%d, right sat=%d\n",
+					HIDPP_FF_CONDITION_NAMES[effect->type - FF_SPRING],
+					effect->u.condition[0].left_coeff,
+					effect->u.condition[0].left_saturation,
+					effect->u.condition[0].right_coeff,
+					effect->u.condition[0].right_saturation);
+			dbg_hid("          deadband=%d, center=%d\n",
+					effect->u.condition[0].deadband,
+					effect->u.condition[0].center);
 			break;
-		case FF_SAW_DOWN:
-			params[1] = HIDPP_FF_EFFECT_PERIODIC_SAWTOOTHDOWN;
-			break;
-		case FF_TRIANGLE:
-			params[1] = HIDPP_FF_EFFECT_PERIODIC_TRIANGLE;
-			break;
+
 		default:
-			hid_err(data->hidpp->hid_dev, "Unexpected periodic waveform type %i!\n", effect->u.periodic.waveform);
+			hid_err(data->hidpp->hid_dev, "Unexpected force type %i!\n", effect->type);
 			return -EINVAL;
-		}
-		force = (effect->u.periodic.magnitude * fixp_sin16((effect->direction * 360) >> 16)) >> 15;
-		params[6] = effect->u.periodic.magnitude >> 8;
-		params[7] = effect->u.periodic.magnitude & 255;
-		params[8] = effect->u.periodic.offset >> 8;
-		params[9] = effect->u.periodic.offset & 255;
-		params[10] = effect->u.periodic.period >> 8;
-		params[11] = effect->u.periodic.period & 255;
-		params[12] = effect->u.periodic.phase >> 8;
-		params[13] = effect->u.periodic.phase & 255;
-		params[14] = effect->u.periodic.envelope.attack_level >> 7;
-		params[15] = effect->u.periodic.envelope.attack_length >> 8;
-		params[16] = effect->u.periodic.envelope.attack_length & 255;
-		params[17] = effect->u.periodic.envelope.fade_level >> 7;
-		params[18] = effect->u.periodic.envelope.fade_length >> 8;
-		params[19] = effect->u.periodic.envelope.fade_length & 255;
-		size = 20;
-		dbg_hid("Uploading periodic force mag=%d/dir=%d, offset=%d, period=%d ms, phase=%d\n",
-				effect->u.periodic.magnitude, effect->direction,
-				effect->u.periodic.offset,
-				effect->u.periodic.period,
-				effect->u.periodic.phase);
-		dbg_hid("          envelope attack=(%d, %d ms) fade=(%d, %d ms)\n",
-				effect->u.periodic.envelope.attack_level,
-				effect->u.periodic.envelope.attack_length,
-				effect->u.periodic.envelope.fade_level,
-				effect->u.periodic.envelope.fade_length);
-		break;
-	}
-	case FF_RAMP:
-		params[1] = HIDPP_FF_EFFECT_RAMP;
-		force = (effect->u.ramp.start_level * fixp_sin16((effect->direction * 360) >> 16)) >> 15;
-		params[6] = force >> 8;
-		params[7] = force & 255;
-		force = (effect->u.ramp.end_level * fixp_sin16((effect->direction * 360) >> 16)) >> 15;
-		params[8] = force >> 8;
-		params[9] = force & 255;
-		params[10] = effect->u.ramp.envelope.attack_level >> 7;
-		params[11] = effect->u.ramp.envelope.attack_length >> 8;
-		params[12] = effect->u.ramp.envelope.attack_length & 255;
-		params[13] = effect->u.ramp.envelope.fade_level >> 7;
-		params[14] = effect->u.ramp.envelope.fade_length >> 8;
-		params[15] = effect->u.ramp.envelope.fade_length & 255;
-		size = 16;
-		dbg_hid("Uploading ramp force level=%d -> %d in dir %d = %d\n",
-				effect->u.ramp.start_level,
-				effect->u.ramp.end_level,
-				effect->direction, force);
-		dbg_hid("          envelope attack=(%d, %d ms) fade=(%d, %d ms)\n",
-				effect->u.ramp.envelope.attack_level,
-				effect->u.ramp.envelope.attack_length,
-				effect->u.ramp.envelope.fade_level,
-				effect->u.ramp.envelope.fade_length);
-		break;
-	case FF_FRICTION:
-	case FF_INERTIA:
-	case FF_SPRING:
-	case FF_DAMPER:
-		params[1] = HIDPP_FF_CONDITION_CMDS[effect->type - FF_SPRING];
-		params[6] = effect->u.condition[0].left_saturation >> 9;
-		params[7] = (effect->u.condition[0].left_saturation >> 1) & 255;
-		params[8] = effect->u.condition[0].left_coeff >> 8;
-		params[9] = effect->u.condition[0].left_coeff & 255;
-		params[10] = effect->u.condition[0].deadband >> 9;
-		params[11] = (effect->u.condition[0].deadband >> 1) & 255;
-		params[12] = effect->u.condition[0].center >> 8;
-		params[13] = effect->u.condition[0].center & 255;
-		params[14] = effect->u.condition[0].right_coeff >> 8;
-		params[15] = effect->u.condition[0].right_coeff & 255;
-		params[16] = effect->u.condition[0].right_saturation >> 9;
-		params[17] = (effect->u.condition[0].right_saturation >> 1) & 255;
-		size = 18;
-		dbg_hid("Uploading %s force left coeff=%d, left sat=%d, right coeff=%d, right sat=%d\n",
-				HIDPP_FF_CONDITION_NAMES[effect->type - FF_SPRING],
-				effect->u.condition[0].left_coeff,
-				effect->u.condition[0].left_saturation,
-				effect->u.condition[0].right_coeff,
-				effect->u.condition[0].right_saturation);
-		dbg_hid("          deadband=%d, center=%d\n",
-				effect->u.condition[0].deadband,
-				effect->u.condition[0].center);
-		break;
-	default:
-		hid_err(data->hidpp->hid_dev, "Unexpected force type %i!\n", effect->type);
-		return -EINVAL;
 	}
 
 	return hidpp_ff_queue_work(data, effect->id, HIDPP_FF_DOWNLOAD_EFFECT, params, size);
@@ -1136,7 +1285,7 @@ static int hidpp_ff_playback(struct input_dev *dev, int effect_id, int value)
 
 	params[1] = value ? HIDPP_FF_EFFECT_STATE_PLAY : HIDPP_FF_EFFECT_STATE_STOP;
 
-	dbg_hid("St%sing playback of effect %d.\n", value?"art":"opp", effect_id);
+	dbg_hid("St%sing playback of effect %d.\n", value ? "art" : "opp", effect_id);
 
 	return hidpp_ff_queue_work(data, effect_id, HIDPP_FF_SET_EFFECT_STATE, params, ARRAY_SIZE(params));
 }
@@ -1239,7 +1388,8 @@ static int hidpp_ff_init(struct hidpp_device *hidpp, u8 feature_index)
 	int error, j, num_slots;
 	u8 version;
 
-	if (!dev) {
+	if (!dev)
+	{
 		hid_err(hid, "Struct input_dev not set!\n");
 		return -EINVAL;
 	}
@@ -1249,19 +1399,29 @@ static int hidpp_ff_init(struct hidpp_device *hidpp, u8 feature_index)
 
 	/* Set supported force feedback capabilities */
 	for (j = 0; hiddpp_ff_effects[j] >= 0; j++)
+	{
 		set_bit(hiddpp_ff_effects[j], dev->ffbit);
+	}
+
 	if (version > 1)
 		for (j = 0; hiddpp_ff_effects_v2[j] >= 0; j++)
+		{
 			set_bit(hiddpp_ff_effects_v2[j], dev->ffbit);
+		}
 
 	/* Read number of slots available in device */
 	error = hidpp_send_fap_command_sync(hidpp, feature_index,
-		HIDPP_FF_GET_INFO, NULL, 0, &response);
-	if (error) {
+										HIDPP_FF_GET_INFO, NULL, 0, &response);
+
+	if (error)
+	{
 		if (error < 0)
+		{
 			return error;
+		}
+
 		hid_err(hidpp->hid_dev, "%s: received protocol error 0x%02x\n",
-			__func__, error);
+				__func__, error);
 		return -EPROTO;
 	}
 
@@ -1269,26 +1429,37 @@ static int hidpp_ff_init(struct hidpp_device *hidpp, u8 feature_index)
 
 	error = input_ff_create(dev, num_slots);
 
-	if (error) {
+	if (error)
+	{
 		hid_err(dev, "Failed to create FF device!\n");
 		return error;
 	}
 
 	data = kzalloc(sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
+
 	data->effect_ids = kcalloc(num_slots, sizeof(int), GFP_KERNEL);
-	if (!data->effect_ids) {
+
+	if (!data->effect_ids)
+	{
 		kfree(data);
 		return -ENOMEM;
 	}
+
 	data->hidpp = hidpp;
 	data->feature_index = feature_index;
 	data->version = version;
 	data->slot_autocenter = 0;
 	data->num_effects = num_slots;
+
 	for (j = 0; j < num_slots; j++)
+	{
 		data->effect_ids[j] = -1;
+	}
 
 	ff = dev->ff;
 	ff->private = data;
@@ -1303,25 +1474,36 @@ static int hidpp_ff_init(struct hidpp_device *hidpp, u8 feature_index)
 
 	/* reset all forces */
 	error = hidpp_send_fap_command_sync(hidpp, feature_index,
-		HIDPP_FF_RESET_ALL, NULL, 0, &response);
+										HIDPP_FF_RESET_ALL, NULL, 0, &response);
 
 	/* Read current Range */
 	error = hidpp_send_fap_command_sync(hidpp, feature_index,
-		HIDPP_FF_GET_APERTURE, NULL, 0, &response);
+										HIDPP_FF_GET_APERTURE, NULL, 0, &response);
+
 	if (error)
+	{
 		hid_warn(hidpp->hid_dev, "Failed to read range from device!\n");
+	}
+
 	data->range = error ? 900 : get_unaligned_be16(&response.fap.params[0]);
 
 	/* Create sysfs interface */
 	error = device_create_file(&(hidpp->hid_dev->dev), &dev_attr_range);
+
 	if (error)
+	{
 		hid_warn(hidpp->hid_dev, "Unable to create sysfs interface for \"range\", errno %d!\n", error);
+	}
 
 	/* Read the current gain values */
 	error = hidpp_send_fap_command_sync(hidpp, feature_index,
-		HIDPP_FF_GET_GLOBAL_GAINS, NULL, 0, &response);
+										HIDPP_FF_GET_GLOBAL_GAINS, NULL, 0, &response);
+
 	if (error)
+	{
 		hid_warn(hidpp->hid_dev, "Failed to read gain values from device!\n");
+	}
+
 	data->gain = error ? 0xffff : get_unaligned_be16(&response.fap.params[0]);
 	/* ignore boost value at response.fap.params[2] */
 
@@ -1343,14 +1525,17 @@ static int hidpp_ff_deinit(struct hid_device *hid)
 	struct input_dev *dev = hidinput->input;
 	struct hidpp_ff_private_data *data;
 
-	if (!dev) {
+	if (!dev)
+	{
 		hid_err(hid, "Struct input_dev not found!\n");
 		return -EINVAL;
 	}
 
 	hid_info(hid, "Unloading HID++ force feedback.\n");
 	data = dev->ff->private;
-	if (!data) {
+
+	if (!data)
+	{
 		hid_err(hid, "Private data not found!\n");
 		return -EINVAL;
 	}
@@ -1374,7 +1559,8 @@ static int hidpp_ff_deinit(struct hid_device *hid)
 
 #define WTP_MANUAL_RESOLUTION				39
 
-struct wtp_data {
+struct wtp_data
+{
 	struct input_dev *input;
 	u16 x_size, y_size;
 	u8 finger_count;
@@ -1386,14 +1572,14 @@ struct wtp_data {
 };
 
 static int wtp_input_mapping(struct hid_device *hdev, struct hid_input *hi,
-		struct hid_field *field, struct hid_usage *usage,
-		unsigned long **bit, int *max)
+							 struct hid_field *field, struct hid_usage *usage,
+							 unsigned long **bit, int *max)
 {
 	return -1;
 }
 
 static void wtp_populate_input(struct hidpp_device *hidpp,
-		struct input_dev *input_dev, bool origin_is_hid_core)
+							   struct input_dev *input_dev, bool origin_is_hid_core)
 {
 	struct wtp_data *wd = hidpp->private_data;
 
@@ -1413,55 +1599,68 @@ static void wtp_populate_input(struct hidpp_device *hidpp,
 	input_set_capability(input_dev, EV_KEY, BTN_LEFT);
 
 	if (hidpp->quirks & HIDPP_QUIRK_WTP_PHYSICAL_BUTTONS)
+	{
 		input_set_capability(input_dev, EV_KEY, BTN_RIGHT);
+	}
 	else
+	{
 		__set_bit(INPUT_PROP_BUTTONPAD, input_dev->propbit);
+	}
 
 	input_mt_init_slots(input_dev, wd->maxcontacts, INPUT_MT_POINTER |
-		INPUT_MT_DROP_UNUSED);
+						INPUT_MT_DROP_UNUSED);
 
 	wd->input = input_dev;
 }
 
 static void wtp_touch_event(struct wtp_data *wd,
-	struct hidpp_touchpad_raw_xy_finger *touch_report)
+							struct hidpp_touchpad_raw_xy_finger *touch_report)
 {
 	int slot;
 
 	if (!touch_report->finger_id || touch_report->contact_type)
 		/* no actual data */
+	{
 		return;
+	}
 
 	slot = input_mt_get_slot_by_key(wd->input, touch_report->finger_id);
 
 	input_mt_slot(wd->input, slot);
 	input_mt_report_slot_state(wd->input, MT_TOOL_FINGER,
-					touch_report->contact_status);
-	if (touch_report->contact_status) {
+							   touch_report->contact_status);
+
+	if (touch_report->contact_status)
+	{
 		input_event(wd->input, EV_ABS, ABS_MT_POSITION_X,
-				touch_report->x);
+					touch_report->x);
 		input_event(wd->input, EV_ABS, ABS_MT_POSITION_Y,
-				wd->flip_y ? wd->y_size - touch_report->y :
-					     touch_report->y);
+					wd->flip_y ? wd->y_size - touch_report->y :
+					touch_report->y);
 		input_event(wd->input, EV_ABS, ABS_MT_PRESSURE,
-				touch_report->area);
+					touch_report->area);
 	}
 }
 
 static void wtp_send_raw_xy_event(struct hidpp_device *hidpp,
-		struct hidpp_touchpad_raw_xy *raw)
+								  struct hidpp_touchpad_raw_xy *raw)
 {
 	struct wtp_data *wd = hidpp->private_data;
 	int i;
 
 	for (i = 0; i < 2; i++)
+	{
 		wtp_touch_event(wd, &(raw->fingers[i]));
+	}
 
 	if (raw->end_of_frame &&
-	    !(hidpp->quirks & HIDPP_QUIRK_WTP_PHYSICAL_BUTTONS))
+		!(hidpp->quirks & HIDPP_QUIRK_WTP_PHYSICAL_BUTTONS))
+	{
 		input_event(wd->input, EV_KEY, BTN_LEFT, raw->button);
+	}
 
-	if (raw->end_of_frame || raw->finger_count <= 2) {
+	if (raw->end_of_frame || raw->finger_count <= 2)
+	{
 		input_mt_sync_frame(wd->input);
 		input_sync(wd->input);
 	}
@@ -1471,10 +1670,11 @@ static int wtp_mouse_raw_xy_event(struct hidpp_device *hidpp, u8 *data)
 {
 	struct wtp_data *wd = hidpp->private_data;
 	u8 c1_area = ((data[7] & 0xf) * (data[7] & 0xf) +
-		      (data[7] >> 4) * (data[7] >> 4)) / 2;
+				  (data[7] >> 4) * (data[7] >> 4)) / 2;
 	u8 c2_area = ((data[13] & 0xf) * (data[13] & 0xf) +
-		      (data[13] >> 4) * (data[13] >> 4)) / 2;
-	struct hidpp_touchpad_raw_xy raw = {
+				  (data[13] >> 4) * (data[13] >> 4)) / 2;
+	struct hidpp_touchpad_raw_xy raw =
+	{
 		.timestamp = data[1],
 		.fingers = {
 			{
@@ -1514,36 +1714,52 @@ static int wtp_raw_event(struct hid_device *hdev, u8 *data, int size)
 	struct hidpp_touchpad_raw_xy raw;
 
 	if (!wd || !wd->input)
+	{
 		return 1;
+	}
 
-	switch (data[0]) {
-	case 0x02:
-		if (size < 2) {
-			hid_err(hdev, "Received HID report of bad size (%d)",
-				size);
-			return 1;
-		}
-		if (hidpp->quirks & HIDPP_QUIRK_WTP_PHYSICAL_BUTTONS) {
-			input_event(wd->input, EV_KEY, BTN_LEFT,
-					!!(data[1] & 0x01));
-			input_event(wd->input, EV_KEY, BTN_RIGHT,
-					!!(data[1] & 0x02));
-			input_sync(wd->input);
-			return 0;
-		} else {
-			if (size < 21)
+	switch (data[0])
+	{
+		case 0x02:
+			if (size < 2)
+			{
+				hid_err(hdev, "Received HID report of bad size (%d)",
+						size);
 				return 1;
-			return wtp_mouse_raw_xy_event(hidpp, &data[7]);
-		}
-	case REPORT_ID_HIDPP_LONG:
-		/* size is already checked in hidpp_raw_event. */
-		if ((report->fap.feature_index != wd->mt_feature_index) ||
-		    (report->fap.funcindex_clientid != EVENT_TOUCHPAD_RAW_XY))
-			return 1;
-		hidpp_touchpad_raw_xy_event(hidpp, data + 4, &raw);
+			}
 
-		wtp_send_raw_xy_event(hidpp, &raw);
-		return 0;
+			if (hidpp->quirks & HIDPP_QUIRK_WTP_PHYSICAL_BUTTONS)
+			{
+				input_event(wd->input, EV_KEY, BTN_LEFT,
+							!!(data[1] & 0x01));
+				input_event(wd->input, EV_KEY, BTN_RIGHT,
+							!!(data[1] & 0x02));
+				input_sync(wd->input);
+				return 0;
+			}
+			else
+			{
+				if (size < 21)
+				{
+					return 1;
+				}
+
+				return wtp_mouse_raw_xy_event(hidpp, &data[7]);
+			}
+
+		case REPORT_ID_HIDPP_LONG:
+
+			/* size is already checked in hidpp_raw_event. */
+			if ((report->fap.feature_index != wd->mt_feature_index) ||
+				(report->fap.funcindex_clientid != EVENT_TOUCHPAD_RAW_XY))
+			{
+				return 1;
+			}
+
+			hidpp_touchpad_raw_xy_event(hidpp, data + 4, &raw);
+
+			wtp_send_raw_xy_event(hidpp, &raw);
+			return 0;
 	}
 
 	return 0;
@@ -1557,23 +1773,32 @@ static int wtp_get_config(struct hidpp_device *hidpp)
 	int ret;
 
 	ret = hidpp_root_get_feature(hidpp, HIDPP_PAGE_TOUCHPAD_RAW_XY,
-		&wd->mt_feature_index, &feature_type);
+								 &wd->mt_feature_index, &feature_type);
+
 	if (ret)
 		/* means that the device is not powered up */
+	{
 		return ret;
+	}
 
 	ret = hidpp_touchpad_get_raw_info(hidpp, wd->mt_feature_index,
-		&raw_info);
+									  &raw_info);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	wd->x_size = raw_info.x_size;
 	wd->y_size = raw_info.y_size;
 	wd->maxcontacts = raw_info.maxcontacts;
 	wd->flip_y = raw_info.origin == TOUCHPAD_RAW_XY_ORIGIN_LOWER_LEFT;
 	wd->resolution = raw_info.res;
+
 	if (!wd->resolution)
+	{
 		wd->resolution = WTP_MANUAL_RESOLUTION;
+	}
 
 	return 0;
 }
@@ -1584,9 +1809,12 @@ static int wtp_allocate(struct hid_device *hdev, const struct hid_device_id *id)
 	struct wtp_data *wd;
 
 	wd = devm_kzalloc(&hdev->dev, sizeof(struct wtp_data),
-			GFP_KERNEL);
+					  GFP_KERNEL);
+
 	if (!wd)
+	{
 		return -ENOMEM;
+	}
 
 	hidpp->private_data = wd;
 
@@ -1600,11 +1828,16 @@ static int wtp_connect(struct hid_device *hdev, bool connected)
 	int ret;
 
 	if (!connected)
+	{
 		return 0;
+	}
 
-	if (!wd->x_size) {
+	if (!wd->x_size)
+	{
 		ret = wtp_get_config(hidpp);
-		if (ret) {
+
+		if (ret)
+		{
 			hid_err(hdev, "Can not get wtp config: %d\n", ret);
 			return ret;
 		}
@@ -1649,7 +1882,8 @@ static int wtp_connect(struct hid_device *hdev, bool connected)
 
 static const u8 m560_config_parameter[] = {0x00, 0xaf, 0x03};
 
-struct m560_private_data {
+struct m560_private_data
+{
 	struct input_dev *input;
 };
 
@@ -1670,17 +1904,19 @@ static int m560_send_config_command(struct hid_device *hdev, bool connected)
 	hidpp_dev = hid_get_drvdata(hdev);
 
 	if (!connected)
+	{
 		return -ENODEV;
+	}
 
 	return hidpp_send_rap_command_sync(
-		hidpp_dev,
-		REPORT_ID_HIDPP_SHORT,
-		M560_SUB_ID,
-		M560_BUTTON_MODE_REGISTER,
-		(u8 *)m560_config_parameter,
-		sizeof(m560_config_parameter),
-		&response
-	);
+			   hidpp_dev,
+			   REPORT_ID_HIDPP_SHORT,
+			   M560_SUB_ID,
+			   M560_BUTTON_MODE_REGISTER,
+			   (u8 *)m560_config_parameter,
+			   sizeof(m560_config_parameter),
+			   &response
+		   );
 }
 
 static int m560_allocate(struct hid_device *hdev)
@@ -1689,9 +1925,12 @@ static int m560_allocate(struct hid_device *hdev)
 	struct m560_private_data *d;
 
 	d = devm_kzalloc(&hdev->dev, sizeof(struct m560_private_data),
-			GFP_KERNEL);
+					 GFP_KERNEL);
+
 	if (!d)
+	{
 		return -ENOMEM;
+	}
 
 	hidpp->private_data = d;
 
@@ -1704,18 +1943,21 @@ static int m560_raw_event(struct hid_device *hdev, u8 *data, int size)
 	struct m560_private_data *mydata = hidpp->private_data;
 
 	/* sanity check */
-	if (!mydata || !mydata->input) {
+	if (!mydata || !mydata->input)
+	{
 		hid_err(hdev, "error in parameter\n");
 		return -EINVAL;
 	}
 
-	if (size < 7) {
+	if (size < 7)
+	{
 		hid_err(hdev, "error in report\n");
 		return 0;
 	}
 
 	if (data[0] == REPORT_ID_HIDPP_LONG &&
-	    data[2] == M560_SUB_ID && data[6] == 0x00) {
+		data[2] == M560_SUB_ID && data[6] == 0x00)
+	{
 		/*
 		 * m560 mouse report for middle, forward and backward button
 		 *
@@ -1729,28 +1971,36 @@ static int m560_raw_event(struct hid_device *hdev, u8 *data, int size)
 		 * data[6] = 0x00
 		 */
 
-		switch (data[5]) {
-		case 0xaf:
-			input_report_key(mydata->input, BTN_MIDDLE, 1);
-			break;
-		case 0xb0:
-			input_report_key(mydata->input, BTN_FORWARD, 1);
-			break;
-		case 0xae:
-			input_report_key(mydata->input, BTN_BACK, 1);
-			break;
-		case 0x00:
-			input_report_key(mydata->input, BTN_BACK, 0);
-			input_report_key(mydata->input, BTN_FORWARD, 0);
-			input_report_key(mydata->input, BTN_MIDDLE, 0);
-			break;
-		default:
-			hid_err(hdev, "error in report\n");
-			return 0;
+		switch (data[5])
+		{
+			case 0xaf:
+				input_report_key(mydata->input, BTN_MIDDLE, 1);
+				break;
+
+			case 0xb0:
+				input_report_key(mydata->input, BTN_FORWARD, 1);
+				break;
+
+			case 0xae:
+				input_report_key(mydata->input, BTN_BACK, 1);
+				break;
+
+			case 0x00:
+				input_report_key(mydata->input, BTN_BACK, 0);
+				input_report_key(mydata->input, BTN_FORWARD, 0);
+				input_report_key(mydata->input, BTN_MIDDLE, 0);
+				break;
+
+			default:
+				hid_err(hdev, "error in report\n");
+				return 0;
 		}
+
 		input_sync(mydata->input);
 
-	} else if (data[0] == 0x02) {
+	}
+	else if (data[0] == 0x02)
+	{
 		/*
 		 * Logitech M560 mouse report
 		 *
@@ -1763,19 +2013,23 @@ static int m560_raw_event(struct hid_device *hdev, u8 *data, int size)
 		int v;
 
 		input_report_key(mydata->input, BTN_LEFT,
-			!!(data[1] & M560_MOUSE_BTN_LEFT));
+						 !!(data[1] & M560_MOUSE_BTN_LEFT));
 		input_report_key(mydata->input, BTN_RIGHT,
-			!!(data[1] & M560_MOUSE_BTN_RIGHT));
+						 !!(data[1] & M560_MOUSE_BTN_RIGHT));
 
 		if (data[1] & M560_MOUSE_BTN_WHEEL_LEFT)
+		{
 			input_report_rel(mydata->input, REL_HWHEEL, -1);
+		}
 		else if (data[1] & M560_MOUSE_BTN_WHEEL_RIGHT)
+		{
 			input_report_rel(mydata->input, REL_HWHEEL, 1);
+		}
 
-		v = hid_snto32(hid_field_extract(hdev, data+3, 0, 12), 12);
+		v = hid_snto32(hid_field_extract(hdev, data + 3, 0, 12), 12);
 		input_report_rel(mydata->input, REL_X, v);
 
-		v = hid_snto32(hid_field_extract(hdev, data+3, 12, 12), 12);
+		v = hid_snto32(hid_field_extract(hdev, data + 3, 12, 12), 12);
 		input_report_rel(mydata->input, REL_Y, v);
 
 		v = hid_snto32(data[6], 8);
@@ -1788,7 +2042,7 @@ static int m560_raw_event(struct hid_device *hdev, u8 *data, int size)
 }
 
 static void m560_populate_input(struct hidpp_device *hidpp,
-		struct input_dev *input_dev, bool origin_is_hid_core)
+								struct input_dev *input_dev, bool origin_is_hid_core)
 {
 	struct m560_private_data *mydata = hidpp->private_data;
 
@@ -1809,8 +2063,8 @@ static void m560_populate_input(struct hidpp_device *hidpp,
 }
 
 static int m560_input_mapping(struct hid_device *hdev, struct hid_input *hi,
-		struct hid_field *field, struct hid_usage *usage,
-		unsigned long **bit, int *max)
+							  struct hid_field *field, struct hid_usage *usage,
+							  unsigned long **bit, int *max)
 {
 	return -1;
 }
@@ -1829,7 +2083,8 @@ static int m560_input_mapping(struct hid_device *hdev, struct hid_input *hi,
  * Touchpad FW items
  */
 
-struct k400_private_data {
+struct k400_private_data
+{
 	u8 feature_index;
 };
 
@@ -1840,18 +2095,25 @@ static int k400_disable_tap_to_click(struct hidpp_device *hidpp)
 	int ret;
 	u8 feature_type;
 
-	if (!k400->feature_index) {
+	if (!k400->feature_index)
+	{
 		ret = hidpp_root_get_feature(hidpp,
-			HIDPP_PAGE_TOUCHPAD_FW_ITEMS,
-			&k400->feature_index, &feature_type);
+									 HIDPP_PAGE_TOUCHPAD_FW_ITEMS,
+									 &k400->feature_index, &feature_type);
+
 		if (ret)
 			/* means that the device is not powered up */
+		{
 			return ret;
+		}
 	}
 
 	ret = hidpp_touchpad_fw_items_set(hidpp, k400->feature_index, &items);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -1862,9 +2124,12 @@ static int k400_allocate(struct hid_device *hdev)
 	struct k400_private_data *k400;
 
 	k400 = devm_kzalloc(&hdev->dev, sizeof(struct k400_private_data),
-			    GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (!k400)
+	{
 		return -ENOMEM;
+	}
 
 	hidpp->private_data = k400;
 
@@ -1876,10 +2141,14 @@ static int k400_connect(struct hid_device *hdev, bool connected)
 	struct hidpp_device *hidpp = hid_get_drvdata(hdev);
 
 	if (!connected)
+	{
 		return 0;
+	}
 
 	if (!disable_tap_to_click)
+	{
 		return 0;
+	}
 
 	return k400_disable_tap_to_click(hidpp);
 }
@@ -1898,14 +2167,18 @@ static int g920_get_config(struct hidpp_device *hidpp)
 
 	/* Find feature and store for later use */
 	ret = hidpp_root_get_feature(hidpp, HIDPP_PAGE_G920_FORCE_FEEDBACK,
-		&feature_index, &feature_type);
+								 &feature_index, &feature_type);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = hidpp_ff_init(hidpp, feature_index);
+
 	if (ret)
 		hid_warn(hidpp->hid_dev, "Unable to initialize force feedback support, errno %d\n",
-				ret);
+				 ret);
 
 	return 0;
 }
@@ -1915,31 +2188,37 @@ static int g920_get_config(struct hidpp_device *hidpp)
 /* -------------------------------------------------------------------------- */
 
 static int hidpp_input_mapping(struct hid_device *hdev, struct hid_input *hi,
-		struct hid_field *field, struct hid_usage *usage,
-		unsigned long **bit, int *max)
+							   struct hid_field *field, struct hid_usage *usage,
+							   unsigned long **bit, int *max)
 {
 	struct hidpp_device *hidpp = hid_get_drvdata(hdev);
 
 	if (hidpp->quirks & HIDPP_QUIRK_CLASS_WTP)
+	{
 		return wtp_input_mapping(hdev, hi, field, usage, bit, max);
+	}
 	else if (hidpp->quirks & HIDPP_QUIRK_CLASS_M560 &&
-			field->application != HID_GD_MOUSE)
+			 field->application != HID_GD_MOUSE)
+	{
 		return m560_input_mapping(hdev, hi, field, usage, bit, max);
+	}
 
 	return 0;
 }
 
 static int hidpp_input_mapped(struct hid_device *hdev, struct hid_input *hi,
-		struct hid_field *field, struct hid_usage *usage,
-		unsigned long **bit, int *max)
+							  struct hid_field *field, struct hid_usage *usage,
+							  unsigned long **bit, int *max)
 {
 	struct hidpp_device *hidpp = hid_get_drvdata(hdev);
 
 	/* Ensure that Logitech G920 is not given a default fuzz/flat value */
-	if (hidpp->quirks & HIDPP_QUIRK_CLASS_G920) {
+	if (hidpp->quirks & HIDPP_QUIRK_CLASS_G920)
+	{
 		if (usage->type == EV_ABS && (usage->code == ABS_X ||
-				usage->code == ABS_Y || usage->code == ABS_Z ||
-				usage->code == ABS_RZ)) {
+									  usage->code == ABS_Y || usage->code == ABS_Z ||
+									  usage->code == ABS_RZ))
+		{
 			field->application = HID_GD_MULTIAXIS;
 		}
 	}
@@ -1949,16 +2228,20 @@ static int hidpp_input_mapped(struct hid_device *hdev, struct hid_input *hi,
 
 
 static void hidpp_populate_input(struct hidpp_device *hidpp,
-		struct input_dev *input, bool origin_is_hid_core)
+								 struct input_dev *input, bool origin_is_hid_core)
 {
 	if (hidpp->quirks & HIDPP_QUIRK_CLASS_WTP)
+	{
 		wtp_populate_input(hidpp, input, origin_is_hid_core);
+	}
 	else if (hidpp->quirks & HIDPP_QUIRK_CLASS_M560)
+	{
 		m560_populate_input(hidpp, input, origin_is_hid_core);
+	}
 }
 
 static int hidpp_input_configured(struct hid_device *hdev,
-				struct hid_input *hidinput)
+								  struct hid_input *hidinput)
 {
 	struct hidpp_device *hidpp = hid_get_drvdata(hdev);
 	struct input_dev *input = hidinput->input;
@@ -1969,7 +2252,7 @@ static int hidpp_input_configured(struct hid_device *hdev,
 }
 
 static int hidpp_raw_hidpp_event(struct hidpp_device *hidpp, u8 *data,
-		int size)
+								 int size)
 {
 	struct hidpp_report *question = hidpp->send_receive_buf;
 	struct hidpp_report *answer = hidpp->send_receive_buf;
@@ -1979,13 +2262,15 @@ static int hidpp_raw_hidpp_event(struct hidpp_device *hidpp, u8 *data,
 	 * If the mutex is locked then we have a pending answer from a
 	 * previously sent command.
 	 */
-	if (unlikely(mutex_is_locked(&hidpp->send_mutex))) {
+	if (unlikely(mutex_is_locked(&hidpp->send_mutex)))
+	{
 		/*
 		 * Check for a correct hidpp20 answer or the corresponding
 		 * error
 		 */
 		if (hidpp_match_answer(question, report) ||
-				hidpp_match_error(question, report)) {
+			hidpp_match_error(question, report))
+		{
 			*answer = *report;
 			hidpp->answer_available = true;
 			wake_up(&hidpp->wait);
@@ -1999,12 +2284,17 @@ static int hidpp_raw_hidpp_event(struct hidpp_device *hidpp, u8 *data,
 		}
 	}
 
-	if (unlikely(hidpp_report_is_connect_event(report))) {
+	if (unlikely(hidpp_report_is_connect_event(report)))
+	{
 		atomic_set(&hidpp->connected,
-				!(report->rap.params[0] & (1 << 6)));
+				   !(report->rap.params[0] & (1 << 6)));
+
 		if ((hidpp->quirks & HIDPP_QUIRK_CONNECT_EVENTS) &&
-		    (schedule_work(&hidpp->work) == 0))
+			(schedule_work(&hidpp->work) == 0))
+		{
 			dbg_hid("%s: connect event already queued\n", __func__);
+		}
+
 		return 1;
 	}
 
@@ -2012,48 +2302,63 @@ static int hidpp_raw_hidpp_event(struct hidpp_device *hidpp, u8 *data,
 }
 
 static int hidpp_raw_event(struct hid_device *hdev, struct hid_report *report,
-		u8 *data, int size)
+						   u8 *data, int size)
 {
 	struct hidpp_device *hidpp = hid_get_drvdata(hdev);
 	int ret = 0;
 
 	/* Generic HID++ processing. */
-	switch (data[0]) {
-	case REPORT_ID_HIDPP_VERY_LONG:
-		if (size != HIDPP_REPORT_VERY_LONG_LENGTH) {
-			hid_err(hdev, "received hid++ report of bad size (%d)",
-				size);
-			return 1;
-		}
-		ret = hidpp_raw_hidpp_event(hidpp, data, size);
-		break;
-	case REPORT_ID_HIDPP_LONG:
-		if (size != HIDPP_REPORT_LONG_LENGTH) {
-			hid_err(hdev, "received hid++ report of bad size (%d)",
-				size);
-			return 1;
-		}
-		ret = hidpp_raw_hidpp_event(hidpp, data, size);
-		break;
-	case REPORT_ID_HIDPP_SHORT:
-		if (size != HIDPP_REPORT_SHORT_LENGTH) {
-			hid_err(hdev, "received hid++ report of bad size (%d)",
-				size);
-			return 1;
-		}
-		ret = hidpp_raw_hidpp_event(hidpp, data, size);
-		break;
+	switch (data[0])
+	{
+		case REPORT_ID_HIDPP_VERY_LONG:
+			if (size != HIDPP_REPORT_VERY_LONG_LENGTH)
+			{
+				hid_err(hdev, "received hid++ report of bad size (%d)",
+						size);
+				return 1;
+			}
+
+			ret = hidpp_raw_hidpp_event(hidpp, data, size);
+			break;
+
+		case REPORT_ID_HIDPP_LONG:
+			if (size != HIDPP_REPORT_LONG_LENGTH)
+			{
+				hid_err(hdev, "received hid++ report of bad size (%d)",
+						size);
+				return 1;
+			}
+
+			ret = hidpp_raw_hidpp_event(hidpp, data, size);
+			break;
+
+		case REPORT_ID_HIDPP_SHORT:
+			if (size != HIDPP_REPORT_SHORT_LENGTH)
+			{
+				hid_err(hdev, "received hid++ report of bad size (%d)",
+						size);
+				return 1;
+			}
+
+			ret = hidpp_raw_hidpp_event(hidpp, data, size);
+			break;
 	}
 
 	/* If no report is available for further processing, skip calling
 	 * raw_event of subclasses. */
 	if (ret != 0)
+	{
 		return ret;
+	}
 
 	if (hidpp->quirks & HIDPP_QUIRK_CLASS_WTP)
+	{
 		return wtp_raw_event(hdev, data, size);
+	}
 	else if (hidpp->quirks & HIDPP_QUIRK_CLASS_M560)
+	{
 		return m560_raw_event(hdev, data, size);
+	}
 
 	return 0;
 }
@@ -2069,13 +2374,20 @@ static void hidpp_overwrite_name(struct hid_device *hdev, bool use_unifying)
 		 * might not be already connected.
 		 * Ask the receiver for its name.
 		 */
+	{
 		name = hidpp_get_unifying_name(hidpp);
+	}
 	else
+	{
 		name = hidpp_get_device_name(hidpp);
+	}
 
-	if (!name) {
+	if (!name)
+	{
 		hid_err(hdev, "unable to retrieve the name of the device");
-	} else {
+	}
+	else
+	{
 		dbg_hid("HID++: Got name: %s\n", name);
 		snprintf(hdev->name, sizeof(hdev->name), "%s", name);
 	}
@@ -2103,7 +2415,9 @@ static struct input_dev *hidpp_allocate_input(struct hid_device *hdev)
 	struct hidpp_device *hidpp = hid_get_drvdata(hdev);
 
 	if (!input_dev)
+	{
 		return NULL;
+	}
 
 	input_set_drvdata(input_dev, hdev);
 	input_dev->open = hidpp_input_open;
@@ -2129,57 +2443,87 @@ static void hidpp_connect_event(struct hidpp_device *hidpp)
 	struct input_dev *input;
 	char *name, *devm_name;
 
-	if (hidpp->quirks & HIDPP_QUIRK_CLASS_WTP) {
+	if (hidpp->quirks & HIDPP_QUIRK_CLASS_WTP)
+	{
 		ret = wtp_connect(hdev, connected);
+
 		if (ret)
+		{
 			return;
-	} else if (hidpp->quirks & HIDPP_QUIRK_CLASS_M560) {
+		}
+	}
+	else if (hidpp->quirks & HIDPP_QUIRK_CLASS_M560)
+	{
 		ret = m560_send_config_command(hdev, connected);
+
 		if (ret)
+		{
 			return;
-	} else if (hidpp->quirks & HIDPP_QUIRK_CLASS_K400) {
+		}
+	}
+	else if (hidpp->quirks & HIDPP_QUIRK_CLASS_K400)
+	{
 		ret = k400_connect(hdev, connected);
+
 		if (ret)
+		{
 			return;
+		}
 	}
 
 	if (!connected || hidpp->delayed_input)
+	{
 		return;
+	}
 
 	/* the device is already connected, we can ask for its name and
 	 * protocol */
-	if (!hidpp->protocol_major) {
+	if (!hidpp->protocol_major)
+	{
 		ret = !hidpp_is_connected(hidpp);
-		if (ret) {
+
+		if (ret)
+		{
 			hid_err(hdev, "Can not get the protocol version.\n");
 			return;
 		}
+
 		hid_info(hdev, "HID++ %u.%u device connected.\n",
-			 hidpp->protocol_major, hidpp->protocol_minor);
+				 hidpp->protocol_major, hidpp->protocol_minor);
 	}
 
 	if (!(hidpp->quirks & HIDPP_QUIRK_NO_HIDINPUT))
 		/* if HID created the input nodes for us, we can stop now */
+	{
 		return;
+	}
 
-	if (!hidpp->name || hidpp->name == hdev->name) {
+	if (!hidpp->name || hidpp->name == hdev->name)
+	{
 		name = hidpp_get_device_name(hidpp);
-		if (!name) {
+
+		if (!name)
+		{
 			hid_err(hdev,
-				"unable to retrieve the name of the device");
+					"unable to retrieve the name of the device");
 			return;
 		}
 
 		devm_name = devm_kasprintf(&hdev->dev, GFP_KERNEL, "%s", name);
 		kfree(name);
+
 		if (!devm_name)
+		{
 			return;
+		}
 
 		hidpp->name = devm_name;
 	}
 
 	input = hidpp_allocate_input(hdev);
-	if (!input) {
+
+	if (!input)
+	{
 		hid_err(hdev, "cannot allocate new input device: %d\n", ret);
 		return;
 	}
@@ -2187,8 +2531,11 @@ static void hidpp_connect_event(struct hidpp_device *hidpp)
 	hidpp_populate_input(hidpp, input, false);
 
 	ret = input_register_device(input);
+
 	if (ret)
+	{
 		input_free_device(input);
+	}
 
 	hidpp->delayed_input = input;
 }
@@ -2201,9 +2548,12 @@ static int hidpp_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	unsigned int connect_mask = HID_CONNECT_DEFAULT;
 
 	hidpp = devm_kzalloc(&hdev->dev, sizeof(struct hidpp_device),
-			GFP_KERNEL);
+						 GFP_KERNEL);
+
 	if (!hidpp)
+	{
 		return -ENOMEM;
+	}
 
 	hidpp->hid_dev = hdev;
 	hidpp->name = hdev->name;
@@ -2211,24 +2561,39 @@ static int hidpp_probe(struct hid_device *hdev, const struct hid_device_id *id)
 
 	hidpp->quirks = id->driver_data;
 
-	if (disable_raw_mode) {
+	if (disable_raw_mode)
+	{
 		hidpp->quirks &= ~HIDPP_QUIRK_CLASS_WTP;
 		hidpp->quirks &= ~HIDPP_QUIRK_CONNECT_EVENTS;
 		hidpp->quirks &= ~HIDPP_QUIRK_NO_HIDINPUT;
 	}
 
-	if (hidpp->quirks & HIDPP_QUIRK_CLASS_WTP) {
+	if (hidpp->quirks & HIDPP_QUIRK_CLASS_WTP)
+	{
 		ret = wtp_allocate(hdev, id);
+
 		if (ret)
+		{
 			goto allocate_fail;
-	} else if (hidpp->quirks & HIDPP_QUIRK_CLASS_M560) {
+		}
+	}
+	else if (hidpp->quirks & HIDPP_QUIRK_CLASS_M560)
+	{
 		ret = m560_allocate(hdev);
+
 		if (ret)
+		{
 			goto allocate_fail;
-	} else if (hidpp->quirks & HIDPP_QUIRK_CLASS_K400) {
+		}
+	}
+	else if (hidpp->quirks & HIDPP_QUIRK_CLASS_K400)
+	{
 		ret = k400_allocate(hdev);
+
 		if (ret)
+		{
 			goto allocate_fail;
+		}
 	}
 
 	INIT_WORK(&hidpp->work, delayed_work_cb);
@@ -2236,24 +2601,34 @@ static int hidpp_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	init_waitqueue_head(&hidpp->wait);
 
 	ret = hid_parse(hdev);
-	if (ret) {
+
+	if (ret)
+	{
 		hid_err(hdev, "%s:parse failed\n", __func__);
 		goto hid_parse_fail;
 	}
 
 	if (hidpp->quirks & HIDPP_QUIRK_NO_HIDINPUT)
+	{
 		connect_mask &= ~HID_CONNECT_HIDINPUT;
+	}
 
-	if (hidpp->quirks & HIDPP_QUIRK_CLASS_G920) {
+	if (hidpp->quirks & HIDPP_QUIRK_CLASS_G920)
+	{
 		ret = hid_hw_start(hdev, connect_mask);
-		if (ret) {
+
+		if (ret)
+		{
 			hid_err(hdev, "hw start failed\n");
 			goto hid_hw_start_fail;
 		}
+
 		ret = hid_hw_open(hdev);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(&hdev->dev, "%s:hid_hw_open returned error:%d\n",
-				__func__, ret);
+					__func__, ret);
 			hid_hw_stop(hdev);
 			goto hid_hw_start_fail;
 		}
@@ -2264,42 +2639,58 @@ static int hidpp_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	hid_device_io_start(hdev);
 
 	connected = hidpp_is_connected(hidpp);
-	if (id->group != HID_GROUP_LOGITECH_DJ_DEVICE) {
-		if (!connected) {
+
+	if (id->group != HID_GROUP_LOGITECH_DJ_DEVICE)
+	{
+		if (!connected)
+		{
 			ret = -ENODEV;
 			hid_err(hdev, "Device not connected");
 			goto hid_hw_open_failed;
 		}
 
 		hid_info(hdev, "HID++ %u.%u device connected.\n",
-			 hidpp->protocol_major, hidpp->protocol_minor);
+				 hidpp->protocol_major, hidpp->protocol_minor);
 	}
 
 	hidpp_overwrite_name(hdev, id->group == HID_GROUP_LOGITECH_DJ_DEVICE);
 	atomic_set(&hidpp->connected, connected);
 
-	if (connected && (hidpp->quirks & HIDPP_QUIRK_CLASS_WTP)) {
+	if (connected && (hidpp->quirks & HIDPP_QUIRK_CLASS_WTP))
+	{
 		ret = wtp_get_config(hidpp);
+
 		if (ret)
+		{
 			goto hid_hw_open_failed;
-	} else if (connected && (hidpp->quirks & HIDPP_QUIRK_CLASS_G920)) {
+		}
+	}
+	else if (connected && (hidpp->quirks & HIDPP_QUIRK_CLASS_G920))
+	{
 		ret = g920_get_config(hidpp);
+
 		if (ret)
+		{
 			goto hid_hw_open_failed;
+		}
 	}
 
 	/* Block incoming packets */
 	hid_device_io_stop(hdev);
 
-	if (!(hidpp->quirks & HIDPP_QUIRK_CLASS_G920)) {
+	if (!(hidpp->quirks & HIDPP_QUIRK_CLASS_G920))
+	{
 		ret = hid_hw_start(hdev, connect_mask);
-		if (ret) {
+
+		if (ret)
+		{
 			hid_err(hdev, "%s:hid_hw_start returned error\n", __func__);
 			goto hid_hw_start_fail;
 		}
 	}
 
-	if (hidpp->quirks & HIDPP_QUIRK_CONNECT_EVENTS) {
+	if (hidpp->quirks & HIDPP_QUIRK_CONNECT_EVENTS)
+	{
 		/* Allow incoming packets */
 		hid_device_io_start(hdev);
 
@@ -2310,10 +2701,13 @@ static int hidpp_probe(struct hid_device *hdev, const struct hid_device_id *id)
 
 hid_hw_open_failed:
 	hid_device_io_stop(hdev);
-	if (hidpp->quirks & HIDPP_QUIRK_CLASS_G920) {
+
+	if (hidpp->quirks & HIDPP_QUIRK_CLASS_G920)
+	{
 		hid_hw_close(hdev);
 		hid_hw_stop(hdev);
 	}
+
 hid_hw_start_fail:
 hid_parse_fail:
 	cancel_work_sync(&hidpp->work);
@@ -2327,49 +2721,62 @@ static void hidpp_remove(struct hid_device *hdev)
 {
 	struct hidpp_device *hidpp = hid_get_drvdata(hdev);
 
-	if (hidpp->quirks & HIDPP_QUIRK_CLASS_G920) {
+	if (hidpp->quirks & HIDPP_QUIRK_CLASS_G920)
+	{
 		hidpp_ff_deinit(hdev);
 		hid_hw_close(hdev);
 	}
+
 	hid_hw_stop(hdev);
 	cancel_work_sync(&hidpp->work);
 	mutex_destroy(&hidpp->send_mutex);
 }
 
-static const struct hid_device_id hidpp_devices[] = {
+static const struct hid_device_id hidpp_devices[] =
+{
 	{ /* wireless touchpad */
-	  HID_DEVICE(BUS_USB, HID_GROUP_LOGITECH_DJ_DEVICE,
+		HID_DEVICE(BUS_USB, HID_GROUP_LOGITECH_DJ_DEVICE,
 		USB_VENDOR_ID_LOGITECH, 0x4011),
-	  .driver_data = HIDPP_QUIRK_CLASS_WTP | HIDPP_QUIRK_DELAYED_INIT |
-			 HIDPP_QUIRK_WTP_PHYSICAL_BUTTONS },
+		.driver_data = HIDPP_QUIRK_CLASS_WTP | HIDPP_QUIRK_DELAYED_INIT |
+		HIDPP_QUIRK_WTP_PHYSICAL_BUTTONS
+	},
 	{ /* wireless touchpad T650 */
-	  HID_DEVICE(BUS_USB, HID_GROUP_LOGITECH_DJ_DEVICE,
+		HID_DEVICE(BUS_USB, HID_GROUP_LOGITECH_DJ_DEVICE,
 		USB_VENDOR_ID_LOGITECH, 0x4101),
-	  .driver_data = HIDPP_QUIRK_CLASS_WTP | HIDPP_QUIRK_DELAYED_INIT },
+		.driver_data = HIDPP_QUIRK_CLASS_WTP | HIDPP_QUIRK_DELAYED_INIT
+	},
 	{ /* wireless touchpad T651 */
-	  HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_LOGITECH,
+		HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_LOGITECH,
 		USB_DEVICE_ID_LOGITECH_T651),
-	  .driver_data = HIDPP_QUIRK_CLASS_WTP },
+		.driver_data = HIDPP_QUIRK_CLASS_WTP
+	},
 	{ /* Mouse logitech M560 */
-	  HID_DEVICE(BUS_USB, HID_GROUP_LOGITECH_DJ_DEVICE,
+		HID_DEVICE(BUS_USB, HID_GROUP_LOGITECH_DJ_DEVICE,
 		USB_VENDOR_ID_LOGITECH, 0x402d),
-	  .driver_data = HIDPP_QUIRK_DELAYED_INIT | HIDPP_QUIRK_CLASS_M560 },
+		.driver_data = HIDPP_QUIRK_DELAYED_INIT | HIDPP_QUIRK_CLASS_M560
+	},
 	{ /* Keyboard logitech K400 */
-	  HID_DEVICE(BUS_USB, HID_GROUP_LOGITECH_DJ_DEVICE,
+		HID_DEVICE(BUS_USB, HID_GROUP_LOGITECH_DJ_DEVICE,
 		USB_VENDOR_ID_LOGITECH, 0x4024),
-	  .driver_data = HIDPP_QUIRK_CONNECT_EVENTS | HIDPP_QUIRK_CLASS_K400 },
+		.driver_data = HIDPP_QUIRK_CONNECT_EVENTS | HIDPP_QUIRK_CLASS_K400
+	},
 
-	{ HID_DEVICE(BUS_USB, HID_GROUP_LOGITECH_DJ_DEVICE,
-		USB_VENDOR_ID_LOGITECH, HID_ANY_ID)},
+	{
+		HID_DEVICE(BUS_USB, HID_GROUP_LOGITECH_DJ_DEVICE,
+		USB_VENDOR_ID_LOGITECH, HID_ANY_ID)
+	},
 
-	{ HID_USB_DEVICE(USB_VENDOR_ID_LOGITECH, USB_DEVICE_ID_LOGITECH_G920_WHEEL),
-		.driver_data = HIDPP_QUIRK_CLASS_G920 | HIDPP_QUIRK_FORCE_OUTPUT_REPORTS},
+	{
+		HID_USB_DEVICE(USB_VENDOR_ID_LOGITECH, USB_DEVICE_ID_LOGITECH_G920_WHEEL),
+		.driver_data = HIDPP_QUIRK_CLASS_G920 | HIDPP_QUIRK_FORCE_OUTPUT_REPORTS
+	},
 	{}
 };
 
 MODULE_DEVICE_TABLE(hid, hidpp_devices);
 
-static struct hid_driver hidpp_driver = {
+static struct hid_driver hidpp_driver =
+{
 	.name = "logitech-hidpp-device",
 	.id_table = hidpp_devices,
 	.probe = hidpp_probe,

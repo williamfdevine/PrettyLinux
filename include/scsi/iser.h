@@ -51,7 +51,8 @@
  * @flags:        flags support (zbva, send_w_inv)
  * @rsvd:         reserved
  */
-struct iser_cm_hdr {
+struct iser_cm_hdr
+{
 	u8      flags;
 	u8      rsvd[3];
 } __packed;
@@ -66,7 +67,8 @@ struct iser_cm_hdr {
  * @reaf_stag:    read rkey
  * @read_va:      read virtual address
  */
-struct iser_ctrl {
+struct iser_ctrl
+{
 	u8      flags;
 	u8      rsvd[3];
 	__be32  write_stag;

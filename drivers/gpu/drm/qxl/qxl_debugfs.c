@@ -57,7 +57,8 @@ qxl_debugfs_buffers_info(struct seq_file *m, void *data)
 	struct qxl_device *qdev = node->minor->dev->dev_private;
 	struct qxl_bo *bo;
 
-	list_for_each_entry(bo, &qdev->gem.objects, list) {
+	list_for_each_entry(bo, &qdev->gem.objects, list)
+	{
 		struct reservation_object_list *fobj;
 		int rel;
 
@@ -67,13 +68,14 @@ qxl_debugfs_buffers_info(struct seq_file *m, void *data)
 		rcu_read_unlock();
 
 		seq_printf(m, "size %ld, pc %d, num releases %d\n",
-			   (unsigned long)bo->gem_base.size,
-			   bo->pin_count, rel);
+				   (unsigned long)bo->gem_base.size,
+				   bo->pin_count, rel);
 	}
 	return 0;
 }
 
-static struct drm_info_list qxl_debugfs_list[] = {
+static struct drm_info_list qxl_debugfs_list[] =
+{
 	{ "irq_received", qxl_debugfs_irq_received, 0, NULL },
 	{ "qxl_buffers", qxl_debugfs_buffers_info, 0, NULL },
 };
@@ -85,7 +87,7 @@ qxl_debugfs_init(struct drm_minor *minor)
 {
 #if defined(CONFIG_DEBUG_FS)
 	drm_debugfs_create_files(qxl_debugfs_list, QXL_DEBUGFS_ENTRIES,
-				 minor->debugfs_root, minor);
+							 minor->debugfs_root, minor);
 #endif
 	return 0;
 }
@@ -95,39 +97,44 @@ qxl_debugfs_takedown(struct drm_minor *minor)
 {
 #if defined(CONFIG_DEBUG_FS)
 	drm_debugfs_remove_files(qxl_debugfs_list, QXL_DEBUGFS_ENTRIES,
-				 minor);
+							 minor);
 #endif
 }
 
 int qxl_debugfs_add_files(struct qxl_device *qdev,
-			  struct drm_info_list *files,
-			  unsigned nfiles)
+						  struct drm_info_list *files,
+						  unsigned nfiles)
 {
 	unsigned i;
 
-	for (i = 0; i < qdev->debugfs_count; i++) {
-		if (qdev->debugfs[i].files == files) {
+	for (i = 0; i < qdev->debugfs_count; i++)
+	{
+		if (qdev->debugfs[i].files == files)
+		{
 			/* Already registered */
 			return 0;
 		}
 	}
 
 	i = qdev->debugfs_count + 1;
-	if (i > QXL_DEBUGFS_MAX_COMPONENTS) {
+
+	if (i > QXL_DEBUGFS_MAX_COMPONENTS)
+	{
 		DRM_ERROR("Reached maximum number of debugfs components.\n");
 		DRM_ERROR("Report so we increase QXL_DEBUGFS_MAX_COMPONENTS.\n");
 		return -EINVAL;
 	}
+
 	qdev->debugfs[qdev->debugfs_count].files = files;
 	qdev->debugfs[qdev->debugfs_count].num_files = nfiles;
 	qdev->debugfs_count = i;
 #if defined(CONFIG_DEBUG_FS)
 	drm_debugfs_create_files(files, nfiles,
-				 qdev->ddev->control->debugfs_root,
-				 qdev->ddev->control);
+							 qdev->ddev->control->debugfs_root,
+							 qdev->ddev->control);
 	drm_debugfs_create_files(files, nfiles,
-				 qdev->ddev->primary->debugfs_root,
-				 qdev->ddev->primary);
+							 qdev->ddev->primary->debugfs_root,
+							 qdev->ddev->primary);
 #endif
 	return 0;
 }
@@ -137,13 +144,15 @@ void qxl_debugfs_remove_files(struct qxl_device *qdev)
 #if defined(CONFIG_DEBUG_FS)
 	unsigned i;
 
-	for (i = 0; i < qdev->debugfs_count; i++) {
+	for (i = 0; i < qdev->debugfs_count; i++)
+	{
 		drm_debugfs_remove_files(qdev->debugfs[i].files,
-					 qdev->debugfs[i].num_files,
-					 qdev->ddev->control);
+								 qdev->debugfs[i].num_files,
+								 qdev->ddev->control);
 		drm_debugfs_remove_files(qdev->debugfs[i].files,
-					 qdev->debugfs[i].num_files,
-					 qdev->ddev->primary);
+								 qdev->debugfs[i].num_files,
+								 qdev->ddev->primary);
 	}
+
 #endif
 }

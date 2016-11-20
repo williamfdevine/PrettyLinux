@@ -13,7 +13,8 @@ extern const struct export_operations nilfs_export_ops;
  * @parent_gen: parent generation (version) for NFS
  * @parent_ino: parent inode number
  */
-struct nilfs_fid {
+struct nilfs_fid
+{
 	u64 cno;
 	u64 ino;
 	u32 gen;

@@ -65,7 +65,7 @@
 #define EXTIN(x)	(0x10 + (x))	/* x = 0x00 - 0x0f */
 #define EXTOUT(x)	(0x20 + (x))	/* x = 0x00 - 0x0f physical outs -> FXWC low 16 bits */
 #define FXBUS2(x)	(0x30 + (x))	/* x = 0x00 - 0x0f copies of fx buses for capture -> FXWC high 16 bits */
-					/* NB: 0x31 and 0x32 are shared with Center/LFE on SB live 5.1 */
+/* NB: 0x31 and 0x32 are shared with Center/LFE on SB live 5.1 */
 
 #define C_00000000	0x40
 #define C_00000001	0x41
@@ -186,7 +186,7 @@
 #define A_EXTIN_SPDIF_CD_L	0x02	/* digital CD left */
 #define A_EXTIN_SPDIF_CD_R	0x03	/* digital CD left */
 #define A_EXTIN_OPT_SPDIF_L     0x04    /* audigy drive Optical SPDIF - left */
-#define A_EXTIN_OPT_SPDIF_R     0x05    /*                              right */ 
+#define A_EXTIN_OPT_SPDIF_R     0x05    /*                              right */
 #define A_EXTIN_LINE2_L		0x08	/* audigy drive line2/mic2 - left */
 #define A_EXTIN_LINE2_R		0x09	/*                           right */
 #define A_EXTIN_ADC_L		0x0a    /* Philips ADC - left */
@@ -259,14 +259,15 @@
 
 /* tank memory address line */
 #ifndef __KERNEL__
-#define TANKMEMADDRREG_ADDR_MASK 0x000fffff	/* 20 bit tank address field			*/
-#define TANKMEMADDRREG_CLEAR	 0x00800000	/* Clear tank memory				*/
-#define TANKMEMADDRREG_ALIGN	 0x00400000	/* Align read or write relative to tank access	*/
-#define TANKMEMADDRREG_WRITE	 0x00200000	/* Write to tank memory				*/
-#define TANKMEMADDRREG_READ	 0x00100000	/* Read from tank memory			*/
+	#define TANKMEMADDRREG_ADDR_MASK 0x000fffff	/* 20 bit tank address field			*/
+	#define TANKMEMADDRREG_CLEAR	 0x00800000	/* Clear tank memory				*/
+	#define TANKMEMADDRREG_ALIGN	 0x00400000	/* Align read or write relative to tank access	*/
+	#define TANKMEMADDRREG_WRITE	 0x00200000	/* Write to tank memory				*/
+	#define TANKMEMADDRREG_READ	 0x00100000	/* Read from tank memory			*/
 #endif
 
-struct snd_emu10k1_fx8010_info {
+struct snd_emu10k1_fx8010_info
+{
 	unsigned int internal_tram_size;	/* in samples */
 	unsigned int external_tram_size;	/* in samples */
 	char fxbus_names[16][32];		/* names of FXBUSes */
@@ -281,7 +282,8 @@ struct snd_emu10k1_fx8010_info {
 #define EMU10K1_GPR_TRANSLATION_TREBLE		3
 #define EMU10K1_GPR_TRANSLATION_ONOFF		4
 
-struct snd_emu10k1_fx8010_control_gpr {
+struct snd_emu10k1_fx8010_control_gpr
+{
 	struct snd_ctl_elem_id id;		/* full control ID definition */
 	unsigned int vcount;		/* visible count */
 	unsigned int count;		/* count of GPR (1..16) */
@@ -294,7 +296,8 @@ struct snd_emu10k1_fx8010_control_gpr {
 };
 
 /* old ABI without TLV support */
-struct snd_emu10k1_fx8010_control_old_gpr {
+struct snd_emu10k1_fx8010_control_old_gpr
+{
 	struct snd_ctl_elem_id id;
 	unsigned int vcount;
 	unsigned int count;
@@ -305,7 +308,8 @@ struct snd_emu10k1_fx8010_control_old_gpr {
 	unsigned int translation;
 };
 
-struct snd_emu10k1_fx8010_code {
+struct snd_emu10k1_fx8010_code
+{
 	char name[128];
 
 	__EMU10K1_DECLARE_BITMAP(gpr_valid, 0x200); /* bitmask of valid initializers */
@@ -329,14 +333,16 @@ struct snd_emu10k1_fx8010_code {
 	__u32 __user *code;		  /* one instruction - 64 bits */
 };
 
-struct snd_emu10k1_fx8010_tram {
+struct snd_emu10k1_fx8010_tram
+{
 	unsigned int address;		/* 31.bit == 1 -> external TRAM */
 	unsigned int size;		/* size in samples (4 bytes) */
 	unsigned int *samples;		/* pointer to samples (20-bit) */
-					/* NULL->clear memory */
+	/* NULL->clear memory */
 };
 
-struct snd_emu10k1_fx8010_pcm_rec {
+struct snd_emu10k1_fx8010_pcm_rec
+{
 	unsigned int substream;		/* substream number */
 	unsigned int res1;		/* reserved */
 	unsigned int channels;		/* 16-bit channels count, zero = remove this substream */

@@ -26,27 +26,27 @@ struct clk_hw;
 
 #define BERLIN2_PLL_SELECT(_off, _sh)	\
 	.pll_select_offs = _off,	\
-	.pll_select_shift = _sh
+					   .pll_select_shift = _sh
 
 #define BERLIN2_PLL_SWITCH(_off, _sh)	\
 	.pll_switch_offs = _off,	\
-	.pll_switch_shift = _sh
+					   .pll_switch_shift = _sh
 
 #define BERLIN2_DIV_SELECT(_off, _sh)	\
 	.div_select_offs = _off,	\
-	.div_select_shift = _sh
+					   .div_select_shift = _sh
 
 #define BERLIN2_DIV_SWITCH(_off, _sh)	\
 	.div_switch_offs = _off,	\
-	.div_switch_shift = _sh
+					   .div_switch_shift = _sh
 
 #define BERLIN2_DIV_D3SWITCH(_off, _sh)	\
 	.div3_switch_offs = _off,	\
-	.div3_switch_shift = _sh
+						.div3_switch_shift = _sh
 
 #define BERLIN2_DIV_GATE(_off, _sh)	\
 	.gate_offs = _off,		\
-	.gate_shift = _sh
+				 .gate_shift = _sh
 
 #define BERLIN2_SINGLE_DIV(_off)	\
 	BERLIN2_DIV_GATE(_off, 0),	\
@@ -56,7 +56,8 @@ struct clk_hw;
 	BERLIN2_DIV_D3SWITCH(_off, 6),	\
 	BERLIN2_DIV_SELECT(_off, 7)
 
-struct berlin2_div_map {
+struct berlin2_div_map
+{
 	u16 pll_select_offs;
 	u16 pll_switch_offs;
 	u16 div_select_offs;
@@ -71,7 +72,8 @@ struct berlin2_div_map {
 	u8 gate_shift;
 };
 
-struct berlin2_div_data {
+struct berlin2_div_data
+{
 	const char *name;
 	const u8 *parent_ids;
 	int num_parents;
@@ -82,8 +84,8 @@ struct berlin2_div_data {
 
 struct clk_hw *
 berlin2_div_register(const struct berlin2_div_map *map,
-	     void __iomem *base,  const char *name, u8 div_flags,
-	     const char **parent_names, int num_parents,
-	     unsigned long flags,  spinlock_t *lock);
+					 void __iomem *base,  const char *name, u8 div_flags,
+					 const char **parent_names, int num_parents,
+					 unsigned long flags,  spinlock_t *lock);
 
 #endif /* __BERLIN2_DIV_H */

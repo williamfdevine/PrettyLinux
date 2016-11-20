@@ -33,14 +33,17 @@ g84_bar_flush(struct nvkm_bar *bar)
 	spin_lock_irqsave(&bar->lock, flags);
 	nvkm_wr32(device, 0x070000, 0x00000001);
 	nvkm_msec(device, 2000,
-		if (!(nvkm_rd32(device, 0x070000) & 0x00000002))
-			break;
-	);
+
+			  if (!(nvkm_rd32(device, 0x070000) & 0x00000002))
+			  break;
+			 );
+
 	spin_unlock_irqrestore(&bar->lock, flags);
 }
 
 static const struct nvkm_bar_func
-g84_bar_func = {
+	g84_bar_func =
+{
 	.dtor = nv50_bar_dtor,
 	.oneinit = nv50_bar_oneinit,
 	.init = nv50_bar_init,

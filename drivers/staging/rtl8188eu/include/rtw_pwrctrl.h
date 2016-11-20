@@ -35,7 +35,8 @@
 #define CMD_ALIVE	BIT(2)
 #define EVT_ALIVE	BIT(3)
 
-enum power_mgnt {
+enum power_mgnt
+{
 	PS_MODE_ACTIVE = 0,
 	PS_MODE_MIN,
 	PS_MODE_MAX,
@@ -86,7 +87,8 @@ enum power_mgnt {
 #define PS_IS_ACTIVE(x)	((x) & (PS_ST_ACTIVE))
 #define CLR_PS_STATE(x)	((x) = ((x) & (0xF0)))
 
-struct reportpwrstate_parm {
+struct reportpwrstate_parm
+{
 	unsigned char mode;
 	unsigned char state; /* the CPWM value */
 	unsigned short rsvd;
@@ -99,7 +101,8 @@ struct reportpwrstate_parm {
 #define EXE_PWR_LPS		0x04
 
 /*  RF state. */
-enum rt_rf_power_state {
+enum rt_rf_power_state
+{
 	rf_on,		/*  RF is on after RFSleep or RFOff */
 	rf_sleep,	/*  802.11 Power Save mode */
 	rf_off,		/*  HW/SW Radio OFF or Inactive Power Save */
@@ -127,7 +130,8 @@ enum rt_rf_power_state {
 #define	RT_SET_PS_LEVEL(ppsc, _PS_FLAG)				\
 	(ppsc->cur_ps_level |= _PS_FLAG)
 
-enum _PS_BBRegBackup_ {
+enum _PS_BBRegBackup_
+{
 	PSBBREG_RF0 = 0,
 	PSBBREG_RF1,
 	PSBBREG_RF2,
@@ -135,13 +139,15 @@ enum _PS_BBRegBackup_ {
 	PSBBREG_TOTALCNT
 };
 
-enum { /*  for ips_mode */
+enum   /*  for ips_mode */
+{
 	IPS_NONE = 0,
 	IPS_NORMAL,
 	IPS_LEVEL_2,
 };
 
-struct pwrctrl_priv {
+struct pwrctrl_priv
+{
 	struct mutex mutex_lock;
 	volatile u8 rpwm; /*  requested power state for fw */
 	volatile u8 cpwm; /*  fw current power state. updated when
@@ -214,16 +220,16 @@ struct pwrctrl_priv {
 
 #define _rtw_set_pwr_state_check_timer(pwrctrlpriv, ms) \
 	mod_timer(&pwrctrlpriv->pwr_state_check_timer,	\
-		  jiffies + msecs_to_jiffies(ms))
+			  jiffies + msecs_to_jiffies(ms))
 
 #define rtw_set_pwr_state_check_timer(pwrctrl)			\
 	_rtw_set_pwr_state_check_timer((pwrctrl),		\
-				       (pwrctrl)->pwr_state_check_interval)
+								   (pwrctrl)->pwr_state_check_interval)
 
 void rtw_init_pwrctrl_priv(struct adapter *adapter);
 
 void rtw_set_ps_mode(struct adapter *adapter, u8 ps_mode, u8 smart_ps,
-		     u8 bcn_ant_mode);
+					 u8 bcn_ant_mode);
 void rtw_set_rpwm(struct adapter *adapter, u8 val8);
 void LeaveAllPowerSaveMode(struct adapter *adapter);
 void ips_enter(struct adapter *padapter);
@@ -238,11 +244,11 @@ void LPS_Enter(struct adapter *adapter);
 void LPS_Leave(struct adapter *adapter);
 
 int _rtw_pwr_wakeup(struct adapter *adapter, u32 ips_defer_ms,
-		    const char *caller);
+					const char *caller);
 #define rtw_pwr_wakeup(adapter)						\
-	 _rtw_pwr_wakeup(adapter, RTW_PWR_STATE_CHK_INTERVAL, __func__)
+	_rtw_pwr_wakeup(adapter, RTW_PWR_STATE_CHK_INTERVAL, __func__)
 #define rtw_pwr_wakeup_ex(adapter, ips_deffer_ms)			\
-	 _rtw_pwr_wakeup(adapter, ips_deffer_ms, __func__)
+	_rtw_pwr_wakeup(adapter, ips_deffer_ms, __func__)
 int rtw_pm_set_ips(struct adapter *adapter, u8 mode);
 int rtw_pm_set_lps(struct adapter *adapter, u8 mode);
 

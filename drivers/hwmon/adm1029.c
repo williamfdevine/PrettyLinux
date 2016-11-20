@@ -40,8 +40,8 @@
  */
 
 static const unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
-						0x2e, 0x2f, I2C_CLIENT_END
-};
+											 0x2e, 0x2f, I2C_CLIENT_END
+										   };
 
 /*
  * The ADM1029 registers
@@ -81,7 +81,8 @@ static const unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
 #define DIV_FROM_REG(val)	(1 << (((val) >> 6) - 1))
 
 /* Registers to be checked by adm1029_update_device() */
-static const u8 ADM1029_REG_TEMP[] = {
+static const u8 ADM1029_REG_TEMP[] =
+{
 	ADM1029_REG_LOCAL_TEMP,
 	ADM1029_REG_REMOTE1_TEMP,
 	ADM1029_REG_REMOTE2_TEMP,
@@ -93,14 +94,16 @@ static const u8 ADM1029_REG_TEMP[] = {
 	ADM1029_REG_REMOTE2_TEMP_LOW,
 };
 
-static const u8 ADM1029_REG_FAN[] = {
+static const u8 ADM1029_REG_FAN[] =
+{
 	ADM1029_REG_FAN1,
 	ADM1029_REG_FAN2,
 	ADM1029_REG_FAN1_MIN,
 	ADM1029_REG_FAN2_MIN,
 };
 
-static const u8 ADM1029_REG_FAN_DIV[] = {
+static const u8 ADM1029_REG_FAN_DIV[] =
+{
 	ADM1029_REG_FAN1_CONFIG,
 	ADM1029_REG_FAN2_CONFIG,
 };
@@ -109,7 +112,8 @@ static const u8 ADM1029_REG_FAN_DIV[] = {
  * Client data (each client gets its own)
  */
 
-struct adm1029_data {
+struct adm1029_data
+{
 	struct i2c_client *client;
 	struct mutex update_lock;
 	char valid;		/* zero until following fields are valid */
@@ -130,30 +134,37 @@ static struct adm1029_data *adm1029_update_device(struct device *dev)
 	struct i2c_client *client = data->client;
 
 	mutex_lock(&data->update_lock);
+
 	/*
 	 * Use the "cache" Luke, don't recheck values
 	 * if there are already checked not a long time later
 	 */
 	if (time_after(jiffies, data->last_updated + HZ * 2)
-	 || !data->valid) {
+		|| !data->valid)
+	{
 		int nr;
 
 		dev_dbg(&client->dev, "Updating adm1029 data\n");
 
-		for (nr = 0; nr < ARRAY_SIZE(ADM1029_REG_TEMP); nr++) {
+		for (nr = 0; nr < ARRAY_SIZE(ADM1029_REG_TEMP); nr++)
+		{
 			data->temp[nr] =
-			    i2c_smbus_read_byte_data(client,
-						     ADM1029_REG_TEMP[nr]);
+				i2c_smbus_read_byte_data(client,
+										 ADM1029_REG_TEMP[nr]);
 		}
-		for (nr = 0; nr < ARRAY_SIZE(ADM1029_REG_FAN); nr++) {
+
+		for (nr = 0; nr < ARRAY_SIZE(ADM1029_REG_FAN); nr++)
+		{
 			data->fan[nr] =
-			    i2c_smbus_read_byte_data(client,
-						     ADM1029_REG_FAN[nr]);
+				i2c_smbus_read_byte_data(client,
+										 ADM1029_REG_FAN[nr]);
 		}
-		for (nr = 0; nr < ARRAY_SIZE(ADM1029_REG_FAN_DIV); nr++) {
+
+		for (nr = 0; nr < ARRAY_SIZE(ADM1029_REG_FAN_DIV); nr++)
+		{
 			data->fan_div[nr] =
-			    i2c_smbus_read_byte_data(client,
-						     ADM1029_REG_FAN_DIV[nr]);
+				i2c_smbus_read_byte_data(client,
+										 ADM1029_REG_FAN_DIV[nr]);
 		}
 
 		data->last_updated = jiffies;
@@ -183,14 +194,16 @@ show_fan(struct device *dev, struct device_attribute *devattr, char *buf)
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	struct adm1029_data *data = adm1029_update_device(dev);
 	u16 val;
+
 	if (data->fan[attr->index] == 0
-	    || (data->fan_div[attr->index] & 0xC0) == 0
-	    || data->fan[attr->index] == 255) {
+		|| (data->fan_div[attr->index] & 0xC0) == 0
+		|| data->fan[attr->index] == 255)
+	{
 		return sprintf(buf, "0\n");
 	}
 
 	val = 1880 * 120 / DIV_FROM_REG(data->fan_div[attr->index])
-	    / data->fan[attr->index];
+		  / data->fan[attr->index];
 	return sprintf(buf, "%d\n", val);
 }
 
@@ -199,13 +212,17 @@ show_fan_div(struct device *dev, struct device_attribute *devattr, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	struct adm1029_data *data = adm1029_update_device(dev);
+
 	if ((data->fan_div[attr->index] & 0xC0) == 0)
+	{
 		return sprintf(buf, "0\n");
+	}
+
 	return sprintf(buf, "%d\n", DIV_FROM_REG(data->fan_div[attr->index]));
 }
 
 static ssize_t set_fan_div(struct device *dev,
-	    struct device_attribute *devattr, const char *buf, size_t count)
+						   struct device_attribute *devattr, const char *buf, size_t count)
 {
 	struct adm1029_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
@@ -213,32 +230,40 @@ static ssize_t set_fan_div(struct device *dev,
 	u8 reg;
 	long val;
 	int ret = kstrtol(buf, 10, &val);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	mutex_lock(&data->update_lock);
 
 	/*Read actual config */
 	reg = i2c_smbus_read_byte_data(client,
-				       ADM1029_REG_FAN_DIV[attr->index]);
+								   ADM1029_REG_FAN_DIV[attr->index]);
 
-	switch (val) {
-	case 1:
-		val = 1;
-		break;
-	case 2:
-		val = 2;
-		break;
-	case 4:
-		val = 3;
-		break;
-	default:
-		mutex_unlock(&data->update_lock);
-		dev_err(&client->dev,
-			"fan_div value %ld not supported. Choose one of 1, 2 or 4!\n",
-			val);
-		return -EINVAL;
+	switch (val)
+	{
+		case 1:
+			val = 1;
+			break;
+
+		case 2:
+			val = 2;
+			break;
+
+		case 4:
+			val = 3;
+			break;
+
+		default:
+			mutex_unlock(&data->update_lock);
+			dev_err(&client->dev,
+					"fan_div value %ld not supported. Choose one of 1, 2 or 4!\n",
+					val);
+			return -EINVAL;
 	}
+
 	/* Update the value */
 	reg = (reg & 0x3F) | (val << 6);
 
@@ -247,7 +272,7 @@ static ssize_t set_fan_div(struct device *dev,
 
 	/* Write value */
 	i2c_smbus_write_byte_data(client,
-				  ADM1029_REG_FAN_DIV[attr->index], reg);
+							  ADM1029_REG_FAN_DIV[attr->index], reg);
 	mutex_unlock(&data->update_lock);
 
 	return count;
@@ -276,11 +301,12 @@ static SENSOR_DEVICE_ATTR(fan1_min, S_IRUGO, show_fan, NULL, 2);
 static SENSOR_DEVICE_ATTR(fan2_min, S_IRUGO, show_fan, NULL, 3);
 
 static SENSOR_DEVICE_ATTR(fan1_div, S_IRUGO | S_IWUSR,
-			  show_fan_div, set_fan_div, 0);
+						  show_fan_div, set_fan_div, 0);
 static SENSOR_DEVICE_ATTR(fan2_div, S_IRUGO | S_IWUSR,
-			  show_fan_div, set_fan_div, 1);
+						  show_fan_div, set_fan_div, 1);
 
-static struct attribute *adm1029_attrs[] = {
+static struct attribute *adm1029_attrs[] =
+{
 	&sensor_dev_attr_temp1_input.dev_attr.attr,
 	&sensor_dev_attr_temp1_min.dev_attr.attr,
 	&sensor_dev_attr_temp1_max.dev_attr.attr,
@@ -307,13 +333,15 @@ ATTRIBUTE_GROUPS(adm1029);
 
 /* Return 0 if detection is successful, -ENODEV otherwise */
 static int adm1029_detect(struct i2c_client *client,
-			  struct i2c_board_info *info)
+						  struct i2c_board_info *info)
 {
 	struct i2c_adapter *adapter = client->adapter;
 	u8 man_id, chip_id, temp_devices_installed, nb_fan_support;
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * ADM1029 doesn't have CHIP ID, check just MAN ID
@@ -325,21 +353,25 @@ static int adm1029_detect(struct i2c_client *client,
 	man_id = i2c_smbus_read_byte_data(client, ADM1029_REG_MAN_ID);
 	chip_id = i2c_smbus_read_byte_data(client, ADM1029_REG_CHIP_ID);
 	temp_devices_installed = i2c_smbus_read_byte_data(client,
-					ADM1029_REG_TEMP_DEVICES_INSTALLED);
+							 ADM1029_REG_TEMP_DEVICES_INSTALLED);
 	nb_fan_support = i2c_smbus_read_byte_data(client,
-						ADM1029_REG_NB_FAN_SUPPORT);
+					 ADM1029_REG_NB_FAN_SUPPORT);
+
 	/* 0x41 is Analog Devices */
 	if (man_id != 0x41 || (temp_devices_installed & 0xf9) != 0x01
-	    || nb_fan_support != 0x03)
+		|| nb_fan_support != 0x03)
+	{
 		return -ENODEV;
+	}
 
-	if ((chip_id & 0xF0) != 0x00) {
+	if ((chip_id & 0xF0) != 0x00)
+	{
 		/*
 		 * There are no "official" CHIP ID, so actually
 		 * we use Major/Minor revision for that
 		 */
 		pr_info("Unknown major revision %x, please let us know\n",
-			chip_id);
+				chip_id);
 		return -ENODEV;
 	}
 
@@ -353,29 +385,38 @@ static int adm1029_init_client(struct i2c_client *client)
 	u8 config;
 
 	config = i2c_smbus_read_byte_data(client, ADM1029_REG_CONFIG);
-	if ((config & 0x10) == 0) {
+
+	if ((config & 0x10) == 0)
+	{
 		i2c_smbus_write_byte_data(client, ADM1029_REG_CONFIG,
-					  config | 0x10);
+								  config | 0x10);
 	}
+
 	/* recheck config */
 	config = i2c_smbus_read_byte_data(client, ADM1029_REG_CONFIG);
-	if ((config & 0x10) == 0) {
+
+	if ((config & 0x10) == 0)
+	{
 		dev_err(&client->dev, "Initialization failed!\n");
 		return 0;
 	}
+
 	return 1;
 }
 
 static int adm1029_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
 	struct adm1029_data *data;
 	struct device *hwmon_dev;
 
 	data = devm_kzalloc(dev, sizeof(struct adm1029_data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	data->client = client;
 	mutex_init(&data->update_lock);
@@ -385,21 +426,25 @@ static int adm1029_probe(struct i2c_client *client,
 	 * Check config register
 	 */
 	if (adm1029_init_client(client) == 0)
+	{
 		return -ENODEV;
+	}
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-							   data,
-							   adm1029_groups);
+				data,
+				adm1029_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
-static const struct i2c_device_id adm1029_id[] = {
+static const struct i2c_device_id adm1029_id[] =
+{
 	{ "adm1029", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, adm1029_id);
 
-static struct i2c_driver adm1029_driver = {
+static struct i2c_driver adm1029_driver =
+{
 	.class		= I2C_CLASS_HWMON,
 	.driver = {
 		.name = "adm1029",

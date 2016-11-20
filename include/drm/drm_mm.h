@@ -42,16 +42,18 @@
 #include <linux/list.h>
 #include <linux/spinlock.h>
 #ifdef CONFIG_DEBUG_FS
-#include <linux/seq_file.h>
+	#include <linux/seq_file.h>
 #endif
 
-enum drm_mm_search_flags {
+enum drm_mm_search_flags
+{
 	DRM_MM_SEARCH_DEFAULT =		0,
 	DRM_MM_SEARCH_BEST =		1 << 0,
 	DRM_MM_SEARCH_BELOW =		1 << 1,
 };
 
-enum drm_mm_allocator_flags {
+enum drm_mm_allocator_flags
+{
 	DRM_MM_CREATE_DEFAULT =		0,
 	DRM_MM_CREATE_TOP =		1 << 0,
 };
@@ -59,7 +61,8 @@ enum drm_mm_allocator_flags {
 #define DRM_MM_BOTTOMUP DRM_MM_SEARCH_DEFAULT, DRM_MM_CREATE_DEFAULT
 #define DRM_MM_TOPDOWN DRM_MM_SEARCH_BELOW, DRM_MM_CREATE_TOP
 
-struct drm_mm_node {
+struct drm_mm_node
+{
 	struct list_head node_list;
 	struct list_head hole_stack;
 	struct rb_node rb;
@@ -76,7 +79,8 @@ struct drm_mm_node {
 	struct drm_mm *mm;
 };
 
-struct drm_mm {
+struct drm_mm
+{
 	/* List of all memory nodes that immediately precede a free hole. */
 	struct list_head hole_stack;
 	/* head_node.node_list is the list of all memory nodes, ordered
@@ -97,7 +101,7 @@ struct drm_mm {
 	struct drm_mm_node *prev_scanned_node;
 
 	void (*color_adjust)(struct drm_mm_node *node, unsigned long color,
-			     u64 *start, u64 *end);
+						 u64 *start, u64 *end);
 };
 
 /**
@@ -182,16 +186,16 @@ static inline u64 drm_mm_hole_node_end(struct drm_mm_node *hole_node)
  * with list_for_each, so not save against removal of elements.
  */
 #define drm_mm_for_each_node(entry, mm) list_for_each_entry(entry, \
-						&(mm)->head_node.node_list, \
-						node_list)
+		&(mm)->head_node.node_list, \
+		node_list)
 
 #define __drm_mm_for_each_hole(entry, mm, hole_start, hole_end, backwards) \
 	for (entry = list_entry((backwards) ? (mm)->hole_stack.prev : (mm)->hole_stack.next, struct drm_mm_node, hole_stack); \
-	     &entry->hole_stack != &(mm)->hole_stack ? \
-	     hole_start = drm_mm_hole_node_start(entry), \
-	     hole_end = drm_mm_hole_node_end(entry), \
-	     1 : 0; \
-	     entry = list_entry((backwards) ? entry->hole_stack.prev : entry->hole_stack.next, struct drm_mm_node, hole_stack))
+		 &entry->hole_stack != &(mm)->hole_stack ? \
+		 hole_start = drm_mm_hole_node_start(entry), \
+		 hole_end = drm_mm_hole_node_end(entry), \
+		 1 : 0; \
+		 entry = list_entry((backwards) ? entry->hole_stack.prev : entry->hole_stack.next, struct drm_mm_node, hole_stack))
 
 /**
  * drm_mm_for_each_hole - iterator to walk over all holes
@@ -221,12 +225,12 @@ static inline u64 drm_mm_hole_node_end(struct drm_mm_node *hole_node)
 int drm_mm_reserve_node(struct drm_mm *mm, struct drm_mm_node *node);
 
 int drm_mm_insert_node_generic(struct drm_mm *mm,
-			       struct drm_mm_node *node,
-			       u64 size,
-			       unsigned alignment,
-			       unsigned long color,
-			       enum drm_mm_search_flags sflags,
-			       enum drm_mm_allocator_flags aflags);
+							   struct drm_mm_node *node,
+							   u64 size,
+							   unsigned alignment,
+							   unsigned long color,
+							   enum drm_mm_search_flags sflags,
+							   enum drm_mm_allocator_flags aflags);
 /**
  * drm_mm_insert_node - search for space and insert @node
  * @mm: drm_mm to allocate from
@@ -244,24 +248,24 @@ int drm_mm_insert_node_generic(struct drm_mm *mm,
  * 0 on success, -ENOSPC if there's no suitable hole.
  */
 static inline int drm_mm_insert_node(struct drm_mm *mm,
-				     struct drm_mm_node *node,
-				     u64 size,
-				     unsigned alignment,
-				     enum drm_mm_search_flags flags)
+									 struct drm_mm_node *node,
+									 u64 size,
+									 unsigned alignment,
+									 enum drm_mm_search_flags flags)
 {
 	return drm_mm_insert_node_generic(mm, node, size, alignment, 0, flags,
-					  DRM_MM_CREATE_DEFAULT);
+									  DRM_MM_CREATE_DEFAULT);
 }
 
 int drm_mm_insert_node_in_range_generic(struct drm_mm *mm,
-					struct drm_mm_node *node,
-					u64 size,
-					unsigned alignment,
-					unsigned long color,
-					u64 start,
-					u64 end,
-					enum drm_mm_search_flags sflags,
-					enum drm_mm_allocator_flags aflags);
+										struct drm_mm_node *node,
+										u64 size,
+										unsigned alignment,
+										unsigned long color,
+										u64 start,
+										u64 end,
+										enum drm_mm_search_flags sflags,
+										enum drm_mm_allocator_flags aflags);
 /**
  * drm_mm_insert_node_in_range - ranged search for space and insert @node
  * @mm: drm_mm to allocate from
@@ -281,23 +285,23 @@ int drm_mm_insert_node_in_range_generic(struct drm_mm *mm,
  * 0 on success, -ENOSPC if there's no suitable hole.
  */
 static inline int drm_mm_insert_node_in_range(struct drm_mm *mm,
-					      struct drm_mm_node *node,
-					      u64 size,
-					      unsigned alignment,
-					      u64 start,
-					      u64 end,
-					      enum drm_mm_search_flags flags)
+		struct drm_mm_node *node,
+		u64 size,
+		unsigned alignment,
+		u64 start,
+		u64 end,
+		enum drm_mm_search_flags flags)
 {
 	return drm_mm_insert_node_in_range_generic(mm, node, size, alignment,
-						   0, start, end, flags,
-						   DRM_MM_CREATE_DEFAULT);
+			0, start, end, flags,
+			DRM_MM_CREATE_DEFAULT);
 }
 
 void drm_mm_remove_node(struct drm_mm_node *node);
 void drm_mm_replace_node(struct drm_mm_node *old, struct drm_mm_node *new);
 void drm_mm_init(struct drm_mm *mm,
-		 u64 start,
-		 u64 size);
+				 u64 start,
+				 u64 size);
 void drm_mm_takedown(struct drm_mm *mm);
 bool drm_mm_clean(struct drm_mm *mm);
 
@@ -308,21 +312,21 @@ struct drm_mm_node *
 drm_mm_interval_next(struct drm_mm_node *node, u64 start, u64 last);
 
 void drm_mm_init_scan(struct drm_mm *mm,
-		      u64 size,
-		      unsigned alignment,
-		      unsigned long color);
+					  u64 size,
+					  unsigned alignment,
+					  unsigned long color);
 void drm_mm_init_scan_with_range(struct drm_mm *mm,
-				 u64 size,
-				 unsigned alignment,
-				 unsigned long color,
-				 u64 start,
-				 u64 end);
+								 u64 size,
+								 unsigned alignment,
+								 unsigned long color,
+								 u64 start,
+								 u64 end);
 bool drm_mm_scan_add_block(struct drm_mm_node *node);
 bool drm_mm_scan_remove_block(struct drm_mm_node *node);
 
 void drm_mm_debug_table(struct drm_mm *mm, const char *prefix);
 #ifdef CONFIG_DEBUG_FS
-int drm_mm_dump_table(struct seq_file *m, struct drm_mm *mm);
+	int drm_mm_dump_table(struct seq_file *m, struct drm_mm *mm);
 #endif
 
 #endif

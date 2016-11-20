@@ -143,7 +143,8 @@
 
 struct adis16400_state;
 
-struct adis16400_chip_info {
+struct adis16400_chip_info
+{
 	const struct iio_chan_spec *channels;
 	const int num_channels;
 	const long flags;
@@ -161,7 +162,8 @@ struct adis16400_chip_info {
  * @filt_int:	integer part of requested filter frequency
  * @adis:	adis device
  **/
-struct adis16400_state {
+struct adis16400_state
+{
 	struct adis16400_chip_info	*variant;
 	int				filt_int;
 
@@ -173,7 +175,8 @@ struct adis16400_state {
  * filling. This may change!
  */
 
-enum {
+enum
+{
 	ADIS16400_SCAN_SUPPLY,
 	ADIS16400_SCAN_GYRO_X,
 	ADIS16400_SCAN_GYRO_Y,
@@ -197,12 +200,12 @@ enum {
 #ifdef CONFIG_IIO_BUFFER
 
 ssize_t adis16400_read_data_from_ring(struct device *dev,
-				      struct device_attribute *attr,
-				      char *buf);
+									  struct device_attribute *attr,
+									  char *buf);
 
 
 int adis16400_update_scan_mode(struct iio_dev *indio_dev,
-	const unsigned long *scan_mask);
+							   const unsigned long *scan_mask);
 irqreturn_t adis16400_trigger_handler(int irq, void *p);
 
 #else /* CONFIG_IIO_BUFFER */

@@ -35,30 +35,41 @@ static int ir_raw_event_thread(void *data)
 	struct ir_raw_handler *handler;
 	struct ir_raw_event_ctrl *raw = (struct ir_raw_event_ctrl *)data;
 
-	while (!kthread_should_stop()) {
+	while (!kthread_should_stop())
+	{
 
 		spin_lock_irq(&raw->lock);
 
-		if (!kfifo_len(&raw->kfifo)) {
+		if (!kfifo_len(&raw->kfifo))
+		{
 			set_current_state(TASK_INTERRUPTIBLE);
 
 			if (kthread_should_stop())
+			{
 				set_current_state(TASK_RUNNING);
+			}
 
 			spin_unlock_irq(&raw->lock);
 			schedule();
 			continue;
 		}
 
-		if(!kfifo_out(&raw->kfifo, &ev, 1))
+		if (!kfifo_out(&raw->kfifo, &ev, 1))
+		{
 			dev_err(&raw->dev->dev, "IR event FIFO is empty!\n");
+		}
+
 		spin_unlock_irq(&raw->lock);
 
 		mutex_lock(&ir_raw_handler_lock);
 		list_for_each_entry(handler, &ir_raw_handler_list, list)
-			if (raw->dev->enabled_protocols & handler->protocols ||
-			    !handler->protocols)
-				handler->decode(raw->dev, ev);
+
+		if (raw->dev->enabled_protocols & handler->protocols ||
+			!handler->protocols)
+		{
+			handler->decode(raw->dev, ev);
+		}
+
 		raw->prev_ev = ev;
 		mutex_unlock(&ir_raw_handler_lock);
 	}
@@ -79,12 +90,15 @@ static int ir_raw_event_thread(void *data)
 int ir_raw_event_store(struct rc_dev *dev, struct ir_raw_event *ev)
 {
 	if (!dev->raw)
+	{
 		return -EINVAL;
+	}
 
 	IR_dprintk(2, "sample: (%05dus %s)\n",
-		   TO_US(ev->duration), TO_STR(ev->pulse));
+			   TO_US(ev->duration), TO_STR(ev->pulse));
 
-	if (!kfifo_put(&dev->raw->kfifo, *ev)) {
+	if (!kfifo_put(&dev->raw->kfifo, *ev))
+	{
 		dev_err(&dev->dev, "IR event FIFO is full!\n");
 		return -ENOSPC;
 	}
@@ -113,7 +127,9 @@ int ir_raw_event_store_edge(struct rc_dev *dev, enum raw_event_type type)
 	int			delay;
 
 	if (!dev->raw)
+	{
 		return -EINVAL;
+	}
 
 	now = ktime_get();
 	delta = ktime_to_ns(ktime_sub(now, dev->raw->last_event));
@@ -124,20 +140,32 @@ int ir_raw_event_store_edge(struct rc_dev *dev, enum raw_event_type type)
 	 * possibly be negative.
 	 */
 	if (delta > delay || !dev->raw->last_type)
+	{
 		type |= IR_START_EVENT;
+	}
 	else
+	{
 		ev.duration = delta;
+	}
 
 	if (type & IR_START_EVENT)
+	{
 		ir_raw_event_reset(dev);
-	else if (dev->raw->last_type & IR_SPACE) {
+	}
+	else if (dev->raw->last_type & IR_SPACE)
+	{
 		ev.pulse = false;
 		rc = ir_raw_event_store(dev, &ev);
-	} else if (dev->raw->last_type & IR_PULSE) {
+	}
+	else if (dev->raw->last_type & IR_PULSE)
+	{
 		ev.pulse = true;
 		rc = ir_raw_event_store(dev, &ev);
-	} else
+	}
+	else
+	{
 		return 0;
+	}
 
 	dev->raw->last_event = now;
 	dev->raw->last_type = type;
@@ -160,27 +188,40 @@ EXPORT_SYMBOL_GPL(ir_raw_event_store_edge);
 int ir_raw_event_store_with_filter(struct rc_dev *dev, struct ir_raw_event *ev)
 {
 	if (!dev->raw)
+	{
 		return -EINVAL;
+	}
 
 	/* Ignore spaces in idle mode */
 	if (dev->idle && !ev->pulse)
+	{
 		return 0;
+	}
 	else if (dev->idle)
+	{
 		ir_raw_event_set_idle(dev, false);
+	}
 
 	if (!dev->raw->this_ev.duration)
+	{
 		dev->raw->this_ev = *ev;
+	}
 	else if (ev->pulse == dev->raw->this_ev.pulse)
+	{
 		dev->raw->this_ev.duration += ev->duration;
-	else {
+	}
+	else
+	{
 		ir_raw_event_store(dev, &dev->raw->this_ev);
 		dev->raw->this_ev = *ev;
 	}
 
 	/* Enter idle mode if nessesary */
 	if (!ev->pulse && dev->timeout &&
-	    dev->raw->this_ev.duration >= dev->timeout)
+		dev->raw->this_ev.duration >= dev->timeout)
+	{
 		ir_raw_event_set_idle(dev, true);
+	}
 
 	return 1;
 }
@@ -194,18 +235,23 @@ EXPORT_SYMBOL_GPL(ir_raw_event_store_with_filter);
 void ir_raw_event_set_idle(struct rc_dev *dev, bool idle)
 {
 	if (!dev->raw)
+	{
 		return;
+	}
 
 	IR_dprintk(2, "%s idle mode\n", idle ? "enter" : "leave");
 
-	if (idle) {
+	if (idle)
+	{
 		dev->raw->this_ev.timeout = true;
 		ir_raw_event_store(dev, &dev->raw->this_ev);
 		init_ir_raw_event(&dev->raw->this_ev);
 	}
 
 	if (dev->s_idle)
+	{
 		dev->s_idle(dev, idle);
+	}
 
 	dev->idle = idle;
 }
@@ -222,7 +268,9 @@ void ir_raw_event_handle(struct rc_dev *dev)
 	unsigned long flags;
 
 	if (!dev->raw)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&dev->raw->lock, flags);
 	wake_up_process(dev->raw->thread);
@@ -264,11 +312,16 @@ int ir_raw_event_register(struct rc_dev *dev)
 	struct ir_raw_handler *handler;
 
 	if (!dev)
+	{
 		return -EINVAL;
+	}
 
 	dev->raw = kzalloc(sizeof(*dev->raw), GFP_KERNEL);
+
 	if (!dev->raw)
+	{
 		return -ENOMEM;
+	}
 
 	dev->raw->dev = dev;
 	dev->change_protocol = change_protocol;
@@ -276,9 +329,10 @@ int ir_raw_event_register(struct rc_dev *dev)
 
 	spin_lock_init(&dev->raw->lock);
 	dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
-				       "rc%u", dev->minor);
+								   "rc%u", dev->minor);
 
-	if (IS_ERR(dev->raw->thread)) {
+	if (IS_ERR(dev->raw->thread))
+	{
 		rc = PTR_ERR(dev->raw->thread);
 		goto out;
 	}
@@ -286,8 +340,12 @@ int ir_raw_event_register(struct rc_dev *dev)
 	mutex_lock(&ir_raw_handler_lock);
 	list_add_tail(&dev->raw->list, &ir_raw_client_list);
 	list_for_each_entry(handler, &ir_raw_handler_list, list)
-		if (handler->raw_register)
-			handler->raw_register(dev);
+
+	if (handler->raw_register)
+	{
+		handler->raw_register(dev);
+	}
+
 	mutex_unlock(&ir_raw_handler_lock);
 
 	return 0;
@@ -303,15 +361,21 @@ void ir_raw_event_unregister(struct rc_dev *dev)
 	struct ir_raw_handler *handler;
 
 	if (!dev || !dev->raw)
+	{
 		return;
+	}
 
 	kthread_stop(dev->raw->thread);
 
 	mutex_lock(&ir_raw_handler_lock);
 	list_del(&dev->raw->list);
 	list_for_each_entry(handler, &ir_raw_handler_list, list)
-		if (handler->raw_unregister)
-			handler->raw_unregister(dev);
+
+	if (handler->raw_unregister)
+	{
+		handler->raw_unregister(dev);
+	}
+
 	mutex_unlock(&ir_raw_handler_lock);
 
 	kfree(dev->raw);
@@ -328,9 +392,11 @@ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler)
 
 	mutex_lock(&ir_raw_handler_lock);
 	list_add_tail(&ir_raw_handler->list, &ir_raw_handler_list);
+
 	if (ir_raw_handler->raw_register)
 		list_for_each_entry(raw, &ir_raw_client_list, list)
-			ir_raw_handler->raw_register(raw->dev);
+		ir_raw_handler->raw_register(raw->dev);
+
 	mutex_lock(&available_protocols_lock);
 	available_protocols |= ir_raw_handler->protocols;
 	mutex_unlock(&available_protocols_lock);
@@ -347,10 +413,14 @@ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler)
 
 	mutex_lock(&ir_raw_handler_lock);
 	list_del(&ir_raw_handler->list);
-	list_for_each_entry(raw, &ir_raw_client_list, list) {
+	list_for_each_entry(raw, &ir_raw_client_list, list)
+	{
 		ir_raw_disable_protocols(raw->dev, protocols);
+
 		if (ir_raw_handler->raw_unregister)
+		{
 			ir_raw_handler->raw_unregister(raw->dev);
+		}
 	}
 	mutex_lock(&available_protocols_lock);
 	available_protocols &= ~protocols;

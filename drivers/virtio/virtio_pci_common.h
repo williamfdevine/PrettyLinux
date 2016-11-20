@@ -31,7 +31,8 @@
 #include <linux/highmem.h>
 #include <linux/spinlock.h>
 
-struct virtio_pci_vq_info {
+struct virtio_pci_vq_info
+{
 	/* the actual virtqueue */
 	struct virtqueue *vq;
 
@@ -43,7 +44,8 @@ struct virtio_pci_vq_info {
 };
 
 /* Our device structure */
-struct virtio_pci_device {
+struct virtio_pci_device
+{
 	struct virtio_device vdev;
 	struct pci_dev *pci_dev;
 
@@ -99,11 +101,11 @@ struct virtio_pci_device {
 	bool per_vq_vectors;
 
 	struct virtqueue *(*setup_vq)(struct virtio_pci_device *vp_dev,
-				      struct virtio_pci_vq_info *info,
-				      unsigned idx,
-				      void (*callback)(struct virtqueue *vq),
-				      const char *name,
-				      u16 msix_vec);
+								  struct virtio_pci_vq_info *info,
+								  unsigned idx,
+								  void (*callback)(struct virtqueue *vq),
+								  const char *name,
+								  u16 msix_vec);
 	void (*del_vq)(struct virtio_pci_vq_info *info);
 
 	u16 (*config_vector)(struct virtio_pci_device *vp_dev, u16 vector);
@@ -112,7 +114,8 @@ struct virtio_pci_device {
 /* Constants for MSI-X */
 /* Use first vector for configuration changes, second and the rest for
  * virtqueues Thus, we need at least 2 vectors for MSI. */
-enum {
+enum
+{
 	VP_MSIX_CONFIG_VECTOR = 0,
 	VP_MSIX_VQ_VECTOR = 1,
 };
@@ -131,9 +134,9 @@ bool vp_notify(struct virtqueue *vq);
 void vp_del_vqs(struct virtio_device *vdev);
 /* the config->find_vqs() implementation */
 int vp_find_vqs(struct virtio_device *vdev, unsigned nvqs,
-		       struct virtqueue *vqs[],
-		       vq_callback_t *callbacks[],
-		       const char * const names[]);
+				struct virtqueue *vqs[],
+				vq_callback_t *callbacks[],
+				const char *const names[]);
 const char *vp_bus_name(struct virtio_device *vdev);
 
 /* Setup the affinity for a virtqueue:

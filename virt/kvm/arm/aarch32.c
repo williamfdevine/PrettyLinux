@@ -26,8 +26,8 @@
 #include <asm/kvm_hyp.h>
 
 #ifndef CONFIG_ARM64
-#define COMPAT_PSR_T_BIT	PSR_T_BIT
-#define COMPAT_PSR_IT_MASK	PSR_IT_MASK
+	#define COMPAT_PSR_T_BIT	PSR_T_BIT
+	#define COMPAT_PSR_IT_MASK	PSR_IT_MASK
 #endif
 
 /*
@@ -38,7 +38,8 @@
  *
  * bit position in short is condition code: NZCV
  */
-static const unsigned short cc_map[16] = {
+static const unsigned short cc_map[16] =
+{
 	0xF0F0,			/* EQ == Z set            */
 	0x0F0F,			/* NE                     */
 	0xCCCC,			/* CS == C set            */
@@ -68,16 +69,22 @@ bool kvm_condition_valid32(const struct kvm_vcpu *vcpu)
 
 	/* Top two bits non-zero?  Unconditional. */
 	if (kvm_vcpu_get_hsr(vcpu) >> 30)
+	{
 		return true;
+	}
 
 	/* Is condition field valid? */
 	cond = kvm_vcpu_get_condition(vcpu);
+
 	if (cond == 0xE)
+	{
 		return true;
+	}
 
 	cpsr = *vcpu_cpsr(vcpu);
 
-	if (cond < 0) {
+	if (cond < 0)
+	{
 		/* This can happen in Thumb mode: examine IT state. */
 		unsigned long it;
 
@@ -85,7 +92,9 @@ bool kvm_condition_valid32(const struct kvm_vcpu *vcpu)
 
 		/* it == 0 => unconditional. */
 		if (it == 0)
+		{
 			return true;
+		}
 
 		/* The cond for this insn works out as the top 4 bits. */
 		cond = (it >> 4);
@@ -94,7 +103,9 @@ bool kvm_condition_valid32(const struct kvm_vcpu *vcpu)
 	cpsr_cond = cpsr >> 28;
 
 	if (!((cc_map[cond] >> cpsr_cond) & 1))
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -116,7 +127,9 @@ static void __hyp_text kvm_adjust_itstate(struct kvm_vcpu *vcpu)
 	bool is_arm = !(cpsr & COMPAT_PSR_T_BIT);
 
 	if (is_arm || !(cpsr & COMPAT_PSR_IT_MASK))
+	{
 		return;
+	}
 
 	cond = (cpsr & 0xe000) >> 13;
 	itbits = (cpsr & 0x1c00) >> (10 - 2);
@@ -124,9 +137,13 @@ static void __hyp_text kvm_adjust_itstate(struct kvm_vcpu *vcpu)
 
 	/* Perform ITAdvance (see page A2-52 in ARM DDI 0406C) */
 	if ((itbits & 0x7) == 0)
+	{
 		itbits = cond = 0;
+	}
 	else
+	{
 		itbits = (itbits << 1) & 0x1f;
+	}
 
 	cpsr &= ~COMPAT_PSR_IT_MASK;
 	cpsr |= cond << 13;
@@ -144,9 +161,15 @@ void __hyp_text kvm_skip_instr32(struct kvm_vcpu *vcpu, bool is_wide_instr)
 	bool is_thumb;
 
 	is_thumb = !!(*vcpu_cpsr(vcpu) & COMPAT_PSR_T_BIT);
+
 	if (is_thumb && !is_wide_instr)
+	{
 		*vcpu_pc(vcpu) += 2;
+	}
 	else
+	{
 		*vcpu_pc(vcpu) += 4;
+	}
+
 	kvm_adjust_itstate(vcpu);
 }

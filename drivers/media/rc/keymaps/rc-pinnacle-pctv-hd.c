@@ -15,7 +15,8 @@
 
 /* Pinnacle PCTV HD 800i mini remote */
 
-static struct rc_map_table pinnacle_pctv_hd[] = {
+static struct rc_map_table pinnacle_pctv_hd[] =
+{
 	/* Key codes for the tiny Pinnacle remote*/
 	{ 0x0700, KEY_MUTE },
 	{ 0x0701, KEY_MENU }, /* Pinnacle logo */
@@ -45,7 +46,8 @@ static struct rc_map_table pinnacle_pctv_hd[] = {
 	{ 0x073f, KEY_HELP }, /* '?' key */
 };
 
-static struct rc_map_list pinnacle_pctv_hd_map = {
+static struct rc_map_list pinnacle_pctv_hd_map =
+{
 	.map = {
 		.scan    = pinnacle_pctv_hd,
 		.size    = ARRAY_SIZE(pinnacle_pctv_hd),

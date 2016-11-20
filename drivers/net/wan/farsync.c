@@ -69,9 +69,9 @@ MODULE_LICENSE("GPL");
 #define FST_TX_TIMEOUT          (2*HZ)
 
 #ifdef ARPHRD_RAWHDLC
-#define ARPHRD_MYTYPE   ARPHRD_RAWHDLC	/* Raw frames */
+	#define ARPHRD_MYTYPE   ARPHRD_RAWHDLC	/* Raw frames */
 #else
-#define ARPHRD_MYTYPE   ARPHRD_HDLC	/* Cisco-HDLC (keepalives etc) */
+	#define ARPHRD_MYTYPE   ARPHRD_HDLC	/* Cisco-HDLC (keepalives etc) */
 #endif
 
 /*
@@ -131,7 +131,8 @@ module_param_array(fst_excluded_list, int, NULL, 0);
  *      AMD web site: http://www.amd.com/products/epd/processors/\
  *                    2.16bitcont/3.am186cxfa/a21914/21914.pdf
  */
-struct txdesc {			/* Transmit descriptor */
+struct txdesc  			/* Transmit descriptor */
+{
 	volatile u16 ladr;	/* Low order address of packet. This is a
 				 * linear address in the Am186 memory space
 				 */
@@ -146,7 +147,8 @@ struct txdesc {			/* Transmit descriptor */
 	u16 unused;		/* Not used in Tx */
 };
 
-struct rxdesc {			/* Receive descriptor */
+struct rxdesc  			/* Receive descriptor */
+{
 	volatile u16 ladr;	/* Low order address of packet */
 	volatile u8 hadr;	/* High order address */
 	volatile u8 bits;	/* Status and config */
@@ -181,7 +183,8 @@ struct rxdesc {			/* Receive descriptor */
  */
 #define MAX_CIRBUFF     32
 
-struct cirbuff {
+struct cirbuff
+{
 	u8 rdindex;		/* read, then increment and wrap */
 	u8 wrindex;		/* write, then increment and wrap */
 	u8 evntbuff[MAX_CIRBUFF];
@@ -214,7 +217,8 @@ struct cirbuff {
 #define TE1_ALMA        0x30
 
 /* Port physical configuration. See farsync.h for field values */
-struct port_cfg {
+struct port_cfg
+{
 	u16 lineInterface;	/* Physical interface type */
 	u8 x25op;		/* Unused at present */
 	u8 internalClock;	/* 1 => internal clock, 0 => external */
@@ -225,7 +229,8 @@ struct port_cfg {
 };
 
 /* TE1 port physical configuration */
-struct su_config {
+struct su_config
+{
 	u32 dataRate;
 	u8 clocking;
 	u8 framing;
@@ -247,7 +252,8 @@ struct su_config {
 };
 
 /* TE1 Status */
-struct su_status {
+struct su_status
+{
 	u32 receiveBufferDelay;
 	u32 framingErrorCount;
 	u32 codeViolationCount;
@@ -266,7 +272,8 @@ struct su_status {
  * The structure starts at offset SMC_BASE.
  * See farsync.h for some field values.
  */
-struct fst_shared {
+struct fst_shared
+{
 	/* DMA descriptor rings */
 	struct rxdesc rxDescrRing[FST_MAX_PORTS][NUM_RX_BUFFER];
 	struct txdesc txDescrRing[FST_MAX_PORTS][NUM_TX_BUFFER];
@@ -409,7 +416,8 @@ struct fst_shared {
 #define FST_CARD_INT    0x04
 
 /* Larger buffers are positioned in memory at offset BFM_BASE */
-struct buf_window {
+struct buf_window
+{
 	u8 txBuffer[FST_MAX_PORTS][NUM_TX_BUFFER][LEN_TX_BUFFER];
 	u8 rxBuffer[FST_MAX_PORTS][NUM_RX_BUFFER][LEN_RX_BUFFER];
 };
@@ -424,8 +432,9 @@ struct buf_window {
  */
 /*      Per port (line or channel) information
  */
-struct fst_port_info {
-        struct net_device *dev; /* Device struct - must be first */
+struct fst_port_info
+{
+	struct net_device *dev; /* Device struct - must be first */
 	struct fst_card_info *card;	/* Card we're associated with */
 	int index;		/* Port index on the card */
 	int hwif;		/* Line hardware (lineInterface copy) */
@@ -446,7 +455,8 @@ struct fst_port_info {
 
 /*      Per card information
  */
-struct fst_card_info {
+struct fst_card_info
+{
 	char __iomem *mem;	/* Card memory mapped to kernel space */
 	char __iomem *ctlmem;	/* Control memory for PCI cards */
 	unsigned int phys_mem;	/* Physical memory window address */
@@ -516,42 +526,57 @@ static int fst_debug_mask = { FST_DEBUG };
  * eating someone else's else clause.
  */
 #define dbg(F, fmt, args...)					\
-do {								\
-	if (fst_debug_mask & (F))				\
-		printk(KERN_DEBUG pr_fmt(fmt), ##args);		\
-} while (0)
+	do {								\
+		if (fst_debug_mask & (F))				\
+			printk(KERN_DEBUG pr_fmt(fmt), ##args);		\
+	} while (0)
 #else
 #define dbg(F, fmt, args...)					\
-do {								\
-	if (0)							\
-		printk(KERN_DEBUG pr_fmt(fmt), ##args);		\
-} while (0)
+	do {								\
+		if (0)							\
+			printk(KERN_DEBUG pr_fmt(fmt), ##args);		\
+	} while (0)
 #endif
 
 /*
  *      PCI ID lookup table
  */
-static const struct pci_device_id fst_pci_dev_id[] = {
-	{PCI_VENDOR_ID_FARSITE, PCI_DEVICE_ID_FARSITE_T2P, PCI_ANY_ID, 
-	 PCI_ANY_ID, 0, 0, FST_TYPE_T2P},
+static const struct pci_device_id fst_pci_dev_id[] =
+{
+	{
+		PCI_VENDOR_ID_FARSITE, PCI_DEVICE_ID_FARSITE_T2P, PCI_ANY_ID,
+		PCI_ANY_ID, 0, 0, FST_TYPE_T2P
+	},
 
-	{PCI_VENDOR_ID_FARSITE, PCI_DEVICE_ID_FARSITE_T4P, PCI_ANY_ID, 
-	 PCI_ANY_ID, 0, 0, FST_TYPE_T4P},
+	{
+		PCI_VENDOR_ID_FARSITE, PCI_DEVICE_ID_FARSITE_T4P, PCI_ANY_ID,
+		PCI_ANY_ID, 0, 0, FST_TYPE_T4P
+	},
 
-	{PCI_VENDOR_ID_FARSITE, PCI_DEVICE_ID_FARSITE_T1U, PCI_ANY_ID, 
-	 PCI_ANY_ID, 0, 0, FST_TYPE_T1U},
+	{
+		PCI_VENDOR_ID_FARSITE, PCI_DEVICE_ID_FARSITE_T1U, PCI_ANY_ID,
+		PCI_ANY_ID, 0, 0, FST_TYPE_T1U
+	},
 
-	{PCI_VENDOR_ID_FARSITE, PCI_DEVICE_ID_FARSITE_T2U, PCI_ANY_ID, 
-	 PCI_ANY_ID, 0, 0, FST_TYPE_T2U},
+	{
+		PCI_VENDOR_ID_FARSITE, PCI_DEVICE_ID_FARSITE_T2U, PCI_ANY_ID,
+		PCI_ANY_ID, 0, 0, FST_TYPE_T2U
+	},
 
-	{PCI_VENDOR_ID_FARSITE, PCI_DEVICE_ID_FARSITE_T4U, PCI_ANY_ID, 
-	 PCI_ANY_ID, 0, 0, FST_TYPE_T4U},
+	{
+		PCI_VENDOR_ID_FARSITE, PCI_DEVICE_ID_FARSITE_T4U, PCI_ANY_ID,
+		PCI_ANY_ID, 0, 0, FST_TYPE_T4U
+	},
 
-	{PCI_VENDOR_ID_FARSITE, PCI_DEVICE_ID_FARSITE_TE1, PCI_ANY_ID, 
-	 PCI_ANY_ID, 0, 0, FST_TYPE_TE1},
+	{
+		PCI_VENDOR_ID_FARSITE, PCI_DEVICE_ID_FARSITE_TE1, PCI_ANY_ID,
+		PCI_ANY_ID, 0, 0, FST_TYPE_TE1
+	},
 
-	{PCI_VENDOR_ID_FARSITE, PCI_DEVICE_ID_FARSITE_TE1C, PCI_ANY_ID, 
-	 PCI_ANY_ID, 0, 0, FST_TYPE_TE1},
+	{
+		PCI_VENDOR_ID_FARSITE, PCI_DEVICE_ID_FARSITE_TE1C, PCI_ANY_ID,
+		PCI_ANY_ID, 0, 0, FST_TYPE_TE1
+	},
 	{0,}			/* End */
 };
 
@@ -560,11 +585,11 @@ MODULE_DEVICE_TABLE(pci, fst_pci_dev_id);
 /*
  *      Device Driver Work Queues
  *
- *      So that we don't spend too much time processing events in the 
- *      Interrupt Service routine, we will declare a work queue per Card 
+ *      So that we don't spend too much time processing events in the
+ *      Interrupt Service routine, we will declare a work queue per Card
  *      and make the ISR schedule a task in the queue for later execution.
  *      In the 2.4 Kernel we used to use the immediate queue for BH's
- *      Now that they are gone, tasklets seem to be much better than work 
+ *      Now that they are gone, tasklets seem to be much better than work
  *      queues.
  */
 
@@ -582,7 +607,7 @@ static u64 fst_work_txq;
 static u64 fst_work_intq;
 
 static void
-fst_q_work_item(u64 * queue, int card_index)
+fst_q_work_item(u64 *queue, int card_index)
 {
 	unsigned long flags;
 	u64 mask;
@@ -622,13 +647,17 @@ fst_process_tx_work_q(unsigned long /*void **/work_q)
 	/*
 	 * Call the bottom half for each card with work waiting
 	 */
-	for (i = 0; i < FST_MAX_CARDS; i++) {
-		if (work_txq & 0x01) {
-			if (fst_card_array[i] != NULL) {
+	for (i = 0; i < FST_MAX_CARDS; i++)
+	{
+		if (work_txq & 0x01)
+		{
+			if (fst_card_array[i] != NULL)
+			{
 				dbg(DBG_TX, "Calling tx bh for card %d\n", i);
 				do_bottom_half_tx(fst_card_array[i]);
 			}
 		}
+
 		work_txq = work_txq >> 1;
 	}
 }
@@ -652,15 +681,19 @@ fst_process_int_work_q(unsigned long /*void **/work_q)
 	/*
 	 * Call the bottom half for each card with work waiting
 	 */
-	for (i = 0; i < FST_MAX_CARDS; i++) {
-		if (work_intq & 0x01) {
-			if (fst_card_array[i] != NULL) {
+	for (i = 0; i < FST_MAX_CARDS; i++)
+	{
+		if (work_intq & 0x01)
+		{
+			if (fst_card_array[i] != NULL)
+			{
 				dbg(DBG_INTR,
-				    "Calling rx & tx bh for card %d\n", i);
+					"Calling rx & tx bh for card %d\n", i);
 				do_bottom_half_rx(fst_card_array[i]);
 				do_bottom_half_tx(fst_card_array[i]);
 			}
 		}
+
 		work_intq = work_intq >> 1;
 	}
 }
@@ -681,12 +714,15 @@ fst_cpureset(struct fst_card_info *card)
 	unsigned char interrupt_line_register;
 	unsigned int regval;
 
-	if (card->family == FST_FAMILY_TXU) {
+	if (card->family == FST_FAMILY_TXU)
+	{
 		if (pci_read_config_byte
-		    (card->device, PCI_INTERRUPT_LINE, &interrupt_line_register)) {
+			(card->device, PCI_INTERRUPT_LINE, &interrupt_line_register))
+		{
 			dbg(DBG_ASS,
-			    "Error in reading interrupt line register\n");
+				"Error in reading interrupt line register\n");
 		}
+
 		/*
 		 * Assert PLX software reset and Am186 hardware reset
 		 * and then deassert the PLX software reset but 186 still in reset
@@ -705,12 +741,15 @@ fst_cpureset(struct fst_card_info *card)
 		outw(0x040f, card->pci_conf + CNTRL_9054 + 2);
 
 		if (pci_write_config_byte
-		    (card->device, PCI_INTERRUPT_LINE, interrupt_line_register)) {
+			(card->device, PCI_INTERRUPT_LINE, interrupt_line_register))
+		{
 			dbg(DBG_ASS,
-			    "Error in writing interrupt line register\n");
+				"Error in writing interrupt line register\n");
 		}
 
-	} else {
+	}
+	else
+	{
 		regval = inl(card->pci_conf + CNTRL_9052);
 
 		outl(regval | 0x40000000, card->pci_conf + CNTRL_9052);
@@ -723,7 +762,8 @@ fst_cpureset(struct fst_card_info *card)
 static inline void
 fst_cpurelease(struct fst_card_info *card)
 {
-	if (card->family == FST_FAMILY_TXU) {
+	if (card->family == FST_FAMILY_TXU)
+	{
 		/*
 		 * Force posted writes to complete
 		 */
@@ -735,7 +775,9 @@ fst_cpurelease(struct fst_card_info *card)
 		 */
 		outw(0x040e, card->pci_conf + CNTRL_9054 + 2);
 		outw(0x040f, card->pci_conf + CNTRL_9054 + 2);
-	} else {
+	}
+	else
+	{
 		(void) readb(card->ctlmem);
 	}
 }
@@ -745,9 +787,12 @@ fst_cpurelease(struct fst_card_info *card)
 static inline void
 fst_clear_intr(struct fst_card_info *card)
 {
-	if (card->family == FST_FAMILY_TXU) {
+	if (card->family == FST_FAMILY_TXU)
+	{
 		(void) readb(card->ctlmem);
-	} else {
+	}
+	else
+	{
 		/* Poke the appropriate PLX chip register (same as enabling interrupts)
 		 */
 		outw(0x0543, card->pci_conf + INTCSR_9052);
@@ -759,9 +804,12 @@ fst_clear_intr(struct fst_card_info *card)
 static inline void
 fst_enable_intr(struct fst_card_info *card)
 {
-	if (card->family == FST_FAMILY_TXU) {
+	if (card->family == FST_FAMILY_TXU)
+	{
 		outl(0x0f0c0900, card->pci_conf + INTCSR_9054);
-	} else {
+	}
+	else
+	{
 		outw(0x0543, card->pci_conf + INTCSR_9052);
 	}
 }
@@ -771,9 +819,12 @@ fst_enable_intr(struct fst_card_info *card)
 static inline void
 fst_disable_intr(struct fst_card_info *card)
 {
-	if (card->family == FST_FAMILY_TXU) {
+	if (card->family == FST_FAMILY_TXU)
+	{
 		outl(0x00000000, card->pci_conf + INTCSR_9054);
-	} else {
+	}
+	else
+	{
 		outw(0x0000, card->pci_conf + INTCSR_9052);
 	}
 }
@@ -783,19 +834,21 @@ fst_disable_intr(struct fst_card_info *card)
 static void
 fst_process_rx_status(int rx_status, char *name)
 {
-	switch (rx_status) {
-	case NET_RX_SUCCESS:
-		{
-			/*
-			 * Nothing to do here
-			 */
-			break;
-		}
-	case NET_RX_DROP:
-		{
-			dbg(DBG_ASS, "%s: Received packet dropped\n", name);
-			break;
-		}
+	switch (rx_status)
+	{
+		case NET_RX_SUCCESS:
+			{
+				/*
+				 * Nothing to do here
+				 */
+				break;
+			}
+
+		case NET_RX_DROP:
+			{
+				dbg(DBG_ASS, "%s: Received packet dropped\n", name);
+				break;
+			}
 	}
 }
 
@@ -807,8 +860,9 @@ fst_init_dma(struct fst_card_info *card)
 	/*
 	 * This is only required for the PLX 9054
 	 */
-	if (card->family == FST_FAMILY_TXU) {
-	        pci_set_master(card->device);
+	if (card->family == FST_FAMILY_TXU)
+	{
+		pci_set_master(card->device);
 		outl(0x00020441, card->pci_conf + DMAMODE0);
 		outl(0x00020441, card->pci_conf + DMAMODE1);
 		outl(0x0, card->pci_conf + DMATHR);
@@ -819,7 +873,7 @@ fst_init_dma(struct fst_card_info *card)
  */
 static void
 fst_tx_dma_complete(struct fst_card_info *card, struct fst_port_info *port,
-		    int len, int txpos)
+					int len, int txpos)
 {
 	struct net_device *dev = port_to_dev(port);
 
@@ -828,7 +882,7 @@ fst_tx_dma_complete(struct fst_card_info *card, struct fst_port_info *port,
 	 */
 	dbg(DBG_TX, "fst_tx_dma_complete\n");
 	FST_WRB(card, txDescrRing[port->index][txpos].bits,
-		DMA_OWN | TX_STP | TX_ENP);
+			DMA_OWN | TX_STP | TX_ENP);
 	dev->stats.tx_packets++;
 	dev->stats.tx_bytes += len;
 	netif_trans_update(dev);
@@ -849,7 +903,7 @@ static __be16 farsync_type_trans(struct sk_buff *skb, struct net_device *dev)
  */
 static void
 fst_rx_dma_complete(struct fst_card_info *card, struct fst_port_info *port,
-		    int len, struct sk_buff *skb, int rxp)
+					int len, struct sk_buff *skb, int rxp)
 {
 	struct net_device *dev = port_to_dev(port);
 	int pi;
@@ -868,14 +922,23 @@ fst_rx_dma_complete(struct fst_card_info *card, struct fst_port_info *port,
 
 	/* Push upstream */
 	dbg(DBG_RX, "Pushing the frame up the stack\n");
+
 	if (port->mode == FST_RAW)
+	{
 		skb->protocol = farsync_type_trans(skb, dev);
+	}
 	else
+	{
 		skb->protocol = hdlc_type_trans(skb, dev);
+	}
+
 	rx_status = netif_rx(skb);
 	fst_process_rx_status(rx_status, port_to_dev(port)->name);
+
 	if (rx_status == NET_RX_DROP)
+	{
 		dev->stats.rx_dropped++;
+	}
 }
 
 /*
@@ -889,7 +952,9 @@ fst_rx_dma(struct fst_card_info *card, dma_addr_t dma, u32 mem, int len)
 	 */
 
 	dbg(DBG_RX, "In fst_rx_dma %x %x %d\n", (u32)dma, mem, len);
-	if (card->dmarx_in_progress) {
+
+	if (card->dmarx_in_progress)
+	{
 		dbg(DBG_ASS, "In fst_rx_dma while dma in progress\n");
 	}
 
@@ -916,7 +981,9 @@ fst_tx_dma(struct fst_card_info *card, dma_addr_t dma, u32 mem, int len)
 	 */
 
 	dbg(DBG_TX, "In fst_tx_dma %x %x %d\n", (u32)dma, mem, len);
-	if (card->dmatx_in_progress) {
+
+	if (card->dmatx_in_progress)
+	{
 		dbg(DBG_ASS, "In fst_tx_dma while dma in progress\n");
 	}
 
@@ -949,29 +1016,37 @@ fst_issue_cmd(struct fst_port_info *port, unsigned short cmd)
 	mbval = FST_RDW(card, portMailbox[port->index][0]);
 
 	safety = 0;
+
 	/* Wait for any previous command to complete */
-	while (mbval > NAK) {
+	while (mbval > NAK)
+	{
 		spin_unlock_irqrestore(&card->card_lock, flags);
 		schedule_timeout_uninterruptible(1);
 		spin_lock_irqsave(&card->card_lock, flags);
 
-		if (++safety > 2000) {
+		if (++safety > 2000)
+		{
 			pr_err("Mailbox safety timeout\n");
 			break;
 		}
 
 		mbval = FST_RDW(card, portMailbox[port->index][0]);
 	}
-	if (safety > 0) {
+
+	if (safety > 0)
+	{
 		dbg(DBG_CMD, "Mailbox clear after %d jiffies\n", safety);
 	}
-	if (mbval == NAK) {
+
+	if (mbval == NAK)
+	{
 		dbg(DBG_CMD, "issue_cmd: previous command was NAK'd\n");
 	}
 
 	FST_WRW(card, portMailbox[port->index][0], cmd);
 
-	if (cmd == ABORTTX || cmd == STARTPORT) {
+	if (cmd == ABORTTX || cmd == STARTPORT)
+	{
 		port->txpos = 0;
 		port->txipos = 0;
 		port->start = 0;
@@ -989,7 +1064,9 @@ fst_op_raise(struct fst_port_info *port, unsigned int outputs)
 	FST_WRL(port->card, v24OpSts[port->index], outputs);
 
 	if (port->run)
+	{
 		fst_issue_cmd(port, SETV24O);
+	}
 }
 
 static inline void
@@ -999,7 +1076,9 @@ fst_op_lower(struct fst_port_info *port, unsigned int outputs)
 	FST_WRL(port->card, v24OpSts[port->index], outputs);
 
 	if (port->run)
+	{
 		fst_issue_cmd(port, SETV24O);
+	}
 }
 
 /*
@@ -1017,7 +1096,9 @@ fst_rx_config(struct fst_port_info *port)
 	pi = port->index;
 	card = port->card;
 	spin_lock_irqsave(&card->card_lock, flags);
-	for (i = 0; i < NUM_RX_BUFFER; i++) {
+
+	for (i = 0; i < NUM_RX_BUFFER; i++)
+	{
 		offset = BUF_OFFSET(rxBuffer[pi][i][0]);
 
 		FST_WRW(card, rxDescrRing[pi][i].ladr, (u16) offset);
@@ -1026,6 +1107,7 @@ fst_rx_config(struct fst_port_info *port)
 		FST_WRW(card, rxDescrRing[pi][i].mcnt, LEN_RX_BUFFER);
 		FST_WRB(card, rxDescrRing[pi][i].bits, DMA_OWN);
 	}
+
 	port->rxpos = 0;
 	spin_unlock_irqrestore(&card->card_lock, flags);
 }
@@ -1045,7 +1127,9 @@ fst_tx_config(struct fst_port_info *port)
 	pi = port->index;
 	card = port->card;
 	spin_lock_irqsave(&card->card_lock, flags);
-	for (i = 0; i < NUM_TX_BUFFER; i++) {
+
+	for (i = 0; i < NUM_TX_BUFFER; i++)
+	{
 		offset = BUF_OFFSET(txBuffer[pi][i][0]);
 
 		FST_WRW(card, txDescrRing[pi][i].ladr, (u16) offset);
@@ -1053,6 +1137,7 @@ fst_tx_config(struct fst_port_info *port)
 		FST_WRW(card, txDescrRing[pi][i].bcnt, 0);
 		FST_WRB(card, txDescrRing[pi][i].bits, 0);
 	}
+
 	port->txpos = 0;
 	port->txipos = 0;
 	port->start = 0;
@@ -1072,37 +1157,55 @@ fst_intr_te1_alarm(struct fst_card_info *card, struct fst_port_info *port)
 	rra = FST_RDB(card, suStatus.receiveRemoteAlarm);
 	ais = FST_RDB(card, suStatus.alarmIndicationSignal);
 
-	if (los) {
+	if (los)
+	{
 		/*
 		 * Lost the link
 		 */
-		if (netif_carrier_ok(port_to_dev(port))) {
+		if (netif_carrier_ok(port_to_dev(port)))
+		{
 			dbg(DBG_INTR, "Net carrier off\n");
 			netif_carrier_off(port_to_dev(port));
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		 * Link available
 		 */
-		if (!netif_carrier_ok(port_to_dev(port))) {
+		if (!netif_carrier_ok(port_to_dev(port)))
+		{
 			dbg(DBG_INTR, "Net carrier on\n");
 			netif_carrier_on(port_to_dev(port));
 		}
 	}
 
 	if (los)
+	{
 		dbg(DBG_INTR, "Assert LOS Alarm\n");
+	}
 	else
+	{
 		dbg(DBG_INTR, "De-assert LOS Alarm\n");
+	}
+
 	if (rra)
+	{
 		dbg(DBG_INTR, "Assert RRA Alarm\n");
+	}
 	else
+	{
 		dbg(DBG_INTR, "De-assert RRA Alarm\n");
+	}
 
 	if (ais)
+	{
 		dbg(DBG_INTR, "Assert AIS Alarm\n");
+	}
 	else
+	{
 		dbg(DBG_INTR, "De-assert AIS Alarm\n");
+	}
 }
 
 /*      Control signal change interrupt event
@@ -1115,13 +1218,18 @@ fst_intr_ctlchg(struct fst_card_info *card, struct fst_port_info *port)
 	signals = FST_RDL(card, v24DebouncedSts[port->index]);
 
 	if (signals & (((port->hwif == X21) || (port->hwif == X21D))
-		       ? IPSTS_INDICATE : IPSTS_DCD)) {
-		if (!netif_carrier_ok(port_to_dev(port))) {
+				   ? IPSTS_INDICATE : IPSTS_DCD))
+	{
+		if (!netif_carrier_ok(port_to_dev(port)))
+		{
 			dbg(DBG_INTR, "DCD active\n");
 			netif_carrier_on(port_to_dev(port));
 		}
-	} else {
-		if (netif_carrier_ok(port_to_dev(port))) {
+	}
+	else
+	{
+		if (netif_carrier_ok(port_to_dev(port)))
+		{
 			dbg(DBG_INTR, "DCD lost\n");
 			netif_carrier_off(port_to_dev(port));
 		}
@@ -1132,7 +1240,7 @@ fst_intr_ctlchg(struct fst_card_info *card, struct fst_port_info *port)
  */
 static void
 fst_log_rx_error(struct fst_card_info *card, struct fst_port_info *port,
-		 unsigned char dmabits, int rxp, unsigned short len)
+				 unsigned char dmabits, int rxp, unsigned short len)
 {
 	struct net_device *dev = port_to_dev(port);
 
@@ -1140,25 +1248,33 @@ fst_log_rx_error(struct fst_card_info *card, struct fst_port_info *port,
 	 * Increment the appropriate error counter
 	 */
 	dev->stats.rx_errors++;
-	if (dmabits & RX_OFLO) {
+
+	if (dmabits & RX_OFLO)
+	{
 		dev->stats.rx_fifo_errors++;
 		dbg(DBG_ASS, "Rx fifo error on card %d port %d buffer %d\n",
-		    card->card_no, port->index, rxp);
+			card->card_no, port->index, rxp);
 	}
-	if (dmabits & RX_CRC) {
+
+	if (dmabits & RX_CRC)
+	{
 		dev->stats.rx_crc_errors++;
 		dbg(DBG_ASS, "Rx crc error on card %d port %d\n",
-		    card->card_no, port->index);
+			card->card_no, port->index);
 	}
-	if (dmabits & RX_FRAM) {
+
+	if (dmabits & RX_FRAM)
+	{
 		dev->stats.rx_frame_errors++;
 		dbg(DBG_ASS, "Rx frame error on card %d port %d\n",
-		    card->card_no, port->index);
+			card->card_no, port->index);
 	}
-	if (dmabits == (RX_STP | RX_ENP)) {
+
+	if (dmabits == (RX_STP | RX_ENP))
+	{
 		dev->stats.rx_length_errors++;
 		dbg(DBG_ASS, "Rx length error (%d) on card %d port %d\n",
-		    len, card->card_no, port->index);
+			len, card->card_no, port->index);
 	}
 }
 
@@ -1166,36 +1282,44 @@ fst_log_rx_error(struct fst_card_info *card, struct fst_port_info *port,
  */
 static void
 fst_recover_rx_error(struct fst_card_info *card, struct fst_port_info *port,
-		     unsigned char dmabits, int rxp, unsigned short len)
+					 unsigned char dmabits, int rxp, unsigned short len)
 {
 	int i;
 	int pi;
 
 	pi = port->index;
-	/* 
+	/*
 	 * Discard buffer descriptors until we see the start of the
 	 * next frame.  Note that for long frames this could be in
-	 * a subsequent interrupt. 
+	 * a subsequent interrupt.
 	 */
 	i = 0;
-	while ((dmabits & (DMA_OWN | RX_STP)) == 0) {
+
+	while ((dmabits & (DMA_OWN | RX_STP)) == 0)
+	{
 		FST_WRB(card, rxDescrRing[pi][rxp].bits, DMA_OWN);
-		rxp = (rxp+1) % NUM_RX_BUFFER;
-		if (++i > NUM_RX_BUFFER) {
+		rxp = (rxp + 1) % NUM_RX_BUFFER;
+
+		if (++i > NUM_RX_BUFFER)
+		{
 			dbg(DBG_ASS, "intr_rx: Discarding more bufs"
-			    " than we have\n");
+				" than we have\n");
 			break;
 		}
+
 		dmabits = FST_RDB(card, rxDescrRing[pi][rxp].bits);
 		dbg(DBG_ASS, "DMA Bits of next buffer was %x\n", dmabits);
 	}
+
 	dbg(DBG_ASS, "There were %d subsequent buffers in error\n", i);
 
 	/* Discard the terminal buffer */
-	if (!(dmabits & DMA_OWN)) {
+	if (!(dmabits & DMA_OWN))
+	{
 		FST_WRB(card, rxDescrRing[pi][rxp].bits, DMA_OWN);
-		rxp = (rxp+1) % NUM_RX_BUFFER;
+		rxp = (rxp + 1) % NUM_RX_BUFFER;
 	}
+
 	port->rxpos = rxp;
 	return;
 
@@ -1218,12 +1342,16 @@ fst_intr_rx(struct fst_card_info *card, struct fst_port_info *port)
 	pi = port->index;
 	rxp = port->rxpos;
 	dmabits = FST_RDB(card, rxDescrRing[pi][rxp].bits);
-	if (dmabits & DMA_OWN) {
+
+	if (dmabits & DMA_OWN)
+	{
 		dbg(DBG_RX | DBG_INTR, "intr_rx: No buffer port %d pos %d\n",
-		    pi, rxp);
+			pi, rxp);
 		return;
 	}
-	if (card->dmarx_in_progress) {
+
+	if (card->dmarx_in_progress)
+	{
 		return;
 	}
 
@@ -1231,17 +1359,19 @@ fst_intr_rx(struct fst_card_info *card, struct fst_port_info *port)
 	len = FST_RDW(card, rxDescrRing[pi][rxp].mcnt);
 	/* Discard the CRC */
 	len -= 2;
-	if (len == 0) {
+
+	if (len == 0)
+	{
 		/*
 		 * This seems to happen on the TE1 interface sometimes
 		 * so throw the frame away and log the event.
 		 */
 		pr_err("Frame received with 0 length. Card %d Port %d\n",
-		       card->card_no, port->index);
+			   card->card_no, port->index);
 		/* Return descriptor to card */
 		FST_WRB(card, rxDescrRing[pi][rxp].bits, DMA_OWN);
 
-		rxp = (rxp+1) % NUM_RX_BUFFER;
+		rxp = (rxp + 1) % NUM_RX_BUFFER;
 		port->rxpos = rxp;
 		return;
 	}
@@ -1251,14 +1381,17 @@ fst_intr_rx(struct fst_card_info *card, struct fst_port_info *port)
 	 * allocated 8K it shouldn't be a real world limitation
 	 */
 	dbg(DBG_RX, "intr_rx: %d,%d: flags %x len %d\n", pi, rxp, dmabits, len);
-	if (dmabits != (RX_STP | RX_ENP) || len > LEN_RX_BUFFER - 2) {
+
+	if (dmabits != (RX_STP | RX_ENP) || len > LEN_RX_BUFFER - 2)
+	{
 		fst_log_rx_error(card, port, dmabits, rxp, len);
 		fst_recover_rx_error(card, port, dmabits, rxp, len);
 		return;
 	}
 
 	/* Allocate SKB */
-	if ((skb = dev_alloc_skb(len)) == NULL) {
+	if ((skb = dev_alloc_skb(len)) == NULL)
+	{
 		dbg(DBG_RX, "intr_rx: can't allocate buffer\n");
 
 		dev->stats.rx_dropped++;
@@ -1266,7 +1399,7 @@ fst_intr_rx(struct fst_card_info *card, struct fst_port_info *port)
 		/* Return descriptor to card */
 		FST_WRB(card, rxDescrRing[pi][rxp].bits, DMA_OWN);
 
-		rxp = (rxp+1) % NUM_RX_BUFFER;
+		rxp = (rxp + 1) % NUM_RX_BUFFER;
 		port->rxpos = rxp;
 		return;
 	}
@@ -1277,10 +1410,11 @@ fst_intr_rx(struct fst_card_info *card, struct fst_port_info *port)
 	 * FST_MIN_DMA_LEN
 	 */
 
-	if ((len < FST_MIN_DMA_LEN) || (card->family == FST_FAMILY_TXP)) {
+	if ((len < FST_MIN_DMA_LEN) || (card->family == FST_FAMILY_TXP))
+	{
 		memcpy_fromio(skb_put(skb, len),
-			      card->mem + BUF_OFFSET(rxBuffer[pi][rxp][0]),
-			      len);
+					  card->mem + BUF_OFFSET(rxBuffer[pi][rxp][0]),
+					  len);
 
 		/* Reset buffer descriptor */
 		FST_WRB(card, rxDescrRing[pi][rxp].bits, DMA_OWN);
@@ -1291,27 +1425,41 @@ fst_intr_rx(struct fst_card_info *card, struct fst_port_info *port)
 
 		/* Push upstream */
 		dbg(DBG_RX, "Pushing frame up the stack\n");
+
 		if (port->mode == FST_RAW)
+		{
 			skb->protocol = farsync_type_trans(skb, dev);
+		}
 		else
+		{
 			skb->protocol = hdlc_type_trans(skb, dev);
+		}
+
 		rx_status = netif_rx(skb);
 		fst_process_rx_status(rx_status, port_to_dev(port)->name);
+
 		if (rx_status == NET_RX_DROP)
+		{
 			dev->stats.rx_dropped++;
-	} else {
+		}
+	}
+	else
+	{
 		card->dma_skb_rx = skb;
 		card->dma_port_rx = port;
 		card->dma_len_rx = len;
 		card->dma_rxpos = rxp;
 		fst_rx_dma(card, card->rx_dma_handle_card,
-			   BUF_OFFSET(rxBuffer[pi][rxp][0]), len);
+				   BUF_OFFSET(rxBuffer[pi][rxp][0]), len);
 	}
-	if (rxp != port->rxpos) {
+
+	if (rxp != port->rxpos)
+	{
 		dbg(DBG_ASS, "About to increment rxpos by more than 1\n");
 		dbg(DBG_ASS, "rxp = %d rxpos = %d\n", rxp, port->rxpos);
 	}
-	rxp = (rxp+1) % NUM_RX_BUFFER;
+
+	rxp = (rxp + 1) % NUM_RX_BUFFER;
 	port->rxpos = rxp;
 }
 
@@ -1336,87 +1484,114 @@ do_bottom_half_tx(struct fst_card_info *card)
 	 */
 
 	dbg(DBG_TX, "do_bottom_half_tx\n");
-	for (pi = 0, port = card->ports; pi < card->nports; pi++, port++) {
+
+	for (pi = 0, port = card->ports; pi < card->nports; pi++, port++)
+	{
 		if (!port->run)
+		{
 			continue;
+		}
 
 		dev = port_to_dev(port);
+
 		while (!(FST_RDB(card, txDescrRing[pi][port->txpos].bits) &
-			 DMA_OWN) &&
-		       !(card->dmatx_in_progress)) {
+				 DMA_OWN) &&
+			   !(card->dmatx_in_progress))
+		{
 			/*
 			 * There doesn't seem to be a txdone event per-se
 			 * We seem to have to deduce it, by checking the DMA_OWN
 			 * bit on the next buffer we think we can use
 			 */
 			spin_lock_irqsave(&card->card_lock, flags);
-			if ((txq_length = port->txqe - port->txqs) < 0) {
+
+			if ((txq_length = port->txqe - port->txqs) < 0)
+			{
 				/*
 				 * This is the case where one has wrapped and the
 				 * maths gives us a negative number
 				 */
 				txq_length = txq_length + FST_TXQ_DEPTH;
 			}
+
 			spin_unlock_irqrestore(&card->card_lock, flags);
-			if (txq_length > 0) {
+
+			if (txq_length > 0)
+			{
 				/*
 				 * There is something to send
 				 */
 				spin_lock_irqsave(&card->card_lock, flags);
 				skb = port->txq[port->txqs];
 				port->txqs++;
-				if (port->txqs == FST_TXQ_DEPTH) {
+
+				if (port->txqs == FST_TXQ_DEPTH)
+				{
 					port->txqs = 0;
 				}
+
 				spin_unlock_irqrestore(&card->card_lock, flags);
 				/*
 				 * copy the data and set the required indicators on the
 				 * card.
 				 */
 				FST_WRW(card, txDescrRing[pi][port->txpos].bcnt,
-					cnv_bcnt(skb->len));
+						cnv_bcnt(skb->len));
+
 				if ((skb->len < FST_MIN_DMA_LEN) ||
-				    (card->family == FST_FAMILY_TXP)) {
+					(card->family == FST_FAMILY_TXP))
+				{
 					/* Enqueue the packet with normal io */
 					memcpy_toio(card->mem +
-						    BUF_OFFSET(txBuffer[pi]
-							       [port->
-								txpos][0]),
-						    skb->data, skb->len);
+								BUF_OFFSET(txBuffer[pi]
+										   [port->
+											txpos][0]),
+								skb->data, skb->len);
 					FST_WRB(card,
-						txDescrRing[pi][port->txpos].
-						bits,
-						DMA_OWN | TX_STP | TX_ENP);
+							txDescrRing[pi][port->txpos].
+							bits,
+							DMA_OWN | TX_STP | TX_ENP);
 					dev->stats.tx_packets++;
 					dev->stats.tx_bytes += skb->len;
 					netif_trans_update(dev);
-				} else {
+				}
+				else
+				{
 					/* Or do it through dma */
 					memcpy(card->tx_dma_handle_host,
-					       skb->data, skb->len);
+						   skb->data, skb->len);
 					card->dma_port_tx = port;
 					card->dma_len_tx = skb->len;
 					card->dma_txpos = port->txpos;
 					fst_tx_dma(card,
-						   card->tx_dma_handle_card,
-						   BUF_OFFSET(txBuffer[pi]
-							      [port->txpos][0]),
-						   skb->len);
+							   card->tx_dma_handle_card,
+							   BUF_OFFSET(txBuffer[pi]
+										  [port->txpos][0]),
+							   skb->len);
 				}
+
 				if (++port->txpos >= NUM_TX_BUFFER)
+				{
 					port->txpos = 0;
+				}
+
 				/*
 				 * If we have flow control on, can we now release it?
 				 */
-				if (port->start) {
-					if (txq_length < fst_txq_low) {
+				if (port->start)
+				{
+					if (txq_length < fst_txq_low)
+					{
 						netif_wake_queue(port_to_dev
-								 (port));
+										 (port));
 						port->start = 0;
 					}
 				}
+
 				dev_kfree_skb(skb);
-			} else {
+			}
+			else
+			{
 				/*
 				 * Nothing to send so break out of the while loop
 				 */
@@ -1435,13 +1610,19 @@ do_bottom_half_rx(struct fst_card_info *card)
 
 	/* Check for rx completions on all ports on this card */
 	dbg(DBG_RX, "do_bottom_half_rx\n");
-	for (pi = 0, port = card->ports; pi < card->nports; pi++, port++) {
+
+	for (pi = 0, port = card->ports; pi < card->nports; pi++, port++)
+	{
 		if (!port->run)
+		{
 			continue;
+		}
 
 		while (!(FST_RDB(card, rxDescrRing[pi][port->rxpos].bits)
-			 & DMA_OWN) && !(card->dmarx_in_progress)) {
-			if (rx_count > fst_max_reads) {
+				 & DMA_OWN) && !(card->dmarx_in_progress))
+		{
+			if (rx_count > fst_max_reads)
+			{
 				/*
 				 * Don't spend forever in receive processing
 				 * Schedule another event
@@ -1450,6 +1631,7 @@ do_bottom_half_rx(struct fst_card_info *card)
 				tasklet_schedule(&fst_int_task);
 				break;	/* Leave the loop */
 			}
+
 			fst_intr_rx(card, port);
 			rx_count++;
 		}
@@ -1478,14 +1660,16 @@ fst_intr(int dummy, void *dev_id)
 	 * Note that the call to clear the interrupt is important
 	 */
 	dbg(DBG_INTR, "intr: %d %p\n", card->irq, card);
-	if (card->state != FST_RUNNING) {
-		pr_err("Interrupt received for card %d in a non running state (%d)\n",
-		       card->card_no, card->state);
 
-		/* 
+	if (card->state != FST_RUNNING)
+	{
+		pr_err("Interrupt received for card %d in a non running state (%d)\n",
+			   card->card_no, card->state);
+
+		/*
 		 * It is possible to really be running, i.e. we have re-loaded
 		 * a running card
-		 * Clear and reprime the interrupt source 
+		 * Clear and reprime the interrupt source
 		 */
 		fst_clear_intr(card);
 		return IRQ_HANDLED;
@@ -1498,36 +1682,44 @@ fst_intr(int dummy, void *dev_id)
 	 * Is the interrupt for this card (handshake == 1)
 	 */
 	do_card_interrupt = 0;
-	if (FST_RDB(card, interruptHandshake) == 1) {
+
+	if (FST_RDB(card, interruptHandshake) == 1)
+	{
 		do_card_interrupt += FST_CARD_INT;
 		/* Set the software acknowledge */
 		FST_WRB(card, interruptHandshake, 0xEE);
 	}
-	if (card->family == FST_FAMILY_TXU) {
+
+	if (card->family == FST_FAMILY_TXU)
+	{
 		/*
 		 * Is it a DMA Interrupt
 		 */
 		dma_intcsr = inl(card->pci_conf + INTCSR_9054);
-		if (dma_intcsr & 0x00200000) {
+
+		if (dma_intcsr & 0x00200000)
+		{
 			/*
 			 * DMA Channel 0 (Rx transfer complete)
 			 */
 			dbg(DBG_RX, "DMA Rx xfer complete\n");
 			outb(0x8, card->pci_conf + DMACSR0);
 			fst_rx_dma_complete(card, card->dma_port_rx,
-					    card->dma_len_rx, card->dma_skb_rx,
-					    card->dma_rxpos);
+								card->dma_len_rx, card->dma_skb_rx,
+								card->dma_rxpos);
 			card->dmarx_in_progress = 0;
 			do_card_interrupt += FST_RX_DMA_INT;
 		}
-		if (dma_intcsr & 0x00400000) {
+
+		if (dma_intcsr & 0x00400000)
+		{
 			/*
 			 * DMA Channel 1 (Tx transfer complete)
 			 */
 			dbg(DBG_TX, "DMA Tx xfer complete\n");
 			outb(0x8, card->pci_conf + DMACSR1);
 			fst_tx_dma_complete(card, card->dma_port_tx,
-					    card->dma_len_tx, card->dma_txpos);
+								card->dma_len_tx, card->dma_txpos);
 			card->dmatx_in_progress = 0;
 			do_card_interrupt += FST_TX_DMA_INT;
 		}
@@ -1537,13 +1729,16 @@ fst_intr(int dummy, void *dev_id)
 	 * Have we been missing Interrupts
 	 */
 	int_retry_count = FST_RDL(card, interruptRetryCount);
-	if (int_retry_count) {
+
+	if (int_retry_count)
+	{
 		dbg(DBG_ASS, "Card %d int_retry_count is  %d\n",
-		    card->card_no, int_retry_count);
+			card->card_no, int_retry_count);
 		FST_WRL(card, interruptRetryCount, 0);
 	}
 
-	if (!do_card_interrupt) {
+	if (!do_card_interrupt)
+	{
 		return IRQ_HANDLED;
 	}
 
@@ -1554,68 +1749,81 @@ fst_intr(int dummy, void *dev_id)
 	/* Drain the event queue */
 	rdidx = FST_RDB(card, interruptEvent.rdindex) & 0x1f;
 	wridx = FST_RDB(card, interruptEvent.wrindex) & 0x1f;
-	while (rdidx != wridx) {
+
+	while (rdidx != wridx)
+	{
 		event = FST_RDB(card, interruptEvent.evntbuff[rdidx]);
 		port = &card->ports[event & 0x03];
 
 		dbg(DBG_INTR, "Processing Interrupt event: %x\n", event);
 
-		switch (event) {
-		case TE1_ALMA:
-			dbg(DBG_INTR, "TE1 Alarm intr\n");
-			if (port->run)
-				fst_intr_te1_alarm(card, port);
-			break;
+		switch (event)
+		{
+			case TE1_ALMA:
+				dbg(DBG_INTR, "TE1 Alarm intr\n");
 
-		case CTLA_CHG:
-		case CTLB_CHG:
-		case CTLC_CHG:
-		case CTLD_CHG:
-			if (port->run)
-				fst_intr_ctlchg(card, port);
-			break;
+				if (port->run)
+				{
+					fst_intr_te1_alarm(card, port);
+				}
 
-		case ABTA_SENT:
-		case ABTB_SENT:
-		case ABTC_SENT:
-		case ABTD_SENT:
-			dbg(DBG_TX, "Abort complete port %d\n", port->index);
-			break;
+				break;
 
-		case TXA_UNDF:
-		case TXB_UNDF:
-		case TXC_UNDF:
-		case TXD_UNDF:
-			/* Difficult to see how we'd get this given that we
-			 * always load up the entire packet for DMA.
-			 */
-			dbg(DBG_TX, "Tx underflow port %d\n", port->index);
-			port_to_dev(port)->stats.tx_errors++;
-			port_to_dev(port)->stats.tx_fifo_errors++;
-			dbg(DBG_ASS, "Tx underflow on card %d port %d\n",
-			    card->card_no, port->index);
-			break;
+			case CTLA_CHG:
+			case CTLB_CHG:
+			case CTLC_CHG:
+			case CTLD_CHG:
+				if (port->run)
+				{
+					fst_intr_ctlchg(card, port);
+				}
 
-		case INIT_CPLT:
-			dbg(DBG_INIT, "Card init OK intr\n");
-			break;
+				break;
 
-		case INIT_FAIL:
-			dbg(DBG_INIT, "Card init FAILED intr\n");
-			card->state = FST_IFAILED;
-			break;
+			case ABTA_SENT:
+			case ABTB_SENT:
+			case ABTC_SENT:
+			case ABTD_SENT:
+				dbg(DBG_TX, "Abort complete port %d\n", port->index);
+				break;
 
-		default:
-			pr_err("intr: unknown card event %d. ignored\n", event);
-			break;
+			case TXA_UNDF:
+			case TXB_UNDF:
+			case TXC_UNDF:
+			case TXD_UNDF:
+				/* Difficult to see how we'd get this given that we
+				 * always load up the entire packet for DMA.
+				 */
+				dbg(DBG_TX, "Tx underflow port %d\n", port->index);
+				port_to_dev(port)->stats.tx_errors++;
+				port_to_dev(port)->stats.tx_fifo_errors++;
+				dbg(DBG_ASS, "Tx underflow on card %d port %d\n",
+					card->card_no, port->index);
+				break;
+
+			case INIT_CPLT:
+				dbg(DBG_INIT, "Card init OK intr\n");
+				break;
+
+			case INIT_FAIL:
+				dbg(DBG_INIT, "Card init FAILED intr\n");
+				card->state = FST_IFAILED;
+				break;
+
+			default:
+				pr_err("intr: unknown card event %d. ignored\n", event);
+				break;
 		}
 
 		/* Bump and wrap the index */
 		if (++rdidx >= MAX_CIRBUFF)
+		{
 			rdidx = 0;
+		}
 	}
+
 	FST_WRB(card, interruptEvent.rdindex, rdidx);
-        return IRQ_HANDLED;
+	return IRQ_HANDLED;
 }
 
 /*      Check that the shared memory configuration is one that we can handle
@@ -1627,25 +1835,34 @@ check_started_ok(struct fst_card_info *card)
 	int i;
 
 	/* Check structure version and end marker */
-	if (FST_RDW(card, smcVersion) != SMC_VERSION) {
+	if (FST_RDW(card, smcVersion) != SMC_VERSION)
+	{
 		pr_err("Bad shared memory version %d expected %d\n",
-		       FST_RDW(card, smcVersion), SMC_VERSION);
+			   FST_RDW(card, smcVersion), SMC_VERSION);
 		card->state = FST_BADVERSION;
 		return;
 	}
-	if (FST_RDL(card, endOfSmcSignature) != END_SIG) {
+
+	if (FST_RDL(card, endOfSmcSignature) != END_SIG)
+	{
 		pr_err("Missing shared memory signature\n");
 		card->state = FST_BADVERSION;
 		return;
 	}
+
 	/* Firmware status flag, 0x00 = initialising, 0x01 = OK, 0xFF = fail */
-	if ((i = FST_RDB(card, taskStatus)) == 0x01) {
+	if ((i = FST_RDB(card, taskStatus)) == 0x01)
+	{
 		card->state = FST_RUNNING;
-	} else if (i == 0xFF) {
+	}
+	else if (i == 0xFF)
+	{
 		pr_err("Firmware initialisation failed. Card halted\n");
 		card->state = FST_HALTED;
 		return;
-	} else if (i != 0x00) {
+	}
+	else if (i != 0x00)
+	{
 		pr_err("Unknown firmware status 0x%x\n", i);
 		card->state = FST_HALTED;
 		return;
@@ -1655,53 +1872,79 @@ check_started_ok(struct fst_card_info *card)
 	 * number we assumed at card detection. Should never happen with
 	 * existing firmware etc so we just report it for the moment.
 	 */
-	if (FST_RDL(card, numberOfPorts) != card->nports) {
+	if (FST_RDL(card, numberOfPorts) != card->nports)
+	{
 		pr_warn("Port count mismatch on card %d.  Firmware thinks %d we say %d\n",
-			card->card_no,
-			FST_RDL(card, numberOfPorts), card->nports);
+				card->card_no,
+				FST_RDL(card, numberOfPorts), card->nports);
 	}
 }
 
 static int
 set_conf_from_info(struct fst_card_info *card, struct fst_port_info *port,
-		   struct fstioc_info *info)
+				   struct fstioc_info *info)
 {
 	int err;
 	unsigned char my_framing;
 
-	/* Set things according to the user set valid flags 
-	 * Several of the old options have been invalidated/replaced by the 
+	/* Set things according to the user set valid flags
+	 * Several of the old options have been invalidated/replaced by the
 	 * generic hdlc package.
 	 */
 	err = 0;
-	if (info->valid & FSTVAL_PROTO) {
+
+	if (info->valid & FSTVAL_PROTO)
+	{
 		if (info->proto == FST_RAW)
+		{
 			port->mode = FST_RAW;
+		}
 		else
+		{
 			port->mode = FST_GEN_HDLC;
+		}
 	}
 
 	if (info->valid & FSTVAL_CABLE)
+	{
 		err = -EINVAL;
+	}
 
 	if (info->valid & FSTVAL_SPEED)
+	{
 		err = -EINVAL;
+	}
 
 	if (info->valid & FSTVAL_PHASE)
 		FST_WRB(card, portConfig[port->index].invertClock,
-			info->invertClock);
+				info->invertClock);
+
 	if (info->valid & FSTVAL_MODE)
+	{
 		FST_WRW(card, cardMode, info->cardMode);
-	if (info->valid & FSTVAL_TE1) {
+	}
+
+	if (info->valid & FSTVAL_TE1)
+	{
 		FST_WRL(card, suConfig.dataRate, info->lineSpeed);
 		FST_WRB(card, suConfig.clocking, info->clockSource);
 		my_framing = FRAMING_E1;
+
 		if (info->framing == E1)
+		{
 			my_framing = FRAMING_E1;
+		}
+
 		if (info->framing == T1)
+		{
 			my_framing = FRAMING_T1;
+		}
+
 		if (info->framing == J1)
+		{
 			my_framing = FRAMING_J1;
+		}
+
 		FST_WRB(card, suConfig.framing, my_framing);
 		FST_WRB(card, suConfig.structure, info->structure);
 		FST_WRB(card, suConfig.interface, info->interface);
@@ -1715,13 +1958,21 @@ set_conf_from_info(struct fst_card_info *card, struct fst_port_info *port,
 		FST_WRB(card, suConfig.rxBufferMode, info->rxBufferMode);
 		FST_WRB(card, suConfig.startingSlot, info->startingSlot);
 		FST_WRB(card, suConfig.losThreshold, info->losThreshold);
+
 		if (info->idleCode)
+		{
 			FST_WRB(card, suConfig.enableIdleCode, 1);
+		}
 		else
+		{
 			FST_WRB(card, suConfig.enableIdleCode, 0);
+		}
+
 		FST_WRB(card, suConfig.idleCode, info->idleCode);
 #if FST_DEBUG
-		if (info->valid & FSTVAL_TE1) {
+
+		if (info->valid & FSTVAL_TE1)
+		{
 			printk("Setting TE1 data\n");
 			printk("Line Speed = %d\n", info->lineSpeed);
 			printk("Start slot = %d\n", info->startingSlot);
@@ -1733,7 +1984,7 @@ set_conf_from_info(struct fst_card_info *card, struct fst_port_info *port,
 			printk("Line build out = %d\n", info->lineBuildOut);
 			printk("Equaliser = %d\n", info->equalizer);
 			printk("Transparent mode = %d\n",
-			       info->transparentMode);
+				   info->transparentMode);
 			printk("Loop mode = %d\n", info->loopMode);
 			printk("Range = %d\n", info->range);
 			printk("Tx Buffer mode = %d\n", info->txBufferMode);
@@ -1741,12 +1992,17 @@ set_conf_from_info(struct fst_card_info *card, struct fst_port_info *port,
 			printk("LOS Threshold = %d\n", info->losThreshold);
 			printk("Idle Code = %d\n", info->idleCode);
 		}
+
 #endif
 	}
+
 #if FST_DEBUG
-	if (info->valid & FSTVAL_DEBUG) {
+
+	if (info->valid & FSTVAL_DEBUG)
+	{
 		fst_debug_mask = info->debug;
 	}
+
 #endif
 
 	return err;
@@ -1754,7 +2010,7 @@ set_conf_from_info(struct fst_card_info *card, struct fst_port_info *port,
 
 static void
 gather_conf_info(struct fst_card_info *card, struct fst_port_info *port,
-		 struct fstioc_info *info)
+				 struct fstioc_info *info)
 {
 	int i;
 
@@ -1776,9 +2032,9 @@ gather_conf_info(struct fst_card_info *card, struct fst_port_info *port,
 	 */
 	info->valid = ((card->state == FST_RUNNING) ? FSTVAL_ALL : FSTVAL_CARD)
 #if FST_DEBUG
-	    | FSTVAL_DEBUG
+				  | FSTVAL_DEBUG
 #endif
-	    ;
+				  ;
 
 	info->lineInterface = FST_RDW(card, portConfig[i].lineInterface);
 	info->internalClock = FST_RDB(card, portConfig[i].internalClock);
@@ -1793,16 +2049,20 @@ gather_conf_info(struct fst_card_info *card, struct fst_port_info *port,
 
 	/*
 	 * The T2U can report cable presence for both A or B
-	 * in bits 0 and 1 of cableStatus.  See which port we are and 
+	 * in bits 0 and 1 of cableStatus.  See which port we are and
 	 * do the mapping.
 	 */
-	if (card->family == FST_FAMILY_TXU) {
-		if (port->index == 0) {
+	if (card->family == FST_FAMILY_TXU)
+	{
+		if (port->index == 0)
+		{
 			/*
 			 * Port A
 			 */
 			info->cableStatus = info->cableStatus & 1;
-		} else {
+		}
+		else
+		{
 			/*
 			 * Port B
 			 */
@@ -1810,10 +2070,12 @@ gather_conf_info(struct fst_card_info *card, struct fst_port_info *port,
 			info->cableStatus = info->cableStatus & 1;
 		}
 	}
+
 	/*
 	 * Some additional bits if we are TE1
 	 */
-	if (card->type == FST_TYPE_TE1) {
+	if (card->type == FST_TYPE_TE1)
+	{
 		info->lineSpeed = FST_RDL(card, suConfig.dataRate);
 		info->clockSource = FST_RDB(card, suConfig.clocking);
 		info->framing = FST_RDB(card, suConfig.framing);
@@ -1828,104 +2090,117 @@ gather_conf_info(struct fst_card_info *card, struct fst_port_info *port,
 		info->rxBufferMode = FST_RDB(card, suConfig.rxBufferMode);
 		info->startingSlot = FST_RDB(card, suConfig.startingSlot);
 		info->losThreshold = FST_RDB(card, suConfig.losThreshold);
+
 		if (FST_RDB(card, suConfig.enableIdleCode))
+		{
 			info->idleCode = FST_RDB(card, suConfig.idleCode);
+		}
 		else
+		{
 			info->idleCode = 0;
+		}
+
 		info->receiveBufferDelay =
-		    FST_RDL(card, suStatus.receiveBufferDelay);
+			FST_RDL(card, suStatus.receiveBufferDelay);
 		info->framingErrorCount =
-		    FST_RDL(card, suStatus.framingErrorCount);
+			FST_RDL(card, suStatus.framingErrorCount);
 		info->codeViolationCount =
-		    FST_RDL(card, suStatus.codeViolationCount);
+			FST_RDL(card, suStatus.codeViolationCount);
 		info->crcErrorCount = FST_RDL(card, suStatus.crcErrorCount);
 		info->lineAttenuation = FST_RDL(card, suStatus.lineAttenuation);
 		info->lossOfSignal = FST_RDB(card, suStatus.lossOfSignal);
 		info->receiveRemoteAlarm =
-		    FST_RDB(card, suStatus.receiveRemoteAlarm);
+			FST_RDB(card, suStatus.receiveRemoteAlarm);
 		info->alarmIndicationSignal =
-		    FST_RDB(card, suStatus.alarmIndicationSignal);
+			FST_RDB(card, suStatus.alarmIndicationSignal);
 	}
 }
 
 static int
 fst_set_iface(struct fst_card_info *card, struct fst_port_info *port,
-	      struct ifreq *ifr)
+			  struct ifreq *ifr)
 {
 	sync_serial_settings sync;
 	int i;
 
-	if (ifr->ifr_settings.size != sizeof (sync)) {
+	if (ifr->ifr_settings.size != sizeof (sync))
+	{
 		return -ENOMEM;
 	}
 
 	if (copy_from_user
-	    (&sync, ifr->ifr_settings.ifs_ifsu.sync, sizeof (sync))) {
+		(&sync, ifr->ifr_settings.ifs_ifsu.sync, sizeof (sync)))
+	{
 		return -EFAULT;
 	}
 
 	if (sync.loopback)
+	{
 		return -EINVAL;
+	}
 
 	i = port->index;
 
-	switch (ifr->ifr_settings.type) {
-	case IF_IFACE_V35:
-		FST_WRW(card, portConfig[i].lineInterface, V35);
-		port->hwif = V35;
-		break;
+	switch (ifr->ifr_settings.type)
+	{
+		case IF_IFACE_V35:
+			FST_WRW(card, portConfig[i].lineInterface, V35);
+			port->hwif = V35;
+			break;
 
-	case IF_IFACE_V24:
-		FST_WRW(card, portConfig[i].lineInterface, V24);
-		port->hwif = V24;
-		break;
+		case IF_IFACE_V24:
+			FST_WRW(card, portConfig[i].lineInterface, V24);
+			port->hwif = V24;
+			break;
 
-	case IF_IFACE_X21:
-		FST_WRW(card, portConfig[i].lineInterface, X21);
-		port->hwif = X21;
-		break;
+		case IF_IFACE_X21:
+			FST_WRW(card, portConfig[i].lineInterface, X21);
+			port->hwif = X21;
+			break;
 
-	case IF_IFACE_X21D:
-		FST_WRW(card, portConfig[i].lineInterface, X21D);
-		port->hwif = X21D;
-		break;
+		case IF_IFACE_X21D:
+			FST_WRW(card, portConfig[i].lineInterface, X21D);
+			port->hwif = X21D;
+			break;
 
-	case IF_IFACE_T1:
-		FST_WRW(card, portConfig[i].lineInterface, T1);
-		port->hwif = T1;
-		break;
+		case IF_IFACE_T1:
+			FST_WRW(card, portConfig[i].lineInterface, T1);
+			port->hwif = T1;
+			break;
 
-	case IF_IFACE_E1:
-		FST_WRW(card, portConfig[i].lineInterface, E1);
-		port->hwif = E1;
-		break;
+		case IF_IFACE_E1:
+			FST_WRW(card, portConfig[i].lineInterface, E1);
+			port->hwif = E1;
+			break;
 
-	case IF_IFACE_SYNC_SERIAL:
-		break;
+		case IF_IFACE_SYNC_SERIAL:
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
-	switch (sync.clock_type) {
-	case CLOCK_EXT:
-		FST_WRB(card, portConfig[i].internalClock, EXTCLK);
-		break;
+	switch (sync.clock_type)
+	{
+		case CLOCK_EXT:
+			FST_WRB(card, portConfig[i].internalClock, EXTCLK);
+			break;
 
-	case CLOCK_INT:
-		FST_WRB(card, portConfig[i].internalClock, INTCLK);
-		break;
+		case CLOCK_INT:
+			FST_WRB(card, portConfig[i].internalClock, INTCLK);
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
+
 	FST_WRL(card, portConfig[i].lineSpeed, sync.clock_rate);
 	return 0;
 }
 
 static int
 fst_get_iface(struct fst_card_info *card, struct fst_port_info *port,
-	      struct ifreq *ifr)
+			  struct ifreq *ifr)
 {
 	sync_serial_settings sync;
 	int i;
@@ -1934,31 +2209,41 @@ fst_get_iface(struct fst_card_info *card, struct fst_port_info *port,
 	 * if nothing is set as IF_IFACE_SYNC_SERIAL implies it can't be
 	 * changed
 	 */
-	switch (port->hwif) {
-	case E1:
-		ifr->ifr_settings.type = IF_IFACE_E1;
-		break;
-	case T1:
-		ifr->ifr_settings.type = IF_IFACE_T1;
-		break;
-	case V35:
-		ifr->ifr_settings.type = IF_IFACE_V35;
-		break;
-	case V24:
-		ifr->ifr_settings.type = IF_IFACE_V24;
-		break;
-	case X21D:
-		ifr->ifr_settings.type = IF_IFACE_X21D;
-		break;
-	case X21:
-	default:
-		ifr->ifr_settings.type = IF_IFACE_X21;
-		break;
+	switch (port->hwif)
+	{
+		case E1:
+			ifr->ifr_settings.type = IF_IFACE_E1;
+			break;
+
+		case T1:
+			ifr->ifr_settings.type = IF_IFACE_T1;
+			break;
+
+		case V35:
+			ifr->ifr_settings.type = IF_IFACE_V35;
+			break;
+
+		case V24:
+			ifr->ifr_settings.type = IF_IFACE_V24;
+			break;
+
+		case X21D:
+			ifr->ifr_settings.type = IF_IFACE_X21D;
+			break;
+
+		case X21:
+		default:
+			ifr->ifr_settings.type = IF_IFACE_X21;
+			break;
 	}
-	if (ifr->ifr_settings.size == 0) {
+
+	if (ifr->ifr_settings.size == 0)
+	{
 		return 0;	/* only type requested */
 	}
-	if (ifr->ifr_settings.size < sizeof (sync)) {
+
+	if (ifr->ifr_settings.size < sizeof (sync))
+	{
 		return -ENOMEM;
 	}
 
@@ -1967,10 +2252,11 @@ fst_get_iface(struct fst_card_info *card, struct fst_port_info *port,
 	sync.clock_rate = FST_RDL(card, portConfig[i].lineSpeed);
 	/* Lucky card and linux use same encoding here */
 	sync.clock_type = FST_RDB(card, portConfig[i].internalClock) ==
-	    INTCLK ? CLOCK_INT : CLOCK_EXT;
+					  INTCLK ? CLOCK_INT : CLOCK_EXT;
 	sync.loopback = 0;
 
-	if (copy_to_user(ifr->ifr_settings.ifs_ifsu.sync, &sync, sizeof (sync))) {
+	if (copy_to_user(ifr->ifr_settings.ifs_ifsu.sync, &sync, sizeof (sync)))
+	{
 		return -EFAULT;
 	}
 
@@ -1994,139 +2280,162 @@ fst_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 	card = port->card;
 
 	if (!capable(CAP_NET_ADMIN))
+	{
 		return -EPERM;
+	}
 
-	switch (cmd) {
-	case FSTCPURESET:
-		fst_cpureset(card);
-		card->state = FST_RESET;
-		return 0;
-
-	case FSTCPURELEASE:
-		fst_cpurelease(card);
-		card->state = FST_STARTING;
-		return 0;
-
-	case FSTWRITE:		/* Code write (download) */
-
-		/* First copy in the header with the length and offset of data
-		 * to write
-		 */
-		if (ifr->ifr_data == NULL) {
-			return -EINVAL;
-		}
-		if (copy_from_user(&wrthdr, ifr->ifr_data,
-				   sizeof (struct fstioc_write))) {
-			return -EFAULT;
-		}
-
-		/* Sanity check the parameters. We don't support partial writes
-		 * when going over the top
-		 */
-		if (wrthdr.size > FST_MEMSIZE || wrthdr.offset > FST_MEMSIZE ||
-		    wrthdr.size + wrthdr.offset > FST_MEMSIZE) {
-			return -ENXIO;
-		}
-
-		/* Now copy the data to the card. */
-
-		buf = memdup_user(ifr->ifr_data + sizeof(struct fstioc_write),
-				  wrthdr.size);
-		if (IS_ERR(buf))
-			return PTR_ERR(buf);
-
-		memcpy_toio(card->mem + wrthdr.offset, buf, wrthdr.size);
-		kfree(buf);
-
-		/* Writes to the memory of a card in the reset state constitute
-		 * a download
-		 */
-		if (card->state == FST_RESET) {
-			card->state = FST_DOWNLOAD;
-		}
-		return 0;
-
-	case FSTGETCONF:
-
-		/* If card has just been started check the shared memory config
-		 * version and marker
-		 */
-		if (card->state == FST_STARTING) {
-			check_started_ok(card);
-
-			/* If everything checked out enable card interrupts */
-			if (card->state == FST_RUNNING) {
-				spin_lock_irqsave(&card->card_lock, flags);
-				fst_enable_intr(card);
-				FST_WRB(card, interruptHandshake, 0xEE);
-				spin_unlock_irqrestore(&card->card_lock, flags);
-			}
-		}
-
-		if (ifr->ifr_data == NULL) {
-			return -EINVAL;
-		}
-
-		gather_conf_info(card, port, &info);
-
-		if (copy_to_user(ifr->ifr_data, &info, sizeof (info))) {
-			return -EFAULT;
-		}
-		return 0;
-
-	case FSTSETCONF:
-
-		/*
-		 * Most of the settings have been moved to the generic ioctls
-		 * this just covers debug and board ident now
-		 */
-
-		if (card->state != FST_RUNNING) {
-			pr_err("Attempt to configure card %d in non-running state (%d)\n",
-			       card->card_no, card->state);
-			return -EIO;
-		}
-		if (copy_from_user(&info, ifr->ifr_data, sizeof (info))) {
-			return -EFAULT;
-		}
-
-		return set_conf_from_info(card, port, &info);
-
-	case SIOCWANDEV:
-		switch (ifr->ifr_settings.type) {
-		case IF_GET_IFACE:
-			return fst_get_iface(card, port, ifr);
-
-		case IF_IFACE_SYNC_SERIAL:
-		case IF_IFACE_V35:
-		case IF_IFACE_V24:
-		case IF_IFACE_X21:
-		case IF_IFACE_X21D:
-		case IF_IFACE_T1:
-		case IF_IFACE_E1:
-			return fst_set_iface(card, port, ifr);
-
-		case IF_PROTO_RAW:
-			port->mode = FST_RAW;
+	switch (cmd)
+	{
+		case FSTCPURESET:
+			fst_cpureset(card);
+			card->state = FST_RESET;
 			return 0;
 
-		case IF_GET_PROTO:
-			if (port->mode == FST_RAW) {
-				ifr->ifr_settings.type = IF_PROTO_RAW;
-				return 0;
+		case FSTCPURELEASE:
+			fst_cpurelease(card);
+			card->state = FST_STARTING;
+			return 0;
+
+		case FSTWRITE:		/* Code write (download) */
+
+			/* First copy in the header with the length and offset of data
+			 * to write
+			 */
+			if (ifr->ifr_data == NULL)
+			{
+				return -EINVAL;
 			}
-			return hdlc_ioctl(dev, ifr, cmd);
+
+			if (copy_from_user(&wrthdr, ifr->ifr_data,
+							   sizeof (struct fstioc_write)))
+			{
+				return -EFAULT;
+			}
+
+			/* Sanity check the parameters. We don't support partial writes
+			 * when going over the top
+			 */
+			if (wrthdr.size > FST_MEMSIZE || wrthdr.offset > FST_MEMSIZE ||
+				wrthdr.size + wrthdr.offset > FST_MEMSIZE)
+			{
+				return -ENXIO;
+			}
+
+			/* Now copy the data to the card. */
+
+			buf = memdup_user(ifr->ifr_data + sizeof(struct fstioc_write),
+							  wrthdr.size);
+
+			if (IS_ERR(buf))
+			{
+				return PTR_ERR(buf);
+			}
+
+			memcpy_toio(card->mem + wrthdr.offset, buf, wrthdr.size);
+			kfree(buf);
+
+			/* Writes to the memory of a card in the reset state constitute
+			 * a download
+			 */
+			if (card->state == FST_RESET)
+			{
+				card->state = FST_DOWNLOAD;
+			}
+
+			return 0;
+
+		case FSTGETCONF:
+
+			/* If card has just been started check the shared memory config
+			 * version and marker
+			 */
+			if (card->state == FST_STARTING)
+			{
+				check_started_ok(card);
+
+				/* If everything checked out enable card interrupts */
+				if (card->state == FST_RUNNING)
+				{
+					spin_lock_irqsave(&card->card_lock, flags);
+					fst_enable_intr(card);
+					FST_WRB(card, interruptHandshake, 0xEE);
+					spin_unlock_irqrestore(&card->card_lock, flags);
+				}
+			}
+
+			if (ifr->ifr_data == NULL)
+			{
+				return -EINVAL;
+			}
+
+			gather_conf_info(card, port, &info);
+
+			if (copy_to_user(ifr->ifr_data, &info, sizeof (info)))
+			{
+				return -EFAULT;
+			}
+
+			return 0;
+
+		case FSTSETCONF:
+
+			/*
+			 * Most of the settings have been moved to the generic ioctls
+			 * this just covers debug and board ident now
+			 */
+
+			if (card->state != FST_RUNNING)
+			{
+				pr_err("Attempt to configure card %d in non-running state (%d)\n",
+					   card->card_no, card->state);
+				return -EIO;
+			}
+
+			if (copy_from_user(&info, ifr->ifr_data, sizeof (info)))
+			{
+				return -EFAULT;
+			}
+
+			return set_conf_from_info(card, port, &info);
+
+		case SIOCWANDEV:
+			switch (ifr->ifr_settings.type)
+			{
+				case IF_GET_IFACE:
+					return fst_get_iface(card, port, ifr);
+
+				case IF_IFACE_SYNC_SERIAL:
+				case IF_IFACE_V35:
+				case IF_IFACE_V24:
+				case IF_IFACE_X21:
+				case IF_IFACE_X21D:
+				case IF_IFACE_T1:
+				case IF_IFACE_E1:
+					return fst_set_iface(card, port, ifr);
+
+				case IF_PROTO_RAW:
+					port->mode = FST_RAW;
+					return 0;
+
+				case IF_GET_PROTO:
+					if (port->mode == FST_RAW)
+					{
+						ifr->ifr_settings.type = IF_PROTO_RAW;
+						return 0;
+					}
+
+					return hdlc_ioctl(dev, ifr, cmd);
+
+				default:
+					port->mode = FST_GEN_HDLC;
+					dbg(DBG_IOCTL, "Passing this type to hdlc %x\n",
+						ifr->ifr_settings.type);
+					return hdlc_ioctl(dev, ifr, cmd);
+			}
 
 		default:
-			port->mode = FST_GEN_HDLC;
-			dbg(DBG_IOCTL, "Passing this type to hdlc %x\n",
-			    ifr->ifr_settings.type);
+			/* Not one of ours. Pass through to HDLC package */
 			return hdlc_ioctl(dev, ifr, cmd);
-		}
-
-	default:
-		/* Not one of ours. Pass through to HDLC package */
-		return hdlc_ioctl(dev, ifr, cmd);
 	}
 }
 
@@ -2139,8 +2448,10 @@ fst_openport(struct fst_port_info *port)
 	/* Only init things if card is actually running. This allows open to
 	 * succeed for downloads etc.
 	 */
-	if (port->card->state == FST_RUNNING) {
-		if (port->run) {
+	if (port->card->state == FST_RUNNING)
+	{
+		if (port->run)
+		{
 			dbg(DBG_OPEN, "open: found port already running\n");
 
 			fst_issue_cmd(port, STOPPORT);
@@ -2155,11 +2466,16 @@ fst_openport(struct fst_port_info *port)
 		port->run = 1;
 
 		signals = FST_RDL(port->card, v24DebouncedSts[port->index]);
+
 		if (signals & (((port->hwif == X21) || (port->hwif == X21D))
-			       ? IPSTS_INDICATE : IPSTS_DCD))
+					   ? IPSTS_INDICATE : IPSTS_DCD))
+		{
 			netif_carrier_on(port_to_dev(port));
+		}
 		else
+		{
 			netif_carrier_off(port_to_dev(port));
+		}
 
 		txq_length = port->txqe - port->txqs;
 		port->txqe = 0;
@@ -2171,13 +2487,17 @@ fst_openport(struct fst_port_info *port)
 static void
 fst_closeport(struct fst_port_info *port)
 {
-	if (port->card->state == FST_RUNNING) {
-		if (port->run) {
+	if (port->card->state == FST_RUNNING)
+	{
+		if (port->run)
+		{
 			port->run = 0;
 			fst_op_lower(port, OPSTS_RTS | OPSTS_DTR);
 
 			fst_issue_cmd(port, STOPPORT);
-		} else {
+		}
+		else
+		{
 			dbg(DBG_OPEN, "close: port not running\n");
 		}
 	}
@@ -2190,12 +2510,18 @@ fst_open(struct net_device *dev)
 	struct fst_port_info *port;
 
 	port = dev_to_port(dev);
-	if (!try_module_get(THIS_MODULE))
-          return -EBUSY;
 
-	if (port->mode != FST_RAW) {
+	if (!try_module_get(THIS_MODULE))
+	{
+		return -EBUSY;
+	}
+
+	if (port->mode != FST_RAW)
+	{
 		err = hdlc_open(dev);
-		if (err) {
+
+		if (err)
+		{
 			module_put(THIS_MODULE);
 			return err;
 		}
@@ -2220,15 +2546,18 @@ fst_close(struct net_device *dev)
 	tx_dma_done = inb(card->pci_conf + DMACSR1);
 	rx_dma_done = inb(card->pci_conf + DMACSR0);
 	dbg(DBG_OPEN,
-	    "Port Close: tx_dma_in_progress = %d (%x) rx_dma_in_progress = %d (%x)\n",
-	    card->dmatx_in_progress, tx_dma_done, card->dmarx_in_progress,
-	    rx_dma_done);
+		"Port Close: tx_dma_in_progress = %d (%x) rx_dma_in_progress = %d (%x)\n",
+		card->dmatx_in_progress, tx_dma_done, card->dmarx_in_progress,
+		rx_dma_done);
 
 	netif_stop_queue(dev);
 	fst_closeport(dev_to_port(dev));
-	if (port->mode != FST_RAW) {
+
+	if (port->mode != FST_RAW)
+	{
 		hdlc_close(dev);
 	}
+
 	module_put(THIS_MODULE);
 	return 0;
 }
@@ -2240,7 +2569,10 @@ fst_attach(struct net_device *dev, unsigned short encoding, unsigned short parit
 	 * Setting currently fixed in FarSync card so we check and forget
 	 */
 	if (encoding != ENCODING_NRZ || parity != PARITY_CRC16_PR1_CCITT)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
@@ -2255,7 +2587,7 @@ fst_tx_timeout(struct net_device *dev)
 	dev->stats.tx_errors++;
 	dev->stats.tx_aborted_errors++;
 	dbg(DBG_ASS, "Tx timeout card %d port %d\n",
-	    card->card_no, port->index);
+		card->card_no, port->index);
 	fst_issue_cmd(port, ABORTTX);
 
 	netif_trans_update(dev);
@@ -2276,20 +2608,22 @@ fst_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	dbg(DBG_TX, "fst_start_xmit: length = %d\n", skb->len);
 
 	/* Drop packet with error if we don't have carrier */
-	if (!netif_carrier_ok(dev)) {
+	if (!netif_carrier_ok(dev))
+	{
 		dev_kfree_skb(skb);
 		dev->stats.tx_errors++;
 		dev->stats.tx_carrier_errors++;
 		dbg(DBG_ASS,
-		    "Tried to transmit but no carrier on card %d port %d\n",
-		    card->card_no, port->index);
+			"Tried to transmit but no carrier on card %d port %d\n",
+			card->card_no, port->index);
 		return NETDEV_TX_OK;
 	}
 
 	/* Drop it if it's too big! MTU failure ? */
-	if (skb->len > LEN_TX_BUFFER) {
+	if (skb->len > LEN_TX_BUFFER)
+	{
 		dbg(DBG_ASS, "Packet too large %d vs %d\n", skb->len,
-		    LEN_TX_BUFFER);
+			LEN_TX_BUFFER);
 		dev_kfree_skb(skb);
 		dev->stats.tx_errors++;
 		return NETDEV_TX_OK;
@@ -2301,15 +2635,20 @@ fst_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	 * Check there is room in the port txq
 	 */
 	spin_lock_irqsave(&card->card_lock, flags);
-	if ((txq_length = port->txqe - port->txqs) < 0) {
+
+	if ((txq_length = port->txqe - port->txqs) < 0)
+	{
 		/*
 		 * This is the case where the next free has wrapped but the
 		 * last used hasn't
 		 */
 		txq_length = txq_length + FST_TXQ_DEPTH;
 	}
+
 	spin_unlock_irqrestore(&card->card_lock, flags);
-	if (txq_length > fst_txq_high) {
+
+	if (txq_length > fst_txq_high)
+	{
 		/*
 		 * We have got enough buffers in the pipeline.  Ask the network
 		 * layer to stop sending frames down
@@ -2318,14 +2657,15 @@ fst_start_xmit(struct sk_buff *skb, struct net_device *dev)
 		port->start = 1;	/* I'm using this to signal stop sent up */
 	}
 
-	if (txq_length == FST_TXQ_DEPTH - 1) {
+	if (txq_length == FST_TXQ_DEPTH - 1)
+	{
 		/*
 		 * This shouldn't have happened but such is life
 		 */
 		dev_kfree_skb(skb);
 		dev->stats.tx_errors++;
 		dbg(DBG_ASS, "Tx queue overflow card %d port %d\n",
-		    card->card_no, port->index);
+			card->card_no, port->index);
 		return NETDEV_TX_OK;
 	}
 
@@ -2335,8 +2675,12 @@ fst_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	spin_lock_irqsave(&card->card_lock, flags);
 	port->txq[port->txqe] = skb;
 	port->txqe++;
+
 	if (port->txqe == FST_TXQ_DEPTH)
+	{
 		port->txqe = 0;
+	}
+
 	spin_unlock_irqrestore(&card->card_lock, flags);
 
 	/* Scehdule the bottom half which now does transmit processing */
@@ -2353,7 +2697,8 @@ fst_start_xmit(struct sk_buff *skb, struct net_device *dev)
  *      via a printk and leave the corresponding interface and all that follow
  *      disabled.
  */
-static char *type_strings[] = {
+static char *type_strings[] =
+{
 	"no hardware",		/* Should never be seen */
 	"FarSync T2P",
 	"FarSync T4P",
@@ -2373,25 +2718,33 @@ fst_init_card(struct fst_card_info *card)
 	 * firmware detects something different later (should never happen)
 	 * we'll have to revise it in some way then.
 	 */
-	for (i = 0; i < card->nports; i++) {
+	for (i = 0; i < card->nports; i++)
+	{
 		err = register_hdlc_device(card->ports[i].dev);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			pr_err("Cannot register HDLC device for port %d (errno %d)\n",
-				i, -err);
+				   i, -err);
+
 			while (i--)
+			{
 				unregister_hdlc_device(card->ports[i].dev);
+			}
+
 			return err;
 		}
 	}
 
 	pr_info("%s-%s: %s IRQ%d, %d ports\n",
-		port_to_dev(&card->ports[0])->name,
-		port_to_dev(&card->ports[card->nports - 1])->name,
-		type_strings[card->type], card->irq, card->nports);
+			port_to_dev(&card->ports[0])->name,
+			port_to_dev(&card->ports[card->nports - 1])->name,
+			type_strings[card->type], card->irq, card->nports);
 	return 0;
 }
 
-static const struct net_device_ops fst_ops = {
+static const struct net_device_ops fst_ops =
+{
 	.ndo_open       = fst_open,
 	.ndo_stop       = fst_close,
 	.ndo_change_mtu = hdlc_change_mtu,
@@ -2413,24 +2766,28 @@ fst_add_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	int i;
 
 	printk_once(KERN_INFO
-		    pr_fmt("FarSync WAN driver " FST_USER_VERSION
-			   " (c) 2001-2004 FarSite Communications Ltd.\n"));
+				pr_fmt("FarSync WAN driver " FST_USER_VERSION
+					   " (c) 2001-2004 FarSite Communications Ltd.\n"));
 #if FST_DEBUG
 	dbg(DBG_ASS, "The value of debug mask is %x\n", fst_debug_mask);
 #endif
+
 	/*
 	 * We are going to be clever and allow certain cards not to be
 	 * configured.  An exclude list can be provided in /etc/modules.conf
 	 */
-	if (fst_excluded_cards != 0) {
+	if (fst_excluded_cards != 0)
+	{
 		/*
 		 * There are cards to exclude
 		 *
 		 */
-		for (i = 0; i < fst_excluded_cards; i++) {
-			if ((pdev->devfn) >> 3 == fst_excluded_list[i]) {
+		for (i = 0; i < fst_excluded_cards; i++)
+		{
+			if ((pdev->devfn) >> 3 == fst_excluded_list[i])
+			{
 				pr_info("FarSync PCI device %d not assigned\n",
-					(pdev->devfn) >> 3);
+						(pdev->devfn) >> 3);
 				return -EBUSY;
 			}
 		}
@@ -2438,16 +2795,21 @@ fst_add_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	/* Allocate driver private data */
 	card = kzalloc(sizeof(struct fst_card_info), GFP_KERNEL);
+
 	if (card == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	/* Try to enable the device */
-	if ((err = pci_enable_device(pdev)) != 0) {
+	if ((err = pci_enable_device(pdev)) != 0)
+	{
 		pr_err("Failed to enable card. Err %d\n", -err);
 		goto enable_fail;
 	}
 
-	if ((err = pci_request_regions(pdev, "FarSync")) !=0) {
+	if ((err = pci_request_regions(pdev, "FarSync")) != 0)
+	{
 		pr_err("Failed to allocate regions. Err %d\n", -err);
 		goto regions_fail;
 	}
@@ -2456,20 +2818,26 @@ fst_add_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	card->pci_conf = pci_resource_start(pdev, 1);
 	card->phys_mem = pci_resource_start(pdev, 2);
 	card->phys_ctlmem = pci_resource_start(pdev, 3);
-	if ((card->mem = ioremap(card->phys_mem, FST_MEMSIZE)) == NULL) {
+
+	if ((card->mem = ioremap(card->phys_mem, FST_MEMSIZE)) == NULL)
+	{
 		pr_err("Physical memory remap failed\n");
 		err = -ENODEV;
 		goto ioremap_physmem_fail;
 	}
-	if ((card->ctlmem = ioremap(card->phys_ctlmem, 0x10)) == NULL) {
+
+	if ((card->ctlmem = ioremap(card->phys_ctlmem, 0x10)) == NULL)
+	{
 		pr_err("Control memory remap failed\n");
 		err = -ENODEV;
 		goto ioremap_ctlmem_fail;
 	}
+
 	dbg(DBG_PCI, "kernel mem %p, ctlmem %p\n", card->mem, card->ctlmem);
 
 	/* Register the interrupt handler */
-	if (request_irq(pdev->irq, fst_intr, IRQF_SHARED, FST_DEV_NAME, card)) {
+	if (request_irq(pdev->irq, fst_intr, IRQF_SHARED, FST_DEV_NAME, card))
+	{
 		pr_err("Unable to register interrupt %d\n", card->irq);
 		err = -ENODEV;
 		goto irq_fail;
@@ -2479,60 +2847,70 @@ fst_add_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	card->irq = pdev->irq;
 	card->type = ent->driver_data;
 	card->family = ((ent->driver_data == FST_TYPE_T2P) ||
-			(ent->driver_data == FST_TYPE_T4P))
-	    ? FST_FAMILY_TXP : FST_FAMILY_TXU;
+					(ent->driver_data == FST_TYPE_T4P))
+				   ? FST_FAMILY_TXP : FST_FAMILY_TXU;
+
 	if ((ent->driver_data == FST_TYPE_T1U) ||
-	    (ent->driver_data == FST_TYPE_TE1))
+		(ent->driver_data == FST_TYPE_TE1))
+	{
 		card->nports = 1;
+	}
 	else
 		card->nports = ((ent->driver_data == FST_TYPE_T2P) ||
-				(ent->driver_data == FST_TYPE_T2U)) ? 2 : 4;
+						(ent->driver_data == FST_TYPE_T2U)) ? 2 : 4;
 
 	card->state = FST_UNINIT;
-        spin_lock_init ( &card->card_lock );
+	spin_lock_init ( &card->card_lock );
 
-        for ( i = 0 ; i < card->nports ; i++ ) {
+	for ( i = 0 ; i < card->nports ; i++ )
+	{
 		struct net_device *dev = alloc_hdlcdev(&card->ports[i]);
 		hdlc_device *hdlc;
-		if (!dev) {
+
+		if (!dev)
+		{
 			while (i--)
+			{
 				free_netdev(card->ports[i].dev);
+			}
+
 			pr_err("FarSync: out of memory\n");
 			err = -ENOMEM;
 			goto hdlcdev_fail;
 		}
+
 		card->ports[i].dev    = dev;
-                card->ports[i].card   = card;
-                card->ports[i].index  = i;
-                card->ports[i].run    = 0;
+		card->ports[i].card   = card;
+		card->ports[i].index  = i;
+		card->ports[i].run    = 0;
 
 		hdlc = dev_to_hdlc(dev);
 
-                /* Fill in the net device info */
+		/* Fill in the net device info */
 		/* Since this is a PCI setup this is purely
 		 * informational. Give them the buffer addresses
 		 * and basic card I/O.
 		 */
-                dev->mem_start   = card->phys_mem
-                                 + BUF_OFFSET ( txBuffer[i][0][0]);
-                dev->mem_end     = card->phys_mem
-                                 + BUF_OFFSET ( txBuffer[i][NUM_TX_BUFFER - 1][LEN_RX_BUFFER - 1]);
-                dev->base_addr   = card->pci_conf;
-                dev->irq         = card->irq;
+		dev->mem_start   = card->phys_mem
+						   + BUF_OFFSET ( txBuffer[i][0][0]);
+		dev->mem_end     = card->phys_mem
+						   + BUF_OFFSET ( txBuffer[i][NUM_TX_BUFFER - 1][LEN_RX_BUFFER - 1]);
+		dev->base_addr   = card->pci_conf;
+		dev->irq         = card->irq;
 
 		dev->netdev_ops = &fst_ops;
 		dev->tx_queue_len = FST_TX_QUEUE_LEN;
 		dev->watchdog_timeo = FST_TX_TIMEOUT;
-                hdlc->attach = fst_attach;
-                hdlc->xmit   = fst_start_xmit;
+		hdlc->attach = fst_attach;
+		hdlc->xmit   = fst_start_xmit;
 	}
 
 	card->device = pdev;
 
 	dbg(DBG_PCI, "type %d nports %d irq %d\n", card->type,
-	    card->nports, card->irq);
+		card->nports, card->irq);
 	dbg(DBG_PCI, "conf %04x mem %08x ctlmem %08x\n",
-	    card->pci_conf, card->phys_mem, card->phys_ctlmem);
+		card->pci_conf, card->phys_mem, card->phys_ctlmem);
 
 	/* Reset the card's processor */
 	fst_cpureset(card);
@@ -2545,52 +2923,73 @@ fst_add_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	pci_set_drvdata(pdev, card);
 
 	/* Remainder of card setup */
-	if (no_of_cards_added >= FST_MAX_CARDS) {
+	if (no_of_cards_added >= FST_MAX_CARDS)
+	{
 		pr_err("FarSync: too many cards\n");
 		err = -ENOMEM;
 		goto card_array_fail;
 	}
+
 	fst_card_array[no_of_cards_added] = card;
 	card->card_no = no_of_cards_added++;	/* Record instance and bump it */
 	err = fst_init_card(card);
+
 	if (err)
+	{
 		goto init_card_fail;
-	if (card->family == FST_FAMILY_TXU) {
+	}
+
+	if (card->family == FST_FAMILY_TXU)
+	{
 		/*
 		 * Allocate a dma buffer for transmit and receives
 		 */
 		card->rx_dma_handle_host =
-		    pci_alloc_consistent(card->device, FST_MAX_MTU,
-					 &card->rx_dma_handle_card);
-		if (card->rx_dma_handle_host == NULL) {
+			pci_alloc_consistent(card->device, FST_MAX_MTU,
+								 &card->rx_dma_handle_card);
+
+		if (card->rx_dma_handle_host == NULL)
+		{
 			pr_err("Could not allocate rx dma buffer\n");
 			err = -ENOMEM;
 			goto rx_dma_fail;
 		}
+
 		card->tx_dma_handle_host =
-		    pci_alloc_consistent(card->device, FST_MAX_MTU,
-					 &card->tx_dma_handle_card);
-		if (card->tx_dma_handle_host == NULL) {
+			pci_alloc_consistent(card->device, FST_MAX_MTU,
+								 &card->tx_dma_handle_card);
+
+		if (card->tx_dma_handle_host == NULL)
+		{
 			pr_err("Could not allocate tx dma buffer\n");
 			err = -ENOMEM;
 			goto tx_dma_fail;
 		}
 	}
+
 	return 0;		/* Success */
 
 tx_dma_fail:
 	pci_free_consistent(card->device, FST_MAX_MTU,
-			    card->rx_dma_handle_host,
-			    card->rx_dma_handle_card);
+						card->rx_dma_handle_host,
+						card->rx_dma_handle_card);
 rx_dma_fail:
 	fst_disable_intr(card);
+
 	for (i = 0 ; i < card->nports ; i++)
+	{
 		unregister_hdlc_device(card->ports[i].dev);
+	}
+
 init_card_fail:
 	fst_card_array[card->card_no] = NULL;
 card_array_fail:
+
 	for (i = 0 ; i < card->nports ; i++)
+	{
 		free_netdev(card->ports[i].dev);
+	}
+
 hdlcdev_fail:
 	free_irq(card->irq, card);
 irq_fail:
@@ -2617,7 +3016,8 @@ fst_remove_one(struct pci_dev *pdev)
 
 	card = pci_get_drvdata(pdev);
 
-	for (i = 0; i < card->nports; i++) {
+	for (i = 0; i < card->nports; i++)
+	{
 		struct net_device *dev = port_to_dev(&card->ports[i]);
 		unregister_hdlc_device(dev);
 	}
@@ -2628,27 +3028,31 @@ fst_remove_one(struct pci_dev *pdev)
 	iounmap(card->ctlmem);
 	iounmap(card->mem);
 	pci_release_regions(pdev);
-	if (card->family == FST_FAMILY_TXU) {
+
+	if (card->family == FST_FAMILY_TXU)
+	{
 		/*
 		 * Free dma buffers
 		 */
 		pci_free_consistent(card->device, FST_MAX_MTU,
-				    card->rx_dma_handle_host,
-				    card->rx_dma_handle_card);
+							card->rx_dma_handle_host,
+							card->rx_dma_handle_card);
 		pci_free_consistent(card->device, FST_MAX_MTU,
-				    card->tx_dma_handle_host,
-				    card->tx_dma_handle_card);
+							card->tx_dma_handle_host,
+							card->tx_dma_handle_card);
 	}
+
 	fst_card_array[card->card_no] = NULL;
 }
 
-static struct pci_driver fst_driver = {
-        .name		= FST_NAME,
-        .id_table	= fst_pci_dev_id,
-        .probe		= fst_add_one,
-        .remove	= fst_remove_one,
-        .suspend	= NULL,
-        .resume	= NULL,
+static struct pci_driver fst_driver =
+{
+	.name		= FST_NAME,
+	.id_table	= fst_pci_dev_id,
+	.probe		= fst_add_one,
+	.remove	= fst_remove_one,
+	.suspend	= NULL,
+	.resume	= NULL,
 };
 
 static int __init
@@ -2657,7 +3061,10 @@ fst_init(void)
 	int i;
 
 	for (i = 0; i < FST_MAX_CARDS; i++)
+	{
 		fst_card_array[i] = NULL;
+	}
+
 	spin_lock_init(&fst_work_q_lock);
 	return pci_register_driver(&fst_driver);
 }

@@ -7,7 +7,7 @@
  *
  *	This software may be used and distributed according to the terms
  *	of the GNU General Public License, incorporated herein by reference.
- * 
+ *
  * The author may be reached as simon@ncm.com, or C/O
  *    NCM
  *    Attn: Simon Janes
@@ -23,7 +23,8 @@
 #include <linux/spinlock.h>
 #include <uapi/linux/if_eql.h>
 
-typedef struct slave {
+typedef struct slave
+{
 	struct list_head	list;
 	struct net_device	*dev;
 	long			priority;
@@ -32,18 +33,20 @@ typedef struct slave {
 	long			bytes_queued;
 } slave_t;
 
-typedef struct slave_queue {
+typedef struct slave_queue
+{
 	spinlock_t		lock;
 	struct list_head	all_slaves;
 	int			num_slaves;
 	struct net_device	*master_dev;
 } slave_queue_t;
 
-typedef struct equalizer {
+typedef struct equalizer
+{
 	slave_queue_t		queue;
 	int			min_slaves;
 	int			max_slaves;
 	struct timer_list	timer;
-} equalizer_t;  
+} equalizer_t;
 
 #endif /* _LINUX_EQL_H */

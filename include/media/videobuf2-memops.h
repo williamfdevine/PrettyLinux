@@ -24,7 +24,8 @@
  * @put:	callback to function that decreases buffer refcount
  * @arg:	argument for @put callback
  */
-struct vb2_vmarea_handler {
+struct vb2_vmarea_handler
+{
 	atomic_t		*refcount;
 	void			(*put)(void *arg);
 	void			*arg;
@@ -33,8 +34,8 @@ struct vb2_vmarea_handler {
 extern const struct vm_operations_struct vb2_common_vm_ops;
 
 struct frame_vector *vb2_create_framevec(unsigned long start,
-					 unsigned long length,
-					 bool write);
+		unsigned long length,
+		bool write);
 void vb2_destroy_framevec(struct frame_vector *vec);
 
 #endif

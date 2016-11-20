@@ -12,7 +12,8 @@
 #include <linux/module.h>
 
 /* key list for the tiny remote control (Yakumo, don't know about the others) */
-static struct rc_map_table dtt200u_table[] = {
+static struct rc_map_table dtt200u_table[] =
+{
 	{ 0x8001, KEY_MUTE },
 	{ 0x8002, KEY_CHANNELDOWN },
 	{ 0x8003, KEY_VOLUMEDOWN },
@@ -33,7 +34,8 @@ static struct rc_map_table dtt200u_table[] = {
 	{ 0x801f, KEY_9 },
 };
 
-static struct rc_map_list dtt200u_map = {
+static struct rc_map_list dtt200u_map =
+{
 	.map = {
 		.scan    = dtt200u_table,
 		.size    = ARRAY_SIZE(dtt200u_table),

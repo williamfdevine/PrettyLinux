@@ -85,7 +85,7 @@ void g2d_set_flip(struct g2d_dev *d, u32 r)
 }
 
 void g2d_set_v41_stretch(struct g2d_dev *d, struct g2d_frame *src,
-					struct g2d_frame *dst)
+						 struct g2d_frame *dst)
 {
 	w(DEFAULT_SCALE_MODE, SRC_SCALE_CTRL_REG);
 
@@ -103,7 +103,9 @@ void g2d_start(struct g2d_dev *d)
 {
 	/* Clear cache */
 	if (d->variant->hw_rev == TYPE_G2D_3X)
+	{
 		w(0x7, CACHECTL_REG);
+	}
 
 	/* Enable interrupt */
 	w(1, INTEN_REG);

@@ -23,12 +23,14 @@
 #include <sound/initval.h>
 #include <sound/soc.h>
 
-static const struct snd_soc_dapm_widget wm8727_dapm_widgets[] = {
-SND_SOC_DAPM_OUTPUT("VOUTL"),
-SND_SOC_DAPM_OUTPUT("VOUTR"),
+static const struct snd_soc_dapm_widget wm8727_dapm_widgets[] =
+{
+	SND_SOC_DAPM_OUTPUT("VOUTL"),
+	SND_SOC_DAPM_OUTPUT("VOUTR"),
 };
 
-static const struct snd_soc_dapm_route wm8727_dapm_routes[] = {
+static const struct snd_soc_dapm_route wm8727_dapm_routes[] =
+{
 	{ "VOUTL", NULL, "Playback" },
 	{ "VOUTR", NULL, "Playback" },
 };
@@ -38,11 +40,12 @@ static const struct snd_soc_dapm_route wm8727_dapm_routes[] = {
  * determined automatically by examining the Master clock and Bit clock ratios
  */
 #define WM8727_RATES  (SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 |\
-			SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_96000 |\
-			SNDRV_PCM_RATE_192000)
+					   SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_96000 |\
+					   SNDRV_PCM_RATE_192000)
 
 
-static struct snd_soc_dai_driver wm8727_dai = {
+static struct snd_soc_dai_driver wm8727_dai =
+{
 	.name = "wm8727-hifi",
 	.playback = {
 		.stream_name = "Playback",
@@ -50,10 +53,11 @@ static struct snd_soc_dai_driver wm8727_dai = {
 		.channels_max = 2,
 		.rates = WM8727_RATES,
 		.formats = SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S24_LE,
-		},
+	},
 };
 
-static const struct snd_soc_codec_driver soc_codec_dev_wm8727 = {
+static const struct snd_soc_codec_driver soc_codec_dev_wm8727 =
+{
 	.component_driver = {
 		.dapm_widgets		= wm8727_dapm_widgets,
 		.num_dapm_widgets	= ARRAY_SIZE(wm8727_dapm_widgets),
@@ -65,7 +69,7 @@ static const struct snd_soc_codec_driver soc_codec_dev_wm8727 = {
 static int wm8727_probe(struct platform_device *pdev)
 {
 	return snd_soc_register_codec(&pdev->dev,
-			&soc_codec_dev_wm8727, &wm8727_dai, 1);
+								  &soc_codec_dev_wm8727, &wm8727_dai, 1);
 }
 
 static int wm8727_remove(struct platform_device *pdev)
@@ -74,9 +78,10 @@ static int wm8727_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver wm8727_codec_driver = {
+static struct platform_driver wm8727_codec_driver =
+{
 	.driver = {
-			.name = "wm8727",
+		.name = "wm8727",
 	},
 
 	.probe = wm8727_probe,

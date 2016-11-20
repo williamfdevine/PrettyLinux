@@ -36,7 +36,8 @@ gk104_ltc_init(struct nvkm_ltc *ltc)
 }
 
 static const struct nvkm_ltc_func
-gk104_ltc = {
+	gk104_ltc =
+{
 	.oneinit = gf100_ltc_oneinit,
 	.init = gk104_ltc_init,
 	.intr = gf100_ltc_intr,

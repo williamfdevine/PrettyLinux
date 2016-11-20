@@ -21,7 +21,8 @@
 #define FDBD_HAS_BUFFERED_IO_WCE 0x04
 #define FDBD_FORMAT_UNIT_SIZE	2048
 
-struct fd_dev {
+struct fd_dev
+{
 	struct se_device dev;
 
 	u32		fbd_flags;
@@ -39,7 +40,8 @@ struct fd_dev {
 	struct fd_host *fd_host;
 } ____cacheline_aligned;
 
-struct fd_host {
+struct fd_host
+{
 	u32		fd_host_dev_id_count;
 	/* Unique FILEIO Host ID */
 	u32		fd_host_id;

@@ -26,11 +26,11 @@
  */
 
 #ifndef CPU_FEATURE_TYPEFMT
-#define CPU_FEATURE_TYPEFMT	"%s"
+	#define CPU_FEATURE_TYPEFMT	"%s"
 #endif
 
 #ifndef CPU_FEATURE_TYPEVAL
-#define CPU_FEATURE_TYPEVAL	ELF_PLATFORM
+	#define CPU_FEATURE_TYPEVAL	ELF_PLATFORM
 #endif
 
 /*
@@ -45,17 +45,17 @@
  * 'asm/cpufeature.h' of your favorite architecture.
  */
 #define module_cpu_feature_match(x, __initfunc)			\
-static struct cpu_feature const cpu_feature_match_ ## x[] =	\
+	static struct cpu_feature const cpu_feature_match_ ## x[] =	\
 	{ { .feature = cpu_feature(x) }, { } };			\
-MODULE_DEVICE_TABLE(cpu, cpu_feature_match_ ## x);		\
-								\
-static int __init cpu_feature_match_ ## x ## _init(void)	\
-{								\
-	if (!cpu_have_feature(cpu_feature(x)))			\
-		return -ENODEV;					\
-	return __initfunc();					\
-}								\
-module_init(cpu_feature_match_ ## x ## _init)
+	MODULE_DEVICE_TABLE(cpu, cpu_feature_match_ ## x);		\
+	\
+	static int __init cpu_feature_match_ ## x ## _init(void)	\
+	{								\
+		if (!cpu_have_feature(cpu_feature(x)))			\
+			return -ENODEV;					\
+		return __initfunc();					\
+	}								\
+	module_init(cpu_feature_match_ ## x ## _init)
 
 #endif
 #endif

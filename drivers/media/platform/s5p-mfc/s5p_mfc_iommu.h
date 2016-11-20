@@ -32,24 +32,30 @@ static inline void exynos_unconfigure_iommu(struct device *dev)
 }
 
 static inline int exynos_configure_iommu(struct device *dev,
-					 unsigned int base, unsigned int size)
+		unsigned int base, unsigned int size)
 {
 	struct dma_iommu_mapping *mapping = NULL;
 	int ret;
 
 	/* Disable the default mapping created by device core */
 	if (to_dma_iommu_mapping(dev))
+	{
 		exynos_unconfigure_iommu(dev);
+	}
 
 	mapping = arm_iommu_create_mapping(dev->bus, base, size);
-	if (IS_ERR(mapping)) {
+
+	if (IS_ERR(mapping))
+	{
 		pr_warn("Failed to create IOMMU mapping for device %s\n",
-			dev_name(dev));
+				dev_name(dev));
 		return PTR_ERR(mapping);
 	}
 
 	ret = arm_iommu_attach_device(dev, mapping);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_warn("Failed to attached device %s to IOMMU_mapping\n",
 				dev_name(dev));
 		arm_iommu_release_mapping(mapping);
@@ -67,7 +73,7 @@ static inline bool exynos_is_iommu_available(struct device *dev)
 }
 
 static inline int exynos_configure_iommu(struct device *dev,
-					 unsigned int base, unsigned int size)
+		unsigned int base, unsigned int size)
 {
 	return -ENOSYS;
 }

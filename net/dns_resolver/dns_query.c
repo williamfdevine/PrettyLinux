@@ -67,7 +67,7 @@
  * Returns the size of the result on success, -ve error code otherwise.
  */
 int dns_query(const char *type, const char *name, size_t namelen,
-	      const char *options, char **_result, time64_t *_expiry)
+			  const char *options, char **_result, time64_t *_expiry)
 {
 	struct key *rkey;
 	const struct user_key_payload *upayload;
@@ -77,43 +77,66 @@ int dns_query(const char *type, const char *name, size_t namelen,
 	int ret, len;
 
 	kenter("%s,%*.*s,%zu,%s",
-	       type, (int)namelen, (int)namelen, name, namelen, options);
+		   type, (int)namelen, (int)namelen, name, namelen, options);
 
 	if (!name || namelen == 0 || !_result)
+	{
 		return -EINVAL;
+	}
 
 	/* construct the query key description as "[<type>:]<name>" */
 	typelen = 0;
 	desclen = 0;
-	if (type) {
+
+	if (type)
+	{
 		typelen = strlen(type);
+
 		if (typelen < 1)
+		{
 			return -EINVAL;
+		}
+
 		desclen += typelen + 1;
 	}
 
 	if (!namelen)
+	{
 		namelen = strnlen(name, 256);
+	}
+
 	if (namelen < 3 || namelen > 255)
+	{
 		return -EINVAL;
+	}
+
 	desclen += namelen + 1;
 
 	desc = kmalloc(desclen, GFP_KERNEL);
+
 	if (!desc)
+	{
 		return -ENOMEM;
+	}
 
 	cp = desc;
-	if (type) {
+
+	if (type)
+	{
 		memcpy(cp, type, typelen);
 		cp += typelen;
 		*cp++ = ':';
 	}
+
 	memcpy(cp, name, namelen);
 	cp += namelen;
 	*cp = '\0';
 
 	if (!options)
+	{
 		options = "";
+	}
+
 	kdebug("call request_key(,%s,%s)", desc, options);
 
 	/* make the upcall, using special credentials to prevent the use of
@@ -123,7 +146,9 @@ int dns_query(const char *type, const char *name, size_t namelen,
 	rkey = request_key(&key_type_dns_resolver, desc, options);
 	revert_creds(saved_cred);
 	kfree(desc);
-	if (IS_ERR(rkey)) {
+
+	if (IS_ERR(rkey))
+	{
 		ret = PTR_ERR(rkey);
 		goto out;
 	}
@@ -133,27 +158,38 @@ int dns_query(const char *type, const char *name, size_t namelen,
 	rkey->perm |= KEY_USR_VIEW;
 
 	ret = key_validate(rkey);
+
 	if (ret < 0)
+	{
 		goto put;
+	}
 
 	/* If the DNS server gave an error, return that to the caller */
 	ret = PTR_ERR(rkey->payload.data[dns_key_error]);
+
 	if (ret)
+	{
 		goto put;
+	}
 
 	upayload = user_key_payload(rkey);
 	len = upayload->datalen;
 
 	ret = -ENOMEM;
 	*_result = kmalloc(len + 1, GFP_KERNEL);
+
 	if (!*_result)
+	{
 		goto put;
+	}
 
 	memcpy(*_result, upayload->data, len);
 	(*_result)[len] = '\0';
 
 	if (_expiry)
+	{
 		*_expiry = rkey->expiry;
+	}
 
 	ret = len;
 put:

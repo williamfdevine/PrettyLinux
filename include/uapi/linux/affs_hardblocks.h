@@ -5,7 +5,8 @@
 
 /* Just the needed definitions for the RDB of an Amiga HD. */
 
-struct RigidDiskBlock {
+struct RigidDiskBlock
+{
 	__u32	rdb_ID;
 	__be32	rdb_SummedLongs;
 	__s32	rdb_ChkSum;
@@ -46,7 +47,8 @@ struct RigidDiskBlock {
 
 #define	IDNAME_RIGIDDISK	0x5244534B	/* "RDSK" */
 
-struct PartitionBlock {
+struct PartitionBlock
+{
 	__be32	pb_ID;
 	__be32	pb_SummedLongs;
 	__s32	pb_ChkSum;

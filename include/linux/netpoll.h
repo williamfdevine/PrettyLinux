@@ -12,7 +12,8 @@
 #include <linux/rcupdate.h>
 #include <linux/list.h>
 
-union inet_addr {
+union inet_addr
+{
 	__u32		all[4];
 	__be32		ip;
 	__be32		ip6[4];
@@ -20,7 +21,8 @@ union inet_addr {
 	struct in6_addr	in6;
 };
 
-struct netpoll {
+struct netpoll
+{
 	struct net_device *dev;
 	char dev_name[IFNAMSIZ];
 	const char *name;
@@ -33,7 +35,8 @@ struct netpoll {
 	struct work_struct cleanup_work;
 };
 
-struct netpoll_info {
+struct netpoll_info
+{
 	atomic_t refcnt;
 
 	struct semaphore dev_lock;
@@ -63,7 +66,7 @@ void __netpoll_cleanup(struct netpoll *np);
 void __netpoll_free_async(struct netpoll *np);
 void netpoll_cleanup(struct netpoll *np);
 void netpoll_send_skb_on_dev(struct netpoll *np, struct sk_buff *skb,
-			     struct net_device *dev);
+							 struct net_device *dev);
 static inline void netpoll_send_skb(struct netpoll *np, struct sk_buff *skb)
 {
 	unsigned long flags;
@@ -77,11 +80,13 @@ static inline void *netpoll_poll_lock(struct napi_struct *napi)
 {
 	struct net_device *dev = napi->dev;
 
-	if (dev && dev->npinfo) {
+	if (dev && dev->npinfo)
+	{
 		spin_lock(&napi->poll_lock);
 		napi->poll_owner = smp_processor_id();
 		return napi;
 	}
+
 	return NULL;
 }
 
@@ -89,7 +94,8 @@ static inline void netpoll_poll_unlock(void *have)
 {
 	struct napi_struct *napi = have;
 
-	if (napi) {
+	if (napi)
+	{
 		napi->poll_owner = -1;
 		spin_unlock(&napi->poll_lock);
 	}

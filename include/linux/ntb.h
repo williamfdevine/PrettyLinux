@@ -69,7 +69,8 @@ struct pci_dev;
  * @NTB_TOPO_B2B_USD:	On primary side of local ntb upstream of remote ntb.
  * @NTB_TOPO_B2B_DSD:	On primary side of local ntb downstream of remote ntb.
  */
-enum ntb_topo {
+enum ntb_topo
+{
 	NTB_TOPO_NONE = -1,
 	NTB_TOPO_PRI,
 	NTB_TOPO_SEC,
@@ -79,23 +80,31 @@ enum ntb_topo {
 
 static inline int ntb_topo_is_b2b(enum ntb_topo topo)
 {
-	switch ((int)topo) {
-	case NTB_TOPO_B2B_USD:
-	case NTB_TOPO_B2B_DSD:
-		return 1;
+	switch ((int)topo)
+	{
+		case NTB_TOPO_B2B_USD:
+		case NTB_TOPO_B2B_DSD:
+			return 1;
 	}
+
 	return 0;
 }
 
 static inline char *ntb_topo_string(enum ntb_topo topo)
 {
-	switch (topo) {
-	case NTB_TOPO_NONE:	return "NTB_TOPO_NONE";
-	case NTB_TOPO_PRI:	return "NTB_TOPO_PRI";
-	case NTB_TOPO_SEC:	return "NTB_TOPO_SEC";
-	case NTB_TOPO_B2B_USD:	return "NTB_TOPO_B2B_USD";
-	case NTB_TOPO_B2B_DSD:	return "NTB_TOPO_B2B_DSD";
+	switch (topo)
+	{
+		case NTB_TOPO_NONE:	return "NTB_TOPO_NONE";
+
+		case NTB_TOPO_PRI:	return "NTB_TOPO_PRI";
+
+		case NTB_TOPO_SEC:	return "NTB_TOPO_SEC";
+
+		case NTB_TOPO_B2B_USD:	return "NTB_TOPO_B2B_USD";
+
+		case NTB_TOPO_B2B_DSD:	return "NTB_TOPO_B2B_DSD";
 	}
+
 	return "NTB_TOPO_INVALID";
 }
 
@@ -107,7 +116,8 @@ static inline char *ntb_topo_string(enum ntb_topo topo)
  * @NTB_SPEED_GEN2:	Link is trained to gen2 speed.
  * @NTB_SPEED_GEN3:	Link is trained to gen3 speed.
  */
-enum ntb_speed {
+enum ntb_speed
+{
 	NTB_SPEED_AUTO = -1,
 	NTB_SPEED_NONE = 0,
 	NTB_SPEED_GEN1 = 1,
@@ -127,7 +137,8 @@ enum ntb_speed {
  * @NTB_WIDTH_16:	Link is trained to 16 lane width.
  * @NTB_WIDTH_32:	Link is trained to 32 lane width.
  */
-enum ntb_width {
+enum ntb_width
+{
 	NTB_WIDTH_AUTO = -1,
 	NTB_WIDTH_NONE = 0,
 	NTB_WIDTH_1 = 1,
@@ -144,7 +155,8 @@ enum ntb_width {
  * @probe:		Notify client of a new device.
  * @remove:		Notify client to remove a device.
  */
-struct ntb_client_ops {
+struct ntb_client_ops
+{
 	int (*probe)(struct ntb_client *client, struct ntb_dev *ntb);
 	void (*remove)(struct ntb_client *client, struct ntb_dev *ntb);
 };
@@ -163,7 +175,8 @@ static inline int ntb_client_ops_is_valid(const struct ntb_client_ops *ops)
  * @link_event:		See ntb_link_event().
  * @db_event:		See ntb_db_event().
  */
-struct ntb_ctx_ops {
+struct ntb_ctx_ops
+{
 	void (*link_event)(void *ctx);
 	void (*db_event)(void *ctx, int db_vector);
 };
@@ -211,19 +224,20 @@ static inline int ntb_ctx_ops_is_valid(const struct ntb_ctx_ops *ops)
  * @peer_spad_read:	See ntb_peer_spad_read().
  * @peer_spad_write:	See ntb_peer_spad_write().
  */
-struct ntb_dev_ops {
+struct ntb_dev_ops
+{
 	int (*mw_count)(struct ntb_dev *ntb);
 	int (*mw_get_range)(struct ntb_dev *ntb, int idx,
-			    phys_addr_t *base, resource_size_t *size,
-			resource_size_t *align, resource_size_t *align_size);
+						phys_addr_t *base, resource_size_t *size,
+						resource_size_t *align, resource_size_t *align_size);
 	int (*mw_set_trans)(struct ntb_dev *ntb, int idx,
-			    dma_addr_t addr, resource_size_t size);
+						dma_addr_t addr, resource_size_t size);
 	int (*mw_clear_trans)(struct ntb_dev *ntb, int idx);
 
 	int (*link_is_up)(struct ntb_dev *ntb,
-			  enum ntb_speed *speed, enum ntb_width *width);
+					  enum ntb_speed *speed, enum ntb_width *width);
 	int (*link_enable)(struct ntb_dev *ntb,
-			   enum ntb_speed max_speed, enum ntb_width max_width);
+					   enum ntb_speed max_speed, enum ntb_width max_width);
 	int (*link_disable)(struct ntb_dev *ntb);
 
 	int (*db_is_unsafe)(struct ntb_dev *ntb);
@@ -240,7 +254,7 @@ struct ntb_dev_ops {
 	int (*db_clear_mask)(struct ntb_dev *ntb, u64 db_bits);
 
 	int (*peer_db_addr)(struct ntb_dev *ntb,
-			    phys_addr_t *db_addr, resource_size_t *db_size);
+						phys_addr_t *db_addr, resource_size_t *db_size);
 	u64 (*peer_db_read)(struct ntb_dev *ntb);
 	int (*peer_db_set)(struct ntb_dev *ntb, u64 db_bits);
 	int (*peer_db_clear)(struct ntb_dev *ntb, u64 db_bits);
@@ -256,7 +270,7 @@ struct ntb_dev_ops {
 	int (*spad_write)(struct ntb_dev *ntb, int idx, u32 val);
 
 	int (*peer_spad_addr)(struct ntb_dev *ntb, int idx,
-			      phys_addr_t *spad_addr);
+						  phys_addr_t *spad_addr);
 	u32 (*peer_spad_read)(struct ntb_dev *ntb, int idx);
 	int (*peer_spad_write)(struct ntb_dev *ntb, int idx, u32 val);
 };
@@ -306,7 +320,8 @@ static inline int ntb_dev_ops_is_valid(const struct ntb_dev_ops *ops)
  * @drv:		Linux driver object.
  * @ops:		See &ntb_client_ops.
  */
-struct ntb_client {
+struct ntb_client
+{
 	struct device_driver		drv;
 	const struct ntb_client_ops	ops;
 };
@@ -322,7 +337,8 @@ struct ntb_client {
  * @ctx:		See &ntb_ctx_ops.
  * @ctx_ops:		See &ntb_ctx_ops.
  */
-struct ntb_dev {
+struct ntb_dev
+{
 	struct device			dev;
 	struct pci_dev			*pdev;
 	enum ntb_topo			topo;
@@ -354,7 +370,7 @@ struct ntb_dev {
 	__ntb_register_client((client), THIS_MODULE, KBUILD_MODNAME)
 
 int __ntb_register_client(struct ntb_client *client, struct module *mod,
-			  const char *mod_name);
+						  const char *mod_name);
 
 /**
  * ntb_unregister_client() - unregister a client for interest in ntb devices
@@ -368,7 +384,7 @@ void ntb_unregister_client(struct ntb_client *client);
 
 #define module_ntb_client(__ntb_client) \
 	module_driver(__ntb_client, ntb_register_client, \
-			ntb_unregister_client)
+				  ntb_unregister_client)
 
 /**
  * ntb_register_device() - register a ntb device
@@ -405,7 +421,7 @@ void ntb_unregister_device(struct ntb_dev *ntb);
  * Return: Zero if the context is associated, otherwise an error number.
  */
 int ntb_set_ctx(struct ntb_dev *ntb, void *ctx,
-		const struct ntb_ctx_ops *ctx_ops);
+				const struct ntb_ctx_ops *ctx_ops);
 
 /**
  * ntb_clear_ctx() - disassociate any driver context from an ntb device
@@ -471,11 +487,11 @@ static inline int ntb_mw_count(struct ntb_dev *ntb)
  * Return: Zero on success, otherwise an error number.
  */
 static inline int ntb_mw_get_range(struct ntb_dev *ntb, int idx,
-				   phys_addr_t *base, resource_size_t *size,
-		resource_size_t *align, resource_size_t *align_size)
+								   phys_addr_t *base, resource_size_t *size,
+								   resource_size_t *align, resource_size_t *align_size)
 {
 	return ntb->ops->mw_get_range(ntb, idx, base, size,
-			align, align_size);
+								  align, align_size);
 }
 
 /**
@@ -493,7 +509,7 @@ static inline int ntb_mw_get_range(struct ntb_dev *ntb, int idx,
  * Return: Zero on success, otherwise an error number.
  */
 static inline int ntb_mw_set_trans(struct ntb_dev *ntb, int idx,
-				   dma_addr_t addr, resource_size_t size)
+								   dma_addr_t addr, resource_size_t size)
 {
 	return ntb->ops->mw_set_trans(ntb, idx, addr, size);
 }
@@ -511,7 +527,9 @@ static inline int ntb_mw_set_trans(struct ntb_dev *ntb, int idx,
 static inline int ntb_mw_clear_trans(struct ntb_dev *ntb, int idx)
 {
 	if (!ntb->ops->mw_clear_trans)
+	{
 		return ntb->ops->mw_set_trans(ntb, idx, 0, 0);
+	}
 
 	return ntb->ops->mw_clear_trans(ntb, idx);
 }
@@ -530,7 +548,7 @@ static inline int ntb_mw_clear_trans(struct ntb_dev *ntb, int idx)
  *		negative value indicating the error number.
  */
 static inline int ntb_link_is_up(struct ntb_dev *ntb,
-				 enum ntb_speed *speed, enum ntb_width *width)
+								 enum ntb_speed *speed, enum ntb_width *width)
 {
 	return ntb->ops->link_is_up(ntb, speed, width);
 }
@@ -549,8 +567,8 @@ static inline int ntb_link_is_up(struct ntb_dev *ntb,
  * Return: Zero on success, otherwise an error number.
  */
 static inline int ntb_link_enable(struct ntb_dev *ntb,
-				  enum ntb_speed max_speed,
-				  enum ntb_width max_width)
+								  enum ntb_speed max_speed,
+								  enum ntb_width max_width)
 {
 	return ntb->ops->link_enable(ntb, max_speed, max_width);
 }
@@ -585,7 +603,9 @@ static inline int ntb_link_disable(struct ntb_dev *ntb)
 static inline int ntb_db_is_unsafe(struct ntb_dev *ntb)
 {
 	if (!ntb->ops->db_is_unsafe)
+	{
 		return 0;
+	}
 
 	return ntb->ops->db_is_unsafe(ntb);
 }
@@ -614,7 +634,9 @@ static inline u64 ntb_db_valid_mask(struct ntb_dev *ntb)
 static inline int ntb_db_vector_count(struct ntb_dev *ntb)
 {
 	if (!ntb->ops->db_vector_count)
+	{
 		return 1;
+	}
 
 	return ntb->ops->db_vector_count(ntb);
 }
@@ -631,7 +653,9 @@ static inline int ntb_db_vector_count(struct ntb_dev *ntb)
 static inline u64 ntb_db_vector_mask(struct ntb_dev *ntb, int vector)
 {
 	if (!ntb->ops->db_vector_mask)
+	{
 		return ntb_db_valid_mask(ntb);
+	}
 
 	return ntb->ops->db_vector_mask(ntb, vector);
 }
@@ -664,7 +688,9 @@ static inline u64 ntb_db_read(struct ntb_dev *ntb)
 static inline int ntb_db_set(struct ntb_dev *ntb, u64 db_bits)
 {
 	if (!ntb->ops->db_set)
+	{
 		return -EINVAL;
+	}
 
 	return ntb->ops->db_set(ntb, db_bits);
 }
@@ -697,7 +723,9 @@ static inline int ntb_db_clear(struct ntb_dev *ntb, u64 db_bits)
 static inline u64 ntb_db_read_mask(struct ntb_dev *ntb)
 {
 	if (!ntb->ops->db_read_mask)
+	{
 		return 0;
+	}
 
 	return ntb->ops->db_read_mask(ntb);
 }
@@ -754,11 +782,13 @@ static inline int ntb_db_clear_mask(struct ntb_dev *ntb, u64 db_bits)
  * Return: Zero on success, otherwise an error number.
  */
 static inline int ntb_peer_db_addr(struct ntb_dev *ntb,
-				   phys_addr_t *db_addr,
-				   resource_size_t *db_size)
+								   phys_addr_t *db_addr,
+								   resource_size_t *db_size)
 {
 	if (!ntb->ops->peer_db_addr)
+	{
 		return -EINVAL;
+	}
 
 	return ntb->ops->peer_db_addr(ntb, db_addr, db_size);
 }
@@ -776,7 +806,9 @@ static inline int ntb_peer_db_addr(struct ntb_dev *ntb,
 static inline u64 ntb_peer_db_read(struct ntb_dev *ntb)
 {
 	if (!ntb->ops->peer_db_read)
+	{
 		return 0;
+	}
 
 	return ntb->ops->peer_db_read(ntb);
 }
@@ -811,7 +843,9 @@ static inline int ntb_peer_db_set(struct ntb_dev *ntb, u64 db_bits)
 static inline int ntb_peer_db_clear(struct ntb_dev *ntb, u64 db_bits)
 {
 	if (!ntb->ops->db_clear)
+	{
 		return -EINVAL;
+	}
 
 	return ntb->ops->peer_db_clear(ntb, db_bits);
 }
@@ -829,7 +863,9 @@ static inline int ntb_peer_db_clear(struct ntb_dev *ntb, u64 db_bits)
 static inline u64 ntb_peer_db_read_mask(struct ntb_dev *ntb)
 {
 	if (!ntb->ops->db_read_mask)
+	{
 		return 0;
+	}
 
 	return ntb->ops->peer_db_read_mask(ntb);
 }
@@ -850,7 +886,9 @@ static inline u64 ntb_peer_db_read_mask(struct ntb_dev *ntb)
 static inline int ntb_peer_db_set_mask(struct ntb_dev *ntb, u64 db_bits)
 {
 	if (!ntb->ops->db_set_mask)
+	{
 		return -EINVAL;
+	}
 
 	return ntb->ops->peer_db_set_mask(ntb, db_bits);
 }
@@ -872,7 +910,9 @@ static inline int ntb_peer_db_set_mask(struct ntb_dev *ntb, u64 db_bits)
 static inline int ntb_peer_db_clear_mask(struct ntb_dev *ntb, u64 db_bits)
 {
 	if (!ntb->ops->db_clear_mask)
+	{
 		return -EINVAL;
+	}
 
 	return ntb->ops->peer_db_clear_mask(ntb, db_bits);
 }
@@ -890,7 +930,9 @@ static inline int ntb_peer_db_clear_mask(struct ntb_dev *ntb, u64 db_bits)
 static inline int ntb_spad_is_unsafe(struct ntb_dev *ntb)
 {
 	if (!ntb->ops->spad_is_unsafe)
+	{
 		return 0;
+	}
 
 	return ntb->ops->spad_is_unsafe(ntb);
 }
@@ -949,10 +991,12 @@ static inline int ntb_spad_write(struct ntb_dev *ntb, int idx, u32 val)
  * Return: Zero on success, otherwise an error number.
  */
 static inline int ntb_peer_spad_addr(struct ntb_dev *ntb, int idx,
-				     phys_addr_t *spad_addr)
+									 phys_addr_t *spad_addr)
 {
 	if (!ntb->ops->peer_spad_addr)
+	{
 		return -EINVAL;
+	}
 
 	return ntb->ops->peer_spad_addr(ntb, idx, spad_addr);
 }

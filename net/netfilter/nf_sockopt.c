@@ -27,17 +27,19 @@ int nf_register_sockopt(struct nf_sockopt_ops *reg)
 	int ret = 0;
 
 	mutex_lock(&nf_sockopt_mutex);
-	list_for_each_entry(ops, &nf_sockopts, list) {
+	list_for_each_entry(ops, &nf_sockopts, list)
+	{
 		if (ops->pf == reg->pf
-		    && (overlap(ops->set_optmin, ops->set_optmax,
-				reg->set_optmin, reg->set_optmax)
-			|| overlap(ops->get_optmin, ops->get_optmax,
-				   reg->get_optmin, reg->get_optmax))) {
+			&& (overlap(ops->set_optmin, ops->set_optmax,
+						reg->set_optmin, reg->set_optmax)
+				|| overlap(ops->get_optmin, ops->get_optmax,
+						   reg->get_optmin, reg->get_optmax)))
+		{
 			NFDEBUG("nf_sock overlap: %u-%u/%u-%u v %u-%u/%u-%u\n",
-				ops->set_optmin, ops->set_optmax,
-				ops->get_optmin, ops->get_optmax,
-				reg->set_optmin, reg->set_optmax,
-				reg->get_optmin, reg->get_optmax);
+					ops->set_optmin, ops->set_optmax,
+					ops->get_optmin, ops->get_optmax,
+					reg->set_optmin, reg->set_optmax,
+					reg->get_optmin, reg->get_optmax);
 			ret = -EBUSY;
 			goto out;
 		}
@@ -64,20 +66,32 @@ static struct nf_sockopt_ops *nf_sockopt_find(struct sock *sk, u_int8_t pf,
 	struct nf_sockopt_ops *ops;
 
 	mutex_lock(&nf_sockopt_mutex);
-	list_for_each_entry(ops, &nf_sockopts, list) {
-		if (ops->pf == pf) {
+	list_for_each_entry(ops, &nf_sockopts, list)
+	{
+		if (ops->pf == pf)
+		{
 			if (!try_module_get(ops->owner))
+			{
 				goto out_nosup;
-
-			if (get) {
-				if (val >= ops->get_optmin &&
-						val < ops->get_optmax)
-					goto out;
-			} else {
-				if (val >= ops->set_optmin &&
-						val < ops->set_optmax)
-					goto out;
 			}
+
+			if (get)
+			{
+				if (val >= ops->get_optmin &&
+					val < ops->get_optmax)
+				{
+					goto out;
+				}
+			}
+			else
+			{
+				if (val >= ops->set_optmin &&
+					val < ops->set_optmax)
+				{
+					goto out;
+				}
+			}
+
 			module_put(ops->owner);
 		}
 	}
@@ -90,33 +104,40 @@ out:
 
 /* Call get/setsockopt() */
 static int nf_sockopt(struct sock *sk, u_int8_t pf, int val,
-		      char __user *opt, int *len, int get)
+					  char __user *opt, int *len, int get)
 {
 	struct nf_sockopt_ops *ops;
 	int ret;
 
 	ops = nf_sockopt_find(sk, pf, val, get);
+
 	if (IS_ERR(ops))
+	{
 		return PTR_ERR(ops);
+	}
 
 	if (get)
+	{
 		ret = ops->get(sk, val, opt, len);
+	}
 	else
+	{
 		ret = ops->set(sk, val, opt, *len);
+	}
 
 	module_put(ops->owner);
 	return ret;
 }
 
 int nf_setsockopt(struct sock *sk, u_int8_t pf, int val, char __user *opt,
-		  unsigned int len)
+				  unsigned int len)
 {
 	return nf_sockopt(sk, pf, val, opt, &len, 0);
 }
 EXPORT_SYMBOL(nf_setsockopt);
 
 int nf_getsockopt(struct sock *sk, u_int8_t pf, int val, char __user *opt,
-		  int *len)
+				  int *len)
 {
 	return nf_sockopt(sk, pf, val, opt, len, 1);
 }
@@ -124,25 +145,39 @@ EXPORT_SYMBOL(nf_getsockopt);
 
 #ifdef CONFIG_COMPAT
 static int compat_nf_sockopt(struct sock *sk, u_int8_t pf, int val,
-			     char __user *opt, int *len, int get)
+							 char __user *opt, int *len, int get)
 {
 	struct nf_sockopt_ops *ops;
 	int ret;
 
 	ops = nf_sockopt_find(sk, pf, val, get);
-	if (IS_ERR(ops))
-		return PTR_ERR(ops);
 
-	if (get) {
+	if (IS_ERR(ops))
+	{
+		return PTR_ERR(ops);
+	}
+
+	if (get)
+	{
 		if (ops->compat_get)
+		{
 			ret = ops->compat_get(sk, val, opt, len);
+		}
 		else
+		{
 			ret = ops->get(sk, val, opt, len);
-	} else {
+		}
+	}
+	else
+	{
 		if (ops->compat_set)
+		{
 			ret = ops->compat_set(sk, val, opt, *len);
+		}
 		else
+		{
 			ret = ops->set(sk, val, opt, *len);
+		}
 	}
 
 	module_put(ops->owner);
@@ -150,14 +185,14 @@ static int compat_nf_sockopt(struct sock *sk, u_int8_t pf, int val,
 }
 
 int compat_nf_setsockopt(struct sock *sk, u_int8_t pf,
-		int val, char __user *opt, unsigned int len)
+						 int val, char __user *opt, unsigned int len)
 {
 	return compat_nf_sockopt(sk, pf, val, opt, &len, 0);
 }
 EXPORT_SYMBOL(compat_nf_setsockopt);
 
 int compat_nf_getsockopt(struct sock *sk, u_int8_t pf,
-		int val, char __user *opt, int *len)
+						 int val, char __user *opt, int *len)
 {
 	return compat_nf_sockopt(sk, pf, val, opt, len, 1);
 }

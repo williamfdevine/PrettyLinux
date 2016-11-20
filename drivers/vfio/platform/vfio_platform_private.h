@@ -27,7 +27,8 @@
 #define VFIO_PLATFORM_INDEX_TO_OFFSET(index)	\
 	((u64)(index) << VFIO_PLATFORM_OFFSET_SHIFT)
 
-struct vfio_platform_irq {
+struct vfio_platform_irq
+{
 	u32			flags;
 	u32			count;
 	int			hwirq;
@@ -39,7 +40,8 @@ struct vfio_platform_irq {
 	struct virqfd		*mask;
 };
 
-struct vfio_platform_region {
+struct vfio_platform_region
+{
 	u64			addr;
 	resource_size_t		size;
 	u32			flags;
@@ -49,7 +51,8 @@ struct vfio_platform_region {
 	void __iomem		*ioaddr;
 };
 
-struct vfio_platform_device {
+struct vfio_platform_device
+{
 	struct vfio_platform_region	*regions;
 	u32				num_regions;
 	struct vfio_platform_irq	*irqs;
@@ -69,8 +72,8 @@ struct vfio_platform_device {
 	const char	*name;
 	uint32_t	flags;
 	/* callbacks to discover device resources */
-	struct resource*
-		(*get_resource)(struct vfio_platform_device *vdev, int i);
+	struct resource *
+	(*get_resource)(struct vfio_platform_device *vdev, int i);
 	int	(*get_irq)(struct vfio_platform_device *vdev, int i);
 	int	(*of_reset)(struct vfio_platform_device *vdev);
 
@@ -79,7 +82,8 @@ struct vfio_platform_device {
 
 typedef int (*vfio_platform_reset_fn_t)(struct vfio_platform_device *vdev);
 
-struct vfio_platform_reset_node {
+struct vfio_platform_reset_node
+{
 	struct list_head link;
 	char *compat;
 	struct module *owner;
@@ -87,41 +91,41 @@ struct vfio_platform_reset_node {
 };
 
 extern int vfio_platform_probe_common(struct vfio_platform_device *vdev,
-				      struct device *dev);
+									  struct device *dev);
 extern struct vfio_platform_device *vfio_platform_remove_common
-				     (struct device *dev);
+(struct device *dev);
 
 extern int vfio_platform_irq_init(struct vfio_platform_device *vdev);
 extern void vfio_platform_irq_cleanup(struct vfio_platform_device *vdev);
 
 extern int vfio_platform_set_irqs_ioctl(struct vfio_platform_device *vdev,
-					uint32_t flags, unsigned index,
-					unsigned start, unsigned count,
-					void *data);
+										uint32_t flags, unsigned index,
+										unsigned start, unsigned count,
+										void *data);
 
 extern void __vfio_platform_register_reset(struct vfio_platform_reset_node *n);
 extern void vfio_platform_unregister_reset(const char *compat,
-					   vfio_platform_reset_fn_t fn);
+		vfio_platform_reset_fn_t fn);
 #define vfio_platform_register_reset(__compat, __reset)		\
-static struct vfio_platform_reset_node __reset ## _node = {	\
-	.owner = THIS_MODULE,					\
-	.compat = __compat,					\
-	.of_reset = __reset,					\
-};								\
-__vfio_platform_register_reset(&__reset ## _node)
+	static struct vfio_platform_reset_node __reset ## _node = {	\
+		.owner = THIS_MODULE,					\
+				 .compat = __compat,					\
+						   .of_reset = __reset,					\
+	};								\
+	__vfio_platform_register_reset(&__reset ## _node)
 
 #define module_vfio_reset_handler(compat, reset)		\
-MODULE_ALIAS("vfio-reset:" compat);				\
-static int __init reset ## _module_init(void)			\
-{								\
-	vfio_platform_register_reset(compat, reset);		\
-	return 0;						\
-};								\
-static void __exit reset ## _module_exit(void)			\
-{								\
-	vfio_platform_unregister_reset(compat, reset);		\
-};								\
-module_init(reset ## _module_init);				\
-module_exit(reset ## _module_exit)
+	MODULE_ALIAS("vfio-reset:" compat);				\
+	static int __init reset ## _module_init(void)			\
+	{								\
+		vfio_platform_register_reset(compat, reset);		\
+		return 0;						\
+	};								\
+	static void __exit reset ## _module_exit(void)			\
+	{								\
+		vfio_platform_unregister_reset(compat, reset);		\
+	};								\
+	module_init(reset ## _module_init);				\
+	module_exit(reset ## _module_exit)
 
 #endif /* VFIO_PLATFORM_PRIVATE_H */

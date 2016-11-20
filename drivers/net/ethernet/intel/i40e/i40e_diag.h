@@ -29,14 +29,16 @@
 
 #include "i40e_type.h"
 
-enum i40e_lb_mode {
+enum i40e_lb_mode
+{
 	I40E_LB_MODE_NONE       = 0x0,
 	I40E_LB_MODE_PHY_LOCAL  = I40E_AQ_LB_PHY_LOCAL,
 	I40E_LB_MODE_PHY_REMOTE = I40E_AQ_LB_PHY_REMOTE,
 	I40E_LB_MODE_MAC_LOCAL  = I40E_AQ_LB_MAC_LOCAL,
 };
 
-struct i40e_diag_reg_test_info {
+struct i40e_diag_reg_test_info
+{
 	u32 offset;	/* the base register */
 	u32 mask;	/* bits that can be tested */
 	u32 elements;	/* number of elements if array */

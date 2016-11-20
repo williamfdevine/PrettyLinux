@@ -14,7 +14,8 @@
 /* drivers/base/power/container.c */
 extern struct bus_type container_subsys;
 
-struct container_dev {
+struct container_dev
+{
 	struct device dev;
 	int (*offline)(struct container_dev *cdev);
 };

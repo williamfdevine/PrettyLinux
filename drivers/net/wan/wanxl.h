@@ -77,9 +77,9 @@
 #define BUFFERS_ADDR	0x4000	/* 16 KB */
 
 #ifndef __ASSEMBLER__
-#define PLX_OFFSET		0
+	#define PLX_OFFSET		0
 #else
-#define PLX_OFFSET		PLX + 0x80
+	#define PLX_OFFSET		PLX + 0x80
 #endif
 
 #define PLX_MAILBOX_0		(PLX_OFFSET + 0x40)
@@ -96,19 +96,19 @@
 #define PLX_CONTROL		(PLX_OFFSET + 0x6C)
 
 #ifdef __ASSEMBLER__
-#define PLX_DMA_0_MODE		(PLX + 0x100)
-#define PLX_DMA_0_PCI		(PLX + 0x104)
-#define PLX_DMA_0_LOCAL		(PLX + 0x108)
-#define PLX_DMA_0_LENGTH	(PLX + 0x10C)
-#define PLX_DMA_0_DESC		(PLX + 0x110)
-#define PLX_DMA_1_MODE		(PLX + 0x114)
-#define PLX_DMA_1_PCI		(PLX + 0x118)
-#define PLX_DMA_1_LOCAL		(PLX + 0x11C)
-#define PLX_DMA_1_LENGTH	(PLX + 0x120)
-#define PLX_DMA_1_DESC		(PLX + 0x124)
-#define PLX_DMA_CMD_STS		(PLX + 0x128)
-#define PLX_DMA_ARBITR_0	(PLX + 0x12C)
-#define PLX_DMA_ARBITR_1	(PLX + 0x130)
+	#define PLX_DMA_0_MODE		(PLX + 0x100)
+	#define PLX_DMA_0_PCI		(PLX + 0x104)
+	#define PLX_DMA_0_LOCAL		(PLX + 0x108)
+	#define PLX_DMA_0_LENGTH	(PLX + 0x10C)
+	#define PLX_DMA_0_DESC		(PLX + 0x110)
+	#define PLX_DMA_1_MODE		(PLX + 0x114)
+	#define PLX_DMA_1_PCI		(PLX + 0x118)
+	#define PLX_DMA_1_LOCAL		(PLX + 0x11C)
+	#define PLX_DMA_1_LENGTH	(PLX + 0x120)
+	#define PLX_DMA_1_DESC		(PLX + 0x124)
+	#define PLX_DMA_CMD_STS		(PLX + 0x128)
+	#define PLX_DMA_ARBITR_0	(PLX + 0x12C)
+	#define PLX_DMA_ARBITR_1	(PLX + 0x130)
 #endif
 
 #define DESC_LENGTH 12
@@ -128,25 +128,27 @@
 
 #ifndef __ASSEMBLER__
 
-typedef struct {
+typedef struct
+{
 	volatile u32 stat;
 	u32 address;		/* PCI address */
 	volatile u32 length;
-}desc_t;
+} desc_t;
 
 
-typedef struct {
-// Card to host
+typedef struct
+{
+	// Card to host
 	volatile u32 open;
 	volatile u32 cable;
 	volatile u32 rx_overruns;
 	volatile u32 rx_frame_errors;
 
-// Host to card
+	// Host to card
 	u32 parity;
 	u32 encoding;
 	u32 clocking;
 	desc_t tx_descs[TX_BUFFERS];
-}port_status_t;
+} port_status_t;
 
 #endif /* __ASSEMBLER__ */

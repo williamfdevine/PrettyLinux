@@ -28,7 +28,8 @@
 #include <net/netfilter/nf_conntrack_tuple.h>
 
 /* per conntrack: protocol private data */
-union nf_conntrack_proto {
+union nf_conntrack_proto
+{
 	/* insert conntrack proto private data here */
 	struct nf_ct_dccp dccp;
 	struct ip_ct_sctp sctp;
@@ -36,7 +37,8 @@ union nf_conntrack_proto {
 	struct nf_ct_gre gre;
 };
 
-union nf_conntrack_expect_proto {
+union nf_conntrack_expect_proto
+{
 	/* insert expect proto private data here */
 };
 
@@ -44,9 +46,9 @@ union nf_conntrack_expect_proto {
 #include <linux/skbuff.h>
 
 #ifdef CONFIG_NETFILTER_DEBUG
-#define NF_CT_ASSERT(x)		WARN_ON(!(x))
+	#define NF_CT_ASSERT(x)		WARN_ON(!(x))
 #else
-#define NF_CT_ASSERT(x)
+	#define NF_CT_ASSERT(x)
 #endif
 
 struct nf_conntrack_helper;
@@ -55,7 +57,8 @@ struct nf_conntrack_helper;
 #define NF_CT_MAX_EXPECT_CLASSES	4
 
 /* nf_conn feature for connections that have a helper */
-struct nf_conn_help {
+struct nf_conn_help
+{
 	/* Helper. if any */
 	struct nf_conntrack_helper __rcu *helper;
 
@@ -71,7 +74,8 @@ struct nf_conn_help {
 #include <net/netfilter/ipv4/nf_conntrack_ipv4.h>
 #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
 
-struct nf_conn {
+struct nf_conn
+{
 	/* Usage count in here is 1 for hash table, 1 per skb,
 	 * plus 1 for any connection(s) we are `master' for
 	 *
@@ -128,7 +132,7 @@ static inline struct nf_conn *
 nf_ct_tuplehash_to_ctrack(const struct nf_conntrack_tuple_hash *hash)
 {
 	return container_of(hash, struct nf_conn,
-			    tuplehash[hash->tuple.dst.dir]);
+						tuplehash[hash->tuple.dst.dir]);
 }
 
 static inline u_int16_t nf_ct_l3num(const struct nf_conn *ct)
@@ -155,12 +159,12 @@ static inline struct net *nf_ct_net(const struct nf_conn *ct)
 
 /* Alter reply tuple (maybe alter helper). */
 void nf_conntrack_alter_reply(struct nf_conn *ct,
-			      const struct nf_conntrack_tuple *newreply);
+							  const struct nf_conntrack_tuple *newreply);
 
 /* Is this tuple taken? (ignoring any belonging to the given
    conntrack). */
 int nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
-			     const struct nf_conn *ignored_conntrack);
+							 const struct nf_conn *ignored_conntrack);
 
 /* Return conntrack_info and tuple hash for given skb. */
 static inline struct nf_conn *
@@ -193,35 +197,35 @@ int nf_conntrack_hash_check_insert(struct nf_conn *ct);
 bool nf_ct_delete(struct nf_conn *ct, u32 pid, int report);
 
 bool nf_ct_get_tuplepr(const struct sk_buff *skb, unsigned int nhoff,
-		       u_int16_t l3num, struct net *net,
-		       struct nf_conntrack_tuple *tuple);
+					   u_int16_t l3num, struct net *net,
+					   struct nf_conntrack_tuple *tuple);
 bool nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
-			  const struct nf_conntrack_tuple *orig);
+						  const struct nf_conntrack_tuple *orig);
 
 void __nf_ct_refresh_acct(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
-			  const struct sk_buff *skb,
-			  unsigned long extra_jiffies, int do_acct);
+						  const struct sk_buff *skb,
+						  unsigned long extra_jiffies, int do_acct);
 
 /* Refresh conntrack for this many jiffies and do accounting */
 static inline void nf_ct_refresh_acct(struct nf_conn *ct,
-				      enum ip_conntrack_info ctinfo,
-				      const struct sk_buff *skb,
-				      unsigned long extra_jiffies)
+									  enum ip_conntrack_info ctinfo,
+									  const struct sk_buff *skb,
+									  unsigned long extra_jiffies)
 {
 	__nf_ct_refresh_acct(ct, ctinfo, skb, extra_jiffies, 1);
 }
 
 /* Refresh conntrack for this many jiffies */
 static inline void nf_ct_refresh(struct nf_conn *ct,
-				 const struct sk_buff *skb,
-				 unsigned long extra_jiffies)
+								 const struct sk_buff *skb,
+								 unsigned long extra_jiffies)
 {
 	__nf_ct_refresh_acct(ct, 0, skb, extra_jiffies, 0);
 }
 
 /* kill conntrack and do accounting */
 bool nf_ct_kill_acct(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
-		     const struct sk_buff *skb);
+					 const struct sk_buff *skb);
 
 /* kill conntrack without accounting */
 static inline bool nf_ct_kill(struct nf_conn *ct)
@@ -231,8 +235,8 @@ static inline bool nf_ct_kill(struct nf_conn *ct)
 
 /* These are for NAT.  Icky. */
 extern s32 (*nf_ct_nat_offset)(const struct nf_conn *ct,
-			       enum ip_conntrack_dir dir,
-			       u32 seq);
+							   enum ip_conntrack_dir dir,
+							   u32 seq);
 
 /* Fake conntrack entry for untracked connections */
 DECLARE_PER_CPU(struct nf_conn, nf_conntrack_untracked);
@@ -244,17 +248,17 @@ void nf_ct_untracked_status_or(unsigned long bits);
 
 /* Iterate over all conntracks: if iter returns true, it's deleted. */
 void nf_ct_iterate_cleanup(struct net *net,
-			   int (*iter)(struct nf_conn *i, void *data),
-			   void *data, u32 portid, int report);
+						   int (*iter)(struct nf_conn *i, void *data),
+						   void *data, u32 portid, int report);
 
 struct nf_conntrack_zone;
 
 void nf_conntrack_free(struct nf_conn *ct);
 struct nf_conn *nf_conntrack_alloc(struct net *net,
-				   const struct nf_conntrack_zone *zone,
-				   const struct nf_conntrack_tuple *orig,
-				   const struct nf_conntrack_tuple *repl,
-				   gfp_t gfp);
+								   const struct nf_conntrack_zone *zone,
+								   const struct nf_conntrack_tuple *orig,
+								   const struct nf_conntrack_tuple *repl,
+								   gfp_t gfp);
 
 static inline int nf_ct_is_template(const struct nf_conn *ct)
 {
@@ -302,7 +306,7 @@ static inline bool nf_ct_is_expired(const struct nf_conn *ct)
 static inline bool nf_ct_should_gc(const struct nf_conn *ct)
 {
 	return nf_ct_is_expired(ct) && nf_ct_is_confirmed(ct) &&
-	       !nf_ct_is_dying(ct);
+		   !nf_ct_is_dying(ct);
 }
 
 struct kernel_param;
@@ -322,19 +326,21 @@ nf_conntrack_get_ht(struct hlist_nulls_head **hash, unsigned int *hsize)
 	struct hlist_nulls_head *hptr;
 	unsigned int sequence, hsz;
 
-	do {
+	do
+	{
 		sequence = read_seqcount_begin(&nf_conntrack_generation);
 		hsz = nf_conntrack_htable_size;
 		hptr = nf_conntrack_hash;
-	} while (read_seqcount_retry(&nf_conntrack_generation, sequence));
+	}
+	while (read_seqcount_retry(&nf_conntrack_generation, sequence));
 
 	*hash = hptr;
 	*hsize = hsz;
 }
 
 struct nf_conn *nf_ct_tmpl_alloc(struct net *net,
-				 const struct nf_conntrack_zone *zone,
-				 gfp_t flags);
+								 const struct nf_conntrack_zone *zone,
+								 gfp_t flags);
 void nf_ct_tmpl_free(struct nf_conn *tmpl);
 
 #define NF_CT_STAT_INC(net, count)	  __this_cpu_inc((net)->ct.stat->count)
@@ -342,6 +348,6 @@ void nf_ct_tmpl_free(struct nf_conn *tmpl);
 #define NF_CT_STAT_ADD_ATOMIC(net, count, v) this_cpu_add((net)->ct.stat->count, (v))
 
 #define MODULE_ALIAS_NFCT_HELPER(helper) \
-        MODULE_ALIAS("nfct-helper-" helper)
+	MODULE_ALIAS("nfct-helper-" helper)
 
 #endif /* _NF_CONNTRACK_H */

@@ -23,11 +23,11 @@
 #include "h/smc.h"
 
 #ifndef OEM_USER_DATA
-#define OEM_USER_DATA	"SK-NET FDDI V2.0 Userdata"
+	#define OEM_USER_DATA	"SK-NET FDDI V2.0 Userdata"
 #endif
 
 #ifndef	lint
-static const char ID_sccs[] = "@(#)smtdef.c	2.53 99/08/11 (C) SK " ;
+	static const char ID_sccs[] = "@(#)smtdef.c	2.53 99/08/11 (C) SK " ;
 #endif
 
 /*
@@ -86,12 +86,16 @@ void smt_reset_defaults(struct s_smc *smc, int level)
 	u_long			smt_boot_time;
 
 
-	smt_init_mib(smc,level) ;
+	smt_init_mib(smc, level) ;
 
 	smc->os.smc_version = SMC_VERSION ;
 	smt_boot_time = smt_get_time();
-	for( i = 0; i < NUMMACS; i++ )
+
+	for ( i = 0; i < NUMMACS; i++ )
+	{
 		smc->sm.last_tok_time[i] = smt_boot_time ;
+	}
+
 	smt = &smc->s ;
 	smt->attach_s = 0 ;
 	smt->build_ring_map = 1 ;
@@ -119,7 +123,7 @@ void smt_reset_defaults(struct s_smc *smc, int level)
 	smt->rmt_t_jam = DEFAULT_T_JAM ;
 	smt->rmt_t_announce = DEFAULT_T_ANNOUNCE ;
 	smt->rmt_t_poll = DEFAULT_POLL ;
-        smt->rmt_dup_mac_behavior = FALSE ;  /* See Struct smt_config */
+	smt->rmt_dup_mac_behavior = FALSE ;  /* See Struct smt_config */
 	smt->mac_d_max = DEFAULT_D_MAX ;
 
 	smt->lct_short = DEFAULT_LCT_SHORT ;
@@ -129,7 +133,9 @@ void smt_reset_defaults(struct s_smc *smc, int level)
 
 #ifndef	SLIM_SMT
 #ifdef	ESS
-	if (level == 0) {
+
+	if (level == 0)
+	{
 		smc->ess.sync_bw_available = FALSE ;
 		smc->mib.fddiESSPayload = 0 ;
 		smc->mib.fddiESSOverhead = 0 ;
@@ -140,17 +146,21 @@ void smt_reset_defaults(struct s_smc *smc, int level)
 		smc->ess.raf_act_timer_poll = FALSE ;
 		smc->ess.timer_count = 7 ; 	/* first RAF alc req after 3s */
 	}
+
 	smc->ess.local_sba_active = FALSE ;
 	smc->ess.sba_reply_pend = NULL ;
 #endif
 #ifdef	SBA
-	smt_init_sba(smc,level) ;
+	smt_init_sba(smc, level) ;
 #endif
 #endif	/* no SLIM_SMT */
 #ifdef	TAG_MODE
-	if (level == 0) {
+
+	if (level == 0)
+	{
 		smc->hw.pci_fix_value = 0 ;
 	}
+
 #endif
 }
 
@@ -158,7 +168,7 @@ void smt_reset_defaults(struct s_smc *smc, int level)
  * manufacturer data
  */
 static const char man_data[32] =
-/*	 01234567890123456789012345678901	*/
+	/*	 01234567890123456789012345678901	*/
 	"xxxSK-NET FDDI SMT 7.3 - V2.8.8" ;
 
 static void smt_init_mib(struct s_smc *smc, int level)
@@ -169,17 +179,20 @@ static void smt_init_mib(struct s_smc *smc, int level)
 	int			path ;
 
 	mib = &smc->mib ;
-	if (level == 0) {
+
+	if (level == 0)
+	{
 		/*
 		 * set EVERYTHING to ZERO
 		 * EXCEPT hw and os
 		 */
-		memset(((char *)smc)+
-			sizeof(struct s_smt_os)+sizeof(struct s_smt_hw), 0,
-			sizeof(struct s_smc) -
-			sizeof(struct s_smt_os) - sizeof(struct s_smt_hw)) ;
+		memset(((char *)smc) +
+			   sizeof(struct s_smt_os) + sizeof(struct s_smt_hw), 0,
+			   sizeof(struct s_smc) -
+			   sizeof(struct s_smt_os) - sizeof(struct s_smt_hw)) ;
 	}
-	else {
+	else
+	{
 		mib->fddiSMTRemoteDisconnectFlag = 0 ;
 		mib->fddiSMTPeerWrapFlag = 0 ;
 	}
@@ -187,10 +200,13 @@ static void smt_init_mib(struct s_smc *smc, int level)
 	mib->fddiSMTOpVersionId = 2 ;
 	mib->fddiSMTHiVersionId = 2 ;
 	mib->fddiSMTLoVersionId = 2 ;
-	memcpy((char *) mib->fddiSMTManufacturerData,man_data,32) ;
-	if (level == 0) {
-		strcpy(mib->fddiSMTUserData,OEM_USER_DATA) ;
+	memcpy((char *) mib->fddiSMTManufacturerData, man_data, 32) ;
+
+	if (level == 0)
+	{
+		strcpy(mib->fddiSMTUserData, OEM_USER_DATA) ;
 	}
+
 	mib->fddiSMTMIBVersionId = 1 ;
 	mib->fddiSMTMac_Ct = NUMMACS ;
 	mib->fddiSMTConnectionPolicy = POLICY_MM | POLICY_AA | POLICY_BB ;
@@ -218,7 +234,9 @@ static void smt_init_mib(struct s_smc *smc, int level)
 	mib->m[MAC0].fddiMACCurrentPath = MIB_PATH_PRIMARY ;
 	mib->m[MAC0].fddiMACT_MaxCapabilitiy = (u_long)(- MS2BCLK(165)) ;
 	mib->m[MAC0].fddiMACTVXCapabilitiy = (u_long)(- US2BCLK(52)) ;
-	if (level == 0) {
+
+	if (level == 0)
+	{
 		mib->m[MAC0].fddiMACTvxValue = (u_long)(- US2BCLK(27)) ;
 		mib->m[MAC0].fddiMACTvxValueMIB = (u_long)(- US2BCLK(27)) ;
 		mib->m[MAC0].fddiMACT_Req = (u_long)(- MS2BCLK(165)) ;
@@ -227,16 +245,21 @@ static void smt_init_mib(struct s_smc *smc, int level)
 		mib->m[MAC0].fddiMACT_MaxMIB = (u_long)(- MS2BCLK(165)) ;
 		mib->m[MAC0].fddiMACT_Min = (u_long)(- MS2BCLK(4)) ;
 	}
+
 	mib->m[MAC0].fddiMACHardwarePresent = TRUE ;
 	mib->m[MAC0].fddiMACMA_UnitdataEnable = TRUE ;
 	mib->m[MAC0].fddiMACFrameErrorThreshold = 1 ;
 	mib->m[MAC0].fddiMACNotCopiedThreshold = 1 ;
+
 	/*
 	 * Path attributes
 	 */
-	for (path = 0 ; path < NUMPATHS ; path++) {
+	for (path = 0 ; path < NUMPATHS ; path++)
+	{
 		mib->a[path].fddiPATHIndex = INDEX_PATH + path ;
-		if (level == 0) {
+
+		if (level == 0)
+		{
 			mib->a[path].fddiPATHTVXLowerBound =
 				(u_long)(- US2BCLK(27)) ;
 			mib->a[path].fddiPATHT_MaxLowerBound =
@@ -251,21 +274,26 @@ static void smt_init_mib(struct s_smc *smc, int level)
 	 * Port attributes
 	 */
 	pm = mib->p ;
-	for (port = 0 ; port <  NUMPHYS ; port++) {
+
+	for (port = 0 ; port <  NUMPHYS ; port++)
+	{
 		/*
 		 * set MIB pointer in phy
 		 */
 		/* Attention: don't initialize mib pointer here! */
 		/*  It must be initialized during phase 2 */
 		smc->y[port].mib = NULL;
-		mib->fddiSMTPORTIndexes[port] = port+INDEX_PORT ;
+		mib->fddiSMTPORTIndexes[port] = port + INDEX_PORT ;
 
-		pm->fddiPORTIndex = port+INDEX_PORT ;
+		pm->fddiPORTIndex = port + INDEX_PORT ;
 		pm->fddiPORTHardwarePresent = TRUE ;
-		if (level == 0) {
+
+		if (level == 0)
+		{
 			pm->fddiPORTLer_Alarm = DEFAULT_LEM_ALARM ;
 			pm->fddiPORTLer_Cutoff = DEFAULT_LEM_CUTOFF ;
 		}
+
 		/*
 		 * fddiPORTRequestedPaths are set in pcmplc.c
 		 * we don't know the port type yet !
@@ -286,50 +314,62 @@ int smt_set_mac_opvalues(struct s_smc *smc)
 	int	st ;
 	int	st2 ;
 
-	st = set_min_max(1,smc->mib.m[MAC0].fddiMACTvxValueMIB,
-		smc->mib.a[PATH0].fddiPATHTVXLowerBound,
-		&smc->mib.m[MAC0].fddiMACTvxValue) ;
-	st |= set_min_max(0,smc->mib.m[MAC0].fddiMACT_MaxMIB,
-		smc->mib.a[PATH0].fddiPATHT_MaxLowerBound,
-		&smc->mib.m[MAC0].fddiMACT_Max) ;
-	st |= (st2 = set_min_max(0,smc->mib.m[MAC0].fddiMACT_ReqMIB,
-		smc->mib.a[PATH0].fddiPATHMaxT_Req,
-		&smc->mib.m[MAC0].fddiMACT_Req)) ;
-	if (st2) {
+	st = set_min_max(1, smc->mib.m[MAC0].fddiMACTvxValueMIB,
+					 smc->mib.a[PATH0].fddiPATHTVXLowerBound,
+					 &smc->mib.m[MAC0].fddiMACTvxValue) ;
+	st |= set_min_max(0, smc->mib.m[MAC0].fddiMACT_MaxMIB,
+					  smc->mib.a[PATH0].fddiPATHT_MaxLowerBound,
+					  &smc->mib.m[MAC0].fddiMACT_Max) ;
+	st |= (st2 = set_min_max(0, smc->mib.m[MAC0].fddiMACT_ReqMIB,
+							 smc->mib.a[PATH0].fddiPATHMaxT_Req,
+							 &smc->mib.m[MAC0].fddiMACT_Req)) ;
+
+	if (st2)
+	{
 		/* Treq attribute changed remotely. So send an AIX_EVENT to the
 		 * user
 		 */
 		AIX_EVENT(smc, (u_long) FDDI_RING_STATUS, (u_long)
-			FDDI_SMT_EVENT, (u_long) FDDI_REMOTE_T_REQ,
-			smt_get_event_word(smc));
+				  FDDI_SMT_EVENT, (u_long) FDDI_REMOTE_T_REQ,
+				  smt_get_event_word(smc));
 	}
+
 	return st;
 }
 
 void smt_fixup_mib(struct s_smc *smc)
 {
 #ifdef	CONCENTRATOR
-	switch (smc->s.sas) {
-	case SMT_SAS :
-		smc->mib.fddiSMTNonMaster_Ct = 1 ;
-		break ;
-	case SMT_DAS :
-		smc->mib.fddiSMTNonMaster_Ct = 2 ;
-		break ;
-	case SMT_NAC :
-		smc->mib.fddiSMTNonMaster_Ct = 0 ;
-		break ;
+
+	switch (smc->s.sas)
+	{
+		case SMT_SAS :
+			smc->mib.fddiSMTNonMaster_Ct = 1 ;
+			break ;
+
+		case SMT_DAS :
+			smc->mib.fddiSMTNonMaster_Ct = 2 ;
+			break ;
+
+		case SMT_NAC :
+			smc->mib.fddiSMTNonMaster_Ct = 0 ;
+			break ;
 	}
+
 	smc->mib.fddiSMTMaster_Ct = NUMPHYS - smc->mib.fddiSMTNonMaster_Ct ;
 #else
-	switch (smc->s.sas) {
-	case SMT_SAS :
-		smc->mib.fddiSMTNonMaster_Ct = 1 ;
-		break ;
-	case SMT_DAS :
-		smc->mib.fddiSMTNonMaster_Ct = 2 ;
-		break ;
+
+	switch (smc->s.sas)
+	{
+		case SMT_SAS :
+			smc->mib.fddiSMTNonMaster_Ct = 1 ;
+			break ;
+
+		case SMT_DAS :
+			smc->mib.fddiSMTNonMaster_Ct = 2 ;
+			break ;
 	}
+
 	smc->mib.fddiSMTMaster_Ct = 0 ;
 #endif
 }
@@ -346,10 +386,16 @@ static int set_min_max(int maxflag, u_long mib, u_long limit, u_long *oper)
 {
 	u_long	old ;
 	old = *oper ;
+
 	if ((limit > mib) ^ maxflag)
+	{
 		*oper = limit ;
+	}
 	else
+	{
 		*oper = mib ;
+	}
+
 	return old != *oper;
 }
 

@@ -23,18 +23,28 @@ static int dwmac_generic_probe(struct platform_device *pdev)
 	int ret;
 
 	ret = stmmac_get_platform_resources(pdev, &stmmac_res);
-	if (ret)
-		return ret;
 
-	if (pdev->dev.of_node) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (pdev->dev.of_node)
+	{
 		plat_dat = stmmac_probe_config_dt(pdev, &stmmac_res.mac);
-		if (IS_ERR(plat_dat)) {
+
+		if (IS_ERR(plat_dat))
+		{
 			dev_err(&pdev->dev, "dt configuration failed\n");
 			return PTR_ERR(plat_dat);
 		}
-	} else {
+	}
+	else
+	{
 		plat_dat = dev_get_platdata(&pdev->dev);
-		if (!plat_dat) {
+
+		if (!plat_dat)
+		{
 			dev_err(&pdev->dev, "no platform data provided\n");
 			return  -EINVAL;
 		}
@@ -47,16 +57,21 @@ static int dwmac_generic_probe(struct platform_device *pdev)
 	}
 
 	/* Custom initialisation (if needed) */
-	if (plat_dat->init) {
+	if (plat_dat->init)
+	{
 		ret = plat_dat->init(pdev, plat_dat->bsp_priv);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return stmmac_dvr_probe(&pdev->dev, plat_dat, &stmmac_res);
 }
 
-static const struct of_device_id dwmac_generic_match[] = {
+static const struct of_device_id dwmac_generic_match[] =
+{
 	{ .compatible = "st,spear600-gmac"},
 	{ .compatible = "snps,dwmac-3.610"},
 	{ .compatible = "snps,dwmac-3.70a"},
@@ -66,7 +81,8 @@ static const struct of_device_id dwmac_generic_match[] = {
 };
 MODULE_DEVICE_TABLE(of, dwmac_generic_match);
 
-static struct platform_driver dwmac_generic_driver = {
+static struct platform_driver dwmac_generic_driver =
+{
 	.probe  = dwmac_generic_probe,
 	.remove = stmmac_pltfr_remove,
 	.driver = {

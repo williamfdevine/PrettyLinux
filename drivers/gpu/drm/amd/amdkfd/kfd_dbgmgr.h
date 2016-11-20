@@ -29,7 +29,8 @@
 /* must align with hsakmttypes definition */
 #pragma pack(push, 4)
 
-enum HSA_DBG_WAVEOP {
+enum HSA_DBG_WAVEOP
+{
 	HSA_DBG_WAVEOP_HALT = 1,	/* Halts a wavefront		*/
 	HSA_DBG_WAVEOP_RESUME = 2,	/* Resumes a wavefront		*/
 	HSA_DBG_WAVEOP_KILL = 3,	/* Kills a wavefront		*/
@@ -41,7 +42,8 @@ enum HSA_DBG_WAVEOP {
 	HSA_DBG_MAX_WAVEOP = 0xFFFFFFFF
 };
 
-enum HSA_DBG_WAVEMODE {
+enum HSA_DBG_WAVEMODE
+{
 	/* send command to a single wave */
 	HSA_DBG_WAVEMODE_SINGLE = 0,
 	/*
@@ -57,7 +59,8 @@ enum HSA_DBG_WAVEMODE {
 	HSA_DBG_MAX_WAVEMODE = 0xFFFFFFFF
 };
 
-enum HSA_DBG_WAVEMSG_TYPE {
+enum HSA_DBG_WAVEMSG_TYPE
+{
 	HSA_DBG_WAVEMSG_AUTO = 0,
 	HSA_DBG_WAVEMSG_USER = 1,
 	HSA_DBG_WAVEMSG_ERROR = 2,
@@ -65,7 +68,8 @@ enum HSA_DBG_WAVEMSG_TYPE {
 	HSA_DBG_MAX_WAVEMSG = 0xFFFFFFFF
 };
 
-enum HSA_DBG_WATCH_MODE {
+enum HSA_DBG_WATCH_MODE
+{
 	HSA_DBG_WATCH_READ = 0,		/* Read operations only */
 	HSA_DBG_WATCH_NONREAD = 1,	/* Write or Atomic operations only */
 	HSA_DBG_WATCH_ATOMIC = 2,	/* Atomic Operations only */
@@ -75,20 +79,23 @@ enum HSA_DBG_WATCH_MODE {
 };
 
 /* This structure is hardware specific and may change in the future */
-struct HsaDbgWaveMsgAMDGen2 {
-	union {
-		struct ui32 {
-			uint32_t UserData:8;	/* user data */
-			uint32_t ShaderArray:1;	/* Shader array */
-			uint32_t Priv:1;	/* Privileged */
-			uint32_t Reserved0:4;	/* This field is reserved,
+struct HsaDbgWaveMsgAMDGen2
+{
+	union
+	{
+		struct ui32
+		{
+			uint32_t UserData: 8;	/* user data */
+			uint32_t ShaderArray: 1;	/* Shader array */
+			uint32_t Priv: 1;	/* Privileged */
+			uint32_t Reserved0: 4;	/* This field is reserved,
 						   should be 0 */
-			uint32_t WaveId:4;	/* wave id */
-			uint32_t SIMD:2;	/* SIMD id */
-			uint32_t HSACU:4;	/* Compute unit */
-			uint32_t ShaderEngine:2;/* Shader engine */
-			uint32_t MessageType:2;	/* see HSA_DBG_WAVEMSG_TYPE */
-			uint32_t Reserved1:4;	/* This field is reserved,
+			uint32_t WaveId: 4;	/* wave id */
+			uint32_t SIMD: 2;	/* SIMD id */
+			uint32_t HSACU: 4;	/* Compute unit */
+			uint32_t ShaderEngine: 2; /* Shader engine */
+			uint32_t MessageType: 2;	/* see HSA_DBG_WAVEMSG_TYPE */
+			uint32_t Reserved1: 4;	/* This field is reserved,
 						   should be 0 */
 		} ui32;
 		uint32_t Value;
@@ -96,12 +103,14 @@ struct HsaDbgWaveMsgAMDGen2 {
 	uint32_t Reserved2;
 };
 
-union HsaDbgWaveMessageAMD {
+union HsaDbgWaveMessageAMD
+{
 	struct HsaDbgWaveMsgAMDGen2 WaveMsgInfoGen2;
 	/* for future HsaDbgWaveMsgAMDGen3; */
 };
 
-struct HsaDbgWaveMessage {
+struct HsaDbgWaveMessage
+{
 	void *MemoryVA;		/* ptr to associated host-accessible data */
 	union HsaDbgWaveMessageAMD DbgWaveMsg;
 };
@@ -124,7 +133,8 @@ struct HsaDbgWaveMessage {
  * by the KFD by this mechanism, too. */
 
 /* these are the new definitions for events */
-enum HSA_EVENTTYPE {
+enum HSA_EVENTTYPE
+{
 	HSA_EVENTTYPE_SIGNAL = 0,	/* user-mode generated GPU signal */
 	HSA_EVENTTYPE_NODECHANGE = 1,	/* HSA node change (attach/detach) */
 	HSA_EVENTTYPE_DEVICESTATECHANGE = 2,	/* HSA device state change
@@ -141,8 +151,10 @@ enum HSA_EVENTTYPE {
 };
 
 /* Sub-definitions for various event types: Syncvar */
-struct HsaSyncVar {
-	union SyncVar {
+struct HsaSyncVar
+{
+	union SyncVar
+	{
 		void *UserData;	/* pointer to user mode data */
 		uint64_t UserDataPtrValue; /* 64bit compatibility of value */
 	} SyncVar;
@@ -151,19 +163,22 @@ struct HsaSyncVar {
 
 /* Sub-definitions for various event types: NodeChange */
 
-enum HSA_EVENTTYPE_NODECHANGE_FLAGS {
+enum HSA_EVENTTYPE_NODECHANGE_FLAGS
+{
 	HSA_EVENTTYPE_NODECHANGE_ADD = 0,
 	HSA_EVENTTYPE_NODECHANGE_REMOVE = 1,
 	HSA_EVENTTYPE_NODECHANGE_SIZE = 0xFFFFFFFF
 };
 
-struct HsaNodeChange {
+struct HsaNodeChange
+{
 	/* HSA node added/removed on the platform */
 	enum HSA_EVENTTYPE_NODECHANGE_FLAGS Flags;
 };
 
 /* Sub-definitions for various event types: DeviceStateChange */
-enum HSA_EVENTTYPE_DEVICESTATECHANGE_FLAGS {
+enum HSA_EVENTTYPE_DEVICESTATECHANGE_FLAGS
+{
 	/* device started (and available) */
 	HSA_EVENTTYPE_DEVICESTATUSCHANGE_START = 0,
 	/* device stopped (i.e. unavailable) */
@@ -171,21 +186,25 @@ enum HSA_EVENTTYPE_DEVICESTATECHANGE_FLAGS {
 	HSA_EVENTTYPE_DEVICESTATUSCHANGE_SIZE = 0xFFFFFFFF
 };
 
-enum HSA_DEVICE {
+enum HSA_DEVICE
+{
 	HSA_DEVICE_CPU = 0,
 	HSA_DEVICE_GPU = 1,
 	MAX_HSA_DEVICE = 2
 };
 
-struct HsaDeviceStateChange {
+struct HsaDeviceStateChange
+{
 	uint32_t NodeId;	/* F-NUMA node that contains the device */
 	enum HSA_DEVICE Device;	/* device type: GPU or CPU */
 	enum HSA_EVENTTYPE_DEVICESTATECHANGE_FLAGS Flags; /* event flags */
 };
 
-struct HsaEventData {
+struct HsaEventData
+{
 	enum HSA_EVENTTYPE EventType; /* event type */
-	union EventData {
+	union EventData
+	{
 		/*
 		 * return data associated with HSA_EVENTTYPE_SIGNAL
 		 * and other events
@@ -209,7 +228,8 @@ struct HsaEventData {
 	uint32_t HWData3;
 };
 
-struct HsaEventDescriptor {
+struct HsaEventDescriptor
+{
 	/* event type to allocate */
 	enum HSA_EVENTTYPE EventType;
 	/* H-NUMA node containing GPU device that is event source */
@@ -220,21 +240,24 @@ struct HsaEventDescriptor {
 	struct HsaSyncVar SyncVar;
 };
 
-struct HsaEvent {
+struct HsaEvent
+{
 	uint32_t EventId;
 	struct HsaEventData EventData;
 };
 
 #pragma pack(pop)
 
-enum DBGDEV_TYPE {
+enum DBGDEV_TYPE
+{
 	DBGDEV_TYPE_ILLEGAL = 0,
 	DBGDEV_TYPE_NODIQ = 1,
 	DBGDEV_TYPE_DIQ = 2,
 	DBGDEV_TYPE_TEST = 3
 };
 
-struct dbg_address_watch_info {
+struct dbg_address_watch_info
+{
 	struct kfd_process *process;
 	enum HSA_DBG_WATCH_MODE *watch_mode;
 	uint64_t *watch_address;
@@ -243,7 +266,8 @@ struct dbg_address_watch_info {
 	uint32_t num_watch_points;
 };
 
-struct dbg_wave_control_info {
+struct dbg_wave_control_info
+{
 	struct kfd_process *process;
 	uint32_t trapId;
 	enum HSA_DBG_WAVEOP operand;
@@ -251,7 +275,8 @@ struct dbg_wave_control_info {
 	struct HsaDbgWaveMessage dbgWave_msg;
 };
 
-struct kfd_dbgdev {
+struct kfd_dbgdev
+{
 
 	/* The device that owns this data. */
 	struct kfd_dev *dev;
@@ -269,13 +294,14 @@ struct kfd_dbgdev {
 	int (*dbgdev_register)(struct kfd_dbgdev *dbgdev);
 	int (*dbgdev_unregister)(struct kfd_dbgdev *dbgdev);
 	int (*dbgdev_address_watch)(struct kfd_dbgdev *dbgdev,
-				struct dbg_address_watch_info *adw_info);
+								struct dbg_address_watch_info *adw_info);
 	int (*dbgdev_wave_control)(struct kfd_dbgdev *dbgdev,
-				struct dbg_wave_control_info *wac_info);
+							   struct dbg_wave_control_info *wac_info);
 
 };
 
-struct kfd_dbgmgr {
+struct kfd_dbgmgr
+{
 	unsigned int pasid;
 	struct kfd_dev *dev;
 	struct kfd_dbgdev *dbgdev;
@@ -288,7 +314,7 @@ bool kfd_dbgmgr_create(struct kfd_dbgmgr **ppmgr, struct kfd_dev *pdev);
 long kfd_dbgmgr_register(struct kfd_dbgmgr *pmgr, struct kfd_process *p);
 long kfd_dbgmgr_unregister(struct kfd_dbgmgr *pmgr, struct kfd_process *p);
 long kfd_dbgmgr_wave_control(struct kfd_dbgmgr *pmgr,
-				struct dbg_wave_control_info *wac_info);
+							 struct dbg_wave_control_info *wac_info);
 long kfd_dbgmgr_address_watch(struct kfd_dbgmgr *pmgr,
-			struct dbg_address_watch_info *adw_info);
+							  struct dbg_address_watch_info *adw_info);
 #endif /* KFD_DBGMGR_H_ */

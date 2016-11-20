@@ -89,7 +89,8 @@
 #define INT_FW_UPGRADE	0
 #define RUN_FW_UPGRADE	1
 
-enum lpfc_sli4_queue_type {
+enum lpfc_sli4_queue_type
+{
 	LPFC_EQ,
 	LPFC_GCQ,
 	LPFC_MCQ,
@@ -102,7 +103,8 @@ enum lpfc_sli4_queue_type {
 };
 
 /* The queue sub-type defines the functional purpose of the queue */
-enum lpfc_sli4_queue_subtype {
+enum lpfc_sli4_queue_subtype
+{
 	LPFC_NONE,
 	LPFC_MBOX,
 	LPFC_FCP,
@@ -110,7 +112,8 @@ enum lpfc_sli4_queue_subtype {
 	LPFC_USOL
 };
 
-union sli4_qe {
+union sli4_qe
+{
 	void *address;
 	struct lpfc_eqe *eqe;
 	struct lpfc_cqe *cqe;
@@ -125,7 +128,8 @@ union sli4_qe {
 	struct lpfc_rqe *rqe;
 };
 
-struct lpfc_queue {
+struct lpfc_queue
+{
 	struct list_head list;
 	enum lpfc_sli4_queue_type type;
 	enum lpfc_sli4_queue_subtype subtype;
@@ -153,24 +157,24 @@ struct lpfc_queue {
 	uint32_t q_cnt_2;
 	uint32_t q_cnt_3;
 	uint64_t q_cnt_4;
-/* defines for EQ stats */
+	/* defines for EQ stats */
 #define	EQ_max_eqe		q_cnt_1
 #define	EQ_no_entry		q_cnt_2
 #define	EQ_badstate		q_cnt_3
 #define	EQ_processed		q_cnt_4
 
-/* defines for CQ stats */
+	/* defines for CQ stats */
 #define	CQ_mbox			q_cnt_1
 #define	CQ_max_cqe		q_cnt_1
 #define	CQ_release_wqe		q_cnt_2
 #define	CQ_xri_aborted		q_cnt_3
 #define	CQ_wq			q_cnt_4
 
-/* defines for WQ stats */
+	/* defines for WQ stats */
 #define	WQ_overflow		q_cnt_1
 #define	WQ_posted		q_cnt_4
 
-/* defines for RQ stats */
+	/* defines for RQ stats */
 #define	RQ_no_posted_buf	q_cnt_1
 #define	RQ_no_buf_found		q_cnt_2
 #define	RQ_buf_trunc		q_cnt_3
@@ -179,7 +183,8 @@ struct lpfc_queue {
 	union sli4_qe qe[1];	/* array to index entries (must be last) */
 };
 
-struct lpfc_sli4_link {
+struct lpfc_sli4_link
+{
 	uint16_t speed;
 	uint8_t duplex;
 	uint8_t status;
@@ -190,7 +195,8 @@ struct lpfc_sli4_link {
 	uint16_t topology;
 };
 
-struct lpfc_fcf_rec {
+struct lpfc_fcf_rec
+{
 	uint8_t  fabric_name[8];
 	uint8_t  switch_name[8];
 	uint8_t  mac_addr[6];
@@ -203,7 +209,8 @@ struct lpfc_fcf_rec {
 #define RECORD_VALID	0x02
 };
 
-struct lpfc_fcf_pri_rec {
+struct lpfc_fcf_pri_rec
+{
 	uint16_t fcf_index;
 #define LPFC_FCF_ON_PRI_LIST 0x0001
 #define LPFC_FCF_FLOGI_FAILED 0x0002
@@ -211,7 +218,8 @@ struct lpfc_fcf_pri_rec {
 	uint32_t priority;
 };
 
-struct lpfc_fcf_pri {
+struct lpfc_fcf_pri
+{
 	struct list_head list;
 	struct lpfc_fcf_pri_rec fcf_rec;
 };
@@ -222,7 +230,8 @@ struct lpfc_fcf_pri {
  */
 #define LPFC_SLI4_FCF_TBL_INDX_MAX	32
 
-struct lpfc_fcf {
+struct lpfc_fcf
+{
 	uint16_t fcfi;
 	uint32_t fcf_flag;
 #define FCF_AVAILABLE	0x01 /* FCF available for discovery */
@@ -256,7 +265,8 @@ struct lpfc_fcf {
 #define LINUX_DRIVER_ID		0x20
 #define PORT_STE_TYPE		0x1
 
-struct lpfc_fip_param_hdr {
+struct lpfc_fip_param_hdr
+{
 	uint8_t type;
 #define FCOE_PARAM_TYPE		0xA0
 	uint8_t length;
@@ -272,21 +282,24 @@ struct lpfc_fip_param_hdr {
 #define FIPP_VLAN_VALID				0x1
 };
 
-struct lpfc_fcoe_params {
+struct lpfc_fcoe_params
+{
 	uint8_t fc_map[3];
 	uint8_t reserved1;
 	uint16_t vlan_tag;
 	uint8_t reserved[2];
 };
 
-struct lpfc_fcf_conn_hdr {
+struct lpfc_fcf_conn_hdr
+{
 	uint8_t type;
 #define FCOE_CONN_TBL_TYPE		0xA1
 	uint8_t length;   /* words */
 	uint8_t reserved[2];
 };
 
-struct lpfc_fcf_conn_rec {
+struct lpfc_fcf_conn_rec
+{
 	uint16_t flags;
 #define	FCFCNCT_VALID		0x0001
 #define	FCFCNCT_BOOT		0x0002
@@ -303,7 +316,8 @@ struct lpfc_fcf_conn_rec {
 	uint8_t switch_name[8];
 };
 
-struct lpfc_fcf_conn_entry {
+struct lpfc_fcf_conn_entry
+{
 	struct list_head list;
 	struct lpfc_fcf_conn_rec conn_rec;
 };
@@ -316,7 +330,8 @@ struct lpfc_fcf_conn_entry {
  * The macro definitions for the bmbx data structure are defined
  * in lpfc_hw4.h with the register definition.
  */
-struct lpfc_bmbx {
+struct lpfc_bmbx
+{
 	struct lpfc_dmabuf *dmabuf;
 	struct dma_address dma_address;
 	void *avirt;
@@ -356,7 +371,8 @@ struct lpfc_bmbx {
 /*
  * SLI4 specific data structures
  */
-struct lpfc_max_cfg_param {
+struct lpfc_max_cfg_param
+{
 	uint16_t max_xri;
 	uint16_t xri_base;
 	uint16_t xri_used;
@@ -379,14 +395,16 @@ struct lpfc_max_cfg_param {
 
 struct lpfc_hba;
 /* SLI4 HBA multi-fcp queue handler struct */
-struct lpfc_fcp_eq_hdl {
+struct lpfc_fcp_eq_hdl
+{
 	uint32_t idx;
 	struct lpfc_hba *phba;
 	atomic_t fcp_eq_in_use;
 };
 
 /* Port Capabilities for SLI4 Parameters */
-struct lpfc_pc_sli4_params {
+struct lpfc_pc_sli4_params
+{
 	uint32_t supported;
 	uint32_t if_type;
 	uint32_t sli_rev;
@@ -429,12 +447,14 @@ struct lpfc_pc_sli4_params {
 #define LPFC_WQ_SZ128_SUPPORT	2
 };
 
-struct lpfc_iov {
+struct lpfc_iov
+{
 	uint32_t pf_number;
 	uint32_t vf_number;
 };
 
-struct lpfc_sli4_lnk_info {
+struct lpfc_sli4_lnk_info
+{
 	uint8_t lnk_dv;
 #define LPFC_LNK_DAT_INVAL	0
 #define LPFC_LNK_DAT_VAL	1
@@ -446,11 +466,12 @@ struct lpfc_sli4_lnk_info {
 };
 
 #define LPFC_SLI4_HANDLER_CNT		(LPFC_FCP_IO_CHAN_MAX+ \
-					 LPFC_FOF_IO_CHAN_NUM)
+									 LPFC_FOF_IO_CHAN_NUM)
 #define LPFC_SLI4_HANDLER_NAME_SZ	16
 
 /* Used for IRQ vector to CPU mapping */
-struct lpfc_vector_map_info {
+struct lpfc_vector_map_info
+{
 	uint16_t	phys_id;
 	uint16_t	core_id;
 	uint16_t	irq;
@@ -459,22 +480,26 @@ struct lpfc_vector_map_info {
 #define LPFC_VECTOR_MAP_EMPTY	0xffff
 
 /* SLI4 HBA data structure entries */
-struct lpfc_sli4_hba {
+struct lpfc_sli4_hba
+{
 	void __iomem *conf_regs_memmap_p; /* Kernel memory mapped address for
 					     PCI BAR0, config space registers */
 	void __iomem *ctrl_regs_memmap_p; /* Kernel memory mapped address for
 					     PCI BAR1, control registers */
 	void __iomem *drbl_regs_memmap_p; /* Kernel memory mapped address for
 					     PCI BAR2, doorbell registers */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			/* IF Type 0, BAR 0 PCI cfg space reg mem map */
 			void __iomem *UERRLOregaddr;
 			void __iomem *UERRHIregaddr;
 			void __iomem *UEMASKLOregaddr;
 			void __iomem *UEMASKHIregaddr;
 		} if_type0;
-		struct {
+		struct
+		{
 			/* IF Type 2, BAR 0 PCI cfg space reg mem map. */
 			void __iomem *STATUSregaddr;
 			void __iomem *CTRLregaddr;
@@ -613,18 +638,21 @@ struct lpfc_sli4_hba {
 	uint16_t curr_disp_cpu;
 };
 
-enum lpfc_sge_type {
+enum lpfc_sge_type
+{
 	GEN_BUFF_TYPE,
 	SCSI_BUFF_TYPE
 };
 
-enum lpfc_sgl_state {
+enum lpfc_sgl_state
+{
 	SGL_FREED,
 	SGL_ALLOCATED,
 	SGL_XRI_ABORTED
 };
 
-struct lpfc_sglq {
+struct lpfc_sglq
+{
 	/* lpfc_sglqs are used in double linked lists */
 	struct list_head list;
 	struct list_head clist;
@@ -639,7 +667,8 @@ struct lpfc_sglq {
 	dma_addr_t phys;	/* physical address */
 };
 
-struct lpfc_rpi_hdr {
+struct lpfc_rpi_hdr
+{
 	struct list_head list;
 	uint32_t len;
 	struct lpfc_dmabuf *dmabuf;
@@ -647,24 +676,27 @@ struct lpfc_rpi_hdr {
 	uint32_t start_rpi;
 };
 
-struct lpfc_rsrc_blks {
+struct lpfc_rsrc_blks
+{
 	struct list_head list;
 	uint16_t rsrc_start;
 	uint16_t rsrc_size;
 	uint16_t rsrc_used;
 };
 
-struct lpfc_rdp_context {
+struct lpfc_rdp_context
+{
 	struct lpfc_nodelist *ndlp;
 	uint16_t ox_id;
 	uint16_t rx_id;
 	READ_LNK_VAR link_stat;
 	uint8_t page_a0[DMP_SFF_PAGE_A0_SIZE];
 	uint8_t page_a2[DMP_SFF_PAGE_A2_SIZE];
-	void (*cmpl)(struct lpfc_hba *, struct lpfc_rdp_context*, int);
+	void (*cmpl)(struct lpfc_hba *, struct lpfc_rdp_context *, int);
 };
 
-struct lpfc_lcb_context {
+struct lpfc_lcb_context
+{
 	uint8_t  sub_command;
 	uint8_t  type;
 	uint8_t  frequency;
@@ -681,35 +713,35 @@ int lpfc_pci_function_reset(struct lpfc_hba *);
 int lpfc_sli4_pdev_status_reg_wait(struct lpfc_hba *);
 int lpfc_sli4_hba_setup(struct lpfc_hba *);
 int lpfc_sli4_config(struct lpfc_hba *, struct lpfcMboxq *, uint8_t,
-		     uint8_t, uint32_t, bool);
+					 uint8_t, uint32_t, bool);
 void lpfc_sli4_mbox_cmd_free(struct lpfc_hba *, struct lpfcMboxq *);
 void lpfc_sli4_mbx_sge_set(struct lpfcMboxq *, uint32_t, dma_addr_t, uint32_t);
 void lpfc_sli4_mbx_sge_get(struct lpfcMboxq *, uint32_t,
-			   struct lpfc_mbx_sge *);
+						   struct lpfc_mbx_sge *);
 int lpfc_sli4_mbx_read_fcf_rec(struct lpfc_hba *, struct lpfcMboxq *,
-			       uint16_t);
+							   uint16_t);
 
 void lpfc_sli4_hba_reset(struct lpfc_hba *);
 struct lpfc_queue *lpfc_sli4_queue_alloc(struct lpfc_hba *, uint32_t,
-			uint32_t);
+		uint32_t);
 void lpfc_sli4_queue_free(struct lpfc_queue *);
 int lpfc_eq_create(struct lpfc_hba *, struct lpfc_queue *, uint32_t);
 int lpfc_modify_fcp_eq_delay(struct lpfc_hba *, uint32_t);
 int lpfc_cq_create(struct lpfc_hba *, struct lpfc_queue *,
-			struct lpfc_queue *, uint32_t, uint32_t);
+				   struct lpfc_queue *, uint32_t, uint32_t);
 int32_t lpfc_mq_create(struct lpfc_hba *, struct lpfc_queue *,
-		       struct lpfc_queue *, uint32_t);
+					   struct lpfc_queue *, uint32_t);
 int lpfc_wq_create(struct lpfc_hba *, struct lpfc_queue *,
-			struct lpfc_queue *, uint32_t);
+				   struct lpfc_queue *, uint32_t);
 int lpfc_rq_create(struct lpfc_hba *, struct lpfc_queue *,
-			struct lpfc_queue *, struct lpfc_queue *, uint32_t);
+				   struct lpfc_queue *, struct lpfc_queue *, uint32_t);
 void lpfc_rq_adjust_repost(struct lpfc_hba *, struct lpfc_queue *, int);
 int lpfc_eq_destroy(struct lpfc_hba *, struct lpfc_queue *);
 int lpfc_cq_destroy(struct lpfc_hba *, struct lpfc_queue *);
 int lpfc_mq_destroy(struct lpfc_hba *, struct lpfc_queue *);
 int lpfc_wq_destroy(struct lpfc_hba *, struct lpfc_queue *);
 int lpfc_rq_destroy(struct lpfc_hba *, struct lpfc_queue *,
-			 struct lpfc_queue *);
+					struct lpfc_queue *);
 int lpfc_sli4_queue_setup(struct lpfc_hba *);
 void lpfc_sli4_queue_unset(struct lpfc_hba *);
 int lpfc_sli4_post_sgl(struct lpfc_hba *, dma_addr_t, dma_addr_t, uint16_t);
@@ -733,13 +765,13 @@ void lpfc_sli4_remove_rpis(struct lpfc_hba *);
 void lpfc_sli4_async_event_proc(struct lpfc_hba *);
 void lpfc_sli4_fcf_redisc_event_proc(struct lpfc_hba *);
 int lpfc_sli4_resume_rpi(struct lpfc_nodelist *,
-			void (*)(struct lpfc_hba *, LPFC_MBOXQ_t *), void *);
+						 void (*)(struct lpfc_hba *, LPFC_MBOXQ_t *), void *);
 void lpfc_sli4_fcp_xri_abort_event_proc(struct lpfc_hba *);
 void lpfc_sli4_els_xri_abort_event_proc(struct lpfc_hba *);
 void lpfc_sli4_fcp_xri_aborted(struct lpfc_hba *,
-			       struct sli4_wcqe_xri_aborted *);
+							   struct sli4_wcqe_xri_aborted *);
 void lpfc_sli4_els_xri_aborted(struct lpfc_hba *,
-			       struct sli4_wcqe_xri_aborted *);
+							   struct sli4_wcqe_xri_aborted *);
 void lpfc_sli4_vport_delete_els_xri_aborted(struct lpfc_vport *);
 void lpfc_sli4_vport_delete_fcp_xri_aborted(struct lpfc_vport *);
 int lpfc_sli4_brdreset(struct lpfc_hba *);

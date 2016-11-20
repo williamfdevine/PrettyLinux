@@ -107,17 +107,20 @@
 #define TCA6507_LS_BLINK0	0x6	/* Blink at Bank0 rate */
 #define TCA6507_LS_BLINK1	0x7	/* Blink at Bank1 rate */
 
-enum {
+enum
+{
 	BANK0,
 	BANK1,
 	MASTER,
 };
-static int bank_source[3] = {
+static int bank_source[3] =
+{
 	TCA6507_LS_LED_PWM0,
 	TCA6507_LS_LED_PWM1,
 	TCA6507_LS_LED_MIR,
 };
-static int blink_source[2] = {
+static int blink_source[2] =
+{
 	TCA6507_LS_BLINK0,
 	TCA6507_LS_BLINK1,
 };
@@ -141,7 +144,8 @@ static int blink_source[2] = {
 #define	INIT_CODE			0x8
 
 #define TIMECODES 16
-static int time_codes[TIMECODES] = {
+static int time_codes[TIMECODES] =
+{
 	0, 64, 128, 192, 256, 384, 512, 768,
 	1024, 1536, 2048, 3072, 4096, 5760, 8128, 16320
 };
@@ -156,18 +160,23 @@ static inline int TO_LEVEL(int brightness)
 static inline int TO_BRIGHT(int level)
 {
 	if (level)
+	{
 		return (level << 4) | 0xf;
+	}
+
 	return 0;
 }
 
 #define NUM_LEDS 7
-struct tca6507_chip {
+struct tca6507_chip
+{
 	int			reg_set;	/* One bit per register where
 						 * a '1' means the register
 						 * should be written */
 	u8			reg_file[TCA6507_REG_CNT];
 	/* Bank 2 is Master Intensity and doesn't use times */
-	struct bank {
+	struct bank
+	{
 		int level;
 		int ontime, offtime;
 		int on_dflt, off_dflt;
@@ -177,7 +186,8 @@ struct tca6507_chip {
 	struct work_struct	work;
 	spinlock_t		lock;
 
-	struct tca6507_led {
+	struct tca6507_led
+	{
 		struct tca6507_chip	*chip;
 		struct led_classdev	led_cdev;
 		int			num;
@@ -193,7 +203,8 @@ struct tca6507_chip {
 #endif
 };
 
-static const struct i2c_device_id tca6507_id[] = {
+static const struct i2c_device_id tca6507_id[] =
+{
 	{ "tca6507" },
 	{ }
 };
@@ -223,44 +234,78 @@ static int choose_times(int msec, int *c1p, int *c2p)
 	/* We start at '1' to ensure we never even think of choosing a
 	 * total time of '0'.
 	 */
-	for (c1 = 1; c1 < TIMECODES; c1++) {
+	for (c1 = 1; c1 < TIMECODES; c1++)
+	{
 		int t = time_codes[c1];
-		if (t*2 < tmin)
+
+		if (t * 2 < tmin)
+		{
 			continue;
+		}
+
 		if (t > tmax)
+		{
 			break;
-		for (c2 = 0; c2 <= c1; c2++) {
+		}
+
+		for (c2 = 0; c2 <= c1; c2++)
+		{
 			int tt = t + time_codes[c2];
 			int d;
+
 			if (tt < tmin)
+			{
 				continue;
+			}
+
 			if (tt > tmax)
+			{
 				break;
+			}
+
 			/* This works! */
 			d = abs(msec - tt);
+
 			if (d >= diff)
+			{
 				continue;
+			}
+
 			/* Best yet */
 			*c1p = c1;
 			*c2p = c2;
 			diff = d;
+
 			if (d == 0)
+			{
 				return msec;
+			}
 		}
 	}
-	if (diff < 65536) {
+
+	if (diff < 65536)
+	{
 		int actual;
-		if (msec & 1) {
+
+		if (msec & 1)
+		{
 			c1 = *c2p;
 			*c2p = *c1p;
 			*c1p = c1;
 		}
+
 		actual = time_codes[*c1p] + time_codes[*c2p];
+
 		if (*c1p < *c2p)
+		{
 			return actual + 1;
+		}
 		else
+		{
 			return actual;
+		}
 	}
+
 	/* No close match */
 	return -EINVAL;
 }
@@ -274,11 +319,17 @@ static void set_select(struct tca6507_chip *tca, int led, int val)
 	int mask = (1 << led);
 	int bit;
 
-	for (bit = 0; bit < 3; bit++) {
+	for (bit = 0; bit < 3; bit++)
+	{
 		int n = tca->reg_file[bit] & ~mask;
+
 		if (val & (1 << bit))
+		{
 			n |= mask;
-		if (tca->reg_file[bit] != n) {
+		}
+
+		if (tca->reg_file[bit] != n)
+		{
 			tca->reg_file[bit] = n;
 			tca->reg_set |= (1 << bit);
 		}
@@ -293,13 +344,18 @@ static void set_code(struct tca6507_chip *tca, int reg, int bank, int new)
 {
 	int mask = 0xF;
 	int n;
-	if (bank) {
+
+	if (bank)
+	{
 		mask <<= 4;
 		new <<= 4;
 	}
+
 	n = tca->reg_file[reg] & ~mask;
 	n |= new;
-	if (tca->reg_file[reg] != n) {
+
+	if (tca->reg_file[reg] != n)
+	{
 		tca->reg_file[reg] = n;
 		tca->reg_set |= 1 << reg;
 	}
@@ -308,15 +364,18 @@ static void set_code(struct tca6507_chip *tca, int reg, int bank, int new)
 /* Update brightness level. */
 static void set_level(struct tca6507_chip *tca, int bank, int level)
 {
-	switch (bank) {
-	case BANK0:
-	case BANK1:
-		set_code(tca, TCA6507_MAX_INTENSITY, bank, level);
-		break;
-	case MASTER:
-		set_code(tca, TCA6507_MASTER_INTENSITY, 0, level);
-		break;
+	switch (bank)
+	{
+		case BANK0:
+		case BANK1:
+			set_code(tca, TCA6507_MAX_INTENSITY, bank, level);
+			break;
+
+		case MASTER:
+			set_code(tca, TCA6507_MASTER_INTENSITY, 0, level);
+			break;
 	}
+
 	tca->bank[bank].level = level;
 }
 
@@ -327,21 +386,25 @@ static void set_times(struct tca6507_chip *tca, int bank)
 	int result;
 
 	result = choose_times(tca->bank[bank].ontime, &c1, &c2);
+
 	if (result < 0)
+	{
 		return;
+	}
+
 	dev_dbg(&tca->client->dev,
-		"Chose on  times %d(%d) %d(%d) for %dms\n",
-		c1, time_codes[c1],
-		c2, time_codes[c2], tca->bank[bank].ontime);
+			"Chose on  times %d(%d) %d(%d) for %dms\n",
+			c1, time_codes[c1],
+			c2, time_codes[c2], tca->bank[bank].ontime);
 	set_code(tca, TCA6507_FADE_ON, bank, c2);
 	set_code(tca, TCA6507_FULL_ON, bank, c1);
 	tca->bank[bank].ontime = result;
 
 	result = choose_times(tca->bank[bank].offtime, &c1, &c2);
 	dev_dbg(&tca->client->dev,
-		"Chose off times %d(%d) %d(%d) for %dms\n",
-		c1, time_codes[c1],
-		c2, time_codes[c2], tca->bank[bank].offtime);
+			"Chose off times %d(%d) %d(%d) for %dms\n",
+			c1, time_codes[c1],
+			c2, time_codes[c2], tca->bank[bank].offtime);
 	set_code(tca, TCA6507_FADE_OFF, bank, c2);
 	set_code(tca, TCA6507_FIRST_OFF, bank, c1);
 	set_code(tca, TCA6507_SECOND_OFF, bank, c1);
@@ -355,7 +418,7 @@ static void set_times(struct tca6507_chip *tca, int bank)
 static void tca6507_work(struct work_struct *work)
 {
 	struct tca6507_chip *tca = container_of(work, struct tca6507_chip,
-						work);
+											work);
 	struct i2c_client *cl = tca->client;
 	int set;
 	u8 file[TCA6507_REG_CNT];
@@ -368,20 +431,29 @@ static void tca6507_work(struct work_struct *work)
 	spin_unlock_irq(&tca->lock);
 
 	for (r = 0; r < TCA6507_REG_CNT; r++)
-		if (set & (1<<r))
+		if (set & (1 << r))
+		{
 			i2c_smbus_write_byte_data(cl, r, file[r]);
+		}
 }
 
 static void led_release(struct tca6507_led *led)
 {
 	/* If led owns any resource, release it. */
 	struct tca6507_chip *tca = led->chip;
-	if (led->bank >= 0) {
+
+	if (led->bank >= 0)
+	{
 		struct bank *b = tca->bank + led->bank;
+
 		if (led->blink)
+		{
 			b->time_use--;
+		}
+
 		b->level_use--;
 	}
+
 	led->blink = 0;
 	led->bank = -1;
 }
@@ -398,12 +470,15 @@ static int led_prepare(struct tca6507_led *led)
 	int need_init = 0;
 
 	led->led_cdev.brightness = TO_BRIGHT(level);
-	if (level == 0) {
+
+	if (level == 0)
+	{
 		set_select(tca, led->num, TCA6507_LS_LED_OFF);
 		return 0;
 	}
 
-	if (led->ontime == 0 || led->offtime == 0) {
+	if (led->ontime == 0 || led->offtime == 0)
+	{
 		/*
 		 * Just set the brightness, choosing first usable
 		 * bank.  If none perfect, choose best.  Count
@@ -411,27 +486,36 @@ static int led_prepare(struct tca6507_led *led)
 		 * wasting a timer.
 		 */
 		int best = -1;/* full-on */
-		int diff = 15-level;
+		int diff = 15 - level;
 
-		if (level == 15) {
+		if (level == 15)
+		{
 			set_select(tca, led->num, TCA6507_LS_LED_ON);
 			return 0;
 		}
 
-		for (i = MASTER; i >= BANK0; i--) {
+		for (i = MASTER; i >= BANK0; i--)
+		{
 			int d;
+
 			if (tca->bank[i].level == level ||
-			    tca->bank[i].level_use == 0) {
+				tca->bank[i].level_use == 0)
+			{
 				best = i;
 				break;
 			}
+
 			d = abs(level - tca->bank[i].level);
-			if (d < diff) {
+
+			if (d < diff)
+			{
 				diff = d;
 				best = i;
 			}
 		}
-		if (best == -1) {
+
+		if (best == -1)
+		{
 			/* Best brightness is full-on */
 			set_select(tca, led->num, TCA6507_LS_LED_ON);
 			led->led_cdev.brightness = LED_FULL;
@@ -439,7 +523,9 @@ static int led_prepare(struct tca6507_led *led)
 		}
 
 		if (!tca->bank[best].level_use)
+		{
 			set_level(tca, best, level);
+		}
 
 		tca->bank[best].level_use++;
 		led->bank = best;
@@ -454,36 +540,53 @@ static int led_prepare(struct tca6507_led *led)
 	 * and give up if not.
 	 */
 	if (choose_times(led->ontime, &c1, &c2) < 0)
+	{
 		return -EINVAL;
-	if (choose_times(led->offtime, &c1, &c2) < 0)
-		return -EINVAL;
+	}
 
-	for (i = BANK0; i <= BANK1; i++) {
+	if (choose_times(led->offtime, &c1, &c2) < 0)
+	{
+		return -EINVAL;
+	}
+
+	for (i = BANK0; i <= BANK1; i++)
+	{
 		if (tca->bank[i].level_use == 0)
 			/* not in use - it is ours! */
+		{
 			break;
+		}
+
 		if (tca->bank[i].level != level)
 			/* Incompatible level - skip */
 			/* FIX: if timer matches we maybe should consider
 			 * this anyway...
 			 */
+		{
 			continue;
+		}
 
 		if (tca->bank[i].time_use == 0)
 			/* Timer not in use, and level matches - use it */
+		{
 			break;
+		}
 
 		if (!(tca->bank[i].on_dflt ||
-		      led->on_dflt ||
-		      tca->bank[i].ontime == led->ontime))
+			  led->on_dflt ||
+			  tca->bank[i].ontime == led->ontime))
 			/* on time is incompatible */
+		{
 			continue;
+		}
 
 		if (!(tca->bank[i].off_dflt ||
-		      led->off_dflt ||
-		      tca->bank[i].offtime == led->offtime))
+			  led->off_dflt ||
+			  tca->bank[i].offtime == led->offtime))
 			/* off time is incompatible */
+		{
 			continue;
+		}
 
 		/* looks like a suitable match */
 		break;
@@ -491,32 +594,42 @@ static int led_prepare(struct tca6507_led *led)
 
 	if (i > BANK1)
 		/* Nothing matches - how sad */
+	{
 		return -EINVAL;
+	}
 
 	b = &tca->bank[i];
+
 	if (b->level_use == 0)
+	{
 		set_level(tca, i, level);
+	}
+
 	b->level_use++;
 	led->bank = i;
 
 	if (b->on_dflt ||
-	    !led->on_dflt ||
-	    b->time_use == 0) {
+		!led->on_dflt ||
+		b->time_use == 0)
+	{
 		b->ontime = led->ontime;
 		b->on_dflt = led->on_dflt;
 		need_init = 1;
 	}
 
 	if (b->off_dflt ||
-	    !led->off_dflt ||
-	    b->time_use == 0) {
+		!led->off_dflt ||
+		b->time_use == 0)
+	{
 		b->offtime = led->offtime;
 		b->off_dflt = led->off_dflt;
 		need_init = 1;
 	}
 
 	if (need_init)
+	{
 		set_times(tca, i);
+	}
 
 	led->ontime = b->ontime;
 	led->offtime = b->offtime;
@@ -537,7 +650,9 @@ static int led_assign(struct tca6507_led *led)
 	spin_lock_irqsave(&tca->lock, flags);
 	led_release(led);
 	err = led_prepare(led);
-	if (err) {
+
+	if (err)
+	{
 		/*
 		 * Can only fail on timer setup.  In that case we need
 		 * to re-establish as steady level.
@@ -546,18 +661,22 @@ static int led_assign(struct tca6507_led *led)
 		led->offtime = 0;
 		led_prepare(led);
 	}
+
 	spin_unlock_irqrestore(&tca->lock, flags);
 
 	if (tca->reg_set)
+	{
 		schedule_work(&tca->work);
+	}
+
 	return err;
 }
 
 static void tca6507_brightness_set(struct led_classdev *led_cdev,
-				   enum led_brightness brightness)
+								   enum led_brightness brightness)
 {
 	struct tca6507_led *led = container_of(led_cdev, struct tca6507_led,
-					       led_cdev);
+										   led_cdev);
 	led->led_cdev.brightness = brightness;
 	led->ontime = 0;
 	led->offtime = 0;
@@ -565,37 +684,57 @@ static void tca6507_brightness_set(struct led_classdev *led_cdev,
 }
 
 static int tca6507_blink_set(struct led_classdev *led_cdev,
-			     unsigned long *delay_on,
-			     unsigned long *delay_off)
+							 unsigned long *delay_on,
+							 unsigned long *delay_off)
 {
 	struct tca6507_led *led = container_of(led_cdev, struct tca6507_led,
-					       led_cdev);
+										   led_cdev);
 
 	if (*delay_on == 0)
+	{
 		led->on_dflt = 1;
+	}
 	else if (delay_on != &led_cdev->blink_delay_on)
+	{
 		led->on_dflt = 0;
+	}
+
 	led->ontime = *delay_on;
 
 	if (*delay_off == 0)
+	{
 		led->off_dflt = 1;
+	}
 	else if (delay_off != &led_cdev->blink_delay_off)
+	{
 		led->off_dflt = 0;
+	}
+
 	led->offtime = *delay_off;
 
 	if (led->ontime == 0)
+	{
 		led->ontime = 512;
+	}
+
 	if (led->offtime == 0)
+	{
 		led->offtime = 512;
+	}
 
 	if (led->led_cdev.brightness == LED_OFF)
+	{
 		led->led_cdev.brightness = LED_FULL;
-	if (led_assign(led) < 0) {
+	}
+
+	if (led_assign(led) < 0)
+	{
 		led->ontime = 0;
 		led->offtime = 0;
 		led->led_cdev.brightness = LED_OFF;
 		return -EINVAL;
 	}
+
 	*delay_on = led->ontime;
 	*delay_off = led->offtime;
 	return 0;
@@ -603,7 +742,7 @@ static int tca6507_blink_set(struct led_classdev *led_cdev,
 
 #ifdef CONFIG_GPIOLIB
 static void tca6507_gpio_set_value(struct gpio_chip *gc,
-				   unsigned offset, int val)
+								   unsigned offset, int val)
 {
 	struct tca6507_chip *tca = gpiochip_get_data(gc);
 	unsigned long flags;
@@ -614,29 +753,33 @@ static void tca6507_gpio_set_value(struct gpio_chip *gc,
 	 * the inverse sense of 'val'.
 	 */
 	set_select(tca, tca->gpio_map[offset],
-		   val ? TCA6507_LS_LED_OFF : TCA6507_LS_LED_ON);
+			   val ? TCA6507_LS_LED_OFF : TCA6507_LS_LED_ON);
 	spin_unlock_irqrestore(&tca->lock, flags);
+
 	if (tca->reg_set)
+	{
 		schedule_work(&tca->work);
+	}
 }
 
 static int tca6507_gpio_direction_output(struct gpio_chip *gc,
-					  unsigned offset, int val)
+		unsigned offset, int val)
 {
 	tca6507_gpio_set_value(gc, offset, val);
 	return 0;
 }
 
 static int tca6507_probe_gpios(struct i2c_client *client,
-			       struct tca6507_chip *tca,
-			       struct tca6507_platform_data *pdata)
+							   struct tca6507_chip *tca,
+							   struct tca6507_platform_data *pdata)
 {
 	int err;
 	int i = 0;
 	int gpios = 0;
 
 	for (i = 0; i < NUM_LEDS; i++)
-		if (pdata->leds.leds[i].name && pdata->leds.leds[i].flags) {
+		if (pdata->leds.leds[i].name && pdata->leds.leds[i].flags)
+		{
 			/* Configure as a gpio */
 			tca->gpio_name[gpios] = pdata->leds.leds[i].name;
 			tca->gpio_map[gpios] = i;
@@ -644,7 +787,9 @@ static int tca6507_probe_gpios(struct i2c_client *client,
 		}
 
 	if (!gpios)
+	{
 		return 0;
+	}
 
 	tca->gpio.label = "gpio-tca6507";
 	tca->gpio.names = tca->gpio_name;
@@ -658,24 +803,32 @@ static int tca6507_probe_gpios(struct i2c_client *client,
 	tca->gpio.of_node = of_node_get(client->dev.of_node);
 #endif
 	err = gpiochip_add_data(&tca->gpio, tca);
-	if (err) {
+
+	if (err)
+	{
 		tca->gpio.ngpio = 0;
 		return err;
 	}
+
 	if (pdata->setup)
+	{
 		pdata->setup(tca->gpio.base, tca->gpio.ngpio);
+	}
+
 	return 0;
 }
 
 static void tca6507_remove_gpio(struct tca6507_chip *tca)
 {
 	if (tca->gpio.ngpio)
+	{
 		gpiochip_remove(&tca->gpio);
+	}
 }
 #else /* CONFIG_GPIOLIB */
 static int tca6507_probe_gpios(struct i2c_client *client,
-			       struct tca6507_chip *tca,
-			       struct tca6507_platform_data *pdata)
+							   struct tca6507_chip *tca,
+							   struct tca6507_platform_data *pdata)
 {
 	return 0;
 }
@@ -694,15 +847,22 @@ tca6507_led_dt_init(struct i2c_client *client)
 	int count;
 
 	count = of_get_child_count(np);
+
 	if (!count || count > NUM_LEDS)
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
 	tca_leds = devm_kzalloc(&client->dev,
-			sizeof(struct led_info) * NUM_LEDS, GFP_KERNEL);
-	if (!tca_leds)
-		return ERR_PTR(-ENOMEM);
+							sizeof(struct led_info) * NUM_LEDS, GFP_KERNEL);
 
-	for_each_child_of_node(np, child) {
+	if (!tca_leds)
+	{
+		return ERR_PTR(-ENOMEM);
+	}
+
+	for_each_child_of_node(np, child)
+	{
 		struct led_info led;
 		u32 reg;
 		int ret;
@@ -712,18 +872,28 @@ tca6507_led_dt_init(struct i2c_client *client)
 		led.default_trigger =
 			of_get_property(child, "linux,default-trigger", NULL);
 		led.flags = 0;
+
 		if (of_property_match_string(child, "compatible", "gpio") >= 0)
+		{
 			led.flags |= TCA6507_MAKE_GPIO;
+		}
+
 		ret = of_property_read_u32(child, "reg", &reg);
+
 		if (ret != 0 || reg < 0 || reg >= NUM_LEDS)
+		{
 			continue;
+		}
 
 		tca_leds[reg] = led;
 	}
 	pdata = devm_kzalloc(&client->dev,
-			sizeof(struct tca6507_platform_data), GFP_KERNEL);
+						 sizeof(struct tca6507_platform_data), GFP_KERNEL);
+
 	if (!pdata)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	pdata->leds.leds = tca_leds;
 	pdata->leds.num_leds = NUM_LEDS;
@@ -733,7 +903,8 @@ tca6507_led_dt_init(struct i2c_client *client)
 	return pdata;
 }
 
-static const struct of_device_id of_tca6507_leds_match[] = {
+static const struct of_device_id of_tca6507_leds_match[] =
+{
 	{ .compatible = "ti,tca6507", },
 	{},
 };
@@ -749,7 +920,7 @@ tca6507_led_dt_init(struct i2c_client *client)
 #endif
 
 static int tca6507_probe(struct i2c_client *client,
-		const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct tca6507_chip *tca;
 	struct i2c_adapter *adapter;
@@ -761,31 +932,43 @@ static int tca6507_probe(struct i2c_client *client,
 	pdata = dev_get_platdata(&client->dev);
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C))
+	{
 		return -EIO;
+	}
 
-	if (!pdata || pdata->leds.num_leds != NUM_LEDS) {
+	if (!pdata || pdata->leds.num_leds != NUM_LEDS)
+	{
 		pdata = tca6507_led_dt_init(client);
-		if (IS_ERR(pdata)) {
+
+		if (IS_ERR(pdata))
+		{
 			dev_err(&client->dev, "Need %d entries in platform-data list\n",
-				NUM_LEDS);
+					NUM_LEDS);
 			return PTR_ERR(pdata);
 		}
 	}
+
 	tca = devm_kzalloc(&client->dev, sizeof(*tca), GFP_KERNEL);
+
 	if (!tca)
+	{
 		return -ENOMEM;
+	}
 
 	tca->client = client;
 	INIT_WORK(&tca->work, tca6507_work);
 	spin_lock_init(&tca->lock);
 	i2c_set_clientdata(client, tca);
 
-	for (i = 0; i < NUM_LEDS; i++) {
+	for (i = 0; i < NUM_LEDS; i++)
+	{
 		struct tca6507_led *l = tca->leds + i;
 
 		l->chip = tca;
 		l->num = i;
-		if (pdata->leds.leds[i].name && !pdata->leds.leds[i].flags) {
+
+		if (pdata->leds.leds[i].name && !pdata->leds.leds[i].flags)
+		{
 			l->led_cdev.name = pdata->leds.leds[i].name;
 			l->led_cdev.default_trigger
 				= pdata->leds.leds[i].default_trigger;
@@ -793,24 +976,37 @@ static int tca6507_probe(struct i2c_client *client,
 			l->led_cdev.blink_set = tca6507_blink_set;
 			l->bank = -1;
 			err = led_classdev_register(&client->dev,
-						    &l->led_cdev);
+										&l->led_cdev);
+
 			if (err < 0)
+			{
 				goto exit;
+			}
 		}
 	}
+
 	err = tca6507_probe_gpios(client, tca, pdata);
+
 	if (err)
+	{
 		goto exit;
+	}
+
 	/* set all registers to known state - zero */
 	tca->reg_set = 0x7f;
 	schedule_work(&tca->work);
 
 	return 0;
 exit:
-	while (i--) {
+
+	while (i--)
+	{
 		if (tca->leds[i].led_cdev.name)
+		{
 			led_classdev_unregister(&tca->leds[i].led_cdev);
+		}
 	}
+
 	return err;
 }
 
@@ -820,17 +1016,22 @@ static int tca6507_remove(struct i2c_client *client)
 	struct tca6507_chip *tca = i2c_get_clientdata(client);
 	struct tca6507_led *tca_leds = tca->leds;
 
-	for (i = 0; i < NUM_LEDS; i++) {
+	for (i = 0; i < NUM_LEDS; i++)
+	{
 		if (tca_leds[i].led_cdev.name)
+		{
 			led_classdev_unregister(&tca_leds[i].led_cdev);
+		}
 	}
+
 	tca6507_remove_gpio(tca);
 	cancel_work_sync(&tca->work);
 
 	return 0;
 }
 
-static struct i2c_driver tca6507_driver = {
+static struct i2c_driver tca6507_driver =
+{
 	.driver   = {
 		.name    = "leds-tca6507",
 		.of_match_table = of_match_ptr(of_tca6507_leds_match),

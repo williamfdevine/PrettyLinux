@@ -24,39 +24,57 @@
 #include "nv40.h"
 
 const struct nvkm_specsrc
-gt200_crop_sources[] = {
-	{ 0x407008, (const struct nvkm_specmux[]) {
+	gt200_crop_sources[] =
+{
+	{
+		0x407008, (const struct nvkm_specmux[])
+		{
 			{ 0xf, 0, "sel0", true },
 			{ 0x1f, 16, "sel1", true },
 			{}
-		}, "pgraph_rop0_crop_pm_mux" },
+		}, "pgraph_rop0_crop_pm_mux"
+	},
 	{}
 };
 
 const struct nvkm_specsrc
-gt200_prop_sources[] = {
-	{ 0x408750, (const struct nvkm_specmux[]) {
+	gt200_prop_sources[] =
+{
+	{
+		0x408750, (const struct nvkm_specmux[])
+		{
 			{ 0x3f, 0, "sel", true },
 			{}
-		}, "pgraph_tpc0_prop_pm_mux" },
+		}, "pgraph_tpc0_prop_pm_mux"
+	},
 	{}
 };
 
 const struct nvkm_specsrc
-gt200_tex_sources[] = {
-	{ 0x408508, (const struct nvkm_specmux[]) {
+	gt200_tex_sources[] =
+{
+	{
+		0x408508, (const struct nvkm_specmux[])
+		{
 			{ 0xfffff, 0, "unk0" },
 			{}
-		}, "pgraph_tpc0_tex_unk08" },
+		}, "pgraph_tpc0_tex_unk08"
+	},
 	{}
 };
 
 static const struct nvkm_specdom
-gt200_pm[] = {
-	{ 0x20, (const struct nvkm_specsig[]) {
+	gt200_pm[] =
+{
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
-	{ 0xf0, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0xf0, (const struct nvkm_specsig[])
+		{
 			{ 0xc9, "pc01_gr_idle" },
 			{ 0x84, "pc01_strmout_00" },
 			{ 0x85, "pc01_strmout_01" },
@@ -104,8 +122,11 @@ gt200_pm[] = {
 			{ 0xb0, "pc01_unk00" },
 			{ 0xec, "pc01_trailer" },
 			{}
-		}, &nv40_perfctr_func },
-	{ 0xf0, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0xf0, (const struct nvkm_specsig[])
+		{
 			{ 0x55, "pc02_crop_00", gt200_crop_sources },
 			{ 0x56, "pc02_crop_01", gt200_crop_sources },
 			{ 0x57, "pc02_crop_02", gt200_crop_sources },
@@ -131,22 +152,38 @@ gt200_pm[] = {
 			{ 0x77, "pc02_zrop_03", nv50_zrop_sources },
 			{ 0xec, "pc02_trailer" },
 			{}
-		}, &nv40_perfctr_func },
-	{ 0x20, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
-	{ 0x20, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
-	{ 0x20, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
-	{ 0x20, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
-	{ 0x20, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
+		}, &nv40_perfctr_func
+	},
 	{}
 };
 

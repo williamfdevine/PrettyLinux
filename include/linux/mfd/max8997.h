@@ -33,7 +33,8 @@
 #include <linux/regulator/consumer.h>
 
 /* MAX8997/8966 regulator IDs */
-enum max8998_regulators {
+enum max8998_regulators
+{
 	MAX8997_LDO1 = 0,
 	MAX8997_LDO2,
 	MAX8997_LDO3,
@@ -72,13 +73,15 @@ enum max8998_regulators {
 	MAX8997_REG_MAX,
 };
 
-struct max8997_regulator_data {
+struct max8997_regulator_data
+{
 	int id;
 	struct regulator_init_data *initdata;
 	struct device_node *reg_node;
 };
 
-struct max8997_muic_reg_data {
+struct max8997_muic_reg_data
+{
 	u8 addr;
 	u8 data;
 };
@@ -89,7 +92,8 @@ struct max8997_muic_reg_data {
  *	       used for initializing registers of MAX8997 MUIC device
  * @num_init_data: array size of init_data
  */
-struct max8997_muic_platform_data {
+struct max8997_muic_platform_data
+{
 	struct max8997_muic_reg_data *init_data;
 	int num_init_data;
 
@@ -104,17 +108,20 @@ struct max8997_muic_platform_data {
 	int path_uart;
 };
 
-enum max8997_haptic_motor_type {
+enum max8997_haptic_motor_type
+{
 	MAX8997_HAPTIC_ERM,
 	MAX8997_HAPTIC_LRA,
 };
 
-enum max8997_haptic_pulse_mode {
+enum max8997_haptic_pulse_mode
+{
 	MAX8997_EXTERNAL_MODE,
 	MAX8997_INTERNAL_MODE,
 };
 
-enum max8997_haptic_pwm_divisor {
+enum max8997_haptic_pwm_divisor
+{
 	MAX8997_PWM_DIVISOR_32,
 	MAX8997_PWM_DIVISOR_64,
 	MAX8997_PWM_DIVISOR_128,
@@ -140,7 +147,8 @@ enum max8997_haptic_pwm_divisor {
  * @pattern_signal_period: period of the waveform for the internal mode pattern
  *     [0 - 255]: available period
  */
-struct max8997_haptic_platform_data {
+struct max8997_haptic_platform_data
+{
 	unsigned int pwm_channel_id;
 	unsigned int pwm_period;
 
@@ -153,7 +161,8 @@ struct max8997_haptic_platform_data {
 	unsigned int pattern_signal_period;
 };
 
-enum max8997_led_mode {
+enum max8997_led_mode
+{
 	MAX8997_NONE,
 	MAX8997_FLASH_MODE,
 	MAX8997_MOVIE_MODE,
@@ -170,12 +179,14 @@ enum max8997_led_mode {
  *	[0 - 31]: MAX8997_FLASH_MODE and MAX8997_FLASH_PIN_CONTROL_MODE
  *	[0 - 15]: MAX8997_MOVIE_MODE and MAX8997_MOVIE_PIN_CONTROL_MODE
  */
-struct max8997_led_platform_data {
+struct max8997_led_platform_data
+{
 	enum max8997_led_mode mode[2];
 	u8 brightness[2];
 };
 
-struct max8997_platform_data {
+struct max8997_platform_data
+{
 	/* IRQ */
 	int ono;
 	int wakeup;

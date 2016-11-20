@@ -25,37 +25,38 @@ void hns_ppe_set_tso_enable(struct hns_ppe_cb *ppe_cb, u32 value)
 }
 
 void hns_ppe_set_rss_key(struct hns_ppe_cb *ppe_cb,
-			 const u32 rss_key[HNS_PPEV2_RSS_KEY_NUM])
+						 const u32 rss_key[HNS_PPEV2_RSS_KEY_NUM])
 {
 	u32 key_item;
 
 	for (key_item = 0; key_item < HNS_PPEV2_RSS_KEY_NUM; key_item++)
 		dsaf_write_dev(ppe_cb, PPEV2_RSS_KEY_REG + key_item * 0x4,
-			       rss_key[key_item]);
+					   rss_key[key_item]);
 }
 
 void hns_ppe_set_indir_table(struct hns_ppe_cb *ppe_cb,
-			     const u32 rss_tab[HNS_PPEV2_RSS_IND_TBL_SIZE])
+							 const u32 rss_tab[HNS_PPEV2_RSS_IND_TBL_SIZE])
 {
 	int i;
 	int reg_value;
 
-	for (i = 0; i < (HNS_PPEV2_RSS_IND_TBL_SIZE / 4); i++) {
+	for (i = 0; i < (HNS_PPEV2_RSS_IND_TBL_SIZE / 4); i++)
+	{
 		reg_value = dsaf_read_dev(ppe_cb,
-					  PPEV2_INDRECTION_TBL_REG + i * 0x4);
+								  PPEV2_INDRECTION_TBL_REG + i * 0x4);
 
 		dsaf_set_field(reg_value, PPEV2_CFG_RSS_TBL_4N0_M,
-			       PPEV2_CFG_RSS_TBL_4N0_S,
-			       rss_tab[i * 4 + 0] & 0x1F);
+					   PPEV2_CFG_RSS_TBL_4N0_S,
+					   rss_tab[i * 4 + 0] & 0x1F);
 		dsaf_set_field(reg_value, PPEV2_CFG_RSS_TBL_4N1_M,
-			       PPEV2_CFG_RSS_TBL_4N1_S,
-				rss_tab[i * 4 + 1] & 0x1F);
+					   PPEV2_CFG_RSS_TBL_4N1_S,
+					   rss_tab[i * 4 + 1] & 0x1F);
 		dsaf_set_field(reg_value, PPEV2_CFG_RSS_TBL_4N2_M,
-			       PPEV2_CFG_RSS_TBL_4N2_S,
-				rss_tab[i * 4 + 2] & 0x1F);
+					   PPEV2_CFG_RSS_TBL_4N2_S,
+					   rss_tab[i * 4 + 2] & 0x1F);
 		dsaf_set_field(reg_value, PPEV2_CFG_RSS_TBL_4N3_M,
-			       PPEV2_CFG_RSS_TBL_4N3_S,
-				rss_tab[i * 4 + 3] & 0x1F);
+					   PPEV2_CFG_RSS_TBL_4N3_S,
+					   rss_tab[i * 4 + 3] & 0x1F);
 		dsaf_write_dev(
 			ppe_cb, PPEV2_INDRECTION_TBL_REG + i * 0x4, reg_value);
 	}
@@ -79,22 +80,35 @@ int hns_ppe_common_get_cfg(struct dsaf_device *dsaf_dev, int comm_index)
 	int ppe_num;
 
 	if (!HNS_DSAF_IS_DEBUG(dsaf_dev))
+	{
 		ppe_num = HNS_PPE_SERVICE_NW_ENGINE_NUM;
+	}
 	else
+	{
 		ppe_num = HNS_PPE_DEBUG_NW_ENGINE_NUM;
+	}
 
 	ppe_common = devm_kzalloc(dsaf_dev->dev, sizeof(*ppe_common) +
-		ppe_num * sizeof(struct hns_ppe_cb), GFP_KERNEL);
+							  ppe_num * sizeof(struct hns_ppe_cb), GFP_KERNEL);
+
 	if (!ppe_common)
+	{
 		return -ENOMEM;
+	}
 
 	ppe_common->ppe_num = ppe_num;
 	ppe_common->dsaf_dev = dsaf_dev;
 	ppe_common->comm_index = comm_index;
+
 	if (!HNS_DSAF_IS_DEBUG(dsaf_dev))
+	{
 		ppe_common->ppe_mode = PPE_COMMON_MODE_SERVICE;
+	}
 	else
+	{
 		ppe_common->ppe_mode = PPE_COMMON_MODE_DEBUG;
+	}
+
 	ppe_common->dev = dsaf_dev->dev;
 
 	ppe_common->io_base = hns_ppe_common_get_ioaddr(ppe_common);
@@ -110,7 +124,7 @@ void hns_ppe_common_free_cfg(struct dsaf_device *dsaf_dev, u32 comm_index)
 }
 
 static void __iomem *hns_ppe_get_iobase(struct ppe_common_cb *ppe_common,
-					int ppe_idx)
+										int ppe_idx)
 {
 	return ppe_common->dsaf_dev->ppe_base + ppe_idx * PPE_REG_OFFSET;
 }
@@ -121,7 +135,8 @@ static void hns_ppe_get_cfg(struct ppe_common_cb *ppe_common)
 	struct hns_ppe_cb *ppe_cb;
 	u32 ppe_num = ppe_common->ppe_num;
 
-	for (i = 0; i < ppe_num; i++) {
+	for (i = 0; i < ppe_num; i++)
+	{
 		ppe_cb = &ppe_common->ppe_cb[i];
 		ppe_cb->dev = ppe_common->dev;
 		ppe_cb->next = NULL;
@@ -135,7 +150,7 @@ static void hns_ppe_get_cfg(struct ppe_common_cb *ppe_common)
 static void hns_ppe_cnt_clr_ce(struct hns_ppe_cb *ppe_cb)
 {
 	dsaf_set_dev_bit(ppe_cb, PPE_TNL_0_5_CNT_CLR_CE_REG,
-			 PPE_CNT_CLR_CE_B, 1);
+					 PPE_CNT_CLR_CE_B, 1);
 }
 
 static void hns_ppe_set_vlan_strip(struct hns_ppe_cb *ppe_cb, int en)
@@ -151,15 +166,15 @@ static void hns_ppe_set_vlan_strip(struct hns_ppe_cb *ppe_cb, int en)
 static void hns_ppe_checksum_hw(struct hns_ppe_cb *ppe_cb, u32 value)
 {
 	dsaf_set_dev_field(ppe_cb, PPE_CFG_PRO_CHECK_EN_REG,
-			   0xfffffff, 0, value);
+					   0xfffffff, 0, value);
 }
 
 static void hns_ppe_set_qid_mode(struct ppe_common_cb *ppe_common,
-				 enum ppe_qid_mode qid_mdoe)
+								 enum ppe_qid_mode qid_mdoe)
 {
 	dsaf_set_dev_field(ppe_common, PPE_COM_CFG_QID_MODE_REG,
-			   PPE_CFG_QID_MODE_CF_QID_MODE_M,
-			   PPE_CFG_QID_MODE_CF_QID_MODE_S, qid_mdoe);
+					   PPE_CFG_QID_MODE_CF_QID_MODE_M,
+					   PPE_CFG_QID_MODE_CF_QID_MODE_S, qid_mdoe);
 }
 
 /**
@@ -172,9 +187,10 @@ static void hns_ppe_set_qid(struct ppe_common_cb *ppe_common, u32 qid)
 	u32 qid_mod = dsaf_read_dev(ppe_common, PPE_COM_CFG_QID_MODE_REG);
 
 	if (!dsaf_get_field(qid_mod, PPE_CFG_QID_MODE_DEF_QID_M,
-			    PPE_CFG_QID_MODE_DEF_QID_S)) {
+						PPE_CFG_QID_MODE_DEF_QID_S))
+	{
 		dsaf_set_field(qid_mod, PPE_CFG_QID_MODE_DEF_QID_M,
-			       PPE_CFG_QID_MODE_DEF_QID_S, qid);
+					   PPE_CFG_QID_MODE_DEF_QID_S, qid);
 		dsaf_write_dev(ppe_common, PPE_COM_CFG_QID_MODE_REG, qid_mod);
 	}
 }
@@ -185,7 +201,7 @@ static void hns_ppe_set_qid(struct ppe_common_cb *ppe_common, u32 qid)
  * @mode: port mode
  */
 static void hns_ppe_set_port_mode(struct hns_ppe_cb *ppe_cb,
-				  enum ppe_port_mode mode)
+								  enum ppe_port_mode mode)
 {
 	dsaf_write_dev(ppe_cb, PPE_CFG_XGE_MODE_REG, mode);
 }
@@ -207,50 +223,61 @@ static int hns_ppe_common_init_hw(struct ppe_common_cb *ppe_common)
 	dsaf_dev->misc_op->ppe_comm_srst(dsaf_dev, 1);
 	mdelay(100);
 
-	if (ppe_common->ppe_mode == PPE_COMMON_MODE_SERVICE) {
-		switch (dsaf_mode) {
-		case DSAF_MODE_ENABLE_FIX:
-		case DSAF_MODE_DISABLE_FIX:
-			qid_mode = PPE_QID_MODE0;
-			hns_ppe_set_qid(ppe_common, 0);
-			break;
-		case DSAF_MODE_ENABLE_0VM:
-		case DSAF_MODE_DISABLE_2PORT_64VM:
-			qid_mode = PPE_QID_MODE3;
-			break;
-		case DSAF_MODE_ENABLE_8VM:
-		case DSAF_MODE_DISABLE_2PORT_16VM:
-			qid_mode = PPE_QID_MODE4;
-			break;
-		case DSAF_MODE_ENABLE_16VM:
-		case DSAF_MODE_DISABLE_6PORT_0VM:
-			qid_mode = PPE_QID_MODE5;
-			break;
-		case DSAF_MODE_ENABLE_32VM:
-		case DSAF_MODE_DISABLE_6PORT_16VM:
-			qid_mode = PPE_QID_MODE2;
-			break;
-		case DSAF_MODE_ENABLE_128VM:
-		case DSAF_MODE_DISABLE_6PORT_4VM:
-			qid_mode = PPE_QID_MODE1;
-			break;
-		case DSAF_MODE_DISABLE_2PORT_8VM:
-			qid_mode = PPE_QID_MODE7;
-			break;
-		case DSAF_MODE_DISABLE_6PORT_2VM:
-			qid_mode = PPE_QID_MODE6;
-			break;
-		default:
-			dev_err(ppe_common->dev,
-				"get ppe queue mode failed! dsaf_mode=%d\n",
-				dsaf_mode);
-			return -EINVAL;
+	if (ppe_common->ppe_mode == PPE_COMMON_MODE_SERVICE)
+	{
+		switch (dsaf_mode)
+		{
+			case DSAF_MODE_ENABLE_FIX:
+			case DSAF_MODE_DISABLE_FIX:
+				qid_mode = PPE_QID_MODE0;
+				hns_ppe_set_qid(ppe_common, 0);
+				break;
+
+			case DSAF_MODE_ENABLE_0VM:
+			case DSAF_MODE_DISABLE_2PORT_64VM:
+				qid_mode = PPE_QID_MODE3;
+				break;
+
+			case DSAF_MODE_ENABLE_8VM:
+			case DSAF_MODE_DISABLE_2PORT_16VM:
+				qid_mode = PPE_QID_MODE4;
+				break;
+
+			case DSAF_MODE_ENABLE_16VM:
+			case DSAF_MODE_DISABLE_6PORT_0VM:
+				qid_mode = PPE_QID_MODE5;
+				break;
+
+			case DSAF_MODE_ENABLE_32VM:
+			case DSAF_MODE_DISABLE_6PORT_16VM:
+				qid_mode = PPE_QID_MODE2;
+				break;
+
+			case DSAF_MODE_ENABLE_128VM:
+			case DSAF_MODE_DISABLE_6PORT_4VM:
+				qid_mode = PPE_QID_MODE1;
+				break;
+
+			case DSAF_MODE_DISABLE_2PORT_8VM:
+				qid_mode = PPE_QID_MODE7;
+				break;
+
+			case DSAF_MODE_DISABLE_6PORT_2VM:
+				qid_mode = PPE_QID_MODE6;
+				break;
+
+			default:
+				dev_err(ppe_common->dev,
+						"get ppe queue mode failed! dsaf_mode=%d\n",
+						dsaf_mode);
+				return -EINVAL;
 		}
+
 		hns_ppe_set_qid_mode(ppe_common, qid_mode);
 	}
 
 	dsaf_set_dev_bit(ppe_common, PPE_COM_COMMON_CNT_CLR_CE_REG,
-			 PPE_COMMON_CNT_CLR_CE_B, 1);
+					 PPE_COMMON_CNT_CLR_CE_B, 1);
 
 	return 0;
 }
@@ -295,28 +322,35 @@ static void hns_ppe_init_hw(struct hns_ppe_cb *ppe_cb)
 	/* clr and msk except irq*/
 	hns_ppe_exc_irq_en(ppe_cb, 0);
 
-	if (ppe_common_cb->ppe_mode == PPE_COMMON_MODE_DEBUG) {
+	if (ppe_common_cb->ppe_mode == PPE_COMMON_MODE_DEBUG)
+	{
 		hns_ppe_set_port_mode(ppe_cb, PPE_MODE_GE);
 		dsaf_write_dev(ppe_cb, PPE_CFG_PAUSE_IDLE_CNT_REG, 0);
-	} else {
+	}
+	else
+	{
 		hns_ppe_set_port_mode(ppe_cb, PPE_MODE_XGE);
 	}
 
 	hns_ppe_checksum_hw(ppe_cb, 0xffffffff);
 	hns_ppe_cnt_clr_ce(ppe_cb);
 
-	if (!AE_IS_VER1(dsaf_dev->dsaf_ver)) {
+	if (!AE_IS_VER1(dsaf_dev->dsaf_ver))
+	{
 		hns_ppe_set_vlan_strip(ppe_cb, 0);
 
 		dsaf_write_dev(ppe_cb, PPE_CFG_MAX_FRAME_LEN_REG,
-			       HNS_PPEV2_MAX_FRAME_LEN);
+					   HNS_PPEV2_MAX_FRAME_LEN);
 
 		/* set default RSS key in h/w */
 		hns_ppe_set_rss_key(ppe_cb, ppe_cb->rss_key);
 
 		/* Set default indrection table in h/w */
 		for (i = 0; i < HNS_PPEV2_RSS_IND_TBL_SIZE; i++)
+		{
 			ppe_cb->rss_indir_table[i] = i;
+		}
+
 		hns_ppe_set_indir_table(ppe_cb, ppe_cb->rss_indir_table);
 	}
 }
@@ -329,7 +363,8 @@ static void hns_ppe_uninit_hw(struct hns_ppe_cb *ppe_cb)
 {
 	u32 port;
 
-	if (ppe_cb->ppe_common_cb) {
+	if (ppe_cb->ppe_common_cb)
+	{
 		struct dsaf_device *dsaf_dev = ppe_cb->ppe_common_cb->dsaf_dev;
 
 		port = ppe_cb->index;
@@ -341,9 +376,13 @@ void hns_ppe_uninit_ex(struct ppe_common_cb *ppe_common)
 {
 	u32 i;
 
-	for (i = 0; i < ppe_common->ppe_num; i++) {
+	for (i = 0; i < ppe_common->ppe_num; i++)
+	{
 		if (ppe_common->dsaf_dev->mac_cb[i])
+		{
 			hns_ppe_uninit_hw(&ppe_common->ppe_cb[i]);
+		}
+
 		memset(&ppe_common->ppe_cb[i], 0, sizeof(struct hns_ppe_cb));
 	}
 }
@@ -352,9 +391,13 @@ void hns_ppe_uninit(struct dsaf_device *dsaf_dev)
 {
 	u32 i;
 
-	for (i = 0; i < HNS_PPE_COM_NUM; i++) {
+	for (i = 0; i < HNS_PPE_COM_NUM; i++)
+	{
 		if (dsaf_dev->ppe_common[i])
+		{
 			hns_ppe_uninit_ex(dsaf_dev->ppe_common[i]);
+		}
+
 		hns_rcb_common_free_cfg(dsaf_dev, i);
 		hns_ppe_common_free_cfg(dsaf_dev, i);
 	}
@@ -373,18 +416,27 @@ void hns_ppe_reset_common(struct dsaf_device *dsaf_dev, u8 ppe_common_index)
 
 	ppe_common = dsaf_dev->ppe_common[ppe_common_index];
 	ret = hns_ppe_common_init_hw(ppe_common);
-	if (ret)
-		return;
 
-	for (i = 0; i < ppe_common->ppe_num; i++) {
+	if (ret)
+	{
+		return;
+	}
+
+	for (i = 0; i < ppe_common->ppe_num; i++)
+	{
 		/* We only need to initiate ppe when the port exists */
 		if (dsaf_dev->mac_cb[i])
+		{
 			hns_ppe_init_hw(&ppe_common->ppe_cb[i]);
+		}
 	}
 
 	ret = hns_rcb_common_init_hw(dsaf_dev->rcb_common[ppe_common_index]);
+
 	if (ret)
+	{
 		return;
+	}
 
 	hns_rcb_common_init_commit_hw(dsaf_dev->rcb_common[ppe_common_index]);
 }
@@ -394,36 +446,39 @@ void hns_ppe_update_stats(struct hns_ppe_cb *ppe_cb)
 	struct hns_ppe_hw_stats *hw_stats = &ppe_cb->hw_stats;
 
 	hw_stats->rx_pkts_from_sw
-		+= dsaf_read_dev(ppe_cb, PPE_HIS_RX_SW_PKT_CNT_REG);
+	+= dsaf_read_dev(ppe_cb, PPE_HIS_RX_SW_PKT_CNT_REG);
 	hw_stats->rx_pkts
-		+= dsaf_read_dev(ppe_cb, PPE_HIS_RX_WR_BD_OK_PKT_CNT_REG);
+	+= dsaf_read_dev(ppe_cb, PPE_HIS_RX_WR_BD_OK_PKT_CNT_REG);
 	hw_stats->rx_drop_no_bd
-		+= dsaf_read_dev(ppe_cb, PPE_HIS_RX_PKT_NO_BUF_CNT_REG);
+	+= dsaf_read_dev(ppe_cb, PPE_HIS_RX_PKT_NO_BUF_CNT_REG);
 	hw_stats->rx_alloc_buf_fail
-		+= dsaf_read_dev(ppe_cb, PPE_HIS_RX_APP_BUF_FAIL_CNT_REG);
+	+= dsaf_read_dev(ppe_cb, PPE_HIS_RX_APP_BUF_FAIL_CNT_REG);
 	hw_stats->rx_alloc_buf_wait
-		+= dsaf_read_dev(ppe_cb, PPE_HIS_RX_APP_BUF_WAIT_CNT_REG);
+	+= dsaf_read_dev(ppe_cb, PPE_HIS_RX_APP_BUF_WAIT_CNT_REG);
 	hw_stats->rx_drop_no_buf
-		+= dsaf_read_dev(ppe_cb, PPE_HIS_RX_PKT_DROP_FUL_CNT_REG);
+	+= dsaf_read_dev(ppe_cb, PPE_HIS_RX_PKT_DROP_FUL_CNT_REG);
 	hw_stats->rx_err_fifo_full
-		+= dsaf_read_dev(ppe_cb, PPE_HIS_RX_PKT_DROP_PRT_CNT_REG);
+	+= dsaf_read_dev(ppe_cb, PPE_HIS_RX_PKT_DROP_PRT_CNT_REG);
 
 	hw_stats->tx_bd_form_rcb
-		+= dsaf_read_dev(ppe_cb, PPE_HIS_TX_BD_CNT_REG);
+	+= dsaf_read_dev(ppe_cb, PPE_HIS_TX_BD_CNT_REG);
 	hw_stats->tx_pkts_from_rcb
-		+= dsaf_read_dev(ppe_cb, PPE_HIS_TX_PKT_CNT_REG);
+	+= dsaf_read_dev(ppe_cb, PPE_HIS_TX_PKT_CNT_REG);
 	hw_stats->tx_pkts
-		+= dsaf_read_dev(ppe_cb, PPE_HIS_TX_PKT_OK_CNT_REG);
+	+= dsaf_read_dev(ppe_cb, PPE_HIS_TX_PKT_OK_CNT_REG);
 	hw_stats->tx_err_fifo_empty
-		+= dsaf_read_dev(ppe_cb, PPE_HIS_TX_PKT_EPT_CNT_REG);
+	+= dsaf_read_dev(ppe_cb, PPE_HIS_TX_PKT_EPT_CNT_REG);
 	hw_stats->tx_err_checksum
-		+= dsaf_read_dev(ppe_cb, PPE_HIS_TX_PKT_CS_FAIL_CNT_REG);
+	+= dsaf_read_dev(ppe_cb, PPE_HIS_TX_PKT_CS_FAIL_CNT_REG);
 }
 
 int hns_ppe_get_sset_count(int stringset)
 {
 	if (stringset == ETH_SS_STATS)
+	{
 		return ETH_PPE_STATIC_NUM;
+	}
+
 	return 0;
 }
 
@@ -499,14 +554,21 @@ int hns_ppe_init(struct dsaf_device *dsaf_dev)
 	int i, k;
 	int ret;
 
-	for (i = 0; i < HNS_PPE_COM_NUM; i++) {
+	for (i = 0; i < HNS_PPE_COM_NUM; i++)
+	{
 		ret = hns_ppe_common_get_cfg(dsaf_dev, i);
+
 		if (ret)
+		{
 			goto get_ppe_cfg_fail;
+		}
 
 		ret = hns_rcb_common_get_cfg(dsaf_dev, i);
+
 		if (ret)
+		{
 			goto get_rcb_cfg_fail;
+		}
 
 		hns_ppe_get_cfg(dsaf_dev->ppe_common[i]);
 
@@ -514,17 +576,22 @@ int hns_ppe_init(struct dsaf_device *dsaf_dev)
 	}
 
 	for (i = 0; i < HNS_PPE_COM_NUM; i++)
+	{
 		hns_ppe_reset_common(dsaf_dev, i);
+	}
 
 	return 0;
 
 get_rcb_cfg_fail:
 	hns_ppe_common_free_cfg(dsaf_dev, i);
 get_ppe_cfg_fail:
-	for (k = i - 1; k >= 0; k--) {
+
+	for (k = i - 1; k >= 0; k--)
+	{
 		hns_rcb_common_free_cfg(dsaf_dev, k);
 		hns_ppe_common_free_cfg(dsaf_dev, k);
 	}
+
 	return ret;
 }
 
@@ -542,23 +609,26 @@ void hns_ppe_get_regs(struct hns_ppe_cb *ppe_cb, void *data)
 	regs[3] = dsaf_read_dev(ppe_common, PPE_COM_INTSTS_REG);
 	regs[4] = dsaf_read_dev(ppe_common, PPE_COM_COMMON_CNT_CLR_CE_REG);
 
-	for (i = 0; i < DSAF_TOTAL_QUEUE_NUM; i++) {
+	for (i = 0; i < DSAF_TOTAL_QUEUE_NUM; i++)
+	{
 		offset = PPE_COM_HIS_RX_PKT_QID_DROP_CNT_REG + 0x4 * i;
 		regs[5 + i] = dsaf_read_dev(ppe_common, offset);
 		offset = PPE_COM_HIS_RX_PKT_QID_OK_CNT_REG + 0x4 * i;
 		regs[5 + i + DSAF_TOTAL_QUEUE_NUM]
-				= dsaf_read_dev(ppe_common, offset);
+			= dsaf_read_dev(ppe_common, offset);
 		offset = PPE_COM_HIS_TX_PKT_QID_ERR_CNT_REG + 0x4 * i;
 		regs[5 + i + DSAF_TOTAL_QUEUE_NUM * 2]
-				= dsaf_read_dev(ppe_common, offset);
+			= dsaf_read_dev(ppe_common, offset);
 		offset = PPE_COM_HIS_TX_PKT_QID_OK_CNT_REG + 0x4 * i;
 		regs[5 + i + DSAF_TOTAL_QUEUE_NUM * 3]
-				= dsaf_read_dev(ppe_common, offset);
+			= dsaf_read_dev(ppe_common, offset);
 	}
 
 	/* mark end of ppe regs */
 	for (i = 521; i < 524; i++)
+	{
 		regs[i] = 0xeeeeeeee;
+	}
 
 	/* ppe channel registers */
 	regs[525] = dsaf_read_dev(ppe_cb, PPE_CFG_TX_FIFO_THRSLD_REG);
@@ -617,5 +687,7 @@ void hns_ppe_get_regs(struct hns_ppe_cb *ppe_cb, void *data)
 
 	/* mark end of ppe regs */
 	for (i = 572; i < 576; i++)
+	{
 		regs[i] = 0xeeeeeeee;
+	}
 }

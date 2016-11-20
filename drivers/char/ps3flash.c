@@ -33,7 +33,8 @@
 #define FLASH_BLOCK_SIZE	(256*1024)
 
 
-struct ps3flash_private {
+struct ps3flash_private
+{
 	struct mutex mutex;	/* Bounce buffer mutex */
 	u64 chunk_sectors;
 	int tag;		/* Start sector of buffer, -1 if invalid */
@@ -43,17 +44,20 @@ struct ps3flash_private {
 static struct ps3_storage_device *ps3flash_dev;
 
 static int ps3flash_read_write_sectors(struct ps3_storage_device *dev,
-				       u64 start_sector, int write)
+									   u64 start_sector, int write)
 {
 	struct ps3flash_private *priv = ps3_system_bus_get_drvdata(&dev->sbd);
 	u64 res = ps3stor_read_write_sectors(dev, dev->bounce_lpar,
-					     start_sector, priv->chunk_sectors,
-					     write);
-	if (res) {
+										 start_sector, priv->chunk_sectors,
+										 write);
+
+	if (res)
+	{
 		dev_err(&dev->sbd.core, "%s:%u: %s failed 0x%llx\n", __func__,
-			__LINE__, write ? "write" : "read", res);
+				__LINE__, write ? "write" : "read", res);
 		return -EIO;
 	}
+
 	return 0;
 }
 
@@ -63,11 +67,16 @@ static int ps3flash_writeback(struct ps3_storage_device *dev)
 	int res;
 
 	if (!priv->dirty || priv->tag < 0)
+	{
 		return 0;
+	}
 
 	res = ps3flash_read_write_sectors(dev, priv->tag, 1);
+
 	if (res)
+	{
 		return res;
+	}
 
 	priv->dirty = false;
 	return 0;
@@ -79,17 +88,25 @@ static int ps3flash_fetch(struct ps3_storage_device *dev, u64 start_sector)
 	int res;
 
 	if (start_sector == priv->tag)
+	{
 		return 0;
+	}
 
 	res = ps3flash_writeback(dev);
+
 	if (res)
+	{
 		return res;
+	}
 
 	priv->tag = -1;
 
 	res = ps3flash_read_write_sectors(dev, start_sector, 0);
+
 	if (res)
+	{
 		return res;
+	}
 
 	priv->tag = start_sector;
 	return 0;
@@ -99,11 +116,11 @@ static loff_t ps3flash_llseek(struct file *file, loff_t offset, int origin)
 {
 	struct ps3_storage_device *dev = ps3flash_dev;
 	return generic_file_llseek_size(file, offset, origin, MAX_LFS_FILESIZE,
-			dev->regions[dev->region_idx].size*dev->blk_size);
+									dev->regions[dev->region_idx].size * dev->blk_size);
 }
 
 static ssize_t ps3flash_read(char __user *userbuf, void *kernelbuf,
-			     size_t count, loff_t *pos)
+							 size_t count, loff_t *pos)
 {
 	struct ps3_storage_device *dev = ps3flash_dev;
 	struct ps3flash_private *priv = ps3_system_bus_get_drvdata(&dev->sbd);
@@ -113,17 +130,21 @@ static ssize_t ps3flash_read(char __user *userbuf, void *kernelbuf,
 	const void *src;
 
 	dev_dbg(&dev->sbd.core,
-		"%s:%u: Reading %zu bytes at position %lld to U0x%p/K0x%p\n",
-		__func__, __LINE__, count, *pos, userbuf, kernelbuf);
+			"%s:%u: Reading %zu bytes at position %lld to U0x%p/K0x%p\n",
+			__func__, __LINE__, count, *pos, userbuf, kernelbuf);
 
-	size = dev->regions[dev->region_idx].size*dev->blk_size;
+	size = dev->regions[dev->region_idx].size * dev->blk_size;
+
 	if (*pos >= size || !count)
+	{
 		return 0;
+	}
 
-	if (*pos + count > size) {
+	if (*pos + count > size)
+	{
 		dev_dbg(&dev->sbd.core,
-			"%s:%u Truncating count from %zu to %llu\n", __func__,
-			__LINE__, count, size - *pos);
+				"%s:%u Truncating count from %zu to %llu\n", __func__,
+				__LINE__, count, size - *pos);
 		count = size - *pos;
 	}
 
@@ -131,27 +152,38 @@ static ssize_t ps3flash_read(char __user *userbuf, void *kernelbuf,
 	offset = *pos % dev->bounce_size;
 
 	remaining = count;
-	do {
+
+	do
+	{
 		n = min_t(u64, remaining, dev->bounce_size - offset);
 		src = dev->bounce_buf + offset;
 
 		mutex_lock(&priv->mutex);
 
 		res = ps3flash_fetch(dev, sector);
+
 		if (res)
+		{
 			goto fail;
+		}
 
 		dev_dbg(&dev->sbd.core,
-			"%s:%u: copy %lu bytes from 0x%p to U0x%p/K0x%p\n",
-			__func__, __LINE__, n, src, userbuf, kernelbuf);
-		if (userbuf) {
-			if (copy_to_user(userbuf, src, n)) {
+				"%s:%u: copy %lu bytes from 0x%p to U0x%p/K0x%p\n",
+				__func__, __LINE__, n, src, userbuf, kernelbuf);
+
+		if (userbuf)
+		{
+			if (copy_to_user(userbuf, src, n))
+			{
 				res = -EFAULT;
 				goto fail;
 			}
+
 			userbuf += n;
 		}
-		if (kernelbuf) {
+
+		if (kernelbuf)
+		{
 			memcpy(kernelbuf, src, n);
 			kernelbuf += n;
 		}
@@ -162,7 +194,8 @@ static ssize_t ps3flash_read(char __user *userbuf, void *kernelbuf,
 		remaining -= n;
 		sector += priv->chunk_sectors;
 		offset = 0;
-	} while (remaining > 0);
+	}
+	while (remaining > 0);
 
 	return count;
 
@@ -172,7 +205,7 @@ fail:
 }
 
 static ssize_t ps3flash_write(const char __user *userbuf,
-			      const void *kernelbuf, size_t count, loff_t *pos)
+							  const void *kernelbuf, size_t count, loff_t *pos)
 {
 	struct ps3_storage_device *dev = ps3flash_dev;
 	struct ps3flash_private *priv = ps3_system_bus_get_drvdata(&dev->sbd);
@@ -182,17 +215,21 @@ static ssize_t ps3flash_write(const char __user *userbuf,
 	void *dst;
 
 	dev_dbg(&dev->sbd.core,
-		"%s:%u: Writing %zu bytes at position %lld from U0x%p/K0x%p\n",
-		__func__, __LINE__, count, *pos, userbuf, kernelbuf);
+			"%s:%u: Writing %zu bytes at position %lld from U0x%p/K0x%p\n",
+			__func__, __LINE__, count, *pos, userbuf, kernelbuf);
 
-	size = dev->regions[dev->region_idx].size*dev->blk_size;
+	size = dev->regions[dev->region_idx].size * dev->blk_size;
+
 	if (*pos >= size || !count)
+	{
 		return 0;
+	}
 
-	if (*pos + count > size) {
+	if (*pos + count > size)
+	{
 		dev_dbg(&dev->sbd.core,
-			"%s:%u Truncating count from %zu to %llu\n", __func__,
-			__LINE__, count, size - *pos);
+				"%s:%u Truncating count from %zu to %llu\n", __func__,
+				__LINE__, count, size - *pos);
 		count = size - *pos;
 	}
 
@@ -200,30 +237,45 @@ static ssize_t ps3flash_write(const char __user *userbuf,
 	offset = *pos % dev->bounce_size;
 
 	remaining = count;
-	do {
+
+	do
+	{
 		n = min_t(u64, remaining, dev->bounce_size - offset);
 		dst = dev->bounce_buf + offset;
 
 		mutex_lock(&priv->mutex);
 
 		if (n != dev->bounce_size)
+		{
 			res = ps3flash_fetch(dev, sector);
+		}
 		else if (sector != priv->tag)
+		{
 			res = ps3flash_writeback(dev);
+		}
+
 		if (res)
+		{
 			goto fail;
+		}
 
 		dev_dbg(&dev->sbd.core,
-			"%s:%u: copy %lu bytes from U0x%p/K0x%p to 0x%p\n",
-			__func__, __LINE__, n, userbuf, kernelbuf, dst);
-		if (userbuf) {
-			if (copy_from_user(dst, userbuf, n)) {
+				"%s:%u: copy %lu bytes from U0x%p/K0x%p to 0x%p\n",
+				__func__, __LINE__, n, userbuf, kernelbuf, dst);
+
+		if (userbuf)
+		{
+			if (copy_from_user(dst, userbuf, n))
+			{
 				res = -EFAULT;
 				goto fail;
 			}
+
 			userbuf += n;
 		}
-		if (kernelbuf) {
+
+		if (kernelbuf)
+		{
 			memcpy(dst, kernelbuf, n);
 			kernelbuf += n;
 		}
@@ -237,7 +289,8 @@ static ssize_t ps3flash_write(const char __user *userbuf,
 		remaining -= n;
 		sector += priv->chunk_sectors;
 		offset = 0;
-	} while (remaining > 0);
+	}
+	while (remaining > 0);
 
 	return count;
 
@@ -247,13 +300,13 @@ fail:
 }
 
 static ssize_t ps3flash_user_read(struct file *file, char __user *buf,
-				  size_t count, loff_t *pos)
+								  size_t count, loff_t *pos)
 {
 	return ps3flash_read(buf, NULL, count, pos);
 }
 
 static ssize_t ps3flash_user_write(struct file *file, const char __user *buf,
-				   size_t count, loff_t *pos)
+								   size_t count, loff_t *pos)
 {
 	return ps3flash_write(buf, NULL, count, pos);
 }
@@ -264,19 +317,25 @@ static ssize_t ps3flash_kernel_read(void *buf, size_t count, loff_t pos)
 }
 
 static ssize_t ps3flash_kernel_write(const void *buf, size_t count,
-				     loff_t pos)
+									 loff_t pos)
 {
 	ssize_t res;
 	int wb;
 
 	res = ps3flash_write(NULL, buf, count, &pos);
+
 	if (res < 0)
+	{
 		return res;
+	}
 
 	/* Make kernel writes synchronous */
 	wb = ps3flash_writeback(ps3flash_dev);
+
 	if (wb)
+	{
 		return wb;
+	}
 
 	return res;
 }
@@ -306,20 +365,25 @@ static irqreturn_t ps3flash_interrupt(int irq, void *data)
 
 	if (tag != dev->tag)
 		dev_err(&dev->sbd.core,
-			"%s:%u: tag mismatch, got %llx, expected %llx\n",
-			__func__, __LINE__, tag, dev->tag);
+				"%s:%u: tag mismatch, got %llx, expected %llx\n",
+				__func__, __LINE__, tag, dev->tag);
 
-	if (res) {
+	if (res)
+	{
 		dev_err(&dev->sbd.core, "%s:%u: res=%d status=0x%llx\n",
-			__func__, __LINE__, res, status);
-	} else {
+				__func__, __LINE__, res, status);
+	}
+	else
+	{
 		dev->lv1_status = status;
 		complete(&dev->done);
 	}
+
 	return IRQ_HANDLED;
 }
 
-static const struct file_operations ps3flash_fops = {
+static const struct file_operations ps3flash_fops =
+{
 	.owner	= THIS_MODULE,
 	.llseek	= ps3flash_llseek,
 	.read	= ps3flash_user_read,
@@ -328,12 +392,14 @@ static const struct file_operations ps3flash_fops = {
 	.fsync	= ps3flash_fsync,
 };
 
-static const struct ps3_os_area_flash_ops ps3flash_kernel_ops = {
+static const struct ps3_os_area_flash_ops ps3flash_kernel_ops =
+{
 	.read	= ps3flash_kernel_read,
 	.write	= ps3flash_kernel_write,
 };
 
-static struct miscdevice ps3flash_misc = {
+static struct miscdevice ps3flash_misc =
+{
 	.minor	= MISC_DYNAMIC_MINOR,
 	.name	= DEVICE_NAME,
 	.fops	= &ps3flash_fops,
@@ -346,35 +412,45 @@ static int ps3flash_probe(struct ps3_system_bus_device *_dev)
 	int error;
 	unsigned long tmp;
 
-	tmp = dev->regions[dev->region_idx].start*dev->blk_size;
-	if (tmp % FLASH_BLOCK_SIZE) {
+	tmp = dev->regions[dev->region_idx].start * dev->blk_size;
+
+	if (tmp % FLASH_BLOCK_SIZE)
+	{
 		dev_err(&dev->sbd.core,
-			"%s:%u region start %lu is not aligned\n", __func__,
-			__LINE__, tmp);
+				"%s:%u region start %lu is not aligned\n", __func__,
+				__LINE__, tmp);
 		return -EINVAL;
 	}
-	tmp = dev->regions[dev->region_idx].size*dev->blk_size;
-	if (tmp % FLASH_BLOCK_SIZE) {
+
+	tmp = dev->regions[dev->region_idx].size * dev->blk_size;
+
+	if (tmp % FLASH_BLOCK_SIZE)
+	{
 		dev_err(&dev->sbd.core,
-			"%s:%u region size %lu is not aligned\n", __func__,
-			__LINE__, tmp);
+				"%s:%u region size %lu is not aligned\n", __func__,
+				__LINE__, tmp);
 		return -EINVAL;
 	}
 
 	/* use static buffer, kmalloc cannot allocate 256 KiB */
 	if (!ps3flash_bounce_buffer.address)
+	{
 		return -ENODEV;
+	}
 
-	if (ps3flash_dev) {
+	if (ps3flash_dev)
+	{
 		dev_err(&dev->sbd.core,
-			"Only one FLASH device is supported\n");
+				"Only one FLASH device is supported\n");
 		return -EBUSY;
 	}
 
 	ps3flash_dev = dev;
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-	if (!priv) {
+
+	if (!priv)
+	{
 		error = -ENOMEM;
 		goto fail;
 	}
@@ -388,19 +464,24 @@ static int ps3flash_probe(struct ps3_system_bus_device *_dev)
 	priv->chunk_sectors = dev->bounce_size / dev->blk_size;
 
 	error = ps3stor_setup(dev, ps3flash_interrupt);
+
 	if (error)
+	{
 		goto fail_free_priv;
+	}
 
 	ps3flash_misc.parent = &dev->sbd.core;
 	error = misc_register(&ps3flash_misc);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&dev->sbd.core, "%s:%u: misc_register failed %d\n",
-			__func__, __LINE__, error);
+				__func__, __LINE__, error);
 		goto fail_teardown;
 	}
 
 	dev_info(&dev->sbd.core, "%s:%u: registered misc device %d\n",
-		 __func__, __LINE__, ps3flash_misc.minor);
+			 __func__, __LINE__, ps3flash_misc.minor);
 
 	ps3_os_area_flash_register(&ps3flash_kernel_ops);
 	return 0;
@@ -429,7 +510,8 @@ static int ps3flash_remove(struct ps3_system_bus_device *_dev)
 }
 
 
-static struct ps3_system_bus_driver ps3flash = {
+static struct ps3_system_bus_driver ps3flash =
+{
 	.match_id	= PS3_MATCH_ID_STOR_FLASH,
 	.core.name	= DEVICE_NAME,
 	.core.owner	= THIS_MODULE,

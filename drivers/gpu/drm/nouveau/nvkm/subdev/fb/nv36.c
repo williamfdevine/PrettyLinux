@@ -28,13 +28,16 @@
 
 static void
 nv36_fb_tile_comp(struct nvkm_fb *fb, int i, u32 size, u32 flags,
-		  struct nvkm_fb_tile *tile)
+				  struct nvkm_fb_tile *tile)
 {
 	u32 tiles = DIV_ROUND_UP(size, 0x40);
 	u32 tags  = round_up(tiles / fb->ram->parts, 0x40);
-	if (!nvkm_mm_head(&fb->ram->tags, 0, 1, tags, tags, 1, &tile->tag)) {
-		if (flags & 2) tile->zcomp |= 0x10000000; /* Z16 */
-		else           tile->zcomp |= 0x20000000; /* Z24S8 */
+
+	if (!nvkm_mm_head(&fb->ram->tags, 0, 1, tags, tags, 1, &tile->tag))
+	{
+		if (flags & 2) { tile->zcomp |= 0x10000000; } /* Z16 */
+		else { tile->zcomp |= 0x20000000; } /* Z24S8 */
+
 		tile->zcomp |= ((tile->tag->offset           ) >> 6);
 		tile->zcomp |= ((tile->tag->offset + tags - 1) >> 6) << 14;
 #ifdef __BIG_ENDIAN
@@ -44,7 +47,8 @@ nv36_fb_tile_comp(struct nvkm_fb *fb, int i, u32 size, u32 flags,
 }
 
 static const struct nvkm_fb_func
-nv36_fb = {
+	nv36_fb =
+{
 	.init = nv30_fb_init,
 	.tile.regions = 8,
 	.tile.init = nv30_fb_tile_init,

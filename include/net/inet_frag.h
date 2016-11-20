@@ -3,7 +3,8 @@
 
 #include <linux/percpu_counter.h>
 
-struct netns_frags {
+struct netns_frags
+{
 	/* The percpu_counter "mem" need to be cacheline aligned.
 	 *  mem.count must not share cacheline with other writers
 	 */
@@ -23,7 +24,8 @@ struct netns_frags {
  * @INET_FRAG_LAST_IN: final fragment has arrived
  * @INET_FRAG_COMPLETE: frag queue has been processed and is due for destruction
  */
-enum {
+enum
+{
 	INET_FRAG_FIRST_IN	= BIT(0),
 	INET_FRAG_LAST_IN	= BIT(1),
 	INET_FRAG_COMPLETE	= BIT(2),
@@ -46,7 +48,8 @@ enum {
  * @net: namespace that this frag belongs to
  * @list_evictor: list of queues to forcefully evict (e.g. due to low memory)
  */
-struct inet_frag_queue {
+struct inet_frag_queue
+{
 	spinlock_t		lock;
 	struct timer_list	timer;
 	struct hlist_node	list;
@@ -71,12 +74,14 @@ struct inet_frag_queue {
  */
 #define INETFRAGS_MAXDEPTH	128
 
-struct inet_frag_bucket {
+struct inet_frag_bucket
+{
 	struct hlist_head	chain;
 	spinlock_t		chain_lock;
 };
 
-struct inet_frags {
+struct inet_frags
+{
 	struct inet_frag_bucket	hash[INETFRAGS_HASHSZ];
 
 	struct work_struct	frags_work;
@@ -96,9 +101,9 @@ struct inet_frags {
 
 	unsigned int		(*hashfn)(const struct inet_frag_queue *);
 	bool			(*match)(const struct inet_frag_queue *q,
-					 const void *arg);
+							 const void *arg);
 	void			(*constructor)(struct inet_frag_queue *q,
-					       const void *arg);
+								   const void *arg);
 	void			(*destructor)(struct inet_frag_queue *);
 	void			(*frag_expire)(unsigned long data);
 	struct kmem_cache	*frags_cachep;
@@ -122,15 +127,17 @@ void inet_frags_exit_net(struct netns_frags *nf, struct inet_frags *f);
 void inet_frag_kill(struct inet_frag_queue *q, struct inet_frags *f);
 void inet_frag_destroy(struct inet_frag_queue *q, struct inet_frags *f);
 struct inet_frag_queue *inet_frag_find(struct netns_frags *nf,
-		struct inet_frags *f, void *key, unsigned int hash);
+									   struct inet_frags *f, void *key, unsigned int hash);
 
 void inet_frag_maybe_warn_overflow(struct inet_frag_queue *q,
-				   const char *prefix);
+								   const char *prefix);
 
 static inline void inet_frag_put(struct inet_frag_queue *q, struct inet_frags *f)
 {
 	if (atomic_dec_and_test(&q->refcnt))
+	{
 		inet_frag_destroy(q, f);
+	}
 }
 
 static inline bool inet_frag_evicting(struct inet_frag_queue *q)

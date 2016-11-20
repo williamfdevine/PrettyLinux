@@ -54,7 +54,8 @@
  * that the pattern and the version count are always located in the oob area
  * of the first block.
  */
-struct nand_bbt_descr {
+struct nand_bbt_descr
+{
 	int options;
 	int pages[NAND_MAX_CHIPS];
 	int offs;
@@ -150,7 +151,8 @@ struct nand_bbt_descr {
  *			initial bad block scan
  * @priv:		[OPTIONAL] pointer to private bbm date
  */
-struct bbm_info {
+struct bbm_info
+{
 	int bbt_erase_shift;
 	int badblockpos;
 	int options;

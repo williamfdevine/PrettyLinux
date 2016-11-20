@@ -98,13 +98,16 @@
  *   30-+                                 30-+
  *   31     End of packet                 31     End of packet
  */
-struct alx_txd {
+struct alx_txd
+{
 	__le16 len;
 	__le16 vlan_tag;
 	__le32 word1;
-	union {
+	union
+	{
 		__le64 addr;
-		struct {
+		struct
+		{
 			__le32 pkt_len;
 			__le32 resvd;
 		} l;
@@ -146,7 +149,8 @@ struct alx_txd {
 #define DESC_GET(_x, _name) ((_x) >> _name##SHIFT & _name##MASK)
 
 /* Receive Free Descriptor */
-struct alx_rfd {
+struct alx_rfd
+{
 	__le64 addr;		/* data buffer address, length is
 				 * declared in register --- every
 				 * buffer has the same size
@@ -236,7 +240,8 @@ struct alx_rfd {
  *   30      Length error (for 802.3, length field mismatch with actual len)
  *   31      Updated, indicate to driver that this RRD is refreshed.
  */
-struct alx_rrd {
+struct alx_rrd
+{
 	__le32 word0;
 	__le32 rss_hash;
 	__le32 word2;
@@ -332,8 +337,8 @@ struct alx_rrd {
 #define ALX_SLEEP_WOL_MAGIC	0x00000002
 #define ALX_SLEEP_CIFS		0x00000004
 #define ALX_SLEEP_ACTIVE	(ALX_SLEEP_WOL_PHY | \
-				 ALX_SLEEP_WOL_MAGIC | \
-				 ALX_SLEEP_CIFS)
+							 ALX_SLEEP_WOL_MAGIC | \
+							 ALX_SLEEP_CIFS)
 
 /* for RSS hash type */
 #define ALX_RSS_HASH_TYPE_IPV4		0x1
@@ -341,9 +346,9 @@ struct alx_rrd {
 #define ALX_RSS_HASH_TYPE_IPV6		0x4
 #define ALX_RSS_HASH_TYPE_IPV6_TCP	0x8
 #define ALX_RSS_HASH_TYPE_ALL		(ALX_RSS_HASH_TYPE_IPV4 | \
-					 ALX_RSS_HASH_TYPE_IPV4_TCP | \
-					 ALX_RSS_HASH_TYPE_IPV6 | \
-					 ALX_RSS_HASH_TYPE_IPV6_TCP)
+									 ALX_RSS_HASH_TYPE_IPV4_TCP | \
+									 ALX_RSS_HASH_TYPE_IPV6 | \
+									 ALX_RSS_HASH_TYPE_IPV6_TCP)
 #define ALX_FRAME_PAD		16
 #define ALX_RAW_MTU(_mtu)	(_mtu + ETH_HLEN + ETH_FCS_LEN + VLAN_HLEN)
 #define ALX_MAX_FRAME_LEN(_mtu)	(ALIGN((ALX_RAW_MTU(_mtu) + ALX_FRAME_PAD), 8))
@@ -358,31 +363,31 @@ struct alx_rrd {
 #define ALX_MAX_HANDLED_INTRS	5
 
 #define ALX_ISR_MISC		(ALX_ISR_PCIE_LNKDOWN | \
-				 ALX_ISR_DMAW | \
-				 ALX_ISR_DMAR | \
-				 ALX_ISR_SMB | \
-				 ALX_ISR_MANU | \
-				 ALX_ISR_TIMER)
+							 ALX_ISR_DMAW | \
+							 ALX_ISR_DMAR | \
+							 ALX_ISR_SMB | \
+							 ALX_ISR_MANU | \
+							 ALX_ISR_TIMER)
 
 #define ALX_ISR_FATAL		(ALX_ISR_PCIE_LNKDOWN | \
-				 ALX_ISR_DMAW | ALX_ISR_DMAR)
+							 ALX_ISR_DMAW | ALX_ISR_DMAR)
 
 #define ALX_ISR_ALERT		(ALX_ISR_RXF_OV | \
-				 ALX_ISR_TXF_UR | \
-				 ALX_ISR_RFD_UR)
+							 ALX_ISR_TXF_UR | \
+							 ALX_ISR_RFD_UR)
 
 #define ALX_ISR_ALL_QUEUES	(ALX_ISR_TX_Q0 | \
-				 ALX_ISR_TX_Q1 | \
-				 ALX_ISR_TX_Q2 | \
-				 ALX_ISR_TX_Q3 | \
-				 ALX_ISR_RX_Q0 | \
-				 ALX_ISR_RX_Q1 | \
-				 ALX_ISR_RX_Q2 | \
-				 ALX_ISR_RX_Q3 | \
-				 ALX_ISR_RX_Q4 | \
-				 ALX_ISR_RX_Q5 | \
-				 ALX_ISR_RX_Q6 | \
-				 ALX_ISR_RX_Q7)
+							 ALX_ISR_TX_Q1 | \
+							 ALX_ISR_TX_Q2 | \
+							 ALX_ISR_TX_Q3 | \
+							 ALX_ISR_RX_Q0 | \
+							 ALX_ISR_RX_Q1 | \
+							 ALX_ISR_RX_Q2 | \
+							 ALX_ISR_RX_Q3 | \
+							 ALX_ISR_RX_Q4 | \
+							 ALX_ISR_RX_Q5 | \
+							 ALX_ISR_RX_Q6 | \
+							 ALX_ISR_RX_Q7)
 
 /* Statistics counters collected by the MAC
  *
@@ -390,7 +395,8 @@ struct alx_rrd {
  * All stats fields should be u64
  * See ethtool.c
  */
-struct alx_hw_stats {
+struct alx_hw_stats
+{
 	/* rx */
 	u64 rx_ok;		/* good RX packets */
 	u64 rx_bcast;		/* good RX broadcast packets */
@@ -462,7 +468,8 @@ struct alx_hw_stats {
 		(_data) |= ((_value) & _field ## _MASK) << _field ## _SHIFT;\
 	} while (0)
 
-struct alx_hw {
+struct alx_hw
+{
 	struct pci_dev *pdev;
 	u8 __iomem *hw_addr;
 
@@ -570,15 +577,30 @@ void alx_update_hw_stats(struct alx_hw *hw);
 static inline u32 alx_speed_to_ethadv(int speed, u8 duplex)
 {
 	if (speed == SPEED_1000 && duplex == DUPLEX_FULL)
+	{
 		return ADVERTISED_1000baseT_Full;
+	}
+
 	if (speed == SPEED_100 && duplex == DUPLEX_FULL)
+	{
 		return ADVERTISED_100baseT_Full;
-	if (speed == SPEED_100 && duplex== DUPLEX_HALF)
+	}
+
+	if (speed == SPEED_100 && duplex == DUPLEX_HALF)
+	{
 		return ADVERTISED_100baseT_Half;
+	}
+
 	if (speed == SPEED_10 && duplex == DUPLEX_FULL)
+	{
 		return ADVERTISED_10baseT_Full;
+	}
+
 	if (speed == SPEED_10 && duplex == DUPLEX_HALF)
+	{
 		return ADVERTISED_10baseT_Half;
+	}
+
 	return 0;
 }
 

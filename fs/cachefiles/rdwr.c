@@ -22,7 +22,7 @@
  * - the caller holds the waitqueue lock
  */
 static int cachefiles_read_waiter(wait_queue_t *wait, unsigned mode,
-				  int sync, void *_key)
+								  int sync, void *_key)
 {
 	struct cachefiles_one_read *monitor =
 		container_of(wait, struct cachefiles_one_read, monitor);
@@ -33,16 +33,19 @@ static int cachefiles_read_waiter(wait_queue_t *wait, unsigned mode,
 	ASSERT(key);
 
 	_enter("{%lu},%u,%d,{%p,%u}",
-	       monitor->netfs_page->index, mode, sync,
-	       key->flags, key->bit_nr);
+		   monitor->netfs_page->index, mode, sync,
+		   key->flags, key->bit_nr);
 
 	if (key->flags != &page->flags ||
-	    key->bit_nr != PG_locked)
+		key->bit_nr != PG_locked)
+	{
 		return 0;
+	}
 
 	_debug("--- monitor %p %lx ---", page, page->flags);
 
-	if (!PageUptodate(page) && !PageError(page)) {
+	if (!PageUptodate(page) && !PageError(page))
+	{
 		/* unlocked, not uptodate and not erronous? */
 		_debug("page probably truncated");
 	}
@@ -54,7 +57,7 @@ static int cachefiles_read_waiter(wait_queue_t *wait, unsigned mode,
 	ASSERT(monitor->op);
 
 	object = container_of(monitor->op->op.object,
-			      struct cachefiles_object, fscache);
+						  struct cachefiles_object, fscache);
 
 	spin_lock(&object->work_lock);
 	list_add_tail(&monitor->op_link, &monitor->op->to_do);
@@ -72,29 +75,33 @@ static int cachefiles_read_waiter(wait_queue_t *wait, unsigned mode,
  *   must wait again and 0 if successful
  */
 static int cachefiles_read_reissue(struct cachefiles_object *object,
-				   struct cachefiles_one_read *monitor)
+								   struct cachefiles_one_read *monitor)
 {
 	struct address_space *bmapping = d_backing_inode(object->backer)->i_mapping;
 	struct page *backpage = monitor->back_page, *backpage2;
 	int ret;
 
 	_enter("{ino=%lx},{%lx,%lx}",
-	       d_backing_inode(object->backer)->i_ino,
-	       backpage->index, backpage->flags);
+		   d_backing_inode(object->backer)->i_ino,
+		   backpage->index, backpage->flags);
 
 	/* skip if the page was truncated away completely */
-	if (backpage->mapping != bmapping) {
+	if (backpage->mapping != bmapping)
+	{
 		_leave(" = -ENODATA [mapping]");
 		return -ENODATA;
 	}
 
 	backpage2 = find_get_page(bmapping, backpage->index);
-	if (!backpage2) {
+
+	if (!backpage2)
+	{
 		_leave(" = -ENODATA [gone]");
 		return -ENODATA;
 	}
 
-	if (backpage != backpage2) {
+	if (backpage != backpage2)
+	{
 		put_page(backpage2);
 		_leave(" = -ENODATA [different]");
 		return -ENODATA;
@@ -107,24 +114,36 @@ static int cachefiles_read_reissue(struct cachefiles_object *object,
 	INIT_LIST_HEAD(&monitor->op_link);
 	add_page_wait_queue(backpage, &monitor->monitor);
 
-	if (trylock_page(backpage)) {
+	if (trylock_page(backpage))
+	{
 		ret = -EIO;
+
 		if (PageError(backpage))
+		{
 			goto unlock_discard;
+		}
+
 		ret = 0;
+
 		if (PageUptodate(backpage))
+		{
 			goto unlock_discard;
+		}
 
 		_debug("reissue read");
 		ret = bmapping->a_ops->readpage(NULL, backpage);
+
 		if (ret < 0)
+		{
 			goto unlock_discard;
+		}
 	}
 
 	/* but the page may have been read before the monitor was installed, so
 	 * the monitor may miss the event - so we have to ensure that we do get
 	 * one in such a case */
-	if (trylock_page(backpage)) {
+	if (trylock_page(backpage))
+	{
 		_debug("jumpstart %p {%lx}", backpage, backpage->flags);
 		unlock_page(backpage);
 	}
@@ -155,38 +174,51 @@ static void cachefiles_read_copier(struct fscache_operation *_op)
 
 	op = container_of(_op, struct fscache_retrieval, op);
 	object = container_of(op->op.object,
-			      struct cachefiles_object, fscache);
+						  struct cachefiles_object, fscache);
 
 	_enter("{ino=%lu}", d_backing_inode(object->backer)->i_ino);
 
 	max = 8;
 	spin_lock_irq(&object->work_lock);
 
-	while (!list_empty(&op->to_do)) {
+	while (!list_empty(&op->to_do))
+	{
 		monitor = list_entry(op->to_do.next,
-				     struct cachefiles_one_read, op_link);
+							 struct cachefiles_one_read, op_link);
 		list_del(&monitor->op_link);
 
 		spin_unlock_irq(&object->work_lock);
 
 		_debug("- copy {%lu}", monitor->back_page->index);
 
-	recheck:
+recheck:
+
 		if (test_bit(FSCACHE_COOKIE_INVALIDATING,
-			     &object->fscache.cookie->flags)) {
+					 &object->fscache.cookie->flags))
+		{
 			error = -ESTALE;
-		} else if (PageUptodate(monitor->back_page)) {
+		}
+		else if (PageUptodate(monitor->back_page))
+		{
 			copy_highpage(monitor->netfs_page, monitor->back_page);
 			fscache_mark_page_cached(monitor->op,
-						 monitor->netfs_page);
+									 monitor->netfs_page);
 			error = 0;
-		} else if (!PageError(monitor->back_page)) {
+		}
+		else if (!PageError(monitor->back_page))
+		{
 			/* the page has probably been truncated */
 			error = cachefiles_read_reissue(object, monitor);
+
 			if (error == -EINPROGRESS)
+			{
 				goto next;
+			}
+
 			goto recheck;
-		} else {
+		}
+		else
+		{
 			cachefiles_io_error_obj(
 				object,
 				"Readpage failed on backing file %lx",
@@ -202,12 +234,17 @@ static void cachefiles_read_copier(struct fscache_operation *_op)
 		fscache_put_retrieval(op);
 		kfree(monitor);
 
-	next:
+next:
 		/* let the thread pool have some air occasionally */
 		max--;
-		if (max < 0 || need_resched()) {
+
+		if (max < 0 || need_resched())
+		{
 			if (!list_empty(&op->to_do))
+			{
 				fscache_enqueue_retrieval(op);
+			}
+
 			_leave(" [maxed out]");
 			return;
 		}
@@ -224,8 +261,8 @@ static void cachefiles_read_copier(struct fscache_operation *_op)
  * - an uncertain page is simply discarded, to be tried again another time
  */
 static int cachefiles_read_backing_file_one(struct cachefiles_object *object,
-					    struct fscache_retrieval *op,
-					    struct page *netpage)
+		struct fscache_retrieval *op,
+		struct page *netpage)
 {
 	struct cachefiles_one_read *monitor;
 	struct address_space *bmapping;
@@ -235,11 +272,14 @@ static int cachefiles_read_backing_file_one(struct cachefiles_object *object,
 	_enter("");
 
 	_debug("read back %p{%lu,%d}",
-	       netpage, netpage->index, page_count(netpage));
+		   netpage, netpage->index, page_count(netpage));
 
 	monitor = kzalloc(sizeof(*monitor), cachefiles_gfp);
+
 	if (!monitor)
+	{
 		goto nomem;
+	}
 
 	monitor->netfs_page = netpage;
 	monitor->op = fscache_get_retrieval(op);
@@ -250,24 +290,38 @@ static int cachefiles_read_backing_file_one(struct cachefiles_object *object,
 	bmapping = d_backing_inode(object->backer)->i_mapping;
 	newpage = NULL;
 
-	for (;;) {
+	for (;;)
+	{
 		backpage = find_get_page(bmapping, netpage->index);
-		if (backpage)
-			goto backing_page_already_present;
 
-		if (!newpage) {
+		if (backpage)
+		{
+			goto backing_page_already_present;
+		}
+
+		if (!newpage)
+		{
 			newpage = __page_cache_alloc(cachefiles_gfp |
-						     __GFP_COLD);
+										 __GFP_COLD);
+
 			if (!newpage)
+			{
 				goto nomem_monitor;
+			}
 		}
 
 		ret = add_to_page_cache_lru(newpage, bmapping,
-					    netpage->index, cachefiles_gfp);
+									netpage->index, cachefiles_gfp);
+
 		if (ret == 0)
+		{
 			goto installed_new_backing_page;
+		}
+
 		if (ret != -EEXIST)
+		{
 			goto nomem_page;
+		}
 	}
 
 	/* we've installed a new backing page, so now we need to start
@@ -280,8 +334,11 @@ installed_new_backing_page:
 
 read_backing_page:
 	ret = bmapping->a_ops->readpage(NULL, backpage);
+
 	if (ret < 0)
+	{
 		goto read_error;
+	}
 
 	/* set the monitor to transfer the data across */
 monitor_backing_page:
@@ -298,10 +355,12 @@ monitor_backing_page:
 	/* but the page may have been read before the monitor was installed, so
 	 * the monitor may miss the event - so we have to ensure that we do get
 	 * one in such a case */
-	if (trylock_page(backpage)) {
+	if (trylock_page(backpage))
+	{
 		_debug("jumpstart %p {%lx}", backpage, backpage->flags);
 		unlock_page(backpage);
 	}
+
 	goto success;
 
 	/* if the backing page is already present, it can be in one of
@@ -309,19 +368,27 @@ monitor_backing_page:
 backing_page_already_present:
 	_debug("- present");
 
-	if (newpage) {
+	if (newpage)
+	{
 		put_page(newpage);
 		newpage = NULL;
 	}
 
 	if (PageError(backpage))
+	{
 		goto io_error;
+	}
 
 	if (PageUptodate(backpage))
+	{
 		goto backing_page_already_uptodate;
+	}
 
 	if (!trylock_page(backpage))
+	{
 		goto monitor_backing_page;
+	}
+
 	_debug("read %p {%lx}", backpage, backpage->flags);
 	goto read_backing_page;
 
@@ -341,21 +408,30 @@ success:
 	ret = 0;
 
 out:
+
 	if (backpage)
+	{
 		put_page(backpage);
-	if (monitor) {
+	}
+
+	if (monitor)
+	{
 		fscache_put_retrieval(monitor->op);
 		kfree(monitor);
 	}
+
 	_leave(" = %d", ret);
 	return ret;
 
 read_error:
 	_debug("read error %d", ret);
-	if (ret == -ENOMEM) {
+
+	if (ret == -ENOMEM)
+	{
 		fscache_retrieval_complete(op, 1);
 		goto out;
 	}
+
 io_error:
 	cachefiles_io_error_obj(object, "Page read error on backing file");
 	fscache_retrieval_complete(op, 1);
@@ -388,8 +464,8 @@ nomem:
  *   - -ENODATA will be returned
  */
 int cachefiles_read_or_alloc_page(struct fscache_retrieval *op,
-				  struct page *page,
-				  gfp_t gfp)
+								  struct page *page,
+								  gfp_t gfp)
 {
 	struct cachefiles_object *object;
 	struct cachefiles_cache *cache;
@@ -399,14 +475,16 @@ int cachefiles_read_or_alloc_page(struct fscache_retrieval *op,
 	int ret;
 
 	object = container_of(op->op.object,
-			      struct cachefiles_object, fscache);
+						  struct cachefiles_object, fscache);
 	cache = container_of(object->fscache.cache,
-			     struct cachefiles_cache, cache);
+						 struct cachefiles_cache, cache);
 
 	_enter("{%p},{%lx},,,", object, page->index);
 
 	if (!object->backer)
+	{
 		goto enobufs;
+	}
 
 	inode = d_backing_inode(object->backer);
 	ASSERT(S_ISREG(inode->i_mode));
@@ -431,19 +509,24 @@ int cachefiles_read_or_alloc_page(struct fscache_retrieval *op,
 
 	block = inode->i_mapping->a_ops->bmap(inode->i_mapping, block0);
 	_debug("%llx -> %llx",
-	       (unsigned long long) block0,
-	       (unsigned long long) block);
+		   (unsigned long long) block0,
+		   (unsigned long long) block);
 
-	if (block) {
+	if (block)
+	{
 		/* submit the apparently valid page to the backing fs to be
 		 * read from disk */
 		ret = cachefiles_read_backing_file_one(object, op, page);
-	} else if (cachefiles_has_space(cache, 0, 1) == 0) {
+	}
+	else if (cachefiles_has_space(cache, 0, 1) == 0)
+	{
 		/* there's space in the cache we can use */
 		fscache_mark_page_cached(op, page);
 		fscache_retrieval_complete(op, 1);
 		ret = -ENODATA;
-	} else {
+	}
+	else
+	{
 		goto enobufs;
 	}
 
@@ -461,8 +544,8 @@ enobufs:
  * - any uncertain pages are simply discarded, to be tried again another time
  */
 static int cachefiles_read_backing_file(struct cachefiles_object *object,
-					struct fscache_retrieval *op,
-					struct list_head *list)
+										struct fscache_retrieval *op,
+										struct list_head *list)
 {
 	struct cachefiles_one_read *monitor = NULL;
 	struct address_space *bmapping = d_backing_inode(object->backer)->i_mapping;
@@ -471,69 +554,95 @@ static int cachefiles_read_backing_file(struct cachefiles_object *object,
 
 	_enter("");
 
-	list_for_each_entry_safe(netpage, _n, list, lru) {
+	list_for_each_entry_safe(netpage, _n, list, lru)
+	{
 		list_del(&netpage->lru);
 
 		_debug("read back %p{%lu,%d}",
-		       netpage, netpage->index, page_count(netpage));
+			   netpage, netpage->index, page_count(netpage));
 
-		if (!monitor) {
+		if (!monitor)
+		{
 			monitor = kzalloc(sizeof(*monitor), cachefiles_gfp);
+
 			if (!monitor)
+			{
 				goto nomem;
+			}
 
 			monitor->op = fscache_get_retrieval(op);
 			init_waitqueue_func_entry(&monitor->monitor,
-						  cachefiles_read_waiter);
+									  cachefiles_read_waiter);
 		}
 
-		for (;;) {
+		for (;;)
+		{
 			backpage = find_get_page(bmapping, netpage->index);
-			if (backpage)
-				goto backing_page_already_present;
 
-			if (!newpage) {
+			if (backpage)
+			{
+				goto backing_page_already_present;
+			}
+
+			if (!newpage)
+			{
 				newpage = __page_cache_alloc(cachefiles_gfp |
-							     __GFP_COLD);
+											 __GFP_COLD);
+
 				if (!newpage)
+				{
 					goto nomem;
+				}
 			}
 
 			ret = add_to_page_cache_lru(newpage, bmapping,
-						    netpage->index,
-						    cachefiles_gfp);
+										netpage->index,
+										cachefiles_gfp);
+
 			if (ret == 0)
+			{
 				goto installed_new_backing_page;
+			}
+
 			if (ret != -EEXIST)
+			{
 				goto nomem;
+			}
 		}
 
 		/* we've installed a new backing page, so now we need
 		 * to start it reading */
-	installed_new_backing_page:
+installed_new_backing_page:
 		_debug("- new %p", newpage);
 
 		backpage = newpage;
 		newpage = NULL;
 
-	reread_backing_page:
+reread_backing_page:
 		ret = bmapping->a_ops->readpage(NULL, backpage);
+
 		if (ret < 0)
+		{
 			goto read_error;
+		}
 
 		/* add the netfs page to the pagecache and LRU, and set the
 		 * monitor to transfer the data across */
-	monitor_backing_page:
+monitor_backing_page:
 		_debug("- monitor add");
 
 		ret = add_to_page_cache_lru(netpage, op->mapping,
-					    netpage->index, cachefiles_gfp);
-		if (ret < 0) {
-			if (ret == -EEXIST) {
+									netpage->index, cachefiles_gfp);
+
+		if (ret < 0)
+		{
+			if (ret == -EEXIST)
+			{
 				put_page(netpage);
 				fscache_retrieval_complete(op, 1);
 				continue;
 			}
+
 			goto nomem;
 		}
 
@@ -550,7 +659,8 @@ static int cachefiles_read_backing_file(struct cachefiles_object *object,
 		/* but the page may have been read before the monitor was
 		 * installed, so the monitor may miss the event - so we have to
 		 * ensure that we do get one in such a case */
-		if (trylock_page(backpage)) {
+		if (trylock_page(backpage))
+		{
 			_debug("2unlock %p {%lx}", backpage, backpage->flags);
 			unlock_page(backpage);
 		}
@@ -564,28 +674,37 @@ static int cachefiles_read_backing_file(struct cachefiles_object *object,
 
 		/* if the backing page is already present, it can be in one of
 		 * three states: read in progress, read failed or read okay */
-	backing_page_already_present:
+backing_page_already_present:
 		_debug("- present %p", backpage);
 
 		if (PageError(backpage))
+		{
 			goto io_error;
+		}
 
 		if (PageUptodate(backpage))
+		{
 			goto backing_page_already_uptodate;
+		}
 
 		_debug("- not ready %p{%lx}", backpage, backpage->flags);
 
 		if (!trylock_page(backpage))
+		{
 			goto monitor_backing_page;
+		}
 
-		if (PageError(backpage)) {
+		if (PageError(backpage))
+		{
 			_debug("error %lx", backpage->flags);
 			unlock_page(backpage);
 			goto io_error;
 		}
 
 		if (PageUptodate(backpage))
+		{
 			goto backing_page_already_uptodate_unlock;
+		}
 
 		/* we've locked a page that's neither up to date nor erroneous,
 		 * so we need to attempt to read it again */
@@ -593,20 +712,24 @@ static int cachefiles_read_backing_file(struct cachefiles_object *object,
 
 		/* the backing page is already up to date, attach the netfs
 		 * page to the pagecache and LRU and copy the data across */
-	backing_page_already_uptodate_unlock:
+backing_page_already_uptodate_unlock:
 		_debug("uptodate %lx", backpage->flags);
 		unlock_page(backpage);
-	backing_page_already_uptodate:
+backing_page_already_uptodate:
 		_debug("- uptodate");
 
 		ret = add_to_page_cache_lru(netpage, op->mapping,
-					    netpage->index, cachefiles_gfp);
-		if (ret < 0) {
-			if (ret == -EEXIST) {
+									netpage->index, cachefiles_gfp);
+
+		if (ret < 0)
+		{
+			if (ret == -EEXIST)
+			{
 				put_page(netpage);
 				fscache_retrieval_complete(op, 1);
 				continue;
 			}
+
 			goto nomem;
 		}
 
@@ -630,19 +753,31 @@ static int cachefiles_read_backing_file(struct cachefiles_object *object,
 	_debug("out");
 
 out:
+
 	/* tidy up */
 	if (newpage)
+	{
 		put_page(newpage);
+	}
+
 	if (netpage)
+	{
 		put_page(netpage);
+	}
+
 	if (backpage)
+	{
 		put_page(backpage);
-	if (monitor) {
+	}
+
+	if (monitor)
+	{
 		fscache_put_retrieval(op);
 		kfree(monitor);
 	}
 
-	list_for_each_entry_safe(netpage, _n, list, lru) {
+	list_for_each_entry_safe(netpage, _n, list, lru)
+	{
 		list_del(&netpage->lru);
 		put_page(netpage);
 		fscache_retrieval_complete(op, 1);
@@ -658,8 +793,12 @@ nomem:
 
 read_error:
 	_debug("read error %d", ret);
+
 	if (ret == -ENOMEM)
+	{
 		goto record_page_complete;
+	}
+
 io_error:
 	cachefiles_io_error_obj(object, "Page read error on backing file");
 	ret = -ENOBUFS;
@@ -673,9 +812,9 @@ record_page_complete:
  * them
  */
 int cachefiles_read_or_alloc_pages(struct fscache_retrieval *op,
-				   struct list_head *pages,
-				   unsigned *nr_pages,
-				   gfp_t gfp)
+								   struct list_head *pages,
+								   unsigned *nr_pages,
+								   gfp_t gfp)
 {
 	struct cachefiles_object *object;
 	struct cachefiles_cache *cache;
@@ -687,20 +826,25 @@ int cachefiles_read_or_alloc_pages(struct fscache_retrieval *op,
 	int ret, ret2, space;
 
 	object = container_of(op->op.object,
-			      struct cachefiles_object, fscache);
+						  struct cachefiles_object, fscache);
 	cache = container_of(object->fscache.cache,
-			     struct cachefiles_cache, cache);
+						 struct cachefiles_cache, cache);
 
 	_enter("{OBJ%x,%d},,%d,,",
-	       object->fscache.debug_id, atomic_read(&op->op.usage),
-	       *nr_pages);
+		   object->fscache.debug_id, atomic_read(&op->op.usage),
+		   *nr_pages);
 
 	if (!object->backer)
+	{
 		goto all_enobufs;
+	}
 
 	space = 1;
+
 	if (cachefiles_has_space(cache, 0, *nr_pages) < 0)
+	{
 		space = 0;
+	}
 
 	inode = d_backing_inode(object->backer);
 	ASSERT(S_ISREG(inode->i_mode));
@@ -720,7 +864,8 @@ int cachefiles_read_or_alloc_pages(struct fscache_retrieval *op,
 	nrbackpages = 0;
 
 	ret = space ? -ENODATA : -ENOBUFS;
-	list_for_each_entry_safe(page, _n, pages, lru) {
+	list_for_each_entry_safe(page, _n, pages, lru)
+	{
 		sector_t block0, block;
 
 		/* we assume the absence or presence of the first block is a
@@ -733,42 +878,55 @@ int cachefiles_read_or_alloc_pages(struct fscache_retrieval *op,
 		block0 <<= shift;
 
 		block = inode->i_mapping->a_ops->bmap(inode->i_mapping,
-						      block0);
+											  block0);
 		_debug("%llx -> %llx",
-		       (unsigned long long) block0,
-		       (unsigned long long) block);
+			   (unsigned long long) block0,
+			   (unsigned long long) block);
 
-		if (block) {
+		if (block)
+		{
 			/* we have data - add it to the list to give to the
 			 * backing fs */
 			list_move(&page->lru, &backpages);
 			(*nr_pages)--;
 			nrbackpages++;
-		} else if (space && pagevec_add(&pagevec, page) == 0) {
+		}
+		else if (space && pagevec_add(&pagevec, page) == 0)
+		{
 			fscache_mark_pages_cached(op, &pagevec);
 			fscache_retrieval_complete(op, 1);
 			ret = -ENODATA;
-		} else {
+		}
+		else
+		{
 			fscache_retrieval_complete(op, 1);
 		}
 	}
 
 	if (pagevec_count(&pagevec) > 0)
+	{
 		fscache_mark_pages_cached(op, &pagevec);
+	}
 
 	if (list_empty(pages))
+	{
 		ret = 0;
+	}
 
 	/* submit the apparently valid pages to the backing fs to be read from
 	 * disk */
-	if (nrbackpages > 0) {
+	if (nrbackpages > 0)
+	{
 		ret2 = cachefiles_read_backing_file(object, op, &backpages);
+
 		if (ret2 == -ENOMEM || ret2 == -EINTR)
+		{
 			ret = ret2;
+		}
 	}
 
 	_leave(" = %d [nr=%u%s]",
-	       ret, *nr_pages, list_empty(pages) ? " empty" : "");
+		   ret, *nr_pages, list_empty(pages) ? " empty" : "");
 	return ret;
 
 all_enobufs:
@@ -788,25 +946,30 @@ all_enobufs:
  *   - 0 will be returned
  */
 int cachefiles_allocate_page(struct fscache_retrieval *op,
-			     struct page *page,
-			     gfp_t gfp)
+							 struct page *page,
+							 gfp_t gfp)
 {
 	struct cachefiles_object *object;
 	struct cachefiles_cache *cache;
 	int ret;
 
 	object = container_of(op->op.object,
-			      struct cachefiles_object, fscache);
+						  struct cachefiles_object, fscache);
 	cache = container_of(object->fscache.cache,
-			     struct cachefiles_cache, cache);
+						 struct cachefiles_cache, cache);
 
 	_enter("%p,{%lx},", object, page->index);
 
 	ret = cachefiles_has_space(cache, 0, 1);
+
 	if (ret == 0)
+	{
 		fscache_mark_page_cached(op, page);
+	}
 	else
+	{
 		ret = -ENOBUFS;
+	}
 
 	fscache_retrieval_complete(op, 1);
 	_leave(" = %d", ret);
@@ -825,9 +988,9 @@ int cachefiles_allocate_page(struct fscache_retrieval *op,
  * - metadata will be retained for any page marked
  */
 int cachefiles_allocate_pages(struct fscache_retrieval *op,
-			      struct list_head *pages,
-			      unsigned *nr_pages,
-			      gfp_t gfp)
+							  struct list_head *pages,
+							  unsigned *nr_pages,
+							  gfp_t gfp)
 {
 	struct cachefiles_object *object;
 	struct cachefiles_cache *cache;
@@ -836,25 +999,35 @@ int cachefiles_allocate_pages(struct fscache_retrieval *op,
 	int ret;
 
 	object = container_of(op->op.object,
-			      struct cachefiles_object, fscache);
+						  struct cachefiles_object, fscache);
 	cache = container_of(object->fscache.cache,
-			     struct cachefiles_cache, cache);
+						 struct cachefiles_cache, cache);
 
 	_enter("%p,,,%d,", object, *nr_pages);
 
 	ret = cachefiles_has_space(cache, 0, *nr_pages);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		pagevec_init(&pagevec, 0);
 
-		list_for_each_entry(page, pages, lru) {
+		list_for_each_entry(page, pages, lru)
+		{
 			if (pagevec_add(&pagevec, page) == 0)
+			{
 				fscache_mark_pages_cached(op, &pagevec);
+			}
 		}
 
 		if (pagevec_count(&pagevec) > 0)
+		{
 			fscache_mark_pages_cached(op, &pagevec);
+		}
+
 		ret = -ENODATA;
-	} else {
+	}
+	else
+	{
 		ret = -ENOBUFS;
 	}
 
@@ -885,11 +1058,12 @@ int cachefiles_write_page(struct fscache_storage *op, struct page *page)
 	ASSERT(page != NULL);
 
 	object = container_of(op->op.object,
-			      struct cachefiles_object, fscache);
+						  struct cachefiles_object, fscache);
 
 	_enter("%p,%p{%lx},,,", object, page, page->index);
 
-	if (!object->backer) {
+	if (!object->backer)
+	{
 		_leave(" = -ENOBUFS");
 		return -ENOBUFS;
 	}
@@ -897,7 +1071,7 @@ int cachefiles_write_page(struct fscache_storage *op, struct page *page)
 	ASSERT(d_is_reg(object->backer));
 
 	cache = container_of(object->fscache.cache,
-			     struct cachefiles_cache, cache);
+						 struct cachefiles_cache, cache);
 
 	pos = (loff_t)page->index << PAGE_SHIFT;
 
@@ -905,24 +1079,32 @@ int cachefiles_write_page(struct fscache_storage *op, struct page *page)
 	 * partial page at EOF.
 	 */
 	eof = object->fscache.store_limit_l;
+
 	if (pos >= eof)
+	{
 		goto error;
+	}
 
 	/* write the page to the backing filesystem and let it store it in its
 	 * own time */
 	path.mnt = cache->mnt;
 	path.dentry = object->backer;
 	file = dentry_open(&path, O_RDWR | O_LARGEFILE, cache->cache_cred);
-	if (IS_ERR(file)) {
+
+	if (IS_ERR(file))
+	{
 		ret = PTR_ERR(file);
 		goto error_2;
 	}
 
 	len = PAGE_SIZE;
-	if (eof & ~PAGE_MASK) {
-		if (eof - pos < PAGE_SIZE) {
+
+	if (eof & ~PAGE_MASK)
+	{
+		if (eof - pos < PAGE_SIZE)
+		{
 			_debug("cut short %llx to %llx",
-			       pos, eof);
+				   pos, eof);
 			len = eof - pos;
 			ASSERTCMP(pos + len, ==, eof);
 		}
@@ -932,8 +1114,11 @@ int cachefiles_write_page(struct fscache_storage *op, struct page *page)
 	ret = __kernel_write(file, data, len, &pos);
 	kunmap(page);
 	fput(file);
+
 	if (ret != len)
+	{
 		goto error_eio;
+	}
 
 	_leave(" = 0");
 	return 0;
@@ -941,9 +1126,11 @@ int cachefiles_write_page(struct fscache_storage *op, struct page *page)
 error_eio:
 	ret = -EIO;
 error_2:
+
 	if (ret == -EIO)
 		cachefiles_io_error_obj(object,
-					"Write page to backing file failed");
+								"Write page to backing file failed");
+
 error:
 	_leave(" = -ENOBUFS [%d]", ret);
 	return -ENOBUFS;
@@ -960,7 +1147,7 @@ void cachefiles_uncache_page(struct fscache_object *_object, struct page *page)
 
 	object = container_of(_object, struct cachefiles_object, fscache);
 	cache = container_of(object->fscache.cache,
-			     struct cachefiles_cache, cache);
+						 struct cachefiles_cache, cache);
 
 	_enter("%p,{%lu}", object, page->index);
 

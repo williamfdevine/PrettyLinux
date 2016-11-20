@@ -50,7 +50,8 @@
 #define PFX "i40evf: "
 
 /* dummy struct to make common code less painful */
-struct i40e_vsi {
+struct i40e_vsi
+{
 	struct i40evf_adapter *back;
 	struct net_device *netdev;
 	unsigned long active_vlans[BITS_TO_LONGS(VLAN_N_VID)];
@@ -93,7 +94,8 @@ struct i40e_vsi {
 /* MAX_MSIX_Q_VECTORS of these are allocated,
  * but we only use one per queue-specific vector.
  */
-struct i40e_q_vector {
+struct i40e_q_vector
+{
 	struct i40evf_adapter *adapter;
 	struct i40e_vsi *vsi;
 	struct napi_struct napi;
@@ -120,7 +122,7 @@ struct i40e_q_vector {
 
 #define I40EVF_DESC_UNUSED(R) \
 	((((R)->next_to_clean > (R)->next_to_use) ? 0 : (R)->count) + \
-	(R)->next_to_clean - (R)->next_to_use - 1)
+	 (R)->next_to_clean - (R)->next_to_use - 1)
 
 #define I40EVF_RX_DESC_ADV(R, i)	\
 	(&(((union i40e_adv_rx_desc *)((R).desc))[i]))
@@ -137,14 +139,16 @@ struct i40e_q_vector {
 
 #define I40EVF_QUEUE_END_OF_LIST 0x7FF
 #define I40EVF_FREE_VECTOR 0x7FFF
-struct i40evf_mac_filter {
+struct i40evf_mac_filter
+{
 	struct list_head list;
 	u8 macaddr[ETH_ALEN];
 	bool remove;		/* filter needs to be removed */
 	bool add;		/* filter needs to be added */
 };
 
-struct i40evf_vlan_filter {
+struct i40evf_vlan_filter
+{
 	struct list_head list;
 	u16 vlan;
 	bool remove;		/* filter needs to be removed */
@@ -152,7 +156,8 @@ struct i40evf_vlan_filter {
 };
 
 /* Driver state. The order of these is important! */
-enum i40evf_state_t {
+enum i40evf_state_t
+{
 	__I40EVF_STARTUP,		/* driver loaded, probe complete */
 	__I40EVF_REMOVE,		/* driver is being unloaded */
 	__I40EVF_INIT_VERSION_CHECK,	/* aq msg sent, awaiting reply */
@@ -166,14 +171,16 @@ enum i40evf_state_t {
 	__I40EVF_RUNNING,		/* opened, working */
 };
 
-enum i40evf_critical_section_t {
+enum i40evf_critical_section_t
+{
 	__I40EVF_IN_CRITICAL_TASK,	/* cannot be interrupted */
 };
 /* make common code happy */
 #define __I40E_DOWN __I40EVF_DOWN
 
 /* board specific private data structure */
-struct i40evf_adapter {
+struct i40evf_adapter
+{
 	struct timer_list watchdog_timer;
 	struct work_struct reset_task;
 	struct work_struct adminq_task;
@@ -211,7 +218,7 @@ struct i40evf_adapter {
 #define I40EVF_FLAG_SERVICE_CLIENT_REQUESTED	BIT(14)
 #define I40EVF_FLAG_PROMISC_ON			BIT(15)
 #define I40EVF_FLAG_ALLMULTI_ON			BIT(16)
-/* duplicates for common code */
+	/* duplicates for common code */
 #define I40E_FLAG_FDIR_ATR_ENABLED		0
 #define I40E_FLAG_DCB_ENABLED			0
 #define I40E_FLAG_IN_NETPOLL			I40EVF_FLAG_IN_NETPOLL
@@ -231,7 +238,7 @@ struct i40evf_adapter {
 #define I40EVF_FLAG_AQ_HANDLE_RESET		BIT(8)
 #define I40EVF_FLAG_AQ_CONFIGURE_RSS		BIT(9) /* direct AQ config */
 #define I40EVF_FLAG_AQ_GET_CONFIG		BIT(10)
-/* Newer style, RSS done by the PF so we can ignore hardware vagaries. */
+	/* Newer style, RSS done by the PF so we can ignore hardware vagaries. */
 #define I40EVF_FLAG_AQ_GET_HENA			BIT(11)
 #define I40EVF_FLAG_AQ_SET_HENA			BIT(12)
 #define I40EVF_FLAG_AQ_SET_RSS_KEY		BIT(13)
@@ -257,24 +264,24 @@ struct i40evf_adapter {
 	enum i40e_aq_link_speed link_speed;
 	enum i40e_virtchnl_ops current_op;
 #define CLIENT_ENABLED(_a) ((_a)->vf_res ? \
-			    (_a)->vf_res->vf_offload_flags & \
-				I40E_VIRTCHNL_VF_OFFLOAD_IWARP : \
-			    0)
-/* RSS by the PF should be preferred over RSS via other methods. */
+							(_a)->vf_res->vf_offload_flags & \
+							I40E_VIRTCHNL_VF_OFFLOAD_IWARP : \
+							0)
+	/* RSS by the PF should be preferred over RSS via other methods. */
 #define RSS_PF(_a) ((_a)->vf_res->vf_offload_flags & \
-		    I40E_VIRTCHNL_VF_OFFLOAD_RSS_PF)
+					I40E_VIRTCHNL_VF_OFFLOAD_RSS_PF)
 #define RSS_AQ(_a) ((_a)->vf_res->vf_offload_flags & \
-		    I40E_VIRTCHNL_VF_OFFLOAD_RSS_AQ)
+					I40E_VIRTCHNL_VF_OFFLOAD_RSS_AQ)
 #define RSS_REG(_a) (!((_a)->vf_res->vf_offload_flags & \
-		       (I40E_VIRTCHNL_VF_OFFLOAD_RSS_AQ | \
-			I40E_VIRTCHNL_VF_OFFLOAD_RSS_PF)))
+					   (I40E_VIRTCHNL_VF_OFFLOAD_RSS_AQ | \
+						I40E_VIRTCHNL_VF_OFFLOAD_RSS_PF)))
 #define VLAN_ALLOWED(_a) ((_a)->vf_res->vf_offload_flags & \
-			  I40E_VIRTCHNL_VF_OFFLOAD_VLAN)
+						  I40E_VIRTCHNL_VF_OFFLOAD_VLAN)
 	struct i40e_virtchnl_vf_resource *vf_res; /* incl. all VSIs */
 	struct i40e_virtchnl_vsi_resource *vsi_res; /* our LAN VSI */
 	struct i40e_virtchnl_version_info pf_version;
 #define PF_IS_V11(_a) (((_a)->pf_version.major == 1) && \
-		       ((_a)->pf_version.minor == 1))
+					   ((_a)->pf_version.minor == 1))
 	u16 msg_enable;
 	struct i40e_eth_stats current_stats;
 	struct i40e_vsi vsi;
@@ -332,7 +339,7 @@ void i40evf_set_hena(struct i40evf_adapter *adapter);
 void i40evf_set_rss_key(struct i40evf_adapter *adapter);
 void i40evf_set_rss_lut(struct i40evf_adapter *adapter);
 void i40evf_virtchnl_completion(struct i40evf_adapter *adapter,
-				enum i40e_virtchnl_ops v_opcode,
-				i40e_status v_retval, u8 *msg, u16 msglen);
+								enum i40e_virtchnl_ops v_opcode,
+								i40e_status v_retval, u8 *msg, u16 msglen);
 int i40evf_config_rss(struct i40evf_adapter *adapter);
 #endif /* _I40EVF_H_ */

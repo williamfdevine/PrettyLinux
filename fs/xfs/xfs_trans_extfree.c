@@ -39,8 +39,8 @@
  */
 struct xfs_efd_log_item *
 xfs_trans_get_efd(struct xfs_trans		*tp,
-		  struct xfs_efi_log_item	*efip,
-		  uint				nextents)
+				  struct xfs_efi_log_item	*efip,
+				  uint				nextents)
 {
 	struct xfs_efd_log_item			*efdp;
 
@@ -80,7 +80,7 @@ xfs_trans_free_extent(
 	trace_xfs_bmap_free_deferred(tp->t_mountp, agno, 0, agbno, ext_len);
 
 	error = xfs_free_extent(tp, start_block, ext_len, oinfo,
-			XFS_AG_RESV_NONE);
+							XFS_AG_RESV_NONE);
 
 	/*
 	 * Mark the transaction dirty, even on error. This ensures the
@@ -116,7 +116,7 @@ xfs_extent_free_diff_items(
 	ra = container_of(a, struct xfs_extent_free_item, xefi_list);
 	rb = container_of(b, struct xfs_extent_free_item, xefi_list);
 	return  XFS_FSB_TO_AGNO(mp, ra->xefi_startblock) -
-		XFS_FSB_TO_AGNO(mp, rb->xefi_startblock);
+			XFS_FSB_TO_AGNO(mp, rb->xefi_startblock);
 }
 
 /* Get an EFI. */
@@ -193,9 +193,9 @@ xfs_extent_free_finish_item(
 
 	free = container_of(item, struct xfs_extent_free_item, xefi_list);
 	error = xfs_trans_free_extent(tp, done_item,
-			free->xefi_startblock,
-			free->xefi_blockcount,
-			&free->xefi_oinfo);
+								  free->xefi_startblock,
+								  free->xefi_blockcount,
+								  &free->xefi_oinfo);
 	kmem_free(free);
 	return error;
 }
@@ -219,7 +219,8 @@ xfs_extent_free_cancel_item(
 	kmem_free(free);
 }
 
-static const struct xfs_defer_op_type xfs_extent_free_defer_type = {
+static const struct xfs_defer_op_type xfs_extent_free_defer_type =
+{
 	.type		= XFS_DEFER_OPS_TYPE_FREE,
 	.max_items	= XFS_EFI_MAX_FAST_EXTENTS,
 	.diff_items	= xfs_extent_free_diff_items,

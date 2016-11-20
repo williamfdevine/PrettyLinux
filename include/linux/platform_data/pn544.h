@@ -24,14 +24,16 @@
 
 #include <linux/i2c.h>
 
-enum {
+enum
+{
 	NFC_GPIO_ENABLE,
 	NFC_GPIO_FW_RESET,
 	NFC_GPIO_IRQ
 };
 
 /* board config */
-struct pn544_nfc_platform_data {
+struct pn544_nfc_platform_data
+{
 	int (*request_resources) (struct i2c_client *client);
 	void (*free_resources) (void);
 	void (*enable) (int fw);

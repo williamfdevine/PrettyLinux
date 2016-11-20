@@ -15,7 +15,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table rc6_mce[] = {
+static struct rc_map_table rc6_mce[] =
+{
 
 	{ 0x800f0400, KEY_NUMERIC_0 },
 	{ 0x800f0401, KEY_NUMERIC_1 },
@@ -93,7 +94,8 @@ static struct rc_map_table rc6_mce[] = {
 	{ 0x800f0481, KEY_PLAYPAUSE },
 };
 
-static struct rc_map_list rc6_mce_map = {
+static struct rc_map_list rc6_mce_map =
+{
 	.map = {
 		.scan    = rc6_mce,
 		.size    = ARRAY_SIZE(rc6_mce),

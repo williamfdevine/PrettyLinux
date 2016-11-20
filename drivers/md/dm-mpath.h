@@ -11,7 +11,8 @@
 
 struct dm_dev;
 
-struct dm_path {
+struct dm_path
+{
 	struct dm_dev *dev;	/* Read-only */
 	void *pscontext;	/* For path-selector use */
 };

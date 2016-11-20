@@ -79,7 +79,8 @@
 /* each element denotes a version of the API; existing numbers may not
  * change; any additions must go at the end
  */
-enum ixgbe_pfvf_api_rev {
+enum ixgbe_pfvf_api_rev
+{
 	ixgbe_mbox_api_10,	/* API version 1.0, linux/freebsd VF driver */
 	ixgbe_mbox_api_20,	/* API version 2.0, solaris Phase1 VF driver */
 	ixgbe_mbox_api_11,	/* API version 1.1, linux/freebsd VF driver */

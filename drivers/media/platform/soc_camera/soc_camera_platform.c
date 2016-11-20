@@ -20,7 +20,8 @@
 #include <media/soc_camera.h>
 #include <linux/platform_data/media/soc_camera_platform.h>
 
-struct soc_camera_platform_priv {
+struct soc_camera_platform_priv
+{
 	struct v4l2_subdev subdev;
 };
 
@@ -37,8 +38,8 @@ static int soc_camera_platform_s_stream(struct v4l2_subdev *sd, int enable)
 }
 
 static int soc_camera_platform_fill_fmt(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_format *format)
+										struct v4l2_subdev_pad_config *cfg,
+										struct v4l2_subdev_format *format)
 {
 	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
 	struct v4l2_mbus_framefmt *mf = &format->format;
@@ -59,7 +60,8 @@ static int soc_camera_platform_s_power(struct v4l2_subdev *sd, int on)
 	return soc_camera_set_power(p->icd->control, &p->icd->sdesc->subdev_desc, NULL, on);
 }
 
-static struct v4l2_subdev_core_ops platform_subdev_core_ops = {
+static struct v4l2_subdev_core_ops platform_subdev_core_ops =
+{
 	.s_power = soc_camera_platform_s_power,
 };
 
@@ -70,7 +72,9 @@ static int soc_camera_platform_enum_mbus_code(struct v4l2_subdev *sd,
 	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
 
 	if (code->pad || code->index)
+	{
 		return -EINVAL;
+	}
 
 	code->code = p->format.code;
 	return 0;
@@ -83,24 +87,28 @@ static int soc_camera_platform_get_selection(struct v4l2_subdev *sd,
 	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
 
 	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+	{
 		return -EINVAL;
+	}
 
-	switch (sel->target) {
-	case V4L2_SEL_TGT_CROP_BOUNDS:
-	case V4L2_SEL_TGT_CROP_DEFAULT:
-	case V4L2_SEL_TGT_CROP:
-		sel->r.left = 0;
-		sel->r.top = 0;
-		sel->r.width = p->format.width;
-		sel->r.height = p->format.height;
-		return 0;
-	default:
-		return -EINVAL;
+	switch (sel->target)
+	{
+		case V4L2_SEL_TGT_CROP_BOUNDS:
+		case V4L2_SEL_TGT_CROP_DEFAULT:
+		case V4L2_SEL_TGT_CROP:
+			sel->r.left = 0;
+			sel->r.top = 0;
+			sel->r.width = p->format.width;
+			sel->r.height = p->format.height;
+			return 0;
+
+		default:
+			return -EINVAL;
 	}
 }
 
 static int soc_camera_platform_g_mbus_config(struct v4l2_subdev *sd,
-					     struct v4l2_mbus_config *cfg)
+		struct v4l2_mbus_config *cfg)
 {
 	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
 
@@ -110,19 +118,22 @@ static int soc_camera_platform_g_mbus_config(struct v4l2_subdev *sd,
 	return 0;
 }
 
-static struct v4l2_subdev_video_ops platform_subdev_video_ops = {
+static struct v4l2_subdev_video_ops platform_subdev_video_ops =
+{
 	.s_stream	= soc_camera_platform_s_stream,
 	.g_mbus_config	= soc_camera_platform_g_mbus_config,
 };
 
-static const struct v4l2_subdev_pad_ops platform_subdev_pad_ops = {
+static const struct v4l2_subdev_pad_ops platform_subdev_pad_ops =
+{
 	.enum_mbus_code = soc_camera_platform_enum_mbus_code,
 	.get_selection	= soc_camera_platform_get_selection,
 	.get_fmt	= soc_camera_platform_fill_fmt,
 	.set_fmt	= soc_camera_platform_fill_fmt,
 };
 
-static struct v4l2_subdev_ops platform_subdev_ops = {
+static struct v4l2_subdev_ops platform_subdev_ops =
+{
 	.core	= &platform_subdev_core_ops,
 	.video	= &platform_subdev_video_ops,
 	.pad	= &platform_subdev_pad_ops,
@@ -136,17 +147,23 @@ static int soc_camera_platform_probe(struct platform_device *pdev)
 	struct soc_camera_device *icd;
 
 	if (!p)
+	{
 		return -EINVAL;
+	}
 
-	if (!p->icd) {
+	if (!p->icd)
+	{
 		dev_err(&pdev->dev,
-			"Platform has not set soc_camera_device pointer!\n");
+				"Platform has not set soc_camera_device pointer!\n");
 		return -EINVAL;
 	}
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	icd = p->icd;
 
@@ -174,7 +191,8 @@ static int soc_camera_platform_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver soc_camera_platform_driver = {
+static struct platform_driver soc_camera_platform_driver =
+{
 	.driver		= {
 		.name	= "soc_camera_platform",
 	},

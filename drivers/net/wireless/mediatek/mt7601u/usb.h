@@ -25,20 +25,23 @@
 
 #define MT_VEND_BUF		sizeof(__le32)
 
-enum mt_vendor_req {
+enum mt_vendor_req
+{
 	MT_VEND_DEV_MODE = 1,
 	MT_VEND_WRITE = 2,
 	MT_VEND_MULTI_READ = 7,
 	MT_VEND_WRITE_FCE = 0x42,
 };
 
-enum mt_usb_ep_in {
+enum mt_usb_ep_in
+{
 	MT_EP_IN_PKT_RX,
 	MT_EP_IN_CMD_RESP,
 	__MT_EP_IN_MAX,
 };
 
-enum mt_usb_ep_out {
+enum mt_usb_ep_out
+{
 	MT_EP_OUT_INBAND_CMD,
 	MT_EP_OUT_AC_BK,
 	MT_EP_OUT_AC_BE,
@@ -56,24 +59,24 @@ static inline struct usb_device *mt7601u_to_usb_dev(struct mt7601u_dev *mt7601u)
 static inline bool mt7601u_urb_has_error(struct urb *urb)
 {
 	return urb->status &&
-		urb->status != -ENOENT &&
-		urb->status != -ECONNRESET &&
-		urb->status != -ESHUTDOWN;
+		   urb->status != -ENOENT &&
+		   urb->status != -ECONNRESET &&
+		   urb->status != -ESHUTDOWN;
 }
 
 bool mt7601u_usb_alloc_buf(struct mt7601u_dev *dev, size_t len,
-			   struct mt7601u_dma_buf *buf);
+						   struct mt7601u_dma_buf *buf);
 void mt7601u_usb_free_buf(struct mt7601u_dev *dev, struct mt7601u_dma_buf *buf);
 int mt7601u_usb_submit_buf(struct mt7601u_dev *dev, int dir, int ep_idx,
-			   struct mt7601u_dma_buf *buf, gfp_t gfp,
-			   usb_complete_t complete_fn, void *context);
+						   struct mt7601u_dma_buf *buf, gfp_t gfp,
+						   usb_complete_t complete_fn, void *context);
 void mt7601u_complete_urb(struct urb *urb);
 
 int mt7601u_vendor_request(struct mt7601u_dev *dev, const u8 req,
-			   const u8 direction, const u16 val, const u16 offset,
-			   void *buf, const size_t buflen);
+						   const u8 direction, const u16 val, const u16 offset,
+						   void *buf, const size_t buflen);
 void mt7601u_vendor_reset(struct mt7601u_dev *dev);
 int mt7601u_vendor_single_wr(struct mt7601u_dev *dev, const u8 req,
-			     const u16 offset, const u32 val);
+							 const u16 offset, const u32 val);
 
 #endif

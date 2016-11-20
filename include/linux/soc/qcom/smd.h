@@ -12,7 +12,8 @@ struct qcom_smd_lookup;
  * struct qcom_smd_id - struct used for matching a smd device
  * @name:	name of the channel
  */
-struct qcom_smd_id {
+struct qcom_smd_id
+{
 	char name[20];
 };
 
@@ -21,7 +22,8 @@ struct qcom_smd_id {
  * @dev:	the device struct
  * @channel:	handle to the smd channel for this device
  */
-struct qcom_smd_device {
+struct qcom_smd_device
+{
 	struct device dev;
 	struct qcom_smd_channel *channel;
 };
@@ -38,7 +40,8 @@ typedef int (*qcom_smd_cb_t)(struct qcom_smd_channel *, const void *, size_t);
  *		should return 0 on success or -EBUSY if the data cannot be
  *		consumed at this time
  */
-struct qcom_smd_driver {
+struct qcom_smd_driver
+{
 	struct device_driver driver;
 	const struct qcom_smd_id *smd_match_table;
 
@@ -53,8 +56,8 @@ int qcom_smd_driver_register(struct qcom_smd_driver *drv);
 void qcom_smd_driver_unregister(struct qcom_smd_driver *drv);
 
 struct qcom_smd_channel *qcom_smd_open_channel(struct qcom_smd_channel *channel,
-					       const char *name,
-					       qcom_smd_cb_t cb);
+		const char *name,
+		qcom_smd_cb_t cb);
 void qcom_smd_close_channel(struct qcom_smd_channel *channel);
 void *qcom_smd_get_drvdata(struct qcom_smd_channel *channel);
 void qcom_smd_set_drvdata(struct qcom_smd_channel *channel, void *data);
@@ -62,7 +65,7 @@ int qcom_smd_send(struct qcom_smd_channel *channel, const void *data, int len);
 
 
 struct qcom_smd_edge *qcom_smd_register_edge(struct device *parent,
-					     struct device_node *node);
+		struct device_node *node);
 int qcom_smd_unregister_edge(struct qcom_smd_edge *edge);
 
 #else
@@ -80,8 +83,8 @@ static inline void qcom_smd_driver_unregister(struct qcom_smd_driver *drv)
 
 static inline struct qcom_smd_channel *
 qcom_smd_open_channel(struct qcom_smd_channel *channel,
-		      const char *name,
-		      qcom_smd_cb_t cb)
+					  const char *name,
+					  qcom_smd_cb_t cb)
 {
 	/* This shouldn't be possible */
 	WARN_ON(1);
@@ -108,7 +111,7 @@ static inline void qcom_smd_set_drvdata(struct qcom_smd_channel *channel, void *
 }
 
 static inline int qcom_smd_send(struct qcom_smd_channel *channel,
-				const void *data, int len)
+								const void *data, int len)
 {
 	/* This shouldn't be possible */
 	WARN_ON(1);
@@ -117,7 +120,7 @@ static inline int qcom_smd_send(struct qcom_smd_channel *channel,
 
 static inline struct qcom_smd_edge *
 qcom_smd_register_edge(struct device *parent,
-		       struct device_node *node)
+					   struct device_node *node)
 {
 	return ERR_PTR(-ENXIO);
 }
@@ -133,7 +136,7 @@ static inline int qcom_smd_unregister_edge(struct qcom_smd_edge *edge)
 
 #define module_qcom_smd_driver(__smd_driver) \
 	module_driver(__smd_driver, qcom_smd_driver_register, \
-		      qcom_smd_driver_unregister)
+				  qcom_smd_driver_unregister)
 
 
 #endif

@@ -23,7 +23,8 @@
  */
 #define MAX_BADBLOCKS	(PAGE_SIZE/8)
 
-struct badblocks {
+struct badblocks
+{
 	struct device *dev;	/* set by devm_init_badblocks */
 	int count;		/* count of bad blocks */
 	int unacked_exist;	/* there probably are unacknowledged
@@ -41,25 +42,27 @@ struct badblocks {
 };
 
 int badblocks_check(struct badblocks *bb, sector_t s, int sectors,
-		   sector_t *first_bad, int *bad_sectors);
+					sector_t *first_bad, int *bad_sectors);
 int badblocks_set(struct badblocks *bb, sector_t s, int sectors,
-			int acknowledged);
+				  int acknowledged);
 int badblocks_clear(struct badblocks *bb, sector_t s, int sectors);
 void ack_all_badblocks(struct badblocks *bb);
 ssize_t badblocks_show(struct badblocks *bb, char *page, int unack);
 ssize_t badblocks_store(struct badblocks *bb, const char *page, size_t len,
-			int unack);
+						int unack);
 int badblocks_init(struct badblocks *bb, int enable);
 void badblocks_exit(struct badblocks *bb);
 struct device;
 int devm_init_badblocks(struct device *dev, struct badblocks *bb);
 static inline void devm_exit_badblocks(struct device *dev, struct badblocks *bb)
 {
-	if (bb->dev != dev) {
+	if (bb->dev != dev)
+	{
 		dev_WARN_ONCE(dev, 1, "%s: badblocks instance not associated\n",
-				__func__);
+					  __func__);
 		return;
 	}
+
 	badblocks_exit(bb);
 }
 #endif

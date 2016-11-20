@@ -29,7 +29,8 @@
 
 #define VTPM_PROXY_REQ_COMPLETE_FLAG  BIT(0)
 
-struct proxy_dev {
+struct proxy_dev
+{
 	struct tpm_chip *chip;
 
 	u32 flags;                   /* public API flags */
@@ -67,31 +68,36 @@ static void vtpm_proxy_delete_device(struct proxy_dev *proxy_dev);
  *	Number of bytes read or negative error code
  */
 static ssize_t vtpm_proxy_fops_read(struct file *filp, char __user *buf,
-				    size_t count, loff_t *off)
+									size_t count, loff_t *off)
 {
 	struct proxy_dev *proxy_dev = filp->private_data;
 	size_t len;
 	int sig, rc;
 
 	sig = wait_event_interruptible(proxy_dev->wq,
-		proxy_dev->req_len != 0 ||
-		!(proxy_dev->state & STATE_OPENED_FLAG));
+								   proxy_dev->req_len != 0 ||
+								   !(proxy_dev->state & STATE_OPENED_FLAG));
+
 	if (sig)
+	{
 		return -EINTR;
+	}
 
 	mutex_lock(&proxy_dev->buf_lock);
 
-	if (!(proxy_dev->state & STATE_OPENED_FLAG)) {
+	if (!(proxy_dev->state & STATE_OPENED_FLAG))
+	{
 		mutex_unlock(&proxy_dev->buf_lock);
 		return -EPIPE;
 	}
 
 	len = proxy_dev->req_len;
 
-	if (count < len) {
+	if (count < len)
+	{
 		mutex_unlock(&proxy_dev->buf_lock);
 		pr_debug("Invalid size in recv: count=%zd, req_len=%zd\n",
-			 count, len);
+				 count, len);
 		return -EIO;
 	}
 
@@ -100,12 +106,16 @@ static ssize_t vtpm_proxy_fops_read(struct file *filp, char __user *buf,
 	proxy_dev->req_len = 0;
 
 	if (!rc)
+	{
 		proxy_dev->state |= STATE_WAIT_RESPONSE_FLAG;
+	}
 
 	mutex_unlock(&proxy_dev->buf_lock);
 
 	if (rc)
+	{
 		return -EFAULT;
+	}
 
 	return len;
 }
@@ -117,19 +127,21 @@ static ssize_t vtpm_proxy_fops_read(struct file *filp, char __user *buf,
  *	Number of bytes read or negative error value
  */
 static ssize_t vtpm_proxy_fops_write(struct file *filp, const char __user *buf,
-				     size_t count, loff_t *off)
+									 size_t count, loff_t *off)
 {
 	struct proxy_dev *proxy_dev = filp->private_data;
 
 	mutex_lock(&proxy_dev->buf_lock);
 
-	if (!(proxy_dev->state & STATE_OPENED_FLAG)) {
+	if (!(proxy_dev->state & STATE_OPENED_FLAG))
+	{
 		mutex_unlock(&proxy_dev->buf_lock);
 		return -EPIPE;
 	}
 
 	if (count > sizeof(proxy_dev->buffer) ||
-	    !(proxy_dev->state & STATE_WAIT_RESPONSE_FLAG)) {
+		!(proxy_dev->state & STATE_WAIT_RESPONSE_FLAG))
+	{
 		mutex_unlock(&proxy_dev->buf_lock);
 		return -EIO;
 	}
@@ -138,7 +150,8 @@ static ssize_t vtpm_proxy_fops_write(struct file *filp, const char __user *buf,
 
 	proxy_dev->req_len = 0;
 
-	if (copy_from_user(proxy_dev->buffer, buf, count)) {
+	if (copy_from_user(proxy_dev->buffer, buf, count))
+	{
 		mutex_unlock(&proxy_dev->buf_lock);
 		return -EFAULT;
 	}
@@ -170,10 +183,14 @@ static unsigned int vtpm_proxy_fops_poll(struct file *filp, poll_table *wait)
 	mutex_lock(&proxy_dev->buf_lock);
 
 	if (proxy_dev->req_len)
+	{
 		ret |= POLLIN | POLLRDNORM;
+	}
 
 	if (!(proxy_dev->state & STATE_OPENED_FLAG))
+	{
 		ret |= POLLHUP;
+	}
 
 	mutex_unlock(&proxy_dev->buf_lock);
 
@@ -226,7 +243,8 @@ static int vtpm_proxy_fops_release(struct inode *inode, struct file *filp)
 	return 0;
 }
 
-static const struct file_operations vtpm_proxy_fops = {
+static const struct file_operations vtpm_proxy_fops =
+{
 	.owner = THIS_MODULE,
 	.llseek = no_llseek,
 	.read = vtpm_proxy_fops_read,
@@ -254,16 +272,19 @@ static int vtpm_proxy_tpm_op_recv(struct tpm_chip *chip, u8 *buf, size_t count)
 	/* process gone ? */
 	mutex_lock(&proxy_dev->buf_lock);
 
-	if (!(proxy_dev->state & STATE_OPENED_FLAG)) {
+	if (!(proxy_dev->state & STATE_OPENED_FLAG))
+	{
 		mutex_unlock(&proxy_dev->buf_lock);
 		return -EPIPE;
 	}
 
 	len = proxy_dev->resp_len;
-	if (count < len) {
+
+	if (count < len)
+	{
 		dev_err(&chip->dev,
-			"Invalid size in recv: count=%zd, resp_len=%zd\n",
-			count, len);
+				"Invalid size in recv: count=%zd, resp_len=%zd\n",
+				count, len);
 		len = -EIO;
 		goto out;
 	}
@@ -288,16 +309,18 @@ static int vtpm_proxy_tpm_op_send(struct tpm_chip *chip, u8 *buf, size_t count)
 	struct proxy_dev *proxy_dev = dev_get_drvdata(&chip->dev);
 	int rc = 0;
 
-	if (count > sizeof(proxy_dev->buffer)) {
+	if (count > sizeof(proxy_dev->buffer))
+	{
 		dev_err(&chip->dev,
-			"Invalid size in send: count=%zd, buffer size=%zd\n",
-			count, sizeof(proxy_dev->buffer));
+				"Invalid size in send: count=%zd, buffer size=%zd\n",
+				count, sizeof(proxy_dev->buffer));
 		return -EIO;
 	}
 
 	mutex_lock(&proxy_dev->buf_lock);
 
-	if (!(proxy_dev->state & STATE_OPENED_FLAG)) {
+	if (!(proxy_dev->state & STATE_OPENED_FLAG))
+	{
 		mutex_unlock(&proxy_dev->buf_lock);
 		return -EPIPE;
 	}
@@ -326,7 +349,9 @@ static u8 vtpm_proxy_tpm_op_status(struct tpm_chip *chip)
 	struct proxy_dev *proxy_dev = dev_get_drvdata(&chip->dev);
 
 	if (proxy_dev->resp_len)
+	{
 		return VTPM_PROXY_REQ_COMPLETE_FLAG;
+	}
 
 	return 0;
 }
@@ -345,7 +370,8 @@ static bool vtpm_proxy_tpm_req_canceled(struct tpm_chip  *chip, u8 status)
 	return ret;
 }
 
-static const struct tpm_class_ops vtpm_proxy_tpm_ops = {
+static const struct tpm_class_ops vtpm_proxy_tpm_ops =
+{
 	.flags = TPM_OPS_AUTO_STARTUP,
 	.recv = vtpm_proxy_tpm_op_recv,
 	.send = vtpm_proxy_tpm_op_send,
@@ -364,12 +390,15 @@ static const struct tpm_class_ops vtpm_proxy_tpm_ops = {
 static void vtpm_proxy_work(struct work_struct *work)
 {
 	struct proxy_dev *proxy_dev = container_of(work, struct proxy_dev,
-						   work);
+								  work);
 	int rc;
 
 	rc = tpm_chip_register(proxy_dev->chip);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	return;
 
@@ -407,18 +436,24 @@ static struct proxy_dev *vtpm_proxy_create_proxy_dev(void)
 	int err;
 
 	proxy_dev = kzalloc(sizeof(*proxy_dev), GFP_KERNEL);
+
 	if (proxy_dev == NULL)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init_waitqueue_head(&proxy_dev->wq);
 	mutex_init(&proxy_dev->buf_lock);
 	INIT_WORK(&proxy_dev->work, vtpm_proxy_work);
 
 	chip = tpm_chip_alloc(NULL, &vtpm_proxy_tpm_ops);
-	if (IS_ERR(chip)) {
+
+	if (IS_ERR(chip))
+	{
 		err = PTR_ERR(chip);
 		goto err_proxy_dev_free;
 	}
+
 	dev_set_drvdata(&chip->dev, proxy_dev);
 
 	proxy_dev->chip = chip;
@@ -447,31 +482,40 @@ static inline void vtpm_proxy_delete_proxy_dev(struct proxy_dev *proxy_dev)
  *      Returns file pointer on success, an error value otherwise
  */
 static struct file *vtpm_proxy_create_device(
-				 struct vtpm_proxy_new_dev *vtpm_new_dev)
+	struct vtpm_proxy_new_dev *vtpm_new_dev)
 {
 	struct proxy_dev *proxy_dev;
 	int rc, fd;
 	struct file *file;
 
 	if (vtpm_new_dev->flags & ~VTPM_PROXY_FLAGS_ALL)
+	{
 		return ERR_PTR(-EOPNOTSUPP);
+	}
 
 	proxy_dev = vtpm_proxy_create_proxy_dev();
+
 	if (IS_ERR(proxy_dev))
+	{
 		return ERR_CAST(proxy_dev);
+	}
 
 	proxy_dev->flags = vtpm_new_dev->flags;
 
 	/* setup an anonymous file for the server-side */
 	fd = get_unused_fd_flags(O_RDWR);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		rc = fd;
 		goto err_delete_proxy_dev;
 	}
 
 	file = anon_inode_getfile("[vtpms]", &vtpm_proxy_fops, proxy_dev,
-				  O_RDWR);
-	if (IS_ERR(file)) {
+							  O_RDWR);
+
+	if (IS_ERR(file))
+	{
 		rc = PTR_ERR(file);
 		goto err_put_unused_fd;
 	}
@@ -481,7 +525,9 @@ static struct file *vtpm_proxy_create_device(
 	vtpm_proxy_fops_open(file);
 
 	if (proxy_dev->flags & VTPM_PROXY_FLAG_TPM2)
+	{
 		proxy_dev->chip->flags |= TPM_CHIP_FLAG_TPM2;
+	}
 
 	vtpm_proxy_work_start(proxy_dev);
 
@@ -531,48 +577,62 @@ static void vtpm_proxy_delete_device(struct proxy_dev *proxy_dev)
  *      Returns 0 on success, a negative error code otherwise.
  */
 static long vtpmx_fops_ioctl(struct file *f, unsigned int ioctl,
-				   unsigned long arg)
+							 unsigned long arg)
 {
 	void __user *argp = (void __user *)arg;
 	struct vtpm_proxy_new_dev __user *vtpm_new_dev_p;
 	struct vtpm_proxy_new_dev vtpm_new_dev;
 	struct file *file;
 
-	switch (ioctl) {
-	case VTPM_PROXY_IOC_NEW_DEV:
-		if (!capable(CAP_SYS_ADMIN))
-			return -EPERM;
-		vtpm_new_dev_p = argp;
-		if (copy_from_user(&vtpm_new_dev, vtpm_new_dev_p,
-				   sizeof(vtpm_new_dev)))
-			return -EFAULT;
-		file = vtpm_proxy_create_device(&vtpm_new_dev);
-		if (IS_ERR(file))
-			return PTR_ERR(file);
-		if (copy_to_user(vtpm_new_dev_p, &vtpm_new_dev,
-				 sizeof(vtpm_new_dev))) {
-			put_unused_fd(vtpm_new_dev.fd);
-			fput(file);
-			return -EFAULT;
-		}
+	switch (ioctl)
+	{
+		case VTPM_PROXY_IOC_NEW_DEV:
+			if (!capable(CAP_SYS_ADMIN))
+			{
+				return -EPERM;
+			}
 
-		fd_install(vtpm_new_dev.fd, file);
-		return 0;
+			vtpm_new_dev_p = argp;
 
-	default:
-		return -ENOIOCTLCMD;
+			if (copy_from_user(&vtpm_new_dev, vtpm_new_dev_p,
+							   sizeof(vtpm_new_dev)))
+			{
+				return -EFAULT;
+			}
+
+			file = vtpm_proxy_create_device(&vtpm_new_dev);
+
+			if (IS_ERR(file))
+			{
+				return PTR_ERR(file);
+			}
+
+			if (copy_to_user(vtpm_new_dev_p, &vtpm_new_dev,
+							 sizeof(vtpm_new_dev)))
+			{
+				put_unused_fd(vtpm_new_dev.fd);
+				fput(file);
+				return -EFAULT;
+			}
+
+			fd_install(vtpm_new_dev.fd, file);
+			return 0;
+
+		default:
+			return -ENOIOCTLCMD;
 	}
 }
 
 #ifdef CONFIG_COMPAT
 static long vtpmx_fops_compat_ioctl(struct file *f, unsigned int ioctl,
-					  unsigned long arg)
+									unsigned long arg)
 {
 	return vtpmx_fops_ioctl(f, ioctl, (unsigned long)compat_ptr(arg));
 }
 #endif
 
-static const struct file_operations vtpmx_fops = {
+static const struct file_operations vtpmx_fops =
+{
 	.owner = THIS_MODULE,
 	.unlocked_ioctl = vtpmx_fops_ioctl,
 #ifdef CONFIG_COMPAT
@@ -581,7 +641,8 @@ static const struct file_operations vtpmx_fops = {
 	.llseek = noop_llseek,
 };
 
-static struct miscdevice vtpmx_miscdev = {
+static struct miscdevice vtpmx_miscdev =
+{
 	.minor = MISC_DYNAMIC_MINOR,
 	.name = "vtpmx",
 	.fops = &vtpmx_fops,
@@ -602,13 +663,17 @@ static int __init vtpm_module_init(void)
 	int rc;
 
 	rc = vtpmx_init();
-	if (rc) {
+
+	if (rc)
+	{
 		pr_err("couldn't create vtpmx device\n");
 		return rc;
 	}
 
 	workqueue = create_workqueue("tpm-vtpm");
-	if (!workqueue) {
+
+	if (!workqueue)
+	{
 		pr_err("couldn't create workqueue\n");
 		rc = -ENOMEM;
 		goto err_vtpmx_cleanup;

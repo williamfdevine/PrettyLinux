@@ -24,21 +24,31 @@
 #include "nv40.h"
 
 static const struct nvkm_specsrc
-gt215_zcull_sources[] = {
-	{ 0x402ca4, (const struct nvkm_specmux[]) {
+	gt215_zcull_sources[] =
+{
+	{
+		0x402ca4, (const struct nvkm_specmux[])
+		{
 			{ 0x7fff, 0, "unk0" },
 			{ 0xff, 24, "unk24" },
 			{}
-		}, "pgraph_zcull_pm_unka4" },
+		}, "pgraph_zcull_pm_unka4"
+	},
 	{}
 };
 
 static const struct nvkm_specdom
-gt215_pm[] = {
-	{ 0x20, (const struct nvkm_specsig[]) {
+	gt215_pm[] =
+{
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
-	{ 0xf0, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0xf0, (const struct nvkm_specsig[])
+		{
 			{ 0xcb, "pc01_gr_idle" },
 			{ 0x86, "pc01_strmout_00" },
 			{ 0x87, "pc01_strmout_01" },
@@ -85,8 +95,11 @@ gt215_pm[] = {
 			{ 0xb2, "pc01_unk00" },
 			{ 0xec, "pc01_trailer" },
 			{}
-		}, &nv40_perfctr_func },
-	{ 0xe0, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0xe0, (const struct nvkm_specsig[])
+		{
 			{ 0x64, "pc02_crop_00", gt200_crop_sources },
 			{ 0x65, "pc02_crop_01", gt200_crop_sources },
 			{ 0x66, "pc02_crop_02", gt200_crop_sources },
@@ -112,22 +125,38 @@ gt215_pm[] = {
 			{ 0x7f, "pc02_zrop_03", nv50_zrop_sources },
 			{ 0xcc, "pc02_trailer" },
 			{}
-		}, &nv40_perfctr_func },
-	{ 0x20, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
-	{ 0x20, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
-	{ 0x20, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
-	{ 0x20, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
-	{ 0x20, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
+		}, &nv40_perfctr_func
+	},
 	{}
 };
 

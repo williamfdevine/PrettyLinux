@@ -16,7 +16,8 @@
  * struct atmel_abdac_pdata - board specific ABDAC configuration
  * @dws: DMA slave interface to use for sound playback.
  */
-struct atmel_abdac_pdata {
+struct atmel_abdac_pdata
+{
 	struct dw_dma_slave	dws;
 };
 

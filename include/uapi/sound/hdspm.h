@@ -25,7 +25,8 @@
 /* Maximum channels is 64 even on 56Mode you have 64playbacks to matrix */
 #define HDSPM_MAX_CHANNELS      64
 
-enum hdspm_io_type {
+enum hdspm_io_type
+{
 	MADI,
 	MADIface,
 	AIO,
@@ -33,7 +34,8 @@ enum hdspm_io_type {
 	RayDAT
 };
 
-enum hdspm_speed {
+enum hdspm_speed
+{
 	ss,
 	ds,
 	qs
@@ -41,7 +43,8 @@ enum hdspm_speed {
 
 /* -------------------- IOCTL Peak/RMS Meters -------------------- */
 
-struct hdspm_peak_rms {
+struct hdspm_peak_rms
+{
 	__u32 input_peaks[64];
 	__u32 playback_peaks[64];
 	__u32 output_peaks[64];
@@ -59,7 +62,8 @@ struct hdspm_peak_rms {
 
 /* ------------ CONFIG block IOCTL ---------------------- */
 
-struct hdspm_config {
+struct hdspm_config
+{
 	unsigned char pref_sync_ref;
 	unsigned char wordclock_sync_check;
 	unsigned char madi_sync_check;
@@ -85,7 +89,8 @@ struct hdspm_config {
  * hdspm_status struct.
  */
 
-enum hdspm_ltc_format {
+enum hdspm_ltc_format
+{
 	format_invalid,
 	fps_24,
 	fps_25,
@@ -93,19 +98,22 @@ enum hdspm_ltc_format {
 	fps_30
 };
 
-enum hdspm_ltc_frame {
+enum hdspm_ltc_frame
+{
 	frame_invalid,
 	drop_frame,
 	full_frame
 };
 
-enum hdspm_ltc_input_format {
+enum hdspm_ltc_input_format
+{
 	ntsc,
 	pal,
 	no_video
 };
 
-struct hdspm_ltc {
+struct hdspm_ltc
+{
 	unsigned int ltc;
 
 	enum hdspm_ltc_format format;
@@ -121,28 +129,33 @@ struct hdspm_ltc {
  * connection status.
  */
 
-enum hdspm_sync {
+enum hdspm_sync
+{
 	hdspm_sync_no_lock = 0,
 	hdspm_sync_lock = 1,
 	hdspm_sync_sync = 2
 };
 
-enum hdspm_madi_input {
+enum hdspm_madi_input
+{
 	hdspm_input_optical = 0,
 	hdspm_input_coax = 1
 };
 
-enum hdspm_madi_channel_format {
+enum hdspm_madi_channel_format
+{
 	hdspm_format_ch_64 = 0,
 	hdspm_format_ch_56 = 1
 };
 
-enum hdspm_madi_frame_format {
+enum hdspm_madi_frame_format
+{
 	hdspm_frame_48 = 0,
 	hdspm_frame_96 = 1
 };
 
-enum hdspm_syncsource {
+enum hdspm_syncsource
+{
 	syncsource_wc = 0,
 	syncsource_madi = 1,
 	syncsource_tco = 2,
@@ -150,15 +163,18 @@ enum hdspm_syncsource {
 	syncsource_none = 4
 };
 
-struct hdspm_status {
+struct hdspm_status
+{
 	__u8 card_type; /* enum hdspm_io_type */
 	enum hdspm_syncsource autosync_source;
 
 	__u64 card_clock;
 	__u32 master_period;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__u8 sync_wc; /* enum hdspm_sync */
 			__u8 sync_madi; /* enum hdspm_sync */
 			__u8 sync_tco; /* enum hdspm_sync */
@@ -179,7 +195,8 @@ struct hdspm_status {
 
 #define HDSPM_ADDON_TCO 1
 
-struct hdspm_version {
+struct hdspm_version
+{
 	__u8 card_type; /* enum hdspm_io_type */
 	char cardname[20];
 	unsigned int serial;
@@ -204,16 +221,19 @@ struct hdspm_version {
 
 #define HDSPM_MIXER_CHANNELS HDSPM_MAX_CHANNELS
 
-struct hdspm_channelfader {
+struct hdspm_channelfader
+{
 	unsigned int in[HDSPM_MIXER_CHANNELS];
 	unsigned int pb[HDSPM_MIXER_CHANNELS];
 };
 
-struct hdspm_mixer {
+struct hdspm_mixer
+{
 	struct hdspm_channelfader ch[HDSPM_MIXER_CHANNELS];
 };
 
-struct hdspm_mixer_ioctl {
+struct hdspm_mixer_ioctl
+{
 	struct hdspm_mixer *mixer;
 };
 

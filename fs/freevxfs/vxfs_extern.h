@@ -67,8 +67,8 @@ extern int			vxfs_read_olt(struct super_block *, u_long);
 
 /* vxfs_subr.c */
 extern const struct address_space_operations vxfs_aops;
-extern struct page *		vxfs_get_page(struct address_space *, u_long);
+extern struct page 		*vxfs_get_page(struct address_space *, u_long);
 extern void			vxfs_put_page(struct page *);
-extern struct buffer_head *	vxfs_bread(struct inode *, int);
+extern struct buffer_head 	*vxfs_bread(struct inode *, int);
 
 #endif /* _VXFS_EXTERN_H_ */

@@ -48,7 +48,7 @@ static bool rb532_button_pressed(void)
 static void rb532_button_poll(struct input_polled_dev *poll_dev)
 {
 	input_report_key(poll_dev->input, RB532_BTN_KSYM,
-			 rb532_button_pressed());
+					 rb532_button_pressed());
 	input_sync(poll_dev->input);
 }
 
@@ -58,8 +58,11 @@ static int rb532_button_probe(struct platform_device *pdev)
 	int error;
 
 	poll_dev = input_allocate_polled_device();
+
 	if (!poll_dev)
+	{
 		return -ENOMEM;
+	}
 
 	poll_dev->poll = rb532_button_poll;
 	poll_dev->poll_interval = RB532_BTN_RATE;
@@ -74,7 +77,9 @@ static int rb532_button_probe(struct platform_device *pdev)
 	input_set_capability(poll_dev->input, EV_KEY, RB532_BTN_KSYM);
 
 	error = input_register_polled_device(poll_dev);
-	if (error) {
+
+	if (error)
+	{
 		input_free_polled_device(poll_dev);
 		return error;
 	}
@@ -92,7 +97,8 @@ static int rb532_button_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver rb532_button_driver = {
+static struct platform_driver rb532_button_driver =
+{
 	.probe = rb532_button_probe,
 	.remove = rb532_button_remove,
 	.driver = {

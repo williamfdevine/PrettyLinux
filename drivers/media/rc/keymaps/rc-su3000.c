@@ -11,7 +11,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table su3000[] = {
+static struct rc_map_table su3000[] =
+{
 	{ 0x25, KEY_POWER },	/* right-bottom Red */
 	{ 0x0a, KEY_MUTE },	/* -/-- */
 	{ 0x01, KEY_1 },
@@ -49,7 +50,8 @@ static struct rc_map_table su3000[] = {
 	{ 0x0c, KEY_ESC }	/* upper Red button */
 };
 
-static struct rc_map_list su3000_map = {
+static struct rc_map_list su3000_map =
+{
 	.map = {
 		.scan    = su3000,
 		.size    = ARRAY_SIZE(su3000),

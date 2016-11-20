@@ -2,13 +2,15 @@
 #define __NVKM_VOLT_H__
 #include <core/subdev.h>
 
-struct nvkm_volt {
+struct nvkm_volt
+{
 	const struct nvkm_volt_func *func;
 	struct nvkm_subdev subdev;
 
 	u8 vid_mask;
 	u8 vid_nr;
-	struct {
+	struct
+	{
 		u32 uv;
 		u8 vid;
 	} vid[256];

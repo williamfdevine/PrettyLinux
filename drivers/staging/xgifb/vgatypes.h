@@ -5,7 +5,8 @@
 #include "../../video/fbdev/sis/vgatypes.h"
 #include "../../video/fbdev/sis/sis.h"		/* for LCD_TYPE */
 
-enum XGI_VB_CHIP_TYPE {
+enum XGI_VB_CHIP_TYPE
+{
 	VB_CHIP_Legacy = 0,
 	VB_CHIP_301,
 	VB_CHIP_301B,
@@ -19,28 +20,29 @@ enum XGI_VB_CHIP_TYPE {
 	MAX_VB_CHIP
 };
 
-struct xgi_hw_device_info {
+struct xgi_hw_device_info
+{
 	unsigned long ulExternalChip; /* NO VB or other video bridge*/
-				      /* if ujVBChipID = VB_CHIP_UNKNOWN, */
+	/* if ujVBChipID = VB_CHIP_UNKNOWN, */
 
 	void __iomem *pjVideoMemoryAddress;/* base virtual memory address */
-					    /* of Linear VGA memory */
+	/* of Linear VGA memory */
 
 	unsigned long ulVideoMemorySize; /* size, in bytes, of the
 					  * memory on the board
 					  */
 
 	unsigned char jChipType; /* Used to Identify Graphics Chip */
-				 /* defined in the data structure type  */
-				 /* "XGI_CHIP_TYPE" */
+	/* defined in the data structure type  */
+	/* "XGI_CHIP_TYPE" */
 
 	unsigned char jChipRevision; /* Used to Identify Graphics
 				      * Chip Revision
 				      */
 
 	unsigned char ujVBChipID; /* the ID of video bridge */
-				  /* defined in the data structure type */
-				  /* "XGI_VB_CHIP_TYPE" */
+	/* defined in the data structure type */
+	/* "XGI_VB_CHIP_TYPE" */
 
 	unsigned long ulCRT2LCDType; /* defined in the data structure type */
 };

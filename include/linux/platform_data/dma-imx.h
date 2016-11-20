@@ -16,7 +16,8 @@
 /*
  * This enumerates peripheral types. Used for SDMA.
  */
-enum sdma_peripheral_type {
+enum sdma_peripheral_type
+{
 	IMX_DMATYPE_SSI,	/* MCU domain SSI */
 	IMX_DMATYPE_SSI_SP,	/* Shared SSI */
 	IMX_DMATYPE_MMC,	/* MMC */
@@ -44,13 +45,15 @@ enum sdma_peripheral_type {
 	IMX_DMATYPE_SAI,	/* SAI */
 };
 
-enum imx_dma_prio {
+enum imx_dma_prio
+{
 	DMA_PRIO_HIGH = 0,
 	DMA_PRIO_MEDIUM = 1,
 	DMA_PRIO_LOW = 2
 };
 
-struct imx_dma_data {
+struct imx_dma_data
+{
 	int dma_request; /* DMA request line */
 	int dma_request2; /* secondary DMA request line */
 	enum sdma_peripheral_type peripheral_type;
@@ -65,7 +68,7 @@ static inline int imx_dma_is_ipu(struct dma_chan *chan)
 static inline int imx_dma_is_general_purpose(struct dma_chan *chan)
 {
 	return !strcmp(chan->device->dev->driver->name, "imx-sdma") ||
-		!strcmp(chan->device->dev->driver->name, "imx-dma");
+		   !strcmp(chan->device->dev->driver->name, "imx-dma");
 }
 
 #endif

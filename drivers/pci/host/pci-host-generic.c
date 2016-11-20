@@ -26,7 +26,8 @@
 #include <linux/pci-ecam.h>
 #include <linux/platform_device.h>
 
-static struct pci_ecam_ops gen_pci_cfg_cam_bus_ops = {
+static struct pci_ecam_ops gen_pci_cfg_cam_bus_ops =
+{
 	.bus_shift	= 16,
 	.pci_ops	= {
 		.map_bus	= pci_ecam_map_bus,
@@ -35,12 +36,17 @@ static struct pci_ecam_ops gen_pci_cfg_cam_bus_ops = {
 	}
 };
 
-static const struct of_device_id gen_pci_of_match[] = {
-	{ .compatible = "pci-host-cam-generic",
-	  .data = &gen_pci_cfg_cam_bus_ops },
+static const struct of_device_id gen_pci_of_match[] =
+{
+	{
+		.compatible = "pci-host-cam-generic",
+		.data = &gen_pci_cfg_cam_bus_ops
+	},
 
-	{ .compatible = "pci-host-ecam-generic",
-	  .data = &pci_generic_ecam_ops },
+	{
+		.compatible = "pci-host-ecam-generic",
+		.data = &pci_generic_ecam_ops
+	},
 
 	{ },
 };
@@ -56,7 +62,8 @@ static int gen_pci_probe(struct platform_device *pdev)
 	return pci_host_common_probe(pdev, ops);
 }
 
-static struct platform_driver gen_pci_driver = {
+static struct platform_driver gen_pci_driver =
+{
 	.driver = {
 		.name = "pci-host-generic",
 		.of_match_table = gen_pci_of_match,

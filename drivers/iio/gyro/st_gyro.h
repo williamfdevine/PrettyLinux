@@ -27,7 +27,8 @@
  * struct st_sensors_platform_data - gyro platform data
  * @drdy_int_pin: DRDY on gyros is available only on INT2 pin.
  */
-static const struct st_sensors_platform_data gyro_pdata = {
+static const struct st_sensors_platform_data gyro_pdata =
+{
 	.drdy_int_pin = 2,
 };
 

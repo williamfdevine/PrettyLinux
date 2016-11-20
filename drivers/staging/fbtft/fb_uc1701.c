@@ -131,14 +131,19 @@ static int write_vmem(struct fbtft_par *par, size_t offset, size_t len)
 	int x, y, i;
 	int ret = 0;
 
-	for (y = 0; y < PAGES; y++) {
+	for (y = 0; y < PAGES; y++)
+	{
 		buf = par->txbuf.buf;
-		for (x = 0; x < WIDTH; x++) {
+
+		for (x = 0; x < WIDTH; x++)
+		{
 			*buf = 0x00;
+
 			for (i = 0; i < 8; i++)
 				*buf |= (vmem16[((y * 8 * WIDTH) +
-						 (i * WIDTH)) + x] ?
-					 1 : 0) << i;
+								 (i * WIDTH)) + x] ?
+						 1 : 0) << i;
+
 			buf++;
 		}
 
@@ -152,12 +157,13 @@ static int write_vmem(struct fbtft_par *par, size_t offset, size_t len)
 
 	if (ret < 0)
 		dev_err(par->info->device, "write failed and returned: %d\n",
-			ret);
+				ret);
 
 	return ret;
 }
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 8,
 	.width = WIDTH,
 	.height = HEIGHT,

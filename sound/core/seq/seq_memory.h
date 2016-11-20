@@ -27,7 +27,8 @@
 struct snd_info_buffer;
 
 /* container for sequencer event (internal use) */
-struct snd_seq_event_cell {
+struct snd_seq_event_cell
+{
 	struct snd_seq_event event;
 	struct snd_seq_pool *pool;				/* used pool */
 	struct snd_seq_event_cell *next;	/* next cell */
@@ -38,7 +39,8 @@ struct snd_seq_event_cell {
    pool as we need to know the base address of the pool when releasing
    memory. */
 
-struct snd_seq_pool {
+struct snd_seq_pool
+{
 	struct snd_seq_event_cell *ptr;	/* pointer to first event chunk */
 	struct snd_seq_event_cell *free;	/* pointer to the head of the free list */
 
@@ -66,7 +68,7 @@ struct snd_seq_pool {
 void snd_seq_cell_free(struct snd_seq_event_cell *cell);
 
 int snd_seq_event_dup(struct snd_seq_pool *pool, struct snd_seq_event *event,
-		      struct snd_seq_event_cell **cellp, int nonblock, struct file *file);
+					  struct snd_seq_event_cell **cellp, int nonblock, struct file *file);
 
 /* return number of unused (free) cells */
 static inline int snd_seq_unused_cells(struct snd_seq_pool *pool)
@@ -94,7 +96,7 @@ int snd_seq_pool_delete(struct snd_seq_pool **pool);
 
 /* init memory */
 int snd_sequencer_memory_init(void);
-            
+
 /* release event memory */
 void snd_sequencer_memory_done(void);
 
@@ -102,6 +104,6 @@ void snd_sequencer_memory_done(void);
 int snd_seq_pool_poll_wait(struct snd_seq_pool *pool, struct file *file, poll_table *wait);
 
 void snd_seq_info_pool(struct snd_info_buffer *buffer,
-		       struct snd_seq_pool *pool, char *space);
+					   struct snd_seq_pool *pool, char *space);
 
 #endif

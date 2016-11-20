@@ -22,7 +22,8 @@
 #include <linux/module.h>
 
 
-static struct rc_map_table total_media_in_hand_02[] = {
+static struct rc_map_table total_media_in_hand_02[] =
+{
 	{ 0x0000, KEY_0 },
 	{ 0x0001, KEY_1 },
 	{ 0x0002, KEY_2 },
@@ -60,7 +61,8 @@ static struct rc_map_table total_media_in_hand_02[] = {
 	{ 0x0038, KEY_VIDEO },                  /* TV/AV/S-Video/YPbPr */
 };
 
-static struct rc_map_list total_media_in_hand_02_map = {
+static struct rc_map_list total_media_in_hand_02_map =
+{
 	.map = {
 		.scan    = total_media_in_hand_02,
 		.size    = ARRAY_SIZE(total_media_in_hand_02),

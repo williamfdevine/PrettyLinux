@@ -24,22 +24,24 @@ struct dentry;
  * name.  When @prefix is set instead, match attributes with that prefix and
  * with a non-empty suffix.
  */
-struct xattr_handler {
+struct xattr_handler
+{
 	const char *name;
 	const char *prefix;
 	int flags;      /* fs private flags */
 	bool (*list)(struct dentry *dentry);
 	int (*get)(const struct xattr_handler *, struct dentry *dentry,
-		   struct inode *inode, const char *name, void *buffer,
-		   size_t size);
+			   struct inode *inode, const char *name, void *buffer,
+			   size_t size);
 	int (*set)(const struct xattr_handler *, struct dentry *dentry,
-		   struct inode *inode, const char *name, const void *buffer,
-		   size_t size, int flags);
+			   struct inode *inode, const char *name, const void *buffer,
+			   size_t size, int flags);
 };
 
 const char *xattr_full_name(const struct xattr_handler *, const char *);
 
-struct xattr {
+struct xattr
+{
 	const char *name;
 	void *value;
 	size_t value_len;
@@ -57,19 +59,21 @@ int vfs_removexattr(struct dentry *, const char *);
 
 ssize_t generic_listxattr(struct dentry *dentry, char *buffer, size_t buffer_size);
 ssize_t vfs_getxattr_alloc(struct dentry *dentry, const char *name,
-			   char **xattr_value, size_t size, gfp_t flags);
+						   char **xattr_value, size_t size, gfp_t flags);
 
 static inline const char *xattr_prefix(const struct xattr_handler *handler)
 {
-	return handler->prefix ?: handler->name;
+	return handler->prefix ? : handler->name;
 }
 
-struct simple_xattrs {
+struct simple_xattrs
+{
 	struct list_head head;
 	spinlock_t lock;
 };
 
-struct simple_xattr {
+struct simple_xattr
+{
 	struct list_head list;
 	char *name;
 	size_t size;
@@ -92,7 +96,8 @@ static inline void simple_xattrs_free(struct simple_xattrs *xattrs)
 {
 	struct simple_xattr *xattr, *node;
 
-	list_for_each_entry_safe(xattr, node, &xattrs->head, list) {
+	list_for_each_entry_safe(xattr, node, &xattrs->head, list)
+	{
 		kfree(xattr->name);
 		kfree(xattr);
 	}
@@ -100,12 +105,12 @@ static inline void simple_xattrs_free(struct simple_xattrs *xattrs)
 
 struct simple_xattr *simple_xattr_alloc(const void *value, size_t size);
 int simple_xattr_get(struct simple_xattrs *xattrs, const char *name,
-		     void *buffer, size_t size);
+					 void *buffer, size_t size);
 int simple_xattr_set(struct simple_xattrs *xattrs, const char *name,
-		     const void *value, size_t size, int flags);
+					 const void *value, size_t size, int flags);
 ssize_t simple_xattr_list(struct inode *inode, struct simple_xattrs *xattrs, char *buffer,
-			  size_t size);
+						  size_t size);
 void simple_xattr_list_add(struct simple_xattrs *xattrs,
-			   struct simple_xattr *new_xattr);
+						   struct simple_xattr *new_xattr);
 
 #endif	/* _LINUX_XATTR_H */

@@ -23,8 +23,8 @@
 extern struct bus_type pcie_port_bus_type;
 int pcie_port_device_register(struct pci_dev *dev);
 #ifdef CONFIG_PM
-int pcie_port_device_suspend(struct device *dev);
-int pcie_port_device_resume(struct device *dev);
+	int pcie_port_device_suspend(struct device *dev);
+	int pcie_port_device_resume(struct device *dev);
 #endif
 void pcie_port_device_remove(struct pci_dev *dev);
 int __must_check pcie_port_bus_register(void);
@@ -74,7 +74,7 @@ static inline void pcie_port_platform_notify(struct pci_dev *port, int *mask)
 	pcie_port_acpi_setup(port, mask);
 }
 #else /* !CONFIG_ACPI */
-static inline void pcie_port_platform_notify(struct pci_dev *port, int *mask){}
+static inline void pcie_port_platform_notify(struct pci_dev *port, int *mask) {}
 #endif /* !CONFIG_ACPI */
 
 #endif /* _PORTDRV_H_ */

@@ -3,7 +3,7 @@
 
 /******************************************************************************
     (c) 1995-1998 E.M. Serrat		emserrat@geocities.com
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -17,11 +17,11 @@
 
 struct sk_buff *dn_alloc_skb(struct sock *sk, int size, gfp_t pri);
 int dn_route_output_sock(struct dst_entry __rcu **pprt, struct flowidn *,
-			 struct sock *sk, int flags);
+						 struct sock *sk, int flags);
 int dn_cache_dump(struct sk_buff *skb, struct netlink_callback *cb);
 void dn_rt_cache_flush(int delay);
 int dn_route_rcv(struct sk_buff *skb, struct net_device *dev,
-		 struct packet_type *pt, struct net_device *orig_dev);
+				 struct packet_type *pt, struct net_device *orig_dev);
 
 /* Masks for flags field */
 #define DN_RT_F_PID 0x07 /* Mask for packet type                      */
@@ -67,7 +67,8 @@ int dn_route_rcv(struct sk_buff *skb, struct net_device *dev,
  * rt_daddr = fl.fld_src to allow the route to be used for returning
  * packets to the originating host.
  */
-struct dn_route {
+struct dn_route
+{
 	struct dst_entry dst;
 
 	struct neighbour *n;
@@ -111,12 +112,18 @@ static inline void dn_rt_finish_output(struct sk_buff *skb, char *dst, char *src
 	struct net_device *dev = skb->dev;
 
 	if ((dev->type != ARPHRD_ETHER) && (dev->type != ARPHRD_LOOPBACK))
+	{
 		dst = NULL;
+	}
 
 	if (dev_hard_header(skb, dev, ETH_P_DNA_RT, dst, src, skb->len) >= 0)
+	{
 		dn_rt_send(skb);
+	}
 	else
+	{
 		kfree_skb(skb);
+	}
 }
 
 #endif /* _NET_DN_ROUTE_H */

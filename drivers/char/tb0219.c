@@ -56,7 +56,8 @@ static DEFINE_SPINLOCK(tb0219_lock);
 #define TB0219_PCI_SLOT2_IRQ_STATUS	0x12
 #define TB0219_PCI_SLOT3_IRQ_STATUS	0x14
 
-typedef enum {
+typedef enum
+{
 	TYPE_LED,
 	TYPE_GPIO_OUTPUT,
 } tb0219_type_t;
@@ -103,8 +104,11 @@ static inline char get_gpio_input_pin(unsigned int pin)
 	uint16_t values;
 
 	values = tb0219_read(TB0219_GPIO_INPUT);
+
 	if (values & (1 << pin))
+	{
 		return '1';
+	}
 
 	return '0';
 }
@@ -114,8 +118,11 @@ static inline char get_gpio_output_pin(unsigned int pin)
 	uint16_t values;
 
 	values = tb0219_read(TB0219_GPIO_OUTPUT);
+
 	if (values & (1 << pin))
+	{
 		return '1';
+	}
 
 	return '0';
 }
@@ -125,8 +132,11 @@ static inline char get_dip_switch(unsigned int pin)
 	uint16_t values;
 
 	values = tb0219_read(TB0219_DIP_SWITCH);
+
 	if (values & (1 << pin))
+	{
 		return '1';
+	}
 
 	return '0';
 }
@@ -144,14 +154,22 @@ static inline int set_gpio_output_pin(unsigned int pin, char command)
 	uint16_t value;
 
 	if (command != '0' && command != '1')
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&tb0219_lock, flags);
 	value = tb0219_read(TB0219_GPIO_OUTPUT);
+
 	if (command == '0')
+	{
 		value &= ~(1 << pin);
+	}
 	else
+	{
 		value |= 1 << pin;
+	}
+
 	tb0219_write(TB0219_GPIO_OUTPUT, value);
 	spin_unlock_irqrestore(&tb0219_lock, flags);
 
@@ -160,40 +178,50 @@ static inline int set_gpio_output_pin(unsigned int pin, char command)
 }
 
 static ssize_t tanbac_tb0219_read(struct file *file, char __user *buf, size_t len,
-                                  loff_t *ppos)
+								  loff_t *ppos)
 {
 	unsigned int minor;
 	char value;
 
 	minor = iminor(file_inode(file));
-	switch (minor) {
-	case 0:
-		value = get_led();
-		break;
-	case 16 ... 23:
-		value = get_gpio_input_pin(minor - 16);
-		break;
-	case 32 ... 39:
-		value = get_gpio_output_pin(minor - 32);
-		break;
-	case 48 ... 55:
-		value = get_dip_switch(minor - 48);
-		break;
-	default:
-		return -EBADF;
+
+	switch (minor)
+	{
+		case 0:
+			value = get_led();
+			break;
+
+		case 16 ... 23:
+			value = get_gpio_input_pin(minor - 16);
+			break;
+
+		case 32 ... 39:
+			value = get_gpio_output_pin(minor - 32);
+			break;
+
+		case 48 ... 55:
+			value = get_dip_switch(minor - 48);
+			break;
+
+		default:
+			return -EBADF;
 	}
 
 	if (len <= 0)
+	{
 		return -EFAULT;
+	}
 
 	if (put_user(value, buf))
+	{
 		return -EFAULT;
+	}
 
 	return 1;
 }
 
 static ssize_t tanbac_tb0219_write(struct file *file, const char __user *data,
-                                   size_t len, loff_t *ppos)
+								   size_t len, loff_t *ppos)
 {
 	unsigned int minor;
 	tb0219_type_t type;
@@ -202,32 +230,43 @@ static ssize_t tanbac_tb0219_write(struct file *file, const char __user *data,
 	char c;
 
 	minor = iminor(file_inode(file));
-	switch (minor) {
-	case 0:
-		type = TYPE_LED;
-		break;
-	case 32 ... 39:
-		type = TYPE_GPIO_OUTPUT;
-		break;
-	default:
-		return -EBADF;
+
+	switch (minor)
+	{
+		case 0:
+			type = TYPE_LED;
+			break;
+
+		case 32 ... 39:
+			type = TYPE_GPIO_OUTPUT;
+			break;
+
+		default:
+			return -EBADF;
 	}
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		if (get_user(c, data + i))
+		{
 			return -EFAULT;
+		}
 
-		switch (type) {
-		case TYPE_LED:
-			retval = set_led(c);
-			break;
-		case TYPE_GPIO_OUTPUT:
-			retval = set_gpio_output_pin(minor - 32, c);
-			break;
+		switch (type)
+		{
+			case TYPE_LED:
+				retval = set_led(c);
+				break;
+
+			case TYPE_GPIO_OUTPUT:
+				retval = set_gpio_output_pin(minor - 32, c);
+				break;
 		}
 
 		if (retval < 0)
+		{
 			break;
+		}
 	}
 
 	return i;
@@ -238,14 +277,17 @@ static int tanbac_tb0219_open(struct inode *inode, struct file *file)
 	unsigned int minor;
 
 	minor = iminor(inode);
-	switch (minor) {
-	case 0:
-	case 16 ... 23:
-	case 32 ... 39:
-	case 48 ... 55:
-		return nonseekable_open(inode, file);
-	default:
-		break;
+
+	switch (minor)
+	{
+		case 0:
+		case 16 ... 23:
+		case 32 ... 39:
+		case 48 ... 55:
+			return nonseekable_open(inode, file);
+
+		default:
+			break;
 	}
 
 	return -EBADF;
@@ -256,7 +298,8 @@ static int tanbac_tb0219_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static const struct file_operations tb0219_fops = {
+static const struct file_operations tb0219_fops =
+{
 	.owner		= THIS_MODULE,
 	.read		= tanbac_tb0219_read,
 	.write		= tanbac_tb0219_write,
@@ -290,16 +333,22 @@ static int tb0219_probe(struct platform_device *dev)
 	int retval;
 
 	if (request_mem_region(TB0219_START, TB0219_SIZE, "TB0219") == NULL)
+	{
 		return -EBUSY;
+	}
 
 	tb0219_base = ioremap(TB0219_START, TB0219_SIZE);
-	if (tb0219_base == NULL) {
+
+	if (tb0219_base == NULL)
+	{
 		release_mem_region(TB0219_START, TB0219_SIZE);
 		return -ENOMEM;
 	}
 
 	retval = register_chrdev(major, "TB0219", &tb0219_fops);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		iounmap(tb0219_base);
 		tb0219_base = NULL;
 		release_mem_region(TB0219_START, TB0219_SIZE);
@@ -311,7 +360,8 @@ static int tb0219_probe(struct platform_device *dev)
 
 	tb0219_pci_irq_init();
 
-	if (major == 0) {
+	if (major == 0)
+	{
 		major = retval;
 		printk(KERN_INFO "TB0219: major number %d\n", major);
 	}
@@ -333,7 +383,8 @@ static int tb0219_remove(struct platform_device *dev)
 
 static struct platform_device *tb0219_platform_device;
 
-static struct platform_driver tb0219_device_driver = {
+static struct platform_driver tb0219_device_driver =
+{
 	.probe		= tb0219_probe,
 	.remove		= tb0219_remove,
 	.driver		= {
@@ -346,18 +397,26 @@ static int __init tanbac_tb0219_init(void)
 	int retval;
 
 	tb0219_platform_device = platform_device_alloc("TB0219", -1);
+
 	if (!tb0219_platform_device)
+	{
 		return -ENOMEM;
+	}
 
 	retval = platform_device_add(tb0219_platform_device);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		platform_device_put(tb0219_platform_device);
 		return retval;
 	}
 
 	retval = platform_driver_register(&tb0219_device_driver);
+
 	if (retval < 0)
+	{
 		platform_device_unregister(tb0219_platform_device);
+	}
 
 	return retval;
 }

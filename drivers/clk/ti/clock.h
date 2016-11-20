@@ -16,7 +16,8 @@
 #ifndef __DRIVERS_CLK_TI_CLOCK__
 #define __DRIVERS_CLK_TI_CLOCK__
 
-enum {
+enum
+{
 	TI_CLK_FIXED,
 	TI_CLK_MUX,
 	TI_CLK_DIVIDER,
@@ -55,13 +56,14 @@ enum {
 #define CLK(dev, con, ck)		\
 	{				\
 		.lk = {			\
-			.dev_id = dev,	\
-			.con_id = con,	\
-		},			\
-		.clk = ck,		\
+						.dev_id = dev,	\
+						.con_id = con,	\
+			  },			\
+			  .clk = ck,		\
 	}
 
-struct ti_clk {
+struct ti_clk
+{
 	const char *name;
 	const char *clkdm_name;
 	int type;
@@ -70,18 +72,21 @@ struct ti_clk {
 	struct clk *clk;
 };
 
-struct ti_clk_alias {
+struct ti_clk_alias
+{
 	struct ti_clk *clk;
 	struct clk_lookup lk;
 	struct list_head link;
 };
 
-struct ti_clk_fixed {
+struct ti_clk_fixed
+{
 	u32 frequency;
 	u16 flags;
 };
 
-struct ti_clk_mux {
+struct ti_clk_mux
+{
 	u8 bit_shift;
 	int num_parents;
 	u16 reg;
@@ -90,7 +95,8 @@ struct ti_clk_mux {
 	u16 flags;
 };
 
-struct ti_clk_divider {
+struct ti_clk_divider
+{
 	const char *parent;
 	u8 bit_shift;
 	u16 max_div;
@@ -101,14 +107,16 @@ struct ti_clk_divider {
 	u16 flags;
 };
 
-struct ti_clk_fixed_factor {
+struct ti_clk_fixed_factor
+{
 	const char *parent;
 	u16 div;
 	u16 mult;
 	u16 flags;
 };
 
-struct ti_clk_gate {
+struct ti_clk_gate
+{
 	const char *parent;
 	u8 bit_shift;
 	u16 reg;
@@ -116,19 +124,22 @@ struct ti_clk_gate {
 	u16 flags;
 };
 
-struct ti_clk_composite {
+struct ti_clk_composite
+{
 	struct ti_clk_divider *divider;
 	struct ti_clk_mux *mux;
 	struct ti_clk_gate *gate;
 	u16 flags;
 };
 
-struct ti_clk_clkdm_gate {
+struct ti_clk_clkdm_gate
+{
 	const char *parent;
 	u16 flags;
 };
 
-struct ti_clk_dpll {
+struct ti_clk_dpll
+{
 	int num_parents;
 	u16 control_reg;
 	u16 idlest_reg;
@@ -155,7 +166,8 @@ struct ti_clk_dpll {
 };
 
 /* Composite clock component types */
-enum {
+enum
+{
 	CLK_COMPONENT_TYPE_GATE = 0,
 	CLK_COMPONENT_TYPE_DIVIDER,
 	CLK_COMPONENT_TYPE_MUX,
@@ -167,7 +179,8 @@ enum {
  * @lk: clock lookup definition
  * @node_name: clock DT node to map to
  */
-struct ti_dt_clk {
+struct ti_dt_clk
+{
 	struct clk_lookup		lk;
 	char				*node_name;
 };
@@ -175,10 +188,10 @@ struct ti_dt_clk {
 #define DT_CLK(dev, con, name)		\
 	{				\
 		.lk = {			\
-			.dev_id = dev,	\
-			.con_id = con,	\
-		},			\
-		.node_name = name,	\
+						.dev_id = dev,	\
+						.con_id = con,	\
+			  },			\
+			  .node_name = name,	\
 	}
 
 typedef void (*ti_of_clk_init_cb_t)(struct clk_hw *, struct device_node *);
@@ -201,7 +214,7 @@ int ti_clk_register_legacy_clks(struct ti_clk_alias *clks);
 void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index);
 void ti_dt_clocks_register(struct ti_dt_clk *oclks);
 int ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
-		      ti_of_clk_init_cb_t func);
+					  ti_of_clk_init_cb_t func);
 int ti_clk_add_component(struct device_node *node, struct clk_hw *hw, int type);
 
 void omap2_init_clk_hw_omap_clocks(struct clk_hw *hw);
@@ -231,11 +244,11 @@ int omap2_dflt_clk_enable(struct clk_hw *hw);
 void omap2_dflt_clk_disable(struct clk_hw *hw);
 int omap2_dflt_clk_is_enabled(struct clk_hw *hw);
 void omap2_clk_dflt_find_companion(struct clk_hw_omap *clk,
-				   void __iomem **other_reg,
-				   u8 *other_bit);
+								   void __iomem **other_reg,
+								   u8 *other_bit);
 void omap2_clk_dflt_find_idlest(struct clk_hw_omap *clk,
-				void __iomem **idlest_reg,
-				u8 *idlest_bit, u8 *idlest_val);
+								void __iomem **idlest_reg,
+								u8 *idlest_bit, u8 *idlest_val);
 
 void omap2_clkt_iclk_allow_idle(struct clk_hw_omap *clk);
 void omap2_clkt_iclk_deny_idle(struct clk_hw_omap *clk);
@@ -245,32 +258,32 @@ int omap3_noncore_dpll_enable(struct clk_hw *hw);
 void omap3_noncore_dpll_disable(struct clk_hw *hw);
 int omap3_noncore_dpll_set_parent(struct clk_hw *hw, u8 index);
 int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
-				unsigned long parent_rate);
+								unsigned long parent_rate);
 int omap3_noncore_dpll_set_rate_and_parent(struct clk_hw *hw,
-					   unsigned long rate,
-					   unsigned long parent_rate,
-					   u8 index);
+		unsigned long rate,
+		unsigned long parent_rate,
+		u8 index);
 int omap3_noncore_dpll_determine_rate(struct clk_hw *hw,
-				      struct clk_rate_request *req);
+									  struct clk_rate_request *req);
 long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
-			   unsigned long *parent_rate);
+						   unsigned long *parent_rate);
 unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
-				    unsigned long parent_rate);
+									unsigned long parent_rate);
 
 unsigned long omap3_dpll_recalc(struct clk_hw *hw, unsigned long parent_rate);
 int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
-			 unsigned long parent_rate);
+						 unsigned long parent_rate);
 int omap3_dpll4_set_rate_and_parent(struct clk_hw *hw, unsigned long rate,
-				    unsigned long parent_rate, u8 index);
+									unsigned long parent_rate, u8 index);
 void omap3_clk_lock_dpll5(void);
 
 unsigned long omap4_dpll_regm4xen_recalc(struct clk_hw *hw,
-					 unsigned long parent_rate);
+		unsigned long parent_rate);
 long omap4_dpll_regm4xen_round_rate(struct clk_hw *hw,
-				    unsigned long target_rate,
-				    unsigned long *parent_rate);
+									unsigned long target_rate,
+									unsigned long *parent_rate);
 int omap4_dpll_regm4xen_determine_rate(struct clk_hw *hw,
-				       struct clk_rate_request *req);
+									   struct clk_rate_request *req);
 
 extern struct ti_clk_ll_ops *ti_clk_ll_ops;
 

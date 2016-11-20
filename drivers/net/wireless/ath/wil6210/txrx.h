@@ -29,7 +29,8 @@
 /* Tx/Rx path */
 
 /* Common representation of physical address in Vring */
-struct vring_dma_addr {
+struct vring_dma_addr
+{
 	__le32 addr_low;
 	__le16 addr_high;
 } __packed;
@@ -37,11 +38,11 @@ struct vring_dma_addr {
 static inline dma_addr_t wil_desc_addr(struct vring_dma_addr *addr)
 {
 	return le32_to_cpu(addr->addr_low) |
-			   ((u64)le16_to_cpu(addr->addr_high) << 32);
+		   ((u64)le16_to_cpu(addr->addr_high) << 32);
 }
 
 static inline void wil_desc_addr_set(struct vring_dma_addr *addr,
-				     dma_addr_t pa)
+									 dma_addr_t pa)
 {
 	addr->addr_low = cpu_to_le32(lower_32_bits(pa));
 	addr->addr_high = cpu_to_le16((u16)upper_32_bits(pa));
@@ -81,7 +82,8 @@ static inline void wil_desc_addr_set(struct vring_dma_addr *addr,
  * [dword 3]
  * bit  0.. 31: ucode_cmd:32
  */
-struct vring_tx_mac {
+struct vring_tx_mac
+{
 	u32 d[3];
 	u32 ucode_cmd;
 } __packed;
@@ -281,7 +283,8 @@ struct vring_tx_mac {
  * bit  1   7 : reserved:7
  *  [word 7] length
  */
-struct vring_tx_dma {
+struct vring_tx_dma
+{
 	u32 d0;
 	struct vring_dma_addr addr;
 	u8  ip_length;
@@ -292,7 +295,8 @@ struct vring_tx_dma {
 } __packed;
 
 /* TSO type used in dma descriptor d0 bits 11-12 */
-enum {
+enum
+{
 	wil_tso_type_hdr = 0,
 	wil_tso_type_first = 1,
 	wil_tso_type_mid  = 2,
@@ -342,7 +346,8 @@ enum {
  * [dword 3]
  * bit  0..31 : pn_47_16:32 high 4 bytes of PN
  */
-struct vring_rx_mac {
+struct vring_rx_mac
+{
 	u32 d0;
 	u32 d1;
 	u16 w4;
@@ -414,7 +419,8 @@ struct vring_rx_mac {
 #define RX_DMA_STATUS_PHY_INFO	BIT(6)
 #define RX_DMA_STATUS_FFM	BIT(7) /* EtherType Flex Filter Match */
 
-struct vring_rx_dma {
+struct vring_rx_dma
+{
 	u32 d0;
 	struct vring_dma_addr addr;
 	u8  ip_length;
@@ -424,17 +430,20 @@ struct vring_rx_dma {
 	__le16 length;
 } __packed;
 
-struct vring_tx_desc {
+struct vring_tx_desc
+{
 	struct vring_tx_mac mac;
 	struct vring_tx_dma dma;
 } __packed;
 
-struct vring_rx_desc {
+struct vring_rx_desc
+{
 	struct vring_rx_mac mac;
 	struct vring_rx_dma dma;
 } __packed;
 
-union vring_desc {
+union vring_desc
+{
 	struct vring_tx_desc tx;
 	struct vring_rx_desc rx;
 } __packed;
@@ -519,8 +528,8 @@ void wil_netif_rx_any(struct sk_buff *skb, struct net_device *ndev);
 void wil_rx_reorder(struct wil6210_priv *wil, struct sk_buff *skb);
 void wil_rx_bar(struct wil6210_priv *wil, u8 cid, u8 tid, u16 seq);
 struct wil_tid_ampdu_rx *wil_tid_ampdu_rx_alloc(struct wil6210_priv *wil,
-						int size, u16 ssn);
+		int size, u16 ssn);
 void wil_tid_ampdu_rx_free(struct wil6210_priv *wil,
-			   struct wil_tid_ampdu_rx *r);
+						   struct wil_tid_ampdu_rx *r);
 
 #endif /* WIL6210_TXRX_H */

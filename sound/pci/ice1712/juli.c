@@ -34,9 +34,10 @@
 #include "envy24ht.h"
 #include "juli.h"
 
-struct juli_spec {
+struct juli_spec
+{
 	struct ak4114 *ak4114;
-	unsigned int analog:1;
+	unsigned int analog: 1;
 };
 
 /*
@@ -97,55 +98,58 @@ struct juli_spec {
 #define GPIO_MUTE_CONTROL	(1<<15)		/* output mute, 1 = muted */
 
 #define GPIO_RATE_MASK		(GPIO_FREQ_MASK | GPIO_MULTI_MASK | \
-		GPIO_CLOCK_MASK)
+							 GPIO_CLOCK_MASK)
 #define GPIO_AK5385A_MASK	(GPIO_AK5385A_CKS0 | GPIO_AK5385A_DFS0 | \
-		GPIO_AK5385A_DFS1 | GPIO_AK5385A_CKS1)
+							 GPIO_AK5385A_DFS1 | GPIO_AK5385A_CKS1)
 
 #define JULI_PCM_RATE	(SNDRV_PCM_RATE_16000 | SNDRV_PCM_RATE_22050 | \
-		SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 | \
-		SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_64000 | \
-		SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000 | \
-		SNDRV_PCM_RATE_176400 | SNDRV_PCM_RATE_192000)
+						 SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 | \
+						 SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_64000 | \
+						 SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000 | \
+						 SNDRV_PCM_RATE_176400 | SNDRV_PCM_RATE_192000)
 
 #define GPIO_RATE_16000		(GPIO_FREQ_32KHZ | GPIO_MULTI_HALF | \
-		GPIO_INTERNAL_CLOCK)
+							 GPIO_INTERNAL_CLOCK)
 #define GPIO_RATE_22050		(GPIO_FREQ_44KHZ | GPIO_MULTI_HALF | \
-		GPIO_INTERNAL_CLOCK)
+							 GPIO_INTERNAL_CLOCK)
 #define GPIO_RATE_24000		(GPIO_FREQ_48KHZ | GPIO_MULTI_HALF | \
-		GPIO_INTERNAL_CLOCK)
+							 GPIO_INTERNAL_CLOCK)
 #define GPIO_RATE_32000		(GPIO_FREQ_32KHZ | GPIO_MULTI_1X | \
-		GPIO_INTERNAL_CLOCK)
+							 GPIO_INTERNAL_CLOCK)
 #define GPIO_RATE_44100		(GPIO_FREQ_44KHZ | GPIO_MULTI_1X | \
-		GPIO_INTERNAL_CLOCK)
+							 GPIO_INTERNAL_CLOCK)
 #define GPIO_RATE_48000		(GPIO_FREQ_48KHZ | GPIO_MULTI_1X | \
-		GPIO_INTERNAL_CLOCK)
+							 GPIO_INTERNAL_CLOCK)
 #define GPIO_RATE_64000		(GPIO_FREQ_32KHZ | GPIO_MULTI_2X | \
-		GPIO_INTERNAL_CLOCK)
+							 GPIO_INTERNAL_CLOCK)
 #define GPIO_RATE_88200		(GPIO_FREQ_44KHZ | GPIO_MULTI_2X | \
-		GPIO_INTERNAL_CLOCK)
+							 GPIO_INTERNAL_CLOCK)
 #define GPIO_RATE_96000		(GPIO_FREQ_48KHZ | GPIO_MULTI_2X | \
-		GPIO_INTERNAL_CLOCK)
+							 GPIO_INTERNAL_CLOCK)
 #define GPIO_RATE_176400	(GPIO_FREQ_44KHZ | GPIO_MULTI_4X | \
-		GPIO_INTERNAL_CLOCK)
+							 GPIO_INTERNAL_CLOCK)
 #define GPIO_RATE_192000	(GPIO_FREQ_48KHZ | GPIO_MULTI_4X | \
-		GPIO_INTERNAL_CLOCK)
+							 GPIO_INTERNAL_CLOCK)
 
 /*
  * Initial setup of the conversion array GPIO <-> rate
  */
-static unsigned int juli_rates[] = {
+static unsigned int juli_rates[] =
+{
 	16000, 22050, 24000, 32000,
 	44100, 48000, 64000, 88200,
 	96000, 176400, 192000,
 };
 
-static unsigned int gpio_vals[] = {
+static unsigned int gpio_vals[] =
+{
 	GPIO_RATE_16000, GPIO_RATE_22050, GPIO_RATE_24000, GPIO_RATE_32000,
 	GPIO_RATE_44100, GPIO_RATE_48000, GPIO_RATE_64000, GPIO_RATE_88200,
 	GPIO_RATE_96000, GPIO_RATE_176400, GPIO_RATE_192000,
 };
 
-static struct snd_pcm_hw_constraint_list juli_rates_info = {
+static struct snd_pcm_hw_constraint_list juli_rates_info =
+{
 	.count = ARRAY_SIZE(juli_rates),
 	.list = juli_rates,
 	.mask = 0,
@@ -154,23 +158,27 @@ static struct snd_pcm_hw_constraint_list juli_rates_info = {
 static int get_gpio_val(int rate)
 {
 	int i;
+
 	for (i = 0; i < ARRAY_SIZE(juli_rates); i++)
 		if (juli_rates[i] == rate)
+		{
 			return gpio_vals[i];
+		}
+
 	return 0;
 }
 
 static void juli_ak4114_write(void *private_data, unsigned char reg,
-				unsigned char val)
+							  unsigned char val)
 {
 	snd_vt1724_write_i2c((struct snd_ice1712 *)private_data, AK4114_ADDR,
-				reg, val);
+						 reg, val);
 }
 
 static unsigned char juli_ak4114_read(void *private_data, unsigned char reg)
 {
 	return snd_vt1724_read_i2c((struct snd_ice1712 *)private_data,
-					AK4114_ADDR, reg);
+							   AK4114_ADDR, reg);
 }
 
 /*
@@ -178,17 +186,22 @@ static unsigned char juli_ak4114_read(void *private_data, unsigned char reg)
  * to the external rate
  */
 static void juli_spdif_in_open(struct snd_ice1712 *ice,
-				struct snd_pcm_substream *substream)
+							   struct snd_pcm_substream *substream)
 {
 	struct juli_spec *spec = ice->spec;
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	int rate;
 
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK ||
-			!ice->is_spdif_master(ice))
+		!ice->is_spdif_master(ice))
+	{
 		return;
+	}
+
 	rate = snd_ak4114_external_rate(spec->ak4114);
-	if (rate >= runtime->hw.rate_min && rate <= runtime->hw.rate_max) {
+
+	if (rate >= runtime->hw.rate_min && rate <= runtime->hw.rate_max)
+	{
 		runtime->hw.rate_min = rate;
 		runtime->hw.rate_max = rate;
 	}
@@ -207,12 +220,15 @@ static void juli_akm_unlock(struct snd_akm4xxx *ak, int chip)
 }
 
 static void juli_akm_write(struct snd_akm4xxx *ak, int chip,
-			   unsigned char addr, unsigned char data)
+						   unsigned char addr, unsigned char data)
 {
 	struct snd_ice1712 *ice = ak->private_data[0];
-	 
+
 	if (snd_BUG_ON(chip))
+	{
 		return;
+	}
+
 	snd_vt1724_write_i2c(ice, AK4358_ADDR, addr, data);
 }
 
@@ -228,19 +244,27 @@ static void juli_akm_set_rate_val(struct snd_akm4xxx *ak, unsigned int rate)
 
 	if (rate == 0)  /* no hint - S/PDIF input is master or the new spdif
 			   input rate undetected, simply return */
+	{
 		return;
+	}
 
 	/* adjust DFS on codecs */
-	if (rate > 96000)  {
+	if (rate > 96000)
+	{
 		ak4358_dfs = 2;
 		ak5385_pins = GPIO_AK5385A_DFS1 | GPIO_AK5385A_CKS0;
-	} else if (rate > 48000) {
+	}
+	else if (rate > 48000)
+	{
 		ak4358_dfs = 1;
 		ak5385_pins = GPIO_AK5385A_DFS0;
-	} else {
+	}
+	else
+	{
 		ak4358_dfs = 0;
 		ak5385_pins = 0;
 	}
+
 	/* AK5385 first, since it requires cold reset affecting both codecs */
 	old_gpio = ice->gpio.get_data(ice);
 	new_gpio =  (old_gpio & ~GPIO_AK5385A_MASK) | ak5385_pins;
@@ -274,7 +298,8 @@ static void juli_akm_set_rate_val(struct snd_akm4xxx *ak, unsigned int rate)
 #define MONITOR_DIG_IN_VOLUME	"Monitor Digital In Volume"
 #define MONITOR_DIG_OUT_VOLUME	"Monitor Digital Out Volume"
 
-static const struct snd_akm4xxx_dac_channel juli_dac[] = {
+static const struct snd_akm4xxx_dac_channel juli_dac[] =
+{
 	AK_DAC(PCM_VOLUME, 2),
 	AK_DAC(MONITOR_AN_IN_VOLUME, 2),
 	AK_DAC(MONITOR_DIG_OUT_VOLUME, 2),
@@ -282,7 +307,8 @@ static const struct snd_akm4xxx_dac_channel juli_dac[] = {
 };
 
 
-static struct snd_akm4xxx akm_juli_dac = {
+static struct snd_akm4xxx akm_juli_dac =
+{
 	.type = SND_AK4358,
 	.num_dacs = 8,	/* DAC1 - analog out
 			   DAC2 - analog in monitor
@@ -301,63 +327,81 @@ static struct snd_akm4xxx akm_juli_dac = {
 #define juli_mute_info		snd_ctl_boolean_mono_info
 
 static int juli_mute_get(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_value *ucontrol)
+						 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	unsigned int val;
 	val = ice->gpio.get_data(ice) & (unsigned int) kcontrol->private_value;
+
 	if (kcontrol->private_value == GPIO_MUTE_CONTROL)
 		/* val 0 = signal on */
+	{
 		ucontrol->value.integer.value[0] = (val) ? 0 : 1;
+	}
 	else
 		/* val 1 = signal on */
+	{
 		ucontrol->value.integer.value[0] = (val) ? 1 : 0;
+	}
+
 	return 0;
 }
 
 static int juli_mute_put(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_value *ucontrol)
+						 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	unsigned int old_gpio, new_gpio;
 	old_gpio = ice->gpio.get_data(ice);
-	if (ucontrol->value.integer.value[0]) {
+
+	if (ucontrol->value.integer.value[0])
+	{
 		/* unmute */
-		if (kcontrol->private_value == GPIO_MUTE_CONTROL) {
+		if (kcontrol->private_value == GPIO_MUTE_CONTROL)
+		{
 			/* 0 = signal on */
 			new_gpio = old_gpio & ~GPIO_MUTE_CONTROL;
 			/* un-smuting DAC */
 			snd_akm4xxx_write(ice->akm, 0, 0x01, 0x01);
-		} else
+		}
+		else
 			/* 1 = signal on */
 			new_gpio =  old_gpio |
-				(unsigned int) kcontrol->private_value;
-	} else {
+						(unsigned int) kcontrol->private_value;
+	}
+	else
+	{
 		/* mute */
-		if (kcontrol->private_value == GPIO_MUTE_CONTROL) {
+		if (kcontrol->private_value == GPIO_MUTE_CONTROL)
+		{
 			/* 1 = signal off */
 			new_gpio = old_gpio | GPIO_MUTE_CONTROL;
 			/* smuting DAC */
 			snd_akm4xxx_write(ice->akm, 0, 0x01, 0x03);
-		} else
+		}
+		else
 			/* 0 = signal off */
 			new_gpio =  old_gpio &
-				~((unsigned int) kcontrol->private_value);
+						~((unsigned int) kcontrol->private_value);
 	}
+
 	/* dev_dbg(ice->card->dev,
 		"JULI - mute/unmute: control_value: 0x%x, old_gpio: 0x%x, "
 		"new_gpio 0x%x\n",
 		(unsigned int)ucontrol->value.integer.value[0], old_gpio,
 		new_gpio); */
-	if (old_gpio != new_gpio) {
+	if (old_gpio != new_gpio)
+	{
 		ice->gpio.set_data(ice, new_gpio);
 		return 1;
 	}
+
 	/* no change */
 	return 0;
 }
 
-static struct snd_kcontrol_new juli_mute_controls[] = {
+static struct snd_kcontrol_new juli_mute_controls[] =
+{
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.name = "Master Playback Switch",
@@ -411,7 +455,8 @@ static struct snd_kcontrol_new juli_mute_controls[] = {
 	},
 };
 
-static char *slave_vols[] = {
+static char *slave_vols[] =
+{
 	PCM_VOLUME,
 	MONITOR_AN_IN_VOLUME,
 	MONITOR_DIG_IN_VOLUME,
@@ -423,7 +468,7 @@ static
 DECLARE_TLV_DB_SCALE(juli_master_db_scale, -6350, 50, 1);
 
 static struct snd_kcontrol *ctl_find(struct snd_card *card,
-				     const char *name)
+									 const char *name)
 {
 	struct snd_ctl_elem_id sid;
 	memset(&sid, 0, sizeof(sid));
@@ -434,13 +479,16 @@ static struct snd_kcontrol *ctl_find(struct snd_card *card,
 }
 
 static void add_slaves(struct snd_card *card,
-		       struct snd_kcontrol *master,
-		       char * const *list)
+					   struct snd_kcontrol *master,
+					   char *const *list)
 {
-	for (; *list; list++) {
+	for (; *list; list++)
+	{
 		struct snd_kcontrol *slave = ctl_find(card, *list);
+
 		/* dev_dbg(card->dev, "add_slaves - %s\n", *list); */
-		if (slave) {
+		if (slave)
+		{
 			/* dev_dbg(card->dev, "slave %s found\n", *list); */
 			snd_ctl_add_slave(master, slave);
 		}
@@ -455,28 +503,43 @@ static int juli_add_controls(struct snd_ice1712 *ice)
 	struct snd_kcontrol *vmaster;
 
 	err = snd_ice1712_akm4xxx_build_controls(ice);
-	if (err < 0)
-		return err;
 
-	for (i = 0; i < ARRAY_SIZE(juli_mute_controls); i++) {
-		err = snd_ctl_add(ice->card,
-				snd_ctl_new1(&juli_mute_controls[i], ice));
-		if (err < 0)
-			return err;
+	if (err < 0)
+	{
+		return err;
 	}
+
+	for (i = 0; i < ARRAY_SIZE(juli_mute_controls); i++)
+	{
+		err = snd_ctl_add(ice->card,
+						  snd_ctl_new1(&juli_mute_controls[i], ice));
+
+		if (err < 0)
+		{
+			return err;
+		}
+	}
+
 	/* Create virtual master control */
 	vmaster = snd_ctl_make_virtual_master("Master Playback Volume",
-					      juli_master_db_scale);
+										  juli_master_db_scale);
+
 	if (!vmaster)
+	{
 		return -ENOMEM;
+	}
+
 	add_slaves(ice->card, vmaster, slave_vols);
 	err = snd_ctl_add(ice->card, vmaster);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* only capture SPDIF over AK4114 */
 	return snd_ak4114_build(spec->ak4114, NULL,
-			ice->pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream);
+							ice->pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream);
 }
 
 /*
@@ -521,9 +584,13 @@ static unsigned int juli_get_rate(struct snd_ice1712 *ice)
 	unsigned char result;
 
 	result =  ice->gpio.get_data(ice) & GPIO_RATE_MASK;
+
 	for (i = 0; i < ARRAY_SIZE(gpio_vals); i++)
 		if (gpio_vals[i] == result)
+		{
 			return juli_rates[i];
+		}
+
 	return 0;
 }
 
@@ -546,7 +613,7 @@ static void juli_set_rate(struct snd_ice1712 *ice, unsigned int rate)
 }
 
 static inline unsigned char juli_set_mclk(struct snd_ice1712 *ice,
-					  unsigned int rate)
+		unsigned int rate)
 {
 	/* no change in master clock */
 	return 0;
@@ -559,17 +626,19 @@ static int juli_set_spdif_clock(struct snd_ice1712 *ice, int type)
 	old = ice->gpio.get_data(ice);
 	/* external clock (= 0), multiply 1x, 48kHz */
 	ice->gpio.set_data(ice, (old & ~GPIO_RATE_MASK) | GPIO_MULTI_1X |
-			GPIO_FREQ_48KHZ);
+					   GPIO_FREQ_48KHZ);
 	return 0;
 }
 
 /* Called when ak4114 detects change in the input SPDIF stream */
 static void juli_ak4114_change(struct ak4114 *ak4114, unsigned char c0,
-			       unsigned char c1)
+							   unsigned char c1)
 {
 	struct snd_ice1712 *ice = ak4114->change_callback_private;
 	int rate;
-	if (ice->is_spdif_master(ice) && c1) {
+
+	if (ice->is_spdif_master(ice) && c1)
+	{
 		/* only for SPDIF master mode, rate was changed */
 		rate = snd_ak4114_external_rate(ak4114);
 		/* dev_dbg(ice->card->dev, "ak4114 - input rate changed to %d\n",
@@ -580,17 +649,19 @@ static void juli_ak4114_change(struct ak4114 *ak4114, unsigned char c0,
 
 static int juli_init(struct snd_ice1712 *ice)
 {
-	static const unsigned char ak4114_init_vals[] = {
+	static const unsigned char ak4114_init_vals[] =
+	{
 		/* AK4117_REG_PWRDN */	AK4114_RST | AK4114_PWN |
-					AK4114_OCKS0 | AK4114_OCKS1,
+		AK4114_OCKS0 | AK4114_OCKS1,
 		/* AK4114_REQ_FORMAT */	AK4114_DIF_I24I2S,
 		/* AK4114_REG_IO0 */	AK4114_TX1E,
 		/* AK4114_REG_IO1 */	AK4114_EFH_1024 | AK4114_DIT |
-					AK4114_IPS(1),
+		AK4114_IPS(1),
 		/* AK4114_REG_INT0_MASK */ 0,
 		/* AK4114_REG_INT1_MASK */ 0
 	};
-	static const unsigned char ak4114_init_txcsb[] = {
+	static const unsigned char ak4114_init_txcsb[] =
+	{
 		0x41, 0x02, 0x2c, 0x00, 0x00
 	};
 	int err;
@@ -598,17 +669,25 @@ static int juli_init(struct snd_ice1712 *ice)
 	struct snd_akm4xxx *ak;
 
 	spec = kzalloc(sizeof(*spec), GFP_KERNEL);
+
 	if (!spec)
+	{
 		return -ENOMEM;
+	}
+
 	ice->spec = spec;
 
 	err = snd_ak4114_create(ice->card,
-				juli_ak4114_read,
-				juli_ak4114_write,
-				ak4114_init_vals, ak4114_init_txcsb,
-				ice, &spec->ak4114);
+							juli_ak4114_read,
+							juli_ak4114_write,
+							ak4114_init_vals, ak4114_init_txcsb,
+							ice, &spec->ak4114);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	/* callback for codecs rate setting */
 	spec->ak4114->change_callback = juli_ak4114_change;
 	spec->ak4114->change_callback_private = ice;
@@ -616,29 +695,37 @@ static int juli_init(struct snd_ice1712 *ice)
 	spec->ak4114->check_flags = 0;
 
 #if 0
-/*
- * it seems that the analog doughter board detection does not work reliably, so
- * force the analog flag; it should be very rare (if ever) to come at Juli@
- * used without the analog daughter board
- */
+	/*
+	 * it seems that the analog doughter board detection does not work reliably, so
+	 * force the analog flag; it should be very rare (if ever) to come at Juli@
+	 * used without the analog daughter board
+	 */
 	spec->analog = (ice->gpio.get_data(ice) & GPIO_ANALOG_PRESENT) ? 0 : 1;
 #else
 	spec->analog = 1;
 #endif
 
-	if (spec->analog) {
+	if (spec->analog)
+	{
 		dev_info(ice->card->dev, "juli@: analog I/O detected\n");
 		ice->num_total_dacs = 2;
 		ice->num_total_adcs = 2;
 
 		ice->akm = kzalloc(sizeof(struct snd_akm4xxx), GFP_KERNEL);
 		ak = ice->akm;
+
 		if (!ak)
+		{
 			return -ENOMEM;
+		}
+
 		ice->akm_codecs = 1;
 		err = snd_ice1712_akm4xxx_init(ak, &akm_juli_dac, NULL, ice);
+
 		if (err < 0)
+		{
 			return err;
+		}
 	}
 
 	/* juli is clocked by Xilinx array */
@@ -666,7 +753,8 @@ static int juli_init(struct snd_ice1712 *ice)
  * hence the driver needs to sets up it properly.
  */
 
-static unsigned char juli_eeprom[] = {
+static unsigned char juli_eeprom[] =
+{
 	[ICE_EEP2_SYSCONF]     = 0x2b,	/* clock 512, mpu401, 1xADC, 1xDACs,
 					   SPDIF in */
 	[ICE_EEP2_ACLINK]      = 0x80,	/* I2S */
@@ -679,13 +767,14 @@ static unsigned char juli_eeprom[] = {
 	[ICE_EEP2_GPIO_MASK1]  = 0x00,  /* 0-7 writable */
 	[ICE_EEP2_GPIO_MASK2]  = 0x7f,
 	[ICE_EEP2_GPIO_STATE]  = GPIO_FREQ_48KHZ | GPIO_MULTI_1X |
-	       GPIO_INTERNAL_CLOCK,	/* internal clock, multiple 1x, 48kHz*/
+	GPIO_INTERNAL_CLOCK,	/* internal clock, multiple 1x, 48kHz*/
 	[ICE_EEP2_GPIO_STATE1] = 0x00,	/* unmuted */
 	[ICE_EEP2_GPIO_STATE2] = 0x00,
 };
 
 /* entry point */
-struct snd_ice1712_card_info snd_vt1724_juli_cards[] = {
+struct snd_ice1712_card_info snd_vt1724_juli_cards[] =
+{
 	{
 		.subvendor = VT1724_SUBDEVICE_JULI,
 		.name = "ESI Juli@",

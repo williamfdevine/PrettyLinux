@@ -18,7 +18,8 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-struct worker {
+struct worker
+{
 	int tid;
 	u_int32_t *futex;
 	pthread_t thread;
@@ -38,7 +39,8 @@ static unsigned int threads_starting;
 static struct stats throughput_stats;
 static pthread_cond_t thread_parent, thread_worker;
 
-static const struct option options[] = {
+static const struct option options[] =
+{
 	OPT_UINTEGER('t', "threads",  &nthreads, "Specify amount of threads"),
 	OPT_UINTEGER('r', "runtime", &nsecs,     "Specify runtime (in seconds)"),
 	OPT_BOOLEAN( 'M', "multi",   &multi,     "Use multiple futexes"),
@@ -47,7 +49,8 @@ static const struct option options[] = {
 	OPT_END()
 };
 
-static const char * const bench_futex_lock_pi_usage[] = {
+static const char *const bench_futex_lock_pi_usage[] =
+{
 	"perf bench futex requeue <options>",
 	NULL
 };
@@ -58,13 +61,13 @@ static void print_summary(void)
 	double stddev = stddev_stats(&throughput_stats);
 
 	printf("%sAveraged %ld operations/sec (+- %.2f%%), total secs = %d\n",
-	       !silent ? "\n" : "", avg, rel_stddev_stats(stddev, avg),
-	       (int) runtime.tv_sec);
+		   !silent ? "\n" : "", avg, rel_stddev_stats(stddev, avg),
+		   (int) runtime.tv_sec);
 }
 
 static void toggle_done(int sig __maybe_unused,
-			siginfo_t *info __maybe_unused,
-			void *uc __maybe_unused)
+						siginfo_t *info __maybe_unused,
+						void *uc __maybe_unused)
 {
 	/* inform all threads that we're done for the day */
 	done = true;
@@ -78,33 +81,45 @@ static void *workerfn(void *arg)
 
 	pthread_mutex_lock(&thread_lock);
 	threads_starting--;
+
 	if (!threads_starting)
+	{
 		pthread_cond_signal(&thread_parent);
+	}
+
 	pthread_cond_wait(&thread_worker, &thread_lock);
 	pthread_mutex_unlock(&thread_lock);
 
-	do {
+	do
+	{
 		int ret;
-	again:
+again:
 		ret = futex_lock_pi(w->futex, NULL, futex_flag);
 
-		if (ret) { /* handle lock acquisition */
+		if (ret)   /* handle lock acquisition */
+		{
 			if (!silent)
 				warn("thread %d: Could not lock pi-lock for %p (%d)",
-				     w->tid, w->futex, ret);
+					 w->tid, w->futex, ret);
+
 			if (done)
+			{
 				break;
+			}
 
 			goto again;
 		}
 
 		usleep(1);
 		ret = futex_unlock_pi(w->futex, futex_flag);
+
 		if (ret && !silent)
 			warn("thread %d: Could not unlock pi-lock for %p (%d)",
-			     w->tid, w->futex, ret);
+				 w->tid, w->futex, ret);
+
 		w->ops++; /* account for thread's share of work */
-	}  while (!done);
+	}
+	while (!done);
 
 	return NULL;
 }
@@ -116,29 +131,41 @@ static void create_threads(struct worker *w, pthread_attr_t thread_attr)
 
 	threads_starting = nthreads;
 
-	for (i = 0; i < nthreads; i++) {
+	for (i = 0; i < nthreads; i++)
+	{
 		worker[i].tid = i;
 
-		if (multi) {
+		if (multi)
+		{
 			worker[i].futex = calloc(1, sizeof(u_int32_t));
+
 			if (!worker[i].futex)
+			{
 				err(EXIT_FAILURE, "calloc");
-		} else
+			}
+		}
+		else
+		{
 			worker[i].futex = &global_futex;
+		}
 
 		CPU_ZERO(&cpu);
 		CPU_SET(i % ncpus, &cpu);
 
 		if (pthread_attr_setaffinity_np(&thread_attr, sizeof(cpu_set_t), &cpu))
+		{
 			err(EXIT_FAILURE, "pthread_attr_setaffinity_np");
+		}
 
 		if (pthread_create(&w[i].thread, &thread_attr, workerfn, &worker[i]))
+		{
 			err(EXIT_FAILURE, "pthread_create");
+		}
 	}
 }
 
 int bench_futex_lock_pi(int argc, const char **argv,
-			const char *prefix __maybe_unused)
+						const char *prefix __maybe_unused)
 {
 	int ret = 0;
 	unsigned int i;
@@ -146,8 +173,11 @@ int bench_futex_lock_pi(int argc, const char **argv,
 	pthread_attr_t thread_attr;
 
 	argc = parse_options(argc, argv, options, bench_futex_lock_pi_usage, 0);
+
 	if (argc)
+	{
 		goto err;
+	}
 
 	ncpus = sysconf(_SC_NPROCESSORS_ONLN);
 
@@ -156,17 +186,24 @@ int bench_futex_lock_pi(int argc, const char **argv,
 	sigaction(SIGINT, &act, NULL);
 
 	if (!nthreads)
+	{
 		nthreads = ncpus;
+	}
 
 	worker = calloc(nthreads, sizeof(*worker));
+
 	if (!worker)
+	{
 		err(EXIT_FAILURE, "calloc");
+	}
 
 	if (!fshared)
+	{
 		futex_flag = FUTEX_PRIVATE_FLAG;
+	}
 
 	printf("Run summary [PID %d]: %d threads doing pi lock/unlock pairing for %d secs.\n\n",
-	       getpid(), nthreads, nsecs);
+		   getpid(), nthreads, nsecs);
 
 	init_stats(&throughput_stats);
 	pthread_mutex_init(&thread_lock, NULL);
@@ -181,18 +218,26 @@ int bench_futex_lock_pi(int argc, const char **argv,
 	pthread_attr_destroy(&thread_attr);
 
 	pthread_mutex_lock(&thread_lock);
+
 	while (threads_starting)
+	{
 		pthread_cond_wait(&thread_parent, &thread_lock);
+	}
+
 	pthread_cond_broadcast(&thread_worker);
 	pthread_mutex_unlock(&thread_lock);
 
 	sleep(nsecs);
 	toggle_done(0, NULL, NULL);
 
-	for (i = 0; i < nthreads; i++) {
+	for (i = 0; i < nthreads; i++)
+	{
 		ret = pthread_join(worker[i].thread, NULL);
+
 		if (ret)
+		{
 			err(EXIT_FAILURE, "pthread_join");
+		}
 	}
 
 	/* cleanup & report results */
@@ -200,16 +245,20 @@ int bench_futex_lock_pi(int argc, const char **argv,
 	pthread_cond_destroy(&thread_worker);
 	pthread_mutex_destroy(&thread_lock);
 
-	for (i = 0; i < nthreads; i++) {
-		unsigned long t = worker[i].ops/runtime.tv_sec;
+	for (i = 0; i < nthreads; i++)
+	{
+		unsigned long t = worker[i].ops / runtime.tv_sec;
 
 		update_stats(&throughput_stats, t);
+
 		if (!silent)
 			printf("[thread %3d] futex: %p [ %ld ops/sec ]\n",
-			       worker[i].tid, worker[i].futex, t);
+				   worker[i].tid, worker[i].futex, t);
 
 		if (multi)
+		{
 			free(worker[i].futex);
+		}
 	}
 
 	print_summary();

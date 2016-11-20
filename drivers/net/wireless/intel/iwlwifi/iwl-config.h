@@ -70,7 +70,8 @@
 #include <linux/ieee80211.h>
 #include <linux/nl80211.h>
 
-enum iwl_device_family {
+enum iwl_device_family
+{
 	IWL_DEVICE_FAMILY_UNDEFINED,
 	IWL_DEVICE_FAMILY_1000,
 	IWL_DEVICE_FAMILY_100,
@@ -91,11 +92,13 @@ enum iwl_device_family {
 };
 
 static inline bool iwl_has_secure_boot(u32 hw_rev,
-				       enum iwl_device_family family)
+									   enum iwl_device_family family)
 {
 	/* return 1 only for family 8000 B0 */
 	if ((family == IWL_DEVICE_FAMILY_8000) && (hw_rev & 0xC))
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -109,7 +112,8 @@ static inline bool iwl_has_secure_boot(u32 hw_rev,
  *    IWL_LED_BLINK:    adjust led blink rate based on blink table
  *    IWL_LED_DISABLE:	led disabled
  */
-enum iwl_led_mode {
+enum iwl_led_mode
+{
 	IWL_LED_DEFAULT,
 	IWL_LED_RF_STATE,
 	IWL_LED_BLINK,
@@ -135,7 +139,7 @@ enum iwl_led_mode {
 
 #define IWL_DEFAULT_MAX_TX_POWER 22
 #define IWL_TX_CSUM_NETIF_FLAGS (NETIF_F_IPV6_CSUM | NETIF_F_IP_CSUM |\
-				 NETIF_F_TSO | NETIF_F_TSO6)
+								 NETIF_F_TSO | NETIF_F_TSO6)
 
 /* Antenna presence definitions */
 #define	ANT_NONE	0x0
@@ -150,8 +154,8 @@ enum iwl_led_mode {
 static inline u8 num_of_ant(u8 mask)
 {
 	return  !!((mask) & ANT_A) +
-		!!((mask) & ANT_B) +
-		!!((mask) & ANT_C);
+			!!((mask) & ANT_B) +
+			!!((mask) & ANT_C);
 }
 
 /*
@@ -167,18 +171,19 @@ static inline u8 num_of_ant(u8 mask)
  *	is in flight. This is due to a HW bug in 7260, 3160 and 7265.
  * @scd_chain_ext_wa: should the chain extension feature in SCD be disabled.
  */
-struct iwl_base_params {
+struct iwl_base_params
+{
 	unsigned int wd_timeout;
 
 	u16 eeprom_size;
 	u16 max_event_log_size;
 
-	u8 pll_cfg:1, /* for iwl_pcie_apm_init() */
-	   shadow_ram_support:1,
-	   shadow_reg_enable:1,
-	   pcie_l1_allowed:1,
-	   apmg_wake_up_wa:1,
-	   scd_chain_ext_wa:1;
+	u8 pll_cfg: 1, /* for iwl_pcie_apm_init() */
+	shadow_ram_support: 1,
+	shadow_reg_enable: 1,
+	pcie_l1_allowed: 1,
+	apmg_wake_up_wa: 1,
+	scd_chain_ext_wa: 1;
 
 	u8 num_of_queues;	/* def: HW dependent */
 
@@ -192,11 +197,12 @@ struct iwl_base_params {
  * @use_rts_for_aggregation: use rts/cts protection for HT traffic
  * @ht40_bands: bitmap of bands (using %NL80211_BAND_*) that support HT40
  */
-struct iwl_ht_params {
-	u8 ht_greenfield_support:1,
-	   stbc:1,
-	   ldpc:1,
-	   use_rts_for_aggregation:1;
+struct iwl_ht_params
+{
+	u8 ht_greenfield_support: 1,
+	stbc: 1,
+	ldpc: 1,
+	use_rts_for_aggregation: 1;
 	u8 ht40_bands;
 };
 
@@ -205,7 +211,8 @@ struct iwl_ht_params {
  * @temperature: The threshold in Celsius
  * @backoff: The tx-backoff in uSec
  */
-struct iwl_tt_tx_backoff {
+struct iwl_tt_tx_backoff
+{
 	s32 temperature;
 	u32 backoff;
 };
@@ -228,7 +235,8 @@ struct iwl_tt_tx_backoff {
  * @support_tx_protection: Support tx protection?
  * @support_tx_backoff: Support tx-backoff?
  */
-struct iwl_tt_params {
+struct iwl_tt_params
+{
 	u32 ct_kill_entry;
 	u32 ct_kill_exit;
 	u32 ct_kill_duration;
@@ -237,10 +245,10 @@ struct iwl_tt_params {
 	u32 tx_protection_entry;
 	u32 tx_protection_exit;
 	struct iwl_tt_tx_backoff tx_backoff[TT_TX_BACKOFF_SIZE];
-	u8 support_ct_kill:1,
-	   support_dynamic_smps:1,
-	   support_tx_protection:1,
-	   support_tx_backoff:1;
+	u8 support_ct_kill: 1,
+	support_dynamic_smps: 1,
+	support_tx_protection: 1,
+	support_tx_backoff: 1;
 };
 
 /*
@@ -263,7 +271,8 @@ struct iwl_tt_params {
 #define OTP_LOW_IMAGE_SIZE_FAMILY_9000	OTP_LOW_IMAGE_SIZE_FAMILY_8000
 #define OTP_LOW_IMAGE_SIZE_FAMILY_A000	OTP_LOW_IMAGE_SIZE_FAMILY_9000
 
-struct iwl_eeprom_params {
+struct iwl_eeprom_params
+{
 	const u8 regulatory_bands[7];
 	bool enhanced_txpower;
 };
@@ -272,7 +281,8 @@ struct iwl_eeprom_params {
  * @pwr: The power limit in mw
  * @backoff: The tx-backoff in uSec
  */
-struct iwl_pwr_tx_backoff {
+struct iwl_pwr_tx_backoff
+{
 	u32 pwr;
 	u32 backoff;
 };
@@ -326,7 +336,8 @@ struct iwl_pwr_tx_backoff {
  * API differences in uCode shouldn't be handled here but through TLVs
  * and/or the uCode API version instead.
  */
-struct iwl_cfg {
+struct iwl_cfg
+{
 	/* params specific to an individual device within a device family */
 	const char *name;
 	const char *fw_name_pre;
@@ -352,20 +363,20 @@ struct iwl_cfg {
 	u32 smem_len;
 	u16 nvm_ver;
 	u16 nvm_calib_ver;
-	u16 rx_with_siso_diversity:1,
-	    bt_shared_single_ant:1,
-	    internal_wimax_coex:1,
-	    host_interrupt_operation_mode:1,
-	    high_temp:1,
-	    mac_addr_from_csr:1,
-	    lp_xtal_workaround:1,
-	    disable_dummy_notification:1,
-	    apmg_not_supported:1,
-	    mq_rx_supported:1,
-	    vht_mu_mimo_supported:1,
-	    rf_id:1,
-	    integrated:1,
-	    use_tfh:1;
+	u16 rx_with_siso_diversity: 1,
+		bt_shared_single_ant: 1,
+		internal_wimax_coex: 1,
+		host_interrupt_operation_mode: 1,
+		high_temp: 1,
+		mac_addr_from_csr: 1,
+		lp_xtal_workaround: 1,
+		disable_dummy_notification: 1,
+		apmg_not_supported: 1,
+		mq_rx_supported: 1,
+		vht_mu_mimo_supported: 1,
+		rf_id: 1,
+		integrated: 1,
+		use_tfh: 1;
 	u8 valid_tx_ant;
 	u8 valid_rx_ant;
 	u8 non_shared_ant;
@@ -382,80 +393,80 @@ struct iwl_cfg {
  * This list declares the config structures for all devices.
  */
 #if IS_ENABLED(CONFIG_IWLDVM)
-extern const struct iwl_cfg iwl5300_agn_cfg;
-extern const struct iwl_cfg iwl5100_agn_cfg;
-extern const struct iwl_cfg iwl5350_agn_cfg;
-extern const struct iwl_cfg iwl5100_bgn_cfg;
-extern const struct iwl_cfg iwl5100_abg_cfg;
-extern const struct iwl_cfg iwl5150_agn_cfg;
-extern const struct iwl_cfg iwl5150_abg_cfg;
-extern const struct iwl_cfg iwl6005_2agn_cfg;
-extern const struct iwl_cfg iwl6005_2abg_cfg;
-extern const struct iwl_cfg iwl6005_2bg_cfg;
-extern const struct iwl_cfg iwl6005_2agn_sff_cfg;
-extern const struct iwl_cfg iwl6005_2agn_d_cfg;
-extern const struct iwl_cfg iwl6005_2agn_mow1_cfg;
-extern const struct iwl_cfg iwl6005_2agn_mow2_cfg;
-extern const struct iwl_cfg iwl1030_bgn_cfg;
-extern const struct iwl_cfg iwl1030_bg_cfg;
-extern const struct iwl_cfg iwl6030_2agn_cfg;
-extern const struct iwl_cfg iwl6030_2abg_cfg;
-extern const struct iwl_cfg iwl6030_2bgn_cfg;
-extern const struct iwl_cfg iwl6030_2bg_cfg;
-extern const struct iwl_cfg iwl6000i_2agn_cfg;
-extern const struct iwl_cfg iwl6000i_2abg_cfg;
-extern const struct iwl_cfg iwl6000i_2bg_cfg;
-extern const struct iwl_cfg iwl6000_3agn_cfg;
-extern const struct iwl_cfg iwl6050_2agn_cfg;
-extern const struct iwl_cfg iwl6050_2abg_cfg;
-extern const struct iwl_cfg iwl6150_bgn_cfg;
-extern const struct iwl_cfg iwl6150_bg_cfg;
-extern const struct iwl_cfg iwl1000_bgn_cfg;
-extern const struct iwl_cfg iwl1000_bg_cfg;
-extern const struct iwl_cfg iwl100_bgn_cfg;
-extern const struct iwl_cfg iwl100_bg_cfg;
-extern const struct iwl_cfg iwl130_bgn_cfg;
-extern const struct iwl_cfg iwl130_bg_cfg;
-extern const struct iwl_cfg iwl2000_2bgn_cfg;
-extern const struct iwl_cfg iwl2000_2bgn_d_cfg;
-extern const struct iwl_cfg iwl2030_2bgn_cfg;
-extern const struct iwl_cfg iwl6035_2agn_cfg;
-extern const struct iwl_cfg iwl6035_2agn_sff_cfg;
-extern const struct iwl_cfg iwl105_bgn_cfg;
-extern const struct iwl_cfg iwl105_bgn_d_cfg;
-extern const struct iwl_cfg iwl135_bgn_cfg;
+	extern const struct iwl_cfg iwl5300_agn_cfg;
+	extern const struct iwl_cfg iwl5100_agn_cfg;
+	extern const struct iwl_cfg iwl5350_agn_cfg;
+	extern const struct iwl_cfg iwl5100_bgn_cfg;
+	extern const struct iwl_cfg iwl5100_abg_cfg;
+	extern const struct iwl_cfg iwl5150_agn_cfg;
+	extern const struct iwl_cfg iwl5150_abg_cfg;
+	extern const struct iwl_cfg iwl6005_2agn_cfg;
+	extern const struct iwl_cfg iwl6005_2abg_cfg;
+	extern const struct iwl_cfg iwl6005_2bg_cfg;
+	extern const struct iwl_cfg iwl6005_2agn_sff_cfg;
+	extern const struct iwl_cfg iwl6005_2agn_d_cfg;
+	extern const struct iwl_cfg iwl6005_2agn_mow1_cfg;
+	extern const struct iwl_cfg iwl6005_2agn_mow2_cfg;
+	extern const struct iwl_cfg iwl1030_bgn_cfg;
+	extern const struct iwl_cfg iwl1030_bg_cfg;
+	extern const struct iwl_cfg iwl6030_2agn_cfg;
+	extern const struct iwl_cfg iwl6030_2abg_cfg;
+	extern const struct iwl_cfg iwl6030_2bgn_cfg;
+	extern const struct iwl_cfg iwl6030_2bg_cfg;
+	extern const struct iwl_cfg iwl6000i_2agn_cfg;
+	extern const struct iwl_cfg iwl6000i_2abg_cfg;
+	extern const struct iwl_cfg iwl6000i_2bg_cfg;
+	extern const struct iwl_cfg iwl6000_3agn_cfg;
+	extern const struct iwl_cfg iwl6050_2agn_cfg;
+	extern const struct iwl_cfg iwl6050_2abg_cfg;
+	extern const struct iwl_cfg iwl6150_bgn_cfg;
+	extern const struct iwl_cfg iwl6150_bg_cfg;
+	extern const struct iwl_cfg iwl1000_bgn_cfg;
+	extern const struct iwl_cfg iwl1000_bg_cfg;
+	extern const struct iwl_cfg iwl100_bgn_cfg;
+	extern const struct iwl_cfg iwl100_bg_cfg;
+	extern const struct iwl_cfg iwl130_bgn_cfg;
+	extern const struct iwl_cfg iwl130_bg_cfg;
+	extern const struct iwl_cfg iwl2000_2bgn_cfg;
+	extern const struct iwl_cfg iwl2000_2bgn_d_cfg;
+	extern const struct iwl_cfg iwl2030_2bgn_cfg;
+	extern const struct iwl_cfg iwl6035_2agn_cfg;
+	extern const struct iwl_cfg iwl6035_2agn_sff_cfg;
+	extern const struct iwl_cfg iwl105_bgn_cfg;
+	extern const struct iwl_cfg iwl105_bgn_d_cfg;
+	extern const struct iwl_cfg iwl135_bgn_cfg;
 #endif /* CONFIG_IWLDVM */
 #if IS_ENABLED(CONFIG_IWLMVM)
-extern const struct iwl_cfg iwl7260_2ac_cfg;
-extern const struct iwl_cfg iwl7260_2ac_cfg_high_temp;
-extern const struct iwl_cfg iwl7260_2n_cfg;
-extern const struct iwl_cfg iwl7260_n_cfg;
-extern const struct iwl_cfg iwl3160_2ac_cfg;
-extern const struct iwl_cfg iwl3160_2n_cfg;
-extern const struct iwl_cfg iwl3160_n_cfg;
-extern const struct iwl_cfg iwl3165_2ac_cfg;
-extern const struct iwl_cfg iwl3168_2ac_cfg;
-extern const struct iwl_cfg iwl7265_2ac_cfg;
-extern const struct iwl_cfg iwl7265_2n_cfg;
-extern const struct iwl_cfg iwl7265_n_cfg;
-extern const struct iwl_cfg iwl7265d_2ac_cfg;
-extern const struct iwl_cfg iwl7265d_2n_cfg;
-extern const struct iwl_cfg iwl7265d_n_cfg;
-extern const struct iwl_cfg iwl8260_2n_cfg;
-extern const struct iwl_cfg iwl8260_2ac_cfg;
-extern const struct iwl_cfg iwl8265_2ac_cfg;
-extern const struct iwl_cfg iwl8275_2ac_cfg;
-extern const struct iwl_cfg iwl4165_2ac_cfg;
-extern const struct iwl_cfg iwl8260_2ac_sdio_cfg;
-extern const struct iwl_cfg iwl8265_2ac_sdio_cfg;
-extern const struct iwl_cfg iwl4165_2ac_sdio_cfg;
-extern const struct iwl_cfg iwl9000lc_2ac_cfg;
-extern const struct iwl_cfg iwl9160_2ac_cfg;
-extern const struct iwl_cfg iwl9260_2ac_cfg;
-extern const struct iwl_cfg iwl9270_2ac_cfg;
-extern const struct iwl_cfg iwl9460_2ac_cfg;
-extern const struct iwl_cfg iwl9560_2ac_cfg;
-extern const struct iwl_cfg iwla000_2ac_cfg;
+	extern const struct iwl_cfg iwl7260_2ac_cfg;
+	extern const struct iwl_cfg iwl7260_2ac_cfg_high_temp;
+	extern const struct iwl_cfg iwl7260_2n_cfg;
+	extern const struct iwl_cfg iwl7260_n_cfg;
+	extern const struct iwl_cfg iwl3160_2ac_cfg;
+	extern const struct iwl_cfg iwl3160_2n_cfg;
+	extern const struct iwl_cfg iwl3160_n_cfg;
+	extern const struct iwl_cfg iwl3165_2ac_cfg;
+	extern const struct iwl_cfg iwl3168_2ac_cfg;
+	extern const struct iwl_cfg iwl7265_2ac_cfg;
+	extern const struct iwl_cfg iwl7265_2n_cfg;
+	extern const struct iwl_cfg iwl7265_n_cfg;
+	extern const struct iwl_cfg iwl7265d_2ac_cfg;
+	extern const struct iwl_cfg iwl7265d_2n_cfg;
+	extern const struct iwl_cfg iwl7265d_n_cfg;
+	extern const struct iwl_cfg iwl8260_2n_cfg;
+	extern const struct iwl_cfg iwl8260_2ac_cfg;
+	extern const struct iwl_cfg iwl8265_2ac_cfg;
+	extern const struct iwl_cfg iwl8275_2ac_cfg;
+	extern const struct iwl_cfg iwl4165_2ac_cfg;
+	extern const struct iwl_cfg iwl8260_2ac_sdio_cfg;
+	extern const struct iwl_cfg iwl8265_2ac_sdio_cfg;
+	extern const struct iwl_cfg iwl4165_2ac_sdio_cfg;
+	extern const struct iwl_cfg iwl9000lc_2ac_cfg;
+	extern const struct iwl_cfg iwl9160_2ac_cfg;
+	extern const struct iwl_cfg iwl9260_2ac_cfg;
+	extern const struct iwl_cfg iwl9270_2ac_cfg;
+	extern const struct iwl_cfg iwl9460_2ac_cfg;
+	extern const struct iwl_cfg iwl9560_2ac_cfg;
+	extern const struct iwl_cfg iwla000_2ac_cfg;
 #endif /* CONFIG_IWLMVM */
 
 #endif /* __IWL_CONFIG_H__ */

@@ -61,9 +61,9 @@
 */
 #define _CMDCF(dir, flags, vtype, nr)  \
 	(((dir)   << _CMD_DIRSHIFT) | \
-	((flags) << _CMD_FLAGSSHIFT) | \
-	((vtype) << _CMD_VTYPESHIFT) | \
-	((nr)    << _CMD_NSHIFT))
+	 ((flags) << _CMD_FLAGSSHIFT) | \
+	 ((vtype) << _CMD_VTYPESHIFT) | \
+	 ((nr)    << _CMD_NSHIFT))
 #define _CMDC(dir, vtype, nr)    _CMDCF(dir, 0, vtype, nr)
 #define _CMDCNW(dir, vtype, nr)  _CMDCF(dir, _CMD_FLAGS_NOWAIT, vtype, nr)
 
@@ -75,7 +75,8 @@
 #define _CMD_VTYPE(cmd)          (((cmd) >> _CMD_VTYPESHIFT) & _CMD_VTYPEMASK)
 #define _CMD_N(cmd)              (((cmd) >> _CMD_NSHIFT) & _CMD_NMASK)
 
-enum vnic_devcmd_cmd {
+enum vnic_devcmd_cmd
+{
 	CMD_NONE                = _CMDC(_CMD_DIR_NONE, _CMD_VTYPE_NONE, 0),
 
 	/* mcpu fw info in mem: (u64)a0=paddr to struct vnic_devcmd_fw_info */
@@ -165,13 +166,15 @@ enum vnic_devcmd_cmd {
 #define CMD_PFILTER_PROMISCUOUS		0x08
 #define CMD_PFILTER_ALL_MULTICAST	0x10
 
-enum vnic_devcmd_status {
+enum vnic_devcmd_status
+{
 	STAT_NONE = 0,
 	STAT_BUSY = 1 << 0,	/* cmd in progress */
 	STAT_ERROR = 1 << 1,	/* last cmd caused error (code in a0) */
 };
 
-enum vnic_devcmd_error {
+enum vnic_devcmd_error
+{
 	ERR_SUCCESS = 0,
 	ERR_EINVAL = 1,
 	ERR_EFAULT = 2,
@@ -184,14 +187,16 @@ enum vnic_devcmd_error {
 	ERR_ELINKDOWN = 9,
 };
 
-struct vnic_devcmd_fw_info {
+struct vnic_devcmd_fw_info
+{
 	char fw_version[32];
 	char fw_build[32];
 	char hw_version[32];
 	char hw_serial_number[32];
 };
 
-struct vnic_devcmd_notify {
+struct vnic_devcmd_notify
+{
 	u32 csum;		/* checksum over following words */
 
 	u32 link_state;		/* link up == 1 */
@@ -205,7 +210,8 @@ struct vnic_devcmd_notify {
 };
 #define VNIC_STF_FATAL_ERR	0x0001	/* fatal fw error */
 
-struct vnic_devcmd_provinfo {
+struct vnic_devcmd_provinfo
+{
 	u8 oui[3];
 	u8 type;
 	u8 data[0];
@@ -226,7 +232,8 @@ struct vnic_devcmd_provinfo {
 
 /* Make sizeof(vnic_devcmd) a power-of-2 for I/O BAR. */
 #define VNIC_DEVCMD_NARGS 15
-struct vnic_devcmd {
+struct vnic_devcmd
+{
 	u32 status;			/* RO */
 	u32 cmd;			/* RW */
 	u64 args[VNIC_DEVCMD_NARGS];	/* RW cmd args (little-endian) */
@@ -246,7 +253,8 @@ struct vnic_devcmd {
 #define DEVCMD2_FNORESULT       0x1     /* Don't copy result to host */
 
 #define VNIC_DEVCMD2_NARGS      VNIC_DEVCMD_NARGS
-struct vnic_devcmd2 {
+struct vnic_devcmd2
+{
 	u16 pad;
 	u16 flags;
 	u32 cmd;                /* same command #defines as original */
@@ -254,7 +262,8 @@ struct vnic_devcmd2 {
 };
 
 #define VNIC_DEVCMD2_NRESULTS   VNIC_DEVCMD_NARGS
-struct devcmd2_result {
+struct devcmd2_result
+{
 	u64 results[VNIC_DEVCMD2_NRESULTS];
 	u32 pad;
 	u16 completed_index;    /* into copy WQ */

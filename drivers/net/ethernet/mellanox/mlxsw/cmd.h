@@ -58,36 +58,37 @@ static inline void mlxsw_cmd_mbox_zero(char *mbox)
 struct mlxsw_core;
 
 int mlxsw_cmd_exec(struct mlxsw_core *mlxsw_core, u16 opcode, u8 opcode_mod,
-		   u32 in_mod, bool out_mbox_direct,
-		   char *in_mbox, size_t in_mbox_size,
-		   char *out_mbox, size_t out_mbox_size);
+				   u32 in_mod, bool out_mbox_direct,
+				   char *in_mbox, size_t in_mbox_size,
+				   char *out_mbox, size_t out_mbox_size);
 
 static inline int mlxsw_cmd_exec_in(struct mlxsw_core *mlxsw_core, u16 opcode,
-				    u8 opcode_mod, u32 in_mod, char *in_mbox,
-				    size_t in_mbox_size)
+									u8 opcode_mod, u32 in_mod, char *in_mbox,
+									size_t in_mbox_size)
 {
 	return mlxsw_cmd_exec(mlxsw_core, opcode, opcode_mod, in_mod, false,
-			      in_mbox, in_mbox_size, NULL, 0);
+						  in_mbox, in_mbox_size, NULL, 0);
 }
 
 static inline int mlxsw_cmd_exec_out(struct mlxsw_core *mlxsw_core, u16 opcode,
-				     u8 opcode_mod, u32 in_mod,
-				     bool out_mbox_direct,
-				     char *out_mbox, size_t out_mbox_size)
+									 u8 opcode_mod, u32 in_mod,
+									 bool out_mbox_direct,
+									 char *out_mbox, size_t out_mbox_size)
 {
 	return mlxsw_cmd_exec(mlxsw_core, opcode, opcode_mod, in_mod,
-			      out_mbox_direct, NULL, 0,
-			      out_mbox, out_mbox_size);
+						  out_mbox_direct, NULL, 0,
+						  out_mbox, out_mbox_size);
 }
 
 static inline int mlxsw_cmd_exec_none(struct mlxsw_core *mlxsw_core, u16 opcode,
-				      u8 opcode_mod, u32 in_mod)
+									  u8 opcode_mod, u32 in_mod)
 {
 	return mlxsw_cmd_exec(mlxsw_core, opcode, opcode_mod, in_mod, false,
-			      NULL, 0, NULL, 0);
+						  NULL, 0, NULL, 0);
 }
 
-enum mlxsw_cmd_opcode {
+enum mlxsw_cmd_opcode
+{
 	MLXSW_CMD_OPCODE_QUERY_FW		= 0x004,
 	MLXSW_CMD_OPCODE_QUERY_BOARDINFO	= 0x006,
 	MLXSW_CMD_OPCODE_QUERY_AQ_CAP		= 0x003,
@@ -110,49 +111,69 @@ enum mlxsw_cmd_opcode {
 
 static inline const char *mlxsw_cmd_opcode_str(u16 opcode)
 {
-	switch (opcode) {
-	case MLXSW_CMD_OPCODE_QUERY_FW:
-		return "QUERY_FW";
-	case MLXSW_CMD_OPCODE_QUERY_BOARDINFO:
-		return "QUERY_BOARDINFO";
-	case MLXSW_CMD_OPCODE_QUERY_AQ_CAP:
-		return "QUERY_AQ_CAP";
-	case MLXSW_CMD_OPCODE_MAP_FA:
-		return "MAP_FA";
-	case MLXSW_CMD_OPCODE_UNMAP_FA:
-		return "UNMAP_FA";
-	case MLXSW_CMD_OPCODE_CONFIG_PROFILE:
-		return "CONFIG_PROFILE";
-	case MLXSW_CMD_OPCODE_ACCESS_REG:
-		return "ACCESS_REG";
-	case MLXSW_CMD_OPCODE_SW2HW_DQ:
-		return "SW2HW_DQ";
-	case MLXSW_CMD_OPCODE_HW2SW_DQ:
-		return "HW2SW_DQ";
-	case MLXSW_CMD_OPCODE_2ERR_DQ:
-		return "2ERR_DQ";
-	case MLXSW_CMD_OPCODE_QUERY_DQ:
-		return "QUERY_DQ";
-	case MLXSW_CMD_OPCODE_SW2HW_CQ:
-		return "SW2HW_CQ";
-	case MLXSW_CMD_OPCODE_HW2SW_CQ:
-		return "HW2SW_CQ";
-	case MLXSW_CMD_OPCODE_QUERY_CQ:
-		return "QUERY_CQ";
-	case MLXSW_CMD_OPCODE_SW2HW_EQ:
-		return "SW2HW_EQ";
-	case MLXSW_CMD_OPCODE_HW2SW_EQ:
-		return "HW2SW_EQ";
-	case MLXSW_CMD_OPCODE_QUERY_EQ:
-		return "QUERY_EQ";
-	case MLXSW_CMD_OPCODE_QUERY_RESOURCES:
-		return "QUERY_RESOURCES";
-	default:
-		return "*UNKNOWN*";
+	switch (opcode)
+	{
+		case MLXSW_CMD_OPCODE_QUERY_FW:
+			return "QUERY_FW";
+
+		case MLXSW_CMD_OPCODE_QUERY_BOARDINFO:
+			return "QUERY_BOARDINFO";
+
+		case MLXSW_CMD_OPCODE_QUERY_AQ_CAP:
+			return "QUERY_AQ_CAP";
+
+		case MLXSW_CMD_OPCODE_MAP_FA:
+			return "MAP_FA";
+
+		case MLXSW_CMD_OPCODE_UNMAP_FA:
+			return "UNMAP_FA";
+
+		case MLXSW_CMD_OPCODE_CONFIG_PROFILE:
+			return "CONFIG_PROFILE";
+
+		case MLXSW_CMD_OPCODE_ACCESS_REG:
+			return "ACCESS_REG";
+
+		case MLXSW_CMD_OPCODE_SW2HW_DQ:
+			return "SW2HW_DQ";
+
+		case MLXSW_CMD_OPCODE_HW2SW_DQ:
+			return "HW2SW_DQ";
+
+		case MLXSW_CMD_OPCODE_2ERR_DQ:
+			return "2ERR_DQ";
+
+		case MLXSW_CMD_OPCODE_QUERY_DQ:
+			return "QUERY_DQ";
+
+		case MLXSW_CMD_OPCODE_SW2HW_CQ:
+			return "SW2HW_CQ";
+
+		case MLXSW_CMD_OPCODE_HW2SW_CQ:
+			return "HW2SW_CQ";
+
+		case MLXSW_CMD_OPCODE_QUERY_CQ:
+			return "QUERY_CQ";
+
+		case MLXSW_CMD_OPCODE_SW2HW_EQ:
+			return "SW2HW_EQ";
+
+		case MLXSW_CMD_OPCODE_HW2SW_EQ:
+			return "HW2SW_EQ";
+
+		case MLXSW_CMD_OPCODE_QUERY_EQ:
+			return "QUERY_EQ";
+
+		case MLXSW_CMD_OPCODE_QUERY_RESOURCES:
+			return "QUERY_RESOURCES";
+
+		default:
+			return "*UNKNOWN*";
 	}
 }
 
-enum mlxsw_cmd_status {
+enum mlxsw_cmd_status
+{
 	/* Command execution succeeded. */
 	MLXSW_CMD_STATUS_OK		= 0x00,
 	/* Internal error (e.g. bus error) occurred while processing command. */
@@ -185,33 +206,46 @@ enum mlxsw_cmd_status {
 
 static inline const char *mlxsw_cmd_status_str(u8 status)
 {
-	switch (status) {
-	case MLXSW_CMD_STATUS_OK:
-		return "OK";
-	case MLXSW_CMD_STATUS_INTERNAL_ERR:
-		return "INTERNAL_ERR";
-	case MLXSW_CMD_STATUS_BAD_OP:
-		return "BAD_OP";
-	case MLXSW_CMD_STATUS_BAD_PARAM:
-		return "BAD_PARAM";
-	case MLXSW_CMD_STATUS_BAD_SYS_STATE:
-		return "BAD_SYS_STATE";
-	case MLXSW_CMD_STATUS_BAD_RESOURCE:
-		return "BAD_RESOURCE";
-	case MLXSW_CMD_STATUS_RESOURCE_BUSY:
-		return "RESOURCE_BUSY";
-	case MLXSW_CMD_STATUS_EXCEED_LIM:
-		return "EXCEED_LIM";
-	case MLXSW_CMD_STATUS_BAD_RES_STATE:
-		return "BAD_RES_STATE";
-	case MLXSW_CMD_STATUS_BAD_INDEX:
-		return "BAD_INDEX";
-	case MLXSW_CMD_STATUS_BAD_NVMEM:
-		return "BAD_NVMEM";
-	case MLXSW_CMD_STATUS_BAD_PKT:
-		return "BAD_PKT";
-	default:
-		return "*UNKNOWN*";
+	switch (status)
+	{
+		case MLXSW_CMD_STATUS_OK:
+			return "OK";
+
+		case MLXSW_CMD_STATUS_INTERNAL_ERR:
+			return "INTERNAL_ERR";
+
+		case MLXSW_CMD_STATUS_BAD_OP:
+			return "BAD_OP";
+
+		case MLXSW_CMD_STATUS_BAD_PARAM:
+			return "BAD_PARAM";
+
+		case MLXSW_CMD_STATUS_BAD_SYS_STATE:
+			return "BAD_SYS_STATE";
+
+		case MLXSW_CMD_STATUS_BAD_RESOURCE:
+			return "BAD_RESOURCE";
+
+		case MLXSW_CMD_STATUS_RESOURCE_BUSY:
+			return "RESOURCE_BUSY";
+
+		case MLXSW_CMD_STATUS_EXCEED_LIM:
+			return "EXCEED_LIM";
+
+		case MLXSW_CMD_STATUS_BAD_RES_STATE:
+			return "BAD_RES_STATE";
+
+		case MLXSW_CMD_STATUS_BAD_INDEX:
+			return "BAD_INDEX";
+
+		case MLXSW_CMD_STATUS_BAD_NVMEM:
+			return "BAD_NVMEM";
+
+		case MLXSW_CMD_STATUS_BAD_PKT:
+			return "BAD_PKT";
+
+		default:
+			return "*UNKNOWN*";
 	}
 }
 
@@ -225,10 +259,10 @@ static inline const char *mlxsw_cmd_status_str(u8 status)
  */
 
 static inline int mlxsw_cmd_query_fw(struct mlxsw_core *mlxsw_core,
-				     char *out_mbox)
+									 char *out_mbox)
 {
 	return mlxsw_cmd_exec_out(mlxsw_core, MLXSW_CMD_OPCODE_QUERY_FW,
-				  0, 0, false, out_mbox, MLXSW_CMD_MBOX_SIZE);
+							  0, 0, false, out_mbox, MLXSW_CMD_MBOX_SIZE);
 }
 
 /* cmd_mbox_query_fw_fw_pages
@@ -353,10 +387,10 @@ MLXSW_ITEM32(cmd_mbox, query_fw, doorbell_page_bar, 0x48, 30, 2);
  */
 
 static inline int mlxsw_cmd_boardinfo(struct mlxsw_core *mlxsw_core,
-				      char *out_mbox)
+									  char *out_mbox)
 {
 	return mlxsw_cmd_exec_out(mlxsw_core, MLXSW_CMD_OPCODE_QUERY_BOARDINFO,
-				  0, 0, false, out_mbox, MLXSW_CMD_MBOX_SIZE);
+							  0, 0, false, out_mbox, MLXSW_CMD_MBOX_SIZE);
 }
 
 /* cmd_mbox_boardinfo_intapin
@@ -397,10 +431,10 @@ MLXSW_ITEM_BUF(cmd_mbox, boardinfo, psid, 0xF0, MLXSW_CMD_BOARDINFO_PSID_LEN);
  */
 
 static inline int mlxsw_cmd_query_aq_cap(struct mlxsw_core *mlxsw_core,
-					 char *out_mbox)
+		char *out_mbox)
 {
 	return mlxsw_cmd_exec_out(mlxsw_core, MLXSW_CMD_OPCODE_QUERY_AQ_CAP,
-				  0, 0, false, out_mbox, MLXSW_CMD_MBOX_SIZE);
+							  0, 0, false, out_mbox, MLXSW_CMD_MBOX_SIZE);
 }
 
 /* cmd_mbox_query_aq_cap_log_max_sdq_sz
@@ -470,11 +504,11 @@ MLXSW_ITEM32(cmd_mbox, query_aq_cap, max_sg_rq, 0x10, 0, 8);
 #define MLXSW_CMD_MAP_FA_VPM_ENTRIES_MAX 32
 
 static inline int mlxsw_cmd_map_fa(struct mlxsw_core *mlxsw_core,
-				   char *in_mbox, u32 vpm_entries_count)
+								   char *in_mbox, u32 vpm_entries_count)
 {
 	return mlxsw_cmd_exec_in(mlxsw_core, MLXSW_CMD_OPCODE_MAP_FA,
-				 0, vpm_entries_count,
-				 in_mbox, MLXSW_CMD_MBOX_SIZE);
+							 0, vpm_entries_count,
+							 in_mbox, MLXSW_CMD_MBOX_SIZE);
 }
 
 /* cmd_mbox_map_fa_pa
@@ -514,11 +548,11 @@ static inline int mlxsw_cmd_unmap_fa(struct mlxsw_core *mlxsw_core)
  * it.
  */
 static inline int mlxsw_cmd_query_resources(struct mlxsw_core *mlxsw_core,
-					    char *out_mbox, int index)
+		char *out_mbox, int index)
 {
 	return mlxsw_cmd_exec_out(mlxsw_core, MLXSW_CMD_OPCODE_QUERY_RESOURCES,
-				  0, index, false, out_mbox,
-				  MLXSW_CMD_MBOX_SIZE);
+							  0, index, false, out_mbox,
+							  MLXSW_CMD_MBOX_SIZE);
 }
 
 /* cmd_mbox_query_resource_id
@@ -530,7 +564,7 @@ MLXSW_ITEM32_INDEXED(cmd_mbox, query_resource, id, 0x00, 16, 16, 0x8, 0, false);
  * The resource
  */
 MLXSW_ITEM64_INDEXED(cmd_mbox, query_resource, data,
-		     0x00, 0, 40, 0x8, 0, false);
+					 0x00, 0, 40, 0x8, 0, false);
 
 /* CONFIG_PROFILE (Set) - Configure Switch Profile
  * ------------------------------
@@ -548,10 +582,10 @@ MLXSW_ITEM64_INDEXED(cmd_mbox, query_resource, data,
  */
 
 static inline int mlxsw_cmd_config_profile_set(struct mlxsw_core *mlxsw_core,
-					       char *in_mbox)
+		char *in_mbox)
 {
 	return mlxsw_cmd_exec_in(mlxsw_core, MLXSW_CMD_OPCODE_CONFIG_PROFILE,
-				 1, 0, in_mbox, MLXSW_CMD_MBOX_SIZE);
+							 1, 0, in_mbox, MLXSW_CMD_MBOX_SIZE);
 }
 
 /* cmd_mbox_config_profile_set_max_vepa_channels
@@ -631,7 +665,7 @@ MLXSW_ITEM32(cmd_mbox, config_profile, set_max_pkey, 0x0C, 13, 1);
  * according to the mailbox contents.
  */
 MLXSW_ITEM32(cmd_mbox, config_profile,
-	     set_adaptive_routing_group_cap, 0x0C, 14, 1);
+			 set_adaptive_routing_group_cap, 0x0C, 14, 1);
 
 /* cmd_mbox_config_profile_set_ar_sec
  * Capability bit. Setting a bit to 1 configures the profile
@@ -728,13 +762,13 @@ MLXSW_ITEM32(cmd_mbox, config_profile, flood_mode, 0x30, 0, 2);
  * Maximum number of FID-offset flooding tables.
  */
 MLXSW_ITEM32(cmd_mbox, config_profile,
-	     max_fid_offset_flood_tables, 0x34, 24, 4);
+			 max_fid_offset_flood_tables, 0x34, 24, 4);
 
 /* cmd_mbox_config_profile_fid_offset_flood_table_size
  * The size (number of entries) of each FID-offset flood table.
  */
 MLXSW_ITEM32(cmd_mbox, config_profile,
-	     fid_offset_flood_table_size, 0x34, 0, 16);
+			 fid_offset_flood_table_size, 0x34, 0, 16);
 
 /* cmd_mbox_config_profile_max_fid_flood_tables
  * Maximum number of per-FID flooding tables.
@@ -817,7 +851,7 @@ MLXSW_ITEM32(cmd_mbox, config_profile, kvd_hash_double_size, 0x5C, 0, 24);
  * Other - reserved
  */
 MLXSW_ITEM32_INDEXED(cmd_mbox, config_profile, swid_config_mask,
-		     0x60, 24, 8, 0x08, 0x00, false);
+					 0x60, 24, 8, 0x08, 0x00, false);
 
 /* cmd_mbox_config_profile_swid_config_type
  * Switch Partition type.
@@ -828,13 +862,13 @@ MLXSW_ITEM32_INDEXED(cmd_mbox, config_profile, swid_config_mask,
  * Other - reserved
  */
 MLXSW_ITEM32_INDEXED(cmd_mbox, config_profile, swid_config_type,
-		     0x60, 20, 4, 0x08, 0x00, false);
+					 0x60, 20, 4, 0x08, 0x00, false);
 
 /* cmd_mbox_config_profile_swid_config_properties
  * Switch Partition properties.
  */
 MLXSW_ITEM32_INDEXED(cmd_mbox, config_profile, swid_config_properties,
-		     0x60, 0, 8, 0x08, 0x00, false);
+					 0x60, 0, 8, 0x08, 0x00, false);
 
 /* ACCESS_REG - Access EMAD Supported Register
  * ----------------------------------
@@ -845,11 +879,11 @@ MLXSW_ITEM32_INDEXED(cmd_mbox, config_profile, swid_config_properties,
  */
 
 static inline int mlxsw_cmd_access_reg(struct mlxsw_core *mlxsw_core,
-				       char *in_mbox, char *out_mbox)
+									   char *in_mbox, char *out_mbox)
 {
 	return mlxsw_cmd_exec(mlxsw_core, MLXSW_CMD_OPCODE_ACCESS_REG,
-			      0, 0, false, in_mbox, MLXSW_CMD_MBOX_SIZE,
-			      out_mbox, MLXSW_CMD_MBOX_SIZE);
+						  0, 0, false, in_mbox, MLXSW_CMD_MBOX_SIZE,
+						  out_mbox, MLXSW_CMD_MBOX_SIZE);
 }
 
 /* SW2HW_DQ - Software to Hardware DQ
@@ -863,31 +897,32 @@ static inline int mlxsw_cmd_access_reg(struct mlxsw_core *mlxsw_core,
  */
 
 static inline int __mlxsw_cmd_sw2hw_dq(struct mlxsw_core *mlxsw_core,
-				       char *in_mbox, u32 dq_number,
-				       u8 opcode_mod)
+									   char *in_mbox, u32 dq_number,
+									   u8 opcode_mod)
 {
 	return mlxsw_cmd_exec_in(mlxsw_core, MLXSW_CMD_OPCODE_SW2HW_DQ,
-				 opcode_mod, dq_number,
-				 in_mbox, MLXSW_CMD_MBOX_SIZE);
+							 opcode_mod, dq_number,
+							 in_mbox, MLXSW_CMD_MBOX_SIZE);
 }
 
-enum {
+enum
+{
 	MLXSW_CMD_OPCODE_MOD_SDQ = 0,
 	MLXSW_CMD_OPCODE_MOD_RDQ = 1,
 };
 
 static inline int mlxsw_cmd_sw2hw_sdq(struct mlxsw_core *mlxsw_core,
-				      char *in_mbox, u32 dq_number)
+									  char *in_mbox, u32 dq_number)
 {
 	return __mlxsw_cmd_sw2hw_dq(mlxsw_core, in_mbox, dq_number,
-				    MLXSW_CMD_OPCODE_MOD_SDQ);
+								MLXSW_CMD_OPCODE_MOD_SDQ);
 }
 
 static inline int mlxsw_cmd_sw2hw_rdq(struct mlxsw_core *mlxsw_core,
-				      char *in_mbox, u32 dq_number)
+									  char *in_mbox, u32 dq_number)
 {
 	return __mlxsw_cmd_sw2hw_dq(mlxsw_core, in_mbox, dq_number,
-				    MLXSW_CMD_OPCODE_MOD_RDQ);
+								MLXSW_CMD_OPCODE_MOD_RDQ);
 }
 
 /* cmd_mbox_sw2hw_dq_cq
@@ -922,24 +957,24 @@ MLXSW_ITEM64_INDEXED(cmd_mbox, sw2hw_dq, pa, 0x10, 12, 52, 0x08, 0x00, true);
  */
 
 static inline int __mlxsw_cmd_hw2sw_dq(struct mlxsw_core *mlxsw_core,
-				       u32 dq_number, u8 opcode_mod)
+									   u32 dq_number, u8 opcode_mod)
 {
 	return mlxsw_cmd_exec_none(mlxsw_core, MLXSW_CMD_OPCODE_HW2SW_DQ,
-				   opcode_mod, dq_number);
+							   opcode_mod, dq_number);
 }
 
 static inline int mlxsw_cmd_hw2sw_sdq(struct mlxsw_core *mlxsw_core,
-				      u32 dq_number)
+									  u32 dq_number)
 {
 	return __mlxsw_cmd_hw2sw_dq(mlxsw_core, dq_number,
-				    MLXSW_CMD_OPCODE_MOD_SDQ);
+								MLXSW_CMD_OPCODE_MOD_SDQ);
 }
 
 static inline int mlxsw_cmd_hw2sw_rdq(struct mlxsw_core *mlxsw_core,
-				      u32 dq_number)
+									  u32 dq_number)
 {
 	return __mlxsw_cmd_hw2sw_dq(mlxsw_core, dq_number,
-				    MLXSW_CMD_OPCODE_MOD_RDQ);
+								MLXSW_CMD_OPCODE_MOD_RDQ);
 }
 
 /* 2ERR_DQ - To Error DQ
@@ -957,24 +992,24 @@ static inline int mlxsw_cmd_hw2sw_rdq(struct mlxsw_core *mlxsw_core,
  */
 
 static inline int __mlxsw_cmd_2err_dq(struct mlxsw_core *mlxsw_core,
-				      u32 dq_number, u8 opcode_mod)
+									  u32 dq_number, u8 opcode_mod)
 {
 	return mlxsw_cmd_exec_none(mlxsw_core, MLXSW_CMD_OPCODE_2ERR_DQ,
-				   opcode_mod, dq_number);
+							   opcode_mod, dq_number);
 }
 
 static inline int mlxsw_cmd_2err_sdq(struct mlxsw_core *mlxsw_core,
-				     u32 dq_number)
+									 u32 dq_number)
 {
 	return __mlxsw_cmd_2err_dq(mlxsw_core, dq_number,
-				   MLXSW_CMD_OPCODE_MOD_SDQ);
+							   MLXSW_CMD_OPCODE_MOD_SDQ);
 }
 
 static inline int mlxsw_cmd_2err_rdq(struct mlxsw_core *mlxsw_core,
-				     u32 dq_number)
+									 u32 dq_number)
 {
 	return __mlxsw_cmd_2err_dq(mlxsw_core, dq_number,
-				   MLXSW_CMD_OPCODE_MOD_RDQ);
+							   MLXSW_CMD_OPCODE_MOD_RDQ);
 }
 
 /* QUERY_DQ - Query DQ
@@ -988,26 +1023,26 @@ static inline int mlxsw_cmd_2err_rdq(struct mlxsw_core *mlxsw_core,
  */
 
 static inline int __mlxsw_cmd_query_dq(struct mlxsw_core *mlxsw_core,
-				       char *out_mbox, u32 dq_number,
-				       u8 opcode_mod)
+									   char *out_mbox, u32 dq_number,
+									   u8 opcode_mod)
 {
 	return mlxsw_cmd_exec_out(mlxsw_core, MLXSW_CMD_OPCODE_2ERR_DQ,
-				  opcode_mod, dq_number, false,
-				  out_mbox, MLXSW_CMD_MBOX_SIZE);
+							  opcode_mod, dq_number, false,
+							  out_mbox, MLXSW_CMD_MBOX_SIZE);
 }
 
 static inline int mlxsw_cmd_query_sdq(struct mlxsw_core *mlxsw_core,
-				      char *out_mbox, u32 dq_number)
+									  char *out_mbox, u32 dq_number)
 {
 	return __mlxsw_cmd_query_dq(mlxsw_core, out_mbox, dq_number,
-				    MLXSW_CMD_OPCODE_MOD_SDQ);
+								MLXSW_CMD_OPCODE_MOD_SDQ);
 }
 
 static inline int mlxsw_cmd_query_rdq(struct mlxsw_core *mlxsw_core,
-				      char *out_mbox, u32 dq_number)
+									  char *out_mbox, u32 dq_number)
 {
 	return __mlxsw_cmd_query_dq(mlxsw_core, out_mbox, dq_number,
-				    MLXSW_CMD_OPCODE_MOD_RDQ);
+								MLXSW_CMD_OPCODE_MOD_RDQ);
 }
 
 /* SW2HW_CQ - Software to Hardware CQ
@@ -1021,10 +1056,10 @@ static inline int mlxsw_cmd_query_rdq(struct mlxsw_core *mlxsw_core,
  */
 
 static inline int mlxsw_cmd_sw2hw_cq(struct mlxsw_core *mlxsw_core,
-				     char *in_mbox, u32 cq_number)
+									 char *in_mbox, u32 cq_number)
 {
 	return mlxsw_cmd_exec_in(mlxsw_core, MLXSW_CMD_OPCODE_SW2HW_CQ,
-				 0, cq_number, in_mbox, MLXSW_CMD_MBOX_SIZE);
+							 0, cq_number, in_mbox, MLXSW_CMD_MBOX_SIZE);
 }
 
 /* cmd_mbox_sw2hw_cq_cv
@@ -1078,10 +1113,10 @@ MLXSW_ITEM64_INDEXED(cmd_mbox, sw2hw_cq, pa, 0x10, 11, 53, 0x08, 0x00, true);
  */
 
 static inline int mlxsw_cmd_hw2sw_cq(struct mlxsw_core *mlxsw_core,
-				     u32 cq_number)
+									 u32 cq_number)
 {
 	return mlxsw_cmd_exec_none(mlxsw_core, MLXSW_CMD_OPCODE_HW2SW_CQ,
-				   0, cq_number);
+							   0, cq_number);
 }
 
 /* QUERY_CQ - Query CQ
@@ -1097,11 +1132,11 @@ static inline int mlxsw_cmd_hw2sw_cq(struct mlxsw_core *mlxsw_core,
  */
 
 static inline int mlxsw_cmd_query_cq(struct mlxsw_core *mlxsw_core,
-				     char *out_mbox, u32 cq_number)
+									 char *out_mbox, u32 cq_number)
 {
 	return mlxsw_cmd_exec_out(mlxsw_core, MLXSW_CMD_OPCODE_QUERY_CQ,
-				  0, cq_number, false,
-				  out_mbox, MLXSW_CMD_MBOX_SIZE);
+							  0, cq_number, false,
+							  out_mbox, MLXSW_CMD_MBOX_SIZE);
 }
 
 /* SW2HW_EQ - Software to Hardware EQ
@@ -1115,10 +1150,10 @@ static inline int mlxsw_cmd_query_cq(struct mlxsw_core *mlxsw_core,
  */
 
 static inline int mlxsw_cmd_sw2hw_eq(struct mlxsw_core *mlxsw_core,
-				     char *in_mbox, u32 eq_number)
+									 char *in_mbox, u32 eq_number)
 {
 	return mlxsw_cmd_exec_in(mlxsw_core, MLXSW_CMD_OPCODE_SW2HW_EQ,
-				 0, eq_number, in_mbox, MLXSW_CMD_MBOX_SIZE);
+							 0, eq_number, in_mbox, MLXSW_CMD_MBOX_SIZE);
 }
 
 /* cmd_mbox_sw2hw_eq_int_msix
@@ -1165,10 +1200,10 @@ MLXSW_ITEM64_INDEXED(cmd_mbox, sw2hw_eq, pa, 0x10, 11, 53, 0x08, 0x00, true);
  */
 
 static inline int mlxsw_cmd_hw2sw_eq(struct mlxsw_core *mlxsw_core,
-				     u32 eq_number)
+									 u32 eq_number)
 {
 	return mlxsw_cmd_exec_none(mlxsw_core, MLXSW_CMD_OPCODE_HW2SW_EQ,
-				   0, eq_number);
+							   0, eq_number);
 }
 
 /* QUERY_EQ - Query EQ
@@ -1180,11 +1215,11 @@ static inline int mlxsw_cmd_hw2sw_eq(struct mlxsw_core *mlxsw_core,
  */
 
 static inline int mlxsw_cmd_query_eq(struct mlxsw_core *mlxsw_core,
-				     char *out_mbox, u32 eq_number)
+									 char *out_mbox, u32 eq_number)
 {
 	return mlxsw_cmd_exec_out(mlxsw_core, MLXSW_CMD_OPCODE_QUERY_EQ,
-				  0, eq_number, false,
-				  out_mbox, MLXSW_CMD_MBOX_SIZE);
+							  0, eq_number, false,
+							  out_mbox, MLXSW_CMD_MBOX_SIZE);
 }
 
 #endif

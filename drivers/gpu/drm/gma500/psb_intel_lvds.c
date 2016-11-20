@@ -47,7 +47,8 @@
 #define PSB_BACKLIGHT_PWM_CTL_SHIFT	(16)
 #define PSB_BACKLIGHT_PWM_POLARITY_BIT_CLEAR (0xFFFE)
 
-struct psb_intel_lvds_priv {
+struct psb_intel_lvds_priv
+{
 	/*
 	 * Saved LVDO output states
 	 */
@@ -73,20 +74,26 @@ static u32 psb_intel_lvds_get_max_backlight(struct drm_device *dev)
 	struct drm_psb_private *dev_priv = dev->dev_private;
 	u32 ret;
 
-	if (gma_power_begin(dev, false)) {
+	if (gma_power_begin(dev, false))
+	{
 		ret = REG_READ(BLC_PWM_CTL);
 		gma_power_end(dev);
-	} else /* Powered off, use the saved value */
+	}
+	else   /* Powered off, use the saved value */
+	{
 		ret = dev_priv->regs.saveBLC_PWM_CTL;
+	}
 
 	/* Top 15bits hold the frequency mask */
 	ret = (ret &  BACKLIGHT_MODULATION_FREQ_MASK) >>
-					BACKLIGHT_MODULATION_FREQ_SHIFT;
+		  BACKLIGHT_MODULATION_FREQ_SHIFT;
 
-        ret *= 2;	/* Return a 16bit range as needed for setting */
-        if (ret == 0)
-                dev_err(dev->dev, "BL bug: Reg %08x save %08X\n",
-                        REG_READ(BLC_PWM_CTL), dev_priv->regs.saveBLC_PWM_CTL);
+	ret *= 2;	/* Return a 16bit range as needed for setting */
+
+	if (ret == 0)
+		dev_err(dev->dev, "BL bug: Reg %08x save %08X\n",
+				REG_READ(BLC_PWM_CTL), dev_priv->regs.saveBLC_PWM_CTL);
+
 	return ret;
 }
 
@@ -97,7 +104,7 @@ static u32 psb_intel_lvds_get_max_backlight(struct drm_device *dev)
  * disable runtime pm on MRST if the brightness is nil (ie blanked)
  */
 static int psb_lvds_i2c_set_brightness(struct drm_device *dev,
-					unsigned int level)
+									   unsigned int level)
 {
 	struct drm_psb_private *dev_priv =
 		(struct drm_psb_private *)dev->dev_private;
@@ -106,7 +113,8 @@ static int psb_lvds_i2c_set_brightness(struct drm_device *dev,
 	u8 out_buf[2];
 	unsigned int blc_i2c_brightness;
 
-	struct i2c_msg msgs[] = {
+	struct i2c_msg msgs[] =
+	{
 		{
 			.addr = lvds_i2c_bus->slave_addr,
 			.flags = 0,
@@ -116,19 +124,22 @@ static int psb_lvds_i2c_set_brightness(struct drm_device *dev,
 	};
 
 	blc_i2c_brightness = BRIGHTNESS_MASK & ((unsigned int)level *
-			     BRIGHTNESS_MASK /
-			     BRIGHTNESS_MAX_LEVEL);
+											BRIGHTNESS_MASK /
+											BRIGHTNESS_MAX_LEVEL);
 
 	if (dev_priv->lvds_bl->pol == BLC_POLARITY_INVERSE)
+	{
 		blc_i2c_brightness = BRIGHTNESS_MASK - blc_i2c_brightness;
+	}
 
 	out_buf[0] = dev_priv->lvds_bl->brightnesscmd;
 	out_buf[1] = (u8)blc_i2c_brightness;
 
-	if (i2c_transfer(&lvds_i2c_bus->adapter, msgs, 1) == 1) {
+	if (i2c_transfer(&lvds_i2c_bus->adapter, msgs, 1) == 1)
+	{
 		dev_dbg(dev->dev, "I2C set brightness.(command, value) (%d, %d)\n",
-			dev_priv->lvds_bl->brightnesscmd,
-			blc_i2c_brightness);
+				dev_priv->lvds_bl->brightnesscmd,
+				blc_i2c_brightness);
 		return 0;
 	}
 
@@ -140,7 +151,7 @@ static int psb_lvds_i2c_set_brightness(struct drm_device *dev,
 static int psb_lvds_pwm_set_brightness(struct drm_device *dev, int level)
 {
 	struct drm_psb_private *dev_priv =
-			(struct drm_psb_private *)dev->dev_private;
+		(struct drm_psb_private *)dev->dev_private;
 
 	u32 max_pwm_blc;
 	u32 blc_pwm_duty_cycle;
@@ -153,16 +164,18 @@ static int psb_lvds_pwm_set_brightness(struct drm_device *dev, int level)
 	blc_pwm_duty_cycle = level * max_pwm_blc / BRIGHTNESS_MAX_LEVEL;
 
 	if (dev_priv->lvds_bl->pol == BLC_POLARITY_INVERSE)
+	{
 		blc_pwm_duty_cycle = max_pwm_blc - blc_pwm_duty_cycle;
+	}
 
 	blc_pwm_duty_cycle &= PSB_BACKLIGHT_PWM_POLARITY_BIT_CLEAR;
 	REG_WRITE(BLC_PWM_CTL,
-		  (max_pwm_blc << PSB_BACKLIGHT_PWM_CTL_SHIFT) |
-		  (blc_pwm_duty_cycle));
+			  (max_pwm_blc << PSB_BACKLIGHT_PWM_CTL_SHIFT) |
+			  (blc_pwm_duty_cycle));
 
-        dev_info(dev->dev, "Backlight lvds set brightness %08x\n",
-		  (max_pwm_blc << PSB_BACKLIGHT_PWM_CTL_SHIFT) |
-		  (blc_pwm_duty_cycle));
+	dev_info(dev->dev, "Backlight lvds set brightness %08x\n",
+			 (max_pwm_blc << PSB_BACKLIGHT_PWM_CTL_SHIFT) |
+			 (blc_pwm_duty_cycle));
 
 	return 0;
 }
@@ -176,15 +189,20 @@ void psb_intel_lvds_set_brightness(struct drm_device *dev, int level)
 
 	dev_dbg(dev->dev, "backlight level is %d\n", level);
 
-	if (!dev_priv->lvds_bl) {
+	if (!dev_priv->lvds_bl)
+	{
 		dev_err(dev->dev, "NO LVDS backlight info\n");
 		return;
 	}
 
 	if (dev_priv->lvds_bl->type == BLC_I2C_TYPE)
+	{
 		psb_lvds_i2c_set_brightness(dev, level);
+	}
 	else
+	{
 		psb_lvds_pwm_set_brightness(dev, level);
+	}
 }
 
 /*
@@ -197,20 +215,23 @@ static void psb_intel_lvds_set_backlight(struct drm_device *dev, int level)
 	struct drm_psb_private *dev_priv = dev->dev_private;
 	u32 blc_pwm_ctl;
 
-	if (gma_power_begin(dev, false)) {
+	if (gma_power_begin(dev, false))
+	{
 		blc_pwm_ctl = REG_READ(BLC_PWM_CTL);
 		blc_pwm_ctl &= ~BACKLIGHT_DUTY_CYCLE_MASK;
 		REG_WRITE(BLC_PWM_CTL,
-				(blc_pwm_ctl |
-				(level << BACKLIGHT_DUTY_CYCLE_SHIFT)));
+				  (blc_pwm_ctl |
+				   (level << BACKLIGHT_DUTY_CYCLE_SHIFT)));
 		dev_priv->regs.saveBLC_PWM_CTL = (blc_pwm_ctl |
-					(level << BACKLIGHT_DUTY_CYCLE_SHIFT));
+										  (level << BACKLIGHT_DUTY_CYCLE_SHIFT));
 		gma_power_end(dev);
-	} else {
+	}
+	else
+	{
 		blc_pwm_ctl = dev_priv->regs.saveBLC_PWM_CTL &
-				~BACKLIGHT_DUTY_CYCLE_MASK;
+					  ~BACKLIGHT_DUTY_CYCLE_MASK;
 		dev_priv->regs.saveBLC_PWM_CTL = (blc_pwm_ctl |
-					(level << BACKLIGHT_DUTY_CYCLE_SHIFT));
+										  (level << BACKLIGHT_DUTY_CYCLE_SHIFT));
 	}
 }
 
@@ -223,28 +244,38 @@ static void psb_intel_lvds_set_power(struct drm_device *dev, bool on)
 	struct psb_intel_mode_device *mode_dev = &dev_priv->mode_dev;
 	u32 pp_status;
 
-	if (!gma_power_begin(dev, true)) {
-	        dev_err(dev->dev, "set power, chip off!\n");
+	if (!gma_power_begin(dev, true))
+	{
+		dev_err(dev->dev, "set power, chip off!\n");
 		return;
-        }
-        
-	if (on) {
+	}
+
+	if (on)
+	{
 		REG_WRITE(PP_CONTROL, REG_READ(PP_CONTROL) |
-			  POWER_TARGET_ON);
-		do {
+				  POWER_TARGET_ON);
+
+		do
+		{
 			pp_status = REG_READ(PP_STATUS);
-		} while ((pp_status & PP_ON) == 0);
+		}
+		while ((pp_status & PP_ON) == 0);
 
 		psb_intel_lvds_set_backlight(dev,
-					     mode_dev->backlight_duty_cycle);
-	} else {
+									 mode_dev->backlight_duty_cycle);
+	}
+	else
+	{
 		psb_intel_lvds_set_backlight(dev, 0);
 
 		REG_WRITE(PP_CONTROL, REG_READ(PP_CONTROL) &
-			  ~POWER_TARGET_ON);
-		do {
+				  ~POWER_TARGET_ON);
+
+		do
+		{
 			pp_status = REG_READ(PP_STATUS);
-		} while (pp_status & PP_ON);
+		}
+		while (pp_status & PP_ON);
 	}
 
 	gma_power_end(dev);
@@ -255,9 +286,13 @@ static void psb_intel_lvds_encoder_dpms(struct drm_encoder *encoder, int mode)
 	struct drm_device *dev = encoder->dev;
 
 	if (mode == DRM_MODE_DPMS_ON)
+	{
 		psb_intel_lvds_set_power(dev, true);
+	}
 	else
+	{
 		psb_intel_lvds_set_power(dev, false);
+	}
 
 	/* XXX: We never power down the LVDS pairs. */
 }
@@ -283,7 +318,7 @@ static void psb_intel_lvds_save(struct drm_connector *connector)
 
 	/*TODO: move backlight_duty_cycle to psb_intel_lvds_priv*/
 	dev_priv->backlight_duty_cycle = (dev_priv->regs.saveBLC_PWM_CTL &
-						BACKLIGHT_DUTY_CYCLE_MASK);
+									  BACKLIGHT_DUTY_CYCLE_MASK);
 
 	/*
 	 * If the light is off at server startup,
@@ -291,7 +326,7 @@ static void psb_intel_lvds_save(struct drm_connector *connector)
 	 */
 	if (dev_priv->backlight_duty_cycle == 0)
 		dev_priv->backlight_duty_cycle =
-		psb_intel_lvds_get_max_backlight(dev);
+			psb_intel_lvds_get_max_backlight(dev);
 
 	dev_dbg(dev->dev, "(0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x)\n",
 			lvds_priv->savePP_ON,
@@ -328,52 +363,74 @@ static void psb_intel_lvds_restore(struct drm_connector *connector)
 	REG_WRITE(PP_CONTROL, lvds_priv->savePP_CONTROL);
 	REG_WRITE(LVDS, lvds_priv->saveLVDS);
 
-	if (lvds_priv->savePP_CONTROL & POWER_TARGET_ON) {
+	if (lvds_priv->savePP_CONTROL & POWER_TARGET_ON)
+	{
 		REG_WRITE(PP_CONTROL, REG_READ(PP_CONTROL) |
-			POWER_TARGET_ON);
-		do {
+				  POWER_TARGET_ON);
+
+		do
+		{
 			pp_status = REG_READ(PP_STATUS);
-		} while ((pp_status & PP_ON) == 0);
-	} else {
+		}
+		while ((pp_status & PP_ON) == 0);
+	}
+	else
+	{
 		REG_WRITE(PP_CONTROL, REG_READ(PP_CONTROL) &
-			~POWER_TARGET_ON);
-		do {
+				  ~POWER_TARGET_ON);
+
+		do
+		{
 			pp_status = REG_READ(PP_STATUS);
-		} while (pp_status & PP_ON);
+		}
+		while (pp_status & PP_ON);
 	}
 }
 
 int psb_intel_lvds_mode_valid(struct drm_connector *connector,
-				 struct drm_display_mode *mode)
+							  struct drm_display_mode *mode)
 {
 	struct drm_psb_private *dev_priv = connector->dev->dev_private;
 	struct gma_encoder *gma_encoder = gma_attached_encoder(connector);
 	struct drm_display_mode *fixed_mode =
-					dev_priv->mode_dev.panel_fixed_mode;
+			dev_priv->mode_dev.panel_fixed_mode;
 
 	if (gma_encoder->type == INTEL_OUTPUT_MIPI2)
+	{
 		fixed_mode = dev_priv->mode_dev.panel_fixed_mode2;
+	}
 
 	/* just in case */
 	if (mode->flags & DRM_MODE_FLAG_DBLSCAN)
+	{
 		return MODE_NO_DBLESCAN;
+	}
 
 	/* just in case */
 	if (mode->flags & DRM_MODE_FLAG_INTERLACE)
+	{
 		return MODE_NO_INTERLACE;
-
-	if (fixed_mode) {
-		if (mode->hdisplay > fixed_mode->hdisplay)
-			return MODE_PANEL;
-		if (mode->vdisplay > fixed_mode->vdisplay)
-			return MODE_PANEL;
 	}
+
+	if (fixed_mode)
+	{
+		if (mode->hdisplay > fixed_mode->hdisplay)
+		{
+			return MODE_PANEL;
+		}
+
+		if (mode->vdisplay > fixed_mode->vdisplay)
+		{
+			return MODE_PANEL;
+		}
+	}
+
 	return MODE_OK;
 }
 
 bool psb_intel_lvds_mode_fixup(struct drm_encoder *encoder,
-				  const struct drm_display_mode *mode,
-				  struct drm_display_mode *adjusted_mode)
+							   const struct drm_display_mode *mode,
+							   struct drm_display_mode *adjusted_mode)
 {
 	struct drm_device *dev = encoder->dev;
 	struct drm_psb_private *dev_priv = dev->dev_private;
@@ -384,24 +441,32 @@ bool psb_intel_lvds_mode_fixup(struct drm_encoder *encoder,
 	struct gma_encoder *gma_encoder = to_gma_encoder(encoder);
 
 	if (gma_encoder->type == INTEL_OUTPUT_MIPI2)
+	{
 		panel_fixed_mode = mode_dev->panel_fixed_mode2;
+	}
 
 	/* PSB requires the LVDS is on pipe B, MRST has only one pipe anyway */
-	if (!IS_MRST(dev) && gma_crtc->pipe == 0) {
+	if (!IS_MRST(dev) && gma_crtc->pipe == 0)
+	{
 		printk(KERN_ERR "Can't support LVDS on pipe A\n");
 		return false;
 	}
-	if (IS_MRST(dev) && gma_crtc->pipe != 0) {
+
+	if (IS_MRST(dev) && gma_crtc->pipe != 0)
+	{
 		printk(KERN_ERR "Must use PIPE A\n");
 		return false;
 	}
+
 	/* Should never happen!! */
 	list_for_each_entry(tmp_encoder, &dev->mode_config.encoder_list,
-			    head) {
+						head)
+	{
 		if (tmp_encoder != encoder
-		    && tmp_encoder->crtc == encoder->crtc) {
+			&& tmp_encoder->crtc == encoder->crtc)
+		{
 			printk(KERN_ERR "Can't enable LVDS and another "
-			       "encoder on the same pipe\n");
+				   "encoder on the same pipe\n");
 			return false;
 		}
 	}
@@ -412,7 +477,8 @@ bool psb_intel_lvds_mode_fixup(struct drm_encoder *encoder,
 	 * with the panel scaling set up to source from the H/VDisplay
 	 * of the original mode.
 	 */
-	if (panel_fixed_mode != NULL) {
+	if (panel_fixed_mode != NULL)
+	{
 		adjusted_mode->hdisplay = panel_fixed_mode->hdisplay;
 		adjusted_mode->hsync_start = panel_fixed_mode->hsync_start;
 		adjusted_mode->hsync_end = panel_fixed_mode->hsync_end;
@@ -423,7 +489,7 @@ bool psb_intel_lvds_mode_fixup(struct drm_encoder *encoder,
 		adjusted_mode->vtotal = panel_fixed_mode->vtotal;
 		adjusted_mode->clock = panel_fixed_mode->clock;
 		drm_mode_set_crtcinfo(adjusted_mode,
-				      CRTC_INTERLACE_HALVE_V);
+							  CRTC_INTERLACE_HALVE_V);
 	}
 
 	/*
@@ -442,11 +508,13 @@ static void psb_intel_lvds_prepare(struct drm_encoder *encoder)
 	struct psb_intel_mode_device *mode_dev = &dev_priv->mode_dev;
 
 	if (!gma_power_begin(dev, true))
+	{
 		return;
+	}
 
 	mode_dev->saveBLC_PWM_CTL = REG_READ(BLC_PWM_CTL);
 	mode_dev->backlight_duty_cycle = (mode_dev->saveBLC_PWM_CTL &
-					  BACKLIGHT_DUTY_CYCLE_MASK);
+									  BACKLIGHT_DUTY_CYCLE_MASK);
 
 	psb_intel_lvds_set_power(dev, false);
 
@@ -461,14 +529,14 @@ static void psb_intel_lvds_commit(struct drm_encoder *encoder)
 
 	if (mode_dev->backlight_duty_cycle == 0)
 		mode_dev->backlight_duty_cycle =
-		    psb_intel_lvds_get_max_backlight(dev);
+			psb_intel_lvds_get_max_backlight(dev);
 
 	psb_intel_lvds_set_power(dev, true);
 }
 
 static void psb_intel_lvds_mode_set(struct drm_encoder *encoder,
-				struct drm_display_mode *mode,
-				struct drm_display_mode *adjusted_mode)
+									struct drm_display_mode *mode,
+									struct drm_display_mode *adjusted_mode)
 {
 	struct drm_device *dev = encoder->dev;
 	struct drm_psb_private *dev_priv = dev->dev_private;
@@ -486,15 +554,19 @@ static void psb_intel_lvds_mode_set(struct drm_encoder *encoder,
 	 * register description and PRM.
 	 */
 	if (mode->hdisplay != adjusted_mode->hdisplay ||
-	    mode->vdisplay != adjusted_mode->vdisplay)
+		mode->vdisplay != adjusted_mode->vdisplay)
 		pfit_control = (PFIT_ENABLE | VERT_AUTO_SCALE |
-				HORIZ_AUTO_SCALE | VERT_INTERP_BILINEAR |
-				HORIZ_INTERP_BILINEAR);
+						HORIZ_AUTO_SCALE | VERT_INTERP_BILINEAR |
+						HORIZ_INTERP_BILINEAR);
 	else
+	{
 		pfit_control = 0;
+	}
 
 	if (dev_priv->lvds_dither)
+	{
 		pfit_control |= PANEL_8TO6_DITHER_ENABLE;
+	}
 
 	REG_WRITE(PFIT_CONTROL, pfit_control);
 }
@@ -507,7 +579,7 @@ static void psb_intel_lvds_mode_set(struct drm_encoder *encoder,
  * been set up if the LVDS was actually connected anyway.
  */
 static enum drm_connector_status psb_intel_lvds_detect(struct drm_connector
-						   *connector, bool force)
+		*connector, bool force)
 {
 	return connector_status_connected;
 }
@@ -525,14 +597,19 @@ static int psb_intel_lvds_get_modes(struct drm_connector *connector)
 	int ret = 0;
 
 	if (!IS_MRST(dev))
+	{
 		ret = psb_intel_ddc_get_modes(connector, &lvds_priv->i2c_bus->adapter);
+	}
 
 	if (ret)
+	{
 		return ret;
+	}
 
-	if (mode_dev->panel_fixed_mode != NULL) {
+	if (mode_dev->panel_fixed_mode != NULL)
+	{
 		struct drm_display_mode *mode =
-		    drm_mode_duplicate(dev, mode_dev->panel_fixed_mode);
+			drm_mode_duplicate(dev, mode_dev->panel_fixed_mode);
 		drm_mode_probed_add(connector, mode);
 		return 1;
 	}
@@ -559,64 +636,90 @@ void psb_intel_lvds_destroy(struct drm_connector *connector)
 }
 
 int psb_intel_lvds_set_property(struct drm_connector *connector,
-				       struct drm_property *property,
-				       uint64_t value)
+								struct drm_property *property,
+								uint64_t value)
 {
 	struct drm_encoder *encoder = connector->encoder;
 
 	if (!encoder)
+	{
 		return -1;
+	}
 
-	if (!strcmp(property->name, "scaling mode")) {
+	if (!strcmp(property->name, "scaling mode"))
+	{
 		struct gma_crtc *crtc = to_gma_crtc(encoder->crtc);
 		uint64_t curval;
 
 		if (!crtc)
+		{
 			goto set_prop_error;
+		}
 
-		switch (value) {
-		case DRM_MODE_SCALE_FULLSCREEN:
-			break;
-		case DRM_MODE_SCALE_NO_SCALE:
-			break;
-		case DRM_MODE_SCALE_ASPECT:
-			break;
-		default:
-			goto set_prop_error;
+		switch (value)
+		{
+			case DRM_MODE_SCALE_FULLSCREEN:
+				break;
+
+			case DRM_MODE_SCALE_NO_SCALE:
+				break;
+
+			case DRM_MODE_SCALE_ASPECT:
+				break;
+
+			default:
+				goto set_prop_error;
 		}
 
 		if (drm_object_property_get_value(&connector->base,
-						     property,
-						     &curval))
+										  property,
+										  &curval))
+		{
 			goto set_prop_error;
+		}
 
 		if (curval == value)
+		{
 			goto set_prop_done;
+		}
 
 		if (drm_object_property_set_value(&connector->base,
-							property,
-							value))
+										  property,
+										  value))
+		{
 			goto set_prop_error;
+		}
 
 		if (crtc->saved_mode.hdisplay != 0 &&
-		    crtc->saved_mode.vdisplay != 0) {
+			crtc->saved_mode.vdisplay != 0)
+		{
 			if (!drm_crtc_helper_set_mode(encoder->crtc,
-						      &crtc->saved_mode,
-						      encoder->crtc->x,
-						      encoder->crtc->y,
-						      encoder->crtc->primary->fb))
+										  &crtc->saved_mode,
+										  encoder->crtc->x,
+										  encoder->crtc->y,
+										  encoder->crtc->primary->fb))
+			{
 				goto set_prop_error;
+			}
 		}
-	} else if (!strcmp(property->name, "backlight")) {
+	}
+	else if (!strcmp(property->name, "backlight"))
+	{
 		if (drm_object_property_set_value(&connector->base,
-							property,
-							value))
+										  property,
+										  value))
+		{
 			goto set_prop_error;
+		}
 		else
-                        gma_backlight_set(encoder->dev, value);
-	} else if (!strcmp(property->name, "DPMS")) {
+		{
+			gma_backlight_set(encoder->dev, value);
+		}
+	}
+	else if (!strcmp(property->name, "DPMS"))
+	{
 		const struct drm_encoder_helper_funcs *hfuncs
-						= encoder->helper_private;
+				= encoder->helper_private;
 		hfuncs->dpms(encoder, value);
 	}
 
@@ -626,7 +729,8 @@ set_prop_error:
 	return -1;
 }
 
-static const struct drm_encoder_helper_funcs psb_intel_lvds_helper_funcs = {
+static const struct drm_encoder_helper_funcs psb_intel_lvds_helper_funcs =
+{
 	.dpms = psb_intel_lvds_encoder_dpms,
 	.mode_fixup = psb_intel_lvds_mode_fixup,
 	.prepare = psb_intel_lvds_prepare,
@@ -635,13 +739,15 @@ static const struct drm_encoder_helper_funcs psb_intel_lvds_helper_funcs = {
 };
 
 const struct drm_connector_helper_funcs
-				psb_intel_lvds_connector_helper_funcs = {
+	psb_intel_lvds_connector_helper_funcs =
+{
 	.get_modes = psb_intel_lvds_get_modes,
 	.mode_valid = psb_intel_lvds_mode_valid,
 	.best_encoder = gma_best_encoder,
 };
 
-const struct drm_connector_funcs psb_intel_lvds_connector_funcs = {
+const struct drm_connector_funcs psb_intel_lvds_connector_funcs =
+{
 	.dpms = drm_helper_connector_dpms,
 	.detect = psb_intel_lvds_detect,
 	.fill_modes = drm_helper_probe_single_connector_modes,
@@ -655,7 +761,8 @@ static void psb_intel_lvds_enc_destroy(struct drm_encoder *encoder)
 	drm_encoder_cleanup(encoder);
 }
 
-const struct drm_encoder_funcs psb_intel_lvds_enc_funcs = {
+const struct drm_encoder_funcs psb_intel_lvds_enc_funcs =
+{
 	.destroy = psb_intel_lvds_enc_destroy,
 };
 
@@ -669,7 +776,7 @@ const struct drm_encoder_funcs psb_intel_lvds_enc_funcs = {
  * modes we can display on the LVDS panel (if present).
  */
 void psb_intel_lvds_init(struct drm_device *dev,
-			 struct psb_intel_mode_device *mode_dev)
+						 struct psb_intel_mode_device *mode_dev)
 {
 	struct gma_encoder *gma_encoder;
 	struct gma_connector *gma_connector;
@@ -683,19 +790,25 @@ void psb_intel_lvds_init(struct drm_device *dev,
 	int pipe;
 
 	gma_encoder = kzalloc(sizeof(struct gma_encoder), GFP_KERNEL);
-	if (!gma_encoder) {
+
+	if (!gma_encoder)
+	{
 		dev_err(dev->dev, "gma_encoder allocation error\n");
 		return;
 	}
 
 	gma_connector = kzalloc(sizeof(struct gma_connector), GFP_KERNEL);
-	if (!gma_connector) {
+
+	if (!gma_connector)
+	{
 		dev_err(dev->dev, "gma_connector allocation error\n");
 		goto failed_encoder;
 	}
 
 	lvds_priv = kzalloc(sizeof(struct psb_intel_lvds_priv), GFP_KERNEL);
-	if (!lvds_priv) {
+
+	if (!lvds_priv)
+	{
 		dev_err(dev->dev, "LVDS private allocation error\n");
 		goto failed_connector;
 	}
@@ -708,41 +821,44 @@ void psb_intel_lvds_init(struct drm_device *dev,
 
 	encoder = &gma_encoder->base;
 	drm_connector_init(dev, connector,
-			   &psb_intel_lvds_connector_funcs,
-			   DRM_MODE_CONNECTOR_LVDS);
+					   &psb_intel_lvds_connector_funcs,
+					   DRM_MODE_CONNECTOR_LVDS);
 
 	drm_encoder_init(dev, encoder,
-			 &psb_intel_lvds_enc_funcs,
-			 DRM_MODE_ENCODER_LVDS, NULL);
+					 &psb_intel_lvds_enc_funcs,
+					 DRM_MODE_ENCODER_LVDS, NULL);
 
 	gma_connector_attach_encoder(gma_connector, gma_encoder);
 	gma_encoder->type = INTEL_OUTPUT_LVDS;
 
 	drm_encoder_helper_add(encoder, &psb_intel_lvds_helper_funcs);
 	drm_connector_helper_add(connector,
-				 &psb_intel_lvds_connector_helper_funcs);
+							 &psb_intel_lvds_connector_helper_funcs);
 	connector->display_info.subpixel_order = SubPixelHorizontalRGB;
 	connector->interlace_allowed = false;
 	connector->doublescan_allowed = false;
 
 	/*Attach connector properties*/
 	drm_object_attach_property(&connector->base,
-				      dev->mode_config.scaling_mode_property,
-				      DRM_MODE_SCALE_FULLSCREEN);
+							   dev->mode_config.scaling_mode_property,
+							   DRM_MODE_SCALE_FULLSCREEN);
 	drm_object_attach_property(&connector->base,
-				      dev_priv->backlight_property,
-				      BRIGHTNESS_MAX_LEVEL);
+							   dev_priv->backlight_property,
+							   BRIGHTNESS_MAX_LEVEL);
 
 	/*
 	 * Set up I2C bus
 	 * FIXME: distroy i2c_bus when exit
 	 */
 	lvds_priv->i2c_bus = psb_intel_i2c_create(dev, GPIOB, "LVDSBLC_B");
-	if (!lvds_priv->i2c_bus) {
+
+	if (!lvds_priv->i2c_bus)
+	{
 		dev_printk(KERN_ERR,
-			&dev->pdev->dev, "I2C bus registration failed.\n");
+				   &dev->pdev->dev, "I2C bus registration failed.\n");
 		goto failed_blc_i2c;
 	}
+
 	lvds_priv->i2c_bus->slave_addr = 0x2C;
 	dev_priv->lvds_i2c_bus =  lvds_priv->i2c_bus;
 
@@ -758,9 +874,11 @@ void psb_intel_lvds_init(struct drm_device *dev,
 
 	/* Set up the DDC bus. */
 	lvds_priv->ddc_bus = psb_intel_i2c_create(dev, GPIOC, "LVDSDDC_C");
-	if (!lvds_priv->ddc_bus) {
+
+	if (!lvds_priv->ddc_bus)
+	{
 		dev_printk(KERN_ERR, &dev->pdev->dev,
-			   "DDC bus registration " "failed.\n");
+				   "DDC bus registration " "failed.\n");
 		goto failed_ddc;
 	}
 
@@ -770,10 +888,12 @@ void psb_intel_lvds_init(struct drm_device *dev,
 	 */
 	mutex_lock(&dev->mode_config.mutex);
 	psb_intel_ddc_get_modes(connector, &lvds_priv->ddc_bus->adapter);
-	list_for_each_entry(scan, &connector->probed_modes, head) {
-		if (scan->type & DRM_MODE_TYPE_PREFERRED) {
+	list_for_each_entry(scan, &connector->probed_modes, head)
+	{
+		if (scan->type & DRM_MODE_TYPE_PREFERRED)
+		{
 			mode_dev->panel_fixed_mode =
-			    drm_mode_duplicate(dev, scan);
+				drm_mode_duplicate(dev, scan);
 			goto out;	/* FIXME: check for quirks */
 		}
 	}
@@ -781,13 +901,13 @@ void psb_intel_lvds_init(struct drm_device *dev,
 	/* Failed to get EDID, what about VBT? do we need this? */
 	if (mode_dev->vbt_mode)
 		mode_dev->panel_fixed_mode =
-		    drm_mode_duplicate(dev, mode_dev->vbt_mode);
+			drm_mode_duplicate(dev, mode_dev->vbt_mode);
 
 	if (!mode_dev->panel_fixed_mode)
 		if (dev_priv->lfp_lvds_vbt_mode)
 			mode_dev->panel_fixed_mode =
 				drm_mode_duplicate(dev,
-					dev_priv->lfp_lvds_vbt_mode);
+								   dev_priv->lfp_lvds_vbt_mode);
 
 	/*
 	 * If we didn't get EDID, try checking if the panel is already turned
@@ -798,18 +918,22 @@ void psb_intel_lvds_init(struct drm_device *dev,
 	pipe = (lvds & LVDS_PIPEB_SELECT) ? 1 : 0;
 	crtc = psb_intel_get_crtc_from_pipe(dev, pipe);
 
-	if (crtc && (lvds & LVDS_PORT_EN)) {
+	if (crtc && (lvds & LVDS_PORT_EN))
+	{
 		mode_dev->panel_fixed_mode =
-		    psb_intel_crtc_mode_get(dev, crtc);
-		if (mode_dev->panel_fixed_mode) {
+			psb_intel_crtc_mode_get(dev, crtc);
+
+		if (mode_dev->panel_fixed_mode)
+		{
 			mode_dev->panel_fixed_mode->type |=
-			    DRM_MODE_TYPE_PREFERRED;
+				DRM_MODE_TYPE_PREFERRED;
 			goto out;	/* FIXME: check for quirks */
 		}
 	}
 
 	/* If we still don't have a mode after all that, give up. */
-	if (!mode_dev->panel_fixed_mode) {
+	if (!mode_dev->panel_fixed_mode)
+	{
 		dev_err(dev->dev, "Found no modes on the lvds, ignoring the LVDS\n");
 		goto failed_find;
 	}

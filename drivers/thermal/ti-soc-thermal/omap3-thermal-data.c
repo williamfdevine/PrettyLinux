@@ -34,7 +34,8 @@
  * need to describe the individual bit fields
  */
 static struct temp_sensor_registers
-omap34xx_mpu_temp_sensor_registers = {
+	omap34xx_mpu_temp_sensor_registers =
+{
 	.temp_sensor_ctrl = 0,
 	.bgap_soc_mask = BIT(8),
 	.bgap_eocz_mask = BIT(7),
@@ -45,7 +46,8 @@ omap34xx_mpu_temp_sensor_registers = {
 };
 
 /* Thresholds and limits for OMAP34XX MPU temperature sensor */
-static struct temp_sensor_data omap34xx_mpu_temp_sensor_data = {
+static struct temp_sensor_data omap34xx_mpu_temp_sensor_data =
+{
 	.min_freq = 32768,
 	.max_freq = 32768,
 	.max_temp = 125000,
@@ -57,7 +59,8 @@ static struct temp_sensor_data omap34xx_mpu_temp_sensor_data = {
  * Temperature values in milli degree celsius
  */
 static const int
-omap34xx_adc_to_temp[128] = {
+omap34xx_adc_to_temp[128] =
+{
 	-40000, -40000, -40000, -40000, -40000, -39000, -38000, -36000,
 	-34000, -32000, -31000,	-29000, -28000, -26000, -25000, -24000,
 	-22000, -21000, -19000, -18000, -17000, -15000,	-14000, -12000,
@@ -76,7 +79,8 @@ omap34xx_adc_to_temp[128] = {
 };
 
 /* OMAP34XX data */
-const struct ti_bandgap_data omap34xx_data = {
+const struct ti_bandgap_data omap34xx_data =
+{
 	.features = TI_BANDGAP_FEATURE_CLK_CTRL | TI_BANDGAP_FEATURE_UNRELIABLE,
 	.fclock_name = "ts_fck",
 	.div_ck_name = "ts_fck",
@@ -88,15 +92,15 @@ const struct ti_bandgap_data omap34xx_data = {
 
 	.sensors = {
 		{
-		.registers = &omap34xx_mpu_temp_sensor_registers,
-		.ts_data = &omap34xx_mpu_temp_sensor_data,
-		.domain = "cpu",
-		.slope = 0,
-		.constant = 20000,
-		.slope_pcb = 0,
-		.constant_pcb = 20000,
-		.register_cooling = NULL,
-		.unregister_cooling = NULL,
+			.registers = &omap34xx_mpu_temp_sensor_registers,
+			.ts_data = &omap34xx_mpu_temp_sensor_data,
+			.domain = "cpu",
+			.slope = 0,
+			.constant = 20000,
+			.slope_pcb = 0,
+			.constant_pcb = 20000,
+			.register_cooling = NULL,
+			.unregister_cooling = NULL,
 		},
 	},
 	.sensor_count = 1,
@@ -107,7 +111,8 @@ const struct ti_bandgap_data omap34xx_data = {
  * need to describe the individual bit fields
  */
 static struct temp_sensor_registers
-omap36xx_mpu_temp_sensor_registers = {
+	omap36xx_mpu_temp_sensor_registers =
+{
 	.temp_sensor_ctrl = 0,
 	.bgap_soc_mask = BIT(9),
 	.bgap_eocz_mask = BIT(8),
@@ -118,7 +123,8 @@ omap36xx_mpu_temp_sensor_registers = {
 };
 
 /* Thresholds and limits for OMAP36XX MPU temperature sensor */
-static struct temp_sensor_data omap36xx_mpu_temp_sensor_data = {
+static struct temp_sensor_data omap36xx_mpu_temp_sensor_data =
+{
 	.min_freq = 32768,
 	.max_freq = 32768,
 	.max_temp = 125000,
@@ -130,7 +136,8 @@ static struct temp_sensor_data omap36xx_mpu_temp_sensor_data = {
  * Temperature values in milli degree celsius
  */
 static const int
-omap36xx_adc_to_temp[128] = {
+omap36xx_adc_to_temp[128] =
+{
 	-40000, -40000, -40000, -40000, -40000, -40000, -40000, -40000,
 	-40000, -40000, -40000,	-40000, -40000, -38000, -35000, -34000,
 	-32000, -30000, -28000, -26000, -24000, -22000,	-20000, -18500,
@@ -149,7 +156,8 @@ omap36xx_adc_to_temp[128] = {
 };
 
 /* OMAP36XX data */
-const struct ti_bandgap_data omap36xx_data = {
+const struct ti_bandgap_data omap36xx_data =
+{
 	.features = TI_BANDGAP_FEATURE_CLK_CTRL | TI_BANDGAP_FEATURE_UNRELIABLE,
 	.fclock_name = "ts_fck",
 	.div_ck_name = "ts_fck",
@@ -161,15 +169,15 @@ const struct ti_bandgap_data omap36xx_data = {
 
 	.sensors = {
 		{
-		.registers = &omap36xx_mpu_temp_sensor_registers,
-		.ts_data = &omap36xx_mpu_temp_sensor_data,
-		.domain = "cpu",
-		.slope = 0,
-		.constant = 20000,
-		.slope_pcb = 0,
-		.constant_pcb = 20000,
-		.register_cooling = NULL,
-		.unregister_cooling = NULL,
+			.registers = &omap36xx_mpu_temp_sensor_registers,
+			.ts_data = &omap36xx_mpu_temp_sensor_data,
+			.domain = "cpu",
+			.slope = 0,
+			.constant = 20000,
+			.slope_pcb = 0,
+			.constant_pcb = 20000,
+			.register_cooling = NULL,
+			.unregister_cooling = NULL,
 		},
 	},
 	.sensor_count = 1,

@@ -18,7 +18,8 @@
 #define IMPD1_OSC2	0x04
 #define IMPD1_LOCK	0x08
 
-struct impd1_clk {
+struct impd1_clk
+{
 	char *pclkname;
 	struct clk *pclk;
 	char *vco1name;
@@ -42,7 +43,8 @@ static struct impd1_clk impd1_clks[4];
  * There are two VCO's on the IM-PD1
  */
 
-static const struct icst_params impd1_vco1_params = {
+static const struct icst_params impd1_vco1_params =
+{
 	.ref		= 24000000,	/* 24 MHz */
 	.vco_max	= ICST525_VCO_MAX_3V,
 	.vco_min	= ICST525_VCO_MIN,
@@ -54,13 +56,15 @@ static const struct icst_params impd1_vco1_params = {
 	.idx2s		= icst525_idx2s,
 };
 
-static const struct clk_icst_desc impd1_icst1_desc = {
+static const struct clk_icst_desc impd1_icst1_desc =
+{
 	.params = &impd1_vco1_params,
 	.vco_offset = IMPD1_OSC1,
 	.lock_offset = IMPD1_LOCK,
 };
 
-static const struct icst_params impd1_vco2_params = {
+static const struct icst_params impd1_vco2_params =
+{
 	.ref		= 24000000,	/* 24 MHz */
 	.vco_max	= ICST525_VCO_MAX_3V,
 	.vco_min	= ICST525_VCO_MIN,
@@ -72,7 +76,8 @@ static const struct icst_params impd1_vco2_params = {
 	.idx2s		= icst525_idx2s,
 };
 
-static const struct clk_icst_desc impd1_icst2_desc = {
+static const struct clk_icst_desc impd1_icst2_desc =
+{
 	.params = &impd1_vco2_params,
 	.vco_offset = IMPD1_OSC2,
 	.lock_offset = IMPD1_LOCK,
@@ -90,10 +95,12 @@ void integrator_impd1_clk_init(void __iomem *base, unsigned int id)
 	struct clk *pclk;
 	int i;
 
-	if (id > 3) {
+	if (id > 3)
+	{
 		pr_crit("no more than 4 LMs can be attached\n");
 		return;
 	}
+
 	imc = &impd1_clks[id];
 
 	/* Register the fixed rate PCLK */
@@ -103,7 +110,7 @@ void integrator_impd1_clk_init(void __iomem *base, unsigned int id)
 
 	imc->vco1name = kasprintf(GFP_KERNEL, "lm%x-vco1", id);
 	clk = icst_clk_register(NULL, &impd1_icst1_desc, imc->vco1name, NULL,
-				base);
+							base);
 	imc->vco1clk = clk;
 	imc->clks[0] = clkdev_alloc(pclk, "apb_pclk", "lm%x:01000", id);
 	imc->clks[1] = clkdev_alloc(clk, NULL, "lm%x:01000", id);
@@ -111,7 +118,7 @@ void integrator_impd1_clk_init(void __iomem *base, unsigned int id)
 	/* VCO2 is also called "CLK2" */
 	imc->vco2name = kasprintf(GFP_KERNEL, "lm%x-vco2", id);
 	clk = icst_clk_register(NULL, &impd1_icst2_desc, imc->vco2name, NULL,
-				base);
+							base);
 	imc->vco2clk = clk;
 
 	/* MMCI uses CLK2 right off */
@@ -121,7 +128,7 @@ void integrator_impd1_clk_init(void __iomem *base, unsigned int id)
 	/* UART reference clock divides CLK2 by a fixed factor 4 */
 	imc->uartname = kasprintf(GFP_KERNEL, "lm%x-uartclk", id);
 	clk = clk_register_fixed_factor(NULL, imc->uartname, imc->vco2name,
-				   CLK_IGNORE_UNUSED, 1, 4);
+									CLK_IGNORE_UNUSED, 1, 4);
 	imc->uartclk = clk;
 	imc->clks[4] = clkdev_alloc(pclk, "apb_pclk", "lm%x:00100", id);
 	imc->clks[5] = clkdev_alloc(clk, NULL, "lm%x:00100", id);
@@ -131,7 +138,7 @@ void integrator_impd1_clk_init(void __iomem *base, unsigned int id)
 	/* SPI PL022 clock divides CLK2 by a fixed factor 64 */
 	imc->spiname = kasprintf(GFP_KERNEL, "lm%x-spiclk", id);
 	clk = clk_register_fixed_factor(NULL, imc->spiname, imc->vco2name,
-				   CLK_IGNORE_UNUSED, 1, 64);
+									CLK_IGNORE_UNUSED, 1, 64);
 	imc->clks[8] = clkdev_alloc(pclk, "apb_pclk", "lm%x:00300", id);
 	imc->clks[9] = clkdev_alloc(clk, NULL, "lm%x:00300", id);
 
@@ -143,13 +150,15 @@ void integrator_impd1_clk_init(void __iomem *base, unsigned int id)
 	/* Smart Card clock divides CLK2 by a fixed factor 4 */
 	imc->scname = kasprintf(GFP_KERNEL, "lm%x-scclk", id);
 	clk = clk_register_fixed_factor(NULL, imc->scname, imc->vco2name,
-				   CLK_IGNORE_UNUSED, 1, 4);
+									CLK_IGNORE_UNUSED, 1, 4);
 	imc->scclk = clk;
 	imc->clks[13] = clkdev_alloc(pclk, "apb_pclk", "lm%x:00600", id);
 	imc->clks[14] = clkdev_alloc(clk, NULL, "lm%x:00600", id);
 
 	for (i = 0; i < ARRAY_SIZE(imc->clks); i++)
+	{
 		clkdev_add(imc->clks[i]);
+	}
 }
 EXPORT_SYMBOL_GPL(integrator_impd1_clk_init);
 
@@ -159,11 +168,17 @@ void integrator_impd1_clk_exit(unsigned int id)
 	struct impd1_clk *imc;
 
 	if (id > 3)
+	{
 		return;
+	}
+
 	imc = &impd1_clks[id];
 
 	for (i = 0; i < ARRAY_SIZE(imc->clks); i++)
+	{
 		clkdev_drop(imc->clks[i]);
+	}
+
 	clk_unregister(imc->spiclk);
 	clk_unregister(imc->uartclk);
 	clk_unregister(imc->vco2clk);

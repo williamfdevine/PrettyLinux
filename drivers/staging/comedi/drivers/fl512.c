@@ -44,7 +44,8 @@
 #define FL512_AO_DATA_REG(x)		(0x04 + ((x) * 2))
 #define FL512_AO_TRIG_REG(x)		(0x04 + ((x) * 2))
 
-static const struct comedi_lrange range_fl512 = {
+static const struct comedi_lrange range_fl512 =
+{
 	4, {
 		BIP_RANGE(0.5),
 		BIP_RANGE(1),
@@ -57,9 +58,9 @@ static const struct comedi_lrange range_fl512 = {
 };
 
 static int fl512_ai_insn_read(struct comedi_device *dev,
-			      struct comedi_subdevice *s,
-			      struct comedi_insn *insn,
-			      unsigned int *data)
+							  struct comedi_subdevice *s,
+							  struct comedi_insn *insn,
+							  unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int val;
@@ -67,7 +68,8 @@ static int fl512_ai_insn_read(struct comedi_device *dev,
 
 	outb(chan, dev->iobase + FL512_AI_MUX_REG);
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		outb(0, dev->iobase + FL512_AI_START_CONV_REG);
 
 		/* XXX should test "done" flag instead of delay */
@@ -84,15 +86,16 @@ static int fl512_ai_insn_read(struct comedi_device *dev,
 }
 
 static int fl512_ao_insn_write(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn,
-			       unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn,
+							   unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int val = s->readback[chan];
 	int i;
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		val = data[i];
 
 		/* write LSB, MSB then trigger conversion */
@@ -100,6 +103,7 @@ static int fl512_ao_insn_write(struct comedi_device *dev,
 		outb((val >> 8) & 0xf, dev->iobase + FL512_AO_DATA_REG(chan));
 		inb(dev->iobase + FL512_AO_TRIG_REG(chan));
 	}
+
 	s->readback[chan] = val;
 
 	return insn->n;
@@ -111,12 +115,18 @@ static int fl512_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	int ret;
 
 	ret = comedi_request_region(dev, it->options[0], 0x10);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = comedi_alloc_subdevices(dev, 2);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Analog Input subdevice */
 	s = &dev->subdevices[0];
@@ -139,7 +149,8 @@ static int fl512_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	return comedi_alloc_subdev_readback(s);
 }
 
-static struct comedi_driver fl512_driver = {
+static struct comedi_driver fl512_driver =
+{
 	.driver_name	= "fl512",
 	.module		= THIS_MODULE,
 	.attach		= fl512_attach,

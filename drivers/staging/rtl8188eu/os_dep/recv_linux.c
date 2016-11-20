@@ -29,13 +29,17 @@ void rtw_os_recv_resource_alloc(struct recv_frame *precvframe)
 
 /* alloc os related resource in struct recv_buf */
 int rtw_os_recvbuf_resource_alloc(struct adapter *padapter,
-				  struct recv_buf *precvbuf)
+								  struct recv_buf *precvbuf)
 {
 	precvbuf->pskb = NULL;
 	precvbuf->reuse = false;
 	precvbuf->purb = usb_alloc_urb(0, GFP_KERNEL);
+
 	if (!precvbuf->purb)
+	{
 		return _FAIL;
+	}
+
 	return _SUCCESS;
 }
 
@@ -47,36 +51,47 @@ void rtw_handle_tkip_mic_err(struct adapter *padapter, u8 bgroup)
 	struct security_priv	*psecuritypriv = &padapter->securitypriv;
 	u32 cur_time = 0;
 
-	if (psecuritypriv->last_mic_err_time == 0) {
+	if (psecuritypriv->last_mic_err_time == 0)
+	{
 		psecuritypriv->last_mic_err_time = jiffies;
-	} else {
+	}
+	else
+	{
 		cur_time = jiffies;
 
-		if (cur_time - psecuritypriv->last_mic_err_time < 60*HZ) {
+		if (cur_time - psecuritypriv->last_mic_err_time < 60 * HZ)
+		{
 			psecuritypriv->btkip_countermeasure = true;
 			psecuritypriv->last_mic_err_time = 0;
 			psecuritypriv->btkip_countermeasure_time = cur_time;
-		} else {
+		}
+		else
+		{
 			psecuritypriv->last_mic_err_time = jiffies;
 		}
 	}
 
 	memset(&ev, 0x00, sizeof(ev));
+
 	if (bgroup)
+	{
 		ev.flags |= IW_MICFAILURE_GROUP;
+	}
 	else
+	{
 		ev.flags |= IW_MICFAILURE_PAIRWISE;
+	}
 
 	ev.src_addr.sa_family = ARPHRD_ETHER;
 	memcpy(ev.src_addr.sa_data, &pmlmepriv->assoc_bssid[0], ETH_ALEN);
 	memset(&wrqu, 0x00, sizeof(wrqu));
 	wrqu.data.length = sizeof(ev);
 	wireless_send_event(padapter->pnetdev, IWEVMICHAELMICFAILURE,
-			    &wrqu, (char *)&ev);
+						&wrqu, (char *)&ev);
 }
 
 int rtw_recv_indicatepkt(struct adapter *padapter,
-			 struct recv_frame *precv_frame)
+						 struct recv_frame *precv_frame)
 {
 	struct recv_priv *precvpriv;
 	struct __queue *pfree_recv_queue;
@@ -88,21 +103,23 @@ int rtw_recv_indicatepkt(struct adapter *padapter,
 	pfree_recv_queue = &(precvpriv->free_recv_queue);
 
 	skb = precv_frame->pkt;
-	if (!skb) {
+
+	if (!skb)
+	{
 		RT_TRACE(_module_recv_osdep_c_, _drv_err_,
-			 ("rtw_recv_indicatepkt():skb == NULL something wrong!!!!\n"));
+				 ("rtw_recv_indicatepkt():skb == NULL something wrong!!!!\n"));
 		goto _recv_indicatepkt_drop;
 	}
 
 	RT_TRACE(_module_recv_osdep_c_, _drv_info_,
-		 ("rtw_recv_indicatepkt():skb != NULL !!!\n"));
+			 ("rtw_recv_indicatepkt():skb != NULL !!!\n"));
 	RT_TRACE(_module_recv_osdep_c_, _drv_info_,
-		 ("rtw_recv_indicatepkt():precv_frame->rx_head =%p  precv_frame->hdr.rx_data =%p\n",
-		 precv_frame->rx_head, precv_frame->rx_data));
+			 ("rtw_recv_indicatepkt():precv_frame->rx_head =%p  precv_frame->hdr.rx_data =%p\n",
+			  precv_frame->rx_head, precv_frame->rx_data));
 	RT_TRACE(_module_recv_osdep_c_, _drv_info_,
-		 ("precv_frame->hdr.rx_tail =%p precv_frame->rx_end =%p precv_frame->hdr.len =%d\n",
-		 precv_frame->rx_tail, precv_frame->rx_end,
-		 precv_frame->len));
+			 ("precv_frame->hdr.rx_tail =%p precv_frame->rx_end =%p precv_frame->hdr.len =%d\n",
+			  precv_frame->rx_tail, precv_frame->rx_end,
+			  precv_frame->len));
 
 	skb->data = precv_frame->rx_data;
 
@@ -111,11 +128,12 @@ int rtw_recv_indicatepkt(struct adapter *padapter,
 	skb->len = precv_frame->len;
 
 	RT_TRACE(_module_recv_osdep_c_, _drv_info_,
-		 ("skb->head =%p skb->data =%p skb->tail =%p skb->end =%p skb->len =%d\n",
-		 skb->head, skb->data, skb_tail_pointer(skb),
-		 skb_end_pointer(skb), skb->len));
+			 ("skb->head =%p skb->data =%p skb->tail =%p skb->end =%p skb->len =%d\n",
+			  skb->head, skb->data, skb_tail_pointer(skb),
+			  skb_end_pointer(skb), skb->len));
 
-	if (check_fwstate(pmlmepriv, WIFI_AP_STATE)) {
+	if (check_fwstate(pmlmepriv, WIFI_AP_STATE))
+	{
 		struct sk_buff *pskb2 = NULL;
 		struct sta_info *psta = NULL;
 		struct sta_priv *pstapriv = &padapter->stapriv;
@@ -123,15 +141,20 @@ int rtw_recv_indicatepkt(struct adapter *padapter,
 		int bmcast = IS_MCAST(pattrib->dst);
 
 		if (memcmp(pattrib->dst, myid(&padapter->eeprompriv),
-			   ETH_ALEN)) {
-			if (bmcast) {
+				   ETH_ALEN))
+		{
+			if (bmcast)
+			{
 				psta = rtw_get_bcmc_stainfo(padapter);
 				pskb2 = skb_clone(skb, GFP_ATOMIC);
-			} else {
+			}
+			else
+			{
 				psta = rtw_get_stainfo(pstapriv, pattrib->dst);
 			}
 
-			if (psta) {
+			if (psta)
+			{
 				struct net_device *pnetdev;
 
 				pnetdev = (struct net_device *)padapter->pnetdev;
@@ -141,9 +164,13 @@ int rtw_recv_indicatepkt(struct adapter *padapter,
 				rtw_xmit_entry(skb, pnetdev);
 
 				if (bmcast)
+				{
 					skb = pskb2;
+				}
 				else
+				{
 					goto _recv_indicatepkt_end;
+				}
 			}
 		}
 	}
@@ -166,23 +193,23 @@ _recv_indicatepkt_end:
 	rtw_free_recvframe(precv_frame, pfree_recv_queue);
 
 	RT_TRACE(_module_recv_osdep_c_, _drv_info_,
-		 ("\n rtw_recv_indicatepkt :after netif_rx!!!!\n"));
+			 ("\n rtw_recv_indicatepkt :after netif_rx!!!!\n"));
 
 
 	return _SUCCESS;
 
 _recv_indicatepkt_drop:
 
-	 /* enqueue back to free_recv_queue */
+	/* enqueue back to free_recv_queue */
 	rtw_free_recvframe(precv_frame, pfree_recv_queue);
 
-	 return _FAIL;
+	return _FAIL;
 }
 
 void rtw_init_recv_timer(struct recv_reorder_ctrl *preorder_ctrl)
 {
 
 	setup_timer(&preorder_ctrl->reordering_ctrl_timer,
-		    rtw_reordering_ctrl_timeout_handler,
-		    (unsigned long)preorder_ctrl);
+				rtw_reordering_ctrl_timeout_handler,
+				(unsigned long)preorder_ctrl);
 }

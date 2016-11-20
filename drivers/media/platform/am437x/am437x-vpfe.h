@@ -36,12 +36,14 @@
 
 #include "am437x-vpfe_regs.h"
 
-enum vpfe_pin_pol {
+enum vpfe_pin_pol
+{
 	VPFE_PINPOL_POSITIVE = 0,
 	VPFE_PINPOL_NEGATIVE,
 };
 
-enum vpfe_hw_if_type {
+enum vpfe_hw_if_type
+{
 	/* Raw Bayer */
 	VPFE_RAW_BAYER = 0,
 	/* BT656 - 8 bit */
@@ -55,7 +57,8 @@ enum vpfe_hw_if_type {
 };
 
 /* interface description */
-struct vpfe_hw_if_param {
+struct vpfe_hw_if_param
+{
 	enum vpfe_hw_if_type if_type;
 	enum vpfe_pin_pol hdpol;
 	enum vpfe_pin_pol vdpol;
@@ -65,25 +68,29 @@ struct vpfe_hw_if_param {
 #define VPFE_MAX_SUBDEV		1
 #define VPFE_MAX_INPUTS		1
 
-struct vpfe_pixel_format {
+struct vpfe_pixel_format
+{
 	struct v4l2_fmtdesc fmtdesc;
 	/* bytes per pixel */
 	int bpp;
 };
 
-struct vpfe_std_info {
+struct vpfe_std_info
+{
 	int active_pixels;
 	int active_lines;
 	/* current frame format */
 	int frame_format;
 };
 
-struct vpfe_route {
+struct vpfe_route
+{
 	u32 input;
 	u32 output;
 };
 
-struct vpfe_subdev_info {
+struct vpfe_subdev_info
+{
 	/* Sub device group id */
 	int grp_id;
 	/* inputs available at the sub device */
@@ -97,37 +104,43 @@ struct vpfe_subdev_info {
 	struct v4l2_subdev *sd;
 };
 
-struct vpfe_config {
+struct vpfe_config
+{
 	/* information about each subdev */
 	struct vpfe_subdev_info sub_devs[VPFE_MAX_SUBDEV];
 	/* Flat array, arranged in groups */
 	struct v4l2_async_subdev *asd[VPFE_MAX_SUBDEV];
 };
 
-struct vpfe_cap_buffer {
+struct vpfe_cap_buffer
+{
 	struct vb2_v4l2_buffer vb;
 	struct list_head list;
 };
 
-enum ccdc_pixfmt {
+enum ccdc_pixfmt
+{
 	CCDC_PIXFMT_RAW = 0,
 	CCDC_PIXFMT_YCBCR_16BIT,
 	CCDC_PIXFMT_YCBCR_8BIT,
 };
 
-enum ccdc_frmfmt {
+enum ccdc_frmfmt
+{
 	CCDC_FRMFMT_PROGRESSIVE = 0,
 	CCDC_FRMFMT_INTERLACED,
 };
 
 /* PIXEL ORDER IN MEMORY from LSB to MSB */
 /* only applicable for 8-bit input mode  */
-enum ccdc_pixorder {
+enum ccdc_pixorder
+{
 	CCDC_PIXORDER_YCBYCR,
 	CCDC_PIXORDER_CBYCRY,
 };
 
-enum ccdc_buftype {
+enum ccdc_buftype
+{
 	CCDC_BUFTYPE_FLD_INTERLEAVED,
 	CCDC_BUFTYPE_FLD_SEPARATED
 };
@@ -146,7 +159,8 @@ static inline u8 ccdc_data_size_max_bit(enum vpfe_ccdc_data_size sz)
 }
 
 /* Structure for CCDC configuration parameters for raw capture mode */
-struct ccdc_params_raw {
+struct ccdc_params_raw
+{
 	/* pixel format */
 	enum ccdc_pixfmt pix_fmt;
 	/* progressive or interlaced frame */
@@ -175,7 +189,8 @@ struct ccdc_params_raw {
 	struct vpfe_ccdc_config_params_raw config_params;
 };
 
-struct ccdc_params_ycbcr {
+struct ccdc_params_ycbcr
+{
 	/* pixel format */
 	enum ccdc_pixfmt pix_fmt;
 	/* progressive or interlaced frame */
@@ -204,7 +219,8 @@ struct ccdc_params_ycbcr {
 /*
  * CCDC operational configuration
  */
-struct ccdc_config {
+struct ccdc_config
+{
 	/* CCDC interface type */
 	enum vpfe_hw_if_type if_type;
 	/* Raw Bayer configuration */
@@ -215,12 +231,14 @@ struct ccdc_config {
 	void __iomem *base_addr;
 };
 
-struct vpfe_ccdc {
+struct vpfe_ccdc
+{
 	struct ccdc_config ccdc_cfg;
 	u32 ccdc_ctx[VPFE_REG_END / sizeof(u32)];
 };
 
-struct vpfe_device {
+struct vpfe_device
+{
 	/* V4l2 specific parameters */
 	/* Identifies video device for this channel */
 	struct video_device video_dev;

@@ -35,7 +35,8 @@
 
 /* Numeric indexes used by SetReg() and GetReg() */
 #if 0
-enum {
+enum
+{
 	run = 0,		/* 0  W 1:run 0:stop */
 	parm0,			/* 1  W filter, samplerate */
 	parm1,			/* 2  W filter, samplerate */
@@ -52,7 +53,8 @@ enum {
 } wt_reg;
 #endif
 
-typedef struct {
+typedef struct
+{
 	u32 parm0;	/* this_1E4 */
 	u32 parm1;	/* this_1E8 */
 	u32 parm2;	/* this_1EC */

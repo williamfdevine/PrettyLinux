@@ -46,7 +46,8 @@ MODULE_PARM_DESC(mask, "GPIO channel mask.");
  * FIXME: convert this singleton driver to use the state container
  * design pattern, see Documentation/driver-model/design-patterns.txt
  */
-static struct cs5535_gpio_chip {
+static struct cs5535_gpio_chip
+{
 	struct gpio_chip chip;
 	resource_size_t base;
 
@@ -61,7 +62,7 @@ static struct cs5535_gpio_chip {
  */
 
 static void errata_outl(struct cs5535_gpio_chip *chip, u32 val,
-		unsigned int reg)
+						unsigned int reg)
 {
 	unsigned long addr = chip->base + 0x80 + reg;
 
@@ -74,24 +75,34 @@ static void errata_outl(struct cs5535_gpio_chip *chip, u32 val,
 	 * Don't apply this errata to the edge status GPIOs, as writing
 	 * to their lower bits will clear them.
 	 */
-	if (reg != GPIO_POSITIVE_EDGE_STS && reg != GPIO_NEGATIVE_EDGE_STS) {
+	if (reg != GPIO_POSITIVE_EDGE_STS && reg != GPIO_NEGATIVE_EDGE_STS)
+	{
 		if (val & 0xffff)
-			val |= (inl(addr) & 0xffff); /* ignore the high bits */
+		{
+			val |= (inl(addr) & 0xffff);    /* ignore the high bits */
+		}
 		else
+		{
 			val |= (inl(addr) ^ (val >> 16));
+		}
 	}
+
 	outl(val, addr);
 }
 
 static void __cs5535_gpio_set(struct cs5535_gpio_chip *chip, unsigned offset,
-		unsigned int reg)
+							  unsigned int reg)
 {
 	if (offset < 16)
 		/* low bank register */
+	{
 		outl(1 << offset, chip->base + reg);
+	}
 	else
 		/* high bank register */
+	{
 		errata_outl(chip, 1 << (offset - 16), reg);
+	}
 }
 
 void cs5535_gpio_set(unsigned offset, unsigned int reg)
@@ -106,14 +117,18 @@ void cs5535_gpio_set(unsigned offset, unsigned int reg)
 EXPORT_SYMBOL_GPL(cs5535_gpio_set);
 
 static void __cs5535_gpio_clear(struct cs5535_gpio_chip *chip, unsigned offset,
-		unsigned int reg)
+								unsigned int reg)
 {
 	if (offset < 16)
 		/* low bank register */
+	{
 		outl(1 << (offset + 16), chip->base + reg);
+	}
 	else
 		/* high bank register */
+	{
 		errata_outl(chip, 1 << offset, reg);
+	}
 }
 
 void cs5535_gpio_clear(unsigned offset, unsigned int reg)
@@ -134,14 +149,19 @@ int cs5535_gpio_isset(unsigned offset, unsigned int reg)
 	long val;
 
 	spin_lock_irqsave(&chip->lock, flags);
+
 	if (offset < 16)
 		/* low bank register */
+	{
 		val = inl(chip->base + reg);
-	else {
+	}
+	else
+	{
 		/* high bank register */
 		val = inl(chip->base + 0x80 + reg);
 		offset -= 16;
 	}
+
 	spin_unlock_irqrestore(&chip->lock, flags);
 
 	return (val & (1 << offset)) ? 1 : 0;
@@ -153,7 +173,9 @@ int cs5535_gpio_set_irq(unsigned group, unsigned irq)
 	uint32_t lo, hi;
 
 	if (group > 7 || irq > 15)
+	{
 		return -EINVAL;
+	}
 
 	rdmsr(MSR_PIC_ZSEL_HIGH, lo, hi);
 
@@ -173,13 +195,21 @@ void cs5535_gpio_setup_event(unsigned offset, int pair, int pme)
 	uint32_t val;
 
 	if (offset >= 24)
+	{
 		offset = GPIO_MAP_W;
+	}
 	else if (offset >= 16)
+	{
 		offset = GPIO_MAP_Z;
+	}
 	else if (offset >= 8)
+	{
 		offset = GPIO_MAP_Y;
+	}
 	else
+	{
 		offset = GPIO_MAP_X;
+	}
 
 	spin_lock_irqsave(&chip->lock, flags);
 	val = inl(chip->base + offset);
@@ -192,7 +222,9 @@ void cs5535_gpio_setup_event(unsigned offset, int pair, int pme)
 
 	/* Set the PME bit if this is a PME event */
 	if (pme)
+	{
 		val |= (1 << (shift + 3));
+	}
 
 	outl(val, chip->base + offset);
 	spin_unlock_irqrestore(&chip->lock, flags);
@@ -211,9 +243,10 @@ static int chip_gpio_request(struct gpio_chip *c, unsigned offset)
 	spin_lock_irqsave(&chip->lock, flags);
 
 	/* check if this pin is available */
-	if ((mask & (1 << offset)) == 0) {
+	if ((mask & (1 << offset)) == 0)
+	{
 		dev_info(&chip->pdev->dev,
-			"pin %u is not available (check mask)\n", offset);
+				 "pin %u is not available (check mask)\n", offset);
 		spin_unlock_irqrestore(&chip->lock, flags);
 		return -EINVAL;
 	}
@@ -238,9 +271,13 @@ static int chip_gpio_get(struct gpio_chip *chip, unsigned offset)
 static void chip_gpio_set(struct gpio_chip *chip, unsigned offset, int val)
 {
 	if (val)
+	{
 		cs5535_gpio_set(offset, GPIO_OUTPUT_VAL);
+	}
 	else
+	{
 		cs5535_gpio_clear(offset, GPIO_OUTPUT_VAL);
+	}
 }
 
 static int chip_direction_input(struct gpio_chip *c, unsigned offset)
@@ -265,17 +302,23 @@ static int chip_direction_output(struct gpio_chip *c, unsigned offset, int val)
 
 	__cs5535_gpio_set(chip, offset, GPIO_INPUT_ENABLE);
 	__cs5535_gpio_set(chip, offset, GPIO_OUTPUT_ENABLE);
+
 	if (val)
+	{
 		__cs5535_gpio_set(chip, offset, GPIO_OUTPUT_VAL);
+	}
 	else
+	{
 		__cs5535_gpio_clear(chip, offset, GPIO_OUTPUT_VAL);
+	}
 
 	spin_unlock_irqrestore(&chip->lock, flags);
 
 	return 0;
 }
 
-static const char * const cs5535_gpio_names[] = {
+static const char *const cs5535_gpio_names[] =
+{
 	"GPIO0", "GPIO1", "GPIO2", "GPIO3",
 	"GPIO4", "GPIO5", "GPIO6", "GPIO7",
 	"GPIO8", "GPIO9", "GPIO10", "GPIO11",
@@ -286,7 +329,8 @@ static const char * const cs5535_gpio_names[] = {
 	"GPIO28", NULL, NULL, NULL,
 };
 
-static struct cs5535_gpio_chip cs5535_gpio_chip = {
+static struct cs5535_gpio_chip cs5535_gpio_chip =
+{
 	.chip = {
 		.owner = THIS_MODULE,
 		.label = DRV_NAME,
@@ -318,13 +362,16 @@ static int cs5535_gpio_probe(struct platform_device *pdev)
 	 * can always go back to using MSRs.. */
 
 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "can't fetch device resource info\n");
 		return err;
 	}
 
 	if (!devm_request_region(&pdev->dev, res->start, resource_size(res),
-				 pdev->name)) {
+							 pdev->name))
+	{
 		dev_err(&pdev->dev, "can't request region\n");
 		return err;
 	}
@@ -345,18 +392,22 @@ static int cs5535_gpio_probe(struct platform_device *pdev)
 
 	if (mask_orig != mask)
 		dev_info(&pdev->dev, "mask changed from 0x%08lX to 0x%08lX\n",
-				mask_orig, mask);
+				 mask_orig, mask);
 
 	/* finally, register with the generic GPIO API */
 	err = devm_gpiochip_add_data(&pdev->dev, &cs5535_gpio_chip.chip,
-				     &cs5535_gpio_chip);
+								 &cs5535_gpio_chip);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return 0;
 }
 
-static struct platform_driver cs5535_gpio_driver = {
+static struct platform_driver cs5535_gpio_driver =
+{
 	.driver = {
 		.name = DRV_NAME,
 	},

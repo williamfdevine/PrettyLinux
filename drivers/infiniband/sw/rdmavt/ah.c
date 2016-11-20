@@ -60,36 +60,59 @@
  * Return: 0 on success
  */
 int rvt_check_ah(struct ib_device *ibdev,
-		 struct ib_ah_attr *ah_attr)
+				 struct ib_ah_attr *ah_attr)
 {
 	int err;
 	struct ib_port_attr port_attr;
 	struct rvt_dev_info *rdi = ib_to_rvt(ibdev);
 	enum rdma_link_layer link = rdma_port_get_link_layer(ibdev,
-							     ah_attr->port_num);
+								ah_attr->port_num);
 
 	err = ib_query_port(ibdev, ah_attr->port_num, &port_attr);
+
 	if (err)
+	{
 		return -EINVAL;
-	if (ah_attr->port_num < 1 ||
-	    ah_attr->port_num > ibdev->phys_port_cnt)
-		return -EINVAL;
-	if (ah_attr->static_rate != IB_RATE_PORT_CURRENT &&
-	    ib_rate_to_mbps(ah_attr->static_rate) < 0)
-		return -EINVAL;
-	if ((ah_attr->ah_flags & IB_AH_GRH) &&
-	    ah_attr->grh.sgid_index >= port_attr.gid_tbl_len)
-		return -EINVAL;
-	if (link != IB_LINK_LAYER_ETHERNET) {
-		if (ah_attr->dlid == 0)
-			return -EINVAL;
-		if (ah_attr->dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE) &&
-		    ah_attr->dlid != be16_to_cpu(IB_LID_PERMISSIVE) &&
-		    !(ah_attr->ah_flags & IB_AH_GRH))
-			return -EINVAL;
 	}
+
+	if (ah_attr->port_num < 1 ||
+		ah_attr->port_num > ibdev->phys_port_cnt)
+	{
+		return -EINVAL;
+	}
+
+	if (ah_attr->static_rate != IB_RATE_PORT_CURRENT &&
+		ib_rate_to_mbps(ah_attr->static_rate) < 0)
+	{
+		return -EINVAL;
+	}
+
+	if ((ah_attr->ah_flags & IB_AH_GRH) &&
+		ah_attr->grh.sgid_index >= port_attr.gid_tbl_len)
+	{
+		return -EINVAL;
+	}
+
+	if (link != IB_LINK_LAYER_ETHERNET)
+	{
+		if (ah_attr->dlid == 0)
+		{
+			return -EINVAL;
+		}
+
+		if (ah_attr->dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE) &&
+			ah_attr->dlid != be16_to_cpu(IB_LID_PERMISSIVE) &&
+			!(ah_attr->ah_flags & IB_AH_GRH))
+		{
+			return -EINVAL;
+		}
+	}
+
 	if (rdi->driver_f.check_ah)
+	{
 		return rdi->driver_f.check_ah(ibdev, ah_attr);
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL(rvt_check_ah);
@@ -104,21 +127,28 @@ EXPORT_SYMBOL(rvt_check_ah);
  * Return: newly allocated ah
  */
 struct ib_ah *rvt_create_ah(struct ib_pd *pd,
-			    struct ib_ah_attr *ah_attr)
+							struct ib_ah_attr *ah_attr)
 {
 	struct rvt_ah *ah;
 	struct rvt_dev_info *dev = ib_to_rvt(pd->device);
 	unsigned long flags;
 
 	if (rvt_check_ah(pd->device, ah_attr))
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	ah = kmalloc(sizeof(*ah), GFP_ATOMIC);
+
 	if (!ah)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	spin_lock_irqsave(&dev->n_ahs_lock, flags);
-	if (dev->n_ahs_allocated == dev->dparms.props.max_ah) {
+
+	if (dev->n_ahs_allocated == dev->dparms.props.max_ah)
+	{
 		spin_unlock(&dev->n_ahs_lock);
 		kfree(ah);
 		return ERR_PTR(-ENOMEM);
@@ -131,7 +161,9 @@ struct ib_ah *rvt_create_ah(struct ib_pd *pd,
 	atomic_set(&ah->refcount, 0);
 
 	if (dev->driver_f.notify_new_ah)
+	{
 		dev->driver_f.notify_new_ah(pd->device, ah_attr, ah);
+	}
 
 	return &ah->ibah;
 }
@@ -149,7 +181,9 @@ int rvt_destroy_ah(struct ib_ah *ibah)
 	unsigned long flags;
 
 	if (atomic_read(&ah->refcount) != 0)
+	{
 		return -EBUSY;
+	}
 
 	spin_lock_irqsave(&dev->n_ahs_lock, flags);
 	dev->n_ahs_allocated--;
@@ -172,7 +206,9 @@ int rvt_modify_ah(struct ib_ah *ibah, struct ib_ah_attr *ah_attr)
 	struct rvt_ah *ah = ibah_to_rvtah(ibah);
 
 	if (rvt_check_ah(ibah->device, ah_attr))
+	{
 		return -EINVAL;
+	}
 
 	ah->attr = *ah_attr;
 

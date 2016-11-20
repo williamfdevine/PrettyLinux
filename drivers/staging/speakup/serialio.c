@@ -13,12 +13,13 @@
 #include <asm/serial.h>
 
 #ifndef SERIAL_PORT_DFNS
-#define SERIAL_PORT_DFNS
+	#define SERIAL_PORT_DFNS
 #endif
 
 static void start_serial_interrupt(int irq);
 
-static const struct old_serial_port rs_table[] = {
+static const struct old_serial_port rs_table[] =
+{
 	SERIAL_PORT_DFNS
 };
 static const struct old_serial_port *serstate;
@@ -32,10 +33,12 @@ const struct old_serial_port *spk_serial_init(int index)
 	const struct old_serial_port *ser;
 	int err;
 
-	if (index >= ARRAY_SIZE(rs_table)) {
+	if (index >= ARRAY_SIZE(rs_table))
+	{
 		pr_info("no port info for ttyS%d\n", index);
 		return NULL;
 	}
+
 	ser = rs_table + index;
 
 	/*	Divisor, bytesize and parity */
@@ -46,18 +49,28 @@ const struct old_serial_port *spk_serial_init(int index)
 #else /* !__powerpc__ && !__alpha__ */
 	cval >>= 4;
 #endif /* !__powerpc__ && !__alpha__ */
+
 	if (cflag & PARENB)
+	{
 		cval |= UART_LCR_PARITY;
+	}
+
 	if (!(cflag & PARODD))
+	{
 		cval |= UART_LCR_EPAR;
-	if (synth_request_region(ser->port, 8)) {
+	}
+
+	if (synth_request_region(ser->port, 8))
+	{
 		/* try to take it back. */
 		pr_info("Ports not available, trying to steal them\n");
 		__release_region(&ioport_resource, ser->port, 8);
 		err = synth_request_region(ser->port, 8);
-		if (err) {
+
+		if (err)
+		{
 			pr_warn("Unable to allocate port at %x, errno %i",
-				ser->port, err);
+					ser->port, err);
 			return NULL;
 		}
 	}
@@ -75,7 +88,8 @@ const struct old_serial_port *spk_serial_init(int index)
 	outb(UART_MCR_DTR | UART_MCR_RTS, ser->port + UART_MCR);
 
 	/* If we read 0xff from the LSR, there is no UART here. */
-	if (inb(ser->port + UART_LSR) == 0xff) {
+	if (inb(ser->port + UART_LSR) == 0xff)
+	{
 		synth_release_region(ser->port, 8);
 		serstate = NULL;
 		return NULL;
@@ -96,11 +110,14 @@ static irqreturn_t synth_readbuf_handler(int irq, void *dev_id)
 	int c;
 
 	spin_lock_irqsave(&speakup_info.spinlock, flags);
-	while (inb_p(speakup_info.port_tts + UART_LSR) & UART_LSR_DR) {
 
-		c = inb_p(speakup_info.port_tts+UART_RX);
+	while (inb_p(speakup_info.port_tts + UART_LSR) & UART_LSR_DR)
+	{
+
+		c = inb_p(speakup_info.port_tts + UART_RX);
 		synth->read_buff_add((u_char) c);
 	}
+
 	spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 	return IRQ_HANDLED;
 }
@@ -110,36 +127,45 @@ static void start_serial_interrupt(int irq)
 	int rv;
 
 	if (!synth->read_buff_add)
+	{
 		return;
+	}
 
 	rv = request_irq(irq, synth_readbuf_handler, IRQF_SHARED,
-			 "serial", (void *) synth_readbuf_handler);
+					 "serial", (void *) synth_readbuf_handler);
 
 	if (rv)
+	{
 		pr_err("Unable to request Speakup serial I R Q\n");
+	}
+
 	/* Set MCR */
 	outb(UART_MCR_DTR | UART_MCR_RTS | UART_MCR_OUT2,
-			speakup_info.port_tts + UART_MCR);
+		 speakup_info.port_tts + UART_MCR);
 	/* Turn on Interrupts */
-	outb(UART_IER_MSI|UART_IER_RLSI|UART_IER_RDI,
-			speakup_info.port_tts + UART_IER);
-	inb(speakup_info.port_tts+UART_LSR);
-	inb(speakup_info.port_tts+UART_RX);
-	inb(speakup_info.port_tts+UART_IIR);
-	inb(speakup_info.port_tts+UART_MSR);
+	outb(UART_IER_MSI | UART_IER_RLSI | UART_IER_RDI,
+		 speakup_info.port_tts + UART_IER);
+	inb(speakup_info.port_tts + UART_LSR);
+	inb(speakup_info.port_tts + UART_RX);
+	inb(speakup_info.port_tts + UART_IIR);
+	inb(speakup_info.port_tts + UART_MSR);
 	outb(1, speakup_info.port_tts + UART_FCR);	/* Turn FIFO On */
 }
 
 void spk_stop_serial_interrupt(void)
 {
 	if (speakup_info.port_tts == 0)
+	{
 		return;
+	}
 
 	if (!synth->read_buff_add)
+	{
 		return;
+	}
 
 	/* Turn off interrupts */
-	outb(0, speakup_info.port_tts+UART_IER);
+	outb(0, speakup_info.port_tts + UART_IER);
 	/* Free IRQ */
 	free_irq(serstate->irq, (void *) synth_readbuf_handler);
 }
@@ -148,9 +174,10 @@ int spk_wait_for_xmitr(void)
 {
 	int tmout = SPK_XMITR_TIMEOUT;
 
-	if ((synth->alive) && (timeouts >= NUM_DISABLE_TIMEOUTS)) {
+	if ((synth->alive) && (timeouts >= NUM_DISABLE_TIMEOUTS))
+	{
 		pr_warn("%s: too many timeouts, deactivating speakup\n",
-			synth->long_name);
+				synth->long_name);
 		synth->alive = 0;
 		/* No synth any more, so nobody will restart TTYs, and we thus
 		 * need to do it ourselves.  Now that there is no synth we can
@@ -160,23 +187,33 @@ int spk_wait_for_xmitr(void)
 		timeouts = 0;
 		return 0;
 	}
-	while (spk_serial_tx_busy()) {
-		if (--tmout == 0) {
+
+	while (spk_serial_tx_busy())
+	{
+		if (--tmout == 0)
+		{
 			pr_warn("%s: timed out (tx busy)\n", synth->long_name);
 			timeouts++;
 			return 0;
 		}
+
 		udelay(1);
 	}
+
 	tmout = SPK_CTS_TIMEOUT;
-	while (!((inb_p(speakup_info.port_tts + UART_MSR)) & UART_MSR_CTS)) {
+
+	while (!((inb_p(speakup_info.port_tts + UART_MSR)) & UART_MSR_CTS))
+	{
 		/* CTS */
-		if (--tmout == 0) {
+		if (--tmout == 0)
+		{
 			timeouts++;
 			return 0;
 		}
+
 		udelay(1);
 	}
+
 	timeouts = 0;
 	return 1;
 }
@@ -185,13 +222,17 @@ unsigned char spk_serial_in(void)
 {
 	int tmout = SPK_SERIAL_TIMEOUT;
 
-	while (!(inb_p(speakup_info.port_tts + UART_LSR) & UART_LSR_DR)) {
-		if (--tmout == 0) {
+	while (!(inb_p(speakup_info.port_tts + UART_LSR) & UART_LSR_DR))
+	{
+		if (--tmout == 0)
+		{
 			pr_warn("time out while waiting for input.\n");
 			return 0xff;
 		}
+
 		udelay(1);
 	}
+
 	return inb_p(speakup_info.port_tts + UART_RX);
 }
 EXPORT_SYMBOL_GPL(spk_serial_in);
@@ -201,18 +242,24 @@ unsigned char spk_serial_in_nowait(void)
 	unsigned char lsr;
 
 	lsr = inb_p(speakup_info.port_tts + UART_LSR);
+
 	if (!(lsr & UART_LSR_DR))
+	{
 		return 0;
+	}
+
 	return inb_p(speakup_info.port_tts + UART_RX);
 }
 EXPORT_SYMBOL_GPL(spk_serial_in_nowait);
 
 int spk_serial_out(const char ch)
 {
-	if (synth->alive && spk_wait_for_xmitr()) {
+	if (synth->alive && spk_wait_for_xmitr())
+	{
 		outb_p(ch, speakup_info.port_tts);
 		return 1;
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(spk_serial_out);
@@ -220,7 +267,10 @@ EXPORT_SYMBOL_GPL(spk_serial_out);
 void spk_serial_release(void)
 {
 	if (speakup_info.port_tts == 0)
+	{
 		return;
+	}
+
 	synth_release_region(speakup_info.port_tts, 8);
 	speakup_info.port_tts = 0;
 }

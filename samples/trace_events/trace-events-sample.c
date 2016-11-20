@@ -10,7 +10,8 @@
 #define CREATE_TRACE_POINTS
 #include "trace-events-sample.h"
 
-static const char *random_strings[] = {
+static const char *random_strings[] =
+{
 	"Mother Goose",
 	"Snoopy",
 	"Gandalf",
@@ -28,12 +29,15 @@ static void simple_thread_func(int cnt)
 	schedule_timeout(HZ);
 
 	for (i = 0; i < len; i++)
+	{
 		array[i] = i + 1;
+	}
+
 	array[i] = 0;
 
 	/* Silly tracepoints */
 	trace_foo_bar("hello", cnt, array, random_strings[len],
-		      tsk_cpus_allowed(current));
+				  tsk_cpus_allowed(current));
 
 	trace_foo_with_template_simple("HELLO", cnt);
 
@@ -49,7 +53,9 @@ static int simple_thread(void *arg)
 	int cnt = 0;
 
 	while (!kthread_should_stop())
+	{
 		simple_thread_func(cnt++);
+	}
 
 	return 0;
 }
@@ -72,7 +78,9 @@ static int simple_thread_fn(void *arg)
 	int cnt = 0;
 
 	while (!kthread_should_stop())
+	{
 		simple_thread_func_fn(cnt++);
+	}
 
 	return 0;
 }
@@ -97,8 +105,12 @@ void foo_bar_unreg(void)
 	pr_info("Killing thread for foo_bar_fn\n");
 	/* protect against module unloading */
 	mutex_lock(&thread_mutex);
+
 	if (simple_tsk_fn)
+	{
 		kthread_stop(simple_tsk_fn);
+	}
+
 	simple_tsk_fn = NULL;
 	mutex_unlock(&thread_mutex);
 }
@@ -106,8 +118,11 @@ void foo_bar_unreg(void)
 static int __init trace_event_init(void)
 {
 	simple_tsk = kthread_run(simple_thread, NULL, "event-sample");
+
 	if (IS_ERR(simple_tsk))
+	{
 		return -1;
+	}
 
 	return 0;
 }
@@ -116,8 +131,12 @@ static void __exit trace_event_exit(void)
 {
 	kthread_stop(simple_tsk);
 	mutex_lock(&thread_mutex);
+
 	if (simple_tsk_fn)
+	{
 		kthread_stop(simple_tsk_fn);
+	}
+
 	simple_tsk_fn = NULL;
 	mutex_unlock(&thread_mutex);
 }

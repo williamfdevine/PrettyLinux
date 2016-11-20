@@ -19,7 +19,8 @@
  * @AD5449_SDO_DISABLED: Disable the SDO pin, in this mode it is not possible to
  *			read back from the device.
  */
-enum ad5449_sdo_mode {
+enum ad5449_sdo_mode
+{
 	AD5449_SDO_DRIVE_FULL = 0x0,
 	AD5449_SDO_DRIVE_WEAK = 0x1,
 	AD5449_SDO_OPEN_DRAIN = 0x2,
@@ -32,7 +33,8 @@ enum ad5449_sdo_mode {
  * @hardware_clear_to_midscale: Whether asserting the hardware CLR pin sets the
  *			outputs to midscale (true) or to zero scale(false).
  */
-struct ad5449_platform_data {
+struct ad5449_platform_data
+{
 	enum ad5449_sdo_mode sdo_mode;
 	bool hardware_clear_to_midscale;
 };

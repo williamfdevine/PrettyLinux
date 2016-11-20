@@ -38,7 +38,8 @@
 #include <net/if_inet6.h>
 #include <linux/module.h>
 
-struct rxe_recv_sockets {
+struct rxe_recv_sockets
+{
 	struct socket *sk4;
 	struct socket *sk6;
 };

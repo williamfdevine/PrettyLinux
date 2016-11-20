@@ -29,7 +29,8 @@ struct dw_dma;
  * @dw:			struct dw_dma that is filed by dw_dma_probe()
  * @pdata:		pointer to platform data
  */
-struct dw_dma_chip {
+struct dw_dma_chip
+{
 	struct device	*dev;
 	int		irq;
 	void __iomem	*regs;
@@ -51,7 +52,8 @@ static inline int dw_dma_remove(struct dw_dma_chip *chip) { return 0; }
 /* DMA API extensions */
 struct dw_desc;
 
-struct dw_cyclic_desc {
+struct dw_cyclic_desc
+{
 	struct dw_desc	**desc;
 	unsigned long	periods;
 	void		(*period_callback)(void *param);

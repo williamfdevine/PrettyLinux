@@ -34,7 +34,8 @@
  * for module FOO is <CTL_SUNRPC, CTL_FOODEBUG>.
  */
 
-enum {
+enum
+{
 	CTL_RPCDEBUG = 1,
 	CTL_NFSDEBUG,
 	CTL_NFSDDEBUG,

@@ -29,21 +29,23 @@
 #define VENC_FIRST_FIELD	BIT(1)
 #define VENC_SECOND_FIELD	BIT(2)
 
-struct venc_platform_data {
+struct venc_platform_data
+{
 	int (*setup_pinmux)(u32 if_type, int field);
 	int (*setup_clock)(enum vpbe_enc_timings_type type,
-			   unsigned int pixclock);
+					   unsigned int pixclock);
 	int (*setup_if_config)(u32 pixcode);
 	/* Number of LCD outputs supported */
 	int num_lcd_outputs;
 	struct vpbe_if_params *lcd_if_params;
 };
 
-enum venc_ioctls {
+enum venc_ioctls
+{
 	VENC_GET_FLD = 1,
 };
 
 /* exported functions */
 struct v4l2_subdev *venc_sub_dev_init(struct v4l2_device *v4l2_dev,
-		const char *venc_name);
+									  const char *venc_name);
 #endif

@@ -22,31 +22,37 @@
 #include <linux/key.h>
 #include <linux/skbuff.h>
 
-struct lsm_network_audit {
+struct lsm_network_audit
+{
 	int netif;
 	struct sock *sk;
 	u16 family;
 	__be16 dport;
 	__be16 sport;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__be32 daddr;
 			__be32 saddr;
 		} v4;
-		struct {
+		struct
+		{
 			struct in6_addr daddr;
 			struct in6_addr saddr;
 		} v6;
 	} fam;
 };
 
-struct lsm_ioctlop_audit {
+struct lsm_ioctlop_audit
+{
 	struct path path;
 	u16 cmd;
 };
 
 /* Auxiliary data to use in generating the audit record. */
-struct common_audit_data {
+struct common_audit_data
+{
 	char type;
 #define LSM_AUDIT_DATA_PATH	1
 #define LSM_AUDIT_DATA_NET	2
@@ -60,7 +66,8 @@ struct common_audit_data {
 #define LSM_AUDIT_DATA_DENTRY	10
 #define LSM_AUDIT_DATA_IOCTL_OP	11
 #define LSM_AUDIT_DATA_FILE	12
-	union 	{
+	union
+	{
 		struct path path;
 		struct dentry *dentry;
 		struct inode *inode;
@@ -69,7 +76,8 @@ struct common_audit_data {
 		int ipc_id;
 		struct task_struct *tsk;
 #ifdef CONFIG_KEYS
-		struct {
+		struct
+		{
 			key_serial_t key;
 			char *key_desc;
 		} key_struct;
@@ -79,7 +87,8 @@ struct common_audit_data {
 		struct file *file;
 	} u;
 	/* this union contains LSM specific data */
-	union {
+	union
+	{
 #ifdef CONFIG_SECURITY_SMACK
 		struct smack_audit_data *smack_audit_data;
 #endif
@@ -96,13 +105,13 @@ struct common_audit_data {
 #define v6info fam.v6
 
 int ipv4_skb_to_auditdata(struct sk_buff *skb,
-		struct common_audit_data *ad, u8 *proto);
+						  struct common_audit_data *ad, u8 *proto);
 
 int ipv6_skb_to_auditdata(struct sk_buff *skb,
-		struct common_audit_data *ad, u8 *proto);
+						  struct common_audit_data *ad, u8 *proto);
 
 void common_lsm_audit(struct common_audit_data *a,
-	void (*pre_audit)(struct audit_buffer *, void *),
-	void (*post_audit)(struct audit_buffer *, void *));
+					  void (*pre_audit)(struct audit_buffer *, void *),
+					  void (*post_audit)(struct audit_buffer *, void *));
 
 #endif

@@ -45,22 +45,26 @@ typedef void (*xen_gfn_fn_t)(unsigned long gfn, void *data);
 
 /* Break down the pages in 4KB chunk and call fn for each gfn */
 static void xen_for_each_gfn(struct page **pages, unsigned nr_gfn,
-			     xen_gfn_fn_t fn, void *data)
+							 xen_gfn_fn_t fn, void *data)
 {
 	unsigned long xen_pfn = 0;
 	struct page *page;
 	int i;
 
-	for (i = 0; i < nr_gfn; i++) {
-		if ((i % XEN_PFN_PER_PAGE) == 0) {
+	for (i = 0; i < nr_gfn; i++)
+	{
+		if ((i % XEN_PFN_PER_PAGE) == 0)
+		{
 			page = pages[i / XEN_PFN_PER_PAGE];
 			xen_pfn = page_to_xen_pfn(page);
 		}
+
 		fn(pfn_to_gfn(xen_pfn++), data);
 	}
 }
 
-struct remap_data {
+struct remap_data
+{
 	xen_pfn_t *fgfn; /* foreign domain's gfn */
 	int nr_fgfn; /* Number of foreign gfn left to map */
 	pgprot_t prot;
@@ -93,14 +97,15 @@ static void setup_hparams(unsigned long gfn, void *data)
 }
 
 static int remap_pte_fn(pte_t *ptep, pgtable_t token, unsigned long addr,
-			void *data)
+						void *data)
 {
 	struct remap_data *info = data;
 	struct page *page = info->pages[info->index++];
 	pte_t pte = pte_mkspecial(pfn_pte(page_to_pfn(page), info->prot));
 	int rc, nr_gfn;
 	uint32_t i;
-	struct xen_add_to_physmap_range xatp = {
+	struct xen_add_to_physmap_range xatp =
+	{
 		.domid = DOMID_SELF,
 		.foreign_domid = info->domid,
 		.space = XENMAPSPACE_gmfn_foreign,
@@ -121,12 +126,16 @@ static int remap_pte_fn(pte_t *ptep, pgtable_t token, unsigned long addr,
 	rc = HYPERVISOR_memory_op(XENMEM_add_to_physmap_range, &xatp);
 
 	/* info->err_ptr expect to have one error status per Xen PFN */
-	for (i = 0; i < nr_gfn; i++) {
+	for (i = 0; i < nr_gfn; i++)
+	{
 		int err = (rc < 0) ? rc : info->h_errs[i];
 
 		*(info->err_ptr++) = err;
+
 		if (!err)
+		{
 			info->mapped++;
+		}
 	}
 
 	/*
@@ -135,17 +144,19 @@ static int remap_pte_fn(pte_t *ptep, pgtable_t token, unsigned long addr,
 	 * as the userspace may decide to continue.
 	 */
 	if (!rc)
+	{
 		set_pte_at(info->vma->vm_mm, addr, ptep, pte);
+	}
 
 	return 0;
 }
 
 int xen_xlate_remap_gfn_array(struct vm_area_struct *vma,
-			      unsigned long addr,
-			      xen_pfn_t *gfn, int nr,
-			      int *err_ptr, pgprot_t prot,
-			      unsigned domid,
-			      struct page **pages)
+							  unsigned long addr,
+							  xen_pfn_t *gfn, int nr,
+							  int *err_ptr, pgprot_t prot,
+							  unsigned domid,
+							  struct page **pages)
 {
 	int err;
 	struct remap_data data;
@@ -166,7 +177,7 @@ int xen_xlate_remap_gfn_array(struct vm_area_struct *vma,
 	data.mapped = 0;
 
 	err = apply_to_page_range(vma->vm_mm, addr, range,
-				  remap_pte_fn, &data);
+							  remap_pte_fn, &data);
 	return err < 0 ? err : data.mapped;
 }
 EXPORT_SYMBOL_GPL(xen_xlate_remap_gfn_array);
@@ -181,7 +192,7 @@ static void unmap_gfn(unsigned long gfn, void *data)
 }
 
 int xen_xlate_unmap_gfn_range(struct vm_area_struct *vma,
-			      int nr, struct page **pages)
+							  int nr, struct page **pages)
 {
 	xen_for_each_gfn(pages, nr, unmap_gfn, NULL);
 
@@ -189,7 +200,8 @@ int xen_xlate_unmap_gfn_range(struct vm_area_struct *vma,
 }
 EXPORT_SYMBOL_GPL(xen_xlate_unmap_gfn_range);
 
-struct map_balloon_pages {
+struct map_balloon_pages
+{
 	xen_pfn_t *pfns;
 	unsigned int idx;
 };
@@ -212,7 +224,7 @@ static void setup_balloon_gfn(unsigned long gfn, void *data)
  * kernel's address space.
  */
 int __init xen_xlate_map_ballooned_pages(xen_pfn_t **gfns, void **virt,
-					 unsigned long nr_grant_frames)
+		unsigned long nr_grant_frames)
 {
 	struct page **pages;
 	xen_pfn_t *pfns;
@@ -224,18 +236,26 @@ int __init xen_xlate_map_ballooned_pages(xen_pfn_t **gfns, void **virt,
 	BUG_ON(nr_grant_frames == 0);
 	nr_pages = DIV_ROUND_UP(nr_grant_frames, XEN_PFN_PER_PAGE);
 	pages = kcalloc(nr_pages, sizeof(pages[0]), GFP_KERNEL);
+
 	if (!pages)
+	{
 		return -ENOMEM;
+	}
 
 	pfns = kcalloc(nr_grant_frames, sizeof(pfns[0]), GFP_KERNEL);
-	if (!pfns) {
+
+	if (!pfns)
+	{
 		kfree(pages);
 		return -ENOMEM;
 	}
+
 	rc = alloc_xenballooned_pages(nr_pages, pages);
-	if (rc) {
+
+	if (rc)
+	{
 		pr_warn("%s Couldn't balloon alloc %ld pages rc:%d\n", __func__,
-			nr_pages, rc);
+				nr_pages, rc);
 		kfree(pages);
 		kfree(pfns);
 		return rc;
@@ -246,14 +266,17 @@ int __init xen_xlate_map_ballooned_pages(xen_pfn_t **gfns, void **virt,
 	xen_for_each_gfn(pages, nr_grant_frames, setup_balloon_gfn, &data);
 
 	vaddr = vmap(pages, nr_pages, 0, PAGE_KERNEL);
-	if (!vaddr) {
+
+	if (!vaddr)
+	{
 		pr_warn("%s Couldn't map %ld pages rc:%d\n", __func__,
-			nr_pages, rc);
+				nr_pages, rc);
 		free_xenballooned_pages(nr_pages, pages);
 		kfree(pages);
 		kfree(pfns);
 		return -ENOMEM;
 	}
+
 	kfree(pages);
 
 	*gfns = pfns;

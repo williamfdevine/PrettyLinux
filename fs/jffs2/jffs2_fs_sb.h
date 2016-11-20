@@ -29,7 +29,8 @@
 
 struct jffs2_inodirty;
 
-struct jffs2_mount_opts {
+struct jffs2_mount_opts
+{
 	bool override_compr;
 	unsigned int compr;
 
@@ -45,7 +46,8 @@ struct jffs2_mount_opts {
    jffs2_sb_info structs are named `c' in the source code.
    Nee jffs_control
 */
-struct jffs2_sb_info {
+struct jffs2_sb_info
+{
 	struct mtd_info *mtd;
 
 	uint32_t highest_ino;

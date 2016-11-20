@@ -37,7 +37,8 @@
 #include "qedr_hsi_rdma.h"
 
 /* Affiliated asynchronous events / errors enumeration */
-enum roce_async_events_type {
+enum roce_async_events_type
+{
 	ROCE_ASYNC_EVENT_NONE = 0,
 	ROCE_ASYNC_EVENT_COMM_EST = 1,
 	ROCE_ASYNC_EVENT_SQ_DRAINED,

@@ -34,27 +34,38 @@ void ibmasm_receive_message(struct service_processor *sp, void *message, int mes
 	struct dot_command_header *header = (struct dot_command_header *)message;
 
 	if (message_size == 0)
+	{
 		return;
+	}
 
 	size = get_dot_command_size(message);
+
 	if (size == 0)
+	{
 		return;
+	}
 
 	if (size > message_size)
+	{
 		size = message_size;
+	}
 
-	switch (header->type) {
-	case sp_event:
-		ibmasm_receive_event(sp, message, size);
-		break;
-	case sp_command_response:
-		ibmasm_receive_command_response(sp, message, size);
-		break;
-	case sp_heartbeat:
-		ibmasm_receive_heartbeat(sp, message, size);
-		break;
-	default:
-		dev_err(sp->dev, "Received unknown message from service processor\n");
+	switch (header->type)
+	{
+		case sp_event:
+			ibmasm_receive_event(sp, message, size);
+			break;
+
+		case sp_command_response:
+			ibmasm_receive_command_response(sp, message, size);
+			break;
+
+		case sp_heartbeat:
+			ibmasm_receive_heartbeat(sp, message, size);
+			break;
+
+		default:
+			dev_err(sp->dev, "Received unknown message from service processor\n");
 	}
 }
 
@@ -74,8 +85,11 @@ int ibmasm_send_driver_vpd(struct service_processor *sp)
 	int result = 0;
 
 	command = ibmasm_new_command(sp, INIT_BUFFER_SIZE);
+
 	if (command == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	header = (struct dot_command_header *)command->buffer;
 	header->type                = sp_write;
@@ -100,14 +114,17 @@ int ibmasm_send_driver_vpd(struct service_processor *sp)
 	ibmasm_wait_for_response(command, IBMASM_CMD_TIMEOUT_NORMAL);
 
 	if (command->status != IBMASM_CMD_COMPLETE)
+	{
 		result = -ENODEV;
+	}
 
 	command_put(command);
 
 	return result;
 }
 
-struct os_state_command {
+struct os_state_command
+{
 	struct dot_command_header	header;
 	unsigned char			command[3];
 	unsigned char			data;
@@ -128,8 +145,11 @@ int ibmasm_send_os_state(struct service_processor *sp, int os_state)
 	int result = 0;
 
 	cmd = ibmasm_new_command(sp, sizeof(struct os_state_command));
+
 	if (cmd == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	os_state_cmd = (struct os_state_command *)cmd->buffer;
 	os_state_cmd->header.type		= sp_write;
@@ -145,7 +165,9 @@ int ibmasm_send_os_state(struct service_processor *sp, int os_state)
 	ibmasm_wait_for_response(cmd, IBMASM_CMD_TIMEOUT_NORMAL);
 
 	if (cmd->status != IBMASM_CMD_COMPLETE)
+	{
 		result = -ENODEV;
+	}
 
 	command_put(cmd);
 	return result;

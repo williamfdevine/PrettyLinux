@@ -21,7 +21,7 @@
  * be null.
  */
 #ifndef STATIC_RW_DATA
-#define STATIC_RW_DATA static
+	#define STATIC_RW_DATA static
 #endif
 
 /* A trivial malloc implementation, adapted from
@@ -35,9 +35,14 @@ static void *malloc(int size)
 	void *p;
 
 	if (size < 0)
+	{
 		return NULL;
+	}
+
 	if (!malloc_ptr)
+	{
 		malloc_ptr = free_mem_ptr;
+	}
 
 	malloc_ptr = (malloc_ptr + 3) & ~3;     /* Align */
 
@@ -45,7 +50,9 @@ static void *malloc(int size)
 	malloc_ptr += size;
 
 	if (free_mem_end_ptr && malloc_ptr >= free_mem_end_ptr)
+	{
 		return NULL;
+	}
 
 	malloc_count++;
 	return p;
@@ -54,8 +61,11 @@ static void *malloc(int size)
 static void free(void *where)
 {
 	malloc_count--;
+
 	if (!malloc_count)
+	{
 		malloc_ptr = free_mem_ptr;
+	}
 }
 
 #define large_malloc(a) malloc(a)

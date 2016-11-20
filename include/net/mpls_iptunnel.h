@@ -16,7 +16,8 @@
 
 #define MAX_NEW_LABELS 2
 
-struct mpls_iptunnel_encap {
+struct mpls_iptunnel_encap
+{
 	u32	label[MAX_NEW_LABELS];
 	u8	labels;
 };

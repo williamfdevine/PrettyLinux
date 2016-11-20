@@ -37,7 +37,8 @@
  *		Am7990 Local Area Network Controller for Ethernet (LANCE)
  */
 
-struct lance_regs {
+struct lance_regs
+{
 	unsigned short rdp;		/* Register Data Port */
 	unsigned short rap;		/* Register Address Port */
 };
@@ -100,7 +101,8 @@ struct lance_regs {
 #define LE_MO_DRX	0x0001		/* Disable Receiver */
 
 
-struct lance_rx_desc {
+struct lance_rx_desc
+{
 	unsigned short rmd0;        /* low address of packet */
 	unsigned char  rmd1_bits;   /* descriptor bits */
 	unsigned char  rmd1_hadr;   /* high address of packet */
@@ -110,7 +112,8 @@ struct lance_rx_desc {
 	unsigned short mblength;    /* Aactual number of bytes received */
 };
 
-struct lance_tx_desc {
+struct lance_tx_desc
+{
 	unsigned short tmd0;        /* low address of packet */
 	unsigned char  tmd1_bits;   /* descriptor bits */
 	unsigned char  tmd1_hadr;   /* high address of packet */

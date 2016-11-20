@@ -32,7 +32,8 @@
 #ifndef _ENA_ETH_IO_H_
 #define _ENA_ETH_IO_H_
 
-enum ena_eth_io_l3_proto_index {
+enum ena_eth_io_l3_proto_index
+{
 	ENA_ETH_IO_L3_PROTO_UNKNOWN	= 0,
 
 	ENA_ETH_IO_L3_PROTO_IPV4	= 8,
@@ -44,7 +45,8 @@ enum ena_eth_io_l3_proto_index {
 	ENA_ETH_IO_L3_PROTO_ROCE	= 22,
 };
 
-enum ena_eth_io_l4_proto_index {
+enum ena_eth_io_l4_proto_index
+{
 	ENA_ETH_IO_L4_PROTO_UNKNOWN		= 0,
 
 	ENA_ETH_IO_L4_PROTO_TCP			= 12,
@@ -54,7 +56,8 @@ enum ena_eth_io_l4_proto_index {
 	ENA_ETH_IO_L4_PROTO_ROUTEABLE_ROCE	= 23,
 };
 
-struct ena_eth_io_tx_desc {
+struct ena_eth_io_tx_desc
+{
 	/* 15:0 : length - Buffer length in bytes, must
 	 *    include any packet trailers that the ENA supposed
 	 *    to update like End-to-End CRC, Authentication GMAC
@@ -130,7 +133,8 @@ struct ena_eth_io_tx_desc {
 	u32 buff_addr_hi_hdr_sz;
 };
 
-struct ena_eth_io_tx_meta_desc {
+struct ena_eth_io_tx_meta_desc
+{
 	/* 9:0 : req_id_lo - Request ID[9:0]
 	 * 11:10 : reserved10 - MBZ
 	 * 12 : reserved12 - MBZ
@@ -178,7 +182,8 @@ struct ena_eth_io_tx_meta_desc {
 	u32 reserved;
 };
 
-struct ena_eth_io_tx_cdesc {
+struct ena_eth_io_tx_cdesc
+{
 	/* Request ID[15:0] */
 	u16 req_id;
 
@@ -195,7 +200,8 @@ struct ena_eth_io_tx_cdesc {
 	u16 sq_head_idx;
 };
 
-struct ena_eth_io_rx_desc {
+struct ena_eth_io_rx_desc
+{
 	/* In bytes. 0 means 64KB */
 	u16 length;
 
@@ -229,7 +235,8 @@ struct ena_eth_io_rx_desc {
 /* 4-word format Note: all ethernet parsing information are valid only when
  * last=1
  */
-struct ena_eth_io_rx_cdesc_base {
+struct ena_eth_io_rx_cdesc_base
+{
 	/* 4:0 : l3_proto_idx
 	 * 6:5 : src_vlan_cnt
 	 * 7 : reserved7 - MBZ
@@ -271,7 +278,8 @@ struct ena_eth_io_rx_cdesc_base {
 };
 
 /* 8-word format */
-struct ena_eth_io_rx_cdesc_ext {
+struct ena_eth_io_rx_cdesc_ext
+{
 	struct ena_eth_io_rx_cdesc_base base;
 
 	u32 buff_addr_lo;
@@ -285,7 +293,8 @@ struct ena_eth_io_rx_cdesc_ext {
 	u32 reserved_w7;
 };
 
-struct ena_eth_io_intr_reg {
+struct ena_eth_io_intr_reg
+{
 	/* 14:0 : rx_intr_delay
 	 * 29:15 : tx_intr_delay
 	 * 30 : intr_unmask
@@ -294,7 +303,8 @@ struct ena_eth_io_intr_reg {
 	u32 intr_control;
 };
 
-struct ena_eth_io_numa_node_cfg_reg {
+struct ena_eth_io_numa_node_cfg_reg
+{
 	/* 7:0 : numa
 	 * 30:8 : reserved
 	 * 31 : enabled

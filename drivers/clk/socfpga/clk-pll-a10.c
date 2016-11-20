@@ -43,7 +43,7 @@
 void __iomem *clk_mgr_a10_base_addr;
 
 static unsigned long clk_pll_recalc_rate(struct clk_hw *hwclk,
-					 unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct socfpga_pll *socfpgaclk = to_socfpga_clk(hwclk);
 	unsigned long divf, divq, reg;
@@ -66,16 +66,17 @@ static u8 clk_pll_get_parent(struct clk_hw *hwclk)
 	pll_src = readl(socfpgaclk->hw.reg);
 
 	return (pll_src >> CLK_MGR_PLL_CLK_SRC_SHIFT) &
-		CLK_MGR_PLL_CLK_SRC_MASK;
+		   CLK_MGR_PLL_CLK_SRC_MASK;
 }
 
-static struct clk_ops clk_pll_ops = {
+static struct clk_ops clk_pll_ops =
+{
 	.recalc_rate = clk_pll_recalc_rate,
 	.get_parent = clk_pll_get_parent,
 };
 
-static struct clk * __init __socfpga_pll_init(struct device_node *node,
-	const struct clk_ops *ops)
+static struct clk *__init __socfpga_pll_init(struct device_node *node,
+		const struct clk_ops *ops)
 {
 	u32 reg;
 	struct clk *clk;
@@ -90,8 +91,11 @@ static struct clk * __init __socfpga_pll_init(struct device_node *node,
 	of_property_read_u32(node, "reg", &reg);
 
 	pll_clk = kzalloc(sizeof(*pll_clk), GFP_KERNEL);
+
 	if (WARN_ON(!pll_clk))
+	{
 		return NULL;
+	}
 
 	clkmgr_np = of_find_compatible_node(NULL, NULL, "altr,clk-mgr");
 	clk_mgr_a10_base_addr = of_iomap(clkmgr_np, 0);
@@ -105,8 +109,11 @@ static struct clk * __init __socfpga_pll_init(struct device_node *node,
 	init.flags = 0;
 
 	while (i < SOCFGPA_MAX_PARENTS && (parent_name[i] =
-			of_clk_get_parent_name(node, i)) != NULL)
+										   of_clk_get_parent_name(node, i)) != NULL)
+	{
 		i++;
+	}
+
 	init.num_parents = i;
 	init.parent_names = parent_name;
 	pll_clk->hw.hw.init = &init;
@@ -116,10 +123,13 @@ static struct clk * __init __socfpga_pll_init(struct device_node *node,
 	clk_pll_ops.disable = clk_gate_ops.disable;
 
 	clk = clk_register(NULL, &pll_clk->hw.hw);
-	if (WARN_ON(IS_ERR(clk))) {
+
+	if (WARN_ON(IS_ERR(clk)))
+	{
 		kfree(pll_clk);
 		return NULL;
 	}
+
 	rc = of_clk_add_provider(node, of_clk_src_simple_get, clk);
 	return clk;
 }

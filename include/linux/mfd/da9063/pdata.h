@@ -22,7 +22,8 @@
  * Regulator configuration
  */
 /* DA9063 regulator IDs */
-enum {
+enum
+{
 	/* BUCKs */
 	DA9063_ID_BCORE1,
 	DA9063_ID_BCORE2,
@@ -52,12 +53,14 @@ enum {
 };
 
 /* Regulators platform data */
-struct da9063_regulator_data {
+struct da9063_regulator_data
+{
 	int				id;
 	struct regulator_init_data	*initdata;
 };
 
-struct da9063_regulators_pdata {
+struct da9063_regulators_pdata
+{
 	unsigned			n_regulators;
 	struct da9063_regulator_data	*regulator_data;
 };
@@ -67,7 +70,8 @@ struct da9063_regulators_pdata {
  * RGB LED configuration
  */
 /* LED IDs for flags in struct led_info. */
-enum {
+enum
+{
 	DA9063_GPIO11_LED,
 	DA9063_GPIO14_LED,
 	DA9063_GPIO15_LED,
@@ -100,7 +104,8 @@ enum {
 struct da9063;
 
 /* DA9063 platform data */
-struct da9063_pdata {
+struct da9063_pdata
+{
 	int				(*init)(struct da9063 *da9063);
 	int				irq_base;
 	bool				key_power;

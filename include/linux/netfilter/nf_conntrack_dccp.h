@@ -2,7 +2,8 @@
 #define _NF_CONNTRACK_DCCP_H
 
 /* Exposed to userspace over nfnetlink */
-enum ct_dccp_states {
+enum ct_dccp_states
+{
 	CT_DCCP_NONE,
 	CT_DCCP_REQUEST,
 	CT_DCCP_RESPOND,
@@ -17,7 +18,8 @@ enum ct_dccp_states {
 };
 #define CT_DCCP_MAX		(__CT_DCCP_MAX - 1)
 
-enum ct_dccp_roles {
+enum ct_dccp_roles
+{
 	CT_DCCP_ROLE_CLIENT,
 	CT_DCCP_ROLE_SERVER,
 	__CT_DCCP_ROLE_MAX
@@ -27,7 +29,8 @@ enum ct_dccp_roles {
 #ifdef __KERNEL__
 #include <net/netfilter/nf_conntrack_tuple.h>
 
-struct nf_ct_dccp {
+struct nf_ct_dccp
+{
 	u_int8_t	role[IP_CT_DIR_MAX];
 	u_int8_t	state;
 	u_int8_t	last_pkt;

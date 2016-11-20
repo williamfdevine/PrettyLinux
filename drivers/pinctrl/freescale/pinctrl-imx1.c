@@ -22,7 +22,8 @@
 #define PC	2
 #define PD	3
 
-enum imx1_pads {
+enum imx1_pads
+{
 	MX1_PAD_A24		= PAD_ID(PA, 0),
 	MX1_PAD_TIN		= PAD_ID(PA, 1),
 	MX1_PAD_PWMO		= PAD_ID(PA, 2),
@@ -136,7 +137,8 @@ enum imx1_pads {
 };
 
 /* Pad names for the pinmux subsystem */
-static const struct pinctrl_pin_desc imx1_pinctrl_pads[] = {
+static const struct pinctrl_pin_desc imx1_pinctrl_pads[] =
+{
 	IMX_PINCTRL_PIN(MX1_PAD_A24),
 	IMX_PINCTRL_PIN(MX1_PAD_TIN),
 	IMX_PINCTRL_PIN(MX1_PAD_PWMO),
@@ -248,7 +250,8 @@ static const struct pinctrl_pin_desc imx1_pinctrl_pads[] = {
 	IMX_PINCTRL_PIN(MX1_PAD_TMR2OUT),
 };
 
-static struct imx1_pinctrl_soc_info imx1_pinctrl_info = {
+static struct imx1_pinctrl_soc_info imx1_pinctrl_info =
+{
 	.pins	= imx1_pinctrl_pads,
 	.npins	= ARRAY_SIZE(imx1_pinctrl_pads),
 };
@@ -258,12 +261,14 @@ static int __init imx1_pinctrl_probe(struct platform_device *pdev)
 	return imx1_pinctrl_core_probe(pdev, &imx1_pinctrl_info);
 }
 
-static const struct of_device_id imx1_pinctrl_of_match[] = {
+static const struct of_device_id imx1_pinctrl_of_match[] =
+{
 	{ .compatible = "fsl,imx1-iomuxc", },
 	{ }
 };
 
-static struct platform_driver imx1_pinctrl_driver = {
+static struct platform_driver imx1_pinctrl_driver =
+{
 	.driver	= {
 		.name		= "imx1-pinctrl",
 		.of_match_table	= imx1_pinctrl_of_match,

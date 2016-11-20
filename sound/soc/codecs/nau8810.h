@@ -258,19 +258,22 @@
 
 
 /* System Clock Source */
-enum {
+enum
+{
 	NAU8810_SCLK_MCLK,
 	NAU8810_SCLK_PLL,
 };
 
-struct nau8810_pll {
+struct nau8810_pll
+{
 	int pre_factor;
 	int mclk_scaler;
 	int pll_frac;
 	int pll_int;
 };
 
-struct nau8810 {
+struct nau8810
+{
 	struct device *dev;
 	struct regmap *regmap;
 	struct nau8810_pll pll;

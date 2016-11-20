@@ -37,7 +37,8 @@
  * treat a HS root port as a bandwidth domain, but treat a SS root port as
  * two bandwidth domains, one for IN eps and another for OUT eps.
  */
-struct mu3h_sch_bw_info {
+struct mu3h_sch_bw_info
+{
 	u32 bus_bw[XHCI_MTK_MAX_ESIT];
 	struct list_head bw_ep_list;
 };
@@ -67,7 +68,8 @@ struct mu3h_sch_bw_info {
  *		according to @pkts and @repeat. normal mode is used by
  *		default
  */
-struct mu3h_sch_ep_info {
+struct mu3h_sch_ep_info
+{
 	u32 esit;
 	u32 num_budget_microframes;
 	u32 bw_cost_per_microframe;
@@ -96,7 +98,8 @@ struct mu3h_sch_ep_info {
  * @u2_ctrl_p[x]: ip usb2 port x control register, only low 4bytes are used
  * @u2_phy_pll: usb2 phy pll control register
  */
-struct mu3c_ippc_regs {
+struct mu3c_ippc_regs
+{
 	__le32 ip_pw_ctr0;
 	__le32 ip_pw_ctr1;
 	__le32 ip_pw_ctr2;
@@ -113,7 +116,8 @@ struct mu3c_ippc_regs {
 	__le32 reserved3[33]; /* 0x80 ~ 0xff */
 };
 
-struct xhci_hcd_mtk {
+struct xhci_hcd_mtk
+{
 	struct device *dev;
 	struct usb_hcd *hcd;
 	struct mu3h_sch_bw_info *sch_array;
@@ -141,19 +145,19 @@ static inline struct xhci_hcd_mtk *hcd_to_mtk(struct usb_hcd *hcd)
 int xhci_mtk_sch_init(struct xhci_hcd_mtk *mtk);
 void xhci_mtk_sch_exit(struct xhci_hcd_mtk *mtk);
 int xhci_mtk_add_ep_quirk(struct usb_hcd *hcd, struct usb_device *udev,
-		struct usb_host_endpoint *ep);
+						  struct usb_host_endpoint *ep);
 void xhci_mtk_drop_ep_quirk(struct usb_hcd *hcd, struct usb_device *udev,
-		struct usb_host_endpoint *ep);
+							struct usb_host_endpoint *ep);
 
 #else
 static inline int xhci_mtk_add_ep_quirk(struct usb_hcd *hcd,
-	struct usb_device *udev, struct usb_host_endpoint *ep)
+										struct usb_device *udev, struct usb_host_endpoint *ep)
 {
 	return 0;
 }
 
 static inline void xhci_mtk_drop_ep_quirk(struct usb_hcd *hcd,
-	struct usb_device *udev, struct usb_host_endpoint *ep)
+		struct usb_device *udev, struct usb_host_endpoint *ep)
 {
 }
 

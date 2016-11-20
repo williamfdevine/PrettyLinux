@@ -35,13 +35,15 @@
 #define CHT_PLAT_CLK_3_HZ	19200000
 #define CHT_CODEC_DAI	"rt5645-aif1"
 
-struct cht_acpi_card {
+struct cht_acpi_card
+{
 	char *codec_id;
 	int codec_type;
 	struct snd_soc_card *soc_card;
 };
 
-struct cht_mc_private {
+struct cht_mc_private
+{
 	struct snd_soc_jack jack;
 	struct cht_acpi_card *acpi_card;
 };
@@ -50,16 +52,19 @@ static inline struct snd_soc_dai *cht_get_codec_dai(struct snd_soc_card *card)
 {
 	struct snd_soc_pcm_runtime *rtd;
 
-	list_for_each_entry(rtd, &card->rtd_list, list) {
+	list_for_each_entry(rtd, &card->rtd_list, list)
+	{
 		if (!strncmp(rtd->codec_dai->name, CHT_CODEC_DAI,
-			     strlen(CHT_CODEC_DAI)))
+					 strlen(CHT_CODEC_DAI)))
+		{
 			return rtd->codec_dai;
+		}
 	}
 	return NULL;
 }
 
 static int platform_clock_control(struct snd_soc_dapm_widget *w,
-		struct snd_kcontrol *k, int  event)
+								  struct snd_kcontrol *k, int  event)
 {
 	struct snd_soc_dapm_context *dapm = w->dapm;
 	struct snd_soc_card *card = dapm->card;
@@ -67,13 +72,17 @@ static int platform_clock_control(struct snd_soc_dapm_widget *w,
 	int ret;
 
 	codec_dai = cht_get_codec_dai(card);
-	if (!codec_dai) {
+
+	if (!codec_dai)
+	{
 		dev_err(card->dev, "Codec dai not found; Unable to set platform clock\n");
 		return -EIO;
 	}
 
 	if (!SND_SOC_DAPM_EVENT_OFF(event))
+	{
 		return 0;
+	}
 
 	/* Set codec sysclk source to its internal clock because codec PLL will
 	 * be off when idle and MCLK will also be off by ACPI when codec is
@@ -81,8 +90,10 @@ static int platform_clock_control(struct snd_soc_dapm_widget *w,
 	 * press.
 	 */
 	ret = snd_soc_dai_set_sysclk(codec_dai, RT5645_SCLK_S_RCCLK,
-			0, SND_SOC_CLOCK_IN);
-	if (ret < 0) {
+								 0, SND_SOC_CLOCK_IN);
+
+	if (ret < 0)
+	{
 		dev_err(card->dev, "can't set codec sysclk: %d\n", ret);
 		return ret;
 	}
@@ -90,16 +101,18 @@ static int platform_clock_control(struct snd_soc_dapm_widget *w,
 	return 0;
 }
 
-static const struct snd_soc_dapm_widget cht_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget cht_dapm_widgets[] =
+{
 	SND_SOC_DAPM_HP("Headphone", NULL),
 	SND_SOC_DAPM_MIC("Headset Mic", NULL),
 	SND_SOC_DAPM_MIC("Int Mic", NULL),
 	SND_SOC_DAPM_SPK("Ext Spk", NULL),
 	SND_SOC_DAPM_SUPPLY("Platform Clock", SND_SOC_NOPM, 0, 0,
-			platform_clock_control, SND_SOC_DAPM_POST_PMD),
+	platform_clock_control, SND_SOC_DAPM_POST_PMD),
 };
 
-static const struct snd_soc_dapm_route cht_rt5645_audio_map[] = {
+static const struct snd_soc_dapm_route cht_rt5645_audio_map[] =
+{
 	{"IN1P", NULL, "Headset Mic"},
 	{"IN1N", NULL, "Headset Mic"},
 	{"DMIC L1", NULL, "Int Mic"},
@@ -120,7 +133,8 @@ static const struct snd_soc_dapm_route cht_rt5645_audio_map[] = {
 	{"Ext Spk", NULL, "Platform Clock"},
 };
 
-static const struct snd_soc_dapm_route cht_rt5650_audio_map[] = {
+static const struct snd_soc_dapm_route cht_rt5650_audio_map[] =
+{
 	{"IN1P", NULL, "Headset Mic"},
 	{"IN1N", NULL, "Headset Mic"},
 	{"DMIC L2", NULL, "Int Mic"},
@@ -141,14 +155,16 @@ static const struct snd_soc_dapm_route cht_rt5650_audio_map[] = {
 	{"Ext Spk", NULL, "Platform Clock"},
 };
 
-static const struct snd_kcontrol_new cht_mc_controls[] = {
+static const struct snd_kcontrol_new cht_mc_controls[] =
+{
 	SOC_DAPM_PIN_SWITCH("Headphone"),
 	SOC_DAPM_PIN_SWITCH("Headset Mic"),
 	SOC_DAPM_PIN_SWITCH("Int Mic"),
 	SOC_DAPM_PIN_SWITCH("Ext Spk"),
 };
 
-static struct snd_soc_jack_pin cht_bsw_jack_pins[] = {
+static struct snd_soc_jack_pin cht_bsw_jack_pins[] =
+{
 	{
 		.pin	= "Headphone",
 		.mask	= SND_JACK_HEADPHONE,
@@ -160,7 +176,7 @@ static struct snd_soc_jack_pin cht_bsw_jack_pins[] = {
 };
 
 static int cht_aif1_hw_params(struct snd_pcm_substream *substream,
-			     struct snd_pcm_hw_params *params)
+							  struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
@@ -168,15 +184,19 @@ static int cht_aif1_hw_params(struct snd_pcm_substream *substream,
 
 	/* set codec PLL source to the 19.2MHz platform clock (MCLK) */
 	ret = snd_soc_dai_set_pll(codec_dai, 0, RT5645_PLL1_S_MCLK,
-				  CHT_PLAT_CLK_3_HZ, params_rate(params) * 512);
-	if (ret < 0) {
+							  CHT_PLAT_CLK_3_HZ, params_rate(params) * 512);
+
+	if (ret < 0)
+	{
 		dev_err(rtd->dev, "can't set codec pll: %d\n", ret);
 		return ret;
 	}
 
 	ret = snd_soc_dai_set_sysclk(codec_dai, RT5645_SCLK_S_PLL1,
-				params_rate(params) * 512, SND_SOC_CLOCK_IN);
-	if (ret < 0) {
+								 params_rate(params) * 512, SND_SOC_CLOCK_IN);
+
+	if (ret < 0)
+	{
 		dev_err(rtd->dev, "can't set codec sysclk: %d\n", ret);
 		return ret;
 	}
@@ -194,15 +214,17 @@ static int cht_codec_init(struct snd_soc_pcm_runtime *runtime)
 
 	/* Select clk_i2s1_asrc as ASRC clock source */
 	rt5645_sel_asrc_clk_src(codec,
-				RT5645_DA_STEREO_FILTER |
-				RT5645_DA_MONO_L_FILTER |
-				RT5645_DA_MONO_R_FILTER |
-				RT5645_AD_STEREO_FILTER,
-				RT5645_CLK_SEL_I2S1_ASRC);
+							RT5645_DA_STEREO_FILTER |
+							RT5645_DA_MONO_L_FILTER |
+							RT5645_DA_MONO_R_FILTER |
+							RT5645_AD_STEREO_FILTER,
+							RT5645_CLK_SEL_I2S1_ASRC);
 
 	/* TDM 4 slots 24 bit, set Rx & Tx bitmask to 4 active slots */
 	ret = snd_soc_dai_set_tdm_slot(codec_dai, 0xF, 0xF, 4, 24);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(runtime->dev, "can't set codec TDM slot %d\n", ret);
 		return ret;
 	}
@@ -212,12 +234,16 @@ static int cht_codec_init(struct snd_soc_pcm_runtime *runtime)
 					SND_JACK_BTN_0 | SND_JACK_BTN_1 |
 					SND_JACK_BTN_2 | SND_JACK_BTN_3;
 	else
+	{
 		jack_type = SND_JACK_HEADPHONE | SND_JACK_MICROPHONE;
+	}
 
 	ret = snd_soc_card_jack_new(runtime->card, "Headset",
-				    jack_type, &ctx->jack,
-				    cht_bsw_jack_pins, ARRAY_SIZE(cht_bsw_jack_pins));
-	if (ret) {
+								jack_type, &ctx->jack,
+								cht_bsw_jack_pins, ARRAY_SIZE(cht_bsw_jack_pins));
+
+	if (ret)
+	{
 		dev_err(runtime->dev, "Headset jack creation failed %d\n", ret);
 		return ret;
 	}
@@ -228,12 +254,12 @@ static int cht_codec_init(struct snd_soc_pcm_runtime *runtime)
 }
 
 static int cht_codec_fixup(struct snd_soc_pcm_runtime *rtd,
-			    struct snd_pcm_hw_params *params)
+						   struct snd_pcm_hw_params *params)
 {
 	struct snd_interval *rate = hw_param_interval(params,
-			SNDRV_PCM_HW_PARAM_RATE);
+								SNDRV_PCM_HW_PARAM_RATE);
 	struct snd_interval *channels = hw_param_interval(params,
-						SNDRV_PCM_HW_PARAM_CHANNELS);
+									SNDRV_PCM_HW_PARAM_CHANNELS);
 
 	/* The DSP will covert the FE rate to 48k, stereo, 24bits */
 	rate->min = rate->max = 48000;
@@ -247,18 +273,21 @@ static int cht_codec_fixup(struct snd_soc_pcm_runtime *rtd,
 static int cht_aif1_startup(struct snd_pcm_substream *substream)
 {
 	return snd_pcm_hw_constraint_single(substream->runtime,
-			SNDRV_PCM_HW_PARAM_RATE, 48000);
+										SNDRV_PCM_HW_PARAM_RATE, 48000);
 }
 
-static struct snd_soc_ops cht_aif1_ops = {
+static struct snd_soc_ops cht_aif1_ops =
+{
 	.startup = cht_aif1_startup,
 };
 
-static struct snd_soc_ops cht_be_ssp2_ops = {
+static struct snd_soc_ops cht_be_ssp2_ops =
+{
 	.hw_params = cht_aif1_hw_params,
 };
 
-static struct snd_soc_dai_link cht_dailink[] = {
+static struct snd_soc_dai_link cht_dailink[] =
+{
 	[MERR_DPCM_AUDIO] = {
 		.name = "Audio Port",
 		.stream_name = "Audio",
@@ -303,7 +332,7 @@ static struct snd_soc_dai_link cht_dailink[] = {
 		.codec_dai_name = "rt5645-aif1",
 		.codec_name = "i2c-10EC5645:00",
 		.dai_fmt = SND_SOC_DAIFMT_DSP_B | SND_SOC_DAIFMT_IB_NF
-					| SND_SOC_DAIFMT_CBS_CFS,
+		| SND_SOC_DAIFMT_CBS_CFS,
 		.init = cht_codec_init,
 		.be_hw_params_fixup = cht_codec_fixup,
 		.nonatomic = true,
@@ -314,7 +343,8 @@ static struct snd_soc_dai_link cht_dailink[] = {
 };
 
 /* SoC card */
-static struct snd_soc_card snd_soc_card_chtrt5645 = {
+static struct snd_soc_card snd_soc_card_chtrt5645 =
+{
 	.name = "chtrt5645",
 	.owner = THIS_MODULE,
 	.dai_link = cht_dailink,
@@ -327,7 +357,8 @@ static struct snd_soc_card snd_soc_card_chtrt5645 = {
 	.num_controls = ARRAY_SIZE(cht_mc_controls),
 };
 
-static struct snd_soc_card snd_soc_card_chtrt5650 = {
+static struct snd_soc_card snd_soc_card_chtrt5650 =
+{
 	.name = "chtrt5650",
 	.owner = THIS_MODULE,
 	.dai_link = cht_dailink,
@@ -340,7 +371,8 @@ static struct snd_soc_card snd_soc_card_chtrt5650 = {
 	.num_controls = ARRAY_SIZE(cht_mc_controls),
 };
 
-static struct cht_acpi_card snd_soc_cards[] = {
+static struct cht_acpi_card snd_soc_cards[] =
+{
 	{"10EC5640", CODEC_TYPE_RT5645, &snd_soc_card_chtrt5645},
 	{"10EC5645", CODEC_TYPE_RT5645, &snd_soc_card_chtrt5645},
 	{"10EC5650", CODEC_TYPE_RT5650, &snd_soc_card_chtrt5650},
@@ -360,49 +392,62 @@ static int snd_cht_mc_probe(struct platform_device *pdev)
 	int dai_index = 0;
 
 	drv = devm_kzalloc(&pdev->dev, sizeof(*drv), GFP_ATOMIC);
-	if (!drv)
-		return -ENOMEM;
 
-	for (i = 0; i < ARRAY_SIZE(snd_soc_cards); i++) {
-		if (acpi_dev_found(snd_soc_cards[i].codec_id)) {
+	if (!drv)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < ARRAY_SIZE(snd_soc_cards); i++)
+	{
+		if (acpi_dev_found(snd_soc_cards[i].codec_id))
+		{
 			dev_dbg(&pdev->dev,
-				"found codec %s\n", snd_soc_cards[i].codec_id);
+					"found codec %s\n", snd_soc_cards[i].codec_id);
 			card = snd_soc_cards[i].soc_card;
 			drv->acpi_card = &snd_soc_cards[i];
 			break;
 		}
 	}
+
 	card->dev = &pdev->dev;
 	mach = card->dev->platform_data;
 	sprintf(codec_name, "i2c-%s:00", drv->acpi_card->codec_id);
 
 	/* set correct codec name */
 	for (i = 0; i < ARRAY_SIZE(cht_dailink); i++)
-		if (!strcmp(card->dai_link[i].codec_name, "i2c-10EC5645:00")) {
+		if (!strcmp(card->dai_link[i].codec_name, "i2c-10EC5645:00"))
+		{
 			card->dai_link[i].codec_name = kstrdup(codec_name, GFP_KERNEL);
 			dai_index = i;
 		}
 
 	/* fixup codec name based on HID */
 	i2c_name = sst_acpi_find_name_from_hid(mach->id);
-	if (i2c_name != NULL) {
+
+	if (i2c_name != NULL)
+	{
 		snprintf(cht_rt5640_codec_name, sizeof(cht_rt5640_codec_name),
-			"%s%s", "i2c-", i2c_name);
+				 "%s%s", "i2c-", i2c_name);
 		cht_dailink[dai_index].codec_name = cht_rt5640_codec_name;
 	}
 
 	snd_soc_card_set_drvdata(card, drv);
 	ret_val = devm_snd_soc_register_card(&pdev->dev, card);
-	if (ret_val) {
+
+	if (ret_val)
+	{
 		dev_err(&pdev->dev,
-			"snd_soc_register_card failed %d\n", ret_val);
+				"snd_soc_register_card failed %d\n", ret_val);
 		return ret_val;
 	}
+
 	platform_set_drvdata(pdev, card);
 	return ret_val;
 }
 
-static struct platform_driver snd_cht_mc_driver = {
+static struct platform_driver snd_cht_mc_driver =
+{
 	.driver = {
 		.name = "cht-bsw-rt5645",
 	},

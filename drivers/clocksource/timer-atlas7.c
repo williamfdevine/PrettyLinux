@@ -40,7 +40,8 @@
 
 static unsigned long atlas7_timer_rate;
 
-static const u32 sirfsoc_timer_reg_list[SIRFSOC_TIMER_REG_CNT] = {
+static const u32 sirfsoc_timer_reg_list[SIRFSOC_TIMER_REG_CNT] =
+{
 	SIRFSOC_TIMER_WATCHDOG_EN,
 	SIRFSOC_TIMER_32COUNTER_0_CTRL,
 	SIRFSOC_TIMER_32COUNTER_1_CTRL,
@@ -57,14 +58,14 @@ static void __iomem *sirfsoc_timer_base;
 static inline void sirfsoc_timer_count_disable(int idx)
 {
 	writel_relaxed(readl_relaxed(sirfsoc_timer_base + SIRFSOC_TIMER_32COUNTER_0_CTRL + 4 * idx) & ~0x7,
-		sirfsoc_timer_base + SIRFSOC_TIMER_32COUNTER_0_CTRL + 4 * idx);
+				   sirfsoc_timer_base + SIRFSOC_TIMER_32COUNTER_0_CTRL + 4 * idx);
 }
 
 /* enable count and interrupt */
 static inline void sirfsoc_timer_count_enable(int idx)
 {
 	writel_relaxed(readl_relaxed(sirfsoc_timer_base + SIRFSOC_TIMER_32COUNTER_0_CTRL + 4 * idx) | 0x3,
-		sirfsoc_timer_base + SIRFSOC_TIMER_32COUNTER_0_CTRL + 4 * idx);
+				   sirfsoc_timer_base + SIRFSOC_TIMER_32COUNTER_0_CTRL + 4 * idx);
 }
 
 /* timer interrupt handler */
@@ -77,7 +78,9 @@ static irqreturn_t sirfsoc_timer_interrupt(int irq, void *dev_id)
 	writel_relaxed(BIT(cpu), sirfsoc_timer_base + SIRFSOC_TIMER_INTR_STATUS);
 
 	if (clockevent_state_oneshot(ce))
+	{
 		sirfsoc_timer_count_disable(cpu);
+	}
 
 	ce->event_handler(ce);
 
@@ -90,7 +93,7 @@ static cycle_t sirfsoc_timer_read(struct clocksource *cs)
 	u64 cycles;
 
 	writel_relaxed((readl_relaxed(sirfsoc_timer_base + SIRFSOC_TIMER_64COUNTER_CTRL) |
-			BIT(0)) & ~BIT(1), sirfsoc_timer_base + SIRFSOC_TIMER_64COUNTER_CTRL);
+					BIT(0)) & ~BIT(1), sirfsoc_timer_base + SIRFSOC_TIMER_64COUNTER_CTRL);
 
 	cycles = readl_relaxed(sirfsoc_timer_base + SIRFSOC_TIMER_64COUNTER_RLATCHED_HI);
 	cycles = (cycles << 32) | readl_relaxed(sirfsoc_timer_base + SIRFSOC_TIMER_64COUNTER_RLATCHED_LO);
@@ -99,7 +102,7 @@ static cycle_t sirfsoc_timer_read(struct clocksource *cs)
 }
 
 static int sirfsoc_timer_set_next_event(unsigned long delta,
-	struct clock_event_device *ce)
+										struct clock_event_device *ce)
 {
 	int cpu = smp_processor_id();
 
@@ -107,9 +110,9 @@ static int sirfsoc_timer_set_next_event(unsigned long delta,
 	sirfsoc_timer_count_disable(cpu);
 
 	writel_relaxed(0, sirfsoc_timer_base + SIRFSOC_TIMER_COUNTER_0 +
-		4 * cpu);
+				   4 * cpu);
 	writel_relaxed(delta, sirfsoc_timer_base + SIRFSOC_TIMER_MATCH_0 +
-		4 * cpu);
+				   4 * cpu);
 
 	/* enable the tick */
 	sirfsoc_timer_count_enable(cpu);
@@ -129,7 +132,9 @@ static void sirfsoc_clocksource_suspend(struct clocksource *cs)
 	int i;
 
 	for (i = 0; i < SIRFSOC_TIMER_REG_CNT; i++)
+	{
 		sirfsoc_timer_reg_val[i] = readl_relaxed(sirfsoc_timer_base + sirfsoc_timer_reg_list[i]);
+	}
 }
 
 static void sirfsoc_clocksource_resume(struct clocksource *cs)
@@ -137,20 +142,23 @@ static void sirfsoc_clocksource_resume(struct clocksource *cs)
 	int i;
 
 	for (i = 0; i < SIRFSOC_TIMER_REG_CNT - 2; i++)
+	{
 		writel_relaxed(sirfsoc_timer_reg_val[i], sirfsoc_timer_base + sirfsoc_timer_reg_list[i]);
+	}
 
 	writel_relaxed(sirfsoc_timer_reg_val[SIRFSOC_TIMER_REG_CNT - 2],
-		sirfsoc_timer_base + SIRFSOC_TIMER_64COUNTER_LOAD_LO);
+				   sirfsoc_timer_base + SIRFSOC_TIMER_64COUNTER_LOAD_LO);
 	writel_relaxed(sirfsoc_timer_reg_val[SIRFSOC_TIMER_REG_CNT - 1],
-		sirfsoc_timer_base + SIRFSOC_TIMER_64COUNTER_LOAD_HI);
+				   sirfsoc_timer_base + SIRFSOC_TIMER_64COUNTER_LOAD_HI);
 
 	writel_relaxed(readl_relaxed(sirfsoc_timer_base + SIRFSOC_TIMER_64COUNTER_CTRL) |
-		BIT(1) | BIT(0), sirfsoc_timer_base + SIRFSOC_TIMER_64COUNTER_CTRL);
+				   BIT(1) | BIT(0), sirfsoc_timer_base + SIRFSOC_TIMER_64COUNTER_CTRL);
 }
 
 static struct clock_event_device __percpu *sirfsoc_clockevent;
 
-static struct clocksource sirfsoc_clocksource = {
+static struct clocksource sirfsoc_clocksource =
+{
 	.name = "sirfsoc_clocksource",
 	.rating = 200,
 	.mask = CLOCKSOURCE_MASK(64),
@@ -160,13 +168,15 @@ static struct clocksource sirfsoc_clocksource = {
 	.resume = sirfsoc_clocksource_resume,
 };
 
-static struct irqaction sirfsoc_timer_irq = {
+static struct irqaction sirfsoc_timer_irq =
+{
 	.name = "sirfsoc_timer0",
 	.flags = IRQF_TIMER | IRQF_NOBALANCING,
 	.handler = sirfsoc_timer_interrupt,
 };
 
-static struct irqaction sirfsoc_timer1_irq = {
+static struct irqaction sirfsoc_timer1_irq =
+{
 	.name = "sirfsoc_timer1",
 	.flags = IRQF_TIMER | IRQF_NOBALANCING,
 	.handler = sirfsoc_timer_interrupt,
@@ -178,9 +188,13 @@ static int sirfsoc_local_timer_starting_cpu(unsigned int cpu)
 	struct irqaction *action;
 
 	if (cpu == 0)
+	{
 		action = &sirfsoc_timer_irq;
+	}
 	else
+	{
 		action = &sirfsoc_timer1_irq;
+	}
 
 	ce->irq = action->irq;
 	ce->name = "local_timer";
@@ -208,9 +222,14 @@ static int sirfsoc_local_timer_dying_cpu(unsigned int cpu)
 	sirfsoc_timer_count_disable(1);
 
 	if (cpu == 0)
+	{
 		remove_irq(sirfsoc_timer_irq.irq, &sirfsoc_timer_irq);
+	}
 	else
+	{
 		remove_irq(sirfsoc_timer1_irq.irq, &sirfsoc_timer1_irq);
+	}
+
 	return 0;
 }
 
@@ -221,9 +240,9 @@ static int __init sirfsoc_clockevent_init(void)
 
 	/* Install and invoke hotplug callbacks */
 	return cpuhp_setup_state(CPUHP_AP_MARCO_TIMER_STARTING,
-				 "AP_MARCO_TIMER_STARTING",
-				 sirfsoc_local_timer_starting_cpu,
-				 sirfsoc_local_timer_dying_cpu);
+							 "AP_MARCO_TIMER_STARTING",
+							 sirfsoc_local_timer_starting_cpu,
+							 sirfsoc_local_timer_dying_cpu);
 }
 
 /* initialize the kernel jiffy timer source */
@@ -247,7 +266,7 @@ static int __init sirfsoc_atlas7_timer_init(struct device_node *np)
 	writel_relaxed(0, sirfsoc_timer_base + SIRFSOC_TIMER_64COUNTER_LOAD_LO);
 	writel_relaxed(0, sirfsoc_timer_base + SIRFSOC_TIMER_64COUNTER_LOAD_HI);
 	writel_relaxed(readl_relaxed(sirfsoc_timer_base + SIRFSOC_TIMER_64COUNTER_CTRL) |
-		BIT(1) | BIT(0), sirfsoc_timer_base + SIRFSOC_TIMER_64COUNTER_CTRL);
+				   BIT(1) | BIT(0), sirfsoc_timer_base + SIRFSOC_TIMER_64COUNTER_CTRL);
 	writel_relaxed(0, sirfsoc_timer_base + SIRFSOC_TIMER_COUNTER_0);
 	writel_relaxed(0, sirfsoc_timer_base + SIRFSOC_TIMER_COUNTER_1);
 
@@ -262,19 +281,25 @@ static int __init sirfsoc_atlas7_timer_init(struct device_node *np)
 static int __init sirfsoc_of_timer_init(struct device_node *np)
 {
 	sirfsoc_timer_base = of_iomap(np, 0);
-	if (!sirfsoc_timer_base) {
+
+	if (!sirfsoc_timer_base)
+	{
 		pr_err("unable to map timer cpu registers\n");
 		return -ENXIO;
 	}
 
 	sirfsoc_timer_irq.irq = irq_of_parse_and_map(np, 0);
-	if (!sirfsoc_timer_irq.irq) {
+
+	if (!sirfsoc_timer_irq.irq)
+	{
 		pr_err("No irq passed for timer0 via DT\n");
 		return -EINVAL;
 	}
 
 	sirfsoc_timer1_irq.irq = irq_of_parse_and_map(np, 1);
-	if (!sirfsoc_timer1_irq.irq) {
+
+	if (!sirfsoc_timer1_irq.irq)
+	{
 		pr_err("No irq passed for timer1 via DT\n");
 		return -EINVAL;
 	}

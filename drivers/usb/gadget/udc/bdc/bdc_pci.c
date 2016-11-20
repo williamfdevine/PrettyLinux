@@ -25,7 +25,8 @@
 
 #define BDC_PCI_PID 0x1570
 
-struct bdc_pci {
+struct bdc_pci
+{
 	struct device *dev;
 	struct platform_device *bdc;
 };
@@ -35,7 +36,9 @@ static int bdc_setup_msi(struct pci_dev *pci)
 	int ret;
 
 	ret = pci_enable_msi(pci);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("failed to allocate MSI entry\n");
 		return ret;
 	}
@@ -51,20 +54,29 @@ static int bdc_pci_probe(struct pci_dev *pci, const struct pci_device_id *id)
 	int ret = -ENOMEM;
 
 	glue = devm_kzalloc(&pci->dev, sizeof(*glue), GFP_KERNEL);
+
 	if (!glue)
+	{
 		return -ENOMEM;
+	}
 
 	glue->dev = &pci->dev;
 	ret = pci_enable_device(pci);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pci->dev, "failed to enable pci device\n");
 		return -ENODEV;
 	}
+
 	pci_set_master(pci);
 
 	bdc = platform_device_alloc(BRCM_BDC_NAME, PLATFORM_DEVID_AUTO);
+
 	if (!bdc)
+	{
 		return -ENOMEM;
+	}
 
 	memset(res, 0x00, sizeof(struct resource) * ARRAY_SIZE(res));
 	bdc_setup_msi(pci);
@@ -79,9 +91,11 @@ static int bdc_pci_probe(struct pci_dev *pci, const struct pci_device_id *id)
 	res[1].flags	= IORESOURCE_IRQ;
 
 	ret = platform_device_add_resources(bdc, res, ARRAY_SIZE(res));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pci->dev,
-			"couldn't add resources to bdc device\n");
+				"couldn't add resources to bdc device\n");
 		return ret;
 	}
 
@@ -95,7 +109,9 @@ static int bdc_pci_probe(struct pci_dev *pci, const struct pci_device_id *id)
 	glue->bdc = bdc;
 
 	ret = platform_device_add(bdc);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pci->dev, "failed to register bdc device\n");
 		platform_device_put(bdc);
 		return ret;
@@ -112,14 +128,16 @@ static void bdc_pci_remove(struct pci_dev *pci)
 	pci_disable_msi(pci);
 }
 
-static struct pci_device_id bdc_pci_id_table[] = {
+static struct pci_device_id bdc_pci_id_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_BROADCOM, BDC_PCI_PID), },
 	{} /* Terminating Entry */
 };
 
 MODULE_DEVICE_TABLE(pci, bdc_pci_id_table);
 
-static struct pci_driver bdc_pci_driver = {
+static struct pci_driver bdc_pci_driver =
+{
 	.name = "bdc-pci",
 	.id_table = bdc_pci_id_table,
 	.probe = bdc_pci_probe,

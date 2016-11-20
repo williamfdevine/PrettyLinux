@@ -16,7 +16,8 @@
  */
 
 /* kernel debug core data structures */
-struct kgdb_state {
+struct kgdb_state
+{
 	int			ex_vector;
 	int			signo;
 	int			err_code;
@@ -35,7 +36,8 @@ struct kgdb_state {
 #define DCPU_IS_SLAVE    0x4 /* Slave cpu enter exception */
 #define DCPU_SSTEP       0x8 /* CPU is single stepping */
 
-struct debuggerinfo_struct {
+struct debuggerinfo_struct
+{
 	void			*debuggerinfo;
 	struct task_struct	*task;
 	int			exception_state;

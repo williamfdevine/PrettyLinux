@@ -4,24 +4,26 @@
 #include "subunit.h"
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-#define cpu_to_be32(x)		bswap_32(x)
-#define be32_to_cpu(x)		bswap_32(x)
-#define be16_to_cpup(x)		bswap_16(*x)
-#define cpu_to_be64(x)		bswap_64(x)
+	#define cpu_to_be32(x)		bswap_32(x)
+	#define be32_to_cpu(x)		bswap_32(x)
+	#define be16_to_cpup(x)		bswap_16(*x)
+	#define cpu_to_be64(x)		bswap_64(x)
 #else
-#define cpu_to_be32(x)		(x)
-#define be32_to_cpu(x)		(x)
-#define be16_to_cpup(x)		(*x)
-#define cpu_to_be64(x)		(x)
+	#define cpu_to_be32(x)		(x)
+	#define be32_to_cpu(x)		(x)
+	#define be16_to_cpup(x)		(*x)
+	#define cpu_to_be64(x)		(x)
 #endif
 
 #include "vphn.c"
 
-static struct test {
+static struct test
+{
 	char *descr;
 	long input[VPHN_REGISTER_COUNT];
 	u32 expected[VPHN_ASSOC_BUFSIZE];
-} all_tests[] = {
+} all_tests[] =
+{
 	{
 		"vphn: no data",
 		{
@@ -370,17 +372,22 @@ static int test_one(struct test *test)
 	vphn_unpack_associativity(test->input, output);
 
 	len = be32_to_cpu(output[0]);
-	if (len != test->expected[0]) {
+
+	if (len != test->expected[0])
+	{
 		printf("expected %d elements, got %d\n", test->expected[0],
-		       len);
+			   len);
 		return 1;
 	}
 
-	for (i = 1; i < len; i++) {
+	for (i = 1; i < len; i++)
+	{
 		u32 val = be32_to_cpu(output[i]);
-		if (val != test->expected[i]) {
+
+		if (val != test->expected[i])
+		{
 			printf("element #%d is 0x%x, should be 0x%x\n", i, val,
-			       test->expected[i]);
+				   test->expected[i]);
 			return 1;
 		}
 	}
@@ -392,13 +399,17 @@ static int test_vphn(void)
 {
 	static struct test *test;
 
-	for (test = all_tests; test->descr; test++) {
+	for (test = all_tests; test->descr; test++)
+	{
 		int ret;
 
 		ret = test_one(test);
 		test_finish(test->descr, ret);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return 0;

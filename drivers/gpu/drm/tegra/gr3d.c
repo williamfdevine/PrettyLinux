@@ -19,7 +19,8 @@
 #include "gem.h"
 #include "gr3d.h"
 
-struct gr3d {
+struct gr3d
+{
 	struct tegra_drm_client client;
 	struct host1x_channel *channel;
 	struct clk *clk_secondary;
@@ -43,11 +44,16 @@ static int gr3d_init(struct host1x_client *client)
 	struct gr3d *gr3d = to_gr3d(drm);
 
 	gr3d->channel = host1x_channel_request(client->dev);
+
 	if (!gr3d->channel)
+	{
 		return -ENOMEM;
+	}
 
 	client->syncpts[0] = host1x_syncpt_request(client->dev, flags);
-	if (!client->syncpts[0]) {
+
+	if (!client->syncpts[0])
+	{
 		host1x_channel_free(gr3d->channel);
 		return -ENOMEM;
 	}
@@ -63,8 +69,11 @@ static int gr3d_exit(struct host1x_client *client)
 	int err;
 
 	err = tegra_drm_unregister_client(dev->dev_private, drm);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	host1x_syncpt_free(client->syncpts[0]);
 	host1x_channel_free(gr3d->channel);
@@ -72,19 +81,23 @@ static int gr3d_exit(struct host1x_client *client)
 	return 0;
 }
 
-static const struct host1x_client_ops gr3d_client_ops = {
+static const struct host1x_client_ops gr3d_client_ops =
+{
 	.init = gr3d_init,
 	.exit = gr3d_exit,
 };
 
 static int gr3d_open_channel(struct tegra_drm_client *client,
-			     struct tegra_drm_context *context)
+							 struct tegra_drm_context *context)
 {
 	struct gr3d *gr3d = to_gr3d(client);
 
 	context->channel = host1x_channel_get(gr3d->channel);
+
 	if (!context->channel)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -98,34 +111,43 @@ static int gr3d_is_addr_reg(struct device *dev, u32 class, u32 offset)
 {
 	struct gr3d *gr3d = dev_get_drvdata(dev);
 
-	switch (class) {
-	case HOST1X_CLASS_HOST1X:
-		if (offset == 0x2b)
-			return 1;
+	switch (class)
+	{
+		case HOST1X_CLASS_HOST1X:
+			if (offset == 0x2b)
+			{
+				return 1;
+			}
 
-		break;
-
-	case HOST1X_CLASS_GR3D:
-		if (offset >= GR3D_NUM_REGS)
 			break;
 
-		if (test_bit(offset, gr3d->addr_regs))
-			return 1;
+		case HOST1X_CLASS_GR3D:
+			if (offset >= GR3D_NUM_REGS)
+			{
+				break;
+			}
 
-		break;
+			if (test_bit(offset, gr3d->addr_regs))
+			{
+				return 1;
+			}
+
+			break;
 	}
 
 	return 0;
 }
 
-static const struct tegra_drm_client_ops gr3d_ops = {
+static const struct tegra_drm_client_ops gr3d_ops =
+{
 	.open_channel = gr3d_open_channel,
 	.close_channel = gr3d_close_channel,
 	.is_addr_reg = gr3d_is_addr_reg,
 	.submit = tegra_drm_submit,
 };
 
-static const struct of_device_id tegra_gr3d_match[] = {
+static const struct of_device_id tegra_gr3d_match[] =
+{
 	{ .compatible = "nvidia,tegra114-gr3d" },
 	{ .compatible = "nvidia,tegra30-gr3d" },
 	{ .compatible = "nvidia,tegra20-gr3d" },
@@ -133,7 +155,8 @@ static const struct of_device_id tegra_gr3d_match[] = {
 };
 MODULE_DEVICE_TABLE(of, tegra_gr3d_match);
 
-static const u32 gr3d_addr_regs[] = {
+static const u32 gr3d_addr_regs[] =
+{
 	GR3D_IDX_ATTRIBUTE( 0),
 	GR3D_IDX_ATTRIBUTE( 1),
 	GR3D_IDX_ATTRIBUTE( 2),
@@ -247,54 +270,74 @@ static int gr3d_probe(struct platform_device *pdev)
 	int err;
 
 	gr3d = devm_kzalloc(&pdev->dev, sizeof(*gr3d), GFP_KERNEL);
+
 	if (!gr3d)
+	{
 		return -ENOMEM;
+	}
 
 	syncpts = devm_kzalloc(&pdev->dev, sizeof(*syncpts), GFP_KERNEL);
+
 	if (!syncpts)
+	{
 		return -ENOMEM;
+	}
 
 	gr3d->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(gr3d->clk)) {
+
+	if (IS_ERR(gr3d->clk))
+	{
 		dev_err(&pdev->dev, "cannot get clock\n");
 		return PTR_ERR(gr3d->clk);
 	}
 
 	gr3d->rst = devm_reset_control_get(&pdev->dev, "3d");
-	if (IS_ERR(gr3d->rst)) {
+
+	if (IS_ERR(gr3d->rst))
+	{
 		dev_err(&pdev->dev, "cannot get reset\n");
 		return PTR_ERR(gr3d->rst);
 	}
 
-	if (of_device_is_compatible(np, "nvidia,tegra30-gr3d")) {
+	if (of_device_is_compatible(np, "nvidia,tegra30-gr3d"))
+	{
 		gr3d->clk_secondary = devm_clk_get(&pdev->dev, "3d2");
-		if (IS_ERR(gr3d->clk)) {
+
+		if (IS_ERR(gr3d->clk))
+		{
 			dev_err(&pdev->dev, "cannot get secondary clock\n");
 			return PTR_ERR(gr3d->clk);
 		}
 
 		gr3d->rst_secondary = devm_reset_control_get(&pdev->dev,
-								"3d2");
-		if (IS_ERR(gr3d->rst_secondary)) {
+							  "3d2");
+
+		if (IS_ERR(gr3d->rst_secondary))
+		{
 			dev_err(&pdev->dev, "cannot get secondary reset\n");
 			return PTR_ERR(gr3d->rst_secondary);
 		}
 	}
 
 	err = tegra_powergate_sequence_power_up(TEGRA_POWERGATE_3D, gr3d->clk,
-						gr3d->rst);
-	if (err < 0) {
+											gr3d->rst);
+
+	if (err < 0)
+	{
 		dev_err(&pdev->dev, "failed to power up 3D unit\n");
 		return err;
 	}
 
-	if (gr3d->clk_secondary) {
+	if (gr3d->clk_secondary)
+	{
 		err = tegra_powergate_sequence_power_up(TEGRA_POWERGATE_3D1,
-							gr3d->clk_secondary,
-							gr3d->rst_secondary);
-		if (err < 0) {
+												gr3d->clk_secondary,
+												gr3d->rst_secondary);
+
+		if (err < 0)
+		{
 			dev_err(&pdev->dev,
-				"failed to power up secondary 3D unit\n");
+					"failed to power up secondary 3D unit\n");
 			return err;
 		}
 	}
@@ -310,15 +353,19 @@ static int gr3d_probe(struct platform_device *pdev)
 	gr3d->client.ops = &gr3d_ops;
 
 	err = host1x_client_register(&gr3d->client.base);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(&pdev->dev, "failed to register host1x client: %d\n",
-			err);
+				err);
 		return err;
 	}
 
 	/* initialize address register map */
 	for (i = 0; i < ARRAY_SIZE(gr3d_addr_regs); i++)
+	{
 		set_bit(gr3d_addr_regs[i], gr3d->addr_regs);
+	}
 
 	platform_set_drvdata(pdev, gr3d);
 
@@ -331,13 +378,16 @@ static int gr3d_remove(struct platform_device *pdev)
 	int err;
 
 	err = host1x_client_unregister(&gr3d->client.base);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(&pdev->dev, "failed to unregister host1x client: %d\n",
-			err);
+				err);
 		return err;
 	}
 
-	if (gr3d->clk_secondary) {
+	if (gr3d->clk_secondary)
+	{
 		tegra_powergate_power_off(TEGRA_POWERGATE_3D1);
 		clk_disable_unprepare(gr3d->clk_secondary);
 	}
@@ -348,7 +398,8 @@ static int gr3d_remove(struct platform_device *pdev)
 	return 0;
 }
 
-struct platform_driver tegra_gr3d_driver = {
+struct platform_driver tegra_gr3d_driver =
+{
 	.driver = {
 		.name = "tegra-gr3d",
 		.of_match_table = tegra_gr3d_match,

@@ -44,7 +44,9 @@ static ssize_t wilc_debug_level_read(struct file *file, char __user *userbuf, si
 
 	/* only allow read from start */
 	if (*ppos > 0)
+	{
 		return 0;
+	}
 
 	res = scnprintf(buf, sizeof(buf), "Debug Level: %x\n", atomic_read(&WILC_DEBUG_LEVEL));
 
@@ -52,26 +54,35 @@ static ssize_t wilc_debug_level_read(struct file *file, char __user *userbuf, si
 }
 
 static ssize_t wilc_debug_level_write(struct file *filp, const char __user *buf,
-					size_t count, loff_t *ppos)
+									  size_t count, loff_t *ppos)
 {
 	int flag = 0;
 	int ret;
 
 	ret = kstrtouint_from_user(buf, count, 16, &flag);
-	if (ret)
-		return ret;
 
-	if (flag > DBG_LEVEL_ALL) {
-		printk("%s, value (0x%08x) is out of range, stay previous flag (0x%08x)\n", __func__, flag, atomic_read(&WILC_DEBUG_LEVEL));
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (flag > DBG_LEVEL_ALL)
+	{
+		printk("%s, value (0x%08x) is out of range, stay previous flag (0x%08x)\n", __func__, flag,
+			   atomic_read(&WILC_DEBUG_LEVEL));
 		return -EINVAL;
 	}
 
 	atomic_set(&WILC_DEBUG_LEVEL, (int)flag);
 
 	if (flag == 0)
+	{
 		printk(KERN_INFO "Debug-level disabled\n");
+	}
 	else
+	{
 		printk(KERN_INFO "Debug-level enabled\n");
+	}
 
 	return count;
 }
@@ -82,20 +93,22 @@ static ssize_t wilc_debug_level_write(struct file *filp, const char __user *buf,
 
 #define FOPS(_open, _read, _write, _poll) { \
 		.owner	= THIS_MODULE, \
-		.open	= (_open), \
-		.read	= (_read), \
-		.write	= (_write), \
-		.poll		= (_poll), \
-}
+				  .open	= (_open), \
+							.read	= (_read), \
+									  .write	= (_write), \
+												.poll		= (_poll), \
+	}
 
-struct wilc_debugfs_info_t {
+struct wilc_debugfs_info_t
+{
 	const char *name;
 	int perm;
 	unsigned int data;
 	const struct file_operations fops;
 };
 
-static struct wilc_debugfs_info_t debugfs_info[] = {
+static struct wilc_debugfs_info_t debugfs_info[] =
+{
 	{ "wilc_debug_level",	0666,	(DEBUG | ERR), FOPS(NULL, wilc_debug_level_read, wilc_debug_level_write, NULL), },
 };
 
@@ -105,14 +118,17 @@ static int __init wilc_debugfs_init(void)
 	struct wilc_debugfs_info_t *info;
 
 	wilc_dir = debugfs_create_dir("wilc_wifi", NULL);
-	for (i = 0; i < ARRAY_SIZE(debugfs_info); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(debugfs_info); i++)
+	{
 		info = &debugfs_info[i];
 		debugfs_create_file(info->name,
-				    info->perm,
-				    wilc_dir,
-				    &info->data,
-				    &info->fops);
+							info->perm,
+							wilc_dir,
+							&info->data,
+							&info->fops);
 	}
+
 	return 0;
 }
 module_init(wilc_debugfs_init);

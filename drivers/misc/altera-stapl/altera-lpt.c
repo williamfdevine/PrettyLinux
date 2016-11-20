@@ -47,7 +47,8 @@ int netup_jtag_io_lpt(void *device, int tms, int tdi, int read_tdo)
 	int tdo = 0;
 	int initial_lpt_ctrl = 0;
 
-	if (!lpt_hardware_initialized) {
+	if (!lpt_hardware_initialized)
+	{
 		initial_lpt_ctrl = byteblaster_read(2);
 		byteblaster_write(2, (initial_lpt_ctrl | 0x02) & 0xdf);
 		lpt_hardware_initialized = 1;
@@ -57,7 +58,8 @@ int netup_jtag_io_lpt(void *device, int tms, int tdi, int read_tdo)
 
 	byteblaster_write(0, data);
 
-	if (read_tdo) {
+	if (read_tdo)
+	{
 		tdo = byteblaster_read(1);
 		tdo = ((tdo & 0x80) ? 0 : 1);
 	}

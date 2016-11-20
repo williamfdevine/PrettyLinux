@@ -24,7 +24,8 @@
 #include "nv50.h"
 
 static const struct nvkm_clk_func
-g84_clk = {
+	g84_clk =
+{
 	.read = nv50_clk_read,
 	.calc = nv50_clk_calc,
 	.prog = nv50_clk_prog,
@@ -44,5 +45,5 @@ int
 g84_clk_new(struct nvkm_device *device, int index, struct nvkm_clk **pclk)
 {
 	return nv50_clk_new_(&g84_clk, device, index,
-			     (device->chipset >= 0x94), pclk);
+						 (device->chipset >= 0x94), pclk);
 }

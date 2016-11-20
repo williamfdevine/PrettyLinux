@@ -94,7 +94,8 @@ struct plist;
 
 #define TIPC_MEDIA_INFO_OFFSET	5
 
-struct tipc_skb_cb {
+struct tipc_skb_cb
+{
 	void *handle;
 	struct sk_buff *tail;
 	bool validated;
@@ -106,7 +107,8 @@ struct tipc_skb_cb {
 
 #define TIPC_SKB_CB(__skb) ((struct tipc_skb_cb *)&((__skb)->cb[0]))
 
-struct tipc_msg {
+struct tipc_msg
+{
 	__be32 hdr[15];
 };
 
@@ -131,7 +133,7 @@ static inline u32 msg_bits(struct tipc_msg *m, u32 w, u32 pos, u32 mask)
 }
 
 static inline void msg_set_bits(struct tipc_msg *m, u32 w,
-				u32 pos, u32 mask, u32 val)
+								u32 pos, u32 mask, u32 val)
 {
 	val = (val & mask) << pos;
 	mask = mask << pos;
@@ -182,7 +184,7 @@ static inline u32 msg_hdr_sz(struct tipc_msg *m)
 
 static inline void msg_set_hdr_sz(struct tipc_msg *m, u32 n)
 {
-	msg_set_bits(m, 0, 21, 0xf, n>>2);
+	msg_set_bits(m, 0, 21, 0xf, n >> 2);
 }
 
 static inline u32 msg_size(struct tipc_msg *m)
@@ -345,9 +347,15 @@ static inline u32 msg_importance(struct tipc_msg *m)
 	int usr = msg_user(m);
 
 	if (likely((usr <= TIPC_CRITICAL_IMPORTANCE) && !msg_errcode(m)))
+	{
 		return usr;
+	}
+
 	if ((usr == MSG_FRAGMENTER) || (usr == MSG_BUNDLER))
+	{
 		return msg_bits(m, 9, 0, 0x7);
+	}
+
 	return TIPC_SYSTEM_IMPORTANCE;
 }
 
@@ -356,11 +364,17 @@ static inline void msg_set_importance(struct tipc_msg *m, u32 i)
 	int usr = msg_user(m);
 
 	if (likely((usr == MSG_FRAGMENTER) || (usr == MSG_BUNDLER)))
+	{
 		msg_set_bits(m, 9, 0, 0x7, i);
+	}
 	else if (i < TIPC_SYSTEM_IMPORTANCE)
+	{
 		msg_set_user(m, i);
+	}
 	else
+	{
 		pr_warn("Trying to set illegal importance in message\n");
+	}
 }
 
 static inline u32 msg_prevnode(struct tipc_msg *m)
@@ -376,7 +390,10 @@ static inline void msg_set_prevnode(struct tipc_msg *m, u32 a)
 static inline u32 msg_origport(struct tipc_msg *m)
 {
 	if (msg_user(m) == MSG_FRAGMENTER)
+	{
 		m = msg_get_wrapped(m);
+	}
+
 	return msg_word(m, 4);
 }
 
@@ -413,7 +430,10 @@ static inline int msg_short(struct tipc_msg *m)
 static inline u32 msg_orignode(struct tipc_msg *m)
 {
 	if (likely(msg_short(m)))
+	{
 		return msg_prevnode(m);
+	}
+
 	return msg_word(m, 6);
 }
 
@@ -716,13 +736,15 @@ static inline void msg_set_peer_stopping(struct tipc_msg *m, u32 s)
 
 static inline bool msg_bc_ack_invalid(struct tipc_msg *m)
 {
-	switch (msg_user(m)) {
-	case BCAST_PROTOCOL:
-	case NAME_DISTRIBUTOR:
-	case LINK_PROTOCOL:
-		return msg_bits(m, 5, 14, 0x1);
-	default:
-		return false;
+	switch (msg_user(m))
+	{
+		case BCAST_PROTOCOL:
+		case NAME_DISTRIBUTOR:
+		case LINK_PROTOCOL:
+			return msg_bits(m, 5, 14, 0x1);
+
+		default:
+			return false;
 	}
 }
 
@@ -802,16 +824,25 @@ static inline void msg_set_link_tolerance(struct tipc_msg *m, u32 n)
 static inline bool msg_peer_link_is_up(struct tipc_msg *m)
 {
 	if (likely(msg_user(m) != LINK_PROTOCOL))
+	{
 		return true;
+	}
+
 	if (msg_type(m) == STATE_MSG)
+	{
 		return true;
+	}
+
 	return false;
 }
 
 static inline bool msg_peer_node_is_up(struct tipc_msg *m)
 {
 	if (msg_peer_link_is_up(m))
+	{
 		return true;
+	}
+
 	return msg_redundant_link(m);
 }
 
@@ -824,21 +855,21 @@ struct sk_buff *tipc_buf_acquire(u32 size);
 bool tipc_msg_validate(struct sk_buff *skb);
 bool tipc_msg_reverse(u32 own_addr, struct sk_buff **skb, int err);
 void tipc_msg_init(u32 own_addr, struct tipc_msg *m, u32 user, u32 type,
-		   u32 hsize, u32 destnode);
+				   u32 hsize, u32 destnode);
 struct sk_buff *tipc_msg_create(uint user, uint type, uint hdr_sz,
-				uint data_sz, u32 dnode, u32 onode,
-				u32 dport, u32 oport, int errcode);
+								uint data_sz, u32 dnode, u32 onode,
+								u32 dport, u32 oport, int errcode);
 int tipc_buf_append(struct sk_buff **headbuf, struct sk_buff **buf);
 bool tipc_msg_bundle(struct sk_buff *skb, struct tipc_msg *msg, u32 mtu);
 bool tipc_msg_make_bundle(struct sk_buff **skb, struct tipc_msg *msg,
-			  u32 mtu, u32 dnode);
+						  u32 mtu, u32 dnode);
 bool tipc_msg_extract(struct sk_buff *skb, struct sk_buff **iskb, int *pos);
 int tipc_msg_build(struct tipc_msg *mhdr, struct msghdr *m,
-		   int offset, int dsz, int mtu, struct sk_buff_head *list);
+				   int offset, int dsz, int mtu, struct sk_buff_head *list);
 bool tipc_msg_lookup_dest(struct net *net, struct sk_buff *skb, int *err);
 bool tipc_msg_reassemble(struct sk_buff_head *list, struct sk_buff_head *rcvq);
 void __tipc_skb_queue_sorted(struct sk_buff_head *list, u16 seqno,
-			     struct sk_buff *skb);
+							 struct sk_buff *skb);
 
 static inline u16 buf_seqno(struct sk_buff *skb)
 {
@@ -850,14 +881,18 @@ static inline u16 buf_seqno(struct sk_buff *skb)
  * Returns pointer to first buffer in list, if any
  */
 static inline struct sk_buff *tipc_skb_peek(struct sk_buff_head *list,
-					    spinlock_t *lock)
+		spinlock_t *lock)
 {
 	struct sk_buff *skb;
 
 	spin_lock_bh(lock);
 	skb = skb_peek(list);
+
 	if (skb)
+	{
 		skb_get(skb);
+	}
+
 	spin_unlock_bh(lock);
 	return skb;
 }
@@ -877,14 +912,23 @@ static inline u32 tipc_skb_peek_port(struct sk_buff_head *list, u32 filter)
 	bool ignore = true;
 
 	spin_lock_bh(&list->lock);
-	skb_queue_walk(list, skb) {
+	skb_queue_walk(list, skb)
+	{
 		dport = msg_destport(buf_msg(skb));
+
 		if (!filter || skb_queue_is_last(list, skb))
+		{
 			break;
+		}
+
 		if (dport == filter)
+		{
 			ignore = false;
+		}
 		else if (!ignore)
+		{
 			break;
+		}
 	}
 	spin_unlock_bh(&list->lock);
 	return dport;
@@ -895,13 +939,15 @@ static inline u32 tipc_skb_peek_port(struct sk_buff_head *list, u32 filter)
  * @dport: selection criteria for buffer to unlink
  */
 static inline struct sk_buff *tipc_skb_dequeue(struct sk_buff_head *list,
-					       u32 dport)
+		u32 dport)
 {
 	struct sk_buff *_skb, *tmp, *skb = NULL;
 
 	spin_lock_bh(&list->lock);
-	skb_queue_walk_safe(list, _skb, tmp) {
-		if (msg_destport(buf_msg(_skb)) == dport) {
+	skb_queue_walk_safe(list, _skb, tmp)
+	{
+		if (msg_destport(buf_msg(_skb)) == dport)
+		{
 			__skb_unlink(_skb, list);
 			skb = _skb;
 			break;
@@ -916,7 +962,7 @@ static inline struct sk_buff *tipc_skb_dequeue(struct sk_buff_head *list,
  * @head: target list. Lock protected.
  */
 static inline void tipc_skb_queue_splice_tail(struct sk_buff_head *list,
-					      struct sk_buff_head *head)
+		struct sk_buff_head *head)
 {
 	spin_lock_bh(&head->lock);
 	skb_queue_splice_tail(list, head);
@@ -928,7 +974,7 @@ static inline void tipc_skb_queue_splice_tail(struct sk_buff_head *list,
  * @head: target list. Lock protected.
  */
 static inline void tipc_skb_queue_splice_tail_init(struct sk_buff_head *list,
-						   struct sk_buff_head *head)
+		struct sk_buff_head *head)
 {
 	struct sk_buff_head tmp;
 

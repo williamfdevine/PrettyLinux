@@ -24,7 +24,8 @@
 /* Max transfer size done by I2C transfer functions */
 #define MAX_XFER_SIZE  64
 
-struct af9033_dev {
+struct af9033_dev
+{
 	struct i2c_client *client;
 	struct dvb_frontend fe;
 	struct af9033_config cfg;
@@ -45,11 +46,12 @@ struct af9033_dev {
 
 /* write multiple registers */
 static int af9033_wr_regs(struct af9033_dev *dev, u32 reg, const u8 *val,
-		int len)
+						  int len)
 {
 	int ret;
 	u8 buf[MAX_XFER_SIZE];
-	struct i2c_msg msg[1] = {
+	struct i2c_msg msg[1] =
+	{
 		{
 			.addr = dev->client->addr,
 			.flags = 0,
@@ -58,10 +60,11 @@ static int af9033_wr_regs(struct af9033_dev *dev, u32 reg, const u8 *val,
 		}
 	};
 
-	if (3 + len > sizeof(buf)) {
+	if (3 + len > sizeof(buf))
+	{
 		dev_warn(&dev->client->dev,
-				"i2c wr reg=%04x: len=%d is too big!\n",
-				reg, len);
+				 "i2c wr reg=%04x: len=%d is too big!\n",
+				 reg, len);
 		return -EINVAL;
 	}
 
@@ -71,11 +74,15 @@ static int af9033_wr_regs(struct af9033_dev *dev, u32 reg, const u8 *val,
 	memcpy(&buf[3], val, len);
 
 	ret = i2c_transfer(dev->client->adapter, msg, 1);
-	if (ret == 1) {
+
+	if (ret == 1)
+	{
 		ret = 0;
-	} else {
+	}
+	else
+	{
 		dev_warn(&dev->client->dev, "i2c wr failed=%d reg=%06x len=%d\n",
-				ret, reg, len);
+				 ret, reg, len);
 		ret = -EREMOTEIO;
 	}
 
@@ -87,8 +94,10 @@ static int af9033_rd_regs(struct af9033_dev *dev, u32 reg, u8 *val, int len)
 {
 	int ret;
 	u8 buf[3] = { (reg >> 16) & 0xff, (reg >> 8) & 0xff,
-			(reg >> 0) & 0xff };
-	struct i2c_msg msg[2] = {
+				  (reg >> 0) & 0xff
+				};
+	struct i2c_msg msg[2] =
+	{
 		{
 			.addr = dev->client->addr,
 			.flags = 0,
@@ -103,11 +112,15 @@ static int af9033_rd_regs(struct af9033_dev *dev, u32 reg, u8 *val, int len)
 	};
 
 	ret = i2c_transfer(dev->client->adapter, msg, 2);
-	if (ret == 2) {
+
+	if (ret == 2)
+	{
 		ret = 0;
-	} else {
+	}
+	else
+	{
 		dev_warn(&dev->client->dev, "i2c rd failed=%d reg=%06x len=%d\n",
-				ret, reg, len);
+				 ret, reg, len);
 		ret = -EREMOTEIO;
 	}
 
@@ -129,16 +142,20 @@ static int af9033_rd_reg(struct af9033_dev *dev, u32 reg, u8 *val)
 
 /* write single register with mask */
 static int af9033_wr_reg_mask(struct af9033_dev *dev, u32 reg, u8 val,
-		u8 mask)
+							  u8 mask)
 {
 	int ret;
 	u8 tmp;
 
 	/* no need for read if whole reg is written */
-	if (mask != 0xff) {
+	if (mask != 0xff)
+	{
 		ret = af9033_rd_regs(dev, reg, &tmp, 1);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		val &= mask;
 		tmp &= ~mask;
@@ -150,22 +167,29 @@ static int af9033_wr_reg_mask(struct af9033_dev *dev, u32 reg, u8 val,
 
 /* read single register with mask */
 static int af9033_rd_reg_mask(struct af9033_dev *dev, u32 reg, u8 *val,
-		u8 mask)
+							  u8 mask)
 {
 	int ret, i;
 	u8 tmp;
 
 	ret = af9033_rd_regs(dev, reg, &tmp, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	tmp &= mask;
 
 	/* find position of the first bit */
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		if ((mask >> i) & 0x01)
+		{
 			break;
+		}
 	}
+
 	*val = tmp >> i;
 
 	return 0;
@@ -173,7 +197,7 @@ static int af9033_rd_reg_mask(struct af9033_dev *dev, u32 reg, u8 *val,
 
 /* write reg val table using reg addr auto increment */
 static int af9033_wr_reg_val_tab(struct af9033_dev *dev,
-		const struct reg_val *tab, int tab_len)
+								 const struct reg_val *tab, int tab_len)
 {
 #define MAX_TAB_LEN 212
 	int ret, i, j;
@@ -181,21 +205,29 @@ static int af9033_wr_reg_val_tab(struct af9033_dev *dev,
 
 	dev_dbg(&dev->client->dev, "tab_len=%d\n", tab_len);
 
-	if (tab_len > sizeof(buf)) {
+	if (tab_len > sizeof(buf))
+	{
 		dev_warn(&dev->client->dev, "tab len %d is too big\n", tab_len);
 		return -EINVAL;
 	}
 
-	for (i = 0, j = 0; i < tab_len; i++) {
+	for (i = 0, j = 0; i < tab_len; i++)
+	{
 		buf[j] = tab[i].val;
 
-		if (i == tab_len - 1 || tab[i].reg != tab[i + 1].reg - 1) {
+		if (i == tab_len - 1 || tab[i].reg != tab[i + 1].reg - 1)
+		{
 			ret = af9033_wr_regs(dev, tab[i].reg - j, buf, j + 1);
+
 			if (ret < 0)
+			{
 				goto err;
+			}
 
 			j = 0;
-		} else {
+		}
+		else
+		{
 			j++;
 		}
 	}
@@ -214,19 +246,24 @@ static u32 af9033_div(struct af9033_dev *dev, u32 a, u32 b, u32 x)
 
 	dev_dbg(&dev->client->dev, "a=%d b=%d x=%d\n", a, b, x);
 
-	if (a > b) {
+	if (a > b)
+	{
 		c = a / b;
 		a = a - c * b;
 	}
 
-	for (i = 0; i < x; i++) {
-		if (a >= b) {
+	for (i = 0; i < x; i++)
+	{
+		if (a >= b)
+		{
 			r += 1;
 			a -= b;
 		}
+
 		a <<= 1;
 		r <<= 1;
 	}
+
 	r = (c << (u32)x) + r;
 
 	dev_dbg(&dev->client->dev, "a=%d b=%d x=%d r=%d r=%x\n", a, b, x, r, r);
@@ -242,7 +279,8 @@ static int af9033_init(struct dvb_frontend *fe)
 	const struct reg_val *init;
 	u8 buf[4];
 	u32 adc_cw, clock_cw;
-	struct reg_val_mask tab[] = {
+	struct reg_val_mask tab[] =
+	{
 		{ 0x80fb24, 0x00, 0x08 },
 		{ 0x80004c, 0x00, 0xff },
 		{ 0x00f641, dev->cfg.tuner, 0xff },
@@ -282,18 +320,26 @@ static int af9033_init(struct dvb_frontend *fe)
 			dev->cfg.clock, clock_cw);
 
 	ret = af9033_wr_regs(dev, 0x800025, buf, 4);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	/* program ADC control */
-	for (i = 0; i < ARRAY_SIZE(clock_adc_lut); i++) {
+	for (i = 0; i < ARRAY_SIZE(clock_adc_lut); i++)
+	{
 		if (clock_adc_lut[i].clock == dev->cfg.clock)
+		{
 			break;
+		}
 	}
-	if (i == ARRAY_SIZE(clock_adc_lut)) {
+
+	if (i == ARRAY_SIZE(clock_adc_lut))
+	{
 		dev_err(&dev->client->dev,
-			"Couldn't find ADC config for clock=%d\n",
-			dev->cfg.clock);
+				"Couldn't find ADC config for clock=%d\n",
+				dev->cfg.clock);
 		goto err;
 	}
 
@@ -306,151 +352,215 @@ static int af9033_init(struct dvb_frontend *fe)
 			clock_adc_lut[i].adc, adc_cw);
 
 	ret = af9033_wr_regs(dev, 0x80f1cd, buf, 3);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	/* program register table */
-	for (i = 0; i < ARRAY_SIZE(tab); i++) {
+	for (i = 0; i < ARRAY_SIZE(tab); i++)
+	{
 		ret = af9033_wr_reg_mask(dev, tab[i].reg, tab[i].val,
-				tab[i].mask);
+								 tab[i].mask);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 	}
 
 	/* clock output */
-	if (dev->cfg.dyn0_clk) {
+	if (dev->cfg.dyn0_clk)
+	{
 		ret = af9033_wr_reg(dev, 0x80fba8, 0x00);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 	}
 
 	/* settings for TS interface */
-	if (dev->cfg.ts_mode == AF9033_TS_MODE_USB) {
+	if (dev->cfg.ts_mode == AF9033_TS_MODE_USB)
+	{
 		ret = af9033_wr_reg_mask(dev, 0x80f9a5, 0x00, 0x01);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 
 		ret = af9033_wr_reg_mask(dev, 0x80f9b5, 0x01, 0x01);
+
 		if (ret < 0)
+		{
 			goto err;
-	} else {
+		}
+	}
+	else
+	{
 		ret = af9033_wr_reg_mask(dev, 0x80f990, 0x00, 0x01);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 
 		ret = af9033_wr_reg_mask(dev, 0x80f9b5, 0x00, 0x01);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 	}
 
 	/* load OFSM settings */
 	dev_dbg(&dev->client->dev, "load ofsm settings\n");
-	switch (dev->cfg.tuner) {
-	case AF9033_TUNER_IT9135_38:
-	case AF9033_TUNER_IT9135_51:
-	case AF9033_TUNER_IT9135_52:
-		len = ARRAY_SIZE(ofsm_init_it9135_v1);
-		init = ofsm_init_it9135_v1;
-		break;
-	case AF9033_TUNER_IT9135_60:
-	case AF9033_TUNER_IT9135_61:
-	case AF9033_TUNER_IT9135_62:
-		len = ARRAY_SIZE(ofsm_init_it9135_v2);
-		init = ofsm_init_it9135_v2;
-		break;
-	default:
-		len = ARRAY_SIZE(ofsm_init);
-		init = ofsm_init;
-		break;
+
+	switch (dev->cfg.tuner)
+	{
+		case AF9033_TUNER_IT9135_38:
+		case AF9033_TUNER_IT9135_51:
+		case AF9033_TUNER_IT9135_52:
+			len = ARRAY_SIZE(ofsm_init_it9135_v1);
+			init = ofsm_init_it9135_v1;
+			break;
+
+		case AF9033_TUNER_IT9135_60:
+		case AF9033_TUNER_IT9135_61:
+		case AF9033_TUNER_IT9135_62:
+			len = ARRAY_SIZE(ofsm_init_it9135_v2);
+			init = ofsm_init_it9135_v2;
+			break;
+
+		default:
+			len = ARRAY_SIZE(ofsm_init);
+			init = ofsm_init;
+			break;
 	}
 
 	ret = af9033_wr_reg_val_tab(dev, init, len);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	/* load tuner specific settings */
 	dev_dbg(&dev->client->dev, "load tuner specific settings\n");
-	switch (dev->cfg.tuner) {
-	case AF9033_TUNER_TUA9001:
-		len = ARRAY_SIZE(tuner_init_tua9001);
-		init = tuner_init_tua9001;
-		break;
-	case AF9033_TUNER_FC0011:
-		len = ARRAY_SIZE(tuner_init_fc0011);
-		init = tuner_init_fc0011;
-		break;
-	case AF9033_TUNER_MXL5007T:
-		len = ARRAY_SIZE(tuner_init_mxl5007t);
-		init = tuner_init_mxl5007t;
-		break;
-	case AF9033_TUNER_TDA18218:
-		len = ARRAY_SIZE(tuner_init_tda18218);
-		init = tuner_init_tda18218;
-		break;
-	case AF9033_TUNER_FC2580:
-		len = ARRAY_SIZE(tuner_init_fc2580);
-		init = tuner_init_fc2580;
-		break;
-	case AF9033_TUNER_FC0012:
-		len = ARRAY_SIZE(tuner_init_fc0012);
-		init = tuner_init_fc0012;
-		break;
-	case AF9033_TUNER_IT9135_38:
-		len = ARRAY_SIZE(tuner_init_it9135_38);
-		init = tuner_init_it9135_38;
-		break;
-	case AF9033_TUNER_IT9135_51:
-		len = ARRAY_SIZE(tuner_init_it9135_51);
-		init = tuner_init_it9135_51;
-		break;
-	case AF9033_TUNER_IT9135_52:
-		len = ARRAY_SIZE(tuner_init_it9135_52);
-		init = tuner_init_it9135_52;
-		break;
-	case AF9033_TUNER_IT9135_60:
-		len = ARRAY_SIZE(tuner_init_it9135_60);
-		init = tuner_init_it9135_60;
-		break;
-	case AF9033_TUNER_IT9135_61:
-		len = ARRAY_SIZE(tuner_init_it9135_61);
-		init = tuner_init_it9135_61;
-		break;
-	case AF9033_TUNER_IT9135_62:
-		len = ARRAY_SIZE(tuner_init_it9135_62);
-		init = tuner_init_it9135_62;
-		break;
-	default:
-		dev_dbg(&dev->client->dev, "unsupported tuner ID=%d\n",
-				dev->cfg.tuner);
-		ret = -ENODEV;
-		goto err;
+
+	switch (dev->cfg.tuner)
+	{
+		case AF9033_TUNER_TUA9001:
+			len = ARRAY_SIZE(tuner_init_tua9001);
+			init = tuner_init_tua9001;
+			break;
+
+		case AF9033_TUNER_FC0011:
+			len = ARRAY_SIZE(tuner_init_fc0011);
+			init = tuner_init_fc0011;
+			break;
+
+		case AF9033_TUNER_MXL5007T:
+			len = ARRAY_SIZE(tuner_init_mxl5007t);
+			init = tuner_init_mxl5007t;
+			break;
+
+		case AF9033_TUNER_TDA18218:
+			len = ARRAY_SIZE(tuner_init_tda18218);
+			init = tuner_init_tda18218;
+			break;
+
+		case AF9033_TUNER_FC2580:
+			len = ARRAY_SIZE(tuner_init_fc2580);
+			init = tuner_init_fc2580;
+			break;
+
+		case AF9033_TUNER_FC0012:
+			len = ARRAY_SIZE(tuner_init_fc0012);
+			init = tuner_init_fc0012;
+			break;
+
+		case AF9033_TUNER_IT9135_38:
+			len = ARRAY_SIZE(tuner_init_it9135_38);
+			init = tuner_init_it9135_38;
+			break;
+
+		case AF9033_TUNER_IT9135_51:
+			len = ARRAY_SIZE(tuner_init_it9135_51);
+			init = tuner_init_it9135_51;
+			break;
+
+		case AF9033_TUNER_IT9135_52:
+			len = ARRAY_SIZE(tuner_init_it9135_52);
+			init = tuner_init_it9135_52;
+			break;
+
+		case AF9033_TUNER_IT9135_60:
+			len = ARRAY_SIZE(tuner_init_it9135_60);
+			init = tuner_init_it9135_60;
+			break;
+
+		case AF9033_TUNER_IT9135_61:
+			len = ARRAY_SIZE(tuner_init_it9135_61);
+			init = tuner_init_it9135_61;
+			break;
+
+		case AF9033_TUNER_IT9135_62:
+			len = ARRAY_SIZE(tuner_init_it9135_62);
+			init = tuner_init_it9135_62;
+			break;
+
+		default:
+			dev_dbg(&dev->client->dev, "unsupported tuner ID=%d\n",
+					dev->cfg.tuner);
+			ret = -ENODEV;
+			goto err;
 	}
 
 	ret = af9033_wr_reg_val_tab(dev, init, len);
+
 	if (ret < 0)
+	{
 		goto err;
-
-	if (dev->cfg.ts_mode == AF9033_TS_MODE_SERIAL) {
-		ret = af9033_wr_reg_mask(dev, 0x00d91c, 0x01, 0x01);
-		if (ret < 0)
-			goto err;
-
-		ret = af9033_wr_reg_mask(dev, 0x00d917, 0x00, 0x01);
-		if (ret < 0)
-			goto err;
-
-		ret = af9033_wr_reg_mask(dev, 0x00d916, 0x00, 0x01);
-		if (ret < 0)
-			goto err;
 	}
 
-	switch (dev->cfg.tuner) {
-	case AF9033_TUNER_IT9135_60:
-	case AF9033_TUNER_IT9135_61:
-	case AF9033_TUNER_IT9135_62:
-		ret = af9033_wr_reg(dev, 0x800000, 0x01);
+	if (dev->cfg.ts_mode == AF9033_TS_MODE_SERIAL)
+	{
+		ret = af9033_wr_reg_mask(dev, 0x00d91c, 0x01, 0x01);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
+
+		ret = af9033_wr_reg_mask(dev, 0x00d917, 0x00, 0x01);
+
+		if (ret < 0)
+		{
+			goto err;
+		}
+
+		ret = af9033_wr_reg_mask(dev, 0x00d916, 0x00, 0x01);
+
+		if (ret < 0)
+		{
+			goto err;
+		}
+	}
+
+	switch (dev->cfg.tuner)
+	{
+		case AF9033_TUNER_IT9135_60:
+		case AF9033_TUNER_IT9135_61:
+		case AF9033_TUNER_IT9135_62:
+			ret = af9033_wr_reg(dev, 0x800000, 0x01);
+
+			if (ret < 0)
+			{
+				goto err;
+			}
 	}
 
 	dev->bandwidth_hz = 0; /* force to program all parameters */
@@ -483,42 +593,63 @@ static int af9033_sleep(struct dvb_frontend *fe)
 	u8 tmp;
 
 	ret = af9033_wr_reg(dev, 0x80004c, 1);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	ret = af9033_wr_reg(dev, 0x800000, 0);
-	if (ret < 0)
-		goto err;
 
-	for (i = 100, tmp = 1; i && tmp; i--) {
+	if (ret < 0)
+	{
+		goto err;
+	}
+
+	for (i = 100, tmp = 1; i && tmp; i--)
+	{
 		ret = af9033_rd_reg(dev, 0x80004c, &tmp);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 
 		usleep_range(200, 10000);
 	}
 
 	dev_dbg(&dev->client->dev, "loop=%d\n", i);
 
-	if (i == 0) {
+	if (i == 0)
+	{
 		ret = -ETIMEDOUT;
 		goto err;
 	}
 
 	ret = af9033_wr_reg_mask(dev, 0x80fb24, 0x08, 0x08);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	/* prevent current leak (?) */
-	if (dev->cfg.ts_mode == AF9033_TS_MODE_SERIAL) {
+	if (dev->cfg.ts_mode == AF9033_TS_MODE_SERIAL)
+	{
 		/* enable parallel TS */
 		ret = af9033_wr_reg_mask(dev, 0x00d917, 0x00, 0x01);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 
 		ret = af9033_wr_reg_mask(dev, 0x00d916, 0x01, 0x01);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 	}
 
 	return 0;
@@ -530,7 +661,7 @@ err:
 }
 
 static int af9033_get_tune_settings(struct dvb_frontend *fe,
-		struct dvb_frontend_tune_settings *fesettings)
+									struct dvb_frontend_tune_settings *fesettings)
 {
 	/* 800 => 2000 because IT9135 v2 is slow to gain lock */
 	fesettings->min_delay_ms = 2000;
@@ -552,86 +683,118 @@ static int af9033_set_frontend(struct dvb_frontend *fe)
 			c->frequency, c->bandwidth_hz);
 
 	/* check bandwidth */
-	switch (c->bandwidth_hz) {
-	case 6000000:
-		bandwidth_reg_val = 0x00;
-		break;
-	case 7000000:
-		bandwidth_reg_val = 0x01;
-		break;
-	case 8000000:
-		bandwidth_reg_val = 0x02;
-		break;
-	default:
-		dev_dbg(&dev->client->dev, "invalid bandwidth_hz\n");
-		ret = -EINVAL;
-		goto err;
+	switch (c->bandwidth_hz)
+	{
+		case 6000000:
+			bandwidth_reg_val = 0x00;
+			break;
+
+		case 7000000:
+			bandwidth_reg_val = 0x01;
+			break;
+
+		case 8000000:
+			bandwidth_reg_val = 0x02;
+			break;
+
+		default:
+			dev_dbg(&dev->client->dev, "invalid bandwidth_hz\n");
+			ret = -EINVAL;
+			goto err;
 	}
 
 	/* program tuner */
 	if (fe->ops.tuner_ops.set_params)
+	{
 		fe->ops.tuner_ops.set_params(fe);
+	}
 
 	/* program CFOE coefficients */
-	if (c->bandwidth_hz != dev->bandwidth_hz) {
-		for (i = 0; i < ARRAY_SIZE(coeff_lut); i++) {
+	if (c->bandwidth_hz != dev->bandwidth_hz)
+	{
+		for (i = 0; i < ARRAY_SIZE(coeff_lut); i++)
+		{
 			if (coeff_lut[i].clock == dev->cfg.clock &&
-				coeff_lut[i].bandwidth_hz == c->bandwidth_hz) {
+				coeff_lut[i].bandwidth_hz == c->bandwidth_hz)
+			{
 				break;
 			}
 		}
-		if (i == ARRAY_SIZE(coeff_lut)) {
+
+		if (i == ARRAY_SIZE(coeff_lut))
+		{
 			dev_err(&dev->client->dev,
-				"Couldn't find LUT config for clock=%d\n",
-				dev->cfg.clock);
+					"Couldn't find LUT config for clock=%d\n",
+					dev->cfg.clock);
 			ret = -EINVAL;
 			goto err;
 		}
 
 		ret = af9033_wr_regs(dev, 0x800001,
-				coeff_lut[i].val, sizeof(coeff_lut[i].val));
+							 coeff_lut[i].val, sizeof(coeff_lut[i].val));
 	}
 
 	/* program frequency control */
-	if (c->bandwidth_hz != dev->bandwidth_hz) {
+	if (c->bandwidth_hz != dev->bandwidth_hz)
+	{
 		spec_inv = dev->cfg.spec_inv ? -1 : 1;
 
-		for (i = 0; i < ARRAY_SIZE(clock_adc_lut); i++) {
+		for (i = 0; i < ARRAY_SIZE(clock_adc_lut); i++)
+		{
 			if (clock_adc_lut[i].clock == dev->cfg.clock)
+			{
 				break;
+			}
 		}
-		if (i == ARRAY_SIZE(clock_adc_lut)) {
+
+		if (i == ARRAY_SIZE(clock_adc_lut))
+		{
 			dev_err(&dev->client->dev,
-				"Couldn't find ADC clock for clock=%d\n",
-				dev->cfg.clock);
+					"Couldn't find ADC clock for clock=%d\n",
+					dev->cfg.clock);
 			ret = -EINVAL;
 			goto err;
 		}
+
 		adc_freq = clock_adc_lut[i].adc;
 
 		/* get used IF frequency */
 		if (fe->ops.tuner_ops.get_if_frequency)
+		{
 			fe->ops.tuner_ops.get_if_frequency(fe, &if_frequency);
+		}
 		else
+		{
 			if_frequency = 0;
+		}
 
 		sampling_freq = if_frequency;
 
 		while (sampling_freq > (adc_freq / 2))
+		{
 			sampling_freq -= adc_freq;
+		}
 
 		if (sampling_freq >= 0)
+		{
 			spec_inv *= -1;
+		}
 		else
+		{
 			sampling_freq *= -1;
+		}
 
 		freq_cw = af9033_div(dev, sampling_freq, adc_freq, 23ul);
 
 		if (spec_inv == -1)
+		{
 			freq_cw = 0x800000 - freq_cw;
+		}
 
 		if (dev->cfg.adc_multiplier == AF9033_ADC_MULTIPLIER_2X)
+		{
 			freq_cw /= 2;
+		}
 
 		buf[0] = (freq_cw >>  0) & 0xff;
 		buf[1] = (freq_cw >>  8) & 0xff;
@@ -639,43 +802,70 @@ static int af9033_set_frontend(struct dvb_frontend *fe)
 
 		/* FIXME: there seems to be calculation error here... */
 		if (if_frequency == 0)
+		{
 			buf[2] = 0;
+		}
 
 		ret = af9033_wr_regs(dev, 0x800029, buf, 3);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 
 		dev->bandwidth_hz = c->bandwidth_hz;
 	}
 
 	ret = af9033_wr_reg_mask(dev, 0x80f904, bandwidth_reg_val, 0x03);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	ret = af9033_wr_reg(dev, 0x800040, 0x00);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	ret = af9033_wr_reg(dev, 0x800047, 0x00);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	ret = af9033_wr_reg_mask(dev, 0x80f999, 0x00, 0x01);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	if (c->frequency <= 230000000)
-		tmp = 0x00; /* VHF */
+	{
+		tmp = 0x00;    /* VHF */
+	}
 	else
-		tmp = 0x01; /* UHF */
+	{
+		tmp = 0x01;    /* UHF */
+	}
 
 	ret = af9033_wr_reg(dev, 0x80004b, tmp);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	ret = af9033_wr_reg(dev, 0x800000, 0x00);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	return 0;
 
@@ -686,7 +876,7 @@ err:
 }
 
 static int af9033_get_frontend(struct dvb_frontend *fe,
-			       struct dtv_frontend_properties *c)
+							   struct dtv_frontend_properties *c)
 {
 	struct af9033_dev *dev = fe->demodulator_priv;
 	int ret;
@@ -696,112 +886,143 @@ static int af9033_get_frontend(struct dvb_frontend *fe,
 
 	/* read all needed registers */
 	ret = af9033_rd_regs(dev, 0x80f900, buf, sizeof(buf));
+
 	if (ret < 0)
+	{
 		goto err;
-
-	switch ((buf[0] >> 0) & 3) {
-	case 0:
-		c->transmission_mode = TRANSMISSION_MODE_2K;
-		break;
-	case 1:
-		c->transmission_mode = TRANSMISSION_MODE_8K;
-		break;
 	}
 
-	switch ((buf[1] >> 0) & 3) {
-	case 0:
-		c->guard_interval = GUARD_INTERVAL_1_32;
-		break;
-	case 1:
-		c->guard_interval = GUARD_INTERVAL_1_16;
-		break;
-	case 2:
-		c->guard_interval = GUARD_INTERVAL_1_8;
-		break;
-	case 3:
-		c->guard_interval = GUARD_INTERVAL_1_4;
-		break;
+	switch ((buf[0] >> 0) & 3)
+	{
+		case 0:
+			c->transmission_mode = TRANSMISSION_MODE_2K;
+			break;
+
+		case 1:
+			c->transmission_mode = TRANSMISSION_MODE_8K;
+			break;
 	}
 
-	switch ((buf[2] >> 0) & 7) {
-	case 0:
-		c->hierarchy = HIERARCHY_NONE;
-		break;
-	case 1:
-		c->hierarchy = HIERARCHY_1;
-		break;
-	case 2:
-		c->hierarchy = HIERARCHY_2;
-		break;
-	case 3:
-		c->hierarchy = HIERARCHY_4;
-		break;
+	switch ((buf[1] >> 0) & 3)
+	{
+		case 0:
+			c->guard_interval = GUARD_INTERVAL_1_32;
+			break;
+
+		case 1:
+			c->guard_interval = GUARD_INTERVAL_1_16;
+			break;
+
+		case 2:
+			c->guard_interval = GUARD_INTERVAL_1_8;
+			break;
+
+		case 3:
+			c->guard_interval = GUARD_INTERVAL_1_4;
+			break;
 	}
 
-	switch ((buf[3] >> 0) & 3) {
-	case 0:
-		c->modulation = QPSK;
-		break;
-	case 1:
-		c->modulation = QAM_16;
-		break;
-	case 2:
-		c->modulation = QAM_64;
-		break;
+	switch ((buf[2] >> 0) & 7)
+	{
+		case 0:
+			c->hierarchy = HIERARCHY_NONE;
+			break;
+
+		case 1:
+			c->hierarchy = HIERARCHY_1;
+			break;
+
+		case 2:
+			c->hierarchy = HIERARCHY_2;
+			break;
+
+		case 3:
+			c->hierarchy = HIERARCHY_4;
+			break;
 	}
 
-	switch ((buf[4] >> 0) & 3) {
-	case 0:
-		c->bandwidth_hz = 6000000;
-		break;
-	case 1:
-		c->bandwidth_hz = 7000000;
-		break;
-	case 2:
-		c->bandwidth_hz = 8000000;
-		break;
+	switch ((buf[3] >> 0) & 3)
+	{
+		case 0:
+			c->modulation = QPSK;
+			break;
+
+		case 1:
+			c->modulation = QAM_16;
+			break;
+
+		case 2:
+			c->modulation = QAM_64;
+			break;
 	}
 
-	switch ((buf[6] >> 0) & 7) {
-	case 0:
-		c->code_rate_HP = FEC_1_2;
-		break;
-	case 1:
-		c->code_rate_HP = FEC_2_3;
-		break;
-	case 2:
-		c->code_rate_HP = FEC_3_4;
-		break;
-	case 3:
-		c->code_rate_HP = FEC_5_6;
-		break;
-	case 4:
-		c->code_rate_HP = FEC_7_8;
-		break;
-	case 5:
-		c->code_rate_HP = FEC_NONE;
-		break;
+	switch ((buf[4] >> 0) & 3)
+	{
+		case 0:
+			c->bandwidth_hz = 6000000;
+			break;
+
+		case 1:
+			c->bandwidth_hz = 7000000;
+			break;
+
+		case 2:
+			c->bandwidth_hz = 8000000;
+			break;
 	}
 
-	switch ((buf[7] >> 0) & 7) {
-	case 0:
-		c->code_rate_LP = FEC_1_2;
-		break;
-	case 1:
-		c->code_rate_LP = FEC_2_3;
-		break;
-	case 2:
-		c->code_rate_LP = FEC_3_4;
-		break;
-	case 3:
-		c->code_rate_LP = FEC_5_6;
-		break;
-	case 4:
-		c->code_rate_LP = FEC_7_8;
-		break;
-	case 5:
-		c->code_rate_LP = FEC_NONE;
-		break;
+	switch ((buf[6] >> 0) & 7)
+	{
+		case 0:
+			c->code_rate_HP = FEC_1_2;
+			break;
+
+		case 1:
+			c->code_rate_HP = FEC_2_3;
+			break;
+
+		case 2:
+			c->code_rate_HP = FEC_3_4;
+			break;
+
+		case 3:
+			c->code_rate_HP = FEC_5_6;
+			break;
+
+		case 4:
+			c->code_rate_HP = FEC_7_8;
+			break;
+
+		case 5:
+			c->code_rate_HP = FEC_NONE;
+			break;
+	}
+
+	switch ((buf[7] >> 0) & 7)
+	{
+		case 0:
+			c->code_rate_LP = FEC_1_2;
+			break;
+
+		case 1:
+			c->code_rate_LP = FEC_2_3;
+			break;
+
+		case 2:
+			c->code_rate_LP = FEC_3_4;
+			break;
+
+		case 3:
+			c->code_rate_LP = FEC_5_6;
+			break;
+
+		case 4:
+			c->code_rate_LP = FEC_7_8;
+			break;
+
+		case 5:
+			c->code_rate_LP = FEC_NONE;
+			break;
 	}
 
 	return 0;
@@ -825,138 +1046,194 @@ static int af9033_read_status(struct dvb_frontend *fe, enum fe_status *status)
 
 	/* radio channel status, 0=no result, 1=has signal, 2=no signal */
 	ret = af9033_rd_reg(dev, 0x800047, &u8tmp);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	/* has signal */
 	if (u8tmp == 0x01)
+	{
 		*status |= FE_HAS_SIGNAL;
+	}
 
-	if (u8tmp != 0x02) {
+	if (u8tmp != 0x02)
+	{
 		/* TPS lock */
 		ret = af9033_rd_reg_mask(dev, 0x80f5a9, &u8tmp, 0x01);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 
 		if (u8tmp)
 			*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER |
-					FE_HAS_VITERBI;
+					   FE_HAS_VITERBI;
 
 		/* full lock */
 		ret = af9033_rd_reg_mask(dev, 0x80f999, &u8tmp, 0x01);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 
 		if (u8tmp)
 			*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER |
-					FE_HAS_VITERBI | FE_HAS_SYNC |
-					FE_HAS_LOCK;
+					   FE_HAS_VITERBI | FE_HAS_SYNC |
+					   FE_HAS_LOCK;
 	}
 
 	dev->fe_status = *status;
 
 	/* signal strength */
-	if (dev->fe_status & FE_HAS_SIGNAL) {
-		if (dev->is_af9035) {
+	if (dev->fe_status & FE_HAS_SIGNAL)
+	{
+		if (dev->is_af9035)
+		{
 			ret = af9033_rd_reg(dev, 0x80004a, &u8tmp);
+
 			if (ret)
+			{
 				goto err;
+			}
+
 			tmp = -u8tmp * 1000;
-		} else {
+		}
+		else
+		{
 			ret = af9033_rd_reg(dev, 0x8000f7, &u8tmp);
+
 			if (ret)
+			{
 				goto err;
+			}
+
 			tmp = (u8tmp - 100) * 1000;
 		}
 
 		c->strength.len = 1;
 		c->strength.stat[0].scale = FE_SCALE_DECIBEL;
 		c->strength.stat[0].svalue = tmp;
-	} else {
+	}
+	else
+	{
 		c->strength.len = 1;
 		c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
 	}
 
 	/* CNR */
-	if (dev->fe_status & FE_HAS_VITERBI) {
+	if (dev->fe_status & FE_HAS_VITERBI)
+	{
 		u32 snr_val, snr_lut_size;
 		const struct val_snr *snr_lut = NULL;
 
 		/* read value */
 		ret = af9033_rd_regs(dev, 0x80002c, buf, 3);
+
 		if (ret)
+		{
 			goto err;
+		}
 
 		snr_val = (buf[2] << 16) | (buf[1] << 8) | (buf[0] << 0);
 
 		/* read superframe number */
 		ret = af9033_rd_reg(dev, 0x80f78b, &u8tmp);
+
 		if (ret)
+		{
 			goto err;
+		}
 
 		if (u8tmp)
+		{
 			snr_val /= u8tmp;
+		}
 
 		/* read current transmission mode */
 		ret = af9033_rd_reg(dev, 0x80f900, &u8tmp);
-		if (ret)
-			goto err;
 
-		switch ((u8tmp >> 0) & 3) {
-		case 0:
-			snr_val *= 4;
-			break;
-		case 1:
-			snr_val *= 1;
-			break;
-		case 2:
-			snr_val *= 2;
-			break;
-		default:
-			snr_val *= 0;
-			break;
+		if (ret)
+		{
+			goto err;
+		}
+
+		switch ((u8tmp >> 0) & 3)
+		{
+			case 0:
+				snr_val *= 4;
+				break;
+
+			case 1:
+				snr_val *= 1;
+				break;
+
+			case 2:
+				snr_val *= 2;
+				break;
+
+			default:
+				snr_val *= 0;
+				break;
 		}
 
 		/* read current modulation */
 		ret = af9033_rd_reg(dev, 0x80f903, &u8tmp);
-		if (ret)
-			goto err;
 
-		switch ((u8tmp >> 0) & 3) {
-		case 0:
-			snr_lut_size = ARRAY_SIZE(qpsk_snr_lut);
-			snr_lut = qpsk_snr_lut;
-			break;
-		case 1:
-			snr_lut_size = ARRAY_SIZE(qam16_snr_lut);
-			snr_lut = qam16_snr_lut;
-			break;
-		case 2:
-			snr_lut_size = ARRAY_SIZE(qam64_snr_lut);
-			snr_lut = qam64_snr_lut;
-			break;
-		default:
-			snr_lut_size = 0;
-			tmp = 0;
-			break;
+		if (ret)
+		{
+			goto err;
 		}
 
-		for (i = 0; i < snr_lut_size; i++) {
-			tmp = snr_lut[i].snr * 1000;
-			if (snr_val < snr_lut[i].val)
+		switch ((u8tmp >> 0) & 3)
+		{
+			case 0:
+				snr_lut_size = ARRAY_SIZE(qpsk_snr_lut);
+				snr_lut = qpsk_snr_lut;
 				break;
+
+			case 1:
+				snr_lut_size = ARRAY_SIZE(qam16_snr_lut);
+				snr_lut = qam16_snr_lut;
+				break;
+
+			case 2:
+				snr_lut_size = ARRAY_SIZE(qam64_snr_lut);
+				snr_lut = qam64_snr_lut;
+				break;
+
+			default:
+				snr_lut_size = 0;
+				tmp = 0;
+				break;
+		}
+
+		for (i = 0; i < snr_lut_size; i++)
+		{
+			tmp = snr_lut[i].snr * 1000;
+
+			if (snr_val < snr_lut[i].val)
+			{
+				break;
+			}
 		}
 
 		c->cnr.len = 1;
 		c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
 		c->cnr.stat[0].svalue = tmp;
-	} else {
+	}
+	else
+	{
 		c->cnr.len = 1;
 		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
 	}
 
 	/* UCB/PER/BER */
-	if (dev->fe_status & FE_HAS_LOCK) {
+	if (dev->fe_status & FE_HAS_LOCK)
+	{
 		/* outer FEC, 204 byte packets */
 		u16 abort_packet_count, rsd_packet_count;
 		/* inner FEC, bits */
@@ -968,8 +1245,11 @@ static int af9033_read_status(struct dvb_frontend *fe, enum fe_status *status)
 		 */
 
 		ret = af9033_rd_regs(dev, 0x800032, buf, 7);
+
 		if (ret)
+		{
 			goto err;
+		}
 
 		abort_packet_count = (buf[1] << 8) | (buf[0] << 0);
 		rsd_bit_err_count = (buf[4] << 16) | (buf[3] << 8) | buf[2];
@@ -1013,36 +1293,49 @@ static int af9033_read_snr(struct dvb_frontend *fe, u16 *snr)
 	u8 u8tmp;
 
 	/* use DVBv5 CNR */
-	if (c->cnr.stat[0].scale == FE_SCALE_DECIBEL) {
+	if (c->cnr.stat[0].scale == FE_SCALE_DECIBEL)
+	{
 		/* Return 0.1 dB for AF9030 and 0-0xffff for IT9130. */
-		if (dev->is_af9035) {
+		if (dev->is_af9035)
+		{
 			/* 1000x => 10x (0.1 dB) */
 			*snr = div_s64(c->cnr.stat[0].svalue, 100);
-		} else {
+		}
+		else
+		{
 			/* 1000x => 1x (1 dB) */
 			*snr = div_s64(c->cnr.stat[0].svalue, 1000);
 
 			/* read current modulation */
 			ret = af9033_rd_reg(dev, 0x80f903, &u8tmp);
-			if (ret)
-				goto err;
 
-			/* scale value to 0x0000-0xffff */
-			switch ((u8tmp >> 0) & 3) {
-			case 0:
-				*snr = *snr * 0xffff / 23;
-				break;
-			case 1:
-				*snr = *snr * 0xffff / 26;
-				break;
-			case 2:
-				*snr = *snr * 0xffff / 32;
-				break;
-			default:
+			if (ret)
+			{
 				goto err;
 			}
+
+			/* scale value to 0x0000-0xffff */
+			switch ((u8tmp >> 0) & 3)
+			{
+				case 0:
+					*snr = *snr * 0xffff / 23;
+					break;
+
+				case 1:
+					*snr = *snr * 0xffff / 26;
+					break;
+
+				case 2:
+					*snr = *snr * 0xffff / 32;
+					break;
+
+				default:
+					goto err;
+			}
 		}
-	} else {
+	}
+	else
+	{
 		*snr = 0;
 	}
 
@@ -1061,41 +1354,67 @@ static int af9033_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
 	int ret, tmp, power_real;
 	u8 u8tmp, gain_offset, buf[7];
 
-	if (dev->is_af9035) {
+	if (dev->is_af9035)
+	{
 		/* read signal strength of 0-100 scale */
 		ret = af9033_rd_reg(dev, 0x800048, &u8tmp);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 
 		/* scale value to 0x0000-0xffff */
 		*strength = u8tmp * 0xffff / 100;
-	} else {
+	}
+	else
+	{
 		ret = af9033_rd_reg(dev, 0x8000f7, &u8tmp);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 
 		ret = af9033_rd_regs(dev, 0x80f900, buf, 7);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 
 		if (c->frequency <= 300000000)
-			gain_offset = 7; /* VHF */
+		{
+			gain_offset = 7;    /* VHF */
+		}
 		else
-			gain_offset = 4; /* UHF */
+		{
+			gain_offset = 4;    /* UHF */
+		}
 
 		power_real = (u8tmp - 100 - gain_offset) -
-			power_reference[((buf[3] >> 0) & 3)][((buf[6] >> 0) & 7)];
+					 power_reference[((buf[3] >> 0) & 3)][((buf[6] >> 0) & 7)];
 
 		if (power_real < -15)
+		{
 			tmp = 0;
+		}
 		else if ((power_real >= -15) && (power_real < 0))
+		{
 			tmp = (2 * (power_real + 15)) / 3;
+		}
 		else if ((power_real >= 0) && (power_real < 20))
+		{
 			tmp = 4 * power_real + 10;
+		}
 		else if ((power_real >= 20) && (power_real < 35))
+		{
 			tmp = (2 * (power_real - 20)) / 3 + 90;
+		}
 		else
+		{
 			tmp = 100;
+		}
 
 		/* scale value to 0x0000-0xffff */
 		*strength = tmp * 0xffff / 100;
@@ -1135,8 +1454,11 @@ static int af9033_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
 	dev_dbg(&dev->client->dev, "enable=%d\n", enable);
 
 	ret = af9033_wr_reg_mask(dev, 0x00fa04, enable, 0x01);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	return 0;
 
@@ -1154,8 +1476,11 @@ static int af9033_pid_filter_ctrl(struct dvb_frontend *fe, int onoff)
 	dev_dbg(&dev->client->dev, "onoff=%d\n", onoff);
 
 	ret = af9033_wr_reg_mask(dev, 0x80f993, onoff, 0x01);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	return 0;
 
@@ -1166,7 +1491,7 @@ err:
 }
 
 static int af9033_pid_filter(struct dvb_frontend *fe, int index, u16 pid,
-		int onoff)
+							 int onoff)
 {
 	struct af9033_dev *dev = fe->demodulator_priv;
 	int ret;
@@ -1176,19 +1501,30 @@ static int af9033_pid_filter(struct dvb_frontend *fe, int index, u16 pid,
 			index, pid, onoff);
 
 	if (pid > 0x1fff)
+	{
 		return 0;
+	}
 
 	ret = af9033_wr_regs(dev, 0x80f996, wbuf, 2);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	ret = af9033_wr_reg(dev, 0x80f994, onoff);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	ret = af9033_wr_reg(dev, 0x80f995, index);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	return 0;
 
@@ -1198,7 +1534,8 @@ err:
 	return ret;
 }
 
-static struct dvb_frontend_ops af9033_ops = {
+static struct dvb_frontend_ops af9033_ops =
+{
 	.delsys = { SYS_DVBT },
 	.info = {
 		.name = "Afatech AF9033 (DVB-T)",
@@ -1207,20 +1544,20 @@ static struct dvb_frontend_ops af9033_ops = {
 		.frequency_stepsize = 250000,
 		.frequency_tolerance = 0,
 		.caps =	FE_CAN_FEC_1_2 |
-			FE_CAN_FEC_2_3 |
-			FE_CAN_FEC_3_4 |
-			FE_CAN_FEC_5_6 |
-			FE_CAN_FEC_7_8 |
-			FE_CAN_FEC_AUTO |
-			FE_CAN_QPSK |
-			FE_CAN_QAM_16 |
-			FE_CAN_QAM_64 |
-			FE_CAN_QAM_AUTO |
-			FE_CAN_TRANSMISSION_MODE_AUTO |
-			FE_CAN_GUARD_INTERVAL_AUTO |
-			FE_CAN_HIERARCHY_AUTO |
-			FE_CAN_RECOVER |
-			FE_CAN_MUTE_TS
+		FE_CAN_FEC_2_3 |
+		FE_CAN_FEC_3_4 |
+		FE_CAN_FEC_5_6 |
+		FE_CAN_FEC_7_8 |
+		FE_CAN_FEC_AUTO |
+		FE_CAN_QPSK |
+		FE_CAN_QAM_16 |
+		FE_CAN_QAM_64 |
+		FE_CAN_QAM_AUTO |
+		FE_CAN_TRANSMISSION_MODE_AUTO |
+		FE_CAN_GUARD_INTERVAL_AUTO |
+		FE_CAN_HIERARCHY_AUTO |
+		FE_CAN_RECOVER |
+		FE_CAN_MUTE_TS
 	},
 
 	.init = af9033_init,
@@ -1240,7 +1577,7 @@ static struct dvb_frontend_ops af9033_ops = {
 };
 
 static int af9033_probe(struct i2c_client *client,
-		const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct af9033_config *cfg = client->dev.platform_data;
 	struct af9033_dev *dev;
@@ -1250,7 +1587,9 @@ static int af9033_probe(struct i2c_client *client,
 
 	/* allocate memory for the internal state */
 	dev = kzalloc(sizeof(struct af9033_dev), GFP_KERNEL);
-	if (dev == NULL) {
+
+	if (dev == NULL)
+	{
 		ret = -ENOMEM;
 		dev_err(&client->dev, "Could not allocate memory for state\n");
 		goto err;
@@ -1260,7 +1599,8 @@ static int af9033_probe(struct i2c_client *client,
 	dev->client = client;
 	memcpy(&dev->cfg, cfg, sizeof(struct af9033_config));
 
-	if (dev->cfg.clock != 12000000) {
+	if (dev->cfg.clock != 12000000)
+	{
 		ret = -ENODEV;
 		dev_err(&dev->client->dev,
 				"unsupported clock %d Hz, only 12000000 Hz is supported currently\n",
@@ -1269,77 +1609,100 @@ static int af9033_probe(struct i2c_client *client,
 	}
 
 	/* firmware version */
-	switch (dev->cfg.tuner) {
-	case AF9033_TUNER_IT9135_38:
-	case AF9033_TUNER_IT9135_51:
-	case AF9033_TUNER_IT9135_52:
-	case AF9033_TUNER_IT9135_60:
-	case AF9033_TUNER_IT9135_61:
-	case AF9033_TUNER_IT9135_62:
-		dev->is_it9135 = true;
-		reg = 0x004bfc;
-		break;
-	default:
-		dev->is_af9035 = true;
-		reg = 0x0083e9;
-		break;
+	switch (dev->cfg.tuner)
+	{
+		case AF9033_TUNER_IT9135_38:
+		case AF9033_TUNER_IT9135_51:
+		case AF9033_TUNER_IT9135_52:
+		case AF9033_TUNER_IT9135_60:
+		case AF9033_TUNER_IT9135_61:
+		case AF9033_TUNER_IT9135_62:
+			dev->is_it9135 = true;
+			reg = 0x004bfc;
+			break;
+
+		default:
+			dev->is_af9035 = true;
+			reg = 0x0083e9;
+			break;
 	}
 
 	ret = af9033_rd_regs(dev, reg, &buf[0], 4);
+
 	if (ret < 0)
+	{
 		goto err_kfree;
+	}
 
 	ret = af9033_rd_regs(dev, 0x804191, &buf[4], 4);
+
 	if (ret < 0)
+	{
 		goto err_kfree;
+	}
 
 	dev_info(&dev->client->dev,
-			"firmware version: LINK %d.%d.%d.%d - OFDM %d.%d.%d.%d\n",
-			buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6],
-			buf[7]);
+			 "firmware version: LINK %d.%d.%d.%d - OFDM %d.%d.%d.%d\n",
+			 buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6],
+			 buf[7]);
 
 	/* sleep */
-	switch (dev->cfg.tuner) {
-	case AF9033_TUNER_IT9135_38:
-	case AF9033_TUNER_IT9135_51:
-	case AF9033_TUNER_IT9135_52:
-	case AF9033_TUNER_IT9135_60:
-	case AF9033_TUNER_IT9135_61:
-	case AF9033_TUNER_IT9135_62:
-		/* IT9135 did not like to sleep at that early */
-		break;
-	default:
-		ret = af9033_wr_reg(dev, 0x80004c, 1);
-		if (ret < 0)
-			goto err_kfree;
+	switch (dev->cfg.tuner)
+	{
+		case AF9033_TUNER_IT9135_38:
+		case AF9033_TUNER_IT9135_51:
+		case AF9033_TUNER_IT9135_52:
+		case AF9033_TUNER_IT9135_60:
+		case AF9033_TUNER_IT9135_61:
+		case AF9033_TUNER_IT9135_62:
+			/* IT9135 did not like to sleep at that early */
+			break;
 
-		ret = af9033_wr_reg(dev, 0x800000, 0);
-		if (ret < 0)
-			goto err_kfree;
+		default:
+			ret = af9033_wr_reg(dev, 0x80004c, 1);
+
+			if (ret < 0)
+			{
+				goto err_kfree;
+			}
+
+			ret = af9033_wr_reg(dev, 0x800000, 0);
+
+			if (ret < 0)
+			{
+				goto err_kfree;
+			}
 	}
 
 	/* configure internal TS mode */
-	switch (dev->cfg.ts_mode) {
-	case AF9033_TS_MODE_PARALLEL:
-		dev->ts_mode_parallel = true;
-		break;
-	case AF9033_TS_MODE_SERIAL:
-		dev->ts_mode_serial = true;
-		break;
-	case AF9033_TS_MODE_USB:
+	switch (dev->cfg.ts_mode)
+	{
+		case AF9033_TS_MODE_PARALLEL:
+			dev->ts_mode_parallel = true;
+			break;
+
+		case AF9033_TS_MODE_SERIAL:
+			dev->ts_mode_serial = true;
+			break;
+
+		case AF9033_TS_MODE_USB:
+
 		/* usb mode for AF9035 */
-	default:
-		break;
+		default:
+			break;
 	}
 
 	/* create dvb_frontend */
 	memcpy(&dev->fe.ops, &af9033_ops, sizeof(struct dvb_frontend_ops));
 	dev->fe.demodulator_priv = dev;
 	*cfg->fe = &dev->fe;
-	if (cfg->ops) {
+
+	if (cfg->ops)
+	{
 		cfg->ops->pid_filter = af9033_pid_filter;
 		cfg->ops->pid_filter_ctrl = af9033_pid_filter_ctrl;
 	}
+
 	i2c_set_clientdata(client, dev);
 
 	dev_info(&dev->client->dev, "Afatech AF9033 successfully attached\n");
@@ -1364,13 +1727,15 @@ static int af9033_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id af9033_id_table[] = {
+static const struct i2c_device_id af9033_id_table[] =
+{
 	{"af9033", 0},
 	{}
 };
 MODULE_DEVICE_TABLE(i2c, af9033_id_table);
 
-static struct i2c_driver af9033_driver = {
+static struct i2c_driver af9033_driver =
+{
 	.driver = {
 		.name	= "af9033",
 		.suppress_bind_attrs	= true,

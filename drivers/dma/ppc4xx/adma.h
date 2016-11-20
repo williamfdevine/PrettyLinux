@@ -16,11 +16,11 @@
 #include "xor.h"
 
 #define to_ppc440spe_adma_chan(chan) \
-		container_of(chan, struct ppc440spe_adma_chan, common)
+	container_of(chan, struct ppc440spe_adma_chan, common)
 #define to_ppc440spe_adma_device(dev) \
-		container_of(dev, struct ppc440spe_adma_device, common)
+	container_of(dev, struct ppc440spe_adma_device, common)
 #define tx_to_ppc440spe_adma_slot(tx) \
-		container_of(tx, struct ppc440spe_adma_desc_slot, async_tx)
+	container_of(tx, struct ppc440spe_adma_desc_slot, async_tx)
 
 /* Default polynomial (for 440SP is only available) */
 #define PPC440SPE_DEFAULT_POLY	0x4d
@@ -59,7 +59,8 @@
  * @err_irq: DMAx error irq number
  * @common: embedded struct dma_device
  */
-struct ppc440spe_adma_device {
+struct ppc440spe_adma_device
+{
 	struct device *dev;
 	struct dma_regs __iomem *dma_reg;
 	struct xor_regs __iomem *xor_reg;
@@ -90,7 +91,8 @@ struct ppc440spe_adma_device {
  * @pdest: P dma addr for async validate operation
  * @qdest: Q dma addr for async validate operation
  */
-struct ppc440spe_adma_chan {
+struct ppc440spe_adma_chan
+{
 	spinlock_t lock;
 	struct ppc440spe_adma_device *device;
 	struct list_head chain;
@@ -108,7 +110,8 @@ struct ppc440spe_adma_chan {
 	dma_addr_t qdest;
 };
 
-struct ppc440spe_rxor {
+struct ppc440spe_rxor
+{
 	u32 addrl;
 	u32 addrh;
 	int len;
@@ -143,7 +146,8 @@ struct ppc440spe_rxor {
  * @xor_check_result: result of zero sum
  * @crc32_result: result crc calculation
  */
-struct ppc440spe_adma_desc_slot {
+struct ppc440spe_adma_desc_slot
+{
 	dma_addr_t phys;
 	struct ppc440spe_adma_desc_slot *group_head;
 	struct ppc440spe_adma_desc_slot *hw_next;
@@ -184,7 +188,8 @@ struct ppc440spe_adma_desc_slot {
 
 	struct ppc440spe_rxor rxor_cursor;
 
-	union {
+	union
+	{
 		u32 *xor_check_result;
 		u32 *crc32_result;
 	};

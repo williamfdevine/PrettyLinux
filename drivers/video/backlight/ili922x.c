@@ -116,7 +116,7 @@
 	do {			\
 		if (s->max_speed_hz > ILITEK_MAX_FREQ_REG)	\
 			((struct spi_transfer *)x)->speed_hz =	\
-					ILITEK_MAX_FREQ_REG;	\
+													ILITEK_MAX_FREQ_REG;	\
 	} while (0)
 
 #define CMD_BUFSIZE		16
@@ -137,7 +137,8 @@ module_param(tx_invert, int, 0);
 /**
  * driver's private structure
  */
-struct ili922x {
+struct ili922x
+{
 	struct spi_device *spi;
 	struct lcd_device *ld;
 	int power;
@@ -164,19 +165,24 @@ static int ili922x_read_status(struct spi_device *spi, u16 *rs)
 	CHECK_FREQ_REG(spi, &xfer);
 
 	tbuf[0] = set_tx_byte(START_BYTE(ili922x_id, START_RS_INDEX,
-					 START_RW_READ));
+									 START_RW_READ));
+
 	/*
 	 * we need 4-byte xfer here due to invalid dummy byte
 	 * received after start byte
 	 */
 	for (i = 1; i < 4; i++)
-		tbuf[i] = set_tx_byte(0);	/* dummy */
+	{
+		tbuf[i] = set_tx_byte(0);    /* dummy */
+	}
 
 	xfer.bits_per_word = 8;
 	xfer.len = 4;
 	spi_message_add_tail(&xfer, &msg);
 	ret = spi_sync(spi, &msg);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_dbg(&spi->dev, "Error sending SPI message 0x%x", ret);
 		return ret;
 	}
@@ -208,7 +214,7 @@ static int ili922x_read(struct spi_device *spi, u8 reg, u16 *rx)
 	CHECK_FREQ_REG(spi, &xfer_regindex);
 
 	tbuf[0] = set_tx_byte(START_BYTE(ili922x_id, START_RS_INDEX,
-					 START_RW_WRITE));
+									 START_RW_WRITE));
 	tbuf[1] = set_tx_byte(0);
 	tbuf[2] = set_tx_byte(reg);
 	xfer_regindex.bits_per_word = 8;
@@ -218,7 +224,7 @@ static int ili922x_read(struct spi_device *spi, u8 reg, u16 *rx)
 	send_bytes = len;
 
 	tbuf[len++] = set_tx_byte(START_BYTE(ili922x_id, START_RS_REG,
-					     START_RW_READ));
+										 START_RW_READ));
 	tbuf[len++] = set_tx_byte(0);
 	tbuf[len] = set_tx_byte(0);
 
@@ -230,7 +236,9 @@ static int ili922x_read(struct spi_device *spi, u8 reg, u16 *rx)
 
 	spi_message_add_tail(&xfer_regvalue, &msg);
 	ret = spi_sync(spi, &msg);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_dbg(&spi->dev, "Error sending SPI message 0x%x", ret);
 		return ret;
 	}
@@ -263,7 +271,7 @@ static int ili922x_write(struct spi_device *spi, u8 reg, u16 value)
 	CHECK_FREQ_REG(spi, &xfer_regindex);
 
 	tbuf[0] = set_tx_byte(START_BYTE(ili922x_id, START_RS_INDEX,
-					 START_RW_WRITE));
+									 START_RW_WRITE));
 	tbuf[1] = set_tx_byte(0);
 	tbuf[2] = set_tx_byte(reg);
 	xfer_regindex.bits_per_word = 8;
@@ -275,7 +283,7 @@ static int ili922x_write(struct spi_device *spi, u8 reg, u16 value)
 	spi_message_init(&msg);
 	len = 0;
 	tbuf[0] = set_tx_byte(START_BYTE(ili922x_id, START_RS_REG,
-					 START_RW_WRITE));
+									 START_RW_WRITE));
 	tbuf[1] = set_tx_byte((value & 0xFF00) >> 8);
 	tbuf[2] = set_tx_byte(value & 0x00FF);
 
@@ -288,10 +296,13 @@ static int ili922x_write(struct spi_device *spi, u8 reg, u16 value)
 	spi_message_add_tail(&xfer_regvalue, &msg);
 
 	ret = spi_sync(spi, &msg);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&spi->dev, "Error sending SPI message 0x%x", ret);
 		return ret;
 	}
+
 	return 0;
 }
 
@@ -305,8 +316,10 @@ static void ili922x_reg_dump(struct spi_device *spi)
 	u16 rx;
 
 	dev_dbg(&spi->dev, "ILI922x configuration registers:\n");
+
 	for (reg = REG_START_OSCILLATION;
-	     reg <= REG_OTP_PROGRAMMING_ID_KEY; reg++) {
+		 reg <= REG_OTP_PROGRAMMING_ID_KEY; reg++)
+	{
 		ili922x_read(spi, reg, &rx);
 		dev_dbg(&spi->dev, "reg @ 0x%02X: 0x%04X\n", reg, rx);
 	}
@@ -445,12 +458,18 @@ static int ili922x_lcd_power(struct ili922x *lcd, int power)
 	int ret = 0;
 
 	if (POWER_IS_ON(power) && !POWER_IS_ON(lcd->power))
+	{
 		ret = ili922x_poweron(lcd->spi);
+	}
 	else if (!POWER_IS_ON(power) && POWER_IS_ON(lcd->power))
+	{
 		ret = ili922x_poweroff(lcd->spi);
+	}
 
 	if (!ret)
+	{
 		lcd->power = power;
+	}
 
 	return ret;
 }
@@ -469,7 +488,8 @@ static int ili922x_get_power(struct lcd_device *ld)
 	return ili->power;
 }
 
-static struct lcd_ops ili922x_ops = {
+static struct lcd_ops ili922x_ops =
+{
 	.get_power = ili922x_get_power,
 	.set_power = ili922x_set_power,
 };
@@ -482,26 +502,33 @@ static int ili922x_probe(struct spi_device *spi)
 	u16 reg = 0;
 
 	ili = devm_kzalloc(&spi->dev, sizeof(*ili), GFP_KERNEL);
+
 	if (!ili)
+	{
 		return -ENOMEM;
+	}
 
 	ili->spi = spi;
 	spi_set_drvdata(spi, ili);
 
 	/* check if the device is connected */
 	ret = ili922x_read(spi, REG_DRIVER_CODE_READ, &reg);
-	if (ret || ((reg & ILITEK_DEVICE_ID_MASK) != ILITEK_DEVICE_ID)) {
+
+	if (ret || ((reg & ILITEK_DEVICE_ID_MASK) != ILITEK_DEVICE_ID))
+	{
 		dev_err(&spi->dev,
-			"no LCD found: Chip ID 0x%x, ret %d\n",
-			reg, ret);
+				"no LCD found: Chip ID 0x%x, ret %d\n",
+				reg, ret);
 		return -ENODEV;
 	}
 
 	dev_info(&spi->dev, "ILI%x found, SPI freq %d, mode %d\n",
-		 reg, spi->max_speed_hz, spi->mode);
+			 reg, spi->max_speed_hz, spi->mode);
 
 	ret = ili922x_read_status(spi, &reg);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&spi->dev, "reading RS failed...\n");
 		return ret;
 	}
@@ -513,8 +540,10 @@ static int ili922x_probe(struct spi_device *spi)
 	ili->power = FB_BLANK_POWERDOWN;
 
 	lcd = devm_lcd_device_register(&spi->dev, "ili922xlcd", &spi->dev, ili,
-					&ili922x_ops);
-	if (IS_ERR(lcd)) {
+								   &ili922x_ops);
+
+	if (IS_ERR(lcd))
+	{
 		dev_err(&spi->dev, "cannot register LCD\n");
 		return PTR_ERR(lcd);
 	}
@@ -533,7 +562,8 @@ static int ili922x_remove(struct spi_device *spi)
 	return 0;
 }
 
-static struct spi_driver ili922x_driver = {
+static struct spi_driver ili922x_driver =
+{
 	.driver = {
 		.name = "ili922x",
 	},

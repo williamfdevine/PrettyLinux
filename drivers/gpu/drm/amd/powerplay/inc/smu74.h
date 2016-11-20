@@ -58,20 +58,23 @@
 #define EXP_M2_5  1103326
 #define EXP_B_5   728122621
 
-enum SID_OPTION {
+enum SID_OPTION
+{
 	SID_OPTION_HI,
 	SID_OPTION_LO,
 	SID_OPTION_COUNT
 };
 
-enum Poly3rdOrderCoeff {
+enum Poly3rdOrderCoeff
+{
 	LEAKAGE_TEMPERATURE_SCALAR,
 	LEAKAGE_VOLTAGE_SCALAR,
 	DYNAMIC_VOLTAGE_SCALAR,
 	POLY_3RD_ORDER_COUNT
 };
 
-struct SMU7_Poly3rdOrder_Data {
+struct SMU7_Poly3rdOrder_Data
+{
 	int32_t a;
 	int32_t b;
 	int32_t c;
@@ -84,7 +87,8 @@ struct SMU7_Poly3rdOrder_Data {
 
 typedef struct SMU7_Poly3rdOrder_Data SMU7_Poly3rdOrder_Data;
 
-struct Power_Calculator_Data {
+struct Power_Calculator_Data
+{
 	uint16_t NoLoadVoltage;
 	uint16_t LoadVoltage;
 	uint16_t Resistance;
@@ -103,7 +107,8 @@ struct Power_Calculator_Data {
 
 typedef struct Power_Calculator_Data PowerCalculatorData_t;
 
-struct Gc_Cac_Weight_Data {
+struct Gc_Cac_Weight_Data
+{
 	uint8_t index;
 	uint32_t value;
 };
@@ -111,12 +116,14 @@ struct Gc_Cac_Weight_Data {
 typedef struct Gc_Cac_Weight_Data GcCacWeight_Data;
 
 
-typedef struct {
+typedef struct
+{
 	uint32_t high;
 	uint32_t low;
 } data_64_t;
 
-typedef struct {
+typedef struct
+{
 	data_64_t high;
 	data_64_t low;
 } data_128_t;
@@ -212,15 +219,16 @@ typedef struct {
 
 
 #if defined SMU__FUSION_ONLY
-#define SMU7_DTE_ITERATIONS 5
-#define SMU7_DTE_SOURCES 5
-#define SMU7_DTE_SINKS 3
-#define SMU7_NUM_CPU_TES 2
-#define SMU7_NUM_GPU_TES 1
-#define SMU7_NUM_NON_TES 2
+	#define SMU7_DTE_ITERATIONS 5
+	#define SMU7_DTE_SOURCES 5
+	#define SMU7_DTE_SINKS 3
+	#define SMU7_NUM_CPU_TES 2
+	#define SMU7_NUM_GPU_TES 1
+	#define SMU7_NUM_NON_TES 2
 #endif
 
-struct SMU7_HystController_Data {
+struct SMU7_HystController_Data
+{
 	uint8_t waterfall_up;
 	uint8_t waterfall_down;
 	uint8_t waterfall_limit;
@@ -231,7 +239,8 @@ struct SMU7_HystController_Data {
 
 typedef struct SMU7_HystController_Data SMU7_HystController_Data;
 
-struct SMU74_PIDController {
+struct SMU74_PIDController
+{
 	uint32_t Ki;
 	int32_t LFWindupUpperLim;
 	int32_t LFWindupLowerLim;
@@ -245,7 +254,8 @@ struct SMU74_PIDController {
 
 typedef struct SMU74_PIDController SMU74_PIDController;
 
-struct SMU7_LocalDpmScoreboard {
+struct SMU7_LocalDpmScoreboard
+{
 	uint32_t PercentageBusy;
 
 	int32_t  PIDError;
@@ -341,7 +351,8 @@ typedef uint8_t (*VoltageChangeHandler_t)(uint16_t, uint8_t);
 
 typedef uint32_t SMU_VoltageLevel;
 
-struct SMU7_VoltageScoreboard {
+struct SMU7_VoltageScoreboard
+{
 
 	SMU_VoltageLevel TargetVoltage;
 	uint16_t MaxVid;
@@ -390,7 +401,8 @@ typedef struct SMU7_VoltageScoreboard SMU7_VoltageScoreboard;
 
 #define SMU7_MAX_PCIE_LINK_SPEEDS 3 /* 0:Gen1 1:Gen2 2:Gen3 */
 
-struct SMU7_PCIeLinkSpeedScoreboard {
+struct SMU7_PCIeLinkSpeedScoreboard
+{
 	uint8_t     DpmEnable;
 	uint8_t     DpmRunning;
 	uint8_t     DpmForce;
@@ -418,7 +430,8 @@ typedef struct SMU7_PCIeLinkSpeedScoreboard SMU7_PCIeLinkSpeedScoreboard;
 #define SMU7_SCALE_I  7
 #define SMU7_SCALE_R 12
 
-struct SMU7_PowerScoreboard {
+struct SMU7_PowerScoreboard
+{
 	PowerCalculatorData_t VddcPowerData[SID_OPTION_COUNT];
 
 	uint32_t TotalGpuPower;
@@ -457,7 +470,8 @@ struct SMU7_PowerScoreboard {
 
 typedef struct SMU7_PowerScoreboard SMU7_PowerScoreboard;
 
-struct SMU7_ThermalScoreboard {
+struct SMU7_ThermalScoreboard
+{
 	int16_t  GpuLimit;
 	int16_t  GpuHyst;
 	uint16_t CurrGnbTemp;
@@ -499,7 +513,8 @@ typedef struct SMU7_ThermalScoreboard SMU7_ThermalScoreboard;
 #define SMU7_VCE_SCLK_HANDSHAKE_DISABLE                  0x00020000
 
 /* All 'soft registers' should be uint32_t. */
-struct SMU74_SoftRegisters {
+struct SMU74_SoftRegisters
+{
 	uint32_t        RefClockFrequency;
 	uint32_t        PmTimerPeriod;
 	uint32_t        FeatureEnables;
@@ -556,7 +571,8 @@ struct SMU74_SoftRegisters {
 
 typedef struct SMU74_SoftRegisters SMU74_SoftRegisters;
 
-struct SMU74_Firmware_Header {
+struct SMU74_Firmware_Header
+{
 	uint32_t Digest[5];
 	uint32_t Version;
 	uint32_t HeaderSize;
@@ -593,7 +609,8 @@ typedef struct SMU74_Firmware_Header SMU74_Firmware_Header;
 
 #define SMU7_FIRMWARE_HEADER_LOCATION 0x20000
 
-enum  DisplayConfig {
+enum  DisplayConfig
+{
 	PowerDown = 1,
 	DP54x4,
 	DP54x2,
@@ -615,7 +632,8 @@ enum  DisplayConfig {
 #define SE_BLOCK_COUNT 15
 #define GC_BLOCK_COUNT 24
 
-struct SMU7_Local_Cac {
+struct SMU7_Local_Cac
+{
 	uint8_t BlockId;
 	uint8_t SignalId;
 	uint8_t Threshold;
@@ -624,7 +642,8 @@ struct SMU7_Local_Cac {
 
 typedef struct SMU7_Local_Cac SMU7_Local_Cac;
 
-struct SMU7_Local_Cac_Table {
+struct SMU7_Local_Cac_Table
+{
 
 	SMU7_Local_Cac CplLocalCac[CPL_BLOCK_COUNT];
 	SMU7_Local_Cac McLocalCac[MC_BLOCK_COUNT];
@@ -722,19 +741,22 @@ VR Config info is contained in dpmTable.VRConfig */
 #define CLOCK_STRETCHER_SETTING_ENABLE_MASK          0x80
 #define CLOCK_STRETCHER_SETTING_ENABLE_SHIFT         0x7
 
-struct SMU_ClockStretcherDataTableEntry {
+struct SMU_ClockStretcherDataTableEntry
+{
 	uint8_t minVID;
 	uint8_t maxVID;
 	uint16_t setting;
 };
 typedef struct SMU_ClockStretcherDataTableEntry SMU_ClockStretcherDataTableEntry;
 
-struct SMU_ClockStretcherDataTable {
+struct SMU_ClockStretcherDataTable
+{
 	SMU_ClockStretcherDataTableEntry ClockStretcherDataTableEntry[CLOCK_STRETCHER_MAX_ENTRIES];
 };
 typedef struct SMU_ClockStretcherDataTable SMU_ClockStretcherDataTable;
 
-struct SMU_CKS_LOOKUPTableEntry {
+struct SMU_CKS_LOOKUPTableEntry
+{
 	uint16_t minFreq;
 	uint16_t maxFreq;
 
@@ -743,19 +765,22 @@ struct SMU_CKS_LOOKUPTableEntry {
 };
 typedef struct SMU_CKS_LOOKUPTableEntry SMU_CKS_LOOKUPTableEntry;
 
-struct SMU_CKS_LOOKUPTable {
+struct SMU_CKS_LOOKUPTable
+{
 	SMU_CKS_LOOKUPTableEntry CKS_LOOKUPTableEntry[CKS_LOOKUPTable_MAX_ENTRIES];
 };
 typedef struct SMU_CKS_LOOKUPTable SMU_CKS_LOOKUPTable;
 
-struct AgmAvfsData_t {
+struct AgmAvfsData_t
+{
 	uint16_t avgPsmCount[28];
 	uint16_t minPsmCount[28];
 };
 
 typedef struct AgmAvfsData_t AgmAvfsData_t;
 
-enum VFT_COLUMNS {
+enum VFT_COLUMNS
+{
 	SCLK0,
 	SCLK1,
 	SCLK2,
@@ -772,13 +797,15 @@ enum VFT_COLUMNS {
 
 #define TEMP_RANGE_MAXSTEPS 12
 
-struct VFT_CELL_t {
+struct VFT_CELL_t
+{
 	uint16_t Voltage;
 };
 
 typedef struct VFT_CELL_t VFT_CELL_t;
 
-struct VFT_TABLE_t {
+struct VFT_TABLE_t
+{
 	VFT_CELL_t    Cell[TEMP_RANGE_MAXSTEPS][NUM_VFT_COLUMNS];
 	uint16_t      AvfsGbv[NUM_VFT_COLUMNS];
 	uint16_t      BtcGbv[NUM_VFT_COLUMNS];
@@ -792,7 +819,8 @@ typedef struct VFT_TABLE_t VFT_TABLE_t;
 
 
 /* Total margin, root mean square of Fmax + DC + Platform */
-struct AVFS_Margin_t {
+struct AVFS_Margin_t
+{
 	VFT_CELL_t Cell[NUM_VFT_COLUMNS];
 };
 typedef struct AVFS_Margin_t AVFS_Margin_t;
@@ -800,7 +828,8 @@ typedef struct AVFS_Margin_t AVFS_Margin_t;
 #define BTCGB_VDROOP_TABLE_MAX_ENTRIES 2
 #define AVFSGB_VDROOP_TABLE_MAX_ENTRIES 2
 
-struct GB_VDROOP_TABLE_t {
+struct GB_VDROOP_TABLE_t
+{
 	int32_t a0;
 	int32_t a1;
 	int32_t a2;
@@ -808,12 +837,14 @@ struct GB_VDROOP_TABLE_t {
 };
 typedef struct GB_VDROOP_TABLE_t GB_VDROOP_TABLE_t;
 
-struct AVFS_CksOff_Gbv_t {
+struct AVFS_CksOff_Gbv_t
+{
 	VFT_CELL_t Cell[NUM_VFT_COLUMNS];
 };
 typedef struct AVFS_CksOff_Gbv_t AVFS_CksOff_Gbv_t;
 
-struct AVFS_meanNsigma_t {
+struct AVFS_meanNsigma_t
+{
 	uint32_t Aconstant[3];
 	uint16_t DC_tol_sigma;
 	uint16_t Platform_mean;
@@ -823,7 +854,8 @@ struct AVFS_meanNsigma_t {
 };
 typedef struct AVFS_meanNsigma_t AVFS_meanNsigma_t;
 
-struct AVFS_Sclk_Offset_t {
+struct AVFS_Sclk_Offset_t
+{
 	uint16_t Sclk_Offset[8];
 };
 typedef struct AVFS_Sclk_Offset_t AVFS_Sclk_Offset_t;

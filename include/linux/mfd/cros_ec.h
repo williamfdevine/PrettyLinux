@@ -43,16 +43,17 @@
 /*
  * Command interface between EC and AP, for LPC, I2C and SPI interfaces.
  */
-enum {
+enum
+{
 	EC_MSG_TX_HEADER_BYTES	= 3,
 	EC_MSG_TX_TRAILER_BYTES	= 1,
 	EC_MSG_TX_PROTO_BYTES	= EC_MSG_TX_HEADER_BYTES +
-					EC_MSG_TX_TRAILER_BYTES,
+							  EC_MSG_TX_TRAILER_BYTES,
 	EC_MSG_RX_PROTO_BYTES	= 3,
 
 	/* Max length of messages for proto 2*/
 	EC_PROTO2_MSG_BYTES		= EC_PROTO2_MAX_PARAM_SIZE +
-					EC_MSG_TX_PROTO_BYTES,
+							  EC_MSG_TX_PROTO_BYTES,
 
 	EC_MAX_MSG_BYTES		= 64 * 1024,
 };
@@ -65,7 +66,8 @@ enum {
  * @result: EC's response to the command (separate from communication failure)
  * @data: Where to put the incoming data from EC and outgoing data to EC
  */
-struct cros_ec_command {
+struct cros_ec_command
+{
 	uint32_t version;
 	uint32_t command;
 	uint32_t outsize;
@@ -114,7 +116,8 @@ struct cros_ec_command {
  * @event_data: raw payload transferred with the MKBP event.
  * @event_size: size in bytes of the event data.
  */
-struct cros_ec_device {
+struct cros_ec_device
+{
 
 	/* These are used by other drivers that want to talk to the EC */
 	const char *phys_name;
@@ -122,7 +125,7 @@ struct cros_ec_device {
 	bool was_wake_device;
 	struct class *cros_class;
 	int (*cmd_readmem)(struct cros_ec_device *ec, unsigned int offset,
-			   unsigned int bytes, void *dest);
+					   unsigned int bytes, void *dest);
 
 	/* These are used to implement the platform-specific interface */
 	u16 max_request;
@@ -137,9 +140,9 @@ struct cros_ec_device {
 	int dout_size;
 	bool wake_enabled;
 	int (*cmd_xfer)(struct cros_ec_device *ec,
-			struct cros_ec_command *msg);
+					struct cros_ec_command *msg);
 	int (*pkt_xfer)(struct cros_ec_device *ec,
-			struct cros_ec_command *msg);
+					struct cros_ec_command *msg);
 	struct mutex lock;
 	bool mkbp_event_supported;
 	struct blocking_notifier_head event_notifier;
@@ -155,7 +158,8 @@ struct cros_ec_device {
  * @cmd_offset: offset to apply for each command. Set when
  * registering a devicde behind another one.
  */
-struct cros_ec_platform {
+struct cros_ec_platform
+{
 	const char *ec_name;
 	u16 cmd_offset;
 };
@@ -169,7 +173,8 @@ struct cros_ec_platform {
  * @dev: pointer to the platform device
  * @cmd_offset: offset to apply for each command.
  */
-struct cros_ec_dev {
+struct cros_ec_dev
+{
 	struct device class_dev;
 	struct cdev cdev;
 	struct cros_ec_device *ec_dev;
@@ -208,7 +213,7 @@ int cros_ec_resume(struct cros_ec_device *ec_dev);
  * @msg: Message to write
  */
 int cros_ec_prepare_tx(struct cros_ec_device *ec_dev,
-		       struct cros_ec_command *msg);
+					   struct cros_ec_command *msg);
 
 /**
  * cros_ec_check_result - Check ec_msg->result
@@ -220,7 +225,7 @@ int cros_ec_prepare_tx(struct cros_ec_device *ec_dev,
  * @msg: Message to check
  */
 int cros_ec_check_result(struct cros_ec_device *ec_dev,
-			 struct cros_ec_command *msg);
+						 struct cros_ec_command *msg);
 
 /**
  * cros_ec_cmd_xfer - Send a command to the ChromeOS EC
@@ -232,7 +237,7 @@ int cros_ec_check_result(struct cros_ec_device *ec_dev,
  * @msg: Message to write
  */
 int cros_ec_cmd_xfer(struct cros_ec_device *ec_dev,
-		     struct cros_ec_command *msg);
+					 struct cros_ec_command *msg);
 
 /**
  * cros_ec_cmd_xfer_status - Send a command to the ChromeOS EC
@@ -247,7 +252,7 @@ int cros_ec_cmd_xfer(struct cros_ec_device *ec_dev,
  * @return: Num. of bytes transferred on success, <0 on failure
  */
 int cros_ec_cmd_xfer_status(struct cros_ec_device *ec_dev,
-			    struct cros_ec_command *msg);
+							struct cros_ec_command *msg);
 
 /**
  * cros_ec_remove - Remove a ChromeOS EC

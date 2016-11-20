@@ -95,7 +95,7 @@
 #define COSM_SCIF_BACKLOG 16
 #define COSM_HEARTBEAT_CHECK_DELTA_SEC 10
 #define COSM_HEARTBEAT_TIMEOUT_SEC \
-		(COSM_HEARTBEAT_SEND_SEC + COSM_HEARTBEAT_CHECK_DELTA_SEC)
+	(COSM_HEARTBEAT_SEND_SEC + COSM_HEARTBEAT_CHECK_DELTA_SEC)
 #define COSM_HEARTBEAT_TIMEOUT_MSEC (COSM_HEARTBEAT_TIMEOUT_SEC * MSEC_PER_SEC)
 
 static struct task_struct *server_thread;
@@ -104,7 +104,8 @@ static scif_epd_t listen_epd;
 /* Publish MIC card's shutdown status to user space MIC daemon */
 static void cosm_update_mic_status(struct cosm_device *cdev)
 {
-	if (cdev->shutdown_status_int != MIC_NOP) {
+	if (cdev->shutdown_status_int != MIC_NOP)
+	{
 		cosm_set_shutdown_status(cdev, cdev->shutdown_status_int);
 		cdev->shutdown_status_int = MIC_NOP;
 	}
@@ -112,24 +113,29 @@ static void cosm_update_mic_status(struct cosm_device *cdev)
 
 /* Store MIC card's shutdown status internally when it is received */
 static void cosm_shutdown_status_int(struct cosm_device *cdev,
-				     enum mic_status shutdown_status)
+									 enum mic_status shutdown_status)
 {
-	switch (shutdown_status) {
-	case MIC_HALTED:
-	case MIC_POWER_OFF:
-	case MIC_RESTART:
-	case MIC_CRASHED:
-		break;
-	default:
-		dev_err(&cdev->dev, "%s %d Unexpected shutdown_status %d\n",
-			__func__, __LINE__, shutdown_status);
-		return;
+	switch (shutdown_status)
+	{
+		case MIC_HALTED:
+		case MIC_POWER_OFF:
+		case MIC_RESTART:
+		case MIC_CRASHED:
+			break;
+
+		default:
+			dev_err(&cdev->dev, "%s %d Unexpected shutdown_status %d\n",
+					__func__, __LINE__, shutdown_status);
+			return;
 	};
+
 	cdev->shutdown_status_int = shutdown_status;
 	cdev->heartbeat_watchdog_enable = false;
 
 	if (cdev->state != MIC_SHUTTING_DOWN)
+	{
 		cosm_set_state(cdev, MIC_SHUTTING_DOWN);
+	}
 }
 
 /* Non-blocking recv. Read and process all available messages */
@@ -138,29 +144,38 @@ static void cosm_scif_recv(struct cosm_device *cdev)
 	struct cosm_msg msg;
 	int rc;
 
-	while (1) {
+	while (1)
+	{
 		rc = scif_recv(cdev->epd, &msg, sizeof(msg), 0);
-		if (!rc) {
-			break;
-		} else if (rc < 0) {
-			dev_dbg(&cdev->dev, "%s: %d rc %d\n",
-				__func__, __LINE__, rc);
+
+		if (!rc)
+		{
 			break;
 		}
-		dev_dbg(&cdev->dev, "%s: %d rc %d id 0x%llx\n",
-			__func__, __LINE__, rc, msg.id);
+		else if (rc < 0)
+		{
+			dev_dbg(&cdev->dev, "%s: %d rc %d\n",
+					__func__, __LINE__, rc);
+			break;
+		}
 
-		switch (msg.id) {
-		case COSM_MSG_SHUTDOWN_STATUS:
-			cosm_shutdown_status_int(cdev, msg.shutdown_status);
-			break;
-		case COSM_MSG_HEARTBEAT:
-			/* Nothing to do, heartbeat only unblocks scif_poll */
-			break;
-		default:
-			dev_err(&cdev->dev, "%s: %d unknown msg.id %lld\n",
-				__func__, __LINE__, msg.id);
-			break;
+		dev_dbg(&cdev->dev, "%s: %d rc %d id 0x%llx\n",
+				__func__, __LINE__, rc, msg.id);
+
+		switch (msg.id)
+		{
+			case COSM_MSG_SHUTDOWN_STATUS:
+				cosm_shutdown_status_int(cdev, msg.shutdown_status);
+				break;
+
+			case COSM_MSG_HEARTBEAT:
+				/* Nothing to do, heartbeat only unblocks scif_poll */
+				break;
+
+			default:
+				dev_err(&cdev->dev, "%s: %d unknown msg.id %lld\n",
+						__func__, __LINE__, msg.id);
+				break;
 		}
 	}
 }
@@ -181,9 +196,10 @@ static void cosm_send_time(struct cosm_device *cdev)
 
 	getnstimeofday64(&msg.timespec);
 	rc = scif_send(cdev->epd, &msg, sizeof(msg), SCIF_SEND_BLOCK);
+
 	if (rc < 0)
 		dev_err(&cdev->dev, "%s %d scif_send failed rc %d\n",
-			__func__, __LINE__, rc);
+				__func__, __LINE__, rc);
 }
 
 /*
@@ -213,18 +229,26 @@ static int cosm_set_online(struct cosm_device *cdev)
 {
 	int rc = 0;
 
-	if (MIC_BOOTING == cdev->state || MIC_ONLINE == cdev->state) {
+	if (MIC_BOOTING == cdev->state || MIC_ONLINE == cdev->state)
+	{
 		cdev->heartbeat_watchdog_enable = cdev->sysfs_heartbeat_enable;
 		cdev->epd = cdev->newepd;
+
 		if (cdev->state == MIC_BOOTING)
+		{
 			cosm_set_state(cdev, MIC_ONLINE);
+		}
+
 		cosm_send_time(cdev);
 		dev_dbg(&cdev->dev, "%s %d\n", __func__, __LINE__);
-	} else {
+	}
+	else
+	{
 		dev_warn(&cdev->dev, "%s %d not going online in state: %s\n",
-			 __func__, __LINE__, cosm_state_string[cdev->state]);
+				 __func__, __LINE__, cosm_state_string[cdev->state]);
 		rc = -EINVAL;
 	}
+
 	/* Drop reference acquired by bus_find_device in the server thread */
 	put_device(&cdev->dev);
 	return rc;
@@ -240,15 +264,19 @@ static int cosm_set_online(struct cosm_device *cdev)
 void cosm_scif_work(struct work_struct *work)
 {
 	struct cosm_device *cdev = container_of(work, struct cosm_device,
-						scif_work);
+											scif_work);
 	struct scif_pollepd pollepd;
 	int rc;
 
 	mutex_lock(&cdev->cosm_mutex);
-	if (cosm_set_online(cdev))
-		goto exit;
 
-	while (1) {
+	if (cosm_set_online(cdev))
+	{
+		goto exit;
+	}
+
+	while (1)
+	{
 		pollepd.epd = cdev->epd;
 		pollepd.events = POLLIN;
 
@@ -257,26 +285,34 @@ void cosm_scif_work(struct work_struct *work)
 		/* poll(..) with timeout on our endpoint */
 		rc = scif_poll(&pollepd, 1, COSM_HEARTBEAT_TIMEOUT_MSEC);
 		mutex_lock(&cdev->cosm_mutex);
-		if (rc < 0) {
+
+		if (rc < 0)
+		{
 			dev_err(&cdev->dev, "%s %d scif_poll rc %d\n",
-				__func__, __LINE__, rc);
+					__func__, __LINE__, rc);
 			continue;
 		}
 
 		/* There is a message from the card */
 		if (pollepd.revents & POLLIN)
+		{
 			cosm_scif_recv(cdev);
+		}
 
 		/* The peer endpoint is closed or this endpoint disconnected */
-		if (pollepd.revents & POLLHUP) {
+		if (pollepd.revents & POLLHUP)
+		{
 			cosm_scif_close(cdev);
 			break;
 		}
 
 		/* Did we timeout from poll? */
 		if (!rc && cdev->heartbeat_watchdog_enable)
+		{
 			cosm_set_crashed(cdev);
+		}
 	}
+
 exit:
 	dev_dbg(&cdev->dev, "%s %d exiting\n", __func__, __LINE__);
 	mutex_unlock(&cdev->cosm_mutex);
@@ -296,12 +332,18 @@ static int cosm_scif_server(void *unused)
 
 	allow_signal(SIGKILL);
 
-	while (!kthread_should_stop()) {
+	while (!kthread_should_stop())
+	{
 		rc = scif_accept(listen_epd, &port_id, &newepd,
-				 SCIF_ACCEPT_SYNC);
-		if (rc < 0) {
+						 SCIF_ACCEPT_SYNC);
+
+		if (rc < 0)
+		{
 			if (-ERESTARTSYS != rc)
+			{
 				pr_err("%s %d rc %d\n", __func__, __LINE__, rc);
+			}
+
 			continue;
 		}
 
@@ -310,8 +352,12 @@ static int cosm_scif_server(void *unused)
 		 * cosm_device, COSM device ID == SCIF node ID - 1
 		 */
 		cdev = cosm_find_cdev_by_id(port_id.node - 1);
+
 		if (!cdev)
+		{
 			continue;
+		}
+
 		cdev->newepd = newepd;
 		schedule_work(&cdev->scif_work);
 	}
@@ -325,23 +371,30 @@ static int cosm_scif_listen(void)
 	int rc;
 
 	listen_epd = scif_open();
-	if (!listen_epd) {
+
+	if (!listen_epd)
+	{
 		pr_err("%s %d scif_open failed\n", __func__, __LINE__);
 		return -ENOMEM;
 	}
 
 	rc = scif_bind(listen_epd, SCIF_COSM_LISTEN_PORT);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		pr_err("%s %d scif_bind failed rc %d\n",
-		       __func__, __LINE__, rc);
+			   __func__, __LINE__, rc);
 		goto err;
 	}
 
 	rc = scif_listen(listen_epd, COSM_SCIF_BACKLOG);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		pr_err("%s %d scif_listen rc %d\n", __func__, __LINE__, rc);
 		goto err;
 	}
+
 	pr_debug("%s %d listen_epd set up\n", __func__, __LINE__);
 	return 0;
 err:
@@ -353,7 +406,9 @@ err:
 static void cosm_scif_listen_exit(void)
 {
 	pr_debug("%s %d closing listen_epd\n", __func__, __LINE__);
-	if (listen_epd) {
+
+	if (listen_epd)
+	{
 		scif_close(listen_epd);
 		listen_epd = NULL;
 	}
@@ -367,18 +422,22 @@ int cosm_scif_init(void)
 {
 	int rc = cosm_scif_listen();
 
-	if (rc) {
+	if (rc)
+	{
 		pr_err("%s %d cosm_scif_listen rc %d\n",
-		       __func__, __LINE__, rc);
+			   __func__, __LINE__, rc);
 		goto err;
 	}
 
 	server_thread = kthread_run(cosm_scif_server, NULL, "cosm_server");
-	if (IS_ERR(server_thread)) {
+
+	if (IS_ERR(server_thread))
+	{
 		rc = PTR_ERR(server_thread);
 		pr_err("%s %d kthread_run rc %d\n", __func__, __LINE__, rc);
 		goto listen_exit;
 	}
+
 	return 0;
 listen_exit:
 	cosm_scif_listen_exit();
@@ -391,13 +450,17 @@ void cosm_scif_exit(void)
 {
 	int rc;
 
-	if (!IS_ERR_OR_NULL(server_thread)) {
+	if (!IS_ERR_OR_NULL(server_thread))
+	{
 		rc = send_sig(SIGKILL, server_thread, 0);
-		if (rc) {
+
+		if (rc)
+		{
 			pr_err("%s %d send_sig rc %d\n",
-			       __func__, __LINE__, rc);
+				   __func__, __LINE__, rc);
 			return;
 		}
+
 		kthread_stop(server_thread);
 	}
 

@@ -29,7 +29,8 @@
 #include <linux/skbuff.h>
 #include <linux/timecounter.h>
 
-struct cpsw_cpts {
+struct cpsw_cpts
+{
 	u32 idver;                /* Identification and version */
 	u32 control;              /* Time sync control */
 	u32 res1;
@@ -85,7 +86,8 @@ struct cpsw_cpts {
 #define SEQUENCE_ID_SHIFT    (0)     /* PTP message sequence ID */
 #define SEQUENCE_ID_MASK     (0xffff)
 
-enum {
+enum
+{
 	CPTS_EV_PUSH, /* Time Stamp Push Event */
 	CPTS_EV_ROLL, /* Time Stamp Rollover Event */
 	CPTS_EV_HALF, /* Time Stamp Half Rollover Event */
@@ -100,14 +102,16 @@ enum {
 #define CPTS_FIFO_DEPTH 16
 #define CPTS_MAX_EVENTS 32
 
-struct cpts_event {
+struct cpts_event
+{
 	struct list_head list;
 	unsigned long tmo;
 	u32 high;
 	u32 low;
 };
 
-struct cpts {
+struct cpts
+{
 	struct cpsw_cpts __iomem *reg;
 	int tx_enable;
 	int rx_enable;

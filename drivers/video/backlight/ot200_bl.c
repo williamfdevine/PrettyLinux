@@ -21,16 +21,18 @@ static struct cs5535_mfgpt_timer *pwm_timer;
 
 /* this array defines the mapping of brightness in % to pwm frequency */
 static const u8 dim_table[101] = {0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2,
-				  2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4,
-				  4, 5, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 9, 9,
-				  10, 10, 11, 11, 12, 12, 13, 14, 15, 15, 16,
-				  17, 18, 19, 20, 21, 22, 23, 24, 26, 27, 28,
-				  30, 31, 33, 35, 37, 39, 41, 43, 45, 47, 50,
-				  53, 55, 58, 61, 65, 68, 72, 75, 79, 84, 88,
-				  93, 97, 103, 108, 114, 120, 126, 133, 140,
-				  147, 155, 163};
+								  2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4,
+								  4, 5, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 9, 9,
+								  10, 10, 11, 11, 12, 12, 13, 14, 15, 15, 16,
+								  17, 18, 19, 20, 21, 22, 23, 24, 26, 27, 28,
+								  30, 31, 33, 35, 37, 39, 41, 43, 45, 47, 50,
+								  53, 55, 58, 61, 65, 68, 72, 75, 79, 84, 88,
+								  93, 97, 103, 108, 114, 120, 126, 133, 140,
+								  147, 155, 163
+								 };
 
-struct ot200_backlight_data {
+struct ot200_backlight_data
+{
 	int current_brightness;
 };
 
@@ -47,20 +49,25 @@ static int ot200_backlight_update_status(struct backlight_device *bl)
 	int brightness = bl->props.brightness;
 
 	if (bl->props.state & BL_CORE_FBBLANK)
+	{
 		brightness = 0;
+	}
 
 	/* enable or disable PWM timer */
 	if (brightness == 0)
+	{
 		cs5535_mfgpt_write(pwm_timer, MFGPT_REG_SETUP, 0);
-	else if (data->current_brightness == 0) {
+	}
+	else if (data->current_brightness == 0)
+	{
 		cs5535_mfgpt_write(pwm_timer, MFGPT_REG_COUNTER, 0);
 		cs5535_mfgpt_write(pwm_timer, MFGPT_REG_SETUP,
-			MFGPT_SETUP_CNTEN);
+						   MFGPT_SETUP_CNTEN);
 	}
 
 	/* apply new brightness value */
 	cs5535_mfgpt_write(pwm_timer, MFGPT_REG_CMP1,
-		MAX_COMP2 - dim_table[brightness]);
+					   MAX_COMP2 - dim_table[brightness]);
 	data->current_brightness = brightness;
 
 	return 0;
@@ -72,7 +79,8 @@ static int ot200_backlight_get_brightness(struct backlight_device *bl)
 	return data->current_brightness;
 }
 
-static const struct backlight_ops ot200_backlight_ops = {
+static const struct backlight_ops ot200_backlight_ops =
+{
 	.update_status	= ot200_backlight_update_status,
 	.get_brightness	= ot200_backlight_get_brightness,
 };
@@ -86,20 +94,25 @@ static int ot200_backlight_probe(struct platform_device *pdev)
 
 	/* request gpio */
 	if (devm_gpio_request(&pdev->dev, GPIO_DIMM,
-				"ot200 backlight dimmer") < 0) {
+						  "ot200 backlight dimmer") < 0)
+	{
 		dev_err(&pdev->dev, "failed to request GPIO %d\n", GPIO_DIMM);
 		return -ENODEV;
 	}
 
 	/* request timer */
 	pwm_timer = cs5535_mfgpt_alloc_timer(7, MFGPT_DOMAIN_ANY);
-	if (!pwm_timer) {
+
+	if (!pwm_timer)
+	{
 		dev_err(&pdev->dev, "MFGPT 7 not available\n");
 		return -ENODEV;
 	}
 
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
-	if (!data) {
+
+	if (!data)
+	{
 		retval = -ENOMEM;
 		goto error_devm_kzalloc;
 	}
@@ -119,9 +132,11 @@ static int ot200_backlight_probe(struct platform_device *pdev)
 	props.type = BACKLIGHT_RAW;
 
 	bl = devm_backlight_device_register(&pdev->dev, dev_name(&pdev->dev),
-					&pdev->dev, data, &ot200_backlight_ops,
-					&props);
-	if (IS_ERR(bl)) {
+										&pdev->dev, data, &ot200_backlight_ops,
+										&props);
+
+	if (IS_ERR(bl))
+	{
 		dev_err(&pdev->dev, "failed to register backlight\n");
 		retval = PTR_ERR(bl);
 		goto error_devm_kzalloc;
@@ -142,14 +157,15 @@ static int ot200_backlight_remove(struct platform_device *pdev)
 	cs5535_mfgpt_write(pwm_timer, MFGPT_REG_COUNTER, 0);
 	cs5535_mfgpt_write(pwm_timer, MFGPT_REG_SETUP, MFGPT_SETUP_CNTEN);
 	cs5535_mfgpt_write(pwm_timer, MFGPT_REG_CMP1,
-		MAX_COMP2 - dim_table[100]);
+					   MAX_COMP2 - dim_table[100]);
 
 	cs5535_mfgpt_free_timer(pwm_timer);
 
 	return 0;
 }
 
-static struct platform_driver ot200_backlight_driver = {
+static struct platform_driver ot200_backlight_driver =
+{
 	.driver		= {
 		.name	= "ot200-backlight",
 	},

@@ -25,7 +25,8 @@
 #ifndef KFD_PM4_OPCODES_H
 #define KFD_PM4_OPCODES_H
 
-enum it_opcode_type {
+enum it_opcode_type
+{
 	IT_NOP                               = 0x10,
 	IT_SET_BASE                          = 0x11,
 	IT_CLEAR_STATE                       = 0x12,

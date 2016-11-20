@@ -9,7 +9,8 @@
 
 #include "pinctrl-stm32.h"
 
-static const struct stm32_desc_pin stm32f429_pins[] = {
+static const struct stm32_desc_pin stm32f429_pins[] =
+{
 	STM32_PIN(
 		PINCTRL_PIN(0, "PA0"),
 		STM32_FUNCTION(0, "GPIOA0"),
@@ -1563,12 +1564,14 @@ static const struct stm32_desc_pin stm32f429_pins[] = {
 	),
 };
 
-static struct stm32_pinctrl_match_data stm32f429_match_data = {
+static struct stm32_pinctrl_match_data stm32f429_match_data =
+{
 	.pins = stm32f429_pins,
 	.npins = ARRAY_SIZE(stm32f429_pins),
 };
 
-static const struct of_device_id stm32f429_pctrl_match[] = {
+static const struct of_device_id stm32f429_pctrl_match[] =
+{
 	{
 		.compatible = "st,stm32f429-pinctrl",
 		.data = &stm32f429_match_data,
@@ -1576,7 +1579,8 @@ static const struct of_device_id stm32f429_pctrl_match[] = {
 	{ }
 };
 
-static struct platform_driver stm32f429_pinctrl_driver = {
+static struct platform_driver stm32f429_pinctrl_driver =
+{
 	.probe = stm32_pctl_probe,
 	.driver = {
 		.name = "stm32f429-pinctrl",

@@ -26,7 +26,8 @@
 #include <linux/i2c.h>
 #include "dvb_frontend.h"
 
-struct mxl5005s_config {
+struct mxl5005s_config
+{
 
 	/* 7 bit i2c address */
 	u8 i2c_address;
@@ -118,12 +119,12 @@ struct mxl5005s_config {
 
 #if IS_REACHABLE(CONFIG_MEDIA_TUNER_MXL5005S)
 extern struct dvb_frontend *mxl5005s_attach(struct dvb_frontend *fe,
-					    struct i2c_adapter *i2c,
-					    struct mxl5005s_config *config);
+		struct i2c_adapter *i2c,
+		struct mxl5005s_config *config);
 #else
 static inline struct dvb_frontend *mxl5005s_attach(struct dvb_frontend *fe,
-					    struct i2c_adapter *i2c,
-					    struct mxl5005s_config *config)
+		struct i2c_adapter *i2c,
+		struct mxl5005s_config *config)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

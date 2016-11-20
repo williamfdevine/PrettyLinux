@@ -29,21 +29,22 @@
 #define AMDGPU_SRIOV_CAPS_IS_VF        (1 << 2) /* this GPU is a virtual function */
 #define AMDGPU_PASSTHROUGH_MODE        (1 << 3) /* thw whole GPU is pass through for VM */
 /* GPU virtualization */
-struct amdgpu_virtualization {
+struct amdgpu_virtualization
+{
 	uint32_t virtual_caps;
 };
 
 #define amdgpu_sriov_enabled(adev) \
-((adev)->virtualization.virtual_caps & AMDGPU_SRIOV_CAPS_ENABLE_IOV)
+	((adev)->virtualization.virtual_caps & AMDGPU_SRIOV_CAPS_ENABLE_IOV)
 
 #define amdgpu_sriov_vf(adev) \
-((adev)->virtualization.virtual_caps & AMDGPU_SRIOV_CAPS_IS_VF)
+	((adev)->virtualization.virtual_caps & AMDGPU_SRIOV_CAPS_IS_VF)
 
 #define amdgpu_sriov_bios(adev) \
-((adev)->virtualization.virtual_caps & AMDGPU_SRIOV_CAPS_SRIOV_VBIOS)
+	((adev)->virtualization.virtual_caps & AMDGPU_SRIOV_CAPS_SRIOV_VBIOS)
 
 #define amdgpu_passthrough(adev) \
-((adev)->virtualization.virtual_caps & AMDGPU_PASSTHROUGH_MODE)
+	((adev)->virtualization.virtual_caps & AMDGPU_PASSTHROUGH_MODE)
 
 static inline bool is_virtual_machine(void)
 {

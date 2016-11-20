@@ -22,7 +22,8 @@
 #define PCIE1_PHY_IDDQ_SHIFT    10
 #define PCIE0_PHY_IDDQ_SHIFT    2
 
-enum cygnus_pcie_phy_id {
+enum cygnus_pcie_phy_id
+{
 	CYGNUS_PHY_PCIE0 = 0,
 	CYGNUS_PHY_PCIE1,
 	MAX_NUM_PHYS,
@@ -36,7 +37,8 @@ struct cygnus_pcie_phy_core;
  * @id: internal ID to identify the Cygnus PCIe PHY
  * @phy: pointer to the kernel PHY device
  */
-struct cygnus_pcie_phy {
+struct cygnus_pcie_phy
+{
 	struct cygnus_pcie_phy_core *core;
 	enum cygnus_pcie_phy_id id;
 	struct phy *phy;
@@ -49,7 +51,8 @@ struct cygnus_pcie_phy {
  * @lock: mutex to protect access to individual PHYs
  * @phys: pointer to Cygnus PHY device
  */
-struct cygnus_pcie_phy_core {
+struct cygnus_pcie_phy_core
+{
 	struct device *dev;
 	void __iomem *base;
 	struct mutex lock;
@@ -64,22 +67,24 @@ static int cygnus_pcie_power_config(struct cygnus_pcie_phy *phy, bool enable)
 
 	mutex_lock(&core->lock);
 
-	switch (phy->id) {
-	case CYGNUS_PHY_PCIE0:
-		shift = PCIE0_PHY_IDDQ_SHIFT;
-		break;
+	switch (phy->id)
+	{
+		case CYGNUS_PHY_PCIE0:
+			shift = PCIE0_PHY_IDDQ_SHIFT;
+			break;
 
-	case CYGNUS_PHY_PCIE1:
-		shift = PCIE1_PHY_IDDQ_SHIFT;
-		break;
+		case CYGNUS_PHY_PCIE1:
+			shift = PCIE1_PHY_IDDQ_SHIFT;
+			break;
 
-	default:
-		mutex_unlock(&core->lock);
-		dev_err(core->dev, "PCIe PHY %d invalid\n", phy->id);
-		return -EINVAL;
+		default:
+			mutex_unlock(&core->lock);
+			dev_err(core->dev, "PCIe PHY %d invalid\n", phy->id);
+			return -EINVAL;
 	}
 
-	if (enable) {
+	if (enable)
+	{
 		val = readl(core->base + PCIE_CFG_OFFSET);
 		val &= ~BIT(shift);
 		writel(val, core->base + PCIE_CFG_OFFSET);
@@ -88,7 +93,9 @@ static int cygnus_pcie_power_config(struct cygnus_pcie_phy *phy, bool enable)
 		 * front end is brought up
 		 */
 		msleep(50);
-	} else {
+	}
+	else
+	{
 		val = readl(core->base + PCIE_CFG_OFFSET);
 		val |= BIT(shift);
 		writel(val, core->base + PCIE_CFG_OFFSET);
@@ -96,7 +103,7 @@ static int cygnus_pcie_power_config(struct cygnus_pcie_phy *phy, bool enable)
 
 	mutex_unlock(&core->lock);
 	dev_dbg(core->dev, "PCIe PHY %d %s\n", phy->id,
-		enable ? "enabled" : "disabled");
+			enable ? "enabled" : "disabled");
 	return 0;
 }
 
@@ -114,7 +121,8 @@ static int cygnus_pcie_phy_power_off(struct phy *p)
 	return cygnus_pcie_power_config(phy, false);
 }
 
-static struct phy_ops cygnus_pcie_phy_ops = {
+static struct phy_ops cygnus_pcie_phy_ops =
+{
 	.power_on = cygnus_pcie_phy_power_on,
 	.power_off = cygnus_pcie_phy_power_off,
 	.owner = THIS_MODULE,
@@ -130,42 +138,53 @@ static int cygnus_pcie_phy_probe(struct platform_device *pdev)
 	unsigned cnt = 0;
 	int ret;
 
-	if (of_get_child_count(node) == 0) {
+	if (of_get_child_count(node) == 0)
+	{
 		dev_err(dev, "PHY no child node\n");
 		return -ENODEV;
 	}
 
 	core = devm_kzalloc(dev, sizeof(*core), GFP_KERNEL);
+
 	if (!core)
+	{
 		return -ENOMEM;
+	}
 
 	core->dev = dev;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	core->base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(core->base))
+	{
 		return PTR_ERR(core->base);
+	}
 
 	mutex_init(&core->lock);
 
-	for_each_available_child_of_node(node, child) {
+	for_each_available_child_of_node(node, child)
+	{
 		unsigned int id;
 		struct cygnus_pcie_phy *p;
 
-		if (of_property_read_u32(child, "reg", &id)) {
+		if (of_property_read_u32(child, "reg", &id))
+		{
 			dev_err(dev, "missing reg property for %s\n",
-				child->name);
+					child->name);
 			ret = -EINVAL;
 			goto put_child;
 		}
 
-		if (id >= MAX_NUM_PHYS) {
+		if (id >= MAX_NUM_PHYS)
+		{
 			dev_err(dev, "invalid PHY id: %u\n", id);
 			ret = -EINVAL;
 			goto put_child;
 		}
 
-		if (core->phys[id].phy) {
+		if (core->phys[id].phy)
+		{
 			dev_err(dev, "duplicated PHY id: %u\n", id);
 			ret = -EINVAL;
 			goto put_child;
@@ -173,7 +192,9 @@ static int cygnus_pcie_phy_probe(struct platform_device *pdev)
 
 		p = &core->phys[id];
 		p->phy = devm_phy_create(dev, child, &cygnus_pcie_phy_ops);
-		if (IS_ERR(p->phy)) {
+
+		if (IS_ERR(p->phy))
+		{
 			dev_err(dev, "failed to create PHY\n");
 			ret = PTR_ERR(p->phy);
 			goto put_child;
@@ -188,7 +209,9 @@ static int cygnus_pcie_phy_probe(struct platform_device *pdev)
 	dev_set_drvdata(dev, core);
 
 	provider = devm_of_phy_provider_register(dev, of_phy_simple_xlate);
-	if (IS_ERR(provider)) {
+
+	if (IS_ERR(provider))
+	{
 		dev_err(dev, "failed to register PHY provider\n");
 		return PTR_ERR(provider);
 	}
@@ -201,13 +224,15 @@ put_child:
 	return ret;
 }
 
-static const struct of_device_id cygnus_pcie_phy_match_table[] = {
+static const struct of_device_id cygnus_pcie_phy_match_table[] =
+{
 	{ .compatible = "brcm,cygnus-pcie-phy" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, cygnus_pcie_phy_match_table);
 
-static struct platform_driver cygnus_pcie_phy_driver = {
+static struct platform_driver cygnus_pcie_phy_driver =
+{
 	.driver = {
 		.name = "cygnus-pcie-phy",
 		.of_match_table = cygnus_pcie_phy_match_table,

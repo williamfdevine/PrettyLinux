@@ -35,7 +35,8 @@
 #define PCDP_UART_IRQ			(1 << 6) /* in pci_func for rev < 3 */
 #define PCDP_UART_PCI			(1 << 7) /* in pci_func for rev < 3 */
 
-struct pcdp_uart {
+struct pcdp_uart
+{
 	u8				type;
 	u8				bits;
 	u8				parity;
@@ -62,7 +63,8 @@ struct pcdp_uart {
 #define PCDP_PCI_TRANS_IOPORT	0x02
 #define PCDP_PCI_TRANS_MMIO	0x01
 
-struct pcdp_if_pci {
+struct pcdp_if_pci
+{
 	u8			interconnect;
 	u8			reserved;
 	u16			length;
@@ -79,14 +81,16 @@ struct pcdp_if_pci {
 	u8			trans;
 } __attribute__((packed));
 
-struct pcdp_vga {
+struct pcdp_vga
+{
 	u8			count;		/* address space descriptors */
 } __attribute__((packed));
 
 /* pcdp_device.flags */
 #define PCDP_PRIMARY_CONSOLE	1
 
-struct pcdp_device {
+struct pcdp_device
+{
 	u8			type;
 	u8			flags;
 	u16			length;
@@ -95,7 +99,8 @@ struct pcdp_device {
 	/* next data is device specific type (currently only pcdp_vga) */
 } __attribute__((packed));
 
-struct pcdp {
+struct pcdp
+{
 	u8			signature[4];
 	u32			length;
 	u8			rev;		/* PCDP v2.0 is rev 3 */

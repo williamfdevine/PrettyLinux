@@ -44,7 +44,8 @@
  * @ffthr: Free fall threshold value
  */
 
-struct cma3000_platform_data {
+struct cma3000_platform_data
+{
 	int fuzz_x;
 	int fuzz_y;
 	int fuzz_z;

@@ -111,9 +111,9 @@
 #define ETM_MODE_TIMESTAMP	BIT(3)
 #define ETM_MODE_CTXID		BIT(4)
 #define ETM_MODE_ALL		(ETM_MODE_EXCLUDE | ETM_MODE_CYCACC | \
-				 ETM_MODE_STALL | ETM_MODE_TIMESTAMP | \
-				 ETM_MODE_CTXID | ETM_MODE_EXCL_KERN | \
-				 ETM_MODE_EXCL_USER)
+							 ETM_MODE_STALL | ETM_MODE_TIMESTAMP | \
+							 ETM_MODE_CTXID | ETM_MODE_EXCL_KERN | \
+							 ETM_MODE_EXCL_USER)
 
 #define ETM_SQR_MASK		0x3
 #define ETM_TRACEID_MASK	0x3f
@@ -126,20 +126,20 @@
 #define PORT_SIZE_MASK		(GENMASK(21, 21) | GENMASK(6, 4))
 
 #define ETM_HARD_WIRE_RES_A	/* Hard wired, always true */	\
-				((0x0f << 0)	|		\
-				/* Resource index A */		\
-				(0x06 << 4))
+	((0x0f << 0)	|		\
+	 /* Resource index A */		\
+	 (0x06 << 4))
 
 #define ETM_ADD_COMP_0		/* Single addr comparator 1 */	\
-				((0x00 << 7)	|		\
-				/* Resource index B */		\
-				(0x00 << 11))
+	((0x00 << 7)	|		\
+	 /* Resource index B */		\
+	 (0x00 << 11))
 
 #define ETM_EVENT_NOT_A		BIT(14) /* NOT(A) */
 
 #define ETM_DEFAULT_EVENT_VAL	(ETM_HARD_WIRE_RES_A	|	\
-				 ETM_ADD_COMP_0		|	\
-				 ETM_EVENT_NOT_A)
+								 ETM_ADD_COMP_0		|	\
+								 ETM_EVENT_NOT_A)
 
 /**
  * struct etm_config - configuration information related to an ETM
@@ -176,7 +176,8 @@
  * @timestamp_event: Defines an event that requests the insertion
  *		     of a timestamp into the trace stream.
  */
-struct etm_config {
+struct etm_config
+{
 	u32				mode;
 	u32				ctrl;
 	u32				trigger_event;
@@ -234,7 +235,8 @@ struct etm_config {
  * @traceid:	value of the current ID for this component.
  * @config:	structure holding configuration parameters.
  */
-struct etm_drvdata {
+struct etm_drvdata
+{
 	void __iomem			*base;
 	struct device			*dev;
 	struct clk			*atclk;
@@ -260,14 +262,18 @@ struct etm_drvdata {
 };
 
 static inline void etm_writel(struct etm_drvdata *drvdata,
-			      u32 val, u32 off)
+							  u32 val, u32 off)
 {
-	if (drvdata->use_cp14) {
-		if (etm_writel_cp14(off, val)) {
+	if (drvdata->use_cp14)
+	{
+		if (etm_writel_cp14(off, val))
+		{
 			dev_err(drvdata->dev,
-				"invalid CP14 access to ETM reg: %#x", off);
+					"invalid CP14 access to ETM reg: %#x", off);
 		}
-	} else {
+	}
+	else
+	{
 		writel_relaxed(val, drvdata->base + off);
 	}
 }
@@ -276,12 +282,16 @@ static inline unsigned int etm_readl(struct etm_drvdata *drvdata, u32 off)
 {
 	u32 val;
 
-	if (drvdata->use_cp14) {
-		if (etm_readl_cp14(off, &val)) {
+	if (drvdata->use_cp14)
+	{
+		if (etm_readl_cp14(off, &val))
+		{
 			dev_err(drvdata->dev,
-				"invalid CP14 access to ETM reg: %#x", off);
+					"invalid CP14 access to ETM reg: %#x", off);
 		}
-	} else {
+	}
+	else
+	{
 		val = readl_relaxed(drvdata->base + off);
 	}
 

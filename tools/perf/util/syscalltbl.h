@@ -1,10 +1,13 @@
 #ifndef __PERF_SYSCALLTBL_H
 #define __PERF_SYSCALLTBL_H
 
-struct syscalltbl {
-	union {
+struct syscalltbl
+{
+	union
+	{
 		int audit_machine;
-		struct {
+		struct
+		{
 			int nr_entries;
 			void *entries;
 		} syscalls;

@@ -47,11 +47,13 @@ static void pasemi_read_buf(struct mtd_info *mtd, u_char *buf, int len)
 {
 	struct nand_chip *chip = mtd_to_nand(mtd);
 
-	while (len > 0x800) {
+	while (len > 0x800)
+	{
 		memcpy_fromio(buf, chip->IO_ADDR_R, 0x800);
 		buf += 0x800;
 		len -= 0x800;
 	}
+
 	memcpy_fromio(buf, chip->IO_ADDR_R, len);
 }
 
@@ -59,26 +61,34 @@ static void pasemi_write_buf(struct mtd_info *mtd, const u_char *buf, int len)
 {
 	struct nand_chip *chip = mtd_to_nand(mtd);
 
-	while (len > 0x800) {
+	while (len > 0x800)
+	{
 		memcpy_toio(chip->IO_ADDR_R, buf, 0x800);
 		buf += 0x800;
 		len -= 0x800;
 	}
+
 	memcpy_toio(chip->IO_ADDR_R, buf, len);
 }
 
 static void pasemi_hwcontrol(struct mtd_info *mtd, int cmd,
-			     unsigned int ctrl)
+							 unsigned int ctrl)
 {
 	struct nand_chip *chip = mtd_to_nand(mtd);
 
 	if (cmd == NAND_CMD_NONE)
+	{
 		return;
+	}
 
 	if (ctrl & NAND_CLE)
+	{
 		out_8(chip->IO_ADDR_W + (1 << CLE_PIN_CTL), cmd);
+	}
 	else
+	{
 		out_8(chip->IO_ADDR_W + (1 << ALE_PIN_CTL), cmd);
+	}
 
 	/* Push out posted writes */
 	eieio();
@@ -102,17 +112,23 @@ static int pasemi_nand_probe(struct platform_device *ofdev)
 	err = of_address_to_resource(np, 0, &res);
 
 	if (err)
+	{
 		return -EINVAL;
+	}
 
 	/* We only support one device at the moment */
 	if (pasemi_nand_mtd)
+	{
 		return -ENODEV;
+	}
 
 	dev_dbg(dev, "pasemi_nand at %pR\n", &res);
 
 	/* Allocate memory for MTD device structure and private data */
 	chip = kzalloc(sizeof(struct nand_chip), GFP_KERNEL);
-	if (!chip) {
+
+	if (!chip)
+	{
 		err = -ENOMEM;
 		goto out;
 	}
@@ -125,13 +141,16 @@ static int pasemi_nand_probe(struct platform_device *ofdev)
 	chip->IO_ADDR_R = of_iomap(np, 0);
 	chip->IO_ADDR_W = chip->IO_ADDR_R;
 
-	if (!chip->IO_ADDR_R) {
+	if (!chip->IO_ADDR_R)
+	{
 		err = -EIO;
 		goto out_mtd;
 	}
 
 	pdev = pci_get_device(PCI_VENDOR_ID_PASEMI, 0xa008, NULL);
-	if (!pdev) {
+
+	if (!pdev)
+	{
 		err = -ENODEV;
 		goto out_ior;
 	}
@@ -139,7 +158,8 @@ static int pasemi_nand_probe(struct platform_device *ofdev)
 	lpcctl = pci_resource_start(pdev, 0);
 	pci_dev_put(pdev);
 
-	if (!request_region(lpcctl, 4, driver_name)) {
+	if (!request_region(lpcctl, 4, driver_name))
+	{
 		err = -EBUSY;
 		goto out_ior;
 	}
@@ -156,29 +176,31 @@ static int pasemi_nand_probe(struct platform_device *ofdev)
 	chip->bbt_options = NAND_BBT_USE_FLASH;
 
 	/* Scan to find existence of the device */
-	if (nand_scan(pasemi_nand_mtd, 1)) {
+	if (nand_scan(pasemi_nand_mtd, 1))
+	{
 		err = -ENXIO;
 		goto out_lpc;
 	}
 
-	if (mtd_device_register(pasemi_nand_mtd, NULL, 0)) {
+	if (mtd_device_register(pasemi_nand_mtd, NULL, 0))
+	{
 		dev_err(dev, "Unable to register MTD device\n");
 		err = -ENODEV;
 		goto out_lpc;
 	}
 
 	dev_info(dev, "PA Semi NAND flash at %pR, control at I/O %x\n", &res,
-		 lpcctl);
+			 lpcctl);
 
 	return 0;
 
- out_lpc:
+out_lpc:
 	release_region(lpcctl, 4);
- out_ior:
+out_ior:
 	iounmap(chip->IO_ADDR_R);
- out_mtd:
+out_mtd:
 	kfree(chip);
- out:
+out:
 	return err;
 }
 
@@ -187,7 +209,9 @@ static int pasemi_nand_remove(struct platform_device *ofdev)
 	struct nand_chip *chip;
 
 	if (!pasemi_nand_mtd)
+	{
 		return 0;
+	}
 
 	chip = mtd_to_nand(pasemi_nand_mtd);
 

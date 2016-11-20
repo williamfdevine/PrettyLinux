@@ -4,9 +4,10 @@
 #include <subdev/i2c.h>
 
 int nvkm_i2c_new_(const struct nvkm_i2c_func *, struct nvkm_device *,
-		  int index, struct nvkm_i2c **);
+				  int index, struct nvkm_i2c **);
 
-struct nvkm_i2c_func {
+struct nvkm_i2c_func
+{
 	int (*pad_x_new)(struct nvkm_i2c *, int id, struct nvkm_i2c_pad **);
 	int (*pad_s_new)(struct nvkm_i2c *, int id, struct nvkm_i2c_pad **);
 

@@ -48,13 +48,16 @@ extern uint cxl_verbose;
  * I'm quite happy if these are changed back to #defines before upstreaming, it
  * should be little more than a regexp search+replace operation in this file.
  */
-typedef struct {
+typedef struct
+{
 	const int x;
 } cxl_p1_reg_t;
-typedef struct {
+typedef struct
+{
 	const int x;
 } cxl_p1n_reg_t;
-typedef struct {
+typedef struct
+{
 	const int x;
 } cxl_p2n_reg_t;
 #define cxl_reg_off(reg) \
@@ -342,25 +345,29 @@ static const cxl_p2n_reg_t CXL_PSL_WED_An     = {0x0A0};
 #define CXL_CARD_MINOR(adapter) (adapter->adapter_num * CXL_DEV_MINORS)
 #define CXL_DEVT_ADAPTER(dev) (MINOR(dev) / CXL_DEV_MINORS)
 
-enum cxl_context_status {
+enum cxl_context_status
+{
 	CLOSED,
 	OPENED,
 	STARTED
 };
 
-enum prefault_modes {
+enum prefault_modes
+{
 	CXL_PREFAULT_NONE,
 	CXL_PREFAULT_WED,
 	CXL_PREFAULT_ALL,
 };
 
-enum cxl_attrs {
+enum cxl_attrs
+{
 	CXL_ADAPTER_ATTRS,
 	CXL_AFU_MASTER_ATTRS,
 	CXL_AFU_ATTRS,
 };
 
-struct cxl_sste {
+struct cxl_sste
+{
 	__be64 esid_data;
 	__be64 vsid_data;
 };
@@ -368,7 +375,8 @@ struct cxl_sste {
 #define to_cxl_adapter(d) container_of(d, struct cxl, dev)
 #define to_cxl_afu(d) container_of(d, struct cxl_afu, dev)
 
-struct cxl_afu_native {
+struct cxl_afu_native
+{
 	void __iomem *p1n_mmio;
 	void __iomem *afu_desc_mmio;
 	irq_hw_number_t psl_hwirq;
@@ -388,7 +396,8 @@ struct cxl_afu_native {
 	u64 pp_offset;
 };
 
-struct cxl_afu_guest {
+struct cxl_afu_guest
+{
 	struct cxl_afu *parent;
 	u64 handle;
 	phys_addr_t p2n_phys;
@@ -399,7 +408,8 @@ struct cxl_afu_guest {
 	int previous_state;
 };
 
-struct cxl_afu {
+struct cxl_afu
+{
 	struct cxl_afu_native *native;
 	struct cxl_afu_guest *guest;
 	irq_hw_number_t serr_hwirq;
@@ -444,12 +454,14 @@ struct cxl_afu {
 };
 
 
-struct cxl_irq_name {
+struct cxl_irq_name
+{
 	struct list_head list;
 	char *name;
 };
 
-struct irq_avail {
+struct irq_avail
+{
 	irq_hw_number_t offset;
 	irq_hw_number_t range;
 	unsigned long   *bitmap;
@@ -459,7 +471,8 @@ struct irq_avail {
  * This is a cxl context.  If the PSL is in dedicated mode, there will be one
  * of these per AFU.  If in AFU directed there can be lots of these.
  */
-struct cxl_context {
+struct cxl_context
+{
 	struct cxl_afu *afu;
 
 	/* Problem state MMIO */
@@ -550,7 +563,8 @@ struct cxl_context {
 	struct list_head extra_irq_contexts;
 };
 
-struct cxl_service_layer_ops {
+struct cxl_service_layer_ops
+{
 	int (*adapter_regs_init)(struct cxl *adapter, struct pci_dev *dev);
 	int (*afu_regs_init)(struct cxl_afu *afu);
 	int (*register_serr_irq)(struct cxl_afu *afu);
@@ -566,7 +580,8 @@ struct cxl_service_layer_ops {
 	bool needs_reset_before_disable;
 };
 
-struct cxl_native {
+struct cxl_native
+{
 	u64 afu_desc_off;
 	u64 afu_desc_size;
 	void __iomem *p1_mmio;
@@ -577,7 +592,8 @@ struct cxl_native {
 	const struct cxl_service_layer_ops *sl_ops;
 };
 
-struct cxl_guest {
+struct cxl_guest
+{
 	struct platform_device *pdev;
 	int irq_nranges;
 	struct cdev cdev;
@@ -592,7 +608,8 @@ struct cxl_guest {
 	u16 subsystem;
 };
 
-struct cxl {
+struct cxl
+{
 	struct cxl_native *native;
 	struct cxl_guest *guest;
 	spinlock_t afu_list_lock;
@@ -639,7 +656,8 @@ void cxl_pci_release_afu(struct device *dev);
 ssize_t cxl_pci_read_adapter_vpd(struct cxl *adapter, void *buf, size_t len);
 
 /* common == phyp + powernv */
-struct cxl_process_element_common {
+struct cxl_process_element_common
+{
 	__be32 tid;
 	__be32 pid;
 	__be64 csrp;
@@ -653,7 +671,8 @@ struct cxl_process_element_common {
 } __packed;
 
 /* just powernv */
-struct cxl_process_element {
+struct cxl_process_element
+{
 	__be64 sr;
 	__be64 SPOffset;
 	__be64 sdr;
@@ -670,10 +689,12 @@ static inline bool cxl_adapter_link_ok(struct cxl *cxl, struct cxl_afu *afu)
 {
 	struct pci_dev *pdev;
 
-	if (cpu_has_feature(CPU_FTR_HVMODE)) {
+	if (cpu_has_feature(CPU_FTR_HVMODE))
+	{
 		pdev = to_pci_dev(cxl->dev.parent);
 		return !pci_channel_offline(pdev);
 	}
+
 	return true;
 }
 
@@ -686,15 +707,21 @@ static inline void __iomem *_cxl_p1_addr(struct cxl *cxl, cxl_p1_reg_t reg)
 static inline void cxl_p1_write(struct cxl *cxl, cxl_p1_reg_t reg, u64 val)
 {
 	if (likely(cxl_adapter_link_ok(cxl, NULL)))
+	{
 		out_be64(_cxl_p1_addr(cxl, reg), val);
+	}
 }
 
 static inline u64 cxl_p1_read(struct cxl *cxl, cxl_p1_reg_t reg)
 {
 	if (likely(cxl_adapter_link_ok(cxl, NULL)))
+	{
 		return in_be64(_cxl_p1_addr(cxl, reg));
+	}
 	else
+	{
 		return ~0ULL;
+	}
 }
 
 static inline void __iomem *_cxl_p1n_addr(struct cxl_afu *afu, cxl_p1n_reg_t reg)
@@ -706,15 +733,21 @@ static inline void __iomem *_cxl_p1n_addr(struct cxl_afu *afu, cxl_p1n_reg_t reg
 static inline void cxl_p1n_write(struct cxl_afu *afu, cxl_p1n_reg_t reg, u64 val)
 {
 	if (likely(cxl_adapter_link_ok(afu->adapter, afu)))
+	{
 		out_be64(_cxl_p1n_addr(afu, reg), val);
+	}
 }
 
 static inline u64 cxl_p1n_read(struct cxl_afu *afu, cxl_p1n_reg_t reg)
 {
 	if (likely(cxl_adapter_link_ok(afu->adapter, afu)))
+	{
 		return in_be64(_cxl_p1n_addr(afu, reg));
+	}
 	else
+	{
 		return ~0ULL;
+	}
 }
 
 static inline void __iomem *_cxl_p2n_addr(struct cxl_afu *afu, cxl_p2n_reg_t reg)
@@ -725,19 +758,25 @@ static inline void __iomem *_cxl_p2n_addr(struct cxl_afu *afu, cxl_p2n_reg_t reg
 static inline void cxl_p2n_write(struct cxl_afu *afu, cxl_p2n_reg_t reg, u64 val)
 {
 	if (likely(cxl_adapter_link_ok(afu->adapter, afu)))
+	{
 		out_be64(_cxl_p2n_addr(afu, reg), val);
+	}
 }
 
 static inline u64 cxl_p2n_read(struct cxl_afu *afu, cxl_p2n_reg_t reg)
 {
 	if (likely(cxl_adapter_link_ok(afu->adapter, afu)))
+	{
 		return in_be64(_cxl_p2n_addr(afu, reg));
+	}
 	else
+	{
 		return ~0ULL;
+	}
 }
 
 ssize_t cxl_pci_afu_read_err_buffer(struct cxl_afu *afu, char *buf,
-				loff_t off, size_t count);
+									loff_t off, size_t count);
 
 /* Internal functions wrapped in cxl_base to allow PHB to call them */
 bool _cxl_pci_associate_default_context(struct pci_dev *dev, struct cxl_afu *afu);
@@ -746,7 +785,8 @@ int _cxl_next_msi_hwirq(struct pci_dev *pdev, struct cxl_context **ctx, int *afu
 int _cxl_cx4_setup_msi_irqs(struct pci_dev *pdev, int nvec, int type);
 void _cxl_cx4_teardown_msi_irqs(struct pci_dev *pdev);
 
-struct cxl_calls {
+struct cxl_calls
+{
 	void (*cxl_slbia)(struct mm_struct *mm);
 	bool (*cxl_pci_associate_default_context)(struct pci_dev *dev, struct cxl_afu *afu);
 	void (*cxl_pci_disable_device)(struct pci_dev *dev);
@@ -818,11 +858,11 @@ void init_cxl_native(void);
 
 struct cxl_context *cxl_context_alloc(void);
 int cxl_context_init(struct cxl_context *ctx, struct cxl_afu *afu, bool master,
-		     struct address_space *mapping);
+					 struct address_space *mapping);
 void cxl_context_free(struct cxl_context *ctx);
 int cxl_context_iomap(struct cxl_context *ctx, struct vm_area_struct *vma);
 unsigned int cxl_map_irq(struct cxl *adapter, irq_hw_number_t hwirq,
-			 irq_handler_t handler, void *cookie, const char *name);
+						 irq_handler_t handler, void *cookie, const char *name);
 void cxl_unmap_irq(unsigned int virq, void *cookie);
 int __detach_context(struct cxl_context *ctx);
 
@@ -839,7 +879,8 @@ int __detach_context(struct cxl_context *ctx);
  * - the pid and tid are an exception. They are 32-bit values returned in
  *   the same 64-bit register. So we do need to worry about byte ordering.
  */
-struct cxl_irq_info {
+struct cxl_irq_info
+{
 	u64 dsisr;
 	u64 dar;
 	u64 dsr;
@@ -859,8 +900,8 @@ struct cxl_irq_info {
 void cxl_assign_psn_space(struct cxl_context *ctx);
 irqreturn_t cxl_irq(int irq, struct cxl_context *ctx, struct cxl_irq_info *irq_info);
 int cxl_register_one_irq(struct cxl *adapter, irq_handler_t handler,
-			void *cookie, irq_hw_number_t *dest_hwirq,
-			unsigned int *dest_virq, const char *name);
+						 void *cookie, irq_hw_number_t *dest_hwirq,
+						 unsigned int *dest_virq, const char *name);
 
 int cxl_check_error(struct cxl_afu *afu);
 int cxl_afu_slbia(struct cxl_afu *afu);
@@ -905,31 +946,32 @@ void cxl_guest_remove_chardev(struct cxl *adapter);
 void cxl_guest_reload_module(struct cxl *adapter);
 int cxl_of_probe(struct platform_device *pdev);
 
-struct cxl_backend_ops {
+struct cxl_backend_ops
+{
 	struct module *module;
 	int (*adapter_reset)(struct cxl *adapter);
 	int (*alloc_one_irq)(struct cxl *adapter);
 	void (*release_one_irq)(struct cxl *adapter, int hwirq);
 	int (*alloc_irq_ranges)(struct cxl_irq_ranges *irqs,
-				struct cxl *adapter, unsigned int num);
+							struct cxl *adapter, unsigned int num);
 	void (*release_irq_ranges)(struct cxl_irq_ranges *irqs,
-				struct cxl *adapter);
+							   struct cxl *adapter);
 	int (*setup_irq)(struct cxl *adapter, unsigned int hwirq,
-			unsigned int virq);
+					 unsigned int virq);
 	irqreturn_t (*handle_psl_slice_error)(struct cxl_context *ctx,
-					u64 dsisr, u64 errstat);
+										  u64 dsisr, u64 errstat);
 	irqreturn_t (*psl_interrupt)(int irq, void *data);
 	int (*ack_irq)(struct cxl_context *ctx, u64 tfc, u64 psl_reset_mask);
 	void (*irq_wait)(struct cxl_context *ctx);
 	int (*attach_process)(struct cxl_context *ctx, bool kernel,
-			u64 wed, u64 amr);
+						  u64 wed, u64 amr);
 	int (*detach_process)(struct cxl_context *ctx);
 	void (*update_ivtes)(struct cxl_context *ctx);
 	bool (*support_attributes)(const char *attr_name, enum cxl_attrs type);
 	bool (*link_ok)(struct cxl *cxl, struct cxl_afu *afu);
 	void (*release_afu)(struct device *dev);
 	ssize_t (*afu_read_err_buffer)(struct cxl_afu *afu, char *buf,
-				loff_t off, size_t count);
+								   loff_t off, size_t count);
 	int (*afu_check_and_enable)(struct cxl_afu *afu);
 	int (*afu_activate_mode)(struct cxl_afu *afu, int mode);
 	int (*afu_deactivate_mode)(struct cxl_afu *afu, int mode);

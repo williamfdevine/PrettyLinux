@@ -137,58 +137,71 @@ static void slidebar_mode_set(u8 mode)
 }
 
 static bool slidebar_i8042_filter(unsigned char data, unsigned char str,
-				  struct serio *port)
+								  struct serio *port)
 {
 	static bool extended = false;
 
 	/* We are only interested in data coming form KBC port */
 	if (str & I8042_STR_AUXDATA)
+	{
 		return false;
+	}
 
 	/* Scancodes: e03b on move, e0bb on release. */
-	if (data == 0xe0) {
+	if (data == 0xe0)
+	{
 		extended = true;
 		return true;
 	}
 
 	if (!extended)
+	{
 		return false;
+	}
 
 	extended = false;
 
-	if (likely((data & 0x7f) != 0x3b)) {
+	if (likely((data & 0x7f) != 0x3b))
+	{
 		serio_interrupt(port, 0xe0, 0);
 		return false;
 	}
 
-	if (data & 0x80) {
+	if (data & 0x80)
+	{
 		input_report_key(slidebar_input_dev, BTN_TOUCH, 0);
-	} else {
+	}
+	else
+	{
 		input_report_key(slidebar_input_dev, BTN_TOUCH, 1);
 		input_report_abs(slidebar_input_dev, ABS_X, slidebar_pos_get());
 	}
+
 	input_sync(slidebar_input_dev);
 
 	return true;
 }
 
 static ssize_t show_slidebar_mode(struct device *dev,
-				  struct device_attribute *attr,
-				  char *buf)
+								  struct device_attribute *attr,
+								  char *buf)
 {
 	return sprintf(buf, "%x\n", slidebar_mode_get());
 }
 
 static ssize_t store_slidebar_mode(struct device *dev,
-				   struct device_attribute *attr,
-				   const char *buf, size_t count)
+								   struct device_attribute *attr,
+								   const char *buf, size_t count)
 {
 	u8 mode;
 	int error;
 
 	error = kstrtou8(buf, 0, &mode);
+
 	if (error)
+	{
 		return error;
+	}
 
 	slidebar_mode_set(mode);
 
@@ -196,33 +209,39 @@ static ssize_t store_slidebar_mode(struct device *dev,
 }
 
 static DEVICE_ATTR(slidebar_mode, S_IWUSR | S_IRUGO,
-		   show_slidebar_mode, store_slidebar_mode);
+				   show_slidebar_mode, store_slidebar_mode);
 
-static struct attribute *ideapad_attrs[] = {
+static struct attribute *ideapad_attrs[] =
+{
 	&dev_attr_slidebar_mode.attr,
 	NULL
 };
 
-static struct attribute_group ideapad_attr_group = {
+static struct attribute_group ideapad_attr_group =
+{
 	.attrs = ideapad_attrs
 };
 
-static const struct attribute_group *ideapad_attr_groups[] = {
+static const struct attribute_group *ideapad_attr_groups[] =
+{
 	&ideapad_attr_group,
 	NULL
 };
 
-static int __init ideapad_probe(struct platform_device* pdev)
+static int __init ideapad_probe(struct platform_device *pdev)
 {
 	int err;
 
-	if (!request_region(IDEAPAD_BASE, 3, "ideapad_slidebar")) {
+	if (!request_region(IDEAPAD_BASE, 3, "ideapad_slidebar"))
+	{
 		dev_err(&pdev->dev, "IO ports are busy\n");
 		return -EBUSY;
 	}
 
 	slidebar_input_dev = input_allocate_device();
-	if (!slidebar_input_dev) {
+
+	if (!slidebar_input_dev)
+	{
 		dev_err(&pdev->dev, "Failed to allocate input device\n");
 		err = -ENOMEM;
 		goto err_release_ports;
@@ -236,16 +255,20 @@ static int __init ideapad_probe(struct platform_device* pdev)
 	input_set_abs_params(slidebar_input_dev, ABS_X, 0, 0xff, 0, 0);
 
 	err = i8042_install_filter(slidebar_i8042_filter);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev,
-			"Failed to install i8042 filter: %d\n", err);
+				"Failed to install i8042 filter: %d\n", err);
 		goto err_free_dev;
 	}
 
 	err = input_register_device(slidebar_input_dev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev,
-			"Failed to register input device: %d\n", err);
+				"Failed to register input device: %d\n", err);
 		goto err_remove_filter;
 	}
 
@@ -269,7 +292,8 @@ static int ideapad_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver slidebar_drv = {
+static struct platform_driver slidebar_drv =
+{
 	.driver = {
 		.name = "ideapad_slidebar",
 	},
@@ -282,7 +306,8 @@ static int __init ideapad_dmi_check(const struct dmi_system_id *id)
 	return 1;
 }
 
-static const struct dmi_system_id ideapad_dmi[] __initconst = {
+static const struct dmi_system_id ideapad_dmi[] __initconst =
+{
 	{
 		.ident = "Lenovo IdeaPad Y550",
 		.matches = {
@@ -309,13 +334,16 @@ static int __init slidebar_init(void)
 {
 	int err;
 
-	if (!force && !dmi_check_system(ideapad_dmi)) {
+	if (!force && !dmi_check_system(ideapad_dmi))
+	{
 		pr_err("DMI does not match\n");
 		return -ENODEV;
 	}
 
 	slidebar_platform_dev = platform_device_alloc("ideapad_slidebar", -1);
-	if (!slidebar_platform_dev) {
+
+	if (!slidebar_platform_dev)
+	{
 		pr_err("Not enough memory\n");
 		return -ENOMEM;
 	}
@@ -323,13 +351,17 @@ static int __init slidebar_init(void)
 	slidebar_platform_dev->dev.groups = ideapad_attr_groups;
 
 	err = platform_device_add(slidebar_platform_dev);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Failed to register platform device\n");
 		goto err_free_dev;
 	}
 
 	err = platform_driver_probe(&slidebar_drv, ideapad_probe);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Failed to register platform driver\n");
 		goto err_delete_dev;
 	}

@@ -24,7 +24,8 @@
  */
 #include "rlim_names.h"
 
-struct aa_fs_entry aa_fs_entry_rlimit[] = {
+struct aa_fs_entry aa_fs_entry_rlimit[] =
+{
 	AA_FS_FILE_STRING("mask", AA_FS_RLIMIT_MASK),
 	{ }
 };
@@ -35,7 +36,7 @@ static void audit_cb(struct audit_buffer *ab, void *va)
 	struct common_audit_data *sa = va;
 
 	audit_log_format(ab, " rlimit=%s value=%lu",
-			 rlim_names[sa->aad->rlim.rlim], sa->aad->rlim.max);
+					 rlim_names[sa->aad->rlim.rlim], sa->aad->rlim.max);
 }
 
 /**
@@ -48,7 +49,7 @@ static void audit_cb(struct audit_buffer *ab, void *va)
  * Returns: 0 or sa->error else other error code on failure
  */
 static int audit_resource(struct aa_profile *profile, unsigned int resource,
-			  unsigned long value, int error)
+						  unsigned long value, int error)
 {
 	struct common_audit_data sa;
 	struct apparmor_audit_data aad = {0,};
@@ -56,11 +57,11 @@ static int audit_resource(struct aa_profile *profile, unsigned int resource,
 	sa.type = LSM_AUDIT_DATA_NONE;
 	sa.aad = &aad;
 	aad.op = OP_SETRLIMIT,
-	aad.rlim.rlim = resource;
+		aad.rlim.rlim = resource;
 	aad.rlim.max = value;
 	aad.error = error;
 	return aa_audit(AUDIT_APPARMOR_AUTO, profile, GFP_KERNEL, &sa,
-			audit_cb);
+					audit_cb);
 }
 
 /**
@@ -89,7 +90,7 @@ int aa_map_resource(int resource)
  * Returns: 0 or error code if setting resource failed
  */
 int aa_task_setrlimit(struct aa_profile *profile, struct task_struct *task,
-		      unsigned int resource, struct rlimit *new_rlim)
+					  unsigned int resource, struct rlimit *new_rlim)
 {
 	struct aa_profile *task_profile;
 	int error = 0;
@@ -105,10 +106,12 @@ int aa_task_setrlimit(struct aa_profile *profile, struct task_struct *task,
 	 * task has CAP_SYS_RESOURCE.
 	 */
 	if ((profile != task_profile &&
-	     aa_capable(profile, CAP_SYS_RESOURCE, 1)) ||
-	    (profile->rlimits.mask & (1 << resource) &&
-	     new_rlim->rlim_max > profile->rlimits.limits[resource].rlim_max))
+		 aa_capable(profile, CAP_SYS_RESOURCE, 1)) ||
+		(profile->rlimits.mask & (1 << resource) &&
+		 new_rlim->rlim_max > profile->rlimits.limits[resource].rlim_max))
+	{
 		error = -EACCES;
+	}
 
 	aa_put_profile(task_profile);
 
@@ -129,27 +132,36 @@ void __aa_transition_rlimits(struct aa_profile *old, struct aa_profile *new)
 	/* for any rlimits the profile controlled reset the soft limit
 	 * to the less of the tasks hard limit and the init tasks soft limit
 	 */
-	if (old->rlimits.mask) {
-		for (i = 0, mask = 1; i < RLIM_NLIMITS; i++, mask <<= 1) {
-			if (old->rlimits.mask & mask) {
+	if (old->rlimits.mask)
+	{
+		for (i = 0, mask = 1; i < RLIM_NLIMITS; i++, mask <<= 1)
+		{
+			if (old->rlimits.mask & mask)
+			{
 				rlim = current->signal->rlim + i;
 				initrlim = init_task.signal->rlim + i;
 				rlim->rlim_cur = min(rlim->rlim_max,
-						     initrlim->rlim_cur);
+									 initrlim->rlim_cur);
 			}
 		}
 	}
 
 	/* set any new hard limits as dictated by the new profile */
 	if (!new->rlimits.mask)
+	{
 		return;
-	for (i = 0, mask = 1; i < RLIM_NLIMITS; i++, mask <<= 1) {
+	}
+
+	for (i = 0, mask = 1; i < RLIM_NLIMITS; i++, mask <<= 1)
+	{
 		if (!(new->rlimits.mask & mask))
+		{
 			continue;
+		}
 
 		rlim = current->signal->rlim + i;
 		rlim->rlim_max = min(rlim->rlim_max,
-				     new->rlimits.limits[i].rlim_max);
+							 new->rlimits.limits[i].rlim_max);
 		/* soft limit should not exceed hard limit */
 		rlim->rlim_cur = min(rlim->rlim_cur, rlim->rlim_max);
 	}

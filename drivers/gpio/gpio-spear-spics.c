@@ -42,7 +42,8 @@
  * @last_off: stores last offset caller of set_value()
  * @chip: gpio_chip abstraction
  */
-struct spear_spics {
+struct spear_spics
+{
 	void __iomem		*base;
 	u32			perip_cfg;
 	u32			sw_enable_bit;
@@ -67,7 +68,9 @@ static void spics_set_value(struct gpio_chip *chip, unsigned offset, int value)
 
 	/* select chip select from register */
 	tmp = readl_relaxed(spics->base + spics->perip_cfg);
-	if (spics->last_off != offset) {
+
+	if (spics->last_off != offset)
+	{
 		spics->last_off = offset;
 		tmp &= ~(spics->cs_enable_mask << spics->cs_enable_shift);
 		tmp |= offset << spics->cs_enable_shift;
@@ -85,7 +88,7 @@ static int spics_direction_input(struct gpio_chip *chip, unsigned offset)
 }
 
 static int spics_direction_output(struct gpio_chip *chip, unsigned offset,
-		int value)
+								  int value)
 {
 	spics_set_value(chip, offset, value);
 	return 0;
@@ -96,7 +99,8 @@ static int spics_request(struct gpio_chip *chip, unsigned offset)
 	struct spear_spics *spics = gpiochip_get_data(chip);
 	u32 tmp;
 
-	if (!spics->use_count++) {
+	if (!spics->use_count++)
+	{
 		tmp = readl_relaxed(spics->base + spics->perip_cfg);
 		tmp |= 0x1 << spics->sw_enable_bit;
 		tmp |= 0x1 << spics->cs_value_bit;
@@ -111,7 +115,8 @@ static void spics_free(struct gpio_chip *chip, unsigned offset)
 	struct spear_spics *spics = gpiochip_get_data(chip);
 	u32 tmp;
 
-	if (!--spics->use_count) {
+	if (!--spics->use_count)
+	{
 		tmp = readl_relaxed(spics->base + spics->perip_cfg);
 		tmp &= ~(0x1 << spics->sw_enable_bit);
 		writel_relaxed(tmp, spics->base + spics->perip_cfg);
@@ -126,29 +131,49 @@ static int spics_gpio_probe(struct platform_device *pdev)
 	int ret;
 
 	spics = devm_kzalloc(&pdev->dev, sizeof(*spics), GFP_KERNEL);
+
 	if (!spics)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	spics->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(spics->base))
+	{
 		return PTR_ERR(spics->base);
+	}
 
 	if (of_property_read_u32(np, "st-spics,peripcfg-reg",
-				&spics->perip_cfg))
+							 &spics->perip_cfg))
+	{
 		goto err_dt_data;
+	}
+
 	if (of_property_read_u32(np, "st-spics,sw-enable-bit",
-				&spics->sw_enable_bit))
+							 &spics->sw_enable_bit))
+	{
 		goto err_dt_data;
+	}
+
 	if (of_property_read_u32(np, "st-spics,cs-value-bit",
-				&spics->cs_value_bit))
+							 &spics->cs_value_bit))
+	{
 		goto err_dt_data;
+	}
+
 	if (of_property_read_u32(np, "st-spics,cs-enable-mask",
-				&spics->cs_enable_mask))
+							 &spics->cs_enable_mask))
+	{
 		goto err_dt_data;
+	}
+
 	if (of_property_read_u32(np, "st-spics,cs-enable-shift",
-				&spics->cs_enable_shift))
+							 &spics->cs_enable_shift))
+	{
 		goto err_dt_data;
+	}
 
 	platform_set_drvdata(pdev, spics);
 
@@ -166,7 +191,9 @@ static int spics_gpio_probe(struct platform_device *pdev)
 	spics->last_off = -1;
 
 	ret = devm_gpiochip_add_data(&pdev->dev, &spics->chip, spics);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to add gpio chip\n");
 		return ret;
 	}
@@ -179,12 +206,14 @@ err_dt_data:
 	return -EINVAL;
 }
 
-static const struct of_device_id spics_gpio_of_match[] = {
+static const struct of_device_id spics_gpio_of_match[] =
+{
 	{ .compatible = "st,spear-spics-gpio" },
 	{}
 };
 
-static struct platform_driver spics_gpio_driver = {
+static struct platform_driver spics_gpio_driver =
+{
 	.probe = spics_gpio_probe,
 	.driver = {
 		.name = "spear-spics-gpio",

@@ -24,13 +24,15 @@
 
 struct ad7476_state;
 
-struct ad7476_chip_info {
+struct ad7476_chip_info
+{
 	unsigned int			int_vref_uv;
 	struct iio_chan_spec		channel[2];
 	void (*reset)(struct ad7476_state *);
 };
 
-struct ad7476_state {
+struct ad7476_state
+{
 	struct spi_device		*spi;
 	const struct ad7476_chip_info	*chip_info;
 	struct regulator		*reg;
@@ -43,10 +45,11 @@ struct ad7476_state {
 	 * aligned 64 bit timestamp.
 	 */
 	unsigned char data[ALIGN(2, sizeof(s64)) + sizeof(s64)]
-			____cacheline_aligned;
+	____cacheline_aligned;
 };
 
-enum ad7476_supported_device_ids {
+enum ad7476_supported_device_ids
+{
 	ID_AD7091R,
 	ID_AD7276,
 	ID_AD7277,
@@ -66,11 +69,14 @@ static irqreturn_t ad7476_trigger_handler(int irq, void  *p)
 	int b_sent;
 
 	b_sent = spi_sync(st->spi, &st->msg);
+
 	if (b_sent < 0)
+	{
 		goto done;
+	}
 
 	iio_push_to_buffers_with_timestamp(indio_dev, st->data,
-		iio_get_time_ns(indio_dev));
+									   iio_get_time_ns(indio_dev));
 done:
 	iio_trigger_notify_done(indio_dev->trig);
 
@@ -88,72 +94,93 @@ static int ad7476_scan_direct(struct ad7476_state *st)
 	int ret;
 
 	ret = spi_sync(st->spi, &st->msg);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return be16_to_cpup((__be16 *)st->data);
 }
 
 static int ad7476_read_raw(struct iio_dev *indio_dev,
-			   struct iio_chan_spec const *chan,
-			   int *val,
-			   int *val2,
-			   long m)
+						   struct iio_chan_spec const *chan,
+						   int *val,
+						   int *val2,
+						   long m)
 {
 	int ret;
 	struct ad7476_state *st = iio_priv(indio_dev);
 	int scale_uv;
 
-	switch (m) {
-	case IIO_CHAN_INFO_RAW:
-		ret = iio_device_claim_direct_mode(indio_dev);
-		if (ret)
-			return ret;
-		ret = ad7476_scan_direct(st);
-		iio_device_release_direct_mode(indio_dev);
+	switch (m)
+	{
+		case IIO_CHAN_INFO_RAW:
+			ret = iio_device_claim_direct_mode(indio_dev);
 
-		if (ret < 0)
-			return ret;
-		*val = (ret >> st->chip_info->channel[0].scan_type.shift) &
-			GENMASK(st->chip_info->channel[0].scan_type.realbits - 1, 0);
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_SCALE:
-		if (!st->chip_info->int_vref_uv) {
-			scale_uv = regulator_get_voltage(st->reg);
-			if (scale_uv < 0)
-				return scale_uv;
-		} else {
-			scale_uv = st->chip_info->int_vref_uv;
-		}
-		*val = scale_uv / 1000;
-		*val2 = chan->scan_type.realbits;
-		return IIO_VAL_FRACTIONAL_LOG2;
+			if (ret)
+			{
+				return ret;
+			}
+
+			ret = ad7476_scan_direct(st);
+			iio_device_release_direct_mode(indio_dev);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			*val = (ret >> st->chip_info->channel[0].scan_type.shift) &
+				   GENMASK(st->chip_info->channel[0].scan_type.realbits - 1, 0);
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_SCALE:
+			if (!st->chip_info->int_vref_uv)
+			{
+				scale_uv = regulator_get_voltage(st->reg);
+
+				if (scale_uv < 0)
+				{
+					return scale_uv;
+				}
+			}
+			else
+			{
+				scale_uv = st->chip_info->int_vref_uv;
+			}
+
+			*val = scale_uv / 1000;
+			*val2 = chan->scan_type.realbits;
+			return IIO_VAL_FRACTIONAL_LOG2;
 	}
+
 	return -EINVAL;
 }
 
 #define _AD7476_CHAN(bits, _shift, _info_mask_sep)		\
 	{							\
-	.type = IIO_VOLTAGE,					\
-	.indexed = 1,						\
-	.info_mask_separate = _info_mask_sep,			\
-	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
-	.scan_type = {						\
-		.sign = 'u',					\
-		.realbits = (bits),				\
-		.storagebits = 16,				\
-		.shift = (_shift),				\
-		.endianness = IIO_BE,				\
-	},							\
-}
+		.type = IIO_VOLTAGE,					\
+				.indexed = 1,						\
+						   .info_mask_separate = _info_mask_sep,			\
+								   .info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
+										   .scan_type = {						\
+																			   .sign = 'u',					\
+																			   .realbits = (bits),				\
+																			   .storagebits = 16,				\
+																			   .shift = (_shift),				\
+																			   .endianness = IIO_BE,				\
+														},							\
+	}
 
 #define AD7476_CHAN(bits) _AD7476_CHAN((bits), 13 - (bits), \
-		BIT(IIO_CHAN_INFO_RAW))
+									   BIT(IIO_CHAN_INFO_RAW))
 #define AD7940_CHAN(bits) _AD7476_CHAN((bits), 15 - (bits), \
-		BIT(IIO_CHAN_INFO_RAW))
+									   BIT(IIO_CHAN_INFO_RAW))
 #define AD7091R_CHAN(bits) _AD7476_CHAN((bits), 16 - (bits), 0)
 
-static const struct ad7476_chip_info ad7476_chip_info_tbl[] = {
+static const struct ad7476_chip_info ad7476_chip_info_tbl[] =
+{
 	[ID_AD7091R] = {
 		.channel[0] = AD7091R_CHAN(12),
 		.channel[1] = IIO_CHAN_SOFT_TIMESTAMP(1),
@@ -194,7 +221,8 @@ static const struct ad7476_chip_info ad7476_chip_info_tbl[] = {
 	},
 };
 
-static const struct iio_info ad7476_info = {
+static const struct iio_info ad7476_info =
+{
 	.driver_module = THIS_MODULE,
 	.read_raw = &ad7476_read_raw,
 };
@@ -206,20 +234,29 @@ static int ad7476_probe(struct spi_device *spi)
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*st));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	st = iio_priv(indio_dev);
 	st->chip_info =
 		&ad7476_chip_info_tbl[spi_get_device_id(spi)->driver_data];
 
 	st->reg = devm_regulator_get(&spi->dev, "vcc");
+
 	if (IS_ERR(st->reg))
+	{
 		return PTR_ERR(st->reg);
+	}
 
 	ret = regulator_enable(st->reg);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	spi_set_drvdata(spi, indio_dev);
 
@@ -242,16 +279,25 @@ static int ad7476_probe(struct spi_device *spi)
 	spi_message_add_tail(&st->xfer, &st->msg);
 
 	ret = iio_triggered_buffer_setup(indio_dev, NULL,
-			&ad7476_trigger_handler, NULL);
+									 &ad7476_trigger_handler, NULL);
+
 	if (ret)
+	{
 		goto error_disable_reg;
+	}
 
 	if (st->chip_info->reset)
+	{
 		st->chip_info->reset(st);
+	}
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret)
+	{
 		goto error_ring_unregister;
+	}
+
 	return 0;
 
 error_ring_unregister:
@@ -274,7 +320,8 @@ static int ad7476_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct spi_device_id ad7476_id[] = {
+static const struct spi_device_id ad7476_id[] =
+{
 	{"ad7091r", ID_AD7091R},
 	{"ad7273", ID_AD7277},
 	{"ad7274", ID_AD7276},
@@ -299,7 +346,8 @@ static const struct spi_device_id ad7476_id[] = {
 };
 MODULE_DEVICE_TABLE(spi, ad7476_id);
 
-static struct spi_driver ad7476_driver = {
+static struct spi_driver ad7476_driver =
+{
 	.driver = {
 		.name	= "ad7476",
 	},

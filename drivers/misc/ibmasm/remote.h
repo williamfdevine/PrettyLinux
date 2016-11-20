@@ -59,13 +59,15 @@
 /* size of keysym/keycode translation matricies */
 #define XLATE_SIZE 256
 
-struct mouse_input {
+struct mouse_input
+{
 	unsigned short	y;
 	unsigned short	x;
 };
 
 
-struct keyboard_input {
+struct keyboard_input
+{
 	unsigned short	key_code;
 	unsigned char	key_flag;
 	unsigned char	key_down;
@@ -73,8 +75,10 @@ struct keyboard_input {
 
 
 
-struct remote_input {
-	union {
+struct remote_input
+{
+	union
+	{
 		struct mouse_input	mouse;
 		struct keyboard_input	keyboard;
 	} data;
@@ -113,8 +117,11 @@ struct remote_input {
 static inline int advance_queue_reader(struct service_processor *sp, unsigned long reader)
 {
 	reader++;
+
 	if (reader == REMOTE_QUEUE_SIZE)
+	{
 		reader = 0;
+	}
 
 	set_queue_reader(sp, reader);
 	return reader;

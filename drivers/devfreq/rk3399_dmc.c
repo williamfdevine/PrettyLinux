@@ -28,7 +28,8 @@
 
 #include <soc/rockchip/rockchip_sip.h>
 
-struct dram_timing {
+struct dram_timing
+{
 	unsigned int ddr3_speed_bin;
 	unsigned int pd_idle;
 	unsigned int sr_idle;
@@ -60,7 +61,8 @@ struct dram_timing {
 	unsigned int phy_lpddr4_odt;
 };
 
-struct rk3399_dmcfreq {
+struct rk3399_dmcfreq
+{
 	struct device *dev;
 	struct devfreq *devfreq;
 	struct devfreq_simple_ondemand_data ondemand_data;
@@ -84,7 +86,7 @@ struct rk3399_dmcfreq {
 };
 
 static int rk3399_dmcfreq_target(struct device *dev, unsigned long *freq,
-				 u32 flags)
+								 u32 flags)
 {
 	struct rk3399_dmcfreq *dmcfreq = dev_get_drvdata(dev);
 	struct dev_pm_opp *opp;
@@ -94,7 +96,9 @@ static int rk3399_dmcfreq_target(struct device *dev, unsigned long *freq,
 
 	rcu_read_lock();
 	opp = devfreq_recommended_opp(dev, freq, flags);
-	if (IS_ERR(opp)) {
+
+	if (IS_ERR(opp))
+	{
 		rcu_read_unlock();
 		return PTR_ERR(opp);
 	}
@@ -108,7 +112,9 @@ static int rk3399_dmcfreq_target(struct device *dev, unsigned long *freq,
 	rcu_read_unlock();
 
 	if (dmcfreq->rate == target_rate)
+	{
 		return 0;
+	}
 
 	mutex_lock(&dmcfreq->lock);
 
@@ -116,23 +122,29 @@ static int rk3399_dmcfreq_target(struct device *dev, unsigned long *freq,
 	 * If frequency scaling from low to high, adjust voltage first.
 	 * If frequency scaling from high to low, adjust frequency first.
 	 */
-	if (old_clk_rate < target_rate) {
+	if (old_clk_rate < target_rate)
+	{
 		err = regulator_set_voltage(dmcfreq->vdd_center, target_volt,
-					    target_volt);
-		if (err) {
+									target_volt);
+
+		if (err)
+		{
 			dev_err(dev, "Cannot to set voltage %lu uV\n",
-				target_volt);
+					target_volt);
 			goto out;
 		}
 	}
+
 	dmcfreq->wait_dcf_flag = 1;
 
 	err = clk_set_rate(dmcfreq->dmc_clk, target_rate);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "Cannot to set frequency %lu (%d)\n",
-			target_rate, err);
+				target_rate, err);
 		regulator_set_voltage(dmcfreq->vdd_center, dmcfreq->volt,
-				      dmcfreq->volt);
+							  dmcfreq->volt);
 		goto out;
 	}
 
@@ -141,8 +153,10 @@ static int rk3399_dmcfreq_target(struct device *dev, unsigned long *freq,
 	 * arm trust firmware, use 100ms as timeout time.
 	 */
 	if (!wait_event_timeout(dmcfreq->wait_dcf_queue,
-				!dmcfreq->wait_dcf_flag, HZ / 10))
+							!dmcfreq->wait_dcf_flag, HZ / 10))
+	{
 		dev_warn(dev, "Timeout waiting for dcf interrupt\n");
+	}
 
 	/*
 	 * Check the dpll rate,
@@ -153,17 +167,22 @@ static int rk3399_dmcfreq_target(struct device *dev, unsigned long *freq,
 	dmcfreq->rate = clk_get_rate(dmcfreq->dmc_clk);
 
 	/* If get the incorrect rate, set voltage to old value. */
-	if (dmcfreq->rate != target_rate) {
+	if (dmcfreq->rate != target_rate)
+	{
 		dev_err(dev, "Get wrong ddr frequency, Request frequency %lu,\
 			Current frequency %lu\n", target_rate, dmcfreq->rate);
 		regulator_set_voltage(dmcfreq->vdd_center, dmcfreq->volt,
-				      dmcfreq->volt);
+							  dmcfreq->volt);
 		goto out;
-	} else if (old_clk_rate > target_rate)
+	}
+	else if (old_clk_rate > target_rate)
 		err = regulator_set_voltage(dmcfreq->vdd_center, target_volt,
-					    target_volt);
+									target_volt);
+
 	if (err)
+	{
 		dev_err(dev, "Cannot to set vol %lu uV\n", target_volt);
+	}
 
 	dmcfreq->curr_opp = opp;
 out:
@@ -172,15 +191,18 @@ out:
 }
 
 static int rk3399_dmcfreq_get_dev_status(struct device *dev,
-					 struct devfreq_dev_status *stat)
+		struct devfreq_dev_status *stat)
 {
 	struct rk3399_dmcfreq *dmcfreq = dev_get_drvdata(dev);
 	struct devfreq_event_data edata;
 	int ret = 0;
 
 	ret = devfreq_event_get_event(dmcfreq->edev, &edata);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	stat->current_frequency = dmcfreq->rate;
 	stat->busy_time = edata.load_count;
@@ -198,7 +220,8 @@ static int rk3399_dmcfreq_get_cur_freq(struct device *dev, unsigned long *freq)
 	return 0;
 }
 
-static struct devfreq_dev_profile rk3399_devfreq_dmc_profile = {
+static struct devfreq_dev_profile rk3399_devfreq_dmc_profile =
+{
 	.polling_ms	= 200,
 	.target		= rk3399_dmcfreq_target,
 	.get_dev_status	= rk3399_dmcfreq_get_dev_status,
@@ -211,13 +234,17 @@ static __maybe_unused int rk3399_dmcfreq_suspend(struct device *dev)
 	int ret = 0;
 
 	ret = devfreq_event_disable_edev(dmcfreq->edev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to disable the devfreq-event devices\n");
 		return ret;
 	}
 
 	ret = devfreq_suspend_device(dmcfreq->devfreq);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to suspend the devfreq devices\n");
 		return ret;
 	}
@@ -231,21 +258,26 @@ static __maybe_unused int rk3399_dmcfreq_resume(struct device *dev)
 	int ret = 0;
 
 	ret = devfreq_event_enable_edev(dmcfreq->edev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to enable the devfreq-event devices\n");
 		return ret;
 	}
 
 	ret = devfreq_resume_device(dmcfreq->devfreq);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to resume the devfreq devices\n");
 		return ret;
 	}
+
 	return ret;
 }
 
 static SIMPLE_DEV_PM_OPS(rk3399_dmcfreq_pm, rk3399_dmcfreq_suspend,
-			 rk3399_dmcfreq_resume);
+						 rk3399_dmcfreq_resume);
 
 static irqreturn_t rk3399_dmc_irq(int irq, void *dev_id)
 {
@@ -257,75 +289,75 @@ static irqreturn_t rk3399_dmc_irq(int irq, void *dev_id)
 
 	/* Clear the DCF interrupt */
 	arm_smccc_smc(ROCKCHIP_SIP_DRAM_FREQ, 0, 0,
-		      ROCKCHIP_SIP_CONFIG_DRAM_CLR_IRQ,
-		      0, 0, 0, 0, &res);
+				  ROCKCHIP_SIP_CONFIG_DRAM_CLR_IRQ,
+				  0, 0, 0, 0, &res);
 
 	return IRQ_HANDLED;
 }
 
 static int of_get_ddr_timings(struct dram_timing *timing,
-			      struct device_node *np)
+							  struct device_node *np)
 {
 	int ret = 0;
 
 	ret = of_property_read_u32(np, "rockchip,ddr3_speed_bin",
-				   &timing->ddr3_speed_bin);
+							   &timing->ddr3_speed_bin);
 	ret |= of_property_read_u32(np, "rockchip,pd_idle",
-				    &timing->pd_idle);
+								&timing->pd_idle);
 	ret |= of_property_read_u32(np, "rockchip,sr_idle",
-				    &timing->sr_idle);
+								&timing->sr_idle);
 	ret |= of_property_read_u32(np, "rockchip,sr_mc_gate_idle",
-				    &timing->sr_mc_gate_idle);
+								&timing->sr_mc_gate_idle);
 	ret |= of_property_read_u32(np, "rockchip,srpd_lite_idle",
-				    &timing->srpd_lite_idle);
+								&timing->srpd_lite_idle);
 	ret |= of_property_read_u32(np, "rockchip,standby_idle",
-				    &timing->standby_idle);
+								&timing->standby_idle);
 	ret |= of_property_read_u32(np, "rockchip,auto_pd_dis_freq",
-				    &timing->auto_pd_dis_freq);
+								&timing->auto_pd_dis_freq);
 	ret |= of_property_read_u32(np, "rockchip,dram_dll_dis_freq",
-				    &timing->dram_dll_dis_freq);
+								&timing->dram_dll_dis_freq);
 	ret |= of_property_read_u32(np, "rockchip,phy_dll_dis_freq",
-				    &timing->phy_dll_dis_freq);
+								&timing->phy_dll_dis_freq);
 	ret |= of_property_read_u32(np, "rockchip,ddr3_odt_dis_freq",
-				    &timing->ddr3_odt_dis_freq);
+								&timing->ddr3_odt_dis_freq);
 	ret |= of_property_read_u32(np, "rockchip,ddr3_drv",
-				    &timing->ddr3_drv);
+								&timing->ddr3_drv);
 	ret |= of_property_read_u32(np, "rockchip,ddr3_odt",
-				    &timing->ddr3_odt);
+								&timing->ddr3_odt);
 	ret |= of_property_read_u32(np, "rockchip,phy_ddr3_ca_drv",
-				    &timing->phy_ddr3_ca_drv);
+								&timing->phy_ddr3_ca_drv);
 	ret |= of_property_read_u32(np, "rockchip,phy_ddr3_dq_drv",
-				    &timing->phy_ddr3_dq_drv);
+								&timing->phy_ddr3_dq_drv);
 	ret |= of_property_read_u32(np, "rockchip,phy_ddr3_odt",
-				    &timing->phy_ddr3_odt);
+								&timing->phy_ddr3_odt);
 	ret |= of_property_read_u32(np, "rockchip,lpddr3_odt_dis_freq",
-				    &timing->lpddr3_odt_dis_freq);
+								&timing->lpddr3_odt_dis_freq);
 	ret |= of_property_read_u32(np, "rockchip,lpddr3_drv",
-				    &timing->lpddr3_drv);
+								&timing->lpddr3_drv);
 	ret |= of_property_read_u32(np, "rockchip,lpddr3_odt",
-				    &timing->lpddr3_odt);
+								&timing->lpddr3_odt);
 	ret |= of_property_read_u32(np, "rockchip,phy_lpddr3_ca_drv",
-				    &timing->phy_lpddr3_ca_drv);
+								&timing->phy_lpddr3_ca_drv);
 	ret |= of_property_read_u32(np, "rockchip,phy_lpddr3_dq_drv",
-				    &timing->phy_lpddr3_dq_drv);
+								&timing->phy_lpddr3_dq_drv);
 	ret |= of_property_read_u32(np, "rockchip,phy_lpddr3_odt",
-				    &timing->phy_lpddr3_odt);
+								&timing->phy_lpddr3_odt);
 	ret |= of_property_read_u32(np, "rockchip,lpddr4_odt_dis_freq",
-				    &timing->lpddr4_odt_dis_freq);
+								&timing->lpddr4_odt_dis_freq);
 	ret |= of_property_read_u32(np, "rockchip,lpddr4_drv",
-				    &timing->lpddr4_drv);
+								&timing->lpddr4_drv);
 	ret |= of_property_read_u32(np, "rockchip,lpddr4_dq_odt",
-				    &timing->lpddr4_dq_odt);
+								&timing->lpddr4_dq_odt);
 	ret |= of_property_read_u32(np, "rockchip,lpddr4_ca_odt",
-				    &timing->lpddr4_ca_odt);
+								&timing->lpddr4_ca_odt);
 	ret |= of_property_read_u32(np, "rockchip,phy_lpddr4_ca_drv",
-				    &timing->phy_lpddr4_ca_drv);
+								&timing->phy_lpddr4_ca_drv);
 	ret |= of_property_read_u32(np, "rockchip,phy_lpddr4_ck_cs_drv",
-				    &timing->phy_lpddr4_ck_cs_drv);
+								&timing->phy_lpddr4_ck_cs_drv);
 	ret |= of_property_read_u32(np, "rockchip,phy_lpddr4_dq_drv",
-				    &timing->phy_lpddr4_dq_drv);
+								&timing->phy_lpddr4_dq_drv);
 	ret |= of_property_read_u32(np, "rockchip,phy_lpddr4_odt",
-				    &timing->phy_lpddr4_odt);
+								&timing->phy_lpddr4_odt);
 
 	return ret;
 }
@@ -341,32 +373,45 @@ static int rk3399_dmcfreq_probe(struct platform_device *pdev)
 	struct dev_pm_opp *opp;
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "Cannot get the dmc interrupt resource\n");
 		return -EINVAL;
 	}
+
 	data = devm_kzalloc(dev, sizeof(struct rk3399_dmcfreq), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&data->lock);
 
 	data->vdd_center = devm_regulator_get(dev, "center");
-	if (IS_ERR(data->vdd_center)) {
+
+	if (IS_ERR(data->vdd_center))
+	{
 		dev_err(dev, "Cannot get the regulator \"center\"\n");
 		return PTR_ERR(data->vdd_center);
 	}
 
 	data->dmc_clk = devm_clk_get(dev, "dmc_clk");
-	if (IS_ERR(data->dmc_clk)) {
+
+	if (IS_ERR(data->dmc_clk))
+	{
 		dev_err(dev, "Cannot get the clk dmc_clk\n");
 		return PTR_ERR(data->dmc_clk);
 	};
 
 	data->irq = irq;
+
 	ret = devm_request_irq(dev, irq, rk3399_dmc_irq, 0,
-			       dev_name(dev), data);
-	if (ret) {
+						   dev_name(dev), data);
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to request dmc irq: %d\n", ret);
 		return ret;
 	}
@@ -375,11 +420,16 @@ static int rk3399_dmcfreq_probe(struct platform_device *pdev)
 	data->wait_dcf_flag = 0;
 
 	data->edev = devfreq_event_get_edev_by_phandle(dev, 0);
+
 	if (IS_ERR(data->edev))
+	{
 		return -EPROBE_DEFER;
+	}
 
 	ret = devfreq_event_enable_edev(data->edev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to enable devfreq-event devices\n");
 		return ret;
 	}
@@ -389,59 +439,72 @@ static int rk3399_dmcfreq_probe(struct platform_device *pdev)
 	 * the dram drvier in arm trust firmware will get these
 	 * timing and to do dram initial.
 	 */
-	if (!of_get_ddr_timings(&data->timing, np)) {
+	if (!of_get_ddr_timings(&data->timing, np))
+	{
 		timing = &data->timing.ddr3_speed_bin;
 		size = sizeof(struct dram_timing) / 4;
-		for (index = 0; index < size; index++) {
+
+		for (index = 0; index < size; index++)
+		{
 			arm_smccc_smc(ROCKCHIP_SIP_DRAM_FREQ, *timing++, index,
-				      ROCKCHIP_SIP_CONFIG_DRAM_SET_PARAM,
-				      0, 0, 0, 0, &res);
-			if (res.a0) {
+						  ROCKCHIP_SIP_CONFIG_DRAM_SET_PARAM,
+						  0, 0, 0, 0, &res);
+
+			if (res.a0)
+			{
 				dev_err(dev, "Failed to set dram param: %ld\n",
-					res.a0);
+						res.a0);
 				return -EINVAL;
 			}
 		}
 	}
 
 	arm_smccc_smc(ROCKCHIP_SIP_DRAM_FREQ, 0, 0,
-		      ROCKCHIP_SIP_CONFIG_DRAM_INIT,
-		      0, 0, 0, 0, &res);
+				  ROCKCHIP_SIP_CONFIG_DRAM_INIT,
+				  0, 0, 0, 0, &res);
 
 	/*
 	 * We add a devfreq driver to our parent since it has a device tree node
 	 * with operating points.
 	 */
-	if (dev_pm_opp_of_add_table(dev)) {
+	if (dev_pm_opp_of_add_table(dev))
+	{
 		dev_err(dev, "Invalid operating-points in device tree.\n");
 		rcu_read_unlock();
 		return -EINVAL;
 	}
 
 	of_property_read_u32(np, "upthreshold",
-			     &data->ondemand_data.upthreshold);
+						 &data->ondemand_data.upthreshold);
 	of_property_read_u32(np, "downdifferential",
-			     &data->ondemand_data.downdifferential);
+						 &data->ondemand_data.downdifferential);
 
 	data->rate = clk_get_rate(data->dmc_clk);
 
 	rcu_read_lock();
 	opp = devfreq_recommended_opp(dev, &data->rate, 0);
-	if (IS_ERR(opp)) {
+
+	if (IS_ERR(opp))
+	{
 		rcu_read_unlock();
 		return PTR_ERR(opp);
 	}
+
 	rcu_read_unlock();
 	data->curr_opp = opp;
 
 	rk3399_devfreq_dmc_profile.initial_freq = data->rate;
 
 	data->devfreq = devfreq_add_device(dev,
-					   &rk3399_devfreq_dmc_profile,
-					   "simple_ondemand",
-					   &data->ondemand_data);
+									   &rk3399_devfreq_dmc_profile,
+									   "simple_ondemand",
+									   &data->ondemand_data);
+
 	if (IS_ERR(data->devfreq))
+	{
 		return PTR_ERR(data->devfreq);
+	}
+
 	devm_devfreq_register_opp_notifier(dev, data->devfreq);
 
 	data->dev = dev;
@@ -450,12 +513,14 @@ static int rk3399_dmcfreq_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id rk3399dmc_devfreq_of_match[] = {
+static const struct of_device_id rk3399dmc_devfreq_of_match[] =
+{
 	{ .compatible = "rockchip,rk3399-dmc" },
 	{ },
 };
 
-static struct platform_driver rk3399_dmcfreq_driver = {
+static struct platform_driver rk3399_dmcfreq_driver =
+{
 	.probe	= rk3399_dmcfreq_probe,
 	.driver = {
 		.name	= "rk3399-dmc-freq",

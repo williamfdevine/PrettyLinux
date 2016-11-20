@@ -34,14 +34,15 @@ static unsigned safe_mod(unsigned n, unsigned d)
 
 /*----------------------------------------------------------------*/
 
-struct entry {
-	unsigned hash_next:28;
-	unsigned prev:28;
-	unsigned next:28;
-	unsigned level:7;
-	bool dirty:1;
-	bool allocated:1;
-	bool sentinel:1;
+struct entry
+{
+	unsigned hash_next: 28;
+	unsigned prev: 28;
+	unsigned next: 28;
+	unsigned level: 7;
+	bool dirty: 1;
+	bool allocated: 1;
+	bool sentinel: 1;
 
 	dm_oblock_t oblock;
 };
@@ -55,21 +56,26 @@ struct entry {
  * The clean and dirty queues share entries, so this object is separate
  * from the queue itself.
  */
-struct entry_space {
+struct entry_space
+{
 	struct entry *begin;
 	struct entry *end;
 };
 
 static int space_init(struct entry_space *es, unsigned nr_entries)
 {
-	if (!nr_entries) {
+	if (!nr_entries)
+	{
 		es->begin = es->end = NULL;
 		return 0;
 	}
 
 	es->begin = vzalloc(sizeof(struct entry) * nr_entries);
+
 	if (!es->begin)
+	{
 		return -ENOMEM;
+	}
 
 	es->end = es->begin + nr_entries;
 	return 0;
@@ -99,14 +105,17 @@ static unsigned to_index(struct entry_space *es, struct entry *e)
 static struct entry *to_entry(struct entry_space *es, unsigned block)
 {
 	if (block == INDEXER_NULL)
+	{
 		return NULL;
+	}
 
 	return __get_entry(es, block);
 }
 
 /*----------------------------------------------------------------*/
 
-struct ilist {
+struct ilist
+{
 	unsigned nr_elts;	/* excluding sentinel entries */
 	unsigned head, tail;
 };
@@ -150,12 +159,18 @@ static void l_add_head(struct entry_space *es, struct ilist *l, struct entry *e)
 	e->prev = INDEXER_NULL;
 
 	if (head)
+	{
 		head->prev = l->head = to_index(es, e);
+	}
 	else
+	{
 		l->head = l->tail = to_index(es, e);
+	}
 
 	if (!e->sentinel)
+	{
 		l->nr_elts++;
+	}
 }
 
 static void l_add_tail(struct entry_space *es, struct ilist *l, struct entry *e)
@@ -166,29 +181,40 @@ static void l_add_tail(struct entry_space *es, struct ilist *l, struct entry *e)
 	e->prev = l->tail;
 
 	if (tail)
+	{
 		tail->next = l->tail = to_index(es, e);
+	}
 	else
+	{
 		l->head = l->tail = to_index(es, e);
+	}
 
 	if (!e->sentinel)
+	{
 		l->nr_elts++;
+	}
 }
 
 static void l_add_before(struct entry_space *es, struct ilist *l,
-			 struct entry *old, struct entry *e)
+						 struct entry *old, struct entry *e)
 {
 	struct entry *prev = l_prev(es, old);
 
 	if (!prev)
+	{
 		l_add_head(es, l, e);
+	}
 
-	else {
+	else
+	{
 		e->prev = old->prev;
 		e->next = to_index(es, old);
 		prev->next = old->prev = to_index(es, e);
 
 		if (!e->sentinel)
+		{
 			l->nr_elts++;
+		}
 	}
 }
 
@@ -198,17 +224,27 @@ static void l_del(struct entry_space *es, struct ilist *l, struct entry *e)
 	struct entry *next = l_next(es, e);
 
 	if (prev)
+	{
 		prev->next = e->next;
+	}
 	else
+	{
 		l->head = e->next;
+	}
 
 	if (next)
+	{
 		next->prev = e->prev;
+	}
 	else
+	{
 		l->tail = e->prev;
+	}
 
 	if (!e->sentinel)
+	{
 		l->nr_elts--;
+	}
 }
 
 static struct entry *l_pop_tail(struct entry_space *es, struct ilist *l)
@@ -216,7 +252,8 @@ static struct entry *l_pop_tail(struct entry_space *es, struct ilist *l)
 	struct entry *e;
 
 	for (e = l_tail(es, l); e; e = l_prev(es, e))
-		if (!e->sentinel) {
+		if (!e->sentinel)
+		{
 			l_del(es, l, e);
 			return e;
 		}
@@ -234,7 +271,8 @@ static struct entry *l_pop_tail(struct entry_space *es, struct ilist *l)
  */
 #define MAX_LEVELS 64u
 
-struct queue {
+struct queue
+{
 	struct entry_space *es;
 
 	unsigned nr_elts;
@@ -259,7 +297,8 @@ static void q_init(struct queue *q, struct entry_space *es, unsigned nr_levels)
 	q->nr_elts = 0;
 	q->nr_levels = nr_levels;
 
-	for (i = 0; i < q->nr_levels; i++) {
+	for (i = 0; i < q->nr_levels; i++)
+	{
 		l_init(q->qs + i);
 		q->target_count[i] = 0u;
 	}
@@ -280,7 +319,9 @@ static unsigned q_size(struct queue *q)
 static void q_push(struct queue *q, struct entry *e)
 {
 	if (!e->sentinel)
+	{
 		q->nr_elts++;
+	}
 
 	l_add_tail(q->es, q->qs + e->level, e);
 }
@@ -288,7 +329,9 @@ static void q_push(struct queue *q, struct entry *e)
 static void q_push_before(struct queue *q, struct entry *old, struct entry *e)
 {
 	if (!e->sentinel)
+	{
 		q->nr_elts++;
+	}
 
 	l_add_before(q->es, q->qs + e->level, old, e);
 }
@@ -296,8 +339,11 @@ static void q_push_before(struct queue *q, struct entry *old, struct entry *e)
 static void q_del(struct queue *q, struct entry *e)
 {
 	l_del(q->es, q->qs + e->level, e);
+
 	if (!e->sentinel)
+	{
 		q->nr_elts--;
+	}
 }
 
 /*
@@ -311,12 +357,18 @@ static struct entry *q_peek(struct queue *q, unsigned max_level, bool can_cross_
 	max_level = min(max_level, q->nr_levels);
 
 	for (level = 0; level < max_level; level++)
-		for (e = l_head(q->es, q->qs + level); e; e = l_next(q->es, e)) {
-			if (e->sentinel) {
+		for (e = l_head(q->es, q->qs + level); e; e = l_next(q->es, e))
+		{
+			if (e->sentinel)
+			{
 				if (can_cross_sentinel)
+				{
 					continue;
+				}
 				else
+				{
 					break;
+				}
 			}
 
 			return e;
@@ -330,7 +382,9 @@ static struct entry *q_pop(struct queue *q)
 	struct entry *e = q_peek(q, q->nr_levels, true);
 
 	if (e)
+	{
 		q_del(q, e);
+	}
 
 	return e;
 }
@@ -343,7 +397,9 @@ static struct entry *q_pop_old(struct queue *q, unsigned max_level)
 	struct entry *e = q_peek(q, max_level, false);
 
 	if (e)
+	{
 		q_del(q, e);
+	}
 
 	return e;
 }
@@ -359,7 +415,8 @@ static struct entry *__redist_pop_from(struct queue *q, unsigned level)
 
 	for (; level < q->nr_levels; level++)
 		for (e = l_head(q->es, q->qs + level); e; e = l_next(q->es, e))
-			if (!e->sentinel) {
+			if (!e->sentinel)
+			{
 				l_del(q->es, q->qs + e->level, e);
 				return e;
 			}
@@ -389,22 +446,29 @@ static void q_set_targets_subrange_(struct queue *q, unsigned nr_elts, unsigned 
 static void q_set_targets(struct queue *q)
 {
 	if (q->last_target_nr_elts == q->nr_elts)
+	{
 		return;
+	}
 
 	q->last_target_nr_elts = q->nr_elts;
 
 	if (q->nr_top_levels > q->nr_levels)
+	{
 		q_set_targets_subrange_(q, q->nr_elts, 0, q->nr_levels);
+	}
 
-	else {
+	else
+	{
 		q_set_targets_subrange_(q, q->nr_in_top_levels,
-					q->nr_levels - q->nr_top_levels, q->nr_levels);
+								q->nr_levels - q->nr_top_levels, q->nr_levels);
 
 		if (q->nr_in_top_levels < q->nr_elts)
 			q_set_targets_subrange_(q, q->nr_elts - q->nr_in_top_levels,
-						0, q->nr_levels - q->nr_top_levels);
+									0, q->nr_levels - q->nr_top_levels);
 		else
+		{
 			q_set_targets_subrange_(q, 0, 0, q->nr_levels - q->nr_top_levels);
+		}
 	}
 }
 
@@ -416,16 +480,20 @@ static void q_redistribute(struct queue *q)
 
 	q_set_targets(q);
 
-	for (level = 0u; level < q->nr_levels - 1u; level++) {
+	for (level = 0u; level < q->nr_levels - 1u; level++)
+	{
 		l = q->qs + level;
 		target = q->target_count[level];
 
 		/*
 		 * Pull down some entries from the level above.
 		 */
-		while (l->nr_elts < target) {
+		while (l->nr_elts < target)
+		{
 			e = __redist_pop_from(q, level + 1u);
-			if (!e) {
+
+			if (!e)
+			{
 				/* bug in nr_elts */
 				break;
 			}
@@ -438,12 +506,16 @@ static void q_redistribute(struct queue *q)
 		 * Push some entries up.
 		 */
 		l_above = q->qs + level + 1u;
-		while (l->nr_elts > target) {
+
+		while (l->nr_elts > target)
+		{
 			e = l_pop_tail(q->es, l);
 
 			if (!e)
 				/* bug in nr_elts */
+			{
 				break;
+			}
 
 			e->level = level + 1u;
 			l_add_head(q->es, l_above, e);
@@ -458,19 +530,29 @@ static void q_requeue_before(struct queue *q, struct entry *dest, struct entry *
 
 	q_del(q, e);
 
-	if (extra_levels && (e->level < q->nr_levels - 1u)) {
+	if (extra_levels && (e->level < q->nr_levels - 1u))
+	{
 		new_level = min(q->nr_levels - 1u, e->level + extra_levels);
-		for (de = l_head(q->es, q->qs + new_level); de; de = l_next(q->es, de)) {
+
+		for (de = l_head(q->es, q->qs + new_level); de; de = l_next(q->es, de))
+		{
 			if (de->sentinel)
+			{
 				continue;
+			}
 
 			q_del(q, de);
 			de->level = e->level;
 
 			if (dest)
+			{
 				q_push_before(q, dest, de);
+			}
 			else
+			{
 				q_push(q, de);
+			}
+
 			break;
 		}
 
@@ -491,13 +573,15 @@ static void q_requeue(struct queue *q, struct entry *e, unsigned extra_levels)
 #define SIXTEENTH (1u << (FP_SHIFT - 4u))
 #define EIGHTH (1u << (FP_SHIFT - 3u))
 
-struct stats {
+struct stats
+{
 	unsigned hit_threshold;
 	unsigned hits;
 	unsigned misses;
 };
 
-enum performance {
+enum performance
+{
 	Q_POOR,
 	Q_FAIR,
 	Q_WELL
@@ -518,9 +602,13 @@ static void stats_reset(struct stats *s)
 static void stats_level_accessed(struct stats *s, unsigned level)
 {
 	if (level >= s->hit_threshold)
+	{
 		s->hits++;
+	}
 	else
+	{
 		s->misses++;
+	}
 }
 
 static void stats_miss(struct stats *s)
@@ -539,18 +627,25 @@ static enum performance stats_assess(struct stats *s)
 	unsigned confidence = safe_div(s->hits << FP_SHIFT, s->hits + s->misses);
 
 	if (confidence < SIXTEENTH)
+	{
 		return Q_POOR;
+	}
 
 	else if (confidence < EIGHTH)
+	{
 		return Q_FAIR;
+	}
 
 	else
+	{
 		return Q_WELL;
+	}
 }
 
 /*----------------------------------------------------------------*/
 
-struct hash_table {
+struct hash_table
+{
 	struct entry_space *es;
 	unsigned long long hash_bits;
 	unsigned *buckets;
@@ -569,11 +664,16 @@ static int h_init(struct hash_table *ht, struct entry_space *es, unsigned nr_ent
 	ht->hash_bits = __ffs(nr_buckets);
 
 	ht->buckets = vmalloc(sizeof(*ht->buckets) * nr_buckets);
+
 	if (!ht->buckets)
+	{
 		return -ENOMEM;
+	}
 
 	for (i = 0; i < nr_buckets; i++)
+	{
 		ht->buckets[i] = INDEXER_NULL;
+	}
 
 	return 0;
 }
@@ -606,14 +706,18 @@ static void h_insert(struct hash_table *ht, struct entry *e)
 }
 
 static struct entry *__h_lookup(struct hash_table *ht, unsigned h, dm_oblock_t oblock,
-				struct entry **prev)
+								struct entry **prev)
 {
 	struct entry *e;
 
 	*prev = NULL;
-	for (e = h_head(ht, h); e; e = h_next(ht, e)) {
+
+	for (e = h_head(ht, h); e; e = h_next(ht, e))
+	{
 		if (e->oblock == oblock)
+		{
 			return e;
+		}
 
 		*prev = e;
 	}
@@ -622,12 +726,16 @@ static struct entry *__h_lookup(struct hash_table *ht, unsigned h, dm_oblock_t o
 }
 
 static void __h_unlink(struct hash_table *ht, unsigned h,
-		       struct entry *e, struct entry *prev)
+					   struct entry *e, struct entry *prev)
 {
 	if (prev)
+	{
 		prev->hash_next = e->hash_next;
+	}
 	else
+	{
 		ht->buckets[h] = e->hash_next;
+	}
 }
 
 /*
@@ -639,7 +747,9 @@ static struct entry *h_lookup(struct hash_table *ht, dm_oblock_t oblock)
 	unsigned h = hash_64(from_oblock(oblock), ht->hash_bits);
 
 	e = __h_lookup(ht, h, oblock, &prev);
-	if (e && prev) {
+
+	if (e && prev)
+	{
 		/*
 		 * Move to the front because this entry is likely
 		 * to be hit again.
@@ -661,13 +771,17 @@ static void h_remove(struct hash_table *ht, struct entry *e)
 	 * iterate the bucket to remove an item.
 	 */
 	e = __h_lookup(ht, h, e->oblock, &prev);
+
 	if (e)
+	{
 		__h_unlink(ht, h, e, prev);
+	}
 }
 
 /*----------------------------------------------------------------*/
 
-struct entry_alloc {
+struct entry_alloc
+{
 	struct entry_space *es;
 	unsigned begin;
 
@@ -676,7 +790,7 @@ struct entry_alloc {
 };
 
 static void init_allocator(struct entry_alloc *ea, struct entry_space *es,
-			   unsigned begin, unsigned end)
+						   unsigned begin, unsigned end)
 {
 	unsigned i;
 
@@ -685,8 +799,11 @@ static void init_allocator(struct entry_alloc *ea, struct entry_space *es,
 	ea->begin = begin;
 
 	l_init(&ea->free);
+
 	for (i = begin; i != end; i++)
+	{
 		l_add_tail(ea->es, &ea->free, __get_entry(ea->es, i));
+	}
 }
 
 static void init_entry(struct entry *e)
@@ -707,7 +824,9 @@ static struct entry *alloc_entry(struct entry_alloc *ea)
 	struct entry *e;
 
 	if (l_empty(&ea->free))
+	{
 		return NULL;
+	}
 
 	e = l_pop_tail(ea->es, &ea->free);
 	init_entry(e);
@@ -768,7 +887,8 @@ static struct entry *get_entry(struct entry_alloc *ea, unsigned index)
 #define HOTSPOT_UPDATE_PERIOD (HZ)
 #define CACHE_UPDATE_PERIOD (10u * HZ)
 
-struct smq_policy {
+struct smq_policy
+{
 	struct dm_cache_policy policy;
 
 	/* protects everything */
@@ -853,7 +973,8 @@ static void __update_writeback_sentinels(struct smq_policy *mq)
 	struct queue *q = &mq->dirty;
 	struct entry *sentinel;
 
-	for (level = 0; level < q->nr_levels; level++) {
+	for (level = 0; level < q->nr_levels; level++)
+	{
 		sentinel = writeback_sentinel(mq, level);
 		q_del(q, sentinel);
 		q_push(q, sentinel);
@@ -866,7 +987,8 @@ static void __update_demote_sentinels(struct smq_policy *mq)
 	struct queue *q = &mq->clean;
 	struct entry *sentinel;
 
-	for (level = 0; level < q->nr_levels; level++) {
+	for (level = 0; level < q->nr_levels; level++)
+	{
 		sentinel = demote_sentinel(mq, level);
 		q_del(q, sentinel);
 		q_push(q, sentinel);
@@ -875,13 +997,15 @@ static void __update_demote_sentinels(struct smq_policy *mq)
 
 static void update_sentinels(struct smq_policy *mq)
 {
-	if (time_after(jiffies, mq->next_writeback_period)) {
+	if (time_after(jiffies, mq->next_writeback_period))
+	{
 		__update_writeback_sentinels(mq);
 		mq->next_writeback_period = jiffies + WRITEBACK_PERIOD;
 		mq->current_writeback_sentinels = !mq->current_writeback_sentinels;
 	}
 
-	if (time_after(jiffies, mq->next_demote_period)) {
+	if (time_after(jiffies, mq->next_demote_period))
+	{
 		__update_demote_sentinels(mq);
 		mq->next_demote_period = jiffies + DEMOTE_PERIOD;
 		mq->current_demote_sentinels = !mq->current_demote_sentinels;
@@ -893,7 +1017,8 @@ static void __sentinels_init(struct smq_policy *mq)
 	unsigned level;
 	struct entry *sentinel;
 
-	for (level = 0; level < NR_CACHE_LEVELS; level++) {
+	for (level = 0; level < NR_CACHE_LEVELS; level++)
+	{
 		sentinel = writeback_sentinel(mq, level);
 		sentinel->level = level;
 		q_push(&mq->dirty, sentinel);
@@ -940,10 +1065,13 @@ static void push(struct smq_policy *mq, struct entry *e)
 	 * Punch this into the queue just in front of the sentinel, to
 	 * ensure it's cleaned straight away.
 	 */
-	if (e->dirty) {
+	if (e->dirty)
+	{
 		sentinel = writeback_sentinel(mq, e->level);
 		q_push_before(&mq->dirty, sentinel, e);
-	} else {
+	}
+	else
+	{
 		sentinel = demote_sentinel(mq, e->level);
 		q_push_before(&mq->clean, sentinel, e);
 	}
@@ -966,8 +1094,12 @@ static void del(struct smq_policy *mq, struct entry *e)
 static struct entry *pop_old(struct smq_policy *mq, struct queue *q, unsigned max_level)
 {
 	struct entry *e = q_pop_old(q, max_level);
+
 	if (e)
+	{
 		h_remove(&mq->table, e);
+	}
+
 	return e;
 }
 
@@ -980,11 +1112,15 @@ static void requeue(struct smq_policy *mq, struct entry *e)
 {
 	struct entry *sentinel;
 
-	if (!test_and_set_bit(from_cblock(infer_cblock(mq, e)), mq->cache_hit_bits)) {
-		if (e->dirty) {
+	if (!test_and_set_bit(from_cblock(infer_cblock(mq, e)), mq->cache_hit_bits))
+	{
+		if (e->dirty)
+		{
 			sentinel = writeback_sentinel(mq, e->level);
 			q_requeue_before(&mq->dirty, sentinel, e, 1u);
-		} else {
+		}
+		else
+		{
 			sentinel = demote_sentinel(mq, e->level);
 			q_requeue_before(&mq->clean, sentinel, e, 1u);
 		}
@@ -1024,24 +1160,25 @@ static void update_promote_levels(struct smq_policy *mq)
 	 * eager to promote.
 	 */
 	unsigned threshold_level = allocator_empty(&mq->cache_alloc) ?
-		default_promote_level(mq) : (NR_HOTSPOT_LEVELS / 2u);
+							   default_promote_level(mq) : (NR_HOTSPOT_LEVELS / 2u);
 
 	/*
 	 * If the hotspot queue is performing badly then we have little
 	 * confidence that we know which blocks to promote.  So we cut down
 	 * the amount of promotions.
 	 */
-	switch (stats_assess(&mq->hotspot_stats)) {
-	case Q_POOR:
-		threshold_level /= 4u;
-		break;
+	switch (stats_assess(&mq->hotspot_stats))
+	{
+		case Q_POOR:
+			threshold_level /= 4u;
+			break;
 
-	case Q_FAIR:
-		threshold_level /= 2u;
-		break;
+		case Q_FAIR:
+			threshold_level /= 2u;
+			break;
 
-	case Q_WELL:
-		break;
+		case Q_WELL:
+			break;
 	}
 
 	mq->read_promote_level = NR_HOTSPOT_LEVELS - threshold_level;
@@ -1054,18 +1191,19 @@ static void update_promote_levels(struct smq_policy *mq)
  */
 static void update_level_jump(struct smq_policy *mq)
 {
-	switch (stats_assess(&mq->hotspot_stats)) {
-	case Q_POOR:
-		mq->hotspot_level_jump = 4u;
-		break;
+	switch (stats_assess(&mq->hotspot_stats))
+	{
+		case Q_POOR:
+			mq->hotspot_level_jump = 4u;
+			break;
 
-	case Q_FAIR:
-		mq->hotspot_level_jump = 2u;
-		break;
+		case Q_FAIR:
+			mq->hotspot_level_jump = 2u;
+			break;
 
-	case Q_WELL:
-		mq->hotspot_level_jump = 1u;
-		break;
+		case Q_WELL:
+			mq->hotspot_level_jump = 1u;
+			break;
 	}
 }
 
@@ -1074,7 +1212,8 @@ static void end_hotspot_period(struct smq_policy *mq)
 	clear_bitset(mq->hotspot_hit_bits, mq->nr_hotspot_blocks);
 	update_promote_levels(mq);
 
-	if (time_after(jiffies, mq->next_hotspot_period)) {
+	if (time_after(jiffies, mq->next_hotspot_period))
+	{
 		update_level_jump(mq);
 		q_redistribute(&mq->hotspot);
 		stats_reset(&mq->hotspot_stats);
@@ -1084,7 +1223,8 @@ static void end_hotspot_period(struct smq_policy *mq)
 
 static void end_cache_period(struct smq_policy *mq)
 {
-	if (time_after(jiffies, mq->next_cache_period)) {
+	if (time_after(jiffies, mq->next_cache_period))
+	{
 		clear_bitset(mq->cache_hit_bits, from_cblock(mq->cache_size));
 
 		q_redistribute(&mq->dirty);
@@ -1096,10 +1236,11 @@ static void end_cache_period(struct smq_policy *mq)
 }
 
 static int demote_cblock(struct smq_policy *mq,
-			 struct policy_locker *locker,
-			 dm_oblock_t *oblock)
+						 struct policy_locker *locker,
+						 dm_oblock_t *oblock)
 {
 	struct entry *demoted = q_peek(&mq->clean, mq->clean.nr_levels, false);
+
 	if (!demoted)
 		/*
 		 * We could get a block from mq->dirty, but that
@@ -1108,13 +1249,17 @@ static int demote_cblock(struct smq_policy *mq,
 		 * time and hope there's a clean block next time this block
 		 * is hit.
 		 */
+	{
 		return -ENOSPC;
+	}
 
 	if (locker->fn(locker, demoted->oblock))
 		/*
 		 * We couldn't lock this block.
 		 */
+	{
 		return -EBUSY;
+	}
 
 	del(mq, demoted);
 	*oblock = demoted->oblock;
@@ -1123,7 +1268,8 @@ static int demote_cblock(struct smq_policy *mq,
 	return 0;
 }
 
-enum promote_result {
+enum promote_result
+{
 	PROMOTE_NOT,
 	PROMOTE_TEMPORARY,
 	PROMOTE_PERMANENT
@@ -1138,44 +1284,62 @@ static enum promote_result maybe_promote(bool promote)
 }
 
 static enum promote_result should_promote(struct smq_policy *mq, struct entry *hs_e, struct bio *bio,
-					  bool fast_promote)
+		bool fast_promote)
 {
-	if (bio_data_dir(bio) == WRITE) {
+	if (bio_data_dir(bio) == WRITE)
+	{
 		if (!allocator_empty(&mq->cache_alloc) && fast_promote)
+		{
 			return PROMOTE_TEMPORARY;
+		}
 
 		else
+		{
 			return maybe_promote(hs_e->level >= mq->write_promote_level);
-	} else
+		}
+	}
+	else
+	{
 		return maybe_promote(hs_e->level >= mq->read_promote_level);
+	}
 }
 
 static void insert_in_cache(struct smq_policy *mq, dm_oblock_t oblock,
-			    struct policy_locker *locker,
-			    struct policy_result *result, enum promote_result pr)
+							struct policy_locker *locker,
+							struct policy_result *result, enum promote_result pr)
 {
 	int r;
 	struct entry *e;
 
-	if (allocator_empty(&mq->cache_alloc)) {
+	if (allocator_empty(&mq->cache_alloc))
+	{
 		result->op = POLICY_REPLACE;
 		r = demote_cblock(mq, locker, &result->old_oblock);
-		if (r) {
+
+		if (r)
+		{
 			result->op = POLICY_MISS;
 			return;
 		}
 
-	} else
+	}
+	else
+	{
 		result->op = POLICY_NEW;
+	}
 
 	e = alloc_entry(&mq->cache_alloc);
 	BUG_ON(!e);
 	e->oblock = oblock;
 
 	if (pr == PROMOTE_TEMPORARY)
+	{
 		push(mq, e);
+	}
 	else
+	{
 		push_new(mq, e);
+	}
 
 	result->cblock = infer_cblock(mq, e);
 }
@@ -1193,21 +1357,28 @@ static struct entry *update_hotspot_queue(struct smq_policy *mq, dm_oblock_t b, 
 	dm_oblock_t hb = to_hblock(mq, b);
 	struct entry *e = h_lookup(&mq->hotspot_table, hb);
 
-	if (e) {
+	if (e)
+	{
 		stats_level_accessed(&mq->hotspot_stats, e->level);
 
 		hi = get_index(&mq->hotspot_alloc, e);
 		q_requeue(&mq->hotspot, e,
-			  test_and_set_bit(hi, mq->hotspot_hit_bits) ?
-			  0u : mq->hotspot_level_jump);
+				  test_and_set_bit(hi, mq->hotspot_hit_bits) ?
+				  0u : mq->hotspot_level_jump);
 
-	} else {
+	}
+	else
+	{
 		stats_miss(&mq->hotspot_stats);
 
 		e = alloc_entry(&mq->hotspot_alloc);
-		if (!e) {
+
+		if (!e)
+		{
 			e = q_pop(&mq->hotspot);
-			if (e) {
+
+			if (e)
+			{
 				h_remove(&mq->hotspot_table, e);
 				hi = get_index(&mq->hotspot_alloc, e);
 				clear_bit(hi, mq->hotspot_hit_bits);
@@ -1215,7 +1386,8 @@ static struct entry *update_hotspot_queue(struct smq_policy *mq, dm_oblock_t b, 
 
 		}
 
-		if (e) {
+		if (e)
+		{
 			e->oblock = hb;
 			q_push(&mq->hotspot, e);
 			h_insert(&mq->hotspot_table, e);
@@ -1230,8 +1402,8 @@ static struct entry *update_hotspot_queue(struct smq_policy *mq, dm_oblock_t b, 
  * pre_cache, or cache etc.
  */
 static int map(struct smq_policy *mq, struct bio *bio, dm_oblock_t oblock,
-	       bool can_migrate, bool fast_promote,
-	       struct policy_locker *locker, struct policy_result *result)
+			   bool can_migrate, bool fast_promote,
+			   struct policy_locker *locker, struct policy_result *result)
 {
 	struct entry *e, *hs_e;
 	enum promote_result pr;
@@ -1239,22 +1411,31 @@ static int map(struct smq_policy *mq, struct bio *bio, dm_oblock_t oblock,
 	hs_e = update_hotspot_queue(mq, oblock, bio);
 
 	e = h_lookup(&mq->table, oblock);
-	if (e) {
+
+	if (e)
+	{
 		stats_level_accessed(&mq->cache_stats, e->level);
 
 		requeue(mq, e);
 		result->op = POLICY_HIT;
 		result->cblock = infer_cblock(mq, e);
 
-	} else {
+	}
+	else
+	{
 		stats_miss(&mq->cache_stats);
 
 		pr = should_promote(mq, hs_e, bio, fast_promote);
-		if (pr == PROMOTE_NOT)
-			result->op = POLICY_MISS;
 
-		else {
-			if (!can_migrate) {
+		if (pr == PROMOTE_NOT)
+		{
+			result->op = POLICY_MISS;
+		}
+
+		else
+		{
+			if (!can_migrate)
+			{
 				result->op = POLICY_MISS;
 				return -EWOULDBLOCK;
 			}
@@ -1291,9 +1472,9 @@ static void smq_destroy(struct dm_cache_policy *p)
 }
 
 static int smq_map(struct dm_cache_policy *p, dm_oblock_t oblock,
-		   bool can_block, bool can_migrate, bool fast_promote,
-		   struct bio *bio, struct policy_locker *locker,
-		   struct policy_result *result)
+				   bool can_block, bool can_migrate, bool fast_promote,
+				   struct bio *bio, struct policy_locker *locker,
+				   struct policy_result *result)
 {
 	int r;
 	unsigned long flags;
@@ -1317,11 +1498,17 @@ static int smq_lookup(struct dm_cache_policy *p, dm_oblock_t oblock, dm_cblock_t
 
 	spin_lock_irqsave(&mq->lock, flags);
 	e = h_lookup(&mq->table, oblock);
-	if (e) {
+
+	if (e)
+	{
 		*cblock = infer_cblock(mq, e);
 		r = 0;
-	} else
+	}
+	else
+	{
 		r = -ENOENT;
+	}
+
 	spin_unlock_irqrestore(&mq->lock, flags);
 
 	return r;
@@ -1365,8 +1552,8 @@ static unsigned random_level(dm_cblock_t cblock)
 }
 
 static int smq_load_mapping(struct dm_cache_policy *p,
-			    dm_oblock_t oblock, dm_cblock_t cblock,
-			    uint32_t hint, bool hint_valid)
+							dm_oblock_t oblock, dm_cblock_t cblock,
+							uint32_t hint, bool hint_valid)
 {
 	struct smq_policy *mq = to_smq_policy(p);
 	struct entry *e;
@@ -1386,7 +1573,9 @@ static uint32_t smq_get_hint(struct dm_cache_policy *p, dm_cblock_t cblock)
 	struct entry *e = get_entry(&mq->cache_alloc, from_cblock(cblock));
 
 	if (!e->allocated)
+	{
 		return 0;
+	}
 
 	return e->level;
 }
@@ -1417,7 +1606,9 @@ static int __remove_cblock(struct smq_policy *mq, dm_cblock_t cblock)
 	struct entry *e = get_entry(&mq->cache_alloc, from_cblock(cblock));
 
 	if (!e || !e->allocated)
+	{
 		return -ENODATA;
+	}
 
 	del(mq, e);
 	free_entry(&mq->cache_alloc, e);
@@ -1443,7 +1634,8 @@ static int smq_remove_cblock(struct dm_cache_policy *p, dm_cblock_t cblock)
 
 static bool clean_target_met(struct smq_policy *mq, bool critical)
 {
-	if (critical) {
+	if (critical)
+	{
 		/*
 		 * Cache entries may not be populated.  So we're cannot rely on the
 		 * size of the clean queue.
@@ -1452,12 +1644,15 @@ static bool clean_target_met(struct smq_policy *mq, bool critical)
 		unsigned target = from_cblock(mq->cache_size) * CLEAN_TARGET_CRITICAL / 100u;
 
 		return nr_clean >= target;
-	} else
+	}
+	else
+	{
 		return !q_size(&mq->dirty);
+	}
 }
 
 static int __smq_writeback_work(struct smq_policy *mq, dm_oblock_t *oblock,
-				dm_cblock_t *cblock, bool critical_only)
+								dm_cblock_t *cblock, bool critical_only)
 {
 	struct entry *e = NULL;
 	bool target_met = clean_target_met(mq, critical_only);
@@ -1466,13 +1661,19 @@ static int __smq_writeback_work(struct smq_policy *mq, dm_oblock_t *oblock,
 		/*
 		 * Always try and keep the bottom level clean.
 		 */
+	{
 		e = pop_old(mq, &mq->dirty, target_met ? 1u : mq->dirty.nr_levels);
+	}
 
 	else
+	{
 		e = pop_old(mq, &mq->dirty, mq->dirty.nr_levels);
+	}
 
 	if (!e)
+	{
 		return -ENODATA;
+	}
 
 	*oblock = e->oblock;
 	*cblock = infer_cblock(mq, e);
@@ -1483,7 +1684,7 @@ static int __smq_writeback_work(struct smq_policy *mq, dm_oblock_t *oblock,
 }
 
 static int smq_writeback_work(struct dm_cache_policy *p, dm_oblock_t *oblock,
-			      dm_cblock_t *cblock, bool critical_only)
+							  dm_cblock_t *cblock, bool critical_only)
 {
 	int r;
 	unsigned long flags;
@@ -1497,11 +1698,12 @@ static int smq_writeback_work(struct dm_cache_policy *p, dm_oblock_t *oblock,
 }
 
 static void __force_mapping(struct smq_policy *mq,
-			    dm_oblock_t current_oblock, dm_oblock_t new_oblock)
+							dm_oblock_t current_oblock, dm_oblock_t new_oblock)
 {
 	struct entry *e = h_lookup(&mq->table, current_oblock);
 
-	if (e) {
+	if (e)
+	{
 		del(mq, e);
 		e->oblock = new_oblock;
 		e->dirty = true;
@@ -1510,7 +1712,7 @@ static void __force_mapping(struct smq_policy *mq,
 }
 
 static void smq_force_mapping(struct dm_cache_policy *p,
-			      dm_oblock_t current_oblock, dm_oblock_t new_oblock)
+							  dm_oblock_t current_oblock, dm_oblock_t new_oblock)
 {
 	unsigned long flags;
 	struct smq_policy *mq = to_smq_policy(p);
@@ -1552,18 +1754,21 @@ static void smq_tick(struct dm_cache_policy *p, bool can_block)
  * but they have no effect.
  */
 static int mq_set_config_value(struct dm_cache_policy *p,
-			       const char *key, const char *value)
+							   const char *key, const char *value)
 {
 	unsigned long tmp;
 
 	if (kstrtoul(value, 10, &tmp))
+	{
 		return -EINVAL;
+	}
 
 	if (!strcasecmp(key, "random_threshold") ||
-	    !strcasecmp(key, "sequential_threshold") ||
-	    !strcasecmp(key, "discard_promote_adjustment") ||
-	    !strcasecmp(key, "read_promote_adjustment") ||
-	    !strcasecmp(key, "write_promote_adjustment")) {
+		!strcasecmp(key, "sequential_threshold") ||
+		!strcasecmp(key, "discard_promote_adjustment") ||
+		!strcasecmp(key, "read_promote_adjustment") ||
+		!strcasecmp(key, "write_promote_adjustment"))
+	{
 		DMWARN("tunable '%s' no longer has any effect, mq policy is now an alias for smq", key);
 		return 0;
 	}
@@ -1572,15 +1777,15 @@ static int mq_set_config_value(struct dm_cache_policy *p,
 }
 
 static int mq_emit_config_values(struct dm_cache_policy *p, char *result,
-				 unsigned maxlen, ssize_t *sz_ptr)
+								 unsigned maxlen, ssize_t *sz_ptr)
 {
 	ssize_t sz = *sz_ptr;
 
 	DMEMIT("10 random_threshold 0 "
-	       "sequential_threshold 0 "
-	       "discard_promote_adjustment 0 "
-	       "read_promote_adjustment 0 "
-	       "write_promote_adjustment 0 ");
+		   "sequential_threshold 0 "
+		   "discard_promote_adjustment 0 "
+		   "read_promote_adjustment 0 "
+		   "write_promote_adjustment 0 ");
 
 	*sz_ptr = sz;
 	return 0;
@@ -1603,37 +1808,40 @@ static void init_policy_functions(struct smq_policy *mq, bool mimic_mq)
 	mq->policy.residency = smq_residency;
 	mq->policy.tick = smq_tick;
 
-	if (mimic_mq) {
+	if (mimic_mq)
+	{
 		mq->policy.set_config_value = mq_set_config_value;
 		mq->policy.emit_config_values = mq_emit_config_values;
 	}
 }
 
 static bool too_many_hotspot_blocks(sector_t origin_size,
-				    sector_t hotspot_block_size,
-				    unsigned nr_hotspot_blocks)
+									sector_t hotspot_block_size,
+									unsigned nr_hotspot_blocks)
 {
 	return (hotspot_block_size * nr_hotspot_blocks) > origin_size;
 }
 
 static void calc_hotspot_params(sector_t origin_size,
-				sector_t cache_block_size,
-				unsigned nr_cache_blocks,
-				sector_t *hotspot_block_size,
-				unsigned *nr_hotspot_blocks)
+								sector_t cache_block_size,
+								unsigned nr_cache_blocks,
+								sector_t *hotspot_block_size,
+								unsigned *nr_hotspot_blocks)
 {
 	*hotspot_block_size = cache_block_size * 16u;
 	*nr_hotspot_blocks = max(nr_cache_blocks / 4u, 1024u);
 
 	while ((*hotspot_block_size > cache_block_size) &&
-	       too_many_hotspot_blocks(origin_size, *hotspot_block_size, *nr_hotspot_blocks))
+		   too_many_hotspot_blocks(origin_size, *hotspot_block_size, *nr_hotspot_blocks))
+	{
 		*hotspot_block_size /= 2u;
+	}
 }
 
 static struct dm_cache_policy *__smq_create(dm_cblock_t cache_size,
-					    sector_t origin_size,
-					    sector_t cache_block_size,
-					    bool mimic_mq)
+		sector_t origin_size,
+		sector_t cache_block_size,
+		bool mimic_mq)
 {
 	unsigned i;
 	unsigned nr_sentinels_per_queue = 2u * NR_CACHE_LEVELS;
@@ -1641,53 +1849,73 @@ static struct dm_cache_policy *__smq_create(dm_cblock_t cache_size,
 	struct smq_policy *mq = kzalloc(sizeof(*mq), GFP_KERNEL);
 
 	if (!mq)
+	{
 		return NULL;
+	}
 
 	init_policy_functions(mq, mimic_mq);
 	mq->cache_size = cache_size;
 	mq->cache_block_size = cache_block_size;
 
 	calc_hotspot_params(origin_size, cache_block_size, from_cblock(cache_size),
-			    &mq->hotspot_block_size, &mq->nr_hotspot_blocks);
+						&mq->hotspot_block_size, &mq->nr_hotspot_blocks);
 
 	mq->cache_blocks_per_hotspot_block = div64_u64(mq->hotspot_block_size, mq->cache_block_size);
 	mq->hotspot_level_jump = 1u;
-	if (space_init(&mq->es, total_sentinels + mq->nr_hotspot_blocks + from_cblock(cache_size))) {
+
+	if (space_init(&mq->es, total_sentinels + mq->nr_hotspot_blocks + from_cblock(cache_size)))
+	{
 		DMERR("couldn't initialize entry space");
 		goto bad_pool_init;
 	}
 
 	init_allocator(&mq->writeback_sentinel_alloc, &mq->es, 0, nr_sentinels_per_queue);
-        for (i = 0; i < nr_sentinels_per_queue; i++)
+
+	for (i = 0; i < nr_sentinels_per_queue; i++)
+	{
 		get_entry(&mq->writeback_sentinel_alloc, i)->sentinel = true;
+	}
 
 	init_allocator(&mq->demote_sentinel_alloc, &mq->es, nr_sentinels_per_queue, total_sentinels);
-        for (i = 0; i < nr_sentinels_per_queue; i++)
+
+	for (i = 0; i < nr_sentinels_per_queue; i++)
+	{
 		get_entry(&mq->demote_sentinel_alloc, i)->sentinel = true;
+	}
 
 	init_allocator(&mq->hotspot_alloc, &mq->es, total_sentinels,
-		       total_sentinels + mq->nr_hotspot_blocks);
+				   total_sentinels + mq->nr_hotspot_blocks);
 
 	init_allocator(&mq->cache_alloc, &mq->es,
-		       total_sentinels + mq->nr_hotspot_blocks,
-		       total_sentinels + mq->nr_hotspot_blocks + from_cblock(cache_size));
+				   total_sentinels + mq->nr_hotspot_blocks,
+				   total_sentinels + mq->nr_hotspot_blocks + from_cblock(cache_size));
 
 	mq->hotspot_hit_bits = alloc_bitset(mq->nr_hotspot_blocks);
-	if (!mq->hotspot_hit_bits) {
+
+	if (!mq->hotspot_hit_bits)
+	{
 		DMERR("couldn't allocate hotspot hit bitset");
 		goto bad_hotspot_hit_bits;
 	}
+
 	clear_bitset(mq->hotspot_hit_bits, mq->nr_hotspot_blocks);
 
-	if (from_cblock(cache_size)) {
+	if (from_cblock(cache_size))
+	{
 		mq->cache_hit_bits = alloc_bitset(from_cblock(cache_size));
-		if (!mq->cache_hit_bits) {
+
+		if (!mq->cache_hit_bits)
+		{
 			DMERR("couldn't allocate cache hit bitset");
 			goto bad_cache_hit_bits;
 		}
+
 		clear_bitset(mq->cache_hit_bits, from_cblock(mq->cache_size));
-	} else
+	}
+	else
+	{
 		mq->cache_hit_bits = NULL;
+	}
 
 	mq->tick = 0;
 	spin_lock_init(&mq->lock);
@@ -1695,7 +1923,7 @@ static struct dm_cache_policy *__smq_create(dm_cblock_t cache_size,
 	q_init(&mq->hotspot, &mq->es, NR_HOTSPOT_LEVELS);
 	mq->hotspot.nr_top_levels = 8;
 	mq->hotspot.nr_in_top_levels = min(mq->nr_hotspot_blocks / NR_HOTSPOT_LEVELS,
-					   from_cblock(mq->cache_size) / mq->cache_blocks_per_hotspot_block);
+									   from_cblock(mq->cache_size) / mq->cache_blocks_per_hotspot_block);
 
 	q_init(&mq->clean, &mq->es, NR_CACHE_LEVELS);
 	q_init(&mq->dirty, &mq->es, NR_CACHE_LEVELS);
@@ -1704,10 +1932,14 @@ static struct dm_cache_policy *__smq_create(dm_cblock_t cache_size,
 	stats_init(&mq->cache_stats, NR_CACHE_LEVELS);
 
 	if (h_init(&mq->table, &mq->es, from_cblock(cache_size)))
+	{
 		goto bad_alloc_table;
+	}
 
 	if (h_init(&mq->hotspot_table, &mq->es, mq->nr_hotspot_blocks))
+	{
 		goto bad_alloc_hotspot_table;
+	}
 
 	sentinels_init(mq);
 	mq->write_promote_level = mq->read_promote_level = NR_HOTSPOT_LEVELS;
@@ -1732,22 +1964,23 @@ bad_pool_init:
 }
 
 static struct dm_cache_policy *smq_create(dm_cblock_t cache_size,
-					  sector_t origin_size,
-					  sector_t cache_block_size)
+		sector_t origin_size,
+		sector_t cache_block_size)
 {
 	return __smq_create(cache_size, origin_size, cache_block_size, false);
 }
 
 static struct dm_cache_policy *mq_create(dm_cblock_t cache_size,
-					 sector_t origin_size,
-					 sector_t cache_block_size)
+		sector_t origin_size,
+		sector_t cache_block_size)
 {
 	return __smq_create(cache_size, origin_size, cache_block_size, true);
 }
 
 /*----------------------------------------------------------------*/
 
-static struct dm_cache_policy_type smq_policy_type = {
+static struct dm_cache_policy_type smq_policy_type =
+{
 	.name = "smq",
 	.version = {1, 5, 0},
 	.hint_size = 4,
@@ -1755,7 +1988,8 @@ static struct dm_cache_policy_type smq_policy_type = {
 	.create = smq_create
 };
 
-static struct dm_cache_policy_type mq_policy_type = {
+static struct dm_cache_policy_type mq_policy_type =
+{
 	.name = "mq",
 	.version = {1, 5, 0},
 	.hint_size = 4,
@@ -1763,7 +1997,8 @@ static struct dm_cache_policy_type mq_policy_type = {
 	.create = mq_create,
 };
 
-static struct dm_cache_policy_type default_policy_type = {
+static struct dm_cache_policy_type default_policy_type =
+{
 	.name = "default",
 	.version = {1, 5, 0},
 	.hint_size = 4,
@@ -1777,20 +2012,26 @@ static int __init smq_init(void)
 	int r;
 
 	r = dm_cache_policy_register(&smq_policy_type);
-	if (r) {
+
+	if (r)
+	{
 		DMERR("register failed %d", r);
 		return -ENOMEM;
 	}
 
 	r = dm_cache_policy_register(&mq_policy_type);
-	if (r) {
+
+	if (r)
+	{
 		DMERR("register failed (as mq) %d", r);
 		dm_cache_policy_unregister(&smq_policy_type);
 		return -ENOMEM;
 	}
 
 	r = dm_cache_policy_register(&default_policy_type);
-	if (r) {
+
+	if (r)
+	{
 		DMERR("register failed (as default) %d", r);
 		dm_cache_policy_unregister(&mq_policy_type);
 		dm_cache_policy_unregister(&smq_policy_type);

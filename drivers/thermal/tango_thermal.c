@@ -24,7 +24,8 @@
 #define IDX_MIN		15
 #define IDX_MAX		40
 
-struct tango_thermal_priv {
+struct tango_thermal_priv
+{
 	void __iomem *base;
 	int thresh_idx;
 };
@@ -43,15 +44,23 @@ static int tango_get_temp(void *arg, int *res)
 	struct tango_thermal_priv *priv = arg;
 	int idx = priv->thresh_idx;
 
-	if (temp_above_thresh(priv->base, idx)) {
+	if (temp_above_thresh(priv->base, idx))
+	{
 		/* Search upward by incrementing thresh_idx */
 		while (idx < IDX_MAX && temp_above_thresh(priv->base, ++idx))
+		{
 			cpu_relax();
+		}
+
 		idx = idx - 1; /* always return lower bound */
-	} else {
+	}
+	else
+	{
 		/* Search downward by decrementing thresh_idx */
 		while (idx > IDX_MIN && !temp_above_thresh(priv->base, --idx))
+		{
 			cpu_relax();
+		}
 	}
 
 	*res = (idx * 9 / 2 - 38) * 1000; /* millidegrees Celsius */
@@ -60,7 +69,8 @@ static int tango_get_temp(void *arg, int *res)
 	return 0;
 }
 
-static const struct thermal_zone_of_device_ops ops = {
+static const struct thermal_zone_of_device_ops ops =
+{
 	.get_temp	= tango_get_temp,
 };
 
@@ -77,13 +87,19 @@ static int tango_thermal_probe(struct platform_device *pdev)
 	struct thermal_zone_device *tzdev;
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(priv->base))
+	{
 		return PTR_ERR(priv->base);
+	}
 
 	platform_set_drvdata(pdev, priv);
 	priv->thresh_idx = IDX_MIN;
@@ -101,14 +117,16 @@ static int __maybe_unused tango_thermal_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(tango_thermal_pm, NULL, tango_thermal_resume);
 
-static const struct of_device_id tango_sensor_ids[] = {
+static const struct of_device_id tango_sensor_ids[] =
+{
 	{
 		.compatible = "sigma,smp8758-thermal",
 	},
 	{ /* sentinel */ }
 };
 
-static struct platform_driver tango_thermal_driver = {
+static struct platform_driver tango_thermal_driver =
+{
 	.probe	= tango_thermal_probe,
 	.driver	= {
 		.name		= "tango-thermal",

@@ -36,7 +36,8 @@
 #define GEF_GPIO_OVERRUN	0x1C
 #define GEF_GPIO_MODE		0x20
 
-static const struct of_device_id gef_gpio_ids[] = {
+static const struct of_device_id gef_gpio_ids[] =
+{
 	{
 		.compatible	= "gef,sbc610-gpio",
 		.data		= (void *)19,
@@ -60,25 +61,35 @@ static int __init gef_gpio_probe(struct platform_device *pdev)
 	int ret;
 
 	gc = devm_kzalloc(&pdev->dev, sizeof(*gc), GFP_KERNEL);
+
 	if (!gc)
+	{
 		return -ENOMEM;
+	}
 
 	regs = of_iomap(pdev->dev.of_node, 0);
+
 	if (!regs)
+	{
 		return -ENOMEM;
+	}
 
 	ret = bgpio_init(gc, &pdev->dev, 4, regs + GEF_GPIO_IN,
-			 regs + GEF_GPIO_OUT, NULL, NULL,
-			 regs + GEF_GPIO_DIRECT, BGPIOF_BIG_ENDIAN_BYTE_ORDER);
-	if (ret) {
+					 regs + GEF_GPIO_OUT, NULL, NULL,
+					 regs + GEF_GPIO_DIRECT, BGPIOF_BIG_ENDIAN_BYTE_ORDER);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "bgpio_init failed\n");
 		goto err0;
 	}
 
 	/* Setup pointers to chip functions */
 	gc->label = devm_kstrdup(&pdev->dev, pdev->dev.of_node->full_name,
-				     GFP_KERNEL);
-	if (!gc->label) {
+							 GFP_KERNEL);
+
+	if (!gc->label)
+	{
 		ret = -ENOMEM;
 		goto err0;
 	}
@@ -90,18 +101,22 @@ static int __init gef_gpio_probe(struct platform_device *pdev)
 
 	/* This function adds a memory mapped GPIO chip */
 	ret = devm_gpiochip_add_data(&pdev->dev, gc, NULL);
+
 	if (ret)
+	{
 		goto err0;
+	}
 
 	return 0;
 err0:
 	iounmap(regs);
 	pr_err("%s: GPIO chip registration failed\n",
-			pdev->dev.of_node->full_name);
+		   pdev->dev.of_node->full_name);
 	return ret;
 };
 
-static struct platform_driver gef_gpio_driver = {
+static struct platform_driver gef_gpio_driver =
+{
 	.driver = {
 		.name		= "gef-gpio",
 		.of_match_table	= gef_gpio_ids,

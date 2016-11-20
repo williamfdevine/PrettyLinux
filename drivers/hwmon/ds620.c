@@ -55,7 +55,8 @@
 #define DS620_REG_CONFIG_A0		0x0008
 
 /* The DS620 registers */
-static const u8 DS620_REG_TEMP[3] = {
+static const u8 DS620_REG_TEMP[3] =
+{
 	0xAA,			/* input, word, RO */
 	0xA2,			/* min, word, RW */
 	0xA0,			/* max, word, RW */
@@ -66,7 +67,8 @@ static const u8 DS620_REG_TEMP[3] = {
 #define DS620_COM_STOP		0x22	/* no data */
 
 /* Each client has this additional data */
-struct ds620_data {
+struct ds620_data
+{
 	struct i2c_client *client;
 	struct mutex update_lock;
 	char valid;		/* !=0 if following fields are valid */
@@ -81,24 +83,34 @@ static void ds620_init_client(struct i2c_client *client)
 	u16 conf, new_conf;
 
 	new_conf = conf =
-	    i2c_smbus_read_word_swapped(client, DS620_REG_CONF);
+				   i2c_smbus_read_word_swapped(client, DS620_REG_CONF);
 
 	/* switch to continuous conversion mode */
 	new_conf &= ~DS620_REG_CONFIG_1SHOT;
 	/* already high at power-on, but don't trust the BIOS! */
 	new_conf |= DS620_REG_CONFIG_PO2;
+
 	/* thermostat mode according to platform data */
 	if (ds620_info && ds620_info->pomode == 1)
-		new_conf &= ~DS620_REG_CONFIG_PO1; /* PO_LOW */
+	{
+		new_conf &= ~DS620_REG_CONFIG_PO1;    /* PO_LOW */
+	}
 	else if (ds620_info && ds620_info->pomode == 2)
-		new_conf |= DS620_REG_CONFIG_PO1; /* PO_HIGH */
+	{
+		new_conf |= DS620_REG_CONFIG_PO1;    /* PO_HIGH */
+	}
 	else
-		new_conf &= ~DS620_REG_CONFIG_PO2; /* always low */
+	{
+		new_conf &= ~DS620_REG_CONFIG_PO2;    /* always low */
+	}
+
 	/* with highest precision */
 	new_conf |= DS620_REG_CONFIG_R1 | DS620_REG_CONFIG_R0;
 
 	if (conf != new_conf)
+	{
 		i2c_smbus_write_word_swapped(client, DS620_REG_CONF, new_conf);
+	}
 
 	/* start conversion */
 	i2c_smbus_write_byte(client, DS620_COM_START);
@@ -113,16 +125,20 @@ static struct ds620_data *ds620_update_client(struct device *dev)
 	mutex_lock(&data->update_lock);
 
 	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
-	    || !data->valid) {
+		|| !data->valid)
+	{
 		int i;
 		int res;
 
 		dev_dbg(&client->dev, "Starting ds620 update\n");
 
-		for (i = 0; i < ARRAY_SIZE(data->temp); i++) {
+		for (i = 0; i < ARRAY_SIZE(data->temp); i++)
+		{
 			res = i2c_smbus_read_word_swapped(client,
-							  DS620_REG_TEMP[i]);
-			if (res < 0) {
+											  DS620_REG_TEMP[i]);
+
+			if (res < 0)
+			{
 				ret = ERR_PTR(res);
 				goto abort;
 			}
@@ -133,6 +149,7 @@ static struct ds620_data *ds620_update_client(struct device *dev)
 		data->last_updated = jiffies;
 		data->valid = 1;
 	}
+
 abort:
 	mutex_unlock(&data->update_lock);
 
@@ -140,19 +157,21 @@ abort:
 }
 
 static ssize_t show_temp(struct device *dev, struct device_attribute *da,
-			 char *buf)
+						 char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
 	struct ds620_data *data = ds620_update_client(dev);
 
 	if (IS_ERR(data))
+	{
 		return PTR_ERR(data);
+	}
 
 	return sprintf(buf, "%d\n", ((data->temp[attr->index] / 8) * 625) / 10);
 }
 
 static ssize_t set_temp(struct device *dev, struct device_attribute *da,
-			const char *buf, size_t count)
+						const char *buf, size_t count)
 {
 	int res;
 	long val;
@@ -164,20 +183,22 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *da,
 	res = kstrtol(buf, 10, &val);
 
 	if (res)
+	{
 		return res;
+	}
 
 	val = (val * 10 / 625) * 8;
 
 	mutex_lock(&data->update_lock);
 	data->temp[attr->index] = val;
 	i2c_smbus_write_word_swapped(client, DS620_REG_TEMP[attr->index],
-				     data->temp[attr->index]);
+								 data->temp[attr->index]);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static ssize_t show_alarm(struct device *dev, struct device_attribute *da,
-			  char *buf)
+						  char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
 	struct ds620_data *data = ds620_update_client(dev);
@@ -186,22 +207,32 @@ static ssize_t show_alarm(struct device *dev, struct device_attribute *da,
 	int res;
 
 	if (IS_ERR(data))
+	{
 		return PTR_ERR(data);
+	}
 
 	client = data->client;
 
 	/* reset alarms if necessary */
 	res = i2c_smbus_read_word_swapped(client, DS620_REG_CONF);
+
 	if (res < 0)
+	{
 		return res;
+	}
 
 	new_conf = conf = res;
 	new_conf &= ~attr->index;
-	if (conf != new_conf) {
+
+	if (conf != new_conf)
+	{
 		res = i2c_smbus_write_word_swapped(client, DS620_REG_CONF,
-						   new_conf);
+										   new_conf);
+
 		if (res < 0)
+		{
 			return res;
+		}
 	}
 
 	return sprintf(buf, "%d\n", !!(conf & attr->index));
@@ -211,11 +242,12 @@ static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
 static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp, set_temp, 1);
 static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp, set_temp, 2);
 static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, show_alarm, NULL,
-			  DS620_REG_CONFIG_TLF);
+						  DS620_REG_CONFIG_TLF);
 static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL,
-			  DS620_REG_CONFIG_THF);
+						  DS620_REG_CONFIG_THF);
 
-static struct attribute *ds620_attrs[] = {
+static struct attribute *ds620_attrs[] =
+{
 	&sensor_dev_attr_temp1_input.dev_attr.attr,
 	&sensor_dev_attr_temp1_min.dev_attr.attr,
 	&sensor_dev_attr_temp1_max.dev_attr.attr,
@@ -227,15 +259,18 @@ static struct attribute *ds620_attrs[] = {
 ATTRIBUTE_GROUPS(ds620);
 
 static int ds620_probe(struct i2c_client *client,
-		       const struct i2c_device_id *id)
+					   const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
 	struct device *hwmon_dev;
 	struct ds620_data *data;
 
 	data = devm_kzalloc(dev, sizeof(struct ds620_data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	data->client = client;
 	mutex_init(&data->update_lock);
@@ -244,11 +279,12 @@ static int ds620_probe(struct i2c_client *client,
 	ds620_init_client(client);
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-							   data, ds620_groups);
+				data, ds620_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
-static const struct i2c_device_id ds620_id[] = {
+static const struct i2c_device_id ds620_id[] =
+{
 	{"ds620", 0},
 	{}
 };
@@ -256,10 +292,11 @@ static const struct i2c_device_id ds620_id[] = {
 MODULE_DEVICE_TABLE(i2c, ds620_id);
 
 /* This is the driver that will be inserted */
-static struct i2c_driver ds620_driver = {
+static struct i2c_driver ds620_driver =
+{
 	.class = I2C_CLASS_HWMON,
 	.driver = {
-		   .name = "ds620",
+		.name = "ds620",
 	},
 	.probe = ds620_probe,
 	.id_table = ds620_id,

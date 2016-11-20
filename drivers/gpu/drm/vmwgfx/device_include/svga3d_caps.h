@@ -49,7 +49,7 @@
 #include "svga_reg.h"
 
 #define SVGA_FIFO_3D_CAPS_SIZE   (SVGA_FIFO_3D_CAPS_LAST - \
-                                  SVGA_FIFO_3D_CAPS + 1)
+								  SVGA_FIFO_3D_CAPS + 1)
 
 
 /*
@@ -61,11 +61,12 @@
  *    types.
  */
 
-typedef enum {
-   SVGA3DCAPS_RECORD_UNKNOWN        = 0,
-   SVGA3DCAPS_RECORD_DEVCAPS_MIN    = 0x100,
-   SVGA3DCAPS_RECORD_DEVCAPS        = 0x100,
-   SVGA3DCAPS_RECORD_DEVCAPS_MAX    = 0x1ff,
+typedef enum
+{
+	SVGA3DCAPS_RECORD_UNKNOWN        = 0,
+	SVGA3DCAPS_RECORD_DEVCAPS_MIN    = 0x100,
+	SVGA3DCAPS_RECORD_DEVCAPS        = 0x100,
+	SVGA3DCAPS_RECORD_DEVCAPS_MAX    = 0x1ff,
 } SVGA3dCapsRecordType;
 
 
@@ -80,9 +81,10 @@ typedef enum {
 
 typedef
 #include "vmware_pack_begin.h"
-struct SVGA3dCapsRecordHeader {
-   uint32 length;
-   SVGA3dCapsRecordType type;
+struct SVGA3dCapsRecordHeader
+{
+	uint32 length;
+	SVGA3dCapsRecordType type;
 }
 #include "vmware_pack_end.h"
 SVGA3dCapsRecordHeader;
@@ -97,9 +99,10 @@ SVGA3dCapsRecordHeader;
 
 typedef
 #include "vmware_pack_begin.h"
-struct SVGA3dCapsRecord {
-   SVGA3dCapsRecordHeader header;
-   uint32 data[1];
+struct SVGA3dCapsRecord
+{
+	SVGA3dCapsRecordHeader header;
+	uint32 data[1];
 }
 #include "vmware_pack_end.h"
 SVGA3dCapsRecord;

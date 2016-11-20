@@ -27,7 +27,8 @@
 
 #include "fs_enet.h"
 
-struct bb_info {
+struct bb_info
+{
 	struct mdiobb_ctrl ctrl;
 	__be32 __iomem *dir;
 	__be32 __iomem *dat;
@@ -60,9 +61,13 @@ static inline void mdio_dir(struct mdiobb_ctrl *ctrl, int dir)
 	struct bb_info *bitbang = container_of(ctrl, struct bb_info, ctrl);
 
 	if (dir)
+	{
 		bb_set(bitbang->dir, bitbang->mdio_msk);
+	}
 	else
+	{
 		bb_clr(bitbang->dir, bitbang->mdio_msk);
+	}
 
 	/* Read back to flush the write. */
 	in_be32(bitbang->dir);
@@ -79,9 +84,13 @@ static inline void mdio(struct mdiobb_ctrl *ctrl, int what)
 	struct bb_info *bitbang = container_of(ctrl, struct bb_info, ctrl);
 
 	if (what)
+	{
 		bb_set(bitbang->dat, bitbang->mdio_msk);
+	}
 	else
+	{
 		bb_clr(bitbang->dat, bitbang->mdio_msk);
+	}
 
 	/* Read back to flush the write. */
 	in_be32(bitbang->dat);
@@ -92,15 +101,20 @@ static inline void mdc(struct mdiobb_ctrl *ctrl, int what)
 	struct bb_info *bitbang = container_of(ctrl, struct bb_info, ctrl);
 
 	if (what)
+	{
 		bb_set(bitbang->dat, bitbang->mdc_msk);
+	}
 	else
+	{
 		bb_clr(bitbang->dat, bitbang->mdc_msk);
+	}
 
 	/* Read back to flush the write. */
 	in_be32(bitbang->dat);
 }
 
-static struct mdiobb_ops bb_ops = {
+static struct mdiobb_ops bb_ops =
+{
 	.owner = THIS_MODULE,
 	.set_mdc = mdc,
 	.set_mdio_dir = mdio_dir,
@@ -116,11 +130,16 @@ static int fs_mii_bitbang_init(struct mii_bus *bus, struct device_node *np)
 	struct bb_info *bitbang = bus->priv;
 
 	int ret = of_address_to_resource(np, 0, &res);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (resource_size(&res) <= 13)
+	{
 		return -ENODEV;
+	}
 
 	/* This should really encode the pin number as well, but all
 	 * we get is an int, and the odds of multiple bitbang mdio buses
@@ -129,18 +148,29 @@ static int fs_mii_bitbang_init(struct mii_bus *bus, struct device_node *np)
 	snprintf(bus->id, MII_BUS_ID_SIZE, "%x", res.start);
 
 	data = of_get_property(np, "fsl,mdio-pin", &len);
+
 	if (!data || len != 4)
+	{
 		return -ENODEV;
+	}
+
 	mdio_pin = *data;
 
 	data = of_get_property(np, "fsl,mdc-pin", &len);
+
 	if (!data || len != 4)
+	{
 		return -ENODEV;
+	}
+
 	mdc_pin = *data;
 
 	bitbang->dir = ioremap(res.start, resource_size(&res));
+
 	if (!bitbang->dir)
+	{
 		return -ENOMEM;
+	}
 
 	bitbang->dat = bitbang->dir + 4;
 	bitbang->mdio_msk = 1 << (31 - mdio_pin);
@@ -156,20 +186,29 @@ static int fs_enet_mdio_probe(struct platform_device *ofdev)
 	int ret = -ENOMEM;
 
 	bitbang = kzalloc(sizeof(struct bb_info), GFP_KERNEL);
+
 	if (!bitbang)
+	{
 		goto out;
+	}
 
 	bitbang->ctrl.ops = &bb_ops;
 
 	new_bus = alloc_mdio_bitbang(&bitbang->ctrl);
+
 	if (!new_bus)
+	{
 		goto out_free_priv;
+	}
 
 	new_bus->name = "CPM2 Bitbanged MII",
 
-	ret = fs_mii_bitbang_init(new_bus, ofdev->dev.of_node);
+			 ret = fs_mii_bitbang_init(new_bus, ofdev->dev.of_node);
+
 	if (ret)
+	{
 		goto out_free_bus;
+	}
 
 	new_bus->phy_mask = ~0;
 
@@ -177,8 +216,11 @@ static int fs_enet_mdio_probe(struct platform_device *ofdev)
 	platform_set_drvdata(ofdev, new_bus);
 
 	ret = of_mdiobus_register(new_bus, ofdev->dev.of_node);
+
 	if (ret)
+	{
 		goto out_unmap_regs;
+	}
 
 	return 0;
 
@@ -205,7 +247,8 @@ static int fs_enet_mdio_remove(struct platform_device *ofdev)
 	return 0;
 }
 
-static const struct of_device_id fs_enet_mdio_bb_match[] = {
+static const struct of_device_id fs_enet_mdio_bb_match[] =
+{
 	{
 		.compatible = "fsl,cpm2-mdio-bitbang",
 	},
@@ -213,7 +256,8 @@ static const struct of_device_id fs_enet_mdio_bb_match[] = {
 };
 MODULE_DEVICE_TABLE(of, fs_enet_mdio_bb_match);
 
-static struct platform_driver fs_enet_bb_mdio_driver = {
+static struct platform_driver fs_enet_bb_mdio_driver =
+{
 	.driver = {
 		.name = "fsl-bb-mdio",
 		.of_match_table = fs_enet_mdio_bb_match,

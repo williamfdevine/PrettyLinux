@@ -39,22 +39,22 @@
  *      ELFNOTE(XYZCo, 12, .long, 0xdeadbeef)
  */
 #define ELFNOTE_START(name, type, flags)	\
-.pushsection .note.name, flags,@note	;	\
-  .balign 4				;	\
-  .long 2f - 1f		/* namesz */	;	\
-  .long 4484f - 3f	/* descsz */	;	\
-  .long type				;	\
-1:.asciz #name				;	\
-2:.balign 4				;	\
-3:
+	.pushsection .note.name, flags,@note	;	\
+	.balign 4				;	\
+	.long 2f - 1f		/* namesz */	;	\
+	.long 4484f - 3f	/* descsz */	;	\
+	.long type				;	\
+	1:.asciz #name				;	\
+	2:.balign 4				;	\
+	3:
 
 #define ELFNOTE_END				\
-4484:.balign 4				;	\
-.popsection				;
+	4484:.balign 4				;	\
+	.popsection				;
 
 #define ELFNOTE(name, type, desc)		\
 	ELFNOTE_START(name, type, "")		\
-		desc			;	\
+	desc			;	\
 	ELFNOTE_END
 
 #else	/* !__ASSEMBLER__ */
@@ -74,20 +74,20 @@
 		unsigned char _name[sizeof(name)]			\
 		__attribute__((aligned(sizeof(Elf##size##_Word))));	\
 		typeof(desc) _desc					\
-			     __attribute__((aligned(sizeof(Elf##size##_Word)))); \
+		__attribute__((aligned(sizeof(Elf##size##_Word)))); \
 	} _ELFNOTE_PASTE(_note_, unique)				\
-		__used							\
-		__attribute__((section(".note." name),			\
-			       aligned(sizeof(Elf##size##_Word)),	\
-			       unused)) = {				\
-		{							\
-			sizeof(name),					\
-			sizeof(desc),					\
-			type,						\
-		},							\
-		name,							\
-		desc							\
-	}
+	__used							\
+	__attribute__((section(".note." name),			\
+				   aligned(sizeof(Elf##size##_Word)),	\
+				   unused)) = {				\
+											   {							\
+													   sizeof(name),					\
+													   sizeof(desc),					\
+													   type,						\
+											   },							\
+											   name,							\
+											   desc							\
+							  }
 #define ELFNOTE(size, name, type, desc)		\
 	_ELFNOTE(size, name, __LINE__, type, desc)
 

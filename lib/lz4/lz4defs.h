@@ -12,9 +12,9 @@
  * Detects 64 bits mode
  */
 #if defined(CONFIG_64BIT)
-#define LZ4_ARCH64 1
+	#define LZ4_ARCH64 1
 #else
-#define LZ4_ARCH64 0
+	#define LZ4_ARCH64 0
 #endif
 
 /*
@@ -85,11 +85,11 @@ typedef struct _U64_S { u64 v; } U64_S;
 #define HASHLOG64K	((MEMORY_USAGE - 2) + 1)
 #define HASH64KTABLESIZE	(1U << HASHLOG64K)
 #define LZ4_HASH_VALUE(p)	(((A32(p)) * 2654435761U) >> \
-				((MINMATCH * 8) - (MEMORY_USAGE-2)))
+							 ((MINMATCH * 8) - (MEMORY_USAGE-2)))
 #define LZ4_HASH64K_VALUE(p)	(((A32(p)) * 2654435761U) >> \
-				((MINMATCH * 8) - HASHLOG64K))
+								 ((MINMATCH * 8) - HASHLOG64K))
 #define HASH_VALUE(p)		(((A32(p)) * 2654435761U) >> \
-				((MINMATCH * 8) - HASH_LOG))
+							 ((MINMATCH * 8) - HASH_LOG))
 
 #if LZ4_ARCH64/* 64-bit */
 #define STEPSIZE 8
@@ -112,9 +112,9 @@ typedef struct _U64_S { u64 v; } U64_S;
 #define HTYPE u32
 
 #ifdef __BIG_ENDIAN
-#define LZ4_NBCOMMONBYTES(val) (__builtin_clzll(val) >> 3)
+	#define LZ4_NBCOMMONBYTES(val) (__builtin_clzll(val) >> 3)
 #else
-#define LZ4_NBCOMMONBYTES(val) (__builtin_ctzll(val) >> 3)
+	#define LZ4_NBCOMMONBYTES(val) (__builtin_ctzll(val) >> 3)
 #endif
 
 #else	/* 32-bit */
@@ -137,9 +137,9 @@ typedef struct _U64_S { u64 v; } U64_S;
 #define HTYPE const u8*
 
 #ifdef __BIG_ENDIAN
-#define LZ4_NBCOMMONBYTES(val) (__builtin_clz(val) >> 3)
+	#define LZ4_NBCOMMONBYTES(val) (__builtin_clz(val) >> 3)
 #else
-#define LZ4_NBCOMMONBYTES(val) (__builtin_ctz(val) >> 3)
+	#define LZ4_NBCOMMONBYTES(val) (__builtin_ctz(val) >> 3)
 #endif
 
 #endif

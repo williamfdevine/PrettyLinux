@@ -45,7 +45,7 @@
 /* #define CM4040_DEBUG */
 #define DEBUGP(n, rdr, x, args...) do { 		\
 		dev_dbg(reader_to_dev(rdr), "%s:" x, 	\
-			   __func__ , ## args);		\
+				__func__ , ## args);		\
 	} while (0)
 
 static DEFINE_MUTEX(cm4040_mutex);
@@ -67,7 +67,8 @@ static struct class *cmx_class;
 #define		BS_READABLE	0x01
 #define		BS_WRITABLE	0x02
 
-struct reader_dev {
+struct reader_dev
+{
 	struct pcmcia_device	*p_dev;
 	wait_queue_head_t	devq;
 	wait_queue_head_t	poll_wait;
@@ -108,24 +109,34 @@ static void cm4040_do_poll(unsigned long dummy)
 {
 	struct reader_dev *dev = (struct reader_dev *) dummy;
 	unsigned int obs = xinb(dev->p_dev->resource[0]->start
-				+ REG_OFFSET_BUFFER_STATUS);
+							+ REG_OFFSET_BUFFER_STATUS);
 
-	if ((obs & BSR_BULK_IN_FULL)) {
+	if ((obs & BSR_BULK_IN_FULL))
+	{
 		set_bit(BS_READABLE, &dev->buffer_status);
 		DEBUGP(4, dev, "waking up read_wait\n");
 		wake_up_interruptible(&dev->read_wait);
-	} else
+	}
+	else
+	{
 		clear_bit(BS_READABLE, &dev->buffer_status);
+	}
 
-	if (!(obs & BSR_BULK_OUT_FULL)) {
+	if (!(obs & BSR_BULK_OUT_FULL))
+	{
 		set_bit(BS_WRITABLE, &dev->buffer_status);
 		DEBUGP(4, dev, "waking up write_wait\n");
 		wake_up_interruptible(&dev->write_wait);
-	} else
+	}
+	else
+	{
 		clear_bit(BS_WRITABLE, &dev->buffer_status);
+	}
 
 	if (dev->buffer_status)
+	{
 		wake_up_interruptible(&dev->poll_wait);
+	}
 
 	mod_timer(&dev->poll_timer, jiffies + POLL_PERIOD);
 }
@@ -140,27 +151,35 @@ static int wait_for_bulk_out_ready(struct reader_dev *dev)
 	int i, rc;
 	int iobase = dev->p_dev->resource[0]->start;
 
-	for (i = 0; i < POLL_LOOP_COUNT; i++) {
+	for (i = 0; i < POLL_LOOP_COUNT; i++)
+	{
 		if ((xinb(iobase + REG_OFFSET_BUFFER_STATUS)
-		    & BSR_BULK_OUT_FULL) == 0) {
+			 & BSR_BULK_OUT_FULL) == 0)
+		{
 			DEBUGP(4, dev, "BulkOut empty (i=%d)\n", i);
 			return 1;
 		}
 	}
 
 	DEBUGP(4, dev, "wait_event_interruptible_timeout(timeout=%ld\n",
-		dev->timeout);
+		   dev->timeout);
 	rc = wait_event_interruptible_timeout(dev->write_wait,
-					      test_and_clear_bit(BS_WRITABLE,
-						       &dev->buffer_status),
-					      dev->timeout);
+										  test_and_clear_bit(BS_WRITABLE,
+												  &dev->buffer_status),
+										  dev->timeout);
 
 	if (rc > 0)
+	{
 		DEBUGP(4, dev, "woke up: BulkOut empty\n");
+	}
 	else if (rc == 0)
+	{
 		DEBUGP(4, dev, "woke up: BulkOut full, returning 0 :(\n");
+	}
 	else if (rc < 0)
+	{
 		DEBUGP(4, dev, "woke up: signal arrived\n");
+	}
 
 	return rc;
 }
@@ -172,13 +191,19 @@ static int write_sync_reg(unsigned char val, struct reader_dev *dev)
 	int rc;
 
 	rc = wait_for_bulk_out_ready(dev);
+
 	if (rc <= 0)
+	{
 		return rc;
+	}
 
 	xoutb(val, iobase + REG_OFFSET_SYNC_CONTROL);
 	rc = wait_for_bulk_out_ready(dev);
+
 	if (rc <= 0)
+	{
 		return rc;
+	}
 
 	return 1;
 }
@@ -188,32 +213,41 @@ static int wait_for_bulk_in_ready(struct reader_dev *dev)
 	int i, rc;
 	int iobase = dev->p_dev->resource[0]->start;
 
-	for (i = 0; i < POLL_LOOP_COUNT; i++) {
+	for (i = 0; i < POLL_LOOP_COUNT; i++)
+	{
 		if ((xinb(iobase + REG_OFFSET_BUFFER_STATUS)
-		    & BSR_BULK_IN_FULL) == BSR_BULK_IN_FULL) {
+			 & BSR_BULK_IN_FULL) == BSR_BULK_IN_FULL)
+		{
 			DEBUGP(3, dev, "BulkIn full (i=%d)\n", i);
 			return 1;
 		}
 	}
 
 	DEBUGP(4, dev, "wait_event_interruptible_timeout(timeout=%ld\n",
-		dev->timeout);
+		   dev->timeout);
 	rc = wait_event_interruptible_timeout(dev->read_wait,
-					      test_and_clear_bit(BS_READABLE,
-						 	&dev->buffer_status),
-					      dev->timeout);
+										  test_and_clear_bit(BS_READABLE,
+												  &dev->buffer_status),
+										  dev->timeout);
+
 	if (rc > 0)
+	{
 		DEBUGP(4, dev, "woke up: BulkIn full\n");
+	}
 	else if (rc == 0)
+	{
 		DEBUGP(4, dev, "woke up: BulkIn not full, returning 0 :(\n");
+	}
 	else if (rc < 0)
+	{
 		DEBUGP(4, dev, "woke up: signal arrived\n");
+	}
 
 	return rc;
 }
 
 static ssize_t cm4040_read(struct file *filp, char __user *buf,
-			size_t count, loff_t *ppos)
+						   size_t count, loff_t *ppos)
 {
 	struct reader_dev *dev = filp->private_data;
 	int iobase = dev->p_dev->resource[0]->start;
@@ -226,33 +260,49 @@ static ssize_t cm4040_read(struct file *filp, char __user *buf,
 	DEBUGP(2, dev, "-> cm4040_read(%s,%d)\n", current->comm, current->pid);
 
 	if (count == 0)
+	{
 		return 0;
+	}
 
 	if (count < 10)
+	{
 		return -EFAULT;
+	}
 
-	if (filp->f_flags & O_NONBLOCK) {
+	if (filp->f_flags & O_NONBLOCK)
+	{
 		DEBUGP(4, dev, "filep->f_flags O_NONBLOCK set\n");
 		DEBUGP(2, dev, "<- cm4040_read (failure)\n");
 		return -EAGAIN;
 	}
 
 	if (!pcmcia_dev_present(dev->p_dev))
+	{
 		return -ENODEV;
+	}
 
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 5; i++)
+	{
 		rc = wait_for_bulk_in_ready(dev);
-		if (rc <= 0) {
+
+		if (rc <= 0)
+		{
 			DEBUGP(5, dev, "wait_for_bulk_in_ready rc=%.2x\n", rc);
 			DEBUGP(2, dev, "<- cm4040_read (failed)\n");
+
 			if (rc == -ERESTARTSYS)
+			{
 				return rc;
+			}
+
 			return -EIO;
 		}
-	  	dev->r_buf[i] = xinb(iobase + REG_OFFSET_BULK_IN);
+
+		dev->r_buf[i] = xinb(iobase + REG_OFFSET_BULK_IN);
 #ifdef CM4040_DEBUG
 		pr_debug("%lu:%2x ", i, dev->r_buf[i]);
 	}
+
 	pr_debug("\n");
 #else
 	}
@@ -267,45 +317,70 @@ static ssize_t cm4040_read(struct file *filp, char __user *buf,
 
 	DEBUGP(6, dev, "Min=%zu\n", min_bytes_to_read);
 
-	for (i = 0; i < (min_bytes_to_read-5); i++) {
+	for (i = 0; i < (min_bytes_to_read - 5); i++)
+	{
 		rc = wait_for_bulk_in_ready(dev);
-		if (rc <= 0) {
+
+		if (rc <= 0)
+		{
 			DEBUGP(5, dev, "wait_for_bulk_in_ready rc=%.2x\n", rc);
 			DEBUGP(2, dev, "<- cm4040_read (failed)\n");
+
 			if (rc == -ERESTARTSYS)
+			{
 				return rc;
+			}
+
 			return -EIO;
 		}
-		dev->r_buf[i+5] = xinb(iobase + REG_OFFSET_BULK_IN);
+
+		dev->r_buf[i + 5] = xinb(iobase + REG_OFFSET_BULK_IN);
 #ifdef CM4040_DEBUG
 		pr_debug("%lu:%2x ", i, dev->r_buf[i]);
 	}
+
 	pr_debug("\n");
 #else
 	}
 #endif
 
 	*ppos = min_bytes_to_read;
+
 	if (copy_to_user(buf, dev->r_buf, min_bytes_to_read))
+	{
 		return -EFAULT;
+	}
 
 	rc = wait_for_bulk_in_ready(dev);
-	if (rc <= 0) {
+
+	if (rc <= 0)
+	{
 		DEBUGP(5, dev, "wait_for_bulk_in_ready rc=%.2x\n", rc);
 		DEBUGP(2, dev, "<- cm4040_read (failed)\n");
+
 		if (rc == -ERESTARTSYS)
+		{
 			return rc;
+		}
+
 		return -EIO;
 	}
 
 	rc = write_sync_reg(SCR_READER_TO_HOST_DONE, dev);
-	if (rc <= 0) {
+
+	if (rc <= 0)
+	{
 		DEBUGP(5, dev, "write_sync_reg c=%.2x\n", rc);
 		DEBUGP(2, dev, "<- cm4040_read (failed)\n");
+
 		if (rc == -ERESTARTSYS)
+		{
 			return rc;
+		}
 		else
+		{
 			return -EIO;
+		}
 	}
 
 	uc = xinb(iobase + REG_OFFSET_BULK_IN);
@@ -315,7 +390,7 @@ static ssize_t cm4040_read(struct file *filp, char __user *buf,
 }
 
 static ssize_t cm4040_write(struct file *filp, const char __user *buf,
-			 size_t count, loff_t *ppos)
+							size_t count, loff_t *ppos)
 {
 	struct reader_dev *dev = filp->private_data;
 	int iobase = dev->p_dev->resource[0]->start;
@@ -325,30 +400,39 @@ static ssize_t cm4040_write(struct file *filp, const char __user *buf,
 
 	DEBUGP(2, dev, "-> cm4040_write(%s,%d)\n", current->comm, current->pid);
 
-	if (count == 0) {
+	if (count == 0)
+	{
 		DEBUGP(2, dev, "<- cm4040_write empty read (successfully)\n");
 		return 0;
 	}
 
-	if ((count < 5) || (count > READ_WRITE_BUFFER_SIZE)) {
+	if ((count < 5) || (count > READ_WRITE_BUFFER_SIZE))
+	{
 		DEBUGP(2, dev, "<- cm4040_write buffersize=%Zd < 5\n", count);
 		return -EIO;
 	}
 
-	if (filp->f_flags & O_NONBLOCK) {
+	if (filp->f_flags & O_NONBLOCK)
+	{
 		DEBUGP(4, dev, "filep->f_flags O_NONBLOCK set\n");
 		DEBUGP(4, dev, "<- cm4040_write (failure)\n");
 		return -EAGAIN;
 	}
 
 	if (!pcmcia_dev_present(dev->p_dev))
+	{
 		return -ENODEV;
+	}
 
 	bytes_to_write = count;
-	if (copy_from_user(dev->s_buf, buf, bytes_to_write))
-		return -EFAULT;
 
-	switch (dev->s_buf[0]) {
+	if (copy_from_user(dev->s_buf, buf, bytes_to_write))
+	{
+		return -EFAULT;
+	}
+
+	switch (dev->s_buf[0])
+	{
 		case CMD_PC_TO_RDR_XFRBLOCK:
 		case CMD_PC_TO_RDR_SECURE:
 		case CMD_PC_TO_RDR_TEST_SECURE:
@@ -373,42 +457,64 @@ static ssize_t cm4040_write(struct file *filp, const char __user *buf,
 	}
 
 	rc = write_sync_reg(SCR_HOST_TO_READER_START, dev);
-	if (rc <= 0) {
+
+	if (rc <= 0)
+	{
 		DEBUGP(5, dev, "write_sync_reg c=%.2Zx\n", rc);
 		DEBUGP(2, dev, "<- cm4040_write (failed)\n");
+
 		if (rc == -ERESTARTSYS)
+		{
 			return rc;
+		}
 		else
+		{
 			return -EIO;
+		}
 	}
 
 	DEBUGP(4, dev, "start \n");
 
-	for (i = 0; i < bytes_to_write; i++) {
+	for (i = 0; i < bytes_to_write; i++)
+	{
 		rc = wait_for_bulk_out_ready(dev);
-		if (rc <= 0) {
+
+		if (rc <= 0)
+		{
 			DEBUGP(5, dev, "wait_for_bulk_out_ready rc=%.2Zx\n",
-			       rc);
+				   rc);
 			DEBUGP(2, dev, "<- cm4040_write (failed)\n");
+
 			if (rc == -ERESTARTSYS)
+			{
 				return rc;
+			}
 			else
+			{
 				return -EIO;
+			}
 		}
 
-		xoutb(dev->s_buf[i],iobase + REG_OFFSET_BULK_OUT);
+		xoutb(dev->s_buf[i], iobase + REG_OFFSET_BULK_OUT);
 	}
+
 	DEBUGP(4, dev, "end\n");
 
 	rc = write_sync_reg(SCR_HOST_TO_READER_DONE, dev);
 
-	if (rc <= 0) {
+	if (rc <= 0)
+	{
 		DEBUGP(5, dev, "write_sync_reg c=%.2Zx\n", rc);
 		DEBUGP(2, dev, "<- cm4040_write (failed)\n");
+
 		if (rc == -ERESTARTSYS)
+		{
 			return rc;
+		}
 		else
+		{
 			return -EIO;
+		}
 	}
 
 	DEBUGP(2, dev, "<- cm4040_write (successfully)\n");
@@ -423,9 +529,14 @@ static unsigned int cm4040_poll(struct file *filp, poll_table *wait)
 	poll_wait(filp, &dev->poll_wait, wait);
 
 	if (test_and_clear_bit(BS_READABLE, &dev->buffer_status))
+	{
 		mask |= POLLIN | POLLRDNORM;
+	}
+
 	if (test_and_clear_bit(BS_WRITABLE, &dev->buffer_status))
+	{
 		mask |= POLLOUT | POLLWRNORM;
+	}
 
 	DEBUGP(2, dev, "<- cm4040_poll(%u)\n", mask);
 
@@ -440,16 +551,21 @@ static int cm4040_open(struct inode *inode, struct file *filp)
 	int ret;
 
 	if (minor >= CM_MAX_DEV)
+	{
 		return -ENODEV;
+	}
 
 	mutex_lock(&cm4040_mutex);
 	link = dev_table[minor];
-	if (link == NULL || !pcmcia_dev_present(link)) {
+
+	if (link == NULL || !pcmcia_dev_present(link))
+	{
 		ret = -ENODEV;
 		goto out;
 	}
 
-	if (link->open) {
+	if (link->open)
+	{
 		ret = -EBUSY;
 		goto out;
 	}
@@ -457,7 +573,8 @@ static int cm4040_open(struct inode *inode, struct file *filp)
 	dev = link->priv;
 	filp->private_data = dev;
 
-	if (filp->f_flags & O_NONBLOCK) {
+	if (filp->f_flags & O_NONBLOCK)
+	{
 		DEBUGP(4, dev, "filep->f_flags O_NONBLOCK set\n");
 		ret = -EAGAIN;
 		goto out;
@@ -482,14 +599,19 @@ static int cm4040_close(struct inode *inode, struct file *filp)
 	int minor = iminor(inode);
 
 	DEBUGP(2, dev, "-> cm4040_close(maj/min=%d.%d)\n", imajor(inode),
-	      iminor(inode));
+		   iminor(inode));
 
 	if (minor >= CM_MAX_DEV)
+	{
 		return -ENODEV;
+	}
 
 	link = dev_table[minor];
+
 	if (link == NULL)
+	{
 		return -ENODEV;
+	}
 
 	cm4040_stop_poll(dev);
 
@@ -505,11 +627,14 @@ static void cm4040_reader_release(struct pcmcia_device *link)
 	struct reader_dev *dev = link->priv;
 
 	DEBUGP(3, dev, "-> cm4040_reader_release\n");
-	while (link->open) {
+
+	while (link->open)
+	{
 		DEBUGP(3, dev, KERN_INFO MODULE_NAME ": delaying release "
-		       "until process has terminated\n");
- 		wait_event(dev->devq, (link->open == 0));
+			   "until process has terminated\n");
+		wait_event(dev->devq, (link->open == 0));
 	}
+
 	DEBUGP(3, dev, "<- cm4040_reader_release\n");
 	return;
 }
@@ -528,19 +653,23 @@ static int reader_config(struct pcmcia_device *link, int devno)
 	link->config_flags |= CONF_AUTO_SET_IO;
 
 	if (pcmcia_loop_config(link, cm4040_config_check, NULL))
+	{
 		goto cs_release;
+	}
 
 	fail_rc = pcmcia_enable_device(link);
-	if (fail_rc != 0) {
+
+	if (fail_rc != 0)
+	{
 		dev_info(&link->dev, "pcmcia_enable_device failed 0x%x\n",
-			 fail_rc);
+				 fail_rc);
 		goto cs_release;
 	}
 
 	dev = link->priv;
 
 	DEBUGP(2, dev, "device " DEVICE_NAME "%d at %pR\n", devno,
-	      link->resource[0]);
+		   link->resource[0]);
 	DEBUGP(2, dev, "<- reader_config (succ)\n");
 
 	return 0;
@@ -561,17 +690,25 @@ static int reader_probe(struct pcmcia_device *link)
 	struct reader_dev *dev;
 	int i, ret;
 
-	for (i = 0; i < CM_MAX_DEV; i++) {
+	for (i = 0; i < CM_MAX_DEV; i++)
+	{
 		if (dev_table[i] == NULL)
+		{
 			break;
+		}
 	}
 
 	if (i == CM_MAX_DEV)
+	{
 		return -ENODEV;
+	}
 
 	dev = kzalloc(sizeof(struct reader_dev), GFP_KERNEL);
+
 	if (dev == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	dev->timeout = CCID_DRIVER_MINIMUM_TIMEOUT;
 	dev->buffer_status = 0;
@@ -588,7 +725,9 @@ static int reader_probe(struct pcmcia_device *link)
 	setup_timer(&dev->poll_timer, cm4040_do_poll, 0);
 
 	ret = reader_config(link, i);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_table[i] = NULL;
 		kfree(dev);
 		return ret;
@@ -605,12 +744,18 @@ static void reader_detach(struct pcmcia_device *link)
 	int devno;
 
 	/* find device */
-	for (devno = 0; devno < CM_MAX_DEV; devno++) {
+	for (devno = 0; devno < CM_MAX_DEV; devno++)
+	{
 		if (dev_table[devno] == link)
+		{
 			break;
+		}
 	}
+
 	if (devno == CM_MAX_DEV)
+	{
 		return;
+	}
 
 	reader_release(link);
 
@@ -622,7 +767,8 @@ static void reader_detach(struct pcmcia_device *link)
 	return;
 }
 
-static const struct file_operations reader_fops = {
+static const struct file_operations reader_fops =
+{
 	.owner		= THIS_MODULE,
 	.read		= cm4040_read,
 	.write		= cm4040_write,
@@ -632,16 +778,18 @@ static const struct file_operations reader_fops = {
 	.llseek		= no_llseek,
 };
 
-static const struct pcmcia_device_id cm4040_ids[] = {
+static const struct pcmcia_device_id cm4040_ids[] =
+{
 	PCMCIA_DEVICE_MANF_CARD(0x0223, 0x0200),
 	PCMCIA_DEVICE_PROD_ID12("OMNIKEY", "CardMan 4040",
-				0xE32CDD8C, 0x8F23318B),
+	0xE32CDD8C, 0x8F23318B),
 	PCMCIA_DEVICE_NULL,
 };
 MODULE_DEVICE_TABLE(pcmcia, cm4040_ids);
 
-static struct pcmcia_driver reader_driver = {
-  	.owner		= THIS_MODULE,
+static struct pcmcia_driver reader_driver =
+{
+	.owner		= THIS_MODULE,
 	.name		= "cm4040_cs",
 	.probe		= reader_probe,
 	.remove		= reader_detach,
@@ -653,19 +801,26 @@ static int __init cm4040_init(void)
 	int rc;
 
 	cmx_class = class_create(THIS_MODULE, "cardman_4040");
+
 	if (IS_ERR(cmx_class))
+	{
 		return PTR_ERR(cmx_class);
+	}
 
 	major = register_chrdev(0, DEVICE_NAME, &reader_fops);
-	if (major < 0) {
+
+	if (major < 0)
+	{
 		printk(KERN_WARNING MODULE_NAME
-			": could not get major number\n");
+			   ": could not get major number\n");
 		class_destroy(cmx_class);
 		return major;
 	}
 
 	rc = pcmcia_register_driver(&reader_driver);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		unregister_chrdev(major, DEVICE_NAME);
 		class_destroy(cmx_class);
 		return rc;

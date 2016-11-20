@@ -8,9 +8,9 @@
 /* You can override this manually, but generally this should match the
    module name. */
 #ifdef MODULE
-#define MODULE_PARAM_PREFIX /* empty */
+	#define MODULE_PARAM_PREFIX /* empty */
 #else
-#define MODULE_PARAM_PREFIX KBUILD_MODNAME "."
+	#define MODULE_PARAM_PREFIX KBUILD_MODNAME "."
 #endif
 
 /* Chosen so that structs with an unsigned long line up. */
@@ -18,16 +18,16 @@
 
 #ifdef MODULE
 #define __MODULE_INFO(tag, name, info)					  \
-static const char __UNIQUE_ID(name)[]					  \
-  __used __attribute__((section(".modinfo"), unused, aligned(1)))	  \
-  = __stringify(tag) "=" info
+	static const char __UNIQUE_ID(name)[]					  \
+	__used __attribute__((section(".modinfo"), unused, aligned(1)))	  \
+		= __stringify(tag) "=" info
 #else  /* !MODULE */
 /* This struct is here for syntactic coherency, it is not used */
 #define __MODULE_INFO(tag, name, info)					  \
-  struct __UNIQUE_ID(name) {}
+	struct __UNIQUE_ID(name) {}
 #endif
 #define __MODULE_PARM_TYPE(name, _type)					  \
-  __MODULE_INFO(parmtype, name##type, #name ":" _type)
+	__MODULE_INFO(parmtype, name##type, #name ":" _type)
 
 /* One for each parameter, describing how to use it.  Some files do
    multiple of these per line, so can't just use MODULE_INFO. */
@@ -41,11 +41,13 @@ struct kernel_param;
  *
  * NOARG - the parameter allows for no argument (foo instead of foo=1)
  */
-enum {
+enum
+{
 	KERNEL_PARAM_OPS_FL_NOARG = (1 << 0)
 };
 
-struct kernel_param_ops {
+struct kernel_param_ops
+{
 	/* How the ops should behave */
 	unsigned int flags;
 	/* Returns 0, or -errno.  arg is in kp->arg. */
@@ -61,18 +63,21 @@ struct kernel_param_ops {
  *
  * UNSAFE - the parameter is dangerous and setting it will taint the kernel
  */
-enum {
+enum
+{
 	KERNEL_PARAM_FL_UNSAFE = (1 << 0)
 };
 
-struct kernel_param {
+struct kernel_param
+{
 	const char *name;
 	struct module *mod;
 	const struct kernel_param_ops *ops;
 	const u16 perm;
 	s8 level;
 	u8 flags;
-	union {
+	union
+	{
 		void *arg;
 		const struct kparam_string *str;
 		const struct kparam_array *arr;
@@ -82,7 +87,8 @@ struct kernel_param {
 extern const struct kernel_param __start___param[], __stop___param[];
 
 /* Special one for strings we want to copy into */
-struct kparam_string {
+struct kparam_string
+{
 	unsigned int maxlen;
 	char *string;
 };
@@ -168,7 +174,7 @@ struct kparam_array
 
 #define module_param_cb_unsafe(name, ops, arg, perm)			      \
 	__module_param_call(MODULE_PARAM_PREFIX, name, ops, arg, perm, -1,    \
-			    KERNEL_PARAM_FL_UNSAFE)
+						KERNEL_PARAM_FL_UNSAFE)
 
 /**
  * <level>_param_cb - general callback for a module/cmdline parameter
@@ -208,9 +214,9 @@ struct kparam_array
    platforms). So 'const' makes no sense and even causes compile failures
    with some compilers. */
 #if defined(CONFIG_ALPHA) || defined(CONFIG_IA64) || defined(CONFIG_PPC64)
-#define __moduleparam_const
+	#define __moduleparam_const
 #else
-#define __moduleparam_const const
+	#define __moduleparam_const const
 #endif
 
 /* This is the fundamental function for registering boot/module
@@ -219,18 +225,18 @@ struct kparam_array
 	/* Default value instead of permissions? */			\
 	static const char __param_str_##name[] = prefix #name;		\
 	static struct kernel_param __moduleparam_const __param_##name	\
-	__used								\
-    __attribute__ ((unused,__section__ ("__param"),aligned(sizeof(void *)))) \
-	= { __param_str_##name, THIS_MODULE, ops,			\
-	    VERIFY_OCTAL_PERMISSIONS(perm), level, flags, { arg } }
+		__used								\
+	__attribute__ ((unused,__section__ ("__param"),aligned(sizeof(void *)))) \
+		= { __param_str_##name, THIS_MODULE, ops,			\
+			VERIFY_OCTAL_PERMISSIONS(perm), level, flags, { arg } }
 
 /* Obsolete - use module_param_cb() */
 #define module_param_call(name, set, get, arg, perm)			\
 	static const struct kernel_param_ops __param_ops_##name =		\
-		{ .flags = 0, (void *)set, (void *)get };		\
+	{ .flags = 0, (void *)set, (void *)get };		\
 	__module_param_call(MODULE_PARAM_PREFIX,			\
-			    name, &__param_ops_##name, arg,		\
-			    (perm) + sizeof(__check_old_set_param(set))*0, -1, 0)
+						name, &__param_ops_##name, arg,		\
+						(perm) + sizeof(__check_old_set_param(set))*0, -1, 0)
 
 /* We don't get oldget: it's often a new-style param_get_uint, etc. */
 static inline int
@@ -274,7 +280,7 @@ static inline void kernel_param_unlock(struct module *mod)
 #define core_param_unsafe(name, var, type, perm)		\
 	param_check_##type(name, &(var));				\
 	__module_param_call("", name, &param_ops_##type, &var, perm,	\
-			    -1, KERNEL_PARAM_FL_UNSAFE)
+						-1, KERNEL_PARAM_FL_UNSAFE)
 
 #endif /* !MODULE */
 
@@ -290,10 +296,10 @@ static inline void kernel_param_unlock(struct module *mod)
  */
 #define module_param_string(name, string, len, perm)			\
 	static const struct kparam_string __param_string_##name		\
-		= { len, string };					\
+			= { len, string };					\
 	__module_param_call(MODULE_PARAM_PREFIX, name,			\
-			    &param_ops_string,				\
-			    .str = &__param_string_##name, perm, -1, 0);\
+						&param_ops_string,				\
+						.str = &__param_string_##name, perm, -1, 0);\
 	__MODULE_PARM_TYPE(name, "string")
 
 /**
@@ -318,21 +324,21 @@ extern bool parameqn(const char *name1, const char *name2, size_t n);
 
 /* Called on module insert or kernel boot */
 extern char *parse_args(const char *name,
-		      char *args,
-		      const struct kernel_param *params,
-		      unsigned num,
-		      s16 level_min,
-		      s16 level_max,
-		      void *arg,
-		      int (*unknown)(char *param, char *val,
-				     const char *doing, void *arg));
+						char *args,
+						const struct kernel_param *params,
+						unsigned num,
+						s16 level_min,
+						s16 level_max,
+						void *arg,
+						int (*unknown)(char *param, char *val,
+									   const char *doing, void *arg));
 
 /* Called by module remove. */
 #ifdef CONFIG_SYSFS
 extern void destroy_params(const struct kernel_param *params, unsigned num);
 #else
 static inline void destroy_params(const struct kernel_param *params,
-				  unsigned num)
+								  unsigned num)
 {
 }
 #endif /* !CONFIG_SYSFS */
@@ -397,7 +403,7 @@ extern int param_get_bool(char *buffer, const struct kernel_param *kp);
 
 extern const struct kernel_param_ops param_ops_bool_enable_only;
 extern int param_set_bool_enable_only(const char *val,
-				      const struct kernel_param *kp);
+									  const struct kernel_param *kp);
 /* getter is the same as for the regular bool */
 #define param_check_bool_enable_only param_check_bool
 
@@ -442,13 +448,13 @@ extern int param_set_bint(const char *val, const struct kernel_param *kp);
 #define module_param_array_named(name, array, type, nump, perm)		\
 	param_check_##type(name, &(array)[0]);				\
 	static const struct kparam_array __param_arr_##name		\
-	= { .max = ARRAY_SIZE(array), .num = nump,                      \
-	    .ops = &param_ops_##type,					\
-	    .elemsize = sizeof(array[0]), .elem = array };		\
+			= { .max = ARRAY_SIZE(array), .num = nump,                      \
+					   .ops = &param_ops_##type,					\
+							  .elemsize = sizeof(array[0]), .elem = array };		\
 	__module_param_call(MODULE_PARAM_PREFIX, name,			\
-			    &param_array_ops,				\
-			    .arr = &__param_arr_##name,			\
-			    perm, -1, 0);				\
+						&param_array_ops,				\
+						.arr = &__param_arr_##name,			\
+						perm, -1, 0);				\
 	__MODULE_PARM_TYPE(name, "array of " #type)
 
 extern const struct kernel_param_ops param_array_ops;
@@ -463,14 +469,14 @@ struct module;
 
 #if defined(CONFIG_SYSFS) && defined(CONFIG_MODULES)
 extern int module_param_sysfs_setup(struct module *mod,
-				    const struct kernel_param *kparam,
-				    unsigned int num_params);
+									const struct kernel_param *kparam,
+									unsigned int num_params);
 
 extern void module_param_sysfs_remove(struct module *mod);
 #else
 static inline int module_param_sysfs_setup(struct module *mod,
-			     const struct kernel_param *kparam,
-			     unsigned int num_params)
+		const struct kernel_param *kparam,
+		unsigned int num_params)
 {
 	return 0;
 }

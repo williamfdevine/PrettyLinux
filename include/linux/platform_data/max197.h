@@ -19,7 +19,8 @@
  * @convert:	Function used to start a conversion with control byte ctrl.
  *		It must return the raw data, or a negative error code.
  */
-struct max197_platform_data {
+struct max197_platform_data
+{
 	int (*convert)(u8 ctrl);
 };
 

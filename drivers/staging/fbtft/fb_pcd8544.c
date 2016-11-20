@@ -117,12 +117,16 @@ static int write_vmem(struct fbtft_par *par, size_t offset, size_t len)
 	int x, y, i;
 	int ret = 0;
 
-	for (x = 0; x < 84; x++) {
-		for (y = 0; y < 6; y++) {
+	for (x = 0; x < 84; x++)
+	{
+		for (y = 0; y < 6; y++)
+		{
 			*buf = 0x00;
+
 			for (i = 0; i < 8; i++)
 				*buf |= (vmem16[(y * 8 + i) * 84 + x] ?
-					 1 : 0) << i;
+						 1 : 0) << i;
+
 			buf++;
 		}
 	}
@@ -130,9 +134,10 @@ static int write_vmem(struct fbtft_par *par, size_t offset, size_t len)
 	/* Write data */
 	gpio_set_value(par->gpio.dc, 1);
 	ret = par->fbtftops.write(par, par->txbuf.buf, 6 * 84);
+
 	if (ret < 0)
 		dev_err(par->info->device, "write failed and returned: %d\n",
-			ret);
+				ret);
 
 	return ret;
 }
@@ -149,7 +154,8 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 	return 0;
 }
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 8,
 	.width = WIDTH,
 	.height = HEIGHT,

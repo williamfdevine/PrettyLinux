@@ -164,7 +164,8 @@ extern const struct lu_fid LUSTRE_BFL_FID;
 extern const struct lu_fid LU_OBF_FID;
 extern const struct lu_fid LU_DOT_LUSTRE_FID;
 
-enum {
+enum
+{
 	/*
 	 * This is how may metadata FIDs may be allocated in one sequence(128k)
 	 */
@@ -192,7 +193,8 @@ enum {
 	LUSTRE_SEQ_SUPER_WIDTH = ((1ULL << 30ULL) * LUSTRE_SEQ_META_WIDTH)
 };
 
-enum {
+enum
+{
 	/** 2^6 FIDs for OI containers */
 	OSD_OI_FID_OID_BITS     = 6,
 	/** reserve enough FIDs in case we want more in the future */
@@ -200,7 +202,8 @@ enum {
 };
 
 /** special OID for local objects */
-enum local_oid {
+enum local_oid
+{
 	/** \see fld_mod_init */
 	FLD_INDEX_OID		= 3UL,
 	/** \see fid_mod_init */
@@ -253,38 +256,38 @@ static inline void lu_local_name_obj_fid(struct lu_fid *fid, __u32 oid)
 static inline int fid_is_root(const struct lu_fid *fid)
 {
 	return unlikely((fid_seq(fid) == FID_SEQ_ROOT &&
-			 fid_oid(fid) == 1));
+					 fid_oid(fid) == 1));
 }
 
 static inline int fid_is_dot_lustre(const struct lu_fid *fid)
 {
 	return unlikely(fid_seq(fid) == FID_SEQ_DOT_LUSTRE &&
-			fid_oid(fid) == FID_OID_DOT_LUSTRE);
+					fid_oid(fid) == FID_OID_DOT_LUSTRE);
 }
 
 static inline int fid_is_obf(const struct lu_fid *fid)
 {
 	return unlikely(fid_seq(fid) == FID_SEQ_DOT_LUSTRE &&
-			fid_oid(fid) == FID_OID_DOT_LUSTRE_OBF);
+					fid_oid(fid) == FID_OID_DOT_LUSTRE_OBF);
 }
 
 static inline int fid_is_otable_it(const struct lu_fid *fid)
 {
 	return unlikely(fid_seq(fid) == FID_SEQ_LOCAL_FILE &&
-			fid_oid(fid) == OTABLE_IT_OID);
+					fid_oid(fid) == OTABLE_IT_OID);
 }
 
 static inline int fid_is_acct(const struct lu_fid *fid)
 {
 	return fid_seq(fid) == FID_SEQ_LOCAL_FILE &&
-	       (fid_oid(fid) == ACCT_USER_OID ||
-		fid_oid(fid) == ACCT_GROUP_OID);
+		   (fid_oid(fid) == ACCT_USER_OID ||
+			fid_oid(fid) == ACCT_GROUP_OID);
 }
 
 static inline int fid_is_quota(const struct lu_fid *fid)
 {
 	return fid_seq(fid) == FID_SEQ_QUOTA ||
-	       fid_seq(fid) == FID_SEQ_QUOTA_GLB;
+		   fid_seq(fid) == FID_SEQ_QUOTA_GLB;
 }
 
 static inline int fid_is_namespace_visible(const struct lu_fid *fid)
@@ -295,42 +298,49 @@ static inline int fid_is_namespace_visible(const struct lu_fid *fid)
 	 * object or not. It is caller's duty to check more if needed.
 	 */
 	return (!fid_is_last_id(fid) &&
-		(fid_seq_is_norm(seq) || fid_seq_is_igif(seq))) ||
-	       fid_is_root(fid) || fid_is_dot_lustre(fid);
+			(fid_seq_is_norm(seq) || fid_seq_is_igif(seq))) ||
+		   fid_is_root(fid) || fid_is_dot_lustre(fid);
 }
 
 static inline int fid_seq_in_fldb(__u64 seq)
 {
 	return fid_seq_is_igif(seq) || fid_seq_is_norm(seq) ||
-	       fid_seq_is_root(seq) || fid_seq_is_dot(seq);
+		   fid_seq_is_root(seq) || fid_seq_is_dot(seq);
 }
 
 static inline void lu_last_id_fid(struct lu_fid *fid, __u64 seq, __u32 ost_idx)
 {
-	if (fid_seq_is_mdt0(seq)) {
+	if (fid_seq_is_mdt0(seq))
+	{
 		fid->f_seq = fid_idif_seq(0, ost_idx);
-	} else {
+	}
+	else
+	{
 		LASSERTF(fid_seq_is_norm(seq) || fid_seq_is_echo(seq) ||
-			 fid_seq_is_idif(seq), "%#llx\n", seq);
+				 fid_seq_is_idif(seq), "%#llx\n", seq);
 		fid->f_seq = seq;
 	}
+
 	fid->f_oid = 0;
 	fid->f_ver = 0;
 }
 
 /* seq client type */
-enum lu_cli_type {
+enum lu_cli_type
+{
 	LUSTRE_SEQ_METADATA = 1,
 	LUSTRE_SEQ_DATA
 };
 
-enum lu_mgr_type {
+enum lu_mgr_type
+{
 	LUSTRE_SEQ_SERVER,
 	LUSTRE_SEQ_CONTROLLER
 };
 
 /* Client sequence manager interface. */
-struct lu_client_seq {
+struct lu_client_seq
+{
 	/* Sequence-controller export. */
 	struct obd_export      *lcs_exp;
 	struct mutex		lcs_mutex;
@@ -372,14 +382,14 @@ struct lu_client_seq {
 void seq_client_flush(struct lu_client_seq *seq);
 
 int seq_client_alloc_fid(const struct lu_env *env, struct lu_client_seq *seq,
-			 struct lu_fid *fid);
+						 struct lu_fid *fid);
 /* Fids common stuff */
 int fid_is_local(const struct lu_env *env,
-		 struct lu_site *site, const struct lu_fid *fid);
+				 struct lu_site *site, const struct lu_fid *fid);
 
 enum lu_cli_type;
 int client_fid_init(struct obd_device *obd, struct obd_export *exp,
-		    enum lu_cli_type type);
+					enum lu_cli_type type);
 int client_fid_fini(struct obd_device *obd);
 
 /* fid locking */
@@ -405,10 +415,10 @@ fid_build_reg_res_name(const struct lu_fid *fid, struct ldlm_res_id *res)
  * Return true if resource is for object identified by FID.
  */
 static inline bool fid_res_name_eq(const struct lu_fid *fid,
-				   const struct ldlm_res_id *res)
+								   const struct ldlm_res_id *res)
 {
 	return res->name[LUSTRE_RES_ID_SEQ_OFF] == fid_seq(fid) &&
-	       res->name[LUSTRE_RES_ID_VER_OID_OFF] == fid_ver_oid(fid);
+		   res->name[LUSTRE_RES_ID_VER_OID_OFF] == fid_ver_oid(fid);
 }
 
 /*
@@ -428,7 +438,7 @@ fid_extract_from_res_name(struct lu_fid *fid, const struct ldlm_res_id *res)
  */
 static inline void
 fid_build_quota_res_name(const struct lu_fid *glb_fid, union lquota_id *qid,
-			 struct ldlm_res_id *res)
+						 struct ldlm_res_id *res)
 {
 	fid_build_reg_res_name(glb_fid, res);
 	res->name[LUSTRE_RES_ID_QUOTA_SEQ_OFF] = fid_seq(&qid->qid_fid);
@@ -439,8 +449,8 @@ fid_build_quota_res_name(const struct lu_fid *glb_fid, union lquota_id *qid,
  * Extract global FID and quota ID from resource name
  */
 static inline void fid_extract_from_quota_res(struct lu_fid *glb_fid,
-					      union lquota_id *qid,
-					      const struct ldlm_res_id *res)
+		union lquota_id *qid,
+		const struct ldlm_res_id *res)
 {
 	fid_extract_from_res_name(glb_fid, res);
 	qid->qid_fid.f_seq = res->name[LUSTRE_RES_ID_QUOTA_SEQ_OFF];
@@ -451,7 +461,7 @@ static inline void fid_extract_from_quota_res(struct lu_fid *glb_fid,
 
 static inline void
 fid_build_pdo_res_name(const struct lu_fid *fid, unsigned int hash,
-		       struct ldlm_res_id *res)
+					   struct ldlm_res_id *res)
 {
 	fid_build_reg_res_name(fid, res);
 	res->name[LUSTRE_RES_ID_HSH_OFF] = hash;
@@ -476,13 +486,17 @@ fid_build_pdo_res_name(const struct lu_fid *fid, unsigned int hash,
  *    res[1] = f_oid + f_ver.
  */
 static inline void ostid_build_res_name(const struct ost_id *oi,
-					struct ldlm_res_id *name)
+										struct ldlm_res_id *name)
 {
 	memset(name, 0, sizeof(*name));
-	if (fid_seq_is_mdt0(ostid_seq(oi))) {
+
+	if (fid_seq_is_mdt0(ostid_seq(oi)))
+	{
 		name->name[LUSTRE_RES_ID_SEQ_OFF] = ostid_id(oi);
 		name->name[LUSTRE_RES_ID_VER_OID_OFF] = ostid_seq(oi);
-	} else {
+	}
+	else
+	{
 		fid_build_reg_res_name(&oi->oi_fid, name);
 	}
 }
@@ -491,48 +505,61 @@ static inline void ostid_build_res_name(const struct ost_id *oi,
  * Return true if the resource is for the object identified by this id & group.
  */
 static inline int ostid_res_name_eq(const struct ost_id *oi,
-				    const struct ldlm_res_id *name)
+									const struct ldlm_res_id *name)
 {
 	/* Note: it is just a trick here to save some effort, probably the
 	 * correct way would be turn them into the FID and compare
 	 */
-	if (fid_seq_is_mdt0(ostid_seq(oi))) {
+	if (fid_seq_is_mdt0(ostid_seq(oi)))
+	{
 		return name->name[LUSTRE_RES_ID_SEQ_OFF] == ostid_id(oi) &&
-		       name->name[LUSTRE_RES_ID_VER_OID_OFF] == ostid_seq(oi);
-	} else {
+			   name->name[LUSTRE_RES_ID_VER_OID_OFF] == ostid_seq(oi);
+	}
+	else
+	{
 		return name->name[LUSTRE_RES_ID_SEQ_OFF] == ostid_seq(oi) &&
-		       name->name[LUSTRE_RES_ID_VER_OID_OFF] == ostid_id(oi);
+			   name->name[LUSTRE_RES_ID_VER_OID_OFF] == ostid_id(oi);
 	}
 }
 
 /* The same as osc_build_res_name() */
 static inline void ost_fid_build_resid(const struct lu_fid *fid,
-				       struct ldlm_res_id *resname)
+									   struct ldlm_res_id *resname)
 {
-	if (fid_is_mdt0(fid) || fid_is_idif(fid)) {
+	if (fid_is_mdt0(fid) || fid_is_idif(fid))
+	{
 		struct ost_id oi;
 
 		oi.oi.oi_id = 0; /* gcc 4.7.2 complains otherwise */
+
 		if (fid_to_ostid(fid, &oi) != 0)
+		{
 			return;
+		}
+
 		ostid_build_res_name(&oi, resname);
-	} else {
+	}
+	else
+	{
 		fid_build_reg_res_name(fid, resname);
 	}
 }
 
 static inline void ost_fid_from_resid(struct lu_fid *fid,
-				      const struct ldlm_res_id *name,
-				      int ost_idx)
+									  const struct ldlm_res_id *name,
+									  int ost_idx)
 {
-	if (fid_seq_is_mdt0(name->name[LUSTRE_RES_ID_VER_OID_OFF])) {
+	if (fid_seq_is_mdt0(name->name[LUSTRE_RES_ID_VER_OID_OFF]))
+	{
 		/* old resid */
 		struct ost_id oi;
 
 		ostid_set_seq(&oi, name->name[LUSTRE_RES_ID_VER_OID_OFF]);
 		ostid_set_id(&oi, name->name[LUSTRE_RES_ID_SEQ_OFF]);
 		ostid_to_fid(fid, &oi, ost_idx);
-	} else {
+	}
+	else
+	{
 		/* new resid */
 		fid_extract_from_res_name(fid, name);
 	}
@@ -554,7 +581,8 @@ static inline __u64 fid_flatten(const struct lu_fid *fid)
 	__u64 ino;
 	__u64 seq;
 
-	if (fid_is_igif(fid)) {
+	if (fid_is_igif(fid))
+	{
 		ino = lu_igif_ino(fid);
 		return ino;
 	}
@@ -582,7 +610,8 @@ static inline __u32 fid_flatten32(const struct lu_fid *fid)
 	__u32 ino;
 	__u64 seq;
 
-	if (fid_is_igif(fid)) {
+	if (fid_is_igif(fid))
+	{
 		ino = lu_igif_ino(fid);
 		return ino;
 	}
@@ -596,21 +625,21 @@ static inline __u32 fid_flatten32(const struct lu_fid *fid)
 	 * (from OID), or up to 128M inodes without collisions for new files.
 	 */
 	ino = ((seq & 0x000fffffULL) << 12) + ((seq >> 8) & 0xfffff000) +
-	       (seq >> (64 - (40 - 8)) & 0xffffff00) +
-	       (fid_oid(fid) & 0xff000fff) + ((fid_oid(fid) & 0x00fff000) << 8);
+		  (seq >> (64 - (40 - 8)) & 0xffffff00) +
+		  (fid_oid(fid) & 0xff000fff) + ((fid_oid(fid) & 0x00fff000) << 8);
 
 	return ino ? ino : fid_oid(fid);
 }
 
 static inline int lu_fid_diff(const struct lu_fid *fid1,
-			      const struct lu_fid *fid2)
+							  const struct lu_fid *fid2)
 {
 	LASSERTF(fid_seq(fid1) == fid_seq(fid2), "fid1:"DFID", fid2:"DFID"\n",
-		 PFID(fid1), PFID(fid2));
+			 PFID(fid1), PFID(fid2));
 
 	if (fid_is_idif(fid1) && fid_is_idif(fid2))
 		return fid_idif_id(fid1->f_seq, fid1->f_oid, fid1->f_ver) -
-		       fid_idif_id(fid2->f_seq, fid2->f_oid, fid2->f_ver);
+			   fid_idif_id(fid2->f_seq, fid2->f_oid, fid2->f_ver);
 
 	return fid_oid(fid1) - fid_oid(fid2);
 }

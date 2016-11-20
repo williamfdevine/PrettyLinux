@@ -34,7 +34,7 @@ static irqreturn_t bq27xxx_battery_irq_handler_thread(int irq, void *data)
 }
 
 static int bq27xxx_battery_i2c_read(struct bq27xxx_device_info *di, u8 reg,
-				    bool single)
+									bool single)
 {
 	struct i2c_client *client = to_i2c_client(di->dev);
 	struct i2c_msg msg[2];
@@ -42,7 +42,9 @@ static int bq27xxx_battery_i2c_read(struct bq27xxx_device_info *di, u8 reg,
 	int ret;
 
 	if (!client->adapter)
+	{
 		return -ENODEV;
+	}
 
 	msg[0].addr = client->addr;
 	msg[0].flags = 0;
@@ -51,25 +53,37 @@ static int bq27xxx_battery_i2c_read(struct bq27xxx_device_info *di, u8 reg,
 	msg[1].addr = client->addr;
 	msg[1].flags = I2C_M_RD;
 	msg[1].buf = data;
+
 	if (single)
+	{
 		msg[1].len = 1;
+	}
 	else
+	{
 		msg[1].len = 2;
+	}
 
 	ret = i2c_transfer(client->adapter, msg, ARRAY_SIZE(msg));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (!single)
+	{
 		ret = get_unaligned_le16(data);
+	}
 	else
+	{
 		ret = data[0];
+	}
 
 	return ret;
 }
 
 static int bq27xxx_battery_i2c_probe(struct i2c_client *client,
-				     const struct i2c_device_id *id)
+									 const struct i2c_device_id *id)
 {
 	struct bq27xxx_device_info *di;
 	int ret;
@@ -80,16 +94,25 @@ static int bq27xxx_battery_i2c_probe(struct i2c_client *client,
 	mutex_lock(&battery_mutex);
 	num = idr_alloc(&battery_id, client, 0, 0, GFP_KERNEL);
 	mutex_unlock(&battery_mutex);
+
 	if (num < 0)
+	{
 		return num;
+	}
 
 	name = devm_kasprintf(&client->dev, GFP_KERNEL, "%s-%d", id->name, num);
+
 	if (!name)
+	{
 		goto err_mem;
+	}
 
 	di = devm_kzalloc(&client->dev, sizeof(*di), GFP_KERNEL);
+
 	if (!di)
+	{
 		goto err_mem;
+	}
 
 	di->id = num;
 	di->dev = &client->dev;
@@ -98,23 +121,29 @@ static int bq27xxx_battery_i2c_probe(struct i2c_client *client,
 	di->bus.read = bq27xxx_battery_i2c_read;
 
 	ret = bq27xxx_battery_setup(di);
+
 	if (ret)
+	{
 		goto err_failed;
+	}
 
 	/* Schedule a polling after about 1 min */
 	schedule_delayed_work(&di->work, 60 * HZ);
 
 	i2c_set_clientdata(client, di);
 
-	if (client->irq) {
+	if (client->irq)
+	{
 		ret = devm_request_threaded_irq(&client->dev, client->irq,
-				NULL, bq27xxx_battery_irq_handler_thread,
-				IRQF_ONESHOT,
-				di->name, di);
-		if (ret) {
+										NULL, bq27xxx_battery_irq_handler_thread,
+										IRQF_ONESHOT,
+										di->name, di);
+
+		if (ret)
+		{
 			dev_err(&client->dev,
-				"Unable to register IRQ %d error %d\n",
-				client->irq, ret);
+					"Unable to register IRQ %d error %d\n",
+					client->irq, ret);
 			return ret;
 		}
 	}
@@ -145,7 +174,8 @@ static int bq27xxx_battery_i2c_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id bq27xxx_i2c_id_table[] = {
+static const struct i2c_device_id bq27xxx_i2c_id_table[] =
+{
 	{ "bq27200", BQ27000 },
 	{ "bq27210", BQ27010 },
 	{ "bq27500", BQ27500 },
@@ -167,7 +197,8 @@ static const struct i2c_device_id bq27xxx_i2c_id_table[] = {
 MODULE_DEVICE_TABLE(i2c, bq27xxx_i2c_id_table);
 
 #ifdef CONFIG_OF
-static const struct of_device_id bq27xxx_battery_i2c_of_match_table[] = {
+static const struct of_device_id bq27xxx_battery_i2c_of_match_table[] =
+{
 	{ .compatible = "ti,bq27200" },
 	{ .compatible = "ti,bq27210" },
 	{ .compatible = "ti,bq27500" },
@@ -189,7 +220,8 @@ static const struct of_device_id bq27xxx_battery_i2c_of_match_table[] = {
 MODULE_DEVICE_TABLE(of, bq27xxx_battery_i2c_of_match_table);
 #endif
 
-static struct i2c_driver bq27xxx_battery_i2c_driver = {
+static struct i2c_driver bq27xxx_battery_i2c_driver =
+{
 	.driver = {
 		.name = "bq27xxx-battery",
 		.of_match_table = of_match_ptr(bq27xxx_battery_i2c_of_match_table),

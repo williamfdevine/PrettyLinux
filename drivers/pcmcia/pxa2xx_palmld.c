@@ -20,9 +20,10 @@
 #include <mach/palmld.h>
 #include "soc_common.h"
 
-static struct gpio palmld_pcmcia_gpios[] = {
+static struct gpio palmld_pcmcia_gpios[] =
+{
 	{ GPIO_NR_PALMLD_PCMCIA_POWER,	GPIOF_INIT_LOW,	"PCMCIA Power" },
-	{ GPIO_NR_PALMLD_PCMCIA_RESET,	GPIOF_INIT_HIGH,"PCMCIA Reset" },
+	{ GPIO_NR_PALMLD_PCMCIA_RESET,	GPIOF_INIT_HIGH, "PCMCIA Reset" },
 };
 
 static int palmld_pcmcia_hw_init(struct soc_pcmcia_socket *skt)
@@ -30,7 +31,7 @@ static int palmld_pcmcia_hw_init(struct soc_pcmcia_socket *skt)
 	int ret;
 
 	ret = gpio_request_array(palmld_pcmcia_gpios,
-				ARRAY_SIZE(palmld_pcmcia_gpios));
+							 ARRAY_SIZE(palmld_pcmcia_gpios));
 
 	skt->stat[SOC_STAT_RDY].gpio = GPIO_NR_PALMLD_PCMCIA_READY;
 	skt->stat[SOC_STAT_RDY].name = "PCMCIA Ready";
@@ -44,7 +45,7 @@ static void palmld_pcmcia_hw_shutdown(struct soc_pcmcia_socket *skt)
 }
 
 static void palmld_pcmcia_socket_state(struct soc_pcmcia_socket *skt,
-					struct pcmcia_state *state)
+									   struct pcmcia_state *state)
 {
 	state->detect = 1; /* always inserted */
 	state->vs_3v  = 1;
@@ -52,16 +53,17 @@ static void palmld_pcmcia_socket_state(struct soc_pcmcia_socket *skt,
 }
 
 static int palmld_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
-					const socket_state_t *state)
+		const socket_state_t *state)
 {
 	gpio_set_value(GPIO_NR_PALMLD_PCMCIA_POWER, 1);
 	gpio_set_value(GPIO_NR_PALMLD_PCMCIA_RESET,
-			!!(state->flags & SS_RESET));
+				   !!(state->flags & SS_RESET));
 
 	return 0;
 }
 
-static struct pcmcia_low_level palmld_pcmcia_ops = {
+static struct pcmcia_low_level palmld_pcmcia_ops =
+{
 	.owner			= THIS_MODULE,
 
 	.first			= 1,
@@ -81,20 +83,29 @@ static int __init palmld_pcmcia_init(void)
 	int ret;
 
 	if (!machine_is_palmld())
+	{
 		return -ENODEV;
+	}
 
 	palmld_pcmcia_device = platform_device_alloc("pxa2xx-pcmcia", -1);
+
 	if (!palmld_pcmcia_device)
+	{
 		return -ENOMEM;
+	}
 
 	ret = platform_device_add_data(palmld_pcmcia_device, &palmld_pcmcia_ops,
-					sizeof(palmld_pcmcia_ops));
+								   sizeof(palmld_pcmcia_ops));
 
 	if (!ret)
+	{
 		ret = platform_device_add(palmld_pcmcia_device);
+	}
 
 	if (ret)
+	{
 		platform_device_put(palmld_pcmcia_device);
+	}
 
 	return ret;
 }
@@ -108,7 +119,7 @@ module_init(palmld_pcmcia_init);
 module_exit(palmld_pcmcia_exit);
 
 MODULE_AUTHOR("Alex Osborne <ato@meshy.org>,"
-	    " Marek Vasut <marek.vasut@gmail.com>");
+			  " Marek Vasut <marek.vasut@gmail.com>");
 MODULE_DESCRIPTION("PCMCIA support for Palm LifeDrive");
 MODULE_ALIAS("platform:pxa2xx-pcmcia");
 MODULE_LICENSE("GPL");

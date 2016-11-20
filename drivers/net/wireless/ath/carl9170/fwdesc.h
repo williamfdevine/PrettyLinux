@@ -23,7 +23,8 @@
 #define __CARL9170_SHARED_FWDESC_H
 
 /* NOTE: Don't mess with the order of the flags! */
-enum carl9170fw_feature_list {
+enum carl9170fw_feature_list
+{
 	/* Always set */
 	CARL9170FW_DUMMY_FEATURE,
 
@@ -110,7 +111,8 @@ enum carl9170fw_feature_list {
 
 #define CARL9170FW_MAGIC_SIZE			4
 
-struct carl9170fw_desc_head {
+struct carl9170fw_desc_head
+{
 	u8	magic[CARL9170FW_MAGIC_SIZE];
 	__le16 length;
 	u8 min_ver;
@@ -121,7 +123,8 @@ struct carl9170fw_desc_head {
 
 #define CARL9170FW_OTUS_DESC_MIN_VER		6
 #define CARL9170FW_OTUS_DESC_CUR_VER		7
-struct carl9170fw_otus_desc {
+struct carl9170fw_otus_desc
+{
 	struct carl9170fw_desc_head head;
 	__le32 feature_set;
 	__le32 fw_address;
@@ -142,7 +145,8 @@ struct carl9170fw_otus_desc {
 #define CARL9170FW_MOTD_RELEASE_LEN			20
 #define CARL9170FW_MOTD_DESC_MIN_VER			1
 #define CARL9170FW_MOTD_DESC_CUR_VER			2
-struct carl9170fw_motd_desc {
+struct carl9170fw_motd_desc
+{
 	struct carl9170fw_desc_head head;
 	__le32 fw_year_month_day;
 	char desc[CARL9170FW_MOTD_STRING_LEN];
@@ -153,13 +157,15 @@ struct carl9170fw_motd_desc {
 
 #define CARL9170FW_FIX_DESC_MIN_VER			1
 #define CARL9170FW_FIX_DESC_CUR_VER			2
-struct carl9170fw_fix_entry {
+struct carl9170fw_fix_entry
+{
 	__le32 address;
 	__le32 mask;
 	__le32 value;
 } __packed;
 
-struct carl9170fw_fix_desc {
+struct carl9170fw_fix_desc
+{
 	struct carl9170fw_desc_head head;
 	struct carl9170fw_fix_entry data[0];
 } __packed;
@@ -168,7 +174,8 @@ struct carl9170fw_fix_desc {
 
 #define CARL9170FW_DBG_DESC_MIN_VER			1
 #define CARL9170FW_DBG_DESC_CUR_VER			3
-struct carl9170fw_dbg_desc {
+struct carl9170fw_dbg_desc
+{
 	struct carl9170fw_desc_head head;
 
 	__le32 bogoclock_addr;
@@ -184,7 +191,8 @@ struct carl9170fw_dbg_desc {
 
 #define CARL9170FW_CHK_DESC_MIN_VER			1
 #define CARL9170FW_CHK_DESC_CUR_VER			2
-struct carl9170fw_chk_desc {
+struct carl9170fw_chk_desc
+{
 	struct carl9170fw_desc_head head;
 	__le32 fw_crc32;
 	__le32 hdr_crc32;
@@ -194,7 +202,8 @@ struct carl9170fw_chk_desc {
 
 #define CARL9170FW_TXSQ_DESC_MIN_VER			1
 #define CARL9170FW_TXSQ_DESC_CUR_VER			1
-struct carl9170fw_txsq_desc {
+struct carl9170fw_txsq_desc
+{
 	struct carl9170fw_desc_head head;
 
 	__le32 seq_table_addr;
@@ -204,7 +213,8 @@ struct carl9170fw_txsq_desc {
 
 #define CARL9170FW_WOL_DESC_MIN_VER			1
 #define CARL9170FW_WOL_DESC_CUR_VER			1
-struct carl9170fw_wol_desc {
+struct carl9170fw_wol_desc
+{
 	struct carl9170fw_desc_head head;
 
 	__le32 supported_triggers;	/* CARL9170_WOL_ */
@@ -214,7 +224,8 @@ struct carl9170fw_wol_desc {
 
 #define CARL9170FW_LAST_DESC_MIN_VER			1
 #define CARL9170FW_LAST_DESC_CUR_VER			2
-struct carl9170fw_last_desc {
+struct carl9170fw_last_desc
+{
 	struct carl9170fw_desc_head head;
 } __packed;
 #define CARL9170FW_LAST_DESC_SIZE			\
@@ -224,15 +235,15 @@ struct carl9170fw_last_desc {
 
 #define CARL9170FW_FILL_DESC(_magic, _length, _min_ver, _cur_ver)	\
 	.head = {							\
-		.magic = _magic,					\
-		.length = cpu_to_le16(_length),				\
-		.min_ver = _min_ver,					\
-		.cur_ver = _cur_ver,					\
-	}
+										.magic = _magic,					\
+										.length = cpu_to_le16(_length),				\
+										.min_ver = _min_ver,					\
+										.cur_ver = _cur_ver,					\
+			}
 
 static inline void carl9170fw_fill_desc(struct carl9170fw_desc_head *head,
-					 u8 magic[CARL9170FW_MAGIC_SIZE],
-					 __le16 length, u8 min_ver, u8 cur_ver)
+										u8 magic[CARL9170FW_MAGIC_SIZE],
+										__le16 length, u8 min_ver, u8 cur_ver)
 {
 	head->magic[0] = magic[0];
 	head->magic[1] = magic[1];
@@ -246,38 +257,40 @@ static inline void carl9170fw_fill_desc(struct carl9170fw_desc_head *head,
 
 #define carl9170fw_for_each_hdr(desc, fw_desc)				\
 	for (desc = fw_desc;						\
-	     memcmp(desc->magic, LAST_MAGIC, CARL9170FW_MAGIC_SIZE) &&	\
-	     le16_to_cpu(desc->length) >= CARL9170FW_DESC_HEAD_SIZE &&	\
-	     le16_to_cpu(desc->length) < CARL9170FW_DESC_MAX_LENGTH;	\
-	     desc = (void *)((unsigned long)desc + le16_to_cpu(desc->length)))
+		 memcmp(desc->magic, LAST_MAGIC, CARL9170FW_MAGIC_SIZE) &&	\
+		 le16_to_cpu(desc->length) >= CARL9170FW_DESC_HEAD_SIZE &&	\
+		 le16_to_cpu(desc->length) < CARL9170FW_DESC_MAX_LENGTH;	\
+		 desc = (void *)((unsigned long)desc + le16_to_cpu(desc->length)))
 
 #define CHECK_HDR_VERSION(head, _min_ver)				\
 	(((head)->cur_ver < _min_ver) || ((head)->min_ver > _min_ver))	\
 
-static inline bool carl9170fw_supports(__le32 list, u8 feature)
-{
-	return le32_to_cpu(list) & BIT(feature);
-}
+	static inline bool carl9170fw_supports(__le32 list, u8 feature)
+	{
+		return le32_to_cpu(list) & BIT(feature);
+	}
 
-static inline bool carl9170fw_desc_cmp(const struct carl9170fw_desc_head *head,
-				       const u8 descid[CARL9170FW_MAGIC_SIZE],
-				       u16 min_len, u8 compatible_revision)
-{
-	if (descid[0] == head->magic[0] && descid[1] == head->magic[1] &&
-	    descid[2] == head->magic[2] && descid[3] == head->magic[3] &&
-	    !CHECK_HDR_VERSION(head, compatible_revision) &&
-	    (le16_to_cpu(head->length) >= min_len))
-		return true;
+	static inline bool carl9170fw_desc_cmp(const struct carl9170fw_desc_head *head,
+										   const u8 descid[CARL9170FW_MAGIC_SIZE],
+										   u16 min_len, u8 compatible_revision)
+	{
+		if (descid[0] == head->magic[0] && descid[1] == head->magic[1] &&
+			descid[2] == head->magic[2] && descid[3] == head->magic[3] &&
+			!CHECK_HDR_VERSION(head, compatible_revision) &&
+			(le16_to_cpu(head->length) >= min_len))
+		{
+			return true;
+		}
 
-	return false;
-}
+		return false;
+	}
 
 #define CARL9170FW_MIN_SIZE	32
 #define CARL9170FW_MAX_SIZE	16384
 
-static inline bool carl9170fw_size_check(unsigned int len)
-{
-	return (len <= CARL9170FW_MAX_SIZE && len >= CARL9170FW_MIN_SIZE);
-}
+	static inline bool carl9170fw_size_check(unsigned int len)
+	{
+		return (len <= CARL9170FW_MAX_SIZE && len >= CARL9170FW_MIN_SIZE);
+	}
 
 #endif /* __CARL9170_SHARED_FWDESC_H */

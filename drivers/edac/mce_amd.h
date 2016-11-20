@@ -32,30 +32,34 @@
 #define R4(x)				(((x) >> 4) & 0xf)
 #define R4_MSG(x)			((R4(x) < 9) ?  rrrr_msgs[R4(x)] : "Wrong R4!")
 
-extern const char * const pp_msgs[];
+extern const char *const pp_msgs[];
 
-enum tt_ids {
+enum tt_ids
+{
 	TT_INSTR = 0,
 	TT_DATA,
 	TT_GEN,
 	TT_RESV,
 };
 
-enum ll_ids {
+enum ll_ids
+{
 	LL_RESV = 0,
 	LL_L1,
 	LL_L2,
 	LL_LG,
 };
 
-enum ii_ids {
+enum ii_ids
+{
 	II_MEM = 0,
 	II_RESV,
 	II_IO,
 	II_GEN,
 };
 
-enum rrrr_ids {
+enum rrrr_ids
+{
 	R4_GEN	= 0,
 	R4_RD,
 	R4_WR,
@@ -70,7 +74,8 @@ enum rrrr_ids {
 /*
  * per-family decoder ops
  */
-struct amd_decoder_ops {
+struct amd_decoder_ops
+{
 	bool (*mc0_mce)(u16, u8);
 	bool (*mc1_mce)(u16, u8);
 	bool (*mc2_mce)(u16, u8);

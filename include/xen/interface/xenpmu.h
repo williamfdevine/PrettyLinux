@@ -26,9 +26,11 @@
 /* ` } */
 
 /* Parameters structure for HYPERVISOR_xenpmu_op call */
-struct xen_pmu_params {
+struct xen_pmu_params
+{
 	/* IN/OUT parameters */
-	struct {
+	struct
+	{
 		uint32_t maj;
 		uint32_t min;
 	} version;
@@ -67,7 +69,8 @@ struct xen_pmu_params {
  * and RO for the guest but some fields in xen_pmu_arch can be writable
  * by both the hypervisor and the guest (see arch-$arch/pmu.h).
  */
-struct xen_pmu_data {
+struct xen_pmu_data
+{
 	/* Interrupted VCPU */
 	uint32_t vcpu_id;
 

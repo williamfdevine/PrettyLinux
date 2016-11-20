@@ -23,16 +23,18 @@
  * but could be implemented (with necessary adjustment of the history
  * buffer
  */
-struct wf_pid_param {
+struct wf_pid_param
+{
 	int	interval;	/* Interval between samples in seconds */
 	int	history_len;	/* Size of history buffer */
 	int	additive;	/* 1: target relative to previous value */
 	s32	gd, gp, gr;	/* PID gains */
 	s32	itarget;	/* PID input target */
-	s32	min,max;	/* min and max target values */
+	s32	min, max;	/* min and max target values */
 };
 
-struct wf_pid_state {
+struct wf_pid_state
+{
 	int	first;				/* first run of the loop */
 	int	index; 				/* index of current sample */
 	s32	target;				/* current target value */
@@ -57,17 +59,19 @@ extern s32 wf_pid_run(struct wf_pid_state *st, s32 sample);
  * but could be implemented (with necessary adjustment of the history
  * buffer
  */
-struct wf_cpu_pid_param {
+struct wf_cpu_pid_param
+{
 	int	interval;	/* Interval between samples in seconds */
 	int	history_len;	/* Size of history buffer */
 	s32	gd, gp, gr;	/* PID gains */
 	s32	pmaxadj;	/* PID max power adjust */
 	s32	ttarget;	/* PID input target */
 	s32	tmax;		/* PID input max */
-	s32	min,max;	/* min and max target values */
+	s32	min, max;	/* min and max target values */
 };
 
-struct wf_cpu_pid_state {
+struct wf_cpu_pid_state
+{
 	int	first;				/* first run of the loop */
 	int	index; 				/* index of current power */
 	int	tindex; 			/* index of current temp */
@@ -81,5 +85,5 @@ struct wf_cpu_pid_state {
 };
 
 extern void wf_cpu_pid_init(struct wf_cpu_pid_state *st,
-			    struct wf_cpu_pid_param *param);
+							struct wf_cpu_pid_param *param);
 extern s32 wf_cpu_pid_run(struct wf_cpu_pid_state *st, s32 power, s32 temp);

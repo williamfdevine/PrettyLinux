@@ -38,7 +38,8 @@
 #include "intelfb.h"
 #include "intelfbhw.h"
 
-struct pll_min_max {
+struct pll_min_max
+{
 	int min_m, max_m, min_m1, max_m1;
 	int min_m2, max_m2, min_n, max_n;
 	int min_p, max_p, min_p1, max_p1;
@@ -50,138 +51,169 @@ struct pll_min_max {
 #define PLLS_I9xx 1
 #define PLLS_MAX 2
 
-static struct pll_min_max plls[PLLS_MAX] = {
-	{ 108, 140, 18, 26,
-	  6, 16, 3, 16,
-	  4, 128, 0, 31,
-	  930000, 1400000, 165000, 48000,
-	  4, 2 },		/* I8xx */
+static struct pll_min_max plls[PLLS_MAX] =
+{
+	{
+		108, 140, 18, 26,
+		6, 16, 3, 16,
+		4, 128, 0, 31,
+		930000, 1400000, 165000, 48000,
+		4, 2
+	},		/* I8xx */
 
-	{ 75, 120, 10, 20,
-	  5, 9, 4, 7,
-	  5, 80, 1, 8,
-	  1400000, 2800000, 200000, 96000,
-	  10, 5 }		/* I9xx */
+	{
+		75, 120, 10, 20,
+		5, 9, 4, 7,
+		5, 80, 1, 8,
+		1400000, 2800000, 200000, 96000,
+		10, 5
+	}		/* I9xx */
 };
 
 int intelfbhw_get_chipset(struct pci_dev *pdev, struct intelfb_info *dinfo)
 {
 	u32 tmp;
-	if (!pdev || !dinfo)
-		return 1;
 
-	switch (pdev->device) {
-	case PCI_DEVICE_ID_INTEL_830M:
-		dinfo->name = "Intel(R) 830M";
-		dinfo->chipset = INTEL_830M;
-		dinfo->mobile = 1;
-		dinfo->pll_index = PLLS_I8xx;
-		return 0;
-	case PCI_DEVICE_ID_INTEL_845G:
-		dinfo->name = "Intel(R) 845G";
-		dinfo->chipset = INTEL_845G;
-		dinfo->mobile = 0;
-		dinfo->pll_index = PLLS_I8xx;
-		return 0;
-	case PCI_DEVICE_ID_INTEL_854:
-		dinfo->mobile = 1;
-		dinfo->name = "Intel(R) 854";
-		dinfo->chipset = INTEL_854;
-		return 0;
-	case PCI_DEVICE_ID_INTEL_85XGM:
-		tmp = 0;
-		dinfo->mobile = 1;
-		dinfo->pll_index = PLLS_I8xx;
-		pci_read_config_dword(pdev, INTEL_85X_CAPID, &tmp);
-		switch ((tmp >> INTEL_85X_VARIANT_SHIFT) &
-			INTEL_85X_VARIANT_MASK) {
-		case INTEL_VAR_855GME:
-			dinfo->name = "Intel(R) 855GME";
-			dinfo->chipset = INTEL_855GME;
-			return 0;
-		case INTEL_VAR_855GM:
-			dinfo->name = "Intel(R) 855GM";
-			dinfo->chipset = INTEL_855GM;
-			return 0;
-		case INTEL_VAR_852GME:
-			dinfo->name = "Intel(R) 852GME";
-			dinfo->chipset = INTEL_852GME;
-			return 0;
-		case INTEL_VAR_852GM:
-			dinfo->name = "Intel(R) 852GM";
-			dinfo->chipset = INTEL_852GM;
-			return 0;
-		default:
-			dinfo->name = "Intel(R) 852GM/855GM";
-			dinfo->chipset = INTEL_85XGM;
-			return 0;
-		}
-		break;
-	case PCI_DEVICE_ID_INTEL_865G:
-		dinfo->name = "Intel(R) 865G";
-		dinfo->chipset = INTEL_865G;
-		dinfo->mobile = 0;
-		dinfo->pll_index = PLLS_I8xx;
-		return 0;
-	case PCI_DEVICE_ID_INTEL_915G:
-		dinfo->name = "Intel(R) 915G";
-		dinfo->chipset = INTEL_915G;
-		dinfo->mobile = 0;
-		dinfo->pll_index = PLLS_I9xx;
-		return 0;
-	case PCI_DEVICE_ID_INTEL_915GM:
-		dinfo->name = "Intel(R) 915GM";
-		dinfo->chipset = INTEL_915GM;
-		dinfo->mobile = 1;
-		dinfo->pll_index = PLLS_I9xx;
-		return 0;
-	case PCI_DEVICE_ID_INTEL_945G:
-		dinfo->name = "Intel(R) 945G";
-		dinfo->chipset = INTEL_945G;
-		dinfo->mobile = 0;
-		dinfo->pll_index = PLLS_I9xx;
-		return 0;
-	case PCI_DEVICE_ID_INTEL_945GM:
-		dinfo->name = "Intel(R) 945GM";
-		dinfo->chipset = INTEL_945GM;
-		dinfo->mobile = 1;
-		dinfo->pll_index = PLLS_I9xx;
-		return 0;
-	case PCI_DEVICE_ID_INTEL_945GME:
-		dinfo->name = "Intel(R) 945GME";
-		dinfo->chipset = INTEL_945GME;
-		dinfo->mobile = 1;
-		dinfo->pll_index = PLLS_I9xx;
-		return 0;
-	case PCI_DEVICE_ID_INTEL_965G:
-		dinfo->name = "Intel(R) 965G";
-		dinfo->chipset = INTEL_965G;
-		dinfo->mobile = 0;
-		dinfo->pll_index = PLLS_I9xx;
-		return 0;
-	case PCI_DEVICE_ID_INTEL_965GM:
-		dinfo->name = "Intel(R) 965GM";
-		dinfo->chipset = INTEL_965GM;
-		dinfo->mobile = 1;
-		dinfo->pll_index = PLLS_I9xx;
-		return 0;
-	default:
+	if (!pdev || !dinfo)
+	{
 		return 1;
+	}
+
+	switch (pdev->device)
+	{
+		case PCI_DEVICE_ID_INTEL_830M:
+			dinfo->name = "Intel(R) 830M";
+			dinfo->chipset = INTEL_830M;
+			dinfo->mobile = 1;
+			dinfo->pll_index = PLLS_I8xx;
+			return 0;
+
+		case PCI_DEVICE_ID_INTEL_845G:
+			dinfo->name = "Intel(R) 845G";
+			dinfo->chipset = INTEL_845G;
+			dinfo->mobile = 0;
+			dinfo->pll_index = PLLS_I8xx;
+			return 0;
+
+		case PCI_DEVICE_ID_INTEL_854:
+			dinfo->mobile = 1;
+			dinfo->name = "Intel(R) 854";
+			dinfo->chipset = INTEL_854;
+			return 0;
+
+		case PCI_DEVICE_ID_INTEL_85XGM:
+			tmp = 0;
+			dinfo->mobile = 1;
+			dinfo->pll_index = PLLS_I8xx;
+			pci_read_config_dword(pdev, INTEL_85X_CAPID, &tmp);
+
+			switch ((tmp >> INTEL_85X_VARIANT_SHIFT) &
+					INTEL_85X_VARIANT_MASK)
+			{
+				case INTEL_VAR_855GME:
+					dinfo->name = "Intel(R) 855GME";
+					dinfo->chipset = INTEL_855GME;
+					return 0;
+
+				case INTEL_VAR_855GM:
+					dinfo->name = "Intel(R) 855GM";
+					dinfo->chipset = INTEL_855GM;
+					return 0;
+
+				case INTEL_VAR_852GME:
+					dinfo->name = "Intel(R) 852GME";
+					dinfo->chipset = INTEL_852GME;
+					return 0;
+
+				case INTEL_VAR_852GM:
+					dinfo->name = "Intel(R) 852GM";
+					dinfo->chipset = INTEL_852GM;
+					return 0;
+
+				default:
+					dinfo->name = "Intel(R) 852GM/855GM";
+					dinfo->chipset = INTEL_85XGM;
+					return 0;
+			}
+
+			break;
+
+		case PCI_DEVICE_ID_INTEL_865G:
+			dinfo->name = "Intel(R) 865G";
+			dinfo->chipset = INTEL_865G;
+			dinfo->mobile = 0;
+			dinfo->pll_index = PLLS_I8xx;
+			return 0;
+
+		case PCI_DEVICE_ID_INTEL_915G:
+			dinfo->name = "Intel(R) 915G";
+			dinfo->chipset = INTEL_915G;
+			dinfo->mobile = 0;
+			dinfo->pll_index = PLLS_I9xx;
+			return 0;
+
+		case PCI_DEVICE_ID_INTEL_915GM:
+			dinfo->name = "Intel(R) 915GM";
+			dinfo->chipset = INTEL_915GM;
+			dinfo->mobile = 1;
+			dinfo->pll_index = PLLS_I9xx;
+			return 0;
+
+		case PCI_DEVICE_ID_INTEL_945G:
+			dinfo->name = "Intel(R) 945G";
+			dinfo->chipset = INTEL_945G;
+			dinfo->mobile = 0;
+			dinfo->pll_index = PLLS_I9xx;
+			return 0;
+
+		case PCI_DEVICE_ID_INTEL_945GM:
+			dinfo->name = "Intel(R) 945GM";
+			dinfo->chipset = INTEL_945GM;
+			dinfo->mobile = 1;
+			dinfo->pll_index = PLLS_I9xx;
+			return 0;
+
+		case PCI_DEVICE_ID_INTEL_945GME:
+			dinfo->name = "Intel(R) 945GME";
+			dinfo->chipset = INTEL_945GME;
+			dinfo->mobile = 1;
+			dinfo->pll_index = PLLS_I9xx;
+			return 0;
+
+		case PCI_DEVICE_ID_INTEL_965G:
+			dinfo->name = "Intel(R) 965G";
+			dinfo->chipset = INTEL_965G;
+			dinfo->mobile = 0;
+			dinfo->pll_index = PLLS_I9xx;
+			return 0;
+
+		case PCI_DEVICE_ID_INTEL_965GM:
+			dinfo->name = "Intel(R) 965GM";
+			dinfo->chipset = INTEL_965GM;
+			dinfo->mobile = 1;
+			dinfo->pll_index = PLLS_I9xx;
+			return 0;
+
+		default:
+			return 1;
 	}
 }
 
 int intelfbhw_get_memory(struct pci_dev *pdev, int *aperture_size,
-			 int *stolen_size)
+						 int *stolen_size)
 {
 	struct pci_dev *bridge_dev;
 	u16 tmp;
 	int stolen_overhead;
 
 	if (!pdev || !aperture_size || !stolen_size)
+	{
 		return 1;
+	}
 
 	/* Find the bridge device.  It is always 0:0.0 */
-	if (!(bridge_dev = pci_get_bus_and_slot(0, PCI_DEVFN(0, 0)))) {
+	if (!(bridge_dev = pci_get_bus_and_slot(0, PCI_DEVFN(0, 0))))
+	{
 		ERR_MSG("cannot find bridge device\n");
 		return 1;
 	}
@@ -191,89 +223,121 @@ int intelfbhw_get_memory(struct pci_dev *pdev, int *aperture_size,
 	pci_read_config_word(bridge_dev, INTEL_GMCH_CTRL, &tmp);
 	pci_dev_put(bridge_dev);
 
-	switch (pdev->device) {
-	case PCI_DEVICE_ID_INTEL_915G:
-	case PCI_DEVICE_ID_INTEL_915GM:
-	case PCI_DEVICE_ID_INTEL_945G:
-	case PCI_DEVICE_ID_INTEL_945GM:
-	case PCI_DEVICE_ID_INTEL_945GME:
-	case PCI_DEVICE_ID_INTEL_965G:
-	case PCI_DEVICE_ID_INTEL_965GM:
-		/* 915, 945 and 965 chipsets support a 256MB aperture.
-		   Aperture size is determined by inspected the
-		   base address of the aperture. */
-		if (pci_resource_start(pdev, 2) & 0x08000000)
-			*aperture_size = MB(128);
-		else
-			*aperture_size = MB(256);
-		break;
-	default:
-		if ((tmp & INTEL_GMCH_MEM_MASK) == INTEL_GMCH_MEM_64M)
-			*aperture_size = MB(64);
-		else
-			*aperture_size = MB(128);
-		break;
+	switch (pdev->device)
+	{
+		case PCI_DEVICE_ID_INTEL_915G:
+		case PCI_DEVICE_ID_INTEL_915GM:
+		case PCI_DEVICE_ID_INTEL_945G:
+		case PCI_DEVICE_ID_INTEL_945GM:
+		case PCI_DEVICE_ID_INTEL_945GME:
+		case PCI_DEVICE_ID_INTEL_965G:
+		case PCI_DEVICE_ID_INTEL_965GM:
+
+			/* 915, 945 and 965 chipsets support a 256MB aperture.
+			   Aperture size is determined by inspected the
+			   base address of the aperture. */
+			if (pci_resource_start(pdev, 2) & 0x08000000)
+			{
+				*aperture_size = MB(128);
+			}
+			else
+			{
+				*aperture_size = MB(256);
+			}
+
+			break;
+
+		default:
+			if ((tmp & INTEL_GMCH_MEM_MASK) == INTEL_GMCH_MEM_64M)
+			{
+				*aperture_size = MB(64);
+			}
+			else
+			{
+				*aperture_size = MB(128);
+			}
+
+			break;
 	}
 
 	/* Stolen memory size is reduced by the GTT and the popup.
 	   GTT is 1K per MB of aperture size, and popup is 4K. */
 	stolen_overhead = (*aperture_size / MB(1)) + 4;
-	switch(pdev->device) {
-	case PCI_DEVICE_ID_INTEL_830M:
-	case PCI_DEVICE_ID_INTEL_845G:
-		switch (tmp & INTEL_830_GMCH_GMS_MASK) {
-		case INTEL_830_GMCH_GMS_STOLEN_512:
-			*stolen_size = KB(512) - KB(stolen_overhead);
-			return 0;
-		case INTEL_830_GMCH_GMS_STOLEN_1024:
-			*stolen_size = MB(1) - KB(stolen_overhead);
-			return 0;
-		case INTEL_830_GMCH_GMS_STOLEN_8192:
-			*stolen_size = MB(8) - KB(stolen_overhead);
-			return 0;
-		case INTEL_830_GMCH_GMS_LOCAL:
-			ERR_MSG("only local memory found\n");
-			return 1;
-		case INTEL_830_GMCH_GMS_DISABLED:
-			ERR_MSG("video memory is disabled\n");
-			return 1;
+
+	switch (pdev->device)
+	{
+		case PCI_DEVICE_ID_INTEL_830M:
+		case PCI_DEVICE_ID_INTEL_845G:
+			switch (tmp & INTEL_830_GMCH_GMS_MASK)
+			{
+				case INTEL_830_GMCH_GMS_STOLEN_512:
+					*stolen_size = KB(512) - KB(stolen_overhead);
+					return 0;
+
+				case INTEL_830_GMCH_GMS_STOLEN_1024:
+					*stolen_size = MB(1) - KB(stolen_overhead);
+					return 0;
+
+				case INTEL_830_GMCH_GMS_STOLEN_8192:
+					*stolen_size = MB(8) - KB(stolen_overhead);
+					return 0;
+
+				case INTEL_830_GMCH_GMS_LOCAL:
+					ERR_MSG("only local memory found\n");
+					return 1;
+
+				case INTEL_830_GMCH_GMS_DISABLED:
+					ERR_MSG("video memory is disabled\n");
+					return 1;
+
+				default:
+					ERR_MSG("unexpected GMCH_GMS value: 0x%02x\n",
+							tmp & INTEL_830_GMCH_GMS_MASK);
+					return 1;
+			}
+
+			break;
+
 		default:
-			ERR_MSG("unexpected GMCH_GMS value: 0x%02x\n",
-				tmp & INTEL_830_GMCH_GMS_MASK);
-			return 1;
-		}
-		break;
-	default:
-		switch (tmp & INTEL_855_GMCH_GMS_MASK) {
-		case INTEL_855_GMCH_GMS_STOLEN_1M:
-			*stolen_size = MB(1) - KB(stolen_overhead);
-			return 0;
-		case INTEL_855_GMCH_GMS_STOLEN_4M:
-			*stolen_size = MB(4) - KB(stolen_overhead);
-			return 0;
-		case INTEL_855_GMCH_GMS_STOLEN_8M:
-			*stolen_size = MB(8) - KB(stolen_overhead);
-			return 0;
-		case INTEL_855_GMCH_GMS_STOLEN_16M:
-			*stolen_size = MB(16) - KB(stolen_overhead);
-			return 0;
-		case INTEL_855_GMCH_GMS_STOLEN_32M:
-			*stolen_size = MB(32) - KB(stolen_overhead);
-			return 0;
-		case INTEL_915G_GMCH_GMS_STOLEN_48M:
-			*stolen_size = MB(48) - KB(stolen_overhead);
-			return 0;
-		case INTEL_915G_GMCH_GMS_STOLEN_64M:
-			*stolen_size = MB(64) - KB(stolen_overhead);
-			return 0;
-		case INTEL_855_GMCH_GMS_DISABLED:
-			ERR_MSG("video memory is disabled\n");
-			return 0;
-		default:
-			ERR_MSG("unexpected GMCH_GMS value: 0x%02x\n",
-				tmp & INTEL_855_GMCH_GMS_MASK);
-			return 1;
-		}
+			switch (tmp & INTEL_855_GMCH_GMS_MASK)
+			{
+				case INTEL_855_GMCH_GMS_STOLEN_1M:
+					*stolen_size = MB(1) - KB(stolen_overhead);
+					return 0;
+
+				case INTEL_855_GMCH_GMS_STOLEN_4M:
+					*stolen_size = MB(4) - KB(stolen_overhead);
+					return 0;
+
+				case INTEL_855_GMCH_GMS_STOLEN_8M:
+					*stolen_size = MB(8) - KB(stolen_overhead);
+					return 0;
+
+				case INTEL_855_GMCH_GMS_STOLEN_16M:
+					*stolen_size = MB(16) - KB(stolen_overhead);
+					return 0;
+
+				case INTEL_855_GMCH_GMS_STOLEN_32M:
+					*stolen_size = MB(32) - KB(stolen_overhead);
+					return 0;
+
+				case INTEL_915G_GMCH_GMS_STOLEN_48M:
+					*stolen_size = MB(48) - KB(stolen_overhead);
+					return 0;
+
+				case INTEL_915G_GMCH_GMS_STOLEN_64M:
+					*stolen_size = MB(64) - KB(stolen_overhead);
+					return 0;
+
+				case INTEL_855_GMCH_GMS_DISABLED:
+					ERR_MSG("video memory is disabled\n");
+					return 0;
+
+				default:
+					ERR_MSG("unexpected GMCH_GMS value: 0x%02x\n",
+							tmp & INTEL_855_GMCH_GMS_MASK);
+					return 1;
+			}
 	}
 }
 
@@ -282,34 +346,55 @@ int intelfbhw_check_non_crt(struct intelfb_info *dinfo)
 	int dvo = 0;
 
 	if (INREG(LVDS) & PORT_ENABLE)
+	{
 		dvo |= LVDS_PORT;
+	}
+
 	if (INREG(DVOA) & PORT_ENABLE)
+	{
 		dvo |= DVOA_PORT;
+	}
+
 	if (INREG(DVOB) & PORT_ENABLE)
+	{
 		dvo |= DVOB_PORT;
+	}
+
 	if (INREG(DVOC) & PORT_ENABLE)
+	{
 		dvo |= DVOC_PORT;
+	}
 
 	return dvo;
 }
 
-const char * intelfbhw_dvo_to_string(int dvo)
+const char *intelfbhw_dvo_to_string(int dvo)
 {
 	if (dvo & DVOA_PORT)
+	{
 		return "DVO port A";
+	}
 	else if (dvo & DVOB_PORT)
+	{
 		return "DVO port B";
+	}
 	else if (dvo & DVOC_PORT)
+	{
 		return "DVO port C";
+	}
 	else if (dvo & LVDS_PORT)
+	{
 		return "LVDS port";
+	}
 	else
+	{
 		return NULL;
+	}
 }
 
 
 int intelfbhw_validate_mode(struct intelfb_info *dinfo,
-			    struct fb_var_screeninfo *var)
+							struct fb_var_screeninfo *var)
 {
 	int bytes_per_pixel;
 	int tmp;
@@ -319,59 +404,77 @@ int intelfbhw_validate_mode(struct intelfb_info *dinfo,
 #endif
 
 	bytes_per_pixel = var->bits_per_pixel / 8;
+
 	if (bytes_per_pixel == 3)
+	{
 		bytes_per_pixel = 4;
+	}
 
 	/* Check if enough video memory. */
 	tmp = var->yres_virtual * var->xres_virtual * bytes_per_pixel;
-	if (tmp > dinfo->fb.size) {
+
+	if (tmp > dinfo->fb.size)
+	{
 		WRN_MSG("Not enough video ram for mode "
-			"(%d KByte vs %d KByte).\n",
-			BtoKB(tmp), BtoKB(dinfo->fb.size));
+				"(%d KByte vs %d KByte).\n",
+				BtoKB(tmp), BtoKB(dinfo->fb.size));
 		return 1;
 	}
 
 	/* Check if x/y limits are OK. */
-	if (var->xres - 1 > HACTIVE_MASK) {
+	if (var->xres - 1 > HACTIVE_MASK)
+	{
 		WRN_MSG("X resolution too large (%d vs %d).\n",
-			var->xres, HACTIVE_MASK + 1);
+				var->xres, HACTIVE_MASK + 1);
 		return 1;
 	}
-	if (var->yres - 1 > VACTIVE_MASK) {
+
+	if (var->yres - 1 > VACTIVE_MASK)
+	{
 		WRN_MSG("Y resolution too large (%d vs %d).\n",
-			var->yres, VACTIVE_MASK + 1);
+				var->yres, VACTIVE_MASK + 1);
 		return 1;
 	}
-	if (var->xres < 4) {
+
+	if (var->xres < 4)
+	{
 		WRN_MSG("X resolution too small (%d vs 4).\n", var->xres);
 		return 1;
 	}
-	if (var->yres < 4) {
+
+	if (var->yres < 4)
+	{
 		WRN_MSG("Y resolution too small (%d vs 4).\n", var->yres);
 		return 1;
 	}
 
 	/* Check for doublescan modes. */
-	if (var->vmode & FB_VMODE_DOUBLE) {
+	if (var->vmode & FB_VMODE_DOUBLE)
+	{
 		WRN_MSG("Mode is double-scan.\n");
 		return 1;
 	}
 
-	if ((var->vmode & FB_VMODE_INTERLACED) && (var->yres & 1)) {
+	if ((var->vmode & FB_VMODE_INTERLACED) && (var->yres & 1))
+	{
 		WRN_MSG("Odd number of lines in interlaced mode\n");
 		return 1;
 	}
 
 	/* Check if clock is OK. */
 	tmp = 1000000000 / var->pixclock;
-	if (tmp < MIN_CLOCK) {
+
+	if (tmp < MIN_CLOCK)
+	{
 		WRN_MSG("Pixel clock is too low (%d MHz vs %d MHz).\n",
-			(tmp + 500) / 1000, MIN_CLOCK / 1000);
+				(tmp + 500) / 1000, MIN_CLOCK / 1000);
 		return 1;
 	}
-	if (tmp > MAX_CLOCK) {
+
+	if (tmp > MAX_CLOCK)
+	{
 		WRN_MSG("Pixel clock is too high (%d MHz vs %d MHz).\n",
-			(tmp + 500) / 1000, MAX_CLOCK / 1000);
+				(tmp + 500) / 1000, MAX_CLOCK / 1000);
 		return 1;
 	}
 
@@ -391,19 +494,25 @@ int intelfbhw_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
 	yoffset = var->yoffset;
 
 	if ((xoffset + info->var.xres > info->var.xres_virtual) ||
-	    (yoffset + info->var.yres > info->var.yres_virtual))
+		(yoffset + info->var.yres > info->var.yres_virtual))
+	{
 		return -EINVAL;
+	}
 
 	offset = (yoffset * dinfo->pitch) +
-		 (xoffset * info->var.bits_per_pixel) / 8;
+			 (xoffset * info->var.bits_per_pixel) / 8;
 
 	offset += dinfo->fb.offset << 12;
 
 	dinfo->vsync.pan_offset = offset;
+
 	if ((var->activate & FB_ACTIVATE_VBL) &&
-	    !intelfbhw_enable_irq(dinfo))
+		!intelfbhw_enable_irq(dinfo))
+	{
 		dinfo->vsync.pan_display = 1;
-	else {
+	}
+	else
+	{
 		dinfo->vsync.pan_display = 0;
 		OUTREG(DSPABASE, offset);
 	}
@@ -423,10 +532,16 @@ void intelfbhw_do_blank(int blank, struct fb_info *info)
 
 	/* Turn plane A on or off */
 	tmp = INREG(DSPACNTR);
+
 	if (blank)
+	{
 		tmp &= ~DISPPLANE_PLANE_ENABLE;
+	}
 	else
+	{
 		tmp |= DISPPLANE_PLANE_ENABLE;
+	}
+
 	OUTREG(DSPACNTR, tmp);
 	/* Flush */
 	tmp = INREG(DSPABASE);
@@ -436,32 +551,46 @@ void intelfbhw_do_blank(int blank, struct fb_info *info)
 #if VERBOSE > 0
 	DBG_MSG("cursor_on is %d\n", dinfo->cursor_on);
 #endif
-	if (dinfo->cursor_on) {
+
+	if (dinfo->cursor_on)
+	{
 		if (blank)
+		{
 			intelfbhw_cursor_hide(dinfo);
+		}
 		else
+		{
 			intelfbhw_cursor_show(dinfo);
+		}
+
 		dinfo->cursor_on = 1;
 	}
+
 	dinfo->cursor_blanked = blank;
 
 	/* Set DPMS level */
 	tmp = INREG(ADPA) & ~ADPA_DPMS_CONTROL_MASK;
-	switch (blank) {
-	case FB_BLANK_UNBLANK:
-	case FB_BLANK_NORMAL:
-		tmp |= ADPA_DPMS_D0;
-		break;
-	case FB_BLANK_VSYNC_SUSPEND:
-		tmp |= ADPA_DPMS_D1;
-		break;
-	case FB_BLANK_HSYNC_SUSPEND:
-		tmp |= ADPA_DPMS_D2;
-		break;
-	case FB_BLANK_POWERDOWN:
-		tmp |= ADPA_DPMS_D3;
-		break;
+
+	switch (blank)
+	{
+		case FB_BLANK_UNBLANK:
+		case FB_BLANK_NORMAL:
+			tmp |= ADPA_DPMS_D0;
+			break;
+
+		case FB_BLANK_VSYNC_SUSPEND:
+			tmp |= ADPA_DPMS_D1;
+			break;
+
+		case FB_BLANK_HSYNC_SUSPEND:
+			tmp |= ADPA_DPMS_D2;
+			break;
+
+		case FB_BLANK_POWERDOWN:
+			tmp |= ADPA_DPMS_D3;
+			break;
 	}
+
 	OUTREG(ADPA, tmp);
 
 	return;
@@ -474,47 +603,60 @@ int intelfbhw_active_pipe(const struct intelfb_hwstate *hw)
 	int pipe = -1;
 
 	/* keep old default behaviour - prefer PIPE_A */
-	if (hw->disp_b_ctrl & DISPPLANE_PLANE_ENABLE) {
+	if (hw->disp_b_ctrl & DISPPLANE_PLANE_ENABLE)
+	{
 		pipe = (hw->disp_b_ctrl >> DISPPLANE_SEL_PIPE_SHIFT);
 		pipe &= PIPE_MASK;
+
 		if (unlikely(pipe == PIPE_A))
+		{
 			return PIPE_A;
+		}
 	}
-	if (hw->disp_a_ctrl & DISPPLANE_PLANE_ENABLE) {
+
+	if (hw->disp_a_ctrl & DISPPLANE_PLANE_ENABLE)
+	{
 		pipe = (hw->disp_a_ctrl >> DISPPLANE_SEL_PIPE_SHIFT);
 		pipe &= PIPE_MASK;
+
 		if (likely(pipe == PIPE_A))
+		{
 			return PIPE_A;
+		}
 	}
+
 	/* Impossible that no pipe is selected - return PIPE_A */
 	WARN_ON(pipe == -1);
+
 	if (unlikely(pipe == -1))
+	{
 		pipe = PIPE_A;
+	}
 
 	return pipe;
 }
 
 void intelfbhw_setcolreg(struct intelfb_info *dinfo, unsigned regno,
-			 unsigned red, unsigned green, unsigned blue,
-			 unsigned transp)
+						 unsigned red, unsigned green, unsigned blue,
+						 unsigned transp)
 {
 	u32 palette_reg = (dinfo->pipe == PIPE_A) ?
-			  PALETTE_A : PALETTE_B;
+					  PALETTE_A : PALETTE_B;
 
 #if VERBOSE > 0
 	DBG_MSG("intelfbhw_setcolreg: %d: (%d, %d, %d)\n",
-		regno, red, green, blue);
+			regno, red, green, blue);
 #endif
 
 	OUTREG(palette_reg + (regno << 2),
-	       (red << PALETTE_8_RED_SHIFT) |
-	       (green << PALETTE_8_GREEN_SHIFT) |
-	       (blue << PALETTE_8_BLUE_SHIFT));
+		   (red << PALETTE_8_RED_SHIFT) |
+		   (green << PALETTE_8_GREEN_SHIFT) |
+		   (blue << PALETTE_8_BLUE_SHIFT));
 }
 
 
 int intelfbhw_read_hw_state(struct intelfb_info *dinfo,
-			    struct intelfb_hwstate *hw, int flag)
+							struct intelfb_hwstate *hw, int flag)
 {
 	int i;
 
@@ -523,7 +665,9 @@ int intelfbhw_read_hw_state(struct intelfb_info *dinfo,
 #endif
 
 	if (!hw || !dinfo)
+	{
 		return -1;
+	}
 
 	/* Read in as much of the HW state as possible. */
 	hw->vga0_divisor = INREG(VGA0_DIVISOR);
@@ -537,18 +681,25 @@ int intelfbhw_read_hw_state(struct intelfb_info *dinfo,
 	hw->fpb1 = INREG(FPB1);
 
 	if (flag == 1)
+	{
 		return flag;
+	}
 
 #if 0
+
 	/* This seems to be a problem with the 852GM/855GM */
-	for (i = 0; i < PALETTE_8_ENTRIES; i++) {
+	for (i = 0; i < PALETTE_8_ENTRIES; i++)
+	{
 		hw->palette_a[i] = INREG(PALETTE_A + (i << 2));
 		hw->palette_b[i] = INREG(PALETTE_B + (i << 2));
 	}
+
 #endif
 
 	if (flag == 2)
+	{
 		return flag;
+	}
 
 	hw->htotal_a = INREG(HTOTAL_A);
 	hw->hblank_a = INREG(HBLANK_A);
@@ -568,7 +719,9 @@ int intelfbhw_read_hw_state(struct intelfb_info *dinfo,
 	hw->bclrpat_b = INREG(BCLRPAT_B);
 
 	if (flag == 3)
+	{
 		return flag;
+	}
 
 	hw->adpa = INREG(ADPA);
 	hw->dvoa = INREG(DVOA);
@@ -580,14 +733,18 @@ int intelfbhw_read_hw_state(struct intelfb_info *dinfo,
 	hw->lvds = INREG(LVDS);
 
 	if (flag == 4)
+	{
 		return flag;
+	}
 
 	hw->pipe_a_conf = INREG(PIPEACONF);
 	hw->pipe_b_conf = INREG(PIPEBCONF);
 	hw->disp_arb = INREG(DISPARB);
 
 	if (flag == 5)
+	{
 		return flag;
+	}
 
 	hw->cursor_a_control = INREG(CURSOR_A_CONTROL);
 	hw->cursor_b_control = INREG(CURSOR_B_CONTROL);
@@ -595,20 +752,27 @@ int intelfbhw_read_hw_state(struct intelfb_info *dinfo,
 	hw->cursor_b_base = INREG(CURSOR_B_BASEADDR);
 
 	if (flag == 6)
+	{
 		return flag;
+	}
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		hw->cursor_a_palette[i] = INREG(CURSOR_A_PALETTE0 + (i << 2));
 		hw->cursor_b_palette[i] = INREG(CURSOR_B_PALETTE0 + (i << 2));
 	}
 
 	if (flag == 7)
+	{
 		return flag;
+	}
 
 	hw->cursor_size = INREG(CURSOR_SIZE);
 
 	if (flag == 8)
+	{
 		return flag;
+	}
 
 	hw->disp_a_ctrl = INREG(DSPACNTR);
 	hw->disp_b_ctrl = INREG(DSPBCNTR);
@@ -618,27 +782,39 @@ int intelfbhw_read_hw_state(struct intelfb_info *dinfo,
 	hw->disp_b_stride = INREG(DSPBSTRIDE);
 
 	if (flag == 9)
+	{
 		return flag;
+	}
 
 	hw->vgacntrl = INREG(VGACNTRL);
 
 	if (flag == 10)
+	{
 		return flag;
+	}
 
 	hw->add_id = INREG(ADD_ID);
 
 	if (flag == 11)
+	{
 		return flag;
+	}
 
-	for (i = 0; i < 7; i++) {
+	for (i = 0; i < 7; i++)
+	{
 		hw->swf0x[i] = INREG(SWF00 + (i << 2));
 		hw->swf1x[i] = INREG(SWF10 + (i << 2));
+
 		if (i < 3)
+		{
 			hw->swf3x[i] = INREG(SWF30 + (i << 2));
+		}
 	}
 
 	for (i = 0; i < 8; i++)
+	{
 		hw->fence[i] = INREG(FENCE + (i << 2));
+	}
 
 	hw->instpm = INREG(INSTPM);
 	hw->mem_mode = INREG(MEM_MODE);
@@ -657,12 +833,15 @@ int intelfbhw_read_hw_state(struct intelfb_info *dinfo,
 static int calc_vclock3(int index, int m, int n, int p)
 {
 	if (p == 0 || n == 0)
+	{
 		return 0;
+	}
+
 	return plls[index].ref_clk * m / n / p;
 }
 
 static int calc_vclock(int index, int m1, int m2, int n, int p1, int p2,
-		       int lvds)
+					   int lvds)
 {
 	struct pll_min_max *pll = &plls[index];
 	u32 m, vco, p;
@@ -672,32 +851,49 @@ static int calc_vclock(int index, int m1, int m2, int n, int p1, int p2,
 	vco = pll->ref_clk * m / n;
 
 	if (index == PLLS_I8xx)
+	{
 		p = ((p1 + 2) * (1 << (p2 + 1)));
+	}
 	else
+	{
 		p = ((p1) * (p2 ? 5 : 10));
+	}
+
 	return vco / p;
 }
 
 #if REGDUMP
 static void intelfbhw_get_p1p2(struct intelfb_info *dinfo, int dpll,
-			       int *o_p1, int *o_p2)
+							   int *o_p1, int *o_p2)
 {
 	int p1, p2;
 
-	if (IS_I9XX(dinfo)) {
+	if (IS_I9XX(dinfo))
+	{
 		if (dpll & DPLL_P1_FORCE_DIV2)
+		{
 			p1 = 1;
+		}
 		else
+		{
 			p1 = (dpll >> DPLL_P1_SHIFT) & 0xff;
+		}
 
 		p1 = ffs(p1);
 
 		p2 = (dpll >> DPLL_I9XX_P2_SHIFT) & DPLL_P2_MASK;
-	} else {
+	}
+	else
+	{
 		if (dpll & DPLL_P1_FORCE_DIV2)
+		{
 			p1 = 0;
+		}
 		else
+		{
 			p1 = (dpll >> DPLL_P1_SHIFT) & DPLL_P1_MASK;
+		}
+
 		p2 = (dpll >> DPLL_P2_SHIFT) & DPLL_P2_MASK;
 	}
 
@@ -708,7 +904,7 @@ static void intelfbhw_get_p1p2(struct intelfb_info *dinfo, int dpll,
 
 
 void intelfbhw_print_hw_state(struct intelfb_info *dinfo,
-			      struct intelfb_hwstate *hw)
+							  struct intelfb_hwstate *hw)
 {
 #if REGDUMP
 	int i, m1, m2, n, p1, p2;
@@ -716,7 +912,10 @@ void intelfbhw_print_hw_state(struct intelfb_info *dinfo,
 	DBG_MSG("intelfbhw_print_hw_state\n");
 
 	if (!hw)
+	{
 		return;
+	}
+
 	/* Read in as much of the HW state as possible. */
 	printk("hw state dump start\n");
 	printk("	VGA0_DIVISOR:		0x%08x\n", hw->vga0_divisor);
@@ -729,9 +928,9 @@ void intelfbhw_print_hw_state(struct intelfb_info *dinfo,
 	intelfbhw_get_p1p2(dinfo, hw->vga_pd, &p1, &p2);
 
 	printk("	VGA0: (m1, m2, n, p1, p2) = (%d, %d, %d, %d, %d)\n",
-	       m1, m2, n, p1, p2);
+		   m1, m2, n, p1, p2);
 	printk("	VGA0: clock is %d\n",
-	       calc_vclock(index, m1, m2, n, p1, p2, 0));
+		   calc_vclock(index, m1, m2, n, p1, p2, 0));
 
 	n = (hw->vga1_divisor >> FP_N_DIVISOR_SHIFT) & FP_DIVISOR_MASK;
 	m1 = (hw->vga1_divisor >> FP_M1_DIVISOR_SHIFT) & FP_DIVISOR_MASK;
@@ -739,9 +938,9 @@ void intelfbhw_print_hw_state(struct intelfb_info *dinfo,
 
 	intelfbhw_get_p1p2(dinfo, hw->vga_pd, &p1, &p2);
 	printk("	VGA1: (m1, m2, n, p1, p2) = (%d, %d, %d, %d, %d)\n",
-	       m1, m2, n, p1, p2);
+		   m1, m2, n, p1, p2);
 	printk("	VGA1: clock is %d\n",
-	       calc_vclock(index, m1, m2, n, p1, p2, 0));
+		   calc_vclock(index, m1, m2, n, p1, p2, 0));
 
 	printk("	DPLL_A:			0x%08x\n", hw->dpll_a);
 	printk("	DPLL_B:			0x%08x\n", hw->dpll_b);
@@ -757,9 +956,9 @@ void intelfbhw_print_hw_state(struct intelfb_info *dinfo,
 	intelfbhw_get_p1p2(dinfo, hw->dpll_a, &p1, &p2);
 
 	printk("	PLLA0: (m1, m2, n, p1, p2) = (%d, %d, %d, %d, %d)\n",
-	       m1, m2, n, p1, p2);
+		   m1, m2, n, p1, p2);
 	printk("	PLLA0: clock is %d\n",
-	       calc_vclock(index, m1, m2, n, p1, p2, 0));
+		   calc_vclock(index, m1, m2, n, p1, p2, 0));
 
 	n = (hw->fpa1 >> FP_N_DIVISOR_SHIFT) & FP_DIVISOR_MASK;
 	m1 = (hw->fpa1 >> FP_M1_DIVISOR_SHIFT) & FP_DIVISOR_MASK;
@@ -768,17 +967,25 @@ void intelfbhw_print_hw_state(struct intelfb_info *dinfo,
 	intelfbhw_get_p1p2(dinfo, hw->dpll_a, &p1, &p2);
 
 	printk("	PLLA1: (m1, m2, n, p1, p2) = (%d, %d, %d, %d, %d)\n",
-	       m1, m2, n, p1, p2);
+		   m1, m2, n, p1, p2);
 	printk("	PLLA1: clock is %d\n",
-	       calc_vclock(index, m1, m2, n, p1, p2, 0));
+		   calc_vclock(index, m1, m2, n, p1, p2, 0));
 
 #if 0
 	printk("	PALETTE_A:\n");
+
 	for (i = 0; i < PALETTE_8_ENTRIES)
+	{
 		printk("	%3d:	0x%08x\n", i, hw->palette_a[i]);
+	}
+
 	printk("	PALETTE_B:\n");
+
 	for (i = 0; i < PALETTE_8_ENTRIES)
+	{
 		printk("	%3d:	0x%08x\n", i, hw->palette_b[i]);
+	}
+
 #endif
 
 	printk("	HTOTAL_A:		0x%08x\n", hw->htotal_a);
@@ -817,18 +1024,30 @@ void intelfbhw_print_hw_state(struct intelfb_info *dinfo,
 	printk("	CURSOR_B_BASEADDR:	0x%08x\n", hw->cursor_b_base);
 
 	printk("	CURSOR_A_PALETTE:	");
-	for (i = 0; i < 4; i++) {
+
+	for (i = 0; i < 4; i++)
+	{
 		printk("0x%08x", hw->cursor_a_palette[i]);
+
 		if (i < 3)
+		{
 			printk(", ");
+		}
 	}
+
 	printk("\n");
 	printk("	CURSOR_B_PALETTE:	");
-	for (i = 0; i < 4; i++) {
+
+	for (i = 0; i < 4; i++)
+	{
 		printk("0x%08x", hw->cursor_b_palette[i]);
+
 		if (i < 3)
+		{
 			printk(", ");
+		}
 	}
+
 	printk("\n");
 
 	printk("	CURSOR_SIZE:		0x%08x\n", hw->cursor_size);
@@ -843,21 +1062,27 @@ void intelfbhw_print_hw_state(struct intelfb_info *dinfo,
 	printk("	VGACNTRL:		0x%08x\n", hw->vgacntrl);
 	printk("	ADD_ID:			0x%08x\n", hw->add_id);
 
-	for (i = 0; i < 7; i++) {
+	for (i = 0; i < 7; i++)
+	{
 		printk("	SWF0%d			0x%08x\n", i,
-			hw->swf0x[i]);
+			   hw->swf0x[i]);
 	}
-	for (i = 0; i < 7; i++) {
+
+	for (i = 0; i < 7; i++)
+	{
 		printk("	SWF1%d			0x%08x\n", i,
-			hw->swf1x[i]);
+			   hw->swf1x[i]);
 	}
-	for (i = 0; i < 3; i++) {
+
+	for (i = 0; i < 3; i++)
+	{
 		printk("	SWF3%d			0x%08x\n", i,
-		       hw->swf3x[i]);
+			   hw->swf3x[i]);
 	}
+
 	for (i = 0; i < 8; i++)
 		printk("	FENCE%d			0x%08x\n", i,
-		       hw->fence[i]);
+			   hw->fence[i]);
 
 	printk("	INSTPM			0x%08x\n", hw->instpm);
 	printk("	MEM_MODE		0x%08x\n", hw->mem_mode);
@@ -876,34 +1101,40 @@ void intelfbhw_print_hw_state(struct intelfb_info *dinfo,
 
 /* Split the M parameter into M1 and M2. */
 static int splitm(int index, unsigned int m, unsigned int *retm1,
-		  unsigned int *retm2)
+				  unsigned int *retm2)
 {
 	int m1, m2;
 	int testm;
 	struct pll_min_max *pll = &plls[index];
 
 	/* no point optimising too much - brute force m */
-	for (m1 = pll->min_m1; m1 < pll->max_m1 + 1; m1++) {
-		for (m2 = pll->min_m2; m2 < pll->max_m2 + 1; m2++) {
+	for (m1 = pll->min_m1; m1 < pll->max_m1 + 1; m1++)
+	{
+		for (m2 = pll->min_m2; m2 < pll->max_m2 + 1; m2++)
+		{
 			testm = (5 * (m1 + 2)) + (m2 + 2);
-			if (testm == m) {
+
+			if (testm == m)
+			{
 				*retm1 = (unsigned int)m1;
 				*retm2 = (unsigned int)m2;
 				return 0;
 			}
 		}
 	}
+
 	return 1;
 }
 
 /* Split the P parameter into P1 and P2. */
 static int splitp(int index, unsigned int p, unsigned int *retp1,
-		  unsigned int *retp2)
+				  unsigned int *retp2)
 {
 	int p1, p2;
 	struct pll_min_max *pll = &plls[index];
 
-	if (index == PLLS_I9xx) {
+	if (index == PLLS_I9xx)
+	{
 		p2 = (p % 10) ? 1 : 0;
 
 		p1 = p / (p2 ? 5 : 10);
@@ -914,18 +1145,29 @@ static int splitp(int index, unsigned int p, unsigned int *retp1,
 	}
 
 	if (p % 4 == 0)
+	{
 		p2 = 1;
+	}
 	else
+	{
 		p2 = 0;
+	}
+
 	p1 = (p / (1 << (p2 + 1))) - 2;
-	if (p % 4 == 0 && p1 < pll->min_p1) {
+
+	if (p % 4 == 0 && p1 < pll->min_p1)
+	{
 		p2 = 0;
 		p1 = (p / (1 << (p2 + 1))) - 2;
 	}
+
 	if (p1 < pll->min_p1 || p1 > pll->max_p1 ||
-	    (p1 + 2) * (1 << (p2 + 1)) != p) {
+		(p1 + 2) * (1 << (p2 + 1)) != p)
+	{
 		return 1;
-	} else {
+	}
+	else
+	{
 		*retp1 = (unsigned int)p1;
 		*retp2 = (unsigned int)p2;
 		return 0;
@@ -933,7 +1175,7 @@ static int splitp(int index, unsigned int p, unsigned int *retp1,
 }
 
 static int calc_pll_params(int index, int clock, u32 *retm1, u32 *retm2,
-			   u32 *retn, u32 *retp1, u32 *retp2, u32 *retclock)
+						   u32 *retn, u32 *retp1, u32 *retp2, u32 *retclock)
 {
 	u32 m1, m2, n, p1, p2, n1, testm;
 	u32 f_vco, p, p_best = 0, m, f_out = 0;
@@ -953,42 +1195,69 @@ static int calc_pll_params(int index, int clock, u32 *retm1, u32 *retm2,
 	p_inc = (clock <= pll->p_transition_clk) ? pll->p_inc_lo : pll->p_inc_hi;
 	p_min = p_inc;
 	p_max = ROUND_DOWN_TO(div_max, p_inc);
+
 	if (p_min < pll->min_p)
+	{
 		p_min = pll->min_p;
+	}
+
 	if (p_max > pll->max_p)
+	{
 		p_max = pll->max_p;
+	}
 
 	DBG_MSG("p range is %d-%d (%d)\n", p_min, p_max, p_inc);
 
 	p = p_min;
-	do {
-		if (splitp(index, p, &p1, &p2)) {
+
+	do
+	{
+		if (splitp(index, p, &p1, &p2))
+		{
 			WRN_MSG("cannot split p = %d\n", p);
 			p += p_inc;
 			continue;
 		}
+
 		n = pll->min_n;
 		f_vco = clock * p;
 
-		do {
+		do
+		{
 			m = ROUND_UP_TO(f_vco * n, pll->ref_clk) / pll->ref_clk;
+
 			if (m < pll->min_m)
+			{
 				m = pll->min_m + 1;
+			}
+
 			if (m > pll->max_m)
+			{
 				m = pll->max_m - 1;
-			for (testm = m - 1; testm <= m; testm++) {
+			}
+
+			for (testm = m - 1; testm <= m; testm++)
+			{
 				f_out = calc_vclock3(index, testm, n, p);
-				if (splitm(index, testm, &m1, &m2)) {
+
+				if (splitm(index, testm, &m1, &m2))
+				{
 					WRN_MSG("cannot split m = %d\n",
-						testm);
+							testm);
 					continue;
 				}
-				if (clock > f_out)
-					f_err = clock - f_out;
-				else/* slightly bias the error for bigger clocks */
-					f_err = f_out - clock + 1;
 
-				if (f_err < err_best) {
+				if (clock > f_out)
+				{
+					f_err = clock - f_out;
+				}
+				else/* slightly bias the error for bigger clocks */
+				{
+					f_err = f_out - clock + 1;
+				}
+
+				if (f_err < err_best)
+				{
 					m_best = testm;
 					n_best = n;
 					p_best = p;
@@ -996,15 +1265,21 @@ static int calc_pll_params(int index, int clock, u32 *retm1, u32 *retm2,
 					err_best = f_err;
 				}
 			}
-			n++;
-		} while ((n <= pll->max_n) && (f_out >= clock));
-		p += p_inc;
-	} while ((p <= p_max));
 
-	if (!m_best) {
+			n++;
+		}
+		while ((n <= pll->max_n) && (f_out >= clock));
+
+		p += p_inc;
+	}
+	while ((p <= p_max));
+
+	if (!m_best)
+	{
 		WRN_MSG("cannot find parameters for clock %d\n", clock);
 		return 1;
 	}
+
 	m = m_best;
 	n = n_best;
 	p = p_best;
@@ -1013,11 +1288,11 @@ static int calc_pll_params(int index, int clock, u32 *retm1, u32 *retm2,
 	n1 = n - 2;
 
 	DBG_MSG("m, n, p: %d (%d,%d), %d (%d), %d (%d,%d), "
-		"f: %d (%d), VCO: %d\n",
-		m, m1, m2, n, n1, p, p1, p2,
-		calc_vclock3(index, m, n, p),
-		calc_vclock(index, m1, m2, n1, p1, p2, 0),
-		calc_vclock3(index, m, n, p) * p);
+			"f: %d (%d), VCO: %d\n",
+			m, m1, m2, n, n1, p, p1, p2,
+			calc_vclock3(index, m, n, p),
+			calc_vclock(index, m1, m2, n1, p1, p2, 0),
+			calc_vclock3(index, m, n, p) * p);
 	*retm1 = m1;
 	*retm2 = m2;
 	*retn = n1;
@@ -1029,20 +1304,22 @@ static int calc_pll_params(int index, int clock, u32 *retm1, u32 *retm2,
 }
 
 static __inline__ int check_overflow(u32 value, u32 limit,
-				     const char *description)
+									 const char *description)
 {
-	if (value > limit) {
+	if (value > limit)
+	{
 		WRN_MSG("%s value %d exceeds limit %d\n",
-			description, value, limit);
+				description, value, limit);
 		return 1;
 	}
+
 	return 0;
 }
 
 /* It is assumed that hw is filled in with the initial state information. */
 int intelfbhw_mode_to_hw(struct intelfb_info *dinfo,
-			 struct intelfb_hwstate *hw,
-			 struct fb_var_screeninfo *var)
+						 struct intelfb_hwstate *hw,
+						 struct fb_var_screeninfo *var)
 {
 	int pipe = intelfbhw_active_pipe(hw);
 	u32 *dpll, *fp0, *fp1;
@@ -1059,7 +1336,8 @@ int intelfbhw_mode_to_hw(struct intelfb_info *dinfo,
 	hw->vgacntrl |= VGA_DISABLE;
 
 	/* Set which pipe's registers will be set. */
-	if (pipe == PIPE_B) {
+	if (pipe == PIPE_B)
+	{
 		dpll = &hw->dpll_b;
 		fp0 = &hw->fpb0;
 		fp1 = &hw->fpb1;
@@ -1071,7 +1349,9 @@ int intelfbhw_mode_to_hw(struct intelfb_info *dinfo,
 		vt = &hw->vtotal_b;
 		ss = &hw->src_size_b;
 		pipe_conf = &hw->pipe_b_conf;
-	} else {
+	}
+	else
+	{
 		dpll = &hw->dpll_a;
 		fp0 = &hw->fpa0;
 		fp1 = &hw->fpa1;
@@ -1090,13 +1370,13 @@ int intelfbhw_mode_to_hw(struct intelfb_info *dinfo,
 
 	/* sync polarity */
 	hsync_pol = (var->sync & FB_SYNC_HOR_HIGH_ACT) ?
-			ADPA_SYNC_ACTIVE_HIGH : ADPA_SYNC_ACTIVE_LOW;
+				ADPA_SYNC_ACTIVE_HIGH : ADPA_SYNC_ACTIVE_LOW;
 	vsync_pol = (var->sync & FB_SYNC_VERT_HIGH_ACT) ?
-			ADPA_SYNC_ACTIVE_HIGH : ADPA_SYNC_ACTIVE_LOW;
+				ADPA_SYNC_ACTIVE_HIGH : ADPA_SYNC_ACTIVE_LOW;
 	hw->adpa &= ~((ADPA_SYNC_ACTIVE_MASK << ADPA_VSYNC_ACTIVE_SHIFT) |
-		      (ADPA_SYNC_ACTIVE_MASK << ADPA_HSYNC_ACTIVE_SHIFT));
+				  (ADPA_SYNC_ACTIVE_MASK << ADPA_HSYNC_ACTIVE_SHIFT));
 	hw->adpa |= (hsync_pol << ADPA_HSYNC_ACTIVE_SHIFT) |
-		    (vsync_pol << ADPA_VSYNC_ACTIVE_SHIFT);
+				(vsync_pol << ADPA_VSYNC_ACTIVE_SHIFT);
 
 	/* Connect correct pipe to the analog port DAC */
 	hw->adpa &= ~(PIPE_MASK << ADPA_PIPE_SELECT_SHIFT);
@@ -1116,36 +1396,55 @@ int intelfbhw_mode_to_hw(struct intelfb_info *dinfo,
 	clock_target = 1000000000 / var->pixclock;
 
 	if (calc_pll_params(dinfo->pll_index, clock_target, &m1, &m2,
-			    &n, &p1, &p2, &clock)) {
+						&n, &p1, &p2, &clock))
+	{
 		WRN_MSG("calc_pll_params failed\n");
 		return 1;
 	}
 
 	/* Check for overflow. */
 	if (check_overflow(p1, DPLL_P1_MASK, "PLL P1 parameter"))
+	{
 		return 1;
+	}
+
 	if (check_overflow(p2, DPLL_P2_MASK, "PLL P2 parameter"))
+	{
 		return 1;
+	}
+
 	if (check_overflow(m1, FP_DIVISOR_MASK, "PLL M1 parameter"))
+	{
 		return 1;
+	}
+
 	if (check_overflow(m2, FP_DIVISOR_MASK, "PLL M2 parameter"))
+	{
 		return 1;
+	}
+
 	if (check_overflow(n, FP_DIVISOR_MASK, "PLL N parameter"))
+	{
 		return 1;
+	}
 
 	*dpll &= ~DPLL_P1_FORCE_DIV2;
 	*dpll &= ~((DPLL_P2_MASK << DPLL_P2_SHIFT) |
-		   (DPLL_P1_MASK << DPLL_P1_SHIFT));
+			   (DPLL_P1_MASK << DPLL_P1_SHIFT));
 
-	if (IS_I9XX(dinfo)) {
+	if (IS_I9XX(dinfo))
+	{
 		*dpll |= (p2 << DPLL_I9XX_P2_SHIFT);
 		*dpll |= (1 << (p1 - 1)) << DPLL_P1_SHIFT;
-	} else
+	}
+	else
+	{
 		*dpll |= (p2 << DPLL_P2_SHIFT) | (p1 << DPLL_P1_SHIFT);
+	}
 
 	*fp0 = (n << FP_N_DIVISOR_SHIFT) |
-	       (m1 << FP_M1_DIVISOR_SHIFT) |
-	       (m2 << FP_M2_DIVISOR_SHIFT);
+		   (m1 << FP_M1_DIVISOR_SHIFT) |
+		   (m2 << FP_M2_DIVISOR_SHIFT);
 	*fp1 = *fp0;
 
 	hw->dvob &= ~PORT_ENABLE;
@@ -1155,20 +1454,26 @@ int intelfbhw_mode_to_hw(struct intelfb_info *dinfo,
 	hw->disp_a_ctrl |= DISPPLANE_PLANE_ENABLE;
 	hw->disp_a_ctrl &= ~DISPPLANE_GAMMA_ENABLE;
 	hw->disp_a_ctrl &= ~DISPPLANE_PIXFORMAT_MASK;
-	switch (intelfb_var_to_depth(var)) {
-	case 8:
-		hw->disp_a_ctrl |= DISPPLANE_8BPP | DISPPLANE_GAMMA_ENABLE;
-		break;
-	case 15:
-		hw->disp_a_ctrl |= DISPPLANE_15_16BPP;
-		break;
-	case 16:
-		hw->disp_a_ctrl |= DISPPLANE_16BPP;
-		break;
-	case 24:
-		hw->disp_a_ctrl |= DISPPLANE_32BPP_NO_ALPHA;
-		break;
+
+	switch (intelfb_var_to_depth(var))
+	{
+		case 8:
+			hw->disp_a_ctrl |= DISPPLANE_8BPP | DISPPLANE_GAMMA_ENABLE;
+			break;
+
+		case 15:
+			hw->disp_a_ctrl |= DISPPLANE_15_16BPP;
+			break;
+
+		case 16:
+			hw->disp_a_ctrl |= DISPPLANE_16BPP;
+			break;
+
+		case 24:
+			hw->disp_a_ctrl |= DISPPLANE_32BPP_NO_ALPHA;
+			break;
 	}
+
 	hw->disp_a_ctrl &= ~(PIPE_MASK << DISPPLANE_SEL_PIPE_SHIFT);
 	hw->disp_a_ctrl |= (pipe << DISPPLANE_SEL_PIPE_SHIFT);
 
@@ -1181,12 +1486,16 @@ int intelfbhw_mode_to_hw(struct intelfb_info *dinfo,
 	hblank_end = htotal;
 
 	DBG_MSG("H: act %d, ss %d, se %d, tot %d bs %d, be %d\n",
-		hactive, hsync_start, hsync_end, htotal, hblank_start,
-		hblank_end);
+			hactive, hsync_start, hsync_end, htotal, hblank_start,
+			hblank_end);
 
 	vactive = var->yres;
+
 	if (var->vmode & FB_VMODE_INTERLACED)
-		vactive--; /* the chip adds 2 halflines automatically */
+	{
+		vactive--;    /* the chip adds 2 halflines automatically */
+	}
+
 	vsync_start = vactive + var->lower_margin;
 	vsync_end = vsync_start + var->vsync_len;
 	vtotal = vsync_end + var->upper_margin;
@@ -1194,74 +1503,122 @@ int intelfbhw_mode_to_hw(struct intelfb_info *dinfo,
 	vblank_end = vsync_end + 1;
 
 	DBG_MSG("V: act %d, ss %d, se %d, tot %d bs %d, be %d\n",
-		vactive, vsync_start, vsync_end, vtotal, vblank_start,
-		vblank_end);
+			vactive, vsync_start, vsync_end, vtotal, vblank_start,
+			vblank_end);
 
 	/* Adjust for register values, and check for overflow. */
 	hactive--;
+
 	if (check_overflow(hactive, HACTIVE_MASK, "CRTC hactive"))
+	{
 		return 1;
+	}
+
 	hsync_start--;
+
 	if (check_overflow(hsync_start, HSYNCSTART_MASK, "CRTC hsync_start"))
+	{
 		return 1;
+	}
+
 	hsync_end--;
+
 	if (check_overflow(hsync_end, HSYNCEND_MASK, "CRTC hsync_end"))
+	{
 		return 1;
+	}
+
 	htotal--;
+
 	if (check_overflow(htotal, HTOTAL_MASK, "CRTC htotal"))
+	{
 		return 1;
+	}
+
 	hblank_start--;
+
 	if (check_overflow(hblank_start, HBLANKSTART_MASK, "CRTC hblank_start"))
+	{
 		return 1;
+	}
+
 	hblank_end--;
+
 	if (check_overflow(hblank_end, HBLANKEND_MASK, "CRTC hblank_end"))
+	{
 		return 1;
+	}
 
 	vactive--;
+
 	if (check_overflow(vactive, VACTIVE_MASK, "CRTC vactive"))
+	{
 		return 1;
+	}
+
 	vsync_start--;
+
 	if (check_overflow(vsync_start, VSYNCSTART_MASK, "CRTC vsync_start"))
+	{
 		return 1;
+	}
+
 	vsync_end--;
+
 	if (check_overflow(vsync_end, VSYNCEND_MASK, "CRTC vsync_end"))
+	{
 		return 1;
+	}
+
 	vtotal--;
+
 	if (check_overflow(vtotal, VTOTAL_MASK, "CRTC vtotal"))
+	{
 		return 1;
+	}
+
 	vblank_start--;
+
 	if (check_overflow(vblank_start, VBLANKSTART_MASK, "CRTC vblank_start"))
+	{
 		return 1;
+	}
+
 	vblank_end--;
+
 	if (check_overflow(vblank_end, VBLANKEND_MASK, "CRTC vblank_end"))
+	{
 		return 1;
+	}
 
 	*ht = (htotal << HTOTAL_SHIFT) | (hactive << HACTIVE_SHIFT);
 	*hb = (hblank_start << HBLANKSTART_SHIFT) |
-	      (hblank_end << HSYNCEND_SHIFT);
+		  (hblank_end << HSYNCEND_SHIFT);
 	*hs = (hsync_start << HSYNCSTART_SHIFT) | (hsync_end << HSYNCEND_SHIFT);
 
 	*vt = (vtotal << VTOTAL_SHIFT) | (vactive << VACTIVE_SHIFT);
 	*vb = (vblank_start << VBLANKSTART_SHIFT) |
-	      (vblank_end << VSYNCEND_SHIFT);
+		  (vblank_end << VSYNCEND_SHIFT);
 	*vs = (vsync_start << VSYNCSTART_SHIFT) | (vsync_end << VSYNCEND_SHIFT);
 	*ss = (hactive << SRC_SIZE_HORIZ_SHIFT) |
-	      (vactive << SRC_SIZE_VERT_SHIFT);
+		  (vactive << SRC_SIZE_VERT_SHIFT);
 
 	hw->disp_a_stride = dinfo->pitch;
 	DBG_MSG("pitch is %d\n", hw->disp_a_stride);
 
 	hw->disp_a_base = hw->disp_a_stride * var->yoffset +
-			  var->xoffset * var->bits_per_pixel / 8;
+					  var->xoffset * var->bits_per_pixel / 8;
 
 	hw->disp_a_base += dinfo->fb.offset << 12;
 
 	/* Check stride alignment. */
 	stride_alignment = IS_I9XX(dinfo) ? STRIDE_ALIGNMENT_I9XX :
-					    STRIDE_ALIGNMENT;
-	if (hw->disp_a_stride % stride_alignment != 0) {
+					   STRIDE_ALIGNMENT;
+
+	if (hw->disp_a_stride % stride_alignment != 0)
+	{
 		WRN_MSG("display stride %d has bad alignment %d\n",
-			hw->disp_a_stride, stride_alignment);
+				hw->disp_a_stride, stride_alignment);
 		return 1;
 	}
 
@@ -1269,16 +1626,20 @@ int intelfbhw_mode_to_hw(struct intelfb_info *dinfo,
 	*pipe_conf &= ~PIPECONF_GAMMA;
 
 	if (var->vmode & FB_VMODE_INTERLACED)
+	{
 		*pipe_conf |= PIPECONF_INTERLACE_W_FIELD_INDICATION;
+	}
 	else
+	{
 		*pipe_conf &= ~PIPECONF_INTERLACE_MASK;
+	}
 
 	return 0;
 }
 
 /* Program a (non-VGA) video mode. */
 int intelfbhw_program_mode(struct intelfb_info *dinfo,
-			   const struct intelfb_hwstate *hw, int blank)
+						   const struct intelfb_hwstate *hw, int blank)
 {
 	u32 tmp;
 	const u32 *dpll, *fp0, *fp1, *pipe_conf;
@@ -1302,7 +1663,8 @@ int intelfbhw_program_mode(struct intelfb_info *dinfo,
 
 	dinfo->pipe = intelfbhw_active_pipe(hw);
 
-	if (dinfo->pipe == PIPE_B) {
+	if (dinfo->pipe == PIPE_B)
+	{
 		dpll = &hw->dpll_b;
 		fp0 = &hw->fpb0;
 		fp1 = &hw->fpb1;
@@ -1326,7 +1688,9 @@ int intelfbhw_program_mode(struct intelfb_info *dinfo,
 		vtotal_reg = VTOTAL_B;
 		vblank_reg = VBLANK_B;
 		src_size_reg = SRC_SIZE_B;
-	} else {
+	}
+	else
+	{
 		dpll = &hw->dpll_a;
 		fp0 = &hw->fpa0;
 		fp1 = &hw->fpa1;
@@ -1358,18 +1722,27 @@ int intelfbhw_program_mode(struct intelfb_info *dinfo,
 	OUTREG(pipe_conf_reg, tmp);
 
 	count = 0;
-	do {
+
+	do
+	{
 		tmp_val[count % 3] = INREG(PIPEA_DSL);
+
 		if ((tmp_val[0] == tmp_val[1]) && (tmp_val[1] == tmp_val[2]))
+		{
 			break;
+		}
+
 		count++;
 		udelay(1);
-		if (count % 200 == 0) {
+
+		if (count % 200 == 0)
+		{
 			tmp = INREG(pipe_conf_reg);
 			tmp &= ~PIPECONF_ENABLE;
 			OUTREG(pipe_conf_reg, tmp);
 		}
-	} while (count < 2000);
+	}
+	while (count < 2000);
 
 	OUTREG(ADPA, INREG(ADPA) & ~ADPA_DAC_ENABLE);
 
@@ -1430,16 +1803,20 @@ int intelfbhw_program_mode(struct intelfb_info *dinfo,
 	OUTREG(src_size_reg, *ss);
 
 	switch (dinfo->info->var.vmode & (FB_VMODE_INTERLACED |
-					  FB_VMODE_ODD_FLD_FIRST)) {
-	case FB_VMODE_INTERLACED | FB_VMODE_ODD_FLD_FIRST:
-		OUTREG(pipe_stat_reg, 0xFFFF | PIPESTAT_FLD_EVT_ODD_EN);
-		break;
-	case FB_VMODE_INTERLACED: /* even lines first */
-		OUTREG(pipe_stat_reg, 0xFFFF | PIPESTAT_FLD_EVT_EVEN_EN);
-		break;
-	default:		/* non-interlaced */
-		OUTREG(pipe_stat_reg, 0xFFFF); /* clear all status bits only */
+									  FB_VMODE_ODD_FLD_FIRST))
+	{
+		case FB_VMODE_INTERLACED | FB_VMODE_ODD_FLD_FIRST:
+			OUTREG(pipe_stat_reg, 0xFFFF | PIPESTAT_FLD_EVT_ODD_EN);
+			break;
+
+		case FB_VMODE_INTERLACED: /* even lines first */
+			OUTREG(pipe_stat_reg, 0xFFFF | PIPESTAT_FLD_EVT_EVEN_EN);
+			break;
+
+		default:		/* non-interlaced */
+			OUTREG(pipe_stat_reg, 0xFFFF); /* clear all status bits only */
 	}
+
 	/* Enable pipe */
 	OUTREG(pipe_conf_reg, *pipe_conf | PIPECONF_ENABLE);
 
@@ -1450,18 +1827,21 @@ int intelfbhw_program_mode(struct intelfb_info *dinfo,
 	OUTREG(ADPA, tmp);
 
 	/* setup display plane */
-	if (dinfo->pdev->device == PCI_DEVICE_ID_INTEL_830M) {
+	if (dinfo->pdev->device == PCI_DEVICE_ID_INTEL_830M)
+	{
 		/*
 		 *      i830M errata: the display plane must be enabled
 		 *      to allow writes to the other bits in the plane
 		 *      control register.
 		 */
 		tmp = INREG(DSPACNTR);
-		if ((tmp & DISPPLANE_PLANE_ENABLE) != DISPPLANE_PLANE_ENABLE) {
+
+		if ((tmp & DISPPLANE_PLANE_ENABLE) != DISPPLANE_PLANE_ENABLE)
+		{
 			tmp |= DISPPLANE_PLANE_ENABLE;
 			OUTREG(DSPACNTR, tmp);
 			OUTREG(DSPACNTR,
-			       hw->disp_a_ctrl|DISPPLANE_PLANE_ENABLE);
+				   hw->disp_a_ctrl | DISPPLANE_PLANE_ENABLE);
 			mdelay(1);
 		}
 	}
@@ -1471,7 +1851,8 @@ int intelfbhw_program_mode(struct intelfb_info *dinfo,
 	OUTREG(DSPABASE, hw->disp_a_base);
 
 	/* Enable plane */
-	if (!blank) {
+	if (!blank)
+	{
 		tmp = INREG(DSPACNTR);
 		tmp |= DISPPLANE_PLANE_ENABLE;
 		OUTREG(DSPACNTR, tmp);
@@ -1492,14 +1873,20 @@ static  u32 get_ring_space(struct intelfb_info *dinfo)
 
 	if (dinfo->ring_tail >= dinfo->ring_head)
 		ring_space = dinfo->ring.size -
-			(dinfo->ring_tail - dinfo->ring_head);
+					 (dinfo->ring_tail - dinfo->ring_head);
 	else
+	{
 		ring_space = dinfo->ring_head - dinfo->ring_tail;
+	}
 
 	if (ring_space > RING_MIN_FREE)
+	{
 		ring_space -= RING_MIN_FREE;
+	}
 	else
+	{
 		ring_space = 0;
+	}
 
 	return ring_space;
 }
@@ -1515,34 +1902,45 @@ static int wait_ring(struct intelfb_info *dinfo, int n)
 #endif
 
 	end = jiffies + (HZ * 3);
-	while (dinfo->ring_space < n) {
+
+	while (dinfo->ring_space < n)
+	{
 		dinfo->ring_head = INREG(PRI_RING_HEAD) & RING_HEAD_MASK;
 		dinfo->ring_space = get_ring_space(dinfo);
 
-		if (dinfo->ring_head != last_head) {
+		if (dinfo->ring_head != last_head)
+		{
 			end = jiffies + (HZ * 3);
 			last_head = dinfo->ring_head;
 		}
+
 		i++;
-		if (time_before(end, jiffies)) {
-			if (!i) {
+
+		if (time_before(end, jiffies))
+		{
+			if (!i)
+			{
 				/* Try again */
 				reset_state(dinfo);
 				refresh_ring(dinfo);
 				do_flush(dinfo);
 				end = jiffies + (HZ * 3);
 				i = 1;
-			} else {
+			}
+			else
+			{
 				WRN_MSG("ring buffer : space: %d wanted %d\n",
-					dinfo->ring_space, n);
+						dinfo->ring_space, n);
 				WRN_MSG("lockup - turning off hardware "
-					"acceleration\n");
+						"acceleration\n");
 				dinfo->ring_lockup = 1;
 				break;
 			}
 		}
+
 		udelay(1);
 	}
+
 	return i;
 }
 
@@ -1561,7 +1959,9 @@ void intelfbhw_do_sync(struct intelfb_info *dinfo)
 #endif
 
 	if (!dinfo->accel)
+	{
 		return;
+	}
 
 	/*
 	 * Send a flush, then wait until the ring is empty.  This is what
@@ -1594,11 +1994,15 @@ static void reset_state(struct intelfb_info *dinfo)
 #endif
 
 	for (i = 0; i < FENCE_NUM; i++)
+	{
 		OUTREG(FENCE + (i << 2), 0);
+	}
 
 	/* Flush the ring buffer if it's enabled. */
 	tmp = INREG(PRI_RING_LENGTH);
-	if (tmp & RING_ENABLE) {
+
+	if (tmp & RING_ENABLE)
+	{
 #if VERBOSE > 0
 		DBG_MSG("reset_state: ring was enabled\n");
 #endif
@@ -1618,11 +2022,13 @@ void intelfbhw_2d_stop(struct intelfb_info *dinfo)
 {
 #if VERBOSE > 0
 	DBG_MSG("intelfbhw_2d_stop: accel: %d, ring_active: %d\n",
-		dinfo->accel, dinfo->ring_active);
+			dinfo->accel, dinfo->ring_active);
 #endif
 
 	if (!dinfo->accel)
+	{
 		return;
+	}
 
 	dinfo->ring_active = 0;
 	reset_state(dinfo);
@@ -1637,11 +2043,13 @@ void intelfbhw_2d_start(struct intelfb_info *dinfo)
 {
 #if VERBOSE > 0
 	DBG_MSG("intelfbhw_2d_start: accel: %d, ring_active: %d\n",
-		dinfo->accel, dinfo->ring_active);
+			dinfo->accel, dinfo->ring_active);
 #endif
 
 	if (!dinfo->accel)
+	{
 		return;
+	}
 
 	/* Initialise the primary ring buffer. */
 	OUTREG(PRI_RING_LENGTH, 0);
@@ -1650,21 +2058,21 @@ void intelfbhw_2d_start(struct intelfb_info *dinfo)
 
 	OUTREG(PRI_RING_START, dinfo->ring.physical & RING_START_MASK);
 	OUTREG(PRI_RING_LENGTH,
-		((dinfo->ring.size - GTT_PAGE_SIZE) & RING_LENGTH_MASK) |
-		RING_NO_REPORT | RING_ENABLE);
+		   ((dinfo->ring.size - GTT_PAGE_SIZE) & RING_LENGTH_MASK) |
+		   RING_NO_REPORT | RING_ENABLE);
 	refresh_ring(dinfo);
 	dinfo->ring_active = 1;
 }
 
 /* 2D fillrect (solid fill or invert) */
 void intelfbhw_do_fillrect(struct intelfb_info *dinfo, u32 x, u32 y, u32 w,
-			   u32 h, u32 color, u32 pitch, u32 bpp, u32 rop)
+						   u32 h, u32 color, u32 pitch, u32 bpp, u32 rop)
 {
 	u32 br00, br09, br13, br14, br16;
 
 #if VERBOSE > 0
 	DBG_MSG("intelfbhw_do_fillrect: (%d,%d) %dx%d, c 0x%06x, p %d bpp %d, "
-		"rop 0x%02x\n", x, y, w, h, color, pitch, bpp, rop);
+			"rop 0x%02x\n", x, y, w, h, color, pitch, bpp, rop);
 #endif
 
 	br00 = COLOR_BLT_CMD;
@@ -1673,17 +2081,20 @@ void intelfbhw_do_fillrect(struct intelfb_info *dinfo, u32 x, u32 y, u32 w,
 	br14 = (h << HEIGHT_SHIFT) | ((w * (bpp / 8)) << WIDTH_SHIFT);
 	br16 = color;
 
-	switch (bpp) {
-	case 8:
-		br13 |= COLOR_DEPTH_8;
-		break;
-	case 16:
-		br13 |= COLOR_DEPTH_16;
-		break;
-	case 32:
-		br13 |= COLOR_DEPTH_32;
-		br00 |= WRITE_ALPHA | WRITE_RGB;
-		break;
+	switch (bpp)
+	{
+		case 8:
+			br13 |= COLOR_DEPTH_8;
+			break;
+
+		case 16:
+			br13 |= COLOR_DEPTH_16;
+			break;
+
+		case 32:
+			br13 |= COLOR_DEPTH_32;
+			br00 |= WRITE_ALPHA | WRITE_RGB;
+			break;
 	}
 
 	START_RING(6);
@@ -1697,19 +2108,19 @@ void intelfbhw_do_fillrect(struct intelfb_info *dinfo, u32 x, u32 y, u32 w,
 
 #if VERBOSE > 0
 	DBG_MSG("ring = 0x%08x, 0x%08x (%d)\n", dinfo->ring_head,
-		dinfo->ring_tail, dinfo->ring_space);
+			dinfo->ring_tail, dinfo->ring_space);
 #endif
 }
 
 void
 intelfbhw_do_bitblt(struct intelfb_info *dinfo, u32 curx, u32 cury,
-		    u32 dstx, u32 dsty, u32 w, u32 h, u32 pitch, u32 bpp)
+					u32 dstx, u32 dsty, u32 w, u32 h, u32 pitch, u32 bpp)
 {
 	u32 br00, br09, br11, br12, br13, br22, br23, br26;
 
 #if VERBOSE > 0
 	DBG_MSG("intelfbhw_do_bitblt: (%d,%d)->(%d,%d) %dx%d, p %d bpp %d\n",
-		curx, cury, dstx, dsty, w, h, pitch, bpp);
+			curx, cury, dstx, dsty, w, h, pitch, bpp);
 #endif
 
 	br00 = XY_SRC_COPY_BLT_CMD;
@@ -1719,20 +2130,23 @@ intelfbhw_do_bitblt(struct intelfb_info *dinfo, u32 curx, u32 cury,
 	br13 = (SRC_ROP_GXCOPY << ROP_SHIFT) | (pitch << PITCH_SHIFT);
 	br22 = (dstx << WIDTH_SHIFT) | (dsty << HEIGHT_SHIFT);
 	br23 = ((dstx + w) << WIDTH_SHIFT) |
-	       ((dsty + h) << HEIGHT_SHIFT);
+		   ((dsty + h) << HEIGHT_SHIFT);
 	br26 = (curx << WIDTH_SHIFT) | (cury << HEIGHT_SHIFT);
 
-	switch (bpp) {
-	case 8:
-		br13 |= COLOR_DEPTH_8;
-		break;
-	case 16:
-		br13 |= COLOR_DEPTH_16;
-		break;
-	case 32:
-		br13 |= COLOR_DEPTH_32;
-		br00 |= WRITE_ALPHA | WRITE_RGB;
-		break;
+	switch (bpp)
+	{
+		case 8:
+			br13 |= COLOR_DEPTH_8;
+			break;
+
+		case 16:
+			br13 |= COLOR_DEPTH_16;
+			break;
+
+		case 32:
+			br13 |= COLOR_DEPTH_32;
+			br00 |= WRITE_ALPHA | WRITE_RGB;
+			break;
 	}
 
 	START_RING(8);
@@ -1748,8 +2162,8 @@ intelfbhw_do_bitblt(struct intelfb_info *dinfo, u32 curx, u32 cury,
 }
 
 int intelfbhw_do_drawglyph(struct intelfb_info *dinfo, u32 fg, u32 bg, u32 w,
-			   u32 h, const u8* cdat, u32 x, u32 y, u32 pitch,
-			   u32 bpp)
+						   u32 h, const u8 *cdat, u32 x, u32 y, u32 pitch,
+						   u32 bpp)
 {
 	int nbytes, ndwords, pad, tmp;
 	u32 br00, br09, br13, br18, br19, br22, br23;
@@ -1771,7 +2185,9 @@ int intelfbhw_do_drawglyph(struct intelfb_info *dinfo, u32 fg, u32 bg, u32 w,
 	 * It would take a large font (1K pixels) to hit this limit.
 	 */
 	if (nbytes > MAX_MONO_IMM_SIZE)
+	{
 		return 0;
+	}
 
 	/* Src data is packaged a dword (32-bit) at a time. */
 	ndwords = ROUND_UP_TO(nbytes, 4) / 4;
@@ -1791,17 +2207,20 @@ int intelfbhw_do_drawglyph(struct intelfb_info *dinfo, u32 fg, u32 bg, u32 w,
 	br22 = (x << WIDTH_SHIFT) | (y << HEIGHT_SHIFT);
 	br23 = ((x + w) << WIDTH_SHIFT) | ((y + h) << HEIGHT_SHIFT);
 
-	switch (bpp) {
-	case 8:
-		br13 |= COLOR_DEPTH_8;
-		break;
-	case 16:
-		br13 |= COLOR_DEPTH_16;
-		break;
-	case 32:
-		br13 |= COLOR_DEPTH_32;
-		br00 |= WRITE_ALPHA | WRITE_RGB;
-		break;
+	switch (bpp)
+	{
+		case 8:
+			br13 |= COLOR_DEPTH_8;
+			break;
+
+		case 16:
+			br13 |= COLOR_DEPTH_16;
+			break;
+
+		case 32:
+			br13 |= COLOR_DEPTH_32;
+			br00 |= WRITE_ALPHA | WRITE_RGB;
+			break;
 	}
 
 	START_RING(8 + ndwords);
@@ -1814,22 +2233,36 @@ int intelfbhw_do_drawglyph(struct intelfb_info *dinfo, u32 fg, u32 bg, u32 w,
 	OUT_RING(br19);
 	ix = iy = 0;
 	iw = ROUND_UP_TO(w, 8) / 8;
-	while (ndwords--) {
+
+	while (ndwords--)
+	{
 		dat = 0;
-		for (j = 0; j < 2; ++j) {
-			for (i = 0; i < 2; ++i) {
+
+		for (j = 0; j < 2; ++j)
+		{
+			for (i = 0; i < 2; ++i)
+			{
 				if (ix != iw || i == 0)
-					dat |= cdat[iy*iw + ix++] << (i+j*2)*8;
+				{
+					dat |= cdat[iy * iw + ix++] << (i + j * 2) * 8;
+				}
 			}
-			if (ix == iw && iy != (h-1)) {
+
+			if (ix == iw && iy != (h - 1))
+			{
 				ix = 0;
 				++iy;
 			}
 		}
+
 		OUT_RING(dat);
 	}
+
 	if (pad)
+	{
 		OUT_RING(MI_NOOP);
+	}
+
 	ADVANCE_RING();
 
 	return 1;
@@ -1844,25 +2277,31 @@ void intelfbhw_cursor_init(struct intelfb_info *dinfo)
 	DBG_MSG("intelfbhw_cursor_init\n");
 #endif
 
-	if (dinfo->mobile || IS_I9XX(dinfo)) {
+	if (dinfo->mobile || IS_I9XX(dinfo))
+	{
 		if (!dinfo->cursor.physical)
+		{
 			return;
+		}
+
 		tmp = INREG(CURSOR_A_CONTROL);
 		tmp &= ~(CURSOR_MODE_MASK | CURSOR_MOBILE_GAMMA_ENABLE |
-			 CURSOR_MEM_TYPE_LOCAL |
-			 (1 << CURSOR_PIPE_SELECT_SHIFT));
+				 CURSOR_MEM_TYPE_LOCAL |
+				 (1 << CURSOR_PIPE_SELECT_SHIFT));
 		tmp |= CURSOR_MODE_DISABLE;
 		OUTREG(CURSOR_A_CONTROL, tmp);
 		OUTREG(CURSOR_A_BASEADDR, dinfo->cursor.physical);
-	} else {
+	}
+	else
+	{
 		tmp = INREG(CURSOR_CONTROL);
 		tmp &= ~(CURSOR_FORMAT_MASK | CURSOR_GAMMA_ENABLE |
-			 CURSOR_ENABLE | CURSOR_STRIDE_MASK);
+				 CURSOR_ENABLE | CURSOR_STRIDE_MASK);
 		tmp |= CURSOR_FORMAT_3C;
 		OUTREG(CURSOR_CONTROL, tmp);
 		OUTREG(CURSOR_A_BASEADDR, dinfo->cursor.offset << 12);
 		tmp = (64 << CURSOR_SIZE_H_SHIFT) |
-		      (64 << CURSOR_SIZE_V_SHIFT);
+			  (64 << CURSOR_SIZE_V_SHIFT);
 		OUTREG(CURSOR_SIZE, tmp);
 	}
 }
@@ -1876,16 +2315,23 @@ void intelfbhw_cursor_hide(struct intelfb_info *dinfo)
 #endif
 
 	dinfo->cursor_on = 0;
-	if (dinfo->mobile || IS_I9XX(dinfo)) {
+
+	if (dinfo->mobile || IS_I9XX(dinfo))
+	{
 		if (!dinfo->cursor.physical)
+		{
 			return;
+		}
+
 		tmp = INREG(CURSOR_A_CONTROL);
 		tmp &= ~CURSOR_MODE_MASK;
 		tmp |= CURSOR_MODE_DISABLE;
 		OUTREG(CURSOR_A_CONTROL, tmp);
 		/* Flush changes */
 		OUTREG(CURSOR_A_BASEADDR, dinfo->cursor.physical);
-	} else {
+	}
+	else
+	{
 		tmp = INREG(CURSOR_CONTROL);
 		tmp &= ~CURSOR_ENABLE;
 		OUTREG(CURSOR_CONTROL, tmp);
@@ -1903,18 +2349,26 @@ void intelfbhw_cursor_show(struct intelfb_info *dinfo)
 	dinfo->cursor_on = 1;
 
 	if (dinfo->cursor_blanked)
+	{
 		return;
+	}
 
-	if (dinfo->mobile || IS_I9XX(dinfo)) {
+	if (dinfo->mobile || IS_I9XX(dinfo))
+	{
 		if (!dinfo->cursor.physical)
+		{
 			return;
+		}
+
 		tmp = INREG(CURSOR_A_CONTROL);
 		tmp &= ~CURSOR_MODE_MASK;
 		tmp |= CURSOR_MODE_64_4C_AX;
 		OUTREG(CURSOR_A_CONTROL, tmp);
 		/* Flush changes */
 		OUTREG(CURSOR_A_BASEADDR, dinfo->cursor.physical);
-	} else {
+	}
+	else
+	{
 		tmp = INREG(CURSOR_CONTROL);
 		tmp |= CURSOR_ENABLE;
 		OUTREG(CURSOR_CONTROL, tmp);
@@ -1936,11 +2390,13 @@ void intelfbhw_cursor_setpos(struct intelfb_info *dinfo, int x, int y)
 	 */
 
 	tmp = ((x & CURSOR_POS_MASK) << CURSOR_X_SHIFT) |
-	      ((y & CURSOR_POS_MASK) << CURSOR_Y_SHIFT);
+		  ((y & CURSOR_POS_MASK) << CURSOR_Y_SHIFT);
 	OUTREG(CURSOR_A_POSITION, tmp);
 
 	if (IS_I9XX(dinfo))
+	{
 		OUTREG(CURSOR_A_BASEADDR, dinfo->cursor.physical);
+	}
 }
 
 void intelfbhw_cursor_setcolor(struct intelfb_info *dinfo, u32 bg, u32 fg)
@@ -1956,7 +2412,7 @@ void intelfbhw_cursor_setcolor(struct intelfb_info *dinfo, u32 bg, u32 fg)
 }
 
 void intelfbhw_cursor_load(struct intelfb_info *dinfo, int width, int height,
-			   u8 *data)
+						   u8 *data)
 {
 	u8 __iomem *addr = (u8 __iomem *)dinfo->cursor.virtual;
 	int i, j, w = width / 8;
@@ -1967,19 +2423,27 @@ void intelfbhw_cursor_load(struct intelfb_info *dinfo, int width, int height,
 #endif
 
 	if (!dinfo->cursor.virtual)
+	{
 		return;
+	}
 
 	t_mask = 0xff >> mod;
 	d_mask = ~(0xff >> mod);
-	for (i = height; i--; ) {
-		for (j = 0; j < w; j++) {
+
+	for (i = height; i--; )
+	{
+		for (j = 0; j < w; j++)
+		{
 			writeb(0x00, addr + j);
-			writeb(*(data++), addr + j+8);
+			writeb(*(data++), addr + j + 8);
 		}
-		if (mod) {
+
+		if (mod)
+		{
 			writeb(t_mask, addr + j);
-			writeb(*(data++) & d_mask, addr + j+8);
+			writeb(*(data++) & d_mask, addr + j + 8);
 		}
+
 		addr += 16;
 	}
 }
@@ -1994,13 +2458,18 @@ void intelfbhw_cursor_reset(struct intelfb_info *dinfo)
 #endif
 
 	if (!dinfo->cursor.virtual)
+	{
 		return;
+	}
 
-	for (i = 64; i--; ) {
-		for (j = 0; j < 8; j++) {
-			writeb(0xff, addr + j+0);
-			writeb(0x00, addr + j+8);
+	for (i = 64; i--; )
+	{
+		for (j = 0; j < 8; j++)
+		{
+			writeb(0xff, addr + j + 0);
+			writeb(0x00, addr + j + 8);
 		}
+
 		addr += 16;
 	}
 }
@@ -2013,12 +2482,18 @@ static irqreturn_t intelfbhw_irq(int irq, void *dev_id)
 	spin_lock(&dinfo->int_lock);
 
 	tmp = INREG16(IIR);
-	if (dinfo->info->var.vmode & FB_VMODE_INTERLACED)
-		tmp &= PIPE_A_EVENT_INTERRUPT;
-	else
-		tmp &= VSYNC_PIPE_A_INTERRUPT; /* non-interlaced */
 
-	if (tmp == 0) {
+	if (dinfo->info->var.vmode & FB_VMODE_INTERLACED)
+	{
+		tmp &= PIPE_A_EVENT_INTERRUPT;
+	}
+	else
+	{
+		tmp &= VSYNC_PIPE_A_INTERRUPT;    /* non-interlaced */
+	}
+
+	if (tmp == 0)
+	{
 		spin_unlock(&dinfo->int_lock);
 		return IRQ_RETVAL(0); /* not us */
 	}
@@ -2027,7 +2502,9 @@ static irqreturn_t intelfbhw_irq(int irq, void *dev_id)
 	OUTREG(PIPEASTAT, INREG(PIPEASTAT));
 
 	OUTREG16(IIR, tmp);
-	if (dinfo->vsync.pan_display) {
+
+	if (dinfo->vsync.pan_display)
+	{
 		dinfo->vsync.pan_display = 0;
 		OUTREG(DSPABASE, dinfo->vsync.pan_offset);
 	}
@@ -2043,9 +2520,12 @@ static irqreturn_t intelfbhw_irq(int irq, void *dev_id)
 int intelfbhw_enable_irq(struct intelfb_info *dinfo)
 {
 	u16 tmp;
-	if (!test_and_set_bit(0, &dinfo->irq_flags)) {
+
+	if (!test_and_set_bit(0, &dinfo->irq_flags))
+	{
 		if (request_irq(dinfo->pdev->irq, intelfbhw_irq, IRQF_SHARED,
-				"intelfb", dinfo)) {
+						"intelfb", dinfo))
+		{
 			clear_bit(0, &dinfo->irq_flags);
 			return -EINVAL;
 		}
@@ -2053,14 +2533,23 @@ int intelfbhw_enable_irq(struct intelfb_info *dinfo)
 		spin_lock_irq(&dinfo->int_lock);
 		OUTREG16(HWSTAM, 0xfffe); /* i830 DRM uses ffff */
 		OUTREG16(IMR, 0);
-	} else
+	}
+	else
+	{
 		spin_lock_irq(&dinfo->int_lock);
+	}
 
 	if (dinfo->info->var.vmode & FB_VMODE_INTERLACED)
+	{
 		tmp = PIPE_A_EVENT_INTERRUPT;
+	}
 	else
-		tmp = VSYNC_PIPE_A_INTERRUPT; /* non-interlaced */
-	if (tmp != INREG16(IER)) {
+	{
+		tmp = VSYNC_PIPE_A_INTERRUPT;    /* non-interlaced */
+	}
+
+	if (tmp != INREG16(IER))
+	{
 		DBG_MSG("changing IER to 0x%X\n", tmp);
 		OUTREG16(IER, tmp);
 	}
@@ -2071,11 +2560,14 @@ int intelfbhw_enable_irq(struct intelfb_info *dinfo)
 
 void intelfbhw_disable_irq(struct intelfb_info *dinfo)
 {
-	if (test_and_clear_bit(0, &dinfo->irq_flags)) {
-		if (dinfo->vsync.pan_display) {
+	if (test_and_clear_bit(0, &dinfo->irq_flags))
+	{
+		if (dinfo->vsync.pan_display)
+		{
 			dinfo->vsync.pan_display = 0;
 			OUTREG(DSPABASE, dinfo->vsync.pan_offset);
 		}
+
 		spin_lock_irq(&dinfo->int_lock);
 		OUTREG16(HWSTAM, 0xffff);
 		OUTREG16(IMR, 0xffff);
@@ -2094,24 +2586,34 @@ int intelfbhw_wait_for_vsync(struct intelfb_info *dinfo, u32 pipe)
 	unsigned int count;
 	int ret;
 
-	switch (pipe) {
+	switch (pipe)
+	{
 		case 0:
 			vsync = &dinfo->vsync;
 			break;
+
 		default:
 			return -ENODEV;
 	}
 
 	ret = intelfbhw_enable_irq(dinfo);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	count = vsync->count;
 	ret = wait_event_interruptible_timeout(vsync->wait,
-					       count != vsync->count, HZ / 10);
+										   count != vsync->count, HZ / 10);
+
 	if (ret < 0)
+	{
 		return ret;
-	if (ret == 0) {
+	}
+
+	if (ret == 0)
+	{
 		DBG_MSG("wait_for_vsync timed out!\n");
 		return -ETIMEDOUT;
 	}

@@ -81,7 +81,9 @@ void set_affinity(const char *arg)
 	char *endptr;
 
 	if (!arg)
+	{
 		return;
+	}
 
 	cpu = strtol(arg, &endptr, 0);
 	assert(!*endptr);
@@ -99,7 +101,9 @@ void set_affinity(const char *arg)
 void poll_used(void)
 {
 	while (used_empty())
+	{
 		busy_wait();
+	}
 }
 
 static void __attribute__((__flatten__)) run_guest(void)
@@ -114,42 +118,75 @@ static void __attribute__((__flatten__)) run_guest(void)
 	void *buf;
 	int tokick = batch;
 
-	for (;;) {
+	for (;;)
+	{
 		if (do_sleep)
+		{
 			disable_call();
+		}
+
 		completed_before = completed;
-		do {
+
+		do
+		{
 			if (started < bufs &&
-			    started - completed < max_outstanding) {
+				started - completed < max_outstanding)
+			{
 				r = add_inbuf(0, "Buffer\n", "Hello, world!");
-				if (__builtin_expect(r == 0, true)) {
+
+				if (__builtin_expect(r == 0, true))
+				{
 					++started;
-					if (!--tokick) {
+
+					if (!--tokick)
+					{
 						tokick = batch;
+
 						if (do_sleep)
+						{
 							kick_available();
+						}
 					}
 
 				}
-			} else
+			}
+			else
+			{
 				r = -1;
+			}
 
 			/* Flush out completed bufs if any */
-			if (get_buf(&len, &buf)) {
+			if (get_buf(&len, &buf))
+			{
 				++completed;
+
 				if (__builtin_expect(completed == bufs, false))
+				{
 					return;
+				}
+
 				r = 0;
 			}
-		} while (r == 0);
+		}
+		while (r == 0);
+
 		if (completed == completed_before)
+		{
 			++spurious;
+		}
+
 		assert(completed <= bufs);
 		assert(started <= bufs);
-		if (do_sleep) {
+
+		if (do_sleep)
+		{
 			if (used_empty() && enable_call())
+			{
 				wait_for_call();
-		} else {
+			}
+		}
+		else
+		{
 			poll_used();
 		}
 	}
@@ -158,7 +195,9 @@ static void __attribute__((__flatten__)) run_guest(void)
 void poll_avail(void)
 {
 	while (avail_empty())
+	{
 		busy_wait();
+	}
 }
 
 static void __attribute__((__flatten__)) run_host(void)
@@ -170,28 +209,53 @@ static void __attribute__((__flatten__)) run_host(void)
 	unsigned len;
 	void *buf;
 
-	for (;;) {
-		if (do_sleep) {
+	for (;;)
+	{
+		if (do_sleep)
+		{
 			if (avail_empty() && enable_kick())
+			{
 				wait_for_kick();
-		} else {
+			}
+		}
+		else
+		{
 			poll_avail();
 		}
+
 		if (do_sleep)
+		{
 			disable_kick();
-		completed_before = completed;
-		while (__builtin_expect(use_buf(&len, &buf), true)) {
-			if (do_sleep)
-				call_used();
-			++completed;
-			if (__builtin_expect(completed == bufs, false))
-				return;
 		}
+
+		completed_before = completed;
+
+		while (__builtin_expect(use_buf(&len, &buf), true))
+		{
+			if (do_sleep)
+			{
+				call_used();
+			}
+
+			++completed;
+
+			if (__builtin_expect(completed == bufs, false))
+			{
+				return;
+			}
+		}
+
 		if (completed == completed_before)
+		{
 			++spurious;
+		}
+
 		assert(completed <= bufs);
+
 		if (completed == bufs)
+		{
 			break;
+		}
 	}
 }
 
@@ -210,7 +274,8 @@ void *start_host(void *arg)
 }
 
 static const char optstring[] = "";
-static const struct option longopts[] = {
+static const struct option longopts[] =
+{
 	{
 		.name = "help",
 		.has_arg = no_argument,
@@ -268,18 +333,18 @@ static const struct option longopts[] = {
 static void help(void)
 {
 	fprintf(stderr, "Usage: <test> [--help]"
-		" [--host-affinity H]"
-		" [--guest-affinity G]"
-		" [--ring-size R (default: %d)]"
-		" [--run-cycles C (default: %d)]"
-		" [--batch b]"
-		" [--outstanding o]"
-		" [--sleep]"
-		" [--relax]"
-		" [--exit]"
-		"\n",
-		ring_size,
-		runcycles);
+			" [--host-affinity H]"
+			" [--guest-affinity G]"
+			" [--ring-size R (default: %d)]"
+			" [--run-cycles C (default: %d)]"
+			" [--batch b]"
+			" [--outstanding o]"
+			" [--sleep]"
+			" [--relax]"
+			" [--exit]"
+			"\n",
+			ring_size,
+			runcycles);
 }
 
 int main(int argc, char **argv)
@@ -297,56 +362,70 @@ int main(int argc, char **argv)
 	callfd = eventfd(0, 0);
 	assert(callfd >= 0);
 
-	for (;;) {
+	for (;;)
+	{
 		int o = getopt_long(argc, argv, optstring, longopts, NULL);
-		switch (o) {
-		case -1:
-			goto done;
-		case '?':
-			help();
-			exit(2);
-		case 'H':
-			host_arg = optarg;
-			break;
-		case 'G':
-			guest_arg = optarg;
-			break;
-		case 'R':
-			ring_size = strtol(optarg, &endptr, 0);
-			assert(ring_size && !(ring_size & (ring_size - 1)));
-			assert(!*endptr);
-			break;
-		case 'C':
-			c = strtol(optarg, &endptr, 0);
-			assert(!*endptr);
-			assert(c > 0 && c < INT_MAX);
-			runcycles = c;
-			break;
-		case 'o':
-			c = strtol(optarg, &endptr, 0);
-			assert(!*endptr);
-			assert(c > 0 && c < INT_MAX);
-			max_outstanding = c;
-			break;
-		case 'b':
-			c = strtol(optarg, &endptr, 0);
-			assert(!*endptr);
-			assert(c > 0 && c < INT_MAX);
-			batch = c;
-			break;
-		case 's':
-			do_sleep = true;
-			break;
-		case 'x':
-			do_relax = true;
-			break;
-		case 'e':
-			do_exit = true;
-			break;
-		default:
-			help();
-			exit(4);
-			break;
+
+		switch (o)
+		{
+			case -1:
+				goto done;
+
+			case '?':
+				help();
+				exit(2);
+
+			case 'H':
+				host_arg = optarg;
+				break;
+
+			case 'G':
+				guest_arg = optarg;
+				break;
+
+			case 'R':
+				ring_size = strtol(optarg, &endptr, 0);
+				assert(ring_size && !(ring_size & (ring_size - 1)));
+				assert(!*endptr);
+				break;
+
+			case 'C':
+				c = strtol(optarg, &endptr, 0);
+				assert(!*endptr);
+				assert(c > 0 && c < INT_MAX);
+				runcycles = c;
+				break;
+
+			case 'o':
+				c = strtol(optarg, &endptr, 0);
+				assert(!*endptr);
+				assert(c > 0 && c < INT_MAX);
+				max_outstanding = c;
+				break;
+
+			case 'b':
+				c = strtol(optarg, &endptr, 0);
+				assert(!*endptr);
+				assert(c > 0 && c < INT_MAX);
+				batch = c;
+				break;
+
+			case 's':
+				do_sleep = true;
+				break;
+
+			case 'x':
+				do_relax = true;
+				break;
+
+			case 'e':
+				do_exit = true;
+				break;
+
+			default:
+				help();
+				exit(4);
+				break;
 		}
 	}
 
@@ -357,12 +436,16 @@ int main(int argc, char **argv)
 done:
 
 	if (batch > max_outstanding)
+	{
 		batch = max_outstanding;
+	}
 
-	if (optind < argc) {
+	if (optind < argc)
+	{
 		help();
 		exit(4);
 	}
+
 	alloc_ring();
 
 	ret = pthread_create(&host, NULL, start_host, host_arg);

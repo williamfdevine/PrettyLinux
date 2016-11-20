@@ -37,23 +37,26 @@ static int lowpan_give_skb_to_device(struct sk_buff *skb)
 
 static int lowpan_rx_handlers_result(struct sk_buff *skb, lowpan_rx_result res)
 {
-	switch (res) {
-	case RX_CONTINUE:
-		/* nobody cared about this packet */
-		net_warn_ratelimited("%s: received unknown dispatch\n",
-				     __func__);
+	switch (res)
+	{
+		case RX_CONTINUE:
+			/* nobody cared about this packet */
+			net_warn_ratelimited("%s: received unknown dispatch\n",
+								 __func__);
 
 		/* fall-through */
-	case RX_DROP_UNUSABLE:
-		kfree_skb(skb);
+		case RX_DROP_UNUSABLE:
+			kfree_skb(skb);
 
 		/* fall-through */
-	case RX_DROP:
-		return NET_RX_DROP;
-	case RX_QUEUED:
-		return lowpan_give_skb_to_device(skb);
-	default:
-		break;
+		case RX_DROP:
+			return NET_RX_DROP;
+
+		case RX_QUEUED:
+			return lowpan_give_skb_to_device(skb);
+
+		default:
+			break;
 	}
 
 	return NET_RX_DROP;
@@ -74,13 +77,18 @@ static lowpan_rx_result lowpan_rx_h_frag(struct sk_buff *skb)
 	int ret;
 
 	if (!(lowpan_is_frag1(*skb_network_header(skb)) ||
-	      lowpan_is_fragn(*skb_network_header(skb))))
+		  lowpan_is_fragn(*skb_network_header(skb))))
+	{
 		return RX_CONTINUE;
+	}
 
 	ret = lowpan_frag_rcv(skb, *skb_network_header(skb) &
-			      LOWPAN_DISPATCH_FRAG_MASK);
+						  LOWPAN_DISPATCH_FRAG_MASK);
+
 	if (ret == 1)
+	{
 		return RX_QUEUED;
+	}
 
 	/* Packet is freed by lowpan_frag_rcv on error or put into the frag
 	 * bucket.
@@ -93,7 +101,9 @@ int lowpan_iphc_decompress(struct sk_buff *skb)
 	struct ieee802154_hdr hdr;
 
 	if (ieee802154_hdr_peek_addrs(skb, &hdr) < 0)
+	{
 		return -EINVAL;
+	}
 
 	return lowpan_header_decompress(skb, skb->dev, &hdr.dest, &hdr.source);
 }
@@ -103,7 +113,9 @@ static lowpan_rx_result lowpan_rx_h_iphc(struct sk_buff *skb)
 	int ret;
 
 	if (!lowpan_is_iphc(*skb_network_header(skb)))
+	{
 		return RX_CONTINUE;
+	}
 
 	/* Setting datagram_offset to zero indicates non frag handling
 	 * while doing lowpan_header_decompress.
@@ -111,8 +123,11 @@ static lowpan_rx_result lowpan_rx_h_iphc(struct sk_buff *skb)
 	lowpan_802154_cb(skb)->d_size = 0;
 
 	ret = lowpan_iphc_decompress(skb);
+
 	if (ret < 0)
+	{
 		return RX_DROP_UNUSABLE;
+	}
 
 	return RX_QUEUED;
 }
@@ -120,7 +135,9 @@ static lowpan_rx_result lowpan_rx_h_iphc(struct sk_buff *skb)
 lowpan_rx_result lowpan_rx_h_ipv6(struct sk_buff *skb)
 {
 	if (!lowpan_is_ipv6(*skb_network_header(skb)))
+	{
 		return RX_CONTINUE;
+	}
 
 	/* Pull off the 1-byte of 6lowpan header. */
 	skb_pull(skb, 1);
@@ -135,10 +152,12 @@ static inline bool lowpan_is_esc(u8 dispatch)
 static lowpan_rx_result lowpan_rx_h_esc(struct sk_buff *skb)
 {
 	if (!lowpan_is_esc(*skb_network_header(skb)))
+	{
 		return RX_CONTINUE;
+	}
 
 	net_warn_ratelimited("%s: %s\n", skb->dev->name,
-			     "6LoWPAN ESC not supported\n");
+						 "6LoWPAN ESC not supported\n");
 
 	return RX_DROP_UNUSABLE;
 }
@@ -151,10 +170,12 @@ static inline bool lowpan_is_hc1(u8 dispatch)
 static lowpan_rx_result lowpan_rx_h_hc1(struct sk_buff *skb)
 {
 	if (!lowpan_is_hc1(*skb_network_header(skb)))
+	{
 		return RX_CONTINUE;
+	}
 
 	net_warn_ratelimited("%s: %s\n", skb->dev->name,
-			     "6LoWPAN HC1 not supported\n");
+						 "6LoWPAN HC1 not supported\n");
 
 	return RX_DROP_UNUSABLE;
 }
@@ -167,10 +188,12 @@ static inline bool lowpan_is_dff(u8 dispatch)
 static lowpan_rx_result lowpan_rx_h_dff(struct sk_buff *skb)
 {
 	if (!lowpan_is_dff(*skb_network_header(skb)))
+	{
 		return RX_CONTINUE;
+	}
 
 	net_warn_ratelimited("%s: %s\n", skb->dev->name,
-			     "6LoWPAN DFF not supported\n");
+						 "6LoWPAN DFF not supported\n");
 
 	return RX_DROP_UNUSABLE;
 }
@@ -183,10 +206,12 @@ static inline bool lowpan_is_bc0(u8 dispatch)
 static lowpan_rx_result lowpan_rx_h_bc0(struct sk_buff *skb)
 {
 	if (!lowpan_is_bc0(*skb_network_header(skb)))
+	{
 		return RX_CONTINUE;
+	}
 
 	net_warn_ratelimited("%s: %s\n", skb->dev->name,
-			     "6LoWPAN BC0 not supported\n");
+						 "6LoWPAN BC0 not supported\n");
 
 	return RX_DROP_UNUSABLE;
 }
@@ -199,10 +224,12 @@ static inline bool lowpan_is_mesh(u8 dispatch)
 static lowpan_rx_result lowpan_rx_h_mesh(struct sk_buff *skb)
 {
 	if (!lowpan_is_mesh(*skb_network_header(skb)))
+	{
 		return RX_CONTINUE;
+	}
 
 	net_warn_ratelimited("%s: %s\n", skb->dev->name,
-			     "6LoWPAN MESH not supported\n");
+						 "6LoWPAN MESH not supported\n");
 
 	return RX_DROP_UNUSABLE;
 }
@@ -246,9 +273,9 @@ static inline bool lowpan_is_nalp(u8 dispatch)
 static inline bool lowpan_is_reserved(u8 dispatch)
 {
 	return ((dispatch >= 0x44 && dispatch <= 0x4F) ||
-		(dispatch >= 0x51 && dispatch <= 0x5F) ||
-		(dispatch >= 0xc8 && dispatch <= 0xdf) ||
-		(dispatch >= 0xe8 && dispatch <= 0xff));
+			(dispatch >= 0x51 && dispatch <= 0x5F) ||
+			(dispatch >= 0xc8 && dispatch <= 0xdf) ||
+			(dispatch >= 0xe8 && dispatch <= 0xff));
 }
 
 /* lowpan_rx_h_check checks on generic 6LoWPAN requirements
@@ -262,38 +289,53 @@ static inline bool lowpan_rx_h_check(struct sk_buff *skb)
 
 	/* check on ieee802154 conform 6LoWPAN header */
 	if (!ieee802154_is_data(fc) ||
-	    !ieee802154_skb_is_intra_pan_addressing(fc, skb))
+		!ieee802154_skb_is_intra_pan_addressing(fc, skb))
+	{
 		return false;
+	}
 
 	/* check if we can dereference the dispatch */
 	if (unlikely(!skb->len))
+	{
 		return false;
+	}
 
 	if (lowpan_is_nalp(*skb_network_header(skb)) ||
-	    lowpan_is_reserved(*skb_network_header(skb)))
+		lowpan_is_reserved(*skb_network_header(skb)))
+	{
 		return false;
+	}
 
 	return true;
 }
 
 static int lowpan_rcv(struct sk_buff *skb, struct net_device *wdev,
-		      struct packet_type *pt, struct net_device *orig_wdev)
+					  struct packet_type *pt, struct net_device *orig_wdev)
 {
 	struct net_device *ldev;
 
 	if (wdev->type != ARPHRD_IEEE802154 ||
-	    skb->pkt_type == PACKET_OTHERHOST ||
-	    !lowpan_rx_h_check(skb))
+		skb->pkt_type == PACKET_OTHERHOST ||
+		!lowpan_rx_h_check(skb))
+	{
 		goto drop;
+	}
 
 	ldev = wdev->ieee802154_ptr->lowpan_dev;
+
 	if (!ldev || !netif_running(ldev))
+	{
 		goto drop;
+	}
 
 	/* Replacing skb->dev and followed rx handlers will manipulate skb. */
 	skb = skb_share_check(skb, GFP_ATOMIC);
+
 	if (!skb)
+	{
 		goto out;
+	}
+
 	skb->dev = ldev;
 
 	/* When receive frag1 it's likely that we manipulate the buffer.
@@ -301,10 +343,14 @@ static int lowpan_rcv(struct sk_buff *skb, struct net_device *wdev,
 	 * to unshare the buffer.
 	 */
 	if (lowpan_is_frag1(*skb_network_header(skb)) ||
-	    lowpan_is_iphc(*skb_network_header(skb))) {
+		lowpan_is_iphc(*skb_network_header(skb)))
+	{
 		skb = skb_unshare(skb, GFP_ATOMIC);
+
 		if (!skb)
+		{
 			goto out;
+		}
 	}
 
 	return lowpan_invoke_rx_handlers(skb);
@@ -315,7 +361,8 @@ out:
 	return NET_RX_DROP;
 }
 
-static struct packet_type lowpan_packet_type = {
+static struct packet_type lowpan_packet_type =
+{
 	.type = htons(ETH_P_IEEE802154),
 	.func = lowpan_rcv,
 };

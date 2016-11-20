@@ -18,7 +18,7 @@
 #define MAX_PAYLOAD		1562
 #define PRIMARY_RING		0x00000001
 #ifndef NULL
-#define NULL			0x00
+	#define NULL			0x00
 #endif
 
 /*********************** SB_Input Variable Values ***********************/
@@ -38,39 +38,39 @@
 #define DEFAULT_OV		50
 
 #ifdef SBA
-/**************************** SBA STATES *****************************/
+	/**************************** SBA STATES *****************************/
 
-#define SBA_STANDBY		0x00000000
-#define SBA_ACTIVE		0x00000001
-#define SBA_RECOVERY		0x00000002
-#define SBA_REPORT		0x00000003
-#define SBA_CHANGE		0x00000004
+	#define SBA_STANDBY		0x00000000
+	#define SBA_ACTIVE		0x00000001
+	#define SBA_RECOVERY		0x00000002
+	#define SBA_REPORT		0x00000003
+	#define SBA_CHANGE		0x00000004
 
-/**************************** OTHERS *********************************/
+	/**************************** OTHERS *********************************/
 
-#define FIFTY_PERCENT		50		/* bytes per second */
-#define MAX_SESSIONS		150	
-#define TWO_MINUTES		13079		/* 9.175 ms/tick */
-#define FIFTY_BYTES		50
-#define SBA_DENIED		0x0000000D
-#define I_NEED_ONE		0x00000000
-#define MAX_NODES		50
-/*#define T_REPORT		0x59682F00L*/	/* 120s/80ns in Hex */
-#define	TWO_MIN			120		/* seconds */
-#define SBA_ST_UNKNOWN		0x00000002
-#define SBA_ST_ACTIVE		0x00000001
-#define S_CLEAR			0x00000000L
-#define ZERO			0x00000000
-#define FULL			0x00000000	/* old: 0xFFFFFFFFF */
-#define S_SET			0x00000001L
-#define LOW_PRIO		0x02		/* ??????? */
-#define OK			0x01		/* ??????? */
-#define NOT_OK			0x00		/* ??????? */
+	#define FIFTY_PERCENT		50		/* bytes per second */
+	#define MAX_SESSIONS		150
+	#define TWO_MINUTES		13079		/* 9.175 ms/tick */
+	#define FIFTY_BYTES		50
+	#define SBA_DENIED		0x0000000D
+	#define I_NEED_ONE		0x00000000
+	#define MAX_NODES		50
+	/*#define T_REPORT		0x59682F00L*/	/* 120s/80ns in Hex */
+	#define	TWO_MIN			120		/* seconds */
+	#define SBA_ST_UNKNOWN		0x00000002
+	#define SBA_ST_ACTIVE		0x00000001
+	#define S_CLEAR			0x00000000L
+	#define ZERO			0x00000000
+	#define FULL			0x00000000	/* old: 0xFFFFFFFFF */
+	#define S_SET			0x00000001L
+	#define LOW_PRIO		0x02		/* ??????? */
+	#define OK			0x01		/* ??????? */
+	#define NOT_OK			0x00		/* ??????? */
 
-/****************************************/
-/* deallocate_status[ni][si] values	*/
-/****************************************/
-#define TX_CHANGE		0X00000001L
-#define PENDING			0x00000002L
-#define NONE			0X00000000L
+	/****************************************/
+	/* deallocate_status[ni][si] values	*/
+	/****************************************/
+	#define TX_CHANGE		0X00000001L
+	#define PENDING			0x00000002L
+	#define NONE			0X00000000L
 #endif

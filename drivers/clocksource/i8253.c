@@ -53,7 +53,8 @@ static cycle_t i8253_read(struct clocksource *cs)
 	count |= inb_p(PIT_CH0) << 8;
 
 	/* VIA686a test code... reset the latch if count > max + 1 */
-	if (count > PIT_LATCH) {
+	if (count > PIT_LATCH)
+	{
 		outb_p(0x34, PIT_MODE);
 		outb_p(PIT_LATCH & 0xff, PIT_CH0);
 		outb_p(PIT_LATCH >> 8, PIT_CH0);
@@ -74,7 +75,9 @@ static cycle_t i8253_read(struct clocksource *cs)
 	 * buggy, so we just do the simple thing now.
 	 */
 	if (count > old_count && jifs == old_jifs)
+	{
 		count = old_count;
+	}
 
 	old_count = count;
 	old_jifs = jifs;
@@ -86,7 +89,8 @@ static cycle_t i8253_read(struct clocksource *cs)
 	return (cycle_t)(jifs * PIT_LATCH) + count;
 }
 
-static struct clocksource i8253_cs = {
+static struct clocksource i8253_cs =
+{
 	.name		= "pit",
 	.rating		= 110,
 	.read		= i8253_read,
@@ -103,7 +107,9 @@ int __init clocksource_i8253_init(void)
 static int pit_shutdown(struct clock_event_device *evt)
 {
 	if (!clockevent_state_oneshot(evt) && !clockevent_state_periodic(evt))
+	{
 		return 0;
+	}
 
 	raw_spin_lock(&i8253_lock);
 
@@ -155,7 +161,8 @@ static int pit_next_event(unsigned long delta, struct clock_event_device *evt)
  * On UP the PIT can serve all of the possible timer functions. On SMP systems
  * it can be solely used for the global tick.
  */
-struct clock_event_device i8253_clockevent = {
+struct clock_event_device i8253_clockevent =
+{
 	.name			= "pit",
 	.features		= CLOCK_EVT_FEAT_PERIODIC,
 	.set_state_shutdown	= pit_shutdown,
@@ -169,10 +176,12 @@ struct clock_event_device i8253_clockevent = {
  */
 void __init clockevent_i8253_init(bool oneshot)
 {
-	if (oneshot) {
+	if (oneshot)
+	{
 		i8253_clockevent.features |= CLOCK_EVT_FEAT_ONESHOT;
 		i8253_clockevent.set_state_oneshot = pit_set_oneshot;
 	}
+
 	/*
 	 * Start pit with the boot cpu mask. x86 might make it global
 	 * when it is used as broadcast device later.
@@ -180,6 +189,6 @@ void __init clockevent_i8253_init(bool oneshot)
 	i8253_clockevent.cpumask = cpumask_of(smp_processor_id());
 
 	clockevents_config_and_register(&i8253_clockevent, PIT_TICK_RATE,
-					0xF, 0x7FFF);
+									0xF, 0x7FFF);
 }
 #endif

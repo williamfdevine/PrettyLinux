@@ -5,7 +5,7 @@
  *
  * Drive tuning added from Rebel.com's kernel sources
  *  -- Russell King (15/11/98) linux@arm.linux.org.uk
- * 
+ *
  * Merge in Russell's HW workarounds, fix various problems
  * with the timing registers setup.
  *  -- Benjamin Herrenschmidt (01/11/03) benh@kernel.crashing.org
@@ -49,13 +49,19 @@ static unsigned int get_pio_timings(ide_drive_t *drive, u8 pio)
 	cmd_off = (ide_pio_cycle_time(drive, pio) - 30 * cmd_on + 29) / 30;
 
 	if (cmd_on == 0)
+	{
 		cmd_on = 1;
+	}
 
 	if (cmd_off == 0)
+	{
 		cmd_off = 1;
+	}
 
 	if (ide_pio_need_iordy(drive, pio))
+	{
 		iordy = 0x40;
+	}
 
 	return (cmd_on - 1) << 8 | (cmd_off - 1) | iordy;
 }
@@ -85,8 +91,8 @@ static void sl82c105_set_pio_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 	pci_read_config_word (dev, reg, &drv_ctrl);
 
 	printk(KERN_DEBUG "%s: selected %s (%dns) (%04X)\n", drive->name,
-			  ide_xfer_verbose(pio + XFER_PIO_0),
-			  ide_pio_cycle_time(drive, pio), drv_ctrl);
+		   ide_xfer_verbose(pio + XFER_PIO_0),
+		   ide_pio_cycle_time(drive, pio), drv_ctrl);
 }
 
 /*
@@ -157,16 +163,19 @@ static void sl82c105_dma_lost_irq(ide_drive_t *drive)
 	 * Check the raw interrupt from the drive.
 	 */
 	pci_read_config_dword(dev, 0x40, &val);
+
 	if (val & mask)
 		printk(KERN_INFO "sl82c105: drive was requesting IRQ, "
-		       "but host lost it\n");
+			   "but host lost it\n");
 
 	/*
 	 * Was DMA enabled?  If so, disable it - we're resetting the
 	 * host.  The IDE layer will be handling the drive for us.
 	 */
 	dma_cmd = inb(hwif->dma_base + ATA_DMA_CMD);
-	if (dma_cmd & 1) {
+
+	if (dma_cmd & 1)
+	{
 		outb(dma_cmd & ~1, hwif->dma_base + ATA_DMA_CMD);
 		printk(KERN_INFO "sl82c105: DMA was enabled\n");
 	}
@@ -189,7 +198,7 @@ static void sl82c105_dma_start(ide_drive_t *drive)
 	int reg 		= 0x44 + drive->dn * 4;
 
 	pci_write_config_word(dev, reg,
-			      (unsigned long)ide_get_drivedata(drive) >> 16);
+						  (unsigned long)ide_get_drivedata(drive) >> 16);
 
 	sl82c105_reset_host(dev);
 	ide_dma_start(drive);
@@ -209,7 +218,7 @@ static int sl82c105_dma_end(ide_drive_t *drive)
 	int ret			= ide_dma_end(drive);
 
 	pci_write_config_word(dev, reg,
-			      (unsigned long)ide_get_drivedata(drive));
+						  (unsigned long)ide_get_drivedata(drive));
 
 	return ret;
 }
@@ -240,19 +249,24 @@ static u8 sl82c105_bridge_revision(struct pci_dev *dev)
 	 * The bridge should be part of the same device, but function 0.
 	 */
 	bridge = pci_get_bus_and_slot(dev->bus->number,
-			       PCI_DEVFN(PCI_SLOT(dev->devfn), 0));
+								  PCI_DEVFN(PCI_SLOT(dev->devfn), 0));
+
 	if (!bridge)
+	{
 		return -1;
+	}
 
 	/*
 	 * Make sure it is a Winbond 553 and is an ISA bridge.
 	 */
 	if (bridge->vendor != PCI_VENDOR_ID_WINBOND ||
-	    bridge->device != PCI_DEVICE_ID_WINBOND_83C553 ||
-	    bridge->class >> 8 != PCI_CLASS_BRIDGE_ISA) {
-	    	pci_dev_put(bridge);
+		bridge->device != PCI_DEVICE_ID_WINBOND_83C553 ||
+		bridge->class >> 8 != PCI_CLASS_BRIDGE_ISA)
+	{
+		pci_dev_put(bridge);
 		return -1;
 	}
+
 	/*
 	 * We need to find function 0's revision, not function 1
 	 */
@@ -263,7 +277,7 @@ static u8 sl82c105_bridge_revision(struct pci_dev *dev)
 
 /*
  * Enable the PCI device
- * 
+ *
  * --BenH: It's arch fixup code that should enable channels that
  * have not been enabled by firmware. I decided we can still enable
  * channel 0 here at least, but channel 1 has to be enabled by
@@ -280,14 +294,16 @@ static int init_chipset_sl82c105(struct pci_dev *dev)
 	return 0;
 }
 
-static const struct ide_port_ops sl82c105_port_ops = {
+static const struct ide_port_ops sl82c105_port_ops =
+{
 	.set_pio_mode		= sl82c105_set_pio_mode,
 	.set_dma_mode		= sl82c105_set_dma_mode,
 	.resetproc		= sl82c105_resetproc,
 	.test_irq		= sl82c105_test_irq,
 };
 
-static const struct ide_dma_ops sl82c105_dma_ops = {
+static const struct ide_dma_ops sl82c105_dma_ops =
+{
 	.dma_host_set		= ide_dma_host_set,
 	.dma_setup		= ide_dma_setup,
 	.dma_start		= sl82c105_dma_start,
@@ -299,16 +315,17 @@ static const struct ide_dma_ops sl82c105_dma_ops = {
 	.dma_sff_read_status	= ide_dma_sff_read_status,
 };
 
-static const struct ide_port_info sl82c105_chipset = {
+static const struct ide_port_info sl82c105_chipset =
+{
 	.name		= DRV_NAME,
 	.init_chipset	= init_chipset_sl82c105,
-	.enablebits	= {{0x40,0x01,0x01}, {0x40,0x10,0x10}},
+	.enablebits	= {{0x40, 0x01, 0x01}, {0x40, 0x10, 0x10}},
 	.port_ops	= &sl82c105_port_ops,
 	.dma_ops	= &sl82c105_dma_ops,
 	.host_flags	= IDE_HFLAG_IO_32BIT |
-			  IDE_HFLAG_UNMASK_IRQS |
-			  IDE_HFLAG_SERIALIZE_DMA |
-			  IDE_HFLAG_NO_AUTODMA,
+	IDE_HFLAG_UNMASK_IRQS |
+	IDE_HFLAG_SERIALIZE_DMA |
+	IDE_HFLAG_NO_AUTODMA,
 	.pio_mask	= ATA_PIO5,
 	.mwdma_mask	= ATA_MWDMA2,
 };
@@ -318,13 +335,14 @@ static int sl82c105_init_one(struct pci_dev *dev, const struct pci_device_id *id
 	struct ide_port_info d = sl82c105_chipset;
 	u8 rev = sl82c105_bridge_revision(dev);
 
-	if (rev <= 5) {
+	if (rev <= 5)
+	{
 		/*
 		 * Never ever EVER under any circumstances enable
 		 * DMA when the bridge is this old.
 		 */
 		printk(KERN_INFO DRV_NAME ": Winbond W83C553 bridge "
-				 "revision %d, BM-DMA disabled\n", rev);
+			   "revision %d, BM-DMA disabled\n", rev);
 		d.dma_ops = NULL;
 		d.mwdma_mask = 0;
 		d.host_flags &= ~IDE_HFLAG_SERIALIZE_DMA;
@@ -333,13 +351,15 @@ static int sl82c105_init_one(struct pci_dev *dev, const struct pci_device_id *id
 	return ide_pci_init_one(dev, &d, NULL);
 }
 
-static const struct pci_device_id sl82c105_pci_tbl[] = {
+static const struct pci_device_id sl82c105_pci_tbl[] =
+{
 	{ PCI_VDEVICE(WINBOND, PCI_DEVICE_ID_WINBOND_82C105), 0 },
 	{ 0, },
 };
 MODULE_DEVICE_TABLE(pci, sl82c105_pci_tbl);
 
-static struct pci_driver sl82c105_pci_driver = {
+static struct pci_driver sl82c105_pci_driver =
+{
 	.name		= "W82C105_IDE",
 	.id_table	= sl82c105_pci_tbl,
 	.probe		= sl82c105_init_one,

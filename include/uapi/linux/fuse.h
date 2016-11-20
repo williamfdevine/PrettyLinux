@@ -118,9 +118,9 @@
 #define _LINUX_FUSE_H
 
 #ifdef __KERNEL__
-#include <linux/types.h>
+	#include <linux/types.h>
 #else
-#include <stdint.h>
+	#include <stdint.h>
 #endif
 
 /*
@@ -155,7 +155,8 @@
 /* Make sure all structures are padded to 64bit boundary, so 32bit
    userspace works under 64bit kernels */
 
-struct fuse_attr {
+struct fuse_attr
+{
 	uint64_t	ino;
 	uint64_t	size;
 	uint64_t	blocks;
@@ -174,7 +175,8 @@ struct fuse_attr {
 	uint32_t	padding;
 };
 
-struct fuse_kstatfs {
+struct fuse_kstatfs
+{
 	uint64_t	blocks;
 	uint64_t	bfree;
 	uint64_t	bavail;
@@ -187,7 +189,8 @@ struct fuse_kstatfs {
 	uint32_t	spare[6];
 };
 
-struct fuse_file_lock {
+struct fuse_file_lock
+{
 	uint64_t	start;
 	uint64_t	end;
 	uint32_t	type;
@@ -330,7 +333,8 @@ struct fuse_file_lock {
  */
 #define FUSE_POLL_SCHEDULE_NOTIFY (1 << 0)
 
-enum fuse_opcode {
+enum fuse_opcode
+{
 	FUSE_LOOKUP	   = 1,
 	FUSE_FORGET	   = 2,  /* no reply */
 	FUSE_GETATTR	   = 3,
@@ -380,7 +384,8 @@ enum fuse_opcode {
 	CUSE_INIT          = 4096,
 };
 
-enum fuse_notify_code {
+enum fuse_notify_code
+{
 	FUSE_NOTIFY_POLL   = 1,
 	FUSE_NOTIFY_INVAL_INODE = 2,
 	FUSE_NOTIFY_INVAL_ENTRY = 3,
@@ -395,7 +400,8 @@ enum fuse_notify_code {
 
 #define FUSE_COMPAT_ENTRY_OUT_SIZE 120
 
-struct fuse_entry_out {
+struct fuse_entry_out
+{
 	uint64_t	nodeid;		/* Inode ID */
 	uint64_t	generation;	/* Inode generation: nodeid:gen must
 					   be unique for the fs's lifetime */
@@ -406,21 +412,25 @@ struct fuse_entry_out {
 	struct fuse_attr attr;
 };
 
-struct fuse_forget_in {
+struct fuse_forget_in
+{
 	uint64_t	nlookup;
 };
 
-struct fuse_forget_one {
+struct fuse_forget_one
+{
 	uint64_t	nodeid;
 	uint64_t	nlookup;
 };
 
-struct fuse_batch_forget_in {
+struct fuse_batch_forget_in
+{
 	uint32_t	count;
 	uint32_t	dummy;
 };
 
-struct fuse_getattr_in {
+struct fuse_getattr_in
+{
 	uint32_t	getattr_flags;
 	uint32_t	dummy;
 	uint64_t	fh;
@@ -428,7 +438,8 @@ struct fuse_getattr_in {
 
 #define FUSE_COMPAT_ATTR_OUT_SIZE 96
 
-struct fuse_attr_out {
+struct fuse_attr_out
+{
 	uint64_t	attr_valid;	/* Cache timeout for the attributes */
 	uint32_t	attr_valid_nsec;
 	uint32_t	dummy;
@@ -437,33 +448,39 @@ struct fuse_attr_out {
 
 #define FUSE_COMPAT_MKNOD_IN_SIZE 8
 
-struct fuse_mknod_in {
+struct fuse_mknod_in
+{
 	uint32_t	mode;
 	uint32_t	rdev;
 	uint32_t	umask;
 	uint32_t	padding;
 };
 
-struct fuse_mkdir_in {
+struct fuse_mkdir_in
+{
 	uint32_t	mode;
 	uint32_t	umask;
 };
 
-struct fuse_rename_in {
+struct fuse_rename_in
+{
 	uint64_t	newdir;
 };
 
-struct fuse_rename2_in {
+struct fuse_rename2_in
+{
 	uint64_t	newdir;
 	uint32_t	flags;
 	uint32_t	padding;
 };
 
-struct fuse_link_in {
+struct fuse_link_in
+{
 	uint64_t	oldnodeid;
 };
 
-struct fuse_setattr_in {
+struct fuse_setattr_in
+{
 	uint32_t	valid;
 	uint32_t	padding;
 	uint64_t	fh;
@@ -482,39 +499,45 @@ struct fuse_setattr_in {
 	uint32_t	unused5;
 };
 
-struct fuse_open_in {
+struct fuse_open_in
+{
 	uint32_t	flags;
 	uint32_t	unused;
 };
 
-struct fuse_create_in {
+struct fuse_create_in
+{
 	uint32_t	flags;
 	uint32_t	mode;
 	uint32_t	umask;
 	uint32_t	padding;
 };
 
-struct fuse_open_out {
+struct fuse_open_out
+{
 	uint64_t	fh;
 	uint32_t	open_flags;
 	uint32_t	padding;
 };
 
-struct fuse_release_in {
+struct fuse_release_in
+{
 	uint64_t	fh;
 	uint32_t	flags;
 	uint32_t	release_flags;
 	uint64_t	lock_owner;
 };
 
-struct fuse_flush_in {
+struct fuse_flush_in
+{
 	uint64_t	fh;
 	uint32_t	unused;
 	uint32_t	padding;
 	uint64_t	lock_owner;
 };
 
-struct fuse_read_in {
+struct fuse_read_in
+{
 	uint64_t	fh;
 	uint64_t	offset;
 	uint32_t	size;
@@ -526,7 +549,8 @@ struct fuse_read_in {
 
 #define FUSE_COMPAT_WRITE_IN_SIZE 24
 
-struct fuse_write_in {
+struct fuse_write_in
+{
 	uint64_t	fh;
 	uint64_t	offset;
 	uint32_t	size;
@@ -536,39 +560,46 @@ struct fuse_write_in {
 	uint32_t	padding;
 };
 
-struct fuse_write_out {
+struct fuse_write_out
+{
 	uint32_t	size;
 	uint32_t	padding;
 };
 
 #define FUSE_COMPAT_STATFS_SIZE 48
 
-struct fuse_statfs_out {
+struct fuse_statfs_out
+{
 	struct fuse_kstatfs st;
 };
 
-struct fuse_fsync_in {
+struct fuse_fsync_in
+{
 	uint64_t	fh;
 	uint32_t	fsync_flags;
 	uint32_t	padding;
 };
 
-struct fuse_setxattr_in {
+struct fuse_setxattr_in
+{
 	uint32_t	size;
 	uint32_t	flags;
 };
 
-struct fuse_getxattr_in {
+struct fuse_getxattr_in
+{
 	uint32_t	size;
 	uint32_t	padding;
 };
 
-struct fuse_getxattr_out {
+struct fuse_getxattr_out
+{
 	uint32_t	size;
 	uint32_t	padding;
 };
 
-struct fuse_lk_in {
+struct fuse_lk_in
+{
 	uint64_t	fh;
 	uint64_t	owner;
 	struct fuse_file_lock lk;
@@ -576,16 +607,19 @@ struct fuse_lk_in {
 	uint32_t	padding;
 };
 
-struct fuse_lk_out {
+struct fuse_lk_out
+{
 	struct fuse_file_lock lk;
 };
 
-struct fuse_access_in {
+struct fuse_access_in
+{
 	uint32_t	mask;
 	uint32_t	padding;
 };
 
-struct fuse_init_in {
+struct fuse_init_in
+{
 	uint32_t	major;
 	uint32_t	minor;
 	uint32_t	max_readahead;
@@ -595,7 +629,8 @@ struct fuse_init_in {
 #define FUSE_COMPAT_INIT_OUT_SIZE 8
 #define FUSE_COMPAT_22_INIT_OUT_SIZE 24
 
-struct fuse_init_out {
+struct fuse_init_out
+{
 	uint32_t	major;
 	uint32_t	minor;
 	uint32_t	max_readahead;
@@ -609,14 +644,16 @@ struct fuse_init_out {
 
 #define CUSE_INIT_INFO_MAX 4096
 
-struct cuse_init_in {
+struct cuse_init_in
+{
 	uint32_t	major;
 	uint32_t	minor;
 	uint32_t	unused;
 	uint32_t	flags;
 };
 
-struct cuse_init_out {
+struct cuse_init_out
+{
 	uint32_t	major;
 	uint32_t	minor;
 	uint32_t	unused;
@@ -628,21 +665,25 @@ struct cuse_init_out {
 	uint32_t	spare[10];
 };
 
-struct fuse_interrupt_in {
+struct fuse_interrupt_in
+{
 	uint64_t	unique;
 };
 
-struct fuse_bmap_in {
+struct fuse_bmap_in
+{
 	uint64_t	block;
 	uint32_t	blocksize;
 	uint32_t	padding;
 };
 
-struct fuse_bmap_out {
+struct fuse_bmap_out
+{
 	uint64_t	block;
 };
 
-struct fuse_ioctl_in {
+struct fuse_ioctl_in
+{
 	uint64_t	fh;
 	uint32_t	flags;
 	uint32_t	cmd;
@@ -651,35 +692,41 @@ struct fuse_ioctl_in {
 	uint32_t	out_size;
 };
 
-struct fuse_ioctl_iovec {
+struct fuse_ioctl_iovec
+{
 	uint64_t	base;
 	uint64_t	len;
 };
 
-struct fuse_ioctl_out {
+struct fuse_ioctl_out
+{
 	int32_t		result;
 	uint32_t	flags;
 	uint32_t	in_iovs;
 	uint32_t	out_iovs;
 };
 
-struct fuse_poll_in {
+struct fuse_poll_in
+{
 	uint64_t	fh;
 	uint64_t	kh;
 	uint32_t	flags;
 	uint32_t	events;
 };
 
-struct fuse_poll_out {
+struct fuse_poll_out
+{
 	uint32_t	revents;
 	uint32_t	padding;
 };
 
-struct fuse_notify_poll_wakeup_out {
+struct fuse_notify_poll_wakeup_out
+{
 	uint64_t	kh;
 };
 
-struct fuse_fallocate_in {
+struct fuse_fallocate_in
+{
 	uint64_t	fh;
 	uint64_t	offset;
 	uint64_t	length;
@@ -687,7 +734,8 @@ struct fuse_fallocate_in {
 	uint32_t	padding;
 };
 
-struct fuse_in_header {
+struct fuse_in_header
+{
 	uint32_t	len;
 	uint32_t	opcode;
 	uint64_t	unique;
@@ -698,13 +746,15 @@ struct fuse_in_header {
 	uint32_t	padding;
 };
 
-struct fuse_out_header {
+struct fuse_out_header
+{
 	uint32_t	len;
 	int32_t		error;
 	uint64_t	unique;
 };
 
-struct fuse_dirent {
+struct fuse_dirent
+{
 	uint64_t	ino;
 	uint64_t	off;
 	uint32_t	namelen;
@@ -718,7 +768,8 @@ struct fuse_dirent {
 #define FUSE_DIRENT_SIZE(d) \
 	FUSE_DIRENT_ALIGN(FUSE_NAME_OFFSET + (d)->namelen)
 
-struct fuse_direntplus {
+struct fuse_direntplus
+{
 	struct fuse_entry_out entry_out;
 	struct fuse_dirent dirent;
 };
@@ -728,33 +779,38 @@ struct fuse_direntplus {
 #define FUSE_DIRENTPLUS_SIZE(d) \
 	FUSE_DIRENT_ALIGN(FUSE_NAME_OFFSET_DIRENTPLUS + (d)->dirent.namelen)
 
-struct fuse_notify_inval_inode_out {
+struct fuse_notify_inval_inode_out
+{
 	uint64_t	ino;
 	int64_t		off;
 	int64_t		len;
 };
 
-struct fuse_notify_inval_entry_out {
+struct fuse_notify_inval_entry_out
+{
 	uint64_t	parent;
 	uint32_t	namelen;
 	uint32_t	padding;
 };
 
-struct fuse_notify_delete_out {
+struct fuse_notify_delete_out
+{
 	uint64_t	parent;
 	uint64_t	child;
 	uint32_t	namelen;
 	uint32_t	padding;
 };
 
-struct fuse_notify_store_out {
+struct fuse_notify_store_out
+{
 	uint64_t	nodeid;
 	uint64_t	offset;
 	uint32_t	size;
 	uint32_t	padding;
 };
 
-struct fuse_notify_retrieve_out {
+struct fuse_notify_retrieve_out
+{
 	uint64_t	notify_unique;
 	uint64_t	nodeid;
 	uint64_t	offset;
@@ -763,7 +819,8 @@ struct fuse_notify_retrieve_out {
 };
 
 /* Matches the size of fuse_write_in */
-struct fuse_notify_retrieve_in {
+struct fuse_notify_retrieve_in
+{
 	uint64_t	dummy1;
 	uint64_t	offset;
 	uint32_t	size;
@@ -775,14 +832,16 @@ struct fuse_notify_retrieve_in {
 /* Device ioctls: */
 #define FUSE_DEV_IOC_CLONE	_IOR(229, 0, uint32_t)
 
-struct fuse_lseek_in {
+struct fuse_lseek_in
+{
 	uint64_t	fh;
 	uint64_t	offset;
 	uint32_t	whence;
 	uint32_t	padding;
 };
 
-struct fuse_lseek_out {
+struct fuse_lseek_out
+{
 	uint64_t	offset;
 };
 

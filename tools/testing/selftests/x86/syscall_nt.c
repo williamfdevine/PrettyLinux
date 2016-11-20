@@ -24,9 +24,9 @@
 #include <asm/processor-flags.h>
 
 #ifdef __x86_64__
-# define WIDTH "q"
+	#define WIDTH "q"
 #else
-# define WIDTH "l"
+	#define WIDTH "l"
 #endif
 
 static unsigned int nerrs;
@@ -41,19 +41,22 @@ static unsigned long get_eflags(void)
 static void set_eflags(unsigned long eflags)
 {
 	asm volatile ("push" WIDTH " %0\n\tpopf" WIDTH
-		      : : "rm" (eflags) : "flags");
+				  : : "rm" (eflags) : "flags");
 }
 
 static void sethandler(int sig, void (*handler)(int, siginfo_t *, void *),
-		       int flags)
+					   int flags)
 {
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_sigaction = handler;
 	sa.sa_flags = SA_SIGINFO | flags;
 	sigemptyset(&sa.sa_mask);
+
 	if (sigaction(sig, &sa, 0))
+	{
 		err(1, "sigaction");
+	}
 }
 
 static void sigtrap(int sig, siginfo_t *si, void *ctx_void)
@@ -67,11 +70,15 @@ static void do_it(unsigned long extraflags)
 	set_eflags(get_eflags() | extraflags);
 	syscall(SYS_getpid);
 	flags = get_eflags();
-	if ((flags & extraflags) == extraflags) {
+
+	if ((flags & extraflags) == extraflags)
+	{
 		printf("[OK]\tThe syscall worked and flags are still set\n");
-	} else {
+	}
+	else
+	{
 		printf("[FAIL]\tThe syscall worked but flags were cleared (flags = 0x%lx but expected 0x%lx set)\n",
-		       flags, extraflags);
+			   flags, extraflags);
 		nerrs++;
 	}
 }

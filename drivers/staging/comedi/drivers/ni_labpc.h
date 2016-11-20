@@ -18,18 +18,20 @@
 #define _NI_LABPC_H
 
 enum transfer_type { fifo_not_empty_transfer, fifo_half_full_transfer,
-	isa_dma_transfer
-};
+					 isa_dma_transfer
+				   };
 
-struct labpc_boardinfo {
+struct labpc_boardinfo
+{
 	const char *name;
 	int ai_speed;			/* maximum input speed in ns */
-	unsigned ai_scan_up:1;		/* can auto scan up in ai channels */
-	unsigned has_ao:1;		/* has analog outputs */
-	unsigned is_labpc1200:1;	/* has extra regs compared to pc+ */
+	unsigned ai_scan_up: 1;		/* can auto scan up in ai channels */
+	unsigned has_ao: 1;		/* has analog outputs */
+	unsigned is_labpc1200: 1;	/* has extra regs compared to pc+ */
 };
 
-struct labpc_private {
+struct labpc_private
+{
 	struct comedi_isadma *dma;
 	struct comedi_8254 *counter;
 
@@ -54,11 +56,11 @@ struct labpc_private {
 	 */
 	unsigned int (*read_byte)(struct comedi_device *, unsigned long reg);
 	void (*write_byte)(struct comedi_device *,
-			   unsigned int byte, unsigned long reg);
+					   unsigned int byte, unsigned long reg);
 };
 
 int labpc_common_attach(struct comedi_device *dev,
-			unsigned int irq, unsigned long isr_flags);
+						unsigned int irq, unsigned long isr_flags);
 void labpc_common_detach(struct comedi_device *dev);
 
 #endif /* _NI_LABPC_H */

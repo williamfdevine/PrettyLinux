@@ -27,9 +27,12 @@ static void edp_destroy(struct platform_device *pdev)
 	struct msm_edp *edp = platform_get_drvdata(pdev);
 
 	if (!edp)
+	{
 		return;
+	}
 
-	if (edp->ctrl) {
+	if (edp->ctrl)
+	{
 		msm_edp_ctrl_destroy(edp->ctrl);
 		edp->ctrl = NULL;
 	}
@@ -43,31 +46,41 @@ static struct msm_edp *edp_init(struct platform_device *pdev)
 	struct msm_edp *edp = NULL;
 	int ret;
 
-	if (!pdev) {
+	if (!pdev)
+	{
 		pr_err("no eDP device\n");
 		ret = -ENXIO;
 		goto fail;
 	}
 
 	edp = devm_kzalloc(&pdev->dev, sizeof(*edp), GFP_KERNEL);
-	if (!edp) {
+
+	if (!edp)
+	{
 		ret = -ENOMEM;
 		goto fail;
 	}
+
 	DBG("eDP probed=%p", edp);
 
 	edp->pdev = pdev;
 	platform_set_drvdata(pdev, edp);
 
 	ret = msm_edp_ctrl_init(edp);
+
 	if (ret)
+	{
 		goto fail;
+	}
 
 	return edp;
 
 fail:
+
 	if (edp)
+	{
 		edp_destroy(pdev);
+	}
 
 	return ERR_PTR(ret);
 }
@@ -80,8 +93,12 @@ static int edp_bind(struct device *dev, struct device *master, void *data)
 
 	DBG("");
 	edp = edp_init(to_platform_device(dev));
+
 	if (IS_ERR(edp))
+	{
 		return PTR_ERR(edp);
+	}
+
 	priv->edp = edp;
 
 	return 0;
@@ -93,15 +110,18 @@ static void edp_unbind(struct device *dev, struct device *master, void *data)
 	struct msm_drm_private *priv = drm->dev_private;
 
 	DBG("");
-	if (priv->edp) {
+
+	if (priv->edp)
+	{
 		edp_destroy(to_platform_device(dev));
 		priv->edp = NULL;
 	}
 }
 
-static const struct component_ops edp_ops = {
-		.bind   = edp_bind,
-		.unbind = edp_unbind,
+static const struct component_ops edp_ops =
+{
+	.bind   = edp_bind,
+	.unbind = edp_unbind,
 };
 
 static int edp_dev_probe(struct platform_device *pdev)
@@ -117,12 +137,14 @@ static int edp_dev_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id dt_match[] = {
+static const struct of_device_id dt_match[] =
+{
 	{ .compatible = "qcom,mdss-edp" },
 	{}
 };
 
-static struct platform_driver edp_driver = {
+static struct platform_driver edp_driver =
+{
 	.probe = edp_dev_probe,
 	.remove = edp_dev_remove,
 	.driver = {
@@ -145,7 +167,7 @@ void __exit msm_edp_unregister(void)
 
 /* Second part of initialization, the drm/kms level modeset_init */
 int msm_edp_modeset_init(struct msm_edp *edp, struct drm_device *dev,
-				struct drm_encoder *encoder)
+						 struct drm_encoder *encoder)
 {
 	struct platform_device *pdev = edp->pdev;
 	struct msm_drm_private *priv = dev->dev_private;
@@ -155,7 +177,9 @@ int msm_edp_modeset_init(struct msm_edp *edp, struct drm_device *dev,
 	edp->dev = dev;
 
 	edp->bridge = msm_edp_bridge_init(edp);
-	if (IS_ERR(edp->bridge)) {
+
+	if (IS_ERR(edp->bridge))
+	{
 		ret = PTR_ERR(edp->bridge);
 		dev_err(dev->dev, "failed to create eDP bridge: %d\n", ret);
 		edp->bridge = NULL;
@@ -163,7 +187,9 @@ int msm_edp_modeset_init(struct msm_edp *edp, struct drm_device *dev,
 	}
 
 	edp->connector = msm_edp_connector_init(edp);
-	if (IS_ERR(edp->connector)) {
+
+	if (IS_ERR(edp->connector))
+	{
 		ret = PTR_ERR(edp->connector);
 		dev_err(dev->dev, "failed to create eDP connector: %d\n", ret);
 		edp->connector = NULL;
@@ -171,16 +197,20 @@ int msm_edp_modeset_init(struct msm_edp *edp, struct drm_device *dev,
 	}
 
 	edp->irq = irq_of_parse_and_map(pdev->dev.of_node, 0);
-	if (edp->irq < 0) {
+
+	if (edp->irq < 0)
+	{
 		ret = edp->irq;
 		dev_err(dev->dev, "failed to get IRQ: %d\n", ret);
 		goto fail;
 	}
 
 	ret = devm_request_irq(&pdev->dev, edp->irq,
-			edp_irq, IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
-			"edp_isr", edp);
-	if (ret < 0) {
+						   edp_irq, IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
+						   "edp_isr", edp);
+
+	if (ret < 0)
+	{
 		dev_err(dev->dev, "failed to request IRQ%u: %d\n",
 				edp->irq, ret);
 		goto fail;
@@ -194,12 +224,16 @@ int msm_edp_modeset_init(struct msm_edp *edp, struct drm_device *dev,
 	return 0;
 
 fail:
+
 	/* bridge/connector are normally destroyed by drm */
-	if (edp->bridge) {
+	if (edp->bridge)
+	{
 		edp_bridge_destroy(edp->bridge);
 		edp->bridge = NULL;
 	}
-	if (edp->connector) {
+
+	if (edp->connector)
+	{
 		edp->connector->funcs->destroy(edp->connector);
 		edp->connector = NULL;
 	}

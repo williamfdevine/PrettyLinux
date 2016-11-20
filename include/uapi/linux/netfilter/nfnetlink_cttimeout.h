@@ -2,7 +2,8 @@
 #define _CTTIMEOUT_NETLINK_H
 #include <linux/netfilter/nfnetlink.h>
 
-enum ctnl_timeout_msg_types {
+enum ctnl_timeout_msg_types
+{
 	IPCTNL_MSG_TIMEOUT_NEW,
 	IPCTNL_MSG_TIMEOUT_GET,
 	IPCTNL_MSG_TIMEOUT_DELETE,
@@ -12,7 +13,8 @@ enum ctnl_timeout_msg_types {
 	IPCTNL_MSG_TIMEOUT_MAX
 };
 
-enum ctattr_timeout {
+enum ctattr_timeout
+{
 	CTA_TIMEOUT_UNSPEC,
 	CTA_TIMEOUT_NAME,
 	CTA_TIMEOUT_L3PROTO,
@@ -23,14 +25,16 @@ enum ctattr_timeout {
 };
 #define CTA_TIMEOUT_MAX (__CTA_TIMEOUT_MAX - 1)
 
-enum ctattr_timeout_generic {
+enum ctattr_timeout_generic
+{
 	CTA_TIMEOUT_GENERIC_UNSPEC,
 	CTA_TIMEOUT_GENERIC_TIMEOUT,
 	__CTA_TIMEOUT_GENERIC_MAX
 };
 #define CTA_TIMEOUT_GENERIC_MAX (__CTA_TIMEOUT_GENERIC_MAX - 1)
 
-enum ctattr_timeout_tcp {
+enum ctattr_timeout_tcp
+{
 	CTA_TIMEOUT_TCP_UNSPEC,
 	CTA_TIMEOUT_TCP_SYN_SENT,
 	CTA_TIMEOUT_TCP_SYN_RECV,
@@ -47,7 +51,8 @@ enum ctattr_timeout_tcp {
 };
 #define CTA_TIMEOUT_TCP_MAX (__CTA_TIMEOUT_TCP_MAX - 1)
 
-enum ctattr_timeout_udp {
+enum ctattr_timeout_udp
+{
 	CTA_TIMEOUT_UDP_UNSPEC,
 	CTA_TIMEOUT_UDP_UNREPLIED,
 	CTA_TIMEOUT_UDP_REPLIED,
@@ -55,7 +60,8 @@ enum ctattr_timeout_udp {
 };
 #define CTA_TIMEOUT_UDP_MAX (__CTA_TIMEOUT_UDP_MAX - 1)
 
-enum ctattr_timeout_udplite {
+enum ctattr_timeout_udplite
+{
 	CTA_TIMEOUT_UDPLITE_UNSPEC,
 	CTA_TIMEOUT_UDPLITE_UNREPLIED,
 	CTA_TIMEOUT_UDPLITE_REPLIED,
@@ -63,14 +69,16 @@ enum ctattr_timeout_udplite {
 };
 #define CTA_TIMEOUT_UDPLITE_MAX (__CTA_TIMEOUT_UDPLITE_MAX - 1)
 
-enum ctattr_timeout_icmp {
+enum ctattr_timeout_icmp
+{
 	CTA_TIMEOUT_ICMP_UNSPEC,
 	CTA_TIMEOUT_ICMP_TIMEOUT,
 	__CTA_TIMEOUT_ICMP_MAX
 };
 #define CTA_TIMEOUT_ICMP_MAX (__CTA_TIMEOUT_ICMP_MAX - 1)
 
-enum ctattr_timeout_dccp {
+enum ctattr_timeout_dccp
+{
 	CTA_TIMEOUT_DCCP_UNSPEC,
 	CTA_TIMEOUT_DCCP_REQUEST,
 	CTA_TIMEOUT_DCCP_RESPOND,
@@ -83,7 +91,8 @@ enum ctattr_timeout_dccp {
 };
 #define CTA_TIMEOUT_DCCP_MAX (__CTA_TIMEOUT_DCCP_MAX - 1)
 
-enum ctattr_timeout_sctp {
+enum ctattr_timeout_sctp
+{
 	CTA_TIMEOUT_SCTP_UNSPEC,
 	CTA_TIMEOUT_SCTP_CLOSED,
 	CTA_TIMEOUT_SCTP_COOKIE_WAIT,
@@ -98,14 +107,16 @@ enum ctattr_timeout_sctp {
 };
 #define CTA_TIMEOUT_SCTP_MAX (__CTA_TIMEOUT_SCTP_MAX - 1)
 
-enum ctattr_timeout_icmpv6 {
+enum ctattr_timeout_icmpv6
+{
 	CTA_TIMEOUT_ICMPV6_UNSPEC,
 	CTA_TIMEOUT_ICMPV6_TIMEOUT,
 	__CTA_TIMEOUT_ICMPV6_MAX
 };
 #define CTA_TIMEOUT_ICMPV6_MAX (__CTA_TIMEOUT_ICMPV6_MAX - 1)
 
-enum ctattr_timeout_gre {
+enum ctattr_timeout_gre
+{
 	CTA_TIMEOUT_GRE_UNSPEC,
 	CTA_TIMEOUT_GRE_UNREPLIED,
 	CTA_TIMEOUT_GRE_REPLIED,

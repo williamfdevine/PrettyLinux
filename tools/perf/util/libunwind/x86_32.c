@@ -35,9 +35,9 @@
  * dwarf_find_debug_frame() function.
  */
 #ifndef NO_LIBUNWIND_DEBUG_FRAME
-#define NO_LIBUNWIND_DEBUG_FRAME
+	#define NO_LIBUNWIND_DEBUG_FRAME
 #endif
 #include "util/unwind-libunwind-local.c"
 
 struct unwind_libunwind_ops *
-x86_32_unwind_libunwind_ops = &_unwind_libunwind_ops;
+	x86_32_unwind_libunwind_ops = &_unwind_libunwind_ops;

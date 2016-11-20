@@ -161,50 +161,56 @@
  */
 
 /* The structure used to return arch specific sampled data into */
-struct wm97xx_data {
-    int x;
-    int y;
-    int p;
+struct wm97xx_data
+{
+	int x;
+	int y;
+	int p;
 };
 
 /*
  * Codec GPIO status
  */
-enum wm97xx_gpio_status {
-    WM97XX_GPIO_HIGH,
-    WM97XX_GPIO_LOW
+enum wm97xx_gpio_status
+{
+	WM97XX_GPIO_HIGH,
+	WM97XX_GPIO_LOW
 };
 
 /*
  * Codec GPIO direction
  */
-enum wm97xx_gpio_dir {
-    WM97XX_GPIO_IN,
-    WM97XX_GPIO_OUT
+enum wm97xx_gpio_dir
+{
+	WM97XX_GPIO_IN,
+	WM97XX_GPIO_OUT
 };
 
 /*
  * Codec GPIO polarity
  */
-enum wm97xx_gpio_pol {
-    WM97XX_GPIO_POL_HIGH,
-    WM97XX_GPIO_POL_LOW
+enum wm97xx_gpio_pol
+{
+	WM97XX_GPIO_POL_HIGH,
+	WM97XX_GPIO_POL_LOW
 };
 
 /*
  * Codec GPIO sticky
  */
-enum wm97xx_gpio_sticky {
-    WM97XX_GPIO_STICKY,
-    WM97XX_GPIO_NOTSTICKY
+enum wm97xx_gpio_sticky
+{
+	WM97XX_GPIO_STICKY,
+	WM97XX_GPIO_NOTSTICKY
 };
 
 /*
  * Codec GPIO wake
  */
-enum wm97xx_gpio_wake {
-    WM97XX_GPIO_WAKE,
-    WM97XX_GPIO_NOWAKE
+enum wm97xx_gpio_wake
+{
+	WM97XX_GPIO_WAKE,
+	WM97XX_GPIO_NOWAKE
 };
 
 /*
@@ -225,7 +231,8 @@ extern struct wm97xx_codec_drv wm9713_codec;
 /*
  * Codec driver interface - allows mapping to WM9705/12/13 and newer codecs
  */
-struct wm97xx_codec_drv {
+struct wm97xx_codec_drv
+{
 	u16 id;
 	char *name;
 
@@ -244,7 +251,8 @@ struct wm97xx_codec_drv {
 
 
 /* Machine specific and accelerated touch operations */
-struct wm97xx_mach_ops {
+struct wm97xx_mach_ops
+{
 
 	/* accelerated touch readback - coords are transmited on AC97 link */
 	int acc_enabled;
@@ -264,7 +272,8 @@ struct wm97xx_mach_ops {
 	void (*post_sample) (int);  /* function to run after sampling */
 };
 
-struct wm97xx {
+struct wm97xx
+{
 	u16 dig[3], id, gpio[6], misc;	/* Cached codec registers */
 	u16 dig_save[3];		/* saved during aux reading */
 	struct wm97xx_codec_drv *codec;	/* attached codec driver*/
@@ -283,14 +292,15 @@ struct wm97xx {
 	struct work_struct pen_event_work;
 	u16 acc_slot;			/* AC97 slot used for acc touch data */
 	u16 acc_rate;			/* acc touch data rate */
-	unsigned pen_is_down:1;		/* Pen is down */
-	unsigned aux_waiting:1;		/* aux measurement waiting */
-	unsigned pen_probably_down:1;	/* used in polling mode */
+	unsigned pen_is_down: 1;		/* Pen is down */
+	unsigned aux_waiting: 1;		/* aux measurement waiting */
+	unsigned pen_probably_down: 1;	/* used in polling mode */
 	u16 variant;			/* WM97xx chip variant */
 	u16 suspend_mode;               /* PRP in suspend mode */
 };
 
-struct wm97xx_batt_pdata {
+struct wm97xx_batt_pdata
+{
 	int	batt_aux;
 	int	temp_aux;
 	int	charge_gpio;
@@ -304,7 +314,8 @@ struct wm97xx_batt_pdata {
 	char	*batt_name;
 };
 
-struct wm97xx_pdata {
+struct wm97xx_pdata
+{
 	struct wm97xx_batt_pdata	*batt_pdata;	/* battery data */
 };
 
@@ -314,12 +325,12 @@ struct wm97xx_pdata {
  */
 enum wm97xx_gpio_status wm97xx_get_gpio(struct wm97xx *wm, u32 gpio);
 void wm97xx_set_gpio(struct wm97xx *wm, u32 gpio,
-			  enum wm97xx_gpio_status status);
+					 enum wm97xx_gpio_status status);
 void wm97xx_config_gpio(struct wm97xx *wm, u32 gpio,
-				     enum wm97xx_gpio_dir dir,
-				     enum wm97xx_gpio_pol pol,
-				     enum wm97xx_gpio_sticky sticky,
-				     enum wm97xx_gpio_wake wake);
+						enum wm97xx_gpio_dir dir,
+						enum wm97xx_gpio_pol pol,
+						enum wm97xx_gpio_sticky sticky,
+						enum wm97xx_gpio_wake wake);
 
 void wm97xx_set_suspend_mode(struct wm97xx *wm, u16 mode);
 

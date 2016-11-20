@@ -40,7 +40,8 @@
  * @RFKILL_TYPE_NFC: switch is on an NFC device.
  * @NUM_RFKILL_TYPES: number of defined rfkill types
  */
-enum rfkill_type {
+enum rfkill_type
+{
 	RFKILL_TYPE_ALL = 0,
 	RFKILL_TYPE_WLAN,
 	RFKILL_TYPE_BLUETOOTH,
@@ -62,7 +63,8 @@ enum rfkill_type {
  *	into a state, also updating the default state used for devices that
  *	are hot-plugged later.
  */
-enum rfkill_operation {
+enum rfkill_operation
+{
 	RFKILL_OP_ADD = 0,
 	RFKILL_OP_DEL,
 	RFKILL_OP_CHANGE,
@@ -80,7 +82,8 @@ enum rfkill_operation {
  * Structure used for userspace communication on /dev/rfkill,
  * used for events from the kernel and control to the kernel.
  */
-struct rfkill_event {
+struct rfkill_event
+{
 	__u32 idx;
 	__u8  type;
 	__u8  op;

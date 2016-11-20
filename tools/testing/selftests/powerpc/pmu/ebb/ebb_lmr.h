@@ -4,7 +4,7 @@
 #include "reg.h"
 
 #ifndef PPC_FEATURE2_ARCH_3_00
-#define PPC_FEATURE2_ARCH_3_00 0x00800000
+	#define PPC_FEATURE2_ARCH_3_00 0x00800000
 #endif
 
 #define lmr_is_supported() have_hwcap2(PPC_FEATURE2_ARCH_3_00)
@@ -28,10 +28,10 @@ static inline unsigned long ldmx(unsigned long address)
 	unsigned long ret;
 
 	asm volatile ("mr 9, %1\r\n"
-		      ".long " __stringify(LDMX(9, 0, 9)) "\r\n"
-		      "mr %0, 9\r\n":"=r"(ret)
-		      :"r"(address)
-		      :"r9");
+				  ".long " __stringify(LDMX(9, 0, 9)) "\r\n"
+				  "mr %0, 9\r\n":"=r"(ret)
+				  :"r"(address)
+				  :"r9");
 
 	return ret;
 }

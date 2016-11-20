@@ -19,7 +19,8 @@
 
 #define	SIOCNRDECOBS		(SIOCPROTOPRIVATE+2)
 
-struct nr_route_struct {
+struct nr_route_struct
+{
 #define	NETROM_NEIGH	0
 #define	NETROM_NODE	1
 	int		type;

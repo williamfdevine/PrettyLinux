@@ -63,7 +63,8 @@
 
 /* Global registers */
 
-enum global_control_bits {
+enum global_control_bits
+{
 	CHANNEL_IDX	= 0x0000003f,
 	OVERRUN_IE	= 0x00000400,	/* interrupt enable: capture overrun */
 	UNDERRUN_IE	= 0x00000800,	/* interrupt enable: playback underrun */
@@ -74,18 +75,19 @@ enum global_control_bits {
 	BANK_B_EN	= 0x00010000,	/* SiS: enable bank B (64 channels) */
 	PCMIN_B_MIX	= 0x00020000,	/* SiS: PCM IN B mixing enable */
 	I2S_OUT_ASSIGN	= 0x00040000,	/* SiS: I2S Out contains surround PCM */
-	SPDIF_OUT_ASSIGN= 0x00080000,	/* SiS: 0=S/PDIF L/R | 1=PCM Out FIFO */
+	SPDIF_OUT_ASSIGN = 0x00080000,	/* SiS: 0=S/PDIF L/R | 1=PCM Out FIFO */
 	MAIN_OUT_ASSIGN = 0x00100000,	/* SiS: 0=PCM Out FIFO | 1=MMC Out buffer */
 };
 
-enum miscint_bits {
+enum miscint_bits
+{
 	PB_UNDERRUN_IRQ = 0x00000001, REC_OVERRUN_IRQ = 0x00000002,
 	SB_IRQ		= 0x00000004, MPU401_IRQ      = 0x00000008,
 	OPL3_IRQ        = 0x00000010, ADDRESS_IRQ     = 0x00000020,
 	ENVELOPE_IRQ    = 0x00000040, PB_UNDERRUN     = 0x00000100,
 	REC_OVERRUN	= 0x00000200, MIXER_UNDERFLOW = 0x00000400,
 	MIXER_OVERFLOW  = 0x00000800, NX_SB_IRQ_DISABLE = 0x00001000,
-        ST_TARGET_REACHED = 0x00008000,
+	ST_TARGET_REACHED = 0x00008000,
 	PB_24K_MODE     = 0x00010000, ST_IRQ_EN       = 0x00800000,
 	ACGPIO_IRQ	= 0x01000000
 };
@@ -177,7 +179,8 @@ enum miscint_bits {
 #define SI_SPDIF_CS		    0x70
 #define SI_GPIO			    0x7c
 
-enum trident_nx_ac97_bits {
+enum trident_nx_ac97_bits
+{
 	/* ACR1-3 */
 	NX_AC97_BUSY_WRITE 	= 0x0800,
 	NX_AC97_BUSY_READ	= 0x0800,
@@ -193,7 +196,8 @@ enum trident_nx_ac97_bits {
 	NX_AC97_WARM_RESET	= 0x0001
 };
 
-enum trident_dx_ac97_bits {
+enum trident_dx_ac97_bits
+{
 	DX_AC97_BUSY_WRITE	= 0x8000,
 	DX_AC97_BUSY_READ	= 0x8000,
 	DX_AC97_READY		= 0x0010,
@@ -201,7 +205,8 @@ enum trident_dx_ac97_bits {
 	DX_AC97_PLAYBACK	= 0x0002
 };
 
-enum sis7018_ac97_bits {
+enum sis7018_ac97_bits
+{
 	SI_AC97_BUSY_WRITE =	0x00008000,
 	SI_AC97_AUDIO_BUSY =	0x00004000,
 	SI_AC97_MODEM_BUSY =	0x00002000,
@@ -209,7 +214,8 @@ enum sis7018_ac97_bits {
 	SI_AC97_SECONDARY =	0x00000080,
 };
 
-enum serial_intf_ctrl_bits {
+enum serial_intf_ctrl_bits
+{
 	WARM_RESET	= 0x00000001,
 	COLD_RESET	= 0x00000002,
 	I2S_CLOCK	= 0x00000004,
@@ -238,7 +244,7 @@ enum serial_intf_ctrl_bits {
 	SI_AC97_SECONDARY_READY = 0x02000000,
 	SI_AC97_POWERDOWN = 0x04000000,
 };
-                                                                                                                                   
+
 /* PCM defaults */
 
 #define T4D_DEFAULT_PCM_VOL	10	/* 0 - 255 */
@@ -250,34 +256,38 @@ struct snd_trident;
 struct snd_trident_voice;
 struct snd_trident_pcm_mixer;
 
-struct snd_trident_port {
-	struct snd_midi_channel_set * chset;
-	struct snd_trident * trident;
+struct snd_trident_port
+{
+	struct snd_midi_channel_set *chset;
+	struct snd_trident *trident;
 	int mode;		/* operation mode */
 	int client;		/* sequencer client number */
 	int port;		/* sequencer port number */
 	unsigned int midi_has_voices: 1;
 };
 
-struct snd_trident_memblk_arg {
+struct snd_trident_memblk_arg
+{
 	short first_page, last_page;
 };
 
-struct snd_trident_tlb {
-	unsigned int * entries;		/* 16k-aligned TLB table */
+struct snd_trident_tlb
+{
+	unsigned int *entries;		/* 16k-aligned TLB table */
 	dma_addr_t entries_dmaaddr;	/* 16k-aligned PCI address to TLB table */
-	unsigned long * shadow_entries;	/* shadow entries with virtual addresses */
+	unsigned long *shadow_entries;	/* shadow entries with virtual addresses */
 	struct snd_dma_buffer buffer;
-	struct snd_util_memhdr * memhdr;	/* page allocation list */
+	struct snd_util_memhdr *memhdr;	/* page allocation list */
 	struct snd_dma_buffer silent_page;
 };
 
-struct snd_trident_voice {
+struct snd_trident_voice
+{
 	unsigned int number;
 	unsigned int use: 1,
-	    pcm: 1,
-	    synth:1,
-	    midi: 1;
+			 pcm: 1,
+			 synth: 1,
+			 midi: 1;
 	unsigned int flags;
 	unsigned char client;
 	unsigned char port;
@@ -313,12 +323,12 @@ struct snd_trident_voice {
 	struct snd_pcm_substream *substream;
 	struct snd_trident_voice *extra;	/* extra PCM voice (acts as interrupt generator) */
 	unsigned int running: 1,
-            capture: 1,
-            spdif: 1,
-            foldback: 1,
-            isync: 1,
-            isync2: 1,
-            isync3: 1;
+			 capture: 1,
+			 spdif: 1,
+			 foldback: 1,
+			 isync: 1,
+			 isync2: 1,
+			 isync3: 1;
 	int foldback_chan;		/* foldback subdevice number */
 	unsigned int stimer;		/* global sample timer (to detect spurious interrupts) */
 	unsigned int spurious_threshold; /* spurious threshold */
@@ -332,18 +342,20 @@ struct snd_trident_voice {
 	void (*private_free)(struct snd_trident_voice *voice);
 };
 
-struct snd_4dwave {
+struct snd_4dwave
+{
 	int seq_client;
 
 	struct snd_trident_port seq_ports[4];
-	struct snd_trident_voice voices[64];	
+	struct snd_trident_voice voices[64];
 
 	int ChanSynthCount;		/* number of allocated synth channels */
 	int max_size;			/* maximum synth memory size in bytes */
 	int current_size;		/* current allocated synth mem in bytes */
 };
 
-struct snd_trident_pcm_mixer {
+struct snd_trident_pcm_mixer
+{
 	struct snd_trident_voice *voice;	/* active voice */
 	unsigned short vol;		/* front volume */
 	unsigned char pan;		/* pan control */
@@ -352,12 +364,13 @@ struct snd_trident_pcm_mixer {
 	unsigned char pad;
 };
 
-struct snd_trident {
+struct snd_trident
+{
 	int irq;
 
 	unsigned int device;	/* device ID */
 
-        unsigned char  bDMAStart;
+	unsigned char  bDMAStart;
 
 	unsigned long port;
 	unsigned long midi_port;
@@ -365,7 +378,7 @@ struct snd_trident {
 	unsigned int spurious_irq_count;
 	unsigned int spurious_irq_max_delta;
 
-        struct snd_trident_tlb tlb;	/* TLB entries for NX cards */
+	struct snd_trident_tlb tlb;	/* TLB entries for NX cards */
 
 	unsigned char spdif_ctrl;
 	unsigned char spdif_pcm_ctrl;
@@ -373,10 +386,10 @@ struct snd_trident {
 	unsigned int spdif_pcm_bits;
 	struct snd_kcontrol *spdif_pcm_ctl;	/* S/PDIF settings */
 	unsigned int ac97_ctrl;
-        
-        unsigned int ChanMap[2];	/* allocation map for hardware channels */
-        
-        int ChanPCM;			/* max number of PCM channels */
+
+	unsigned int ChanMap[2];	/* allocation map for hardware channels */
+
+	int ChanPCM;			/* max number of PCM channels */
 	int ChanPCMcnt;			/* actual number of PCM channels */
 
 	unsigned int ac97_detect: 1;	/* 1 = AC97 in detection phase */
@@ -413,32 +426,32 @@ struct snd_trident {
 };
 
 int snd_trident_create(struct snd_card *card,
-		       struct pci_dev *pci,
-		       int pcm_streams,
-		       int pcm_spdif_device,
-		       int max_wavetable_size,
-		       struct snd_trident ** rtrident);
+					   struct pci_dev *pci,
+					   int pcm_streams,
+					   int pcm_spdif_device,
+					   int max_wavetable_size,
+					   struct snd_trident **rtrident);
 int snd_trident_create_gameport(struct snd_trident *trident);
 
 int snd_trident_pcm(struct snd_trident *trident, int device);
 int snd_trident_foldback_pcm(struct snd_trident *trident, int device);
 int snd_trident_spdif_pcm(struct snd_trident *trident, int device);
-int snd_trident_attach_synthesizer(struct snd_trident * trident);
-struct snd_trident_voice *snd_trident_alloc_voice(struct snd_trident * trident, int type,
-					     int client, int port);
-void snd_trident_free_voice(struct snd_trident * trident, struct snd_trident_voice *voice);
-void snd_trident_start_voice(struct snd_trident * trident, unsigned int voice);
-void snd_trident_stop_voice(struct snd_trident * trident, unsigned int voice);
-void snd_trident_write_voice_regs(struct snd_trident * trident, struct snd_trident_voice *voice);
+int snd_trident_attach_synthesizer(struct snd_trident *trident);
+struct snd_trident_voice *snd_trident_alloc_voice(struct snd_trident *trident, int type,
+		int client, int port);
+void snd_trident_free_voice(struct snd_trident *trident, struct snd_trident_voice *voice);
+void snd_trident_start_voice(struct snd_trident *trident, unsigned int voice);
+void snd_trident_stop_voice(struct snd_trident *trident, unsigned int voice);
+void snd_trident_write_voice_regs(struct snd_trident *trident, struct snd_trident_voice *voice);
 extern const struct dev_pm_ops snd_trident_pm;
 
 /* TLB memory allocation */
 struct snd_util_memblk *snd_trident_alloc_pages(struct snd_trident *trident,
-						struct snd_pcm_substream *substream);
+		struct snd_pcm_substream *substream);
 int snd_trident_free_pages(struct snd_trident *trident, struct snd_util_memblk *blk);
 struct snd_util_memblk *snd_trident_synth_alloc(struct snd_trident *trident, unsigned int size);
 int snd_trident_synth_free(struct snd_trident *trident, struct snd_util_memblk *blk);
 int snd_trident_synth_copy_from_user(struct snd_trident *trident, struct snd_util_memblk *blk,
-				     int offset, const char __user *data, int size);
+									 int offset, const char __user *data, int size);
 
 #endif /* __SOUND_TRIDENT_H */

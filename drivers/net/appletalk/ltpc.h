@@ -15,36 +15,42 @@
 /* the flag that we care about */
 #define LT_FLAG_ALLLAP 0x04
 
-struct lt_getresult {
+struct lt_getresult
+{
 	unsigned char command;
 	unsigned char mailbox;
 };
 
-struct lt_mem {
+struct lt_mem
+{
 	unsigned char command;
 	unsigned char mailbox;
 	unsigned short addr;	/* host order */
 	unsigned short length;	/* host order */
 };
 
-struct lt_setflags {
+struct lt_setflags
+{
 	unsigned char command;
 	unsigned char mailbox;
 	unsigned char flags;
 };
 
-struct lt_getflags {
+struct lt_getflags
+{
 	unsigned char command;
 	unsigned char mailbox;
 };
 
-struct lt_init {
+struct lt_init
+{
 	unsigned char command;
 	unsigned char mailbox;
 	unsigned char hint;
 };
 
-struct lt_sendlap {
+struct lt_sendlap
+{
 	unsigned char command;
 	unsigned char mailbox;
 	unsigned char dnode;
@@ -52,7 +58,8 @@ struct lt_sendlap {
 	unsigned short length;	/* host order */
 };
 
-struct lt_rcvlap {
+struct lt_rcvlap
+{
 	unsigned char command;
 	unsigned char dnode;
 	unsigned char snode;
@@ -60,7 +67,8 @@ struct lt_rcvlap {
 	unsigned short length;	/* host order */
 };
 
-union lt_command {
+union lt_command
+{
 	struct lt_getresult getresult;
 	struct lt_mem mem;
 	struct lt_setflags setflags;

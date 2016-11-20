@@ -37,22 +37,22 @@
 #define MANTIS_TMG		9
 
 #define dprintk(y, z, format, arg...) do {								\
-	if (z) {											\
-		if	((mantis->verbose > MANTIS_ERROR) && (mantis->verbose > y))			\
-			printk(KERN_ERR "%s (%d): " format "\n" , __func__ , mantis->num , ##arg);	\
-		else if	((mantis->verbose > MANTIS_NOTICE) && (mantis->verbose > y))			\
-			printk(KERN_NOTICE "%s (%d): " format "\n" , __func__ , mantis->num , ##arg);	\
-		else if ((mantis->verbose > MANTIS_INFO) && (mantis->verbose > y))			\
-			printk(KERN_INFO "%s (%d): " format "\n" , __func__ , mantis->num , ##arg);	\
-		else if ((mantis->verbose > MANTIS_DEBUG) && (mantis->verbose > y))			\
-			printk(KERN_DEBUG "%s (%d): " format "\n" , __func__ , mantis->num , ##arg);	\
-		else if ((mantis->verbose > MANTIS_TMG) && (mantis->verbose > y))			\
-			printk(KERN_DEBUG "%s (%d): " format "\n" , __func__ , mantis->num , ##arg);	\
-	} else {											\
-		if (mantis->verbose > y)								\
-			printk(format , ##arg);								\
-	}												\
-} while(0)
+		if (z) {											\
+			if	((mantis->verbose > MANTIS_ERROR) && (mantis->verbose > y))			\
+				printk(KERN_ERR "%s (%d): " format "\n" , __func__ , mantis->num , ##arg);	\
+			else if	((mantis->verbose > MANTIS_NOTICE) && (mantis->verbose > y))			\
+				printk(KERN_NOTICE "%s (%d): " format "\n" , __func__ , mantis->num , ##arg);	\
+			else if ((mantis->verbose > MANTIS_INFO) && (mantis->verbose > y))			\
+				printk(KERN_INFO "%s (%d): " format "\n" , __func__ , mantis->num , ##arg);	\
+			else if ((mantis->verbose > MANTIS_DEBUG) && (mantis->verbose > y))			\
+				printk(KERN_DEBUG "%s (%d): " format "\n" , __func__ , mantis->num , ##arg);	\
+			else if ((mantis->verbose > MANTIS_TMG) && (mantis->verbose > y))			\
+				printk(KERN_DEBUG "%s (%d): " format "\n" , __func__ , mantis->num , ##arg);	\
+		} else {											\
+			if (mantis->verbose > y)								\
+				printk(format , ##arg);								\
+		}												\
+	} while(0)
 
 #define mwrite(dat, addr)	writel((dat), addr)
 #define mread(addr)		readl(addr)
@@ -71,21 +71,23 @@
 
 #define MAKE_ENTRY(__subven, __subdev, __configptr, __rc) {		\
 		.vendor		= TWINHAN_TECHNOLOGIES,			\
-		.device		= MANTIS,				\
-		.subvendor	= (__subven),				\
-		.subdevice	= (__subdev),				\
-		.driver_data	= (unsigned long)			\
-			&(struct mantis_pci_drvdata){__configptr, __rc}	\
-}
+					  .device		= MANTIS,				\
+									.subvendor	= (__subven),				\
+											.subdevice	= (__subdev),				\
+													.driver_data	= (unsigned long)			\
+		&(struct mantis_pci_drvdata){__configptr, __rc}	\
+	}
 
-enum mantis_i2c_mode {
+enum mantis_i2c_mode
+{
 	MANTIS_PAGE_MODE = 0,
 	MANTIS_BYTE_MODE,
 };
 
 struct mantis_pci;
 
-struct mantis_hwconfig {
+struct mantis_hwconfig
+{
 	char			*model_name;
 	char			*dev_type;
 	u32			ts_size;
@@ -103,12 +105,14 @@ struct mantis_hwconfig {
 	enum mantis_i2c_mode	i2c_mode;
 };
 
-struct mantis_pci_drvdata {
+struct mantis_pci_drvdata
+{
 	struct mantis_hwconfig *hwconfig;
 	char *rc_map_name;
 };
 
-struct mantis_pci {
+struct mantis_pci
+{
 	unsigned int		verbose;
 
 	/*	PCI stuff		*/
@@ -166,7 +170,7 @@ struct mantis_pci {
 	u32			sub_vendor_id;
 	u32			sub_device_id;
 
-	 /*	A12 A13 A14		*/
+	/*	A12 A13 A14		*/
 	u32			gpio_status;
 
 	u32			gpif_status;

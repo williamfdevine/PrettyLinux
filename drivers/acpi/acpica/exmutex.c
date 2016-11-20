@@ -52,7 +52,7 @@ ACPI_MODULE_NAME("exmutex")
 /* Local prototypes */
 static void
 acpi_ex_link_mutex(union acpi_operand_object *obj_desc,
-		   struct acpi_thread_state *thread);
+				   struct acpi_thread_state *thread);
 
 /*******************************************************************************
  *
@@ -70,17 +70,20 @@ void acpi_ex_unlink_mutex(union acpi_operand_object *obj_desc)
 {
 	struct acpi_thread_state *thread = obj_desc->mutex.owner_thread;
 
-	if (!thread) {
+	if (!thread)
+	{
 		return;
 	}
 
 	/* Doubly linked list */
 
-	if (obj_desc->mutex.next) {
+	if (obj_desc->mutex.next)
+	{
 		(obj_desc->mutex.next)->mutex.prev = obj_desc->mutex.prev;
 	}
 
-	if (obj_desc->mutex.prev) {
+	if (obj_desc->mutex.prev)
+	{
 		(obj_desc->mutex.prev)->mutex.next = obj_desc->mutex.next;
 
 		/*
@@ -90,8 +93,10 @@ void acpi_ex_unlink_mutex(union acpi_operand_object *obj_desc)
 		 * at the same level, but are not released in opposite order.
 		 */
 		(obj_desc->mutex.prev)->mutex.original_sync_level =
-		    obj_desc->mutex.original_sync_level;
-	} else {
+			obj_desc->mutex.original_sync_level;
+	}
+	else
+	{
 		thread->acquired_mutex_list = obj_desc->mutex.next;
 	}
 }
@@ -111,7 +116,7 @@ void acpi_ex_unlink_mutex(union acpi_operand_object *obj_desc)
 
 static void
 acpi_ex_link_mutex(union acpi_operand_object *obj_desc,
-		   struct acpi_thread_state *thread)
+				   struct acpi_thread_state *thread)
 {
 	union acpi_operand_object *list_head;
 
@@ -124,7 +129,8 @@ acpi_ex_link_mutex(union acpi_operand_object *obj_desc,
 
 	/* Update old first object to point back to this object */
 
-	if (list_head) {
+	if (list_head)
+	{
 		list_head->mutex.prev = obj_desc;
 	}
 
@@ -158,20 +164,22 @@ acpi_ex_link_mutex(union acpi_operand_object *obj_desc,
 
 acpi_status
 acpi_ex_acquire_mutex_object(u16 timeout,
-			     union acpi_operand_object *obj_desc,
-			     acpi_thread_id thread_id)
+							 union acpi_operand_object *obj_desc,
+							 acpi_thread_id thread_id)
 {
 	acpi_status status;
 
 	ACPI_FUNCTION_TRACE_PTR(ex_acquire_mutex_object, obj_desc);
 
-	if (!obj_desc) {
+	if (!obj_desc)
+	{
 		return_ACPI_STATUS(AE_BAD_PARAMETER);
 	}
 
 	/* Support for multiple acquires by the owning thread */
 
-	if (obj_desc->mutex.thread_id == thread_id) {
+	if (obj_desc->mutex.thread_id == thread_id)
+	{
 		/*
 		 * The mutex is already owned by this thread, just increment the
 		 * acquisition depth
@@ -182,15 +190,19 @@ acpi_ex_acquire_mutex_object(u16 timeout,
 
 	/* Acquire the mutex, wait if necessary. Special case for Global Lock */
 
-	if (obj_desc == acpi_gbl_global_lock_mutex) {
+	if (obj_desc == acpi_gbl_global_lock_mutex)
+	{
 		status = acpi_ev_acquire_global_lock(timeout);
-	} else {
+	}
+	else
+	{
 		status =
-		    acpi_ex_system_wait_mutex(obj_desc->mutex.os_mutex,
-					      timeout);
+			acpi_ex_system_wait_mutex(obj_desc->mutex.os_mutex,
+									  timeout);
 	}
 
-	if (ACPI_FAILURE(status)) {
+	if (ACPI_FAILURE(status))
+	{
 
 		/* Includes failure from a timeout on time_desc */
 
@@ -223,23 +235,25 @@ acpi_ex_acquire_mutex_object(u16 timeout,
 
 acpi_status
 acpi_ex_acquire_mutex(union acpi_operand_object *time_desc,
-		      union acpi_operand_object *obj_desc,
-		      struct acpi_walk_state *walk_state)
+					  union acpi_operand_object *obj_desc,
+					  struct acpi_walk_state *walk_state)
 {
 	acpi_status status;
 
 	ACPI_FUNCTION_TRACE_PTR(ex_acquire_mutex, obj_desc);
 
-	if (!obj_desc) {
+	if (!obj_desc)
+	{
 		return_ACPI_STATUS(AE_BAD_PARAMETER);
 	}
 
 	/* Must have a valid thread state struct */
 
-	if (!walk_state->thread) {
+	if (!walk_state->thread)
+	{
 		ACPI_ERROR((AE_INFO,
-			    "Cannot acquire Mutex [%4.4s], null thread info",
-			    acpi_ut_get_node_name(obj_desc->mutex.node)));
+					"Cannot acquire Mutex [%4.4s], null thread info",
+					acpi_ut_get_node_name(obj_desc->mutex.node)));
 		return_ACPI_STATUS(AE_AML_INTERNAL);
 	}
 
@@ -247,36 +261,38 @@ acpi_ex_acquire_mutex(union acpi_operand_object *time_desc,
 	 * Current sync level must be less than or equal to the sync level
 	 * of the mutex. This mechanism provides some deadlock prevention.
 	 */
-	if (walk_state->thread->current_sync_level > obj_desc->mutex.sync_level) {
+	if (walk_state->thread->current_sync_level > obj_desc->mutex.sync_level)
+	{
 		ACPI_ERROR((AE_INFO,
-			    "Cannot acquire Mutex [%4.4s], "
-			    "current SyncLevel is too large (%u)",
-			    acpi_ut_get_node_name(obj_desc->mutex.node),
-			    walk_state->thread->current_sync_level));
+					"Cannot acquire Mutex [%4.4s], "
+					"current SyncLevel is too large (%u)",
+					acpi_ut_get_node_name(obj_desc->mutex.node),
+					walk_state->thread->current_sync_level));
 		return_ACPI_STATUS(AE_AML_MUTEX_ORDER);
 	}
 
 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
-			  "Acquiring: Mutex SyncLevel %u, Thread SyncLevel %u, "
-			  "Depth %u TID %p\n",
-			  obj_desc->mutex.sync_level,
-			  walk_state->thread->current_sync_level,
-			  obj_desc->mutex.acquisition_depth,
-			  walk_state->thread));
+					  "Acquiring: Mutex SyncLevel %u, Thread SyncLevel %u, "
+					  "Depth %u TID %p\n",
+					  obj_desc->mutex.sync_level,
+					  walk_state->thread->current_sync_level,
+					  obj_desc->mutex.acquisition_depth,
+					  walk_state->thread));
 
 	status = acpi_ex_acquire_mutex_object((u16)time_desc->integer.value,
-					      obj_desc,
-					      walk_state->thread->thread_id);
+										  obj_desc,
+										  walk_state->thread->thread_id);
 
-	if (ACPI_SUCCESS(status) && obj_desc->mutex.acquisition_depth == 1) {
+	if (ACPI_SUCCESS(status) && obj_desc->mutex.acquisition_depth == 1)
+	{
 
 		/* Save Thread object, original/current sync levels */
 
 		obj_desc->mutex.owner_thread = walk_state->thread;
 		obj_desc->mutex.original_sync_level =
-		    walk_state->thread->current_sync_level;
+			walk_state->thread->current_sync_level;
 		walk_state->thread->current_sync_level =
-		    obj_desc->mutex.sync_level;
+			obj_desc->mutex.sync_level;
 
 		/* Link the mutex to the current thread for force-unlock at method exit */
 
@@ -284,10 +300,10 @@ acpi_ex_acquire_mutex(union acpi_operand_object *time_desc,
 	}
 
 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
-			  "Acquired: Mutex SyncLevel %u, Thread SyncLevel %u, Depth %u\n",
-			  obj_desc->mutex.sync_level,
-			  walk_state->thread->current_sync_level,
-			  obj_desc->mutex.acquisition_depth));
+					  "Acquired: Mutex SyncLevel %u, Thread SyncLevel %u, Depth %u\n",
+					  obj_desc->mutex.sync_level,
+					  walk_state->thread->current_sync_level,
+					  obj_desc->mutex.acquisition_depth));
 
 	return_ACPI_STATUS(status);
 }
@@ -320,21 +336,25 @@ acpi_status acpi_ex_release_mutex_object(union acpi_operand_object *obj_desc)
 
 	ACPI_FUNCTION_TRACE(ex_release_mutex_object);
 
-	if (obj_desc->mutex.acquisition_depth == 0) {
+	if (obj_desc->mutex.acquisition_depth == 0)
+	{
 		return_ACPI_STATUS(AE_NOT_ACQUIRED);
 	}
 
 	/* Match multiple Acquires with multiple Releases */
 
 	obj_desc->mutex.acquisition_depth--;
-	if (obj_desc->mutex.acquisition_depth != 0) {
+
+	if (obj_desc->mutex.acquisition_depth != 0)
+	{
 
 		/* Just decrement the depth and return */
 
 		return_ACPI_STATUS(AE_OK);
 	}
 
-	if (obj_desc->mutex.owner_thread) {
+	if (obj_desc->mutex.owner_thread)
+	{
 
 		/* Unlink the mutex from the owner's list */
 
@@ -344,9 +364,12 @@ acpi_status acpi_ex_release_mutex_object(union acpi_operand_object *obj_desc)
 
 	/* Release the mutex, special case for Global Lock */
 
-	if (obj_desc == acpi_gbl_global_lock_mutex) {
+	if (obj_desc == acpi_gbl_global_lock_mutex)
+	{
 		status = acpi_ev_release_global_lock();
-	} else {
+	}
+	else
+	{
 		acpi_os_release_mutex(obj_desc->mutex.os_mutex);
 	}
 
@@ -371,7 +394,7 @@ acpi_status acpi_ex_release_mutex_object(union acpi_operand_object *obj_desc)
 
 acpi_status
 acpi_ex_release_mutex(union acpi_operand_object *obj_desc,
-		      struct acpi_walk_state *walk_state)
+					  struct acpi_walk_state *walk_state)
 {
 	u8 previous_sync_level;
 	struct acpi_thread_state *owner_thread;
@@ -379,7 +402,8 @@ acpi_ex_release_mutex(union acpi_operand_object *obj_desc,
 
 	ACPI_FUNCTION_TRACE(ex_release_mutex);
 
-	if (!obj_desc) {
+	if (!obj_desc)
+	{
 		return_ACPI_STATUS(AE_BAD_PARAMETER);
 	}
 
@@ -387,19 +411,21 @@ acpi_ex_release_mutex(union acpi_operand_object *obj_desc,
 
 	/* The mutex must have been previously acquired in order to release it */
 
-	if (!owner_thread) {
+	if (!owner_thread)
+	{
 		ACPI_ERROR((AE_INFO,
-			    "Cannot release Mutex [%4.4s], not acquired",
-			    acpi_ut_get_node_name(obj_desc->mutex.node)));
+					"Cannot release Mutex [%4.4s], not acquired",
+					acpi_ut_get_node_name(obj_desc->mutex.node)));
 		return_ACPI_STATUS(AE_AML_MUTEX_NOT_ACQUIRED);
 	}
 
 	/* Must have a valid thread ID */
 
-	if (!walk_state->thread) {
+	if (!walk_state->thread)
+	{
 		ACPI_ERROR((AE_INFO,
-			    "Cannot release Mutex [%4.4s], null thread info",
-			    acpi_ut_get_node_name(obj_desc->mutex.node)));
+					"Cannot release Mutex [%4.4s], null thread info",
+					acpi_ut_get_node_name(obj_desc->mutex.node)));
 		return_ACPI_STATUS(AE_AML_INTERNAL);
 	}
 
@@ -408,12 +434,13 @@ acpi_ex_release_mutex(union acpi_operand_object *obj_desc,
 	 * Special case for Global Lock, any thread can release
 	 */
 	if ((owner_thread->thread_id != walk_state->thread->thread_id) &&
-	    (obj_desc != acpi_gbl_global_lock_mutex)) {
+		(obj_desc != acpi_gbl_global_lock_mutex))
+	{
 		ACPI_ERROR((AE_INFO,
-			    "Thread %u cannot release Mutex [%4.4s] acquired by thread %u",
-			    (u32)walk_state->thread->thread_id,
-			    acpi_ut_get_node_name(obj_desc->mutex.node),
-			    (u32)owner_thread->thread_id));
+					"Thread %u cannot release Mutex [%4.4s] acquired by thread %u",
+					(u32)walk_state->thread->thread_id,
+					acpi_ut_get_node_name(obj_desc->mutex.node),
+					(u32)owner_thread->thread_id));
 		return_ACPI_STATUS(AE_AML_NOT_OWNER);
 	}
 
@@ -424,13 +451,14 @@ acpi_ex_release_mutex(union acpi_operand_object *obj_desc,
 	 * different level can only mean that the mutex ordering rule is being
 	 * violated. This behavior is clarified in ACPI 4.0 specification.
 	 */
-	if (obj_desc->mutex.sync_level != owner_thread->current_sync_level) {
+	if (obj_desc->mutex.sync_level != owner_thread->current_sync_level)
+	{
 		ACPI_ERROR((AE_INFO,
-			    "Cannot release Mutex [%4.4s], SyncLevel mismatch: "
-			    "mutex %u current %u",
-			    acpi_ut_get_node_name(obj_desc->mutex.node),
-			    obj_desc->mutex.sync_level,
-			    walk_state->thread->current_sync_level));
+					"Cannot release Mutex [%4.4s], SyncLevel mismatch: "
+					"mutex %u current %u",
+					acpi_ut_get_node_name(obj_desc->mutex.node),
+					obj_desc->mutex.sync_level,
+					walk_state->thread->current_sync_level));
 		return_ACPI_STATUS(AE_AML_MUTEX_ORDER);
 	}
 
@@ -440,23 +468,26 @@ acpi_ex_release_mutex(union acpi_operand_object *obj_desc,
 	 * acquired, but are not released in reverse order.
 	 */
 	previous_sync_level =
-	    owner_thread->acquired_mutex_list->mutex.original_sync_level;
+		owner_thread->acquired_mutex_list->mutex.original_sync_level;
 
 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
-			  "Releasing: Object SyncLevel %u, Thread SyncLevel %u, "
-			  "Prev SyncLevel %u, Depth %u TID %p\n",
-			  obj_desc->mutex.sync_level,
-			  walk_state->thread->current_sync_level,
-			  previous_sync_level,
-			  obj_desc->mutex.acquisition_depth,
-			  walk_state->thread));
+					  "Releasing: Object SyncLevel %u, Thread SyncLevel %u, "
+					  "Prev SyncLevel %u, Depth %u TID %p\n",
+					  obj_desc->mutex.sync_level,
+					  walk_state->thread->current_sync_level,
+					  previous_sync_level,
+					  obj_desc->mutex.acquisition_depth,
+					  walk_state->thread));
 
 	status = acpi_ex_release_mutex_object(obj_desc);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
-	if (obj_desc->mutex.acquisition_depth == 0) {
+	if (obj_desc->mutex.acquisition_depth == 0)
+	{
 
 		/* Restore the previous sync_level */
 
@@ -464,12 +495,12 @@ acpi_ex_release_mutex(union acpi_operand_object *obj_desc,
 	}
 
 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
-			  "Released: Object SyncLevel %u, Thread SyncLevel, %u, "
-			  "Prev SyncLevel %u, Depth %u\n",
-			  obj_desc->mutex.sync_level,
-			  walk_state->thread->current_sync_level,
-			  previous_sync_level,
-			  obj_desc->mutex.acquisition_depth));
+					  "Released: Object SyncLevel %u, Thread SyncLevel, %u, "
+					  "Prev SyncLevel %u, Depth %u\n",
+					  obj_desc->mutex.sync_level,
+					  walk_state->thread->current_sync_level,
+					  previous_sync_level,
+					  obj_desc->mutex.acquisition_depth));
 
 	return_ACPI_STATUS(status);
 }
@@ -501,29 +532,33 @@ void acpi_ex_release_all_mutexes(struct acpi_thread_state *thread)
 
 	/* Traverse the list of owned mutexes, releasing each one */
 
-	while (next) {
+	while (next)
+	{
 		obj_desc = next;
 		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
-				  "Mutex [%4.4s] force-release, SyncLevel %u Depth %u\n",
-				  obj_desc->mutex.node->name.ascii,
-				  obj_desc->mutex.sync_level,
-				  obj_desc->mutex.acquisition_depth));
+						  "Mutex [%4.4s] force-release, SyncLevel %u Depth %u\n",
+						  obj_desc->mutex.node->name.ascii,
+						  obj_desc->mutex.sync_level,
+						  obj_desc->mutex.acquisition_depth));
 
 		/* Release the mutex, special case for Global Lock */
 
-		if (obj_desc == acpi_gbl_global_lock_mutex) {
+		if (obj_desc == acpi_gbl_global_lock_mutex)
+		{
 
 			/* Ignore errors */
 
 			(void)acpi_ev_release_global_lock();
-		} else {
+		}
+		else
+		{
 			acpi_os_release_mutex(obj_desc->mutex.os_mutex);
 		}
 
 		/* Update Thread sync_level (Last mutex is the important one) */
 
 		thread->current_sync_level =
-		    obj_desc->mutex.original_sync_level;
+			obj_desc->mutex.original_sync_level;
 
 		/* Mark mutex unowned */
 

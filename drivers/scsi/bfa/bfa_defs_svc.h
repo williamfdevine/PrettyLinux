@@ -32,7 +32,8 @@
  * Interrupt coalescing configuration.
  */
 #pragma pack(1)
-struct bfa_iocfc_intr_attr_s {
+struct bfa_iocfc_intr_attr_s
+{
 	u8		coalesce;	/*  enable/disable coalescing */
 	u8		rsvd[3];
 	__be16		latency;	/*  latency in microseconds   */
@@ -42,7 +43,8 @@ struct bfa_iocfc_intr_attr_s {
 /*
  * IOC firmware configuraton
  */
-struct bfa_iocfc_fwcfg_s {
+struct bfa_iocfc_fwcfg_s
+{
 	u16		num_fabrics;	/*  number of fabrics		*/
 	u16		num_lports;	/*  number of local lports	*/
 	u16		num_rports;	/*  number of remote ports	*/
@@ -57,7 +59,8 @@ struct bfa_iocfc_fwcfg_s {
 };
 #pragma pack()
 
-struct bfa_iocfc_drvcfg_s {
+struct bfa_iocfc_drvcfg_s
+{
 	u16		num_reqq_elems;	/*  number of req queue elements */
 	u16		num_rspq_elems;	/*  number of rsp queue elements */
 	u16		num_sgpgs;	/*  number of total SG pages	 */
@@ -78,7 +81,8 @@ struct bfa_iocfc_drvcfg_s {
 /*
  * IOC configuration
  */
-struct bfa_iocfc_cfg_s {
+struct bfa_iocfc_cfg_s
+{
 	struct bfa_iocfc_fwcfg_s	fwcfg;	/*  firmware side config */
 	struct bfa_iocfc_drvcfg_s	drvcfg;	/*  driver side config	  */
 };
@@ -86,7 +90,8 @@ struct bfa_iocfc_cfg_s {
 /*
  * IOC firmware IO stats
  */
-struct bfa_fw_ioim_stats_s {
+struct bfa_fw_ioim_stats_s
+{
 	u32	host_abort;		/*  IO aborted by host driver*/
 	u32	host_cleanup;		/*  IO clean up by host driver */
 
@@ -158,7 +163,8 @@ struct bfa_fw_ioim_stats_s {
 					 *  for scsi write */
 };
 
-struct bfa_fw_tio_stats_s {
+struct bfa_fw_tio_stats_s
+{
 	u32	tio_conf_proc;	    /* TIO CONF processed */
 	u32	tio_conf_drop;      /* TIO CONF dropped */
 	u32	tio_cleanup_req;    /* TIO cleanup requested */
@@ -203,7 +209,8 @@ struct bfa_fw_tio_stats_s {
 /*
  * IOC firmware IO stats
  */
-struct bfa_fw_io_stats_s {
+struct bfa_fw_io_stats_s
+{
 	struct bfa_fw_ioim_stats_s	ioim_stats;
 	struct bfa_fw_tio_stats_s	tio_stats;
 };
@@ -212,7 +219,8 @@ struct bfa_fw_io_stats_s {
  * IOC port firmware stats
  */
 
-struct bfa_fw_port_fpg_stats_s {
+struct bfa_fw_port_fpg_stats_s
+{
 	u32    intr_evt;
 	u32    intr;
 	u32    intr_excess;
@@ -242,7 +250,8 @@ struct bfa_fw_port_fpg_stats_s {
 };
 
 
-struct bfa_fw_port_lksm_stats_s {
+struct bfa_fw_port_lksm_stats_s
+{
 	u32    hwsm_success;       /*  hwsm state machine success          */
 	u32    hwsm_fails;         /*  hwsm fails                          */
 	u32    hwsm_wdtov;         /*  hwsm timed out                      */
@@ -263,7 +272,8 @@ struct bfa_fw_port_lksm_stats_s {
 	u32    hwsm_lr_rx;         /*  No. of times LR rx-ed by HWSM       */
 };
 
-struct bfa_fw_port_snsm_stats_s {
+struct bfa_fw_port_snsm_stats_s
+{
 	u32    hwsm_success;       /*  Successful hwsm terminations        */
 	u32    hwsm_fails;         /*  hwsm fail count                     */
 	u32    hwsm_wdtov;         /*  hwsm timed out                      */
@@ -278,7 +288,8 @@ struct bfa_fw_port_snsm_stats_s {
 	u32    adapt_ign_fails;	   /* SNSM adaptation failures ignored */
 };
 
-struct bfa_fw_port_physm_stats_s {
+struct bfa_fw_port_physm_stats_s
+{
 	u32    module_inserts;     /*  Module insert count                 */
 	u32    module_xtracts;     /*  Module extracts count               */
 	u32    module_invalids;    /*  Invalid module inserted count       */
@@ -287,7 +298,8 @@ struct bfa_fw_port_physm_stats_s {
 	u32    rsvd;
 };
 
-struct bfa_fw_fip_stats_s {
+struct bfa_fw_fip_stats_s
+{
 	u32    vlan_req;           /*  vlan discovery requests             */
 	u32    vlan_notify;        /*  vlan notifications                  */
 	u32    vlan_err;           /*  vlan response error                 */
@@ -308,12 +320,14 @@ struct bfa_fw_fip_stats_s {
 	u32    invalid_version;    /*  Invalid FIP version                 */
 };
 
-struct bfa_fw_lps_stats_s {
+struct bfa_fw_lps_stats_s
+{
 	u32    mac_invalids;       /*  Invalid mac assigned                */
 	u32    rsvd;
 };
 
-struct bfa_fw_fcoe_stats_s {
+struct bfa_fw_fcoe_stats_s
+{
 	u32    cee_linkups;        /*  CEE link up count                   */
 	u32    cee_linkdns;        /*  CEE link down count                 */
 	u32    fip_linkups;        /*  FIP link up count                   */
@@ -325,7 +339,8 @@ struct bfa_fw_fcoe_stats_s {
 /*
  * IOC firmware FCoE port stats
  */
-struct bfa_fw_fcoe_port_stats_s {
+struct bfa_fw_fcoe_port_stats_s
+{
 	struct bfa_fw_fcoe_stats_s		fcoe_stats;
 	struct bfa_fw_fip_stats_s		fip_stats;
 };
@@ -333,7 +348,8 @@ struct bfa_fw_fcoe_port_stats_s {
 /**
  * @brief LPSM statistics
  */
-struct bfa_fw_lpsm_stats_s {
+struct bfa_fw_lpsm_stats_s
+{
 	u32	cls_rx;		/* LPSM cls_rx			*/
 	u32	cls_tx;		/* LPSM cls_tx			*/
 	u32	arbf0_rx;	/* LPSM abrf0 rcvd		*/
@@ -366,7 +382,8 @@ struct bfa_fw_lpsm_stats_s {
 /*
  * IOC firmware FC uport stats
  */
-struct bfa_fw_fc_uport_stats_s {
+struct bfa_fw_fc_uport_stats_s
+{
 	struct bfa_fw_port_snsm_stats_s		snsm_stats;
 	struct bfa_fw_port_lksm_stats_s		lksm_stats;
 	struct bfa_fw_lpsm_stats_s		lpsm_stats;
@@ -375,7 +392,8 @@ struct bfa_fw_fc_uport_stats_s {
 /*
  * IOC firmware FC port stats
  */
-union bfa_fw_fc_port_stats_s {
+union bfa_fw_fc_port_stats_s
+{
 	struct bfa_fw_fc_uport_stats_s		fc_stats;
 	struct bfa_fw_fcoe_port_stats_s		fcoe_stats;
 };
@@ -383,7 +401,8 @@ union bfa_fw_fc_port_stats_s {
 /*
  * IOC firmware port stats
  */
-struct bfa_fw_port_stats_s {
+struct bfa_fw_port_stats_s
+{
 	struct bfa_fw_port_fpg_stats_s		fpg_stats;
 	struct bfa_fw_port_physm_stats_s	physm_stats;
 	union  bfa_fw_fc_port_stats_s		fc_port;
@@ -392,7 +411,8 @@ struct bfa_fw_port_stats_s {
 /*
  * fcxchg module statistics
  */
-struct bfa_fw_fcxchg_stats_s {
+struct bfa_fw_fcxchg_stats_s
+{
 	u32	ua_tag_inv;
 	u32	ua_state_inv;
 };
@@ -400,7 +420,8 @@ struct bfa_fw_fcxchg_stats_s {
 /*
  *  Trunk statistics
  */
-struct bfa_fw_trunk_stats_s {
+struct bfa_fw_trunk_stats_s
+{
 	u32 emt_recvd;		/*  Trunk EMT received		*/
 	u32 emt_accepted;	/*  Trunk EMT Accepted		*/
 	u32 emt_rejected;	/*  Trunk EMT rejected		*/
@@ -411,7 +432,8 @@ struct bfa_fw_trunk_stats_s {
 	u32 rsvd;		/*  padding for 64 bit alignment */
 };
 
-struct bfa_fw_aport_stats_s {
+struct bfa_fw_aport_stats_s
+{
 	u32 flogi_sent;		/*  Flogi sent			*/
 	u32 flogi_acc_recvd;	/*  Flogi Acc received		*/
 	u32 flogi_rjt_recvd;	/*  Flogi rejects received	*/
@@ -432,7 +454,8 @@ struct bfa_fw_aport_stats_s {
 /*
  * IOCFC firmware stats
  */
-struct bfa_fw_iocfc_stats_s {
+struct bfa_fw_iocfc_stats_s
+{
 	u32	cfg_reqs;	/*  cfg request */
 	u32	updq_reqs;	/*  update queue request */
 	u32	ic_reqs;	/*  interrupt coalesce reqs */
@@ -443,7 +466,8 @@ struct bfa_fw_iocfc_stats_s {
 /*
  * IOC attributes returned in queries
  */
-struct bfa_iocfc_attr_s {
+struct bfa_iocfc_attr_s
+{
 	struct bfa_iocfc_cfg_s		config;		/*  IOCFC config   */
 	struct bfa_iocfc_intr_attr_s	intr_attr;	/*  interrupt attr */
 };
@@ -451,7 +475,8 @@ struct bfa_iocfc_attr_s {
 /*
  * Eth_sndrcv mod stats
  */
-struct bfa_fw_eth_sndrcv_stats_s {
+struct bfa_fw_eth_sndrcv_stats_s
+{
 	u32	crc_err;
 	u32	rsvd;		/*  64bit align    */
 };
@@ -459,7 +484,8 @@ struct bfa_fw_eth_sndrcv_stats_s {
 /*
  * CT MAC mod stats
  */
-struct bfa_fw_mac_mod_stats_s {
+struct bfa_fw_mac_mod_stats_s
+{
 	u32	mac_on;		/*  MAC got turned-on */
 	u32	link_up;	/*  link-up */
 	u32	signal_off;	/*  lost signal */
@@ -468,16 +494,17 @@ struct bfa_fw_mac_mod_stats_s {
 	u32	pcs_reset;	/*  # of PCS reset to bring lnk up */
 	u32	loopback;	/*  MAC got into serdes loopback */
 	u32	lb_mac_reset;
-			/*  # of MAC reset to bring link up in loopback */
+	/*  # of MAC reset to bring link up in loopback */
 	u32	lb_pcs_reset;
-			/*  # of PCS reset to bring link up in loopback */
+	/*  # of PCS reset to bring link up in loopback */
 	u32	rsvd;		/*  64bit align    */
 };
 
 /*
  * CT MOD stats
  */
-struct bfa_fw_ct_mod_stats_s {
+struct bfa_fw_ct_mod_stats_s
+{
 	u32	rxa_rds_undrun;	/*  RxA RDS underrun */
 	u32	rad_bpc_ovfl;	/*  RAD BPC overflow */
 	u32	rad_rlb_bpc_ovfl; /*  RAD RLB BPC overflow */
@@ -489,7 +516,8 @@ struct bfa_fw_ct_mod_stats_s {
 /*
  * RDS mod stats
  */
-struct bfa_fw_rds_stats_s {
+struct bfa_fw_rds_stats_s
+{
 	u32	no_fid_drop_err; /* RDS no fid drop error */
 	u32	rsvd;		 /* 64bit align */
 };
@@ -497,7 +525,8 @@ struct bfa_fw_rds_stats_s {
 /*
  * IOC firmware stats
  */
-struct bfa_fw_stats_s {
+struct bfa_fw_stats_s
+{
 	struct bfa_fw_ioc_stats_s	ioc_stats;
 	struct bfa_fw_iocfc_stats_s	iocfc_stats;
 	struct bfa_fw_io_stats_s	io_stats;
@@ -518,7 +547,8 @@ struct bfa_fw_stats_s {
 /*
  * QoS states
  */
-enum bfa_qos_state {
+enum bfa_qos_state
+{
 	BFA_QOS_DISABLED = 0,		/* QoS is disabled */
 	BFA_QOS_ONLINE = 1,		/*  QoS is online */
 	BFA_QOS_OFFLINE = 2,		/*  QoS is offline */
@@ -527,7 +557,8 @@ enum bfa_qos_state {
 /*
  * QoS  Priority levels.
  */
-enum bfa_qos_priority {
+enum bfa_qos_priority
+{
 	BFA_QOS_UNKNOWN = 0,
 	BFA_QOS_HIGH  = 1,	/*  QoS Priority Level High */
 	BFA_QOS_MED  =  2,	/*  QoS Priority Level Medium */
@@ -537,14 +568,16 @@ enum bfa_qos_priority {
 /*
  * QoS  bandwidth allocation for each priority level
  */
-enum bfa_qos_bw_alloc {
+enum bfa_qos_bw_alloc
+{
 	BFA_QOS_BW_HIGH  = 60,	/*  bandwidth allocation for High */
 	BFA_QOS_BW_MED  =  30,	/*  bandwidth allocation for Medium */
 	BFA_QOS_BW_LOW  =  10,	/*  bandwidth allocation for Low */
 };
 #pragma pack(1)
 
-struct bfa_qos_bw_s {
+struct bfa_qos_bw_s
+{
 	u8	qos_bw_set;
 	u8	high;
 	u8	med;
@@ -554,7 +587,8 @@ struct bfa_qos_bw_s {
 /*
  * QoS attribute returned in QoS Query
  */
-struct bfa_qos_attr_s {
+struct bfa_qos_attr_s
+{
 	u8	state;		/*  QoS current state */
 	u8	rsvd1[3];
 	u32	total_bb_cr;	/*  Total BB Credits */
@@ -562,13 +596,15 @@ struct bfa_qos_attr_s {
 	struct bfa_qos_bw_s qos_bw_op;	/* QOS bw operational */
 };
 
-enum bfa_bbcr_state {
+enum bfa_bbcr_state
+{
 	BFA_BBCR_DISABLED,	/*!< BBCR is disable */
 	BFA_BBCR_ONLINE,	/*!< BBCR is online  */
 	BFA_BBCR_OFFLINE,	/*!< BBCR is offline */
 };
 
-enum bfa_bbcr_err_reason {
+enum bfa_bbcr_err_reason
+{
 	BFA_BBCR_ERR_REASON_NONE, /*!< Unknown */
 	BFA_BBCR_ERR_REASON_SPEED_UNSUP, /*!< Port speed < max sup_speed */
 	BFA_BBCR_ERR_REASON_PEER_UNSUP,	/*!< BBCR is disable on peer port */
@@ -576,7 +612,8 @@ enum bfa_bbcr_err_reason {
 	BFA_BBCR_ERR_REASON_FLOGI_RJT, /*!< Login rejected by the switch */
 };
 
-struct bfa_bbcr_attr_s {
+struct bfa_bbcr_attr_s
+{
 	u8	state;
 	u8	peer_bb_scn;
 	u8	reason;
@@ -591,14 +628,16 @@ struct bfa_bbcr_attr_s {
  */
 #define  BFA_QOS_MAX_VC  16
 
-struct bfa_qos_vc_info_s {
+struct bfa_qos_vc_info_s
+{
 	u8 vc_credit;
 	u8 borrow_credit;
 	u8 priority;
 	u8 resvd;
 };
 
-struct bfa_qos_vc_attr_s {
+struct bfa_qos_vc_attr_s
+{
 	u16  total_vc_count;                    /*  Total VC Count */
 	u16  shared_credit;
 	u32  elp_opmode_flags;
@@ -609,7 +648,8 @@ struct bfa_qos_vc_attr_s {
 /*
  * QoS statistics
  */
-struct bfa_qos_stats_s {
+struct bfa_qos_stats_s
+{
 	u32	flogi_sent;		/*  QoS Flogi sent */
 	u32	flogi_acc_recvd;	/*  QoS Flogi Acc received */
 	u32	flogi_rjt_recvd;	/*  QoS Flogi rejects received */
@@ -627,7 +667,8 @@ struct bfa_qos_stats_s {
 /*
  * FCoE statistics
  */
-struct bfa_fcoe_stats_s {
+struct bfa_fcoe_stats_s
+{
 	u64	secs_reset;	/*  Seconds since stats reset	     */
 	u64	cee_linkups;	/*  CEE link up			     */
 	u64	cee_linkdns;	/*  CEE link down		     */
@@ -678,13 +719,15 @@ struct bfa_fcoe_stats_s {
 /*
  * QoS or FCoE stats (fcport stats excluding physical FC port stats)
  */
-union bfa_fcport_stats_u {
+union bfa_fcport_stats_u
+{
 	struct bfa_qos_stats_s	fcqos;
 	struct bfa_fcoe_stats_s	fcoe;
 };
 #pragma pack()
 
-struct bfa_fcpim_del_itn_stats_s {
+struct bfa_fcpim_del_itn_stats_s
+{
 	u32	del_itn_iocomp_aborted;	   /* Aborted IO requests	      */
 	u32	del_itn_iocomp_timedout;   /* IO timeouts		      */
 	u32	del_itn_iocom_sqer_needed; /* IO retry for SQ error recovery  */
@@ -695,7 +738,8 @@ struct bfa_fcpim_del_itn_stats_s {
 	u32	del_tm_iocdowns;	   /* TM cleaned-up due to IOC down   */
 };
 
-struct bfa_itnim_iostats_s {
+struct bfa_itnim_iostats_s
+{
 
 	u32	total_ios;		/*  Total IO Requests		*/
 	u32	input_reqs;		/*  Data in-bound requests	*/
@@ -757,7 +801,8 @@ struct bfa_itnim_iostats_s {
 };
 
 /* Modify char* port_stt[] in bfal_port.c if a new state was added */
-enum bfa_port_states {
+enum bfa_port_states
+{
 	BFA_PORT_ST_UNINIT		= 1,
 	BFA_PORT_ST_ENABLING_QWAIT	= 2,
 	BFA_PORT_ST_ENABLING		= 3,
@@ -781,7 +826,8 @@ enum bfa_port_states {
 /*
  *	Port operational type (in sync with SNIA port type).
  */
-enum bfa_port_type {
+enum bfa_port_type
+{
 	BFA_PORT_TYPE_UNKNOWN	= 1,	/*  port type is unknown */
 	BFA_PORT_TYPE_NPORT	= 5,	/*  P2P with switched fabric */
 	BFA_PORT_TYPE_NLPORT	= 6,	/*  public loop */
@@ -794,7 +840,8 @@ enum bfa_port_type {
  *	Port topology setting. A port's topology and fabric login status
  *	determine its operational type.
  */
-enum bfa_port_topology {
+enum bfa_port_topology
+{
 	BFA_PORT_TOPOLOGY_NONE = 0,	/*  No valid topology */
 	BFA_PORT_TOPOLOGY_P2P_OLD_VER = 1, /* P2P def for older ver */
 	BFA_PORT_TOPOLOGY_LOOP = 2,	/* LOOP topology */
@@ -806,7 +853,8 @@ enum bfa_port_topology {
 /*
  *	Physical port loopback types.
  */
-enum bfa_port_opmode {
+enum bfa_port_opmode
+{
 	BFA_PORT_OPMODE_NORMAL   = 0x00, /*  normal non-loopback mode */
 	BFA_PORT_OPMODE_LB_INT   = 0x01, /*  internal loop back */
 	BFA_PORT_OPMODE_LB_SLW   = 0x02, /*  serial link wrapback (serdes) */
@@ -817,13 +865,14 @@ enum bfa_port_opmode {
 
 #define BFA_PORT_OPMODE_LB_HARD(_mode)			\
 	((_mode == BFA_PORT_OPMODE_LB_INT) ||		\
-	(_mode == BFA_PORT_OPMODE_LB_SLW) ||		\
-	(_mode == BFA_PORT_OPMODE_LB_EXT))
+	 (_mode == BFA_PORT_OPMODE_LB_SLW) ||		\
+	 (_mode == BFA_PORT_OPMODE_LB_EXT))
 
 /*
  *	Port link state
  */
-enum bfa_port_linkstate {
+enum bfa_port_linkstate
+{
 	BFA_PORT_LINKUP		= 1,	/*  Physical port/Trunk link up */
 	BFA_PORT_LINKDOWN	= 2,	/*  Physical port/Trunk link down */
 };
@@ -831,7 +880,8 @@ enum bfa_port_linkstate {
 /*
  *	Port link state reason code
  */
-enum bfa_port_linkstate_rsn {
+enum bfa_port_linkstate_rsn
+{
 	BFA_PORT_LINKSTATE_RSN_NONE		= 0,
 	BFA_PORT_LINKSTATE_RSN_DISABLED		= 1,
 	BFA_PORT_LINKSTATE_RSN_RX_NOS		= 2,
@@ -883,13 +933,15 @@ enum bfa_port_linkstate_rsn {
  * BFA_LUN_MASK_ACTIVE to BFA_LUN_MASK_FETCH and comes back to
  * BFA_LUN_MASK_ACTIVE.
  */
-enum bfa_ioim_lun_mask_state_s {
+enum bfa_ioim_lun_mask_state_s
+{
 	BFA_IOIM_LUN_MASK_INACTIVE = 0,
 	BFA_IOIM_LUN_MASK_ACTIVE = 1,
 	BFA_IOIM_LUN_MASK_FETCHED = 2,
 };
 
-enum bfa_lunmask_state_s {
+enum bfa_lunmask_state_s
+{
 	BFA_LUNMASK_DISABLED = 0x00,
 	BFA_LUNMASK_ENABLED = 0x01,
 	BFA_LUNMASK_MINCFG = 0x02,
@@ -899,7 +951,8 @@ enum bfa_lunmask_state_s {
 /**
  * FEC states
  */
-enum bfa_fec_state_s {
+enum bfa_fec_state_s
+{
 	BFA_FEC_ONLINE = 1,		/*!< FEC is online */
 	BFA_FEC_OFFLINE = 2,		/*!< FEC is offline */
 	BFA_FEC_OFFLINE_NOT_16G = 3,	/*!< FEC is offline (speed not 16Gig) */
@@ -909,7 +962,8 @@ enum bfa_fec_state_s {
 /*
  * LUN mask configuration
  */
-struct bfa_lun_mask_s {
+struct bfa_lun_mask_s
+{
 	wwn_t		lp_wwn;
 	wwn_t		rp_wwn;
 	struct scsi_lun	lun;
@@ -921,19 +975,22 @@ struct bfa_lun_mask_s {
 };
 
 #define MAX_LUN_MASK_CFG 16
-struct bfa_lunmask_cfg_s {
+struct bfa_lunmask_cfg_s
+{
 	u32	status;
 	u32	rsvd;
 	struct bfa_lun_mask_s	lun_list[MAX_LUN_MASK_CFG];
 };
 
-struct bfa_throttle_cfg_s {
+struct bfa_throttle_cfg_s
+{
 	u16	is_valid;
 	u16	value;
 	u32	rsvd;
 };
 
-struct bfa_defs_fcpim_throttle_s {
+struct bfa_defs_fcpim_throttle_s
+{
 	u16	max_value;
 	u16	cur_value;
 	u16	cfg_value;
@@ -946,7 +1003,8 @@ struct bfa_defs_fcpim_throttle_s {
 /*
  *      Physical port configuration
  */
-struct bfa_port_cfg_s {
+struct bfa_port_cfg_s
+{
 	u8	 topology;	/*  bfa_port_topology		*/
 	u8	 speed;		/*  enum bfa_port_speed	*/
 	u8	 trunked;	/*  trunked or not		*/
@@ -971,7 +1029,8 @@ struct bfa_port_cfg_s {
 /*
  *	Port attribute values.
  */
-struct bfa_port_attr_s {
+struct bfa_port_attr_s
+{
 	/*
 	 * Static fields
 	 */
@@ -1019,7 +1078,8 @@ struct bfa_port_attr_s {
 /*
  *	      Port FCP mappings.
  */
-struct bfa_port_fcpmap_s {
+struct bfa_port_fcpmap_s
+{
 	char	osdevname[256];
 	u32	bus;
 	u32	target;
@@ -1034,7 +1094,8 @@ struct bfa_port_fcpmap_s {
 /*
  *	      Port RNID info.
  */
-struct bfa_port_rnid_s {
+struct bfa_port_rnid_s
+{
 	wwn_t	  wwn;
 	u32	  unittype;
 	u32	  portid;
@@ -1047,7 +1108,8 @@ struct bfa_port_rnid_s {
 };
 
 #pragma pack(1)
-struct bfa_fcport_fcf_s {
+struct bfa_fcport_fcf_s
+{
 	wwn_t	name;		/*  FCF name		   */
 	wwn_t	fabric_name;    /*  Fabric Name		   */
 	u8	fipenabled;	/*  FIP enabled or not	   */
@@ -1067,7 +1129,8 @@ struct bfa_fcport_fcf_s {
 /*
  *	Trunk states for BCU/BFAL
  */
-enum bfa_trunk_state {
+enum bfa_trunk_state
+{
 	BFA_TRUNK_DISABLED	= 0,	/*  Trunk is not configured	*/
 	BFA_TRUNK_ONLINE	= 1,	/*  Trunk is online		*/
 	BFA_TRUNK_OFFLINE	= 2,	/*  Trunk is offline		*/
@@ -1076,14 +1139,16 @@ enum bfa_trunk_state {
 /*
  *	VC attributes for trunked link
  */
-struct bfa_trunk_vc_attr_s {
+struct bfa_trunk_vc_attr_s
+{
 	u32 bb_credit;
 	u32 elp_opmode_flags;
 	u32 req_credit;
 	u16 vc_credits[8];
 };
 
-struct bfa_fcport_loop_info_s {
+struct bfa_fcport_loop_info_s
+{
 	u8	myalpa;		/* alpa claimed */
 	u8	alpabm_val;	/* alpa bitmap valid or not (1 or 0) */
 	u8	resvd[6];
@@ -1093,7 +1158,8 @@ struct bfa_fcport_loop_info_s {
 /*
  *	Link state information
  */
-struct bfa_port_link_s {
+struct bfa_port_link_s
+{
 	u8	 linkstate;	/*  Link state bfa_port_linkstate */
 	u8	 linkstate_rsn;	/*  bfa_port_linkstate_rsn_t */
 	u8	 topology;	/*  P2P/LOOP bfa_port_topology */
@@ -1103,27 +1169,31 @@ struct bfa_port_link_s {
 	u8	 fec_state;	/*!< State of FEC */
 	u8	 resvd[6];
 	struct bfa_qos_attr_s  qos_attr;   /* QoS Attributes */
-	union {
+	union
+	{
 		struct bfa_fcport_loop_info_s loop_info;
 		struct bfa_bbcr_attr_s bbcr_attr;
-		union {
+		union
+		{
 			struct bfa_qos_vc_attr_s qos_vc_attr;
-					/*  VC info from ELP */
+			/*  VC info from ELP */
 			struct bfa_trunk_vc_attr_s trunk_vc_attr;
 			struct bfa_fcport_fcf_s fcf;
-					/*  FCF information (for FCoE) */
+			/*  FCF information (for FCoE) */
 		} vc_fcf;
 	} attr;
 };
 #pragma pack()
 
-enum bfa_trunk_link_fctl {
+enum bfa_trunk_link_fctl
+{
 	BFA_TRUNK_LINK_FCTL_NORMAL,
 	BFA_TRUNK_LINK_FCTL_VC,
 	BFA_TRUNK_LINK_FCTL_VC_QOS,
 };
 
-enum bfa_trunk_link_state {
+enum bfa_trunk_link_state
+{
 	BFA_TRUNK_LINK_STATE_UP = 1,		/* link part of trunk */
 	BFA_TRUNK_LINK_STATE_DN_LINKDN = 2,	/* physical link down */
 	BFA_TRUNK_LINK_STATE_DN_GRP_MIS = 3,	/* trunk group different */
@@ -1132,7 +1202,8 @@ enum bfa_trunk_link_state {
 };
 
 #define BFA_TRUNK_MAX_PORTS	2
-struct bfa_trunk_link_attr_s {
+struct bfa_trunk_link_attr_s
+{
 	wwn_t    trunk_wwn;
 	enum bfa_trunk_link_fctl fctl;
 	enum bfa_trunk_link_state link_state;
@@ -1140,7 +1211,8 @@ struct bfa_trunk_link_attr_s {
 	u32 deskew;
 };
 
-struct bfa_trunk_attr_s {
+struct bfa_trunk_attr_s
+{
 	enum bfa_trunk_state	state;
 	enum bfa_port_speed	speed;
 	u32		port_id;
@@ -1148,7 +1220,8 @@ struct bfa_trunk_attr_s {
 	struct bfa_trunk_link_attr_s link_attr[BFA_TRUNK_MAX_PORTS];
 };
 
-struct bfa_rport_hal_stats_s {
+struct bfa_rport_hal_stats_s
+{
 	u32        sm_un_cr;	    /*  uninit: create events      */
 	u32        sm_un_unexp;	    /*  uninit: exception events   */
 	u32        sm_cr_on;	    /*  created: online events     */
@@ -1192,7 +1265,8 @@ struct bfa_rport_hal_stats_s {
 /*
  *  Rport's QoS attributes
  */
-struct bfa_rport_qos_attr_s {
+struct bfa_rport_qos_attr_s
+{
 	u8		qos_priority;	/*  rport's QoS priority   */
 	u8		rsvd[3];
 	u32		qos_flow_id;	/*  QoS flow Id	 */
@@ -1201,14 +1275,16 @@ struct bfa_rport_qos_attr_s {
 
 #define BFA_IOBUCKET_MAX 14
 
-struct bfa_itnim_latency_s {
+struct bfa_itnim_latency_s
+{
 	u32 min[BFA_IOBUCKET_MAX];
 	u32 max[BFA_IOBUCKET_MAX];
 	u32 count[BFA_IOBUCKET_MAX];
 	u32 avg[BFA_IOBUCKET_MAX];
 };
 
-struct bfa_itnim_ioprofile_s {
+struct bfa_itnim_ioprofile_s
+{
 	u32 clock_res_mul;
 	u32 clock_res_div;
 	u32 index;
@@ -1220,7 +1296,8 @@ struct bfa_itnim_ioprofile_s {
 /*
  *	vHBA port attribute values.
  */
-struct bfa_vhba_attr_s {
+struct bfa_vhba_attr_s
+{
 	wwn_t	nwwn;       /* node wwn */
 	wwn_t	pwwn;       /* port wwn */
 	u32	pid;        /* port ID */
@@ -1233,7 +1310,8 @@ struct bfa_vhba_attr_s {
 /*
  * FC physical port statistics.
  */
-struct bfa_port_fc_stats_s {
+struct bfa_port_fc_stats_s
+{
 	u64     secs_reset;     /*  Seconds since stats is reset */
 	u64     tx_frames;      /*  Tx frames                   */
 	u64     tx_words;       /*  Tx words                    */
@@ -1280,7 +1358,8 @@ struct bfa_port_fc_stats_s {
 /*
  * Eth Physical Port statistics.
  */
-struct bfa_port_eth_stats_s {
+struct bfa_port_eth_stats_s
+{
 	u64     secs_reset;     /*  Seconds since stats is reset */
 	u64     frame_64;       /*  Frames 64 bytes             */
 	u64     frame_65_127;   /*  Frames 65-127 bytes */
@@ -1328,12 +1407,14 @@ struct bfa_port_eth_stats_s {
 /*
  *              Port statistics.
  */
-union bfa_port_stats_u {
+union bfa_port_stats_u
+{
 	struct bfa_port_fc_stats_s      fc;
 	struct bfa_port_eth_stats_s     eth;
 };
 
-struct bfa_port_cfg_mode_s {
+struct bfa_port_cfg_mode_s
+{
 	u16		max_pf;
 	u16		max_vf;
 	enum bfa_mode_s	mode;
@@ -1345,14 +1426,16 @@ struct bfa_port_cfg_mode_s {
 #define BFA_CEE_DCBX_MAX_PRIORITY	(8)
 #define BFA_CEE_DCBX_MAX_PGID		(8)
 
-struct bfa_cee_lldp_str_s {
+struct bfa_cee_lldp_str_s
+{
 	u8	sub_type;
 	u8	len;
 	u8	rsvd[2];
 	u8	value[BFA_CEE_LLDP_MAX_STRING_LEN];
 };
 
-struct bfa_cee_lldp_cfg_s {
+struct bfa_cee_lldp_cfg_s
+{
 	struct bfa_cee_lldp_str_s chassis_id;
 	struct bfa_cee_lldp_str_s port_id;
 	struct bfa_cee_lldp_str_s port_desc;
@@ -1364,7 +1447,8 @@ struct bfa_cee_lldp_cfg_s {
 };
 
 /* CEE/DCBX parameters */
-struct bfa_cee_dcbx_cfg_s {
+struct bfa_cee_dcbx_cfg_s
+{
 	u8	pgid[BFA_CEE_DCBX_MAX_PRIORITY];
 	u8	pg_percentage[BFA_CEE_DCBX_MAX_PGID];
 	u8	pfc_primap; /* bitmap of priorties with PFC enabled */
@@ -1377,7 +1461,8 @@ struct bfa_cee_dcbx_cfg_s {
 };
 
 /* CEE Query */
-struct bfa_cee_attr_s {
+struct bfa_cee_attr_s
+{
 	u8	cee_status;
 	u8	error_reason;
 	struct bfa_cee_lldp_cfg_s lldp_remote;
@@ -1389,7 +1474,8 @@ struct bfa_cee_attr_s {
 };
 
 /* LLDP/DCBX/CEE Statistics */
-struct bfa_cee_stats_s {
+struct bfa_cee_stats_s
+{
 	u32		lldp_tx_frames;		/* LLDP Tx Frames */
 	u32		lldp_rx_frames;		/* LLDP Rx Frames */
 	u32		lldp_rx_frames_invalid; /* LLDP Rx Frames invalid */
@@ -1416,10 +1502,11 @@ struct bfa_cee_stats_s {
  *			AEN related definitions
  */
 #define BFAD_NL_VENDOR_ID (((u64)0x01 << SCSI_NL_VID_TYPE_SHIFT) \
-			   | BFA_PCI_VENDOR_ID_BROCADE)
+						   | BFA_PCI_VENDOR_ID_BROCADE)
 
 /* BFA remote port events */
-enum bfa_rport_aen_event {
+enum bfa_rport_aen_event
+{
 	BFA_RPORT_AEN_ONLINE     = 1,   /* RPort online event */
 	BFA_RPORT_AEN_OFFLINE    = 2,   /* RPort offline event */
 	BFA_RPORT_AEN_DISCONNECT = 3,   /* RPort disconnect event */
@@ -1427,18 +1514,21 @@ enum bfa_rport_aen_event {
 	BFA_RPORT_AEN_QOS_FLOWID = 5,   /* QOS flow Id change event */
 };
 
-struct bfa_rport_aen_data_s {
+struct bfa_rport_aen_data_s
+{
 	u16             vf_id;  /* vf_id of this logical port */
 	u16             rsvd[3];
 	wwn_t           ppwwn;  /* WWN of its physical port */
 	wwn_t           lpwwn;  /* WWN of this logical port */
 	wwn_t           rpwwn;  /* WWN of this remote port */
-	union {
+	union
+	{
 		struct bfa_rport_qos_attr_s qos;
 	} priv;
 };
 
-union bfa_aen_data_u {
+union bfa_aen_data_u
+{
 	struct bfa_adapter_aen_data_s	adapter;
 	struct bfa_port_aen_data_s	port;
 	struct bfa_lport_aen_data_s	lport;
@@ -1450,7 +1540,8 @@ union bfa_aen_data_u {
 
 #define BFA_AEN_MAX_ENTRY	512
 
-struct bfa_aen_entry_s {
+struct bfa_aen_entry_s
+{
 	struct list_head	qe;
 	enum bfa_aen_category   aen_category;
 	u32                     aen_type;

@@ -32,7 +32,8 @@
 #define VIA_MM_ALIGN_SHIFT 4
 #define VIA_MM_ALIGN_MASK ((1 << VIA_MM_ALIGN_SHIFT) - 1)
 
-struct via_memblock {
+struct via_memblock
+{
 	struct drm_mm_node mm_node;
 	struct list_head owner_list;
 };
@@ -79,12 +80,14 @@ int via_final_context(struct drm_device *dev, int context)
 
 	/* Linux specific until context tracking code gets ported to BSD */
 	/* Last context, perform cleanup */
-	if (list_is_singular(&dev->ctxlist)) {
+	if (list_is_singular(&dev->ctxlist))
+	{
 		DRM_DEBUG("Last Context\n");
 		drm_irq_uninstall(dev);
 		via_cleanup_futex(dev_priv);
 		via_do_cleanup_map(dev);
 	}
+
 	return 1;
 }
 
@@ -93,22 +96,29 @@ void via_lastclose(struct drm_device *dev)
 	drm_via_private_t *dev_priv = (drm_via_private_t *) dev->dev_private;
 
 	if (!dev_priv)
+	{
 		return;
+	}
 
 	mutex_lock(&dev->struct_mutex);
-	if (dev_priv->vram_initialized) {
+
+	if (dev_priv->vram_initialized)
+	{
 		drm_mm_takedown(&dev_priv->vram_mm);
 		dev_priv->vram_initialized = 0;
 	}
-	if (dev_priv->agp_initialized) {
+
+	if (dev_priv->agp_initialized)
+	{
 		drm_mm_takedown(&dev_priv->agp_mm);
 		dev_priv->agp_initialized = 0;
 	}
+
 	mutex_unlock(&dev->struct_mutex);
 }
 
 int via_mem_alloc(struct drm_device *dev, void *data,
-		  struct drm_file *file)
+				  struct drm_file *file)
 {
 	drm_via_mem_t *mem = data;
 	int retval = 0, user_key;
@@ -117,48 +127,62 @@ int via_mem_alloc(struct drm_device *dev, void *data,
 	struct via_file_private *file_priv = file->driver_priv;
 	unsigned long tmpSize;
 
-	if (mem->type > VIA_MEM_AGP) {
+	if (mem->type > VIA_MEM_AGP)
+	{
 		DRM_ERROR("Unknown memory type allocation\n");
 		return -EINVAL;
 	}
+
 	mutex_lock(&dev->struct_mutex);
+
 	if (0 == ((mem->type == VIA_MEM_VIDEO) ? dev_priv->vram_initialized :
-		      dev_priv->agp_initialized)) {
+			  dev_priv->agp_initialized))
+	{
 		DRM_ERROR
-		    ("Attempt to allocate from uninitialized memory manager.\n");
+		("Attempt to allocate from uninitialized memory manager.\n");
 		mutex_unlock(&dev->struct_mutex);
 		return -EINVAL;
 	}
 
 	item = kzalloc(sizeof(*item), GFP_KERNEL);
-	if (!item) {
+
+	if (!item)
+	{
 		retval = -ENOMEM;
 		goto fail_alloc;
 	}
 
 	tmpSize = (mem->size + VIA_MM_ALIGN_MASK) >> VIA_MM_ALIGN_SHIFT;
+
 	if (mem->type == VIA_MEM_AGP)
 		retval = drm_mm_insert_node(&dev_priv->agp_mm,
-					    &item->mm_node,
-					    tmpSize, 0, DRM_MM_SEARCH_DEFAULT);
+									&item->mm_node,
+									tmpSize, 0, DRM_MM_SEARCH_DEFAULT);
 	else
 		retval = drm_mm_insert_node(&dev_priv->vram_mm,
-					    &item->mm_node,
-					    tmpSize, 0, DRM_MM_SEARCH_DEFAULT);
+									&item->mm_node,
+									tmpSize, 0, DRM_MM_SEARCH_DEFAULT);
+
 	if (retval)
+	{
 		goto fail_alloc;
+	}
 
 	retval = idr_alloc(&dev_priv->object_idr, item, 1, 0, GFP_KERNEL);
+
 	if (retval < 0)
+	{
 		goto fail_idr;
+	}
+
 	user_key = retval;
 
 	list_add(&item->owner_list, &file_priv->obj_list);
 	mutex_unlock(&dev->struct_mutex);
 
 	mem->offset = ((mem->type == VIA_MEM_VIDEO) ?
-		      dev_priv->vram_offset : dev_priv->agp_offset) +
-	    ((item->mm_node.start) << VIA_MM_ALIGN_SHIFT);
+				   dev_priv->vram_offset : dev_priv->agp_offset) +
+				  ((item->mm_node.start) << VIA_MM_ALIGN_SHIFT);
 	mem->index = user_key;
 
 	return 0;
@@ -185,7 +209,9 @@ int via_mem_free(struct drm_device *dev, void *data, struct drm_file *file_priv)
 
 	mutex_lock(&dev->struct_mutex);
 	obj = idr_find(&dev_priv->object_idr, mem->index);
-	if (obj == NULL) {
+
+	if (obj == NULL)
+	{
 		mutex_unlock(&dev->struct_mutex);
 		return -EINVAL;
 	}
@@ -203,18 +229,22 @@ int via_mem_free(struct drm_device *dev, void *data, struct drm_file *file_priv)
 
 
 void via_reclaim_buffers_locked(struct drm_device *dev,
-				struct drm_file *file)
+								struct drm_file *file)
 {
 	struct via_file_private *file_priv = file->driver_priv;
 	struct via_memblock *entry, *next;
 
 	if (!(dev->master && file->master->lock.hw_lock))
+	{
 		return;
+	}
 
 	drm_legacy_idlelock_take(&file->master->lock);
 
 	mutex_lock(&dev->struct_mutex);
-	if (list_empty(&file_priv->obj_list)) {
+
+	if (list_empty(&file_priv->obj_list))
+	{
 		mutex_unlock(&dev->struct_mutex);
 		drm_legacy_idlelock_release(&file->master->lock);
 
@@ -224,7 +254,8 @@ void via_reclaim_buffers_locked(struct drm_device *dev,
 	via_driver_dma_quiescent(dev);
 
 	list_for_each_entry_safe(entry, next, &file_priv->obj_list,
-				 owner_list) {
+							 owner_list)
+	{
 		list_del(&entry->owner_list);
 		drm_mm_remove_node(&entry->mm_node);
 		kfree(entry);

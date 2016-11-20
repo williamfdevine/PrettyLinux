@@ -18,7 +18,8 @@
 
 struct device;
 
-struct pda_power_pdata {
+struct pda_power_pdata
+{
 	int (*init)(struct device *dev);
 	int (*is_ac_online)(void);
 	int (*is_usb_online)(void);

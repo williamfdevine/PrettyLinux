@@ -27,14 +27,20 @@ static struct sk_buff *trailer_xmit(struct sk_buff *skb, struct net_device *dev)
 	 * before adding the trailer.
 	 */
 	padlen = 0;
+
 	if (skb->len < 60)
+	{
 		padlen = 60 - skb->len;
+	}
 
 	nskb = alloc_skb(NET_IP_ALIGN + skb->len + padlen + 4, GFP_ATOMIC);
-	if (nskb == NULL) {
+
+	if (nskb == NULL)
+	{
 		kfree_skb(skb);
 		return NULL;
 	}
+
 	skb_reserve(nskb, NET_IP_ALIGN);
 
 	skb_reset_mac_header(nskb);
@@ -43,7 +49,8 @@ static struct sk_buff *trailer_xmit(struct sk_buff *skb, struct net_device *dev)
 	skb_copy_and_csum_dev(skb, skb_put(nskb, skb->len));
 	kfree_skb(skb);
 
-	if (padlen) {
+	if (padlen)
+	{
 		u8 *pad = skb_put(nskb, padlen);
 		memset(pad, 0, padlen);
 	}
@@ -58,7 +65,7 @@ static struct sk_buff *trailer_xmit(struct sk_buff *skb, struct net_device *dev)
 }
 
 static int trailer_rcv(struct sk_buff *skb, struct net_device *dev,
-		       struct packet_type *pt, struct net_device *orig_dev)
+					   struct packet_type *pt, struct net_device *orig_dev)
 {
 	struct dsa_switch_tree *dst = dev->dsa_ptr;
 	struct dsa_switch *ds;
@@ -66,24 +73,38 @@ static int trailer_rcv(struct sk_buff *skb, struct net_device *dev,
 	int source_port;
 
 	if (unlikely(dst == NULL))
+	{
 		goto out_drop;
+	}
+
 	ds = dst->ds[0];
 
 	skb = skb_unshare(skb, GFP_ATOMIC);
+
 	if (skb == NULL)
+	{
 		goto out;
+	}
 
 	if (skb_linearize(skb))
+	{
 		goto out_drop;
+	}
 
 	trailer = skb_tail_pointer(skb) - 4;
+
 	if (trailer[0] != 0x80 || (trailer[1] & 0xf8) != 0x00 ||
-	    (trailer[2] & 0xef) != 0x00 || trailer[3] != 0x00)
+		(trailer[2] & 0xef) != 0x00 || trailer[3] != 0x00)
+	{
 		goto out_drop;
+	}
 
 	source_port = trailer[1] & 7;
+
 	if (source_port >= DSA_MAX_PORTS || !ds->ports[source_port].netdev)
+	{
 		goto out_drop;
+	}
 
 	pskb_trim_rcsum(skb, skb->len - 4);
 
@@ -105,7 +126,8 @@ out:
 	return 0;
 }
 
-const struct dsa_device_ops trailer_netdev_ops = {
+const struct dsa_device_ops trailer_netdev_ops =
+{
 	.xmit	= trailer_xmit,
 	.rcv	= trailer_rcv,
 };

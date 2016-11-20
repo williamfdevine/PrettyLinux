@@ -28,13 +28,18 @@ SYSCALL_DEFINE2(utime, char __user *, filename, struct utimbuf __user *, times)
 {
 	struct timespec tv[2];
 
-	if (times) {
+	if (times)
+	{
 		if (get_user(tv[0].tv_sec, &times->actime) ||
-		    get_user(tv[1].tv_sec, &times->modtime))
+			get_user(tv[1].tv_sec, &times->modtime))
+		{
 			return -EFAULT;
+		}
+
 		tv[0].tv_nsec = 0;
 		tv[1].tv_nsec = 0;
 	}
+
 	return do_utimes(AT_FDCWD, filename, times ? tv : NULL, 0);
 }
 
@@ -43,7 +48,9 @@ SYSCALL_DEFINE2(utime, char __user *, filename, struct utimbuf __user *, times)
 static bool nsec_valid(long nsec)
 {
 	if (nsec == UTIME_OMIT || nsec == UTIME_NOW)
+	{
 		return true;
+	}
 
 	return nsec >= 0 && nsec <= 999999999;
 }
@@ -56,47 +63,69 @@ static int utimes_common(struct path *path, struct timespec *times)
 	struct inode *delegated_inode = NULL;
 
 	error = mnt_want_write(path->mnt);
+
 	if (error)
+	{
 		goto out;
+	}
 
 	if (times && times[0].tv_nsec == UTIME_NOW &&
-		     times[1].tv_nsec == UTIME_NOW)
+		times[1].tv_nsec == UTIME_NOW)
+	{
 		times = NULL;
+	}
 
 	newattrs.ia_valid = ATTR_CTIME | ATTR_MTIME | ATTR_ATIME;
-	if (times) {
+
+	if (times)
+	{
 		if (times[0].tv_nsec == UTIME_OMIT)
+		{
 			newattrs.ia_valid &= ~ATTR_ATIME;
-		else if (times[0].tv_nsec != UTIME_NOW) {
+		}
+		else if (times[0].tv_nsec != UTIME_NOW)
+		{
 			newattrs.ia_atime.tv_sec = times[0].tv_sec;
 			newattrs.ia_atime.tv_nsec = times[0].tv_nsec;
 			newattrs.ia_valid |= ATTR_ATIME_SET;
 		}
 
 		if (times[1].tv_nsec == UTIME_OMIT)
+		{
 			newattrs.ia_valid &= ~ATTR_MTIME;
-		else if (times[1].tv_nsec != UTIME_NOW) {
+		}
+		else if (times[1].tv_nsec != UTIME_NOW)
+		{
 			newattrs.ia_mtime.tv_sec = times[1].tv_sec;
 			newattrs.ia_mtime.tv_nsec = times[1].tv_nsec;
 			newattrs.ia_valid |= ATTR_MTIME_SET;
 		}
+
 		/*
 		 * Tell setattr_prepare(), that this is an explicit time
 		 * update, even if neither ATTR_ATIME_SET nor ATTR_MTIME_SET
 		 * were used.
 		 */
 		newattrs.ia_valid |= ATTR_TIMES_SET;
-	} else {
+	}
+	else
+	{
 		newattrs.ia_valid |= ATTR_TOUCH;
 	}
+
 retry_deleg:
 	inode_lock(inode);
 	error = notify_change(path->dentry, &newattrs, &delegated_inode);
 	inode_unlock(inode);
-	if (delegated_inode) {
+
+	if (delegated_inode)
+	{
 		error = break_deleg_wait(&delegated_inode);
+
 		if (!error)
+		{
 			goto retry_deleg;
+		}
 	}
 
 	mnt_drop_write(path->mnt);
@@ -120,45 +149,64 @@ out:
  * Else, update from *times, must be owner or super user.
  */
 long do_utimes(int dfd, const char __user *filename, struct timespec *times,
-	       int flags)
+			   int flags)
 {
 	int error = -EINVAL;
 
 	if (times && (!nsec_valid(times[0].tv_nsec) ||
-		      !nsec_valid(times[1].tv_nsec))) {
+				  !nsec_valid(times[1].tv_nsec)))
+	{
 		goto out;
 	}
 
 	if (flags & ~AT_SYMLINK_NOFOLLOW)
+	{
 		goto out;
+	}
 
-	if (filename == NULL && dfd != AT_FDCWD) {
+	if (filename == NULL && dfd != AT_FDCWD)
+	{
 		struct fd f;
 
 		if (flags & AT_SYMLINK_NOFOLLOW)
+		{
 			goto out;
+		}
 
 		f = fdget(dfd);
 		error = -EBADF;
+
 		if (!f.file)
+		{
 			goto out;
+		}
 
 		error = utimes_common(&f.file->f_path, times);
 		fdput(f);
-	} else {
+	}
+	else
+	{
 		struct path path;
 		int lookup_flags = 0;
 
 		if (!(flags & AT_SYMLINK_NOFOLLOW))
+		{
 			lookup_flags |= LOOKUP_FOLLOW;
+		}
+
 retry:
 		error = user_path_at(dfd, filename, lookup_flags, &path);
+
 		if (error)
+		{
 			goto out;
+		}
 
 		error = utimes_common(&path, times);
 		path_put(&path);
-		if (retry_estale(error, lookup_flags)) {
+
+		if (retry_estale(error, lookup_flags))
+		{
 			lookup_flags |= LOOKUP_REVAL;
 			goto retry;
 		}
@@ -169,32 +217,40 @@ out:
 }
 
 SYSCALL_DEFINE4(utimensat, int, dfd, const char __user *, filename,
-		struct timespec __user *, utimes, int, flags)
+				struct timespec __user *, utimes, int, flags)
 {
 	struct timespec tstimes[2];
 
-	if (utimes) {
+	if (utimes)
+	{
 		if (copy_from_user(&tstimes, utimes, sizeof(tstimes)))
+		{
 			return -EFAULT;
+		}
 
 		/* Nothing to do, we must not even check the path.  */
 		if (tstimes[0].tv_nsec == UTIME_OMIT &&
-		    tstimes[1].tv_nsec == UTIME_OMIT)
+			tstimes[1].tv_nsec == UTIME_OMIT)
+		{
 			return 0;
+		}
 	}
 
 	return do_utimes(dfd, filename, utimes ? tstimes : NULL, flags);
 }
 
 SYSCALL_DEFINE3(futimesat, int, dfd, const char __user *, filename,
-		struct timeval __user *, utimes)
+				struct timeval __user *, utimes)
 {
 	struct timeval times[2];
 	struct timespec tstimes[2];
 
-	if (utimes) {
+	if (utimes)
+	{
 		if (copy_from_user(&times, utimes, sizeof(times)))
+		{
 			return -EFAULT;
+		}
 
 		/* This test is needed to catch all invalid values.  If we
 		   would test only in do_utimes we would miss those invalid
@@ -202,8 +258,10 @@ SYSCALL_DEFINE3(futimesat, int, dfd, const char __user *, filename,
 		   that we also catch UTIME_{NOW,OMIT} here which are only
 		   valid for utimensat.  */
 		if (times[0].tv_usec >= 1000000 || times[0].tv_usec < 0 ||
-		    times[1].tv_usec >= 1000000 || times[1].tv_usec < 0)
+			times[1].tv_usec >= 1000000 || times[1].tv_usec < 0)
+		{
 			return -EINVAL;
+		}
 
 		tstimes[0].tv_sec = times[0].tv_sec;
 		tstimes[0].tv_nsec = 1000 * times[0].tv_usec;
@@ -215,7 +273,7 @@ SYSCALL_DEFINE3(futimesat, int, dfd, const char __user *, filename,
 }
 
 SYSCALL_DEFINE2(utimes, char __user *, filename,
-		struct timeval __user *, utimes)
+				struct timeval __user *, utimes)
 {
 	return sys_futimesat(AT_FDCWD, filename, utimes);
 }

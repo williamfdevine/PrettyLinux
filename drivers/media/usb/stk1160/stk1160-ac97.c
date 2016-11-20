@@ -81,7 +81,8 @@ static void stk1160_reset_ac97(struct snd_ac97 *ac97)
 	stk1160_write_reg(dev, STK1160_AC97CTL_1 + 2, 0x01);
 }
 
-static struct snd_ac97_bus_ops stk1160_ac97_ops = {
+static struct snd_ac97_bus_ops stk1160_ac97_ops =
+{
 	.read	= stk1160_read_ac97,
 	.write	= stk1160_write_ac97,
 	.reset	= stk1160_reset_ac97,
@@ -99,33 +100,45 @@ int stk1160_ac97_register(struct stk1160 *dev)
 	 * the actual capture interface will be handled by snd-usb-audio
 	 */
 	rc = snd_card_new(dev->dev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1,
-			  THIS_MODULE, 0, &card);
+					  THIS_MODULE, 0, &card);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	/* TODO: I'm not sure where should I get these names :-( */
 	snprintf(card->shortname, sizeof(card->shortname),
-		 "stk1160-mixer");
+			 "stk1160-mixer");
 	snprintf(card->longname, sizeof(card->longname),
-		 "stk1160 ac97 codec mixer control");
+			 "stk1160 ac97 codec mixer control");
 	strlcpy(card->driver, dev->dev->driver->name, sizeof(card->driver));
 
 	rc = snd_ac97_bus(card, 0, &stk1160_ac97_ops, NULL, &ac97_bus);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	/* We must set private_data before calling snd_ac97_mixer */
 	memset(&ac97_template, 0, sizeof(ac97_template));
 	ac97_template.private_data = dev;
 	ac97_template.scaps = AC97_SCAP_SKIP_MODEM;
 	rc = snd_ac97_mixer(ac97_bus, &ac97_template, &stk1160_ac97);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	dev->snd_card = card;
 	rc = snd_card_register(card);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	return 0;
 
@@ -144,7 +157,9 @@ int stk1160_ac97_unregister(struct stk1160 *dev)
 	 * because ac97 release attempts to communicate with codec
 	 */
 	if (card && dev->udev)
+	{
 		snd_card_free(card);
+	}
 
 	return 0;
 }

@@ -20,7 +20,8 @@
 #define STI_MAX_MIXER 2
 #define STI_MAX_VID   1
 
-enum sti_compositor_subdev_type {
+enum sti_compositor_subdev_type
+{
 	STI_MIXER_MAIN_SUBDEV,
 	STI_MIXER_AUX_SUBDEV,
 	STI_GPD_SUBDEV,
@@ -28,7 +29,8 @@ enum sti_compositor_subdev_type {
 	STI_CURSOR_SUBDEV,
 };
 
-struct sti_compositor_subdev_descriptor {
+struct sti_compositor_subdev_descriptor
+{
 	enum sti_compositor_subdev_type type;
 	int id;
 	unsigned int offset;
@@ -41,7 +43,8 @@ struct sti_compositor_subdev_descriptor {
  * @subdev_desc: subdev list description
  */
 #define MAX_SUBDEV 9
-struct sti_compositor_data {
+struct sti_compositor_data
+{
 	unsigned int nb_subdev;
 	struct sti_compositor_subdev_descriptor subdev_desc[MAX_SUBDEV];
 };
@@ -63,7 +66,8 @@ struct sti_compositor_data {
  * @vtg: array of vtgs
  * @vtg_vblank_nb: array of callbacks for VTG VSYNC notification
  */
-struct sti_compositor {
+struct sti_compositor
+{
 	struct device *dev;
 	void __iomem *regs;
 	struct sti_compositor_data data;
@@ -80,6 +84,6 @@ struct sti_compositor {
 };
 
 int sti_compositor_debugfs_init(struct sti_compositor *compo,
-				struct drm_minor *minor);
+								struct drm_minor *minor);
 
 #endif

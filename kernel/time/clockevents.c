@@ -28,21 +28,24 @@ static DEFINE_RAW_SPINLOCK(clockevents_lock);
 /* Protection for unbind operations */
 static DEFINE_MUTEX(clockevents_mutex);
 
-struct ce_unbind {
+struct ce_unbind
+{
 	struct clock_event_device *ce;
 	int res;
 };
 
 static u64 cev_delta2ns(unsigned long latch, struct clock_event_device *evt,
-			bool ismax)
+						bool ismax)
 {
 	u64 clc = (u64) latch << evt->shift;
 	u64 rnd;
 
-	if (unlikely(!evt->mult)) {
+	if (unlikely(!evt->mult))
+	{
 		evt->mult = 1;
 		WARN_ON(1);
 	}
+
 	rnd = (u64) evt->mult - 1;
 
 	/*
@@ -50,7 +53,9 @@ static u64 cev_delta2ns(unsigned long latch, struct clock_event_device *evt,
 	 * not equal latch, we know that the above shift overflowed.
 	 */
 	if ((clc >> evt->shift) != (u64)latch)
+	{
 		clc = ~0ULL;
+	}
 
 	/*
 	 * Scaled math oddities:
@@ -72,8 +77,10 @@ static u64 cev_delta2ns(unsigned long latch, struct clock_event_device *evt,
 	 * Also omit the add if it would overflow the u64 boundary.
 	 */
 	if ((~0ULL - clc > rnd) &&
-	    (!ismax || evt->mult <= (1ULL << evt->shift)))
+		(!ismax || evt->mult <= (1ULL << evt->shift)))
+	{
 		clc += rnd;
+	}
 
 	do_div(clc, evt->mult);
 
@@ -95,51 +102,79 @@ u64 clockevent_delta2ns(unsigned long latch, struct clock_event_device *evt)
 EXPORT_SYMBOL_GPL(clockevent_delta2ns);
 
 static int __clockevents_switch_state(struct clock_event_device *dev,
-				      enum clock_event_state state)
+									  enum clock_event_state state)
 {
 	if (dev->features & CLOCK_EVT_FEAT_DUMMY)
+	{
 		return 0;
+	}
 
 	/* Transition with new state-specific callbacks */
-	switch (state) {
-	case CLOCK_EVT_STATE_DETACHED:
+	switch (state)
+	{
+		case CLOCK_EVT_STATE_DETACHED:
+
 		/* The clockevent device is getting replaced. Shut it down. */
 
-	case CLOCK_EVT_STATE_SHUTDOWN:
-		if (dev->set_state_shutdown)
-			return dev->set_state_shutdown(dev);
-		return 0;
+		case CLOCK_EVT_STATE_SHUTDOWN:
+			if (dev->set_state_shutdown)
+			{
+				return dev->set_state_shutdown(dev);
+			}
 
-	case CLOCK_EVT_STATE_PERIODIC:
-		/* Core internal bug */
-		if (!(dev->features & CLOCK_EVT_FEAT_PERIODIC))
+			return 0;
+
+		case CLOCK_EVT_STATE_PERIODIC:
+
+			/* Core internal bug */
+			if (!(dev->features & CLOCK_EVT_FEAT_PERIODIC))
+			{
+				return -ENOSYS;
+			}
+
+			if (dev->set_state_periodic)
+			{
+				return dev->set_state_periodic(dev);
+			}
+
+			return 0;
+
+		case CLOCK_EVT_STATE_ONESHOT:
+
+			/* Core internal bug */
+			if (!(dev->features & CLOCK_EVT_FEAT_ONESHOT))
+			{
+				return -ENOSYS;
+			}
+
+			if (dev->set_state_oneshot)
+			{
+				return dev->set_state_oneshot(dev);
+			}
+
+			return 0;
+
+		case CLOCK_EVT_STATE_ONESHOT_STOPPED:
+
+			/* Core internal bug */
+			if (WARN_ONCE(!clockevent_state_oneshot(dev),
+						  "Current state: %d\n",
+						  clockevent_get_state(dev)))
+			{
+				return -EINVAL;
+			}
+
+			if (dev->set_state_oneshot_stopped)
+			{
+				return dev->set_state_oneshot_stopped(dev);
+			}
+			else
+			{
+				return -ENOSYS;
+			}
+
+		default:
 			return -ENOSYS;
-		if (dev->set_state_periodic)
-			return dev->set_state_periodic(dev);
-		return 0;
-
-	case CLOCK_EVT_STATE_ONESHOT:
-		/* Core internal bug */
-		if (!(dev->features & CLOCK_EVT_FEAT_ONESHOT))
-			return -ENOSYS;
-		if (dev->set_state_oneshot)
-			return dev->set_state_oneshot(dev);
-		return 0;
-
-	case CLOCK_EVT_STATE_ONESHOT_STOPPED:
-		/* Core internal bug */
-		if (WARN_ONCE(!clockevent_state_oneshot(dev),
-			      "Current state: %d\n",
-			      clockevent_get_state(dev)))
-			return -EINVAL;
-
-		if (dev->set_state_oneshot_stopped)
-			return dev->set_state_oneshot_stopped(dev);
-		else
-			return -ENOSYS;
-
-	default:
-		return -ENOSYS;
 	}
 }
 
@@ -151,11 +186,14 @@ static int __clockevents_switch_state(struct clock_event_device *dev,
  * Must be called with interrupts disabled !
  */
 void clockevents_switch_state(struct clock_event_device *dev,
-			      enum clock_event_state state)
+							  enum clock_event_state state)
 {
-	if (clockevent_get_state(dev) != state) {
+	if (clockevent_get_state(dev) != state)
+	{
 		if (__clockevents_switch_state(dev, state))
+		{
 			return;
+		}
 
 		clockevent_set_state(dev, state);
 
@@ -163,8 +201,10 @@ void clockevents_switch_state(struct clock_event_device *dev,
 		 * A nsec2cyc multiplicator of 0 is invalid and we'd crash
 		 * on it, so fix it up and emit a warning:
 		 */
-		if (clockevent_state_oneshot(dev)) {
-			if (unlikely(!dev->mult)) {
+		if (clockevent_state_oneshot(dev))
+		{
+			if (unlikely(!dev->mult))
+			{
 				dev->mult = 1;
 				WARN_ON(1);
 			}
@@ -191,7 +231,9 @@ int clockevents_tick_resume(struct clock_event_device *dev)
 	int ret = 0;
 
 	if (dev->tick_resume)
+	{
 		ret = dev->tick_resume(dev);
+	}
 
 	return ret;
 }
@@ -210,25 +252,32 @@ int clockevents_tick_resume(struct clock_event_device *dev)
 static int clockevents_increase_min_delta(struct clock_event_device *dev)
 {
 	/* Nothing to do if we already reached the limit */
-	if (dev->min_delta_ns >= MIN_DELTA_LIMIT) {
+	if (dev->min_delta_ns >= MIN_DELTA_LIMIT)
+	{
 		printk_deferred(KERN_WARNING
-				"CE: Reprogramming failure. Giving up\n");
+						"CE: Reprogramming failure. Giving up\n");
 		dev->next_event.tv64 = KTIME_MAX;
 		return -ETIME;
 	}
 
 	if (dev->min_delta_ns < 5000)
+	{
 		dev->min_delta_ns = 5000;
+	}
 	else
+	{
 		dev->min_delta_ns += dev->min_delta_ns >> 1;
+	}
 
 	if (dev->min_delta_ns > MIN_DELTA_LIMIT)
+	{
 		dev->min_delta_ns = MIN_DELTA_LIMIT;
+	}
 
 	printk_deferred(KERN_WARNING
-			"CE: %s increased min_delta_ns to %llu nsec\n",
-			dev->name ? dev->name : "?",
-			(unsigned long long) dev->min_delta_ns);
+					"CE: %s increased min_delta_ns to %llu nsec\n",
+					dev->name ? dev->name : "?",
+					(unsigned long long) dev->min_delta_ns);
 	return 0;
 }
 
@@ -244,26 +293,36 @@ static int clockevents_program_min_delta(struct clock_event_device *dev)
 	int64_t delta;
 	int i;
 
-	for (i = 0;;) {
+	for (i = 0;;)
+	{
 		delta = dev->min_delta_ns;
 		dev->next_event = ktime_add_ns(ktime_get(), delta);
 
 		if (clockevent_state_shutdown(dev))
+		{
 			return 0;
+		}
 
 		dev->retries++;
 		clc = ((unsigned long long) delta * dev->mult) >> dev->shift;
-		if (dev->set_next_event((unsigned long) clc, dev) == 0)
-			return 0;
 
-		if (++i > 2) {
+		if (dev->set_next_event((unsigned long) clc, dev) == 0)
+		{
+			return 0;
+		}
+
+		if (++i > 2)
+		{
 			/*
 			 * We tried 3 times to program the device with the
 			 * given min_delta_ns. Try to increase the minimum
 			 * delta, if that fails as well get out of here.
 			 */
 			if (clockevents_increase_min_delta(dev))
+			{
 				return -ETIME;
+			}
+
 			i = 0;
 		}
 	}
@@ -286,7 +345,9 @@ static int clockevents_program_min_delta(struct clock_event_device *dev)
 	dev->next_event = ktime_add_ns(ktime_get(), delta);
 
 	if (clockevent_state_shutdown(dev))
+	{
 		return 0;
+	}
 
 	dev->retries++;
 	clc = ((unsigned long long) delta * dev->mult) >> dev->shift;
@@ -304,13 +365,14 @@ static int clockevents_program_min_delta(struct clock_event_device *dev)
  * Returns 0 on success, -ETIME when the event is in the past.
  */
 int clockevents_program_event(struct clock_event_device *dev, ktime_t expires,
-			      bool force)
+							  bool force)
 {
 	unsigned long long clc;
 	int64_t delta;
 	int rc;
 
-	if (unlikely(expires.tv64 < 0)) {
+	if (unlikely(expires.tv64 < 0))
+	{
 		WARN_ON_ONCE(1);
 		return -ETIME;
 	}
@@ -318,19 +380,26 @@ int clockevents_program_event(struct clock_event_device *dev, ktime_t expires,
 	dev->next_event = expires;
 
 	if (clockevent_state_shutdown(dev))
+	{
 		return 0;
+	}
 
 	/* We must be in ONESHOT state here */
 	WARN_ONCE(!clockevent_state_oneshot(dev), "Current state: %d\n",
-		  clockevent_get_state(dev));
+			  clockevent_get_state(dev));
 
 	/* Shortcut for clockevent devices that can deal with ktime. */
 	if (dev->features & CLOCK_EVT_FEAT_KTIME)
+	{
 		return dev->set_next_ktime(expires, dev);
+	}
 
 	delta = ktime_to_ns(ktime_sub(expires, ktime_get()));
+
 	if (delta <= 0)
+	{
 		return force ? clockevents_program_min_delta(dev) : -ETIME;
+	}
 
 	delta = min(delta, (int64_t) dev->max_delta_ns);
 	delta = max(delta, (int64_t) dev->min_delta_ns);
@@ -349,9 +418,10 @@ static void clockevents_notify_released(void)
 {
 	struct clock_event_device *dev;
 
-	while (!list_empty(&clockevents_released)) {
+	while (!list_empty(&clockevents_released))
+	{
 		dev = list_entry(clockevents_released.next,
-				 struct clock_event_device, list);
+						 struct clock_event_device, list);
 		list_del(&dev->list);
 		list_add(&dev->list, &clockevent_devices);
 		tick_check_new_device(dev);
@@ -365,24 +435,37 @@ static int clockevents_replace(struct clock_event_device *ced)
 {
 	struct clock_event_device *dev, *newdev = NULL;
 
-	list_for_each_entry(dev, &clockevent_devices, list) {
+	list_for_each_entry(dev, &clockevent_devices, list)
+	{
 		if (dev == ced || !clockevent_state_detached(dev))
+		{
 			continue;
+		}
 
 		if (!tick_check_replacement(newdev, dev))
+		{
 			continue;
+		}
 
 		if (!try_module_get(dev->owner))
+		{
 			continue;
+		}
 
 		if (newdev)
+		{
 			module_put(newdev->owner);
+		}
+
 		newdev = dev;
 	}
-	if (newdev) {
+
+	if (newdev)
+	{
 		tick_install_replacement(newdev);
 		list_del_init(&ced->list);
 	}
+
 	return newdev ? 0 : -EBUSY;
 }
 
@@ -392,7 +475,8 @@ static int clockevents_replace(struct clock_event_device *ced)
 static int __clockevents_try_unbind(struct clock_event_device *ced, int cpu)
 {
 	/* Fast track. Device is unused */
-	if (clockevent_state_detached(ced)) {
+	if (clockevent_state_detached(ced))
+	{
 		list_del_init(&ced->list);
 		return 0;
 	}
@@ -410,8 +494,12 @@ static void __clockevents_unbind(void *arg)
 
 	raw_spin_lock(&clockevents_lock);
 	res = __clockevents_try_unbind(cu->ce, smp_processor_id());
+
 	if (res == -EAGAIN)
+	{
 		res = clockevents_replace(cu->ce);
+	}
+
 	cu->res = res;
 	raw_spin_unlock(&clockevents_lock);
 }
@@ -453,7 +541,8 @@ void clockevents_register_device(struct clock_event_device *dev)
 	/* Initialize state to DETACHED */
 	clockevent_set_state(dev, CLOCK_EVT_STATE_DETACHED);
 
-	if (!dev->cpumask) {
+	if (!dev->cpumask)
+	{
 		WARN_ON(num_possible_cpus() > 1);
 		dev->cpumask = cpumask_of(smp_processor_id());
 	}
@@ -473,7 +562,9 @@ void clockevents_config(struct clock_event_device *dev, u32 freq)
 	u64 sec;
 
 	if (!(dev->features & CLOCK_EVT_FEAT_ONESHOT))
+	{
 		return;
+	}
 
 	/*
 	 * Calculate the maximum number of seconds we can sleep. Limit
@@ -482,10 +573,15 @@ void clockevents_config(struct clock_event_device *dev, u32 freq)
 	 */
 	sec = dev->max_delta_ticks;
 	do_div(sec, freq);
+
 	if (!sec)
+	{
 		sec = 1;
+	}
 	else if (sec > 600 && dev->max_delta_ticks > UINT_MAX)
+	{
 		sec = 600;
+	}
 
 	clockevents_calc_mult_shift(dev, freq, sec);
 	dev->min_delta_ns = cev_delta2ns(dev->min_delta_ticks, dev, false);
@@ -502,8 +598,8 @@ void clockevents_config(struct clock_event_device *dev, u32 freq)
  * min/max_delta can be 0 for devices which do not support oneshot mode.
  */
 void clockevents_config_and_register(struct clock_event_device *dev,
-				     u32 freq, unsigned long min_delta,
-				     unsigned long max_delta)
+									 u32 freq, unsigned long min_delta,
+									 unsigned long max_delta)
 {
 	dev->min_delta_ticks = min_delta;
 	dev->max_delta_ticks = max_delta;
@@ -517,10 +613,14 @@ int __clockevents_update_freq(struct clock_event_device *dev, u32 freq)
 	clockevents_config(dev, freq);
 
 	if (clockevent_state_oneshot(dev))
+	{
 		return clockevents_program_event(dev, dev->next_event, false);
+	}
 
 	if (clockevent_state_periodic(dev))
+	{
 		return __clockevents_switch_state(dev, CLOCK_EVT_STATE_PERIODIC);
+	}
 
 	return 0;
 }
@@ -544,8 +644,12 @@ int clockevents_update_freq(struct clock_event_device *dev, u32 freq)
 
 	local_irq_save(flags);
 	ret = tick_broadcast_update_freq(dev, freq);
+
 	if (ret == -ENODEV)
+	{
 		ret = __clockevents_update_freq(dev, freq);
+	}
+
 	local_irq_restore(flags);
 	return ret;
 }
@@ -566,20 +670,22 @@ void clockevents_handle_noop(struct clock_event_device *dev)
  * interrupts disabled.
  */
 void clockevents_exchange_device(struct clock_event_device *old,
-				 struct clock_event_device *new)
+								 struct clock_event_device *new)
 {
 	/*
 	 * Caller releases a clock event device. We queue it into the
 	 * released list and do a notify add later.
 	 */
-	if (old) {
+	if (old)
+	{
 		module_put(old->owner);
 		clockevents_switch_state(old, CLOCK_EVT_STATE_DETACHED);
 		list_del(&old->list);
 		list_add(&old->list, &clockevents_released);
 	}
 
-	if (new) {
+	if (new)
+	{
 		BUG_ON(!clockevent_state_detached(new));
 		clockevents_shutdown(new);
 	}
@@ -593,8 +699,11 @@ void clockevents_suspend(void)
 	struct clock_event_device *dev;
 
 	list_for_each_entry_reverse(dev, &clockevent_devices, list)
-		if (dev->suspend && !clockevent_state_detached(dev))
-			dev->suspend(dev);
+
+	if (dev->suspend && !clockevent_state_detached(dev))
+	{
+		dev->suspend(dev);
+	}
 }
 
 /**
@@ -605,8 +714,11 @@ void clockevents_resume(void)
 	struct clock_event_device *dev;
 
 	list_for_each_entry(dev, &clockevent_devices, list)
-		if (dev->resume && !clockevent_state_detached(dev))
-			dev->resume(dev);
+
+	if (dev->resume && !clockevent_state_detached(dev))
+	{
+		dev->resume(dev);
+	}
 }
 
 #ifdef CONFIG_HOTPLUG_CPU
@@ -628,14 +740,16 @@ void tick_cleanup_dead_cpu(int cpu)
 	 * released from the users in the notify chain.
 	 */
 	list_for_each_entry_safe(dev, tmp, &clockevents_released, list)
-		list_del(&dev->list);
+	list_del(&dev->list);
 	/*
 	 * Now check whether the CPU has left unused per cpu devices
 	 */
-	list_for_each_entry_safe(dev, tmp, &clockevent_devices, list) {
+	list_for_each_entry_safe(dev, tmp, &clockevent_devices, list)
+	{
 		if (cpumask_test_cpu(cpu, dev->cpumask) &&
-		    cpumask_weight(dev->cpumask) == 1 &&
-		    !tick_is_broadcast_device(dev)) {
+			cpumask_weight(dev->cpumask) == 1 &&
+			!tick_is_broadcast_device(dev))
+		{
 			BUG_ON(!clockevent_state_detached(dev));
 			list_del(&dev->list);
 		}
@@ -645,7 +759,8 @@ void tick_cleanup_dead_cpu(int cpu)
 #endif
 
 #ifdef CONFIG_SYSFS
-static struct bus_type clockevents_subsys = {
+static struct bus_type clockevents_subsys =
+{
 	.name		= "clockevents",
 	.dev_name       = "clockevent",
 };
@@ -654,16 +769,20 @@ static DEFINE_PER_CPU(struct device, tick_percpu_dev);
 static struct tick_device *tick_get_tick_dev(struct device *dev);
 
 static ssize_t sysfs_show_current_tick_dev(struct device *dev,
-					   struct device_attribute *attr,
-					   char *buf)
+		struct device_attribute *attr,
+		char *buf)
 {
 	struct tick_device *td;
 	ssize_t count = 0;
 
 	raw_spin_lock_irq(&clockevents_lock);
 	td = tick_get_tick_dev(dev);
+
 	if (td && td->evtdev)
+	{
 		count = snprintf(buf, PAGE_SIZE, "%s\n", td->evtdev->name);
+	}
+
 	raw_spin_unlock_irq(&clockevents_lock);
 	return count;
 }
@@ -671,38 +790,47 @@ static DEVICE_ATTR(current_device, 0444, sysfs_show_current_tick_dev, NULL);
 
 /* We don't support the abomination of removable broadcast devices */
 static ssize_t sysfs_unbind_tick_dev(struct device *dev,
-				     struct device_attribute *attr,
-				     const char *buf, size_t count)
+									 struct device_attribute *attr,
+									 const char *buf, size_t count)
 {
 	char name[CS_NAME_LEN];
 	ssize_t ret = sysfs_get_uname(buf, name, count);
 	struct clock_event_device *ce;
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = -ENODEV;
 	mutex_lock(&clockevents_mutex);
 	raw_spin_lock_irq(&clockevents_lock);
-	list_for_each_entry(ce, &clockevent_devices, list) {
-		if (!strcmp(ce->name, name)) {
+	list_for_each_entry(ce, &clockevent_devices, list)
+	{
+		if (!strcmp(ce->name, name))
+		{
 			ret = __clockevents_try_unbind(ce, dev->id);
 			break;
 		}
 	}
 	raw_spin_unlock_irq(&clockevents_lock);
+
 	/*
 	 * We hold clockevents_mutex, so ce can't go away
 	 */
 	if (ret == -EAGAIN)
+	{
 		ret = clockevents_unbind(ce, dev->id);
+	}
+
 	mutex_unlock(&clockevents_mutex);
 	return ret ? ret : count;
 }
 static DEVICE_ATTR(unbind_device, 0200, NULL, sysfs_unbind_tick_dev);
 
 #ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
-static struct device tick_bc_dev = {
+static struct device tick_bc_dev =
+{
 	.init_name	= "broadcast",
 	.id		= 0,
 	.bus		= &clockevents_subsys,
@@ -711,7 +839,7 @@ static struct device tick_bc_dev = {
 static struct tick_device *tick_get_tick_dev(struct device *dev)
 {
 	return dev == &tick_bc_dev ? tick_get_broadcast_device() :
-		&per_cpu(tick_cpu_device, dev->id);
+		   &per_cpu(tick_cpu_device, dev->id);
 }
 
 static __init int tick_broadcast_init_sysfs(void)
@@ -719,7 +847,10 @@ static __init int tick_broadcast_init_sysfs(void)
 	int err = device_register(&tick_bc_dev);
 
 	if (!err)
+	{
 		err = device_create_file(&tick_bc_dev, &dev_attr_current_device);
+	}
+
 	return err;
 }
 #else
@@ -734,19 +865,29 @@ static int __init tick_init_sysfs(void)
 {
 	int cpu;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		struct device *dev = &per_cpu(tick_percpu_dev, cpu);
 		int err;
 
 		dev->id = cpu;
 		dev->bus = &clockevents_subsys;
 		err = device_register(dev);
+
 		if (!err)
+		{
 			err = device_create_file(dev, &dev_attr_current_device);
+		}
+
 		if (!err)
+		{
 			err = device_create_file(dev, &dev_attr_unbind_device);
+		}
+
 		if (err)
+		{
 			return err;
+		}
 	}
 	return tick_broadcast_init_sysfs();
 }
@@ -756,7 +897,10 @@ static int __init clockevents_init_sysfs(void)
 	int err = subsys_system_register(&clockevents_subsys, NULL);
 
 	if (!err)
+	{
 		err = tick_init_sysfs();
+	}
+
 	return err;
 }
 device_initcall(clockevents_init_sysfs);

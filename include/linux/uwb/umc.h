@@ -61,7 +61,8 @@
  * @resource: register space resource.
  * @irq:      interrupt line.
  */
-struct umc_dev {
+struct umc_dev
+{
 	u16		version;
 	u8		cap_id;
 	u8		bar;
@@ -79,7 +80,8 @@ struct umc_dev {
  * @match_data: driver specific data for match() (e.g., a
  * table of pci_device_id's if umc_match_pci_id() is used).
  */
-struct umc_driver {
+struct umc_driver
+{
 	char *name;
 	u8 cap_id;
 	int (*match)(struct umc_driver *, struct umc_dev *);
@@ -102,8 +104,8 @@ int __must_check umc_device_register(struct umc_dev *umc);
 void umc_device_unregister(struct umc_dev *umc);
 
 int __must_check __umc_driver_register(struct umc_driver *umc_drv,
-				       struct module *mod,
-				       const char *mod_name);
+									   struct module *mod,
+									   const char *mod_name);
 
 /**
  * umc_driver_register - register a UMC capabiltity driver.
@@ -141,8 +143,12 @@ int umc_match_pci_id(struct umc_driver *umc_drv, struct umc_dev *umc);
 static inline struct pci_dev *umc_parent_pci_dev(struct umc_dev *umc_dev)
 {
 	struct pci_dev *pci_dev = NULL;
+
 	if (dev_is_pci(umc_dev->dev.parent))
+	{
 		pci_dev = to_pci_dev(umc_dev->dev.parent);
+	}
+
 	return pci_dev;
 }
 

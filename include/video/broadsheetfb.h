@@ -43,7 +43,8 @@
 #define BS_MMIO_DATA	0x02
 
 /* struct used by broadsheet. board specific stuff comes from *board */
-struct broadsheetfb_par {
+struct broadsheetfb_par
+{
 	struct fb_info *info;
 	struct broadsheet_board *board;
 	void (*write_reg)(struct broadsheetfb_par *, u16 reg, u16 val);
@@ -54,7 +55,8 @@ struct broadsheetfb_par {
 };
 
 /* board specific routines */
-struct broadsheet_board {
+struct broadsheet_board
+{
 	struct module *owner;
 	int (*init)(struct broadsheetfb_par *);
 	int (*wait_for_rdy)(struct broadsheetfb_par *);

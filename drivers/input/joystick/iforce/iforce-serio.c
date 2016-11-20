@@ -33,7 +33,8 @@ void iforce_serial_xmit(struct iforce *iforce)
 	int i;
 	unsigned long flags;
 
-	if (test_and_set_bit(IFORCE_XMIT_RUNNING, iforce->xmit_flags)) {
+	if (test_and_set_bit(IFORCE_XMIT_RUNNING, iforce->xmit_flags))
+	{
 		set_bit(IFORCE_XMIT_AGAIN, iforce->xmit_flags);
 		return;
 	}
@@ -41,7 +42,9 @@ void iforce_serial_xmit(struct iforce *iforce)
 	spin_lock_irqsave(&iforce->xmit_lock, flags);
 
 again:
-	if (iforce->xmit.head == iforce->xmit.tail) {
+
+	if (iforce->xmit.head == iforce->xmit.tail)
+	{
 		clear_bit(IFORCE_XMIT_RUNNING, iforce->xmit_flags);
 		spin_unlock_irqrestore(&iforce->xmit_lock, flags);
 		return;
@@ -55,7 +58,8 @@ again:
 	cs ^= iforce->xmit.buf[iforce->xmit.tail];
 	XMIT_INC(iforce->xmit.tail, 1);
 
-	for (i=iforce->xmit.buf[iforce->xmit.tail]; i >= 0; --i) {
+	for (i = iforce->xmit.buf[iforce->xmit.tail]; i >= 0; --i)
+	{
 		serio_write(iforce->serio, iforce->xmit.buf[iforce->xmit.tail]);
 		cs ^= iforce->xmit.buf[iforce->xmit.tail];
 		XMIT_INC(iforce->xmit.tail, 1);
@@ -64,7 +68,9 @@ again:
 	serio_write(iforce->serio, cs);
 
 	if (test_and_clear_bit(IFORCE_XMIT_AGAIN, iforce->xmit_flags))
+	{
 		goto again;
+	}
 
 	clear_bit(IFORCE_XMIT_RUNNING, iforce->xmit_flags);
 
@@ -79,40 +85,57 @@ static void iforce_serio_write_wakeup(struct serio *serio)
 }
 
 static irqreturn_t iforce_serio_irq(struct serio *serio,
-		unsigned char data, unsigned int flags)
+									unsigned char data, unsigned int flags)
 {
 	struct iforce *iforce = serio_get_drvdata(serio);
 
-	if (!iforce->pkt) {
+	if (!iforce->pkt)
+	{
 		if (data == 0x2b)
+		{
 			iforce->pkt = 1;
+		}
+
 		goto out;
 	}
 
-	if (!iforce->id) {
+	if (!iforce->id)
+	{
 		if (data > 3 && data != 0xff)
+		{
 			iforce->pkt = 0;
+		}
 		else
+		{
 			iforce->id = data;
+		}
+
 		goto out;
 	}
 
-	if (!iforce->len) {
-		if (data > IFORCE_MAX_LENGTH) {
+	if (!iforce->len)
+	{
+		if (data > IFORCE_MAX_LENGTH)
+		{
 			iforce->pkt = 0;
 			iforce->id = 0;
-		} else {
+		}
+		else
+		{
 			iforce->len = data;
 		}
+
 		goto out;
 	}
 
-	if (iforce->idx < iforce->len) {
+	if (iforce->idx < iforce->len)
+	{
 		iforce->csum += iforce->data[iforce->idx++] = data;
 		goto out;
 	}
 
-	if (iforce->idx == iforce->len) {
+	if (iforce->idx == iforce->len)
+	{
 		iforce_process_packet(iforce, (iforce->id << 8) | iforce->idx, iforce->data);
 		iforce->pkt = 0;
 		iforce->id  = 0;
@@ -120,6 +143,7 @@ static irqreturn_t iforce_serio_irq(struct serio *serio,
 		iforce->idx = 0;
 		iforce->csum = 0;
 	}
+
 out:
 	return IRQ_HANDLED;
 }
@@ -130,8 +154,11 @@ static int iforce_serio_connect(struct serio *serio, struct serio_driver *drv)
 	int err;
 
 	iforce = kzalloc(sizeof(struct iforce), GFP_KERNEL);
+
 	if (!iforce)
+	{
 		return -ENOMEM;
+	}
 
 	iforce->bus = IFORCE_232;
 	iforce->serio = serio;
@@ -139,17 +166,23 @@ static int iforce_serio_connect(struct serio *serio, struct serio_driver *drv)
 	serio_set_drvdata(serio, iforce);
 
 	err = serio_open(serio, drv);
+
 	if (err)
+	{
 		goto fail1;
+	}
 
 	err = iforce_init_device(iforce);
+
 	if (err)
+	{
 		goto fail2;
+	}
 
 	return 0;
 
- fail2:	serio_close(serio);
- fail1:	serio_set_drvdata(serio, NULL);
+fail2:	serio_close(serio);
+fail1:	serio_set_drvdata(serio, NULL);
 	kfree(iforce);
 	return err;
 }
@@ -164,7 +197,8 @@ static void iforce_serio_disconnect(struct serio *serio)
 	kfree(iforce);
 }
 
-static struct serio_device_id iforce_serio_ids[] = {
+static struct serio_device_id iforce_serio_ids[] =
+{
 	{
 		.type	= SERIO_RS232,
 		.proto	= SERIO_IFORCE,
@@ -176,7 +210,8 @@ static struct serio_device_id iforce_serio_ids[] = {
 
 MODULE_DEVICE_TABLE(serio, iforce_serio_ids);
 
-struct serio_driver iforce_serio_drv = {
+struct serio_driver iforce_serio_drv =
+{
 	.driver		= {
 		.name	= "iforce",
 	},

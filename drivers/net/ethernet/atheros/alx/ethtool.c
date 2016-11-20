@@ -50,7 +50,8 @@
  * struct alx_hw_stats
  * See hw.h
  */
-static const char alx_gstrings_stats[][ETH_GSTRING_LEN] = {
+static const char alx_gstrings_stats[][ETH_GSTRING_LEN] =
+{
 	"rx_packets",
 	"rx_bcast_packets",
 	"rx_mcast_packets",
@@ -109,12 +110,14 @@ static const char alx_gstrings_stats[][ETH_GSTRING_LEN] = {
 static u32 alx_get_supported_speeds(struct alx_hw *hw)
 {
 	u32 supported = SUPPORTED_10baseT_Half |
-			SUPPORTED_10baseT_Full |
-			SUPPORTED_100baseT_Half |
-			SUPPORTED_100baseT_Full;
+					SUPPORTED_10baseT_Full |
+					SUPPORTED_100baseT_Half |
+					SUPPORTED_100baseT_Full;
 
 	if (alx_hw_giga(hw))
+	{
 		supported |= SUPPORTED_1000baseT_Full;
+	}
 
 	BUILD_BUG_ON(SUPPORTED_10baseT_Half != ADVERTISED_10baseT_Half);
 	BUILD_BUG_ON(SUPPORTED_10baseT_Full != ADVERTISED_10baseT_Full);
@@ -131,33 +134,51 @@ static int alx_get_settings(struct net_device *netdev, struct ethtool_cmd *ecmd)
 	struct alx_hw *hw = &alx->hw;
 
 	ecmd->supported = SUPPORTED_Autoneg |
-			  SUPPORTED_TP |
-			  SUPPORTED_Pause |
-			  SUPPORTED_Asym_Pause;
+					  SUPPORTED_TP |
+					  SUPPORTED_Pause |
+					  SUPPORTED_Asym_Pause;
+
 	if (alx_hw_giga(hw))
+	{
 		ecmd->supported |= SUPPORTED_1000baseT_Full;
+	}
+
 	ecmd->supported |= alx_get_supported_speeds(hw);
 
 	ecmd->advertising = ADVERTISED_TP;
+
 	if (hw->adv_cfg & ADVERTISED_Autoneg)
+	{
 		ecmd->advertising |= hw->adv_cfg;
+	}
 
 	ecmd->port = PORT_TP;
 	ecmd->phy_address = 0;
 
 	if (hw->adv_cfg & ADVERTISED_Autoneg)
+	{
 		ecmd->autoneg = AUTONEG_ENABLE;
+	}
 	else
+	{
 		ecmd->autoneg = AUTONEG_DISABLE;
+	}
+
 	ecmd->transceiver = XCVR_INTERNAL;
 
-	if (hw->flowctrl & ALX_FC_ANEG && hw->adv_cfg & ADVERTISED_Autoneg) {
-		if (hw->flowctrl & ALX_FC_RX) {
+	if (hw->flowctrl & ALX_FC_ANEG && hw->adv_cfg & ADVERTISED_Autoneg)
+	{
+		if (hw->flowctrl & ALX_FC_RX)
+		{
 			ecmd->advertising |= ADVERTISED_Pause;
 
 			if (!(hw->flowctrl & ALX_FC_TX))
+			{
 				ecmd->advertising |= ADVERTISED_Asym_Pause;
-		} else if (hw->flowctrl & ALX_FC_TX) {
+			}
+		}
+		else if (hw->flowctrl & ALX_FC_TX)
+		{
 			ecmd->advertising |= ADVERTISED_Asym_Pause;
 		}
 	}
@@ -176,16 +197,24 @@ static int alx_set_settings(struct net_device *netdev, struct ethtool_cmd *ecmd)
 
 	ASSERT_RTNL();
 
-	if (ecmd->autoneg == AUTONEG_ENABLE) {
+	if (ecmd->autoneg == AUTONEG_ENABLE)
+	{
 		if (ecmd->advertising & ~alx_get_supported_speeds(hw))
+		{
 			return -EINVAL;
+		}
+
 		adv_cfg = ecmd->advertising | ADVERTISED_Autoneg;
-	} else {
+	}
+	else
+	{
 		adv_cfg = alx_speed_to_ethadv(ethtool_cmd_speed(ecmd),
-					      ecmd->duplex);
+									  ecmd->duplex);
 
 		if (!adv_cfg || adv_cfg == ADVERTISED_1000baseT_Full)
+		{
 			return -EINVAL;
+		}
 	}
 
 	hw->adv_cfg = adv_cfg;
@@ -193,20 +222,20 @@ static int alx_set_settings(struct net_device *netdev, struct ethtool_cmd *ecmd)
 }
 
 static void alx_get_pauseparam(struct net_device *netdev,
-			       struct ethtool_pauseparam *pause)
+							   struct ethtool_pauseparam *pause)
 {
 	struct alx_priv *alx = netdev_priv(netdev);
 	struct alx_hw *hw = &alx->hw;
 
 	pause->autoneg = !!(hw->flowctrl & ALX_FC_ANEG &&
-			    hw->adv_cfg & ADVERTISED_Autoneg);
+						hw->adv_cfg & ADVERTISED_Autoneg);
 	pause->tx_pause = !!(hw->flowctrl & ALX_FC_TX);
 	pause->rx_pause = !!(hw->flowctrl & ALX_FC_RX);
 }
 
 
 static int alx_set_pauseparam(struct net_device *netdev,
-			      struct ethtool_pauseparam *pause)
+							  struct ethtool_pauseparam *pause)
 {
 	struct alx_priv *alx = netdev_priv(netdev);
 	struct alx_hw *hw = &alx->hw;
@@ -215,32 +244,52 @@ static int alx_set_pauseparam(struct net_device *netdev,
 	u8 fc = 0;
 
 	if (pause->tx_pause)
+	{
 		fc |= ALX_FC_TX;
+	}
+
 	if (pause->rx_pause)
+	{
 		fc |= ALX_FC_RX;
+	}
+
 	if (pause->autoneg)
+	{
 		fc |= ALX_FC_ANEG;
+	}
 
 	ASSERT_RTNL();
 
 	/* restart auto-neg for auto-mode */
-	if (hw->adv_cfg & ADVERTISED_Autoneg) {
+	if (hw->adv_cfg & ADVERTISED_Autoneg)
+	{
 		if (!((fc ^ hw->flowctrl) & ALX_FC_ANEG))
+		{
 			reconfig_phy = true;
+		}
+
 		if (fc & hw->flowctrl & ALX_FC_ANEG &&
-		    (fc ^ hw->flowctrl) & (ALX_FC_RX | ALX_FC_TX))
+			(fc ^ hw->flowctrl) & (ALX_FC_RX | ALX_FC_TX))
+		{
 			reconfig_phy = true;
+		}
 	}
 
-	if (reconfig_phy) {
+	if (reconfig_phy)
+	{
 		err = alx_setup_speed_duplex(hw, hw->adv_cfg, fc);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	/* flow control on mac */
 	if ((fc ^ hw->flowctrl) & (ALX_FC_RX | ALX_FC_TX))
+	{
 		alx_cfg_mac_flowcontrol(hw, fc);
+	}
 
 	hw->flowctrl = fc;
 
@@ -262,7 +311,7 @@ static void alx_set_msglevel(struct net_device *netdev, u32 data)
 }
 
 static void alx_get_ethtool_stats(struct net_device *netdev,
-				  struct ethtool_stats *estats, u64 *data)
+								  struct ethtool_stats *estats, u64 *data)
 {
 	struct alx_priv *alx = netdev_priv(netdev);
 	struct alx_hw *hw = &alx->hw;
@@ -271,7 +320,7 @@ static void alx_get_ethtool_stats(struct net_device *netdev,
 
 	alx_update_hw_stats(hw);
 	BUILD_BUG_ON(sizeof(hw->stats) - offsetof(struct alx_hw_stats, rx_ok) <
-		     ALX_NUM_STATS * sizeof(u64));
+				 ALX_NUM_STATS * sizeof(u64));
 	memcpy(data, &hw->stats.rx_ok, ALX_NUM_STATS * sizeof(u64));
 
 	spin_unlock(&alx->stats_lock);
@@ -279,27 +328,32 @@ static void alx_get_ethtool_stats(struct net_device *netdev,
 
 static void alx_get_strings(struct net_device *netdev, u32 stringset, u8 *buf)
 {
-	switch (stringset) {
-	case ETH_SS_STATS:
-		memcpy(buf, &alx_gstrings_stats, sizeof(alx_gstrings_stats));
-		break;
-	default:
-		WARN_ON(1);
-		break;
+	switch (stringset)
+	{
+		case ETH_SS_STATS:
+			memcpy(buf, &alx_gstrings_stats, sizeof(alx_gstrings_stats));
+			break;
+
+		default:
+			WARN_ON(1);
+			break;
 	}
 }
 
 static int alx_get_sset_count(struct net_device *netdev, int sset)
 {
-	switch (sset) {
-	case ETH_SS_STATS:
-		return ALX_NUM_STATS;
-	default:
-		return -EINVAL;
+	switch (sset)
+	{
+		case ETH_SS_STATS:
+			return ALX_NUM_STATS;
+
+		default:
+			return -EINVAL;
 	}
 }
 
-const struct ethtool_ops alx_ethtool_ops = {
+const struct ethtool_ops alx_ethtool_ops =
+{
 	.get_settings	= alx_get_settings,
 	.set_settings	= alx_set_settings,
 	.get_pauseparam	= alx_get_pauseparam,

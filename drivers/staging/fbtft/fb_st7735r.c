@@ -23,9 +23,10 @@
 
 #define DRVNAME "fb_st7735r"
 #define DEFAULT_GAMMA   "0F 1A 0F 18 2F 28 20 22 1F 1B 23 37 00 07 02 10\n" \
-			"0F 1B 0F 17 33 2C 29 2E 30 30 39 3F 00 07 03 10"
+	"0F 1B 0F 17 33 2C 29 2E 30 30 39 3F 00 07 03 10"
 
-static int default_init_sequence[] = {
+static int default_init_sequence[] =
+{
 	-1, MIPI_DCS_SOFT_RESET,
 	-2, 150,                               /* delay */
 
@@ -95,10 +96,10 @@ static int default_init_sequence[] = {
 static void set_addr_win(struct fbtft_par *par, int xs, int ys, int xe, int ye)
 {
 	write_reg(par, MIPI_DCS_SET_COLUMN_ADDRESS,
-		  xs >> 8, xs & 0xFF, xe >> 8, xe & 0xFF);
+			  xs >> 8, xs & 0xFF, xe >> 8, xe & 0xFF);
 
 	write_reg(par, MIPI_DCS_SET_PAGE_ADDRESS,
-		  ys >> 8, ys & 0xFF, ye >> 8, ye & 0xFF);
+			  ys >> 8, ys & 0xFF, ye >> 8, ye & 0xFF);
 
 	write_reg(par, MIPI_DCS_WRITE_MEMORY_START);
 }
@@ -115,23 +116,27 @@ static int set_var(struct fbtft_par *par)
 	 * 2. MADCTL RGB bit
 	 *    RGB-BGR ORDER color filter panel: 0=RGB, 1=BGR
 	 */
-	switch (par->info->var.rotate) {
-	case 0:
-		write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
-			  MX | MY | (par->bgr << 3));
-		break;
-	case 270:
-		write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
-			  MY | MV | (par->bgr << 3));
-		break;
-	case 180:
-		write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
-			  par->bgr << 3);
-		break;
-	case 90:
-		write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
-			  MX | MV | (par->bgr << 3));
-		break;
+	switch (par->info->var.rotate)
+	{
+		case 0:
+			write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
+					  MX | MY | (par->bgr << 3));
+			break;
+
+		case 270:
+			write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
+					  MY | MV | (par->bgr << 3));
+			break;
+
+		case 180:
+			write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
+					  par->bgr << 3);
+			break;
+
+		case 90:
+			write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
+					  MX | MV | (par->bgr << 3));
+			break;
 	}
 
 	return 0;
@@ -150,20 +155,23 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 	/* apply mask */
 	for (i = 0; i < par->gamma.num_curves; i++)
 		for (j = 0; j < par->gamma.num_values; j++)
+		{
 			CURVE(i, j) &= 0x3f;
+		}
 
 	for (i = 0; i < par->gamma.num_curves; i++)
 		write_reg(par, 0xE0 + i,
-			CURVE(i, 0), CURVE(i, 1), CURVE(i, 2), CURVE(i, 3),
-			CURVE(i, 4), CURVE(i, 5), CURVE(i, 6), CURVE(i, 7),
-			CURVE(i, 8), CURVE(i, 9), CURVE(i, 10), CURVE(i, 11),
-			CURVE(i, 12), CURVE(i, 13), CURVE(i, 14), CURVE(i, 15));
+				  CURVE(i, 0), CURVE(i, 1), CURVE(i, 2), CURVE(i, 3),
+				  CURVE(i, 4), CURVE(i, 5), CURVE(i, 6), CURVE(i, 7),
+				  CURVE(i, 8), CURVE(i, 9), CURVE(i, 10), CURVE(i, 11),
+				  CURVE(i, 12), CURVE(i, 13), CURVE(i, 14), CURVE(i, 15));
 
 	return 0;
 }
 #undef CURVE
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 8,
 	.width = 128,
 	.height = 160,

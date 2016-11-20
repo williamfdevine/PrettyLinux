@@ -25,7 +25,8 @@
 #include "rtl8180.h"
 #include "max2820.h"
 
-static const u32 max2820_chan[] = {
+static const u32 max2820_chan[] =
+{
 	12, /* CH 1 */
 	17,
 	22,
@@ -54,7 +55,7 @@ static void write_max2820(struct ieee80211_hw *dev, u8 addr, u32 data)
 	phy_config += (data >> 4) & 0xff;
 
 	rtl818x_iowrite32(priv,
-		(__le32 __iomem *) &priv->map->RFPinsOutput, phy_config);
+					  (__le32 __iomem *) &priv->map->RFPinsOutput, phy_config);
 
 	msleep(1);
 }
@@ -65,10 +66,16 @@ static void max2820_write_phy_antenna(struct ieee80211_hw *dev, short chan)
 	u8 ant;
 
 	ant = MAXIM_ANTENNA;
+
 	if (priv->rfparam & RF_PARAM_ANTBDEFAULT)
+	{
 		ant |= BB_ANTENNA_B;
+	}
+
 	if (chan == 14)
+	{
 		ant |= BB_ANTATTEN_CHAN14;
+	}
 
 	rtl8180_write_phy(dev, 0x10, ant);
 }
@@ -80,21 +87,26 @@ static u8 max2820_rf_calc_rssi(u8 agc, u8 sq)
 	odd = !!(agc & 1);
 
 	agc >>= 1;
+
 	if (odd)
+	{
 		agc += 76;
+	}
 	else
+	{
 		agc += 66;
+	}
 
 	/* TODO: change addends above to avoid mult / div below */
 	return 65 * agc / 100;
 }
 
 static void max2820_rf_set_channel(struct ieee80211_hw *dev,
-				   struct ieee80211_conf *conf)
+								   struct ieee80211_conf *conf)
 {
 	struct rtl8180_priv *priv = dev->priv;
 	int channel = conf ?
-		ieee80211_frequency_to_channel(conf->chandef.chan->center_freq) : 1;
+				  ieee80211_frequency_to_channel(conf->chandef.chan->center_freq) : 1;
 	unsigned int chan_idx = channel - 1;
 	u32 txpw = priv->channels[chan_idx].hw_value & 0xFF;
 	u32 chan = max2820_chan[chan_idx];
@@ -146,10 +158,14 @@ static void max2820_rf_init(struct ieee80211_hw *dev)
 	rtl8180_write_phy(dev, 0x11, 0x88); /* trl */
 
 	if (rtl818x_ioread8(priv, &priv->map->CONFIG2) &
-	    RTL818X_CONFIG2_ANTENNA_DIV)
+		RTL818X_CONFIG2_ANTENNA_DIV)
+	{
 		rtl8180_write_phy(dev, 0x12, 0xc7);
+	}
 	else
+	{
 		rtl8180_write_phy(dev, 0x12, 0x47);
+	}
 
 	rtl8180_write_phy(dev, 0x13, 0x9b);
 
@@ -159,7 +175,8 @@ static void max2820_rf_init(struct ieee80211_hw *dev)
 	max2820_rf_set_channel(dev, NULL);
 }
 
-const struct rtl818x_rf_ops max2820_rf_ops = {
+const struct rtl818x_rf_ops max2820_rf_ops =
+{
 	.name		= "Maxim",
 	.init		= max2820_rf_init,
 	.stop		= max2820_rf_stop,

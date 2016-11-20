@@ -21,7 +21,8 @@
 #define NVKM_RAM_TYPE_VM 0x7f
 #define NV_MEM_COMP_VM 0x03
 
-struct nvkm_mem {
+struct nvkm_mem
+{
 	struct drm_device *dev;
 
 	struct nvkm_vma bar_vma;
@@ -37,7 +38,8 @@ struct nvkm_mem {
 	struct sg_table *sg;
 };
 
-struct nvkm_fb_tile {
+struct nvkm_fb_tile
+{
 	struct nvkm_mm_node *tag;
 	u32 addr;
 	u32 limit;
@@ -45,13 +47,15 @@ struct nvkm_fb_tile {
 	u32 zcomp;
 };
 
-struct nvkm_fb {
+struct nvkm_fb
+{
 	const struct nvkm_fb_func *func;
 	struct nvkm_subdev subdev;
 
 	struct nvkm_ram *ram;
 
-	struct {
+	struct
+	{
 		struct nvkm_fb_tile region[16];
 		int regions;
 	} tile;
@@ -64,7 +68,7 @@ struct nvkm_fb {
 
 bool nvkm_fb_memtype_valid(struct nvkm_fb *, u32 memtype);
 void nvkm_fb_tile_init(struct nvkm_fb *, int region, u32 addr, u32 size,
-		       u32 pitch, u32 flags, struct nvkm_fb_tile *);
+					   u32 pitch, u32 flags, struct nvkm_fb_tile *);
 void nvkm_fb_tile_fini(struct nvkm_fb *, int region, struct nvkm_fb_tile *);
 void nvkm_fb_tile_prog(struct nvkm_fb *, int region, struct nvkm_fb_tile *);
 
@@ -99,13 +103,15 @@ int gp104_fb_new(struct nvkm_device *, int, struct nvkm_fb **);
 #include <subdev/bios.h>
 #include <subdev/bios/ramcfg.h>
 
-struct nvkm_ram_data {
+struct nvkm_ram_data
+{
 	struct list_head head;
 	struct nvbios_ramcfg bios;
 	u32 freq;
 };
 
-enum nvkm_ram_type {
+enum nvkm_ram_type
+{
 	NVKM_RAM_TYPE_UNKNOWN = 0,
 	NVKM_RAM_TYPE_STOLEN,
 	NVKM_RAM_TYPE_SGRAM,
@@ -119,7 +125,8 @@ enum nvkm_ram_type {
 	NVKM_RAM_TYPE_GDDR5
 };
 
-struct nvkm_ram {
+struct nvkm_ram
+{
 	const struct nvkm_ram_func *func;
 	struct nvkm_fb *fb;
 	enum nvkm_ram_type type;
@@ -144,12 +151,13 @@ struct nvkm_ram {
 	struct nvkm_ram_data target;
 };
 
-struct nvkm_ram_func {
+struct nvkm_ram_func
+{
 	void *(*dtor)(struct nvkm_ram *);
 	int (*init)(struct nvkm_ram *);
 
 	int (*get)(struct nvkm_ram *, u64 size, u32 align, u32 size_nc,
-		   u32 type, struct nvkm_mem **);
+			   u32 type, struct nvkm_mem **);
 	void (*put)(struct nvkm_ram *, struct nvkm_mem **);
 
 	int (*calc)(struct nvkm_ram *, u32 freq);

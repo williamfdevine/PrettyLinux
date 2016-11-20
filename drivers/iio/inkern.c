@@ -18,7 +18,8 @@
 #include <linux/iio/driver.h>
 #include <linux/iio/consumer.h>
 
-struct iio_map_internal {
+struct iio_map_internal
+{
 	struct iio_dev *indio_dev;
 	struct iio_map *map;
 	struct list_head l;
@@ -33,20 +34,28 @@ int iio_map_array_register(struct iio_dev *indio_dev, struct iio_map *maps)
 	struct iio_map_internal *mapi;
 
 	if (maps == NULL)
+	{
 		return 0;
+	}
 
 	mutex_lock(&iio_map_list_lock);
-	while (maps[i].consumer_dev_name != NULL) {
+
+	while (maps[i].consumer_dev_name != NULL)
+	{
 		mapi = kzalloc(sizeof(*mapi), GFP_KERNEL);
-		if (mapi == NULL) {
+
+		if (mapi == NULL)
+		{
 			ret = -ENOMEM;
 			goto error_ret;
 		}
+
 		mapi->map = &maps[i];
 		mapi->indio_dev = indio_dev;
 		list_add(&mapi->l, &iio_map_list);
 		i++;
 	}
+
 error_ret:
 	mutex_unlock(&iio_map_list_lock);
 
@@ -64,8 +73,10 @@ int iio_map_array_unregister(struct iio_dev *indio_dev)
 	struct iio_map_internal *mapi, *next;
 
 	mutex_lock(&iio_map_list_lock);
-	list_for_each_entry_safe(mapi, next, &iio_map_list, l) {
-		if (indio_dev == mapi->indio_dev) {
+	list_for_each_entry_safe(mapi, next, &iio_map_list, l)
+	{
+		if (indio_dev == mapi->indio_dev)
+		{
 			list_del(&mapi->l);
 			kfree(mapi);
 			ret = 0;
@@ -84,10 +95,12 @@ static const struct iio_chan_spec
 
 	for (i = 0; i < indio_dev->num_channels; i++)
 		if (indio_dev->channels[i].datasheet_name &&
-		    strcmp(name, indio_dev->channels[i].datasheet_name) == 0) {
+			strcmp(name, indio_dev->channels[i].datasheet_name) == 0)
+		{
 			chan = &indio_dev->channels[i];
 			break;
 		}
+
 	return chan;
 }
 
@@ -109,14 +122,17 @@ static int iio_dev_node_match(struct device *dev, void *data)
  * iio_dev).
  */
 static int __of_iio_simple_xlate(struct iio_dev *indio_dev,
-				const struct of_phandle_args *iiospec)
+								 const struct of_phandle_args *iiospec)
 {
 	if (!iiospec->args_count)
+	{
 		return 0;
+	}
 
-	if (iiospec->args[0] >= indio_dev->num_channels) {
+	if (iiospec->args[0] >= indio_dev->num_channels)
+	{
 		dev_err(&indio_dev->dev, "invalid channel index %u\n",
-			iiospec->args[0]);
+				iiospec->args[0]);
 		return -EINVAL;
 	}
 
@@ -124,7 +140,7 @@ static int __of_iio_simple_xlate(struct iio_dev *indio_dev,
 }
 
 static int __of_iio_channel_get(struct iio_channel *channel,
-				struct device_node *np, int index)
+								struct device_node *np, int index)
 {
 	struct device *idev;
 	struct iio_dev *indio_dev;
@@ -132,25 +148,40 @@ static int __of_iio_channel_get(struct iio_channel *channel,
 	struct of_phandle_args iiospec;
 
 	err = of_parse_phandle_with_args(np, "io-channels",
-					 "#io-channel-cells",
-					 index, &iiospec);
+									 "#io-channel-cells",
+									 index, &iiospec);
+
 	if (err)
+	{
 		return err;
+	}
 
 	idev = bus_find_device(&iio_bus_type, NULL, iiospec.np,
-			       iio_dev_node_match);
+						   iio_dev_node_match);
 	of_node_put(iiospec.np);
+
 	if (idev == NULL)
+	{
 		return -EPROBE_DEFER;
+	}
 
 	indio_dev = dev_to_iio_dev(idev);
 	channel->indio_dev = indio_dev;
+
 	if (indio_dev->info->of_xlate)
+	{
 		index = indio_dev->info->of_xlate(indio_dev, &iiospec);
+	}
 	else
+	{
 		index = __of_iio_simple_xlate(indio_dev, &iiospec);
+	}
+
 	if (index < 0)
+	{
 		goto err_put;
+	}
+
 	channel->channel = &indio_dev->channels[index];
 
 	return 0;
@@ -166,15 +197,23 @@ static struct iio_channel *of_iio_channel_get(struct device_node *np, int index)
 	int err;
 
 	if (index < 0)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	channel = kzalloc(sizeof(*channel), GFP_KERNEL);
+
 	if (channel == NULL)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	err = __of_iio_channel_get(channel, np, index);
+
 	if (err)
+	{
 		goto err_free_channel;
+	}
 
 	return channel;
 
@@ -184,12 +223,13 @@ err_free_channel:
 }
 
 static struct iio_channel *of_iio_channel_get_by_name(struct device_node *np,
-						      const char *name)
+		const char *name)
 {
 	struct iio_channel *chan = NULL;
 
 	/* Walk up the tree of devices looking for a matching iio channel */
-	while (np) {
+	while (np)
+	{
 		int index = 0;
 
 		/*
@@ -200,13 +240,18 @@ static struct iio_channel *of_iio_channel_get_by_name(struct device_node *np,
 		 */
 		if (name)
 			index = of_property_match_string(np, "io-channel-names",
-							 name);
+											 name);
+
 		chan = of_iio_channel_get(np, index);
+
 		if (!IS_ERR(chan) || PTR_ERR(chan) == -EPROBE_DEFER)
+		{
 			break;
-		else if (name && index >= 0) {
+		}
+		else if (name && index >= 0)
+		{
 			pr_err("ERROR: could not get IIO channel %s:%s(%i)\n",
-				np->full_name, name ? name : "", index);
+				   np->full_name, name ? name : "", index);
 			return NULL;
 		}
 
@@ -216,8 +261,11 @@ static struct iio_channel *of_iio_channel_get_by_name(struct device_node *np,
 		 * then we can try one of its channels.
 		 */
 		np = np->parent;
+
 		if (np && !of_get_property(np, "io-channel-ranges", NULL))
+		{
 			return NULL;
+		}
 	}
 
 	return chan;
@@ -229,35 +277,54 @@ static struct iio_channel *of_iio_channel_get_all(struct device *dev)
 	int i, mapind, nummaps = 0;
 	int ret;
 
-	do {
+	do
+	{
 		ret = of_parse_phandle_with_args(dev->of_node,
-						 "io-channels",
-						 "#io-channel-cells",
-						 nummaps, NULL);
+										 "io-channels",
+										 "#io-channel-cells",
+										 nummaps, NULL);
+
 		if (ret < 0)
+		{
 			break;
-	} while (++nummaps);
+		}
+	}
+	while (++nummaps);
 
 	if (nummaps == 0)	/* no error, return NULL to search map table */
+	{
 		return NULL;
+	}
 
 	/* NULL terminated array to save passing size */
 	chans = kcalloc(nummaps + 1, sizeof(*chans), GFP_KERNEL);
+
 	if (chans == NULL)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	/* Search for OF matches */
-	for (mapind = 0; mapind < nummaps; mapind++) {
+	for (mapind = 0; mapind < nummaps; mapind++)
+	{
 		ret = __of_iio_channel_get(&chans[mapind], dev->of_node,
-					   mapind);
+								   mapind);
+
 		if (ret)
+		{
 			goto error_free_chans;
+		}
 	}
+
 	return chans;
 
 error_free_chans:
+
 	for (i = 0; i < mapind; i++)
+	{
 		iio_device_put(chans[i].indio_dev);
+	}
+
 	kfree(chans);
 	return ERR_PTR(ret);
 }
@@ -278,44 +345,57 @@ static inline struct iio_channel *of_iio_channel_get_all(struct device *dev)
 #endif /* CONFIG_OF */
 
 static struct iio_channel *iio_channel_get_sys(const char *name,
-					       const char *channel_name)
+		const char *channel_name)
 {
 	struct iio_map_internal *c_i = NULL, *c = NULL;
 	struct iio_channel *channel;
 	int err;
 
 	if (name == NULL && channel_name == NULL)
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
 	/* first find matching entry the channel map */
 	mutex_lock(&iio_map_list_lock);
-	list_for_each_entry(c_i, &iio_map_list, l) {
+	list_for_each_entry(c_i, &iio_map_list, l)
+	{
 		if ((name && strcmp(name, c_i->map->consumer_dev_name) != 0) ||
-		    (channel_name &&
-		     strcmp(channel_name, c_i->map->consumer_channel) != 0))
+			(channel_name &&
+			 strcmp(channel_name, c_i->map->consumer_channel) != 0))
+		{
 			continue;
+		}
+
 		c = c_i;
 		iio_device_get(c->indio_dev);
 		break;
 	}
 	mutex_unlock(&iio_map_list_lock);
+
 	if (c == NULL)
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
 	channel = kzalloc(sizeof(*channel), GFP_KERNEL);
-	if (channel == NULL) {
+
+	if (channel == NULL)
+	{
 		err = -ENOMEM;
 		goto error_no_mem;
 	}
 
 	channel->indio_dev = c->indio_dev;
 
-	if (c->map->adc_channel_label) {
+	if (c->map->adc_channel_label)
+	{
 		channel->channel =
 			iio_chan_spec_from_name(channel->indio_dev,
-						c->map->adc_channel_label);
+									c->map->adc_channel_label);
 
-		if (channel->channel == NULL) {
+		if (channel->channel == NULL)
+		{
 			err = -EINVAL;
 			goto error_no_chan;
 		}
@@ -331,16 +411,20 @@ error_no_mem:
 }
 
 struct iio_channel *iio_channel_get(struct device *dev,
-				    const char *channel_name)
+									const char *channel_name)
 {
 	const char *name = dev ? dev_name(dev) : NULL;
 	struct iio_channel *channel;
 
-	if (dev) {
+	if (dev)
+	{
 		channel = of_iio_channel_get_by_name(dev->of_node,
-						     channel_name);
+											 channel_name);
+
 		if (channel != NULL)
+		{
 			return channel;
+		}
 	}
 
 	return iio_channel_get_sys(name, channel_name);
@@ -350,7 +434,10 @@ EXPORT_SYMBOL_GPL(iio_channel_get);
 void iio_channel_release(struct iio_channel *channel)
 {
 	if (!channel)
+	{
 		return;
+	}
+
 	iio_device_put(channel->indio_dev);
 	kfree(channel);
 }
@@ -367,7 +454,8 @@ static int devm_iio_channel_match(struct device *dev, void *res, void *data)
 {
 	struct iio_channel **r = res;
 
-	if (!r || !*r) {
+	if (!r || !*r)
+	{
 		WARN_ON(!r || !*r);
 		return 0;
 	}
@@ -376,16 +464,21 @@ static int devm_iio_channel_match(struct device *dev, void *res, void *data)
 }
 
 struct iio_channel *devm_iio_channel_get(struct device *dev,
-					 const char *channel_name)
+		const char *channel_name)
 {
 	struct iio_channel **ptr, *channel;
 
 	ptr = devres_alloc(devm_iio_channel_free, sizeof(*ptr), GFP_KERNEL);
+
 	if (!ptr)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	channel = iio_channel_get(dev, channel_name);
-	if (IS_ERR(channel)) {
+
+	if (IS_ERR(channel))
+	{
 		devres_free(ptr);
 		return channel;
 	}
@@ -400,7 +493,7 @@ EXPORT_SYMBOL_GPL(devm_iio_channel_get);
 void devm_iio_channel_release(struct device *dev, struct iio_channel *channel)
 {
 	WARN_ON(devres_release(dev, devm_iio_channel_free,
-			       devm_iio_channel_match, channel));
+						   devm_iio_channel_match, channel));
 }
 EXPORT_SYMBOL_GPL(devm_iio_channel_release);
 
@@ -414,61 +507,88 @@ struct iio_channel *iio_channel_get_all(struct device *dev)
 	int i, ret;
 
 	if (dev == NULL)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	chans = of_iio_channel_get_all(dev);
+
 	if (chans)
+	{
 		return chans;
+	}
 
 	name = dev_name(dev);
 
 	mutex_lock(&iio_map_list_lock);
 	/* first count the matching maps */
 	list_for_each_entry(c, &iio_map_list, l)
-		if (name && strcmp(name, c->map->consumer_dev_name) != 0)
-			continue;
-		else
-			nummaps++;
 
-	if (nummaps == 0) {
+	if (name && strcmp(name, c->map->consumer_dev_name) != 0)
+	{
+		continue;
+	}
+	else
+	{
+		nummaps++;
+	}
+
+	if (nummaps == 0)
+	{
 		ret = -ENODEV;
 		goto error_ret;
 	}
 
 	/* NULL terminated array to save passing size */
-	chans = kzalloc(sizeof(*chans)*(nummaps + 1), GFP_KERNEL);
-	if (chans == NULL) {
+	chans = kzalloc(sizeof(*chans) * (nummaps + 1), GFP_KERNEL);
+
+	if (chans == NULL)
+	{
 		ret = -ENOMEM;
 		goto error_ret;
 	}
 
 	/* for each map fill in the chans element */
-	list_for_each_entry(c, &iio_map_list, l) {
+	list_for_each_entry(c, &iio_map_list, l)
+	{
 		if (name && strcmp(name, c->map->consumer_dev_name) != 0)
+		{
 			continue;
+		}
+
 		chans[mapind].indio_dev = c->indio_dev;
 		chans[mapind].data = c->map->consumer_data;
 		chans[mapind].channel =
 			iio_chan_spec_from_name(chans[mapind].indio_dev,
-						c->map->adc_channel_label);
-		if (chans[mapind].channel == NULL) {
+									c->map->adc_channel_label);
+
+		if (chans[mapind].channel == NULL)
+		{
 			ret = -EINVAL;
 			goto error_free_chans;
 		}
+
 		iio_device_get(chans[mapind].indio_dev);
 		mapind++;
 	}
-	if (mapind == 0) {
+
+	if (mapind == 0)
+	{
 		ret = -ENODEV;
 		goto error_free_chans;
 	}
+
 	mutex_unlock(&iio_map_list_lock);
 
 	return chans;
 
 error_free_chans:
+
 	for (i = 0; i < nummaps; i++)
+	{
 		iio_device_put(chans[i].indio_dev);
+	}
+
 	kfree(chans);
 error_ret:
 	mutex_unlock(&iio_map_list_lock);
@@ -481,10 +601,12 @@ void iio_channel_release_all(struct iio_channel *channels)
 {
 	struct iio_channel *chan = &channels[0];
 
-	while (chan->indio_dev) {
+	while (chan->indio_dev)
+	{
 		iio_device_put(chan->indio_dev);
 		chan++;
 	}
+
 	kfree(channels);
 }
 EXPORT_SYMBOL_GPL(iio_channel_release_all);
@@ -501,11 +623,16 @@ struct iio_channel *devm_iio_channel_get_all(struct device *dev)
 	struct iio_channel **ptr, *channels;
 
 	ptr = devres_alloc(devm_iio_channel_free_all, sizeof(*ptr), GFP_KERNEL);
+
 	if (!ptr)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	channels = iio_channel_get_all(dev);
-	if (IS_ERR(channels)) {
+
+	if (IS_ERR(channels))
+	{
 		devres_free(ptr);
 		return channels;
 	}
@@ -518,15 +645,15 @@ struct iio_channel *devm_iio_channel_get_all(struct device *dev)
 EXPORT_SYMBOL_GPL(devm_iio_channel_get_all);
 
 void devm_iio_channel_release_all(struct device *dev,
-				  struct iio_channel *channels)
+								  struct iio_channel *channels)
 {
 	WARN_ON(devres_release(dev, devm_iio_channel_free_all,
-			       devm_iio_channel_match, channels));
+						   devm_iio_channel_match, channels));
 }
 EXPORT_SYMBOL_GPL(devm_iio_channel_release_all);
 
 static int iio_channel_read(struct iio_channel *chan, int *val, int *val2,
-	enum iio_chan_info_enum info)
+							enum iio_chan_info_enum info)
 {
 	int unused;
 	int vals[INDIO_MAX_RAW_ELEMENTS];
@@ -534,20 +661,26 @@ static int iio_channel_read(struct iio_channel *chan, int *val, int *val2,
 	int val_len = 2;
 
 	if (val2 == NULL)
+	{
 		val2 = &unused;
+	}
 
 	if (!iio_channel_has_info(chan->channel, info))
+	{
 		return -EINVAL;
+	}
 
-	if (chan->indio_dev->info->read_raw_multi) {
+	if (chan->indio_dev->info->read_raw_multi)
+	{
 		ret = chan->indio_dev->info->read_raw_multi(chan->indio_dev,
-					chan->channel, INDIO_MAX_RAW_ELEMENTS,
-					vals, &val_len, info);
+				chan->channel, INDIO_MAX_RAW_ELEMENTS,
+				vals, &val_len, info);
 		*val = vals[0];
 		*val2 = vals[1];
-	} else
+	}
+	else
 		ret = chan->indio_dev->info->read_raw(chan->indio_dev,
-					chan->channel, val, val2, info);
+											  chan->channel, val, val2, info);
 
 	return ret;
 }
@@ -557,7 +690,9 @@ int iio_read_channel_raw(struct iio_channel *chan, int *val)
 	int ret;
 
 	mutex_lock(&chan->indio_dev->info_exist_lock);
-	if (chan->indio_dev->info == NULL) {
+
+	if (chan->indio_dev->info == NULL)
+	{
 		ret = -ENODEV;
 		goto err_unlock;
 	}
@@ -575,7 +710,9 @@ int iio_read_channel_average_raw(struct iio_channel *chan, int *val)
 	int ret;
 
 	mutex_lock(&chan->indio_dev->info_exist_lock);
-	if (chan->indio_dev->info == NULL) {
+
+	if (chan->indio_dev->info == NULL)
+	{
 		ret = -ENODEV;
 		goto err_unlock;
 	}
@@ -589,68 +726,92 @@ err_unlock:
 EXPORT_SYMBOL_GPL(iio_read_channel_average_raw);
 
 static int iio_convert_raw_to_processed_unlocked(struct iio_channel *chan,
-	int raw, int *processed, unsigned int scale)
+		int raw, int *processed, unsigned int scale)
 {
 	int scale_type, scale_val, scale_val2, offset;
 	s64 raw64 = raw;
 	int ret;
 
 	ret = iio_channel_read(chan, &offset, NULL, IIO_CHAN_INFO_OFFSET);
+
 	if (ret >= 0)
+	{
 		raw64 += offset;
+	}
 
 	scale_type = iio_channel_read(chan, &scale_val, &scale_val2,
-					IIO_CHAN_INFO_SCALE);
-	if (scale_type < 0)
-		return scale_type;
+								  IIO_CHAN_INFO_SCALE);
 
-	switch (scale_type) {
-	case IIO_VAL_INT:
-		*processed = raw64 * scale_val;
-		break;
-	case IIO_VAL_INT_PLUS_MICRO:
-		if (scale_val2 < 0)
-			*processed = -raw64 * scale_val;
-		else
+	if (scale_type < 0)
+	{
+		return scale_type;
+	}
+
+	switch (scale_type)
+	{
+		case IIO_VAL_INT:
 			*processed = raw64 * scale_val;
-		*processed += div_s64(raw64 * (s64)scale_val2 * scale,
-				      1000000LL);
-		break;
-	case IIO_VAL_INT_PLUS_NANO:
-		if (scale_val2 < 0)
-			*processed = -raw64 * scale_val;
-		else
-			*processed = raw64 * scale_val;
-		*processed += div_s64(raw64 * (s64)scale_val2 * scale,
-				      1000000000LL);
-		break;
-	case IIO_VAL_FRACTIONAL:
-		*processed = div_s64(raw64 * (s64)scale_val * scale,
-				     scale_val2);
-		break;
-	case IIO_VAL_FRACTIONAL_LOG2:
-		*processed = (raw64 * (s64)scale_val * scale) >> scale_val2;
-		break;
-	default:
-		return -EINVAL;
+			break;
+
+		case IIO_VAL_INT_PLUS_MICRO:
+			if (scale_val2 < 0)
+			{
+				*processed = -raw64 * scale_val;
+			}
+			else
+			{
+				*processed = raw64 * scale_val;
+			}
+
+			*processed += div_s64(raw64 * (s64)scale_val2 * scale,
+								  1000000LL);
+			break;
+
+		case IIO_VAL_INT_PLUS_NANO:
+			if (scale_val2 < 0)
+			{
+				*processed = -raw64 * scale_val;
+			}
+			else
+			{
+				*processed = raw64 * scale_val;
+			}
+
+			*processed += div_s64(raw64 * (s64)scale_val2 * scale,
+								  1000000000LL);
+			break;
+
+		case IIO_VAL_FRACTIONAL:
+			*processed = div_s64(raw64 * (s64)scale_val * scale,
+								 scale_val2);
+			break;
+
+		case IIO_VAL_FRACTIONAL_LOG2:
+			*processed = (raw64 * (s64)scale_val * scale) >> scale_val2;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
 int iio_convert_raw_to_processed(struct iio_channel *chan, int raw,
-	int *processed, unsigned int scale)
+								 int *processed, unsigned int scale)
 {
 	int ret;
 
 	mutex_lock(&chan->indio_dev->info_exist_lock);
-	if (chan->indio_dev->info == NULL) {
+
+	if (chan->indio_dev->info == NULL)
+	{
 		ret = -ENODEV;
 		goto err_unlock;
 	}
 
 	ret = iio_convert_raw_to_processed_unlocked(chan, raw, processed,
-							scale);
+			scale);
 err_unlock:
 	mutex_unlock(&chan->indio_dev->info_exist_lock);
 
@@ -663,18 +824,27 @@ int iio_read_channel_processed(struct iio_channel *chan, int *val)
 	int ret;
 
 	mutex_lock(&chan->indio_dev->info_exist_lock);
-	if (chan->indio_dev->info == NULL) {
+
+	if (chan->indio_dev->info == NULL)
+	{
 		ret = -ENODEV;
 		goto err_unlock;
 	}
 
-	if (iio_channel_has_info(chan->channel, IIO_CHAN_INFO_PROCESSED)) {
+	if (iio_channel_has_info(chan->channel, IIO_CHAN_INFO_PROCESSED))
+	{
 		ret = iio_channel_read(chan, val, NULL,
-				       IIO_CHAN_INFO_PROCESSED);
-	} else {
+							   IIO_CHAN_INFO_PROCESSED);
+	}
+	else
+	{
 		ret = iio_channel_read(chan, val, NULL, IIO_CHAN_INFO_RAW);
+
 		if (ret < 0)
+		{
 			goto err_unlock;
+		}
+
 		ret = iio_convert_raw_to_processed_unlocked(chan, *val, val, 1);
 	}
 
@@ -690,7 +860,9 @@ int iio_read_channel_scale(struct iio_channel *chan, int *val, int *val2)
 	int ret;
 
 	mutex_lock(&chan->indio_dev->info_exist_lock);
-	if (chan->indio_dev->info == NULL) {
+
+	if (chan->indio_dev->info == NULL)
+	{
 		ret = -ENODEV;
 		goto err_unlock;
 	}
@@ -709,7 +881,9 @@ int iio_get_channel_type(struct iio_channel *chan, enum iio_chan_type *type)
 	/* Need to verify underlying driver has not gone away */
 
 	mutex_lock(&chan->indio_dev->info_exist_lock);
-	if (chan->indio_dev->info == NULL) {
+
+	if (chan->indio_dev->info == NULL)
+	{
 		ret = -ENODEV;
 		goto err_unlock;
 	}
@@ -723,10 +897,10 @@ err_unlock:
 EXPORT_SYMBOL_GPL(iio_get_channel_type);
 
 static int iio_channel_write(struct iio_channel *chan, int val, int val2,
-			     enum iio_chan_info_enum info)
+							 enum iio_chan_info_enum info)
 {
 	return chan->indio_dev->info->write_raw(chan->indio_dev,
-						chan->channel, val, val2, info);
+											chan->channel, val, val2, info);
 }
 
 int iio_write_channel_raw(struct iio_channel *chan, int val)
@@ -734,7 +908,9 @@ int iio_write_channel_raw(struct iio_channel *chan, int val)
 	int ret;
 
 	mutex_lock(&chan->indio_dev->info_exist_lock);
-	if (chan->indio_dev->info == NULL) {
+
+	if (chan->indio_dev->info == NULL)
+	{
 		ret = -ENODEV;
 		goto err_unlock;
 	}

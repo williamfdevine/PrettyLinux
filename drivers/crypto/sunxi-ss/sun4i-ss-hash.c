@@ -30,7 +30,7 @@ int sun4i_hash_crainit(struct crypto_tfm *tfm)
 	op->ss = algt->ss;
 
 	crypto_ahash_set_reqsize(__crypto_ahash_cast(tfm),
-				 sizeof(struct sun4i_req_ctx));
+							 sizeof(struct sun4i_req_ctx));
 	return 0;
 }
 
@@ -60,10 +60,15 @@ int sun4i_hash_export_md5(struct ahash_request *areq, void *out)
 
 	memcpy(octx->block, op->buf, op->len);
 
-	if (op->byte_count > 0) {
+	if (op->byte_count > 0)
+	{
 		for (i = 0; i < 4; i++)
+		{
 			octx->hash[i] = op->hash[i];
-	} else {
+		}
+	}
+	else
+	{
 		octx->hash[0] = SHA1_H0;
 		octx->hash[1] = SHA1_H1;
 		octx->hash[2] = SHA1_H2;
@@ -87,7 +92,9 @@ int sun4i_hash_import_md5(struct ahash_request *areq, const void *in)
 	memcpy(op->buf, ictx->block, op->len);
 
 	for (i = 0; i < 4; i++)
+	{
 		op->hash[i] = ictx->hash[i];
+	}
 
 	return 0;
 }
@@ -102,10 +109,15 @@ int sun4i_hash_export_sha1(struct ahash_request *areq, void *out)
 
 	memcpy(octx->buffer, op->buf, op->len);
 
-	if (op->byte_count > 0) {
+	if (op->byte_count > 0)
+	{
 		for (i = 0; i < 5; i++)
+		{
 			octx->state[i] = op->hash[i];
-	} else {
+		}
+	}
+	else
+	{
 		octx->state[0] = SHA1_H0;
 		octx->state[1] = SHA1_H1;
 		octx->state[2] = SHA1_H2;
@@ -130,7 +142,9 @@ int sun4i_hash_import_sha1(struct ahash_request *areq, const void *in)
 	memcpy(op->buf, ictx->buffer, op->len);
 
 	for (i = 0; i < 5; i++)
+	{
 		op->hash[i] = ictx->state[i];
+	}
 
 	return 0;
 }
@@ -200,23 +214,27 @@ static int sun4i_hash(struct ahash_request *areq)
 	struct scatterlist *in_sg = areq->src;
 
 	dev_dbg(ss->dev, "%s %s bc=%llu len=%u mode=%x wl=%u h0=%0x",
-		__func__, crypto_tfm_alg_name(areq->base.tfm),
-		op->byte_count, areq->nbytes, op->mode,
-		op->len, op->hash[0]);
+			__func__, crypto_tfm_alg_name(areq->base.tfm),
+			op->byte_count, areq->nbytes, op->mode,
+			op->len, op->hash[0]);
 
 	if (unlikely(areq->nbytes == 0) && (op->flags & SS_HASH_FINAL) == 0)
+	{
 		return 0;
+	}
 
 	/* protect against overflow */
-	if (unlikely(areq->nbytes > UINT_MAX - op->len)) {
+	if (unlikely(areq->nbytes > UINT_MAX - op->len))
+	{
 		dev_err(ss->dev, "Cannot process too large request\n");
 		return -EINVAL;
 	}
 
-	if (op->len + areq->nbytes < 64 && (op->flags & SS_HASH_FINAL) == 0) {
+	if (op->len + areq->nbytes < 64 && (op->flags & SS_HASH_FINAL) == 0)
+	{
 		/* linearize data to op->buf */
 		copied = sg_pcopy_to_buffer(areq->src, sg_nents(areq->src),
-					    op->buf + op->len, areq->nbytes, 0);
+									op->buf + op->len, areq->nbytes, 0);
 		op->len += copied;
 		return 0;
 	}
@@ -227,85 +245,113 @@ static int sun4i_hash(struct ahash_request *areq)
 	 * if some data have been processed before,
 	 * we need to restore the partial hash state
 	 */
-	if (op->byte_count > 0) {
+	if (op->byte_count > 0)
+	{
 		ivmode = SS_IV_ARBITRARY;
+
 		for (i = 0; i < 5; i++)
+		{
 			writel(op->hash[i], ss->base + SS_IV0 + i * 4);
+		}
 	}
+
 	/* Enable the device */
 	writel(op->mode | SS_ENABLED | ivmode, ss->base + SS_CTL);
 
 	if ((op->flags & SS_HASH_UPDATE) == 0)
+	{
 		goto hash_final;
+	}
 
 	/* start of handling data */
-	if ((op->flags & SS_HASH_FINAL) == 0) {
+	if ((op->flags & SS_HASH_FINAL) == 0)
+	{
 		end = ((areq->nbytes + op->len) / 64) * 64 - op->len;
 
-		if (end > areq->nbytes || areq->nbytes - end > 63) {
+		if (end > areq->nbytes || areq->nbytes - end > 63)
+		{
 			dev_err(ss->dev, "ERROR: Bound error %u %u\n",
-				end, areq->nbytes);
+					end, areq->nbytes);
 			err = -EINVAL;
 			goto release_ss;
 		}
-	} else {
+	}
+	else
+	{
 		/* Since we have the flag final, we can go up to modulo 4 */
 		end = ((areq->nbytes + op->len) / 4) * 4 - op->len;
 	}
 
 	/* TODO if SGlen % 4 and op->len == 0 then DMA */
 	i = 1;
-	while (in_sg && i == 1) {
+
+	while (in_sg && i == 1)
+	{
 		if ((in_sg->length % 4) != 0)
+		{
 			i = 0;
+		}
+
 		in_sg = sg_next(in_sg);
 	}
+
 	if (i == 1 && op->len == 0)
+	{
 		dev_dbg(ss->dev, "We can DMA\n");
+	}
 
 	i = 0;
 	sg_miter_start(&mi, areq->src, sg_nents(areq->src),
-		       SG_MITER_FROM_SG | SG_MITER_ATOMIC);
+				   SG_MITER_FROM_SG | SG_MITER_ATOMIC);
 	sg_miter_next(&mi);
 	in_i = 0;
 
-	do {
+	do
+	{
 		/*
 		 * we need to linearize in two case:
 		 * - the buffer is already used
 		 * - the SG does not have enough byte remaining ( < 4)
 		 */
-		if (op->len > 0 || (mi.length - in_i) < 4) {
+		if (op->len > 0 || (mi.length - in_i) < 4)
+		{
 			/*
 			 * if we have entered here we have two reason to stop
 			 * - the buffer is full
 			 * - reach the end
 			 */
-			while (op->len < 64 && i < end) {
+			while (op->len < 64 && i < end)
+			{
 				/* how many bytes we can read from current SG */
 				in_r = min3(mi.length - in_i, end - i,
-					    64 - op->len);
+							64 - op->len);
 				memcpy(op->buf + op->len, mi.addr + in_i, in_r);
 				op->len += in_r;
 				i += in_r;
 				in_i += in_r;
-				if (in_i == mi.length) {
+
+				if (in_i == mi.length)
+				{
 					sg_miter_next(&mi);
 					in_i = 0;
 				}
 			}
-			if (op->len > 3 && (op->len % 4) == 0) {
+
+			if (op->len > 3 && (op->len % 4) == 0)
+			{
 				/* write buf to the device */
 				writesl(ss->base + SS_RXFIFO, op->buf,
-					op->len / 4);
+						op->len / 4);
 				op->byte_count += op->len;
 				op->len = 0;
 			}
 		}
-		if (mi.length - in_i > 3 && i < end) {
+
+		if (mi.length - in_i > 3 && i < end)
+		{
 			/* how many bytes we can read from current SG */
 			in_r = min3(mi.length - in_i, areq->nbytes - i,
-				    ((mi.length - in_i) / 4) * 4);
+						((mi.length - in_i) / 4) * 4);
 			/* how many bytes we can write in the device*/
 			todo = min3((u32)(end - i) / 4, rx_cnt, (u32)in_r / 4);
 			writesl(ss->base + SS_RXFIFO, mi.addr + in_i, todo);
@@ -313,31 +359,40 @@ static int sun4i_hash(struct ahash_request *areq)
 			i += todo * 4;
 			in_i += todo * 4;
 			rx_cnt -= todo;
-			if (rx_cnt == 0) {
+
+			if (rx_cnt == 0)
+			{
 				spaces = readl(ss->base + SS_FCSR);
 				rx_cnt = SS_RXFIFO_SPACES(spaces);
 			}
-			if (in_i == mi.length) {
+
+			if (in_i == mi.length)
+			{
 				sg_miter_next(&mi);
 				in_i = 0;
 			}
 		}
-	} while (i < end);
+	}
+	while (i < end);
 
 	/*
 	 * Now we have written to the device all that we can,
 	 * store the remaining bytes in op->buf
 	 */
-	if ((areq->nbytes - i) < 64) {
-		while (i < areq->nbytes && in_i < mi.length && op->len < 64) {
+	if ((areq->nbytes - i) < 64)
+	{
+		while (i < areq->nbytes && in_i < mi.length && op->len < 64)
+		{
 			/* how many bytes we can read from current SG */
 			in_r = min3(mi.length - in_i, areq->nbytes - i,
-				    64 - op->len);
+						64 - op->len);
 			memcpy(op->buf + op->len, mi.addr + in_i, in_r);
 			op->len += in_r;
 			i += in_r;
 			in_i += in_r;
-			if (in_i == mi.length) {
+
+			if (in_i == mi.length)
+			{
 				sg_miter_next(&mi);
 				in_i = 0;
 			}
@@ -352,58 +407,74 @@ static int sun4i_hash(struct ahash_request *areq)
 	 * If not, store the partial hash
 	 */
 	if ((op->flags & SS_HASH_FINAL) > 0)
+	{
 		goto hash_final;
+	}
 
 	writel(op->mode | SS_ENABLED | SS_DATA_END, ss->base + SS_CTL);
 	i = 0;
-	do {
+
+	do
+	{
 		v = readl(ss->base + SS_CTL);
 		i++;
-	} while (i < SS_TIMEOUT && (v & SS_DATA_END) > 0);
-	if (unlikely(i >= SS_TIMEOUT)) {
+	}
+	while (i < SS_TIMEOUT && (v & SS_DATA_END) > 0);
+
+	if (unlikely(i >= SS_TIMEOUT))
+	{
 		dev_err_ratelimited(ss->dev,
-				    "ERROR: hash end timeout %d>%d ctl=%x len=%u\n",
-				    i, SS_TIMEOUT, v, areq->nbytes);
+							"ERROR: hash end timeout %d>%d ctl=%x len=%u\n",
+							i, SS_TIMEOUT, v, areq->nbytes);
 		err = -EIO;
 		goto release_ss;
 	}
 
 	for (i = 0; i < crypto_ahash_digestsize(tfm) / 4; i++)
+	{
 		op->hash[i] = readl(ss->base + SS_MD0 + i * 4);
+	}
 
 	goto release_ss;
 
-/*
- * hash_final: finalize hashing operation
- *
- * If we have some remaining bytes, we write them.
- * Then ask the SS for finalizing the hashing operation
- *
- * I do not check RX FIFO size in this function since the size is 32
- * after each enabling and this function neither write more than 32 words.
- * If we come from the update part, we cannot have more than
- * 3 remaining bytes to write and SS is fast enough to not care about it.
- */
+	/*
+	 * hash_final: finalize hashing operation
+	 *
+	 * If we have some remaining bytes, we write them.
+	 * Then ask the SS for finalizing the hashing operation
+	 *
+	 * I do not check RX FIFO size in this function since the size is 32
+	 * after each enabling and this function neither write more than 32 words.
+	 * If we come from the update part, we cannot have more than
+	 * 3 remaining bytes to write and SS is fast enough to not care about it.
+	 */
 
 hash_final:
 
 	/* write the remaining words of the wait buffer */
-	if (op->len > 0) {
+	if (op->len > 0)
+	{
 		nwait = op->len / 4;
-		if (nwait > 0) {
+
+		if (nwait > 0)
+		{
 			writesl(ss->base + SS_RXFIFO, op->buf, nwait);
 			op->byte_count += 4 * nwait;
 		}
+
 		nbw = op->len - 4 * nwait;
 		wb = *(u32 *)(op->buf + nwait * 4);
 		wb &= (0xFFFFFFFF >> (4 - nbw) * 8);
 	}
 
 	/* write the remaining bytes of the nbw buffer */
-	if (nbw > 0) {
+	if (nbw > 0)
+	{
 		wb |= ((1 << 7) << (nbw * 8));
 		bf[j++] = wb;
-	} else {
+	}
+	else
+	{
 		bf[j++] = 1 << 7;
 	}
 
@@ -413,14 +484,22 @@ hash_final:
 	 */
 
 	/* we have already send 4 more byte of which nbw data */
-	if (op->mode == SS_OP_MD5) {
+	if (op->mode == SS_OP_MD5)
+	{
 		index = (op->byte_count + 4) & 0x3f;
 		op->byte_count += nbw;
+
 		if (index > 56)
+		{
 			zeros = (120 - index) / 4;
+		}
 		else
+		{
 			zeros = (56 - index) / 4;
-	} else {
+		}
+	}
+	else
+	{
 		op->byte_count += nbw;
 		index = op->byte_count & 0x3f;
 		padlen = (index < 56) ? (56 - index) : ((64 + 56) - index);
@@ -431,14 +510,18 @@ hash_final:
 	j += zeros;
 
 	/* write the length of data */
-	if (op->mode == SS_OP_SHA1) {
+	if (op->mode == SS_OP_SHA1)
+	{
 		bits = cpu_to_be64(op->byte_count << 3);
 		bf[j++] = bits & 0xffffffff;
 		bf[j++] = (bits >> 32) & 0xffffffff;
-	} else {
+	}
+	else
+	{
 		bf[j++] = (op->byte_count << 3) & 0xffffffff;
 		bf[j++] = (op->byte_count >> 29) & 0xffffffff;
 	}
+
 	writesl(ss->base + SS_RXFIFO, bf, j);
 
 	/* Tell the SS to stop the hashing */
@@ -450,26 +533,36 @@ hash_final:
 	 * or driver bug.
 	 */
 	i = 0;
-	do {
+
+	do
+	{
 		v = readl(ss->base + SS_CTL);
 		i++;
-	} while (i < SS_TIMEOUT && (v & SS_DATA_END) > 0);
-	if (unlikely(i >= SS_TIMEOUT)) {
+	}
+	while (i < SS_TIMEOUT && (v & SS_DATA_END) > 0);
+
+	if (unlikely(i >= SS_TIMEOUT))
+	{
 		dev_err_ratelimited(ss->dev,
-				    "ERROR: hash end timeout %d>%d ctl=%x len=%u\n",
-				    i, SS_TIMEOUT, v, areq->nbytes);
+							"ERROR: hash end timeout %d>%d ctl=%x len=%u\n",
+							i, SS_TIMEOUT, v, areq->nbytes);
 		err = -EIO;
 		goto release_ss;
 	}
 
 	/* Get the hash from the device */
-	if (op->mode == SS_OP_SHA1) {
-		for (i = 0; i < 5; i++) {
+	if (op->mode == SS_OP_SHA1)
+	{
+		for (i = 0; i < 5; i++)
+		{
 			v = cpu_to_be32(readl(ss->base + SS_MD0 + i * 4));
 			memcpy(areq->result + i * 4, &v, 4);
 		}
-	} else {
-		for (i = 0; i < 4; i++) {
+	}
+	else
+	{
+		for (i = 0; i < 4; i++)
+		{
 			v = readl(ss->base + SS_MD0 + i * 4);
 			memcpy(areq->result + i * 4, &v, 4);
 		}
@@ -513,8 +606,11 @@ int sun4i_hash_digest(struct ahash_request *areq)
 	struct sun4i_req_ctx *op = ahash_request_ctx(areq);
 
 	err = sun4i_hash_init(areq);
+
 	if (err != 0)
+	{
 		return err;
+	}
 
 	op->flags = SS_HASH_UPDATE | SS_HASH_FINAL;
 	return sun4i_hash(areq);

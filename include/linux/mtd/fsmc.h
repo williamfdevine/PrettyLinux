@@ -34,62 +34,62 @@
 
 /* fsmc controller registers for NOR flash */
 #define CTRL			0x0
-	/* ctrl register definitions */
-	#define BANK_ENABLE		(1 << 0)
-	#define MUXED			(1 << 1)
-	#define NOR_DEV			(2 << 2)
-	#define WIDTH_8			(0 << 4)
-	#define WIDTH_16		(1 << 4)
-	#define RSTPWRDWN		(1 << 6)
-	#define WPROT			(1 << 7)
-	#define WRT_ENABLE		(1 << 12)
-	#define WAIT_ENB		(1 << 13)
+/* ctrl register definitions */
+#define BANK_ENABLE		(1 << 0)
+#define MUXED			(1 << 1)
+#define NOR_DEV			(2 << 2)
+#define WIDTH_8			(0 << 4)
+#define WIDTH_16		(1 << 4)
+#define RSTPWRDWN		(1 << 6)
+#define WPROT			(1 << 7)
+#define WRT_ENABLE		(1 << 12)
+#define WAIT_ENB		(1 << 13)
 
 #define CTRL_TIM		0x4
-	/* ctrl_tim register definitions */
+/* ctrl_tim register definitions */
 
 #define FSMC_NOR_BANK_SZ	0x8
 #define FSMC_NOR_REG_SIZE	0x40
 
 #define FSMC_NOR_REG(base, bank, reg)		(base + \
-						FSMC_NOR_BANK_SZ * (bank) + \
-						reg)
+		FSMC_NOR_BANK_SZ * (bank) + \
+		reg)
 
 /* fsmc controller registers for NAND flash */
 #define PC			0x00
-	/* pc register definitions */
-	#define FSMC_RESET		(1 << 0)
-	#define FSMC_WAITON		(1 << 1)
-	#define FSMC_ENABLE		(1 << 2)
-	#define FSMC_DEVTYPE_NAND	(1 << 3)
-	#define FSMC_DEVWID_8		(0 << 4)
-	#define FSMC_DEVWID_16		(1 << 4)
-	#define FSMC_ECCEN		(1 << 6)
-	#define FSMC_ECCPLEN_512	(0 << 7)
-	#define FSMC_ECCPLEN_256	(1 << 7)
-	#define FSMC_TCLR_1		(1)
-	#define FSMC_TCLR_SHIFT		(9)
-	#define FSMC_TCLR_MASK		(0xF)
-	#define FSMC_TAR_1		(1)
-	#define FSMC_TAR_SHIFT		(13)
-	#define FSMC_TAR_MASK		(0xF)
+/* pc register definitions */
+#define FSMC_RESET		(1 << 0)
+#define FSMC_WAITON		(1 << 1)
+#define FSMC_ENABLE		(1 << 2)
+#define FSMC_DEVTYPE_NAND	(1 << 3)
+#define FSMC_DEVWID_8		(0 << 4)
+#define FSMC_DEVWID_16		(1 << 4)
+#define FSMC_ECCEN		(1 << 6)
+#define FSMC_ECCPLEN_512	(0 << 7)
+#define FSMC_ECCPLEN_256	(1 << 7)
+#define FSMC_TCLR_1		(1)
+#define FSMC_TCLR_SHIFT		(9)
+#define FSMC_TCLR_MASK		(0xF)
+#define FSMC_TAR_1		(1)
+#define FSMC_TAR_SHIFT		(13)
+#define FSMC_TAR_MASK		(0xF)
 #define STS			0x04
-	/* sts register definitions */
-	#define FSMC_CODE_RDY		(1 << 15)
+/* sts register definitions */
+#define FSMC_CODE_RDY		(1 << 15)
 #define COMM			0x08
-	/* comm register definitions */
-	#define FSMC_TSET_0		0
-	#define FSMC_TSET_SHIFT		0
-	#define FSMC_TSET_MASK		0xFF
-	#define FSMC_TWAIT_6		6
-	#define FSMC_TWAIT_SHIFT	8
-	#define FSMC_TWAIT_MASK		0xFF
-	#define FSMC_THOLD_4		4
-	#define FSMC_THOLD_SHIFT	16
-	#define FSMC_THOLD_MASK		0xFF
-	#define FSMC_THIZ_1		1
-	#define FSMC_THIZ_SHIFT		24
-	#define FSMC_THIZ_MASK		0xFF
+/* comm register definitions */
+#define FSMC_TSET_0		0
+#define FSMC_TSET_SHIFT		0
+#define FSMC_TSET_MASK		0xFF
+#define FSMC_TWAIT_6		6
+#define FSMC_TWAIT_SHIFT	8
+#define FSMC_TWAIT_MASK		0xFF
+#define FSMC_THOLD_4		4
+#define FSMC_THOLD_SHIFT	16
+#define FSMC_THOLD_MASK		0xFF
+#define FSMC_THIZ_1		1
+#define FSMC_THIZ_SHIFT		24
+#define FSMC_THIZ_MASK		0xFF
 #define ATTRIB			0x0C
 #define IOATA			0x10
 #define ECC1			0x14
@@ -98,12 +98,13 @@
 #define FSMC_NAND_BANK_SZ	0x20
 
 #define FSMC_NAND_REG(base, bank, reg)		(base + FSMC_NOR_REG_SIZE + \
-						(FSMC_NAND_BANK_SZ * (bank)) + \
-						reg)
+		(FSMC_NAND_BANK_SZ * (bank)) + \
+		reg)
 
 #define FSMC_BUSY_WAIT_TIMEOUT	(1 * HZ)
 
-struct fsmc_nand_timings {
+struct fsmc_nand_timings
+{
 	uint8_t tclr;
 	uint8_t tar;
 	uint8_t thiz;
@@ -112,7 +113,8 @@ struct fsmc_nand_timings {
 	uint8_t tset;
 };
 
-enum access_mode {
+enum access_mode
+{
 	USE_DMA_ACCESS = 1,
 	USE_WORD_ACCESS,
 };
@@ -130,7 +132,8 @@ enum access_mode {
  * platform-specific. If the controller only supports one bank
  * this may be set to NULL
  */
-struct fsmc_nand_platform_data {
+struct fsmc_nand_platform_data
+{
 	struct fsmc_nand_timings *nand_timings;
 	struct mtd_partition	*partitions;
 	unsigned int		nr_partitions;
@@ -148,9 +151,9 @@ struct fsmc_nand_platform_data {
 };
 
 extern int __init fsmc_nor_init(struct platform_device *pdev,
-		unsigned long base, uint32_t bank, uint32_t width);
+								unsigned long base, uint32_t bank, uint32_t width);
 extern void __init fsmc_init_board_info(struct platform_device *pdev,
-		struct mtd_partition *partitions, unsigned int nr_partitions,
-		unsigned int width);
+										struct mtd_partition *partitions, unsigned int nr_partitions,
+										unsigned int width);
 
 #endif /* __MTD_FSMC_H */

@@ -23,7 +23,8 @@
 #include <linux/mm.h>
 #include <linux/lzo.h>
 
-struct lzo_ctx {
+struct lzo_ctx
+{
 	void *lzo_comp_mem;
 };
 
@@ -32,11 +33,17 @@ static int lzo_init(struct crypto_tfm *tfm)
 	struct lzo_ctx *ctx = crypto_tfm_ctx(tfm);
 
 	ctx->lzo_comp_mem = kmalloc(LZO1X_MEM_COMPRESS,
-				    GFP_KERNEL | __GFP_NOWARN);
+								GFP_KERNEL | __GFP_NOWARN);
+
 	if (!ctx->lzo_comp_mem)
+	{
 		ctx->lzo_comp_mem = vmalloc(LZO1X_MEM_COMPRESS);
+	}
+
 	if (!ctx->lzo_comp_mem)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -49,7 +56,7 @@ static void lzo_exit(struct crypto_tfm *tfm)
 }
 
 static int lzo_compress(struct crypto_tfm *tfm, const u8 *src,
-			    unsigned int slen, u8 *dst, unsigned int *dlen)
+						unsigned int slen, u8 *dst, unsigned int *dlen)
 {
 	struct lzo_ctx *ctx = crypto_tfm_ctx(tfm);
 	size_t tmp_len = *dlen; /* size_t(ulong) <-> uint on 64 bit */
@@ -58,14 +65,16 @@ static int lzo_compress(struct crypto_tfm *tfm, const u8 *src,
 	err = lzo1x_1_compress(src, slen, dst, &tmp_len, ctx->lzo_comp_mem);
 
 	if (err != LZO_E_OK)
+	{
 		return -EINVAL;
+	}
 
 	*dlen = tmp_len;
 	return 0;
 }
 
 static int lzo_decompress(struct crypto_tfm *tfm, const u8 *src,
-			      unsigned int slen, u8 *dst, unsigned int *dlen)
+						  unsigned int slen, u8 *dst, unsigned int *dlen)
 {
 	int err;
 	size_t tmp_len = *dlen; /* size_t(ulong) <-> uint on 64 bit */
@@ -73,23 +82,29 @@ static int lzo_decompress(struct crypto_tfm *tfm, const u8 *src,
 	err = lzo1x_decompress_safe(src, slen, dst, &tmp_len);
 
 	if (err != LZO_E_OK)
+	{
 		return -EINVAL;
+	}
 
 	*dlen = tmp_len;
 	return 0;
 
 }
 
-static struct crypto_alg alg = {
+static struct crypto_alg alg =
+{
 	.cra_name		= "lzo",
 	.cra_flags		= CRYPTO_ALG_TYPE_COMPRESS,
 	.cra_ctxsize		= sizeof(struct lzo_ctx),
 	.cra_module		= THIS_MODULE,
 	.cra_init		= lzo_init,
 	.cra_exit		= lzo_exit,
-	.cra_u			= { .compress = {
-	.coa_compress 		= lzo_compress,
-	.coa_decompress  	= lzo_decompress } }
+	.cra_u			= {
+		.compress = {
+			.coa_compress 		= lzo_compress,
+			.coa_decompress  	= lzo_decompress
+		}
+	}
 };
 
 static int __init lzo_mod_init(void)

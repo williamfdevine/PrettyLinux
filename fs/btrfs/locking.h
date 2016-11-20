@@ -41,13 +41,21 @@ int btrfs_tree_read_lock_atomic(struct extent_buffer *eb);
 static inline void btrfs_tree_unlock_rw(struct extent_buffer *eb, int rw)
 {
 	if (rw == BTRFS_WRITE_LOCK || rw == BTRFS_WRITE_LOCK_BLOCKING)
+	{
 		btrfs_tree_unlock(eb);
+	}
 	else if (rw == BTRFS_READ_LOCK_BLOCKING)
+	{
 		btrfs_tree_read_unlock_blocking(eb);
+	}
 	else if (rw == BTRFS_READ_LOCK)
+	{
 		btrfs_tree_read_unlock(eb);
+	}
 	else
+	{
 		BUG();
+	}
 }
 
 static inline void btrfs_set_lock_blocking(struct extent_buffer *eb)

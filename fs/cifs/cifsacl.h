@@ -44,8 +44,8 @@
  * owner, group and world).
  */
 #define DEFAULT_SEC_DESC_LEN (sizeof(struct cifs_ntsd) + \
-			      sizeof(struct cifs_acl) + \
-			      (sizeof(struct cifs_ace) * 3))
+							  sizeof(struct cifs_acl) + \
+							  (sizeof(struct cifs_ace) * 3))
 
 /*
  * Maximum size of a string representation of a SID:
@@ -65,7 +65,8 @@
 #define SID_STRING_BASE_SIZE (2 + 3 + 15 + 1)
 #define SID_STRING_SUBAUTH_SIZE (11) /* size of a single subauth string */
 
-struct cifs_ntsd {
+struct cifs_ntsd
+{
 	__le16 revision; /* revision level */
 	__le16 type;
 	__le32 osidoffset;
@@ -74,7 +75,8 @@ struct cifs_ntsd {
 	__le32 dacloffset;
 } __attribute__((packed));
 
-struct cifs_sid {
+struct cifs_sid
+{
 	__u8 revision; /* revision level */
 	__u8 num_subauth;
 	__u8 authority[NUM_AUTHS];
@@ -84,13 +86,15 @@ struct cifs_sid {
 /* size of a struct cifs_sid, sans sub_auth array */
 #define CIFS_SID_BASE_SIZE (1 + 1 + NUM_AUTHS)
 
-struct cifs_acl {
+struct cifs_acl
+{
 	__le16 revision; /* revision level */
 	__le16 size;
 	__le32 num_aces;
 } __attribute__((packed));
 
-struct cifs_ace {
+struct cifs_ace
+{
 	__u8 type;
 	__u8 flags;
 	__le16 size;

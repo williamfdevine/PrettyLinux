@@ -40,7 +40,8 @@ MODULE_ALIAS("ip_set_hash:ip,mark");
 /* IPv4 variant */
 
 /* Member elements */
-struct hash_ipmark4_elem {
+struct hash_ipmark4_elem
+{
 	__be32 ip;
 	__u32 mark;
 };
@@ -49,20 +50,23 @@ struct hash_ipmark4_elem {
 
 static inline bool
 hash_ipmark4_data_equal(const struct hash_ipmark4_elem *ip1,
-			const struct hash_ipmark4_elem *ip2,
-			u32 *multi)
+						const struct hash_ipmark4_elem *ip2,
+						u32 *multi)
 {
 	return ip1->ip == ip2->ip &&
-	       ip1->mark == ip2->mark;
+		   ip1->mark == ip2->mark;
 }
 
 static bool
 hash_ipmark4_data_list(struct sk_buff *skb,
-		       const struct hash_ipmark4_elem *data)
+					   const struct hash_ipmark4_elem *data)
 {
 	if (nla_put_ipaddr4(skb, IPSET_ATTR_IP, data->ip) ||
-	    nla_put_net32(skb, IPSET_ATTR_MARK, htonl(data->mark)))
+		nla_put_net32(skb, IPSET_ATTR_MARK, htonl(data->mark)))
+	{
 		goto nla_put_failure;
+	}
+
 	return false;
 
 nla_put_failure:
@@ -71,7 +75,7 @@ nla_put_failure:
 
 static inline void
 hash_ipmark4_data_next(struct hash_ipmark4_elem *next,
-		       const struct hash_ipmark4_elem *d)
+					   const struct hash_ipmark4_elem *d)
 {
 	next->ip = d->ip;
 }
@@ -82,8 +86,8 @@ hash_ipmark4_data_next(struct hash_ipmark4_elem *next,
 
 static int
 hash_ipmark4_kadt(struct ip_set *set, const struct sk_buff *skb,
-		  const struct xt_action_param *par,
-		  enum ipset_adt adt, struct ip_set_adt_opt *opt)
+				  const struct xt_action_param *par,
+				  enum ipset_adt adt, struct ip_set_adt_opt *opt)
 {
 	const struct hash_ipmark *h = set->data;
 	ipset_adtfn adtfn = set->variant->adt[adt];
@@ -99,7 +103,7 @@ hash_ipmark4_kadt(struct ip_set *set, const struct sk_buff *skb,
 
 static int
 hash_ipmark4_uadt(struct ip_set *set, struct nlattr *tb[],
-		  enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
+				  enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
 {
 	const struct hash_ipmark *h = set->data;
 	ipset_adtfn adtfn = set->variant->adt[adt];
@@ -109,61 +113,93 @@ hash_ipmark4_uadt(struct ip_set *set, struct nlattr *tb[],
 	int ret;
 
 	if (tb[IPSET_ATTR_LINENO])
+	{
 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
+	}
 
 	if (unlikely(!tb[IPSET_ATTR_IP] ||
-		     !ip_set_attr_netorder(tb, IPSET_ATTR_MARK)))
+				 !ip_set_attr_netorder(tb, IPSET_ATTR_MARK)))
+	{
 		return -IPSET_ERR_PROTOCOL;
+	}
 
 	ret = ip_set_get_ipaddr4(tb[IPSET_ATTR_IP], &e.ip);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = ip_set_get_extensions(set, tb, &ext);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	e.mark = ntohl(nla_get_be32(tb[IPSET_ATTR_MARK]));
 	e.mark &= h->markmask;
 
 	if (adt == IPSET_TEST ||
-	    !(tb[IPSET_ATTR_IP_TO] || tb[IPSET_ATTR_CIDR])) {
+		!(tb[IPSET_ATTR_IP_TO] || tb[IPSET_ATTR_CIDR]))
+	{
 		ret = adtfn(set, &e, &ext, &ext, flags);
 		return ip_set_eexist(ret, flags) ? 0 : ret;
 	}
 
 	ip_to = ip = ntohl(e.ip);
-	if (tb[IPSET_ATTR_IP_TO]) {
+
+	if (tb[IPSET_ATTR_IP_TO])
+	{
 		ret = ip_set_get_hostipaddr4(tb[IPSET_ATTR_IP_TO], &ip_to);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		if (ip > ip_to)
+		{
 			swap(ip, ip_to);
-	} else if (tb[IPSET_ATTR_CIDR]) {
+		}
+	}
+	else if (tb[IPSET_ATTR_CIDR])
+	{
 		u8 cidr = nla_get_u8(tb[IPSET_ATTR_CIDR]);
 
 		if (!cidr || cidr > HOST_MASK)
+		{
 			return -IPSET_ERR_INVALID_CIDR;
+		}
+
 		ip_set_mask_from_to(ip, ip_to, cidr);
 	}
 
 	if (retried)
+	{
 		ip = ntohl(h->next.ip);
-	for (; !before(ip_to, ip); ip++) {
+	}
+
+	for (; !before(ip_to, ip); ip++)
+	{
 		e.ip = htonl(ip);
 		ret = adtfn(set, &e, &ext, &ext, flags);
 
 		if (ret && !ip_set_eexist(ret, flags))
+		{
 			return ret;
+		}
 
 		ret = 0;
 	}
+
 	return ret;
 }
 
 /* IPv6 variant */
 
-struct hash_ipmark6_elem {
+struct hash_ipmark6_elem
+{
 	union nf_inet_addr ip;
 	__u32 mark;
 };
@@ -172,20 +208,23 @@ struct hash_ipmark6_elem {
 
 static inline bool
 hash_ipmark6_data_equal(const struct hash_ipmark6_elem *ip1,
-			const struct hash_ipmark6_elem *ip2,
-			u32 *multi)
+						const struct hash_ipmark6_elem *ip2,
+						u32 *multi)
 {
 	return ipv6_addr_equal(&ip1->ip.in6, &ip2->ip.in6) &&
-	       ip1->mark == ip2->mark;
+		   ip1->mark == ip2->mark;
 }
 
 static bool
 hash_ipmark6_data_list(struct sk_buff *skb,
-		       const struct hash_ipmark6_elem *data)
+					   const struct hash_ipmark6_elem *data)
 {
 	if (nla_put_ipaddr6(skb, IPSET_ATTR_IP, &data->ip.in6) ||
-	    nla_put_net32(skb, IPSET_ATTR_MARK, htonl(data->mark)))
+		nla_put_net32(skb, IPSET_ATTR_MARK, htonl(data->mark)))
+	{
 		goto nla_put_failure;
+	}
+
 	return false;
 
 nla_put_failure:
@@ -194,7 +233,7 @@ nla_put_failure:
 
 static inline void
 hash_ipmark6_data_next(struct hash_ipmark4_elem *next,
-		       const struct hash_ipmark6_elem *d)
+					   const struct hash_ipmark6_elem *d)
 {
 }
 
@@ -208,8 +247,8 @@ hash_ipmark6_data_next(struct hash_ipmark4_elem *next,
 
 static int
 hash_ipmark6_kadt(struct ip_set *set, const struct sk_buff *skb,
-		  const struct xt_action_param *par,
-		  enum ipset_adt adt, struct ip_set_adt_opt *opt)
+				  const struct xt_action_param *par,
+				  enum ipset_adt adt, struct ip_set_adt_opt *opt)
 {
 	const struct hash_ipmark *h = set->data;
 	ipset_adtfn adtfn = set->variant->adt[adt];
@@ -225,7 +264,7 @@ hash_ipmark6_kadt(struct ip_set *set, const struct sk_buff *skb,
 
 static int
 hash_ipmark6_uadt(struct ip_set *set, struct nlattr *tb[],
-		  enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
+				  enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
 {
 	const struct hash_ipmark *h = set->data;
 	ipset_adtfn adtfn = set->variant->adt[adt];
@@ -234,44 +273,66 @@ hash_ipmark6_uadt(struct ip_set *set, struct nlattr *tb[],
 	int ret;
 
 	if (tb[IPSET_ATTR_LINENO])
+	{
 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
+	}
 
 	if (unlikely(!tb[IPSET_ATTR_IP] ||
-		     !ip_set_attr_netorder(tb, IPSET_ATTR_MARK)))
+				 !ip_set_attr_netorder(tb, IPSET_ATTR_MARK)))
+	{
 		return -IPSET_ERR_PROTOCOL;
+	}
+
 	if (unlikely(tb[IPSET_ATTR_IP_TO]))
+	{
 		return -IPSET_ERR_HASH_RANGE_UNSUPPORTED;
-	if (unlikely(tb[IPSET_ATTR_CIDR])) {
+	}
+
+	if (unlikely(tb[IPSET_ATTR_CIDR]))
+	{
 		u8 cidr = nla_get_u8(tb[IPSET_ATTR_CIDR]);
 
 		if (cidr != HOST_MASK)
+		{
 			return -IPSET_ERR_INVALID_CIDR;
+		}
 	}
 
 	ret = ip_set_get_ipaddr6(tb[IPSET_ATTR_IP], &e.ip);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = ip_set_get_extensions(set, tb, &ext);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	e.mark = ntohl(nla_get_be32(tb[IPSET_ATTR_MARK]));
 	e.mark &= h->markmask;
 
-	if (adt == IPSET_TEST) {
+	if (adt == IPSET_TEST)
+	{
 		ret = adtfn(set, &e, &ext, &ext, flags);
 		return ip_set_eexist(ret, flags) ? 0 : ret;
 	}
 
 	ret = adtfn(set, &e, &ext, &ext, flags);
+
 	if (ret && !ip_set_eexist(ret, flags))
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
-static struct ip_set_type hash_ipmark_type __read_mostly = {
+static struct ip_set_type hash_ipmark_type __read_mostly =
+{
 	.name		= "hash:ip,mark",
 	.protocol	= IPSET_PROTOCOL,
 	.features	= IPSET_TYPE_IP | IPSET_TYPE_MARK,
@@ -298,8 +359,10 @@ static struct ip_set_type hash_ipmark_type __read_mostly = {
 		[IPSET_ATTR_LINENO]	= { .type = NLA_U32 },
 		[IPSET_ATTR_BYTES]	= { .type = NLA_U64 },
 		[IPSET_ATTR_PACKETS]	= { .type = NLA_U64 },
-		[IPSET_ATTR_COMMENT]	= { .type = NLA_NUL_STRING,
-					    .len  = IPSET_MAX_COMMENT_SIZE },
+		[IPSET_ATTR_COMMENT]	= {
+			.type = NLA_NUL_STRING,
+			.len  = IPSET_MAX_COMMENT_SIZE
+		},
 		[IPSET_ATTR_SKBMARK]	= { .type = NLA_U64 },
 		[IPSET_ATTR_SKBPRIO]	= { .type = NLA_U32 },
 		[IPSET_ATTR_SKBQUEUE]	= { .type = NLA_U16 },

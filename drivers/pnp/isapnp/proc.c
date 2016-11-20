@@ -32,37 +32,52 @@ static loff_t isapnp_proc_bus_lseek(struct file *file, loff_t off, int whence)
 	return fixed_size_llseek(file, off, whence, 256);
 }
 
-static ssize_t isapnp_proc_bus_read(struct file *file, char __user * buf,
-				    size_t nbytes, loff_t * ppos)
+static ssize_t isapnp_proc_bus_read(struct file *file, char __user *buf,
+									size_t nbytes, loff_t *ppos)
 {
 	struct pnp_dev *dev = PDE_DATA(file_inode(file));
 	int pos = *ppos;
 	int cnt, size = 256;
 
 	if (pos >= size)
+	{
 		return 0;
+	}
+
 	if (nbytes >= size)
+	{
 		nbytes = size;
+	}
+
 	if (pos + nbytes > size)
+	{
 		nbytes = size - pos;
+	}
+
 	cnt = nbytes;
 
 	if (!access_ok(VERIFY_WRITE, buf, cnt))
+	{
 		return -EINVAL;
+	}
 
 	isapnp_cfg_begin(dev->card->number, dev->number);
-	for (; pos < 256 && cnt > 0; pos++, buf++, cnt--) {
+
+	for (; pos < 256 && cnt > 0; pos++, buf++, cnt--)
+	{
 		unsigned char val;
 		val = isapnp_read_byte(pos);
 		__put_user(val, buf);
 	}
+
 	isapnp_cfg_end();
 
 	*ppos = pos;
 	return nbytes;
 }
 
-static const struct file_operations isapnp_proc_bus_file_operations = {
+static const struct file_operations isapnp_proc_bus_file_operations =
+{
 	.owner	= THIS_MODULE,
 	.llseek = isapnp_proc_bus_lseek,
 	.read = isapnp_proc_bus_read,
@@ -74,17 +89,26 @@ static int isapnp_proc_attach_device(struct pnp_dev *dev)
 	struct proc_dir_entry *de, *e;
 	char name[16];
 
-	if (!(de = bus->procdir)) {
+	if (!(de = bus->procdir))
+	{
 		sprintf(name, "%02x", bus->number);
 		de = bus->procdir = proc_mkdir(name, isapnp_proc_bus_dir);
+
 		if (!de)
+		{
 			return -ENOMEM;
+		}
 	}
+
 	sprintf(name, "%02x", dev->number);
 	e = dev->procent = proc_create_data(name, S_IFREG | S_IRUGO, de,
-			&isapnp_proc_bus_file_operations, dev);
+										&isapnp_proc_bus_file_operations, dev);
+
 	if (!e)
+	{
 		return -ENOMEM;
+	}
+
 	proc_set_size(e, 256);
 	return 0;
 }
@@ -94,7 +118,8 @@ int __init isapnp_proc_init(void)
 	struct pnp_dev *dev;
 
 	isapnp_proc_bus_dir = proc_mkdir("bus/isapnp", NULL);
-	protocol_for_each_dev(&isapnp_protocol, dev) {
+	protocol_for_each_dev(&isapnp_protocol, dev)
+	{
 		isapnp_proc_attach_device(dev);
 	}
 	return 0;

@@ -34,7 +34,8 @@
 #include <nvif/cl0080.h>
 #include <nvif/unpack.h>
 
-struct nvkm_udevice {
+struct nvkm_udevice
+{
 	struct nvkm_object object;
 	struct nvkm_device *device;
 };
@@ -46,76 +47,109 @@ nvkm_udevice_info(struct nvkm_udevice *udev, void *data, u32 size)
 	struct nvkm_device *device = udev->device;
 	struct nvkm_fb *fb = device->fb;
 	struct nvkm_instmem *imem = device->imem;
-	union {
+	union
+	{
 		struct nv_device_info_v0 v0;
 	} *args = data;
 	int ret = -ENOSYS;
 
 	nvif_ioctl(object, "device info size %d\n", size);
-	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false))) {
-		nvif_ioctl(object, "device info vers %d\n", args->v0.version);
-	} else
-		return ret;
 
-	switch (device->chipset) {
-	case 0x01a:
-	case 0x01f:
-	case 0x04c:
-	case 0x04e:
-	case 0x063:
-	case 0x067:
-	case 0x068:
-	case 0x0aa:
-	case 0x0ac:
-	case 0x0af:
-		args->v0.platform = NV_DEVICE_INFO_V0_IGP;
-		break;
-	default:
-		switch (device->type) {
-		case NVKM_DEVICE_PCI:
-			args->v0.platform = NV_DEVICE_INFO_V0_PCI;
-			break;
-		case NVKM_DEVICE_AGP:
-			args->v0.platform = NV_DEVICE_INFO_V0_AGP;
-			break;
-		case NVKM_DEVICE_PCIE:
-			args->v0.platform = NV_DEVICE_INFO_V0_PCIE;
-			break;
-		case NVKM_DEVICE_TEGRA:
-			args->v0.platform = NV_DEVICE_INFO_V0_SOC;
-			break;
-		default:
-			WARN_ON(1);
-			break;
-		}
-		break;
+	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false)))
+	{
+		nvif_ioctl(object, "device info vers %d\n", args->v0.version);
+	}
+	else
+	{
+		return ret;
 	}
 
-	switch (device->card_type) {
-	case NV_04: args->v0.family = NV_DEVICE_INFO_V0_TNT; break;
-	case NV_10:
-	case NV_11: args->v0.family = NV_DEVICE_INFO_V0_CELSIUS; break;
-	case NV_20: args->v0.family = NV_DEVICE_INFO_V0_KELVIN; break;
-	case NV_30: args->v0.family = NV_DEVICE_INFO_V0_RANKINE; break;
-	case NV_40: args->v0.family = NV_DEVICE_INFO_V0_CURIE; break;
-	case NV_50: args->v0.family = NV_DEVICE_INFO_V0_TESLA; break;
-	case NV_C0: args->v0.family = NV_DEVICE_INFO_V0_FERMI; break;
-	case NV_E0: args->v0.family = NV_DEVICE_INFO_V0_KEPLER; break;
-	case GM100: args->v0.family = NV_DEVICE_INFO_V0_MAXWELL; break;
-	case GP100: args->v0.family = NV_DEVICE_INFO_V0_PASCAL; break;
-	default:
-		args->v0.family = 0;
-		break;
+	switch (device->chipset)
+	{
+		case 0x01a:
+		case 0x01f:
+		case 0x04c:
+		case 0x04e:
+		case 0x063:
+		case 0x067:
+		case 0x068:
+		case 0x0aa:
+		case 0x0ac:
+		case 0x0af:
+			args->v0.platform = NV_DEVICE_INFO_V0_IGP;
+			break;
+
+		default:
+			switch (device->type)
+			{
+				case NVKM_DEVICE_PCI:
+					args->v0.platform = NV_DEVICE_INFO_V0_PCI;
+					break;
+
+				case NVKM_DEVICE_AGP:
+					args->v0.platform = NV_DEVICE_INFO_V0_AGP;
+					break;
+
+				case NVKM_DEVICE_PCIE:
+					args->v0.platform = NV_DEVICE_INFO_V0_PCIE;
+					break;
+
+				case NVKM_DEVICE_TEGRA:
+					args->v0.platform = NV_DEVICE_INFO_V0_SOC;
+					break;
+
+				default:
+					WARN_ON(1);
+					break;
+			}
+
+			break;
+	}
+
+	switch (device->card_type)
+	{
+		case NV_04: args->v0.family = NV_DEVICE_INFO_V0_TNT; break;
+
+		case NV_10:
+		case NV_11: args->v0.family = NV_DEVICE_INFO_V0_CELSIUS; break;
+
+		case NV_20: args->v0.family = NV_DEVICE_INFO_V0_KELVIN; break;
+
+		case NV_30: args->v0.family = NV_DEVICE_INFO_V0_RANKINE; break;
+
+		case NV_40: args->v0.family = NV_DEVICE_INFO_V0_CURIE; break;
+
+		case NV_50: args->v0.family = NV_DEVICE_INFO_V0_TESLA; break;
+
+		case NV_C0: args->v0.family = NV_DEVICE_INFO_V0_FERMI; break;
+
+		case NV_E0: args->v0.family = NV_DEVICE_INFO_V0_KEPLER; break;
+
+		case GM100: args->v0.family = NV_DEVICE_INFO_V0_MAXWELL; break;
+
+		case GP100: args->v0.family = NV_DEVICE_INFO_V0_PASCAL; break;
+
+		default:
+			args->v0.family = 0;
+			break;
 	}
 
 	args->v0.chipset  = device->chipset;
 	args->v0.revision = device->chiprev;
+
 	if (fb && fb->ram)
+	{
 		args->v0.ram_size = args->v0.ram_user = fb->ram->size;
+	}
 	else
+	{
 		args->v0.ram_size = args->v0.ram_user = 0;
+	}
+
 	if (imem && args->v0.ram_size > 0)
+	{
 		args->v0.ram_user = args->v0.ram_user - imem->reserved;
+	}
 
 	strncpy(args->v0.chip, device->chip->name, sizeof(args->v0.chip));
 	strncpy(args->v0.name, device->name, sizeof(args->v0.name));
@@ -127,13 +161,16 @@ nvkm_udevice_time(struct nvkm_udevice *udev, void *data, u32 size)
 {
 	struct nvkm_object *object = &udev->object;
 	struct nvkm_device *device = udev->device;
-	union {
+	union
+	{
 		struct nv_device_time_v0 v0;
 	} *args = data;
 	int ret = -ENOSYS;
 
 	nvif_ioctl(object, "device time size %d\n", size);
-	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false))) {
+
+	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false)))
+	{
 		nvif_ioctl(object, "device time vers %d\n", args->v0.version);
 		args->v0.time = nvkm_timer_read(device->timer);
 	}
@@ -146,14 +183,19 @@ nvkm_udevice_mthd(struct nvkm_object *object, u32 mthd, void *data, u32 size)
 {
 	struct nvkm_udevice *udev = nvkm_udevice(object);
 	nvif_ioctl(object, "device mthd %08x\n", mthd);
-	switch (mthd) {
-	case NV_DEVICE_V0_INFO:
-		return nvkm_udevice_info(udev, data, size);
-	case NV_DEVICE_V0_TIME:
-		return nvkm_udevice_time(udev, data, size);
-	default:
-		break;
+
+	switch (mthd)
+	{
+		case NV_DEVICE_V0_INFO:
+			return nvkm_udevice_info(udev, data, size);
+
+		case NV_DEVICE_V0_TIME:
+			return nvkm_udevice_time(udev, data, size);
+
+		default:
+			break;
 	}
+
 	return -EINVAL;
 }
 
@@ -223,9 +265,13 @@ nvkm_udevice_fini(struct nvkm_object *object, bool suspend)
 	int ret = 0;
 
 	mutex_lock(&device->mutex);
-	if (!--device->refcount) {
+
+	if (!--device->refcount)
+	{
 		ret = nvkm_device_fini(device, suspend);
-		if (ret && suspend) {
+
+		if (ret && suspend)
+		{
 			device->refcount++;
 			goto done;
 		}
@@ -244,9 +290,13 @@ nvkm_udevice_init(struct nvkm_object *object)
 	int ret = 0;
 
 	mutex_lock(&device->mutex);
-	if (!device->refcount++) {
+
+	if (!device->refcount++)
+	{
 		ret = nvkm_device_init(device);
-		if (ret) {
+
+		if (ret)
+		{
 			device->refcount--;
 			goto done;
 		}
@@ -259,7 +309,7 @@ done:
 
 static int
 nvkm_udevice_child_new(const struct nvkm_oclass *oclass,
-		       void *data, u32 size, struct nvkm_object **pobject)
+					   void *data, u32 size, struct nvkm_object **pobject)
 {
 	struct nvkm_udevice *udev = nvkm_udevice(oclass->parent);
 	const struct nvkm_device_oclass *sclass = oclass->priv;
@@ -268,33 +318,41 @@ nvkm_udevice_child_new(const struct nvkm_oclass *oclass,
 
 static int
 nvkm_udevice_child_get(struct nvkm_object *object, int index,
-		       struct nvkm_oclass *oclass)
+					   struct nvkm_oclass *oclass)
 {
 	struct nvkm_udevice *udev = nvkm_udevice(object);
 	struct nvkm_device *device = udev->device;
 	struct nvkm_engine *engine;
 	u64 mask = (1ULL << NVKM_ENGINE_DMAOBJ) |
-		   (1ULL << NVKM_ENGINE_FIFO) |
-		   (1ULL << NVKM_ENGINE_DISP) |
-		   (1ULL << NVKM_ENGINE_PM);
+			   (1ULL << NVKM_ENGINE_FIFO) |
+			   (1ULL << NVKM_ENGINE_DISP) |
+			   (1ULL << NVKM_ENGINE_PM);
 	const struct nvkm_device_oclass *sclass = NULL;
 	int i;
 
-	for (; i = __ffs64(mask), mask && !sclass; mask &= ~(1ULL << i)) {
+	for (; i = __ffs64(mask), mask && !sclass; mask &= ~(1ULL << i))
+	{
 		if (!(engine = nvkm_device_engine(device, i)) ||
-		    !(engine->func->base.sclass))
+			!(engine->func->base.sclass))
+		{
 			continue;
+		}
+
 		oclass->engine = engine;
 
 		index -= engine->func->base.sclass(oclass, index, &sclass);
 	}
 
-	if (!sclass) {
-		switch (index) {
-		case 0: sclass = &nvkm_control_oclass; break;
-		default:
-			return -EINVAL;
+	if (!sclass)
+	{
+		switch (index)
+		{
+			case 0: sclass = &nvkm_control_oclass; break;
+
+			default:
+				return -EINVAL;
 		}
+
 		oclass->base = sclass->base;
 	}
 
@@ -304,7 +362,8 @@ nvkm_udevice_child_get(struct nvkm_object *object, int index,
 }
 
 static const struct nvkm_object_func
-nvkm_udevice_super = {
+	nvkm_udevice_super =
+{
 	.init = nvkm_udevice_init,
 	.fini = nvkm_udevice_fini,
 	.mthd = nvkm_udevice_mthd,
@@ -319,7 +378,8 @@ nvkm_udevice_super = {
 };
 
 static const struct nvkm_object_func
-nvkm_udevice = {
+	nvkm_udevice =
+{
 	.init = nvkm_udevice_init,
 	.fini = nvkm_udevice_fini,
 	.mthd = nvkm_udevice_mthd,
@@ -328,9 +388,10 @@ nvkm_udevice = {
 
 int
 nvkm_udevice_new(const struct nvkm_oclass *oclass, void *data, u32 size,
-		 struct nvkm_object **pobject)
+				 struct nvkm_object **pobject)
 {
-	union {
+	union
+	{
 		struct nv_device_v0 v0;
 	} *args = data;
 	struct nvkm_client *client = oclass->client;
@@ -340,36 +401,56 @@ nvkm_udevice_new(const struct nvkm_oclass *oclass, void *data, u32 size,
 	int ret = -ENOSYS;
 
 	nvif_ioctl(parent, "create device size %d\n", size);
-	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false))) {
+
+	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false)))
+	{
 		nvif_ioctl(parent, "create device v%d device %016llx\n",
-			   args->v0.version, args->v0.device);
-	} else
+				   args->v0.version, args->v0.device);
+	}
+	else
+	{
 		return ret;
+	}
 
 	/* give priviledged clients register access */
 	if (client->super)
+	{
 		func = &nvkm_udevice_super;
+	}
 	else
+	{
 		func = &nvkm_udevice;
+	}
 
 	if (!(udev = kzalloc(sizeof(*udev), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	nvkm_object_ctor(func, oclass, &udev->object);
 	*pobject = &udev->object;
 
 	/* find the device that matches what the client requested */
 	if (args->v0.device != ~0)
+	{
 		udev->device = nvkm_device_find(args->v0.device);
+	}
 	else
+	{
 		udev->device = nvkm_device_find(client->device);
+	}
+
 	if (!udev->device)
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
 
 const struct nvkm_sclass
-nvkm_udevice_sclass = {
+	nvkm_udevice_sclass =
+{
 	.oclass = NV_DEVICE,
 	.minver = 0,
 	.maxver = 0,

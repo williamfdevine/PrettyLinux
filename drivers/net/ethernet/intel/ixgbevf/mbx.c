@@ -38,14 +38,17 @@ static s32 ixgbevf_poll_for_msg(struct ixgbe_hw *hw)
 	struct ixgbe_mbx_info *mbx = &hw->mbx;
 	int countdown = mbx->timeout;
 
-	while (countdown && mbx->ops.check_for_msg(hw)) {
+	while (countdown && mbx->ops.check_for_msg(hw))
+	{
 		countdown--;
 		udelay(mbx->udelay);
 	}
 
 	/* if we failed, all future posted messages fail until reset */
 	if (!countdown)
+	{
 		mbx->timeout = 0;
+	}
 
 	return countdown ? 0 : IXGBE_ERR_MBX;
 }
@@ -61,14 +64,17 @@ static s32 ixgbevf_poll_for_ack(struct ixgbe_hw *hw)
 	struct ixgbe_mbx_info *mbx = &hw->mbx;
 	int countdown = mbx->timeout;
 
-	while (countdown && mbx->ops.check_for_ack(hw)) {
+	while (countdown && mbx->ops.check_for_ack(hw))
+	{
 		countdown--;
 		udelay(mbx->udelay);
 	}
 
 	/* if we failed, all future posted messages fail until reset */
 	if (!countdown)
+	{
 		mbx->timeout = 0;
+	}
 
 	return countdown ? 0 : IXGBE_ERR_MBX;
 }
@@ -88,13 +94,18 @@ static s32 ixgbevf_read_posted_mbx(struct ixgbe_hw *hw, u32 *msg, u16 size)
 	s32 ret_val = IXGBE_ERR_MBX;
 
 	if (!mbx->ops.read)
+	{
 		goto out;
+	}
 
 	ret_val = ixgbevf_poll_for_msg(hw);
 
 	/* if ack received read message, otherwise we timed out */
 	if (!ret_val)
+	{
 		ret_val = mbx->ops.read(hw, msg, size);
+	}
+
 out:
 	return ret_val;
 }
@@ -115,14 +126,19 @@ static s32 ixgbevf_write_posted_mbx(struct ixgbe_hw *hw, u32 *msg, u16 size)
 
 	/* exit if either we can't write or there isn't a defined timeout */
 	if (!mbx->ops.write || !mbx->timeout)
+	{
 		goto out;
+	}
 
 	/* send msg */
 	ret_val = mbx->ops.write(hw, msg, size);
 
 	/* if msg sent wait until we receive an ack */
 	if (!ret_val)
+	{
 		ret_val = ixgbevf_poll_for_ack(hw);
+	}
+
 out:
 	return ret_val;
 }
@@ -158,7 +174,9 @@ static s32 ixgbevf_check_for_bit_vf(struct ixgbe_hw *hw, u32 mask)
 	s32 ret_val = IXGBE_ERR_MBX;
 
 	if (v2p_mailbox & mask)
+	{
 		ret_val = 0;
+	}
 
 	hw->mbx.v2p_mailbox &= ~mask;
 
@@ -175,7 +193,8 @@ static s32 ixgbevf_check_for_msg_vf(struct ixgbe_hw *hw)
 {
 	s32 ret_val = IXGBE_ERR_MBX;
 
-	if (!ixgbevf_check_for_bit_vf(hw, IXGBE_VFMAILBOX_PFSTS)) {
+	if (!ixgbevf_check_for_bit_vf(hw, IXGBE_VFMAILBOX_PFSTS))
+	{
 		ret_val = 0;
 		hw->mbx.stats.reqs++;
 	}
@@ -193,7 +212,8 @@ static s32 ixgbevf_check_for_ack_vf(struct ixgbe_hw *hw)
 {
 	s32 ret_val = IXGBE_ERR_MBX;
 
-	if (!ixgbevf_check_for_bit_vf(hw, IXGBE_VFMAILBOX_PFACK)) {
+	if (!ixgbevf_check_for_bit_vf(hw, IXGBE_VFMAILBOX_PFACK))
+	{
 		ret_val = 0;
 		hw->mbx.stats.acks++;
 	}
@@ -212,7 +232,8 @@ static s32 ixgbevf_check_for_rst_vf(struct ixgbe_hw *hw)
 	s32 ret_val = IXGBE_ERR_MBX;
 
 	if (!ixgbevf_check_for_bit_vf(hw, (IXGBE_VFMAILBOX_RSTD |
-					   IXGBE_VFMAILBOX_RSTI))) {
+									   IXGBE_VFMAILBOX_RSTI)))
+	{
 		ret_val = 0;
 		hw->mbx.stats.rsts++;
 	}
@@ -235,7 +256,9 @@ static s32 ixgbevf_obtain_mbx_lock_vf(struct ixgbe_hw *hw)
 
 	/* reserve mailbox for VF use */
 	if (ixgbevf_read_v2p_mailbox(hw) & IXGBE_VFMAILBOX_VFU)
+	{
 		ret_val = 0;
+	}
 
 	return ret_val;
 }
@@ -255,8 +278,11 @@ static s32 ixgbevf_write_mbx_vf(struct ixgbe_hw *hw, u32 *msg, u16 size)
 
 	/* lock the mailbox to prevent PF/VF race condition */
 	ret_val = ixgbevf_obtain_mbx_lock_vf(hw);
+
 	if (ret_val)
+	{
 		goto out_no_write;
+	}
 
 	/* flush msg and acks as we are overwriting the message buffer */
 	ixgbevf_check_for_msg_vf(hw);
@@ -264,7 +290,9 @@ static s32 ixgbevf_write_mbx_vf(struct ixgbe_hw *hw, u32 *msg, u16 size)
 
 	/* copy the caller specified message to the mailbox memory buffer */
 	for (i = 0; i < size; i++)
+	{
 		IXGBE_WRITE_REG_ARRAY(hw, IXGBE_VFMBMEM, i, msg[i]);
+	}
 
 	/* update stats */
 	hw->mbx.stats.msgs_tx++;
@@ -291,12 +319,17 @@ static s32 ixgbevf_read_mbx_vf(struct ixgbe_hw *hw, u32 *msg, u16 size)
 
 	/* lock the mailbox to prevent PF/VF race condition */
 	ret_val = ixgbevf_obtain_mbx_lock_vf(hw);
+
 	if (ret_val)
+	{
 		goto out_no_read;
+	}
 
 	/* copy the message from the mailbox memory buffer */
 	for (i = 0; i < size; i++)
+	{
 		msg[i] = IXGBE_READ_REG_ARRAY(hw, IXGBE_VFMBMEM, i);
+	}
 
 	/* Acknowledge receipt and release mailbox, then we're done */
 	IXGBE_WRITE_REG(hw, IXGBE_VFMAILBOX, IXGBE_VFMAILBOX_ACK);
@@ -335,7 +368,8 @@ static s32 ixgbevf_init_mbx_params_vf(struct ixgbe_hw *hw)
 	return 0;
 }
 
-const struct ixgbe_mbx_operations ixgbevf_mbx_ops = {
+const struct ixgbe_mbx_operations ixgbevf_mbx_ops =
+{
 	.init_params	= ixgbevf_init_mbx_params_vf,
 	.read		= ixgbevf_read_mbx_vf,
 	.write		= ixgbevf_write_mbx_vf,
@@ -353,7 +387,8 @@ const struct ixgbe_mbx_operations ixgbevf_mbx_ops = {
  * Most mail box operations are noop while running on
  * Hyper-V.
  */
-const struct ixgbe_mbx_operations ixgbevf_hv_mbx_ops = {
+const struct ixgbe_mbx_operations ixgbevf_hv_mbx_ops =
+{
 	.init_params	= ixgbevf_init_mbx_params_vf,
 	.check_for_rst	= ixgbevf_check_for_rst_vf,
 };

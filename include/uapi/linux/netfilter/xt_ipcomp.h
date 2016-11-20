@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-struct xt_ipcomp {
+struct xt_ipcomp
+{
 	__u32 spis[2];	/* Security Parameter Index */
 	__u8 invflags;	/* Inverse flags */
 	__u8 hdrres;	/* Test of the Reserved Filed */

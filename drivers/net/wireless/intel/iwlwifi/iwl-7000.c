@@ -119,7 +119,8 @@
 
 #define NVM_HW_SECTION_NUM_FAMILY_7000		0
 
-static const struct iwl_base_params iwl7000_base_params = {
+static const struct iwl_base_params iwl7000_base_params =
+{
 	.eeprom_size = OTP_LOW_IMAGE_SIZE_FAMILY_7000,
 	.num_of_queues = 31,
 	.shadow_ram_support = true,
@@ -131,7 +132,8 @@ static const struct iwl_base_params iwl7000_base_params = {
 	.apmg_wake_up_wa = true,
 };
 
-static const struct iwl_tt_params iwl7000_high_temp_tt_params = {
+static const struct iwl_tt_params iwl7000_high_temp_tt_params =
+{
 	.ct_kill_entry = 118,
 	.ct_kill_exit = 96,
 	.ct_kill_duration = 5,
@@ -153,43 +155,45 @@ static const struct iwl_tt_params iwl7000_high_temp_tt_params = {
 	.support_tx_backoff = true,
 };
 
-static const struct iwl_ht_params iwl7000_ht_params = {
+static const struct iwl_ht_params iwl7000_ht_params =
+{
 	.stbc = true,
 	.ht40_bands = BIT(NL80211_BAND_2GHZ) | BIT(NL80211_BAND_5GHZ),
 };
 
 #define IWL_DEVICE_7000_COMMON					\
 	.device_family = IWL_DEVICE_FAMILY_7000,		\
-	.max_inst_size = IWL60_RTC_INST_SIZE,			\
-	.max_data_size = IWL60_RTC_DATA_SIZE,			\
-	.base_params = &iwl7000_base_params,			\
-	.led_mode = IWL_LED_RF_STATE,				\
-	.nvm_hw_section_num = NVM_HW_SECTION_NUM_FAMILY_7000,	\
-	.non_shared_ant = ANT_A,				\
-	.max_ht_ampdu_exponent = IEEE80211_HT_MAX_AMPDU_64K,	\
-	.dccm_offset = IWL7000_DCCM_OFFSET
+					 .max_inst_size = IWL60_RTC_INST_SIZE,			\
+									  .max_data_size = IWL60_RTC_DATA_SIZE,			\
+											  .base_params = &iwl7000_base_params,			\
+													  .led_mode = IWL_LED_RF_STATE,				\
+															  .nvm_hw_section_num = NVM_HW_SECTION_NUM_FAMILY_7000,	\
+																	  .non_shared_ant = ANT_A,				\
+																			  .max_ht_ampdu_exponent = IEEE80211_HT_MAX_AMPDU_64K,	\
+																					  .dccm_offset = IWL7000_DCCM_OFFSET
 
 #define IWL_DEVICE_7000						\
 	IWL_DEVICE_7000_COMMON,					\
 	.ucode_api_max = IWL7260_UCODE_API_MAX,			\
-	.ucode_api_min = IWL7260_UCODE_API_MIN
+					 .ucode_api_min = IWL7260_UCODE_API_MIN
 
 #define IWL_DEVICE_7005						\
 	IWL_DEVICE_7000_COMMON,					\
 	.ucode_api_max = IWL7265_UCODE_API_MAX,			\
-	.ucode_api_min = IWL7265_UCODE_API_MIN
+					 .ucode_api_min = IWL7265_UCODE_API_MIN
 
 #define IWL_DEVICE_3008						\
 	IWL_DEVICE_7000_COMMON,					\
 	.ucode_api_max = IWL3168_UCODE_API_MAX,			\
-	.ucode_api_min = IWL3168_UCODE_API_MIN
+					 .ucode_api_min = IWL3168_UCODE_API_MIN
 
 #define IWL_DEVICE_7005D					\
 	IWL_DEVICE_7000_COMMON,					\
 	.ucode_api_max = IWL7265D_UCODE_API_MAX,		\
-	.ucode_api_min = IWL7265D_UCODE_API_MIN
+					 .ucode_api_min = IWL7265D_UCODE_API_MIN
 
-const struct iwl_cfg iwl7260_2ac_cfg = {
+const struct iwl_cfg iwl7260_2ac_cfg =
+{
 	.name = "Intel(R) Dual Band Wireless AC 7260",
 	.fw_name_pre = IWL7260_FW_PRE,
 	IWL_DEVICE_7000,
@@ -201,7 +205,8 @@ const struct iwl_cfg iwl7260_2ac_cfg = {
 	.dccm_len = IWL7260_DCCM_LEN,
 };
 
-const struct iwl_cfg iwl7260_2ac_cfg_high_temp = {
+const struct iwl_cfg iwl7260_2ac_cfg_high_temp =
+{
 	.name = "Intel(R) Dual Band Wireless AC 7260",
 	.fw_name_pre = IWL7260_FW_PRE,
 	IWL_DEVICE_7000,
@@ -215,7 +220,8 @@ const struct iwl_cfg iwl7260_2ac_cfg_high_temp = {
 	.thermal_params = &iwl7000_high_temp_tt_params,
 };
 
-const struct iwl_cfg iwl7260_2n_cfg = {
+const struct iwl_cfg iwl7260_2n_cfg =
+{
 	.name = "Intel(R) Dual Band Wireless N 7260",
 	.fw_name_pre = IWL7260_FW_PRE,
 	IWL_DEVICE_7000,
@@ -227,7 +233,8 @@ const struct iwl_cfg iwl7260_2n_cfg = {
 	.dccm_len = IWL7260_DCCM_LEN,
 };
 
-const struct iwl_cfg iwl7260_n_cfg = {
+const struct iwl_cfg iwl7260_n_cfg =
+{
 	.name = "Intel(R) Wireless N 7260",
 	.fw_name_pre = IWL7260_FW_PRE,
 	IWL_DEVICE_7000,
@@ -239,7 +246,8 @@ const struct iwl_cfg iwl7260_n_cfg = {
 	.dccm_len = IWL7260_DCCM_LEN,
 };
 
-const struct iwl_cfg iwl3160_2ac_cfg = {
+const struct iwl_cfg iwl3160_2ac_cfg =
+{
 	.name = "Intel(R) Dual Band Wireless AC 3160",
 	.fw_name_pre = IWL3160_FW_PRE,
 	IWL_DEVICE_7000,
@@ -250,7 +258,8 @@ const struct iwl_cfg iwl3160_2ac_cfg = {
 	.dccm_len = IWL3160_DCCM_LEN,
 };
 
-const struct iwl_cfg iwl3160_2n_cfg = {
+const struct iwl_cfg iwl3160_2n_cfg =
+{
 	.name = "Intel(R) Dual Band Wireless N 3160",
 	.fw_name_pre = IWL3160_FW_PRE,
 	IWL_DEVICE_7000,
@@ -261,7 +270,8 @@ const struct iwl_cfg iwl3160_2n_cfg = {
 	.dccm_len = IWL3160_DCCM_LEN,
 };
 
-const struct iwl_cfg iwl3160_n_cfg = {
+const struct iwl_cfg iwl3160_n_cfg =
+{
 	.name = "Intel(R) Wireless N 3160",
 	.fw_name_pre = IWL3160_FW_PRE,
 	IWL_DEVICE_7000,
@@ -272,7 +282,8 @@ const struct iwl_cfg iwl3160_n_cfg = {
 	.dccm_len = IWL3160_DCCM_LEN,
 };
 
-static const struct iwl_pwr_tx_backoff iwl7265_pwr_tx_backoffs[] = {
+static const struct iwl_pwr_tx_backoff iwl7265_pwr_tx_backoffs[] =
+{
 	{.pwr = 1600, .backoff = 0},
 	{.pwr = 1300, .backoff = 467},
 	{.pwr = 900,  .backoff = 1900},
@@ -283,13 +294,15 @@ static const struct iwl_pwr_tx_backoff iwl7265_pwr_tx_backoffs[] = {
 	{0},
 };
 
-static const struct iwl_ht_params iwl7265_ht_params = {
+static const struct iwl_ht_params iwl7265_ht_params =
+{
 	.stbc = true,
 	.ldpc = true,
 	.ht40_bands = BIT(NL80211_BAND_2GHZ) | BIT(NL80211_BAND_5GHZ),
 };
 
-const struct iwl_cfg iwl3165_2ac_cfg = {
+const struct iwl_cfg iwl3165_2ac_cfg =
+{
 	.name = "Intel(R) Dual Band Wireless AC 3165",
 	.fw_name_pre = IWL7265D_FW_PRE,
 	IWL_DEVICE_7005D,
@@ -300,7 +313,8 @@ const struct iwl_cfg iwl3165_2ac_cfg = {
 	.dccm_len = IWL7265_DCCM_LEN,
 };
 
-const struct iwl_cfg iwl3168_2ac_cfg = {
+const struct iwl_cfg iwl3168_2ac_cfg =
+{
 	.name = "Intel(R) Dual Band Wireless AC 3168",
 	.fw_name_pre = IWL3168_FW_PRE,
 	IWL_DEVICE_3008,
@@ -311,7 +325,8 @@ const struct iwl_cfg iwl3168_2ac_cfg = {
 	.dccm_len = IWL7265_DCCM_LEN,
 };
 
-const struct iwl_cfg iwl7265_2ac_cfg = {
+const struct iwl_cfg iwl7265_2ac_cfg =
+{
 	.name = "Intel(R) Dual Band Wireless AC 7265",
 	.fw_name_pre = IWL7265_FW_PRE,
 	IWL_DEVICE_7005,
@@ -322,7 +337,8 @@ const struct iwl_cfg iwl7265_2ac_cfg = {
 	.dccm_len = IWL7265_DCCM_LEN,
 };
 
-const struct iwl_cfg iwl7265_2n_cfg = {
+const struct iwl_cfg iwl7265_2n_cfg =
+{
 	.name = "Intel(R) Dual Band Wireless N 7265",
 	.fw_name_pre = IWL7265_FW_PRE,
 	IWL_DEVICE_7005,
@@ -333,7 +349,8 @@ const struct iwl_cfg iwl7265_2n_cfg = {
 	.dccm_len = IWL7265_DCCM_LEN,
 };
 
-const struct iwl_cfg iwl7265_n_cfg = {
+const struct iwl_cfg iwl7265_n_cfg =
+{
 	.name = "Intel(R) Wireless N 7265",
 	.fw_name_pre = IWL7265_FW_PRE,
 	IWL_DEVICE_7005,
@@ -344,7 +361,8 @@ const struct iwl_cfg iwl7265_n_cfg = {
 	.dccm_len = IWL7265_DCCM_LEN,
 };
 
-const struct iwl_cfg iwl7265d_2ac_cfg = {
+const struct iwl_cfg iwl7265d_2ac_cfg =
+{
 	.name = "Intel(R) Dual Band Wireless AC 7265",
 	.fw_name_pre = IWL7265D_FW_PRE,
 	IWL_DEVICE_7005D,
@@ -355,7 +373,8 @@ const struct iwl_cfg iwl7265d_2ac_cfg = {
 	.dccm_len = IWL7265_DCCM_LEN,
 };
 
-const struct iwl_cfg iwl7265d_2n_cfg = {
+const struct iwl_cfg iwl7265d_2n_cfg =
+{
 	.name = "Intel(R) Dual Band Wireless N 7265",
 	.fw_name_pre = IWL7265D_FW_PRE,
 	IWL_DEVICE_7005D,
@@ -366,7 +385,8 @@ const struct iwl_cfg iwl7265d_2n_cfg = {
 	.dccm_len = IWL7265_DCCM_LEN,
 };
 
-const struct iwl_cfg iwl7265d_n_cfg = {
+const struct iwl_cfg iwl7265d_n_cfg =
+{
 	.name = "Intel(R) Wireless N 7265",
 	.fw_name_pre = IWL7265D_FW_PRE,
 	IWL_DEVICE_7005D,

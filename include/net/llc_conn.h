@@ -24,12 +24,14 @@
 #define LLC2_REJ_TIME             3
 #define LLC2_BUSY_TIME            3
 
-struct llc_timer {
+struct llc_timer
+{
 	struct timer_list timer;
 	unsigned long	  expire;	/* timer expire time */
 };
 
-struct llc_sock {
+struct llc_sock
+{
 	/* struct sock must be the first member of llc_sock */
 	struct sock	    sk;
 	struct sockaddr_llc addr;		/* address sock is bound to */
@@ -96,7 +98,7 @@ static __inline__ char llc_backlog_type(struct sk_buff *skb)
 }
 
 struct sock *llc_sk_alloc(struct net *net, int family, gfp_t priority,
-			  struct proto *prot, int kern);
+						  struct proto *prot, int kern);
 void llc_sk_free(struct sock *sk);
 
 void llc_sk_reset(struct sock *sk);
@@ -109,7 +111,7 @@ void llc_conn_resend_i_pdu_as_cmd(struct sock *sk, u8 nr, u8 first_p_bit);
 void llc_conn_resend_i_pdu_as_rsp(struct sock *sk, u8 nr, u8 first_f_bit);
 int llc_conn_remove_acked_pdus(struct sock *conn, u8 nr, u16 *how_many_unacked);
 struct sock *llc_lookup_established(struct llc_sap *sap, struct llc_addr *daddr,
-				    struct llc_addr *laddr);
+									struct llc_addr *laddr);
 void llc_sap_add_socket(struct llc_sap *sap, struct sock *sk);
 void llc_sap_remove_socket(struct llc_sap *sap, struct sock *sk);
 

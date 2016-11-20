@@ -35,7 +35,8 @@ MODULE_AUTHOR("Cytronics & Melware, Eicon Networks");
 MODULE_SUPPORTED_DEVICE("DIVA card driver");
 MODULE_LICENSE("GPL");
 
-typedef struct _diva_um_idi_os_context {
+typedef struct _diva_um_idi_os_context
+{
 	wait_queue_head_t read_wait;
 	wait_queue_head_t close_wait;
 	struct timer_list diva_timer_id;
@@ -58,12 +59,18 @@ static char *getrev(const char *revision)
 {
 	char *rev;
 	char *p;
-	if ((p = strchr(revision, ':'))) {
+
+	if ((p = strchr(revision, ':')))
+	{
 		rev = p + 2;
 		p = strchr(rev, '$');
 		*--p = 0;
-	} else
+	}
+	else
+	{
 		rev = "1.0";
+	}
+
 	return rev;
 }
 
@@ -71,9 +78,9 @@ static char *getrev(const char *revision)
  *  LOCALS
  */
 static ssize_t um_idi_read(struct file *file, char __user *buf, size_t count,
-			   loff_t *offset);
+						   loff_t *offset);
 static ssize_t um_idi_write(struct file *file, const char __user *buf,
-			    size_t count, loff_t *offset);
+							size_t count, loff_t *offset);
 static unsigned int um_idi_poll(struct file *file, poll_table *wait);
 static int um_idi_open(struct inode *inode, struct file *file);
 static int um_idi_release(struct inode *inode, struct file *file);
@@ -106,7 +113,8 @@ static int um_idi_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, um_idi_proc_show, NULL);
 }
 
-static const struct file_operations um_idi_proc_fops = {
+static const struct file_operations um_idi_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= um_idi_proc_open,
 	.read		= seq_read,
@@ -117,21 +125,27 @@ static const struct file_operations um_idi_proc_fops = {
 static int __init create_um_idi_proc(void)
 {
 	um_idi_proc_entry = proc_create(DRIVERLNAME, S_IRUGO, proc_net_eicon,
-					&um_idi_proc_fops);
+									&um_idi_proc_fops);
+
 	if (!um_idi_proc_entry)
+	{
 		return (0);
+	}
+
 	return (1);
 }
 
 static void remove_um_idi_proc(void)
 {
-	if (um_idi_proc_entry) {
+	if (um_idi_proc_entry)
+	{
 		remove_proc_entry(DRIVERLNAME, proc_net_eicon);
 		um_idi_proc_entry = NULL;
 	}
 }
 
-static const struct file_operations divas_idi_fops = {
+static const struct file_operations divas_idi_fops =
+{
 	.owner   = THIS_MODULE,
 	.llseek  = no_llseek,
 	.read    = um_idi_read,
@@ -151,7 +165,7 @@ static int __init divas_idi_register_chrdev(void)
 	if ((major = register_chrdev(0, DEVNAME, &divas_idi_fops)) < 0)
 	{
 		printk(KERN_ERR "%s: failed to create /dev entry.\n",
-		       DRIVERLNAME);
+			   DRIVERLNAME);
 		return (0);
 	}
 
@@ -171,27 +185,31 @@ static int __init divasi_init(void)
 	strcpy(tmprev, main_revision);
 	printk("%s  Build: %s\n", getrev(tmprev), DIVA_BUILD);
 
-	if (!divas_idi_register_chrdev()) {
+	if (!divas_idi_register_chrdev())
+	{
 		ret = -EIO;
 		goto out;
 	}
 
-	if (!create_um_idi_proc()) {
+	if (!create_um_idi_proc())
+	{
 		divas_idi_unregister_chrdev();
 		printk(KERN_ERR "%s: failed to create proc entry.\n",
-		       DRIVERLNAME);
+			   DRIVERLNAME);
 		ret = -EIO;
 		goto out;
 	}
 
-	if (!(idifunc_init())) {
+	if (!(idifunc_init()))
+	{
 		remove_um_idi_proc();
 		divas_idi_unregister_chrdev();
 		printk(KERN_ERR "%s: failed to connect to DIDD.\n",
-		       DRIVERLNAME);
+			   DRIVERLNAME);
 		ret = -EIO;
 		goto out;
 	}
+
 	printk(KERN_INFO "%s: started with major %d\n", DRIVERLNAME, major);
 
 out:
@@ -221,7 +239,7 @@ module_exit(divasi_exit);
 
 static int
 divas_um_idi_copy_to_user(void *os_handle, void *dst, const void *src,
-			  int length)
+						  int length)
 {
 	memcpy(dst, src, length);
 	return (length);
@@ -234,42 +252,52 @@ um_idi_read(struct file *file, char __user *buf, size_t count, loff_t *offset)
 	int ret = -EINVAL;
 	void *data;
 
-	if (!file->private_data) {
+	if (!file->private_data)
+	{
 		return (-ENODEV);
 	}
 
 	if (!
-	    (p_os =
-	     (diva_um_idi_os_context_t *) diva_um_id_get_os_context(file->
-								    private_data)))
+		(p_os =
+			 (diva_um_idi_os_context_t *) diva_um_id_get_os_context(file->
+					 private_data)))
 	{
 		return (-ENODEV);
 	}
-	if (p_os->aborted) {
+
+	if (p_os->aborted)
+	{
 		return (-ENODEV);
 	}
 
-	if (!(data = diva_os_malloc(0, count))) {
+	if (!(data = diva_os_malloc(0, count)))
+	{
 		return (-ENOMEM);
 	}
 
 	ret = diva_um_idi_read(file->private_data,
-			       file, data, count,
-			       divas_um_idi_copy_to_user);
-	switch (ret) {
-	case 0:		/* no message available */
-		ret = (-EAGAIN);
-		break;
-	case (-1):		/* adapter was removed */
-		ret = (-ENODEV);
-		break;
-	case (-2):		/* message_length > length of user buffer */
-		ret = (-EFAULT);
-		break;
+						   file, data, count,
+						   divas_um_idi_copy_to_user);
+
+	switch (ret)
+	{
+		case 0:		/* no message available */
+			ret = (-EAGAIN);
+			break;
+
+		case (-1):		/* adapter was removed */
+			ret = (-ENODEV);
+			break;
+
+		case (-2):		/* message_length > length of user buffer */
+			ret = (-EFAULT);
+			break;
 	}
 
-	if (ret > 0) {
-		if (copy_to_user(buf, data, ret)) {
+	if (ret > 0)
+	{
+		if (copy_to_user(buf, data, ret))
+		{
 			ret = (-EFAULT);
 		}
 	}
@@ -282,7 +310,7 @@ um_idi_read(struct file *file, char __user *buf, size_t count, loff_t *offset)
 
 static int
 divas_um_idi_copy_from_user(void *os_handle, void *dst, const void *src,
-			    int length)
+							int length)
 {
 	memcpy(dst, src, length);
 	return (length);
@@ -294,9 +322,11 @@ static int um_idi_open_adapter(struct file *file, int adapter_nr)
 	void *e =
 		divas_um_idi_create_entity((dword) adapter_nr, (void *) file);
 
-	if (!(file->private_data = e)) {
+	if (!(file->private_data = e))
+	{
 		return (0);
 	}
+
 	p_os = (diva_um_idi_os_context_t *) diva_um_id_get_os_context(e);
 	init_waitqueue_head(&p_os->read_wait);
 	init_waitqueue_head(&p_os->close_wait);
@@ -310,58 +340,78 @@ static int um_idi_open_adapter(struct file *file, int adapter_nr)
 
 static ssize_t
 um_idi_write(struct file *file, const char __user *buf, size_t count,
-	     loff_t *offset)
+			 loff_t *offset)
 {
 	diva_um_idi_os_context_t *p_os;
 	int ret = -EINVAL;
 	void *data;
 	int adapter_nr = 0;
 
-	if (!file->private_data) {
+	if (!file->private_data)
+	{
 		/* the first write() selects the adapter_nr */
-		if (count == sizeof(int)) {
+		if (count == sizeof(int))
+		{
 			if (copy_from_user
-			    ((void *) &adapter_nr, buf,
-			     count)) return (-EFAULT);
+				((void *) &adapter_nr, buf,
+				 count)) { return (-EFAULT); }
+
 			if (!(um_idi_open_adapter(file, adapter_nr)))
+			{
 				return (-ENODEV);
+			}
+
 			return (count);
-		} else
+		}
+		else
+		{
 			return (-ENODEV);
+		}
 	}
 
 	if (!(p_os =
-	      (diva_um_idi_os_context_t *) diva_um_id_get_os_context(file->
-								     private_data)))
+			  (diva_um_idi_os_context_t *) diva_um_id_get_os_context(file->
+					  private_data)))
 	{
 		return (-ENODEV);
 	}
-	if (p_os->aborted) {
+
+	if (p_os->aborted)
+	{
 		return (-ENODEV);
 	}
 
-	if (!(data = diva_os_malloc(0, count))) {
+	if (!(data = diva_os_malloc(0, count)))
+	{
 		return (-ENOMEM);
 	}
 
-	if (copy_from_user(data, buf, count)) {
+	if (copy_from_user(data, buf, count))
+	{
 		ret = -EFAULT;
-	} else {
+	}
+	else
+	{
 		ret = diva_um_idi_write(file->private_data,
-					file, data, count,
-					divas_um_idi_copy_from_user);
-		switch (ret) {
-		case 0:	/* no space available */
-			ret = (-EAGAIN);
-			break;
-		case (-1):	/* adapter was removed */
-			ret = (-ENODEV);
-			break;
-		case (-2):	/* length of user buffer > max message_length */
-			ret = (-EFAULT);
-			break;
+								file, data, count,
+								divas_um_idi_copy_from_user);
+
+		switch (ret)
+		{
+			case 0:	/* no space available */
+				ret = (-EAGAIN);
+				break;
+
+			case (-1):	/* adapter was removed */
+				ret = (-ENODEV);
+				break;
+
+			case (-2):	/* length of user buffer > max message_length */
+				ret = (-EFAULT);
+				break;
 		}
 	}
+
 	diva_os_free(0, data);
 	DBG_TRC(("write: ret %d", ret));
 	return (ret);
@@ -371,29 +421,33 @@ static unsigned int um_idi_poll(struct file *file, poll_table *wait)
 {
 	diva_um_idi_os_context_t *p_os;
 
-	if (!file->private_data) {
+	if (!file->private_data)
+	{
 		return (POLLERR);
 	}
 
 	if ((!(p_os =
-	       (diva_um_idi_os_context_t *)
-	       diva_um_id_get_os_context(file->private_data)))
-	    || p_os->aborted) {
+			   (diva_um_idi_os_context_t *)
+			   diva_um_id_get_os_context(file->private_data)))
+		|| p_os->aborted)
+	{
 		return (POLLERR);
 	}
 
 	poll_wait(file, &p_os->read_wait, wait);
 
-	if (p_os->aborted) {
+	if (p_os->aborted)
+	{
 		return (POLLERR);
 	}
 
-	switch (diva_user_mode_idi_ind_ready(file->private_data, file)) {
-	case (-1):
-		return (POLLERR);
+	switch (diva_user_mode_idi_ind_ready(file->private_data, file))
+	{
+		case (-1):
+			return (POLLERR);
 
-	case 0:
-		return (0);
+		case 0:
+			return (0);
 	}
 
 	return (POLLIN | POLLRDNORM);
@@ -411,25 +465,29 @@ static int um_idi_release(struct inode *inode, struct file *file)
 	unsigned int adapter_nr;
 	int ret = 0;
 
-	if (!(file->private_data)) {
+	if (!(file->private_data))
+	{
 		ret = -ENODEV;
 		goto out;
 	}
 
 	if (!(p_os =
-	      (diva_um_idi_os_context_t *) diva_um_id_get_os_context(file->private_data))) {
+			  (diva_um_idi_os_context_t *) diva_um_id_get_os_context(file->private_data)))
+	{
 		ret = -ENODEV;
 		goto out;
 	}
 
 	adapter_nr = p_os->adapter_nr;
 
-	if ((ret = remove_entity(file->private_data))) {
+	if ((ret = remove_entity(file->private_data)))
+	{
 		goto out;
 	}
 
 	if (divas_um_idi_delete_entity
-	    ((int) adapter_nr, file->private_data)) {
+		((int) adapter_nr, file->private_data))
+	{
 		ret = -ENODEV;
 		goto out;
 	}
@@ -466,7 +524,7 @@ void diva_um_timer_function(unsigned long data)
 	wake_up_interruptible(&p_os->read_wait);
 	wake_up_interruptible(&p_os->close_wait);
 	DBG_ERR(("entity removal watchdog"))
-		}
+}
 
 /*
 **  If application exits without entity removal this function will remove
@@ -479,19 +537,22 @@ static int remove_entity(void *entity)
 
 	diva_um_idi_stop_wdog(entity);
 
-	if (!entity) {
+	if (!entity)
+	{
 		DBG_FTL(("Zero entity on remove"))
-			return (0);
+		return (0);
 	}
 
 	if (!(p_os =
-	      (diva_um_idi_os_context_t *)
-	      diva_um_id_get_os_context(entity))) {
+			  (diva_um_idi_os_context_t *)
+			  diva_um_id_get_os_context(entity)))
+	{
 		DBG_FTL(("Zero entity os context on remove"))
-			return (0);
+		return (0);
 	}
 
-	if (!divas_um_idi_entity_assigned(entity) || p_os->aborted) {
+	if (!divas_um_idi_entity_assigned(entity) || p_os->aborted)
+	{
 		/*
 		  Entity is not assigned, also can be removed
 		*/
@@ -500,24 +561,30 @@ static int remove_entity(void *entity)
 
 	DBG_TRC(("E(%08x) check remove", entity))
 
-		/*
-		  If adapter not answers on remove request inside of
-		  10 Sec, then adapter is dead
-		*/
-		diva_um_idi_start_wdog(entity);
+	/*
+	  If adapter not answers on remove request inside of
+	  10 Sec, then adapter is dead
+	*/
+	diva_um_idi_start_wdog(entity);
 
 	{
 		DECLARE_WAITQUEUE(wait, curtask);
 
 		add_wait_queue(&p_os->close_wait, &wait);
-		for (;;) {
+
+		for (;;)
+		{
 			set_current_state(TASK_INTERRUPTIBLE);
+
 			if (!divas_um_idi_entity_start_remove(entity)
-			    || p_os->aborted) {
+				|| p_os->aborted)
+			{
 				break;
 			}
+
 			schedule();
 		}
+
 		set_current_state(TASK_RUNNING);
 		remove_wait_queue(&p_os->close_wait, &wait);
 	}
@@ -527,22 +594,28 @@ static int remove_entity(void *entity)
 		DECLARE_WAITQUEUE(wait, curtask);
 
 		add_wait_queue(&p_os->close_wait, &wait);
-		for (;;) {
+
+		for (;;)
+		{
 			set_current_state(TASK_INTERRUPTIBLE);
+
 			if (!divas_um_idi_entity_assigned(entity)
-			    || p_os->aborted) {
+				|| p_os->aborted)
+			{
 				break;
 			}
+
 			schedule();
 		}
+
 		set_current_state(TASK_RUNNING);
 		remove_wait_queue(&p_os->close_wait, &wait);
 	}
 
 	DBG_TRC(("E(%08x) remove complete, aborted:%d", entity,
-		 p_os->aborted))
+			 p_os->aborted))
 
-		diva_um_idi_stop_wdog(entity);
+	diva_um_idi_stop_wdog(entity);
 
 	p_os->aborted = 0;
 
@@ -557,9 +630,10 @@ void diva_um_idi_start_wdog(void *entity)
 	diva_um_idi_os_context_t *p_os;
 
 	if (entity &&
-	    ((p_os =
-	      (diva_um_idi_os_context_t *)
-	      diva_um_id_get_os_context(entity)))) {
+		((p_os =
+			  (diva_um_idi_os_context_t *)
+			  diva_um_id_get_os_context(entity))))
+	{
 		mod_timer(&p_os->diva_timer_id, jiffies + 10 * HZ);
 	}
 }
@@ -569,9 +643,10 @@ void diva_um_idi_stop_wdog(void *entity)
 	diva_um_idi_os_context_t *p_os;
 
 	if (entity &&
-	    ((p_os =
-	      (diva_um_idi_os_context_t *)
-	      diva_um_id_get_os_context(entity)))) {
+		((p_os =
+			  (diva_um_idi_os_context_t *)
+			  diva_um_id_get_os_context(entity))))
+	{
 		del_timer(&p_os->diva_timer_id);
 	}
 }

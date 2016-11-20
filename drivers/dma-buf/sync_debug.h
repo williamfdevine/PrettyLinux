@@ -29,7 +29,8 @@
  * @active_list_head:	list of active (unsignaled/errored) sync_pts
  * @sync_timeline_list:	membership in global sync_timeline_list
  */
-struct sync_timeline {
+struct sync_timeline
+{
 	struct kref		kref;
 	char			name[32];
 
@@ -48,7 +49,7 @@ struct sync_timeline {
 static inline struct sync_timeline *fence_parent(struct fence *fence)
 {
 	return container_of(fence->lock, struct sync_timeline,
-			    child_list_lock);
+						child_list_lock);
 }
 
 /**
@@ -57,7 +58,8 @@ static inline struct sync_timeline *fence_parent(struct fence *fence)
  * @child_list: sync timeline child's list
  * @active_list: sync timeline active child's list
  */
-struct sync_pt {
+struct sync_pt
+{
 	struct fence base;
 	struct list_head child_list;
 	struct list_head active_list;
@@ -65,20 +67,20 @@ struct sync_pt {
 
 #ifdef CONFIG_SW_SYNC
 
-extern const struct file_operations sw_sync_debugfs_fops;
+	extern const struct file_operations sw_sync_debugfs_fops;
 
-void sync_timeline_debug_add(struct sync_timeline *obj);
-void sync_timeline_debug_remove(struct sync_timeline *obj);
-void sync_file_debug_add(struct sync_file *fence);
-void sync_file_debug_remove(struct sync_file *fence);
-void sync_dump(void);
+	void sync_timeline_debug_add(struct sync_timeline *obj);
+	void sync_timeline_debug_remove(struct sync_timeline *obj);
+	void sync_file_debug_add(struct sync_file *fence);
+	void sync_file_debug_remove(struct sync_file *fence);
+	void sync_dump(void);
 
 #else
-# define sync_timeline_debug_add(obj)
-# define sync_timeline_debug_remove(obj)
-# define sync_file_debug_add(fence)
-# define sync_file_debug_remove(fence)
-# define sync_dump()
+	#define sync_timeline_debug_add(obj)
+	#define sync_timeline_debug_remove(obj)
+	#define sync_file_debug_add(fence)
+	#define sync_file_debug_remove(fence)
+	#define sync_dump()
 #endif
 
 #endif /* _LINUX_SYNC_H */

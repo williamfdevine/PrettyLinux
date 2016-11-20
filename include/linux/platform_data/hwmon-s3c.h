@@ -22,7 +22,8 @@
  * The value read from the ADC is converted to a value that
  * hwmon expects (mV) by result = (value_read * @mult) / @div.
  */
-struct s3c_hwmon_chcfg {
+struct s3c_hwmon_chcfg
+{
 	const char	*name;
 	unsigned int	mult;
 	unsigned int	div;
@@ -32,7 +33,8 @@ struct s3c_hwmon_chcfg {
  * s3c_hwmon_pdata - HWMON platform data
  * @in: One configuration for each possible channel used.
  */
-struct s3c_hwmon_pdata {
+struct s3c_hwmon_pdata
+{
 	struct s3c_hwmon_chcfg	*in[8];
 };
 

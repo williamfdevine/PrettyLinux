@@ -1,7 +1,8 @@
 #ifndef __HID_LG_H
 #define __HID_LG_H
 
-struct lg_drv_data {
+struct lg_drv_data
+{
 	unsigned long quirks;
 	void *device_props;	/* Device specific properties */
 };

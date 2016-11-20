@@ -16,18 +16,21 @@
 #include <linux/virtio_config.h>
 #include <linux/virtio_ring.h>
 
-struct vhost_vring_state {
+struct vhost_vring_state
+{
 	unsigned int index;
 	unsigned int num;
 };
 
-struct vhost_vring_file {
+struct vhost_vring_file
+{
 	unsigned int index;
 	int fd; /* Pass -1 to unbind from file. */
 
 };
 
-struct vhost_vring_addr {
+struct vhost_vring_addr
+{
 	unsigned int index;
 	/* Option flags. */
 	unsigned int flags;
@@ -48,7 +51,8 @@ struct vhost_vring_addr {
 };
 
 /* no alignment requirement */
-struct vhost_iotlb_msg {
+struct vhost_iotlb_msg
+{
 	__u64 iova;
 	__u64 size;
 	__u64 uaddr;
@@ -65,15 +69,18 @@ struct vhost_iotlb_msg {
 
 #define VHOST_IOTLB_MSG 0x1
 
-struct vhost_msg {
+struct vhost_msg
+{
 	int type;
-	union {
+	union
+	{
 		struct vhost_iotlb_msg iotlb;
 		__u8 padding[64];
 	};
 };
 
-struct vhost_memory_region {
+struct vhost_memory_region
+{
 	__u64 guest_phys_addr;
 	__u64 memory_size; /* bytes */
 	__u64 userspace_addr;
@@ -83,7 +90,8 @@ struct vhost_memory_region {
 /* All region addresses and sizes must be 4K aligned. */
 #define VHOST_PAGE_SIZE 0x1000
 
-struct vhost_memory {
+struct vhost_memory
+{
 	__u32 nregions;
 	__u32 padding;
 	struct vhost_memory_region regions[0];
@@ -154,10 +162,10 @@ struct vhost_memory {
 #define VHOST_SET_VRING_ERR _IOW(VHOST_VIRTIO, 0x22, struct vhost_vring_file)
 /* Set busy loop timeout (in us) */
 #define VHOST_SET_VRING_BUSYLOOP_TIMEOUT _IOW(VHOST_VIRTIO, 0x23,	\
-					 struct vhost_vring_state)
+		struct vhost_vring_state)
 /* Get busy loop timeout (in us) */
 #define VHOST_GET_VRING_BUSYLOOP_TIMEOUT _IOW(VHOST_VIRTIO, 0x24,	\
-					 struct vhost_vring_state)
+		struct vhost_vring_state)
 
 /* VHOST_NET specific defines */
 
@@ -188,7 +196,8 @@ struct vhost_memory {
 
 #define VHOST_SCSI_ABI_VERSION	1
 
-struct vhost_scsi_target {
+struct vhost_scsi_target
+{
 	int abi_version;
 	char vhost_wwpn[224]; /* TRANSPORT_IQN_LEN */
 	unsigned short vhost_tpgt;

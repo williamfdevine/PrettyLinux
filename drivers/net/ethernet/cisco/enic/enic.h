@@ -45,7 +45,8 @@
 
 #define ENIC_AIC_LARGE_PKT_DIFF	3
 
-struct enic_msix_entry {
+struct enic_msix_entry
+{
 	int requested;
 	char devname[IFNAMSIZ];
 	irqreturn_t (*isr)(int, void *);
@@ -54,12 +55,14 @@ struct enic_msix_entry {
 };
 
 /* Store only the lower range.  Higher range is given by fw. */
-struct enic_intr_mod_range {
+struct enic_intr_mod_range
+{
 	u32 small_pkt_range_start;
 	u32 large_pkt_range_start;
 };
 
-struct enic_intr_mod_table {
+struct enic_intr_mod_table
+{
 	u32 rx_rate;
 	u32 range_percent;
 };
@@ -73,7 +76,8 @@ struct enic_intr_mod_table {
 #define ENIC_RX_COALESCE_RANGE_END	125
 #define ENIC_AIC_TS_BREAK		100
 
-struct enic_rx_coal {
+struct enic_rx_coal
+{
 	u32 small_pkt_range_start;
 	u32 large_pkt_range_start;
 	u32 range_end;
@@ -90,7 +94,8 @@ struct enic_rx_coal {
 #define ENIC_SET_INSTANCE		(1 << 3)
 #define ENIC_SET_HOST			(1 << 4)
 
-struct enic_port_profile {
+struct enic_port_profile
+{
 	u32 set;
 	u8 request;
 	char name[PORT_PROFILE_MAX];
@@ -107,7 +112,8 @@ struct enic_port_profile {
  *	@rq_id: desired rq index
  *	@node: hlist_node
  */
-struct enic_rfs_fltr_node {
+struct enic_rfs_fltr_node
+{
 	struct flow_keys keys;
 	u32 flow_id;
 	u16 fltr_id;
@@ -123,20 +129,22 @@ struct enic_rfs_fltr_node {
  *	@lock: spin lock
  *	@rfs_may_expire: timer function for enic_rps_may_expire_flow
  */
-struct enic_rfs_flw_tbl {
+struct enic_rfs_flw_tbl
+{
 	u16 max;
 	int free;
 
 #define ENIC_RFS_FLW_BITSHIFT	(10)
 #define ENIC_RFS_FLW_MASK	((1 << ENIC_RFS_FLW_BITSHIFT) - 1)
-	u16 toclean:ENIC_RFS_FLW_BITSHIFT;
+u16 toclean: ENIC_RFS_FLW_BITSHIFT;
 	struct hlist_head ht_head[1 << ENIC_RFS_FLW_BITSHIFT];
 	spinlock_t lock;
 	struct timer_list rfs_may_expire;
 };
 
 /* Per-instance private data structure */
-struct enic {
+struct enic
+{
 	struct net_device *netdev;
 	struct pci_dev *pdev;
 	struct vnic_enet_config config;
@@ -247,13 +255,13 @@ static inline unsigned int enic_legacy_notify_intr(void)
 }
 
 static inline unsigned int enic_msix_rq_intr(struct enic *enic,
-	unsigned int rq)
+		unsigned int rq)
 {
 	return enic->cq[enic_cq_rq(enic, rq)].interrupt_offset;
 }
 
 static inline unsigned int enic_msix_wq_intr(struct enic *enic,
-	unsigned int wq)
+		unsigned int wq)
 {
 	return enic->cq[enic_cq_wq(enic, wq)].interrupt_offset;
 }
@@ -270,35 +278,42 @@ static inline unsigned int enic_msix_notify_intr(struct enic *enic)
 
 static inline bool enic_is_err_intr(struct enic *enic, int intr)
 {
-	switch (vnic_dev_get_intr_mode(enic->vdev)) {
-	case VNIC_DEV_INTR_MODE_INTX:
-		return intr == enic_legacy_err_intr();
-	case VNIC_DEV_INTR_MODE_MSIX:
-		return intr == enic_msix_err_intr(enic);
-	case VNIC_DEV_INTR_MODE_MSI:
-	default:
-		return false;
+	switch (vnic_dev_get_intr_mode(enic->vdev))
+	{
+		case VNIC_DEV_INTR_MODE_INTX:
+			return intr == enic_legacy_err_intr();
+
+		case VNIC_DEV_INTR_MODE_MSIX:
+			return intr == enic_msix_err_intr(enic);
+
+		case VNIC_DEV_INTR_MODE_MSI:
+		default:
+			return false;
 	}
 }
 
 static inline bool enic_is_notify_intr(struct enic *enic, int intr)
 {
-	switch (vnic_dev_get_intr_mode(enic->vdev)) {
-	case VNIC_DEV_INTR_MODE_INTX:
-		return intr == enic_legacy_notify_intr();
-	case VNIC_DEV_INTR_MODE_MSIX:
-		return intr == enic_msix_notify_intr(enic);
-	case VNIC_DEV_INTR_MODE_MSI:
-	default:
-		return false;
+	switch (vnic_dev_get_intr_mode(enic->vdev))
+	{
+		case VNIC_DEV_INTR_MODE_INTX:
+			return intr == enic_legacy_notify_intr();
+
+		case VNIC_DEV_INTR_MODE_MSIX:
+			return intr == enic_msix_notify_intr(enic);
+
+		case VNIC_DEV_INTR_MODE_MSI:
+		default:
+			return false;
 	}
 }
 
 static inline int enic_dma_map_check(struct enic *enic, dma_addr_t dma_addr)
 {
-	if (unlikely(pci_dma_mapping_error(enic->pdev, dma_addr))) {
+	if (unlikely(pci_dma_mapping_error(enic->pdev, dma_addr)))
+	{
 		net_warn_ratelimited("%s: PCI dma mapping failed!\n",
-				     enic->netdev->name);
+							 enic->netdev->name);
 		enic->gen_stats.dma_map_error++;
 
 		return -ENOMEM;

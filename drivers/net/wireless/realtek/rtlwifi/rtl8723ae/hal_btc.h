@@ -70,14 +70,16 @@
 #define C2H_EVT_HOST_CLOSE		0x00
 #define C2H_EVT_FW_CLOSE		0xFF
 
-enum bt_traffic_mode {
+enum bt_traffic_mode
+{
 	BT_MOTOR_EXT_BE = 0x00,
 	BT_MOTOR_EXT_GUL = 0x01,
 	BT_MOTOR_EXT_GUB = 0x02,
 	BT_MOTOR_EXT_GULB = 0x03
 };
 
-enum bt_traffic_mode_profile {
+enum bt_traffic_mode_profile
+{
 	BT_PROFILE_NONE,
 	BT_PROFILE_A2DP,
 	BT_PROFILE_PAN,
@@ -101,7 +103,8 @@ enum hci_ext_bt_operation {
 };
 */
 
-enum bt_spec {
+enum bt_spec
+{
 	BT_SPEC_1_0_b = 0x00,
 	BT_SPEC_1_1 = 0x01,
 	BT_SPEC_1_2 = 0x02,
@@ -111,13 +114,15 @@ enum bt_spec {
 	BT_SPEC_4_0 = 0x06
 };
 
-struct c2h_evt_hdr {
+struct c2h_evt_hdr
+{
 	u8 cmd_id;
 	u8 cmd_len;
 	u8 cmd_seq;
 };
 
-enum bt_state {
+enum bt_state
+{
 	BT_INFO_STATE_DISABLED = 0,
 	BT_INFO_STATE_NO_CONNECTION = 1,
 	BT_INFO_STATE_CONNECT_IDLE = 2,
@@ -130,7 +135,8 @@ enum bt_state {
 	BT_INFO_STATE_MAX = 7
 };
 
-enum rtl8723e_c2h_evt {
+enum rtl8723e_c2h_evt
+{
 	C2H_DBG = 0,
 	C2H_TSF = 1,
 	C2H_AP_RPT_RSP = 2,
@@ -149,11 +155,11 @@ void rtl8723e_dm_bt_sw_coex_all_off_8723a(struct ieee80211_hw *hw);
 void rtl8723e_dm_bt_hw_coex_all_off_8723a(struct ieee80211_hw *hw);
 void rtl8723e_dm_bt_coexist_8723(struct ieee80211_hw *hw);
 void rtl8723e_dm_bt_set_bt_dm(struct ieee80211_hw *hw,
-			      struct btdm_8723 *p_btdm);
+							  struct btdm_8723 *p_btdm);
 void rtl_8723e_c2h_command_handle(struct ieee80211_hw *hw);
 void rtl_8723e_bt_wifi_media_status_notify(struct ieee80211_hw *hw,
-					bool mstatus);
+		bool mstatus);
 void rtl8723e_dm_bt_turn_off_bt_coexist_before_enter_lps(
-				struct ieee80211_hw *hw);
+	struct ieee80211_hw *hw);
 
 #endif

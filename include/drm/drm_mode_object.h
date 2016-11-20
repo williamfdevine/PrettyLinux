@@ -50,7 +50,8 @@ struct drm_device;
  *   &drm_connector and &drm_property_blob. These objects provide specialized
  *   reference counting wrappers.
  */
-struct drm_mode_object {
+struct drm_mode_object
+{
 	uint32_t id;
 	uint32_t type;
 	struct drm_object_properties *properties;
@@ -62,7 +63,8 @@ struct drm_mode_object {
 /**
  * struct drm_object_properties - property tracking for &drm_mode_object
  */
-struct drm_object_properties {
+struct drm_object_properties
+{
 	/**
 	 * @count: number of valid properties, must be less than or equal to
 	 * DRM_OBJECT_MAX_PROPERTY.
@@ -108,18 +110,18 @@ struct drm_object_properties {
 	}
 
 struct drm_mode_object *drm_mode_object_find(struct drm_device *dev,
-					     uint32_t id, uint32_t type);
+		uint32_t id, uint32_t type);
 void drm_mode_object_reference(struct drm_mode_object *obj);
 void drm_mode_object_unreference(struct drm_mode_object *obj);
 
 int drm_object_property_set_value(struct drm_mode_object *obj,
-				  struct drm_property *property,
-				  uint64_t val);
+								  struct drm_property *property,
+								  uint64_t val);
 int drm_object_property_get_value(struct drm_mode_object *obj,
-				  struct drm_property *property,
-				  uint64_t *value);
+								  struct drm_property *property,
+								  uint64_t *value);
 
 void drm_object_attach_property(struct drm_mode_object *obj,
-				struct drm_property *property,
-				uint64_t init_val);
+								struct drm_property *property,
+								uint64_t init_val);
 #endif

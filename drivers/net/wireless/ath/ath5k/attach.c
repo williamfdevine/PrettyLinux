@@ -35,7 +35,8 @@
 static int ath5k_hw_post(struct ath5k_hw *ah)
 {
 
-	static const u32 static_pattern[4] = {
+	static const u32 static_pattern[4] =
+	{
 		0x55555555,	0xaaaaaaaa,
 		0x66666666,	0x99999999
 	};
@@ -46,19 +47,22 @@ static int ath5k_hw_post(struct ath5k_hw *ah)
 	u32 init_val;
 	u32 cur_val;
 
-	for (c = 0; c < 2; c++) {
+	for (c = 0; c < 2; c++)
+	{
 
 		cur_reg = regs[c];
 
 		/* Save previous value */
 		init_val = ath5k_hw_reg_read(ah, cur_reg);
 
-		for (i = 0; i < 256; i++) {
+		for (i = 0; i < 256; i++)
+		{
 			var_pattern = i << 16 | i;
 			ath5k_hw_reg_write(ah, var_pattern, cur_reg);
 			cur_val = ath5k_hw_reg_read(ah, cur_reg);
 
-			if (cur_val != var_pattern) {
+			if (cur_val != var_pattern)
+			{
 				ATH5K_ERR(ah, "POST Failed !!!\n");
 				return -EAGAIN;
 			}
@@ -68,12 +72,14 @@ static int ath5k_hw_post(struct ath5k_hw *ah)
 			ath5k_hw_reg_write(ah, var_pattern, cur_reg);
 		}
 
-		for (i = 0; i < 4; i++) {
+		for (i = 0; i < 4; i++)
+		{
 			var_pattern = static_pattern[i];
 			ath5k_hw_reg_write(ah, var_pattern, cur_reg);
 			cur_val = ath5k_hw_reg_read(ah, cur_reg);
 
-			if (cur_val != var_pattern) {
+			if (cur_val != var_pattern)
+			{
 				ATH5K_ERR(ah, "POST Failed !!!\n");
 				return -EAGAIN;
 			}
@@ -128,119 +134,161 @@ int ath5k_hw_init(struct ath5k_hw *ah)
 	 */
 	ath5k_hw_read_srev(ah);
 	srev = ah->ah_mac_srev;
+
 	if (srev < AR5K_SREV_AR5311)
+	{
 		ah->ah_version = AR5K_AR5210;
+	}
 	else if (srev < AR5K_SREV_AR5212)
+	{
 		ah->ah_version = AR5K_AR5211;
+	}
 	else
+	{
 		ah->ah_version = AR5K_AR5212;
+	}
 
 	/* Get the MAC version */
 	ah->ah_mac_version = AR5K_REG_MS(srev, AR5K_SREV_VER);
 
 	/* Fill the ath5k_hw struct with the needed functions */
 	ret = ath5k_hw_init_desc_functions(ah);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	/* Bring device out of sleep and reset its units */
 	ret = ath5k_hw_nic_wakeup(ah, NULL);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	/* Get PHY and RADIO revisions */
 	ah->ah_phy_revision = ath5k_hw_reg_read(ah, AR5K_PHY_CHIP_ID) &
-			0xffffffff;
+						  0xffffffff;
 	ah->ah_radio_5ghz_revision = ath5k_hw_radio_revision(ah,
-			NL80211_BAND_5GHZ);
+								 NL80211_BAND_5GHZ);
 
 	/* Try to identify radio chip based on its srev */
-	switch (ah->ah_radio_5ghz_revision & 0xf0) {
-	case AR5K_SREV_RAD_5111:
-		ah->ah_radio = AR5K_RF5111;
-		ah->ah_single_chip = false;
-		ah->ah_radio_2ghz_revision = ath5k_hw_radio_revision(ah,
-							NL80211_BAND_2GHZ);
-		break;
-	case AR5K_SREV_RAD_5112:
-	case AR5K_SREV_RAD_2112:
-		ah->ah_radio = AR5K_RF5112;
-		ah->ah_single_chip = false;
-		ah->ah_radio_2ghz_revision = ath5k_hw_radio_revision(ah,
-							NL80211_BAND_2GHZ);
-		break;
-	case AR5K_SREV_RAD_2413:
-		ah->ah_radio = AR5K_RF2413;
-		ah->ah_single_chip = true;
-		break;
-	case AR5K_SREV_RAD_5413:
-		ah->ah_radio = AR5K_RF5413;
-		ah->ah_single_chip = true;
-		break;
-	case AR5K_SREV_RAD_2316:
-		ah->ah_radio = AR5K_RF2316;
-		ah->ah_single_chip = true;
-		break;
-	case AR5K_SREV_RAD_2317:
-		ah->ah_radio = AR5K_RF2317;
-		ah->ah_single_chip = true;
-		break;
-	case AR5K_SREV_RAD_5424:
-		if (ah->ah_mac_version == AR5K_SREV_AR2425 ||
-		    ah->ah_mac_version == AR5K_SREV_AR2417) {
-			ah->ah_radio = AR5K_RF2425;
-			ah->ah_single_chip = true;
-		} else {
-			ah->ah_radio = AR5K_RF5413;
-			ah->ah_single_chip = true;
-		}
-		break;
-	default:
-		/* Identify radio based on mac/phy srev */
-		if (ah->ah_version == AR5K_AR5210) {
-			ah->ah_radio = AR5K_RF5110;
-			ah->ah_single_chip = false;
-		} else if (ah->ah_version == AR5K_AR5211) {
+	switch (ah->ah_radio_5ghz_revision & 0xf0)
+	{
+		case AR5K_SREV_RAD_5111:
 			ah->ah_radio = AR5K_RF5111;
 			ah->ah_single_chip = false;
 			ah->ah_radio_2ghz_revision = ath5k_hw_radio_revision(ah,
-							NL80211_BAND_2GHZ);
-		} else if (ah->ah_mac_version == (AR5K_SREV_AR2425 >> 4) ||
-			   ah->ah_mac_version == (AR5K_SREV_AR2417 >> 4) ||
-			   ah->ah_phy_revision == AR5K_SREV_PHY_2425) {
-			ah->ah_radio = AR5K_RF2425;
-			ah->ah_single_chip = true;
-			ah->ah_radio_5ghz_revision = AR5K_SREV_RAD_2425;
-		} else if (srev == AR5K_SREV_AR5213A &&
-			   ah->ah_phy_revision == AR5K_SREV_PHY_5212B) {
+										 NL80211_BAND_2GHZ);
+			break;
+
+		case AR5K_SREV_RAD_5112:
+		case AR5K_SREV_RAD_2112:
 			ah->ah_radio = AR5K_RF5112;
 			ah->ah_single_chip = false;
-			ah->ah_radio_5ghz_revision = AR5K_SREV_RAD_5112B;
-		} else if (ah->ah_mac_version == (AR5K_SREV_AR2415 >> 4) ||
-			   ah->ah_mac_version == (AR5K_SREV_AR2315_R6 >> 4)) {
-			ah->ah_radio = AR5K_RF2316;
-			ah->ah_single_chip = true;
-			ah->ah_radio_5ghz_revision = AR5K_SREV_RAD_2316;
-		} else if (ah->ah_mac_version == (AR5K_SREV_AR5414 >> 4) ||
-			   ah->ah_phy_revision == AR5K_SREV_PHY_5413) {
-			ah->ah_radio = AR5K_RF5413;
-			ah->ah_single_chip = true;
-			ah->ah_radio_5ghz_revision = AR5K_SREV_RAD_5413;
-		} else if (ah->ah_mac_version == (AR5K_SREV_AR2414 >> 4) ||
-			   ah->ah_phy_revision == AR5K_SREV_PHY_2413) {
+			ah->ah_radio_2ghz_revision = ath5k_hw_radio_revision(ah,
+										 NL80211_BAND_2GHZ);
+			break;
+
+		case AR5K_SREV_RAD_2413:
 			ah->ah_radio = AR5K_RF2413;
 			ah->ah_single_chip = true;
-			ah->ah_radio_5ghz_revision = AR5K_SREV_RAD_2413;
-		} else {
-			ATH5K_ERR(ah, "Couldn't identify radio revision.\n");
-			ret = -ENODEV;
-			goto err;
-		}
+			break;
+
+		case AR5K_SREV_RAD_5413:
+			ah->ah_radio = AR5K_RF5413;
+			ah->ah_single_chip = true;
+			break;
+
+		case AR5K_SREV_RAD_2316:
+			ah->ah_radio = AR5K_RF2316;
+			ah->ah_single_chip = true;
+			break;
+
+		case AR5K_SREV_RAD_2317:
+			ah->ah_radio = AR5K_RF2317;
+			ah->ah_single_chip = true;
+			break;
+
+		case AR5K_SREV_RAD_5424:
+			if (ah->ah_mac_version == AR5K_SREV_AR2425 ||
+				ah->ah_mac_version == AR5K_SREV_AR2417)
+			{
+				ah->ah_radio = AR5K_RF2425;
+				ah->ah_single_chip = true;
+			}
+			else
+			{
+				ah->ah_radio = AR5K_RF5413;
+				ah->ah_single_chip = true;
+			}
+
+			break;
+
+		default:
+
+			/* Identify radio based on mac/phy srev */
+			if (ah->ah_version == AR5K_AR5210)
+			{
+				ah->ah_radio = AR5K_RF5110;
+				ah->ah_single_chip = false;
+			}
+			else if (ah->ah_version == AR5K_AR5211)
+			{
+				ah->ah_radio = AR5K_RF5111;
+				ah->ah_single_chip = false;
+				ah->ah_radio_2ghz_revision = ath5k_hw_radio_revision(ah,
+											 NL80211_BAND_2GHZ);
+			}
+			else if (ah->ah_mac_version == (AR5K_SREV_AR2425 >> 4) ||
+					 ah->ah_mac_version == (AR5K_SREV_AR2417 >> 4) ||
+					 ah->ah_phy_revision == AR5K_SREV_PHY_2425)
+			{
+				ah->ah_radio = AR5K_RF2425;
+				ah->ah_single_chip = true;
+				ah->ah_radio_5ghz_revision = AR5K_SREV_RAD_2425;
+			}
+			else if (srev == AR5K_SREV_AR5213A &&
+					 ah->ah_phy_revision == AR5K_SREV_PHY_5212B)
+			{
+				ah->ah_radio = AR5K_RF5112;
+				ah->ah_single_chip = false;
+				ah->ah_radio_5ghz_revision = AR5K_SREV_RAD_5112B;
+			}
+			else if (ah->ah_mac_version == (AR5K_SREV_AR2415 >> 4) ||
+					 ah->ah_mac_version == (AR5K_SREV_AR2315_R6 >> 4))
+			{
+				ah->ah_radio = AR5K_RF2316;
+				ah->ah_single_chip = true;
+				ah->ah_radio_5ghz_revision = AR5K_SREV_RAD_2316;
+			}
+			else if (ah->ah_mac_version == (AR5K_SREV_AR5414 >> 4) ||
+					 ah->ah_phy_revision == AR5K_SREV_PHY_5413)
+			{
+				ah->ah_radio = AR5K_RF5413;
+				ah->ah_single_chip = true;
+				ah->ah_radio_5ghz_revision = AR5K_SREV_RAD_5413;
+			}
+			else if (ah->ah_mac_version == (AR5K_SREV_AR2414 >> 4) ||
+					 ah->ah_phy_revision == AR5K_SREV_PHY_2413)
+			{
+				ah->ah_radio = AR5K_RF2413;
+				ah->ah_single_chip = true;
+				ah->ah_radio_5ghz_revision = AR5K_SREV_RAD_2413;
+			}
+			else
+			{
+				ATH5K_ERR(ah, "Couldn't identify radio revision.\n");
+				ret = -ENODEV;
+				goto err;
+			}
 	}
 
 
 	/* Return on unsupported chips (unsupported eeprom etc) */
-	if ((srev >= AR5K_SREV_AR5416) && (srev < AR5K_SREV_AR2425)) {
+	if ((srev >= AR5K_SREV_AR5416) && (srev < AR5K_SREV_AR2425))
+	{
 		ATH5K_ERR(ah, "Device not yet supported.\n");
 		ret = -ENODEV;
 		goto err;
@@ -250,19 +298,26 @@ int ath5k_hw_init(struct ath5k_hw *ah)
 	 * POST
 	 */
 	ret = ath5k_hw_post(ah);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	/* Enable pci core retry fix on Hainan (5213A) and later chips */
 	if (srev >= AR5K_SREV_AR5213A)
+	{
 		AR5K_REG_ENABLE_BITS(ah, AR5K_PCICFG, AR5K_PCICFG_RETRY_FIX);
+	}
 
 	/*
 	 * Get card capabilities, calibration values etc
 	 * TODO: EEPROM work
 	 */
 	ret = ath5k_eeprom_init(ah);
-	if (ret) {
+
+	if (ret)
+	{
 		ATH5K_ERR(ah, "unable to init EEPROM\n");
 		goto err;
 	}
@@ -272,7 +327,8 @@ int ath5k_hw_init(struct ath5k_hw *ah)
 	/*
 	 * Write PCI-E power save settings
 	 */
-	if ((ah->ah_version == AR5K_AR5212) && pdev && (pci_is_pcie(pdev))) {
+	if ((ah->ah_version == AR5K_AR5212) && pdev && (pci_is_pcie(pdev)))
+	{
 		ath5k_hw_reg_write(ah, 0x9248fc00, AR5K_PCIE_SERDES);
 		ath5k_hw_reg_write(ah, 0x24924924, AR5K_PCIE_SERDES);
 
@@ -284,9 +340,13 @@ int ath5k_hw_init(struct ath5k_hw *ah)
 		 * tx power for systems with long trace from host
 		 * to minicard connector. */
 		if (ee->ee_serdes)
+		{
 			ath5k_hw_reg_write(ah, 0xe5980579, AR5K_PCIE_SERDES);
+		}
 		else
+		{
 			ath5k_hw_reg_write(ah, 0xf6800579, AR5K_PCIE_SERDES);
+		}
 
 		/* Shut off PLL and CLKREQ active in L1 */
 		ath5k_hw_reg_write(ah, 0x001defff, AR5K_PCIE_SERDES);
@@ -303,24 +363,29 @@ int ath5k_hw_init(struct ath5k_hw *ah)
 
 	/* Get misc capabilities */
 	ret = ath5k_hw_set_capabilities(ah);
-	if (ret) {
+
+	if (ret)
+	{
 		ATH5K_ERR(ah, "unable to get device capabilities\n");
 		goto err;
 	}
 
 	/* Crypto settings */
 	common->keymax = (ah->ah_version == AR5K_AR5210 ?
-			  AR5K_KEYTABLE_SIZE_5210 : AR5K_KEYTABLE_SIZE_5211);
+					  AR5K_KEYTABLE_SIZE_5210 : AR5K_KEYTABLE_SIZE_5211);
 
 	if (srev >= AR5K_SREV_AR5212_V4 &&
-	    (ee->ee_version < AR5K_EEPROM_VERSION_5_0 ||
-	    !AR5K_EEPROM_AES_DIS(ee->ee_misc5)))
+		(ee->ee_version < AR5K_EEPROM_VERSION_5_0 ||
+		 !AR5K_EEPROM_AES_DIS(ee->ee_misc5)))
+	{
 		common->crypt_caps |= ATH_CRYPT_CAP_CIPHER_AESCCM;
+	}
 
-	if (srev >= AR5K_SREV_AR2414) {
+	if (srev >= AR5K_SREV_AR2414)
+	{
 		common->crypt_caps |= ATH_CRYPT_CAP_MIC_COMBINED;
 		AR5K_REG_ENABLE_BITS(ah, AR5K_MISC_MODE,
-			AR5K_MISC_MODE_COMBINED_MIC);
+							 AR5K_MISC_MODE_COMBINED_MIC);
 	}
 
 	/* MAC address is cleared until add_interface */

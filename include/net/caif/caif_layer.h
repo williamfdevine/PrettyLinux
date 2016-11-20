@@ -25,12 +25,12 @@ struct caif_packet_funcs;
  * assertion failes. Normally this will do a stack up at the current location.
  */
 #define caif_assert(assert)					\
-do {								\
-	if (!(assert)) {					\
-		pr_err("caif:Assert detected:'%s'\n", #assert); \
-		WARN_ON(!(assert));				\
-	}							\
-} while (0)
+	do {								\
+		if (!(assert)) {					\
+			pr_err("caif:Assert detected:'%s'\n", #assert); \
+			WARN_ON(!(assert));				\
+		}							\
+	} while (0)
 
 /**
  * enum caif_ctrlcmd - CAIF Stack Control Signaling sent in layer.ctrlcmd().
@@ -63,7 +63,8 @@ do {								\
  * They are used for signaling originating from the modem or CAIF Link Layer.
  * These are either responses (*_RSP) or events (*_IND).
  */
-enum caif_ctrlcmd {
+enum caif_ctrlcmd
+{
 	CAIF_CTRLCMD_FLOW_OFF_IND,
 	CAIF_CTRLCMD_FLOW_ON_IND,
 	CAIF_CTRLCMD_REMOTE_SHUTDOWN_IND,
@@ -93,7 +94,8 @@ enum caif_ctrlcmd {
  * These are requests sent 'downwards' in the stack.
  * Flow ON, OFF can be indicated to the modem.
  */
-enum caif_modemcmd {
+enum caif_modemcmd
+{
 	CAIF_MODEMCMD_FLOW_ON_REQ = 0,
 	CAIF_MODEMCMD_FLOW_OFF_REQ = 1,
 	_CAIF_MODEMCMD_PHYIF_USEFULL = 3,
@@ -106,7 +108,8 @@ enum caif_modemcmd {
  * @CAIF_DIR_IN:		Incoming packet received.
  * @CAIF_DIR_OUT:		Outgoing packet to be transmitted.
  */
-enum caif_direction {
+enum caif_direction
+{
 	CAIF_DIR_IN = 0,
 	CAIF_DIR_OUT = 1
 };
@@ -145,7 +148,8 @@ enum caif_direction {
  *    - In order to send data downwards do
  *	layer->dn->transmit(layer->dn, info, packet);
  */
-struct cflayer {
+struct cflayer
+{
 	struct cflayer *up;
 	struct cflayer *dn;
 	struct list_head node;
@@ -215,7 +219,7 @@ struct cflayer {
 	 *  @ctrl:	Control Command.
 	 */
 	void (*ctrlcmd) (struct cflayer *layr, enum caif_ctrlcmd ctrl,
-			 int phyid);
+					 int phyid);
 
 	/*
 	 *  modemctrl() - Control Function used for controlling the modem.
@@ -255,7 +259,8 @@ struct cflayer {
  *		that the MUX can add the correct physical ID to the
  *		packet.
  */
-struct dev_info {
+struct dev_info
+{
 	void *dev;
 	unsigned int id;
 };
@@ -270,7 +275,8 @@ struct dev_info {
  * @channel_id: Channel ID of the logical CAIF connection.
  *		Used by mux to insert channel id into the caif packet.
  */
-struct caif_payload_info {
+struct caif_payload_info
+{
 	struct dev_info *dev_info;
 	unsigned short hdr_len;
 	unsigned short channel_id;

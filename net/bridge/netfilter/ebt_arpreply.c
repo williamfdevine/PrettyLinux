@@ -27,32 +27,46 @@ ebt_arpreply_tg(struct sk_buff *skb, const struct xt_action_param *par)
 	unsigned char _sha[ETH_ALEN];
 
 	ap = skb_header_pointer(skb, 0, sizeof(_ah), &_ah);
+
 	if (ap == NULL)
+	{
 		return EBT_DROP;
+	}
 
 	if (ap->ar_op != htons(ARPOP_REQUEST) ||
-	    ap->ar_hln != ETH_ALEN ||
-	    ap->ar_pro != htons(ETH_P_IP) ||
-	    ap->ar_pln != 4)
+		ap->ar_hln != ETH_ALEN ||
+		ap->ar_pro != htons(ETH_P_IP) ||
+		ap->ar_pln != 4)
+	{
 		return EBT_CONTINUE;
+	}
 
 	shp = skb_header_pointer(skb, sizeof(_ah), ETH_ALEN, &_sha);
+
 	if (shp == NULL)
+	{
 		return EBT_DROP;
+	}
 
 	siptr = skb_header_pointer(skb, sizeof(_ah) + ETH_ALEN,
-				   sizeof(_sip), &_sip);
+							   sizeof(_sip), &_sip);
+
 	if (siptr == NULL)
+	{
 		return EBT_DROP;
+	}
 
 	diptr = skb_header_pointer(skb,
-				   sizeof(_ah) + 2 * ETH_ALEN + sizeof(_sip),
-				   sizeof(_dip), &_dip);
+							   sizeof(_ah) + 2 * ETH_ALEN + sizeof(_sip),
+							   sizeof(_dip), &_dip);
+
 	if (diptr == NULL)
+	{
 		return EBT_DROP;
+	}
 
 	arp_send(ARPOP_REPLY, ETH_P_ARP, *siptr, (struct net_device *)par->in,
-		 *diptr, shp, info->mac, shp);
+			 *diptr, shp, info->mac, shp);
 
 	return info->target;
 }
@@ -63,14 +77,21 @@ static int ebt_arpreply_tg_check(const struct xt_tgchk_param *par)
 	const struct ebt_entry *e = par->entryinfo;
 
 	if (BASE_CHAIN && info->target == EBT_RETURN)
+	{
 		return -EINVAL;
+	}
+
 	if (e->ethproto != htons(ETH_P_ARP) ||
-	    e->invflags & EBT_IPROTO)
+		e->invflags & EBT_IPROTO)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
-static struct xt_target ebt_arpreply_tg_reg __read_mostly = {
+static struct xt_target ebt_arpreply_tg_reg __read_mostly =
+{
 	.name		= "arpreply",
 	.revision	= 0,
 	.family		= NFPROTO_BRIDGE,

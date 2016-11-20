@@ -4,7 +4,8 @@
 #include <linux/netfilter/ipset/ip_set.h>
 
 /* Hash type specific error codes */
-enum {
+enum
+{
 	/* Hash is full */
 	IPSET_ERR_HASH_FULL = IPSET_ERR_TYPE_SPECIFIC,
 	/* Null-valued element */

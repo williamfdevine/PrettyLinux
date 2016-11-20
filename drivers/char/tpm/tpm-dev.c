@@ -21,7 +21,8 @@
 #include <linux/uaccess.h>
 #include "tpm.h"
 
-struct file_priv {
+struct file_priv
+{
 	struct tpm_chip *chip;
 
 	/* Data passed to and from the tpm via the read/write calls */
@@ -60,13 +61,16 @@ static int tpm_open(struct inode *inode, struct file *file)
 	/* It's assured that the chip will be opened just once,
 	 * by the check of is_open variable, which is protected
 	 * by driver_lock. */
-	if (test_and_set_bit(0, &chip->is_open)) {
+	if (test_and_set_bit(0, &chip->is_open))
+	{
 		dev_dbg(&chip->dev, "Another process owns this TPM\n");
 		return -EBUSY;
 	}
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-	if (priv == NULL) {
+
+	if (priv == NULL)
+	{
 		clear_bit(0, &chip->is_open);
 		return -ENOMEM;
 	}
@@ -75,7 +79,7 @@ static int tpm_open(struct inode *inode, struct file *file)
 	atomic_set(&priv->data_pending, 0);
 	mutex_init(&priv->buffer_mutex);
 	setup_timer(&priv->user_read_timer, user_reader_timeout,
-			(unsigned long)priv);
+				(unsigned long)priv);
 	INIT_WORK(&priv->work, timeout_work);
 
 	file->private_data = priv;
@@ -83,7 +87,7 @@ static int tpm_open(struct inode *inode, struct file *file)
 }
 
 static ssize_t tpm_read(struct file *file, char __user *buf,
-			size_t size, loff_t *off)
+						size_t size, loff_t *off)
 {
 	struct file_priv *priv = file->private_data;
 	ssize_t ret_size;
@@ -92,16 +96,24 @@ static ssize_t tpm_read(struct file *file, char __user *buf,
 	del_singleshot_timer_sync(&priv->user_read_timer);
 	flush_work(&priv->work);
 	ret_size = atomic_read(&priv->data_pending);
-	if (ret_size > 0) {	/* relay data */
+
+	if (ret_size > 0)  	/* relay data */
+	{
 		ssize_t orig_ret_size = ret_size;
+
 		if (size < ret_size)
+		{
 			ret_size = size;
+		}
 
 		mutex_lock(&priv->buffer_mutex);
 		rc = copy_to_user(buf, priv->data_buffer, ret_size);
 		memset(priv->data_buffer, 0, orig_ret_size);
+
 		if (rc)
+		{
 			ret_size = -EFAULT;
+		}
 
 		mutex_unlock(&priv->buffer_mutex);
 	}
@@ -112,7 +124,7 @@ static ssize_t tpm_read(struct file *file, char __user *buf,
 }
 
 static ssize_t tpm_write(struct file *file, const char __user *buf,
-			 size_t size, loff_t *off)
+						 size_t size, loff_t *off)
 {
 	struct file_priv *priv = file->private_data;
 	size_t in_size = size;
@@ -123,15 +135,20 @@ static ssize_t tpm_write(struct file *file, const char __user *buf,
 	   This also prevents splitted buffered writes from blocking here.
 	*/
 	if (atomic_read(&priv->data_pending) != 0)
+	{
 		return -EBUSY;
+	}
 
 	if (in_size > TPM_BUFSIZE)
+	{
 		return -E2BIG;
+	}
 
 	mutex_lock(&priv->buffer_mutex);
 
 	if (copy_from_user
-	    (priv->data_buffer, (void __user *) buf, in_size)) {
+		(priv->data_buffer, (void __user *) buf, in_size))
+	{
 		mutex_unlock(&priv->buffer_mutex);
 		return -EFAULT;
 	}
@@ -140,15 +157,19 @@ static ssize_t tpm_write(struct file *file, const char __user *buf,
 	 * lock during this period so that the tpm can be unregistered even if
 	 * the char dev is held open.
 	 */
-	if (tpm_try_get_ops(priv->chip)) {
+	if (tpm_try_get_ops(priv->chip))
+	{
 		mutex_unlock(&priv->buffer_mutex);
 		return -EPIPE;
 	}
+
 	out_size = tpm_transmit(priv->chip, priv->data_buffer,
-				sizeof(priv->data_buffer), 0);
+							sizeof(priv->data_buffer), 0);
 
 	tpm_put_ops(priv->chip);
-	if (out_size < 0) {
+
+	if (out_size < 0)
+	{
 		mutex_unlock(&priv->buffer_mutex);
 		return out_size;
 	}
@@ -178,7 +199,8 @@ static int tpm_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-const struct file_operations tpm_fops = {
+const struct file_operations tpm_fops =
+{
 	.owner = THIS_MODULE,
 	.llseek = no_llseek,
 	.open = tpm_open,

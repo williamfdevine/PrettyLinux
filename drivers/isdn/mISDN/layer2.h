@@ -20,7 +20,8 @@
 
 #define MAX_WINDOW	8
 
-struct manager {
+struct manager
+{
 	struct mISDNchannel	ch;
 	struct mISDNchannel	bcast;
 	u_long			options;
@@ -34,7 +35,8 @@ struct manager {
 	u_int			lastid;
 };
 
-struct teimgr {
+struct teimgr
+{
 	int			ri;
 	int			rcnt;
 	struct FsmInst		tei_m;
@@ -44,12 +46,14 @@ struct teimgr {
 	struct manager		*mgr;
 };
 
-struct laddr {
+struct laddr
+{
 	u_char	A;
 	u_char	B;
 };
 
-struct layer2 {
+struct layer2
+{
 	struct list_head	list;
 	struct mISDNchannel	ch;
 	u_long			flag;
@@ -76,7 +80,8 @@ struct layer2 {
 	struct sk_buff_head	tmp_queue;
 };
 
-enum {
+enum
+{
 	ST_L2_1,
 	ST_L2_2,
 	ST_L2_3,
@@ -90,7 +95,7 @@ enum {
 #define L2_STATE_COUNT (ST_L2_8 + 1)
 
 extern struct layer2	*create_l2(struct mISDNchannel *, u_int,
-				   u_long, int, int);
+								   u_long, int, int);
 extern int		tei_l2(struct layer2 *, u_int, u_long arg);
 
 

@@ -23,7 +23,8 @@
 /*
  * Latin upper case
  */
-signed char CifsUniUpperTable[512] = {
+signed char CifsUniUpperTable[512] =
+{
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* 000-00f */
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* 010-01f */
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* 020-02f */
@@ -59,7 +60,8 @@ signed char CifsUniUpperTable[512] = {
 };
 
 /* Upper case range - Greek */
-static signed char UniCaseRangeU03a0[47] = {
+static signed char UniCaseRangeU03a0[47] =
+{
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -38, -37, -37, -37,	/* 3a0-3af */
 	0, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32,	/* 3b0-3bf */
 	-32, -32, -31, -32, -32, -32, -32, -32, -32, -32, -32, -32, -64,
@@ -67,14 +69,16 @@ static signed char UniCaseRangeU03a0[47] = {
 };
 
 /* Upper case range - Cyrillic */
-static signed char UniCaseRangeU0430[48] = {
+static signed char UniCaseRangeU0430[48] =
+{
 	-32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32,	/* 430-43f */
 	-32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32,	/* 440-44f */
 	0, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, 0, -80, -80,	/* 450-45f */
 };
 
 /* Upper case range - Extended cyrillic */
-static signed char UniCaseRangeU0490[61] = {
+static signed char UniCaseRangeU0490[61] =
+{
 	0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1,	/* 490-49f */
 	0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1,	/* 4a0-4af */
 	0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1,	/* 4b0-4bf */
@@ -82,7 +86,8 @@ static signed char UniCaseRangeU0490[61] = {
 };
 
 /* Upper case range - Extended latin and greek */
-static signed char UniCaseRangeU1e00[509] = {
+static signed char UniCaseRangeU1e00[509] =
+{
 	0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1,	/* 1e00-1e0f */
 	0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1,	/* 1e10-1e1f */
 	0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1,	/* 1e20-1e2f */
@@ -118,7 +123,8 @@ static signed char UniCaseRangeU1e00[509] = {
 };
 
 /* Upper case range - Wide latin */
-static signed char UniCaseRangeUff40[27] = {
+static signed char UniCaseRangeUff40[27] =
+{
 	0, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32,	/* ff40-ff4f */
 	-32, -32, -32, -32, -32, -32, -32, -32, -32, -32, -32,
 };
@@ -126,7 +132,8 @@ static signed char UniCaseRangeUff40[27] = {
 /*
  * Upper Case Range
  */
-const struct UniCaseRange CifsUniUpperRange[] = {
+const struct UniCaseRange CifsUniUpperRange[] =
+{
 	{0x03a0, 0x03ce, UniCaseRangeU03a0},
 	{0x0430, 0x045f, UniCaseRangeU0430},
 	{0x0490, 0x04cc, UniCaseRangeU0490},
@@ -140,7 +147,8 @@ const struct UniCaseRange CifsUniUpperRange[] = {
 /*
  * Latin lower case
  */
-signed char CifsUniLowerTable[512] = {
+signed char CifsUniLowerTable[512] =
+{
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* 000-00f */
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* 010-01f */
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* 020-02f */
@@ -176,21 +184,24 @@ signed char CifsUniLowerTable[512] = {
 };
 
 /* Lower case range - Greek */
-static signed char UniCaseRangeL0380[44] = {
+static signed char UniCaseRangeL0380[44] =
+{
 	0, 0, 0, 0, 0, 0, 38, 0, 37, 37, 37, 0, 64, 0, 63, 63,	/* 380-38f */
 	0, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,	/* 390-39f */
 	32, 32, 0, 32, 32, 32, 32, 32, 32, 32, 32, 32,
 };
 
 /* Lower case range - Cyrillic */
-static signed char UniCaseRangeL0400[48] = {
+static signed char UniCaseRangeL0400[48] =
+{
 	0, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 0, 80, 80,	/* 400-40f */
 	32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,	/* 410-41f */
 	32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,	/* 420-42f */
 };
 
 /* Lower case range - Extended cyrillic */
-static signed char UniCaseRangeL0490[60] = {
+static signed char UniCaseRangeL0490[60] =
+{
 	1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,	/* 490-49f */
 	1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,	/* 4a0-4af */
 	1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,	/* 4b0-4bf */
@@ -198,7 +209,8 @@ static signed char UniCaseRangeL0490[60] = {
 };
 
 /* Lower case range - Extended latin and greek */
-static signed char UniCaseRangeL1e00[504] = {
+static signed char UniCaseRangeL1e00[504] =
+{
 	1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,	/* 1e00-1e0f */
 	1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,	/* 1e10-1e1f */
 	1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,	/* 1e20-1e2f */
@@ -234,7 +246,8 @@ static signed char UniCaseRangeL1e00[504] = {
 };
 
 /* Lower case range - Wide latin */
-static signed char UniCaseRangeLff20[27] = {
+static signed char UniCaseRangeLff20[27] =
+{
 	0, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,	/* ff20-ff2f */
 	32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
 };
@@ -242,7 +255,8 @@ static signed char UniCaseRangeLff20[27] = {
 /*
  * Lower Case Range
  */
-const struct UniCaseRange CifsUniLowerRange[] = {
+const struct UniCaseRange CifsUniLowerRange[] =
+{
 	{0x0380, 0x03ab, UniCaseRangeL0380},
 	{0x0400, 0x042f, UniCaseRangeL0400},
 	{0x0490, 0x04cb, UniCaseRangeL0490},

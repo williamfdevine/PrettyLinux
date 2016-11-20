@@ -28,8 +28,12 @@ static inline struct neighbour *__ipv4_neigh_lookup(struct net_device *dev, u32 
 
 	rcu_read_lock_bh();
 	n = __ipv4_neigh_lookup_noref(dev, key);
+
 	if (n && !atomic_inc_not_zero(&n->refcnt))
+	{
 		n = NULL;
+	}
+
 	rcu_read_unlock_bh();
 
 	return n;
@@ -38,17 +42,17 @@ static inline struct neighbour *__ipv4_neigh_lookup(struct net_device *dev, u32 
 void arp_init(void);
 int arp_ioctl(struct net *net, unsigned int cmd, void __user *arg);
 void arp_send(int type, int ptype, __be32 dest_ip,
-	      struct net_device *dev, __be32 src_ip,
-	      const unsigned char *dest_hw,
-	      const unsigned char *src_hw, const unsigned char *th);
+			  struct net_device *dev, __be32 src_ip,
+			  const unsigned char *dest_hw,
+			  const unsigned char *src_hw, const unsigned char *th);
 int arp_mc_map(__be32 addr, u8 *haddr, struct net_device *dev, int dir);
 void arp_ifdown(struct net_device *dev);
 
 struct sk_buff *arp_create(int type, int ptype, __be32 dest_ip,
-			   struct net_device *dev, __be32 src_ip,
-			   const unsigned char *dest_hw,
-			   const unsigned char *src_hw,
-			   const unsigned char *target_hw);
+						   struct net_device *dev, __be32 src_ip,
+						   const unsigned char *dest_hw,
+						   const unsigned char *src_hw,
+						   const unsigned char *target_hw);
 void arp_xmit(struct sk_buff *skb);
 
 #endif	/* _ARP_H */

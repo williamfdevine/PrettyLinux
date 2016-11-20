@@ -20,7 +20,7 @@
 #include <linux/skbuff.h>
 
 static struct sk_buff *mpls_gso_segment(struct sk_buff *skb,
-				       netdev_features_t features)
+										netdev_features_t features)
 {
 	struct sk_buff *segs = ERR_PTR(-EINVAL);
 	u16 mac_offset = skb->mac_header;
@@ -31,8 +31,11 @@ static struct sk_buff *mpls_gso_segment(struct sk_buff *skb,
 
 	skb_reset_network_header(skb);
 	mpls_hlen = skb_inner_network_header(skb) - skb_network_header(skb);
+
 	if (unlikely(!pskb_may_pull(skb, mpls_hlen)))
+	{
 		goto out;
+	}
 
 	/* Setup inner SKB. */
 	mpls_protocol = skb->protocol;
@@ -46,15 +49,20 @@ static struct sk_buff *mpls_gso_segment(struct sk_buff *skb,
 	/* Segment inner packet. */
 	mpls_features = skb->dev->mpls_features & features;
 	segs = skb_mac_gso_segment(skb, mpls_features);
-	if (IS_ERR_OR_NULL(segs)) {
+
+	if (IS_ERR_OR_NULL(segs))
+	{
 		skb_gso_error_unwind(skb, mpls_protocol, mpls_hlen, mac_offset,
-				     mac_len);
+							 mac_len);
 		goto out;
 	}
+
 	skb = segs;
 
 	mpls_hlen += mac_len;
-	do {
+
+	do
+	{
 		skb->mac_len = mac_len;
 		skb->protocol = mpls_protocol;
 
@@ -64,13 +72,15 @@ static struct sk_buff *mpls_gso_segment(struct sk_buff *skb,
 
 		skb_reset_mac_header(skb);
 		skb_set_network_header(skb, mac_len);
-	} while ((skb = skb->next));
+	}
+	while ((skb = skb->next));
 
 out:
 	return segs;
 }
 
-static struct packet_offload mpls_mc_offload __read_mostly = {
+static struct packet_offload mpls_mc_offload __read_mostly =
+{
 	.type = cpu_to_be16(ETH_P_MPLS_MC),
 	.priority = 15,
 	.callbacks = {
@@ -78,7 +88,8 @@ static struct packet_offload mpls_mc_offload __read_mostly = {
 	},
 };
 
-static struct packet_offload mpls_uc_offload __read_mostly = {
+static struct packet_offload mpls_uc_offload __read_mostly =
+{
 	.type = cpu_to_be16(ETH_P_MPLS_UC),
 	.priority = 15,
 	.callbacks = {

@@ -20,8 +20,8 @@
 #define tmio_iowrite16_rep(r, b, l) writesw(r, b, l)
 #define tmio_iowrite32(val, addr) \
 	do { \
-	writew((val),       (addr)); \
-	writew((val) >> 16, (addr) + 2); \
+		writew((val),       (addr)); \
+		writew((val) >> 16, (addr) + 2); \
 	} while (0)
 
 #define CNF_CMD     0x04
@@ -114,7 +114,8 @@ struct dma_chan;
 /*
  * data for the MMC controller
  */
-struct tmio_mmc_data {
+struct tmio_mmc_data
+{
 	void				*chan_priv_tx;
 	void				*chan_priv_rx;
 	unsigned int			hclk;
@@ -132,7 +133,8 @@ struct tmio_mmc_data {
 /*
  * data for the NAND controller
  */
-struct tmio_nand_data {
+struct tmio_nand_data
+{
 	struct nand_bbt_descr	*badblock_pattern;
 	struct mtd_partition	*partition;
 	unsigned int		num_partitions;
@@ -141,11 +143,12 @@ struct tmio_nand_data {
 #define FBIO_TMIO_ACC_WRITE	0x7C639300
 #define FBIO_TMIO_ACC_SYNC	0x7C639301
 
-struct tmio_fb_data {
+struct tmio_fb_data
+{
 	int			(*lcd_set_power)(struct platform_device *fb_dev,
-								bool on);
+								 bool on);
 	int			(*lcd_mode)(struct platform_device *fb_dev,
-					const struct fb_videomode *mode);
+							const struct fb_videomode *mode);
 	int			num_modes;
 	struct fb_videomode	*modes;
 

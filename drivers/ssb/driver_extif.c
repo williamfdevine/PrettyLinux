@@ -28,7 +28,7 @@ static inline void extif_write32(struct ssb_extif *extif, u16 offset, u32 value)
 }
 
 static inline u32 extif_write32_masked(struct ssb_extif *extif, u16 offset,
-				       u32 mask, u32 value)
+									   u32 mask, u32 value)
 {
 	value &= mask;
 	value |= extif_read32(extif, offset) & ~mask;
@@ -42,13 +42,15 @@ static bool serial_exists(u8 *regs)
 {
 	u8 save_mcr, msr = 0;
 
-	if (regs) {
+	if (regs)
+	{
 		save_mcr = regs[UART_MCR];
 		regs[UART_MCR] = (UART_MCR_LOOP | UART_MCR_OUT2 | UART_MCR_RTS);
 		msr = regs[UART_MSR] & (UART_MSR_DCD | UART_MSR_RI
-					| UART_MSR_CTS | UART_MSR_DSR);
+								| UART_MSR_CTS | UART_MSR_DSR);
 		regs[UART_MCR] = save_mcr;
 	}
+
 	return (msr == (UART_MSR_DCD | UART_MSR_CTS));
 }
 
@@ -60,14 +62,18 @@ int ssb_extif_serial_init(struct ssb_extif *extif, struct ssb_serial_port *ports
 	extif_write32(extif, SSB_EXTIF_GPIO_INTPOL, 0);
 	extif_write32(extif, SSB_EXTIF_GPIO_INTMASK, 0);
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		void __iomem *uart_regs;
 
 		uart_regs = ioremap_nocache(SSB_EUART, 16);
-		if (uart_regs) {
+
+		if (uart_regs)
+		{
 			uart_regs += (i * 8);
 
-			if (serial_exists(uart_regs) && ports) {
+			if (serial_exists(uart_regs) && ports)
+			{
 				extif_write32(extif, SSB_EXTIF_GPIO_INTMASK, 2);
 
 				nr_ports++;
@@ -76,9 +82,11 @@ int ssb_extif_serial_init(struct ssb_extif *extif, struct ssb_serial_port *ports
 				ports[i].baud_base = 13500000;
 				ports[i].reg_shift = 0;
 			}
+
 			iounmap(uart_regs);
 		}
 	}
+
 	return nr_ports;
 }
 #endif /* CONFIG_SSB_SERIAL */
@@ -105,7 +113,7 @@ void ssb_extif_timing_init(struct ssb_extif *extif, unsigned long ns)
 }
 
 void ssb_extif_get_clockcontrol(struct ssb_extif *extif,
-				u32 *pll_type, u32 *n, u32 *m)
+								u32 *pll_type, u32 *n, u32 *m)
 {
 	*pll_type = SSB_PLLTYPE_1;
 	*n = extif_read32(extif, SSB_EXTIF_CLOCK_N);
@@ -132,7 +140,10 @@ u32 ssb_extif_watchdog_timer_set_ms(struct bcm47xx_wdt *wdt, u32 ms)
 u32 ssb_extif_watchdog_timer_set(struct ssb_extif *extif, u32 ticks)
 {
 	if (ticks > SSB_EXTIF_WATCHDOG_MAX_TIMER)
+	{
 		ticks = SSB_EXTIF_WATCHDOG_MAX_TIMER;
+	}
+
 	extif_write32(extif, SSB_EXTIF_WATCHDOG, ticks);
 
 	return ticks;
@@ -141,7 +152,10 @@ u32 ssb_extif_watchdog_timer_set(struct ssb_extif *extif, u32 ticks)
 void ssb_extif_init(struct ssb_extif *extif)
 {
 	if (!extif->dev)
-		return; /* We don't have a Extif core */
+	{
+		return;    /* We don't have a Extif core */
+	}
+
 	spin_lock_init(&extif->gpio_lock);
 }
 
@@ -157,7 +171,7 @@ u32 ssb_extif_gpio_out(struct ssb_extif *extif, u32 mask, u32 value)
 
 	spin_lock_irqsave(&extif->gpio_lock, flags);
 	res = extif_write32_masked(extif, SSB_EXTIF_GPIO_OUT(0),
-				   mask, value);
+							   mask, value);
 	spin_unlock_irqrestore(&extif->gpio_lock, flags);
 
 	return res;
@@ -170,7 +184,7 @@ u32 ssb_extif_gpio_outen(struct ssb_extif *extif, u32 mask, u32 value)
 
 	spin_lock_irqsave(&extif->gpio_lock, flags);
 	res = extif_write32_masked(extif, SSB_EXTIF_GPIO_OUTEN(0),
-				   mask, value);
+							   mask, value);
 	spin_unlock_irqrestore(&extif->gpio_lock, flags);
 
 	return res;

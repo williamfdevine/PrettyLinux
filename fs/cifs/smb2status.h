@@ -34,7 +34,8 @@
 #define STATUS_SEVERITY_WARNING __constanst_cpu_to_le32(0x0002)
 #define STATUS_SEVERITY_ERROR __constanst_cpu_to_le32(0x0003)
 
-struct ntstatus {
+struct ntstatus
+{
 	/* Facility is the high 12 bits of the following field */
 	__le32 Facility; /* low 2 bits Severity, next is Customer, then rsrvd */
 	__le32 Code;

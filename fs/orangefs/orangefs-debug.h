@@ -13,9 +13,9 @@
 #define __ORANGEFS_DEBUG_H
 
 #ifdef __KERNEL__
-#include <linux/types.h>
+	#include <linux/types.h>
 #else
-#include <stdint.h>
+	#include <stdint.h>
 #endif
 
 #define	GOSSIP_NO_DEBUG			(__u64)0
@@ -47,7 +47,8 @@ char *ORANGEFS_debug_mask_to_eventlog(__u64 mask);
 char *ORANGEFS_kmod_mask_to_eventlog(__u64 mask);
 
 /* a private internal type */
-struct __keyword_mask_s {
+struct __keyword_mask_s
+{
 	const char *keyword;
 	__u64 mask_val;
 };
@@ -65,7 +66,8 @@ struct __keyword_mask_s {
  *     qux          8           3
  *      .           .           .
  */
-static struct __keyword_mask_s s_kmod_keyword_mask_map[] = {
+static struct __keyword_mask_s s_kmod_keyword_mask_map[] =
+{
 	{"super", GOSSIP_SUPER_DEBUG},
 	{"inode", GOSSIP_INODE_DEBUG},
 	{"file", GOSSIP_FILE_DEBUG},
@@ -87,6 +89,6 @@ static struct __keyword_mask_s s_kmod_keyword_mask_map[] = {
 };
 
 static const int num_kmod_keyword_mask_map = (int)
-	(sizeof(s_kmod_keyword_mask_map) / sizeof(struct __keyword_mask_s));
+		(sizeof(s_kmod_keyword_mask_map) / sizeof(struct __keyword_mask_s));
 
 #endif /* __ORANGEFS_DEBUG_H */

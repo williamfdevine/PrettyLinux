@@ -54,7 +54,8 @@
 
 #define SPI_NOR_MAX_ID_LEN	6
 
-struct nxp_spifi {
+struct nxp_spifi
+{
 	struct device *dev;
 	struct clk *clk_spifi;
 	struct clk *clk_reg;
@@ -71,9 +72,12 @@ static int nxp_spifi_wait_for_cmd(struct nxp_spifi *spifi)
 	int ret;
 
 	ret = readb_poll_timeout(spifi->io_base + SPIFI_STAT, stat,
-				 !(stat & SPIFI_STAT_CMD), 10, 30);
+							 !(stat & SPIFI_STAT_CMD), 10, 30);
+
 	if (ret)
+	{
 		dev_warn(spifi->dev, "command timed out\n");
+	}
 
 	return ret;
 }
@@ -85,9 +89,12 @@ static int nxp_spifi_reset(struct nxp_spifi *spifi)
 
 	writel(SPIFI_STAT_RESET, spifi->io_base + SPIFI_STAT);
 	ret = readb_poll_timeout(spifi->io_base + SPIFI_STAT, stat,
-				 !(stat & SPIFI_STAT_RESET), 10, 30);
+							 !(stat & SPIFI_STAT_RESET), 10, 30);
+
 	if (ret)
+	{
 		dev_warn(spifi->dev, "state reset timed out\n");
+	}
 
 	return ret;
 }
@@ -97,13 +104,20 @@ static int nxp_spifi_set_memory_mode_off(struct nxp_spifi *spifi)
 	int ret;
 
 	if (!spifi->memory_mode)
+	{
 		return 0;
+	}
 
 	ret = nxp_spifi_reset(spifi);
+
 	if (ret)
+	{
 		dev_err(spifi->dev, "unable to enter command mode\n");
+	}
 	else
+	{
 		spifi->memory_mode = false;
+	}
 
 	return ret;
 }
@@ -114,15 +128,22 @@ static int nxp_spifi_set_memory_mode_on(struct nxp_spifi *spifi)
 	int ret;
 
 	if (spifi->memory_mode)
+	{
 		return 0;
+	}
 
 	writel(spifi->mcmd, spifi->io_base + SPIFI_MCMD);
 	ret = readb_poll_timeout(spifi->io_base + SPIFI_STAT, stat,
-				 stat & SPIFI_STAT_MCINIT, 10, 30);
+							 stat & SPIFI_STAT_MCINIT, 10, 30);
+
 	if (ret)
+	{
 		dev_err(spifi->dev, "unable to enter memory mode\n");
+	}
 	else
+	{
 		spifi->memory_mode = true;
+	}
 
 	return ret;
 }
@@ -134,17 +155,22 @@ static int nxp_spifi_read_reg(struct spi_nor *nor, u8 opcode, u8 *buf, int len)
 	int ret;
 
 	ret = nxp_spifi_set_memory_mode_off(spifi);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	cmd = SPIFI_CMD_DATALEN(len) |
-	      SPIFI_CMD_OPCODE(opcode) |
-	      SPIFI_CMD_FIELDFORM_ALL_SERIAL |
-	      SPIFI_CMD_FRAMEFORM_OPCODE_ONLY;
+		  SPIFI_CMD_OPCODE(opcode) |
+		  SPIFI_CMD_FIELDFORM_ALL_SERIAL |
+		  SPIFI_CMD_FRAMEFORM_OPCODE_ONLY;
 	writel(cmd, spifi->io_base + SPIFI_CMD);
 
 	while (len--)
+	{
 		*buf++ = readb(spifi->io_base + SPIFI_DATA);
+	}
 
 	return nxp_spifi_wait_for_cmd(spifi);
 }
@@ -156,31 +182,39 @@ static int nxp_spifi_write_reg(struct spi_nor *nor, u8 opcode, u8 *buf, int len)
 	int ret;
 
 	ret = nxp_spifi_set_memory_mode_off(spifi);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	cmd = SPIFI_CMD_DOUT |
-	      SPIFI_CMD_DATALEN(len) |
-	      SPIFI_CMD_OPCODE(opcode) |
-	      SPIFI_CMD_FIELDFORM_ALL_SERIAL |
-	      SPIFI_CMD_FRAMEFORM_OPCODE_ONLY;
+		  SPIFI_CMD_DATALEN(len) |
+		  SPIFI_CMD_OPCODE(opcode) |
+		  SPIFI_CMD_FIELDFORM_ALL_SERIAL |
+		  SPIFI_CMD_FRAMEFORM_OPCODE_ONLY;
 	writel(cmd, spifi->io_base + SPIFI_CMD);
 
 	while (len--)
+	{
 		writeb(*buf++, spifi->io_base + SPIFI_DATA);
+	}
 
 	return nxp_spifi_wait_for_cmd(spifi);
 }
 
 static ssize_t nxp_spifi_read(struct spi_nor *nor, loff_t from, size_t len,
-			      u_char *buf)
+							  u_char *buf)
 {
 	struct nxp_spifi *spifi = nor->priv;
 	int ret;
 
 	ret = nxp_spifi_set_memory_mode_on(spifi);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	memcpy_fromio(buf, spifi->flash_base + from, len);
 
@@ -188,7 +222,7 @@ static ssize_t nxp_spifi_read(struct spi_nor *nor, loff_t from, size_t len,
 }
 
 static ssize_t nxp_spifi_write(struct spi_nor *nor, loff_t to, size_t len,
-			       const u_char *buf)
+							   const u_char *buf)
 {
 	struct nxp_spifi *spifi = nor->priv;
 	u32 cmd;
@@ -196,24 +230,32 @@ static ssize_t nxp_spifi_write(struct spi_nor *nor, loff_t to, size_t len,
 	size_t i;
 
 	ret = nxp_spifi_set_memory_mode_off(spifi);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	writel(to, spifi->io_base + SPIFI_ADDR);
 
 	cmd = SPIFI_CMD_DOUT |
-	      SPIFI_CMD_DATALEN(len) |
-	      SPIFI_CMD_FIELDFORM_ALL_SERIAL |
-	      SPIFI_CMD_OPCODE(nor->program_opcode) |
-	      SPIFI_CMD_FRAMEFORM(spifi->nor.addr_width + 1);
+		  SPIFI_CMD_DATALEN(len) |
+		  SPIFI_CMD_FIELDFORM_ALL_SERIAL |
+		  SPIFI_CMD_OPCODE(nor->program_opcode) |
+		  SPIFI_CMD_FRAMEFORM(spifi->nor.addr_width + 1);
 	writel(cmd, spifi->io_base + SPIFI_CMD);
 
 	for (i = 0; i < len; i++)
+	{
 		writeb(buf[i], spifi->io_base + SPIFI_DATA);
+	}
 
 	ret = nxp_spifi_wait_for_cmd(spifi);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return len;
 }
@@ -225,14 +267,17 @@ static int nxp_spifi_erase(struct spi_nor *nor, loff_t offs)
 	int ret;
 
 	ret = nxp_spifi_set_memory_mode_off(spifi);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	writel(offs, spifi->io_base + SPIFI_ADDR);
 
 	cmd = SPIFI_CMD_FIELDFORM_ALL_SERIAL |
-	      SPIFI_CMD_OPCODE(nor->erase_opcode) |
-	      SPIFI_CMD_FRAMEFORM(spifi->nor.addr_width + 1);
+		  SPIFI_CMD_OPCODE(nor->erase_opcode) |
+		  SPIFI_CMD_FRAMEFORM(spifi->nor.addr_width + 1);
 	writel(cmd, spifi->io_base + SPIFI_CMD);
 
 	return nxp_spifi_wait_for_cmd(spifi);
@@ -240,27 +285,32 @@ static int nxp_spifi_erase(struct spi_nor *nor, loff_t offs)
 
 static int nxp_spifi_setup_memory_cmd(struct nxp_spifi *spifi)
 {
-	switch (spifi->nor.flash_read) {
-	case SPI_NOR_NORMAL:
-	case SPI_NOR_FAST:
-		spifi->mcmd = SPIFI_CMD_FIELDFORM_ALL_SERIAL;
-		break;
-	case SPI_NOR_DUAL:
-	case SPI_NOR_QUAD:
-		spifi->mcmd = SPIFI_CMD_FIELDFORM_QUAD_DUAL_DATA;
-		break;
-	default:
-		dev_err(spifi->dev, "unsupported SPI read mode\n");
-		return -EINVAL;
+	switch (spifi->nor.flash_read)
+	{
+		case SPI_NOR_NORMAL:
+		case SPI_NOR_FAST:
+			spifi->mcmd = SPIFI_CMD_FIELDFORM_ALL_SERIAL;
+			break;
+
+		case SPI_NOR_DUAL:
+		case SPI_NOR_QUAD:
+			spifi->mcmd = SPIFI_CMD_FIELDFORM_QUAD_DUAL_DATA;
+			break;
+
+		default:
+			dev_err(spifi->dev, "unsupported SPI read mode\n");
+			return -EINVAL;
 	}
 
 	/* Memory mode supports address length between 1 and 4 */
 	if (spifi->nor.addr_width < 1 || spifi->nor.addr_width > 4)
+	{
 		return -EINVAL;
+	}
 
 	spifi->mcmd |= SPIFI_CMD_OPCODE(spifi->nor.read_opcode) |
-		       SPIFI_CMD_INTLEN(spifi->nor.read_dummy / 8) |
-		       SPIFI_CMD_FRAMEFORM(spifi->nor.addr_width + 1);
+				   SPIFI_CMD_INTLEN(spifi->nor.read_dummy / 8) |
+				   SPIFI_CMD_FRAMEFORM(spifi->nor.addr_width + 1);
 
 	return 0;
 }
@@ -272,61 +322,78 @@ static void nxp_spifi_dummy_id_read(struct spi_nor *nor)
 }
 
 static int nxp_spifi_setup_flash(struct nxp_spifi *spifi,
-				 struct device_node *np)
+								 struct device_node *np)
 {
 	enum read_mode flash_read;
 	u32 ctrl, property;
 	u16 mode = 0;
 	int ret;
 
-	if (!of_property_read_u32(np, "spi-rx-bus-width", &property)) {
-		switch (property) {
-		case 1:
-			break;
-		case 2:
-			mode |= SPI_RX_DUAL;
-			break;
-		case 4:
-			mode |= SPI_RX_QUAD;
-			break;
-		default:
-			dev_err(spifi->dev, "unsupported rx-bus-width\n");
-			return -EINVAL;
+	if (!of_property_read_u32(np, "spi-rx-bus-width", &property))
+	{
+		switch (property)
+		{
+			case 1:
+				break;
+
+			case 2:
+				mode |= SPI_RX_DUAL;
+				break;
+
+			case 4:
+				mode |= SPI_RX_QUAD;
+				break;
+
+			default:
+				dev_err(spifi->dev, "unsupported rx-bus-width\n");
+				return -EINVAL;
 		}
 	}
 
 	if (of_find_property(np, "spi-cpha", NULL))
+	{
 		mode |= SPI_CPHA;
+	}
 
 	if (of_find_property(np, "spi-cpol", NULL))
+	{
 		mode |= SPI_CPOL;
+	}
 
 	/* Setup control register defaults */
 	ctrl = SPIFI_CTRL_TIMEOUT(1000) |
-	       SPIFI_CTRL_CSHIGH(15) |
-	       SPIFI_CTRL_FBCLK;
+		   SPIFI_CTRL_CSHIGH(15) |
+		   SPIFI_CTRL_FBCLK;
 
-	if (mode & SPI_RX_DUAL) {
+	if (mode & SPI_RX_DUAL)
+	{
 		ctrl |= SPIFI_CTRL_DUAL;
 		flash_read = SPI_NOR_DUAL;
-	} else if (mode & SPI_RX_QUAD) {
+	}
+	else if (mode & SPI_RX_QUAD)
+	{
 		ctrl &= ~SPIFI_CTRL_DUAL;
 		flash_read = SPI_NOR_QUAD;
-	} else {
+	}
+	else
+	{
 		ctrl |= SPIFI_CTRL_DUAL;
 		flash_read = SPI_NOR_NORMAL;
 	}
 
-	switch (mode & (SPI_CPHA | SPI_CPOL)) {
-	case SPI_MODE_0:
-		ctrl &= ~SPIFI_CTRL_MODE3;
-		break;
-	case SPI_MODE_3:
-		ctrl |= SPIFI_CTRL_MODE3;
-		break;
-	default:
-		dev_err(spifi->dev, "only mode 0 and 3 supported\n");
-		return -EINVAL;
+	switch (mode & (SPI_CPHA | SPI_CPOL))
+	{
+		case SPI_MODE_0:
+			ctrl &= ~SPIFI_CTRL_MODE3;
+			break;
+
+		case SPI_MODE_3:
+			ctrl |= SPIFI_CTRL_MODE3;
+			break;
+
+		default:
+			dev_err(spifi->dev, "only mode 0 and 3 supported\n");
+			return -EINVAL;
 	}
 
 	writel(ctrl, spifi->io_base + SPIFI_CTRL);
@@ -352,19 +419,25 @@ static int nxp_spifi_setup_flash(struct nxp_spifi *spifi,
 	nxp_spifi_dummy_id_read(&spifi->nor);
 
 	ret = spi_nor_scan(&spifi->nor, NULL, flash_read);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(spifi->dev, "device scan failed\n");
 		return ret;
 	}
 
 	ret = nxp_spifi_setup_memory_cmd(spifi);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(spifi->dev, "memory command setup failed\n");
 		return ret;
 	}
 
 	ret = mtd_device_register(&spifi->nor.mtd, NULL, 0);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(spifi->dev, "mtd device parse failed\n");
 		return ret;
 	}
@@ -380,39 +453,56 @@ static int nxp_spifi_probe(struct platform_device *pdev)
 	int ret;
 
 	spifi = devm_kzalloc(&pdev->dev, sizeof(*spifi), GFP_KERNEL);
+
 	if (!spifi)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "spifi");
 	spifi->io_base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(spifi->io_base))
+	{
 		return PTR_ERR(spifi->io_base);
+	}
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "flash");
 	spifi->flash_base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(spifi->flash_base))
+	{
 		return PTR_ERR(spifi->flash_base);
+	}
 
 	spifi->clk_spifi = devm_clk_get(&pdev->dev, "spifi");
-	if (IS_ERR(spifi->clk_spifi)) {
+
+	if (IS_ERR(spifi->clk_spifi))
+	{
 		dev_err(&pdev->dev, "spifi clock not found\n");
 		return PTR_ERR(spifi->clk_spifi);
 	}
 
 	spifi->clk_reg = devm_clk_get(&pdev->dev, "reg");
-	if (IS_ERR(spifi->clk_reg)) {
+
+	if (IS_ERR(spifi->clk_reg))
+	{
 		dev_err(&pdev->dev, "reg clock not found\n");
 		return PTR_ERR(spifi->clk_reg);
 	}
 
 	ret = clk_prepare_enable(spifi->clk_reg);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to enable reg clock\n");
 		return ret;
 	}
 
 	ret = clk_prepare_enable(spifi->clk_spifi);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to enable spifi clock\n");
 		goto dis_clk_reg;
 	}
@@ -427,14 +517,18 @@ static int nxp_spifi_probe(struct platform_device *pdev)
 	nxp_spifi_reset(spifi);
 
 	flash_np = of_get_next_available_child(pdev->dev.of_node, NULL);
-	if (!flash_np) {
+
+	if (!flash_np)
+	{
 		dev_err(&pdev->dev, "no SPI flash device to configure\n");
 		ret = -ENODEV;
 		goto dis_clks;
 	}
 
 	ret = nxp_spifi_setup_flash(spifi, flash_np);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to setup flash chip\n");
 		goto dis_clks;
 	}
@@ -459,13 +553,15 @@ static int nxp_spifi_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id nxp_spifi_match[] = {
+static const struct of_device_id nxp_spifi_match[] =
+{
 	{.compatible = "nxp,lpc1773-spifi"},
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, nxp_spifi_match);
 
-static struct platform_driver nxp_spifi_driver = {
+static struct platform_driver nxp_spifi_driver =
+{
 	.probe	= nxp_spifi_probe,
 	.remove	= nxp_spifi_remove,
 	.driver	= {

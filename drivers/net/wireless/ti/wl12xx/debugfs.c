@@ -118,24 +118,28 @@ WL12XX_DEBUGFS_FWSTATS_FILE(ps, upsd_utilization, "%u");
 WL12XX_DEBUGFS_FWSTATS_FILE(rxpipe, rx_prep_beacon_drop, "%u");
 WL12XX_DEBUGFS_FWSTATS_FILE(rxpipe, descr_host_int_trig_rx_data, "%u");
 WL12XX_DEBUGFS_FWSTATS_FILE(rxpipe, beacon_buffer_thres_host_int_trig_rx_data,
-			    "%u");
+							"%u");
 WL12XX_DEBUGFS_FWSTATS_FILE(rxpipe, missed_beacon_host_int_trig_rx_data, "%u");
 WL12XX_DEBUGFS_FWSTATS_FILE(rxpipe, tx_xfr_host_int_trig_rx_data, "%u");
 
 int wl12xx_debugfs_add_files(struct wl1271 *wl,
-			     struct dentry *rootdir)
+							 struct dentry *rootdir)
 {
 	int ret = 0;
 	struct dentry *entry, *stats, *moddir;
 
 	moddir = debugfs_create_dir(KBUILD_MODNAME, rootdir);
-	if (!moddir || IS_ERR(moddir)) {
+
+	if (!moddir || IS_ERR(moddir))
+	{
 		entry = moddir;
 		goto err;
 	}
 
 	stats = debugfs_create_dir("fw_stats", moddir);
-	if (!stats || IS_ERR(stats)) {
+
+	if (!stats || IS_ERR(stats))
+	{
 		entry = stats;
 		goto err;
 	}
@@ -234,10 +238,15 @@ int wl12xx_debugfs_add_files(struct wl1271 *wl,
 	return 0;
 
 err:
+
 	if (IS_ERR(entry))
+	{
 		ret = PTR_ERR(entry);
+	}
 	else
+	{
 		ret = -ENOMEM;
+	}
 
 	return ret;
 }

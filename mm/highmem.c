@@ -31,7 +31,7 @@
 
 
 #if defined(CONFIG_HIGHMEM) || defined(CONFIG_X86_32)
-DEFINE_PER_CPU(int, __kmap_atomic_idx);
+	DEFINE_PER_CPU(int, __kmap_atomic_idx);
 #endif
 
 /*
@@ -115,9 +115,12 @@ unsigned int nr_free_highpages (void)
 	struct zone *zone;
 	unsigned int pages = 0;
 
-	for_each_populated_zone(zone) {
+	for_each_populated_zone(zone)
+	{
 		if (is_highmem(zone))
+		{
 			pages += zone_page_state(zone, NR_FREE_PAGES);
+		}
 	}
 
 	return pages;
@@ -126,7 +129,7 @@ unsigned int nr_free_highpages (void)
 static int pkmap_count[LAST_PKMAP];
 static  __cacheline_aligned_in_smp DEFINE_SPINLOCK(kmap_lock);
 
-pte_t * pkmap_page_table;
+pte_t *pkmap_page_table;
 
 /*
  * Most architectures have no use for kmap_high_get(), so let's abstract
@@ -142,16 +145,17 @@ pte_t * pkmap_page_table;
 #define lock_kmap()             spin_lock(&kmap_lock)
 #define unlock_kmap()           spin_unlock(&kmap_lock)
 #define lock_kmap_any(flags)    \
-		do { spin_lock(&kmap_lock); (void)(flags); } while (0)
+	do { spin_lock(&kmap_lock); (void)(flags); } while (0)
 #define unlock_kmap_any(flags)  \
-		do { spin_unlock(&kmap_lock); (void)(flags); } while (0)
+	do { spin_unlock(&kmap_lock); (void)(flags); } while (0)
 #endif
 
 struct page *kmap_to_page(void *vaddr)
 {
 	unsigned long addr = (unsigned long)vaddr;
 
-	if (addr >= PKMAP_ADDR(0) && addr < PKMAP_ADDR(LAST_PKMAP)) {
+	if (addr >= PKMAP_ADDR(0) && addr < PKMAP_ADDR(LAST_PKMAP))
+	{
 		int i = PKMAP_NR(addr);
 		return pte_page(pkmap_page_table[i]);
 	}
@@ -167,7 +171,8 @@ static void flush_all_zero_pkmaps(void)
 
 	flush_cache_kmaps();
 
-	for (i = 0; i < LAST_PKMAP; i++) {
+	for (i = 0; i < LAST_PKMAP; i++)
+	{
 		struct page *page;
 
 		/*
@@ -177,7 +182,10 @@ static void flush_all_zero_pkmaps(void)
 		 * needs to be unmapped
 		 */
 		if (pkmap_count[i] != 1)
+		{
 			continue;
+		}
+
 		pkmap_count[i] = 0;
 
 		/* sanity check */
@@ -196,8 +204,11 @@ static void flush_all_zero_pkmaps(void)
 		set_page_address(page, NULL);
 		need_flush = 1;
 	}
+
 	if (need_flush)
+	{
 		flush_tlb_kernel_range(PKMAP_ADDR(0), PKMAP_ADDR(LAST_PKMAP));
+	}
 }
 
 /**
@@ -219,17 +230,27 @@ static inline unsigned long map_new_virtual(struct page *page)
 
 start:
 	count = get_pkmap_entries_count(color);
+
 	/* Find an empty entry */
-	for (;;) {
+	for (;;)
+	{
 		last_pkmap_nr = get_next_pkmap_nr(color);
-		if (no_more_pkmaps(last_pkmap_nr, color)) {
+
+		if (no_more_pkmaps(last_pkmap_nr, color))
+		{
 			flush_all_zero_pkmaps();
 			count = get_pkmap_entries_count(color);
 		}
+
 		if (!pkmap_count[last_pkmap_nr])
-			break;	/* Found a usable entry */
+		{
+			break;    /* Found a usable entry */
+		}
+
 		if (--count)
+		{
 			continue;
+		}
 
 		/*
 		 * Sleep for somebody else to unmap their entries
@@ -248,15 +269,18 @@ start:
 
 			/* Somebody else might have mapped it while we slept */
 			if (page_address(page))
+			{
 				return (unsigned long)page_address(page);
+			}
 
 			/* Re-start */
 			goto start;
 		}
 	}
+
 	vaddr = PKMAP_ADDR(last_pkmap_nr);
 	set_pte_at(&init_mm, vaddr,
-		   &(pkmap_page_table[last_pkmap_nr]), mk_pte(page, kmap_prot));
+			   &(pkmap_page_table[last_pkmap_nr]), mk_pte(page, kmap_prot));
 
 	pkmap_count[last_pkmap_nr] = 1;
 	set_page_address(page, (void *)vaddr);
@@ -282,12 +306,16 @@ void *kmap_high(struct page *page)
 	 */
 	lock_kmap();
 	vaddr = (unsigned long)page_address(page);
+
 	if (!vaddr)
+	{
 		vaddr = map_new_virtual(page);
+	}
+
 	pkmap_count[PKMAP_NR(vaddr)]++;
 	BUG_ON(pkmap_count[PKMAP_NR(vaddr)] < 2);
 	unlock_kmap();
-	return (void*) vaddr;
+	return (void *) vaddr;
 }
 
 EXPORT_SYMBOL(kmap_high);
@@ -309,12 +337,15 @@ void *kmap_high_get(struct page *page)
 
 	lock_kmap_any(flags);
 	vaddr = (unsigned long)page_address(page);
-	if (vaddr) {
+
+	if (vaddr)
+	{
 		BUG_ON(pkmap_count[PKMAP_NR(vaddr)] < 1);
 		pkmap_count[PKMAP_NR(vaddr)]++;
 	}
+
 	unlock_kmap_any(flags);
-	return (void*) vaddr;
+	return (void *) vaddr;
 }
 #endif
 
@@ -344,28 +375,34 @@ void kunmap_high(struct page *page)
 	 * without a TLB flush!
 	 */
 	need_wakeup = 0;
-	switch (--pkmap_count[nr]) {
-	case 0:
-		BUG();
-	case 1:
-		/*
-		 * Avoid an unnecessary wake_up() function call.
-		 * The common case is pkmap_count[] == 1, but
-		 * no waiters.
-		 * The tasks queued in the wait-queue are guarded
-		 * by both the lock in the wait-queue-head and by
-		 * the kmap_lock.  As the kmap_lock is held here,
-		 * no need for the wait-queue-head's lock.  Simply
-		 * test if the queue is empty.
-		 */
-		pkmap_map_wait = get_pkmap_wait_queue_head(color);
-		need_wakeup = waitqueue_active(pkmap_map_wait);
+
+	switch (--pkmap_count[nr])
+	{
+		case 0:
+			BUG();
+
+		case 1:
+			/*
+			 * Avoid an unnecessary wake_up() function call.
+			 * The common case is pkmap_count[] == 1, but
+			 * no waiters.
+			 * The tasks queued in the wait-queue are guarded
+			 * by both the lock in the wait-queue-head and by
+			 * the kmap_lock.  As the kmap_lock is held here,
+			 * no need for the wait-queue-head's lock.  Simply
+			 * test if the queue is empty.
+			 */
+			pkmap_map_wait = get_pkmap_wait_queue_head(color);
+			need_wakeup = waitqueue_active(pkmap_map_wait);
 	}
+
 	unlock_kmap_any(flags);
 
 	/* do wake-up, if needed, race-free outside of the spin lock */
 	if (need_wakeup)
+	{
 		wake_up(pkmap_map_wait);
+	}
 }
 
 EXPORT_SYMBOL(kunmap_high);
@@ -378,7 +415,8 @@ EXPORT_SYMBOL(kunmap_high);
 /*
  * Describes one page->virtual association
  */
-struct page_address_map {
+struct page_address_map
+{
 	struct page *page;
 	void *virtual;
 	struct list_head list;
@@ -389,10 +427,11 @@ static struct page_address_map page_address_maps[LAST_PKMAP];
 /*
  * Hash table bucket
  */
-static struct page_address_slot {
+static struct page_address_slot
+{
 	struct list_head lh;			/* List of page_address_maps */
 	spinlock_t lock;			/* Protect this bucket's list */
-} ____cacheline_aligned_in_smp page_address_htable[1<<PA_HASH_ORDER];
+} ____cacheline_aligned_in_smp page_address_htable[1 << PA_HASH_ORDER];
 
 static struct page_address_slot *page_slot(const struct page *page)
 {
@@ -412,21 +451,28 @@ void *page_address(const struct page *page)
 	struct page_address_slot *pas;
 
 	if (!PageHighMem(page))
+	{
 		return lowmem_page_address(page);
+	}
 
 	pas = page_slot(page);
 	ret = NULL;
 	spin_lock_irqsave(&pas->lock, flags);
-	if (!list_empty(&pas->lh)) {
+
+	if (!list_empty(&pas->lh))
+	{
 		struct page_address_map *pam;
 
-		list_for_each_entry(pam, &pas->lh, list) {
-			if (pam->page == page) {
+		list_for_each_entry(pam, &pas->lh, list)
+		{
+			if (pam->page == page)
+			{
 				ret = pam->virtual;
 				goto done;
 			}
 		}
 	}
+
 done:
 	spin_unlock_irqrestore(&pas->lock, flags);
 	return ret;
@@ -448,7 +494,9 @@ void set_page_address(struct page *page, void *virtual)
 	BUG_ON(!PageHighMem(page));
 
 	pas = page_slot(page);
-	if (virtual) {		/* Add */
+
+	if (virtual)  		/* Add */
+	{
 		pam = &page_address_maps[PKMAP_NR((unsigned long)virtual)];
 		pam->page = page;
 		pam->virtual = virtual;
@@ -456,10 +504,14 @@ void set_page_address(struct page *page, void *virtual)
 		spin_lock_irqsave(&pas->lock, flags);
 		list_add_tail(&pam->list, &pas->lh);
 		spin_unlock_irqrestore(&pas->lock, flags);
-	} else {		/* Remove */
+	}
+	else  		/* Remove */
+	{
 		spin_lock_irqsave(&pas->lock, flags);
-		list_for_each_entry(pam, &pas->lh, list) {
-			if (pam->page == page) {
+		list_for_each_entry(pam, &pas->lh, list)
+		{
+			if (pam->page == page)
+			{
 				list_del(&pam->list);
 				spin_unlock_irqrestore(&pas->lock, flags);
 				goto done;
@@ -467,6 +519,7 @@ void set_page_address(struct page *page, void *virtual)
 		}
 		spin_unlock_irqrestore(&pas->lock, flags);
 	}
+
 done:
 	return;
 }
@@ -475,7 +528,8 @@ void __init page_address_init(void)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(page_address_htable); i++) {
+	for (i = 0; i < ARRAY_SIZE(page_address_htable); i++)
+	{
 		INIT_LIST_HEAD(&page_address_htable[i].lh);
 		spin_lock_init(&page_address_htable[i].lock);
 	}

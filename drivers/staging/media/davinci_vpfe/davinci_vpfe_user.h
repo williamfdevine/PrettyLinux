@@ -70,7 +70,8 @@
 /**
  * vertical defect correction methods
  */
-enum vpfe_isif_vdfc_corr_mode {
+enum vpfe_isif_vdfc_corr_mode
+{
 	/* Defect level subtraction. Just fed through if saturating */
 	VPFE_ISIF_VDFC_NORMAL,
 	/**
@@ -90,7 +91,8 @@ enum vpfe_isif_vdfc_corr_mode {
 /**
  * Values used for shifting up the vdfc defect level
  */
-enum vpfe_isif_vdfc_shift {
+enum vpfe_isif_vdfc_shift
+{
 	/* No Shift */
 	VPFE_ISIF_VDFC_NO_SHIFT,
 	/* Shift by 1 bit */
@@ -106,7 +108,8 @@ enum vpfe_isif_vdfc_shift {
 /**
  * Defect Correction (DFC) table entry
  */
-struct vpfe_isif_vdfc_entry {
+struct vpfe_isif_vdfc_entry
+{
 	/* vertical position of defect */
 	unsigned short pos_vert;
 	/* horizontal position of defect */
@@ -131,7 +134,8 @@ struct vpfe_isif_vdfc_entry {
 /**
  * Structure for Defect Correction (DFC) parameter
  */
-struct vpfe_isif_dfc {
+struct vpfe_isif_dfc
+{
 	/* enable vertical defect correction */
 	unsigned char en;
 	/* Correction methods */
@@ -160,7 +164,8 @@ struct vpfe_isif_dfc {
 /**
  * Horizontal Black Clamp modes
  */
-enum vpfe_isif_horz_bc_mode {
+enum vpfe_isif_horz_bc_mode
+{
 	/**
 	 * Horizontal clamp disabled. Only vertical clamp
 	 * value is subtracted
@@ -183,7 +188,8 @@ enum vpfe_isif_horz_bc_mode {
 /**
  * Base window selection for Horizontal Black Clamp calculations
  */
-enum vpfe_isif_horz_bc_base_win_sel {
+enum vpfe_isif_horz_bc_base_win_sel
+{
 	/* Select Most left window for bc calculation */
 	VPFE_ISIF_SEL_MOST_LEFT_WIN,
 
@@ -192,7 +198,8 @@ enum vpfe_isif_horz_bc_base_win_sel {
 };
 
 /* Size of window in horizontal direction for horizontal bc */
-enum vpfe_isif_horz_bc_sz_h {
+enum vpfe_isif_horz_bc_sz_h
+{
 	VPFE_ISIF_HORZ_BC_SZ_H_2PIXELS,
 	VPFE_ISIF_HORZ_BC_SZ_H_4PIXELS,
 	VPFE_ISIF_HORZ_BC_SZ_H_8PIXELS,
@@ -200,7 +207,8 @@ enum vpfe_isif_horz_bc_sz_h {
 };
 
 /* Size of window in vertcal direction for vertical bc */
-enum vpfe_isif_horz_bc_sz_v {
+enum vpfe_isif_horz_bc_sz_v
+{
 	VPFE_ISIF_HORZ_BC_SZ_H_32PIXELS,
 	VPFE_ISIF_HORZ_BC_SZ_H_64PIXELS,
 	VPFE_ISIF_HORZ_BC_SZ_H_128PIXELS,
@@ -210,7 +218,8 @@ enum vpfe_isif_horz_bc_sz_v {
 /**
  * Structure for Horizontal Black Clamp config params
  */
-struct vpfe_isif_horz_bclamp {
+struct vpfe_isif_horz_bclamp
+{
 	/* horizontal clamp mode */
 	enum vpfe_isif_horz_bc_mode mode;
 	/**
@@ -239,7 +248,8 @@ struct vpfe_isif_horz_bclamp {
 /**
  * Black Clamp vertical reset values
  */
-enum vpfe_isif_vert_bc_reset_val_sel {
+enum vpfe_isif_vert_bc_reset_val_sel
+{
 	/* Reset value used is the clamp value calculated */
 	VPFE_ISIF_VERT_BC_USE_HORZ_CLAMP_VAL,
 	/* Reset value used is reset_clamp_val configured */
@@ -248,7 +258,8 @@ enum vpfe_isif_vert_bc_reset_val_sel {
 	VPFE_ISIF_VERT_BC_NO_UPDATE
 };
 
-enum vpfe_isif_vert_bc_sz_h {
+enum vpfe_isif_vert_bc_sz_h
+{
 	VPFE_ISIF_VERT_BC_SZ_H_2PIXELS,
 	VPFE_ISIF_VERT_BC_SZ_H_4PIXELS,
 	VPFE_ISIF_VERT_BC_SZ_H_8PIXELS,
@@ -260,7 +271,8 @@ enum vpfe_isif_vert_bc_sz_h {
 /**
  * Structure for Vertical Black Clamp configuration params
  */
-struct vpfe_isif_vert_bclamp {
+struct vpfe_isif_vert_bclamp
+{
 	/* Reset value selection for vertical clamp calculation */
 	enum vpfe_isif_vert_bc_reset_val_sel reset_val_sel;
 	/* U12 value if reset_sel = ISIF_BC_VERT_USE_CONFIG_CLAMP_VAL */
@@ -283,7 +295,8 @@ struct vpfe_isif_vert_bclamp {
 /**
  * Structure for Black Clamp configuration params
  */
-struct vpfe_isif_black_clamp {
+struct vpfe_isif_black_clamp
+{
 	/**
 	 * this offset value is added irrespective of the clamp
 	 * enable status. S13
@@ -316,14 +329,16 @@ struct vpfe_isif_black_clamp {
  */
 #define VPFE_ISIF_CSC_NUM_COEFF 16
 
-struct float_8_bit {
+struct float_8_bit
+{
 	/* 8 bit integer part */
 	__u8 integer;
 	/* 8 bit decimal part */
 	__u8 decimal;
 };
 
-struct float_16_bit {
+struct float_16_bit
+{
 	/* 16 bit integer part */
 	__u16 integer;
 	/* 16 bit decimal part */
@@ -336,7 +351,8 @@ struct float_16_bit {
 /**
  * Structure used for CSC config params
  */
-struct vpfe_isif_color_space_conv {
+struct vpfe_isif_color_space_conv
+{
 	/* Enable color space conversion */
 	unsigned char en;
 	/**
@@ -346,7 +362,8 @@ struct vpfe_isif_color_space_conv {
 	struct float_8_bit coeff[VPFE_ISIF_CSC_NUM_COEFF];
 };
 
-enum vpfe_isif_datasft {
+enum vpfe_isif_datasft
+{
 	/* No Shift */
 	VPFE_ISIF_NO_SHIFT,
 	/* 1 bit Shift */
@@ -370,7 +387,8 @@ enum vpfe_isif_datasft {
 /**
  * Structure for Sensor data linearization
  */
-struct vpfe_isif_linearize {
+struct vpfe_isif_linearize
+{
 	/* Enable or Disable linearization of data */
 	unsigned char en;
 	/* Shift value applied */
@@ -384,26 +402,30 @@ struct vpfe_isif_linearize {
 /*************************************************************************
 **  ISIF Raw configuration parameters
 *************************************************************************/
-enum vpfe_isif_fmt_mode {
+enum vpfe_isif_fmt_mode
+{
 	VPFE_ISIF_SPLIT,
 	VPFE_ISIF_COMBINE
 };
 
-enum vpfe_isif_lnum {
+enum vpfe_isif_lnum
+{
 	VPFE_ISIF_1LINE,
 	VPFE_ISIF_2LINES,
 	VPFE_ISIF_3LINES,
 	VPFE_ISIF_4LINES
 };
 
-enum vpfe_isif_line {
+enum vpfe_isif_line
+{
 	VPFE_ISIF_1STLINE,
 	VPFE_ISIF_2NDLINE,
 	VPFE_ISIF_3RDLINE,
 	VPFE_ISIF_4THLINE
 };
 
-struct vpfe_isif_fmtplen {
+struct vpfe_isif_fmtplen
+{
 	/**
 	 * number of program entries for SET0, range 1 - 16
 	 * when fmtmode is ISIF_SPLIT, 1 - 8 when fmtmode is
@@ -430,7 +452,8 @@ struct vpfe_isif_fmtplen {
 	unsigned short plen3;
 };
 
-struct vpfe_isif_fmt_cfg {
+struct vpfe_isif_fmt_cfg
+{
 	/* Split or combine or line alternate */
 	enum vpfe_isif_fmt_mode fmtmode;
 	/* enable or disable line alternating mode */
@@ -441,21 +464,24 @@ struct vpfe_isif_fmt_cfg {
 	unsigned int addrinc;
 };
 
-struct vpfe_isif_fmt_addr_ptr {
+struct vpfe_isif_fmt_addr_ptr
+{
 	/* Initial address */
 	unsigned int init_addr;
 	/* output line number */
 	enum vpfe_isif_line out_line;
 };
 
-struct vpfe_isif_fmtpgm_ap {
+struct vpfe_isif_fmtpgm_ap
+{
 	/* program address pointer */
 	unsigned char pgm_aptr;
 	/* program address increment or decrement */
 	unsigned char pgmupdt;
 };
 
-struct vpfe_isif_data_formatter {
+struct vpfe_isif_data_formatter
+{
 	/* Enable/Disable data formatter */
 	unsigned char en;
 	/* data formatter configuration */
@@ -474,7 +500,8 @@ struct vpfe_isif_data_formatter {
 	struct vpfe_isif_fmtpgm_ap fmtpgm_ap[32];
 };
 
-struct vpfe_isif_df_csc {
+struct vpfe_isif_df_csc
+{
 	/* Color Space Conversion configuration, 0 - csc, 1 - df */
 	unsigned int df_or_csc;
 	/* csc configuration valid if df_or_csc is 0 */
@@ -491,7 +518,8 @@ struct vpfe_isif_df_csc {
 	unsigned int num_lines;
 };
 
-struct vpfe_isif_gain_offsets_adj {
+struct vpfe_isif_gain_offsets_adj
+{
 	/* Enable or Disable Gain adjustment for SDRAM data */
 	unsigned char gain_sdram_en;
 	/* Enable or Disable Gain adjustment for IPIPE data */
@@ -506,7 +534,8 @@ struct vpfe_isif_gain_offsets_adj {
 	unsigned char offset_h3a_en;
 };
 
-struct vpfe_isif_cul {
+struct vpfe_isif_cul
+{
 	/* Horizontal Cull pattern for odd lines */
 	unsigned char hcpat_odd;
 	/* Horizontal Cull pattern for even lines */
@@ -518,7 +547,8 @@ struct vpfe_isif_cul {
 };
 
 /* all the stuff in this struct will be provided by userland */
-struct vpfe_isif_raw_config {
+struct vpfe_isif_raw_config
+{
 	/* Linearization parameters for image sensor data input */
 	struct vpfe_isif_linearize linearize;
 	/* Data formatter or CSC */
@@ -582,17 +612,20 @@ struct vpfe_isif_raw_config {
 
 #define VPFE_IPIPE_MAX_MODULES		18
 
-struct ipipe_float_u16 {
+struct ipipe_float_u16
+{
 	unsigned short integer;
 	unsigned short decimal;
 };
 
-struct ipipe_float_s16 {
+struct ipipe_float_s16
+{
 	short integer;
 	unsigned short decimal;
 };
 
-struct ipipe_float_u8 {
+struct ipipe_float_u8
+{
 	unsigned char integer;
 	unsigned char decimal;
 };
@@ -600,7 +633,8 @@ struct ipipe_float_u8 {
 /* Copy method selection for vertical correction
  *  Used when ipipe_dfc_corr_meth is IPIPE_DPC_CTORB_AFTER_HINT
  */
-enum vpfe_ipipe_dpc_corr_meth {
+enum vpfe_ipipe_dpc_corr_meth
+{
 	/* replace by black or white dot specified by repl_white */
 	VPFE_IPIPE_DPC_REPL_BY_DOT = 0,
 	/* Copy from left */
@@ -619,7 +653,8 @@ enum vpfe_ipipe_dpc_corr_meth {
 	VPFE_IPIPE_DPC_2D_INTP = 7,
 };
 
-struct vpfe_ipipe_lutdpc_entry {
+struct vpfe_ipipe_lutdpc_entry
+{
 	/* Horizontal position */
 	unsigned short horz_pos;
 	/* vertical position */
@@ -630,7 +665,8 @@ struct vpfe_ipipe_lutdpc_entry {
 #define VPFE_IPIPE_MAX_SIZE_DPC 256
 
 /* Structure for configuring DPC module */
-struct vpfe_ipipe_lutdpc {
+struct vpfe_ipipe_lutdpc
+{
 	/* 0 - disable, 1 - enable */
 	unsigned char en;
 	/* 0 - replace with black dot, 1 - white dot when correction
@@ -644,24 +680,28 @@ struct vpfe_ipipe_lutdpc {
 	struct vpfe_ipipe_lutdpc_entry table[VPFE_IPIPE_MAX_SIZE_DPC];
 };
 
-enum vpfe_ipipe_otfdpc_det_meth {
+enum vpfe_ipipe_otfdpc_det_meth
+{
 	VPFE_IPIPE_DPC_OTF_MIN_MAX,
 	VPFE_IPIPE_DPC_OTF_MIN_MAX2
 };
 
-struct vpfe_ipipe_otfdpc_thr {
+struct vpfe_ipipe_otfdpc_thr
+{
 	unsigned short r;
 	unsigned short gr;
 	unsigned short gb;
 	unsigned short b;
 };
 
-enum vpfe_ipipe_otfdpc_alg {
+enum vpfe_ipipe_otfdpc_alg
+{
 	VPFE_IPIPE_OTFDPC_2_0,
 	VPFE_IPIPE_OTFDPC_3_0
 };
 
-struct vpfe_ipipe_otfdpc_2_0_cfg {
+struct vpfe_ipipe_otfdpc_2_0_cfg
+{
 	/* defect detection threshold for MIN_MAX2 method  (DPC 2.0 alg) */
 	struct vpfe_ipipe_otfdpc_thr det_thr;
 	/* defect correction threshold for MIN_MAX2 method (DPC 2.0 alg) or
@@ -670,7 +710,8 @@ struct vpfe_ipipe_otfdpc_2_0_cfg {
 	struct vpfe_ipipe_otfdpc_thr corr_thr;
 };
 
-struct vpfe_ipipe_otfdpc_3_0_cfg {
+struct vpfe_ipipe_otfdpc_3_0_cfg
+{
 	/* DPC3.0 activity adj shf. activity = (max2-min2) >> (6 -shf)
 	 */
 	unsigned char act_adj_shf;
@@ -692,7 +733,8 @@ struct vpfe_ipipe_otfdpc_3_0_cfg {
 	unsigned short corr_thr_max;
 };
 
-struct vpfe_ipipe_otfdpc {
+struct vpfe_ipipe_otfdpc
+{
 	/* 0 - disable, 1 - enable */
 	unsigned char en;
 	/* defect detection method */
@@ -701,7 +743,8 @@ struct vpfe_ipipe_otfdpc {
 	 * used
 	 */
 	enum vpfe_ipipe_otfdpc_alg alg;
-	union {
+	union
+	{
 		/* if alg is IPIPE_OTFDPC_2_0 */
 		struct vpfe_ipipe_otfdpc_2_0_cfg dpc_2_0;
 		/* if alg is IPIPE_OTFDPC_3_0 */
@@ -715,7 +758,8 @@ struct vpfe_ipipe_otfdpc {
 #define VPFE_IPIPE_NF_STR_TABLE_SIZE		8
 
 /* NF, sampling method for green pixels */
-enum vpfe_ipipe_nf_sampl_meth {
+enum vpfe_ipipe_nf_sampl_meth
+{
 	/* Same as R or B */
 	VPFE_IPIPE_NF_BOX,
 	/* Diamond mode */
@@ -723,7 +767,8 @@ enum vpfe_ipipe_nf_sampl_meth {
 };
 
 /* Structure for configuring NF module */
-struct vpfe_ipipe_nf {
+struct vpfe_ipipe_nf
+{
 	/* 0 - disable, 1 - enable */
 	unsigned char en;
 	/* Sampling method for green pixels */
@@ -748,17 +793,20 @@ struct vpfe_ipipe_nf {
 	unsigned short edge_det_max_thr;
 };
 
-enum vpfe_ipipe_gic_alg {
+enum vpfe_ipipe_gic_alg
+{
 	VPFE_IPIPE_GIC_ALG_CONST_GAIN,
 	VPFE_IPIPE_GIC_ALG_ADAPT_GAIN
 };
 
-enum vpfe_ipipe_gic_thr_sel {
+enum vpfe_ipipe_gic_thr_sel
+{
 	VPFE_IPIPE_GIC_THR_REG,
 	VPFE_IPIPE_GIC_THR_NF
 };
 
-enum vpfe_ipipe_gic_wt_fn_type {
+enum vpfe_ipipe_gic_wt_fn_type
+{
 	/* Use difference as index */
 	VPFE_IPIPE_GIC_WT_FN_TYP_DIF,
 	/* Use weight function as index */
@@ -766,7 +814,8 @@ enum vpfe_ipipe_gic_wt_fn_type {
 };
 
 /* structure for Green Imbalance Correction */
-struct vpfe_ipipe_gic {
+struct vpfe_ipipe_gic
+{
 	/* 0 - disable, 1 - enable */
 	unsigned char en;
 	/* 0 - Constant gain , 1 - Adaptive gain algorithm */
@@ -798,7 +847,8 @@ struct vpfe_ipipe_gic {
 };
 
 /* Structure for configuring WB module */
-struct vpfe_ipipe_wb {
+struct vpfe_ipipe_wb
+{
 	/* Offset (S12) for R */
 	short ofst_r;
 	/* Offset (S12) for Gr */
@@ -817,7 +867,8 @@ struct vpfe_ipipe_wb {
 	struct ipipe_float_u16 gain_b;
 };
 
-enum vpfe_ipipe_cfa_alg {
+enum vpfe_ipipe_cfa_alg
+{
 	/* Algorithm is 2DirAC */
 	VPFE_IPIPE_CFA_ALG_2DIRAC,
 	/* Algorithm is 2DirAC + Digital Antialiasing (DAA) */
@@ -827,7 +878,8 @@ enum vpfe_ipipe_cfa_alg {
 };
 
 /* Structure for CFA Interpolation */
-struct vpfe_ipipe_cfa {
+struct vpfe_ipipe_cfa
+{
 	/* 2DirAC or 2DirAC + DAA */
 	enum vpfe_ipipe_cfa_alg alg;
 	/* 2Dir CFA HP value Low Threshold */
@@ -861,7 +913,8 @@ struct vpfe_ipipe_cfa {
 };
 
 /* Struct for configuring RGB2RGB blending module */
-struct vpfe_ipipe_rgb2rgb {
+struct vpfe_ipipe_rgb2rgb
+{
 	/* Matrix coefficient for RR S12Q8 for ID = 1 and S11Q8 for ID = 2 */
 	struct ipipe_float_s16 coef_rr;
 	/* Matrix coefficient for GR S12Q8/S11Q8 */
@@ -890,19 +943,22 @@ struct vpfe_ipipe_rgb2rgb {
 
 #define VPFE_IPIPE_MAX_SIZE_GAMMA		512
 
-enum vpfe_ipipe_gamma_tbl_size {
+enum vpfe_ipipe_gamma_tbl_size
+{
 	VPFE_IPIPE_GAMMA_TBL_SZ_64 = 64,
 	VPFE_IPIPE_GAMMA_TBL_SZ_128 = 128,
 	VPFE_IPIPE_GAMMA_TBL_SZ_256 = 256,
 	VPFE_IPIPE_GAMMA_TBL_SZ_512 = 512,
 };
 
-enum vpfe_ipipe_gamma_tbl_sel {
+enum vpfe_ipipe_gamma_tbl_sel
+{
 	VPFE_IPIPE_GAMMA_TBL_RAM = 0,
 	VPFE_IPIPE_GAMMA_TBL_ROM = 1,
 };
 
-struct vpfe_ipipe_gamma_entry {
+struct vpfe_ipipe_gamma_entry
+{
 	/* 10 bit slope */
 	short slope;
 	/* 10 bit offset */
@@ -910,7 +966,8 @@ struct vpfe_ipipe_gamma_entry {
 };
 
 /* Structure for configuring Gamma correction module */
-struct vpfe_ipipe_gamma {
+struct vpfe_ipipe_gamma
+{
 	/* 0 - Enable Gamma correction for Red
 	 * 1 - bypass Gamma correction. Data is divided by 16
 	 */
@@ -938,7 +995,8 @@ struct vpfe_ipipe_gamma {
 
 #define VPFE_IPIPE_MAX_SIZE_3D_LUT		729
 
-struct vpfe_ipipe_3d_lut_entry {
+struct vpfe_ipipe_3d_lut_entry
+{
 	/* 10 bit entry for red */
 	unsigned short r;
 	/* 10 bit entry for green */
@@ -948,7 +1006,8 @@ struct vpfe_ipipe_3d_lut_entry {
 };
 
 /* structure for 3D-LUT */
-struct vpfe_ipipe_3d_lut {
+struct vpfe_ipipe_3d_lut
+{
 	/* enable/disable 3D lut */
 	unsigned char en;
 	/* 3D - LUT table entry */
@@ -956,7 +1015,8 @@ struct vpfe_ipipe_3d_lut {
 };
 
 /* Struct for configuring rgb2ycbcr module */
-struct vpfe_ipipe_rgb2yuv {
+struct vpfe_ipipe_rgb2yuv
+{
 	/* Matrix coefficient for RY S12Q8 */
 	struct ipipe_float_s16 coef_ry;
 	/* Matrix coefficient for GY S12Q8 */
@@ -983,7 +1043,8 @@ struct vpfe_ipipe_rgb2yuv {
 	int out_ofst_cr;
 };
 
-enum vpfe_ipipe_gbce_type {
+enum vpfe_ipipe_gbce_type
+{
 	VPFE_IPIPE_GBCE_Y_VAL_TBL = 0,
 	VPFE_IPIPE_GBCE_GAIN_TBL = 1,
 };
@@ -991,7 +1052,8 @@ enum vpfe_ipipe_gbce_type {
 #define VPFE_IPIPE_MAX_SIZE_GBCE_LUT		1024
 
 /* structure for Global brightness and Contrast */
-struct vpfe_ipipe_gbce {
+struct vpfe_ipipe_gbce
+{
 	/* enable/disable GBCE */
 	unsigned char en;
 	/* Y - value table or Gain table */
@@ -1003,7 +1065,8 @@ struct vpfe_ipipe_gbce {
 /* Chrominance position. Applicable only for YCbCr input
  * Applied after edge enhancement
  */
-enum vpfe_chr_pos {
+enum vpfe_chr_pos
+{
 	/* Co-siting, same position with luminance */
 	VPFE_IPIPE_YUV422_CHR_POS_COSITE = 0,
 	/* Centering, In the middle of luminance */
@@ -1011,7 +1074,8 @@ enum vpfe_chr_pos {
 };
 
 /* Structure for configuring yuv422 conversion module */
-struct vpfe_ipipe_yuv422_conv {
+struct vpfe_ipipe_yuv422_conv
+{
 	/* Max Chrominance value */
 	unsigned char en_chrom_lpf;
 	/* 1 - enable LPF for chrminance, 0 - disable */
@@ -1020,13 +1084,15 @@ struct vpfe_ipipe_yuv422_conv {
 
 #define VPFE_IPIPE_MAX_SIZE_YEE_LUT		1024
 
-enum vpfe_ipipe_yee_merge_meth {
+enum vpfe_ipipe_yee_merge_meth
+{
 	VPFE_IPIPE_YEE_ABS_MAX = 0,
 	VPFE_IPIPE_YEE_EE_ES = 1,
 };
 
 /* Structure for configuring YUV Edge Enhancement module */
-struct vpfe_ipipe_yee {
+struct vpfe_ipipe_yee
+{
 	/* 1 - enable enhancement, 0 - disable */
 	unsigned char en;
 	/* enable/disable halo reduction in edge sharpner */
@@ -1069,7 +1135,8 @@ struct vpfe_ipipe_yee {
 	short table[VPFE_IPIPE_MAX_SIZE_YEE_LUT];
 };
 
-enum vpfe_ipipe_car_meth {
+enum vpfe_ipipe_car_meth
+{
 	/* Chromatic Gain Control */
 	VPFE_IPIPE_CAR_CHR_GAIN_CTRL = 0,
 	/* Dynamic switching between CHR_GAIN_CTRL
@@ -1080,7 +1147,8 @@ enum vpfe_ipipe_car_meth {
 	VPFE_IPIPE_CAR_MED_FLTR = 2,
 };
 
-enum vpfe_ipipe_car_hpf_type {
+enum vpfe_ipipe_car_hpf_type
+{
 	VPFE_IPIPE_CAR_HPF_Y = 0,
 	VPFE_IPIPE_CAR_HPF_H = 1,
 	VPFE_IPIPE_CAR_HPF_V = 2,
@@ -1089,7 +1157,8 @@ enum vpfe_ipipe_car_hpf_type {
 	VPFE_IPIPE_CAR_HPF_2D_YEE = 4,
 };
 
-struct vpfe_ipipe_car_gain {
+struct vpfe_ipipe_car_gain
+{
 	/* csup_gain */
 	unsigned char gain;
 	/* csup_shf. */
@@ -1099,7 +1168,8 @@ struct vpfe_ipipe_car_gain {
 };
 
 /* Structure for Chromatic Artifact Reduction */
-struct vpfe_ipipe_car {
+struct vpfe_ipipe_car
+{
 	/* enable/disable */
 	unsigned char en;
 	/* Gain control or Dynamic switching */
@@ -1121,7 +1191,8 @@ struct vpfe_ipipe_car {
 };
 
 /* structure for Chromatic Gain Suppression */
-struct vpfe_ipipe_cgs {
+struct vpfe_ipipe_cgs
+{
 	/* enable/disable */
 	unsigned char en;
 	/* gain1 bright side threshold */
@@ -1139,7 +1210,8 @@ struct vpfe_ipipe_cgs {
  */
 #define VPFE_IPIPE_MAX_INPUT_WIDTH	2600
 
-struct vpfe_ipipe_input_config {
+struct vpfe_ipipe_input_config
+{
 	unsigned int vst;
 	unsigned int hst;
 };
@@ -1166,7 +1238,8 @@ struct vpfe_ipipe_input_config {
  * @car: Pointer to structure for Chromatic Artifact Reduction.
  * @cgs: Pointer to structure for Chromatic Gain Suppression.
  */
-struct vpfe_ipipe_config {
+struct vpfe_ipipe_config
+{
 	__u32 flag;
 	struct vpfe_ipipe_input_config __user *input_config;
 	struct vpfe_ipipe_lutdpc __user *lutdpc;
@@ -1192,18 +1265,21 @@ struct vpfe_ipipe_config {
 **  Resizer API structures
 *******************************************************************/
 /* Interpolation types used for horizontal rescale */
-enum vpfe_rsz_intp_t {
+enum vpfe_rsz_intp_t
+{
 	VPFE_RSZ_INTP_CUBIC,
 	VPFE_RSZ_INTP_LINEAR
 };
 
 /* Horizontal LPF intensity selection */
-enum vpfe_rsz_h_lpf_lse_t {
+enum vpfe_rsz_h_lpf_lse_t
+{
 	VPFE_RSZ_H_LPF_LSE_INTERN,
 	VPFE_RSZ_H_LPF_LSE_USER_VAL
 };
 
-enum vpfe_rsz_down_scale_ave_sz {
+enum vpfe_rsz_down_scale_ave_sz
+{
 	VPFE_IPIPE_DWN_SCALE_1_OVER_2,
 	VPFE_IPIPE_DWN_SCALE_1_OVER_4,
 	VPFE_IPIPE_DWN_SCALE_1_OVER_8,
@@ -1214,7 +1290,8 @@ enum vpfe_rsz_down_scale_ave_sz {
 	VPFE_IPIPE_DWN_SCALE_1_OVER_256
 };
 
-struct vpfe_rsz_output_spec {
+struct vpfe_rsz_output_spec
+{
 	/* enable horizontal flip */
 	unsigned char h_flip;
 	/* enable vertical flip */
@@ -1259,7 +1336,8 @@ struct vpfe_rsz_output_spec {
 	unsigned int user_c_ofst;
 };
 
-struct vpfe_rsz_config_params {
+struct vpfe_rsz_config_params
+{
 	unsigned int vst;
 	/* horizontal start position of the image
 	 * data to IPIPE
@@ -1283,7 +1361,8 @@ struct vpfe_rsz_config_params {
 };
 
 /* Structure for VIDIOC_VPFE_RSZ_[S/G]_CONFIG IOCTLs */
-struct vpfe_rsz_config {
+struct vpfe_rsz_config
+{
 	struct vpfe_rsz_config_params *config;
 };
 

@@ -127,19 +127,23 @@
 /*
  * data transfer descriptor
  */
-struct vpdma_dtd {
+struct vpdma_dtd
+{
 	u32			type_ctl_stride;
-	union {
+	union
+	{
 		u32		xfer_length_height;
 		u32		w1;
 	};
 	dma_addr_t		start_addr;
 	u32			pkt_ctl;
-	union {
+	union
+	{
 		u32		frame_width_height;	/* inbound */
 		dma_addr_t	desc_write_addr;	/* outbound */
 	};
-	union {
+	union
+	{
 		u32		start_h_v;		/* inbound */
 		u32		max_width_height;	/* outbound */
 	};
@@ -218,7 +222,7 @@ struct vpdma_dtd {
 #define DTD_MAX_HEIGHT_SHFT	0
 
 /* max width configurations */
- /* unlimited width */
+/* unlimited width */
 #define	MAX_OUT_WIDTH_UNLIMITED		0
 /* as specified in max_size1 reg */
 #define MAX_OUT_WIDTH_REG1		1
@@ -236,7 +240,7 @@ struct vpdma_dtd {
 #define	MAX_OUT_WIDTH_1920		7
 
 /* max height configurations */
- /* unlimited height */
+/* unlimited height */
 #define	MAX_OUT_HEIGHT_UNLIMITED	0
 /* as specified in max_size1 reg */
 #define MAX_OUT_HEIGHT_REG1		1
@@ -254,14 +258,14 @@ struct vpdma_dtd {
 #define	MAX_OUT_HEIGHT_1080		7
 
 static inline u32 dtd_type_ctl_stride(int type, bool notify, int field,
-			bool one_d, bool even_line_skip, bool odd_line_skip,
-			int line_stride)
+									  bool one_d, bool even_line_skip, bool odd_line_skip,
+									  int line_stride)
 {
 	return (type << DTD_DATA_TYPE_SHFT) | (notify << DTD_NOTIFY_SHFT) |
-		(field << DTD_FIELD_SHFT) | (one_d << DTD_1D_SHFT) |
-		(even_line_skip << DTD_EVEN_LINE_SKIP_SHFT) |
-		(odd_line_skip << DTD_ODD_LINE_SKIP_SHFT) |
-		line_stride;
+		   (field << DTD_FIELD_SHFT) | (one_d << DTD_1D_SHFT) |
+		   (even_line_skip << DTD_EVEN_LINE_SKIP_SHFT) |
+		   (odd_line_skip << DTD_ODD_LINE_SKIP_SHFT) |
+		   line_stride;
 }
 
 static inline u32 dtd_xfer_length_height(int line_length, int xfer_height)
@@ -270,11 +274,11 @@ static inline u32 dtd_xfer_length_height(int line_length, int xfer_height)
 }
 
 static inline u32 dtd_pkt_ctl(bool mode, bool dir, int chan, int pri,
-			int next_chan)
+							  int next_chan)
 {
 	return (DTD_PKT_TYPE << DTD_PKT_TYPE_SHFT) | (mode << DTD_MODE_SHFT) |
-		(dir << DTD_DIR_SHFT) | (chan << DTD_CHAN_SHFT) |
-		(pri << DTD_PRI_SHFT) | next_chan;
+		   (dir << DTD_DIR_SHFT) | (chan << DTD_CHAN_SHFT) |
+		   (pri << DTD_PRI_SHFT) | next_chan;
 }
 
 static inline u32 dtd_frame_width_height(int width, int height)
@@ -283,12 +287,12 @@ static inline u32 dtd_frame_width_height(int width, int height)
 }
 
 static inline u32 dtd_desc_write_addr(unsigned int addr, bool write_desc,
-			bool drop_data, bool use_desc)
+									  bool drop_data, bool use_desc)
 {
 	return (addr << DTD_DESC_START_SHIFT) |
-		(write_desc << DTD_WRITE_DESC_SHIFT) |
-		(drop_data << DTD_DROP_DATA_SHIFT) |
-		use_desc;
+		   (write_desc << DTD_WRITE_DESC_SHIFT) |
+		   (drop_data << DTD_DROP_DATA_SHIFT) |
+		   use_desc;
 }
 
 static inline u32 dtd_start_h_v(int h_start, int v_start)
@@ -324,13 +328,13 @@ static inline bool dtd_get_1d(struct vpdma_dtd *dtd)
 static inline bool dtd_get_even_line_skip(struct vpdma_dtd *dtd)
 {
 	return (dtd->type_ctl_stride >> DTD_EVEN_LINE_SKIP_SHFT)
-		& DTD_EVEN_LINE_SKIP_MASK;
+		   & DTD_EVEN_LINE_SKIP_MASK;
 }
 
 static inline bool dtd_get_odd_line_skip(struct vpdma_dtd *dtd)
 {
 	return (dtd->type_ctl_stride >> DTD_ODD_LINE_SKIP_SHFT)
-		& DTD_ODD_LINE_SKIP_MASK;
+		   & DTD_ODD_LINE_SKIP_MASK;
 }
 
 static inline int dtd_get_line_stride(struct vpdma_dtd *dtd)
@@ -396,13 +400,13 @@ static inline int dtd_get_desc_write_addr(struct vpdma_dtd *dtd)
 static inline bool dtd_get_write_desc(struct vpdma_dtd *dtd)
 {
 	return (dtd->desc_write_addr >> DTD_WRITE_DESC_SHIFT) &
-							DTD_WRITE_DESC_MASK;
+		   DTD_WRITE_DESC_MASK;
 }
 
 static inline bool dtd_get_drop_data(struct vpdma_dtd *dtd)
 {
 	return (dtd->desc_write_addr >> DTD_DROP_DATA_SHIFT) &
-							DTD_DROP_DATA_MASK;
+		   DTD_DROP_DATA_MASK;
 }
 
 static inline bool dtd_get_use_desc(struct vpdma_dtd *dtd)
@@ -423,24 +427,27 @@ static inline int dtd_get_v_start(struct vpdma_dtd *dtd)
 static inline int dtd_get_max_width(struct vpdma_dtd *dtd)
 {
 	return (dtd->max_width_height >> DTD_MAX_WIDTH_SHFT) &
-							DTD_MAX_WIDTH_MASK;
+		   DTD_MAX_WIDTH_MASK;
 }
 
 static inline int dtd_get_max_height(struct vpdma_dtd *dtd)
 {
 	return (dtd->max_width_height >> DTD_MAX_HEIGHT_SHFT) &
-							DTD_MAX_HEIGHT_MASK;
+		   DTD_MAX_HEIGHT_MASK;
 }
 
 /*
  * configuration descriptor
  */
-struct vpdma_cfd {
-	union {
+struct vpdma_cfd
+{
+	union
+	{
 		u32	dest_addr_offset;
 		u32	w0;
 	};
-	union {
+	union
+	{
 		u32	block_len;		/* in words */
 		u32	w1;
 	};
@@ -474,13 +481,13 @@ struct vpdma_cfd {
 #define CFD_PAYLOAD_LEN_SHFT	0
 
 static inline u32 cfd_pkt_payload_len(bool direct, int cls, int dest,
-		int payload_len)
+									  int payload_len)
 {
 	return (CFD_PKT_TYPE << CFD_PKT_TYPE_SHFT) |
-		(direct << CFD_DIRECT_SHFT) |
-		(cls << CFD_CLASS_SHFT) |
-		(dest << CFD_DEST_SHFT) |
-		payload_len;
+		   (direct << CFD_DIRECT_SHFT) |
+		   (cls << CFD_CLASS_SHFT) |
+		   (dest << CFD_DEST_SHFT) |
+		   payload_len;
 }
 
 static inline int cfd_get_pkt_type(struct vpdma_cfd *cfd)
@@ -511,18 +518,22 @@ static inline int cfd_get_payload_len(struct vpdma_cfd *cfd)
 /*
  * control descriptor
  */
-struct vpdma_ctd {
-	union {
+struct vpdma_ctd
+{
+	union
+	{
 		u32	timer_value;
 		u32	list_addr;
 		u32	w0;
 	};
-	union {
+	union
+	{
 		u32	pixel_line_count;
 		u32	list_size;
 		u32	w1;
 	};
-	union {
+	union
+	{
 		u32	event;
 		u32	fid_ctl;
 		u32	w2;
@@ -590,7 +601,7 @@ static inline u32 ctd_set_fid_ctl(int fid0, int fid1, int fid2)
 static inline u32 ctd_type_source_ctl(int source, int control)
 {
 	return (CTD_PKT_TYPE << CTD_PKT_TYPE_SHFT) |
-		(source << CTD_SOURCE_SHFT) | control;
+		   (source << CTD_SOURCE_SHFT) | control;
 }
 
 static inline u32 ctd_get_pixel_count(struct vpdma_ctd *ctd)

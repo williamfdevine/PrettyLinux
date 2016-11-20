@@ -70,7 +70,9 @@ int mlx4_reset(struct mlx4_dev *dev)
 
 	/* Do we need to save off the full 4K PCI Express header?? */
 	hca_header = kmalloc(256, GFP_KERNEL);
-	if (!hca_header) {
+
+	if (!hca_header)
+	{
 		err = -ENOMEM;
 		mlx4_err(dev, "Couldn't allocate memory to save HCA PCI header, aborting\n");
 		goto out;
@@ -78,11 +80,16 @@ int mlx4_reset(struct mlx4_dev *dev)
 
 	pcie_cap = pci_pcie_cap(dev->persist->pdev);
 
-	for (i = 0; i < 64; ++i) {
+	for (i = 0; i < 64; ++i)
+	{
 		if (i == 22 || i == 23)
+		{
 			continue;
+		}
+
 		if (pci_read_config_dword(dev->persist->pdev, i * 4,
-					  hca_header + i)) {
+								  hca_header + i))
+		{
 			err = -ENODEV;
 			mlx4_err(dev, "Couldn't save HCA PCI header, aborting\n");
 			goto out;
@@ -90,9 +97,11 @@ int mlx4_reset(struct mlx4_dev *dev)
 	}
 
 	reset = ioremap(pci_resource_start(dev->persist->pdev, 0) +
-			MLX4_RESET_BASE,
-			MLX4_RESET_SIZE);
-	if (!reset) {
+					MLX4_RESET_BASE,
+					MLX4_RESET_SIZE);
+
+	if (!reset)
+	{
 		err = -ENOMEM;
 		mlx4_err(dev, "Couldn't map HCA reset register, aborting\n");
 		goto out;
@@ -100,15 +109,22 @@ int mlx4_reset(struct mlx4_dev *dev)
 
 	/* grab HW semaphore to lock out flash updates */
 	end = jiffies + MLX4_SEM_TIMEOUT_JIFFIES;
-	do {
+
+	do
+	{
 		sem = readl(reset + MLX4_SEM_OFFSET);
+
 		if (!sem)
+		{
 			break;
+		}
 
 		msleep(1);
-	} while (time_before(jiffies, end));
+	}
+	while (time_before(jiffies, end));
 
-	if (sem) {
+	if (sem)
+	{
 		mlx4_err(dev, "Failed to obtain HW semaphore, aborting\n");
 		err = -EAGAIN;
 		iounmap(reset);
@@ -123,55 +139,72 @@ int mlx4_reset(struct mlx4_dev *dev)
 	msleep(1000);
 
 	end = jiffies + MLX4_RESET_TIMEOUT_JIFFIES;
-	do {
+
+	do
+	{
 		if (!pci_read_config_word(dev->persist->pdev, PCI_VENDOR_ID,
-					  &vendor) && vendor != 0xffff)
+								  &vendor) && vendor != 0xffff)
+		{
 			break;
+		}
 
 		msleep(1);
-	} while (time_before(jiffies, end));
+	}
+	while (time_before(jiffies, end));
 
-	if (vendor == 0xffff) {
+	if (vendor == 0xffff)
+	{
 		err = -ENODEV;
 		mlx4_err(dev, "PCI device did not come back after reset, aborting\n");
 		goto out;
 	}
 
 	/* Now restore the PCI headers */
-	if (pcie_cap) {
+	if (pcie_cap)
+	{
 		devctl = hca_header[(pcie_cap + PCI_EXP_DEVCTL) / 4];
+
 		if (pcie_capability_write_word(dev->persist->pdev,
-					       PCI_EXP_DEVCTL,
-					       devctl)) {
+									   PCI_EXP_DEVCTL,
+									   devctl))
+		{
 			err = -ENODEV;
 			mlx4_err(dev, "Couldn't restore HCA PCI Express Device Control register, aborting\n");
 			goto out;
 		}
+
 		linkctl = hca_header[(pcie_cap + PCI_EXP_LNKCTL) / 4];
+
 		if (pcie_capability_write_word(dev->persist->pdev,
-					       PCI_EXP_LNKCTL,
-					       linkctl)) {
+									   PCI_EXP_LNKCTL,
+									   linkctl))
+		{
 			err = -ENODEV;
 			mlx4_err(dev, "Couldn't restore HCA PCI Express Link control register, aborting\n");
 			goto out;
 		}
 	}
 
-	for (i = 0; i < 16; ++i) {
+	for (i = 0; i < 16; ++i)
+	{
 		if (i * 4 == PCI_COMMAND)
+		{
 			continue;
+		}
 
 		if (pci_write_config_dword(dev->persist->pdev, i * 4,
-					   hca_header[i])) {
+								   hca_header[i]))
+		{
 			err = -ENODEV;
 			mlx4_err(dev, "Couldn't restore HCA reg %x, aborting\n",
-				 i);
+					 i);
 			goto out;
 		}
 	}
 
 	if (pci_write_config_dword(dev->persist->pdev, PCI_COMMAND,
-				   hca_header[PCI_COMMAND / 4])) {
+							   hca_header[PCI_COMMAND / 4]))
+	{
 		err = -ENODEV;
 		mlx4_err(dev, "Couldn't restore HCA COMMAND, aborting\n");
 		goto out;

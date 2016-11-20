@@ -45,19 +45,19 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #ifdef _free_BSD
-#include <sys/param.h>
+	#include <sys/param.h>
 #endif
 
 #define _COMPONENT          ACPI_OS_SERVICES
 ACPI_MODULE_NAME("osunixmap")
 
 #ifndef O_BINARY
-#define O_BINARY 0
+	#define O_BINARY 0
 #endif
 #if defined(_dragon_fly) || defined(_free_BSD) || defined(_QNX)
-#define MMAP_FLAGS          MAP_SHARED
+	#define MMAP_FLAGS          MAP_SHARED
 #else
-#define MMAP_FLAGS          MAP_PRIVATE
+	#define MMAP_FLAGS          MAP_PRIVATE
 #endif
 #define SYSTEM_MEMORY       "/dev/mem"
 /*******************************************************************************
@@ -102,7 +102,9 @@ void *acpi_os_map_memory(acpi_physical_address where, acpi_size length)
 	int fd;
 
 	fd = open(SYSTEM_MEMORY, O_RDONLY | O_BINARY);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		fprintf(stderr, "Cannot open %s\n", SYSTEM_MEMORY);
 		return (NULL);
 	}
@@ -115,8 +117,10 @@ void *acpi_os_map_memory(acpi_physical_address where, acpi_size length)
 	/* Map the table header to get the length of the full table */
 
 	mapped_memory = mmap(NULL, (length + offset), PROT_READ, MMAP_FLAGS,
-			     fd, (where - offset));
-	if (mapped_memory == MAP_FAILED) {
+						 fd, (where - offset));
+
+	if (mapped_memory == MAP_FAILED)
+	{
 		fprintf(stderr, "Cannot map %s\n", SYSTEM_MEMORY);
 		close(fd);
 		return (NULL);

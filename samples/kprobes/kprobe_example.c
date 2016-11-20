@@ -19,7 +19,8 @@ static char symbol[MAX_SYMBOL_LEN] = "_do_fork";
 module_param_string(symbol, symbol, sizeof(symbol), 0644);
 
 /* For each probe you need to allocate a kprobe structure */
-static struct kprobe kp = {
+static struct kprobe kp =
+{
 	.symbol_name	= symbol,
 };
 
@@ -28,24 +29,24 @@ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 {
 #ifdef CONFIG_X86
 	pr_info("<%s> pre_handler: p->addr = 0x%p, ip = %lx, flags = 0x%lx\n",
-		p->symbol_name, p->addr, regs->ip, regs->flags);
+			p->symbol_name, p->addr, regs->ip, regs->flags);
 #endif
 #ifdef CONFIG_PPC
 	pr_info("<%s> pre_handler: p->addr = 0x%p, nip = 0x%lx, msr = 0x%lx\n",
-		p->symbol_name, p->addr, regs->nip, regs->msr);
+			p->symbol_name, p->addr, regs->nip, regs->msr);
 #endif
 #ifdef CONFIG_MIPS
 	pr_info("<%s> pre_handler: p->addr = 0x%p, epc = 0x%lx, status = 0x%lx\n",
-		p->symbol_name, p->addr, regs->cp0_epc, regs->cp0_status);
+			p->symbol_name, p->addr, regs->cp0_epc, regs->cp0_status);
 #endif
 #ifdef CONFIG_TILEGX
 	pr_info("<%s> pre_handler: p->addr = 0x%p, pc = 0x%lx, ex1 = 0x%lx\n",
-		p->symbol_name, p->addr, regs->pc, regs->ex1);
+			p->symbol_name, p->addr, regs->pc, regs->ex1);
 #endif
 #ifdef CONFIG_ARM64
 	pr_info("<%s> pre_handler: p->addr = 0x%p, pc = 0x%lx,"
 			" pstate = 0x%lx\n",
-		p->symbol_name, p->addr, (long)regs->pc, (long)regs->pstate);
+			p->symbol_name, p->addr, (long)regs->pc, (long)regs->pstate);
 #endif
 
 	/* A dump_stack() here will give a stack backtrace */
@@ -54,27 +55,27 @@ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 
 /* kprobe post_handler: called after the probed instruction is executed */
 static void handler_post(struct kprobe *p, struct pt_regs *regs,
-				unsigned long flags)
+						 unsigned long flags)
 {
 #ifdef CONFIG_X86
 	pr_info("<%s> post_handler: p->addr = 0x%p, flags = 0x%lx\n",
-		p->symbol_name, p->addr, regs->flags);
+			p->symbol_name, p->addr, regs->flags);
 #endif
 #ifdef CONFIG_PPC
 	pr_info("<%s> post_handler: p->addr = 0x%p, msr = 0x%lx\n",
-		p->symbol_name, p->addr, regs->msr);
+			p->symbol_name, p->addr, regs->msr);
 #endif
 #ifdef CONFIG_MIPS
 	pr_info("<%s> post_handler: p->addr = 0x%p, status = 0x%lx\n",
-		p->symbol_name, p->addr, regs->cp0_status);
+			p->symbol_name, p->addr, regs->cp0_status);
 #endif
 #ifdef CONFIG_TILEGX
 	pr_info("<%s> post_handler: p->addr = 0x%p, ex1 = 0x%lx\n",
-		p->symbol_name, p->addr, regs->ex1);
+			p->symbol_name, p->addr, regs->ex1);
 #endif
 #ifdef CONFIG_ARM64
 	pr_info("<%s> post_handler: p->addr = 0x%p, pstate = 0x%lx\n",
-		p->symbol_name, p->addr, (long)regs->pstate);
+			p->symbol_name, p->addr, (long)regs->pstate);
 #endif
 }
 
@@ -98,10 +99,13 @@ static int __init kprobe_init(void)
 	kp.fault_handler = handler_fault;
 
 	ret = register_kprobe(&kp);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("register_kprobe failed, returned %d\n", ret);
 		return ret;
 	}
+
 	pr_info("Planted kprobe at %p\n", kp.addr);
 	return 0;
 }

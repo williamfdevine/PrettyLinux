@@ -17,12 +17,13 @@
 #include <net/iucv/iucv.h>
 
 #ifndef AF_IUCV
-#define AF_IUCV		32
-#define PF_IUCV		AF_IUCV
+	#define AF_IUCV		32
+	#define PF_IUCV		AF_IUCV
 #endif
 
 /* Connection and socket states */
-enum {
+enum
+{
 	IUCV_CONNECTED = 1,
 	IUCV_OPEN,
 	IUCV_BOUND,
@@ -40,7 +41,8 @@ enum {
 #define IUCV_BUFSIZE_DEFAULT	32768
 
 /* IUCV socket address */
-struct sockaddr_iucv {
+struct sockaddr_iucv
+{
 	sa_family_t	siucv_family;
 	unsigned short	siucv_port;		/* Reserved */
 	unsigned int	siucv_addr;		/* Reserved */
@@ -51,7 +53,8 @@ struct sockaddr_iucv {
 
 
 /* Common socket structures and functions */
-struct sock_msg_q {
+struct sock_msg_q
+{
 	struct iucv_path	*path;
 	struct iucv_message	msg;
 	struct list_head	list;
@@ -64,7 +67,8 @@ struct sock_msg_q {
 #define AF_IUCV_FLAG_WIN 0x8
 #define AF_IUCV_FLAG_SHT 0x10
 
-struct af_iucv_trans_hdr {
+struct af_iucv_trans_hdr
+{
 	u16 magic;
 	u8 version;
 	u8 flags;
@@ -79,7 +83,8 @@ struct af_iucv_trans_hdr {
 	u8 pad;                          /* total 104 bytes */
 } __packed;
 
-enum iucv_tx_notify {
+enum iucv_tx_notify
+{
 	/* transmission of skb is completed and was successful */
 	TX_NOTIFY_OK = 0,
 	/* target is unreachable */
@@ -104,7 +109,8 @@ enum iucv_tx_notify {
 #define AF_IUCV_TRANS_IUCV 0
 #define AF_IUCV_TRANS_HIPER 1
 
-struct iucv_sock {
+struct iucv_sock
+{
 	struct sock		sk;
 	char			src_user_id[8];
 	char			src_name[8];
@@ -127,10 +133,11 @@ struct iucv_sock {
 	atomic_t		pendings;
 	int			transport;
 	void                    (*sk_txnotify)(struct sk_buff *skb,
-					       enum iucv_tx_notify n);
+										   enum iucv_tx_notify n);
 };
 
-struct iucv_skb_cb {
+struct iucv_skb_cb
+{
 	u32	class;		/* target class of message */
 	u32	tag;		/* tag associated with message */
 	u32	offset;		/* offset for skb receival */
@@ -146,14 +153,15 @@ struct iucv_skb_cb {
 /* iucv related control messages (scm) */
 #define SCM_IUCV_TRGCLS	0x0001		/* target class control message */
 
-struct iucv_sock_list {
+struct iucv_sock_list
+{
 	struct hlist_head head;
 	rwlock_t	  lock;
 	atomic_t	  autobind_name;
 };
 
 unsigned int iucv_sock_poll(struct file *file, struct socket *sock,
-			    poll_table *wait);
+							poll_table *wait);
 void iucv_sock_link(struct iucv_sock_list *l, struct sock *s);
 void iucv_sock_unlink(struct iucv_sock_list *l, struct sock *s);
 void iucv_accept_enqueue(struct sock *parent, struct sock *sk);

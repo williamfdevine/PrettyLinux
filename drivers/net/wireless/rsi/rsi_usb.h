@@ -35,7 +35,8 @@
 #define MGMT_EP                      1
 #define DATA_EP                      2
 
-struct rsi_91x_usbdev {
+struct rsi_91x_usbdev
+{
 	struct rsi_thread rx_thread;
 	u8 endpoint;
 	struct usb_device *usbdev;
@@ -63,6 +64,6 @@ static inline int rsi_usb_event_timeout(struct rsi_hw *adapter)
 
 int rsi_usb_device_init(struct rsi_common *common);
 int rsi_usb_write_register_multiple(struct rsi_hw *adapter, u32 addr,
-				    u8 *data, u32 count);
+									u8 *data, u32 count);
 void rsi_usb_rx_thread(struct rsi_common *common);
 #endif

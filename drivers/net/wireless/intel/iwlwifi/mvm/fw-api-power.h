@@ -83,7 +83,8 @@
  * @LTR_CFG_FLAG_SW_SET_LONG: fixed static short LONG register
  * @LTR_CFG_FLAG_DENIE_C10_ON_PD: allow going into C10 on PD
  */
-enum iwl_ltr_config_flags {
+enum iwl_ltr_config_flags
+{
 	LTR_CFG_FLAG_FEATURE_ENABLE = BIT(0),
 	LTR_CFG_FLAG_HW_DIS_ON_SHADOW_REG_ACCESS = BIT(1),
 	LTR_CFG_FLAG_HW_EN_SHRT_WR_THROUGH = BIT(2),
@@ -97,7 +98,8 @@ enum iwl_ltr_config_flags {
  * struct iwl_ltr_config_cmd_v1 - configures the LTR
  * @flags: See %enum iwl_ltr_config_flags
  */
-struct iwl_ltr_config_cmd_v1 {
+struct iwl_ltr_config_cmd_v1
+{
 	__le32 flags;
 	__le32 static_long;
 	__le32 static_short;
@@ -113,7 +115,8 @@ struct iwl_ltr_config_cmd_v1 {
  * @ltr_cfg_values:
  * @ltr_short_idle_timeout:
  */
-struct iwl_ltr_config_cmd {
+struct iwl_ltr_config_cmd
+{
 	__le32 flags;
 	__le32 static_long;
 	__le32 static_short;
@@ -143,7 +146,8 @@ struct iwl_ltr_config_cmd {
  * @POWER_FLAGS_AP_UAPSD_MISBEHAVING_ENA_MSK: AP/GO's uAPSD misbehaving
  *		detection enablement
 */
-enum iwl_power_flags {
+enum iwl_power_flags
+{
 	POWER_FLAGS_POWER_SAVE_ENA_MSK		= BIT(0),
 	POWER_FLAGS_POWER_MANAGEMENT_ENA_MSK	= BIT(1),
 	POWER_FLAGS_SKIP_OVER_DTIM_MSK		= BIT(2),
@@ -177,7 +181,8 @@ enum iwl_power_flags {
  * @lprx_rssi_threshold: Signal strength up to which LP RX can be enabled.
  *			Default: 80dbm
  */
-struct iwl_powertable_cmd {
+struct iwl_powertable_cmd
+{
 	/* PM_POWER_TABLE_CMD_API_S_VER_6 */
 	__le16 flags;
 	u8 keep_alive_seconds;
@@ -194,7 +199,8 @@ struct iwl_powertable_cmd {
  * @DEVIC_POWER_FLAGS_POWER_SAVE_ENA_MSK: '1' Allow to save power by turning off
  *	receiver and transmitter. '0' - does not allow.
 */
-enum iwl_device_power_flags {
+enum iwl_device_power_flags
+{
 	DEVICE_POWER_FLAGS_POWER_SAVE_ENA_MSK	= BIT(0),
 };
 
@@ -204,7 +210,8 @@ enum iwl_device_power_flags {
  *
  * @flags:	Power table command flags from DEVICE_POWER_FLAGS_*
  */
-struct iwl_device_power_cmd {
+struct iwl_device_power_cmd
+{
 	/* PM_POWER_TABLE_CMD_API_S_VER_6 */
 	__le16 flags;
 	__le16 reserved;
@@ -253,7 +260,8 @@ struct iwl_device_power_cmd {
  * @heavy_rx_thld_percentage:	RX threshold measured in load's percentage
  * @limited_ps_threshold:
 */
-struct iwl_mac_power_cmd {
+struct iwl_mac_power_cmd
+{
 	/* CONTEXT_DESC_API_T_VER_1 */
 	__le32 id_and_color;
 
@@ -287,7 +295,8 @@ struct iwl_mac_power_cmd {
  * @sta_id: index of station in uCode's station table - associated AP ID in
  *	    this context.
  */
-struct iwl_uapsd_misbehaving_ap_notif {
+struct iwl_uapsd_misbehaving_ap_notif
+{
 	__le32 sta_id;
 	u8 mac_id;
 	u8 reserved[3];
@@ -300,13 +309,15 @@ struct iwl_uapsd_misbehaving_ap_notif {
  * @mac_context_id: id of the mac ctx for which we are reducing TX power.
  * @pwr_restriction: TX power restriction in dBms.
  */
-struct iwl_reduce_tx_power_cmd {
+struct iwl_reduce_tx_power_cmd
+{
 	u8 flags;
 	u8 mac_context_id;
 	__le16 pwr_restriction;
 } __packed; /* TX_REDUCED_POWER_API_S_VER_1 */
 
-enum iwl_dev_tx_power_cmd_mode {
+enum iwl_dev_tx_power_cmd_mode
+{
 	IWL_TX_POWER_MODE_SET_MAC = 0,
 	IWL_TX_POWER_MODE_SET_DEVICE = 1,
 	IWL_TX_POWER_MODE_SET_CHAINS = 2,
@@ -326,7 +337,8 @@ enum iwl_dev_tx_power_cmd_mode {
  * @dev_52_high: device TX power restriction upper band - high
  * @per_chain_restriction: per chain restrictions
  */
-struct iwl_dev_tx_power_cmd_v3 {
+struct iwl_dev_tx_power_cmd_v3
+{
 	__le32 set_mode;
 	__le32 mac_context_id;
 	__le16 pwr_restriction;
@@ -344,7 +356,8 @@ struct iwl_dev_tx_power_cmd_v3 {
  * @enable_ack_reduction: enable or disable close range ack TX power
  *	reduction.
  */
-struct iwl_dev_tx_power_cmd {
+struct iwl_dev_tx_power_cmd
+{
 	/* v4 is just an extension of v3 - keep this here */
 	struct iwl_dev_tx_power_cmd_v3 v3;
 	u8 enable_ack_reduction;
@@ -392,7 +405,8 @@ struct iwl_dev_tx_power_cmd {
  *      for a longer period of time then this escape-timeout. Units: Beacons.
  * @ba_enable_beacon_abort: 1, beacon abort is enabled; 0, disabled.
  */
-struct iwl_beacon_filter_cmd {
+struct iwl_beacon_filter_cmd
+{
 	__le32 bf_energy_delta;
 	__le32 bf_roaming_energy_delta;
 	__le32 bf_roaming_state;
@@ -457,15 +471,15 @@ struct iwl_beacon_filter_cmd {
 
 #define IWL_BF_CMD_CONFIG(mode)					     \
 	.bf_energy_delta = cpu_to_le32(IWL_BF_ENERGY_DELTA ## mode),	      \
-	.bf_roaming_energy_delta =					      \
-		cpu_to_le32(IWL_BF_ROAMING_ENERGY_DELTA ## mode),	      \
-	.bf_roaming_state = cpu_to_le32(IWL_BF_ROAMING_STATE ## mode),	      \
-	.bf_temp_threshold = cpu_to_le32(IWL_BF_TEMP_THRESHOLD ## mode),      \
-	.bf_temp_fast_filter = cpu_to_le32(IWL_BF_TEMP_FAST_FILTER ## mode),  \
-	.bf_temp_slow_filter = cpu_to_le32(IWL_BF_TEMP_SLOW_FILTER ## mode),  \
-	.bf_debug_flag = cpu_to_le32(IWL_BF_DEBUG_FLAG ## mode),	      \
-	.bf_escape_timer = cpu_to_le32(IWL_BF_ESCAPE_TIMER ## mode),	      \
-	.ba_escape_timer = cpu_to_le32(IWL_BA_ESCAPE_TIMER ## mode)
+					   .bf_roaming_energy_delta =					      \
+							   cpu_to_le32(IWL_BF_ROAMING_ENERGY_DELTA ## mode),	      \
+							   .bf_roaming_state = cpu_to_le32(IWL_BF_ROAMING_STATE ## mode),	      \
+									   .bf_temp_threshold = cpu_to_le32(IWL_BF_TEMP_THRESHOLD ## mode),      \
+											   .bf_temp_fast_filter = cpu_to_le32(IWL_BF_TEMP_FAST_FILTER ## mode),  \
+													   .bf_temp_slow_filter = cpu_to_le32(IWL_BF_TEMP_SLOW_FILTER ## mode),  \
+															   .bf_debug_flag = cpu_to_le32(IWL_BF_DEBUG_FLAG ## mode),	      \
+																	   .bf_escape_timer = cpu_to_le32(IWL_BF_ESCAPE_TIMER ## mode),	      \
+																			   .ba_escape_timer = cpu_to_le32(IWL_BA_ESCAPE_TIMER ## mode)
 
 #define IWL_BF_CMD_CONFIG_DEFAULTS IWL_BF_CMD_CONFIG(_DEFAULT)
 #define IWL_BF_CMD_CONFIG_D0I3 IWL_BF_CMD_CONFIG(_D0I3)

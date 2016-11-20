@@ -27,12 +27,14 @@
  */
 #include "capability_names.h"
 
-struct aa_fs_entry aa_fs_entry_caps[] = {
+struct aa_fs_entry aa_fs_entry_caps[] =
+{
 	AA_FS_FILE_STRING("mask", AA_FS_CAPS_MASK),
 	{ }
 };
 
-struct audit_cache {
+struct audit_cache
+{
 	struct aa_profile *profile;
 	kernel_cap_t caps;
 };
@@ -74,34 +76,51 @@ static int audit_caps(struct aa_profile *profile, int cap, int error)
 	sa.aad->op = OP_CAPABLE;
 	sa.aad->error = error;
 
-	if (likely(!error)) {
+	if (likely(!error))
+	{
 		/* test if auditing is being forced */
 		if (likely((AUDIT_MODE(profile) != AUDIT_ALL) &&
-			   !cap_raised(profile->caps.audit, cap)))
+				   !cap_raised(profile->caps.audit, cap)))
+		{
 			return 0;
+		}
+
 		type = AUDIT_APPARMOR_AUDIT;
-	} else if (KILL_MODE(profile) ||
-		   cap_raised(profile->caps.kill, cap)) {
+	}
+	else if (KILL_MODE(profile) ||
+			 cap_raised(profile->caps.kill, cap))
+	{
 		type = AUDIT_APPARMOR_KILL;
-	} else if (cap_raised(profile->caps.quiet, cap) &&
-		   AUDIT_MODE(profile) != AUDIT_NOQUIET &&
-		   AUDIT_MODE(profile) != AUDIT_ALL) {
+	}
+	else if (cap_raised(profile->caps.quiet, cap) &&
+			 AUDIT_MODE(profile) != AUDIT_NOQUIET &&
+			 AUDIT_MODE(profile) != AUDIT_ALL)
+	{
 		/* quiet auditing */
 		return error;
 	}
 
 	/* Do simple duplicate message elimination */
 	ent = &get_cpu_var(audit_cache);
-	if (profile == ent->profile && cap_raised(ent->caps, cap)) {
+
+	if (profile == ent->profile && cap_raised(ent->caps, cap))
+	{
 		put_cpu_var(audit_cache);
+
 		if (COMPLAIN_MODE(profile))
+		{
 			return complain_error(error);
+		}
+
 		return error;
-	} else {
+	}
+	else
+	{
 		aa_put_profile(ent->profile);
 		ent->profile = aa_get_profile(profile);
 		cap_raise(ent->caps, cap);
 	}
+
 	put_cpu_var(audit_cache);
 
 	return aa_audit(type, profile, GFP_ATOMIC, &sa, audit_cb);
@@ -133,9 +152,13 @@ int aa_capable(struct aa_profile *profile, int cap, int audit)
 {
 	int error = profile_capable(profile, cap);
 
-	if (!audit) {
+	if (!audit)
+	{
 		if (COMPLAIN_MODE(profile))
+		{
 			return complain_error(error);
+		}
+
 		return error;
 	}
 

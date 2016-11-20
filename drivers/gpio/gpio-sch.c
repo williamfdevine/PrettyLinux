@@ -33,7 +33,8 @@
 #define GIO	0x04
 #define GLV	0x08
 
-struct sch_gpio {
+struct sch_gpio
+{
 	struct gpio_chip chip;
 	spinlock_t lock;
 	unsigned short iobase;
@@ -42,11 +43,12 @@ struct sch_gpio {
 };
 
 static unsigned sch_gpio_offset(struct sch_gpio *sch, unsigned gpio,
-				unsigned reg)
+								unsigned reg)
 {
 	unsigned base = 0;
 
-	if (gpio >= sch->resume_base) {
+	if (gpio >= sch->resume_base)
+	{
 		gpio -= sch->resume_base;
 		base += 0x20;
 	}
@@ -57,7 +59,10 @@ static unsigned sch_gpio_offset(struct sch_gpio *sch, unsigned gpio,
 static unsigned sch_gpio_bit(struct sch_gpio *sch, unsigned gpio)
 {
 	if (gpio >= sch->resume_base)
+	{
 		gpio -= sch->resume_base;
+	}
+
 	return gpio % 8;
 }
 
@@ -75,7 +80,7 @@ static int sch_gpio_reg_get(struct sch_gpio *sch, unsigned gpio, unsigned reg)
 }
 
 static void sch_gpio_reg_set(struct sch_gpio *sch, unsigned gpio, unsigned reg,
-			     int val)
+							 int val)
 {
 	unsigned short offset, bit;
 	u8 reg_val;
@@ -86,9 +91,13 @@ static void sch_gpio_reg_set(struct sch_gpio *sch, unsigned gpio, unsigned reg,
 	reg_val = inb(sch->iobase + offset);
 
 	if (val)
+	{
 		outb(reg_val | BIT(bit), sch->iobase + offset);
+	}
 	else
+	{
 		outb((reg_val & ~BIT(bit)), sch->iobase + offset);
+	}
 }
 
 static int sch_gpio_direction_in(struct gpio_chip *gc, unsigned gpio_num)
@@ -117,7 +126,7 @@ static void sch_gpio_set(struct gpio_chip *gc, unsigned gpio_num, int val)
 }
 
 static int sch_gpio_direction_out(struct gpio_chip *gc, unsigned gpio_num,
-				  int val)
+								  int val)
 {
 	struct sch_gpio *sch = gpiochip_get_data(gc);
 
@@ -138,7 +147,8 @@ static int sch_gpio_direction_out(struct gpio_chip *gc, unsigned gpio_num,
 	return 0;
 }
 
-static const struct gpio_chip sch_gpio_chip = {
+static const struct gpio_chip sch_gpio_chip =
+{
 	.label			= "sch_gpio",
 	.owner			= THIS_MODULE,
 	.direction_input	= sch_gpio_direction_in,
@@ -153,16 +163,24 @@ static int sch_gpio_probe(struct platform_device *pdev)
 	struct resource *res;
 
 	sch = devm_kzalloc(&pdev->dev, sizeof(*sch), GFP_KERNEL);
+
 	if (!sch)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+
 	if (!res)
+	{
 		return -EBUSY;
+	}
 
 	if (!devm_request_region(&pdev->dev, res->start, resource_size(res),
-				 pdev->name))
+							 pdev->name))
+	{
 		return -EBUSY;
+	}
 
 	spin_lock_init(&sch->lock);
 	sch->iobase = res->start;
@@ -170,46 +188,47 @@ static int sch_gpio_probe(struct platform_device *pdev)
 	sch->chip.label = dev_name(&pdev->dev);
 	sch->chip.parent = &pdev->dev;
 
-	switch (pdev->id) {
-	case PCI_DEVICE_ID_INTEL_SCH_LPC:
-		sch->core_base = 0;
-		sch->resume_base = 10;
-		sch->chip.ngpio = 14;
+	switch (pdev->id)
+	{
+		case PCI_DEVICE_ID_INTEL_SCH_LPC:
+			sch->core_base = 0;
+			sch->resume_base = 10;
+			sch->chip.ngpio = 14;
 
-		/*
-		 * GPIO[6:0] enabled by default
-		 * GPIO7 is configured by the CMC as SLPIOVR
-		 * Enable GPIO[9:8] core powered gpios explicitly
-		 */
-		sch_gpio_reg_set(sch, 8, GEN, 1);
-		sch_gpio_reg_set(sch, 9, GEN, 1);
-		/*
-		 * SUS_GPIO[2:0] enabled by default
-		 * Enable SUS_GPIO3 resume powered gpio explicitly
-		 */
-		sch_gpio_reg_set(sch, 13, GEN, 1);
-		break;
+			/*
+			 * GPIO[6:0] enabled by default
+			 * GPIO7 is configured by the CMC as SLPIOVR
+			 * Enable GPIO[9:8] core powered gpios explicitly
+			 */
+			sch_gpio_reg_set(sch, 8, GEN, 1);
+			sch_gpio_reg_set(sch, 9, GEN, 1);
+			/*
+			 * SUS_GPIO[2:0] enabled by default
+			 * Enable SUS_GPIO3 resume powered gpio explicitly
+			 */
+			sch_gpio_reg_set(sch, 13, GEN, 1);
+			break;
 
-	case PCI_DEVICE_ID_INTEL_ITC_LPC:
-		sch->core_base = 0;
-		sch->resume_base = 5;
-		sch->chip.ngpio = 14;
-		break;
+		case PCI_DEVICE_ID_INTEL_ITC_LPC:
+			sch->core_base = 0;
+			sch->resume_base = 5;
+			sch->chip.ngpio = 14;
+			break;
 
-	case PCI_DEVICE_ID_INTEL_CENTERTON_ILB:
-		sch->core_base = 0;
-		sch->resume_base = 21;
-		sch->chip.ngpio = 30;
-		break;
+		case PCI_DEVICE_ID_INTEL_CENTERTON_ILB:
+			sch->core_base = 0;
+			sch->resume_base = 21;
+			sch->chip.ngpio = 30;
+			break;
 
-	case PCI_DEVICE_ID_INTEL_QUARK_X1000_ILB:
-		sch->core_base = 0;
-		sch->resume_base = 2;
-		sch->chip.ngpio = 8;
-		break;
+		case PCI_DEVICE_ID_INTEL_QUARK_X1000_ILB:
+			sch->core_base = 0;
+			sch->resume_base = 2;
+			sch->chip.ngpio = 8;
+			break;
 
-	default:
-		return -ENODEV;
+		default:
+			return -ENODEV;
 	}
 
 	platform_set_drvdata(pdev, sch);
@@ -217,7 +236,8 @@ static int sch_gpio_probe(struct platform_device *pdev)
 	return devm_gpiochip_add_data(&pdev->dev, &sch->chip, sch);
 }
 
-static struct platform_driver sch_gpio_driver = {
+static struct platform_driver sch_gpio_driver =
+{
 	.driver = {
 		.name = "sch_gpio",
 	},

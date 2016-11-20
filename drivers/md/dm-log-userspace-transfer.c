@@ -32,14 +32,16 @@ static uint32_t dm_ulog_seq;
 static struct cn_msg *prealloced_cn_msg;
 static struct dm_ulog_request *prealloced_ulog_tfr;
 
-static struct cb_id ulog_cn_id = {
+static struct cb_id ulog_cn_id =
+{
 	.idx = CN_IDX_DM,
 	.val = CN_VAL_DM_USERSPACE_LOG
 };
 
 static DEFINE_MUTEX(dm_ulog_lock);
 
-struct receiving_pkg {
+struct receiving_pkg
+{
 	struct list_head list;
 	struct completion complete;
 
@@ -94,31 +96,43 @@ static int fill_pkg(struct cn_msg *msg, struct dm_ulog_request *tfr)
 	 * is unique to each process, but still addressable by
 	 * other processes.
 	 */
-	list_for_each_entry(pkg, &receiving_list, list) {
+	list_for_each_entry(pkg, &receiving_list, list)
+	{
 		if (rtn_seq != pkg->seq)
+		{
 			continue;
+		}
 
-		if (msg) {
+		if (msg)
+		{
 			pkg->error = -msg->ack;
+
 			/*
 			 * If we are trying again, we will need to know our
 			 * storage capacity.  Otherwise, along with the
 			 * error code, we make explicit that we have no data.
 			 */
 			if (pkg->error != -EAGAIN)
+			{
 				*(pkg->data_size) = 0;
-		} else if (tfr->data_size > *(pkg->data_size)) {
+			}
+		}
+		else if (tfr->data_size > *(pkg->data_size))
+		{
 			DMERR("Insufficient space to receive package [%u] "
-			      "(%u vs %zu)", tfr->request_type,
-			      tfr->data_size, *(pkg->data_size));
+				  "(%u vs %zu)", tfr->request_type,
+				  tfr->data_size, *(pkg->data_size));
 
 			*(pkg->data_size) = 0;
 			pkg->error = -ENOSPC;
-		} else {
+		}
+		else
+		{
 			pkg->error = tfr->error;
 			memcpy(pkg->data, tfr->data, tfr->data_size);
 			*(pkg->data_size) = tfr->data_size;
 		}
+
 		complete(&pkg->complete);
 		return 0;
 	}
@@ -135,16 +149,24 @@ static void cn_ulog_callback(struct cn_msg *msg, struct netlink_skb_parms *nsp)
 	struct dm_ulog_request *tfr = (struct dm_ulog_request *)(msg + 1);
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return;
+	}
 
 	spin_lock(&receiving_list_lock);
+
 	if (msg->len == 0)
+	{
 		fill_pkg(msg, NULL);
+	}
 	else if (msg->len < sizeof(*tfr))
 		DMERR("Incomplete message received (expected %u, got %u): [%u]",
-		      (unsigned)sizeof(*tfr), msg->len, msg->seq);
+			  (unsigned)sizeof(*tfr), msg->len, msg->seq);
 	else
+	{
 		fill_pkg(NULL, tfr);
+	}
+
 	spin_unlock(&receiving_list_lock);
 }
 
@@ -168,8 +190,8 @@ static void cn_ulog_callback(struct cn_msg *msg, struct netlink_skb_parms *nsp)
  * Returns: 0 on success, -EXXX on failure
  **/
 int dm_consult_userspace(const char *uuid, uint64_t luid, int request_type,
-			 char *data, size_t data_size,
-			 char *rdata, size_t *rdata_size)
+						 char *data, size_t data_size,
+						 char *rdata, size_t *rdata_size)
 {
 	int r = 0;
 	unsigned long tmo;
@@ -183,13 +205,17 @@ int dm_consult_userspace(const char *uuid, uint64_t luid, int request_type,
 	 * 'struct dm_ulog_request' - do we have enough payload
 	 * space remaining?
 	 */
-	if (data_size > (DM_ULOG_PREALLOCED_SIZE - overhead_size)) {
+	if (data_size > (DM_ULOG_PREALLOCED_SIZE - overhead_size))
+	{
 		DMINFO("Size of tfr exceeds preallocated size");
 		return -EINVAL;
 	}
 
 	if (!rdata_size)
+	{
 		rdata_size = &dummy;
+	}
+
 resend:
 	/*
 	 * We serialize the sending of requests so we can
@@ -211,8 +237,11 @@ resend:
 	tfr->request_type = request_type & DM_ULOG_REQUEST_MASK;
 
 	tfr->data_size = data_size;
+
 	if (data && data_size)
+	{
 		memcpy(tfr->data, data, data_size);
+	}
 
 	memset(&pkg, 0, sizeof(pkg));
 	init_completion(&pkg.complete);
@@ -227,9 +256,10 @@ resend:
 
 	mutex_unlock(&dm_ulog_lock);
 
-	if (r) {
+	if (r)
+	{
 		DMERR("Unable to send log request [%u] to userspace: %d",
-		      request_type, r);
+			  request_type, r);
 		spin_lock(&receiving_list_lock);
 		list_del_init(&(pkg.list));
 		spin_unlock(&receiving_list_lock);
@@ -241,17 +271,22 @@ resend:
 	spin_lock(&receiving_list_lock);
 	list_del_init(&(pkg.list));
 	spin_unlock(&receiving_list_lock);
-	if (!tmo) {
+
+	if (!tmo)
+	{
 		DMWARN("[%s] Request timed out: [%u/%u] - retrying",
-		       (strlen(uuid) > 8) ?
-		       (uuid + (strlen(uuid) - 8)) : (uuid),
-		       request_type, pkg.seq);
+			   (strlen(uuid) > 8) ?
+			   (uuid + (strlen(uuid) - 8)) : (uuid),
+			   request_type, pkg.seq);
 		goto resend;
 	}
 
 	r = pkg.error;
+
 	if (r == -EAGAIN)
+	{
 		goto resend;
+	}
 
 out:
 	return r;
@@ -265,14 +300,19 @@ int dm_ulog_tfr_init(void)
 	INIT_LIST_HEAD(&receiving_list);
 
 	prealloced = kmalloc(DM_ULOG_PREALLOCED_SIZE, GFP_KERNEL);
+
 	if (!prealloced)
+	{
 		return -ENOMEM;
+	}
 
 	prealloced_cn_msg = prealloced;
 	prealloced_ulog_tfr = prealloced + sizeof(struct cn_msg);
 
 	r = cn_add_callback(&ulog_cn_id, "dmlogusr", cn_ulog_callback);
-	if (r) {
+
+	if (r)
+	{
 		kfree(prealloced_cn_msg);
 		return r;
 	}

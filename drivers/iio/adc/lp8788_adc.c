@@ -27,13 +27,15 @@
 
 #define ADC_CONV_START			1
 
-struct lp8788_adc {
+struct lp8788_adc
+{
 	struct lp8788 *lp;
 	struct iio_map *map;
 	struct mutex lock;
 };
 
-static const int lp8788_scale[LPADC_MAX] = {
+static const int lp8788_scale[LPADC_MAX] =
+{
 	[LPADC_VBATT_5P5] = 1343101,
 	[LPADC_VIN_CHG]   = 3052503,
 	[LPADC_IBATT]     = 610500,
@@ -49,7 +51,7 @@ static const int lp8788_scale[LPADC_MAX] = {
 };
 
 static int lp8788_get_adc_result(struct lp8788_adc *adc, enum lp8788_adc_id id,
-				int *val)
+								 int *val)
 {
 	unsigned int msb;
 	unsigned int lsb;
@@ -62,26 +64,39 @@ static int lp8788_get_adc_result(struct lp8788_adc *adc, enum lp8788_adc_id id,
 
 	data = (id << 1) | ADC_CONV_START;
 	ret = lp8788_write_byte(adc->lp, LP8788_ADC_CONF, data);
+
 	if (ret)
+	{
 		goto err_io;
+	}
 
 	/* retry until adc conversion is done */
 	data = 0;
-	while (retry--) {
+
+	while (retry--)
+	{
 		usleep_range(100, 200);
 
 		ret = lp8788_read_byte(adc->lp, LP8788_ADC_DONE, &data);
+
 		if (ret)
+		{
 			goto err_io;
+		}
 
 		/* conversion done */
 		if (data)
+		{
 			break;
+		}
 	}
 
 	ret = lp8788_read_multi_bytes(adc->lp, LP8788_ADC_RAW, rawdata, size);
+
 	if (ret)
+	{
 		goto err_io;
+	}
 
 	msb = (rawdata[0] << 4) & 0x00000ff0;
 	lsb = (rawdata[1] >> 4) & 0x0000000f;
@@ -95,8 +110,8 @@ err_io:
 }
 
 static int lp8788_adc_read_raw(struct iio_dev *indio_dev,
-			struct iio_chan_spec const *chan,
-			int *val, int *val2, long mask)
+							   struct iio_chan_spec const *chan,
+							   int *val, int *val2, long mask)
 {
 	struct lp8788_adc *adc = iio_priv(indio_dev);
 	enum lp8788_adc_id id = chan->channel;
@@ -104,18 +119,21 @@ static int lp8788_adc_read_raw(struct iio_dev *indio_dev,
 
 	mutex_lock(&adc->lock);
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		ret = lp8788_get_adc_result(adc, id, val) ? -EIO : IIO_VAL_INT;
-		break;
-	case IIO_CHAN_INFO_SCALE:
-		*val = lp8788_scale[id] / 1000000;
-		*val2 = lp8788_scale[id] % 1000000;
-		ret = IIO_VAL_INT_PLUS_MICRO;
-		break;
-	default:
-		ret = -EINVAL;
-		break;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			ret = lp8788_get_adc_result(adc, id, val) ? -EIO : IIO_VAL_INT;
+			break;
+
+		case IIO_CHAN_INFO_SCALE:
+			*val = lp8788_scale[id] / 1000000;
+			*val2 = lp8788_scale[id] % 1000000;
+			ret = IIO_VAL_INT_PLUS_MICRO;
+			break;
+
+		default:
+			ret = -EINVAL;
+			break;
 	}
 
 	mutex_unlock(&adc->lock);
@@ -123,21 +141,23 @@ static int lp8788_adc_read_raw(struct iio_dev *indio_dev,
 	return ret;
 }
 
-static const struct iio_info lp8788_adc_info = {
+static const struct iio_info lp8788_adc_info =
+{
 	.read_raw = &lp8788_adc_read_raw,
 	.driver_module = THIS_MODULE,
 };
 
 #define LP8788_CHAN(_id, _type) {				\
 		.type = _type,					\
-		.indexed = 1,					\
-		.channel = LPADC_##_id,				\
-		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |	\
-			BIT(IIO_CHAN_INFO_SCALE),		\
-		.datasheet_name = #_id,				\
-}
+				.indexed = 1,					\
+						   .channel = LPADC_##_id,				\
+									  .info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |	\
+											  BIT(IIO_CHAN_INFO_SCALE),		\
+											  .datasheet_name = #_id,				\
+	}
 
-static const struct iio_chan_spec lp8788_adc_channels[] = {
+static const struct iio_chan_spec lp8788_adc_channels[] =
+{
 	[LPADC_VBATT_5P5] = LP8788_CHAN(VBATT_5P5, IIO_VOLTAGE),
 	[LPADC_VIN_CHG]   = LP8788_CHAN(VIN_CHG, IIO_VOLTAGE),
 	[LPADC_IBATT]     = LP8788_CHAN(IBATT, IIO_CURRENT),
@@ -153,7 +173,8 @@ static const struct iio_chan_spec lp8788_adc_channels[] = {
 };
 
 /* default maps used by iio consumer (lp8788-charger driver) */
-static struct iio_map lp8788_default_iio_maps[] = {
+static struct iio_map lp8788_default_iio_maps[] =
+{
 	{
 		.consumer_dev_name = "lp8788-charger",
 		.consumer_channel = "lp8788_vbatt_5p0",
@@ -168,17 +189,19 @@ static struct iio_map lp8788_default_iio_maps[] = {
 };
 
 static int lp8788_iio_map_register(struct iio_dev *indio_dev,
-				struct lp8788_platform_data *pdata,
-				struct lp8788_adc *adc)
+								   struct lp8788_platform_data *pdata,
+								   struct lp8788_adc *adc)
 {
 	struct iio_map *map;
 	int ret;
 
 	map = (!pdata || !pdata->adc_pdata) ?
-		lp8788_default_iio_maps : pdata->adc_pdata;
+		  lp8788_default_iio_maps : pdata->adc_pdata;
 
 	ret = iio_map_array_register(indio_dev, map);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&indio_dev->dev, "iio map err: %d\n", ret);
 		return ret;
 	}
@@ -195,8 +218,11 @@ static int lp8788_adc_probe(struct platform_device *pdev)
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&pdev->dev, sizeof(*adc));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	adc = iio_priv(indio_dev);
 	adc->lp = lp;
@@ -204,8 +230,11 @@ static int lp8788_adc_probe(struct platform_device *pdev)
 
 	indio_dev->dev.of_node = pdev->dev.of_node;
 	ret = lp8788_iio_map_register(indio_dev, lp->pdata, adc);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mutex_init(&adc->lock);
 
@@ -217,7 +246,9 @@ static int lp8788_adc_probe(struct platform_device *pdev)
 	indio_dev->num_channels = ARRAY_SIZE(lp8788_adc_channels);
 
 	ret = iio_device_register(indio_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "iio dev register err: %d\n", ret);
 		goto err_iio_device;
 	}
@@ -239,7 +270,8 @@ static int lp8788_adc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver lp8788_adc_driver = {
+static struct platform_driver lp8788_adc_driver =
+{
 	.probe = lp8788_adc_probe,
 	.remove = lp8788_adc_remove,
 	.driver = {

@@ -47,7 +47,7 @@
  * of Hex number by XORing each bit.
  */
 #define LERRCHKSUM(hexnum) (((hexnum) & 0xf) ^ ((hexnum) >> 4 & 0xf) ^ \
-			   ((hexnum) >> 8 & 0xf))
+							((hexnum) >> 8 & 0xf))
 
 #include <linux/list.h>
 
@@ -85,7 +85,8 @@ void cfs_get_random_bytes(void *buf, int size);
 #include "libcfs_hash.h"
 #include "libcfs_fail.h"
 
-struct libcfs_ioctl_handler {
+struct libcfs_ioctl_handler
+{
 	struct list_head item;
 	int (*handle_ioctl)(unsigned int cmd, struct libcfs_ioctl_hdr *hdr);
 };
@@ -93,14 +94,14 @@ struct libcfs_ioctl_handler {
 #define DECLARE_IOCTL_HANDLER(ident, func)			\
 	struct libcfs_ioctl_handler ident = {			\
 		.item		= LIST_HEAD_INIT(ident.item),	\
-		.handle_ioctl	= func				\
+					  .handle_ioctl	= func				\
 	}
 
 int libcfs_register_ioctl(struct libcfs_ioctl_handler *hand);
 int libcfs_deregister_ioctl(struct libcfs_ioctl_handler *hand);
 
 int libcfs_ioctl_getdata(struct libcfs_ioctl_hdr **hdr_pp,
-			 const struct libcfs_ioctl_hdr __user *uparam);
+						 const struct libcfs_ioctl_hdr __user *uparam);
 int libcfs_ioctl_data_adjust(struct libcfs_ioctl_data *data);
 int libcfs_ioctl(unsigned long cmd, void __user *arg);
 
@@ -108,7 +109,10 @@ int libcfs_ioctl(unsigned long cmd, void __user *arg);
 static inline void *__container_of(void *ptr, unsigned long shift)
 {
 	if (IS_ERR_OR_NULL(ptr))
+	{
 		return ptr;
+	}
+
 	return (char *)ptr - shift;
 }
 
@@ -119,7 +123,7 @@ static inline void *__container_of(void *ptr, unsigned long shift)
 
 void *libcfs_kvzalloc(size_t size, gfp_t flags);
 void *libcfs_kvzalloc_cpt(struct cfs_cpt_table *cptab, int cpt, size_t size,
-			  gfp_t flags);
+						  gfp_t flags);
 
 extern struct miscdevice libcfs_dev;
 /**
@@ -130,16 +134,17 @@ extern char lnet_debug_log_upcall[1024];
 
 extern struct cfs_wi_sched *cfs_sched_rehash;
 
-struct lnet_debugfs_symlink_def {
+struct lnet_debugfs_symlink_def
+{
 	char *name;
 	char *target;
 };
 
 void lustre_insert_debugfs(struct ctl_table *table,
-			   const struct lnet_debugfs_symlink_def *symlinks);
+						   const struct lnet_debugfs_symlink_def *symlinks);
 int lprocfs_call_handler(void *data, int write, loff_t *ppos,
-			 void __user *buffer, size_t *lenp,
-			 int (*handler)(void *data, int write, loff_t pos,
-					void __user *buffer, int len));
+						 void __user *buffer, size_t *lenp,
+						 int (*handler)(void *data, int write, loff_t pos,
+										void __user *buffer, int len));
 
 #endif /* _LIBCFS_H */

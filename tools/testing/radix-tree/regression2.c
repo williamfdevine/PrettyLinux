@@ -58,7 +58,8 @@
 static RADIX_TREE(mt_tree, GFP_KERNEL);
 unsigned long page_count = 0;
 
-struct page {
+struct page
+{
 	unsigned long index;
 };
 
@@ -80,18 +81,21 @@ void regression2_test(void)
 	struct page *pages[1];
 
 	printf("running regression test 2 (should take milliseconds)\n");
+
 	/* 0. */
-	for (i = 0; i <= max_slots - 1; i++) {
+	for (i = 0; i <= max_slots - 1; i++)
+	{
 		p = page_alloc();
 		radix_tree_insert(&mt_tree, i, p);
 	}
+
 	radix_tree_tag_set(&mt_tree, max_slots - 1, PAGECACHE_TAG_DIRTY);
 
 	/* 1. */
 	start = 0;
 	end = max_slots - 2;
 	radix_tree_range_tag_if_tagged(&mt_tree, &start, end, 1,
-				PAGECACHE_TAG_DIRTY, PAGECACHE_TAG_TOWRITE);
+								   PAGECACHE_TAG_DIRTY, PAGECACHE_TAG_TOWRITE);
 
 	/* 2. */
 	p = page_alloc();
@@ -102,15 +106,17 @@ void regression2_test(void)
 
 	/* 4. */
 	for (i = max_slots - 1; i >= 0; i--)
+	{
 		radix_tree_delete(&mt_tree, i);
+	}
 
 	/* 5. */
 	// NOTE: start should not be 0 because radix_tree_gang_lookup_tag_slot
 	//       can return.
 	start = 1;
 	end = max_slots - 2;
-	radix_tree_gang_lookup_tag_slot(&mt_tree, (void ***)pages, start, end,
-		PAGECACHE_TAG_TOWRITE);
+	radix_tree_gang_lookup_tag_slot(&mt_tree, (void ** *)pages, start, end,
+									PAGECACHE_TAG_TOWRITE);
 
 	/* We remove all the remained nodes */
 	radix_tree_delete(&mt_tree, max_slots);

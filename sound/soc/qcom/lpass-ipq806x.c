@@ -28,7 +28,8 @@
 #include "lpass-lpaif-reg.h"
 #include "lpass.h"
 
-enum lpaif_i2s_ports {
+enum lpaif_i2s_ports
+{
 	IPQ806X_LPAIF_I2S_PORT_CODEC_SPK,
 	IPQ806X_LPAIF_I2S_PORT_CODEC_MIC,
 	IPQ806X_LPAIF_I2S_PORT_SEC_SPK,
@@ -36,24 +37,26 @@ enum lpaif_i2s_ports {
 	IPQ806X_LPAIF_I2S_PORT_MI2S,
 };
 
-enum lpaif_dma_channels {
+enum lpaif_dma_channels
+{
 	IPQ806X_LPAIF_RDMA_CHAN_MI2S,
 	IPQ806X_LPAIF_RDMA_CHAN_PCM0,
 	IPQ806X_LPAIF_RDMA_CHAN_PCM1,
 };
 
-static struct snd_soc_dai_driver ipq806x_lpass_cpu_dai_driver = {
+static struct snd_soc_dai_driver ipq806x_lpass_cpu_dai_driver =
+{
 	.id	= IPQ806X_LPAIF_I2S_PORT_MI2S,
 	.playback = {
 		.stream_name	= "lpass-cpu-playback",
 		.formats	= SNDRV_PCM_FMTBIT_S16 |
-					SNDRV_PCM_FMTBIT_S24 |
-					SNDRV_PCM_FMTBIT_S32,
+		SNDRV_PCM_FMTBIT_S24 |
+		SNDRV_PCM_FMTBIT_S32,
 		.rates		= SNDRV_PCM_RATE_8000 |
-					SNDRV_PCM_RATE_16000 |
-					SNDRV_PCM_RATE_32000 |
-					SNDRV_PCM_RATE_48000 |
-					SNDRV_PCM_RATE_96000,
+		SNDRV_PCM_RATE_16000 |
+		SNDRV_PCM_RATE_32000 |
+		SNDRV_PCM_RATE_48000 |
+		SNDRV_PCM_RATE_96000,
 		.rate_min	= 8000,
 		.rate_max	= 96000,
 		.channels_min	= 1,
@@ -66,9 +69,13 @@ static struct snd_soc_dai_driver ipq806x_lpass_cpu_dai_driver = {
 static int ipq806x_lpass_alloc_dma_channel(struct lpass_data *drvdata, int dir)
 {
 	if (dir == SNDRV_PCM_STREAM_PLAYBACK)
+	{
 		return IPQ806X_LPAIF_RDMA_CHAN_MI2S;
+	}
 	else	/* Capture currently not implemented */
+	{
 		return -EINVAL;
+	}
 }
 
 static int ipq806x_lpass_free_dma_channel(struct lpass_data *drvdata, int chan)
@@ -76,7 +83,8 @@ static int ipq806x_lpass_free_dma_channel(struct lpass_data *drvdata, int chan)
 	return 0;
 }
 
-static struct lpass_variant ipq806x_data = {
+static struct lpass_variant ipq806x_data =
+{
 	.i2sctrl_reg_base	= 0x0010,
 	.i2sctrl_reg_stride	= 0x04,
 	.i2s_ports		= 5,
@@ -96,13 +104,15 @@ static struct lpass_variant ipq806x_data = {
 	.free_dma_channel	= ipq806x_lpass_free_dma_channel,
 };
 
-static const struct of_device_id ipq806x_lpass_cpu_device_id[] = {
+static const struct of_device_id ipq806x_lpass_cpu_device_id[] =
+{
 	{ .compatible = "qcom,lpass-cpu", .data = &ipq806x_data },
 	{}
 };
 MODULE_DEVICE_TABLE(of, ipq806x_lpass_cpu_device_id);
 
-static struct platform_driver ipq806x_lpass_cpu_platform_driver = {
+static struct platform_driver ipq806x_lpass_cpu_platform_driver =
+{
 	.driver	= {
 		.name		= "lpass-cpu",
 		.of_match_table	= of_match_ptr(ipq806x_lpass_cpu_device_id),

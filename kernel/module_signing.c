@@ -16,7 +16,8 @@
 #include <crypto/public_key.h>
 #include "module-internal.h"
 
-enum pkey_id_type {
+enum pkey_id_type
+{
 	PKEY_ID_PGP,		/* OpenPGP generated key ID */
 	PKEY_ID_X509,		/* X.509 arbitrary subjectKeyIdentifier */
 	PKEY_ID_PKCS7,		/* Signature in PKCS#7 message */
@@ -32,7 +33,8 @@ enum pkey_id_type {
  *	- Signature data
  *	- Information block
  */
-struct module_signature {
+struct module_signature
+{
 	u8	algo;		/* Public-key crypto algorithm [0] */
 	u8	hash;		/* Digest algorithm [0] */
 	u8	id_type;	/* Key identifier type [PKEY_ID_PKCS7] */
@@ -53,34 +55,42 @@ int mod_verify_sig(const void *mod, unsigned long *_modlen)
 	pr_devel("==>%s(,%zu)\n", __func__, modlen);
 
 	if (modlen <= sizeof(ms))
+	{
 		return -EBADMSG;
+	}
 
 	memcpy(&ms, mod + (modlen - sizeof(ms)), sizeof(ms));
 	modlen -= sizeof(ms);
 
 	sig_len = be32_to_cpu(ms.sig_len);
+
 	if (sig_len >= modlen)
+	{
 		return -EBADMSG;
+	}
+
 	modlen -= sig_len;
 	*_modlen = modlen;
 
-	if (ms.id_type != PKEY_ID_PKCS7) {
+	if (ms.id_type != PKEY_ID_PKCS7)
+	{
 		pr_err("Module is not signed with expected PKCS#7 message\n");
 		return -ENOPKG;
 	}
 
 	if (ms.algo != 0 ||
-	    ms.hash != 0 ||
-	    ms.signer_len != 0 ||
-	    ms.key_id_len != 0 ||
-	    ms.__pad[0] != 0 ||
-	    ms.__pad[1] != 0 ||
-	    ms.__pad[2] != 0) {
+		ms.hash != 0 ||
+		ms.signer_len != 0 ||
+		ms.key_id_len != 0 ||
+		ms.__pad[0] != 0 ||
+		ms.__pad[1] != 0 ||
+		ms.__pad[2] != 0)
+	{
 		pr_err("PKCS#7 signature info has unexpected non-zero params\n");
 		return -EBADMSG;
 	}
 
 	return verify_pkcs7_signature(mod, modlen, mod + modlen, sig_len,
-				      NULL, VERIFYING_MODULE_SIGNATURE,
-				      NULL, NULL);
+								  NULL, VERIFYING_MODULE_SIGNATURE,
+								  NULL, NULL);
 }

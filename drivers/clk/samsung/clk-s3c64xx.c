@@ -40,24 +40,25 @@
 
 /* Helper macros to define clock arrays. */
 #define FIXED_RATE_CLOCKS(name)	\
-		static struct samsung_fixed_rate_clock name[]
+	static struct samsung_fixed_rate_clock name[]
 #define MUX_CLOCKS(name)	\
-		static struct samsung_mux_clock name[]
+	static struct samsung_mux_clock name[]
 #define DIV_CLOCKS(name)	\
-		static struct samsung_div_clock name[]
+	static struct samsung_div_clock name[]
 #define GATE_CLOCKS(name)	\
-		static struct samsung_gate_clock name[]
+	static struct samsung_gate_clock name[]
 
 /* Helper macros for gate types present on S3C64xx. */
 #define GATE_BUS(_id, cname, pname, o, b) \
-		GATE(_id, cname, pname, o, b, 0, 0)
+	GATE(_id, cname, pname, o, b, 0, 0)
 #define GATE_SCLK(_id, cname, pname, o, b) \
-		GATE(_id, cname, pname, o, b, CLK_SET_RATE_PARENT, 0)
+	GATE(_id, cname, pname, o, b, CLK_SET_RATE_PARENT, 0)
 #define GATE_ON(_id, cname, pname, o, b) \
-		GATE(_id, cname, pname, o, b, CLK_IGNORE_UNUSED, 0)
+	GATE(_id, cname, pname, o, b, CLK_IGNORE_UNUSED, 0)
 
 /* list of PLLs to be registered */
-enum s3c64xx_plls {
+enum s3c64xx_plls
+{
 	apll, mpll, epll,
 };
 
@@ -72,7 +73,8 @@ static struct samsung_clk_reg_dump *s3c64xx_save_soc;
  * List of controller registers to be saved and restored during
  * a suspend/resume cycle.
  */
-static unsigned long s3c64xx_clk_regs[] __initdata = {
+static unsigned long s3c64xx_clk_regs[] __initdata =
+{
 	APLL_LOCK,
 	MPLL_LOCK,
 	EPLL_LOCK,
@@ -89,7 +91,8 @@ static unsigned long s3c64xx_clk_regs[] __initdata = {
 	SCLK_GATE,
 };
 
-static unsigned long s3c6410_clk_regs[] __initdata = {
+static unsigned long s3c6410_clk_regs[] __initdata =
+{
 	CLK_SRC2,
 	MEM0_GATE,
 };
@@ -97,11 +100,11 @@ static unsigned long s3c6410_clk_regs[] __initdata = {
 static int s3c64xx_clk_suspend(void)
 {
 	samsung_clk_save(reg_base, s3c64xx_save_common,
-				ARRAY_SIZE(s3c64xx_clk_regs));
+					 ARRAY_SIZE(s3c64xx_clk_regs));
 
 	if (!is_s3c6400)
 		samsung_clk_save(reg_base, s3c64xx_save_soc,
-					ARRAY_SIZE(s3c6410_clk_regs));
+						 ARRAY_SIZE(s3c6410_clk_regs));
 
 	return 0;
 }
@@ -109,14 +112,15 @@ static int s3c64xx_clk_suspend(void)
 static void s3c64xx_clk_resume(void)
 {
 	samsung_clk_restore(reg_base, s3c64xx_save_common,
-				ARRAY_SIZE(s3c64xx_clk_regs));
+						ARRAY_SIZE(s3c64xx_clk_regs));
 
 	if (!is_s3c6400)
 		samsung_clk_restore(reg_base, s3c64xx_save_soc,
-					ARRAY_SIZE(s3c6410_clk_regs));
+							ARRAY_SIZE(s3c6410_clk_regs));
 }
 
-static struct syscore_ops s3c64xx_clk_syscore_ops = {
+static struct syscore_ops s3c64xx_clk_syscore_ops =
+{
 	.suspend = s3c64xx_clk_suspend,
 	.resume = s3c64xx_clk_resume,
 };
@@ -124,15 +128,22 @@ static struct syscore_ops s3c64xx_clk_syscore_ops = {
 static void s3c64xx_clk_sleep_init(void)
 {
 	s3c64xx_save_common = samsung_clk_alloc_reg_dump(s3c64xx_clk_regs,
-						ARRAY_SIZE(s3c64xx_clk_regs));
-	if (!s3c64xx_save_common)
-		goto err_warn;
+						  ARRAY_SIZE(s3c64xx_clk_regs));
 
-	if (!is_s3c6400) {
+	if (!s3c64xx_save_common)
+	{
+		goto err_warn;
+	}
+
+	if (!is_s3c6400)
+	{
 		s3c64xx_save_soc = samsung_clk_alloc_reg_dump(s3c6410_clk_regs,
-						ARRAY_SIZE(s3c6410_clk_regs));
+						   ARRAY_SIZE(s3c6410_clk_regs));
+
 		if (!s3c64xx_save_soc)
+		{
 			goto err_soc;
+		}
 	}
 
 	register_syscore_ops(&s3c64xx_clk_syscore_ops);
@@ -142,7 +153,7 @@ err_soc:
 	kfree(s3c64xx_save_common);
 err_warn:
 	pr_warn("%s: failed to allocate sleep save data, no sleep support!\n",
-		__func__);
+			__func__);
 }
 #else
 static void s3c64xx_clk_sleep_init(void) {}
@@ -152,9 +163,11 @@ static void s3c64xx_clk_sleep_init(void) {}
 PNAME(spi_mmc_p)	= { "mout_epll", "dout_mpll", "fin_pll", "clk27m" };
 PNAME(uart_p)		= { "mout_epll", "dout_mpll" };
 PNAME(audio0_p)		= { "mout_epll", "dout_mpll", "fin_pll", "iiscdclk0",
-				"pcmcdclk0", "none", "none", "none" };
+						"pcmcdclk0", "none", "none", "none"
+				   };
 PNAME(audio1_p)		= { "mout_epll", "dout_mpll", "fin_pll", "iiscdclk1",
-				"pcmcdclk0", "none", "none", "none" };
+						"pcmcdclk0", "none", "none", "none"
+				   };
 PNAME(mfc_p)		= { "hclkx2", "mout_epll" };
 PNAME(apll_p)		= { "fin_pll", "fout_apll" };
 PNAME(mpll_p)		= { "fin_pll", "fout_mpll" };
@@ -172,22 +185,26 @@ PNAME(scaler_lcd_p6410)	= { "mout_epll", "dout_mpll", "fin_pll", "none" };
 PNAME(irda_p6410)	= { "mout_epll", "dout_mpll", "fin_pll", "clk48m" };
 PNAME(uhost_p6410)	= { "clk48m", "mout_epll", "dout_mpll", "fin_pll" };
 PNAME(audio2_p6410)	= { "mout_epll", "dout_mpll", "fin_pll", "iiscdclk2",
-				"pcmcdclk1", "none", "none", "none" };
+						"pcmcdclk1", "none", "none", "none"
+					  };
 
 /* Fixed rate clocks generated outside the SoC. */
-FIXED_RATE_CLOCKS(s3c64xx_fixed_rate_ext_clks) __initdata = {
+FIXED_RATE_CLOCKS(s3c64xx_fixed_rate_ext_clks) __initdata =
+{
 	FRATE(0, "fin_pll", NULL, 0, 0),
 	FRATE(0, "xusbxti", NULL, 0, 0),
 };
 
 /* Fixed rate clocks generated inside the SoC. */
-FIXED_RATE_CLOCKS(s3c64xx_fixed_rate_clks) __initdata = {
+FIXED_RATE_CLOCKS(s3c64xx_fixed_rate_clks) __initdata =
+{
 	FRATE(CLK27M, "clk27m", NULL, 0, 27000000),
 	FRATE(CLK48M, "clk48m", NULL, 0, 48000000),
 };
 
 /* List of clock muxes present on all S3C64xx SoCs. */
-MUX_CLOCKS(s3c64xx_mux_clks) __initdata = {
+MUX_CLOCKS(s3c64xx_mux_clks) __initdata =
+{
 	MUX_F(0, "mout_syncmux", hclkx2_p, OTHERS, 6, 1, 0, CLK_MUX_READ_ONLY),
 	MUX(MOUT_APLL, "mout_apll", apll_p, CLK_SRC, 0, 1),
 	MUX(MOUT_MPLL, "mout_mpll", mpll_p, CLK_SRC, 1, 1),
@@ -204,7 +221,8 @@ MUX_CLOCKS(s3c64xx_mux_clks) __initdata = {
 };
 
 /* List of clock muxes present on S3C6400. */
-MUX_CLOCKS(s3c6400_mux_clks) __initdata = {
+MUX_CLOCKS(s3c6400_mux_clks) __initdata =
+{
 	MUX(MOUT_UHOST, "mout_uhost", uhost_p6400, CLK_SRC, 5, 2),
 	MUX(MOUT_IRDA, "mout_irda", irda_p6400, CLK_SRC, 24, 2),
 	MUX(MOUT_LCD, "mout_lcd", scaler_lcd_p6400, CLK_SRC, 26, 2),
@@ -212,7 +230,8 @@ MUX_CLOCKS(s3c6400_mux_clks) __initdata = {
 };
 
 /* List of clock muxes present on S3C6410. */
-MUX_CLOCKS(s3c6410_mux_clks) __initdata = {
+MUX_CLOCKS(s3c6410_mux_clks) __initdata =
+{
 	MUX(MOUT_UHOST, "mout_uhost", uhost_p6410, CLK_SRC, 5, 2),
 	MUX(MOUT_IRDA, "mout_irda", irda_p6410, CLK_SRC, 24, 2),
 	MUX(MOUT_LCD, "mout_lcd", scaler_lcd_p6410, CLK_SRC, 26, 2),
@@ -223,7 +242,8 @@ MUX_CLOCKS(s3c6410_mux_clks) __initdata = {
 };
 
 /* List of clock dividers present on all S3C64xx SoCs. */
-DIV_CLOCKS(s3c64xx_div_clks) __initdata = {
+DIV_CLOCKS(s3c64xx_div_clks) __initdata =
+{
 	DIV(DOUT_MPLL, "dout_mpll", "mout_mpll", CLK_DIV0, 4, 1),
 	DIV(HCLKX2, "hclkx2", "mout_syncmux", CLK_DIV0, 9, 3),
 	DIV(HCLK, "hclk", "hclkx2", CLK_DIV0, 8, 1),
@@ -247,19 +267,22 @@ DIV_CLOCKS(s3c64xx_div_clks) __initdata = {
 };
 
 /* List of clock dividers present on S3C6400. */
-DIV_CLOCKS(s3c6400_div_clks) __initdata = {
+DIV_CLOCKS(s3c6400_div_clks) __initdata =
+{
 	DIV(ARMCLK, "armclk", "mout_apll", CLK_DIV0, 0, 3),
 };
 
 /* List of clock dividers present on S3C6410. */
-DIV_CLOCKS(s3c6410_div_clks) __initdata = {
+DIV_CLOCKS(s3c6410_div_clks) __initdata =
+{
 	DIV(ARMCLK, "armclk", "mout_apll", CLK_DIV0, 0, 4),
 	DIV(DOUT_FIMC, "dout_fimc", "hclk", CLK_DIV1, 24, 4),
 	DIV(DOUT_AUDIO2, "dout_audio2", "mout_audio2", CLK_DIV2, 24, 4),
 };
 
 /* List of clock gates present on all S3C64xx SoCs. */
-GATE_CLOCKS(s3c64xx_gate_clks) __initdata = {
+GATE_CLOCKS(s3c64xx_gate_clks) __initdata =
+{
 	GATE_BUS(HCLK_UHOST, "hclk_uhost", "hclk", HCLK_GATE, 29),
 	GATE_BUS(HCLK_SECUR, "hclk_secur", "hclk", HCLK_GATE, 28),
 	GATE_BUS(HCLK_SDMA1, "hclk_sdma1", "hclk", HCLK_GATE, 27),
@@ -339,13 +362,15 @@ GATE_CLOCKS(s3c64xx_gate_clks) __initdata = {
 };
 
 /* List of clock gates present on S3C6400. */
-GATE_CLOCKS(s3c6400_gate_clks) __initdata = {
+GATE_CLOCKS(s3c6400_gate_clks) __initdata =
+{
 	GATE_ON(HCLK_DDR0, "hclk_ddr0", "hclk", HCLK_GATE, 23),
 	GATE_SCLK(SCLK_ONENAND, "sclk_onenand", "parent", SCLK_GATE, 4),
 };
 
 /* List of clock gates present on S3C6410. */
-GATE_CLOCKS(s3c6410_gate_clks) __initdata = {
+GATE_CLOCKS(s3c6410_gate_clks) __initdata =
+{
 	GATE_BUS(HCLK_3DSE, "hclk_3dse", "hclk", HCLK_GATE, 31),
 	GATE_ON(HCLK_IROM, "hclk_irom", "hclk", HCLK_GATE, 25),
 	GATE_ON(HCLK_MEM1, "hclk_mem1", "hclk", HCLK_GATE, 22),
@@ -363,17 +388,19 @@ GATE_CLOCKS(s3c6410_gate_clks) __initdata = {
 };
 
 /* List of PLL clocks. */
-static struct samsung_pll_clock s3c64xx_pll_clks[] __initdata = {
+static struct samsung_pll_clock s3c64xx_pll_clks[] __initdata =
+{
 	[apll] = PLL(pll_6552, FOUT_APLL, "fout_apll", "fin_pll",
-						APLL_LOCK, APLL_CON, NULL),
+	APLL_LOCK, APLL_CON, NULL),
 	[mpll] = PLL(pll_6552, FOUT_MPLL, "fout_mpll", "fin_pll",
-						MPLL_LOCK, MPLL_CON, NULL),
+	MPLL_LOCK, MPLL_CON, NULL),
 	[epll] = PLL(pll_6553, FOUT_EPLL, "fout_epll", "fin_pll",
-						EPLL_LOCK, EPLL_CON0, NULL),
+	EPLL_LOCK, EPLL_CON0, NULL),
 };
 
 /* Aliases for common s3c64xx clocks. */
-static struct samsung_clock_alias s3c64xx_clock_aliases[] = {
+static struct samsung_clock_alias s3c64xx_clock_aliases[] =
+{
 	ALIAS(FOUT_APLL, NULL, "fout_apll"),
 	ALIAS(FOUT_MPLL, NULL, "fout_mpll"),
 	ALIAS(FOUT_EPLL, NULL, "fout_epll"),
@@ -430,12 +457,14 @@ static struct samsung_clock_alias s3c64xx_clock_aliases[] = {
 };
 
 /* Aliases for s3c6400-specific clocks. */
-static struct samsung_clock_alias s3c6400_clock_aliases[] = {
+static struct samsung_clock_alias s3c6400_clock_aliases[] =
+{
 	/* Nothing to place here yet. */
 };
 
 /* Aliases for s3c6410-specific clocks. */
-static struct samsung_clock_alias s3c6410_clock_aliases[] = {
+static struct samsung_clock_alias s3c6410_clock_aliases[] =
+{
 	ALIAS(PCLK_IIC1, "s3c2440-i2c.1", "i2c"),
 	ALIAS(PCLK_IIS2, "samsung-i2s.2", "iis"),
 	ALIAS(SCLK_FIMC, "s3c-camif", "fimc"),
@@ -444,84 +473,93 @@ static struct samsung_clock_alias s3c6410_clock_aliases[] = {
 };
 
 static void __init s3c64xx_clk_register_fixed_ext(
-				struct samsung_clk_provider *ctx,
-				unsigned long fin_pll_f,
-				unsigned long xusbxti_f)
+	struct samsung_clk_provider *ctx,
+	unsigned long fin_pll_f,
+	unsigned long xusbxti_f)
 {
 	s3c64xx_fixed_rate_ext_clks[0].fixed_rate = fin_pll_f;
 	s3c64xx_fixed_rate_ext_clks[1].fixed_rate = xusbxti_f;
 	samsung_clk_register_fixed_rate(ctx, s3c64xx_fixed_rate_ext_clks,
-				ARRAY_SIZE(s3c64xx_fixed_rate_ext_clks));
+									ARRAY_SIZE(s3c64xx_fixed_rate_ext_clks));
 }
 
 /* Register s3c64xx clocks. */
 void __init s3c64xx_clk_init(struct device_node *np, unsigned long xtal_f,
-			     unsigned long xusbxti_f, bool s3c6400,
-			     void __iomem *base)
+							 unsigned long xusbxti_f, bool s3c6400,
+							 void __iomem *base)
 {
 	struct samsung_clk_provider *ctx;
 
 	reg_base = base;
 	is_s3c6400 = s3c6400;
 
-	if (np) {
+	if (np)
+	{
 		reg_base = of_iomap(np, 0);
+
 		if (!reg_base)
+		{
 			panic("%s: failed to map registers\n", __func__);
+		}
 	}
 
 	ctx = samsung_clk_init(np, reg_base, NR_CLKS);
 
 	/* Register external clocks. */
 	if (!np)
+	{
 		s3c64xx_clk_register_fixed_ext(ctx, xtal_f, xusbxti_f);
+	}
 
 	/* Register PLLs. */
 	samsung_clk_register_pll(ctx, s3c64xx_pll_clks,
-				ARRAY_SIZE(s3c64xx_pll_clks), reg_base);
+							 ARRAY_SIZE(s3c64xx_pll_clks), reg_base);
 
 	/* Register common internal clocks. */
 	samsung_clk_register_fixed_rate(ctx, s3c64xx_fixed_rate_clks,
-					ARRAY_SIZE(s3c64xx_fixed_rate_clks));
+									ARRAY_SIZE(s3c64xx_fixed_rate_clks));
 	samsung_clk_register_mux(ctx, s3c64xx_mux_clks,
-					ARRAY_SIZE(s3c64xx_mux_clks));
+							 ARRAY_SIZE(s3c64xx_mux_clks));
 	samsung_clk_register_div(ctx, s3c64xx_div_clks,
-					ARRAY_SIZE(s3c64xx_div_clks));
+							 ARRAY_SIZE(s3c64xx_div_clks));
 	samsung_clk_register_gate(ctx, s3c64xx_gate_clks,
-					ARRAY_SIZE(s3c64xx_gate_clks));
+							  ARRAY_SIZE(s3c64xx_gate_clks));
 
 	/* Register SoC-specific clocks. */
-	if (is_s3c6400) {
+	if (is_s3c6400)
+	{
 		samsung_clk_register_mux(ctx, s3c6400_mux_clks,
-					ARRAY_SIZE(s3c6400_mux_clks));
+								 ARRAY_SIZE(s3c6400_mux_clks));
 		samsung_clk_register_div(ctx, s3c6400_div_clks,
-					ARRAY_SIZE(s3c6400_div_clks));
+								 ARRAY_SIZE(s3c6400_div_clks));
 		samsung_clk_register_gate(ctx, s3c6400_gate_clks,
-					ARRAY_SIZE(s3c6400_gate_clks));
+								  ARRAY_SIZE(s3c6400_gate_clks));
 		samsung_clk_register_alias(ctx, s3c6400_clock_aliases,
-					ARRAY_SIZE(s3c6400_clock_aliases));
-	} else {
+								   ARRAY_SIZE(s3c6400_clock_aliases));
+	}
+	else
+	{
 		samsung_clk_register_mux(ctx, s3c6410_mux_clks,
-					ARRAY_SIZE(s3c6410_mux_clks));
+								 ARRAY_SIZE(s3c6410_mux_clks));
 		samsung_clk_register_div(ctx, s3c6410_div_clks,
-					ARRAY_SIZE(s3c6410_div_clks));
+								 ARRAY_SIZE(s3c6410_div_clks));
 		samsung_clk_register_gate(ctx, s3c6410_gate_clks,
-					ARRAY_SIZE(s3c6410_gate_clks));
+								  ARRAY_SIZE(s3c6410_gate_clks));
 		samsung_clk_register_alias(ctx, s3c6410_clock_aliases,
-					ARRAY_SIZE(s3c6410_clock_aliases));
+								   ARRAY_SIZE(s3c6410_clock_aliases));
 	}
 
 	samsung_clk_register_alias(ctx, s3c64xx_clock_aliases,
-					ARRAY_SIZE(s3c64xx_clock_aliases));
+							   ARRAY_SIZE(s3c64xx_clock_aliases));
 	s3c64xx_clk_sleep_init();
 
 	samsung_clk_of_add_provider(np, ctx);
 
 	pr_info("%s clocks: apll = %lu, mpll = %lu\n"
-		"\tepll = %lu, arm_clk = %lu\n",
-		is_s3c6400 ? "S3C6400" : "S3C6410",
-		_get_rate("fout_apll"),	_get_rate("fout_mpll"),
-		_get_rate("fout_epll"), _get_rate("armclk"));
+			"\tepll = %lu, arm_clk = %lu\n",
+			is_s3c6400 ? "S3C6400" : "S3C6410",
+			_get_rate("fout_apll"),	_get_rate("fout_mpll"),
+			_get_rate("fout_epll"), _get_rate("armclk"));
 }
 
 static void __init s3c6400_clk_init(struct device_node *np)

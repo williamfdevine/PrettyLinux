@@ -125,15 +125,17 @@ static DECLARE_COMPLETION(on_pollstall_exit);
 
 /* tasklet for usb disconnect */
 static DECLARE_TASKLET(disconnect_tasklet, udc_tasklet_disconnect,
-		(unsigned long) &udc);
+					   (unsigned long) &udc);
 
 
 /* endpoint names used for print */
 static const char ep0_string[] = "ep0in";
-static const struct {
+static const struct
+{
 	const char *name;
 	const struct usb_ep_caps caps;
-} ep_info[] = {
+} ep_info[] =
+{
 #define EP_INFO(_name, _caps) \
 	{ \
 		.name = _name, \
@@ -141,69 +143,69 @@ static const struct {
 	}
 
 	EP_INFO(ep0_string,
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_CONTROL, USB_EP_CAPS_DIR_IN)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_CONTROL, USB_EP_CAPS_DIR_IN)),
 	EP_INFO("ep1in-int",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
 	EP_INFO("ep2in-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
 	EP_INFO("ep3in-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
 	EP_INFO("ep4in-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
 	EP_INFO("ep5in-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
 	EP_INFO("ep6in-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
 	EP_INFO("ep7in-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
 	EP_INFO("ep8in-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
 	EP_INFO("ep9in-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
 	EP_INFO("ep10in-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
 	EP_INFO("ep11in-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
 	EP_INFO("ep12in-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
 	EP_INFO("ep13in-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
 	EP_INFO("ep14in-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
 	EP_INFO("ep15in-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
 	EP_INFO("ep0out",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_CONTROL, USB_EP_CAPS_DIR_OUT)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_CONTROL, USB_EP_CAPS_DIR_OUT)),
 	EP_INFO("ep1out-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
 	EP_INFO("ep2out-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
 	EP_INFO("ep3out-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
 	EP_INFO("ep4out-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
 	EP_INFO("ep5out-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
 	EP_INFO("ep6out-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
 	EP_INFO("ep7out-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
 	EP_INFO("ep8out-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
 	EP_INFO("ep9out-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
 	EP_INFO("ep10out-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
 	EP_INFO("ep11out-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
 	EP_INFO("ep12out-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
 	EP_INFO("ep13out-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
 	EP_INFO("ep14out-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
 	EP_INFO("ep15out-bulk",
-		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
+	USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
 
 #undef EP_INFO
 };
@@ -228,7 +230,7 @@ module_param(use_dma_ppb, bool, S_IRUGO);
 MODULE_PARM_DESC(use_dma_ppb, "true for DMA in packet per buffer mode");
 module_param(use_dma_ppb_du, bool, S_IRUGO);
 MODULE_PARM_DESC(use_dma_ppb_du,
-	"true for DMA in packet per buffer mode with descriptor update");
+				 "true for DMA in packet per buffer mode with descriptor update");
 module_param(use_fullspeed, bool, S_IRUGO);
 MODULE_PARM_DESC(use_fullspeed, "true for fullspeed only");
 
@@ -248,21 +250,31 @@ static void print_regs(struct udc *dev)
 	DBG(dev, "dev ep intmask = %08x\n", readl(&dev->regs->ep_irqmsk));
 	DBG(dev, "\n");
 	DBG(dev, "USE DMA        = %d\n", use_dma);
-	if (use_dma && use_dma_ppb && !use_dma_ppb_du) {
+
+	if (use_dma && use_dma_ppb && !use_dma_ppb_du)
+	{
 		DBG(dev, "DMA mode       = PPBNDU (packet per buffer "
 			"WITHOUT desc. update)\n");
 		dev_info(&dev->pdev->dev, "DMA mode (%s)\n", "PPBNDU");
-	} else if (use_dma && use_dma_ppb && use_dma_ppb_du) {
+	}
+	else if (use_dma && use_dma_ppb && use_dma_ppb_du)
+	{
 		DBG(dev, "DMA mode       = PPBDU (packet per buffer "
 			"WITH desc. update)\n");
 		dev_info(&dev->pdev->dev, "DMA mode (%s)\n", "PPBDU");
 	}
-	if (use_dma && use_dma_bufferfill_mode) {
+
+	if (use_dma && use_dma_bufferfill_mode)
+	{
 		DBG(dev, "DMA mode       = BF (buffer fill mode)\n");
 		dev_info(&dev->pdev->dev, "DMA mode (%s)\n", "BF");
 	}
+
 	if (!use_dma)
+	{
 		dev_info(&dev->pdev->dev, "FIFO mode\n");
+	}
+
 	DBG(dev, "-------------------------------------------------------\n");
 }
 
@@ -273,13 +285,13 @@ static int udc_mask_unused_interrupts(struct udc *dev)
 
 	/* mask all dev interrupts */
 	tmp =	AMD_BIT(UDC_DEVINT_SVC) |
-		AMD_BIT(UDC_DEVINT_ENUM) |
-		AMD_BIT(UDC_DEVINT_US) |
-		AMD_BIT(UDC_DEVINT_UR) |
-		AMD_BIT(UDC_DEVINT_ES) |
-		AMD_BIT(UDC_DEVINT_SI) |
-		AMD_BIT(UDC_DEVINT_SOF)|
-		AMD_BIT(UDC_DEVINT_SC);
+			AMD_BIT(UDC_DEVINT_ENUM) |
+			AMD_BIT(UDC_DEVINT_US) |
+			AMD_BIT(UDC_DEVINT_UR) |
+			AMD_BIT(UDC_DEVINT_ES) |
+			AMD_BIT(UDC_DEVINT_SI) |
+			AMD_BIT(UDC_DEVINT_SOF) |
+			AMD_BIT(UDC_DEVINT_SC);
 	writel(tmp, &dev->regs->irqmsk);
 
 	/* mask all ep interrupts */
@@ -299,7 +311,7 @@ static int udc_enable_ep0_interrupts(struct udc *dev)
 	tmp = readl(&dev->regs->ep_irqmsk);
 	/* enable ep0 irq's */
 	tmp &= AMD_UNMASK_BIT(UDC_EPINT_IN_EP0)
-		& AMD_UNMASK_BIT(UDC_EPINT_OUT_EP0);
+		   & AMD_UNMASK_BIT(UDC_EPINT_OUT_EP0);
 	writel(tmp, &dev->regs->ep_irqmsk);
 
 	return 0;
@@ -317,10 +329,10 @@ static int udc_enable_dev_setup_interrupts(struct udc *dev)
 
 	/* enable SET_INTERFACE, SET_CONFIG and other needed irq's */
 	tmp &= AMD_UNMASK_BIT(UDC_DEVINT_SI)
-		& AMD_UNMASK_BIT(UDC_DEVINT_SC)
-		& AMD_UNMASK_BIT(UDC_DEVINT_UR)
-		& AMD_UNMASK_BIT(UDC_DEVINT_SVC)
-		& AMD_UNMASK_BIT(UDC_DEVINT_ENUM);
+		   & AMD_UNMASK_BIT(UDC_DEVINT_SC)
+		   & AMD_UNMASK_BIT(UDC_DEVINT_UR)
+		   & AMD_UNMASK_BIT(UDC_DEVINT_SVC)
+		   & AMD_UNMASK_BIT(UDC_DEVINT_ENUM);
 	writel(tmp, &dev->regs->irqmsk);
 
 	return 0;
@@ -334,20 +346,25 @@ static int udc_set_txfifo_addr(struct udc_ep *ep)
 	int i;
 
 	if (!ep || !(ep->in))
+	{
 		return -EINVAL;
+	}
 
 	dev = ep->dev;
 	ep->txfifo = dev->txfifo;
 
 	/* traverse ep's */
-	for (i = 0; i < ep->num; i++) {
-		if (dev->ep[i].regs) {
+	for (i = 0; i < ep->num; i++)
+	{
+		if (dev->ep[i].regs)
+		{
 			/* read fifo size */
 			tmp = readl(&dev->ep[i].regs->bufin_framenum);
 			tmp = AMD_GETBITS(tmp, UDC_EPIN_BUFF_SIZE);
 			ep->txfifo += tmp;
 		}
 	}
+
 	return 0;
 }
 
@@ -356,12 +373,16 @@ static u32 cnak_pending;
 
 static void UDC_QUEUE_CNAK(struct udc_ep *ep, unsigned num)
 {
-	if (readl(&ep->regs->ctl) & AMD_BIT(UDC_EPCTL_NAK)) {
+	if (readl(&ep->regs->ctl) & AMD_BIT(UDC_EPCTL_NAK))
+	{
 		DBG(ep->dev, "NAK could not be cleared for ep%d\n", num);
 		cnak_pending |= 1 << (num);
 		ep->naking = 1;
-	} else
+	}
+	else
+	{
 		cnak_pending = cnak_pending & (~(1 << (num)));
+	}
 }
 
 
@@ -377,10 +398,12 @@ udc_ep_enable(struct usb_ep *usbep, const struct usb_endpoint_descriptor *desc)
 	unsigned		maxpacket;
 
 	if (!usbep
-			|| usbep->name == ep0_string
-			|| !desc
-			|| desc->bDescriptorType != USB_DT_ENDPOINT)
+		|| usbep->name == ep0_string
+		|| !desc
+		|| desc->bDescriptorType != USB_DT_ENDPOINT)
+	{
 		return -EINVAL;
+	}
 
 	ep = container_of(usbep, struct udc_ep, ep);
 	dev = ep->dev;
@@ -388,7 +411,9 @@ udc_ep_enable(struct usb_ep *usbep, const struct usb_endpoint_descriptor *desc)
 	DBG(dev, "udc_ep_enable() ep %d\n", ep->num);
 
 	if (!dev->driver || dev->gadget.speed == USB_SPEED_UNKNOWN)
+	{
 		return -ESHUTDOWN;
+	}
 
 	spin_lock_irqsave(&dev->lock, iflags);
 	ep->ep.desc = desc;
@@ -408,7 +433,8 @@ udc_ep_enable(struct usb_ep *usbep, const struct usb_endpoint_descriptor *desc)
 	writel(tmp, &dev->ep[ep->num].regs->bufout_maxpkt);
 
 	/* IN ep */
-	if (ep->in) {
+	if (ep->in)
+	{
 
 		/* ep ix in UDC CSR register space */
 		udc_csr_epix = ep->num;
@@ -417,10 +443,10 @@ udc_ep_enable(struct usb_ep *usbep, const struct usb_endpoint_descriptor *desc)
 		tmp = readl(&dev->ep[ep->num].regs->bufin_framenum);
 		/* double buffering: fifo size = 2 x max packet size */
 		tmp = AMD_ADDBITS(
-				tmp,
-				maxpacket * UDC_EPIN_BUFF_SIZE_MULT
-					  / UDC_DWORD_BYTES,
-				UDC_EPIN_BUFF_SIZE);
+				  tmp,
+				  maxpacket * UDC_EPIN_BUFF_SIZE_MULT
+				  / UDC_DWORD_BYTES,
+				  UDC_EPIN_BUFF_SIZE);
 		writel(tmp, &dev->ep[ep->num].regs->bufin_framenum);
 
 		/* calc. tx fifo base addr */
@@ -431,25 +457,30 @@ udc_ep_enable(struct usb_ep *usbep, const struct usb_endpoint_descriptor *desc)
 		tmp |= AMD_BIT(UDC_EPCTL_F);
 		writel(tmp, &ep->regs->ctl);
 
-	/* OUT ep */
-	} else {
+		/* OUT ep */
+	}
+	else
+	{
 		/* ep ix in UDC CSR register space */
 		udc_csr_epix = ep->num - UDC_CSR_EP_OUT_IX_OFS;
 
 		/* set max packet size UDC CSR	*/
 		tmp = readl(&dev->csr->ne[ep->num - UDC_CSR_EP_OUT_IX_OFS]);
 		tmp = AMD_ADDBITS(tmp, maxpacket,
-					UDC_CSR_NE_MAX_PKT);
+						  UDC_CSR_NE_MAX_PKT);
 		writel(tmp, &dev->csr->ne[ep->num - UDC_CSR_EP_OUT_IX_OFS]);
 
-		if (use_dma && !ep->in) {
+		if (use_dma && !ep->in)
+		{
 			/* alloc and init BNA dummy request */
 			ep->bna_dummy_req = udc_alloc_bna_dummy(ep);
 			ep->bna_occurred = 0;
 		}
 
 		if (ep->num != UDC_EP0OUT_IX)
+		{
 			dev->data_ep_enabled = 1;
+		}
 	}
 
 	/* set ep values */
@@ -480,13 +511,15 @@ udc_ep_enable(struct usb_ep *usbep, const struct usb_endpoint_descriptor *desc)
 	 * clear NAK by writing CNAK
 	 * avoid BNA for OUT DMA, don't clear NAK until DMA desc. written
 	 */
-	if (!use_dma || ep->in) {
+	if (!use_dma || ep->in)
+	{
 		tmp = readl(&ep->regs->ctl);
 		tmp |= AMD_BIT(UDC_EPCTL_CNAK);
 		writel(tmp, &ep->regs->ctl);
 		ep->naking = 0;
 		UDC_QUEUE_CNAK(ep, ep->num);
 	}
+
 	tmp = desc->bEndpointAddress;
 	DBG(dev, "%s enabled\n", usbep->name);
 
@@ -504,7 +537,7 @@ static void ep_init(struct udc_regs __iomem *regs, struct udc_ep *ep)
 	ep->ep.ops = &udc_ep_ops;
 	INIT_LIST_HEAD(&ep->queue);
 
-	usb_ep_set_maxpacket_limit(&ep->ep,(u16) ~0);
+	usb_ep_set_maxpacket_limit(&ep->ep, (u16) ~0);
 	/* set NAK */
 	tmp = readl(&ep->regs->ctl);
 	tmp |= AMD_BIT(UDC_EPCTL_SNAK);
@@ -516,7 +549,8 @@ static void ep_init(struct udc_regs __iomem *regs, struct udc_ep *ep)
 	tmp |= AMD_BIT(ep->num);
 	writel(tmp, &regs->ep_irqmsk);
 
-	if (ep->in) {
+	if (ep->in)
+	{
 		/* unset P and IN bit of potential former DMA */
 		tmp = readl(&ep->regs->ctl);
 		tmp &= AMD_UNMASK_BIT(UDC_EPCTL_P);
@@ -532,6 +566,7 @@ static void ep_init(struct udc_regs __iomem *regs, struct udc_ep *ep)
 		writel(tmp, &ep->regs->ctl);
 
 	}
+
 	/* reset desc pointer */
 	writel(0, &ep->regs->desptr);
 }
@@ -543,11 +578,16 @@ static int udc_ep_disable(struct usb_ep *usbep)
 	unsigned long	iflags;
 
 	if (!usbep)
+	{
 		return -EINVAL;
+	}
 
 	ep = container_of(usbep, struct udc_ep, ep);
+
 	if (usbep->name == ep0_string || !ep->ep.desc)
+	{
 		return -EINVAL;
+	}
 
 	DBG(ep->dev, "Disable ep-%d\n", ep->num);
 
@@ -569,35 +609,43 @@ udc_alloc_request(struct usb_ep *usbep, gfp_t gfp)
 	struct udc_ep	*ep;
 
 	if (!usbep)
+	{
 		return NULL;
+	}
 
 	ep = container_of(usbep, struct udc_ep, ep);
 
 	VDBG(ep->dev, "udc_alloc_req(): ep%d\n", ep->num);
 	req = kzalloc(sizeof(struct udc_request), gfp);
+
 	if (!req)
+	{
 		return NULL;
+	}
 
 	req->req.dma = DMA_DONT_USE;
 	INIT_LIST_HEAD(&req->queue);
 
-	if (ep->dma) {
+	if (ep->dma)
+	{
 		/* ep0 in requests are allocated from data pool here */
 		dma_desc = pci_pool_alloc(ep->dev->data_requests, gfp,
-						&req->td_phys);
-		if (!dma_desc) {
+								  &req->td_phys);
+
+		if (!dma_desc)
+		{
 			kfree(req);
 			return NULL;
 		}
 
 		VDBG(ep->dev, "udc_alloc_req: req = %p dma_desc = %p, "
-				"td_phys = %lx\n",
-				req, dma_desc,
-				(unsigned long)req->td_phys);
+			 "td_phys = %lx\n",
+			 req, dma_desc,
+			 (unsigned long)req->td_phys);
 		/* prevent from using desc. - set HOST BUSY */
 		dma_desc->status = AMD_ADDBITS(dma_desc->status,
-						UDC_DMA_STP_STS_BS_HOST_BUSY,
-						UDC_DMA_STP_STS_BS);
+									   UDC_DMA_STP_STS_BS_HOST_BUSY,
+									   UDC_DMA_STP_STS_BS);
 		dma_desc->bufptr = cpu_to_le32(DMA_DONT_USE);
 		req->td_data = dma_desc;
 		req->td_data_last = NULL;
@@ -621,9 +669,10 @@ static int udc_free_dma_chain(struct udc *dev, struct udc_request *req)
 	td_last = req->td_data;
 	td = phys_to_virt(td_last->next);
 
-	for (i = 1; i < req->chain_len; i++) {
+	for (i = 1; i < req->chain_len; i++)
+	{
 		pci_pool_free(dev->data_requests, td,
-			      (dma_addr_t)td_last->next);
+					  (dma_addr_t)td_last->next);
 		td_last = td;
 		td = phys_to_virt(td_last->next);
 	}
@@ -639,29 +688,37 @@ udc_free_request(struct usb_ep *usbep, struct usb_request *usbreq)
 	struct udc_request	*req;
 
 	if (!usbep || !usbreq)
+	{
 		return;
+	}
 
 	ep = container_of(usbep, struct udc_ep, ep);
 	req = container_of(usbreq, struct udc_request, req);
 	VDBG(ep->dev, "free_req req=%p\n", req);
 	BUG_ON(!list_empty(&req->queue));
-	if (req->td_data) {
+
+	if (req->td_data)
+	{
 		VDBG(ep->dev, "req->td_data=%p\n", req->td_data);
 
 		/* free dma chain if created */
 		if (req->chain_len > 1)
+		{
 			udc_free_dma_chain(ep->dev, req);
+		}
 
 		pci_pool_free(ep->dev->data_requests, req->td_data,
-							req->td_phys);
+					  req->td_phys);
 	}
+
 	kfree(req);
 }
 
 /* Init BNA dummy descriptor for HOST BUSY and pointing to itself */
 static void udc_init_bna_dummy(struct udc_request *req)
 {
-	if (req) {
+	if (req)
+	{
 		/* set last bit */
 		req->td_data->status |= AMD_BIT(UDC_DMA_IN_STS_L);
 		/* set next pointer to itself */
@@ -669,11 +726,11 @@ static void udc_init_bna_dummy(struct udc_request *req)
 		/* set HOST BUSY */
 		req->td_data->status
 			= AMD_ADDBITS(req->td_data->status,
-					UDC_DMA_STP_STS_BS_DMA_DONE,
-					UDC_DMA_STP_STS_BS);
+						  UDC_DMA_STP_STS_BS_DMA_DONE,
+						  UDC_DMA_STP_STS_BS);
 #ifdef UDC_VERBOSE
 		pr_debug("bna desc = %p, sts = %08x\n",
-			req->td_data, req->td_data->status);
+				 req->td_data, req->td_data->status);
 #endif
 	}
 }
@@ -686,11 +743,14 @@ static struct udc_request *udc_alloc_bna_dummy(struct udc_ep *ep)
 
 	/* alloc the dummy request */
 	_req = udc_alloc_request(&ep->ep, GFP_ATOMIC);
-	if (_req) {
+
+	if (_req)
+	{
 		req = container_of(_req, struct udc_request, req);
 		ep->bna_dummy_req = req;
 		udc_init_bna_dummy(req);
 	}
+
 	return req;
 }
 
@@ -705,7 +765,9 @@ udc_txfifo_write(struct udc_ep *ep, struct usb_request *req)
 	unsigned		remaining = 0;
 
 	if (!req || !ep)
+	{
 		return;
+	}
 
 	req_buf = req->buf + req->actual;
 	prefetch(req_buf);
@@ -714,17 +776,23 @@ udc_txfifo_write(struct udc_ep *ep, struct usb_request *req)
 	buf = (u32 *) req_buf;
 
 	bytes = ep->ep.maxpacket;
+
 	if (bytes > remaining)
+	{
 		bytes = remaining;
+	}
 
 	/* dwords first */
 	for (i = 0; i < bytes / UDC_DWORD_BYTES; i++)
+	{
 		writel(*(buf + i), ep->txfifo);
+	}
 
 	/* remaining bytes must be written by byte access */
-	for (j = 0; j < bytes % UDC_DWORD_BYTES; j++) {
+	for (j = 0; j < bytes % UDC_DWORD_BYTES; j++)
+	{
 		writeb((u8)(*(buf + i) >> (j << UDC_BITS_PER_BYTE_SHIFT)),
-							ep->txfifo);
+			   ep->txfifo);
 	}
 
 	/* dummy write confirm */
@@ -739,7 +807,10 @@ static int udc_rxfifo_read_dwords(struct udc *dev, u32 *buf, int dwords)
 	VDBG(dev, "udc_read_dwords(): %d dwords\n", dwords);
 
 	for (i = 0; i < dwords; i++)
+	{
 		*(buf + i) = readl(dev->rxfifo);
+	}
+
 	return 0;
 }
 
@@ -753,13 +824,18 @@ static int udc_rxfifo_read_bytes(struct udc *dev, u8 *buf, int bytes)
 
 	/* dwords first */
 	for (i = 0; i < bytes / UDC_DWORD_BYTES; i++)
-		*((u32 *)(buf + (i<<2))) = readl(dev->rxfifo);
+	{
+		*((u32 *)(buf + (i << 2))) = readl(dev->rxfifo);
+	}
 
 	/* remaining bytes must be read by byte access */
-	if (bytes % UDC_DWORD_BYTES) {
+	if (bytes % UDC_DWORD_BYTES)
+	{
 		tmp = readl(dev->rxfifo);
-		for (j = 0; j < bytes % UDC_DWORD_BYTES; j++) {
-			*(buf + (i<<2) + j) = (u8)(tmp & UDC_BYTE_MASK);
+
+		for (j = 0; j < bytes % UDC_DWORD_BYTES; j++)
+		{
+			*(buf + (i << 2) + j) = (u8)(tmp & UDC_BYTE_MASK);
 			tmp = tmp >> UDC_BITS_PER_BYTE;
 		}
 	}
@@ -782,21 +858,28 @@ udc_rxfifo_read(struct udc_ep *ep, struct udc_request *req)
 
 	buf_space = req->req.length - req->req.actual;
 	buf = req->req.buf + req->req.actual;
-	if (bytes > buf_space) {
-		if ((buf_space % ep->ep.maxpacket) != 0) {
+
+	if (bytes > buf_space)
+	{
+		if ((buf_space % ep->ep.maxpacket) != 0)
+		{
 			DBG(ep->dev,
 				"%s: rx %d bytes, rx-buf space = %d bytesn\n",
 				ep->ep.name, bytes, buf_space);
 			req->req.status = -EOVERFLOW;
 		}
+
 		bytes = buf_space;
 	}
+
 	req->req.actual += bytes;
 
 	/* last packet ? */
 	if (((bytes % ep->ep.maxpacket) != 0) || (!bytes)
 		|| ((req->req.actual == req->req.length) && !req->req.zero))
+	{
 		finished = 1;
+	}
 
 	/* read rx fifo bytes */
 	VDBG(ep->dev, "ep %s: rxfifo read %d bytes\n", ep->ep.name, bytes);
@@ -822,98 +905,138 @@ static int udc_create_dma_chain(
 	unsigned len;
 
 	VDBG(ep->dev, "udc_create_dma_chain: bytes=%ld buf_len=%ld\n",
-	     bytes, buf_len);
+		 bytes, buf_len);
 	dma_addr = DMA_DONT_USE;
 
 	/* unset L bit in first desc for OUT */
 	if (!ep->in)
+	{
 		req->td_data->status &= AMD_CLEAR_BIT(UDC_DMA_IN_STS_L);
+	}
 
 	/* alloc only new desc's if not already available */
 	len = req->req.length / ep->ep.maxpacket;
-	if (req->req.length % ep->ep.maxpacket)
-		len++;
 
-	if (len > req->chain_len) {
+	if (req->req.length % ep->ep.maxpacket)
+	{
+		len++;
+	}
+
+	if (len > req->chain_len)
+	{
 		/* shorter chain already allocated before */
 		if (req->chain_len > 1)
+		{
 			udc_free_dma_chain(ep->dev, req);
+		}
+
 		req->chain_len = len;
 		create_new_chain = 1;
 	}
 
 	td = req->td_data;
+
 	/* gen. required number of descriptors and buffers */
-	for (i = buf_len; i < bytes; i += buf_len) {
+	for (i = buf_len; i < bytes; i += buf_len)
+	{
 		/* create or determine next desc. */
-		if (create_new_chain) {
+		if (create_new_chain)
+		{
 			td = pci_pool_alloc(ep->dev->data_requests,
-					    gfp_flags, &dma_addr);
+								gfp_flags, &dma_addr);
+
 			if (!td)
+			{
 				return -ENOMEM;
+			}
 
 			td->status = 0;
-		} else if (i == buf_len) {
+		}
+		else if (i == buf_len)
+		{
 			/* first td */
 			td = (struct udc_data_dma *)phys_to_virt(
-						req->td_data->next);
+					 req->td_data->next);
 			td->status = 0;
-		} else {
+		}
+		else
+		{
 			td = (struct udc_data_dma *)phys_to_virt(last->next);
 			td->status = 0;
 		}
 
 		if (td)
-			td->bufptr = req->req.dma + i; /* assign buffer */
+		{
+			td->bufptr = req->req.dma + i;    /* assign buffer */
+		}
 		else
+		{
 			break;
+		}
 
 		/* short packet ? */
-		if ((bytes - i) >= buf_len) {
+		if ((bytes - i) >= buf_len)
+		{
 			txbytes = buf_len;
-		} else {
+		}
+		else
+		{
 			/* short packet */
 			txbytes = bytes - i;
 		}
 
 		/* link td and assign tx bytes */
-		if (i == buf_len) {
+		if (i == buf_len)
+		{
 			if (create_new_chain)
+			{
 				req->td_data->next = dma_addr;
+			}
+
 			/*
 			 * else
 			 *	req->td_data->next = virt_to_phys(td);
 			 */
 			/* write tx bytes */
-			if (ep->in) {
+			if (ep->in)
+			{
 				/* first desc */
 				req->td_data->status =
 					AMD_ADDBITS(req->td_data->status,
-						    ep->ep.maxpacket,
-						    UDC_DMA_IN_STS_TXBYTES);
+								ep->ep.maxpacket,
+								UDC_DMA_IN_STS_TXBYTES);
 				/* second desc */
 				td->status = AMD_ADDBITS(td->status,
-							txbytes,
-							UDC_DMA_IN_STS_TXBYTES);
+										 txbytes,
+										 UDC_DMA_IN_STS_TXBYTES);
 			}
-		} else {
+		}
+		else
+		{
 			if (create_new_chain)
+			{
 				last->next = dma_addr;
+			}
+
 			/*
 			 * else
 			 *	last->next = virt_to_phys(td);
 			 */
-			if (ep->in) {
+			if (ep->in)
+			{
 				/* write tx bytes */
 				td->status = AMD_ADDBITS(td->status,
-							txbytes,
-							UDC_DMA_IN_STS_TXBYTES);
+										 txbytes,
+										 UDC_DMA_IN_STS_TXBYTES);
 			}
 		}
+
 		last = td;
 	}
+
 	/* set last bit */
-	if (td) {
+	if (td)
+	{
 		td->status |= AMD_BIT(UDC_DMA_IN_STS_L);
 		/* last desc. points to itself */
 		req->td_data_last = td;
@@ -930,7 +1053,7 @@ static int prep_dma(struct udc_ep *ep, struct udc_request *req, gfp_t gfp)
 
 	VDBG(ep->dev, "prep_dma\n");
 	VDBG(ep->dev, "prep_dma ep%d req->td_data=%p\n",
-			ep->num, req->td_data);
+		 ep->num, req->td_data);
 
 	/* set buffer pointer */
 	req->td_data->bufptr = req->req.dma;
@@ -939,72 +1062,88 @@ static int prep_dma(struct udc_ep *ep, struct udc_request *req, gfp_t gfp)
 	req->td_data->status |= AMD_BIT(UDC_DMA_IN_STS_L);
 
 	/* build/re-init dma chain if maxpkt scatter mode, not for EP0 */
-	if (use_dma_ppb) {
+	if (use_dma_ppb)
+	{
 
 		retval = udc_create_dma_chain(ep, req, ep->ep.maxpacket, gfp);
-		if (retval != 0) {
+
+		if (retval != 0)
+		{
 			if (retval == -ENOMEM)
+			{
 				DBG(ep->dev, "Out of DMA memory\n");
+			}
+
 			return retval;
 		}
-		if (ep->in) {
-			if (req->req.length == ep->ep.maxpacket) {
+
+		if (ep->in)
+		{
+			if (req->req.length == ep->ep.maxpacket)
+			{
 				/* write tx bytes */
 				req->td_data->status =
 					AMD_ADDBITS(req->td_data->status,
-						ep->ep.maxpacket,
-						UDC_DMA_IN_STS_TXBYTES);
+								ep->ep.maxpacket,
+								UDC_DMA_IN_STS_TXBYTES);
 
 			}
 		}
 
 	}
 
-	if (ep->in) {
+	if (ep->in)
+	{
 		VDBG(ep->dev, "IN: use_dma_ppb=%d req->req.len=%d "
-				"maxpacket=%d ep%d\n",
-				use_dma_ppb, req->req.length,
-				ep->ep.maxpacket, ep->num);
+			 "maxpacket=%d ep%d\n",
+			 use_dma_ppb, req->req.length,
+			 ep->ep.maxpacket, ep->num);
+
 		/*
 		 * if bytes < max packet then tx bytes must
 		 * be written in packet per buffer mode
 		 */
 		if (!use_dma_ppb || req->req.length < ep->ep.maxpacket
-				|| ep->num == UDC_EP0OUT_IX
-				|| ep->num == UDC_EP0IN_IX) {
+			|| ep->num == UDC_EP0OUT_IX
+			|| ep->num == UDC_EP0IN_IX)
+		{
 			/* write tx bytes */
 			req->td_data->status =
 				AMD_ADDBITS(req->td_data->status,
-						req->req.length,
-						UDC_DMA_IN_STS_TXBYTES);
+							req->req.length,
+							UDC_DMA_IN_STS_TXBYTES);
 			/* reset frame num */
 			req->td_data->status =
 				AMD_ADDBITS(req->td_data->status,
-						0,
-						UDC_DMA_IN_STS_FRAMENUM);
+							0,
+							UDC_DMA_IN_STS_FRAMENUM);
 		}
+
 		/* set HOST BUSY */
 		req->td_data->status =
 			AMD_ADDBITS(req->td_data->status,
-				UDC_DMA_STP_STS_BS_HOST_BUSY,
-				UDC_DMA_STP_STS_BS);
-	} else {
+						UDC_DMA_STP_STS_BS_HOST_BUSY,
+						UDC_DMA_STP_STS_BS);
+	}
+	else
+	{
 		VDBG(ep->dev, "OUT set host ready\n");
 		/* set HOST READY */
 		req->td_data->status =
 			AMD_ADDBITS(req->td_data->status,
-				UDC_DMA_STP_STS_BS_HOST_READY,
-				UDC_DMA_STP_STS_BS);
+						UDC_DMA_STP_STS_BS_HOST_READY,
+						UDC_DMA_STP_STS_BS);
 
 
-			/* clear NAK by writing CNAK */
-			if (ep->naking) {
-				tmp = readl(&ep->regs->ctl);
-				tmp |= AMD_BIT(UDC_EPCTL_CNAK);
-				writel(tmp, &ep->regs->ctl);
-				ep->naking = 0;
-				UDC_QUEUE_CNAK(ep, ep->num);
-			}
+		/* clear NAK by writing CNAK */
+		if (ep->naking)
+		{
+			tmp = readl(&ep->regs->ctl);
+			tmp |= AMD_BIT(UDC_EPCTL_CNAK);
+			writel(tmp, &ep->regs->ctl);
+			ep->naking = 0;
+			UDC_QUEUE_CNAK(ep, ep->num);
+		}
 
 	}
 
@@ -1023,22 +1162,27 @@ __acquires(ep->dev->lock)
 	VDBG(ep->dev, "complete_req(): ep%d\n", ep->num);
 
 	dev = ep->dev;
+
 	/* unmap DMA */
 	if (ep->dma)
+	{
 		usb_gadget_unmap_request(&dev->gadget, &req->req, ep->in);
+	}
 
 	halted = ep->halted;
 	ep->halted = 1;
 
 	/* set new status if pending */
 	if (req->req.status == -EINPROGRESS)
+	{
 		req->req.status = sts;
+	}
 
 	/* remove from ep queue */
 	list_del_init(&req->queue);
 
 	VDBG(ep->dev, "req %p => complete %d bytes at %s with sts %d\n",
-		&req->req, req->req.length, ep->ep.name, sts);
+		 &req->req, req->req.length, ep->ep.name, sts);
 
 	spin_unlock(&dev->lock);
 	usb_gadget_giveback_request(&ep->ep, &req->req);
@@ -1052,8 +1196,11 @@ static struct udc_data_dma *udc_get_last_dma_desc(struct udc_request *req)
 	struct udc_data_dma	*td;
 
 	td = req->td_data;
+
 	while (td && !(td->status & AMD_BIT(UDC_DMA_IN_STS_L)))
+	{
 		td = phys_to_virt(td->next);
+	}
 
 	return td;
 
@@ -1069,12 +1216,15 @@ static u32 udc_get_ppbdu_rxbytes(struct udc_request *req)
 	/* received number bytes */
 	count = AMD_GETBITS(td->status, UDC_DMA_OUT_STS_RXBYTES);
 
-	while (td && !(td->status & AMD_BIT(UDC_DMA_IN_STS_L))) {
+	while (td && !(td->status & AMD_BIT(UDC_DMA_IN_STS_L)))
+	{
 		td = phys_to_virt(td->next);
+
 		/* received number bytes */
-		if (td) {
+		if (td)
+		{
 			count += AMD_GETBITS(td->status,
-				UDC_DMA_OUT_STS_RXBYTES);
+								 UDC_DMA_OUT_STS_RXBYTES);
 		}
 	}
 
@@ -1088,11 +1238,14 @@ static void udc_set_rde(struct udc *dev)
 	u32 tmp;
 
 	VDBG(dev, "udc_set_rde()\n");
+
 	/* stop RDE timer */
-	if (timer_pending(&udc_timer)) {
+	if (timer_pending(&udc_timer))
+	{
 		set_rde = 0;
 		mod_timer(&udc_timer, jiffies - 1);
 	}
+
 	/* set RDE */
 	tmp = readl(&dev->regs->ctl);
 	tmp |= AMD_BIT(UDC_DEVCTL_RDE);
@@ -1115,30 +1268,41 @@ udc_queue(struct usb_ep *usbep, struct usb_request *usbreq, gfp_t gfp)
 	req = container_of(usbreq, struct udc_request, req);
 
 	if (!usbep || !usbreq || !usbreq->complete || !usbreq->buf
-			|| !list_empty(&req->queue))
+		|| !list_empty(&req->queue))
+	{
 		return -EINVAL;
+	}
 
 	ep = container_of(usbep, struct udc_ep, ep);
+
 	if (!ep->ep.desc && (ep->num != 0 && ep->num != UDC_EP0OUT_IX))
+	{
 		return -EINVAL;
+	}
 
 	VDBG(ep->dev, "udc_queue(): ep%d-in=%d\n", ep->num, ep->in);
 	dev = ep->dev;
 
 	if (!dev->driver || dev->gadget.speed == USB_SPEED_UNKNOWN)
+	{
 		return -ESHUTDOWN;
+	}
 
 	/* map dma (usually done before) */
-	if (ep->dma) {
+	if (ep->dma)
+	{
 		VDBG(dev, "DMA map req %p\n", req);
 		retval = usb_gadget_map_request(&udc->gadget, usbreq, ep->in);
+
 		if (retval)
+		{
 			return retval;
+		}
 	}
 
 	VDBG(dev, "%s queue req %p, len %d req->td_data=%p buf %p\n",
-			usbep->name, usbreq, usbreq->length,
-			req->td_data, usbreq->buf);
+		 usbep->name, usbreq, usbreq->length,
+		 req->td_data, usbreq->buf);
 
 	spin_lock_irqsave(&dev->lock, iflags);
 	usbreq->actual = 0;
@@ -1146,55 +1310,72 @@ udc_queue(struct usb_ep *usbep, struct usb_request *usbreq, gfp_t gfp)
 	req->dma_done = 0;
 
 	/* on empty queue just do first transfer */
-	if (list_empty(&ep->queue)) {
+	if (list_empty(&ep->queue))
+	{
 		/* zlp */
-		if (usbreq->length == 0) {
+		if (usbreq->length == 0)
+		{
 			/* IN zlp's are handled by hardware */
 			complete_req(ep, req, 0);
 			VDBG(dev, "%s: zlp\n", ep->ep.name);
+
 			/*
 			 * if set_config or set_intf is waiting for ack by zlp
 			 * then set CSR_DONE
 			 */
-			if (dev->set_cfg_not_acked) {
+			if (dev->set_cfg_not_acked)
+			{
 				tmp = readl(&dev->regs->ctl);
 				tmp |= AMD_BIT(UDC_DEVCTL_CSR_DONE);
 				writel(tmp, &dev->regs->ctl);
 				dev->set_cfg_not_acked = 0;
 			}
+
 			/* setup command is ACK'ed now by zlp */
-			if (dev->waiting_zlp_ack_ep0in) {
+			if (dev->waiting_zlp_ack_ep0in)
+			{
 				/* clear NAK by writing CNAK in EP0_IN */
 				tmp = readl(&dev->ep[UDC_EP0IN_IX].regs->ctl);
 				tmp |= AMD_BIT(UDC_EPCTL_CNAK);
 				writel(tmp, &dev->ep[UDC_EP0IN_IX].regs->ctl);
 				dev->ep[UDC_EP0IN_IX].naking = 0;
 				UDC_QUEUE_CNAK(&dev->ep[UDC_EP0IN_IX],
-							UDC_EP0IN_IX);
+							   UDC_EP0IN_IX);
 				dev->waiting_zlp_ack_ep0in = 0;
 			}
+
 			goto finished;
 		}
-		if (ep->dma) {
+
+		if (ep->dma)
+		{
 			retval = prep_dma(ep, req, GFP_ATOMIC);
+
 			if (retval != 0)
+			{
 				goto finished;
+			}
+
 			/* write desc pointer to enable DMA */
-			if (ep->in) {
+			if (ep->in)
+			{
 				/* set HOST READY */
 				req->td_data->status =
 					AMD_ADDBITS(req->td_data->status,
-						UDC_DMA_IN_STS_BS_HOST_READY,
-						UDC_DMA_IN_STS_BS);
+								UDC_DMA_IN_STS_BS_HOST_READY,
+								UDC_DMA_IN_STS_BS);
 			}
 
 			/* disabled rx dma while descriptor update */
-			if (!ep->in) {
+			if (!ep->in)
+			{
 				/* stop RDE timer */
-				if (timer_pending(&udc_timer)) {
+				if (timer_pending(&udc_timer))
+				{
 					set_rde = 0;
 					mod_timer(&udc_timer, jiffies - 1);
 				}
+
 				/* clear RDE */
 				tmp = readl(&dev->regs->ctl);
 				tmp &= AMD_UNMASK_BIT(UDC_DEVCTL_RDE);
@@ -1205,18 +1386,21 @@ udc_queue(struct usb_ep *usbep, struct usb_request *usbreq, gfp_t gfp)
 				 * if BNA occurred then let BNA dummy desc.
 				 * point to current desc.
 				 */
-				if (ep->bna_occurred) {
+				if (ep->bna_occurred)
+				{
 					VDBG(dev, "copy to BNA dummy desc.\n");
 					memcpy(ep->bna_dummy_req->td_data,
-						req->td_data,
-						sizeof(struct udc_data_dma));
+						   req->td_data,
+						   sizeof(struct udc_data_dma));
 				}
 			}
+
 			/* write desc pointer */
 			writel(req->td_phys, &ep->regs->desptr);
 
 			/* clear NAK by writing CNAK */
-			if (ep->naking) {
+			if (ep->naking)
+			{
 				tmp = readl(&ep->regs->ctl);
 				tmp |= AMD_BIT(UDC_EPCTL_CNAK);
 				writel(tmp, &ep->regs->ctl);
@@ -1224,58 +1408,80 @@ udc_queue(struct usb_ep *usbep, struct usb_request *usbreq, gfp_t gfp)
 				UDC_QUEUE_CNAK(ep, ep->num);
 			}
 
-			if (ep->in) {
+			if (ep->in)
+			{
 				/* enable ep irq */
 				tmp = readl(&dev->regs->ep_irqmsk);
 				tmp &= AMD_UNMASK_BIT(ep->num);
 				writel(tmp, &dev->regs->ep_irqmsk);
 			}
-		} else if (ep->in) {
-				/* enable ep irq */
-				tmp = readl(&dev->regs->ep_irqmsk);
-				tmp &= AMD_UNMASK_BIT(ep->num);
-				writel(tmp, &dev->regs->ep_irqmsk);
-			}
+		}
+		else if (ep->in)
+		{
+			/* enable ep irq */
+			tmp = readl(&dev->regs->ep_irqmsk);
+			tmp &= AMD_UNMASK_BIT(ep->num);
+			writel(tmp, &dev->regs->ep_irqmsk);
+		}
 
-	} else if (ep->dma) {
+	}
+	else if (ep->dma)
+	{
 
 		/*
 		 * prep_dma not used for OUT ep's, this is not possible
 		 * for PPB modes, because of chain creation reasons
 		 */
-		if (ep->in) {
+		if (ep->in)
+		{
 			retval = prep_dma(ep, req, GFP_ATOMIC);
+
 			if (retval != 0)
+			{
 				goto finished;
+			}
 		}
 	}
+
 	VDBG(dev, "list_add\n");
+
 	/* add request to ep queue */
-	if (req) {
+	if (req)
+	{
 
 		list_add_tail(&req->queue, &ep->queue);
 
 		/* open rxfifo if out data queued */
-		if (open_rxfifo) {
+		if (open_rxfifo)
+		{
 			/* enable DMA */
 			req->dma_going = 1;
 			udc_set_rde(dev);
+
 			if (ep->num != UDC_EP0OUT_IX)
+			{
 				dev->data_ep_queued = 1;
+			}
 		}
+
 		/* stop OUT naking */
-		if (!ep->in) {
-			if (!use_dma && udc_rxfifo_pending) {
+		if (!ep->in)
+		{
+			if (!use_dma && udc_rxfifo_pending)
+			{
 				DBG(dev, "udc_queue(): pending bytes in "
 					"rxfifo after nyet\n");
+
 				/*
 				 * read pending bytes afer nyet:
 				 * referring to isr
 				 */
-				if (udc_rxfifo_read(ep, req)) {
+				if (udc_rxfifo_read(ep, req))
+				{
 					/* finish */
 					complete_req(ep, req, 0);
 				}
+
 				udc_rxfifo_pending = 0;
 
 			}
@@ -1293,10 +1499,12 @@ static void empty_req_queue(struct udc_ep *ep)
 	struct udc_request	*req;
 
 	ep->halted = 1;
-	while (!list_empty(&ep->queue)) {
+
+	while (!list_empty(&ep->queue))
+	{
 		req = list_entry(ep->queue.next,
-			struct udc_request,
-			queue);
+						 struct udc_request,
+						 queue);
 		complete_req(ep, req, -ESHUTDOWN);
 	}
 }
@@ -1310,44 +1518,59 @@ static int udc_dequeue(struct usb_ep *usbep, struct usb_request *usbreq)
 	unsigned long		iflags;
 
 	ep = container_of(usbep, struct udc_ep, ep);
+
 	if (!usbep || !usbreq || (!ep->ep.desc && (ep->num != 0
-				&& ep->num != UDC_EP0OUT_IX)))
+							  && ep->num != UDC_EP0OUT_IX)))
+	{
 		return -EINVAL;
+	}
 
 	req = container_of(usbreq, struct udc_request, req);
 
 	spin_lock_irqsave(&ep->dev->lock, iflags);
 	halted = ep->halted;
 	ep->halted = 1;
+
 	/* request in processing or next one */
-	if (ep->queue.next == &req->queue) {
-		if (ep->dma && req->dma_going) {
+	if (ep->queue.next == &req->queue)
+	{
+		if (ep->dma && req->dma_going)
+		{
 			if (ep->in)
+			{
 				ep->cancel_transfer = 1;
-			else {
+			}
+			else
+			{
 				u32 tmp;
 				u32 dma_sts;
 				/* stop potential receive DMA */
 				tmp = readl(&udc->regs->ctl);
 				writel(tmp & AMD_UNMASK_BIT(UDC_DEVCTL_RDE),
-							&udc->regs->ctl);
+					   &udc->regs->ctl);
 				/*
 				 * Cancel transfer later in ISR
 				 * if descriptor was touched.
 				 */
 				dma_sts = AMD_GETBITS(req->td_data->status,
-							UDC_DMA_OUT_STS_BS);
+									  UDC_DMA_OUT_STS_BS);
+
 				if (dma_sts != UDC_DMA_OUT_STS_BS_HOST_READY)
+				{
 					ep->cancel_transfer = 1;
-				else {
+				}
+				else
+				{
 					udc_init_bna_dummy(ep->req);
 					writel(ep->bna_dummy_req->td_phys,
-						&ep->regs->desptr);
+						   &ep->regs->desptr);
 				}
+
 				writel(tmp, &udc->regs->ctl);
 			}
 		}
 	}
+
 	complete_req(ep, req, -ECONNRESET);
 	ep->halted = halted;
 
@@ -1365,22 +1588,35 @@ udc_set_halt(struct usb_ep *usbep, int halt)
 	int retval = 0;
 
 	if (!usbep)
+	{
 		return -EINVAL;
+	}
 
 	pr_debug("set_halt %s: halt=%d\n", usbep->name, halt);
 
 	ep = container_of(usbep, struct udc_ep, ep);
+
 	if (!ep->ep.desc && (ep->num != 0 && ep->num != UDC_EP0OUT_IX))
+	{
 		return -EINVAL;
+	}
+
 	if (!ep->dev->driver || ep->dev->gadget.speed == USB_SPEED_UNKNOWN)
+	{
 		return -ESHUTDOWN;
+	}
 
 	spin_lock_irqsave(&udc_stall_spinlock, iflags);
+
 	/* halt or clear halt */
-	if (halt) {
+	if (halt)
+	{
 		if (ep->num == 0)
+		{
 			ep->dev->stall_ep0in = 1;
-		else {
+		}
+		else
+		{
 			/*
 			 * set STALL
 			 * rxfifo empty not taken into acount
@@ -1391,19 +1627,25 @@ udc_set_halt(struct usb_ep *usbep, int halt)
 			ep->halted = 1;
 
 			/* setup poll timer */
-			if (!timer_pending(&udc_pollstall_timer)) {
+			if (!timer_pending(&udc_pollstall_timer))
+			{
 				udc_pollstall_timer.expires = jiffies +
-					HZ * UDC_POLLSTALL_TIMER_USECONDS
-					/ (1000 * 1000);
-				if (!stop_pollstall_timer) {
+											  HZ * UDC_POLLSTALL_TIMER_USECONDS
+											  / (1000 * 1000);
+
+				if (!stop_pollstall_timer)
+				{
 					DBG(ep->dev, "start polltimer\n");
 					add_timer(&udc_pollstall_timer);
 				}
 			}
 		}
-	} else {
+	}
+	else
+	{
 		/* ep is halted by set_halt() before */
-		if (ep->halted) {
+		if (ep->halted)
+		{
 			tmp = readl(&ep->regs->ctl);
 			/* clear stall bit */
 			tmp = tmp & AMD_CLEAR_BIT(UDC_EPCTL_S);
@@ -1414,12 +1656,14 @@ udc_set_halt(struct usb_ep *usbep, int halt)
 			UDC_QUEUE_CNAK(ep, ep->num);
 		}
 	}
+
 	spin_unlock_irqrestore(&udc_stall_spinlock, iflags);
 	return retval;
 }
 
 /* gadget interface */
-static const struct usb_ep_ops udc_ep_ops = {
+static const struct usb_ep_ops udc_ep_ops =
+{
 	.enable		= udc_ep_enable,
 	.disable	= udc_ep_disable,
 
@@ -1467,7 +1711,10 @@ static int udc_wakeup(struct usb_gadget *gadget)
 	struct udc		*dev;
 
 	if (!gadget)
+	{
 		return -EINVAL;
+	}
+
 	dev = container_of(gadget, struct udc, gadget);
 	udc_remote_wakeup(dev);
 
@@ -1475,10 +1722,11 @@ static int udc_wakeup(struct usb_gadget *gadget)
 }
 
 static int amd5536_udc_start(struct usb_gadget *g,
-		struct usb_gadget_driver *driver);
+							 struct usb_gadget_driver *driver);
 static int amd5536_udc_stop(struct usb_gadget *g);
 
-static const struct usb_gadget_ops udc_ops = {
+static const struct usb_gadget_ops udc_ops =
+{
 	.wakeup		= udc_wakeup,
 	.get_frame	= udc_get_frame,
 	.udc_start	= amd5536_udc_start,
@@ -1491,18 +1739,24 @@ static void make_ep_lists(struct udc *dev)
 	/* make gadget ep lists */
 	INIT_LIST_HEAD(&dev->gadget.ep_list);
 	list_add_tail(&dev->ep[UDC_EPIN_STATUS_IX].ep.ep_list,
-						&dev->gadget.ep_list);
+				  &dev->gadget.ep_list);
 	list_add_tail(&dev->ep[UDC_EPIN_IX].ep.ep_list,
-						&dev->gadget.ep_list);
+				  &dev->gadget.ep_list);
 	list_add_tail(&dev->ep[UDC_EPOUT_IX].ep.ep_list,
-						&dev->gadget.ep_list);
+				  &dev->gadget.ep_list);
 
 	/* fifo config */
 	dev->ep[UDC_EPIN_STATUS_IX].fifo_depth = UDC_EPIN_SMALLINT_BUFF_SIZE;
+
 	if (dev->gadget.speed == USB_SPEED_FULL)
+	{
 		dev->ep[UDC_EPIN_IX].fifo_depth = UDC_FS_EPIN_BUFF_SIZE;
+	}
 	else if (dev->gadget.speed == USB_SPEED_HIGH)
+	{
 		dev->ep[UDC_EPIN_IX].fifo_depth = hs_tx_buf;
+	}
+
 	dev->ep[UDC_EPOUT_IX].fifo_depth = UDC_RXFIFO_SIZE;
 }
 
@@ -1516,13 +1770,18 @@ static void udc_basic_init(struct udc *dev)
 	dev->gadget.speed = USB_SPEED_UNKNOWN;
 
 	/* stop RDE timer */
-	if (timer_pending(&udc_timer)) {
+	if (timer_pending(&udc_timer))
+	{
 		set_rde = 0;
 		mod_timer(&udc_timer, jiffies - 1);
 	}
+
 	/* stop poll stall timer */
 	if (timer_pending(&udc_pollstall_timer))
+	{
 		mod_timer(&udc_pollstall_timer, jiffies - 1);
+	}
+
 	/* disable DMA */
 	tmp = readl(&dev->regs->ctl);
 	tmp &= AMD_UNMASK_BIT(UDC_DEVCTL_RDE);
@@ -1562,10 +1821,16 @@ static int startup_registers(struct udc *dev)
 
 	/* program speed */
 	tmp = readl(&dev->regs->cfg);
+
 	if (use_fullspeed)
+	{
 		tmp = AMD_ADDBITS(tmp, UDC_DEVCFG_SPD_FS, UDC_DEVCFG_SPD);
+	}
 	else
+	{
 		tmp = AMD_ADDBITS(tmp, UDC_DEVCFG_SPD_HS, UDC_DEVCFG_SPD);
+	}
+
 	writel(tmp, &dev->regs->cfg);
 
 	return 0;
@@ -1583,13 +1848,19 @@ static void udc_setup_endpoints(struct udc *dev)
 	/* read enum speed */
 	tmp = readl(&dev->regs->sts);
 	tmp = AMD_GETBITS(tmp, UDC_DEVSTS_ENUM_SPEED);
+
 	if (tmp == UDC_DEVSTS_ENUM_SPEED_HIGH)
+	{
 		dev->gadget.speed = USB_SPEED_HIGH;
+	}
 	else if (tmp == UDC_DEVSTS_ENUM_SPEED_FULL)
+	{
 		dev->gadget.speed = USB_SPEED_FULL;
+	}
 
 	/* set basic ep parameters */
-	for (tmp = 0; tmp < UDC_EP_NUM; tmp++) {
+	for (tmp = 0; tmp < UDC_EP_NUM; tmp++)
+	{
 		ep = &dev->ep[tmp];
 		ep->dev = dev;
 		ep->ep.name = ep_info[tmp].name;
@@ -1599,24 +1870,32 @@ static void udc_setup_endpoints(struct udc *dev)
 		ep->txfifo = dev->txfifo;
 
 		/* fifo size */
-		if (tmp < UDC_EPIN_NUM) {
+		if (tmp < UDC_EPIN_NUM)
+		{
 			ep->fifo_depth = UDC_TXFIFO_SIZE;
 			ep->in = 1;
-		} else {
+		}
+		else
+		{
 			ep->fifo_depth = UDC_RXFIFO_SIZE;
 			ep->in = 0;
 
 		}
+
 		ep->regs = &dev->ep_regs[tmp];
+
 		/*
 		 * ep will be reset only if ep was not enabled before to avoid
 		 * disabling ep interrupts when ENUM interrupt occurs but ep is
 		 * not enabled by gadget driver
 		 */
 		if (!ep->ep.desc)
+		{
 			ep_init(dev->regs, ep);
+		}
 
-		if (use_dma) {
+		if (use_dma)
+		{
 			/*
 			 * ep->dma is not really used, just to indicate that
 			 * DMA is active: remove this
@@ -1626,7 +1905,8 @@ static void udc_setup_endpoints(struct udc *dev)
 
 			/* nak OUT endpoints until enable - not for ep0 */
 			if (tmp != UDC_EP0IN_IX && tmp != UDC_EP0OUT_IX
-						&& tmp > UDC_EPIN_NUM) {
+				&& tmp > UDC_EPIN_NUM)
+			{
 				/* set NAK */
 				reg = readl(&dev->ep[tmp].regs->ctl);
 				reg |= AMD_BIT(UDC_EPCTL_SNAK);
@@ -1636,17 +1916,21 @@ static void udc_setup_endpoints(struct udc *dev)
 			}
 		}
 	}
+
 	/* EP0 max packet */
-	if (dev->gadget.speed == USB_SPEED_FULL) {
+	if (dev->gadget.speed == USB_SPEED_FULL)
+	{
 		usb_ep_set_maxpacket_limit(&dev->ep[UDC_EP0IN_IX].ep,
-					   UDC_FS_EP0IN_MAX_PKT_SIZE);
+								   UDC_FS_EP0IN_MAX_PKT_SIZE);
 		usb_ep_set_maxpacket_limit(&dev->ep[UDC_EP0OUT_IX].ep,
-					   UDC_FS_EP0OUT_MAX_PKT_SIZE);
-	} else if (dev->gadget.speed == USB_SPEED_HIGH) {
+								   UDC_FS_EP0OUT_MAX_PKT_SIZE);
+	}
+	else if (dev->gadget.speed == USB_SPEED_HIGH)
+	{
 		usb_ep_set_maxpacket_limit(&dev->ep[UDC_EP0IN_IX].ep,
-					   UDC_EP0IN_MAX_PKT_SIZE);
+								   UDC_EP0IN_MAX_PKT_SIZE);
 		usb_ep_set_maxpacket_limit(&dev->ep[UDC_EP0OUT_IX].ep,
-					   UDC_EP0OUT_MAX_PKT_SIZE);
+								   UDC_EP0OUT_MAX_PKT_SIZE);
 	}
 
 	/*
@@ -1709,14 +1993,17 @@ static void udc_tasklet_disconnect(unsigned long par)
 	DBG(dev, "Tasklet disconnect\n");
 	spin_lock_irq(&dev->lock);
 
-	if (dev->driver) {
+	if (dev->driver)
+	{
 		spin_unlock(&dev->lock);
 		dev->driver->disconnect(&dev->gadget);
 		spin_lock(&dev->lock);
 
 		/* empty queues */
 		for (tmp = 0; tmp < UDC_EP_NUM; tmp++)
+		{
 			empty_req_queue(&dev->ep[tmp]);
+		}
 
 	}
 
@@ -1725,7 +2012,8 @@ static void udc_tasklet_disconnect(unsigned long par)
 			&dev->ep[UDC_EP0IN_IX]);
 
 
-	if (!soft_reset_occured) {
+	if (!soft_reset_occured)
+	{
 		/* init controller by soft reset */
 		udc_soft_reset(dev);
 		soft_reset_occured++;
@@ -1733,8 +2021,10 @@ static void udc_tasklet_disconnect(unsigned long par)
 
 	/* re-enable dev interrupts */
 	udc_enable_dev_setup_interrupts(dev);
+
 	/* back to full speed ? */
-	if (use_fullspeed) {
+	if (use_fullspeed)
+	{
 		tmp = readl(&dev->regs->cfg);
 		tmp = AMD_ADDBITS(tmp, UDC_DEVCFG_SPD_FS, UDC_DEVCFG_SPD);
 		writel(tmp, &dev->regs->cfg);
@@ -1772,27 +2062,36 @@ static void udc_timer_function(unsigned long v)
 
 	spin_lock_irq(&udc_irq_spinlock);
 
-	if (set_rde > 0) {
+	if (set_rde > 0)
+	{
 		/*
 		 * open the fifo if fifo was filled on last timer call
 		 * conditionally
 		 */
-		if (set_rde > 1) {
+		if (set_rde > 1)
+		{
 			/* set RDE to receive setup data */
 			tmp = readl(&udc->regs->ctl);
 			tmp |= AMD_BIT(UDC_DEVCTL_RDE);
 			writel(tmp, &udc->regs->ctl);
 			set_rde = -1;
-		} else if (readl(&udc->regs->sts)
-				& AMD_BIT(UDC_DEVSTS_RXFIFO_EMPTY)) {
+		}
+		else if (readl(&udc->regs->sts)
+				 & AMD_BIT(UDC_DEVSTS_RXFIFO_EMPTY))
+		{
 			/*
 			 * if fifo empty setup polling, do not just
 			 * open the fifo
 			 */
-			udc_timer.expires = jiffies + HZ/UDC_RDE_TIMER_DIV;
+			udc_timer.expires = jiffies + HZ / UDC_RDE_TIMER_DIV;
+
 			if (!stop_timer)
+			{
 				add_timer(&udc_timer);
-		} else {
+			}
+		}
+		else
+		{
 			/*
 			 * fifo contains data now, setup timer for opening
 			 * the fifo when timer expires to be able to receive
@@ -1802,16 +2101,26 @@ static void udc_timer_function(unsigned long v)
 			 */
 			set_rde++;
 			/* debug: lhadmot_timer_start = 221070 */
-			udc_timer.expires = jiffies + HZ*UDC_RDE_TIMER_SECONDS;
+			udc_timer.expires = jiffies + HZ * UDC_RDE_TIMER_SECONDS;
+
 			if (!stop_timer)
+			{
 				add_timer(&udc_timer);
+			}
 		}
 
-	} else
-		set_rde = -1; /* RDE was set by udc_queue() */
+	}
+	else
+	{
+		set_rde = -1;    /* RDE was set by udc_queue() */
+	}
+
 	spin_unlock_irq(&udc_irq_spinlock);
+
 	if (stop_timer)
+	{
 		complete(&on_exit);
+	}
 
 }
 
@@ -1819,11 +2128,15 @@ static void udc_timer_function(unsigned long v)
 static void udc_handle_halt_state(struct udc_ep *ep)
 {
 	u32 tmp;
+
 	/* set stall as long not halted */
-	if (ep->halted == 1) {
+	if (ep->halted == 1)
+	{
 		tmp = readl(&ep->regs->ctl);
+
 		/* STALL cleared ? */
-		if (!(tmp & AMD_BIT(UDC_EPCTL_S))) {
+		if (!(tmp & AMD_BIT(UDC_EPCTL_S)))
+		{
 			/*
 			 * FIXME: MSC spec requires that stall remains
 			 * even on receivng of CLEAR_FEATURE HALT. So
@@ -1858,25 +2171,36 @@ static void udc_pollstall_timer_function(unsigned long v)
 	 */
 	ep = &udc->ep[UDC_EPIN_IX];
 	udc_handle_halt_state(ep);
+
 	if (ep->halted)
+	{
 		halted = 1;
+	}
+
 	/* OUT poll stall */
 	ep = &udc->ep[UDC_EPOUT_IX];
 	udc_handle_halt_state(ep);
+
 	if (ep->halted)
+	{
 		halted = 1;
+	}
 
 	/* setup timer again when still halted */
-	if (!stop_pollstall_timer && halted) {
+	if (!stop_pollstall_timer && halted)
+	{
 		udc_pollstall_timer.expires = jiffies +
-					HZ * UDC_POLLSTALL_TIMER_USECONDS
-					/ (1000 * 1000);
+									  HZ * UDC_POLLSTALL_TIMER_USECONDS
+									  / (1000 * 1000);
 		add_timer(&udc_pollstall_timer);
 	}
+
 	spin_unlock_irq(&udc_stall_spinlock);
 
 	if (stop_pollstall_timer)
+	{
 		complete(&on_pollstall_exit);
+	}
 }
 
 /* Inits endpoint 0 so that SETUP packets are processed */
@@ -1897,69 +2221,90 @@ static void activate_control_endpoints(struct udc *dev)
 
 	/* set buffer size (tx fifo entries) of EP0_IN */
 	tmp = readl(&dev->ep[UDC_EP0IN_IX].regs->bufin_framenum);
+
 	if (dev->gadget.speed == USB_SPEED_FULL)
 		tmp = AMD_ADDBITS(tmp, UDC_FS_EPIN0_BUFF_SIZE,
-					UDC_EPIN_BUFF_SIZE);
+						  UDC_EPIN_BUFF_SIZE);
 	else if (dev->gadget.speed == USB_SPEED_HIGH)
 		tmp = AMD_ADDBITS(tmp, UDC_EPIN0_BUFF_SIZE,
-					UDC_EPIN_BUFF_SIZE);
+						  UDC_EPIN_BUFF_SIZE);
+
 	writel(tmp, &dev->ep[UDC_EP0IN_IX].regs->bufin_framenum);
 
 	/* set max packet size of EP0_IN */
 	tmp = readl(&dev->ep[UDC_EP0IN_IX].regs->bufout_maxpkt);
+
 	if (dev->gadget.speed == USB_SPEED_FULL)
 		tmp = AMD_ADDBITS(tmp, UDC_FS_EP0IN_MAX_PKT_SIZE,
-					UDC_EP_MAX_PKT_SIZE);
+						  UDC_EP_MAX_PKT_SIZE);
 	else if (dev->gadget.speed == USB_SPEED_HIGH)
 		tmp = AMD_ADDBITS(tmp, UDC_EP0IN_MAX_PKT_SIZE,
-				UDC_EP_MAX_PKT_SIZE);
+						  UDC_EP_MAX_PKT_SIZE);
+
 	writel(tmp, &dev->ep[UDC_EP0IN_IX].regs->bufout_maxpkt);
 
 	/* set max packet size of EP0_OUT */
 	tmp = readl(&dev->ep[UDC_EP0OUT_IX].regs->bufout_maxpkt);
+
 	if (dev->gadget.speed == USB_SPEED_FULL)
 		tmp = AMD_ADDBITS(tmp, UDC_FS_EP0OUT_MAX_PKT_SIZE,
-					UDC_EP_MAX_PKT_SIZE);
+						  UDC_EP_MAX_PKT_SIZE);
 	else if (dev->gadget.speed == USB_SPEED_HIGH)
 		tmp = AMD_ADDBITS(tmp, UDC_EP0OUT_MAX_PKT_SIZE,
-					UDC_EP_MAX_PKT_SIZE);
+						  UDC_EP_MAX_PKT_SIZE);
+
 	writel(tmp, &dev->ep[UDC_EP0OUT_IX].regs->bufout_maxpkt);
 
 	/* set max packet size of EP0 in UDC CSR */
 	tmp = readl(&dev->csr->ne[0]);
+
 	if (dev->gadget.speed == USB_SPEED_FULL)
 		tmp = AMD_ADDBITS(tmp, UDC_FS_EP0OUT_MAX_PKT_SIZE,
-					UDC_CSR_NE_MAX_PKT);
+						  UDC_CSR_NE_MAX_PKT);
 	else if (dev->gadget.speed == USB_SPEED_HIGH)
 		tmp = AMD_ADDBITS(tmp, UDC_EP0OUT_MAX_PKT_SIZE,
-					UDC_CSR_NE_MAX_PKT);
+						  UDC_CSR_NE_MAX_PKT);
+
 	writel(tmp, &dev->csr->ne[0]);
 
-	if (use_dma) {
+	if (use_dma)
+	{
 		dev->ep[UDC_EP0OUT_IX].td->status |=
 			AMD_BIT(UDC_DMA_OUT_STS_L);
 		/* write dma desc address */
 		writel(dev->ep[UDC_EP0OUT_IX].td_stp_dma,
-			&dev->ep[UDC_EP0OUT_IX].regs->subptr);
+			   &dev->ep[UDC_EP0OUT_IX].regs->subptr);
 		writel(dev->ep[UDC_EP0OUT_IX].td_phys,
-			&dev->ep[UDC_EP0OUT_IX].regs->desptr);
+			   &dev->ep[UDC_EP0OUT_IX].regs->desptr);
+
 		/* stop RDE timer */
-		if (timer_pending(&udc_timer)) {
+		if (timer_pending(&udc_timer))
+		{
 			set_rde = 0;
 			mod_timer(&udc_timer, jiffies - 1);
 		}
+
 		/* stop pollstall timer */
 		if (timer_pending(&udc_pollstall_timer))
+		{
 			mod_timer(&udc_pollstall_timer, jiffies - 1);
+		}
+
 		/* enable DMA */
 		tmp = readl(&dev->regs->ctl);
 		tmp |= AMD_BIT(UDC_DEVCTL_MODE)
-				| AMD_BIT(UDC_DEVCTL_RDE)
-				| AMD_BIT(UDC_DEVCTL_TDE);
+			   | AMD_BIT(UDC_DEVCTL_RDE)
+			   | AMD_BIT(UDC_DEVCTL_TDE);
+
 		if (use_dma_bufferfill_mode)
+		{
 			tmp |= AMD_BIT(UDC_DEVCTL_BF);
+		}
 		else if (use_dma_ppb_du)
+		{
 			tmp |= AMD_BIT(UDC_DEVCTL_DU);
+		}
+
 		writel(tmp, &dev->regs->ctl);
 	}
 
@@ -1992,7 +2337,7 @@ static int setup_ep0(struct udc *dev)
 
 /* Called by gadget driver to register itself */
 static int amd5536_udc_start(struct usb_gadget *g,
-		struct usb_gadget_driver *driver)
+							 struct usb_gadget_driver *driver)
 {
 	struct udc *dev = to_amd5536_udc(g);
 	u32 tmp;
@@ -2031,7 +2376,9 @@ __acquires(dev->lock)
 	udc_basic_init(dev);
 
 	for (tmp = 0; tmp < UDC_EP_NUM; tmp++)
+	{
 		empty_req_queue(&dev->ep[tmp]);
+	}
 
 	udc_setup_endpoints(dev);
 }
@@ -2066,8 +2413,11 @@ static void udc_process_cnak_queue(struct udc *dev)
 
 	/* check epin's */
 	DBG(dev, "CNAK pending queue processing\n");
-	for (tmp = 0; tmp < UDC_EPIN_NUM_USED; tmp++) {
-		if (cnak_pending & (1 << tmp)) {
+
+	for (tmp = 0; tmp < UDC_EPIN_NUM_USED; tmp++)
+	{
+		if (cnak_pending & (1 << tmp))
+		{
 			DBG(dev, "CNAK pending for ep%d\n", tmp);
 			/* clear NAK by writing CNAK */
 			reg = readl(&dev->ep[tmp].regs->ctl);
@@ -2077,8 +2427,10 @@ static void udc_process_cnak_queue(struct udc *dev)
 			UDC_QUEUE_CNAK(&dev->ep[tmp], dev->ep[tmp].num);
 		}
 	}
+
 	/* ...	and ep0out */
-	if (cnak_pending & (1 << UDC_EP0OUT_IX)) {
+	if (cnak_pending & (1 << UDC_EP0OUT_IX))
+	{
 		DBG(dev, "CNAK pending for ep%d\n", UDC_EP0OUT_IX);
 		/* clear NAK by writing CNAK */
 		reg = readl(&dev->ep[UDC_EP0OUT_IX].regs->ctl);
@@ -2086,31 +2438,39 @@ static void udc_process_cnak_queue(struct udc *dev)
 		writel(reg, &dev->ep[UDC_EP0OUT_IX].regs->ctl);
 		dev->ep[UDC_EP0OUT_IX].naking = 0;
 		UDC_QUEUE_CNAK(&dev->ep[UDC_EP0OUT_IX],
-				dev->ep[UDC_EP0OUT_IX].num);
+					   dev->ep[UDC_EP0OUT_IX].num);
 	}
 }
 
 /* Enabling RX DMA after setup packet */
 static void udc_ep0_set_rde(struct udc *dev)
 {
-	if (use_dma) {
+	if (use_dma)
+	{
 		/*
 		 * only enable RXDMA when no data endpoint enabled
 		 * or data is queued
 		 */
-		if (!dev->data_ep_enabled || dev->data_ep_queued) {
+		if (!dev->data_ep_enabled || dev->data_ep_queued)
+		{
 			udc_set_rde(dev);
-		} else {
+		}
+		else
+		{
 			/*
 			 * setup timer for enabling RDE (to not enable
 			 * RXFIFO DMA for data endpoints to early)
 			 */
-			if (set_rde != 0 && !timer_pending(&udc_timer)) {
+			if (set_rde != 0 && !timer_pending(&udc_timer))
+			{
 				udc_timer.expires =
-					jiffies + HZ/UDC_RDE_TIMER_DIV;
+					jiffies + HZ / UDC_RDE_TIMER_DIV;
 				set_rde = 1;
+
 				if (!stop_timer)
+				{
 					add_timer(&udc_timer);
+				}
 			}
 		}
 	}
@@ -2132,23 +2492,34 @@ static irqreturn_t udc_data_out_isr(struct udc *dev, int ep_ix)
 	ep = &dev->ep[ep_ix];
 
 	tmp = readl(&ep->regs->sts);
-	if (use_dma) {
+
+	if (use_dma)
+	{
 		/* BNA event ? */
-		if (tmp & AMD_BIT(UDC_EPSTS_BNA)) {
+		if (tmp & AMD_BIT(UDC_EPSTS_BNA))
+		{
 			DBG(dev, "BNA ep%dout occurred - DESPTR = %x\n",
-					ep->num, readl(&ep->regs->desptr));
+				ep->num, readl(&ep->regs->desptr));
 			/* clear BNA */
 			writel(tmp | AMD_BIT(UDC_EPSTS_BNA), &ep->regs->sts);
+
 			if (!ep->cancel_transfer)
+			{
 				ep->bna_occurred = 1;
+			}
 			else
+			{
 				ep->cancel_transfer = 0;
+			}
+
 			ret_val = IRQ_HANDLED;
 			goto finished;
 		}
 	}
+
 	/* HE event ? */
-	if (tmp & AMD_BIT(UDC_EPSTS_HE)) {
+	if (tmp & AMD_BIT(UDC_EPSTS_HE))
+	{
 		dev_err(&dev->pdev->dev, "HE ep%dout occurred\n", ep->num);
 
 		/* clear HE */
@@ -2157,78 +2528,108 @@ static irqreturn_t udc_data_out_isr(struct udc *dev, int ep_ix)
 		goto finished;
 	}
 
-	if (!list_empty(&ep->queue)) {
+	if (!list_empty(&ep->queue))
+	{
 
 		/* next request */
 		req = list_entry(ep->queue.next,
-			struct udc_request, queue);
-	} else {
+						 struct udc_request, queue);
+	}
+	else
+	{
 		req = NULL;
 		udc_rxfifo_pending = 1;
 	}
+
 	VDBG(dev, "req = %p\n", req);
+
 	/* fifo mode */
-	if (!use_dma) {
+	if (!use_dma)
+	{
 
 		/* read fifo */
-		if (req && udc_rxfifo_read(ep, req)) {
+		if (req && udc_rxfifo_read(ep, req))
+		{
 			ret_val = IRQ_HANDLED;
 
 			/* finish */
 			complete_req(ep, req, 0);
+
 			/* next request */
-			if (!list_empty(&ep->queue) && !ep->halted) {
+			if (!list_empty(&ep->queue) && !ep->halted)
+			{
 				req = list_entry(ep->queue.next,
-					struct udc_request, queue);
-			} else
+								 struct udc_request, queue);
+			}
+			else
+			{
 				req = NULL;
+			}
 		}
 
-	/* DMA */
-	} else if (!ep->cancel_transfer && req) {
+		/* DMA */
+	}
+	else if (!ep->cancel_transfer && req)
+	{
 		ret_val = IRQ_HANDLED;
 
 		/* check for DMA done */
-		if (!use_dma_ppb) {
+		if (!use_dma_ppb)
+		{
 			dma_done = AMD_GETBITS(req->td_data->status,
-						UDC_DMA_OUT_STS_BS);
-		/* packet per buffer mode - rx bytes */
-		} else {
+								   UDC_DMA_OUT_STS_BS);
+			/* packet per buffer mode - rx bytes */
+		}
+		else
+		{
 			/*
 			 * if BNA occurred then recover desc. from
 			 * BNA dummy desc.
 			 */
-			if (ep->bna_occurred) {
+			if (ep->bna_occurred)
+			{
 				VDBG(dev, "Recover desc. from BNA dummy\n");
 				memcpy(req->td_data, ep->bna_dummy_req->td_data,
-						sizeof(struct udc_data_dma));
+					   sizeof(struct udc_data_dma));
 				ep->bna_occurred = 0;
 				udc_init_bna_dummy(ep->req);
 			}
+
 			td = udc_get_last_dma_desc(req);
 			dma_done = AMD_GETBITS(td->status, UDC_DMA_OUT_STS_BS);
 		}
-		if (dma_done == UDC_DMA_OUT_STS_BS_DMA_DONE) {
+
+		if (dma_done == UDC_DMA_OUT_STS_BS_DMA_DONE)
+		{
 			/* buffer fill mode - rx bytes */
-			if (!use_dma_ppb) {
+			if (!use_dma_ppb)
+			{
 				/* received number bytes */
 				count = AMD_GETBITS(req->td_data->status,
-						UDC_DMA_OUT_STS_RXBYTES);
+									UDC_DMA_OUT_STS_RXBYTES);
 				VDBG(dev, "rx bytes=%u\n", count);
-			/* packet per buffer mode - rx bytes */
-			} else {
+				/* packet per buffer mode - rx bytes */
+			}
+			else
+			{
 				VDBG(dev, "req->td_data=%p\n", req->td_data);
 				VDBG(dev, "last desc = %p\n", td);
+
 				/* received number bytes */
-				if (use_dma_ppb_du) {
+				if (use_dma_ppb_du)
+				{
 					/* every desc. counts bytes */
 					count = udc_get_ppbdu_rxbytes(req);
-				} else {
+				}
+				else
+				{
 					/* last desc. counts bytes */
 					count = AMD_GETBITS(td->status,
-						UDC_DMA_OUT_STS_RXBYTES);
+										UDC_DMA_OUT_STS_RXBYTES);
+
 					if (!count && req->req.length
-						== UDC_DMA_MAXPACKET) {
+						== UDC_DMA_MAXPACKET)
+					{
 						/*
 						 * on 64k packets the RXBYTES
 						 * field is zero
@@ -2236,54 +2637,69 @@ static irqreturn_t udc_data_out_isr(struct udc *dev, int ep_ix)
 						count = UDC_DMA_MAXPACKET;
 					}
 				}
+
 				VDBG(dev, "last desc rx bytes=%u\n", count);
 			}
 
 			tmp = req->req.length - req->req.actual;
-			if (count > tmp) {
-				if ((tmp % ep->ep.maxpacket) != 0) {
+
+			if (count > tmp)
+			{
+				if ((tmp % ep->ep.maxpacket) != 0)
+				{
 					DBG(dev, "%s: rx %db, space=%db\n",
 						ep->ep.name, count, tmp);
 					req->req.status = -EOVERFLOW;
 				}
+
 				count = tmp;
 			}
+
 			req->req.actual += count;
 			req->dma_going = 0;
 			/* complete request */
 			complete_req(ep, req, 0);
 
 			/* next request */
-			if (!list_empty(&ep->queue) && !ep->halted) {
+			if (!list_empty(&ep->queue) && !ep->halted)
+			{
 				req = list_entry(ep->queue.next,
-					struct udc_request,
-					queue);
+								 struct udc_request,
+								 queue);
+
 				/*
 				 * DMA may be already started by udc_queue()
 				 * called by gadget drivers completion
 				 * routine. This happens when queue
 				 * holds one request only.
 				 */
-				if (req->dma_going == 0) {
+				if (req->dma_going == 0)
+				{
 					/* next dma */
 					if (prep_dma(ep, req, GFP_ATOMIC) != 0)
+					{
 						goto finished;
+					}
+
 					/* write desc pointer */
 					writel(req->td_phys,
-						&ep->regs->desptr);
+						   &ep->regs->desptr);
 					req->dma_going = 1;
 					/* enable DMA */
 					udc_set_rde(dev);
 				}
-			} else {
+			}
+			else
+			{
 				/*
 				 * implant BNA dummy descriptor to allow
 				 * RXFIFO opening by RDE
 				 */
-				if (ep->bna_dummy_req) {
+				if (ep->bna_dummy_req)
+				{
 					/* write desc pointer */
 					writel(ep->bna_dummy_req->td_phys,
-						&ep->regs->desptr);
+						   &ep->regs->desptr);
 					ep->bna_occurred = 0;
 				}
 
@@ -2293,19 +2709,28 @@ static irqreturn_t udc_data_out_isr(struct udc *dev, int ep_ix)
 				 * through
 				 */
 				if (set_rde != 0
-						&& !timer_pending(&udc_timer)) {
+					&& !timer_pending(&udc_timer))
+				{
 					udc_timer.expires =
 						jiffies
-						+ HZ*UDC_RDE_TIMER_SECONDS;
+						+ HZ * UDC_RDE_TIMER_SECONDS;
 					set_rde = 1;
+
 					if (!stop_timer)
+					{
 						add_timer(&udc_timer);
+					}
 				}
+
 				if (ep->num != UDC_EP0OUT_IX)
+				{
 					dev->data_ep_queued = 0;
+				}
 			}
 
-		} else {
+		}
+		else
+		{
 			/*
 			* RX DMA must be reenabled for each desc in PPBDU mode
 			* and must be enabled for PPBNDU mode in case of BNA
@@ -2313,16 +2738,21 @@ static irqreturn_t udc_data_out_isr(struct udc *dev, int ep_ix)
 			udc_set_rde(dev);
 		}
 
-	} else if (ep->cancel_transfer) {
+	}
+	else if (ep->cancel_transfer)
+	{
 		ret_val = IRQ_HANDLED;
 		ep->cancel_transfer = 0;
 	}
 
 	/* check pending CNAKS */
-	if (cnak_pending) {
+	if (cnak_pending)
+	{
 		/* CNAk processing when rxfifo empty only */
 		if (readl(&dev->regs->sts) & AMD_BIT(UDC_DEVSTS_RXFIFO_EMPTY))
+		{
 			udc_process_cnak_queue(dev);
+		}
 	}
 
 	/* clear OUT bits in ep status */
@@ -2345,13 +2775,16 @@ static irqreturn_t udc_data_in_isr(struct udc *dev, int ep_ix)
 	ep = &dev->ep[ep_ix];
 
 	epsts = readl(&ep->regs->sts);
-	if (use_dma) {
+
+	if (use_dma)
+	{
 		/* BNA ? */
-		if (epsts & AMD_BIT(UDC_EPSTS_BNA)) {
+		if (epsts & AMD_BIT(UDC_EPSTS_BNA))
+		{
 			dev_err(&dev->pdev->dev,
-				"BNA ep%din occurred - DESPTR = %08lx\n",
-				ep->num,
-				(unsigned long) readl(&ep->regs->desptr));
+					"BNA ep%din occurred - DESPTR = %08lx\n",
+					ep->num,
+					(unsigned long) readl(&ep->regs->desptr));
 
 			/* clear BNA */
 			writel(epsts, &ep->regs->sts);
@@ -2359,11 +2792,13 @@ static irqreturn_t udc_data_in_isr(struct udc *dev, int ep_ix)
 			goto finished;
 		}
 	}
+
 	/* HE event ? */
-	if (epsts & AMD_BIT(UDC_EPSTS_HE)) {
+	if (epsts & AMD_BIT(UDC_EPSTS_HE))
+	{
 		dev_err(&dev->pdev->dev,
-			"HE ep%dn occurred - DESPTR = %08lx\n",
-			ep->num, (unsigned long) readl(&ep->regs->desptr));
+				"HE ep%dn occurred - DESPTR = %08lx\n",
+				ep->num, (unsigned long) readl(&ep->regs->desptr));
 
 		/* clear HE */
 		writel(epsts | AMD_BIT(UDC_EPSTS_HE), &ep->regs->sts);
@@ -2372,31 +2807,44 @@ static irqreturn_t udc_data_in_isr(struct udc *dev, int ep_ix)
 	}
 
 	/* DMA completion */
-	if (epsts & AMD_BIT(UDC_EPSTS_TDC)) {
+	if (epsts & AMD_BIT(UDC_EPSTS_TDC))
+	{
 		VDBG(dev, "TDC set- completion\n");
 		ret_val = IRQ_HANDLED;
-		if (!ep->cancel_transfer && !list_empty(&ep->queue)) {
+
+		if (!ep->cancel_transfer && !list_empty(&ep->queue))
+		{
 			req = list_entry(ep->queue.next,
-					struct udc_request, queue);
+							 struct udc_request, queue);
+
 			/*
 			 * length bytes transferred
 			 * check dma done of last desc. in PPBDU mode
 			 */
-			if (use_dma_ppb_du) {
+			if (use_dma_ppb_du)
+			{
 				td = udc_get_last_dma_desc(req);
+
 				if (td)
+				{
 					req->req.actual = req->req.length;
-			} else {
+				}
+			}
+			else
+			{
 				/* assume all bytes transferred */
 				req->req.actual = req->req.length;
 			}
 
-			if (req->req.actual == req->req.length) {
+			if (req->req.actual == req->req.length)
+			{
 				/* complete req */
 				complete_req(ep, req, 0);
 				req->dma_going = 0;
+
 				/* further request available ? */
-				if (list_empty(&ep->queue)) {
+				if (list_empty(&ep->queue))
+				{
 					/* disable interrupt */
 					tmp = readl(&dev->regs->ep_irqmsk);
 					tmp |= AMD_BIT(ep->num);
@@ -2404,38 +2852,56 @@ static irqreturn_t udc_data_in_isr(struct udc *dev, int ep_ix)
 				}
 			}
 		}
+
 		ep->cancel_transfer = 0;
 
 	}
+
 	/*
 	 * status reg has IN bit set and TDC not set (if TDC was handled,
 	 * IN must not be handled (UDC defect) ?
 	 */
 	if ((epsts & AMD_BIT(UDC_EPSTS_IN))
-			&& !(epsts & AMD_BIT(UDC_EPSTS_TDC))) {
+		&& !(epsts & AMD_BIT(UDC_EPSTS_TDC)))
+	{
 		ret_val = IRQ_HANDLED;
-		if (!list_empty(&ep->queue)) {
+
+		if (!list_empty(&ep->queue))
+		{
 			/* next request */
 			req = list_entry(ep->queue.next,
-					struct udc_request, queue);
+							 struct udc_request, queue);
+
 			/* FIFO mode */
-			if (!use_dma) {
+			if (!use_dma)
+			{
 				/* write fifo */
 				udc_txfifo_write(ep, &req->req);
 				len = req->req.length - req->req.actual;
+
 				if (len > ep->ep.maxpacket)
+				{
 					len = ep->ep.maxpacket;
+				}
+
 				req->req.actual += len;
+
 				if (req->req.actual == req->req.length
-					|| (len != ep->ep.maxpacket)) {
+					|| (len != ep->ep.maxpacket))
+				{
 					/* complete req */
 					complete_req(ep, req, 0);
 				}
-			/* DMA */
-			} else if (req && !req->dma_going) {
+
+				/* DMA */
+			}
+			else if (req && !req->dma_going)
+			{
 				VDBG(dev, "IN DMA : req=%p req->td_data=%p\n",
-					req, req->td_data);
-				if (req->td_data) {
+					 req, req->td_data);
+
+				if (req->td_data)
+				{
 
 					req->dma_going = 1;
 
@@ -2444,10 +2910,11 @@ static irqreturn_t udc_data_in_isr(struct udc *dev, int ep_ix)
 					 * for chain
 					 */
 					if (use_dma_ppb && req->req.length >
-							ep->ep.maxpacket) {
+						ep->ep.maxpacket)
+					{
 						req->td_data->status &=
 							AMD_CLEAR_BIT(
-							UDC_DMA_IN_STS_L);
+								UDC_DMA_IN_STS_L);
 					}
 
 					/* write desc pointer */
@@ -2456,9 +2923,9 @@ static irqreturn_t udc_data_in_isr(struct udc *dev, int ep_ix)
 					/* set HOST READY */
 					req->td_data->status =
 						AMD_ADDBITS(
-						req->td_data->status,
-						UDC_DMA_IN_STS_BS_HOST_READY,
-						UDC_DMA_IN_STS_BS);
+							req->td_data->status,
+							UDC_DMA_IN_STS_BS_HOST_READY,
+							UDC_DMA_IN_STS_BS);
 
 					/* set poll demand bit */
 					tmp = readl(&ep->regs->ctl);
@@ -2467,15 +2934,18 @@ static irqreturn_t udc_data_in_isr(struct udc *dev, int ep_ix)
 				}
 			}
 
-		} else if (!use_dma && ep->in) {
+		}
+		else if (!use_dma && ep->in)
+		{
 			/* disable interrupt */
 			tmp = readl(
-				&dev->regs->ep_irqmsk);
+					  &dev->regs->ep_irqmsk);
 			tmp |= AMD_BIT(ep->num);
 			writel(tmp,
-				&dev->regs->ep_irqmsk);
+				   &dev->regs->ep_irqmsk);
 		}
 	}
+
 	/* clear status bits */
 	writel(epsts, &ep->regs->sts);
 
@@ -2503,11 +2973,13 @@ __acquires(dev->lock)
 	writel(AMD_BIT(UDC_EPINT_OUT_EP0), &dev->regs->ep_irqsts);
 
 	tmp = readl(&dev->ep[UDC_EP0OUT_IX].regs->sts);
+
 	/* check BNA and clear if set */
-	if (tmp & AMD_BIT(UDC_EPSTS_BNA)) {
+	if (tmp & AMD_BIT(UDC_EPSTS_BNA))
+	{
 		VDBG(dev, "ep0: BNA set\n");
 		writel(AMD_BIT(UDC_EPSTS_BNA),
-			&dev->ep[UDC_EP0OUT_IX].regs->sts);
+			   &dev->ep[UDC_EP0OUT_IX].regs->sts);
 		ep->bna_occurred = 1;
 		ret_val = IRQ_HANDLED;
 		goto finished;
@@ -2518,7 +2990,8 @@ __acquires(dev->lock)
 	VDBG(dev, "data_typ = %x\n", tmp);
 
 	/* setup data */
-	if (tmp == UDC_EPSTS_OUT_SETUP) {
+	if (tmp == UDC_EPSTS_OUT_SETUP)
+	{
 		ret_val = IRQ_HANDLED;
 
 		ep->dev->stall_ep0in = 0;
@@ -2529,12 +3002,14 @@ __acquires(dev->lock)
 		tmp |= AMD_BIT(UDC_EPCTL_SNAK);
 		writel(tmp, &dev->ep[UDC_EP0IN_IX].regs->ctl);
 		dev->ep[UDC_EP0IN_IX].naking = 1;
+
 		/* get setup data */
-		if (use_dma) {
+		if (use_dma)
+		{
 
 			/* clear OUT bits in ep status */
 			writel(UDC_EPSTS_OUT_CLEAR,
-				&dev->ep[UDC_EP0OUT_IX].regs->sts);
+				   &dev->ep[UDC_EP0OUT_IX].regs->sts);
 
 			setup_data.data[0] =
 				dev->ep[UDC_EP0OUT_IX].td_stp->data12;
@@ -2542,28 +3017,35 @@ __acquires(dev->lock)
 				dev->ep[UDC_EP0OUT_IX].td_stp->data34;
 			/* set HOST READY */
 			dev->ep[UDC_EP0OUT_IX].td_stp->status =
-					UDC_DMA_STP_STS_BS_HOST_READY;
-		} else {
+				UDC_DMA_STP_STS_BS_HOST_READY;
+		}
+		else
+		{
 			/* read fifo */
 			udc_rxfifo_read_dwords(dev, setup_data.data, 2);
 		}
 
 		/* determine direction of control data */
-		if ((setup_data.request.bRequestType & USB_DIR_IN) != 0) {
+		if ((setup_data.request.bRequestType & USB_DIR_IN) != 0)
+		{
 			dev->gadget.ep0 = &dev->ep[UDC_EP0IN_IX].ep;
 			/* enable RDE */
 			udc_ep0_set_rde(dev);
 			set = 0;
-		} else {
+		}
+		else
+		{
 			dev->gadget.ep0 = &dev->ep[UDC_EP0OUT_IX].ep;
+
 			/*
 			 * implant BNA dummy descriptor to allow RXFIFO opening
 			 * by RDE
 			 */
-			if (ep->bna_dummy_req) {
+			if (ep->bna_dummy_req)
+			{
 				/* write desc pointer */
 				writel(ep->bna_dummy_req->td_phys,
-					&dev->ep[UDC_EP0OUT_IX].regs->desptr);
+					   &dev->ep[UDC_EP0OUT_IX].regs->desptr);
 				ep->bna_occurred = 0;
 			}
 
@@ -2574,11 +3056,16 @@ __acquires(dev->lock)
 			 * RXFIFO DMA for data to early)
 			 */
 			set_rde = 1;
-			if (!timer_pending(&udc_timer)) {
+
+			if (!timer_pending(&udc_timer))
+			{
 				udc_timer.expires = jiffies +
-							HZ/UDC_RDE_TIMER_DIV;
+									HZ / UDC_RDE_TIMER_DIV;
+
 				if (!stop_timer)
+				{
 					add_timer(&udc_timer);
+				}
 			}
 		}
 
@@ -2589,7 +3076,8 @@ __acquires(dev->lock)
 		 * before (autostall can cause this)
 		 */
 		if (setup_data.data[0] == UDC_MSCRES_DWORD0
-				&& setup_data.data[1] == UDC_MSCRES_DWORD1) {
+			&& setup_data.data[1] == UDC_MSCRES_DWORD1)
+		{
 			DBG(dev, "MSC Reset\n");
 			/*
 			 * clear stall bits
@@ -2604,29 +3092,37 @@ __acquires(dev->lock)
 		/* call gadget with setup data received */
 		spin_unlock(&dev->lock);
 		setup_supported = dev->driver->setup(&dev->gadget,
-						&setup_data.request);
+											 &setup_data.request);
 		spin_lock(&dev->lock);
 
 		tmp = readl(&dev->ep[UDC_EP0IN_IX].regs->ctl);
+
 		/* ep0 in returns data (not zlp) on IN phase */
 		if (setup_supported >= 0 && setup_supported <
-				UDC_EP0IN_MAXPACKET) {
+			UDC_EP0IN_MAXPACKET)
+		{
 			/* clear NAK by writing CNAK in EP0_IN */
 			tmp |= AMD_BIT(UDC_EPCTL_CNAK);
 			writel(tmp, &dev->ep[UDC_EP0IN_IX].regs->ctl);
 			dev->ep[UDC_EP0IN_IX].naking = 0;
 			UDC_QUEUE_CNAK(&dev->ep[UDC_EP0IN_IX], UDC_EP0IN_IX);
 
-		/* if unsupported request then stall */
-		} else if (setup_supported < 0) {
+			/* if unsupported request then stall */
+		}
+		else if (setup_supported < 0)
+		{
 			tmp |= AMD_BIT(UDC_EPCTL_S);
 			writel(tmp, &dev->ep[UDC_EP0IN_IX].regs->ctl);
-		} else
+		}
+		else
+		{
 			dev->waiting_zlp_ack_ep0in = 1;
+		}
 
 
 		/* clear NAK by writing CNAK in EP0_OUT */
-		if (!set) {
+		if (!set)
+		{
 			tmp = readl(&dev->ep[UDC_EP0OUT_IX].regs->ctl);
 			tmp |= AMD_BIT(UDC_EPCTL_CNAK);
 			writel(tmp, &dev->ep[UDC_EP0OUT_IX].regs->ctl);
@@ -2634,43 +3130,52 @@ __acquires(dev->lock)
 			UDC_QUEUE_CNAK(&dev->ep[UDC_EP0OUT_IX], UDC_EP0OUT_IX);
 		}
 
-		if (!use_dma) {
+		if (!use_dma)
+		{
 			/* clear OUT bits in ep status */
 			writel(UDC_EPSTS_OUT_CLEAR,
-				&dev->ep[UDC_EP0OUT_IX].regs->sts);
+				   &dev->ep[UDC_EP0OUT_IX].regs->sts);
 		}
 
-	/* data packet 0 bytes */
-	} else if (tmp == UDC_EPSTS_OUT_DATA) {
+		/* data packet 0 bytes */
+	}
+	else if (tmp == UDC_EPSTS_OUT_DATA)
+	{
 		/* clear OUT bits in ep status */
 		writel(UDC_EPSTS_OUT_CLEAR, &dev->ep[UDC_EP0OUT_IX].regs->sts);
 
 		/* get setup data: only 0 packet */
-		if (use_dma) {
+		if (use_dma)
+		{
 			/* no req if 0 packet, just reactivate */
-			if (list_empty(&dev->ep[UDC_EP0OUT_IX].queue)) {
+			if (list_empty(&dev->ep[UDC_EP0OUT_IX].queue))
+			{
 				VDBG(dev, "ZLP\n");
 
 				/* set HOST READY */
 				dev->ep[UDC_EP0OUT_IX].td->status =
 					AMD_ADDBITS(
-					dev->ep[UDC_EP0OUT_IX].td->status,
-					UDC_DMA_OUT_STS_BS_HOST_READY,
-					UDC_DMA_OUT_STS_BS);
+						dev->ep[UDC_EP0OUT_IX].td->status,
+						UDC_DMA_OUT_STS_BS_HOST_READY,
+						UDC_DMA_OUT_STS_BS);
 				/* enable RDE */
 				udc_ep0_set_rde(dev);
 				ret_val = IRQ_HANDLED;
 
-			} else {
+			}
+			else
+			{
 				/* control write */
 				ret_val |= udc_data_out_isr(dev, UDC_EP0OUT_IX);
 				/* re-program desc. pointer for possible ZLPs */
 				writel(dev->ep[UDC_EP0OUT_IX].td_phys,
-					&dev->ep[UDC_EP0OUT_IX].regs->desptr);
+					   &dev->ep[UDC_EP0OUT_IX].regs->desptr);
 				/* enable RDE */
 				udc_ep0_set_rde(dev);
 			}
-		} else {
+		}
+		else
+		{
 
 			/* received number bytes */
 			count = readl(&dev->ep[UDC_EP0OUT_IX].regs->sts);
@@ -2679,9 +3184,12 @@ __acquires(dev->lock)
 			count = 0;
 
 			/* 0 packet or real data ? */
-			if (count != 0) {
+			if (count != 0)
+			{
 				ret_val |= udc_data_out_isr(dev, UDC_EP0OUT_IX);
-			} else {
+			}
+			else
+			{
 				/* dummy read confirm */
 				readl(&dev->ep[UDC_EP0OUT_IX].regs->confirm);
 				ret_val = IRQ_HANDLED;
@@ -2690,10 +3198,13 @@ __acquires(dev->lock)
 	}
 
 	/* check pending CNAKS */
-	if (cnak_pending) {
+	if (cnak_pending)
+	{
 		/* CNAk processing when rxfifo empty only */
 		if (readl(&dev->regs->sts) & AMD_BIT(UDC_DEVSTS_RXFIFO_EMPTY))
+		{
 			udc_process_cnak_queue(dev);
+		}
 	}
 
 finished:
@@ -2715,52 +3226,63 @@ static irqreturn_t udc_control_in_isr(struct udc *dev)
 	writel(AMD_BIT(UDC_EPINT_IN_EP0), &dev->regs->ep_irqsts);
 
 	tmp = readl(&dev->ep[UDC_EP0IN_IX].regs->sts);
+
 	/* DMA completion */
-	if (tmp & AMD_BIT(UDC_EPSTS_TDC)) {
+	if (tmp & AMD_BIT(UDC_EPSTS_TDC))
+	{
 		VDBG(dev, "isr: TDC clear\n");
 		ret_val = IRQ_HANDLED;
 
 		/* clear TDC bit */
 		writel(AMD_BIT(UDC_EPSTS_TDC),
-				&dev->ep[UDC_EP0IN_IX].regs->sts);
+			   &dev->ep[UDC_EP0IN_IX].regs->sts);
 
-	/* status reg has IN bit set ? */
-	} else if (tmp & AMD_BIT(UDC_EPSTS_IN)) {
+		/* status reg has IN bit set ? */
+	}
+	else if (tmp & AMD_BIT(UDC_EPSTS_IN))
+	{
 		ret_val = IRQ_HANDLED;
 
-		if (ep->dma) {
+		if (ep->dma)
+		{
 			/* clear IN bit */
 			writel(AMD_BIT(UDC_EPSTS_IN),
-				&dev->ep[UDC_EP0IN_IX].regs->sts);
+				   &dev->ep[UDC_EP0IN_IX].regs->sts);
 		}
-		if (dev->stall_ep0in) {
+
+		if (dev->stall_ep0in)
+		{
 			DBG(dev, "stall ep0in\n");
 			/* halt ep0in */
 			tmp = readl(&ep->regs->ctl);
 			tmp |= AMD_BIT(UDC_EPCTL_S);
 			writel(tmp, &ep->regs->ctl);
-		} else {
-			if (!list_empty(&ep->queue)) {
+		}
+		else
+		{
+			if (!list_empty(&ep->queue))
+			{
 				/* next request */
 				req = list_entry(ep->queue.next,
-						struct udc_request, queue);
+								 struct udc_request, queue);
 
-				if (ep->dma) {
+				if (ep->dma)
+				{
 					/* write desc pointer */
 					writel(req->td_phys, &ep->regs->desptr);
 					/* set HOST READY */
 					req->td_data->status =
 						AMD_ADDBITS(
-						req->td_data->status,
-						UDC_DMA_STP_STS_BS_HOST_READY,
-						UDC_DMA_STP_STS_BS);
+							req->td_data->status,
+							UDC_DMA_STP_STS_BS_HOST_READY,
+							UDC_DMA_STP_STS_BS);
 
 					/* set poll demand bit */
 					tmp =
-					readl(&dev->ep[UDC_EP0IN_IX].regs->ctl);
+						readl(&dev->ep[UDC_EP0IN_IX].regs->ctl);
 					tmp |= AMD_BIT(UDC_EPCTL_P);
 					writel(tmp,
-					&dev->ep[UDC_EP0IN_IX].regs->ctl);
+						   &dev->ep[UDC_EP0IN_IX].regs->ctl);
 
 					/* all bytes will be transferred */
 					req->req.actual = req->req.length;
@@ -2768,18 +3290,25 @@ static irqreturn_t udc_control_in_isr(struct udc *dev)
 					/* complete req */
 					complete_req(ep, req, 0);
 
-				} else {
+				}
+				else
+				{
 					/* write fifo */
 					udc_txfifo_write(ep, &req->req);
 
 					/* lengh bytes transferred */
 					len = req->req.length - req->req.actual;
+
 					if (len > ep->ep.maxpacket)
+					{
 						len = ep->ep.maxpacket;
+					}
 
 					req->req.actual += len;
+
 					if (req->req.actual == req->req.length
-						|| (len != ep->ep.maxpacket)) {
+						|| (len != ep->ep.maxpacket))
+					{
 						/* complete req */
 						complete_req(ep, req, 0);
 					}
@@ -2787,12 +3316,15 @@ static irqreturn_t udc_control_in_isr(struct udc *dev)
 
 			}
 		}
+
 		ep->halted = 0;
 		dev->stall_ep0in = 0;
-		if (!ep->dma) {
+
+		if (!ep->dma)
+		{
 			/* clear IN bit */
 			writel(AMD_BIT(UDC_EPSTS_IN),
-				&dev->ep[UDC_EP0IN_IX].regs->sts);
+				   &dev->ep[UDC_EP0IN_IX].regs->sts);
 		}
 	}
 
@@ -2813,7 +3345,8 @@ __acquires(dev->lock)
 	u8 udc_csr_epix;
 
 	/* SET_CONFIG irq ? */
-	if (dev_irq & AMD_BIT(UDC_DEVINT_SC)) {
+	if (dev_irq & AMD_BIT(UDC_DEVINT_SC))
+	{
 		ret_val = IRQ_HANDLED;
 
 		/* read config value */
@@ -2829,16 +3362,21 @@ __acquires(dev->lock)
 		setup_data.request.wValue = cpu_to_le16(dev->cur_config);
 
 		/* programm the NE registers */
-		for (i = 0; i < UDC_EP_NUM; i++) {
+		for (i = 0; i < UDC_EP_NUM; i++)
+		{
 			ep = &dev->ep[i];
-			if (ep->in) {
+
+			if (ep->in)
+			{
 
 				/* ep ix in UDC CSR register space */
 				udc_csr_epix = ep->num;
 
 
-			/* OUT ep */
-			} else {
+				/* OUT ep */
+			}
+			else
+			{
 				/* ep ix in UDC CSR register space */
 				udc_csr_epix = ep->num - UDC_CSR_EP_OUT_IX_OFS;
 			}
@@ -2846,7 +3384,7 @@ __acquires(dev->lock)
 			tmp = readl(&dev->csr->ne[udc_csr_epix]);
 			/* ep cfg */
 			tmp = AMD_ADDBITS(tmp, ep->dev->cur_config,
-						UDC_CSR_NE_CFG);
+							  UDC_CSR_NE_CFG);
 			/* write reg */
 			writel(tmp, &dev->csr->ne[udc_csr_epix]);
 
@@ -2856,13 +3394,16 @@ __acquires(dev->lock)
 			tmp = tmp & AMD_CLEAR_BIT(UDC_EPCTL_S);
 			writel(tmp, &ep->regs->ctl);
 		}
+
 		/* call gadget zero with setup data received */
 		spin_unlock(&dev->lock);
 		tmp = dev->driver->setup(&dev->gadget, &setup_data.request);
 		spin_lock(&dev->lock);
 
 	} /* SET_INTERFACE ? */
-	if (dev_irq & AMD_BIT(UDC_DEVINT_SI)) {
+
+	if (dev_irq & AMD_BIT(UDC_DEVINT_SI))
+	{
 		ret_val = IRQ_HANDLED;
 
 		dev->set_cfg_not_acked = 1;
@@ -2879,19 +3420,24 @@ __acquires(dev->lock)
 		setup_data.request.wIndex = cpu_to_le16(dev->cur_intf);
 
 		DBG(dev, "SET_INTERFACE interrupt: alt=%d intf=%d\n",
-				dev->cur_alt, dev->cur_intf);
+			dev->cur_alt, dev->cur_intf);
 
 		/* programm the NE registers */
-		for (i = 0; i < UDC_EP_NUM; i++) {
+		for (i = 0; i < UDC_EP_NUM; i++)
+		{
 			ep = &dev->ep[i];
-			if (ep->in) {
+
+			if (ep->in)
+			{
 
 				/* ep ix in UDC CSR register space */
 				udc_csr_epix = ep->num;
 
 
-			/* OUT ep */
-			} else {
+				/* OUT ep */
+			}
+			else
+			{
 				/* ep ix in UDC CSR register space */
 				udc_csr_epix = ep->num - UDC_CSR_EP_OUT_IX_OFS;
 			}
@@ -2901,11 +3447,11 @@ __acquires(dev->lock)
 			tmp = readl(&dev->csr->ne[udc_csr_epix]);
 			/* ep interface */
 			tmp = AMD_ADDBITS(tmp, ep->dev->cur_intf,
-						UDC_CSR_NE_INTF);
+							  UDC_CSR_NE_INTF);
 			/* tmp = AMD_ADDBITS(tmp, 2, UDC_CSR_NE_INTF); */
 			/* ep alt */
 			tmp = AMD_ADDBITS(tmp, ep->dev->cur_alt,
-						UDC_CSR_NE_ALT);
+							  UDC_CSR_NE_ALT);
 			/* write reg */
 			writel(tmp, &dev->csr->ne[udc_csr_epix]);
 
@@ -2922,7 +3468,9 @@ __acquires(dev->lock)
 		spin_lock(&dev->lock);
 
 	} /* USB reset */
-	if (dev_irq & AMD_BIT(UDC_DEVINT_UR)) {
+
+	if (dev_irq & AMD_BIT(UDC_DEVINT_UR))
+	{
 		DBG(dev, "USB Reset interrupt\n");
 		ret_val = IRQ_HANDLED;
 
@@ -2937,10 +3485,13 @@ __acquires(dev->lock)
 
 		/* call gadget to resume and reset configs etc. */
 		spin_unlock(&dev->lock);
-		if (dev->sys_suspended && dev->driver->resume) {
+
+		if (dev->sys_suspended && dev->driver->resume)
+		{
 			dev->driver->resume(&dev->gadget);
 			dev->sys_suspended = 0;
 		}
+
 		usb_gadget_udc_reset(&dev->gadget, dev->driver);
 		spin_lock(&dev->lock);
 
@@ -2950,8 +3501,10 @@ __acquires(dev->lock)
 
 		/* soft reset when rxfifo not empty */
 		tmp = readl(&dev->regs->sts);
+
 		if (!(tmp & AMD_BIT(UDC_DEVSTS_RXFIFO_EMPTY))
-				&& !soft_reset_after_usbreset_occured) {
+			&& !soft_reset_after_usbreset_occured)
+		{
 			udc_soft_reset(dev);
 			soft_reset_after_usbreset_occured++;
 		}
@@ -2978,17 +3531,23 @@ __acquires(dev->lock)
 		writel(tmp, &dev->regs->irqmsk);
 
 	} /* USB suspend */
-	if (dev_irq & AMD_BIT(UDC_DEVINT_US)) {
+
+	if (dev_irq & AMD_BIT(UDC_DEVINT_US))
+	{
 		DBG(dev, "USB Suspend interrupt\n");
 		ret_val = IRQ_HANDLED;
-		if (dev->driver->suspend) {
+
+		if (dev->driver->suspend)
+		{
 			spin_unlock(&dev->lock);
 			dev->sys_suspended = 1;
 			dev->driver->suspend(&dev->gadget);
 			spin_lock(&dev->lock);
 		}
 	} /* new speed ? */
-	if (dev_irq & AMD_BIT(UDC_DEVINT_ENUM)) {
+
+	if (dev_irq & AMD_BIT(UDC_DEVINT_ENUM))
+	{
 		DBG(dev, "ENUM interrupt\n");
 		ret_val = IRQ_HANDLED;
 		soft_reset_after_usbreset_occured = 0;
@@ -3000,7 +3559,7 @@ __acquires(dev->lock)
 		/* link up all endpoints */
 		udc_setup_endpoints(dev);
 		dev_info(&dev->pdev->dev, "Connect: %s\n",
-			 usb_speed_string(dev->gadget.speed));
+				 usb_speed_string(dev->gadget.speed));
 
 		/* init ep 0 */
 		activate_control_endpoints(dev);
@@ -3008,14 +3567,18 @@ __acquires(dev->lock)
 		/* enable ep0 interrupts */
 		udc_enable_ep0_interrupts(dev);
 	}
+
 	/* session valid change interrupt */
-	if (dev_irq & AMD_BIT(UDC_DEVINT_SVC)) {
+	if (dev_irq & AMD_BIT(UDC_DEVINT_SVC))
+	{
 		DBG(dev, "USB SVC interrupt\n");
 		ret_val = IRQ_HANDLED;
 
 		/* check that session is not valid to detect disconnect */
 		tmp = readl(&dev->regs->sts);
-		if (!(tmp & AMD_BIT(UDC_DEVSTS_SESSVLD))) {
+
+		if (!(tmp & AMD_BIT(UDC_DEVSTS_SESSVLD)))
+		{
 			/* disable suspend interrupt */
 			tmp = readl(&dev->regs->irqmsk);
 			tmp |= AMD_BIT(UDC_DEVINT_US);
@@ -3043,29 +3606,44 @@ static irqreturn_t udc_irq(int irq, void *pdev)
 
 	/* check for ep irq */
 	reg = readl(&dev->regs->ep_irqsts);
-	if (reg) {
+
+	if (reg)
+	{
 		if (reg & AMD_BIT(UDC_EPINT_OUT_EP0))
+		{
 			ret_val |= udc_control_out_isr(dev);
+		}
+
 		if (reg & AMD_BIT(UDC_EPINT_IN_EP0))
+		{
 			ret_val |= udc_control_in_isr(dev);
+		}
 
 		/*
 		 * data endpoint
 		 * iterate ep's
 		 */
-		for (i = 1; i < UDC_EP_NUM; i++) {
+		for (i = 1; i < UDC_EP_NUM; i++)
+		{
 			ep_irq = 1 << i;
+
 			if (!(reg & ep_irq) || i == UDC_EPINT_OUT_EP0)
+			{
 				continue;
+			}
 
 			/* clear irq status */
 			writel(ep_irq, &dev->regs->ep_irqsts);
 
 			/* irq for out ep ? */
 			if (i > UDC_EPIN_NUM)
+			{
 				ret_val |= udc_data_out_isr(dev, i);
+			}
 			else
+			{
 				ret_val |= udc_data_in_isr(dev, i);
+			}
 		}
 
 	}
@@ -3073,7 +3651,9 @@ static irqreturn_t udc_irq(int irq, void *pdev)
 
 	/* check for dev irq */
 	reg = readl(&dev->regs->irqsts);
-	if (reg) {
+
+	if (reg)
+	{
 		/* clear irq */
 		writel(reg, &dev->regs->irqsts);
 		ret_val |= udc_dev_isr(dev, reg);
@@ -3096,16 +3676,30 @@ static void udc_remove(struct udc *dev)
 {
 	/* remove timer */
 	stop_timer++;
+
 	if (timer_pending(&udc_timer))
+	{
 		wait_for_completion(&on_exit);
+	}
+
 	if (udc_timer.data)
+	{
 		del_timer_sync(&udc_timer);
+	}
+
 	/* remove pollstall timer */
 	stop_pollstall_timer++;
+
 	if (timer_pending(&udc_pollstall_timer))
+	{
 		wait_for_completion(&on_pollstall_exit);
+	}
+
 	if (udc_pollstall_timer.data)
+	{
 		del_timer_sync(&udc_pollstall_timer);
+	}
+
 	udc = NULL;
 }
 
@@ -3113,9 +3707,9 @@ static void udc_remove(struct udc *dev)
 static void free_dma_pools(struct udc *dev)
 {
 	dma_pool_free(dev->stp_requests, dev->ep[UDC_EP0OUT_IX].td,
-		      dev->ep[UDC_EP0OUT_IX].td_phys);
+				  dev->ep[UDC_EP0OUT_IX].td_phys);
 	dma_pool_free(dev->stp_requests, dev->ep[UDC_EP0OUT_IX].td_stp,
-		      dev->ep[UDC_EP0OUT_IX].td_stp_dma);
+				  dev->ep[UDC_EP0OUT_IX].td_stp_dma);
 	dma_pool_destroy(dev->stp_requests);
 	dma_pool_destroy(dev->data_requests);
 }
@@ -3128,9 +3722,12 @@ static void udc_pci_remove(struct pci_dev *pdev)
 	dev = pci_get_drvdata(pdev);
 
 	usb_del_gadget_udc(&udc->gadget);
+
 	/* gadget driver must not be registered */
 	if (WARN_ON(dev->driver))
+	{
 		return;
+	}
 
 	/* dma pool cleanup */
 	free_dma_pools(dev);
@@ -3140,7 +3737,7 @@ static void udc_pci_remove(struct pci_dev *pdev)
 	free_irq(pdev->irq, dev);
 	iounmap(dev->virt_addr);
 	release_mem_region(pci_resource_start(pdev, 0),
-			   pci_resource_len(pdev, 0));
+					   pci_resource_len(pdev, 0));
 	pci_disable_device(pdev);
 
 	udc_remove(dev);
@@ -3154,17 +3751,22 @@ static int init_dma_pools(struct udc *dev)
 	int retval;
 
 	/* consistent DMA mode setting ? */
-	if (use_dma_ppb) {
+	if (use_dma_ppb)
+	{
 		use_dma_bufferfill_mode = 0;
-	} else {
+	}
+	else
+	{
 		use_dma_ppb_du = 0;
 		use_dma_bufferfill_mode = 1;
 	}
 
 	/* DMA setup */
 	dev->data_requests = dma_pool_create("data_requests", NULL,
-		sizeof(struct udc_data_dma), 0, 0);
-	if (!dev->data_requests) {
+										 sizeof(struct udc_data_dma), 0, 0);
+
+	if (!dev->data_requests)
+	{
 		DBG(dev, "can't get request data pool\n");
 		return -ENOMEM;
 	}
@@ -3174,34 +3776,43 @@ static int init_dma_pools(struct udc *dev)
 
 	/* dma desc for setup data */
 	dev->stp_requests = dma_pool_create("setup requests", NULL,
-		sizeof(struct udc_stp_dma), 0, 0);
-	if (!dev->stp_requests) {
+										sizeof(struct udc_stp_dma), 0, 0);
+
+	if (!dev->stp_requests)
+	{
 		DBG(dev, "can't get stp request pool\n");
 		retval = -ENOMEM;
 		goto err_create_dma_pool;
 	}
+
 	/* setup */
 	td_stp = dma_pool_alloc(dev->stp_requests, GFP_KERNEL,
-				&dev->ep[UDC_EP0OUT_IX].td_stp_dma);
-	if (!td_stp) {
+							&dev->ep[UDC_EP0OUT_IX].td_stp_dma);
+
+	if (!td_stp)
+	{
 		retval = -ENOMEM;
 		goto err_alloc_dma;
 	}
+
 	dev->ep[UDC_EP0OUT_IX].td_stp = td_stp;
 
 	/* data: 0 packets !? */
 	td_data = dma_pool_alloc(dev->stp_requests, GFP_KERNEL,
-				&dev->ep[UDC_EP0OUT_IX].td_phys);
-	if (!td_data) {
+							 &dev->ep[UDC_EP0OUT_IX].td_phys);
+
+	if (!td_data)
+	{
 		retval = -ENOMEM;
 		goto err_alloc_phys;
 	}
+
 	dev->ep[UDC_EP0OUT_IX].td = td_data;
 	return 0;
 
 err_alloc_phys:
 	dma_pool_free(dev->stp_requests, dev->ep[UDC_EP0OUT_IX].td_stp,
-		      dev->ep[UDC_EP0OUT_IX].td_stp_dma);
+				  dev->ep[UDC_EP0OUT_IX].td_stp_dma);
 err_alloc_dma:
 	dma_pool_destroy(dev->stp_requests);
 	dev->stp_requests = NULL;
@@ -3236,23 +3847,29 @@ static int udc_probe(struct udc *dev)
 
 	snprintf(tmp, sizeof(tmp), "%d", dev->irq);
 	dev_info(&dev->pdev->dev,
-		 "irq %s, pci mem %08lx, chip rev %02x(Geode5536 %s)\n",
-		 tmp, dev->phys_addr, dev->chiprev,
-		 (dev->chiprev == UDC_HSA0_REV) ? "A0" : "B1");
+			 "irq %s, pci mem %08lx, chip rev %02x(Geode5536 %s)\n",
+			 tmp, dev->phys_addr, dev->chiprev,
+			 (dev->chiprev == UDC_HSA0_REV) ? "A0" : "B1");
 	strcpy(tmp, UDC_DRIVER_VERSION_STRING);
-	if (dev->chiprev == UDC_HSA0_REV) {
+
+	if (dev->chiprev == UDC_HSA0_REV)
+	{
 		dev_err(&dev->pdev->dev, "chip revision is A0; too old\n");
 		retval = -ENODEV;
 		goto finished;
 	}
+
 	dev_info(&dev->pdev->dev,
-		 "driver version: %s(for Geode5536 B1)\n", tmp);
+			 "driver version: %s(for Geode5536 B1)\n", tmp);
 	udc = dev;
 
 	retval = usb_add_gadget_udc_release(&udc->pdev->dev, &dev->gadget,
-					    gadget_release);
+										gadget_release);
+
 	if (retval)
+	{
 		goto finished;
+	}
 
 	/* timer init */
 	init_timer(&udc_timer);
@@ -3289,18 +3906,23 @@ static int udc_pci_probe(
 	int			retval = 0;
 
 	/* one udc only */
-	if (udc) {
+	if (udc)
+	{
 		dev_dbg(&pdev->dev, "already probed\n");
 		return -EBUSY;
 	}
 
 	/* init */
 	dev = kzalloc(sizeof(struct udc), GFP_KERNEL);
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	/* pci setup */
-	if (pci_enable_device(pdev) < 0) {
+	if (pci_enable_device(pdev) < 0)
+	{
 		retval = -ENODEV;
 		goto err_pcidev;
 	}
@@ -3309,20 +3931,24 @@ static int udc_pci_probe(
 	resource = pci_resource_start(pdev, 0);
 	len = pci_resource_len(pdev, 0);
 
-	if (!request_mem_region(resource, len, name)) {
+	if (!request_mem_region(resource, len, name))
+	{
 		dev_dbg(&pdev->dev, "pci device used already\n");
 		retval = -EBUSY;
 		goto err_memreg;
 	}
 
 	dev->virt_addr = ioremap_nocache(resource, len);
-	if (!dev->virt_addr) {
+
+	if (!dev->virt_addr)
+	{
 		dev_dbg(&pdev->dev, "start address cannot be mapped\n");
 		retval = -EFAULT;
 		goto err_ioremap;
 	}
 
-	if (!pdev->irq) {
+	if (!pdev->irq)
+	{
 		dev_err(&pdev->dev, "irq not set\n");
 		retval = -ENODEV;
 		goto err_irq;
@@ -3339,7 +3965,8 @@ static int udc_pci_probe(
 	dev->rxfifo = (u32 __iomem *)(dev->virt_addr + UDC_RXFIFO_ADDR);
 	dev->txfifo = (u32 __iomem *)(dev->virt_addr + UDC_TXFIFO_ADDR);
 
-	if (request_irq(pdev->irq, udc_irq, IRQF_SHARED, name, dev) != 0) {
+	if (request_irq(pdev->irq, udc_irq, IRQF_SHARED, name, dev) != 0)
+	{
 		dev_dbg(&pdev->dev, "request_irq(%d) fail\n", pdev->irq);
 		retval = -EBUSY;
 		goto err_irq;
@@ -3354,10 +3981,14 @@ static int udc_pci_probe(
 	pci_try_set_mwi(pdev);
 
 	/* init dma pools */
-	if (use_dma) {
+	if (use_dma)
+	{
 		retval = init_dma_pools(dev);
+
 		if (retval != 0)
+		{
 			goto err_dma;
+		}
 	}
 
 	dev->phys_addr = resource;
@@ -3365,15 +3996,21 @@ static int udc_pci_probe(
 	dev->pdev = pdev;
 
 	/* general probing */
-	if (udc_probe(dev)) {
+	if (udc_probe(dev))
+	{
 		retval = -ENODEV;
 		goto err_probe;
 	}
+
 	return 0;
 
 err_probe:
+
 	if (use_dma)
+	{
 		free_dma_pools(dev);
+	}
+
 err_dma:
 	free_irq(pdev->irq, dev);
 err_irq:
@@ -3388,7 +4025,8 @@ err_pcidev:
 }
 
 /* PCI device parameters */
-static const struct pci_device_id pci_id[] = {
+static const struct pci_device_id pci_id[] =
+{
 	{
 		PCI_DEVICE(PCI_VENDOR_ID_AMD, 0x2096),
 		.class =	PCI_CLASS_SERIAL_USB_DEVICE,
@@ -3399,7 +4037,8 @@ static const struct pci_device_id pci_id[] = {
 MODULE_DEVICE_TABLE(pci, pci_id);
 
 /* PCI functions */
-static struct pci_driver udc_pci_driver = {
+static struct pci_driver udc_pci_driver =
+{
 	.name =		(char *) name,
 	.id_table =	pci_id,
 	.probe =	udc_pci_probe,

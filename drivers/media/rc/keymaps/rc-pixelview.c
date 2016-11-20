@@ -13,7 +13,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table pixelview[] = {
+static struct rc_map_table pixelview[] =
+{
 
 	{ 0x1e, KEY_POWER },	/* power */
 	{ 0x07, KEY_VIDEO },	/* source */
@@ -57,7 +58,8 @@ static struct rc_map_table pixelview[] = {
 	{ 0x18, KEY_MUTE },		/* mute/unmute */
 };
 
-static struct rc_map_list pixelview_map = {
+static struct rc_map_list pixelview_map =
+{
 	.map = {
 		.scan    = pixelview,
 		.size    = ARRAY_SIZE(pixelview),

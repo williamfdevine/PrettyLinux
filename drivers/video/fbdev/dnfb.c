@@ -46,7 +46,7 @@
 #define DBLT_MODE   0x80	/* 100x.xxxx */
 #define NORMAL_MODE 0xE0	/* 111x.xxxx */
 #define SHIFT_BITS  0x1F	/* xxx1.1111 */
-	/* other bits are Shift value */
+/* other bits are Shift value */
 
 /* CREG 1 */
 #define AD_BLT      0x80	/* 1xxx.xxxx */
@@ -75,7 +75,7 @@
 #define S_DATA_1s   0x00 /* 00xx.xxxx */	/* set source to all 1's -- vector drawing */
 #define S_DATA_PIX  0x40 /* 01xx.xxxx */	/* takes source from ls-bits and replicates over 16 bits */
 #define S_DATA_PLN  0xC0 /* 11xx.xxxx */	/* normal, each data access =16-bits in
-						   one plane of image mem */
+one plane of image mem */
 
 /* CREG 3A/CREG 3B */
 #       define RESET_CREG 0x80	/* 1000.0000 */
@@ -107,7 +107,8 @@
 static int dnfb_blank(int blank, struct fb_info *info);
 static void dnfb_copyarea(struct fb_info *info, const struct fb_copyarea *area);
 
-static struct fb_ops dn_fb_ops = {
+static struct fb_ops dn_fb_ops =
+{
 	.owner		= THIS_MODULE,
 	.fb_blank	= dnfb_blank,
 	.fb_fillrect	= cfb_fillrect,
@@ -115,7 +116,8 @@ static struct fb_ops dn_fb_ops = {
 	.fb_imageblit	= cfb_imageblit,
 };
 
-struct fb_var_screeninfo dnfb_var = {
+struct fb_var_screeninfo dnfb_var =
+{
 	.xres		= 1280,
 	.yres		= 1024,
 	.xres_virtual	= 2048,
@@ -126,7 +128,8 @@ struct fb_var_screeninfo dnfb_var = {
 	.vmode		= FB_VMODE_NONINTERLACED,
 };
 
-static struct fb_fix_screeninfo dnfb_fix = {
+static struct fb_fix_screeninfo dnfb_fix =
+{
 	.id		= "Apollo Mono",
 	.smem_start	= (FRAME_BUFFER_START + IO_BASE),
 	.smem_len	= FRAME_BUFFER_LEN,
@@ -138,9 +141,14 @@ static struct fb_fix_screeninfo dnfb_fix = {
 static int dnfb_blank(int blank, struct fb_info *info)
 {
 	if (blank)
+	{
 		out_8(AP_CONTROL_3A, 0x0);
+	}
 	else
+	{
 		out_8(AP_CONTROL_3A, 0x1);
+	}
+
 	return 0;
 }
 
@@ -156,49 +164,62 @@ void dnfb_copyarea(struct fb_info *info, const struct fb_copyarea *area)
 	incr = (area->dy <= area->sy) ? 1 : -1;
 
 	src = (ushort *)(info->screen_base + area->sy * info->fix.line_length +
-			(area->sx >> 4));
+					 (area->sx >> 4));
 	dest = area->dy * (info->fix.line_length >> 1) + (area->dx >> 4);
 
-	if (incr > 0) {
+	if (incr > 0)
+	{
 		y_delta = (info->fix.line_length * 8) - area->sx - area->width;
 		x_end = area->dx + area->width - 1;
 		x_word_count = (x_end >> 4) - (area->dx >> 4) + 1;
 		start_mask = 0xffff0000 >> (area->dx & 0xf);
 		end_mask = 0x7ffff >> (x_end & 0xf);
 		out_8(AP_CONTROL_0,
-		     (((area->dx & 0xf) - (area->sx & 0xf)) % 16) | (0x4 << 5));
+			  (((area->dx & 0xf) - (area->sx & 0xf)) % 16) | (0x4 << 5));
+
 		if ((area->dx & 0xf) < (area->sx & 0xf))
+		{
 			pre_read = 1;
-	} else {
+		}
+	}
+	else
+	{
 		y_delta = -((info->fix.line_length * 8) - area->sx - area->width);
 		x_end = area->dx - area->width + 1;
 		x_word_count = (area->dx >> 4) - (x_end >> 4) + 1;
 		start_mask = 0x7ffff >> (area->dx & 0xf);
 		end_mask = 0xffff0000 >> (x_end & 0xf);
 		out_8(AP_CONTROL_0,
-		     ((-((area->sx & 0xf) - (area->dx & 0xf))) % 16) |
-		     (0x4 << 5));
+			  ((-((area->sx & 0xf) - (area->dx & 0xf))) % 16) |
+			  (0x4 << 5));
+
 		if ((area->dx & 0xf) > (area->sx & 0xf))
+		{
 			pre_read = 1;
+		}
 	}
 
-	for (i = 0; i < area->height; i++) {
+	for (i = 0; i < area->height; i++)
+	{
 
 		out_8(AP_CONTROL_3A, 0xc | (dest >> 16));
 
-		if (pre_read) {
+		if (pre_read)
+		{
 			dummy = *src;
 			src += incr;
 		}
 
-		if (x_word_count) {
+		if (x_word_count)
+		{
 			out_8(AP_WRITE_ENABLE, start_mask);
 			*src = dest;
 			src += incr;
 			dest += incr;
 			out_8(AP_WRITE_ENABLE, 0);
 
-			for (j = 1; j < (x_word_count - 1); j++) {
+			for (j = 1; j < (x_word_count - 1); j++)
+			{
 				*src = dest;
 				src += incr;
 				dest += incr;
@@ -208,15 +229,19 @@ void dnfb_copyarea(struct fb_info *info, const struct fb_copyarea *area)
 			*src = dest;
 			dest += incr;
 			src += incr;
-		} else {
+		}
+		else
+		{
 			out_8(AP_WRITE_ENABLE, start_mask | end_mask);
 			*src = dest;
 			dest += incr;
 			src += incr;
 		}
+
 		src += (y_delta / 16);
 		dest += (y_delta / 16);
 	}
+
 	out_8(AP_CONTROL_0, NORMAL_MODE);
 }
 
@@ -230,8 +255,11 @@ static int dnfb_probe(struct platform_device *dev)
 	int err = 0;
 
 	info = framebuffer_alloc(0, &dev->dev);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	info->fbops = &dn_fb_ops;
 	info->fix = dnfb_fix;
@@ -242,17 +270,22 @@ static int dnfb_probe(struct platform_device *dev)
 	info->screen_base = (u_char *) info->fix.smem_start;
 
 	err = fb_alloc_cmap(&info->cmap, 2, 0);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		framebuffer_release(info);
 		return err;
 	}
 
 	err = register_framebuffer(info);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		fb_dealloc_cmap(&info->cmap);
 		framebuffer_release(info);
 		return err;
 	}
+
 	platform_set_drvdata(dev, info);
 
 	/* now we have registered we can safely setup the hardware */
@@ -267,14 +300,16 @@ static int dnfb_probe(struct platform_device *dev)
 	return err;
 }
 
-static struct platform_driver dnfb_driver = {
+static struct platform_driver dnfb_driver =
+{
 	.probe	= dnfb_probe,
 	.driver	= {
 		.name	= "dnfb",
 	},
 };
 
-static struct platform_device dnfb_device = {
+static struct platform_device dnfb_device =
+{
 	.name	= "dnfb",
 };
 
@@ -283,18 +318,27 @@ int __init dnfb_init(void)
 	int ret;
 
 	if (!MACH_IS_APOLLO)
+	{
 		return -ENODEV;
+	}
 
 	if (fb_get_options("dnfb", NULL))
+	{
 		return -ENODEV;
+	}
 
 	ret = platform_driver_register(&dnfb_driver);
 
-	if (!ret) {
+	if (!ret)
+	{
 		ret = platform_device_register(&dnfb_device);
+
 		if (ret)
+		{
 			platform_driver_unregister(&dnfb_driver);
+		}
 	}
+
 	return ret;
 }
 

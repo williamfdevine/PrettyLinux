@@ -20,7 +20,7 @@ static void hop_ghid_setup(struct lowpan_nhc *nhc)
 }
 
 LOWPAN_NHC(ghc_ext_hop, "RFC7400 Hop-by-Hop Extension Header", NEXTHDR_HOP, 0,
-	   hop_ghid_setup, LOWPAN_GHC_EXT_HOP_IDLEN, NULL, NULL);
+		   hop_ghid_setup, LOWPAN_GHC_EXT_HOP_IDLEN, NULL, NULL);
 
 module_lowpan_nhc(ghc_ext_hop);
 MODULE_DESCRIPTION("6LoWPAN generic header hop-by-hop extension compression");

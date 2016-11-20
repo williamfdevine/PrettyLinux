@@ -63,7 +63,8 @@
 #define CX_CFG_SRCINCR		(0x1 << 31)
 #define CX_CFG_DSTINCR		(0x1 << 30)
 
-struct k3_desc_hw {
+struct k3_desc_hw
+{
 	u32 lli;
 	u32 reserved[3];
 	u32 count;
@@ -72,7 +73,8 @@ struct k3_desc_hw {
 	u32 config;
 } __aligned(32);
 
-struct k3_dma_desc_sw {
+struct k3_dma_desc_sw
+{
 	struct virt_dma_desc	vd;
 	dma_addr_t		desc_hw_lli;
 	size_t			desc_num;
@@ -82,7 +84,8 @@ struct k3_dma_desc_sw {
 
 struct k3_dma_phy;
 
-struct k3_dma_chan {
+struct k3_dma_chan
+{
 	u32			ccfg;
 	struct virt_dma_chan	vc;
 	struct k3_dma_phy	*phy;
@@ -93,7 +96,8 @@ struct k3_dma_chan {
 	bool			cyclic;
 };
 
-struct k3_dma_phy {
+struct k3_dma_phy
+{
 	u32			idx;
 	void __iomem		*base;
 	struct k3_dma_chan	*vchan;
@@ -101,7 +105,8 @@ struct k3_dma_phy {
 	struct k3_dma_desc_sw	*ds_done;
 };
 
-struct k3_dma_dev {
+struct k3_dma_dev
+{
 	struct dma_device	slave;
 	void __iomem		*base;
 	struct tasklet_struct	task;
@@ -127,11 +132,14 @@ static void k3_dma_pause_dma(struct k3_dma_phy *phy, bool on)
 {
 	u32 val = 0;
 
-	if (on) {
+	if (on)
+	{
 		val = readl_relaxed(phy->base + CX_CFG);
 		val |= CX_CFG_EN;
 		writel_relaxed(val, phy->base + CX_CFG);
-	} else {
+	}
+	else
+	{
 		val = readl_relaxed(phy->base + CX_CFG);
 		val &= ~CX_CFG_EN;
 		writel_relaxed(val, phy->base + CX_CFG);
@@ -182,7 +190,8 @@ static u32 k3_dma_get_chan_stat(struct k3_dma_dev *d)
 
 static void k3_dma_enable_dma(struct k3_dma_dev *d, bool on)
 {
-	if (on) {
+	if (on)
+	{
 		/* set same priority */
 		writel_relaxed(0x0, d->base + CH_PRI);
 
@@ -191,7 +200,9 @@ static void k3_dma_enable_dma(struct k3_dma_dev *d, bool on)
 		writel_relaxed(0xffff, d->base + INT_TC2_MASK);
 		writel_relaxed(0xffff, d->base + INT_ERR1_MASK);
 		writel_relaxed(0xffff, d->base + INT_ERR2_MASK);
-	} else {
+	}
+	else
+	{
 		/* mask irq */
 		writel_relaxed(0x0, d->base + INT_TC1_MASK);
 		writel_relaxed(0x0, d->base + INT_TC2_MASK);
@@ -212,15 +223,20 @@ static irqreturn_t k3_dma_int_handler(int irq, void *dev_id)
 	u32 err2 = readl_relaxed(d->base + INT_ERR2);
 	u32 i, irq_chan = 0;
 
-	while (stat) {
+	while (stat)
+	{
 		i = __ffs(stat);
 		stat &= ~BIT(i);
-		if (likely(tc1 & BIT(i)) || (tc2 & BIT(i))) {
+
+		if (likely(tc1 & BIT(i)) || (tc2 & BIT(i)))
+		{
 			unsigned long flags;
 
 			p = &d->phy[i];
 			c = p->vchan;
-			if (c && (tc1 & BIT(i))) {
+
+			if (c && (tc1 & BIT(i)))
+			{
 				spin_lock_irqsave(&c->vc.lock, flags);
 				vchan_cookie_complete(&p->ds_run->vd);
 				WARN_ON_ONCE(p->ds_done);
@@ -228,16 +244,26 @@ static irqreturn_t k3_dma_int_handler(int irq, void *dev_id)
 				p->ds_run = NULL;
 				spin_unlock_irqrestore(&c->vc.lock, flags);
 			}
-			if (c && (tc2 & BIT(i))) {
+
+			if (c && (tc2 & BIT(i)))
+			{
 				spin_lock_irqsave(&c->vc.lock, flags);
+
 				if (p->ds_run != NULL)
+				{
 					vchan_cyclic_callback(&p->ds_run->vd);
+				}
+
 				spin_unlock_irqrestore(&c->vc.lock, flags);
 			}
+
 			irq_chan |= BIT(i);
 		}
+
 		if (unlikely((err1 & BIT(i)) || (err2 & BIT(i))))
+		{
 			dev_warn(d->slave.dev, "DMA ERR\n");
+		}
 	}
 
 	writel_relaxed(irq_chan, d->base + INT_TC1_RAW);
@@ -246,10 +272,14 @@ static irqreturn_t k3_dma_int_handler(int irq, void *dev_id)
 	writel_relaxed(err2, d->base + INT_ERR2_RAW);
 
 	if (irq_chan)
+	{
 		tasklet_schedule(&d->task);
+	}
 
 	if (irq_chan || err1 || err2)
+	{
 		return IRQ_HANDLED;
+	}
 
 	return IRQ_NONE;
 }
@@ -260,12 +290,17 @@ static int k3_dma_start_txd(struct k3_dma_chan *c)
 	struct virt_dma_desc *vd = vchan_next_desc(&c->vc);
 
 	if (!c->phy)
+	{
 		return -EAGAIN;
+	}
 
 	if (BIT(c->phy->idx) & k3_dma_get_chan_stat(d))
+	{
 		return -EAGAIN;
+	}
 
-	if (vd) {
+	if (vd)
+	{
 		struct k3_dma_desc_sw *ds =
 			container_of(vd, struct k3_dma_desc_sw, vd);
 		/*
@@ -281,6 +316,7 @@ static int k3_dma_start_txd(struct k3_dma_chan *c)
 		k3_dma_set_desc(c->phy, &ds->desc_hw[0]);
 		return 0;
 	}
+
 	return -EAGAIN;
 }
 
@@ -292,11 +328,15 @@ static void k3_dma_tasklet(unsigned long arg)
 	unsigned pch, pch_alloc = 0;
 
 	/* check new dma request of running channel in vc->desc_issued */
-	list_for_each_entry_safe(c, cn, &d->slave.channels, vc.chan.device_node) {
+	list_for_each_entry_safe(c, cn, &d->slave.channels, vc.chan.device_node)
+	{
 		spin_lock_irq(&c->vc.lock);
 		p = c->phy;
-		if (p && p->ds_done) {
-			if (k3_dma_start_txd(c)) {
+
+		if (p && p->ds_done)
+		{
+			if (k3_dma_start_txd(c))
+			{
 				/* No current txd associated with this channel */
 				dev_dbg(d->slave.dev, "pchan %u: free\n", p->idx);
 				/* Mark this channel free */
@@ -304,17 +344,21 @@ static void k3_dma_tasklet(unsigned long arg)
 				p->vchan = NULL;
 			}
 		}
+
 		spin_unlock_irq(&c->vc.lock);
 	}
 
 	/* check new channel request in d->chan_pending */
 	spin_lock_irq(&d->lock);
-	for (pch = 0; pch < d->dma_channels; pch++) {
+
+	for (pch = 0; pch < d->dma_channels; pch++)
+	{
 		p = &d->phy[pch];
 
-		if (p->vchan == NULL && !list_empty(&d->chan_pending)) {
+		if (p->vchan == NULL && !list_empty(&d->chan_pending))
+		{
 			c = list_first_entry(&d->chan_pending,
-				struct k3_dma_chan, node);
+								 struct k3_dma_chan, node);
 			/* remove from d->chan_pending */
 			list_del_init(&c->node);
 			pch_alloc |= 1 << pch;
@@ -324,13 +368,18 @@ static void k3_dma_tasklet(unsigned long arg)
 			dev_dbg(d->slave.dev, "pchan %u: alloc vchan %p\n", pch, &c->vc);
 		}
 	}
+
 	spin_unlock_irq(&d->lock);
 
-	for (pch = 0; pch < d->dma_channels; pch++) {
-		if (pch_alloc & (1 << pch)) {
+	for (pch = 0; pch < d->dma_channels; pch++)
+	{
+		if (pch_alloc & (1 << pch))
+		{
 			p = &d->phy[pch];
 			c = p->vchan;
-			if (c) {
+
+			if (c)
+			{
 				spin_lock_irq(&c->vc.lock);
 				k3_dma_start_txd(c);
 				spin_unlock_irq(&c->vc.lock);
@@ -354,7 +403,7 @@ static void k3_dma_free_chan_resources(struct dma_chan *chan)
 }
 
 static enum dma_status k3_dma_tx_status(struct dma_chan *chan,
-	dma_cookie_t cookie, struct dma_tx_state *state)
+										dma_cookie_t cookie, struct dma_tx_state *state)
 {
 	struct k3_dma_chan *c = to_k3_chan(chan);
 	struct k3_dma_dev *d = to_k3_dma(chan->device);
@@ -365,8 +414,11 @@ static enum dma_status k3_dma_tx_status(struct dma_chan *chan,
 	size_t bytes = 0;
 
 	ret = dma_cookie_status(&c->vc.chan, cookie, state);
+
 	if (ret == DMA_COMPLETE)
+	{
 		return ret;
+	}
 
 	spin_lock_irqsave(&c->vc.lock, flags);
 	p = c->phy;
@@ -377,25 +429,37 @@ static enum dma_status k3_dma_tx_status(struct dma_chan *chan,
 	 * its total size.
 	 */
 	vd = vchan_find_desc(&c->vc, cookie);
-	if (vd && !c->cyclic) {
+
+	if (vd && !c->cyclic)
+	{
 		bytes = container_of(vd, struct k3_dma_desc_sw, vd)->size;
-	} else if ((!p) || (!p->ds_run)) {
+	}
+	else if ((!p) || (!p->ds_run))
+	{
 		bytes = 0;
-	} else {
+	}
+	else
+	{
 		struct k3_dma_desc_sw *ds = p->ds_run;
 		u32 clli = 0, index = 0;
 
 		bytes = k3_dma_get_curr_cnt(d, p);
 		clli = k3_dma_get_curr_lli(p);
 		index = ((clli - ds->desc_hw_lli) /
-				sizeof(struct k3_desc_hw)) + 1;
-		for (; index < ds->desc_num; index++) {
+				 sizeof(struct k3_desc_hw)) + 1;
+
+		for (; index < ds->desc_num; index++)
+		{
 			bytes += ds->desc_hw[index].count;
+
 			/* end of lli */
 			if (!ds->desc_hw[index].lli)
+			{
 				break;
+			}
 		}
 	}
+
 	spin_unlock_irqrestore(&c->vc.lock, flags);
 	dma_set_residue(state, bytes);
 	return ret;
@@ -408,11 +472,16 @@ static void k3_dma_issue_pending(struct dma_chan *chan)
 	unsigned long flags;
 
 	spin_lock_irqsave(&c->vc.lock, flags);
+
 	/* add request to vc->desc_issued */
-	if (vchan_issue_pending(&c->vc)) {
+	if (vchan_issue_pending(&c->vc))
+	{
 		spin_lock(&d->lock);
-		if (!c->phy) {
-			if (list_empty(&c->node)) {
+
+		if (!c->phy)
+		{
+			if (list_empty(&c->node))
+			{
 				/* if new channel, add chan_pending */
 				list_add_tail(&c->node, &d->chan_pending);
 				/* check in tasklet */
@@ -420,18 +489,23 @@ static void k3_dma_issue_pending(struct dma_chan *chan)
 				dev_dbg(d->slave.dev, "vchan %p: issued\n", &c->vc);
 			}
 		}
+
 		spin_unlock(&d->lock);
-	} else
+	}
+	else
+	{
 		dev_dbg(d->slave.dev, "vchan %p: nothing to issue\n", &c->vc);
+	}
+
 	spin_unlock_irqrestore(&c->vc.lock, flags);
 }
 
 static void k3_dma_fill_desc(struct k3_dma_desc_sw *ds, dma_addr_t dst,
-			dma_addr_t src, size_t len, u32 num, u32 ccfg)
+							 dma_addr_t src, size_t len, u32 num, u32 ccfg)
 {
 	if (num != ds->desc_num - 1)
 		ds->desc_hw[num].lli = ds->desc_hw_lli + (num + 1) *
-			sizeof(struct k3_desc_hw);
+							   sizeof(struct k3_desc_hw);
 
 	ds->desc_hw[num].lli |= CX_LLI_CHAIN_EN;
 	ds->desc_hw[num].count = len;
@@ -441,29 +515,36 @@ static void k3_dma_fill_desc(struct k3_dma_desc_sw *ds, dma_addr_t dst,
 }
 
 static struct k3_dma_desc_sw *k3_dma_alloc_desc_resource(int num,
-							struct dma_chan *chan)
+		struct dma_chan *chan)
 {
 	struct k3_dma_chan *c = to_k3_chan(chan);
 	struct k3_dma_desc_sw *ds;
 	struct k3_dma_dev *d = to_k3_dma(chan->device);
 	int lli_limit = LLI_BLOCK_SIZE / sizeof(struct k3_desc_hw);
 
-	if (num > lli_limit) {
+	if (num > lli_limit)
+	{
 		dev_dbg(chan->device->dev, "vch %p: sg num %d exceed max %d\n",
-			&c->vc, num, lli_limit);
+				&c->vc, num, lli_limit);
 		return NULL;
 	}
 
 	ds = kzalloc(sizeof(*ds), GFP_NOWAIT);
+
 	if (!ds)
+	{
 		return NULL;
+	}
 
 	ds->desc_hw = dma_pool_alloc(d->pool, GFP_NOWAIT, &ds->desc_hw_lli);
-	if (!ds->desc_hw) {
+
+	if (!ds->desc_hw)
+	{
 		dev_dbg(chan->device->dev, "vch %p: dma alloc fail\n", &c->vc);
 		kfree(ds);
 		return NULL;
 	}
+
 	memset(ds->desc_hw, 0, sizeof(struct k3_desc_hw) * num);
 	ds->desc_num = num;
 	return ds;
@@ -479,41 +560,55 @@ static struct dma_async_tx_descriptor *k3_dma_prep_memcpy(
 	int num = 0;
 
 	if (!len)
+	{
 		return NULL;
+	}
 
 	num = DIV_ROUND_UP(len, DMA_MAX_SIZE);
 
 	ds = k3_dma_alloc_desc_resource(num, chan);
+
 	if (!ds)
+	{
 		return NULL;
+	}
 
 	c->cyclic = 0;
 	ds->size = len;
 	num = 0;
 
-	if (!c->ccfg) {
+	if (!c->ccfg)
+	{
 		/* default is memtomem, without calling device_config */
 		c->ccfg = CX_CFG_SRCINCR | CX_CFG_DSTINCR | CX_CFG_EN;
 		c->ccfg |= (0xf << 20) | (0xf << 24);	/* burst = 16 */
 		c->ccfg |= (0x3 << 12) | (0x3 << 16);	/* width = 64 bit */
 	}
 
-	do {
+	do
+	{
 		copy = min_t(size_t, len, DMA_MAX_SIZE);
 		k3_dma_fill_desc(ds, dst, src, copy, num++, c->ccfg);
 
-		if (c->dir == DMA_MEM_TO_DEV) {
+		if (c->dir == DMA_MEM_TO_DEV)
+		{
 			src += copy;
-		} else if (c->dir == DMA_DEV_TO_MEM) {
+		}
+		else if (c->dir == DMA_DEV_TO_MEM)
+		{
 			dst += copy;
-		} else {
+		}
+		else
+		{
 			src += copy;
 			dst += copy;
 		}
-		len -= copy;
-	} while (len);
 
-	ds->desc_hw[num-1].lli = 0;	/* end of link */
+		len -= copy;
+	}
+	while (len);
+
+	ds->desc_hw[num - 1].lli = 0;	/* end of link */
 	return vchan_tx_prep(&c->vc, &ds->vd, flags);
 }
 
@@ -529,33 +624,48 @@ static struct dma_async_tx_descriptor *k3_dma_prep_slave_sg(
 	int num = sglen, i;
 
 	if (sgl == NULL)
+	{
 		return NULL;
+	}
 
 	c->cyclic = 0;
 
-	for_each_sg(sgl, sg, sglen, i) {
+	for_each_sg(sgl, sg, sglen, i)
+	{
 		avail = sg_dma_len(sg);
+
 		if (avail > DMA_MAX_SIZE)
+		{
 			num += DIV_ROUND_UP(avail, DMA_MAX_SIZE) - 1;
+		}
 	}
 
 	ds = k3_dma_alloc_desc_resource(num, chan);
+
 	if (!ds)
+	{
 		return NULL;
+	}
+
 	num = 0;
 
-	for_each_sg(sgl, sg, sglen, i) {
+	for_each_sg(sgl, sg, sglen, i)
+	{
 		addr = sg_dma_address(sg);
 		avail = sg_dma_len(sg);
 		total += avail;
 
-		do {
+		do
+		{
 			len = min_t(size_t, avail, DMA_MAX_SIZE);
 
-			if (dir == DMA_MEM_TO_DEV) {
+			if (dir == DMA_MEM_TO_DEV)
+			{
 				src = addr;
 				dst = c->dev_addr;
-			} else if (dir == DMA_DEV_TO_MEM) {
+			}
+			else if (dir == DMA_DEV_TO_MEM)
+			{
 				src = c->dev_addr;
 				dst = addr;
 			}
@@ -564,19 +674,20 @@ static struct dma_async_tx_descriptor *k3_dma_prep_slave_sg(
 
 			addr += len;
 			avail -= len;
-		} while (avail);
+		}
+		while (avail);
 	}
 
-	ds->desc_hw[num-1].lli = 0;	/* end of link */
+	ds->desc_hw[num - 1].lli = 0;	/* end of link */
 	ds->size = total;
 	return vchan_tx_prep(&c->vc, &ds->vd, flags);
 }
 
 static struct dma_async_tx_descriptor *
 k3_dma_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t buf_addr,
-		       size_t buf_len, size_t period_len,
-		       enum dma_transfer_direction dir,
-		       unsigned long flags)
+					   size_t buf_len, size_t period_len,
+					   enum dma_transfer_direction dir,
+					   unsigned long flags)
 {
 	struct k3_dma_chan *c = to_k3_chan(chan);
 	struct k3_dma_desc_sw *ds;
@@ -587,16 +698,22 @@ k3_dma_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t buf_addr,
 	u32 en_tc2 = 0;
 
 	dev_dbg(chan->device->dev, "%s: buf %pad, dst %pad, buf len %zu, period_len = %zu, dir %d\n",
-	       __func__, &buf_addr, &to_k3_chan(chan)->dev_addr,
-	       buf_len, period_len, (int)dir);
+			__func__, &buf_addr, &to_k3_chan(chan)->dev_addr,
+			buf_len, period_len, (int)dir);
 
 	avail = buf_len;
+
 	if (avail > modulo)
+	{
 		num += DIV_ROUND_UP(avail, modulo) - 1;
+	}
 
 	ds = k3_dma_alloc_desc_resource(num, chan);
+
 	if (!ds)
+	{
 		return NULL;
+	}
 
 	c->cyclic = 1;
 	addr = buf_addr;
@@ -605,31 +722,44 @@ k3_dma_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t buf_addr,
 	num = 0;
 
 	if (period_len < modulo)
+	{
 		modulo = period_len;
+	}
 
-	do {
+	do
+	{
 		len = min_t(size_t, avail, modulo);
 
-		if (dir == DMA_MEM_TO_DEV) {
+		if (dir == DMA_MEM_TO_DEV)
+		{
 			src = addr;
 			dst = c->dev_addr;
-		} else if (dir == DMA_DEV_TO_MEM) {
+		}
+		else if (dir == DMA_DEV_TO_MEM)
+		{
 			src = c->dev_addr;
 			dst = addr;
 		}
+
 		since += len;
-		if (since >= period_len) {
+
+		if (since >= period_len)
+		{
 			/* descriptor asks for TC2 interrupt on completion */
 			en_tc2 = CX_CFG_NODEIRQ;
 			since -= period_len;
-		} else
+		}
+		else
+		{
 			en_tc2 = 0;
+		}
 
 		k3_dma_fill_desc(ds, dst, src, len, num++, c->ccfg | en_tc2);
 
 		addr += len;
 		avail -= len;
-	} while (avail);
+	}
+	while (avail);
 
 	/* "Cyclic" == end of link points back to start of link */
 	ds->desc_hw[num - 1].lli |= ds->desc_hw_lli;
@@ -640,43 +770,59 @@ k3_dma_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t buf_addr,
 }
 
 static int k3_dma_config(struct dma_chan *chan,
-			 struct dma_slave_config *cfg)
+						 struct dma_slave_config *cfg)
 {
 	struct k3_dma_chan *c = to_k3_chan(chan);
 	u32 maxburst = 0, val = 0;
 	enum dma_slave_buswidth width = DMA_SLAVE_BUSWIDTH_UNDEFINED;
 
 	if (cfg == NULL)
+	{
 		return -EINVAL;
+	}
+
 	c->dir = cfg->direction;
-	if (c->dir == DMA_DEV_TO_MEM) {
+
+	if (c->dir == DMA_DEV_TO_MEM)
+	{
 		c->ccfg = CX_CFG_DSTINCR;
 		c->dev_addr = cfg->src_addr;
 		maxburst = cfg->src_maxburst;
 		width = cfg->src_addr_width;
-	} else if (c->dir == DMA_MEM_TO_DEV) {
+	}
+	else if (c->dir == DMA_MEM_TO_DEV)
+	{
 		c->ccfg = CX_CFG_SRCINCR;
 		c->dev_addr = cfg->dst_addr;
 		maxburst = cfg->dst_maxburst;
 		width = cfg->dst_addr_width;
 	}
-	switch (width) {
-	case DMA_SLAVE_BUSWIDTH_1_BYTE:
-	case DMA_SLAVE_BUSWIDTH_2_BYTES:
-	case DMA_SLAVE_BUSWIDTH_4_BYTES:
-	case DMA_SLAVE_BUSWIDTH_8_BYTES:
-		val =  __ffs(width);
-		break;
-	default:
-		val = 3;
-		break;
+
+	switch (width)
+	{
+		case DMA_SLAVE_BUSWIDTH_1_BYTE:
+		case DMA_SLAVE_BUSWIDTH_2_BYTES:
+		case DMA_SLAVE_BUSWIDTH_4_BYTES:
+		case DMA_SLAVE_BUSWIDTH_8_BYTES:
+			val =  __ffs(width);
+			break;
+
+		default:
+			val = 3;
+			break;
 	}
+
 	c->ccfg |= (val << 12) | (val << 16);
 
 	if ((maxburst == 0) || (maxburst > 16))
+	{
 		val = 15;
+	}
 	else
+	{
 		val = maxburst - 1;
+	}
+
 	c->ccfg |= (val << 20) | (val << 24);
 	c->ccfg |= CX_CFG_MEM2PER | CX_CFG_EN;
 
@@ -714,21 +860,28 @@ static int k3_dma_terminate_all(struct dma_chan *chan)
 	/* Clear the tx descriptor lists */
 	spin_lock_irqsave(&c->vc.lock, flags);
 	vchan_get_all_descriptors(&c->vc, &head);
-	if (p) {
+
+	if (p)
+	{
 		/* vchan is assigned to a pchan - stop the channel */
 		k3_dma_terminate_chan(p, d);
 		c->phy = NULL;
 		p->vchan = NULL;
-		if (p->ds_run) {
+
+		if (p->ds_run)
+		{
 			k3_dma_free_desc(&p->ds_run->vd);
 			p->ds_run = NULL;
 		}
-		if (p->ds_done) {
+
+		if (p->ds_done)
+		{
 			k3_dma_free_desc(&p->ds_done->vd);
 			p->ds_done = NULL;
 		}
 
 	}
+
 	spin_unlock_irqrestore(&c->vc.lock, flags);
 	vchan_dma_desc_free_list(&c->vc, &head);
 
@@ -742,11 +895,17 @@ static int k3_dma_transfer_pause(struct dma_chan *chan)
 	struct k3_dma_phy *p = c->phy;
 
 	dev_dbg(d->slave.dev, "vchan %p: pause\n", &c->vc);
-	if (c->status == DMA_IN_PROGRESS) {
+
+	if (c->status == DMA_IN_PROGRESS)
+	{
 		c->status = DMA_PAUSED;
-		if (p) {
+
+		if (p)
+		{
 			k3_dma_pause_dma(p, false);
-		} else {
+		}
+		else
+		{
 			spin_lock(&d->lock);
 			list_del_init(&c->node);
 			spin_unlock(&d->lock);
@@ -765,35 +924,45 @@ static int k3_dma_transfer_resume(struct dma_chan *chan)
 
 	dev_dbg(d->slave.dev, "vchan %p: resume\n", &c->vc);
 	spin_lock_irqsave(&c->vc.lock, flags);
-	if (c->status == DMA_PAUSED) {
+
+	if (c->status == DMA_PAUSED)
+	{
 		c->status = DMA_IN_PROGRESS;
-		if (p) {
+
+		if (p)
+		{
 			k3_dma_pause_dma(p, true);
-		} else if (!list_empty(&c->vc.desc_issued)) {
+		}
+		else if (!list_empty(&c->vc.desc_issued))
+		{
 			spin_lock(&d->lock);
 			list_add_tail(&c->node, &d->chan_pending);
 			spin_unlock(&d->lock);
 		}
 	}
+
 	spin_unlock_irqrestore(&c->vc.lock, flags);
 
 	return 0;
 }
 
-static const struct of_device_id k3_pdma_dt_ids[] = {
+static const struct of_device_id k3_pdma_dt_ids[] =
+{
 	{ .compatible = "hisilicon,k3-dma-1.0", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, k3_pdma_dt_ids);
 
 static struct dma_chan *k3_of_dma_simple_xlate(struct of_phandle_args *dma_spec,
-						struct of_dma *ofdma)
+		struct of_dma *ofdma)
 {
 	struct k3_dma_dev *d = ofdma->of_dma_data;
 	unsigned int request = dma_spec->args[0];
 
 	if (request > d->dma_requests)
+	{
 		return NULL;
+	}
 
 	return dma_get_slave_channel(&(d->chans[request].vc.chan));
 }
@@ -806,52 +975,75 @@ static int k3_dma_probe(struct platform_device *op)
 	int i, ret, irq = 0;
 
 	iores = platform_get_resource(op, IORESOURCE_MEM, 0);
+
 	if (!iores)
+	{
 		return -EINVAL;
+	}
 
 	d = devm_kzalloc(&op->dev, sizeof(*d), GFP_KERNEL);
+
 	if (!d)
+	{
 		return -ENOMEM;
+	}
 
 	d->base = devm_ioremap_resource(&op->dev, iores);
+
 	if (IS_ERR(d->base))
+	{
 		return PTR_ERR(d->base);
+	}
 
 	of_id = of_match_device(k3_pdma_dt_ids, &op->dev);
-	if (of_id) {
+
+	if (of_id)
+	{
 		of_property_read_u32((&op->dev)->of_node,
-				"dma-channels", &d->dma_channels);
+							 "dma-channels", &d->dma_channels);
 		of_property_read_u32((&op->dev)->of_node,
-				"dma-requests", &d->dma_requests);
+							 "dma-requests", &d->dma_requests);
 	}
 
 	d->clk = devm_clk_get(&op->dev, NULL);
-	if (IS_ERR(d->clk)) {
+
+	if (IS_ERR(d->clk))
+	{
 		dev_err(&op->dev, "no dma clk\n");
 		return PTR_ERR(d->clk);
 	}
 
 	irq = platform_get_irq(op, 0);
 	ret = devm_request_irq(&op->dev, irq,
-			k3_dma_int_handler, 0, DRIVER_NAME, d);
+						   k3_dma_int_handler, 0, DRIVER_NAME, d);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	d->irq = irq;
 
 	/* A DMA memory pool for LLIs, align on 32-byte boundary */
 	d->pool = dmam_pool_create(DRIVER_NAME, &op->dev,
-					LLI_BLOCK_SIZE, 32, 0);
+							   LLI_BLOCK_SIZE, 32, 0);
+
 	if (!d->pool)
+	{
 		return -ENOMEM;
+	}
 
 	/* init phy channel */
 	d->phy = devm_kzalloc(&op->dev,
-		d->dma_channels * sizeof(struct k3_dma_phy), GFP_KERNEL);
-	if (d->phy == NULL)
-		return -ENOMEM;
+						  d->dma_channels * sizeof(struct k3_dma_phy), GFP_KERNEL);
 
-	for (i = 0; i < d->dma_channels; i++) {
+	if (d->phy == NULL)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < d->dma_channels; i++)
+	{
 		struct k3_dma_phy *p = &d->phy[i];
 
 		p->idx = i;
@@ -877,11 +1069,15 @@ static int k3_dma_probe(struct platform_device *op)
 
 	/* init virtual channel */
 	d->chans = devm_kzalloc(&op->dev,
-		d->dma_requests * sizeof(struct k3_dma_chan), GFP_KERNEL);
-	if (d->chans == NULL)
-		return -ENOMEM;
+							d->dma_requests * sizeof(struct k3_dma_chan), GFP_KERNEL);
 
-	for (i = 0; i < d->dma_requests; i++) {
+	if (d->chans == NULL)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < d->dma_requests; i++)
+	{
 		struct k3_dma_chan *c = &d->chans[i];
 
 		c->status = DMA_IN_PROGRESS;
@@ -892,7 +1088,9 @@ static int k3_dma_probe(struct platform_device *op)
 
 	/* Enable clock before accessing registers */
 	ret = clk_prepare_enable(d->clk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&op->dev, "clk_prepare_enable failed: %d\n", ret);
 		return ret;
 	}
@@ -900,13 +1098,19 @@ static int k3_dma_probe(struct platform_device *op)
 	k3_dma_enable_dma(d, true);
 
 	ret = dma_async_device_register(&d->slave);
+
 	if (ret)
+	{
 		goto dma_async_register_fail;
+	}
 
 	ret = of_dma_controller_register((&op->dev)->of_node,
-					k3_of_dma_simple_xlate, d);
+									 k3_of_dma_simple_xlate, d);
+
 	if (ret)
+	{
 		goto of_dma_register_fail;
+	}
 
 	spin_lock_init(&d->lock);
 	INIT_LIST_HEAD(&d->chan_pending);
@@ -933,7 +1137,8 @@ static int k3_dma_remove(struct platform_device *op)
 
 	devm_free_irq(&op->dev, d->irq, d);
 
-	list_for_each_entry_safe(c, cn, &d->slave.channels, vc.chan.device_node) {
+	list_for_each_entry_safe(c, cn, &d->slave.channels, vc.chan.device_node)
+	{
 		list_del(&c->vc.chan.device_node);
 		tasklet_kill(&c->vc.task);
 	}
@@ -949,11 +1154,14 @@ static int k3_dma_suspend_dev(struct device *dev)
 	u32 stat = 0;
 
 	stat = k3_dma_get_chan_stat(d);
-	if (stat) {
+
+	if (stat)
+	{
 		dev_warn(d->slave.dev,
-			"chan %d is running fail to suspend\n", stat);
+				 "chan %d is running fail to suspend\n", stat);
 		return -1;
 	}
+
 	k3_dma_enable_dma(d, false);
 	clk_disable_unprepare(d->clk);
 	return 0;
@@ -965,10 +1173,13 @@ static int k3_dma_resume_dev(struct device *dev)
 	int ret = 0;
 
 	ret = clk_prepare_enable(d->clk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(d->slave.dev, "clk_prepare_enable failed: %d\n", ret);
 		return ret;
 	}
+
 	k3_dma_enable_dma(d, true);
 	return 0;
 }
@@ -976,7 +1187,8 @@ static int k3_dma_resume_dev(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(k3_dma_pmops, k3_dma_suspend_dev, k3_dma_resume_dev);
 
-static struct platform_driver k3_pdma_driver = {
+static struct platform_driver k3_pdma_driver =
+{
 	.driver		= {
 		.name	= DRIVER_NAME,
 		.pm	= &k3_dma_pmops,

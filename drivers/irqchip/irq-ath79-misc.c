@@ -33,15 +33,17 @@ static void ath79_misc_irq_handler(struct irq_desc *desc)
 	chained_irq_enter(chip, desc);
 
 	pending = __raw_readl(base + AR71XX_RESET_REG_MISC_INT_STATUS) &
-		  __raw_readl(base + AR71XX_RESET_REG_MISC_INT_ENABLE);
+			  __raw_readl(base + AR71XX_RESET_REG_MISC_INT_ENABLE);
 
-	if (!pending) {
+	if (!pending)
+	{
 		spurious_interrupt();
 		chained_irq_exit(chip, desc);
 		return;
 	}
 
-	while (pending) {
+	while (pending)
+	{
 		int bit = __ffs(pending);
 
 		generic_handle_irq(irq_linear_revmap(domain, bit));
@@ -90,7 +92,8 @@ static void ar724x_misc_irq_ack(struct irq_data *d)
 	__raw_readl(base + AR71XX_RESET_REG_MISC_INT_STATUS);
 }
 
-static struct irq_chip ath79_misc_irq_chip = {
+static struct irq_chip ath79_misc_irq_chip =
+{
 	.name		= "MISC",
 	.irq_unmask	= ar71xx_misc_irq_unmask,
 	.irq_mask	= ar71xx_misc_irq_mask,
@@ -103,7 +106,8 @@ static int misc_map(struct irq_domain *d, unsigned int irq, irq_hw_number_t hw)
 	return 0;
 }
 
-static const struct irq_domain_ops misc_irq_domain_ops = {
+static const struct irq_domain_ops misc_irq_domain_ops =
+{
 	.xlate = irq_domain_xlate_onecell,
 	.map = misc_map,
 };
@@ -128,20 +132,26 @@ static int __init ath79_misc_intc_of_init(
 	int irq;
 
 	irq = irq_of_parse_and_map(node, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		pr_err("Failed to get MISC IRQ\n");
 		return -EINVAL;
 	}
 
 	base = of_iomap(node, 0);
-	if (!base) {
+
+	if (!base)
+	{
 		pr_err("Failed to get MISC IRQ registers\n");
 		return -ENOMEM;
 	}
 
 	domain = irq_domain_add_linear(node, ATH79_MISC_IRQ_COUNT,
-				&misc_irq_domain_ops, base);
-	if (!domain) {
+								   &misc_irq_domain_ops, base);
+
+	if (!domain)
+	{
 		pr_err("Failed to add MISC irqdomain\n");
 		return -EINVAL;
 	}
@@ -158,7 +168,7 @@ static int __init ar7100_misc_intc_of_init(
 }
 
 IRQCHIP_DECLARE(ar7100_misc_intc, "qca,ar7100-misc-intc",
-		ar7100_misc_intc_of_init);
+				ar7100_misc_intc_of_init);
 
 static int __init ar7240_misc_intc_of_init(
 	struct device_node *node, struct device_node *parent)
@@ -168,22 +178,29 @@ static int __init ar7240_misc_intc_of_init(
 }
 
 IRQCHIP_DECLARE(ar7240_misc_intc, "qca,ar7240-misc-intc",
-		ar7240_misc_intc_of_init);
+				ar7240_misc_intc_of_init);
 
 void __init ath79_misc_irq_init(void __iomem *regs, int irq,
-				int irq_base, bool is_ar71xx)
+								int irq_base, bool is_ar71xx)
 {
 	struct irq_domain *domain;
 
 	if (is_ar71xx)
+	{
 		ath79_misc_irq_chip.irq_mask_ack = ar71xx_misc_irq_mask;
+	}
 	else
+	{
 		ath79_misc_irq_chip.irq_ack = ar724x_misc_irq_ack;
+	}
 
 	domain = irq_domain_add_legacy(NULL, ATH79_MISC_IRQ_COUNT,
-			irq_base, 0, &misc_irq_domain_ops, regs);
+								   irq_base, 0, &misc_irq_domain_ops, regs);
+
 	if (!domain)
+	{
 		panic("Failed to create MISC irqdomain");
+	}
 
 	ath79_misc_intc_domain_init(domain, irq);
 }

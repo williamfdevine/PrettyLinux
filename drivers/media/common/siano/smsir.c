@@ -40,7 +40,8 @@ void sms_ir_event(struct smscore_device_t *coredev, const char *buf, int len)
 	int i;
 	const s32 *samples = (const void *)buf;
 
-	for (i = 0; i < len >> 2; i++) {
+	for (i = 0; i < len >> 2; i++)
+	{
 		DEFINE_IR_RAW_EVENT(ev);
 
 		ev.duration = abs(samples[i]) * 1000; /* Convert to ns */
@@ -48,6 +49,7 @@ void sms_ir_event(struct smscore_device_t *coredev, const char *buf, int len)
 
 		ir_raw_event_store(coredev->ir.dev, &ev);
 	}
+
 	ir_raw_event_handle(coredev->ir.dev);
 }
 
@@ -59,16 +61,19 @@ int sms_ir_init(struct smscore_device_t *coredev)
 
 	pr_debug("Allocating rc device\n");
 	dev = rc_allocate_device();
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	coredev->ir.controller = 0;	/* Todo: vega/nova SPI number */
 	coredev->ir.timeout = IR_DEFAULT_TIMEOUT;
 	pr_debug("IR port %d, timeout %d ms\n",
-			coredev->ir.controller, coredev->ir.timeout);
+			 coredev->ir.controller, coredev->ir.timeout);
 
 	snprintf(coredev->ir.name, sizeof(coredev->ir.name),
-		 "SMS IR (%s)", sms_get_board(board_id)->name);
+			 "SMS IR (%s)", sms_get_board(board_id)->name);
 
 	strlcpy(coredev->ir.phys, coredev->devpath, sizeof(coredev->ir.phys));
 	strlcat(coredev->ir.phys, "/ir0", sizeof(coredev->ir.phys));
@@ -92,10 +97,12 @@ int sms_ir_init(struct smscore_device_t *coredev)
 	dev->driver_name = MODULE_NAME;
 
 	pr_debug("Input device (IR) %s is set for key events\n",
-		 dev->input_name);
+			 dev->input_name);
 
 	err = rc_register_device(dev);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		pr_err("Failed to register device\n");
 		rc_free_device(dev);
 		return err;

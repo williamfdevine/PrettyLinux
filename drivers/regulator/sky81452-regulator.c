@@ -34,7 +34,8 @@
 #define SKY81452_LEN	0x40
 #define SKY81452_LOUT	0x1F
 
-static struct regulator_ops sky81452_reg_ops = {
+static struct regulator_ops sky81452_reg_ops =
+{
 	.list_voltage = regulator_list_voltage_linear_range,
 	.map_voltage = regulator_map_voltage_linear_range,
 	.get_voltage_sel = regulator_get_voltage_sel_regmap,
@@ -44,12 +45,14 @@ static struct regulator_ops sky81452_reg_ops = {
 	.is_enabled = regulator_is_enabled_regmap,
 };
 
-static const struct regulator_linear_range sky81452_reg_ranges[] = {
+static const struct regulator_linear_range sky81452_reg_ranges[] =
+{
 	REGULATOR_LINEAR_RANGE(4500000, 0, 14, 250000),
 	REGULATOR_LINEAR_RANGE(9000000, 15, 31, 1000000),
 };
 
-static const struct regulator_desc sky81452_reg = {
+static const struct regulator_desc sky81452_reg =
+{
 	.name = "LOUT",
 	.of_match = of_match_ptr("lout"),
 	.regulators_node = of_match_ptr("regulator"),
@@ -78,7 +81,9 @@ static int sky81452_reg_probe(struct platform_device *pdev)
 	config.regmap = dev_get_drvdata(dev->parent);
 
 	rdev = devm_regulator_register(dev, &sky81452_reg, &config);
-	if (IS_ERR(rdev)) {
+
+	if (IS_ERR(rdev))
+	{
 		dev_err(dev, "failed to register. err=%ld\n", PTR_ERR(rdev));
 		return PTR_ERR(rdev);
 	}
@@ -88,7 +93,8 @@ static int sky81452_reg_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver sky81452_reg_driver = {
+static struct platform_driver sky81452_reg_driver =
+{
 	.driver = {
 		.name = "sky81452-regulator",
 	},

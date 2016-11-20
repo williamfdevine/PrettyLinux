@@ -11,7 +11,8 @@
 #define EBT_LOG_PREFIX_SIZE 30
 #define EBT_LOG_WATCHER "log"
 
-struct ebt_log_info {
+struct ebt_log_info
+{
 	__u8 loglevel;
 	__u8 prefix[EBT_LOG_PREFIX_SIZE];
 	__u32 bitmask;

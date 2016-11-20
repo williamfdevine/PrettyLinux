@@ -24,7 +24,8 @@
 #ifndef VI_STRUCTS_H_
 #define VI_STRUCTS_H_
 
-struct vi_sdma_mqd {
+struct vi_sdma_mqd
+{
 	uint32_t sdmax_rlcx_rb_cntl;
 	uint32_t sdmax_rlcx_rb_base;
 	uint32_t sdmax_rlcx_rb_base_hi;
@@ -155,7 +156,8 @@ struct vi_sdma_mqd {
 	uint32_t reserved_127;
 };
 
-struct vi_mqd {
+struct vi_mqd
+{
 	uint32_t header;
 	uint32_t compute_dispatch_initiator;
 	uint32_t compute_dim_x;

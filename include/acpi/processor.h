@@ -47,7 +47,8 @@
 
 struct acpi_processor_cx;
 
-struct acpi_power_register {
+struct acpi_power_register
+{
 	u8 descriptor;
 	u16 length;
 	u8 space_id;
@@ -57,7 +58,8 @@ struct acpi_power_register {
 	u64 address;
 } __packed;
 
-struct acpi_processor_cx {
+struct acpi_processor_cx
+{
 	u8 valid;
 	u8 type;
 	u32 address;
@@ -68,7 +70,8 @@ struct acpi_processor_cx {
 	char desc[ACPI_CX_DESC_LEN];
 };
 
-struct acpi_lpi_state {
+struct acpi_lpi_state
+{
 	u32 min_residency;
 	u32 wake_latency; /* worst case */
 	u32 flags;
@@ -81,9 +84,11 @@ struct acpi_lpi_state {
 	char desc[ACPI_CX_DESC_LEN];
 };
 
-struct acpi_processor_power {
+struct acpi_processor_power
+{
 	int count;
-	union {
+	union
+	{
 		struct acpi_processor_cx states[ACPI_PROCESSOR_MAX_POWER];
 		struct acpi_lpi_state lpi_states[ACPI_PROCESSOR_MAX_POWER];
 	};
@@ -92,7 +97,8 @@ struct acpi_processor_power {
 
 /* Performance Management */
 
-struct acpi_psd_package {
+struct acpi_psd_package
+{
 	u64 num_entries;
 	u64 revision;
 	u64 domain;
@@ -100,7 +106,8 @@ struct acpi_psd_package {
 	u64 num_processors;
 } __packed;
 
-struct acpi_pct_register {
+struct acpi_pct_register
+{
 	u8 descriptor;
 	u16 length;
 	u8 space_id;
@@ -110,7 +117,8 @@ struct acpi_pct_register {
 	u64 address;
 } __packed;
 
-struct acpi_processor_px {
+struct acpi_processor_px
+{
 	u64 core_frequency;	/* megahertz */
 	u64 power;	/* milliWatts */
 	u64 transition_latency;	/* microseconds */
@@ -119,7 +127,8 @@ struct acpi_processor_px {
 	u64 status;	/* success indicator */
 };
 
-struct acpi_processor_performance {
+struct acpi_processor_performance
+{
 	unsigned int state;
 	unsigned int platform_limit;
 	struct acpi_pct_register control_register;
@@ -133,7 +142,8 @@ struct acpi_processor_performance {
 
 /* Throttling Control */
 
-struct acpi_tsd_package {
+struct acpi_tsd_package
+{
 	u64 num_entries;
 	u64 revision;
 	u64 domain;
@@ -141,7 +151,8 @@ struct acpi_tsd_package {
 	u64 num_processors;
 } __packed;
 
-struct acpi_ptc_register {
+struct acpi_ptc_register
+{
 	u8 descriptor;
 	u16 length;
 	u8 space_id;
@@ -151,20 +162,23 @@ struct acpi_ptc_register {
 	u64 address;
 } __packed;
 
-struct acpi_processor_tx_tss {
+struct acpi_processor_tx_tss
+{
 	u64 freqpercentage;	/* */
 	u64 power;	/* milliWatts */
 	u64 transition_latency;	/* microseconds */
 	u64 control;	/* control value */
 	u64 status;	/* success indicator */
 };
-struct acpi_processor_tx {
+struct acpi_processor_tx
+{
 	u16 power;
 	u16 performance;
 };
 
 struct acpi_processor;
-struct acpi_processor_throttling {
+struct acpi_processor_throttling
+{
 	unsigned int state;
 	unsigned int platform_limit;
 	struct acpi_pct_register control_register;
@@ -173,9 +187,9 @@ struct acpi_processor_throttling {
 	struct acpi_processor_tx_tss *states_tss;
 	struct acpi_tsd_package domain_info;
 	cpumask_var_t shared_cpu_map;
-	int (*acpi_processor_get_throttling) (struct acpi_processor * pr);
-	int (*acpi_processor_set_throttling) (struct acpi_processor * pr,
-					      int state, bool force);
+	int (*acpi_processor_get_throttling) (struct acpi_processor *pr);
+	int (*acpi_processor_set_throttling) (struct acpi_processor *pr,
+										  int state, bool force);
 
 	u32 address;
 	u8 duty_offset;
@@ -187,32 +201,36 @@ struct acpi_processor_throttling {
 
 /* Limit Interface */
 
-struct acpi_processor_lx {
+struct acpi_processor_lx
+{
 	int px;			/* performance state */
 	int tx;			/* throttle level */
 };
 
-struct acpi_processor_limit {
+struct acpi_processor_limit
+{
 	struct acpi_processor_lx state;	/* current limit */
 	struct acpi_processor_lx thermal;	/* thermal limit */
 	struct acpi_processor_lx user;	/* user limit */
 };
 
-struct acpi_processor_flags {
-	u8 power:1;
-	u8 performance:1;
-	u8 throttling:1;
-	u8 limit:1;
-	u8 bm_control:1;
-	u8 bm_check:1;
-	u8 has_cst:1;
-	u8 has_lpi:1;
-	u8 power_setup_done:1;
-	u8 bm_rld_set:1;
-	u8 need_hotplug_init:1;
+struct acpi_processor_flags
+{
+	u8 power: 1;
+	u8 performance: 1;
+	u8 throttling: 1;
+	u8 limit: 1;
+	u8 bm_control: 1;
+	u8 bm_check: 1;
+	u8 has_cst: 1;
+	u8 has_lpi: 1;
+	u8 power_setup_done: 1;
+	u8 bm_rld_set: 1;
+	u8 need_hotplug_init: 1;
 };
 
-struct acpi_processor {
+struct acpi_processor
+{
 	acpi_handle handle;
 	u32 acpi_id;
 	phys_cpuid_t phys_id;	/* CPU hardware ID such as APIC ID for x86 */
@@ -231,22 +249,24 @@ struct acpi_processor {
 	struct device *dev; /* Processor device. */
 };
 
-struct acpi_processor_errata {
+struct acpi_processor_errata
+{
 	u8 smp;
-	struct {
-		u8 throttle:1;
-		u8 fdma:1;
-		u8 reserved:6;
+	struct
+	{
+		u8 throttle: 1;
+		u8 fdma: 1;
+		u8 reserved: 6;
 		u32 bmisx;
 	} piix4;
 };
 
 extern int acpi_processor_preregister_performance(struct
-						  acpi_processor_performance
-						  __percpu *performance);
+		acpi_processor_performance
+		__percpu *performance);
 
 extern int acpi_processor_register_performance(struct acpi_processor_performance
-					       *performance, unsigned int cpu);
+		*performance, unsigned int cpu);
 extern void acpi_processor_unregister_performance(unsigned int cpu);
 
 /* note: this locks both the calling module and the processor module
@@ -262,28 +282,28 @@ extern struct acpi_processor_errata errata;
 
 #if defined(ARCH_HAS_POWER_INIT) && defined(CONFIG_ACPI_PROCESSOR_CSTATE)
 void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
-					unsigned int cpu);
+										unsigned int cpu);
 int acpi_processor_ffh_cstate_probe(unsigned int cpu,
-				    struct acpi_processor_cx *cx,
-				    struct acpi_power_register *reg);
+									struct acpi_processor_cx *cx,
+									struct acpi_power_register *reg);
 void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx *cstate);
 #else
 static inline void acpi_processor_power_init_bm_check(struct
-						      acpi_processor_flags
-						      *flags, unsigned int cpu)
+		acpi_processor_flags
+		*flags, unsigned int cpu)
 {
 	flags->bm_check = 1;
 	return;
 }
 static inline int acpi_processor_ffh_cstate_probe(unsigned int cpu,
-						  struct acpi_processor_cx *cx,
-						  struct acpi_power_register
-						  *reg)
+		struct acpi_processor_cx *cx,
+		struct acpi_power_register
+		*reg)
 {
 	return -1;
 }
 static inline void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx
-						   *cstate)
+		*cstate)
 {
 	return;
 }
@@ -306,16 +326,19 @@ static inline void acpi_processor_ppc_exit(void)
 	return;
 }
 static inline int acpi_processor_ppc_has_changed(struct acpi_processor *pr,
-								int event_flag)
+		int event_flag)
 {
 	static unsigned int printout = 1;
-	if (printout) {
+
+	if (printout)
+	{
 		printk(KERN_WARNING
-		       "Warning: Processor Platform Limit event detected, but not handled.\n");
+			   "Warning: Processor Platform Limit event detected, but not handled.\n");
 		printk(KERN_WARNING
-		       "Consider compiling CPUfreq support into your kernel.\n");
+			   "Consider compiling CPUfreq support into your kernel.\n");
 		printout = 0;
 	}
+
 	return 0;
 }
 static inline int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
@@ -353,13 +376,13 @@ void acpi_processor_set_pdc(acpi_handle handle);
 int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
 int acpi_processor_get_throttling_info(struct acpi_processor *pr);
 extern int acpi_processor_set_throttling(struct acpi_processor *pr,
-					 int state, bool force);
+		int state, bool force);
 /*
  * Reevaluate whether the T-state is invalid after one cpu is
  * onlined/offlined. In such case the flags.throttling will be updated.
  */
 extern void acpi_processor_reevaluate_tstate(struct acpi_processor *pr,
-			bool is_dead);
+		bool is_dead);
 extern const struct file_operations acpi_processor_throttling_fops;
 extern void acpi_processor_throttling_init(void);
 #else
@@ -374,13 +397,13 @@ static inline int acpi_processor_get_throttling_info(struct acpi_processor *pr)
 }
 
 static inline int acpi_processor_set_throttling(struct acpi_processor *pr,
-					 int state, bool force)
+		int state, bool force)
 {
 	return -ENODEV;
 }
 
 static inline void acpi_processor_reevaluate_tstate(struct acpi_processor *pr,
-			bool is_dead) {}
+		bool is_dead) {}
 
 static inline void acpi_processor_throttling_init(void) {}
 #endif	/* CONFIG_ACPI_CPU_FREQ_PSS */

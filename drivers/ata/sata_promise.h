@@ -29,7 +29,8 @@
 
 #include <linux/ata.h>
 
-enum pdc_packet_bits {
+enum pdc_packet_bits
+{
 	PDC_PKT_READ		= (1 << 2),
 	PDC_PKT_NODATA		= (1 << 3),
 
@@ -42,8 +43,8 @@ enum pdc_packet_bits {
 };
 
 static inline unsigned int pdc_pkt_header(struct ata_taskfile *tf,
-					  dma_addr_t sg_table,
-					  unsigned int devno, u8 *buf)
+		dma_addr_t sg_table,
+		unsigned int devno, u8 *buf)
 {
 	u8 dev_reg;
 	__le32 *buf32 = (__le32 *) buf;
@@ -51,30 +52,40 @@ static inline unsigned int pdc_pkt_header(struct ata_taskfile *tf,
 	/* set control bits (byte 0), zero delay seq id (byte 3),
 	 * and seq id (byte 2)
 	 */
-	switch (tf->protocol) {
-	case ATA_PROT_DMA:
-		if (!(tf->flags & ATA_TFLAG_WRITE))
-			buf32[0] = cpu_to_le32(PDC_PKT_READ);
-		else
-			buf32[0] = 0;
-		break;
+	switch (tf->protocol)
+	{
+		case ATA_PROT_DMA:
+			if (!(tf->flags & ATA_TFLAG_WRITE))
+			{
+				buf32[0] = cpu_to_le32(PDC_PKT_READ);
+			}
+			else
+			{
+				buf32[0] = 0;
+			}
 
-	case ATA_PROT_NODATA:
-		buf32[0] = cpu_to_le32(PDC_PKT_NODATA);
-		break;
+			break;
 
-	default:
-		BUG();
-		break;
+		case ATA_PROT_NODATA:
+			buf32[0] = cpu_to_le32(PDC_PKT_NODATA);
+			break;
+
+		default:
+			BUG();
+			break;
 	}
 
 	buf32[1] = cpu_to_le32(sg_table);	/* S/G table addr */
 	buf32[2] = 0;				/* no next-packet */
 
 	if (devno == 0)
+	{
 		dev_reg = ATA_DEVICE_OBS;
+	}
 	else
+	{
 		dev_reg = ATA_DEVICE_OBS | ATA_DEV1;
+	}
 
 	/* select device */
 	buf[12] = (1 << 5) | PDC_PKT_CLEAR_BSY | ATA_REG_DEVICE;
@@ -88,9 +99,10 @@ static inline unsigned int pdc_pkt_header(struct ata_taskfile *tf,
 }
 
 static inline unsigned int pdc_pkt_footer(struct ata_taskfile *tf, u8 *buf,
-				  unsigned int i)
+		unsigned int i)
 {
-	if (tf->flags & ATA_TFLAG_DEVICE) {
+	if (tf->flags & ATA_TFLAG_DEVICE)
+	{
 		buf[i++] = (1 << 5) | ATA_REG_DEVICE;
 		buf[i++] = tf->device;
 	}

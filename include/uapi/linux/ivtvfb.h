@@ -26,7 +26,8 @@
 
 /* Framebuffer external API */
 
-struct ivtvfb_dma_frame {
+struct ivtvfb_dma_frame
+{
 	void __user *source;
 	unsigned long dest_offset;
 	int count;

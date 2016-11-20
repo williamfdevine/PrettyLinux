@@ -43,7 +43,8 @@
  * All current and future KUC messages should use this header.
  * To avoid having to include Lustre headers from libcfs, define this here.
  */
-struct kuc_hdr {
+struct kuc_hdr
+{
 	__u16 kuc_magic;
 	/* Each new Lustre feature should use a different transport */
 	__u8  kuc_transport;
@@ -59,13 +60,15 @@ struct kuc_hdr {
 #define KUC_MAGIC		0x191C /*Lustre9etLinC */
 
 /* kuc_msgtype values are defined in each transport */
-enum kuc_transport_type {
+enum kuc_transport_type
+{
 	KUC_TRANSPORT_GENERIC	= 1,
 	KUC_TRANSPORT_HSM	= 2,
 	KUC_TRANSPORT_CHANGELOG	= 3,
 };
 
-enum kuc_generic_message_type {
+enum kuc_generic_message_type
+{
 	KUC_MSG_SHUTDOWN	= 1,
 };
 
@@ -82,7 +85,8 @@ enum kuc_generic_message_type {
 #define LK_NOFD -1U
 
 /* kernelcomm control structure, passed from userspace to kernel */
-struct lustre_kernelcomm {
+struct lustre_kernelcomm
+{
 	__u32 lk_wfd;
 	__u32 lk_rfd;
 	__u32 lk_uid;

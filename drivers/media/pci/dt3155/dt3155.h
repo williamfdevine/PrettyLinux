@@ -29,8 +29,8 @@
 #define DT3155_VER_MIN 0
 #define DT3155_VER_EXT 0
 #define DT3155_VERSION  __stringify(DT3155_VER_MAJ)	"."		\
-			__stringify(DT3155_VER_MIN)	"."		\
-			__stringify(DT3155_VER_EXT)
+	__stringify(DT3155_VER_MIN)	"."		\
+	__stringify(DT3155_VER_EXT)
 
 /* DT3155 Base Register offsets (memory mapped) */
 #define EVEN_DMA_START	 0x00
@@ -175,7 +175,8 @@
  * @csr2:		local copy of csr2 register
  * @config:		local copy of config register
  */
-struct dt3155_priv {
+struct dt3155_priv
+{
 	struct v4l2_device v4l2_dev;
 	struct video_device vdev;
 	struct pci_dev *pdev;

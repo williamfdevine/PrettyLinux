@@ -15,7 +15,8 @@
 #ifndef __RTL8188E_CMD_H__
 #define __RTL8188E_CMD_H__
 
-enum RTL8188E_H2C_CMD_ID {
+enum RTL8188E_H2C_CMD_ID
+{
 	/* Class Common */
 	H2C_COM_RSVD_PAGE		= 0x00,
 	H2C_COM_MEDIA_STATUS_RPT	= 0x01,
@@ -46,14 +47,16 @@ enum RTL8188E_H2C_CMD_ID {
 	H2C_BT_PSD_RST			= 0x63,
 
 	/* Class */
-	 H2C_RESET_TSF			= 0xc0,
+	H2C_RESET_TSF			= 0xc0,
 };
 
-enum {
+enum
+{
 	PWRS
 };
 
-struct setpwrmode_parm {
+struct setpwrmode_parm
+{
 	u8 Mode;/* 0:Active,1:LPS,2:WMMPS */
 	u8 SmartPS_RLBM;/* LPS= 0:PS_Poll,1:PS_Poll,2:NullData,WMM= 0:PS_Poll,1:NullData */
 	u8 AwakeInterval;	/*  unit: beacon interval */
@@ -61,7 +64,8 @@ struct setpwrmode_parm {
 	u8 PwrState;/* AllON(0x0c),RFON(0x04),RFOFF(0x00) */
 };
 
-struct rsvdpage_loc {
+struct rsvdpage_loc
+{
 	u8 LocProbeRsp;
 	u8 LocPsPoll;
 	u8 LocNullData;

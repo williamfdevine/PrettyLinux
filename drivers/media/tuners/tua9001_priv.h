@@ -21,12 +21,14 @@
 #include <linux/math64.h>
 #include <linux/regmap.h>
 
-struct tua9001_reg_val {
+struct tua9001_reg_val
+{
 	u8 reg;
 	u16 val;
 };
 
-struct tua9001_dev {
+struct tua9001_dev
+{
 	struct dvb_frontend *fe;
 	struct i2c_client *client;
 	struct regmap *regmap;

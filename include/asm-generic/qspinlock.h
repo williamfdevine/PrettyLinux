@@ -29,7 +29,7 @@
  * and the waiter is just unfortunate enough to not see any unlock state.
  */
 #ifndef queued_spin_unlock_wait
-extern void queued_spin_unlock_wait(struct qspinlock *lock);
+	extern void queued_spin_unlock_wait(struct qspinlock *lock);
 #endif
 
 /**
@@ -82,8 +82,11 @@ static __always_inline int queued_spin_is_contended(struct qspinlock *lock)
 static __always_inline int queued_spin_trylock(struct qspinlock *lock)
 {
 	if (!atomic_read(&lock->val) &&
-	   (atomic_cmpxchg_acquire(&lock->val, 0, _Q_LOCKED_VAL) == 0))
+		(atomic_cmpxchg_acquire(&lock->val, 0, _Q_LOCKED_VAL) == 0))
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -98,8 +101,12 @@ static __always_inline void queued_spin_lock(struct qspinlock *lock)
 	u32 val;
 
 	val = atomic_cmpxchg_acquire(&lock->val, 0, _Q_LOCKED_VAL);
+
 	if (likely(val == 0))
+	{
 		return;
+	}
+
 	queued_spin_lock_slowpath(lock, val);
 }
 

@@ -53,13 +53,13 @@
  * checking a 768 and a 1024 bit ElGamal signature.
  * (wk 22.12.97) */
 #ifndef KARATSUBA_THRESHOLD
-#define KARATSUBA_THRESHOLD 16
+	#define KARATSUBA_THRESHOLD 16
 #endif
 
 /* The code can't handle KARATSUBA_THRESHOLD smaller than 2.  */
 #if KARATSUBA_THRESHOLD < 2
-#undef KARATSUBA_THRESHOLD
-#define KARATSUBA_THRESHOLD 2
+	#undef KARATSUBA_THRESHOLD
+	#define KARATSUBA_THRESHOLD 2
 #endif
 
 typedef mpi_limb_t *mpi_ptr_t;	/* pointer to a limb */
@@ -68,7 +68,10 @@ typedef int mpi_size_t;		/* (must be a signed type) */
 static inline int RESIZE_IF_NEEDED(MPI a, unsigned b)
 {
 	if (a->alloced < b)
+	{
 		return mpi_resize(a, b);
+	}
+
 	return 0;
 }
 
@@ -169,26 +172,27 @@ int mpi_lshift_limbs(MPI a, unsigned int count);
 
 /*-- mpihelp-add.c --*/
 static inline mpi_limb_t mpihelp_add_1(mpi_ptr_t res_ptr, mpi_ptr_t s1_ptr,
-			 mpi_size_t s1_size, mpi_limb_t s2_limb);
+									   mpi_size_t s1_size, mpi_limb_t s2_limb);
 mpi_limb_t mpihelp_add_n(mpi_ptr_t res_ptr, mpi_ptr_t s1_ptr,
-			 mpi_ptr_t s2_ptr, mpi_size_t size);
+						 mpi_ptr_t s2_ptr, mpi_size_t size);
 static inline mpi_limb_t mpihelp_add(mpi_ptr_t res_ptr, mpi_ptr_t s1_ptr, mpi_size_t s1_size,
-		       mpi_ptr_t s2_ptr, mpi_size_t s2_size);
+									 mpi_ptr_t s2_ptr, mpi_size_t s2_size);
 
 /*-- mpihelp-sub.c --*/
 static inline mpi_limb_t mpihelp_sub_1(mpi_ptr_t res_ptr, mpi_ptr_t s1_ptr,
-			 mpi_size_t s1_size, mpi_limb_t s2_limb);
+									   mpi_size_t s1_size, mpi_limb_t s2_limb);
 mpi_limb_t mpihelp_sub_n(mpi_ptr_t res_ptr, mpi_ptr_t s1_ptr,
-			 mpi_ptr_t s2_ptr, mpi_size_t size);
+						 mpi_ptr_t s2_ptr, mpi_size_t size);
 static inline mpi_limb_t mpihelp_sub(mpi_ptr_t res_ptr, mpi_ptr_t s1_ptr, mpi_size_t s1_size,
-		       mpi_ptr_t s2_ptr, mpi_size_t s2_size);
+									 mpi_ptr_t s2_ptr, mpi_size_t s2_size);
 
 /*-- mpihelp-cmp.c --*/
 int mpihelp_cmp(mpi_ptr_t op1_ptr, mpi_ptr_t op2_ptr, mpi_size_t size);
 
 /*-- mpihelp-mul.c --*/
 
-struct karatsuba_ctx {
+struct karatsuba_ctx
+{
 	struct karatsuba_ctx *next;
 	mpi_ptr_t tspace;
 	mpi_size_t tspace_size;
@@ -199,59 +203,59 @@ struct karatsuba_ctx {
 void mpihelp_release_karatsuba_ctx(struct karatsuba_ctx *ctx);
 
 mpi_limb_t mpihelp_addmul_1(mpi_ptr_t res_ptr, mpi_ptr_t s1_ptr,
-			    mpi_size_t s1_size, mpi_limb_t s2_limb);
+							mpi_size_t s1_size, mpi_limb_t s2_limb);
 mpi_limb_t mpihelp_submul_1(mpi_ptr_t res_ptr, mpi_ptr_t s1_ptr,
-			    mpi_size_t s1_size, mpi_limb_t s2_limb);
+							mpi_size_t s1_size, mpi_limb_t s2_limb);
 int mpihelp_mul_n(mpi_ptr_t prodp, mpi_ptr_t up, mpi_ptr_t vp, mpi_size_t size);
 int mpihelp_mul(mpi_ptr_t prodp, mpi_ptr_t up, mpi_size_t usize,
-		mpi_ptr_t vp, mpi_size_t vsize, mpi_limb_t *_result);
+				mpi_ptr_t vp, mpi_size_t vsize, mpi_limb_t *_result);
 void mpih_sqr_n_basecase(mpi_ptr_t prodp, mpi_ptr_t up, mpi_size_t size);
 void mpih_sqr_n(mpi_ptr_t prodp, mpi_ptr_t up, mpi_size_t size,
-		mpi_ptr_t tspace);
+				mpi_ptr_t tspace);
 
 int mpihelp_mul_karatsuba_case(mpi_ptr_t prodp,
-			       mpi_ptr_t up, mpi_size_t usize,
-			       mpi_ptr_t vp, mpi_size_t vsize,
-			       struct karatsuba_ctx *ctx);
+							   mpi_ptr_t up, mpi_size_t usize,
+							   mpi_ptr_t vp, mpi_size_t vsize,
+							   struct karatsuba_ctx *ctx);
 
 /*-- mpihelp-mul_1.c (or xxx/cpu/ *.S) --*/
 mpi_limb_t mpihelp_mul_1(mpi_ptr_t res_ptr, mpi_ptr_t s1_ptr,
-			 mpi_size_t s1_size, mpi_limb_t s2_limb);
+						 mpi_size_t s1_size, mpi_limb_t s2_limb);
 
 /*-- mpihelp-div.c --*/
 mpi_limb_t mpihelp_mod_1(mpi_ptr_t dividend_ptr, mpi_size_t dividend_size,
-			 mpi_limb_t divisor_limb);
+						 mpi_limb_t divisor_limb);
 mpi_limb_t mpihelp_divrem(mpi_ptr_t qp, mpi_size_t qextra_limbs,
-			  mpi_ptr_t np, mpi_size_t nsize,
-			  mpi_ptr_t dp, mpi_size_t dsize);
+						  mpi_ptr_t np, mpi_size_t nsize,
+						  mpi_ptr_t dp, mpi_size_t dsize);
 mpi_limb_t mpihelp_divmod_1(mpi_ptr_t quot_ptr,
-			    mpi_ptr_t dividend_ptr, mpi_size_t dividend_size,
-			    mpi_limb_t divisor_limb);
+							mpi_ptr_t dividend_ptr, mpi_size_t dividend_size,
+							mpi_limb_t divisor_limb);
 
 /*-- mpihelp-shift.c --*/
 mpi_limb_t mpihelp_lshift(mpi_ptr_t wp, mpi_ptr_t up, mpi_size_t usize,
-			  unsigned cnt);
+						  unsigned cnt);
 mpi_limb_t mpihelp_rshift(mpi_ptr_t wp, mpi_ptr_t up, mpi_size_t usize,
-			  unsigned cnt);
+						  unsigned cnt);
 
 /* Define stuff for longlong.h.  */
 #define W_TYPE_SIZE BITS_PER_MPI_LIMB
 typedef mpi_limb_t UWtype;
 typedef unsigned int UHWtype;
 #if defined(__GNUC__)
-typedef unsigned int UQItype __attribute__ ((mode(QI)));
-typedef int SItype __attribute__ ((mode(SI)));
-typedef unsigned int USItype __attribute__ ((mode(SI)));
-typedef int DItype __attribute__ ((mode(DI)));
-typedef unsigned int UDItype __attribute__ ((mode(DI)));
+	typedef unsigned int UQItype __attribute__ ((mode(QI)));
+	typedef int SItype __attribute__ ((mode(SI)));
+	typedef unsigned int USItype __attribute__ ((mode(SI)));
+	typedef int DItype __attribute__ ((mode(DI)));
+	typedef unsigned int UDItype __attribute__ ((mode(DI)));
 #else
-typedef unsigned char UQItype;
-typedef long SItype;
-typedef unsigned long USItype;
+	typedef unsigned char UQItype;
+	typedef long SItype;
+	typedef unsigned long USItype;
 #endif
 
 #ifdef __GNUC__
-#include "mpi-inline.h"
+	#include "mpi-inline.h"
 #endif
 
 #endif /*G10_MPI_INTERNAL_H */

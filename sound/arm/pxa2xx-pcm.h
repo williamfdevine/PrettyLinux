@@ -10,12 +10,14 @@
  * published by the Free Software Foundation.
  */
 
-struct pxa2xx_runtime_data {
+struct pxa2xx_runtime_data
+{
 	int dma_ch;
 	struct snd_dmaengine_dai_dma_data *params;
 };
 
-struct pxa2xx_pcm_client {
+struct pxa2xx_pcm_client
+{
 	struct snd_dmaengine_dai_dma_data *playback_params;
 	struct snd_dmaengine_dai_dma_data *capture_params;
 	int (*startup)(struct snd_pcm_substream *);

@@ -8,31 +8,31 @@
 
 /* Some toolchains use other characters (e.g. '`') to mark new line in macro */
 #ifndef ASM_NL
-#define ASM_NL		 ;
+	#define ASM_NL		 ;
 #endif
 
 #ifdef __cplusplus
-#define CPP_ASMLINKAGE extern "C"
+	#define CPP_ASMLINKAGE extern "C"
 #else
-#define CPP_ASMLINKAGE
+	#define CPP_ASMLINKAGE
 #endif
 
 #ifndef asmlinkage
-#define asmlinkage CPP_ASMLINKAGE
+	#define asmlinkage CPP_ASMLINKAGE
 #endif
 
 #ifndef cond_syscall
 #define cond_syscall(x)	asm(				\
-	".weak " VMLINUX_SYMBOL_STR(x) "\n\t"		\
-	".set  " VMLINUX_SYMBOL_STR(x) ","		\
-		 VMLINUX_SYMBOL_STR(sys_ni_syscall))
+		".weak " VMLINUX_SYMBOL_STR(x) "\n\t"		\
+		".set  " VMLINUX_SYMBOL_STR(x) ","		\
+		VMLINUX_SYMBOL_STR(sys_ni_syscall))
 #endif
 
 #ifndef SYSCALL_ALIAS
 #define SYSCALL_ALIAS(alias, name) asm(			\
-	".globl " VMLINUX_SYMBOL_STR(alias) "\n\t"	\
-	".set   " VMLINUX_SYMBOL_STR(alias) ","		\
-		  VMLINUX_SYMBOL_STR(name))
+		".globl " VMLINUX_SYMBOL_STR(alias) "\n\t"	\
+		".set   " VMLINUX_SYMBOL_STR(alias) ","		\
+		VMLINUX_SYMBOL_STR(name))
 #endif
 
 #define __page_aligned_data	__section(.data..page_aligned) __aligned(PAGE_SIZE)
@@ -62,14 +62,14 @@
  */
 /* Assembly files may be compiled with -traditional .. */
 #ifndef __ASSEMBLY__
-#ifndef asmlinkage_protect
-# define asmlinkage_protect(n, ret, args...)	do { } while (0)
-#endif
+	#ifndef asmlinkage_protect
+		#define asmlinkage_protect(n, ret, args...)	do { } while (0)
+	#endif
 #endif
 
 #ifndef __ALIGN
-#define __ALIGN		.align 4,0x90
-#define __ALIGN_STR	".align 4,0x90"
+	#define __ALIGN		.align 4,0x90
+	#define __ALIGN_STR	".align 4,0x90"
 #endif
 
 #ifdef __ASSEMBLY__

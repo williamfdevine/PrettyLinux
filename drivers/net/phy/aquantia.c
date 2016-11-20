@@ -24,9 +24,9 @@
 #define PHY_ID_AQR405	0x03a1b4b0
 
 #define PHY_AQUANTIA_FEATURES	(SUPPORTED_10000baseT_Full | \
-				 SUPPORTED_1000baseT_Full | \
-				 SUPPORTED_100baseT_Full | \
-				 PHY_DEFAULT_FEATURES)
+								 SUPPORTED_1000baseT_Full | \
+								 SUPPORTED_100baseT_Full | \
+								 PHY_DEFAULT_FEATURES)
 
 static int aquantia_config_aneg(struct phy_device *phydev)
 {
@@ -48,24 +48,39 @@ static int aquantia_config_intr(struct phy_device *phydev)
 {
 	int err;
 
-	if (phydev->interrupts == PHY_INTERRUPT_ENABLED) {
+	if (phydev->interrupts == PHY_INTERRUPT_ENABLED)
+	{
 		err = phy_write_mmd(phydev, MDIO_MMD_AN, 0xd401, 1);
+
 		if (err < 0)
+		{
 			return err;
+		}
 
 		err = phy_write_mmd(phydev, MDIO_MMD_VEND1, 0xff00, 1);
+
 		if (err < 0)
+		{
 			return err;
+		}
 
 		err = phy_write_mmd(phydev, MDIO_MMD_VEND1, 0xff01, 0x1001);
-	} else {
+	}
+	else
+	{
 		err = phy_write_mmd(phydev, MDIO_MMD_AN, 0xd401, 0);
+
 		if (err < 0)
+		{
 			return err;
+		}
 
 		err = phy_write_mmd(phydev, MDIO_MMD_VEND1, 0xff00, 0);
+
 		if (err < 0)
+		{
 			return err;
+		}
 
 		err = phy_write_mmd(phydev, MDIO_MMD_VEND1, 0xff01, 0);
 	}
@@ -87,89 +102,101 @@ static int aquantia_read_status(struct phy_device *phydev)
 
 	reg = phy_read_mmd(phydev, MDIO_MMD_AN, MDIO_STAT1);
 	reg = phy_read_mmd(phydev, MDIO_MMD_AN, MDIO_STAT1);
+
 	if (reg & MDIO_STAT1_LSTATUS)
+	{
 		phydev->link = 1;
+	}
 	else
+	{
 		phydev->link = 0;
+	}
 
 	reg = phy_read_mmd(phydev, MDIO_MMD_AN, 0xc800);
 	mdelay(10);
 	reg = phy_read_mmd(phydev, MDIO_MMD_AN, 0xc800);
 
-	switch (reg) {
-	case 0x9:
-		phydev->speed = SPEED_2500;
-		break;
-	case 0x5:
-		phydev->speed = SPEED_1000;
-		break;
-	case 0x3:
-		phydev->speed = SPEED_100;
-		break;
-	case 0x7:
-	default:
-		phydev->speed = SPEED_10000;
-		break;
+	switch (reg)
+	{
+		case 0x9:
+			phydev->speed = SPEED_2500;
+			break;
+
+		case 0x5:
+			phydev->speed = SPEED_1000;
+			break;
+
+		case 0x3:
+			phydev->speed = SPEED_100;
+			break;
+
+		case 0x7:
+		default:
+			phydev->speed = SPEED_10000;
+			break;
 	}
+
 	phydev->duplex = DUPLEX_FULL;
 
 	return 0;
 }
 
-static struct phy_driver aquantia_driver[] = {
+static struct phy_driver aquantia_driver[] =
 {
-	.phy_id		= PHY_ID_AQ1202,
-	.phy_id_mask	= 0xfffffff0,
-	.name		= "Aquantia AQ1202",
-	.features	= PHY_AQUANTIA_FEATURES,
-	.flags		= PHY_HAS_INTERRUPT,
-	.aneg_done	= aquantia_aneg_done,
-	.config_aneg    = aquantia_config_aneg,
-	.config_intr	= aquantia_config_intr,
-	.ack_interrupt	= aquantia_ack_interrupt,
-	.read_status	= aquantia_read_status,
-},
-{
-	.phy_id		= PHY_ID_AQ2104,
-	.phy_id_mask	= 0xfffffff0,
-	.name		= "Aquantia AQ2104",
-	.features	= PHY_AQUANTIA_FEATURES,
-	.flags		= PHY_HAS_INTERRUPT,
-	.aneg_done	= aquantia_aneg_done,
-	.config_aneg    = aquantia_config_aneg,
-	.config_intr	= aquantia_config_intr,
-	.ack_interrupt	= aquantia_ack_interrupt,
-	.read_status	= aquantia_read_status,
-},
-{
-	.phy_id		= PHY_ID_AQR105,
-	.phy_id_mask	= 0xfffffff0,
-	.name		= "Aquantia AQR105",
-	.features	= PHY_AQUANTIA_FEATURES,
-	.flags		= PHY_HAS_INTERRUPT,
-	.aneg_done	= aquantia_aneg_done,
-	.config_aneg    = aquantia_config_aneg,
-	.config_intr	= aquantia_config_intr,
-	.ack_interrupt	= aquantia_ack_interrupt,
-	.read_status	= aquantia_read_status,
-},
-{
-	.phy_id		= PHY_ID_AQR405,
-	.phy_id_mask	= 0xfffffff0,
-	.name		= "Aquantia AQR405",
-	.features	= PHY_AQUANTIA_FEATURES,
-	.flags		= PHY_HAS_INTERRUPT,
-	.aneg_done	= aquantia_aneg_done,
-	.config_aneg    = aquantia_config_aneg,
-	.config_intr	= aquantia_config_intr,
-	.ack_interrupt	= aquantia_ack_interrupt,
-	.read_status	= aquantia_read_status,
-},
+	{
+		.phy_id		= PHY_ID_AQ1202,
+		.phy_id_mask	= 0xfffffff0,
+		.name		= "Aquantia AQ1202",
+		.features	= PHY_AQUANTIA_FEATURES,
+		.flags		= PHY_HAS_INTERRUPT,
+		.aneg_done	= aquantia_aneg_done,
+		.config_aneg    = aquantia_config_aneg,
+		.config_intr	= aquantia_config_intr,
+		.ack_interrupt	= aquantia_ack_interrupt,
+		.read_status	= aquantia_read_status,
+	},
+	{
+		.phy_id		= PHY_ID_AQ2104,
+		.phy_id_mask	= 0xfffffff0,
+		.name		= "Aquantia AQ2104",
+		.features	= PHY_AQUANTIA_FEATURES,
+		.flags		= PHY_HAS_INTERRUPT,
+		.aneg_done	= aquantia_aneg_done,
+		.config_aneg    = aquantia_config_aneg,
+		.config_intr	= aquantia_config_intr,
+		.ack_interrupt	= aquantia_ack_interrupt,
+		.read_status	= aquantia_read_status,
+	},
+	{
+		.phy_id		= PHY_ID_AQR105,
+		.phy_id_mask	= 0xfffffff0,
+		.name		= "Aquantia AQR105",
+		.features	= PHY_AQUANTIA_FEATURES,
+		.flags		= PHY_HAS_INTERRUPT,
+		.aneg_done	= aquantia_aneg_done,
+		.config_aneg    = aquantia_config_aneg,
+		.config_intr	= aquantia_config_intr,
+		.ack_interrupt	= aquantia_ack_interrupt,
+		.read_status	= aquantia_read_status,
+	},
+	{
+		.phy_id		= PHY_ID_AQR405,
+		.phy_id_mask	= 0xfffffff0,
+		.name		= "Aquantia AQR405",
+		.features	= PHY_AQUANTIA_FEATURES,
+		.flags		= PHY_HAS_INTERRUPT,
+		.aneg_done	= aquantia_aneg_done,
+		.config_aneg    = aquantia_config_aneg,
+		.config_intr	= aquantia_config_intr,
+		.ack_interrupt	= aquantia_ack_interrupt,
+		.read_status	= aquantia_read_status,
+	},
 };
 
 module_phy_driver(aquantia_driver);
 
-static struct mdio_device_id __maybe_unused aquantia_tbl[] = {
+static struct mdio_device_id __maybe_unused aquantia_tbl[] =
+{
 	{ PHY_ID_AQ1202, 0xfffffff0 },
 	{ PHY_ID_AQ2104, 0xfffffff0 },
 	{ PHY_ID_AQR105, 0xfffffff0 },

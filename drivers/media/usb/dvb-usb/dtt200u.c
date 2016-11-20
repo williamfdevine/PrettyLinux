@@ -15,12 +15,13 @@
 
 /* debug */
 int dvb_usb_dtt200u_debug;
-module_param_named(debug,dvb_usb_dtt200u_debug, int, 0644);
+module_param_named(debug, dvb_usb_dtt200u_debug, int, 0644);
 MODULE_PARM_DESC(debug, "set debugging level (1=info,xfer=2 (or-able))." DVB_USB_DEBUG_STATUS);
 
 DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
 
-struct dtt200u_state {
+struct dtt200u_state
+{
 	unsigned char data[80];
 };
 
@@ -34,7 +35,9 @@ static int dtt200u_power_ctrl(struct dvb_usb_device *d, int onoff)
 	st->data[0] = SET_INIT;
 
 	if (onoff)
+	{
 		ret = dvb_usb_generic_write(d, st->data, 2);
+	}
 
 	mutex_unlock(&d->data_mutex);
 	return ret;
@@ -51,11 +54,16 @@ static int dtt200u_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
 	st->data[1] = onoff;
 
 	ret = dvb_usb_generic_write(adap->dev, st->data, 2);
+
 	if (ret < 0)
+	{
 		goto ret;
+	}
 
 	if (onoff)
+	{
 		goto ret;
+	}
 
 	st->data[0] = RESET_PID_FILTER;
 	ret = dvb_usb_generic_write(adap->dev, st->data, 1);
@@ -96,35 +104,52 @@ static int dtt200u_rc_query(struct dvb_usb_device *d)
 	st->data[0] = GET_RC_CODE;
 
 	ret = dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);
-	if (ret < 0)
-		goto ret;
 
-	if (st->data[0] == 1) {
+	if (ret < 0)
+	{
+		goto ret;
+	}
+
+	if (st->data[0] == 1)
+	{
 		enum rc_type proto = RC_TYPE_NEC;
 
 		scancode = st->data[1];
-		if ((u8) ~st->data[1] != st->data[2]) {
+
+		if ((u8) ~st->data[1] != st->data[2])
+		{
 			/* Extended NEC */
 			scancode = scancode << 8;
 			scancode |= st->data[2];
 			proto = RC_TYPE_NECX;
 		}
+
 		scancode = scancode << 8;
 		scancode |= st->data[3];
 
 		/* Check command checksum is ok */
 		if ((u8) ~st->data[3] == st->data[4])
+		{
 			rc_keydown(d->rc_dev, proto, scancode, 0);
+		}
 		else
+		{
 			rc_keyup(d->rc_dev);
-	} else if (st->data[0] == 2) {
+		}
+	}
+	else if (st->data[0] == 2)
+	{
 		rc_repeat(d->rc_dev);
-	} else {
+	}
+	else
+	{
 		rc_keyup(d->rc_dev);
 	}
 
 	if (st->data[0] != 0)
+	{
 		deb_info("st->data: %*ph\n", 5, st->data);
+	}
 
 ret:
 	mutex_unlock(&d->data_mutex);
@@ -144,24 +169,27 @@ static struct dvb_usb_device_properties wt220u_zl0353_properties;
 static struct dvb_usb_device_properties wt220u_miglia_properties;
 
 static int dtt200u_usb_probe(struct usb_interface *intf,
-		const struct usb_device_id *id)
+							 const struct usb_device_id *id)
 {
 	if (0 == dvb_usb_device_init(intf, &dtt200u_properties,
-				     THIS_MODULE, NULL, adapter_nr) ||
-	    0 == dvb_usb_device_init(intf, &wt220u_properties,
-				     THIS_MODULE, NULL, adapter_nr) ||
-	    0 == dvb_usb_device_init(intf, &wt220u_fc_properties,
-				     THIS_MODULE, NULL, adapter_nr) ||
-	    0 == dvb_usb_device_init(intf, &wt220u_zl0353_properties,
-				     THIS_MODULE, NULL, adapter_nr) ||
-	    0 == dvb_usb_device_init(intf, &wt220u_miglia_properties,
-				     THIS_MODULE, NULL, adapter_nr))
+								 THIS_MODULE, NULL, adapter_nr) ||
+		0 == dvb_usb_device_init(intf, &wt220u_properties,
+								 THIS_MODULE, NULL, adapter_nr) ||
+		0 == dvb_usb_device_init(intf, &wt220u_fc_properties,
+								 THIS_MODULE, NULL, adapter_nr) ||
+		0 == dvb_usb_device_init(intf, &wt220u_zl0353_properties,
+								 THIS_MODULE, NULL, adapter_nr) ||
+		0 == dvb_usb_device_init(intf, &wt220u_miglia_properties,
+								 THIS_MODULE, NULL, adapter_nr))
+	{
 		return 0;
+	}
 
 	return -ENODEV;
 }
 
-static struct usb_device_id dtt200u_usb_table [] = {
+static struct usb_device_id dtt200u_usb_table [] =
+{
 	{ USB_DEVICE(USB_VID_WIDEVIEW, USB_PID_DTT200U_COLD) },
 	{ USB_DEVICE(USB_VID_WIDEVIEW, USB_PID_DTT200U_WARM) },
 	{ USB_DEVICE(USB_VID_WIDEVIEW, USB_PID_WT220U_COLD)  },
@@ -176,7 +204,8 @@ static struct usb_device_id dtt200u_usb_table [] = {
 };
 MODULE_DEVICE_TABLE(usb, dtt200u_usb_table);
 
-static struct dvb_usb_device_properties dtt200u_properties = {
+static struct dvb_usb_device_properties dtt200u_properties =
+{
 	.usb_ctrl = CYPRESS_FX2,
 	.firmware = "dvb-usb-dtt200u-01.fw",
 
@@ -185,26 +214,27 @@ static struct dvb_usb_device_properties dtt200u_properties = {
 	.num_adapters = 1,
 	.adapter = {
 		{
-		.num_frontends = 1,
-		.fe = {{
-			.caps = DVB_USB_ADAP_HAS_PID_FILTER | DVB_USB_ADAP_NEED_PID_FILTERING,
-			.pid_filter_count = 15,
+			.num_frontends = 1,
+			.fe = {{
+					.caps = DVB_USB_ADAP_HAS_PID_FILTER | DVB_USB_ADAP_NEED_PID_FILTERING,
+					.pid_filter_count = 15,
 
-	.streaming_ctrl  = dtt200u_streaming_ctrl,
-	.pid_filter      = dtt200u_pid_filter,
-	.frontend_attach = dtt200u_frontend_attach,
-	/* parameter for the MPEG2-data transfer */
-			.stream = {
-				.type = USB_BULK,
-		.count = 7,
-		.endpoint = 0x02,
-		.u = {
-			.bulk = {
-				.buffersize = 4096,
-			}
-		}
-	},
-		}},
+					.streaming_ctrl  = dtt200u_streaming_ctrl,
+					.pid_filter      = dtt200u_pid_filter,
+					.frontend_attach = dtt200u_frontend_attach,
+					/* parameter for the MPEG2-data transfer */
+					.stream = {
+						.type = USB_BULK,
+						.count = 7,
+						.endpoint = 0x02,
+						.u = {
+							.bulk = {
+								.buffersize = 4096,
+							}
+						}
+					},
+				}
+			},
 		}
 	},
 	.power_ctrl      = dtt200u_power_ctrl,
@@ -220,15 +250,17 @@ static struct dvb_usb_device_properties dtt200u_properties = {
 
 	.num_device_descs = 1,
 	.devices = {
-		{ .name = "WideView/Yuan/Yakumo/Hama/Typhoon DVB-T USB2.0 (WT-200U)",
-		  .cold_ids = { &dtt200u_usb_table[0], NULL },
-		  .warm_ids = { &dtt200u_usb_table[1], NULL },
+		{
+			.name = "WideView/Yuan/Yakumo/Hama/Typhoon DVB-T USB2.0 (WT-200U)",
+			.cold_ids = { &dtt200u_usb_table[0], NULL },
+			.warm_ids = { &dtt200u_usb_table[1], NULL },
 		},
 		{ NULL },
 	}
 };
 
-static struct dvb_usb_device_properties wt220u_properties = {
+static struct dvb_usb_device_properties wt220u_properties =
+{
 	.usb_ctrl = CYPRESS_FX2,
 	.firmware = "dvb-usb-wt220u-02.fw",
 
@@ -237,26 +269,27 @@ static struct dvb_usb_device_properties wt220u_properties = {
 	.num_adapters = 1,
 	.adapter = {
 		{
-		.num_frontends = 1,
-		.fe = {{
-			.caps = DVB_USB_ADAP_HAS_PID_FILTER | DVB_USB_ADAP_NEED_PID_FILTERING,
-			.pid_filter_count = 15,
+			.num_frontends = 1,
+			.fe = {{
+					.caps = DVB_USB_ADAP_HAS_PID_FILTER | DVB_USB_ADAP_NEED_PID_FILTERING,
+					.pid_filter_count = 15,
 
-	.streaming_ctrl  = dtt200u_streaming_ctrl,
-	.pid_filter      = dtt200u_pid_filter,
-	.frontend_attach = dtt200u_frontend_attach,
-	/* parameter for the MPEG2-data transfer */
-			.stream = {
-				.type = USB_BULK,
-		.count = 7,
-		.endpoint = 0x02,
-		.u = {
-			.bulk = {
-				.buffersize = 4096,
-			}
-		}
-	},
-		}},
+					.streaming_ctrl  = dtt200u_streaming_ctrl,
+					.pid_filter      = dtt200u_pid_filter,
+					.frontend_attach = dtt200u_frontend_attach,
+					/* parameter for the MPEG2-data transfer */
+					.stream = {
+						.type = USB_BULK,
+						.count = 7,
+						.endpoint = 0x02,
+						.u = {
+							.bulk = {
+								.buffersize = 4096,
+							}
+						}
+					},
+				}
+			},
 		}
 	},
 	.power_ctrl      = dtt200u_power_ctrl,
@@ -272,15 +305,17 @@ static struct dvb_usb_device_properties wt220u_properties = {
 
 	.num_device_descs = 1,
 	.devices = {
-		{ .name = "WideView WT-220U PenType Receiver (Typhoon/Freecom)",
-		  .cold_ids = { &dtt200u_usb_table[2], &dtt200u_usb_table[8], NULL },
-		  .warm_ids = { &dtt200u_usb_table[3], NULL },
+		{
+			.name = "WideView WT-220U PenType Receiver (Typhoon/Freecom)",
+			.cold_ids = { &dtt200u_usb_table[2], &dtt200u_usb_table[8], NULL },
+			.warm_ids = { &dtt200u_usb_table[3], NULL },
 		},
 		{ NULL },
 	}
 };
 
-static struct dvb_usb_device_properties wt220u_fc_properties = {
+static struct dvb_usb_device_properties wt220u_fc_properties =
+{
 	.usb_ctrl = CYPRESS_FX2,
 	.firmware = "dvb-usb-wt220u-fc03.fw",
 
@@ -289,26 +324,27 @@ static struct dvb_usb_device_properties wt220u_fc_properties = {
 	.num_adapters = 1,
 	.adapter = {
 		{
-		.num_frontends = 1,
-		.fe = {{
-			.caps = DVB_USB_ADAP_HAS_PID_FILTER | DVB_USB_ADAP_NEED_PID_FILTERING,
-			.pid_filter_count = 15,
+			.num_frontends = 1,
+			.fe = {{
+					.caps = DVB_USB_ADAP_HAS_PID_FILTER | DVB_USB_ADAP_NEED_PID_FILTERING,
+					.pid_filter_count = 15,
 
-	.streaming_ctrl  = dtt200u_streaming_ctrl,
-	.pid_filter      = dtt200u_pid_filter,
-	.frontend_attach = dtt200u_frontend_attach,
-	/* parameter for the MPEG2-data transfer */
-			.stream = {
-				.type = USB_BULK,
-		.count = 7,
-				.endpoint = 0x06,
-		.u = {
-			.bulk = {
-				.buffersize = 4096,
-			}
-		}
-	},
-		}},
+					.streaming_ctrl  = dtt200u_streaming_ctrl,
+					.pid_filter      = dtt200u_pid_filter,
+					.frontend_attach = dtt200u_frontend_attach,
+					/* parameter for the MPEG2-data transfer */
+					.stream = {
+						.type = USB_BULK,
+						.count = 7,
+						.endpoint = 0x06,
+						.u = {
+							.bulk = {
+								.buffersize = 4096,
+							}
+						}
+					},
+				}
+			},
 		}
 	},
 	.power_ctrl      = dtt200u_power_ctrl,
@@ -324,15 +360,17 @@ static struct dvb_usb_device_properties wt220u_fc_properties = {
 
 	.num_device_descs = 1,
 	.devices = {
-		{ .name = "WideView WT-220U PenType Receiver (Typhoon/Freecom)",
-		  .cold_ids = { &dtt200u_usb_table[6], NULL },
-		  .warm_ids = { &dtt200u_usb_table[7], NULL },
+		{
+			.name = "WideView WT-220U PenType Receiver (Typhoon/Freecom)",
+			.cold_ids = { &dtt200u_usb_table[6], NULL },
+			.warm_ids = { &dtt200u_usb_table[7], NULL },
 		},
 		{ NULL },
 	}
 };
 
-static struct dvb_usb_device_properties wt220u_zl0353_properties = {
+static struct dvb_usb_device_properties wt220u_zl0353_properties =
+{
 	.usb_ctrl = CYPRESS_FX2,
 	.firmware = "dvb-usb-wt220u-zl0353-01.fw",
 
@@ -341,26 +379,27 @@ static struct dvb_usb_device_properties wt220u_zl0353_properties = {
 	.num_adapters = 1,
 	.adapter = {
 		{
-		.num_frontends = 1,
-		.fe = {{
-			.caps = DVB_USB_ADAP_HAS_PID_FILTER | DVB_USB_ADAP_NEED_PID_FILTERING,
-			.pid_filter_count = 15,
+			.num_frontends = 1,
+			.fe = {{
+					.caps = DVB_USB_ADAP_HAS_PID_FILTER | DVB_USB_ADAP_NEED_PID_FILTERING,
+					.pid_filter_count = 15,
 
-			.streaming_ctrl  = dtt200u_streaming_ctrl,
-			.pid_filter      = dtt200u_pid_filter,
-			.frontend_attach = dtt200u_frontend_attach,
-			/* parameter for the MPEG2-data transfer */
-			.stream = {
-				.type = USB_BULK,
-				.count = 7,
-				.endpoint = 0x02,
-				.u = {
-					.bulk = {
-						.buffersize = 4096,
-					}
+					.streaming_ctrl  = dtt200u_streaming_ctrl,
+					.pid_filter      = dtt200u_pid_filter,
+					.frontend_attach = dtt200u_frontend_attach,
+					/* parameter for the MPEG2-data transfer */
+					.stream = {
+						.type = USB_BULK,
+						.count = 7,
+						.endpoint = 0x02,
+						.u = {
+							.bulk = {
+								.buffersize = 4096,
+							}
+						}
+					},
 				}
 			},
-		}},
 		}
 	},
 	.power_ctrl      = dtt200u_power_ctrl,
@@ -376,15 +415,17 @@ static struct dvb_usb_device_properties wt220u_zl0353_properties = {
 
 	.num_device_descs = 1,
 	.devices = {
-		{ .name = "WideView WT-220U PenType Receiver (based on ZL353)",
-		  .cold_ids = { &dtt200u_usb_table[4], NULL },
-		  .warm_ids = { &dtt200u_usb_table[5], NULL },
+		{
+			.name = "WideView WT-220U PenType Receiver (based on ZL353)",
+			.cold_ids = { &dtt200u_usb_table[4], NULL },
+			.warm_ids = { &dtt200u_usb_table[5], NULL },
 		},
 		{ NULL },
 	}
 };
 
-static struct dvb_usb_device_properties wt220u_miglia_properties = {
+static struct dvb_usb_device_properties wt220u_miglia_properties =
+{
 	.usb_ctrl = CYPRESS_FX2,
 	.firmware = "dvb-usb-wt220u-miglia-01.fw",
 
@@ -395,18 +436,20 @@ static struct dvb_usb_device_properties wt220u_miglia_properties = {
 
 	.num_device_descs = 1,
 	.devices = {
-		{ .name = "WideView WT-220U PenType Receiver (Miglia)",
-		  .cold_ids = { &dtt200u_usb_table[9], NULL },
-		  /* This device turns into WT220U_ZL0353_WARM when fw
-		     has been uploaded */
-		  .warm_ids = { NULL },
+		{
+			.name = "WideView WT-220U PenType Receiver (Miglia)",
+			.cold_ids = { &dtt200u_usb_table[9], NULL },
+			/* This device turns into WT220U_ZL0353_WARM when fw
+			   has been uploaded */
+			.warm_ids = { NULL },
 		},
 		{ NULL },
 	}
 };
 
 /* usb specific object needed to register this driver with the usb subsystem */
-static struct usb_driver dtt200u_usb_driver = {
+static struct usb_driver dtt200u_usb_driver =
+{
 	.name		= "dvb_usb_dtt200u",
 	.probe		= dtt200u_usb_probe,
 	.disconnect = dvb_usb_device_exit,

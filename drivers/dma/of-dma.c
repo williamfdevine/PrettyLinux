@@ -35,11 +35,14 @@ static struct of_dma *of_dma_find_controller(struct of_phandle_args *dma_spec)
 	struct of_dma *ofdma;
 
 	list_for_each_entry(ofdma, &of_dma_list, of_dma_controllers)
-		if (ofdma->of_node == dma_spec->np)
-			return ofdma;
+
+	if (ofdma->of_node == dma_spec->np)
+	{
+		return ofdma;
+	}
 
 	pr_debug("%s: can't find DMA controller %s\n", __func__,
-		 dma_spec->np->full_name);
+			 dma_spec->np->full_name);
 
 	return NULL;
 }
@@ -54,7 +57,7 @@ static struct of_dma *of_dma_find_controller(struct of_phandle_args *dma_spec)
  * to request channel from the real DMA controller.
  */
 static struct dma_chan *of_dma_router_xlate(struct of_phandle_args *dma_spec,
-					    struct of_dma *ofdma)
+		struct of_dma *ofdma)
 {
 	struct dma_chan		*chan;
 	struct of_dma		*ofdma_target;
@@ -64,20 +67,30 @@ static struct dma_chan *of_dma_router_xlate(struct of_phandle_args *dma_spec,
 	/* translate the request for the real DMA controller */
 	memcpy(&dma_spec_target, dma_spec, sizeof(dma_spec_target));
 	route_data = ofdma->of_dma_route_allocate(&dma_spec_target, ofdma);
+
 	if (IS_ERR(route_data))
+	{
 		return NULL;
+	}
 
 	ofdma_target = of_dma_find_controller(&dma_spec_target);
+
 	if (!ofdma_target)
+	{
 		return NULL;
+	}
 
 	chan = ofdma_target->of_dma_xlate(&dma_spec_target, ofdma_target);
-	if (chan) {
+
+	if (chan)
+	{
 		chan->router = ofdma->dma_router;
 		chan->route_data = route_data;
-	} else {
+	}
+	else
+	{
 		ofdma->dma_router->route_free(ofdma->dma_router->dev,
-					      route_data);
+									  route_data);
 	}
 
 	/*
@@ -102,20 +115,24 @@ static struct dma_chan *of_dma_router_xlate(struct of_phandle_args *dma_spec,
  * call.
  */
 int of_dma_controller_register(struct device_node *np,
-				struct dma_chan *(*of_dma_xlate)
-				(struct of_phandle_args *, struct of_dma *),
-				void *data)
+							   struct dma_chan * (*of_dma_xlate)
+							   (struct of_phandle_args *, struct of_dma *),
+							   void *data)
 {
 	struct of_dma	*ofdma;
 
-	if (!np || !of_dma_xlate) {
+	if (!np || !of_dma_xlate)
+	{
 		pr_err("%s: not enough information provided\n", __func__);
 		return -EINVAL;
 	}
 
 	ofdma = kzalloc(sizeof(*ofdma), GFP_KERNEL);
+
 	if (!ofdma)
+	{
 		return -ENOMEM;
+	}
 
 	ofdma->of_node = np;
 	ofdma->of_dma_xlate = of_dma_xlate;
@@ -143,11 +160,13 @@ void of_dma_controller_free(struct device_node *np)
 	mutex_lock(&of_dma_lock);
 
 	list_for_each_entry(ofdma, &of_dma_list, of_dma_controllers)
-		if (ofdma->of_node == np) {
-			list_del(&ofdma->of_dma_controllers);
-			kfree(ofdma);
-			break;
-		}
+
+	if (ofdma->of_node == np)
+	{
+		list_del(&ofdma->of_dma_controllers);
+		kfree(ofdma);
+		break;
+	}
 
 	mutex_unlock(&of_dma_lock);
 }
@@ -169,20 +188,24 @@ EXPORT_SYMBOL_GPL(of_dma_controller_free);
  * call.
  */
 int of_dma_router_register(struct device_node *np,
-			   void *(*of_dma_route_allocate)
-			   (struct of_phandle_args *, struct of_dma *),
-			   struct dma_router *dma_router)
+						   void *(*of_dma_route_allocate)
+						   (struct of_phandle_args *, struct of_dma *),
+						   struct dma_router *dma_router)
 {
 	struct of_dma	*ofdma;
 
-	if (!np || !of_dma_route_allocate || !dma_router) {
+	if (!np || !of_dma_route_allocate || !dma_router)
+	{
 		pr_err("%s: not enough information provided\n", __func__);
 		return -EINVAL;
 	}
 
 	ofdma = kzalloc(sizeof(*ofdma), GFP_KERNEL);
+
 	if (!ofdma)
+	{
 		return -ENOMEM;
+	}
 
 	ofdma->of_node = np;
 	ofdma->of_dma_xlate = of_dma_router_xlate;
@@ -210,19 +233,25 @@ EXPORT_SYMBOL_GPL(of_dma_router_register);
  * a valid pointer to the DMA specifier is found. Otherwise returns -ENODEV.
  */
 static int of_dma_match_channel(struct device_node *np, const char *name,
-				int index, struct of_phandle_args *dma_spec)
+								int index, struct of_phandle_args *dma_spec)
 {
 	const char *s;
 
 	if (of_property_read_string_index(np, "dma-names", index, &s))
+	{
 		return -ENODEV;
+	}
 
 	if (strcmp(name, s))
+	{
 		return -ENODEV;
+	}
 
 	if (of_parse_phandle_with_args(np, "dmas", "#dma-cells", index,
-				       dma_spec))
+								   dma_spec))
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
@@ -235,7 +264,7 @@ static int of_dma_match_channel(struct device_node *np, const char *name,
  * Returns pointer to appropriate DMA channel on success or an error pointer.
  */
 struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
-					      const char *name)
+		const char *name)
 {
 	struct of_phandle_args	dma_spec;
 	struct of_dma		*ofdma;
@@ -244,19 +273,24 @@ struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
 	int			ret_no_channel = -ENODEV;
 	static atomic_t		last_index;
 
-	if (!np || !name) {
+	if (!np || !name)
+	{
 		pr_err("%s: not enough information provided\n", __func__);
 		return ERR_PTR(-ENODEV);
 	}
 
 	/* Silently fail if there is not even the "dmas" property */
 	if (!of_find_property(np, "dmas", NULL))
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
 	count = of_property_count_strings(np, "dma-names");
-	if (count < 0) {
+
+	if (count < 0)
+	{
 		pr_err("%s: dma-names property of node '%s' missing or empty\n",
-			__func__, np->full_name);
+			   __func__, np->full_name);
 		return ERR_PTR(-ENODEV);
 	}
 
@@ -265,18 +299,25 @@ struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
 	 * entries with the same name
 	 */
 	start = atomic_inc_return(&last_index);
-	for (i = 0; i < count; i++) {
+
+	for (i = 0; i < count; i++)
+	{
 		if (of_dma_match_channel(np, name,
-					 (i + start) % count,
-					 &dma_spec))
+								 (i + start) % count,
+								 &dma_spec))
+		{
 			continue;
+		}
 
 		mutex_lock(&of_dma_lock);
 		ofdma = of_dma_find_controller(&dma_spec);
 
-		if (ofdma) {
+		if (ofdma)
+		{
 			chan = ofdma->of_dma_xlate(&dma_spec, ofdma);
-		} else {
+		}
+		else
+		{
 			ret_no_channel = -EPROBE_DEFER;
 			chan = NULL;
 		}
@@ -286,7 +327,9 @@ struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
 		of_node_put(dma_spec.np);
 
 		if (chan)
+		{
 			return chan;
+		}
 	}
 
 	return ERR_PTR(ret_no_channel);
@@ -305,19 +348,23 @@ EXPORT_SYMBOL_GPL(of_dma_request_slave_channel);
  * pointer to appropriate dma channel on success or NULL on error.
  */
 struct dma_chan *of_dma_simple_xlate(struct of_phandle_args *dma_spec,
-						struct of_dma *ofdma)
+									 struct of_dma *ofdma)
 {
 	int count = dma_spec->args_count;
 	struct of_dma_filter_info *info = ofdma->of_dma_data;
 
 	if (!info || !info->filter_fn)
+	{
 		return NULL;
+	}
 
 	if (count != 1)
+	{
 		return NULL;
+	}
 
 	return dma_request_channel(info->dma_cap, info->filter_fn,
-			&dma_spec->args[0]);
+							   &dma_spec->args[0]);
 }
 EXPORT_SYMBOL_GPL(of_dma_simple_xlate);
 
@@ -335,22 +382,28 @@ EXPORT_SYMBOL_GPL(of_dma_simple_xlate);
  * Returns pointer to appropriate dma channel on success or NULL on error.
  */
 struct dma_chan *of_dma_xlate_by_chan_id(struct of_phandle_args *dma_spec,
-					 struct of_dma *ofdma)
+		struct of_dma *ofdma)
 {
 	struct dma_device *dev = ofdma->of_dma_data;
 	struct dma_chan *chan, *candidate = NULL;
 
 	if (!dev || dma_spec->args_count != 1)
+	{
 		return NULL;
+	}
 
 	list_for_each_entry(chan, &dev->channels, device_node)
-		if (chan->chan_id == dma_spec->args[0]) {
-			candidate = chan;
-			break;
-		}
+
+	if (chan->chan_id == dma_spec->args[0])
+	{
+		candidate = chan;
+		break;
+	}
 
 	if (!candidate)
+	{
 		return NULL;
+	}
 
 	return dma_get_slave_channel(candidate);
 }

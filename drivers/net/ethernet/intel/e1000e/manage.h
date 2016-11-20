@@ -27,7 +27,8 @@ bool e1000e_enable_tx_pkt_filtering(struct e1000_hw *hw);
 s32 e1000e_mng_write_dhcp_info(struct e1000_hw *hw, u8 *buffer, u16 length);
 bool e1000e_enable_mng_pass_thru(struct e1000_hw *hw);
 
-enum e1000_mng_mode {
+enum e1000_mng_mode
+{
 	e1000_mng_mode_none = 0,
 	e1000_mng_mode_asf,
 	e1000_mng_mode_pt,

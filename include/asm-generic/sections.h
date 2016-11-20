@@ -48,7 +48,7 @@ extern __visible const void __nosave_begin, __nosave_end;
 /* function descriptor handling (if any).  Override
  * in asm/sections.h */
 #ifndef dereference_function_descriptor
-#define dereference_function_descriptor(p) (p)
+	#define dereference_function_descriptor(p) (p)
 #endif
 
 /* random extra sections (if any).  Override
@@ -79,7 +79,7 @@ static inline int arch_is_kernel_data(unsigned long addr)
  * otherwise.
  */
 static inline bool memory_contains(void *begin, void *end, void *virt,
-				   size_t size)
+								   size_t size)
 {
 	return virt >= begin && virt + size <= end;
 }
@@ -96,7 +96,7 @@ static inline bool memory_contains(void *begin, void *end, void *virt,
  * intersects with the region specified by @begin and @end, false otherwise.
  */
 static inline bool memory_intersects(void *begin, void *end, void *virt,
-				     size_t size)
+									 size_t size)
 {
 	void *vend = virt + size;
 

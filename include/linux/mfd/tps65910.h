@@ -276,7 +276,7 @@
 #define LDO_ST_MASK					0x03
 #define LDO_ST_SHIFT					0
 #define LDO_ST_ON_BIT					0x01
-#define LDO_ST_MODE_BIT					0x02	
+#define LDO_ST_MODE_BIT					0x02
 
 
 /* Registers LDO1 to LDO8 in tps65910 */
@@ -858,10 +858,11 @@
  * @clkout32k_keepon: Keep on the 32KHz clock output in sleep state.
  * @i2chs_keepon: Keep on high speed internal clock in sleep state.
  */
-struct tps65910_sleep_keepon_data {
-	unsigned therm_keepon:1;
-	unsigned clkout32k_keepon:1;
-	unsigned i2chs_keepon:1;
+struct tps65910_sleep_keepon_data
+{
+	unsigned therm_keepon: 1;
+	unsigned clkout32k_keepon: 1;
+	unsigned i2chs_keepon: 1;
 };
 
 /**
@@ -869,7 +870,8 @@ struct tps65910_sleep_keepon_data {
  * Board platform data may be used to initialize regulators.
  */
 
-struct tps65910_board {
+struct tps65910_board
+{
 	int gpio_base;
 	int irq;
 	int irq_base;
@@ -888,7 +890,8 @@ struct tps65910_board {
  * struct tps65910 - tps65910 sub-driver chip access routines
  */
 
-struct tps65910 {
+struct tps65910
+{
 	struct device *dev;
 	struct i2c_client *i2c_client;
 	struct regmap *regmap;
@@ -907,7 +910,8 @@ struct tps65910 {
 	struct regmap_irq_chip_data *irq_data;
 };
 
-struct tps65910_platform_data {
+struct tps65910_platform_data
+{
 	int irq;
 	int irq_base;
 };
@@ -918,19 +922,19 @@ static inline int tps65910_chip_id(struct tps65910 *tps65910)
 }
 
 static inline int tps65910_reg_read(struct tps65910 *tps65910, u8 reg,
-		unsigned int *val)
+									unsigned int *val)
 {
 	return regmap_read(tps65910->regmap, reg, val);
 }
 
 static inline int tps65910_reg_write(struct tps65910 *tps65910, u8 reg,
-		unsigned int val)
+									 unsigned int val)
 {
 	return regmap_write(tps65910->regmap, reg, val);
 }
 
 static inline int tps65910_reg_set_bits(struct tps65910 *tps65910, u8 reg,
-		u8 mask)
+										u8 mask)
 {
 	return regmap_update_bits(tps65910->regmap, reg, mask, mask);
 }
@@ -942,7 +946,7 @@ static inline int tps65910_reg_clear_bits(struct tps65910 *tps65910, u8 reg,
 }
 
 static inline int tps65910_reg_update_bits(struct tps65910 *tps65910, u8 reg,
-					   u8 mask, u8 val)
+		u8 mask, u8 val)
 {
 	return regmap_update_bits(tps65910->regmap, reg, mask, val);
 }

@@ -16,13 +16,15 @@
 
 static bool dont_fork;
 
-struct test __weak arch_tests[] = {
+struct test __weak arch_tests[] =
+{
 	{
 		.func = NULL,
 	},
 };
 
-static struct test generic_tests[] = {
+static struct test generic_tests[] =
+{
 	{
 		.desc = "vmlinux symtab matches kallsyms",
 		.func = test__vmlinux_matches_kallsyms,
@@ -234,7 +236,8 @@ static struct test generic_tests[] = {
 	},
 };
 
-static struct test *tests[] = {
+static struct test *tests[] =
+{
 	generic_tests,
 	arch_tests,
 };
@@ -244,20 +247,29 @@ static bool perf_test__matches(struct test *test, int curr, int argc, const char
 	int i;
 
 	if (argc == 0)
+	{
 		return true;
+	}
 
-	for (i = 0; i < argc; ++i) {
+	for (i = 0; i < argc; ++i)
+	{
 		char *end;
 		long nr = strtoul(argv[i], &end, 10);
 
-		if (*end == '\0') {
+		if (*end == '\0')
+		{
 			if (nr == curr + 1)
+			{
 				return true;
+			}
+
 			continue;
 		}
 
 		if (strcasestr(test->desc, argv[i]))
+		{
 			return true;
+		}
 	}
 
 	return false;
@@ -268,20 +280,25 @@ static int run_test(struct test *test, int subtest)
 	int status, err = -1, child = dont_fork ? 0 : fork();
 	char sbuf[STRERR_BUFSIZE];
 
-	if (child < 0) {
+	if (child < 0)
+	{
 		pr_err("failed to fork test: %s\n",
-			str_error_r(errno, sbuf, sizeof(sbuf)));
+			   str_error_r(errno, sbuf, sizeof(sbuf)));
 		return -1;
 	}
 
-	if (!child) {
-		if (!dont_fork) {
+	if (!child)
+	{
+		if (!dont_fork)
+		{
 			pr_debug("test child forked, pid %d\n", getpid());
 
-			if (!verbose) {
+			if (!verbose)
+			{
 				int nullfd = open("/dev/null", O_WRONLY);
 
-				if (nullfd >= 0) {
+				if (nullfd >= 0)
+				{
 					close(STDERR_FILENO);
 					close(STDOUT_FILENO);
 
@@ -289,24 +306,33 @@ static int run_test(struct test *test, int subtest)
 					dup2(STDOUT_FILENO, STDERR_FILENO);
 					close(nullfd);
 				}
-			} else {
+			}
+			else
+			{
 				signal(SIGSEGV, sighandler_dump_stack);
 				signal(SIGFPE, sighandler_dump_stack);
 			}
 		}
 
 		err = test->func(subtest);
+
 		if (!dont_fork)
+		{
 			exit(err);
+		}
 	}
 
-	if (!dont_fork) {
+	if (!dont_fork)
+	{
 		wait(&status);
 
-		if (WIFEXITED(status)) {
+		if (WIFEXITED(status))
+		{
 			err = (signed char)WEXITSTATUS(status);
 			pr_debug("test child finished with %d\n", err);
-		} else if (WIFSIGNALED(status)) {
+		}
+		else if (WIFSIGNALED(status))
+		{
 			err = -1;
 			pr_debug("test child interrupted\n");
 		}
@@ -323,31 +349,41 @@ static int test_and_print(struct test *t, bool force_skip, int subtest)
 {
 	int err;
 
-	if (!force_skip) {
+	if (!force_skip)
+	{
 		pr_debug("\n--- start ---\n");
 		err = run_test(t, subtest);
 		pr_debug("---- end ----\n");
-	} else {
+	}
+	else
+	{
 		pr_debug("\n--- force skipped ---\n");
 		err = TEST_SKIP;
 	}
 
 	if (!t->subtest.get_nr)
+	{
 		pr_debug("%s:", t->desc);
+	}
 	else
+	{
 		pr_debug("%s subtest %d:", t->desc, subtest);
+	}
 
-	switch (err) {
-	case TEST_OK:
-		pr_info(" Ok\n");
-		break;
-	case TEST_SKIP:
-		color_fprintf(stderr, PERF_COLOR_YELLOW, " Skip\n");
-		break;
-	case TEST_FAIL:
-	default:
-		color_fprintf(stderr, PERF_COLOR_RED, " FAILED!\n");
-		break;
+	switch (err)
+	{
+		case TEST_OK:
+			pr_info(" Ok\n");
+			break;
+
+		case TEST_SKIP:
+			color_fprintf(stderr, PERF_COLOR_YELLOW, " Skip\n");
+			break;
+
+		case TEST_FAIL:
+		default:
+			color_fprintf(stderr, PERF_COLOR_RED, " FAILED!\n");
+			break;
 	}
 
 	return err;
@@ -360,29 +396,39 @@ static int __cmd_test(int argc, const char *argv[], struct intlist *skiplist)
 	int i = 0;
 	int width = 0;
 
-	for_each_test(j, t) {
+	for_each_test(j, t)
+	{
 		int len = strlen(t->desc);
 
 		if (width < len)
+		{
 			width = len;
+		}
 	}
 
-	for_each_test(j, t) {
+	for_each_test(j, t)
+	{
 		int curr = i++, err;
 
 		if (!perf_test__matches(t, curr, argc, argv))
+		{
 			continue;
+		}
 
 		pr_info("%2d: %-*s:", i, width, t->desc);
 
-		if (intlist__find(skiplist, i)) {
+		if (intlist__find(skiplist, i))
+		{
 			color_fprintf(stderr, PERF_COLOR_YELLOW, " Skip (user override)\n");
 			continue;
 		}
 
-		if (!t->subtest.get_nr) {
+		if (!t->subtest.get_nr)
+		{
 			test_and_print(t, false, -1);
-		} else {
+		}
+		else
+		{
 			int subn = t->subtest.get_nr();
 			/*
 			 * minus 2 to align with normal testcases.
@@ -396,26 +442,35 @@ static int __cmd_test(int argc, const char *argv[], struct intlist *skiplist)
 			bool skip = false;
 			int subi;
 
-			if (subn <= 0) {
+			if (subn <= 0)
+			{
 				color_fprintf(stderr, PERF_COLOR_YELLOW,
-					      " Skip (not compiled in)\n");
+							  " Skip (not compiled in)\n");
 				continue;
 			}
+
 			pr_info("\n");
 
-			for (subi = 0; subi < subn; subi++) {
+			for (subi = 0; subi < subn; subi++)
+			{
 				int len = strlen(t->subtest.get_desc(subi));
 
 				if (subw < len)
+				{
 					subw = len;
+				}
 			}
 
-			for (subi = 0; subi < subn; subi++) {
+			for (subi = 0; subi < subn; subi++)
+			{
 				pr_info("%2d.%1d: %-*s:", i, subi + 1, subw,
-					t->subtest.get_desc(subi));
+						t->subtest.get_desc(subi));
 				err = test_and_print(t, skip, subi);
+
 				if (err != TEST_OK && t->subtest.skip_if_fail)
+				{
 					skip = true;
+				}
 			}
 		}
 	}
@@ -429,9 +484,12 @@ static int perf_test__list(int argc, const char **argv)
 	struct test *t;
 	int i = 0;
 
-	for_each_test(j, t) {
+	for_each_test(j, t)
+	{
 		if (argc > 1 && !strstr(t->desc, argv[1]))
+		{
 			continue;
+		}
 
 		pr_info("%2d: %s\n", ++i, t->desc);
 	}
@@ -441,39 +499,50 @@ static int perf_test__list(int argc, const char **argv)
 
 int cmd_test(int argc, const char **argv, const char *prefix __maybe_unused)
 {
-	const char *test_usage[] = {
-	"perf test [<options>] [{list <test-name-fragment>|[<test-name-fragments>|<test-numbers>]}]",
-	NULL,
+	const char *test_usage[] =
+	{
+		"perf test [<options>] [{list <test-name-fragment>|[<test-name-fragments>|<test-numbers>]}]",
+		NULL,
 	};
 	const char *skip = NULL;
-	const struct option test_options[] = {
-	OPT_STRING('s', "skip", &skip, "tests", "tests to skip"),
-	OPT_INCR('v', "verbose", &verbose,
-		    "be more verbose (show symbol address, etc)"),
-	OPT_BOOLEAN('F', "dont-fork", &dont_fork,
-		    "Do not fork for testcase"),
-	OPT_END()
+	const struct option test_options[] =
+	{
+		OPT_STRING('s', "skip", &skip, "tests", "tests to skip"),
+		OPT_INCR('v', "verbose", &verbose,
+		"be more verbose (show symbol address, etc)"),
+		OPT_BOOLEAN('F', "dont-fork", &dont_fork,
+		"Do not fork for testcase"),
+		OPT_END()
 	};
-	const char * const test_subcommands[] = { "list", NULL };
+	const char *const test_subcommands[] = { "list", NULL };
 	struct intlist *skiplist = NULL;
-        int ret = hists__init();
+	int ret = hists__init();
 
-        if (ret < 0)
-                return ret;
+	if (ret < 0)
+	{
+		return ret;
+	}
 
 	argc = parse_options_subcommand(argc, argv, test_options, test_subcommands, test_usage, 0);
+
 	if (argc >= 1 && !strcmp(argv[0], "list"))
+	{
 		return perf_test__list(argc, argv);
+	}
 
 	symbol_conf.priv_size = sizeof(int);
 	symbol_conf.sort_by_name = true;
 	symbol_conf.try_vmlinux_path = true;
 
 	if (symbol__init(NULL) < 0)
+	{
 		return -1;
+	}
 
 	if (skip != NULL)
+	{
 		skiplist = intlist__new(skip);
+	}
 
 	return __cmd_test(argc, argv, skiplist);
 }

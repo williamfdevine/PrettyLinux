@@ -48,7 +48,8 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
 
 /* ----------------------------------------------------------------------- */
 
-struct bt866 {
+struct bt866
+{
 	struct v4l2_subdev sd;
 	u8 reg[256];
 };
@@ -71,15 +72,21 @@ static int bt866_write(struct bt866 *encoder, u8 subaddr, u8 data)
 
 	v4l_dbg(1, debug, client, "write 0x%02x = 0x%02x\n", subaddr, data);
 
-	for (err = 0; err < 3;) {
+	for (err = 0; err < 3;)
+	{
 		if (i2c_master_send(client, buffer, 2) == 2)
+		{
 			break;
+		}
+
 		err++;
 		v4l_warn(client, "error #%d writing to 0x%02x\n",
-				err, subaddr);
+				 err, subaddr);
 		schedule_timeout_interruptible(msecs_to_jiffies(100));
 	}
-	if (err == 3) {
+
+	if (err == 3)
+	{
 		v4l_warn(client, "giving up\n");
 		return -1;
 	}
@@ -93,14 +100,18 @@ static int bt866_s_std_output(struct v4l2_subdev *sd, v4l2_std_id std)
 
 	/* Only PAL supported by this driver at the moment! */
 	if (!(std & V4L2_STD_NTSC))
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
 static int bt866_s_routing(struct v4l2_subdev *sd,
-			   u32 input, u32 output, u32 config)
+						   u32 input, u32 output, u32 config)
 {
-	static const __u8 init[] = {
+	static const __u8 init[] =
+	{
 		0xc8, 0xcc, /* CRSCALE */
 		0xca, 0x91, /* CBSCALE */
 		0xcc, 0x24, /* YC16 | OSDNUM */
@@ -132,71 +143,98 @@ static int bt866_s_routing(struct v4l2_subdev *sd,
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(init) / 2; i += 2)
-		bt866_write(encoder, init[i], init[i+1]);
+	{
+		bt866_write(encoder, init[i], init[i + 1]);
+	}
 
 	val = encoder->reg[0xdc];
 
 	if (input == 0)
-		val |= 0x40; /* CBSWAP */
+	{
+		val |= 0x40;    /* CBSWAP */
+	}
 	else
-		val &= ~0x40; /* !CBSWAP */
+	{
+		val &= ~0x40;    /* !CBSWAP */
+	}
 
 	bt866_write(encoder, 0xdc, val);
 
 	val = encoder->reg[0xcc];
+
 	if (input == 2)
-		val |= 0x01; /* OSDBAR */
+	{
+		val |= 0x01;    /* OSDBAR */
+	}
 	else
-		val &= ~0x01; /* !OSDBAR */
+	{
+		val &= ~0x01;    /* !OSDBAR */
+	}
+
 	bt866_write(encoder, 0xcc, val);
 
 	v4l2_dbg(1, debug, sd, "set input %d\n", input);
 
-	switch (input) {
-	case 0:
-	case 1:
-	case 2:
-		break;
-	default:
-		return -EINVAL;
+	switch (input)
+	{
+		case 0:
+		case 1:
+		case 2:
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	return 0;
 }
 
 #if 0
-/* Code to setup square pixels, might be of some use in the future,
-   but is currently unused. */
+	/* Code to setup square pixels, might be of some use in the future,
+	but is currently unused. */
 	val = encoder->reg[0xdc];
+
 	if (*iarg)
-		val |= 1; /* SQUARE */
+	{
+	val |= 1;    /* SQUARE */
+	}
 	else
-		val &= ~1; /* !SQUARE */
+	{
+	val &= ~1;    /* !SQUARE */
+	}
+
 	bt866_write(client, 0xdc, val);
 #endif
 
 /* ----------------------------------------------------------------------- */
 
-static const struct v4l2_subdev_video_ops bt866_video_ops = {
+static const struct v4l2_subdev_video_ops bt866_video_ops =
+{
 	.s_std_output = bt866_s_std_output,
 	.s_routing = bt866_s_routing,
 };
 
-static const struct v4l2_subdev_ops bt866_ops = {
+static const struct v4l2_subdev_ops bt866_ops =
+{
 	.video = &bt866_video_ops,
 };
 
 static int bt866_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+					   const struct i2c_device_id *id)
 {
 	struct bt866 *encoder;
 	struct v4l2_subdev *sd;
 
 	v4l_info(client, "chip found @ 0x%x (%s)\n",
-			client->addr << 1, client->adapter->name);
+			 client->addr << 1, client->adapter->name);
 
 	encoder = devm_kzalloc(&client->dev, sizeof(*encoder), GFP_KERNEL);
+
 	if (encoder == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	sd = &encoder->sd;
 	v4l2_i2c_subdev_init(sd, client, &bt866_ops);
 	return 0;
@@ -210,13 +248,15 @@ static int bt866_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id bt866_id[] = {
+static const struct i2c_device_id bt866_id[] =
+{
 	{ "bt866", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, bt866_id);
 
-static struct i2c_driver bt866_driver = {
+static struct i2c_driver bt866_driver =
+{
 	.driver = {
 		.name	= "bt866",
 	},

@@ -33,20 +33,32 @@ static __net_init int sunrpc_init_net(struct net *net)
 	struct sunrpc_net *sn = net_generic(net, sunrpc_net_id);
 
 	err = rpc_proc_init(net);
+
 	if (err)
+	{
 		goto err_proc;
+	}
 
 	err = ip_map_cache_create(net);
+
 	if (err)
+	{
 		goto err_ipmap;
+	}
 
 	err = unix_gid_cache_create(net);
+
 	if (err)
+	{
 		goto err_unixgid;
+	}
 
 	err = rpc_pipefs_init_net(net);
+
 	if (err)
+	{
 		goto err_pipefs;
+	}
 
 	INIT_LIST_HEAD(&sn->all_clients);
 	spin_lock_init(&sn->rpc_client_lock);
@@ -71,7 +83,8 @@ static __net_exit void sunrpc_exit_net(struct net *net)
 	rpc_proc_exit(net);
 }
 
-static struct pernet_operations sunrpc_net_ops = {
+static struct pernet_operations sunrpc_net_ops =
+{
 	.init = sunrpc_init_net,
 	.exit = sunrpc_exit_net,
 	.id = &sunrpc_net_id,
@@ -82,21 +95,34 @@ static int __init
 init_sunrpc(void)
 {
 	int err = rpc_init_mempool();
+
 	if (err)
+	{
 		goto out;
+	}
+
 	err = rpcauth_init_module();
+
 	if (err)
+	{
 		goto out2;
+	}
 
 	cache_initialize();
 
 	err = register_pernet_subsys(&sunrpc_net_ops);
+
 	if (err)
+	{
 		goto out3;
+	}
 
 	err = register_rpc_pipefs();
+
 	if (err)
+	{
 		goto out4;
+	}
 
 	sunrpc_debugfs_init();
 #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)

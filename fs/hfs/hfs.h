@@ -84,24 +84,28 @@
 /*======== HFS structures as they appear on the disk ========*/
 
 /* Pascal-style string of up to 31 characters */
-struct hfs_name {
+struct hfs_name
+{
 	u8 len;
 	u8 name[HFS_NAMELEN];
 } __packed;
 
-struct hfs_point {
+struct hfs_point
+{
 	__be16 v;
 	__be16 h;
 } __packed;
 
-struct hfs_rect {
+struct hfs_rect
+{
 	__be16 top;
 	__be16 left;
 	__be16 bottom;
 	__be16 right;
 } __packed;
 
-struct hfs_finfo {
+struct hfs_finfo
+{
 	__be32 fdType;
 	__be32 fdCreator;
 	__be16 fdFlags;
@@ -109,21 +113,24 @@ struct hfs_finfo {
 	__be16 fdFldr;
 } __packed;
 
-struct hfs_fxinfo {
+struct hfs_fxinfo
+{
 	__be16 fdIconID;
 	u8 fdUnused[8];
 	__be16 fdComment;
 	__be32 fdPutAway;
 } __packed;
 
-struct hfs_dinfo {
+struct hfs_dinfo
+{
 	struct hfs_rect frRect;
 	__be16 frFlags;
 	struct hfs_point frLocation;
 	__be16 frView;
 } __packed;
 
-struct hfs_dxinfo {
+struct hfs_dxinfo
+{
 	struct hfs_point frScroll;
 	__be32 frOpenChain;
 	__be16 frUnused;
@@ -131,12 +138,15 @@ struct hfs_dxinfo {
 	__be32 frPutAway;
 } __packed;
 
-union hfs_finder_info {
-	struct {
+union hfs_finder_info
+{
+	struct
+	{
 		struct hfs_finfo finfo;
 		struct hfs_fxinfo fxinfo;
 	} file;
-	struct {
+	struct
+	{
 		struct hfs_dinfo dinfo;
 		struct hfs_dxinfo dxinfo;
 	} dir;
@@ -146,7 +156,8 @@ union hfs_finder_info {
 #define	HFS_BKEY(X)	(((void)((X)->KeyLen)), ((struct hfs_bkey *)(X)))
 
 /* The key used in the catalog b-tree: */
-struct hfs_cat_key {
+struct hfs_cat_key
+{
 	u8 key_len;		/* number of bytes in the key */
 	u8 reserved;		/* padding */
 	__be32 ParID;		/* CNID of the parent dir */
@@ -154,14 +165,16 @@ struct hfs_cat_key {
 } __packed;
 
 /* The key used in the extents b-tree: */
-struct hfs_ext_key {
+struct hfs_ext_key
+{
 	u8 key_len;		/* number of bytes in the key */
 	u8 FkType;		/* HFS_FK_{DATA,RSRC} */
 	__be32 FNum;		/* The File ID of the file */
 	__be16 FABN;		/* allocation blocks number*/
 } __packed;
 
-typedef union hfs_btree_key {
+typedef union hfs_btree_key
+{
 	u8 key_len;			/* number of bytes in the key */
 	struct hfs_cat_key cat;
 	struct hfs_ext_key ext;
@@ -172,14 +185,16 @@ typedef union hfs_btree_key {
 
 typedef union hfs_btree_key btree_key;
 
-struct hfs_extent {
+struct hfs_extent
+{
 	__be16 block;
 	__be16 count;
 };
 typedef struct hfs_extent hfs_extent_rec[3];
 
 /* The catalog record for a file */
-struct hfs_cat_file {
+struct hfs_cat_file
+{
 	s8 type;			/* The type of entry */
 	u8 reserved;
 	u8 Flags;			/* Flags such as read-only */
@@ -206,7 +221,8 @@ struct hfs_cat_file {
 } __packed;
 
 /* the catalog record for a directory */
-struct hfs_cat_dir {
+struct hfs_cat_dir
+{
 	s8 type;			/* The type of entry */
 	u8 reserved;
 	__be16 Flags;			/* flags */
@@ -222,7 +238,8 @@ struct hfs_cat_dir {
 } __packed;
 
 /* the catalog record for a thread */
-struct hfs_cat_thread {
+struct hfs_cat_thread
+{
 	s8 type;			/* The type of entry */
 	u8 reserved[9];			/* reserved by Apple */
 	__be32 ParID;			/* CNID of parent directory */
@@ -230,14 +247,16 @@ struct hfs_cat_thread {
 }  __packed;
 
 /* A catalog tree record */
-typedef union hfs_cat_rec {
+typedef union hfs_cat_rec
+{
 	s8 type;			/* The type of entry */
 	struct hfs_cat_file file;
 	struct hfs_cat_dir dir;
 	struct hfs_cat_thread thread;
 } hfs_cat_rec;
 
-struct hfs_mdb {
+struct hfs_mdb
+{
 	__be16 drSigWord;		/* Signature word indicating fs type */
 	__be32 drCrDate;		/* fs creation date/time */
 	__be32 drLsMod;			/* fs modification date/time */
@@ -280,7 +299,8 @@ struct hfs_mdb {
 
 /*======== Data structures kept in memory ========*/
 
-struct hfs_readdir_data {
+struct hfs_readdir_data
+{
 	struct list_head list;
 	struct file *file;
 	struct hfs_cat_key key;

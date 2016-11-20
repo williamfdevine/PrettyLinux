@@ -13,7 +13,8 @@
 #include <linux/serio.h>
 
 #define PACKET_LENGTH  5
-struct tsc_ser {
+struct tsc_ser
+{
 	struct input_dev *dev;
 	struct serio *serio;
 	u32 idx;
@@ -39,39 +40,47 @@ static void tsc_process_data(struct tsc_ser *ptsc)
 }
 
 static irqreturn_t tsc_interrupt(struct serio *serio,
-		unsigned char data, unsigned int flags)
+								 unsigned char data, unsigned int flags)
 {
 	struct tsc_ser *ptsc = serio_get_drvdata(serio);
 	struct input_dev *dev = ptsc->dev;
 
 	ptsc->data[ptsc->idx] = data;
-	switch (ptsc->idx++) {
-	case 0:
-		if (unlikely((data & 0x3e) != 0x10)) {
-			dev_dbg(&serio->dev,
-				"unsynchronized packet start (0x%02x)\n", data);
-			ptsc->idx = 0;
-		} else if (!(data & 0x01)) {
-			input_report_key(dev, BTN_TOUCH, 0);
-			input_sync(dev);
-			ptsc->idx = 0;
-		}
-		break;
 
-	case 1:
-	case 3:
-		if (unlikely(data & 0xfc)) {
-			dev_dbg(&serio->dev,
-				"unsynchronized data 0x%02x at offset %d\n",
-				data, ptsc->idx - 1);
-			ptsc->idx = 0;
-		}
-		break;
+	switch (ptsc->idx++)
+	{
+		case 0:
+			if (unlikely((data & 0x3e) != 0x10))
+			{
+				dev_dbg(&serio->dev,
+						"unsynchronized packet start (0x%02x)\n", data);
+				ptsc->idx = 0;
+			}
+			else if (!(data & 0x01))
+			{
+				input_report_key(dev, BTN_TOUCH, 0);
+				input_sync(dev);
+				ptsc->idx = 0;
+			}
 
-	case 4:
-		tsc_process_data(ptsc);
-		ptsc->idx = 0;
-		break;
+			break;
+
+		case 1:
+		case 3:
+			if (unlikely(data & 0xfc))
+			{
+				dev_dbg(&serio->dev,
+						"unsynchronized data 0x%02x at offset %d\n",
+						data, ptsc->idx - 1);
+				ptsc->idx = 0;
+			}
+
+			break;
+
+		case 4:
+			tsc_process_data(ptsc);
+			ptsc->idx = 0;
+			break;
 	}
 
 	return IRQ_HANDLED;
@@ -85,7 +94,9 @@ static int tsc_connect(struct serio *serio, struct serio_driver *drv)
 
 	ptsc = kzalloc(sizeof(struct tsc_ser), GFP_KERNEL);
 	input_dev = input_allocate_device();
-	if (!ptsc || !input_dev) {
+
+	if (!ptsc || !input_dev)
+	{
 		error = -ENOMEM;
 		goto fail1;
 	}
@@ -110,12 +121,18 @@ static int tsc_connect(struct serio *serio, struct serio_driver *drv)
 	serio_set_drvdata(serio, ptsc);
 
 	error = serio_open(serio, drv);
+
 	if (error)
+	{
 		goto fail2;
+	}
 
 	error = input_register_device(ptsc->dev);
+
 	if (error)
+	{
 		goto fail3;
+	}
 
 	return 0;
 
@@ -141,7 +158,8 @@ static void tsc_disconnect(struct serio *serio)
 	serio_set_drvdata(serio, NULL);
 }
 
-static struct serio_device_id tsc_serio_ids[] = {
+static struct serio_device_id tsc_serio_ids[] =
+{
 	{
 		.type   = SERIO_RS232,
 		.proto  = SERIO_TSC40,
@@ -154,7 +172,8 @@ MODULE_DEVICE_TABLE(serio, tsc_serio_ids);
 
 #define DRIVER_DESC    "TSC-10/25/40 serial touchscreen driver"
 
-static struct serio_driver tsc_drv = {
+static struct serio_driver tsc_drv =
+{
 	.driver	= {
 		.name   = "tsc40",
 	},

@@ -38,7 +38,8 @@
 #define msb(x) (((x) >> 8) & 0xff)
 #define lsb(x) ((x) & 0xff)
 
-enum mt352_reg_addr {
+enum mt352_reg_addr
+{
 	STATUS_0           = 0x00,
 	STATUS_1           = 0x01,
 	STATUS_2           = 0x02,

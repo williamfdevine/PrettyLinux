@@ -32,7 +32,8 @@
 #ifndef _CXGB3_OFFLOAD_CTL_DEFS_H
 #define _CXGB3_OFFLOAD_CTL_DEFS_H
 
-enum {
+enum
+{
 	GET_MAX_OUTSTANDING_WR 	= 0,
 	GET_TX_MAX_CHUNK	= 1,
 	GET_TID_RANGE		= 2,
@@ -65,7 +66,8 @@ enum {
 /*
  * Structure used to describe a TID range.  Valid TIDs are [base, base+num).
  */
-struct tid_range {
+struct tid_range
+{
 	unsigned int base;	/* first TID */
 	unsigned int num;	/* number of TIDs in range */
 };
@@ -73,7 +75,8 @@ struct tid_range {
 /*
  * Structure used to request the size and contents of the MTU table.
  */
-struct mtutab {
+struct mtutab
+{
 	unsigned int size;	/* # of entries in the MTU table */
 	const unsigned short *mtus;	/* the MTU table values */
 };
@@ -83,14 +86,16 @@ struct net_device;
 /*
  * Structure used to request the adapter net_device owning a given MAC address.
  */
-struct iff_mac {
+struct iff_mac
+{
 	struct net_device *dev;	/* the net_device */
 	const unsigned char *mac_addr;	/* MAC address to lookup */
 	u16 vlan_tag;
 };
 
 /* Structure used to request a port's iSCSI IPv4 address */
-struct iscsi_ipv4addr {
+struct iscsi_ipv4addr
+{
 	struct net_device *dev;	/* the net_device */
 	__be32 ipv4addr;	/* the return iSCSI IPv4 address */
 };
@@ -100,14 +105,16 @@ struct pci_dev;
 /*
  * Structure used to request the TCP DDP parameters.
  */
-struct ddp_params {
+struct ddp_params
+{
 	unsigned int llimit;	/* TDDP region start address */
 	unsigned int ulimit;	/* TDDP region end address */
 	unsigned int tag_mask;	/* TDDP tag mask */
 	struct pci_dev *pdev;
 };
 
-struct adap_ports {
+struct adap_ports
+{
 	unsigned int nports;	/* number of ports on this adapter */
 	struct net_device *lldevs[2];
 };
@@ -115,7 +122,8 @@ struct adap_ports {
 /*
  * Structure used to return information to the iscsi layer.
  */
-struct ulp_iscsi_info {
+struct ulp_iscsi_info
+{
 	unsigned int offset;
 	unsigned int llimit;
 	unsigned int ulimit;
@@ -129,7 +137,8 @@ struct ulp_iscsi_info {
 /*
  * Structure used to return information to the RDMA layer.
  */
-struct rdma_info {
+struct rdma_info
+{
 	unsigned int tpt_base;	/* TPT base address */
 	unsigned int tpt_top;	/* TPT last entry address */
 	unsigned int pbl_base;	/* PBL base address */
@@ -145,7 +154,8 @@ struct rdma_info {
 /*
  * Structure used to request an operation on an RDMA completion queue.
  */
-struct rdma_cq_op {
+struct rdma_cq_op
+{
 	unsigned int id;
 	unsigned int op;
 	unsigned int credits;
@@ -154,7 +164,8 @@ struct rdma_cq_op {
 /*
  * Structure used to setup RDMA completion queues.
  */
-struct rdma_cq_setup {
+struct rdma_cq_setup
+{
 	unsigned int id;
 	unsigned long long base_addr;
 	unsigned int size;
@@ -166,7 +177,8 @@ struct rdma_cq_setup {
 /*
  * Structure used to setup the RDMA control egress context.
  */
-struct rdma_ctrlqp_setup {
+struct rdma_ctrlqp_setup
+{
 	unsigned long long base_addr;
 	unsigned int size;
 };
@@ -174,7 +186,8 @@ struct rdma_ctrlqp_setup {
 /*
  * Offload TX/RX page information.
  */
-struct ofld_page_info {
+struct ofld_page_info
+{
 	unsigned int page_size;  /* Page size, should be a power of 2 */
 	unsigned int num;        /* Number of pages */
 };
@@ -182,7 +195,8 @@ struct ofld_page_info {
 /*
  * Structure used to get firmware and protocol engine versions.
  */
-struct ch_embedded_info {
+struct ch_embedded_info
+{
 	u32 fw_vers;
 	u32 tp_vers;
 };

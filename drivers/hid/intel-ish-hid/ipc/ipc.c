@@ -36,7 +36,7 @@ static struct ishtp_device *ishtp_dev;
  * Return: Read register value
  */
 static inline uint32_t ish_reg_read(const struct ishtp_device *dev,
-	unsigned long offset)
+									unsigned long offset)
 {
 	struct ish_hw *hw = to_ish_hw(dev);
 
@@ -52,8 +52,8 @@ static inline uint32_t ish_reg_read(const struct ishtp_device *dev,
  * Writes 32 bit register at a give offset
  */
 static inline void ish_reg_write(struct ishtp_device *dev,
-				 unsigned long offset,
-				 uint32_t value)
+								 unsigned long offset,
+								 uint32_t value)
 {
 	struct ish_hw *hw = to_ish_hw(dev);
 
@@ -86,11 +86,14 @@ static bool check_generated_interrupt(struct ishtp_device *dev)
 	bool interrupt_generated = true;
 	uint32_t pisr_val = 0;
 
-	if (dev->pdev->device == CHV_DEVICE_ID) {
+	if (dev->pdev->device == CHV_DEVICE_ID)
+	{
 		pisr_val = ish_reg_read(dev, IPC_REG_PISR_CHV_AB);
 		interrupt_generated =
 			IPC_INT_FROM_ISH_TO_HOST_CHV_AB(pisr_val);
-	} else {
+	}
+	else
+	{
 		pisr_val = ish_reg_read(dev, IPC_REG_PISR_BXT);
 		interrupt_generated = IPC_INT_FROM_ISH_TO_HOST_BXT(pisr_val);
 	}
@@ -122,36 +125,42 @@ static bool ish_is_input_ready(struct ishtp_device *dev)
  */
 static void set_host_ready(struct ishtp_device *dev)
 {
-	if (dev->pdev->device == CHV_DEVICE_ID) {
+	if (dev->pdev->device == CHV_DEVICE_ID)
+	{
 		if (dev->pdev->revision == REVISION_ID_CHT_A0 ||
-				(dev->pdev->revision & REVISION_ID_SI_MASK) ==
-				REVISION_ID_CHT_Ax_SI)
+			(dev->pdev->revision & REVISION_ID_SI_MASK) ==
+			REVISION_ID_CHT_Ax_SI)
+		{
 			ish_reg_write(dev, IPC_REG_HOST_COMM, 0x81);
+		}
 		else if (dev->pdev->revision == REVISION_ID_CHT_B0 ||
-				(dev->pdev->revision & REVISION_ID_SI_MASK) ==
-				REVISION_ID_CHT_Bx_SI ||
-				(dev->pdev->revision & REVISION_ID_SI_MASK) ==
-				REVISION_ID_CHT_Kx_SI ||
-				(dev->pdev->revision & REVISION_ID_SI_MASK) ==
-				REVISION_ID_CHT_Dx_SI) {
+				 (dev->pdev->revision & REVISION_ID_SI_MASK) ==
+				 REVISION_ID_CHT_Bx_SI ||
+				 (dev->pdev->revision & REVISION_ID_SI_MASK) ==
+				 REVISION_ID_CHT_Kx_SI ||
+				 (dev->pdev->revision & REVISION_ID_SI_MASK) ==
+				 REVISION_ID_CHT_Dx_SI)
+		{
 			uint32_t host_comm_val;
 
 			host_comm_val = ish_reg_read(dev, IPC_REG_HOST_COMM);
 			host_comm_val |= IPC_HOSTCOMM_INT_EN_BIT_CHV_AB | 0x81;
 			ish_reg_write(dev, IPC_REG_HOST_COMM, host_comm_val);
 		}
-	} else {
-			uint32_t host_pimr_val;
+	}
+	else
+	{
+		uint32_t host_pimr_val;
 
-			host_pimr_val = ish_reg_read(dev, IPC_REG_PIMR_BXT);
-			host_pimr_val |= IPC_PIMR_INT_EN_BIT_BXT;
-			/*
-			 * disable interrupt generated instead of
-			 * RX_complete_msg
-			 */
-			host_pimr_val &= ~IPC_HOST2ISH_BUSYCLEAR_MASK_BIT;
+		host_pimr_val = ish_reg_read(dev, IPC_REG_PIMR_BXT);
+		host_pimr_val |= IPC_PIMR_INT_EN_BIT_BXT;
+		/*
+		 * disable interrupt generated instead of
+		 * RX_complete_msg
+		 */
+		host_pimr_val &= ~IPC_HOST2ISH_BUSYCLEAR_MASK_BIT;
 
-			ish_reg_write(dev, IPC_REG_PIMR_BXT, host_pimr_val);
+		ish_reg_write(dev, IPC_REG_PIMR_BXT, host_pimr_val);
 	}
 }
 
@@ -168,7 +177,7 @@ static bool ishtp_fw_is_ready(struct ishtp_device *dev)
 	uint32_t ish_status = _ish_read_fw_sts_reg(dev);
 
 	return IPC_IS_ISH_ILUP(ish_status) &&
-		IPC_IS_ISH_ISHTP_READY(ish_status);
+		   IPC_IS_ISH_ISHTP_READY(ish_status);
 }
 
 /**
@@ -223,15 +232,18 @@ static uint32_t _ishtp_read_hdr(const struct ishtp_device *dev)
  * Return: Always 0
  */
 static int _ishtp_read(struct ishtp_device *dev, unsigned char *buffer,
-	unsigned long buffer_length)
+					   unsigned long buffer_length)
 {
 	uint32_t	i;
 	uint32_t	*r_buf = (uint32_t *)buffer;
 	uint32_t	msg_offs;
 
 	msg_offs = IPC_REG_ISH2HOST_MSG + sizeof(struct ishtp_msg_hdr);
+
 	for (i = 0; i < buffer_length; i += sizeof(uint32_t))
+	{
 		*r_buf++ = ish_reg_read(dev, msg_offs + i);
+	}
 
 	return 0;
 }
@@ -261,34 +273,44 @@ static int write_ipc_from_queue(struct ishtp_device *dev)
 	unsigned long	out_ipc_flags;
 
 	if (dev->dev_state == ISHTP_DEV_DISABLED)
+	{
 		return	-EINVAL;
+	}
 
 	spin_lock_irqsave(&dev->out_ipc_spinlock, out_ipc_flags);
-	if (out_ipc_locked) {
+
+	if (out_ipc_locked)
+	{
 		spin_unlock_irqrestore(&dev->out_ipc_spinlock, out_ipc_flags);
 		return -EBUSY;
 	}
+
 	out_ipc_locked = 1;
-	if (!ish_is_input_ready(dev)) {
+
+	if (!ish_is_input_ready(dev))
+	{
 		out_ipc_locked = 0;
 		spin_unlock_irqrestore(&dev->out_ipc_spinlock, out_ipc_flags);
 		return -EBUSY;
 	}
+
 	spin_unlock_irqrestore(&dev->out_ipc_spinlock, out_ipc_flags);
 
 	spin_lock_irqsave(&dev->wr_processing_spinlock, flags);
+
 	/*
 	 * if tx send list is empty - return 0;
 	 * may happen, as RX_COMPLETE handler doesn't check list emptiness.
 	 */
-	if (list_empty(&dev->wr_processing_list_head.link)) {
+	if (list_empty(&dev->wr_processing_list_head.link))
+	{
 		spin_unlock_irqrestore(&dev->wr_processing_spinlock, flags);
 		out_ipc_locked = 0;
 		return	0;
 	}
 
 	ipc_link = list_entry(dev->wr_processing_list_head.link.next,
-			      struct wr_msg_ctl_info, link);
+						  struct wr_msg_ctl_info, link);
 	/* first 4 bytes of the data is the doorbell value (IPC header) */
 	length = ipc_link->length - sizeof(uint32_t);
 	doorbell_val = *(uint32_t *)ipc_link->inline_data;
@@ -296,7 +318,8 @@ static int write_ipc_from_queue(struct ishtp_device *dev)
 
 	/* If sending MNG_SYNC_FW_CLOCK, update clock again */
 	if (IPC_HEADER_GET_PROTOCOL(doorbell_val) == IPC_PROTOCOL_MNG &&
-		IPC_HEADER_GET_MNG_CMD(doorbell_val) == MNG_SYNC_FW_CLOCK) {
+		IPC_HEADER_GET_MNG_CMD(doorbell_val) == MNG_SYNC_FW_CLOCK)
+	{
 		struct timespec ts_system;
 		struct timeval tv_utc;
 		uint64_t        usec_system, usec_utc;
@@ -307,7 +330,7 @@ static int write_ipc_from_queue(struct ishtp_device *dev)
 		do_gettimeofday(&tv_utc);
 		usec_system = (timespec_to_ns(&ts_system)) / NSEC_PER_USEC;
 		usec_utc = (uint64_t)tv_utc.tv_sec * 1000000 +
-						((uint32_t)tv_utc.tv_usec);
+				   ((uint32_t)tv_utc.tv_usec);
 		ts_format.ts1_source = HOST_SYSTEM_TIME_USEC;
 		ts_format.ts2_source = HOST_UTC_TIME_USEC;
 
@@ -316,20 +339,25 @@ static int write_ipc_from_queue(struct ishtp_device *dev)
 		time_update.sync_info = ts_format;
 
 		memcpy(r_buf, &time_update,
-		       sizeof(struct ipc_time_update_msg));
+			   sizeof(struct ipc_time_update_msg));
 	}
 
 	for (i = 0, reg_addr = IPC_REG_HOST2ISH_MSG; i < length >> 2; i++,
-			reg_addr += 4)
+		 reg_addr += 4)
+	{
 		ish_reg_write(dev, reg_addr, r_buf[i]);
+	}
 
 	rem = length & 0x3;
-	if (rem > 0) {
+
+	if (rem > 0)
+	{
 		uint32_t reg = 0;
 
 		memcpy(&reg, &r_buf[length >> 2], rem);
 		ish_reg_write(dev, reg_addr, reg);
 	}
+
 	/* Flush writes to msg registers and doorbell */
 	ish_reg_read(dev, IPC_REG_ISH_HOST_FWSTS);
 
@@ -351,7 +379,9 @@ static int write_ipc_from_queue(struct ishtp_device *dev)
 	 * after ipc_link returned to free list
 	 */
 	if (ipc_send_compl)
+	{
 		ipc_send_compl(ipc_send_compl_prm);
+	}
 
 	return 0;
 }
@@ -373,22 +403,27 @@ static int write_ipc_from_queue(struct ishtp_device *dev)
  * Return: 0 for success else failure code
  */
 static int write_ipc_to_queue(struct ishtp_device *dev,
-	void (*ipc_send_compl)(void *), void *ipc_send_compl_prm,
-	unsigned char *msg, int length)
+							  void (*ipc_send_compl)(void *), void *ipc_send_compl_prm,
+							  unsigned char *msg, int length)
 {
 	struct wr_msg_ctl_info *ipc_link;
 	unsigned long	flags;
 
 	if (length > IPC_FULL_MSG_SIZE)
+	{
 		return -EMSGSIZE;
+	}
 
 	spin_lock_irqsave(&dev->wr_processing_spinlock, flags);
-	if (list_empty(&dev->wr_free_list_head.link)) {
+
+	if (list_empty(&dev->wr_free_list_head.link))
+	{
 		spin_unlock_irqrestore(&dev->wr_processing_spinlock, flags);
 		return -ENOMEM;
 	}
+
 	ipc_link = list_entry(dev->wr_free_list_head.link.next,
-		struct wr_msg_ctl_info, link);
+						  struct wr_msg_ctl_info, link);
 	list_del_init(&ipc_link->link);
 
 	ipc_link->ipc_send_compl = ipc_send_compl;
@@ -416,7 +451,7 @@ static int write_ipc_to_queue(struct ishtp_device *dev,
  * Return: 0 for success else failure code
  */
 static int ipc_send_mng_msg(struct ishtp_device *dev, uint32_t msg_code,
-	void *msg, size_t size)
+							void *msg, size_t size)
 {
 	unsigned char	ipc_msg[IPC_FULL_MSG_SIZE];
 	uint32_t	drbl_val = IPC_BUILD_MNG_MSG(msg_code, size);
@@ -424,7 +459,7 @@ static int ipc_send_mng_msg(struct ishtp_device *dev, uint32_t msg_code,
 	memcpy(ipc_msg, &drbl_val, sizeof(uint32_t));
 	memcpy(ipc_msg + sizeof(uint32_t), msg, size);
 	return	write_ipc_to_queue(dev, NULL, NULL, ipc_msg,
-		sizeof(uint32_t) + size);
+							   sizeof(uint32_t) + size);
 }
 
 /**
@@ -447,7 +482,8 @@ static int ish_fw_reset_handler(struct ishtp_device *dev)
 	/* Clear IPC output queue */
 	spin_lock_irqsave(&dev->wr_processing_spinlock, flags);
 	list_for_each_entry_safe(processing, next,
-			&dev->wr_processing_list_head.link, link) {
+							 &dev->wr_processing_list_head.link, link)
+	{
 		list_move_tail(&processing->link, &dev->wr_free_list_head.link);
 	}
 	spin_unlock_irqrestore(&dev->wr_processing_spinlock, flags);
@@ -457,11 +493,14 @@ static int ish_fw_reset_handler(struct ishtp_device *dev)
 
 	if (!ish_is_input_ready(dev))
 		timed_wait_for_timeout(WAIT_FOR_SEND_SLICE,
-			ish_is_input_ready(dev), (2 * HZ));
+							   ish_is_input_ready(dev), (2 * HZ));
 
 	/* ISH FW is dead */
 	if (!ish_is_input_ready(dev))
+	{
 		return	-EPIPE;
+	}
+
 	/*
 	 * Set HOST2ISH.ILUP. Apparently we need this BEFORE sending
 	 * RESET_NOTIFY_ACK - FW will be checking for it
@@ -469,21 +508,24 @@ static int ish_fw_reset_handler(struct ishtp_device *dev)
 	ish_set_host_rdy(dev);
 	/* Send RESET_NOTIFY_ACK (with reset_id) */
 	ipc_send_mng_msg(dev, MNG_RESET_NOTIFY_ACK, &reset_id,
-			 sizeof(uint32_t));
+					 sizeof(uint32_t));
 
 	/* Wait for ISH FW'es ILUP and ISHTP_READY */
 	timed_wait_for_timeout(WAIT_FOR_SEND_SLICE, ishtp_fw_is_ready(dev),
-		(2 * HZ));
-	if (!ishtp_fw_is_ready(dev)) {
+						   (2 * HZ));
+
+	if (!ishtp_fw_is_ready(dev))
+	{
 		/* ISH FW is dead */
 		uint32_t	ish_status;
 
 		ish_status = _ish_read_fw_sts_reg(dev);
 		dev_err(dev->devc,
-			"[ishtp-ish]: completed reset, ISH is dead (FWSTS = %08X)\n",
-			ish_status);
+				"[ishtp-ish]: completed reset, ISH is dead (FWSTS = %08X)\n",
+				ish_status);
 		return -ENODEV;
 	}
+
 	return	0;
 }
 
@@ -498,7 +540,9 @@ static void fw_reset_work_fn(struct work_struct *unused)
 	int	rv;
 
 	rv = ish_fw_reset_handler(ishtp_dev);
-	if (!rv) {
+
+	if (!rv)
+	{
 		/* ISH is ILUP & ISHTP-ready. Restart ISHTP */
 		schedule_timeout(HZ / 3);
 		ishtp_dev->recvd_hw_ready = 1;
@@ -506,9 +550,10 @@ static void fw_reset_work_fn(struct work_struct *unused)
 
 		/* ISHTP notification in IPC_RESET sequence completion */
 		ishtp_reset_compl_handler(ishtp_dev);
-	} else
+	}
+	else
 		dev_err(ishtp_dev->devc, "[ishtp-ish]: FW reset failed (%d)\n",
-			rv);
+				rv);
 }
 
 /**
@@ -524,7 +569,9 @@ static void _ish_sync_fw_clock(struct ishtp_device *dev)
 	uint64_t	usec;
 
 	if (prev_sync && jiffies - prev_sync < 20 * HZ)
+	{
 		return;
+	}
 
 	prev_sync = jiffies;
 	get_monotonic_boottime(&ts);
@@ -547,35 +594,41 @@ static void	recv_ipc(struct ishtp_device *dev, uint32_t doorbell_val)
 
 	mng_cmd = IPC_HEADER_GET_MNG_CMD(doorbell_val);
 
-	switch (mng_cmd) {
-	default:
-		break;
+	switch (mng_cmd)
+	{
+		default:
+			break;
 
-	case MNG_RX_CMPL_INDICATION:
-		if (dev->suspend_flag) {
-			dev->suspend_flag = 0;
-			wake_up_interruptible(&dev->suspend_wait);
-		}
-		if (dev->resume_flag) {
-			dev->resume_flag = 0;
-			wake_up_interruptible(&dev->resume_wait);
-		}
+		case MNG_RX_CMPL_INDICATION:
+			if (dev->suspend_flag)
+			{
+				dev->suspend_flag = 0;
+				wake_up_interruptible(&dev->suspend_wait);
+			}
 
-		write_ipc_from_queue(dev);
-		break;
+			if (dev->resume_flag)
+			{
+				dev->resume_flag = 0;
+				wake_up_interruptible(&dev->resume_wait);
+			}
 
-	case MNG_RESET_NOTIFY:
-		if (!ishtp_dev) {
-			ishtp_dev = dev;
-			INIT_WORK(&fw_reset_work, fw_reset_work_fn);
-		}
-		schedule_work(&fw_reset_work);
-		break;
+			write_ipc_from_queue(dev);
+			break;
 
-	case MNG_RESET_NOTIFY_ACK:
-		dev->recvd_hw_ready = 1;
-		wake_up_interruptible(&dev->wait_hw_ready);
-		break;
+		case MNG_RESET_NOTIFY:
+			if (!ishtp_dev)
+			{
+				ishtp_dev = dev;
+				INIT_WORK(&fw_reset_work, fw_reset_work_fn);
+			}
+
+			schedule_work(&fw_reset_work);
+			break;
+
+		case MNG_RESET_NOTIFY_ACK:
+			dev->recvd_hw_ready = 1;
+			wake_up_interruptible(&dev->wait_hw_ready);
+			break;
 	}
 }
 
@@ -597,32 +650,43 @@ irqreturn_t ish_irq_handler(int irq, void *dev_id)
 	interrupt_generated = check_generated_interrupt(dev);
 
 	if (!interrupt_generated)
+	{
 		return IRQ_NONE;
+	}
 
 	doorbell_val = ish_reg_read(dev, IPC_REG_ISH2HOST_DRBL);
+
 	if (!IPC_IS_BUSY(doorbell_val))
+	{
 		return IRQ_HANDLED;
+	}
 
 	if (dev->dev_state == ISHTP_DEV_DISABLED)
+	{
 		return	IRQ_HANDLED;
+	}
 
 	/* Sanity check: IPC dgram length in header */
-	if (IPC_HEADER_GET_LENGTH(doorbell_val) > IPC_PAYLOAD_SIZE) {
+	if (IPC_HEADER_GET_LENGTH(doorbell_val) > IPC_PAYLOAD_SIZE)
+	{
 		dev_err(dev->devc,
-			"IPC hdr - bad length: %u; dropped\n",
-			(unsigned int)IPC_HEADER_GET_LENGTH(doorbell_val));
+				"IPC hdr - bad length: %u; dropped\n",
+				(unsigned int)IPC_HEADER_GET_LENGTH(doorbell_val));
 		goto	eoi;
 	}
 
-	switch (IPC_HEADER_GET_PROTOCOL(doorbell_val)) {
-	default:
-		break;
-	case IPC_PROTOCOL_MNG:
-		recv_ipc(dev, doorbell_val);
-		break;
-	case IPC_PROTOCOL_ISHTP:
-		ishtp_recv(dev);
-		break;
+	switch (IPC_HEADER_GET_PROTOCOL(doorbell_val))
+	{
+		default:
+			break;
+
+		case IPC_PROTOCOL_MNG:
+			recv_ipc(dev, doorbell_val);
+			break;
+
+		case IPC_PROTOCOL_ISHTP:
+			ishtp_recv(dev);
+			break;
 	}
 
 eoi:
@@ -654,13 +718,16 @@ static int ish_disable_dma(struct ishtp_device *dev)
 
 	/* wait for dma inactive */
 	for (dma_delay = 0; dma_delay < MAX_DMA_DELAY &&
-		_ish_read_fw_sts_reg(dev) & (IPC_ISH_IN_DMA);
-		dma_delay += 5)
+		 _ish_read_fw_sts_reg(dev) & (IPC_ISH_IN_DMA);
+		 dma_delay += 5)
+	{
 		mdelay(5);
+	}
 
-	if (dma_delay >= MAX_DMA_DELAY) {
+	if (dma_delay >= MAX_DMA_DELAY)
+	{
 		dev_err(dev->devc,
-			"Wait for DMA inactive timeout\n");
+				"Wait for DMA inactive timeout\n");
 		return	-EBUSY;
 	}
 
@@ -704,21 +771,28 @@ static int _ish_hw_reset(struct ishtp_device *dev)
 	uint16_t csr;
 
 	if (!pdev)
+	{
 		return	-ENODEV;
+	}
 
 	rv = pci_reset_function(pdev);
-	if (!rv)
-		dev->dev_state = ISHTP_DEV_RESETTING;
 
-	if (!pdev->pm_cap) {
+	if (!rv)
+	{
+		dev->dev_state = ISHTP_DEV_RESETTING;
+	}
+
+	if (!pdev->pm_cap)
+	{
 		dev_err(&pdev->dev, "Can't reset - no PM caps\n");
 		return	-EINVAL;
 	}
 
 	/* Disable dma communication between FW and host */
-	if (ish_disable_dma(dev)) {
+	if (ish_disable_dma(dev))
+	{
 		dev_err(&pdev->dev,
-			"Can't reset - stuck with DMA in-progress\n");
+				"Can't reset - stuck with DMA in-progress\n");
 		return	-EBUSY;
 	}
 
@@ -767,15 +841,19 @@ static int _ish_ipc_reset(struct ishtp_device *dev)
 
 	/* send message */
 	rv = ipc_send_mng_msg(dev, MNG_RESET_NOTIFY, &ipc_mng_msg,
-		sizeof(struct ipc_rst_payload_type));
-	if (rv) {
+						  sizeof(struct ipc_rst_payload_type));
+
+	if (rv)
+	{
 		dev_err(dev->devc, "Failed to send IPC MNG_RESET_NOTIFY\n");
 		return	rv;
 	}
 
 	wait_event_interruptible_timeout(dev->wait_hw_ready,
-					 dev->recvd_hw_ready, 2 * HZ);
-	if (!dev->recvd_hw_ready) {
+									 dev->recvd_hw_ready, 2 * HZ);
+
+	if (!dev->recvd_hw_ready)
+	{
 		dev_err(dev->devc, "Timed out waiting for HW ready\n");
 		rv = -ENODEV;
 	}
@@ -803,12 +881,13 @@ int ish_hw_start(struct ishtp_device *dev)
 	/* wait for FW-initiated reset flow */
 	if (!dev->recvd_hw_ready)
 		wait_event_interruptible_timeout(dev->wait_hw_ready,
-						 dev->recvd_hw_ready,
-						 10 * HZ);
+										 dev->recvd_hw_ready,
+										 10 * HZ);
 
-	if (!dev->recvd_hw_ready) {
+	if (!dev->recvd_hw_ready)
+	{
 		dev_err(dev->devc,
-			"[ishtp-ish]: Timed out waiting for FW-initiated reset\n");
+				"[ishtp-ish]: Timed out waiting for FW-initiated reset\n");
 		return	-ENODEV;
 	}
 
@@ -826,7 +905,7 @@ int ish_hw_start(struct ishtp_device *dev)
  * Return: door bell value
  */
 static uint32_t ish_ipc_get_header(struct ishtp_device *dev, int length,
-				   int busy)
+								   int busy)
 {
 	uint32_t drbl_val;
 
@@ -835,7 +914,8 @@ static uint32_t ish_ipc_get_header(struct ishtp_device *dev, int length,
 	return drbl_val;
 }
 
-static const struct ishtp_hw_ops ish_hw_ops = {
+static const struct ishtp_hw_ops ish_hw_ops =
+{
 	.hw_reset = _ish_hw_reset,
 	.ipc_reset = _ish_ipc_reset,
 	.ipc_get_header = ish_ipc_get_header,
@@ -860,9 +940,12 @@ struct ishtp_device *ish_dev_init(struct pci_dev *pdev)
 	int	i;
 
 	dev = kzalloc(sizeof(struct ishtp_device) + sizeof(struct ish_hw),
-		GFP_KERNEL);
+				  GFP_KERNEL);
+
 	if (!dev)
+	{
 		return NULL;
+	}
 
 	ishtp_device_init(dev);
 
@@ -874,20 +957,25 @@ struct ishtp_device *ish_dev_init(struct pci_dev *pdev)
 	/* Init IPC processing and free lists */
 	INIT_LIST_HEAD(&dev->wr_processing_list_head.link);
 	INIT_LIST_HEAD(&dev->wr_free_list_head.link);
-	for (i = 0; i < IPC_TX_FIFO_SIZE; ++i) {
+
+	for (i = 0; i < IPC_TX_FIFO_SIZE; ++i)
+	{
 		struct wr_msg_ctl_info	*tx_buf;
 
 		tx_buf = kzalloc(sizeof(struct wr_msg_ctl_info), GFP_KERNEL);
-		if (!tx_buf) {
+
+		if (!tx_buf)
+		{
 			/*
 			 * IPC buffers may be limited or not available
 			 * at all - although this shouldn't happen
 			 */
 			dev_err(dev->devc,
-				"[ishtp-ish]: failure in Tx FIFO allocations (%d)\n",
-				i);
+					"[ishtp-ish]: failure in Tx FIFO allocations (%d)\n",
+					i);
 			break;
 		}
+
 		list_add_tail(&tx_buf->link, &dev->wr_free_list_head.link);
 	}
 
@@ -908,12 +996,15 @@ void	ish_device_disable(struct ishtp_device *dev)
 	struct pci_dev *pdev = dev->pdev;
 
 	if (!pdev)
+	{
 		return;
+	}
 
 	/* Disable dma communication between FW and host */
-	if (ish_disable_dma(dev)) {
+	if (ish_disable_dma(dev))
+	{
 		dev_err(&pdev->dev,
-			"Can't reset - stuck with DMA in-progress\n");
+				"Can't reset - stuck with DMA in-progress\n");
 		return;
 	}
 

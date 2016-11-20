@@ -8,9 +8,9 @@
 #include "tfrc.h"
 
 #ifdef CONFIG_IP_DCCP_TFRC_DEBUG
-bool tfrc_debug;
-module_param(tfrc_debug, bool, 0644);
-MODULE_PARM_DESC(tfrc_debug, "Enable TFRC debug messages");
+	bool tfrc_debug;
+	module_param(tfrc_debug, bool, 0644);
+	MODULE_PARM_DESC(tfrc_debug, "Enable TFRC debug messages");
 #endif
 
 int __init tfrc_lib_init(void)
@@ -18,15 +18,24 @@ int __init tfrc_lib_init(void)
 	int rc = tfrc_li_init();
 
 	if (rc)
+	{
 		goto out;
+	}
 
 	rc = tfrc_tx_packet_history_init();
+
 	if (rc)
+	{
 		goto out_free_loss_intervals;
+	}
 
 	rc = tfrc_rx_packet_history_init();
+
 	if (rc)
+	{
 		goto out_free_tx_history;
+	}
+
 	return 0;
 
 out_free_tx_history:

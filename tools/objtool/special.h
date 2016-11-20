@@ -21,7 +21,8 @@
 #include <stdbool.h>
 #include "elf.h"
 
-struct special_alt {
+struct special_alt
+{
 	struct list_head list;
 
 	bool group;

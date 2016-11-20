@@ -2,7 +2,7 @@
 #define __LINUX_RWLOCK_H
 
 #ifndef __LINUX_SPINLOCK_H
-# error "please don't include this file directly"
+	# error "please don't include this file directly"
 #endif
 
 /*
@@ -15,37 +15,37 @@
  */
 
 #ifdef CONFIG_DEBUG_SPINLOCK
-  extern void __rwlock_init(rwlock_t *lock, const char *name,
-			    struct lock_class_key *key);
+extern void __rwlock_init(rwlock_t *lock, const char *name,
+						  struct lock_class_key *key);
 # define rwlock_init(lock)					\
-do {								\
-	static struct lock_class_key __key;			\
-								\
-	__rwlock_init((lock), #lock, &__key);			\
-} while (0)
+	do {								\
+		static struct lock_class_key __key;			\
+		\
+		__rwlock_init((lock), #lock, &__key);			\
+	} while (0)
 #else
 # define rwlock_init(lock)					\
 	do { *(lock) = __RW_LOCK_UNLOCKED(lock); } while (0)
 #endif
 
 #ifdef CONFIG_DEBUG_SPINLOCK
- extern void do_raw_read_lock(rwlock_t *lock) __acquires(lock);
+extern void do_raw_read_lock(rwlock_t *lock) __acquires(lock);
 #define do_raw_read_lock_flags(lock, flags) do_raw_read_lock(lock)
- extern int do_raw_read_trylock(rwlock_t *lock);
- extern void do_raw_read_unlock(rwlock_t *lock) __releases(lock);
- extern void do_raw_write_lock(rwlock_t *lock) __acquires(lock);
+extern int do_raw_read_trylock(rwlock_t *lock);
+extern void do_raw_read_unlock(rwlock_t *lock) __releases(lock);
+extern void do_raw_write_lock(rwlock_t *lock) __acquires(lock);
 #define do_raw_write_lock_flags(lock, flags) do_raw_write_lock(lock)
- extern int do_raw_write_trylock(rwlock_t *lock);
- extern void do_raw_write_unlock(rwlock_t *lock) __releases(lock);
+extern int do_raw_write_trylock(rwlock_t *lock);
+extern void do_raw_write_unlock(rwlock_t *lock) __releases(lock);
 #else
 # define do_raw_read_lock(rwlock)	do {__acquire(lock); arch_read_lock(&(rwlock)->raw_lock); } while (0)
 # define do_raw_read_lock_flags(lock, flags) \
-		do {__acquire(lock); arch_read_lock_flags(&(lock)->raw_lock, *(flags)); } while (0)
+	do {__acquire(lock); arch_read_lock_flags(&(lock)->raw_lock, *(flags)); } while (0)
 # define do_raw_read_trylock(rwlock)	arch_read_trylock(&(rwlock)->raw_lock)
 # define do_raw_read_unlock(rwlock)	do {arch_read_unlock(&(rwlock)->raw_lock); __release(lock); } while (0)
 # define do_raw_write_lock(rwlock)	do {__acquire(lock); arch_write_lock(&(rwlock)->raw_lock); } while (0)
 # define do_raw_write_lock_flags(lock, flags) \
-		do {__acquire(lock); arch_write_lock_flags(&(lock)->raw_lock, *(flags)); } while (0)
+	do {__acquire(lock); arch_write_lock_flags(&(lock)->raw_lock, *(flags)); } while (0)
 # define do_raw_write_trylock(rwlock)	arch_write_trylock(&(rwlock)->raw_lock)
 # define do_raw_write_unlock(rwlock)	do {arch_write_unlock(&(rwlock)->raw_lock); __release(lock); } while (0)
 #endif
@@ -116,10 +116,10 @@ do {								\
 #define write_unlock_bh(lock)		_raw_write_unlock_bh(lock)
 
 #define write_trylock_irqsave(lock, flags) \
-({ \
-	local_irq_save(flags); \
-	write_trylock(lock) ? \
-	1 : ({ local_irq_restore(flags); 0; }); \
-})
+	({ \
+		local_irq_save(flags); \
+		write_trylock(lock) ? \
+		1 : ({ local_irq_restore(flags); 0; }); \
+	})
 
 #endif /* __LINUX_RWLOCK_H */

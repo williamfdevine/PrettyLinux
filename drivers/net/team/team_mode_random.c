@@ -22,13 +22,24 @@ static bool rnd_transmit(struct team *team, struct sk_buff *skb)
 
 	port_index = prandom_u32_max(team->en_port_count);
 	port = team_get_port_by_index_rcu(team, port_index);
+
 	if (unlikely(!port))
+	{
 		goto drop;
+	}
+
 	port = team_get_first_port_txable_rcu(team, port);
+
 	if (unlikely(!port))
+	{
 		goto drop;
+	}
+
 	if (team_dev_queue_xmit(team, port, skb))
+	{
 		return false;
+	}
+
 	return true;
 
 drop:
@@ -36,13 +47,15 @@ drop:
 	return false;
 }
 
-static const struct team_mode_ops rnd_mode_ops = {
+static const struct team_mode_ops rnd_mode_ops =
+{
 	.transmit		= rnd_transmit,
 	.port_enter		= team_modeop_port_enter,
 	.port_change_dev_addr	= team_modeop_port_change_dev_addr,
 };
 
-static const struct team_mode rnd_mode = {
+static const struct team_mode rnd_mode =
+{
 	.kind		= "random",
 	.owner		= THIS_MODULE,
 	.ops		= &rnd_mode_ops,

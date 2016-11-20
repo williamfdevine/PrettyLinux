@@ -13,25 +13,31 @@ static int test__bpf_parsing(void *obj_buf, size_t obj_buf_sz)
 	struct bpf_object *obj;
 
 	obj = bpf_object__open_buffer(obj_buf, obj_buf_sz, NULL);
+
 	if (IS_ERR(obj))
+	{
 		return TEST_FAIL;
+	}
+
 	bpf_object__close(obj);
 	return TEST_OK;
 }
 #else
 static int test__bpf_parsing(void *obj_buf __maybe_unused,
-			     size_t obj_buf_sz __maybe_unused)
+							 size_t obj_buf_sz __maybe_unused)
 {
 	pr_debug("Skip bpf parsing\n");
 	return TEST_OK;
 }
 #endif
 
-static struct {
+static struct
+{
 	const char *source;
 	const char *desc;
 	bool should_load_fail;
-} bpf_source_table[__LLVM_TESTCASE_MAX] = {
+} bpf_source_table[__LLVM_TESTCASE_MAX] =
+{
 	[LLVM_TESTCASE_BASE] = {
 		.source = test_llvm__bpf_base_prog,
 		.desc = "Basic BPF llvm compiling test",
@@ -53,10 +59,10 @@ static struct {
 
 int
 test_llvm__fetch_bpf_obj(void **p_obj_buf,
-			 size_t *p_obj_buf_sz,
-			 enum test_llvm__testcase idx,
-			 bool force,
-			 bool *should_load_fail)
+						 size_t *p_obj_buf_sz,
+						 enum test_llvm__testcase idx,
+						 bool force,
+						 bool *should_load_fail)
 {
 	const char *source;
 	const char *desc;
@@ -65,20 +71,26 @@ test_llvm__fetch_bpf_obj(void **p_obj_buf,
 	int err, old_verbose, ret = TEST_FAIL;
 
 	if (idx >= __LLVM_TESTCASE_MAX)
+	{
 		return TEST_FAIL;
+	}
 
 	source = bpf_source_table[idx].source;
 	desc = bpf_source_table[idx].desc;
+
 	if (should_load_fail)
+	{
 		*should_load_fail = bpf_source_table[idx].should_load_fail;
+	}
 
 	/*
 	 * Skip this test if user's .perfconfig doesn't set [llvm] section
 	 * and clang is not found in $PATH, and this is not perf test -v
 	 */
 	if (!force && (verbose == 0 &&
-		       !llvm_param.user_set_param &&
-		       llvm__search_clang())) {
+				   !llvm_param.user_set_param &&
+				   llvm__search_clang()))
+	{
 		pr_debug("No clang and no verbosive, skip this test\n");
 		return TEST_SKIP;
 	}
@@ -88,26 +100,40 @@ test_llvm__fetch_bpf_obj(void **p_obj_buf,
 	 * not 'perf test -v'.
 	 */
 	old_verbose = verbose;
+
 	if (verbose == 0)
+	{
 		verbose = -1;
+	}
 
 	*p_obj_buf = NULL;
 	*p_obj_buf_sz = 0;
 
 	if (!llvm_param.clang_bpf_cmd_template)
+	{
 		goto out;
+	}
 
 	if (!llvm_param.clang_opt)
+	{
 		llvm_param.clang_opt = strdup("");
+	}
 
 	err = asprintf(&tmpl_new, "echo '%s' | %s%s", source,
-		       llvm_param.clang_bpf_cmd_template,
-		       old_verbose ? "" : " 2>/dev/null");
+				   llvm_param.clang_bpf_cmd_template,
+				   old_verbose ? "" : " 2>/dev/null");
+
 	if (err < 0)
+	{
 		goto out;
+	}
+
 	err = asprintf(&clang_opt_new, "-xc %s", llvm_param.clang_opt);
+
 	if (err < 0)
+	{
 		goto out;
+	}
 
 	tmpl_old = llvm_param.clang_bpf_cmd_template;
 	llvm_param.clang_bpf_cmd_template = tmpl_new;
@@ -120,15 +146,22 @@ test_llvm__fetch_bpf_obj(void **p_obj_buf,
 	llvm_param.clang_opt = clang_opt_old;
 
 	verbose = old_verbose;
+
 	if (err)
+	{
 		goto out;
+	}
 
 	ret = TEST_OK;
 out:
 	free(tmpl_new);
 	free(clang_opt_new);
+
 	if (ret != TEST_OK)
+	{
 		pr_debug("Failed to compile test case: '%s'\n", desc);
+	}
+
 	return ret;
 }
 
@@ -140,18 +173,24 @@ int test__llvm(int subtest)
 	bool should_load_fail = false;
 
 	if ((subtest < 0) || (subtest >= __LLVM_TESTCASE_MAX))
+	{
 		return TEST_FAIL;
+	}
 
 	ret = test_llvm__fetch_bpf_obj(&obj_buf, &obj_buf_sz,
-				       subtest, false, &should_load_fail);
+								   subtest, false, &should_load_fail);
 
-	if (ret == TEST_OK && !should_load_fail) {
+	if (ret == TEST_OK && !should_load_fail)
+	{
 		ret = test__bpf_parsing(obj_buf, obj_buf_sz);
-		if (ret != TEST_OK) {
+
+		if (ret != TEST_OK)
+		{
 			pr_debug("Failed to parse test case '%s'\n",
-				 bpf_source_table[subtest].desc);
+					 bpf_source_table[subtest].desc);
 		}
 	}
+
 	free(obj_buf);
 
 	return ret;
@@ -165,7 +204,9 @@ int test__llvm_subtest_get_nr(void)
 const char *test__llvm_subtest_get_desc(int subtest)
 {
 	if ((subtest < 0) || (subtest >= __LLVM_TESTCASE_MAX))
+	{
 		return NULL;
+	}
 
 	return bpf_source_table[subtest].desc;
 }

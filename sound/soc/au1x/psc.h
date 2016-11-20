@@ -13,7 +13,8 @@
 #ifndef _AU1X_PCM_H
 #define _AU1X_PCM_H
 
-struct au1xpsc_audio_data {
+struct au1xpsc_audio_data
+{
 	void __iomem *mmio;
 
 	unsigned long cfg;

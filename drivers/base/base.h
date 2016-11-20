@@ -25,7 +25,8 @@
  * bus_type/class to be statically allocated safely.  Nothing outside of the
  * driver core should ever touch these fields.
  */
-struct subsys_private {
+struct subsys_private
+{
 	struct kset subsys;
 	struct kset *devices_kset;
 	struct list_head interfaces;
@@ -35,7 +36,7 @@ struct subsys_private {
 	struct klist klist_devices;
 	struct klist klist_drivers;
 	struct blocking_notifier_head bus_notifier;
-	unsigned int drivers_autoprobe:1;
+	unsigned int drivers_autoprobe: 1;
 	struct bus_type *bus;
 
 	struct kset glue_dirs;
@@ -43,7 +44,8 @@ struct subsys_private {
 };
 #define to_subsys_private(obj) container_of(obj, struct subsys_private, subsys.kobj)
 
-struct driver_private {
+struct driver_private
+{
 	struct kobject kobj;
 	struct klist klist_devices;
 	struct klist_node knode_bus;
@@ -68,7 +70,8 @@ struct driver_private {
  *
  * Nothing outside of the driver core should ever touch these fields.
  */
-struct device_private {
+struct device_private
+{
 	struct klist klist_children;
 	struct klist_node knode_parent;
 	struct klist_node knode_driver;
@@ -112,21 +115,21 @@ extern void driver_detach(struct device_driver *drv);
 extern int driver_probe_device(struct device_driver *drv, struct device *dev);
 extern void driver_deferred_probe_del(struct device *dev);
 static inline int driver_match_device(struct device_driver *drv,
-				      struct device *dev)
+									  struct device *dev)
 {
 	return drv->bus->match ? drv->bus->match(dev, drv) : 1;
 }
 extern bool driver_allows_async_probing(struct device_driver *drv);
 
 extern int driver_add_groups(struct device_driver *drv,
-			     const struct attribute_group **groups);
+							 const struct attribute_group **groups);
 extern void driver_remove_groups(struct device_driver *drv,
-				 const struct attribute_group **groups);
+								 const struct attribute_group **groups);
 
 extern int device_add_groups(struct device *dev,
-			     const struct attribute_group **groups);
+							 const struct attribute_group **groups);
 extern void device_remove_groups(struct device *dev,
-				 const struct attribute_group **groups);
+								 const struct attribute_group **groups);
 
 extern char *make_class_name(const char *name, struct kobject *kobj);
 
@@ -143,7 +146,7 @@ extern void module_add_driver(struct module *mod, struct device_driver *drv);
 extern void module_remove_driver(struct device_driver *drv);
 #else
 static inline void module_add_driver(struct module *mod,
-				     struct device_driver *drv) { }
+									 struct device_driver *drv) { }
 static inline void module_remove_driver(struct device_driver *drv) { }
 #endif
 

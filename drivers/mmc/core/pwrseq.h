@@ -10,13 +10,15 @@
 
 #include <linux/mmc/host.h>
 
-struct mmc_pwrseq_ops {
+struct mmc_pwrseq_ops
+{
 	void (*pre_power_on)(struct mmc_host *host);
 	void (*post_power_on)(struct mmc_host *host);
 	void (*power_off)(struct mmc_host *host);
 };
 
-struct mmc_pwrseq {
+struct mmc_pwrseq
+{
 	const struct mmc_pwrseq_ops *ops;
 	struct device *dev;
 	struct list_head pwrseq_node;

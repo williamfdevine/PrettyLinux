@@ -26,7 +26,8 @@
 #ifndef _AIC94XX_SDS_H_
 #define _AIC94XX_SDS_H_
 
-enum {
+enum
+{
 	FLASH_METHOD_UNKNOWN,
 	FLASH_METHOD_A,
 	FLASH_METHOD_B
@@ -81,14 +82,16 @@ enum {
 #define FAIL_OUT_MEMORY                 0x000c00
 #define FLASH_IN_PROGRESS               0x001000
 
-struct controller_id {
+struct controller_id
+{
 	u32 vendor;     /* PCI Vendor ID */
 	u32 device;     /* PCI Device ID */
 	u32 sub_vendor; /* PCI Subvendor ID */
 	u32 sub_device; /* PCI Subdevice ID */
 };
 
-struct image_info {
+struct image_info
+{
 	u32 ImageId;       /* Identifies the image */
 	u32 ImageOffset;   /* Offset the beginning of the file */
 	u32 ImageLength;   /* length of the image */
@@ -96,7 +99,8 @@ struct image_info {
 	u32 ImageVersion;  /* Version of the image, could be build number */
 };
 
-struct bios_file_header {
+struct bios_file_header
+{
 	u8 signature[32]; /* Signature/Cookie to identify the file */
 	u32 checksum;	  /*Entire file checksum with this field zero */
 	u32 antidote;	  /* Entire file checksum with this field 0xFFFFFFFF */
@@ -110,12 +114,12 @@ struct bios_file_header {
 };
 
 int asd_verify_flash_seg(struct asd_ha_struct *asd_ha,
-		const void *src, u32 dest_offset, u32 bytes_to_verify);
+						 const void *src, u32 dest_offset, u32 bytes_to_verify);
 int asd_write_flash_seg(struct asd_ha_struct *asd_ha,
-		const void *src, u32 dest_offset, u32 bytes_to_write);
+						const void *src, u32 dest_offset, u32 bytes_to_write);
 int asd_chk_write_status(struct asd_ha_struct *asd_ha,
-		u32 sector_addr, u8 erase_flag);
+						 u32 sector_addr, u8 erase_flag);
 int asd_check_flash_type(struct asd_ha_struct *asd_ha);
 int asd_erase_nv_sector(struct asd_ha_struct *asd_ha,
-		u32 flash_addr, u32 size);
+						u32 flash_addr, u32 size);
 #endif

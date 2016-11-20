@@ -32,7 +32,8 @@ extern u8 pasic3_read_register(struct device *dev, u32 reg);
 #define PASIC3_BIT2_LED1 0x10
 #define PASIC3_BIT2_LED2 0x20
 
-struct pasic3_led {
+struct pasic3_led
+{
 	struct led_classdev         led;
 	unsigned int                hw_num;
 	unsigned int                bit2;
@@ -40,13 +41,15 @@ struct pasic3_led {
 	struct pasic3_leds_machinfo *pdata;
 };
 
-struct pasic3_leds_machinfo {
+struct pasic3_leds_machinfo
+{
 	unsigned int      num_leds;
 	unsigned int      power_gpio;
 	struct pasic3_led *leds;
 };
 
-struct pasic3_platform_data {
+struct pasic3_platform_data
+{
 	struct pasic3_leds_machinfo *led_pdata;
 	unsigned int                 clock_rate;
 };

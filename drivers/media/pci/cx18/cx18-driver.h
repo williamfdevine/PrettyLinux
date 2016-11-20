@@ -67,7 +67,7 @@
 #include <media/videobuf-vmalloc.h>
 
 #ifndef CONFIG_PCI
-#  error "This driver requires kernel PCI support."
+	#  error "This driver requires kernel PCI support."
 #endif
 
 #define CX18_MEM_OFFSET	0x00000000
@@ -133,7 +133,8 @@
 #define CX18_525_LINE_ENC_YUV_BUFSIZE	(CX18_UNIT_ENC_YUV_BUFSIZE * 480/32)
 
 /* IDX buffer size should be a multiple of the index entry size from the chip */
-struct cx18_enc_idx_entry {
+struct cx18_enc_idx_entry
+{
 	__le32 length;
 	__le32 offset_low;
 	__le32 offset_high;
@@ -210,21 +211,21 @@ struct cx18_enc_idx_entry {
 			v4l2_info(dev, " " type ": " fmt , ## args); \
 	} while (0)
 #define CX18_DEBUG_WARN_DEV(dev, fmt, args...) \
-		CX18_DEBUG_DEV(CX18_DBGFLG_WARN, dev, "warning", fmt , ## args)
+	CX18_DEBUG_DEV(CX18_DBGFLG_WARN, dev, "warning", fmt , ## args)
 #define CX18_DEBUG_INFO_DEV(dev, fmt, args...) \
-		CX18_DEBUG_DEV(CX18_DBGFLG_INFO, dev, "info", fmt , ## args)
+	CX18_DEBUG_DEV(CX18_DBGFLG_INFO, dev, "info", fmt , ## args)
 #define CX18_DEBUG_API_DEV(dev, fmt, args...) \
-		CX18_DEBUG_DEV(CX18_DBGFLG_API, dev, "api", fmt , ## args)
+	CX18_DEBUG_DEV(CX18_DBGFLG_API, dev, "api", fmt , ## args)
 #define CX18_DEBUG_DMA_DEV(dev, fmt, args...) \
-		CX18_DEBUG_DEV(CX18_DBGFLG_DMA, dev, "dma", fmt , ## args)
+	CX18_DEBUG_DEV(CX18_DBGFLG_DMA, dev, "dma", fmt , ## args)
 #define CX18_DEBUG_IOCTL_DEV(dev, fmt, args...) \
-		CX18_DEBUG_DEV(CX18_DBGFLG_IOCTL, dev, "ioctl", fmt , ## args)
+	CX18_DEBUG_DEV(CX18_DBGFLG_IOCTL, dev, "ioctl", fmt , ## args)
 #define CX18_DEBUG_FILE_DEV(dev, fmt, args...) \
-		CX18_DEBUG_DEV(CX18_DBGFLG_FILE, dev, "file", fmt , ## args)
+	CX18_DEBUG_DEV(CX18_DBGFLG_FILE, dev, "file", fmt , ## args)
 #define CX18_DEBUG_I2C_DEV(dev, fmt, args...) \
-		CX18_DEBUG_DEV(CX18_DBGFLG_I2C, dev, "i2c", fmt , ## args)
+	CX18_DEBUG_DEV(CX18_DBGFLG_I2C, dev, "i2c", fmt , ## args)
 #define CX18_DEBUG_IRQ_DEV(dev, fmt, args...) \
-		CX18_DEBUG_DEV(CX18_DBGFLG_IRQ, dev, "irq", fmt , ## args)
+	CX18_DEBUG_DEV(CX18_DBGFLG_IRQ, dev, "irq", fmt , ## args)
 
 #define CX18_DEBUG_HIGH_VOL_DEV(x, dev, type, fmt, args...) \
 	do { \
@@ -254,7 +255,8 @@ struct cx18_enc_idx_entry {
 
 extern int cx18_debug;
 
-struct cx18_options {
+struct cx18_options
+{
 	int megabytes[CX18_MAX_STREAMS]; /* Size in megabytes of each stream */
 	int cardtype;		/* force card type on load */
 	int tuner;		/* set tuner on load */
@@ -298,7 +300,8 @@ struct cx18_options {
 #define list_entry_is_past_end(pos, head, member) \
 	(&pos->member == (head))
 
-struct cx18_buffer {
+struct cx18_buffer
+{
 	struct list_head list;
 	dma_addr_t dma_handle;
 	char *buf;
@@ -307,7 +310,8 @@ struct cx18_buffer {
 	u32 readpos;
 };
 
-struct cx18_mdl {
+struct cx18_mdl
+{
 	struct list_head list;
 	u32 id;		/* index into cx->scb->cpu_mdl[] of 1st cx18_mdl_ent */
 
@@ -321,7 +325,8 @@ struct cx18_mdl {
 	u32 readpos;
 };
 
-struct cx18_queue {
+struct cx18_queue
+{
 	struct list_head list;
 	atomic_t depth;
 	u32 bytesused;
@@ -330,7 +335,8 @@ struct cx18_queue {
 
 struct cx18_stream; /* forward reference */
 
-struct cx18_dvb {
+struct cx18_dvb
+{
 	struct cx18_stream *stream;
 	struct dmx_frontend hw_frontend;
 	struct dmx_frontend mem_frontend;
@@ -355,9 +361,10 @@ struct cx18_scb; /* forward reference */
 #define CX18_F_EWO_MB_STALE_UPON_RECEIPT 0x1
 #define CX18_F_EWO_MB_STALE_WHILE_PROC   0x2
 #define CX18_F_EWO_MB_STALE \
-	     (CX18_F_EWO_MB_STALE_UPON_RECEIPT | CX18_F_EWO_MB_STALE_WHILE_PROC)
+	(CX18_F_EWO_MB_STALE_UPON_RECEIPT | CX18_F_EWO_MB_STALE_WHILE_PROC)
 
-struct cx18_in_work_order {
+struct cx18_in_work_order
+{
 	struct work_struct work;
 	atomic_t pending;
 	struct cx18 *cx;
@@ -370,7 +377,8 @@ struct cx18_in_work_order {
 
 #define CX18_INVALID_TASK_HANDLE 0xffffffff
 
-struct cx18_stream {
+struct cx18_stream
+{
 	/* These first five fields are always set, even if the stream
 	   is not actually created. */
 	struct video_device video_dev;	/* v4l2_dev is NULL when stream not created */
@@ -419,14 +427,16 @@ struct cx18_stream {
 	enum v4l2_buf_type vb_type;
 };
 
-struct cx18_videobuf_buffer {
+struct cx18_videobuf_buffer
+{
 	/* Common video buffer sub-system struct */
 	struct videobuf_buffer vb;
 	v4l2_std_id tvnorm; /* selected tv norm */
 	u32 bytes_used;
 };
 
-struct cx18_open_id {
+struct cx18_open_id
+{
 	struct v4l2_fh fh;
 	u32 open_id;
 	int type;
@@ -498,7 +508,8 @@ struct cx18_card;
 
 #define CX18_VBI_FRAMES 32
 
-struct vbi_info {
+struct vbi_info
+{
 	/* Current state of v4l2 VBI settings for this device */
 	struct v4l2_format in;
 	struct v4l2_sliced_vbi_format *sliced_in; /* pointer to in.fmt.sliced */
@@ -565,7 +576,8 @@ struct vbi_info {
 };
 
 /* Per cx23418, per I2C bus private algo callback data */
-struct cx18_i2c_algo_callback_data {
+struct cx18_i2c_algo_callback_data
+{
 	struct cx18 *cx;
 	int bus_index;   /* 0 or 1 for the cx23418's 1st or 2nd I2C bus */
 };
@@ -573,7 +585,8 @@ struct cx18_i2c_algo_callback_data {
 #define CX18_MAX_MMIO_WR_RETRIES 10
 
 /* Struct to hold info about cx18 cards */
-struct cx18 {
+struct cx18
+{
 	int instance;
 	struct pci_dev *pci_dev;
 	struct v4l2_device v4l2_dev;
@@ -613,7 +626,7 @@ struct cx18 {
 	struct cx18_stream streams[CX18_MAX_STREAMS]; 	/* Stream data */
 	struct snd_cx18_card *alsa; /* ALSA interface for PCM capture stream */
 	void (*pcm_announce_callback)(struct snd_cx18_card *card, u8 *pcm_data,
-				      size_t num_bytes);
+								  size_t num_bytes);
 
 	unsigned long i_flags;  /* global cx18 flags */
 	atomic_t ana_capturing;	/* count number of active analog capture streams */

@@ -35,23 +35,30 @@ static inline size_t user_ucs2_strsize(efi_char16_t  __user *str)
 	size_t len;
 
 	if (!str)
+	{
 		return 0;
+	}
 
 	/* Include terminating NULL */
 	len = sizeof(efi_char16_t);
 
-	if (get_user(c, s++)) {
+	if (get_user(c, s++))
+	{
 		/* Can't read userspace memory for size */
 		return 0;
 	}
 
-	while (c != 0) {
-		if (get_user(c, s++)) {
+	while (c != 0)
+	{
+		if (get_user(c, s++))
+		{
 			/* Can't read userspace memory for size */
 			return 0;
 		}
+
 		len += sizeof(efi_char16_t);
 	}
+
 	return len;
 }
 
@@ -60,26 +67,33 @@ static inline size_t user_ucs2_strsize(efi_char16_t  __user *str)
  */
 static inline int
 copy_ucs2_from_user_len(efi_char16_t **dst, efi_char16_t __user *src,
-			size_t len)
+						size_t len)
 {
 	efi_char16_t *buf;
 
-	if (!src) {
+	if (!src)
+	{
 		*dst = NULL;
 		return 0;
 	}
 
 	if (!access_ok(VERIFY_READ, src, 1))
+	{
 		return -EFAULT;
+	}
 
 	buf = kmalloc(len, GFP_KERNEL);
-	if (!buf) {
+
+	if (!buf)
+	{
 		*dst = NULL;
 		return -ENOMEM;
 	}
+
 	*dst = buf;
 
-	if (copy_from_user(*dst, src, len)) {
+	if (copy_from_user(*dst, src, len))
+	{
 		kfree(buf);
 		return -EFAULT;
 	}
@@ -96,11 +110,16 @@ static inline int
 get_ucs2_strsize_from_user(efi_char16_t __user *src, size_t *len)
 {
 	if (!access_ok(VERIFY_READ, src, 1))
+	{
 		return -EFAULT;
+	}
 
 	*len = user_ucs2_strsize(src);
+
 	if (*len == 0)
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 }
@@ -123,11 +142,17 @@ copy_ucs2_from_user(efi_char16_t **dst, efi_char16_t __user *src)
 	size_t len;
 
 	if (!access_ok(VERIFY_READ, src, 1))
+	{
 		return -EFAULT;
+	}
 
 	len = user_ucs2_strsize(src);
+
 	if (len == 0)
+	{
 		return -EFAULT;
+	}
+
 	return copy_ucs2_from_user_len(dst, src, len);
 }
 
@@ -144,10 +169,14 @@ static inline int
 copy_ucs2_to_user_len(efi_char16_t __user *dst, efi_char16_t *src, size_t len)
 {
 	if (!src)
+	{
 		return 0;
+	}
 
 	if (!access_ok(VERIFY_WRITE, dst, 1))
+	{
 		return -EFAULT;
+	}
 
 	return copy_to_user(dst, src, len);
 }
@@ -167,30 +196,47 @@ static long efi_runtime_get_variable(unsigned long arg)
 	getvariable_user = (struct efi_getvariable __user *)arg;
 
 	if (copy_from_user(&getvariable, getvariable_user,
-			   sizeof(getvariable)))
+					   sizeof(getvariable)))
+	{
 		return -EFAULT;
+	}
+
 	if (getvariable.data_size &&
-	    get_user(datasize, getvariable.data_size))
+		get_user(datasize, getvariable.data_size))
+	{
 		return -EFAULT;
-	if (getvariable.vendor_guid) {
+	}
+
+	if (getvariable.vendor_guid)
+	{
 		if (copy_from_user(&vendor_guid, getvariable.vendor_guid,
-					sizeof(vendor_guid)))
+						   sizeof(vendor_guid)))
+		{
 			return -EFAULT;
+		}
+
 		vd = &vendor_guid;
 	}
 
-	if (getvariable.variable_name) {
+	if (getvariable.variable_name)
+	{
 		rv = copy_ucs2_from_user(&name, getvariable.variable_name);
+
 		if (rv)
+		{
 			return rv;
+		}
 	}
 
 	at = getvariable.attributes ? &attr : NULL;
 	dz = getvariable.data_size ? &datasize : NULL;
 
-	if (getvariable.data_size && getvariable.data) {
+	if (getvariable.data_size && getvariable.data)
+	{
 		data = kmalloc(datasize, GFP_KERNEL);
-		if (!data) {
+
+		if (!data)
+		{
 			kfree(name);
 			return -ENOMEM;
 		}
@@ -200,41 +246,52 @@ static long efi_runtime_get_variable(unsigned long arg)
 	status = efi.get_variable(name, vd, at, dz, data);
 	kfree(name);
 
-	if (put_user(status, getvariable.status)) {
+	if (put_user(status, getvariable.status))
+	{
 		rv = -EFAULT;
 		goto out;
 	}
 
-	if (status != EFI_SUCCESS) {
-		if (status == EFI_BUFFER_TOO_SMALL) {
-			if (dz && put_user(datasize, getvariable.data_size)) {
+	if (status != EFI_SUCCESS)
+	{
+		if (status == EFI_BUFFER_TOO_SMALL)
+		{
+			if (dz && put_user(datasize, getvariable.data_size))
+			{
 				rv = -EFAULT;
 				goto out;
 			}
 		}
+
 		rv = -EINVAL;
 		goto out;
 	}
 
-	if (prev_datasize < datasize) {
+	if (prev_datasize < datasize)
+	{
 		rv = -EINVAL;
 		goto out;
 	}
 
-	if (data) {
-		if (copy_to_user(getvariable.data, data, datasize)) {
+	if (data)
+	{
+		if (copy_to_user(getvariable.data, data, datasize))
+		{
 			rv = -EFAULT;
 			goto out;
 		}
 	}
 
-	if (at && put_user(attr, getvariable.attributes)) {
+	if (at && put_user(attr, getvariable.attributes))
+	{
 		rv = -EFAULT;
 		goto out;
 	}
 
 	if (dz && put_user(datasize, getvariable.data_size))
+	{
 		rv = -EFAULT;
+	}
 
 out:
 	kfree(data);
@@ -255,32 +312,46 @@ static long efi_runtime_set_variable(unsigned long arg)
 	setvariable_user = (struct efi_setvariable __user *)arg;
 
 	if (copy_from_user(&setvariable, setvariable_user, sizeof(setvariable)))
+	{
 		return -EFAULT;
-	if (copy_from_user(&vendor_guid, setvariable.vendor_guid,
-				sizeof(vendor_guid)))
-		return -EFAULT;
+	}
 
-	if (setvariable.variable_name) {
+	if (copy_from_user(&vendor_guid, setvariable.vendor_guid,
+					   sizeof(vendor_guid)))
+	{
+		return -EFAULT;
+	}
+
+	if (setvariable.variable_name)
+	{
 		rv = copy_ucs2_from_user(&name, setvariable.variable_name);
+
 		if (rv)
+		{
 			return rv;
+		}
 	}
 
 	data = kmalloc(setvariable.data_size, GFP_KERNEL);
-	if (!data) {
+
+	if (!data)
+	{
 		kfree(name);
 		return -ENOMEM;
 	}
-	if (copy_from_user(data, setvariable.data, setvariable.data_size)) {
+
+	if (copy_from_user(data, setvariable.data, setvariable.data_size))
+	{
 		rv = -EFAULT;
 		goto out;
 	}
 
 	status = efi.set_variable(name, &vendor_guid,
-				setvariable.attributes,
-				setvariable.data_size, data);
+							  setvariable.attributes,
+							  setvariable.data_size, data);
 
-	if (put_user(status, setvariable.status)) {
+	if (put_user(status, setvariable.status))
+	{
 		rv = -EFAULT;
 		goto out;
 	}
@@ -303,30 +374,45 @@ static long efi_runtime_get_time(unsigned long arg)
 	efi_time_t efi_time;
 
 	gettime_user = (struct efi_gettime __user *)arg;
+
 	if (copy_from_user(&gettime, gettime_user, sizeof(gettime)))
+	{
 		return -EFAULT;
+	}
 
 	status = efi.get_time(gettime.time ? &efi_time : NULL,
-			      gettime.capabilities ? &cap : NULL);
+						  gettime.capabilities ? &cap : NULL);
 
 	if (put_user(status, gettime.status))
+	{
 		return -EFAULT;
+	}
 
 	if (status != EFI_SUCCESS)
+	{
 		return -EINVAL;
+	}
 
-	if (gettime.capabilities) {
+	if (gettime.capabilities)
+	{
 		efi_time_cap_t __user *cap_local;
 
 		cap_local = (efi_time_cap_t *)gettime.capabilities;
+
 		if (put_user(cap.resolution, &(cap_local->resolution)) ||
 			put_user(cap.accuracy, &(cap_local->accuracy)) ||
 			put_user(cap.sets_to_zero, &(cap_local->sets_to_zero)))
+		{
 			return -EFAULT;
+		}
 	}
-	if (gettime.time) {
+
+	if (gettime.time)
+	{
 		if (copy_to_user(gettime.time, &efi_time, sizeof(efi_time_t)))
+		{
 			return -EFAULT;
+		}
 	}
 
 	return 0;
@@ -340,15 +426,24 @@ static long efi_runtime_set_time(unsigned long arg)
 	efi_time_t efi_time;
 
 	settime_user = (struct efi_settime __user *)arg;
+
 	if (copy_from_user(&settime, settime_user, sizeof(settime)))
+	{
 		return -EFAULT;
+	}
+
 	if (copy_from_user(&efi_time, settime.time,
-					sizeof(efi_time_t)))
+					   sizeof(efi_time_t)))
+	{
 		return -EFAULT;
+	}
+
 	status = efi.set_time(&efi_time);
 
 	if (put_user(status, settime.status))
+	{
 		return -EFAULT;
+	}
 
 	return status == EFI_SUCCESS ? 0 : -EINVAL;
 }
@@ -362,29 +457,41 @@ static long efi_runtime_get_waketime(unsigned long arg)
 	efi_time_t efi_time;
 
 	getwakeuptime_user = (struct efi_getwakeuptime __user *)arg;
+
 	if (copy_from_user(&getwakeuptime, getwakeuptime_user,
-				sizeof(getwakeuptime)))
+					   sizeof(getwakeuptime)))
+	{
 		return -EFAULT;
+	}
 
 	status = efi.get_wakeup_time(
-		getwakeuptime.enabled ? (efi_bool_t *)&enabled : NULL,
-		getwakeuptime.pending ? (efi_bool_t *)&pending : NULL,
-		getwakeuptime.time ? &efi_time : NULL);
+				 getwakeuptime.enabled ? (efi_bool_t *)&enabled : NULL,
+				 getwakeuptime.pending ? (efi_bool_t *)&pending : NULL,
+				 getwakeuptime.time ? &efi_time : NULL);
 
 	if (put_user(status, getwakeuptime.status))
+	{
 		return -EFAULT;
+	}
 
 	if (status != EFI_SUCCESS)
+	{
 		return -EINVAL;
+	}
 
 	if (getwakeuptime.enabled && put_user(enabled,
-						getwakeuptime.enabled))
+										  getwakeuptime.enabled))
+	{
 		return -EFAULT;
+	}
 
-	if (getwakeuptime.time) {
+	if (getwakeuptime.time)
+	{
 		if (copy_to_user(getwakeuptime.time, &efi_time,
-				sizeof(efi_time_t)))
+						 sizeof(efi_time_t)))
+		{
 			return -EFAULT;
+		}
 	}
 
 	return 0;
@@ -401,21 +508,32 @@ static long efi_runtime_set_waketime(unsigned long arg)
 	setwakeuptime_user = (struct efi_setwakeuptime __user *)arg;
 
 	if (copy_from_user(&setwakeuptime, setwakeuptime_user,
-				sizeof(setwakeuptime)))
+					   sizeof(setwakeuptime)))
+	{
 		return -EFAULT;
+	}
 
 	enabled = setwakeuptime.enabled;
-	if (setwakeuptime.time) {
+
+	if (setwakeuptime.time)
+	{
 		if (copy_from_user(&efi_time, setwakeuptime.time,
-					sizeof(efi_time_t)))
+						   sizeof(efi_time_t)))
+		{
 			return -EFAULT;
+		}
 
 		status = efi.set_wakeup_time(enabled, &efi_time);
-	} else
+	}
+	else
+	{
 		status = efi.set_wakeup_time(enabled, NULL);
+	}
 
 	if (put_user(status, setwakeuptime.status))
+	{
 		return -EFAULT;
+	}
 
 	return status == EFI_SUCCESS ? 0 : -EINVAL;
 }
@@ -434,32 +552,47 @@ static long efi_runtime_get_nextvariablename(unsigned long arg)
 	getnextvariablename_user = (struct efi_getnextvariablename __user *)arg;
 
 	if (copy_from_user(&getnextvariablename, getnextvariablename_user,
-			   sizeof(getnextvariablename)))
+					   sizeof(getnextvariablename)))
+	{
 		return -EFAULT;
+	}
 
-	if (getnextvariablename.variable_name_size) {
+	if (getnextvariablename.variable_name_size)
+	{
 		if (get_user(name_size, getnextvariablename.variable_name_size))
+		{
 			return -EFAULT;
+		}
+
 		ns = &name_size;
 		prev_name_size = name_size;
 	}
 
-	if (getnextvariablename.vendor_guid) {
+	if (getnextvariablename.vendor_guid)
+	{
 		if (copy_from_user(&vendor_guid,
-				getnextvariablename.vendor_guid,
-				sizeof(vendor_guid)))
+						   getnextvariablename.vendor_guid,
+						   sizeof(vendor_guid)))
+		{
 			return -EFAULT;
+		}
+
 		vd = &vendor_guid;
 	}
 
-	if (getnextvariablename.variable_name) {
+	if (getnextvariablename.variable_name)
+	{
 		size_t name_string_size = 0;
 
 		rv = get_ucs2_strsize_from_user(
-				getnextvariablename.variable_name,
-				&name_string_size);
+				 getnextvariablename.variable_name,
+				 &name_string_size);
+
 		if (rv)
+		{
 			return rv;
+		}
+
 		/*
 		 * The name_size may be smaller than the real buffer size where
 		 * variable name located in some use cases. The most typical
@@ -469,51 +602,66 @@ static long efi_runtime_get_nextvariablename(unsigned long arg)
 		 * the name passed to UEFI may not be terminated as we expected.
 		 */
 		rv = copy_ucs2_from_user_len(&name,
-				getnextvariablename.variable_name,
-				prev_name_size > name_string_size ?
-				prev_name_size : name_string_size);
+									 getnextvariablename.variable_name,
+									 prev_name_size > name_string_size ?
+									 prev_name_size : name_string_size);
+
 		if (rv)
+		{
 			return rv;
+		}
 	}
 
 	status = efi.get_next_variable(ns, name, vd);
 
-	if (put_user(status, getnextvariablename.status)) {
+	if (put_user(status, getnextvariablename.status))
+	{
 		rv = -EFAULT;
 		goto out;
 	}
 
-	if (status != EFI_SUCCESS) {
-		if (status == EFI_BUFFER_TOO_SMALL) {
+	if (status != EFI_SUCCESS)
+	{
+		if (status == EFI_BUFFER_TOO_SMALL)
+		{
 			if (ns && put_user(*ns,
-				getnextvariablename.variable_name_size)) {
+							   getnextvariablename.variable_name_size))
+			{
 				rv = -EFAULT;
 				goto out;
 			}
 		}
+
 		rv = -EINVAL;
 		goto out;
 	}
 
-	if (name) {
+	if (name)
+	{
 		if (copy_ucs2_to_user_len(getnextvariablename.variable_name,
-						name, prev_name_size)) {
+								  name, prev_name_size))
+		{
 			rv = -EFAULT;
 			goto out;
 		}
 	}
 
-	if (ns) {
-		if (put_user(*ns, getnextvariablename.variable_name_size)) {
+	if (ns)
+	{
+		if (put_user(*ns, getnextvariablename.variable_name_size))
+		{
 			rv = -EFAULT;
 			goto out;
 		}
 	}
 
-	if (vd) {
+	if (vd)
+	{
 		if (copy_to_user(getnextvariablename.vendor_guid, vd,
-							sizeof(efi_guid_t)))
+						 sizeof(efi_guid_t)))
+		{
 			rv = -EFAULT;
+		}
 	}
 
 out:
@@ -529,25 +677,33 @@ static long efi_runtime_get_nexthighmonocount(unsigned long arg)
 	u32 count;
 
 	getnexthighmonocount_user = (struct
-			efi_getnexthighmonotoniccount __user *)arg;
+								 efi_getnexthighmonotoniccount __user *)arg;
 
 	if (copy_from_user(&getnexthighmonocount,
-			   getnexthighmonocount_user,
-			   sizeof(getnexthighmonocount)))
+					   getnexthighmonocount_user,
+					   sizeof(getnexthighmonocount)))
+	{
 		return -EFAULT;
+	}
 
 	status = efi.get_next_high_mono_count(
-		getnexthighmonocount.high_count ? &count : NULL);
+				 getnexthighmonocount.high_count ? &count : NULL);
 
 	if (put_user(status, getnexthighmonocount.status))
+	{
 		return -EFAULT;
+	}
 
 	if (status != EFI_SUCCESS)
+	{
 		return -EINVAL;
+	}
 
 	if (getnexthighmonocount.high_count &&
-	    put_user(count, getnexthighmonocount.high_count))
+		put_user(count, getnexthighmonocount.high_count))
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 }
@@ -562,28 +718,40 @@ static long efi_runtime_query_variableinfo(unsigned long arg)
 	queryvariableinfo_user = (struct efi_queryvariableinfo __user *)arg;
 
 	if (copy_from_user(&queryvariableinfo, queryvariableinfo_user,
-			   sizeof(queryvariableinfo)))
+					   sizeof(queryvariableinfo)))
+	{
 		return -EFAULT;
+	}
 
 	status = efi.query_variable_info(queryvariableinfo.attributes,
-					 &max_storage, &remaining, &max_size);
+									 &max_storage, &remaining, &max_size);
 
 	if (put_user(status, queryvariableinfo.status))
+	{
 		return -EFAULT;
+	}
 
 	if (status != EFI_SUCCESS)
+	{
 		return -EINVAL;
+	}
 
 	if (put_user(max_storage,
-		     queryvariableinfo.maximum_variable_storage_size))
+				 queryvariableinfo.maximum_variable_storage_size))
+	{
 		return -EFAULT;
+	}
 
 	if (put_user(remaining,
-		     queryvariableinfo.remaining_variable_storage_size))
+				 queryvariableinfo.remaining_variable_storage_size))
+	{
 		return -EFAULT;
+	}
 
 	if (put_user(max_size, queryvariableinfo.maximum_variable_size))
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 }
@@ -601,26 +769,36 @@ static long efi_runtime_query_capsulecaps(unsigned long arg)
 	qcaps_user = (struct efi_querycapsulecapabilities __user *)arg;
 
 	if (copy_from_user(&qcaps, qcaps_user, sizeof(qcaps)))
+	{
 		return -EFAULT;
+	}
 
 	capsules = kcalloc(qcaps.capsule_count + 1,
-			   sizeof(efi_capsule_header_t), GFP_KERNEL);
-	if (!capsules)
-		return -ENOMEM;
+					   sizeof(efi_capsule_header_t), GFP_KERNEL);
 
-	for (i = 0; i < qcaps.capsule_count; i++) {
+	if (!capsules)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < qcaps.capsule_count; i++)
+	{
 		efi_capsule_header_t *c;
+
 		/*
 		 * We cannot dereference qcaps.capsule_header_array directly to
 		 * obtain the address of the capsule as it resides in the
 		 * user space
 		 */
-		if (get_user(c, qcaps.capsule_header_array + i)) {
+		if (get_user(c, qcaps.capsule_header_array + i))
+		{
 			rv = -EFAULT;
 			goto out;
 		}
+
 		if (copy_from_user(&capsules[i], c,
-				sizeof(efi_capsule_header_t))) {
+						   sizeof(efi_capsule_header_t)))
+		{
 			rv = -EFAULT;
 			goto out;
 		}
@@ -629,27 +807,32 @@ static long efi_runtime_query_capsulecaps(unsigned long arg)
 	qcaps.capsule_header_array = &capsules;
 
 	status = efi.query_capsule_caps((efi_capsule_header_t **)
-					qcaps.capsule_header_array,
-					qcaps.capsule_count,
-					&max_size, &reset_type);
+									qcaps.capsule_header_array,
+									qcaps.capsule_count,
+									&max_size, &reset_type);
 
-	if (put_user(status, qcaps.status)) {
+	if (put_user(status, qcaps.status))
+	{
 		rv = -EFAULT;
 		goto out;
 	}
 
-	if (status != EFI_SUCCESS) {
+	if (status != EFI_SUCCESS)
+	{
 		rv = -EINVAL;
 		goto out;
 	}
 
-	if (put_user(max_size, qcaps.maximum_capsule_size)) {
+	if (put_user(max_size, qcaps.maximum_capsule_size))
+	{
 		rv = -EFAULT;
 		goto out;
 	}
 
 	if (put_user(reset_type, qcaps.reset_type))
+	{
 		rv = -EFAULT;
+	}
 
 out:
 	kfree(capsules);
@@ -657,38 +840,39 @@ out:
 }
 
 static long efi_test_ioctl(struct file *file, unsigned int cmd,
-							unsigned long arg)
+						   unsigned long arg)
 {
-	switch (cmd) {
-	case EFI_RUNTIME_GET_VARIABLE:
-		return efi_runtime_get_variable(arg);
+	switch (cmd)
+	{
+		case EFI_RUNTIME_GET_VARIABLE:
+			return efi_runtime_get_variable(arg);
 
-	case EFI_RUNTIME_SET_VARIABLE:
-		return efi_runtime_set_variable(arg);
+		case EFI_RUNTIME_SET_VARIABLE:
+			return efi_runtime_set_variable(arg);
 
-	case EFI_RUNTIME_GET_TIME:
-		return efi_runtime_get_time(arg);
+		case EFI_RUNTIME_GET_TIME:
+			return efi_runtime_get_time(arg);
 
-	case EFI_RUNTIME_SET_TIME:
-		return efi_runtime_set_time(arg);
+		case EFI_RUNTIME_SET_TIME:
+			return efi_runtime_set_time(arg);
 
-	case EFI_RUNTIME_GET_WAKETIME:
-		return efi_runtime_get_waketime(arg);
+		case EFI_RUNTIME_GET_WAKETIME:
+			return efi_runtime_get_waketime(arg);
 
-	case EFI_RUNTIME_SET_WAKETIME:
-		return efi_runtime_set_waketime(arg);
+		case EFI_RUNTIME_SET_WAKETIME:
+			return efi_runtime_set_waketime(arg);
 
-	case EFI_RUNTIME_GET_NEXTVARIABLENAME:
-		return efi_runtime_get_nextvariablename(arg);
+		case EFI_RUNTIME_GET_NEXTVARIABLENAME:
+			return efi_runtime_get_nextvariablename(arg);
 
-	case EFI_RUNTIME_GET_NEXTHIGHMONOTONICCOUNT:
-		return efi_runtime_get_nexthighmonocount(arg);
+		case EFI_RUNTIME_GET_NEXTHIGHMONOTONICCOUNT:
+			return efi_runtime_get_nexthighmonocount(arg);
 
-	case EFI_RUNTIME_QUERY_VARIABLEINFO:
-		return efi_runtime_query_variableinfo(arg);
+		case EFI_RUNTIME_QUERY_VARIABLEINFO:
+			return efi_runtime_query_variableinfo(arg);
 
-	case EFI_RUNTIME_QUERY_CAPSULECAPABILITIES:
-		return efi_runtime_query_capsulecaps(arg);
+		case EFI_RUNTIME_QUERY_CAPSULECAPABILITIES:
+			return efi_runtime_query_capsulecaps(arg);
 	}
 
 	return -ENOTTY;
@@ -712,7 +896,8 @@ static int efi_test_close(struct inode *inode, struct file *file)
 /*
  *	The various file operations we support.
  */
-static const struct file_operations efi_test_fops = {
+static const struct file_operations efi_test_fops =
+{
 	.owner		= THIS_MODULE,
 	.unlocked_ioctl	= efi_test_ioctl,
 	.open		= efi_test_open,
@@ -720,7 +905,8 @@ static const struct file_operations efi_test_fops = {
 	.llseek		= no_llseek,
 };
 
-static struct miscdevice efi_test_dev = {
+static struct miscdevice efi_test_dev =
+{
 	MISC_DYNAMIC_MINOR,
 	"efi_test",
 	&efi_test_fops
@@ -731,9 +917,11 @@ static int __init efi_test_init(void)
 	int ret;
 
 	ret = misc_register(&efi_test_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("efi_test: can't misc_register on minor=%d\n",
-			MISC_DYNAMIC_MINOR);
+			   MISC_DYNAMIC_MINOR);
 		return ret;
 	}
 

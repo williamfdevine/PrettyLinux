@@ -11,11 +11,16 @@ static inline struct phy
 	int ret;
 
 	phy = phy_create(&ulpi->dev, NULL, ops);
+
 	if (IS_ERR(phy))
+	{
 		return phy;
+	}
 
 	ret = phy_create_lookup(phy, "usb2-phy", dev_name(ulpi->dev.parent));
-	if (ret) {
+
+	if (ret)
+	{
 		phy_destroy(phy);
 		return ERR_PTR(ret);
 	}

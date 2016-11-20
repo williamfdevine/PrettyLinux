@@ -24,10 +24,10 @@ struct msi_domain_info;
 #define FSL_MC_IRQ_POOL_MAX_TOTAL_IRQS	256
 
 #ifdef CONFIG_FSL_MC_BUS
-#define dev_is_fsl_mc(_dev) ((_dev)->bus == &fsl_mc_bus_type)
+	#define dev_is_fsl_mc(_dev) ((_dev)->bus == &fsl_mc_bus_type)
 #else
-/* If fsl-mc bus is not present device cannot belong to fsl-mc bus */
-#define dev_is_fsl_mc(_dev) (0)
+	/* If fsl-mc bus is not present device cannot belong to fsl-mc bus */
+	#define dev_is_fsl_mc(_dev) (0)
 #endif
 
 /**
@@ -40,7 +40,8 @@ struct msi_domain_info;
  * @free_list: anchor node of list of free resources in the pool
  * @mc_bus: pointer to the MC bus that owns this resource pool
  */
-struct fsl_mc_resource_pool {
+struct fsl_mc_resource_pool
+{
 	enum fsl_mc_pool_type type;
 	int16_t max_count;
 	int16_t free_count;
@@ -59,7 +60,8 @@ struct fsl_mc_resource_pool {
  * @scan_mutex: Serializes bus scanning
  * @dprc_attr: DPRC attributes
  */
-struct fsl_mc_bus {
+struct fsl_mc_bus
+{
 	struct fsl_mc_device mc_dev;
 	struct fsl_mc_resource_pool resource_pools[FSL_MC_NUM_POOL_TYPES];
 	struct fsl_mc_device_irq *irq_resources;
@@ -73,7 +75,7 @@ struct fsl_mc_bus {
 int dprc_scan_container(struct fsl_mc_device *mc_bus_dev);
 
 int dprc_scan_objects(struct fsl_mc_device *mc_bus_dev,
-		      unsigned int *total_irq_count);
+					  unsigned int *total_irq_count);
 
 int __init dprc_driver_init(void);
 
@@ -84,14 +86,14 @@ int __init fsl_mc_allocator_driver_init(void);
 void fsl_mc_allocator_driver_exit(void);
 
 struct irq_domain *fsl_mc_msi_create_irq_domain(struct fwnode_handle *fwnode,
-						struct msi_domain_info *info,
-						struct irq_domain *parent);
+		struct msi_domain_info *info,
+		struct irq_domain *parent);
 
 int fsl_mc_find_msi_domain(struct device *mc_platform_dev,
-			   struct irq_domain **mc_msi_domain);
+						   struct irq_domain **mc_msi_domain);
 
 int fsl_mc_populate_irq_pool(struct fsl_mc_bus *mc_bus,
-			     unsigned int irq_count);
+							 unsigned int irq_count);
 
 void fsl_mc_cleanup_irq_pool(struct fsl_mc_bus *mc_bus);
 
@@ -102,7 +104,7 @@ void fsl_mc_cleanup_all_resource_pools(struct fsl_mc_device *mc_bus_dev);
 bool fsl_mc_bus_exists(void);
 
 void fsl_mc_get_root_dprc(struct device *dev,
-			  struct device **root_dprc_dev);
+						  struct device **root_dprc_dev);
 
 bool fsl_mc_is_root_dprc(struct device *dev);
 

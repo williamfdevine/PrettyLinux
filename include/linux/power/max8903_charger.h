@@ -23,7 +23,8 @@
 #ifndef __MAX8903_CHARGER_H__
 #define __MAX8903_CHARGER_H__
 
-struct max8903_pdata {
+struct max8903_pdata
+{
 	/*
 	 * GPIOs
 	 * cen, chg, flt, dcm and usus are optional.

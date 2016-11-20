@@ -39,7 +39,7 @@
 	Get substream from Line 6 PCM data structure
 */
 #define get_substream(line6pcm, stream)	\
-		(line6pcm->pcm->streams[stream].substream)
+	(line6pcm->pcm->streams[stream].substream)
 
 /*
 	PCM mode bits.
@@ -69,7 +69,8 @@
 */
 
 /* stream types */
-enum {
+enum
+{
 	LINE6_STREAM_PCM,
 	LINE6_STREAM_MONITOR,
 	LINE6_STREAM_IMPULSE,
@@ -77,18 +78,21 @@ enum {
 };
 
 /* misc bit flags for PCM operation */
-enum {
+enum
+{
 	LINE6_FLAG_PAUSE_PLAYBACK,
 	LINE6_FLAG_PREPARED,
 };
 
-struct line6_pcm_properties {
+struct line6_pcm_properties
+{
 	struct snd_pcm_hardware playback_hw, capture_hw;
 	struct snd_pcm_hw_constraint_ratdens rates;
 	int bytes_per_channel;
 };
 
-struct line6_pcm_stream {
+struct line6_pcm_stream
+{
 	/* allocated URBs */
 	struct urb **urbs;
 
@@ -137,7 +141,8 @@ struct line6_pcm_stream {
 	int last_frame;
 };
 
-struct snd_line6_pcm {
+struct snd_line6_pcm
+{
 	/* Pointer back to the Line 6 driver data structure */
 	struct usb_line6 *line6;
 
@@ -184,16 +189,16 @@ struct snd_line6_pcm {
 };
 
 extern int line6_init_pcm(struct usb_line6 *line6,
-			  struct line6_pcm_properties *properties);
+						  struct line6_pcm_properties *properties);
 extern int snd_line6_trigger(struct snd_pcm_substream *substream, int cmd);
 extern int snd_line6_prepare(struct snd_pcm_substream *substream);
 extern int snd_line6_hw_params(struct snd_pcm_substream *substream,
-			       struct snd_pcm_hw_params *hw_params);
+							   struct snd_pcm_hw_params *hw_params);
 extern int snd_line6_hw_free(struct snd_pcm_substream *substream);
 extern snd_pcm_uframes_t snd_line6_pointer(struct snd_pcm_substream *substream);
 extern void line6_pcm_disconnect(struct snd_line6_pcm *line6pcm);
 extern int line6_pcm_acquire(struct snd_line6_pcm *line6pcm, int type,
-			       bool start);
+							 bool start);
 extern void line6_pcm_release(struct snd_line6_pcm *line6pcm, int type);
 
 #endif

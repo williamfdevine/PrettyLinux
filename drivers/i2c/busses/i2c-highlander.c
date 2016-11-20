@@ -40,7 +40,8 @@
 #define SMSADR		0x06
 #define SMTRDR		0x46
 
-struct highlander_i2c_dev {
+struct highlander_i2c_dev
+{
 	struct device		*dev;
 	void __iomem		*base;
 	struct i2c_adapter	adapter;
@@ -82,46 +83,60 @@ static void highlander_i2c_setup(struct highlander_i2c_dev *dev)
 	smmr |= SMMR_TMMD;
 
 	if (iic_force_normal)
+	{
 		smmr &= ~SMMR_SP;
+	}
 	else
+	{
 		smmr |= SMMR_SP;
+	}
 
 	iowrite16(smmr, dev->base + SMMR);
 }
 
 static void smbus_write_data(u8 *src, u16 *dst, int len)
 {
-	for (; len > 1; len -= 2) {
+	for (; len > 1; len -= 2)
+	{
 		*dst++ = be16_to_cpup((__be16 *)src);
 		src += 2;
 	}
 
 	if (len)
+	{
 		*dst = *src << 8;
+	}
 }
 
 static void smbus_read_data(u16 *src, u8 *dst, int len)
 {
-	for (; len > 1; len -= 2) {
+	for (; len > 1; len -= 2)
+	{
 		*(__be16 *)dst = cpu_to_be16p(src++);
 		dst += 2;
 	}
 
 	if (len)
+	{
 		*dst = *src >> 8;
+	}
 }
 
 static void highlander_i2c_command(struct highlander_i2c_dev *dev,
-				   u8 command, int len)
+								   u8 command, int len)
 {
 	unsigned int i;
 	u16 cmd = (command << 8) | command;
 
-	for (i = 0; i < len; i += 2) {
+	for (i = 0; i < len; i += 2)
+	{
 		if (len - i == 1)
+		{
 			cmd = command << 8;
+		}
+
 		iowrite16(cmd, dev->base + SMSADR + i);
-		dev_dbg(dev->dev, "command data[%x] 0x%04x\n", i/2, cmd);
+		dev_dbg(dev->dev, "command data[%x] 0x%04x\n", i / 2, cmd);
 	}
 }
 
@@ -130,8 +145,11 @@ static int highlander_i2c_wait_for_bbsy(struct highlander_i2c_dev *dev)
 	unsigned long timeout;
 
 	timeout = jiffies + msecs_to_jiffies(iic_timeout);
-	while (ioread16(dev->base + SMCR) & SMCR_BBSY) {
-		if (time_after(jiffies, timeout)) {
+
+	while (ioread16(dev->base + SMCR) & SMCR_BBSY)
+	{
+		if (time_after(jiffies, timeout))
+		{
 			dev_warn(dev->dev, "timeout waiting for bus ready\n");
 			return -ETIMEDOUT;
 		}
@@ -152,7 +170,8 @@ static int highlander_i2c_wait_for_ack(struct highlander_i2c_dev *dev)
 {
 	u16 tmp = ioread16(dev->base + SMCR);
 
-	if ((tmp & (SMCR_IRIC | SMCR_ACKE)) == SMCR_ACKE) {
+	if ((tmp & (SMCR_IRIC | SMCR_ACKE)) == SMCR_ACKE)
+	{
 		dev_warn(dev->dev, "ack abnormality\n");
 		return highlander_i2c_reset(dev);
 	}
@@ -176,7 +195,9 @@ static void highlander_i2c_poll(struct highlander_i2c_dev *dev)
 	u16 smcr;
 
 	timeout = jiffies + msecs_to_jiffies(iic_timeout);
-	for (;;) {
+
+	for (;;)
+	{
 		smcr = ioread16(dev->base + SMCR);
 
 		/*
@@ -186,9 +207,14 @@ static void highlander_i2c_poll(struct highlander_i2c_dev *dev)
 		 */
 
 		if (smcr & SMCR_IRIC)
+		{
 			return;
+		}
+
 		if (time_after(jiffies, timeout))
+		{
 			break;
+		}
 
 		cpu_relax();
 		cond_resched();
@@ -201,10 +227,12 @@ static inline int highlander_i2c_wait_xfer_done(struct highlander_i2c_dev *dev)
 {
 	if (dev->irq)
 		wait_for_completion_timeout(&dev->cmd_complete,
-					  msecs_to_jiffies(iic_timeout));
+									msecs_to_jiffies(iic_timeout));
 	else
 		/* busy looping, the IRQ of champions */
+	{
 		highlander_i2c_poll(dev);
+	}
 
 	return highlander_i2c_wait_for_ack(dev);
 }
@@ -215,11 +243,14 @@ static int highlander_i2c_read(struct highlander_i2c_dev *dev)
 	u16 data[16];
 
 	if (highlander_i2c_wait_for_bbsy(dev))
+	{
 		return -EAGAIN;
+	}
 
 	highlander_i2c_start(dev);
 
-	if (highlander_i2c_wait_xfer_done(dev)) {
+	if (highlander_i2c_wait_xfer_done(dev))
+	{
 		dev_err(dev->dev, "Arbitration loss\n");
 		return -EAGAIN;
 	}
@@ -237,12 +268,14 @@ static int highlander_i2c_read(struct highlander_i2c_dev *dev)
 	 * this to be as high as 1000 ms.
 	 */
 	if (iic_read_delay && time_before(jiffies, dev->last_read_time +
-				 msecs_to_jiffies(iic_read_delay)))
+									  msecs_to_jiffies(iic_read_delay)))
 		msleep(jiffies_to_msecs((dev->last_read_time +
-				msecs_to_jiffies(iic_read_delay)) - jiffies));
+								 msecs_to_jiffies(iic_read_delay)) - jiffies));
 
 	cnt = (dev->buf_len + 1) >> 1;
-	for (i = 0; i < cnt; i++) {
+
+	for (i = 0; i < cnt; i++)
+	{
 		data[i] = ioread16(dev->base + SMTRDR + (i * sizeof(u16)));
 		dev_dbg(dev->dev, "read data[%x] 0x%04x\n", i, data[i]);
 	}
@@ -262,13 +295,17 @@ static int highlander_i2c_write(struct highlander_i2c_dev *dev)
 	smbus_write_data(dev->buf, data, dev->buf_len);
 
 	cnt = (dev->buf_len + 1) >> 1;
-	for (i = 0; i < cnt; i++) {
+
+	for (i = 0; i < cnt; i++)
+	{
 		iowrite16(data[i], dev->base + SMTRDR + (i * sizeof(u16)));
 		dev_dbg(dev->dev, "write data[%x] 0x%04x\n", i, data[i]);
 	}
 
 	if (highlander_i2c_wait_for_bbsy(dev))
+	{
 		return -EAGAIN;
+	}
 
 	highlander_i2c_start(dev);
 
@@ -276,9 +313,9 @@ static int highlander_i2c_write(struct highlander_i2c_dev *dev)
 }
 
 static int highlander_i2c_smbus_xfer(struct i2c_adapter *adap, u16 addr,
-				  unsigned short flags, char read_write,
-				  u8 command, int size,
-				  union i2c_smbus_data *data)
+									 unsigned short flags, char read_write,
+									 u8 command, int size,
+									 union i2c_smbus_data *data)
 {
 	struct highlander_i2c_dev *dev = i2c_get_adapdata(adap);
 	u16 tmp;
@@ -286,23 +323,26 @@ static int highlander_i2c_smbus_xfer(struct i2c_adapter *adap, u16 addr,
 	init_completion(&dev->cmd_complete);
 
 	dev_dbg(dev->dev, "addr %04x, command %02x, read_write %d, size %d\n",
-		addr, command, read_write, size);
+			addr, command, read_write, size);
 
 	/*
 	 * Set up the buffer and transfer size
 	 */
-	switch (size) {
-	case I2C_SMBUS_BYTE_DATA:
-		dev->buf = &data->byte;
-		dev->buf_len = 1;
-		break;
-	case I2C_SMBUS_I2C_BLOCK_DATA:
-		dev->buf = &data->block[1];
-		dev->buf_len = data->block[0];
-		break;
-	default:
-		dev_err(dev->dev, "unsupported command %d\n", size);
-		return -EINVAL;
+	switch (size)
+	{
+		case I2C_SMBUS_BYTE_DATA:
+			dev->buf = &data->byte;
+			dev->buf_len = 1;
+			break;
+
+		case I2C_SMBUS_I2C_BLOCK_DATA:
+			dev->buf = &data->block[1];
+			dev->buf_len = data->block[0];
+			break;
+
+		default:
+			dev_err(dev->dev, "unsupported command %d\n", size);
+			return -EINVAL;
 	}
 
 	/*
@@ -311,22 +351,27 @@ static int highlander_i2c_smbus_xfer(struct i2c_adapter *adap, u16 addr,
 	tmp = ioread16(dev->base + SMMR);
 	tmp &= ~(SMMR_MODE0 | SMMR_MODE1);
 
-	switch (dev->buf_len) {
-	case 1:
-		/* default */
-		break;
-	case 8:
-		tmp |= SMMR_MODE0;
-		break;
-	case 16:
-		tmp |= SMMR_MODE1;
-		break;
-	case 32:
-		tmp |= (SMMR_MODE0 | SMMR_MODE1);
-		break;
-	default:
-		dev_err(dev->dev, "unsupported xfer size %d\n", dev->buf_len);
-		return -EINVAL;
+	switch (dev->buf_len)
+	{
+		case 1:
+			/* default */
+			break;
+
+		case 8:
+			tmp |= SMMR_MODE0;
+			break;
+
+		case 16:
+			tmp |= SMMR_MODE1;
+			break;
+
+		case 32:
+			tmp |= (SMMR_MODE0 | SMMR_MODE1);
+			break;
+
+		default:
+			dev_err(dev->dev, "unsupported xfer size %d\n", dev->buf_len);
+			return -EINVAL;
 	}
 
 	iowrite16(tmp, dev->base + SMMR);
@@ -340,9 +385,13 @@ static int highlander_i2c_smbus_xfer(struct i2c_adapter *adap, u16 addr,
 	highlander_i2c_command(dev, command, dev->buf_len);
 
 	if (read_write == I2C_SMBUS_READ)
+	{
 		return highlander_i2c_read(dev);
+	}
 	else
+	{
 		return highlander_i2c_write(dev);
+	}
 }
 
 static u32 highlander_i2c_func(struct i2c_adapter *adapter)
@@ -350,7 +399,8 @@ static u32 highlander_i2c_func(struct i2c_adapter *adapter)
 	return I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_I2C_BLOCK;
 }
 
-static const struct i2c_algorithm highlander_i2c_algo = {
+static const struct i2c_algorithm highlander_i2c_algo =
+{
 	.smbus_xfer	= highlander_i2c_smbus_xfer,
 	.functionality	= highlander_i2c_func,
 };
@@ -363,17 +413,24 @@ static int highlander_i2c_probe(struct platform_device *pdev)
 	int ret;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (unlikely(!res)) {
+
+	if (unlikely(!res))
+	{
 		dev_err(&pdev->dev, "no mem resource\n");
 		return -ENODEV;
 	}
 
 	dev = kzalloc(sizeof(struct highlander_i2c_dev), GFP_KERNEL);
+
 	if (unlikely(!dev))
+	{
 		return -ENOMEM;
+	}
 
 	dev->base = ioremap_nocache(res->start, resource_size(res));
-	if (unlikely(!dev->base)) {
+
+	if (unlikely(!dev->base))
+	{
 		ret = -ENXIO;
 		goto err;
 	}
@@ -382,17 +439,26 @@ static int highlander_i2c_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, dev);
 
 	dev->irq = platform_get_irq(pdev, 0);
-	if (iic_force_poll)
-		dev->irq = 0;
 
-	if (dev->irq) {
+	if (iic_force_poll)
+	{
+		dev->irq = 0;
+	}
+
+	if (dev->irq)
+	{
 		ret = request_irq(dev->irq, highlander_i2c_irq, 0,
-				  pdev->name, dev);
+						  pdev->name, dev);
+
 		if (unlikely(ret))
+		{
 			goto err_unmap;
+		}
 
 		highlander_i2c_irq_enable(dev);
-	} else {
+	}
+	else
+	{
 		dev_notice(&pdev->dev, "no IRQ, using polling mode\n");
 		highlander_i2c_irq_disable(dev);
 	}
@@ -414,13 +480,17 @@ static int highlander_i2c_probe(struct platform_device *pdev)
 	 * Reset the adapter
 	 */
 	ret = highlander_i2c_reset(dev);
-	if (unlikely(ret)) {
+
+	if (unlikely(ret))
+	{
 		dev_err(&pdev->dev, "controller didn't come up\n");
 		goto err_free_irq;
 	}
 
 	ret = i2c_add_numbered_adapter(adap);
-	if (unlikely(ret)) {
+
+	if (unlikely(ret))
+	{
 		dev_err(&pdev->dev, "failure adding adapter\n");
 		goto err_free_irq;
 	}
@@ -428,8 +498,12 @@ static int highlander_i2c_probe(struct platform_device *pdev)
 	return 0;
 
 err_free_irq:
+
 	if (dev->irq)
+	{
 		free_irq(dev->irq, dev);
+	}
+
 err_unmap:
 	iounmap(dev->base);
 err:
@@ -445,7 +519,9 @@ static int highlander_i2c_remove(struct platform_device *pdev)
 	i2c_del_adapter(&dev->adapter);
 
 	if (dev->irq)
+	{
 		free_irq(dev->irq, dev);
+	}
 
 	iounmap(dev->base);
 	kfree(dev);
@@ -453,7 +529,8 @@ static int highlander_i2c_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver highlander_i2c_driver = {
+static struct platform_driver highlander_i2c_driver =
+{
 	.driver		= {
 		.name	= "i2c-highlander",
 	},
@@ -475,7 +552,7 @@ module_param(iic_read_delay, int, 0);
 
 MODULE_PARM_DESC(iic_force_poll, "Force polling mode");
 MODULE_PARM_DESC(iic_force_normal,
-		 "Force normal mode (100 kHz), default is fast mode (400 kHz)");
+				 "Force normal mode (100 kHz), default is fast mode (400 kHz)");
 MODULE_PARM_DESC(iic_timeout, "Set timeout value in msecs (default 1000 ms)");
 MODULE_PARM_DESC(iic_read_delay,
-		 "Delay between data read cycles (default 0 ms)");
+				 "Delay between data read cycles (default 0 ms)");

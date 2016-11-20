@@ -15,7 +15,8 @@
 
 /* Michal Majchrowicz <mmajchrowicz@gmail.com> */
 
-static struct rc_map_table proteus_2309[] = {
+static struct rc_map_table proteus_2309[] =
+{
 	/* numeric */
 	{ 0x00, KEY_0 },
 	{ 0x01, KEY_1 },
@@ -44,7 +45,8 @@ static struct rc_map_table proteus_2309[] = {
 	{ 0x14, KEY_F1 },
 };
 
-static struct rc_map_list proteus_2309_map = {
+static struct rc_map_list proteus_2309_map =
+{
 	.map = {
 		.scan    = proteus_2309,
 		.size    = ARRAY_SIZE(proteus_2309),

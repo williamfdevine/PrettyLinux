@@ -56,63 +56,63 @@
 #define TRACE_SYSTEM hfi1_rc
 
 DECLARE_EVENT_CLASS(hfi1_rc_template,
-		    TP_PROTO(struct rvt_qp *qp, u32 psn),
-		    TP_ARGS(qp, psn),
-		    TP_STRUCT__entry(
-			DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
-			__field(u32, qpn)
-			__field(u32, s_flags)
-			__field(u32, psn)
-			__field(u32, s_psn)
-			__field(u32, s_next_psn)
-			__field(u32, s_sending_psn)
-			__field(u32, s_sending_hpsn)
-			__field(u32, r_psn)
-			),
-		    TP_fast_assign(
-			DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device))
-			__entry->qpn = qp->ibqp.qp_num;
-			__entry->s_flags = qp->s_flags;
-			__entry->psn = psn;
-			__entry->s_psn = qp->s_psn;
-			__entry->s_next_psn = qp->s_next_psn;
-			__entry->s_sending_psn = qp->s_sending_psn;
-			__entry->s_sending_hpsn = qp->s_sending_hpsn;
-			__entry->r_psn = qp->r_psn;
-			),
-		    TP_printk(
-			"[%s] qpn 0x%x s_flags 0x%x psn 0x%x s_psn 0x%x s_next_psn 0x%x s_sending_psn 0x%x sending_hpsn 0x%x r_psn 0x%x",
-			__get_str(dev),
-			__entry->qpn,
-			__entry->s_flags,
-			__entry->psn,
-			__entry->s_psn,
-			__entry->s_next_psn,
-			__entry->s_sending_psn,
-			__entry->s_sending_hpsn,
-			__entry->r_psn
-			)
-);
+					TP_PROTO(struct rvt_qp *qp, u32 psn),
+					TP_ARGS(qp, psn),
+					TP_STRUCT__entry(
+						DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
+						__field(u32, qpn)
+						__field(u32, s_flags)
+						__field(u32, psn)
+						__field(u32, s_psn)
+						__field(u32, s_next_psn)
+						__field(u32, s_sending_psn)
+						__field(u32, s_sending_hpsn)
+						__field(u32, r_psn)
+					),
+					TP_fast_assign(
+						DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device))
+						__entry->qpn = qp->ibqp.qp_num;
+						__entry->s_flags = qp->s_flags;
+						__entry->psn = psn;
+						__entry->s_psn = qp->s_psn;
+						__entry->s_next_psn = qp->s_next_psn;
+						__entry->s_sending_psn = qp->s_sending_psn;
+						__entry->s_sending_hpsn = qp->s_sending_hpsn;
+						__entry->r_psn = qp->r_psn;
+					),
+					TP_printk(
+						"[%s] qpn 0x%x s_flags 0x%x psn 0x%x s_psn 0x%x s_next_psn 0x%x s_sending_psn 0x%x sending_hpsn 0x%x r_psn 0x%x",
+						__get_str(dev),
+						__entry->qpn,
+						__entry->s_flags,
+						__entry->psn,
+						__entry->s_psn,
+						__entry->s_next_psn,
+						__entry->s_sending_psn,
+						__entry->s_sending_hpsn,
+						__entry->r_psn
+					)
+				   );
 
 DEFINE_EVENT(hfi1_rc_template, hfi1_sendcomplete,
-	     TP_PROTO(struct rvt_qp *qp, u32 psn),
-	     TP_ARGS(qp, psn)
-);
+			 TP_PROTO(struct rvt_qp *qp, u32 psn),
+			 TP_ARGS(qp, psn)
+			);
 
 DEFINE_EVENT(hfi1_rc_template, hfi1_ack,
-	     TP_PROTO(struct rvt_qp *qp, u32 psn),
-	     TP_ARGS(qp, psn)
-);
+			 TP_PROTO(struct rvt_qp *qp, u32 psn),
+			 TP_ARGS(qp, psn)
+			);
 
 DEFINE_EVENT(hfi1_rc_template, hfi1_timeout,
-	     TP_PROTO(struct rvt_qp *qp, u32 psn),
-	     TP_ARGS(qp, psn)
-);
+			 TP_PROTO(struct rvt_qp *qp, u32 psn),
+			 TP_ARGS(qp, psn)
+			);
 
 DEFINE_EVENT(hfi1_rc_template, hfi1_rcv_error,
-	     TP_PROTO(struct rvt_qp *qp, u32 psn),
-	     TP_ARGS(qp, psn)
-);
+			 TP_PROTO(struct rvt_qp *qp, u32 psn),
+			 TP_ARGS(qp, psn)
+			);
 
 #endif /* __HFI1_TRACE_RC_H */
 

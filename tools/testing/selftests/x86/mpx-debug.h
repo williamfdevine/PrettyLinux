@@ -2,7 +2,7 @@
 #define _MPX_DEBUG_H
 
 #ifndef DEBUG_LEVEL
-#define DEBUG_LEVEL 0
+	#define DEBUG_LEVEL 0
 #endif
 #define dprintf_level(level, args...) do { if(level <= DEBUG_LEVEL) printf(args); } while(0)
 #define dprintf1(args...) dprintf_level(1, args)

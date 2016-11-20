@@ -145,7 +145,8 @@ struct sxgbe_mtl_ops;
 #define LPI_CTRL_STATUS_TLPIEX	BIT(1)
 #define LPI_CTRL_STATUS_TLPIEN	BIT(0)
 
-enum dma_irq_status {
+enum dma_irq_status
+{
 	tx_hard_error	= BIT(0),
 	tx_bump_tc	= BIT(1),
 	handle_tx	= BIT(2),
@@ -155,20 +156,20 @@ enum dma_irq_status {
 };
 
 #define NETIF_F_HW_VLAN_ALL     (NETIF_F_HW_VLAN_CTAG_RX |	\
-				 NETIF_F_HW_VLAN_STAG_RX |	\
-				 NETIF_F_HW_VLAN_CTAG_TX |	\
-				 NETIF_F_HW_VLAN_STAG_TX |	\
-				 NETIF_F_HW_VLAN_CTAG_FILTER |	\
-				 NETIF_F_HW_VLAN_STAG_FILTER)
+								 NETIF_F_HW_VLAN_STAG_RX |	\
+								 NETIF_F_HW_VLAN_CTAG_TX |	\
+								 NETIF_F_HW_VLAN_STAG_TX |	\
+								 NETIF_F_HW_VLAN_CTAG_FILTER |	\
+								 NETIF_F_HW_VLAN_STAG_FILTER)
 
 /* MMC control defines */
 #define SXGBE_MMC_CTRL_CNT_FRZ  0x00000008
 
 /* SXGBE HW ADDR regs */
 #define SXGBE_ADDR_HIGH(reg)    (((reg > 15) ? 0x00000800 : 0x00000040) + \
-				 (reg * 8))
+								 (reg * 8))
 #define SXGBE_ADDR_LOW(reg)     (((reg > 15) ? 0x00000804 : 0x00000044) + \
-				 (reg * 8))
+								 (reg * 8))
 #define SXGBE_MAX_PERFECT_ADDRESSES 32 /* Maximum unicast perfect filtering */
 #define SXGBE_FRAME_FILTER       0x00000004      /* Frame Filter */
 
@@ -212,7 +213,8 @@ enum dma_irq_status {
 #define REG_SPACE_SIZE		0x2000
 
 /* sxgbe statistics counters */
-struct sxgbe_extra_stats {
+struct sxgbe_extra_stats
+{
 	/* TX/RX IRQ events */
 	unsigned long tx_underflow_irq;
 	unsigned long tx_process_stopped_irq;
@@ -310,32 +312,35 @@ struct sxgbe_extra_stats {
 	unsigned long rx_ptp_resv_msg_type;
 };
 
-struct mac_link {
+struct mac_link
+{
 	int port;
 	int duplex;
 	int speed;
 };
 
-struct mii_regs {
+struct mii_regs
+{
 	unsigned int addr;	/* MII Address */
 	unsigned int data;	/* MII Data */
 };
 
-struct sxgbe_core_ops {
+struct sxgbe_core_ops
+{
 	/* MAC core initialization */
 	void (*core_init)(void __iomem *ioaddr);
 	/* Dump MAC registers */
 	void (*dump_regs)(void __iomem *ioaddr);
 	/* Handle extra events on specific interrupts hw dependent */
 	int (*host_irq_status)(void __iomem *ioaddr,
-			       struct sxgbe_extra_stats *x);
+						   struct sxgbe_extra_stats *x);
 	/* Set power management mode (e.g. magic frame) */
 	void (*pmt)(void __iomem *ioaddr, unsigned long mode);
 	/* Set/Get Unicast MAC addresses */
 	void (*set_umac_addr)(void __iomem *ioaddr, unsigned char *addr,
-			      unsigned int reg_n);
+						  unsigned int reg_n);
 	void (*get_umac_addr)(void __iomem *ioaddr, unsigned char *addr,
-			      unsigned int reg_n);
+						  unsigned int reg_n);
 	void (*enable_rx)(void __iomem *ioaddr, bool enable);
 	void (*enable_tx)(void __iomem *ioaddr, bool enable);
 
@@ -344,7 +349,7 @@ struct sxgbe_core_ops {
 
 	/* If supported then get the optional core features */
 	unsigned int (*get_hw_feature)(void __iomem *ioaddr,
-				       unsigned char feature_index);
+								   unsigned char feature_index);
 	/* adjust SXGBE speed */
 	void (*set_speed)(void __iomem *ioaddr, unsigned char speed);
 
@@ -352,7 +357,7 @@ struct sxgbe_core_ops {
 	void (*set_eee_mode)(void __iomem *ioaddr);
 	void (*reset_eee_mode)(void __iomem *ioaddr);
 	void (*set_eee_timer)(void __iomem *ioaddr, const int ls,
-			      const int tw);
+						  const int tw);
 	void (*set_eee_pls)(void __iomem *ioaddr, const int link);
 
 	/* Enable disable checksum offload operations */
@@ -364,7 +369,8 @@ struct sxgbe_core_ops {
 
 const struct sxgbe_core_ops *sxgbe_get_core_ops(void);
 
-struct sxgbe_ops {
+struct sxgbe_ops
+{
 	const struct sxgbe_core_ops *mac;
 	const struct sxgbe_desc_ops *desc;
 	const struct sxgbe_dma_ops *dma;
@@ -376,7 +382,8 @@ struct sxgbe_ops {
 };
 
 /* SXGBE private data structures */
-struct sxgbe_tx_queue {
+struct sxgbe_tx_queue
+{
 	unsigned int irq_no;
 	struct sxgbe_priv_data *priv_ptr;
 	struct sxgbe_tx_norm_desc *dma_tx;
@@ -395,7 +402,8 @@ struct sxgbe_tx_queue {
 	u8 queue_no;
 };
 
-struct sxgbe_rx_queue {
+struct sxgbe_rx_queue
+{
 	struct sxgbe_priv_data *priv_ptr;
 	struct sxgbe_rx_norm_desc *dma_rx;
 	struct sk_buff **rx_skbuff;
@@ -409,7 +417,8 @@ struct sxgbe_rx_queue {
 };
 
 /* SXGBE HW capabilities */
-struct sxgbe_hw_features {
+struct sxgbe_hw_features
+{
 	/****** CAP [0] *******/
 	unsigned int pmt_remote_wake_up;
 	unsigned int pmt_magic_frame;
@@ -453,7 +462,8 @@ struct sxgbe_hw_features {
 	unsigned int aux_input_count;
 };
 
-struct sxgbe_priv_data {
+struct sxgbe_priv_data
+{
 	/* DMA descriptos */
 	struct sxgbe_tx_queue *txq[SXGBE_TX_QUEUES];
 	struct sxgbe_rx_queue *rxq[SXGBE_RX_QUEUES];
@@ -513,8 +523,8 @@ struct sxgbe_priv_data {
 
 /* Function prototypes */
 struct sxgbe_priv_data *sxgbe_drv_probe(struct device *device,
-					struct sxgbe_plat_data *plat_dat,
-					void __iomem *addr);
+										struct sxgbe_plat_data *plat_dat,
+										void __iomem *addr);
 int sxgbe_drv_remove(struct net_device *ndev);
 void sxgbe_set_ethtool_ops(struct net_device *netdev);
 int sxgbe_mdio_unregister(struct net_device *ndev);
@@ -523,14 +533,14 @@ int sxgbe_register_platform(void);
 void sxgbe_unregister_platform(void);
 
 #ifdef CONFIG_PM
-int sxgbe_suspend(struct net_device *ndev);
-int sxgbe_resume(struct net_device *ndev);
-int sxgbe_freeze(struct net_device *ndev);
-int sxgbe_restore(struct net_device *ndev);
+	int sxgbe_suspend(struct net_device *ndev);
+	int sxgbe_resume(struct net_device *ndev);
+	int sxgbe_freeze(struct net_device *ndev);
+	int sxgbe_restore(struct net_device *ndev);
 #endif /* CONFIG_PM */
 
 const struct sxgbe_mtl_ops *sxgbe_get_mtl_ops(void);
 
-void sxgbe_disable_eee_mode(struct sxgbe_priv_data * const priv);
-bool sxgbe_eee_init(struct sxgbe_priv_data * const priv);
+void sxgbe_disable_eee_mode(struct sxgbe_priv_data *const priv);
+bool sxgbe_eee_init(struct sxgbe_priv_data *const priv);
 #endif /* __SXGBE_COMMON_H__ */

@@ -28,11 +28,13 @@
 #include <linux/mutex.h>
 
 /* Addresses to scan */
-static const unsigned short normal_i2c[] = {
+static const unsigned short normal_i2c[] =
+{
 	0x2c, 0x2d, 0x2e, I2C_CLIENT_END
 };
 
-enum asc7621_type {
+enum asc7621_type
+{
 	asc7621,
 	asc7621a
 };
@@ -45,7 +47,8 @@ enum asc7621_type {
 #define FIRST_CHIP      asc7621
 #define LAST_CHIP       asc7621a
 
-struct asc7621_chip {
+struct asc7621_chip
+{
 	char *name;
 	enum asc7621_type chip_type;
 	u8 company_reg;
@@ -55,7 +58,8 @@ struct asc7621_chip {
 	const unsigned short *addresses;
 };
 
-static struct asc7621_chip asc7621_chips[] = {
+static struct asc7621_chip asc7621_chips[] =
+{
 	{
 		.name = "asc7621",
 		.chip_type = asc7621,
@@ -64,7 +68,7 @@ static struct asc7621_chip asc7621_chips[] = {
 		.verstep_reg = 0x3f,
 		.verstep_id = 0x6c,
 		.addresses = normal_i2c,
-	 },
+	},
 	{
 		.name = "asc7621a",
 		.chip_type = asc7621a,
@@ -73,7 +77,7 @@ static struct asc7621_chip asc7621_chips[] = {
 		.verstep_reg = 0x3f,
 		.verstep_id = 0x6d,
 		.addresses = normal_i2c,
-	 },
+	},
 };
 
 /*
@@ -86,7 +90,8 @@ static struct asc7621_chip asc7621_chips[] = {
  */
 #define LAST_REGISTER 0xff
 
-struct asc7621_data {
+struct asc7621_data
+{
 	struct i2c_client client;
 	struct device *class_dev;
 	struct mutex update_lock;
@@ -114,7 +119,8 @@ struct asc7621_data {
  * allocated.  It contains the sensor_device_attribute structure
  * and the control info needed to retrieve the value from the register map.
  */
-struct asc7621_param {
+struct asc7621_param
+{
 	struct sensor_device_attribute sda;
 	u8 priority;
 	u8 msb[3];
@@ -134,22 +140,28 @@ static struct asc7621_data *asc7621_update_device(struct device *dev);
 static inline u8 read_byte(struct i2c_client *client, u8 reg)
 {
 	int res = i2c_smbus_read_byte_data(client, reg);
-	if (res < 0) {
+
+	if (res < 0)
+	{
 		dev_err(&client->dev,
-			"Unable to read from register 0x%02x.\n", reg);
+				"Unable to read from register 0x%02x.\n", reg);
 		return 0;
 	}
+
 	return res & 0xff;
 }
 
 static inline int write_byte(struct i2c_client *client, u8 reg, u8 data)
 {
 	int res = i2c_smbus_write_byte_data(client, reg, data);
-	if (res < 0) {
+
+	if (res < 0)
+	{
 		dev_err(&client->dev,
-			"Unable to write value 0x%02x to register 0x%02x.\n",
-			data, reg);
+				"Unable to write value 0x%02x to register 0x%02x.\n",
+				data, reg);
 	}
+
 	return res;
 }
 
@@ -175,7 +187,7 @@ static inline int write_byte(struct i2c_client *client, u8 reg, u8 data)
  * special formatting.
  */
 static ssize_t show_u8(struct device *dev, struct device_attribute *attr,
-		       char *buf)
+					   char *buf)
 {
 	SETUP_SHOW_DATA_PARAM(dev, attr);
 
@@ -183,13 +195,15 @@ static ssize_t show_u8(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t store_u8(struct device *dev, struct device_attribute *attr,
-			const char *buf, size_t count)
+						const char *buf, size_t count)
 {
 	SETUP_STORE_DATA_PARAM(dev, attr);
 	long reqval;
 
 	if (kstrtol(buf, 10, &reqval))
+	{
 		return -EINVAL;
+	}
 
 	reqval = clamp_val(reqval, 0, 255);
 
@@ -204,25 +218,27 @@ static ssize_t store_u8(struct device *dev, struct device_attribute *attr,
  * Many of the config values occupy only a few bits of a register.
  */
 static ssize_t show_bitmask(struct device *dev,
-			    struct device_attribute *attr, char *buf)
+							struct device_attribute *attr, char *buf)
 {
 	SETUP_SHOW_DATA_PARAM(dev, attr);
 
 	return sprintf(buf, "%u\n",
-		       (data->reg[param->msb[0]] >> param->
-			shift[0]) & param->mask[0]);
+				   (data->reg[param->msb[0]] >> param->
+					shift[0]) & param->mask[0]);
 }
 
 static ssize_t store_bitmask(struct device *dev,
-			     struct device_attribute *attr,
-			     const char *buf, size_t count)
+							 struct device_attribute *attr,
+							 const char *buf, size_t count)
 {
 	SETUP_STORE_DATA_PARAM(dev, attr);
 	long reqval;
 	u8 currval;
 
 	if (kstrtol(buf, 10, &reqval))
+	{
 		return -EINVAL;
+	}
 
 	reqval = clamp_val(reqval, 0, param->mask[0]);
 
@@ -244,7 +260,7 @@ static ssize_t store_bitmask(struct device *dev,
  * RPM = (90000 * 60) / register value
  */
 static ssize_t show_fan16(struct device *dev,
-			  struct device_attribute *attr, char *buf)
+						  struct device_attribute *attr, char *buf)
 {
 	SETUP_SHOW_DATA_PARAM(dev, attr);
 	u16 regval;
@@ -254,19 +270,21 @@ static ssize_t show_fan16(struct device *dev,
 	mutex_unlock(&data->update_lock);
 
 	return sprintf(buf, "%u\n",
-		       (regval == 0 ? -1 : (regval) ==
-			0xffff ? 0 : 5400000 / regval));
+				   (regval == 0 ? -1 : (regval) ==
+					0xffff ? 0 : 5400000 / regval));
 }
 
 static ssize_t store_fan16(struct device *dev,
-			   struct device_attribute *attr, const char *buf,
-			   size_t count)
+						   struct device_attribute *attr, const char *buf,
+						   size_t count)
 {
 	SETUP_STORE_DATA_PARAM(dev, attr);
 	long reqval;
 
 	if (kstrtol(buf, 10, &reqval))
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * If a minimum RPM of zero is requested, then we set the register to
@@ -274,7 +292,7 @@ static ssize_t store_fan16(struct device *dev,
 	 * generating an alarm.
 	 */
 	reqval =
-	    (reqval <= 0 ? 0xffff : clamp_val(5400000 / reqval, 0, 0xfffe));
+		(reqval <= 0 ? 0xffff : clamp_val(5400000 / reqval, 0, 0xfffe));
 
 	mutex_lock(&data->update_lock);
 	data->reg[param->msb[0]] = (reqval >> 8) & 0xff;
@@ -300,12 +318,13 @@ static ssize_t store_fan16(struct device *dev,
  * respectively. That doesn't mean that's what the motherboard provides. :)
  */
 
-static const int asc7621_in_scaling[] = {
+static const int asc7621_in_scaling[] =
+{
 	2500, 2250, 3300, 5000, 12000
 };
 
 static ssize_t show_in10(struct device *dev, struct device_attribute *attr,
-			 char *buf)
+						 char *buf)
 {
 	SETUP_SHOW_DATA_PARAM(dev, attr);
 	u16 regval;
@@ -323,25 +342,27 @@ static ssize_t show_in10(struct device *dev, struct device_attribute *attr,
 
 /* 8 bit voltage values (the mins and maxs) */
 static ssize_t show_in8(struct device *dev, struct device_attribute *attr,
-			char *buf)
+						char *buf)
 {
 	SETUP_SHOW_DATA_PARAM(dev, attr);
 	u8 nr = sda->index;
 
 	return sprintf(buf, "%u\n",
-		       ((data->reg[param->msb[0]] *
-			 asc7621_in_scaling[nr]) / 0xc0));
+				   ((data->reg[param->msb[0]] *
+					 asc7621_in_scaling[nr]) / 0xc0));
 }
 
 static ssize_t store_in8(struct device *dev, struct device_attribute *attr,
-			 const char *buf, size_t count)
+						 const char *buf, size_t count)
 {
 	SETUP_STORE_DATA_PARAM(dev, attr);
 	long reqval;
 	u8 nr = sda->index;
 
 	if (kstrtol(buf, 10, &reqval))
+	{
 		return -EINVAL;
+	}
 
 	reqval = clamp_val(reqval, 0, 0xffff);
 
@@ -358,7 +379,7 @@ static ssize_t store_in8(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t show_temp8(struct device *dev,
-			  struct device_attribute *attr, char *buf)
+						  struct device_attribute *attr, char *buf)
 {
 	SETUP_SHOW_DATA_PARAM(dev, attr);
 
@@ -366,15 +387,17 @@ static ssize_t show_temp8(struct device *dev,
 }
 
 static ssize_t store_temp8(struct device *dev,
-			   struct device_attribute *attr, const char *buf,
-			   size_t count)
+						   struct device_attribute *attr, const char *buf,
+						   size_t count)
 {
 	SETUP_STORE_DATA_PARAM(dev, attr);
 	long reqval;
 	s8 temp;
 
 	if (kstrtol(buf, 10, &reqval))
+	{
 		return -EINVAL;
+	}
 
 	reqval = clamp_val(reqval, -127000, 127000);
 
@@ -395,7 +418,7 @@ static ssize_t store_temp8(struct device *dev,
 
 /*   mmmmmmmm.llxxxxxx */
 static ssize_t show_temp10(struct device *dev,
-			   struct device_attribute *attr, char *buf)
+						   struct device_attribute *attr, char *buf)
 {
 	SETUP_SHOW_DATA_PARAM(dev, attr);
 	u8 msb, lsb;
@@ -412,7 +435,7 @@ static ssize_t show_temp10(struct device *dev,
 
 /*   mmmmmm.ll */
 static ssize_t show_temp62(struct device *dev,
-			   struct device_attribute *attr, char *buf)
+						   struct device_attribute *attr, char *buf)
 {
 	SETUP_SHOW_DATA_PARAM(dev, attr);
 	u8 regval = data->reg[param->msb[0]];
@@ -422,15 +445,17 @@ static ssize_t show_temp62(struct device *dev,
 }
 
 static ssize_t store_temp62(struct device *dev,
-			    struct device_attribute *attr, const char *buf,
-			    size_t count)
+							struct device_attribute *attr, const char *buf,
+							size_t count)
 {
 	SETUP_STORE_DATA_PARAM(dev, attr);
 	long reqval, i, f;
 	s8 temp;
 
 	if (kstrtol(buf, 10, &reqval))
+	{
 		return -EINVAL;
+	}
 
 	reqval = clamp_val(reqval, -32000, 31750);
 	i = reqval / 1000;
@@ -451,13 +476,14 @@ static ssize_t store_temp62(struct device *dev,
  * hwmon specs, we synthesize the auto_point_2 from them.
  */
 
-static const u32 asc7621_range_map[] = {
+static const u32 asc7621_range_map[] =
+{
 	2000, 2500, 3330, 4000, 5000, 6670, 8000, 10000,
 	13330, 16000, 20000, 26670, 32000, 40000, 53330, 80000,
 };
 
 static ssize_t show_ap2_temp(struct device *dev,
-			     struct device_attribute *attr, char *buf)
+							 struct device_attribute *attr, char *buf)
 {
 	SETUP_SHOW_DATA_PARAM(dev, attr);
 	long auto_point1;
@@ -467,7 +493,7 @@ static ssize_t show_ap2_temp(struct device *dev,
 	mutex_lock(&data->update_lock);
 	auto_point1 = ((s8) data->reg[param->msb[1]]) * 1000;
 	regval =
-	    ((data->reg[param->msb[0]] >> param->shift[0]) & param->mask[0]);
+		((data->reg[param->msb[0]] >> param->shift[0]) & param->mask[0]);
 	temp = auto_point1 + asc7621_range_map[clamp_val(regval, 0, 15)];
 	mutex_unlock(&data->update_lock);
 
@@ -476,8 +502,8 @@ static ssize_t show_ap2_temp(struct device *dev,
 }
 
 static ssize_t store_ap2_temp(struct device *dev,
-			      struct device_attribute *attr,
-			      const char *buf, size_t count)
+							  struct device_attribute *attr,
+							  const char *buf, size_t count)
 {
 	SETUP_STORE_DATA_PARAM(dev, attr);
 	long reqval, auto_point1;
@@ -485,14 +511,18 @@ static ssize_t store_ap2_temp(struct device *dev,
 	u8 currval, newval = 0;
 
 	if (kstrtol(buf, 10, &reqval))
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&data->update_lock);
 	auto_point1 = data->reg[param->msb[1]] * 1000;
 	reqval = clamp_val(reqval, auto_point1 + 2000, auto_point1 + 80000);
 
-	for (i = ARRAY_SIZE(asc7621_range_map) - 1; i >= 0; i--) {
-		if (reqval >= auto_point1 + asc7621_range_map[i]) {
+	for (i = ARRAY_SIZE(asc7621_range_map) - 1; i >= 0; i--)
+	{
+		if (reqval >= auto_point1 + asc7621_range_map[i])
+		{
 			newval = i;
 			break;
 		}
@@ -508,11 +538,12 @@ static ssize_t store_ap2_temp(struct device *dev,
 }
 
 static ssize_t show_pwm_ac(struct device *dev,
-			   struct device_attribute *attr, char *buf)
+						   struct device_attribute *attr, char *buf)
 {
 	SETUP_SHOW_DATA_PARAM(dev, attr);
 	u8 config, altbit, regval;
-	const u8 map[] = {
+	const u8 map[] =
+	{
 		0x01, 0x02, 0x04, 0x1f, 0x00, 0x06, 0x07, 0x10,
 		0x08, 0x0f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f
 	};
@@ -527,13 +558,14 @@ static ssize_t show_pwm_ac(struct device *dev,
 }
 
 static ssize_t store_pwm_ac(struct device *dev,
-			    struct device_attribute *attr,
-			    const char *buf, size_t count)
+							struct device_attribute *attr,
+							const char *buf, size_t count)
 {
 	SETUP_STORE_DATA_PARAM(dev, attr);
 	unsigned long reqval;
 	u8 currval, config, altbit, newval;
-	const u16 map[] = {
+	const u16 map[] =
+	{
 		0x04, 0x00, 0x01, 0xff, 0x02, 0xff, 0x05, 0x06,
 		0x08, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f,
 		0x07, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -541,14 +573,21 @@ static ssize_t store_pwm_ac(struct device *dev,
 	};
 
 	if (kstrtoul(buf, 10, &reqval))
+	{
 		return -EINVAL;
+	}
 
 	if (reqval > 31)
+	{
 		return -EINVAL;
+	}
 
 	reqval = map[reqval];
+
 	if (reqval == 0xff)
+	{
 		return -EINVAL;
+	}
 
 	config = reqval & 0x07;
 	altbit = (reqval >> 3) & 0x01;
@@ -567,7 +606,7 @@ static ssize_t store_pwm_ac(struct device *dev,
 }
 
 static ssize_t show_pwm_enable(struct device *dev,
-			       struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	SETUP_SHOW_DATA_PARAM(dev, attr);
 	u8 config, altbit, minoff, val, newval;
@@ -582,50 +621,68 @@ static ssize_t show_pwm_enable(struct device *dev,
 	newval = 0;
 
 	if (val == 3 || val >= 10)
+	{
 		newval = 255;
+	}
 	else if (val == 4)
+	{
 		newval = 0;
+	}
 	else if (val == 7)
+	{
 		newval = 1;
+	}
 	else if (minoff == 1)
+	{
 		newval = 2;
+	}
 	else
+	{
 		newval = 3;
+	}
 
 	return sprintf(buf, "%u\n", newval);
 }
 
 static ssize_t store_pwm_enable(struct device *dev,
-				struct device_attribute *attr,
-				const char *buf, size_t count)
+								struct device_attribute *attr,
+								const char *buf, size_t count)
 {
 	SETUP_STORE_DATA_PARAM(dev, attr);
 	long reqval;
 	u8 currval, config, altbit, newval, minoff = 255;
 
 	if (kstrtol(buf, 10, &reqval))
+	{
 		return -EINVAL;
+	}
 
-	switch (reqval) {
-	case 0:
-		newval = 0x04;
-		break;
-	case 1:
-		newval = 0x07;
-		break;
-	case 2:
-		newval = 0x00;
-		minoff = 1;
-		break;
-	case 3:
-		newval = 0x00;
-		minoff = 0;
-		break;
-	case 255:
-		newval = 0x03;
-		break;
-	default:
-		return -EINVAL;
+	switch (reqval)
+	{
+		case 0:
+			newval = 0x04;
+			break;
+
+		case 1:
+			newval = 0x07;
+			break;
+
+		case 2:
+			newval = 0x00;
+			minoff = 1;
+			break;
+
+		case 3:
+			newval = 0x00;
+			minoff = 0;
+			break;
+
+		case 255:
+			newval = 0x03;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	config = newval & 0x07;
@@ -639,29 +696,33 @@ static ssize_t store_pwm_enable(struct device *dev,
 	newval = altbit | (newval & ~(param->mask[1] << param->shift[1]));
 	data->reg[param->msb[0]] = newval;
 	write_byte(client, param->msb[0], newval);
-	if (minoff < 255) {
+
+	if (minoff < 255)
+	{
 		minoff = (minoff & param->mask[2]) << param->shift[2];
 		currval = read_byte(client, param->msb[2]);
 		newval =
-		    minoff | (currval & ~(param->mask[2] << param->shift[2]));
+			minoff | (currval & ~(param->mask[2] << param->shift[2]));
 		data->reg[param->msb[2]] = newval;
 		write_byte(client, param->msb[2], newval);
 	}
+
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
-static const u32 asc7621_pwm_freq_map[] = {
+static const u32 asc7621_pwm_freq_map[] =
+{
 	10, 15, 23, 30, 38, 47, 62, 94,
 	23000, 24000, 25000, 26000, 27000, 28000, 29000, 30000
 };
 
 static ssize_t show_pwm_freq(struct device *dev,
-			     struct device_attribute *attr, char *buf)
+							 struct device_attribute *attr, char *buf)
 {
 	SETUP_SHOW_DATA_PARAM(dev, attr);
 	u8 regval =
-	    (data->reg[param->msb[0]] >> param->shift[0]) & param->mask[0];
+		(data->reg[param->msb[0]] >> param->shift[0]) & param->mask[0];
 
 	regval = clamp_val(regval, 0, 15);
 
@@ -669,8 +730,8 @@ static ssize_t show_pwm_freq(struct device *dev,
 }
 
 static ssize_t store_pwm_freq(struct device *dev,
-			      struct device_attribute *attr,
-			      const char *buf, size_t count)
+							  struct device_attribute *attr,
+							  const char *buf, size_t count)
 {
 	SETUP_STORE_DATA_PARAM(dev, attr);
 	unsigned long reqval;
@@ -678,16 +739,23 @@ static ssize_t store_pwm_freq(struct device *dev,
 	int i;
 
 	if (kstrtoul(buf, 10, &reqval))
+	{
 		return -EINVAL;
+	}
 
-	for (i = 0; i < ARRAY_SIZE(asc7621_pwm_freq_map); i++) {
-		if (reqval == asc7621_pwm_freq_map[i]) {
+	for (i = 0; i < ARRAY_SIZE(asc7621_pwm_freq_map); i++)
+	{
+		if (reqval == asc7621_pwm_freq_map[i])
+		{
 			newval = i;
 			break;
 		}
 	}
+
 	if (newval == 255)
+	{
 		return -EINVAL;
+	}
 
 	newval = (newval & param->mask[0]) << param->shift[0];
 
@@ -700,16 +768,17 @@ static ssize_t store_pwm_freq(struct device *dev,
 	return count;
 }
 
-static const u32 asc7621_pwm_auto_spinup_map[] =  {
+static const u32 asc7621_pwm_auto_spinup_map[] =
+{
 	0, 100, 250, 400, 700, 1000, 2000, 4000
 };
 
 static ssize_t show_pwm_ast(struct device *dev,
-			    struct device_attribute *attr, char *buf)
+							struct device_attribute *attr, char *buf)
 {
 	SETUP_SHOW_DATA_PARAM(dev, attr);
 	u8 regval =
-	    (data->reg[param->msb[0]] >> param->shift[0]) & param->mask[0];
+		(data->reg[param->msb[0]] >> param->shift[0]) & param->mask[0];
 
 	regval = clamp_val(regval, 0, 7);
 
@@ -718,8 +787,8 @@ static ssize_t show_pwm_ast(struct device *dev,
 }
 
 static ssize_t store_pwm_ast(struct device *dev,
-			     struct device_attribute *attr,
-			     const char *buf, size_t count)
+							 struct device_attribute *attr,
+							 const char *buf, size_t count)
 {
 	SETUP_STORE_DATA_PARAM(dev, attr);
 	long reqval;
@@ -727,16 +796,23 @@ static ssize_t store_pwm_ast(struct device *dev,
 	u32 i;
 
 	if (kstrtol(buf, 10, &reqval))
+	{
 		return -EINVAL;
+	}
 
-	for (i = 0; i < ARRAY_SIZE(asc7621_pwm_auto_spinup_map); i++) {
-		if (reqval == asc7621_pwm_auto_spinup_map[i]) {
+	for (i = 0; i < ARRAY_SIZE(asc7621_pwm_auto_spinup_map); i++)
+	{
+		if (reqval == asc7621_pwm_auto_spinup_map[i])
+		{
 			newval = i;
 			break;
 		}
 	}
+
 	if (newval == 255)
+	{
 		return -EINVAL;
+	}
 
 	newval = (newval & param->mask[0]) << param->shift[0];
 
@@ -749,24 +825,25 @@ static ssize_t store_pwm_ast(struct device *dev,
 	return count;
 }
 
-static const u32 asc7621_temp_smoothing_time_map[] = {
+static const u32 asc7621_temp_smoothing_time_map[] =
+{
 	35000, 17600, 11800, 7000, 4400, 3000, 1600, 800
 };
 
 static ssize_t show_temp_st(struct device *dev,
-			    struct device_attribute *attr, char *buf)
+							struct device_attribute *attr, char *buf)
 {
 	SETUP_SHOW_DATA_PARAM(dev, attr);
 	u8 regval =
-	    (data->reg[param->msb[0]] >> param->shift[0]) & param->mask[0];
+		(data->reg[param->msb[0]] >> param->shift[0]) & param->mask[0];
 	regval = clamp_val(regval, 0, 7);
 
 	return sprintf(buf, "%u\n", asc7621_temp_smoothing_time_map[regval]);
 }
 
 static ssize_t store_temp_st(struct device *dev,
-			     struct device_attribute *attr,
-			     const char *buf, size_t count)
+							 struct device_attribute *attr,
+							 const char *buf, size_t count)
 {
 	SETUP_STORE_DATA_PARAM(dev, attr);
 	long reqval;
@@ -774,17 +851,23 @@ static ssize_t store_temp_st(struct device *dev,
 	u32 i;
 
 	if (kstrtol(buf, 10, &reqval))
+	{
 		return -EINVAL;
+	}
 
-	for (i = 0; i < ARRAY_SIZE(asc7621_temp_smoothing_time_map); i++) {
-		if (reqval == asc7621_temp_smoothing_time_map[i]) {
+	for (i = 0; i < ARRAY_SIZE(asc7621_temp_smoothing_time_map); i++)
+	{
+		if (reqval == asc7621_temp_smoothing_time_map[i])
+		{
 			newval = i;
 			break;
 		}
 	}
 
 	if (newval == 255)
+	{
 		return -EINVAL;
+	}
 
 	newval = (newval & param->mask[0]) << param->shift[0];
 
@@ -812,13 +895,13 @@ static ssize_t store_temp_st(struct device *dev,
 
 #define PREAD(name, n, pri, rm, rl, m, s, r) \
 	{.sda = SENSOR_ATTR(name, S_IRUGO, show_##r, NULL, n), \
-	  .priority = pri, .msb[0] = rm, .lsb[0] = rl, .mask[0] = m, \
-	  .shift[0] = s,}
+			.priority = pri, .msb[0] = rm, .lsb[0] = rl, .mask[0] = m, \
+									   .shift[0] = s,}
 
 #define PWRITE(name, n, pri, rm, rl, m, s, r) \
 	{.sda = SENSOR_ATTR(name, S_IRUGO | S_IWUSR, show_##r, store_##r, n), \
-	  .priority = pri, .msb[0] = rm, .lsb[0] = rl, .mask[0] = m, \
-	  .shift[0] = s,}
+			.priority = pri, .msb[0] = rm, .lsb[0] = rl, .mask[0] = m, \
+									   .shift[0] = s,}
 
 /*
  * PWRITEM assumes that the initializers for the .msb, .lsb, .mask and .shift
@@ -826,9 +909,10 @@ static ssize_t store_temp_st(struct device *dev,
  */
 #define PWRITEM(name, n, pri, rm, rl, m, s, r) \
 	{.sda = SENSOR_ATTR(name, S_IRUGO | S_IWUSR, show_##r, store_##r, n), \
-	  .priority = pri, .msb = rm, .lsb = rl, .mask = m, .shift = s,}
+			.priority = pri, .msb = rm, .lsb = rl, .mask = m, .shift = s,}
 
-static struct asc7621_param asc7621_params[] = {
+static struct asc7621_param asc7621_params[] =
+{
 	PREAD(in0_input, 0, PRI_HIGH, 0x20, 0x13, 0, 0, in10),
 	PREAD(in1_input, 1, PRI_HIGH, 0x21, 0x18, 0, 0, in10),
 	PREAD(in2_input, 2, PRI_HIGH, 0x22, 0x11, 0, 0, in10),
@@ -908,22 +992,22 @@ static struct asc7621_param asc7621_params[] = {
 	PWRITE(temp4_smoothing_time, 3, PRI_LOW, 0x3c, 0, 0x07, 0, temp_st),
 
 	PWRITE(temp1_auto_point1_temp_hyst, 0, PRI_LOW, 0x6d, 0, 0x0f, 4,
-	       bitmask),
+	bitmask),
 	PWRITE(temp2_auto_point1_temp_hyst, 1, PRI_LOW, 0x6d, 0, 0x0f, 0,
-	       bitmask),
+	bitmask),
 	PWRITE(temp3_auto_point1_temp_hyst, 2, PRI_LOW, 0x6e, 0, 0x0f, 4,
-	       bitmask),
+	bitmask),
 	PWRITE(temp4_auto_point1_temp_hyst, 3, PRI_LOW, 0x6e, 0, 0x0f, 0,
-	       bitmask),
+	bitmask),
 
 	PREAD(temp1_auto_point2_temp_hyst, 0, PRI_LOW, 0x6d, 0, 0x0f, 4,
-	      bitmask),
+	bitmask),
 	PREAD(temp2_auto_point2_temp_hyst, 1, PRI_LOW, 0x6d, 0, 0x0f, 0,
-	      bitmask),
+	bitmask),
 	PREAD(temp3_auto_point2_temp_hyst, 2, PRI_LOW, 0x6e, 0, 0x0f, 4,
-	      bitmask),
+	bitmask),
 	PREAD(temp4_auto_point2_temp_hyst, 3, PRI_LOW, 0x6e, 0, 0x0f, 0,
-	      bitmask),
+	bitmask),
 
 	PWRITE(temp1_auto_point1_temp, 0, PRI_LOW, 0x67, 0, 0, 0, temp8),
 	PWRITE(temp2_auto_point1_temp, 1, PRI_LOW, 0x68, 0, 0, 0, temp8),
@@ -931,13 +1015,13 @@ static struct asc7621_param asc7621_params[] = {
 	PWRITE(temp4_auto_point1_temp, 3, PRI_LOW, 0x3b, 0, 0, 0, temp8),
 
 	PWRITEM(temp1_auto_point2_temp, 0, PRI_LOW, VAA(0x5f, 0x67), VAA(0),
-		VAA(0x0f), VAA(4), ap2_temp),
+	VAA(0x0f), VAA(4), ap2_temp),
 	PWRITEM(temp2_auto_point2_temp, 1, PRI_LOW, VAA(0x60, 0x68), VAA(0),
-		VAA(0x0f), VAA(4), ap2_temp),
+	VAA(0x0f), VAA(4), ap2_temp),
 	PWRITEM(temp3_auto_point2_temp, 2, PRI_LOW, VAA(0x61, 0x69), VAA(0),
-		VAA(0x0f), VAA(4), ap2_temp),
+	VAA(0x0f), VAA(4), ap2_temp),
 	PWRITEM(temp4_auto_point2_temp, 3, PRI_LOW, VAA(0x3c, 0x3b), VAA(0),
-		VAA(0x0f), VAA(4), ap2_temp),
+	VAA(0x0f), VAA(4), ap2_temp),
 
 	PWRITE(temp1_crit, 0, PRI_LOW, 0x6a, 0, 0, 0, temp8),
 	PWRITE(temp2_crit, 1, PRI_LOW, 0x6b, 0, 0, 0, temp8),
@@ -961,18 +1045,18 @@ static struct asc7621_param asc7621_params[] = {
 	PWRITE(pwm3_invert, 2, PRI_LOW, 0x5e, 0, 0x01, 4, bitmask),
 
 	PWRITEM(pwm1_enable, 0, PRI_LOW, VAA(0x5c, 0x5c, 0x62), VAA(0, 0, 0),
-		VAA(0x07, 0x01, 0x01), VAA(5, 3, 5), pwm_enable),
+	VAA(0x07, 0x01, 0x01), VAA(5, 3, 5), pwm_enable),
 	PWRITEM(pwm2_enable, 1, PRI_LOW, VAA(0x5d, 0x5d, 0x62), VAA(0, 0, 0),
-		VAA(0x07, 0x01, 0x01), VAA(5, 3, 6), pwm_enable),
+	VAA(0x07, 0x01, 0x01), VAA(5, 3, 6), pwm_enable),
 	PWRITEM(pwm3_enable, 2, PRI_LOW, VAA(0x5e, 0x5e, 0x62), VAA(0, 0, 0),
-		VAA(0x07, 0x01, 0x01), VAA(5, 3, 7), pwm_enable),
+	VAA(0x07, 0x01, 0x01), VAA(5, 3, 7), pwm_enable),
 
 	PWRITEM(pwm1_auto_channels, 0, PRI_LOW, VAA(0x5c, 0x5c), VAA(0, 0),
-		VAA(0x07, 0x01), VAA(5, 3), pwm_ac),
+	VAA(0x07, 0x01), VAA(5, 3), pwm_ac),
 	PWRITEM(pwm2_auto_channels, 1, PRI_LOW, VAA(0x5d, 0x5d), VAA(0, 0),
-		VAA(0x07, 0x01), VAA(5, 3), pwm_ac),
+	VAA(0x07, 0x01), VAA(5, 3), pwm_ac),
 	PWRITEM(pwm3_auto_channels, 2, PRI_LOW, VAA(0x5e, 0x5e), VAA(0, 0),
-		VAA(0x07, 0x01), VAA(5, 3), pwm_ac),
+	VAA(0x07, 0x01), VAA(5, 3), pwm_ac),
 
 	PWRITE(pwm1_auto_point1_pwm, 0, PRI_LOW, 0x64, 0, 0, 0, u8),
 	PWRITE(pwm2_auto_point1_pwm, 1, PRI_LOW, 0x65, 0, 0, 0, u8),
@@ -1009,40 +1093,48 @@ static struct asc7621_data *asc7621_update_device(struct device *dev)
 	struct asc7621_data *data = i2c_get_clientdata(client);
 	int i;
 
-/*
- * The asc7621 chips guarantee consistent reads of multi-byte values
- * regardless of the order of the reads.  No special logic is needed
- * so we can just read the registers in whatever  order they appear
- * in the asc7621_params array.
- */
+	/*
+	 * The asc7621 chips guarantee consistent reads of multi-byte values
+	 * regardless of the order of the reads.  No special logic is needed
+	 * so we can just read the registers in whatever  order they appear
+	 * in the asc7621_params array.
+	 */
 
 	mutex_lock(&data->update_lock);
 
 	/* Read all the high priority registers */
 
 	if (!data->valid ||
-	    time_after(jiffies, data->last_high_reading + INTERVAL_HIGH)) {
+		time_after(jiffies, data->last_high_reading + INTERVAL_HIGH))
+	{
 
-		for (i = 0; i < ARRAY_SIZE(asc7621_register_priorities); i++) {
-			if (asc7621_register_priorities[i] == PRI_HIGH) {
+		for (i = 0; i < ARRAY_SIZE(asc7621_register_priorities); i++)
+		{
+			if (asc7621_register_priorities[i] == PRI_HIGH)
+			{
 				data->reg[i] =
-				    i2c_smbus_read_byte_data(client, i) & 0xff;
+					i2c_smbus_read_byte_data(client, i) & 0xff;
 			}
 		}
+
 		data->last_high_reading = jiffies;
 	}			/* last_reading */
 
 	/* Read all the low priority registers. */
 
 	if (!data->valid ||
-	    time_after(jiffies, data->last_low_reading + INTERVAL_LOW)) {
+		time_after(jiffies, data->last_low_reading + INTERVAL_LOW))
+	{
 
-		for (i = 0; i < ARRAY_SIZE(asc7621_params); i++) {
-			if (asc7621_register_priorities[i] == PRI_LOW) {
+		for (i = 0; i < ARRAY_SIZE(asc7621_params); i++)
+		{
+			if (asc7621_register_priorities[i] == PRI_LOW)
+			{
 				data->reg[i] =
-				    i2c_smbus_read_byte_data(client, i) & 0xff;
+					i2c_smbus_read_byte_data(client, i) & 0xff;
 			}
 		}
+
 		data->last_low_reading = jiffies;
 	}			/* last_reading */
 
@@ -1065,10 +1157,14 @@ static inline int valid_address_for_chip(int chip_type, int address)
 	int i;
 
 	for (i = 0; asc7621_chips[chip_type].addresses[i] != I2C_CLIENT_END;
-	     i++) {
+		 i++)
+	{
 		if (asc7621_chips[chip_type].addresses[i] == address)
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 
@@ -1080,21 +1176,24 @@ static void asc7621_init_client(struct i2c_client *client)
 
 	value = read_byte(client, 0x40);
 
-	if (value & 0x02) {
+	if (value & 0x02)
+	{
 		dev_err(&client->dev,
-			"Client (%d,0x%02x) config is locked.\n",
-			i2c_adapter_id(client->adapter), client->addr);
-	}
-	if (!(value & 0x04)) {
-		dev_err(&client->dev, "Client (%d,0x%02x) is not ready.\n",
-			i2c_adapter_id(client->adapter), client->addr);
+				"Client (%d,0x%02x) config is locked.\n",
+				i2c_adapter_id(client->adapter), client->addr);
 	}
 
-/*
- * Start monitoring
- *
- * Try to clear LOCK, Set START, save everything else
- */
+	if (!(value & 0x04))
+	{
+		dev_err(&client->dev, "Client (%d,0x%02x) is not ready.\n",
+				i2c_adapter_id(client->adapter), client->addr);
+	}
+
+	/*
+	 * Start monitoring
+	 *
+	 * Try to clear LOCK, Set START, save everything else
+	 */
 	value = (value & ~0x02) | 0x01;
 	write_byte(client, 0x40, value & 0xff);
 
@@ -1107,12 +1206,17 @@ asc7621_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	int i, err;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -EIO;
+	}
 
 	data = devm_kzalloc(&client->dev, sizeof(struct asc7621_data),
-			    GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (data == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(client, data);
 	mutex_init(&data->update_lock);
@@ -1121,16 +1225,22 @@ asc7621_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	asc7621_init_client(client);
 
 	/* Create the sysfs entries */
-	for (i = 0; i < ARRAY_SIZE(asc7621_params); i++) {
+	for (i = 0; i < ARRAY_SIZE(asc7621_params); i++)
+	{
 		err =
-		    device_create_file(&client->dev,
-				       &(asc7621_params[i].sda.dev_attr));
+			device_create_file(&client->dev,
+							   &(asc7621_params[i].sda.dev_attr));
+
 		if (err)
+		{
 			goto exit_remove;
+		}
 	}
 
 	data->class_dev = hwmon_device_register(&client->dev);
-	if (IS_ERR(data->class_dev)) {
+
+	if (IS_ERR(data->class_dev))
+	{
 		err = PTR_ERR(data->class_dev);
 		goto exit_remove;
 	}
@@ -1138,40 +1248,48 @@ asc7621_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	return 0;
 
 exit_remove:
-	for (i = 0; i < ARRAY_SIZE(asc7621_params); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(asc7621_params); i++)
+	{
 		device_remove_file(&client->dev,
-				   &(asc7621_params[i].sda.dev_attr));
+						   &(asc7621_params[i].sda.dev_attr));
 	}
 
 	return err;
 }
 
 static int asc7621_detect(struct i2c_client *client,
-			  struct i2c_board_info *info)
+						  struct i2c_board_info *info)
 {
 	struct i2c_adapter *adapter = client->adapter;
 	int company, verstep, chip_index;
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -ENODEV;
+	}
 
-	for (chip_index = FIRST_CHIP; chip_index <= LAST_CHIP; chip_index++) {
+	for (chip_index = FIRST_CHIP; chip_index <= LAST_CHIP; chip_index++)
+	{
 
 		if (!valid_address_for_chip(chip_index, client->addr))
+		{
 			continue;
+		}
 
 		company = read_byte(client,
-			asc7621_chips[chip_index].company_reg);
+							asc7621_chips[chip_index].company_reg);
 		verstep = read_byte(client,
-			asc7621_chips[chip_index].verstep_reg);
+							asc7621_chips[chip_index].verstep_reg);
 
 		if (company == asc7621_chips[chip_index].company_id &&
-		    verstep == asc7621_chips[chip_index].verstep_id) {
+			verstep == asc7621_chips[chip_index].verstep_id)
+		{
 			strlcpy(info->type, asc7621_chips[chip_index].name,
-				I2C_NAME_SIZE);
+					I2C_NAME_SIZE);
 
 			dev_info(&adapter->dev, "Matched %s at 0x%02x\n",
-				 asc7621_chips[chip_index].name, client->addr);
+					 asc7621_chips[chip_index].name, client->addr);
 			return 0;
 		}
 	}
@@ -1186,15 +1304,17 @@ static int asc7621_remove(struct i2c_client *client)
 
 	hwmon_device_unregister(data->class_dev);
 
-	for (i = 0; i < ARRAY_SIZE(asc7621_params); i++) {
+	for (i = 0; i < ARRAY_SIZE(asc7621_params); i++)
+	{
 		device_remove_file(&client->dev,
-				   &(asc7621_params[i].sda.dev_attr));
+						   &(asc7621_params[i].sda.dev_attr));
 	}
 
 	return 0;
 }
 
-static const struct i2c_device_id asc7621_id[] = {
+static const struct i2c_device_id asc7621_id[] =
+{
 	{"asc7621", asc7621},
 	{"asc7621a", asc7621a},
 	{},
@@ -1202,7 +1322,8 @@ static const struct i2c_device_id asc7621_id[] = {
 
 MODULE_DEVICE_TABLE(i2c, asc7621_id);
 
-static struct i2c_driver asc7621_driver = {
+static struct i2c_driver asc7621_driver =
+{
 	.class = I2C_CLASS_HWMON,
 	.driver = {
 		.name = "asc7621",
@@ -1217,20 +1338,23 @@ static struct i2c_driver asc7621_driver = {
 static int __init sm_asc7621_init(void)
 {
 	int i, j;
-/*
- * Collect all the registers needed into a single array.
- * This way, if a register isn't actually used for anything,
- * we don't retrieve it.
- */
+	/*
+	 * Collect all the registers needed into a single array.
+	 * This way, if a register isn't actually used for anything,
+	 * we don't retrieve it.
+	 */
 
-	for (i = 0; i < ARRAY_SIZE(asc7621_params); i++) {
+	for (i = 0; i < ARRAY_SIZE(asc7621_params); i++)
+	{
 		for (j = 0; j < ARRAY_SIZE(asc7621_params[i].msb); j++)
 			asc7621_register_priorities[asc7621_params[i].msb[j]] =
-			    asc7621_params[i].priority;
+				asc7621_params[i].priority;
+
 		for (j = 0; j < ARRAY_SIZE(asc7621_params[i].lsb); j++)
 			asc7621_register_priorities[asc7621_params[i].lsb[j]] =
-			    asc7621_params[i].priority;
+				asc7621_params[i].priority;
 	}
+
 	return i2c_add_driver(&asc7621_driver);
 }
 

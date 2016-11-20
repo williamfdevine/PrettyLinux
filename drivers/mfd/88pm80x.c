@@ -23,12 +23,14 @@
 #define PM80X_CHIP_ID_NUM(x)		(((x) >> 5) & 0x7)
 #define PM80X_CHIP_ID_REVISION(x)	((x) & 0x1F)
 
-struct pm80x_chip_mapping {
+struct pm80x_chip_mapping
+{
 	unsigned int	id;
 	int		type;
 };
 
-static struct pm80x_chip_mapping chip_mapping[] = {
+static struct pm80x_chip_mapping chip_mapping[] =
+{
 	/* 88PM800 chip id number */
 	{0x3,	CHIP_PM800},
 	/* 88PM805 chip id number */
@@ -44,7 +46,8 @@ static struct pm80x_chip_mapping chip_mapping[] = {
  */
 static struct pm80x_chip *g_pm80x_chip;
 
-const struct regmap_config pm80x_regmap_config = {
+const struct regmap_config pm80x_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 };
@@ -59,15 +62,20 @@ int pm80x_init(struct i2c_client *client)
 	int i, ret = 0;
 
 	chip =
-	    devm_kzalloc(&client->dev, sizeof(struct pm80x_chip), GFP_KERNEL);
+		devm_kzalloc(&client->dev, sizeof(struct pm80x_chip), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
 
 	map = devm_regmap_init_i2c(client, &pm80x_regmap_config);
-	if (IS_ERR(map)) {
+
+	if (IS_ERR(map))
+	{
 		ret = PTR_ERR(map);
 		dev_err(&client->dev, "Failed to allocate register map: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
@@ -81,21 +89,26 @@ int pm80x_init(struct i2c_client *client)
 	i2c_set_clientdata(chip->client, chip);
 
 	ret = regmap_read(chip->regmap, PM80X_CHIP_ID, &val);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "Failed to read CHIP ID: %d\n", ret);
 		return ret;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(chip_mapping); i++) {
-		if (chip_mapping[i].id == PM80X_CHIP_ID_NUM(val)) {
+	for (i = 0; i < ARRAY_SIZE(chip_mapping); i++)
+	{
+		if (chip_mapping[i].id == PM80X_CHIP_ID_NUM(val))
+		{
 			chip->type = chip_mapping[i].type;
 			break;
 		}
 	}
 
-	if (i == ARRAY_SIZE(chip_mapping)) {
+	if (i == ARRAY_SIZE(chip_mapping))
+	{
 		dev_err(chip->dev,
-			"Failed to detect Marvell 88PM800:ChipID[0x%x]\n", val);
+				"Failed to detect Marvell 88PM800:ChipID[0x%x]\n", val);
 		return -EINVAL;
 	}
 
@@ -108,8 +121,11 @@ int pm80x_init(struct i2c_client *client)
 	 * remove it after HW chip fixes the issue.
 	 */
 	if (!g_pm80x_chip)
+	{
 		g_pm80x_chip = chip;
-	else {
+	}
+	else
+	{
 		chip->companion = g_pm80x_chip->client;
 		g_pm80x_chip->companion = chip->client;
 	}
@@ -125,9 +141,14 @@ int pm80x_deinit(void)
 	 * would remove it after HW chip fixes the issue.
 	 */
 	if (g_pm80x_chip->companion)
+	{
 		g_pm80x_chip->companion = NULL;
+	}
 	else
+	{
 		g_pm80x_chip = NULL;
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(pm80x_deinit);
@@ -140,7 +161,9 @@ static int pm80x_suspend(struct device *dev)
 
 	if (chip && chip->wu_flag)
 		if (device_may_wakeup(chip->dev))
+		{
 			enable_irq_wake(chip->irq);
+		}
 
 	return 0;
 }
@@ -152,7 +175,9 @@ static int pm80x_resume(struct device *dev)
 
 	if (chip && chip->wu_flag)
 		if (device_may_wakeup(chip->dev))
+		{
 			disable_irq_wake(chip->irq);
+		}
 
 	return 0;
 }

@@ -8,7 +8,8 @@
 #include <linux/types.h>
 #include <linux/mmc/host.h>
 
-struct davinci_mmc_config {
+struct davinci_mmc_config
+{
 	/* get_cd()/get_wp() may sleep */
 	int	(*get_cd)(int module);
 	int	(*get_ro)(int module);
@@ -28,7 +29,8 @@ struct davinci_mmc_config {
 };
 void davinci_setup_mmc(int module, struct davinci_mmc_config *config);
 
-enum {
+enum
+{
 	MMC_CTLR_VERSION_1 = 0,	/* DM644x and DM355 */
 	MMC_CTLR_VERSION_2,	/* DA830 */
 };

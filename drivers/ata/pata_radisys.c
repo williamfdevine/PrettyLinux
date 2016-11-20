@@ -52,15 +52,21 @@ static void radisys_set_piomode (struct ata_port *ap, struct ata_device *adev)
 
 	static const	 /* ISP  RTC */
 	u8 timings[][2]	= { { 0, 0 },	/* Check me */
-			    { 0, 0 },
-			    { 1, 1 },
-			    { 2, 2 },
-			    { 3, 3 }, };
+		{ 0, 0 },
+		{ 1, 1 },
+		{ 2, 2 },
+		{ 3, 3 },
+	};
 
 	if (pio > 0)
-		control |= 1;	/* TIME1 enable */
+	{
+		control |= 1;    /* TIME1 enable */
+	}
+
 	if (ata_pio_need_iordy(adev))
-		control |= 2;	/* IE IORDY */
+	{
+		control |= 2;    /* IE IORDY */
+	}
 
 	pci_read_config_word(dev, 0x40, &idetm_data);
 
@@ -69,7 +75,7 @@ static void radisys_set_piomode (struct ata_port *ap, struct ata_device *adev)
 	idetm_data &= 0xCCCC;
 	idetm_data |= (control << (4 * adev->devno));
 	idetm_data |= (timings[pio][0] << 12) |
-			(timings[pio][1] << 8);
+				  (timings[pio][1] << 8);
 	pci_write_config_word(dev, 0x40, idetm_data);
 
 	/* Track which port is configured */
@@ -95,10 +101,11 @@ static void radisys_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 
 	static const	 /* ISP  RTC */
 	u8 timings[][2]	= { { 0, 0 },
-			    { 0, 0 },
-			    { 1, 1 },
-			    { 2, 2 },
-			    { 3, 3 }, };
+		{ 0, 0 },
+		{ 1, 1 },
+		{ 2, 2 },
+		{ 3, 3 },
+	};
 
 	/*
 	 * MWDMA is driven by the PIO timings. We must also enable
@@ -108,9 +115,11 @@ static void radisys_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 	pci_read_config_word(dev, 0x40, &idetm_data);
 	pci_read_config_byte(dev, 0x48, &udma_enable);
 
-	if (adev->dma_mode < XFER_UDMA_0) {
+	if (adev->dma_mode < XFER_UDMA_0)
+	{
 		unsigned int mwdma	= adev->dma_mode - XFER_MW_DMA_0;
-		const unsigned int needed_pio[3] = {
+		const unsigned int needed_pio[3] =
+		{
 			XFER_PIO_0, XFER_PIO_3, XFER_PIO_4
 		};
 		int pio = needed_pio[mwdma] - XFER_PIO_0;
@@ -120,7 +129,9 @@ static void radisys_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 		   we must force PIO0 for PIO cycles. */
 
 		if (adev->pio_mode < needed_pio[mwdma])
+		{
 			control = 1;
+		}
 
 		/* Mask out the relevant control and timing bits we will load. Also
 		   clear the other drive TIME register as a precaution */
@@ -130,7 +141,9 @@ static void radisys_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 		idetm_data |= (timings[pio][0] << 12) | (timings[pio][1] << 8);
 
 		udma_enable &= ~(1 << adev->devno);
-	} else {
+	}
+	else
+	{
 		u8 udma_mode;
 
 		/* UDMA66 on: UDMA 33 and 66 are switchable via register 0x4A */
@@ -138,14 +151,19 @@ static void radisys_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 		pci_read_config_byte(dev, 0x4A, &udma_mode);
 
 		if (adev->xfer_mode == XFER_UDMA_2)
+		{
 			udma_mode &= ~(2 << (adev->devno * 4));
+		}
 		else /* UDMA 4 */
+		{
 			udma_mode |= (2 << (adev->devno * 4));
+		}
 
 		pci_write_config_byte(dev, 0x4A, udma_mode);
 
 		udma_enable |= (1 << adev->devno);
 	}
+
 	pci_write_config_word(dev, 0x40, idetm_data);
 	pci_write_config_byte(dev, 0x48, udma_enable);
 
@@ -169,24 +187,33 @@ static unsigned int radisys_qc_issue(struct ata_queued_cmd *qc)
 	struct ata_port *ap = qc->ap;
 	struct ata_device *adev = qc->dev;
 
-	if (adev != ap->private_data) {
+	if (adev != ap->private_data)
+	{
 		/* UDMA timing is not shared */
-		if (adev->dma_mode < XFER_UDMA_0) {
+		if (adev->dma_mode < XFER_UDMA_0)
+		{
 			if (adev->dma_mode)
+			{
 				radisys_set_dmamode(ap, adev);
+			}
 			else if (adev->pio_mode)
+			{
 				radisys_set_piomode(ap, adev);
+			}
 		}
 	}
+
 	return ata_bmdma_qc_issue(qc);
 }
 
 
-static struct scsi_host_template radisys_sht = {
+static struct scsi_host_template radisys_sht =
+{
 	ATA_BMDMA_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations radisys_pata_ops = {
+static struct ata_port_operations radisys_pata_ops =
+{
 	.inherits		= &ata_bmdma_port_ops,
 	.qc_issue		= radisys_qc_issue,
 	.cable_detect		= ata_cable_unknown,
@@ -212,7 +239,8 @@ static struct ata_port_operations radisys_pata_ops = {
 
 static int radisys_init_one (struct pci_dev *pdev, const struct pci_device_id *ent)
 {
-	static const struct ata_port_info info = {
+	static const struct ata_port_info info =
+	{
 		.flags		= ATA_FLAG_SLAVE_POSS,
 		.pio_mask	= ATA_PIO4,
 		.mwdma_mask	= ATA_MWDMA12_ONLY,
@@ -226,13 +254,15 @@ static int radisys_init_one (struct pci_dev *pdev, const struct pci_device_id *e
 	return ata_pci_bmdma_init_one(pdev, ppi, &radisys_sht, NULL, 0);
 }
 
-static const struct pci_device_id radisys_pci_tbl[] = {
+static const struct pci_device_id radisys_pci_tbl[] =
+{
 	{ PCI_VDEVICE(RADISYS, 0x8201), },
 
 	{ }	/* terminate list */
 };
 
-static struct pci_driver radisys_pci_driver = {
+static struct pci_driver radisys_pci_driver =
+{
 	.name			= DRV_NAME,
 	.id_table		= radisys_pci_tbl,
 	.probe			= radisys_init_one,

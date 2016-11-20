@@ -33,17 +33,20 @@
 #define APCI16XX_OUT_REG(x)		(((x) * 4) + 0x14)
 #define APCI16XX_DIR_REG(x)		(((x) * 4) + 0x20)
 
-enum apci16xx_boardid {
+enum apci16xx_boardid
+{
 	BOARD_APCI1648,
 	BOARD_APCI1696,
 };
 
-struct apci16xx_boardinfo {
+struct apci16xx_boardinfo
+{
 	const char *name;
 	int n_chan;
 };
 
-static const struct apci16xx_boardinfo apci16xx_boardtypes[] = {
+static const struct apci16xx_boardinfo apci16xx_boardtypes[] =
+{
 	[BOARD_APCI1648] = {
 		.name		= "apci1648",
 		.n_chan		= 48,		/* 2 subdevices */
@@ -55,26 +58,37 @@ static const struct apci16xx_boardinfo apci16xx_boardtypes[] = {
 };
 
 static int apci16xx_insn_config(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int mask;
 	int ret;
 
 	if (chan < 8)
+	{
 		mask = 0x000000ff;
+	}
 	else if (chan < 16)
+	{
 		mask = 0x0000ff00;
+	}
 	else if (chan < 24)
+	{
 		mask = 0x00ff0000;
+	}
 	else
+	{
 		mask = 0xff000000;
+	}
 
 	ret = comedi_dio_insn_config(dev, s, insn, data, mask);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	outl(s->io_bits, dev->iobase + APCI16XX_DIR_REG(s->index));
 
@@ -82,12 +96,14 @@ static int apci16xx_insn_config(struct comedi_device *dev,
 }
 
 static int apci16xx_dio_insn_bits(struct comedi_device *dev,
-				  struct comedi_subdevice *s,
-				  struct comedi_insn *insn,
-				  unsigned int *data)
+								  struct comedi_subdevice *s,
+								  struct comedi_insn *insn,
+								  unsigned int *data)
 {
 	if (comedi_dio_update_state(s, data))
+	{
 		outl(s->state, dev->iobase + APCI16XX_OUT_REG(s->index));
+	}
 
 	data[1] = inl(dev->iobase + APCI16XX_IN_REG(s->index));
 
@@ -95,7 +111,7 @@ static int apci16xx_dio_insn_bits(struct comedi_device *dev,
 }
 
 static int apci16xx_auto_attach(struct comedi_device *dev,
-				unsigned long context)
+								unsigned long context)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	const struct apci16xx_boardinfo *board = NULL;
@@ -106,15 +122,24 @@ static int apci16xx_auto_attach(struct comedi_device *dev,
 	int ret;
 
 	if (context < ARRAY_SIZE(apci16xx_boardtypes))
+	{
 		board = &apci16xx_boardtypes[context];
+	}
+
 	if (!board)
+	{
 		return -ENODEV;
+	}
+
 	dev->board_ptr = board;
 	dev->board_name = board->name;
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dev->iobase = pci_resource_start(pcidev, 0);
 
@@ -124,19 +149,27 @@ static int apci16xx_auto_attach(struct comedi_device *dev,
 	 * up to 32 channels.
 	 */
 	n_subdevs = board->n_chan / 32;
-	if ((n_subdevs * 32) < board->n_chan) {
+
+	if ((n_subdevs * 32) < board->n_chan)
+	{
 		last = board->n_chan - (n_subdevs * 32);
 		n_subdevs++;
-	} else {
+	}
+	else
+	{
 		last = 0;
 	}
 
 	ret = comedi_alloc_subdevices(dev, n_subdevs);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Initialize the TTL digital i/o subdevices */
-	for (i = 0; i < n_subdevs; i++) {
+	for (i = 0; i < n_subdevs; i++)
+	{
 		s = &dev->subdevices[i];
 		s->type		= COMEDI_SUBD_DIO;
 		s->subdev_flags	= SDF_WRITABLE | SDF_READABLE;
@@ -154,7 +187,8 @@ static int apci16xx_auto_attach(struct comedi_device *dev,
 	return 0;
 }
 
-static struct comedi_driver apci16xx_driver = {
+static struct comedi_driver apci16xx_driver =
+{
 	.driver_name	= "addi_apci_16xx",
 	.module		= THIS_MODULE,
 	.auto_attach	= apci16xx_auto_attach,
@@ -162,19 +196,21 @@ static struct comedi_driver apci16xx_driver = {
 };
 
 static int apci16xx_pci_probe(struct pci_dev *dev,
-			      const struct pci_device_id *id)
+							  const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &apci16xx_driver, id->driver_data);
 }
 
-static const struct pci_device_id apci16xx_pci_table[] = {
+static const struct pci_device_id apci16xx_pci_table[] =
+{
 	{ PCI_VDEVICE(ADDIDATA, 0x1009), BOARD_APCI1648 },
 	{ PCI_VDEVICE(ADDIDATA, 0x100a), BOARD_APCI1696 },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, apci16xx_pci_table);
 
-static struct pci_driver apci16xx_pci_driver = {
+static struct pci_driver apci16xx_pci_driver =
+{
 	.name		= "addi_apci_16xx",
 	.id_table	= apci16xx_pci_table,
 	.probe		= apci16xx_pci_probe,

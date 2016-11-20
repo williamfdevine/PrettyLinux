@@ -9,7 +9,8 @@
 #define _UAPI_LINUX_NET_NAMESPACE_H_
 
 /* Attributes of RTM_NEWNSID/RTM_GETNSID messages */
-enum {
+enum
+{
 	NETNSA_NONE,
 #define NETNSA_NSID_NOT_ASSIGNED -1
 	NETNSA_NSID,

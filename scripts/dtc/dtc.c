@@ -40,13 +40,18 @@ static void fill_fullpaths(struct node *tree, const char *prefix)
 	tree->fullpath = join_path(prefix, tree->name);
 
 	unit = strchr(tree->name, '@');
+
 	if (unit)
+	{
 		tree->basenamelen = unit - tree->name;
+	}
 	else
+	{
 		tree->basenamelen = strlen(tree->name);
+	}
 
 	for_each_child(tree, child)
-		fill_fullpaths(child, tree->fullpath);
+	fill_fullpaths(child, tree->fullpath);
 }
 
 /* Usage related data. */
@@ -54,7 +59,8 @@ static void fill_fullpaths(struct node *tree, const char *prefix)
 #define _FDT_VERSION(version)	#version
 static const char usage_synopsis[] = "dtc [options] <input file>";
 static const char usage_short_opts[] = "qI:O:o:V:d:R:S:p:fb:i:H:sW:E:hv";
-static struct option const usage_long_opts[] = {
+static struct option const usage_long_opts[] =
+{
 	{"quiet",            no_argument, NULL, 'q'},
 	{"in-format",         a_argument, NULL, 'I'},
 	{"out",               a_argument, NULL, 'o'},
@@ -75,17 +81,18 @@ static struct option const usage_long_opts[] = {
 	{"version",          no_argument, NULL, 'v'},
 	{NULL,               no_argument, NULL, 0x0},
 };
-static const char * const usage_opts_help[] = {
+static const char *const usage_opts_help[] =
+{
 	"\n\tQuiet: -q suppress warnings, -qq errors, -qqq all",
 	"\n\tInput formats are:\n"
-	 "\t\tdts - device tree source text\n"
-	 "\t\tdtb - device tree blob\n"
-	 "\t\tfs  - /proc/device-tree style directory",
+	"\t\tdts - device tree source text\n"
+	"\t\tdtb - device tree blob\n"
+	"\t\tfs  - /proc/device-tree style directory",
 	"\n\tOutput file",
 	"\n\tOutput formats are:\n"
-	 "\t\tdts - device tree source text\n"
-	 "\t\tdtb - device tree blob\n"
-	 "\t\tasm - assembler source",
+	"\t\tdts - device tree source text\n"
+	"\t\tdtb - device tree blob\n"
+	"\t\tasm - assembler source",
 	"\n\tBlob version to produce, defaults to "FDT_VERSION(DEFAULT_FDT_VERSION)" (for dtb and asm output)",
 	"\n\tOutput dependency file",
 	"\n\tMake space for <number> reserve map entries (for dtb and asm output)",
@@ -96,9 +103,9 @@ static const char * const usage_opts_help[] = {
 	"\n\tAdd a path to search for include files",
 	"\n\tSort nodes and properties before outputting (useful for comparing trees)",
 	"\n\tValid phandle formats are:\n"
-	 "\t\tlegacy - \"linux,phandle\" properties only\n"
-	 "\t\tepapr  - \"phandle\" properties only\n"
-	 "\t\tboth   - Both \"linux,phandle\" and \"phandle\" properties",
+	"\t\tlegacy - \"linux,phandle\" properties only\n"
+	"\t\tepapr  - \"phandle\" properties only\n"
+	"\t\tboth   - Both \"linux,phandle\" and \"phandle\" properties",
 	"\n\tEnable/disable warnings (prefix with \"no-\")",
 	"\n\tEnable/disable errors (prefix with \"no-\")",
 	"\n\tPrint this help and exit",
@@ -111,12 +118,22 @@ static const char *guess_type_by_name(const char *fname, const char *fallback)
 	const char *s;
 
 	s = strrchr(fname, '.');
+
 	if (s == NULL)
+	{
 		return fallback;
+	}
+
 	if (!strcasecmp(s, ".dts"))
+	{
 		return "dts";
+	}
+
 	if (!strcasecmp(s, ".dtb"))
+	{
 		return "dtb";
+	}
+
 	return fallback;
 }
 
@@ -127,26 +144,41 @@ static const char *guess_input_format(const char *fname, const char *fallback)
 	FILE *f;
 
 	if (stat(fname, &statbuf) != 0)
+	{
 		return fallback;
+	}
 
 	if (S_ISDIR(statbuf.st_mode))
+	{
 		return "fs";
+	}
 
 	if (!S_ISREG(statbuf.st_mode))
+	{
 		return fallback;
+	}
 
 	f = fopen(fname, "r");
+
 	if (f == NULL)
+	{
 		return fallback;
-	if (fread(&magic, 4, 1, f) != 1) {
+	}
+
+	if (fread(&magic, 4, 1, f) != 1)
+	{
 		fclose(f);
 		return fallback;
 	}
+
 	fclose(f);
 
 	magic = fdt32_to_cpu(magic);
+
 	if (magic == FDT_MAGIC)
+	{
 		return "dtb";
+	}
 
 	return guess_type_by_name(fname, fallback);
 }
@@ -170,148 +202,219 @@ int main(int argc, char *argv[])
 	minsize    = 0;
 	padsize    = 0;
 
-	while ((opt = util_getopt_long()) != EOF) {
-		switch (opt) {
-		case 'I':
-			inform = optarg;
-			break;
-		case 'O':
-			outform = optarg;
-			break;
-		case 'o':
-			outname = optarg;
-			break;
-		case 'V':
-			outversion = strtol(optarg, NULL, 0);
-			break;
-		case 'd':
-			depname = optarg;
-			break;
-		case 'R':
-			reservenum = strtol(optarg, NULL, 0);
-			break;
-		case 'S':
-			minsize = strtol(optarg, NULL, 0);
-			break;
-		case 'p':
-			padsize = strtol(optarg, NULL, 0);
-			break;
-		case 'f':
-			force = true;
-			break;
-		case 'q':
-			quiet++;
-			break;
-		case 'b':
-			cmdline_boot_cpuid = strtoll(optarg, NULL, 0);
-			break;
-		case 'i':
-			srcfile_add_search_path(optarg);
-			break;
-		case 'v':
-			util_version();
-		case 'H':
-			if (streq(optarg, "legacy"))
-				phandle_format = PHANDLE_LEGACY;
-			else if (streq(optarg, "epapr"))
-				phandle_format = PHANDLE_EPAPR;
-			else if (streq(optarg, "both"))
-				phandle_format = PHANDLE_BOTH;
-			else
-				die("Invalid argument \"%s\" to -H option\n",
-				    optarg);
-			break;
+	while ((opt = util_getopt_long()) != EOF)
+	{
+		switch (opt)
+		{
+			case 'I':
+				inform = optarg;
+				break;
 
-		case 's':
-			sort = true;
-			break;
+			case 'O':
+				outform = optarg;
+				break;
 
-		case 'W':
-			parse_checks_option(true, false, optarg);
-			break;
+			case 'o':
+				outname = optarg;
+				break;
 
-		case 'E':
-			parse_checks_option(false, true, optarg);
-			break;
+			case 'V':
+				outversion = strtol(optarg, NULL, 0);
+				break;
 
-		case 'h':
-			usage(NULL);
-		default:
-			usage("unknown option");
+			case 'd':
+				depname = optarg;
+				break;
+
+			case 'R':
+				reservenum = strtol(optarg, NULL, 0);
+				break;
+
+			case 'S':
+				minsize = strtol(optarg, NULL, 0);
+				break;
+
+			case 'p':
+				padsize = strtol(optarg, NULL, 0);
+				break;
+
+			case 'f':
+				force = true;
+				break;
+
+			case 'q':
+				quiet++;
+				break;
+
+			case 'b':
+				cmdline_boot_cpuid = strtoll(optarg, NULL, 0);
+				break;
+
+			case 'i':
+				srcfile_add_search_path(optarg);
+				break;
+
+			case 'v':
+				util_version();
+
+			case 'H':
+				if (streq(optarg, "legacy"))
+				{
+					phandle_format = PHANDLE_LEGACY;
+				}
+				else if (streq(optarg, "epapr"))
+				{
+					phandle_format = PHANDLE_EPAPR;
+				}
+				else if (streq(optarg, "both"))
+				{
+					phandle_format = PHANDLE_BOTH;
+				}
+				else
+					die("Invalid argument \"%s\" to -H option\n",
+						optarg);
+
+				break;
+
+			case 's':
+				sort = true;
+				break;
+
+			case 'W':
+				parse_checks_option(true, false, optarg);
+				break;
+
+			case 'E':
+				parse_checks_option(false, true, optarg);
+				break;
+
+			case 'h':
+				usage(NULL);
+
+			default:
+				usage("unknown option");
 		}
 	}
 
-	if (argc > (optind+1))
+	if (argc > (optind + 1))
+	{
 		usage("missing files");
-	else if (argc < (optind+1))
+	}
+	else if (argc < (optind + 1))
+	{
 		arg = "-";
+	}
 	else
+	{
 		arg = argv[optind];
+	}
 
 	/* minsize and padsize are mutually exclusive */
 	if (minsize && padsize)
+	{
 		die("Can't set both -p and -S\n");
+	}
 
-	if (depname) {
+	if (depname)
+	{
 		depfile = fopen(depname, "w");
+
 		if (!depfile)
 			die("Couldn't open dependency file %s: %s\n", depname,
-			    strerror(errno));
+				strerror(errno));
+
 		fprintf(depfile, "%s:", outname);
 	}
 
 	if (inform == NULL)
+	{
 		inform = guess_input_format(arg, "dts");
-	if (outform == NULL) {
+	}
+
+	if (outform == NULL)
+	{
 		outform = guess_type_by_name(outname, NULL);
-		if (outform == NULL) {
+
+		if (outform == NULL)
+		{
 			if (streq(inform, "dts"))
+			{
 				outform = "dtb";
+			}
 			else
+			{
 				outform = "dts";
+			}
 		}
 	}
-	if (streq(inform, "dts"))
-		bi = dt_from_source(arg);
-	else if (streq(inform, "fs"))
-		bi = dt_from_fs(arg);
-	else if(streq(inform, "dtb"))
-		bi = dt_from_blob(arg);
-	else
-		die("Unknown input format \"%s\"\n", inform);
 
-	if (depfile) {
+	if (streq(inform, "dts"))
+	{
+		bi = dt_from_source(arg);
+	}
+	else if (streq(inform, "fs"))
+	{
+		bi = dt_from_fs(arg);
+	}
+	else if (streq(inform, "dtb"))
+	{
+		bi = dt_from_blob(arg);
+	}
+	else
+	{
+		die("Unknown input format \"%s\"\n", inform);
+	}
+
+	if (depfile)
+	{
 		fputc('\n', depfile);
 		fclose(depfile);
 	}
 
 	if (cmdline_boot_cpuid != -1)
+	{
 		bi->boot_cpuid_phys = cmdline_boot_cpuid;
+	}
 
 	fill_fullpaths(bi->dt, "");
 	process_checks(force, bi);
 
 	if (sort)
+	{
 		sort_tree(bi);
-
-	if (streq(outname, "-")) {
-		outf = stdout;
-	} else {
-		outf = fopen(outname, "wb");
-		if (! outf)
-			die("Couldn't open output file %s: %s\n",
-			    outname, strerror(errno));
 	}
 
-	if (streq(outform, "dts")) {
+	if (streq(outname, "-"))
+	{
+		outf = stdout;
+	}
+	else
+	{
+		outf = fopen(outname, "wb");
+
+		if (! outf)
+			die("Couldn't open output file %s: %s\n",
+				outname, strerror(errno));
+	}
+
+	if (streq(outform, "dts"))
+	{
 		dt_to_source(outf, bi);
-	} else if (streq(outform, "dtb")) {
+	}
+	else if (streq(outform, "dtb"))
+	{
 		dt_to_blob(outf, bi, outversion);
-	} else if (streq(outform, "asm")) {
+	}
+	else if (streq(outform, "asm"))
+	{
 		dt_to_asm(outf, bi, outversion);
-	} else if (streq(outform, "null")) {
+	}
+	else if (streq(outform, "null"))
+	{
 		/* do nothing */
-	} else {
+	}
+	else
+	{
 		die("Unknown output format \"%s\"\n", outform);
 	}
 

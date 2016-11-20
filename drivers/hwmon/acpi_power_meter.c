@@ -65,13 +65,15 @@ static int can_cap_in_hardware(void)
 	return force_cap_on || cap_in_hardware;
 }
 
-static const struct acpi_device_id power_meter_ids[] = {
+static const struct acpi_device_id power_meter_ids[] =
+{
 	{"ACPI000D", 0},
 	{"", 0},
 };
 MODULE_DEVICE_TABLE(acpi, power_meter_ids);
 
-struct acpi_power_meter_capabilities {
+struct acpi_power_meter_capabilities
+{
 	u64		flags;
 	u64		units;
 	u64		type;
@@ -85,7 +87,8 @@ struct acpi_power_meter_capabilities {
 	u64		max_cap;
 };
 
-struct acpi_power_meter_resource {
+struct acpi_power_meter_resource
+{
 	struct acpi_device	*acpi_dev;
 	acpi_bus_id		name;
 	struct mutex		lock;
@@ -107,14 +110,15 @@ struct acpi_power_meter_resource {
 	struct kobject		*holders_dir;
 };
 
-struct sensor_template {
+struct sensor_template
+{
 	char *label;
 	ssize_t (*show)(struct device *dev,
-			struct device_attribute *devattr,
-			char *buf);
+					struct device_attribute *devattr,
+					char *buf);
 	ssize_t (*set)(struct device *dev,
-		       struct device_attribute *devattr,
-		       const char *buf, size_t count);
+				   struct device_attribute *devattr,
+				   const char *buf, size_t count);
 	int index;
 };
 
@@ -125,8 +129,10 @@ static int update_avg_interval(struct acpi_power_meter_resource *resource)
 	acpi_status status;
 
 	status = acpi_evaluate_integer(resource->acpi_dev->handle, "_GAI",
-				       NULL, &data);
-	if (ACPI_FAILURE(status)) {
+								   NULL, &data);
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _GAI"));
 		return -ENODEV;
 	}
@@ -136,8 +142,8 @@ static int update_avg_interval(struct acpi_power_meter_resource *resource)
 }
 
 static ssize_t show_avg_interval(struct device *dev,
-				 struct device_attribute *devattr,
-				 char *buf)
+								 struct device_attribute *devattr,
+								 char *buf)
 {
 	struct acpi_device *acpi_dev = to_acpi_device(dev);
 	struct acpi_power_meter_resource *resource = acpi_dev->driver_data;
@@ -150,8 +156,8 @@ static ssize_t show_avg_interval(struct device *dev,
 }
 
 static ssize_t set_avg_interval(struct device *dev,
-				struct device_attribute *devattr,
-				const char *buf, size_t count)
+								struct device_attribute *devattr,
+								const char *buf, size_t count)
 {
 	struct acpi_device *acpi_dev = to_acpi_device(dev);
 	struct acpi_power_meter_resource *resource = acpi_dev->driver_data;
@@ -163,29 +169,42 @@ static ssize_t set_avg_interval(struct device *dev,
 	acpi_status status;
 
 	res = kstrtoul(buf, 10, &temp);
+
 	if (res)
+	{
 		return res;
+	}
 
 	if (temp > resource->caps.max_avg_interval ||
-	    temp < resource->caps.min_avg_interval)
+		temp < resource->caps.min_avg_interval)
+	{
 		return -EINVAL;
+	}
+
 	arg0.integer.value = temp;
 
 	mutex_lock(&resource->lock);
 	status = acpi_evaluate_integer(resource->acpi_dev->handle, "_PAI",
-				       &args, &data);
+								   &args, &data);
+
 	if (!ACPI_FAILURE(status))
+	{
 		resource->avg_interval = temp;
+	}
+
 	mutex_unlock(&resource->lock);
 
-	if (ACPI_FAILURE(status)) {
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PAI"));
 		return -EINVAL;
 	}
 
 	/* _PAI returns 0 on success, nonzero otherwise */
 	if (data)
+	{
 		return -EINVAL;
+	}
 
 	return count;
 }
@@ -197,8 +216,10 @@ static int update_cap(struct acpi_power_meter_resource *resource)
 	acpi_status status;
 
 	status = acpi_evaluate_integer(resource->acpi_dev->handle, "_GHL",
-				       NULL, &data);
-	if (ACPI_FAILURE(status)) {
+								   NULL, &data);
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _GHL"));
 		return -ENODEV;
 	}
@@ -208,8 +229,8 @@ static int update_cap(struct acpi_power_meter_resource *resource)
 }
 
 static ssize_t show_cap(struct device *dev,
-			struct device_attribute *devattr,
-			char *buf)
+						struct device_attribute *devattr,
+						char *buf)
 {
 	struct acpi_device *acpi_dev = to_acpi_device(dev);
 	struct acpi_power_meter_resource *resource = acpi_dev->driver_data;
@@ -222,7 +243,7 @@ static ssize_t show_cap(struct device *dev,
 }
 
 static ssize_t set_cap(struct device *dev, struct device_attribute *devattr,
-		       const char *buf, size_t count)
+					   const char *buf, size_t count)
 {
 	struct acpi_device *acpi_dev = to_acpi_device(dev);
 	struct acpi_power_meter_resource *resource = acpi_dev->driver_data;
@@ -234,29 +255,43 @@ static ssize_t set_cap(struct device *dev, struct device_attribute *devattr,
 	acpi_status status;
 
 	res = kstrtoul(buf, 10, &temp);
+
 	if (res)
+	{
 		return res;
+	}
 
 	temp = DIV_ROUND_CLOSEST(temp, 1000);
+
 	if (temp > resource->caps.max_cap || temp < resource->caps.min_cap)
+	{
 		return -EINVAL;
+	}
+
 	arg0.integer.value = temp;
 
 	mutex_lock(&resource->lock);
 	status = acpi_evaluate_integer(resource->acpi_dev->handle, "_SHL",
-				       &args, &data);
+								   &args, &data);
+
 	if (!ACPI_FAILURE(status))
+	{
 		resource->cap = temp;
+	}
+
 	mutex_unlock(&resource->lock);
 
-	if (ACPI_FAILURE(status)) {
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _SHL"));
 		return -EINVAL;
 	}
 
 	/* _SHL returns 0 on success, nonzero otherwise */
 	if (data)
+	{
 		return -EINVAL;
+	}
 
 	return count;
 }
@@ -264,7 +299,8 @@ static ssize_t set_cap(struct device *dev, struct device_attribute *devattr,
 /* Power meter trip points */
 static int set_acpi_trip(struct acpi_power_meter_resource *resource)
 {
-	union acpi_object arg_objs[] = {
+	union acpi_object arg_objs[] =
+	{
 		{ACPI_TYPE_INTEGER},
 		{ACPI_TYPE_INTEGER}
 	};
@@ -274,28 +310,34 @@ static int set_acpi_trip(struct acpi_power_meter_resource *resource)
 
 	/* Both trip levels must be set */
 	if (resource->trip[0] < 0 || resource->trip[1] < 0)
+	{
 		return 0;
+	}
 
 	/* This driver stores min, max; ACPI wants max, min. */
 	arg_objs[0].integer.value = resource->trip[1];
 	arg_objs[1].integer.value = resource->trip[0];
 
 	status = acpi_evaluate_integer(resource->acpi_dev->handle, "_PTP",
-				       &args, &data);
-	if (ACPI_FAILURE(status)) {
+								   &args, &data);
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PTP"));
 		return -EINVAL;
 	}
 
 	/* _PTP returns 0 on success, nonzero otherwise */
 	if (data)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 static ssize_t set_trip(struct device *dev, struct device_attribute *devattr,
-			const char *buf, size_t count)
+						const char *buf, size_t count)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	struct acpi_device *acpi_dev = to_acpi_device(dev);
@@ -304,8 +346,11 @@ static ssize_t set_trip(struct device *dev, struct device_attribute *devattr,
 	unsigned long temp;
 
 	res = kstrtoul(buf, 10, &temp);
+
 	if (res)
+	{
 		return res;
+	}
 
 	temp = DIV_ROUND_CLOSEST(temp, 1000);
 
@@ -315,7 +360,9 @@ static ssize_t set_trip(struct device *dev, struct device_attribute *devattr,
 	mutex_unlock(&resource->lock);
 
 	if (res)
+	{
 		return res;
+	}
 
 	return count;
 }
@@ -328,13 +375,17 @@ static int update_meter(struct acpi_power_meter_resource *resource)
 	unsigned long local_jiffies = jiffies;
 
 	if (time_before(local_jiffies, resource->sensors_last_updated +
-			msecs_to_jiffies(resource->caps.sampling_time)) &&
-			resource->sensors_valid)
+					msecs_to_jiffies(resource->caps.sampling_time)) &&
+		resource->sensors_valid)
+	{
 		return 0;
+	}
 
 	status = acpi_evaluate_integer(resource->acpi_dev->handle, "_PMM",
-				       NULL, &data);
-	if (ACPI_FAILURE(status)) {
+								   NULL, &data);
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PMM"));
 		return -ENODEV;
 	}
@@ -346,8 +397,8 @@ static int update_meter(struct acpi_power_meter_resource *resource)
 }
 
 static ssize_t show_power(struct device *dev,
-			  struct device_attribute *devattr,
-			  char *buf)
+						  struct device_attribute *devattr,
+						  char *buf)
 {
 	struct acpi_device *acpi_dev = to_acpi_device(dev);
 	struct acpi_power_meter_resource *resource = acpi_dev->driver_data;
@@ -361,93 +412,120 @@ static ssize_t show_power(struct device *dev,
 
 /* Miscellaneous */
 static ssize_t show_str(struct device *dev,
-			struct device_attribute *devattr,
-			char *buf)
+						struct device_attribute *devattr,
+						char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	struct acpi_device *acpi_dev = to_acpi_device(dev);
 	struct acpi_power_meter_resource *resource = acpi_dev->driver_data;
 	acpi_string val;
 
-	switch (attr->index) {
-	case 0:
-		val = resource->model_number;
-		break;
-	case 1:
-		val = resource->serial_number;
-		break;
-	case 2:
-		val = resource->oem_info;
-		break;
-	default:
-		WARN(1, "Implementation error: unexpected attribute index %d\n",
-		     attr->index);
-		val = "";
-		break;
+	switch (attr->index)
+	{
+		case 0:
+			val = resource->model_number;
+			break;
+
+		case 1:
+			val = resource->serial_number;
+			break;
+
+		case 2:
+			val = resource->oem_info;
+			break;
+
+		default:
+			WARN(1, "Implementation error: unexpected attribute index %d\n",
+				 attr->index);
+			val = "";
+			break;
 	}
 
 	return sprintf(buf, "%s\n", val);
 }
 
 static ssize_t show_val(struct device *dev,
-			struct device_attribute *devattr,
-			char *buf)
+						struct device_attribute *devattr,
+						char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	struct acpi_device *acpi_dev = to_acpi_device(dev);
 	struct acpi_power_meter_resource *resource = acpi_dev->driver_data;
 	u64 val = 0;
 
-	switch (attr->index) {
-	case 0:
-		val = resource->caps.min_avg_interval;
-		break;
-	case 1:
-		val = resource->caps.max_avg_interval;
-		break;
-	case 2:
-		val = resource->caps.min_cap * 1000;
-		break;
-	case 3:
-		val = resource->caps.max_cap * 1000;
-		break;
-	case 4:
-		if (resource->caps.hysteresis == UNKNOWN_HYSTERESIS)
-			return sprintf(buf, "unknown\n");
+	switch (attr->index)
+	{
+		case 0:
+			val = resource->caps.min_avg_interval;
+			break;
 
-		val = resource->caps.hysteresis * 1000;
-		break;
-	case 5:
-		if (resource->caps.flags & POWER_METER_IS_BATTERY)
-			val = 1;
-		else
-			val = 0;
-		break;
-	case 6:
-		if (resource->power > resource->cap)
-			val = 1;
-		else
-			val = 0;
-		break;
-	case 7:
-	case 8:
-		if (resource->trip[attr->index - 7] < 0)
-			return sprintf(buf, "unknown\n");
+		case 1:
+			val = resource->caps.max_avg_interval;
+			break;
 
-		val = resource->trip[attr->index - 7] * 1000;
-		break;
-	default:
-		WARN(1, "Implementation error: unexpected attribute index %d\n",
-		     attr->index);
-		break;
+		case 2:
+			val = resource->caps.min_cap * 1000;
+			break;
+
+		case 3:
+			val = resource->caps.max_cap * 1000;
+			break;
+
+		case 4:
+			if (resource->caps.hysteresis == UNKNOWN_HYSTERESIS)
+			{
+				return sprintf(buf, "unknown\n");
+			}
+
+			val = resource->caps.hysteresis * 1000;
+			break;
+
+		case 5:
+			if (resource->caps.flags & POWER_METER_IS_BATTERY)
+			{
+				val = 1;
+			}
+			else
+			{
+				val = 0;
+			}
+
+			break;
+
+		case 6:
+			if (resource->power > resource->cap)
+			{
+				val = 1;
+			}
+			else
+			{
+				val = 0;
+			}
+
+			break;
+
+		case 7:
+		case 8:
+			if (resource->trip[attr->index - 7] < 0)
+			{
+				return sprintf(buf, "unknown\n");
+			}
+
+			val = resource->trip[attr->index - 7] * 1000;
+			break;
+
+		default:
+			WARN(1, "Implementation error: unexpected attribute index %d\n",
+				 attr->index);
+			break;
 	}
 
 	return sprintf(buf, "%llu\n", val);
 }
 
 static ssize_t show_accuracy(struct device *dev,
-			     struct device_attribute *devattr,
-			     char *buf)
+							 struct device_attribute *devattr,
+							 char *buf)
 {
 	struct acpi_device *acpi_dev = to_acpi_device(dev);
 	struct acpi_power_meter_resource *resource = acpi_dev->driver_data;
@@ -457,8 +535,8 @@ static ssize_t show_accuracy(struct device *dev,
 }
 
 static ssize_t show_name(struct device *dev,
-			 struct device_attribute *devattr,
-			 char *buf)
+						 struct device_attribute *devattr,
+						 char *buf)
 {
 	return sprintf(buf, "%s\n", ACPI_POWER_METER_NAME);
 }
@@ -466,31 +544,33 @@ static ssize_t show_name(struct device *dev,
 #define RO_SENSOR_TEMPLATE(_label, _show, _index)	\
 	{						\
 		.label = _label,			\
-		.show  = _show,				\
-		.index = _index,			\
+				 .show  = _show,				\
+						  .index = _index,			\
 	}
 
 #define RW_SENSOR_TEMPLATE(_label, _show, _set, _index)	\
 	{						\
 		.label = _label,			\
-		.show  = _show,				\
-		.set   = _set,				\
-		.index = _index,			\
+				 .show  = _show,				\
+						  .set   = _set,				\
+								   .index = _index,			\
 	}
 
 /* Sensor descriptions.  If you add a sensor, update NUM_SENSORS above! */
-static struct sensor_template meter_attrs[] = {
+static struct sensor_template meter_attrs[] =
+{
 	RO_SENSOR_TEMPLATE(POWER_AVERAGE_NAME, show_power, 0),
 	RO_SENSOR_TEMPLATE("power1_accuracy", show_accuracy, 0),
 	RO_SENSOR_TEMPLATE("power1_average_interval_min", show_val, 0),
 	RO_SENSOR_TEMPLATE("power1_average_interval_max", show_val, 1),
 	RO_SENSOR_TEMPLATE("power1_is_battery", show_val, 5),
 	RW_SENSOR_TEMPLATE(POWER_AVG_INTERVAL_NAME, show_avg_interval,
-		set_avg_interval, 0),
+	set_avg_interval, 0),
 	{},
 };
 
-static struct sensor_template misc_cap_attrs[] = {
+static struct sensor_template misc_cap_attrs[] =
+{
 	RO_SENSOR_TEMPLATE("power1_cap_min", show_val, 2),
 	RO_SENSOR_TEMPLATE("power1_cap_max", show_val, 3),
 	RO_SENSOR_TEMPLATE("power1_cap_hyst", show_val, 4),
@@ -498,23 +578,27 @@ static struct sensor_template misc_cap_attrs[] = {
 	{},
 };
 
-static struct sensor_template ro_cap_attrs[] = {
+static struct sensor_template ro_cap_attrs[] =
+{
 	RO_SENSOR_TEMPLATE(POWER_CAP_NAME, show_cap, 0),
 	{},
 };
 
-static struct sensor_template rw_cap_attrs[] = {
+static struct sensor_template rw_cap_attrs[] =
+{
 	RW_SENSOR_TEMPLATE(POWER_CAP_NAME, show_cap, set_cap, 0),
 	{},
 };
 
-static struct sensor_template trip_attrs[] = {
+static struct sensor_template trip_attrs[] =
+{
 	RW_SENSOR_TEMPLATE("power1_average_min", show_val, set_trip, 7),
 	RW_SENSOR_TEMPLATE("power1_average_max", show_val, set_trip, 8),
 	{},
 };
 
-static struct sensor_template misc_attrs[] = {
+static struct sensor_template misc_attrs[] =
+{
 	RO_SENSOR_TEMPLATE("name", show_name, 0),
 	RO_SENSOR_TEMPLATE("power1_model_number", show_str, 0),
 	RO_SENSOR_TEMPLATE("power1_oem_info", show_str, 2),
@@ -531,15 +615,21 @@ static void remove_domain_devices(struct acpi_power_meter_resource *resource)
 	int i;
 
 	if (!resource->num_domain_devices)
+	{
 		return;
+	}
 
-	for (i = 0; i < resource->num_domain_devices; i++) {
+	for (i = 0; i < resource->num_domain_devices; i++)
+	{
 		struct acpi_device *obj = resource->domain_devices[i];
+
 		if (!obj)
+		{
 			continue;
+		}
 
 		sysfs_remove_link(resource->holders_dir,
-				  kobject_name(&obj->dev.kobj));
+						  kobject_name(&obj->dev.kobj));
 		put_device(&obj->dev);
 	}
 
@@ -557,60 +647,78 @@ static int read_domain_devices(struct acpi_power_meter_resource *resource)
 	acpi_status status;
 
 	status = acpi_evaluate_object(resource->acpi_dev->handle, "_PMD", NULL,
-				      &buffer);
-	if (ACPI_FAILURE(status)) {
+								  &buffer);
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PMD"));
 		return -ENODEV;
 	}
 
 	pss = buffer.pointer;
+
 	if (!pss ||
-	    pss->type != ACPI_TYPE_PACKAGE) {
+		pss->type != ACPI_TYPE_PACKAGE)
+	{
 		dev_err(&resource->acpi_dev->dev, ACPI_POWER_METER_NAME
-			"Invalid _PMD data\n");
+				"Invalid _PMD data\n");
 		res = -EFAULT;
 		goto end;
 	}
 
 	if (!pss->package.count)
+	{
 		goto end;
+	}
 
 	resource->domain_devices = kzalloc(sizeof(struct acpi_device *) *
-					   pss->package.count, GFP_KERNEL);
-	if (!resource->domain_devices) {
+									   pss->package.count, GFP_KERNEL);
+
+	if (!resource->domain_devices)
+	{
 		res = -ENOMEM;
 		goto end;
 	}
 
 	resource->holders_dir = kobject_create_and_add("measures",
-					&resource->acpi_dev->dev.kobj);
-	if (!resource->holders_dir) {
+							&resource->acpi_dev->dev.kobj);
+
+	if (!resource->holders_dir)
+	{
 		res = -ENOMEM;
 		goto exit_free;
 	}
 
 	resource->num_domain_devices = pss->package.count;
 
-	for (i = 0; i < pss->package.count; i++) {
+	for (i = 0; i < pss->package.count; i++)
+	{
 		struct acpi_device *obj;
 		union acpi_object *element = &(pss->package.elements[i]);
 
 		/* Refuse non-references */
 		if (element->type != ACPI_TYPE_LOCAL_REFERENCE)
+		{
 			continue;
+		}
 
 		/* Create a symlink to domain objects */
 		resource->domain_devices[i] = NULL;
+
 		if (acpi_bus_get_device(element->reference.handle,
-					&resource->domain_devices[i]))
+								&resource->domain_devices[i]))
+		{
 			continue;
+		}
 
 		obj = resource->domain_devices[i];
 		get_device(&obj->dev);
 
 		res = sysfs_create_link(resource->holders_dir, &obj->dev.kobj,
-				      kobject_name(&obj->dev.kobj));
-		if (res) {
+								kobject_name(&obj->dev.kobj));
+
+		if (res)
+		{
 			put_device(&obj->dev);
 			resource->domain_devices[i] = NULL;
 		}
@@ -628,30 +736,35 @@ end:
 
 /* Registration and deregistration */
 static int register_attrs(struct acpi_power_meter_resource *resource,
-			  struct sensor_template *attrs)
+						  struct sensor_template *attrs)
 {
 	struct device *dev = &resource->acpi_dev->dev;
 	struct sensor_device_attribute *sensors =
-		&resource->sensors[resource->num_sensors];
+			&resource->sensors[resource->num_sensors];
 	int res = 0;
 
-	while (attrs->label) {
+	while (attrs->label)
+	{
 		sensors->dev_attr.attr.name = attrs->label;
 		sensors->dev_attr.attr.mode = S_IRUGO;
 		sensors->dev_attr.show = attrs->show;
 		sensors->index = attrs->index;
 
-		if (attrs->set) {
+		if (attrs->set)
+		{
 			sensors->dev_attr.attr.mode |= S_IWUSR;
 			sensors->dev_attr.store = attrs->set;
 		}
 
 		sysfs_attr_init(&sensors->dev_attr.attr);
 		res = device_create_file(dev, &sensors->dev_attr);
-		if (res) {
+
+		if (res)
+		{
 			sensors->dev_attr.attr.name = NULL;
 			goto error;
 		}
+
 		sensors++;
 		resource->num_sensors++;
 		attrs++;
@@ -665,11 +778,15 @@ static void remove_attrs(struct acpi_power_meter_resource *resource)
 {
 	int i;
 
-	for (i = 0; i < resource->num_sensors; i++) {
+	for (i = 0; i < resource->num_sensors; i++)
+	{
 		if (!resource->sensors[i].dev_attr.attr.name)
+		{
 			continue;
+		}
+
 		device_remove_file(&resource->acpi_dev->dev,
-				   &resource->sensors[i].dev_attr);
+						   &resource->sensors[i].dev_attr);
 	}
 
 	remove_domain_devices(resource);
@@ -682,45 +799,71 @@ static int setup_attrs(struct acpi_power_meter_resource *resource)
 	int res = 0;
 
 	res = read_domain_devices(resource);
-	if (res)
-		return res;
 
-	if (resource->caps.flags & POWER_METER_CAN_MEASURE) {
-		res = register_attrs(resource, meter_attrs);
-		if (res)
-			goto error;
+	if (res)
+	{
+		return res;
 	}
 
-	if (resource->caps.flags & POWER_METER_CAN_CAP) {
-		if (!can_cap_in_hardware()) {
+	if (resource->caps.flags & POWER_METER_CAN_MEASURE)
+	{
+		res = register_attrs(resource, meter_attrs);
+
+		if (res)
+		{
+			goto error;
+		}
+	}
+
+	if (resource->caps.flags & POWER_METER_CAN_CAP)
+	{
+		if (!can_cap_in_hardware())
+		{
 			dev_err(&resource->acpi_dev->dev,
-				"Ignoring unsafe software power cap!\n");
+					"Ignoring unsafe software power cap!\n");
 			goto skip_unsafe_cap;
 		}
 
 		if (resource->caps.configurable_cap)
+		{
 			res = register_attrs(resource, rw_cap_attrs);
+		}
 		else
+		{
 			res = register_attrs(resource, ro_cap_attrs);
+		}
 
 		if (res)
+		{
 			goto error;
+		}
 
 		res = register_attrs(resource, misc_cap_attrs);
+
 		if (res)
+		{
 			goto error;
+		}
 	}
 
 skip_unsafe_cap:
-	if (resource->caps.flags & POWER_METER_CAN_TRIP) {
+
+	if (resource->caps.flags & POWER_METER_CAN_TRIP)
+	{
 		res = register_attrs(resource, trip_attrs);
+
 		if (res)
+		{
 			goto error;
+		}
 	}
 
 	res = register_attrs(resource, misc_attrs);
+
 	if (res)
+	{
 		goto error;
+	}
 
 	return res;
 error:
@@ -734,8 +877,11 @@ static void free_capabilities(struct acpi_power_meter_resource *resource)
 	int i;
 
 	str = &resource->model_number;
+
 	for (i = 0; i < 3; i++, str++)
+	{
 		kfree(*str);
+	}
 }
 
 static int read_capabilities(struct acpi_power_meter_resource *resource)
@@ -750,18 +896,22 @@ static int read_capabilities(struct acpi_power_meter_resource *resource)
 	acpi_status status;
 
 	status = acpi_evaluate_object(resource->acpi_dev->handle, "_PMC", NULL,
-				      &buffer);
-	if (ACPI_FAILURE(status)) {
+								  &buffer);
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PMC"));
 		return -ENODEV;
 	}
 
 	pss = buffer.pointer;
+
 	if (!pss ||
-	    pss->type != ACPI_TYPE_PACKAGE ||
-	    pss->package.count != 14) {
+		pss->type != ACPI_TYPE_PACKAGE ||
+		pss->package.count != 14)
+	{
 		dev_err(&resource->acpi_dev->dev, ACPI_POWER_METER_NAME
-			"Invalid _PMC data\n");
+				"Invalid _PMC data\n");
 		res = -EFAULT;
 		goto end;
 	}
@@ -771,16 +921,19 @@ static int read_capabilities(struct acpi_power_meter_resource *resource)
 	state.pointer = &resource->caps;
 
 	status = acpi_extract_package(pss, &format, &state);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status, "Invalid data"));
 		res = -EFAULT;
 		goto end;
 	}
 
-	if (resource->caps.units) {
+	if (resource->caps.units)
+	{
 		dev_err(&resource->acpi_dev->dev, ACPI_POWER_METER_NAME
-			"Unknown units %llu.\n",
-			resource->caps.units);
+				"Unknown units %llu.\n",
+				resource->caps.units);
 		res = -EINVAL;
 		goto end;
 	}
@@ -788,17 +941,21 @@ static int read_capabilities(struct acpi_power_meter_resource *resource)
 	/* Grab the string data */
 	str = &resource->model_number;
 
-	for (i = 11; i < 14; i++) {
+	for (i = 11; i < 14; i++)
+	{
 		union acpi_object *element = &(pss->package.elements[i]);
 
-		if (element->type != ACPI_TYPE_STRING) {
+		if (element->type != ACPI_TYPE_STRING)
+		{
 			res = -EINVAL;
 			goto error;
 		}
 
 		*str = kzalloc(sizeof(u8) * (element->string.length + 1),
-			       GFP_KERNEL);
-		if (!*str) {
+					   GFP_KERNEL);
+
+		if (!*str)
+		{
 			res = -ENOMEM;
 			goto error;
 		}
@@ -811,8 +968,12 @@ static int read_capabilities(struct acpi_power_meter_resource *resource)
 	goto end;
 error:
 	str = &resource->model_number;
+
 	for (i = 0; i < 3; i++, str++)
+	{
 		kfree(*str);
+	}
+
 end:
 	kfree(buffer.pointer);
 	return res;
@@ -825,45 +986,58 @@ static void acpi_power_meter_notify(struct acpi_device *device, u32 event)
 	int res;
 
 	if (!device || !acpi_driver_data(device))
+	{
 		return;
+	}
 
 	resource = acpi_driver_data(device);
 
 	mutex_lock(&resource->lock);
-	switch (event) {
-	case METER_NOTIFY_CONFIG:
-		free_capabilities(resource);
-		res = read_capabilities(resource);
-		if (res)
+
+	switch (event)
+	{
+		case METER_NOTIFY_CONFIG:
+			free_capabilities(resource);
+			res = read_capabilities(resource);
+
+			if (res)
+			{
+				break;
+			}
+
+			remove_attrs(resource);
+			setup_attrs(resource);
 			break;
 
-		remove_attrs(resource);
-		setup_attrs(resource);
-		break;
-	case METER_NOTIFY_TRIP:
-		sysfs_notify(&device->dev.kobj, NULL, POWER_AVERAGE_NAME);
-		update_meter(resource);
-		break;
-	case METER_NOTIFY_CAP:
-		sysfs_notify(&device->dev.kobj, NULL, POWER_CAP_NAME);
-		update_cap(resource);
-		break;
-	case METER_NOTIFY_INTERVAL:
-		sysfs_notify(&device->dev.kobj, NULL, POWER_AVG_INTERVAL_NAME);
-		update_avg_interval(resource);
-		break;
-	case METER_NOTIFY_CAPPING:
-		sysfs_notify(&device->dev.kobj, NULL, POWER_ALARM_NAME);
-		dev_info(&device->dev, "Capping in progress.\n");
-		break;
-	default:
-		WARN(1, "Unexpected event %d\n", event);
-		break;
+		case METER_NOTIFY_TRIP:
+			sysfs_notify(&device->dev.kobj, NULL, POWER_AVERAGE_NAME);
+			update_meter(resource);
+			break;
+
+		case METER_NOTIFY_CAP:
+			sysfs_notify(&device->dev.kobj, NULL, POWER_CAP_NAME);
+			update_cap(resource);
+			break;
+
+		case METER_NOTIFY_INTERVAL:
+			sysfs_notify(&device->dev.kobj, NULL, POWER_AVG_INTERVAL_NAME);
+			update_avg_interval(resource);
+			break;
+
+		case METER_NOTIFY_CAPPING:
+			sysfs_notify(&device->dev.kobj, NULL, POWER_ALARM_NAME);
+			dev_info(&device->dev, "Capping in progress.\n");
+			break;
+
+		default:
+			WARN(1, "Unexpected event %d\n", event);
+			break;
 	}
+
 	mutex_unlock(&resource->lock);
 
 	acpi_bus_generate_netlink_event(ACPI_POWER_METER_CLASS,
-					dev_name(&device->dev), event, 0);
+									dev_name(&device->dev), event, 0);
 }
 
 static int acpi_power_meter_add(struct acpi_device *device)
@@ -872,12 +1046,17 @@ static int acpi_power_meter_add(struct acpi_device *device)
 	struct acpi_power_meter_resource *resource;
 
 	if (!device)
+	{
 		return -EINVAL;
+	}
 
 	resource = kzalloc(sizeof(struct acpi_power_meter_resource),
-			   GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!resource)
+	{
 		return -ENOMEM;
+	}
 
 	resource->sensors_valid = 0;
 	resource->acpi_dev = device;
@@ -888,17 +1067,25 @@ static int acpi_power_meter_add(struct acpi_device *device)
 
 	free_capabilities(resource);
 	res = read_capabilities(resource);
+
 	if (res)
+	{
 		goto exit_free;
+	}
 
 	resource->trip[0] = resource->trip[1] = -1;
 
 	res = setup_attrs(resource);
+
 	if (res)
+	{
 		goto exit_free;
+	}
 
 	resource->hwmon_dev = hwmon_device_register(&device->dev);
-	if (IS_ERR(resource->hwmon_dev)) {
+
+	if (IS_ERR(resource->hwmon_dev))
+	{
 		res = PTR_ERR(resource->hwmon_dev);
 		goto exit_remove;
 	}
@@ -919,7 +1106,9 @@ static int acpi_power_meter_remove(struct acpi_device *device)
 	struct acpi_power_meter_resource *resource;
 
 	if (!device || !acpi_driver_data(device))
+	{
 		return -EINVAL;
+	}
 
 	resource = acpi_driver_data(device);
 	hwmon_device_unregister(resource->hwmon_dev);
@@ -938,11 +1127,16 @@ static int acpi_power_meter_resume(struct device *dev)
 	struct acpi_power_meter_resource *resource;
 
 	if (!dev)
+	{
 		return -EINVAL;
+	}
 
 	resource = acpi_driver_data(to_acpi_device(dev));
+
 	if (!resource)
+	{
 		return -EINVAL;
+	}
 
 	free_capabilities(resource);
 	read_capabilities(resource);
@@ -954,7 +1148,8 @@ static int acpi_power_meter_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(acpi_power_meter_pm, NULL, acpi_power_meter_resume);
 
-static struct acpi_driver acpi_power_meter_driver = {
+static struct acpi_driver acpi_power_meter_driver =
+{
 	.name = "power_meter",
 	.class = ACPI_POWER_METER_CLASS,
 	.ids = power_meter_ids,
@@ -962,7 +1157,7 @@ static struct acpi_driver acpi_power_meter_driver = {
 		.add = acpi_power_meter_add,
 		.remove = acpi_power_meter_remove,
 		.notify = acpi_power_meter_notify,
-		},
+	},
 	.drv.pm = &acpi_power_meter_pm,
 };
 
@@ -973,7 +1168,8 @@ static int __init enable_cap_knobs(const struct dmi_system_id *d)
 	return 0;
 }
 
-static struct dmi_system_id __initdata pm_dmi_table[] = {
+static struct dmi_system_id __initdata pm_dmi_table[] =
+{
 	{
 		enable_cap_knobs, "IBM Active Energy Manager",
 		{
@@ -988,13 +1184,18 @@ static int __init acpi_power_meter_init(void)
 	int result;
 
 	if (acpi_disabled)
+	{
 		return -ENODEV;
+	}
 
 	dmi_check_system(pm_dmi_table);
 
 	result = acpi_bus_register_driver(&acpi_power_meter_driver);
+
 	if (result < 0)
+	{
 		return result;
+	}
 
 	return 0;
 }

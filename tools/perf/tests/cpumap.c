@@ -9,9 +9,9 @@
 struct machine;
 
 static int process_event_mask(struct perf_tool *tool __maybe_unused,
-			 union perf_event *event,
-			 struct perf_sample *sample __maybe_unused,
-			 struct machine *machine __maybe_unused)
+							  union perf_event *event,
+							  struct perf_sample *sample __maybe_unused,
+							  struct machine *machine __maybe_unused)
 {
 	struct cpu_map_event *map_event = &event->cpu_map;
 	struct cpu_map_mask *mask;
@@ -27,14 +27,16 @@ static int process_event_mask(struct perf_tool *tool __maybe_unused,
 
 	TEST_ASSERT_VAL("wrong nr",   mask->nr == 1);
 
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < 20; i++)
+	{
 		TEST_ASSERT_VAL("wrong cpu", test_bit(i, mask->mask));
 	}
 
 	map = cpu_map__new_data(data);
 	TEST_ASSERT_VAL("wrong nr",  map->nr == 20);
 
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < 20; i++)
+	{
 		TEST_ASSERT_VAL("wrong cpu", map->map[i] == i);
 	}
 
@@ -43,9 +45,9 @@ static int process_event_mask(struct perf_tool *tool __maybe_unused,
 }
 
 static int process_event_cpus(struct perf_tool *tool __maybe_unused,
-			 union perf_event *event,
-			 struct perf_sample *sample __maybe_unused,
-			 struct machine *machine __maybe_unused)
+							  union perf_event *event,
+							  struct perf_sample *sample __maybe_unused,
+							  struct machine *machine __maybe_unused)
 {
 	struct cpu_map_event *map_event = &event->cpu_map;
 	struct cpu_map_entries *cpus;
@@ -80,7 +82,7 @@ int test__cpu_map_synthesize(int subtest __maybe_unused)
 	cpus = cpu_map__new("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19");
 
 	TEST_ASSERT_VAL("failed to synthesize map",
-		!perf_event__synthesize_cpu_map(NULL, cpus, process_event_mask, NULL));
+					!perf_event__synthesize_cpu_map(NULL, cpus, process_event_mask, NULL));
 
 	cpu_map__put(cpus);
 
@@ -88,7 +90,7 @@ int test__cpu_map_synthesize(int subtest __maybe_unused)
 	cpus = cpu_map__new("1,256");
 
 	TEST_ASSERT_VAL("failed to synthesize map",
-		!perf_event__synthesize_cpu_map(NULL, cpus, process_event_cpus, NULL));
+					!perf_event__synthesize_cpu_map(NULL, cpus, process_event_cpus, NULL));
 
 	cpu_map__put(cpus);
 	return 0;
@@ -100,7 +102,9 @@ static int cpu_map_print(const char *str)
 	char buf[100];
 
 	if (!map)
+	{
 		return -1;
+	}
 
 	cpu_map__snprint(map, buf, sizeof(buf));
 	return !strcmp(buf, str);

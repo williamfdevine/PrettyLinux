@@ -11,7 +11,8 @@
 #include <linux/bcd.h>
 #include <linux/slab.h>
 
-struct ds1216_regs {
+struct ds1216_regs
+{
 	u8 tsec;
 	u8 sec;
 	u8 min;
@@ -25,12 +26,14 @@ struct ds1216_regs {
 #define DS1216_HOUR_1224	(1 << 7)
 #define DS1216_HOUR_AMPM	(1 << 5)
 
-struct ds1216_priv {
+struct ds1216_priv
+{
 	struct rtc_device *rtc;
 	void __iomem *ioaddr;
 };
 
-static const u8 magic[] = {
+static const u8 magic[] =
+{
 	0xc5, 0x3a, 0xa3, 0x5c, 0xc5, 0x3a, 0xa3, 0x5c
 };
 
@@ -44,10 +47,15 @@ static void ds1216_read(u8 __iomem *ioaddr, u8 *buf)
 	unsigned char c;
 	int i, j;
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		c = 0;
+
 		for (j = 0; j < 8; j++)
+		{
 			c |= (readb(ioaddr) & 0x1) << j;
+		}
+
 		buf[i] = c;
 	}
 }
@@ -57,9 +65,12 @@ static void ds1216_write(u8 __iomem *ioaddr, const u8 *buf)
 	unsigned char c;
 	int i, j;
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		c = buf[i];
-		for (j = 0; j < 8; j++) {
+
+		for (j = 0; j < 8; j++)
+		{
 			writeb(c, ioaddr);
 			c = c >> 1;
 		}
@@ -85,19 +96,31 @@ static int ds1216_rtc_read_time(struct device *dev, struct rtc_time *tm)
 
 	tm->tm_sec = bcd2bin(regs.sec);
 	tm->tm_min = bcd2bin(regs.min);
-	if (regs.hour & DS1216_HOUR_1224) {
+
+	if (regs.hour & DS1216_HOUR_1224)
+	{
 		/* AM/PM mode */
 		tm->tm_hour = bcd2bin(regs.hour & 0x1f);
+
 		if (regs.hour & DS1216_HOUR_AMPM)
+		{
 			tm->tm_hour += 12;
-	} else
+		}
+	}
+	else
+	{
 		tm->tm_hour = bcd2bin(regs.hour & 0x3f);
+	}
+
 	tm->tm_wday = (regs.wday & 7) - 1;
 	tm->tm_mday = bcd2bin(regs.mday & 0x3f);
 	tm->tm_mon = bcd2bin(regs.month & 0x1f);
 	tm->tm_year = bcd2bin(regs.year);
+
 	if (tm->tm_year < 70)
+	{
 		tm->tm_year += 100;
+	}
 
 	return rtc_valid_tm(tm);
 }
@@ -115,10 +138,13 @@ static int ds1216_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	regs.sec = bin2bcd(tm->tm_sec);
 	regs.min = bin2bcd(tm->tm_min);
 	regs.hour &= DS1216_HOUR_1224;
-	if (regs.hour && tm->tm_hour > 12) {
+
+	if (regs.hour && tm->tm_hour > 12)
+	{
 		regs.hour |= DS1216_HOUR_AMPM;
 		tm->tm_hour -= 12;
 	}
+
 	regs.hour |= bin2bcd(tm->tm_hour);
 	regs.wday &= ~7;
 	regs.wday |= tm->tm_wday;
@@ -131,7 +157,8 @@ static int ds1216_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	return 0;
 }
 
-static const struct rtc_class_ops ds1216_rtc_ops = {
+static const struct rtc_class_ops ds1216_rtc_ops =
+{
 	.read_time	= ds1216_rtc_read_time,
 	.set_time	= ds1216_rtc_set_time,
 };
@@ -143,27 +170,37 @@ static int __init ds1216_rtc_probe(struct platform_device *pdev)
 	u8 dummy[8];
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, priv);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->ioaddr = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(priv->ioaddr))
+	{
 		return PTR_ERR(priv->ioaddr);
+	}
 
 	priv->rtc = devm_rtc_device_register(&pdev->dev, "ds1216",
-					&ds1216_rtc_ops, THIS_MODULE);
+										 &ds1216_rtc_ops, THIS_MODULE);
+
 	if (IS_ERR(priv->rtc))
+	{
 		return PTR_ERR(priv->rtc);
+	}
 
 	/* dummy read to get clock into a known state */
 	ds1216_read(priv->ioaddr, dummy);
 	return 0;
 }
 
-static struct platform_driver ds1216_rtc_platform_driver = {
+static struct platform_driver ds1216_rtc_platform_driver =
+{
 	.driver		= {
 		.name	= "rtc-ds1216",
 	},

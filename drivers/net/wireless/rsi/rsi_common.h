@@ -38,11 +38,12 @@ static inline int rsi_wait_event(struct rsi_event *event, u32 timeout)
 
 	if (!timeout)
 		status = wait_event_interruptible(event->event_queue,
-				(atomic_read(&event->event_condition) == 0));
+										  (atomic_read(&event->event_condition) == 0));
 	else
 		status = wait_event_interruptible_timeout(event->event_queue,
-				(atomic_read(&event->event_condition) == 0),
-				timeout);
+				 (atomic_read(&event->event_condition) == 0),
+				 timeout);
+
 	return status;
 }
 
@@ -58,14 +59,17 @@ static inline void rsi_reset_event(struct rsi_event *event)
 }
 
 static inline int rsi_create_kthread(struct rsi_common *common,
-				     struct rsi_thread *thread,
-				     void *func_ptr,
-				     u8 *name)
+									 struct rsi_thread *thread,
+									 void *func_ptr,
+									 u8 *name)
 {
 	init_completion(&thread->completion);
 	thread->task = kthread_run(func_ptr, common, "%s", name);
+
 	if (IS_ERR(thread->task))
+	{
 		return (int)PTR_ERR(thread->task);
+	}
 
 	return 0;
 }

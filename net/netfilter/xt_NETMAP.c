@@ -29,20 +29,26 @@ netmap_tg6(struct sk_buff *skb, const struct xt_action_param *par)
 	unsigned int i;
 
 	ct = nf_ct_get(skb, &ctinfo);
+
 	for (i = 0; i < ARRAY_SIZE(range->min_addr.ip6); i++)
 		netmask.ip6[i] = ~(range->min_addr.ip6[i] ^
-				   range->max_addr.ip6[i]);
+						   range->max_addr.ip6[i]);
 
 	if (par->hooknum == NF_INET_PRE_ROUTING ||
-	    par->hooknum == NF_INET_LOCAL_OUT)
+		par->hooknum == NF_INET_LOCAL_OUT)
+	{
 		new_addr.in6 = ipv6_hdr(skb)->daddr;
+	}
 	else
+	{
 		new_addr.in6 = ipv6_hdr(skb)->saddr;
+	}
 
-	for (i = 0; i < ARRAY_SIZE(new_addr.ip6); i++) {
+	for (i = 0; i < ARRAY_SIZE(new_addr.ip6); i++)
+	{
 		new_addr.ip6[i] &= ~netmask.ip6[i];
 		new_addr.ip6[i] |= range->min_addr.ip6[i] &
-				   netmask.ip6[i];
+						   netmask.ip6[i];
 	}
 
 	newrange.flags	= range->flags | NF_NAT_RANGE_MAP_IPS;
@@ -59,7 +65,10 @@ static int netmap_tg6_checkentry(const struct xt_tgchk_param *par)
 	const struct nf_nat_range *range = par->targinfo;
 
 	if (!(range->flags & NF_NAT_RANGE_MAP_IPS))
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
@@ -73,18 +82,23 @@ netmap_tg4(struct sk_buff *skb, const struct xt_action_param *par)
 	struct nf_nat_range newrange;
 
 	NF_CT_ASSERT(par->hooknum == NF_INET_PRE_ROUTING ||
-		     par->hooknum == NF_INET_POST_ROUTING ||
-		     par->hooknum == NF_INET_LOCAL_OUT ||
-		     par->hooknum == NF_INET_LOCAL_IN);
+				 par->hooknum == NF_INET_POST_ROUTING ||
+				 par->hooknum == NF_INET_LOCAL_OUT ||
+				 par->hooknum == NF_INET_LOCAL_IN);
 	ct = nf_ct_get(skb, &ctinfo);
 
 	netmask = ~(mr->range[0].min_ip ^ mr->range[0].max_ip);
 
 	if (par->hooknum == NF_INET_PRE_ROUTING ||
-	    par->hooknum == NF_INET_LOCAL_OUT)
+		par->hooknum == NF_INET_LOCAL_OUT)
+	{
 		new_ip = ip_hdr(skb)->daddr & ~netmask;
+	}
 	else
+	{
 		new_ip = ip_hdr(skb)->saddr & ~netmask;
+	}
+
 	new_ip |= mr->range[0].min_ip & netmask;
 
 	memset(&newrange.min_addr, 0, sizeof(newrange.min_addr));
@@ -103,18 +117,23 @@ static int netmap_tg4_check(const struct xt_tgchk_param *par)
 {
 	const struct nf_nat_ipv4_multi_range_compat *mr = par->targinfo;
 
-	if (!(mr->range[0].flags & NF_NAT_RANGE_MAP_IPS)) {
+	if (!(mr->range[0].flags & NF_NAT_RANGE_MAP_IPS))
+	{
 		pr_debug("bad MAP_IPS.\n");
 		return -EINVAL;
 	}
-	if (mr->rangesize != 1) {
+
+	if (mr->rangesize != 1)
+	{
 		pr_debug("bad rangesize %u.\n", mr->rangesize);
 		return -EINVAL;
 	}
+
 	return 0;
 }
 
-static struct xt_target netmap_tg_reg[] __read_mostly = {
+static struct xt_target netmap_tg_reg[] __read_mostly =
+{
 	{
 		.name       = "NETMAP",
 		.family     = NFPROTO_IPV6,
@@ -123,9 +142,9 @@ static struct xt_target netmap_tg_reg[] __read_mostly = {
 		.targetsize = sizeof(struct nf_nat_range),
 		.table      = "nat",
 		.hooks      = (1 << NF_INET_PRE_ROUTING) |
-		              (1 << NF_INET_POST_ROUTING) |
-		              (1 << NF_INET_LOCAL_OUT) |
-		              (1 << NF_INET_LOCAL_IN),
+		(1 << NF_INET_POST_ROUTING) |
+		(1 << NF_INET_LOCAL_OUT) |
+		(1 << NF_INET_LOCAL_IN),
 		.checkentry = netmap_tg6_checkentry,
 		.me         = THIS_MODULE,
 	},
@@ -137,9 +156,9 @@ static struct xt_target netmap_tg_reg[] __read_mostly = {
 		.targetsize = sizeof(struct nf_nat_ipv4_multi_range_compat),
 		.table      = "nat",
 		.hooks      = (1 << NF_INET_PRE_ROUTING) |
-		              (1 << NF_INET_POST_ROUTING) |
-		              (1 << NF_INET_LOCAL_OUT) |
-		              (1 << NF_INET_LOCAL_IN),
+		(1 << NF_INET_POST_ROUTING) |
+		(1 << NF_INET_LOCAL_OUT) |
+		(1 << NF_INET_LOCAL_IN),
 		.checkentry = netmap_tg4_check,
 		.me         = THIS_MODULE,
 	},

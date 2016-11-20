@@ -34,12 +34,18 @@ static int am79c_ack_interrupt(struct phy_device *phydev)
 	int err;
 
 	err = phy_read(phydev, MII_BMSR);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = phy_read(phydev, MII_AM79C_IR);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -54,29 +60,35 @@ static int am79c_config_intr(struct phy_device *phydev)
 	int err;
 
 	if (phydev->interrupts == PHY_INTERRUPT_ENABLED)
+	{
 		err = phy_write(phydev, MII_AM79C_IR, MII_AM79C_IR_IMASK_INIT);
+	}
 	else
+	{
 		err = phy_write(phydev, MII_AM79C_IR, 0);
+	}
 
 	return err;
 }
 
 static struct phy_driver am79c_driver[] = { {
-	.phy_id		= PHY_ID_AM79C874,
-	.name		= "AM79C874",
-	.phy_id_mask	= 0xfffffff0,
-	.features	= PHY_BASIC_FEATURES,
-	.flags		= PHY_HAS_INTERRUPT,
-	.config_init	= am79c_config_init,
-	.config_aneg	= genphy_config_aneg,
-	.read_status	= genphy_read_status,
-	.ack_interrupt	= am79c_ack_interrupt,
-	.config_intr	= am79c_config_intr,
-} };
+		.phy_id		= PHY_ID_AM79C874,
+		.name		= "AM79C874",
+		.phy_id_mask	= 0xfffffff0,
+		.features	= PHY_BASIC_FEATURES,
+		.flags		= PHY_HAS_INTERRUPT,
+		.config_init	= am79c_config_init,
+		.config_aneg	= genphy_config_aneg,
+		.read_status	= genphy_read_status,
+		.ack_interrupt	= am79c_ack_interrupt,
+		.config_intr	= am79c_config_intr,
+	}
+};
 
 module_phy_driver(am79c_driver);
 
-static struct mdio_device_id __maybe_unused amd_tbl[] = {
+static struct mdio_device_id __maybe_unused amd_tbl[] =
+{
 	{ PHY_ID_AM79C874, 0xfffffff0 },
 	{ }
 };

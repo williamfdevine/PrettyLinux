@@ -182,7 +182,8 @@
 #define U300_NUM_PADS 467
 
 /* Pad names for the pinmux subsystem */
-static const struct pinctrl_pin_desc u300_pads[] = {
+static const struct pinctrl_pin_desc u300_pads[] =
+{
 	/* Pads along the top edge of the chip */
 	PINCTRL_PIN(0, "P PAD VDD 28"),
 	PINCTRL_PIN(1, "P PAD GND 28"),
@@ -660,7 +661,8 @@ static const struct pinctrl_pin_desc u300_pads[] = {
  * @dev: a pointer back to containing device
  * @virtbase: the offset to the controller in virtual memory
  */
-struct u300_pmx {
+struct u300_pmx
+{
 	struct device *dev;
 	struct pinctrl_dev *pctl;
 	void __iomem *virtbase;
@@ -670,7 +672,8 @@ struct u300_pmx {
  * u300_pmx_registers - the array of registers read/written for each pinmux
  * shunt setting
  */
-static const u32 u300_pmx_registers[] = {
+static const u32 u300_pmx_registers[] =
+{
 	U300_SYSCON_PMC1LR,
 	U300_SYSCON_PMC1HR,
 	U300_SYSCON_PMC2R,
@@ -686,7 +689,8 @@ static const u32 u300_pmx_registers[] = {
  * @num_pins: the number of pins in this group array, i.e. the number of
  *	elements in .pins so we can iterate over that array
  */
-struct u300_pin_group {
+struct u300_pin_group
+{
 	const char *name;
 	const unsigned int *pins;
 	const unsigned num_pins;
@@ -706,36 +710,41 @@ struct u300_pin_group {
  *   {"PMC4R"  mask, "PMC4R"  value}
  * }
  */
-struct u300_pmx_mask {
+struct u300_pmx_mask
+{
 	u16 mask;
 	u16 bits;
 };
 
 /* The chip power pins are VDD, GND, VDDIO and VSSIO */
 static const unsigned power_pins[] = { 0, 1, 3, 31, 46, 47, 49, 50, 61, 62, 63,
-	64, 78, 79, 80, 81, 92, 93, 94, 95, 101, 102, 103, 104, 115, 116, 117,
-	118, 130, 131, 132, 133, 145, 146, 147, 148, 159, 160, 172, 173, 174,
-	175, 187, 188, 189, 190, 201, 202, 211, 212, 213, 214, 215, 218, 223,
-	224, 225, 226, 231, 232, 237, 238, 239, 240, 245, 246, 251, 252, 256,
-	257, 258, 259, 264, 265, 270, 271, 276, 277, 278, 279, 284, 285, 290,
-	291, 295, 296, 299, 300, 301, 302, 303, 309, 310, 311, 312, 319, 320,
-	321, 322, 329, 330, 331, 332, 341, 342, 343, 344, 358, 359, 360, 361,
-	372, 373, 374, 375, 388, 389, 390, 391, 402, 403, 404, 405, 413, 414,
-	415, 416, 427, 428, 429, 430, 443, 444, 455, 456, 457, 458 };
+									   64, 78, 79, 80, 81, 92, 93, 94, 95, 101, 102, 103, 104, 115, 116, 117,
+									   118, 130, 131, 132, 133, 145, 146, 147, 148, 159, 160, 172, 173, 174,
+									   175, 187, 188, 189, 190, 201, 202, 211, 212, 213, 214, 215, 218, 223,
+									   224, 225, 226, 231, 232, 237, 238, 239, 240, 245, 246, 251, 252, 256,
+									   257, 258, 259, 264, 265, 270, 271, 276, 277, 278, 279, 284, 285, 290,
+									   291, 295, 296, 299, 300, 301, 302, 303, 309, 310, 311, 312, 319, 320,
+									   321, 322, 329, 330, 331, 332, 341, 342, 343, 344, 358, 359, 360, 361,
+									   372, 373, 374, 375, 388, 389, 390, 391, 402, 403, 404, 405, 413, 414,
+									   415, 416, 427, 428, 429, 430, 443, 444, 455, 456, 457, 458
+									 };
 static const unsigned emif0_pins[] = { 355, 356, 357, 362, 363, 364, 365, 366,
-	367, 368, 369, 370, 371, 376, 377, 378, 379, 380, 381, 382, 383, 384,
-	385, 386, 387, 393, 394, 395, 396, 397, 398, 406, 407, 410, 411, 412,
-	417, 418 };
+									   367, 368, 369, 370, 371, 376, 377, 378, 379, 380, 381, 382, 383, 384,
+									   385, 386, 387, 393, 394, 395, 396, 397, 398, 406, 407, 410, 411, 412,
+									   417, 418
+									 };
 static const unsigned emif1_pins[] = { 216, 217, 219, 220, 221, 222, 227, 228,
-	229, 230, 233, 234, 235, 236, 241, 242, 243, 244, 247, 248, 249, 250,
-	253, 254, 255, 260, 261, 262, 263, 266, 267, 268, 269, 272, 273, 274,
-	275, 280, 281, 282, 283, 286, 287, 288, 289, 292, 293, 294, 297, 298,
-	304, 305, 306, 307, 308, 313, 314, 315 };
+									   229, 230, 233, 234, 235, 236, 241, 242, 243, 244, 247, 248, 249, 250,
+									   253, 254, 255, 260, 261, 262, 263, 266, 267, 268, 269, 272, 273, 274,
+									   275, 280, 281, 282, 283, 286, 287, 288, 289, 292, 293, 294, 297, 298,
+									   304, 305, 306, 307, 308, 313, 314, 315
+									 };
 static const unsigned uart0_pins[] = { 134, 135, 136, 137 };
 static const unsigned mmc0_pins[] = { 166, 167, 168, 169, 170, 171, 176, 177 };
 static const unsigned spi0_pins[] = { 420, 421, 422, 423, 424, 425 };
 
-static const struct u300_pmx_mask emif0_mask[] = {
+static const struct u300_pmx_mask emif0_mask[] =
+{
 	{0, 0},
 	{0, 0},
 	{0, 0},
@@ -743,7 +752,8 @@ static const struct u300_pmx_mask emif0_mask[] = {
 	{0, 0},
 };
 
-static const struct u300_pmx_mask emif1_mask[] = {
+static const struct u300_pmx_mask emif1_mask[] =
+{
 	/*
 	 * This connects the SDRAM to CS2 and a NAND flash to
 	 * CS0 on the EMIF.
@@ -764,7 +774,8 @@ static const struct u300_pmx_mask emif1_mask[] = {
 	{0, 0},
 };
 
-static const struct u300_pmx_mask uart0_mask[] = {
+static const struct u300_pmx_mask uart0_mask[] =
+{
 	{0, 0},
 	{
 		U300_SYSCON_PMC1HR_APP_UART0_1_MASK |
@@ -777,16 +788,20 @@ static const struct u300_pmx_mask uart0_mask[] = {
 	{0, 0},
 };
 
-static const struct u300_pmx_mask mmc0_mask[] = {
+static const struct u300_pmx_mask mmc0_mask[] =
+{
 	{ U300_SYSCON_PMC1LR_MMCSD_MASK, U300_SYSCON_PMC1LR_MMCSD_MMCSD},
 	{0, 0},
 	{0, 0},
 	{0, 0},
-	{ U300_SYSCON_PMC4R_APP_MISC_12_MASK,
-	  U300_SYSCON_PMC4R_APP_MISC_12_APP_GPIO }
+	{
+		U300_SYSCON_PMC4R_APP_MISC_12_MASK,
+		U300_SYSCON_PMC4R_APP_MISC_12_APP_GPIO
+	}
 };
 
-static const struct u300_pmx_mask spi0_mask[] = {
+static const struct u300_pmx_mask spi0_mask[] =
+{
 	{0, 0},
 	{
 		U300_SYSCON_PMC1HR_APP_SPI_2_MASK |
@@ -801,7 +816,8 @@ static const struct u300_pmx_mask spi0_mask[] = {
 	{0, 0}
 };
 
-static const struct u300_pin_group u300_pin_groups[] = {
+static const struct u300_pin_group u300_pin_groups[] =
+{
 	{
 		.name = "powergrp",
 		.pins = power_pins,
@@ -840,14 +856,14 @@ static int u300_get_groups_count(struct pinctrl_dev *pctldev)
 }
 
 static const char *u300_get_group_name(struct pinctrl_dev *pctldev,
-				       unsigned selector)
+									   unsigned selector)
 {
 	return u300_pin_groups[selector].name;
 }
 
 static int u300_get_group_pins(struct pinctrl_dev *pctldev, unsigned selector,
-			       const unsigned **pins,
-			       unsigned *num_pins)
+							   const unsigned **pins,
+							   unsigned *num_pins)
 {
 	*pins = u300_pin_groups[selector].pins;
 	*num_pins = u300_pin_groups[selector].num_pins;
@@ -855,12 +871,13 @@ static int u300_get_group_pins(struct pinctrl_dev *pctldev, unsigned selector,
 }
 
 static void u300_pin_dbg_show(struct pinctrl_dev *pctldev, struct seq_file *s,
-		   unsigned offset)
+							  unsigned offset)
 {
 	seq_printf(s, " " DRIVER_NAME);
 }
 
-static const struct pinctrl_ops u300_pctrl_ops = {
+static const struct pinctrl_ops u300_pctrl_ops =
+{
 	.get_groups_count = u300_get_groups_count,
 	.get_group_name = u300_get_group_name,
 	.get_group_pins = u300_get_group_pins,
@@ -877,21 +894,23 @@ static const struct pinctrl_ops u300_pctrl_ops = {
  * @groups: corresponding pin groups
  * @onmask: bits to set to enable this when doing pin muxing
  */
-struct u300_pmx_func {
+struct u300_pmx_func
+{
 	const char *name;
-	const char * const *groups;
+	const char *const *groups;
 	const unsigned num_groups;
 	const struct u300_pmx_mask *mask;
 };
 
-static const char * const powergrps[] = { "powergrp" };
-static const char * const emif0grps[] = { "emif0grp" };
-static const char * const emif1grps[] = { "emif1grp" };
-static const char * const uart0grps[] = { "uart0grp" };
-static const char * const mmc0grps[] = { "mmc0grp" };
-static const char * const spi0grps[] = { "spi0grp" };
+static const char *const powergrps[] = { "powergrp" };
+static const char *const emif0grps[] = { "emif0grp" };
+static const char *const emif1grps[] = { "emif1grp" };
+static const char *const uart0grps[] = { "uart0grp" };
+static const char *const mmc0grps[] = { "mmc0grp" };
+static const char *const spi0grps[] = { "spi0grp" };
 
-static const struct u300_pmx_func u300_pmx_functions[] = {
+static const struct u300_pmx_func u300_pmx_functions[] =
+{
 	{
 		.name = "power",
 		.groups = powergrps,
@@ -931,38 +950,49 @@ static const struct u300_pmx_func u300_pmx_functions[] = {
 };
 
 static void u300_pmx_endisable(struct u300_pmx *upmx, unsigned selector,
-			       bool enable)
+							   bool enable)
 {
 	u16 regval, val, mask;
 	int i;
 	const struct u300_pmx_mask *upmx_mask;
 
 	upmx_mask = u300_pmx_functions[selector].mask;
-	for (i = 0; i < ARRAY_SIZE(u300_pmx_registers); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(u300_pmx_registers); i++)
+	{
 		if (enable)
+		{
 			val = upmx_mask->bits;
+		}
 		else
+		{
 			val = 0;
+		}
 
 		mask = upmx_mask->mask;
-		if (mask != 0) {
+
+		if (mask != 0)
+		{
 			regval = readw(upmx->virtbase + u300_pmx_registers[i]);
 			regval &= ~mask;
 			regval |= val;
 			writew(regval, upmx->virtbase + u300_pmx_registers[i]);
 		}
+
 		upmx_mask++;
 	}
 }
 
 static int u300_pmx_set_mux(struct pinctrl_dev *pctldev, unsigned selector,
-			    unsigned group)
+							unsigned group)
 {
 	struct u300_pmx *upmx;
 
 	/* There is nothing to do with the power pins */
 	if (selector == 0)
+	{
 		return 0;
+	}
 
 	upmx = pinctrl_dev_get_drvdata(pctldev);
 	u300_pmx_endisable(upmx, selector, true);
@@ -976,21 +1006,22 @@ static int u300_pmx_get_funcs_count(struct pinctrl_dev *pctldev)
 }
 
 static const char *u300_pmx_get_func_name(struct pinctrl_dev *pctldev,
-					  unsigned selector)
+		unsigned selector)
 {
 	return u300_pmx_functions[selector].name;
 }
 
 static int u300_pmx_get_groups(struct pinctrl_dev *pctldev, unsigned selector,
-			       const char * const **groups,
-			       unsigned * const num_groups)
+							   const char *const **groups,
+							   unsigned *const num_groups)
 {
 	*groups = u300_pmx_functions[selector].groups;
 	*num_groups = u300_pmx_functions[selector].num_groups;
 	return 0;
 }
 
-static const struct pinmux_ops u300_pmx_ops = {
+static const struct pinmux_ops u300_pmx_ops =
+{
 	.get_functions_count = u300_pmx_get_funcs_count,
 	.get_function_name = u300_pmx_get_func_name,
 	.get_function_groups = u300_pmx_get_groups,
@@ -998,49 +1029,59 @@ static const struct pinmux_ops u300_pmx_ops = {
 };
 
 static int u300_pin_config_get(struct pinctrl_dev *pctldev, unsigned pin,
-			       unsigned long *config)
+							   unsigned long *config)
 {
 	struct pinctrl_gpio_range *range =
 		pinctrl_find_gpio_range_from_pin(pctldev, pin);
 
 	/* We get config for those pins we CAN get it for and that's it */
 	if (!range)
+	{
 		return -ENOTSUPP;
+	}
 
 	return u300_gpio_config_get(range->gc,
-				    (pin - range->pin_base + range->base),
-				    config);
+								(pin - range->pin_base + range->base),
+								config);
 }
 
 static int u300_pin_config_set(struct pinctrl_dev *pctldev, unsigned pin,
-			       unsigned long *configs, unsigned num_configs)
+							   unsigned long *configs, unsigned num_configs)
 {
 	struct pinctrl_gpio_range *range =
 		pinctrl_find_gpio_range_from_pin(pctldev, pin);
 	int ret, i;
 
 	if (!range)
+	{
 		return -EINVAL;
+	}
 
-	for (i = 0; i < num_configs; i++) {
+	for (i = 0; i < num_configs; i++)
+	{
 		/* Note: none of these configurations take any argument */
 		ret = u300_gpio_config_set(range->gc,
-			(pin - range->pin_base + range->base),
-			pinconf_to_config_param(configs[i]));
+								   (pin - range->pin_base + range->base),
+								   pinconf_to_config_param(configs[i]));
+
 		if (ret)
+		{
 			return ret;
+		}
 	} /* for each config */
 
 	return 0;
 }
 
-static const struct pinconf_ops u300_pconf_ops = {
+static const struct pinconf_ops u300_pconf_ops =
+{
 	.is_generic = true,
 	.pin_config_get = u300_pin_config_get,
 	.pin_config_set = u300_pin_config_set,
 };
 
-static struct pinctrl_desc u300_pmx_desc = {
+static struct pinctrl_desc u300_pmx_desc =
+{
 	.name = DRIVER_NAME,
 	.pins = u300_pads,
 	.npins = ARRAY_SIZE(u300_pads),
@@ -1057,18 +1098,26 @@ static int u300_pmx_probe(struct platform_device *pdev)
 
 	/* Create state holders etc for this driver */
 	upmx = devm_kzalloc(&pdev->dev, sizeof(*upmx), GFP_KERNEL);
+
 	if (!upmx)
+	{
 		return -ENOMEM;
+	}
 
 	upmx->dev = &pdev->dev;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	upmx->virtbase = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(upmx->virtbase))
+	{
 		return PTR_ERR(upmx->virtbase);
+	}
 
 	upmx->pctl = devm_pinctrl_register(&pdev->dev, &u300_pmx_desc, upmx);
-	if (IS_ERR(upmx->pctl)) {
+
+	if (IS_ERR(upmx->pctl))
+	{
 		dev_err(&pdev->dev, "could not register U300 pinmux driver\n");
 		return PTR_ERR(upmx->pctl);
 	}
@@ -1080,13 +1129,15 @@ static int u300_pmx_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id u300_pinctrl_match[] = {
+static const struct of_device_id u300_pinctrl_match[] =
+{
 	{ .compatible = "stericsson,pinctrl-u300" },
 	{},
 };
 
 
-static struct platform_driver u300_pmx_driver = {
+static struct platform_driver u300_pmx_driver =
+{
 	.driver = {
 		.name = DRIVER_NAME,
 		.of_match_table = u300_pinctrl_match,

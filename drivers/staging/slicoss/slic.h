@@ -59,7 +59,8 @@ static u32 GBRcvUCodeLen = 512;
 #define SLIC_RSPQ_PAGES_GB        10
 #define SLIC_RSPQ_BUFSINPAGE      (PAGE_SIZE / SLIC_RSPBUF_SIZE)
 
-struct slic_rspqueue {
+struct slic_rspqueue
+{
 	u32             offset;
 	u32             pageindex;
 	u32             num_pages;
@@ -76,7 +77,8 @@ struct slic_rspqueue {
 #define SLIC_RCVQ_FILLENTRIES       (16 * SLIC_RCVQ_EXPANSION)
 #define SLIC_RCVQ_FILLTHRESH        (SLIC_RCVQ_ENTRIES - SLIC_RCVQ_FILLENTRIES)
 
-struct slic_rcvqueue {
+struct slic_rcvqueue
+{
 	struct sk_buff    *head;
 	struct sk_buff    *tail;
 	u32            count;
@@ -84,7 +86,8 @@ struct slic_rcvqueue {
 	u32            errors;
 };
 
-struct slic_rcvbuf_info {
+struct slic_rcvbuf_info
+{
 	u32     id;
 	u32     starttime;
 	u32     stoptime;
@@ -98,9 +101,12 @@ struct slic_rcvbuf_info {
  * 32 bits by using an index rather than an address.
  * Simplifies ucode in 64-bit systems
  */
-struct slic_handle_word {
-	union {
-		struct {
+struct slic_handle_word
+{
+	union
+	{
+		struct
+		{
 			ushort      index;
 			ushort      bottombits; /* to denote num bufs to card */
 		}  parts;
@@ -108,7 +114,8 @@ struct slic_handle_word {
 	}  handle;
 };
 
-struct slic_handle {
+struct slic_handle
+{
 	struct slic_handle_word  token;  /* token passed between host and card*/
 	ushort                      type;
 	void *address;    /* actual address of the object*/
@@ -129,7 +136,8 @@ struct slic_handle {
 
 #define SLIC_HOSTCMD_SIZE    512
 
-struct slic_hostcmd {
+struct slic_hostcmd
+{
 	struct slic_host64_cmd  cmd64;
 	u32                    type;
 	struct sk_buff            *skb;
@@ -151,13 +159,15 @@ struct slic_hostcmd {
 #define SLIC_CMDQ_MAXPAGES       (SLIC_CMDQ_MAXCMDS / SLIC_CMDQ_CMDSINPAGE)
 #define SLIC_CMDQ_INITPAGES      (SLIC_CMDQ_INITCMDS / SLIC_CMDQ_CMDSINPAGE)
 
-struct slic_cmdqmem {
+struct slic_cmdqmem
+{
 	int pagecnt;
 	u32 *pages[SLIC_CMDQ_MAXPAGES];
 	dma_addr_t dma_pages[SLIC_CMDQ_MAXPAGES];
 };
 
-struct slic_cmdqueue {
+struct slic_cmdqueue
+{
 	struct slic_hostcmd *head;
 	struct slic_hostcmd *tail;
 	int count;
@@ -167,7 +177,8 @@ struct slic_cmdqueue {
 #define SLIC_MAX_CARDS              32
 #define SLIC_MAX_PORTS              4        /* Max # of ports per card   */
 
-struct mcast_address {
+struct mcast_address
+{
 	unsigned char address[6];
 	struct mcast_address *next;
 };
@@ -217,12 +228,13 @@ struct mcast_address {
 
 #define SLIC_DUPLEX(x)    ((x == LINK_FULLD) ? "FDX" : "HDX")
 #define SLIC_SPEED(x)     ((x == LINK_100MB) ? "100Mb" : ((x == LINK_1000MB) ?\
-				"1000Mb" : " 10Mb"))
+						   "1000Mb" : " 10Mb"))
 #define SLIC_LINKSTATE(x) ((x == LINK_DOWN) ? "Down" : "Up  ")
 #define SLIC_ADAPTER_STATE(x) ((x == ADAPT_UP) ? "UP" : "Down")
 #define SLIC_CARD_STATE(x)    ((x == CARD_UP) ? "UP" : "Down")
 
-struct slic_iface_stats {
+struct slic_iface_stats
+{
 	/*
 	 * Stats
 	 */
@@ -242,14 +254,16 @@ struct slic_iface_stats {
 	u64        rcv_discards;
 };
 
-struct sliccp_stats {
+struct sliccp_stats
+{
 	u64        xmit_tcp_segs;
 	u64        xmit_tcp_bytes;
 	u64        rcv_tcp_segs;
 	u64        rcv_tcp_bytes;
 };
 
-struct slicnet_stats {
+struct slicnet_stats
+{
 	struct sliccp_stats        tcp;
 	struct slic_iface_stats      iface;
 };
@@ -279,13 +293,15 @@ struct slicnet_stats {
 #define SLIC_INTAGG_4GB           100
 #define SLIC_INTAGG_5GB           100
 
-struct ether_header {
+struct ether_header
+{
 	unsigned char    ether_dhost[6];
 	unsigned char    ether_shost[6];
 	ushort   ether_type;
 };
 
-struct sliccard {
+struct sliccard
+{
 	uint              busnumber;
 	uint              slotnumber;
 	uint              state;
@@ -329,19 +345,21 @@ struct sliccard {
 #define NUM_CFG_REGS        64
 #define NUM_CFG_REG_ULONGS  (NUM_CFG_REGS / sizeof(u32))
 
-struct physcard {
+struct physcard
+{
 	struct adapter  *adapter[SLIC_MAX_PORTS];
 	struct physcard *next;
 	uint                adapters_allocd;
 
-/*
- * the following is not currently needed
- *	u32              bridge_busnum;
- *	u32              bridge_cfg[NUM_CFG_SPACES][NUM_CFG_REG_ULONGS];
- */
+	/*
+	 * the following is not currently needed
+	 *	u32              bridge_busnum;
+	 *	u32              bridge_cfg[NUM_CFG_SPACES][NUM_CFG_REG_ULONGS];
+	 */
 };
 
-struct base_driver {
+struct base_driver
+{
 	spinlock_t       driver_lock;
 	u32              num_slic_cards;
 	u32              num_slic_ports;
@@ -352,7 +370,8 @@ struct base_driver {
 	uint                 cardnuminuse[SLIC_MAX_CARDS];
 };
 
-struct slic_stats {
+struct slic_stats
+{
 	/* xmit stats */
 	u64 xmit_tcp_bytes;
 	u64 xmit_tcp_segs;
@@ -370,20 +389,23 @@ struct slic_stats {
 	u64 rcv_drops;
 };
 
-struct slic_shmem_data {
+struct slic_shmem_data
+{
 	u32 isr;
 	u32 lnkstatus;
 	struct slic_stats stats;
 };
 
-struct slic_shmemory {
+struct slic_shmemory
+{
 	dma_addr_t isr_phaddr;
 	dma_addr_t lnkstatus_phaddr;
 	dma_addr_t stats_phaddr;
 	struct slic_shmem_data __iomem *shmem_data;
 };
 
-struct slic_upr {
+struct slic_upr
+{
 	uint               adapter;
 	u32            upr_request;
 	u32            upr_data;
@@ -393,7 +415,8 @@ struct slic_upr {
 	struct slic_upr *next;
 };
 
-struct slic_ifevents {
+struct slic_ifevents
+{
 	uint        oflow802;
 	uint        uflow802;
 	uint        Tprtoflow;
@@ -412,7 +435,8 @@ struct slic_ifevents {
 	uint        TpHlen;
 };
 
-struct adapter {
+struct adapter
+{
 	void *ifp;
 	struct sliccard *card;
 	uint                port;
@@ -518,13 +542,13 @@ static inline u32 slic_read32(struct adapter *adapter, unsigned int reg)
 }
 
 static inline void slic_write32(struct adapter *adapter, unsigned int reg,
-				u32 val)
+								u32 val)
 {
 	iowrite32(val, adapter->regs + reg);
 }
 
 static inline void slic_write64(struct adapter *adapter, unsigned int reg,
-				u32 val, u32 hiaddr)
+								u32 val, u32 hiaddr)
 {
 	unsigned long flags;
 
@@ -541,23 +565,23 @@ static inline void slic_flush_write(struct adapter *adapter)
 }
 
 #define UPDATE_STATS(largestat, newstat, oldstat)                        \
-{                                                                        \
-	if ((newstat) < (oldstat))                                       \
-		(largestat) += ((newstat) + (0xFFFFFFFF - oldstat + 1)); \
-	else                                                             \
-		(largestat) += ((newstat) - (oldstat));                  \
-}
+	{                                                                        \
+		if ((newstat) < (oldstat))                                       \
+			(largestat) += ((newstat) + (0xFFFFFFFF - oldstat + 1)); \
+		else                                                             \
+			(largestat) += ((newstat) - (oldstat));                  \
+	}
 
 #define UPDATE_STATS_GB(largestat, newstat, oldstat)                     \
-{                                                                        \
-	(largestat) += ((newstat) - (oldstat));                          \
-}
+	{                                                                        \
+		(largestat) += ((newstat) - (oldstat));                          \
+	}
 
 #if BITS_PER_LONG == 64
 #define   SLIC_GET_ADDR_LOW(_addr)  (u32)((u64)(_addr) & \
-	0x00000000FFFFFFFF)
+		0x00000000FFFFFFFF)
 #define   SLIC_GET_ADDR_HIGH(_addr)  (u32)(((u64)(_addr) >> 32) & \
-	0x00000000FFFFFFFF)
+		0x00000000FFFFFFFF)
 #elif BITS_PER_LONG == 32
 #define   SLIC_GET_ADDR_LOW(_addr)   (u32)(_addr)
 #define   SLIC_GET_ADDR_HIGH(_addr)  (u32)0

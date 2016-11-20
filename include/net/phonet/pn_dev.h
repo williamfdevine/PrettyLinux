@@ -23,14 +23,16 @@
 #ifndef PN_DEV_H
 #define PN_DEV_H
 
-struct phonet_device_list {
+struct phonet_device_list
+{
 	struct list_head list;
 	struct mutex lock;
 };
 
 struct phonet_device_list *phonet_device_list(struct net *net);
 
-struct phonet_device {
+struct phonet_device
+{
 	struct list_head list;
 	struct net_device *netdev;
 	DECLARE_BITMAP(addrs, 64);

@@ -6,7 +6,8 @@
 #include <linux/timer.h>
 #include <linux/notifier.h>
 
-struct flow_cache_percpu {
+struct flow_cache_percpu
+{
 	struct hlist_head		*hash_table;
 	int				hash_count;
 	u32				hash_rnd;
@@ -14,7 +15,8 @@ struct flow_cache_percpu {
 	struct tasklet_struct		flush_tasklet;
 };
 
-struct flow_cache {
+struct flow_cache
+{
 	u32				hash_shift;
 	struct flow_cache_percpu __percpu *percpu;
 	struct notifier_block		hotcpu_notifier;

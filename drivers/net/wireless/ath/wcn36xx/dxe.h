@@ -68,13 +68,13 @@ H2H_TEST_RX_TX = DMA2
 #define WCN36XX_DXE_REG_CH_ERR			(WCN36XX_DXE_MEM_REG + 0x10)
 #define WCN36XX_DXE_INT_MASK_REG		(WCN36XX_DXE_MEM_REG + 0x18)
 #define WCN36XX_DXE_INT_SRC_RAW_REG		(WCN36XX_DXE_MEM_REG + 0x20)
-	/* #define WCN36XX_DXE_INT_CH6_MASK	0x00000040 */
-	/* #define WCN36XX_DXE_INT_CH5_MASK	0x00000020 */
-	#define WCN36XX_DXE_INT_CH4_MASK	0x00000010
-	#define WCN36XX_DXE_INT_CH3_MASK	0x00000008
-	/* #define WCN36XX_DXE_INT_CH2_MASK	0x00000004 */
-	#define WCN36XX_DXE_INT_CH1_MASK	0x00000002
-	#define WCN36XX_DXE_INT_CH0_MASK	0x00000001
+/* #define WCN36XX_DXE_INT_CH6_MASK	0x00000040 */
+/* #define WCN36XX_DXE_INT_CH5_MASK	0x00000020 */
+#define WCN36XX_DXE_INT_CH4_MASK	0x00000010
+#define WCN36XX_DXE_INT_CH3_MASK	0x00000008
+/* #define WCN36XX_DXE_INT_CH2_MASK	0x00000004 */
+#define WCN36XX_DXE_INT_CH1_MASK	0x00000002
+#define WCN36XX_DXE_INT_CH0_MASK	0x00000001
 #define WCN36XX_DXE_0_INT_CLR			(WCN36XX_DXE_MEM_REG + 0x30)
 #define WCN36XX_DXE_0_INT_ED_CLR		(WCN36XX_DXE_MEM_REG + 0x34)
 #define WCN36XX_DXE_0_INT_DONE_CLR		(WCN36XX_DXE_MEM_REG + 0x38)
@@ -100,67 +100,67 @@ H2H_TEST_RX_TX = DMA2
 /* Address of the next DXE descriptor */
 #define WCN36XX_DXE_CH_NEXT_DESC_ADDR		0x001C
 #define WCN36XX_DXE_CH_NEXT_DESC_ADDR_TX_L	(WCN36XX_DXE_MEM_REG + \
-						 WCN36XX_DXE_TX_LOW_OFFSET + \
-						 WCN36XX_DXE_CH_NEXT_DESC_ADDR)
+		WCN36XX_DXE_TX_LOW_OFFSET + \
+		WCN36XX_DXE_CH_NEXT_DESC_ADDR)
 #define WCN36XX_DXE_CH_NEXT_DESC_ADDR_TX_H	(WCN36XX_DXE_MEM_REG + \
-						 WCN36XX_DXE_TX_HIGH_OFFSET + \
-						 WCN36XX_DXE_CH_NEXT_DESC_ADDR)
+		WCN36XX_DXE_TX_HIGH_OFFSET + \
+		WCN36XX_DXE_CH_NEXT_DESC_ADDR)
 #define WCN36XX_DXE_CH_NEXT_DESC_ADDR_RX_L	(WCN36XX_DXE_MEM_REG + \
-						 WCN36XX_DXE_RX_LOW_OFFSET + \
-						 WCN36XX_DXE_CH_NEXT_DESC_ADDR)
+		WCN36XX_DXE_RX_LOW_OFFSET + \
+		WCN36XX_DXE_CH_NEXT_DESC_ADDR)
 #define WCN36XX_DXE_CH_NEXT_DESC_ADDR_RX_H	(WCN36XX_DXE_MEM_REG + \
-						 WCN36XX_DXE_RX_HIGH_OFFSET + \
-						 WCN36XX_DXE_CH_NEXT_DESC_ADDR)
+		WCN36XX_DXE_RX_HIGH_OFFSET + \
+		WCN36XX_DXE_CH_NEXT_DESC_ADDR)
 
 /* DXE Descriptor source address */
 #define WCN36XX_DXE_CH_SRC_ADDR			0x000C
 #define WCN36XX_DXE_CH_SRC_ADDR_RX_L		(WCN36XX_DXE_MEM_REG + \
-						 WCN36XX_DXE_RX_LOW_OFFSET + \
-						 WCN36XX_DXE_CH_SRC_ADDR)
+		WCN36XX_DXE_RX_LOW_OFFSET + \
+		WCN36XX_DXE_CH_SRC_ADDR)
 #define WCN36XX_DXE_CH_SRC_ADDR_RX_H		(WCN36XX_DXE_MEM_REG + \
-						 WCN36XX_DXE_RX_HIGH_OFFSET + \
-						 WCN36XX_DXE_CH_SRC_ADDR)
+		WCN36XX_DXE_RX_HIGH_OFFSET + \
+		WCN36XX_DXE_CH_SRC_ADDR)
 
 /* DXE Descriptor address destination address */
 #define WCN36XX_DXE_CH_DEST_ADDR		0x0014
 #define WCN36XX_DXE_CH_DEST_ADDR_TX_L		(WCN36XX_DXE_MEM_REG + \
-						 WCN36XX_DXE_TX_LOW_OFFSET + \
-						 WCN36XX_DXE_CH_DEST_ADDR)
+		WCN36XX_DXE_TX_LOW_OFFSET + \
+		WCN36XX_DXE_CH_DEST_ADDR)
 #define WCN36XX_DXE_CH_DEST_ADDR_TX_H		(WCN36XX_DXE_MEM_REG + \
-						 WCN36XX_DXE_TX_HIGH_OFFSET + \
-						 WCN36XX_DXE_CH_DEST_ADDR)
+		WCN36XX_DXE_TX_HIGH_OFFSET + \
+		WCN36XX_DXE_CH_DEST_ADDR)
 #define WCN36XX_DXE_CH_DEST_ADDR_RX_L		(WCN36XX_DXE_MEM_REG + \
-						 WCN36XX_DXE_RX_LOW_OFFSET + \
-						 WCN36XX_DXE_CH_DEST_ADDR)
+		WCN36XX_DXE_RX_LOW_OFFSET + \
+		WCN36XX_DXE_CH_DEST_ADDR)
 #define WCN36XX_DXE_CH_DEST_ADDR_RX_H		(WCN36XX_DXE_MEM_REG + \
-						 WCN36XX_DXE_RX_HIGH_OFFSET + \
-						 WCN36XX_DXE_CH_DEST_ADDR)
+		WCN36XX_DXE_RX_HIGH_OFFSET + \
+		WCN36XX_DXE_CH_DEST_ADDR)
 
 /* Interrupt status */
 #define WCN36XX_DXE_CH_STATUS_REG_ADDR		0x0004
 #define WCN36XX_DXE_CH_STATUS_REG_ADDR_TX_L	(WCN36XX_DXE_MEM_REG + \
-						 WCN36XX_DXE_TX_LOW_OFFSET + \
-						 WCN36XX_DXE_CH_STATUS_REG_ADDR)
+		WCN36XX_DXE_TX_LOW_OFFSET + \
+		WCN36XX_DXE_CH_STATUS_REG_ADDR)
 #define WCN36XX_DXE_CH_STATUS_REG_ADDR_TX_H	(WCN36XX_DXE_MEM_REG + \
-						 WCN36XX_DXE_TX_HIGH_OFFSET + \
-						 WCN36XX_DXE_CH_STATUS_REG_ADDR)
+		WCN36XX_DXE_TX_HIGH_OFFSET + \
+		WCN36XX_DXE_CH_STATUS_REG_ADDR)
 #define WCN36XX_DXE_CH_STATUS_REG_ADDR_RX_L	(WCN36XX_DXE_MEM_REG + \
-						 WCN36XX_DXE_RX_LOW_OFFSET + \
-						 WCN36XX_DXE_CH_STATUS_REG_ADDR)
+		WCN36XX_DXE_RX_LOW_OFFSET + \
+		WCN36XX_DXE_CH_STATUS_REG_ADDR)
 #define WCN36XX_DXE_CH_STATUS_REG_ADDR_RX_H	(WCN36XX_DXE_MEM_REG + \
-						 WCN36XX_DXE_RX_HIGH_OFFSET + \
-						 WCN36XX_DXE_CH_STATUS_REG_ADDR)
+		WCN36XX_DXE_RX_HIGH_OFFSET + \
+		WCN36XX_DXE_CH_STATUS_REG_ADDR)
 
 
 /* DXE default control register */
 #define WCN36XX_DXE_REG_CTL_RX_L		(WCN36XX_DXE_MEM_REG + \
-						 WCN36XX_DXE_RX_LOW_OFFSET)
+		WCN36XX_DXE_RX_LOW_OFFSET)
 #define WCN36XX_DXE_REG_CTL_RX_H		(WCN36XX_DXE_MEM_REG + \
-						 WCN36XX_DXE_RX_HIGH_OFFSET)
+		WCN36XX_DXE_RX_HIGH_OFFSET)
 #define WCN36XX_DXE_REG_CTL_TX_H		(WCN36XX_DXE_MEM_REG + \
-						 WCN36XX_DXE_TX_HIGH_OFFSET)
+		WCN36XX_DXE_TX_HIGH_OFFSET)
 #define WCN36XX_DXE_REG_CTL_TX_L		(WCN36XX_DXE_MEM_REG + \
-						 WCN36XX_DXE_TX_LOW_OFFSET)
+		WCN36XX_DXE_TX_LOW_OFFSET)
 
 #define WCN36XX_SMSM_WLAN_TX_ENABLE		0x00000400
 #define WCN36XX_SMSM_WLAN_TX_RINGS_EMPTY	0x00000200
@@ -175,7 +175,8 @@ H2H_TEST_RX_TX = DMA2
 #define WCN36XX_BD_CHUNK_SIZE			128
 
 #define WCN36XX_PKT_SIZE			0xF20
-enum wcn36xx_dxe_ch_type {
+enum wcn36xx_dxe_ch_type
+{
 	WCN36XX_DXE_CH_TX_L,
 	WCN36XX_DXE_CH_TX_H,
 	WCN36XX_DXE_CH_RX_L,
@@ -183,7 +184,8 @@ enum wcn36xx_dxe_ch_type {
 };
 
 /* amount of descriptors per channel */
-enum wcn36xx_dxe_ch_desc_num {
+enum wcn36xx_dxe_ch_desc_num
+{
 	WCN36XX_DXE_CH_DESC_NUMB_TX_L		= 128,
 	WCN36XX_DXE_CH_DESC_NUMB_TX_H		= 10,
 	WCN36XX_DXE_CH_DESC_NUMB_RX_L		= 512,
@@ -217,7 +219,8 @@ enum wcn36xx_dxe_ch_desc_num {
  *				    //only used for host to host transfers?
  * } ctrl;
  */
-struct wcn36xx_dxe_desc {
+struct wcn36xx_dxe_desc
+{
 	u32	ctrl;
 	u32	fr_len;
 
@@ -230,7 +233,8 @@ struct wcn36xx_dxe_desc {
 } __packed;
 
 /* DXE Control block */
-struct wcn36xx_dxe_ctl {
+struct wcn36xx_dxe_ctl
+{
 	struct wcn36xx_dxe_ctl	*next;
 	struct wcn36xx_dxe_desc	*desc;
 	unsigned int		desc_phy_addr;
@@ -241,7 +245,8 @@ struct wcn36xx_dxe_ctl {
 	dma_addr_t		bd_phy_addr;
 };
 
-struct wcn36xx_dxe_ch {
+struct wcn36xx_dxe_ch
+{
 	spinlock_t			lock;	/* protects head/tail ptrs */
 	enum wcn36xx_dxe_ch_type	ch_type;
 	void				*cpu_addr;
@@ -260,7 +265,8 @@ struct wcn36xx_dxe_ch {
 };
 
 /* Memory Pool for BD headers */
-struct wcn36xx_dxe_mem_pool {
+struct wcn36xx_dxe_mem_pool
+{
 	int		chunk_size;
 	void		*virt_addr;
 	dma_addr_t	phy_addr;
@@ -276,9 +282,9 @@ int wcn36xx_dxe_init(struct wcn36xx *wcn);
 void wcn36xx_dxe_deinit(struct wcn36xx *wcn);
 int wcn36xx_dxe_init_channels(struct wcn36xx *wcn);
 int wcn36xx_dxe_tx_frame(struct wcn36xx *wcn,
-			 struct wcn36xx_vif *vif_priv,
-			 struct sk_buff *skb,
-			 bool is_low);
+						 struct wcn36xx_vif *vif_priv,
+						 struct sk_buff *skb,
+						 bool is_low);
 void wcn36xx_dxe_tx_ack_ind(struct wcn36xx *wcn, u32 status);
 void *wcn36xx_dxe_get_next_bd(struct wcn36xx *wcn, bool is_low);
 #endif	/* _DXE_H_ */

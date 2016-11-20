@@ -31,7 +31,8 @@
  ******************************************************************************/
 
 static const struct gf100_gr_init
-gf117_gr_init_pe_0[] = {
+	gf117_gr_init_pe_0[] =
+{
 	{ 0x41980c,   1, 0x04, 0x00000010 },
 	{ 0x419844,   1, 0x04, 0x00000000 },
 	{ 0x41984c,   1, 0x04, 0x00005bc8 },
@@ -40,7 +41,8 @@ gf117_gr_init_pe_0[] = {
 };
 
 const struct gf100_gr_init
-gf117_gr_init_pes_0[] = {
+	gf117_gr_init_pes_0[] =
+{
 	{ 0x41be04,   1, 0x04, 0x00000000 },
 	{ 0x41be08,   1, 0x04, 0x00000004 },
 	{ 0x41be0c,   1, 0x04, 0x00000000 },
@@ -50,7 +52,8 @@ gf117_gr_init_pes_0[] = {
 };
 
 const struct gf100_gr_init
-gf117_gr_init_wwdx_0[] = {
+	gf117_gr_init_wwdx_0[] =
+{
 	{ 0x41bfd4,   1, 0x04, 0x00800000 },
 	{ 0x41bfdc,   1, 0x04, 0x00000000 },
 	{ 0x41bff8,   2, 0x04, 0x00000000 },
@@ -58,14 +61,16 @@ gf117_gr_init_wwdx_0[] = {
 };
 
 const struct gf100_gr_init
-gf117_gr_init_cbm_0[] = {
+	gf117_gr_init_cbm_0[] =
+{
 	{ 0x41becc,   1, 0x04, 0x00000000 },
 	{ 0x41bee8,   2, 0x04, 0x00000000 },
 	{}
 };
 
 static const struct gf100_gr_pack
-gf117_gr_pack_mmio[] = {
+	gf117_gr_pack_mmio[] =
+{
 	{ gf100_gr_init_main_0 },
 	{ gf100_gr_init_fe_0 },
 	{ gf100_gr_init_pri_0 },
@@ -103,7 +108,8 @@ gf117_gr_pack_mmio[] = {
 #include "fuc/hubgf117.fuc3.h"
 
 struct gf100_gr_ucode
-gf117_gr_fecs_ucode = {
+	gf117_gr_fecs_ucode =
+{
 	.code.data = gf117_grhub_code,
 	.code.size = sizeof(gf117_grhub_code),
 	.data.data = gf117_grhub_data,
@@ -113,7 +119,8 @@ gf117_gr_fecs_ucode = {
 #include "fuc/gpcgf117.fuc3.h"
 
 struct gf100_gr_ucode
-gf117_gr_gpccs_ucode = {
+	gf117_gr_gpccs_ucode =
+{
 	.code.data = gf117_grgpc_code,
 	.code.size = sizeof(gf117_grgpc_code),
 	.data.data = gf117_grgpc_data,
@@ -121,7 +128,8 @@ gf117_gr_gpccs_ucode = {
 };
 
 static const struct gf100_gr_func
-gf117_gr = {
+	gf117_gr =
+{
 	.init = gf100_gr_init,
 	.mmio = gf117_gr_pack_mmio,
 	.fecs.ucode = &gf117_gr_fecs_ucode,

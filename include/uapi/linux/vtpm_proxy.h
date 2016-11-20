@@ -20,7 +20,8 @@
 
 /* ioctls */
 
-struct vtpm_proxy_new_dev {
+struct vtpm_proxy_new_dev
+{
 	__u32 flags;         /* input */
 	__u32 tpm_num;       /* output */
 	__u32 fd;            /* output */

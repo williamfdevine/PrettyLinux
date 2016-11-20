@@ -39,7 +39,8 @@
 #define USBSS_IRQ_COREIRQ_EN	BIT(0)
 #define USBSS_IRQ_COREIRQ_CLR	BIT(0)
 
-struct dwc3_keystone {
+struct dwc3_keystone
+{
 	struct device			*dev;
 	struct clk			*clk;
 	void __iomem			*usbss;
@@ -94,8 +95,11 @@ static int kdwc3_probe(struct platform_device *pdev)
 	int			error, irq;
 
 	kdwc = devm_kzalloc(dev, sizeof(*kdwc), GFP_KERNEL);
+
 	if (!kdwc)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, kdwc);
 
@@ -103,28 +107,37 @@ static int kdwc3_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	kdwc->usbss = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(kdwc->usbss))
+	{
 		return PTR_ERR(kdwc->usbss);
+	}
 
 	kdwc->clk = devm_clk_get(kdwc->dev, "usb");
 
 	error = clk_prepare_enable(kdwc->clk);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		dev_err(kdwc->dev, "unable to enable usb clock, error %d\n",
-			error);
+				error);
 		return error;
 	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "missing irq\n");
 		error = irq;
 		goto err_irq;
 	}
 
 	error = devm_request_irq(dev, irq, dwc3_keystone_interrupt, IRQF_SHARED,
-			dev_name(dev), kdwc);
-	if (error) {
+							 dev_name(dev), kdwc);
+
+	if (error)
+	{
 		dev_err(dev, "failed to request IRQ #%d --> %d\n",
 				irq, error);
 		goto err_irq;
@@ -133,7 +146,9 @@ static int kdwc3_probe(struct platform_device *pdev)
 	kdwc3_enable_irqs(kdwc);
 
 	error = of_platform_populate(node, NULL, NULL, dev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "failed to create dwc3 core\n");
 		goto err_core;
 	}
@@ -169,13 +184,15 @@ static int kdwc3_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id kdwc3_of_match[] = {
+static const struct of_device_id kdwc3_of_match[] =
+{
 	{ .compatible = "ti,keystone-dwc3", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, kdwc3_of_match);
 
-static struct platform_driver kdwc3_driver = {
+static struct platform_driver kdwc3_driver =
+{
 	.probe		= kdwc3_probe,
 	.remove		= kdwc3_remove,
 	.driver		= {

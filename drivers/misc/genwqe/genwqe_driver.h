@@ -63,15 +63,15 @@ void ddcb_requ_free(struct genwqe_ddcb_cmd *req);
 u32  genwqe_crc32(u8 *buff, size_t len, u32 init);
 
 static inline void genwqe_hexdump(struct pci_dev *pci_dev,
-				  const void *buff, unsigned int size)
+								  const void *buff, unsigned int size)
 {
 	char prefix[32];
 
 	scnprintf(prefix, sizeof(prefix), "%s %s: ",
-		  GENWQE_DEVNAME, pci_name(pci_dev));
+			  GENWQE_DEVNAME, pci_name(pci_dev));
 
 	print_hex_dump_debug(prefix, DUMP_PREFIX_OFFSET, 16, 1, buff,
-			     size, true);
+						 size, true);
 }
 
 #endif	/* __GENWQE_DRIVER_H__ */

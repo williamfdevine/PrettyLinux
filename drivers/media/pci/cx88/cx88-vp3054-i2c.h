@@ -23,7 +23,8 @@
 */
 
 /* ----------------------------------------------------------------------- */
-struct vp3054_i2c_state {
+struct vp3054_i2c_state
+{
 	struct i2c_adapter         adap;
 	struct i2c_algo_bit_data   algo;
 	u32                        state;

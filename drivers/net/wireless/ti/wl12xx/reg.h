@@ -384,7 +384,8 @@
 #define OFDM_RATE_BIT        BIT(6)
 #define PBCC_RATE_BIT        BIT(7)
 
-enum {
+enum
+{
 	CCK_LONG = 0,
 	CCK_SHORT = SHORT_PREAMBLE_BIT,
 	PBCC_LONG = PBCC_RATE_BIT,
@@ -481,7 +482,8 @@ b12-b0 - Supported Rate indicator bits as defined below.
 #define SDIO_IO_DS                   0xd14
 
 /* SDIO/wSPI DS configuration values */
-enum {
+enum
+{
 	HCI_IO_DS_8MA = 0,
 	HCI_IO_DS_4MA = 1, /* default */
 	HCI_IO_DS_6MA = 2,
@@ -522,9 +524,9 @@ enum {
 
 #define HI_CFG_DEF_VAL              \
 	(HI_CFG_UART_ENABLE |        \
-	HI_CFG_RST232_ENABLE |      \
-	HI_CFG_CLOCK_REQ_SELECT |   \
-	HI_CFG_HOST_INT_ENABLE)
+	 HI_CFG_RST232_ENABLE |      \
+	 HI_CFG_CLOCK_REQ_SELECT |   \
+	 HI_CFG_HOST_INT_ENABLE)
 
 #define WL127X_REG_FUSE_DATA_2_1	0x050a
 #define WL128X_REG_FUSE_DATA_2_1	0x2152
@@ -542,13 +544,13 @@ enum {
 #define WL128X_PG_MINOR_VER_OFFSET	0x0
 
 #define WL127X_PG_GET_MAJOR(pg_ver) ((pg_ver & WL127X_PG_MAJOR_VER_MASK) >> \
-				     WL127X_PG_MAJOR_VER_OFFSET)
+									 WL127X_PG_MAJOR_VER_OFFSET)
 #define WL127X_PG_GET_MINOR(pg_ver) ((pg_ver & WL127X_PG_MINOR_VER_MASK) >> \
-				     WL127X_PG_MINOR_VER_OFFSET)
+									 WL127X_PG_MINOR_VER_OFFSET)
 #define WL128X_PG_GET_MAJOR(pg_ver) ((pg_ver & WL128X_PG_MAJOR_VER_MASK) >> \
-				     WL128X_PG_MAJOR_VER_OFFSET)
+									 WL128X_PG_MAJOR_VER_OFFSET)
 #define WL128X_PG_GET_MINOR(pg_ver) ((pg_ver & WL128X_PG_MINOR_VER_MASK) >> \
-				     WL128X_PG_MINOR_VER_OFFSET)
+									 WL128X_PG_MINOR_VER_OFFSET)
 
 #define WL12XX_REG_FUSE_BD_ADDR_1	0x00310eb4
 #define WL12XX_REG_FUSE_BD_ADDR_2	0x00310eb8

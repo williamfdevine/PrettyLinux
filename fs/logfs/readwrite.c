@@ -22,22 +22,29 @@
 
 static u64 adjust_bix(u64 bix, level_t level)
 {
-	switch (level) {
-	case 0:
-		return bix;
-	case LEVEL(1):
-		return max_t(u64, bix, I0_BLOCKS);
-	case LEVEL(2):
-		return max_t(u64, bix, I1_BLOCKS);
-	case LEVEL(3):
-		return max_t(u64, bix, I2_BLOCKS);
-	case LEVEL(4):
-		return max_t(u64, bix, I3_BLOCKS);
-	case LEVEL(5):
-		return max_t(u64, bix, I4_BLOCKS);
-	default:
-		WARN_ON(1);
-		return bix;
+	switch (level)
+	{
+		case 0:
+			return bix;
+
+		case LEVEL(1):
+			return max_t(u64, bix, I0_BLOCKS);
+
+		case LEVEL(2):
+			return max_t(u64, bix, I1_BLOCKS);
+
+		case LEVEL(3):
+			return max_t(u64, bix, I2_BLOCKS);
+
+		case LEVEL(4):
+			return max_t(u64, bix, I3_BLOCKS);
+
+		case LEVEL(5):
+			return max_t(u64, bix, I4_BLOCKS);
+
+		default:
+			WARN_ON(1);
+			return bix;
 	}
 }
 
@@ -69,8 +76,11 @@ pgoff_t logfs_pack_index(u64 bix, level_t level)
 	pgoff_t index;
 
 	BUG_ON(bix >= INDIRECT_BIT);
+
 	if (level == 0)
+	{
 		return bix;
+	}
 
 	index  = INDIRECT_BIT;
 	index |= (__force long)level << LEVEL_SHIFT;
@@ -82,7 +92,8 @@ void logfs_unpack_index(pgoff_t index, u64 *bix, level_t *level)
 {
 	u8 __level;
 
-	if (!(index & INDIRECT_BIT)) {
+	if (!(index & INDIRECT_BIT))
+	{
 		*bix = index;
 		*level = 0;
 		return;
@@ -111,7 +122,7 @@ static __be64 timespec_to_be64(struct timespec tsp)
 	return cpu_to_be64((u64)tsp.tv_sec * NSEC_PER_SEC + tsp.tv_nsec);
 }
 
-static void logfs_disk_to_inode(struct logfs_disk_inode *di, struct inode*inode)
+static void logfs_disk_to_inode(struct logfs_disk_inode *di, struct inode *inode)
 {
 	struct logfs_inode *li = logfs_inode(inode);
 	int i;
@@ -129,25 +140,31 @@ static void logfs_disk_to_inode(struct logfs_disk_inode *di, struct inode*inode)
 	set_nlink(inode, be32_to_cpu(di->di_refcount));
 	inode->i_generation = be32_to_cpu(di->di_generation);
 
-	switch (inode->i_mode & S_IFMT) {
-	case S_IFSOCK:	/* fall through */
-	case S_IFBLK:	/* fall through */
-	case S_IFCHR:	/* fall through */
-	case S_IFIFO:
-		inode->i_rdev = be64_to_cpu(di->di_data[0]);
-		break;
-	case S_IFDIR:	/* fall through */
-	case S_IFREG:	/* fall through */
-	case S_IFLNK:
-		for (i = 0; i < LOGFS_EMBEDDED_FIELDS; i++)
-			li->li_data[i] = be64_to_cpu(di->di_data[i]);
-		break;
-	default:
-		BUG();
+	switch (inode->i_mode & S_IFMT)
+	{
+		case S_IFSOCK:	/* fall through */
+		case S_IFBLK:	/* fall through */
+		case S_IFCHR:	/* fall through */
+		case S_IFIFO:
+			inode->i_rdev = be64_to_cpu(di->di_data[0]);
+			break;
+
+		case S_IFDIR:	/* fall through */
+		case S_IFREG:	/* fall through */
+		case S_IFLNK:
+			for (i = 0; i < LOGFS_EMBEDDED_FIELDS; i++)
+			{
+				li->li_data[i] = be64_to_cpu(di->di_data[i]);
+			}
+
+			break;
+
+		default:
+			BUG();
 	}
 }
 
-static void logfs_inode_to_disk(struct inode *inode, struct logfs_disk_inode*di)
+static void logfs_inode_to_disk(struct inode *inode, struct logfs_disk_inode *di)
 {
 	struct logfs_inode *li = logfs_inode(inode);
 	int i;
@@ -166,21 +183,27 @@ static void logfs_inode_to_disk(struct inode *inode, struct logfs_disk_inode*di)
 	di->di_refcount	= cpu_to_be32(inode->i_nlink);
 	di->di_generation = cpu_to_be32(inode->i_generation);
 
-	switch (inode->i_mode & S_IFMT) {
-	case S_IFSOCK:	/* fall through */
-	case S_IFBLK:	/* fall through */
-	case S_IFCHR:	/* fall through */
-	case S_IFIFO:
-		di->di_data[0] = cpu_to_be64(inode->i_rdev);
-		break;
-	case S_IFDIR:	/* fall through */
-	case S_IFREG:	/* fall through */
-	case S_IFLNK:
-		for (i = 0; i < LOGFS_EMBEDDED_FIELDS; i++)
-			di->di_data[i] = cpu_to_be64(li->li_data[i]);
-		break;
-	default:
-		BUG();
+	switch (inode->i_mode & S_IFMT)
+	{
+		case S_IFSOCK:	/* fall through */
+		case S_IFBLK:	/* fall through */
+		case S_IFCHR:	/* fall through */
+		case S_IFIFO:
+			di->di_data[0] = cpu_to_be64(inode->i_rdev);
+			break;
+
+		case S_IFDIR:	/* fall through */
+		case S_IFREG:	/* fall through */
+		case S_IFLNK:
+			for (i = 0; i < LOGFS_EMBEDDED_FIELDS; i++)
+			{
+				di->di_data[i] = cpu_to_be64(li->li_data[i]);
+			}
+
+			break;
+
+		default:
+			BUG();
 	}
 }
 
@@ -190,8 +213,11 @@ static void __logfs_set_blocks(struct inode *inode)
 	struct logfs_inode *li = logfs_inode(inode);
 
 	inode->i_blocks = ULONG_MAX;
+
 	if (li->li_used_bytes >> sb->s_blocksize_bits < ULONG_MAX)
+	{
 		inode->i_blocks = ALIGN(li->li_used_bytes, 512) >> 9;
+	}
 }
 
 void logfs_set_blocks(struct inode *inode, u64 bytes)
@@ -207,15 +233,23 @@ static void prelock_page(struct super_block *sb, struct page *page, int lock)
 	struct logfs_super *super = logfs_super(sb);
 
 	BUG_ON(!PageLocked(page));
-	if (lock) {
+
+	if (lock)
+	{
 		BUG_ON(PagePreLocked(page));
 		SetPagePreLocked(page);
-	} else {
+	}
+	else
+	{
 		/* We are in GC path. */
 		if (PagePreLocked(page))
+		{
 			super->s_lock_count++;
+		}
 		else
+		{
 			SetPagePreLocked(page);
+		}
 	}
 }
 
@@ -224,15 +258,24 @@ static void preunlock_page(struct super_block *sb, struct page *page, int lock)
 	struct logfs_super *super = logfs_super(sb);
 
 	BUG_ON(!PageLocked(page));
+
 	if (lock)
+	{
 		ClearPagePreLocked(page);
-	else {
+	}
+	else
+	{
 		/* We are in GC path. */
 		BUG_ON(!PagePreLocked(page));
+
 		if (super->s_lock_count)
+		{
 			super->s_lock_count--;
+		}
 		else
+		{
 			ClearPagePreLocked(page);
+		}
 	}
 }
 
@@ -249,9 +292,12 @@ void logfs_get_wblocks(struct super_block *sb, struct page *page, int lock)
 	struct logfs_super *super = logfs_super(sb);
 
 	if (page)
+	{
 		prelock_page(sb, page, lock);
+	}
 
-	if (lock) {
+	if (lock)
+	{
 		mutex_lock(&super->s_write_mutex);
 		logfs_gc_pass(sb);
 		/* FIXME: We also have to check for shadowed space
@@ -264,18 +310,23 @@ void logfs_put_wblocks(struct super_block *sb, struct page *page, int lock)
 	struct logfs_super *super = logfs_super(sb);
 
 	if (page)
+	{
 		preunlock_page(sb, page, lock);
+	}
+
 	/* Order matters - we must clear PG_pre_locked before releasing
 	 * s_write_mutex or we could race against another task. */
 	if (lock)
+	{
 		mutex_unlock(&super->s_write_mutex);
+	}
 }
 
 static struct page *logfs_get_read_page(struct inode *inode, u64 bix,
-		level_t level)
+										level_t level)
 {
 	return find_or_create_page(inode->i_mapping,
-			logfs_pack_index(bix, level), GFP_NOFS);
+							   logfs_pack_index(bix, level), GFP_NOFS);
 }
 
 static void logfs_put_read_page(struct page *page)
@@ -288,22 +339,28 @@ static void logfs_lock_write_page(struct page *page)
 {
 	int loop = 0;
 
-	while (unlikely(!trylock_page(page))) {
-		if (loop++ > 0x1000) {
+	while (unlikely(!trylock_page(page)))
+	{
+		if (loop++ > 0x1000)
+		{
 			/* Has been observed once so far... */
 			printk(KERN_ERR "stack at %p\n", &loop);
 			BUG();
 		}
-		if (PagePreLocked(page)) {
+
+		if (PagePreLocked(page))
+		{
 			/* Holder of page lock is waiting for us, it
 			 * is safe to use this page. */
 			break;
 		}
+
 		/* Some other process has this page locked and has
 		 * nothing to do with us.  Wait for it to finish.
 		 */
 		schedule();
 	}
+
 	BUG_ON(!PageLocked(page));
 }
 
@@ -317,18 +374,32 @@ static struct page *logfs_get_write_page(struct inode *inode, u64 bix,
 
 repeat:
 	page = find_get_page(mapping, index);
-	if (!page) {
+
+	if (!page)
+	{
 		page = __page_cache_alloc(GFP_NOFS);
+
 		if (!page)
-			return NULL;
-		err = add_to_page_cache_lru(page, mapping, index, GFP_NOFS);
-		if (unlikely(err)) {
-			put_page(page);
-			if (err == -EEXIST)
-				goto repeat;
+		{
 			return NULL;
 		}
-	} else logfs_lock_write_page(page);
+
+		err = add_to_page_cache_lru(page, mapping, index, GFP_NOFS);
+
+		if (unlikely(err))
+		{
+			put_page(page);
+
+			if (err == -EEXIST)
+			{
+				goto repeat;
+			}
+
+			return NULL;
+		}
+	}
+	else { logfs_lock_write_page(page); }
+
 	BUG_ON(!PageLocked(page));
 	return page;
 }
@@ -336,7 +407,9 @@ repeat:
 static void logfs_unlock_write_page(struct page *page)
 {
 	if (!PagePreLocked(page))
+	{
 		unlock_page(page);
+	}
 }
 
 static void logfs_put_write_page(struct page *page)
@@ -346,20 +419,28 @@ static void logfs_put_write_page(struct page *page)
 }
 
 static struct page *logfs_get_page(struct inode *inode, u64 bix, level_t level,
-		int rw)
+								   int rw)
 {
 	if (rw == READ)
+	{
 		return logfs_get_read_page(inode, bix, level);
+	}
 	else
+	{
 		return logfs_get_write_page(inode, bix, level);
+	}
 }
 
 static void logfs_put_page(struct page *page, int rw)
 {
 	if (rw == READ)
+	{
 		logfs_put_read_page(page);
+	}
 	else
+	{
 		logfs_put_write_page(page);
+	}
 }
 
 static unsigned long __get_bits(u64 val, int skip, int no)
@@ -378,7 +459,7 @@ static unsigned long get_bits(u64 val, level_t skip)
 }
 
 static inline void init_shadow_tree(struct super_block *sb,
-		struct shadow_tree *tree)
+									struct shadow_tree *tree)
 {
 	struct logfs_super *super = logfs_super(sb);
 
@@ -419,9 +500,13 @@ static void inode_write_block(struct logfs_block *block)
 	int ret;
 
 	inode = block->inode;
+
 	if (inode->i_ino == LOGFS_INO_MASTER)
+	{
 		logfs_write_anchor(inode->i_sb);
-	else {
+	}
+	else
+	{
 		ret = __logfs_write_inode(inode, NULL, 0);
 		/* see indirect_write_block comment */
 		BUG_ON(ret);
@@ -434,7 +519,7 @@ static void inode_write_block(struct logfs_block *block)
  * TODO: Complain to gcc folks about this and upgrade compiler.
  */
 static unsigned long fnb(const unsigned long *addr,
-		unsigned long size, unsigned long offset)
+						 unsigned long size, unsigned long offset)
 {
 	return find_next_bit(addr, size, offset);
 }
@@ -453,13 +538,13 @@ static __be64 inode_val0(struct inode *inode)
 	BUILD_BUG_ON(offsetof(struct logfs_disk_inode, di_flags) != 4);
 
 	val =	(u64)inode->i_mode << 48 |
-		(u64)li->li_height << 40 |
-		(u64)li->li_flags;
+			(u64)li->li_height << 40 |
+			(u64)li->li_flags;
 	return cpu_to_be64(val);
 }
 
 static int inode_write_alias(struct super_block *sb,
-		struct logfs_block *block, write_alias_t *write_one_alias)
+							 struct logfs_block *block, write_alias_t *write_one_alias)
 {
 	struct inode *inode = block->inode;
 	struct logfs_inode *li = logfs_inode(inode);
@@ -469,39 +554,51 @@ static int inode_write_alias(struct super_block *sb,
 	level_t level;
 	int err;
 
-	for (pos = 0; ; pos++) {
+	for (pos = 0; ; pos++)
+	{
 		pos = fnb(block->alias_map, LOGFS_BLOCK_FACTOR, pos);
-		if (pos >= LOGFS_EMBEDDED_FIELDS + INODE_POINTER_OFS)
-			return 0;
 
-		switch (pos) {
-		case INODE_HEIGHT_OFS:
-			val = inode_val0(inode);
-			break;
-		case INODE_USED_OFS:
-			val = cpu_to_be64(li->li_used_bytes);
-			break;
-		case INODE_SIZE_OFS:
-			val = cpu_to_be64(i_size_read(inode));
-			break;
-		case INODE_POINTER_OFS ... INODE_POINTER_OFS + LOGFS_EMBEDDED_FIELDS - 1:
-			val = cpu_to_be64(li->li_data[pos - INODE_POINTER_OFS]);
-			break;
-		default:
-			BUG();
+		if (pos >= LOGFS_EMBEDDED_FIELDS + INODE_POINTER_OFS)
+		{
+			return 0;
+		}
+
+		switch (pos)
+		{
+			case INODE_HEIGHT_OFS:
+				val = inode_val0(inode);
+				break;
+
+			case INODE_USED_OFS:
+				val = cpu_to_be64(li->li_used_bytes);
+				break;
+
+			case INODE_SIZE_OFS:
+				val = cpu_to_be64(i_size_read(inode));
+				break;
+
+			case INODE_POINTER_OFS ... INODE_POINTER_OFS + LOGFS_EMBEDDED_FIELDS - 1:
+				val = cpu_to_be64(li->li_data[pos - INODE_POINTER_OFS]);
+				break;
+
+			default:
+				BUG();
 		}
 
 		ino = LOGFS_INO_MASTER;
 		bix = inode->i_ino;
 		level = LEVEL(0);
 		err = write_one_alias(sb, ino, bix, level, pos, val);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 }
 
 static int indirect_write_alias(struct super_block *sb,
-		struct logfs_block *block, write_alias_t *write_one_alias)
+								struct logfs_block *block, write_alias_t *write_one_alias)
 {
 	unsigned long pos;
 	struct page *page = block->page;
@@ -510,10 +607,14 @@ static int indirect_write_alias(struct super_block *sb,
 	level_t level;
 	int err;
 
-	for (pos = 0; ; pos++) {
+	for (pos = 0; ; pos++)
+	{
 		pos = fnb(block->alias_map, LOGFS_BLOCK_FACTOR, pos);
+
 		if (pos >= LOGFS_BLOCK_FACTOR)
+		{
 			return 0;
+		}
 
 		ino = page->mapping->host->i_ino;
 		logfs_unpack_index(page->index, &bix, &level);
@@ -521,8 +622,11 @@ static int indirect_write_alias(struct super_block *sb,
 		val = child[pos];
 		kunmap_atomic(child);
 		err = write_one_alias(sb, ino, bix, level, pos, val);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 }
 
@@ -532,10 +636,14 @@ int logfs_write_obj_aliases_pagecache(struct super_block *sb)
 	struct logfs_block *block;
 	int err;
 
-	list_for_each_entry(block, &super->s_object_alias, alias_list) {
+	list_for_each_entry(block, &super->s_object_alias, alias_list)
+	{
 		err = block->ops->write_alias(sb, block, write_alias_journal);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 	return 0;
 }
@@ -556,33 +664,37 @@ static void inode_free_block(struct super_block *sb, struct logfs_block *block)
 }
 
 static void indirect_free_block(struct super_block *sb,
-		struct logfs_block *block)
+								struct logfs_block *block)
 {
 	struct page *page = block->page;
 
-	if (PagePrivate(page)) {
+	if (PagePrivate(page))
+	{
 		ClearPagePrivate(page);
 		put_page(page);
 		set_page_private(page, 0);
 	}
+
 	__free_block(sb, block);
 }
 
 
-static const struct logfs_block_ops inode_block_ops = {
+static const struct logfs_block_ops inode_block_ops =
+{
 	.write_block = inode_write_block,
 	.free_block = inode_free_block,
 	.write_alias = inode_write_alias,
 };
 
-const struct logfs_block_ops indirect_block_ops = {
+const struct logfs_block_ops indirect_block_ops =
+{
 	.write_block = indirect_write_block,
 	.free_block = indirect_free_block,
 	.write_alias = indirect_write_alias,
 };
 
 struct logfs_block *__alloc_block(struct super_block *sb,
-		u64 ino, u64 bix, level_t level)
+								  u64 ino, u64 bix, level_t level)
 {
 	struct logfs_super *super = logfs_super(sb);
 	struct logfs_block *block;
@@ -604,7 +716,9 @@ static void alloc_inode_block(struct inode *inode)
 	struct logfs_block *block;
 
 	if (li->li_block)
+	{
 		return;
+	}
 
 	block = __alloc_block(inode->i_sb, LOGFS_INO_MASTER, inode->i_ino, 0);
 	block->inode = inode;
@@ -613,7 +727,7 @@ static void alloc_inode_block(struct inode *inode)
 }
 
 void initialize_block_counters(struct page *page, struct logfs_block *block,
-		__be64 *array, int page_is_empty)
+							   __be64 *array, int page_is_empty)
 {
 	u64 ptr;
 	int i, start;
@@ -621,22 +735,35 @@ void initialize_block_counters(struct page *page, struct logfs_block *block,
 	block->partial = 0;
 	block->full = 0;
 	start = 0;
-	if (page->index < first_indirect_block()) {
+
+	if (page->index < first_indirect_block())
+	{
 		/* Counters are pointless on level 0 */
 		return;
 	}
-	if (page->index == first_indirect_block()) {
+
+	if (page->index == first_indirect_block())
+	{
 		/* Skip unused pointers */
 		start = I0_BLOCKS;
 		block->full = I0_BLOCKS;
 	}
-	if (!page_is_empty) {
-		for (i = start; i < LOGFS_BLOCK_FACTOR; i++) {
+
+	if (!page_is_empty)
+	{
+		for (i = start; i < LOGFS_BLOCK_FACTOR; i++)
+		{
 			ptr = be64_to_cpu(array[i]);
+
 			if (ptr)
+			{
 				block->partial++;
+			}
+
 			if (ptr & LOGFS_FULLY_POPULATED)
+			{
 				block->full++;
+			}
 		}
 	}
 }
@@ -648,7 +775,9 @@ static void alloc_data_block(struct inode *inode, struct page *page)
 	level_t level;
 
 	if (PagePrivate(page))
+	{
 		return;
+	}
 
 	logfs_unpack_index(page->index, &bix, &level);
 	block = __alloc_block(inode->i_sb, inode->i_ino, bix, level);
@@ -662,13 +791,15 @@ static void alloc_data_block(struct inode *inode, struct page *page)
 }
 
 static void alloc_indirect_block(struct inode *inode, struct page *page,
-		int page_is_empty)
+								 int page_is_empty)
 {
 	struct logfs_block *block;
 	__be64 *array;
 
 	if (PagePrivate(page))
+	{
 		return;
+	}
 
 	alloc_data_block(inode, page);
 
@@ -692,7 +823,7 @@ static void block_set_pointer(struct page *page, int index, u64 ptr)
 	SetPageUptodate(page);
 
 	block->full += !!(ptr & LOGFS_FULLY_POPULATED)
-		- !!(oldptr & LOGFS_FULLY_POPULATED);
+				   - !!(oldptr & LOGFS_FULLY_POPULATED);
 	block->partial += !!ptr - !!oldptr;
 }
 
@@ -720,14 +851,17 @@ static int logfs_read_direct(struct inode *inode, struct page *page)
 	u64 block;
 
 	block = li->li_data[index];
+
 	if (!block)
+	{
 		return logfs_read_empty(page);
+	}
 
 	return logfs_segment_read(inode, page, block, index, 0);
 }
 
 static int logfs_read_loop(struct inode *inode, struct page *page,
-		int rw_context)
+						   int rw_context)
 {
 	struct logfs_inode *li = logfs_inode(inode);
 	u64 bix, bofs = li->li_data[INDIRECT_INDEX];
@@ -736,41 +870,58 @@ static int logfs_read_loop(struct inode *inode, struct page *page,
 	struct page *ipage;
 
 	logfs_unpack_index(page->index, &bix, &target_level);
+
 	if (!bofs)
+	{
 		return logfs_read_empty(page);
+	}
 
 	if (bix >= maxbix(li->li_height))
+	{
 		return logfs_read_empty(page);
+	}
 
 	for (level = LEVEL(li->li_height);
-			(__force u8)level > (__force u8)target_level;
-			level = SUBLEVEL(level)){
+		 (__force u8)level > (__force u8)target_level;
+		 level = SUBLEVEL(level))
+	{
 		ipage = logfs_get_page(inode, bix, level, rw_context);
+
 		if (!ipage)
+		{
 			return -ENOMEM;
+		}
 
 		ret = logfs_segment_read(inode, ipage, bofs, bix, level);
-		if (ret) {
+
+		if (ret)
+		{
 			logfs_put_read_page(ipage);
 			return ret;
 		}
 
 		bofs = block_get_pointer(ipage, get_bits(bix, SUBLEVEL(level)));
 		logfs_put_page(ipage, rw_context);
+
 		if (!bofs)
+		{
 			return logfs_read_empty(page);
+		}
 	}
 
 	return logfs_segment_read(inode, page, bofs, bix, 0);
 }
 
 static int logfs_read_block(struct inode *inode, struct page *page,
-		int rw_context)
+							int rw_context)
 {
 	pgoff_t index = page->index;
 
 	if (index < I0_BLOCKS)
+	{
 		return logfs_read_direct(inode, page);
+	}
+
 	return logfs_read_loop(inode, page, rw_context);
 }
 
@@ -783,25 +934,39 @@ static int logfs_exist_loop(struct inode *inode, u64 bix)
 	struct page *ipage;
 
 	if (!bofs)
+	{
 		return 0;
-	if (bix >= maxbix(li->li_height))
-		return 0;
+	}
 
-	for (level = LEVEL(li->li_height); level != 0; level = SUBLEVEL(level)) {
+	if (bix >= maxbix(li->li_height))
+	{
+		return 0;
+	}
+
+	for (level = LEVEL(li->li_height); level != 0; level = SUBLEVEL(level))
+	{
 		ipage = logfs_get_read_page(inode, bix, level);
+
 		if (!ipage)
+		{
 			return -ENOMEM;
+		}
 
 		ret = logfs_segment_read(inode, ipage, bofs, bix, level);
-		if (ret) {
+
+		if (ret)
+		{
 			logfs_put_read_page(ipage);
 			return ret;
 		}
 
 		bofs = block_get_pointer(ipage, get_bits(bix, SUBLEVEL(level)));
 		logfs_put_read_page(ipage);
+
 		if (!bofs)
+		{
 			return 0;
+		}
 	}
 
 	return 1;
@@ -812,7 +977,10 @@ int logfs_exist_block(struct inode *inode, u64 bix)
 	struct logfs_inode *li = logfs_inode(inode);
 
 	if (bix < I0_BLOCKS)
+	{
 		return !!li->li_data[bix];
+	}
+
 	return logfs_exist_loop(inode, bix);
 }
 
@@ -822,7 +990,10 @@ static u64 seek_holedata_direct(struct inode *inode, u64 bix, int data)
 
 	for (; bix < I0_BLOCKS; bix++)
 		if (data ^ (li->li_data[bix] == 0))
+		{
 			return bix;
+		}
+
 	return I0_BLOCKS;
 }
 
@@ -837,42 +1008,62 @@ static u64 seek_holedata_loop(struct inode *inode, u64 bix, int data)
 
 	BUG_ON(!bofs);
 
-	for (level = LEVEL(li->li_height); level != 0; level = SUBLEVEL(level)) {
-		increment = 1 << (LOGFS_BLOCK_BITS * ((__force u8)level-1));
+	for (level = LEVEL(li->li_height); level != 0; level = SUBLEVEL(level))
+	{
+		increment = 1 << (LOGFS_BLOCK_BITS * ((__force u8)level - 1));
 		page = logfs_get_read_page(inode, bix, level);
+
 		if (!page)
+		{
 			return bix;
+		}
 
 		ret = logfs_segment_read(inode, page, bofs, bix, level);
-		if (ret) {
+
+		if (ret)
+		{
 			logfs_put_read_page(page);
 			return bix;
 		}
 
 		slot = get_bits(bix, SUBLEVEL(level));
 		rblock = kmap_atomic(page);
-		while (slot < LOGFS_BLOCK_FACTOR) {
+
+		while (slot < LOGFS_BLOCK_FACTOR)
+		{
 			if (data && (rblock[slot] != 0))
+			{
 				break;
+			}
+
 			if (!data && !(be64_to_cpu(rblock[slot]) & LOGFS_FULLY_POPULATED))
+			{
 				break;
+			}
+
 			slot++;
 			bix += increment;
 			bix &= ~(increment - 1);
 		}
-		if (slot >= LOGFS_BLOCK_FACTOR) {
+
+		if (slot >= LOGFS_BLOCK_FACTOR)
+		{
 			kunmap_atomic(rblock);
 			logfs_put_read_page(page);
 			return bix;
 		}
+
 		bofs = be64_to_cpu(rblock[slot]);
 		kunmap_atomic(rblock);
 		logfs_put_read_page(page);
-		if (!bofs) {
+
+		if (!bofs)
+		{
 			BUG_ON(data);
 			return bix;
 		}
 	}
+
 	return bix;
 }
 
@@ -888,22 +1079,37 @@ u64 logfs_seek_hole(struct inode *inode, u64 bix)
 {
 	struct logfs_inode *li = logfs_inode(inode);
 
-	if (bix < I0_BLOCKS) {
+	if (bix < I0_BLOCKS)
+	{
 		bix = seek_holedata_direct(inode, bix, 0);
+
 		if (bix < I0_BLOCKS)
+		{
 			return bix;
+		}
 	}
 
 	if (!li->li_data[INDIRECT_INDEX])
+	{
 		return bix;
+	}
 	else if (li->li_data[INDIRECT_INDEX] & LOGFS_FULLY_POPULATED)
+	{
 		bix = maxbix(li->li_height);
+	}
 	else if (bix >= maxbix(li->li_height))
+	{
 		return bix;
-	else {
+	}
+	else
+	{
 		bix = seek_holedata_loop(inode, bix, 0);
+
 		if (bix < maxbix(li->li_height))
+		{
 			return bix;
+		}
+
 		/* Should not happen anymore.  But if some port writes semi-
 		 * corrupt images (as this one used to) we might run into it.
 		 */
@@ -917,17 +1123,26 @@ static u64 __logfs_seek_data(struct inode *inode, u64 bix)
 {
 	struct logfs_inode *li = logfs_inode(inode);
 
-	if (bix < I0_BLOCKS) {
+	if (bix < I0_BLOCKS)
+	{
 		bix = seek_holedata_direct(inode, bix, 1);
+
 		if (bix < I0_BLOCKS)
+		{
 			return bix;
+		}
 	}
 
-	if (bix < maxbix(li->li_height)) {
+	if (bix < maxbix(li->li_height))
+	{
 		if (!li->li_data[INDIRECT_INDEX])
+		{
 			bix = maxbix(li->li_height);
+		}
 		else
+		{
 			return seek_holedata_loop(inode, bix, 1);
+		}
 	}
 
 	return bix;
@@ -948,8 +1163,12 @@ u64 logfs_seek_data(struct inode *inode, u64 bix)
 
 	ret = __logfs_seek_data(inode, bix);
 	end = i_size_read(inode) >> sb->s_blocksize_bits;
+
 	if (ret >= end)
+	{
 		ret = max(bix, end);
+	}
+
 	return ret;
 }
 
@@ -959,31 +1178,40 @@ static int logfs_is_valid_direct(struct logfs_inode *li, u64 bix, u64 ofs)
 }
 
 static int __logfs_is_valid_loop(struct inode *inode, u64 bix,
-		u64 ofs, u64 bofs)
+								 u64 ofs, u64 bofs)
 {
 	struct logfs_inode *li = logfs_inode(inode);
 	level_t level;
 	int ret;
 	struct page *page;
 
-	for (level = LEVEL(li->li_height); level != 0; level = SUBLEVEL(level)){
+	for (level = LEVEL(li->li_height); level != 0; level = SUBLEVEL(level))
+	{
 		page = logfs_get_write_page(inode, bix, level);
 		BUG_ON(!page);
 
 		ret = logfs_segment_read(inode, page, bofs, bix, level);
-		if (ret) {
+
+		if (ret)
+		{
 			logfs_put_write_page(page);
 			return 0;
 		}
 
 		bofs = block_get_pointer(page, get_bits(bix, SUBLEVEL(level)));
 		logfs_put_write_page(page);
+
 		if (!bofs)
+		{
 			return 0;
+		}
 
 		if (pure_ofs(bofs) == ofs)
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 
@@ -993,13 +1221,19 @@ static int logfs_is_valid_loop(struct inode *inode, u64 bix, u64 ofs)
 	u64 bofs = li->li_data[INDIRECT_INDEX];
 
 	if (!bofs)
+	{
 		return 0;
+	}
 
 	if (bix >= maxbix(li->li_height))
+	{
 		return 0;
+	}
 
 	if (pure_ofs(bofs) == ofs)
+	{
 		return 1;
+	}
 
 	return __logfs_is_valid_loop(inode, bix, ofs, bofs);
 }
@@ -1009,10 +1243,15 @@ static int __logfs_is_valid_block(struct inode *inode, u64 bix, u64 ofs)
 	struct logfs_inode *li = logfs_inode(inode);
 
 	if ((inode->i_nlink == 0) && atomic_read(&inode->i_count) == 1)
+	{
 		return 0;
+	}
 
 	if (bix < I0_BLOCKS)
+	{
 		return logfs_is_valid_direct(li, bix, ofs);
+	}
+
 	return logfs_is_valid_loop(inode, bix, ofs);
 }
 
@@ -1029,7 +1268,7 @@ static int __logfs_is_valid_block(struct inode *inode, u64 bix, u64 ofs)
  * become invalid once the journal is written.
  */
 int logfs_is_valid_block(struct super_block *sb, u64 ofs, u64 ino, u64 bix,
-		gc_level_t gc_level)
+						 gc_level_t gc_level)
 {
 	struct logfs_super *super = logfs_super(sb);
 	struct inode *inode;
@@ -1038,25 +1277,37 @@ int logfs_is_valid_block(struct super_block *sb, u64 ofs, u64 ino, u64 bix,
 	/* Umount closes a segment with free blocks remaining.  Those
 	 * blocks are by definition invalid. */
 	if (ino == -1)
+	{
 		return 0;
+	}
 
 	LOGFS_BUG_ON((u64)(u_long)ino != ino, sb);
 
 	inode = logfs_safe_iget(sb, ino, &cookie);
+
 	if (IS_ERR(inode))
+	{
 		goto invalid;
+	}
 
 	ret = __logfs_is_valid_block(inode, bix, ofs);
 	logfs_safe_iput(inode, cookie);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 invalid:
+
 	/* Block is nominally invalid, but may still sit in the shadow tree,
 	 * waiting for a journal commit.
 	 */
 	if (btree_lookup64(&super->s_shadow_tree.old, ofs))
+	{
 		return 2;
+	}
+
 	return 0;
 }
 
@@ -1067,13 +1318,17 @@ int logfs_readpage_nolock(struct page *page)
 
 	ret = logfs_read_block(inode, page, READ);
 
-	if (ret) {
+	if (ret)
+	{
 		ClearPageUptodate(page);
 		SetPageError(page);
-	} else {
+	}
+	else
+	{
 		SetPageUptodate(page);
 		ClearPageError(page);
 	}
+
 	flush_dcache_page(page);
 
 	return ret;
@@ -1083,17 +1338,23 @@ static int logfs_reserve_bytes(struct inode *inode, int bytes)
 {
 	struct logfs_super *super = logfs_super(inode->i_sb);
 	u64 available = super->s_free_bytes + super->s_dirty_free_bytes
-			- super->s_dirty_used_bytes - super->s_dirty_pages;
+					- super->s_dirty_used_bytes - super->s_dirty_pages;
 
 	if (!bytes)
+	{
 		return 0;
+	}
 
 	if (available < bytes)
+	{
 		return -ENOSPC;
+	}
 
 	if (available < bytes + super->s_root_reserve &&
-			!capable(CAP_SYS_RESOURCE))
+		!capable(CAP_SYS_RESOURCE))
+	{
 		return -ENOSPC;
+	}
 
 	return 0;
 }
@@ -1105,22 +1366,29 @@ int get_page_reserve(struct inode *inode, struct page *page)
 	int ret;
 
 	if (block && block->reserved_bytes)
+	{
 		return 0;
+	}
 
 	logfs_get_wblocks(inode->i_sb, page, WF_LOCK);
+
 	while ((ret = logfs_reserve_bytes(inode, 6 * LOGFS_MAX_OBJECTSIZE)) &&
-			!list_empty(&super->s_writeback_list)) {
+		   !list_empty(&super->s_writeback_list))
+	{
 		block = list_entry(super->s_writeback_list.next,
-				struct logfs_block, alias_list);
+						   struct logfs_block, alias_list);
 		block->ops->write_block(block);
 	}
-	if (!ret) {
+
+	if (!ret)
+	{
 		alloc_data_block(inode, page);
 		block = logfs_block(page);
 		block->reserved_bytes += 6 * LOGFS_MAX_OBJECTSIZE;
 		super->s_dirty_pages += 6 * LOGFS_MAX_OBJECTSIZE;
 		list_move_tail(&block->alias_list, &super->s_writeback_list);
 	}
+
 	logfs_put_wblocks(inode->i_sb, page, WF_LOCK);
 	return ret;
 }
@@ -1131,15 +1399,19 @@ int get_page_reserve(struct inode *inode, struct page *page)
  */
 /* FIXME: This is currently called from the wrong spots. */
 static void logfs_handle_transaction(struct inode *inode,
-		struct logfs_transaction *ta)
+									 struct logfs_transaction *ta)
 {
 	struct logfs_super *super = logfs_super(inode->i_sb);
 
 	if (!ta)
+	{
 		return;
+	}
+
 	logfs_inode(inode)->li_block->ta = NULL;
 
-	if (inode->i_ino != LOGFS_INO_MASTER) {
+	if (inode->i_ino != LOGFS_INO_MASTER)
+	{
 		BUG(); /* FIXME: Yes, this needs more thought */
 		/* just remember the transaction until inode is written */
 		//BUG_ON(logfs_inode(inode)->li_transaction);
@@ -1147,56 +1419,64 @@ static void logfs_handle_transaction(struct inode *inode,
 		return;
 	}
 
-	switch (ta->state) {
-	case CREATE_1: /* fall through */
-	case UNLINK_1:
-		BUG_ON(super->s_victim_ino);
-		super->s_victim_ino = ta->ino;
-		break;
-	case CREATE_2: /* fall through */
-	case UNLINK_2:
-		BUG_ON(super->s_victim_ino != ta->ino);
-		super->s_victim_ino = 0;
-		/* transaction ends here - free it */
-		kfree(ta);
-		break;
-	case CROSS_RENAME_1:
-		BUG_ON(super->s_rename_dir);
-		BUG_ON(super->s_rename_pos);
-		super->s_rename_dir = ta->dir;
-		super->s_rename_pos = ta->pos;
-		break;
-	case CROSS_RENAME_2:
-		BUG_ON(super->s_rename_dir != ta->dir);
-		BUG_ON(super->s_rename_pos != ta->pos);
-		super->s_rename_dir = 0;
-		super->s_rename_pos = 0;
-		kfree(ta);
-		break;
-	case TARGET_RENAME_1:
-		BUG_ON(super->s_rename_dir);
-		BUG_ON(super->s_rename_pos);
-		BUG_ON(super->s_victim_ino);
-		super->s_rename_dir = ta->dir;
-		super->s_rename_pos = ta->pos;
-		super->s_victim_ino = ta->ino;
-		break;
-	case TARGET_RENAME_2:
-		BUG_ON(super->s_rename_dir != ta->dir);
-		BUG_ON(super->s_rename_pos != ta->pos);
-		BUG_ON(super->s_victim_ino != ta->ino);
-		super->s_rename_dir = 0;
-		super->s_rename_pos = 0;
-		break;
-	case TARGET_RENAME_3:
-		BUG_ON(super->s_rename_dir);
-		BUG_ON(super->s_rename_pos);
-		BUG_ON(super->s_victim_ino != ta->ino);
-		super->s_victim_ino = 0;
-		kfree(ta);
-		break;
-	default:
-		BUG();
+	switch (ta->state)
+	{
+		case CREATE_1: /* fall through */
+		case UNLINK_1:
+			BUG_ON(super->s_victim_ino);
+			super->s_victim_ino = ta->ino;
+			break;
+
+		case CREATE_2: /* fall through */
+		case UNLINK_2:
+			BUG_ON(super->s_victim_ino != ta->ino);
+			super->s_victim_ino = 0;
+			/* transaction ends here - free it */
+			kfree(ta);
+			break;
+
+		case CROSS_RENAME_1:
+			BUG_ON(super->s_rename_dir);
+			BUG_ON(super->s_rename_pos);
+			super->s_rename_dir = ta->dir;
+			super->s_rename_pos = ta->pos;
+			break;
+
+		case CROSS_RENAME_2:
+			BUG_ON(super->s_rename_dir != ta->dir);
+			BUG_ON(super->s_rename_pos != ta->pos);
+			super->s_rename_dir = 0;
+			super->s_rename_pos = 0;
+			kfree(ta);
+			break;
+
+		case TARGET_RENAME_1:
+			BUG_ON(super->s_rename_dir);
+			BUG_ON(super->s_rename_pos);
+			BUG_ON(super->s_victim_ino);
+			super->s_rename_dir = ta->dir;
+			super->s_rename_pos = ta->pos;
+			super->s_victim_ino = ta->ino;
+			break;
+
+		case TARGET_RENAME_2:
+			BUG_ON(super->s_rename_dir != ta->dir);
+			BUG_ON(super->s_rename_pos != ta->pos);
+			BUG_ON(super->s_victim_ino != ta->ino);
+			super->s_rename_dir = 0;
+			super->s_rename_pos = 0;
+			break;
+
+		case TARGET_RENAME_3:
+			BUG_ON(super->s_rename_dir);
+			BUG_ON(super->s_rename_pos);
+			BUG_ON(super->s_victim_ino != ta->ino);
+			super->s_victim_ino = 0;
+			kfree(ta);
+			break;
+
+		default:
+			BUG();
 	}
 }
 
@@ -1209,7 +1489,8 @@ static int logfs_reserve_blocks(struct inode *inode, int blocks)
 	return logfs_reserve_bytes(inode, blocks * LOGFS_MAX_OBJECTSIZE);
 }
 
-struct write_control {
+struct write_control
+{
 	u64 ofs;
 	long flags;
 };
@@ -1240,9 +1521,10 @@ static void mark_segment(struct shadow_tree *tree, u32 segno)
 {
 	int err;
 
-	if (!btree_lookup32(&tree->segment_map, segno)) {
+	if (!btree_lookup32(&tree->segment_map, segno))
+	{
 		err = btree_insert32(&tree->segment_map, segno, (void *)1,
-				GFP_NOFS);
+							 GFP_NOFS);
 		BUG_ON(err);
 		tree->no_shadowed_segments++;
 	}
@@ -1272,26 +1554,30 @@ static void mark_segment(struct shadow_tree *tree, u32 segno)
  * the page parameter is left NULL.
  */
 static void fill_shadow_tree(struct inode *inode, struct page *page,
-		struct logfs_shadow *shadow)
+							 struct logfs_shadow *shadow)
 {
 	struct logfs_super *super = logfs_super(inode->i_sb);
 	struct logfs_block *block = logfs_block(page);
 	struct shadow_tree *tree = &super->s_shadow_tree;
 
-	if (PagePrivate(page)) {
+	if (PagePrivate(page))
+	{
 		if (block->alias_map)
 			super->s_no_object_aliases -= bitmap_weight(
-					block->alias_map, LOGFS_BLOCK_FACTOR);
+											  block->alias_map, LOGFS_BLOCK_FACTOR);
+
 		logfs_handle_transaction(inode, block->ta);
 		block->ops->free_block(inode->i_sb, block);
 	}
-	if (shadow) {
+
+	if (shadow)
+	{
 		if (shadow->old_ofs)
 			btree_insert64(&tree->old, shadow->old_ofs, shadow,
-					GFP_NOFS);
+						   GFP_NOFS);
 		else
 			btree_insert64(&tree->new, shadow->new_ofs, shadow,
-					GFP_NOFS);
+						   GFP_NOFS);
 
 		super->s_dirty_used_bytes += shadow->new_len;
 		super->s_dirty_free_bytes += shadow->old_len;
@@ -1301,19 +1587,22 @@ static void fill_shadow_tree(struct inode *inode, struct page *page,
 }
 
 static void logfs_set_alias(struct super_block *sb, struct logfs_block *block,
-		long child_no)
+							long child_no)
 {
 	struct logfs_super *super = logfs_super(sb);
 
-	if (block->inode && block->inode->i_ino == LOGFS_INO_MASTER) {
+	if (block->inode && block->inode->i_ino == LOGFS_INO_MASTER)
+	{
 		/* Aliases in the master inode are pointless. */
 		return;
 	}
 
-	if (!test_bit(child_no, block->alias_map)) {
+	if (!test_bit(child_no, block->alias_map))
+	{
 		set_bit(child_no, block->alias_map);
 		super->s_no_object_aliases++;
 	}
+
 	list_move_tail(&block->alias_list, &super->s_object_alias);
 }
 
@@ -1328,7 +1617,9 @@ static void set_iused(struct inode *inode, struct logfs_shadow *shadow)
 	struct logfs_inode *li = logfs_inode(inode);
 
 	if (shadow->new_len == shadow->old_len)
+	{
 		return;
+	}
 
 	alloc_inode_block(inode);
 	li->li_used_bytes += shadow->new_len - shadow->old_len;
@@ -1338,7 +1629,7 @@ static void set_iused(struct inode *inode, struct logfs_shadow *shadow)
 }
 
 static int logfs_write_i0(struct inode *inode, struct page *page,
-		struct write_control *wc)
+						  struct write_control *wc)
 {
 	struct logfs_shadow *shadow;
 	u64 bix;
@@ -1346,38 +1637,57 @@ static int logfs_write_i0(struct inode *inode, struct page *page,
 	int full, err = 0;
 
 	logfs_unpack_index(page->index, &bix, &level);
+
 	if (wc->ofs == 0)
 		if (logfs_reserve_blocks(inode, 1))
+		{
 			return -ENOSPC;
+		}
 
 	shadow = alloc_shadow(inode, bix, level, wc->ofs);
+
 	if (wc->flags & WF_WRITE)
+	{
 		err = logfs_segment_write(inode, page, shadow);
+	}
+
 	if (wc->flags & WF_DELETE)
+	{
 		logfs_segment_delete(inode, shadow);
-	if (err) {
+	}
+
+	if (err)
+	{
 		free_shadow(inode, shadow);
 		return err;
 	}
 
 	set_iused(inode, shadow);
 	full = 1;
-	if (level != 0) {
+
+	if (level != 0)
+	{
 		alloc_indirect_block(inode, page, 0);
 		full = logfs_block(page)->full == LOGFS_BLOCK_FACTOR;
 	}
+
 	fill_shadow_tree(inode, page, shadow);
 	wc->ofs = shadow->new_ofs;
+
 	if (wc->ofs && full)
+	{
 		wc->ofs |= LOGFS_FULLY_POPULATED;
+	}
+
 	return 0;
 }
 
 static int logfs_write_direct(struct inode *inode, struct page *page,
-		long flags)
+							  long flags)
 {
 	struct logfs_inode *li = logfs_inode(inode);
-	struct write_control wc = {
+	struct write_control wc =
+	{
 		.ofs = li->li_data[page->index],
 		.flags = flags,
 	};
@@ -1386,12 +1696,15 @@ static int logfs_write_direct(struct inode *inode, struct page *page,
 	alloc_inode_block(inode);
 
 	err = logfs_write_i0(inode, page, &wc);
+
 	if (err)
+	{
 		return err;
+	}
 
 	li->li_data[page->index] = wc.ofs;
 	logfs_set_alias(inode->i_sb, li->li_block,
-			page->index + INODE_POINTER_OFS);
+					page->index + INODE_POINTER_OFS);
 	return 0;
 }
 
@@ -1402,73 +1715,104 @@ static int ptr_change(u64 ofs, struct page *page)
 
 	empty0 = ofs == 0;
 	empty1 = block->partial == 0;
+
 	if (empty0 != empty1)
+	{
 		return 1;
+	}
 
 	/* The !! is necessary to shrink result to int */
 	full0 = !!(ofs & LOGFS_FULLY_POPULATED);
 	full1 = block->full == LOGFS_BLOCK_FACTOR;
+
 	if (full0 != full1)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
 static int __logfs_write_rec(struct inode *inode, struct page *page,
-		struct write_control *this_wc,
-		pgoff_t bix, level_t target_level, level_t level)
+							 struct write_control *this_wc,
+							 pgoff_t bix, level_t target_level, level_t level)
 {
 	int ret, page_empty = 0;
 	int child_no = get_bits(bix, SUBLEVEL(level));
 	struct page *ipage;
-	struct write_control child_wc = {
+	struct write_control child_wc =
+	{
 		.flags = this_wc->flags,
 	};
 
 	ipage = logfs_get_write_page(inode, bix, level);
-	if (!ipage)
-		return -ENOMEM;
 
-	if (this_wc->ofs) {
+	if (!ipage)
+	{
+		return -ENOMEM;
+	}
+
+	if (this_wc->ofs)
+	{
 		ret = logfs_segment_read(inode, ipage, this_wc->ofs, bix, level);
+
 		if (ret)
+		{
 			goto out;
-	} else if (!PageUptodate(ipage)) {
+		}
+	}
+	else if (!PageUptodate(ipage))
+	{
 		page_empty = 1;
 		logfs_read_empty(ipage);
 	}
 
 	child_wc.ofs = block_get_pointer(ipage, child_no);
 
-	if ((__force u8)level-1 > (__force u8)target_level)
+	if ((__force u8)level - 1 > (__force u8)target_level)
 		ret = __logfs_write_rec(inode, page, &child_wc, bix,
-				target_level, SUBLEVEL(level));
+								target_level, SUBLEVEL(level));
 	else
+	{
 		ret = logfs_write_i0(inode, page, &child_wc);
+	}
 
 	if (ret)
+	{
 		goto out;
+	}
 
 	alloc_indirect_block(inode, ipage, page_empty);
 	block_set_pointer(ipage, child_no, child_wc.ofs);
+
 	/* FIXME: first condition seems superfluous */
 	if (child_wc.ofs || logfs_block(ipage)->partial)
+	{
 		this_wc->flags |= WF_WRITE;
+	}
+
 	/* the condition on this_wc->ofs ensures that we won't consume extra
 	 * space for indirect blocks in the future, which we cannot reserve */
 	if (!this_wc->ofs || ptr_change(this_wc->ofs, ipage))
+	{
 		ret = logfs_write_i0(inode, ipage, this_wc);
+	}
 	else
+	{
 		logfs_set_alias(inode->i_sb, logfs_block(ipage), child_no);
+	}
+
 out:
 	logfs_put_write_page(ipage);
 	return ret;
 }
 
 static int logfs_write_rec(struct inode *inode, struct page *page,
-		pgoff_t bix, level_t target_level, long flags)
+						   pgoff_t bix, level_t target_level, long flags)
 {
 	struct logfs_inode *li = logfs_inode(inode);
-	struct write_control wc = {
+	struct write_control wc =
+	{
 		.ofs = li->li_data[INDIRECT_INDEX],
 		.flags = flags,
 	};
@@ -1478,17 +1822,24 @@ static int logfs_write_rec(struct inode *inode, struct page *page,
 
 	if (li->li_height > (__force u8)target_level)
 		ret = __logfs_write_rec(inode, page, &wc, bix, target_level,
-				LEVEL(li->li_height));
+								LEVEL(li->li_height));
 	else
+	{
 		ret = logfs_write_i0(inode, page, &wc);
-	if (ret)
-		return ret;
+	}
 
-	if (li->li_data[INDIRECT_INDEX] != wc.ofs) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (li->li_data[INDIRECT_INDEX] != wc.ofs)
+	{
 		li->li_data[INDIRECT_INDEX] = wc.ofs;
 		logfs_set_alias(inode->i_sb, li->li_block,
-				INDIRECT_INDEX + INODE_POINTER_OFS);
+						INDIRECT_INDEX + INODE_POINTER_OFS);
 	}
+
 	return ret;
 }
 
@@ -1503,7 +1854,9 @@ void logfs_del_transaction(struct inode *inode, struct logfs_transaction *ta)
 	struct logfs_block *block = logfs_inode(inode)->li_block;
 
 	if (block && block->ta)
+	{
 		block->ta = NULL;
+	}
 }
 
 static int grow_inode(struct inode *inode, u64 bix, level_t level)
@@ -1511,29 +1864,41 @@ static int grow_inode(struct inode *inode, u64 bix, level_t level)
 	struct logfs_inode *li = logfs_inode(inode);
 	u8 height = (__force u8)level;
 	struct page *page;
-	struct write_control wc = {
+	struct write_control wc =
+	{
 		.flags = WF_WRITE,
 	};
 	int err;
 
 	BUG_ON(height > 5 || li->li_height > 5);
-	while (height > li->li_height || bix >= maxbix(li->li_height)) {
+
+	while (height > li->li_height || bix >= maxbix(li->li_height))
+	{
 		page = logfs_get_write_page(inode, I0_BLOCKS + 1,
-				LEVEL(li->li_height + 1));
+									LEVEL(li->li_height + 1));
+
 		if (!page)
+		{
 			return -ENOMEM;
+		}
+
 		logfs_read_empty(page);
 		alloc_indirect_block(inode, page, 1);
 		block_set_pointer(page, 0, li->li_data[INDIRECT_INDEX]);
 		err = logfs_write_i0(inode, page, &wc);
 		logfs_put_write_page(page);
+
 		if (err)
+		{
 			return err;
+		}
+
 		li->li_data[INDIRECT_INDEX] = wc.ofs;
 		wc.ofs = 0;
 		li->li_height++;
 		logfs_set_alias(inode->i_sb, li->li_block, INODE_HEIGHT_OFS);
 	}
+
 	return 0;
 }
 
@@ -1549,16 +1914,25 @@ static int __logfs_write_buf(struct inode *inode, struct page *page, long flags)
 	inode->i_ctime = inode->i_mtime = current_time(inode);
 
 	logfs_unpack_index(index, &bix, &level);
+
 	if (logfs_block(page) && logfs_block(page)->reserved_bytes)
+	{
 		super->s_dirty_pages -= logfs_block(page)->reserved_bytes;
+	}
 
 	if (index < I0_BLOCKS)
+	{
 		return logfs_write_direct(inode, page, flags);
+	}
 
 	bix = adjust_bix(bix, level);
 	err = grow_inode(inode, bix, level);
+
 	if (err)
+	{
 		return err;
+	}
+
 	return logfs_write_rec(inode, page, bix, level, flags);
 }
 
@@ -1581,23 +1955,33 @@ static int __logfs_delete(struct inode *inode, struct page *page)
 	inode->i_ctime = inode->i_mtime = current_time(inode);
 
 	if (page->index < I0_BLOCKS)
+	{
 		return logfs_write_direct(inode, page, flags);
+	}
+
 	err = grow_inode(inode, page->index, 0);
+
 	if (err)
+	{
 		return err;
+	}
+
 	return logfs_write_rec(inode, page, page->index, 0, flags);
 }
 
 int logfs_delete(struct inode *inode, pgoff_t index,
-		struct shadow_tree *shadow_tree)
+				 struct shadow_tree *shadow_tree)
 {
 	struct super_block *sb = inode->i_sb;
 	struct page *page;
 	int ret;
 
 	page = logfs_get_read_page(inode, index, 0);
+
 	if (!page)
+	{
 		return -ENOMEM;
+	}
 
 	logfs_get_wblocks(sb, page, 1);
 	ret = __logfs_delete(inode, page);
@@ -1609,40 +1993,54 @@ int logfs_delete(struct inode *inode, pgoff_t index,
 }
 
 int logfs_rewrite_block(struct inode *inode, u64 bix, u64 ofs,
-		gc_level_t gc_level, long flags)
+						gc_level_t gc_level, long flags)
 {
 	level_t level = shrink_level(gc_level);
 	struct page *page;
 	int err;
 
 	page = logfs_get_write_page(inode, bix, level);
+
 	if (!page)
+	{
 		return -ENOMEM;
+	}
 
 	err = logfs_segment_read(inode, page, ofs, bix, level);
-	if (!err) {
+
+	if (!err)
+	{
 		if (level != 0)
+		{
 			alloc_indirect_block(inode, page, 0);
+		}
+
 		err = logfs_write_buf(inode, page, flags);
-		if (!err && shrink_level(gc_level) == 0) {
+
+		if (!err && shrink_level(gc_level) == 0)
+		{
 			/* Rewrite cannot mark the inode dirty but has to
 			 * write it immediately.
 			 * Q: Can't we just create an alias for the inode
 			 * instead?  And if not, why not?
 			 */
 			if (inode->i_ino == LOGFS_INO_MASTER)
+			{
 				logfs_write_anchor(inode->i_sb);
-			else {
+			}
+			else
+			{
 				err = __logfs_write_inode(inode, page, flags);
 			}
 		}
 	}
+
 	logfs_put_write_page(page);
 	return err;
 }
 
 static int truncate_data_block(struct inode *inode, struct page *page,
-		u64 ofs, struct logfs_shadow *shadow, u64 size)
+							   u64 ofs, struct logfs_shadow *shadow, u64 size)
 {
 	loff_t pageofs = page->index << inode->i_sb->s_blocksize_bits;
 	u64 bix;
@@ -1651,21 +2049,26 @@ static int truncate_data_block(struct inode *inode, struct page *page,
 
 	/* Does truncation happen within this page? */
 	if (size <= pageofs || size - pageofs >= PAGE_SIZE)
+	{
 		return 0;
+	}
 
 	logfs_unpack_index(page->index, &bix, &level);
 	BUG_ON(level != 0);
 
 	err = logfs_segment_read(inode, page, ofs, bix, level);
+
 	if (err)
+	{
 		return err;
+	}
 
 	zero_user_segment(page, size - pageofs, PAGE_SIZE);
 	return logfs_segment_write(inode, page, shadow);
 }
 
 static int logfs_truncate_i0(struct inode *inode, struct page *page,
-		struct write_control *wc, u64 size)
+							 struct write_control *wc, u64 size)
 {
 	struct logfs_shadow *shadow;
 	u64 bix;
@@ -1677,7 +2080,9 @@ static int logfs_truncate_i0(struct inode *inode, struct page *page,
 	shadow = alloc_shadow(inode, bix, level, wc->ofs);
 
 	err = truncate_data_block(inode, page, wc->ofs, shadow, size);
-	if (err) {
+
+	if (err)
+	{
 		free_shadow(inode, shadow);
 		return err;
 	}
@@ -1699,41 +2104,60 @@ static int logfs_truncate_direct(struct inode *inode, u64 size)
 
 	alloc_inode_block(inode);
 
-	for (e = I0_BLOCKS - 1; e >= 0; e--) {
-		if (size > (e+1) * LOGFS_BLOCKSIZE)
+	for (e = I0_BLOCKS - 1; e >= 0; e--)
+	{
+		if (size > (e + 1) * LOGFS_BLOCKSIZE)
+		{
 			break;
+		}
 
 		wc.ofs = li->li_data[e];
+
 		if (!wc.ofs)
+		{
 			continue;
+		}
 
 		page = logfs_get_write_page(inode, e, 0);
+
 		if (!page)
+		{
 			return -ENOMEM;
+		}
+
 		err = logfs_segment_read(inode, page, wc.ofs, e, 0);
-		if (err) {
+
+		if (err)
+		{
 			logfs_put_write_page(page);
 			return err;
 		}
+
 		err = logfs_truncate_i0(inode, page, &wc, size);
 		logfs_put_write_page(page);
+
 		if (err)
+		{
 			return err;
+		}
 
 		li->li_data[e] = wc.ofs;
 	}
+
 	return 0;
 }
 
 /* FIXME: these need to become per-sb once we support different blocksizes */
-static u64 __logfs_step[] = {
+static u64 __logfs_step[] =
+{
 	1,
 	I1_BLOCKS,
 	I2_BLOCKS,
 	I3_BLOCKS,
 };
 
-static u64 __logfs_start_index[] = {
+static u64 __logfs_start_index[] =
+{
 	I0_BLOCKS,
 	I1_BLOCKS,
 	I2_BLOCKS,
@@ -1758,12 +2182,15 @@ static inline u64 logfs_start_index(level_t level)
 static void logfs_unpack_raw_index(pgoff_t index, u64 *bix, level_t *level)
 {
 	logfs_unpack_index(index, bix, level);
+
 	if (*bix <= logfs_start_index(SUBLEVEL(*level)))
+	{
 		*bix = 0;
+	}
 }
 
 static int __logfs_truncate_rec(struct inode *inode, struct page *ipage,
-		struct write_control *this_wc, u64 size)
+								struct write_control *this_wc, u64 size)
 {
 	int truncate_happened = 0;
 	int e, err = 0;
@@ -1774,44 +2201,69 @@ static int __logfs_truncate_rec(struct inode *inode, struct page *ipage,
 
 	logfs_unpack_raw_index(ipage->index, &bix, &level);
 	err = logfs_segment_read(inode, ipage, this_wc->ofs, bix, level);
-	if (err)
-		return err;
 
-	for (e = LOGFS_BLOCK_FACTOR - 1; e >= 0; e--) {
+	if (err)
+	{
+		return err;
+	}
+
+	for (e = LOGFS_BLOCK_FACTOR - 1; e >= 0; e--)
+	{
 		child_bix = bix + e * logfs_step(SUBLEVEL(level));
 		next_bix = child_bix + logfs_step(SUBLEVEL(level));
+
 		if (size > next_bix * LOGFS_BLOCKSIZE)
+		{
 			break;
+		}
 
 		child_wc.ofs = pure_ofs(block_get_pointer(ipage, e));
+
 		if (!child_wc.ofs)
+		{
 			continue;
+		}
 
 		page = logfs_get_write_page(inode, child_bix, SUBLEVEL(level));
+
 		if (!page)
+		{
 			return -ENOMEM;
+		}
 
 		if ((__force u8)level > 1)
+		{
 			err = __logfs_truncate_rec(inode, page, &child_wc, size);
+		}
 		else
+		{
 			err = logfs_truncate_i0(inode, page, &child_wc, size);
+		}
+
 		logfs_put_write_page(page);
+
 		if (err)
+		{
 			return err;
+		}
 
 		truncate_happened = 1;
 		alloc_indirect_block(inode, ipage, 0);
 		block_set_pointer(ipage, e, child_wc.ofs);
 	}
 
-	if (!truncate_happened) {
+	if (!truncate_happened)
+	{
 		printk("ineffectual truncate (%lx, %lx, %llx)\n", inode->i_ino, ipage->index, size);
 		return 0;
 	}
 
 	this_wc->flags = WF_DELETE;
+
 	if (logfs_block(ipage)->partial)
+	{
 		this_wc->flags |= WF_WRITE;
+	}
 
 	return logfs_write_i0(inode, ipage, this_wc);
 }
@@ -1819,7 +2271,8 @@ static int __logfs_truncate_rec(struct inode *inode, struct page *ipage,
 static int logfs_truncate_rec(struct inode *inode, u64 size)
 {
 	struct logfs_inode *li = logfs_inode(inode);
-	struct write_control wc = {
+	struct write_control wc =
+	{
 		.ofs = li->li_data[INDIRECT_INDEX],
 	};
 	struct page *page;
@@ -1828,19 +2281,30 @@ static int logfs_truncate_rec(struct inode *inode, u64 size)
 	alloc_inode_block(inode);
 
 	if (!wc.ofs)
+	{
 		return 0;
+	}
 
 	page = logfs_get_write_page(inode, 0, LEVEL(li->li_height));
+
 	if (!page)
+	{
 		return -ENOMEM;
+	}
 
 	err = __logfs_truncate_rec(inode, page, &wc, size);
 	logfs_put_write_page(page);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (li->li_data[INDIRECT_INDEX] != wc.ofs)
+	{
 		li->li_data[INDIRECT_INDEX] = wc.ofs;
+	}
+
 	return 0;
 }
 
@@ -1849,11 +2313,16 @@ static int __logfs_truncate(struct inode *inode, u64 size)
 	int ret;
 
 	if (size >= logfs_factor(logfs_inode(inode)->li_height))
+	{
 		return 0;
+	}
 
 	ret = logfs_truncate_rec(inode, size);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return logfs_truncate_direct(inode, size);
 }
@@ -1872,30 +2341,47 @@ int logfs_truncate(struct inode *inode, u64 target)
 	int err = 0;
 
 	size = ALIGN(size, TRUNCATE_STEP);
-	while (size > target) {
+
+	while (size > target)
+	{
 		if (size > TRUNCATE_STEP)
+		{
 			size -= TRUNCATE_STEP;
+		}
 		else
+		{
 			size = 0;
+		}
+
 		if (size < target)
+		{
 			size = target;
+		}
 
 		logfs_get_wblocks(sb, NULL, 1);
 		err = __logfs_truncate(inode, size);
+
 		if (!err)
+		{
 			err = __logfs_write_inode(inode, NULL, 0);
+		}
+
 		logfs_put_wblocks(sb, NULL, 1);
 	}
 
-	if (!err) {
+	if (!err)
+	{
 		err = inode_newsize_ok(inode, target);
+
 		if (err)
+		{
 			goto out;
+		}
 
 		truncate_setsize(inode, target);
 	}
 
- out:
+out:
 	/* I don't trust error recovery yet. */
 	WARN_ON(err);
 	return err;
@@ -1907,17 +2393,21 @@ static void move_page_to_inode(struct inode *inode, struct page *page)
 	struct logfs_block *block = logfs_block(page);
 
 	if (!block)
+	{
 		return;
+	}
 
 	log_blockmove("move_page_to_inode(%llx, %llx, %x)\n",
-			block->ino, block->bix, block->level);
+				  block->ino, block->bix, block->level);
 	BUG_ON(li->li_block);
 	block->ops = &inode_block_ops;
 	block->inode = inode;
 	li->li_block = block;
 
 	block->page = NULL;
-	if (PagePrivate(page)) {
+
+	if (PagePrivate(page))
+	{
 		ClearPagePrivate(page);
 		put_page(page);
 		set_page_private(page, 0);
@@ -1930,15 +2420,18 @@ static void move_inode_to_page(struct page *page, struct inode *inode)
 	struct logfs_block *block = li->li_block;
 
 	if (!block)
+	{
 		return;
+	}
 
 	log_blockmove("move_inode_to_page(%llx, %llx, %x)\n",
-			block->ino, block->bix, block->level);
+				  block->ino, block->bix, block->level);
 	BUG_ON(PagePrivate(page));
 	block->ops = &indirect_block_ops;
 	block->page = page;
 
-	if (!PagePrivate(page)) {
+	if (!PagePrivate(page))
+	{
 		SetPagePrivate(page);
 		get_page(page);
 		set_page_private(page, (unsigned long) block);
@@ -1958,14 +2451,22 @@ int logfs_read_inode(struct inode *inode)
 	u64 ino = inode->i_ino;
 
 	if (ino << sb->s_blocksize_bits > i_size_read(master_inode))
+	{
 		return -ENODATA;
+	}
+
 	if (!logfs_exist_block(master_inode, ino))
+	{
 		return -ENODATA;
+	}
 
 	page = read_cache_page(master_inode->i_mapping, ino,
-			(filler_t *)logfs_readpage, NULL);
+						   (filler_t *)logfs_readpage, NULL);
+
 	if (IS_ERR(page))
+	{
 		return PTR_ERR(page);
+	}
 
 	di = kmap_atomic(page);
 	logfs_disk_to_inode(di, inode);
@@ -1985,8 +2486,11 @@ static struct page *inode_to_page(struct inode *inode)
 	BUG_ON(inode->i_ino == LOGFS_INO_MASTER);
 
 	page = logfs_get_write_page(master_inode, inode->i_ino, 0);
+
 	if (!page)
+	{
 		return NULL;
+	}
 
 	di = kmap_atomic(page);
 	logfs_inode_to_disk(inode, di);
@@ -2007,27 +2511,35 @@ static int do_write_inode(struct inode *inode)
 	/* FIXME: lock inode */
 
 	if (i_size_read(master_inode) < size)
+	{
 		i_size_write(master_inode, size);
+	}
 
 	/* TODO: Tell vfs this inode is clean now */
 
 	page = inode_to_page(inode);
+
 	if (!page)
+	{
 		return -ENOMEM;
+	}
 
 	/* FIXME: transaction is part of logfs_block now.  Is that enough? */
 	err = logfs_write_buf(master_inode, page, 0);
+
 	if (err)
+	{
 		move_page_to_inode(inode, page);
+	}
 
 	logfs_put_write_page(page);
 	return err;
 }
 
 static void logfs_mod_segment_entry(struct super_block *sb, u32 segno,
-		int write,
-		void (*change_se)(struct logfs_segment_entry *, long),
-		long arg)
+									int write,
+									void (*change_se)(struct logfs_segment_entry *, long),
+									long arg)
 {
 	struct logfs_super *super = logfs_super(sb);
 	struct inode *inode;
@@ -2042,17 +2554,26 @@ static void logfs_mod_segment_entry(struct super_block *sb, u32 segno,
 	inode = super->s_segfile_inode;
 	page = logfs_get_write_page(inode, page_no, 0);
 	BUG_ON(!page); /* FIXME: We need some reserve page for this case */
+
 	if (!PageUptodate(page))
+	{
 		logfs_read_block(inode, page, WRITE);
+	}
 
 	if (write)
+	{
 		alloc_indirect_block(inode, page, 0);
+	}
+
 	se = kmap_atomic(page);
 	change_se(se + child_no, arg);
-	if (write) {
+
+	if (write)
+	{
 		logfs_set_alias(sb, logfs_block(page), child_no);
 		BUG_ON((int)be32_to_cpu(se[child_no].valid) > super->s_segsize);
 	}
+
 	kunmap_atomic(se);
 
 	logfs_put_write_page(page);
@@ -2066,7 +2587,7 @@ static void __get_segment_entry(struct logfs_segment_entry *se, long _target)
 }
 
 void logfs_get_segment_entry(struct super_block *sb, u32 segno,
-		struct logfs_segment_entry *se)
+							 struct logfs_segment_entry *se)
 {
 	logfs_mod_segment_entry(sb, segno, 0, __get_segment_entry, (long)se);
 }
@@ -2086,7 +2607,9 @@ void logfs_set_segment_used(struct super_block *sb, u64 ofs, int increment)
 	u32 segno = ofs >> super->s_segshift;
 
 	if (!increment)
+	{
 		return;
+	}
 
 	logfs_mod_segment_entry(sb, segno, 1, __set_segment_used, increment);
 }
@@ -2097,7 +2620,7 @@ static void __set_segment_erased(struct logfs_segment_entry *se, long ec_level)
 }
 
 void logfs_set_segment_erased(struct super_block *sb, u32 segno, u32 ec,
-		gc_level_t gc_level)
+							  gc_level_t gc_level)
 {
 	u32 ec_level = ec << 4 | (__force u8)gc_level;
 
@@ -2115,7 +2638,7 @@ void logfs_set_segment_reserved(struct super_block *sb, u32 segno)
 }
 
 static void __set_segment_unreserved(struct logfs_segment_entry *se,
-		long ec_level)
+									 long ec_level)
 {
 	se->valid = 0;
 	se->ec_level = cpu_to_be32(ec_level);
@@ -2126,7 +2649,7 @@ void logfs_set_segment_unreserved(struct super_block *sb, u32 segno, u32 ec)
 	u32 ec_level = ec << 4;
 
 	logfs_mod_segment_entry(sb, segno, 1, __set_segment_unreserved,
-			ec_level);
+							ec_level);
 }
 
 int __logfs_write_inode(struct inode *inode, struct page *page, long flags)
@@ -2148,8 +2671,11 @@ static int do_delete_inode(struct inode *inode)
 	int ret;
 
 	page = logfs_get_write_page(master_inode, inode->i_ino, 0);
+
 	if (!page)
+	{
 		return -ENOMEM;
+	}
 
 	move_inode_to_page(page, inode);
 
@@ -2172,14 +2698,21 @@ void logfs_evict_inode(struct inode *inode)
 	struct logfs_block *block = li->li_block;
 	struct page *page;
 
-	if (!inode->i_nlink) {
-		if (!(li->li_flags & LOGFS_IF_ZOMBIE)) {
+	if (!inode->i_nlink)
+	{
+		if (!(li->li_flags & LOGFS_IF_ZOMBIE))
+		{
 			li->li_flags |= LOGFS_IF_ZOMBIE;
+
 			if (i_size_read(inode) > 0)
+			{
 				logfs_truncate(inode, 0);
+			}
+
 			do_delete_inode(inode);
 		}
 	}
+
 	truncate_inode_pages_final(&inode->i_data);
 	clear_inode(inode);
 
@@ -2188,9 +2721,14 @@ void logfs_evict_inode(struct inode *inode)
 	 */
 	/* Only deleted files may be dirty at this point */
 	BUG_ON(inode->i_state & I_DIRTY && inode->i_nlink);
+
 	if (!block)
+	{
 		return;
-	if ((logfs_super(sb)->s_flags & LOGFS_SB_FLAG_SHUTDOWN)) {
+	}
+
+	if ((logfs_super(sb)->s_flags & LOGFS_SB_FLAG_SHUTDOWN))
+	{
 		block->ops->free_block(inode->i_sb, block);
 		return;
 	}
@@ -2236,18 +2774,21 @@ void btree_write_block(struct logfs_block *block)
  * example of wasted performance and stack space.
  */
 int logfs_inode_write(struct inode *inode, const void *buf, size_t count,
-		loff_t bix, long flags, struct shadow_tree *shadow_tree)
+					  loff_t bix, long flags, struct shadow_tree *shadow_tree)
 {
 	loff_t pos = bix << inode->i_sb->s_blocksize_bits;
 	int err;
 	struct page *page;
 	void *pagebuf;
 
-	BUG_ON(pos & (LOGFS_BLOCKSIZE-1));
+	BUG_ON(pos & (LOGFS_BLOCKSIZE - 1));
 	BUG_ON(count > LOGFS_BLOCKSIZE);
 	page = logfs_get_write_page(inode, bix, 0);
+
 	if (!page)
+	{
 		return -ENOMEM;
+	}
 
 	pagebuf = kmap_atomic(page);
 	memcpy(pagebuf, buf, count);
@@ -2255,7 +2796,9 @@ int logfs_inode_write(struct inode *inode, const void *buf, size_t count,
 	kunmap_atomic(pagebuf);
 
 	if (i_size_read(inode) < pos + LOGFS_BLOCKSIZE)
+	{
 		i_size_write(inode, pos + LOGFS_BLOCKSIZE);
+	}
 
 	err = logfs_write_buf(inode, page, flags);
 	logfs_put_write_page(page);
@@ -2268,8 +2811,12 @@ int logfs_open_segfile(struct super_block *sb)
 	struct inode *inode;
 
 	inode = logfs_read_meta_inode(sb, LOGFS_INO_SEGFILE);
+
 	if (IS_ERR(inode))
+	{
 		return PTR_ERR(inode);
+	}
+
 	super->s_segfile_inode = inode;
 	return 0;
 }
@@ -2283,9 +2830,9 @@ int logfs_init_rw(struct super_block *sb)
 	INIT_LIST_HEAD(&super->s_writeback_list);
 	mutex_init(&super->s_write_mutex);
 	super->s_block_pool = mempool_create_kmalloc_pool(min_fill,
-			sizeof(struct logfs_block));
+						  sizeof(struct logfs_block));
 	super->s_shadow_pool = mempool_create_kmalloc_pool(min_fill,
-			sizeof(struct logfs_shadow));
+						   sizeof(struct logfs_shadow));
 	return 0;
 }
 

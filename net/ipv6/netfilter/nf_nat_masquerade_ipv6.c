@@ -27,7 +27,7 @@ static atomic_t v6_worker_count;
 
 unsigned int
 nf_nat_masquerade_ipv6(struct sk_buff *skb, const struct nf_nat_range *range,
-		       const struct net_device *out)
+					   const struct net_device *out)
 {
 	enum ip_conntrack_info ctinfo;
 	struct in6_addr src;
@@ -36,11 +36,13 @@ nf_nat_masquerade_ipv6(struct sk_buff *skb, const struct nf_nat_range *range,
 
 	ct = nf_ct_get(skb, &ctinfo);
 	NF_CT_ASSERT(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED ||
-			    ctinfo == IP_CT_RELATED_REPLY));
+						ctinfo == IP_CT_RELATED_REPLY));
 
 	if (ipv6_dev_get_saddr(nf_ct_net(ct), out,
-			       &ipv6_hdr(skb)->daddr, 0, &src) < 0)
+						   &ipv6_hdr(skb)->daddr, 0, &src) < 0)
+	{
 		return NF_DROP;
+	}
 
 	nfct_nat(ct)->masq_index = out->ifindex;
 
@@ -59,30 +61,38 @@ static int device_cmp(struct nf_conn *ct, void *ifindex)
 	const struct nf_conn_nat *nat = nfct_nat(ct);
 
 	if (!nat)
+	{
 		return 0;
+	}
+
 	if (nf_ct_l3num(ct) != NFPROTO_IPV6)
+	{
 		return 0;
+	}
+
 	return nat->masq_index == (int)(long)ifindex;
 }
 
 static int masq_device_event(struct notifier_block *this,
-			     unsigned long event, void *ptr)
+							 unsigned long event, void *ptr)
 {
 	const struct net_device *dev = netdev_notifier_info_to_dev(ptr);
 	struct net *net = dev_net(dev);
 
 	if (event == NETDEV_DOWN)
 		nf_ct_iterate_cleanup(net, device_cmp,
-				      (void *)(long)dev->ifindex, 0, 0);
+							  (void *)(long)dev->ifindex, 0, 0);
 
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block masq_dev_notifier = {
+static struct notifier_block masq_dev_notifier =
+{
 	.notifier_call	= masq_device_event,
 };
 
-struct masq_dev_work {
+struct masq_dev_work
+{
 	struct work_struct work;
 	struct net *net;
 	int ifindex;
@@ -119,7 +129,7 @@ static void iterate_cleanup_work(struct work_struct *work)
  * limit to the number of queued work items.
  */
 static int masq_inet_event(struct notifier_block *this,
-			   unsigned long event, void *ptr)
+						   unsigned long event, void *ptr)
 {
 	struct inet6_ifaddr *ifa = ptr;
 	const struct net_device *dev;
@@ -127,19 +137,28 @@ static int masq_inet_event(struct notifier_block *this,
 	struct net *net;
 
 	if (event != NETDEV_DOWN ||
-	    atomic_read(&v6_worker_count) >= MAX_WORK_COUNT)
+		atomic_read(&v6_worker_count) >= MAX_WORK_COUNT)
+	{
 		return NOTIFY_DONE;
+	}
 
 	dev = ifa->idev->dev;
 	net = maybe_get_net(dev_net(dev));
+
 	if (!net)
+	{
 		return NOTIFY_DONE;
+	}
 
 	if (!try_module_get(THIS_MODULE))
+	{
 		goto err_module;
+	}
 
 	w = kmalloc(sizeof(*w), GFP_ATOMIC);
-	if (w) {
+
+	if (w)
+	{
 		atomic_inc(&v6_worker_count);
 
 		INIT_WORK(&w->work, iterate_cleanup_work);
@@ -151,12 +170,13 @@ static int masq_inet_event(struct notifier_block *this,
 	}
 
 	module_put(THIS_MODULE);
- err_module:
+err_module:
 	put_net(net);
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block masq_inet_notifier = {
+static struct notifier_block masq_inet_notifier =
+{
 	.notifier_call	= masq_inet_event,
 };
 
@@ -166,7 +186,9 @@ void nf_nat_masquerade_ipv6_register_notifier(void)
 {
 	/* check if the notifier is already set */
 	if (atomic_inc_return(&masquerade_notifier_refcount) > 1)
+	{
 		return;
+	}
 
 	register_netdevice_notifier(&masq_dev_notifier);
 	register_inet6addr_notifier(&masq_inet_notifier);
@@ -177,7 +199,9 @@ void nf_nat_masquerade_ipv6_unregister_notifier(void)
 {
 	/* check if the notifier still has clients */
 	if (atomic_dec_return(&masquerade_notifier_refcount) > 0)
+	{
 		return;
+	}
 
 	unregister_inet6addr_notifier(&masq_inet_notifier);
 	unregister_netdevice_notifier(&masq_dev_notifier);

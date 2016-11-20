@@ -29,17 +29,18 @@
 
 #define C_CAN_MSG_OBJ_RX_FIRST	1
 #define C_CAN_MSG_OBJ_RX_LAST	(C_CAN_MSG_OBJ_RX_FIRST + \
-				C_CAN_MSG_OBJ_RX_NUM - 1)
+								 C_CAN_MSG_OBJ_RX_NUM - 1)
 
 #define C_CAN_MSG_OBJ_TX_FIRST	(C_CAN_MSG_OBJ_RX_LAST + 1)
 #define C_CAN_MSG_OBJ_TX_LAST	(C_CAN_MSG_OBJ_TX_FIRST + \
-				C_CAN_MSG_OBJ_TX_NUM - 1)
+								 C_CAN_MSG_OBJ_TX_NUM - 1)
 
 #define C_CAN_MSG_OBJ_RX_SPLIT	9
 #define C_CAN_MSG_RX_LOW_LAST	(C_CAN_MSG_OBJ_RX_SPLIT - 1)
 #define RECEIVE_OBJECT_BITS	0x0000ffff
 
-enum reg {
+enum reg
+{
 	C_CAN_CTRL_REG = 0,
 	C_CAN_CTRL_EX_REG,
 	C_CAN_STS_REG,
@@ -81,7 +82,8 @@ enum reg {
 	C_CAN_FUNCTION_REG,
 };
 
-static const u16 reg_map_c_can[] = {
+static const u16 reg_map_c_can[] =
+{
 	[C_CAN_CTRL_REG]	= 0x00,
 	[C_CAN_STS_REG]		= 0x02,
 	[C_CAN_ERR_CNT_REG]	= 0x04,
@@ -121,7 +123,8 @@ static const u16 reg_map_c_can[] = {
 	[C_CAN_MSGVAL2_REG]	= 0xB2,
 };
 
-static const u16 reg_map_d_can[] = {
+static const u16 reg_map_d_can[] =
+{
 	[C_CAN_CTRL_REG]	= 0x00,
 	[C_CAN_CTRL_EX_REG]	= 0x02,
 	[C_CAN_STS_REG]		= 0x04,
@@ -163,18 +166,21 @@ static const u16 reg_map_d_can[] = {
 	[C_CAN_IF2_DATA4_REG]	= 0x136,
 };
 
-enum c_can_dev_id {
+enum c_can_dev_id
+{
 	BOSCH_C_CAN_PLATFORM,
 	BOSCH_C_CAN,
 	BOSCH_D_CAN,
 };
 
-struct raminit_bits {
+struct raminit_bits
+{
 	u8 start;
 	u8 done;
 };
 
-struct c_can_driver_data {
+struct c_can_driver_data
+{
 	enum c_can_dev_id id;
 
 	/* RAMINIT register description. Optional. */
@@ -184,7 +190,8 @@ struct c_can_driver_data {
 };
 
 /* Out of band RAMINIT register access via syscon regmap */
-struct c_can_raminit {
+struct c_can_raminit
+{
 	struct regmap *syscon;	/* for raminit ctrl. reg. access */
 	unsigned int reg;	/* register index within syscon */
 	struct raminit_bits bits;
@@ -192,7 +199,8 @@ struct c_can_raminit {
 };
 
 /* c_can private data structure */
-struct c_can_priv {
+struct c_can_priv
+{
 	struct can_priv can;	/* must be the first member */
 	struct napi_struct napi;
 	struct net_device *dev;
@@ -221,8 +229,8 @@ int register_c_can_dev(struct net_device *dev);
 void unregister_c_can_dev(struct net_device *dev);
 
 #ifdef CONFIG_PM
-int c_can_power_up(struct net_device *dev);
-int c_can_power_down(struct net_device *dev);
+	int c_can_power_up(struct net_device *dev);
+	int c_can_power_down(struct net_device *dev);
 #endif
 
 #endif /* C_CAN_H */

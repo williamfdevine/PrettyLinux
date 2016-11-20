@@ -42,7 +42,8 @@
  * @dvb_usb_device: DVB USB interface for USB streaming.
  */
 
-struct rtl2832_sdr_platform_data {
+struct rtl2832_sdr_platform_data
+{
 	u32 clk;
 	/*
 	 * XXX: This list must be kept sync with dvb_usb_rtl28xxu USB IF driver.

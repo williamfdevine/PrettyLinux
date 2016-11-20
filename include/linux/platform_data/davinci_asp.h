@@ -18,7 +18,8 @@
 
 #include <linux/genalloc.h>
 
-struct davinci_mcasp_pdata {
+struct davinci_mcasp_pdata
+{
 	u32 tx_dma_offset;
 	u32 rx_dma_offset;
 	int asp_chan_q;	/* event queue number for ASP channel */
@@ -28,7 +29,7 @@ struct davinci_mcasp_pdata {
 	 * caused by underruns, but will swap the left and right channels
 	 * when compared to previous behavior.
 	 */
-	unsigned enable_channel_combine:1;
+	unsigned enable_channel_combine: 1;
 	unsigned sram_size_playback;
 	unsigned sram_size_capture;
 	struct gen_pool *sram_pool;
@@ -90,14 +91,16 @@ struct davinci_mcasp_pdata {
 /* TODO: Fix arch/arm/mach-davinci/ users and remove this define */
 #define snd_platform_data davinci_mcasp_pdata
 
-enum {
+enum
+{
 	MCASP_VERSION_1 = 0,	/* DM646x */
 	MCASP_VERSION_2,	/* DA8xx/OMAPL1x */
 	MCASP_VERSION_3,        /* TI81xx/AM33xx */
 	MCASP_VERSION_4,	/* DRA7xxx */
 };
 
-enum mcbsp_clk_input_pin {
+enum mcbsp_clk_input_pin
+{
 	MCBSP_CLKR = 0,		/* as in DM365 */
 	MCBSP_CLKS,
 };

@@ -92,10 +92,13 @@
 
 static inline u64 ceph_sanitize_features(u64 features)
 {
-	if (features & CEPH_FEATURE_RESERVED) {
+	if (features & CEPH_FEATURE_RESERVED)
+	{
 		/* everything through OSD_SNAPMAPPER */
 		return 0x1ffffffffull;
-	} else {
+	}
+	else
+	{
 		return features;
 	}
 }

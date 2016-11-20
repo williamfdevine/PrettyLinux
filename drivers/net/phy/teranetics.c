@@ -29,10 +29,10 @@ MODULE_LICENSE("GPL v2");
 #define MDIO_PHYXS_LNSTAT_ALIGN 0x1000
 
 #define MDIO_PHYXS_LANE_READY	(MDIO_PHYXS_LNSTAT_SYNC0 | \
-				MDIO_PHYXS_LNSTAT_SYNC1 | \
-				MDIO_PHYXS_LNSTAT_SYNC2 | \
-				MDIO_PHYXS_LNSTAT_SYNC3 | \
-				MDIO_PHYXS_LNSTAT_ALIGN)
+								 MDIO_PHYXS_LNSTAT_SYNC1 | \
+								 MDIO_PHYXS_LNSTAT_SYNC2 | \
+								 MDIO_PHYXS_LNSTAT_SYNC3 | \
+								 MDIO_PHYXS_LNSTAT_ALIGN)
 
 static int teranetics_config_init(struct phy_device *phydev)
 {
@@ -54,7 +54,8 @@ static int teranetics_aneg_done(struct phy_device *phydev)
 	/* auto negotiation state can only be checked when using copper
 	 * port, if using fiber port, just lie it's done.
 	 */
-	if (!phy_read_mmd(phydev, MDIO_MMD_VEND1, 93)) {
+	if (!phy_read_mmd(phydev, MDIO_MMD_VEND1, 93))
+	{
 		reg = phy_read_mmd(phydev, MDIO_MMD_AN, MDIO_STAT1);
 		return (reg < 0) ? reg : (reg & BMSR_ANEGCOMPLETE);
 	}
@@ -76,17 +77,23 @@ static int teranetics_read_status(struct phy_device *phydev)
 	phydev->speed = SPEED_10000;
 	phydev->duplex = DUPLEX_FULL;
 
-	if (!phy_read_mmd(phydev, MDIO_MMD_VEND1, 93)) {
+	if (!phy_read_mmd(phydev, MDIO_MMD_VEND1, 93))
+	{
 		reg = phy_read_mmd(phydev, MDIO_MMD_PHYXS, MDIO_PHYXS_LNSTAT);
+
 		if (reg < 0 ||
-		    !((reg & MDIO_PHYXS_LANE_READY) == MDIO_PHYXS_LANE_READY)) {
+			!((reg & MDIO_PHYXS_LANE_READY) == MDIO_PHYXS_LANE_READY))
+		{
 			phydev->link = 0;
 			return 0;
 		}
 
 		reg = phy_read_mmd(phydev, MDIO_MMD_AN, MDIO_STAT1);
+
 		if (reg < 0 || !(reg & MDIO_STAT1_LSTATUS))
+		{
 			phydev->link = 0;
+		}
 	}
 
 	return 0;
@@ -97,23 +104,25 @@ static int teranetics_match_phy_device(struct phy_device *phydev)
 	return phydev->c45_ids.device_ids[3] == PHY_ID_TN2020;
 }
 
-static struct phy_driver teranetics_driver[] = {
+static struct phy_driver teranetics_driver[] =
 {
-	.phy_id		= PHY_ID_TN2020,
-	.phy_id_mask	= 0xffffffff,
-	.name		= "Teranetics TN2020",
-	.soft_reset	= teranetics_soft_reset,
-	.aneg_done	= teranetics_aneg_done,
-	.config_init    = teranetics_config_init,
-	.config_aneg    = teranetics_config_aneg,
-	.read_status	= teranetics_read_status,
-	.match_phy_device = teranetics_match_phy_device,
-},
+	{
+		.phy_id		= PHY_ID_TN2020,
+		.phy_id_mask	= 0xffffffff,
+		.name		= "Teranetics TN2020",
+		.soft_reset	= teranetics_soft_reset,
+		.aneg_done	= teranetics_aneg_done,
+		.config_init    = teranetics_config_init,
+		.config_aneg    = teranetics_config_aneg,
+		.read_status	= teranetics_read_status,
+		.match_phy_device = teranetics_match_phy_device,
+	},
 };
 
 module_phy_driver(teranetics_driver);
 
-static struct mdio_device_id __maybe_unused teranetics_tbl[] = {
+static struct mdio_device_id __maybe_unused teranetics_tbl[] =
+{
 	{ PHY_ID_TN2020, 0xffffffff },
 	{ }
 };

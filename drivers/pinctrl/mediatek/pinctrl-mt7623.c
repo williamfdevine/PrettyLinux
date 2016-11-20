@@ -22,7 +22,8 @@
 #include "pinctrl-mtk-common.h"
 #include "pinctrl-mtk-mt7623.h"
 
-static const struct mtk_drv_group_desc mt7623_drv_grp[] =  {
+static const struct mtk_drv_group_desc mt7623_drv_grp[] =
+{
 	/* 0E4E8SR 4/8/12/16 */
 	MTK_DRV_GRP(4, 16, 1, 2, 4),
 	/* 0E2E4SR  2/4/6/8 */
@@ -66,7 +67,8 @@ static const struct mtk_drv_group_desc mt7623_drv_grp[] =  {
 #define SMT_EN1		0xb60
 #define SMT_EN2		0xb70
 
-static const struct mtk_pin_drv_grp mt7623_pin_drv[] = {
+static const struct mtk_pin_drv_grp mt7623_pin_drv[] =
+{
 	MTK_PIN_DRV_GRP(0, DRV_SEL0, 0, 1),
 	MTK_PIN_DRV_GRP(1, DRV_SEL0, 0, 1),
 	MTK_PIN_DRV_GRP(2, DRV_SEL0, 0, 1),
@@ -186,7 +188,8 @@ static const struct mtk_pin_drv_grp mt7623_pin_drv[] = {
 	MTK_PIN_DRV_GRP(278, DRV_SEL2, 8, 1),
 };
 
-static const struct mtk_pin_spec_pupd_set_samereg mt7623_spec_pupd[] = {
+static const struct mtk_pin_spec_pupd_set_samereg mt7623_spec_pupd[] =
+{
 	MTK_PIN_PUPD_SPEC_SR(105, MSDC1_CTRL1, 8, 9, 10),
 	MTK_PIN_PUPD_SPEC_SR(106, MSDC1_CTRL0, 8, 9, 10),
 	MTK_PIN_PUPD_SPEC_SR(107, MSDC1_CTRL3, 0, 1, 2),
@@ -207,13 +210,14 @@ static const struct mtk_pin_spec_pupd_set_samereg mt7623_spec_pupd[] = {
 };
 
 static int mt7623_spec_pull_set(struct regmap *regmap, unsigned int pin,
-		unsigned char align, bool isup, unsigned int r1r0)
+								unsigned char align, bool isup, unsigned int r1r0)
 {
 	return mtk_pctrl_spec_pull_set_samereg(regmap, mt7623_spec_pupd,
-		ARRAY_SIZE(mt7623_spec_pupd), pin, align, isup, r1r0);
+										   ARRAY_SIZE(mt7623_spec_pupd), pin, align, isup, r1r0);
 }
 
-static const struct mtk_pin_ies_smt_set mt7623_ies_set[] = {
+static const struct mtk_pin_ies_smt_set mt7623_ies_set[] =
+{
 	MTK_PIN_IES_SMT_SPEC(0, 6, IES_EN0, 0),
 	MTK_PIN_IES_SMT_SPEC(7, 9, IES_EN0, 1),
 	MTK_PIN_IES_SMT_SPEC(10, 13, IES_EN0, 2),
@@ -247,7 +251,8 @@ static const struct mtk_pin_ies_smt_set mt7623_ies_set[] = {
 	MTK_PIN_IES_SMT_SPEC(278, 278, IES_EN2, 13),
 };
 
-static const struct mtk_pin_ies_smt_set mt7623_smt_set[] = {
+static const struct mtk_pin_ies_smt_set mt7623_smt_set[] =
+{
 	MTK_PIN_IES_SMT_SPEC(0, 6, SMT_EN0, 0),
 	MTK_PIN_IES_SMT_SPEC(7, 9, SMT_EN0, 1),
 	MTK_PIN_IES_SMT_SPEC(10, 13, SMT_EN0, 2),
@@ -294,18 +299,20 @@ static const struct mtk_pin_ies_smt_set mt7623_smt_set[] = {
 };
 
 static int mt7623_ies_smt_set(struct regmap *regmap, unsigned int pin,
-		unsigned char align, int value, enum pin_config_param arg)
+							  unsigned char align, int value, enum pin_config_param arg)
 {
 	if (arg == PIN_CONFIG_INPUT_ENABLE)
 		return mtk_pconf_spec_set_ies_smt_range(regmap, mt7623_ies_set,
-			ARRAY_SIZE(mt7623_ies_set), pin, align, value);
+												ARRAY_SIZE(mt7623_ies_set), pin, align, value);
 	else if (arg == PIN_CONFIG_INPUT_SCHMITT_ENABLE)
 		return mtk_pconf_spec_set_ies_smt_range(regmap, mt7623_smt_set,
-			ARRAY_SIZE(mt7623_smt_set), pin, align, value);
+												ARRAY_SIZE(mt7623_smt_set), pin, align, value);
+
 	return -EINVAL;
 }
 
-static const struct mtk_pinctrl_devdata mt7623_pinctrl_data = {
+static const struct mtk_pinctrl_devdata mt7623_pinctrl_data =
+{
 	.pins = mtk_pins_mt7623,
 	.npins = ARRAY_SIZE(mtk_pins_mt7623),
 	.grp_desc = mt7623_drv_grp,
@@ -357,13 +364,15 @@ static int mt7623_pinctrl_probe(struct platform_device *pdev)
 	return mtk_pctrl_init(pdev, &mt7623_pinctrl_data, NULL);
 }
 
-static const struct of_device_id mt7623_pctrl_match[] = {
+static const struct of_device_id mt7623_pctrl_match[] =
+{
 	{ .compatible = "mediatek,mt7623-pinctrl", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, mt7623_pctrl_match);
 
-static struct platform_driver mtk_pinctrl_driver = {
+static struct platform_driver mtk_pinctrl_driver =
+{
 	.probe = mt7623_pinctrl_probe,
 	.driver = {
 		.name = "mediatek-mt7623-pinctrl",

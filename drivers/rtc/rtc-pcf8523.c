@@ -35,7 +35,8 @@
 #define REG_MONTHS   0x08
 #define REG_YEARS    0x09
 
-struct pcf8523 {
+struct pcf8523
+{
 	struct rtc_device *rtc;
 };
 
@@ -56,8 +57,11 @@ static int pcf8523_read(struct i2c_client *client, u8 reg, u8 *valuep)
 	msgs[1].buf = &value;
 
 	err = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	*valuep = value;
 
@@ -76,8 +80,11 @@ static int pcf8523_write(struct i2c_client *client, u8 reg, u8 value)
 	msg.buf = buffer;
 
 	err = i2c_transfer(client->adapter, &msg, 1);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -88,17 +95,27 @@ static int pcf8523_select_capacitance(struct i2c_client *client, bool high)
 	int err;
 
 	err = pcf8523_read(client, REG_CONTROL1, &value);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if (!high)
+	{
 		value &= ~REG_CONTROL1_CAP_SEL;
+	}
 	else
+	{
 		value |= REG_CONTROL1_CAP_SEL;
+	}
 
 	err = pcf8523_write(client, REG_CONTROL1, value);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return err;
 }
@@ -109,14 +126,20 @@ static int pcf8523_set_pm(struct i2c_client *client, u8 pm)
 	int err;
 
 	err = pcf8523_read(client, REG_CONTROL3, &value);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	value = (value & ~REG_CONTROL3_PM_MASK) | pm;
 
 	err = pcf8523_write(client, REG_CONTROL3, value);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -127,14 +150,20 @@ static int pcf8523_stop_rtc(struct i2c_client *client)
 	int err;
 
 	err = pcf8523_read(client, REG_CONTROL1, &value);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	value |= REG_CONTROL1_STOP;
 
 	err = pcf8523_write(client, REG_CONTROL1, value);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -145,14 +174,20 @@ static int pcf8523_start_rtc(struct i2c_client *client)
 	int err;
 
 	err = pcf8523_read(client, REG_CONTROL1, &value);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	value &= ~REG_CONTROL1_STOP;
 
 	err = pcf8523_write(client, REG_CONTROL1, value);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -175,11 +210,16 @@ static int pcf8523_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	msgs[1].buf = regs;
 
 	err = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if (regs[0] & REG_SECONDS_OS)
+	{
 		return -EINVAL;
+	}
 
 	tm->tm_sec = bcd2bin(regs[0] & 0x7f);
 	tm->tm_min = bcd2bin(regs[1] & 0x7f);
@@ -208,11 +248,16 @@ static int pcf8523_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	 * YEAR=0xa0) as a leap year, but 2100 isn't.
 	 */
 	if (tm->tm_year < 100 || tm->tm_year >= 200)
+	{
 		return -EINVAL;
+	}
 
 	err = pcf8523_stop_rtc(client);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	regs[0] = REG_SECONDS;
 	/* This will purposely overwrite REG_SECONDS_OS */
@@ -230,7 +275,9 @@ static int pcf8523_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	msg.buf = regs;
 
 	err = i2c_transfer(client->adapter, &msg, 1);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		/*
 		 * If the time cannot be set, restart the RTC anyway. Note
 		 * that errors are ignored if the RTC cannot be started so
@@ -245,85 +292,112 @@ static int pcf8523_rtc_set_time(struct device *dev, struct rtc_time *tm)
 
 #ifdef CONFIG_RTC_INTF_DEV
 static int pcf8523_rtc_ioctl(struct device *dev, unsigned int cmd,
-			     unsigned long arg)
+							 unsigned long arg)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	u8 value;
 	int ret = 0, err;
 
-	switch (cmd) {
-	case RTC_VL_READ:
-		err = pcf8523_read(client, REG_CONTROL3, &value);
-		if (err < 0)
-			return err;
+	switch (cmd)
+	{
+		case RTC_VL_READ:
+			err = pcf8523_read(client, REG_CONTROL3, &value);
 
-		if (value & REG_CONTROL3_BLF)
-			ret = 1;
+			if (err < 0)
+			{
+				return err;
+			}
 
-		if (copy_to_user((void __user *)arg, &ret, sizeof(int)))
-			return -EFAULT;
+			if (value & REG_CONTROL3_BLF)
+			{
+				ret = 1;
+			}
 
-		return 0;
-	default:
-		return -ENOIOCTLCMD;
+			if (copy_to_user((void __user *)arg, &ret, sizeof(int)))
+			{
+				return -EFAULT;
+			}
+
+			return 0;
+
+		default:
+			return -ENOIOCTLCMD;
 	}
 }
 #else
 #define pcf8523_rtc_ioctl NULL
 #endif
 
-static const struct rtc_class_ops pcf8523_rtc_ops = {
+static const struct rtc_class_ops pcf8523_rtc_ops =
+{
 	.read_time = pcf8523_rtc_read_time,
 	.set_time = pcf8523_rtc_set_time,
 	.ioctl = pcf8523_rtc_ioctl,
 };
 
 static int pcf8523_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct pcf8523 *pcf;
 	int err;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		return -ENODEV;
+	}
 
 	pcf = devm_kzalloc(&client->dev, sizeof(*pcf), GFP_KERNEL);
+
 	if (!pcf)
+	{
 		return -ENOMEM;
+	}
 
 	err = pcf8523_select_capacitance(client, true);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = pcf8523_set_pm(client, 0);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	pcf->rtc = devm_rtc_device_register(&client->dev, DRIVER_NAME,
-				       &pcf8523_rtc_ops, THIS_MODULE);
+										&pcf8523_rtc_ops, THIS_MODULE);
+
 	if (IS_ERR(pcf->rtc))
+	{
 		return PTR_ERR(pcf->rtc);
+	}
 
 	i2c_set_clientdata(client, pcf);
 
 	return 0;
 }
 
-static const struct i2c_device_id pcf8523_id[] = {
+static const struct i2c_device_id pcf8523_id[] =
+{
 	{ "pcf8523", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, pcf8523_id);
 
 #ifdef CONFIG_OF
-static const struct of_device_id pcf8523_of_match[] = {
+static const struct of_device_id pcf8523_of_match[] =
+{
 	{ .compatible = "nxp,pcf8523" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, pcf8523_of_match);
 #endif
 
-static struct i2c_driver pcf8523_driver = {
+static struct i2c_driver pcf8523_driver =
+{
 	.driver = {
 		.name = DRIVER_NAME,
 		.of_match_table = of_match_ptr(pcf8523_of_match),

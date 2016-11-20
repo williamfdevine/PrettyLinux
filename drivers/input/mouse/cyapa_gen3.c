@@ -69,12 +69,12 @@
 #define CYAPA_FW_HDR_BLOCK_COUNT  2
 #define CYAPA_FW_HDR_BLOCK_START  (CYAPA_FW_HDR_START / CYAPA_FW_BLOCK_SIZE)
 #define CYAPA_FW_HDR_SIZE	  (CYAPA_FW_HDR_BLOCK_COUNT * \
-					CYAPA_FW_BLOCK_SIZE)
+							   CYAPA_FW_BLOCK_SIZE)
 #define CYAPA_FW_DATA_START	0x0800
 #define CYAPA_FW_DATA_BLOCK_COUNT  480
 #define CYAPA_FW_DATA_BLOCK_START  (CYAPA_FW_DATA_START / CYAPA_FW_BLOCK_SIZE)
 #define CYAPA_FW_DATA_SIZE	(CYAPA_FW_DATA_BLOCK_COUNT * \
-				 CYAPA_FW_BLOCK_SIZE)
+							 CYAPA_FW_BLOCK_SIZE)
 #define CYAPA_FW_SIZE		(CYAPA_FW_HDR_SIZE + CYAPA_FW_DATA_SIZE)
 #define CYAPA_CMD_LEN		16
 
@@ -82,7 +82,8 @@
 #define GEN3_BL_IDLE_FW_MIN_VER_OFFSET (GEN3_BL_IDLE_FW_MAJ_VER_OFFSET + 1)
 
 
-struct cyapa_touch {
+struct cyapa_touch
+{
 	/*
 	 * high bits or x/y position value
 	 * bit 7 - 4: high 4 bits of x position value
@@ -96,7 +97,8 @@ struct cyapa_touch {
 	u8 id;
 } __packed;
 
-struct cyapa_reg_data {
+struct cyapa_reg_data
+{
 	/*
 	 * bit 0 - 1: device status
 	 * bit 3 - 2: power mode
@@ -116,7 +118,8 @@ struct cyapa_reg_data {
 	struct cyapa_touch touches[5];
 } __packed;
 
-struct gen3_write_block_cmd {
+struct gen3_write_block_cmd
+{
 	u8 checksum_seed;  /* Always be 0xff */
 	u8 cmd_code;       /* command code: 0x39 */
 	u8 key[8];         /* 8-byte security key */
@@ -126,17 +129,22 @@ struct gen3_write_block_cmd {
 	u8 cmd_checksum;    /* Calculated using bytes 0-76 */
 } __packed;
 
-static const u8 security_key[] = {
-		0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
+static const u8 security_key[] =
+{
+	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
+};
 static const u8 bl_activate[] = { 0x00, 0xff, 0x38, 0x00, 0x01, 0x02, 0x03,
-		0x04, 0x05, 0x06, 0x07 };
+								  0x04, 0x05, 0x06, 0x07
+								};
 static const u8 bl_deactivate[] = { 0x00, 0xff, 0x3b, 0x00, 0x01, 0x02, 0x03,
-		0x04, 0x05, 0x06, 0x07 };
+									0x04, 0x05, 0x06, 0x07
+								  };
 static const u8 bl_exit[] = { 0x00, 0xff, 0xa5, 0x00, 0x01, 0x02, 0x03, 0x04,
-		0x05, 0x06, 0x07 };
+							  0x05, 0x06, 0x07
+							};
 
 
- /* for byte read/write command */
+/* for byte read/write command */
 #define CMD_RESET      0
 #define CMD_POWER_MODE 1
 #define CMD_DEV_STATUS 2
@@ -149,7 +157,7 @@ static const u8 bl_exit[] = { 0x00, 0xff, 0xa5, 0x00, 0x01, 0x02, 0x03, 0x04,
 #define CYAPA_SMBUS_MAX_BASELINE  SMBUS_BYTE_CMD(CMD_REPORT_MAX_BASELINE)
 #define CYAPA_SMBUS_MIN_BASELINE  SMBUS_BYTE_CMD(CMD_REPORT_MIN_BASELINE)
 
- /* for group registers read/write command */
+/* for group registers read/write command */
 #define REG_GROUP_DATA 0
 #define REG_GROUP_CMD 2
 #define REG_GROUP_QUERY 3
@@ -158,7 +166,7 @@ static const u8 bl_exit[] = { 0x00, 0xff, 0xa5, 0x00, 0x01, 0x02, 0x03, 0x04,
 #define CYAPA_SMBUS_GROUP_CMD	 SMBUS_GROUP_CMD(REG_GROUP_CMD)
 #define CYAPA_SMBUS_GROUP_QUERY	 SMBUS_GROUP_CMD(REG_GROUP_QUERY)
 
- /* for register block read/write command */
+/* for register block read/write command */
 #define CMD_BL_STATUS 0
 #define CMD_BL_HEAD 1
 #define CMD_BL_CMD 2
@@ -179,7 +187,7 @@ static const u8 bl_exit[] = { 0x00, 0xff, 0xa5, 0x00, 0x01, 0x02, 0x03, 0x04,
 #define CYAPA_SMBUS_BLK_PRODUCT_ID SMBUS_BLOCK_CMD(CMD_BLK_PRODUCT_ID)
 #define CYAPA_SMBUS_BLK_HEAD SMBUS_BLOCK_CMD(CMD_BLK_HEAD)
 
- /* for byte read/write command */
+/* for byte read/write command */
 #define CMD_RESET 0
 #define CMD_POWER_MODE 1
 #define CMD_DEV_STATUS 2
@@ -192,7 +200,7 @@ static const u8 bl_exit[] = { 0x00, 0xff, 0xa5, 0x00, 0x01, 0x02, 0x03, 0x04,
 #define CYAPA_SMBUS_MAX_BASELINE  SMBUS_BYTE_CMD(CMD_REPORT_MAX_BASELINE)
 #define CYAPA_SMBUS_MIN_BASELINE  SMBUS_BYTE_CMD(CMD_REPORT_MIN_BASELINE)
 
- /* for group registers read/write command */
+/* for group registers read/write command */
 #define REG_GROUP_DATA  0
 #define REG_GROUP_CMD   2
 #define REG_GROUP_QUERY 3
@@ -201,7 +209,7 @@ static const u8 bl_exit[] = { 0x00, 0xff, 0xa5, 0x00, 0x01, 0x02, 0x03, 0x04,
 #define CYAPA_SMBUS_GROUP_CMD   SMBUS_GROUP_CMD(REG_GROUP_CMD)
 #define CYAPA_SMBUS_GROUP_QUERY SMBUS_GROUP_CMD(REG_GROUP_QUERY)
 
- /* for register block read/write command */
+/* for register block read/write command */
 #define CMD_BL_STATUS		0
 #define CMD_BL_HEAD		1
 #define CMD_BL_CMD		2
@@ -222,18 +230,20 @@ static const u8 bl_exit[] = { 0x00, 0xff, 0xa5, 0x00, 0x01, 0x02, 0x03, 0x04,
 #define CYAPA_SMBUS_BLK_PRODUCT_ID SMBUS_BLOCK_CMD(CMD_BLK_PRODUCT_ID)
 #define CYAPA_SMBUS_BLK_HEAD       SMBUS_BLOCK_CMD(CMD_BLK_HEAD)
 
-struct cyapa_cmd_len {
+struct cyapa_cmd_len
+{
 	u8 cmd;
 	u8 len;
 };
 
 /* maps generic CYAPA_CMD_* code to the I2C equivalent */
-static const struct cyapa_cmd_len cyapa_i2c_cmds[] = {
+static const struct cyapa_cmd_len cyapa_i2c_cmds[] =
+{
 	{ CYAPA_OFFSET_SOFT_RESET, 1 },		/* CYAPA_CMD_SOFT_RESET */
 	{ REG_OFFSET_COMMAND_BASE + 1, 1 },	/* CYAPA_CMD_POWER_MODE */
 	{ REG_OFFSET_DATA_BASE, 1 },		/* CYAPA_CMD_DEV_STATUS */
 	{ REG_OFFSET_DATA_BASE, sizeof(struct cyapa_reg_data) },
-						/* CYAPA_CMD_GROUP_DATA */
+	/* CYAPA_CMD_GROUP_DATA */
 	{ REG_OFFSET_COMMAND_BASE, 0 },		/* CYAPA_CMD_GROUP_CMD */
 	{ REG_OFFSET_QUERY_BASE, QUERY_DATA_SIZE }, /* CYAPA_CMD_GROUP_QUERY */
 	{ BL_HEAD_OFFSET, 3 },			/* CYAPA_CMD_BL_STATUS */
@@ -242,28 +252,29 @@ static const struct cyapa_cmd_len cyapa_i2c_cmds[] = {
 	{ BL_DATA_OFFSET, 16 },			/* CYAPA_CMD_BL_DATA */
 	{ BL_HEAD_OFFSET, 32 },			/* CYAPA_CMD_BL_ALL */
 	{ REG_OFFSET_QUERY_BASE, PRODUCT_ID_SIZE },
-						/* CYAPA_CMD_BLK_PRODUCT_ID */
+	/* CYAPA_CMD_BLK_PRODUCT_ID */
 	{ REG_OFFSET_DATA_BASE, 32 },		/* CYAPA_CMD_BLK_HEAD */
 	{ REG_OFFSET_MAX_BASELINE, 1 },		/* CYAPA_CMD_MAX_BASELINE */
 	{ REG_OFFSET_MIN_BASELINE, 1 },		/* CYAPA_CMD_MIN_BASELINE */
 };
 
-static const struct cyapa_cmd_len cyapa_smbus_cmds[] = {
+static const struct cyapa_cmd_len cyapa_smbus_cmds[] =
+{
 	{ CYAPA_SMBUS_RESET, 1 },		/* CYAPA_CMD_SOFT_RESET */
 	{ CYAPA_SMBUS_POWER_MODE, 1 },		/* CYAPA_CMD_POWER_MODE */
 	{ CYAPA_SMBUS_DEV_STATUS, 1 },		/* CYAPA_CMD_DEV_STATUS */
 	{ CYAPA_SMBUS_GROUP_DATA, sizeof(struct cyapa_reg_data) },
-						/* CYAPA_CMD_GROUP_DATA */
+	/* CYAPA_CMD_GROUP_DATA */
 	{ CYAPA_SMBUS_GROUP_CMD, 2 },		/* CYAPA_CMD_GROUP_CMD */
 	{ CYAPA_SMBUS_GROUP_QUERY, QUERY_DATA_SIZE },
-						/* CYAPA_CMD_GROUP_QUERY */
+	/* CYAPA_CMD_GROUP_QUERY */
 	{ CYAPA_SMBUS_BL_STATUS, 3 },		/* CYAPA_CMD_BL_STATUS */
 	{ CYAPA_SMBUS_BL_HEAD, 16 },		/* CYAPA_CMD_BL_HEAD */
 	{ CYAPA_SMBUS_BL_CMD, 16 },		/* CYAPA_CMD_BL_CMD */
 	{ CYAPA_SMBUS_BL_DATA, 16 },		/* CYAPA_CMD_BL_DATA */
 	{ CYAPA_SMBUS_BL_ALL, 32 },		/* CYAPA_CMD_BL_ALL */
 	{ CYAPA_SMBUS_BLK_PRODUCT_ID, PRODUCT_ID_SIZE },
-						/* CYAPA_CMD_BLK_PRODUCT_ID */
+	/* CYAPA_CMD_BLK_PRODUCT_ID */
 	{ CYAPA_SMBUS_BLK_HEAD, 16 },		/* CYAPA_CMD_BLK_HEAD */
 	{ CYAPA_SMBUS_MAX_BASELINE, 1 },	/* CYAPA_CMD_MAX_BASELINE */
 	{ CYAPA_SMBUS_MIN_BASELINE, 1 },	/* CYAPA_CMD_MIN_BASELINE */
@@ -285,7 +296,7 @@ static int cyapa_gen3_try_poll_handler(struct cyapa *cyapa);
  * is 256 bytes, so the max read block for I2C bus is 256 bytes.
  */
 ssize_t cyapa_smbus_read_block(struct cyapa *cyapa, u8 cmd, size_t len,
-				      u8 *values)
+							   u8 *values)
 {
 	ssize_t ret;
 	u8 index;
@@ -294,9 +305,12 @@ ssize_t cyapa_smbus_read_block(struct cyapa *cyapa, u8 cmd, size_t len,
 	struct i2c_client *client = cyapa->client;
 
 	if (!(SMBUS_BYTE_BLOCK_CMD_MASK & cmd))
+	{
 		return -EINVAL;
+	}
 
-	if (SMBUS_GROUP_BLOCK_CMD_MASK & cmd) {
+	if (SMBUS_GROUP_BLOCK_CMD_MASK & cmd)
+	{
 		/* read specific block registers command. */
 		smbus_cmd = SMBUS_ENCODE_RW(cmd, SMBUS_READ);
 		ret = i2c_smbus_read_block_data(client, smbus_cmd, values);
@@ -304,13 +318,18 @@ ssize_t cyapa_smbus_read_block(struct cyapa *cyapa, u8 cmd, size_t len,
 	}
 
 	ret = 0;
-	for (index = 0; index * I2C_SMBUS_BLOCK_MAX < len; index++) {
+
+	for (index = 0; index * I2C_SMBUS_BLOCK_MAX < len; index++)
+	{
 		smbus_cmd = SMBUS_ENCODE_IDX(cmd, index);
 		smbus_cmd = SMBUS_ENCODE_RW(smbus_cmd, SMBUS_READ);
 		buf = values + I2C_SMBUS_BLOCK_MAX * index;
 		ret = i2c_smbus_read_block_data(client, smbus_cmd, buf);
+
 		if (ret < 0)
+		{
 			goto out;
+		}
 	}
 
 out:
@@ -321,12 +340,16 @@ static s32 cyapa_read_byte(struct cyapa *cyapa, u8 cmd_idx)
 {
 	u8 cmd;
 
-	if (cyapa->smbus) {
+	if (cyapa->smbus)
+	{
 		cmd = cyapa_smbus_cmds[cmd_idx].cmd;
 		cmd = SMBUS_ENCODE_RW(cmd, SMBUS_READ);
-	} else {
+	}
+	else
+	{
 		cmd = cyapa_i2c_cmds[cmd_idx].cmd;
 	}
+
 	return i2c_smbus_read_byte_data(cyapa->client, cmd);
 }
 
@@ -334,23 +357,27 @@ static s32 cyapa_write_byte(struct cyapa *cyapa, u8 cmd_idx, u8 value)
 {
 	u8 cmd;
 
-	if (cyapa->smbus) {
+	if (cyapa->smbus)
+	{
 		cmd = cyapa_smbus_cmds[cmd_idx].cmd;
 		cmd = SMBUS_ENCODE_RW(cmd, SMBUS_WRITE);
-	} else {
+	}
+	else
+	{
 		cmd = cyapa_i2c_cmds[cmd_idx].cmd;
 	}
+
 	return i2c_smbus_write_byte_data(cyapa->client, cmd, value);
 }
 
 ssize_t cyapa_i2c_reg_read_block(struct cyapa *cyapa, u8 reg, size_t len,
-					u8 *values)
+								 u8 *values)
 {
 	return i2c_smbus_read_i2c_block_data(cyapa->client, reg, len, values);
 }
 
 static ssize_t cyapa_i2c_reg_write_block(struct cyapa *cyapa, u8 reg,
-					 size_t len, const u8 *values)
+		size_t len, const u8 *values)
 {
 	return i2c_smbus_write_i2c_block_data(cyapa->client, reg, len, values);
 }
@@ -360,11 +387,13 @@ ssize_t cyapa_read_block(struct cyapa *cyapa, u8 cmd_idx, u8 *values)
 	u8 cmd;
 	size_t len;
 
-	if (cyapa->smbus) {
+	if (cyapa->smbus)
+	{
 		cmd = cyapa_smbus_cmds[cmd_idx].cmd;
 		len = cyapa_smbus_cmds[cmd_idx].len;
 		return cyapa_smbus_read_block(cyapa, cmd, len, values);
 	}
+
 	cmd = cyapa_i2c_cmds[cmd_idx].cmd;
 	len = cyapa_i2c_cmds[cmd_idx].len;
 	return cyapa_i2c_reg_read_block(cyapa, cmd, len, values);
@@ -382,8 +411,9 @@ static int cyapa_gen3_state_parse(struct cyapa *cyapa, u8 *reg_data, int len)
 	if (reg_data[REG_BL_FILE] == BL_FILE &&
 		reg_data[REG_BL_ERROR] == BL_ERROR_NO_ERR_IDLE &&
 		(reg_data[REG_BL_STATUS] ==
-			(BL_STATUS_RUNNING | BL_STATUS_CSUM_VALID) ||
-			reg_data[REG_BL_STATUS] == BL_STATUS_RUNNING)) {
+		 (BL_STATUS_RUNNING | BL_STATUS_CSUM_VALID) ||
+		 reg_data[REG_BL_STATUS] == BL_STATUS_RUNNING))
+	{
 		/*
 		 * Normal state after power on or reset,
 		 * REG_BL_STATUS == 0x11, firmware image checksum is valid.
@@ -391,48 +421,67 @@ static int cyapa_gen3_state_parse(struct cyapa *cyapa, u8 *reg_data, int len)
 		 */
 		cyapa->gen = CYAPA_GEN3;
 		cyapa->state = CYAPA_STATE_BL_IDLE;
-	} else if (reg_data[REG_BL_FILE] == BL_FILE &&
-		(reg_data[REG_BL_STATUS] & BL_STATUS_RUNNING) ==
-			BL_STATUS_RUNNING) {
+	}
+	else if (reg_data[REG_BL_FILE] == BL_FILE &&
+			 (reg_data[REG_BL_STATUS] & BL_STATUS_RUNNING) ==
+			 BL_STATUS_RUNNING)
+	{
 		cyapa->gen = CYAPA_GEN3;
-		if (reg_data[REG_BL_STATUS] & BL_STATUS_BUSY) {
+
+		if (reg_data[REG_BL_STATUS] & BL_STATUS_BUSY)
+		{
 			cyapa->state = CYAPA_STATE_BL_BUSY;
-		} else {
-			if ((reg_data[REG_BL_ERROR] & BL_ERROR_BOOTLOADING) ==
-					BL_ERROR_BOOTLOADING)
-				cyapa->state = CYAPA_STATE_BL_ACTIVE;
-			else
-				cyapa->state = CYAPA_STATE_BL_IDLE;
 		}
-	} else if ((reg_data[REG_OP_STATUS] & OP_STATUS_SRC) &&
-			(reg_data[REG_OP_DATA1] & OP_DATA_VALID)) {
+		else
+		{
+			if ((reg_data[REG_BL_ERROR] & BL_ERROR_BOOTLOADING) ==
+				BL_ERROR_BOOTLOADING)
+			{
+				cyapa->state = CYAPA_STATE_BL_ACTIVE;
+			}
+			else
+			{
+				cyapa->state = CYAPA_STATE_BL_IDLE;
+			}
+		}
+	}
+	else if ((reg_data[REG_OP_STATUS] & OP_STATUS_SRC) &&
+			 (reg_data[REG_OP_DATA1] & OP_DATA_VALID))
+	{
 		/*
 		 * Normal state when running in operational mode,
 		 * may also not in full power state or
 		 * busying in command process.
 		 */
 		if (GEN3_FINGER_NUM(reg_data[REG_OP_DATA1]) <=
-				GEN3_MAX_FINGERS) {
+			GEN3_MAX_FINGERS)
+		{
 			/* Finger number data is valid. */
 			cyapa->gen = CYAPA_GEN3;
 			cyapa->state = CYAPA_STATE_OP;
 		}
-	} else if (reg_data[REG_OP_STATUS] == 0x0C &&
-			reg_data[REG_OP_DATA1] == 0x08) {
+	}
+	else if (reg_data[REG_OP_STATUS] == 0x0C &&
+			 reg_data[REG_OP_DATA1] == 0x08)
+	{
 		/* Op state when first two registers overwritten with 0x00 */
 		cyapa->gen = CYAPA_GEN3;
 		cyapa->state = CYAPA_STATE_OP;
-	} else if (reg_data[REG_BL_STATUS] &
-			(BL_STATUS_RUNNING | BL_STATUS_BUSY)) {
+	}
+	else if (reg_data[REG_BL_STATUS] &
+			 (BL_STATUS_RUNNING | BL_STATUS_BUSY))
+	{
 		cyapa->gen = CYAPA_GEN3;
 		cyapa->state = CYAPA_STATE_BL_BUSY;
 	}
 
 	if (cyapa->gen == CYAPA_GEN3 && (cyapa->state == CYAPA_STATE_OP ||
-		cyapa->state == CYAPA_STATE_BL_IDLE ||
-		cyapa->state == CYAPA_STATE_BL_ACTIVE ||
-		cyapa->state == CYAPA_STATE_BL_BUSY))
+									 cyapa->state == CYAPA_STATE_BL_IDLE ||
+									 cyapa->state == CYAPA_STATE_BL_ACTIVE ||
+									 cyapa->state == CYAPA_STATE_BL_BUSY))
+	{
 		return 0;
+	}
 
 	return -EAGAIN;
 }
@@ -455,45 +504,66 @@ static int cyapa_gen3_bl_enter(struct cyapa *cyapa)
 	int waiting_time;
 
 	error = cyapa_poll_state(cyapa, 500);
+
 	if (error)
+	{
 		return error;
-	if (cyapa->state == CYAPA_STATE_BL_IDLE) {
+	}
+
+	if (cyapa->state == CYAPA_STATE_BL_IDLE)
+	{
 		/* Already in BL_IDLE. Skipping reset. */
 		return 0;
 	}
 
 	if (cyapa->state != CYAPA_STATE_OP)
+	{
 		return -EAGAIN;
+	}
 
 	cyapa->operational = false;
 	cyapa->state = CYAPA_STATE_NO_DEVICE;
 	error = cyapa_write_byte(cyapa, CYAPA_CMD_SOFT_RESET, 0x01);
+
 	if (error)
+	{
 		return -EIO;
+	}
 
 	usleep_range(25000, 50000);
 	waiting_time = 2000;  /* For some shipset, max waiting time is 1~2s. */
-	do {
+
+	do
+	{
 		error = cyapa_poll_state(cyapa, 500);
-		if (error) {
-			if (error == -ETIMEDOUT) {
+
+		if (error)
+		{
+			if (error == -ETIMEDOUT)
+			{
 				waiting_time -= 500;
 				continue;
 			}
+
 			return error;
 		}
 
 		if ((cyapa->state == CYAPA_STATE_BL_IDLE) &&
 			!(cyapa->status[REG_BL_STATUS] & BL_STATUS_WATCHDOG))
+		{
 			break;
+		}
 
 		msleep(100);
 		waiting_time -= 100;
-	} while (waiting_time > 0);
+	}
+	while (waiting_time > 0);
 
 	if ((cyapa->state != CYAPA_STATE_BL_IDLE) ||
 		(cyapa->status[REG_BL_STATUS] & BL_STATUS_WATCHDOG))
+	{
 		return -EAGAIN;
+	}
 
 	return 0;
 }
@@ -503,17 +573,26 @@ static int cyapa_gen3_bl_activate(struct cyapa *cyapa)
 	int error;
 
 	error = cyapa_i2c_reg_write_block(cyapa, 0, sizeof(bl_activate),
-					bl_activate);
+									  bl_activate);
+
 	if (error)
+	{
 		return error;
+	}
 
 	/* Wait for bootloader to activate; takes between 2 and 12 seconds */
 	msleep(2000);
 	error = cyapa_poll_state(cyapa, 11000);
+
 	if (error)
+	{
 		return error;
+	}
+
 	if (cyapa->state != CYAPA_STATE_BL_ACTIVE)
+	{
 		return -EAGAIN;
+	}
 
 	return 0;
 }
@@ -523,17 +602,27 @@ static int cyapa_gen3_bl_deactivate(struct cyapa *cyapa)
 	int error;
 
 	error = cyapa_i2c_reg_write_block(cyapa, 0, sizeof(bl_deactivate),
-					bl_deactivate);
+									  bl_deactivate);
+
 	if (error)
+	{
 		return error;
+	}
 
 	/* Wait for bootloader to switch to idle state; should take < 100ms */
 	msleep(100);
 	error = cyapa_poll_state(cyapa, 500);
+
 	if (error)
+	{
 		return error;
+	}
+
 	if (cyapa->state != CYAPA_STATE_BL_IDLE)
+	{
 		return -EAGAIN;
+	}
+
 	return 0;
 }
 
@@ -555,8 +644,11 @@ static int cyapa_gen3_bl_exit(struct cyapa *cyapa)
 	int error;
 
 	error = cyapa_i2c_reg_write_block(cyapa, 0, sizeof(bl_exit), bl_exit);
+
 	if (error)
+	{
 		return error;
+	}
 
 	/*
 	 * Wait for bootloader to exit, and operation mode to start.
@@ -570,10 +662,16 @@ static int cyapa_gen3_bl_exit(struct cyapa *cyapa)
 	 * running low, this may take even longer.
 	 */
 	error = cyapa_poll_state(cyapa, 4000);
+
 	if (error < 0)
+	{
 		return error;
+	}
+
 	if (cyapa->state != CYAPA_STATE_OP)
+	{
 		return -EAGAIN;
+	}
 
 	return 0;
 }
@@ -584,7 +682,9 @@ static u16 cyapa_gen3_csum(const u8 *buf, size_t count)
 	u16 csum = 0;
 
 	for (i = 0; i < count; i++)
+	{
 		csum += buf[i];
+	}
 
 	return csum;
 }
@@ -611,33 +711,39 @@ static int cyapa_gen3_check_fw(struct cyapa *cyapa, const struct firmware *fw)
 	u16 csum_expected;
 
 	/* Firmware must match exact 30848 bytes = 482 64-byte blocks. */
-	if (fw->size != CYAPA_FW_SIZE) {
+	if (fw->size != CYAPA_FW_SIZE)
+	{
 		dev_err(dev, "invalid firmware size = %zu, expected %u.\n",
-			fw->size, CYAPA_FW_SIZE);
+				fw->size, CYAPA_FW_SIZE);
 		return -EINVAL;
 	}
 
 	/* Verify header block */
 	csum_expected = (fw->data[0] << 8) | fw->data[1];
 	csum = cyapa_gen3_csum(&fw->data[2], CYAPA_FW_HDR_SIZE - 2);
-	if (csum != csum_expected) {
+
+	if (csum != csum_expected)
+	{
 		dev_err(dev, "%s %04x, expected: %04x\n",
-			"invalid firmware header checksum = ",
-			csum, csum_expected);
+				"invalid firmware header checksum = ",
+				csum, csum_expected);
 		return -EINVAL;
 	}
 
 	/* Verify firmware image */
 	csum_expected = (fw->data[CYAPA_FW_HDR_SIZE - 2] << 8) |
-			 fw->data[CYAPA_FW_HDR_SIZE - 1];
+					fw->data[CYAPA_FW_HDR_SIZE - 1];
 	csum = cyapa_gen3_csum(&fw->data[CYAPA_FW_HDR_SIZE],
-			CYAPA_FW_DATA_SIZE);
-	if (csum != csum_expected) {
+						   CYAPA_FW_DATA_SIZE);
+
+	if (csum != csum_expected)
+	{
 		dev_err(dev, "%s %04x, expected: %04x\n",
-			"invalid firmware header checksum = ",
-			csum, csum_expected);
+				"invalid firmware header checksum = ",
+				csum, csum_expected);
 		return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -649,14 +755,15 @@ static int cyapa_gen3_check_fw(struct cyapa *cyapa, const struct firmware *fw)
  * of the data relative to the start of |buf|.
  */
 static int cyapa_gen3_write_buffer(struct cyapa *cyapa,
-		const u8 *buf, size_t len)
+								   const u8 *buf, size_t len)
 {
 	int error;
 	size_t i;
 	unsigned char cmd[CYAPA_CMD_LEN + 1];
 	size_t cmd_len;
 
-	for (i = 0; i < len; i += CYAPA_CMD_LEN) {
+	for (i = 0; i < len; i += CYAPA_CMD_LEN)
+	{
 		const u8 *payload = &buf[i];
 
 		cmd_len = (len - i >= CYAPA_CMD_LEN) ? CYAPA_CMD_LEN : len - i;
@@ -664,9 +771,13 @@ static int cyapa_gen3_write_buffer(struct cyapa *cyapa,
 		memcpy(&cmd[1], payload, cmd_len);
 
 		error = cyapa_i2c_reg_write_block(cyapa, 0, cmd_len + 1, cmd);
+
 		if (error)
+		{
 			return error;
+		}
 	}
+
 	return 0;
 }
 
@@ -687,7 +798,7 @@ static int cyapa_gen3_write_buffer(struct cyapa *cyapa,
  * Each transaction starts with an i2c register offset: (00, 10, 20, 30, 40).
  */
 static int cyapa_gen3_write_fw_block(struct cyapa *cyapa,
-		u16 block, const u8 *data)
+									 u16 block, const u8 *data)
 {
 	int ret;
 	struct gen3_write_block_cmd write_block_cmd;
@@ -702,81 +813,105 @@ static int cyapa_gen3_write_fw_block(struct cyapa *cyapa,
 	put_unaligned_be16(block, &write_block_cmd.block_num);
 	memcpy(write_block_cmd.block_data, data, CYAPA_FW_BLOCK_SIZE);
 	write_block_cmd.block_checksum = cyapa_gen3_csum(
-			write_block_cmd.block_data, CYAPA_FW_BLOCK_SIZE);
+										 write_block_cmd.block_data, CYAPA_FW_BLOCK_SIZE);
 	write_block_cmd.cmd_checksum = cyapa_gen3_csum((u8 *)&write_block_cmd,
-			sizeof(write_block_cmd) - 1);
+								   sizeof(write_block_cmd) - 1);
 
 	ret = cyapa_gen3_write_buffer(cyapa, (u8 *)&write_block_cmd,
-			sizeof(write_block_cmd));
+								  sizeof(write_block_cmd));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Wait for write to finish */
 	tries = 11;  /* Programming for one block can take about 100ms. */
-	do {
+
+	do
+	{
 		usleep_range(10000, 20000);
 
 		/* Check block write command result status. */
 		ret = cyapa_i2c_reg_read_block(cyapa, BL_HEAD_OFFSET,
-					       BL_STATUS_SIZE, status);
+									   BL_STATUS_SIZE, status);
+
 		if (ret != BL_STATUS_SIZE)
+		{
 			return (ret < 0) ? ret : -EIO;
-	} while ((status[REG_BL_STATUS] & BL_STATUS_BUSY) && --tries);
+		}
+	}
+	while ((status[REG_BL_STATUS] & BL_STATUS_BUSY) && --tries);
 
 	/* Ignore WATCHDOG bit and reserved bits. */
 	bl_status = status[REG_BL_STATUS] & ~BL_STATUS_REV_MASK;
 	bl_error = status[REG_BL_ERROR] & ~BL_ERROR_RESERVED;
 
 	if (bl_status & BL_STATUS_BUSY)
+	{
 		ret = -ETIMEDOUT;
+	}
 	else if (bl_status != BL_STATUS_RUNNING ||
-		bl_error != BL_ERROR_BOOTLOADING)
+			 bl_error != BL_ERROR_BOOTLOADING)
+	{
 		ret = -EIO;
+	}
 	else
+	{
 		ret = 0;
+	}
 
 	return ret;
 }
 
 static int cyapa_gen3_write_blocks(struct cyapa *cyapa,
-		size_t start_block, size_t block_count,
-		const u8 *image_data)
+								   size_t start_block, size_t block_count,
+								   const u8 *image_data)
 {
 	int error;
 	int i;
 
-	for (i = 0; i < block_count; i++) {
+	for (i = 0; i < block_count; i++)
+	{
 		size_t block = start_block + i;
 		size_t addr = i * CYAPA_FW_BLOCK_SIZE;
 		const u8 *data = &image_data[addr];
 
 		error = cyapa_gen3_write_fw_block(cyapa, block, data);
+
 		if (error)
+		{
 			return error;
+		}
 	}
+
 	return 0;
 }
 
 static int cyapa_gen3_do_fw_update(struct cyapa *cyapa,
-		const struct firmware *fw)
+								   const struct firmware *fw)
 {
 	struct device *dev = &cyapa->client->dev;
 	int error;
 
 	/* First write data, starting at byte 128 of fw->data */
 	error = cyapa_gen3_write_blocks(cyapa,
-		CYAPA_FW_DATA_BLOCK_START, CYAPA_FW_DATA_BLOCK_COUNT,
-		&fw->data[CYAPA_FW_HDR_BLOCK_COUNT * CYAPA_FW_BLOCK_SIZE]);
-	if (error) {
+									CYAPA_FW_DATA_BLOCK_START, CYAPA_FW_DATA_BLOCK_COUNT,
+									&fw->data[CYAPA_FW_HDR_BLOCK_COUNT * CYAPA_FW_BLOCK_SIZE]);
+
+	if (error)
+	{
 		dev_err(dev, "FW update aborted, write image: %d\n", error);
 		return error;
 	}
 
 	/* Then write checksum */
 	error = cyapa_gen3_write_blocks(cyapa,
-		CYAPA_FW_HDR_BLOCK_START, CYAPA_FW_HDR_BLOCK_COUNT,
-		&fw->data[0]);
-	if (error) {
+									CYAPA_FW_HDR_BLOCK_START, CYAPA_FW_HDR_BLOCK_COUNT,
+									&fw->data[0]);
+
+	if (error)
+	{
 		dev_err(dev, "FW update aborted, write checksum: %d\n", error);
 		return error;
 	}
@@ -785,35 +920,43 @@ static int cyapa_gen3_do_fw_update(struct cyapa *cyapa,
 }
 
 static ssize_t cyapa_gen3_do_calibrate(struct device *dev,
-				     struct device_attribute *attr,
-				     const char *buf, size_t count)
+									   struct device_attribute *attr,
+									   const char *buf, size_t count)
 {
 	struct cyapa *cyapa = dev_get_drvdata(dev);
 	int tries;
 	int ret;
 
 	ret = cyapa_read_byte(cyapa, CYAPA_CMD_DEV_STATUS);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "Error reading dev status: %d\n", ret);
 		goto out;
 	}
-	if ((ret & CYAPA_DEV_NORMAL) != CYAPA_DEV_NORMAL) {
+
+	if ((ret & CYAPA_DEV_NORMAL) != CYAPA_DEV_NORMAL)
+	{
 		dev_warn(dev, "Trackpad device is busy, device state: 0x%02x\n",
-			 ret);
+				 ret);
 		ret = -EAGAIN;
 		goto out;
 	}
 
 	ret = cyapa_write_byte(cyapa, CYAPA_CMD_SOFT_RESET,
-			       OP_RECALIBRATION_MASK);
-	if (ret < 0) {
+						   OP_RECALIBRATION_MASK);
+
+	if (ret < 0)
+	{
 		dev_err(dev, "Failed to send calibrate command: %d\n",
-			ret);
+				ret);
 		goto out;
 	}
 
 	tries = 20;  /* max recalibration timeout 2s. */
-	do {
+
+	do
+	{
 		/*
 		 * For this recalibration, the max time will not exceed 2s.
 		 * The average time is approximately 500 - 700 ms, and we
@@ -822,20 +965,28 @@ static ssize_t cyapa_gen3_do_calibrate(struct device *dev,
 		usleep_range(100000, 200000);
 
 		ret = cyapa_read_byte(cyapa, CYAPA_CMD_DEV_STATUS);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(dev, "Error reading dev status: %d\n",
-				ret);
+					ret);
 			goto out;
 		}
-		if ((ret & CYAPA_DEV_NORMAL) == CYAPA_DEV_NORMAL)
-			break;
-	} while (--tries);
 
-	if (tries == 0) {
+		if ((ret & CYAPA_DEV_NORMAL) == CYAPA_DEV_NORMAL)
+		{
+			break;
+		}
+	}
+	while (--tries);
+
+	if (tries == 0)
+	{
 		dev_err(dev, "Failed to calibrate. Timeout.\n");
 		ret = -ETIMEDOUT;
 		goto out;
 	}
+
 	dev_dbg(dev, "Calibration successful.\n");
 
 out:
@@ -843,7 +994,7 @@ out:
 }
 
 static ssize_t cyapa_gen3_show_baseline(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+										struct device_attribute *attr, char *buf)
 {
 	struct cyapa *cyapa = dev_get_drvdata(dev);
 	int max_baseline, min_baseline;
@@ -851,61 +1002,82 @@ static ssize_t cyapa_gen3_show_baseline(struct device *dev,
 	int ret;
 
 	ret = cyapa_read_byte(cyapa, CYAPA_CMD_DEV_STATUS);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "Error reading dev status. err = %d\n", ret);
 		goto out;
 	}
-	if ((ret & CYAPA_DEV_NORMAL) != CYAPA_DEV_NORMAL) {
+
+	if ((ret & CYAPA_DEV_NORMAL) != CYAPA_DEV_NORMAL)
+	{
 		dev_warn(dev, "Trackpad device is busy. device state = 0x%x\n",
-			 ret);
+				 ret);
 		ret = -EAGAIN;
 		goto out;
 	}
 
 	ret = cyapa_write_byte(cyapa, CYAPA_CMD_SOFT_RESET,
-			       OP_REPORT_BASELINE_MASK);
-	if (ret < 0) {
+						   OP_REPORT_BASELINE_MASK);
+
+	if (ret < 0)
+	{
 		dev_err(dev, "Failed to send report baseline command. %d\n",
-			ret);
+				ret);
 		goto out;
 	}
 
 	tries = 3;  /* Try for 30 to 60 ms */
-	do {
+
+	do
+	{
 		usleep_range(10000, 20000);
 
 		ret = cyapa_read_byte(cyapa, CYAPA_CMD_DEV_STATUS);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(dev, "Error reading dev status. err = %d\n",
-				ret);
+					ret);
 			goto out;
 		}
-		if ((ret & CYAPA_DEV_NORMAL) == CYAPA_DEV_NORMAL)
-			break;
-	} while (--tries);
 
-	if (tries == 0) {
+		if ((ret & CYAPA_DEV_NORMAL) == CYAPA_DEV_NORMAL)
+		{
+			break;
+		}
+	}
+	while (--tries);
+
+	if (tries == 0)
+	{
 		dev_err(dev, "Device timed out going to Normal state.\n");
 		ret = -ETIMEDOUT;
 		goto out;
 	}
 
 	ret = cyapa_read_byte(cyapa, CYAPA_CMD_MAX_BASELINE);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "Failed to read max baseline. err = %d\n", ret);
 		goto out;
 	}
+
 	max_baseline = ret;
 
 	ret = cyapa_read_byte(cyapa, CYAPA_CMD_MIN_BASELINE);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "Failed to read min baseline. err = %d\n", ret);
 		goto out;
 	}
+
 	min_baseline = ret;
 
 	dev_dbg(dev, "Baseline report successful. Max: %d Min: %d\n",
-		max_baseline, min_baseline);
+			max_baseline, min_baseline);
 	ret = scnprintf(buf, PAGE_SIZE, "%d %d\n", max_baseline, min_baseline);
 
 out:
@@ -922,11 +1094,15 @@ out:
 
 static u16 cyapa_get_wait_time_for_pwr_cmd(u8 pwr_mode)
 {
-	switch (pwr_mode) {
-	case PWR_MODE_FULL_ACTIVE: return 20;
-	case PWR_MODE_BTN_ONLY: return 20;
-	case PWR_MODE_OFF: return 20;
-	default: return cyapa_pwr_cmd_to_sleep_time(pwr_mode) + 50;
+	switch (pwr_mode)
+	{
+		case PWR_MODE_FULL_ACTIVE: return 20;
+
+		case PWR_MODE_BTN_ONLY: return 20;
+
+		case PWR_MODE_OFF: return 20;
+
+		default: return cyapa_pwr_cmd_to_sleep_time(pwr_mode) + 50;
 	}
 }
 
@@ -951,7 +1127,7 @@ static u16 cyapa_get_wait_time_for_pwr_cmd(u8 pwr_mode)
  * Device power mode can only be set when device is in operational mode.
  */
 static int cyapa_gen3_set_power_mode(struct cyapa *cyapa, u8 power_mode,
-		u16 always_unused, enum cyapa_pm_stage pm_stage)
+									 u16 always_unused, enum cyapa_pm_stage pm_stage)
 {
 	struct input_dev *input = cyapa->input;
 	u8 power;
@@ -961,34 +1137,53 @@ static int cyapa_gen3_set_power_mode(struct cyapa *cyapa, u8 power_mode,
 	int ret;
 
 	if (cyapa->state != CYAPA_STATE_OP)
+	{
 		return 0;
+	}
 
 	tries = SET_POWER_MODE_TRIES;
-	while (tries--) {
+
+	while (tries--)
+	{
 		ret = cyapa_read_byte(cyapa, CYAPA_CMD_POWER_MODE);
+
 		if (ret >= 0)
+		{
 			break;
+		}
+
 		usleep_range(SET_POWER_MODE_DELAY, 2 * SET_POWER_MODE_DELAY);
 	}
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/*
 	 * Return early if the power mode to set is the same as the current
 	 * one.
 	 */
 	if ((ret & PWR_MODE_MASK) == power_mode)
+	{
 		return 0;
+	}
 
 	sleep_time = (int)cyapa_get_wait_time_for_pwr_cmd(ret & PWR_MODE_MASK);
 	power = ret;
 	power &= ~PWR_MODE_MASK;
 	power |= power_mode & PWR_MODE_MASK;
 	tries = SET_POWER_MODE_TRIES;
-	while (tries--) {
+
+	while (tries--)
+	{
 		ret = cyapa_write_byte(cyapa, CYAPA_CMD_POWER_MODE, power);
+
 		if (!ret)
+		{
 			break;
+		}
+
 		usleep_range(SET_POWER_MODE_DELAY, 2 * SET_POWER_MODE_DELAY);
 	}
 
@@ -999,19 +1194,29 @@ static int cyapa_gen3_set_power_mode(struct cyapa *cyapa, u8 power_mode,
 	 * depending on the command's content.
 	 */
 	if (cyapa->operational && input && input->users &&
-	    (pm_stage == CYAPA_PM_RUNTIME_SUSPEND ||
-	     pm_stage == CYAPA_PM_RUNTIME_RESUME)) {
+		(pm_stage == CYAPA_PM_RUNTIME_SUSPEND ||
+		 pm_stage == CYAPA_PM_RUNTIME_RESUME))
+	{
 		/* Try to polling in 120Hz, read may fail, just ignore it. */
 		interval = 1000 / 120;
-		while (sleep_time > 0) {
+
+		while (sleep_time > 0)
+		{
 			if (sleep_time > interval)
+			{
 				msleep(interval);
+			}
 			else
+			{
 				msleep(sleep_time);
+			}
+
 			sleep_time -= interval;
 			cyapa_gen3_try_poll_handler(cyapa);
 		}
-	} else {
+	}
+	else
+	{
 		msleep(sleep_time);
 	}
 
@@ -1029,11 +1234,16 @@ static int cyapa_gen3_get_query_data(struct cyapa *cyapa)
 	int ret;
 
 	if (cyapa->state != CYAPA_STATE_OP)
+	{
 		return -EBUSY;
+	}
 
 	ret = cyapa_read_block(cyapa, CYAPA_CMD_GROUP_QUERY, query_data);
+
 	if (ret != QUERY_DATA_SIZE)
+	{
 		return (ret < 0) ? ret : -EIO;
+	}
 
 	memcpy(&cyapa->product_id[0], &query_data[0], 5);
 	cyapa->product_id[5] = '-';
@@ -1068,8 +1278,11 @@ static int cyapa_gen3_bl_query_data(struct cyapa *cyapa)
 	int ret;
 
 	ret = cyapa_i2c_reg_read_block(cyapa, 0, CYAPA_CMD_LEN, bl_data);
+
 	if (ret != CYAPA_CMD_LEN)
+	{
 		return (ret < 0) ? ret : -EIO;
+	}
 
 	/*
 	 * This value will be updated again when entered application mode.
@@ -1078,7 +1291,8 @@ static int cyapa_gen3_bl_query_data(struct cyapa *cyapa)
 	 * This firmware version valid when fw image checksum is valid.
 	 */
 	if (bl_data[REG_BL_STATUS] ==
-			(BL_STATUS_RUNNING | BL_STATUS_CSUM_VALID)) {
+		(BL_STATUS_RUNNING | BL_STATUS_CSUM_VALID))
+	{
 		cyapa->fw_maj_ver = bl_data[GEN3_BL_IDLE_FW_MAJ_VER_OFFSET];
 		cyapa->fw_min_ver = bl_data[GEN3_BL_IDLE_FW_MIN_VER_OFFSET];
 	}
@@ -1105,60 +1319,73 @@ static int cyapa_gen3_do_operational_check(struct cyapa *cyapa)
 	struct device *dev = &cyapa->client->dev;
 	int error;
 
-	switch (cyapa->state) {
-	case CYAPA_STATE_BL_ACTIVE:
-		error = cyapa_gen3_bl_deactivate(cyapa);
-		if (error) {
-			dev_err(dev, "failed to bl_deactivate: %d\n", error);
-			return error;
-		}
+	switch (cyapa->state)
+	{
+		case CYAPA_STATE_BL_ACTIVE:
+			error = cyapa_gen3_bl_deactivate(cyapa);
 
-	/* Fallthrough state */
-	case CYAPA_STATE_BL_IDLE:
-		/* Try to get firmware version in bootloader mode. */
-		cyapa_gen3_bl_query_data(cyapa);
+			if (error)
+			{
+				dev_err(dev, "failed to bl_deactivate: %d\n", error);
+				return error;
+			}
 
-		error = cyapa_gen3_bl_exit(cyapa);
-		if (error) {
-			dev_err(dev, "failed to bl_exit: %d\n", error);
-			return error;
-		}
+		/* Fallthrough state */
+		case CYAPA_STATE_BL_IDLE:
+			/* Try to get firmware version in bootloader mode. */
+			cyapa_gen3_bl_query_data(cyapa);
 
-	/* Fallthrough state */
-	case CYAPA_STATE_OP:
-		/*
-		 * Reading query data before going back to the full mode
-		 * may cause problems, so we set the power mode first here.
-		 */
-		error = cyapa_gen3_set_power_mode(cyapa,
-				PWR_MODE_FULL_ACTIVE, 0, CYAPA_PM_ACTIVE);
-		if (error)
-			dev_err(dev, "%s: set full power mode failed: %d\n",
-				__func__, error);
-		error = cyapa_gen3_get_query_data(cyapa);
-		if (error < 0)
-			return error;
+			error = cyapa_gen3_bl_exit(cyapa);
 
-		/* Only support firmware protocol gen3 */
-		if (cyapa->gen != CYAPA_GEN3) {
-			dev_err(dev, "unsupported protocol version (%d)",
-				cyapa->gen);
-			return -EINVAL;
-		}
+			if (error)
+			{
+				dev_err(dev, "failed to bl_exit: %d\n", error);
+				return error;
+			}
 
-		/* Only support product ID starting with CYTRA */
-		if (memcmp(cyapa->product_id, product_id,
-				strlen(product_id)) != 0) {
-			dev_err(dev, "unsupported product ID (%s)\n",
-				cyapa->product_id);
-			return -EINVAL;
-		}
+		/* Fallthrough state */
+		case CYAPA_STATE_OP:
+			/*
+			 * Reading query data before going back to the full mode
+			 * may cause problems, so we set the power mode first here.
+			 */
+			error = cyapa_gen3_set_power_mode(cyapa,
+											  PWR_MODE_FULL_ACTIVE, 0, CYAPA_PM_ACTIVE);
 
-		return 0;
+			if (error)
+				dev_err(dev, "%s: set full power mode failed: %d\n",
+						__func__, error);
 
-	default:
-		return -EIO;
+			error = cyapa_gen3_get_query_data(cyapa);
+
+			if (error < 0)
+			{
+				return error;
+			}
+
+			/* Only support firmware protocol gen3 */
+			if (cyapa->gen != CYAPA_GEN3)
+			{
+				dev_err(dev, "unsupported protocol version (%d)",
+						cyapa->gen);
+				return -EINVAL;
+			}
+
+			/* Only support product ID starting with CYTRA */
+			if (memcmp(cyapa->product_id, product_id,
+					   strlen(product_id)) != 0)
+			{
+				dev_err(dev, "unsupported product ID (%s)\n",
+						cyapa->product_id);
+				return -EINVAL;
+			}
+
+			return 0;
+
+		default:
+			return -EIO;
 	}
+
 	return 0;
 }
 
@@ -1170,10 +1397,14 @@ static bool cyapa_gen3_irq_cmd_handler(struct cyapa *cyapa)
 {
 	/* Not gen3 irq command response, skip for continue. */
 	if (cyapa->gen != CYAPA_GEN3)
+	{
 		return true;
+	}
 
 	if (cyapa->operational)
+	{
 		return true;
+	}
 
 	/*
 	 * Driver in detecting or other interface function processing,
@@ -1188,14 +1419,16 @@ static bool cyapa_gen3_irq_cmd_handler(struct cyapa *cyapa)
 }
 
 static int cyapa_gen3_event_process(struct cyapa *cyapa,
-				    struct cyapa_reg_data *data)
+									struct cyapa_reg_data *data)
 {
 	struct input_dev *input = cyapa->input;
 	int num_fingers;
 	int i;
 
 	num_fingers = (data->finger_btn >> 4) & 0x0f;
-	for (i = 0; i < num_fingers; i++) {
+
+	for (i = 0; i < num_fingers; i++)
+	{
 		const struct cyapa_touch *touch = &data->touches[i];
 		/* Note: touch->id range is 1 to 15; slots are 0 to 14. */
 		int slot = touch->id - 1;
@@ -1203,9 +1436,9 @@ static int cyapa_gen3_event_process(struct cyapa *cyapa,
 		input_mt_slot(input, slot);
 		input_mt_report_slot_state(input, MT_TOOL_FINGER, true);
 		input_report_abs(input, ABS_MT_POSITION_X,
-				 ((touch->xy_hi & 0xf0) << 4) | touch->x_lo);
+						 ((touch->xy_hi & 0xf0) << 4) | touch->x_lo);
 		input_report_abs(input, ABS_MT_POSITION_Y,
-				 ((touch->xy_hi & 0x0f) << 8) | touch->y_lo);
+						 ((touch->xy_hi & 0x0f) << 8) | touch->y_lo);
 		input_report_abs(input, ABS_MT_PRESSURE, touch->pressure);
 	}
 
@@ -1213,13 +1446,16 @@ static int cyapa_gen3_event_process(struct cyapa *cyapa,
 
 	if (cyapa->btn_capability & CAPABILITY_LEFT_BTN_MASK)
 		input_report_key(input, BTN_LEFT,
-				 !!(data->finger_btn & OP_DATA_LEFT_BTN));
+						 !!(data->finger_btn & OP_DATA_LEFT_BTN));
+
 	if (cyapa->btn_capability & CAPABILITY_MIDDLE_BTN_MASK)
 		input_report_key(input, BTN_MIDDLE,
-				 !!(data->finger_btn & OP_DATA_MIDDLE_BTN));
+						 !!(data->finger_btn & OP_DATA_MIDDLE_BTN));
+
 	if (cyapa->btn_capability & CAPABILITY_RIGHT_BTN_MASK)
 		input_report_key(input, BTN_RIGHT,
-				 !!(data->finger_btn & OP_DATA_RIGHT_BTN));
+						 !!(data->finger_btn & OP_DATA_RIGHT_BTN));
+
 	input_sync(input);
 
 	return 0;
@@ -1232,16 +1468,19 @@ static int cyapa_gen3_irq_handler(struct cyapa *cyapa)
 	int ret;
 
 	ret = cyapa_read_block(cyapa, CYAPA_CMD_GROUP_DATA, (u8 *)&data);
-	if (ret != sizeof(data)) {
+
+	if (ret != sizeof(data))
+	{
 		dev_err(dev, "failed to read report data, (%d)\n", ret);
 		return -EINVAL;
 	}
 
 	if ((data.device_status & OP_STATUS_SRC) != OP_STATUS_SRC ||
-	    (data.device_status & OP_STATUS_DEV) != CYAPA_DEV_NORMAL ||
-	    (data.finger_btn & OP_DATA_VALID) != OP_DATA_VALID) {
+		(data.device_status & OP_STATUS_DEV) != CYAPA_DEV_NORMAL ||
+		(data.finger_btn & OP_DATA_VALID) != OP_DATA_VALID)
+	{
 		dev_err(dev, "invalid device state bytes: %02x %02x\n",
-			data.device_status, data.finger_btn);
+				data.device_status, data.finger_btn);
 		return -EINVAL;
 	}
 
@@ -1260,13 +1499,18 @@ static int cyapa_gen3_try_poll_handler(struct cyapa *cyapa)
 	int ret;
 
 	ret = cyapa_read_block(cyapa, CYAPA_CMD_GROUP_DATA, (u8 *)&data);
+
 	if (ret != sizeof(data))
+	{
 		return -EINVAL;
+	}
 
 	if ((data.device_status & OP_STATUS_SRC) != OP_STATUS_SRC ||
-	    (data.device_status & OP_STATUS_DEV) != CYAPA_DEV_NORMAL ||
-	    (data.finger_btn & OP_DATA_VALID) != OP_DATA_VALID)
+		(data.device_status & OP_STATUS_DEV) != CYAPA_DEV_NORMAL ||
+		(data.finger_btn & OP_DATA_VALID) != OP_DATA_VALID)
+	{
 		return -EINVAL;
+	}
 
 	return cyapa_gen3_event_process(cyapa, &data);
 
@@ -1274,11 +1518,12 @@ static int cyapa_gen3_try_poll_handler(struct cyapa *cyapa)
 
 static int cyapa_gen3_initialize(struct cyapa *cyapa) { return 0; }
 static int cyapa_gen3_bl_initiate(struct cyapa *cyapa,
-		const struct firmware *fw) { return 0; }
+								  const struct firmware *fw) { return 0; }
 static int cyapa_gen3_empty_output_data(struct cyapa *cyapa,
-		u8 *buf, int *len, cb_sort func) { return 0; }
+										u8 *buf, int *len, cb_sort func) { return 0; }
 
-const struct cyapa_dev_ops cyapa_gen3_ops = {
+const struct cyapa_dev_ops cyapa_gen3_ops =
+{
 	.check_fw = cyapa_gen3_check_fw,
 	.bl_enter = cyapa_gen3_bl_enter,
 	.bl_activate = cyapa_gen3_bl_activate,

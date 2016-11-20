@@ -31,13 +31,17 @@
 
 static int it8213_pre_reset(struct ata_link *link, unsigned long deadline)
 {
-	static const struct pci_bits it8213_enable_bits[] = {
+	static const struct pci_bits it8213_enable_bits[] =
+	{
 		{ 0x41U, 1U, 0x80UL, 0x80UL },	/* port 0 */
 	};
 	struct ata_port *ap = link->ap;
 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+
 	if (!pci_test_config_bits(pdev, &it8213_enable_bits[ap->port_no]))
+	{
 		return -ENOENT;
+	}
 
 	return ata_sff_prereset(link, deadline);
 }
@@ -55,8 +59,12 @@ static int it8213_cable_detect(struct ata_port *ap)
 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
 	u8 tmp;
 	pci_read_config_byte(pdev, 0x42, &tmp);
+
 	if (tmp & 2)	/* The initial docs are incorrect */
+	{
 		return ATA_CBL_PATA40;
+	}
+
 	return ATA_CBL_PATA80;
 }
 
@@ -86,28 +94,40 @@ static void it8213_set_piomode (struct ata_port *ap, struct ata_device *adev)
 
 	static const	 /* ISP  RTC */
 	u8 timings[][2]	= { { 0, 0 },
-			    { 0, 0 },
-			    { 1, 0 },
-			    { 2, 1 },
-			    { 2, 3 }, };
+		{ 0, 0 },
+		{ 1, 0 },
+		{ 2, 1 },
+		{ 2, 3 },
+	};
 
 	if (pio > 1)
-		control |= 1;	/* TIME */
+	{
+		control |= 1;    /* TIME */
+	}
+
 	if (ata_pio_need_iordy(adev))	/* PIO 3/4 require IORDY */
-		control |= 2;	/* IE */
+	{
+		control |= 2;    /* IE */
+	}
+
 	/* Bit 2 is set for ATAPI on the IT8213 - reverse of ICH/PIIX */
 	if (adev->class != ATA_DEV_ATA)
-		control |= 4;	/* PPE */
+	{
+		control |= 4;    /* PPE */
+	}
 
 	pci_read_config_word(dev, master_port, &master_data);
 
 	/* Set PPE, IE, and TIME as appropriate */
-	if (adev->devno == 0) {
+	if (adev->devno == 0)
+	{
 		master_data &= 0xCCF0;
 		master_data |= control;
 		master_data |= (timings[pio][0] << 12) |
-			(timings[pio][1] << 8);
-	} else {
+					   (timings[pio][1] << 8);
+	}
+	else
+	{
 		u8 slave_data;
 
 		master_data &= 0xFF0F;
@@ -146,15 +166,17 @@ static void it8213_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 
 	static const	 /* ISP  RTC */
 	u8 timings[][2]	= { { 0, 0 },
-			    { 0, 0 },
-			    { 1, 0 },
-			    { 2, 1 },
-			    { 2, 3 }, };
+		{ 0, 0 },
+		{ 1, 0 },
+		{ 2, 1 },
+		{ 2, 3 },
+	};
 
 	pci_read_config_word(dev, 0x40, &master_data);
 	pci_read_config_byte(dev, 0x48, &udma_enable);
 
-	if (speed >= XFER_UDMA_0) {
+	if (speed >= XFER_UDMA_0)
+	{
 		unsigned int udma = adev->dma_mode - XFER_UDMA_0;
 		u16 udma_timing;
 		u16 ideconf;
@@ -162,12 +184,19 @@ static void it8213_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 
 		/* Clocks follow the PIIX style */
 		u_speed = min(2 - (udma & 1), udma);
+
 		if (udma > 4)
-			u_clock = 0x1000;	/* 100Mhz */
+		{
+			u_clock = 0x1000;    /* 100Mhz */
+		}
 		else if (udma > 2)
-			u_clock = 1;		/* 66Mhz */
+		{
+			u_clock = 1;    /* 66Mhz */
+		}
 		else
-			u_clock = 0;		/* 33Mhz */
+		{
+			u_clock = 0;    /* 33Mhz */
+		}
 
 		udma_enable |= (1 << devid);
 
@@ -182,7 +211,9 @@ static void it8213_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 		ideconf &= ~(0x1001 << devid);
 		ideconf |= u_clock << devid;
 		pci_write_config_word(dev, 0x54, ideconf);
-	} else {
+	}
+	else
+	{
 		/*
 		 * MWDMA is driven by the PIO timings. We must also enable
 		 * IORDY unconditionally along with TIME1. PPE has already
@@ -191,7 +222,8 @@ static void it8213_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 		unsigned int mwdma	= adev->dma_mode - XFER_MW_DMA_0;
 		unsigned int control;
 		u8 slave_data;
-		static const unsigned int needed_pio[3] = {
+		static const unsigned int needed_pio[3] =
+		{
 			XFER_PIO_0, XFER_PIO_3, XFER_PIO_4
 		};
 		int pio = needed_pio[mwdma] - XFER_PIO_0;
@@ -203,9 +235,12 @@ static void it8213_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 
 		if (adev->pio_mode < needed_pio[mwdma])
 			/* Enable DMA timing only */
-			control |= 8;	/* PIO cycles in PIO0 */
+		{
+			control |= 8;    /* PIO cycles in PIO0 */
+		}
 
-		if (devid) {	/* Slave */
+		if (devid)  	/* Slave */
+		{
 			master_data &= 0xFF4F;  /* Mask out IORDY|TIME1|DMAONLY */
 			master_data |= control << 4;
 			pci_read_config_byte(dev, 0x44, &slave_data);
@@ -213,7 +248,9 @@ static void it8213_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 			/* Load the matching timing */
 			slave_data |= ((timings[pio][0] << 2) | timings[pio][1]) << (ap->port_no ? 4 : 0);
 			pci_write_config_byte(dev, 0x44, slave_data);
-		} else { 	/* Master */
+		}
+		else   	/* Master */
+		{
 			master_data &= 0xCCF4;	/* Mask out IORDY|TIME1|DMAONLY
 						   and master timing bits */
 			master_data |= control;
@@ -221,18 +258,22 @@ static void it8213_set_dmamode (struct ata_port *ap, struct ata_device *adev)
 				(timings[pio][0] << 12) |
 				(timings[pio][1] << 8);
 		}
+
 		udma_enable &= ~(1 << devid);
 		pci_write_config_word(dev, 0x40, master_data);
 	}
+
 	pci_write_config_byte(dev, 0x48, udma_enable);
 }
 
-static struct scsi_host_template it8213_sht = {
+static struct scsi_host_template it8213_sht =
+{
 	ATA_BMDMA_SHT(DRV_NAME),
 };
 
 
-static struct ata_port_operations it8213_ops = {
+static struct ata_port_operations it8213_ops =
+{
 	.inherits		= &ata_bmdma_port_ops,
 	.cable_detect		= it8213_cable_detect,
 	.set_piomode		= it8213_set_piomode,
@@ -257,7 +298,8 @@ static struct ata_port_operations it8213_ops = {
 
 static int it8213_init_one (struct pci_dev *pdev, const struct pci_device_id *ent)
 {
-	static const struct ata_port_info info = {
+	static const struct ata_port_info info =
+	{
 		.flags		= ATA_FLAG_SLAVE_POSS,
 		.pio_mask	= ATA_PIO4,
 		.mwdma_mask	= ATA_MWDMA12_ONLY,
@@ -272,13 +314,15 @@ static int it8213_init_one (struct pci_dev *pdev, const struct pci_device_id *en
 	return ata_pci_bmdma_init_one(pdev, ppi, &it8213_sht, NULL, 0);
 }
 
-static const struct pci_device_id it8213_pci_tbl[] = {
+static const struct pci_device_id it8213_pci_tbl[] =
+{
 	{ PCI_VDEVICE(ITE, PCI_DEVICE_ID_ITE_8213), },
 
 	{ }	/* terminate list */
 };
 
-static struct pci_driver it8213_pci_driver = {
+static struct pci_driver it8213_pci_driver =
+{
 	.name			= DRV_NAME,
 	.id_table		= it8213_pci_tbl,
 	.probe			= it8213_init_one,

@@ -38,9 +38,9 @@
 #include "util.h"
 
 #ifdef DEBUG
-#define debug(...)	printf(__VA_ARGS__)
+	#define debug(...)	printf(__VA_ARGS__)
 #else
-#define debug(...)
+	#define debug(...)
 #endif
 
 
@@ -68,20 +68,23 @@ typedef uint32_t cell_t;
 #define ALIGN(x, a)	(((x) + (a) - 1) & ~((a) - 1))
 
 /* Data blobs */
-enum markertype {
+enum markertype
+{
 	REF_PHANDLE,
 	REF_PATH,
 	LABEL,
 };
 
-struct  marker {
+struct  marker
+{
 	enum markertype type;
 	int offset;
 	char *ref;
 	struct marker *next;
 };
 
-struct data {
+struct data
+{
 	int len;
 	char *val;
 	struct marker *markers;
@@ -94,7 +97,7 @@ struct data {
 	for (; (m); (m) = (m)->next)
 #define for_each_marker_of_type(m, t) \
 	for_each_marker(m) \
-		if ((m)->type == (t))
+	if ((m)->type == (t))
 
 void data_free(struct data d);
 
@@ -106,7 +109,7 @@ struct data data_copy_file(FILE *f, size_t len);
 
 struct data data_append_data(struct data d, const void *p, int len);
 struct data data_insert_at_marker(struct data d, struct marker *m,
-				  const void *p, int len);
+								  const void *p, int len);
 struct data data_merge(struct data d1, struct data d2);
 struct data data_append_cell(struct data d, cell_t word);
 struct data data_append_integer(struct data d, uint64_t word, int bits);
@@ -126,13 +129,15 @@ bool data_is_one_string(struct data d);
 #define MAX_NODENAME_LEN	31
 
 /* Live trees */
-struct label {
+struct label
+{
 	bool deleted;
 	char *label;
 	struct label *next;
 };
 
-struct property {
+struct property
+{
 	bool deleted;
 	char *name;
 	struct data val;
@@ -142,7 +147,8 @@ struct property {
 	struct label *labels;
 };
 
-struct node {
+struct node
+{
 	bool deleted;
 	char *name;
 	struct property *proplist;
@@ -165,21 +171,21 @@ struct node {
 
 #define for_each_label(l0, l) \
 	for_each_label_withdel(l0, l) \
-		if (!(l)->deleted)
+	if (!(l)->deleted)
 
 #define for_each_property_withdel(n, p) \
 	for ((p) = (n)->proplist; (p); (p) = (p)->next)
 
 #define for_each_property(n, p) \
 	for_each_property_withdel(n, p) \
-		if (!(p)->deleted)
+	if (!(p)->deleted)
 
 #define for_each_child_withdel(n, c) \
 	for ((c) = (n)->children; (c); (c) = (c)->next_sibling)
 
 #define for_each_child(n, c) \
 	for_each_child_withdel(n, c) \
-		if (!(c)->deleted)
+	if (!(c)->deleted)
 
 void add_label(struct label **labels, char *label);
 void delete_labels(struct label **labels);
@@ -206,9 +212,9 @@ const char *get_unitname(struct node *node);
 struct property *get_property(struct node *node, const char *propname);
 cell_t propval_cell(struct property *prop);
 struct property *get_property_by_label(struct node *tree, const char *label,
-				       struct node **node);
+									   struct node **node);
 struct marker *get_marker_label(struct node *tree, const char *label,
-				struct node **node, struct property **prop);
+								struct node **node, struct property **prop);
 struct node *get_subnode(struct node *node, const char *nodename);
 struct node *get_node_by_path(struct node *tree, const char *path);
 struct node *get_node_by_label(struct node *tree, const char *label);
@@ -220,7 +226,8 @@ uint32_t guess_boot_cpuid(struct node *tree);
 
 /* Boot info (tree plus memreserve information */
 
-struct reserve_info {
+struct reserve_info
+{
 	struct fdt_reserve_entry re;
 
 	struct reserve_info *next;
@@ -230,19 +237,20 @@ struct reserve_info {
 
 struct reserve_info *build_reserve_entry(uint64_t start, uint64_t len);
 struct reserve_info *chain_reserve_entry(struct reserve_info *first,
-					 struct reserve_info *list);
+		struct reserve_info *list);
 struct reserve_info *add_reserve_entry(struct reserve_info *list,
-				       struct reserve_info *new);
+									   struct reserve_info *new);
 
 
-struct boot_info {
+struct boot_info
+{
 	struct reserve_info *reservelist;
 	struct node *dt;		/* the device tree */
 	uint32_t boot_cpuid_phys;
 };
 
 struct boot_info *build_boot_info(struct reserve_info *reservelist,
-				  struct node *tree, uint32_t boot_cpuid_phys);
+								  struct node *tree, uint32_t boot_cpuid_phys);
 void sort_tree(struct boot_info *bi);
 
 /* Checks */

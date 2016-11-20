@@ -30,7 +30,8 @@
 
 #include <nvif/class.h>
 
-struct nv44_mpeg {
+struct nv44_mpeg
+{
 	struct nvkm_engine engine;
 	struct list_head chan;
 };
@@ -40,7 +41,8 @@ struct nv44_mpeg {
  ******************************************************************************/
 #define nv44_mpeg_chan(p) container_of((p), struct nv44_mpeg_chan, object)
 
-struct nv44_mpeg_chan {
+struct nv44_mpeg_chan
+{
 	struct nvkm_object object;
 	struct nv44_mpeg *mpeg;
 	struct nvkm_fifo_chan *fifo;
@@ -50,17 +52,20 @@ struct nv44_mpeg_chan {
 
 static int
 nv44_mpeg_chan_bind(struct nvkm_object *object, struct nvkm_gpuobj *parent,
-		    int align, struct nvkm_gpuobj **pgpuobj)
+					int align, struct nvkm_gpuobj **pgpuobj)
 {
 	struct nv44_mpeg_chan *chan = nv44_mpeg_chan(object);
 	int ret = nvkm_gpuobj_new(chan->object.engine->subdev.device, 264 * 4,
-				  align, true, parent, pgpuobj);
-	if (ret == 0) {
+							  align, true, parent, pgpuobj);
+
+	if (ret == 0)
+	{
 		chan->inst = (*pgpuobj)->addr;
 		nvkm_kmap(*pgpuobj);
 		nvkm_wo32(*pgpuobj, 0x78, 0x02001ec1);
 		nvkm_done(*pgpuobj);
 	}
+
 	return ret;
 }
 
@@ -74,8 +79,12 @@ nv44_mpeg_chan_fini(struct nvkm_object *object, bool suspend)
 	u32 inst = 0x80000000 | (chan->inst >> 4);
 
 	nvkm_mask(device, 0x00b32c, 0x00000001, 0x00000000);
+
 	if (nvkm_rd32(device, 0x00b318) == inst)
+	{
 		nvkm_mask(device, 0x00b318, 0x80000000, 0x00000000);
+	}
+
 	nvkm_mask(device, 0x00b32c, 0x00000001, 0x00000001);
 	return 0;
 }
@@ -93,7 +102,8 @@ nv44_mpeg_chan_dtor(struct nvkm_object *object)
 }
 
 static const struct nvkm_object_func
-nv44_mpeg_chan = {
+	nv44_mpeg_chan =
+{
 	.dtor = nv44_mpeg_chan_dtor,
 	.fini = nv44_mpeg_chan_fini,
 	.bind = nv44_mpeg_chan_bind,
@@ -101,15 +111,18 @@ nv44_mpeg_chan = {
 
 static int
 nv44_mpeg_chan_new(struct nvkm_fifo_chan *fifoch,
-		   const struct nvkm_oclass *oclass,
-		   struct nvkm_object **pobject)
+				   const struct nvkm_oclass *oclass,
+				   struct nvkm_object **pobject)
 {
 	struct nv44_mpeg *mpeg = nv44_mpeg(oclass->engine);
 	struct nv44_mpeg_chan *chan;
 	unsigned long flags;
 
 	if (!(chan = kzalloc(sizeof(*chan), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	nvkm_object_ctor(&nv44_mpeg_chan, oclass, &chan->object);
 	chan->mpeg = mpeg;
 	chan->fifo = fifoch;
@@ -128,14 +141,17 @@ nv44_mpeg_chan_new(struct nvkm_fifo_chan *fifoch,
 static bool
 nv44_mpeg_mthd(struct nvkm_device *device, u32 mthd, u32 data)
 {
-	switch (mthd) {
-	case 0x190:
-	case 0x1a0:
-	case 0x1b0:
-		return nv40_mpeg_mthd_dma(device, mthd, data);
-	default:
-		break;
+	switch (mthd)
+	{
+		case 0x190:
+		case 0x1a0:
+		case 0x1b0:
+			return nv40_mpeg_mthd_dma(device, mthd, data);
+
+		default:
+			break;
 	}
+
 	return false;
 }
 
@@ -155,8 +171,10 @@ nv44_mpeg_intr(struct nvkm_engine *engine)
 	u32 show = stat;
 
 	spin_lock_irqsave(&mpeg->engine.lock, flags);
-	list_for_each_entry(temp, &mpeg->chan, head) {
-		if (temp->inst >> 4 == inst) {
+	list_for_each_entry(temp, &mpeg->chan, head)
+	{
+		if (temp->inst >> 4 == inst)
+		{
 			chan = temp;
 			list_del(&chan->head);
 			list_add(&chan->head, &mpeg->chan);
@@ -164,34 +182,41 @@ nv44_mpeg_intr(struct nvkm_engine *engine)
 		}
 	}
 
-	if (stat & 0x01000000) {
+	if (stat & 0x01000000)
+	{
 		/* happens on initial binding of the object */
-		if (type == 0x00000020 && mthd == 0x0000) {
+		if (type == 0x00000020 && mthd == 0x0000)
+		{
 			nvkm_mask(device, 0x00b308, 0x00000000, 0x00000000);
 			show &= ~0x01000000;
 		}
 
-		if (type == 0x00000010) {
+		if (type == 0x00000010)
+		{
 			if (!nv44_mpeg_mthd(subdev->device, mthd, data))
+			{
 				show &= ~0x01000000;
+			}
 		}
 	}
 
 	nvkm_wr32(device, 0x00b100, stat);
 	nvkm_wr32(device, 0x00b230, 0x00000001);
 
-	if (show) {
+	if (show)
+	{
 		nvkm_error(subdev, "ch %d [%08x %s] %08x %08x %08x %08x\n",
-			   chan ? chan->fifo->chid : -1, inst << 4,
-			   chan ? chan->object.client->name : "unknown",
-			   stat, type, mthd, data);
+				   chan ? chan->fifo->chid : -1, inst << 4,
+				   chan ? chan->object.client->name : "unknown",
+				   stat, type, mthd, data);
 	}
 
 	spin_unlock_irqrestore(&mpeg->engine.lock, flags);
 }
 
 static const struct nvkm_engine_func
-nv44_mpeg = {
+	nv44_mpeg =
+{
 	.init = nv31_mpeg_init,
 	.intr = nv44_mpeg_intr,
 	.tile = nv31_mpeg_tile,
@@ -208,7 +233,10 @@ nv44_mpeg_new(struct nvkm_device *device, int index, struct nvkm_engine **pmpeg)
 	struct nv44_mpeg *mpeg;
 
 	if (!(mpeg = kzalloc(sizeof(*mpeg), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	INIT_LIST_HEAD(&mpeg->chan);
 	*pmpeg = &mpeg->engine;
 

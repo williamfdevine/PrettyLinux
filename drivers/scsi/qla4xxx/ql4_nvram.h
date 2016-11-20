@@ -65,23 +65,25 @@
 /**/
 /* EEPROM format */
 /**/
-struct bios_params {
-	uint16_t SpinUpDelay:1;
-	uint16_t BIOSDisable:1;
-	uint16_t MMAPEnable:1;
-	uint16_t BootEnable:1;
-	uint16_t Reserved0:12;
-	uint8_t bootID0:7;
-	uint8_t bootID0Valid:1;
+struct bios_params
+{
+	uint16_t SpinUpDelay: 1;
+	uint16_t BIOSDisable: 1;
+	uint16_t MMAPEnable: 1;
+	uint16_t BootEnable: 1;
+	uint16_t Reserved0: 12;
+	uint8_t bootID0: 7;
+	uint8_t bootID0Valid: 1;
 	uint8_t bootLUN0[8];
-	uint8_t bootID1:7;
-	uint8_t bootID1Valid:1;
+	uint8_t bootID1: 7;
+	uint8_t bootID1Valid: 1;
 	uint8_t bootLUN1[8];
 	uint16_t MaxLunsPerTarget;
 	uint8_t Reserved1[10];
 };
 
-struct eeprom_port_cfg {
+struct eeprom_port_cfg
+{
 
 	/* MTU MAC 0 */
 	u16 etherMtu_mac;
@@ -92,7 +94,8 @@ struct eeprom_port_cfg {
 	u16 reserved[13];
 };
 
-struct eeprom_function_cfg {
+struct eeprom_function_cfg
+{
 	u8 reserved[30];
 
 	/* MAC ADDR */
@@ -102,9 +105,12 @@ struct eeprom_function_cfg {
 	u16 subsysDeviceId;
 };
 
-struct eeprom_data {
-	union {
-		struct {	/* isp4010 */
+struct eeprom_data
+{
+	union
+	{
+		struct  	/* isp4010 */
+		{
 			u8 asic_id[4]; /* x00 */
 			u8 version;	/* x04 */
 			u8 reserved;	/* x05 */
@@ -184,7 +190,8 @@ struct eeprom_data {
 			u16 subsysDeviceId_f1;	/* x1FC */
 			u16 checksum;	/* x1FE */
 		} __attribute__ ((packed)) isp4010;
-		struct {	/* isp4022 */
+		struct  	/* isp4022 */
+		{
 			u8 asicId[4];	/* x00 */
 			u8 version;	/* x04 */
 			u8 reserved_5;	/* x05 */

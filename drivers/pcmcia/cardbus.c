@@ -31,7 +31,8 @@ static void cardbus_config_irq_and_cls(struct pci_bus *bus, int irq)
 {
 	struct pci_dev *dev;
 
-	list_for_each_entry(dev, &bus->devices, bus_list) {
+	list_for_each_entry(dev, &bus->devices, bus_list)
+	{
 		u8 irq_pin;
 
 		/*
@@ -40,7 +41,9 @@ static void cardbus_config_irq_and_cls(struct pci_bus *bus, int irq)
 		 * device must be using this IRQ.
 		 */
 		pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &irq_pin);
-		if (irq_pin) {
+
+		if (irq_pin)
+		{
 			dev->irq = irq;
 			pci_write_config_byte(dev, PCI_INTERRUPT_LINE, dev->irq);
 		}
@@ -53,7 +56,9 @@ static void cardbus_config_irq_and_cls(struct pci_bus *bus, int irq)
 		pci_set_cacheline_size(dev);
 
 		if (dev->subordinate)
+		{
 			cardbus_config_irq_and_cls(dev->subordinate, irq);
+		}
 	}
 }
 
@@ -76,10 +81,13 @@ int __ref cb_alloc(struct pcmcia_socket *s)
 	pci_fixup_cardbus(bus);
 
 	max = bus->busn_res.start;
+
 	for (pass = 0; pass < 2; pass++)
 		list_for_each_entry(dev, &bus->devices, bus_list)
-			if (pci_is_bridge(dev))
-				max = pci_scan_bridge(bus, dev, max, pass);
+		if (pci_is_bridge(dev))
+		{
+			max = pci_scan_bridge(bus, dev, max, pass);
+		}
 
 	/*
 	 * Size all resources below the CardBus controller.
@@ -90,7 +98,9 @@ int __ref cb_alloc(struct pcmcia_socket *s)
 
 	/* socket specific tune function */
 	if (s->tune_bridge)
+	{
 		s->tune_bridge(s, bus);
+	}
 
 	pci_bus_add_devices(bus);
 
@@ -110,17 +120,23 @@ void cb_free(struct pcmcia_socket *s)
 	struct pci_bus *bus;
 
 	bridge = s->cb_dev;
+
 	if (!bridge)
+	{
 		return;
+	}
 
 	bus = bridge->subordinate;
+
 	if (!bus)
+	{
 		return;
+	}
 
 	pci_lock_rescan_remove();
 
 	list_for_each_entry_safe(dev, tmp, &bus->devices, bus_list)
-		pci_stop_and_remove_bus_device(dev);
+	pci_stop_and_remove_bus_device(dev);
 
 	pci_unlock_rescan_remove();
 }

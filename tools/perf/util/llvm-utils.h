@@ -7,7 +7,8 @@
 
 #include "debug.h"
 
-struct llvm_param {
+struct llvm_param
+{
 	/* Path of clang executable */
 	const char *clang_path;
 	/*

@@ -29,11 +29,12 @@
 /* ---------------------- adapter definitions ------------ */
 
 /* BFA adapter level attributes. */
-enum {
+enum
+{
 	BFA_ADAPTER_SERIAL_NUM_LEN = STRSZ(BFA_MFG_SERIALNUM_SIZE),
-					/*
-					 *!< adapter serial num length
-					 */
+	/*
+	 *!< adapter serial num length
+	 */
 	BFA_ADAPTER_MODEL_NAME_LEN  = 16,  /*!< model name length */
 	BFA_ADAPTER_MODEL_DESCR_LEN = 128, /*!< model description length */
 	BFA_ADAPTER_MFG_NAME_LEN    = 8,   /*!< manufacturer name length */
@@ -41,7 +42,8 @@ enum {
 	BFA_ADAPTER_OS_TYPE_LEN	    = 64,  /*!< adapter os type length */
 };
 
-struct bfa_adapter_attr {
+struct bfa_adapter_attr
+{
 	char		manufacturer[BFA_ADAPTER_MFG_NAME_LEN];
 	char		serial_num[BFA_ADAPTER_SERIAL_NUM_LEN];
 	u32	card_type;
@@ -72,13 +74,15 @@ struct bfa_adapter_attr {
 
 /* ---------------------- IOC definitions ------------ */
 
-enum {
+enum
+{
 	BFA_IOC_DRIVER_LEN	= 16,
 	BFA_IOC_CHIP_REV_LEN	= 8,
 };
 
 /* Driver and firmware versions. */
-struct bfa_ioc_driver_attr {
+struct bfa_ioc_driver_attr
+{
 	char		driver[BFA_IOC_DRIVER_LEN];	/*!< driver name */
 	char		driver_ver[BFA_VERSION_LEN];	/*!< driver version */
 	char		fw_ver[BFA_VERSION_LEN];	/*!< firmware version */
@@ -88,7 +92,8 @@ struct bfa_ioc_driver_attr {
 };
 
 /* IOC PCI device attributes */
-struct bfa_ioc_pci_attr {
+struct bfa_ioc_pci_attr
+{
 	u16	vendor_id;	/*!< PCI vendor ID */
 	u16	device_id;	/*!< PCI device ID */
 	u16	ssid;		/*!< subsystem ID */
@@ -99,7 +104,8 @@ struct bfa_ioc_pci_attr {
 };
 
 /* IOC states */
-enum bfa_ioc_state {
+enum bfa_ioc_state
+{
 	BFA_IOC_UNINIT		= 1,	/*!< IOC is in uninit state */
 	BFA_IOC_RESET		= 2,	/*!< IOC is in reset state */
 	BFA_IOC_SEMWAIT		= 3,	/*!< Waiting for IOC h/w semaphore */
@@ -116,7 +122,8 @@ enum bfa_ioc_state {
 };
 
 /* IOC firmware stats */
-struct bfa_fw_ioc_stats {
+struct bfa_fw_ioc_stats
+{
 	u32	enable_reqs;
 	u32	disable_reqs;
 	u32	get_attr_reqs;
@@ -126,7 +133,8 @@ struct bfa_fw_ioc_stats {
 };
 
 /* IOC driver stats */
-struct bfa_ioc_drv_stats {
+struct bfa_ioc_drv_stats
+{
 	u32	ioc_isrs;
 	u32	ioc_enables;
 	u32	ioc_disables;
@@ -142,19 +150,22 @@ struct bfa_ioc_drv_stats {
 };
 
 /* IOC statistics */
-struct bfa_ioc_stats {
+struct bfa_ioc_stats
+{
 	struct bfa_ioc_drv_stats drv_stats; /*!< driver IOC stats */
 	struct bfa_fw_ioc_stats fw_stats;  /*!< firmware IOC stats */
 };
 
-enum bfa_ioc_type {
+enum bfa_ioc_type
+{
 	BFA_IOC_TYPE_FC		= 1,
 	BFA_IOC_TYPE_FCoE	= 2,
 	BFA_IOC_TYPE_LL		= 3,
 };
 
 /* IOC attributes returned in queries */
-struct bfa_ioc_attr {
+struct bfa_ioc_attr
+{
 	enum bfa_ioc_type ioc_type;
 	enum bfa_ioc_state		state;		/*!< IOC state      */
 	struct bfa_adapter_attr adapter_attr;	/*!< HBA attributes */
@@ -169,7 +180,8 @@ struct bfa_ioc_attr {
 };
 
 /* Adapter capability mask definition */
-enum {
+enum
+{
 	BFA_CM_HBA	=	0x01,
 	BFA_CM_CNA	=	0x02,
 	BFA_CM_NIC	=	0x04,
@@ -190,7 +202,8 @@ enum {
  *
  * All numerical fields are in big-endian format.
  */
-struct bfa_mfg_block {
+struct bfa_mfg_block
+{
 	u8	version;	/* manufacturing block version */
 	u8	mfg_sig[3];	/* characters 'M', 'F', 'G' */
 	u16	mfgsize;	/* mfg block size */
@@ -231,7 +244,8 @@ struct bfa_mfg_block {
 /*
  * PCI device ID information
  */
-enum {
+enum
+{
 	BFA_PCI_DEVICE_ID_CT2		= 0x22,
 };
 
@@ -244,14 +258,16 @@ enum {
 	(bfa_asic_id_ct(device) || bfa_asic_id_ct2(device))
 
 /* PCI sub-system device and vendor ID information */
-enum {
+enum
+{
 	BFA_PCI_FCOE_SSDEVICE_ID	= 0x14,
 	BFA_PCI_CT2_SSID_FCoE		= 0x22,
 	BFA_PCI_CT2_SSID_ETH		= 0x23,
 	BFA_PCI_CT2_SSID_FC		= 0x24,
 };
 
-enum bfa_mode {
+enum bfa_mode
+{
 	BFA_MODE_HBA		= 1,
 	BFA_MODE_CNA		= 2,
 	BFA_MODE_NIC		= 3
@@ -269,7 +285,8 @@ enum bfa_mode {
 /*
  * flash partition attributes
  */
-struct bfa_flash_part_attr {
+struct bfa_flash_part_attr
+{
 	u32	part_type;	/* partition type */
 	u32	part_instance;	/* partition instance */
 	u32	part_off;	/* partition offset */
@@ -282,7 +299,8 @@ struct bfa_flash_part_attr {
 /*
  * flash attributes
  */
-struct bfa_flash_attr {
+struct bfa_flash_attr
+{
 	u32	status;	/* flash overall status */
 	u32	npart;  /* num of partitions */
 	struct bfa_flash_part_attr part[BFA_FLASH_PART_MAX];

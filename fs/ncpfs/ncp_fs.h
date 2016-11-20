@@ -8,30 +8,31 @@
 	pr_debug(fmt, ##__VA_ARGS__)
 #else
 #define ncp_vdbg(fmt, ...)					\
-do {								\
-	if (0)							\
-		pr_debug(fmt, ##__VA_ARGS__);			\
-} while (0)
+	do {								\
+		if (0)							\
+			pr_debug(fmt, ##__VA_ARGS__);			\
+	} while (0)
 #endif
 
 #ifndef DEBUG_NCP
-#define DEBUG_NCP 0
+	#define DEBUG_NCP 0
 #endif
 
 #if DEBUG_NCP > 0 && !defined(DEBUG)
-#define DEBUG
+	#define DEBUG
 #endif
 
 #define ncp_dbg(level, fmt, ...)				\
-do {								\
-	if (level <= DEBUG_NCP)					\
-		pr_debug(fmt, ##__VA_ARGS__);			\
-} while (0)
+	do {								\
+		if (level <= DEBUG_NCP)					\
+			pr_debug(fmt, ##__VA_ARGS__);			\
+	} while (0)
 
 #define NCP_MAX_RPC_TIMEOUT (6*HZ)
 
 
-struct ncp_entry_info {
+struct ncp_entry_info
+{
 	struct nw_info_struct	i;
 	ino_t			ino;
 	int			opened;
@@ -63,7 +64,7 @@ extern const struct file_operations ncp_dir_operations;
 extern const struct dentry_operations ncp_dentry_operations;
 int ncp_conn_logged_in(struct super_block *);
 int ncp_date_dos2unix(__le16 time, __le16 date);
-void ncp_date_unix2dos(int unix_date, __le16 * time, __le16 * date);
+void ncp_date_unix2dos(int unix_date, __le16 *time, __le16 *date);
 
 /* linux/fs/ncpfs/ioctl.c */
 long ncp_ioctl(struct file *, unsigned int, unsigned long);
@@ -71,8 +72,9 @@ long ncp_compat_ioctl(struct file *, unsigned int, unsigned long);
 
 /* linux/fs/ncpfs/sock.c */
 int ncp_request2(struct ncp_server *server, int function,
-	void* reply, int max_reply_size);
-static inline int ncp_request(struct ncp_server *server, int function) {
+				 void *reply, int max_reply_size);
+static inline int ncp_request(struct ncp_server *server, int function)
+{
 	return ncp_request2(server, function, server->packet, server->packet_size);
 }
 int ncp_connect(struct ncp_server *server);
@@ -82,8 +84,8 @@ void ncp_unlock_server(struct ncp_server *server);
 
 /* linux/fs/ncpfs/symlink.c */
 #if defined(CONFIG_NCPFS_EXTRAS) || defined(CONFIG_NCPFS_NFS_NS)
-extern const struct address_space_operations ncp_symlink_aops;
-int ncp_symlink(struct inode*, struct dentry*, const char*);
+	extern const struct address_space_operations ncp_symlink_aops;
+	int ncp_symlink(struct inode *, struct dentry *, const char *);
 #endif
 
 /* linux/fs/ncpfs/file.c */

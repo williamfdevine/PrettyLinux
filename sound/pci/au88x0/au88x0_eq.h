@@ -10,19 +10,22 @@
  *  Author: Manuel Jander (mjander@users.sourceforge.net)
  ****************************************************************************/
 
-typedef struct {
+typedef struct
+{
 	u16 LeftCoefs[50];	//0x4
 	u16 RightCoefs[50];	// 0x68
 	u16 LeftGains[10];	//0xd0
 	u16 RightGains[10];	//0xe4
 } auxxEqCoeffSet_t;
 
-typedef struct {
+typedef struct
+{
 	s32 this04;		/* How many filters for each side (default = 10) */
 	s32 this08;		/* inited to cero. Stereo flag? */
 } eqhw_t;
 
-typedef struct {
+typedef struct
+{
 	eqhw_t this04;		/* CHwEq */
 	u16 this08;		/* Bad codec flag ? SetBypassGain: bypass gain */
 	u16 this0a;

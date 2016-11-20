@@ -45,7 +45,8 @@
 struct kfd_event_waiter;
 struct signal_page;
 
-struct kfd_event {
+struct kfd_event
+{
 	/* All events in process, rooted at kfd_process.events. */
 	struct hlist_node events;
 
@@ -64,7 +65,8 @@ struct kfd_event {
 	uint64_t __user *user_signal_address;
 
 	/* type specific data */
-	union {
+	union
+	{
 		struct kfd_hsa_memory_exception_data memory_exception_data;
 	};
 };
@@ -79,6 +81,6 @@ struct kfd_event {
 #define KFD_EVENT_TYPE_MEMORY 8
 
 extern void kfd_signal_event_interrupt(unsigned int pasid, uint32_t partial_id,
-					uint32_t valid_id_bits);
+									   uint32_t valid_id_bits);
 
 #endif

@@ -4,21 +4,25 @@
  * Copyright (C) 2003 Jamie Honan
  */
 
-struct dst_gpio_enable {
+struct dst_gpio_enable
+{
 	u32	mask;
 	u32	enable;
 };
 
-struct dst_gpio_output {
+struct dst_gpio_output
+{
 	u32	mask;
 	u32	highvals;
 };
 
-struct dst_gpio_read {
+struct dst_gpio_read
+{
 	unsigned long value;
 };
 
-union dst_gpio_packet {
+union dst_gpio_packet
+{
 	struct dst_gpio_enable enb;
 	struct dst_gpio_output outp;
 	struct dst_gpio_read rd;

@@ -25,7 +25,9 @@ void data_free(struct data d)
 	struct marker *m, *nm;
 
 	m = d.markers;
-	while (m) {
+
+	while (m)
+	{
 		nm = m->next;
 		free(m->ref);
 		free(m);
@@ -33,7 +35,9 @@ void data_free(struct data d)
 	}
 
 	if (d.val)
+	{
 		free(d.val);
+	}
 }
 
 struct data data_grow_for(struct data d, int xlen)
@@ -42,14 +46,18 @@ struct data data_grow_for(struct data d, int xlen)
 	int newsize;
 
 	if (xlen == 0)
+	{
 		return d;
+	}
 
 	nd = d;
 
 	newsize = xlen;
 
 	while ((d.len + xlen) > newsize)
+	{
 		newsize *= 2;
+	}
 
 	nd.val = xrealloc(d.val, newsize);
 
@@ -77,11 +85,15 @@ struct data data_copy_escape_string(const char *s, int len)
 	d = data_grow_for(empty_data, len + 1);
 
 	q = d.val;
-	while (i < len) {
+
+	while (i < len)
+	{
 		char c = s[i++];
 
 		if (c == '\\')
+		{
 			c = get_escape_char(s, &i);
+		}
 
 		q[d.len++] = c;
 	}
@@ -94,22 +106,31 @@ struct data data_copy_file(FILE *f, size_t maxlen)
 {
 	struct data d = empty_data;
 
-	while (!feof(f) && (d.len < maxlen)) {
+	while (!feof(f) && (d.len < maxlen))
+	{
 		size_t chunksize, ret;
 
 		if (maxlen == -1)
+		{
 			chunksize = 4096;
+		}
 		else
+		{
 			chunksize = maxlen - d.len;
+		}
 
 		d = data_grow_for(d, chunksize);
 		ret = fread(d.val + d.len, 1, chunksize, f);
 
 		if (ferror(f))
+		{
 			die("Error reading file into data: %s", strerror(errno));
+		}
 
 		if (d.len + ret < d.len)
+		{
 			die("Overflow reading file into data\n");
+		}
 
 		d.len += ret;
 	}
@@ -126,7 +147,7 @@ struct data data_append_data(struct data d, const void *p, int len)
 }
 
 struct data data_insert_at_marker(struct data d, struct marker *m,
-				  const void *p, int len)
+								  const void *p, int len)
 {
 	d = data_grow_for(d, len);
 	memmove(d.val + m->offset + len, d.val + m->offset, d.len - m->offset);
@@ -136,7 +157,7 @@ struct data data_insert_at_marker(struct data d, struct marker *m,
 	/* Adjust all markers after the one we're inserting at */
 	m = m->next;
 	for_each_marker(m)
-		m->offset += len;
+	m->offset += len;
 	return d;
 }
 
@@ -146,7 +167,10 @@ static struct data data_append_markers(struct data d, struct marker *m)
 
 	/* Find the end of the markerlist */
 	while (*mp)
+	{
 		mp = &((*mp)->next);
+	}
+
 	*mp = m;
 	return d;
 }
@@ -160,7 +184,7 @@ struct data data_merge(struct data d1, struct data d2)
 
 	/* Adjust for the length of d1 */
 	for_each_marker(m2)
-		m2->offset += d1.len;
+	m2->offset += d1.len;
 
 	d2.markers = NULL; /* So data_free() doesn't clobber them */
 	data_free(d2);
@@ -175,25 +199,26 @@ struct data data_append_integer(struct data d, uint64_t value, int bits)
 	uint32_t value_32;
 	uint64_t value_64;
 
-	switch (bits) {
-	case 8:
-		value_8 = value;
-		return data_append_data(d, &value_8, 1);
+	switch (bits)
+	{
+		case 8:
+			value_8 = value;
+			return data_append_data(d, &value_8, 1);
 
-	case 16:
-		value_16 = cpu_to_fdt16(value);
-		return data_append_data(d, &value_16, 2);
+		case 16:
+			value_16 = cpu_to_fdt16(value);
+			return data_append_data(d, &value_16, 2);
 
-	case 32:
-		value_32 = cpu_to_fdt32(value);
-		return data_append_data(d, &value_32, 4);
+		case 32:
+			value_32 = cpu_to_fdt32(value);
+			return data_append_data(d, &value_32, 4);
 
-	case 64:
-		value_64 = cpu_to_fdt64(value);
-		return data_append_data(d, &value_64, 8);
+		case 64:
+			value_64 = cpu_to_fdt64(value);
+			return data_append_data(d, &value_64, 8);
 
-	default:
-		die("Invalid literal size (%d)\n", bits);
+		default:
+			die("Invalid literal size (%d)\n", bits);
 	}
 }
 
@@ -256,14 +281,20 @@ bool data_is_one_string(struct data d)
 	int len = d.len;
 
 	if (len == 0)
+	{
 		return false;
+	}
 
-	for (i = 0; i < len-1; i++)
+	for (i = 0; i < len - 1; i++)
 		if (d.val[i] == '\0')
+		{
 			return false;
+		}
 
-	if (d.val[len-1] != '\0')
+	if (d.val[len - 1] != '\0')
+	{
 		return false;
+	}
 
 	return true;
 }

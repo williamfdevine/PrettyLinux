@@ -16,7 +16,8 @@
 #define B2C2_USB_CTRL_PIPE_OUT usb_sndctrlpipe(fc_usb->udev, 0)
 #define B2C2_USB_DATA_PIPE usb_rcvisocpipe(fc_usb->udev, 0x81)
 
-struct flexcop_usb {
+struct flexcop_usb
+{
 	struct usb_device *udev;
 	struct usb_interface *uintf;
 
@@ -27,7 +28,7 @@ struct flexcop_usb {
 	struct urb *iso_urb[B2C2_USB_NUM_ISO_URB];
 	struct flexcop_device *fc_dev;
 
-	u8 tmp_buffer[1023+190];
+	u8 tmp_buffer[1023 + 190];
 	int tmp_buffer_length;
 
 	/* for URB control messages */
@@ -37,13 +38,15 @@ struct flexcop_usb {
 
 #if 0
 /* request types TODO What is its use?*/
-typedef enum {
+typedef enum
+{
 
 } flexcop_usb_request_type_t;
 #endif
 
 /* request */
-typedef enum {
+typedef enum
+{
 	B2C2_USB_WRITE_V8_MEM = 0x04,
 	B2C2_USB_READ_V8_MEM  = 0x05,
 	B2C2_USB_READ_REG     = 0x08,
@@ -55,7 +58,8 @@ typedef enum {
 } flexcop_usb_request_t;
 
 /* function definition for I2C_REQUEST */
-typedef enum {
+typedef enum
+{
 	USB_FUNC_I2C_WRITE       = 0x01,
 	USB_FUNC_I2C_MULTIWRITE  = 0x02,
 	USB_FUNC_I2C_READ        = 0x03,
@@ -69,7 +73,8 @@ typedef enum {
 
 /* function definition for UTILITY request 0x12
  * DKT 020304 - new utility function */
-typedef enum {
+typedef enum
+{
 	UTILITY_SET_FILTER          = 0x01,
 	UTILITY_DATA_ENABLE         = 0x02,
 	UTILITY_FLEX_MULTIWRITE     = 0x03,
@@ -98,7 +103,8 @@ typedef enum {
 #define B2C2_WAIT_FOR_OPERATION_V8WRITE (3*HZ)
 #define B2C2_WAIT_FOR_OPERATION_V8FLASH (3*HZ)
 
-typedef enum {
+typedef enum
+{
 	V8_MEMORY_PAGE_DVB_CI = 0x20,
 	V8_MEMORY_PAGE_DVB_DS = 0x40,
 	V8_MEMORY_PAGE_MULTI2 = 0x60,

@@ -22,7 +22,8 @@
 /* per-uid limit of kernel memory used by mqueue, in bytes */
 #define MQ_BYTES_MAX	819200
 
-struct mq_attr {
+struct mq_attr
+{
 	__kernel_long_t	mq_flags;	/* message queue flags			*/
 	__kernel_long_t	mq_maxmsg;	/* maximum number of messages		*/
 	__kernel_long_t	mq_msgsize;	/* maximum message size			*/

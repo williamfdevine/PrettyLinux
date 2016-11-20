@@ -39,7 +39,8 @@
 /* File check error strings,
  * must correspond with error number in header file.
  */
-static const char * const ocfs2_filecheck_errs[] = {
+static const char *const ocfs2_filecheck_errs[] =
+{
 	"SUCCESS",
 	"FAILED",
 	"INPROGRESS",
@@ -56,7 +57,8 @@ static const char * const ocfs2_filecheck_errs[] = {
 static DEFINE_SPINLOCK(ocfs2_filecheck_sysfs_lock);
 static LIST_HEAD(ocfs2_filecheck_sysfs_list);
 
-struct ocfs2_filecheck {
+struct ocfs2_filecheck
+{
 	struct list_head fc_head;	/* File check entry list head */
 	spinlock_t fc_lock;
 	unsigned int fc_max;	/* Maximum number of entry in list */
@@ -64,7 +66,8 @@ struct ocfs2_filecheck {
 	unsigned int fc_done;	/* Finished entry count in list */
 };
 
-struct ocfs2_filecheck_sysfs_entry {	/* sysfs entry per mounting */
+struct ocfs2_filecheck_sysfs_entry  	/* sysfs entry per mounting */
+{
 	struct list_head fs_list;
 	atomic_t fs_count;
 	struct super_block *fs_sb;
@@ -77,23 +80,27 @@ struct ocfs2_filecheck_sysfs_entry {	/* sysfs entry per mounting */
 #define OCFS2_FILECHECK_MINSIZE		10
 
 /* File check operation type */
-enum {
+enum
+{
 	OCFS2_FILECHECK_TYPE_CHK = 0,	/* Check a file(inode) */
 	OCFS2_FILECHECK_TYPE_FIX,	/* Fix a file(inode) */
 	OCFS2_FILECHECK_TYPE_SET = 100	/* Set entry list maximum size */
 };
 
-struct ocfs2_filecheck_entry {
+struct ocfs2_filecheck_entry
+{
 	struct list_head fe_list;
 	unsigned long fe_ino;
 	unsigned int fe_type;
-	unsigned int fe_done:1;
-	unsigned int fe_status:31;
+	unsigned int fe_done: 1;
+	unsigned int fe_status: 31;
 };
 
-struct ocfs2_filecheck_args {
+struct ocfs2_filecheck_args
+{
 	unsigned int fa_type;
-	union {
+	union
+	{
 		unsigned long fa_ino;
 		unsigned int fa_len;
 	};
@@ -103,31 +110,33 @@ static const char *
 ocfs2_filecheck_error(int errno)
 {
 	if (!errno)
+	{
 		return ocfs2_filecheck_errs[errno];
+	}
 
 	BUG_ON(errno < OCFS2_FILECHECK_ERR_START ||
-	       errno > OCFS2_FILECHECK_ERR_END);
+		   errno > OCFS2_FILECHECK_ERR_END);
 	return ocfs2_filecheck_errs[errno - OCFS2_FILECHECK_ERR_START + 1];
 }
 
 static ssize_t ocfs2_filecheck_show(struct kobject *kobj,
-				    struct kobj_attribute *attr,
-				    char *buf);
+									struct kobj_attribute *attr,
+									char *buf);
 static ssize_t ocfs2_filecheck_store(struct kobject *kobj,
-				     struct kobj_attribute *attr,
-				     const char *buf, size_t count);
+									 struct kobj_attribute *attr,
+									 const char *buf, size_t count);
 static struct kobj_attribute ocfs2_attr_filecheck_chk =
-					__ATTR(check, S_IRUSR | S_IWUSR,
-					ocfs2_filecheck_show,
-					ocfs2_filecheck_store);
+	__ATTR(check, S_IRUSR | S_IWUSR,
+		   ocfs2_filecheck_show,
+		   ocfs2_filecheck_store);
 static struct kobj_attribute ocfs2_attr_filecheck_fix =
-					__ATTR(fix, S_IRUSR | S_IWUSR,
-					ocfs2_filecheck_show,
-					ocfs2_filecheck_store);
+	__ATTR(fix, S_IRUSR | S_IWUSR,
+		   ocfs2_filecheck_show,
+		   ocfs2_filecheck_store);
 static struct kobj_attribute ocfs2_attr_filecheck_set =
-					__ATTR(set, S_IRUSR | S_IWUSR,
-					ocfs2_filecheck_show,
-					ocfs2_filecheck_store);
+	__ATTR(set, S_IRUSR | S_IWUSR,
+		   ocfs2_filecheck_show,
+		   ocfs2_filecheck_store);
 
 static int ocfs2_filecheck_sysfs_wait(atomic_t *p)
 {
@@ -142,16 +151,19 @@ ocfs2_filecheck_sysfs_free(struct ocfs2_filecheck_sysfs_entry *entry)
 
 	if (!atomic_dec_and_test(&entry->fs_count))
 		wait_on_atomic_t(&entry->fs_count, ocfs2_filecheck_sysfs_wait,
-				 TASK_UNINTERRUPTIBLE);
+						 TASK_UNINTERRUPTIBLE);
 
 	spin_lock(&entry->fs_fcheck->fc_lock);
-	while (!list_empty(&entry->fs_fcheck->fc_head)) {
+
+	while (!list_empty(&entry->fs_fcheck->fc_head))
+	{
 		p = list_first_entry(&entry->fs_fcheck->fc_head,
-				     struct ocfs2_filecheck_entry, fe_list);
+							 struct ocfs2_filecheck_entry, fe_list);
 		list_del(&p->fe_list);
 		BUG_ON(!p->fe_done); /* To free a undone file check entry */
 		kfree(p);
 	}
+
 	spin_unlock(&entry->fs_fcheck->fc_lock);
 
 	kset_unregister(entry->fs_fcheckkset);
@@ -173,8 +185,10 @@ static int ocfs2_filecheck_sysfs_del(const char *devname)
 	struct ocfs2_filecheck_sysfs_entry *p;
 
 	spin_lock(&ocfs2_filecheck_sysfs_lock);
-	list_for_each_entry(p, &ocfs2_filecheck_sysfs_list, fs_list) {
-		if (!strcmp(p->fs_sb->s_id, devname)) {
+	list_for_each_entry(p, &ocfs2_filecheck_sysfs_list, fs_list)
+	{
+		if (!strcmp(p->fs_sb->s_id, devname))
+		{
 			list_del(&p->fs_list);
 			spin_unlock(&ocfs2_filecheck_sysfs_lock);
 			ocfs2_filecheck_sysfs_free(p);
@@ -189,7 +203,9 @@ static void
 ocfs2_filecheck_sysfs_put(struct ocfs2_filecheck_sysfs_entry *entry)
 {
 	if (atomic_dec_and_test(&entry->fs_count))
+	{
 		wake_up_atomic_t(&entry->fs_count);
+	}
 }
 
 static struct ocfs2_filecheck_sysfs_entry *
@@ -198,8 +214,10 @@ ocfs2_filecheck_sysfs_get(const char *devname)
 	struct ocfs2_filecheck_sysfs_entry *p = NULL;
 
 	spin_lock(&ocfs2_filecheck_sysfs_lock);
-	list_for_each_entry(p, &ocfs2_filecheck_sysfs_list, fs_list) {
-		if (!strcmp(p->fs_sb->s_id, devname)) {
+	list_for_each_entry(p, &ocfs2_filecheck_sysfs_list, fs_list)
+	{
+		if (!strcmp(p->fs_sb->s_id, devname))
+		{
 			atomic_inc(&p->fs_count);
 			spin_unlock(&ocfs2_filecheck_sysfs_lock);
 			return p;
@@ -220,13 +238,19 @@ int ocfs2_filecheck_create_sysfs(struct super_block *sb)
 	struct attribute_group attrgp;
 
 	if (!ocfs2_kset)
+	{
 		return -ENOMEM;
+	}
 
 	attrs = kmalloc(sizeof(struct attribute *) * 4, GFP_NOFS);
-	if (!attrs) {
+
+	if (!attrs)
+	{
 		ret = -ENOMEM;
 		goto error;
-	} else {
+	}
+	else
+	{
 		attrs[0] = &ocfs2_attr_filecheck_chk.attr;
 		attrs[1] = &ocfs2_attr_filecheck_fix.attr;
 		attrs[2] = &ocfs2_attr_filecheck_set.attr;
@@ -236,10 +260,14 @@ int ocfs2_filecheck_create_sysfs(struct super_block *sb)
 	}
 
 	fcheck = kmalloc(sizeof(struct ocfs2_filecheck), GFP_NOFS);
-	if (!fcheck) {
+
+	if (!fcheck)
+	{
 		ret = -ENOMEM;
 		goto error;
-	} else {
+	}
+	else
+	{
 		INIT_LIST_HEAD(&fcheck->fc_head);
 		spin_lock_init(&fcheck->fc_lock);
 		fcheck->fc_max = OCFS2_FILECHECK_MINSIZE;
@@ -247,35 +275,47 @@ int ocfs2_filecheck_create_sysfs(struct super_block *sb)
 		fcheck->fc_done = 0;
 	}
 
-	if (strlen(sb->s_id) <= 0) {
+	if (strlen(sb->s_id) <= 0)
+	{
 		mlog(ML_ERROR,
-		"Cannot get device basename when create filecheck sysfs\n");
+			 "Cannot get device basename when create filecheck sysfs\n");
 		ret = -ENODEV;
 		goto error;
 	}
 
 	device_kset = kset_create_and_add(sb->s_id, NULL, &ocfs2_kset->kobj);
-	if (!device_kset) {
+
+	if (!device_kset)
+	{
 		ret = -ENOMEM;
 		goto error;
 	}
 
 	fcheck_kset = kset_create_and_add("filecheck", NULL,
-					  &device_kset->kobj);
-	if (!fcheck_kset) {
+									  &device_kset->kobj);
+
+	if (!fcheck_kset)
+	{
 		ret = -ENOMEM;
 		goto error;
 	}
 
 	ret = sysfs_create_group(&fcheck_kset->kobj, &attrgp);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	entry = kmalloc(sizeof(struct ocfs2_filecheck_sysfs_entry), GFP_NOFS);
-	if (!entry) {
+
+	if (!entry)
+	{
 		ret = -ENOMEM;
 		goto error;
-	} else {
+	}
+	else
+	{
 		atomic_set(&entry->fs_count, 1);
 		entry->fs_sb = sb;
 		entry->fs_devicekset = device_kset;
@@ -303,31 +343,38 @@ int ocfs2_filecheck_remove_sysfs(struct super_block *sb)
 
 static int
 ocfs2_filecheck_erase_entries(struct ocfs2_filecheck_sysfs_entry *ent,
-			      unsigned int count);
+							  unsigned int count);
 static int
 ocfs2_filecheck_adjust_max(struct ocfs2_filecheck_sysfs_entry *ent,
-			   unsigned int len)
+						   unsigned int len)
 {
 	int ret;
 
 	if ((len < OCFS2_FILECHECK_MINSIZE) || (len > OCFS2_FILECHECK_MAXSIZE))
+	{
 		return -EINVAL;
+	}
 
 	spin_lock(&ent->fs_fcheck->fc_lock);
-	if (len < (ent->fs_fcheck->fc_size - ent->fs_fcheck->fc_done)) {
+
+	if (len < (ent->fs_fcheck->fc_size - ent->fs_fcheck->fc_done))
+	{
 		mlog(ML_ERROR,
-		"Cannot set online file check maximum entry number "
-		"to %u due to too many pending entries(%u)\n",
-		len, ent->fs_fcheck->fc_size - ent->fs_fcheck->fc_done);
+			 "Cannot set online file check maximum entry number "
+			 "to %u due to too many pending entries(%u)\n",
+			 len, ent->fs_fcheck->fc_size - ent->fs_fcheck->fc_done);
 		ret = -EBUSY;
-	} else {
+	}
+	else
+	{
 		if (len < ent->fs_fcheck->fc_size)
 			BUG_ON(!ocfs2_filecheck_erase_entries(ent,
-				ent->fs_fcheck->fc_size - len));
+												  ent->fs_fcheck->fc_size - len));
 
 		ent->fs_fcheck->fc_max = len;
 		ret = 0;
 	}
+
 	spin_unlock(&ent->fs_fcheck->fc_lock);
 
 	return ret;
@@ -336,7 +383,7 @@ ocfs2_filecheck_adjust_max(struct ocfs2_filecheck_sysfs_entry *ent,
 #define OCFS2_FILECHECK_ARGS_LEN	24
 static int
 ocfs2_filecheck_args_get_long(const char *buf, size_t count,
-			      unsigned long *val)
+							  unsigned long *val)
 {
 	char buffer[OCFS2_FILECHECK_ARGS_LEN];
 
@@ -344,7 +391,9 @@ ocfs2_filecheck_args_get_long(const char *buf, size_t count,
 	buffer[count] = '\0';
 
 	if (kstrtoul(buffer, 0, val))
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -353,48 +402,70 @@ static int
 ocfs2_filecheck_type_parse(const char *name, unsigned int *type)
 {
 	if (!strncmp(name, "fix", 4))
+	{
 		*type = OCFS2_FILECHECK_TYPE_FIX;
+	}
 	else if (!strncmp(name, "check", 6))
+	{
 		*type = OCFS2_FILECHECK_TYPE_CHK;
+	}
 	else if (!strncmp(name, "set", 4))
+	{
 		*type = OCFS2_FILECHECK_TYPE_SET;
+	}
 	else
+	{
 		return 1;
+	}
 
 	return 0;
 }
 
 static int
 ocfs2_filecheck_args_parse(const char *name, const char *buf, size_t count,
-			   struct ocfs2_filecheck_args *args)
+						   struct ocfs2_filecheck_args *args)
 {
 	unsigned long val = 0;
 	unsigned int type;
 
 	/* too short/long args length */
 	if ((count < 1) || (count >= OCFS2_FILECHECK_ARGS_LEN))
+	{
 		return 1;
+	}
 
 	if (ocfs2_filecheck_type_parse(name, &type))
+	{
 		return 1;
+	}
+
 	if (ocfs2_filecheck_args_get_long(buf, count, &val))
+	{
 		return 1;
+	}
 
 	if (val <= 0)
+	{
 		return 1;
+	}
 
 	args->fa_type = type;
+
 	if (type == OCFS2_FILECHECK_TYPE_SET)
+	{
 		args->fa_len = (unsigned int)val;
+	}
 	else
+	{
 		args->fa_ino = val;
+	}
 
 	return 0;
 }
 
 static ssize_t ocfs2_filecheck_show(struct kobject *kobj,
-				    struct kobj_attribute *attr,
-				    char *buf)
+									struct kobj_attribute *attr,
+									char *buf)
 {
 
 	ssize_t ret = 0, total = 0, remain = PAGE_SIZE;
@@ -403,17 +474,22 @@ static ssize_t ocfs2_filecheck_show(struct kobject *kobj,
 	struct ocfs2_filecheck_sysfs_entry *ent;
 
 	if (ocfs2_filecheck_type_parse(attr->attr.name, &type))
+	{
 		return -EINVAL;
+	}
 
 	ent = ocfs2_filecheck_sysfs_get(kobj->parent->name);
-	if (!ent) {
+
+	if (!ent)
+	{
 		mlog(ML_ERROR,
-		"Cannot get the corresponding entry via device basename %s\n",
-		kobj->name);
+			 "Cannot get the corresponding entry via device basename %s\n",
+			 kobj->name);
 		return -ENODEV;
 	}
 
-	if (type == OCFS2_FILECHECK_TYPE_SET) {
+	if (type == OCFS2_FILECHECK_TYPE_SET)
+	{
 		spin_lock(&ent->fs_fcheck->fc_lock);
 		total = snprintf(buf, remain, "%u\n", ent->fs_fcheck->fc_max);
 		spin_unlock(&ent->fs_fcheck->fc_lock);
@@ -424,22 +500,30 @@ static ssize_t ocfs2_filecheck_show(struct kobject *kobj,
 	total += ret;
 	remain -= ret;
 	spin_lock(&ent->fs_fcheck->fc_lock);
-	list_for_each_entry(p, &ent->fs_fcheck->fc_head, fe_list) {
+	list_for_each_entry(p, &ent->fs_fcheck->fc_head, fe_list)
+	{
 		if (p->fe_type != type)
+		{
 			continue;
+		}
 
 		ret = snprintf(buf + total, remain, "%lu\t\t%u\t%s\n",
-			       p->fe_ino, p->fe_done,
-			       ocfs2_filecheck_error(p->fe_status));
-		if (ret < 0) {
+					   p->fe_ino, p->fe_done,
+					   ocfs2_filecheck_error(p->fe_status));
+
+		if (ret < 0)
+		{
 			total = ret;
 			break;
 		}
-		if (ret == remain) {
+
+		if (ret == remain)
+		{
 			/* snprintf() didn't fit */
 			total = -E2BIG;
 			break;
 		}
+
 		total += ret;
 		remain -= ret;
 	}
@@ -455,8 +539,10 @@ ocfs2_filecheck_erase_entry(struct ocfs2_filecheck_sysfs_entry *ent)
 {
 	struct ocfs2_filecheck_entry *p;
 
-	list_for_each_entry(p, &ent->fs_fcheck->fc_head, fe_list) {
-		if (p->fe_done) {
+	list_for_each_entry(p, &ent->fs_fcheck->fc_head, fe_list)
+	{
+		if (p->fe_done)
+		{
 			list_del(&p->fe_list);
 			kfree(p);
 			ent->fs_fcheck->fc_size--;
@@ -470,16 +556,21 @@ ocfs2_filecheck_erase_entry(struct ocfs2_filecheck_sysfs_entry *ent)
 
 static int
 ocfs2_filecheck_erase_entries(struct ocfs2_filecheck_sysfs_entry *ent,
-			      unsigned int count)
+							  unsigned int count)
 {
 	unsigned int i = 0;
 	unsigned int ret = 0;
 
-	while (i++ < count) {
+	while (i++ < count)
+	{
 		if (ocfs2_filecheck_erase_entry(ent))
+		{
 			ret++;
+		}
 		else
+		{
 			break;
+		}
 	}
 
 	return (ret == count ? 1 : 0);
@@ -487,7 +578,7 @@ ocfs2_filecheck_erase_entries(struct ocfs2_filecheck_sysfs_entry *ent,
 
 static void
 ocfs2_filecheck_done_entry(struct ocfs2_filecheck_sysfs_entry *ent,
-			   struct ocfs2_filecheck_entry *entry)
+						   struct ocfs2_filecheck_entry *entry)
 {
 	entry->fe_done = 1;
 	spin_lock(&ent->fs_fcheck->fc_lock);
@@ -497,45 +588,57 @@ ocfs2_filecheck_done_entry(struct ocfs2_filecheck_sysfs_entry *ent,
 
 static unsigned int
 ocfs2_filecheck_handle(struct super_block *sb,
-		       unsigned long ino, unsigned int flags)
+					   unsigned long ino, unsigned int flags)
 {
 	unsigned int ret = OCFS2_FILECHECK_ERR_SUCCESS;
 	struct inode *inode = NULL;
 	int rc;
 
 	inode = ocfs2_iget(OCFS2_SB(sb), ino, flags, 0);
-	if (IS_ERR(inode)) {
+
+	if (IS_ERR(inode))
+	{
 		rc = (int)(-(long)inode);
+
 		if (rc >= OCFS2_FILECHECK_ERR_START &&
-		    rc < OCFS2_FILECHECK_ERR_END)
+			rc < OCFS2_FILECHECK_ERR_END)
+		{
 			ret = rc;
+		}
 		else
+		{
 			ret = OCFS2_FILECHECK_ERR_FAILED;
-	} else
+		}
+	}
+	else
+	{
 		iput(inode);
+	}
 
 	return ret;
 }
 
 static void
 ocfs2_filecheck_handle_entry(struct ocfs2_filecheck_sysfs_entry *ent,
-			     struct ocfs2_filecheck_entry *entry)
+							 struct ocfs2_filecheck_entry *entry)
 {
 	if (entry->fe_type == OCFS2_FILECHECK_TYPE_CHK)
 		entry->fe_status = ocfs2_filecheck_handle(ent->fs_sb,
-				entry->fe_ino, OCFS2_FI_FLAG_FILECHECK_CHK);
+						   entry->fe_ino, OCFS2_FI_FLAG_FILECHECK_CHK);
 	else if (entry->fe_type == OCFS2_FILECHECK_TYPE_FIX)
 		entry->fe_status = ocfs2_filecheck_handle(ent->fs_sb,
-				entry->fe_ino, OCFS2_FI_FLAG_FILECHECK_FIX);
+						   entry->fe_ino, OCFS2_FI_FLAG_FILECHECK_FIX);
 	else
+	{
 		entry->fe_status = OCFS2_FILECHECK_ERR_UNSUPPORTED;
+	}
 
 	ocfs2_filecheck_done_entry(ent, entry);
 }
 
 static ssize_t ocfs2_filecheck_store(struct kobject *kobj,
-				     struct kobj_attribute *attr,
-				     const char *buf, size_t count)
+									 struct kobj_attribute *attr,
+									 const char *buf, size_t count)
 {
 	struct ocfs2_filecheck_args args;
 	struct ocfs2_filecheck_entry *entry;
@@ -543,44 +646,57 @@ static ssize_t ocfs2_filecheck_store(struct kobject *kobj,
 	ssize_t ret = 0;
 
 	if (count == 0)
+	{
 		return count;
+	}
 
-	if (ocfs2_filecheck_args_parse(attr->attr.name, buf, count, &args)) {
+	if (ocfs2_filecheck_args_parse(attr->attr.name, buf, count, &args))
+	{
 		mlog(ML_ERROR, "Invalid arguments for online file check\n");
 		return -EINVAL;
 	}
 
 	ent = ocfs2_filecheck_sysfs_get(kobj->parent->name);
-	if (!ent) {
+
+	if (!ent)
+	{
 		mlog(ML_ERROR,
-		"Cannot get the corresponding entry via device basename %s\n",
-		kobj->parent->name);
+			 "Cannot get the corresponding entry via device basename %s\n",
+			 kobj->parent->name);
 		return -ENODEV;
 	}
 
-	if (args.fa_type == OCFS2_FILECHECK_TYPE_SET) {
+	if (args.fa_type == OCFS2_FILECHECK_TYPE_SET)
+	{
 		ret = ocfs2_filecheck_adjust_max(ent, args.fa_len);
 		goto exit;
 	}
 
 	entry = kmalloc(sizeof(struct ocfs2_filecheck_entry), GFP_NOFS);
-	if (!entry) {
+
+	if (!entry)
+	{
 		ret = -ENOMEM;
 		goto exit;
 	}
 
 	spin_lock(&ent->fs_fcheck->fc_lock);
+
 	if ((ent->fs_fcheck->fc_size >= ent->fs_fcheck->fc_max) &&
-	    (ent->fs_fcheck->fc_done == 0)) {
+		(ent->fs_fcheck->fc_done == 0))
+	{
 		mlog(ML_ERROR,
-		"Cannot do more file check "
-		"since file check queue(%u) is full now\n",
-		ent->fs_fcheck->fc_max);
+			 "Cannot do more file check "
+			 "since file check queue(%u) is full now\n",
+			 ent->fs_fcheck->fc_max);
 		ret = -EBUSY;
 		kfree(entry);
-	} else {
+	}
+	else
+	{
 		if ((ent->fs_fcheck->fc_size >= ent->fs_fcheck->fc_max) &&
-		    (ent->fs_fcheck->fc_done > 0)) {
+			(ent->fs_fcheck->fc_done > 0))
+		{
 			/* Delete the oldest entry which was done,
 			 * make sure the entry size in list does
 			 * not exceed maximum value
@@ -595,10 +711,13 @@ static ssize_t ocfs2_filecheck_store(struct kobject *kobj,
 		list_add_tail(&entry->fe_list, &ent->fs_fcheck->fc_head);
 		ent->fs_fcheck->fc_size++;
 	}
+
 	spin_unlock(&ent->fs_fcheck->fc_lock);
 
 	if (!ret)
+	{
 		ocfs2_filecheck_handle_entry(ent, entry);
+	}
 
 exit:
 	ocfs2_filecheck_sysfs_put(ent);

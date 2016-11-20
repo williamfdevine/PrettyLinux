@@ -27,7 +27,8 @@
 
 #include "nfc.h"
 
-static struct nfc_sock_list raw_sk_list = {
+static struct nfc_sock_list raw_sk_list =
+{
 	.lock = __RW_LOCK_UNLOCKED(raw_sk_list.lock)
 };
 
@@ -73,10 +74,14 @@ static int rawsock_release(struct socket *sock)
 	pr_debug("sock=%p sk=%p\n", sock, sk);
 
 	if (!sk)
+	{
 		return 0;
+	}
 
 	if (sock->type == SOCK_RAW)
+	{
 		nfc_sock_unlink(&raw_sk_list, sk);
+	}
 
 	sock_orphan(sk);
 	sock_put(sk);
@@ -85,7 +90,7 @@ static int rawsock_release(struct socket *sock)
 }
 
 static int rawsock_connect(struct socket *sock, struct sockaddr *_addr,
-			   int len, int flags)
+						   int len, int flags)
 {
 	struct sock *sk = sock->sk;
 	struct sockaddr_nfc *addr = (struct sockaddr_nfc *)_addr;
@@ -95,34 +100,43 @@ static int rawsock_connect(struct socket *sock, struct sockaddr *_addr,
 	pr_debug("sock=%p sk=%p flags=%d\n", sock, sk, flags);
 
 	if (!addr || len < sizeof(struct sockaddr_nfc) ||
-	    addr->sa_family != AF_NFC)
+		addr->sa_family != AF_NFC)
+	{
 		return -EINVAL;
+	}
 
 	pr_debug("addr dev_idx=%u target_idx=%u protocol=%u\n",
-		 addr->dev_idx, addr->target_idx, addr->nfc_protocol);
+			 addr->dev_idx, addr->target_idx, addr->nfc_protocol);
 
 	lock_sock(sk);
 
-	if (sock->state == SS_CONNECTED) {
+	if (sock->state == SS_CONNECTED)
+	{
 		rc = -EISCONN;
 		goto error;
 	}
 
 	dev = nfc_get_device(addr->dev_idx);
-	if (!dev) {
+
+	if (!dev)
+	{
 		rc = -ENODEV;
 		goto error;
 	}
 
 	if (addr->target_idx > dev->target_next_idx - 1 ||
-	    addr->target_idx < dev->target_next_idx - dev->n_targets) {
+		addr->target_idx < dev->target_next_idx - dev->n_targets)
+	{
 		rc = -EINVAL;
 		goto error;
 	}
 
 	rc = nfc_activate_target(dev, addr->target_idx, addr->nfc_protocol);
+
 	if (rc)
+	{
 		goto put_dev;
+	}
 
 	nfc_rawsock(sk)->dev = dev;
 	nfc_rawsock(sk)->target_idx = addr->target_idx;
@@ -148,7 +162,7 @@ static int rawsock_add_header(struct sk_buff *skb)
 }
 
 static void rawsock_data_exchange_complete(void *context, struct sk_buff *skb,
-					   int err)
+		int err)
 {
 	struct sock *sk = (struct sock *) context;
 
@@ -157,21 +171,35 @@ static void rawsock_data_exchange_complete(void *context, struct sk_buff *skb,
 	pr_debug("sk=%p err=%d\n", sk, err);
 
 	if (err)
+	{
 		goto error;
+	}
 
 	err = rawsock_add_header(skb);
+
 	if (err)
+	{
 		goto error_skb;
+	}
 
 	err = sock_queue_rcv_skb(sk, skb);
+
 	if (err)
+	{
 		goto error_skb;
+	}
 
 	spin_lock_bh(&sk->sk_write_queue.lock);
+
 	if (!skb_queue_empty(&sk->sk_write_queue))
+	{
 		schedule_work(&nfc_rawsock(sk)->tx_work);
+	}
 	else
+	{
 		nfc_rawsock(sk)->tx_work_scheduled = false;
+	}
+
 	spin_unlock_bh(&sk->sk_write_queue.lock);
 
 	sock_put(sk);
@@ -195,7 +223,8 @@ static void rawsock_tx_work(struct work_struct *work)
 
 	pr_debug("sk=%p target_idx=%u\n", sk, target_idx);
 
-	if (sk->sk_shutdown & SEND_SHUTDOWN) {
+	if (sk->sk_shutdown & SEND_SHUTDOWN)
+	{
 		rawsock_write_queue_purge(sk);
 		return;
 	}
@@ -204,8 +233,10 @@ static void rawsock_tx_work(struct work_struct *work)
 
 	sock_hold(sk);
 	rc = nfc_data_exchange(dev, target_idx, skb,
-			       rawsock_data_exchange_complete, sk);
-	if (rc) {
+						   rawsock_data_exchange_complete, sk);
+
+	if (rc)
+	{
 		rawsock_report_error(sk, rc);
 		sock_put(sk);
 	}
@@ -221,34 +252,46 @@ static int rawsock_sendmsg(struct socket *sock, struct msghdr *msg, size_t len)
 	pr_debug("sock=%p sk=%p len=%zu\n", sock, sk, len);
 
 	if (msg->msg_namelen)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if (sock->state != SS_CONNECTED)
+	{
 		return -ENOTCONN;
+	}
 
 	skb = nfc_alloc_send_skb(dev, sk, msg->msg_flags, len, &rc);
+
 	if (skb == NULL)
+	{
 		return rc;
+	}
 
 	rc = memcpy_from_msg(skb_put(skb, len), msg, len);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		kfree_skb(skb);
 		return rc;
 	}
 
 	spin_lock_bh(&sk->sk_write_queue.lock);
 	__skb_queue_tail(&sk->sk_write_queue, skb);
-	if (!nfc_rawsock(sk)->tx_work_scheduled) {
+
+	if (!nfc_rawsock(sk)->tx_work_scheduled)
+	{
 		schedule_work(&nfc_rawsock(sk)->tx_work);
 		nfc_rawsock(sk)->tx_work_scheduled = true;
 	}
+
 	spin_unlock_bh(&sk->sk_write_queue.lock);
 
 	return len;
 }
 
 static int rawsock_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
-			   int flags)
+						   int flags)
 {
 	int noblock = flags & MSG_DONTWAIT;
 	struct sock *sk = sock->sk;
@@ -259,11 +302,16 @@ static int rawsock_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
 	pr_debug("sock=%p sk=%p len=%zu flags=%d\n", sock, sk, len, flags);
 
 	skb = skb_recv_datagram(sk, flags, noblock, &rc);
+
 	if (!skb)
+	{
 		return rc;
+	}
 
 	copied = skb->len;
-	if (len < copied) {
+
+	if (len < copied)
+	{
 		msg->msg_flags |= MSG_TRUNC;
 		copied = len;
 	}
@@ -275,7 +323,8 @@ static int rawsock_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
 	return rc ? : copied;
 }
 
-static const struct proto_ops rawsock_ops = {
+static const struct proto_ops rawsock_ops =
+{
 	.family         = PF_NFC,
 	.owner          = THIS_MODULE,
 	.release        = rawsock_release,
@@ -295,7 +344,8 @@ static const struct proto_ops rawsock_ops = {
 	.mmap           = sock_no_mmap,
 };
 
-static const struct proto_ops rawsock_raw_ops = {
+static const struct proto_ops rawsock_raw_ops =
+{
 	.family         = PF_NFC,
 	.owner          = THIS_MODULE,
 	.release        = rawsock_release,
@@ -319,47 +369,62 @@ static void rawsock_destruct(struct sock *sk)
 {
 	pr_debug("sk=%p\n", sk);
 
-	if (sk->sk_state == TCP_ESTABLISHED) {
+	if (sk->sk_state == TCP_ESTABLISHED)
+	{
 		nfc_deactivate_target(nfc_rawsock(sk)->dev,
-				      nfc_rawsock(sk)->target_idx,
-				      NFC_TARGET_MODE_IDLE);
+							  nfc_rawsock(sk)->target_idx,
+							  NFC_TARGET_MODE_IDLE);
 		nfc_put_device(nfc_rawsock(sk)->dev);
 	}
 
 	skb_queue_purge(&sk->sk_receive_queue);
 
-	if (!sock_flag(sk, SOCK_DEAD)) {
+	if (!sock_flag(sk, SOCK_DEAD))
+	{
 		pr_err("Freeing alive NFC raw socket %p\n", sk);
 		return;
 	}
 }
 
 static int rawsock_create(struct net *net, struct socket *sock,
-			  const struct nfc_protocol *nfc_proto, int kern)
+						  const struct nfc_protocol *nfc_proto, int kern)
 {
 	struct sock *sk;
 
 	pr_debug("sock=%p\n", sock);
 
 	if ((sock->type != SOCK_SEQPACKET) && (sock->type != SOCK_RAW))
+	{
 		return -ESOCKTNOSUPPORT;
+	}
 
 	if (sock->type == SOCK_RAW)
+	{
 		sock->ops = &rawsock_raw_ops;
+	}
 	else
+	{
 		sock->ops = &rawsock_ops;
+	}
 
 	sk = sk_alloc(net, PF_NFC, GFP_ATOMIC, nfc_proto->proto, kern);
+
 	if (!sk)
+	{
 		return -ENOMEM;
+	}
 
 	sock_init_data(sock, sk);
 	sk->sk_protocol = nfc_proto->id;
 	sk->sk_destruct = rawsock_destruct;
 	sock->state = SS_UNCONNECTED;
+
 	if (sock->type == SOCK_RAW)
+	{
 		nfc_sock_link(&raw_sk_list, sk);
-	else {
+	}
+	else
+	{
 		INIT_WORK(&nfc_rawsock(sk)->tx_work, rawsock_tx_work);
 		nfc_rawsock(sk)->tx_work_scheduled = false;
 	}
@@ -368,7 +433,7 @@ static int rawsock_create(struct net *net, struct socket *sock,
 }
 
 void nfc_send_to_raw_sock(struct nfc_dev *dev, struct sk_buff *skb,
-			  u8 payload_type, u8 direction)
+						  u8 payload_type, u8 direction)
 {
 	struct sk_buff *skb_copy = NULL, *nskb;
 	struct sock *sk;
@@ -376,12 +441,17 @@ void nfc_send_to_raw_sock(struct nfc_dev *dev, struct sk_buff *skb,
 
 	read_lock(&raw_sk_list.lock);
 
-	sk_for_each(sk, &raw_sk_list.head) {
-		if (!skb_copy) {
+	sk_for_each(sk, &raw_sk_list.head)
+	{
+		if (!skb_copy)
+		{
 			skb_copy = __pskb_copy_fclone(skb, NFC_RAW_HEADER_SIZE,
-						      GFP_ATOMIC, true);
+										  GFP_ATOMIC, true);
+
 			if (!skb_copy)
+			{
 				continue;
+			}
 
 			data = skb_push(skb_copy, NFC_RAW_HEADER_SIZE);
 
@@ -391,11 +461,16 @@ void nfc_send_to_raw_sock(struct nfc_dev *dev, struct sk_buff *skb,
 		}
 
 		nskb = skb_clone(skb_copy, GFP_ATOMIC);
+
 		if (!nskb)
+		{
 			continue;
+		}
 
 		if (sock_queue_rcv_skb(sk, nskb))
+		{
 			kfree_skb(nskb);
+		}
 	}
 
 	read_unlock(&raw_sk_list.lock);
@@ -404,13 +479,15 @@ void nfc_send_to_raw_sock(struct nfc_dev *dev, struct sk_buff *skb,
 }
 EXPORT_SYMBOL(nfc_send_to_raw_sock);
 
-static struct proto rawsock_proto = {
+static struct proto rawsock_proto =
+{
 	.name     = "NFC_RAW",
 	.owner    = THIS_MODULE,
 	.obj_size = sizeof(struct nfc_rawsock),
 };
 
-static const struct nfc_protocol rawsock_nfc_proto = {
+static const struct nfc_protocol rawsock_nfc_proto =
+{
 	.id	  = NFC_SOCKPROTO_RAW,
 	.proto    = &rawsock_proto,
 	.owner    = THIS_MODULE,

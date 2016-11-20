@@ -29,14 +29,14 @@
 #include <trace/events/kvm.h>
 
 static inline void kvm_async_page_present_sync(struct kvm_vcpu *vcpu,
-					       struct kvm_async_pf *work)
+		struct kvm_async_pf *work)
 {
 #ifdef CONFIG_KVM_ASYNC_PF_SYNC
 	kvm_arch_async_page_present(vcpu, work);
 #endif
 }
 static inline void kvm_async_page_present_async(struct kvm_vcpu *vcpu,
-						struct kvm_async_pf *work)
+		struct kvm_async_pf *work)
 {
 #ifndef CONFIG_KVM_ASYNC_PF_SYNC
 	kvm_arch_async_page_present(vcpu, work);
@@ -50,7 +50,9 @@ int kvm_async_pf_init(void)
 	async_pf_cache = KMEM_CACHE(kvm_async_pf, 0);
 
 	if (!async_pf_cache)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -85,7 +87,7 @@ static void async_pf_execute(struct work_struct *work)
 	 * use FOLL_REMOTE.
 	 */
 	__get_user_pages_unlocked(NULL, mm, addr, 1, NULL,
-			FOLL_WRITE | FOLL_REMOTE);
+							  FOLL_WRITE | FOLL_REMOTE);
 
 	kvm_async_page_present_sync(vcpu, apf);
 
@@ -104,8 +106,11 @@ static void async_pf_execute(struct work_struct *work)
 	 * This memory barrier pairs with prepare_to_wait's set_current_state()
 	 */
 	smp_mb();
+
 	if (swait_active(&vcpu->wq))
+	{
 		swake_up(&vcpu->wq);
+	}
 
 	mmput(mm);
 	kvm_put_kvm(vcpu->kvm);
@@ -114,31 +119,38 @@ static void async_pf_execute(struct work_struct *work)
 void kvm_clear_async_pf_completion_queue(struct kvm_vcpu *vcpu)
 {
 	/* cancel outstanding work queue item */
-	while (!list_empty(&vcpu->async_pf.queue)) {
+	while (!list_empty(&vcpu->async_pf.queue))
+	{
 		struct kvm_async_pf *work =
 			list_first_entry(&vcpu->async_pf.queue,
-					 typeof(*work), queue);
+							 typeof(*work), queue);
 		list_del(&work->queue);
 
 #ifdef CONFIG_KVM_ASYNC_PF_SYNC
 		flush_work(&work->work);
 #else
-		if (cancel_work_sync(&work->work)) {
+
+		if (cancel_work_sync(&work->work))
+		{
 			mmput(work->mm);
 			kvm_put_kvm(vcpu->kvm); /* == work->vcpu->kvm */
 			kmem_cache_free(async_pf_cache, work);
 		}
+
 #endif
 	}
 
 	spin_lock(&vcpu->async_pf.lock);
-	while (!list_empty(&vcpu->async_pf.done)) {
+
+	while (!list_empty(&vcpu->async_pf.done))
+	{
 		struct kvm_async_pf *work =
 			list_first_entry(&vcpu->async_pf.done,
-					 typeof(*work), link);
+							 typeof(*work), link);
 		list_del(&work->link);
 		kmem_cache_free(async_pf_cache, work);
 	}
+
 	spin_unlock(&vcpu->async_pf.lock);
 
 	vcpu->async_pf.queued = 0;
@@ -149,10 +161,11 @@ void kvm_check_async_pf_completion(struct kvm_vcpu *vcpu)
 	struct kvm_async_pf *work;
 
 	while (!list_empty_careful(&vcpu->async_pf.done) &&
-	      kvm_arch_can_inject_async_page_present(vcpu)) {
+		   kvm_arch_can_inject_async_page_present(vcpu))
+	{
 		spin_lock(&vcpu->async_pf.lock);
 		work = list_first_entry(&vcpu->async_pf.done, typeof(*work),
-					      link);
+								link);
 		list_del(&work->link);
 		spin_unlock(&vcpu->async_pf.lock);
 
@@ -166,12 +179,14 @@ void kvm_check_async_pf_completion(struct kvm_vcpu *vcpu)
 }
 
 int kvm_setup_async_pf(struct kvm_vcpu *vcpu, gva_t gva, unsigned long hva,
-		       struct kvm_arch_async_pf *arch)
+					   struct kvm_arch_async_pf *arch)
 {
 	struct kvm_async_pf *work;
 
 	if (vcpu->async_pf.queued >= ASYNC_PF_PER_VCPU)
+	{
 		return 0;
+	}
 
 	/* setup delayed work */
 
@@ -180,8 +195,11 @@ int kvm_setup_async_pf(struct kvm_vcpu *vcpu, gva_t gva, unsigned long hva,
 	 * may as well sleep faulting in page
 	 */
 	work = kmem_cache_zalloc(async_pf_cache, GFP_NOWAIT | __GFP_NOWARN);
+
 	if (!work)
+	{
 		return 0;
+	}
 
 	work->wakeup_all = false;
 	work->vcpu = vcpu;
@@ -195,11 +213,16 @@ int kvm_setup_async_pf(struct kvm_vcpu *vcpu, gva_t gva, unsigned long hva,
 	/* this can't really happen otherwise gfn_to_pfn_async
 	   would succeed */
 	if (unlikely(kvm_is_error_hva(work->addr)))
+	{
 		goto retry_sync;
+	}
 
 	INIT_WORK(&work->work, async_pf_execute);
+
 	if (!schedule_work(&work->work))
+	{
 		goto retry_sync;
+	}
 
 	list_add_tail(&work->queue, &vcpu->async_pf.queue);
 	vcpu->async_pf.queued++;
@@ -217,11 +240,16 @@ int kvm_async_pf_wakeup_all(struct kvm_vcpu *vcpu)
 	struct kvm_async_pf *work;
 
 	if (!list_empty_careful(&vcpu->async_pf.done))
+	{
 		return 0;
+	}
 
 	work = kmem_cache_zalloc(async_pf_cache, GFP_ATOMIC);
+
 	if (!work)
+	{
 		return -ENOMEM;
+	}
 
 	work->wakeup_all = true;
 	INIT_LIST_HEAD(&work->queue); /* for list_del to work */

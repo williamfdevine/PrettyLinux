@@ -78,10 +78,11 @@ static unsigned int dev_hash_value;
 
 static int set_magic_time(unsigned int user, unsigned int file, unsigned int device)
 {
-	unsigned int n = user + USERHASH*(file + FILEHASH*device);
+	unsigned int n = user + USERHASH * (file + FILEHASH * device);
 
 	// June 7th, 2006
-	static struct rtc_time time = {
+	static struct rtc_time time =
+	{
 		.tm_sec = 0,
 		.tm_min = 0,
 		.tm_hour = 0,
@@ -114,13 +115,17 @@ static unsigned int read_magic_time(void)
 
 	mc146818_get_time(&time);
 	pr_info("RTC time: %2d:%02d:%02d, date: %02d/%02d/%02d\n",
-		time.tm_hour, time.tm_min, time.tm_sec,
-		time.tm_mon + 1, time.tm_mday, time.tm_year % 100);
+			time.tm_hour, time.tm_min, time.tm_sec,
+			time.tm_mon + 1, time.tm_mday, time.tm_year % 100);
 	val = time.tm_year;				/* 100 years */
+
 	if (val > 100)
+	{
 		val -= 100;
+	}
+
 	val += time.tm_mon * 100;			/* 12 months */
-	val += (time.tm_mday-1) * 100 * 12;		/* 28 month-days */
+	val += (time.tm_mday - 1) * 100 * 12;		/* 28 month-days */
 	val += time.tm_hour * 100 * 12 * 28;		/* 24 hours */
 	val += (time.tm_min / 3) * 100 * 12 * 28 * 24;	/* 20 3-minute intervals */
 	return val;
@@ -133,9 +138,12 @@ static unsigned int read_magic_time(void)
 static unsigned int hash_string(unsigned int seed, const char *data, unsigned int mod)
 {
 	unsigned char c;
-	while ((c = *data++) != 0) {
+
+	while ((c = *data++) != 0)
+	{
 		seed = (seed << 16) + (seed << 6) - seed + c;
 	}
+
 	return seed % mod;
 }
 
@@ -173,16 +181,23 @@ static int show_file_hash(unsigned int value)
 	char *tracedata;
 
 	match = 0;
+
 	for (tracedata = __tracedata_start ; tracedata < __tracedata_end ;
-			tracedata += 2 + sizeof(unsigned long)) {
+		 tracedata += 2 + sizeof(unsigned long))
+	{
 		unsigned short lineno = *(unsigned short *)tracedata;
 		const char *file = *(const char **)(tracedata + 2);
 		unsigned int hash = hash_string(lineno, file, FILEHASH);
+
 		if (hash != value)
+		{
 			continue;
+		}
+
 		pr_info("  hash matches %s:%u\n", file, lineno);
 		match++;
 	}
+
 	return match;
 }
 
@@ -193,15 +208,21 @@ static int show_dev_hash(unsigned int value)
 
 	device_pm_lock();
 	entry = dpm_list.prev;
-	while (entry != &dpm_list) {
-		struct device * dev = to_device(entry);
+
+	while (entry != &dpm_list)
+	{
+		struct device *dev = to_device(entry);
 		unsigned int hash = hash_string(DEVSEED, dev_name(dev), DEVHASH);
-		if (hash == value) {
+
+		if (hash == value)
+		{
 			dev_info(dev, "hash matches\n");
 			match++;
 		}
+
 		entry = entry->prev;
 	}
+
 	device_pm_unlock();
 	return match;
 }
@@ -220,21 +241,31 @@ int show_trace_dev_match(char *buf, size_t size)
 	 */
 	device_pm_lock();
 	entry = dpm_list.prev;
-	while (size && entry != &dpm_list) {
+
+	while (size && entry != &dpm_list)
+	{
 		struct device *dev = to_device(entry);
 		unsigned int hash = hash_string(DEVSEED, dev_name(dev),
-						DEVHASH);
-		if (hash == value) {
+										DEVHASH);
+
+		if (hash == value)
+		{
 			int len = snprintf(buf, size, "%s\n",
-					    dev_driver_string(dev));
+							   dev_driver_string(dev));
+
 			if (len > size)
+			{
 				len = size;
+			}
+
 			buf += len;
 			ret += len;
 			size -= len;
 		}
+
 		entry = entry->prev;
 	}
+
 	device_pm_unlock();
 	return ret;
 }

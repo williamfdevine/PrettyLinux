@@ -65,14 +65,16 @@
 #define NET2280_EPF_CFG     0x3C0
 #define P54U_DEV_BASE 0x40000000
 
-struct net2280_tx_hdr {
+struct net2280_tx_hdr
+{
 	__le32 device_addr;
 	__le16 len;
 	__le16 follower;	/* ? */
 	u8 padding[8];
 } __packed;
 
-struct lm87_tx_hdr {
+struct lm87_tx_hdr
+{
 	__le32 device_addr;
 	__le32 chksum;
 } __packed;
@@ -84,7 +86,8 @@ struct lm87_tx_hdr {
 #define NET2280_EPA_FIFO_PCI_ADDR		0x20000000
 #define ISL38XX_DMA_MASTER_CONTROL_TRIGGER	0x00000004
 
-enum net2280_op_type {
+enum net2280_op_type
+{
 	NET2280_BRG_U32		= 0x001F,
 	NET2280_BRG_CFG_U32	= 0x000F,
 	NET2280_BRG_CFG_U16	= 0x0003,
@@ -93,13 +96,15 @@ enum net2280_op_type {
 	NET2280_DEV_CFG_U16	= 0x0883
 };
 
-struct net2280_reg_write {
+struct net2280_reg_write
+{
 	__le16 port;
 	__le32 addr;
 	__le32 val;
 } __packed;
 
-struct net2280_reg_read {
+struct net2280_reg_read
+{
 	__le16 port;
 	__le32 addr;
 } __packed;
@@ -109,7 +114,8 @@ struct net2280_reg_read {
 #define X2_SIGNATURE "x2  "
 #define X2_SIGNATURE_SIZE 4
 
-struct x2_header {
+struct x2_header
+{
 	u8 signature[X2_SIGNATURE_SIZE];
 	__le32 fw_load_addr;
 	__le32 fw_length;
@@ -119,22 +125,25 @@ struct x2_header {
 /* pipes 3 and 4 are not used by the driver */
 #define P54U_PIPE_NUMBER 9
 
-enum p54u_pipe_addr {
-        P54U_PIPE_DATA = 0x01,
-        P54U_PIPE_MGMT = 0x02,
-        P54U_PIPE_3 = 0x03,
-        P54U_PIPE_4 = 0x04,
-        P54U_PIPE_BRG = 0x0d,
-        P54U_PIPE_DEV = 0x0e,
-        P54U_PIPE_INT = 0x0f
+enum p54u_pipe_addr
+{
+	P54U_PIPE_DATA = 0x01,
+	P54U_PIPE_MGMT = 0x02,
+	P54U_PIPE_3 = 0x03,
+	P54U_PIPE_4 = 0x04,
+	P54U_PIPE_BRG = 0x0d,
+	P54U_PIPE_DEV = 0x0e,
+	P54U_PIPE_INT = 0x0f
 };
 
-struct p54u_rx_info {
+struct p54u_rx_info
+{
 	struct urb *urb;
 	struct ieee80211_hw *dev;
 };
 
-enum p54u_hw_type {
+enum p54u_hw_type
+{
 	P54U_INVALID_HW,
 	P54U_NET2280,
 	P54U_3887,
@@ -143,7 +152,8 @@ enum p54u_hw_type {
 	__NUM_P54U_HWTYPES,
 };
 
-struct p54u_priv {
+struct p54u_priv
+{
 	struct p54_common common;
 	struct usb_device *udev;
 	struct usb_interface *intf;

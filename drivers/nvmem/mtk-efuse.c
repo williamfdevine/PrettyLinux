@@ -19,27 +19,31 @@
 #include <linux/platform_device.h>
 
 static int mtk_reg_read(void *context,
-			unsigned int reg, void *_val, size_t bytes)
+						unsigned int reg, void *_val, size_t bytes)
 {
 	void __iomem *base = context;
 	u32 *val = _val;
 	int i = 0, words = bytes / 4;
 
 	while (words--)
+	{
 		*val++ = readl(base + reg + (i++ * 4));
+	}
 
 	return 0;
 }
 
 static int mtk_reg_write(void *context,
-			 unsigned int reg, void *_val, size_t bytes)
+						 unsigned int reg, void *_val, size_t bytes)
 {
 	void __iomem *base = context;
 	u32 *val = _val;
 	int i = 0, words = bytes / 4;
 
 	while (words--)
+	{
 		writel(*val++, base + reg + (i++ * 4));
+	}
 
 	return 0;
 }
@@ -54,12 +58,18 @@ static int mtk_efuse_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	econfig = devm_kzalloc(dev, sizeof(*econfig), GFP_KERNEL);
+
 	if (!econfig)
+	{
 		return -ENOMEM;
+	}
 
 	econfig->stride = 4;
 	econfig->word_size = 4;
@@ -70,8 +80,11 @@ static int mtk_efuse_probe(struct platform_device *pdev)
 	econfig->dev = dev;
 	econfig->owner = THIS_MODULE;
 	nvmem = nvmem_register(econfig);
+
 	if (IS_ERR(nvmem))
+	{
 		return PTR_ERR(nvmem);
+	}
 
 	platform_set_drvdata(pdev, nvmem);
 
@@ -85,14 +98,16 @@ static int mtk_efuse_remove(struct platform_device *pdev)
 	return nvmem_unregister(nvmem);
 }
 
-static const struct of_device_id mtk_efuse_of_match[] = {
+static const struct of_device_id mtk_efuse_of_match[] =
+{
 	{ .compatible = "mediatek,mt8173-efuse",},
 	{ .compatible = "mediatek,efuse",},
 	{/* sentinel */},
 };
 MODULE_DEVICE_TABLE(of, mtk_efuse_of_match);
 
-static struct platform_driver mtk_efuse_driver = {
+static struct platform_driver mtk_efuse_driver =
+{
 	.probe = mtk_efuse_probe,
 	.remove = mtk_efuse_remove,
 	.driver = {
@@ -106,7 +121,9 @@ static int __init mtk_efuse_init(void)
 	int ret;
 
 	ret = platform_driver_register(&mtk_efuse_driver);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Failed to register efuse driver\n");
 		return ret;
 	}

@@ -54,7 +54,8 @@ MODULE_LICENSE("GPL");
  * Per-touchscreen data.
  */
 
-struct mtouch {
+struct mtouch
+{
 	struct input_dev *dev;
 	struct serio *serio;
 	int idx;
@@ -66,7 +67,8 @@ static void mtouch_process_format_tablet(struct mtouch *mtouch)
 {
 	struct input_dev *dev = mtouch->dev;
 
-	if (MTOUCH_FORMAT_TABLET_LENGTH == ++mtouch->idx) {
+	if (MTOUCH_FORMAT_TABLET_LENGTH == ++mtouch->idx)
+	{
 		input_report_abs(dev, ABS_X, MTOUCH_GET_XC(mtouch->data));
 		input_report_abs(dev, ABS_Y, MTOUCH_MAX_YC - MTOUCH_GET_YC(mtouch->data));
 		input_report_key(dev, BTN_TOUCH, MTOUCH_GET_TOUCHED(mtouch->data));
@@ -78,28 +80,37 @@ static void mtouch_process_format_tablet(struct mtouch *mtouch)
 
 static void mtouch_process_response(struct mtouch *mtouch)
 {
-	if (MTOUCH_RESPONSE_END_BYTE == mtouch->data[mtouch->idx++]) {
+	if (MTOUCH_RESPONSE_END_BYTE == mtouch->data[mtouch->idx++])
+	{
 		/* FIXME - process response */
 		mtouch->idx = 0;
-	} else if (MTOUCH_MAX_LENGTH == mtouch->idx) {
+	}
+	else if (MTOUCH_MAX_LENGTH == mtouch->idx)
+	{
 		printk(KERN_ERR "mtouch.c: too many response bytes\n");
 		mtouch->idx = 0;
 	}
 }
 
 static irqreturn_t mtouch_interrupt(struct serio *serio,
-		unsigned char data, unsigned int flags)
+									unsigned char data, unsigned int flags)
 {
-	struct mtouch* mtouch = serio_get_drvdata(serio);
+	struct mtouch *mtouch = serio_get_drvdata(serio);
 
 	mtouch->data[mtouch->idx] = data;
 
 	if (MTOUCH_FORMAT_TABLET_STATUS_BIT & mtouch->data[0])
+	{
 		mtouch_process_format_tablet(mtouch);
+	}
 	else if (MTOUCH_RESPONSE_BEGIN_BYTE == mtouch->data[0])
+	{
 		mtouch_process_response(mtouch);
+	}
 	else
-		printk(KERN_DEBUG "mtouch.c: unknown/unsynchronized data from device, byte %x\n",mtouch->data[0]);
+	{
+		printk(KERN_DEBUG "mtouch.c: unknown/unsynchronized data from device, byte %x\n", mtouch->data[0]);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -110,7 +121,7 @@ static irqreturn_t mtouch_interrupt(struct serio *serio,
 
 static void mtouch_disconnect(struct serio *serio)
 {
-	struct mtouch* mtouch = serio_get_drvdata(serio);
+	struct mtouch *mtouch = serio_get_drvdata(serio);
 
 	input_get_device(mtouch->dev);
 	input_unregister_device(mtouch->dev);
@@ -134,7 +145,9 @@ static int mtouch_connect(struct serio *serio, struct serio_driver *drv)
 
 	mtouch = kzalloc(sizeof(struct mtouch), GFP_KERNEL);
 	input_dev = input_allocate_device();
-	if (!mtouch || !input_dev) {
+
+	if (!mtouch || !input_dev)
+	{
 		err = -ENOMEM;
 		goto fail1;
 	}
@@ -158,18 +171,24 @@ static int mtouch_connect(struct serio *serio, struct serio_driver *drv)
 	serio_set_drvdata(serio, mtouch);
 
 	err = serio_open(serio, drv);
+
 	if (err)
+	{
 		goto fail2;
+	}
 
 	err = input_register_device(mtouch->dev);
+
 	if (err)
+	{
 		goto fail3;
+	}
 
 	return 0;
 
- fail3:	serio_close(serio);
- fail2:	serio_set_drvdata(serio, NULL);
- fail1:	input_free_device(input_dev);
+fail3:	serio_close(serio);
+fail2:	serio_set_drvdata(serio, NULL);
+fail1:	input_free_device(input_dev);
 	kfree(mtouch);
 	return err;
 }
@@ -178,7 +197,8 @@ static int mtouch_connect(struct serio *serio, struct serio_driver *drv)
  * The serio driver structure.
  */
 
-static struct serio_device_id mtouch_serio_ids[] = {
+static struct serio_device_id mtouch_serio_ids[] =
+{
 	{
 		.type	= SERIO_RS232,
 		.proto	= SERIO_MICROTOUCH,
@@ -190,7 +210,8 @@ static struct serio_device_id mtouch_serio_ids[] = {
 
 MODULE_DEVICE_TABLE(serio, mtouch_serio_ids);
 
-static struct serio_driver mtouch_drv = {
+static struct serio_driver mtouch_drv =
+{
 	.driver		= {
 		.name	= "mtouch",
 	},

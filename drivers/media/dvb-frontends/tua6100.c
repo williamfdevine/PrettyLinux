@@ -35,7 +35,8 @@
 
 #include "tua6100.h"
 
-struct tua6100_priv {
+struct tua6100_priv
+{
 	/* i2c details */
 	int i2c_address;
 	struct i2c_adapter *i2c;
@@ -57,12 +58,19 @@ static int tua6100_sleep(struct dvb_frontend *fe)
 	struct i2c_msg msg = { .addr = priv->i2c_address, .flags = 0, .buf = reg0, .len = 2 };
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
-	if ((ret = i2c_transfer (priv->i2c, &msg, 1)) != 1) {
+	}
+
+	if ((ret = i2c_transfer (priv->i2c, &msg, 1)) != 1)
+	{
 		printk("%s: i2c error\n", __func__);
 	}
+
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	return (ret == 1) ? 0 : ret;
 }
@@ -86,30 +94,50 @@ static int tua6100_set_params(struct dvb_frontend *fe)
 
 	// setup register 0
 	if (c->frequency < 2000000)
+	{
 		reg0[1] = 0x03;
+	}
 	else
+	{
 		reg0[1] = 0x07;
+	}
 
 	// setup register 1
 	if (c->frequency < 1630000)
+	{
 		reg1[1] = 0x2c;
+	}
 	else
+	{
 		reg1[1] = 0x0c;
+	}
 
 	if (_P == 64)
+	{
 		reg1[1] |= 0x40;
+	}
+
 	if (c->frequency >= 1525000)
+	{
 		reg1[1] |= 0x80;
+	}
 
 	// register 2
 	reg2[1] = (_R >> 8) & 0x03;
 	reg2[2] = _R;
+
 	if (c->frequency < 1455000)
+	{
 		reg2[1] |= 0x1c;
+	}
 	else if (c->frequency < 1630000)
+	{
 		reg2[1] |= 0x0c;
+	}
 	else
+	{
 		reg2[1] |= 0x1c;
+	}
 
 	/*
 	 * The N divisor ratio (note: c->frequency is in kHz, but we
@@ -123,29 +151,46 @@ static int tua6100_set_params(struct dvb_frontend *fe)
 	priv->frequency = ((div * _P) * (_ri / 1000)) / _R;
 
 	// Finally, calculate and store the value for A
-	reg1[3] |= (prediv - (div*_P)) & 0x7f;
+	reg1[3] |= (prediv - (div * _P)) & 0x7f;
 
 #undef _R
 #undef _P
 #undef _ri
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
+
 	if (i2c_transfer(priv->i2c, &msg0, 1) != 1)
+	{
 		return -EIO;
+	}
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
+
 	if (i2c_transfer(priv->i2c, &msg2, 1) != 1)
+	{
 		return -EIO;
+	}
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
+
 	if (i2c_transfer(priv->i2c, &msg1, 1) != 1)
+	{
 		return -EIO;
+	}
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	return 0;
 }
@@ -157,7 +202,8 @@ static int tua6100_get_frequency(struct dvb_frontend *fe, u32 *frequency)
 	return 0;
 }
 
-static const struct dvb_tuner_ops tua6100_tuner_ops = {
+static const struct dvb_tuner_ops tua6100_tuner_ops =
+{
 	.info = {
 		.name = "Infineon TUA6100",
 		.frequency_min = 950000,
@@ -176,21 +222,33 @@ struct dvb_frontend *tua6100_attach(struct dvb_frontend *fe, int addr, struct i2
 	u8 b1 [] = { 0x80 };
 	u8 b2 [] = { 0x00 };
 	struct i2c_msg msg [] = { { .addr = addr, .flags = 0, .buf = b1, .len = 1 },
-				  { .addr = addr, .flags = I2C_M_RD, .buf = b2, .len = 1 } };
+		{ .addr = addr, .flags = I2C_M_RD, .buf = b2, .len = 1 }
+	};
 	int ret;
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
+
 	ret = i2c_transfer (i2c, msg, 2);
+
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	if (ret != 2)
+	{
 		return NULL;
+	}
 
 	priv = kzalloc(sizeof(struct tua6100_priv), GFP_KERNEL);
+
 	if (priv == NULL)
+	{
 		return NULL;
+	}
 
 	priv->i2c_address = addr;
 	priv->i2c = i2c;

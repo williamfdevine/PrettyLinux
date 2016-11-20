@@ -14,7 +14,7 @@
 #include <linux/pci.h>
 
 #ifdef CONFIG_PMAC_BACKLIGHT
-#include <asm/backlight.h>
+	#include <asm/backlight.h>
 #endif
 
 #include "nv_local.h"
@@ -39,11 +39,17 @@ static int nvidia_bl_get_level_brightness(struct nvidia_par *par,
 	nlevel = MIN_LEVEL + info->bl_curve[level] * LEVEL_STEP;
 
 	if (nlevel < 0)
+	{
 		nlevel = 0;
+	}
 	else if (nlevel < MIN_LEVEL)
+	{
 		nlevel = MIN_LEVEL;
+	}
 	else if (nlevel > MAX_LEVEL)
+	{
 		nlevel = MAX_LEVEL;
+	}
 
 	return nlevel;
 }
@@ -55,25 +61,35 @@ static int nvidia_bl_update_status(struct backlight_device *bd)
 	int level;
 
 	if (!par->FlatPanel)
+	{
 		return 0;
+	}
 
 	if (bd->props.power != FB_BLANK_UNBLANK ||
-	    bd->props.fb_blank != FB_BLANK_UNBLANK)
+		bd->props.fb_blank != FB_BLANK_UNBLANK)
+	{
 		level = 0;
+	}
 	else
+	{
 		level = bd->props.brightness;
+	}
 
 	tmp_pmc = NV_RD32(par->PMC, 0x10F0) & 0x0000FFFF;
 	tmp_pcrt = NV_RD32(par->PCRTC0, 0x081C) & 0xFFFFFFFC;
 	fpcontrol = NV_RD32(par->PRAMDAC, 0x0848) & 0xCFFFFFCC;
 
-	if (level > 0) {
+	if (level > 0)
+	{
 		tmp_pcrt |= 0x1;
 		tmp_pmc |= (1 << 31); /* backlight bit */
 		tmp_pmc |= nvidia_bl_get_level_brightness(par, level) << 16;
 		fpcontrol |= par->fpSyncs;
-	} else
+	}
+	else
+	{
 		fpcontrol |= 0x20000022;
+	}
 
 	NV_WR32(par->PCRTC0, 0x081C, tmp_pcrt);
 	NV_WR32(par->PMC, 0x10F0, tmp_pmc);
@@ -82,7 +98,8 @@ static int nvidia_bl_update_status(struct backlight_device *bd)
 	return 0;
 }
 
-static const struct backlight_ops nvidia_bl_ops = {
+static const struct backlight_ops nvidia_bl_ops =
+{
 	.update_status	= nvidia_bl_update_status,
 };
 
@@ -94,12 +111,18 @@ void nvidia_bl_init(struct nvidia_par *par)
 	char name[12];
 
 	if (!par->FlatPanel)
+	{
 		return;
+	}
 
 #ifdef CONFIG_PMAC_BACKLIGHT
+
 	if (!machine_is(powermac) ||
-	    !pmac_has_backlight_type("mnca"))
+		!pmac_has_backlight_type("mnca"))
+	{
 		return;
+	}
+
 #endif
 
 	snprintf(name, sizeof(name), "nvidiabl%d", info->node);
@@ -108,8 +131,10 @@ void nvidia_bl_init(struct nvidia_par *par)
 	props.type = BACKLIGHT_RAW;
 	props.max_brightness = FB_BACKLIGHT_LEVELS - 1;
 	bd = backlight_device_register(name, info->dev, par, &nvidia_bl_ops,
-				       &props);
-	if (IS_ERR(bd)) {
+								   &props);
+
+	if (IS_ERR(bd))
+	{
 		info->bl_dev = NULL;
 		printk(KERN_WARNING "nvidia: Backlight registration failed\n");
 		goto error;
@@ -117,8 +142,8 @@ void nvidia_bl_init(struct nvidia_par *par)
 
 	info->bl_dev = bd;
 	fb_bl_default_curve(info, 0,
-		0x158 * FB_BACKLIGHT_MAX / MAX_LEVEL,
-		0x534 * FB_BACKLIGHT_MAX / MAX_LEVEL);
+						0x158 * FB_BACKLIGHT_MAX / MAX_LEVEL,
+						0x534 * FB_BACKLIGHT_MAX / MAX_LEVEL);
 
 	bd->props.brightness = bd->props.max_brightness;
 	bd->props.power = FB_BLANK_UNBLANK;

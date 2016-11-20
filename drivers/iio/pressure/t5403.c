@@ -38,7 +38,8 @@
 
 static const int t5403_pressure_conv_ms[] = {2, 8, 16, 66};
 
-struct t5403_data {
+struct t5403_data
+{
 	struct i2c_client *client;
 	struct mutex lock;
 	int mode;
@@ -53,10 +54,13 @@ static int t5403_read(struct t5403_data *data, bool pressure)
 	int wait_time = 3;  /* wakeup time in ms */
 
 	int ret = i2c_smbus_write_byte_data(data->client, T5403_COMMAND,
-		(pressure ? (data->mode << T5403_MODE_SHIFT) : T5403_PT) |
-		T5403_SCO);
+										(pressure ? (data->mode << T5403_MODE_SHIFT) : T5403_PT) |
+										T5403_SCO);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	wait_time += pressure ? t5403_pressure_conv_ms[data->mode] : 2;
 
@@ -75,13 +79,21 @@ static int t5403_comp_pressure(struct t5403_data *data, int *val, int *val2)
 	mutex_lock(&data->lock);
 
 	ret = t5403_read(data, false);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
+
 	t_r = ret;
 
 	ret = t5403_read(data, true);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
+
 	p_r = ret;
 
 	/* see EPCOS application note */
@@ -96,7 +108,7 @@ static int t5403_comp_pressure(struct t5403_data *data, int *val, int *val2)
 	X = (S * p_r + O) / 0x4000;
 
 	X += ((X - 75000) * (X - 75000) / 0x10000 - 9537) *
-	    T5403_C(10) / 0x10000;
+		 T5403_C(10) / 0x10000;
 
 	*val = X / 1000;
 	*val2 = (X % 1000) * 1000;
@@ -113,13 +125,17 @@ static int t5403_comp_temp(struct t5403_data *data, int *val)
 
 	mutex_lock(&data->lock);
 	ret = t5403_read(data, false);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
+
 	t_r = ret;
 
 	/* see EPCOS application note */
 	*val = ((s32) T5403_C_U16(1) * t_r / 0x100 +
-		(s32) T5403_C_U16(2) * 0x40) * 1000 / 0x10000;
+			(s32) T5403_C_U16(2) * 0x40) * 1000 / 0x10000;
 
 done:
 	mutex_unlock(&data->lock);
@@ -127,66 +143,88 @@ done:
 }
 
 static int t5403_read_raw(struct iio_dev *indio_dev,
-			  struct iio_chan_spec const *chan,
-			  int *val, int *val2, long mask)
+						  struct iio_chan_spec const *chan,
+						  int *val, int *val2, long mask)
 {
 	struct t5403_data *data = iio_priv(indio_dev);
 	int ret;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_PROCESSED:
-		switch (chan->type) {
-		case IIO_PRESSURE:
-			ret = t5403_comp_pressure(data, val, val2);
-			if (ret < 0)
-				return ret;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_PROCESSED:
+			switch (chan->type)
+			{
+				case IIO_PRESSURE:
+					ret = t5403_comp_pressure(data, val, val2);
+
+					if (ret < 0)
+					{
+						return ret;
+					}
+
+					return IIO_VAL_INT_PLUS_MICRO;
+
+				case IIO_TEMP:
+					ret = t5403_comp_temp(data, val);
+
+					if (ret < 0)
+					{
+						return ret;
+					}
+
+					return IIO_VAL_INT;
+
+				default:
+					return -EINVAL;
+			}
+
+		case IIO_CHAN_INFO_INT_TIME:
+			*val = 0;
+			*val2 = t5403_pressure_conv_ms[data->mode] * 1000;
 			return IIO_VAL_INT_PLUS_MICRO;
-		case IIO_TEMP:
-			ret = t5403_comp_temp(data, val);
-			if (ret < 0)
-				return ret;
-			return IIO_VAL_INT;
+
 		default:
 			return -EINVAL;
-	    }
-	case IIO_CHAN_INFO_INT_TIME:
-		*val = 0;
-		*val2 = t5403_pressure_conv_ms[data->mode] * 1000;
-		return IIO_VAL_INT_PLUS_MICRO;
-	default:
-		return -EINVAL;
 	}
 }
 
 static int t5403_write_raw(struct iio_dev *indio_dev,
-			   struct iio_chan_spec const *chan,
-			   int val, int val2, long mask)
+						   struct iio_chan_spec const *chan,
+						   int val, int val2, long mask)
 {
 	struct t5403_data *data = iio_priv(indio_dev);
 	int i;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_INT_TIME:
-		if (val != 0)
-			return -EINVAL;
-		for (i = 0; i < ARRAY_SIZE(t5403_pressure_conv_ms); i++)
-			if (val2 == t5403_pressure_conv_ms[i] * 1000) {
-				mutex_lock(&data->lock);
-				data->mode = i;
-				mutex_unlock(&data->lock);
-				return 0;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_INT_TIME:
+			if (val != 0)
+			{
+				return -EINVAL;
 			}
-		return -EINVAL;
-	default:
-		return -EINVAL;
+
+			for (i = 0; i < ARRAY_SIZE(t5403_pressure_conv_ms); i++)
+				if (val2 == t5403_pressure_conv_ms[i] * 1000)
+				{
+					mutex_lock(&data->lock);
+					data->mode = i;
+					mutex_unlock(&data->lock);
+					return 0;
+				}
+
+			return -EINVAL;
+
+		default:
+			return -EINVAL;
 	}
 }
 
-static const struct iio_chan_spec t5403_channels[] = {
+static const struct iio_chan_spec t5403_channels[] =
+{
 	{
 		.type = IIO_PRESSURE,
 		.info_mask_separate = BIT(IIO_CHAN_INFO_PROCESSED) |
-		    BIT(IIO_CHAN_INFO_INT_TIME),
+		BIT(IIO_CHAN_INFO_INT_TIME),
 	},
 	{
 		.type = IIO_TEMP,
@@ -196,16 +234,19 @@ static const struct iio_chan_spec t5403_channels[] = {
 
 static IIO_CONST_ATTR_INT_TIME_AVAIL("0.002 0.008 0.016 0.066");
 
-static struct attribute *t5403_attributes[] = {
+static struct attribute *t5403_attributes[] =
+{
 	&iio_const_attr_integration_time_available.dev_attr.attr,
 	NULL
 };
 
-static const struct attribute_group t5403_attribute_group = {
+static const struct attribute_group t5403_attribute_group =
+{
 	.attrs = t5403_attributes,
 };
 
-static const struct iio_info t5403_info = {
+static const struct iio_info t5403_info =
+{
 	.read_raw = &t5403_read_raw,
 	.write_raw = &t5403_write_raw,
 	.attrs = &t5403_attribute_group,
@@ -213,25 +254,36 @@ static const struct iio_info t5403_info = {
 };
 
 static int t5403_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+					   const struct i2c_device_id *id)
 {
 	struct t5403_data *data;
 	struct iio_dev *indio_dev;
 	int ret;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_WORD_DATA |
-	    I2C_FUNC_SMBUS_I2C_BLOCK))
+								 I2C_FUNC_SMBUS_I2C_BLOCK))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	ret = i2c_smbus_read_byte_data(client, T5403_SLAVE_ADDR);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if ((ret & T5403_I2C_MASK) != T5403_I2C_ADDR)
+	{
 		return -ENODEV;
+	}
 
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	data = iio_priv(indio_dev);
 	data->client = client;
@@ -248,20 +300,25 @@ static int t5403_probe(struct i2c_client *client,
 	data->mode = T5403_MODE_STANDARD;
 
 	ret = i2c_smbus_read_i2c_block_data(data->client, T5403_CALIB_DATA,
-	    sizeof(data->c), (u8 *) data->c);
+										sizeof(data->c), (u8 *) data->c);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return devm_iio_device_register(&client->dev, indio_dev);
 }
 
-static const struct i2c_device_id t5403_id[] = {
+static const struct i2c_device_id t5403_id[] =
+{
 	{ "t5403", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, t5403_id);
 
-static struct i2c_driver t5403_driver = {
+static struct i2c_driver t5403_driver =
+{
 	.driver = {
 		.name	= "t5403",
 	},

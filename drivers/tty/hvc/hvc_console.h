@@ -45,7 +45,8 @@
  */
 #define HVC_ALLOC_TTY_ADAPTERS	8
 
-struct hvc_struct {
+struct hvc_struct
+{
 	struct tty_port port;
 	spinlock_t lock;
 	int index;
@@ -64,7 +65,8 @@ struct hvc_struct {
 };
 
 /* implemented by a low level driver */
-struct hv_ops {
+struct hv_ops
+{
 	int (*get_chars)(uint32_t vtermno, char *buf, int count);
 	int (*put_chars)(uint32_t vtermno, const char *buf, int count);
 
@@ -83,11 +85,11 @@ struct hv_ops {
 
 /* Register a vterm and a slot index for use as a console (console_init) */
 extern int hvc_instantiate(uint32_t vtermno, int index,
-			   const struct hv_ops *ops);
+						   const struct hv_ops *ops);
 
 /* register a vterm for hvc tty operation (module_init or hotplug add) */
-extern struct hvc_struct * hvc_alloc(uint32_t vtermno, int data,
-				     const struct hv_ops *ops, int outbuf_size);
+extern struct hvc_struct *hvc_alloc(uint32_t vtermno, int data,
+									const struct hv_ops *ops, int outbuf_size);
 /* remove a vterm from hvc tty operation (module_exit or hotplug remove) */
 extern int hvc_remove(struct hvc_struct *hp);
 

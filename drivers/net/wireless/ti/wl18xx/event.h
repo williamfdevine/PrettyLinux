@@ -24,7 +24,8 @@
 
 #include "../wlcore/wlcore.h"
 
-enum {
+enum
+{
 	SCAN_COMPLETE_EVENT_ID                   = BIT(8),
 	RADAR_DETECTED_EVENT_ID                  = BIT(9),
 	CHANNEL_SWITCH_COMPLETE_EVENT_ID         = BIT(10),
@@ -44,13 +45,15 @@ enum {
 	FW_LOGGER_INDICATION			= BIT(25),
 };
 
-enum wl18xx_radar_types {
+enum wl18xx_radar_types
+{
 	RADAR_TYPE_NONE,
 	RADAR_TYPE_REGULAR,
 	RADAR_TYPE_CHIRP
 };
 
-struct wl18xx_event_mailbox {
+struct wl18xx_event_mailbox
+{
 	__le32 events_vector;
 
 	u8 number_of_scan_results;
@@ -117,7 +120,7 @@ struct wl18xx_event_mailbox {
 } __packed;
 
 int wl18xx_wait_for_event(struct wl1271 *wl, enum wlcore_wait_event event,
-			  bool *timeout);
+						  bool *timeout);
 int wl18xx_process_mailbox_events(struct wl1271 *wl);
 
 #endif

@@ -24,7 +24,8 @@ enum { REG_IBE, REG_IEV, REG_IS, REG_IE };
 #define CACHE_NR_REGS	4
 #define CACHE_NR_BANKS	3
 
-struct tc3589x_gpio {
+struct tc3589x_gpio
+{
 	struct gpio_chip chip;
 	struct tc3589x *tc3589x;
 	struct device *dev;
@@ -43,8 +44,11 @@ static int tc3589x_gpio_get(struct gpio_chip *chip, unsigned int offset)
 	int ret;
 
 	ret = tc3589x_reg_read(tc3589x, reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return !!(ret & mask);
 }
@@ -61,7 +65,7 @@ static void tc3589x_gpio_set(struct gpio_chip *chip, unsigned int offset, int va
 }
 
 static int tc3589x_gpio_direction_output(struct gpio_chip *chip,
-					 unsigned int offset, int val)
+		unsigned int offset, int val)
 {
 	struct tc3589x_gpio *tc3589x_gpio = gpiochip_get_data(chip);
 	struct tc3589x *tc3589x = tc3589x_gpio->tc3589x;
@@ -74,7 +78,7 @@ static int tc3589x_gpio_direction_output(struct gpio_chip *chip,
 }
 
 static int tc3589x_gpio_direction_input(struct gpio_chip *chip,
-					unsigned int offset)
+										unsigned int offset)
 {
 	struct tc3589x_gpio *tc3589x_gpio = gpiochip_get_data(chip);
 	struct tc3589x *tc3589x = tc3589x_gpio->tc3589x;
@@ -85,7 +89,7 @@ static int tc3589x_gpio_direction_input(struct gpio_chip *chip,
 }
 
 static int tc3589x_gpio_get_direction(struct gpio_chip *chip,
-				      unsigned int offset)
+									  unsigned int offset)
 {
 	struct tc3589x_gpio *tc3589x_gpio = gpiochip_get_data(chip);
 	struct tc3589x *tc3589x = tc3589x_gpio->tc3589x;
@@ -94,15 +98,18 @@ static int tc3589x_gpio_get_direction(struct gpio_chip *chip,
 	int ret;
 
 	ret = tc3589x_reg_read(tc3589x, reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return !(ret & BIT(pos));
 }
 
 static int tc3589x_gpio_set_single_ended(struct gpio_chip *chip,
-					 unsigned int offset,
-					 enum single_ended_mode mode)
+		unsigned int offset,
+		enum single_ended_mode mode)
 {
 	struct tc3589x_gpio *tc3589x_gpio = gpiochip_get_data(chip);
 	struct tc3589x *tc3589x = tc3589x_gpio->tc3589x;
@@ -116,31 +123,45 @@ static int tc3589x_gpio_set_single_ended(struct gpio_chip *chip,
 	unsigned int pos = offset % 8;
 	int ret;
 
-	switch(mode) {
-	case LINE_MODE_OPEN_DRAIN:
-		/* Set open drain mode */
-		ret = tc3589x_set_bits(tc3589x, odmreg, BIT(pos), 0);
-		if (ret)
-			return ret;
-		/* Enable open drain/source mode */
-		return tc3589x_set_bits(tc3589x, odereg, BIT(pos), BIT(pos));
-	case LINE_MODE_OPEN_SOURCE:
-		/* Set open source mode */
-		ret = tc3589x_set_bits(tc3589x, odmreg, BIT(pos), BIT(pos));
-		if (ret)
-			return ret;
-		/* Enable open drain/source mode */
-		return tc3589x_set_bits(tc3589x, odereg, BIT(pos), BIT(pos));
-	case LINE_MODE_PUSH_PULL:
-		/* Disable open drain/source mode */
-		return tc3589x_set_bits(tc3589x, odereg, BIT(pos), 0);
-	default:
-		break;
+	switch (mode)
+	{
+		case LINE_MODE_OPEN_DRAIN:
+			/* Set open drain mode */
+			ret = tc3589x_set_bits(tc3589x, odmreg, BIT(pos), 0);
+
+			if (ret)
+			{
+				return ret;
+			}
+
+			/* Enable open drain/source mode */
+			return tc3589x_set_bits(tc3589x, odereg, BIT(pos), BIT(pos));
+
+		case LINE_MODE_OPEN_SOURCE:
+			/* Set open source mode */
+			ret = tc3589x_set_bits(tc3589x, odmreg, BIT(pos), BIT(pos));
+
+			if (ret)
+			{
+				return ret;
+			}
+
+			/* Enable open drain/source mode */
+			return tc3589x_set_bits(tc3589x, odereg, BIT(pos), BIT(pos));
+
+		case LINE_MODE_PUSH_PULL:
+			/* Disable open drain/source mode */
+			return tc3589x_set_bits(tc3589x, odereg, BIT(pos), 0);
+
+		default:
+			break;
 	}
+
 	return -ENOTSUPP;
 }
 
-static const struct gpio_chip template_chip = {
+static const struct gpio_chip template_chip =
+{
 	.label			= "tc3589x",
 	.owner			= THIS_MODULE,
 	.get			= tc3589x_gpio_get,
@@ -160,7 +181,8 @@ static int tc3589x_gpio_irq_set_type(struct irq_data *d, unsigned int type)
 	int regoffset = offset / 8;
 	int mask = BIT(offset % 8);
 
-	if (type == IRQ_TYPE_EDGE_BOTH) {
+	if (type == IRQ_TYPE_EDGE_BOTH)
+	{
 		tc3589x_gpio->regs[REG_IBE][regoffset] |= mask;
 		return 0;
 	}
@@ -168,14 +190,22 @@ static int tc3589x_gpio_irq_set_type(struct irq_data *d, unsigned int type)
 	tc3589x_gpio->regs[REG_IBE][regoffset] &= ~mask;
 
 	if (type == IRQ_TYPE_LEVEL_LOW || type == IRQ_TYPE_LEVEL_HIGH)
+	{
 		tc3589x_gpio->regs[REG_IS][regoffset] |= mask;
+	}
 	else
+	{
 		tc3589x_gpio->regs[REG_IS][regoffset] &= ~mask;
+	}
 
 	if (type == IRQ_TYPE_EDGE_RISING || type == IRQ_TYPE_LEVEL_HIGH)
+	{
 		tc3589x_gpio->regs[REG_IEV][regoffset] |= mask;
+	}
 	else
+	{
 		tc3589x_gpio->regs[REG_IEV][regoffset] &= ~mask;
+	}
 
 	return 0;
 }
@@ -193,7 +223,8 @@ static void tc3589x_gpio_irq_sync_unlock(struct irq_data *d)
 	struct gpio_chip *gc = irq_data_get_irq_chip_data(d);
 	struct tc3589x_gpio *tc3589x_gpio = gpiochip_get_data(gc);
 	struct tc3589x *tc3589x = tc3589x_gpio->tc3589x;
-	static const u8 regmap[] = {
+	static const u8 regmap[] =
+	{
 		[REG_IBE]	= TC3589x_GPIOIBE0,
 		[REG_IEV]	= TC3589x_GPIOIEV0,
 		[REG_IS]	= TC3589x_GPIOIS0,
@@ -201,13 +232,17 @@ static void tc3589x_gpio_irq_sync_unlock(struct irq_data *d)
 	};
 	int i, j;
 
-	for (i = 0; i < CACHE_NR_REGS; i++) {
-		for (j = 0; j < CACHE_NR_BANKS; j++) {
+	for (i = 0; i < CACHE_NR_REGS; i++)
+	{
+		for (j = 0; j < CACHE_NR_BANKS; j++)
+		{
 			u8 old = tc3589x_gpio->oldregs[i][j];
 			u8 new = tc3589x_gpio->regs[i][j];
 
 			if (new == old)
+			{
 				continue;
+			}
 
 			tc3589x_gpio->oldregs[i][j] = new;
 			tc3589x_reg_write(tc3589x, regmap[i] + j * 8, new);
@@ -239,7 +274,8 @@ static void tc3589x_gpio_irq_unmask(struct irq_data *d)
 	tc3589x_gpio->regs[REG_IE][regoffset] |= mask;
 }
 
-static struct irq_chip tc3589x_gpio_irq_chip = {
+static struct irq_chip tc3589x_gpio_irq_chip =
+{
 	.name			= "tc3589x-gpio",
 	.irq_bus_lock		= tc3589x_gpio_irq_lock,
 	.irq_bus_sync_unlock	= tc3589x_gpio_irq_sync_unlock,
@@ -257,20 +293,28 @@ static irqreturn_t tc3589x_gpio_irq(int irq, void *dev)
 	int i;
 
 	ret = tc3589x_block_read(tc3589x, TC3589x_GPIOMIS0,
-				 ARRAY_SIZE(status), status);
+							 ARRAY_SIZE(status), status);
+
 	if (ret < 0)
+	{
 		return IRQ_NONE;
+	}
 
-	for (i = 0; i < ARRAY_SIZE(status); i++) {
+	for (i = 0; i < ARRAY_SIZE(status); i++)
+	{
 		unsigned int stat = status[i];
-		if (!stat)
-			continue;
 
-		while (stat) {
+		if (!stat)
+		{
+			continue;
+		}
+
+		while (stat)
+		{
 			int bit = __ffs(stat);
 			int line = i * 8 + bit;
 			int irq = irq_find_mapping(tc3589x_gpio->chip.irqdomain,
-						   line);
+									   line);
 
 			handle_nested_irq(irq);
 			stat &= ~(1 << bit);
@@ -290,19 +334,26 @@ static int tc3589x_gpio_probe(struct platform_device *pdev)
 	int ret;
 	int irq;
 
-	if (!np) {
+	if (!np)
+	{
 		dev_err(&pdev->dev, "No Device Tree node found\n");
 		return -EINVAL;
 	}
 
 	irq = platform_get_irq(pdev, 0);
+
 	if (irq < 0)
+	{
 		return irq;
+	}
 
 	tc3589x_gpio = devm_kzalloc(&pdev->dev, sizeof(struct tc3589x_gpio),
-				    GFP_KERNEL);
+								GFP_KERNEL);
+
 	if (!tc3589x_gpio)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&tc3589x_gpio->irq_lock);
 
@@ -317,48 +368,58 @@ static int tc3589x_gpio_probe(struct platform_device *pdev)
 
 	/* Bring the GPIO module out of reset */
 	ret = tc3589x_set_bits(tc3589x, TC3589x_RSTCTRL,
-			       TC3589x_RSTCTRL_GPIRST, 0);
+						   TC3589x_RSTCTRL_GPIRST, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = devm_request_threaded_irq(&pdev->dev,
-					irq, NULL, tc3589x_gpio_irq,
-					IRQF_ONESHOT, "tc3589x-gpio",
-					tc3589x_gpio);
-	if (ret) {
+									irq, NULL, tc3589x_gpio_irq,
+									IRQF_ONESHOT, "tc3589x-gpio",
+									tc3589x_gpio);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to get irq: %d\n", ret);
 		return ret;
 	}
 
 	ret = devm_gpiochip_add_data(&pdev->dev, &tc3589x_gpio->chip,
-				     tc3589x_gpio);
-	if (ret) {
+								 tc3589x_gpio);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to add gpiochip: %d\n", ret);
 		return ret;
 	}
 
 	ret =  gpiochip_irqchip_add(&tc3589x_gpio->chip,
-				    &tc3589x_gpio_irq_chip,
-				    0,
-				    handle_simple_irq,
-				    IRQ_TYPE_NONE);
-	if (ret) {
+								&tc3589x_gpio_irq_chip,
+								0,
+								handle_simple_irq,
+								IRQ_TYPE_NONE);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev,
-			"could not connect irqchip to gpiochip\n");
+				"could not connect irqchip to gpiochip\n");
 		return ret;
 	}
 
 	gpiochip_set_chained_irqchip(&tc3589x_gpio->chip,
-				     &tc3589x_gpio_irq_chip,
-				     irq,
-				     NULL);
+								 &tc3589x_gpio_irq_chip,
+								 irq,
+								 NULL);
 
 	platform_set_drvdata(pdev, tc3589x_gpio);
 
 	return 0;
 }
 
-static struct platform_driver tc3589x_gpio_driver = {
+static struct platform_driver tc3589x_gpio_driver =
+{
 	.driver.name	= "tc3589x-gpio",
 	.probe		= tc3589x_gpio_probe,
 };

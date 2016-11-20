@@ -57,7 +57,8 @@
  *	                 1      In on pin 16    18 (2-quadrant)
  *	                        In on pin 16    17 (4-quadrant)
  */
-static const struct comedi_lrange das02_ao_ranges = {
+static const struct comedi_lrange das02_ao_ranges =
+{
 	6, {
 		UNI_RANGE(5),
 		UNI_RANGE(10),
@@ -75,16 +76,17 @@ static const struct comedi_lrange das02_ao_ranges = {
 #define DAC02_AO_MSB(x)		(0x01 + ((x) * 2))
 
 static int dac02_ao_insn_write(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn,
-			       unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn,
+							   unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int range = CR_RANGE(insn->chanspec);
 	unsigned int val;
 	int i;
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		val = data[i];
 
 		s->readback[chan] = val;
@@ -95,7 +97,9 @@ static int dac02_ao_insn_write(struct comedi_device *dev,
 		 * (that is, 0 = +full scale, maxdata = -full scale).
 		 */
 		if (comedi_range_is_bipolar(s, range))
+		{
 			val = s->maxdata - val;
+		}
 
 		/*
 		 * DACs are double-buffered.
@@ -114,12 +118,18 @@ static int dac02_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	int ret;
 
 	ret = comedi_request_region(dev, it->options[0], 0x08);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = comedi_alloc_subdevices(dev, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Analog Output subdevice */
 	s = &dev->subdevices[0];
@@ -133,7 +143,8 @@ static int dac02_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	return comedi_alloc_subdev_readback(s);
 }
 
-static struct comedi_driver dac02_driver = {
+static struct comedi_driver dac02_driver =
+{
 	.driver_name	= "dac02",
 	.module		= THIS_MODULE,
 	.attach		= dac02_attach,

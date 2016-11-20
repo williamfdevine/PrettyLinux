@@ -21,19 +21,21 @@
 #include "../ion.h"
 #include "../ion_of.h"
 
-struct hisi_ion_dev {
+struct hisi_ion_dev
+{
 	struct ion_heap	**heaps;
 	struct ion_device *idev;
 	struct ion_platform_data *data;
 };
 
-static struct ion_of_heap hisi_heaps[] = {
+static struct ion_of_heap hisi_heaps[] =
+{
 	PLATFORM_HEAP("hisilicon,sys_user", 0,
-		      ION_HEAP_TYPE_SYSTEM, "sys_user"),
+	ION_HEAP_TYPE_SYSTEM, "sys_user"),
 	PLATFORM_HEAP("hisilicon,sys_contig", 1,
-		      ION_HEAP_TYPE_SYSTEM_CONTIG, "sys_contig"),
+	ION_HEAP_TYPE_SYSTEM_CONTIG, "sys_contig"),
 	PLATFORM_HEAP("hisilicon,cma", ION_HEAP_TYPE_DMA, ION_HEAP_TYPE_DMA,
-		      "cma"),
+	"cma"),
 	{}
 };
 
@@ -43,35 +45,51 @@ static int hi6220_ion_probe(struct platform_device *pdev)
 	int i;
 
 	ipdev = devm_kzalloc(&pdev->dev, sizeof(*ipdev), GFP_KERNEL);
+
 	if (!ipdev)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, ipdev);
 
 	ipdev->idev = ion_device_create(NULL);
+
 	if (IS_ERR(ipdev->idev))
+	{
 		return PTR_ERR(ipdev->idev);
+	}
 
 	ipdev->data = ion_parse_dt(pdev, hisi_heaps);
+
 	if (IS_ERR(ipdev->data))
+	{
 		return PTR_ERR(ipdev->data);
+	}
 
 	ipdev->heaps = devm_kzalloc(&pdev->dev,
-				sizeof(struct ion_heap) * ipdev->data->nr,
-				GFP_KERNEL);
-	if (!ipdev->heaps) {
+								sizeof(struct ion_heap) * ipdev->data->nr,
+								GFP_KERNEL);
+
+	if (!ipdev->heaps)
+	{
 		ion_destroy_platform_data(ipdev->data);
 		return -ENOMEM;
 	}
 
-	for (i = 0; i < ipdev->data->nr; i++) {
+	for (i = 0; i < ipdev->data->nr; i++)
+	{
 		ipdev->heaps[i] = ion_heap_create(&ipdev->data->heaps[i]);
-		if (!ipdev->heaps) {
+
+		if (!ipdev->heaps)
+		{
 			ion_destroy_platform_data(ipdev->data);
 			return -ENOMEM;
 		}
+
 		ion_device_add_heap(ipdev->idev, ipdev->heaps[i]);
 	}
+
 	return 0;
 }
 
@@ -83,7 +101,9 @@ static int hi6220_ion_remove(struct platform_device *pdev)
 	ipdev = platform_get_drvdata(pdev);
 
 	for (i = 0; i < ipdev->data->nr; i++)
+	{
 		ion_heap_destroy(ipdev->heaps[i]);
+	}
 
 	ion_destroy_platform_data(ipdev->data);
 	ion_device_destroy(ipdev->idev);
@@ -91,12 +111,14 @@ static int hi6220_ion_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id hi6220_ion_match_table[] = {
+static const struct of_device_id hi6220_ion_match_table[] =
+{
 	{.compatible = "hisilicon,hi6220-ion"},
 	{},
 };
 
-static struct platform_driver hi6220_ion_driver = {
+static struct platform_driver hi6220_ion_driver =
+{
 	.probe = hi6220_ion_probe,
 	.remove = hi6220_ion_remove,
 	.driver = {

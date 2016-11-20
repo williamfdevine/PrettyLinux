@@ -42,7 +42,8 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Evgeniy Polyakov <zbr@ioremap.net>");
 MODULE_DESCRIPTION("Driver for transport(Dallas 1-wire protocol) over VGA DDC(matrox gpio).");
 
-static struct pci_device_id matrox_w1_tbl[] = {
+static struct pci_device_id matrox_w1_tbl[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_MATROX, PCI_DEVICE_ID_MATROX_G400) },
 	{ },
 };
@@ -51,7 +52,8 @@ MODULE_DEVICE_TABLE(pci, matrox_w1_tbl);
 static int matrox_w1_probe(struct pci_dev *, const struct pci_device_id *);
 static void matrox_w1_remove(struct pci_dev *);
 
-static struct pci_driver matrox_w1_pci_driver = {
+static struct pci_driver matrox_w1_pci_driver =
+{
 	.name = "matrox_w1",
 	.id_table = matrox_w1_tbl,
 	.probe = matrox_w1_probe,
@@ -127,9 +129,13 @@ static void matrox_w1_write_ddc_bit(void *data, u8 bit)
 	struct matrox_device *dev = data;
 
 	if (bit)
+	{
 		bit = 0;
+	}
 	else
+	{
 		bit = dev->data_mask;
+	}
 
 	ret = matrox_w1_read_reg(dev, MATROX_GET_CONTROL);
 	matrox_w1_write_reg(dev, MATROX_GET_CONTROL, ((ret & ~dev->data_mask) | bit));
@@ -161,14 +167,18 @@ static int matrox_w1_probe(struct pci_dev *pdev, const struct pci_device_id *ent
 	assert(ent != NULL);
 
 	if (pdev->vendor != PCI_VENDOR_ID_MATROX || pdev->device != PCI_DEVICE_ID_MATROX_G400)
+	{
 		return -ENODEV;
+	}
 
 	dev = kzalloc(sizeof(struct matrox_device) +
-		       sizeof(struct w1_bus_master), GFP_KERNEL);
-	if (!dev) {
+				  sizeof(struct w1_bus_master), GFP_KERNEL);
+
+	if (!dev)
+	{
 		dev_err(&pdev->dev,
-			"%s: Failed to create new matrox_device object.\n",
-			__func__);
+				"%s: Failed to create new matrox_device object.\n",
+				__func__);
 		return -ENOMEM;
 	}
 
@@ -182,9 +192,11 @@ static int matrox_w1_probe(struct pci_dev *pdev, const struct pci_device_id *ent
 	dev->phys_addr = pci_resource_start(pdev, 1);
 
 	dev->virt_addr = ioremap_nocache(dev->phys_addr, 16384);
-	if (!dev->virt_addr) {
+
+	if (!dev->virt_addr)
+	{
 		dev_err(&pdev->dev, "%s: failed to ioremap(0x%lx, %d).\n",
-			__func__, dev->phys_addr, 16384);
+				__func__, dev->phys_addr, 16384);
 		err = -EIO;
 		goto err_out_free_device;
 	}
@@ -201,8 +213,11 @@ static int matrox_w1_probe(struct pci_dev *pdev, const struct pci_device_id *ent
 	dev->bus_master->write_bit = &matrox_w1_write_ddc_bit;
 
 	err = w1_add_master_device(dev->bus_master);
+
 	if (err)
+	{
 		goto err_out_free_device;
+	}
 
 	pci_set_drvdata(pdev, dev);
 
@@ -213,8 +228,12 @@ static int matrox_w1_probe(struct pci_dev *pdev, const struct pci_device_id *ent
 	return 0;
 
 err_out_free_device:
+
 	if (dev->virt_addr)
+	{
 		iounmap(dev->virt_addr);
+	}
+
 	kfree(dev);
 
 	return err;
@@ -226,10 +245,12 @@ static void matrox_w1_remove(struct pci_dev *pdev)
 
 	assert(dev != NULL);
 
-	if (dev->found) {
+	if (dev->found)
+	{
 		w1_remove_master_device(dev->bus_master);
 		iounmap(dev->virt_addr);
 	}
+
 	kfree(dev);
 }
 module_pci_driver(matrox_w1_pci_driver);

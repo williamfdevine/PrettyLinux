@@ -22,7 +22,8 @@
 #define MAX_MSI_IRQS			32
 #define MAX_MSI_CTRLS			(MAX_MSI_IRQS / 32)
 
-struct pcie_port {
+struct pcie_port
+{
 	struct device		*dev;
 	u8			root_bus_nr;
 	void __iomem		*dbi_base;
@@ -53,15 +54,16 @@ struct pcie_port {
 	DECLARE_BITMAP(msi_irq_in_use, MAX_MSI_IRQS);
 };
 
-struct pcie_host_ops {
+struct pcie_host_ops
+{
 	u32 (*readl_rc)(struct pcie_port *pp, u32 reg);
 	void (*writel_rc)(struct pcie_port *pp, u32 reg, u32 val);
 	int (*rd_own_conf)(struct pcie_port *pp, int where, int size, u32 *val);
 	int (*wr_own_conf)(struct pcie_port *pp, int where, int size, u32 val);
 	int (*rd_other_conf)(struct pcie_port *pp, struct pci_bus *bus,
-			unsigned int devfn, int where, int size, u32 *val);
+						 unsigned int devfn, int where, int size, u32 *val);
 	int (*wr_other_conf)(struct pcie_port *pp, struct pci_bus *bus,
-			unsigned int devfn, int where, int size, u32 val);
+						 unsigned int devfn, int where, int size, u32 val);
 	int (*link_up)(struct pcie_port *pp);
 	void (*host_init)(struct pcie_port *pp);
 	void (*msi_set_irq)(struct pcie_port *pp, int irq);

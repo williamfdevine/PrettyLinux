@@ -26,7 +26,8 @@
  */
 #define I915_RING_FREE_SPACE 64
 
-struct intel_hw_status_page {
+struct intel_hw_status_page
+{
 	struct i915_vma *vma;
 	u32 *page_addr;
 	u32 ggtt_offset;
@@ -63,7 +64,8 @@ struct intel_hw_status_page {
 	(dev_priv->semaphore->node.start + \
 	 GEN8_SEMAPHORE_OFFSET(from, (__ring)->id))
 
-enum intel_engine_hangcheck_action {
+enum intel_engine_hangcheck_action
+{
 	HANGCHECK_IDLE = 0,
 	HANGCHECK_WAIT,
 	HANGCHECK_ACTIVE,
@@ -73,7 +75,8 @@ enum intel_engine_hangcheck_action {
 
 #define HANGCHECK_SCORE_RING_HUNG 31
 
-struct intel_engine_hangcheck {
+struct intel_engine_hangcheck
+{
 	u64 acthd;
 	u32 seqno;
 	int score;
@@ -82,7 +85,8 @@ struct intel_engine_hangcheck {
 	u32 instdone[I915_NUM_INSTDONE_REG];
 };
 
-struct intel_ring {
+struct intel_ring
+{
 	struct i915_vma *vma;
 	void *vaddr;
 
@@ -121,8 +125,10 @@ struct drm_i915_reg_table;
  *    an option for future use.
  *  size: size of the batch in DWORDS
  */
-struct i915_ctx_workarounds {
-	struct i915_wa_ctx_bb {
+struct i915_ctx_workarounds
+{
+	struct i915_wa_ctx_bb
+	{
 		u32 offset;
 		u32 size;
 	} indirect_ctx, per_ctx;
@@ -131,10 +137,12 @@ struct i915_ctx_workarounds {
 
 struct drm_i915_gem_request;
 
-struct intel_engine_cs {
+struct intel_engine_cs
+{
 	struct drm_i915_private *i915;
 	const char	*name;
-	enum intel_engine_id {
+	enum intel_engine_id
+	{
 		RCS = 0,
 		BCS,
 		VCS,
@@ -144,7 +152,8 @@ struct intel_engine_cs {
 #define I915_NUM_ENGINES 5
 #define _VCS(n) (VCS + (n))
 	unsigned int exec_id;
-	enum intel_engine_hw_id {
+	enum intel_engine_hw_id
+	{
 		RCS_HW = 0,
 		VCS_HW,
 		BCS_HW,
@@ -173,7 +182,8 @@ struct intel_engine_cs {
 	 * that we have a single client waiting on each seqno, then reducing
 	 * the overhead of waking that client is much preferred.
 	 */
-	struct intel_breadcrumbs {
+	struct intel_breadcrumbs
+	{
 		struct task_struct __rcu *irq_seqno_bh; /* bh for interrupts */
 		bool irq_posted;
 
@@ -210,18 +220,18 @@ struct intel_engine_cs {
 
 	int		(*init_hw)(struct intel_engine_cs *engine);
 	void		(*reset_hw)(struct intel_engine_cs *engine,
-				    struct drm_i915_gem_request *req);
+							struct drm_i915_gem_request *req);
 
 	int		(*init_context)(struct drm_i915_gem_request *req);
 
 	int		(*emit_flush)(struct drm_i915_gem_request *request,
-				      u32 mode);
+						  u32 mode);
 #define EMIT_INVALIDATE	BIT(0)
 #define EMIT_FLUSH	BIT(1)
 #define EMIT_BARRIER	(EMIT_INVALIDATE | EMIT_FLUSH)
 	int		(*emit_bb_start)(struct drm_i915_gem_request *req,
-					 u64 offset, u32 length,
-					 unsigned int dispatch_flags);
+							 u64 offset, u32 length,
+							 unsigned int dispatch_flags);
 #define I915_DISPATCH_SECURE BIT(0)
 #define I915_DISPATCH_PINNED BIT(1)
 #define I915_DISPATCH_RS     BIT(2)
@@ -281,14 +291,17 @@ struct intel_engine_cs {
 	 *  g(x, y) := (y->id * NUM_RINGS * seqno_size) + (seqno_size * x->id)
 	 *  ie. transpose of f(x, y)
 	 */
-	struct {
-		u32	sync_seqno[I915_NUM_ENGINES-1];
+	struct
+	{
+		u32	sync_seqno[I915_NUM_ENGINES - 1];
 
-		union {
+		union
+		{
 #define GEN6_SEMAPHORE_LAST	VECS_HW
 #define GEN6_NUM_SEMAPHORES	(GEN6_SEMAPHORE_LAST + 1)
 #define GEN6_SEMAPHORES_MASK	GENMASK(GEN6_SEMAPHORE_LAST, 0)
-			struct {
+			struct
+			{
 				/* our mbox written by others */
 				u32		wait[GEN6_NUM_SEMAPHORES];
 				/* mboxes this ring signals to */
@@ -299,14 +312,15 @@ struct intel_engine_cs {
 
 		/* AKA wait() */
 		int	(*sync_to)(struct drm_i915_gem_request *req,
-				   struct drm_i915_gem_request *signal);
+					   struct drm_i915_gem_request *signal);
 		int	(*signal)(struct drm_i915_gem_request *req);
 	} semaphore;
 
 	/* Execlists */
 	struct tasklet_struct irq_tasklet;
 	spinlock_t execlist_lock; /* used inside tasklet, use spin_lock_bh */
-	struct execlist_port {
+	struct execlist_port
+	{
 		struct drm_i915_gem_request *request;
 		unsigned int count;
 	} execlist_port[2];
@@ -382,7 +396,7 @@ intel_engine_flag(const struct intel_engine_cs *engine)
 
 static inline u32
 intel_engine_sync_index(struct intel_engine_cs *engine,
-			struct intel_engine_cs *other)
+						struct intel_engine_cs *other)
 {
 	int idx;
 
@@ -395,8 +409,11 @@ intel_engine_sync_index(struct intel_engine_cs *engine,
 	 */
 
 	idx = (other - engine) - 1;
+
 	if (idx < 0)
+	{
 		idx += I915_NUM_ENGINES;
+	}
 
 	return idx;
 }
@@ -418,7 +435,7 @@ intel_read_status_page(struct intel_engine_cs *engine, int reg)
 
 static inline void
 intel_write_status_page(struct intel_engine_cs *engine,
-			int reg, u32 value)
+						int reg, u32 value)
 {
 	engine->status_page.page_addr[reg] = value;
 }
@@ -500,11 +517,11 @@ int intel_engine_create_scratch(struct intel_engine_cs *engine, int size);
 void intel_engine_cleanup_common(struct intel_engine_cs *engine);
 
 static inline int intel_engine_idle(struct intel_engine_cs *engine,
-				    unsigned int flags)
+									unsigned int flags)
 {
 	/* Wait upon the last request to be completed */
 	return i915_gem_active_wait_unlocked(&engine->last_request,
-					     flags, NULL, NULL);
+										 flags, NULL, NULL);
 }
 
 int intel_init_render_ring_buffer(struct intel_engine_cs *engine);
@@ -550,9 +567,9 @@ static inline bool intel_wait_complete(const struct intel_wait *wait)
 }
 
 bool intel_engine_add_wait(struct intel_engine_cs *engine,
-			   struct intel_wait *wait);
+						   struct intel_wait *wait);
 void intel_engine_remove_wait(struct intel_engine_cs *engine,
-			      struct intel_wait *wait);
+							  struct intel_wait *wait);
 void intel_engine_enable_signaling(struct drm_i915_gem_request *request);
 
 static inline bool intel_engine_has_waiter(const struct intel_engine_cs *engine)
@@ -571,13 +588,18 @@ static inline bool intel_engine_wakeup(const struct intel_engine_cs *engine)
 	 * early test for tsk->state != TASK_RUNNING before wake_up_process()
 	 * is unlikely to be beneficial.
 	 */
-	if (intel_engine_has_waiter(engine)) {
+	if (intel_engine_has_waiter(engine))
+	{
 		struct task_struct *tsk;
 
 		rcu_read_lock();
 		tsk = rcu_dereference(engine->breadcrumbs.irq_seqno_bh);
+
 		if (tsk)
+		{
 			wakeup = wake_up_process(tsk);
+		}
+
 		rcu_read_unlock();
 	}
 

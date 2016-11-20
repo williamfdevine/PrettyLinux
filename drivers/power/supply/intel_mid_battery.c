@@ -71,13 +71,15 @@ MODULE_PARM_DESC(debug, "Flag to enable PMIC Battery debug messages.");
 #define PMIC_BATT_CHR_IPC_TCHRG_SUBID	0x6
 
 /* types of battery charging */
-enum batt_charge_type {
+enum batt_charge_type
+{
 	BATT_USBOTG_500MA_CHARGE,
 	BATT_USBOTG_TRICKLE_CHARGE,
 };
 
 /* valid battery events */
-enum batt_event {
+enum batt_event
+{
 	BATT_EVENT_BATOVP_EXCPT,
 	BATT_EVENT_USBOVP_EXCPT,
 	BATT_EVENT_TEMP_EXCPT,
@@ -93,7 +95,8 @@ enum batt_event {
 /*
  * pmic battery info
  */
-struct pmic_power_module_info {
+struct pmic_power_module_info
+{
 	bool is_dev_info_updated;
 	struct device *dev;
 	/* pmic battery data */
@@ -120,7 +123,8 @@ static unsigned int delay_time = 2000;	/* in ms */
 /*
  * pmic ac properties
  */
-static enum power_supply_property pmic_usb_props[] = {
+static enum power_supply_property pmic_usb_props[] =
+{
 	POWER_SUPPLY_PROP_PRESENT,
 	POWER_SUPPLY_PROP_HEALTH,
 };
@@ -128,7 +132,8 @@ static enum power_supply_property pmic_usb_props[] = {
 /*
  * pmic battery properties
  */
-static enum power_supply_property pmic_battery_props[] = {
+static enum power_supply_property pmic_battery_props[] =
+{
 	POWER_SUPPLY_PROP_STATUS,
 	POWER_SUPPLY_PROP_HEALTH,
 	POWER_SUPPLY_PROP_PRESENT,
@@ -141,7 +146,8 @@ static enum power_supply_property pmic_battery_props[] = {
  * Glue functions for talking to the IPC
  */
 
-struct battery_property {
+struct battery_property
+{
 	u32 capacity;	/* Charger capacity */
 	u8  crnt;	/* Quick charge current value*/
 	u8  volt;	/* Fine adjustment of constant charge voltage */
@@ -170,7 +176,7 @@ struct battery_property {
 static int pmic_scu_ipc_battery_cc_read(u32 *value)
 {
 	return intel_scu_ipc_command(IPCMSG_BATTERY, IPC_CMD_CC_RD,
-					NULL, 0, value, 1);
+								 NULL, 0, value, 1);
 }
 
 /**
@@ -187,7 +193,7 @@ static int pmic_scu_ipc_battery_property_get(struct battery_property *prop)
 	u32 data[3];
 	u8 *p = (u8 *)&data[1];
 	int err = intel_scu_ipc_command(IPCMSG_BATTERY,
-				IPC_CMD_BATTERY_PROPERTY, NULL, 0, data, 3);
+									IPC_CMD_BATTERY_PROPERTY, NULL, 0, data, 3);
 
 	prop->capacity = data[0];
 	prop->crnt = *p++;
@@ -223,22 +229,28 @@ static int pmic_scu_ipc_set_charger(int charger)
 static void pmic_battery_log_event(enum batt_event event)
 {
 	printk(KERN_WARNING "pmic-battery: ");
-	switch (event) {
-	case BATT_EVENT_BATOVP_EXCPT:
-		printk(KERN_CONT "battery overvoltage condition\n");
-		break;
-	case BATT_EVENT_USBOVP_EXCPT:
-		printk(KERN_CONT "usb charger overvoltage condition\n");
-		break;
-	case BATT_EVENT_TEMP_EXCPT:
-		printk(KERN_CONT "high battery temperature condition\n");
-		break;
-	case BATT_EVENT_DCLMT_EXCPT:
-		printk(KERN_CONT "over battery charge current condition\n");
-		break;
-	default:
-		printk(KERN_CONT "charger/battery exception %d\n", event);
-		break;
+
+	switch (event)
+	{
+		case BATT_EVENT_BATOVP_EXCPT:
+			printk(KERN_CONT "battery overvoltage condition\n");
+			break;
+
+		case BATT_EVENT_USBOVP_EXCPT:
+			printk(KERN_CONT "usb charger overvoltage condition\n");
+			break;
+
+		case BATT_EVENT_TEMP_EXCPT:
+			printk(KERN_CONT "high battery temperature condition\n");
+			break;
+
+		case BATT_EVENT_DCLMT_EXCPT:
+			printk(KERN_CONT "over battery charge current condition\n");
+			break;
+
+		default:
+			printk(KERN_CONT "charger/battery exception %d\n", event);
+			break;
 	}
 }
 
@@ -264,22 +276,26 @@ static void pmic_battery_read_status(struct pmic_power_module_info *pbi)
 
 	/* make sure the last batt_status read happened delay_time before */
 	if (pbi->update_time && time_before(jiffies, pbi->update_time +
-						msecs_to_jiffies(delay_time)))
+										msecs_to_jiffies(delay_time)))
+	{
 		return;
+	}
 
 	update_time_intrvl = jiffies_to_msecs(jiffies -	pbi->update_time);
 	pbi->update_time = jiffies;
 
 	/* read coulomb counter registers and schrgint register */
-	if (pmic_scu_ipc_battery_cc_read(&ccval)) {
+	if (pmic_scu_ipc_battery_cc_read(&ccval))
+	{
 		dev_warn(pbi->dev, "%s(): ipc config cmd failed\n",
-								__func__);
+				 __func__);
 		return;
 	}
 
-	if (intel_scu_ipc_ioread8(PMIC_BATT_CHR_SCHRGINT_ADDR, &r8)) {
+	if (intel_scu_ipc_ioread8(PMIC_BATT_CHR_SCHRGINT_ADDR, &r8))
+	{
 		dev_warn(pbi->dev, "%s(): ipc pmic read failed\n",
-								__func__);
+				 __func__);
 		return;
 	}
 
@@ -289,30 +305,41 @@ static void pmic_battery_read_status(struct pmic_power_module_info *pbi)
 	 */
 
 	/* set batt_is_present */
-	if (r8 & PMIC_BATT_CHR_SBATDET_MASK) {
+	if (r8 & PMIC_BATT_CHR_SBATDET_MASK)
+	{
 		pbi->batt_is_present = PMIC_BATT_PRESENT;
 		batt_present = 1;
-	} else {
+	}
+	else
+	{
 		pbi->batt_is_present = PMIC_BATT_NOT_PRESENT;
 		pbi->batt_health = POWER_SUPPLY_HEALTH_UNKNOWN;
 		pbi->batt_status = POWER_SUPPLY_STATUS_UNKNOWN;
 	}
 
 	/* set batt_health */
-	if (batt_present) {
-		if (r8 & PMIC_BATT_CHR_SBATOVP_MASK) {
+	if (batt_present)
+	{
+		if (r8 & PMIC_BATT_CHR_SBATOVP_MASK)
+		{
 			pbi->batt_health = POWER_SUPPLY_HEALTH_OVERVOLTAGE;
 			pbi->batt_status = POWER_SUPPLY_STATUS_NOT_CHARGING;
 			pmic_battery_log_event(BATT_EVENT_BATOVP_EXCPT);
 			batt_exception = 1;
-		} else if (r8 & PMIC_BATT_CHR_STEMP_MASK) {
+		}
+		else if (r8 & PMIC_BATT_CHR_STEMP_MASK)
+		{
 			pbi->batt_health = POWER_SUPPLY_HEALTH_OVERHEAT;
 			pbi->batt_status = POWER_SUPPLY_STATUS_NOT_CHARGING;
 			pmic_battery_log_event(BATT_EVENT_TEMP_EXCPT);
 			batt_exception = 1;
-		} else {
+		}
+		else
+		{
 			pbi->batt_health = POWER_SUPPLY_HEALTH_GOOD;
-			if (r8 & PMIC_BATT_CHR_SDCLMT_MASK) {
+
+			if (r8 & PMIC_BATT_CHR_SDCLMT_MASK)
+			{
 				/* PMIC will change charging current automatically */
 				pmic_battery_log_event(BATT_EVENT_DCLMT_EXCPT);
 			}
@@ -320,19 +347,26 @@ static void pmic_battery_read_status(struct pmic_power_module_info *pbi)
 	}
 
 	/* set usb_is_present */
-	if (r8 & PMIC_BATT_CHR_SUSBDET_MASK) {
+	if (r8 & PMIC_BATT_CHR_SUSBDET_MASK)
+	{
 		pbi->usb_is_present = PMIC_USB_PRESENT;
 		usb_present = 1;
-	} else {
+	}
+	else
+	{
 		pbi->usb_is_present = PMIC_USB_NOT_PRESENT;
 		pbi->usb_health = POWER_SUPPLY_HEALTH_UNKNOWN;
 	}
 
-	if (usb_present) {
-		if (r8 & PMIC_BATT_CHR_SUSBOVP_MASK) {
+	if (usb_present)
+	{
+		if (r8 & PMIC_BATT_CHR_SUSBOVP_MASK)
+		{
 			pbi->usb_health = POWER_SUPPLY_HEALTH_OVERVOLTAGE;
 			pmic_battery_log_event(BATT_EVENT_USBOVP_EXCPT);
-		} else {
+		}
+		else
+		{
 			pbi->usb_health = POWER_SUPPLY_HEALTH_GOOD;
 		}
 	}
@@ -340,52 +374,76 @@ static void pmic_battery_read_status(struct pmic_power_module_info *pbi)
 	chrg_val = ccval & PMIC_BATT_ADC_ACCCHRGVAL_MASK;
 
 	/* set batt_prev_charge_full to battery capacity the first time */
-	if (!pbi->is_dev_info_updated) {
-		if (pmic_scu_ipc_battery_property_get(&batt_prop)) {
+	if (!pbi->is_dev_info_updated)
+	{
+		if (pmic_scu_ipc_battery_property_get(&batt_prop))
+		{
 			dev_warn(pbi->dev, "%s(): ipc config cmd failed\n",
-								__func__);
+					 __func__);
 			return;
 		}
+
 		pbi->batt_prev_charge_full = batt_prop.capacity;
 	}
 
 	/* set batt_status */
-	if (batt_present && !batt_exception) {
-		if (r8 & PMIC_BATT_CHR_SCOMP_MASK) {
+	if (batt_present && !batt_exception)
+	{
+		if (r8 & PMIC_BATT_CHR_SCOMP_MASK)
+		{
 			pbi->batt_status = POWER_SUPPLY_STATUS_FULL;
 			pbi->batt_prev_charge_full = chrg_val;
-		} else if (ccval & PMIC_BATT_ADC_ACCCHRG_MASK) {
+		}
+		else if (ccval & PMIC_BATT_ADC_ACCCHRG_MASK)
+		{
 			pbi->batt_status = POWER_SUPPLY_STATUS_DISCHARGING;
-		} else {
+		}
+		else
+		{
 			pbi->batt_status = POWER_SUPPLY_STATUS_CHARGING;
 		}
 	}
 
 	/* set batt_charge_rate */
-	if (pbi->is_dev_info_updated && batt_present && !batt_exception) {
-		if (pbi->batt_status == POWER_SUPPLY_STATUS_DISCHARGING) {
-			if (pbi->batt_charge_now - chrg_val) {
+	if (pbi->is_dev_info_updated && batt_present && !batt_exception)
+	{
+		if (pbi->batt_status == POWER_SUPPLY_STATUS_DISCHARGING)
+		{
+			if (pbi->batt_charge_now - chrg_val)
+			{
 				pbi->batt_charge_rate = ((pbi->batt_charge_now -
-					chrg_val) * 1000 * 60) /
-					update_time_intrvl;
+										  chrg_val) * 1000 * 60) /
+										update_time_intrvl;
 			}
-		} else if (pbi->batt_status == POWER_SUPPLY_STATUS_CHARGING) {
-			if (chrg_val - pbi->batt_charge_now) {
+		}
+		else if (pbi->batt_status == POWER_SUPPLY_STATUS_CHARGING)
+		{
+			if (chrg_val - pbi->batt_charge_now)
+			{
 				pbi->batt_charge_rate = ((chrg_val -
-					pbi->batt_charge_now) * 1000 * 60) /
-					update_time_intrvl;
+										  pbi->batt_charge_now) * 1000 * 60) /
+										update_time_intrvl;
 			}
-		} else
+		}
+		else
+		{
 			pbi->batt_charge_rate = 0;
-	} else {
+		}
+	}
+	else
+	{
 		pbi->batt_charge_rate = -1;
 	}
 
 	/* batt_charge_now */
 	if (batt_present && !batt_exception)
+	{
 		pbi->batt_charge_now = chrg_val;
+	}
 	else
+	{
 		pbi->batt_charge_now = -1;
+	}
 
 	pbi->is_dev_info_updated = PMIC_BATT_DRV_INFO_UPDATED;
 }
@@ -401,23 +459,26 @@ static void pmic_battery_read_status(struct pmic_power_module_info *pbi)
  * subsytem for it to provide the information to users.
  */
 static int pmic_usb_get_property(struct power_supply *psy,
-				enum power_supply_property psp,
-				union power_supply_propval *val)
+								 enum power_supply_property psp,
+								 union power_supply_propval *val)
 {
 	struct pmic_power_module_info *pbi = power_supply_get_drvdata(psy);
 
 	/* update pmic_power_module_info members */
 	pmic_battery_read_status(pbi);
 
-	switch (psp) {
-	case POWER_SUPPLY_PROP_PRESENT:
-		val->intval = pbi->usb_is_present;
-		break;
-	case POWER_SUPPLY_PROP_HEALTH:
-		val->intval = pbi->usb_health;
-		break;
-	default:
-		return -EINVAL;
+	switch (psp)
+	{
+		case POWER_SUPPLY_PROP_PRESENT:
+			val->intval = pbi->usb_is_present;
+			break;
+
+		case POWER_SUPPLY_PROP_HEALTH:
+			val->intval = pbi->usb_health;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -440,32 +501,38 @@ static inline unsigned long mAStouAh(unsigned long v)
  * subsytem for it to provide the information to users.
  */
 static int pmic_battery_get_property(struct power_supply *psy,
-				enum power_supply_property psp,
-				union power_supply_propval *val)
+									 enum power_supply_property psp,
+									 union power_supply_propval *val)
 {
 	struct pmic_power_module_info *pbi = power_supply_get_drvdata(psy);
 
 	/* update pmic_power_module_info members */
 	pmic_battery_read_status(pbi);
 
-	switch (psp) {
-	case POWER_SUPPLY_PROP_STATUS:
-		val->intval = pbi->batt_status;
-		break;
-	case POWER_SUPPLY_PROP_HEALTH:
-		val->intval = pbi->batt_health;
-		break;
-	case POWER_SUPPLY_PROP_PRESENT:
-		val->intval = pbi->batt_is_present;
-		break;
-	case POWER_SUPPLY_PROP_CHARGE_NOW:
-		val->intval = mAStouAh(pbi->batt_charge_now);
-		break;
-	case POWER_SUPPLY_PROP_CHARGE_FULL:
-		val->intval = mAStouAh(pbi->batt_prev_charge_full);
-		break;
-	default:
-		return -EINVAL;
+	switch (psp)
+	{
+		case POWER_SUPPLY_PROP_STATUS:
+			val->intval = pbi->batt_status;
+			break;
+
+		case POWER_SUPPLY_PROP_HEALTH:
+			val->intval = pbi->batt_health;
+			break;
+
+		case POWER_SUPPLY_PROP_PRESENT:
+			val->intval = pbi->batt_is_present;
+			break;
+
+		case POWER_SUPPLY_PROP_CHARGE_NOW:
+			val->intval = mAStouAh(pbi->batt_charge_now);
+			break;
+
+		case POWER_SUPPLY_PROP_CHARGE_FULL:
+			val->intval = mAStouAh(pbi->batt_prev_charge_full);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -482,7 +549,7 @@ static int pmic_battery_get_property(struct power_supply *psy,
 static void pmic_battery_monitor(struct work_struct *work)
 {
 	struct pmic_power_module_info *pbi = container_of(work,
-			struct pmic_power_module_info, monitor_battery.work);
+										 struct pmic_power_module_info, monitor_battery.work);
 
 	/* update pmic_power_module_info members */
 	pmic_battery_read_status(pbi);
@@ -499,27 +566,31 @@ static void pmic_battery_monitor(struct work_struct *work)
  * capabilities connected to the platform.
  */
 static int pmic_battery_set_charger(struct pmic_power_module_info *pbi,
-						enum batt_charge_type chrg)
+									enum batt_charge_type chrg)
 {
 	int retval;
 
 	/* set usblmt bits and chrgcntl register bits appropriately */
-	switch (chrg) {
-	case BATT_USBOTG_500MA_CHARGE:
-		retval = pmic_scu_ipc_set_charger(PMIC_BATT_CHR_IPC_FCHRG_SUBID);
-		break;
-	case BATT_USBOTG_TRICKLE_CHARGE:
-		retval = pmic_scu_ipc_set_charger(PMIC_BATT_CHR_IPC_TCHRG_SUBID);
-		break;
-	default:
-		dev_warn(pbi->dev, "%s(): out of range usb charger "
-						"charge detected\n", __func__);
-		return -EINVAL;
+	switch (chrg)
+	{
+		case BATT_USBOTG_500MA_CHARGE:
+			retval = pmic_scu_ipc_set_charger(PMIC_BATT_CHR_IPC_FCHRG_SUBID);
+			break;
+
+		case BATT_USBOTG_TRICKLE_CHARGE:
+			retval = pmic_scu_ipc_set_charger(PMIC_BATT_CHR_IPC_TCHRG_SUBID);
+			break;
+
+		default:
+			dev_warn(pbi->dev, "%s(): out of range usb charger "
+					 "charge detected\n", __func__);
+			return -EINVAL;
 	}
 
-	if (retval) {
+	if (retval)
+	{
 		dev_warn(pbi->dev, "%s(): ipc pmic read failed\n",
-								__func__);
+				 __func__);
 		return retval;
 	}
 
@@ -556,53 +627,67 @@ static irqreturn_t pmic_battery_interrupt_handler(int id, void *dev)
 static void pmic_battery_handle_intrpt(struct work_struct *work)
 {
 	struct pmic_power_module_info *pbi = container_of(work,
-				struct pmic_power_module_info, handler);
+										 struct pmic_power_module_info, handler);
 	enum batt_charge_type chrg;
 	u8 r8;
 
-	if (intel_scu_ipc_ioread8(PMIC_BATT_CHR_SCHRGINT_ADDR, &r8)) {
+	if (intel_scu_ipc_ioread8(PMIC_BATT_CHR_SCHRGINT_ADDR, &r8))
+	{
 		dev_warn(pbi->dev, "%s(): ipc pmic read failed\n",
-								__func__);
+				 __func__);
 		return;
 	}
+
 	/* find the cause of the interrupt */
-	if (r8 & PMIC_BATT_CHR_SBATDET_MASK) {
+	if (r8 & PMIC_BATT_CHR_SBATDET_MASK)
+	{
 		pbi->batt_is_present = PMIC_BATT_PRESENT;
-	} else {
+	}
+	else
+	{
 		pbi->batt_is_present = PMIC_BATT_NOT_PRESENT;
 		pbi->batt_health = POWER_SUPPLY_HEALTH_UNKNOWN;
 		pbi->batt_status = POWER_SUPPLY_STATUS_UNKNOWN;
 		return;
 	}
 
-	if (r8 & PMIC_BATT_CHR_EXCPT_MASK) {
+	if (r8 & PMIC_BATT_CHR_EXCPT_MASK)
+	{
 		pbi->batt_health = POWER_SUPPLY_HEALTH_UNKNOWN;
 		pbi->batt_status = POWER_SUPPLY_STATUS_NOT_CHARGING;
 		pbi->usb_health = POWER_SUPPLY_HEALTH_UNKNOWN;
 		pmic_battery_log_event(BATT_EVENT_EXCPT);
 		return;
-	} else {
+	}
+	else
+	{
 		pbi->batt_health = POWER_SUPPLY_HEALTH_GOOD;
 		pbi->usb_health = POWER_SUPPLY_HEALTH_GOOD;
 	}
 
-	if (r8 & PMIC_BATT_CHR_SCOMP_MASK) {
+	if (r8 & PMIC_BATT_CHR_SCOMP_MASK)
+	{
 		u32 ccval;
 		pbi->batt_status = POWER_SUPPLY_STATUS_FULL;
 
-		if (pmic_scu_ipc_battery_cc_read(&ccval)) {
+		if (pmic_scu_ipc_battery_cc_read(&ccval))
+		{
 			dev_warn(pbi->dev, "%s(): ipc config cmd "
-							"failed\n", __func__);
+					 "failed\n", __func__);
 			return;
 		}
+
 		pbi->batt_prev_charge_full = ccval &
-						PMIC_BATT_ADC_ACCCHRGVAL_MASK;
+									 PMIC_BATT_ADC_ACCCHRGVAL_MASK;
 		return;
 	}
 
-	if (r8 & PMIC_BATT_CHR_SUSBDET_MASK) {
+	if (r8 & PMIC_BATT_CHR_SUSBDET_MASK)
+	{
 		pbi->usb_is_present = PMIC_USB_PRESENT;
-	} else {
+	}
+	else
+	{
 		pbi->usb_is_present = PMIC_USB_NOT_PRESENT;
 		pbi->usb_health = POWER_SUPPLY_HEALTH_UNKNOWN;
 		return;
@@ -613,35 +698,41 @@ static void pmic_battery_handle_intrpt(struct work_struct *work)
 #if 0
 	/* check usb otg power capability and set charger accordingly */
 	retval = langwell_udc_maxpower(&power);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_warn(pbi->dev,
-		    "%s(): usb otg power query failed with error code %d\n",
-			__func__, retval);
+				 "%s(): usb otg power query failed with error code %d\n",
+				 __func__, retval);
 		return;
 	}
 
 	if (power >= 500)
+	{
 		chrg = BATT_USBOTG_500MA_CHARGE;
+	}
 	else
 #endif
 		chrg = BATT_USBOTG_TRICKLE_CHARGE;
 
 	/* enable battery charging */
-	if (pmic_battery_set_charger(pbi, chrg)) {
+	if (pmic_battery_set_charger(pbi, chrg))
+	{
 		dev_warn(pbi->dev,
-			"%s(): failed to set up battery charging\n", __func__);
+				 "%s(): failed to set up battery charging\n", __func__);
 		return;
 	}
 
 	dev_dbg(pbi->dev,
-		"pmic-battery: %s() - setting up battery charger successful\n",
+			"pmic-battery: %s() - setting up battery charger successful\n",
 			__func__);
 }
 
 /*
  * Description of power supplies
  */
-static const struct power_supply_desc pmic_usb_desc = {
+static const struct power_supply_desc pmic_usb_desc =
+{
 	.name		= "pmic-usb",
 	.type		= POWER_SUPPLY_TYPE_USB,
 	.properties	= pmic_usb_props,
@@ -649,7 +740,8 @@ static const struct power_supply_desc pmic_usb_desc = {
 	.get_property	= pmic_usb_get_property,
 };
 
-static const struct power_supply_desc pmic_batt_desc = {
+static const struct power_supply_desc pmic_batt_desc =
+{
 	.name		= "pmic-batt",
 	.type		= POWER_SUPPLY_TYPE_BATTERY,
 	.properties	= pmic_battery_props,
@@ -675,9 +767,11 @@ static int probe(int irq, struct device *dev)
 	dev_dbg(dev, "pmic-battery: found pmic battery device\n");
 
 	pbi = kzalloc(sizeof(*pbi), GFP_KERNEL);
-	if (!pbi) {
+
+	if (!pbi)
+	{
 		dev_err(dev, "%s(): memory allocation failed\n",
-								__func__);
+				__func__);
 		return -ENOMEM;
 	}
 
@@ -690,7 +784,9 @@ static int probe(int irq, struct device *dev)
 	INIT_WORK(&pbi->handler, pmic_battery_handle_intrpt);
 	INIT_DELAYED_WORK(&pbi->monitor_battery, pmic_battery_monitor);
 	pbi->monitor_wqueue = alloc_workqueue(dev_name(dev), WQ_MEM_RECLAIM, 0);
-	if (!pbi->monitor_wqueue) {
+
+	if (!pbi->monitor_wqueue)
+	{
 		dev_err(dev, "%s(): wqueue init failed\n", __func__);
 		retval = -ESRCH;
 		goto wqueue_failed;
@@ -698,33 +794,39 @@ static int probe(int irq, struct device *dev)
 
 	/* register interrupt */
 	retval = request_irq(pbi->irq, pmic_battery_interrupt_handler,
-							0, DRIVER_NAME, pbi);
-	if (retval) {
+						 0, DRIVER_NAME, pbi);
+
+	if (retval)
+	{
 		dev_err(dev, "%s(): cannot get IRQ\n", __func__);
 		goto requestirq_failed;
 	}
 
 	/* register pmic-batt with power supply subsystem */
 	pbi->batt = power_supply_register(dev, &pmic_usb_desc, &psy_cfg);
-	if (IS_ERR(pbi->batt)) {
+
+	if (IS_ERR(pbi->batt))
+	{
 		dev_err(dev,
-			"%s(): failed to register pmic battery device with power supply subsystem\n",
+				"%s(): failed to register pmic battery device with power supply subsystem\n",
 				__func__);
 		retval = PTR_ERR(pbi->batt);
 		goto power_reg_failed;
 	}
 
 	dev_dbg(dev, "pmic-battery: %s() - pmic battery device "
-		"registration with power supply subsystem successful\n",
-		__func__);
+			"registration with power supply subsystem successful\n",
+			__func__);
 
 	queue_delayed_work(pbi->monitor_wqueue, &pbi->monitor_battery, HZ * 1);
 
 	/* register pmic-usb with power supply subsystem */
 	pbi->usb = power_supply_register(dev, &pmic_batt_desc, &psy_cfg);
-	if (IS_ERR(pbi->usb)) {
+
+	if (IS_ERR(pbi->usb))
+	{
 		dev_err(dev,
-			"%s(): failed to register pmic usb device with power supply subsystem\n",
+				"%s(): failed to register pmic usb device with power supply subsystem\n",
 				__func__);
 		retval = PTR_ERR(pbi->usb);
 		goto power_reg_failed_1;
@@ -732,8 +834,8 @@ static int probe(int irq, struct device *dev)
 
 	if (debug)
 		printk(KERN_INFO "pmic-battery: %s() - pmic usb device "
-			"registration with power supply subsystem successful\n",
-			__func__);
+			   "registration with power supply subsystem successful\n",
+			   __func__);
 
 	return retval;
 
@@ -780,7 +882,8 @@ static int platform_pmic_battery_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver platform_pmic_battery_driver = {
+static struct platform_driver platform_pmic_battery_driver =
+{
 	.driver = {
 		.name = DRIVER_NAME,
 	},

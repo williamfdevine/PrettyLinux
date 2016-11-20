@@ -20,7 +20,7 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
- * 
+ *
  */
 
 #include <linux/init.h>
@@ -35,11 +35,11 @@ MODULE_AUTHOR("Jaroslav Kysela <perex@perex.cz>");
 MODULE_DESCRIPTION("EMU10K1");
 MODULE_LICENSE("GPL");
 MODULE_SUPPORTED_DEVICE("{{Creative Labs,SB Live!/PCI512/E-mu APS},"
-	       "{Creative Labs,SB Audigy}}");
+						"{Creative Labs,SB Audigy}}");
 
 #if defined(CONFIG_SND_SEQUENCER) || (defined(MODULE) && defined(CONFIG_SND_SEQUENCER_MODULE))
-#define ENABLE_SYNTH
-#include <sound/emu10k1_synth.h>
+	#define ENABLE_SYNTH
+	#include <sound/emu10k1_synth.h>
 #endif
 
 static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;	/* Index 0-MAX */
@@ -79,7 +79,8 @@ MODULE_PARM_DESC(delay_pcm_irq, "Delay PCM interrupt by specified number of samp
 /*
  * Class 0401: 1102:0008 (rev 00) Subsystem: 1102:1001 -> Audigy2 Value  Model:SB0400
  */
-static const struct pci_device_id snd_emu10k1_ids[] = {
+static const struct pci_device_id snd_emu10k1_ids[] =
+{
 	{ PCI_VDEVICE(CREATIVE, 0x0002), 0 },	/* EMU10K1 */
 	{ PCI_VDEVICE(CREATIVE, 0x0004), 1 },	/* Audigy */
 	{ PCI_VDEVICE(CREATIVE, 0x0008), 1 },	/* Audigy 2 Value SB0400 */
@@ -100,7 +101,7 @@ static const struct pci_device_id snd_emu10k1_ids[] = {
 MODULE_DEVICE_TABLE(pci, snd_emu10k1_ids);
 
 static int snd_card_emu10k1_probe(struct pci_dev *pci,
-				  const struct pci_device_id *pci_id)
+								  const struct pci_device_id *pci_id)
 {
 	static int dev;
 	struct snd_card *card;
@@ -111,68 +112,123 @@ static int snd_card_emu10k1_probe(struct pci_dev *pci,
 	int err;
 
 	if (dev >= SNDRV_CARDS)
-        	return -ENODEV;
-	if (!enable[dev]) {
+	{
+		return -ENODEV;
+	}
+
+	if (!enable[dev])
+	{
 		dev++;
 		return -ENOENT;
 	}
 
 	err = snd_card_new(&pci->dev, index[dev], id[dev], THIS_MODULE,
-			   0, &card);
+					   0, &card);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	if (max_buffer_size[dev] < 32)
+	{
 		max_buffer_size[dev] = 32;
+	}
 	else if (max_buffer_size[dev] > 1024)
+	{
 		max_buffer_size[dev] = 1024;
+	}
+
 	if ((err = snd_emu10k1_create(card, pci, extin[dev], extout[dev],
-				      (long)max_buffer_size[dev] * 1024 * 1024,
-				      enable_ir[dev], subsystem[dev],
-				      &emu)) < 0)
+								  (long)max_buffer_size[dev] * 1024 * 1024,
+								  enable_ir[dev], subsystem[dev],
+								  &emu)) < 0)
+	{
 		goto error;
+	}
+
 	card->private_data = emu;
 	emu->delay_pcm_irq = delay_pcm_irq[dev] & 0x1f;
+
 	if ((err = snd_emu10k1_pcm(emu, 0)) < 0)
+	{
 		goto error;
+	}
+
 	if ((err = snd_emu10k1_pcm_mic(emu, 1)) < 0)
+	{
 		goto error;
+	}
+
 	if ((err = snd_emu10k1_pcm_efx(emu, 2)) < 0)
+	{
 		goto error;
+	}
+
 	/* This stores the periods table. */
-	if (emu->card_capabilities->ca0151_chip) { /* P16V */	
+	if (emu->card_capabilities->ca0151_chip)   /* P16V */
+	{
 		if ((err = snd_dma_alloc_pages(SNDRV_DMA_TYPE_DEV, snd_dma_pci_data(pci),
-					       1024, &emu->p16v_buffer)) < 0)
+									   1024, &emu->p16v_buffer)) < 0)
+		{
 			goto error;
+		}
 	}
 
 	if ((err = snd_emu10k1_mixer(emu, 0, 3)) < 0)
+	{
 		goto error;
-	
+	}
+
 	if ((err = snd_emu10k1_timer(emu, 0)) < 0)
+	{
 		goto error;
+	}
 
 	if ((err = snd_emu10k1_pcm_multi(emu, 3)) < 0)
+	{
 		goto error;
-	if (emu->card_capabilities->ca0151_chip) { /* P16V */
+	}
+
+	if (emu->card_capabilities->ca0151_chip)   /* P16V */
+	{
 		if ((err = snd_p16v_pcm(emu, 4)) < 0)
+		{
 			goto error;
+		}
 	}
-	if (emu->audigy) {
+
+	if (emu->audigy)
+	{
 		if ((err = snd_emu10k1_audigy_midi(emu)) < 0)
+		{
 			goto error;
-	} else {
-		if ((err = snd_emu10k1_midi(emu)) < 0)
-			goto error;
+		}
 	}
+	else
+	{
+		if ((err = snd_emu10k1_midi(emu)) < 0)
+		{
+			goto error;
+		}
+	}
+
 	if ((err = snd_emu10k1_fx8010_new(emu, 0)) < 0)
+	{
 		goto error;
+	}
+
 #ifdef ENABLE_SYNTH
+
 	if (snd_seq_device_new(card, 1, SNDRV_SEQ_DEV_ID_EMU10K1_SYNTH,
-			       sizeof(struct snd_emu10k1_synth_arg), &wave) < 0 ||
-	    wave == NULL) {
+						   sizeof(struct snd_emu10k1_synth_arg), &wave) < 0 ||
+		wave == NULL)
+	{
 		dev_warn(emu->card->dev,
-			 "can't initialize Emu10k1 wavetable synth\n");
-	} else {
+				 "can't initialize Emu10k1 wavetable synth\n");
+	}
+	else
+	{
 		struct snd_emu10k1_synth_arg *arg;
 		arg = SNDRV_SEQ_DEVICE_ARGPTR(wave);
 		strcpy(wave->name, "Emu-10k1 Synth");
@@ -181,24 +237,27 @@ static int snd_card_emu10k1_probe(struct pci_dev *pci,
 		arg->seq_ports = seq_ports[dev];
 		arg->max_voices = max_synth_voices[dev];
 	}
+
 #endif
- 
+
 	strlcpy(card->driver, emu->card_capabilities->driver,
-		sizeof(card->driver));
+			sizeof(card->driver));
 	strlcpy(card->shortname, emu->card_capabilities->name,
-		sizeof(card->shortname));
+			sizeof(card->shortname));
 	snprintf(card->longname, sizeof(card->longname),
-		 "%s (rev.%d, serial:0x%x) at 0x%lx, irq %i",
-		 card->shortname, emu->revision, emu->serial, emu->port, emu->irq);
+			 "%s (rev.%d, serial:0x%x) at 0x%lx, irq %i",
+			 card->shortname, emu->revision, emu->serial, emu->port, emu->irq);
 
 	if ((err = snd_card_register(card)) < 0)
+	{
 		goto error;
+	}
 
 	pci_set_drvdata(pci, card);
 	dev++;
 	return 0;
 
- error:
+error:
 	snd_card_free(card);
 	return err;
 }
@@ -229,8 +288,11 @@ static int snd_emu10k1_suspend(struct device *dev)
 
 	snd_emu10k1_efx_suspend(emu);
 	snd_emu10k1_suspend_regs(emu);
+
 	if (emu->card_capabilities->ca0151_chip)
+	{
 		snd_p16v_suspend(emu);
+	}
 
 	snd_emu10k1_done(emu);
 	return 0;
@@ -247,7 +309,9 @@ static int snd_emu10k1_resume(struct device *dev)
 	snd_emu10k1_resume_regs(emu);
 
 	if (emu->card_capabilities->ca0151_chip)
+	{
 		snd_p16v_resume(emu);
+	}
 
 	emu->suspend = 0;
 
@@ -261,7 +325,8 @@ static SIMPLE_DEV_PM_OPS(snd_emu10k1_pm, snd_emu10k1_suspend, snd_emu10k1_resume
 #define SND_EMU10K1_PM_OPS	NULL
 #endif /* CONFIG_PM_SLEEP */
 
-static struct pci_driver emu10k1_driver = {
+static struct pci_driver emu10k1_driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = snd_emu10k1_ids,
 	.probe = snd_card_emu10k1_probe,

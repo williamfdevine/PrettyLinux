@@ -41,7 +41,7 @@
 
 extern spinlock_t ptlrpc_last_xid_lock;
 #if RS_DEBUG
-extern spinlock_t ptlrpc_rs_debug_lock;
+	extern spinlock_t ptlrpc_rs_debug_lock;
 #endif
 
 static int __init ptlrpc_init(void)
@@ -58,86 +58,127 @@ static int __init ptlrpc_init(void)
 	ptlrpc_init_xid();
 
 	rc = req_layout_init();
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = ptlrpc_hr_init();
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	cleanup_phase = 1;
 	rc = ptlrpc_request_cache_init();
+
 	if (rc)
+	{
 		goto cleanup;
+	}
 
 	cleanup_phase = 2;
 	rc = ptlrpc_init_portals();
+
 	if (rc)
+	{
 		goto cleanup;
+	}
 
 	cleanup_phase = 3;
 
 	rc = ptlrpc_connection_init();
+
 	if (rc)
+	{
 		goto cleanup;
+	}
 
 	cleanup_phase = 4;
 	ptlrpc_put_connection_superhack = ptlrpc_connection_put;
 
 	rc = ptlrpc_start_pinger();
+
 	if (rc)
+	{
 		goto cleanup;
+	}
 
 	cleanup_phase = 5;
 	rc = ldlm_init();
+
 	if (rc)
+	{
 		goto cleanup;
+	}
 
 	cleanup_phase = 6;
 	rc = sptlrpc_init();
+
 	if (rc)
+	{
 		goto cleanup;
+	}
 
 	cleanup_phase = 7;
 	rc = ptlrpc_nrs_init();
+
 	if (rc)
+	{
 		goto cleanup;
+	}
 
 	cleanup_phase = 8;
 	rc = tgt_mod_init();
+
 	if (rc)
+	{
 		goto cleanup;
+	}
+
 	return 0;
 
 cleanup:
-	switch (cleanup_phase) {
-	case 8:
-		ptlrpc_nrs_fini();
+
+	switch (cleanup_phase)
+	{
+		case 8:
+			ptlrpc_nrs_fini();
+
 		/* Fall through */
-	case 7:
-		sptlrpc_fini();
+		case 7:
+			sptlrpc_fini();
+
 		/* Fall through */
-	case 6:
-		ldlm_exit();
+		case 6:
+			ldlm_exit();
+
 		/* Fall through */
-	case 5:
-		ptlrpc_stop_pinger();
+		case 5:
+			ptlrpc_stop_pinger();
+
 		/* Fall through */
-	case 4:
-		ptlrpc_connection_fini();
+		case 4:
+			ptlrpc_connection_fini();
+
 		/* Fall through */
-	case 3:
-		ptlrpc_exit_portals();
+		case 3:
+			ptlrpc_exit_portals();
+
 		/* Fall through */
-	case 2:
-		ptlrpc_request_cache_fini();
+		case 2:
+			ptlrpc_request_cache_fini();
+
 		/* Fall through */
-	case 1:
-		ptlrpc_hr_fini();
-		req_layout_fini();
+		case 1:
+			ptlrpc_hr_fini();
+			req_layout_fini();
+
 		/* Fall through */
-	default:
-		;
+		default:
+			;
 	}
 
 	return rc;

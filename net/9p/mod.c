@@ -45,13 +45,15 @@ module_param_named(debug, p9_debug_level, uint, 0);
 MODULE_PARM_DESC(debug, "9P debugging level");
 
 void _p9_debug(enum p9_debug_flags level, const char *func,
-		const char *fmt, ...)
+			   const char *fmt, ...)
 {
 	struct va_format vaf;
 	va_list args;
 
 	if ((p9_debug_level & level) != level)
+	{
 		return;
+	}
 
 	va_start(args, fmt);
 
@@ -59,9 +61,13 @@ void _p9_debug(enum p9_debug_flags level, const char *func,
 	vaf.va = &args;
 
 	if (level == P9_DEBUG_9P)
+	{
 		pr_notice("(%8.8d) %pV", task_pid_nr(current), &vaf);
+	}
 	else
+	{
 		pr_notice("-- %s (%d): %pV", func, task_pid_nr(current), &vaf);
+	}
 
 	va_end(args);
 }
@@ -114,11 +120,13 @@ struct p9_trans_module *v9fs_get_trans_by_name(char *s)
 	spin_lock(&v9fs_trans_lock);
 
 	list_for_each_entry(t, &v9fs_trans_list, list)
-		if (strcmp(t->name, s) == 0 &&
-		    try_module_get(t->owner)) {
-			found = t;
-			break;
-		}
+
+	if (strcmp(t->name, s) == 0 &&
+		try_module_get(t->owner))
+	{
+		found = t;
+		break;
+	}
 
 	spin_unlock(&v9fs_trans_lock);
 	return found;
@@ -137,17 +145,20 @@ struct p9_trans_module *v9fs_get_default_trans(void)
 	spin_lock(&v9fs_trans_lock);
 
 	list_for_each_entry(t, &v9fs_trans_list, list)
-		if (t->def && try_module_get(t->owner)) {
-			found = t;
-			break;
-		}
+
+	if (t->def && try_module_get(t->owner))
+	{
+		found = t;
+		break;
+	}
 
 	if (!found)
 		list_for_each_entry(t, &v9fs_trans_list, list)
-			if (try_module_get(t->owner)) {
-				found = t;
-				break;
-			}
+		if (try_module_get(t->owner))
+		{
+			found = t;
+			break;
+		}
 
 	spin_unlock(&v9fs_trans_lock);
 	return found;
@@ -162,7 +173,9 @@ EXPORT_SYMBOL(v9fs_get_default_trans);
 void v9fs_put_trans(struct p9_trans_module *m)
 {
 	if (m)
+	{
 		module_put(m->owner);
+	}
 }
 
 /**

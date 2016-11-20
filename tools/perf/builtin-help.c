@@ -13,18 +13,21 @@
 #include <subcmd/help.h>
 #include "util/debug.h"
 
-static struct man_viewer_list {
+static struct man_viewer_list
+{
 	struct man_viewer_list *next;
 	char name[FLEX_ARRAY];
 } *man_viewer_list;
 
-static struct man_viewer_info_list {
+static struct man_viewer_info_list
+{
 	struct man_viewer_info_list *next;
 	const char *info;
 	char name[FLEX_ARRAY];
 } *man_viewer_info_list;
 
-enum help_format {
+enum help_format
+{
 	HELP_FORMAT_NONE,
 	HELP_FORMAT_MAN,
 	HELP_FORMAT_INFO,
@@ -34,11 +37,19 @@ enum help_format {
 static enum help_format parse_help_format(const char *format)
 {
 	if (!strcmp(format, "man"))
+	{
 		return HELP_FORMAT_MAN;
+	}
+
 	if (!strcmp(format, "info"))
+	{
 		return HELP_FORMAT_INFO;
+	}
+
 	if (!strcmp(format, "web") || !strcmp(format, "html"))
+	{
 		return HELP_FORMAT_WEB;
+	}
 
 	pr_err("unrecognized help format '%s'", format);
 	return HELP_FORMAT_NONE;
@@ -48,10 +59,14 @@ static const char *get_man_viewer_info(const char *name)
 {
 	struct man_viewer_info_list *viewer;
 
-	for (viewer = man_viewer_info_list; viewer; viewer = viewer->next) {
+	for (viewer = man_viewer_info_list; viewer; viewer = viewer->next)
+	{
 		if (!strcasecmp(name, viewer->name))
+		{
 			return viewer->info;
+		}
 	}
+
 	return NULL;
 }
 
@@ -68,14 +83,19 @@ static int check_emacsclient_version(void)
 	ec_process.argv = argv_ec;
 	ec_process.err = -1;
 	ec_process.stdout_to_stderr = 1;
-	if (start_command(&ec_process)) {
+
+	if (start_command(&ec_process))
+	{
 		fprintf(stderr, "Failed to start emacsclient.\n");
 		return -1;
 	}
-	if (strbuf_read(&buffer, ec_process.err, 20) < 0) {
+
+	if (strbuf_read(&buffer, ec_process.err, 20) < 0)
+	{
 		fprintf(stderr, "Failed to read emacsclient version\n");
 		goto out;
 	}
+
 	close(ec_process.err);
 
 	/*
@@ -84,19 +104,25 @@ static int check_emacsclient_version(void)
 	 */
 	finish_command(&ec_process);
 
-	if (prefixcmp(buffer.buf, "emacsclient")) {
+	if (prefixcmp(buffer.buf, "emacsclient"))
+	{
 		fprintf(stderr, "Failed to parse emacsclient version.\n");
 		goto out;
 	}
 
 	version = atoi(buffer.buf + strlen("emacsclient"));
 
-	if (version < 22) {
+	if (version < 22)
+	{
 		fprintf(stderr,
-			"emacsclient version '%d' too old (< 22).\n",
-			version);
-	} else
+				"emacsclient version '%d' too old (< 22).\n",
+				version);
+	}
+	else
+	{
 		ret = 0;
+	}
+
 out:
 	strbuf_release(&buffer);
 	return ret;
@@ -106,18 +132,24 @@ static void exec_woman_emacs(const char *path, const char *page)
 {
 	char sbuf[STRERR_BUFSIZE];
 
-	if (!check_emacsclient_version()) {
+	if (!check_emacsclient_version())
+	{
 		/* This works only with emacsclient version >= 22. */
 		char *man_page;
 
 		if (!path)
+		{
 			path = "emacsclient";
-		if (asprintf(&man_page, "(woman \"%s\")", page) > 0) {
+		}
+
+		if (asprintf(&man_page, "(woman \"%s\")", page) > 0)
+		{
 			execlp(path, "emacsclient", "-e", man_page, NULL);
 			free(man_page);
 		}
+
 		warning("failed to exec '%s': %s", path,
-			str_error_r(errno, sbuf, sizeof(sbuf)));
+				str_error_r(errno, sbuf, sizeof(sbuf)));
 	}
 }
 
@@ -125,15 +157,19 @@ static void exec_man_konqueror(const char *path, const char *page)
 {
 	const char *display = getenv("DISPLAY");
 
-	if (display && *display) {
+	if (display && *display)
+	{
 		char *man_page;
 		const char *filename = "kfmclient";
 		char sbuf[STRERR_BUFSIZE];
 
 		/* It's simpler to launch konqueror using kfmclient. */
-		if (path) {
+		if (path)
+		{
 			const char *file = strrchr(path, '/');
-			if (file && !strcmp(file + 1, "konqueror")) {
+
+			if (file && !strcmp(file + 1, "konqueror"))
+			{
 				char *new = strdup(path);
 				char *dest = strrchr(new, '/');
 
@@ -141,16 +177,25 @@ static void exec_man_konqueror(const char *path, const char *page)
 				strcpy(dest + 1, "kfmclient");
 				path = new;
 			}
+
 			if (file)
+			{
 				filename = file;
-		} else
+			}
+		}
+		else
+		{
 			path = "kfmclient";
-		if (asprintf(&man_page, "man:%s(1)", page) > 0) {
+		}
+
+		if (asprintf(&man_page, "man:%s(1)", page) > 0)
+		{
 			execlp(path, filename, "newTab", man_page, NULL);
 			free(man_page);
 		}
+
 		warning("failed to exec '%s': %s", path,
-			str_error_r(errno, sbuf, sizeof(sbuf)));
+				str_error_r(errno, sbuf, sizeof(sbuf)));
 	}
 }
 
@@ -159,10 +204,13 @@ static void exec_man_man(const char *path, const char *page)
 	char sbuf[STRERR_BUFSIZE];
 
 	if (!path)
+	{
 		path = "man";
+	}
+
 	execlp(path, "man", page, NULL);
 	warning("failed to exec '%s': %s", path,
-		str_error_r(errno, sbuf, sizeof(sbuf)));
+			str_error_r(errno, sbuf, sizeof(sbuf)));
 }
 
 static void exec_man_cmd(const char *cmd, const char *page)
@@ -170,12 +218,14 @@ static void exec_man_cmd(const char *cmd, const char *page)
 	char sbuf[STRERR_BUFSIZE];
 	char *shell_cmd;
 
-	if (asprintf(&shell_cmd, "%s %s", cmd, page) > 0) {
+	if (asprintf(&shell_cmd, "%s %s", cmd, page) > 0)
+	{
 		execl("/bin/sh", "sh", "-c", shell_cmd, NULL);
 		free(shell_cmd);
 	}
+
 	warning("failed to exec '%s': %s", cmd,
-		str_error_r(errno, sbuf, sizeof(sbuf)));
+			str_error_r(errno, sbuf, sizeof(sbuf)));
 }
 
 static void add_man_viewer(const char *name)
@@ -184,7 +234,10 @@ static void add_man_viewer(const char *name)
 	size_t len = strlen(name);
 
 	while (*p)
+	{
 		p = &((*p)->next);
+	}
+
 	*p = zalloc(sizeof(**p) + len + 1);
 	strncpy((*p)->name, name, len);
 }
@@ -192,13 +245,13 @@ static void add_man_viewer(const char *name)
 static int supported_man_viewer(const char *name, size_t len)
 {
 	return (!strncasecmp("man", name, len) ||
-		!strncasecmp("woman", name, len) ||
-		!strncasecmp("konqueror", name, len));
+			!strncasecmp("woman", name, len) ||
+			!strncasecmp("konqueror", name, len));
 }
 
 static void do_add_man_viewer_info(const char *name,
-				   size_t len,
-				   const char *value)
+								   size_t len,
+								   const char *value)
 {
 	struct man_viewer_info_list *new = zalloc(sizeof(*new) + len + 1);
 
@@ -209,29 +262,33 @@ static void do_add_man_viewer_info(const char *name,
 }
 
 static int add_man_viewer_path(const char *name,
-			       size_t len,
-			       const char *value)
+							   size_t len,
+							   const char *value)
 {
 	if (supported_man_viewer(name, len))
+	{
 		do_add_man_viewer_info(name, len, value);
+	}
 	else
 		warning("'%s': path for unsupported man viewer.\n"
-			"Please consider using 'man.<tool>.cmd' instead.",
-			name);
+				"Please consider using 'man.<tool>.cmd' instead.",
+				name);
 
 	return 0;
 }
 
 static int add_man_viewer_cmd(const char *name,
-			      size_t len,
-			      const char *value)
+							  size_t len,
+							  const char *value)
 {
 	if (supported_man_viewer(name, len))
 		warning("'%s': cmd for supported man viewer.\n"
-			"Please consider using 'man.<tool>.path' instead.",
-			name);
+				"Please consider using 'man.<tool>.path' instead.",
+				name);
 	else
+	{
 		do_add_man_viewer_info(name, len, value);
+	}
 
 	return 0;
 }
@@ -242,16 +299,27 @@ static int add_man_viewer_info(const char *var, const char *value)
 	const char *subkey = strrchr(name, '.');
 
 	if (!subkey)
+	{
 		return error("Config with no key for man viewer: %s", name);
+	}
 
-	if (!strcmp(subkey, ".path")) {
+	if (!strcmp(subkey, ".path"))
+	{
 		if (!value)
+		{
 			return config_error_nonbool(var);
+		}
+
 		return add_man_viewer_path(name, subkey - name, value);
 	}
-	if (!strcmp(subkey, ".cmd")) {
+
+	if (!strcmp(subkey, ".cmd"))
+	{
 		if (!value)
+		{
 			return config_error_nonbool(var);
+		}
+
 		return add_man_viewer_cmd(name, subkey - name, value);
 	}
 
@@ -263,22 +331,38 @@ static int perf_help_config(const char *var, const char *value, void *cb)
 {
 	enum help_format *help_formatp = cb;
 
-	if (!strcmp(var, "help.format")) {
+	if (!strcmp(var, "help.format"))
+	{
 		if (!value)
+		{
 			return config_error_nonbool(var);
+		}
+
 		*help_formatp = parse_help_format(value);
+
 		if (*help_formatp == HELP_FORMAT_NONE)
+		{
 			return -1;
+		}
+
 		return 0;
 	}
-	if (!strcmp(var, "man.viewer")) {
+
+	if (!strcmp(var, "man.viewer"))
+	{
 		if (!value)
+		{
 			return config_error_nonbool(var);
+		}
+
 		add_man_viewer(value);
 		return 0;
 	}
+
 	if (!prefixcmp(var, "man."))
+	{
 		return add_man_viewer_info(var, value);
+	}
 
 	return 0;
 }
@@ -289,13 +373,18 @@ void list_common_cmds_help(void)
 {
 	unsigned int i, longest = 0;
 
-	for (i = 0; i < ARRAY_SIZE(common_cmds); i++) {
+	for (i = 0; i < ARRAY_SIZE(common_cmds); i++)
+	{
 		if (longest < strlen(common_cmds[i].name))
+		{
 			longest = strlen(common_cmds[i].name);
+		}
 	}
 
 	puts(" The most commonly used perf commands are:");
-	for (i = 0; i < ARRAY_SIZE(common_cmds); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(common_cmds); i++)
+	{
 		printf("   %-*s   ", longest, common_cmds[i].name);
 		puts(common_cmds[i].help);
 	}
@@ -304,7 +393,7 @@ void list_common_cmds_help(void)
 static int is_perf_command(const char *s)
 {
 	return is_in_cmdlist(&main_cmds, s) ||
-		is_in_cmdlist(&other_cmds, s);
+		   is_in_cmdlist(&other_cmds, s);
 }
 
 static const char *cmd_to_page(const char *perf_cmd)
@@ -312,9 +401,13 @@ static const char *cmd_to_page(const char *perf_cmd)
 	char *s;
 
 	if (!perf_cmd)
+	{
 		return "perf";
+	}
 	else if (!prefixcmp(perf_cmd, "perf"))
+	{
 		return perf_cmd;
+	}
 
 	return asprintf(&s, "perf-%s", perf_cmd) < 0 ? NULL : s;
 }
@@ -328,10 +421,13 @@ static void setup_man_path(void)
 	 * old_path, the ':' at the end will let 'man' to try
 	 * system-wide paths after ours to find the manual page. If
 	 * there is old_path, we need ':' as delimiter. */
-	if (asprintf(&new_path, "%s:%s", system_path(PERF_MAN_PATH), old_path ?: "") > 0) {
+	if (asprintf(&new_path, "%s:%s", system_path(PERF_MAN_PATH), old_path ? : "") > 0)
+	{
 		setenv("MANPATH", new_path, 1);
 		free(new_path);
-	} else {
+	}
+	else
+	{
 		error("Unable to setup man path");
 	}
 }
@@ -341,15 +437,25 @@ static void exec_viewer(const char *name, const char *page)
 	const char *info = get_man_viewer_info(name);
 
 	if (!strcasecmp(name, "man"))
+	{
 		exec_man_man(info, page);
+	}
 	else if (!strcasecmp(name, "woman"))
+	{
 		exec_woman_emacs(info, page);
+	}
 	else if (!strcasecmp(name, "konqueror"))
+	{
 		exec_man_konqueror(info, page);
+	}
 	else if (info)
+	{
 		exec_man_cmd(info, page);
+	}
 	else
+	{
 		warning("'%s': unknown man viewer.", name);
+	}
 }
 
 static int show_man_page(const char *perf_cmd)
@@ -359,11 +465,17 @@ static int show_man_page(const char *perf_cmd)
 	const char *fallback = getenv("PERF_MAN_VIEWER");
 
 	setup_man_path();
+
 	for (viewer = man_viewer_list; viewer; viewer = viewer->next)
-		exec_viewer(viewer->name, page); /* will return when unable */
+	{
+		exec_viewer(viewer->name, page);    /* will return when unable */
+	}
 
 	if (fallback)
+	{
 		exec_viewer(fallback, page);
+	}
+
 	exec_viewer("man", page);
 
 	pr_err("no man viewer handled the request");
@@ -385,7 +497,8 @@ static int get_html_page_path(char **page_path, const char *page)
 
 	/* Check that we have a perf documentation directory. */
 	if (stat(mkpath("%s/perf.html", html_path), &st)
-	    || !S_ISREG(st.st_mode)) {
+		|| !S_ISREG(st.st_mode))
+	{
 		pr_err("'%s': not a documentation directory.", html_path);
 		return -1;
 	}
@@ -411,7 +524,9 @@ static int show_html_page(const char *perf_cmd)
 	char *page_path; /* it leaks but we exec bellow */
 
 	if (get_html_page_path(&page_path, page) < 0)
+	{
 		return -1;
+	}
 
 	open_html(page_path);
 
@@ -422,16 +537,18 @@ int cmd_help(int argc, const char **argv, const char *prefix __maybe_unused)
 {
 	bool show_all = false;
 	enum help_format help_format = HELP_FORMAT_MAN;
-	struct option builtin_help_options[] = {
-	OPT_BOOLEAN('a', "all", &show_all, "print all available commands"),
-	OPT_SET_UINT('m', "man", &help_format, "show man page", HELP_FORMAT_MAN),
-	OPT_SET_UINT('w', "web", &help_format, "show manual in web browser",
-			HELP_FORMAT_WEB),
-	OPT_SET_UINT('i', "info", &help_format, "show info page",
-			HELP_FORMAT_INFO),
-	OPT_END(),
+	struct option builtin_help_options[] =
+	{
+		OPT_BOOLEAN('a', "all", &show_all, "print all available commands"),
+		OPT_SET_UINT('m', "man", &help_format, "show man page", HELP_FORMAT_MAN),
+		OPT_SET_UINT('w', "web", &help_format, "show manual in web browser",
+		HELP_FORMAT_WEB),
+		OPT_SET_UINT('i', "info", &help_format, "show info page",
+		HELP_FORMAT_INFO),
+		OPT_END(),
 	};
-	const char * const builtin_help_subcommands[] = {
+	const char *const builtin_help_subcommands[] =
+	{
 		"buildid-cache", "buildid-list", "diff", "evlist", "help", "list",
 		"record", "report", "bench", "stat", "timechart", "top", "annotate",
 		"script", "sched", "kmem", "lock", "kvm", "test", "inject", "mem", "data",
@@ -441,8 +558,10 @@ int cmd_help(int argc, const char **argv, const char *prefix __maybe_unused)
 #ifdef HAVE_LIBAUDIT_SUPPORT
 		"trace",
 #endif
-	NULL };
-	const char *builtin_help_usage[] = {
+		NULL
+	};
+	const char *builtin_help_usage[] =
+	{
 		"perf help [--all] [--man|--web|--info] [command]",
 		NULL
 	};
@@ -454,16 +573,18 @@ int cmd_help(int argc, const char **argv, const char *prefix __maybe_unused)
 	perf_config(perf_help_config, &help_format);
 
 	argc = parse_options_subcommand(argc, argv, builtin_help_options,
-			builtin_help_subcommands, builtin_help_usage, 0);
+									builtin_help_subcommands, builtin_help_usage, 0);
 
-	if (show_all) {
+	if (show_all)
+	{
 		printf("\n Usage: %s\n\n", perf_usage_string);
 		list_commands("perf commands", &main_cmds, &other_cmds);
 		printf(" %s\n\n", perf_more_info_string);
 		return 0;
 	}
 
-	if (!argv[0]) {
+	if (!argv[0])
+	{
 		printf("\n usage: %s\n\n", perf_usage_string);
 		list_common_cmds_help();
 		printf("\n %s\n\n", perf_more_info_string);
@@ -471,26 +592,33 @@ int cmd_help(int argc, const char **argv, const char *prefix __maybe_unused)
 	}
 
 	alias = alias_lookup(argv[0]);
-	if (alias && !is_perf_command(argv[0])) {
+
+	if (alias && !is_perf_command(argv[0]))
+	{
 		printf("`perf %s' is aliased to `%s'\n", argv[0], alias);
 		return 0;
 	}
 
-	switch (help_format) {
-	case HELP_FORMAT_MAN:
-		rc = show_man_page(argv[0]);
-		break;
-	case HELP_FORMAT_INFO:
-		rc = show_info_page(argv[0]);
-		break;
-	case HELP_FORMAT_WEB:
-		rc = show_html_page(argv[0]);
-		break;
-	case HELP_FORMAT_NONE:
+	switch (help_format)
+	{
+		case HELP_FORMAT_MAN:
+			rc = show_man_page(argv[0]);
+			break;
+
+		case HELP_FORMAT_INFO:
+			rc = show_info_page(argv[0]);
+			break;
+
+		case HELP_FORMAT_WEB:
+			rc = show_html_page(argv[0]);
+			break;
+
+		case HELP_FORMAT_NONE:
+
 		/* fall-through */
-	default:
-		rc = -1;
-		break;
+		default:
+			rc = -1;
+			break;
 	}
 
 	return rc;

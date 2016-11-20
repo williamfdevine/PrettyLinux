@@ -39,7 +39,8 @@
 
 static struct spi_device *rt5514_spi;
 
-struct rt5514_dsp {
+struct rt5514_dsp
+{
 	struct device *dev;
 	struct delayed_work copy_work;
 	struct mutex dma_lock;
@@ -50,10 +51,11 @@ struct rt5514_dsp {
 	size_t dsp_offset;
 };
 
-static const struct snd_pcm_hardware rt5514_spi_pcm_hardware = {
+static const struct snd_pcm_hardware rt5514_spi_pcm_hardware =
+{
 	.info			= SNDRV_PCM_INFO_MMAP |
-				  SNDRV_PCM_INFO_MMAP_VALID |
-				  SNDRV_PCM_INFO_INTERLEAVED,
+	SNDRV_PCM_INFO_MMAP_VALID |
+	SNDRV_PCM_INFO_INTERLEAVED,
 	.formats		= SNDRV_PCM_FMTBIT_S16_LE,
 	.period_bytes_min	= PAGE_SIZE,
 	.period_bytes_max	= 0x20000 / 8,
@@ -64,7 +66,8 @@ static const struct snd_pcm_hardware rt5514_spi_pcm_hardware = {
 	.buffer_bytes_max	= 0x20000,
 };
 
-static struct snd_soc_dai_driver rt5514_spi_dai = {
+static struct snd_soc_dai_driver rt5514_spi_dai =
+{
 	.name = "rt5514-dsp-cpu-dai",
 	.id = 0,
 	.capture = {
@@ -84,7 +87,9 @@ static void rt5514_spi_copy_work(struct work_struct *work)
 	size_t period_bytes, truncated_bytes = 0;
 
 	mutex_lock(&rt5514_dsp->dma_lock);
-	if (!rt5514_dsp->substream) {
+
+	if (!rt5514_dsp->substream)
+	{
 		dev_err(rt5514_dsp->dev, "No pcm substream\n");
 		goto done;
 	}
@@ -93,41 +98,56 @@ static void rt5514_spi_copy_work(struct work_struct *work)
 	period_bytes = snd_pcm_lib_period_bytes(rt5514_dsp->substream);
 
 	if (rt5514_dsp->buf_size - rt5514_dsp->dsp_offset <  period_bytes)
+	{
 		period_bytes = rt5514_dsp->buf_size - rt5514_dsp->dsp_offset;
+	}
 
-	if (rt5514_dsp->buf_rp + period_bytes <= rt5514_dsp->buf_limit) {
+	if (rt5514_dsp->buf_rp + period_bytes <= rt5514_dsp->buf_limit)
+	{
 		rt5514_spi_burst_read(rt5514_dsp->buf_rp,
-			runtime->dma_area + rt5514_dsp->dma_offset,
-			period_bytes);
+							  runtime->dma_area + rt5514_dsp->dma_offset,
+							  period_bytes);
 
 		if (rt5514_dsp->buf_rp + period_bytes == rt5514_dsp->buf_limit)
+		{
 			rt5514_dsp->buf_rp = rt5514_dsp->buf_base;
+		}
 		else
+		{
 			rt5514_dsp->buf_rp += period_bytes;
-	} else {
+		}
+	}
+	else
+	{
 		truncated_bytes = rt5514_dsp->buf_limit - rt5514_dsp->buf_rp;
 		rt5514_spi_burst_read(rt5514_dsp->buf_rp,
-			runtime->dma_area + rt5514_dsp->dma_offset,
-			truncated_bytes);
+							  runtime->dma_area + rt5514_dsp->dma_offset,
+							  truncated_bytes);
 
 		rt5514_spi_burst_read(rt5514_dsp->buf_base,
-			runtime->dma_area + rt5514_dsp->dma_offset +
-			truncated_bytes, period_bytes - truncated_bytes);
+							  runtime->dma_area + rt5514_dsp->dma_offset +
+							  truncated_bytes, period_bytes - truncated_bytes);
 
-			rt5514_dsp->buf_rp = rt5514_dsp->buf_base +
-				period_bytes - truncated_bytes;
+		rt5514_dsp->buf_rp = rt5514_dsp->buf_base +
+							 period_bytes - truncated_bytes;
 	}
 
 	rt5514_dsp->dma_offset += period_bytes;
+
 	if (rt5514_dsp->dma_offset >= runtime->dma_bytes)
+	{
 		rt5514_dsp->dma_offset = 0;
+	}
 
 	rt5514_dsp->dsp_offset += period_bytes;
 
 	snd_pcm_period_elapsed(rt5514_dsp->substream);
 
 	if (rt5514_dsp->dsp_offset < rt5514_dsp->buf_size)
+	{
 		schedule_delayed_work(&rt5514_dsp->copy_work, 5);
+	}
+
 done:
 	mutex_unlock(&rt5514_dsp->dma_lock);
 }
@@ -141,16 +161,16 @@ static int rt5514_spi_pcm_open(struct snd_pcm_substream *substream)
 }
 
 static int rt5514_spi_hw_params(struct snd_pcm_substream *substream,
-			       struct snd_pcm_hw_params *hw_params)
+								struct snd_pcm_hw_params *hw_params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct rt5514_dsp *rt5514_dsp =
-			snd_soc_platform_get_drvdata(rtd->platform);
+		snd_soc_platform_get_drvdata(rtd->platform);
 	int ret;
 
 	mutex_lock(&rt5514_dsp->dma_lock);
 	ret = snd_pcm_lib_alloc_vmalloc_buffer(substream,
-			params_buffer_bytes(hw_params));
+										   params_buffer_bytes(hw_params));
 	rt5514_dsp->substream = substream;
 	mutex_unlock(&rt5514_dsp->dma_lock);
 
@@ -161,7 +181,7 @@ static int rt5514_spi_hw_free(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct rt5514_dsp *rt5514_dsp =
-			snd_soc_platform_get_drvdata(rtd->platform);
+		snd_soc_platform_get_drvdata(rtd->platform);
 
 	mutex_lock(&rt5514_dsp->dma_lock);
 	rt5514_dsp->substream = NULL;
@@ -176,7 +196,7 @@ static int rt5514_spi_prepare(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct rt5514_dsp *rt5514_dsp =
-			snd_soc_platform_get_drvdata(rtd->platform);
+		snd_soc_platform_get_drvdata(rtd->platform);
 	u8 buf[8];
 
 	rt5514_dsp->dma_offset = 0;
@@ -188,24 +208,24 @@ static int rt5514_spi_prepare(struct snd_pcm_substream *substream)
 	 * individually to make sure the data correctly.
 	*/
 	rt5514_spi_burst_read(RT5514_BUFFER_VOICE_BASE, (u8 *)&buf,
-		sizeof(buf));
+						  sizeof(buf));
 	rt5514_dsp->buf_base = buf[0] | buf[1] << 8 | buf[2] << 16 |
-				buf[3] << 24;
+						   buf[3] << 24;
 
 	rt5514_spi_burst_read(RT5514_BUFFER_VOICE_LIMIT, (u8 *)&buf,
-		sizeof(buf));
+						  sizeof(buf));
 	rt5514_dsp->buf_limit = buf[0] | buf[1] << 8 | buf[2] << 16 |
-				buf[3] << 24;
+							buf[3] << 24;
 
 	rt5514_spi_burst_read(RT5514_BUFFER_VOICE_RP, (u8 *)&buf,
-		sizeof(buf));
+						  sizeof(buf));
 	rt5514_dsp->buf_rp = buf[0] | buf[1] << 8 | buf[2] << 16 |
-				buf[3] << 24;
+						 buf[3] << 24;
 
 	rt5514_spi_burst_read(RT5514_BUFFER_VOICE_SIZE, (u8 *)&buf,
-		sizeof(buf));
+						  sizeof(buf));
 	rt5514_dsp->buf_size = buf[0] | buf[1] << 8 | buf[2] << 16 |
-				buf[3] << 24;
+						   buf[3] << 24;
 
 	return 0;
 }
@@ -214,19 +234,22 @@ static int rt5514_spi_trigger(struct snd_pcm_substream *substream, int cmd)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct rt5514_dsp *rt5514_dsp =
-			snd_soc_platform_get_drvdata(rtd->platform);
+		snd_soc_platform_get_drvdata(rtd->platform);
 
-	if (cmd == SNDRV_PCM_TRIGGER_START) {
+	if (cmd == SNDRV_PCM_TRIGGER_START)
+	{
 		if (rt5514_dsp->buf_base && rt5514_dsp->buf_limit &&
 			rt5514_dsp->buf_rp && rt5514_dsp->buf_size)
+		{
 			schedule_delayed_work(&rt5514_dsp->copy_work, 0);
+		}
 	}
 
 	return 0;
 }
 
 static snd_pcm_uframes_t rt5514_spi_pcm_pointer(
-		struct snd_pcm_substream *substream)
+	struct snd_pcm_substream *substream)
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
@@ -236,7 +259,8 @@ static snd_pcm_uframes_t rt5514_spi_pcm_pointer(
 	return bytes_to_frames(runtime, rt5514_dsp->dma_offset);
 }
 
-static const struct snd_pcm_ops rt5514_spi_pcm_ops = {
+static const struct snd_pcm_ops rt5514_spi_pcm_ops =
+{
 	.open		= rt5514_spi_pcm_open,
 	.hw_params	= rt5514_spi_hw_params,
 	.hw_free	= rt5514_spi_hw_free,
@@ -252,7 +276,7 @@ static int rt5514_spi_pcm_probe(struct snd_soc_platform *platform)
 	struct rt5514_dsp *rt5514_dsp;
 
 	rt5514_dsp = devm_kzalloc(platform->dev, sizeof(*rt5514_dsp),
-			GFP_KERNEL);
+							  GFP_KERNEL);
 
 	rt5514_dsp->dev = &rt5514_spi->dev;
 	mutex_init(&rt5514_dsp->dma_lock);
@@ -262,12 +286,14 @@ static int rt5514_spi_pcm_probe(struct snd_soc_platform *platform)
 	return 0;
 }
 
-static struct snd_soc_platform_driver rt5514_spi_platform = {
+static struct snd_soc_platform_driver rt5514_spi_platform =
+{
 	.probe = rt5514_spi_pcm_probe,
 	.ops = &rt5514_spi_pcm_ops,
 };
 
-static const struct snd_soc_component_driver rt5514_spi_dai_component = {
+static const struct snd_soc_component_driver rt5514_spi_dai_component =
+{
 	.name		= "rt5514-spi-dai",
 };
 
@@ -290,11 +316,16 @@ int rt5514_spi_burst_read(unsigned int addr, u8 *rxbuf, size_t len)
 	struct spi_message message;
 	struct spi_transfer x[3];
 
-	while (offset < len) {
+	while (offset < len)
+	{
 		if (offset + RT5514_SPI_BUF_LEN <= len)
+		{
 			end = RT5514_SPI_BUF_LEN;
+		}
 		else
+		{
 			end = len % RT5514_SPI_BUF_LEN;
+		}
 
 		write_buf[0] = spi_cmd;
 		write_buf[1] = ((addr + offset) & 0xff000000) >> 24;
@@ -320,12 +351,15 @@ int rt5514_spi_burst_read(unsigned int addr, u8 *rxbuf, size_t len)
 		status = spi_sync(rt5514_spi, &message);
 
 		if (status)
+		{
 			return false;
+		}
 
 		offset += RT5514_SPI_BUF_LEN;
 	}
 
-	for (i = 0; i < len; i += 8) {
+	for (i = 0; i < len; i += 8)
+	{
 		write_buf[0] = rxbuf[i + 0];
 		write_buf[1] = rxbuf[i + 1];
 		write_buf[2] = rxbuf[i + 2];
@@ -366,13 +400,20 @@ int rt5514_spi_burst_write(u32 addr, const u8 *txbuf, size_t len)
 	write_buf = kmalloc(RT5514_SPI_BUF_LEN + 6, GFP_KERNEL);
 
 	if (write_buf == NULL)
+	{
 		return -ENOMEM;
+	}
 
-	while (offset < len) {
+	while (offset < len)
+	{
 		if (offset + RT5514_SPI_BUF_LEN <= len)
+		{
 			end = RT5514_SPI_BUF_LEN;
+		}
 		else
+		{
 			end = len % RT5514_SPI_BUF_LEN;
+		}
 
 		write_buf[0] = spi_cmd;
 		write_buf[1] = ((addr + offset) & 0xff000000) >> 24;
@@ -380,7 +421,8 @@ int rt5514_spi_burst_write(u32 addr, const u8 *txbuf, size_t len)
 		write_buf[3] = ((addr + offset) & 0x0000ff00) >> 8;
 		write_buf[4] = ((addr + offset) & 0x000000ff) >> 0;
 
-		for (i = 0; i < end; i += 8) {
+		for (i = 0; i < end; i += 8)
+		{
 			write_buf[i + 12] = txbuf[offset + i + 0];
 			write_buf[i + 11] = txbuf[offset + i + 1];
 			write_buf[i + 10] = txbuf[offset + i + 2];
@@ -411,15 +453,19 @@ static int rt5514_spi_probe(struct spi_device *spi)
 	rt5514_spi = spi;
 
 	ret = devm_snd_soc_register_platform(&spi->dev, &rt5514_spi_platform);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&spi->dev, "Failed to register platform.\n");
 		return ret;
 	}
 
 	ret = devm_snd_soc_register_component(&spi->dev,
-					      &rt5514_spi_dai_component,
-					      &rt5514_spi_dai, 1);
-	if (ret < 0) {
+										  &rt5514_spi_dai_component,
+										  &rt5514_spi_dai, 1);
+
+	if (ret < 0)
+	{
 		dev_err(&spi->dev, "Failed to register component.\n");
 		return ret;
 	}
@@ -427,13 +473,15 @@ static int rt5514_spi_probe(struct spi_device *spi)
 	return 0;
 }
 
-static const struct of_device_id rt5514_of_match[] = {
+static const struct of_device_id rt5514_of_match[] =
+{
 	{ .compatible = "realtek,rt5514", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, rt5514_of_match);
 
-static struct spi_driver rt5514_spi_driver = {
+static struct spi_driver rt5514_spi_driver =
+{
 	.driver = {
 		.name = "rt5514",
 		.of_match_table = of_match_ptr(rt5514_of_match),

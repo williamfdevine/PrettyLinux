@@ -15,7 +15,8 @@
 /*
  * The use to which an asymmetric key is being put.
  */
-enum key_being_used_for {
+enum key_being_used_for
+{
 	VERIFYING_MODULE_SIGNATURE,
 	VERIFYING_FIRMWARE_SIGNATURE,
 	VERIFYING_KEXEC_PE_SIGNATURE,
@@ -31,18 +32,18 @@ extern const char *const key_being_used_for[NR__KEY_BEING_USED_FOR];
 struct key;
 
 extern int verify_pkcs7_signature(const void *data, size_t len,
-				  const void *raw_pkcs7, size_t pkcs7_len,
-				  struct key *trusted_keys,
-				  enum key_being_used_for usage,
-				  int (*view_content)(void *ctx,
-						      const void *data, size_t len,
-						      size_t asn1hdrlen),
-				  void *ctx);
+								  const void *raw_pkcs7, size_t pkcs7_len,
+								  struct key *trusted_keys,
+								  enum key_being_used_for usage,
+								  int (*view_content)(void *ctx,
+										  const void *data, size_t len,
+										  size_t asn1hdrlen),
+								  void *ctx);
 
 #ifdef CONFIG_SIGNED_PE_FILE_VERIFICATION
 extern int verify_pefile_signature(const void *pebuf, unsigned pelen,
-				   struct key *trusted_keys,
-				   enum key_being_used_for usage);
+								   struct key *trusted_keys,
+								   enum key_being_used_for usage);
 #endif
 
 #endif /* CONFIG_SYSTEM_DATA_VERIFICATION */

@@ -29,16 +29,17 @@
 
 struct intel_engine_cs;
 
-struct i915_gem_batch_pool {
+struct i915_gem_batch_pool
+{
 	struct intel_engine_cs *engine;
 	struct list_head cache_list[4];
 };
 
 /* i915_gem_batch_pool.c */
 void i915_gem_batch_pool_init(struct intel_engine_cs *engine,
-			      struct i915_gem_batch_pool *pool);
+							  struct i915_gem_batch_pool *pool);
 void i915_gem_batch_pool_fini(struct i915_gem_batch_pool *pool);
-struct drm_i915_gem_object*
+struct drm_i915_gem_object *
 i915_gem_batch_pool_get(struct i915_gem_batch_pool *pool, size_t size);
 
 #endif /* I915_GEM_BATCH_POOL_H */

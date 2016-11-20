@@ -39,11 +39,15 @@ static void duramar2150_c2port_access(struct c2port_device *dev, int status)
 
 	/* 0 = input, 1 = output */
 	if (status)
+	{
 		outb(v | (C2D | C2CK), DIR_PORT);
+	}
 	else
 		/* When access is "off" is important that both lines are set
 		 * as inputs or hi-impedance */
+	{
 		outb(v & ~(C2D | C2CK), DIR_PORT);
+	}
 
 	mutex_unlock(&update_lock);
 }
@@ -57,9 +61,13 @@ static void duramar2150_c2port_c2d_dir(struct c2port_device *dev, int dir)
 	v = inb(DIR_PORT);
 
 	if (dir)
+	{
 		outb(v & ~C2D, DIR_PORT);
+	}
 	else
+	{
 		outb(v | C2D, DIR_PORT);
+	}
 
 	mutex_unlock(&update_lock);
 }
@@ -78,9 +86,13 @@ static void duramar2150_c2port_c2d_set(struct c2port_device *dev, int status)
 	v = inb(DATA_PORT);
 
 	if (status)
+	{
 		outb(v | C2D, DATA_PORT);
+	}
 	else
+	{
 		outb(v & ~C2D, DATA_PORT);
+	}
 
 	mutex_unlock(&update_lock);
 }
@@ -94,14 +106,19 @@ static void duramar2150_c2port_c2ck_set(struct c2port_device *dev, int status)
 	v = inb(DATA_PORT);
 
 	if (status)
+	{
 		outb(v | C2CK, DATA_PORT);
+	}
 	else
+	{
 		outb(v & ~C2CK, DATA_PORT);
+	}
 
 	mutex_unlock(&update_lock);
 }
 
-static struct c2port_ops duramar2150_c2port_ops = {
+static struct c2port_ops duramar2150_c2port_ops =
+{
 	.block_size	= 512,	/* bytes */
 	.blocks_num	= 30,	/* total flash size: 15360 bytes */
 
@@ -124,12 +141,17 @@ static int __init duramar2150_c2port_init(void)
 	int ret = 0;
 
 	res = request_region(0x325, 2, "c2port");
+
 	if (!res)
+	{
 		return -EBUSY;
+	}
 
 	duramar2150_c2port_dev = c2port_device_register("uc",
-					&duramar2150_c2port_ops, NULL);
-	if (!duramar2150_c2port_dev) {
+							 &duramar2150_c2port_ops, NULL);
+
+	if (!duramar2150_c2port_dev)
+	{
 		ret = -ENODEV;
 		goto free_region;
 	}

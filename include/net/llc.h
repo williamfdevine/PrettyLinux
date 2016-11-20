@@ -26,7 +26,8 @@ struct net_device;
 struct packet_type;
 struct sk_buff;
 
-struct llc_addr {
+struct llc_addr
+{
 	unsigned char lsap;
 	unsigned char mac[IFHWADDRLEN];
 };
@@ -51,15 +52,16 @@ struct llc_addr {
  * @node - entry in station sap_list
  * @sk_list - LLC sockets this one manages
  */
-struct llc_sap {
+struct llc_sap
+{
 	unsigned char	 state;
 	unsigned char	 p_bit;
 	unsigned char	 f_bit;
 	atomic_t         refcnt;
 	int		 (*rcv_func)(struct sk_buff *skb,
-				     struct net_device *dev,
-				     struct packet_type *pt,
-				     struct net_device *orig_dev);
+						 struct net_device *dev,
+						 struct packet_type *pt,
+						 struct net_device *orig_dev);
 	struct llc_addr	 laddr;
 	struct list_head node;
 	spinlock_t sk_lock;
@@ -78,12 +80,12 @@ static inline
 u32 llc_sk_laddr_hashfn(struct llc_sap *sap, const struct llc_addr *laddr)
 {
 	return hash_32(jhash(laddr->mac, sizeof(laddr->mac), 0),
-		       LLC_SK_LADDR_HASH_BITS);
+				   LLC_SK_LADDR_HASH_BITS);
 }
 
 static inline
 struct hlist_nulls_head *llc_sk_laddr_hash(struct llc_sap *sap,
-					   const struct llc_addr *laddr)
+		const struct llc_addr *laddr)
 {
 	return &sap->sk_laddr_hash[llc_sk_laddr_hashfn(sap, laddr)];
 }
@@ -95,22 +97,22 @@ struct hlist_nulls_head *llc_sk_laddr_hash(struct llc_sap *sap,
 extern struct list_head llc_sap_list;
 
 int llc_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt,
-	    struct net_device *orig_dev);
+			struct net_device *orig_dev);
 
 int llc_mac_hdr_init(struct sk_buff *skb, const unsigned char *sa,
-		     const unsigned char *da);
+					 const unsigned char *da);
 
 void llc_add_pack(int type,
-		  void (*handler)(struct llc_sap *sap, struct sk_buff *skb));
+				  void (*handler)(struct llc_sap *sap, struct sk_buff *skb));
 void llc_remove_pack(int type);
 
 void llc_set_station_handler(void (*handler)(struct sk_buff *skb));
 
 struct llc_sap *llc_sap_open(unsigned char lsap,
-			     int (*rcv)(struct sk_buff *skb,
-					struct net_device *dev,
-					struct packet_type *pt,
-					struct net_device *orig_dev));
+							 int (*rcv)(struct sk_buff *skb,
+										struct net_device *dev,
+										struct packet_type *pt,
+										struct net_device *orig_dev));
 static inline void llc_sap_hold(struct llc_sap *sap)
 {
 	atomic_inc(&sap->refcnt);
@@ -121,13 +123,15 @@ void llc_sap_close(struct llc_sap *sap);
 static inline void llc_sap_put(struct llc_sap *sap)
 {
 	if (atomic_dec_and_test(&sap->refcnt))
+	{
 		llc_sap_close(sap);
+	}
 }
 
 struct llc_sap *llc_sap_find(unsigned char sap_value);
 
 int llc_build_and_send_ui_pkt(struct llc_sap *sap, struct sk_buff *skb,
-			      unsigned char *dmac, unsigned char dsap);
+							  unsigned char *dmac, unsigned char dsap);
 
 void llc_sap_handler(struct llc_sap *sap, struct sk_buff *skb);
 void llc_conn_handler(struct llc_sap *sap, struct sk_buff *skb);
@@ -136,22 +140,22 @@ void llc_station_init(void);
 void llc_station_exit(void);
 
 #ifdef CONFIG_PROC_FS
-int llc_proc_init(void);
-void llc_proc_exit(void);
+	int llc_proc_init(void);
+	void llc_proc_exit(void);
 #else
-#define llc_proc_init()	(0)
-#define llc_proc_exit()	do { } while(0)
+	#define llc_proc_init()	(0)
+	#define llc_proc_exit()	do { } while(0)
 #endif /* CONFIG_PROC_FS */
 #ifdef CONFIG_SYSCTL
-int llc_sysctl_init(void);
-void llc_sysctl_exit(void);
+	int llc_sysctl_init(void);
+	void llc_sysctl_exit(void);
 
-extern int sysctl_llc2_ack_timeout;
-extern int sysctl_llc2_busy_timeout;
-extern int sysctl_llc2_p_timeout;
-extern int sysctl_llc2_rej_timeout;
+	extern int sysctl_llc2_ack_timeout;
+	extern int sysctl_llc2_busy_timeout;
+	extern int sysctl_llc2_p_timeout;
+	extern int sysctl_llc2_rej_timeout;
 #else
-#define llc_sysctl_init() (0)
-#define llc_sysctl_exit() do { } while(0)
+	#define llc_sysctl_init() (0)
+	#define llc_sysctl_exit() do { } while(0)
 #endif /* CONFIG_SYSCTL */
 #endif /* LLC_H */

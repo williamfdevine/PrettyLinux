@@ -34,7 +34,8 @@
 
 enum { USER_CLOCKSOURCE, USER_CLOCKEVENT, USER_NR };
 
-struct em_sti_priv {
+struct em_sti_priv
+{
 	void __iomem *base;
 	struct clk *clk;
 	struct platform_device *pdev;
@@ -68,7 +69,7 @@ static inline unsigned long em_sti_read(struct em_sti_priv *p, int offs)
 }
 
 static inline void em_sti_write(struct em_sti_priv *p, int offs,
-				unsigned long value)
+								unsigned long value)
 {
 	iowrite32(value, p->base + offs);
 }
@@ -79,7 +80,9 @@ static int em_sti_enable(struct em_sti_priv *p)
 
 	/* enable clock */
 	ret = clk_prepare_enable(p->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&p->pdev->dev, "cannot enable clock\n");
 		return ret;
 	}
@@ -168,11 +171,17 @@ static int em_sti_start(struct em_sti_priv *p, unsigned int user)
 
 	raw_spin_lock_irqsave(&p->lock, flags);
 	used_before = p->active[USER_CLOCKSOURCE] | p->active[USER_CLOCKEVENT];
+
 	if (!used_before)
+	{
 		ret = em_sti_enable(p);
+	}
 
 	if (!ret)
+	{
 		p->active[user] = 1;
+	}
+
 	raw_spin_unlock_irqrestore(&p->lock, flags);
 
 	return ret;
@@ -189,7 +198,10 @@ static void em_sti_stop(struct em_sti_priv *p, unsigned int user)
 	used_after = p->active[USER_CLOCKSOURCE] | p->active[USER_CLOCKEVENT];
 
 	if (used_before && !used_after)
+	{
 		em_sti_disable(p);
+	}
+
 	raw_spin_unlock_irqrestore(&p->lock, flags);
 }
 
@@ -209,8 +221,12 @@ static int em_sti_clocksource_enable(struct clocksource *cs)
 	struct em_sti_priv *p = cs_to_em_sti(cs);
 
 	ret = em_sti_start(p, USER_CLOCKSOURCE);
+
 	if (!ret)
+	{
 		__clocksource_update_freq_hz(cs, p->rate);
+	}
+
 	return ret;
 }
 
@@ -268,7 +284,7 @@ static int em_sti_clock_event_set_oneshot(struct clock_event_device *ced)
 }
 
 static int em_sti_clock_event_next(unsigned long delta,
-				   struct clock_event_device *ced)
+								   struct clock_event_device *ced)
 {
 	struct em_sti_priv *p = ced_to_em_sti(ced);
 	cycle_t next;
@@ -305,14 +321,19 @@ static int em_sti_probe(struct platform_device *pdev)
 	int irq;
 
 	p = devm_kzalloc(&pdev->dev, sizeof(*p), GFP_KERNEL);
+
 	if (p == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	p->pdev = pdev;
 	platform_set_drvdata(pdev, p);
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "failed to get irq\n");
 		return -EINVAL;
 	}
@@ -320,19 +341,25 @@ static int em_sti_probe(struct platform_device *pdev)
 	/* map memory, let base point to the STI instance */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	p->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(p->base))
+	{
 		return PTR_ERR(p->base);
+	}
 
 	/* get hold of clock */
 	p->clk = devm_clk_get(&pdev->dev, "sclk");
-	if (IS_ERR(p->clk)) {
+
+	if (IS_ERR(p->clk))
+	{
 		dev_err(&pdev->dev, "cannot get clock\n");
 		return PTR_ERR(p->clk);
 	}
 
 	if (devm_request_irq(&pdev->dev, irq, em_sti_interrupt,
-			     IRQF_TIMER | IRQF_IRQPOLL | IRQF_NOBALANCING,
-			     dev_name(&pdev->dev), p)) {
+						 IRQF_TIMER | IRQF_IRQPOLL | IRQF_NOBALANCING,
+						 dev_name(&pdev->dev), p))
+	{
 		dev_err(&pdev->dev, "failed to request low IRQ\n");
 		return -ENOENT;
 	}
@@ -348,13 +375,15 @@ static int em_sti_remove(struct platform_device *pdev)
 	return -EBUSY; /* cannot unregister clockevent and clocksource */
 }
 
-static const struct of_device_id em_sti_dt_ids[] = {
+static const struct of_device_id em_sti_dt_ids[] =
+{
 	{ .compatible = "renesas,em-sti", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, em_sti_dt_ids);
 
-static struct platform_driver em_sti_device_driver = {
+static struct platform_driver em_sti_device_driver =
+{
 	.probe		= em_sti_probe,
 	.remove		= em_sti_remove,
 	.driver		= {

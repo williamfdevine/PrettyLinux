@@ -105,7 +105,8 @@
  */
 #define ADP8870_L5_COMP_CURR_uA(I)	((I * 255) / 138)
 
-struct adp8870_backlight_platform_data {
+struct adp8870_backlight_platform_data
+{
 	u8 bl_led_assign;	/* 1 = Backlight 0 = Individual LED */
 	u8 pwm_assign;		/* 1 = Enables PWM mode */
 

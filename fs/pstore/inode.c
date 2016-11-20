@@ -45,7 +45,8 @@
 static DEFINE_SPINLOCK(allpstore_lock);
 static LIST_HEAD(allpstore);
 
-struct pstore_private {
+struct pstore_private
+{
 	struct list_head list;
 	struct pstore_info *psi;
 	enum pstore_type_id type;
@@ -55,7 +56,8 @@ struct pstore_private {
 	char	data[];
 };
 
-struct pstore_ftrace_seq_data {
+struct pstore_ftrace_seq_data
+{
 	const void *ptr;
 	size_t off;
 	size_t size;
@@ -69,12 +71,17 @@ static void *pstore_ftrace_seq_start(struct seq_file *s, loff_t *pos)
 	struct pstore_ftrace_seq_data *data;
 
 	data = kzalloc(sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return NULL;
+	}
 
 	data->off = ps->size % REC_SIZE;
 	data->off += *pos * REC_SIZE;
-	if (data->off + REC_SIZE > ps->size) {
+
+	if (data->off + REC_SIZE > ps->size)
+	{
 		kfree(data);
 		return NULL;
 	}
@@ -94,8 +101,11 @@ static void *pstore_ftrace_seq_next(struct seq_file *s, void *v, loff_t *pos)
 	struct pstore_ftrace_seq_data *data = v;
 
 	data->off += REC_SIZE;
+
 	if (data->off + REC_SIZE > ps->size)
+	{
 		return NULL;
+	}
 
 	(*pos)++;
 	return data;
@@ -108,13 +118,14 @@ static int pstore_ftrace_seq_show(struct seq_file *s, void *v)
 	struct pstore_ftrace_record *rec = (void *)(ps->data + data->off);
 
 	seq_printf(s, "%d %08lx  %08lx  %pf <- %pF\n",
-		pstore_ftrace_decode_cpu(rec), rec->ip, rec->parent_ip,
-		(void *)rec->ip, (void *)rec->parent_ip);
+			   pstore_ftrace_decode_cpu(rec), rec->ip, rec->parent_ip,
+			   (void *)rec->ip, (void *)rec->parent_ip);
 
 	return 0;
 }
 
-static const struct seq_operations pstore_ftrace_seq_ops = {
+static const struct seq_operations pstore_ftrace_seq_ops =
+{
 	.start	= pstore_ftrace_seq_start,
 	.next	= pstore_ftrace_seq_next,
 	.stop	= pstore_ftrace_seq_stop,
@@ -123,24 +134,29 @@ static const struct seq_operations pstore_ftrace_seq_ops = {
 
 static int pstore_check_syslog_permissions(struct pstore_private *ps)
 {
-	switch (ps->type) {
-	case PSTORE_TYPE_DMESG:
-	case PSTORE_TYPE_CONSOLE:
-		return check_syslog_permissions(SYSLOG_ACTION_READ_ALL,
-			SYSLOG_FROM_READER);
-	default:
-		return 0;
+	switch (ps->type)
+	{
+		case PSTORE_TYPE_DMESG:
+		case PSTORE_TYPE_CONSOLE:
+			return check_syslog_permissions(SYSLOG_ACTION_READ_ALL,
+											SYSLOG_FROM_READER);
+
+		default:
+			return 0;
 	}
 }
 
 static ssize_t pstore_file_read(struct file *file, char __user *userbuf,
-						size_t count, loff_t *ppos)
+								size_t count, loff_t *ppos)
 {
 	struct seq_file *sf = file->private_data;
 	struct pstore_private *ps = sf->private;
 
 	if (ps->type == PSTORE_TYPE_FTRACE)
+	{
 		return seq_read(file, userbuf, count, ppos);
+	}
+
 	return simple_read_from_buffer(userbuf, count, ppos, ps->data, ps->size);
 }
 
@@ -152,15 +168,23 @@ static int pstore_file_open(struct inode *inode, struct file *file)
 	const struct seq_operations *sops = NULL;
 
 	err = pstore_check_syslog_permissions(ps);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (ps->type == PSTORE_TYPE_FTRACE)
+	{
 		sops = &pstore_ftrace_seq_ops;
+	}
 
 	err = seq_open(file, sops);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	sf = file->private_data;
 	sf->private = ps;
@@ -173,11 +197,15 @@ static loff_t pstore_file_llseek(struct file *file, loff_t off, int whence)
 	struct seq_file *sf = file->private_data;
 
 	if (sf->op)
+	{
 		return seq_lseek(file, off, whence);
+	}
+
 	return default_llseek(file, off, whence);
 }
 
-static const struct file_operations pstore_file_operations = {
+static const struct file_operations pstore_file_operations =
+{
 	.open		= pstore_file_open,
 	.read		= pstore_file_read,
 	.llseek		= pstore_file_llseek,
@@ -194,14 +222,19 @@ static int pstore_unlink(struct inode *dir, struct dentry *dentry)
 	int err;
 
 	err = pstore_check_syslog_permissions(p);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (p->psi->erase)
 		p->psi->erase(p->type, p->id, p->count,
-			      d_inode(dentry)->i_ctime, p->psi);
+					  d_inode(dentry)->i_ctime, p->psi);
 	else
+	{
 		return -EPERM;
+	}
 
 	return simple_unlink(dir, dentry);
 }
@@ -212,7 +245,9 @@ static void pstore_evict_inode(struct inode *inode)
 	unsigned long		flags;
 
 	clear_inode(inode);
-	if (p) {
+
+	if (p)
+	{
 		spin_lock_irqsave(&allpstore_lock, flags);
 		list_del(&p->list);
 		spin_unlock_irqrestore(&allpstore_lock, flags);
@@ -220,7 +255,8 @@ static void pstore_evict_inode(struct inode *inode)
 	}
 }
 
-static const struct inode_operations pstore_dir_inode_operations = {
+static const struct inode_operations pstore_dir_inode_operations =
+{
 	.lookup		= simple_lookup,
 	.unlink		= pstore_unlink,
 };
@@ -228,18 +264,23 @@ static const struct inode_operations pstore_dir_inode_operations = {
 static struct inode *pstore_get_inode(struct super_block *sb)
 {
 	struct inode *inode = new_inode(sb);
-	if (inode) {
+
+	if (inode)
+	{
 		inode->i_ino = get_next_ino();
 		inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
 	}
+
 	return inode;
 }
 
-enum {
+enum
+{
 	Opt_kmsg_bytes, Opt_err
 };
 
-static const match_table_t tokens = {
+static const match_table_t tokens =
+{
 	{Opt_kmsg_bytes, "kmsg_bytes=%u"},
 	{Opt_err, NULL}
 };
@@ -251,20 +292,30 @@ static void parse_options(char *options)
 	int		option;
 
 	if (!options)
+	{
 		return;
+	}
 
-	while ((p = strsep(&options, ",")) != NULL) {
+	while ((p = strsep(&options, ",")) != NULL)
+	{
 		int token;
 
 		if (!*p)
+		{
 			continue;
+		}
 
 		token = match_token(p, tokens, args);
-		switch (token) {
-		case Opt_kmsg_bytes:
-			if (!match_int(&args[0], &option))
-				pstore_set_kmsg_bytes(option);
-			break;
+
+		switch (token)
+		{
+			case Opt_kmsg_bytes:
+				if (!match_int(&args[0], &option))
+				{
+					pstore_set_kmsg_bytes(option);
+				}
+
+				break;
 		}
 	}
 }
@@ -277,7 +328,8 @@ static int pstore_remount(struct super_block *sb, int *flags, char *data)
 	return 0;
 }
 
-static const struct super_operations pstore_ops = {
+static const struct super_operations pstore_ops =
+{
 	.statfs		= simple_statfs,
 	.drop_inode	= generic_delete_inode,
 	.evict_inode	= pstore_evict_inode,
@@ -298,8 +350,8 @@ bool pstore_is_mounted(void)
  * Set the mtime & ctime to the date that this record was originally stored.
  */
 int pstore_mkfile(enum pstore_type_id type, char *psname, u64 id, int count,
-		  char *data, bool compressed, size_t size,
-		  struct timespec time, struct pstore_info *psi)
+				  char *data, bool compressed, size_t size,
+				  struct timespec time, struct pstore_info *psi)
 {
 	struct dentry		*root = pstore_sb->s_root;
 	struct dentry		*dentry;
@@ -310,77 +362,104 @@ int pstore_mkfile(enum pstore_type_id type, char *psname, u64 id, int count,
 	unsigned long		flags;
 
 	spin_lock_irqsave(&allpstore_lock, flags);
-	list_for_each_entry(pos, &allpstore, list) {
+	list_for_each_entry(pos, &allpstore, list)
+	{
 		if (pos->type == type &&
-		    pos->id == id &&
-		    pos->psi == psi) {
+			pos->id == id &&
+			pos->psi == psi)
+		{
 			rc = -EEXIST;
 			break;
 		}
 	}
 	spin_unlock_irqrestore(&allpstore_lock, flags);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = -ENOMEM;
 	inode = pstore_get_inode(pstore_sb);
+
 	if (!inode)
+	{
 		goto fail;
+	}
+
 	inode->i_mode = S_IFREG | 0444;
 	inode->i_fop = &pstore_file_operations;
-	private = kmalloc(sizeof *private + size, GFP_KERNEL);
+	private = kmalloc(sizeof * private + size, GFP_KERNEL);
+
 	if (!private)
+	{
 		goto fail_alloc;
+	}
+
 	private->type = type;
 	private->id = id;
 	private->count = count;
 	private->psi = psi;
 
-	switch (type) {
-	case PSTORE_TYPE_DMESG:
-		scnprintf(name, sizeof(name), "dmesg-%s-%lld%s",
-			  psname, id, compressed ? ".enc.z" : "");
-		break;
-	case PSTORE_TYPE_CONSOLE:
-		scnprintf(name, sizeof(name), "console-%s-%lld", psname, id);
-		break;
-	case PSTORE_TYPE_FTRACE:
-		scnprintf(name, sizeof(name), "ftrace-%s-%lld", psname, id);
-		break;
-	case PSTORE_TYPE_MCE:
-		scnprintf(name, sizeof(name), "mce-%s-%lld", psname, id);
-		break;
-	case PSTORE_TYPE_PPC_RTAS:
-		scnprintf(name, sizeof(name), "rtas-%s-%lld", psname, id);
-		break;
-	case PSTORE_TYPE_PPC_OF:
-		scnprintf(name, sizeof(name), "powerpc-ofw-%s-%lld",
-			  psname, id);
-		break;
-	case PSTORE_TYPE_PPC_COMMON:
-		scnprintf(name, sizeof(name), "powerpc-common-%s-%lld",
-			  psname, id);
-		break;
-	case PSTORE_TYPE_PMSG:
-		scnprintf(name, sizeof(name), "pmsg-%s-%lld", psname, id);
-		break;
-	case PSTORE_TYPE_PPC_OPAL:
-		sprintf(name, "powerpc-opal-%s-%lld", psname, id);
-		break;
-	case PSTORE_TYPE_UNKNOWN:
-		scnprintf(name, sizeof(name), "unknown-%s-%lld", psname, id);
-		break;
-	default:
-		scnprintf(name, sizeof(name), "type%d-%s-%lld",
-			  type, psname, id);
-		break;
+	switch (type)
+	{
+		case PSTORE_TYPE_DMESG:
+			scnprintf(name, sizeof(name), "dmesg-%s-%lld%s",
+					  psname, id, compressed ? ".enc.z" : "");
+			break;
+
+		case PSTORE_TYPE_CONSOLE:
+			scnprintf(name, sizeof(name), "console-%s-%lld", psname, id);
+			break;
+
+		case PSTORE_TYPE_FTRACE:
+			scnprintf(name, sizeof(name), "ftrace-%s-%lld", psname, id);
+			break;
+
+		case PSTORE_TYPE_MCE:
+			scnprintf(name, sizeof(name), "mce-%s-%lld", psname, id);
+			break;
+
+		case PSTORE_TYPE_PPC_RTAS:
+			scnprintf(name, sizeof(name), "rtas-%s-%lld", psname, id);
+			break;
+
+		case PSTORE_TYPE_PPC_OF:
+			scnprintf(name, sizeof(name), "powerpc-ofw-%s-%lld",
+					  psname, id);
+			break;
+
+		case PSTORE_TYPE_PPC_COMMON:
+			scnprintf(name, sizeof(name), "powerpc-common-%s-%lld",
+					  psname, id);
+			break;
+
+		case PSTORE_TYPE_PMSG:
+			scnprintf(name, sizeof(name), "pmsg-%s-%lld", psname, id);
+			break;
+
+		case PSTORE_TYPE_PPC_OPAL:
+			sprintf(name, "powerpc-opal-%s-%lld", psname, id);
+			break;
+
+		case PSTORE_TYPE_UNKNOWN:
+			scnprintf(name, sizeof(name), "unknown-%s-%lld", psname, id);
+			break;
+
+		default:
+			scnprintf(name, sizeof(name), "type%d-%s-%lld",
+					  type, psname, id);
+			break;
 	}
 
 	inode_lock(d_inode(root));
 
 	dentry = d_alloc_name(root, name);
+
 	if (!dentry)
+	{
 		goto fail_lockedalloc;
+	}
 
 	memcpy(private->data, data, size);
 	inode->i_size = private->size = size;
@@ -388,7 +467,9 @@ int pstore_mkfile(enum pstore_type_id type, char *psname, u64 id, int count,
 	inode->i_private = private;
 
 	if (time.tv_sec)
+	{
 		inode->i_mtime = inode->i_ctime = time;
+	}
 
 	d_add(dentry, inode);
 
@@ -428,15 +509,21 @@ static int pstore_fill_super(struct super_block *sb, void *data, int silent)
 	parse_options(data);
 
 	inode = pstore_get_inode(sb);
-	if (inode) {
+
+	if (inode)
+	{
 		inode->i_mode = S_IFDIR | 0755;
 		inode->i_op = &pstore_dir_inode_operations;
 		inode->i_fop = &simple_dir_operations;
 		inc_nlink(inode);
 	}
+
 	sb->s_root = d_make_root(inode);
+
 	if (!sb->s_root)
+	{
 		return -ENOMEM;
+	}
 
 	pstore_get_records(0);
 
@@ -444,7 +531,7 @@ static int pstore_fill_super(struct super_block *sb, void *data, int silent)
 }
 
 static struct dentry *pstore_mount(struct file_system_type *fs_type,
-	int flags, const char *dev_name, void *data)
+								   int flags, const char *dev_name, void *data)
 {
 	return mount_single(fs_type, flags, data, pstore_fill_super);
 }
@@ -455,7 +542,8 @@ static void pstore_kill_sb(struct super_block *sb)
 	pstore_sb = NULL;
 }
 
-static struct file_system_type pstore_fs_type = {
+static struct file_system_type pstore_fs_type =
+{
 	.owner          = THIS_MODULE,
 	.name		= "pstore",
 	.mount		= pstore_mount,
@@ -468,12 +556,18 @@ static int __init init_pstore_fs(void)
 
 	/* Create a convenient mount point for people to access pstore */
 	err = sysfs_create_mount_point(fs_kobj, "pstore");
+
 	if (err)
+	{
 		goto out;
+	}
 
 	err = register_filesystem(&pstore_fs_type);
+
 	if (err < 0)
+	{
 		sysfs_remove_mount_point(fs_kobj, "pstore");
+	}
 
 out:
 	return err;

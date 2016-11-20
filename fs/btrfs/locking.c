@@ -40,16 +40,23 @@ void btrfs_set_lock_blocking_rw(struct extent_buffer *eb, int rw)
 	 * and it'll never change.
 	 */
 	if (eb->lock_nested && current->pid == eb->lock_owner)
+	{
 		return;
-	if (rw == BTRFS_WRITE_LOCK) {
-		if (atomic_read(&eb->blocking_writers) == 0) {
+	}
+
+	if (rw == BTRFS_WRITE_LOCK)
+	{
+		if (atomic_read(&eb->blocking_writers) == 0)
+		{
 			WARN_ON(atomic_read(&eb->spinning_writers) != 1);
 			atomic_dec(&eb->spinning_writers);
 			btrfs_assert_tree_locked(eb);
 			atomic_inc(&eb->blocking_writers);
 			write_unlock(&eb->lock);
 		}
-	} else if (rw == BTRFS_READ_LOCK) {
+	}
+	else if (rw == BTRFS_READ_LOCK)
+	{
 		btrfs_assert_tree_read_locked(eb);
 		atomic_inc(&eb->blocking_readers);
 		WARN_ON(atomic_read(&eb->spinning_readers) == 0);
@@ -71,29 +78,40 @@ void btrfs_clear_lock_blocking_rw(struct extent_buffer *eb, int rw)
 	 * and it'll never change.
 	 */
 	if (eb->lock_nested && current->pid == eb->lock_owner)
+	{
 		return;
+	}
 
-	if (rw == BTRFS_WRITE_LOCK_BLOCKING) {
+	if (rw == BTRFS_WRITE_LOCK_BLOCKING)
+	{
 		BUG_ON(atomic_read(&eb->blocking_writers) != 1);
 		write_lock(&eb->lock);
 		WARN_ON(atomic_read(&eb->spinning_writers));
 		atomic_inc(&eb->spinning_writers);
+
 		/*
 		 * atomic_dec_and_test implies a barrier for waitqueue_active
 		 */
 		if (atomic_dec_and_test(&eb->blocking_writers) &&
-		    waitqueue_active(&eb->write_lock_wq))
+			waitqueue_active(&eb->write_lock_wq))
+		{
 			wake_up(&eb->write_lock_wq);
-	} else if (rw == BTRFS_READ_LOCK_BLOCKING) {
+		}
+	}
+	else if (rw == BTRFS_READ_LOCK_BLOCKING)
+	{
 		BUG_ON(atomic_read(&eb->blocking_readers) == 0);
 		read_lock(&eb->lock);
 		atomic_inc(&eb->spinning_readers);
+
 		/*
 		 * atomic_dec_and_test implies a barrier for waitqueue_active
 		 */
 		if (atomic_dec_and_test(&eb->blocking_readers) &&
-		    waitqueue_active(&eb->read_lock_wq))
+			waitqueue_active(&eb->read_lock_wq))
+		{
 			wake_up(&eb->read_lock_wq);
+		}
 	}
 }
 
@@ -105,11 +123,13 @@ void btrfs_tree_read_lock(struct extent_buffer *eb)
 {
 again:
 	BUG_ON(!atomic_read(&eb->blocking_writers) &&
-	       current->pid == eb->lock_owner);
+		   current->pid == eb->lock_owner);
 
 	read_lock(&eb->lock);
+
 	if (atomic_read(&eb->blocking_writers) &&
-	    current->pid == eb->lock_owner) {
+		current->pid == eb->lock_owner)
+	{
 		/*
 		 * This extent is already write-locked by our thread. We allow
 		 * an additional read lock to be added because it's for the same
@@ -121,12 +141,15 @@ again:
 		read_unlock(&eb->lock);
 		return;
 	}
-	if (atomic_read(&eb->blocking_writers)) {
+
+	if (atomic_read(&eb->blocking_writers))
+	{
 		read_unlock(&eb->lock);
 		wait_event(eb->write_lock_wq,
-			   atomic_read(&eb->blocking_writers) == 0);
+				   atomic_read(&eb->blocking_writers) == 0);
 		goto again;
 	}
+
 	atomic_inc(&eb->read_locks);
 	atomic_inc(&eb->spinning_readers);
 }
@@ -139,13 +162,18 @@ again:
 int btrfs_tree_read_lock_atomic(struct extent_buffer *eb)
 {
 	if (atomic_read(&eb->blocking_writers))
+	{
 		return 0;
+	}
 
 	read_lock(&eb->lock);
-	if (atomic_read(&eb->blocking_writers)) {
+
+	if (atomic_read(&eb->blocking_writers))
+	{
 		read_unlock(&eb->lock);
 		return 0;
 	}
+
 	atomic_inc(&eb->read_locks);
 	atomic_inc(&eb->spinning_readers);
 	return 1;
@@ -158,15 +186,21 @@ int btrfs_tree_read_lock_atomic(struct extent_buffer *eb)
 int btrfs_try_tree_read_lock(struct extent_buffer *eb)
 {
 	if (atomic_read(&eb->blocking_writers))
+	{
 		return 0;
+	}
 
 	if (!read_trylock(&eb->lock))
+	{
 		return 0;
+	}
 
-	if (atomic_read(&eb->blocking_writers)) {
+	if (atomic_read(&eb->blocking_writers))
+	{
 		read_unlock(&eb->lock);
 		return 0;
 	}
+
 	atomic_inc(&eb->read_locks);
 	atomic_inc(&eb->spinning_readers);
 	return 1;
@@ -179,15 +213,20 @@ int btrfs_try_tree_read_lock(struct extent_buffer *eb)
 int btrfs_try_tree_write_lock(struct extent_buffer *eb)
 {
 	if (atomic_read(&eb->blocking_writers) ||
-	    atomic_read(&eb->blocking_readers))
+		atomic_read(&eb->blocking_readers))
+	{
 		return 0;
+	}
 
 	write_lock(&eb->lock);
+
 	if (atomic_read(&eb->blocking_writers) ||
-	    atomic_read(&eb->blocking_readers)) {
+		atomic_read(&eb->blocking_readers))
+	{
 		write_unlock(&eb->lock);
 		return 0;
 	}
+
 	atomic_inc(&eb->write_locks);
 	atomic_inc(&eb->spinning_writers);
 	eb->lock_owner = current->pid;
@@ -205,10 +244,12 @@ void btrfs_tree_read_unlock(struct extent_buffer *eb)
 	 * The write unlock will do a barrier for us, and the lock_nested
 	 * field only matters to the lock owner.
 	 */
-	if (eb->lock_nested && current->pid == eb->lock_owner) {
+	if (eb->lock_nested && current->pid == eb->lock_owner)
+	{
 		eb->lock_nested = 0;
 		return;
 	}
+
 	btrfs_assert_tree_read_locked(eb);
 	WARN_ON(atomic_read(&eb->spinning_readers) == 0);
 	atomic_dec(&eb->spinning_readers);
@@ -227,18 +268,24 @@ void btrfs_tree_read_unlock_blocking(struct extent_buffer *eb)
 	 * The write unlock will do a barrier for us, and the lock_nested
 	 * field only matters to the lock owner.
 	 */
-	if (eb->lock_nested && current->pid == eb->lock_owner) {
+	if (eb->lock_nested && current->pid == eb->lock_owner)
+	{
 		eb->lock_nested = 0;
 		return;
 	}
+
 	btrfs_assert_tree_read_locked(eb);
 	WARN_ON(atomic_read(&eb->blocking_readers) == 0);
+
 	/*
 	 * atomic_dec_and_test implies a barrier for waitqueue_active
 	 */
 	if (atomic_dec_and_test(&eb->blocking_readers) &&
-	    waitqueue_active(&eb->read_lock_wq))
+		waitqueue_active(&eb->read_lock_wq))
+	{
 		wake_up(&eb->read_lock_wq);
+	}
+
 	atomic_dec(&eb->read_locks);
 }
 
@@ -253,18 +300,23 @@ again:
 	wait_event(eb->read_lock_wq, atomic_read(&eb->blocking_readers) == 0);
 	wait_event(eb->write_lock_wq, atomic_read(&eb->blocking_writers) == 0);
 	write_lock(&eb->lock);
-	if (atomic_read(&eb->blocking_readers)) {
+
+	if (atomic_read(&eb->blocking_readers))
+	{
 		write_unlock(&eb->lock);
 		wait_event(eb->read_lock_wq,
-			   atomic_read(&eb->blocking_readers) == 0);
+				   atomic_read(&eb->blocking_readers) == 0);
 		goto again;
 	}
-	if (atomic_read(&eb->blocking_writers)) {
+
+	if (atomic_read(&eb->blocking_writers))
+	{
 		write_unlock(&eb->lock);
 		wait_event(eb->write_lock_wq,
-			   atomic_read(&eb->blocking_writers) == 0);
+				   atomic_read(&eb->blocking_writers) == 0);
 		goto again;
 	}
+
 	WARN_ON(atomic_read(&eb->spinning_writers));
 	atomic_inc(&eb->spinning_writers);
 	atomic_inc(&eb->write_locks);
@@ -284,16 +336,22 @@ void btrfs_tree_unlock(struct extent_buffer *eb)
 	eb->lock_owner = 0;
 	atomic_dec(&eb->write_locks);
 
-	if (blockers) {
+	if (blockers)
+	{
 		WARN_ON(atomic_read(&eb->spinning_writers));
 		atomic_dec(&eb->blocking_writers);
 		/*
 		 * Make sure counter is updated before we wake up waiters.
 		 */
 		smp_mb();
+
 		if (waitqueue_active(&eb->write_lock_wq))
+		{
 			wake_up(&eb->write_lock_wq);
-	} else {
+		}
+	}
+	else
+	{
 		WARN_ON(atomic_read(&eb->spinning_writers) != 1);
 		atomic_dec(&eb->spinning_writers);
 		write_unlock(&eb->lock);

@@ -56,7 +56,7 @@
 #define MSDOS_DOTDOT	"..         "	/* "..", padded to MSDOS_NAME chars */
 
 #define FAT_FIRST_ENT(s, x)	((MSDOS_SB(s)->fat_bits == 32 ? 0x0FFFFF00 : \
-	MSDOS_SB(s)->fat_bits == 16 ? 0xFF00 : 0xF00) | (x))
+							  MSDOS_SB(s)->fat_bits == 16 ? 0xFF00 : 0xF00) | (x))
 
 /* start of data cluster's entry (number of reserved clusters) */
 #define FAT_START_ENT	2
@@ -66,7 +66,7 @@
 #define MAX_FAT16	0xFFF4
 #define MAX_FAT32	0x0FFFFFF6
 #define MAX_FAT(s)	(MSDOS_SB(s)->fat_bits == 32 ? MAX_FAT32 : \
-	MSDOS_SB(s)->fat_bits == 16 ? MAX_FAT16 : MAX_FAT12)
+					 MSDOS_SB(s)->fat_bits == 16 ? MAX_FAT16 : MAX_FAT12)
 
 /* bad cluster mark */
 #define BAD_FAT12	0xFF7
@@ -85,11 +85,12 @@
 #define FAT_FSINFO_SIG1	0x41615252
 #define FAT_FSINFO_SIG2	0x61417272
 #define IS_FSINFO(x)	(le32_to_cpu((x)->signature1) == FAT_FSINFO_SIG1 \
-			 && le32_to_cpu((x)->signature2) == FAT_FSINFO_SIG2)
+						 && le32_to_cpu((x)->signature2) == FAT_FSINFO_SIG2)
 
 #define FAT_STATE_DIRTY 0x01
 
-struct __fat_dirent {
+struct __fat_dirent
+{
 	long		d_ino;
 	__kernel_off_t	d_off;
 	unsigned short	d_reclen;
@@ -107,7 +108,8 @@ struct __fat_dirent {
 /*Android kernel has used 0x12, so we use 0x13*/
 #define FAT_IOCTL_GET_VOLUME_ID		_IOR('r', 0x13, __u32)
 
-struct fat_boot_sector {
+struct fat_boot_sector
+{
 	__u8	ignored[3];	/* Boot strap short or near jump */
 	__u8	system_id[8];	/* Name - can be used to special case
 				   partition manager volumes */
@@ -124,8 +126,10 @@ struct fat_boot_sector {
 	__le32	hidden;		/* hidden sectors (unused) */
 	__le32	total_sect;	/* number of sectors (if sectors == 0) */
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			/*  Extended BPB Fields for FAT16 */
 			__u8	drive_number;	/* Physical drive number */
 			__u8	state;		/* undocumented, but used
@@ -137,7 +141,8 @@ struct fat_boot_sector {
 			/* other fields are not added here */
 		} fat16;
 
-		struct {
+		struct
+		{
 			/* only used by FAT32 */
 			__le32	length;		/* sectors/FAT */
 			__le16	flags;		/* bit 8: fat mirroring,
@@ -162,7 +167,8 @@ struct fat_boot_sector {
 	};
 };
 
-struct fat_boot_fsinfo {
+struct fat_boot_fsinfo
+{
 	__le32   signature1;	/* 0x41615252L */
 	__le32   reserved1[120];	/* Nothing as far as I can tell */
 	__le32   signature2;	/* 0x61417272L */
@@ -171,7 +177,8 @@ struct fat_boot_fsinfo {
 	__le32   reserved2[4];
 };
 
-struct msdos_dir_entry {
+struct msdos_dir_entry
+{
 	__u8	name[MSDOS_NAME];/* name and extension */
 	__u8	attr;		/* attribute bits */
 	__u8    lcase;		/* Case for base and extension */
@@ -180,12 +187,13 @@ struct msdos_dir_entry {
 	__le16	cdate;		/* Creation date */
 	__le16	adate;		/* Last access date */
 	__le16	starthi;	/* High 16 bits of cluster in FAT32 */
-	__le16	time,date,start;/* time, date and first cluster */
+	__le16	time, date, start; /* time, date and first cluster */
 	__le32	size;		/* file size (in bytes) */
 };
 
 /* Up to 13 characters of the name */
-struct msdos_dir_slot {
+struct msdos_dir_slot
+{
 	__u8    id;		/* sequence number for slot */
 	__u8    name0_4[10];	/* first 5 characters in name */
 	__u8    attr;		/* attribute byte */

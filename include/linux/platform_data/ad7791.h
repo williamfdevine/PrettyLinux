@@ -8,7 +8,8 @@
  * @unipolar: If set to true sample in unipolar mode, if set to false sample in
  *		bipolar mode.
  */
-struct ad7791_platform_data {
+struct ad7791_platform_data
+{
 	bool buffered;
 	bool burnout_current;
 	bool unipolar;

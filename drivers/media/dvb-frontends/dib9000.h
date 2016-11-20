@@ -3,7 +3,8 @@
 
 #include "dibx000_common.h"
 
-struct dib9000_config {
+struct dib9000_config
+{
 	u8 dvbt_mode;
 	u8 output_mpeg2_in_188_bytes;
 	u8 hostbus_diversity;
@@ -49,7 +50,8 @@ static inline struct dvb_frontend *dib9000_attach(struct i2c_adapter *i2c_adap, 
 	return NULL;
 }
 
-static inline struct i2c_adapter *dib9000_get_i2c_master(struct dvb_frontend *fe, enum dibx000_i2c_interface intf, int gating)
+static inline struct i2c_adapter *dib9000_get_i2c_master(struct dvb_frontend *fe, enum dibx000_i2c_interface intf,
+		int gating)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

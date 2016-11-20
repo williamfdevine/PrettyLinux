@@ -58,12 +58,12 @@
 #define		PACKET3_BITBLT_MULTI		0x9B
 
 #define PACKET0(reg, n)	(CP_PACKET0 |					\
-			 REG_SET(PACKET0_BASE_INDEX, (reg) >> 2) |	\
-			 REG_SET(PACKET0_COUNT, (n)))
+						 REG_SET(PACKET0_BASE_INDEX, (reg) >> 2) |	\
+						 REG_SET(PACKET0_COUNT, (n)))
 #define PACKET2(v)	(CP_PACKET2 | REG_SET(PACKET2_PAD, (v)))
 #define PACKET3(op, n)	(CP_PACKET3 |					\
-			 REG_SET(PACKET3_IT_OPCODE, (op)) |		\
-			 REG_SET(PACKET3_COUNT, (n)))
+						 REG_SET(PACKET3_IT_OPCODE, (op)) |		\
+						 REG_SET(PACKET3_COUNT, (n)))
 
 /* Registers */
 #define R_000148_MC_FB_LOCATION                      0x000148

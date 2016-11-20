@@ -50,7 +50,7 @@
 
 #define ERST_TAB_ENTRY(tab)						\
 	((struct acpi_whea_header *)((char *)(tab) +			\
-				     sizeof(struct acpi_table_erst)))
+								 sizeof(struct acpi_table_erst)))
 
 #define SPIN_UNIT		100			/* 100ns */
 /* Firmware should respond within 1 milliseconds */
@@ -71,7 +71,8 @@ static struct acpi_table_erst *erst_tab;
  * ERST Error Log Address Range, used as buffer for reading/writing
  * error records.
  */
-static struct erst_erange {
+static struct erst_erange
+{
 	u64 base;
 	u64 size;
 	void __iomem *vaddr;
@@ -90,27 +91,34 @@ static DEFINE_RAW_SPINLOCK(erst_lock);
 
 static inline int erst_errno(int command_status)
 {
-	switch (command_status) {
-	case ERST_STATUS_SUCCESS:
-		return 0;
-	case ERST_STATUS_HARDWARE_NOT_AVAILABLE:
-		return -ENODEV;
-	case ERST_STATUS_NOT_ENOUGH_SPACE:
-		return -ENOSPC;
-	case ERST_STATUS_RECORD_STORE_EMPTY:
-	case ERST_STATUS_RECORD_NOT_FOUND:
-		return -ENOENT;
-	default:
-		return -EINVAL;
+	switch (command_status)
+	{
+		case ERST_STATUS_SUCCESS:
+			return 0;
+
+		case ERST_STATUS_HARDWARE_NOT_AVAILABLE:
+			return -ENODEV;
+
+		case ERST_STATUS_NOT_ENOUGH_SPACE:
+			return -ENOSPC;
+
+		case ERST_STATUS_RECORD_STORE_EMPTY:
+		case ERST_STATUS_RECORD_NOT_FOUND:
+			return -ENOENT;
+
+		default:
+			return -EINVAL;
 	}
 }
 
 static int erst_timedout(u64 *t, u64 spin_unit)
 {
-	if ((s64)*t < spin_unit) {
+	if ((s64)*t < spin_unit)
+	{
 		pr_warn(FW_WARN "Firmware does not respond in time.\n");
 		return 1;
 	}
+
 	*t -= spin_unit;
 	ndelay(spin_unit);
 	touch_nmi_watchdog();
@@ -118,108 +126,138 @@ static int erst_timedout(u64 *t, u64 spin_unit)
 }
 
 static int erst_exec_load_var1(struct apei_exec_context *ctx,
-			       struct acpi_whea_header *entry)
+							   struct acpi_whea_header *entry)
 {
 	return __apei_exec_read_register(entry, &ctx->var1);
 }
 
 static int erst_exec_load_var2(struct apei_exec_context *ctx,
-			       struct acpi_whea_header *entry)
+							   struct acpi_whea_header *entry)
 {
 	return __apei_exec_read_register(entry, &ctx->var2);
 }
 
 static int erst_exec_store_var1(struct apei_exec_context *ctx,
-				struct acpi_whea_header *entry)
+								struct acpi_whea_header *entry)
 {
 	return __apei_exec_write_register(entry, ctx->var1);
 }
 
 static int erst_exec_add(struct apei_exec_context *ctx,
-			 struct acpi_whea_header *entry)
+						 struct acpi_whea_header *entry)
 {
 	ctx->var1 += ctx->var2;
 	return 0;
 }
 
 static int erst_exec_subtract(struct apei_exec_context *ctx,
-			      struct acpi_whea_header *entry)
+							  struct acpi_whea_header *entry)
 {
 	ctx->var1 -= ctx->var2;
 	return 0;
 }
 
 static int erst_exec_add_value(struct apei_exec_context *ctx,
-			       struct acpi_whea_header *entry)
+							   struct acpi_whea_header *entry)
 {
 	int rc;
 	u64 val;
 
 	rc = __apei_exec_read_register(entry, &val);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	val += ctx->value;
 	rc = __apei_exec_write_register(entry, val);
 	return rc;
 }
 
 static int erst_exec_subtract_value(struct apei_exec_context *ctx,
-				    struct acpi_whea_header *entry)
+									struct acpi_whea_header *entry)
 {
 	int rc;
 	u64 val;
 
 	rc = __apei_exec_read_register(entry, &val);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	val -= ctx->value;
 	rc = __apei_exec_write_register(entry, val);
 	return rc;
 }
 
 static int erst_exec_stall(struct apei_exec_context *ctx,
-			   struct acpi_whea_header *entry)
+						   struct acpi_whea_header *entry)
 {
 	u64 stall_time;
 
-	if (ctx->value > FIRMWARE_MAX_STALL) {
+	if (ctx->value > FIRMWARE_MAX_STALL)
+	{
 		if (!in_nmi())
 			pr_warn(FW_WARN
-			"Too long stall time for stall instruction: 0x%llx.\n",
-				   ctx->value);
+					"Too long stall time for stall instruction: 0x%llx.\n",
+					ctx->value);
+
 		stall_time = FIRMWARE_MAX_STALL;
-	} else
+	}
+	else
+	{
 		stall_time = ctx->value;
+	}
+
 	udelay(stall_time);
 	return 0;
 }
 
 static int erst_exec_stall_while_true(struct apei_exec_context *ctx,
-				      struct acpi_whea_header *entry)
+									  struct acpi_whea_header *entry)
 {
 	int rc;
 	u64 val;
 	u64 timeout = FIRMWARE_TIMEOUT;
 	u64 stall_time;
 
-	if (ctx->var1 > FIRMWARE_MAX_STALL) {
+	if (ctx->var1 > FIRMWARE_MAX_STALL)
+	{
 		if (!in_nmi())
 			pr_warn(FW_WARN
-		"Too long stall time for stall while true instruction: 0x%llx.\n",
-				   ctx->var1);
-		stall_time = FIRMWARE_MAX_STALL;
-	} else
-		stall_time = ctx->var1;
+					"Too long stall time for stall while true instruction: 0x%llx.\n",
+					ctx->var1);
 
-	for (;;) {
-		rc = __apei_exec_read_register(entry, &val);
-		if (rc)
-			return rc;
-		if (val != ctx->value)
-			break;
-		if (erst_timedout(&timeout, stall_time * NSEC_PER_USEC))
-			return -EIO;
+		stall_time = FIRMWARE_MAX_STALL;
 	}
+	else
+	{
+		stall_time = ctx->var1;
+	}
+
+	for (;;)
+	{
+		rc = __apei_exec_read_register(entry, &val);
+
+		if (rc)
+		{
+			return rc;
+		}
+
+		if (val != ctx->value)
+		{
+			break;
+		}
+
+		if (erst_timedout(&timeout, stall_time * NSEC_PER_USEC))
+		{
+			return -EIO;
+		}
+	}
+
 	return 0;
 }
 
@@ -231,9 +269,14 @@ static int erst_exec_skip_next_instruction_if_true(
 	u64 val;
 
 	rc = __apei_exec_read_register(entry, &val);
+
 	if (rc)
+	{
 		return rc;
-	if (val == ctx->value) {
+	}
+
+	if (val == ctx->value)
+	{
 		ctx->ip += 2;
 		return APEI_EXEC_SET_IP;
 	}
@@ -242,46 +285,56 @@ static int erst_exec_skip_next_instruction_if_true(
 }
 
 static int erst_exec_goto(struct apei_exec_context *ctx,
-			  struct acpi_whea_header *entry)
+						  struct acpi_whea_header *entry)
 {
 	ctx->ip = ctx->value;
 	return APEI_EXEC_SET_IP;
 }
 
 static int erst_exec_set_src_address_base(struct apei_exec_context *ctx,
-					  struct acpi_whea_header *entry)
+		struct acpi_whea_header *entry)
 {
 	return __apei_exec_read_register(entry, &ctx->src_base);
 }
 
 static int erst_exec_set_dst_address_base(struct apei_exec_context *ctx,
-					  struct acpi_whea_header *entry)
+		struct acpi_whea_header *entry)
 {
 	return __apei_exec_read_register(entry, &ctx->dst_base);
 }
 
 static int erst_exec_move_data(struct apei_exec_context *ctx,
-			       struct acpi_whea_header *entry)
+							   struct acpi_whea_header *entry)
 {
 	int rc;
 	u64 offset;
 	void *src, *dst;
 
 	/* ioremap does not work in interrupt context */
-	if (in_interrupt()) {
+	if (in_interrupt())
+	{
 		pr_warn("MOVE_DATA can not be used in interrupt context.\n");
 		return -EBUSY;
 	}
 
 	rc = __apei_exec_read_register(entry, &offset);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	src = ioremap(ctx->src_base + offset, ctx->var2);
+
 	if (!src)
+	{
 		return -ENOMEM;
+	}
+
 	dst = ioremap(ctx->dst_base + offset, ctx->var2);
-	if (!dst) {
+
+	if (!dst)
+	{
 		iounmap(src);
 		return -ENOMEM;
 	}
@@ -294,7 +347,8 @@ static int erst_exec_move_data(struct apei_exec_context *ctx,
 	return 0;
 }
 
-static struct apei_exec_ins_type erst_ins_type[] = {
+static struct apei_exec_ins_type erst_ins_type[] =
+{
 	[ACPI_ERST_READ_REGISTER] = {
 		.flags = APEI_EXEC_INS_ACCESS_REGISTER,
 		.run = apei_exec_read_register,
@@ -376,7 +430,7 @@ static struct apei_exec_ins_type erst_ins_type[] = {
 static inline void erst_exec_ctx_init(struct apei_exec_context *ctx)
 {
 	apei_exec_ctx_init(ctx, erst_ins_type, ARRAY_SIZE(erst_ins_type),
-			   ERST_TAB_ENTRY(erst_tab), erst_tab->entries);
+					   ERST_TAB_ENTRY(erst_tab), erst_tab->entries);
 }
 
 static int erst_get_erange(struct erst_erange *range)
@@ -386,16 +440,28 @@ static int erst_get_erange(struct erst_erange *range)
 
 	erst_exec_ctx_init(&ctx);
 	rc = apei_exec_run(&ctx, ACPI_ERST_GET_ERROR_RANGE);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	range->base = apei_exec_ctx_get_output(&ctx);
 	rc = apei_exec_run(&ctx, ACPI_ERST_GET_ERROR_LENGTH);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	range->size = apei_exec_ctx_get_output(&ctx);
 	rc = apei_exec_run(&ctx, ACPI_ERST_GET_ERROR_ATTRIBUTES);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	range->attr = apei_exec_ctx_get_output(&ctx);
 
 	return 0;
@@ -408,8 +474,12 @@ static ssize_t __erst_get_record_count(void)
 
 	erst_exec_ctx_init(&ctx);
 	rc = apei_exec_run(&ctx, ACPI_ERST_GET_RECORD_COUNT);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	return apei_exec_ctx_get_output(&ctx);
 }
 
@@ -419,7 +489,9 @@ ssize_t erst_get_record_count(void)
 	unsigned long flags;
 
 	if (erst_disable)
+	{
 		return -ENODEV;
+	}
 
 	raw_spin_lock_irqsave(&erst_lock, flags);
 	count = __erst_get_record_count();
@@ -432,7 +504,8 @@ EXPORT_SYMBOL_GPL(erst_get_record_count);
 #define ERST_RECORD_ID_CACHE_SIZE_MIN	16
 #define ERST_RECORD_ID_CACHE_SIZE_MAX	1024
 
-struct erst_record_id_cache {
+struct erst_record_id_cache
+{
 	struct mutex lock;
 	u64 *entries;
 	int len;
@@ -440,7 +513,8 @@ struct erst_record_id_cache {
 	int refcount;
 };
 
-static struct erst_record_id_cache erst_record_id_cache = {
+static struct erst_record_id_cache erst_record_id_cache =
+{
 	.lock = __MUTEX_INITIALIZER(erst_record_id_cache.lock),
 	.refcount = 0,
 };
@@ -452,8 +526,12 @@ static int __erst_get_next_record_id(u64 *record_id)
 
 	erst_exec_ctx_init(&ctx);
 	rc = apei_exec_run(&ctx, ACPI_ERST_GET_RECORD_ID);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	*record_id = apei_exec_ctx_get_output(&ctx);
 
 	return 0;
@@ -464,11 +542,17 @@ int erst_get_record_id_begin(int *pos)
 	int rc;
 
 	if (erst_disable)
+	{
 		return -ENODEV;
+	}
 
 	rc = mutex_lock_interruptible(&erst_record_id_cache.lock);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	erst_record_id_cache.refcount++;
 	mutex_unlock(&erst_record_id_cache.lock);
 
@@ -491,52 +575,93 @@ retry:
 	raw_spin_lock_irqsave(&erst_lock, flags);
 	rc = __erst_get_next_record_id(&id);
 	raw_spin_unlock_irqrestore(&erst_lock, flags);
+
 	if (rc == -ENOENT)
+	{
 		return 0;
+	}
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	if (id == APEI_ERST_INVALID_RECORD_ID)
+	{
 		return 0;
+	}
+
 	/* can not skip current ID, or loop back to first ID */
 	if (id == prev_id || id == first_id)
+	{
 		return 0;
+	}
+
 	if (first_id == APEI_ERST_INVALID_RECORD_ID)
+	{
 		first_id = id;
+	}
+
 	prev_id = id;
 
 	entries = erst_record_id_cache.entries;
-	for (i = 0; i < erst_record_id_cache.len; i++) {
+
+	for (i = 0; i < erst_record_id_cache.len; i++)
+	{
 		if (entries[i] == id)
+		{
 			break;
+		}
 	}
+
 	/* record id already in cache, try next */
 	if (i < erst_record_id_cache.len)
+	{
 		goto retry;
-	if (erst_record_id_cache.len >= erst_record_id_cache.size) {
+	}
+
+	if (erst_record_id_cache.len >= erst_record_id_cache.size)
+	{
 		int new_size, alloc_size;
 		u64 *new_entries;
 
 		new_size = erst_record_id_cache.size * 2;
 		new_size = clamp_val(new_size, ERST_RECORD_ID_CACHE_SIZE_MIN,
-				     ERST_RECORD_ID_CACHE_SIZE_MAX);
-		if (new_size <= erst_record_id_cache.size) {
+							 ERST_RECORD_ID_CACHE_SIZE_MAX);
+
+		if (new_size <= erst_record_id_cache.size)
+		{
 			if (printk_ratelimit())
+			{
 				pr_warn(FW_WARN "too many record IDs!\n");
+			}
+
 			return 0;
 		}
+
 		alloc_size = new_size * sizeof(entries[0]);
+
 		if (alloc_size < PAGE_SIZE)
+		{
 			new_entries = kmalloc(alloc_size, GFP_KERNEL);
+		}
 		else
+		{
 			new_entries = vmalloc(alloc_size);
+		}
+
 		if (!new_entries)
+		{
 			return -ENOMEM;
+		}
+
 		memcpy(new_entries, entries,
-		       erst_record_id_cache.len * sizeof(entries[0]));
+			   erst_record_id_cache.len * sizeof(entries[0]));
 		kvfree(entries);
 		erst_record_id_cache.entries = entries = new_entries;
 		erst_record_id_cache.size = new_size;
 	}
+
 	entries[i] = id;
 	erst_record_id_cache.len++;
 
@@ -554,7 +679,9 @@ int erst_get_record_id_next(int *pos, u64 *record_id)
 	u64 *entries;
 
 	if (erst_disable)
+	{
 		return -ENODEV;
+	}
 
 	/* must be enclosed by erst_get_record_id_begin/end */
 	BUG_ON(!erst_record_id_cache.refcount);
@@ -562,11 +689,16 @@ int erst_get_record_id_next(int *pos, u64 *record_id)
 
 	mutex_lock(&erst_record_id_cache.lock);
 	entries = erst_record_id_cache.entries;
+
 	for (; *pos < erst_record_id_cache.len; (*pos)++)
 		if (entries[*pos] != APEI_ERST_INVALID_RECORD_ID)
+		{
 			break;
+		}
+
 	/* found next record id in cache */
-	if (*pos < erst_record_id_cache.len) {
+	if (*pos < erst_record_id_cache.len)
+	{
 		*record_id = entries[*pos];
 		(*pos)++;
 		goto out_unlock;
@@ -574,17 +706,25 @@ int erst_get_record_id_next(int *pos, u64 *record_id)
 
 	/* Try to add one more record ID to cache */
 	rc = __erst_record_id_cache_add_one();
+
 	if (rc < 0)
+	{
 		goto out_unlock;
+	}
+
 	/* successfully add one new ID */
-	if (rc == 1) {
+	if (rc == 1)
+	{
 		*record_id = erst_record_id_cache.entries[*pos];
 		(*pos)++;
 		rc = 0;
-	} else {
+	}
+	else
+	{
 		*pos = -1;
 		*record_id = APEI_ERST_INVALID_RECORD_ID;
 	}
+
 out_unlock:
 	mutex_unlock(&erst_record_id_cache.lock);
 
@@ -599,16 +739,27 @@ static void __erst_record_id_cache_compact(void)
 	u64 *entries;
 
 	if (erst_record_id_cache.refcount)
+	{
 		return;
+	}
 
 	entries = erst_record_id_cache.entries;
-	for (i = 0; i < erst_record_id_cache.len; i++) {
+
+	for (i = 0; i < erst_record_id_cache.len; i++)
+	{
 		if (entries[i] == APEI_ERST_INVALID_RECORD_ID)
+		{
 			continue;
+		}
+
 		if (wpos != i)
+		{
 			entries[wpos] = entries[i];
+		}
+
 		wpos++;
 	}
+
 	erst_record_id_cache.len = wpos;
 }
 
@@ -638,32 +789,63 @@ static int __erst_write_to_storage(u64 offset)
 
 	erst_exec_ctx_init(&ctx);
 	rc = apei_exec_run_optional(&ctx, ACPI_ERST_BEGIN_WRITE);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	apei_exec_ctx_set_input(&ctx, offset);
 	rc = apei_exec_run(&ctx, ACPI_ERST_SET_RECORD_OFFSET);
+
 	if (rc)
+	{
 		return rc;
-	rc = apei_exec_run(&ctx, ACPI_ERST_EXECUTE_OPERATION);
-	if (rc)
-		return rc;
-	for (;;) {
-		rc = apei_exec_run(&ctx, ACPI_ERST_CHECK_BUSY_STATUS);
-		if (rc)
-			return rc;
-		val = apei_exec_ctx_get_output(&ctx);
-		if (!val)
-			break;
-		if (erst_timedout(&timeout, SPIN_UNIT))
-			return -EIO;
 	}
-	rc = apei_exec_run(&ctx, ACPI_ERST_GET_COMMAND_STATUS);
+
+	rc = apei_exec_run(&ctx, ACPI_ERST_EXECUTE_OPERATION);
+
 	if (rc)
+	{
 		return rc;
+	}
+
+	for (;;)
+	{
+		rc = apei_exec_run(&ctx, ACPI_ERST_CHECK_BUSY_STATUS);
+
+		if (rc)
+		{
+			return rc;
+		}
+
+		val = apei_exec_ctx_get_output(&ctx);
+
+		if (!val)
+		{
+			break;
+		}
+
+		if (erst_timedout(&timeout, SPIN_UNIT))
+		{
+			return -EIO;
+		}
+	}
+
+	rc = apei_exec_run(&ctx, ACPI_ERST_GET_COMMAND_STATUS);
+
+	if (rc)
+	{
+		return rc;
+	}
+
 	val = apei_exec_ctx_get_output(&ctx);
 	rc = apei_exec_run_optional(&ctx, ACPI_ERST_END);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	return erst_errno(val);
 }
@@ -677,36 +859,71 @@ static int __erst_read_from_storage(u64 record_id, u64 offset)
 
 	erst_exec_ctx_init(&ctx);
 	rc = apei_exec_run_optional(&ctx, ACPI_ERST_BEGIN_READ);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	apei_exec_ctx_set_input(&ctx, offset);
 	rc = apei_exec_run(&ctx, ACPI_ERST_SET_RECORD_OFFSET);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	apei_exec_ctx_set_input(&ctx, record_id);
 	rc = apei_exec_run(&ctx, ACPI_ERST_SET_RECORD_ID);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	rc = apei_exec_run(&ctx, ACPI_ERST_EXECUTE_OPERATION);
+
 	if (rc)
+	{
 		return rc;
-	for (;;) {
+	}
+
+	for (;;)
+	{
 		rc = apei_exec_run(&ctx, ACPI_ERST_CHECK_BUSY_STATUS);
+
 		if (rc)
+		{
 			return rc;
+		}
+
 		val = apei_exec_ctx_get_output(&ctx);
+
 		if (!val)
+		{
 			break;
+		}
+
 		if (erst_timedout(&timeout, SPIN_UNIT))
+		{
 			return -EIO;
+		}
 	};
+
 	rc = apei_exec_run(&ctx, ACPI_ERST_GET_COMMAND_STATUS);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	val = apei_exec_ctx_get_output(&ctx);
 	rc = apei_exec_run_optional(&ctx, ACPI_ERST_END);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	return erst_errno(val);
 }
@@ -720,32 +937,63 @@ static int __erst_clear_from_storage(u64 record_id)
 
 	erst_exec_ctx_init(&ctx);
 	rc = apei_exec_run_optional(&ctx, ACPI_ERST_BEGIN_CLEAR);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	apei_exec_ctx_set_input(&ctx, record_id);
 	rc = apei_exec_run(&ctx, ACPI_ERST_SET_RECORD_ID);
+
 	if (rc)
+	{
 		return rc;
-	rc = apei_exec_run(&ctx, ACPI_ERST_EXECUTE_OPERATION);
-	if (rc)
-		return rc;
-	for (;;) {
-		rc = apei_exec_run(&ctx, ACPI_ERST_CHECK_BUSY_STATUS);
-		if (rc)
-			return rc;
-		val = apei_exec_ctx_get_output(&ctx);
-		if (!val)
-			break;
-		if (erst_timedout(&timeout, SPIN_UNIT))
-			return -EIO;
 	}
-	rc = apei_exec_run(&ctx, ACPI_ERST_GET_COMMAND_STATUS);
+
+	rc = apei_exec_run(&ctx, ACPI_ERST_EXECUTE_OPERATION);
+
 	if (rc)
+	{
 		return rc;
+	}
+
+	for (;;)
+	{
+		rc = apei_exec_run(&ctx, ACPI_ERST_CHECK_BUSY_STATUS);
+
+		if (rc)
+		{
+			return rc;
+		}
+
+		val = apei_exec_ctx_get_output(&ctx);
+
+		if (!val)
+		{
+			break;
+		}
+
+		if (erst_timedout(&timeout, SPIN_UNIT))
+		{
+			return -EIO;
+		}
+	}
+
+	rc = apei_exec_run(&ctx, ACPI_ERST_GET_COMMAND_STATUS);
+
+	if (rc)
+	{
+		return rc;
+	}
+
 	val = apei_exec_ctx_get_output(&ctx);
 	rc = apei_exec_run_optional(&ctx, ACPI_ERST_END);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	return erst_errno(val);
 }
@@ -754,7 +1002,9 @@ static int __erst_clear_from_storage(u64 record_id)
 static void pr_unimpl_nvram(void)
 {
 	if (printk_ratelimit())
+	{
 		pr_warn("NVRAM ERST Log Address Range not implemented yet.\n");
+	}
 }
 
 static int __erst_write_to_nvram(const struct cper_record_header *record)
@@ -782,24 +1032,37 @@ int erst_write(const struct cper_record_header *record)
 	struct cper_record_header *rcd_erange;
 
 	if (erst_disable)
+	{
 		return -ENODEV;
+	}
 
 	if (memcmp(record->signature, CPER_SIG_RECORD, CPER_SIG_SIZE))
+	{
 		return -EINVAL;
+	}
 
-	if (erst_erange.attr & ERST_RANGE_NVRAM) {
+	if (erst_erange.attr & ERST_RANGE_NVRAM)
+	{
 		if (!raw_spin_trylock_irqsave(&erst_lock, flags))
+		{
 			return -EBUSY;
+		}
+
 		rc = __erst_write_to_nvram(record);
 		raw_spin_unlock_irqrestore(&erst_lock, flags);
 		return rc;
 	}
 
 	if (record->record_length > erst_erange.size)
+	{
 		return -EINVAL;
+	}
 
 	if (!raw_spin_trylock_irqsave(&erst_lock, flags))
+	{
 		return -EBUSY;
+	}
+
 	memcpy(erst_erange.vaddr, record, record->record_length);
 	rcd_erange = erst_erange.vaddr;
 	/* signature for serialization system */
@@ -818,30 +1081,41 @@ static int __erst_read_to_erange(u64 record_id, u64 *offset)
 
 	if (erst_erange.attr & ERST_RANGE_NVRAM)
 		return __erst_read_to_erange_from_nvram(
-			record_id, offset);
+				   record_id, offset);
 
 	rc = __erst_read_from_storage(record_id, 0);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	*offset = 0;
 
 	return 0;
 }
 
 static ssize_t __erst_read(u64 record_id, struct cper_record_header *record,
-			   size_t buflen)
+						   size_t buflen)
 {
 	int rc;
 	u64 offset, len = 0;
 	struct cper_record_header *rcd_tmp;
 
 	rc = __erst_read_to_erange(record_id, &offset);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	rcd_tmp = erst_erange.vaddr + offset;
 	len = rcd_tmp->record_length;
+
 	if (len <= buflen)
+	{
 		memcpy(record, rcd_tmp, len);
+	}
 
 	return len;
 }
@@ -852,13 +1126,15 @@ static ssize_t __erst_read(u64 record_id, struct cper_record_header *record,
  * else everything is OK, and return value is record length
  */
 ssize_t erst_read(u64 record_id, struct cper_record_header *record,
-		  size_t buflen)
+				  size_t buflen)
 {
 	ssize_t len;
 	unsigned long flags;
 
 	if (erst_disable)
+	{
 		return -ENODEV;
+	}
 
 	raw_spin_lock_irqsave(&erst_lock, flags);
 	len = __erst_read(record_id, record, buflen);
@@ -874,24 +1150,45 @@ int erst_clear(u64 record_id)
 	u64 *entries;
 
 	if (erst_disable)
+	{
 		return -ENODEV;
+	}
 
 	rc = mutex_lock_interruptible(&erst_record_id_cache.lock);
+
 	if (rc)
+	{
 		return rc;
-	raw_spin_lock_irqsave(&erst_lock, flags);
-	if (erst_erange.attr & ERST_RANGE_NVRAM)
-		rc = __erst_clear_from_nvram(record_id);
-	else
-		rc = __erst_clear_from_storage(record_id);
-	raw_spin_unlock_irqrestore(&erst_lock, flags);
-	if (rc)
-		goto out;
-	entries = erst_record_id_cache.entries;
-	for (i = 0; i < erst_record_id_cache.len; i++) {
-		if (entries[i] == record_id)
-			entries[i] = APEI_ERST_INVALID_RECORD_ID;
 	}
+
+	raw_spin_lock_irqsave(&erst_lock, flags);
+
+	if (erst_erange.attr & ERST_RANGE_NVRAM)
+	{
+		rc = __erst_clear_from_nvram(record_id);
+	}
+	else
+	{
+		rc = __erst_clear_from_storage(record_id);
+	}
+
+	raw_spin_unlock_irqrestore(&erst_lock, flags);
+
+	if (rc)
+	{
+		goto out;
+	}
+
+	entries = erst_record_id_cache.entries;
+
+	for (i = 0; i < erst_record_id_cache.len; i++)
+	{
+		if (entries[i] == record_id)
+		{
+			entries[i] = APEI_ERST_INVALID_RECORD_ID;
+		}
+	}
+
 	__erst_record_id_cache_compact();
 out:
 	mutex_unlock(&erst_record_id_cache.lock);
@@ -910,15 +1207,23 @@ __setup("erst_disable", setup_erst_disable);
 static int erst_check_table(struct acpi_table_erst *erst_tab)
 {
 	if ((erst_tab->header_length !=
-	     (sizeof(struct acpi_table_erst) - sizeof(erst_tab->header)))
-	    && (erst_tab->header_length != sizeof(struct acpi_table_erst)))
+		 (sizeof(struct acpi_table_erst) - sizeof(erst_tab->header)))
+		&& (erst_tab->header_length != sizeof(struct acpi_table_erst)))
+	{
 		return -EINVAL;
+	}
+
 	if (erst_tab->header.length < sizeof(struct acpi_table_erst))
+	{
 		return -EINVAL;
+	}
+
 	if (erst_tab->entries !=
-	    (erst_tab->header.length - sizeof(struct acpi_table_erst)) /
-	    sizeof(struct acpi_erst_entry))
+		(erst_tab->header.length - sizeof(struct acpi_table_erst)) /
+		sizeof(struct acpi_erst_entry))
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -926,16 +1231,17 @@ static int erst_check_table(struct acpi_table_erst *erst_tab)
 static int erst_open_pstore(struct pstore_info *psi);
 static int erst_close_pstore(struct pstore_info *psi);
 static ssize_t erst_reader(u64 *id, enum pstore_type_id *type, int *count,
-			   struct timespec *time, char **buf,
-			   bool *compressed, ssize_t *ecc_notice_size,
-			   struct pstore_info *psi);
+						   struct timespec *time, char **buf,
+						   bool *compressed, ssize_t *ecc_notice_size,
+						   struct pstore_info *psi);
 static int erst_writer(enum pstore_type_id type, enum kmsg_dump_reason reason,
-		       u64 *id, unsigned int part, int count, bool compressed,
-		       size_t size, struct pstore_info *psi);
+					   u64 *id, unsigned int part, int count, bool compressed,
+					   size_t size, struct pstore_info *psi);
 static int erst_clearer(enum pstore_type_id type, u64 id, int count,
-			struct timespec time, struct pstore_info *psi);
+						struct timespec time, struct pstore_info *psi);
 
-static struct pstore_info erst_info = {
+static struct pstore_info erst_info =
+{
 	.owner		= THIS_MODULE,
 	.name		= "erst",
 	.flags		= PSTORE_FLAGS_DMESG,
@@ -948,18 +1254,19 @@ static struct pstore_info erst_info = {
 
 #define CPER_CREATOR_PSTORE						\
 	UUID_LE(0x75a574e3, 0x5052, 0x4b29, 0x8a, 0x8e, 0xbe, 0x2c,	\
-		0x64, 0x90, 0xb8, 0x9d)
+			0x64, 0x90, 0xb8, 0x9d)
 #define CPER_SECTION_TYPE_DMESG						\
 	UUID_LE(0xc197e04e, 0xd545, 0x4a70, 0x9c, 0x17, 0xa5, 0x54,	\
-		0x94, 0x19, 0xeb, 0x12)
+			0x94, 0x19, 0xeb, 0x12)
 #define CPER_SECTION_TYPE_DMESG_Z					\
 	UUID_LE(0x4f118707, 0x04dd, 0x4055, 0xb5, 0xdd, 0x95, 0x6d,	\
-		0x34, 0xdd, 0xfa, 0xc6)
+			0x34, 0xdd, 0xfa, 0xc6)
 #define CPER_SECTION_TYPE_MCE						\
 	UUID_LE(0xfe08ffbe, 0x95e4, 0x4be7, 0xbc, 0x73, 0x40, 0x96,	\
-		0x04, 0x4a, 0x38, 0xfc)
+			0x04, 0x4a, 0x38, 0xfc)
 
-struct cper_pstore_record {
+struct cper_pstore_record
+{
 	struct cper_record_header hdr;
 	struct cper_section_descriptor sec_hdr;
 	char data[];
@@ -972,7 +1279,9 @@ static int erst_open_pstore(struct pstore_info *psi)
 	int rc;
 
 	if (erst_disable)
+	{
 		return -ENODEV;
+	}
 
 	rc = erst_get_record_id_begin(&reader_pos);
 
@@ -987,9 +1296,9 @@ static int erst_close_pstore(struct pstore_info *psi)
 }
 
 static ssize_t erst_reader(u64 *id, enum pstore_type_id *type, int *count,
-			   struct timespec *time, char **buf,
-			   bool *compressed, ssize_t *ecc_notice_size,
-			   struct pstore_info *psi)
+						   struct timespec *time, char **buf,
+						   bool *compressed, ssize_t *ecc_notice_size,
+						   struct pstore_info *psi)
 {
 	int rc;
 	ssize_t len = 0;
@@ -998,61 +1307,94 @@ static ssize_t erst_reader(u64 *id, enum pstore_type_id *type, int *count,
 	size_t rcd_len = sizeof(*rcd) + erst_info.bufsize;
 
 	if (erst_disable)
+	{
 		return -ENODEV;
+	}
 
 	rcd = kmalloc(rcd_len, GFP_KERNEL);
-	if (!rcd) {
+
+	if (!rcd)
+	{
 		rc = -ENOMEM;
 		goto out;
 	}
+
 skip:
 	rc = erst_get_record_id_next(&reader_pos, &record_id);
+
 	if (rc)
+	{
 		goto out;
+	}
 
 	/* no more record */
-	if (record_id == APEI_ERST_INVALID_RECORD_ID) {
+	if (record_id == APEI_ERST_INVALID_RECORD_ID)
+	{
 		rc = -EINVAL;
 		goto out;
 	}
 
 	len = erst_read(record_id, &rcd->hdr, rcd_len);
+
 	/* The record may be cleared by others, try read next record */
 	if (len == -ENOENT)
+	{
 		goto skip;
-	else if (len < sizeof(*rcd)) {
+	}
+	else if (len < sizeof(*rcd))
+	{
 		rc = -EIO;
 		goto out;
 	}
+
 	if (uuid_le_cmp(rcd->hdr.creator_id, CPER_CREATOR_PSTORE) != 0)
+	{
 		goto skip;
+	}
 
 	*buf = kmalloc(len, GFP_KERNEL);
-	if (*buf == NULL) {
+
+	if (*buf == NULL)
+	{
 		rc = -ENOMEM;
 		goto out;
 	}
+
 	memcpy(*buf, rcd->data, len - sizeof(*rcd));
 	*id = record_id;
 	*compressed = false;
 	*ecc_notice_size = 0;
+
 	if (uuid_le_cmp(rcd->sec_hdr.section_type,
-			CPER_SECTION_TYPE_DMESG_Z) == 0) {
+					CPER_SECTION_TYPE_DMESG_Z) == 0)
+	{
 		*type = PSTORE_TYPE_DMESG;
 		*compressed = true;
-	} else if (uuid_le_cmp(rcd->sec_hdr.section_type,
-			CPER_SECTION_TYPE_DMESG) == 0)
-		*type = PSTORE_TYPE_DMESG;
+	}
 	else if (uuid_le_cmp(rcd->sec_hdr.section_type,
-			     CPER_SECTION_TYPE_MCE) == 0)
+						 CPER_SECTION_TYPE_DMESG) == 0)
+	{
+		*type = PSTORE_TYPE_DMESG;
+	}
+	else if (uuid_le_cmp(rcd->sec_hdr.section_type,
+						 CPER_SECTION_TYPE_MCE) == 0)
+	{
 		*type = PSTORE_TYPE_MCE;
+	}
 	else
+	{
 		*type = PSTORE_TYPE_UNKNOWN;
+	}
 
 	if (rcd->hdr.validation_bits & CPER_VALID_TIMESTAMP)
+	{
 		time->tv_sec = rcd->hdr.timestamp;
+	}
 	else
+	{
 		time->tv_sec = 0;
+	}
+
 	time->tv_nsec = 0;
 
 out:
@@ -1061,11 +1403,11 @@ out:
 }
 
 static int erst_writer(enum pstore_type_id type, enum kmsg_dump_reason reason,
-		       u64 *id, unsigned int part, int count, bool compressed,
-		       size_t size, struct pstore_info *psi)
+					   u64 *id, unsigned int part, int count, bool compressed,
+					   size_t size, struct pstore_info *psi)
 {
 	struct cper_pstore_record *rcd = (struct cper_pstore_record *)
-					(erst_info.buf - sizeof(*rcd));
+									 (erst_info.buf - sizeof(*rcd));
 	int ret;
 
 	memset(rcd, 0, sizeof(*rcd));
@@ -1089,19 +1431,29 @@ static int erst_writer(enum pstore_type_id type, enum kmsg_dump_reason reason,
 	/* fru_id and fru_text is invalid */
 	rcd->sec_hdr.validation_bits = 0;
 	rcd->sec_hdr.flags = CPER_SEC_PRIMARY;
-	switch (type) {
-	case PSTORE_TYPE_DMESG:
-		if (compressed)
-			rcd->sec_hdr.section_type = CPER_SECTION_TYPE_DMESG_Z;
-		else
-			rcd->sec_hdr.section_type = CPER_SECTION_TYPE_DMESG;
-		break;
-	case PSTORE_TYPE_MCE:
-		rcd->sec_hdr.section_type = CPER_SECTION_TYPE_MCE;
-		break;
-	default:
-		return -EINVAL;
+
+	switch (type)
+	{
+		case PSTORE_TYPE_DMESG:
+			if (compressed)
+			{
+				rcd->sec_hdr.section_type = CPER_SECTION_TYPE_DMESG_Z;
+			}
+			else
+			{
+				rcd->sec_hdr.section_type = CPER_SECTION_TYPE_DMESG;
+			}
+
+			break;
+
+		case PSTORE_TYPE_MCE:
+			rcd->sec_hdr.section_type = CPER_SECTION_TYPE_MCE;
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	rcd->sec_hdr.section_severity = CPER_SEV_FATAL;
 
 	ret = erst_write(&rcd->hdr);
@@ -1111,7 +1463,7 @@ static int erst_writer(enum pstore_type_id type, enum kmsg_dump_reason reason,
 }
 
 static int erst_clearer(enum pstore_type_id type, u64 id, int count,
-			struct timespec time, struct pstore_info *psi)
+						struct timespec time, struct pstore_info *psi)
 {
 	return erst_clear(id);
 }
@@ -1126,19 +1478,26 @@ static int __init erst_init(void)
 	char *buf;
 
 	if (acpi_disabled)
+	{
 		goto err;
+	}
 
-	if (erst_disable) {
+	if (erst_disable)
+	{
 		pr_info(
-	"Error Record Serialization Table (ERST) support is disabled.\n");
+			"Error Record Serialization Table (ERST) support is disabled.\n");
 		goto err;
 	}
 
 	status = acpi_get_table(ACPI_SIG_ERST, 0,
-				(struct acpi_table_header **)&erst_tab);
+							(struct acpi_table_header **)&erst_tab);
+
 	if (status == AE_NOT_FOUND)
+	{
 		goto err;
-	else if (ACPI_FAILURE(status)) {
+	}
+	else if (ACPI_FAILURE(status))
+	{
 		const char *msg = acpi_format_exception(status);
 		pr_err("Failed to get table, %s\n", msg);
 		rc = -EINVAL;
@@ -1146,7 +1505,9 @@ static int __init erst_init(void)
 	}
 
 	rc = erst_check_table(erst_tab);
-	if (rc) {
+
+	if (rc)
+	{
 		pr_err(FW_BUG "ERST table is invalid.\n");
 		goto err;
 	}
@@ -1154,61 +1515,90 @@ static int __init erst_init(void)
 	apei_resources_init(&erst_resources);
 	erst_exec_ctx_init(&ctx);
 	rc = apei_exec_collect_resources(&ctx, &erst_resources);
+
 	if (rc)
+	{
 		goto err_fini;
+	}
+
 	rc = apei_resources_request(&erst_resources, "APEI ERST");
+
 	if (rc)
+	{
 		goto err_fini;
+	}
+
 	rc = apei_exec_pre_map_gars(&ctx);
+
 	if (rc)
+	{
 		goto err_release;
+	}
+
 	rc = erst_get_erange(&erst_erange);
-	if (rc) {
+
+	if (rc)
+	{
 		if (rc == -ENODEV)
 			pr_info(
-	"The corresponding hardware device or firmware implementation "
-	"is not available.\n");
+				"The corresponding hardware device or firmware implementation "
+				"is not available.\n");
 		else
+		{
 			pr_err("Failed to get Error Log Address Range.\n");
+		}
+
 		goto err_unmap_reg;
 	}
 
 	r = request_mem_region(erst_erange.base, erst_erange.size, "APEI ERST");
-	if (!r) {
+
+	if (!r)
+	{
 		pr_err("Can not request [mem %#010llx-%#010llx] for ERST.\n",
-		       (unsigned long long)erst_erange.base,
-		       (unsigned long long)erst_erange.base + erst_erange.size - 1);
+			   (unsigned long long)erst_erange.base,
+			   (unsigned long long)erst_erange.base + erst_erange.size - 1);
 		rc = -EIO;
 		goto err_unmap_reg;
 	}
+
 	rc = -ENOMEM;
 	erst_erange.vaddr = ioremap_cache(erst_erange.base,
-					  erst_erange.size);
+									  erst_erange.size);
+
 	if (!erst_erange.vaddr)
+	{
 		goto err_release_erange;
+	}
 
 	pr_info(
-	"Error Record Serialization Table (ERST) support is initialized.\n");
+		"Error Record Serialization Table (ERST) support is initialized.\n");
 
 	buf = kmalloc(erst_erange.size, GFP_KERNEL);
 	spin_lock_init(&erst_info.buf_lock);
-	if (buf) {
+
+	if (buf)
+	{
 		erst_info.buf = buf + sizeof(struct cper_pstore_record);
 		erst_info.bufsize = erst_erange.size -
-				    sizeof(struct cper_pstore_record);
+							sizeof(struct cper_pstore_record);
 		rc = pstore_register(&erst_info);
-		if (rc) {
+
+		if (rc)
+		{
 			if (rc != -EPERM)
 				pr_info(
-				"Could not register with persistent store.\n");
+					"Could not register with persistent store.\n");
+
 			erst_info.buf = NULL;
 			erst_info.bufsize = 0;
 			kfree(buf);
 		}
-	} else
+	}
+	else
 		pr_err(
-		"Failed to allocate %lld bytes for persistent store error log.\n",
-		erst_erange.size);
+			"Failed to allocate %lld bytes for persistent store error log.\n",
+			erst_erange.size);
 
 	/* Cleanup ERST Resources */
 	apei_resources_fini(&erst_resources);

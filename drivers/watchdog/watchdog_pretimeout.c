@@ -25,7 +25,8 @@ static DEFINE_SPINLOCK(pretimeout_lock);
 /* List of watchdog devices, which can generate a pretimeout event */
 static LIST_HEAD(pretimeout_list);
 
-struct watchdog_pretimeout {
+struct watchdog_pretimeout
+{
 	struct watchdog_device		*wdd;
 	struct list_head		entry;
 };
@@ -36,7 +37,8 @@ static DEFINE_MUTEX(governor_lock);
 /* List of the registered watchdog pretimeout governors */
 static LIST_HEAD(governor_list);
 
-struct governor_priv {
+struct governor_priv
+{
 	struct watchdog_governor	*gov;
 	struct list_head		entry;
 };
@@ -46,8 +48,11 @@ static struct governor_priv *find_governor_by_name(const char *gov_name)
 	struct governor_priv *priv;
 
 	list_for_each_entry(priv, &governor_list, entry)
-		if (sysfs_streq(gov_name, priv->gov->name))
-			return priv;
+
+	if (sysfs_streq(gov_name, priv->gov->name))
+	{
+		return priv;
+	}
 
 	return NULL;
 }
@@ -60,7 +65,7 @@ int watchdog_pretimeout_available_governors_get(char *buf)
 	mutex_lock(&governor_lock);
 
 	list_for_each_entry(priv, &governor_list, entry)
-		count += sprintf(buf + count, "%s\n", priv->gov->name);
+	count += sprintf(buf + count, "%s\n", priv->gov->name);
 
 	mutex_unlock(&governor_lock);
 
@@ -72,22 +77,28 @@ int watchdog_pretimeout_governor_get(struct watchdog_device *wdd, char *buf)
 	int count = 0;
 
 	spin_lock_irq(&pretimeout_lock);
+
 	if (wdd->gov)
+	{
 		count = sprintf(buf, "%s\n", wdd->gov->name);
+	}
+
 	spin_unlock_irq(&pretimeout_lock);
 
 	return count;
 }
 
 int watchdog_pretimeout_governor_set(struct watchdog_device *wdd,
-				     const char *buf)
+									 const char *buf)
 {
 	struct governor_priv *priv;
 
 	mutex_lock(&governor_lock);
 
 	priv = find_governor_by_name(buf);
-	if (!priv) {
+
+	if (!priv)
+	{
 		mutex_unlock(&governor_lock);
 		return -EINVAL;
 	}
@@ -106,7 +117,9 @@ void watchdog_notify_pretimeout(struct watchdog_device *wdd)
 	unsigned long flags;
 
 	spin_lock_irqsave(&pretimeout_lock, flags);
-	if (!wdd->gov) {
+
+	if (!wdd->gov)
+	{
 		spin_unlock_irqrestore(&pretimeout_lock, flags);
 		return;
 	}
@@ -122,12 +135,16 @@ int watchdog_register_governor(struct watchdog_governor *gov)
 	struct governor_priv *priv;
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_lock(&governor_lock);
 
-	if (find_governor_by_name(gov->name)) {
+	if (find_governor_by_name(gov->name))
+	{
 		mutex_unlock(&governor_lock);
 		kfree(priv);
 		return -EBUSY;
@@ -137,13 +154,18 @@ int watchdog_register_governor(struct watchdog_governor *gov)
 	list_add(&priv->entry, &governor_list);
 
 	if (!strncmp(gov->name, WATCHDOG_PRETIMEOUT_DEFAULT_GOV,
-		     WATCHDOG_GOV_NAME_MAXLEN)) {
+				 WATCHDOG_GOV_NAME_MAXLEN))
+	{
 		spin_lock_irq(&pretimeout_lock);
 		default_gov = gov;
 
 		list_for_each_entry(p, &pretimeout_list, entry)
-			if (!p->wdd->gov)
-				p->wdd->gov = default_gov;
+
+		if (!p->wdd->gov)
+		{
+			p->wdd->gov = default_gov;
+		}
+
 		spin_unlock_irq(&pretimeout_lock);
 	}
 
@@ -160,8 +182,10 @@ void watchdog_unregister_governor(struct watchdog_governor *gov)
 
 	mutex_lock(&governor_lock);
 
-	list_for_each_entry_safe(priv, t, &governor_list, entry) {
-		if (priv->gov == gov) {
+	list_for_each_entry_safe(priv, t, &governor_list, entry)
+	{
+		if (priv->gov == gov)
+		{
 			list_del(&priv->entry);
 			kfree(priv);
 			break;
@@ -170,8 +194,12 @@ void watchdog_unregister_governor(struct watchdog_governor *gov)
 
 	spin_lock_irq(&pretimeout_lock);
 	list_for_each_entry(p, &pretimeout_list, entry)
-		if (p->wdd->gov == gov)
-			p->wdd->gov = default_gov;
+
+	if (p->wdd->gov == gov)
+	{
+		p->wdd->gov = default_gov;
+	}
+
 	spin_unlock_irq(&pretimeout_lock);
 
 	mutex_unlock(&governor_lock);
@@ -183,11 +211,16 @@ int watchdog_register_pretimeout(struct watchdog_device *wdd)
 	struct watchdog_pretimeout *p;
 
 	if (!(wdd->info->options & WDIOF_PRETIMEOUT))
+	{
 		return 0;
+	}
 
 	p = kzalloc(sizeof(*p), GFP_KERNEL);
+
 	if (!p)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_irq(&pretimeout_lock);
 	list_add(&p->entry, &pretimeout_list);
@@ -203,13 +236,17 @@ void watchdog_unregister_pretimeout(struct watchdog_device *wdd)
 	struct watchdog_pretimeout *p, *t;
 
 	if (!(wdd->info->options & WDIOF_PRETIMEOUT))
+	{
 		return;
+	}
 
 	spin_lock_irq(&pretimeout_lock);
 	wdd->gov = NULL;
 
-	list_for_each_entry_safe(p, t, &pretimeout_list, entry) {
-		if (p->wdd == wdd) {
+	list_for_each_entry_safe(p, t, &pretimeout_list, entry)
+	{
+		if (p->wdd == wdd)
+		{
 			list_del(&p->entry);
 			break;
 		}

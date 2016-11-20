@@ -65,7 +65,8 @@
  *			references to its maximum value, then report the raw
  *			capacitance for each pixel.
  */
-enum rmi_f54_report_type {
+enum rmi_f54_report_type
+{
 	F54_REPORT_NONE = 0,
 	F54_8BIT_IMAGE = 1,
 	F54_16BIT_IMAGE = 2,
@@ -76,7 +77,8 @@ enum rmi_f54_report_type {
 	F54_MAX_REPORT_TYPE,
 };
 
-const char *rmi_f54_report_type_names[] = {
+const char *rmi_f54_report_type_names[] =
+{
 	[F54_REPORT_NONE]		= "Unknown",
 	[F54_8BIT_IMAGE]		= "Normalized 8-Bit Image",
 	[F54_16BIT_IMAGE]		= "Normalized 16-Bit Image",
@@ -84,15 +86,17 @@ const char *rmi_f54_report_type_names[] = {
 	[F54_TRUE_BASELINE]		= "True Baseline",
 	[F54_FULL_RAW_CAP]		= "Full Raw Capacitance",
 	[F54_FULL_RAW_CAP_RX_OFFSET_REMOVED]
-					= "Full Raw Capacitance RX Offset Removed",
+	= "Full Raw Capacitance RX Offset Removed",
 };
 
-struct rmi_f54_reports {
+struct rmi_f54_reports
+{
 	int start;
 	int size;
 };
 
-struct f54_data {
+struct f54_data
+{
 	struct rmi_function *fn;
 
 	u8 qry[F54_QUERY_LEN];
@@ -132,29 +136,36 @@ struct f54_data {
  * to the sensor.
  */
 static bool is_f54_report_type_valid(struct f54_data *f54,
-				     enum rmi_f54_report_type reptype)
+									 enum rmi_f54_report_type reptype)
 {
-	switch (reptype) {
-	case F54_8BIT_IMAGE:
-		return f54->capabilities & F54_CAP_IMAGE8;
-	case F54_16BIT_IMAGE:
-	case F54_RAW_16BIT_IMAGE:
-		return f54->capabilities & F54_CAP_IMAGE16;
-	case F54_TRUE_BASELINE:
-		return f54->capabilities & F54_CAP_IMAGE16;
-	case F54_FULL_RAW_CAP:
-	case F54_FULL_RAW_CAP_RX_OFFSET_REMOVED:
-		return true;
-	default:
-		return false;
+	switch (reptype)
+	{
+		case F54_8BIT_IMAGE:
+			return f54->capabilities & F54_CAP_IMAGE8;
+
+		case F54_16BIT_IMAGE:
+		case F54_RAW_16BIT_IMAGE:
+			return f54->capabilities & F54_CAP_IMAGE16;
+
+		case F54_TRUE_BASELINE:
+			return f54->capabilities & F54_CAP_IMAGE16;
+
+		case F54_FULL_RAW_CAP:
+		case F54_FULL_RAW_CAP_RX_OFFSET_REMOVED:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
 static enum rmi_f54_report_type rmi_f54_get_reptype(struct f54_data *f54,
-						unsigned int i)
+		unsigned int i)
 {
 	if (i >= F54_MAX_REPORT_TYPE)
+	{
 		return F54_REPORT_NONE;
+	}
 
 	return f54->inputs[i];
 }
@@ -164,9 +175,12 @@ static void rmi_f54_create_input_map(struct f54_data *f54)
 	int i = 0;
 	enum rmi_f54_report_type reptype;
 
-	for (reptype = 1; reptype < F54_MAX_REPORT_TYPE; reptype++) {
+	for (reptype = 1; reptype < F54_MAX_REPORT_TYPE; reptype++)
+	{
 		if (!is_f54_report_type_valid(f54, reptype))
+		{
 			continue;
+		}
 
 		f54->inputs[i++] = reptype;
 	}
@@ -181,11 +195,16 @@ static int rmi_f54_request_report(struct rmi_function *fn, u8 report_type)
 	int error;
 
 	/* Write Report Type into F54_AD_Data0 */
-	if (f54->report_type != report_type) {
+	if (f54->report_type != report_type)
+	{
 		error = rmi_write(rmi_dev, f54->fn->fd.data_base_addr,
-				  report_type);
+						  report_type);
+
 		if (error)
+		{
 			return error;
+		}
+
 		f54->report_type = report_type;
 	}
 
@@ -199,8 +218,11 @@ static int rmi_f54_request_report(struct rmi_function *fn, u8 report_type)
 	mutex_lock(&f54->data_mutex);
 
 	error = rmi_write(rmi_dev, fn->fd.command_base_addr, F54_GET_REPORT);
+
 	if (error < 0)
+	{
 		return error;
+	}
 
 	init_completion(&f54->cmd_done);
 
@@ -220,19 +242,22 @@ static size_t rmi_f54_get_report_size(struct f54_data *f54)
 	u8 tx = f54->num_tx_electrodes ? : f54->num_tx_electrodes;
 	size_t size;
 
-	switch (rmi_f54_get_reptype(f54, f54->input)) {
-	case F54_8BIT_IMAGE:
-		size = rx * tx;
-		break;
-	case F54_16BIT_IMAGE:
-	case F54_RAW_16BIT_IMAGE:
-	case F54_TRUE_BASELINE:
-	case F54_FULL_RAW_CAP:
-	case F54_FULL_RAW_CAP_RX_OFFSET_REMOVED:
-		size = sizeof(u16) * rx * tx;
-		break;
-	default:
-		size = 0;
+	switch (rmi_f54_get_reptype(f54, f54->input))
+	{
+		case F54_8BIT_IMAGE:
+			size = rx * tx;
+			break;
+
+		case F54_16BIT_IMAGE:
+		case F54_RAW_16BIT_IMAGE:
+		case F54_TRUE_BASELINE:
+		case F54_FULL_RAW_CAP:
+		case F54_FULL_RAW_CAP_RX_OFFSET_REMOVED:
+			size = sizeof(u16) * rx * tx;
+			break;
+
+		default:
+			size = 0;
 	}
 
 	return size;
@@ -242,32 +267,34 @@ static int rmi_f54_get_pixel_fmt(enum rmi_f54_report_type reptype, u32 *pixfmt)
 {
 	int ret = 0;
 
-	switch (reptype) {
-	case F54_8BIT_IMAGE:
-		*pixfmt = V4L2_TCH_FMT_DELTA_TD08;
-		break;
+	switch (reptype)
+	{
+		case F54_8BIT_IMAGE:
+			*pixfmt = V4L2_TCH_FMT_DELTA_TD08;
+			break;
 
-	case F54_16BIT_IMAGE:
-		*pixfmt = V4L2_TCH_FMT_DELTA_TD16;
-		break;
+		case F54_16BIT_IMAGE:
+			*pixfmt = V4L2_TCH_FMT_DELTA_TD16;
+			break;
 
-	case F54_RAW_16BIT_IMAGE:
-	case F54_TRUE_BASELINE:
-	case F54_FULL_RAW_CAP:
-	case F54_FULL_RAW_CAP_RX_OFFSET_REMOVED:
-		*pixfmt = V4L2_TCH_FMT_TU16;
-		break;
+		case F54_RAW_16BIT_IMAGE:
+		case F54_TRUE_BASELINE:
+		case F54_FULL_RAW_CAP:
+		case F54_FULL_RAW_CAP_RX_OFFSET_REMOVED:
+			*pixfmt = V4L2_TCH_FMT_TU16;
+			break;
 
-	case F54_REPORT_NONE:
-	case F54_MAX_REPORT_TYPE:
-		ret = -EINVAL;
-		break;
+		case F54_REPORT_NONE:
+		case F54_MAX_REPORT_TYPE:
+			ret = -EINVAL;
+			break;
 	}
 
 	return ret;
 }
 
-static const struct v4l2_file_operations rmi_f54_video_fops = {
+static const struct v4l2_file_operations rmi_f54_video_fops =
+{
 	.owner = THIS_MODULE,
 	.open = v4l2_fh_open,
 	.release = vb2_fop_release,
@@ -278,13 +305,15 @@ static const struct v4l2_file_operations rmi_f54_video_fops = {
 };
 
 static int rmi_f54_queue_setup(struct vb2_queue *q, unsigned int *nbuffers,
-			       unsigned int *nplanes, unsigned int sizes[],
-			       struct device *alloc_devs[])
+							   unsigned int *nplanes, unsigned int sizes[],
+							   struct device *alloc_devs[])
 {
 	struct f54_data *f54 = q->drv_priv;
 
 	if (*nplanes)
+	{
 		return sizes[0] < rmi_f54_get_report_size(f54) ? -EINVAL : 0;
+	}
 
 	*nplanes = 1;
 	sizes[0] = rmi_f54_get_report_size(f54);
@@ -303,18 +332,23 @@ static void rmi_f54_buffer_queue(struct vb2_buffer *vb)
 	mutex_lock(&f54->status_mutex);
 
 	reptype = rmi_f54_get_reptype(f54, f54->input);
-	if (reptype == F54_REPORT_NONE) {
+
+	if (reptype == F54_REPORT_NONE)
+	{
 		state = VB2_BUF_STATE_ERROR;
 		goto done;
 	}
 
-	if (f54->is_busy) {
+	if (f54->is_busy)
+	{
 		state = VB2_BUF_STATE_ERROR;
 		goto done;
 	}
 
 	ret = rmi_f54_request_report(f54->fn, reptype);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&f54->fn->dev, "Error requesting F54 report\n");
 		state = VB2_BUF_STATE_ERROR;
 		goto done;
@@ -323,19 +357,25 @@ static void rmi_f54_buffer_queue(struct vb2_buffer *vb)
 	/* get frame data */
 	mutex_lock(&f54->data_mutex);
 
-	while (f54->is_busy) {
+	while (f54->is_busy)
+	{
 		mutex_unlock(&f54->data_mutex);
+
 		if (!wait_for_completion_timeout(&f54->cmd_done,
-						 msecs_to_jiffies(1000))) {
+										 msecs_to_jiffies(1000)))
+		{
 			dev_err(&f54->fn->dev, "Timed out\n");
 			state = VB2_BUF_STATE_ERROR;
 			goto done;
 		}
+
 		mutex_lock(&f54->data_mutex);
 	}
 
 	ptr = vb2_plane_vaddr(vb, 0);
-	if (!ptr) {
+
+	if (!ptr)
+	{
 		dev_err(&f54->fn->dev, "Error acquiring frame ptr\n");
 		state = VB2_BUF_STATE_ERROR;
 		goto data_done;
@@ -353,14 +393,16 @@ done:
 }
 
 /* V4L2 structures */
-static const struct vb2_ops rmi_f54_queue_ops = {
+static const struct vb2_ops rmi_f54_queue_ops =
+{
 	.queue_setup            = rmi_f54_queue_setup,
 	.buf_queue              = rmi_f54_buffer_queue,
 	.wait_prepare           = vb2_ops_wait_prepare,
 	.wait_finish            = vb2_ops_wait_finish,
 };
 
-static const struct vb2_queue rmi_f54_queue = {
+static const struct vb2_queue rmi_f54_queue =
+{
 	.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
 	.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ,
 	.buf_struct_size = sizeof(struct vb2_buffer),
@@ -371,27 +413,30 @@ static const struct vb2_queue rmi_f54_queue = {
 };
 
 static int rmi_f54_vidioc_querycap(struct file *file, void *priv,
-				   struct v4l2_capability *cap)
+								   struct v4l2_capability *cap)
 {
 	struct f54_data *f54 = video_drvdata(file);
 
 	strlcpy(cap->driver, F54_NAME, sizeof(cap->driver));
 	strlcpy(cap->card, SYNAPTICS_INPUT_DEVICE_NAME, sizeof(cap->card));
 	snprintf(cap->bus_info, sizeof(cap->bus_info),
-		"rmi4:%s", dev_name(&f54->fn->dev));
+			 "rmi4:%s", dev_name(&f54->fn->dev));
 
 	return 0;
 }
 
 static int rmi_f54_vidioc_enum_input(struct file *file, void *priv,
-				     struct v4l2_input *i)
+									 struct v4l2_input *i)
 {
 	struct f54_data *f54 = video_drvdata(file);
 	enum rmi_f54_report_type reptype;
 
 	reptype = rmi_f54_get_reptype(f54, i->index);
+
 	if (reptype == F54_REPORT_NONE)
+	{
 		return -EINVAL;
+	}
 
 	i->type = V4L2_INPUT_TYPE_TOUCH;
 
@@ -406,12 +451,18 @@ static int rmi_f54_set_input(struct f54_data *f54, unsigned int i)
 	int ret;
 
 	reptype = rmi_f54_get_reptype(f54, i);
+
 	if (reptype == F54_REPORT_NONE)
+	{
 		return -EINVAL;
+	}
 
 	ret = rmi_f54_get_pixel_fmt(reptype, &f->pixelformat);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	f54->input = i;
 
@@ -431,7 +482,7 @@ static int rmi_f54_vidioc_s_input(struct file *file, void *priv, unsigned int i)
 }
 
 static int rmi_f54_vidioc_g_input(struct file *file, void *priv,
-				  unsigned int *i)
+								  unsigned int *i)
 {
 	struct f54_data *f54 = video_drvdata(file);
 
@@ -441,7 +492,7 @@ static int rmi_f54_vidioc_g_input(struct file *file, void *priv,
 }
 
 static int rmi_f54_vidioc_fmt(struct file *file, void *priv,
-			      struct v4l2_format *f)
+							  struct v4l2_format *f)
 {
 	struct f54_data *f54 = video_drvdata(file);
 
@@ -451,36 +502,41 @@ static int rmi_f54_vidioc_fmt(struct file *file, void *priv,
 }
 
 static int rmi_f54_vidioc_enum_fmt(struct file *file, void *priv,
-				   struct v4l2_fmtdesc *fmt)
+								   struct v4l2_fmtdesc *fmt)
 {
 	if (fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+	{
 		return -EINVAL;
+	}
 
-	switch (fmt->index) {
-	case 0:
-		fmt->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
-		break;
+	switch (fmt->index)
+	{
+		case 0:
+			fmt->pixelformat = V4L2_TCH_FMT_DELTA_TD16;
+			break;
 
-	case 1:
-		fmt->pixelformat = V4L2_TCH_FMT_DELTA_TD08;
-		break;
+		case 1:
+			fmt->pixelformat = V4L2_TCH_FMT_DELTA_TD08;
+			break;
 
-	case 2:
-		fmt->pixelformat = V4L2_TCH_FMT_TU16;
-		break;
+		case 2:
+			fmt->pixelformat = V4L2_TCH_FMT_TU16;
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
 static int rmi_f54_vidioc_g_parm(struct file *file, void *fh,
-				 struct v4l2_streamparm *a)
+								 struct v4l2_streamparm *a)
 {
 	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+	{
 		return -EINVAL;
+	}
 
 	a->parm.capture.readbuffers = 1;
 	a->parm.capture.timeperframe.numerator = 1;
@@ -488,7 +544,8 @@ static int rmi_f54_vidioc_g_parm(struct file *file, void *fh,
 	return 0;
 }
 
-static const struct v4l2_ioctl_ops rmi_f54_video_ioctl_ops = {
+static const struct v4l2_ioctl_ops rmi_f54_video_ioctl_ops =
+{
 	.vidioc_querycap	= rmi_f54_vidioc_querycap,
 
 	.vidioc_enum_fmt_vid_cap = rmi_f54_vidioc_enum_fmt,
@@ -512,13 +569,14 @@ static const struct v4l2_ioctl_ops rmi_f54_video_ioctl_ops = {
 	.vidioc_streamoff	= vb2_ioctl_streamoff,
 };
 
-static const struct video_device rmi_f54_video_device = {
+static const struct video_device rmi_f54_video_device =
+{
 	.name = "Synaptics RMI4",
 	.fops = &rmi_f54_video_fops,
 	.ioctl_ops = &rmi_f54_video_ioctl_ops,
 	.release = video_device_release_empty,
 	.device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_TOUCH |
-		       V4L2_CAP_READWRITE | V4L2_CAP_STREAMING,
+	V4L2_CAP_READWRITE | V4L2_CAP_STREAMING,
 };
 
 static void rmi_f54_work(struct work_struct *work)
@@ -534,12 +592,15 @@ static void rmi_f54_work(struct work_struct *work)
 
 	data = f54->report_data;
 	report_size = rmi_f54_get_report_size(f54);
-	if (report_size == 0) {
+
+	if (report_size == 0)
+	{
 		dev_err(&fn->dev, "Bad report size, report type=%d\n",
 				f54->report_type);
 		error = -EINVAL;
 		goto error;     /* retry won't help */
 	}
+
 	f54->standard_report[0].size = report_size;
 	report = f54->standard_report;
 
@@ -550,16 +611,22 @@ static void rmi_f54_work(struct work_struct *work)
 	 * If not try again later.
 	 */
 	error = rmi_read(fn->rmi_dev, f54->fn->fd.command_base_addr,
-			 &command);
-	if (error) {
+					 &command);
+
+	if (error)
+	{
 		dev_err(&fn->dev, "Failed to read back command\n");
 		goto error;
 	}
-	if (command & F54_GET_REPORT) {
-		if (time_after(jiffies, f54->timeout)) {
+
+	if (command & F54_GET_REPORT)
+	{
+		if (time_after(jiffies, f54->timeout))
+		{
 			dev_err(&fn->dev, "Get report command timed out\n");
 			error = -ETIMEDOUT;
 		}
+
 		report_size = 0;
 		goto error;
 	}
@@ -567,25 +634,32 @@ static void rmi_f54_work(struct work_struct *work)
 	rmi_dbg(RMI_DEBUG_FN, &fn->dev, "Get report command completed, reading data\n");
 
 	report_size = 0;
-	for (; report->size; report++) {
+
+	for (; report->size; report++)
+	{
 		fifo[0] = report->start & 0xff;
 		fifo[1] = (report->start >> 8) & 0xff;
 		error = rmi_write_block(fn->rmi_dev,
-					fn->fd.data_base_addr + F54_FIFO_OFFSET,
-					fifo, sizeof(fifo));
-		if (error) {
+								fn->fd.data_base_addr + F54_FIFO_OFFSET,
+								fifo, sizeof(fifo));
+
+		if (error)
+		{
 			dev_err(&fn->dev, "Failed to set fifo start offset\n");
 			goto abort;
 		}
 
 		error = rmi_read_block(fn->rmi_dev, fn->fd.data_base_addr +
-				       F54_REPORT_DATA_OFFSET, data,
-				       report->size);
-		if (error) {
+							   F54_REPORT_DATA_OFFSET, data,
+							   report->size);
+
+		if (error)
+		{
 			dev_err(&fn->dev, "%s: read [%d bytes] returned %d\n",
-				__func__, report->size, error);
+					__func__, report->size, error);
 			goto abort;
 		}
+
 		data += report->size;
 		report_size += report->size;
 	}
@@ -593,13 +667,19 @@ static void rmi_f54_work(struct work_struct *work)
 abort:
 	f54->report_size = error ? 0 : report_size;
 error:
-	if (error)
-		report_size = 0;
 
-	if (report_size == 0 && !error) {
+	if (error)
+	{
+		report_size = 0;
+	}
+
+	if (report_size == 0 && !error)
+	{
 		queue_delayed_work(f54->workqueue, &f54->work,
-				   msecs_to_jiffies(1));
-	} else {
+						   msecs_to_jiffies(1));
+	}
+	else
+	{
 		f54->is_busy = false;
 		complete(&f54->cmd_done);
 	}
@@ -629,10 +709,12 @@ static int rmi_f54_detect(struct rmi_function *fn)
 	f54 = dev_get_drvdata(&fn->dev);
 
 	error = rmi_read_block(fn->rmi_dev, fn->fd.query_base_addr,
-			       &f54->qry, sizeof(f54->qry));
-	if (error) {
+						   &f54->qry, sizeof(f54->qry));
+
+	if (error)
+	{
 		dev_err(&fn->dev, "%s: Failed to query F54 properties\n",
-			__func__);
+				__func__);
 		return error;
 	}
 
@@ -643,15 +725,15 @@ static int rmi_f54_detect(struct rmi_function *fn)
 	f54->family = f54->qry[5];
 
 	rmi_dbg(RMI_DEBUG_FN, &fn->dev, "F54 num_rx_electrodes: %d\n",
-		f54->num_rx_electrodes);
+			f54->num_rx_electrodes);
 	rmi_dbg(RMI_DEBUG_FN, &fn->dev, "F54 num_tx_electrodes: %d\n",
-		f54->num_tx_electrodes);
+			f54->num_tx_electrodes);
 	rmi_dbg(RMI_DEBUG_FN, &fn->dev, "F54 capabilities: 0x%x\n",
-		f54->capabilities);
+			f54->capabilities);
 	rmi_dbg(RMI_DEBUG_FN, &fn->dev, "F54 clock rate: 0x%x\n",
-		f54->clock_rate);
+			f54->clock_rate);
 	rmi_dbg(RMI_DEBUG_FN, &fn->dev, "F54 family: 0x%x\n",
-		f54->family);
+			f54->family);
 
 	f54->is_busy = false;
 
@@ -665,15 +747,21 @@ static int rmi_f54_probe(struct rmi_function *fn)
 	u8 rx, tx;
 
 	f54 = devm_kzalloc(&fn->dev, sizeof(struct f54_data), GFP_KERNEL);
+
 	if (!f54)
+	{
 		return -ENOMEM;
+	}
 
 	f54->fn = fn;
 	dev_set_drvdata(&fn->dev, f54);
 
 	ret = rmi_f54_detect(fn);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mutex_init(&f54->data_mutex);
 	mutex_init(&f54->status_mutex);
@@ -681,23 +769,31 @@ static int rmi_f54_probe(struct rmi_function *fn)
 	rx = f54->num_rx_electrodes;
 	tx = f54->num_tx_electrodes;
 	f54->report_data = devm_kzalloc(&fn->dev,
-					sizeof(u16) * tx * rx,
-					GFP_KERNEL);
+									sizeof(u16) * tx * rx,
+									GFP_KERNEL);
+
 	if (f54->report_data == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	INIT_DELAYED_WORK(&f54->work, rmi_f54_work);
 
 	f54->workqueue = create_singlethread_workqueue("rmi4-poller");
+
 	if (!f54->workqueue)
+	{
 		return -ENOMEM;
+	}
 
 	rmi_f54_create_input_map(f54);
 
 	/* register video device */
 	strlcpy(f54->v4l2.name, F54_NAME, sizeof(f54->v4l2.name));
 	ret = v4l2_device_register(&fn->dev, &f54->v4l2);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&fn->dev, "Unable to register video dev.\n");
 		goto remove_wq;
 	}
@@ -710,8 +806,11 @@ static int rmi_f54_probe(struct rmi_function *fn)
 	f54->queue.dev = &fn->dev;
 
 	ret = vb2_queue_init(&f54->queue);
+
 	if (ret)
+	{
 		goto remove_v4l2;
+	}
 
 	f54->vdev = rmi_f54_video_device;
 	f54->vdev.v4l2_dev = &f54->v4l2;
@@ -721,7 +820,9 @@ static int rmi_f54_probe(struct rmi_function *fn)
 	video_set_drvdata(&f54->vdev, f54);
 
 	ret = video_register_device(&f54->vdev, VFL_TYPE_TOUCH, -1);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&fn->dev, "Unable to register video subdevice.");
 		goto remove_v4l2;
 	}
@@ -745,7 +846,8 @@ static void rmi_f54_remove(struct rmi_function *fn)
 	v4l2_device_unregister(&f54->v4l2);
 }
 
-struct rmi_function_handler rmi_f54_handler = {
+struct rmi_function_handler rmi_f54_handler =
+{
 	.driver = {
 		.name = F54_NAME,
 	},

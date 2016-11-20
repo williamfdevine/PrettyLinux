@@ -17,7 +17,8 @@
 
 #include <linux/types.h>
 
-struct dim2_regs {
+struct dim2_regs
+{
 	/* 0x00 */ u32 MLBC0;
 	/* 0x01 */ u32 rsvd0[1];
 	/* 0x02 */ u32 MLBPC0;
@@ -64,7 +65,8 @@ struct dim2_regs {
 
 #define DIM2_MASK(n)  (~((~(u32)0) << (n)))
 
-enum {
+enum
+{
 	MLBC0_MLBLK_BIT = 7,
 
 	MLBC0_MLBPEN_BIT = 5,
@@ -116,7 +118,8 @@ enum {
 	HCTL_EN_BIT = 15
 };
 
-enum {
+enum
+{
 	CDT0_RPC_SHIFT = 16 + 11,
 	CDT0_RPC_MASK = DIM2_MASK(5),
 

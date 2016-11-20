@@ -15,7 +15,8 @@
 #include <crypto/dh.h>
 #include <linux/mpi.h>
 
-struct dh_ctx {
+struct dh_ctx
+{
 	MPI p;
 	MPI g;
 	MPI xa;
@@ -61,17 +62,26 @@ static int dh_check_params_length(unsigned int p_len)
 static int dh_set_params(struct dh_ctx *ctx, struct dh *params)
 {
 	if (unlikely(!params->p || !params->g))
+	{
 		return -EINVAL;
+	}
 
 	if (dh_check_params_length(params->p_size << 3))
+	{
 		return -EINVAL;
+	}
 
 	ctx->p = mpi_read_raw_data(params->p, params->p_size);
+
 	if (!ctx->p)
+	{
 		return -EINVAL;
+	}
 
 	ctx->g = mpi_read_raw_data(params->g, params->g_size);
-	if (!ctx->g) {
+
+	if (!ctx->g)
+	{
 		mpi_free(ctx->p);
 		return -EINVAL;
 	}
@@ -85,13 +95,19 @@ static int dh_set_secret(struct crypto_kpp *tfm, void *buf, unsigned int len)
 	struct dh params;
 
 	if (crypto_dh_decode_key(buf, len, &params) < 0)
+	{
 		return -EINVAL;
+	}
 
 	if (dh_set_params(ctx, &params) < 0)
+	{
 		return -EINVAL;
+	}
 
 	ctx->xa = mpi_read_raw_data(params.key, params.key_size);
-	if (!ctx->xa) {
+
+	if (!ctx->xa)
+	{
 		dh_clear_params(ctx);
 		return -EINVAL;
 	}
@@ -108,36 +124,57 @@ static int dh_compute_value(struct kpp_request *req)
 	int sign;
 
 	if (!val)
+	{
 		return -ENOMEM;
+	}
 
-	if (unlikely(!ctx->xa)) {
+	if (unlikely(!ctx->xa))
+	{
 		ret = -EINVAL;
 		goto err_free_val;
 	}
 
-	if (req->src) {
+	if (req->src)
+	{
 		base = mpi_read_raw_from_sgl(req->src, req->src_len);
-		if (!base) {
+
+		if (!base)
+		{
 			ret = EINVAL;
 			goto err_free_val;
 		}
-	} else {
+	}
+	else
+	{
 		base = ctx->g;
 	}
 
 	ret = _compute_val(ctx, base, val);
+
 	if (ret)
+	{
 		goto err_free_base;
+	}
 
 	ret = mpi_write_to_sgl(val, req->dst, req->dst_len, &sign);
+
 	if (ret)
+	{
 		goto err_free_base;
+	}
 
 	if (sign < 0)
+	{
 		ret = -EBADMSG;
+	}
+
 err_free_base:
+
 	if (req->src)
+	{
 		mpi_free(base);
+	}
+
 err_free_val:
 	mpi_free(val);
 	return ret;
@@ -157,7 +194,8 @@ static void dh_exit_tfm(struct crypto_kpp *tfm)
 	dh_free_ctx(ctx);
 }
 
-static struct kpp_alg dh = {
+static struct kpp_alg dh =
+{
 	.set_secret = dh_set_secret,
 	.generate_public_key = dh_compute_value,
 	.compute_shared_secret = dh_compute_value,

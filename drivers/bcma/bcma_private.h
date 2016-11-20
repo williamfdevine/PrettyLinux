@@ -2,7 +2,7 @@
 #define LINUX_BCMA_PRIVATE_H_
 
 #ifndef pr_fmt
-#define pr_fmt(fmt)		KBUILD_MODNAME ": " fmt
+	#define pr_fmt(fmt)		KBUILD_MODNAME ": " fmt
 #endif
 
 #include <linux/bcma/bcma.h>
@@ -21,7 +21,7 @@ struct bcma_bus;
 
 /* main.c */
 bool bcma_wait_value(struct bcma_device *core, u16 reg, u32 mask, u32 value,
-		     int timeout);
+					 int timeout);
 void bcma_prepare_core(struct bcma_bus *bus, struct bcma_device *core);
 void bcma_init_bus(struct bcma_bus *bus);
 void bcma_unregister_cores(struct bcma_bus *bus);
@@ -29,8 +29,8 @@ int bcma_bus_register(struct bcma_bus *bus);
 void bcma_bus_unregister(struct bcma_bus *bus);
 int __init bcma_bus_early_register(struct bcma_bus *bus);
 #ifdef CONFIG_PM
-int bcma_bus_suspend(struct bcma_bus *bus);
-int bcma_bus_resume(struct bcma_bus *bus);
+	int bcma_bus_suspend(struct bcma_bus *bus);
+	int bcma_bus_resume(struct bcma_bus *bus);
 #endif
 struct device *bcma_bus_get_host_dev(struct bcma_bus *bus);
 
@@ -96,9 +96,9 @@ static inline int bcma_nflash_init(struct bcma_drv_cc *cc)
 #endif /* CONFIG_BCMA_NFLASH */
 
 #ifdef CONFIG_BCMA_HOST_PCI
-/* host_pci.c */
-extern int __init bcma_host_pci_init(void);
-extern void __exit bcma_host_pci_exit(void);
+	/* host_pci.c */
+	extern int __init bcma_host_pci_init(void);
+	extern void __exit bcma_host_pci_exit(void);
 #endif /* CONFIG_BCMA_HOST_PCI */
 
 /* host_soc.c */

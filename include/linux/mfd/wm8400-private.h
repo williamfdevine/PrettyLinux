@@ -28,7 +28,8 @@
 
 #define WM8400_REGISTER_COUNT 0x55
 
-struct wm8400 {
+struct wm8400
+{
 	struct device *dev;
 	struct regmap *regmap;
 
@@ -926,7 +927,7 @@ struct wm8400 {
 int wm8400_block_read(struct wm8400 *wm8400, u8 reg, int count, u16 *data);
 
 static inline int wm8400_set_bits(struct wm8400 *wm8400, u8 reg,
-				  u16 mask, u16 val)
+								  u16 mask, u16 val)
 {
 	return regmap_update_bits(wm8400->regmap, reg, mask, val);
 }

@@ -14,7 +14,8 @@
 
 #include <asm/lguest.h>
 
-struct pgdir {
+struct pgdir
+{
 	unsigned long gpgdir;
 	bool switcher_mapped;
 	int last_host_cpu;
@@ -22,7 +23,8 @@ struct pgdir {
 };
 
 /* We have two pages shared with guests, per cpu.  */
-struct lguest_pages {
+struct lguest_pages
+{
 	/* This is the stack page mapped rw in guest */
 	char spare[PAGE_SIZE - sizeof(struct lguest_regs)];
 	struct lguest_regs regs;
@@ -36,7 +38,8 @@ struct lguest_pages {
 #define CHANGED_GDT_TLS		4 /* Actually a subset of CHANGED_GDT */
 #define CHANGED_ALL	        3
 
-struct lg_cpu {
+struct lg_cpu
+{
 	unsigned int id;
 	struct lguest *lg;
 	struct task_struct *tsk;
@@ -82,7 +85,8 @@ struct lg_cpu {
 };
 
 /* The private info the thread maintains about the guest. */
-struct lguest {
+struct lguest
+{
 	struct lguest_data __user *lguest_data;
 	struct lg_cpu cpus[NR_CPUS];
 	unsigned int nr_cpus;
@@ -115,7 +119,7 @@ extern struct mutex lguest_lock;
 
 /* core.c: */
 bool lguest_address_ok(const struct lguest *lg,
-		       unsigned long addr, unsigned long len);
+					   unsigned long addr, unsigned long len);
 void __lgread(struct lg_cpu *, void *, unsigned long, unsigned);
 void __lgwrite(struct lg_cpu *, unsigned long, const void *, unsigned);
 extern struct page **lg_switcher_pages;
@@ -156,13 +160,13 @@ void try_deliver_interrupt(struct lg_cpu *cpu, unsigned int irq, bool more);
 void set_interrupt(struct lg_cpu *cpu, unsigned int irq);
 bool deliver_trap(struct lg_cpu *cpu, unsigned int num);
 void load_guest_idt_entry(struct lg_cpu *cpu, unsigned int i,
-			  u32 low, u32 hi);
+						  u32 low, u32 hi);
 void guest_set_stack(struct lg_cpu *cpu, u32 seg, u32 esp, unsigned int pages);
 void pin_stack_pages(struct lg_cpu *cpu);
 void setup_default_idt_entries(struct lguest_ro_state *state,
-			       const unsigned long *def);
+							   const unsigned long *def);
 void copy_traps(const struct lg_cpu *cpu, struct desc_struct *idt,
-		const unsigned long *def);
+				const unsigned long *def);
 void guest_set_clockevent(struct lg_cpu *cpu, unsigned long delta);
 bool send_notify_to_eventfd(struct lg_cpu *cpu);
 void init_clockdev(struct lg_cpu *cpu);
@@ -175,7 +179,7 @@ void free_interrupts(void);
 void setup_default_gdt_entries(struct lguest_ro_state *state);
 void setup_guest_gdt(struct lg_cpu *cpu);
 void load_guest_gdt_entry(struct lg_cpu *cpu, unsigned int i,
-			  u32 low, u32 hi);
+						  u32 low, u32 hi);
 void guest_load_tls(struct lg_cpu *cpu, unsigned long tls_array);
 void copy_gdt(const struct lg_cpu *cpu, struct desc_struct *gdt);
 void copy_gdt_tls(const struct lg_cpu *cpu, struct desc_struct *gdt);
@@ -186,15 +190,15 @@ void free_guest_pagetable(struct lguest *lg);
 void guest_new_pagetable(struct lg_cpu *cpu, unsigned long pgtable);
 void guest_set_pgd(struct lguest *lg, unsigned long gpgdir, u32 i);
 #ifdef CONFIG_X86_PAE
-void guest_set_pmd(struct lguest *lg, unsigned long gpgdir, u32 i);
+	void guest_set_pmd(struct lguest *lg, unsigned long gpgdir, u32 i);
 #endif
 void guest_pagetable_clear_all(struct lg_cpu *cpu);
 void guest_pagetable_flush_user(struct lg_cpu *cpu);
 void guest_set_pte(struct lg_cpu *cpu, unsigned long gpgdir,
-		   unsigned long vaddr, pte_t val);
+				   unsigned long vaddr, pte_t val);
 void map_switcher_in_guest(struct lg_cpu *cpu, struct lguest_pages *pages);
 bool demand_page(struct lg_cpu *cpu, unsigned long cr2, int errcode,
-		 unsigned long *iomem);
+				 unsigned long *iomem);
 void pin_page(struct lg_cpu *cpu, unsigned long vaddr);
 bool __guest_pa(struct lg_cpu *cpu, unsigned long vaddr, unsigned long *paddr);
 unsigned long guest_pa(struct lg_cpu *cpu, unsigned long vaddr);
@@ -246,13 +250,13 @@ void write_timestamp(struct lg_cpu *cpu);
  * } while(0)".
  */
 #define kill_guest(cpu, fmt...)					\
-do {								\
-	if (!(cpu)->lg->dead) {					\
-		(cpu)->lg->dead = kasprintf(GFP_ATOMIC, fmt);	\
-		if (!(cpu)->lg->dead)				\
-			(cpu)->lg->dead = ERR_PTR(-ENOMEM);	\
-	}							\
-} while(0)
+	do {								\
+		if (!(cpu)->lg->dead) {					\
+			(cpu)->lg->dead = kasprintf(GFP_ATOMIC, fmt);	\
+			if (!(cpu)->lg->dead)				\
+				(cpu)->lg->dead = ERR_PTR(-ENOMEM);	\
+		}							\
+	} while(0)
 /* (End of aside) :*/
 
 #endif	/* __ASSEMBLY__ */

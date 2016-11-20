@@ -14,7 +14,8 @@
 #define __LINUX_MFD_S5M8767_H
 
 /* S5M8767 registers */
-enum s5m8767_reg {
+enum s5m8767_reg
+{
 	S5M8767_REG_ID,
 	S5M8767_REG_INT1,
 	S5M8767_REG_INT2,
@@ -139,7 +140,8 @@ enum s5m8767_reg {
 };
 
 /* S5M8767 regulator ids */
-enum s5m8767_regulators {
+enum s5m8767_regulators
+{
 	S5M8767_LDO1,
 	S5M8767_LDO2,
 	S5M8767_LDO3,
@@ -197,7 +199,8 @@ enum s5m8767_regulators {
  * Values for BUCK_RAMP field in DVS_RAMP register, matching raw values
  * in mV/us.
  */
-enum s5m8767_dvs_buck_ramp_values {
+enum s5m8767_dvs_buck_ramp_values
+{
 	S5M8767_DVS_BUCK_RAMP_5		= 0x4,
 	S5M8767_DVS_BUCK_RAMP_10	= 0x9,
 	S5M8767_DVS_BUCK_RAMP_12_5	= 0xb,

@@ -25,7 +25,8 @@
 
 #define DRIVER_NAME "dw_spi_mmio"
 
-struct dw_spi_mmio {
+struct dw_spi_mmio
+{
 	struct dw_spi  dws;
 	struct clk     *clk;
 };
@@ -39,32 +40,46 @@ static int dw_spi_mmio_probe(struct platform_device *pdev)
 	int num_cs;
 
 	dwsmmio = devm_kzalloc(&pdev->dev, sizeof(struct dw_spi_mmio),
-			GFP_KERNEL);
+						   GFP_KERNEL);
+
 	if (!dwsmmio)
+	{
 		return -ENOMEM;
+	}
 
 	dws = &dwsmmio->dws;
 
 	/* Get basic io resource and map it */
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	dws->regs = devm_ioremap_resource(&pdev->dev, mem);
-	if (IS_ERR(dws->regs)) {
+
+	if (IS_ERR(dws->regs))
+	{
 		dev_err(&pdev->dev, "SPI region map failed\n");
 		return PTR_ERR(dws->regs);
 	}
 
 	dws->irq = platform_get_irq(pdev, 0);
-	if (dws->irq < 0) {
+
+	if (dws->irq < 0)
+	{
 		dev_err(&pdev->dev, "no irq resource?\n");
 		return dws->irq; /* -ENXIO */
 	}
 
 	dwsmmio->clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(dwsmmio->clk))
+	{
 		return PTR_ERR(dwsmmio->clk);
+	}
+
 	ret = clk_prepare_enable(dwsmmio->clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dws->bus_num = pdev->id;
 
@@ -78,30 +93,40 @@ static int dw_spi_mmio_probe(struct platform_device *pdev)
 
 	dws->num_cs = num_cs;
 
-	if (pdev->dev.of_node) {
+	if (pdev->dev.of_node)
+	{
 		int i;
 
-		for (i = 0; i < dws->num_cs; i++) {
+		for (i = 0; i < dws->num_cs; i++)
+		{
 			int cs_gpio = of_get_named_gpio(pdev->dev.of_node,
-					"cs-gpios", i);
+											"cs-gpios", i);
 
-			if (cs_gpio == -EPROBE_DEFER) {
+			if (cs_gpio == -EPROBE_DEFER)
+			{
 				ret = cs_gpio;
 				goto out;
 			}
 
-			if (gpio_is_valid(cs_gpio)) {
+			if (gpio_is_valid(cs_gpio))
+			{
 				ret = devm_gpio_request(&pdev->dev, cs_gpio,
-						dev_name(&pdev->dev));
+										dev_name(&pdev->dev));
+
 				if (ret)
+				{
 					goto out;
+				}
 			}
 		}
 	}
 
 	ret = dw_spi_add_host(&pdev->dev, dws);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	platform_set_drvdata(pdev, dwsmmio);
 	return 0;
@@ -121,13 +146,15 @@ static int dw_spi_mmio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id dw_spi_mmio_of_match[] = {
+static const struct of_device_id dw_spi_mmio_of_match[] =
+{
 	{ .compatible = "snps,dw-apb-ssi", },
 	{ /* end of table */}
 };
 MODULE_DEVICE_TABLE(of, dw_spi_mmio_of_match);
 
-static struct platform_driver dw_spi_mmio_driver = {
+static struct platform_driver dw_spi_mmio_driver =
+{
 	.probe		= dw_spi_mmio_probe,
 	.remove		= dw_spi_mmio_remove,
 	.driver		= {

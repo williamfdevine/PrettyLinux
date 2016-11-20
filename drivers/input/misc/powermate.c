@@ -58,7 +58,8 @@
    the relevant format. */
 #define POWERMATE_PAYLOAD_SIZE_MAX 6
 #define POWERMATE_PAYLOAD_SIZE_MIN 3
-struct powermate_device {
+struct powermate_device
+{
 	signed char *data;
 	dma_addr_t data_dma;
 	struct urb *irq, *config;
@@ -88,21 +89,24 @@ static void powermate_irq(struct urb *urb)
 	struct device *dev = &pm->intf->dev;
 	int retval;
 
-	switch (urb->status) {
-	case 0:
-		/* success */
-		break;
-	case -ECONNRESET:
-	case -ENOENT:
-	case -ESHUTDOWN:
-		/* this urb is terminated, clean up */
-		dev_dbg(dev, "%s - urb shutting down with status: %d\n",
-			__func__, urb->status);
-		return;
-	default:
-		dev_dbg(dev, "%s - nonzero urb status received: %d\n",
-			__func__, urb->status);
-		goto exit;
+	switch (urb->status)
+	{
+		case 0:
+			/* success */
+			break;
+
+		case -ECONNRESET:
+		case -ENOENT:
+		case -ESHUTDOWN:
+			/* this urb is terminated, clean up */
+			dev_dbg(dev, "%s - urb shutting down with status: %d\n",
+					__func__, urb->status);
+			return;
+
+		default:
+			dev_dbg(dev, "%s - nonzero urb status received: %d\n",
+					__func__, urb->status);
+			goto exit;
 	}
 
 	/* handle updates to device state */
@@ -112,29 +116,41 @@ static void powermate_irq(struct urb *urb)
 
 exit:
 	retval = usb_submit_urb (urb, GFP_ATOMIC);
+
 	if (retval)
 		dev_err(dev, "%s - usb_submit_urb failed with result: %d\n",
-			__func__, retval);
+				__func__, retval);
 }
 
 /* Decide if we need to issue a control message and do so. Must be called with pm->lock taken */
 static void powermate_sync_state(struct powermate_device *pm)
 {
 	if (pm->requires_update == 0)
-		return; /* no updates are required */
-	if (pm->config->status == -EINPROGRESS)
-		return; /* an update is already in progress; it'll issue this update when it completes */
+	{
+		return;    /* no updates are required */
+	}
 
-	if (pm->requires_update & UPDATE_PULSE_ASLEEP){
+	if (pm->config->status == -EINPROGRESS)
+	{
+		return;    /* an update is already in progress; it'll issue this update when it completes */
+	}
+
+	if (pm->requires_update & UPDATE_PULSE_ASLEEP)
+	{
 		pm->configcr->wValue = cpu_to_le16( SET_PULSE_ASLEEP );
 		pm->configcr->wIndex = cpu_to_le16( pm->pulse_asleep ? 1 : 0 );
 		pm->requires_update &= ~UPDATE_PULSE_ASLEEP;
-	}else if (pm->requires_update & UPDATE_PULSE_AWAKE){
+	}
+	else if (pm->requires_update & UPDATE_PULSE_AWAKE)
+	{
 		pm->configcr->wValue = cpu_to_le16( SET_PULSE_AWAKE );
 		pm->configcr->wIndex = cpu_to_le16( pm->pulse_awake ? 1 : 0 );
 		pm->requires_update &= ~UPDATE_PULSE_AWAKE;
-	}else if (pm->requires_update & UPDATE_PULSE_MODE){
+	}
+	else if (pm->requires_update & UPDATE_PULSE_MODE)
+	{
 		int op, arg;
+
 		/* the powermate takes an operation and an argument for its pulse algorithm.
 		   the operation can be:
 		   0: divide the speed
@@ -152,41 +168,53 @@ static void powermate_sync_state(struct powermate_device *pm)
 
 		   Only values of 'arg' quite close to 255 are particularly useful/spectacular.
 		*/
-		if (pm->pulse_speed < 255) {
+		if (pm->pulse_speed < 255)
+		{
 			op = 0;                   // divide
 			arg = 255 - pm->pulse_speed;
-		} else if (pm->pulse_speed > 255) {
+		}
+		else if (pm->pulse_speed > 255)
+		{
 			op = 2;                   // multiply
 			arg = pm->pulse_speed - 255;
-		} else {
+		}
+		else
+		{
 			op = 1;                   // normal speed
 			arg = 0;                  // can be any value
 		}
+
 		pm->configcr->wValue = cpu_to_le16( (pm->pulse_table << 8) | SET_PULSE_MODE );
 		pm->configcr->wIndex = cpu_to_le16( (arg << 8) | op );
 		pm->requires_update &= ~UPDATE_PULSE_MODE;
-	} else if (pm->requires_update & UPDATE_STATIC_BRIGHTNESS) {
+	}
+	else if (pm->requires_update & UPDATE_STATIC_BRIGHTNESS)
+	{
 		pm->configcr->wValue = cpu_to_le16( SET_STATIC_BRIGHTNESS );
 		pm->configcr->wIndex = cpu_to_le16( pm->static_brightness );
 		pm->requires_update &= ~UPDATE_STATIC_BRIGHTNESS;
-	} else {
+	}
+	else
+	{
 		printk(KERN_ERR "powermate: unknown update required");
 		pm->requires_update = 0; /* fudge the bug */
 		return;
 	}
 
-/*	printk("powermate: %04x %04x\n", pm->configcr->wValue, pm->configcr->wIndex); */
+	/*	printk("powermate: %04x %04x\n", pm->configcr->wValue, pm->configcr->wIndex); */
 
 	pm->configcr->bRequestType = 0x41; /* vendor request */
 	pm->configcr->bRequest = 0x01;
 	pm->configcr->wLength = 0;
 
 	usb_fill_control_urb(pm->config, pm->udev, usb_sndctrlpipe(pm->udev, 0),
-			     (void *) pm->configcr, NULL, 0,
-			     powermate_config_complete, pm);
+						 (void *) pm->configcr, NULL, 0,
+						 powermate_config_complete, pm);
 
 	if (usb_submit_urb(pm->config, GFP_ATOMIC))
+	{
 		printk(KERN_ERR "powermate: usb_submit_urb(config) failed");
+	}
 }
 
 /* Called when our asynchronous control message completes. We may need to issue another immediately */
@@ -196,7 +224,9 @@ static void powermate_config_complete(struct urb *urb)
 	unsigned long flags;
 
 	if (urb->status)
+	{
 		printk(KERN_ERR "powermate: config urb returned %d\n", urb->status);
+	}
 
 	spin_lock_irqsave(&pm->lock, flags);
 	powermate_sync_state(pm);
@@ -205,18 +235,29 @@ static void powermate_config_complete(struct urb *urb)
 
 /* Set the LED up as described and begin the sync with the hardware if required */
 static void powermate_pulse_led(struct powermate_device *pm, int static_brightness, int pulse_speed,
-				int pulse_table, int pulse_asleep, int pulse_awake)
+								int pulse_table, int pulse_asleep, int pulse_awake)
 {
 	unsigned long flags;
 
 	if (pulse_speed < 0)
+	{
 		pulse_speed = 0;
+	}
+
 	if (pulse_table < 0)
+	{
 		pulse_table = 0;
+	}
+
 	if (pulse_speed > 510)
+	{
 		pulse_speed = 510;
+	}
+
 	if (pulse_table > 2)
+	{
 		pulse_table = 2;
+	}
 
 	pulse_asleep = !!pulse_asleep;
 	pulse_awake = !!pulse_awake;
@@ -225,19 +266,26 @@ static void powermate_pulse_led(struct powermate_device *pm, int static_brightne
 	spin_lock_irqsave(&pm->lock, flags);
 
 	/* mark state updates which are required */
-	if (static_brightness != pm->static_brightness) {
+	if (static_brightness != pm->static_brightness)
+	{
 		pm->static_brightness = static_brightness;
 		pm->requires_update |= UPDATE_STATIC_BRIGHTNESS;
 	}
-	if (pulse_asleep != pm->pulse_asleep) {
+
+	if (pulse_asleep != pm->pulse_asleep)
+	{
 		pm->pulse_asleep = pulse_asleep;
 		pm->requires_update |= (UPDATE_PULSE_ASLEEP | UPDATE_STATIC_BRIGHTNESS);
 	}
-	if (pulse_awake != pm->pulse_awake) {
+
+	if (pulse_awake != pm->pulse_awake)
+	{
 		pm->pulse_awake = pulse_awake;
 		pm->requires_update |= (UPDATE_PULSE_AWAKE | UPDATE_STATIC_BRIGHTNESS);
 	}
-	if (pulse_speed != pm->pulse_speed || pulse_table != pm->pulse_table) {
+
+	if (pulse_speed != pm->pulse_speed || pulse_table != pm->pulse_table)
+	{
 		pm->pulse_speed = pulse_speed;
 		pm->pulse_table = pulse_table;
 		pm->requires_update |= UPDATE_PULSE_MODE;
@@ -254,7 +302,8 @@ static int powermate_input_event(struct input_dev *dev, unsigned int type, unsig
 	unsigned int command = (unsigned int)_value;
 	struct powermate_device *pm = input_get_drvdata(dev);
 
-	if (type == EV_MSC && code == MSC_PULSELED){
+	if (type == EV_MSC && code == MSC_PULSELED)
+	{
 		/*
 		    bits  0- 7: 8 bits: LED brightness
 		    bits  8-16: 9 bits: pulsing speed modifier (0 ... 510); 0-254 = slower, 255 = standard, 256-510 = faster.
@@ -277,13 +326,19 @@ static int powermate_input_event(struct input_dev *dev, unsigned int type, unsig
 static int powermate_alloc_buffers(struct usb_device *udev, struct powermate_device *pm)
 {
 	pm->data = usb_alloc_coherent(udev, POWERMATE_PAYLOAD_SIZE_MAX,
-				      GFP_ATOMIC, &pm->data_dma);
+								  GFP_ATOMIC, &pm->data_dma);
+
 	if (!pm->data)
+	{
 		return -1;
+	}
 
 	pm->configcr = kmalloc(sizeof(*(pm->configcr)), GFP_KERNEL);
+
 	if (!pm->configcr)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -291,7 +346,7 @@ static int powermate_alloc_buffers(struct usb_device *udev, struct powermate_dev
 static void powermate_free_buffers(struct usb_device *udev, struct powermate_device *pm)
 {
 	usb_free_coherent(udev, POWERMATE_PAYLOAD_SIZE_MAX,
-			  pm->data, pm->data_dma);
+					  pm->data, pm->data_dma);
 	kfree(pm->configcr);
 }
 
@@ -307,33 +362,50 @@ static int powermate_probe(struct usb_interface *intf, const struct usb_device_i
 	int error = -ENOMEM;
 
 	interface = intf->cur_altsetting;
+
 	if (interface->desc.bNumEndpoints < 1)
+	{
 		return -EINVAL;
+	}
 
 	endpoint = &interface->endpoint[0].desc;
+
 	if (!usb_endpoint_is_int_in(endpoint))
+	{
 		return -EIO;
+	}
 
 	usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
-		0x0a, USB_TYPE_CLASS | USB_RECIP_INTERFACE,
-		0, interface->desc.bInterfaceNumber, NULL, 0,
-		USB_CTRL_SET_TIMEOUT);
+					0x0a, USB_TYPE_CLASS | USB_RECIP_INTERFACE,
+					0, interface->desc.bInterfaceNumber, NULL, 0,
+					USB_CTRL_SET_TIMEOUT);
 
 	pm = kzalloc(sizeof(struct powermate_device), GFP_KERNEL);
 	input_dev = input_allocate_device();
+
 	if (!pm || !input_dev)
+	{
 		goto fail1;
+	}
 
 	if (powermate_alloc_buffers(udev, pm))
+	{
 		goto fail2;
+	}
 
 	pm->irq = usb_alloc_urb(0, GFP_KERNEL);
+
 	if (!pm->irq)
+	{
 		goto fail2;
+	}
 
 	pm->config = usb_alloc_urb(0, GFP_KERNEL);
+
 	if (!pm->config)
+	{
 		goto fail3;
+	}
 
 	pm->udev = udev;
 	pm->intf = intf;
@@ -344,17 +416,20 @@ static int powermate_probe(struct usb_interface *intf, const struct usb_device_i
 
 	spin_lock_init(&pm->lock);
 
-	switch (le16_to_cpu(udev->descriptor.idProduct)) {
-	case POWERMATE_PRODUCT_NEW:
-		input_dev->name = pm_name_powermate;
-		break;
-	case POWERMATE_PRODUCT_OLD:
-		input_dev->name = pm_name_soundknob;
-		break;
-	default:
-		input_dev->name = pm_name_soundknob;
-		printk(KERN_WARNING "powermate: unknown product id %04x\n",
-		       le16_to_cpu(udev->descriptor.idProduct));
+	switch (le16_to_cpu(udev->descriptor.idProduct))
+	{
+		case POWERMATE_PRODUCT_NEW:
+			input_dev->name = pm_name_powermate;
+			break;
+
+		case POWERMATE_PRODUCT_OLD:
+			input_dev->name = pm_name_soundknob;
+			break;
+
+		default:
+			input_dev->name = pm_name_soundknob;
+			printk(KERN_WARNING "powermate: unknown product id %04x\n",
+				   le16_to_cpu(udev->descriptor.idProduct));
 	}
 
 	input_dev->phys = pm->phys;
@@ -366,7 +441,7 @@ static int powermate_probe(struct usb_interface *intf, const struct usb_device_i
 	input_dev->event = powermate_input_event;
 
 	input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REL) |
-		BIT_MASK(EV_MSC);
+						  BIT_MASK(EV_MSC);
 	input_dev->keybit[BIT_WORD(BTN_0)] = BIT_MASK(BTN_0);
 	input_dev->relbit[BIT_WORD(REL_DIAL)] = BIT_MASK(REL_DIAL);
 	input_dev->mscbit[BIT_WORD(MSC_PULSELED)] = BIT_MASK(MSC_PULSELED);
@@ -375,27 +450,32 @@ static int powermate_probe(struct usb_interface *intf, const struct usb_device_i
 	pipe = usb_rcvintpipe(udev, endpoint->bEndpointAddress);
 	maxp = usb_maxpacket(udev, pipe, usb_pipeout(pipe));
 
-	if (maxp < POWERMATE_PAYLOAD_SIZE_MIN || maxp > POWERMATE_PAYLOAD_SIZE_MAX) {
+	if (maxp < POWERMATE_PAYLOAD_SIZE_MIN || maxp > POWERMATE_PAYLOAD_SIZE_MAX)
+	{
 		printk(KERN_WARNING "powermate: Expected payload of %d--%d bytes, found %d bytes!\n",
-			POWERMATE_PAYLOAD_SIZE_MIN, POWERMATE_PAYLOAD_SIZE_MAX, maxp);
+			   POWERMATE_PAYLOAD_SIZE_MIN, POWERMATE_PAYLOAD_SIZE_MAX, maxp);
 		maxp = POWERMATE_PAYLOAD_SIZE_MAX;
 	}
 
 	usb_fill_int_urb(pm->irq, udev, pipe, pm->data,
-			 maxp, powermate_irq,
-			 pm, endpoint->bInterval);
+					 maxp, powermate_irq,
+					 pm, endpoint->bInterval);
 	pm->irq->transfer_dma = pm->data_dma;
 	pm->irq->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
 
 	/* register our interrupt URB with the USB system */
-	if (usb_submit_urb(pm->irq, GFP_KERNEL)) {
+	if (usb_submit_urb(pm->irq, GFP_KERNEL))
+	{
 		error = -EIO;
 		goto fail4;
 	}
 
 	error = input_register_device(pm->input);
+
 	if (error)
+	{
 		goto fail5;
+	}
 
 
 	/* force an update of everything */
@@ -405,11 +485,11 @@ static int powermate_probe(struct usb_interface *intf, const struct usb_device_i
 	usb_set_intfdata(intf, pm);
 	return 0;
 
- fail5:	usb_kill_urb(pm->irq);
- fail4:	usb_free_urb(pm->config);
- fail3:	usb_free_urb(pm->irq);
- fail2:	powermate_free_buffers(udev, pm);
- fail1:	input_free_device(input_dev);
+fail5:	usb_kill_urb(pm->irq);
+fail4:	usb_free_urb(pm->config);
+fail3:	usb_free_urb(pm->irq);
+fail2:	powermate_free_buffers(udev, pm);
+fail1:	input_free_device(input_dev);
 	kfree(pm);
 	return error;
 }
@@ -420,7 +500,9 @@ static void powermate_disconnect(struct usb_interface *intf)
 	struct powermate_device *pm = usb_get_intfdata (intf);
 
 	usb_set_intfdata(intf, NULL);
-	if (pm) {
+
+	if (pm)
+	{
 		pm->requires_update = 0;
 		usb_kill_urb(pm->irq);
 		input_unregister_device(pm->input);
@@ -432,7 +514,8 @@ static void powermate_disconnect(struct usb_interface *intf)
 	}
 }
 
-static struct usb_device_id powermate_devices [] = {
+static struct usb_device_id powermate_devices [] =
+{
 	{ USB_DEVICE(POWERMATE_VENDOR, POWERMATE_PRODUCT_NEW) },
 	{ USB_DEVICE(POWERMATE_VENDOR, POWERMATE_PRODUCT_OLD) },
 	{ USB_DEVICE(CONTOUR_VENDOR, CONTOUR_JOG) },
@@ -441,11 +524,12 @@ static struct usb_device_id powermate_devices [] = {
 
 MODULE_DEVICE_TABLE (usb, powermate_devices);
 
-static struct usb_driver powermate_driver = {
-        .name =         "powermate",
-        .probe =        powermate_probe,
-        .disconnect =   powermate_disconnect,
-        .id_table =     powermate_devices,
+static struct usb_driver powermate_driver =
+{
+	.name =         "powermate",
+	.probe =        powermate_probe,
+	.disconnect =   powermate_disconnect,
+	.id_table =     powermate_devices,
 };
 
 module_usb_driver(powermate_driver);

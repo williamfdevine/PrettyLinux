@@ -43,7 +43,7 @@ void __bch_submit_bbio(struct bio *bio, struct cache_set *c)
 }
 
 void bch_submit_bbio(struct bio *bio, struct cache_set *c,
-		     struct bkey *k, unsigned ptr)
+					 struct bkey *k, unsigned ptr)
 {
 	struct bbio *b = container_of(bio, struct bbio, bio);
 	bch_bkey_copy_single_ptr(&b->key, k, ptr);
@@ -59,10 +59,12 @@ void bch_count_io_errors(struct cache *ca, int error, const char *m)
 	 * log2(1/2)/log2(127/128) * refresh ~= 88 * refresh
 	 */
 
-	if (ca->set->error_decay) {
+	if (ca->set->error_decay)
+	{
 		unsigned count = atomic_inc_return(&ca->io_count);
 
-		while (count > ca->set->error_decay) {
+		while (count > ca->set->error_decay)
+		{
 			unsigned errors;
 			unsigned old = count;
 			unsigned new = count - ca->set->error_decay;
@@ -74,67 +76,77 @@ void bch_count_io_errors(struct cache *ca, int error, const char *m)
 
 			count = atomic_cmpxchg(&ca->io_count, old, new);
 
-			if (count == old) {
+			if (count == old)
+			{
 				count = new;
 
 				errors = atomic_read(&ca->io_errors);
-				do {
+
+				do
+				{
 					old = errors;
 					new = ((uint64_t) errors * 127) / 128;
 					errors = atomic_cmpxchg(&ca->io_errors,
-								old, new);
-				} while (old != errors);
+											old, new);
+				}
+				while (old != errors);
 			}
 		}
 	}
 
-	if (error) {
+	if (error)
+	{
 		char buf[BDEVNAME_SIZE];
 		unsigned errors = atomic_add_return(1 << IO_ERROR_SHIFT,
-						    &ca->io_errors);
+											&ca->io_errors);
 		errors >>= IO_ERROR_SHIFT;
 
 		if (errors < ca->set->error_limit)
 			pr_err("%s: IO error on %s, recovering",
-			       bdevname(ca->bdev, buf), m);
+				   bdevname(ca->bdev, buf), m);
 		else
 			bch_cache_set_error(ca->set,
-					    "%s: too many IO errors %s",
-					    bdevname(ca->bdev, buf), m);
+								"%s: too many IO errors %s",
+								bdevname(ca->bdev, buf), m);
 	}
 }
 
 void bch_bbio_count_io_errors(struct cache_set *c, struct bio *bio,
-			      int error, const char *m)
+							  int error, const char *m)
 {
 	struct bbio *b = container_of(bio, struct bbio, bio);
 	struct cache *ca = PTR_CACHE(c, &b->key, 0);
 
 	unsigned threshold = op_is_write(bio_op(bio))
-		? c->congested_write_threshold_us
-		: c->congested_read_threshold_us;
+						 ? c->congested_write_threshold_us
+						 : c->congested_read_threshold_us;
 
-	if (threshold) {
+	if (threshold)
+	{
 		unsigned t = local_clock_us();
 
 		int us = t - b->submit_time_us;
 		int congested = atomic_read(&c->congested);
 
-		if (us > (int) threshold) {
+		if (us > (int) threshold)
+		{
 			int ms = us / 1024;
 			c->congested_last_us = t;
 
 			ms = min(ms, CONGESTED_MAX + congested);
 			atomic_sub(ms, &c->congested);
-		} else if (congested < 0)
+		}
+		else if (congested < 0)
+		{
 			atomic_inc(&c->congested);
+		}
 	}
 
 	bch_count_io_errors(ca, error, m);
 }
 
 void bch_bbio_endio(struct cache_set *c, struct bio *bio,
-		    int error, const char *m)
+					int error, const char *m)
 {
 	struct closure *cl = bio->bi_private;
 

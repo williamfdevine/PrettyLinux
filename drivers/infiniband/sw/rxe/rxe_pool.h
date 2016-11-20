@@ -37,13 +37,15 @@
 #define RXE_POOL_ALIGN		(16)
 #define RXE_POOL_CACHE_FLAGS	(0)
 
-enum rxe_pool_flags {
+enum rxe_pool_flags
+{
 	RXE_POOL_ATOMIC		= BIT(0),
 	RXE_POOL_INDEX		= BIT(1),
 	RXE_POOL_KEY		= BIT(2),
 };
 
-enum rxe_elem_type {
+enum rxe_elem_type
+{
 	RXE_TYPE_UC,
 	RXE_TYPE_PD,
 	RXE_TYPE_AH,
@@ -57,7 +59,8 @@ enum rxe_elem_type {
 	RXE_NUM_TYPES,		/* keep me last */
 };
 
-struct rxe_type_info {
+struct rxe_type_info
+{
 	char			*name;
 	size_t			size;
 	void			(*cleanup)(void *obj);
@@ -71,12 +74,14 @@ struct rxe_type_info {
 
 extern struct rxe_type_info rxe_type_info[];
 
-enum rxe_pool_state {
+enum rxe_pool_state
+{
 	rxe_pool_invalid,
 	rxe_pool_valid,
 };
 
-struct rxe_pool_entry {
+struct rxe_pool_entry
+{
 	struct rxe_pool		*pool;
 	struct kref		ref_cnt;
 	struct list_head	list;
@@ -86,7 +91,8 @@ struct rxe_pool_entry {
 	u32			index;
 };
 
-struct rxe_pool {
+struct rxe_pool
+{
 	struct rxe_dev		*rxe;
 	spinlock_t              pool_lock; /* pool spinlock */
 	size_t			elem_size;
@@ -121,7 +127,7 @@ void rxe_cache_exit(void);
  * pool elements will be allocated out of a slab cache
  */
 int rxe_pool_init(struct rxe_dev *rxe, struct rxe_pool *pool,
-		  enum rxe_elem_type type, u32 max_elem);
+				  enum rxe_elem_type type, u32 max_elem);
 
 /* free resources from object pool */
 int rxe_pool_cleanup(struct rxe_pool *pool);

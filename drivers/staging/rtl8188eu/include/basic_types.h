@@ -79,18 +79,18 @@ Translate subfield (continuous bits in little-endian) of 4-byte
 value to host byte ordering.*/
 #define LE_BITS_TO_4BYTE(__pstart, __bitoffset, __bitlen) \
 	( \
-		(LE_P4BYTE_TO_HOST_4BYTE(__pstart) >> (__bitoffset))  & \
-		BIT_LEN_MASK_32(__bitlen) \
+	  (LE_P4BYTE_TO_HOST_4BYTE(__pstart) >> (__bitoffset))  & \
+	  BIT_LEN_MASK_32(__bitlen) \
 	)
 #define LE_BITS_TO_2BYTE(__pstart, __bitoffset, __bitlen) \
 	( \
-		(LE_P2BYTE_TO_HOST_2BYTE(__pstart) >> (__bitoffset)) & \
-		BIT_LEN_MASK_16(__bitlen) \
+	  (LE_P2BYTE_TO_HOST_2BYTE(__pstart) >> (__bitoffset)) & \
+	  BIT_LEN_MASK_16(__bitlen) \
 	)
 #define LE_BITS_TO_1BYTE(__pstart, __bitoffset, __bitlen) \
 	( \
-		(LE_P1BYTE_TO_HOST_1BYTE(__pstart) >> (__bitoffset)) & \
-		BIT_LEN_MASK_8(__bitlen) \
+	  (LE_P1BYTE_TO_HOST_1BYTE(__pstart) >> (__bitoffset)) & \
+	  BIT_LEN_MASK_8(__bitlen) \
 	)
 
 /* Description:
@@ -99,42 +99,42 @@ value to host byte ordering.*/
  */
 #define LE_BITS_CLEARED_TO_4BYTE(__pstart, __bitoffset, __bitlen) \
 	( \
-		LE_P4BYTE_TO_HOST_4BYTE(__pstart)  & \
-		(~BIT_OFFSET_LEN_MASK_32(__bitoffset, __bitlen)) \
+	  LE_P4BYTE_TO_HOST_4BYTE(__pstart)  & \
+	  (~BIT_OFFSET_LEN_MASK_32(__bitoffset, __bitlen)) \
 	)
 #define LE_BITS_CLEARED_TO_2BYTE(__pstart, __bitoffset, __bitlen) \
 	( \
-		LE_P2BYTE_TO_HOST_2BYTE(__pstart) & \
-		(~BIT_OFFSET_LEN_MASK_16(__bitoffset, __bitlen)) \
+	  LE_P2BYTE_TO_HOST_2BYTE(__pstart) & \
+	  (~BIT_OFFSET_LEN_MASK_16(__bitoffset, __bitlen)) \
 	)
 #define LE_BITS_CLEARED_TO_1BYTE(__pstart, __bitoffset, __bitlen) \
 	( \
-		LE_P1BYTE_TO_HOST_1BYTE(__pstart) & \
-		(~BIT_OFFSET_LEN_MASK_8(__bitoffset, __bitlen)) \
+	  LE_P1BYTE_TO_HOST_1BYTE(__pstart) & \
+	  (~BIT_OFFSET_LEN_MASK_8(__bitoffset, __bitlen)) \
 	)
 
 /* Description:
  * Set subfield of little-endian 4-byte value to specified value.
  */
 #define SET_BITS_TO_LE_4BYTE(__pstart, __bitoffset, __bitlen, __val) \
-		*((u32 *)(__pstart)) =				\
-		(							\
-		LE_BITS_CLEARED_TO_4BYTE(__pstart, __bitoffset, __bitlen) | \
-		((((u32)__val) & BIT_LEN_MASK_32(__bitlen)) << (__bitoffset)) \
-		)
+	*((u32 *)(__pstart)) =				\
+										(							\
+												LE_BITS_CLEARED_TO_4BYTE(__pstart, __bitoffset, __bitlen) | \
+												((((u32)__val) & BIT_LEN_MASK_32(__bitlen)) << (__bitoffset)) \
+										)
 
 #define SET_BITS_TO_LE_2BYTE(__pstart, __bitoffset, __bitlen, __val) \
-		*((u16 *)(__pstart)) =				\
-		(						\
-		LE_BITS_CLEARED_TO_2BYTE(__pstart, __bitoffset, __bitlen) | \
-		((((u16)__val) & BIT_LEN_MASK_16(__bitlen)) << (__bitoffset)) \
-		);
+	*((u16 *)(__pstart)) =				\
+										(						\
+												LE_BITS_CLEARED_TO_2BYTE(__pstart, __bitoffset, __bitlen) | \
+												((((u16)__val) & BIT_LEN_MASK_16(__bitlen)) << (__bitoffset)) \
+										);
 
 #define SET_BITS_TO_LE_1BYTE(__pstart, __bitoffset, __bitlen, __val) \
-		*((u8 *)(__pstart)) = EF1BYTE			\
-		(						\
-		LE_BITS_CLEARED_TO_1BYTE(__pstart, __bitoffset, __bitlen) | \
-		((((u8)__val) & BIT_LEN_MASK_8(__bitlen)) << (__bitoffset)) \
-		)
+	*((u8 *)(__pstart)) = EF1BYTE			\
+						  (						\
+								  LE_BITS_CLEARED_TO_1BYTE(__pstart, __bitoffset, __bitlen) | \
+								  ((((u8)__val) & BIT_LEN_MASK_8(__bitlen)) << (__bitoffset)) \
+						  )
 
 #endif /* __BASIC_TYPES_H__ */

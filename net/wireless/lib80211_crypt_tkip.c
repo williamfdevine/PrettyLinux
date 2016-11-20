@@ -41,7 +41,8 @@ MODULE_LICENSE("GPL");
 
 #define TKIP_HDR_LEN 8
 
-struct lib80211_tkip_data {
+struct lib80211_tkip_data
+{
 #define TKIP_KEY_LEN 32
 	u8 key[TKIP_KEY_LEN];
 	int key_set;
@@ -94,43 +95,56 @@ static void *lib80211_tkip_init(int key_idx)
 	struct lib80211_tkip_data *priv;
 
 	priv = kzalloc(sizeof(*priv), GFP_ATOMIC);
+
 	if (priv == NULL)
+	{
 		goto fail;
+	}
 
 	priv->key_idx = key_idx;
 
 	priv->tx_tfm_arc4 = crypto_alloc_skcipher("ecb(arc4)", 0,
-						  CRYPTO_ALG_ASYNC);
-	if (IS_ERR(priv->tx_tfm_arc4)) {
+						CRYPTO_ALG_ASYNC);
+
+	if (IS_ERR(priv->tx_tfm_arc4))
+	{
 		priv->tx_tfm_arc4 = NULL;
 		goto fail;
 	}
 
 	priv->tx_tfm_michael = crypto_alloc_ahash("michael_mic", 0,
-						  CRYPTO_ALG_ASYNC);
-	if (IS_ERR(priv->tx_tfm_michael)) {
+						   CRYPTO_ALG_ASYNC);
+
+	if (IS_ERR(priv->tx_tfm_michael))
+	{
 		priv->tx_tfm_michael = NULL;
 		goto fail;
 	}
 
 	priv->rx_tfm_arc4 = crypto_alloc_skcipher("ecb(arc4)", 0,
-						  CRYPTO_ALG_ASYNC);
-	if (IS_ERR(priv->rx_tfm_arc4)) {
+						CRYPTO_ALG_ASYNC);
+
+	if (IS_ERR(priv->rx_tfm_arc4))
+	{
 		priv->rx_tfm_arc4 = NULL;
 		goto fail;
 	}
 
 	priv->rx_tfm_michael = crypto_alloc_ahash("michael_mic", 0,
-						  CRYPTO_ALG_ASYNC);
-	if (IS_ERR(priv->rx_tfm_michael)) {
+						   CRYPTO_ALG_ASYNC);
+
+	if (IS_ERR(priv->rx_tfm_michael))
+	{
 		priv->rx_tfm_michael = NULL;
 		goto fail;
 	}
 
 	return priv;
 
-      fail:
-	if (priv) {
+fail:
+
+	if (priv)
+	{
 		crypto_free_ahash(priv->tx_tfm_michael);
 		crypto_free_skcipher(priv->tx_tfm_arc4);
 		crypto_free_ahash(priv->rx_tfm_michael);
@@ -144,12 +158,15 @@ static void *lib80211_tkip_init(int key_idx)
 static void lib80211_tkip_deinit(void *priv)
 {
 	struct lib80211_tkip_data *_priv = priv;
-	if (_priv) {
+
+	if (_priv)
+	{
 		crypto_free_ahash(_priv->tx_tfm_michael);
 		crypto_free_skcipher(_priv->tx_tfm_arc4);
 		crypto_free_ahash(_priv->rx_tfm_michael);
 		crypto_free_skcipher(_priv->rx_tfm_arc4);
 	}
+
 	kfree(priv);
 }
 
@@ -183,12 +200,13 @@ static inline u16 Mk16(u8 hi, u8 lo)
 	return lo | (((u16) hi) << 8);
 }
 
-static inline u16 Mk16_le(__le16 * v)
+static inline u16 Mk16_le(__le16 *v)
 {
 	return le16_to_cpu(*v);
 }
 
-static const u16 Sbox[256] = {
+static const u16 Sbox[256] =
+{
 	0xC6A5, 0xF884, 0xEE99, 0xF68D, 0xFF0D, 0xD6BD, 0xDEB1, 0x9154,
 	0x6050, 0x0203, 0xCEA9, 0x567D, 0xE719, 0xB562, 0x4DE6, 0xEC9A,
 	0x8F45, 0x1F9D, 0x8940, 0xFA87, 0xEF15, 0xB2EB, 0x8EC9, 0xFB0B,
@@ -231,8 +249,8 @@ static inline u16 _S_(u16 v)
 
 #define PHASE1_LOOP_COUNT 8
 
-static void tkip_mixing_phase1(u16 * TTAK, const u8 * TK, const u8 * TA,
-			       u32 IV32)
+static void tkip_mixing_phase1(u16 *TTAK, const u8 *TK, const u8 *TA,
+							   u32 IV32)
 {
 	int i, j;
 
@@ -243,7 +261,8 @@ static void tkip_mixing_phase1(u16 * TTAK, const u8 * TK, const u8 * TA,
 	TTAK[3] = Mk16(TA[3], TA[2]);
 	TTAK[4] = Mk16(TA[5], TA[4]);
 
-	for (i = 0; i < PHASE1_LOOP_COUNT; i++) {
+	for (i = 0; i < PHASE1_LOOP_COUNT; i++)
+	{
 		j = 2 * (i & 1);
 		TTAK[0] += _S_(TTAK[4] ^ Mk16(TK[1 + j], TK[0 + j]));
 		TTAK[1] += _S_(TTAK[0] ^ Mk16(TK[5 + j], TK[4 + j]));
@@ -253,8 +272,8 @@ static void tkip_mixing_phase1(u16 * TTAK, const u8 * TK, const u8 * TA,
 	}
 }
 
-static void tkip_mixing_phase2(u8 * WEPSeed, const u8 * TK, const u16 * TTAK,
-			       u16 IV16)
+static void tkip_mixing_phase2(u8 *WEPSeed, const u8 *TK, const u16 *TTAK,
+							   u16 IV16)
 {
 	/* Make temporary area overlap WEP seed so that the final copy can be
 	 * avoided on little endian hosts. */
@@ -293,14 +312,17 @@ static void tkip_mixing_phase2(u8 * WEPSeed, const u8 * TK, const u16 * TTAK,
 #ifdef __BIG_ENDIAN
 	{
 		int i;
+
 		for (i = 0; i < 6; i++)
+		{
 			PPK[i] = (PPK[i] << 8) | (PPK[i] >> 8);
+		}
 	}
 #endif
 }
 
 static int lib80211_tkip_hdr(struct sk_buff *skb, int hdr_len,
-			      u8 * rc4key, int keylen, void *priv)
+							 u8 *rc4key, int keylen, void *priv)
 {
 	struct lib80211_tkip_data *tkey = priv;
 	u8 *pos;
@@ -309,16 +331,22 @@ static int lib80211_tkip_hdr(struct sk_buff *skb, int hdr_len,
 	hdr = (struct ieee80211_hdr *)skb->data;
 
 	if (skb_headroom(skb) < TKIP_HDR_LEN || skb->len < hdr_len)
+	{
 		return -1;
+	}
 
 	if (rc4key == NULL || keylen < 16)
+	{
 		return -1;
+	}
 
-	if (!tkey->tx_phase1_done) {
+	if (!tkey->tx_phase1_done)
+	{
 		tkip_mixing_phase1(tkey->tx_ttak, tkey->key, hdr->addr2,
-				   tkey->tx_iv32);
+						   tkey->tx_iv32);
 		tkey->tx_phase1_done = 1;
 	}
+
 	tkip_mixing_phase2(rc4key, tkey->key, tkey->tx_ttak, tkey->tx_iv16);
 
 	pos = skb_push(skb, TKIP_HDR_LEN);
@@ -335,7 +363,9 @@ static int lib80211_tkip_hdr(struct sk_buff *skb, int hdr_len,
 	*pos++ = (tkey->tx_iv32 >> 24) & 0xff;
 
 	tkey->tx_iv16++;
-	if (tkey->tx_iv16 == 0) {
+
+	if (tkey->tx_iv16 == 0)
+	{
 		tkey->tx_phase1_done = 0;
 		tkey->tx_iv32++;
 	}
@@ -353,21 +383,26 @@ static int lib80211_tkip_encrypt(struct sk_buff *skb, int hdr_len, void *priv)
 	struct scatterlist sg;
 	int err;
 
-	if (tkey->flags & IEEE80211_CRYPTO_TKIP_COUNTERMEASURES) {
+	if (tkey->flags & IEEE80211_CRYPTO_TKIP_COUNTERMEASURES)
+	{
 		struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)skb->data;
 		net_dbg_ratelimited("TKIP countermeasures: dropped TX packet to %pM\n",
-				    hdr->addr1);
+							hdr->addr1);
 		return -1;
 	}
 
 	if (skb_tailroom(skb) < 4 || skb->len < hdr_len)
+	{
 		return -1;
+	}
 
 	len = skb->len - hdr_len;
 	pos = skb->data + hdr_len;
 
 	if ((lib80211_tkip_hdr(skb, hdr_len, rc4key, 16, priv)) < 0)
+	{
 		return -1;
+	}
 
 	crc = ~crc32_le(~0, pos, len);
 	icv = skb_put(skb, 4);
@@ -391,11 +426,14 @@ static int lib80211_tkip_encrypt(struct sk_buff *skb, int hdr_len, void *priv)
  * refer to timer_after() for jiffies wrapping handling
  */
 static inline int tkip_replay_check(u32 iv32_n, u16 iv16_n,
-				    u32 iv32_o, u16 iv16_o)
+									u32 iv32_o, u16 iv16_o)
 {
 	if ((s32)iv32_n - (s32)iv32_o < 0 ||
-	    (iv32_n == iv32_o && iv16_n <= iv16_o))
+		(iv32_n == iv32_o && iv16_n <= iv16_o))
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -416,51 +454,65 @@ static int lib80211_tkip_decrypt(struct sk_buff *skb, int hdr_len, void *priv)
 
 	hdr = (struct ieee80211_hdr *)skb->data;
 
-	if (tkey->flags & IEEE80211_CRYPTO_TKIP_COUNTERMEASURES) {
+	if (tkey->flags & IEEE80211_CRYPTO_TKIP_COUNTERMEASURES)
+	{
 		net_dbg_ratelimited("TKIP countermeasures: dropped received packet from %pM\n",
-				    hdr->addr2);
+							hdr->addr2);
 		return -1;
 	}
 
 	if (skb->len < hdr_len + TKIP_HDR_LEN + 4)
+	{
 		return -1;
+	}
 
 	pos = skb->data + hdr_len;
 	keyidx = pos[3];
-	if (!(keyidx & (1 << 5))) {
+
+	if (!(keyidx & (1 << 5)))
+	{
 		net_dbg_ratelimited("TKIP: received packet without ExtIV flag from %pM\n",
-				    hdr->addr2);
+							hdr->addr2);
 		return -2;
 	}
+
 	keyidx >>= 6;
-	if (tkey->key_idx != keyidx) {
+
+	if (tkey->key_idx != keyidx)
+	{
 		net_dbg_ratelimited("TKIP: RX tkey->key_idx=%d frame keyidx=%d\n",
-				    tkey->key_idx, keyidx);
+							tkey->key_idx, keyidx);
 		return -6;
 	}
-	if (!tkey->key_set) {
+
+	if (!tkey->key_set)
+	{
 		net_dbg_ratelimited("TKIP: received packet from %pM with keyid=%d that does not have a configured key\n",
-				    hdr->addr2, keyidx);
+							hdr->addr2, keyidx);
 		return -3;
 	}
+
 	iv16 = (pos[0] << 8) | pos[2];
 	iv32 = pos[4] | (pos[5] << 8) | (pos[6] << 16) | (pos[7] << 24);
 	pos += TKIP_HDR_LEN;
 
-	if (tkip_replay_check(iv32, iv16, tkey->rx_iv32, tkey->rx_iv16)) {
+	if (tkip_replay_check(iv32, iv16, tkey->rx_iv32, tkey->rx_iv16))
+	{
 #ifdef CONFIG_LIB80211_DEBUG
 		net_dbg_ratelimited("TKIP: replay detected: STA=%pM previous TSC %08x%04x received TSC %08x%04x\n",
-				    hdr->addr2, tkey->rx_iv32, tkey->rx_iv16,
-				    iv32, iv16);
+							hdr->addr2, tkey->rx_iv32, tkey->rx_iv16,
+							iv32, iv16);
 #endif
 		tkey->dot11RSNAStatsTKIPReplays++;
 		return -4;
 	}
 
-	if (iv32 != tkey->rx_iv32 || !tkey->rx_phase1_done) {
+	if (iv32 != tkey->rx_iv32 || !tkey->rx_phase1_done)
+	{
 		tkip_mixing_phase1(tkey->rx_ttak, tkey->key, hdr->addr2, iv32);
 		tkey->rx_phase1_done = 1;
 	}
+
 	tkip_mixing_phase2(rc4key, tkey->key, tkey->rx_ttak, iv16);
 
 	plen = skb->len - hdr_len - 12;
@@ -472,9 +524,11 @@ static int lib80211_tkip_decrypt(struct sk_buff *skb, int hdr_len, void *priv)
 	skcipher_request_set_crypt(req, &sg, &sg, plen + 4, NULL);
 	err = crypto_skcipher_decrypt(req);
 	skcipher_request_zero(req);
-	if (err) {
+
+	if (err)
+	{
 		net_dbg_ratelimited("TKIP: failed to decrypt received packet from %pM\n",
-				    hdr->addr2);
+							hdr->addr2);
 		return -7;
 	}
 
@@ -483,15 +537,19 @@ static int lib80211_tkip_decrypt(struct sk_buff *skb, int hdr_len, void *priv)
 	icv[1] = crc >> 8;
 	icv[2] = crc >> 16;
 	icv[3] = crc >> 24;
-	if (memcmp(icv, pos + plen, 4) != 0) {
-		if (iv32 != tkey->rx_iv32) {
+
+	if (memcmp(icv, pos + plen, 4) != 0)
+	{
+		if (iv32 != tkey->rx_iv32)
+		{
 			/* Previously cached Phase1 result was already lost, so
 			 * it needs to be recalculated for the next packet. */
 			tkey->rx_phase1_done = 0;
 		}
+
 #ifdef CONFIG_LIB80211_DEBUG
 		net_dbg_ratelimited("TKIP: ICV error detected: STA=%pM\n",
-				    hdr->addr2);
+							hdr->addr2);
 #endif
 		tkey->dot11RSNAStatsTKIPICVErrors++;
 		return -5;
@@ -510,23 +568,27 @@ static int lib80211_tkip_decrypt(struct sk_buff *skb, int hdr_len, void *priv)
 	return keyidx;
 }
 
-static int michael_mic(struct crypto_ahash *tfm_michael, u8 * key, u8 * hdr,
-		       u8 * data, size_t data_len, u8 * mic)
+static int michael_mic(struct crypto_ahash *tfm_michael, u8 *key, u8 *hdr,
+					   u8 *data, size_t data_len, u8 *mic)
 {
 	AHASH_REQUEST_ON_STACK(req, tfm_michael);
 	struct scatterlist sg[2];
 	int err;
 
-	if (tfm_michael == NULL) {
+	if (tfm_michael == NULL)
+	{
 		pr_warn("%s(): tfm_michael == NULL\n", __func__);
 		return -1;
 	}
+
 	sg_init_table(sg, 2);
 	sg_set_buf(&sg[0], hdr, 16);
 	sg_set_buf(&sg[1], data, data_len);
 
 	if (crypto_ahash_setkey(tfm_michael, key, 8))
+	{
 		return -1;
+	}
 
 	ahash_request_set_tfm(req, tfm_michael);
 	ahash_request_set_callback(req, 0, NULL, NULL);
@@ -536,66 +598,78 @@ static int michael_mic(struct crypto_ahash *tfm_michael, u8 * key, u8 * hdr,
 	return err;
 }
 
-static void michael_mic_hdr(struct sk_buff *skb, u8 * hdr)
+static void michael_mic_hdr(struct sk_buff *skb, u8 *hdr)
 {
 	struct ieee80211_hdr *hdr11;
 
 	hdr11 = (struct ieee80211_hdr *)skb->data;
 
 	switch (le16_to_cpu(hdr11->frame_control) &
-		(IEEE80211_FCTL_FROMDS | IEEE80211_FCTL_TODS)) {
-	case IEEE80211_FCTL_TODS:
-		memcpy(hdr, hdr11->addr3, ETH_ALEN);	/* DA */
-		memcpy(hdr + ETH_ALEN, hdr11->addr2, ETH_ALEN);	/* SA */
-		break;
-	case IEEE80211_FCTL_FROMDS:
-		memcpy(hdr, hdr11->addr1, ETH_ALEN);	/* DA */
-		memcpy(hdr + ETH_ALEN, hdr11->addr3, ETH_ALEN);	/* SA */
-		break;
-	case IEEE80211_FCTL_FROMDS | IEEE80211_FCTL_TODS:
-		memcpy(hdr, hdr11->addr3, ETH_ALEN);	/* DA */
-		memcpy(hdr + ETH_ALEN, hdr11->addr4, ETH_ALEN);	/* SA */
-		break;
-	case 0:
-		memcpy(hdr, hdr11->addr1, ETH_ALEN);	/* DA */
-		memcpy(hdr + ETH_ALEN, hdr11->addr2, ETH_ALEN);	/* SA */
-		break;
+			(IEEE80211_FCTL_FROMDS | IEEE80211_FCTL_TODS))
+	{
+		case IEEE80211_FCTL_TODS:
+			memcpy(hdr, hdr11->addr3, ETH_ALEN);	/* DA */
+			memcpy(hdr + ETH_ALEN, hdr11->addr2, ETH_ALEN);	/* SA */
+			break;
+
+		case IEEE80211_FCTL_FROMDS:
+			memcpy(hdr, hdr11->addr1, ETH_ALEN);	/* DA */
+			memcpy(hdr + ETH_ALEN, hdr11->addr3, ETH_ALEN);	/* SA */
+			break;
+
+		case IEEE80211_FCTL_FROMDS | IEEE80211_FCTL_TODS:
+			memcpy(hdr, hdr11->addr3, ETH_ALEN);	/* DA */
+			memcpy(hdr + ETH_ALEN, hdr11->addr4, ETH_ALEN);	/* SA */
+			break;
+
+		case 0:
+			memcpy(hdr, hdr11->addr1, ETH_ALEN);	/* DA */
+			memcpy(hdr + ETH_ALEN, hdr11->addr2, ETH_ALEN);	/* SA */
+			break;
 	}
 
-	if (ieee80211_is_data_qos(hdr11->frame_control)) {
+	if (ieee80211_is_data_qos(hdr11->frame_control))
+	{
 		hdr[12] = le16_to_cpu(*((__le16 *)ieee80211_get_qos_ctl(hdr11)))
-			& IEEE80211_QOS_CTL_TID_MASK;
-	} else
-		hdr[12] = 0;		/* priority */
+				  & IEEE80211_QOS_CTL_TID_MASK;
+	}
+	else
+	{
+		hdr[12] = 0;    /* priority */
+	}
 
 	hdr[13] = hdr[14] = hdr[15] = 0;	/* reserved */
 }
 
 static int lib80211_michael_mic_add(struct sk_buff *skb, int hdr_len,
-				     void *priv)
+									void *priv)
 {
 	struct lib80211_tkip_data *tkey = priv;
 	u8 *pos;
 
-	if (skb_tailroom(skb) < 8 || skb->len < hdr_len) {
+	if (skb_tailroom(skb) < 8 || skb->len < hdr_len)
+	{
 		printk(KERN_DEBUG "Invalid packet for Michael MIC add "
-		       "(tailroom=%d hdr_len=%d skb->len=%d)\n",
-		       skb_tailroom(skb), hdr_len, skb->len);
+			   "(tailroom=%d hdr_len=%d skb->len=%d)\n",
+			   skb_tailroom(skb), hdr_len, skb->len);
 		return -1;
 	}
 
 	michael_mic_hdr(skb, tkey->tx_hdr);
 	pos = skb_put(skb, 8);
+
 	if (michael_mic(tkey->tx_tfm_michael, &tkey->key[16], tkey->tx_hdr,
-			skb->data + hdr_len, skb->len - 8 - hdr_len, pos))
+					skb->data + hdr_len, skb->len - 8 - hdr_len, pos))
+	{
 		return -1;
+	}
 
 	return 0;
 }
 
 static void lib80211_michael_mic_failure(struct net_device *dev,
-					  struct ieee80211_hdr *hdr,
-					  int keyidx)
+		struct ieee80211_hdr *hdr,
+		int keyidx)
 {
 	union iwreq_data wrqu;
 	struct iw_michaelmicfailure ev;
@@ -603,10 +677,16 @@ static void lib80211_michael_mic_failure(struct net_device *dev,
 	/* TODO: needed parameters: count, keyid, key type, TSC */
 	memset(&ev, 0, sizeof(ev));
 	ev.flags = keyidx & IW_MICFAILURE_KEY_ID;
+
 	if (hdr->addr1[0] & 0x01)
+	{
 		ev.flags |= IW_MICFAILURE_GROUP;
+	}
 	else
+	{
 		ev.flags |= IW_MICFAILURE_PAIRWISE;
+	}
+
 	ev.src_addr.sa_family = ARPHRD_ETHER;
 	memcpy(ev.src_addr.sa_data, hdr->addr2, ETH_ALEN);
 	memset(&wrqu, 0, sizeof(wrqu));
@@ -615,27 +695,38 @@ static void lib80211_michael_mic_failure(struct net_device *dev,
 }
 
 static int lib80211_michael_mic_verify(struct sk_buff *skb, int keyidx,
-					int hdr_len, void *priv)
+									   int hdr_len, void *priv)
 {
 	struct lib80211_tkip_data *tkey = priv;
 	u8 mic[8];
 
 	if (!tkey->key_set)
+	{
 		return -1;
+	}
 
 	michael_mic_hdr(skb, tkey->rx_hdr);
+
 	if (michael_mic(tkey->rx_tfm_michael, &tkey->key[24], tkey->rx_hdr,
-			skb->data + hdr_len, skb->len - 8 - hdr_len, mic))
+					skb->data + hdr_len, skb->len - 8 - hdr_len, mic))
+	{
 		return -1;
-	if (memcmp(mic, skb->data + skb->len - 8, 8) != 0) {
+	}
+
+	if (memcmp(mic, skb->data + skb->len - 8, 8) != 0)
+	{
 		struct ieee80211_hdr *hdr;
 		hdr = (struct ieee80211_hdr *)skb->data;
 		printk(KERN_DEBUG "%s: Michael MIC verification failed for "
-		       "MSDU from %pM keyidx=%d\n",
-		       skb->dev ? skb->dev->name : "N/A", hdr->addr2,
-		       keyidx);
+			   "MSDU from %pM keyidx=%d\n",
+			   skb->dev ? skb->dev->name : "N/A", hdr->addr2,
+			   keyidx);
+
 		if (skb->dev)
+		{
 			lib80211_michael_mic_failure(skb->dev, hdr, keyidx);
+		}
+
 		tkey->dot11RSNAStatsTKIPLocalMICFailures++;
 		return -1;
 	}
@@ -650,7 +741,7 @@ static int lib80211_michael_mic_verify(struct sk_buff *skb, int keyidx,
 	return 0;
 }
 
-static int lib80211_tkip_set_key(void *key, int len, u8 * seq, void *priv)
+static int lib80211_tkip_set_key(void *key, int len, u8 *seq, void *priv)
 {
 	struct lib80211_tkip_data *tkey = priv;
 	int keyidx;
@@ -666,40 +757,59 @@ static int lib80211_tkip_set_key(void *key, int len, u8 * seq, void *priv)
 	tkey->tx_tfm_arc4 = tfm2;
 	tkey->rx_tfm_michael = tfm3;
 	tkey->rx_tfm_arc4 = tfm4;
-	if (len == TKIP_KEY_LEN) {
+
+	if (len == TKIP_KEY_LEN)
+	{
 		memcpy(tkey->key, key, TKIP_KEY_LEN);
 		tkey->key_set = 1;
 		tkey->tx_iv16 = 1;	/* TSC is initialized to 1 */
-		if (seq) {
+
+		if (seq)
+		{
 			tkey->rx_iv32 = (seq[5] << 24) | (seq[4] << 16) |
-			    (seq[3] << 8) | seq[2];
+							(seq[3] << 8) | seq[2];
 			tkey->rx_iv16 = (seq[1] << 8) | seq[0];
 		}
-	} else if (len == 0)
+	}
+	else if (len == 0)
+	{
 		tkey->key_set = 0;
+	}
 	else
+	{
 		return -1;
+	}
 
 	return 0;
 }
 
-static int lib80211_tkip_get_key(void *key, int len, u8 * seq, void *priv)
+static int lib80211_tkip_get_key(void *key, int len, u8 *seq, void *priv)
 {
 	struct lib80211_tkip_data *tkey = priv;
 
 	if (len < TKIP_KEY_LEN)
+	{
 		return -1;
+	}
 
 	if (!tkey->key_set)
+	{
 		return 0;
+	}
+
 	memcpy(key, tkey->key, TKIP_KEY_LEN);
 
-	if (seq) {
+	if (seq)
+	{
 		/* Return the sequence number of the last transmitted frame. */
 		u16 iv16 = tkey->tx_iv16;
 		u32 iv32 = tkey->tx_iv32;
+
 		if (iv16 == 0)
+		{
 			iv32--;
+		}
+
 		iv16--;
 		seq[0] = tkey->tx_iv16;
 		seq[1] = tkey->tx_iv16 >> 8;
@@ -716,29 +826,30 @@ static void lib80211_tkip_print_stats(struct seq_file *m, void *priv)
 {
 	struct lib80211_tkip_data *tkip = priv;
 	seq_printf(m,
-		   "key[%d] alg=TKIP key_set=%d "
-		   "tx_pn=%02x%02x%02x%02x%02x%02x "
-		   "rx_pn=%02x%02x%02x%02x%02x%02x "
-		   "replays=%d icv_errors=%d local_mic_failures=%d\n",
-		   tkip->key_idx, tkip->key_set,
-		   (tkip->tx_iv32 >> 24) & 0xff,
-		   (tkip->tx_iv32 >> 16) & 0xff,
-		   (tkip->tx_iv32 >> 8) & 0xff,
-		   tkip->tx_iv32 & 0xff,
-		   (tkip->tx_iv16 >> 8) & 0xff,
-		   tkip->tx_iv16 & 0xff,
-		   (tkip->rx_iv32 >> 24) & 0xff,
-		   (tkip->rx_iv32 >> 16) & 0xff,
-		   (tkip->rx_iv32 >> 8) & 0xff,
-		   tkip->rx_iv32 & 0xff,
-		   (tkip->rx_iv16 >> 8) & 0xff,
-		   tkip->rx_iv16 & 0xff,
-		   tkip->dot11RSNAStatsTKIPReplays,
-		   tkip->dot11RSNAStatsTKIPICVErrors,
-		   tkip->dot11RSNAStatsTKIPLocalMICFailures);
+			   "key[%d] alg=TKIP key_set=%d "
+			   "tx_pn=%02x%02x%02x%02x%02x%02x "
+			   "rx_pn=%02x%02x%02x%02x%02x%02x "
+			   "replays=%d icv_errors=%d local_mic_failures=%d\n",
+			   tkip->key_idx, tkip->key_set,
+			   (tkip->tx_iv32 >> 24) & 0xff,
+			   (tkip->tx_iv32 >> 16) & 0xff,
+			   (tkip->tx_iv32 >> 8) & 0xff,
+			   tkip->tx_iv32 & 0xff,
+			   (tkip->tx_iv16 >> 8) & 0xff,
+			   tkip->tx_iv16 & 0xff,
+			   (tkip->rx_iv32 >> 24) & 0xff,
+			   (tkip->rx_iv32 >> 16) & 0xff,
+			   (tkip->rx_iv32 >> 8) & 0xff,
+			   tkip->rx_iv32 & 0xff,
+			   (tkip->rx_iv16 >> 8) & 0xff,
+			   tkip->rx_iv16 & 0xff,
+			   tkip->dot11RSNAStatsTKIPReplays,
+			   tkip->dot11RSNAStatsTKIPICVErrors,
+			   tkip->dot11RSNAStatsTKIPLocalMICFailures);
 }
 
-static struct lib80211_crypto_ops lib80211_crypt_tkip = {
+static struct lib80211_crypto_ops lib80211_crypt_tkip =
+{
 	.name = "TKIP",
 	.init = lib80211_tkip_init,
 	.deinit = lib80211_tkip_deinit,

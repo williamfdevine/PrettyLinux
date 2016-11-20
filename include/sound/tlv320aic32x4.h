@@ -22,7 +22,8 @@
 #define AIC32X4_MICPGA_ROUTE_LMIC_IN2R_10K	0x00000001
 #define AIC32X4_MICPGA_ROUTE_RMIC_IN1L_10K	0x00000002
 
-struct aic32x4_pdata {
+struct aic32x4_pdata
+{
 	u32 power_cfg;
 	u32 micpga_routing;
 	bool swapdacs;

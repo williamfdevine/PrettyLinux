@@ -31,19 +31,22 @@
 #define LP8788_ISINK_MAX_PWM		63
 #define LP8788_ISINK_SCALE_OFFSET	3
 
-static const u8 lp8788_iout_addr[] = {
+static const u8 lp8788_iout_addr[] =
+{
 	LP8788_ISINK12_IOUT,
 	LP8788_ISINK12_IOUT,
 	LP8788_ISINK3_IOUT,
 };
 
-static const u8 lp8788_iout_mask[] = {
+static const u8 lp8788_iout_mask[] =
+{
 	LP8788_ISINK1_IOUT_M,
 	LP8788_ISINK2_IOUT_M,
 	LP8788_ISINK3_IOUT_M,
 };
 
-static const u8 lp8788_pwm_addr[] = {
+static const u8 lp8788_pwm_addr[] =
+{
 	LP8788_ISINK1_PWM,
 	LP8788_ISINK2_PWM,
 	LP8788_ISINK3_PWM,

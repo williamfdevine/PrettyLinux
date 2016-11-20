@@ -34,9 +34,9 @@
 
 #define RTL_USB_DEVICE(vend, prod, cfg) \
 	.match_flags = USB_DEVICE_ID_MATCH_DEVICE, \
-	.idVendor = (vend), \
-	.idProduct = (prod), \
-	.driver_info = (kernel_ulong_t)&(cfg)
+				   .idVendor = (vend), \
+							   .idProduct = (prod), \
+											.driver_info = (kernel_ulong_t)&(cfg)
 
 #define USB_HIGH_SPEED_BULK_SIZE	512
 #define USB_FULL_SPEED_BULK_SIZE	64
@@ -46,7 +46,8 @@
 #define RTL_USB_MAX_EP_NUM		6		/* max ep number */
 #define RTL_USB_MAX_TX_URBS_NUM		8
 
-enum rtl_txq {
+enum rtl_txq
+{
 	/* These definitions shall be consistent with value
 	 * returned by skb_get_queue_mapping
 	 *------------------------------------*/
@@ -63,18 +64,20 @@ enum rtl_txq {
 	__RTL_TXQ_NUM,
 };
 
-struct rtl_ep_map {
+struct rtl_ep_map
+{
 	u32 ep_mapping[__RTL_TXQ_NUM];
 };
 
-struct _trx_info {
+struct _trx_info
+{
 	struct rtl_usb *rtlusb;
 	u32 ep_num;
 };
 
 static inline void _rtl_install_trx_info(struct rtl_usb *rtlusb,
-					 struct sk_buff *skb,
-					 u32 ep_num)
+		struct sk_buff *skb,
+		u32 ep_num)
 {
 	struct ieee80211_tx_info *info = IEEE80211_SKB_CB(skb);
 	info->rate_driver_data[0] = rtlusb;
@@ -83,7 +86,8 @@ static inline void _rtl_install_trx_info(struct rtl_usb *rtlusb,
 
 
 /*  Add suspend/resume later */
-enum rtl_usb_state {
+enum rtl_usb_state
+{
 	USB_STATE_STOP	= 0,
 	USB_STATE_START	= 1,
 };
@@ -100,7 +104,8 @@ enum rtl_usb_state {
 		(rtlusb_ptr)->state = USB_STATE_START;		\
 	} while (0)
 
-struct rtl_usb {
+struct rtl_usb
+{
 	struct usb_device *udev;
 	struct usb_interface *intf;
 	enum rtl_usb_state state;
@@ -130,9 +135,9 @@ struct rtl_usb {
 	struct usb_anchor tx_submitted;
 
 	struct sk_buff *(*usb_tx_aggregate_hdl)(struct ieee80211_hw *,
-						struct sk_buff_head *);
+											struct sk_buff_head *);
 	int (*usb_tx_post_hdl)(struct ieee80211_hw *,
-			       struct urb *, struct sk_buff *);
+						   struct urb *, struct sk_buff *);
 	void (*usb_tx_cleanup)(struct ieee80211_hw *, struct sk_buff *);
 
 	/* Rx */
@@ -145,11 +150,12 @@ struct rtl_usb {
 	struct tasklet_struct   rx_work_tasklet;
 	struct sk_buff_head	rx_queue;
 	void (*usb_rx_segregate_hdl)(struct ieee80211_hw *, struct sk_buff *,
-				     struct sk_buff_head *);
+								 struct sk_buff_head *);
 	void (*usb_rx_hdl)(struct ieee80211_hw *, struct sk_buff *);
 };
 
-struct rtl_usb_priv {
+struct rtl_usb_priv
+{
 	struct rtl_usb dev;
 	struct rtl_led_ctl ledctl;
 };
@@ -160,8 +166,8 @@ struct rtl_usb_priv {
 
 
 int rtl_usb_probe(struct usb_interface *intf,
-		  const struct usb_device_id *id,
-		  struct rtl_hal_cfg *rtl92cu_hal_cfg);
+				  const struct usb_device_id *id,
+				  struct rtl_hal_cfg *rtl92cu_hal_cfg);
 void rtl_usb_disconnect(struct usb_interface *intf);
 int rtl_usb_suspend(struct usb_interface *pusb_intf, pm_message_t message);
 int rtl_usb_resume(struct usb_interface *pusb_intf);

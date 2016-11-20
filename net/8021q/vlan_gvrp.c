@@ -14,14 +14,16 @@
 
 #define GARP_GVRP_ADDRESS	{ 0x01, 0x80, 0xc2, 0x00, 0x00, 0x21 }
 
-enum gvrp_attributes {
+enum gvrp_attributes
+{
 	GVRP_ATTR_INVALID,
 	GVRP_ATTR_VID,
 	__GVRP_ATTR_MAX
 };
 #define GVRP_ATTR_MAX	(__GVRP_ATTR_MAX - 1)
 
-static struct garp_application vlan_gvrp_app __read_mostly = {
+static struct garp_application vlan_gvrp_app __read_mostly =
+{
 	.proto.group_address	= GARP_GVRP_ADDRESS,
 	.maxattr		= GVRP_ATTR_MAX,
 	.type			= GARP_APPLICATION_GVRP,
@@ -33,9 +35,12 @@ int vlan_gvrp_request_join(const struct net_device *dev)
 	__be16 vlan_id = htons(vlan->vlan_id);
 
 	if (vlan->vlan_proto != htons(ETH_P_8021Q))
+	{
 		return 0;
+	}
+
 	return garp_request_join(vlan->real_dev, &vlan_gvrp_app,
-				 &vlan_id, sizeof(vlan_id), GVRP_ATTR_VID);
+							 &vlan_id, sizeof(vlan_id), GVRP_ATTR_VID);
 }
 
 void vlan_gvrp_request_leave(const struct net_device *dev)
@@ -44,9 +49,12 @@ void vlan_gvrp_request_leave(const struct net_device *dev)
 	__be16 vlan_id = htons(vlan->vlan_id);
 
 	if (vlan->vlan_proto != htons(ETH_P_8021Q))
+	{
 		return;
+	}
+
 	garp_request_leave(vlan->real_dev, &vlan_gvrp_app,
-			   &vlan_id, sizeof(vlan_id), GVRP_ATTR_VID);
+					   &vlan_id, sizeof(vlan_id), GVRP_ATTR_VID);
 }
 
 int vlan_gvrp_init_applicant(struct net_device *dev)

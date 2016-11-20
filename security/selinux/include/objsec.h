@@ -28,7 +28,8 @@
 #include "flask.h"
 #include "avc.h"
 
-struct task_security_struct {
+struct task_security_struct
+{
 	u32 osid;		/* SID prior to last execve */
 	u32 sid;		/* current SID */
 	u32 exec_sid;		/* exec SID */
@@ -37,14 +38,17 @@ struct task_security_struct {
 	u32 sockcreate_sid;	/* fscreate SID */
 };
 
-enum label_initialized {
+enum label_initialized
+{
 	LABEL_INVALID,		/* invalid or not initialized */
 	LABEL_INITIALIZED	/* initialized */
 };
 
-struct inode_security_struct {
+struct inode_security_struct
+{
 	struct inode *inode;	/* back pointer to inode object */
-	union {
+	union
+	{
 		struct list_head list;	/* list of inode_security_struct */
 		struct rcu_head rcu;	/* for freeing the inode_security_struct */
 	};
@@ -55,14 +59,16 @@ struct inode_security_struct {
 	struct mutex lock;
 };
 
-struct file_security_struct {
+struct file_security_struct
+{
 	u32 sid;		/* SID of open file description */
 	u32 fown_sid;		/* SID of file owner (for SIGIO) */
 	u32 isid;		/* SID of inode at the time of file open */
 	u32 pseqno;		/* Policy seqno at the time of file open */
 };
 
-struct superblock_security_struct {
+struct superblock_security_struct
+{
 	struct super_block *sb;		/* back pointer to sb object */
 	u32 sid;			/* SID of file system superblock */
 	u32 def_sid;			/* default SID for labeling */
@@ -74,23 +80,28 @@ struct superblock_security_struct {
 	spinlock_t isec_lock;
 };
 
-struct msg_security_struct {
+struct msg_security_struct
+{
 	u32 sid;	/* SID of message */
 };
 
-struct ipc_security_struct {
+struct ipc_security_struct
+{
 	u16 sclass;	/* security class of this object */
 	u32 sid;	/* SID of IPC resource */
 };
 
-struct netif_security_struct {
+struct netif_security_struct
+{
 	struct net *ns;			/* network namespace */
 	int ifindex;			/* device index */
 	u32 sid;			/* SID for this interface */
 };
 
-struct netnode_security_struct {
-	union {
+struct netnode_security_struct
+{
+	union
+	{
 		__be32 ipv4;		/* IPv4 node address */
 		struct in6_addr ipv6;	/* IPv6 node address */
 	} addr;
@@ -98,15 +109,18 @@ struct netnode_security_struct {
 	u16 family;			/* address family */
 };
 
-struct netport_security_struct {
+struct netport_security_struct
+{
 	u32 sid;			/* SID for this node */
 	u16 port;			/* port number */
 	u8 protocol;			/* transport protocol */
 };
 
-struct sk_security_struct {
+struct sk_security_struct
+{
 #ifdef CONFIG_NETLABEL
-	enum {				/* NetLabel state */
+	enum  				/* NetLabel state */
+	{
 		NLBL_UNSET = 0,
 		NLBL_REQUIRE,
 		NLBL_LABELED,
@@ -120,11 +134,13 @@ struct sk_security_struct {
 	u16 sclass;			/* sock security class */
 };
 
-struct tun_security_struct {
+struct tun_security_struct
+{
 	u32 sid;			/* SID for the tun device sockets */
 };
 
-struct key_security_struct {
+struct key_security_struct
+{
 	u32 sid;	/* SID of key */
 };
 

@@ -23,7 +23,8 @@
 #ifndef PP_POWERSTATE_H
 #define PP_POWERSTATE_H
 
-struct pp_hw_power_state {
+struct pp_hw_power_state
+{
 	unsigned int magic;
 };
 
@@ -37,13 +38,15 @@ struct pp_power_state;
  * An item of a list containing Power States.
  */
 
-struct PP_StateLinkedList {
+struct PP_StateLinkedList
+{
 	struct pp_power_state *next;
 	struct pp_power_state *prev;
 };
 
 
-enum PP_StateUILabel {
+enum PP_StateUILabel
+{
 	PP_StateUILabel_None,
 	PP_StateUILabel_Battery,
 	PP_StateUILabel_MiddleLow,
@@ -53,7 +56,8 @@ enum PP_StateUILabel {
 	PP_StateUILabel_BACO
 };
 
-enum PP_StateClassificationFlag {
+enum PP_StateClassificationFlag
+{
 	PP_StateClassificationFlag_Boot                = 0x0001,
 	PP_StateClassificationFlag_Thermal             = 0x0002,
 	PP_StateClassificationFlag_LimitedPowerSource  = 0x0004,
@@ -79,7 +83,8 @@ enum PP_StateClassificationFlag {
 
 typedef unsigned int PP_StateClassificationFlags;
 
-struct PP_StateClassificationBlock {
+struct PP_StateClassificationBlock
+{
 	enum PP_StateUILabel         ui_label;
 	enum PP_StateClassificationFlag  flags;
 	int                          bios_index;
@@ -87,16 +92,19 @@ struct PP_StateClassificationBlock {
 	bool                      to_be_deleted;
 };
 
-struct PP_StatePcieBlock {
+struct PP_StatePcieBlock
+{
 	unsigned int lanes;
 };
 
-enum PP_RefreshrateSource {
+enum PP_RefreshrateSource
+{
 	PP_RefreshrateSource_EDID,
 	PP_RefreshrateSource_Explicit
 };
 
-struct PP_StateDisplayBlock {
+struct PP_StateDisplayBlock
+{
 	bool              disableFrameModulation;
 	bool              limitRefreshrate;
 	enum PP_RefreshrateSource refreshrateSource;
@@ -105,13 +113,15 @@ struct PP_StateDisplayBlock {
 	bool              enableVariBright;
 };
 
-struct PP_StateMemroyBlock {
+struct PP_StateMemroyBlock
+{
 	bool              dllOff;
 	uint8_t                 m3arb;
 	uint8_t                 unused[3];
 };
 
-struct PP_StateSoftwareAlgorithmBlock {
+struct PP_StateSoftwareAlgorithmBlock
+{
 	bool disableLoadBalancing;
 	bool enableSleepForTimestamps;
 };
@@ -121,18 +131,21 @@ struct PP_StateSoftwareAlgorithmBlock {
 /**
  * Type to hold a temperature range.
  */
-struct PP_TemperatureRange {
+struct PP_TemperatureRange
+{
 	uint32_t min;
 	uint32_t max;
 };
 
-struct PP_StateValidationBlock {
+struct PP_StateValidationBlock
+{
 	bool singleDisplayOnly;
 	bool disallowOnDC;
 	uint8_t supportedPowerLevels;
 };
 
-struct PP_UVD_CLOCKS {
+struct PP_UVD_CLOCKS
+{
 	uint32_t VCLK;
 	uint32_t DCLK;
 };
@@ -140,7 +153,8 @@ struct PP_UVD_CLOCKS {
 /**
 * Structure to hold a PowerPlay Power State.
 */
-struct pp_power_state {
+struct pp_power_state
+{
 	uint32_t                            id;
 	struct PP_StateLinkedList                  orderedList;
 	struct PP_StateLinkedList                  allStatesList;
@@ -158,20 +172,23 @@ struct pp_power_state {
 
 
 /*Structure to hold a VCE state entry*/
-struct pp_vce_state {
+struct pp_vce_state
+{
 	uint32_t evclk;
 	uint32_t ecclk;
 	uint32_t sclk;
 	uint32_t mclk;
 };
 
-enum PP_MMProfilingState {
+enum PP_MMProfilingState
+{
 	PP_MMProfilingState_NA = 0,
 	PP_MMProfilingState_Started,
 	PP_MMProfilingState_Stopped
 };
 
-struct pp_clock_engine_request {
+struct pp_clock_engine_request
+{
 	unsigned long client_type;
 	unsigned long ctx_id;
 	uint64_t  context_handle;

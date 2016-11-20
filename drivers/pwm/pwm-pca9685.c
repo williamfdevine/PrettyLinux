@@ -75,7 +75,8 @@
 #define LED_N_OFF_H(N)	(PCA9685_LEDX_OFF_H + (4 * (N)))
 #define LED_N_OFF_L(N)	(PCA9685_LEDX_OFF_L + (4 * (N)))
 
-struct pca9685 {
+struct pca9685
+{
 	struct pwm_chip chip;
 	struct regmap *regmap;
 	int active_cnt;
@@ -89,29 +90,31 @@ static inline struct pca9685 *to_pca(struct pwm_chip *chip)
 }
 
 static int pca9685_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
-			      int duty_ns, int period_ns)
+							  int duty_ns, int period_ns)
 {
 	struct pca9685 *pca = to_pca(chip);
 	unsigned long long duty;
 	unsigned int reg;
 	int prescale;
 
-	if (period_ns != pca->period_ns) {
+	if (period_ns != pca->period_ns)
+	{
 		prescale = DIV_ROUND_CLOSEST(PCA9685_OSC_CLOCK_MHZ * period_ns,
-					     PCA9685_COUNTER_RANGE * 1000) - 1;
+									 PCA9685_COUNTER_RANGE * 1000) - 1;
 
 		if (prescale >= PCA9685_PRESCALE_MIN &&
-			prescale <= PCA9685_PRESCALE_MAX) {
+			prescale <= PCA9685_PRESCALE_MAX)
+		{
 			/* Put chip into sleep mode */
 			regmap_update_bits(pca->regmap, PCA9685_MODE1,
-					   MODE1_SLEEP, MODE1_SLEEP);
+							   MODE1_SLEEP, MODE1_SLEEP);
 
 			/* Change the chip-wide output frequency */
 			regmap_write(pca->regmap, PCA9685_PRESCALE, prescale);
 
 			/* Wake the chip up */
 			regmap_update_bits(pca->regmap, PCA9685_MODE1,
-					   MODE1_SLEEP, 0x0);
+							   MODE1_SLEEP, 0x0);
 
 			/* Wait 500us for the oscillator to be back up */
 			udelay(500);
@@ -122,52 +125,73 @@ static int pca9685_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 			 * If the duty cycle did not change, restart PWM with
 			 * the same duty cycle to period ratio and return.
 			 */
-			if (duty_ns == pca->duty_ns) {
+			if (duty_ns == pca->duty_ns)
+			{
 				regmap_update_bits(pca->regmap, PCA9685_MODE1,
-						   MODE1_RESTART, 0x1);
+								   MODE1_RESTART, 0x1);
 				return 0;
 			}
-		} else {
+		}
+		else
+		{
 			dev_err(chip->dev,
-				"prescaler not set: period out of bounds!\n");
+					"prescaler not set: period out of bounds!\n");
 			return -EINVAL;
 		}
 	}
 
 	pca->duty_ns = duty_ns;
 
-	if (duty_ns < 1) {
+	if (duty_ns < 1)
+	{
 		if (pwm->hwpwm >= PCA9685_MAXCHAN)
+		{
 			reg = PCA9685_ALL_LED_OFF_H;
+		}
 		else
+		{
 			reg = LED_N_OFF_H(pwm->hwpwm);
+		}
 
 		regmap_write(pca->regmap, reg, LED_FULL);
 
 		return 0;
 	}
 
-	if (duty_ns == period_ns) {
+	if (duty_ns == period_ns)
+	{
 		/* Clear both OFF registers */
 		if (pwm->hwpwm >= PCA9685_MAXCHAN)
+		{
 			reg = PCA9685_ALL_LED_OFF_L;
+		}
 		else
+		{
 			reg = LED_N_OFF_L(pwm->hwpwm);
+		}
 
 		regmap_write(pca->regmap, reg, 0x0);
 
 		if (pwm->hwpwm >= PCA9685_MAXCHAN)
+		{
 			reg = PCA9685_ALL_LED_OFF_H;
+		}
 		else
+		{
 			reg = LED_N_OFF_H(pwm->hwpwm);
+		}
 
 		regmap_write(pca->regmap, reg, 0x0);
 
 		/* Set the full ON bit */
 		if (pwm->hwpwm >= PCA9685_MAXCHAN)
+		{
 			reg = PCA9685_ALL_LED_ON_H;
+		}
 		else
+		{
 			reg = LED_N_ON_H(pwm->hwpwm);
+		}
 
 		regmap_write(pca->regmap, reg, LED_FULL);
 
@@ -178,24 +202,36 @@ static int pca9685_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	duty = DIV_ROUND_UP_ULL(duty, period_ns);
 
 	if (pwm->hwpwm >= PCA9685_MAXCHAN)
+	{
 		reg = PCA9685_ALL_LED_OFF_L;
+	}
 	else
+	{
 		reg = LED_N_OFF_L(pwm->hwpwm);
+	}
 
 	regmap_write(pca->regmap, reg, (int)duty & 0xff);
 
 	if (pwm->hwpwm >= PCA9685_MAXCHAN)
+	{
 		reg = PCA9685_ALL_LED_OFF_H;
+	}
 	else
+	{
 		reg = LED_N_OFF_H(pwm->hwpwm);
+	}
 
 	regmap_write(pca->regmap, reg, ((int)duty >> 8) & 0xf);
 
 	/* Clear the full ON bit, otherwise the set OFF time has no effect */
 	if (pwm->hwpwm >= PCA9685_MAXCHAN)
+	{
 		reg = PCA9685_ALL_LED_ON_H;
+	}
 	else
+	{
 		reg = LED_N_ON_H(pwm->hwpwm);
+	}
 
 	regmap_write(pca->regmap, reg, 0);
 
@@ -212,16 +248,24 @@ static int pca9685_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 	 * So, set the ON-timeout to 0
 	 */
 	if (pwm->hwpwm >= PCA9685_MAXCHAN)
+	{
 		reg = PCA9685_ALL_LED_ON_L;
+	}
 	else
+	{
 		reg = LED_N_ON_L(pwm->hwpwm);
+	}
 
 	regmap_write(pca->regmap, reg, 0);
 
 	if (pwm->hwpwm >= PCA9685_MAXCHAN)
+	{
 		reg = PCA9685_ALL_LED_ON_H;
+	}
 	else
+	{
 		reg = LED_N_ON_H(pwm->hwpwm);
+	}
 
 	regmap_write(pca->regmap, reg, 0);
 
@@ -230,9 +274,13 @@ static int pca9685_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 	 * It has precedence over the others and must be off.
 	 */
 	if (pwm->hwpwm >= PCA9685_MAXCHAN)
+	{
 		reg = PCA9685_ALL_LED_OFF_H;
+	}
 	else
+	{
 		reg = LED_N_OFF_H(pwm->hwpwm);
+	}
 
 	regmap_update_bits(pca->regmap, reg, LED_FULL, 0x0);
 
@@ -245,17 +293,25 @@ static void pca9685_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 	unsigned int reg;
 
 	if (pwm->hwpwm >= PCA9685_MAXCHAN)
+	{
 		reg = PCA9685_ALL_LED_OFF_H;
+	}
 	else
+	{
 		reg = LED_N_OFF_H(pwm->hwpwm);
+	}
 
 	regmap_write(pca->regmap, reg, LED_FULL);
 
 	/* Clear the LED_OFF counter. */
 	if (pwm->hwpwm >= PCA9685_MAXCHAN)
+	{
 		reg = PCA9685_ALL_LED_OFF_L;
+	}
 	else
+	{
 		reg = LED_N_OFF_L(pwm->hwpwm);
+	}
 
 	regmap_write(pca->regmap, reg, 0x0);
 }
@@ -266,7 +322,7 @@ static int pca9685_pwm_request(struct pwm_chip *chip, struct pwm_device *pwm)
 
 	if (pca->active_cnt++ == 0)
 		return regmap_update_bits(pca->regmap, PCA9685_MODE1,
-					  MODE1_SLEEP, 0x0);
+								  MODE1_SLEEP, 0x0);
 
 	return 0;
 }
@@ -277,10 +333,11 @@ static void pca9685_pwm_free(struct pwm_chip *chip, struct pwm_device *pwm)
 
 	if (--pca->active_cnt == 0)
 		regmap_update_bits(pca->regmap, PCA9685_MODE1, MODE1_SLEEP,
-				   MODE1_SLEEP);
+						   MODE1_SLEEP);
 }
 
-static const struct pwm_ops pca9685_pwm_ops = {
+static const struct pwm_ops pca9685_pwm_ops =
+{
 	.enable = pca9685_pwm_enable,
 	.disable = pca9685_pwm_disable,
 	.config = pca9685_pwm_config,
@@ -289,7 +346,8 @@ static const struct pwm_ops pca9685_pwm_ops = {
 	.owner = THIS_MODULE,
 };
 
-static const struct regmap_config pca9685_regmap_i2c_config = {
+static const struct regmap_config pca9685_regmap_i2c_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 	.max_register = PCA9685_NUMREGS,
@@ -297,23 +355,29 @@ static const struct regmap_config pca9685_regmap_i2c_config = {
 };
 
 static int pca9685_pwm_probe(struct i2c_client *client,
-				const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	struct pca9685 *pca;
 	int ret;
 	int mode2;
 
 	pca = devm_kzalloc(&client->dev, sizeof(*pca), GFP_KERNEL);
+
 	if (!pca)
+	{
 		return -ENOMEM;
+	}
 
 	pca->regmap = devm_regmap_init_i2c(client, &pca9685_regmap_i2c_config);
-	if (IS_ERR(pca->regmap)) {
+
+	if (IS_ERR(pca->regmap))
+	{
 		ret = PTR_ERR(pca->regmap);
 		dev_err(&client->dev, "Failed to initialize register map: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
+
 	pca->duty_ns = 0;
 	pca->period_ns = PCA9685_DEFAULT_PERIOD;
 
@@ -322,14 +386,22 @@ static int pca9685_pwm_probe(struct i2c_client *client,
 	regmap_read(pca->regmap, PCA9685_MODE2, &mode2);
 
 	if (device_property_read_bool(&client->dev, "invert"))
+	{
 		mode2 |= MODE2_INVRT;
+	}
 	else
+	{
 		mode2 &= ~MODE2_INVRT;
+	}
 
 	if (device_property_read_bool(&client->dev, "open-drain"))
+	{
 		mode2 &= ~MODE2_OUTDRV;
+	}
 	else
+	{
 		mode2 |= MODE2_OUTDRV;
+	}
 
 	regmap_write(pca->regmap, PCA9685_MODE2, mode2);
 
@@ -353,19 +425,21 @@ static int pca9685_pwm_remove(struct i2c_client *client)
 	struct pca9685 *pca = i2c_get_clientdata(client);
 
 	regmap_update_bits(pca->regmap, PCA9685_MODE1, MODE1_SLEEP,
-			   MODE1_SLEEP);
+					   MODE1_SLEEP);
 
 	return pwmchip_remove(&pca->chip);
 }
 
-static const struct i2c_device_id pca9685_id[] = {
+static const struct i2c_device_id pca9685_id[] =
+{
 	{ "pca9685", 0 },
 	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(i2c, pca9685_id);
 
 #ifdef CONFIG_ACPI
-static const struct acpi_device_id pca9685_acpi_ids[] = {
+static const struct acpi_device_id pca9685_acpi_ids[] =
+{
 	{ "INT3492", 0 },
 	{ /* sentinel */ },
 };
@@ -373,14 +447,16 @@ MODULE_DEVICE_TABLE(acpi, pca9685_acpi_ids);
 #endif
 
 #ifdef CONFIG_OF
-static const struct of_device_id pca9685_dt_ids[] = {
+static const struct of_device_id pca9685_dt_ids[] =
+{
 	{ .compatible = "nxp,pca9685-pwm", },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, pca9685_dt_ids);
 #endif
 
-static struct i2c_driver pca9685_i2c_driver = {
+static struct i2c_driver pca9685_i2c_driver =
+{
 	.driver = {
 		.name = "pca9685-pwm",
 		.acpi_match_table = ACPI_PTR(pca9685_acpi_ids),

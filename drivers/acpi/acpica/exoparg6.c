@@ -74,8 +74,8 @@ ACPI_MODULE_NAME("exoparg6")
 /* Local prototypes */
 static u8
 acpi_ex_do_match(u32 match_op,
-		 union acpi_operand_object *package_obj,
-		 union acpi_operand_object *match_obj);
+				 union acpi_operand_object *package_obj,
+				 union acpi_operand_object *match_obj);
 
 /*******************************************************************************
  *
@@ -95,8 +95,8 @@ acpi_ex_do_match(u32 match_op,
 
 static u8
 acpi_ex_do_match(u32 match_op,
-		 union acpi_operand_object *package_obj,
-		 union acpi_operand_object *match_obj)
+				 union acpi_operand_object *package_obj,
+				 union acpi_operand_object *match_obj)
 {
 	u8 logical_result = TRUE;
 	acpi_status status;
@@ -111,85 +111,101 @@ acpi_ex_do_match(u32 match_op,
 	 *
 	 * Below, P[i] refers to the package element, M refers to the Match object.
 	 */
-	switch (match_op) {
-	case MATCH_MTR:
+	switch (match_op)
+	{
+		case MATCH_MTR:
 
-		/* Always true */
+			/* Always true */
 
-		break;
+			break;
 
-	case MATCH_MEQ:
-		/*
-		 * True if equal: (P[i] == M)
-		 * Change to:     (M == P[i])
-		 */
-		status =
-		    acpi_ex_do_logical_op(AML_LEQUAL_OP, match_obj, package_obj,
-					  &logical_result);
-		if (ACPI_FAILURE(status)) {
+		case MATCH_MEQ:
+			/*
+			 * True if equal: (P[i] == M)
+			 * Change to:     (M == P[i])
+			 */
+			status =
+				acpi_ex_do_logical_op(AML_LEQUAL_OP, match_obj, package_obj,
+									  &logical_result);
+
+			if (ACPI_FAILURE(status))
+			{
+				return (FALSE);
+			}
+
+			break;
+
+		case MATCH_MLE:
+			/*
+			 * True if less than or equal: (P[i] <= M) (P[i] not_greater than M)
+			 * Change to:                  (M >= P[i]) (M not_less than P[i])
+			 */
+			status =
+				acpi_ex_do_logical_op(AML_LLESS_OP, match_obj, package_obj,
+									  &logical_result);
+
+			if (ACPI_FAILURE(status))
+			{
+				return (FALSE);
+			}
+
+			logical_result = (u8) ! logical_result;
+			break;
+
+		case MATCH_MLT:
+			/*
+			 * True if less than: (P[i] < M)
+			 * Change to:         (M > P[i])
+			 */
+			status =
+				acpi_ex_do_logical_op(AML_LGREATER_OP, match_obj,
+									  package_obj, &logical_result);
+
+			if (ACPI_FAILURE(status))
+			{
+				return (FALSE);
+			}
+
+			break;
+
+		case MATCH_MGE:
+			/*
+			 * True if greater than or equal: (P[i] >= M) (P[i] not_less than M)
+			 * Change to:                     (M <= P[i]) (M not_greater than P[i])
+			 */
+			status =
+				acpi_ex_do_logical_op(AML_LGREATER_OP, match_obj,
+									  package_obj, &logical_result);
+
+			if (ACPI_FAILURE(status))
+			{
+				return (FALSE);
+			}
+
+			logical_result = (u8) ! logical_result;
+			break;
+
+		case MATCH_MGT:
+			/*
+			 * True if greater than: (P[i] > M)
+			 * Change to:            (M < P[i])
+			 */
+			status =
+				acpi_ex_do_logical_op(AML_LLESS_OP, match_obj, package_obj,
+									  &logical_result);
+
+			if (ACPI_FAILURE(status))
+			{
+				return (FALSE);
+			}
+
+			break;
+
+		default:
+
+			/* Undefined */
+
 			return (FALSE);
-		}
-		break;
-
-	case MATCH_MLE:
-		/*
-		 * True if less than or equal: (P[i] <= M) (P[i] not_greater than M)
-		 * Change to:                  (M >= P[i]) (M not_less than P[i])
-		 */
-		status =
-		    acpi_ex_do_logical_op(AML_LLESS_OP, match_obj, package_obj,
-					  &logical_result);
-		if (ACPI_FAILURE(status)) {
-			return (FALSE);
-		}
-		logical_result = (u8) ! logical_result;
-		break;
-
-	case MATCH_MLT:
-		/*
-		 * True if less than: (P[i] < M)
-		 * Change to:         (M > P[i])
-		 */
-		status =
-		    acpi_ex_do_logical_op(AML_LGREATER_OP, match_obj,
-					  package_obj, &logical_result);
-		if (ACPI_FAILURE(status)) {
-			return (FALSE);
-		}
-		break;
-
-	case MATCH_MGE:
-		/*
-		 * True if greater than or equal: (P[i] >= M) (P[i] not_less than M)
-		 * Change to:                     (M <= P[i]) (M not_greater than P[i])
-		 */
-		status =
-		    acpi_ex_do_logical_op(AML_LGREATER_OP, match_obj,
-					  package_obj, &logical_result);
-		if (ACPI_FAILURE(status)) {
-			return (FALSE);
-		}
-		logical_result = (u8) ! logical_result;
-		break;
-
-	case MATCH_MGT:
-		/*
-		 * True if greater than: (P[i] > M)
-		 * Change to:            (M < P[i])
-		 */
-		status =
-		    acpi_ex_do_logical_op(AML_LLESS_OP, match_obj, package_obj,
-					  &logical_result);
-		if (ACPI_FAILURE(status)) {
-			return (FALSE);
-		}
-		break;
-
-	default:
-
-		/* Undefined */
-
-		return (FALSE);
 	}
 
 	return (logical_result);
@@ -216,116 +232,130 @@ acpi_status acpi_ex_opcode_6A_0T_1R(struct acpi_walk_state *walk_state)
 	union acpi_operand_object *this_element;
 
 	ACPI_FUNCTION_TRACE_STR(ex_opcode_6A_0T_1R,
-				acpi_ps_get_opcode_name(walk_state->opcode));
+							acpi_ps_get_opcode_name(walk_state->opcode));
 
-	switch (walk_state->opcode) {
-	case AML_MATCH_OP:
-		/*
-		 * Match (search_pkg[0], match_op1[1], match_obj1[2],
-		 *                      match_op2[3], match_obj2[4], start_index[5])
-		 */
+	switch (walk_state->opcode)
+	{
+		case AML_MATCH_OP:
 
-		/* Validate both Match Term Operators (MTR, MEQ, etc.) */
+			/*
+			 * Match (search_pkg[0], match_op1[1], match_obj1[2],
+			 *                      match_op2[3], match_obj2[4], start_index[5])
+			 */
 
-		if ((operand[1]->integer.value > MAX_MATCH_OPERATOR) ||
-		    (operand[3]->integer.value > MAX_MATCH_OPERATOR)) {
-			ACPI_ERROR((AE_INFO, "Match operator out of range"));
-			status = AE_AML_OPERAND_VALUE;
-			goto cleanup;
-		}
+			/* Validate both Match Term Operators (MTR, MEQ, etc.) */
 
-		/* Get the package start_index, validate against the package length */
+			if ((operand[1]->integer.value > MAX_MATCH_OPERATOR) ||
+				(operand[3]->integer.value > MAX_MATCH_OPERATOR))
+			{
+				ACPI_ERROR((AE_INFO, "Match operator out of range"));
+				status = AE_AML_OPERAND_VALUE;
+				goto cleanup;
+			}
 
-		index = operand[5]->integer.value;
-		if (index >= operand[0]->package.count) {
-			ACPI_ERROR((AE_INFO,
-				    "Index (0x%8.8X%8.8X) beyond package end (0x%X)",
-				    ACPI_FORMAT_UINT64(index),
-				    operand[0]->package.count));
-			status = AE_AML_PACKAGE_LIMIT;
-			goto cleanup;
-		}
+			/* Get the package start_index, validate against the package length */
 
-		/* Create an integer for the return value */
-		/* Default return value is ACPI_UINT64_MAX if no match found */
+			index = operand[5]->integer.value;
 
-		return_desc = acpi_ut_create_integer_object(ACPI_UINT64_MAX);
-		if (!return_desc) {
-			status = AE_NO_MEMORY;
-			goto cleanup;
+			if (index >= operand[0]->package.count)
+			{
+				ACPI_ERROR((AE_INFO,
+							"Index (0x%8.8X%8.8X) beyond package end (0x%X)",
+							ACPI_FORMAT_UINT64(index),
+							operand[0]->package.count));
+				status = AE_AML_PACKAGE_LIMIT;
+				goto cleanup;
+			}
 
-		}
+			/* Create an integer for the return value */
+			/* Default return value is ACPI_UINT64_MAX if no match found */
 
-		/*
-		 * Examine each element until a match is found. Both match conditions
-		 * must be satisfied for a match to occur. Within the loop,
-		 * "continue" signifies that the current element does not match
-		 * and the next should be examined.
-		 *
-		 * Upon finding a match, the loop will terminate via "break" at
-		 * the bottom. If it terminates "normally", match_value will be
-		 * ACPI_UINT64_MAX (Ones) (its initial value) indicating that no
-		 * match was found.
-		 */
-		for (; index < operand[0]->package.count; index++) {
+			return_desc = acpi_ut_create_integer_object(ACPI_UINT64_MAX);
 
-			/* Get the current package element */
+			if (!return_desc)
+			{
+				status = AE_NO_MEMORY;
+				goto cleanup;
 
-			this_element = operand[0]->package.elements[index];
-
-			/* Treat any uninitialized (NULL) elements as non-matching */
-
-			if (!this_element) {
-				continue;
 			}
 
 			/*
-			 * Both match conditions must be satisfied. Execution of a continue
-			 * (proceed to next iteration of enclosing for loop) signifies a
-			 * non-match.
+			 * Examine each element until a match is found. Both match conditions
+			 * must be satisfied for a match to occur. Within the loop,
+			 * "continue" signifies that the current element does not match
+			 * and the next should be examined.
+			 *
+			 * Upon finding a match, the loop will terminate via "break" at
+			 * the bottom. If it terminates "normally", match_value will be
+			 * ACPI_UINT64_MAX (Ones) (its initial value) indicating that no
+			 * match was found.
 			 */
-			if (!acpi_ex_do_match((u32) operand[1]->integer.value,
-					      this_element, operand[2])) {
-				continue;
+			for (; index < operand[0]->package.count; index++)
+			{
+
+				/* Get the current package element */
+
+				this_element = operand[0]->package.elements[index];
+
+				/* Treat any uninitialized (NULL) elements as non-matching */
+
+				if (!this_element)
+				{
+					continue;
+				}
+
+				/*
+				 * Both match conditions must be satisfied. Execution of a continue
+				 * (proceed to next iteration of enclosing for loop) signifies a
+				 * non-match.
+				 */
+				if (!acpi_ex_do_match((u32) operand[1]->integer.value,
+									  this_element, operand[2]))
+				{
+					continue;
+				}
+
+				if (!acpi_ex_do_match((u32) operand[3]->integer.value,
+									  this_element, operand[4]))
+				{
+					continue;
+				}
+
+				/* Match found: Index is the return value */
+
+				return_desc->integer.value = index;
+				break;
 			}
 
-			if (!acpi_ex_do_match((u32) operand[3]->integer.value,
-					      this_element, operand[4])) {
-				continue;
-			}
-
-			/* Match found: Index is the return value */
-
-			return_desc->integer.value = index;
 			break;
-		}
-		break;
 
-	case AML_LOAD_TABLE_OP:
+		case AML_LOAD_TABLE_OP:
 
-		status = acpi_ex_load_table_op(walk_state, &return_desc);
-		break;
+			status = acpi_ex_load_table_op(walk_state, &return_desc);
+			break;
 
-	default:
+		default:
 
-		ACPI_ERROR((AE_INFO, "Unknown AML opcode 0x%X",
-			    walk_state->opcode));
+			ACPI_ERROR((AE_INFO, "Unknown AML opcode 0x%X",
+						walk_state->opcode));
 
-		status = AE_AML_BAD_OPCODE;
-		goto cleanup;
+			status = AE_AML_BAD_OPCODE;
+			goto cleanup;
 	}
 
 cleanup:
 
 	/* Delete return object on error */
 
-	if (ACPI_FAILURE(status)) {
+	if (ACPI_FAILURE(status))
+	{
 		acpi_ut_remove_reference(return_desc);
 	}
 
 	/* Save return object on success */
 
-	else {
+	else
+	{
 		walk_state->result_obj = return_desc;
 	}
 

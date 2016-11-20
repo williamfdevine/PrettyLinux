@@ -45,7 +45,8 @@ extern u16 bman_ip_rev;	/* 0 if uninitialised, otherwise BMAN_REVx */
 
 extern struct gen_pool *bm_bpalloc;
 
-struct bm_portal_config {
+struct bm_portal_config
+{
 	/*
 	 * Corenet portal addresses;
 	 * [0]==cache-enabled, [1]==cache-inhibited.
@@ -62,7 +63,7 @@ struct bm_portal_config {
 };
 
 struct bman_portal *bman_create_affine_portal(
-			const struct bm_portal_config *config);
+	const struct bm_portal_config *config);
 /*
  * The below bman_p_***() variant might be called in a situation that the cpu
  * which the portal affine to is not online yet.

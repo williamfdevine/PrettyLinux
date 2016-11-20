@@ -20,7 +20,8 @@
 
 #include "8250.h"
 
-struct bcm2835aux_data {
+struct bcm2835aux_data
+{
 	struct uart_8250_port uart;
 	struct clk *clk;
 	int line;
@@ -34,8 +35,11 @@ static int bcm2835aux_serial_probe(struct platform_device *pdev)
 
 	/* allocate the custom structure */
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	/* initialize data */
 	spin_lock_init(&data->uart.port.lock);
@@ -46,47 +50,63 @@ static int bcm2835aux_serial_probe(struct platform_device *pdev)
 	data->uart.port.iotype = UPIO_MEM;
 	data->uart.port.fifosize = 8;
 	data->uart.port.flags = UPF_SHARE_IRQ |
-				UPF_FIXED_PORT |
-				UPF_FIXED_TYPE |
-				UPF_SKIP_TEST;
+							UPF_FIXED_PORT |
+							UPF_FIXED_TYPE |
+							UPF_SKIP_TEST;
 
 	/* get the clock - this also enables the HW */
 	data->clk = devm_clk_get(&pdev->dev, NULL);
 	ret = PTR_ERR_OR_ZERO(data->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "could not get clk: %d\n", ret);
 		return ret;
 	}
 
 	/* get the interrupt */
 	ret = platform_get_irq(pdev, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "irq not found - %i", ret);
 		return ret;
 	}
+
 	data->uart.port.irq = ret;
 
 	/* map the main registers */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "memory resource not found");
 		return -EINVAL;
 	}
+
 	data->uart.port.membase = devm_ioremap_resource(&pdev->dev, res);
 	ret = PTR_ERR_OR_ZERO(data->uart.port.membase);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Check for a fixed line number */
 	ret = of_alias_get_id(pdev->dev.of_node, "serial");
+
 	if (ret >= 0)
+	{
 		data->uart.port.line = ret;
+	}
 
 	/* enable the clock as a last step */
 	ret = clk_prepare_enable(data->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to enable uart clock - %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
@@ -99,11 +119,14 @@ static int bcm2835aux_serial_probe(struct platform_device *pdev)
 
 	/* register the port */
 	ret = serial8250_register_8250_port(&data->uart);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "unable to register 8250 port - %d\n",
-			ret);
+				ret);
 		goto dis_clk;
 	}
+
 	data->line = ret;
 
 	platform_set_drvdata(pdev, data);
@@ -125,13 +148,15 @@ static int bcm2835aux_serial_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id bcm2835aux_serial_match[] = {
+static const struct of_device_id bcm2835aux_serial_match[] =
+{
 	{ .compatible = "brcm,bcm2835-aux-uart" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, bcm2835aux_serial_match);
 
-static struct platform_driver bcm2835aux_serial_driver = {
+static struct platform_driver bcm2835aux_serial_driver =
+{
 	.driver = {
 		.name = "bcm2835-aux-uart",
 		.of_match_table = bcm2835aux_serial_match,

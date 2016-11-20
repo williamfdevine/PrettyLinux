@@ -13,7 +13,8 @@
 #define SECMARK_MODE_SEL	0x01		/* SELinux */
 #define SECMARK_SECCTX_MAX	256
 
-struct xt_secmark_target_info {
+struct xt_secmark_target_info
+{
 	__u8 mode;
 	__u32 secid;
 	char secctx[SECMARK_SECCTX_MAX];

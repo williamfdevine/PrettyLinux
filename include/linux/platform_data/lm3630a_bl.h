@@ -13,7 +13,8 @@
 
 #define LM3630A_NAME "lm3630a_bl"
 
-enum lm3630a_pwm_ctrl {
+enum lm3630a_pwm_ctrl
+{
 	LM3630A_PWM_DISABLE = 0x00,
 	LM3630A_PWM_BANK_A,
 	LM3630A_PWM_BANK_B,
@@ -23,13 +24,15 @@ enum lm3630a_pwm_ctrl {
 	LM3630A_PWM_BANK_ALL_ACT_LOW,
 };
 
-enum lm3630a_leda_ctrl {
+enum lm3630a_leda_ctrl
+{
 	LM3630A_LEDA_DISABLE = 0x00,
 	LM3630A_LEDA_ENABLE = 0x04,
 	LM3630A_LEDA_ENABLE_LINEAR = 0x14,
 };
 
-enum lm3630a_ledb_ctrl {
+enum lm3630a_ledb_ctrl
+{
 	LM3630A_LEDB_DISABLE = 0x00,
 	LM3630A_LEDB_ON_A = 0x01,
 	LM3630A_LEDB_ENABLE = 0x02,
@@ -47,7 +50,8 @@ enum lm3630a_ledb_ctrl {
  *@pwm_period    : pwm period
  *@pwm_ctrl      : pwm disable, bank a or b, active high or low
  */
-struct lm3630a_platform_data {
+struct lm3630a_platform_data
+{
 
 	/* led a config.  */
 	int leda_init_brt;

@@ -21,20 +21,20 @@
 
 // Convert from UInt32 to Byte[] in a portable way
 #define putUInt32(A, B, C)					\
-do {								\
-	A[B + 0] = (uint8_t)(C & 0xff);				\
-	A[B + 1] = (uint8_t)((C >> 8) & 0xff);			\
-	A[B + 2] = (uint8_t)((C >> 16) & 0xff);			\
-	A[B + 3] = (uint8_t)((C >> 24) & 0xff);			\
-} while (0)
+	do {								\
+		A[B + 0] = (uint8_t)(C & 0xff);				\
+		A[B + 1] = (uint8_t)((C >> 8) & 0xff);			\
+		A[B + 2] = (uint8_t)((C >> 16) & 0xff);			\
+		A[B + 3] = (uint8_t)((C >> 24) & 0xff);			\
+	} while (0)
 
 // Reset the state to the empty message.
 #define MichaelClear(A)			\
-do {					\
-	A->L = A->K0;			\
-	A->R = A->K1;			\
-	A->nBytesInM = 0;		\
-} while (0)
+	do {					\
+		A->L = A->K0;			\
+		A->R = A->K1;			\
+		A->nBytesInM = 0;		\
+	} while (0)
 
 static
 void MichaelInitializeFunction(struct michel_mic_t *Mic, uint8_t *key)
@@ -48,46 +48,56 @@ void MichaelInitializeFunction(struct michel_mic_t *Mic, uint8_t *key)
 }
 
 #define MichaelBlockFunction(L, R)				\
-do{								\
-	R ^= ROL32( L, 17 );					\
-	L += R;							\
-	R ^= ((L & 0xff00ff00) >> 8) | ((L & 0x00ff00ff) << 8);	\
-	L += R;							\
-	R ^= ROL32( L, 3 );					\
-	L += R;							\
-	R ^= ROR32( L, 2 );					\
-	L += R;							\
-}while(0)
+	do{								\
+		R ^= ROL32( L, 17 );					\
+		L += R;							\
+		R ^= ((L & 0xff00ff00) >> 8) | ((L & 0x00ff00ff) << 8);	\
+		L += R;							\
+		R ^= ROL32( L, 3 );					\
+		L += R;							\
+		R ^= ROR32( L, 2 );					\
+		L += R;							\
+	}while(0)
 
 static
 void MichaelAppend(struct michel_mic_t *Mic, uint8_t *src, int nBytes)
 {
 	int addlen;
-	if (Mic->nBytesInM) {
+
+	if (Mic->nBytesInM)
+	{
 		addlen = 4 - Mic->nBytesInM;
+
 		if (addlen > nBytes)
+		{
 			addlen = nBytes;
+		}
+
 		memcpy(&Mic->M[Mic->nBytesInM], src, addlen);
 		Mic->nBytesInM += addlen;
 		src += addlen;
 		nBytes -= addlen;
 
 		if (Mic->nBytesInM < 4)
+		{
 			return;
+		}
 
 		Mic->L ^= getUInt32(Mic->M, 0);
 		MichaelBlockFunction(Mic->L, Mic->R);
 		Mic->nBytesInM = 0;
 	}
 
-	while (nBytes >= 4) {
+	while (nBytes >= 4)
+	{
 		Mic->L ^= getUInt32(src, 0);
 		MichaelBlockFunction(Mic->L, Mic->R);
 		src += 4;
 		nBytes -= 4;
 	}
 
-	if (nBytes > 0) {
+	if (nBytes > 0)
+	{
 		Mic->nBytesInM = nBytes;
 		memcpy(Mic->M, src, nBytes);
 	}
@@ -97,21 +107,27 @@ static
 void MichaelGetMIC(struct michel_mic_t *Mic, uint8_t *dst)
 {
 	uint8_t *data = Mic->M;
-	switch (Mic->nBytesInM) {
-	case 0:
-		Mic->L ^= 0x5a;
-		break;
-	case 1:
-		Mic->L ^= data[0] | 0x5a00;
-		break;
-	case 2:
-		Mic->L ^= data[0] | (data[1] << 8) | 0x5a0000;
-		break;
-	case 3:
-		Mic->L ^= data[0] | (data[1] << 8) | (data[2] << 16) |
-		    0x5a000000;
-		break;
+
+	switch (Mic->nBytesInM)
+	{
+		case 0:
+			Mic->L ^= 0x5a;
+			break;
+
+		case 1:
+			Mic->L ^= data[0] | 0x5a00;
+			break;
+
+		case 2:
+			Mic->L ^= data[0] | (data[1] << 8) | 0x5a0000;
+			break;
+
+		case 3:
+			Mic->L ^= data[0] | (data[1] << 8) | (data[2] << 16) |
+					  0x5a000000;
+			break;
 	}
+
 	MichaelBlockFunction(Mic->L, Mic->R);
 	MichaelBlockFunction(Mic->L, Mic->R);
 	// The appendByte function has already computed the result.
@@ -123,8 +139,8 @@ void MichaelGetMIC(struct michel_mic_t *Mic, uint8_t *dst)
 }
 
 void MichaelMICFunction(struct michel_mic_t *Mic, uint8_t *Key,
-			uint8_t *Data, int Len, uint8_t priority,
-			uint8_t *Result)
+						uint8_t *Data, int Len, uint8_t priority,
+						uint8_t *Result)
 {
 	uint8_t pad_data[4] = { priority, 0, 0, 0 };
 	// Compute the MIC value

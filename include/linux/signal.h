@@ -13,7 +13,8 @@ extern int print_fatal_signals;
  * Real Time signals may be queued.
  */
 
-struct sigqueue {
+struct sigqueue
+{
 	struct list_head list;
 	int flags;
 	siginfo_t info;
@@ -23,7 +24,8 @@ struct sigqueue {
 /* flags values. */
 #define SIGQUEUE_PREALLOC	1
 
-struct sigpending {
+struct sigpending
+{
 	struct list_head list;
 	sigset_t signal;
 };
@@ -35,10 +37,14 @@ struct sigpending {
 static inline void copy_siginfo(struct siginfo *to, struct siginfo *from)
 {
 	if (from->si_code < 0)
+	{
 		memcpy(to, from, sizeof(*to));
+	}
 	else
 		/* _sigchld is currently the largest know union member */
+	{
 		memcpy(to, from, __ARCH_SI_PREAMBLE_SIZE + sizeof(from->_sifields._sigchld));
+	}
 }
 
 #endif
@@ -55,45 +61,64 @@ static inline void copy_siginfo(struct siginfo *to, struct siginfo *from)
 static inline void sigaddset(sigset_t *set, int _sig)
 {
 	unsigned long sig = _sig - 1;
+
 	if (_NSIG_WORDS == 1)
+	{
 		set->sig[0] |= 1UL << sig;
+	}
 	else
+	{
 		set->sig[sig / _NSIG_BPW] |= 1UL << (sig % _NSIG_BPW);
+	}
 }
 
 static inline void sigdelset(sigset_t *set, int _sig)
 {
 	unsigned long sig = _sig - 1;
+
 	if (_NSIG_WORDS == 1)
+	{
 		set->sig[0] &= ~(1UL << sig);
+	}
 	else
+	{
 		set->sig[sig / _NSIG_BPW] &= ~(1UL << (sig % _NSIG_BPW));
+	}
 }
 
 static inline int sigismember(sigset_t *set, int _sig)
 {
 	unsigned long sig = _sig - 1;
+
 	if (_NSIG_WORDS == 1)
+	{
 		return 1 & (set->sig[0] >> sig);
+	}
 	else
+	{
 		return 1 & (set->sig[sig / _NSIG_BPW] >> (sig % _NSIG_BPW));
+	}
 }
 
 #endif /* __HAVE_ARCH_SIG_BITOPS */
 
 static inline int sigisemptyset(sigset_t *set)
 {
-	switch (_NSIG_WORDS) {
-	case 4:
-		return (set->sig[3] | set->sig[2] |
-			set->sig[1] | set->sig[0]) == 0;
-	case 2:
-		return (set->sig[1] | set->sig[0]) == 0;
-	case 1:
-		return set->sig[0] == 0;
-	default:
-		BUILD_BUG();
-		return 0;
+	switch (_NSIG_WORDS)
+	{
+		case 4:
+			return (set->sig[3] | set->sig[2] |
+					set->sig[1] | set->sig[0]) == 0;
+
+		case 2:
+			return (set->sig[1] | set->sig[0]) == 0;
+
+		case 1:
+			return set->sig[0] == 0;
+
+		default:
+			BUILD_BUG();
+			return 0;
 	}
 }
 
@@ -103,27 +128,27 @@ static inline int sigisemptyset(sigset_t *set)
 #include <linux/string.h>
 
 #define _SIG_SET_BINOP(name, op)					\
-static inline void name(sigset_t *r, const sigset_t *a, const sigset_t *b) \
-{									\
-	unsigned long a0, a1, a2, a3, b0, b1, b2, b3;			\
-									\
-	switch (_NSIG_WORDS) {						\
-	case 4:								\
-		a3 = a->sig[3]; a2 = a->sig[2];				\
-		b3 = b->sig[3]; b2 = b->sig[2];				\
-		r->sig[3] = op(a3, b3);					\
-		r->sig[2] = op(a2, b2);					\
-	case 2:								\
-		a1 = a->sig[1]; b1 = b->sig[1];				\
-		r->sig[1] = op(a1, b1);					\
-	case 1:								\
-		a0 = a->sig[0]; b0 = b->sig[0];				\
-		r->sig[0] = op(a0, b0);					\
-		break;							\
-	default:							\
-		BUILD_BUG();						\
-	}								\
-}
+	static inline void name(sigset_t *r, const sigset_t *a, const sigset_t *b) \
+	{									\
+		unsigned long a0, a1, a2, a3, b0, b1, b2, b3;			\
+		\
+		switch (_NSIG_WORDS) {						\
+			case 4:								\
+				a3 = a->sig[3]; a2 = a->sig[2];				\
+				b3 = b->sig[3]; b2 = b->sig[2];				\
+				r->sig[3] = op(a3, b3);					\
+				r->sig[2] = op(a2, b2);					\
+			case 2:								\
+				a1 = a->sig[1]; b1 = b->sig[1];				\
+				r->sig[1] = op(a1, b1);					\
+			case 1:								\
+				a0 = a->sig[0]; b0 = b->sig[0];				\
+				r->sig[0] = op(a0, b0);					\
+				break;							\
+			default:							\
+				BUILD_BUG();						\
+		}								\
+	}
 
 #define _sig_or(x,y)	((x) | (y))
 _SIG_SET_BINOP(sigorsets, _sig_or)
@@ -140,18 +165,18 @@ _SIG_SET_BINOP(sigandnsets, _sig_andn)
 #undef _sig_andn
 
 #define _SIG_SET_OP(name, op)						\
-static inline void name(sigset_t *set)					\
-{									\
-	switch (_NSIG_WORDS) {						\
-	case 4:	set->sig[3] = op(set->sig[3]);				\
-		set->sig[2] = op(set->sig[2]);				\
-	case 2:	set->sig[1] = op(set->sig[1]);				\
-	case 1:	set->sig[0] = op(set->sig[0]);				\
-		    break;						\
-	default:							\
-		BUILD_BUG();						\
-	}								\
-}
+	static inline void name(sigset_t *set)					\
+	{									\
+		switch (_NSIG_WORDS) {						\
+			case 4:	set->sig[3] = op(set->sig[3]);				\
+				set->sig[2] = op(set->sig[2]);				\
+			case 2:	set->sig[1] = op(set->sig[1]);				\
+			case 1:	set->sig[0] = op(set->sig[0]);				\
+				break;						\
+			default:							\
+				BUILD_BUG();						\
+		}								\
+	}
 
 #define _sig_not(x)	(~(x))
 _SIG_SET_OP(signotset, _sig_not)
@@ -161,25 +186,31 @@ _SIG_SET_OP(signotset, _sig_not)
 
 static inline void sigemptyset(sigset_t *set)
 {
-	switch (_NSIG_WORDS) {
-	default:
-		memset(set, 0, sizeof(sigset_t));
-		break;
-	case 2: set->sig[1] = 0;
-	case 1:	set->sig[0] = 0;
-		break;
+	switch (_NSIG_WORDS)
+	{
+		default:
+			memset(set, 0, sizeof(sigset_t));
+			break;
+
+		case 2: set->sig[1] = 0;
+
+		case 1:	set->sig[0] = 0;
+			break;
 	}
 }
 
 static inline void sigfillset(sigset_t *set)
 {
-	switch (_NSIG_WORDS) {
-	default:
-		memset(set, -1, sizeof(sigset_t));
-		break;
-	case 2: set->sig[1] = -1;
-	case 1:	set->sig[0] = -1;
-		break;
+	switch (_NSIG_WORDS)
+	{
+		default:
+			memset(set, -1, sizeof(sigset_t));
+			break;
+
+		case 2: set->sig[1] = -1;
+
+		case 1:	set->sig[0] = -1;
+			break;
 	}
 }
 
@@ -203,24 +234,32 @@ static inline int sigtestsetmask(sigset_t *set, unsigned long mask)
 static inline void siginitset(sigset_t *set, unsigned long mask)
 {
 	set->sig[0] = mask;
-	switch (_NSIG_WORDS) {
-	default:
-		memset(&set->sig[1], 0, sizeof(long)*(_NSIG_WORDS-1));
-		break;
-	case 2: set->sig[1] = 0;
-	case 1: ;
+
+	switch (_NSIG_WORDS)
+	{
+		default:
+			memset(&set->sig[1], 0, sizeof(long) * (_NSIG_WORDS - 1));
+			break;
+
+		case 2: set->sig[1] = 0;
+
+		case 1: ;
 	}
 }
 
 static inline void siginitsetinv(sigset_t *set, unsigned long mask)
 {
 	set->sig[0] = ~mask;
-	switch (_NSIG_WORDS) {
-	default:
-		memset(&set->sig[1], -1, sizeof(long)*(_NSIG_WORDS-1));
-		break;
-	case 2: set->sig[1] = -1;
-	case 1: ;
+
+	switch (_NSIG_WORDS)
+	{
+		default:
+			memset(&set->sig[1], -1, sizeof(long) * (_NSIG_WORDS - 1));
+			break;
+
+		case 2: set->sig[1] = -1;
+
+		case 1: ;
 	}
 }
 
@@ -245,17 +284,18 @@ struct pt_regs;
 
 extern int next_signal(struct sigpending *pending, sigset_t *mask);
 extern int do_send_sig_info(int sig, struct siginfo *info,
-				struct task_struct *p, bool group);
+							struct task_struct *p, bool group);
 extern int group_send_sig_info(int sig, struct siginfo *info, struct task_struct *p);
 extern int __group_send_sig_info(int, struct siginfo *, struct task_struct *);
 extern int do_sigtimedwait(const sigset_t *, siginfo_t *,
-				const struct timespec *);
+						   const struct timespec *);
 extern int sigprocmask(int, sigset_t *, sigset_t *);
 extern void set_current_blocked(sigset_t *);
 extern void __set_current_blocked(const sigset_t *);
 extern int show_unhandled_signals;
 
-struct sigaction {
+struct sigaction
+{
 #ifndef __ARCH_HAS_IRIX_SIGACTION
 	__sighandler_t	sa_handler;
 	unsigned long	sa_flags;
@@ -269,15 +309,17 @@ struct sigaction {
 	sigset_t	sa_mask;	/* mask last for extensibility */
 };
 
-struct k_sigaction {
+struct k_sigaction
+{
 	struct sigaction sa;
 #ifdef __ARCH_HAS_KA_RESTORER
 	__sigrestore_t ka_restorer;
 #endif
 };
- 
+
 #ifdef CONFIG_OLD_SIGACTION
-struct old_sigaction {
+struct old_sigaction
+{
 	__sighandler_t sa_handler;
 	old_sigset_t sa_mask;
 	unsigned long sa_flags;
@@ -285,7 +327,8 @@ struct old_sigaction {
 };
 #endif
 
-struct ksignal {
+struct ksignal
+{
 	struct k_sigaction ka;
 	siginfo_t info;
 	int sig;
@@ -390,38 +433,38 @@ int unhandled_signal(struct task_struct *tsk, int sig);
  */
 
 #ifdef SIGEMT
-#define SIGEMT_MASK	rt_sigmask(SIGEMT)
+	#define SIGEMT_MASK	rt_sigmask(SIGEMT)
 #else
-#define SIGEMT_MASK	0
+	#define SIGEMT_MASK	0
 #endif
 
 #if SIGRTMIN > BITS_PER_LONG
-#define rt_sigmask(sig)	(1ULL << ((sig)-1))
+	#define rt_sigmask(sig)	(1ULL << ((sig)-1))
 #else
-#define rt_sigmask(sig)	sigmask(sig)
+	#define rt_sigmask(sig)	sigmask(sig)
 #endif
 
 #define siginmask(sig, mask) \
 	((sig) < SIGRTMIN && (rt_sigmask(sig) & (mask)))
 
 #define SIG_KERNEL_ONLY_MASK (\
-	rt_sigmask(SIGKILL)   |  rt_sigmask(SIGSTOP))
+							  rt_sigmask(SIGKILL)   |  rt_sigmask(SIGSTOP))
 
 #define SIG_KERNEL_STOP_MASK (\
-	rt_sigmask(SIGSTOP)   |  rt_sigmask(SIGTSTP)   | \
-	rt_sigmask(SIGTTIN)   |  rt_sigmask(SIGTTOU)   )
+							  rt_sigmask(SIGSTOP)   |  rt_sigmask(SIGTSTP)   | \
+							  rt_sigmask(SIGTTIN)   |  rt_sigmask(SIGTTOU)   )
 
 #define SIG_KERNEL_COREDUMP_MASK (\
-        rt_sigmask(SIGQUIT)   |  rt_sigmask(SIGILL)    | \
-	rt_sigmask(SIGTRAP)   |  rt_sigmask(SIGABRT)   | \
-        rt_sigmask(SIGFPE)    |  rt_sigmask(SIGSEGV)   | \
-	rt_sigmask(SIGBUS)    |  rt_sigmask(SIGSYS)    | \
-        rt_sigmask(SIGXCPU)   |  rt_sigmask(SIGXFSZ)   | \
-	SIGEMT_MASK				       )
+								  rt_sigmask(SIGQUIT)   |  rt_sigmask(SIGILL)    | \
+								  rt_sigmask(SIGTRAP)   |  rt_sigmask(SIGABRT)   | \
+								  rt_sigmask(SIGFPE)    |  rt_sigmask(SIGSEGV)   | \
+								  rt_sigmask(SIGBUS)    |  rt_sigmask(SIGSYS)    | \
+								  rt_sigmask(SIGXCPU)   |  rt_sigmask(SIGXFSZ)   | \
+								  SIGEMT_MASK				       )
 
 #define SIG_KERNEL_IGNORE_MASK (\
-        rt_sigmask(SIGCONT)   |  rt_sigmask(SIGCHLD)   | \
-	rt_sigmask(SIGWINCH)  |  rt_sigmask(SIGURG)    )
+								rt_sigmask(SIGCONT)   |  rt_sigmask(SIGCHLD)   | \
+								rt_sigmask(SIGWINCH)  |  rt_sigmask(SIGURG)    )
 
 #define sig_kernel_only(sig)		siginmask(sig, SIG_KERNEL_ONLY_MASK)
 #define sig_kernel_coredump(sig)	siginmask(sig, SIG_KERNEL_COREDUMP_MASK)
@@ -442,18 +485,18 @@ int restore_altstack(const stack_t __user *);
 int __save_altstack(stack_t __user *, unsigned long);
 
 #define save_altstack_ex(uss, sp) do { \
-	stack_t __user *__uss = uss; \
-	struct task_struct *t = current; \
-	put_user_ex((void __user *)t->sas_ss_sp, &__uss->ss_sp); \
-	put_user_ex(t->sas_ss_flags, &__uss->ss_flags); \
-	put_user_ex(t->sas_ss_size, &__uss->ss_size); \
-	if (t->sas_ss_flags & SS_AUTODISARM) \
-		sas_ss_reset(t); \
-} while (0);
+		stack_t __user *__uss = uss; \
+		struct task_struct *t = current; \
+		put_user_ex((void __user *)t->sas_ss_sp, &__uss->ss_sp); \
+		put_user_ex(t->sas_ss_flags, &__uss->ss_flags); \
+		put_user_ex(t->sas_ss_size, &__uss->ss_size); \
+		if (t->sas_ss_flags & SS_AUTODISARM) \
+			sas_ss_reset(t); \
+	} while (0);
 
 #ifdef CONFIG_PROC_FS
-struct seq_file;
-extern void render_sigset_t(struct seq_file *, const char *, sigset_t *);
+	struct seq_file;
+	extern void render_sigset_t(struct seq_file *, const char *, sigset_t *);
 #endif
 
 #endif /* _LINUX_SIGNAL_H */

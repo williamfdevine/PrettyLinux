@@ -49,7 +49,8 @@
 /* Max buffer size tobe allocated during init */
 #define OMAP_VOUT_MAX_BUF_SIZE (VID_MAX_WIDTH*VID_MAX_HEIGHT*4)
 
-enum dma_channel_state {
+enum dma_channel_state
+{
 	DMA_CHAN_NOT_ALLOTED,
 	DMA_CHAN_ALLOTED,
 };
@@ -58,7 +59,8 @@ enum dma_channel_state {
  * DSS understands rotation in 0, 1, 2, 3 context
  * while V4L2 driver understands it as 0, 90, 180, 270
  */
-enum dss_rotation {
+enum dss_rotation
+{
 	dss_rotation_0_degree	= 0,
 	dss_rotation_90_degree	= 1,
 	dss_rotation_180_degree	= 2,
@@ -71,7 +73,8 @@ enum dss_rotation {
  * rotation in the case where VRFB is not built in
  * the kernel
  */
-enum vout_rotaion_type {
+enum vout_rotaion_type
+{
 	VOUT_ROT_NONE	= 0,
 	VOUT_ROT_VRFB	= 1,
 };
@@ -80,7 +83,8 @@ enum vout_rotaion_type {
  * This structure is used to store the DMA transfer parameters
  * for VRFB hidden buffer
  */
-struct vid_vrfb_dma {
+struct vid_vrfb_dma
+{
 	int dev_id;
 	int dma_ch;
 	int req_status;
@@ -88,14 +92,16 @@ struct vid_vrfb_dma {
 	wait_queue_head_t wait;
 };
 
-struct omapvideo_info {
+struct omapvideo_info
+{
 	int id;
 	int num_overlays;
 	struct omap_overlay *overlays[MAX_OVLS];
 	enum vout_rotaion_type rotation_type;
 };
 
-struct omap2video_device {
+struct omap2video_device
+{
 	struct mutex  mtx;
 
 	int state;
@@ -112,7 +118,8 @@ struct omap2video_device {
 };
 
 /* per-device data structure */
-struct omap_vout_device {
+struct omap_vout_device
+{
 
 	struct omapvideo_info vid_info;
 	struct video_device *vfd;
@@ -206,17 +213,23 @@ static inline int is_rotation_enabled(const struct omap_vout_device *vout)
 static inline int calc_rotation(const struct omap_vout_device *vout)
 {
 	if (!vout->mirror)
+	{
 		return vout->rotation;
+	}
 
-	switch (vout->rotation) {
-	case dss_rotation_90_degree:
-		return dss_rotation_270_degree;
-	case dss_rotation_270_degree:
-		return dss_rotation_90_degree;
-	case dss_rotation_180_degree:
-		return dss_rotation_0_degree;
-	default:
-		return dss_rotation_180_degree;
+	switch (vout->rotation)
+	{
+		case dss_rotation_90_degree:
+			return dss_rotation_270_degree;
+
+		case dss_rotation_270_degree:
+			return dss_rotation_90_degree;
+
+		case dss_rotation_180_degree:
+			return dss_rotation_0_degree;
+
+		default:
+			return dss_rotation_180_degree;
 	}
 }
 

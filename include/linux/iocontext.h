@@ -5,7 +5,8 @@
 #include <linux/rcupdate.h>
 #include <linux/workqueue.h>
 
-enum {
+enum
+{
 	ICQ_EXITED		= 1 << 2,
 };
 
@@ -68,7 +69,8 @@ enum {
  *   locks.  Due to the lock ordering, q exit is simple but ioc exit
  *   requires reverse-order double lock dance.
  */
-struct io_cq {
+struct io_cq
+{
 	struct request_queue	*q;
 	struct io_context	*ioc;
 
@@ -78,11 +80,13 @@ struct io_cq {
 	 * called and shared with __rcu_icq_cache and __rcu_head which are
 	 * used for RCU free of io_cq.
 	 */
-	union {
+	union
+	{
 		struct list_head	q_node;
 		struct kmem_cache	*__rcu_icq_cache;
 	};
-	union {
+	union
+	{
 		struct hlist_node	ioc_node;
 		struct rcu_head		__rcu_head;
 	};
@@ -94,7 +98,8 @@ struct io_cq {
  * I/O subsystem state of the associated processes.  It is refcounted
  * and kmalloc'ed. These could be shared between processes.
  */
-struct io_context {
+struct io_context
+{
 	atomic_long_t refcount;
 	atomic_t active_ref;
 	atomic_t nr_tasks;
@@ -147,7 +152,7 @@ void put_io_context(struct io_context *ioc);
 void put_io_context_active(struct io_context *ioc);
 void exit_io_context(struct task_struct *task);
 struct io_context *get_task_io_context(struct task_struct *task,
-				       gfp_t gfp_flags, int node);
+									   gfp_t gfp_flags, int node);
 #else
 struct io_context;
 static inline void put_io_context(struct io_context *ioc) { }

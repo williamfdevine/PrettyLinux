@@ -19,7 +19,8 @@
 /* Forward decleration */
 struct qed_ptt;
 
-enum reserved_ptts {
+enum reserved_ptts
+{
 	RESERVED_PTT_EDIAG,
 	RESERVED_PTT_USER_SPACE,
 	RESERVED_PTT_MAIN,
@@ -27,18 +28,21 @@ enum reserved_ptts {
 	RESERVED_PTT_MAX
 };
 
-enum _dmae_cmd_dst_mask {
+enum _dmae_cmd_dst_mask
+{
 	DMAE_CMD_DST_MASK_NONE	= 0,
 	DMAE_CMD_DST_MASK_PCIE	= 1,
 	DMAE_CMD_DST_MASK_GRC	= 2
 };
 
-enum _dmae_cmd_src_mask {
+enum _dmae_cmd_src_mask
+{
 	DMAE_CMD_SRC_MASK_PCIE	= 0,
 	DMAE_CMD_SRC_MASK_GRC	= 1
 };
 
-enum _dmae_cmd_crc_mask {
+enum _dmae_cmd_crc_mask
+{
 	DMAE_CMD_COMP_CRC_EN_MASK_NONE	= 0,
 	DMAE_CMD_COMP_CRC_EN_MASK_SET	= 1
 };
@@ -93,7 +97,7 @@ void qed_ptt_pool_free(struct qed_hwfn *p_hwfn);
  * @return u32
  */
 u32 qed_ptt_get_hw_addr(struct qed_hwfn *p_hwfn,
-			struct qed_ptt *p_ptt);
+						struct qed_ptt *p_ptt);
 
 /**
  * @brief qed_ptt_get_bar_addr - Get PPT's external BAR address
@@ -113,8 +117,8 @@ u32 qed_ptt_get_bar_addr(struct qed_ptt *p_ptt);
  * @param p_ptt
  */
 void qed_ptt_set_win(struct qed_hwfn *p_hwfn,
-		     struct qed_ptt *p_ptt,
-		     u32 new_hw_addr);
+					 struct qed_ptt *p_ptt,
+					 u32 new_hw_addr);
 
 /**
  * @brief qed_get_reserved_ptt - Get a specific reserved PTT
@@ -125,7 +129,7 @@ void qed_ptt_set_win(struct qed_hwfn *p_hwfn,
  * @return struct qed_ptt *
  */
 struct qed_ptt *qed_get_reserved_ptt(struct qed_hwfn *p_hwfn,
-				     enum reserved_ptts ptt_idx);
+									 enum reserved_ptts ptt_idx);
 
 /**
  * @brief qed_wr - Write value to BAR using the given ptt
@@ -136,9 +140,9 @@ struct qed_ptt *qed_get_reserved_ptt(struct qed_hwfn *p_hwfn,
  * @param hw_addr
  */
 void qed_wr(struct qed_hwfn *p_hwfn,
-	    struct qed_ptt *p_ptt,
-	    u32 hw_addr,
-	    u32 val);
+			struct qed_ptt *p_ptt,
+			u32 hw_addr,
+			u32 val);
 
 /**
  * @brief qed_rd - Read value from BAR using the given ptt
@@ -149,8 +153,8 @@ void qed_wr(struct qed_hwfn *p_hwfn,
  * @param hw_addr
  */
 u32 qed_rd(struct qed_hwfn *p_hwfn,
-	   struct qed_ptt *p_ptt,
-	   u32 hw_addr);
+		   struct qed_ptt *p_ptt,
+		   u32 hw_addr);
 
 /**
  * @brief qed_memcpy_from - copy n bytes from BAR using the given
@@ -163,10 +167,10 @@ u32 qed_rd(struct qed_hwfn *p_hwfn,
  * @param n
  */
 void qed_memcpy_from(struct qed_hwfn *p_hwfn,
-		     struct qed_ptt *p_ptt,
-		     void *dest,
-		     u32 hw_addr,
-		     size_t n);
+					 struct qed_ptt *p_ptt,
+					 void *dest,
+					 u32 hw_addr,
+					 size_t n);
 
 /**
  * @brief qed_memcpy_to - copy n bytes to BAR using the given
@@ -179,10 +183,10 @@ void qed_memcpy_from(struct qed_hwfn *p_hwfn,
  * @param n
  */
 void qed_memcpy_to(struct qed_hwfn *p_hwfn,
-		   struct qed_ptt *p_ptt,
-		   u32 hw_addr,
-		   void *src,
-		   size_t n);
+				   struct qed_ptt *p_ptt,
+				   u32 hw_addr,
+				   void *src,
+				   size_t n);
 /**
  * @brief qed_fid_pretend - pretend to another function when
  *        accessing the ptt window. There is no way to unpretend
@@ -195,8 +199,8 @@ void qed_memcpy_to(struct qed_hwfn *p_hwfn,
  *            either pf / vf, port/path fields are don't care.
  */
 void qed_fid_pretend(struct qed_hwfn *p_hwfn,
-		     struct qed_ptt *p_ptt,
-		     u16 fid);
+					 struct qed_ptt *p_ptt,
+					 u16 fid);
 
 /**
  * @brief qed_port_pretend - pretend to another port when
@@ -207,8 +211,8 @@ void qed_fid_pretend(struct qed_hwfn *p_hwfn,
  * @param port_id - the port to pretend to
  */
 void qed_port_pretend(struct qed_hwfn *p_hwfn,
-		      struct qed_ptt *p_ptt,
-		      u8 port_id);
+					  struct qed_ptt *p_ptt,
+					  u8 port_id);
 
 /**
  * @brief qed_port_unpretend - cancel any previously set port
@@ -218,7 +222,7 @@ void qed_port_pretend(struct qed_hwfn *p_hwfn,
  * @param p_ptt
  */
 void qed_port_unpretend(struct qed_hwfn *p_hwfn,
-			struct qed_ptt *p_ptt);
+						struct qed_ptt *p_ptt);
 
 /**
  * @brief qed_vfid_to_concrete - build a concrete FID for a
@@ -252,30 +256,35 @@ int qed_dmae_info_alloc(struct qed_hwfn *p_hwfn);
  */
 void qed_dmae_info_free(struct qed_hwfn *p_hwfn);
 
-union qed_qm_pq_params {
-	struct {
+union qed_qm_pq_params
+{
+	struct
+	{
 		u8 q_idx;
 	} iscsi;
 
-	struct {
+	struct
+	{
 		u8 tc;
 	}	core;
 
-	struct {
+	struct
+	{
 		u8	is_vf;
 		u8	vf_id;
 		u8	tc;
 	}	eth;
 
-	struct {
+	struct
+	{
 		u8 dcqcn;
 		u8 qpid;	/* roce relative */
 	} roce;
 };
 
 u16 qed_get_qm_pq(struct qed_hwfn *p_hwfn,
-		  enum protocol_type proto, union qed_qm_pq_params *params);
+				  enum protocol_type proto, union qed_qm_pq_params *params);
 
 int qed_init_fw_data(struct qed_dev *cdev,
-		     const u8 *fw_data);
+					 const u8 *fw_data);
 #endif

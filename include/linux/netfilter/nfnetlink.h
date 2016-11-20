@@ -7,21 +7,23 @@
 #include <net/netlink.h>
 #include <uapi/linux/netfilter/nfnetlink.h>
 
-struct nfnl_callback {
+struct nfnl_callback
+{
 	int (*call)(struct net *net, struct sock *nl, struct sk_buff *skb,
-		    const struct nlmsghdr *nlh,
-		    const struct nlattr * const cda[]);
+				const struct nlmsghdr *nlh,
+				const struct nlattr *const cda[]);
 	int (*call_rcu)(struct net *net, struct sock *nl, struct sk_buff *skb,
-			const struct nlmsghdr *nlh,
-			const struct nlattr * const cda[]);
+					const struct nlmsghdr *nlh,
+					const struct nlattr *const cda[]);
 	int (*call_batch)(struct net *net, struct sock *nl, struct sk_buff *skb,
-			  const struct nlmsghdr *nlh,
-			  const struct nlattr * const cda[]);
+					  const struct nlmsghdr *nlh,
+					  const struct nlattr *const cda[]);
 	const struct nla_policy *policy;	/* netlink attribute policy */
 	const u_int16_t attr_count;		/* number of nlattr's */
 };
 
-struct nfnetlink_subsystem {
+struct nfnetlink_subsystem
+{
 	const char *name;
 	__u8 subsys_id;			/* nfnetlink subsystem ID */
 	__u8 cb_count;			/* number of callbacks */
@@ -35,10 +37,10 @@ int nfnetlink_subsys_unregister(const struct nfnetlink_subsystem *n);
 
 int nfnetlink_has_listeners(struct net *net, unsigned int group);
 int nfnetlink_send(struct sk_buff *skb, struct net *net, u32 portid,
-		   unsigned int group, int echo, gfp_t flags);
+				   unsigned int group, int echo, gfp_t flags);
 int nfnetlink_set_err(struct net *net, u32 portid, u32 group, int error);
 int nfnetlink_unicast(struct sk_buff *skb, struct net *net, u32 portid,
-		      int flags);
+					  int flags);
 
 void nfnl_lock(__u8 subsys_id);
 void nfnl_unlock(__u8 subsys_id);

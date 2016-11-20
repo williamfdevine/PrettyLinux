@@ -28,7 +28,8 @@
 
 #include "qcom_scm.h"
 
-struct qcom_scm {
+struct qcom_scm
+{
 	struct device *dev;
 	struct clk *core_clk;
 	struct clk *iface_clk;
@@ -43,16 +44,25 @@ static int qcom_scm_clk_enable(void)
 	int ret;
 
 	ret = clk_prepare_enable(__scm->core_clk);
+
 	if (ret)
+	{
 		goto bail;
+	}
 
 	ret = clk_prepare_enable(__scm->iface_clk);
+
 	if (ret)
+	{
 		goto disable_core;
+	}
 
 	ret = clk_prepare_enable(__scm->bus_clk);
+
 	if (ret)
+	{
 		goto disable_iface;
+	}
 
 	return 0;
 
@@ -123,10 +133,12 @@ bool qcom_scm_hdcp_available(void)
 	int ret = qcom_scm_clk_enable();
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = __qcom_scm_is_call_available(__scm->dev, QCOM_SCM_SVC_HDCP,
-						QCOM_SCM_CMD_HDCP);
+									   QCOM_SCM_CMD_HDCP);
 
 	qcom_scm_clk_disable();
 
@@ -147,7 +159,9 @@ int qcom_scm_hdcp_req(struct qcom_scm_hdcp_req *req, u32 req_cnt, u32 *resp)
 	int ret = qcom_scm_clk_enable();
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = __qcom_scm_hdcp_req(__scm->dev, req, req_cnt, resp);
 	qcom_scm_clk_disable();
@@ -167,9 +181,12 @@ bool qcom_scm_pas_supported(u32 peripheral)
 	int ret;
 
 	ret = __qcom_scm_is_call_available(__scm->dev, QCOM_SCM_SVC_PIL,
-					   QCOM_SCM_PAS_IS_SUPPORTED_CMD);
+									   QCOM_SCM_PAS_IS_SUPPORTED_CMD);
+
 	if (ret <= 0)
+	{
 		return false;
+	}
 
 	return __qcom_scm_pas_supported(__scm->dev, peripheral);
 }
@@ -199,16 +216,22 @@ int qcom_scm_pas_init_image(u32 peripheral, const void *metadata, size_t size)
 	 * non-cachable to avoid XPU violations.
 	 */
 	mdata_buf = dma_alloc_coherent(__scm->dev, size, &mdata_phys,
-				       GFP_KERNEL);
-	if (!mdata_buf) {
+								   GFP_KERNEL);
+
+	if (!mdata_buf)
+	{
 		dev_err(__scm->dev, "Allocation of metadata buffer failed.\n");
 		return -ENOMEM;
 	}
+
 	memcpy(mdata_buf, metadata, size);
 
 	ret = qcom_scm_clk_enable();
+
 	if (ret)
+	{
 		goto free_metadata;
+	}
 
 	ret = __qcom_scm_pas_init_image(__scm->dev, peripheral, mdata_phys);
 
@@ -235,8 +258,11 @@ int qcom_scm_pas_mem_setup(u32 peripheral, phys_addr_t addr, phys_addr_t size)
 	int ret;
 
 	ret = qcom_scm_clk_enable();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = __qcom_scm_pas_mem_setup(__scm->dev, peripheral, addr, size);
 	qcom_scm_clk_disable();
@@ -257,8 +283,11 @@ int qcom_scm_pas_auth_and_reset(u32 peripheral)
 	int ret;
 
 	ret = qcom_scm_clk_enable();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = __qcom_scm_pas_auth_and_reset(__scm->dev, peripheral);
 	qcom_scm_clk_disable();
@@ -278,8 +307,11 @@ int qcom_scm_pas_shutdown(u32 peripheral)
 	int ret;
 
 	ret = qcom_scm_clk_enable();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = __qcom_scm_pas_shutdown(__scm->dev, peripheral);
 	qcom_scm_clk_disable();
@@ -289,24 +321,29 @@ int qcom_scm_pas_shutdown(u32 peripheral)
 EXPORT_SYMBOL(qcom_scm_pas_shutdown);
 
 static int qcom_scm_pas_reset_assert(struct reset_controller_dev *rcdev,
-				     unsigned long idx)
+									 unsigned long idx)
 {
 	if (idx != 0)
+	{
 		return -EINVAL;
+	}
 
 	return __qcom_scm_pas_mss_reset(__scm->dev, 1);
 }
 
 static int qcom_scm_pas_reset_deassert(struct reset_controller_dev *rcdev,
-				       unsigned long idx)
+									   unsigned long idx)
 {
 	if (idx != 0)
+	{
 		return -EINVAL;
+	}
 
 	return __qcom_scm_pas_mss_reset(__scm->dev, 0);
 }
 
-static const struct reset_control_ops qcom_scm_pas_reset_ops = {
+static const struct reset_control_ops qcom_scm_pas_reset_ops =
+{
 	.assert = qcom_scm_pas_reset_assert,
 	.deassert = qcom_scm_pas_reset_deassert,
 };
@@ -326,29 +363,47 @@ static int qcom_scm_probe(struct platform_device *pdev)
 	int ret;
 
 	scm = devm_kzalloc(&pdev->dev, sizeof(*scm), GFP_KERNEL);
+
 	if (!scm)
+	{
 		return -ENOMEM;
+	}
 
 	scm->core_clk = devm_clk_get(&pdev->dev, "core");
-	if (IS_ERR(scm->core_clk)) {
+
+	if (IS_ERR(scm->core_clk))
+	{
 		if (PTR_ERR(scm->core_clk) == -EPROBE_DEFER)
+		{
 			return PTR_ERR(scm->core_clk);
+		}
 
 		scm->core_clk = NULL;
 	}
 
-	if (of_device_is_compatible(pdev->dev.of_node, "qcom,scm")) {
+	if (of_device_is_compatible(pdev->dev.of_node, "qcom,scm"))
+	{
 		scm->iface_clk = devm_clk_get(&pdev->dev, "iface");
-		if (IS_ERR(scm->iface_clk)) {
+
+		if (IS_ERR(scm->iface_clk))
+		{
 			if (PTR_ERR(scm->iface_clk) != -EPROBE_DEFER)
+			{
 				dev_err(&pdev->dev, "failed to acquire iface clk\n");
+			}
+
 			return PTR_ERR(scm->iface_clk);
 		}
 
 		scm->bus_clk = devm_clk_get(&pdev->dev, "bus");
-		if (IS_ERR(scm->bus_clk)) {
+
+		if (IS_ERR(scm->bus_clk))
+		{
 			if (PTR_ERR(scm->bus_clk) != -EPROBE_DEFER)
+			{
 				dev_err(&pdev->dev, "failed to acquire bus clk\n");
+			}
+
 			return PTR_ERR(scm->bus_clk);
 		}
 	}
@@ -360,8 +415,11 @@ static int qcom_scm_probe(struct platform_device *pdev)
 
 	/* vote for max clk rate for highest performance */
 	ret = clk_set_rate(scm->core_clk, INT_MAX);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	__scm = scm;
 	__scm->dev = &pdev->dev;
@@ -371,7 +429,8 @@ static int qcom_scm_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id qcom_scm_dt_match[] = {
+static const struct of_device_id qcom_scm_dt_match[] =
+{
 	{ .compatible = "qcom,scm-apq8064",},
 	{ .compatible = "qcom,scm-msm8660",},
 	{ .compatible = "qcom,scm-msm8960",},
@@ -379,7 +438,8 @@ static const struct of_device_id qcom_scm_dt_match[] = {
 	{}
 };
 
-static struct platform_driver qcom_scm_driver = {
+static struct platform_driver qcom_scm_driver =
+{
 	.driver = {
 		.name	= "qcom_scm",
 		.of_match_table = qcom_scm_dt_match,
@@ -395,11 +455,14 @@ static int __init qcom_scm_init(void)
 	fw_np = of_find_node_by_name(NULL, "firmware");
 
 	if (!fw_np)
+	{
 		return -ENODEV;
+	}
 
 	np = of_find_matching_node(fw_np, qcom_scm_dt_match);
 
-	if (!np) {
+	if (!np)
+	{
 		of_node_put(fw_np);
 		return -ENODEV;
 	}
@@ -411,7 +474,9 @@ static int __init qcom_scm_init(void)
 	of_node_put(fw_np);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	return platform_driver_register(&qcom_scm_driver);
 }

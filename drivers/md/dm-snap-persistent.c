@@ -62,7 +62,8 @@
 
 #define NUM_SNAPSHOT_HDR_CHUNKS 1
 
-struct disk_header {
+struct disk_header
+{
 	__le32 magic;
 
 	/*
@@ -81,17 +82,20 @@ struct disk_header {
 	__le32 chunk_size;
 } __packed;
 
-struct disk_exception {
+struct disk_exception
+{
 	__le64 old_chunk;
 	__le64 new_chunk;
 } __packed;
 
-struct core_exception {
+struct core_exception
+{
 	uint64_t old_chunk;
 	uint64_t new_chunk;
 };
 
-struct commit_callback {
+struct commit_callback
+{
 	void (*callback)(void *, int success);
 	void *context;
 };
@@ -99,7 +103,8 @@ struct commit_callback {
 /*
  * The top level structure for a persistent exception store.
  */
-struct pstore {
+struct pstore
+{
 	struct dm_exception_store *store;
 	int version;
 	int valid;
@@ -176,16 +181,25 @@ static int alloc_area(struct pstore *ps)
 	 * a single metadata area.
 	 */
 	ps->area = vmalloc(len);
+
 	if (!ps->area)
+	{
 		goto err_area;
+	}
 
 	ps->zero_area = vzalloc(len);
+
 	if (!ps->zero_area)
+	{
 		goto err_zero_area;
+	}
 
 	ps->header_area = vmalloc(len);
+
 	if (!ps->header_area)
+	{
 		goto err_header_area;
+	}
 
 	return 0;
 
@@ -209,7 +223,8 @@ static void free_area(struct pstore *ps)
 	ps->header_area = NULL;
 }
 
-struct mdata_req {
+struct mdata_req
+{
 	struct dm_io_region *where;
 	struct dm_io_request *io_req;
 	struct work_struct work;
@@ -227,14 +242,16 @@ static void do_metadata(struct work_struct *work)
  * Read or write a chunk aligned and sized block of data from a device.
  */
 static int chunk_io(struct pstore *ps, void *area, chunk_t chunk, int op,
-		    int op_flags, int metadata)
+					int op_flags, int metadata)
 {
-	struct dm_io_region where = {
+	struct dm_io_region where =
+	{
 		.bdev = dm_snap_cow(ps->store->snap)->bdev,
 		.sector = ps->store->chunk_size * chunk,
 		.count = ps->store->chunk_size,
 	};
-	struct dm_io_request io_req = {
+	struct dm_io_request io_req =
+	{
 		.bi_op = op,
 		.bi_op_flags = op_flags,
 		.mem.type = DM_IO_VMA,
@@ -245,7 +262,9 @@ static int chunk_io(struct pstore *ps, void *area, chunk_t chunk, int op,
 	struct mdata_req req;
 
 	if (!metadata)
+	{
 		return dm_io(&io_req, 1, &where, NULL);
+	}
 
 	req.where = &where;
 	req.io_req = &io_req;
@@ -274,8 +293,11 @@ static void skip_metadata(struct pstore *ps)
 {
 	uint32_t stride = ps->exceptions_per_area + 1;
 	chunk_t next_free = ps->next_free;
+
 	if (sector_div(next_free, stride) == NUM_SNAPSHOT_HDR_CHUNKS)
+	{
 		ps->next_free++;
+	}
 }
 
 /*
@@ -290,8 +312,11 @@ static int area_io(struct pstore *ps, int op, int op_flags)
 	chunk = area_location(ps, ps->current_area);
 
 	r = chunk_io(ps, ps->area, chunk, op, op_flags, 0);
+
 	if (r)
+	{
 		return r;
+	}
 
 	return 0;
 }
@@ -304,7 +329,7 @@ static void zero_memory_area(struct pstore *ps)
 static int zero_disk_area(struct pstore *ps, chunk_t area)
 {
 	return chunk_io(ps, ps->zero_area, area_location(ps, area),
-			REQ_OP_WRITE, 0, 0);
+					REQ_OP_WRITE, 0, 0);
 }
 
 static int read_header(struct pstore *ps, int *new_snapshot)
@@ -319,35 +344,47 @@ static int read_header(struct pstore *ps, int *new_snapshot)
 	 * Use default chunk size (or logical_block_size, if larger)
 	 * if none supplied
 	 */
-	if (!ps->store->chunk_size) {
+	if (!ps->store->chunk_size)
+	{
 		ps->store->chunk_size = max(DM_CHUNK_SIZE_DEFAULT_SECTORS,
-		    bdev_logical_block_size(dm_snap_cow(ps->store->snap)->
-					    bdev) >> 9);
+									bdev_logical_block_size(dm_snap_cow(ps->store->snap)->
+											bdev) >> 9);
 		ps->store->chunk_mask = ps->store->chunk_size - 1;
 		ps->store->chunk_shift = __ffs(ps->store->chunk_size);
 		chunk_size_supplied = 0;
 	}
 
 	ps->io_client = dm_io_client_create();
+
 	if (IS_ERR(ps->io_client))
+	{
 		return PTR_ERR(ps->io_client);
+	}
 
 	r = alloc_area(ps);
+
 	if (r)
+	{
 		return r;
+	}
 
 	r = chunk_io(ps, ps->header_area, 0, REQ_OP_READ, 0, 1);
+
 	if (r)
+	{
 		goto bad;
+	}
 
 	dh = ps->header_area;
 
-	if (le32_to_cpu(dh->magic) == 0) {
+	if (le32_to_cpu(dh->magic) == 0)
+	{
 		*new_snapshot = 1;
 		return 0;
 	}
 
-	if (le32_to_cpu(dh->magic) != SNAP_MAGIC) {
+	if (le32_to_cpu(dh->magic) != SNAP_MAGIC)
+	{
 		DMWARN("Invalid or corrupt snapshot");
 		r = -ENXIO;
 		goto bad;
@@ -359,21 +396,25 @@ static int read_header(struct pstore *ps, int *new_snapshot)
 	chunk_size = le32_to_cpu(dh->chunk_size);
 
 	if (ps->store->chunk_size == chunk_size)
+	{
 		return 0;
+	}
 
 	if (chunk_size_supplied)
 		DMWARN("chunk size %u in device metadata overrides "
-		       "table chunk size of %u.",
-		       chunk_size, ps->store->chunk_size);
+			   "table chunk size of %u.",
+			   chunk_size, ps->store->chunk_size);
 
 	/* We had a bogus chunk_size. Fix stuff up. */
 	free_area(ps);
 
 	r = dm_exception_store_set_chunk_size(ps->store, chunk_size,
-					      &chunk_err);
-	if (r) {
+										  &chunk_err);
+
+	if (r)
+	{
 		DMERR("invalid on-disk chunk size %u: %s.",
-		      chunk_size, chunk_err);
+			  chunk_size, chunk_err);
 		return r;
 	}
 
@@ -404,7 +445,7 @@ static int write_header(struct pstore *ps)
  * Access functions for the disk exceptions, these do the endian conversions.
  */
 static struct disk_exception *get_exception(struct pstore *ps, void *ps_area,
-					    uint32_t index)
+		uint32_t index)
 {
 	BUG_ON(index >= ps->exceptions_per_area);
 
@@ -412,7 +453,7 @@ static struct disk_exception *get_exception(struct pstore *ps, void *ps_area,
 }
 
 static void read_exception(struct pstore *ps, void *ps_area,
-			   uint32_t index, struct core_exception *result)
+						   uint32_t index, struct core_exception *result)
 {
 	struct disk_exception *de = get_exception(ps, ps_area, index);
 
@@ -422,7 +463,7 @@ static void read_exception(struct pstore *ps, void *ps_area,
 }
 
 static void write_exception(struct pstore *ps,
-			    uint32_t index, struct core_exception *e)
+							uint32_t index, struct core_exception *e)
 {
 	struct disk_exception *de = get_exception(ps, ps->area, index);
 
@@ -446,10 +487,10 @@ static void clear_exception(struct pstore *ps, uint32_t index)
  * filled.
  */
 static int insert_exceptions(struct pstore *ps, void *ps_area,
-			     int (*callback)(void *callback_context,
-					     chunk_t old, chunk_t new),
-			     void *callback_context,
-			     int *full)
+							 int (*callback)(void *callback_context,
+									 chunk_t old, chunk_t new),
+							 void *callback_context,
+							 int *full)
 {
 	int r;
 	unsigned int i;
@@ -458,7 +499,8 @@ static int insert_exceptions(struct pstore *ps, void *ps_area,
 	/* presume the area is full */
 	*full = 1;
 
-	for (i = 0; i < ps->exceptions_per_area; i++) {
+	for (i = 0; i < ps->exceptions_per_area; i++)
+	{
 		read_exception(ps, ps_area, i, &e);
 
 		/*
@@ -467,7 +509,8 @@ static int insert_exceptions(struct pstore *ps, void *ps_area,
 		 * is we know that we've hit the end of the
 		 * exceptions.  Therefore the area is not full.
 		 */
-		if (e.new_chunk == 0LL) {
+		if (e.new_chunk == 0LL)
+		{
 			ps->current_committed = i;
 			*full = 0;
 			break;
@@ -477,34 +520,41 @@ static int insert_exceptions(struct pstore *ps, void *ps_area,
 		 * Keep track of the start of the free chunks.
 		 */
 		if (ps->next_free <= e.new_chunk)
+		{
 			ps->next_free = e.new_chunk + 1;
+		}
 
 		/*
 		 * Otherwise we add the exception to the snapshot.
 		 */
 		r = callback(callback_context, e.old_chunk, e.new_chunk);
+
 		if (r)
+		{
 			return r;
+		}
 	}
 
 	return 0;
 }
 
 static int read_exceptions(struct pstore *ps,
-			   int (*callback)(void *callback_context, chunk_t old,
-					   chunk_t new),
-			   void *callback_context)
+						   int (*callback)(void *callback_context, chunk_t old,
+								   chunk_t new),
+						   void *callback_context)
 {
 	int r, full = 1;
 	struct dm_bufio_client *client;
 	chunk_t prefetch_area = 0;
 
 	client = dm_bufio_client_create(dm_snap_cow(ps->store->snap)->bdev,
-					ps->store->chunk_size << SECTOR_SHIFT,
-					1, 0, NULL, NULL);
+									ps->store->chunk_size << SECTOR_SHIFT,
+									1, 0, NULL, NULL);
 
 	if (IS_ERR(client))
+	{
 		return PTR_ERR(client);
+	}
 
 	/*
 	 * Setup for one current buffer + desired readahead buffers.
@@ -515,44 +565,62 @@ static int read_exceptions(struct pstore *ps,
 	 * Keeping reading chunks and inserting exceptions until
 	 * we find a partially full area.
 	 */
-	for (ps->current_area = 0; full; ps->current_area++) {
+	for (ps->current_area = 0; full; ps->current_area++)
+	{
 		struct dm_buffer *bp;
 		void *area;
 		chunk_t chunk;
 
 		if (unlikely(prefetch_area < ps->current_area))
+		{
 			prefetch_area = ps->current_area;
+		}
 
-		if (DM_PREFETCH_CHUNKS) do {
-			chunk_t pf_chunk = area_location(ps, prefetch_area);
-			if (unlikely(pf_chunk >= dm_bufio_get_device_size(client)))
-				break;
-			dm_bufio_prefetch(client, pf_chunk, 1);
-			prefetch_area++;
-			if (unlikely(!prefetch_area))
-				break;
-		} while (prefetch_area <= ps->current_area + DM_PREFETCH_CHUNKS);
+		if (DM_PREFETCH_CHUNKS) do
+			{
+				chunk_t pf_chunk = area_location(ps, prefetch_area);
+
+				if (unlikely(pf_chunk >= dm_bufio_get_device_size(client)))
+				{
+					break;
+				}
+
+				dm_bufio_prefetch(client, pf_chunk, 1);
+				prefetch_area++;
+
+				if (unlikely(!prefetch_area))
+				{
+					break;
+				}
+			}
+			while (prefetch_area <= ps->current_area + DM_PREFETCH_CHUNKS);
 
 		chunk = area_location(ps, ps->current_area);
 
 		area = dm_bufio_read(client, chunk, &bp);
-		if (IS_ERR(area)) {
+
+		if (IS_ERR(area))
+		{
 			r = PTR_ERR(area);
 			goto ret_destroy_bufio;
 		}
 
 		r = insert_exceptions(ps, area, callback, callback_context,
-				      &full);
+							  &full);
 
 		if (!full)
+		{
 			memcpy(ps->area, area, ps->store->chunk_size << SECTOR_SHIFT);
+		}
 
 		dm_bufio_release(bp);
 
 		dm_bufio_forget(client, chunk);
 
 		if (unlikely(r))
+		{
 			goto ret_destroy_bufio;
+		}
 	}
 
 	ps->current_area--;
@@ -573,9 +641,9 @@ static struct pstore *get_info(struct dm_exception_store *store)
 }
 
 static void persistent_usage(struct dm_exception_store *store,
-			     sector_t *total_sectors,
-			     sector_t *sectors_allocated,
-			     sector_t *metadata_sectors)
+							 sector_t *total_sectors,
+							 sector_t *sectors_allocated,
+							 sector_t *metadata_sectors)
 {
 	struct pstore *ps = get_info(store);
 
@@ -588,7 +656,7 @@ static void persistent_usage(struct dm_exception_store *store,
 	 * separated from the next by ps->exceptions_per_area data chunks.
 	 */
 	*metadata_sectors = (ps->current_area + 1 + NUM_SNAPSHOT_HDR_CHUNKS) *
-			    store->chunk_size;
+						store->chunk_size;
 }
 
 static void persistent_dtr(struct dm_exception_store *store)
@@ -599,7 +667,10 @@ static void persistent_dtr(struct dm_exception_store *store)
 
 	/* Created in read_header */
 	if (ps->io_client)
+	{
 		dm_io_client_destroy(ps->io_client);
+	}
+
 	free_area(ps);
 
 	/* Allocated in persistent_read_metadata */
@@ -609,9 +680,9 @@ static void persistent_dtr(struct dm_exception_store *store)
 }
 
 static int persistent_read_metadata(struct dm_exception_store *store,
-				    int (*callback)(void *callback_context,
-						    chunk_t old, chunk_t new),
-				    void *callback_context)
+									int (*callback)(void *callback_context,
+											chunk_t old, chunk_t new),
+									void *callback_context)
 {
 	int r, uninitialized_var(new_snapshot);
 	struct pstore *ps = get_info(store);
@@ -620,25 +691,34 @@ static int persistent_read_metadata(struct dm_exception_store *store,
 	 * Read the snapshot header.
 	 */
 	r = read_header(ps, &new_snapshot);
+
 	if (r)
+	{
 		return r;
+	}
 
 	/*
 	 * Now we know correct chunk_size, complete the initialisation.
 	 */
 	ps->exceptions_per_area = (ps->store->chunk_size << SECTOR_SHIFT) /
-				  sizeof(struct disk_exception);
+							  sizeof(struct disk_exception);
 	ps->callbacks = dm_vcalloc(ps->exceptions_per_area,
-				   sizeof(*ps->callbacks));
+							   sizeof(*ps->callbacks));
+
 	if (!ps->callbacks)
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * Do we need to setup a new snapshot ?
 	 */
-	if (new_snapshot) {
+	if (new_snapshot)
+	{
 		r = write_header(ps);
-		if (r) {
+
+		if (r)
+		{
 			DMWARN("write_header failed");
 			return r;
 		}
@@ -646,16 +726,22 @@ static int persistent_read_metadata(struct dm_exception_store *store,
 		ps->current_area = 0;
 		zero_memory_area(ps);
 		r = zero_disk_area(ps, 0);
+
 		if (r)
+		{
 			DMWARN("zero_disk_area(0) failed");
+		}
+
 		return r;
 	}
+
 	/*
 	 * Sanity checks.
 	 */
-	if (ps->version != SNAPSHOT_DISK_VERSION) {
+	if (ps->version != SNAPSHOT_DISK_VERSION)
+	{
 		DMWARN("unable to handle snapshot disk version %d",
-		       ps->version);
+			   ps->version);
 		return -EINVAL;
 	}
 
@@ -663,7 +749,9 @@ static int persistent_read_metadata(struct dm_exception_store *store,
 	 * Metadata are valid, but snapshot is invalidated
 	 */
 	if (!ps->valid)
+	{
 		return 1;
+	}
 
 	/*
 	 * Read the metadata.
@@ -674,14 +762,16 @@ static int persistent_read_metadata(struct dm_exception_store *store,
 }
 
 static int persistent_prepare_exception(struct dm_exception_store *store,
-					struct dm_exception *e)
+										struct dm_exception *e)
 {
 	struct pstore *ps = get_info(store);
 	sector_t size = get_dev_size(dm_snap_cow(store->snap)->bdev);
 
 	/* Is there enough room ? */
 	if (size < ((ps->next_free + 1) * store->chunk_size))
+	{
 		return -ENOSPC;
+	}
 
 	e->new_chunk = ps->next_free;
 
@@ -697,9 +787,9 @@ static int persistent_prepare_exception(struct dm_exception_store *store,
 }
 
 static void persistent_commit_exception(struct dm_exception_store *store,
-					struct dm_exception *e, int valid,
-					void (*callback) (void *, int success),
-					void *callback_context)
+										struct dm_exception *e, int valid,
+										void (*callback) (void *, int success),
+										void *callback_context)
 {
 	unsigned int i;
 	struct pstore *ps = get_info(store);
@@ -707,7 +797,9 @@ static void persistent_commit_exception(struct dm_exception_store *store,
 	struct commit_callback *cb;
 
 	if (!valid)
+	{
 		ps->valid = 0;
+	}
 
 	ce.old_chunk = e->old_chunk;
 	ce.new_chunk = e->new_chunk;
@@ -728,32 +820,40 @@ static void persistent_commit_exception(struct dm_exception_store *store,
 	 * filled this metadata area there's nothing more to do.
 	 */
 	if (!atomic_dec_and_test(&ps->pending_count) &&
-	    (ps->current_committed != ps->exceptions_per_area))
+		(ps->current_committed != ps->exceptions_per_area))
+	{
 		return;
+	}
 
 	/*
 	 * If we completely filled the current area, then wipe the next one.
 	 */
 	if ((ps->current_committed == ps->exceptions_per_area) &&
-	    zero_disk_area(ps, ps->current_area + 1))
+		zero_disk_area(ps, ps->current_area + 1))
+	{
 		ps->valid = 0;
+	}
 
 	/*
 	 * Commit exceptions to disk.
 	 */
 	if (ps->valid && area_io(ps, REQ_OP_WRITE, WRITE_FLUSH_FUA))
+	{
 		ps->valid = 0;
+	}
 
 	/*
 	 * Advance to the next area if this one is full.
 	 */
-	if (ps->current_committed == ps->exceptions_per_area) {
+	if (ps->current_committed == ps->exceptions_per_area)
+	{
 		ps->current_committed = 0;
 		ps->current_area++;
 		zero_memory_area(ps);
 	}
 
-	for (i = 0; i < ps->callback_count; i++) {
+	for (i = 0; i < ps->callback_count; i++)
+	{
 		cb = ps->callbacks + i;
 		cb->callback(cb->context, ps->valid);
 	}
@@ -762,8 +862,8 @@ static void persistent_commit_exception(struct dm_exception_store *store,
 }
 
 static int persistent_prepare_merge(struct dm_exception_store *store,
-				    chunk_t *last_old_chunk,
-				    chunk_t *last_new_chunk)
+									chunk_t *last_old_chunk,
+									chunk_t *last_new_chunk)
 {
 	struct pstore *ps = get_info(store);
 	struct core_exception ce;
@@ -773,17 +873,24 @@ static int persistent_prepare_merge(struct dm_exception_store *store,
 	/*
 	 * When current area is empty, move back to preceding area.
 	 */
-	if (!ps->current_committed) {
+	if (!ps->current_committed)
+	{
 		/*
 		 * Have we finished?
 		 */
 		if (!ps->current_area)
+		{
 			return 0;
+		}
 
 		ps->current_area--;
 		r = area_io(ps, REQ_OP_READ, 0);
+
 		if (r < 0)
+		{
 			return r;
+		}
+
 		ps->current_committed = ps->exceptions_per_area;
 	}
 
@@ -796,19 +903,23 @@ static int persistent_prepare_merge(struct dm_exception_store *store,
 	 * working backwards.
 	 */
 	for (nr_consecutive = 1; nr_consecutive < ps->current_committed;
-	     nr_consecutive++) {
+		 nr_consecutive++)
+	{
 		read_exception(ps, ps->area,
-			       ps->current_committed - 1 - nr_consecutive, &ce);
+					   ps->current_committed - 1 - nr_consecutive, &ce);
+
 		if (ce.old_chunk != *last_old_chunk - nr_consecutive ||
-		    ce.new_chunk != *last_new_chunk - nr_consecutive)
+			ce.new_chunk != *last_new_chunk - nr_consecutive)
+		{
 			break;
+		}
 	}
 
 	return nr_consecutive;
 }
 
 static int persistent_commit_merge(struct dm_exception_store *store,
-				   int nr_merged)
+								   int nr_merged)
 {
 	int r, i;
 	struct pstore *ps = get_info(store);
@@ -816,11 +927,16 @@ static int persistent_commit_merge(struct dm_exception_store *store,
 	BUG_ON(nr_merged > ps->current_committed);
 
 	for (i = 0; i < nr_merged; i++)
+	{
 		clear_exception(ps, ps->current_committed - 1 - i);
+	}
 
 	r = area_io(ps, REQ_OP_WRITE, WRITE_FLUSH_FUA);
+
 	if (r < 0)
+	{
 		return r;
+	}
 
 	ps->current_committed -= nr_merged;
 
@@ -835,7 +951,7 @@ static int persistent_commit_merge(struct dm_exception_store *store,
 	 * after commit_merge() has removed the nr_merged previous exceptions.
 	 */
 	ps->next_free = area_location(ps, ps->current_area) +
-			ps->current_committed + 1;
+					ps->current_committed + 1;
 
 	return 0;
 }
@@ -845,8 +961,11 @@ static void persistent_drop_snapshot(struct dm_exception_store *store)
 	struct pstore *ps = get_info(store);
 
 	ps->valid = 0;
+
 	if (write_header(ps))
+	{
 		DMWARN("write header failed");
+	}
 }
 
 static int persistent_ctr(struct dm_exception_store *store, char *options)
@@ -856,8 +975,11 @@ static int persistent_ctr(struct dm_exception_store *store, char *options)
 
 	/* allocate the pstore */
 	ps = kzalloc(sizeof(*ps), GFP_KERNEL);
+
 	if (!ps)
+	{
 		return -ENOMEM;
+	}
 
 	ps->store = store;
 	ps->valid = 1;
@@ -873,17 +995,24 @@ static int persistent_ctr(struct dm_exception_store *store, char *options)
 	ps->callbacks = NULL;
 
 	ps->metadata_wq = alloc_workqueue("ksnaphd", WQ_MEM_RECLAIM, 0);
-	if (!ps->metadata_wq) {
+
+	if (!ps->metadata_wq)
+	{
 		DMERR("couldn't start header metadata update thread");
 		r = -ENOMEM;
 		goto err_workqueue;
 	}
 
-	if (options) {
+	if (options)
+	{
 		char overflow = toupper(options[0]);
+
 		if (overflow == 'O')
+		{
 			store->userspace_supports_overflow = true;
-		else {
+		}
+		else
+		{
 			DMERR("Unsupported persistent store option: %s", options);
 			r = -EINVAL;
 			goto err_options;
@@ -903,23 +1032,26 @@ err_workqueue:
 }
 
 static unsigned persistent_status(struct dm_exception_store *store,
-				  status_type_t status, char *result,
-				  unsigned maxlen)
+								  status_type_t status, char *result,
+								  unsigned maxlen)
 {
 	unsigned sz = 0;
 
-	switch (status) {
-	case STATUSTYPE_INFO:
-		break;
-	case STATUSTYPE_TABLE:
-		DMEMIT(" %s %llu", store->userspace_supports_overflow ? "PO" : "P",
-		       (unsigned long long)store->chunk_size);
+	switch (status)
+	{
+		case STATUSTYPE_INFO:
+			break;
+
+		case STATUSTYPE_TABLE:
+			DMEMIT(" %s %llu", store->userspace_supports_overflow ? "PO" : "P",
+				   (unsigned long long)store->chunk_size);
 	}
 
 	return sz;
 }
 
-static struct dm_exception_store_type _persistent_type = {
+static struct dm_exception_store_type _persistent_type =
+{
 	.name = "persistent",
 	.module = THIS_MODULE,
 	.ctr = persistent_ctr,
@@ -934,7 +1066,8 @@ static struct dm_exception_store_type _persistent_type = {
 	.status = persistent_status,
 };
 
-static struct dm_exception_store_type _persistent_compat_type = {
+static struct dm_exception_store_type _persistent_compat_type =
+{
 	.name = "P",
 	.module = THIS_MODULE,
 	.ctr = persistent_ctr,
@@ -954,15 +1087,19 @@ int dm_persistent_snapshot_init(void)
 	int r;
 
 	r = dm_exception_store_type_register(&_persistent_type);
-	if (r) {
+
+	if (r)
+	{
 		DMERR("Unable to register persistent exception store type");
 		return r;
 	}
 
 	r = dm_exception_store_type_register(&_persistent_compat_type);
-	if (r) {
+
+	if (r)
+	{
 		DMERR("Unable to register old-style persistent exception "
-		      "store type");
+			  "store type");
 		dm_exception_store_type_unregister(&_persistent_type);
 		return r;
 	}

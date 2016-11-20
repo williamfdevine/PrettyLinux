@@ -21,7 +21,8 @@
 #include <asm/mach-types.h>
 #include <mach/hardware.h>
 
-static struct snd_soc_dai_link simone_dai = {
+static struct snd_soc_dai_link simone_dai =
+{
 	.name		= "AC97",
 	.stream_name	= "AC97 HiFi",
 	.cpu_dai_name	= "ep93xx-ac97",
@@ -30,7 +31,8 @@ static struct snd_soc_dai_link simone_dai = {
 	.platform_name	= "ep93xx-ac97",
 };
 
-static struct snd_soc_card snd_soc_simone = {
+static struct snd_soc_card snd_soc_simone =
+{
 	.name		= "Sim.One",
 	.owner		= THIS_MODULE,
 	.dai_link	= &simone_dai,
@@ -45,16 +47,21 @@ static int simone_probe(struct platform_device *pdev)
 	int ret;
 
 	simone_snd_ac97_device = platform_device_register_simple("ac97-codec",
-								 -1, NULL, 0);
+							 -1, NULL, 0);
+
 	if (IS_ERR(simone_snd_ac97_device))
+	{
 		return PTR_ERR(simone_snd_ac97_device);
+	}
 
 	card->dev = &pdev->dev;
 
 	ret = snd_soc_register_card(card);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
-			ret);
+				ret);
 		platform_device_unregister(simone_snd_ac97_device);
 	}
 
@@ -71,7 +78,8 @@ static int simone_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver simone_driver = {
+static struct platform_driver simone_driver =
+{
 	.driver		= {
 		.name	= "simone-audio",
 	},

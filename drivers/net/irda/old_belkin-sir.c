@@ -1,5 +1,5 @@
 /*********************************************************************
- *                
+ *
  * Filename:      old_belkin.c
  * Version:       1.1
  * Description:   Driver for the Belkin (old) SmartBeam dongle
@@ -8,22 +8,22 @@
  * Created at:    22/11/99
  * Modified at:   Fri Dec 17 09:13:32 1999
  * Modified by:   Dag Brattli <dagb@cs.uit.no>
- * 
+ *
  *     Copyright (c) 1999 Jean Tourrilhes, All Rights Reserved.
- *     
- *     This program is free software; you can redistribute it and/or 
- *     modify it under the terms of the GNU General Public License as 
- *     published by the Free Software Foundation; either version 2 of 
+ *
+ *     This program is free software; you can redistribute it and/or
+ *     modify it under the terms of the GNU General Public License as
+ *     published by the Free Software Foundation; either version 2 of
  *     the License, or (at your option) any later version.
- * 
+ *
  *     This program is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
  *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  *     GNU General Public License for more details.
- * 
- *     You should have received a copy of the GNU General Public License 
+ *
+ *     You should have received a copy of the GNU General Public License
  *     along with this program; if not, see <http://www.gnu.org/licenses/>.
- *     
+ *
  ********************************************************************/
 
 #include <linux/module.h>
@@ -42,7 +42,7 @@
  * I guess that I've got the old one, because inside I don't have
  * a jumper for IrDA/ASK...
  *
- * As far as I can make it from info on their web site, the old dongle 
+ * As far as I can make it from info on their web site, the old dongle
  * support only 9600 b/s, which make our life much simpler as far as
  * the driver is concerned, but you might not like it very much ;-)
  * The new SmartBeam does 115 kb/s, and I've not tested it...
@@ -66,7 +66,8 @@ static int old_belkin_close(struct sir_dev *dev);
 static int old_belkin_change_speed(struct sir_dev *dev, unsigned speed);
 static int old_belkin_reset(struct sir_dev *dev);
 
-static struct dongle_driver old_belkin = {
+static struct dongle_driver old_belkin =
+{
 	.owner		= THIS_MODULE,
 	.driver_name	= "Old Belkin SmartBeam",
 	.type		= IRDA_OLD_BELKIN_DONGLE,
@@ -120,7 +121,7 @@ static int old_belkin_close(struct sir_dev *dev)
 static int old_belkin_change_speed(struct sir_dev *dev, unsigned speed)
 {
 	dev->speed = 9600;
-	return (speed==dev->speed) ? 0 : -EINVAL;
+	return (speed == dev->speed) ? 0 : -EINVAL;
 }
 
 /*
@@ -138,7 +139,7 @@ static int old_belkin_reset(struct sir_dev *dev)
 }
 
 MODULE_AUTHOR("Jean Tourrilhes <jt@hpl.hp.com>");
-MODULE_DESCRIPTION("Belkin (old) SmartBeam dongle driver");	
+MODULE_DESCRIPTION("Belkin (old) SmartBeam dongle driver");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("irda-dongle-7"); /* IRDA_OLD_BELKIN_DONGLE */
 

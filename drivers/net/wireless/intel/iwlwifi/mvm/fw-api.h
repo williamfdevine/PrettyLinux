@@ -81,7 +81,8 @@
 #include "fw-api-tof.h"
 
 /* Tx queue numbers for non-DQA mode */
-enum {
+enum
+{
 	IWL_MVM_OFFCHANNEL_QUEUE = 8,
 	IWL_MVM_CMD_QUEUE = 9,
 };
@@ -107,7 +108,8 @@ enum {
  *	as well
  * @IWL_MVM_DQA_MAX_DATA_QUEUE: last TXQ in pool for DATA frames
  */
-enum iwl_mvm_dqa_txq {
+enum iwl_mvm_dqa_txq
+{
 	IWL_MVM_DQA_CMD_QUEUE = 0,
 	IWL_MVM_DQA_AUX_QUEUE = 1,
 	IWL_MVM_DQA_P2P_DEVICE_QUEUE = 2,
@@ -120,7 +122,8 @@ enum iwl_mvm_dqa_txq {
 	IWL_MVM_DQA_MAX_DATA_QUEUE = 31,
 };
 
-enum iwl_mvm_tx_fifo {
+enum iwl_mvm_tx_fifo
+{
 	IWL_MVM_TX_FIFO_BK = 0,
 	IWL_MVM_TX_FIFO_BE,
 	IWL_MVM_TX_FIFO_VI,
@@ -131,7 +134,8 @@ enum iwl_mvm_tx_fifo {
 
 
 /* commands */
-enum {
+enum
+{
 	MVM_ALIVE = 0x1,
 	REPLY_ERROR = 0x2,
 	ECHO_CMD = 0x3,
@@ -310,13 +314,15 @@ enum {
 /* Please keep this enum *SORTED* by hex value.
  * Needed for binary search, otherwise a warning will be triggered.
  */
-enum iwl_mac_conf_subcmd_ids {
+enum iwl_mac_conf_subcmd_ids
+{
 	LINK_QUALITY_MEASUREMENT_CMD = 0x1,
 	LINK_QUALITY_MEASUREMENT_COMPLETE_NOTIF = 0xFE,
 	CHANNEL_SWITCH_NOA_NOTIF = 0xFF,
 };
 
-enum iwl_phy_ops_subcmd_ids {
+enum iwl_phy_ops_subcmd_ids
+{
 	CMD_DTS_MEASUREMENT_TRIGGER_WIDE = 0x0,
 	CTDP_CONFIG_CMD = 0x03,
 	TEMP_REPORTING_THRESHOLDS_CMD = 0x04,
@@ -324,11 +330,13 @@ enum iwl_phy_ops_subcmd_ids {
 	DTS_MEASUREMENT_NOTIF_WIDE = 0xFF,
 };
 
-enum iwl_system_subcmd_ids {
+enum iwl_system_subcmd_ids
+{
 	SHARED_MEM_CFG_CMD = 0x0,
 };
 
-enum iwl_data_path_subcmd_ids {
+enum iwl_data_path_subcmd_ids
+{
 	DQA_ENABLE_CMD = 0x0,
 	UPDATE_MU_GROUPS_CMD = 0x1,
 	TRIGGER_RX_QUEUES_NOTIF_CMD = 0x2,
@@ -336,17 +344,20 @@ enum iwl_data_path_subcmd_ids {
 	RX_QUEUES_NOTIFICATION = 0xFF,
 };
 
-enum iwl_prot_offload_subcmd_ids {
+enum iwl_prot_offload_subcmd_ids
+{
 	STORED_BEACON_NTF = 0xFF,
 };
 
-enum iwl_fmac_debug_cmds {
+enum iwl_fmac_debug_cmds
+{
 	LMAC_RD_WR = 0x0,
 	UMAC_RD_WR = 0x1,
 };
 
 /* command groups */
-enum {
+enum
+{
 	LEGACY_GROUP = 0x0,
 	LONG_GROUP = 0x1,
 	SYSTEM_GROUP = 0x2,
@@ -361,7 +372,8 @@ enum {
  * struct iwl_cmd_response - generic response struct for most commands
  * @status: status of the command asked, changes for each one
  */
-struct iwl_cmd_response {
+struct iwl_cmd_response
+{
 	__le32 status;
 };
 
@@ -369,7 +381,8 @@ struct iwl_cmd_response {
  * struct iwl_dqa_enable_cmd
  * @cmd_queue: the TXQ number of the command queue
  */
-struct iwl_dqa_enable_cmd {
+struct iwl_dqa_enable_cmd
+{
 	__le32 cmd_queue;
 } __packed; /* DQA_CONTROL_CMD_API_S_VER_1 */
 
@@ -377,7 +390,8 @@ struct iwl_dqa_enable_cmd {
  * struct iwl_tx_ant_cfg_cmd
  * @valid: valid antenna configuration
  */
-struct iwl_tx_ant_cfg_cmd {
+struct iwl_tx_ant_cfg_cmd
+{
 	__le32 valid;
 } __packed;
 
@@ -389,7 +403,8 @@ struct iwl_tx_ant_cfg_cmd {
  * @event_trigger: bitmap for which calibrations to perform according to
  *		event triggers.
  */
-struct iwl_calib_ctrl {
+struct iwl_calib_ctrl
+{
 	__le32 flow_trigger;
 	__le32 event_trigger;
 } __packed;
@@ -397,7 +412,8 @@ struct iwl_calib_ctrl {
 /* This enum defines the bitmap of various calibrations to enable in both
  * init ucode and runtime ucode through CALIBRATION_CFG_CMD.
  */
-enum iwl_calib_cfg {
+enum iwl_calib_cfg
+{
 	IWL_CALIB_CFG_XTAL_IDX			= BIT(0),
 	IWL_CALIB_CFG_TEMPERATURE_IDX		= BIT(1),
 	IWL_CALIB_CFG_VOLTAGE_READ_IDX		= BIT(2),
@@ -422,7 +438,8 @@ enum iwl_calib_cfg {
 /*
  * Phy configuration command.
  */
-struct iwl_phy_cfg_cmd {
+struct iwl_phy_cfg_cmd
+{
 	__le32	phy_cfg;
 	struct iwl_calib_ctrl calib_control;
 } __packed;
@@ -440,14 +457,16 @@ struct iwl_phy_cfg_cmd {
 
 
 /* Target of the NVM_ACCESS_CMD */
-enum {
+enum
+{
 	NVM_ACCESS_TARGET_CACHE = 0,
 	NVM_ACCESS_TARGET_OTP = 1,
 	NVM_ACCESS_TARGET_EEPROM = 2,
 };
 
 /* Section types for NVM_ACCESS_CMD */
-enum {
+enum
+{
 	NVM_SECTION_TYPE_SW = 1,
 	NVM_SECTION_TYPE_REGULATORY = 3,
 	NVM_SECTION_TYPE_CALIBRATION = 4,
@@ -466,7 +485,8 @@ enum {
  * @length: in bytes, to read/write
  * @data: if write operation, the data to write. On read its empty
  */
-struct iwl_nvm_access_cmd {
+struct iwl_nvm_access_cmd
+{
 	u8 op_code;
 	u8 target;
 	__le16 type;
@@ -490,11 +510,13 @@ struct iwl_nvm_access_cmd {
  * @device_phy_addr: virtual addresses from device side
  *	32 bit address for API version 1, 64 bit address for API version 2.
 */
-struct iwl_fw_paging_cmd {
+struct iwl_fw_paging_cmd
+{
 	__le32 flags;
 	__le32 block_size;
 	__le32 block_num;
-	union {
+	union
+	{
 		__le32 addr32[NUM_OF_FW_PAGING_BLOCKS];
 		__le64 addr64[NUM_OF_FW_PAGING_BLOCKS];
 	} device_phy_addr;
@@ -506,14 +528,16 @@ struct iwl_fw_paging_cmd {
  * @IWL_FW_ITEM_ID_PAGING: Address of the pages that the FW will upload
  *	download
  */
-enum iwl_fw_item_id {
+enum iwl_fw_item_id
+{
 	IWL_FW_ITEM_ID_PAGING = 3,
 };
 
 /*
  * struct iwl_fw_get_item_cmd - get an item from the fw
  */
-struct iwl_fw_get_item_cmd {
+struct iwl_fw_get_item_cmd
+{
 	__le32 item_id;
 } __packed; /* FW_GET_ITEM_CMD_API_S_VER_1 */
 
@@ -524,20 +548,23 @@ struct iwl_fw_get_item_cmd {
 /*
  * struct iwl_continuous_record_mode - recording mode
  */
-struct iwl_continuous_record_mode {
+struct iwl_continuous_record_mode
+{
 	__le16 enable_recording;
 } __packed;
 
 /*
  * struct iwl_continuous_record_cmd - enable/disable continuous recording
  */
-struct iwl_continuous_record_cmd {
+struct iwl_continuous_record_cmd
+{
 	struct iwl_continuous_record_mode record_mode;
 	u8 pad[CONT_REC_COMMAND_SIZE -
-		sizeof(struct iwl_continuous_record_mode)];
+		   sizeof(struct iwl_continuous_record_mode)];
 } __packed;
 
-struct iwl_fw_get_item_resp {
+struct iwl_fw_get_item_resp
+{
 	__le32 item_id;
 	__le32 item_byte_cnt;
 	__le32 item_val;
@@ -551,7 +578,8 @@ struct iwl_fw_get_item_resp {
  * @status: 0 for success, fail otherwise
  * @data: if read operation, the data returned. Empty on write.
  */
-struct iwl_nvm_access_resp {
+struct iwl_nvm_access_resp
+{
 	__le16 offset;
 	__le16 length;
 	__le16 type;
@@ -566,7 +594,8 @@ struct iwl_nvm_access_resp {
 #define ALIVE_RESP_RFKILL	BIT(1)
 
 /* alive response ver_type values */
-enum {
+enum
+{
 	FW_TYPE_HW = 0,
 	FW_TYPE_PROT = 1,
 	FW_TYPE_AP = 2,
@@ -576,7 +605,8 @@ enum {
 };
 
 /* alive response ver_subtype values */
-enum {
+enum
+{
 	FW_SUBTYPE_FULL_FEATURE = 0,
 	FW_SUBTYPE_BOOTSRAP = 1, /* Not valid */
 	FW_SUBTYPE_REDUCED = 2,
@@ -592,7 +622,8 @@ enum {
 
 #define IWL_ALIVE_FLG_RFKILL	BIT(0)
 
-struct mvm_alive_resp_ver1 {
+struct mvm_alive_resp_ver1
+{
 	__le16 status;
 	__le16 flags;
 	u8 ucode_minor;
@@ -614,7 +645,8 @@ struct mvm_alive_resp_ver1 {
 	__le32 scd_base_ptr;		/* SRAM address for SCD */
 } __packed; /* ALIVE_RES_API_S_VER_1 */
 
-struct mvm_alive_resp_ver2 {
+struct mvm_alive_resp_ver2
+{
 	__le16 status;
 	__le16 flags;
 	u8 ucode_minor;
@@ -643,7 +675,8 @@ struct mvm_alive_resp_ver2 {
 	__le32 dbg_print_buff_addr;
 } __packed; /* ALIVE_RES_API_S_VER_2 */
 
-struct mvm_alive_resp {
+struct mvm_alive_resp
+{
 	__le16 status;
 	__le16 flags;
 	__le32 ucode_minor;
@@ -668,7 +701,8 @@ struct mvm_alive_resp {
 } __packed; /* ALIVE_RES_API_S_VER_3 */
 
 /* Error response/notification */
-enum {
+enum
+{
 	FW_ERR_UNKNOWN_CMD = 0x0,
 	FW_ERR_INVALID_CMD_PARAM = 0x1,
 	FW_ERR_SERVICE = 0x2,
@@ -692,7 +726,8 @@ enum {
  *	error_type = 2, otherwise 0
  * @timestamp: TSF in usecs.
  */
-struct iwl_error_resp {
+struct iwl_error_resp
+{
 	__le32 error_type;
 	u8 cmd_id;
 	u8 reserved1;
@@ -717,10 +752,11 @@ struct iwl_error_resp {
 #define FW_CTXT_INVALID	  (0xffffffff)
 
 #define FW_CMD_ID_AND_COLOR(_id, _color) ((_id << FW_CTXT_ID_POS) |\
-					  (_color << FW_CTXT_COLOR_POS))
+		(_color << FW_CTXT_COLOR_POS))
 
 /* Possible actions on PHYs, MACs and Bindings */
-enum {
+enum
+{
 	FW_CTXT_ACTION_STUB = 0,
 	FW_CTXT_ACTION_ADD,
 	FW_CTXT_ACTION_MODIFY,
@@ -731,7 +767,8 @@ enum {
 /* Time Events */
 
 /* Time Event types, according to MAC type */
-enum iwl_time_event_type {
+enum iwl_time_event_type
+{
 	/* BSS Station Events */
 	TE_BSS_STA_AGGRESSIVE_ASSOC,
 	TE_BSS_STA_ASSOC,
@@ -780,7 +817,8 @@ enum iwl_time_event_type {
  * means that the event can be fragmented but only the first 'x' will be
  * scheduled.
  */
-enum {
+enum
+{
 	TE_V1_FRAG_NONE = 0,
 	TE_V1_FRAG_SINGLE = 1,
 	TE_V1_FRAG_DUAL = 2,
@@ -795,7 +833,8 @@ enum {
 #define TE_V1_REPEAT_MAX_MSK_V1	0x0fffffff
 
 /* Time Event dependencies: none, on another TE, or in a specific time */
-enum {
+enum
+{
 	TE_V1_INDEPENDENT		= 0,
 	TE_V1_DEP_OTHER			= BIT(0),
 	TE_V1_DEP_TSF			= BIT(1),
@@ -819,7 +858,8 @@ enum {
  * notification the status is always success. There is no start/end fragment
  * notification for monolithic events.
  */
-enum {
+enum
+{
 	TE_V1_NOTIF_NONE = 0,
 	TE_V1_NOTIF_HOST_EVENT_START = BIT(0),
 	TE_V1_NOTIF_HOST_EVENT_END = BIT(1),
@@ -846,7 +886,8 @@ enum {
  * means that the event can be fragmented but only the first 'x' will be
  * scheduled.
  */
-enum {
+enum
+{
 	TE_V2_FRAG_NONE = 0,
 	TE_V2_FRAG_SINGLE = 1,
 	TE_V2_FRAG_DUAL = 2,
@@ -882,7 +923,8 @@ enum {
  * @TE_V2_EVENT_SOCIOPATHIC: can't co-exist with other events of tha same MAC
  * @TE_V2_ABSENCE: are we present or absent during the Time Event.
  */
-enum {
+enum
+{
 	TE_V2_DEFAULT_POLICY = 0x0,
 
 	/* notifications (event start/stop, fragment start/stop) */
@@ -932,7 +974,8 @@ enum {
  *	TE_EVENT_SOCIOPATHIC
  *	using TE_ABSENCE and using TE_NOTIF_*
  */
-struct iwl_time_event_cmd {
+struct iwl_time_event_cmd
+{
 	/* COMMON_INDEX_HDR_API_S_VER_1 */
 	__le32 id_and_color;
 	__le32 action;
@@ -955,7 +998,8 @@ struct iwl_time_event_cmd {
  * @unique_id: the unique ID assigned (in ADD) or given (others) to the TE
  * @id_and_color: ID and color of the relevant MAC
  */
-struct iwl_time_event_resp {
+struct iwl_time_event_resp
+{
 	__le32 status;
 	__le32 id;
 	__le32 unique_id;
@@ -972,7 +1016,8 @@ struct iwl_time_event_resp {
  * @action: one of TE_NOTIF_START or TE_NOTIF_END
  * @status: true if scheduled, false otherwise (not executed)
  */
-struct iwl_time_event_notif {
+struct iwl_time_event_notif
+{
 	__le32 timestamp;
 	__le32 session_id;
 	__le32 unique_id;
@@ -992,7 +1037,8 @@ struct iwl_time_event_notif {
  * @macs: array of MAC id and colors which belong to the binding
  * @phy: PHY id and color which belongs to the binding
  */
-struct iwl_binding_cmd {
+struct iwl_binding_cmd
+{
 	/* COMMON_INDEX_HDR_API_S_VER_1 */
 	__le32 id_and_color;
 	__le32 action;
@@ -1011,7 +1057,8 @@ struct iwl_binding_cmd {
  *	remainig quota (after Time Events) according to this quota.
  * @max_duration: max uninterrupted context duration in TU
  */
-struct iwl_time_quota_data {
+struct iwl_time_quota_data
+{
 	__le32 id_and_color;
 	__le32 quota;
 	__le32 max_duration;
@@ -1022,7 +1069,8 @@ struct iwl_time_quota_data {
  * ( TIME_QUOTA_CMD = 0x2c )
  * @quotas: allocations per binding
  */
-struct iwl_time_quota_cmd {
+struct iwl_time_quota_cmd
+{
 	struct iwl_time_quota_data quotas[MAX_BINDINGS];
 } __packed; /* TIME_QUOTA_ALLOCATION_CMD_API_S_VER_1 */
 
@@ -1066,7 +1114,8 @@ struct iwl_time_quota_cmd {
  * @width: PHY_[VHT|LEGACY]_CHANNEL_*
  * @ctrl channel: PHY_[VHT|LEGACY]_CTRL_*
  */
-struct iwl_fw_channel_info {
+struct iwl_fw_channel_info
+{
 	u8 band;
 	u8 channel;
 	u8 width;
@@ -1113,7 +1162,8 @@ struct iwl_fw_channel_info {
  * @acquisition_data: ???
  * @dsp_cfg_flags: set to 0
  */
-struct iwl_phy_context_cmd {
+struct iwl_phy_context_cmd
+{
 	/* COMMON_INDEX_HDR_API_S_VER_1 */
 	__le32 id_and_color;
 	__le32 action;
@@ -1154,7 +1204,8 @@ struct iwl_phy_context_cmd {
  * @duration: event duration in TU To calculate event duration:
  *	timeEventDuration = min(duration, remainingQuota)
  */
-struct iwl_hs20_roc_req {
+struct iwl_hs20_roc_req
+{
 	/* COMMON_INDEX_HDR_API_S_VER_1 hdr */
 	__le32 id_and_color;
 	__le32 action;
@@ -1171,7 +1222,8 @@ struct iwl_hs20_roc_req {
 /*
  * values for AUX ROC result values
  */
-enum iwl_mvm_hot_spot {
+enum iwl_mvm_hot_spot
+{
 	HOT_SPOT_RSP_STATUS_OK,
 	HOT_SPOT_RSP_STATUS_TOO_MANY_EVENTS,
 	HOT_SPOT_MAX_NUM_OF_SESSIONS,
@@ -1188,7 +1240,8 @@ enum iwl_mvm_hot_spot {
  * @event_unique_id: Unique ID of time event assigned by ucode
  * @status: Return status 0 is success, all the rest used for specific errors
  */
-struct iwl_hs20_roc_res {
+struct iwl_hs20_roc_res
+{
 	__le32 event_unique_id;
 	__le32 status;
 } __packed; /* HOT_SPOT_RSP_API_S_VER_1 */
@@ -1200,13 +1253,15 @@ struct iwl_hs20_roc_res {
  * @radio_step:
  * @radio_dash:
  */
-struct iwl_radio_version_notif {
+struct iwl_radio_version_notif
+{
 	__le32 radio_flavor;
 	__le32 radio_step;
 	__le32 radio_dash;
 } __packed; /* RADIO_VERSION_NOTOFICATION_S_VER_1 */
 
-enum iwl_card_state_flags {
+enum iwl_card_state_flags
+{
 	CARD_ENABLED		= 0x00,
 	HW_CARD_DISABLED	= 0x01,
 	SW_CARD_DISABLED	= 0x02,
@@ -1221,7 +1276,8 @@ enum iwl_card_state_flags {
  * ( CARD_STATE_NOTIFICATION = 0xa1 )
  * @flags: %iwl_card_state_flags
  */
-struct iwl_card_state_notif {
+struct iwl_card_state_notif
+{
 	__le32 flags;
 } __packed; /* CARD_STATE_NTFY_API_S_VER_1 */
 
@@ -1235,7 +1291,8 @@ struct iwl_card_state_notif {
  * @num_expected_beacons:
  * @num_recvd_beacons:
  */
-struct iwl_missed_beacons_notif {
+struct iwl_missed_beacons_notif
+{
 	__le32 mac_id;
 	__le32 consec_missed_beacons_since_last_rx;
 	__le32 consec_missed_beacons;
@@ -1251,7 +1308,8 @@ struct iwl_missed_beacons_notif {
  * @status: MFUART loading status
  * @duration: MFUART loading time
 */
-struct iwl_mfuart_load_notif {
+struct iwl_mfuart_load_notif
+{
 	__le32 installed_ver;
 	__le32 external_ver;
 	__le32 status;
@@ -1265,7 +1323,8 @@ struct iwl_mfuart_load_notif {
  * @length: of data
  * @data: the value to set for the calibration result
  */
-struct iwl_set_calib_default_cmd {
+struct iwl_set_calib_default_cmd
+{
 	__le16 calib_index;
 	__le16 length;
 	u8 data[0];
@@ -1287,7 +1346,8 @@ struct iwl_set_calib_default_cmd {
  * @addr_list:	Place holder for array of MAC addresses.
  *		IMPORTANT: add padding if necessary to ensure DWORD alignment.
  */
-struct iwl_mcast_filter_cmd {
+struct iwl_mcast_filter_cmd
+{
 	u8 filter_own;
 	u8 port_id;
 	u8 count;
@@ -1306,7 +1366,8 @@ struct iwl_mcast_filter_cmd {
  * @BCAST_FILTER_OFFSET_IP_END: offset is from ip header end (i.e.
  *	start of ip payload).
  */
-enum iwl_mvm_bcast_filter_attr_offset {
+enum iwl_mvm_bcast_filter_attr_offset
+{
 	BCAST_FILTER_OFFSET_PAYLOAD_START = 0,
 	BCAST_FILTER_OFFSET_IP_END = 1,
 };
@@ -1319,7 +1380,8 @@ enum iwl_mvm_bcast_filter_attr_offset {
  *		byte to match from offset pos).
  * @mask:	mask to match (big endian).
  */
-struct iwl_fw_bcast_filter_attr {
+struct iwl_fw_bcast_filter_attr
+{
 	u8 offset_type;
 	u8 offset;
 	__le16 reserved1;
@@ -1332,7 +1394,8 @@ struct iwl_fw_bcast_filter_attr {
  * @BCAST_FILTER_FRAME_TYPE_ALL: consider all frames.
  * @BCAST_FILTER_FRAME_TYPE_IPV4: consider only ipv4 frames
  */
-enum iwl_mvm_bcast_filter_frame_type {
+enum iwl_mvm_bcast_filter_frame_type
+{
 	BCAST_FILTER_FRAME_TYPE_ALL = 0,
 	BCAST_FILTER_FRAME_TYPE_IPV4 = 1,
 };
@@ -1345,7 +1408,8 @@ enum iwl_mvm_bcast_filter_frame_type {
  * @attrs: attributes of this filter. a filter is considered matched
  *	only when all its attributes are matched (i.e. AND relationship)
  */
-struct iwl_fw_bcast_filter {
+struct iwl_fw_bcast_filter
+{
 	u8 discard;
 	u8 frame_type;
 	u8 num_attrs;
@@ -1366,7 +1430,8 @@ struct iwl_fw_bcast_filter {
  * @start_seq_num: the start sequence number of the bitmap
  * @mpdu_rx_count: the number of received MPDUs since entering D0i3
  */
-struct iwl_ba_window_status_notif {
+struct iwl_ba_window_status_notif
+{
 	__le64 bitmap[BA_WINDOW_STREAMS_MAX];
 	__le16 ra_tid[BA_WINDOW_STREAMS_MAX];
 	__le32 start_seq_num[BA_WINDOW_STREAMS_MAX];
@@ -1378,7 +1443,8 @@ struct iwl_ba_window_status_notif {
  * @default_discard: default action for this mac (discard (1) / pass (0)).
  * @attached_filters: bitmap of relevant filters for this mac.
  */
-struct iwl_fw_bcast_mac {
+struct iwl_fw_bcast_mac
+{
 	u8 default_discard;
 	u8 reserved1;
 	__le16 attached_filters;
@@ -1392,7 +1458,8 @@ struct iwl_fw_bcast_mac {
  * @filters: broadcast filters
  * @macs: broadcast filtering configuration per-mac
  */
-struct iwl_bcast_filter_cmd {
+struct iwl_bcast_filter_cmd
+{
 	u8 disable;
 	u8 max_bcast_filters;
 	u8 max_macs;
@@ -1406,7 +1473,8 @@ struct iwl_bcast_filter_cmd {
  *
  * The ids for different type of markers to insert into the usniffer logs
  */
-enum iwl_mvm_marker_id {
+enum iwl_mvm_marker_id
+{
 	MARKER_ID_TX_FRAME_LATENCY = 1,
 }; /* MARKER_ID_API_E_VER_1 */
 
@@ -1425,7 +1493,8 @@ enum iwl_mvm_marker_id {
  * @timestamp: in milliseconds since 1970-01-01 00:00:00 UTC
  * @metadata: additional meta data that will be written to the unsiffer log
  */
-struct iwl_mvm_marker {
+struct iwl_mvm_marker
+{
 	u8 dwLen;
 	u8 markerId;
 	__le16 reserved;
@@ -1438,7 +1507,8 @@ struct iwl_mvm_marker {
  *
  * Ids of dc2dc configuration flags
  */
-enum iwl_dc2dc_config_id {
+enum iwl_dc2dc_config_id
+{
 	DCDC_LOW_POWER_MODE_MSK_SET  = 0x1, /* not used */
 	DCDC_FREQ_TUNE_SET = 0x2,
 }; /* MARKER_ID_API_E_VER_1 */
@@ -1456,7 +1526,8 @@ enum iwl_dc2dc_config_id {
  * @dc2dc_freq_tune0: frequency divider - digital domain
  * @dc2dc_freq_tune1: frequency divider - analog domain
  */
-struct iwl_dc2dc_config_cmd {
+struct iwl_dc2dc_config_cmd
+{
 	__le32 flags;
 	__le32 enable_low_power_mode; /* not used */
 	__le32 dc2dc_freq_tune0;
@@ -1471,7 +1542,8 @@ struct iwl_dc2dc_config_cmd {
  * @dc2dc_freq_tune0: frequency divider - digital domain
  * @dc2dc_freq_tune1: frequency divider - analog domain
  */
-struct iwl_dc2dc_config_resp {
+struct iwl_dc2dc_config_resp
+{
 	__le32 dc2dc_freq_tune0;
 	__le32 dc2dc_freq_tune1;
 } __packed; /* DC2DC_CONFIG_RESP_API_S_VER_1 */
@@ -1480,7 +1552,8 @@ struct iwl_dc2dc_config_resp {
  * Smart Fifo API
  ***********************************/
 /* Smart Fifo state */
-enum iwl_sf_state {
+enum iwl_sf_state
+{
 	SF_LONG_DELAY_ON = 0, /* should never be called by driver */
 	SF_FULL_ON,
 	SF_UNINIT,
@@ -1489,7 +1562,8 @@ enum iwl_sf_state {
 };
 
 /* Smart Fifo possible scenario */
-enum iwl_sf_scenario {
+enum iwl_sf_scenario
+{
 	SF_SCENARIO_SINGLE_UNICAST,
 	SF_SCENARIO_AGG_UNICAST,
 	SF_SCENARIO_MULTICAST,
@@ -1544,7 +1618,8 @@ enum iwl_sf_scenario {
  * in long delay state.
  * @full_on_timeouts: timer values for each scenario in full on state.
  */
-struct iwl_sf_cfg_cmd {
+struct iwl_sf_cfg_cmd
+{
 	__le32 state;
 	__le32 watermark[SF_TRANSIENT_STATES_NUMBER];
 	__le32 long_delay_timeouts[SF_NUM_SCENARIO][SF_NUM_TIMEOUT_TYPES];
@@ -1565,7 +1640,8 @@ struct iwl_sf_cfg_cmd {
  * @source_id: the source from where we got the MCC, see iwl_mcc_source
  * @reserved: reserved for alignment
  */
-struct iwl_mcc_update_cmd_v1 {
+struct iwl_mcc_update_cmd_v1
+{
 	__le16 mcc;
 	u8 source_id;
 	u8 reserved;
@@ -1583,7 +1659,8 @@ struct iwl_mcc_update_cmd_v1 {
  * @key: integrity key for MCC API OEM testing
  * @reserved2: reserved
  */
-struct iwl_mcc_update_cmd {
+struct iwl_mcc_update_cmd
+{
 	__le16 mcc;
 	u8 source_id;
 	u8 reserved;
@@ -1605,7 +1682,8 @@ struct iwl_mcc_update_cmd {
  * @channels: channel control data map, DWORD for each channel. Only the first
  *	16bits are used.
  */
-struct iwl_mcc_update_resp_v1  {
+struct iwl_mcc_update_resp_v1
+{
 	__le32 status;
 	__le16 mcc;
 	u8 cap;
@@ -1630,7 +1708,8 @@ struct iwl_mcc_update_resp_v1  {
  * @channels: channel control data map, DWORD for each channel. Only the first
  *	16bits are used.
  */
-struct iwl_mcc_update_resp {
+struct iwl_mcc_update_resp
+{
 	__le32 status;
 	__le16 mcc;
 	u8 cap;
@@ -1656,13 +1735,15 @@ struct iwl_mcc_update_resp {
  * @source_id: identity of the change originator, see iwl_mcc_source
  * @reserved1: reserved for alignment
  */
-struct iwl_mcc_chub_notif {
+struct iwl_mcc_chub_notif
+{
 	u16 mcc;
 	u8 source_id;
 	u8 reserved1;
 } __packed; /* LAR_MCC_NOTIFY_S */
 
-enum iwl_mcc_update_status {
+enum iwl_mcc_update_status
+{
 	MCC_RESP_NEW_CHAN_PROFILE,
 	MCC_RESP_SAME_CHAN_PROFILE,
 	MCC_RESP_INVALID,
@@ -1674,7 +1755,8 @@ enum iwl_mcc_update_status {
 	MCC_RESP_TEST_MODE_DENIAL_OF_SERVICE,
 };
 
-enum iwl_mcc_source {
+enum iwl_mcc_source
+{
 	MCC_SOURCE_OLD_FW = 0,
 	MCC_SOURCE_ME = 1,
 	MCC_SOURCE_BIOS = 2,
@@ -1691,7 +1773,8 @@ enum iwl_mcc_source {
 
 /* DTS measurements */
 
-enum iwl_dts_measurement_flags {
+enum iwl_dts_measurement_flags
+{
 	DTS_TRIGGER_CMD_FLAGS_TEMP	= BIT(0),
 	DTS_TRIGGER_CMD_FLAGS_VOLT	= BIT(1),
 };
@@ -1702,7 +1785,8 @@ enum iwl_dts_measurement_flags {
  * @flags: indicates which measurements we want as specified in &enum
  *	   iwl_dts_measurement_flags
  */
-struct iwl_dts_measurement_cmd {
+struct iwl_dts_measurement_cmd
+{
 	__le32 flags;
 } __packed; /* TEMPERATURE_MEASUREMENT_TRIGGER_CMD_S */
 
@@ -1718,7 +1802,8 @@ struct iwl_dts_measurement_cmd {
 * @DTS_DIRECT_WITHOUT_MEASURE: DTS returns its latest temperature result,
 *                              without measurement trigger.
 */
-enum iwl_dts_control_measurement_mode {
+enum iwl_dts_control_measurement_mode
+{
 	DTS_AUTOMATIC			= 0,
 	DTS_REQUEST_READ		= 1,
 	DTS_OVER_WRITE			= 2,
@@ -1733,7 +1818,8 @@ enum iwl_dts_control_measurement_mode {
 * @DTS_USE_CHAIN_C: chain C
 * @XTAL_TEMPERATURE - read temperature from xtal
 */
-enum iwl_dts_used {
+enum iwl_dts_used
+{
 	DTS_USE_TOP		= 0,
 	DTS_USE_CHAIN_A		= 1,
 	DTS_USE_CHAIN_B		= 2,
@@ -1746,7 +1832,8 @@ enum iwl_dts_used {
 * @DTS_BIT6_MODE: bit 6 mode
 * @DTS_BIT8_MODE: bit 8 mode
 */
-enum iwl_dts_bit_mode {
+enum iwl_dts_bit_mode
+{
 	DTS_BIT6_MODE	= 0,
 	DTS_BIT8_MODE	= 1,
 };
@@ -1760,7 +1847,8 @@ enum iwl_dts_bit_mode {
  * @bit_mode: value defines the DTS bit mode to use. See &enum iwl_dts_bit_mode
  * @step_duration: step duration for the DTS
  */
-struct iwl_ext_dts_measurement_cmd {
+struct iwl_ext_dts_measurement_cmd
+{
 	__le32 control_mode;
 	__le32 temperature;
 	__le32 sensor;
@@ -1775,7 +1863,8 @@ struct iwl_ext_dts_measurement_cmd {
  * @temp: the measured temperature
  * @voltage: the measured voltage
  */
-struct iwl_dts_measurement_notif_v1 {
+struct iwl_dts_measurement_notif_v1
+{
 	__le32 temp;
 	__le32 voltage;
 } __packed; /* TEMPERATURE_MEASUREMENT_TRIGGER_NTFY_S_VER_1*/
@@ -1787,7 +1876,8 @@ struct iwl_dts_measurement_notif_v1 {
  * @voltage: the measured voltage
  * @threshold_idx: the trip index that was crossed
  */
-struct iwl_dts_measurement_notif_v2 {
+struct iwl_dts_measurement_notif_v2
+{
 	__le32 temp;
 	__le32 voltage;
 	__le32 threshold_idx;
@@ -1799,7 +1889,8 @@ struct iwl_dts_measurement_notif_v2 {
  * @temperature: the current temperature in celsius
  * @reserved: reserved
  */
-struct ct_kill_notif {
+struct ct_kill_notif
+{
 	__le16 temperature;
 	__le16 reserved;
 } __packed; /* GRP_PHY_CT_KILL_NTF */
@@ -1810,7 +1901,8 @@ struct ct_kill_notif {
 * @CTDP_CMD_OPERATION_STOP: stop ctdp
 * @CTDP_CMD_OPERATION_REPORT: get the avgerage budget
 */
-enum iwl_mvm_ctdp_cmd_operation {
+enum iwl_mvm_ctdp_cmd_operation
+{
 	CTDP_CMD_OPERATION_START	= 0x1,
 	CTDP_CMD_OPERATION_STOP		= 0x2,
 	CTDP_CMD_OPERATION_REPORT	= 0x4,
@@ -1823,7 +1915,8 @@ enum iwl_mvm_ctdp_cmd_operation {
  * @budget: the budget in milliwatt
  * @window_size: defined in API but not used
  */
-struct iwl_mvm_ctdp_cmd {
+struct iwl_mvm_ctdp_cmd
+{
 	__le32 operation;
 	__le32 budget;
 	__le32 window_size;
@@ -1837,7 +1930,8 @@ struct iwl_mvm_ctdp_cmd {
  * @num_temps: number of temperature thresholds passed
  * @thresholds: array with the thresholds to be configured
  */
-struct temp_report_ths_cmd {
+struct temp_report_ths_cmd
+{
 	__le32 num_temps;
 	__le16 thresholds[IWL_MAX_DTS_TRIPS];
 } __packed; /* GRP_PHY_TEMP_REPORTING_THRESHOLDS_CMD */
@@ -1847,7 +1941,8 @@ struct temp_report_ths_cmd {
  ***********************************/
 
 /* Type of TDLS request */
-enum iwl_tdls_channel_switch_type {
+enum iwl_tdls_channel_switch_type
+{
 	TDLS_SEND_CHAN_SW_REQ = 0,
 	TDLS_SEND_CHAN_SW_RESP_AND_MOVE_CH,
 	TDLS_MOVE_CH,
@@ -1864,7 +1959,8 @@ enum iwl_tdls_channel_switch_type {
  * @switch_time: switch time the peer sent in its channel switch timing IE
  * @switch_timout: switch timeout the peer sent in its channel switch timing IE
  */
-struct iwl_tdls_channel_switch_timing {
+struct iwl_tdls_channel_switch_timing
+{
 	__le32 frame_timestamp; /* GP2 time of peer packet Rx */
 	__le32 max_offchan_duration; /* given in micro-seconds */
 	__le32 switch_time; /* given in micro-seconds */
@@ -1882,7 +1978,8 @@ struct iwl_tdls_channel_switch_timing {
  * @tx_cmd: Tx parameters for the frame
  * @data: frame data
  */
-struct iwl_tdls_channel_switch_frame {
+struct iwl_tdls_channel_switch_frame
+{
 	__le32 switch_time_offset;
 	struct iwl_tx_cmd tx_cmd;
 	u8 data[IWL_TDLS_CH_SW_FRAME_MAX_SIZE];
@@ -1900,7 +1997,8 @@ struct iwl_tdls_channel_switch_frame {
  * @timing: timing related data for command
  * @frame: channel-switch request/response template, depending to switch_type
  */
-struct iwl_tdls_channel_switch_cmd {
+struct iwl_tdls_channel_switch_cmd
+{
 	u8 switch_type;
 	__le32 peer_sta_id;
 	struct iwl_fw_channel_info ci;
@@ -1915,7 +2013,8 @@ struct iwl_tdls_channel_switch_cmd {
  * @offchannel_duration: duration given in microseconds
  * @sta_id: peer currently performing the channel-switch with
  */
-struct iwl_tdls_channel_switch_notif {
+struct iwl_tdls_channel_switch_notif
+{
 	__le32 status;
 	__le32 offchannel_duration;
 	__le32 sta_id;
@@ -1929,7 +2028,8 @@ struct iwl_tdls_channel_switch_notif {
  * @tx_to_peer_ssn: initial SSN the FW should use for Tx on its TID vs the peer
  * @is_initiator: 1 if the peer is the TDLS link initiator, 0 otherwise
  */
-struct iwl_tdls_sta_info {
+struct iwl_tdls_sta_info
+{
 	u8 sta_id;
 	u8 tx_to_peer_tid;
 	__le16 tx_to_peer_ssn;
@@ -1948,7 +2048,8 @@ struct iwl_tdls_sta_info {
  * @pti_req_tx_cmd: Tx parameters for PTI request template
  * @pti_req_template: PTI request template data
  */
-struct iwl_tdls_config_cmd {
+struct iwl_tdls_config_cmd
+{
 	__le32 id_and_color; /* mac id and color */
 	u8 tdls_peer_count;
 	u8 tx_to_ap_tid;
@@ -1967,7 +2068,8 @@ struct iwl_tdls_config_cmd {
  * @tx_to_peer_last_seq: last sequence number used by FW during FW-based Tx to
  *	the peer
  */
-struct iwl_tdls_config_sta_info_res {
+struct iwl_tdls_config_sta_info_res
+{
 	__le16 sta_id;
 	__le16 tx_to_peer_last_seq;
 } __packed; /* TDLS_STA_INFO_RSP_VER_1 */
@@ -1978,7 +2080,8 @@ struct iwl_tdls_config_sta_info_res {
  * @tx_to_ap_last_seq: last sequence number used by FW during FW-based Tx to AP
  * @sta_info: per-station TDLS config information
  */
-struct iwl_tdls_config_res {
+struct iwl_tdls_config_res
+{
 	__le32 tx_to_ap_last_seq;
 	struct iwl_tdls_config_sta_info_res sta_info[IWL_MVM_TDLS_STA_COUNT];
 } __packed; /* TDLS_CONFIG_RSP_API_S_VER_1 */
@@ -2011,7 +2114,8 @@ struct iwl_tdls_config_res {
  * NOTE: on firmware that don't have IWL_UCODE_TLV_CAPA_EXTEND_SHARED_MEM_CFG
  *	 set, the last 3 members don't exist.
  */
-struct iwl_shared_mem_cfg_v1 {
+struct iwl_shared_mem_cfg_v1
+{
 	__le32 shared_mem_addr;
 	__le32 shared_mem_size;
 	__le32 sample_buff_addr;
@@ -2026,7 +2130,8 @@ struct iwl_shared_mem_cfg_v1 {
 	__le32 internal_txfifo_size[TX_FIFO_INTERNAL_MAX_NUM];
 } __packed; /* SHARED_MEM_ALLOC_API_S_VER_2 */
 
-struct iwl_shared_mem_cfg {
+struct iwl_shared_mem_cfg
+{
 	__le32 shared_mem_addr;
 	__le32 shared_mem_size;
 	__le32 sample_buff_addr;
@@ -2048,7 +2153,8 @@ struct iwl_shared_mem_cfg {
  * @user_position:the position of station in a group. If the station is in the
  *	group then bits (group * 2) is the position -1
  */
-struct iwl_mu_group_mgmt_cmd {
+struct iwl_mu_group_mgmt_cmd
+{
 	__le32 reserved;
 	__le32 membership_status[2];
 	__le32 user_position[4];
@@ -2061,7 +2167,8 @@ struct iwl_mu_group_mgmt_cmd {
  * @user_position: the position of station in a group. If the station is in the
  *	group then bits (group * 2) is the position -1
  */
-struct iwl_mu_group_mgmt_notif {
+struct iwl_mu_group_mgmt_notif
+{
 	__le32 membership_status[2];
 	__le32 user_position[4];
 } __packed; /* MU_GROUP_MNG_NTFY_API_S_VER_1 */
@@ -2079,7 +2186,8 @@ struct iwl_mu_group_mgmt_notif {
  * @rates: rate in ucode internal format
  * @byte_count: frame's byte count
  */
-struct iwl_stored_beacon_notif {
+struct iwl_stored_beacon_notif
+{
 	__le32 system_time;
 	__le64 tsf;
 	__le32 beacon_timestamp;
@@ -2092,12 +2200,14 @@ struct iwl_stored_beacon_notif {
 
 #define LQM_NUMBER_OF_STATIONS_IN_REPORT 16
 
-enum iwl_lqm_cmd_operatrions {
+enum iwl_lqm_cmd_operatrions
+{
 	LQM_CMD_OPERATION_START_MEASUREMENT = 0x01,
 	LQM_CMD_OPERATION_STOP_MEASUREMENT = 0x02,
 };
 
-enum iwl_lqm_status {
+enum iwl_lqm_status
+{
 	LQM_STATUS_SUCCESS = 0,
 	LQM_STATUS_TIMEOUT = 1,
 	LQM_STATUS_ABORT = 2,
@@ -2111,7 +2221,8 @@ enum iwl_lqm_status {
  * @measurement_time: time of the total measurement to be performed, in uSec.
  * @timeout: maximum time allowed until a response is sent, in uSec.
  */
-struct iwl_link_qual_msrmnt_cmd {
+struct iwl_link_qual_msrmnt_cmd
+{
 	__le32 cmd_operation;
 	__le32 mac_id;
 	__le32 measurement_time;
@@ -2135,7 +2246,8 @@ struct iwl_link_qual_msrmnt_cmd {
  * @status: return status. may be one of the LQM_STATUS_* defined above.
  * @reserved: reserved.
  */
-struct iwl_link_qual_msrmnt_notif {
+struct iwl_link_qual_msrmnt_notif
+{
 	__le32 frequent_stations_air_time[LQM_NUMBER_OF_STATIONS_IN_REPORT];
 	__le32 number_of_stations;
 	__le32 total_air_time_other_stations;
@@ -2151,12 +2263,14 @@ struct iwl_link_qual_msrmnt_notif {
  *
  * @id_and_color: ID and color of the MAC
  */
-struct iwl_channel_switch_noa_notif {
+struct iwl_channel_switch_noa_notif
+{
 	__le32 id_and_color;
 } __packed; /* CHANNEL_SWITCH_START_NTFY_API_S_VER_1 */
 
 /* Operation types for the debug mem access */
-enum {
+enum
+{
 	DEBUG_MEM_OP_READ = 0,
 	DEBUG_MEM_OP_WRITE = 1,
 	DEBUG_MEM_OP_WRITE_BYTES = 2,
@@ -2171,7 +2285,8 @@ enum {
  * @len: in dwords, to read/write
  * @data: for write opeations, contains the source buffer
  */
-struct iwl_dbg_mem_access_cmd {
+struct iwl_dbg_mem_access_cmd
+{
 	__le32 op;
 	__le32 addr;
 	__le32 len;
@@ -2179,7 +2294,8 @@ struct iwl_dbg_mem_access_cmd {
 } __packed; /* DEBUG_(U|L)MAC_RD_WR_CMD_API_S_VER_1 */
 
 /* Status responses for the debug mem access */
-enum {
+enum
+{
 	DEBUG_MEM_STATUS_SUCCESS = 0x0,
 	DEBUG_MEM_STATUS_FAILED = 0x1,
 	DEBUG_MEM_STATUS_LOCKED = 0x2,
@@ -2193,7 +2309,8 @@ enum {
  * @len: read dwords (0 for write operations)
  * @data: contains the read DWs
  */
-struct iwl_dbg_mem_access_rsp {
+struct iwl_dbg_mem_access_rsp
+{
 	__le32 status;
 	__le32 len;
 	__le32 data[];

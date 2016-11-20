@@ -24,14 +24,16 @@
 #include "priv.h"
 
 const struct nvkm_mc_map
-gk104_mc_reset[] = {
+	gk104_mc_reset[] =
+{
 	{ 0x00000100, NVKM_ENGINE_FIFO },
 	{ 0x00002000, NVKM_SUBDEV_PMU, true },
 	{}
 };
 
 const struct nvkm_mc_map
-gk104_mc_intr[] = {
+	gk104_mc_intr[] =
+{
 	{ 0x04000000, NVKM_ENGINE_DISP },
 	{ 0x00000100, NVKM_ENGINE_FIFO },
 	{ 0x40000000, NVKM_SUBDEV_IBUS },
@@ -48,7 +50,8 @@ gk104_mc_intr[] = {
 };
 
 static const struct nvkm_mc_func
-gk104_mc = {
+	gk104_mc =
+{
 	.init = nv50_mc_init,
 	.intr = gk104_mc_intr,
 	.intr_unarm = gf100_mc_intr_unarm,

@@ -78,17 +78,18 @@ struct packet_iosched
  * 32 buffers of 2048 bytes
  */
 #if (PAGE_SIZE % CD_FRAMESIZE) != 0
-#error "PAGE_SIZE must be a multiple of CD_FRAMESIZE"
+	#error "PAGE_SIZE must be a multiple of CD_FRAMESIZE"
 #endif
 #define PACKET_MAX_SIZE		128
 #define FRAMES_PER_PAGE		(PAGE_SIZE / CD_FRAMESIZE)
 #define PACKET_MAX_SECTORS	(PACKET_MAX_SIZE * CD_FRAMESIZE >> 9)
 
-enum packet_data_state {
+enum packet_data_state
+{
 	PACKET_IDLE_STATE,			/* Not used at the moment */
 	PACKET_WAITING_STATE,			/* Waiting for more bios to arrive, so */
-						/* we don't have to do as much */
-						/* data gathering */
+	/* we don't have to do as much */
+	/* data gathering */
 	PACKET_READ_WAIT_STATE,			/* Waiting for reads to fill in holes */
 	PACKET_WRITE_WAIT_STATE,		/* Waiting for the write to complete */
 	PACKET_RECOVERY_STATE,			/* Recover after read/write errors */
@@ -107,24 +108,24 @@ struct packet_data
 	struct list_head	list;
 
 	spinlock_t		lock;		/* Lock protecting state transitions and */
-						/* orig_bios list */
+	/* orig_bios list */
 
 	struct bio_list		orig_bios;	/* Original bios passed to pkt_make_request */
-						/* that will be handled by this packet */
+	/* that will be handled by this packet */
 	int			write_size;	/* Total size of all bios in the orig_bios */
-						/* list, measured in number of frames */
+	/* list, measured in number of frames */
 
 	struct bio		*w_bio;		/* The bio we will send to the real CD */
-						/* device once we have all data for the */
-						/* packet we are going to write */
+	/* device once we have all data for the */
+	/* packet we are going to write */
 	sector_t		sector;		/* First sector in this packet */
 	int			frames;		/* Number of frames in this packet */
 
 	enum packet_data_state	state;		/* Current state */
 	atomic_t		run_sm;		/* Incremented whenever the state */
-						/* machine needs to be run */
+	/* machine needs to be run */
 	long			sleep_time;	/* Set this to non-zero to make the state */
-						/* machine run after this many jiffies. */
+	/* machine run after this many jiffies. */
 
 	atomic_t		io_wait;	/* Number of pending IO operations */
 	atomic_t		io_errors;	/* Number of read/write errors during IO */
@@ -133,14 +134,15 @@ struct packet_data
 	struct page		*pages[PACKET_MAX_SIZE / FRAMES_PER_PAGE];
 
 	int			cache_valid;	/* If non-zero, the data for the zone defined */
-						/* by the sector variable is completely cached */
-						/* in the pages[] vector. */
+	/* by the sector variable is completely cached */
+	/* in the pages[] vector. */
 
 	int			id;		/* ID number for debugging */
 	struct pktcdvd_device	*pd;
 };
 
-struct pkt_rb_node {
+struct pkt_rb_node
+{
 	struct rb_node		rb_node;
 	struct bio		*bio;
 };
@@ -158,7 +160,7 @@ struct pktcdvd_kobj
 	struct pktcdvd_device	*pd;
 };
 #define to_pktcdvdkobj(_k) \
-  ((struct pktcdvd_kobj*)container_of(_k,struct pktcdvd_kobj,kobj))
+	((struct pktcdvd_kobj*)container_of(_k,struct pktcdvd_kobj,kobj))
 
 struct pktcdvd_device
 {
@@ -185,7 +187,7 @@ struct pktcdvd_device
 	int			bio_queue_size;	/* Number of nodes in bio_queue */
 	sector_t		current_sector;	/* Keep track of where the elevator is */
 	atomic_t		scan_queue;	/* Set to non-zero when pkt_handle_queue */
-						/* needs to be run. */
+	/* needs to be run. */
 	mempool_t		*rb_pool;	/* mempool for pkt_rb_node allocations */
 
 	struct packet_iosched   iosched;

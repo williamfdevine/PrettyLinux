@@ -1,6 +1,6 @@
 #include "radeonfb.h"
 
-/* the accelerated functions here are patterned after the 
+/* the accelerated functions here are patterned after the
  * "ACCEL_MMIO" ifdef branches in XFree86
  * --dte
  */
@@ -27,31 +27,40 @@ static void radeon_fixup_offset(struct radeonfb_info *rinfo)
 
 	radeon_fifo_wait (1);
 	local_base = INREG(MC_FB_LOCATION) << 16;
+
 	if (local_base == rinfo->fb_local_base)
+	{
 		return;
+	}
 
 	rinfo->fb_local_base = local_base;
 
 	radeon_fifo_wait (3);
 	OUTREG(DEFAULT_PITCH_OFFSET, (rinfo->pitch << 0x16) |
-				     (rinfo->fb_local_base >> 10));
+		   (rinfo->fb_local_base >> 10));
 	OUTREG(DST_PITCH_OFFSET, (rinfo->pitch << 0x16) | (rinfo->fb_local_base >> 10));
 	OUTREG(SRC_PITCH_OFFSET, (rinfo->pitch << 0x16) | (rinfo->fb_local_base >> 10));
 }
 
-static void radeonfb_prim_fillrect(struct radeonfb_info *rinfo, 
-				   const struct fb_fillrect *region)
+static void radeonfb_prim_fillrect(struct radeonfb_info *rinfo,
+								   const struct fb_fillrect *region)
 {
-	radeon_fifo_wait(4);  
-  
-	OUTREG(DP_GUI_MASTER_CNTL,  
-		rinfo->dp_gui_master_cntl  /* contains, like GMC_DST_32BPP */
-                | GMC_BRUSH_SOLID_COLOR
-                | ROP3_P);
+	radeon_fifo_wait(4);
+
+	OUTREG(DP_GUI_MASTER_CNTL,
+		   rinfo->dp_gui_master_cntl  /* contains, like GMC_DST_32BPP */
+		   | GMC_BRUSH_SOLID_COLOR
+		   | ROP3_P);
+
 	if (radeon_get_dstbpp(rinfo->depth) != DST_8BPP)
+	{
 		OUTREG(DP_BRUSH_FRGD_CLR, rinfo->pseudo_palette[region->color]);
+	}
 	else
+	{
 		OUTREG(DP_BRUSH_FRGD_CLR, region->color);
+	}
+
 	OUTREG(DP_WRITE_MSK, 0xffffffff);
 	OUTREG(DP_CNTL, (DST_X_LEFT_TO_RIGHT | DST_Y_TOP_TO_BOTTOM));
 
@@ -59,7 +68,7 @@ static void radeonfb_prim_fillrect(struct radeonfb_info *rinfo,
 	OUTREG(DSTCACHE_CTLSTAT, RB2D_DC_FLUSH_ALL);
 	OUTREG(WAIT_UNTIL, (WAIT_2D_IDLECLEAN | WAIT_DMA_GUI_IDLE));
 
-	radeon_fifo_wait(2);  
+	radeon_fifo_wait(2);
 	OUTREG(DST_Y_X, (region->dy << 16) | region->dx);
 	OUTREG(DST_WIDTH_HEIGHT, (region->width << 16) | region->height);
 }
@@ -69,10 +78,14 @@ void radeonfb_fillrect(struct fb_info *info, const struct fb_fillrect *region)
 	struct radeonfb_info *rinfo = info->par;
 	struct fb_fillrect modded;
 	int vxres, vyres;
-  
+
 	if (info->state != FBINFO_STATE_RUNNING)
+	{
 		return;
-	if (info->flags & FBINFO_HWACCEL_DISABLED) {
+	}
+
+	if (info->flags & FBINFO_HWACCEL_DISABLED)
+	{
 		cfb_fillrect(info, region);
 		return;
 	}
@@ -84,18 +97,21 @@ void radeonfb_fillrect(struct fb_info *info, const struct fb_fillrect *region)
 
 	memcpy(&modded, region, sizeof(struct fb_fillrect));
 
-	if(!modded.width || !modded.height ||
-	   modded.dx >= vxres || modded.dy >= vyres)
+	if (!modded.width || !modded.height ||
+		modded.dx >= vxres || modded.dy >= vyres)
+	{
 		return;
-  
-	if(modded.dx + modded.width  > vxres) modded.width  = vxres - modded.dx;
-	if(modded.dy + modded.height > vyres) modded.height = vyres - modded.dy;
+	}
+
+	if (modded.dx + modded.width  > vxres) { modded.width  = vxres - modded.dx; }
+
+	if (modded.dy + modded.height > vyres) { modded.height = vyres - modded.dy; }
 
 	radeonfb_prim_fillrect(rinfo, &modded);
 }
 
-static void radeonfb_prim_copyarea(struct radeonfb_info *rinfo, 
-				   const struct fb_copyarea *area)
+static void radeonfb_prim_copyarea(struct radeonfb_info *rinfo,
+								   const struct fb_copyarea *area)
 {
 	int xdir, ydir;
 	u32 sx, sy, dx, dy, w, h;
@@ -106,19 +122,20 @@ static void radeonfb_prim_copyarea(struct radeonfb_info *rinfo,
 	xdir = sx - dx;
 	ydir = sy - dy;
 
-	if ( xdir < 0 ) { sx += w-1; dx += w-1; }
-	if ( ydir < 0 ) { sy += h-1; dy += h-1; }
+	if ( xdir < 0 ) { sx += w - 1; dx += w - 1; }
+
+	if ( ydir < 0 ) { sy += h - 1; dy += h - 1; }
 
 	radeon_fifo_wait(3);
 	OUTREG(DP_GUI_MASTER_CNTL,
-		rinfo->dp_gui_master_cntl /* i.e. GMC_DST_32BPP */
-		| GMC_BRUSH_NONE
-		| GMC_SRC_DSTCOLOR
-		| ROP3_S 
-		| DP_SRC_SOURCE_MEMORY );
+		   rinfo->dp_gui_master_cntl /* i.e. GMC_DST_32BPP */
+		   | GMC_BRUSH_NONE
+		   | GMC_SRC_DSTCOLOR
+		   | ROP3_S
+		   | DP_SRC_SOURCE_MEMORY );
 	OUTREG(DP_WRITE_MSK, 0xffffffff);
-	OUTREG(DP_CNTL, (xdir>=0 ? DST_X_LEFT_TO_RIGHT : 0)
-			| (ydir>=0 ? DST_Y_TOP_TO_BOTTOM : 0));
+	OUTREG(DP_CNTL, (xdir >= 0 ? DST_X_LEFT_TO_RIGHT : 0)
+		   | (ydir >= 0 ? DST_Y_TOP_TO_BOTTOM : 0));
 
 	radeon_fifo_wait(2);
 	OUTREG(DSTCACHE_CTLSTAT, RB2D_DC_FLUSH_ALL);
@@ -142,10 +159,14 @@ void radeonfb_copyarea(struct fb_info *info, const struct fb_copyarea *area)
 	modded.dy = area->dy;
 	modded.width  = area->width;
 	modded.height = area->height;
-  
+
 	if (info->state != FBINFO_STATE_RUNNING)
+	{
 		return;
-	if (info->flags & FBINFO_HWACCEL_DISABLED) {
+	}
+
+	if (info->flags & FBINFO_HWACCEL_DISABLED)
+	{
 		cfb_copyarea(info, area);
 		return;
 	}
@@ -155,16 +176,21 @@ void radeonfb_copyarea(struct fb_info *info, const struct fb_copyarea *area)
 	vxres = info->var.xres_virtual;
 	vyres = info->var.yres_virtual;
 
-	if(!modded.width || !modded.height ||
-	   modded.sx >= vxres || modded.sy >= vyres ||
-	   modded.dx >= vxres || modded.dy >= vyres)
+	if (!modded.width || !modded.height ||
+		modded.sx >= vxres || modded.sy >= vyres ||
+		modded.dx >= vxres || modded.dy >= vyres)
+	{
 		return;
-  
-	if(modded.sx + modded.width > vxres)  modded.width = vxres - modded.sx;
-	if(modded.dx + modded.width > vxres)  modded.width = vxres - modded.dx;
-	if(modded.sy + modded.height > vyres) modded.height = vyres - modded.sy;
-	if(modded.dy + modded.height > vyres) modded.height = vyres - modded.dy;
-  
+	}
+
+	if (modded.sx + modded.width > vxres) { modded.width = vxres - modded.sx; }
+
+	if (modded.dx + modded.width > vxres) { modded.width = vxres - modded.dx; }
+
+	if (modded.sy + modded.height > vyres) { modded.height = vyres - modded.sy; }
+
+	if (modded.dy + modded.height > vyres) { modded.height = vyres - modded.dy; }
+
 	radeonfb_prim_copyarea(rinfo, &modded);
 }
 
@@ -173,7 +199,10 @@ void radeonfb_imageblit(struct fb_info *info, const struct fb_image *image)
 	struct radeonfb_info *rinfo = info->par;
 
 	if (info->state != FBINFO_STATE_RUNNING)
+	{
 		return;
+	}
+
 	radeon_engine_idle();
 
 	cfb_imageblit(info, image);
@@ -184,7 +213,10 @@ int radeonfb_sync(struct fb_info *info)
 	struct radeonfb_info *rinfo = info->par;
 
 	if (info->state != FBINFO_STATE_RUNNING)
+	{
 		return 0;
+	}
+
 	radeon_engine_idle();
 
 	return 0;
@@ -201,45 +233,48 @@ void radeonfb_engine_reset(struct radeonfb_info *rinfo)
 	mclk_cntl = INPLL(MCLK_CNTL);
 
 	OUTPLL(MCLK_CNTL, (mclk_cntl |
-			   FORCEON_MCLKA |
-			   FORCEON_MCLKB |
-			   FORCEON_YCLKA |
-			   FORCEON_YCLKB |
-			   FORCEON_MC |
-			   FORCEON_AIC));
+					   FORCEON_MCLKA |
+					   FORCEON_MCLKB |
+					   FORCEON_YCLKA |
+					   FORCEON_YCLKB |
+					   FORCEON_MC |
+					   FORCEON_AIC));
 
 	host_path_cntl = INREG(HOST_PATH_CNTL);
 	rbbm_soft_reset = INREG(RBBM_SOFT_RESET);
 
-	if (IS_R300_VARIANT(rinfo)) {
+	if (IS_R300_VARIANT(rinfo))
+	{
 		u32 tmp;
 
 		OUTREG(RBBM_SOFT_RESET, (rbbm_soft_reset |
-					 SOFT_RESET_CP |
-					 SOFT_RESET_HI |
-					 SOFT_RESET_E2));
+								 SOFT_RESET_CP |
+								 SOFT_RESET_HI |
+								 SOFT_RESET_E2));
 		INREG(RBBM_SOFT_RESET);
 		OUTREG(RBBM_SOFT_RESET, 0);
 		tmp = INREG(RB2D_DSTCACHE_MODE);
 		OUTREG(RB2D_DSTCACHE_MODE, tmp | (1 << 17)); /* FIXME */
-	} else {
+	}
+	else
+	{
 		OUTREG(RBBM_SOFT_RESET, rbbm_soft_reset |
-					SOFT_RESET_CP |
-					SOFT_RESET_HI |
-					SOFT_RESET_SE |
-					SOFT_RESET_RE |
-					SOFT_RESET_PP |
-					SOFT_RESET_E2 |
-					SOFT_RESET_RB);
+			   SOFT_RESET_CP |
+			   SOFT_RESET_HI |
+			   SOFT_RESET_SE |
+			   SOFT_RESET_RE |
+			   SOFT_RESET_PP |
+			   SOFT_RESET_E2 |
+			   SOFT_RESET_RB);
 		INREG(RBBM_SOFT_RESET);
 		OUTREG(RBBM_SOFT_RESET, rbbm_soft_reset & (u32)
-					~(SOFT_RESET_CP |
-					  SOFT_RESET_HI |
-					  SOFT_RESET_SE |
-					  SOFT_RESET_RE |
-					  SOFT_RESET_PP |
-					  SOFT_RESET_E2 |
-					  SOFT_RESET_RB));
+			   ~(SOFT_RESET_CP |
+				 SOFT_RESET_HI |
+				 SOFT_RESET_SE |
+				 SOFT_RESET_RE |
+				 SOFT_RESET_PP |
+				 SOFT_RESET_E2 |
+				 SOFT_RESET_RB));
 		INREG(RBBM_SOFT_RESET);
 	}
 
@@ -248,7 +283,9 @@ void radeonfb_engine_reset(struct radeonfb_info *rinfo)
 	OUTREG(HOST_PATH_CNTL, host_path_cntl);
 
 	if (!IS_R300_VARIANT(rinfo))
+	{
 		OUTREG(RBBM_SOFT_RESET, rbbm_soft_reset);
+	}
 
 	OUTREG(CLOCK_CNTL_INDEX, clock_cntl_index);
 	OUTPLL(MCLK_CNTL, mclk_cntl);
@@ -264,11 +301,15 @@ void radeonfb_engine_init (struct radeonfb_info *rinfo)
 	radeonfb_engine_reset(rinfo);
 
 	radeon_fifo_wait (1);
-	if (IS_R300_VARIANT(rinfo)) {
+
+	if (IS_R300_VARIANT(rinfo))
+	{
 		OUTREG(RB2D_DSTCACHE_MODE, INREG(RB2D_DSTCACHE_MODE) |
-		       RB2D_DC_AUTOFLUSH_ENABLE |
-		       RB2D_DC_DC_DISABLE_IGNORE_PE);
-	} else {
+			   RB2D_DC_AUTOFLUSH_ENABLE |
+			   RB2D_DC_DC_DISABLE_IGNORE_PE);
+	}
+	else
+	{
 		/* This needs to be double checked with ATI. Latest X driver
 		 * completely "forgets" to set this register on < r3xx, and
 		 * we used to just write 0 there... I'll keep the 0 and update
@@ -284,7 +325,7 @@ void radeonfb_engine_init (struct radeonfb_info *rinfo)
 	rinfo->fb_local_base = INREG(MC_FB_LOCATION) << 16;
 
 	OUTREG(DEFAULT_PITCH_OFFSET, (rinfo->pitch << 0x16) |
-				     (rinfo->fb_local_base >> 10));
+		   (rinfo->fb_local_base >> 10));
 	OUTREG(DST_PITCH_OFFSET, (rinfo->pitch << 0x16) | (rinfo->fb_local_base >> 10));
 	OUTREG(SRC_PITCH_OFFSET, (rinfo->pitch << 0x16) | (rinfo->fb_local_base >> 10));
 
@@ -297,15 +338,15 @@ void radeonfb_engine_init (struct radeonfb_info *rinfo)
 	radeon_fifo_wait (2);
 	OUTREG(DEFAULT_SC_TOP_LEFT, 0);
 	OUTREG(DEFAULT_SC_BOTTOM_RIGHT, (DEFAULT_SC_RIGHT_MAX |
-					 DEFAULT_SC_BOTTOM_MAX));
+									 DEFAULT_SC_BOTTOM_MAX));
 
 	temp = radeon_get_dstbpp(rinfo->depth);
 	rinfo->dp_gui_master_cntl = ((temp << 8) | GMC_CLR_CMP_CNTL_DIS);
 
 	radeon_fifo_wait (1);
 	OUTREG(DP_GUI_MASTER_CNTL, (rinfo->dp_gui_master_cntl |
-				    GMC_BRUSH_SOLID_COLOR |
-				    GMC_SRC_DATATYPE_COLOR));
+								GMC_BRUSH_SOLID_COLOR |
+								GMC_SRC_DATATYPE_COLOR));
 
 	radeon_fifo_wait (7);
 

@@ -55,10 +55,10 @@ int netcp_sgmii_reset(void __iomem *sgmii_ofs, int port)
 {
 	/* Soft reset */
 	sgmii_write_reg_bit(sgmii_ofs, SGMII_SRESET_REG(port),
-			    SGMII_SRESET_RESET);
+						SGMII_SRESET_RESET);
 
 	while ((sgmii_read_reg(sgmii_ofs, SGMII_SRESET_REG(port)) &
-		SGMII_SRESET_RESET) != 0x0)
+			SGMII_SRESET_RESET) != 0x0)
 		;
 
 	return 0;
@@ -73,10 +73,16 @@ bool netcp_sgmii_rtreset(void __iomem *sgmii_ofs, int port, bool set)
 	/* Initiate a soft reset */
 	reg = sgmii_read_reg(sgmii_ofs, SGMII_SRESET_REG(port));
 	oldval = (reg & SGMII_SRESET_RTRESET) != 0x0;
+
 	if (set)
+	{
 		reg |= SGMII_SRESET_RTRESET;
+	}
 	else
+	{
 		reg &= ~SGMII_SRESET_RTRESET;
+	}
+
 	sgmii_write_reg(sgmii_ofs, SGMII_SRESET_REG(port), reg);
 	wmb();
 
@@ -88,8 +94,12 @@ int netcp_sgmii_get_port_link(void __iomem *sgmii_ofs, int port)
 	u32 status = 0, link = 0;
 
 	status = sgmii_read_reg(sgmii_ofs, SGMII_STATUS_REG(port));
+
 	if ((status & SGMII_REG_STATUS_LINK) != 0)
+	{
 		link = 1;
+	}
+
 	return link;
 }
 
@@ -99,58 +109,72 @@ int netcp_sgmii_config(void __iomem *sgmii_ofs, int port, u32 interface)
 	u32 mr_adv_ability;
 	u32 control;
 
-	switch (interface) {
-	case SGMII_LINK_MAC_MAC_AUTONEG:
-		mr_adv_ability	= 0x9801;
-		control		= 0x21;
-		break;
+	switch (interface)
+	{
+		case SGMII_LINK_MAC_MAC_AUTONEG:
+			mr_adv_ability	= 0x9801;
+			control		= 0x21;
+			break;
 
-	case SGMII_LINK_MAC_PHY:
-	case SGMII_LINK_MAC_PHY_NO_MDIO:
-		mr_adv_ability	= 1;
-		control		= 1;
-		break;
+		case SGMII_LINK_MAC_PHY:
+		case SGMII_LINK_MAC_PHY_NO_MDIO:
+			mr_adv_ability	= 1;
+			control		= 1;
+			break;
 
-	case SGMII_LINK_MAC_MAC_FORCED:
-		mr_adv_ability	= 0x9801;
-		control		= 0x20;
-		break;
+		case SGMII_LINK_MAC_MAC_FORCED:
+			mr_adv_ability	= 0x9801;
+			control		= 0x20;
+			break;
 
-	case SGMII_LINK_MAC_FIBER:
-		mr_adv_ability	= 0x20;
-		control		= 0x1;
-		break;
+		case SGMII_LINK_MAC_FIBER:
+			mr_adv_ability	= 0x20;
+			control		= 0x1;
+			break;
 
-	default:
-		WARN_ONCE(1, "Invalid sgmii interface: %d\n", interface);
-		return -EINVAL;
+		default:
+			WARN_ONCE(1, "Invalid sgmii interface: %d\n", interface);
+			return -EINVAL;
 	}
 
 	sgmii_write_reg(sgmii_ofs, SGMII_CTL_REG(port), 0);
 
 	/* Wait for the SerDes pll to lock */
-	for (i = 0; i < 1000; i++)  {
+	for (i = 0; i < 1000; i++)
+	{
 		usleep_range(1000, 2000);
 		status = sgmii_read_reg(sgmii_ofs, SGMII_STATUS_REG(port));
+
 		if ((status & SGMII_REG_STATUS_LOCK) != 0)
+		{
 			break;
+		}
 	}
 
 	if ((status & SGMII_REG_STATUS_LOCK) == 0)
+	{
 		pr_err("serdes PLL not locked\n");
+	}
 
 	sgmii_write_reg(sgmii_ofs, SGMII_MRADV_REG(port), mr_adv_ability);
 	sgmii_write_reg(sgmii_ofs, SGMII_CTL_REG(port), control);
 
 	mask = SGMII_REG_STATUS_LINK;
-	if (control & SGMII_REG_CONTROL_AUTONEG)
-		mask |= SGMII_REG_STATUS_AUTONEG;
 
-	for (i = 0; i < 1000; i++)  {
+	if (control & SGMII_REG_CONTROL_AUTONEG)
+	{
+		mask |= SGMII_REG_STATUS_AUTONEG;
+	}
+
+	for (i = 0; i < 1000; i++)
+	{
 		usleep_range(200, 500);
 		status = sgmii_read_reg(sgmii_ofs, SGMII_STATUS_REG(port));
+
 		if ((status & mask) == mask)
+		{
 			break;
+		}
 	}
 
 	return 0;

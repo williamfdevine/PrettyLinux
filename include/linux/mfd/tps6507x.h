@@ -140,7 +140,8 @@
  * Board data may be used to initialize regulator and touchscreen.
  */
 
-struct tps6507x_board {
+struct tps6507x_board
+{
 	struct regulator_init_data *tps6507x_pmic_init_data;
 	struct touchscreen_init_data *tps6507x_ts_init_data;
 };
@@ -153,13 +154,14 @@ struct tps6507x_board {
  * Device data may be used to access the TPS6507x chip
  */
 
-struct tps6507x_dev {
+struct tps6507x_dev
+{
 	struct device *dev;
 	struct i2c_client *i2c_client;
 	int (*read_dev)(struct tps6507x_dev *tps6507x, char reg, int size,
-			void *dest);
+					void *dest);
 	int (*write_dev)(struct tps6507x_dev *tps6507x, char reg, int size,
-			 void *src);
+					 void *src);
 
 	/* Client devices */
 	struct tps6507x_pmic *pmic;

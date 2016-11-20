@@ -14,14 +14,16 @@
 
 #include <asm/setup.h>
 
-struct efi_runtime_map_entry {
+struct efi_runtime_map_entry
+{
 	efi_memory_desc_t md;
 	struct kobject kobj;   /* kobject for each entry */
 };
 
 static struct efi_runtime_map_entry **map_entries;
 
-struct map_attribute {
+struct map_attribute
+{
 	struct attribute attr;
 	ssize_t (*show)(struct efi_runtime_map_entry *entry, char *buf);
 };
@@ -39,10 +41,10 @@ static ssize_t type_show(struct efi_runtime_map_entry *entry, char *buf)
 #define EFI_RUNTIME_FIELD(var) entry->md.var
 
 #define EFI_RUNTIME_U64_ATTR_SHOW(name) \
-static ssize_t name##_show(struct efi_runtime_map_entry *entry, char *buf) \
-{ \
-	return snprintf(buf, PAGE_SIZE, "0x%llx\n", EFI_RUNTIME_FIELD(name)); \
-}
+	static ssize_t name##_show(struct efi_runtime_map_entry *entry, char *buf) \
+	{ \
+		return snprintf(buf, PAGE_SIZE, "0x%llx\n", EFI_RUNTIME_FIELD(name)); \
+	}
 
 EFI_RUNTIME_U64_ATTR_SHOW(phys_addr);
 EFI_RUNTIME_U64_ATTR_SHOW(virt_addr);
@@ -55,7 +57,7 @@ static inline struct efi_runtime_map_entry *to_map_entry(struct kobject *kobj)
 }
 
 static ssize_t map_attr_show(struct kobject *kobj, struct attribute *attr,
-			      char *buf)
+							 char *buf)
 {
 	struct efi_runtime_map_entry *entry = to_map_entry(kobj);
 	struct map_attribute *map_attr = to_map_attr(attr);
@@ -72,7 +74,8 @@ static struct map_attribute map_attribute_attr  = __ATTR_RO(attribute);
 /*
  * These are default attributes that are added for every memmap entry.
  */
-static struct attribute *def_attrs[] = {
+static struct attribute *def_attrs[] =
+{
 	&map_type_attr.attr,
 	&map_phys_addr_attr.attr,
 	&map_virt_addr_attr.attr,
@@ -81,7 +84,8 @@ static struct attribute *def_attrs[] = {
 	NULL
 };
 
-static const struct sysfs_ops map_attr_ops = {
+static const struct sysfs_ops map_attr_ops =
+{
 	.show = map_attr_show,
 };
 
@@ -93,7 +97,8 @@ static void map_release(struct kobject *kobj)
 	kfree(entry);
 }
 
-static struct kobj_type __refdata map_ktype = {
+static struct kobj_type __refdata map_ktype =
+{
 	.sysfs_ops	= &map_attr_ops,
 	.default_attrs	= def_attrs,
 	.release	= map_release,
@@ -103,19 +108,25 @@ static struct kset *map_kset;
 
 static struct efi_runtime_map_entry *
 add_sysfs_runtime_map_entry(struct kobject *kobj, int nr,
-			    efi_memory_desc_t *md)
+							efi_memory_desc_t *md)
 {
 	int ret;
 	struct efi_runtime_map_entry *entry;
 
-	if (!map_kset) {
+	if (!map_kset)
+	{
 		map_kset = kset_create_and_add("runtime-map", NULL, kobj);
+
 		if (!map_kset)
+		{
 			return ERR_PTR(-ENOMEM);
+		}
 	}
 
 	entry = kzalloc(sizeof(*entry), GFP_KERNEL);
-	if (!entry) {
+
+	if (!entry)
+	{
 		kset_unregister(map_kset);
 		map_kset = NULL;
 		return ERR_PTR(-ENOMEM);
@@ -126,7 +137,9 @@ add_sysfs_runtime_map_entry(struct kobject *kobj, int nr,
 	kobject_init(&entry->kobj, &map_ktype);
 	entry->kobj.kset = map_kset;
 	ret = kobject_add(&entry->kobj, NULL, "%d", nr);
-	if (ret) {
+
+	if (ret)
+	{
 		kobject_put(&entry->kobj);
 		kset_unregister(map_kset);
 		map_kset = NULL;
@@ -151,7 +164,9 @@ int efi_runtime_map_copy(void *buf, size_t bufsz)
 	size_t sz = efi_get_runtime_map_size();
 
 	if (sz > bufsz)
+	{
 		sz = bufsz;
+	}
 
 	memcpy(buf, efi.memmap.map, sz);
 	return 0;
@@ -164,30 +179,41 @@ int __init efi_runtime_map_init(struct kobject *efi_kobj)
 	efi_memory_desc_t *md;
 
 	if (!efi_enabled(EFI_MEMMAP))
+	{
 		return 0;
+	}
 
 	map_entries = kzalloc(efi.memmap.nr_map * sizeof(entry), GFP_KERNEL);
-	if (!map_entries) {
+
+	if (!map_entries)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	i = 0;
-	for_each_efi_memory_desc(md) {
+	for_each_efi_memory_desc(md)
+	{
 		entry = add_sysfs_runtime_map_entry(efi_kobj, i, md);
-		if (IS_ERR(entry)) {
+
+		if (IS_ERR(entry))
+		{
 			ret = PTR_ERR(entry);
 			goto out_add_entry;
 		}
+
 		*(map_entries + i++) = entry;
 	}
 
 	return 0;
 out_add_entry:
-	for (j = i - 1; j >= 0; j--) {
+
+	for (j = i - 1; j >= 0; j--)
+	{
 		entry = *(map_entries + j);
 		kobject_put(&entry->kobj);
 	}
+
 out:
 	return ret;
 }

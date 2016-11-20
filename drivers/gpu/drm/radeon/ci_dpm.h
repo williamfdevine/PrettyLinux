@@ -35,21 +35,24 @@
 
 #define CISLANDS_UNUSED_GPIO_PIN 0x7F
 
-struct ci_pl {
+struct ci_pl
+{
 	u32 mclk;
 	u32 sclk;
 	enum radeon_pcie_gen pcie_gen;
 	u16 pcie_lane;
 };
 
-struct ci_ps {
+struct ci_ps
+{
 	u16 performance_level_count;
 	bool dc_compatible;
 	u32 sclk_t;
 	struct ci_pl performance_levels[CISLANDS_MAX_HARDWARE_POWERLEVELS];
 };
 
-struct ci_dpm_level {
+struct ci_dpm_level
+{
 	bool enabled;
 	u32 value;
 	u32 param1;
@@ -59,12 +62,14 @@ struct ci_dpm_level {
 #define MAX_REGULAR_DPM_NUMBER 8
 #define CISLAND_MINIMUM_ENGINE_CLOCK 800
 
-struct ci_single_dpm_table {
+struct ci_single_dpm_table
+{
 	u32 count;
 	struct ci_dpm_level dpm_levels[MAX_REGULAR_DPM_NUMBER];
 };
 
-struct ci_dpm_table {
+struct ci_dpm_table
+{
 	struct ci_single_dpm_table sclk_table;
 	struct ci_single_dpm_table mclk_table;
 	struct ci_single_dpm_table pcie_speed_table;
@@ -73,12 +78,14 @@ struct ci_dpm_table {
 	struct ci_single_dpm_table mvdd_table;
 };
 
-struct ci_mc_reg_entry {
+struct ci_mc_reg_entry
+{
 	u32 mclk_max;
 	u32 mc_data[SMU7_DISCRETE_MC_REGISTER_ARRAY_SIZE];
 };
 
-struct ci_mc_reg_table {
+struct ci_mc_reg_table
+{
 	u8 last;
 	u8 num_entries;
 	u16 valid_flag;
@@ -96,13 +103,15 @@ struct ci_ulv_parm
 
 #define CISLANDS_MAX_LEAKAGE_COUNT  8
 
-struct ci_leakage_voltage {
+struct ci_leakage_voltage
+{
 	u16 count;
 	u16 leakage_id[CISLANDS_MAX_LEAKAGE_COUNT];
 	u16 actual_voltage[CISLANDS_MAX_LEAKAGE_COUNT];
 };
 
-struct ci_dpm_level_enable_mask {
+struct ci_dpm_level_enable_mask
+{
 	u32 uvd_dpm_enable_mask;
 	u32 vce_dpm_enable_mask;
 	u32 acp_dpm_enable_mask;
@@ -123,7 +132,8 @@ struct ci_vbios_boot_state
 	u16 pcie_lane_bootup_value;
 };
 
-struct ci_clock_registers {
+struct ci_clock_registers
+{
 	u32 cg_spll_func_cntl;
 	u32 cg_spll_func_cntl_2;
 	u32 cg_spll_func_cntl_3;
@@ -141,18 +151,21 @@ struct ci_clock_registers {
 	u32 mpll_ss2;
 };
 
-struct ci_thermal_temperature_setting {
+struct ci_thermal_temperature_setting
+{
 	s32 temperature_low;
 	s32 temperature_high;
 	s32 temperature_shutdown;
 };
 
-struct ci_pcie_perf_range {
+struct ci_pcie_perf_range
+{
 	u16 max;
 	u16 min;
 };
 
-enum ci_pt_config_reg_type {
+enum ci_pt_config_reg_type
+{
 	CISLANDS_CONFIGREG_MMR = 0,
 	CISLANDS_CONFIGREG_SMC_IND,
 	CISLANDS_CONFIGREG_DIDT_IND,
@@ -164,7 +177,8 @@ enum ci_pt_config_reg_type {
 #define POWERCONTAINMENT_FEATURE_TDCLimit        0x00000002
 #define POWERCONTAINMENT_FEATURE_PkgPwrLimit     0x00000004
 
-struct ci_pt_config_reg {
+struct ci_pt_config_reg
+{
 	u32 offset;
 	u32 mask;
 	u32 shift;
@@ -172,7 +186,8 @@ struct ci_pt_config_reg {
 	enum ci_pt_config_reg_type type;
 };
 
-struct ci_pt_defaults {
+struct ci_pt_defaults
+{
 	u8 svi_load_line_en;
 	u8 svi_load_line_vddc;
 	u8 tdc_vddc_throttle_release_limit_perc;
@@ -190,7 +205,8 @@ struct ci_pt_defaults {
 #define DPMTABLE_UPDATE_SCLK        0x00000004
 #define DPMTABLE_UPDATE_MCLK        0x00000008
 
-struct ci_power_info {
+struct ci_power_info
+{
 	struct ci_dpm_table dpm_table;
 	u32 voltage_control;
 	u32 mvdd_control;
@@ -322,8 +338,8 @@ struct ci_power_info {
 #define PCIE_PERF_REQ_PECI_GEN3         4
 
 int ci_copy_bytes_to_smc(struct radeon_device *rdev,
-			 u32 smc_start_address,
-			 const u8 *src, u32 byte_count, u32 limit);
+						 u32 smc_start_address,
+						 const u8 *src, u32 byte_count, u32 limit);
 void ci_start_smc(struct radeon_device *rdev);
 void ci_reset_smc(struct radeon_device *rdev);
 int ci_program_jump_on_start(struct radeon_device *rdev);
@@ -334,8 +350,8 @@ PPSMC_Result ci_send_msg_to_smc(struct radeon_device *rdev, PPSMC_Msg msg);
 PPSMC_Result ci_wait_for_smc_inactive(struct radeon_device *rdev);
 int ci_load_smc_ucode(struct radeon_device *rdev, u32 limit);
 int ci_read_smc_sram_dword(struct radeon_device *rdev,
-			   u32 smc_address, u32 *value, u32 limit);
+						   u32 smc_address, u32 *value, u32 limit);
 int ci_write_smc_sram_dword(struct radeon_device *rdev,
-			    u32 smc_address, u32 value, u32 limit);
+							u32 smc_address, u32 value, u32 limit);
 
 #endif

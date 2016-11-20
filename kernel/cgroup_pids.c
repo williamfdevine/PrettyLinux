@@ -40,7 +40,8 @@
 #define PIDS_MAX (PID_MAX_LIMIT + 1ULL)
 #define PIDS_MAX_STR "max"
 
-struct pids_cgroup {
+struct pids_cgroup
+{
 	struct cgroup_subsys_state	css;
 
 	/*
@@ -73,8 +74,11 @@ pids_css_alloc(struct cgroup_subsys_state *parent)
 	struct pids_cgroup *pids;
 
 	pids = kzalloc(sizeof(struct pids_cgroup), GFP_KERNEL);
+
 	if (!pids)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	pids->limit = PIDS_MAX;
 	atomic64_set(&pids->counter, 0);
@@ -114,7 +118,9 @@ static void pids_uncharge(struct pids_cgroup *pids, int num)
 	struct pids_cgroup *p;
 
 	for (p = pids; parent_pids(p); p = parent_pids(p))
+	{
 		pids_cancel(p, num);
+	}
 }
 
 /**
@@ -131,7 +137,9 @@ static void pids_charge(struct pids_cgroup *pids, int num)
 	struct pids_cgroup *p;
 
 	for (p = pids; parent_pids(p); p = parent_pids(p))
+	{
 		atomic64_add(num, &p->counter);
+	}
 }
 
 /**
@@ -147,7 +155,8 @@ static int pids_try_charge(struct pids_cgroup *pids, int num)
 {
 	struct pids_cgroup *p, *q;
 
-	for (p = pids; parent_pids(p); p = parent_pids(p)) {
+	for (p = pids; parent_pids(p); p = parent_pids(p))
+	{
 		int64_t new = atomic64_add_return(num, &p->counter);
 
 		/*
@@ -156,14 +165,20 @@ static int pids_try_charge(struct pids_cgroup *pids, int num)
 		 * fail.
 		 */
 		if (new > p->limit)
+		{
 			goto revert;
+		}
 	}
 
 	return 0;
 
 revert:
+
 	for (q = pids; q != p; q = parent_pids(q))
+	{
 		pids_cancel(q, num);
+	}
+
 	pids_cancel(p, num);
 
 	return -EAGAIN;
@@ -174,7 +189,8 @@ static int pids_can_attach(struct cgroup_taskset *tset)
 	struct task_struct *task;
 	struct cgroup_subsys_state *dst_css;
 
-	cgroup_taskset_for_each(task, dst_css, tset) {
+	cgroup_taskset_for_each(task, dst_css, tset)
+	{
 		struct pids_cgroup *pids = css_pids(dst_css);
 		struct cgroup_subsys_state *old_css;
 		struct pids_cgroup *old_pids;
@@ -199,7 +215,8 @@ static void pids_cancel_attach(struct cgroup_taskset *tset)
 	struct task_struct *task;
 	struct cgroup_subsys_state *dst_css;
 
-	cgroup_taskset_for_each(task, dst_css, tset) {
+	cgroup_taskset_for_each(task, dst_css, tset)
+	{
 		struct pids_cgroup *pids = css_pids(dst_css);
 		struct cgroup_subsys_state *old_css;
 		struct pids_cgroup *old_pids;
@@ -225,15 +242,20 @@ static int pids_can_fork(struct task_struct *task)
 	css = task_css_check(current, pids_cgrp_id, true);
 	pids = css_pids(css);
 	err = pids_try_charge(pids, 1);
-	if (err) {
+
+	if (err)
+	{
 		/* Only log the first time events_limit is incremented. */
-		if (atomic64_inc_return(&pids->events_limit) == 1) {
+		if (atomic64_inc_return(&pids->events_limit) == 1)
+		{
 			pr_info("cgroup: fork rejected by pids controller in ");
 			pr_cont_cgroup_path(task_cgroup(current, pids_cgrp_id));
 			pr_cont("\n");
 		}
+
 		cgroup_file_notify(&pids->events_file);
 	}
+
 	return err;
 }
 
@@ -255,7 +277,7 @@ static void pids_free(struct task_struct *task)
 }
 
 static ssize_t pids_max_write(struct kernfs_open_file *of, char *buf,
-			      size_t nbytes, loff_t off)
+							  size_t nbytes, loff_t off)
 {
 	struct cgroup_subsys_state *css = of_css(of);
 	struct pids_cgroup *pids = css_pids(css);
@@ -263,17 +285,24 @@ static ssize_t pids_max_write(struct kernfs_open_file *of, char *buf,
 	int err;
 
 	buf = strstrip(buf);
-	if (!strcmp(buf, PIDS_MAX_STR)) {
+
+	if (!strcmp(buf, PIDS_MAX_STR))
+	{
 		limit = PIDS_MAX;
 		goto set_limit;
 	}
 
 	err = kstrtoll(buf, 0, &limit);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (limit < 0 || limit >= PIDS_MAX)
+	{
 		return -EINVAL;
+	}
 
 set_limit:
 	/*
@@ -291,15 +320,19 @@ static int pids_max_show(struct seq_file *sf, void *v)
 	int64_t limit = pids->limit;
 
 	if (limit >= PIDS_MAX)
+	{
 		seq_printf(sf, "%s\n", PIDS_MAX_STR);
+	}
 	else
+	{
 		seq_printf(sf, "%lld\n", limit);
+	}
 
 	return 0;
 }
 
 static s64 pids_current_read(struct cgroup_subsys_state *css,
-			     struct cftype *cft)
+							 struct cftype *cft)
 {
 	struct pids_cgroup *pids = css_pids(css);
 
@@ -314,7 +347,8 @@ static int pids_events_show(struct seq_file *sf, void *v)
 	return 0;
 }
 
-static struct cftype pids_files[] = {
+static struct cftype pids_files[] =
+{
 	{
 		.name = "max",
 		.write = pids_max_write,
@@ -335,7 +369,8 @@ static struct cftype pids_files[] = {
 	{ }	/* terminate */
 };
 
-struct cgroup_subsys pids_cgrp_subsys = {
+struct cgroup_subsys pids_cgrp_subsys =
+{
 	.css_alloc	= pids_css_alloc,
 	.css_free	= pids_css_free,
 	.can_attach 	= pids_can_attach,

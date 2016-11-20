@@ -37,16 +37,25 @@ static void __init sun4i_mod1_clk_setup(struct device_node *node)
 	int i;
 
 	reg = of_io_request_and_map(node, 0, of_node_full_name(node));
+
 	if (IS_ERR(reg))
+	{
 		return;
+	}
 
 	mux = kzalloc(sizeof(*mux), GFP_KERNEL);
+
 	if (!mux)
+	{
 		goto err_unmap;
+	}
 
 	gate = kzalloc(sizeof(*gate), GFP_KERNEL);
+
 	if (!gate)
+	{
 		goto err_free_mux;
+	}
 
 	of_property_read_string(node, "clock-output-names", &clk_name);
 	i = of_clk_parent_fill(node, parents, SUN4I_MOD1_MAX_PARENTS);
@@ -60,11 +69,14 @@ static void __init sun4i_mod1_clk_setup(struct device_node *node)
 	mux->lock = &mod1_lock;
 
 	clk = clk_register_composite(NULL, clk_name, parents, i,
-				     &mux->hw, &clk_mux_ops,
-				     NULL, NULL,
-				     &gate->hw, &clk_gate_ops, CLK_SET_RATE_PARENT);
+								 &mux->hw, &clk_mux_ops,
+								 NULL, NULL,
+								 &gate->hw, &clk_gate_ops, CLK_SET_RATE_PARENT);
+
 	if (IS_ERR(clk))
+	{
 		goto err_free_gate;
+	}
 
 	of_clk_add_provider(node, of_clk_src_simple_get, clk);
 
@@ -78,4 +90,4 @@ err_unmap:
 	iounmap(reg);
 }
 CLK_OF_DECLARE(sun4i_mod1, "allwinner,sun4i-a10-mod1-clk",
-	       sun4i_mod1_clk_setup);
+			   sun4i_mod1_clk_setup);

@@ -56,7 +56,7 @@ static int umt_mt352_frontend_attach(struct dvb_usb_adapter *adap)
 {
 	struct mt352_config umt_config;
 
-	memset(&umt_config,0,sizeof(struct mt352_config));
+	memset(&umt_config, 0, sizeof(struct mt352_config));
 	umt_config.demod_init = umt_mt352_demod_init;
 	umt_config.demod_address = 0xf;
 
@@ -75,23 +75,28 @@ static int umt_tuner_attach (struct dvb_usb_adapter *adap)
 static struct dvb_usb_device_properties umt_properties;
 
 static int umt_probe(struct usb_interface *intf,
-		const struct usb_device_id *id)
+					 const struct usb_device_id *id)
 {
 	if (0 == dvb_usb_device_init(intf, &umt_properties,
-				     THIS_MODULE, NULL, adapter_nr))
+								 THIS_MODULE, NULL, adapter_nr))
+	{
 		return 0;
+	}
+
 	return -EINVAL;
 }
 
 /* do not change the order of the ID table */
-static struct usb_device_id umt_table [] = {
-/* 00 */	{ USB_DEVICE(USB_VID_HANFTEK, USB_PID_HANFTEK_UMT_010_COLD) },
-/* 01 */	{ USB_DEVICE(USB_VID_HANFTEK, USB_PID_HANFTEK_UMT_010_WARM) },
-			{ }		/* Terminating entry */
+static struct usb_device_id umt_table [] =
+{
+	/* 00 */	{ USB_DEVICE(USB_VID_HANFTEK, USB_PID_HANFTEK_UMT_010_COLD) },
+	/* 01 */	{ USB_DEVICE(USB_VID_HANFTEK, USB_PID_HANFTEK_UMT_010_WARM) },
+	{ }		/* Terminating entry */
 };
 MODULE_DEVICE_TABLE (usb, umt_table);
 
-static struct dvb_usb_device_properties umt_properties = {
+static struct dvb_usb_device_properties umt_properties =
+{
 	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
 
 	.usb_ctrl = CYPRESS_FX2,
@@ -100,24 +105,25 @@ static struct dvb_usb_device_properties umt_properties = {
 	.num_adapters = 1,
 	.adapter = {
 		{
-		.num_frontends = 1,
-		.fe = {{
-			.streaming_ctrl   = dibusb2_0_streaming_ctrl,
-			.frontend_attach  = umt_mt352_frontend_attach,
-			.tuner_attach     = umt_tuner_attach,
+			.num_frontends = 1,
+			.fe = {{
+					.streaming_ctrl   = dibusb2_0_streaming_ctrl,
+					.frontend_attach  = umt_mt352_frontend_attach,
+					.tuner_attach     = umt_tuner_attach,
 
-			/* parameter for the MPEG2-data transfer */
-			.stream = {
-				.type = USB_BULK,
-				.count = MAX_NO_URBS_FOR_DATA_STREAM,
-				.endpoint = 0x06,
-				.u = {
-					.bulk = {
-						.buffersize = 512,
-					}
+					/* parameter for the MPEG2-data transfer */
+					.stream = {
+						.type = USB_BULK,
+						.count = MAX_NO_URBS_FOR_DATA_STREAM,
+						.endpoint = 0x06,
+						.u = {
+							.bulk = {
+								.buffersize = 512,
+							}
+						}
+					},
 				}
 			},
-		}},
 			.size_of_priv     = sizeof(struct dibusb_state),
 		}
 	},
@@ -129,14 +135,16 @@ static struct dvb_usb_device_properties umt_properties = {
 
 	.num_device_descs = 1,
 	.devices = {
-		{	"Hanftek UMT-010 DVB-T USB2.0",
+		{
+			"Hanftek UMT-010 DVB-T USB2.0",
 			{ &umt_table[0], NULL },
 			{ &umt_table[1], NULL },
 		},
 	}
 };
 
-static struct usb_driver umt_driver = {
+static struct usb_driver umt_driver =
+{
 	.name		= "dvb_usb_umt_010",
 	.probe		= umt_probe,
 	.disconnect = dvb_usb_device_exit,

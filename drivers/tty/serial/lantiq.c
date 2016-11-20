@@ -44,11 +44,11 @@
 #define UART_DUMMY_UER_RX	1
 #define DRVNAME			"lantiq,asc"
 #ifdef __BIG_ENDIAN
-#define LTQ_ASC_TBUF		(0x0020 + 3)
-#define LTQ_ASC_RBUF		(0x0024 + 3)
+	#define LTQ_ASC_TBUF		(0x0020 + 3)
+	#define LTQ_ASC_RBUF		(0x0024 + 3)
 #else
-#define LTQ_ASC_TBUF		0x0020
-#define LTQ_ASC_RBUF		0x0024
+	#define LTQ_ASC_TBUF		0x0020
+	#define LTQ_ASC_RBUF		0x0024
 #endif
 #define LTQ_ASC_FSTAT		0x0048
 #define LTQ_ASC_WHBSTATE	0x0018
@@ -114,7 +114,8 @@ static struct ltq_uart_port *lqasc_port[MAXPORTS];
 static struct uart_driver lqasc_reg;
 static DEFINE_SPINLOCK(ltq_asc_lock);
 
-struct ltq_uart_port {
+struct ltq_uart_port
+{
 	struct uart_port	port;
 	/* clock used to derive divider */
 	struct clk		*fpiclk;
@@ -160,11 +161,13 @@ lqasc_rx_chars(struct uart_port *port)
 	unsigned int ch = 0, rsr = 0, fifocnt;
 
 	fifocnt = ltq_r32(port->membase + LTQ_ASC_FSTAT) & ASCFSTAT_RXFFLMASK;
-	while (fifocnt--) {
+
+	while (fifocnt--)
+	{
 		u8 flag = TTY_NORMAL;
 		ch = ltq_r8(port->membase + LTQ_ASC_RBUF);
 		rsr = (ltq_r32(port->membase + LTQ_ASC_STATE)
-			& ASCSTATE_ANY) | UART_DUMMY_UER_RX;
+			   & ASCSTATE_ANY) | UART_DUMMY_UER_RX;
 		tty_flip_buffer_push(tport);
 		port->icount.rx++;
 
@@ -172,32 +175,44 @@ lqasc_rx_chars(struct uart_port *port)
 		 * Note that the error handling code is
 		 * out of the main execution path
 		 */
-		if (rsr & ASCSTATE_ANY) {
-			if (rsr & ASCSTATE_PE) {
+		if (rsr & ASCSTATE_ANY)
+		{
+			if (rsr & ASCSTATE_PE)
+			{
 				port->icount.parity++;
 				ltq_w32_mask(0, ASCWHBSTATE_CLRPE,
-					port->membase + LTQ_ASC_WHBSTATE);
-			} else if (rsr & ASCSTATE_FE) {
+							 port->membase + LTQ_ASC_WHBSTATE);
+			}
+			else if (rsr & ASCSTATE_FE)
+			{
 				port->icount.frame++;
 				ltq_w32_mask(0, ASCWHBSTATE_CLRFE,
-					port->membase + LTQ_ASC_WHBSTATE);
+							 port->membase + LTQ_ASC_WHBSTATE);
 			}
-			if (rsr & ASCSTATE_ROE) {
+
+			if (rsr & ASCSTATE_ROE)
+			{
 				port->icount.overrun++;
 				ltq_w32_mask(0, ASCWHBSTATE_CLRROE,
-					port->membase + LTQ_ASC_WHBSTATE);
+							 port->membase + LTQ_ASC_WHBSTATE);
 			}
 
 			rsr &= port->read_status_mask;
 
 			if (rsr & ASCSTATE_PE)
+			{
 				flag = TTY_PARITY;
+			}
 			else if (rsr & ASCSTATE_FE)
+			{
 				flag = TTY_FRAME;
+			}
 		}
 
 		if ((rsr & port->ignore_status_mask) == 0)
+		{
 			tty_insert_flip_char(tport, ch, flag);
+		}
 
 		if (rsr & ASCSTATE_ROE)
 			/*
@@ -205,11 +220,15 @@ lqasc_rx_chars(struct uart_port *port)
 			 * immediately, and doesn't affect the current
 			 * character
 			 */
+		{
 			tty_insert_flip_char(tport, 0, TTY_OVERRUN);
+		}
 	}
 
 	if (ch != 0)
+	{
 		tty_flip_buffer_push(tport);
+	}
 
 	return 0;
 }
@@ -218,14 +237,18 @@ static void
 lqasc_tx_chars(struct uart_port *port)
 {
 	struct circ_buf *xmit = &port->state->xmit;
-	if (uart_tx_stopped(port)) {
+
+	if (uart_tx_stopped(port))
+	{
 		lqasc_stop_tx(port);
 		return;
 	}
 
 	while (((ltq_r32(port->membase + LTQ_ASC_FSTAT) &
-		ASCFSTAT_TXFREEMASK) >> ASCFSTAT_TXFREEOFF) != 0) {
-		if (port->x_char) {
+			 ASCFSTAT_TXFREEMASK) >> ASCFSTAT_TXFREEOFF) != 0)
+	{
+		if (port->x_char)
+		{
 			ltq_w8(port->x_char, port->membase + LTQ_ASC_TBUF);
 			port->icount.tx++;
 			port->x_char = 0;
@@ -233,16 +256,20 @@ lqasc_tx_chars(struct uart_port *port)
 		}
 
 		if (uart_circ_empty(xmit))
+		{
 			break;
+		}
 
 		ltq_w8(port->state->xmit.buf[port->state->xmit.tail],
-			port->membase + LTQ_ASC_TBUF);
+			   port->membase + LTQ_ASC_TBUF);
 		xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE - 1);
 		port->icount.tx++;
 	}
 
 	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
+	{
 		uart_write_wakeup(port);
+	}
 }
 
 static irqreturn_t
@@ -265,7 +292,7 @@ lqasc_err_int(int irq, void *_port)
 	spin_lock_irqsave(&ltq_asc_lock, flags);
 	/* clear any pending interrupts */
 	ltq_w32_mask(0, ASCWHBSTATE_CLRPE | ASCWHBSTATE_CLRFE |
-		ASCWHBSTATE_CLRROE, port->membase + LTQ_ASC_WHBSTATE);
+				 ASCWHBSTATE_CLRROE, port->membase + LTQ_ASC_WHBSTATE);
 	spin_unlock_irqrestore(&ltq_asc_lock, flags);
 	return IRQ_HANDLED;
 }
@@ -313,11 +340,14 @@ lqasc_startup(struct uart_port *port)
 	int retval;
 
 	if (!IS_ERR(ltq_port->clk))
+	{
 		clk_enable(ltq_port->clk);
+	}
+
 	port->uartclk = clk_get_rate(ltq_port->fpiclk);
 
 	ltq_w32_mask(ASCCLC_DISS | ASCCLC_RMCMASK, (1 << ASCCLC_RMCOFFSET),
-		port->membase + LTQ_ASC_CLC);
+				 port->membase + LTQ_ASC_CLC);
 
 	ltq_w32(0, port->membase + LTQ_ASC_PISEL);
 	ltq_w32(
@@ -333,31 +363,37 @@ lqasc_startup(struct uart_port *port)
 	 */
 	wmb();
 	ltq_w32_mask(0, ASCCON_M_8ASYNC | ASCCON_FEN | ASCCON_TOEN |
-		ASCCON_ROEN, port->membase + LTQ_ASC_CON);
+				 ASCCON_ROEN, port->membase + LTQ_ASC_CON);
 
 	retval = request_irq(ltq_port->tx_irq, lqasc_tx_int,
-		0, "asc_tx", port);
-	if (retval) {
+						 0, "asc_tx", port);
+
+	if (retval)
+	{
 		pr_err("failed to request lqasc_tx_int\n");
 		return retval;
 	}
 
 	retval = request_irq(ltq_port->rx_irq, lqasc_rx_int,
-		0, "asc_rx", port);
-	if (retval) {
+						 0, "asc_rx", port);
+
+	if (retval)
+	{
 		pr_err("failed to request lqasc_rx_int\n");
 		goto err1;
 	}
 
 	retval = request_irq(ltq_port->err_irq, lqasc_err_int,
-		0, "asc_err", port);
-	if (retval) {
+						 0, "asc_err", port);
+
+	if (retval)
+	{
 		pr_err("failed to request lqasc_err_int\n");
 		goto err2;
 	}
 
 	ltq_w32(ASC_IRNREN_RX | ASC_IRNREN_ERR | ASC_IRNREN_TX,
-		port->membase + LTQ_ASC_IRNREN);
+			port->membase + LTQ_ASC_IRNREN);
 	return 0;
 
 err2:
@@ -377,16 +413,19 @@ lqasc_shutdown(struct uart_port *port)
 
 	ltq_w32(0, port->membase + LTQ_ASC_CON);
 	ltq_w32_mask(ASCRXFCON_RXFEN, ASCRXFCON_RXFFLU,
-		port->membase + LTQ_ASC_RXFCON);
+				 port->membase + LTQ_ASC_RXFCON);
 	ltq_w32_mask(ASCTXFCON_TXFEN, ASCTXFCON_TXFFLU,
-		port->membase + LTQ_ASC_TXFCON);
+				 port->membase + LTQ_ASC_TXFCON);
+
 	if (!IS_ERR(ltq_port->clk))
+	{
 		clk_disable(ltq_port->clk);
+	}
 }
 
 static void
 lqasc_set_termios(struct uart_port *port,
-	struct ktermios *new, struct ktermios *old)
+				  struct ktermios *new, struct ktermios *old)
 {
 	unsigned int cflag;
 	unsigned int iflag;
@@ -398,51 +437,70 @@ lqasc_set_termios(struct uart_port *port,
 	cflag = new->c_cflag;
 	iflag = new->c_iflag;
 
-	switch (cflag & CSIZE) {
-	case CS7:
-		con = ASCCON_M_7ASYNC;
-		break;
+	switch (cflag & CSIZE)
+	{
+		case CS7:
+			con = ASCCON_M_7ASYNC;
+			break;
 
-	case CS5:
-	case CS6:
-	default:
-		new->c_cflag &= ~ CSIZE;
-		new->c_cflag |= CS8;
-		con = ASCCON_M_8ASYNC;
-		break;
+		case CS5:
+		case CS6:
+		default:
+			new->c_cflag &= ~ CSIZE;
+			new->c_cflag |= CS8;
+			con = ASCCON_M_8ASYNC;
+			break;
 	}
 
 	cflag &= ~CMSPAR; /* Mark/Space parity is not supported */
 
 	if (cflag & CSTOPB)
+	{
 		con |= ASCCON_STP;
+	}
 
-	if (cflag & PARENB) {
+	if (cflag & PARENB)
+	{
 		if (!(cflag & PARODD))
+		{
 			con &= ~ASCCON_ODD;
+		}
 		else
+		{
 			con |= ASCCON_ODD;
+		}
 	}
 
 	port->read_status_mask = ASCSTATE_ROE;
+
 	if (iflag & INPCK)
+	{
 		port->read_status_mask |= ASCSTATE_FE | ASCSTATE_PE;
+	}
 
 	port->ignore_status_mask = 0;
-	if (iflag & IGNPAR)
-		port->ignore_status_mask |= ASCSTATE_FE | ASCSTATE_PE;
 
-	if (iflag & IGNBRK) {
+	if (iflag & IGNPAR)
+	{
+		port->ignore_status_mask |= ASCSTATE_FE | ASCSTATE_PE;
+	}
+
+	if (iflag & IGNBRK)
+	{
 		/*
 		 * If we're ignoring parity and break indicators,
 		 * ignore overruns too (for real raw support).
 		 */
 		if (iflag & IGNPAR)
+		{
 			port->ignore_status_mask |= ASCSTATE_ROE;
+		}
 	}
 
 	if ((cflag & CREAD) == 0)
+	{
 		port->ignore_status_mask |= UART_DUMMY_UER_RX;
+	}
 
 	/* set error signals  - framing, parity  and overrun, enable receiver */
 	con |= ASCCON_FEN | ASCCON_TOEN | ASCCON_ROEN;
@@ -479,18 +537,24 @@ lqasc_set_termios(struct uart_port *port,
 
 	/* Don't rewrite B0 */
 	if (tty_termios_baud_rate(new))
+	{
 		tty_termios_encode_baud_rate(new, baud, baud);
+	}
 
 	uart_update_timeout(port, cflag, baud);
 }
 
-static const char*
+static const char *
 lqasc_type(struct uart_port *port)
 {
 	if (port->type == PORT_LTQ_ASC)
+	{
 		return DRVNAME;
+	}
 	else
+	{
 		return NULL;
+	}
 }
 
 static void
@@ -498,7 +562,8 @@ lqasc_release_port(struct uart_port *port)
 {
 	struct platform_device *pdev = to_platform_device(port->dev);
 
-	if (port->flags & UPF_IOREMAP) {
+	if (port->flags & UPF_IOREMAP)
+	{
 		devm_iounmap(&pdev->dev, port->membase);
 		port->membase = NULL;
 	}
@@ -512,32 +577,43 @@ lqasc_request_port(struct uart_port *port)
 	int size;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "cannot obtain I/O memory region");
 		return -ENODEV;
 	}
+
 	size = resource_size(res);
 
 	res = devm_request_mem_region(&pdev->dev, res->start,
-		size, dev_name(&pdev->dev));
-	if (!res) {
+								  size, dev_name(&pdev->dev));
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "cannot request I/O memory region");
 		return -EBUSY;
 	}
 
-	if (port->flags & UPF_IOREMAP) {
+	if (port->flags & UPF_IOREMAP)
+	{
 		port->membase = devm_ioremap_nocache(&pdev->dev,
-			port->mapbase, size);
+											 port->mapbase, size);
+
 		if (port->membase == NULL)
+		{
 			return -ENOMEM;
+		}
 	}
+
 	return 0;
 }
 
 static void
 lqasc_config_port(struct uart_port *port, int flags)
 {
-	if (flags & UART_CONFIG_TYPE) {
+	if (flags & UART_CONFIG_TYPE)
+	{
 		port->type = PORT_LTQ_ASC;
 		lqasc_request_port(port);
 	}
@@ -545,19 +621,30 @@ lqasc_config_port(struct uart_port *port, int flags)
 
 static int
 lqasc_verify_port(struct uart_port *port,
-	struct serial_struct *ser)
+				  struct serial_struct *ser)
 {
 	int ret = 0;
+
 	if (ser->type != PORT_UNKNOWN && ser->type != PORT_LTQ_ASC)
+	{
 		ret = -EINVAL;
+	}
+
 	if (ser->irq < 0 || ser->irq >= NR_IRQS)
+	{
 		ret = -EINVAL;
+	}
+
 	if (ser->baud_base < 9600)
+	{
 		ret = -EINVAL;
+	}
+
 	return ret;
 }
 
-static struct uart_ops lqasc_pops = {
+static struct uart_ops lqasc_pops =
+{
 	.tx_empty =	lqasc_tx_empty,
 	.set_mctrl =	lqasc_set_mctrl,
 	.get_mctrl =	lqasc_get_mctrl,
@@ -581,12 +668,17 @@ lqasc_console_putchar(struct uart_port *port, int ch)
 	int fifofree;
 
 	if (!port->membase)
+	{
 		return;
+	}
 
-	do {
+	do
+	{
 		fifofree = (ltq_r32(port->membase + LTQ_ASC_FSTAT)
-			& ASCFSTAT_TXFREEMASK) >> ASCFSTAT_TXFREEOFF;
-	} while (fifofree == 0);
+					& ASCFSTAT_TXFREEMASK) >> ASCFSTAT_TXFREEOFF;
+	}
+	while (fifofree == 0);
+
 	ltq_w8(ch, port->membase + LTQ_ASC_TBUF);
 }
 
@@ -599,11 +691,16 @@ lqasc_console_write(struct console *co, const char *s, u_int count)
 	unsigned long flags;
 
 	if (co->index >= MAXPORTS)
+	{
 		return;
+	}
 
 	ltq_port = lqasc_port[co->index];
+
 	if (!ltq_port)
+	{
 		return;
+	}
 
 	port = &ltq_port->port;
 
@@ -623,25 +720,36 @@ lqasc_console_setup(struct console *co, char *options)
 	int flow = 'n';
 
 	if (co->index >= MAXPORTS)
+	{
 		return -ENODEV;
+	}
 
 	ltq_port = lqasc_port[co->index];
+
 	if (!ltq_port)
+	{
 		return -ENODEV;
+	}
 
 	port = &ltq_port->port;
 
 	if (!IS_ERR(ltq_port->clk))
+	{
 		clk_enable(ltq_port->clk);
+	}
 
 	port->uartclk = clk_get_rate(ltq_port->fpiclk);
 
 	if (options)
+	{
 		uart_parse_options(options, &baud, &parity, &bits, &flow);
+	}
+
 	return uart_set_options(port, co, baud, parity, bits, flow);
 }
 
-static struct console lqasc_console = {
+static struct console lqasc_console =
+{
 	.name =		"ttyLTQ",
 	.write =	lqasc_console_write,
 	.device =	uart_console_device,
@@ -659,7 +767,8 @@ lqasc_console_init(void)
 }
 console_initcall(lqasc_console_init);
 
-static struct uart_driver lqasc_reg = {
+static struct uart_driver lqasc_reg =
+{
 	.owner =	THIS_MODULE,
 	.driver_name =	DRVNAME,
 	.dev_name =	"ttyLTQ",
@@ -681,25 +790,33 @@ lqasc_probe(struct platform_device *pdev)
 
 	mmres = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ret = of_irq_to_resource_table(node, irqres, 3);
-	if (!mmres || (ret != 3)) {
+
+	if (!mmres || (ret != 3))
+	{
 		dev_err(&pdev->dev,
-			"failed to get memory/irq for serial port\n");
+				"failed to get memory/irq for serial port\n");
 		return -ENODEV;
 	}
 
 	/* check if this is the console port */
 	if (mmres->start != CPHYSADDR(LTQ_EARLY_ASC))
+	{
 		line = 1;
+	}
 
-	if (lqasc_port[line]) {
+	if (lqasc_port[line])
+	{
 		dev_err(&pdev->dev, "port %d already allocated\n", line);
 		return -EBUSY;
 	}
 
 	ltq_port = devm_kzalloc(&pdev->dev, sizeof(struct ltq_uart_port),
-			GFP_KERNEL);
+							GFP_KERNEL);
+
 	if (!ltq_port)
+	{
 		return -ENOMEM;
+	}
 
 	port = &ltq_port->port;
 
@@ -708,14 +825,16 @@ lqasc_probe(struct platform_device *pdev)
 	port->ops	= &lqasc_pops;
 	port->fifosize	= 16;
 	port->type	= PORT_LTQ_ASC,
-	port->line	= line;
+		   port->line	= line;
 	port->dev	= &pdev->dev;
 	/* unused, just to be backward-compatible */
 	port->irq	= irqres[0].start;
 	port->mapbase	= mmres->start;
 
 	ltq_port->fpiclk = clk_get_fpi();
-	if (IS_ERR(ltq_port->fpiclk)) {
+
+	if (IS_ERR(ltq_port->fpiclk))
+	{
 		pr_err("failed to get fpi clk\n");
 		return -ENOENT;
 	}
@@ -735,12 +854,14 @@ lqasc_probe(struct platform_device *pdev)
 	return ret;
 }
 
-static const struct of_device_id ltq_asc_match[] = {
+static const struct of_device_id ltq_asc_match[] =
+{
 	{ .compatible = DRVNAME },
 	{},
 };
 
-static struct platform_driver lqasc_driver = {
+static struct platform_driver lqasc_driver =
+{
 	.driver		= {
 		.name	= DRVNAME,
 		.of_match_table = ltq_asc_match,
@@ -753,12 +874,18 @@ init_lqasc(void)
 	int ret;
 
 	ret = uart_register_driver(&lqasc_reg);
+
 	if (ret != 0)
+	{
 		return ret;
+	}
 
 	ret = platform_driver_probe(&lqasc_driver, lqasc_probe);
+
 	if (ret != 0)
+	{
 		uart_unregister_driver(&lqasc_reg);
+	}
 
 	return ret;
 }

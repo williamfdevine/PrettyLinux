@@ -53,7 +53,8 @@
  */
 #define MMA7455_10BIT_SCALE	153229
 
-struct mma7455_data {
+struct mma7455_data
+{
 	struct regmap *regmap;
 };
 
@@ -64,13 +65,19 @@ static int mma7455_drdy(struct mma7455_data *mma7455)
 	int tries = 3;
 	int ret;
 
-	while (tries-- > 0) {
+	while (tries-- > 0)
+	{
 		ret = regmap_read(mma7455->regmap, MMA7455_REG_STATUS, &reg);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		if (reg & MMA7455_STATUS_DRDY)
+		{
 			return 0;
+		}
 
 		msleep(20);
 	}
@@ -89,16 +96,22 @@ static irqreturn_t mma7455_trigger_handler(int irq, void *p)
 	int ret;
 
 	ret = mma7455_drdy(mma7455);
+
 	if (ret)
+	{
 		goto done;
+	}
 
 	ret = regmap_bulk_read(mma7455->regmap, MMA7455_REG_XOUTL, buf,
-			       sizeof(__le16) * 3);
+						   sizeof(__le16) * 3);
+
 	if (ret)
+	{
 		goto done;
+	}
 
 	iio_push_to_buffers_with_timestamp(indio_dev, buf,
-					   iio_get_time_ns(indio_dev));
+									   iio_get_time_ns(indio_dev));
 
 done:
 	iio_trigger_notify_done(indio_dev->trig);
@@ -107,78 +120,105 @@ done:
 }
 
 static int mma7455_read_raw(struct iio_dev *indio_dev,
-			    struct iio_chan_spec const *chan,
-			    int *val, int *val2, long mask)
+							struct iio_chan_spec const *chan,
+							int *val, int *val2, long mask)
 {
 	struct mma7455_data *mma7455 = iio_priv(indio_dev);
 	unsigned int reg;
 	__le16 data;
 	int ret;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		if (iio_buffer_enabled(indio_dev))
-			return -EBUSY;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			if (iio_buffer_enabled(indio_dev))
+			{
+				return -EBUSY;
+			}
 
-		ret = mma7455_drdy(mma7455);
-		if (ret)
-			return ret;
+			ret = mma7455_drdy(mma7455);
 
-		ret = regmap_bulk_read(mma7455->regmap, chan->address, &data,
-				       sizeof(data));
-		if (ret)
-			return ret;
+			if (ret)
+			{
+				return ret;
+			}
 
-		*val = sign_extend32(le16_to_cpu(data), 9);
+			ret = regmap_bulk_read(mma7455->regmap, chan->address, &data,
+								   sizeof(data));
 
-		return IIO_VAL_INT;
+			if (ret)
+			{
+				return ret;
+			}
 
-	case IIO_CHAN_INFO_SCALE:
-		*val = 0;
-		*val2 = MMA7455_10BIT_SCALE;
+			*val = sign_extend32(le16_to_cpu(data), 9);
 
-		return IIO_VAL_INT_PLUS_MICRO;
+			return IIO_VAL_INT;
 
-	case IIO_CHAN_INFO_SAMP_FREQ:
-		ret = regmap_read(mma7455->regmap, MMA7455_REG_CTL1, &reg);
-		if (ret)
-			return ret;
+		case IIO_CHAN_INFO_SCALE:
+			*val = 0;
+			*val2 = MMA7455_10BIT_SCALE;
 
-		if (reg & MMA7455_CTL1_DFBW_MASK)
-			*val = 250;
-		else
-			*val = 125;
+			return IIO_VAL_INT_PLUS_MICRO;
 
-		return IIO_VAL_INT;
+		case IIO_CHAN_INFO_SAMP_FREQ:
+			ret = regmap_read(mma7455->regmap, MMA7455_REG_CTL1, &reg);
+
+			if (ret)
+			{
+				return ret;
+			}
+
+			if (reg & MMA7455_CTL1_DFBW_MASK)
+			{
+				*val = 250;
+			}
+			else
+			{
+				*val = 125;
+			}
+
+			return IIO_VAL_INT;
 	}
 
 	return -EINVAL;
 }
 
 static int mma7455_write_raw(struct iio_dev *indio_dev,
-			     struct iio_chan_spec const *chan,
-			     int val, int val2, long mask)
+							 struct iio_chan_spec const *chan,
+							 int val, int val2, long mask)
 {
 	struct mma7455_data *mma7455 = iio_priv(indio_dev);
 	int i;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_SAMP_FREQ:
-		if (val == 250 && val2 == 0)
-			i = MMA7455_CTL1_DFBW_125HZ;
-		else if (val == 125 && val2 == 0)
-			i = MMA7455_CTL1_DFBW_62_5HZ;
-		else
-			return -EINVAL;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_SAMP_FREQ:
+			if (val == 250 && val2 == 0)
+			{
+				i = MMA7455_CTL1_DFBW_125HZ;
+			}
+			else if (val == 125 && val2 == 0)
+			{
+				i = MMA7455_CTL1_DFBW_62_5HZ;
+			}
+			else
+			{
+				return -EINVAL;
+			}
 
-		return regmap_update_bits(mma7455->regmap, MMA7455_REG_CTL1,
-					  MMA7455_CTL1_DFBW_MASK, i);
+			return regmap_update_bits(mma7455->regmap, MMA7455_REG_CTL1,
+									  MMA7455_CTL1_DFBW_MASK, i);
 
-	case IIO_CHAN_INFO_SCALE:
-		/* In 10-bit mode there is only one scale available */
-		if (val == 0 && val2 == MMA7455_10BIT_SCALE)
-			return 0;
-		break;
+		case IIO_CHAN_INFO_SCALE:
+
+			/* In 10-bit mode there is only one scale available */
+			if (val == 0 && val2 == MMA7455_10BIT_SCALE)
+			{
+				return 0;
+			}
+
+			break;
 	}
 
 	return -EINVAL;
@@ -186,16 +226,19 @@ static int mma7455_write_raw(struct iio_dev *indio_dev,
 
 static IIO_CONST_ATTR(sampling_frequency_available, "125 250");
 
-static struct attribute *mma7455_attributes[] = {
+static struct attribute *mma7455_attributes[] =
+{
 	&iio_const_attr_sampling_frequency_available.dev_attr.attr,
 	NULL
 };
 
-static const struct attribute_group mma7455_group = {
+static const struct attribute_group mma7455_group =
+{
 	.attrs = mma7455_attributes,
 };
 
-static const struct iio_info mma7455_info = {
+static const struct iio_info mma7455_info =
+{
 	.attrs = &mma7455_group,
 	.read_raw = mma7455_read_raw,
 	.write_raw = mma7455_write_raw,
@@ -203,23 +246,24 @@ static const struct iio_info mma7455_info = {
 };
 
 #define MMA7455_CHANNEL(axis, idx) { \
-	.type = IIO_ACCEL, \
-	.modified = 1, \
-	.address = MMA7455_REG_##axis##OUTL,\
-	.channel2 = IIO_MOD_##axis, \
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW), \
-	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SAMP_FREQ) | \
-				    BIT(IIO_CHAN_INFO_SCALE), \
-	.scan_index = idx, \
-	.scan_type = { \
-		.sign = 's', \
-		.realbits = 10, \
-		.storagebits = 16, \
-		.endianness = IIO_LE, \
-	}, \
-}
+		.type = IIO_ACCEL, \
+				.modified = 1, \
+							.address = MMA7455_REG_##axis##OUTL,\
+									   .channel2 = IIO_MOD_##axis, \
+											   .info_mask_separate = BIT(IIO_CHAN_INFO_RAW), \
+													   .info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SAMP_FREQ) | \
+															   BIT(IIO_CHAN_INFO_SCALE), \
+															   .scan_index = idx, \
+																	   .scan_type = { \
+																					  .sign = 's', \
+																					  .realbits = 10, \
+																					  .storagebits = 16, \
+																					  .endianness = IIO_LE, \
+																					}, \
+	}
 
-static const struct iio_chan_spec mma7455_channels[] = {
+static const struct iio_chan_spec mma7455_channels[] =
+{
 	MMA7455_CHANNEL(X, 0),
 	MMA7455_CHANNEL(Y, 1),
 	MMA7455_CHANNEL(Z, 2),
@@ -228,7 +272,8 @@ static const struct iio_chan_spec mma7455_channels[] = {
 
 static const unsigned long mma7455_scan_masks[] = {0x7, 0};
 
-const struct regmap_config mma7455_core_regmap = {
+const struct regmap_config mma7455_core_regmap =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 	.max_register = MMA7455_REG_TW,
@@ -236,7 +281,7 @@ const struct regmap_config mma7455_core_regmap = {
 EXPORT_SYMBOL_GPL(mma7455_core_regmap);
 
 int mma7455_core_probe(struct device *dev, struct regmap *regmap,
-		       const char *name)
+					   const char *name)
 {
 	struct mma7455_data *mma7455;
 	struct iio_dev *indio_dev;
@@ -244,19 +289,25 @@ int mma7455_core_probe(struct device *dev, struct regmap *regmap,
 	int ret;
 
 	ret = regmap_read(regmap, MMA7455_REG_WHOAMI, &reg);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "unable to read reg\n");
 		return ret;
 	}
 
-	if (reg != MMA7455_WHOAMI_ID) {
+	if (reg != MMA7455_WHOAMI_ID)
+	{
 		dev_err(dev, "device id mismatch\n");
 		return -ENODEV;
 	}
 
 	indio_dev = devm_iio_device_alloc(dev, sizeof(*mma7455));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	dev_set_drvdata(dev, indio_dev);
 	mma7455 = iio_priv(indio_dev);
@@ -271,17 +322,21 @@ int mma7455_core_probe(struct device *dev, struct regmap *regmap,
 	indio_dev->available_scan_masks = mma7455_scan_masks;
 
 	regmap_write(mma7455->regmap, MMA7455_REG_MCTL,
-		     MMA7455_MCTL_MODE_MEASURE);
+				 MMA7455_MCTL_MODE_MEASURE);
 
 	ret = iio_triggered_buffer_setup(indio_dev, NULL,
-					 mma7455_trigger_handler, NULL);
-	if (ret) {
+									 mma7455_trigger_handler, NULL);
+
+	if (ret)
+	{
 		dev_err(dev, "unable to setup triggered buffer\n");
 		return ret;
 	}
 
 	ret = iio_device_register(indio_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "unable to register device\n");
 		iio_triggered_buffer_cleanup(indio_dev);
 		return ret;
@@ -300,7 +355,7 @@ int mma7455_core_remove(struct device *dev)
 	iio_triggered_buffer_cleanup(indio_dev);
 
 	regmap_write(mma7455->regmap, MMA7455_REG_MCTL,
-		     MMA7455_MCTL_MODE_STANDBY);
+				 MMA7455_MCTL_MODE_STANDBY);
 
 	return 0;
 }

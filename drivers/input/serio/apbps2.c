@@ -32,7 +32,8 @@
 #include <linux/kernel.h>
 #include <linux/io.h>
 
-struct apbps2_regs {
+struct apbps2_regs
+{
 	u32 __iomem data;	/* 0x00 */
 	u32 __iomem status;	/* 0x04 */
 	u32 __iomem ctrl;	/* 0x08 */
@@ -53,7 +54,8 @@ struct apbps2_regs {
 #define APBPS2_CTRL_RI		(1<<2)
 #define APBPS2_CTRL_TI		(1<<3)
 
-struct apbps2_priv {
+struct apbps2_priv
+{
 	struct serio		*io;
 	struct apbps2_regs	*regs;
 };
@@ -66,14 +68,17 @@ static irqreturn_t apbps2_isr(int irq, void *dev_id)
 	unsigned long status, data, rxflags;
 	irqreturn_t ret = IRQ_NONE;
 
-	while ((status = ioread32be(&priv->regs->status)) & APBPS2_STATUS_DR) {
+	while ((status = ioread32be(&priv->regs->status)) & APBPS2_STATUS_DR)
+	{
 		data = ioread32be(&priv->regs->data);
 		rxflags = (status & APBPS2_STATUS_PE) ? SERIO_PARITY : 0;
 		rxflags |= (status & APBPS2_STATUS_FE) ? SERIO_FRAME : 0;
 
 		/* clear error bits? */
 		if (rxflags)
+		{
 			iowrite32be(0, &priv->regs->status);
+		}
 
 		serio_interrupt(priv->io, data, rxflags);
 
@@ -90,13 +95,16 @@ static int apbps2_write(struct serio *io, unsigned char val)
 
 	/* delay until PS/2 controller has room for more chars */
 	while ((ioread32be(&priv->regs->status) & APBPS2_STATUS_TF) && tleft--)
+	{
 		udelay(10);
+	}
 
-	if ((ioread32be(&priv->regs->status) & APBPS2_STATUS_TF) == 0) {
+	if ((ioread32be(&priv->regs->status) & APBPS2_STATUS_TF) == 0)
+	{
 		iowrite32be(val, &priv->regs->data);
 
 		iowrite32be(APBPS2_CTRL_RE | APBPS2_CTRL_RI | APBPS2_CTRL_TE,
-				&priv->regs->ctrl);
+					&priv->regs->ctrl);
 		return 0;
 	}
 
@@ -114,8 +122,11 @@ static int apbps2_open(struct serio *io)
 
 	/* Clear old data if available (unlikely) */
 	limit = 1024;
+
 	while ((ioread32be(&priv->regs->status) & APBPS2_STATUS_DR) && --limit)
+	{
 		tmp = ioread32be(&priv->regs->data);
+	}
 
 	/* Enable reciever and it's interrupt */
 	iowrite32be(APBPS2_CTRL_RE | APBPS2_CTRL_RI, &priv->regs->ctrl);
@@ -140,7 +151,9 @@ static int apbps2_of_probe(struct platform_device *ofdev)
 	struct resource *res;
 
 	priv = devm_kzalloc(&ofdev->dev, sizeof(*priv), GFP_KERNEL);
-	if (!priv) {
+
+	if (!priv)
+	{
 		dev_err(&ofdev->dev, "memory allocation failed\n");
 		return -ENOMEM;
 	}
@@ -148,8 +161,11 @@ static int apbps2_of_probe(struct platform_device *ofdev)
 	/* Find Device Address */
 	res = platform_get_resource(ofdev, IORESOURCE_MEM, 0);
 	priv->regs = devm_ioremap_resource(&ofdev->dev, res);
+
 	if (IS_ERR(priv->regs))
+	{
 		return PTR_ERR(priv->regs);
+	}
 
 	/* Reset hardware, disable interrupt */
 	iowrite32be(0, &priv->regs->ctrl);
@@ -157,14 +173,17 @@ static int apbps2_of_probe(struct platform_device *ofdev)
 	/* IRQ */
 	irq = irq_of_parse_and_map(ofdev->dev.of_node, 0);
 	err = devm_request_irq(&ofdev->dev, irq, apbps2_isr,
-				IRQF_SHARED, "apbps2", priv);
-	if (err) {
+						   IRQF_SHARED, "apbps2", priv);
+
+	if (err)
+	{
 		dev_err(&ofdev->dev, "request IRQ%d failed\n", irq);
 		return err;
 	}
 
 	/* Get core frequency */
-	if (of_property_read_u32(ofdev->dev.of_node, "freq", &freq_hz)) {
+	if (of_property_read_u32(ofdev->dev.of_node, "freq", &freq_hz))
+	{
 		dev_err(&ofdev->dev, "unable to get core frequency\n");
 		return -EINVAL;
 	}
@@ -173,8 +192,11 @@ static int apbps2_of_probe(struct platform_device *ofdev)
 	iowrite32be(freq_hz / 10000, &priv->regs->reload);
 
 	priv->io = kzalloc(sizeof(struct serio), GFP_KERNEL);
+
 	if (!priv->io)
+	{
 		return -ENOMEM;
+	}
 
 	priv->io->id.type = SERIO_8042;
 	priv->io->open = apbps2_open;
@@ -183,7 +205,7 @@ static int apbps2_of_probe(struct platform_device *ofdev)
 	priv->io->port_data = priv;
 	strlcpy(priv->io->name, "APBPS2 PS/2", sizeof(priv->io->name));
 	snprintf(priv->io->phys, sizeof(priv->io->phys),
-		 "apbps2_%d", apbps2_idx++);
+			 "apbps2_%d", apbps2_idx++);
 
 	dev_info(&ofdev->dev, "irq = %d, base = 0x%p\n", irq, priv->regs);
 
@@ -203,7 +225,8 @@ static int apbps2_of_remove(struct platform_device *of_dev)
 	return 0;
 }
 
-static const struct of_device_id apbps2_of_match[] = {
+static const struct of_device_id apbps2_of_match[] =
+{
 	{ .name = "GAISLER_APBPS2", },
 	{ .name = "01_060", },
 	{}
@@ -211,7 +234,8 @@ static const struct of_device_id apbps2_of_match[] = {
 
 MODULE_DEVICE_TABLE(of, apbps2_of_match);
 
-static struct platform_driver apbps2_of_driver = {
+static struct platform_driver apbps2_of_driver =
+{
 	.driver = {
 		.name = "grlib-apbps2",
 		.of_match_table = apbps2_of_match,

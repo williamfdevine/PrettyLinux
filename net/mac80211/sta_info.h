@@ -73,7 +73,8 @@
  *
  * @NUM_WLAN_STA_FLAGS: number of defined flags
  */
-enum ieee80211_sta_info_flags {
+enum ieee80211_sta_info_flags
+{
 	WLAN_STA_AUTH,
 	WLAN_STA_ASSOC,
 	WLAN_STA_PS_STA,
@@ -116,7 +117,8 @@ enum ieee80211_sta_info_flags {
 #define HT_AGG_STATE_WANT_START		4
 #define HT_AGG_STATE_WANT_STOP		5
 
-enum ieee80211_agg_stop_reason {
+enum ieee80211_agg_stop_reason
+{
 	AGG_STOP_DECLINED,
 	AGG_STOP_LOCAL_REQUEST,
 	AGG_STOP_PEER_REQUEST,
@@ -150,7 +152,8 @@ enum ieee80211_agg_stop_reason {
  * and re-check the state, see comments in the tx code
  * touching it.
  */
-struct tid_ampdu_tx {
+struct tid_ampdu_tx
+{
 	struct rcu_head rcu_head;
 	struct timer_list session_timer;
 	struct timer_list addba_resp_timer;
@@ -199,7 +202,8 @@ struct tid_ampdu_tx {
  * which are constant across the lifetime of the struct (the
  * dialog token being used only for debugging).
  */
-struct tid_ampdu_rx {
+struct tid_ampdu_rx
+{
 	struct rcu_head rcu_head;
 	spinlock_t reorder_lock;
 	u64 reorder_buf_filtered;
@@ -239,7 +243,8 @@ struct tid_ampdu_rx {
  * @addba_req_num: number of times addBA request has been sent.
  * @dialog_token_allocator: dialog token enumerator for each new session;
  */
-struct sta_ampdu_mlme {
+struct sta_ampdu_mlme
+{
 	struct mutex mtx;
 	/* rx */
 	struct tid_ampdu_rx __rcu *tid_rx[IEEE80211_NUM_TIDS];
@@ -277,13 +282,14 @@ struct sta_ampdu_mlme {
  * header length of 8 like for CCMP/GCMP) fits into a single 64-byte
  * cache line.
  */
-struct ieee80211_fast_tx {
+struct ieee80211_fast_tx
+{
 	struct ieee80211_key *key;
 	u8 hdr_len;
 	u8 sa_offs, da_offs, pn_offs;
 	u8 band;
 	u8 hdr[30 + 2 + IEEE80211_FAST_XMIT_MAX_IV +
-	       sizeof(rfc1042_header)] __aligned(2);
+		   sizeof(rfc1042_header)] __aligned(2);
 
 	struct rcu_head rcu_head;
 };
@@ -305,7 +311,8 @@ struct ieee80211_fast_tx {
  * @sa_offs: offset of the SA in the header (for header conversion)
  * @rcu_head: RCU head for freeing this structure
  */
-struct ieee80211_fast_rx {
+struct ieee80211_fast_rx
+{
 	struct net_device *dev;
 	enum nl80211_iftype vif_type;
 	u8 vif_addr[ETH_ALEN] __aligned(2);
@@ -313,10 +320,10 @@ struct ieee80211_fast_rx {
 	__be16 control_port_protocol;
 	__le16 expected_ds_bits;
 	u8 icv_len;
-	u8 key:1,
-	   sta_notify:1,
-	   internal_forward:1,
-	   uses_rss:1;
+	u8 key: 1,
+	sta_notify: 1,
+	internal_forward: 1,
+	uses_rss: 1;
 	u8 da_offs, sa_offs;
 
 	struct rcu_head rcu_head;
@@ -343,7 +350,8 @@ struct ieee80211_fast_rx {
  *	processed
  * @fail_avg: moving percentage of failed MSDUs
  */
-struct mesh_sta {
+struct mesh_sta
+{
 	struct timer_list plink_timer;
 
 	s64 t_offset;
@@ -372,7 +380,8 @@ struct mesh_sta {
 
 DECLARE_EWMA(signal, 1024, 8)
 
-struct ieee80211_sta_rx_stats {
+struct ieee80211_sta_rx_stats
+{
 	unsigned long packets;
 	unsigned long last_rx;
 	unsigned long num_duplicates;
@@ -451,7 +460,8 @@ struct ieee80211_sta_rx_stats {
  *	this (by advertising the USES_RSS hw flag)
  * @status_stats: TX status statistics
  */
-struct sta_info {
+struct sta_info
+{
 	/* General information, mostly static */
 	struct list_head list, free_list;
 	struct rcu_head rcu_head;
@@ -500,7 +510,8 @@ struct sta_info {
 
 	/* Updated from RX path only, no locking requirements */
 	struct ieee80211_sta_rx_stats rx_stats;
-	struct {
+	struct
+	{
 		struct ewma_signal signal;
 		struct ewma_signal chain_signal[IEEE80211_MAX_CHAINS];
 	} rx_stats_avg;
@@ -509,7 +520,8 @@ struct sta_info {
 	__le16 last_seq_ctrl[IEEE80211_NUM_TIDS + 1];
 
 	/* Updated from TX status path only, no locking requirements */
-	struct {
+	struct
+	{
 		unsigned long filtered;
 		unsigned long retry_failed, retry_count;
 		unsigned int lost_packets;
@@ -520,7 +532,8 @@ struct sta_info {
 	} status_stats;
 
 	/* Updated from TX path only, no locking requirements */
-	struct {
+	struct
+	{
 		u64 packets[IEEE80211_NUM_ACS];
 		u64 bytes[IEEE80211_NUM_ACS];
 		struct ieee80211_tx_rate last_rate;
@@ -560,52 +573,52 @@ static inline enum nl80211_plink_state sta_plink_state(struct sta_info *sta)
 }
 
 static inline void set_sta_flag(struct sta_info *sta,
-				enum ieee80211_sta_info_flags flag)
+								enum ieee80211_sta_info_flags flag)
 {
 	WARN_ON(flag == WLAN_STA_AUTH ||
-		flag == WLAN_STA_ASSOC ||
-		flag == WLAN_STA_AUTHORIZED);
+			flag == WLAN_STA_ASSOC ||
+			flag == WLAN_STA_AUTHORIZED);
 	set_bit(flag, &sta->_flags);
 }
 
 static inline void clear_sta_flag(struct sta_info *sta,
-				  enum ieee80211_sta_info_flags flag)
+								  enum ieee80211_sta_info_flags flag)
 {
 	WARN_ON(flag == WLAN_STA_AUTH ||
-		flag == WLAN_STA_ASSOC ||
-		flag == WLAN_STA_AUTHORIZED);
+			flag == WLAN_STA_ASSOC ||
+			flag == WLAN_STA_AUTHORIZED);
 	clear_bit(flag, &sta->_flags);
 }
 
 static inline int test_sta_flag(struct sta_info *sta,
-				enum ieee80211_sta_info_flags flag)
+								enum ieee80211_sta_info_flags flag)
 {
 	return test_bit(flag, &sta->_flags);
 }
 
 static inline int test_and_clear_sta_flag(struct sta_info *sta,
-					  enum ieee80211_sta_info_flags flag)
+		enum ieee80211_sta_info_flags flag)
 {
 	WARN_ON(flag == WLAN_STA_AUTH ||
-		flag == WLAN_STA_ASSOC ||
-		flag == WLAN_STA_AUTHORIZED);
+			flag == WLAN_STA_ASSOC ||
+			flag == WLAN_STA_AUTHORIZED);
 	return test_and_clear_bit(flag, &sta->_flags);
 }
 
 static inline int test_and_set_sta_flag(struct sta_info *sta,
-					enum ieee80211_sta_info_flags flag)
+										enum ieee80211_sta_info_flags flag)
 {
 	WARN_ON(flag == WLAN_STA_AUTH ||
-		flag == WLAN_STA_ASSOC ||
-		flag == WLAN_STA_AUTHORIZED);
+			flag == WLAN_STA_ASSOC ||
+			flag == WLAN_STA_AUTHORIZED);
 	return test_and_set_bit(flag, &sta->_flags);
 }
 
 int sta_info_move_state(struct sta_info *sta,
-			enum ieee80211_sta_state new_state);
+						enum ieee80211_sta_state new_state);
 
 static inline void sta_info_pre_move_state(struct sta_info *sta,
-					   enum ieee80211_sta_state new_state)
+		enum ieee80211_sta_state new_state)
 {
 	int ret;
 
@@ -617,14 +630,14 @@ static inline void sta_info_pre_move_state(struct sta_info *sta,
 
 
 void ieee80211_assign_tid_tx(struct sta_info *sta, int tid,
-			     struct tid_ampdu_tx *tid_tx);
+							 struct tid_ampdu_tx *tid_tx);
 
 static inline struct tid_ampdu_tx *
 rcu_dereference_protected_tid_tx(struct sta_info *sta, int tid)
 {
 	return rcu_dereference_protected(sta->ampdu_mlme.tid_tx[tid],
-					 lockdep_is_held(&sta->lock) ||
-					 lockdep_is_held(&sta->ampdu_mlme.mtx));
+									 lockdep_is_held(&sta->lock) ||
+									 lockdep_is_held(&sta->ampdu_mlme.mtx));
 }
 
 /* Maximum number of frames to buffer per power saving station per AC */
@@ -639,32 +652,32 @@ rcu_dereference_protected_tid_tx(struct sta_info *sta, int tid)
 #define STA_INFO_CLEANUP_INTERVAL (10 * HZ)
 
 struct rhlist_head *sta_info_hash_lookup(struct ieee80211_local *local,
-					 const u8 *addr);
+		const u8 *addr);
 
 /*
  * Get a STA info, must be under RCU read lock.
  */
 struct sta_info *sta_info_get(struct ieee80211_sub_if_data *sdata,
-			      const u8 *addr);
+							  const u8 *addr);
 
 struct sta_info *sta_info_get_bss(struct ieee80211_sub_if_data *sdata,
-				  const u8 *addr);
+								  const u8 *addr);
 
 #define for_each_sta_info(local, _addr, _sta, _tmp)			\
 	rhl_for_each_entry_rcu(_sta, _tmp,				\
-			       sta_info_hash_lookup(local, _addr), hash_node)
+						   sta_info_hash_lookup(local, _addr), hash_node)
 
 /*
  * Get STA info by index, BROKEN!
  */
 struct sta_info *sta_info_get_by_idx(struct ieee80211_sub_if_data *sdata,
-				     int idx);
+									 int idx);
 /*
  * Create a new STA info, caller owns returned structure
  * until sta_info_insert().
  */
 struct sta_info *sta_info_alloc(struct ieee80211_sub_if_data *sdata,
-				const u8 *addr, gfp_t gfp);
+								const u8 *addr, gfp_t gfp);
 
 void sta_info_free(struct ieee80211_local *local, struct sta_info *sta);
 
@@ -681,9 +694,9 @@ int sta_info_insert_rcu(struct sta_info *sta) __acquires(RCU);
 
 int __must_check __sta_info_destroy(struct sta_info *sta);
 int sta_info_destroy_addr(struct ieee80211_sub_if_data *sdata,
-			  const u8 *addr);
+						  const u8 *addr);
 int sta_info_destroy_addr_bss(struct ieee80211_sub_if_data *sdata,
-			      const u8 *addr);
+							  const u8 *addr);
 
 void sta_info_recalc_tim(struct sta_info *sta);
 
@@ -706,14 +719,14 @@ static inline int sta_info_flush(struct ieee80211_sub_if_data *sdata)
 }
 
 void sta_set_rate_info_tx(struct sta_info *sta,
-			  const struct ieee80211_tx_rate *rate,
-			  struct rate_info *rinfo);
+						  const struct ieee80211_tx_rate *rate,
+						  struct rate_info *rinfo);
 void sta_set_sinfo(struct sta_info *sta, struct station_info *sinfo);
 
 u32 sta_get_expected_throughput(struct sta_info *sta);
 
 void ieee80211_sta_expire(struct ieee80211_sub_if_data *sdata,
-			  unsigned long exp_time);
+						  unsigned long exp_time);
 u8 sta_info_tx_streams(struct sta_info *sta);
 
 void ieee80211_sta_ps_deliver_wakeup(struct sta_info *sta);
@@ -735,27 +748,47 @@ static inline u16 sta_stats_encode_rate(struct ieee80211_rx_status *s)
 	u16 r = s->rate_idx;
 
 	if (s->vht_flag & RX_VHT_FLAG_80MHZ)
+	{
 		r |= RATE_INFO_BW_80 << STA_STATS_RATE_BW_SHIFT;
+	}
 	else if (s->vht_flag & RX_VHT_FLAG_160MHZ)
+	{
 		r |= RATE_INFO_BW_160 << STA_STATS_RATE_BW_SHIFT;
+	}
 	else if (s->flag & RX_FLAG_40MHZ)
+	{
 		r |= RATE_INFO_BW_40 << STA_STATS_RATE_BW_SHIFT;
+	}
 	else if (s->flag & RX_FLAG_10MHZ)
+	{
 		r |= RATE_INFO_BW_10 << STA_STATS_RATE_BW_SHIFT;
+	}
 	else if (s->flag & RX_FLAG_5MHZ)
+	{
 		r |= RATE_INFO_BW_5 << STA_STATS_RATE_BW_SHIFT;
+	}
 	else
+	{
 		r |= RATE_INFO_BW_20 << STA_STATS_RATE_BW_SHIFT;
+	}
 
 	if (s->flag & RX_FLAG_SHORT_GI)
+	{
 		r |= STA_STATS_RATE_SGI;
+	}
 
 	if (s->flag & RX_FLAG_VHT)
+	{
 		r |= STA_STATS_RATE_VHT | (s->vht_nss << 4);
+	}
 	else if (s->flag & RX_FLAG_HT)
+	{
 		r |= STA_STATS_RATE_HT;
+	}
 	else
+	{
 		r |= STA_STATS_RATE_LEGACY | (s->band << 4);
+	}
 
 	return r;
 }

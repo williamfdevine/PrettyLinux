@@ -53,11 +53,12 @@ ACPI_MODULE_NAME("evhandler")
 /* Local prototypes */
 static acpi_status
 acpi_ev_install_handler(acpi_handle obj_handle,
-			u32 level, void *context, void **return_value);
+						u32 level, void *context, void **return_value);
 
 /* These are the address spaces that will get default handlers */
 
-u8 acpi_gbl_default_address_spaces[ACPI_NUM_DEFAULT_SPACES] = {
+u8 acpi_gbl_default_address_spaces[ACPI_NUM_DEFAULT_SPACES] =
+{
 	ACPI_ADR_SPACE_SYSTEM_MEMORY,
 	ACPI_ADR_SPACE_SYSTEM_IO,
 	ACPI_ADR_SPACE_PCI_CONFIG,
@@ -84,7 +85,9 @@ acpi_status acpi_ev_install_region_handlers(void)
 	ACPI_FUNCTION_TRACE(ev_install_region_handlers);
 
 	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
@@ -107,25 +110,28 @@ acpi_status acpi_ev_install_region_handlers(void)
 	 * has already been installed (via acpi_install_address_space_handler).
 	 * Similar for AE_SAME_HANDLER.
 	 */
-	for (i = 0; i < ACPI_NUM_DEFAULT_SPACES; i++) {
+	for (i = 0; i < ACPI_NUM_DEFAULT_SPACES; i++)
+	{
 		status = acpi_ev_install_space_handler(acpi_gbl_root_node,
-						       acpi_gbl_default_address_spaces
-						       [i],
-						       ACPI_DEFAULT_HANDLER,
-						       NULL, NULL);
-		switch (status) {
-		case AE_OK:
-		case AE_SAME_HANDLER:
-		case AE_ALREADY_EXISTS:
+											   acpi_gbl_default_address_spaces
+											   [i],
+											   ACPI_DEFAULT_HANDLER,
+											   NULL, NULL);
 
-			/* These exceptions are all OK */
+		switch (status)
+		{
+			case AE_OK:
+			case AE_SAME_HANDLER:
+			case AE_ALREADY_EXISTS:
 
-			status = AE_OK;
-			break;
+				/* These exceptions are all OK */
 
-		default:
+				status = AE_OK;
+				break;
 
-			goto unlock_and_exit;
+			default:
+
+				goto unlock_and_exit;
 		}
 	}
 
@@ -150,7 +156,7 @@ unlock_and_exit:
 
 u8
 acpi_ev_has_default_handler(struct acpi_namespace_node *node,
-			    acpi_adr_space_type space_id)
+							acpi_adr_space_type space_id)
 {
 	union acpi_operand_object *obj_desc;
 	union acpi_operand_object *handler_obj;
@@ -158,15 +164,20 @@ acpi_ev_has_default_handler(struct acpi_namespace_node *node,
 	/* Must have an existing internal object */
 
 	obj_desc = acpi_ns_get_attached_object(node);
-	if (obj_desc) {
+
+	if (obj_desc)
+	{
 		handler_obj = obj_desc->common_notify.handler;
 
 		/* Walk the linked list of handlers for this object */
 
-		while (handler_obj) {
-			if (handler_obj->address_space.space_id == space_id) {
+		while (handler_obj)
+		{
+			if (handler_obj->address_space.space_id == space_id)
+			{
 				if (handler_obj->address_space.handler_flags &
-				    ACPI_ADDR_HANDLER_DEFAULT_INSTALLED) {
+					ACPI_ADDR_HANDLER_DEFAULT_INSTALLED)
+				{
 					return (TRUE);
 				}
 			}
@@ -197,7 +208,7 @@ acpi_ev_has_default_handler(struct acpi_namespace_node *node,
 
 static acpi_status
 acpi_ev_install_handler(acpi_handle obj_handle,
-			u32 level, void *context, void **return_value)
+						u32 level, void *context, void **return_value)
 {
 	union acpi_operand_object *handler_obj;
 	union acpi_operand_object *next_handler_obj;
@@ -211,14 +222,17 @@ acpi_ev_install_handler(acpi_handle obj_handle,
 
 	/* Parameter validation */
 
-	if (!handler_obj) {
+	if (!handler_obj)
+	{
 		return (AE_OK);
 	}
 
 	/* Convert and validate the device handle */
 
 	node = acpi_ns_validate_handle(obj_handle);
-	if (!node) {
+
+	if (!node)
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
@@ -227,14 +241,17 @@ acpi_ev_install_handler(acpi_handle obj_handle,
 	 * address space handlers
 	 */
 	if ((node->type != ACPI_TYPE_DEVICE) &&
-	    (node->type != ACPI_TYPE_REGION) && (node != acpi_gbl_root_node)) {
+		(node->type != ACPI_TYPE_REGION) && (node != acpi_gbl_root_node))
+	{
 		return (AE_OK);
 	}
 
 	/* Check for an existing internal object */
 
 	obj_desc = acpi_ns_get_attached_object(node);
-	if (!obj_desc) {
+
+	if (!obj_desc)
+	{
 
 		/* No object, just exit */
 
@@ -243,26 +260,29 @@ acpi_ev_install_handler(acpi_handle obj_handle,
 
 	/* Devices are handled different than regions */
 
-	if (obj_desc->common.type == ACPI_TYPE_DEVICE) {
+	if (obj_desc->common.type == ACPI_TYPE_DEVICE)
+	{
 
 		/* Check if this Device already has a handler for this address space */
 
 		next_handler_obj =
-		    acpi_ev_find_region_handler(handler_obj->address_space.
-						space_id,
-						obj_desc->common_notify.
-						handler);
-		if (next_handler_obj) {
+			acpi_ev_find_region_handler(handler_obj->address_space.
+										space_id,
+										obj_desc->common_notify.
+										handler);
+
+		if (next_handler_obj)
+		{
 
 			/* Found a handler, is it for the same address space? */
 
 			ACPI_DEBUG_PRINT((ACPI_DB_OPREGION,
-					  "Found handler for region [%s] in device %p(%p) handler %p\n",
-					  acpi_ut_get_region_name(handler_obj->
-								  address_space.
-								  space_id),
-					  obj_desc, next_handler_obj,
-					  handler_obj));
+							  "Found handler for region [%s] in device %p(%p) handler %p\n",
+							  acpi_ut_get_region_name(handler_obj->
+									  address_space.
+									  space_id),
+							  obj_desc, next_handler_obj,
+							  handler_obj));
 
 			/*
 			 * Since the object we found it on was a device, then it means
@@ -283,7 +303,8 @@ acpi_ev_install_handler(acpi_handle obj_handle,
 
 	/* Object is a Region */
 
-	if (obj_desc->region.space_id != handler_obj->address_space.space_id) {
+	if (obj_desc->region.space_id != handler_obj->address_space.space_id)
+	{
 
 		/* This region is for a different address space, just ignore it */
 
@@ -318,18 +339,20 @@ acpi_ev_install_handler(acpi_handle obj_handle,
  ******************************************************************************/
 
 union acpi_operand_object *acpi_ev_find_region_handler(acpi_adr_space_type
-						       space_id,
-						       union acpi_operand_object
-						       *handler_obj)
+			space_id,
+			union acpi_operand_object
+			*handler_obj)
 {
 
 	/* Walk the handler list for this device */
 
-	while (handler_obj) {
+	while (handler_obj)
+	{
 
 		/* Same space_id indicates a handler is installed */
 
-		if (handler_obj->address_space.space_id == space_id) {
+		if (handler_obj->address_space.space_id == space_id)
+		{
 			return (handler_obj);
 		}
 
@@ -360,9 +383,9 @@ union acpi_operand_object *acpi_ev_find_region_handler(acpi_adr_space_type
 
 acpi_status
 acpi_ev_install_space_handler(struct acpi_namespace_node *node,
-			      acpi_adr_space_type space_id,
-			      acpi_adr_space_handler handler,
-			      acpi_adr_space_setup setup, void *context)
+							  acpi_adr_space_type space_id,
+							  acpi_adr_space_handler handler,
+							  acpi_adr_space_setup setup, void *context)
 {
 	union acpi_operand_object *obj_desc;
 	union acpi_operand_object *handler_obj;
@@ -377,80 +400,88 @@ acpi_ev_install_space_handler(struct acpi_namespace_node *node,
 	 * The root node is where the default handlers get installed.
 	 */
 	if ((node->type != ACPI_TYPE_DEVICE) &&
-	    (node->type != ACPI_TYPE_PROCESSOR) &&
-	    (node->type != ACPI_TYPE_THERMAL) && (node != acpi_gbl_root_node)) {
+		(node->type != ACPI_TYPE_PROCESSOR) &&
+		(node->type != ACPI_TYPE_THERMAL) && (node != acpi_gbl_root_node))
+	{
 		status = AE_BAD_PARAMETER;
 		goto unlock_and_exit;
 	}
 
-	if (handler == ACPI_DEFAULT_HANDLER) {
+	if (handler == ACPI_DEFAULT_HANDLER)
+	{
 		flags = ACPI_ADDR_HANDLER_DEFAULT_INSTALLED;
 
-		switch (space_id) {
-		case ACPI_ADR_SPACE_SYSTEM_MEMORY:
+		switch (space_id)
+		{
+			case ACPI_ADR_SPACE_SYSTEM_MEMORY:
 
-			handler = acpi_ex_system_memory_space_handler;
-			setup = acpi_ev_system_memory_region_setup;
-			break;
+				handler = acpi_ex_system_memory_space_handler;
+				setup = acpi_ev_system_memory_region_setup;
+				break;
 
-		case ACPI_ADR_SPACE_SYSTEM_IO:
+			case ACPI_ADR_SPACE_SYSTEM_IO:
 
-			handler = acpi_ex_system_io_space_handler;
-			setup = acpi_ev_io_space_region_setup;
-			break;
+				handler = acpi_ex_system_io_space_handler;
+				setup = acpi_ev_io_space_region_setup;
+				break;
 
-		case ACPI_ADR_SPACE_PCI_CONFIG:
+			case ACPI_ADR_SPACE_PCI_CONFIG:
 
-			handler = acpi_ex_pci_config_space_handler;
-			setup = acpi_ev_pci_config_region_setup;
-			break;
+				handler = acpi_ex_pci_config_space_handler;
+				setup = acpi_ev_pci_config_region_setup;
+				break;
 
-		case ACPI_ADR_SPACE_CMOS:
+			case ACPI_ADR_SPACE_CMOS:
 
-			handler = acpi_ex_cmos_space_handler;
-			setup = acpi_ev_cmos_region_setup;
-			break;
+				handler = acpi_ex_cmos_space_handler;
+				setup = acpi_ev_cmos_region_setup;
+				break;
 
-		case ACPI_ADR_SPACE_PCI_BAR_TARGET:
+			case ACPI_ADR_SPACE_PCI_BAR_TARGET:
 
-			handler = acpi_ex_pci_bar_space_handler;
-			setup = acpi_ev_pci_bar_region_setup;
-			break;
+				handler = acpi_ex_pci_bar_space_handler;
+				setup = acpi_ev_pci_bar_region_setup;
+				break;
 
-		case ACPI_ADR_SPACE_DATA_TABLE:
+			case ACPI_ADR_SPACE_DATA_TABLE:
 
-			handler = acpi_ex_data_table_space_handler;
-			setup = NULL;
-			break;
+				handler = acpi_ex_data_table_space_handler;
+				setup = NULL;
+				break;
 
-		default:
+			default:
 
-			status = AE_BAD_PARAMETER;
-			goto unlock_and_exit;
+				status = AE_BAD_PARAMETER;
+				goto unlock_and_exit;
 		}
 	}
 
 	/* If the caller hasn't specified a setup routine, use the default */
 
-	if (!setup) {
+	if (!setup)
+	{
 		setup = acpi_ev_default_region_setup;
 	}
 
 	/* Check for an existing internal object */
 
 	obj_desc = acpi_ns_get_attached_object(node);
-	if (obj_desc) {
+
+	if (obj_desc)
+	{
 		/*
 		 * The attached device object already exists. Now make sure
 		 * the handler is not already installed.
 		 */
 		handler_obj = acpi_ev_find_region_handler(space_id,
-							  obj_desc->
-							  common_notify.
-							  handler);
+					  obj_desc->
+					  common_notify.
+					  handler);
 
-		if (handler_obj) {
-			if (handler_obj->address_space.handler == handler) {
+		if (handler_obj)
+		{
+			if (handler_obj->address_space.handler == handler)
+			{
 				/*
 				 * It is (relatively) OK to attempt to install the SAME
 				 * handler twice. This can easily happen with the
@@ -458,7 +489,9 @@ acpi_ev_install_space_handler(struct acpi_namespace_node *node,
 				 */
 				status = AE_SAME_HANDLER;
 				goto unlock_and_exit;
-			} else {
+			}
+			else
+			{
 				/* A handler is already installed */
 
 				status = AE_ALREADY_EXISTS;
@@ -466,21 +499,28 @@ acpi_ev_install_space_handler(struct acpi_namespace_node *node,
 
 			goto unlock_and_exit;
 		}
-	} else {
+	}
+	else
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_OPREGION,
-				  "Creating object on Device %p while installing handler\n",
-				  node));
+						  "Creating object on Device %p while installing handler\n",
+						  node));
 
 		/* obj_desc does not exist, create one */
 
-		if (node->type == ACPI_TYPE_ANY) {
+		if (node->type == ACPI_TYPE_ANY)
+		{
 			type = ACPI_TYPE_DEVICE;
-		} else {
+		}
+		else
+		{
 			type = node->type;
 		}
 
 		obj_desc = acpi_ut_create_internal_object(type);
-		if (!obj_desc) {
+
+		if (!obj_desc)
+		{
 			status = AE_NO_MEMORY;
 			goto unlock_and_exit;
 		}
@@ -497,16 +537,17 @@ acpi_ev_install_space_handler(struct acpi_namespace_node *node,
 
 		acpi_ut_remove_reference(obj_desc);
 
-		if (ACPI_FAILURE(status)) {
+		if (ACPI_FAILURE(status))
+		{
 			goto unlock_and_exit;
 		}
 	}
 
 	ACPI_DEBUG_PRINT((ACPI_DB_OPREGION,
-			  "Installing address handler for region %s(%X) "
-			  "on Device %4.4s %p(%p)\n",
-			  acpi_ut_get_region_name(space_id), space_id,
-			  acpi_ut_get_node_name(node), node, obj_desc));
+					  "Installing address handler for region %s(%X) "
+					  "on Device %4.4s %p(%p)\n",
+					  acpi_ut_get_region_name(space_id), space_id,
+					  acpi_ut_get_node_name(node), node, obj_desc));
 
 	/*
 	 * Install the handler
@@ -515,8 +556,10 @@ acpi_ev_install_space_handler(struct acpi_namespace_node *node,
 	 * for the handler and link it into the list.
 	 */
 	handler_obj =
-	    acpi_ut_create_internal_object(ACPI_TYPE_LOCAL_ADDRESS_HANDLER);
-	if (!handler_obj) {
+		acpi_ut_create_internal_object(ACPI_TYPE_LOCAL_ADDRESS_HANDLER);
+
+	if (!handler_obj)
+	{
 		status = AE_NO_MEMORY;
 		goto unlock_and_exit;
 	}
@@ -552,9 +595,9 @@ acpi_ev_install_space_handler(struct acpi_namespace_node *node,
 	 * In either case, back up and search down the remainder of the branch
 	 */
 	status = acpi_ns_walk_namespace(ACPI_TYPE_ANY, node,
-					ACPI_UINT32_MAX, ACPI_NS_WALK_UNLOCK,
-					acpi_ev_install_handler, NULL,
-					handler_obj, NULL);
+									ACPI_UINT32_MAX, ACPI_NS_WALK_UNLOCK,
+									acpi_ev_install_handler, NULL,
+									handler_obj, NULL);
 
 unlock_and_exit:
 	return_ACPI_STATUS(status);

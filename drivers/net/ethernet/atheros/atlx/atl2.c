@@ -65,7 +65,8 @@ MODULE_VERSION(ATL2_DRV_VERSION);
 /*
  * atl2_pci_tbl - PCI Device ID Table
  */
-static const struct pci_device_id atl2_pci_tbl[] = {
+static const struct pci_device_id atl2_pci_tbl[] =
+{
 	{PCI_DEVICE(PCI_VENDOR_ID_ATTANSIC, PCI_DEVICE_ID_ATTANSIC_L2)},
 	/* required last entry */
 	{0,}
@@ -142,13 +143,19 @@ static void atl2_set_multi(struct net_device *netdev)
 	/* Check for Promiscuous and All Multicast modes */
 	rctl = ATL2_READ_REG(hw, REG_MAC_CTRL);
 
-	if (netdev->flags & IFF_PROMISC) {
+	if (netdev->flags & IFF_PROMISC)
+	{
 		rctl |= MAC_CTRL_PROMIS_EN;
-	} else if (netdev->flags & IFF_ALLMULTI) {
+	}
+	else if (netdev->flags & IFF_ALLMULTI)
+	{
 		rctl |= MAC_CTRL_MC_ALL_EN;
 		rctl &= ~MAC_CTRL_PROMIS_EN;
-	} else
+	}
+	else
+	{
 		rctl &= ~(MAC_CTRL_PROMIS_EN | MAC_CTRL_MC_ALL_EN);
+	}
 
 	ATL2_WRITE_REG(hw, REG_MAC_CTRL, rctl);
 
@@ -157,7 +164,8 @@ static void atl2_set_multi(struct net_device *netdev)
 	ATL2_WRITE_REG_ARRAY(hw, REG_RX_HASH_TABLE, 1, 0);
 
 	/* comoute mc addresses' hash value ,and put it into hash table */
-	netdev_for_each_mc_addr(ha, netdev) {
+	netdev_for_each_mc_addr(ha, netdev)
+	{
 		hash_value = atl2_hash_mc_addr(hw, ha->addr);
 		atl2_hash_set(hw, hash_value);
 	}
@@ -192,56 +200,56 @@ static int atl2_configure(struct atl2_adapter *adapter)
 
 	/* set MAC Address */
 	value = (((u32)hw->mac_addr[2]) << 24) |
-		(((u32)hw->mac_addr[3]) << 16) |
-		(((u32)hw->mac_addr[4]) << 8) |
-		(((u32)hw->mac_addr[5]));
+			(((u32)hw->mac_addr[3]) << 16) |
+			(((u32)hw->mac_addr[4]) << 8) |
+			(((u32)hw->mac_addr[5]));
 	ATL2_WRITE_REG(hw, REG_MAC_STA_ADDR, value);
 	value = (((u32)hw->mac_addr[0]) << 8) |
-		(((u32)hw->mac_addr[1]));
-	ATL2_WRITE_REG(hw, (REG_MAC_STA_ADDR+4), value);
+			(((u32)hw->mac_addr[1]));
+	ATL2_WRITE_REG(hw, (REG_MAC_STA_ADDR + 4), value);
 
 	/* HI base address */
 	ATL2_WRITE_REG(hw, REG_DESC_BASE_ADDR_HI,
-		(u32)((adapter->ring_dma & 0xffffffff00000000ULL) >> 32));
+				   (u32)((adapter->ring_dma & 0xffffffff00000000ULL) >> 32));
 
 	/* LO base address */
 	ATL2_WRITE_REG(hw, REG_TXD_BASE_ADDR_LO,
-		(u32)(adapter->txd_dma & 0x00000000ffffffffULL));
+				   (u32)(adapter->txd_dma & 0x00000000ffffffffULL));
 	ATL2_WRITE_REG(hw, REG_TXS_BASE_ADDR_LO,
-		(u32)(adapter->txs_dma & 0x00000000ffffffffULL));
+				   (u32)(adapter->txs_dma & 0x00000000ffffffffULL));
 	ATL2_WRITE_REG(hw, REG_RXD_BASE_ADDR_LO,
-		(u32)(adapter->rxd_dma & 0x00000000ffffffffULL));
+				   (u32)(adapter->rxd_dma & 0x00000000ffffffffULL));
 
 	/* element count */
-	ATL2_WRITE_REGW(hw, REG_TXD_MEM_SIZE, (u16)(adapter->txd_ring_size/4));
+	ATL2_WRITE_REGW(hw, REG_TXD_MEM_SIZE, (u16)(adapter->txd_ring_size / 4));
 	ATL2_WRITE_REGW(hw, REG_TXS_MEM_SIZE, (u16)adapter->txs_ring_size);
 	ATL2_WRITE_REGW(hw, REG_RXD_BUF_NUM,  (u16)adapter->rxd_ring_size);
 
 	/* config Internal SRAM */
-/*
-    ATL2_WRITE_REGW(hw, REG_SRAM_TXRAM_END, sram_tx_end);
-    ATL2_WRITE_REGW(hw, REG_SRAM_TXRAM_END, sram_rx_end);
-*/
+	/*
+	    ATL2_WRITE_REGW(hw, REG_SRAM_TXRAM_END, sram_tx_end);
+	    ATL2_WRITE_REGW(hw, REG_SRAM_TXRAM_END, sram_rx_end);
+	*/
 
 	/* config IPG/IFG */
 	value = (((u32)hw->ipgt & MAC_IPG_IFG_IPGT_MASK) <<
-		MAC_IPG_IFG_IPGT_SHIFT) |
-		(((u32)hw->min_ifg & MAC_IPG_IFG_MIFG_MASK) <<
-		MAC_IPG_IFG_MIFG_SHIFT) |
-		(((u32)hw->ipgr1 & MAC_IPG_IFG_IPGR1_MASK) <<
-		MAC_IPG_IFG_IPGR1_SHIFT)|
-		(((u32)hw->ipgr2 & MAC_IPG_IFG_IPGR2_MASK) <<
-		MAC_IPG_IFG_IPGR2_SHIFT);
+			 MAC_IPG_IFG_IPGT_SHIFT) |
+			(((u32)hw->min_ifg & MAC_IPG_IFG_MIFG_MASK) <<
+			 MAC_IPG_IFG_MIFG_SHIFT) |
+			(((u32)hw->ipgr1 & MAC_IPG_IFG_IPGR1_MASK) <<
+			 MAC_IPG_IFG_IPGR1_SHIFT) |
+			(((u32)hw->ipgr2 & MAC_IPG_IFG_IPGR2_MASK) <<
+			 MAC_IPG_IFG_IPGR2_SHIFT);
 	ATL2_WRITE_REG(hw, REG_MAC_IPG_IFG, value);
 
 	/* config  Half-Duplex Control */
 	value = ((u32)hw->lcol & MAC_HALF_DUPLX_CTRL_LCOL_MASK) |
-		(((u32)hw->max_retry & MAC_HALF_DUPLX_CTRL_RETRY_MASK) <<
-		MAC_HALF_DUPLX_CTRL_RETRY_SHIFT) |
-		MAC_HALF_DUPLX_CTRL_EXC_DEF_EN |
-		(0xa << MAC_HALF_DUPLX_CTRL_ABEBT_SHIFT) |
-		(((u32)hw->jam_ipg & MAC_HALF_DUPLX_CTRL_JAMIPG_MASK) <<
-		MAC_HALF_DUPLX_CTRL_JAMIPG_SHIFT);
+			(((u32)hw->max_retry & MAC_HALF_DUPLX_CTRL_RETRY_MASK) <<
+			 MAC_HALF_DUPLX_CTRL_RETRY_SHIFT) |
+			MAC_HALF_DUPLX_CTRL_EXC_DEF_EN |
+			(0xa << MAC_HALF_DUPLX_CTRL_ABEBT_SHIFT) |
+			(((u32)hw->jam_ipg & MAC_HALF_DUPLX_CTRL_JAMIPG_MASK) <<
+			 MAC_HALF_DUPLX_CTRL_JAMIPG_SHIFT);
 	ATL2_WRITE_REG(hw, REG_MAC_HALF_DUPLX_CTRL, value);
 
 	/* set Interrupt Moderator Timer */
@@ -253,7 +261,7 @@ static int atl2_configure(struct atl2_adapter *adapter)
 
 	/* set MTU */
 	ATL2_WRITE_REG(hw, REG_MTU, adapter->netdev->mtu +
-		ENET_HEADER_SIZE + VLAN_SIZE + ETHERNET_FCS_SIZE);
+				   ENET_HEADER_SIZE + VLAN_SIZE + ETHERNET_FCS_SIZE);
 
 	/* 1590 */
 	ATL2_WRITE_REG(hw, REG_TX_CUT_THRESH, 0x177);
@@ -271,10 +279,15 @@ static int atl2_configure(struct atl2_adapter *adapter)
 	ATL2_WRITE_REGB(hw, REG_DMAW, DMAW_EN);
 
 	value = ATL2_READ_REG(&adapter->hw, REG_ISR);
+
 	if ((value & ISR_PHY_LINKDOWN) != 0)
-		value = 1; /* config failed */
+	{
+		value = 1;    /* config failed */
+	}
 	else
+	{
 		value = 0;
+	}
 
 	/* clear all interrupt status */
 	ATL2_WRITE_REG(&adapter->hw, REG_ISR, 0x3fffffff);
@@ -296,14 +309,18 @@ static s32 atl2_setup_ring_resources(struct atl2_adapter *adapter)
 
 	/* real ring DMA buffer */
 	adapter->ring_size = size =
-		adapter->txd_ring_size * 1 + 7 +	/* dword align */
-		adapter->txs_ring_size * 4 + 7 +	/* dword align */
-		adapter->rxd_ring_size * 1536 + 127;	/* 128bytes align */
+							 adapter->txd_ring_size * 1 + 7 +	/* dword align */
+							 adapter->txs_ring_size * 4 + 7 +	/* dword align */
+							 adapter->rxd_ring_size * 1536 + 127;	/* 128bytes align */
 
 	adapter->ring_vir_addr = pci_alloc_consistent(pdev, size,
-		&adapter->ring_dma);
+							 &adapter->ring_dma);
+
 	if (!adapter->ring_vir_addr)
+	{
 		return -ENOMEM;
+	}
+
 	memset(adapter->ring_vir_addr, 0, adapter->ring_size);
 
 	/* Init TXD Ring */
@@ -317,25 +334,30 @@ static s32 atl2_setup_ring_resources(struct atl2_adapter *adapter)
 	offset = (adapter->txs_dma & 0x7) ? (8 - (adapter->txs_dma & 0x7)) : 0;
 	adapter->txs_dma += offset;
 	adapter->txs_ring = (struct tx_pkt_status *)
-		(((u8 *)adapter->txd_ring) + (adapter->txd_ring_size + offset));
+						(((u8 *)adapter->txd_ring) + (adapter->txd_ring_size + offset));
 
 	/* Init RXD Ring */
 	adapter->rxd_dma = adapter->txs_dma + adapter->txs_ring_size * 4;
 	offset = (adapter->rxd_dma & 127) ?
-		(128 - (adapter->rxd_dma & 127)) : 0;
+			 (128 - (adapter->rxd_dma & 127)) : 0;
+
 	if (offset > 7)
+	{
 		offset -= 8;
+	}
 	else
+	{
 		offset += (128 - 8);
+	}
 
 	adapter->rxd_dma += offset;
 	adapter->rxd_ring = (struct rx_desc *) (((u8 *)adapter->txs_ring) +
-		(adapter->txs_ring_size * 4 + offset));
+											(adapter->txs_ring_size * 4 + offset));
 
-/*
- * Read / Write Ptr Initialize:
- *      init_ring_ptrs(adapter);
- */
+	/*
+	 * Read / Write Ptr Initialize:
+	 *      init_ring_ptrs(adapter);
+	 */
 	return 0;
 }
 
@@ -355,24 +377,27 @@ static inline void atl2_irq_enable(struct atl2_adapter *adapter)
  */
 static inline void atl2_irq_disable(struct atl2_adapter *adapter)
 {
-    ATL2_WRITE_REG(&adapter->hw, REG_IMR, 0);
-    ATL2_WRITE_FLUSH(&adapter->hw);
-    synchronize_irq(adapter->pdev->irq);
+	ATL2_WRITE_REG(&adapter->hw, REG_IMR, 0);
+	ATL2_WRITE_FLUSH(&adapter->hw);
+	synchronize_irq(adapter->pdev->irq);
 }
 
 static void __atl2_vlan_mode(netdev_features_t features, u32 *ctrl)
 {
-	if (features & NETIF_F_HW_VLAN_CTAG_RX) {
+	if (features & NETIF_F_HW_VLAN_CTAG_RX)
+	{
 		/* enable VLAN tag insert/strip */
 		*ctrl |= MAC_CTRL_RMV_VLAN;
-	} else {
+	}
+	else
+	{
 		/* disable VLAN tag insert/strip */
 		*ctrl &= ~MAC_CTRL_RMV_VLAN;
 	}
 }
 
 static void atl2_vlan_mode(struct net_device *netdev,
-	netdev_features_t features)
+						   netdev_features_t features)
 {
 	struct atl2_adapter *adapter = netdev_priv(netdev);
 	u32 ctrl;
@@ -392,27 +417,33 @@ static void atl2_restore_vlan(struct atl2_adapter *adapter)
 }
 
 static netdev_features_t atl2_fix_features(struct net_device *netdev,
-	netdev_features_t features)
+		netdev_features_t features)
 {
 	/*
 	 * Since there is no support for separate rx/tx vlan accel
 	 * enable/disable make sure tx flag is always in same state as rx.
 	 */
 	if (features & NETIF_F_HW_VLAN_CTAG_RX)
+	{
 		features |= NETIF_F_HW_VLAN_CTAG_TX;
+	}
 	else
+	{
 		features &= ~NETIF_F_HW_VLAN_CTAG_TX;
+	}
 
 	return features;
 }
 
 static int atl2_set_features(struct net_device *netdev,
-	netdev_features_t features)
+							 netdev_features_t features)
 {
 	netdev_features_t changed = netdev->features ^ features;
 
 	if (changed & NETIF_F_HW_VLAN_CTAG_RX)
+	{
 		atl2_vlan_mode(netdev, features);
+	}
 
 	return 0;
 }
@@ -423,19 +454,26 @@ static void atl2_intr_rx(struct atl2_adapter *adapter)
 	struct rx_desc *rxd;
 	struct sk_buff *skb;
 
-	do {
-		rxd = adapter->rxd_ring+adapter->rxd_write_ptr;
+	do
+	{
+		rxd = adapter->rxd_ring + adapter->rxd_write_ptr;
+
 		if (!rxd->status.update)
-			break; /* end of tx */
+		{
+			break;    /* end of tx */
+		}
 
 		/* clear this flag at once */
 		rxd->status.update = 0;
 
-		if (rxd->status.ok && rxd->status.pkt_size >= 60) {
+		if (rxd->status.ok && rxd->status.pkt_size >= 60)
+		{
 			int rx_size = (int)(rxd->status.pkt_size - 4);
 			/* alloc new buffer */
 			skb = netdev_alloc_skb_ip_align(netdev, rx_size);
-			if (NULL == skb) {
+
+			if (NULL == skb)
+			{
 				/*
 				 * Check that some rx space is free. If not,
 				 * free one and mark stats->rx_dropped++.
@@ -443,36 +481,56 @@ static void atl2_intr_rx(struct atl2_adapter *adapter)
 				netdev->stats.rx_dropped++;
 				break;
 			}
+
 			memcpy(skb->data, rxd->packet, rx_size);
 			skb_put(skb, rx_size);
 			skb->protocol = eth_type_trans(skb, netdev);
-			if (rxd->status.vlan) {
-				u16 vlan_tag = (rxd->status.vtag>>4) |
-					((rxd->status.vtag&7) << 13) |
-					((rxd->status.vtag&8) << 9);
+
+			if (rxd->status.vlan)
+			{
+				u16 vlan_tag = (rxd->status.vtag >> 4) |
+							   ((rxd->status.vtag & 7) << 13) |
+							   ((rxd->status.vtag & 8) << 9);
 
 				__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q), vlan_tag);
 			}
+
 			netif_rx(skb);
 			netdev->stats.rx_bytes += rx_size;
 			netdev->stats.rx_packets++;
-		} else {
+		}
+		else
+		{
 			netdev->stats.rx_errors++;
 
 			if (rxd->status.ok && rxd->status.pkt_size <= 60)
+			{
 				netdev->stats.rx_length_errors++;
+			}
+
 			if (rxd->status.mcast)
+			{
 				netdev->stats.multicast++;
+			}
+
 			if (rxd->status.crc)
+			{
 				netdev->stats.rx_crc_errors++;
+			}
+
 			if (rxd->status.align)
+			{
 				netdev->stats.rx_frame_errors++;
+			}
 		}
 
 		/* advance write ptr */
 		if (++adapter->rxd_write_ptr == adapter->rxd_ring_size)
+		{
 			adapter->rxd_write_ptr = 0;
-	} while (1);
+		}
+	}
+	while (1);
 
 	/* update mailbox? */
 	adapter->rxd_read_ptr = adapter->rxd_write_ptr;
@@ -488,79 +546,113 @@ static void atl2_intr_tx(struct atl2_adapter *adapter)
 	struct tx_pkt_header *txph;
 	int free_hole = 0;
 
-	do {
+	do
+	{
 		txs_write_ptr = (u32) atomic_read(&adapter->txs_write_ptr);
 		txs = adapter->txs_ring + txs_write_ptr;
+
 		if (!txs->update)
-			break; /* tx stop here */
+		{
+			break;    /* tx stop here */
+		}
 
 		free_hole = 1;
 		txs->update = 0;
 
 		if (++txs_write_ptr == adapter->txs_ring_size)
+		{
 			txs_write_ptr = 0;
+		}
+
 		atomic_set(&adapter->txs_write_ptr, (int)txs_write_ptr);
 
 		txd_read_ptr = (u32) atomic_read(&adapter->txd_read_ptr);
 		txph = (struct tx_pkt_header *)
-			(((u8 *)adapter->txd_ring) + txd_read_ptr);
+			   (((u8 *)adapter->txd_ring) + txd_read_ptr);
 
-		if (txph->pkt_size != txs->pkt_size) {
+		if (txph->pkt_size != txs->pkt_size)
+		{
 			struct tx_pkt_status *old_txs = txs;
 			printk(KERN_WARNING
-				"%s: txs packet size not consistent with txd"
-				" txd_:0x%08x, txs_:0x%08x!\n",
-				adapter->netdev->name,
-				*(u32 *)txph, *(u32 *)txs);
+				   "%s: txs packet size not consistent with txd"
+				   " txd_:0x%08x, txs_:0x%08x!\n",
+				   adapter->netdev->name,
+				   *(u32 *)txph, *(u32 *)txs);
 			printk(KERN_WARNING
-				"txd read ptr: 0x%x\n",
-				txd_read_ptr);
+				   "txd read ptr: 0x%x\n",
+				   txd_read_ptr);
 			txs = adapter->txs_ring + txs_write_ptr;
 			printk(KERN_WARNING
-				"txs-behind:0x%08x\n",
-				*(u32 *)txs);
-			if (txs_write_ptr < 2) {
+				   "txs-behind:0x%08x\n",
+				   *(u32 *)txs);
+
+			if (txs_write_ptr < 2)
+			{
 				txs = adapter->txs_ring +
-					(adapter->txs_ring_size +
-					txs_write_ptr - 2);
-			} else {
+					  (adapter->txs_ring_size +
+					   txs_write_ptr - 2);
+			}
+			else
+			{
 				txs = adapter->txs_ring + (txs_write_ptr - 2);
 			}
+
 			printk(KERN_WARNING
-				"txs-before:0x%08x\n",
-				*(u32 *)txs);
+				   "txs-before:0x%08x\n",
+				   *(u32 *)txs);
 			txs = old_txs;
 		}
 
-		 /* 4for TPH */
+		/* 4for TPH */
 		txd_read_ptr += (((u32)(txph->pkt_size) + 7) & ~3);
+
 		if (txd_read_ptr >= adapter->txd_ring_size)
+		{
 			txd_read_ptr -= adapter->txd_ring_size;
+		}
 
 		atomic_set(&adapter->txd_read_ptr, (int)txd_read_ptr);
 
 		/* tx statistics: */
-		if (txs->ok) {
+		if (txs->ok)
+		{
 			netdev->stats.tx_bytes += txs->pkt_size;
 			netdev->stats.tx_packets++;
 		}
 		else
+		{
 			netdev->stats.tx_errors++;
+		}
 
 		if (txs->defer)
+		{
 			netdev->stats.collisions++;
-		if (txs->abort_col)
-			netdev->stats.tx_aborted_errors++;
-		if (txs->late_col)
-			netdev->stats.tx_window_errors++;
-		if (txs->underun)
-			netdev->stats.tx_fifo_errors++;
-	} while (1);
+		}
 
-	if (free_hole) {
+		if (txs->abort_col)
+		{
+			netdev->stats.tx_aborted_errors++;
+		}
+
+		if (txs->late_col)
+		{
+			netdev->stats.tx_window_errors++;
+		}
+
+		if (txs->underun)
+		{
+			netdev->stats.tx_fifo_errors++;
+		}
+	}
+	while (1);
+
+	if (free_hole)
+	{
 		if (netif_queue_stopped(adapter->netdev) &&
 			netif_carrier_ok(adapter->netdev))
+		{
 			netif_wake_queue(adapter->netdev);
+		}
 	}
 }
 
@@ -575,15 +667,18 @@ static void atl2_check_for_link(struct atl2_adapter *adapter)
 	spin_unlock(&adapter->stats_lock);
 
 	/* notify upper layer link down ASAP */
-	if (!(phy_data & BMSR_LSTATUS)) { /* Link Down */
-		if (netif_carrier_ok(netdev)) { /* old link state: Up */
-		printk(KERN_INFO "%s: %s NIC Link is Down\n",
-			atl2_driver_name, netdev->name);
-		adapter->link_speed = SPEED_0;
-		netif_carrier_off(netdev);
-		netif_stop_queue(netdev);
+	if (!(phy_data & BMSR_LSTATUS))   /* Link Down */
+	{
+		if (netif_carrier_ok(netdev))   /* old link state: Up */
+		{
+			printk(KERN_INFO "%s: %s NIC Link is Down\n",
+				   atl2_driver_name, netdev->name);
+			adapter->link_speed = SPEED_0;
+			netif_carrier_off(netdev);
+			netif_stop_queue(netdev);
 		}
 	}
+
 	schedule_work(&adapter->link_chg_task);
 }
 
@@ -607,19 +702,26 @@ static irqreturn_t atl2_intr(int irq, void *data)
 	u32 status;
 
 	status = ATL2_READ_REG(hw, REG_ISR);
+
 	if (0 == status)
+	{
 		return IRQ_NONE;
+	}
 
 	/* link event */
 	if (status & ISR_PHY)
+	{
 		atl2_clear_phy_int(adapter);
+	}
 
 	/* clear ISR status, and Enable CMB DMA/Disable Interrupt */
 	ATL2_WRITE_REG(hw, REG_ISR, status | ISR_DIS_INT);
 
 	/* check if PCIE PHY Link down */
-	if (status & ISR_PHY_LINKDOWN) {
-		if (netif_running(adapter->netdev)) { /* reset MAC */
+	if (status & ISR_PHY_LINKDOWN)
+	{
+		if (netif_running(adapter->netdev))   /* reset MAC */
+		{
 			ATL2_WRITE_REG(hw, REG_ISR, 0);
 			ATL2_WRITE_REG(hw, REG_IMR, 0);
 			ATL2_WRITE_FLUSH(hw);
@@ -629,7 +731,8 @@ static irqreturn_t atl2_intr(int irq, void *data)
 	}
 
 	/* check if DMA read/write error? */
-	if (status & (ISR_DMAR_TO_RST | ISR_DMAW_TO_RST)) {
+	if (status & (ISR_DMAR_TO_RST | ISR_DMAW_TO_RST))
+	{
 		ATL2_WRITE_REG(hw, REG_ISR, 0);
 		ATL2_WRITE_REG(hw, REG_IMR, 0);
 		ATL2_WRITE_FLUSH(hw);
@@ -638,18 +741,23 @@ static irqreturn_t atl2_intr(int irq, void *data)
 	}
 
 	/* link event */
-	if (status & (ISR_PHY | ISR_MANUAL)) {
+	if (status & (ISR_PHY | ISR_MANUAL))
+	{
 		adapter->netdev->stats.tx_carrier_errors++;
 		atl2_check_for_link(adapter);
 	}
 
 	/* transmit event */
 	if (status & ISR_TX_EVENT)
+	{
 		atl2_intr_tx(adapter);
+	}
 
 	/* rx exception */
 	if (status & ISR_RX_EVENT)
+	{
 		atl2_intr_rx(adapter);
+	}
 
 	/* re-enable Interrupt */
 	ATL2_WRITE_REG(&adapter->hw, REG_ISR, 0);
@@ -664,14 +772,19 @@ static int atl2_request_irq(struct atl2_adapter *adapter)
 	flags = IRQF_SHARED;
 	adapter->have_msi = true;
 	err = pci_enable_msi(adapter->pdev);
+
 	if (err)
+	{
 		adapter->have_msi = false;
+	}
 
 	if (adapter->have_msi)
+	{
 		flags &= ~IRQF_SHARED;
+	}
 
 	return request_irq(adapter->pdev->irq, atl2_intr, flags, netdev->name,
-		netdev);
+					   netdev);
 }
 
 /**
@@ -684,7 +797,7 @@ static void atl2_free_ring_resources(struct atl2_adapter *adapter)
 {
 	struct pci_dev *pdev = adapter->pdev;
 	pci_free_consistent(pdev, adapter->ring_size, adapter->ring_vir_addr,
-		adapter->ring_dma);
+						adapter->ring_dma);
 }
 
 /**
@@ -707,15 +820,22 @@ static int atl2_open(struct net_device *netdev)
 
 	/* disallow open during test */
 	if (test_bit(__ATL2_TESTING, &adapter->flags))
+	{
 		return -EBUSY;
+	}
 
 	/* allocate transmit descriptors */
 	err = atl2_setup_ring_resources(adapter);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = atl2_init_hw(&adapter->hw);
-	if (err) {
+
+	if (err)
+	{
 		err = -EIO;
 		goto err_init_hw;
 	}
@@ -726,22 +846,26 @@ static int atl2_open(struct net_device *netdev)
 
 	atl2_restore_vlan(adapter);
 
-	if (atl2_configure(adapter)) {
+	if (atl2_configure(adapter))
+	{
 		err = -EIO;
 		goto err_config;
 	}
 
 	err = atl2_request_irq(adapter);
+
 	if (err)
+	{
 		goto err_req_irq;
+	}
 
 	clear_bit(__ATL2_DOWN, &adapter->flags);
 
-	mod_timer(&adapter->watchdog_timer, round_jiffies(jiffies + 4*HZ));
+	mod_timer(&adapter->watchdog_timer, round_jiffies(jiffies + 4 * HZ));
 
 	val = ATL2_READ_REG(&adapter->hw, REG_MASTER_CTRL);
 	ATL2_WRITE_REG(&adapter->hw, REG_MASTER_CTRL,
-		val | MASTER_CTRL_MANUAL_INT);
+				   val | MASTER_CTRL_MANUAL_INT);
 
 	atl2_irq_enable(adapter);
 
@@ -788,8 +912,12 @@ static void atl2_free_irq(struct atl2_adapter *adapter)
 	free_irq(adapter->pdev->irq, netdev);
 
 #ifdef CONFIG_PCI_MSI
+
 	if (adapter->have_msi)
+	{
 		pci_disable_msi(adapter->pdev);
+	}
+
 #endif
 }
 
@@ -822,9 +950,9 @@ static inline int TxsFreeUnit(struct atl2_adapter *adapter)
 	u32 txs_write_ptr = (u32) atomic_read(&adapter->txs_write_ptr);
 
 	return (adapter->txs_next_clear >= txs_write_ptr) ?
-		(int) (adapter->txs_ring_size - adapter->txs_next_clear +
-		txs_write_ptr - 1) :
-		(int) (txs_write_ptr - adapter->txs_next_clear - 1);
+		   (int) (adapter->txs_ring_size - adapter->txs_next_clear +
+				  txs_write_ptr - 1) :
+		   (int) (txs_write_ptr - adapter->txs_next_clear - 1);
 }
 
 static inline int TxdFreeBytes(struct atl2_adapter *adapter)
@@ -832,13 +960,13 @@ static inline int TxdFreeBytes(struct atl2_adapter *adapter)
 	u32 txd_read_ptr = (u32)atomic_read(&adapter->txd_read_ptr);
 
 	return (adapter->txd_write_ptr >= txd_read_ptr) ?
-		(int) (adapter->txd_ring_size - adapter->txd_write_ptr +
-		txd_read_ptr - 1) :
-		(int) (txd_read_ptr - adapter->txd_write_ptr - 1);
+		   (int) (adapter->txd_ring_size - adapter->txd_write_ptr +
+				  txd_read_ptr - 1) :
+		   (int) (txd_read_ptr - adapter->txd_write_ptr - 1);
 }
 
 static netdev_tx_t atl2_xmit_frame(struct sk_buff *skb,
-					 struct net_device *netdev)
+								   struct net_device *netdev)
 {
 	struct atl2_adapter *adapter = netdev_priv(netdev);
 	struct tx_pkt_header *txph;
@@ -846,12 +974,14 @@ static netdev_tx_t atl2_xmit_frame(struct sk_buff *skb,
 	int txs_unused;
 	int txbuf_unused;
 
-	if (test_bit(__ATL2_DOWN, &adapter->flags)) {
+	if (test_bit(__ATL2_DOWN, &adapter->flags))
+	{
 		dev_kfree_skb_any(skb);
 		return NETDEV_TX_OK;
 	}
 
-	if (unlikely(skb->len <= 0)) {
+	if (unlikely(skb->len <= 0))
+	{
 		dev_kfree_skb_any(skb);
 		return NETDEV_TX_OK;
 	}
@@ -860,7 +990,8 @@ static netdev_tx_t atl2_xmit_frame(struct sk_buff *skb,
 	txbuf_unused = TxdFreeBytes(adapter);
 
 	if (skb->len + sizeof(struct tx_pkt_header) + 4  > txbuf_unused ||
-		txs_unused < 1) {
+		txs_unused < 1)
+	{
 		/* not enough resources */
 		netif_stop_queue(netdev);
 		return NETDEV_TX_BUSY;
@@ -874,39 +1005,58 @@ static netdev_tx_t atl2_xmit_frame(struct sk_buff *skb,
 	txph->pkt_size = skb->len;
 
 	offset += 4;
+
 	if (offset >= adapter->txd_ring_size)
+	{
 		offset -= adapter->txd_ring_size;
+	}
+
 	copy_len = adapter->txd_ring_size - offset;
-	if (copy_len >= skb->len) {
+
+	if (copy_len >= skb->len)
+	{
 		memcpy(((u8 *)adapter->txd_ring) + offset, skb->data, skb->len);
 		offset += ((u32)(skb->len + 3) & ~3);
-	} else {
-		memcpy(((u8 *)adapter->txd_ring)+offset, skb->data, copy_len);
-		memcpy((u8 *)adapter->txd_ring, skb->data+copy_len,
-			skb->len-copy_len);
-		offset = ((u32)(skb->len-copy_len + 3) & ~3);
 	}
+	else
+	{
+		memcpy(((u8 *)adapter->txd_ring) + offset, skb->data, copy_len);
+		memcpy((u8 *)adapter->txd_ring, skb->data + copy_len,
+			   skb->len - copy_len);
+		offset = ((u32)(skb->len - copy_len + 3) & ~3);
+	}
+
 #ifdef NETIF_F_HW_VLAN_CTAG_TX
-	if (skb_vlan_tag_present(skb)) {
+
+	if (skb_vlan_tag_present(skb))
+	{
 		u16 vlan_tag = skb_vlan_tag_get(skb);
 		vlan_tag = (vlan_tag << 4) |
-			(vlan_tag >> 13) |
-			((vlan_tag >> 9) & 0x8);
+				   (vlan_tag >> 13) |
+				   ((vlan_tag >> 9) & 0x8);
 		txph->ins_vlan = 1;
 		txph->vlan = vlan_tag;
 	}
+
 #endif
+
 	if (offset >= adapter->txd_ring_size)
+	{
 		offset -= adapter->txd_ring_size;
+	}
+
 	adapter->txd_write_ptr = offset;
 
 	/* clear txs before send */
 	adapter->txs_ring[adapter->txs_next_clear].update = 0;
+
 	if (++adapter->txs_next_clear == adapter->txs_ring_size)
+	{
 		adapter->txs_next_clear = 0;
+	}
 
 	ATL2_WRITE_REGW(&adapter->hw, REG_MB_TXD_WR_IDX,
-		(adapter->txd_write_ptr >> 2));
+					(adapter->txd_write_ptr >> 2));
 
 	mmiowb();
 	dev_kfree_skb_any(skb);
@@ -926,13 +1076,16 @@ static int atl2_change_mtu(struct net_device *netdev, int new_mtu)
 	struct atl2_hw *hw = &adapter->hw;
 
 	if ((new_mtu < 40) || (new_mtu > (ETH_DATA_LEN + VLAN_SIZE)))
+	{
 		return -EINVAL;
+	}
 
 	/* set MTU */
-	if (hw->max_frame_size != new_mtu) {
+	if (hw->max_frame_size != new_mtu)
+	{
 		netdev->mtu = new_mtu;
 		ATL2_WRITE_REG(hw, REG_MTU, new_mtu + ENET_HEADER_SIZE +
-			VLAN_SIZE + ETHERNET_FCS_SIZE);
+					   VLAN_SIZE + ETHERNET_FCS_SIZE);
 	}
 
 	return 0;
@@ -951,10 +1104,14 @@ static int atl2_set_mac(struct net_device *netdev, void *p)
 	struct sockaddr *addr = p;
 
 	if (!is_valid_ether_addr(addr->sa_data))
+	{
 		return -EADDRNOTAVAIL;
+	}
 
 	if (netif_running(netdev))
+	{
 		return -EBUSY;
+	}
 
 	memcpy(netdev->dev_addr, addr->sa_data, netdev->addr_len);
 	memcpy(adapter->hw.mac_addr, addr->sa_data, netdev->addr_len);
@@ -970,49 +1127,66 @@ static int atl2_mii_ioctl(struct net_device *netdev, struct ifreq *ifr, int cmd)
 	struct mii_ioctl_data *data = if_mii(ifr);
 	unsigned long flags;
 
-	switch (cmd) {
-	case SIOCGMIIPHY:
-		data->phy_id = 0;
-		break;
-	case SIOCGMIIREG:
-		spin_lock_irqsave(&adapter->stats_lock, flags);
-		if (atl2_read_phy_reg(&adapter->hw,
-			data->reg_num & 0x1F, &data->val_out)) {
+	switch (cmd)
+	{
+		case SIOCGMIIPHY:
+			data->phy_id = 0;
+			break;
+
+		case SIOCGMIIREG:
+			spin_lock_irqsave(&adapter->stats_lock, flags);
+
+			if (atl2_read_phy_reg(&adapter->hw,
+								  data->reg_num & 0x1F, &data->val_out))
+			{
+				spin_unlock_irqrestore(&adapter->stats_lock, flags);
+				return -EIO;
+			}
+
 			spin_unlock_irqrestore(&adapter->stats_lock, flags);
-			return -EIO;
-		}
-		spin_unlock_irqrestore(&adapter->stats_lock, flags);
-		break;
-	case SIOCSMIIREG:
-		if (data->reg_num & ~(0x1F))
-			return -EFAULT;
-		spin_lock_irqsave(&adapter->stats_lock, flags);
-		if (atl2_write_phy_reg(&adapter->hw, data->reg_num,
-			data->val_in)) {
+			break;
+
+		case SIOCSMIIREG:
+			if (data->reg_num & ~(0x1F))
+			{
+				return -EFAULT;
+			}
+
+			spin_lock_irqsave(&adapter->stats_lock, flags);
+
+			if (atl2_write_phy_reg(&adapter->hw, data->reg_num,
+								   data->val_in))
+			{
+				spin_unlock_irqrestore(&adapter->stats_lock, flags);
+				return -EIO;
+			}
+
 			spin_unlock_irqrestore(&adapter->stats_lock, flags);
-			return -EIO;
-		}
-		spin_unlock_irqrestore(&adapter->stats_lock, flags);
-		break;
-	default:
-		return -EOPNOTSUPP;
+			break;
+
+		default:
+			return -EOPNOTSUPP;
 	}
+
 	return 0;
 }
 
 static int atl2_ioctl(struct net_device *netdev, struct ifreq *ifr, int cmd)
 {
-	switch (cmd) {
-	case SIOCGMIIPHY:
-	case SIOCGMIIREG:
-	case SIOCSMIIREG:
-		return atl2_mii_ioctl(netdev, ifr, cmd);
+	switch (cmd)
+	{
+		case SIOCGMIIPHY:
+		case SIOCGMIIREG:
+		case SIOCSMIIREG:
+			return atl2_mii_ioctl(netdev, ifr, cmd);
 #ifdef ETHTOOL_OPS_COMPAT
-	case SIOCETHTOOL:
-		return ethtool_ioctl(ifr);
+
+		case SIOCETHTOOL:
+			return ethtool_ioctl(ifr);
 #endif
-	default:
-		return -EOPNOTSUPP;
+
+		default:
+			return -EOPNOTSUPP;
 	}
 }
 
@@ -1036,7 +1210,8 @@ static void atl2_watchdog(unsigned long data)
 {
 	struct atl2_adapter *adapter = (struct atl2_adapter *) data;
 
-	if (!test_bit(__ATL2_DOWN, &adapter->flags)) {
+	if (!test_bit(__ATL2_DOWN, &adapter->flags))
+	{
 		u32 drop_rxd, drop_rxs;
 		unsigned long flags;
 
@@ -1049,7 +1224,7 @@ static void atl2_watchdog(unsigned long data)
 
 		/* Reset the timer */
 		mod_timer(&adapter->watchdog_timer,
-			  round_jiffies(jiffies + 4 * HZ));
+				  round_jiffies(jiffies + 4 * HZ));
 	}
 }
 
@@ -1066,7 +1241,7 @@ static void atl2_phy_config(unsigned long data)
 	spin_lock_irqsave(&adapter->stats_lock, flags);
 	atl2_write_phy_reg(hw, MII_ADVERTISE, hw->mii_autoneg_adv_reg);
 	atl2_write_phy_reg(hw, MII_BMCR, MII_CR_RESET | MII_CR_AUTO_NEG_EN |
-		MII_CR_RESTART_AUTO_NEG);
+					   MII_CR_RESTART_AUTO_NEG);
 	spin_unlock_irqrestore(&adapter->stats_lock, flags);
 	clear_bit(0, &adapter->cfg_phy);
 }
@@ -1080,7 +1255,9 @@ static int atl2_up(struct atl2_adapter *adapter)
 	/* hardware has been reset, we need to reload some things */
 
 	err = atl2_init_hw(&adapter->hw);
-	if (err) {
+
+	if (err)
+	{
 		err = -EIO;
 		return err;
 	}
@@ -1090,7 +1267,8 @@ static int atl2_up(struct atl2_adapter *adapter)
 
 	atl2_restore_vlan(adapter);
 
-	if (atl2_configure(adapter)) {
+	if (atl2_configure(adapter))
+	{
 		err = -EIO;
 		goto err_up;
 	}
@@ -1099,7 +1277,7 @@ static int atl2_up(struct atl2_adapter *adapter)
 
 	val = ATL2_READ_REG(&adapter->hw, REG_MASTER_CTRL);
 	ATL2_WRITE_REG(&adapter->hw, REG_MASTER_CTRL, val |
-		MASTER_CTRL_MANUAL_INT);
+				   MASTER_CTRL_MANUAL_INT);
 
 	atl2_irq_enable(adapter);
 
@@ -1110,8 +1288,12 @@ err_up:
 static void atl2_reinit_locked(struct atl2_adapter *adapter)
 {
 	WARN_ON(in_interrupt());
+
 	while (test_and_set_bit(__ATL2_RESETTING, &adapter->flags))
+	{
 		msleep(1);
+	}
+
 	atl2_down(adapter);
 	atl2_up(adapter);
 	clear_bit(__ATL2_RESETTING, &adapter->flags);
@@ -1136,7 +1318,9 @@ static void atl2_setup_mac_ctrl(struct atl2_adapter *adapter)
 
 	/* duplex */
 	if (FULL_DUPLEX == adapter->link_duplex)
+	{
 		value |= MAC_CTRL_DUPLX;
+	}
 
 	/* flow control */
 	value |= (MAC_CTRL_TX_FLOW | MAC_CTRL_RX_FLOW);
@@ -1146,21 +1330,26 @@ static void atl2_setup_mac_ctrl(struct atl2_adapter *adapter)
 
 	/* preamble length */
 	value |= (((u32)adapter->hw.preamble_len & MAC_CTRL_PRMLEN_MASK) <<
-		MAC_CTRL_PRMLEN_SHIFT);
+			  MAC_CTRL_PRMLEN_SHIFT);
 
 	/* vlan */
 	__atl2_vlan_mode(netdev->features, &value);
 
 	/* filter mode */
 	value |= MAC_CTRL_BC_EN;
+
 	if (netdev->flags & IFF_PROMISC)
+	{
 		value |= MAC_CTRL_PROMIS_EN;
+	}
 	else if (netdev->flags & IFF_ALLMULTI)
+	{
 		value |= MAC_CTRL_MC_ALL_EN;
+	}
 
 	/* half retry buffer */
 	value |= (((u32)(adapter->hw.retry_buf &
-		MAC_CTRL_HALF_LEFT_BUF_MASK)) << MAC_CTRL_HALF_LEFT_BUF_SHIFT);
+					 MAC_CTRL_HALF_LEFT_BUF_MASK)) << MAC_CTRL_HALF_LEFT_BUF_SHIFT);
 
 	ATL2_WRITE_REG(hw, REG_MAC_CTRL, value);
 }
@@ -1176,8 +1365,11 @@ static int atl2_check_link(struct atl2_adapter *adapter)
 	/* MII_BMSR must read twise */
 	atl2_read_phy_reg(hw, MII_BMSR, &phy_data);
 	atl2_read_phy_reg(hw, MII_BMSR, &phy_data);
-	if (!(phy_data&BMSR_LSTATUS)) { /* link down */
-		if (netif_carrier_ok(netdev)) { /* old link state: Up */
+
+	if (!(phy_data & BMSR_LSTATUS)) /* link down */
+	{
+		if (netif_carrier_ok(netdev))   /* old link state: Up */
+		{
 			u32 value;
 			/* disable rx */
 			value = ATL2_READ_REG(hw, REG_MAC_CTRL);
@@ -1187,54 +1379,81 @@ static int atl2_check_link(struct atl2_adapter *adapter)
 			netif_carrier_off(netdev);
 			netif_stop_queue(netdev);
 		}
+
 		return 0;
 	}
 
 	/* Link Up */
 	ret_val = atl2_get_speed_and_duplex(hw, &speed, &duplex);
+
 	if (ret_val)
+	{
 		return ret_val;
-	switch (hw->MediaType) {
-	case MEDIA_TYPE_100M_FULL:
-		if (speed  != SPEED_100 || duplex != FULL_DUPLEX)
-			reconfig = 1;
-		break;
-	case MEDIA_TYPE_100M_HALF:
-		if (speed  != SPEED_100 || duplex != HALF_DUPLEX)
-			reconfig = 1;
-		break;
-	case MEDIA_TYPE_10M_FULL:
-		if (speed != SPEED_10 || duplex != FULL_DUPLEX)
-			reconfig = 1;
-		break;
-	case MEDIA_TYPE_10M_HALF:
-		if (speed  != SPEED_10 || duplex != HALF_DUPLEX)
-			reconfig = 1;
-		break;
 	}
+
+	switch (hw->MediaType)
+	{
+		case MEDIA_TYPE_100M_FULL:
+			if (speed  != SPEED_100 || duplex != FULL_DUPLEX)
+			{
+				reconfig = 1;
+			}
+
+			break;
+
+		case MEDIA_TYPE_100M_HALF:
+			if (speed  != SPEED_100 || duplex != HALF_DUPLEX)
+			{
+				reconfig = 1;
+			}
+
+			break;
+
+		case MEDIA_TYPE_10M_FULL:
+			if (speed != SPEED_10 || duplex != FULL_DUPLEX)
+			{
+				reconfig = 1;
+			}
+
+			break;
+
+		case MEDIA_TYPE_10M_HALF:
+			if (speed  != SPEED_10 || duplex != HALF_DUPLEX)
+			{
+				reconfig = 1;
+			}
+
+			break;
+	}
+
 	/* link result is our setting */
-	if (reconfig == 0) {
+	if (reconfig == 0)
+	{
 		if (adapter->link_speed != speed ||
-			adapter->link_duplex != duplex) {
+			adapter->link_duplex != duplex)
+		{
 			adapter->link_speed = speed;
 			adapter->link_duplex = duplex;
 			atl2_setup_mac_ctrl(adapter);
 			printk(KERN_INFO "%s: %s NIC Link is Up<%d Mbps %s>\n",
-				atl2_driver_name, netdev->name,
-				adapter->link_speed,
-				adapter->link_duplex == FULL_DUPLEX ?
-					"Full Duplex" : "Half Duplex");
+				   atl2_driver_name, netdev->name,
+				   adapter->link_speed,
+				   adapter->link_duplex == FULL_DUPLEX ?
+				   "Full Duplex" : "Half Duplex");
 		}
 
-		if (!netif_carrier_ok(netdev)) { /* Link down -> Up */
+		if (!netif_carrier_ok(netdev))   /* Link down -> Up */
+		{
 			netif_carrier_on(netdev);
 			netif_wake_queue(netdev);
 		}
+
 		return 0;
 	}
 
 	/* change original link status */
-	if (netif_carrier_ok(netdev)) {
+	if (netif_carrier_ok(netdev))
+	{
 		u32 value;
 		/* disable rx */
 		value = ATL2_READ_REG(hw, REG_MAC_CTRL);
@@ -1248,10 +1467,11 @@ static int atl2_check_link(struct atl2_adapter *adapter)
 
 	/* auto-neg, insert timer to re-config phy
 	 * (if interval smaller than 5 seconds, something strange) */
-	if (!test_bit(__ATL2_DOWN, &adapter->flags)) {
+	if (!test_bit(__ATL2_DOWN, &adapter->flags))
+	{
 		if (!test_and_set_bit(0, &adapter->cfg_phy))
 			mod_timer(&adapter->phy_config_timer,
-				  round_jiffies(jiffies + 5 * HZ));
+					  round_jiffies(jiffies + 5 * HZ));
 	}
 
 	return 0;
@@ -1279,13 +1499,25 @@ static void atl2_setup_pcicmd(struct pci_dev *pdev)
 	pci_read_config_word(pdev, PCI_COMMAND, &cmd);
 
 	if (cmd & PCI_COMMAND_INTX_DISABLE)
+	{
 		cmd &= ~PCI_COMMAND_INTX_DISABLE;
+	}
+
 	if (cmd & PCI_COMMAND_IO)
+	{
 		cmd &= ~PCI_COMMAND_IO;
+	}
+
 	if (0 == (cmd & PCI_COMMAND_MEMORY))
+	{
 		cmd |= PCI_COMMAND_MEMORY;
+	}
+
 	if (0 == (cmd & PCI_COMMAND_MASTER))
+	{
 		cmd |= PCI_COMMAND_MASTER;
+	}
+
 	pci_write_config_word(pdev, PCI_COMMAND, cmd);
 
 	/*
@@ -1306,7 +1538,8 @@ static void atl2_poll_controller(struct net_device *netdev)
 #endif
 
 
-static const struct net_device_ops atl2_netdev_ops = {
+static const struct net_device_ops atl2_netdev_ops =
+{
 	.ndo_open		= atl2_open,
 	.ndo_stop		= atl2_close,
 	.ndo_start_xmit		= atl2_xmit_frame,
@@ -1346,8 +1579,11 @@ static int atl2_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	cards_found = 0;
 
 	err = pci_enable_device(pdev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/*
 	 * atl2 is a shared-high-32-bit device, so we're stuck with 32-bit DMA
@@ -1355,7 +1591,8 @@ static int atl2_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	 * on these devices.
 	 */
 	if (pci_set_dma_mask(pdev, DMA_BIT_MASK(32)) &&
-		pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32))) {
+		pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32)))
+	{
 		printk(KERN_ERR "atl2: No usable DMA configuration, aborting\n");
 		goto err_dma;
 	}
@@ -1363,8 +1600,11 @@ static int atl2_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	/* Mark all PCI regions associated with PCI device
 	 * pdev as being reserved by owner atl2_driver_name */
 	err = pci_request_regions(pdev, atl2_driver_name);
+
 	if (err)
+	{
 		goto err_pci_reg;
+	}
 
 	/* Enables bus-mastering on the device and calls
 	 * pcibios_set_master to do the needed arch specific settings */
@@ -1372,8 +1612,11 @@ static int atl2_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	err = -ENOMEM;
 	netdev = alloc_etherdev(sizeof(struct atl2_adapter));
+
 	if (!netdev)
+	{
 		goto err_alloc_etherdev;
+	}
 
 	SET_NETDEV_DEV(netdev, &pdev->dev);
 
@@ -1388,7 +1631,9 @@ static int atl2_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	adapter->hw.mem_rang = (u32)mmio_len;
 	adapter->hw.hw_addr = ioremap(mmio_start, mmio_len);
-	if (!adapter->hw.hw_addr) {
+
+	if (!adapter->hw.hw_addr)
+	{
 		err = -EIO;
 		goto err_ioremap;
 	}
@@ -1407,8 +1652,11 @@ static int atl2_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	/* setup the private structure */
 	err = atl2_sw_init(adapter);
+
 	if (err)
+	{
 		goto err_sw_init;
+	}
 
 	err = -EIO;
 
@@ -1421,7 +1669,8 @@ static int atl2_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	/* reset the controller to
 	 * put the device in a known good starting state */
 
-	if (atl2_reset_hw(&adapter->hw)) {
+	if (atl2_reset_hw(&adapter->hw))
+	{
 		err = -EIO;
 		goto err_reset;
 	}
@@ -1429,7 +1678,9 @@ static int atl2_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	/* copy the MAC address out of the EEPROM */
 	atl2_read_mac_addr(&adapter->hw);
 	memcpy(netdev->dev_addr, adapter->hw.mac_addr, netdev->addr_len);
-	if (!is_valid_ether_addr(netdev->dev_addr)) {
+
+	if (!is_valid_ether_addr(netdev->dev_addr))
+	{
 		err = -EIO;
 		goto err_eeprom;
 	}
@@ -1437,18 +1688,21 @@ static int atl2_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	atl2_check_options(adapter);
 
 	setup_timer(&adapter->watchdog_timer, atl2_watchdog,
-		    (unsigned long)adapter);
+				(unsigned long)adapter);
 
 	setup_timer(&adapter->phy_config_timer, atl2_phy_config,
-		    (unsigned long)adapter);
+				(unsigned long)adapter);
 
 	INIT_WORK(&adapter->reset_task, atl2_reset_task);
 	INIT_WORK(&adapter->link_chg_task, atl2_link_chg_task);
 
 	strcpy(netdev->name, "eth%d"); /* ?? */
 	err = register_netdev(netdev);
+
 	if (err)
+	{
 		goto err_register;
+	}
 
 	/* assume we have no link for now */
 	netif_carrier_off(netdev);
@@ -1525,30 +1779,41 @@ static int atl2_suspend(struct pci_dev *pdev, pm_message_t state)
 
 	netif_device_detach(netdev);
 
-	if (netif_running(netdev)) {
+	if (netif_running(netdev))
+	{
 		WARN_ON(test_bit(__ATL2_RESETTING, &adapter->flags));
 		atl2_down(adapter);
 	}
 
 #ifdef CONFIG_PM
 	retval = pci_save_state(pdev);
+
 	if (retval)
+	{
 		return retval;
+	}
+
 #endif
 
 	atl2_read_phy_reg(hw, MII_BMSR, (u16 *)&ctrl);
 	atl2_read_phy_reg(hw, MII_BMSR, (u16 *)&ctrl);
-	if (ctrl & BMSR_LSTATUS)
-		wufc &= ~ATLX_WUFC_LNKC;
 
-	if (0 != (ctrl & BMSR_LSTATUS) && 0 != wufc) {
+	if (ctrl & BMSR_LSTATUS)
+	{
+		wufc &= ~ATLX_WUFC_LNKC;
+	}
+
+	if (0 != (ctrl & BMSR_LSTATUS) && 0 != wufc)
+	{
 		u32 ret_val;
 		/* get current link speed & duplex */
 		ret_val = atl2_get_speed_and_duplex(hw, &speed, &duplex);
-		if (ret_val) {
+
+		if (ret_val)
+		{
 			printk(KERN_DEBUG
-				"%s: get speed&duplex error while suspend\n",
-				atl2_driver_name);
+				   "%s: get speed&duplex error while suspend\n",
+				   atl2_driver_name);
 			goto wol_dis;
 		}
 
@@ -1556,22 +1821,30 @@ static int atl2_suspend(struct pci_dev *pdev, pm_message_t state)
 
 		/* turn on magic packet wol */
 		if (wufc & ATLX_WUFC_MAG)
+		{
 			ctrl |= (WOL_MAGIC_EN | WOL_MAGIC_PME_EN);
+		}
 
 		/* ignore Link Chg event when Link is up */
 		ATL2_WRITE_REG(hw, REG_WOL_CTRL, ctrl);
 
 		/* Config MAC CTRL Register */
 		ctrl = MAC_CTRL_RX_EN | MAC_CTRL_MACLP_CLK_PHY;
+
 		if (FULL_DUPLEX == adapter->link_duplex)
+		{
 			ctrl |= MAC_CTRL_DUPLX;
+		}
+
 		ctrl |= (MAC_CTRL_ADD_CRC | MAC_CTRL_PAD);
 		ctrl |= (((u32)adapter->hw.preamble_len &
-			MAC_CTRL_PRMLEN_MASK) << MAC_CTRL_PRMLEN_SHIFT);
+				  MAC_CTRL_PRMLEN_MASK) << MAC_CTRL_PRMLEN_SHIFT);
 		ctrl |= (((u32)(adapter->hw.retry_buf &
-			MAC_CTRL_HALF_LEFT_BUF_MASK)) <<
-			MAC_CTRL_HALF_LEFT_BUF_SHIFT);
-		if (wufc & ATLX_WUFC_MAG) {
+						MAC_CTRL_HALF_LEFT_BUF_MASK)) <<
+				 MAC_CTRL_HALF_LEFT_BUF_SHIFT);
+
+		if (wufc & ATLX_WUFC_MAG)
+		{
 			/* magic packet maybe Broadcast&multicast&Unicast */
 			ctrl |= MAC_CTRL_BC_EN;
 		}
@@ -1590,7 +1863,8 @@ static int atl2_suspend(struct pci_dev *pdev, pm_message_t state)
 		goto suspend_exit;
 	}
 
-	if (0 == (ctrl&BMSR_LSTATUS) && 0 != (wufc&ATLX_WUFC_LNKC)) {
+	if (0 == (ctrl & BMSR_LSTATUS) && 0 != (wufc & ATLX_WUFC_LNKC))
+	{
 		/* link is down, so only LINK CHG WOL event enable */
 		ctrl |= (WOL_LINK_CHG_EN | WOL_LINK_CHG_PME_EN);
 		ATL2_WRITE_REG(hw, REG_WOL_CTRL, ctrl);
@@ -1629,8 +1903,11 @@ wol_dis:
 	pci_enable_wake(pdev, pci_choose_state(pdev, state), 0);
 
 suspend_exit:
+
 	if (netif_running(netdev))
+	{
 		atl2_free_irq(adapter);
+	}
 
 	pci_disable_device(pdev);
 
@@ -1650,9 +1927,11 @@ static int atl2_resume(struct pci_dev *pdev)
 	pci_restore_state(pdev);
 
 	err = pci_enable_device(pdev);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR
-			"atl2: Cannot enable PCI device from suspend\n");
+			   "atl2: Cannot enable PCI device from suspend\n");
 		return err;
 	}
 
@@ -1665,16 +1944,22 @@ static int atl2_resume(struct pci_dev *pdev)
 
 	ATL2_WRITE_REG(&adapter->hw, REG_WOL_CTRL, 0);
 
-	if (netif_running(netdev)) {
+	if (netif_running(netdev))
+	{
 		err = atl2_request_irq(adapter);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	atl2_reset_hw(&adapter->hw);
 
 	if (netif_running(netdev))
+	{
 		atl2_up(adapter);
+	}
 
 	netif_device_attach(netdev);
 
@@ -1687,7 +1972,8 @@ static void atl2_shutdown(struct pci_dev *pdev)
 	atl2_suspend(pdev, PMSG_SUSPEND);
 }
 
-static struct pci_driver atl2_driver = {
+static struct pci_driver atl2_driver =
+{
 	.name     = atl2_driver_name,
 	.id_table = atl2_pci_tbl,
 	.probe    = atl2_probe,
@@ -1709,7 +1995,7 @@ static struct pci_driver atl2_driver = {
 static int __init atl2_init_module(void)
 {
 	printk(KERN_INFO "%s - version %s\n", atl2_driver_string,
-		atl2_driver_version);
+		   atl2_driver_version);
 	printk(KERN_INFO "%s\n", atl2_copyright);
 	return pci_register_driver(&atl2_driver);
 }
@@ -1740,17 +2026,17 @@ static void atl2_write_pci_cfg(struct atl2_hw *hw, u32 reg, u16 *value)
 }
 
 static int atl2_get_settings(struct net_device *netdev,
-	struct ethtool_cmd *ecmd)
+							 struct ethtool_cmd *ecmd)
 {
 	struct atl2_adapter *adapter = netdev_priv(netdev);
 	struct atl2_hw *hw = &adapter->hw;
 
 	ecmd->supported = (SUPPORTED_10baseT_Half |
-		SUPPORTED_10baseT_Full |
-		SUPPORTED_100baseT_Half |
-		SUPPORTED_100baseT_Full |
-		SUPPORTED_Autoneg |
-		SUPPORTED_TP);
+					   SUPPORTED_10baseT_Full |
+					   SUPPORTED_100baseT_Half |
+					   SUPPORTED_100baseT_Full |
+					   SUPPORTED_Autoneg |
+					   SUPPORTED_TP);
 	ecmd->advertising = ADVERTISED_TP;
 
 	ecmd->advertising |= ADVERTISED_Autoneg;
@@ -1760,13 +2046,21 @@ static int atl2_get_settings(struct net_device *netdev,
 	ecmd->phy_address = 0;
 	ecmd->transceiver = XCVR_INTERNAL;
 
-	if (adapter->link_speed != SPEED_0) {
+	if (adapter->link_speed != SPEED_0)
+	{
 		ethtool_cmd_speed_set(ecmd, adapter->link_speed);
+
 		if (adapter->link_duplex == FULL_DUPLEX)
+		{
 			ecmd->duplex = DUPLEX_FULL;
+		}
 		else
+		{
 			ecmd->duplex = DUPLEX_HALF;
-	} else {
+		}
+	}
+	else
+	{
 		ethtool_cmd_speed_set(ecmd, SPEED_UNKNOWN);
 		ecmd->duplex = DUPLEX_UNKNOWN;
 	}
@@ -1776,56 +2070,77 @@ static int atl2_get_settings(struct net_device *netdev,
 }
 
 static int atl2_set_settings(struct net_device *netdev,
-	struct ethtool_cmd *ecmd)
+							 struct ethtool_cmd *ecmd)
 {
 	struct atl2_adapter *adapter = netdev_priv(netdev);
 	struct atl2_hw *hw = &adapter->hw;
 
 	while (test_and_set_bit(__ATL2_RESETTING, &adapter->flags))
+	{
 		msleep(1);
+	}
 
-	if (ecmd->autoneg == AUTONEG_ENABLE) {
+	if (ecmd->autoneg == AUTONEG_ENABLE)
+	{
 #define MY_ADV_MASK	(ADVERTISE_10_HALF | \
-			 ADVERTISE_10_FULL | \
-			 ADVERTISE_100_HALF| \
-			 ADVERTISE_100_FULL)
+					 ADVERTISE_10_FULL | \
+					 ADVERTISE_100_HALF| \
+					 ADVERTISE_100_FULL)
 
-		if ((ecmd->advertising & MY_ADV_MASK) == MY_ADV_MASK) {
+		if ((ecmd->advertising & MY_ADV_MASK) == MY_ADV_MASK)
+		{
 			hw->MediaType = MEDIA_TYPE_AUTO_SENSOR;
 			hw->autoneg_advertised =  MY_ADV_MASK;
-		} else if ((ecmd->advertising & MY_ADV_MASK) ==
-				ADVERTISE_100_FULL) {
+		}
+		else if ((ecmd->advertising & MY_ADV_MASK) ==
+				 ADVERTISE_100_FULL)
+		{
 			hw->MediaType = MEDIA_TYPE_100M_FULL;
 			hw->autoneg_advertised = ADVERTISE_100_FULL;
-		} else if ((ecmd->advertising & MY_ADV_MASK) ==
-				ADVERTISE_100_HALF) {
+		}
+		else if ((ecmd->advertising & MY_ADV_MASK) ==
+				 ADVERTISE_100_HALF)
+		{
 			hw->MediaType = MEDIA_TYPE_100M_HALF;
 			hw->autoneg_advertised = ADVERTISE_100_HALF;
-		} else if ((ecmd->advertising & MY_ADV_MASK) ==
-				ADVERTISE_10_FULL) {
+		}
+		else if ((ecmd->advertising & MY_ADV_MASK) ==
+				 ADVERTISE_10_FULL)
+		{
 			hw->MediaType = MEDIA_TYPE_10M_FULL;
 			hw->autoneg_advertised = ADVERTISE_10_FULL;
-		}  else if ((ecmd->advertising & MY_ADV_MASK) ==
-				ADVERTISE_10_HALF) {
+		}
+		else if ((ecmd->advertising & MY_ADV_MASK) ==
+				 ADVERTISE_10_HALF)
+		{
 			hw->MediaType = MEDIA_TYPE_10M_HALF;
 			hw->autoneg_advertised = ADVERTISE_10_HALF;
-		} else {
+		}
+		else
+		{
 			clear_bit(__ATL2_RESETTING, &adapter->flags);
 			return -EINVAL;
 		}
+
 		ecmd->advertising = hw->autoneg_advertised |
-			ADVERTISED_TP | ADVERTISED_Autoneg;
-	} else {
+							ADVERTISED_TP | ADVERTISED_Autoneg;
+	}
+	else
+	{
 		clear_bit(__ATL2_RESETTING, &adapter->flags);
 		return -EINVAL;
 	}
 
 	/* reset the link */
-	if (netif_running(adapter->netdev)) {
+	if (netif_running(adapter->netdev))
+	{
 		atl2_down(adapter);
 		atl2_up(adapter);
-	} else
+	}
+	else
+	{
 		atl2_reset_hw(&adapter->hw);
+	}
 
 	clear_bit(__ATL2_RESETTING, &adapter->flags);
 	return 0;
@@ -1850,7 +2165,7 @@ static int atl2_get_regs_len(struct net_device *netdev)
 }
 
 static void atl2_get_regs(struct net_device *netdev,
-	struct ethtool_regs *regs, void *p)
+						  struct ethtool_regs *regs, void *p)
 {
 	struct atl2_adapter *adapter = netdev_priv(netdev);
 	struct atl2_hw *hw = &adapter->hw;
@@ -1877,9 +2192,9 @@ static void atl2_get_regs(struct net_device *netdev,
 	regs_buff[13] = ATL2_READ_REG(hw, REG_MAC_CTRL);
 	regs_buff[14] = ATL2_READ_REG(hw, REG_MAC_IPG_IFG);
 	regs_buff[15] = ATL2_READ_REG(hw, REG_MAC_STA_ADDR);
-	regs_buff[16] = ATL2_READ_REG(hw, REG_MAC_STA_ADDR+4);
+	regs_buff[16] = ATL2_READ_REG(hw, REG_MAC_STA_ADDR + 4);
 	regs_buff[17] = ATL2_READ_REG(hw, REG_RX_HASH_TABLE);
-	regs_buff[18] = ATL2_READ_REG(hw, REG_RX_HASH_TABLE+4);
+	regs_buff[18] = ATL2_READ_REG(hw, REG_RX_HASH_TABLE + 4);
 	regs_buff[19] = ATL2_READ_REG(hw, REG_MAC_HALF_DUPLX_CTRL);
 	regs_buff[20] = ATL2_READ_REG(hw, REG_MTU);
 	regs_buff[21] = ATL2_READ_REG(hw, REG_WOL_CTRL);
@@ -1912,13 +2227,17 @@ static int atl2_get_eeprom_len(struct net_device *netdev)
 	struct atl2_adapter *adapter = netdev_priv(netdev);
 
 	if (!atl2_check_eeprom_exist(&adapter->hw))
+	{
 		return 512;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static int atl2_get_eeprom(struct net_device *netdev,
-	struct ethtool_eeprom *eeprom, u8 *bytes)
+						   struct ethtool_eeprom *eeprom, u8 *bytes)
 {
 	struct atl2_adapter *adapter = netdev_priv(netdev);
 	struct atl2_hw *hw = &adapter->hw;
@@ -1928,10 +2247,14 @@ static int atl2_get_eeprom(struct net_device *netdev,
 	int i;
 
 	if (eeprom->len == 0)
+	{
 		return -EINVAL;
+	}
 
 	if (atl2_check_eeprom_exist(hw))
+	{
 		return -EINVAL;
+	}
 
 	eeprom->magic = hw->vendor_id | (hw->device_id << 16);
 
@@ -1939,19 +2262,24 @@ static int atl2_get_eeprom(struct net_device *netdev,
 	last_dword = (eeprom->offset + eeprom->len - 1) >> 2;
 
 	eeprom_buff = kmalloc(sizeof(u32) * (last_dword - first_dword + 1),
-		GFP_KERNEL);
-	if (!eeprom_buff)
-		return -ENOMEM;
+						  GFP_KERNEL);
 
-	for (i = first_dword; i < last_dword; i++) {
-		if (!atl2_read_eeprom(hw, i*4, &(eeprom_buff[i-first_dword]))) {
+	if (!eeprom_buff)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = first_dword; i < last_dword; i++)
+	{
+		if (!atl2_read_eeprom(hw, i * 4, &(eeprom_buff[i - first_dword])))
+		{
 			ret_val = -EIO;
 			goto free;
 		}
 	}
 
 	memcpy(bytes, (u8 *)eeprom_buff + (eeprom->offset & 3),
-		eeprom->len);
+		   eeprom->len);
 free:
 	kfree(eeprom_buff);
 
@@ -1959,7 +2287,7 @@ free:
 }
 
 static int atl2_set_eeprom(struct net_device *netdev,
-	struct ethtool_eeprom *eeprom, u8 *bytes)
+						   struct ethtool_eeprom *eeprom, u8 *bytes)
 {
 	struct atl2_adapter *adapter = netdev_priv(netdev);
 	struct atl2_hw *hw = &adapter->hw;
@@ -1969,37 +2297,50 @@ static int atl2_set_eeprom(struct net_device *netdev,
 	int i;
 
 	if (eeprom->len == 0)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if (eeprom->magic != (hw->vendor_id | (hw->device_id << 16)))
+	{
 		return -EFAULT;
+	}
 
 	max_len = 512;
 
 	first_dword = eeprom->offset >> 2;
 	last_dword = (eeprom->offset + eeprom->len - 1) >> 2;
 	eeprom_buff = kmalloc(max_len, GFP_KERNEL);
+
 	if (!eeprom_buff)
+	{
 		return -ENOMEM;
+	}
 
 	ptr = eeprom_buff;
 
-	if (eeprom->offset & 3) {
+	if (eeprom->offset & 3)
+	{
 		/* need read/modify/write of first changed EEPROM word */
 		/* only the second byte of the word is being modified */
-		if (!atl2_read_eeprom(hw, first_dword*4, &(eeprom_buff[0]))) {
+		if (!atl2_read_eeprom(hw, first_dword * 4, &(eeprom_buff[0])))
+		{
 			ret_val = -EIO;
 			goto out;
 		}
+
 		ptr++;
 	}
-	if (((eeprom->offset + eeprom->len) & 3)) {
+
+	if (((eeprom->offset + eeprom->len) & 3))
+	{
 		/*
 		 * need read/modify/write of last changed EEPROM word
 		 * only the first byte of the word is being modified
 		 */
 		if (!atl2_read_eeprom(hw, last_dword * 4,
-					&(eeprom_buff[last_dword - first_dword]))) {
+							  &(eeprom_buff[last_dword - first_dword])))
+		{
 			ret_val = -EIO;
 			goto out;
 		}
@@ -2008,32 +2349,35 @@ static int atl2_set_eeprom(struct net_device *netdev,
 	/* Device's eeprom is always little-endian, word addressable */
 	memcpy(ptr, bytes, eeprom->len);
 
-	for (i = 0; i < last_dword - first_dword + 1; i++) {
-		if (!atl2_write_eeprom(hw, ((first_dword+i)*4), eeprom_buff[i])) {
+	for (i = 0; i < last_dword - first_dword + 1; i++)
+	{
+		if (!atl2_write_eeprom(hw, ((first_dword + i) * 4), eeprom_buff[i]))
+		{
 			ret_val = -EIO;
 			goto out;
 		}
 	}
- out:
+
+out:
 	kfree(eeprom_buff);
 	return ret_val;
 }
 
 static void atl2_get_drvinfo(struct net_device *netdev,
-	struct ethtool_drvinfo *drvinfo)
+							 struct ethtool_drvinfo *drvinfo)
 {
 	struct atl2_adapter *adapter = netdev_priv(netdev);
 
 	strlcpy(drvinfo->driver,  atl2_driver_name, sizeof(drvinfo->driver));
 	strlcpy(drvinfo->version, atl2_driver_version,
-		sizeof(drvinfo->version));
+			sizeof(drvinfo->version));
 	strlcpy(drvinfo->fw_version, "L2", sizeof(drvinfo->fw_version));
 	strlcpy(drvinfo->bus_info, pci_name(adapter->pdev),
-		sizeof(drvinfo->bus_info));
+			sizeof(drvinfo->bus_info));
 }
 
 static void atl2_get_wol(struct net_device *netdev,
-	struct ethtool_wolinfo *wol)
+						 struct ethtool_wolinfo *wol)
 {
 	struct atl2_adapter *adapter = netdev_priv(netdev);
 
@@ -2041,15 +2385,29 @@ static void atl2_get_wol(struct net_device *netdev,
 	wol->wolopts = 0;
 
 	if (adapter->wol & ATLX_WUFC_EX)
+	{
 		wol->wolopts |= WAKE_UCAST;
+	}
+
 	if (adapter->wol & ATLX_WUFC_MC)
+	{
 		wol->wolopts |= WAKE_MCAST;
+	}
+
 	if (adapter->wol & ATLX_WUFC_BC)
+	{
 		wol->wolopts |= WAKE_BCAST;
+	}
+
 	if (adapter->wol & ATLX_WUFC_MAG)
+	{
 		wol->wolopts |= WAKE_MAGIC;
+	}
+
 	if (adapter->wol & ATLX_WUFC_LNKC)
+	{
 		wol->wolopts |= WAKE_PHY;
+	}
 }
 
 static int atl2_set_wol(struct net_device *netdev, struct ethtool_wolinfo *wol)
@@ -2057,18 +2415,27 @@ static int atl2_set_wol(struct net_device *netdev, struct ethtool_wolinfo *wol)
 	struct atl2_adapter *adapter = netdev_priv(netdev);
 
 	if (wol->wolopts & (WAKE_ARP | WAKE_MAGICSECURE))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if (wol->wolopts & (WAKE_UCAST | WAKE_BCAST | WAKE_MCAST))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	/* these settings will always override what we currently have */
 	adapter->wol = 0;
 
 	if (wol->wolopts & WAKE_MAGIC)
+	{
 		adapter->wol |= ATLX_WUFC_MAG;
+	}
+
 	if (wol->wolopts & WAKE_PHY)
+	{
 		adapter->wol |= ATLX_WUFC_LNKC;
+	}
 
 	return 0;
 }
@@ -2076,12 +2443,17 @@ static int atl2_set_wol(struct net_device *netdev, struct ethtool_wolinfo *wol)
 static int atl2_nway_reset(struct net_device *netdev)
 {
 	struct atl2_adapter *adapter = netdev_priv(netdev);
+
 	if (netif_running(netdev))
+	{
 		atl2_reinit_locked(adapter);
+	}
+
 	return 0;
 }
 
-static const struct ethtool_ops atl2_ethtool_ops = {
+static const struct ethtool_ops atl2_ethtool_ops =
+{
 	.get_settings		= atl2_get_settings,
 	.set_settings		= atl2_set_settings,
 	.get_drvinfo		= atl2_get_drvinfo,
@@ -2099,7 +2471,7 @@ static const struct ethtool_ops atl2_ethtool_ops = {
 };
 
 #define LBYTESWAP(a)  ((((a) & 0x00ff00ff) << 8) | \
-	(((a) & 0xff00ff00) >> 8))
+					   (((a) & 0xff00ff00) >> 8))
 #define LONGSWAP(a)   ((LBYTESWAP(a) << 16) | (LBYTESWAP(a) >> 16))
 #define SHORTSWAP(a)  (((a) << 8) | ((a) >> 8))
 
@@ -2117,11 +2489,13 @@ static s32 atl2_reset_hw(struct atl2_hw *hw)
 
 	/* Workaround for PCI problem when BIOS sets MMRBC incorrectly. */
 	atl2_read_pci_cfg(hw, PCI_REG_COMMAND, &pci_cfg_cmd_word);
+
 	if ((pci_cfg_cmd_word &
-		(CMD_IO_SPACE|CMD_MEMORY_SPACE|CMD_BUS_MASTER)) !=
-		(CMD_IO_SPACE|CMD_MEMORY_SPACE|CMD_BUS_MASTER)) {
+		 (CMD_IO_SPACE | CMD_MEMORY_SPACE | CMD_BUS_MASTER)) !=
+		(CMD_IO_SPACE | CMD_MEMORY_SPACE | CMD_BUS_MASTER))
+	{
 		pci_cfg_cmd_word |=
-			(CMD_IO_SPACE|CMD_MEMORY_SPACE|CMD_BUS_MASTER);
+			(CMD_IO_SPACE | CMD_MEMORY_SPACE | CMD_BUS_MASTER);
 		atl2_write_pci_cfg(hw, PCI_REG_COMMAND, &pci_cfg_cmd_word);
 	}
 
@@ -2142,16 +2516,23 @@ static s32 atl2_reset_hw(struct atl2_hw *hw)
 	msleep(1); /* delay about 1ms */
 
 	/* Wait at least 10ms for All module to be Idle */
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; i++)
+	{
 		icr = ATL2_READ_REG(hw, REG_IDLE_STATUS);
+
 		if (!icr)
+		{
 			break;
+		}
+
 		msleep(1); /* delay 1 ms */
 		cpu_relax();
 	}
 
 	if (icr)
+	{
 		return icr;
+	}
 
 	return 0;
 }
@@ -2164,10 +2545,10 @@ static s32 atl2_reset_hw(struct atl2_hw *hw)
 
 static struct atl2_spi_flash_dev flash_table[] =
 {
-/* MFR    WRSR  READ  PROGRAM WREN  WRDI  RDSR  RDID  SECTOR_ERASE CHIP_ERASE */
-{"Atmel", 0x0,  0x03, 0x02,   0x06, 0x04, 0x05, 0x15, 0x52,        0x62 },
-{"SST",   0x01, 0x03, 0x02,   0x06, 0x04, 0x05, 0x90, 0x20,        0x60 },
-{"ST",    0x01, 0x03, 0x02,   0x06, 0x04, 0x05, 0xAB, 0xD8,        0xC7 },
+	/* MFR    WRSR  READ  PROGRAM WREN  WRDI  RDSR  RDID  SECTOR_ERASE CHIP_ERASE */
+	{"Atmel", 0x0,  0x03, 0x02,   0x06, 0x04, 0x05, 0x15, 0x52,        0x62 },
+	{"SST",   0x01, 0x03, 0x02,   0x06, 0x04, 0x05, 0x90, 0x20,        0x60 },
+	{"ST",    0x01, 0x03, 0x02,   0x06, 0x04, 0x05, 0xAB, 0xD8,        0xC7 },
 };
 
 static bool atl2_spi_read(struct atl2_hw *hw, u32 addr, u32 *buf)
@@ -2179,17 +2560,17 @@ static bool atl2_spi_read(struct atl2_hw *hw, u32 addr, u32 *buf)
 	ATL2_WRITE_REG(hw, REG_SPI_ADDR, addr);
 
 	value = SPI_FLASH_CTRL_WAIT_READY |
-		(CUSTOM_SPI_CS_SETUP & SPI_FLASH_CTRL_CS_SETUP_MASK) <<
+			(CUSTOM_SPI_CS_SETUP & SPI_FLASH_CTRL_CS_SETUP_MASK) <<
 			SPI_FLASH_CTRL_CS_SETUP_SHIFT |
-		(CUSTOM_SPI_CLK_HI & SPI_FLASH_CTRL_CLK_HI_MASK) <<
+			(CUSTOM_SPI_CLK_HI & SPI_FLASH_CTRL_CLK_HI_MASK) <<
 			SPI_FLASH_CTRL_CLK_HI_SHIFT |
-		(CUSTOM_SPI_CLK_LO & SPI_FLASH_CTRL_CLK_LO_MASK) <<
+			(CUSTOM_SPI_CLK_LO & SPI_FLASH_CTRL_CLK_LO_MASK) <<
 			SPI_FLASH_CTRL_CLK_LO_SHIFT |
-		(CUSTOM_SPI_CS_HOLD & SPI_FLASH_CTRL_CS_HOLD_MASK) <<
+			(CUSTOM_SPI_CS_HOLD & SPI_FLASH_CTRL_CS_HOLD_MASK) <<
 			SPI_FLASH_CTRL_CS_HOLD_SHIFT |
-		(CUSTOM_SPI_CS_HI & SPI_FLASH_CTRL_CS_HI_MASK) <<
+			(CUSTOM_SPI_CS_HI & SPI_FLASH_CTRL_CS_HI_MASK) <<
 			SPI_FLASH_CTRL_CS_HI_SHIFT |
-		(0x1 & SPI_FLASH_CTRL_INS_MASK) << SPI_FLASH_CTRL_INS_SHIFT;
+			(0x1 & SPI_FLASH_CTRL_INS_MASK) << SPI_FLASH_CTRL_INS_SHIFT;
 
 	ATL2_WRITE_REG(hw, REG_SPI_FLASH_CTRL, value);
 
@@ -2197,15 +2578,21 @@ static bool atl2_spi_read(struct atl2_hw *hw, u32 addr, u32 *buf)
 
 	ATL2_WRITE_REG(hw, REG_SPI_FLASH_CTRL, value);
 
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; i++)
+	{
 		msleep(1);
 		value = ATL2_READ_REG(hw, REG_SPI_FLASH_CTRL);
+
 		if (!(value & SPI_FLASH_CTRL_START))
+		{
 			break;
+		}
 	}
 
 	if (value & SPI_FLASH_CTRL_START)
+	{
 		return false;
+	}
 
 	*buf = ATL2_READ_REG(hw, REG_SPI_DATA);
 
@@ -2225,46 +2612,67 @@ static int get_permanent_address(struct atl2_hw *hw)
 	bool KeyValid;
 
 	if (is_valid_ether_addr(hw->perm_mac_addr))
+	{
 		return 0;
+	}
 
 	Addr[0] = 0;
 	Addr[1] = 0;
 
-	if (!atl2_check_eeprom_exist(hw)) { /* eeprom exists */
+	if (!atl2_check_eeprom_exist(hw))   /* eeprom exists */
+	{
 		Register = 0;
 		KeyValid = false;
 
 		/* Read out all EEPROM content */
 		i = 0;
-		while (1) {
-			if (atl2_read_eeprom(hw, i + 0x100, &Control)) {
-				if (KeyValid) {
+
+		while (1)
+		{
+			if (atl2_read_eeprom(hw, i + 0x100, &Control))
+			{
+				if (KeyValid)
+				{
 					if (Register == REG_MAC_STA_ADDR)
+					{
 						Addr[0] = Control;
+					}
 					else if (Register ==
-						(REG_MAC_STA_ADDR + 4))
+							 (REG_MAC_STA_ADDR + 4))
+					{
 						Addr[1] = Control;
+					}
+
 					KeyValid = false;
-				} else if ((Control & 0xff) == 0x5A) {
+				}
+				else if ((Control & 0xff) == 0x5A)
+				{
 					KeyValid = true;
 					Register = (u16) (Control >> 16);
-				} else {
-			/* assume data end while encount an invalid KEYWORD */
+				}
+				else
+				{
+					/* assume data end while encount an invalid KEYWORD */
 					break;
 				}
-			} else {
+			}
+			else
+			{
 				break; /* read error */
 			}
+
 			i += 4;
 		}
 
 		*(u32 *) &EthAddr[2] = LONGSWAP(Addr[0]);
 		*(u16 *) &EthAddr[0] = SHORTSWAP(*(u16 *) &Addr[1]);
 
-		if (is_valid_ether_addr(EthAddr)) {
+		if (is_valid_ether_addr(EthAddr))
+		{
 			memcpy(hw->perm_mac_addr, EthAddr, ETH_ALEN);
 			return 0;
 		}
+
 		return 1;
 	}
 
@@ -2274,39 +2682,59 @@ static int get_permanent_address(struct atl2_hw *hw)
 	Register = 0;
 	KeyValid = false;
 	i = 0;
-	while (1) {
-		if (atl2_spi_read(hw, i + 0x1f000, &Control)) {
-			if (KeyValid) {
+
+	while (1)
+	{
+		if (atl2_spi_read(hw, i + 0x1f000, &Control))
+		{
+			if (KeyValid)
+			{
 				if (Register == REG_MAC_STA_ADDR)
+				{
 					Addr[0] = Control;
+				}
 				else if (Register == (REG_MAC_STA_ADDR + 4))
+				{
 					Addr[1] = Control;
+				}
+
 				KeyValid = false;
-			} else if ((Control & 0xff) == 0x5A) {
+			}
+			else if ((Control & 0xff) == 0x5A)
+			{
 				KeyValid = true;
 				Register = (u16) (Control >> 16);
-			} else {
+			}
+			else
+			{
 				break; /* data end */
 			}
-		} else {
+		}
+		else
+		{
 			break; /* read error */
 		}
+
 		i += 4;
 	}
 
 	*(u32 *) &EthAddr[2] = LONGSWAP(Addr[0]);
 	*(u16 *) &EthAddr[0] = SHORTSWAP(*(u16 *)&Addr[1]);
-	if (is_valid_ether_addr(EthAddr)) {
+
+	if (is_valid_ether_addr(EthAddr))
+	{
 		memcpy(hw->perm_mac_addr, EthAddr, ETH_ALEN);
 		return 0;
 	}
+
 	/* maybe MAC-address is from BIOS */
 	Addr[0] = ATL2_READ_REG(hw, REG_MAC_STA_ADDR);
 	Addr[1] = ATL2_READ_REG(hw, REG_MAC_STA_ADDR + 4);
 	*(u32 *) &EthAddr[2] = LONGSWAP(Addr[0]);
 	*(u16 *) &EthAddr[0] = SHORTSWAP(*(u16 *) &Addr[1]);
 
-	if (is_valid_ether_addr(EthAddr)) {
+	if (is_valid_ether_addr(EthAddr))
+	{
 		memcpy(hw->perm_mac_addr, EthAddr, ETH_ALEN);
 		return 0;
 	}
@@ -2321,7 +2749,8 @@ static int get_permanent_address(struct atl2_hw *hw)
  */
 static s32 atl2_read_mac_addr(struct atl2_hw *hw)
 {
-	if (get_permanent_address(hw)) {
+	if (get_permanent_address(hw))
+	{
 		/* for test */
 		/* FIXME: shouldn't we use eth_random_addr() here? */
 		hw->perm_mac_addr[0] = 0x00;
@@ -2359,7 +2788,9 @@ static u32 atl2_hash_mc_addr(struct atl2_hw *hw, u8 *mc_addr)
 	crc32 = ether_crc_le(6, mc_addr);
 
 	for (i = 0; i < 32; i++)
+	{
 		value |= (((crc32 >> i) & 1) << (31 - i));
+	}
 
 	return value;
 }
@@ -2398,36 +2829,38 @@ static void atl2_hash_set(struct atl2_hw *hw, u32 hash_value)
  */
 static void atl2_init_pcie(struct atl2_hw *hw)
 {
-    u32 value;
-    value = LTSSM_TEST_MODE_DEF;
-    ATL2_WRITE_REG(hw, REG_LTSSM_TEST_MODE, value);
+	u32 value;
+	value = LTSSM_TEST_MODE_DEF;
+	ATL2_WRITE_REG(hw, REG_LTSSM_TEST_MODE, value);
 
-    value = PCIE_DLL_TX_CTRL1_DEF;
-    ATL2_WRITE_REG(hw, REG_PCIE_DLL_TX_CTRL1, value);
+	value = PCIE_DLL_TX_CTRL1_DEF;
+	ATL2_WRITE_REG(hw, REG_PCIE_DLL_TX_CTRL1, value);
 }
 
 static void atl2_init_flash_opcode(struct atl2_hw *hw)
 {
 	if (hw->flash_vendor >= ARRAY_SIZE(flash_table))
-		hw->flash_vendor = 0; /* ATMEL */
+	{
+		hw->flash_vendor = 0;    /* ATMEL */
+	}
 
 	/* Init OP table */
 	ATL2_WRITE_REGB(hw, REG_SPI_FLASH_OP_PROGRAM,
-		flash_table[hw->flash_vendor].cmdPROGRAM);
+					flash_table[hw->flash_vendor].cmdPROGRAM);
 	ATL2_WRITE_REGB(hw, REG_SPI_FLASH_OP_SC_ERASE,
-		flash_table[hw->flash_vendor].cmdSECTOR_ERASE);
+					flash_table[hw->flash_vendor].cmdSECTOR_ERASE);
 	ATL2_WRITE_REGB(hw, REG_SPI_FLASH_OP_CHIP_ERASE,
-		flash_table[hw->flash_vendor].cmdCHIP_ERASE);
+					flash_table[hw->flash_vendor].cmdCHIP_ERASE);
 	ATL2_WRITE_REGB(hw, REG_SPI_FLASH_OP_RDID,
-		flash_table[hw->flash_vendor].cmdRDID);
+					flash_table[hw->flash_vendor].cmdRDID);
 	ATL2_WRITE_REGB(hw, REG_SPI_FLASH_OP_WREN,
-		flash_table[hw->flash_vendor].cmdWREN);
+					flash_table[hw->flash_vendor].cmdWREN);
 	ATL2_WRITE_REGB(hw, REG_SPI_FLASH_OP_RDSR,
-		flash_table[hw->flash_vendor].cmdRDSR);
+					flash_table[hw->flash_vendor].cmdRDSR);
 	ATL2_WRITE_REGB(hw, REG_SPI_FLASH_OP_WRSR,
-		flash_table[hw->flash_vendor].cmdWRSR);
+					flash_table[hw->flash_vendor].cmdWRSR);
 	ATL2_WRITE_REGB(hw, REG_SPI_FLASH_OP_READ,
-		flash_table[hw->flash_vendor].cmdREAD);
+					flash_table[hw->flash_vendor].cmdREAD);
 }
 
 /********************************************************************
@@ -2465,34 +2898,46 @@ static s32 atl2_init_hw(struct atl2_hw *hw)
  * duplex - Duplex setting of the connection
  */
 static s32 atl2_get_speed_and_duplex(struct atl2_hw *hw, u16 *speed,
-	u16 *duplex)
+									 u16 *duplex)
 {
 	s32 ret_val;
 	u16 phy_data;
 
 	/* Read PHY Specific Status Register (17) */
 	ret_val = atl2_read_phy_reg(hw, MII_ATLX_PSSR, &phy_data);
+
 	if (ret_val)
+	{
 		return ret_val;
+	}
 
 	if (!(phy_data & MII_ATLX_PSSR_SPD_DPLX_RESOLVED))
+	{
 		return ATLX_ERR_PHY_RES;
+	}
 
-	switch (phy_data & MII_ATLX_PSSR_SPEED) {
-	case MII_ATLX_PSSR_100MBS:
-		*speed = SPEED_100;
-		break;
-	case MII_ATLX_PSSR_10MBS:
-		*speed = SPEED_10;
-		break;
-	default:
-		return ATLX_ERR_PHY_SPEED;
+	switch (phy_data & MII_ATLX_PSSR_SPEED)
+	{
+		case MII_ATLX_PSSR_100MBS:
+			*speed = SPEED_100;
+			break;
+
+		case MII_ATLX_PSSR_10MBS:
+			*speed = SPEED_10;
+			break;
+
+		default:
+			return ATLX_ERR_PHY_SPEED;
 	}
 
 	if (phy_data & MII_ATLX_PSSR_DPLX)
+	{
 		*duplex = FULL_DUPLEX;
+	}
 	else
+	{
 		*duplex = HALF_DUPLEX;
+	}
 
 	return 0;
 }
@@ -2508,22 +2953,29 @@ static s32 atl2_read_phy_reg(struct atl2_hw *hw, u16 reg_addr, u16 *phy_data)
 	int i;
 
 	val = ((u32)(reg_addr & MDIO_REG_ADDR_MASK)) << MDIO_REG_ADDR_SHIFT |
-		MDIO_START |
-		MDIO_SUP_PREAMBLE |
-		MDIO_RW |
-		MDIO_CLK_25_4 << MDIO_CLK_SEL_SHIFT;
+		  MDIO_START |
+		  MDIO_SUP_PREAMBLE |
+		  MDIO_RW |
+		  MDIO_CLK_25_4 << MDIO_CLK_SEL_SHIFT;
 	ATL2_WRITE_REG(hw, REG_MDIO_CTRL, val);
 
 	wmb();
 
-	for (i = 0; i < MDIO_WAIT_TIMES; i++) {
+	for (i = 0; i < MDIO_WAIT_TIMES; i++)
+	{
 		udelay(2);
 		val = ATL2_READ_REG(hw, REG_MDIO_CTRL);
+
 		if (!(val & (MDIO_START | MDIO_BUSY)))
+		{
 			break;
+		}
+
 		wmb();
 	}
-	if (!(val & (MDIO_START | MDIO_BUSY))) {
+
+	if (!(val & (MDIO_START | MDIO_BUSY)))
+	{
 		*phy_data = (u16)val;
 		return 0;
 	}
@@ -2543,25 +2995,31 @@ static s32 atl2_write_phy_reg(struct atl2_hw *hw, u32 reg_addr, u16 phy_data)
 	u32 val;
 
 	val = ((u32)(phy_data & MDIO_DATA_MASK)) << MDIO_DATA_SHIFT |
-		(reg_addr & MDIO_REG_ADDR_MASK) << MDIO_REG_ADDR_SHIFT |
-		MDIO_SUP_PREAMBLE |
-		MDIO_START |
-		MDIO_CLK_25_4 << MDIO_CLK_SEL_SHIFT;
+		  (reg_addr & MDIO_REG_ADDR_MASK) << MDIO_REG_ADDR_SHIFT |
+		  MDIO_SUP_PREAMBLE |
+		  MDIO_START |
+		  MDIO_CLK_25_4 << MDIO_CLK_SEL_SHIFT;
 	ATL2_WRITE_REG(hw, REG_MDIO_CTRL, val);
 
 	wmb();
 
-	for (i = 0; i < MDIO_WAIT_TIMES; i++) {
+	for (i = 0; i < MDIO_WAIT_TIMES; i++)
+	{
 		udelay(2);
 		val = ATL2_READ_REG(hw, REG_MDIO_CTRL);
+
 		if (!(val & (MDIO_START | MDIO_BUSY)))
+		{
 			break;
+		}
 
 		wmb();
 	}
 
 	if (!(val & (MDIO_START | MDIO_BUSY)))
+	{
 		return 0;
+	}
 
 	return ATLX_ERR_PHY;
 }
@@ -2593,35 +3051,40 @@ static s32 atl2_phy_setup_autoneg_adv(struct atl2_hw *hw)
 
 	/* Need to parse MediaType and setup the
 	 * appropriate PHY registers. */
-	switch (hw->MediaType) {
-	case MEDIA_TYPE_AUTO_SENSOR:
-		mii_autoneg_adv_reg |=
-			(MII_AR_10T_HD_CAPS |
-			MII_AR_10T_FD_CAPS  |
-			MII_AR_100TX_HD_CAPS|
-			MII_AR_100TX_FD_CAPS);
-		hw->autoneg_advertised =
-			ADVERTISE_10_HALF |
-			ADVERTISE_10_FULL |
-			ADVERTISE_100_HALF|
-			ADVERTISE_100_FULL;
-		break;
-	case MEDIA_TYPE_100M_FULL:
-		mii_autoneg_adv_reg |= MII_AR_100TX_FD_CAPS;
-		hw->autoneg_advertised = ADVERTISE_100_FULL;
-		break;
-	case MEDIA_TYPE_100M_HALF:
-		mii_autoneg_adv_reg |= MII_AR_100TX_HD_CAPS;
-		hw->autoneg_advertised = ADVERTISE_100_HALF;
-		break;
-	case MEDIA_TYPE_10M_FULL:
-		mii_autoneg_adv_reg |= MII_AR_10T_FD_CAPS;
-		hw->autoneg_advertised = ADVERTISE_10_FULL;
-		break;
-	default:
-		mii_autoneg_adv_reg |= MII_AR_10T_HD_CAPS;
-		hw->autoneg_advertised = ADVERTISE_10_HALF;
-		break;
+	switch (hw->MediaType)
+	{
+		case MEDIA_TYPE_AUTO_SENSOR:
+			mii_autoneg_adv_reg |=
+				(MII_AR_10T_HD_CAPS |
+				 MII_AR_10T_FD_CAPS  |
+				 MII_AR_100TX_HD_CAPS |
+				 MII_AR_100TX_FD_CAPS);
+			hw->autoneg_advertised =
+				ADVERTISE_10_HALF |
+				ADVERTISE_10_FULL |
+				ADVERTISE_100_HALF |
+				ADVERTISE_100_FULL;
+			break;
+
+		case MEDIA_TYPE_100M_FULL:
+			mii_autoneg_adv_reg |= MII_AR_100TX_FD_CAPS;
+			hw->autoneg_advertised = ADVERTISE_100_FULL;
+			break;
+
+		case MEDIA_TYPE_100M_HALF:
+			mii_autoneg_adv_reg |= MII_AR_100TX_HD_CAPS;
+			hw->autoneg_advertised = ADVERTISE_100_HALF;
+			break;
+
+		case MEDIA_TYPE_10M_FULL:
+			mii_autoneg_adv_reg |= MII_AR_10T_FD_CAPS;
+			hw->autoneg_advertised = ADVERTISE_10_FULL;
+			break;
+
+		default:
+			mii_autoneg_adv_reg |= MII_AR_10T_HD_CAPS;
+			hw->autoneg_advertised = ADVERTISE_10_HALF;
+			break;
 	}
 
 	/* flow control fixed to enable all */
@@ -2632,7 +3095,9 @@ static s32 atl2_phy_setup_autoneg_adv(struct atl2_hw *hw)
 	ret_val = atl2_write_phy_reg(hw, MII_ADVERTISE, mii_autoneg_adv_reg);
 
 	if (ret_val)
+	{
 		return ret_val;
+	}
 
 	return 0;
 }
@@ -2651,22 +3116,31 @@ static s32 atl2_phy_commit(struct atl2_hw *hw)
 
 	phy_data = MII_CR_RESET | MII_CR_AUTO_NEG_EN | MII_CR_RESTART_AUTO_NEG;
 	ret_val = atl2_write_phy_reg(hw, MII_BMCR, phy_data);
-	if (ret_val) {
+
+	if (ret_val)
+	{
 		u32 val;
 		int i;
+
 		/* pcie serdes link may be down ! */
-		for (i = 0; i < 25; i++) {
+		for (i = 0; i < 25; i++)
+		{
 			msleep(1);
 			val = ATL2_READ_REG(hw, REG_MDIO_CTRL);
+
 			if (!(val & (MDIO_START | MDIO_BUSY)))
+			{
 				break;
+			}
 		}
 
-		if (0 != (val & (MDIO_START | MDIO_BUSY))) {
+		if (0 != (val & (MDIO_START | MDIO_BUSY)))
+		{
 			printk(KERN_ERR "atl2: PCIe link down for at least 25ms !\n");
 			return ret_val;
 		}
 	}
+
 	return 0;
 }
 
@@ -2676,7 +3150,9 @@ static s32 atl2_phy_init(struct atl2_hw *hw)
 	u16 phy_val;
 
 	if (hw->phy_configured)
+	{
 		return 0;
+	}
 
 	/* Enable PHY */
 	ATL2_WRITE_REGW(hw, REG_PHY_ENABLE, 1);
@@ -2688,7 +3164,8 @@ static s32 atl2_phy_init(struct atl2_hw *hw)
 	atl2_read_phy_reg(hw, MII_DBG_DATA, &phy_val);
 
 	/* 024E / 124E 0r 0274 / 1274 ? */
-	if (phy_val & 0x1000) {
+	if (phy_val & 0x1000)
+	{
 		phy_val &= ~0x1000;
 		atl2_write_phy_reg(hw, MII_DBG_DATA, phy_val);
 	}
@@ -2697,18 +3174,27 @@ static s32 atl2_phy_init(struct atl2_hw *hw)
 
 	/*Enable PHY LinkChange Interrupt */
 	ret_val = atl2_write_phy_reg(hw, 18, 0xC00);
+
 	if (ret_val)
+	{
 		return ret_val;
+	}
 
 	/* setup AutoNeg parameters */
 	ret_val = atl2_phy_setup_autoneg_adv(hw);
+
 	if (ret_val)
+	{
 		return ret_val;
+	}
 
 	/* SW.Reset & En-Auto-Neg to restart Auto-Neg */
 	ret_val = atl2_phy_commit(hw);
+
 	if (ret_val)
+	{
 		return ret_val;
+	}
 
 	hw->phy_configured = true;
 
@@ -2722,13 +3208,13 @@ static void atl2_set_mac_addr(struct atl2_hw *hw)
 	 * 0:  6AF600DC   1: 000B
 	 * low dword */
 	value = (((u32)hw->mac_addr[2]) << 24) |
-		(((u32)hw->mac_addr[3]) << 16) |
-		(((u32)hw->mac_addr[4]) << 8)  |
-		(((u32)hw->mac_addr[5]));
+			(((u32)hw->mac_addr[3]) << 16) |
+			(((u32)hw->mac_addr[4]) << 8)  |
+			(((u32)hw->mac_addr[5]));
 	ATL2_WRITE_REG_ARRAY(hw, REG_MAC_STA_ADDR, 0, value);
 	/* hight dword */
 	value = (((u32)hw->mac_addr[0]) << 8) |
-		(((u32)hw->mac_addr[1]));
+			(((u32)hw->mac_addr[1]));
 	ATL2_WRITE_REG_ARRAY(hw, REG_MAC_STA_ADDR, 1, value);
 }
 
@@ -2741,10 +3227,13 @@ static int atl2_check_eeprom_exist(struct atl2_hw *hw)
 	u32 value;
 
 	value = ATL2_READ_REG(hw, REG_SPI_FLASH_CTRL);
-	if (value & SPI_FLASH_CTRL_EN_VPD) {
+
+	if (value & SPI_FLASH_CTRL_EN_VPD)
+	{
 		value &= ~SPI_FLASH_CTRL_EN_VPD;
 		ATL2_WRITE_REG(hw, REG_SPI_FLASH_CTRL, value);
 	}
+
 	value = ATL2_READ_REGW(hw, REG_PCIE_CAP_LIST);
 	return ((value & 0xFF00) == 0x6C00) ? 0 : 1;
 }
@@ -2761,23 +3250,31 @@ static bool atl2_read_eeprom(struct atl2_hw *hw, u32 Offset, u32 *pValue)
 	u32    Control;
 
 	if (Offset & 0x3)
-		return false; /* address do not align */
+	{
+		return false;    /* address do not align */
+	}
 
 	ATL2_WRITE_REG(hw, REG_VPD_DATA, 0);
 	Control = (Offset & VPD_CAP_VPD_ADDR_MASK) << VPD_CAP_VPD_ADDR_SHIFT;
 	ATL2_WRITE_REG(hw, REG_VPD_CAP, Control);
 
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; i++)
+	{
 		msleep(2);
 		Control = ATL2_READ_REG(hw, REG_VPD_CAP);
+
 		if (Control & VPD_CAP_VPD_FLAG)
+		{
 			break;
+		}
 	}
 
-	if (Control & VPD_CAP_VPD_FLAG) {
+	if (Control & VPD_CAP_VPD_FLAG)
+	{
 		*pValue = ATL2_READ_REG(hw, REG_VPD_DATA);
 		return true;
 	}
+
 	return false; /* timeout */
 }
 
@@ -2821,15 +3318,15 @@ static void atl2_force_ps(struct atl2_hw *hw)
  */
 
 #define ATL2_PARAM(X, desc) \
-    static const int X[ATL2_MAX_NIC + 1] = ATL2_PARAM_INIT; \
-    MODULE_PARM(X, "1-" __MODULE_STRING(ATL2_MAX_NIC) "i"); \
-    MODULE_PARM_DESC(X, desc);
+	static const int X[ATL2_MAX_NIC + 1] = ATL2_PARAM_INIT; \
+	MODULE_PARM(X, "1-" __MODULE_STRING(ATL2_MAX_NIC) "i"); \
+	MODULE_PARM_DESC(X, desc);
 #else
 #define ATL2_PARAM(X, desc) \
-    static int X[ATL2_MAX_NIC+1] = ATL2_PARAM_INIT; \
-    static unsigned int num_##X; \
-    module_param_array_named(X, X, int, &num_##X, 0); \
-    MODULE_PARM_DESC(X, desc);
+	static int X[ATL2_MAX_NIC+1] = ATL2_PARAM_INIT; \
+	static unsigned int num_##X; \
+	module_param_array_named(X, X, int, &num_##X, 0); \
+	MODULE_PARM_DESC(X, desc);
 #endif
 
 /*
@@ -2893,17 +3390,21 @@ ATL2_PARAM(FlashVendor, "SPI Flash Vendor");
 #define FLASH_VENDOR_MIN	0
 #define FLASH_VENDOR_MAX	2
 
-struct atl2_option {
+struct atl2_option
+{
 	enum { enable_option, range_option, list_option } type;
 	char *name;
 	char *err;
 	int  def;
-	union {
-		struct { /* range_option info */
+	union
+	{
+		struct   /* range_option info */
+		{
 			int min;
 			int max;
 		} r;
-		struct { /* list_option info */
+		struct   /* list_option info */
+		{
 			int nr;
 			struct atl2_opt_list { int i; char *str; } *p;
 		} l;
@@ -2915,44 +3416,61 @@ static int atl2_validate_option(int *value, struct atl2_option *opt)
 	int i;
 	struct atl2_opt_list *ent;
 
-	if (*value == OPTION_UNSET) {
+	if (*value == OPTION_UNSET)
+	{
 		*value = opt->def;
 		return 0;
 	}
 
-	switch (opt->type) {
-	case enable_option:
-		switch (*value) {
-		case OPTION_ENABLED:
-			printk(KERN_INFO "%s Enabled\n", opt->name);
-			return 0;
-		case OPTION_DISABLED:
-			printk(KERN_INFO "%s Disabled\n", opt->name);
-			return 0;
-		}
-		break;
-	case range_option:
-		if (*value >= opt->arg.r.min && *value <= opt->arg.r.max) {
-			printk(KERN_INFO "%s set to %i\n", opt->name, *value);
-			return 0;
-		}
-		break;
-	case list_option:
-		for (i = 0; i < opt->arg.l.nr; i++) {
-			ent = &opt->arg.l.p[i];
-			if (*value == ent->i) {
-				if (ent->str[0] != '\0')
-					printk(KERN_INFO "%s\n", ent->str);
-			return 0;
+	switch (opt->type)
+	{
+		case enable_option:
+			switch (*value)
+			{
+				case OPTION_ENABLED:
+					printk(KERN_INFO "%s Enabled\n", opt->name);
+					return 0;
+
+				case OPTION_DISABLED:
+					printk(KERN_INFO "%s Disabled\n", opt->name);
+					return 0;
 			}
-		}
-		break;
-	default:
-		BUG();
+
+			break;
+
+		case range_option:
+			if (*value >= opt->arg.r.min && *value <= opt->arg.r.max)
+			{
+				printk(KERN_INFO "%s set to %i\n", opt->name, *value);
+				return 0;
+			}
+
+			break;
+
+		case list_option:
+			for (i = 0; i < opt->arg.l.nr; i++)
+			{
+				ent = &opt->arg.l.p[i];
+
+				if (*value == ent->i)
+				{
+					if (ent->str[0] != '\0')
+					{
+						printk(KERN_INFO "%s\n", ent->str);
+					}
+
+					return 0;
+				}
+			}
+
+			break;
+
+		default:
+			BUG();
 	}
 
 	printk(KERN_INFO "Invalid %s specified (%i) %s\n",
-		opt->name, *value, opt->err);
+		   opt->name, *value, opt->err);
 	*value = opt->def;
 	return -1;
 }
@@ -2971,9 +3489,11 @@ static void atl2_check_options(struct atl2_adapter *adapter)
 	int val;
 	struct atl2_option opt;
 	int bd = adapter->bd_number;
-	if (bd >= ATL2_MAX_NIC) {
+
+	if (bd >= ATL2_MAX_NIC)
+	{
 		printk(KERN_NOTICE "Warning: no configuration for board #%i\n",
-			bd);
+			   bd);
 		printk(KERN_NOTICE "Using defaults for all values\n");
 #ifndef module_param_array
 		bd = ATL2_MAX_NIC;
@@ -2988,19 +3508,28 @@ static void atl2_check_options(struct atl2_adapter *adapter)
 	opt.arg.r.min = ATL2_MIN_TX_MEMSIZE;
 	opt.arg.r.max = ATL2_MAX_TX_MEMSIZE;
 #ifdef module_param_array
-	if (num_TxMemSize > bd) {
+
+	if (num_TxMemSize > bd)
+	{
 #endif
 		val = TxMemSize[bd];
 		atl2_validate_option(&val, &opt);
 		adapter->txd_ring_size = ((u32) val) * 1024;
 #ifdef module_param_array
-	} else
+	}
+	else
+	{
 		adapter->txd_ring_size = ((u32)opt.def) * 1024;
+	}
+
 #endif
 	/* txs ring size: */
 	adapter->txs_ring_size = adapter->txd_ring_size / 128;
+
 	if (adapter->txs_ring_size > 160)
+	{
 		adapter->txs_ring_size = 160;
+	}
 
 	/* Receive Memory Block Count */
 	opt.type = range_option;
@@ -3010,7 +3539,9 @@ static void atl2_check_options(struct atl2_adapter *adapter)
 	opt.arg.r.min = ATL2_MIN_RXD_COUNT;
 	opt.arg.r.max = ATL2_MAX_RXD_COUNT;
 #ifdef module_param_array
-	if (num_RxMemBlock > bd) {
+
+	if (num_RxMemBlock > bd)
+	{
 #endif
 		val = RxMemBlock[bd];
 		atl2_validate_option(&val, &opt);
@@ -3018,14 +3549,18 @@ static void atl2_check_options(struct atl2_adapter *adapter)
 		/* FIXME */
 		/* ((u16)val)&~1; */	/* even number */
 #ifdef module_param_array
-	} else
+	}
+	else
+	{
 		adapter->rxd_ring_size = (u32)opt.def;
+	}
+
 #endif
 	/* init RXD Flow control value */
 	adapter->hw.fc_rxd_hi = (adapter->rxd_ring_size / 8) * 7;
 	adapter->hw.fc_rxd_lo = (ATL2_MIN_RXD_COUNT / 8) >
-		(adapter->rxd_ring_size / 12) ? (ATL2_MIN_RXD_COUNT / 8) :
-		(adapter->rxd_ring_size / 12);
+							(adapter->rxd_ring_size / 12) ? (ATL2_MIN_RXD_COUNT / 8) :
+							(adapter->rxd_ring_size / 12);
 
 	/* Interrupt Moderate Timer */
 	opt.type = range_option;
@@ -3035,14 +3570,20 @@ static void atl2_check_options(struct atl2_adapter *adapter)
 	opt.arg.r.min = INT_MOD_MIN_CNT;
 	opt.arg.r.max = INT_MOD_MAX_CNT;
 #ifdef module_param_array
-	if (num_IntModTimer > bd) {
+
+	if (num_IntModTimer > bd)
+	{
 #endif
 		val = IntModTimer[bd];
 		atl2_validate_option(&val, &opt);
 		adapter->imt = (u16) val;
 #ifdef module_param_array
-	} else
+	}
+	else
+	{
 		adapter->imt = (u16)(opt.def);
+	}
+
 #endif
 	/* Flash Vendor */
 	opt.type = range_option;
@@ -3052,14 +3593,20 @@ static void atl2_check_options(struct atl2_adapter *adapter)
 	opt.arg.r.min = FLASH_VENDOR_MIN;
 	opt.arg.r.max = FLASH_VENDOR_MAX;
 #ifdef module_param_array
-	if (num_FlashVendor > bd) {
+
+	if (num_FlashVendor > bd)
+	{
 #endif
 		val = FlashVendor[bd];
 		atl2_validate_option(&val, &opt);
 		adapter->hw.flash_vendor = (u8) val;
 #ifdef module_param_array
-	} else
+	}
+	else
+	{
 		adapter->hw.flash_vendor = (u8)(opt.def);
+	}
+
 #endif
 	/* MediaType */
 	opt.type = range_option;
@@ -3069,13 +3616,19 @@ static void atl2_check_options(struct atl2_adapter *adapter)
 	opt.arg.r.min = MEDIA_TYPE_AUTO_SENSOR;
 	opt.arg.r.max = MEDIA_TYPE_10M_HALF;
 #ifdef module_param_array
-	if (num_MediaType > bd) {
+
+	if (num_MediaType > bd)
+	{
 #endif
 		val = MediaType[bd];
 		atl2_validate_option(&val, &opt);
 		adapter->hw.MediaType = (u16) val;
 #ifdef module_param_array
-	} else
+	}
+	else
+	{
 		adapter->hw.MediaType = (u16)(opt.def);
+	}
+
 #endif
 }

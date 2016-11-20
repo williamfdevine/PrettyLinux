@@ -9,7 +9,8 @@
 
 #define XT_SCTP_VALID_FLAGS		0x07
 
-struct xt_sctp_flag_info {
+struct xt_sctp_flag_info
+{
 	__u8 chunktype;
 	__u8 flag;
 	__u8 flag_mask;
@@ -17,7 +18,8 @@ struct xt_sctp_flag_info {
 
 #define XT_NUM_SCTP_FLAGS	4
 
-struct xt_sctp_info {
+struct xt_sctp_info
+{
 	__u16 dpts[2];  /* Min, Max */
 	__u16 spts[2];  /* Min, Max */
 
@@ -40,20 +42,20 @@ struct xt_sctp_info {
 #define SCTP_CHUNKMAP_SET(chunkmap, type) 		\
 	do { 						\
 		(chunkmap)[type / bytes(__u32)] |= 	\
-			1 << (type % bytes(__u32));	\
+											1 << (type % bytes(__u32));	\
 	} while (0)
 
 #define SCTP_CHUNKMAP_CLEAR(chunkmap, type)		 	\
 	do {							\
 		(chunkmap)[type / bytes(__u32)] &= 		\
-			~(1 << (type % bytes(__u32)));	\
+												~(1 << (type % bytes(__u32)));	\
 	} while (0)
 
 #define SCTP_CHUNKMAP_IS_SET(chunkmap, type) 			\
-({								\
-	((chunkmap)[type / bytes (__u32)] & 		\
-		(1 << (type % bytes (__u32)))) ? 1: 0;	\
-})
+	({								\
+		((chunkmap)[type / bytes (__u32)] & 		\
+		 (1 << (type % bytes (__u32)))) ? 1: 0;	\
+	})
 
 #define SCTP_CHUNKMAP_RESET(chunkmap) \
 	memset((chunkmap), 0, sizeof(chunkmap))
@@ -70,9 +72,13 @@ static inline _Bool
 __sctp_chunkmap_is_clear(const __u32 *chunkmap, unsigned int n)
 {
 	unsigned int i;
+
 	for (i = 0; i < n; ++i)
 		if (chunkmap[i])
+		{
 			return 0;
+		}
+
 	return 1;
 }
 
@@ -82,9 +88,13 @@ static inline _Bool
 __sctp_chunkmap_is_all_set(const __u32 *chunkmap, unsigned int n)
 {
 	unsigned int i;
+
 	for (i = 0; i < n; ++i)
 		if (chunkmap[i] != ~0U)
+		{
 			return 0;
+		}
+
 	return 1;
 }
 

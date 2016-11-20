@@ -36,7 +36,8 @@
 #include "dmxdev.h"
 
 /* Inputs */
-enum tm6000_itype {
+enum tm6000_itype
+{
 	TM6000_INPUT_TV	= 1,
 	TM6000_INPUT_COMPOSITE1,
 	TM6000_INPUT_COMPOSITE2,
@@ -45,7 +46,8 @@ enum tm6000_itype {
 	TM6000_INPUT_RADIO,
 };
 
-enum tm6000_mux {
+enum tm6000_mux
+{
 	TM6000_VMUX_VIDEO_A = 1,
 	TM6000_VMUX_VIDEO_B,
 	TM6000_VMUX_VIDEO_AB,
@@ -56,13 +58,15 @@ enum tm6000_mux {
 	TM6000_AMUX_I2S,
 };
 
-enum tm6000_devtype {
+enum tm6000_devtype
+{
 	TM6000 = 0,
 	TM5600,
 	TM6010,
 };
 
-struct tm6000_input {
+struct tm6000_input
+{
 	enum tm6000_itype	type;
 	enum tm6000_mux		vmux;
 	enum tm6000_mux		amux;
@@ -75,21 +79,24 @@ struct tm6000_input {
  * ------------------------------------------------------------------
  */
 
-struct tm6000_fmt {
+struct tm6000_fmt
+{
 	char  *name;
 	u32   fourcc;          /* v4l2 format id */
 	int   depth;
 };
 
 /* buffer for one video frame */
-struct tm6000_buffer {
+struct tm6000_buffer
+{
 	/* common v4l buffer stuff -- must be first */
 	struct videobuf_buffer vb;
 
 	struct tm6000_fmt      *fmt;
 };
 
-struct tm6000_dmaqueue {
+struct tm6000_dmaqueue
+{
 	struct list_head       active;
 	struct list_head       queued;
 
@@ -102,26 +109,30 @@ struct tm6000_dmaqueue {
 };
 
 /* device states */
-enum tm6000_core_state {
+enum tm6000_core_state
+{
 	DEV_INITIALIZED   = 0x01,
 	DEV_DISCONNECTED  = 0x02,
 	DEV_MISCONFIGURED = 0x04,
 };
 
 /* io methods */
-enum tm6000_io_method {
+enum tm6000_io_method
+{
 	IO_NONE,
 	IO_READ,
 	IO_MMAP,
 };
 
-enum tm6000_mode {
+enum tm6000_mode
+{
 	TM6000_MODE_UNKNOWN = 0,
 	TM6000_MODE_ANALOG,
 	TM6000_MODE_DIGITAL,
 };
 
-struct tm6000_gpio {
+struct tm6000_gpio
+{
 	int		tuner_reset;
 	int		tuner_on;
 	int		demod_reset;
@@ -131,17 +142,19 @@ struct tm6000_gpio {
 	int		ir;
 };
 
-struct tm6000_capabilities {
-	unsigned int    has_tuner:1;
-	unsigned int    has_tda9874:1;
-	unsigned int    has_dvb:1;
-	unsigned int    has_zl10353:1;
-	unsigned int    has_eeprom:1;
-	unsigned int    has_remote:1;
-	unsigned int    has_radio:1;
+struct tm6000_capabilities
+{
+	unsigned int    has_tuner: 1;
+	unsigned int    has_tda9874: 1;
+	unsigned int    has_dvb: 1;
+	unsigned int    has_zl10353: 1;
+	unsigned int    has_eeprom: 1;
+	unsigned int    has_remote: 1;
+	unsigned int    has_radio: 1;
 };
 
-struct tm6000_dvb {
+struct tm6000_dvb
+{
 	struct dvb_adapter	adapter;
 	struct dvb_demux	demux;
 	struct dvb_frontend	*frontend;
@@ -151,7 +164,8 @@ struct tm6000_dvb {
 	struct mutex		mutex;
 };
 
-struct snd_tm6000_card {
+struct snd_tm6000_card
+{
 	struct snd_card			*card;
 	spinlock_t			reg_lock;
 	struct tm6000_core		*core;
@@ -162,7 +176,8 @@ struct snd_tm6000_card {
 	unsigned			period_pos;
 };
 
-struct tm6000_endpoint {
+struct tm6000_endpoint
+{
 	struct usb_host_endpoint	*endp;
 	__u8				bInterfaceNumber;
 	__u8				bAlternateSetting;
@@ -171,7 +186,8 @@ struct tm6000_endpoint {
 
 #define TM6000_QUIRK_NO_USB_DELAY (1 << 0)
 
-struct tm6000_core {
+struct tm6000_core
+{
 	/* generic device properties */
 	char				name[30];	/* name (including minor) of the device */
 	int				model;		/* index in the device_data struct */
@@ -189,7 +205,7 @@ struct tm6000_core {
 	struct tm6000_capabilities	caps;
 
 	/* Used to load alsa/dvb */
-        struct work_struct		request_module_wk;
+	struct work_struct		request_module_wk;
 
 	/* Tuner configuration */
 	int				tuner_type;		/* type of the tuner */
@@ -263,7 +279,7 @@ struct tm6000_core {
 	/* scaler!=0 if scaler is active*/
 	int				scaler;
 
-		/* Isoc control struct */
+	/* Isoc control struct */
 	struct usb_isoc_ctl          isoc_ctl;
 
 	spinlock_t                   slock;
@@ -276,12 +292,14 @@ struct tm6000_core {
 	unsigned long quirks;
 };
 
-enum tm6000_ops_type {
+enum tm6000_ops_type
+{
 	TM6000_AUDIO = 0x10,
 	TM6000_DVB = 0x20,
 };
 
-struct tm6000_ops {
+struct tm6000_ops
+{
 	struct list_head	next;
 	char			*name;
 	enum tm6000_ops_type	type;
@@ -290,7 +308,8 @@ struct tm6000_ops {
 	int (*fillbuf)(struct tm6000_core *, char *buf, int size);
 };
 
-struct tm6000_fh {
+struct tm6000_fh
+{
 	struct v4l2_fh		     fh;
 	struct tm6000_core           *dev;
 	unsigned int                 radio;
@@ -304,8 +323,8 @@ struct tm6000_fh {
 };
 
 #define TM6000_STD	(V4L2_STD_PAL|V4L2_STD_PAL_N|V4L2_STD_PAL_Nc|    \
-			V4L2_STD_PAL_M|V4L2_STD_PAL_60|V4L2_STD_NTSC_M| \
-			V4L2_STD_NTSC_M_JP|V4L2_STD_SECAM)
+					 V4L2_STD_PAL_M|V4L2_STD_PAL_60|V4L2_STD_NTSC_M| \
+					 V4L2_STD_NTSC_M_JP|V4L2_STD_SECAM)
 
 /* In tm6000-cards.c */
 
@@ -317,7 +336,7 @@ void tm6000_flash_led(struct tm6000_core *dev, u8 state);
 /* In tm6000-core.c */
 
 int tm6000_read_write_usb(struct tm6000_core *dev, u8 reqtype, u8 req,
-			   u16 value, u16 index, u8 *buf, u16 len);
+						  u16 value, u16 index, u8 *buf, u16 len);
 int tm6000_get_reg(struct tm6000_core *dev, u8 req, u16 value, u16 index);
 int tm6000_get_reg16(struct tm6000_core *dev, u8 req, u16 value, u16 index);
 int tm6000_get_reg32(struct tm6000_core *dev, u8 req, u16 value, u16 index);
@@ -347,7 +366,7 @@ void tm6000_unregister_extension(struct tm6000_ops *ops);
 void tm6000_init_extension(struct tm6000_core *dev);
 void tm6000_close_extension(struct tm6000_core *dev);
 int tm6000_call_fillbuf(struct tm6000_core *dev, enum tm6000_ops_type type,
-			char *buf, int size);
+						char *buf, int size);
 
 
 /* In tm6000-stds.c */
@@ -363,19 +382,19 @@ int tm6000_i2c_unregister(struct tm6000_core *dev);
 int tm6000_v4l2_mmap(struct file *filp, struct vm_area_struct *vma);
 
 int tm6000_vidioc_streamon(struct file *file, void *priv,
-			   enum v4l2_buf_type i);
+						   enum v4l2_buf_type i);
 int tm6000_vidioc_streamoff(struct file *file, void *priv,
-			    enum v4l2_buf_type i);
+							enum v4l2_buf_type i);
 int tm6000_vidioc_reqbufs(struct file *file, void *priv,
-			  struct v4l2_requestbuffers *rb);
+						  struct v4l2_requestbuffers *rb);
 int tm6000_vidioc_querybuf(struct file *file, void *priv,
-			   struct v4l2_buffer *b);
+						   struct v4l2_buffer *b);
 int tm6000_vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *b);
 int tm6000_vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *b);
-ssize_t tm6000_v4l2_read(struct file *filp, char __user * buf, size_t count,
-			 loff_t *f_pos);
+ssize_t tm6000_v4l2_read(struct file *filp, char __user *buf, size_t count,
+						 loff_t *f_pos);
 unsigned int tm6000_v4l2_poll(struct file *file,
-			      struct poll_table_struct *wait);
+							  struct poll_table_struct *wait);
 int tm6000_queue_init(struct tm6000_core *dev);
 
 /* In tm6000-alsa.c */
@@ -393,9 +412,9 @@ void tm6000_ir_int_stop(struct tm6000_core *dev);
 extern int tm6000_debug;
 
 #define dprintk(dev, level, fmt, arg...) do {\
-	if (tm6000_debug & level) \
-		printk(KERN_INFO "(%lu) %s %s :"fmt, jiffies, \
-			 dev->name, __func__ , ##arg); } while (0)
+		if (tm6000_debug & level) \
+			printk(KERN_INFO "(%lu) %s %s :"fmt, jiffies, \
+				   dev->name, __func__ , ##arg); } while (0)
 
 #define V4L2_DEBUG_REG		0x0004
 #define V4L2_DEBUG_I2C		0x0008
@@ -405,5 +424,5 @@ extern int tm6000_debug;
 #define V4L2_DEBUG_OPEN		0x0080	/* video open/close debug */
 
 #define tm6000_err(fmt, arg...) do {\
-	printk(KERN_ERR "tm6000 %s :"fmt, \
-		__func__ , ##arg); } while (0)
+		printk(KERN_ERR "tm6000 %s :"fmt, \
+			   __func__ , ##arg); } while (0)

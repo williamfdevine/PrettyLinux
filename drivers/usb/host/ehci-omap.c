@@ -66,7 +66,8 @@ static const char hcd_name[] = "ehci-omap";
 
 /*-------------------------------------------------------------------------*/
 
-struct omap_hcd {
+struct omap_hcd
+{
 	struct usb_phy *phy[OMAP3_HS_USB_PORTS]; /* one PHY for each port */
 	int nports;
 };
@@ -86,7 +87,8 @@ static inline u32 ehci_read(void __iomem *base, u32 reg)
 
 static struct hc_driver __read_mostly ehci_omap_hc_driver;
 
-static const struct ehci_driver_overrides ehci_omap_overrides __initconst = {
+static const struct ehci_driver_overrides ehci_omap_overrides __initconst =
+{
 	.extra_priv_size = sizeof(struct omap_hcd),
 };
 
@@ -110,34 +112,44 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
 	struct omap_hcd	*omap;
 
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
-	if (!dev->parent) {
+	if (!dev->parent)
+	{
 		dev_err(dev, "Missing parent device\n");
 		return -ENODEV;
 	}
 
 	/* For DT boot, get platform data from parent. i.e. usbhshost */
-	if (dev->of_node) {
+	if (dev->of_node)
+	{
 		pdata = dev_get_platdata(dev->parent);
 		dev->platform_data = pdata;
 	}
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		dev_err(dev, "Missing platform data\n");
 		return -ENODEV;
 	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(dev, "EHCI irq failed\n");
 		return -ENODEV;
 	}
 
 	res =  platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	regs = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(regs))
+	{
 		return PTR_ERR(regs);
+	}
 
 	/*
 	 * Right now device-tree probed devices don't get dma_mask set.
@@ -145,13 +157,18 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
 	 * Once we have dma capability bindings this can go away.
 	 */
 	ret = dma_coerce_mask_and_coherent(dev, DMA_BIT_MASK(32));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = -ENODEV;
 	hcd = usb_create_hcd(&ehci_omap_hc_driver, dev,
-			dev_name(dev));
-	if (!hcd) {
+						 dev_name(dev));
+
+	if (!hcd)
+	{
 		dev_err(dev, "Failed to create HCD\n");
 		return -ENOMEM;
 	}
@@ -167,18 +184,27 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, hcd);
 
 	/* get the PHY devices if needed */
-	for (i = 0 ; i < omap->nports ; i++) {
+	for (i = 0 ; i < omap->nports ; i++)
+	{
 		struct usb_phy *phy;
 
 		/* get the PHY device */
 		if (dev->of_node)
+		{
 			phy = devm_usb_get_phy_by_phandle(dev, "phys", i);
+		}
 		else
+		{
 			phy = devm_usb_get_phy_dev(dev, i);
-		if (IS_ERR(phy)) {
+		}
+
+		if (IS_ERR(phy))
+		{
 			/* Don't bail out if PHY is not absolutely necessary */
 			if (pdata->port_mode[i] != OMAP_EHCI_PORT_MODE_PHY)
+			{
 				continue;
+			}
 
 			ret = PTR_ERR(phy);
 			dev_err(dev, "Can't get PHY device for port %d: %d\n",
@@ -188,7 +214,8 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
 
 		omap->phy[i] = phy;
 
-		if (pdata->port_mode[i] == OMAP_EHCI_PORT_MODE_PHY) {
+		if (pdata->port_mode[i] == OMAP_EHCI_PORT_MODE_PHY)
+		{
 			usb_phy_init(omap->phy[i]);
 			/* bring PHY out of suspend */
 			usb_phy_set_suspend(omap->phy[i], 0);
@@ -208,13 +235,16 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
 	 * disables this feature and restores normal behavior.
 	 */
 	ehci_write(regs, EHCI_INSNREG04,
-				EHCI_INSNREG04_DISABLE_UNSUSPEND);
+			   EHCI_INSNREG04_DISABLE_UNSUSPEND);
 
 	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to add hcd with err %d\n", ret);
 		goto err_pm_runtime;
 	}
+
 	device_wakeup_enable(hcd->self.controller);
 
 	/*
@@ -223,10 +253,13 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
 	 * line exists between the chips and can be modelled
 	 * as a PHY device for reset control.
 	 */
-	for (i = 0; i < omap->nports; i++) {
+	for (i = 0; i < omap->nports; i++)
+	{
 		if (!omap->phy[i] ||
-		     pdata->port_mode[i] == OMAP_EHCI_PORT_MODE_PHY)
+			pdata->port_mode[i] == OMAP_EHCI_PORT_MODE_PHY)
+		{
 			continue;
+		}
 
 		usb_phy_init(omap->phy[i]);
 		/* bring PHY out of suspend */
@@ -239,9 +272,13 @@ err_pm_runtime:
 	pm_runtime_put_sync(dev);
 
 err_phy:
-	for (i = 0; i < omap->nports; i++) {
+
+	for (i = 0; i < omap->nports; i++)
+	{
 		if (omap->phy[i])
+		{
 			usb_phy_shutdown(omap->phy[i]);
+		}
 	}
 
 	usb_put_hcd(hcd);
@@ -267,9 +304,12 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
 
 	usb_remove_hcd(hcd);
 
-	for (i = 0; i < omap->nports; i++) {
+	for (i = 0; i < omap->nports; i++)
+	{
 		if (omap->phy[i])
+		{
 			usb_phy_shutdown(omap->phy[i]);
+		}
 	}
 
 	usb_put_hcd(hcd);
@@ -279,14 +319,16 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id omap_ehci_dt_ids[] = {
+static const struct of_device_id omap_ehci_dt_ids[] =
+{
 	{ .compatible = "ti,ehci-omap" },
 	{ }
 };
 
 MODULE_DEVICE_TABLE(of, omap_ehci_dt_ids);
 
-static struct platform_driver ehci_hcd_omap_driver = {
+static struct platform_driver ehci_hcd_omap_driver =
+{
 	.probe			= ehci_hcd_omap_probe,
 	.remove			= ehci_hcd_omap_remove,
 	.shutdown		= usb_hcd_platform_shutdown,
@@ -303,7 +345,9 @@ static struct platform_driver ehci_hcd_omap_driver = {
 static int __init ehci_omap_init(void)
 {
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	pr_info("%s: " DRIVER_DESC "\n", hcd_name);
 

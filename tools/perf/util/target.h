@@ -4,7 +4,8 @@
 #include <stdbool.h>
 #include <sys/types.h>
 
-struct target {
+struct target
+{
 	const char   *pid;
 	const char   *tid;
 	const char   *cpu_list;
@@ -16,7 +17,8 @@ struct target {
 	bool	     per_thread;
 };
 
-enum target_errno {
+enum target_errno
+{
 	TARGET_ERRNO__SUCCESS		= 0,
 
 	/*
@@ -68,10 +70,14 @@ static inline bool target__uses_dummy_map(struct target *target)
 	bool use_dummy = false;
 
 	if (target->default_per_cpu)
+	{
 		use_dummy = target->per_thread ? true : false;
+	}
 	else if (target__has_task(target) ||
-	         (!target__has_cpu(target) && !target->uses_mmap))
+			 (!target__has_cpu(target) && !target->uses_mmap))
+	{
 		use_dummy = true;
+	}
 
 	return use_dummy;
 }

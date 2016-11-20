@@ -28,7 +28,8 @@
 #define LTQ_EBU_BUSCON	0x1e7ff		/* 16 bit access, slowest timing */
 #define LTQ_EBU_WP	0x80000000	/* write protect bit */
 
-struct ltq_mm {
+struct ltq_mm
+{
 	struct of_mm_gpio_chip mmchip;
 	u16 shadow;	/* shadow the latches state */
 };
@@ -64,9 +65,14 @@ static void ltq_mm_set(struct gpio_chip *gc, unsigned offset, int value)
 	struct ltq_mm *chip = gpiochip_get_data(gc);
 
 	if (value)
+	{
 		chip->shadow |= (1 << offset);
+	}
 	else
+	{
 		chip->shadow &= ~(1 << offset);
+	}
+
 	ltq_mm_apply(chip);
 }
 
@@ -106,8 +112,11 @@ static int ltq_mm_probe(struct platform_device *pdev)
 	u32 shadow;
 
 	chip = devm_kzalloc(&pdev->dev, sizeof(*chip), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, chip);
 
@@ -118,7 +127,9 @@ static int ltq_mm_probe(struct platform_device *pdev)
 
 	/* store the shadow value if one was passed by the devicetree */
 	if (!of_property_read_u32(pdev->dev.of_node, "lantiq,shadow", &shadow))
+	{
 		chip->shadow = shadow;
+	}
 
 	return of_mm_gpiochip_add_data(pdev->dev.of_node, &chip->mmchip, chip);
 }
@@ -132,13 +143,15 @@ static int ltq_mm_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id ltq_mm_match[] = {
+static const struct of_device_id ltq_mm_match[] =
+{
 	{ .compatible = "lantiq,gpio-mm" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, ltq_mm_match);
 
-static struct platform_driver ltq_mm_driver = {
+static struct platform_driver ltq_mm_driver =
+{
 	.probe = ltq_mm_probe,
 	.remove = ltq_mm_remove,
 	.driver = {

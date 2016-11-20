@@ -31,19 +31,22 @@
 /*
  * A description of each known serial I2C/GPIO port.
  */
-enum via_port_type {
+enum via_port_type
+{
 	VIA_PORT_NONE = 0,
 	VIA_PORT_I2C,
 	VIA_PORT_GPIO,
 };
 
-enum via_port_mode {
+enum via_port_mode
+{
 	VIA_MODE_OFF = 0,
 	VIA_MODE_I2C,		/* Used as I2C port */
 	VIA_MODE_GPIO,	/* Two GPIO ports */
 };
 
-enum viafb_i2c_adap {
+enum viafb_i2c_adap
+{
 	VIA_PORT_26 = 0,
 	VIA_PORT_31,
 	VIA_PORT_25,
@@ -52,7 +55,8 @@ enum viafb_i2c_adap {
 };
 #define VIAFB_NUM_PORTS 5
 
-struct via_port_cfg {
+struct via_port_cfg
+{
 	enum via_port_type	type;
 	enum via_port_mode	mode;
 	u16			io_port;
@@ -63,11 +67,12 @@ struct via_port_cfg {
  * Allow subdevs to register suspend/resume hooks.
  */
 #ifdef CONFIG_PM
-struct viafb_pm_hooks {
-	struct list_head list;
-	int (*suspend)(void *private);
-	int (*resume)(void *private);
-	void *private;
+struct viafb_pm_hooks
+{
+		struct list_head list;
+		int (*suspend)(void *private);
+		int (*resume)(void *private);
+		void *private;
 };
 
 void viafb_pm_register(struct viafb_pm_hooks *hooks);
@@ -78,7 +83,8 @@ void viafb_pm_unregister(struct viafb_pm_hooks *hooks);
  * This is the global viafb "device" containing stuff needed by
  * all subdevs.
  */
-struct viafb_dev {
+struct viafb_dev
+{
 	struct pci_dev *pdev;
 	int chip_type;
 	struct via_port_cfg *port_cfg;
@@ -154,40 +160,40 @@ void viafb_irq_disable(u32 mask);
 #define   VDE_I_ENABLE	  0x80000000  /* Global interrupt enable */
 
 #if defined(CONFIG_VIDEO_VIA_CAMERA) || defined(CONFIG_VIDEO_VIA_CAMERA_MODULE)
-/*
- * DMA management.
- */
-int viafb_request_dma(void);
-void viafb_release_dma(void);
-/* void viafb_dma_copy_out(unsigned int offset, dma_addr_t paddr, int len); */
-int viafb_dma_copy_out_sg(unsigned int offset, struct scatterlist *sg, int nsg);
+	/*
+	* DMA management.
+	*/
+	int viafb_request_dma(void);
+	void viafb_release_dma(void);
+	/* void viafb_dma_copy_out(unsigned int offset, dma_addr_t paddr, int len); */
+	int viafb_dma_copy_out_sg(unsigned int offset, struct scatterlist *sg, int nsg);
 
-/*
- * DMA Controller registers.
- */
-#define VDMA_MR0	0xe00		/* Mod reg 0 */
-#define   VDMA_MR_CHAIN   0x01		/* Chaining mode */
-#define   VDMA_MR_TDIE    0x02		/* Transfer done int enable */
-#define VDMA_CSR0	0xe04		/* Control/status */
-#define	  VDMA_C_ENABLE	  0x01		  /* DMA Enable */
-#define	  VDMA_C_START	  0x02		  /* Start a transfer */
-#define	  VDMA_C_ABORT	  0x04		  /* Abort a transfer */
-#define	  VDMA_C_DONE	  0x08		  /* Transfer is done */
-#define VDMA_MARL0	0xe20		/* Mem addr low */
-#define VDMA_MARH0	0xe24		/* Mem addr high */
-#define VDMA_DAR0	0xe28		/* Device address */
-#define VDMA_DQWCR0	0xe2c		/* Count (16-byte) */
-#define VDMA_TMR0	0xe30		/* Tile mode reg */
-#define VDMA_DPRL0	0xe34		/* Not sure */
-#define	  VDMA_DPR_IN	  0x08		/* Inbound transfer to FB */
-#define VDMA_DPRH0	0xe38
-#define VDMA_PMR0	(0xe00 + 0x134) /* Pitch mode */
+	/*
+	* DMA Controller registers.
+	*/
+	#define VDMA_MR0	0xe00		/* Mod reg 0 */
+	#define   VDMA_MR_CHAIN   0x01		/* Chaining mode */
+	#define   VDMA_MR_TDIE    0x02		/* Transfer done int enable */
+	#define VDMA_CSR0	0xe04		/* Control/status */
+	#define	  VDMA_C_ENABLE	  0x01		  /* DMA Enable */
+	#define	  VDMA_C_START	  0x02		  /* Start a transfer */
+	#define	  VDMA_C_ABORT	  0x04		  /* Abort a transfer */
+	#define	  VDMA_C_DONE	  0x08		  /* Transfer is done */
+	#define VDMA_MARL0	0xe20		/* Mem addr low */
+	#define VDMA_MARH0	0xe24		/* Mem addr high */
+	#define VDMA_DAR0	0xe28		/* Device address */
+	#define VDMA_DQWCR0	0xe2c		/* Count (16-byte) */
+	#define VDMA_TMR0	0xe30		/* Tile mode reg */
+	#define VDMA_DPRL0	0xe34		/* Not sure */
+	#define	  VDMA_DPR_IN	  0x08		/* Inbound transfer to FB */
+	#define VDMA_DPRH0	0xe38
+	#define VDMA_PMR0	(0xe00 + 0x134) /* Pitch mode */
 
-/*
- * Useful stuff that probably belongs somewhere global.
- */
-#define VGA_WIDTH	640
-#define VGA_HEIGHT	480
+	/*
+	* Useful stuff that probably belongs somewhere global.
+	*/
+	#define VGA_WIDTH	640
+	#define VGA_HEIGHT	480
 #endif /* CONFIG_VIDEO_VIA_CAMERA */
 
 /*

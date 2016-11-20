@@ -22,15 +22,18 @@ static inline void cvm_oct_rx_refill_pool(int fill_threshold)
 	number_to_free =
 		cvmx_fau_fetch_and_add32(FAU_NUM_PACKET_BUFFERS_TO_FREE, 0);
 
-	if (number_to_free > fill_threshold) {
+	if (number_to_free > fill_threshold)
+	{
 		cvmx_fau_atomic_add32(FAU_NUM_PACKET_BUFFERS_TO_FREE,
-				      -number_to_free);
+							  -number_to_free);
 		num_freed = cvm_oct_mem_fill_fpa(CVMX_FPA_PACKET_POOL,
-						 CVMX_FPA_PACKET_POOL_SIZE,
-						 number_to_free);
-		if (num_freed != number_to_free) {
+										 CVMX_FPA_PACKET_POOL_SIZE,
+										 number_to_free);
+
+		if (num_freed != number_to_free)
+		{
 			cvmx_fau_atomic_add32(FAU_NUM_PACKET_BUFFERS_TO_FREE,
-					      number_to_free - num_freed);
+								  number_to_free - num_freed);
 		}
 	}
 }

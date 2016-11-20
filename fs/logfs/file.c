@@ -10,21 +10,29 @@
 #include <linux/writeback.h>
 
 static int logfs_write_begin(struct file *file, struct address_space *mapping,
-		loff_t pos, unsigned len, unsigned flags,
-		struct page **pagep, void **fsdata)
+							 loff_t pos, unsigned len, unsigned flags,
+							 struct page **pagep, void **fsdata)
 {
 	struct inode *inode = mapping->host;
 	struct page *page;
 	pgoff_t index = pos >> PAGE_SHIFT;
 
 	page = grab_cache_page_write_begin(mapping, index, flags);
+
 	if (!page)
+	{
 		return -ENOMEM;
+	}
+
 	*pagep = page;
 
 	if ((len == PAGE_SIZE) || PageUptodate(page))
+	{
 		return 0;
-	if ((pos & PAGE_MASK) >= i_size_read(inode)) {
+	}
+
+	if ((pos & PAGE_MASK) >= i_size_read(inode))
+	{
 		unsigned start = pos & (PAGE_SIZE - 1);
 		unsigned end = start + len;
 
@@ -32,12 +40,13 @@ static int logfs_write_begin(struct file *file, struct address_space *mapping,
 		zero_user_segments(page, 0, start, end, PAGE_SIZE);
 		return 0;
 	}
+
 	return logfs_readpage_nolock(page);
 }
 
 static int logfs_write_end(struct file *file, struct address_space *mapping,
-		loff_t pos, unsigned len, unsigned copied, struct page *page,
-		void *fsdata)
+						   loff_t pos, unsigned len, unsigned copied, struct page *page,
+						   void *fsdata)
 {
 	struct inode *inode = mapping->host;
 	pgoff_t index = page->index;
@@ -48,31 +57,44 @@ static int logfs_write_end(struct file *file, struct address_space *mapping,
 	BUG_ON(PAGE_SIZE != inode->i_sb->s_blocksize);
 	BUG_ON(page->index > I3_BLOCKS);
 
-	if (copied < len) {
+	if (copied < len)
+	{
 		/*
 		 * Short write of a non-initialized paged.  Just tell userspace
 		 * to retry the entire page.
 		 */
-		if (!PageUptodate(page)) {
+		if (!PageUptodate(page))
+		{
 			copied = 0;
 			goto out;
 		}
 	}
-	if (copied == 0)
-		goto out; /* FIXME: do we need to update inode? */
 
-	if (i_size_read(inode) < (index << PAGE_SHIFT) + end) {
+	if (copied == 0)
+	{
+		goto out;    /* FIXME: do we need to update inode? */
+	}
+
+	if (i_size_read(inode) < (index << PAGE_SHIFT) + end)
+	{
 		i_size_write(inode, (index << PAGE_SHIFT) + end);
 		mark_inode_dirty_sync(inode);
 	}
 
 	SetPageUptodate(page);
-	if (!PageDirty(page)) {
+
+	if (!PageDirty(page))
+	{
 		if (!get_page_reserve(inode, page))
+		{
 			__set_page_dirty_nobuffers(page);
+		}
 		else
+		{
 			ret = logfs_write_buf(inode, page, WF_LOCK);
+		}
 	}
+
 out:
 	unlock_page(page);
 	put_page(page);
@@ -106,10 +128,16 @@ static int __logfs_writepage(struct page *page)
 	int err;
 
 	err = logfs_write_buf(inode, page, WF_LOCK);
+
 	if (err)
+	{
 		set_page_dirty(page);
+	}
 	else
+	{
 		clear_radix_tree_dirty(page);
+	}
+
 	unlock_page(page);
 	return err;
 }
@@ -124,13 +152,15 @@ static int logfs_writepage(struct page *page, struct writeback_control *wbc)
 	level_t level;
 
 	log_file("logfs_writepage(%lx, %lx, %p)\n", inode->i_ino, page->index,
-			page);
+			 page);
 
 	logfs_unpack_index(page->index, &bix, &level);
 
 	/* Indirect blocks are never truncated */
 	if (level != 0)
+	{
 		return __logfs_writepage(page);
+	}
 
 	/*
 	 * TODO: everything below is a near-verbatim copy of nobh_writepage().
@@ -139,11 +169,15 @@ static int logfs_writepage(struct page *page, struct writeback_control *wbc)
 
 	/* Is the page fully inside i_size? */
 	if (bix < end_index)
+	{
 		return __logfs_writepage(page);
+	}
 
-	 /* Is the page fully outside i_size? (truncate in progress) */
-	offset = i_size & (PAGE_SIZE-1);
-	if (bix > end_index || offset == 0) {
+	/* Is the page fully outside i_size? (truncate in progress) */
+	offset = i_size & (PAGE_SIZE - 1);
+
+	if (bix > end_index || offset == 0)
+	{
 		unlock_page(page);
 		return 0; /* don't care */
 	}
@@ -160,19 +194,24 @@ static int logfs_writepage(struct page *page, struct writeback_control *wbc)
 }
 
 static void logfs_invalidatepage(struct page *page, unsigned int offset,
-				 unsigned int length)
+								 unsigned int length)
 {
 	struct logfs_block *block = logfs_block(page);
 
-	if (block->reserved_bytes) {
+	if (block->reserved_bytes)
+	{
 		struct super_block *sb = page->mapping->host->i_sb;
 		struct logfs_super *super = logfs_super(sb);
 
 		super->s_dirty_pages -= block->reserved_bytes;
 		block->ops->free_block(sb, block);
 		BUG_ON(bitmap_weight(block->alias_map, LOGFS_BLOCK_FACTOR));
-	} else
+	}
+	else
+	{
 		move_page_to_btree(page);
+	}
+
 	BUG_ON(PagePrivate(page) || page->private);
 }
 
@@ -189,34 +228,43 @@ long logfs_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	unsigned int oldflags, flags;
 	int err;
 
-	switch (cmd) {
-	case FS_IOC_GETFLAGS:
-		flags = li->li_flags & LOGFS_FL_USER_VISIBLE;
-		return put_user(flags, (int __user *)arg);
-	case FS_IOC_SETFLAGS:
-		if (IS_RDONLY(inode))
-			return -EROFS;
+	switch (cmd)
+	{
+		case FS_IOC_GETFLAGS:
+			flags = li->li_flags & LOGFS_FL_USER_VISIBLE;
+			return put_user(flags, (int __user *)arg);
 
-		if (!inode_owner_or_capable(inode))
-			return -EACCES;
+		case FS_IOC_SETFLAGS:
+			if (IS_RDONLY(inode))
+			{
+				return -EROFS;
+			}
 
-		err = get_user(flags, (int __user *)arg);
-		if (err)
-			return err;
+			if (!inode_owner_or_capable(inode))
+			{
+				return -EACCES;
+			}
 
-		inode_lock(inode);
-		oldflags = li->li_flags;
-		flags &= LOGFS_FL_USER_MODIFIABLE;
-		flags |= oldflags & ~LOGFS_FL_USER_MODIFIABLE;
-		li->li_flags = flags;
-		inode_unlock(inode);
+			err = get_user(flags, (int __user *)arg);
 
-		inode->i_ctime = current_time(inode);
-		mark_inode_dirty_sync(inode);
-		return 0;
+			if (err)
+			{
+				return err;
+			}
 
-	default:
-		return -ENOTTY;
+			inode_lock(inode);
+			oldflags = li->li_flags;
+			flags &= LOGFS_FL_USER_MODIFIABLE;
+			flags |= oldflags & ~LOGFS_FL_USER_MODIFIABLE;
+			li->li_flags = flags;
+			inode_unlock(inode);
+
+			inode->i_ctime = current_time(inode);
+			mark_inode_dirty_sync(inode);
+			return 0;
+
+		default:
+			return -ENOTTY;
 	}
 }
 
@@ -227,8 +275,11 @@ int logfs_fsync(struct file *file, loff_t start, loff_t end, int datasync)
 	int ret;
 
 	ret = filemap_write_and_wait_range(inode->i_mapping, start, end);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	inode_lock(inode);
 	logfs_get_wblocks(sb, NULL, WF_LOCK);
@@ -245,13 +296,20 @@ static int logfs_setattr(struct dentry *dentry, struct iattr *attr)
 	int err = 0;
 
 	err = setattr_prepare(dentry, attr);
-	if (err)
-		return err;
 
-	if (attr->ia_valid & ATTR_SIZE) {
+	if (err)
+	{
+		return err;
+	}
+
+	if (attr->ia_valid & ATTR_SIZE)
+	{
 		err = logfs_truncate(inode, attr->ia_size);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	setattr_copy(inode, attr);
@@ -259,11 +317,13 @@ static int logfs_setattr(struct dentry *dentry, struct iattr *attr)
 	return 0;
 }
 
-const struct inode_operations logfs_reg_iops = {
+const struct inode_operations logfs_reg_iops =
+{
 	.setattr	= logfs_setattr,
 };
 
-const struct file_operations logfs_reg_fops = {
+const struct file_operations logfs_reg_fops =
+{
 	.read_iter	= generic_file_read_iter,
 	.write_iter	= generic_file_write_iter,
 	.fsync		= logfs_fsync,
@@ -273,7 +333,8 @@ const struct file_operations logfs_reg_fops = {
 	.open		= generic_file_open,
 };
 
-const struct address_space_operations logfs_reg_aops = {
+const struct address_space_operations logfs_reg_aops =
+{
 	.invalidatepage	= logfs_invalidatepage,
 	.readpage	= logfs_readpage,
 	.releasepage	= logfs_releasepage,

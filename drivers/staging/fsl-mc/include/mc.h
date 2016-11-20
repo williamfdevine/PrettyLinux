@@ -35,7 +35,8 @@ struct fsl_mc_io;
  * with a DPRC bus. This structure is to be embedded in each device-specific
  * driver structure.
  */
-struct fsl_mc_driver {
+struct fsl_mc_driver
+{
 	struct device_driver driver;
 	const struct fsl_mc_device_id *match_id_table;
 	int (*probe)(struct fsl_mc_device *dev);
@@ -54,7 +55,8 @@ struct fsl_mc_driver {
  * Entries in these enum are used as indices in the array of resource
  * pools of an fsl_mc_bus object.
  */
-enum fsl_mc_pool_type {
+enum fsl_mc_pool_type
+{
 	FSL_MC_POOL_DPMCP = 0x0,    /* corresponds to "dpmcp" in the MC */
 	FSL_MC_POOL_DPBP,	    /* corresponds to "dpbp" in the MC */
 	FSL_MC_POOL_DPCON,	    /* corresponds to "dpcon" in the MC */
@@ -79,7 +81,8 @@ enum fsl_mc_pool_type {
  * NOTE: This structure is to be embedded as a field of specific
  * MC resource structures.
  */
-struct fsl_mc_resource {
+struct fsl_mc_resource
+{
 	enum fsl_mc_pool_type type;
 	int32_t id;
 	void *data;
@@ -94,7 +97,8 @@ struct fsl_mc_resource {
  * @dev_irq_index: device-relative IRQ index
  * @resource: MC generic resource associated with the interrupt
  */
-struct fsl_mc_device_irq {
+struct fsl_mc_device_irq
+{
 	struct msi_desc *msi_desc;
 	struct fsl_mc_device *mc_dev;
 	u8 dev_irq_index;
@@ -143,7 +147,8 @@ struct fsl_mc_device_irq {
  *   For MC objects that are not allocatable (e.g., DP_OBJ_DPRC, DP_OBJ_DPNI),
  *   'resource' is NULL.
  */
-struct fsl_mc_device {
+struct fsl_mc_device
+{
 	struct device dev;
 	u64 dma_mask;
 	u16 flags;
@@ -167,7 +172,7 @@ struct fsl_mc_device {
  */
 #define module_fsl_mc_driver(__fsl_mc_driver) \
 	module_driver(__fsl_mc_driver, fsl_mc_driver_register, \
-		      fsl_mc_driver_unregister)
+				  fsl_mc_driver_unregister)
 
 /*
  * Macro to avoid include chaining to get THIS_MODULE
@@ -176,21 +181,21 @@ struct fsl_mc_device {
 	__fsl_mc_driver_register(drv, THIS_MODULE)
 
 int __must_check __fsl_mc_driver_register(struct fsl_mc_driver *fsl_mc_driver,
-					  struct module *owner);
+		struct module *owner);
 
 void fsl_mc_driver_unregister(struct fsl_mc_driver *driver);
 
 int __must_check fsl_mc_portal_allocate(struct fsl_mc_device *mc_dev,
-					u16 mc_io_flags,
-					struct fsl_mc_io **new_mc_io);
+										u16 mc_io_flags,
+										struct fsl_mc_io **new_mc_io);
 
 void fsl_mc_portal_free(struct fsl_mc_io *mc_io);
 
 int fsl_mc_portal_reset(struct fsl_mc_io *mc_io);
 
 int __must_check fsl_mc_object_allocate(struct fsl_mc_device *mc_dev,
-					enum fsl_mc_pool_type pool_type,
-					struct fsl_mc_device **new_mc_adev);
+										enum fsl_mc_pool_type pool_type,
+										struct fsl_mc_device **new_mc_adev);
 
 void fsl_mc_object_free(struct fsl_mc_device *mc_adev);
 

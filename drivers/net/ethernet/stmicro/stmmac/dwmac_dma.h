@@ -56,7 +56,7 @@
 
 #define DMA_AXI_OSR_MAX		0xf
 #define DMA_AXI_MAX_OSR_LIMIT ((DMA_AXI_OSR_MAX << DMA_AXI_WR_OSR_LMT_SHIFT) | \
-			       (DMA_AXI_OSR_MAX << DMA_AXI_RD_OSR_LMT_SHIFT))
+							   (DMA_AXI_OSR_MAX << DMA_AXI_RD_OSR_LMT_SHIFT))
 #define	DMA_AXI_1KBBE		BIT(13)
 #define DMA_AXI_AAL		BIT(12)
 #define DMA_AXI_BLEN256		BIT(7)
@@ -67,9 +67,9 @@
 #define DMA_AXI_BLEN8		BIT(2)
 #define DMA_AXI_BLEN4		BIT(1)
 #define DMA_BURST_LEN_DEFAULT	(DMA_AXI_BLEN256 | DMA_AXI_BLEN128 | \
-				 DMA_AXI_BLEN64 | DMA_AXI_BLEN32 | \
-				 DMA_AXI_BLEN16 | DMA_AXI_BLEN8 | \
-				 DMA_AXI_BLEN4)
+								 DMA_AXI_BLEN64 | DMA_AXI_BLEN32 | \
+								 DMA_AXI_BLEN16 | DMA_AXI_BLEN8 | \
+								 DMA_AXI_BLEN4)
 
 #define DMA_AXI_UNDEF		BIT(0)
 
@@ -91,7 +91,7 @@
 #define DMA_INTR_ENA_ERE 0x00004000	/* Early Receive */
 
 #define DMA_INTR_NORMAL	(DMA_INTR_ENA_NIE | DMA_INTR_ENA_RIE | \
-			DMA_INTR_ENA_TIE)
+						 DMA_INTR_ENA_TIE)
 
 /* DMA Abnormal interrupt */
 #define DMA_INTR_ENA_AIE 0x00008000	/* Abnormal Summary */
@@ -106,7 +106,7 @@
 #define DMA_INTR_ENA_TSE 0x00000002	/* Transmit Stopped */
 
 #define DMA_INTR_ABNORMAL	(DMA_INTR_ENA_AIE | DMA_INTR_ENA_FBE | \
-				DMA_INTR_ENA_UNE)
+							 DMA_INTR_ENA_UNE)
 
 /* DMA default interrupt mask */
 #define DMA_INTR_DEFAULT_MASK	(DMA_INTR_NORMAL | DMA_INTR_ABNORMAL)

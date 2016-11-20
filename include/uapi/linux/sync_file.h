@@ -22,7 +22,8 @@
  * @flags:	merge_data flags
  * @pad:	padding for 64-bit alignment, should always be zero
  */
-struct sync_merge_data {
+struct sync_merge_data
+{
 	char	name[32];
 	__s32	fd2;
 	__s32	fence;
@@ -38,7 +39,8 @@ struct sync_merge_data {
  * @flags:		fence_info flags
  * @timestamp_ns:	timestamp of status change in nanoseconds
  */
-struct sync_fence_info {
+struct sync_fence_info
+{
 	char	obj_name[32];
 	char	driver_name[32];
 	__s32	status;
@@ -56,7 +58,8 @@ struct sync_fence_info {
  * @sync_fence_info: pointer to array of structs sync_fence_info with all
  *		 fences in the sync_file
  */
-struct sync_file_info {
+struct sync_file_info
+{
 	char	name[32];
 	__s32	status;
 	__u32	flags;

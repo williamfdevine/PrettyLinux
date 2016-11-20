@@ -25,21 +25,21 @@
 		return e->internal >> ilog2(_factor);			\
 	}								\
 	static inline void ewma_##name##_add(struct ewma_##name *e,	\
-					     unsigned long val)		\
+										 unsigned long val)		\
 	{								\
 		unsigned long internal = ACCESS_ONCE(e->internal);	\
 		unsigned long weight = ilog2(_weight);			\
 		unsigned long factor = ilog2(_factor);			\
-									\
+		\
 		BUILD_BUG_ON(!__builtin_constant_p(_factor));		\
 		BUILD_BUG_ON(!__builtin_constant_p(_weight));		\
 		BUILD_BUG_ON_NOT_POWER_OF_2(_factor);			\
 		BUILD_BUG_ON_NOT_POWER_OF_2(_weight);			\
-									\
+		\
 		ACCESS_ONCE(e->internal) = internal ?			\
-			(((internal << weight) - internal) +		\
-				(val << factor)) >> weight :		\
-			(val << factor);				\
+								   (((internal << weight) - internal) +		\
+									(val << factor)) >> weight :		\
+								   (val << factor);				\
 	}
 
 #endif /* _LINUX_AVERAGE_H */

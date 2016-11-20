@@ -33,22 +33,25 @@ static int tui_helpline__show(const char *format, va_list ap)
 
 	pthread_mutex_lock(&ui__lock);
 	ret = vscnprintf(ui_helpline__last_msg + backlog,
-			sizeof(ui_helpline__last_msg) - backlog, format, ap);
+					 sizeof(ui_helpline__last_msg) - backlog, format, ap);
 	backlog += ret;
 
 	tui_helpline__set = true;
 
-	if (ui_helpline__last_msg[backlog - 1] == '\n') {
+	if (ui_helpline__last_msg[backlog - 1] == '\n')
+	{
 		ui_helpline__puts(ui_helpline__last_msg);
 		SLsmg_refresh();
 		backlog = 0;
 	}
+
 	pthread_mutex_unlock(&ui__lock);
 
 	return ret;
 }
 
-struct ui_helpline tui_helpline_fns = {
+struct ui_helpline tui_helpline_fns =
+{
 	.pop	= tui_helpline__pop,
 	.push	= tui_helpline__push,
 	.show	= tui_helpline__show,

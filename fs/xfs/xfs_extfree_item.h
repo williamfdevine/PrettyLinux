@@ -62,7 +62,8 @@ struct kmem_zone;
  * of commit failure or log I/O errors. Note that the EFD is not inserted in the
  * AIL, so at this point both the EFI and EFD are freed.
  */
-typedef struct xfs_efi_log_item {
+typedef struct xfs_efi_log_item
+{
 	xfs_log_item_t		efi_item;
 	atomic_t		efi_refcount;
 	atomic_t		efi_next_extent;
@@ -75,7 +76,8 @@ typedef struct xfs_efi_log_item {
  * the fact that some extents earlier mentioned in an efi item
  * have been freed.
  */
-typedef struct xfs_efd_log_item {
+typedef struct xfs_efd_log_item
+{
 	xfs_log_item_t		efd_item;
 	xfs_efi_log_item_t	*efd_efip;
 	uint			efd_next_extent;
@@ -92,13 +94,13 @@ extern struct kmem_zone	*xfs_efd_zone;
 
 xfs_efi_log_item_t	*xfs_efi_init(struct xfs_mount *, uint);
 xfs_efd_log_item_t	*xfs_efd_init(struct xfs_mount *, xfs_efi_log_item_t *,
-				      uint);
+								  uint);
 int			xfs_efi_copy_format(xfs_log_iovec_t *buf,
-					    xfs_efi_log_format_t *dst_efi_fmt);
+								xfs_efi_log_format_t *dst_efi_fmt);
 void			xfs_efi_item_free(xfs_efi_log_item_t *);
 void			xfs_efi_release(struct xfs_efi_log_item *);
 
 int			xfs_efi_recover(struct xfs_mount *mp,
-					struct xfs_efi_log_item *efip);
+							struct xfs_efi_log_item *efip);
 
 #endif	/* __XFS_EXTFREE_ITEM_H__ */

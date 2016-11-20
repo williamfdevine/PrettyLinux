@@ -22,7 +22,8 @@
 #include "gf100.h"
 
 static const struct nvkm_bar_func
-gk20a_bar_func = {
+	gk20a_bar_func =
+{
 	.dtor = gf100_bar_dtor,
 	.oneinit = gf100_bar_oneinit,
 	.init = gf100_bar_init,
@@ -34,7 +35,11 @@ int
 gk20a_bar_new(struct nvkm_device *device, int index, struct nvkm_bar **pbar)
 {
 	int ret = gf100_bar_new_(&gk20a_bar_func, device, index, pbar);
+
 	if (ret == 0)
+	{
 		(*pbar)->iomap_uncached = true;
+	}
+
 	return ret;
 }

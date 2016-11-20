@@ -4,7 +4,8 @@
 #include <linux/freezer.h>
 #include <linux/compiler.h>
 
-struct swsusp_info {
+struct swsusp_info
+{
 	struct new_utsname	uts;
 	u32			version_code;
 	unsigned long		num_physpages;
@@ -34,7 +35,7 @@ static inline int init_header_complete(struct swsusp_info *info)
 static inline char *check_image_kernel(struct swsusp_info *info)
 {
 	return arch_hibernation_header_restore(info) ?
-			"architecture specific data" : NULL;
+		   "architecture specific data" : NULL;
 }
 #endif /* CONFIG_ARCH_HIBERNATION_HEADER */
 
@@ -77,23 +78,23 @@ static inline void hibernate_image_size_init(void) {}
 extern int pfn_is_nosave(unsigned long);
 
 #define power_attr(_name) \
-static struct kobj_attribute _name##_attr = {	\
-	.attr	= {				\
-		.name = __stringify(_name),	\
-		.mode = 0644,			\
-	},					\
-	.show	= _name##_show,			\
-	.store	= _name##_store,		\
-}
+	static struct kobj_attribute _name##_attr = {	\
+		.attr	= {				\
+								.name = __stringify(_name),	\
+								.mode = 0644,			\
+				},					\
+				  .show	= _name##_show,			\
+							.store	= _name##_store,		\
+	}
 
 #define power_attr_ro(_name) \
-static struct kobj_attribute _name##_attr = {	\
-	.attr	= {				\
-		.name = __stringify(_name),	\
-		.mode = S_IRUGO,		\
-	},					\
-	.show	= _name##_show,			\
-}
+	static struct kobj_attribute _name##_attr = {	\
+		.attr	= {				\
+								.name = __stringify(_name),	\
+								.mode = S_IRUGO,		\
+				},					\
+				  .show	= _name##_show,			\
+	}
 
 /* Preferred image size in bytes (default 500 MB) */
 extern unsigned long image_size;
@@ -132,7 +133,8 @@ extern void clear_free_pages(void);
  *	in the future with considerably less effort.
  */
 
-struct snapshot_handle {
+struct snapshot_handle
+{
 	unsigned int	cur;	/* number of the block of PAGE_SIZE bytes the
 				 * next operation will refer to (ie. current)
 				 */
@@ -180,7 +182,7 @@ extern int swsusp_read(unsigned int *flags_p);
 extern int swsusp_write(unsigned int flags);
 extern void swsusp_close(fmode_t);
 #ifdef CONFIG_SUSPEND
-extern int swsusp_unmark(void);
+	extern int swsusp_unmark(void);
 #endif
 
 struct timeval;
@@ -212,7 +214,7 @@ static inline void suspend_test_finish(const char *label) {}
 #ifdef CONFIG_PM_SLEEP
 /* kernel/power/main.c */
 extern int __pm_notifier_call_chain(unsigned long val, int nr_to_call,
-				    int *nr_calls);
+									int *nr_calls);
 extern int pm_notifier_call_chain(unsigned long val);
 #endif
 
@@ -226,7 +228,8 @@ static inline int restore_highmem(void) { return 0; }
 /*
  * Suspend test levels
  */
-enum {
+enum
+{
 	/* keep first */
 	TEST_NONE,
 	TEST_CORE,
@@ -249,20 +252,26 @@ static inline int suspend_freeze_processes(void)
 	int error;
 
 	error = freeze_processes();
+
 	/*
 	 * freeze_processes() automatically thaws every task if freezing
 	 * fails. So we need not do anything extra upon error.
 	 */
 	if (error)
+	{
 		return error;
+	}
 
 	error = freeze_kernel_threads();
+
 	/*
 	 * freeze_kernel_threads() thaws only kernel threads upon freezing
 	 * failure. So we have to thaw the userspace tasks ourselves.
 	 */
 	if (error)
+	{
 		thaw_processes();
+	}
 
 	return error;
 }
@@ -302,9 +311,9 @@ static inline suspend_state_t pm_autosleep_state(void) { return PM_SUSPEND_ON; }
 
 #ifdef CONFIG_PM_WAKELOCKS
 
-/* kernel/power/wakelock.c */
-extern ssize_t pm_show_wakelocks(char *buf, bool show_active);
-extern int pm_wake_lock(const char *buf);
-extern int pm_wake_unlock(const char *buf);
+	/* kernel/power/wakelock.c */
+	extern ssize_t pm_show_wakelocks(char *buf, bool show_active);
+	extern int pm_wake_lock(const char *buf);
+	extern int pm_wake_unlock(const char *buf);
 
 #endif /* !CONFIG_PM_WAKELOCKS */

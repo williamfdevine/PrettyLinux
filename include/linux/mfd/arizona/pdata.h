@@ -55,26 +55,30 @@
 
 struct regulator_init_data;
 
-struct arizona_micbias {
+struct arizona_micbias
+{
 	int mV;                    /** Regulated voltage */
-	unsigned int ext_cap:1;    /** External capacitor fitted */
-	unsigned int discharge:1;  /** Actively discharge */
-	unsigned int soft_start:1; /** Disable aggressive startup ramp rate */
-	unsigned int bypass:1;     /** Use bypass mode */
+	unsigned int ext_cap: 1;   /** External capacitor fitted */
+	unsigned int discharge: 1; /** Actively discharge */
+	unsigned int soft_start: 1; /** Disable aggressive startup ramp rate */
+	unsigned int bypass: 1;    /** Use bypass mode */
 };
 
-struct arizona_micd_config {
+struct arizona_micd_config
+{
 	unsigned int src;
 	unsigned int bias;
 	bool gpio;
 };
 
-struct arizona_micd_range {
+struct arizona_micd_range
+{
 	int max;  /** Ohms */
 	int key;  /** Key to report to input layer */
 };
 
-struct arizona_pdata {
+struct arizona_pdata
+{
 	int reset;      /** GPIO controlling /RESET, if any */
 	int ldoena;     /** GPIO controlling LODENA, if any */
 

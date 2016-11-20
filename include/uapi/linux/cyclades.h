@@ -20,23 +20,23 @@
  *
  *Revision 2.5  1998/08/03 16:57:01  ivan
  *added cyclades_idle_stats structure;
- * 
+ *
  *Revision 2.4  1998/06/01 12:09:53  ivan
  *removed closing_wait2 from cyclades_port structure;
  *
  *Revision 2.3  1998/03/16 18:01:12  ivan
- *changes in the cyclades_port structure to get it closer to the 
+ *changes in the cyclades_port structure to get it closer to the
  *standard serial port structure;
  *added constants for new ioctls;
  *
  *Revision 2.2  1998/02/17 16:50:00  ivan
- *changes in the cyclades_port structure (addition of shutdown_wait and 
+ *changes in the cyclades_port structure (addition of shutdown_wait and
  *chip_rev variables);
  *added constants for new ioctls and for CD1400 rev. numbers.
  *
  *Revision 2.1	1997/10/24 16:03:00  ivan
- *added rflow (which allows enabling the CD1400 special flow control 
- *feature) and rtsdtr_inv (which allows DTR/RTS pin inversion) to 
+ *added rflow (which allows enabling the CD1400 special flow control
+ *feature) and rtsdtr_inv (which allows DTR/RTS pin inversion) to
  *cyclades_port structure;
  *added Alpha support
  *
@@ -69,11 +69,12 @@
 
 #include <linux/types.h>
 
-struct cyclades_monitor {
-        unsigned long           int_count;
-        unsigned long           char_count;
-        unsigned long           char_max;
-        unsigned long           char_last;
+struct cyclades_monitor
+{
+	unsigned long           int_count;
+	unsigned long           char_count;
+	unsigned long           char_max;
+	unsigned long           char_last;
 };
 
 /*
@@ -81,15 +82,16 @@ struct cyclades_monitor {
  * (i.e., since the port was opened with no other processes already having it
  * open)
  */
-struct cyclades_idle_stats {
-    __kernel_time_t in_use;	/* Time device has been in use (secs) */
-    __kernel_time_t recv_idle;	/* Time since last char received (secs) */
-    __kernel_time_t xmit_idle;	/* Time since last char transmitted (secs) */
-    unsigned long  recv_bytes;	/* Bytes received */
-    unsigned long  xmit_bytes;	/* Bytes transmitted */
-    unsigned long  overruns;	/* Input overruns */
-    unsigned long  frame_errs;	/* Input framing errors */
-    unsigned long  parity_errs;	/* Input parity errors */
+struct cyclades_idle_stats
+{
+	__kernel_time_t in_use;	/* Time device has been in use (secs) */
+	__kernel_time_t recv_idle;	/* Time since last char received (secs) */
+	__kernel_time_t xmit_idle;	/* Time since last char transmitted (secs) */
+	unsigned long  recv_bytes;	/* Bytes received */
+	unsigned long  xmit_bytes;	/* Bytes transmitted */
+	unsigned long  overruns;	/* Input overruns */
+	unsigned long  frame_errs;	/* Input framing errors */
+	unsigned long  parity_errs;	/* Input parity errors */
 };
 
 #define CYCLADES_MAGIC  0x4359
@@ -131,13 +133,14 @@ struct cyclades_idle_stats {
 #define	CYZ_FIFO_SIZE	16
 
 #define CYZ_BOOT_NWORDS 0x100
-struct CYZ_BOOT_CTRL {
-        unsigned short  nboard;
-        int             status[MAX_BOARD];
-        int             nchannel[MAX_BOARD];
-        int             fw_rev[MAX_BOARD];
-        unsigned long   offset;
-        unsigned long   data[CYZ_BOOT_NWORDS];
+struct CYZ_BOOT_CTRL
+{
+	unsigned short  nboard;
+	int             status[MAX_BOARD];
+	int             nchannel[MAX_BOARD];
+	int             fw_rev[MAX_BOARD];
+	unsigned long   offset;
+	unsigned long   data[CYZ_BOOT_NWORDS];
 };
 
 
@@ -157,7 +160,8 @@ struct CYZ_BOOT_CTRL {
  *	start_cpu and stop_cpu.
  */
 
-struct	CUSTOM_REG {
+struct	CUSTOM_REG
+{
 	__u32	fpga_id;		/* FPGA Identification Register */
 	__u32	fpga_version;		/* FPGA Version Number Register */
 	__u32	cpu_start;		/* CPU start Register (write) */
@@ -184,7 +188,8 @@ struct	CUSTOM_REG {
  *	(memory mapped).
  */
 
-struct RUNTIME_9060 {
+struct RUNTIME_9060
+{
 	__u32	loc_addr_range;	/* 00h - Local Address Range */
 	__u32	loc_addr_base;	/* 04h - Local Address Base */
 	__u32	loc_arbitr;	/* 08h - Local Arbitration */
@@ -253,7 +258,8 @@ struct RUNTIME_9060 {
 					   (1000 ms) */
 #define	ZF_TINACT	ZF_TINACT_DEF
 
-struct	FIRM_ID {
+struct	FIRM_ID
+{
 	__u32	signature;		/* ZFIRM/U signature */
 	__u32	zfwctrl_addr;		/* pointer to ZFW_CTRL structure */
 };
@@ -313,7 +319,7 @@ struct	FIRM_ID {
 #define C_IN_IOCTLW	0x00020000      /* I/O control w/ wait */
 #define C_IN_MRTS	0x00040000	/* modem RTS drop */
 #define C_IN_ICHAR	0x00080000
- 
+
 /* flow control */
 
 #define	C_FL_OXX	0x00000001	/* output Xon/Xoff flow control */
@@ -391,7 +397,8 @@ struct	FIRM_ID {
  *	configuration registers of a "super-serial-controller".
  */
 
-struct CH_CTRL {
+struct CH_CTRL
+{
 	__u32	op_mode;	/* operation mode */
 	__u32	intr_enable;	/* interrupt masking */
 	__u32	sw_flow;	/* SW flow control */
@@ -418,7 +425,8 @@ struct CH_CTRL {
  *	all Tx and Rx buffer control for a given channel.
  */
 
-struct	BUF_CTRL	{
+struct	BUF_CTRL
+{
 	__u32	flag_dma;	/* buffers are in Host memory */
 	__u32	tx_bufaddr;	/* address of the tx buffer */
 	__u32	tx_bufsize;	/* tx buffer size */
@@ -434,11 +442,12 @@ struct	BUF_CTRL	{
 };
 
 /*
- *	BOARD_CTRL - This per board structure contains all global 
+ *	BOARD_CTRL - This per board structure contains all global
  *	control fields related to the board.
  */
 
-struct BOARD_CTRL {
+struct BOARD_CTRL
+{
 
 	/* static info provided by the on-board CPU */
 	__u32	n_channel;	/* number of channels */
@@ -468,7 +477,8 @@ struct BOARD_CTRL {
 
 #define QUEUE_SIZE	(10*MAX_CHAN)
 
-struct	INT_QUEUE {
+struct	INT_QUEUE
+{
 	unsigned char	intr_code[QUEUE_SIZE];
 	unsigned long	channel[QUEUE_SIZE];
 	unsigned long	param[QUEUE_SIZE];
@@ -480,8 +490,9 @@ struct	INT_QUEUE {
  *	ZFW_CTRL - This is the data structure that includes all other
  *	data structures used by the Firmware.
  */
- 
-struct ZFW_CTRL {
+
+struct ZFW_CTRL
+{
 	struct BOARD_CTRL	board_ctrl;
 	struct CH_CTRL		ch_ctrl[MAX_CHAN];
 	struct BUF_CTRL		buf_ctrl[MAX_CHAN];

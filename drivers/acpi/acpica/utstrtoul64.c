@@ -171,7 +171,8 @@ acpi_status acpi_ut_strtoul64(char *string, u32 flags, u64 *return_value)
 
 	/* Parameter validation */
 
-	if (!string || !return_value) {
+	if (!string || !return_value)
+	{
 		return_ACPI_STATUS(AE_BAD_PARAMETER);
 	}
 
@@ -179,19 +180,22 @@ acpi_status acpi_ut_strtoul64(char *string, u32 flags, u64 *return_value)
 
 	/* Check for zero-length string, returns 0 */
 
-	if (*string == 0) {
+	if (*string == 0)
+	{
 		return_ACPI_STATUS(AE_OK);
 	}
 
 	/* Skip over any white space at start of string */
 
-	while (isspace((int)*string)) {
+	while (isspace((int)*string))
+	{
 		string++;
 	}
 
 	/* End of string? return 0 */
 
-	if (*string == 0) {
+	if (*string == 0)
+	{
 		return_ACPI_STATUS(AE_OK);
 	}
 
@@ -201,9 +205,12 @@ acpi_status acpi_ut_strtoul64(char *string, u32 flags, u64 *return_value)
 	 * However, we always allow it for compatibility with older ACPICA.
 	 */
 	if ((*string == ACPI_ASCII_ZERO) &&
-	    (tolower((int)*(string + 1)) == 'x')) {
+		(tolower((int) * (string + 1)) == 'x'))
+	{
 		string += 2;	/* Go past the 0x */
-		if (*string == 0) {
+
+		if (*string == 0)
+		{
 			return_ACPI_STATUS(AE_OK);	/* Return value 0 */
 		}
 
@@ -212,30 +219,38 @@ acpi_status acpi_ut_strtoul64(char *string, u32 flags, u64 *return_value)
 
 	/* 2) Force to base 16 (implicit conversion case) */
 
-	else if (flags & ACPI_STRTOUL_BASE16) {
+	else if (flags & ACPI_STRTOUL_BASE16)
+	{
 		base = 16;
 	}
 
 	/* 3) Default fallback is to Base 10 */
 
-	else {
+	else
+	{
 		base = 10;
 	}
 
 	/* Skip all leading zeros */
 
-	while (*string == ACPI_ASCII_ZERO) {
+	while (*string == ACPI_ASCII_ZERO)
+	{
 		string++;
-		if (*string == 0) {
+
+		if (*string == 0)
+		{
 			return_ACPI_STATUS(AE_OK);	/* Return value 0 */
 		}
 	}
 
 	/* Perform the base 16 or 10 conversion */
 
-	if (base == 16) {
+	if (base == 16)
+	{
 		*return_value = acpi_ut_strtoul_base16(string, flags);
-	} else {
+	}
+	else
+	{
 		*return_value = acpi_ut_strtoul_base10(string, flags);
 	}
 
@@ -265,9 +280,12 @@ static u64 acpi_ut_strtoul_base10(char *string, u32 flags)
 
 	/* Main loop: convert each ASCII byte in the input string */
 
-	while (*string) {
+	while (*string)
+	{
 		ascii_digit = *string;
-		if (!isdigit(ascii_digit)) {
+
+		if (!isdigit(ascii_digit))
+		{
 
 			/* Not ASCII 0-9, terminate */
 
@@ -277,11 +295,13 @@ static u64 acpi_ut_strtoul_base10(char *string, u32 flags)
 		/* Convert and insert (add) the decimal digit */
 
 		next_value =
-		    (return_value * 10) + (ascii_digit - ACPI_ASCII_ZERO);
+			(return_value * 10) + (ascii_digit - ACPI_ASCII_ZERO);
 
 		/* Check for overflow (32 or 64 bit) - return current converted value */
 
-		if (((flags & ACPI_STRTOUL_32BIT) && (next_value > ACPI_UINT32_MAX)) || (next_value < return_value)) {	/* 64-bit overflow case */
+		if (((flags & ACPI_STRTOUL_32BIT) && (next_value > ACPI_UINT32_MAX)) ||
+			(next_value < return_value))  	/* 64-bit overflow case */
+		{
 			goto exit;
 		}
 
@@ -316,17 +336,21 @@ static u64 acpi_ut_strtoul_base16(char *string, u32 flags)
 
 	/* Main loop: convert each ASCII byte in the input string */
 
-	while (*string) {
+	while (*string)
+	{
 
 		/* Check for overflow (32 or 64 bit) - return current converted value */
 
 		if ((valid_digits > 16) ||
-		    ((valid_digits > 8) && (flags & ACPI_STRTOUL_32BIT))) {
+			((valid_digits > 8) && (flags & ACPI_STRTOUL_32BIT)))
+		{
 			goto exit;
 		}
 
 		ascii_digit = *string;
-		if (!isxdigit(ascii_digit)) {
+
+		if (!isxdigit(ascii_digit))
+		{
 
 			/* Not Hex ASCII A-F, a-f, or 0-9, terminate */
 
@@ -336,8 +360,8 @@ static u64 acpi_ut_strtoul_base16(char *string, u32 flags)
 		/* Convert and insert the hex digit */
 
 		return_value =
-		    (return_value << 4) |
-		    acpi_ut_ascii_char_to_hex(ascii_digit);
+			(return_value << 4) |
+			acpi_ut_ascii_char_to_hex(ascii_digit);
 
 		string++;
 		valid_digits++;

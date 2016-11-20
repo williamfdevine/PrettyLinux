@@ -43,7 +43,8 @@
 #define TGPIO_VER	0x20
 #define TGPIO_BFLR	0x24
 
-struct timbgpio {
+struct timbgpio
+{
 	void __iomem		*membase;
 	spinlock_t		lock; /* mutual exclusion */
 	struct gpio_chip	gpio;
@@ -52,7 +53,7 @@ struct timbgpio {
 };
 
 static int timbgpio_update_bit(struct gpio_chip *gpio, unsigned index,
-	unsigned offset, bool enabled)
+							   unsigned offset, bool enabled)
 {
 	struct timbgpio *tgpio = gpiochip_get_data(gpio);
 	u32 reg;
@@ -61,9 +62,13 @@ static int timbgpio_update_bit(struct gpio_chip *gpio, unsigned index,
 	reg = ioread32(tgpio->membase + offset);
 
 	if (enabled)
+	{
 		reg |= (1 << index);
+	}
 	else
+	{
 		reg &= ~(1 << index);
+	}
 
 	iowrite32(reg, tgpio->membase + offset);
 	spin_unlock(&tgpio->lock);
@@ -86,13 +91,13 @@ static int timbgpio_gpio_get(struct gpio_chip *gpio, unsigned nr)
 }
 
 static int timbgpio_gpio_direction_output(struct gpio_chip *gpio,
-						unsigned nr, int val)
+		unsigned nr, int val)
 {
 	return timbgpio_update_bit(gpio, nr, TGPIODIR, false);
 }
 
 static void timbgpio_gpio_set(struct gpio_chip *gpio,
-				unsigned nr, int val)
+							  unsigned nr, int val)
 {
 	timbgpio_update_bit(gpio, nr, TGPIOVAL, val != 0);
 }
@@ -102,7 +107,9 @@ static int timbgpio_to_irq(struct gpio_chip *gpio, unsigned offset)
 	struct timbgpio *tgpio = gpiochip_get_data(gpio);
 
 	if (tgpio->irq_base <= 0)
+	{
 		return -EINVAL;
+	}
 
 	return tgpio->irq_base + offset;
 }
@@ -144,7 +151,9 @@ static int timbgpio_irq_type(struct irq_data *d, unsigned trigger)
 	int ret = 0;
 
 	if (offset < 0 || offset > tgpio->gpio.ngpio)
+	{
 		return -EINVAL;
+	}
 
 	ver = ioread32(tgpio->membase + TGPIO_VER);
 
@@ -152,39 +161,62 @@ static int timbgpio_irq_type(struct irq_data *d, unsigned trigger)
 
 	lvr = ioread32(tgpio->membase + TGPIO_LVR);
 	flr = ioread32(tgpio->membase + TGPIO_FLR);
-	if (ver > 2)
-		bflr = ioread32(tgpio->membase + TGPIO_BFLR);
 
-	if (trigger & (IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW)) {
-		bflr &= ~(1 << offset);
-		flr &= ~(1 << offset);
-		if (trigger & IRQ_TYPE_LEVEL_HIGH)
-			lvr |= 1 << offset;
-		else
-			lvr &= ~(1 << offset);
+	if (ver > 2)
+	{
+		bflr = ioread32(tgpio->membase + TGPIO_BFLR);
 	}
 
-	if ((trigger & IRQ_TYPE_EDGE_BOTH) == IRQ_TYPE_EDGE_BOTH) {
-		if (ver < 3) {
+	if (trigger & (IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW))
+	{
+		bflr &= ~(1 << offset);
+		flr &= ~(1 << offset);
+
+		if (trigger & IRQ_TYPE_LEVEL_HIGH)
+		{
+			lvr |= 1 << offset;
+		}
+		else
+		{
+			lvr &= ~(1 << offset);
+		}
+	}
+
+	if ((trigger & IRQ_TYPE_EDGE_BOTH) == IRQ_TYPE_EDGE_BOTH)
+	{
+		if (ver < 3)
+		{
 			ret = -EINVAL;
 			goto out;
-		} else {
+		}
+		else
+		{
 			flr |= 1 << offset;
 			bflr |= 1 << offset;
 		}
-	} else {
+	}
+	else
+	{
 		bflr &= ~(1 << offset);
 		flr |= 1 << offset;
+
 		if (trigger & IRQ_TYPE_EDGE_FALLING)
+		{
 			lvr &= ~(1 << offset);
+		}
 		else
+		{
 			lvr |= 1 << offset;
+		}
 	}
 
 	iowrite32(lvr, tgpio->membase + TGPIO_LVR);
 	iowrite32(flr, tgpio->membase + TGPIO_FLR);
+
 	if (ver > 2)
+	{
 		iowrite32(bflr, tgpio->membase + TGPIO_BFLR);
+	}
 
 	iowrite32(1 << offset, tgpio->membase + TGPIO_ICR);
 
@@ -211,12 +243,13 @@ static void timbgpio_irq(struct irq_desc *desc)
 	iowrite32(0, tgpio->membase + TGPIO_IER);
 
 	for_each_set_bit(offset, &ipr, tgpio->gpio.ngpio)
-		generic_handle_irq(timbgpio_to_irq(&tgpio->gpio, offset));
+	generic_handle_irq(timbgpio_to_irq(&tgpio->gpio, offset));
 
 	iowrite32(tgpio->last_ier, tgpio->membase + TGPIO_IER);
 }
 
-static struct irq_chip timbgpio_irqchip = {
+static struct irq_chip timbgpio_irqchip =
+{
 	.name		= "GPIO",
 	.irq_enable	= timbgpio_irq_enable,
 	.irq_disable	= timbgpio_irq_disable,
@@ -233,24 +266,31 @@ static int timbgpio_probe(struct platform_device *pdev)
 	struct timbgpio_platform_data *pdata = dev_get_platdata(&pdev->dev);
 	int irq = platform_get_irq(pdev, 0);
 
-	if (!pdata || pdata->nr_pins > 32) {
+	if (!pdata || pdata->nr_pins > 32)
+	{
 		dev_err(dev, "Invalid platform data\n");
 		return -EINVAL;
 	}
 
 	tgpio = devm_kzalloc(dev, sizeof(struct timbgpio), GFP_KERNEL);
-	if (!tgpio) {
+
+	if (!tgpio)
+	{
 		dev_err(dev, "Memory alloc failed\n");
 		return -EINVAL;
 	}
+
 	tgpio->irq_base = pdata->irq_base;
 
 	spin_lock_init(&tgpio->lock);
 
 	iomem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	tgpio->membase = devm_ioremap_resource(dev, iomem);
+
 	if (IS_ERR(tgpio->membase))
+	{
 		return PTR_ERR(tgpio->membase);
+	}
 
 	gc = &tgpio->gpio;
 
@@ -268,8 +308,11 @@ static int timbgpio_probe(struct platform_device *pdev)
 	gc->can_sleep = false;
 
 	err = devm_gpiochip_add_data(&pdev->dev, gc, tgpio);
+
 	if (err)
+	{
 		return err;
+	}
 
 	platform_set_drvdata(pdev, tgpio);
 
@@ -277,11 +320,14 @@ static int timbgpio_probe(struct platform_device *pdev)
 	iowrite32(0x0, tgpio->membase + TGPIO_IER);
 
 	if (irq < 0 || tgpio->irq_base <= 0)
+	{
 		return 0;
+	}
 
-	for (i = 0; i < pdata->nr_pins; i++) {
+	for (i = 0; i < pdata->nr_pins; i++)
+	{
 		irq_set_chip_and_handler(tgpio->irq_base + i,
-			&timbgpio_irqchip, handle_simple_irq);
+								 &timbgpio_irqchip, handle_simple_irq);
 		irq_set_chip_data(tgpio->irq_base + i, tgpio);
 		irq_clear_status_flags(tgpio->irq_base + i, IRQ_NOREQUEST | IRQ_NOPROBE);
 	}
@@ -291,7 +337,8 @@ static int timbgpio_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver timbgpio_platform_driver = {
+static struct platform_driver timbgpio_platform_driver =
+{
 	.driver = {
 		.name			= DRIVER_NAME,
 		.suppress_bind_attrs	= true,

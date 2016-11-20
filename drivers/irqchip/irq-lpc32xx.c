@@ -29,7 +29,8 @@
 
 #define NR_LPC32XX_IC_IRQS		32
 
-struct lpc32xx_irq_chip {
+struct lpc32xx_irq_chip
+{
 	void __iomem *base;
 	struct irq_domain *domain;
 	struct irq_chip chip;
@@ -43,7 +44,7 @@ static inline u32 lpc32xx_ic_read(struct lpc32xx_irq_chip *ic, u32 reg)
 }
 
 static inline void lpc32xx_ic_write(struct lpc32xx_irq_chip *ic,
-				    u32 reg, u32 val)
+									u32 reg, u32 val)
 {
 	writel_relaxed(val, ic->base + reg);
 }
@@ -80,45 +81,61 @@ static int lpc32xx_irq_set_type(struct irq_data *d, unsigned int type)
 	u32 val, mask = BIT(d->hwirq);
 	bool high, edge;
 
-	switch (type) {
-	case IRQ_TYPE_EDGE_RISING:
-		edge = true;
-		high = true;
-		break;
-	case IRQ_TYPE_EDGE_FALLING:
-		edge = true;
-		high = false;
-		break;
-	case IRQ_TYPE_LEVEL_HIGH:
-		edge = false;
-		high = true;
-		break;
-	case IRQ_TYPE_LEVEL_LOW:
-		edge = false;
-		high = false;
-		break;
-	default:
-		pr_info("unsupported irq type %d\n", type);
-		return -EINVAL;
+	switch (type)
+	{
+		case IRQ_TYPE_EDGE_RISING:
+			edge = true;
+			high = true;
+			break;
+
+		case IRQ_TYPE_EDGE_FALLING:
+			edge = true;
+			high = false;
+			break;
+
+		case IRQ_TYPE_LEVEL_HIGH:
+			edge = false;
+			high = true;
+			break;
+
+		case IRQ_TYPE_LEVEL_LOW:
+			edge = false;
+			high = false;
+			break;
+
+		default:
+			pr_info("unsupported irq type %d\n", type);
+			return -EINVAL;
 	}
 
 	irqd_set_trigger_type(d, type);
 
 	val = lpc32xx_ic_read(ic, LPC32XX_INTC_POL);
+
 	if (high)
+	{
 		val |= mask;
+	}
 	else
+	{
 		val &= ~mask;
+	}
+
 	lpc32xx_ic_write(ic, LPC32XX_INTC_POL, val);
 
 	val = lpc32xx_ic_read(ic, LPC32XX_INTC_TYPE);
-	if (edge) {
+
+	if (edge)
+	{
 		val |= mask;
 		irq_set_handler_locked(d, handle_edge_irq);
-	} else {
+	}
+	else
+	{
 		val &= ~mask;
 		irq_set_handler_locked(d, handle_level_irq);
 	}
+
 	lpc32xx_ic_write(ic, LPC32XX_INTC_TYPE, val);
 
 	return 0;
@@ -129,7 +146,8 @@ static void __exception_irq_entry lpc32xx_handle_irq(struct pt_regs *regs)
 	struct lpc32xx_irq_chip *ic = lpc32xx_mic_irqc;
 	u32 hwirq = lpc32xx_ic_read(ic, LPC32XX_INTC_STAT), irq;
 
-	while (hwirq) {
+	while (hwirq)
+	{
 		irq = __ffs(hwirq);
 		hwirq &= ~BIT(irq);
 		handle_domain_irq(lpc32xx_mic_irqc->domain, irq, regs);
@@ -144,7 +162,8 @@ static void lpc32xx_sic_handler(struct irq_desc *desc)
 
 	chained_irq_enter(chip, desc);
 
-	while (hwirq) {
+	while (hwirq)
+	{
 		irq = __ffs(hwirq);
 		hwirq &= ~BIT(irq);
 		generic_handle_irq(irq_find_mapping(ic->domain, irq));
@@ -154,7 +173,7 @@ static void lpc32xx_sic_handler(struct irq_desc *desc)
 }
 
 static int lpc32xx_irq_domain_map(struct irq_domain *id, unsigned int virq,
-				  irq_hw_number_t hw)
+								  irq_hw_number_t hw)
 {
 	struct lpc32xx_irq_chip *ic = id->host_data;
 
@@ -171,14 +190,15 @@ static void lpc32xx_irq_domain_unmap(struct irq_domain *id, unsigned int virq)
 	irq_set_chip_and_handler(virq, NULL, NULL);
 }
 
-static const struct irq_domain_ops lpc32xx_irq_domain_ops = {
+static const struct irq_domain_ops lpc32xx_irq_domain_ops =
+{
 	.map    = lpc32xx_irq_domain_map,
 	.unmap	= lpc32xx_irq_domain_unmap,
 	.xlate  = irq_domain_xlate_twocell,
 };
 
 static int __init lpc32xx_of_ic_init(struct device_node *node,
-				     struct device_node *parent)
+									 struct device_node *parent)
 {
 	struct lpc32xx_irq_chip *irqc;
 	bool is_mic = of_device_is_compatible(node, "nxp,lpc3220-mic");
@@ -186,11 +206,16 @@ static int __init lpc32xx_of_ic_init(struct device_node *node,
 	u32 parent_irq, i, addr = reg ? be32_to_cpu(*reg) : 0;
 
 	irqc = kzalloc(sizeof(*irqc), GFP_KERNEL);
+
 	if (!irqc)
+	{
 		return -ENOMEM;
+	}
 
 	irqc->base = of_iomap(node, 0);
-	if (!irqc->base) {
+
+	if (!irqc->base)
+	{
 		pr_err("%s: unable to map registers\n", node->full_name);
 		kfree(irqc);
 		return -EINVAL;
@@ -200,14 +225,21 @@ static int __init lpc32xx_of_ic_init(struct device_node *node,
 	irqc->chip.irq_mask = lpc32xx_irq_mask;
 	irqc->chip.irq_unmask = lpc32xx_irq_unmask;
 	irqc->chip.irq_set_type = lpc32xx_irq_set_type;
+
 	if (is_mic)
+	{
 		irqc->chip.name = kasprintf(GFP_KERNEL, "%08x.mic", addr);
+	}
 	else
+	{
 		irqc->chip.name = kasprintf(GFP_KERNEL, "%08x.sic", addr);
+	}
 
 	irqc->domain = irq_domain_add_linear(node, NR_LPC32XX_IC_IRQS,
-					     &lpc32xx_irq_domain_ops, irqc);
-	if (!irqc->domain) {
+										 &lpc32xx_irq_domain_ops, irqc);
+
+	if (!irqc->domain)
+	{
 		pr_err("unable to add irq domain\n");
 		iounmap(irqc->base);
 		kfree(irqc->chip.name);
@@ -215,15 +247,20 @@ static int __init lpc32xx_of_ic_init(struct device_node *node,
 		return -ENODEV;
 	}
 
-	if (is_mic) {
+	if (is_mic)
+	{
 		lpc32xx_mic_irqc = irqc;
 		set_handle_irq(lpc32xx_handle_irq);
-	} else {
-		for (i = 0; i < of_irq_count(node); i++) {
+	}
+	else
+	{
+		for (i = 0; i < of_irq_count(node); i++)
+		{
 			parent_irq = irq_of_parse_and_map(node, i);
+
 			if (parent_irq)
 				irq_set_chained_handler_and_data(parent_irq,
-						 lpc32xx_sic_handler, irqc);
+												 lpc32xx_sic_handler, irqc);
 		}
 	}
 

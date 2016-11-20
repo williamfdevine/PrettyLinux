@@ -52,10 +52,14 @@ brw_client_fini(struct sfw_test_instance *tsi)
 
 	LASSERT(tsi->tsi_is_client);
 
-	list_for_each_entry(tsu, &tsi->tsi_units, tsu_list) {
+	list_for_each_entry(tsu, &tsi->tsi_units, tsu_list)
+	{
 		bulk = tsu->tsu_private;
+
 		if (!bulk)
+		{
 			continue;
+		}
 
 		srpc_free_bulk(bulk);
 		tsu->tsu_private = NULL;
@@ -76,7 +80,8 @@ brw_client_init(struct sfw_test_instance *tsi)
 	LASSERT(sn);
 	LASSERT(tsi->tsi_is_client);
 
-	if (!(sn->sn_features & LST_FEAT_BULK_LEN)) {
+	if (!(sn->sn_features & LST_FEAT_BULK_LEN))
+	{
 		struct test_bulk_req *breq = &tsi->tsi_u.bulk_v0;
 
 		opc = breq->blk_opc;
@@ -87,7 +92,9 @@ brw_client_init(struct sfw_test_instance *tsi)
 		 * but we have to keep it for compatibility
 		 */
 		len = npg * PAGE_SIZE;
-	} else {
+	}
+	else
+	{
 		struct test_bulk_req_v1 *breq = &tsi->tsi_u.bulk_v1;
 
 		/*
@@ -103,19 +110,28 @@ brw_client_init(struct sfw_test_instance *tsi)
 	}
 
 	if (npg > LNET_MAX_IOV || npg <= 0)
+	{
 		return -EINVAL;
+	}
 
 	if (opc != LST_BRW_READ && opc != LST_BRW_WRITE)
+	{
 		return -EINVAL;
+	}
 
 	if (flags != LST_BRW_CHECK_NONE &&
-	    flags != LST_BRW_CHECK_FULL && flags != LST_BRW_CHECK_SIMPLE)
+		flags != LST_BRW_CHECK_FULL && flags != LST_BRW_CHECK_SIMPLE)
+	{
 		return -EINVAL;
+	}
 
-	list_for_each_entry(tsu, &tsi->tsi_units, tsu_list) {
+	list_for_each_entry(tsu, &tsi->tsi_units, tsu_list)
+	{
 		bulk = srpc_alloc_bulk(lnet_cpt_of_nid(tsu->tsu_dest.nid),
-				       npg, len, opc == LST_BRW_READ);
-		if (!bulk) {
+							   npg, len, opc == LST_BRW_READ);
+
+		if (!bulk)
+		{
 			brw_client_fini(tsi);
 			return -ENOMEM;
 		}
@@ -136,12 +152,16 @@ brw_inject_one_error(void)
 	struct timespec64 ts;
 
 	if (brw_inject_errors <= 0)
+	{
 		return 0;
+	}
 
 	ktime_get_ts64(&ts);
 
 	if (!((ts.tv_nsec / NSEC_PER_USEC) & 1))
+	{
 		return 0;
+	}
 
 	return brw_inject_errors--;
 }
@@ -155,21 +175,30 @@ brw_fill_page(struct page *pg, int pattern, __u64 magic)
 	LASSERT(addr);
 
 	if (pattern == LST_BRW_CHECK_NONE)
+	{
 		return;
+	}
 
 	if (magic == BRW_MAGIC)
+	{
 		magic += brw_inject_one_error();
+	}
 
-	if (pattern == LST_BRW_CHECK_SIMPLE) {
+	if (pattern == LST_BRW_CHECK_SIMPLE)
+	{
 		memcpy(addr, &magic, BRW_MSIZE);
 		addr += PAGE_SIZE - BRW_MSIZE;
 		memcpy(addr, &magic, BRW_MSIZE);
 		return;
 	}
 
-	if (pattern == LST_BRW_CHECK_FULL) {
+	if (pattern == LST_BRW_CHECK_FULL)
+	{
 		for (i = 0; i < PAGE_SIZE / BRW_MSIZE; i++)
+		{
 			memcpy(addr + i * BRW_MSIZE, &magic, BRW_MSIZE);
+		}
+
 		return;
 	}
 
@@ -186,26 +215,40 @@ brw_check_page(struct page *pg, int pattern, __u64 magic)
 	LASSERT(addr);
 
 	if (pattern == LST_BRW_CHECK_NONE)
+	{
 		return 0;
+	}
 
-	if (pattern == LST_BRW_CHECK_SIMPLE) {
+	if (pattern == LST_BRW_CHECK_SIMPLE)
+	{
 		data = *((__u64 *)addr);
+
 		if (data != magic)
+		{
 			goto bad_data;
+		}
 
 		addr += PAGE_SIZE - BRW_MSIZE;
 		data = *((__u64 *)addr);
+
 		if (data != magic)
+		{
 			goto bad_data;
+		}
 
 		return 0;
 	}
 
-	if (pattern == LST_BRW_CHECK_FULL) {
-		for (i = 0; i < PAGE_SIZE / BRW_MSIZE; i++) {
+	if (pattern == LST_BRW_CHECK_FULL)
+	{
+		for (i = 0; i < PAGE_SIZE / BRW_MSIZE; i++)
+		{
 			data = *(((__u64 *)addr) + i);
+
 			if (data != magic)
+			{
 				goto bad_data;
+			}
 		}
 
 		return 0;
@@ -215,7 +258,7 @@ brw_check_page(struct page *pg, int pattern, __u64 magic)
 
 bad_data:
 	CERROR("Bad data in page %p: %#llx, %#llx expected\n",
-	       pg, data, magic);
+		   pg, data, magic);
 	return 1;
 }
 
@@ -225,7 +268,8 @@ brw_fill_bulk(struct srpc_bulk *bk, int pattern, __u64 magic)
 	int i;
 	struct page *pg;
 
-	for (i = 0; i < bk->bk_niov; i++) {
+	for (i = 0; i < bk->bk_niov; i++)
+	{
 		pg = bk->bk_iovs[i].bv_page;
 		brw_fill_page(pg, pattern, magic);
 	}
@@ -237,11 +281,14 @@ brw_check_bulk(struct srpc_bulk *bk, int pattern, __u64 magic)
 	int i;
 	struct page *pg;
 
-	for (i = 0; i < bk->bk_niov; i++) {
+	for (i = 0; i < bk->bk_niov; i++)
+	{
 		pg = bk->bk_iovs[i].bv_page;
-		if (brw_check_page(pg, pattern, magic)) {
+
+		if (brw_check_page(pg, pattern, magic))
+		{
 			CERROR("Bulk page %p (%d/%d) is corrupted!\n",
-			       pg, i, bk->bk_niov);
+				   pg, i, bk->bk_niov);
 			return 1;
 		}
 	}
@@ -251,7 +298,7 @@ brw_check_bulk(struct srpc_bulk *bk, int pattern, __u64 magic)
 
 static int
 brw_client_prep_rpc(struct sfw_test_unit *tsu,
-		    lnet_process_id_t dest, struct srpc_client_rpc **rpcpp)
+					lnet_process_id_t dest, struct srpc_client_rpc **rpcpp)
 {
 	struct srpc_bulk *bulk = tsu->tsu_private;
 	struct sfw_test_instance *tsi = tsu->tsu_instance;
@@ -267,14 +314,17 @@ brw_client_prep_rpc(struct sfw_test_unit *tsu,
 	LASSERT(sn);
 	LASSERT(bulk);
 
-	if (!(sn->sn_features & LST_FEAT_BULK_LEN)) {
+	if (!(sn->sn_features & LST_FEAT_BULK_LEN))
+	{
 		struct test_bulk_req *breq = &tsi->tsi_u.bulk_v0;
 
 		opc = breq->blk_opc;
 		flags = breq->blk_flags;
 		npg = breq->blk_npg;
 		len = npg * PAGE_SIZE;
-	} else {
+	}
+	else
+	{
 		struct test_bulk_req_v1 *breq = &tsi->tsi_u.bulk_v1;
 
 		/*
@@ -290,14 +340,22 @@ brw_client_prep_rpc(struct sfw_test_unit *tsu,
 	}
 
 	rc = sfw_create_test_rpc(tsu, dest, sn->sn_features, npg, len, &rpc);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	memcpy(&rpc->crpc_bulk, bulk, offsetof(struct srpc_bulk, bk_iovs[npg]));
+
 	if (opc == LST_BRW_WRITE)
+	{
 		brw_fill_bulk(&rpc->crpc_bulk, flags, BRW_MAGIC);
+	}
 	else
+	{
 		brw_fill_bulk(&rpc->crpc_bulk, flags, BRW_POISON);
+	}
 
 	req = &rpc->crpc_reqstmsg.msg_body.brw_reqst;
 	req->brw_flags = flags;
@@ -320,35 +378,45 @@ brw_client_done_rpc(struct sfw_test_unit *tsu, struct srpc_client_rpc *rpc)
 
 	LASSERT(sn);
 
-	if (rpc->crpc_status) {
+	if (rpc->crpc_status)
+	{
 		CERROR("BRW RPC to %s failed with %d\n",
-		       libcfs_id2str(rpc->crpc_dest), rpc->crpc_status);
+			   libcfs_id2str(rpc->crpc_dest), rpc->crpc_status);
+
 		if (!tsi->tsi_stopping)	/* rpc could have been aborted */
+		{
 			atomic_inc(&sn->sn_brw_errors);
+		}
+
 		return;
 	}
 
-	if (msg->msg_magic != SRPC_MSG_MAGIC) {
+	if (msg->msg_magic != SRPC_MSG_MAGIC)
+	{
 		__swab64s(&magic);
 		__swab32s(&reply->brw_status);
 	}
 
 	CDEBUG(reply->brw_status ? D_WARNING : D_NET,
-	       "BRW RPC to %s finished with brw_status: %d\n",
-	       libcfs_id2str(rpc->crpc_dest), reply->brw_status);
+		   "BRW RPC to %s finished with brw_status: %d\n",
+		   libcfs_id2str(rpc->crpc_dest), reply->brw_status);
 
-	if (reply->brw_status) {
+	if (reply->brw_status)
+	{
 		atomic_inc(&sn->sn_brw_errors);
 		rpc->crpc_status = -(int)reply->brw_status;
 		return;
 	}
 
 	if (reqst->brw_rw == LST_BRW_WRITE)
+	{
 		return;
+	}
 
-	if (brw_check_bulk(&rpc->crpc_bulk, reqst->brw_flags, magic)) {
+	if (brw_check_bulk(&rpc->crpc_bulk, reqst->brw_flags, magic))
+	{
 		CERROR("Bulk data from %s is corrupted!\n",
-		       libcfs_id2str(rpc->crpc_dest));
+			   libcfs_id2str(rpc->crpc_dest));
 		atomic_inc(&sn->sn_brw_errors);
 		rpc->crpc_status = -EBADMSG;
 	}
@@ -360,16 +428,18 @@ brw_server_rpc_done(struct srpc_server_rpc *rpc)
 	struct srpc_bulk *blk = rpc->srpc_bulk;
 
 	if (!blk)
+	{
 		return;
+	}
 
 	if (rpc->srpc_status)
 		CERROR("Bulk transfer %s %s has failed: %d\n",
-		       blk->bk_sink ? "from" : "to",
-		       libcfs_id2str(rpc->srpc_peer), rpc->srpc_status);
+			   blk->bk_sink ? "from" : "to",
+			   libcfs_id2str(rpc->srpc_peer), rpc->srpc_status);
 	else
 		CDEBUG(D_NET, "Transferred %d pages bulk data %s %s\n",
-		       blk->bk_niov, blk->bk_sink ? "from" : "to",
-		       libcfs_id2str(rpc->srpc_peer));
+			   blk->bk_niov, blk->bk_sink ? "from" : "to",
+			   libcfs_id2str(rpc->srpc_peer));
 
 	sfw_free_pages(rpc);
 }
@@ -388,22 +458,28 @@ brw_bulk_ready(struct srpc_server_rpc *rpc, int status)
 	reqstmsg = &rpc->srpc_reqstbuf->buf_msg;
 	reqst = &reqstmsg->msg_body.brw_reqst;
 
-	if (status) {
+	if (status)
+	{
 		CERROR("BRW bulk %s failed for RPC from %s: %d\n",
-		       reqst->brw_rw == LST_BRW_READ ? "READ" : "WRITE",
-		       libcfs_id2str(rpc->srpc_peer), status);
+			   reqst->brw_rw == LST_BRW_READ ? "READ" : "WRITE",
+			   libcfs_id2str(rpc->srpc_peer), status);
 		return -EIO;
 	}
 
 	if (reqst->brw_rw == LST_BRW_READ)
+	{
 		return 0;
+	}
 
 	if (reqstmsg->msg_magic != SRPC_MSG_MAGIC)
+	{
 		__swab64s(&magic);
+	}
 
-	if (brw_check_bulk(rpc->srpc_bulk, reqst->brw_flags, magic)) {
+	if (brw_check_bulk(rpc->srpc_bulk, reqst->brw_flags, magic))
+	{
 		CERROR("Bulk data from %s is corrupted!\n",
-		       libcfs_id2str(rpc->srpc_peer));
+			   libcfs_id2str(rpc->srpc_peer));
 		reply->brw_status = EBADMSG;
 	}
 
@@ -423,7 +499,8 @@ brw_server_handle(struct srpc_server_rpc *rpc)
 
 	LASSERT(sv->sv_id == SRPC_SERVICE_BRW);
 
-	if (reqstmsg->msg_magic != SRPC_MSG_MAGIC) {
+	if (reqstmsg->msg_magic != SRPC_MSG_MAGIC)
+	{
 		LASSERT(reqstmsg->msg_magic == __swab32(SRPC_MSG_MAGIC));
 
 		__swab32s(&reqst->brw_rw);
@@ -432,54 +509,70 @@ brw_server_handle(struct srpc_server_rpc *rpc)
 		__swab64s(&reqst->brw_rpyid);
 		__swab64s(&reqst->brw_bulkid);
 	}
+
 	LASSERT(reqstmsg->msg_type == (__u32)srpc_service2request(sv->sv_id));
 
 	reply->brw_status = 0;
 	rpc->srpc_done = brw_server_rpc_done;
 
 	if ((reqst->brw_rw != LST_BRW_READ && reqst->brw_rw != LST_BRW_WRITE) ||
-	    (reqst->brw_flags != LST_BRW_CHECK_NONE &&
-	     reqst->brw_flags != LST_BRW_CHECK_FULL &&
-	     reqst->brw_flags != LST_BRW_CHECK_SIMPLE)) {
+		(reqst->brw_flags != LST_BRW_CHECK_NONE &&
+		 reqst->brw_flags != LST_BRW_CHECK_FULL &&
+		 reqst->brw_flags != LST_BRW_CHECK_SIMPLE))
+	{
 		reply->brw_status = EINVAL;
 		return 0;
 	}
 
-	if (reqstmsg->msg_ses_feats & ~LST_FEATS_MASK) {
+	if (reqstmsg->msg_ses_feats & ~LST_FEATS_MASK)
+	{
 		replymsg->msg_ses_feats = LST_FEATS_MASK;
 		reply->brw_status = EPROTO;
 		return 0;
 	}
 
-	if (!(reqstmsg->msg_ses_feats & LST_FEAT_BULK_LEN)) {
+	if (!(reqstmsg->msg_ses_feats & LST_FEAT_BULK_LEN))
+	{
 		/* compat with old version */
-		if (reqst->brw_len & ~PAGE_MASK) {
+		if (reqst->brw_len & ~PAGE_MASK)
+		{
 			reply->brw_status = EINVAL;
 			return 0;
 		}
+
 		npg = reqst->brw_len >> PAGE_SHIFT;
 
-	} else {
+	}
+	else
+	{
 		npg = (reqst->brw_len + PAGE_SIZE - 1) >> PAGE_SHIFT;
 	}
 
 	replymsg->msg_ses_feats = reqstmsg->msg_ses_feats;
 
-	if (!reqst->brw_len || npg > LNET_MAX_IOV) {
+	if (!reqst->brw_len || npg > LNET_MAX_IOV)
+	{
 		reply->brw_status = EINVAL;
 		return 0;
 	}
 
 	rc = sfw_alloc_pages(rpc, rpc->srpc_scd->scd_cpt, npg,
-			     reqst->brw_len,
-			     reqst->brw_rw == LST_BRW_WRITE);
+						 reqst->brw_len,
+						 reqst->brw_rw == LST_BRW_WRITE);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	if (reqst->brw_rw == LST_BRW_READ)
+	{
 		brw_fill_bulk(rpc->srpc_bulk, reqst->brw_flags, BRW_MAGIC);
+	}
 	else
+	{
 		brw_fill_bulk(rpc->srpc_bulk, reqst->brw_flags, BRW_POISON);
+	}
 
 	return 0;
 }

@@ -4,7 +4,8 @@
  * License terms:  GNU General Public License (GPL), version 2
  */
 
-struct bdisp_node {
+struct bdisp_node
+{
 	/* 0 - General */
 	u32 nip;
 	u32 cic;

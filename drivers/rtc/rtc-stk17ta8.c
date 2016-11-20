@@ -59,7 +59,8 @@
 /* Bits in the Interrupts register */
 #define RTC_INTS_AIE		0x40
 
-struct rtc_plat_data {
+struct rtc_plat_data
+{
 	struct rtc_device *rtc;
 	void __iomem *ioaddr;
 	unsigned long last_jiffies;
@@ -106,7 +107,10 @@ static int stk17ta8_rtc_read_time(struct device *dev, struct rtc_time *tm)
 
 	/* give enough time to update RTC in case of continuous read */
 	if (pdata->last_jiffies == jiffies)
+	{
 		msleep(1);
+	}
+
 	pdata->last_jiffies = jiffies;
 
 	flags = readb(pdata->ioaddr + RTC_FLAGS);
@@ -129,10 +133,12 @@ static int stk17ta8_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	/* year is 1900 + tm->tm_year */
 	tm->tm_year = bcd2bin(year) + bcd2bin(century) * 100 - 1900;
 
-	if (rtc_valid_tm(tm) < 0) {
+	if (rtc_valid_tm(tm) < 0)
+	{
 		dev_err(dev, "retrieved date/time is not valid.\n");
 		rtc_time_to_tm(0, tm);
 	}
+
 	return 0;
 }
 
@@ -148,17 +154,17 @@ static void stk17ta8_rtc_update_alarm(struct rtc_plat_data *pdata)
 	writeb(flags | RTC_WRITE, ioaddr + RTC_FLAGS);
 
 	writeb(pdata->alrm_mday < 0 || (pdata->irqen & RTC_UF) ?
-	       0x80 : bin2bcd(pdata->alrm_mday),
-	       ioaddr + RTC_DATE_ALARM);
+		   0x80 : bin2bcd(pdata->alrm_mday),
+		   ioaddr + RTC_DATE_ALARM);
 	writeb(pdata->alrm_hour < 0 || (pdata->irqen & RTC_UF) ?
-	       0x80 : bin2bcd(pdata->alrm_hour),
-	       ioaddr + RTC_HOURS_ALARM);
+		   0x80 : bin2bcd(pdata->alrm_hour),
+		   ioaddr + RTC_HOURS_ALARM);
 	writeb(pdata->alrm_min < 0 || (pdata->irqen & RTC_UF) ?
-	       0x80 : bin2bcd(pdata->alrm_min),
-	       ioaddr + RTC_MINUTES_ALARM);
+		   0x80 : bin2bcd(pdata->alrm_min),
+		   ioaddr + RTC_MINUTES_ALARM);
 	writeb(pdata->alrm_sec < 0 || (pdata->irqen & RTC_UF) ?
-	       0x80 : bin2bcd(pdata->alrm_sec),
-	       ioaddr + RTC_SECONDS_ALARM);
+		   0x80 : bin2bcd(pdata->alrm_sec),
+		   ioaddr + RTC_SECONDS_ALARM);
 	writeb(pdata->irqen ? RTC_INTS_AIE : 0, ioaddr + RTC_INTERRUPTS);
 	readb(ioaddr + RTC_FLAGS);	/* clear interrupts */
 	writeb(flags & ~RTC_WRITE, ioaddr + RTC_FLAGS);
@@ -171,13 +177,20 @@ static int stk17ta8_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
 
 	if (pdata->irq <= 0)
+	{
 		return -EINVAL;
+	}
+
 	pdata->alrm_mday = alrm->time.tm_mday;
 	pdata->alrm_hour = alrm->time.tm_hour;
 	pdata->alrm_min = alrm->time.tm_min;
 	pdata->alrm_sec = alrm->time.tm_sec;
+
 	if (alrm->enabled)
+	{
 		pdata->irqen |= RTC_AF;
+	}
+
 	stk17ta8_rtc_update_alarm(pdata);
 	return 0;
 }
@@ -188,7 +201,10 @@ static int stk17ta8_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
 
 	if (pdata->irq <= 0)
+	{
 		return -EINVAL;
+	}
+
 	alrm->time.tm_mday = pdata->alrm_mday < 0 ? 0 : pdata->alrm_mday;
 	alrm->time.tm_hour = pdata->alrm_hour < 0 ? 0 : pdata->alrm_hour;
 	alrm->time.tm_min = pdata->alrm_min < 0 ? 0 : pdata->alrm_min;
@@ -205,36 +221,54 @@ static irqreturn_t stk17ta8_rtc_interrupt(int irq, void *dev_id)
 	unsigned long events = 0;
 
 	spin_lock(&pdata->lock);
+
 	/* read and clear interrupt */
-	if (readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_AF) {
+	if (readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_AF)
+	{
 		events = RTC_IRQF;
+
 		if (readb(ioaddr + RTC_SECONDS_ALARM) & 0x80)
+		{
 			events |= RTC_UF;
+		}
 		else
+		{
 			events |= RTC_AF;
+		}
+
 		rtc_update_irq(pdata->rtc, 1, events);
 	}
+
 	spin_unlock(&pdata->lock);
 	return events ? IRQ_HANDLED : IRQ_NONE;
 }
 
 static int stk17ta8_rtc_alarm_irq_enable(struct device *dev,
-	unsigned int enabled)
+		unsigned int enabled)
 {
 	struct platform_device *pdev = to_platform_device(dev);
 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
 
 	if (pdata->irq <= 0)
+	{
 		return -EINVAL;
+	}
+
 	if (enabled)
+	{
 		pdata->irqen |= RTC_AF;
+	}
 	else
+	{
 		pdata->irqen &= ~RTC_AF;
+	}
+
 	stk17ta8_rtc_update_alarm(pdata);
 	return 0;
 }
 
-static const struct rtc_class_ops stk17ta8_rtc_ops = {
+static const struct rtc_class_ops stk17ta8_rtc_ops =
+{
 	.read_time		= stk17ta8_rtc_read_time,
 	.set_time		= stk17ta8_rtc_set_time,
 	.read_alarm		= stk17ta8_rtc_read_alarm,
@@ -243,8 +277,8 @@ static const struct rtc_class_ops stk17ta8_rtc_ops = {
 };
 
 static ssize_t stk17ta8_nvram_read(struct file *filp, struct kobject *kobj,
-				 struct bin_attribute *attr, char *buf,
-				 loff_t pos, size_t size)
+								   struct bin_attribute *attr, char *buf,
+								   loff_t pos, size_t size)
 {
 	struct device *dev = container_of(kobj, struct device, kobj);
 	struct platform_device *pdev = to_platform_device(dev);
@@ -253,13 +287,16 @@ static ssize_t stk17ta8_nvram_read(struct file *filp, struct kobject *kobj,
 	ssize_t count;
 
 	for (count = 0; count < size; count++)
+	{
 		*buf++ = readb(ioaddr + pos++);
+	}
+
 	return count;
 }
 
 static ssize_t stk17ta8_nvram_write(struct file *filp, struct kobject *kobj,
-				  struct bin_attribute *attr, char *buf,
-				  loff_t pos, size_t size)
+									struct bin_attribute *attr, char *buf,
+									loff_t pos, size_t size)
 {
 	struct device *dev = container_of(kobj, struct device, kobj);
 	struct platform_device *pdev = to_platform_device(dev);
@@ -268,11 +305,15 @@ static ssize_t stk17ta8_nvram_write(struct file *filp, struct kobject *kobj,
 	ssize_t count;
 
 	for (count = 0; count < size; count++)
+	{
 		writeb(*buf++, ioaddr + pos++);
+	}
+
 	return count;
 }
 
-static struct bin_attribute stk17ta8_nvram_attr = {
+static struct bin_attribute stk17ta8_nvram_attr =
+{
 	.attr = {
 		.name = "nvram",
 		.mode = S_IRUGO | S_IWUSR,
@@ -292,46 +333,65 @@ static int stk17ta8_rtc_probe(struct platform_device *pdev)
 	int ret = 0;
 
 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+
 	if (!pdata)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ioaddr = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(ioaddr))
+	{
 		return PTR_ERR(ioaddr);
+	}
+
 	pdata->ioaddr = ioaddr;
 	pdata->irq = platform_get_irq(pdev, 0);
 
 	/* turn RTC on if it was not on */
 	cal = readb(ioaddr + RTC_CALIBRATION);
-	if (cal & RTC_STOP) {
+
+	if (cal & RTC_STOP)
+	{
 		cal &= RTC_CAL_MASK;
 		flags = readb(ioaddr + RTC_FLAGS);
 		writeb(flags | RTC_WRITE, ioaddr + RTC_FLAGS);
 		writeb(cal, ioaddr + RTC_CALIBRATION);
 		writeb(flags & ~RTC_WRITE, ioaddr + RTC_FLAGS);
 	}
+
 	if (readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_PF)
+	{
 		dev_warn(&pdev->dev, "voltage-low detected.\n");
+	}
 
 	spin_lock_init(&pdata->lock);
 	pdata->last_jiffies = jiffies;
 	platform_set_drvdata(pdev, pdata);
-	if (pdata->irq > 0) {
+
+	if (pdata->irq > 0)
+	{
 		writeb(0, ioaddr + RTC_INTERRUPTS);
+
 		if (devm_request_irq(&pdev->dev, pdata->irq,
-				stk17ta8_rtc_interrupt,
-				IRQF_SHARED,
-				pdev->name, pdev) < 0) {
+							 stk17ta8_rtc_interrupt,
+							 IRQF_SHARED,
+							 pdev->name, pdev) < 0)
+		{
 			dev_warn(&pdev->dev, "interrupt not available.\n");
 			pdata->irq = 0;
 		}
 	}
 
 	pdata->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
-				  &stk17ta8_rtc_ops, THIS_MODULE);
+										  &stk17ta8_rtc_ops, THIS_MODULE);
+
 	if (IS_ERR(pdata->rtc))
+	{
 		return PTR_ERR(pdata->rtc);
+	}
 
 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &stk17ta8_nvram_attr);
 
@@ -343,15 +403,20 @@ static int stk17ta8_rtc_remove(struct platform_device *pdev)
 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
 
 	sysfs_remove_bin_file(&pdev->dev.kobj, &stk17ta8_nvram_attr);
+
 	if (pdata->irq > 0)
+	{
 		writeb(0, pdata->ioaddr + RTC_INTERRUPTS);
+	}
+
 	return 0;
 }
 
 /* work with hotplug and coldplug */
 MODULE_ALIAS("platform:stk17ta8");
 
-static struct platform_driver stk17ta8_rtc_driver = {
+static struct platform_driver stk17ta8_rtc_driver =
+{
 	.probe		= stk17ta8_rtc_probe,
 	.remove		= stk17ta8_rtc_remove,
 	.driver		= {

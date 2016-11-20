@@ -51,7 +51,8 @@
 
 #define VSPIC_MMIO_SIZE	0x1000
 
-static struct resource vx855_gpio_resources[] = {
+static struct resource vx855_gpio_resources[] =
+{
 	{
 		.flags = IORESOURCE_IO,
 	},
@@ -60,7 +61,8 @@ static struct resource vx855_gpio_resources[] = {
 	},
 };
 
-static const struct mfd_cell vx855_cells[] = {
+static const struct mfd_cell vx855_cells[] =
+{
 	{
 		.name = "vx855_gpio",
 		.num_resources = ARRAY_SIZE(vx855_gpio_resources),
@@ -73,19 +75,24 @@ static const struct mfd_cell vx855_cells[] = {
 };
 
 static int vx855_probe(struct pci_dev *pdev,
-				 const struct pci_device_id *id)
+					   const struct pci_device_id *id)
 {
 	int ret;
 	u16 gpio_io_offset;
 
 	ret = pci_enable_device(pdev);
+
 	if (ret)
+	{
 		return -ENODEV;
+	}
 
 	pci_read_config_word(pdev, VX855_CFG_PMIO_OFFSET, &gpio_io_offset);
-	if (!gpio_io_offset) {
+
+	if (!gpio_io_offset)
+	{
 		dev_warn(&pdev->dev,
-			"BIOS did not assign PMIO base offset?!?\n");
+				 "BIOS did not assign PMIO base offset?!?\n");
 		ret = -ENODEV;
 		goto out;
 	}
@@ -102,7 +109,7 @@ static int vx855_probe(struct pci_dev *pdev,
 	vx855_gpio_resources[1].end = vx855_gpio_resources[1].start + 3;
 
 	ret = mfd_add_devices(&pdev->dev, -1, vx855_cells, ARRAY_SIZE(vx855_cells),
-			NULL, 0, NULL);
+						  NULL, 0, NULL);
 
 	/* we always return -ENODEV here in order to enable other
 	 * drivers like old, not-yet-platform_device ported i2c-viapro */
@@ -118,13 +125,15 @@ static void vx855_remove(struct pci_dev *pdev)
 	pci_disable_device(pdev);
 }
 
-static const struct pci_device_id vx855_pci_tbl[] = {
+static const struct pci_device_id vx855_pci_tbl[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_VX855) },
 	{ 0, }
 };
 MODULE_DEVICE_TABLE(pci, vx855_pci_tbl);
 
-static struct pci_driver vx855_pci_driver = {
+static struct pci_driver vx855_pci_driver =
+{
 	.name		= "vx855",
 	.id_table	= vx855_pci_tbl,
 	.probe		= vx855_probe,

@@ -34,7 +34,9 @@ static int adau1781_spi_probe(struct spi_device *spi)
 	struct regmap_config config;
 
 	if (!id)
+	{
 		return -EINVAL;
+	}
 
 	config = adau1781_regmap_config;
 	config.val_bits = 8;
@@ -42,8 +44,8 @@ static int adau1781_spi_probe(struct spi_device *spi)
 	config.read_flag_mask = 0x1;
 
 	return adau1781_probe(&spi->dev,
-		devm_regmap_init_spi(spi, &config),
-		id->driver_data, adau1781_spi_switch_mode);
+						  devm_regmap_init_spi(spi, &config),
+						  id->driver_data, adau1781_spi_switch_mode);
 }
 
 static int adau1781_spi_remove(struct spi_device *spi)
@@ -52,7 +54,8 @@ static int adau1781_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct spi_device_id adau1781_spi_id[] = {
+static const struct spi_device_id adau1781_spi_id[] =
+{
 	{ "adau1381", ADAU1381 },
 	{ "adau1781", ADAU1781 },
 	{ }
@@ -60,7 +63,8 @@ static const struct spi_device_id adau1781_spi_id[] = {
 MODULE_DEVICE_TABLE(spi, adau1781_spi_id);
 
 #if defined(CONFIG_OF)
-static const struct of_device_id adau1781_spi_dt_ids[] = {
+static const struct of_device_id adau1781_spi_dt_ids[] =
+{
 	{ .compatible = "adi,adau1381", },
 	{ .compatible = "adi,adau1781", },
 	{ },
@@ -68,7 +72,8 @@ static const struct of_device_id adau1781_spi_dt_ids[] = {
 MODULE_DEVICE_TABLE(of, adau1781_spi_dt_ids);
 #endif
 
-static struct spi_driver adau1781_spi_driver = {
+static struct spi_driver adau1781_spi_driver =
+{
 	.driver = {
 		.name = "adau1781",
 		.of_match_table = of_match_ptr(adau1781_spi_dt_ids),

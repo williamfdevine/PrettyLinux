@@ -38,13 +38,15 @@
 #define VGIC_MIN_LPI		8192
 #define KVM_IRQCHIP_NUM_PINS	(1020 - 32)
 
-enum vgic_type {
+enum vgic_type
+{
 	VGIC_V2,		/* Good ol' GICv2 */
 	VGIC_V3,		/* New fancy GICv3 */
 };
 
 /* same for all guests, as depending only on the _host's_ GIC model */
-struct vgic_global {
+struct vgic_global
+{
 	/* type of the host GIC */
 	enum vgic_type		type;
 
@@ -79,12 +81,14 @@ extern struct vgic_global kvm_vgic_global_state;
 #define VGIC_V3_MAX_LRS		16
 #define VGIC_V3_LR_INDEX(lr)	(VGIC_V3_MAX_LRS - 1 - lr)
 
-enum vgic_irq_config {
+enum vgic_irq_config
+{
 	VGIC_CONFIG_EDGE = 0,
 	VGIC_CONFIG_LEVEL
 };
 
-struct vgic_irq {
+struct vgic_irq
+{
 	spinlock_t irq_lock;		/* Protects the content of the struct */
 	struct list_head lpi_list;	/* Used to link all LPIs together */
 	struct list_head ap_list;
@@ -109,7 +113,8 @@ struct vgic_irq {
 	bool hw;			/* Tied to HW IRQ */
 	struct kref refcount;		/* Used for LPIs */
 	u32 hwintid;			/* HW INTID number */
-	union {
+	union
+	{
 		u8 targets;			/* GICv2 target VCPUs mask */
 		u32 mpidr;			/* GICv3 target VCPU */
 	};
@@ -121,16 +126,19 @@ struct vgic_irq {
 struct vgic_register_region;
 struct vgic_its;
 
-enum iodev_type {
+enum iodev_type
+{
 	IODEV_CPUIF,
 	IODEV_DIST,
 	IODEV_REDIST,
 	IODEV_ITS
 };
 
-struct vgic_io_device {
+struct vgic_io_device
+{
 	gpa_t base_addr;
-	union {
+	union
+	{
 		struct kvm_vcpu *redist_vcpu;
 		struct vgic_its *its;
 	};
@@ -140,7 +148,8 @@ struct vgic_io_device {
 	struct kvm_io_device dev;
 };
 
-struct vgic_its {
+struct vgic_its
+{
 	/* The base address of the ITS control register frame */
 	gpa_t			vgic_its_base;
 
@@ -165,7 +174,8 @@ struct vgic_its {
 	struct list_head	collection_list;
 };
 
-struct vgic_dist {
+struct vgic_dist
+{
 	bool			in_kernel;
 	bool			ready;
 	bool			initialized;
@@ -184,7 +194,8 @@ struct vgic_dist {
 
 	/* base addresses in guest physical address space: */
 	gpa_t			vgic_dist_base;		/* distributor */
-	union {
+	union
+	{
 		/* either a GICv2 CPU interface */
 		gpa_t			vgic_cpu_base;
 		/* or a number of GICv3 redistributor regions */
@@ -214,7 +225,8 @@ struct vgic_dist {
 	int			lpi_list_count;
 };
 
-struct vgic_v2_cpu_if {
+struct vgic_v2_cpu_if
+{
 	u32		vgic_hcr;
 	u32		vgic_vmcr;
 	u32		vgic_misr;	/* Saved only */
@@ -224,7 +236,8 @@ struct vgic_v2_cpu_if {
 	u32		vgic_lr[VGIC_V2_MAX_LRS];
 };
 
-struct vgic_v3_cpu_if {
+struct vgic_v3_cpu_if
+{
 	u32		vgic_hcr;
 	u32		vgic_vmcr;
 	u32		vgic_sre;	/* Restored only, change ignored */
@@ -236,9 +249,11 @@ struct vgic_v3_cpu_if {
 	u64		vgic_lr[VGIC_V3_MAX_LRS];
 };
 
-struct vgic_cpu {
+struct vgic_cpu
+{
 	/* CPU vif control registers for world switch */
-	union {
+	union
+	{
 		struct vgic_v2_cpu_if	vgic_v2;
 		struct vgic_v3_cpu_if	vgic_v3;
 	};
@@ -283,9 +298,9 @@ int kvm_vgic_map_resources(struct kvm *kvm);
 int kvm_vgic_hyp_init(void);
 
 int kvm_vgic_inject_irq(struct kvm *kvm, int cpuid, unsigned int intid,
-			bool level);
+						bool level);
 int kvm_vgic_inject_mapped_irq(struct kvm *kvm, int cpuid, unsigned int intid,
-			       bool level);
+							   bool level);
 int kvm_vgic_map_phys_irq(struct kvm_vcpu *vcpu, u32 virt_irq, u32 phys_irq);
 int kvm_vgic_unmap_phys_irq(struct kvm_vcpu *vcpu, unsigned int virt_irq);
 bool kvm_vgic_map_is_active(struct kvm_vcpu *vcpu, unsigned int virt_irq);
@@ -296,7 +311,7 @@ int kvm_vgic_vcpu_pending_irq(struct kvm_vcpu *vcpu);
 #define vgic_initialized(k)	((k)->arch.vgic.initialized)
 #define vgic_ready(k)		((k)->arch.vgic.ready)
 #define vgic_valid_spi(k, i)	(((i) >= VGIC_NR_PRIVATE_IRQS) && \
-			((i) < (k)->arch.vgic.nr_spis + VGIC_NR_PRIVATE_IRQS))
+								 ((i) < (k)->arch.vgic.nr_spis + VGIC_NR_PRIVATE_IRQS))
 
 bool kvm_vcpu_has_pending_irqs(struct kvm_vcpu *vcpu);
 void kvm_vgic_sync_hwstate(struct kvm_vcpu *vcpu);

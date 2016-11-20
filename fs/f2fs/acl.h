@@ -19,18 +19,21 @@
 
 #define F2FS_ACL_VERSION	0x0001
 
-struct f2fs_acl_entry {
+struct f2fs_acl_entry
+{
 	__le16 e_tag;
 	__le16 e_perm;
 	__le32 e_id;
 };
 
-struct f2fs_acl_entry_short {
+struct f2fs_acl_entry_short
+{
 	__le16 e_tag;
 	__le16 e_perm;
 };
 
-struct f2fs_acl_header {
+struct f2fs_acl_header
+{
 	__le32 a_version;
 };
 
@@ -39,13 +42,13 @@ struct f2fs_acl_header {
 extern struct posix_acl *f2fs_get_acl(struct inode *, int);
 extern int f2fs_set_acl(struct inode *, struct posix_acl *, int);
 extern int f2fs_init_acl(struct inode *, struct inode *, struct page *,
-							struct page *);
+						 struct page *);
 #else
 #define f2fs_get_acl	NULL
 #define f2fs_set_acl	NULL
 
 static inline int f2fs_init_acl(struct inode *inode, struct inode *dir,
-				struct page *ipage, struct page *dpage)
+								struct page *ipage, struct page *dpage)
 {
 	return 0;
 }

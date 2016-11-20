@@ -16,7 +16,8 @@
 
 #include "iss_video.h"
 
-enum resizer_input_entity {
+enum resizer_input_entity
+{
 	RESIZER_INPUT_NONE,
 	RESIZER_INPUT_IPIPE,
 	RESIZER_INPUT_IPIPEIF
@@ -43,7 +44,8 @@ enum resizer_input_entity {
  * @wait: Wait queue used to stop the module
  * @stopping: Stopping state
  */
-struct iss_resizer_device {
+struct iss_resizer_device
+{
 	struct v4l2_subdev subdev;
 	struct media_pad pads[RESIZER_PADS_NUM];
 	struct v4l2_mbus_framefmt formats[RESIZER_PADS_NUM];
@@ -64,13 +66,13 @@ int omap4iss_resizer_init(struct iss_device *iss);
 int omap4iss_resizer_create_links(struct iss_device *iss);
 void omap4iss_resizer_cleanup(struct iss_device *iss);
 int omap4iss_resizer_register_entities(struct iss_resizer_device *resizer,
-				       struct v4l2_device *vdev);
+									   struct v4l2_device *vdev);
 void omap4iss_resizer_unregister_entities(struct iss_resizer_device *resizer);
 
 int omap4iss_resizer_busy(struct iss_resizer_device *resizer);
 void omap4iss_resizer_isr(struct iss_resizer_device *resizer, u32 events);
 void omap4iss_resizer_restore_context(struct iss_device *iss);
 void omap4iss_resizer_max_rate(struct iss_resizer_device *resizer,
-			       unsigned int *max_rate);
+							   unsigned int *max_rate);
 
 #endif	/* OMAP4_ISS_RESIZER_H */

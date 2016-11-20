@@ -10,7 +10,7 @@
 #include <api/fs/fs.h>
 
 #define PERF_TP_SAMPLE_TYPE (PERF_SAMPLE_RAW | PERF_SAMPLE_TIME | \
-			     PERF_SAMPLE_CPU | PERF_SAMPLE_PERIOD)
+							 PERF_SAMPLE_CPU | PERF_SAMPLE_PERIOD)
 
 static int test__checkevent_tracepoint(struct perf_evlist *evlist)
 {
@@ -20,7 +20,7 @@ static int test__checkevent_tracepoint(struct perf_evlist *evlist)
 	TEST_ASSERT_VAL("wrong number of groups", 0 == evlist->nr_groups);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_TRACEPOINT == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong sample_type",
-		PERF_TP_SAMPLE_TYPE == evsel->attr.sample_type);
+					PERF_TP_SAMPLE_TYPE == evsel->attr.sample_type);
 	TEST_ASSERT_VAL("wrong sample_period", 1 == evsel->attr.sample_period);
 	return 0;
 }
@@ -32,13 +32,14 @@ static int test__checkevent_tracepoint_multi(struct perf_evlist *evlist)
 	TEST_ASSERT_VAL("wrong number of entries", evlist->nr_entries > 1);
 	TEST_ASSERT_VAL("wrong number of groups", 0 == evlist->nr_groups);
 
-	evlist__for_each_entry(evlist, evsel) {
+	evlist__for_each_entry(evlist, evsel)
+	{
 		TEST_ASSERT_VAL("wrong type",
-			PERF_TYPE_TRACEPOINT == evsel->attr.type);
+						PERF_TYPE_TRACEPOINT == evsel->attr.type);
 		TEST_ASSERT_VAL("wrong sample_type",
-			PERF_TP_SAMPLE_TYPE == evsel->attr.sample_type);
+						PERF_TP_SAMPLE_TYPE == evsel->attr.sample_type);
 		TEST_ASSERT_VAL("wrong sample_period",
-			1 == evsel->attr.sample_period);
+						1 == evsel->attr.sample_period);
 	}
 	return 0;
 }
@@ -70,7 +71,7 @@ static int test__checkevent_symbolic_name(struct perf_evlist *evlist)
 	TEST_ASSERT_VAL("wrong number of entries", 1 == evlist->nr_entries);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_INSTRUCTIONS == evsel->attr.config);
+					PERF_COUNT_HW_INSTRUCTIONS == evsel->attr.config);
 	return 0;
 }
 
@@ -81,17 +82,17 @@ static int test__checkevent_symbolic_name_config(struct perf_evlist *evlist)
 	TEST_ASSERT_VAL("wrong number of entries", 1 == evlist->nr_entries);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
+					PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
 	/*
 	 * The period value gets configured within perf_evlist__config,
 	 * while this test executes only parse events method.
 	 */
 	TEST_ASSERT_VAL("wrong period",
-			0 == evsel->attr.sample_period);
+					0 == evsel->attr.sample_period);
 	TEST_ASSERT_VAL("wrong config1",
-			0 == evsel->attr.config1);
+					0 == evsel->attr.config1);
 	TEST_ASSERT_VAL("wrong config2",
-			1 == evsel->attr.config2);
+					1 == evsel->attr.config2);
 	return 0;
 }
 
@@ -102,7 +103,7 @@ static int test__checkevent_symbolic_alias(struct perf_evlist *evlist)
 	TEST_ASSERT_VAL("wrong number of entries", 1 == evlist->nr_entries);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_SOFTWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_SW_PAGE_FAULTS == evsel->attr.config);
+					PERF_COUNT_SW_PAGE_FAULTS == evsel->attr.config);
 	return 0;
 }
 
@@ -124,7 +125,7 @@ static int test__checkevent_breakpoint(struct perf_evlist *evlist)
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_BREAKPOINT == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config", 0 == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong bp_type", (HW_BREAKPOINT_R | HW_BREAKPOINT_W) ==
-					 evsel->attr.bp_type);
+					evsel->attr.bp_type);
 	TEST_ASSERT_VAL("wrong bp_len", HW_BREAKPOINT_LEN_4 ==
 					evsel->attr.bp_len);
 	return 0;
@@ -138,7 +139,7 @@ static int test__checkevent_breakpoint_x(struct perf_evlist *evlist)
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_BREAKPOINT == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config", 0 == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong bp_type",
-			HW_BREAKPOINT_X == evsel->attr.bp_type);
+					HW_BREAKPOINT_X == evsel->attr.bp_type);
 	TEST_ASSERT_VAL("wrong bp_len", sizeof(long) == evsel->attr.bp_len);
 	return 0;
 }
@@ -149,12 +150,12 @@ static int test__checkevent_breakpoint_r(struct perf_evlist *evlist)
 
 	TEST_ASSERT_VAL("wrong number of entries", 1 == evlist->nr_entries);
 	TEST_ASSERT_VAL("wrong type",
-			PERF_TYPE_BREAKPOINT == evsel->attr.type);
+					PERF_TYPE_BREAKPOINT == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config", 0 == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong bp_type",
-			HW_BREAKPOINT_R == evsel->attr.bp_type);
+					HW_BREAKPOINT_R == evsel->attr.bp_type);
 	TEST_ASSERT_VAL("wrong bp_len",
-			HW_BREAKPOINT_LEN_4 == evsel->attr.bp_len);
+					HW_BREAKPOINT_LEN_4 == evsel->attr.bp_len);
 	return 0;
 }
 
@@ -164,12 +165,12 @@ static int test__checkevent_breakpoint_w(struct perf_evlist *evlist)
 
 	TEST_ASSERT_VAL("wrong number of entries", 1 == evlist->nr_entries);
 	TEST_ASSERT_VAL("wrong type",
-			PERF_TYPE_BREAKPOINT == evsel->attr.type);
+					PERF_TYPE_BREAKPOINT == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config", 0 == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong bp_type",
-			HW_BREAKPOINT_W == evsel->attr.bp_type);
+					HW_BREAKPOINT_W == evsel->attr.bp_type);
 	TEST_ASSERT_VAL("wrong bp_len",
-			HW_BREAKPOINT_LEN_4 == evsel->attr.bp_len);
+					HW_BREAKPOINT_LEN_4 == evsel->attr.bp_len);
 	return 0;
 }
 
@@ -179,12 +180,12 @@ static int test__checkevent_breakpoint_rw(struct perf_evlist *evlist)
 
 	TEST_ASSERT_VAL("wrong number of entries", 1 == evlist->nr_entries);
 	TEST_ASSERT_VAL("wrong type",
-			PERF_TYPE_BREAKPOINT == evsel->attr.type);
+					PERF_TYPE_BREAKPOINT == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config", 0 == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong bp_type",
-		(HW_BREAKPOINT_R|HW_BREAKPOINT_W) == evsel->attr.bp_type);
+					(HW_BREAKPOINT_R | HW_BREAKPOINT_W) == evsel->attr.bp_type);
 	TEST_ASSERT_VAL("wrong bp_len",
-			HW_BREAKPOINT_LEN_4 == evsel->attr.bp_len);
+					HW_BREAKPOINT_LEN_4 == evsel->attr.bp_len);
 	return 0;
 }
 
@@ -207,11 +208,12 @@ test__checkevent_tracepoint_multi_modifier(struct perf_evlist *evlist)
 
 	TEST_ASSERT_VAL("wrong number of entries", evlist->nr_entries > 1);
 
-	evlist__for_each_entry(evlist, evsel) {
+	evlist__for_each_entry(evlist, evsel)
+	{
 		TEST_ASSERT_VAL("wrong exclude_user",
-				!evsel->attr.exclude_user);
+						!evsel->attr.exclude_user);
 		TEST_ASSERT_VAL("wrong exclude_kernel",
-				evsel->attr.exclude_kernel);
+						evsel->attr.exclude_kernel);
 		TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
 		TEST_ASSERT_VAL("wrong precise_ip", !evsel->attr.precise_ip);
 	}
@@ -339,7 +341,7 @@ static int test__checkevent_breakpoint_modifier(struct perf_evlist *evlist)
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
 	TEST_ASSERT_VAL("wrong precise_ip", !evsel->attr.precise_ip);
 	TEST_ASSERT_VAL("wrong name",
-			!strcmp(perf_evsel__name(evsel), "mem:0:u"));
+					!strcmp(perf_evsel__name(evsel), "mem:0:u"));
 
 	return test__checkevent_breakpoint(evlist);
 }
@@ -353,7 +355,7 @@ static int test__checkevent_breakpoint_x_modifier(struct perf_evlist *evlist)
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
 	TEST_ASSERT_VAL("wrong precise_ip", !evsel->attr.precise_ip);
 	TEST_ASSERT_VAL("wrong name",
-			!strcmp(perf_evsel__name(evsel), "mem:0:x:k"));
+					!strcmp(perf_evsel__name(evsel), "mem:0:x:k"));
 
 	return test__checkevent_breakpoint_x(evlist);
 }
@@ -367,7 +369,7 @@ static int test__checkevent_breakpoint_r_modifier(struct perf_evlist *evlist)
 	TEST_ASSERT_VAL("wrong exclude_hv", !evsel->attr.exclude_hv);
 	TEST_ASSERT_VAL("wrong precise_ip", evsel->attr.precise_ip);
 	TEST_ASSERT_VAL("wrong name",
-			!strcmp(perf_evsel__name(evsel), "mem:0:r:hp"));
+					!strcmp(perf_evsel__name(evsel), "mem:0:r:hp"));
 
 	return test__checkevent_breakpoint_r(evlist);
 }
@@ -381,7 +383,7 @@ static int test__checkevent_breakpoint_w_modifier(struct perf_evlist *evlist)
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
 	TEST_ASSERT_VAL("wrong precise_ip", evsel->attr.precise_ip);
 	TEST_ASSERT_VAL("wrong name",
-			!strcmp(perf_evsel__name(evsel), "mem:0:w:up"));
+					!strcmp(perf_evsel__name(evsel), "mem:0:w:up"));
 
 	return test__checkevent_breakpoint_w(evlist);
 }
@@ -395,7 +397,7 @@ static int test__checkevent_breakpoint_rw_modifier(struct perf_evlist *evlist)
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
 	TEST_ASSERT_VAL("wrong precise_ip", evsel->attr.precise_ip);
 	TEST_ASSERT_VAL("wrong name",
-			!strcmp(perf_evsel__name(evsel), "mem:0:rw:kp"));
+					!strcmp(perf_evsel__name(evsel), "mem:0:rw:kp"));
 
 	return test__checkevent_breakpoint_rw(evlist);
 }
@@ -439,7 +441,7 @@ static int test__checkevent_list(struct perf_evlist *evlist)
 	evsel = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_TRACEPOINT == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong sample_type",
-		PERF_TP_SAMPLE_TYPE == evsel->attr.sample_type);
+					PERF_TP_SAMPLE_TYPE == evsel->attr.sample_type);
 	TEST_ASSERT_VAL("wrong sample_period", 1 == evsel->attr.sample_period);
 	TEST_ASSERT_VAL("wrong exclude_user", evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
@@ -474,7 +476,7 @@ static int test__checkevent_pmu_name(struct perf_evlist *evlist)
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_RAW == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",  2 == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong name",
-			!strcmp(perf_evsel__name(evsel), "cpu/config=2/u"));
+					!strcmp(perf_evsel__name(evsel), "cpu/config=2/u"));
 
 	return 0;
 }
@@ -519,9 +521,9 @@ static int test__checkevent_pmu_events(struct perf_evlist *evlist)
 	TEST_ASSERT_VAL("wrong number of entries", 1 == evlist->nr_entries);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_RAW == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong exclude_user",
-			!evsel->attr.exclude_user);
+					!evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel",
-			evsel->attr.exclude_kernel);
+					evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
 	TEST_ASSERT_VAL("wrong precise_ip", !evsel->attr.precise_ip);
 	TEST_ASSERT_VAL("wrong pinned", !evsel->attr.pinned);
@@ -537,9 +539,9 @@ static int test__checkevent_pmu_events_mix(struct perf_evlist *evlist)
 	/* pmu-event:u */
 	TEST_ASSERT_VAL("wrong number of entries", 2 == evlist->nr_entries);
 	TEST_ASSERT_VAL("wrong exclude_user",
-			!evsel->attr.exclude_user);
+					!evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel",
-			evsel->attr.exclude_kernel);
+					evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
 	TEST_ASSERT_VAL("wrong precise_ip", !evsel->attr.precise_ip);
 	TEST_ASSERT_VAL("wrong pinned", !evsel->attr.pinned);
@@ -549,9 +551,9 @@ static int test__checkevent_pmu_events_mix(struct perf_evlist *evlist)
 	TEST_ASSERT_VAL("wrong number of entries", 2 == evlist->nr_entries);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_RAW == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong exclude_user",
-			!evsel->attr.exclude_user);
+					!evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel",
-			evsel->attr.exclude_kernel);
+					evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
 	TEST_ASSERT_VAL("wrong precise_ip", !evsel->attr.precise_ip);
 	TEST_ASSERT_VAL("wrong pinned", !evsel->attr.pinned);
@@ -566,36 +568,36 @@ static int test__checkterms_simple(struct list_head *terms)
 	/* config=10 */
 	term = list_entry(terms->next, struct parse_events_term, list);
 	TEST_ASSERT_VAL("wrong type term",
-			term->type_term == PARSE_EVENTS__TERM_TYPE_CONFIG);
+					term->type_term == PARSE_EVENTS__TERM_TYPE_CONFIG);
 	TEST_ASSERT_VAL("wrong type val",
-			term->type_val == PARSE_EVENTS__TERM_TYPE_NUM);
+					term->type_val == PARSE_EVENTS__TERM_TYPE_NUM);
 	TEST_ASSERT_VAL("wrong val", term->val.num == 10);
 	TEST_ASSERT_VAL("wrong config", !term->config);
 
 	/* config1 */
 	term = list_entry(term->list.next, struct parse_events_term, list);
 	TEST_ASSERT_VAL("wrong type term",
-			term->type_term == PARSE_EVENTS__TERM_TYPE_CONFIG1);
+					term->type_term == PARSE_EVENTS__TERM_TYPE_CONFIG1);
 	TEST_ASSERT_VAL("wrong type val",
-			term->type_val == PARSE_EVENTS__TERM_TYPE_NUM);
+					term->type_val == PARSE_EVENTS__TERM_TYPE_NUM);
 	TEST_ASSERT_VAL("wrong val", term->val.num == 1);
 	TEST_ASSERT_VAL("wrong config", !term->config);
 
 	/* config2=3 */
 	term = list_entry(term->list.next, struct parse_events_term, list);
 	TEST_ASSERT_VAL("wrong type term",
-			term->type_term == PARSE_EVENTS__TERM_TYPE_CONFIG2);
+					term->type_term == PARSE_EVENTS__TERM_TYPE_CONFIG2);
 	TEST_ASSERT_VAL("wrong type val",
-			term->type_val == PARSE_EVENTS__TERM_TYPE_NUM);
+					term->type_val == PARSE_EVENTS__TERM_TYPE_NUM);
 	TEST_ASSERT_VAL("wrong val", term->val.num == 3);
 	TEST_ASSERT_VAL("wrong config", !term->config);
 
 	/* umask=1*/
 	term = list_entry(term->list.next, struct parse_events_term, list);
 	TEST_ASSERT_VAL("wrong type term",
-			term->type_term == PARSE_EVENTS__TERM_TYPE_USER);
+					term->type_term == PARSE_EVENTS__TERM_TYPE_USER);
 	TEST_ASSERT_VAL("wrong type val",
-			term->type_val == PARSE_EVENTS__TERM_TYPE_NUM);
+					term->type_val == PARSE_EVENTS__TERM_TYPE_NUM);
 	TEST_ASSERT_VAL("wrong val", term->val.num == 1);
 	TEST_ASSERT_VAL("wrong config", !strcmp(term->config, "umask"));
 
@@ -613,7 +615,7 @@ static int test__group1(struct perf_evlist *evlist)
 	evsel = leader = perf_evlist__first(evlist);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_INSTRUCTIONS == evsel->attr.config);
+					PERF_COUNT_HW_INSTRUCTIONS == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
@@ -629,7 +631,7 @@ static int test__group1(struct perf_evlist *evlist)
 	evsel = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
+					PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
@@ -655,7 +657,7 @@ static int test__group2(struct perf_evlist *evlist)
 	evsel = leader = perf_evlist__first(evlist);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_SOFTWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_SW_PAGE_FAULTS == evsel->attr.config);
+					PERF_COUNT_SW_PAGE_FAULTS == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
@@ -671,7 +673,7 @@ static int test__group2(struct perf_evlist *evlist)
 	evsel = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CACHE_REFERENCES == evsel->attr.config);
+					PERF_COUNT_HW_CACHE_REFERENCES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
@@ -686,7 +688,7 @@ static int test__group2(struct perf_evlist *evlist)
 	evsel = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
+					PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
@@ -710,7 +712,7 @@ static int test__group3(struct perf_evlist *evlist __maybe_unused)
 	evsel = leader = perf_evlist__first(evlist);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_TRACEPOINT == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong sample_type",
-		PERF_TP_SAMPLE_TYPE == evsel->attr.sample_type);
+					PERF_TP_SAMPLE_TYPE == evsel->attr.sample_type);
 	TEST_ASSERT_VAL("wrong sample_period", 1 == evsel->attr.sample_period);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
@@ -720,7 +722,7 @@ static int test__group3(struct perf_evlist *evlist __maybe_unused)
 	TEST_ASSERT_VAL("wrong precise_ip", !evsel->attr.precise_ip);
 	TEST_ASSERT_VAL("wrong leader", perf_evsel__is_group_leader(evsel));
 	TEST_ASSERT_VAL("wrong group name",
-		!strcmp(leader->group_name, "group1"));
+					!strcmp(leader->group_name, "group1"));
 	TEST_ASSERT_VAL("wrong nr_members", evsel->nr_members == 2);
 	TEST_ASSERT_VAL("wrong group_idx", perf_evsel__group_idx(evsel) == 0);
 	TEST_ASSERT_VAL("wrong sample_read", !evsel->sample_read);
@@ -729,7 +731,7 @@ static int test__group3(struct perf_evlist *evlist __maybe_unused)
 	evsel = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
+					PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
@@ -746,7 +748,7 @@ static int test__group3(struct perf_evlist *evlist __maybe_unused)
 	evsel = leader = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
+					PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", !evsel->attr.exclude_hv);
@@ -755,7 +757,7 @@ static int test__group3(struct perf_evlist *evlist __maybe_unused)
 	TEST_ASSERT_VAL("wrong precise_ip", !evsel->attr.precise_ip);
 	TEST_ASSERT_VAL("wrong leader", perf_evsel__is_group_leader(evsel));
 	TEST_ASSERT_VAL("wrong group name",
-		!strcmp(leader->group_name, "group2"));
+					!strcmp(leader->group_name, "group2"));
 	TEST_ASSERT_VAL("wrong nr_members", evsel->nr_members == 2);
 	TEST_ASSERT_VAL("wrong group_idx", perf_evsel__group_idx(evsel) == 0);
 	TEST_ASSERT_VAL("wrong sample_read", !evsel->sample_read);
@@ -778,7 +780,7 @@ static int test__group3(struct perf_evlist *evlist __maybe_unused)
 	evsel = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_INSTRUCTIONS == evsel->attr.config);
+					PERF_COUNT_HW_INSTRUCTIONS == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
@@ -802,7 +804,7 @@ static int test__group4(struct perf_evlist *evlist __maybe_unused)
 	evsel = leader = perf_evlist__first(evlist);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
+					PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
@@ -820,7 +822,7 @@ static int test__group4(struct perf_evlist *evlist __maybe_unused)
 	evsel = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_INSTRUCTIONS == evsel->attr.config);
+					PERF_COUNT_HW_INSTRUCTIONS == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
@@ -846,7 +848,7 @@ static int test__group5(struct perf_evlist *evlist __maybe_unused)
 	evsel = leader = perf_evlist__first(evlist);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
+					PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", !evsel->attr.exclude_hv);
@@ -863,7 +865,7 @@ static int test__group5(struct perf_evlist *evlist __maybe_unused)
 	evsel = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_INSTRUCTIONS == evsel->attr.config);
+					PERF_COUNT_HW_INSTRUCTIONS == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", !evsel->attr.exclude_hv);
@@ -878,7 +880,7 @@ static int test__group5(struct perf_evlist *evlist __maybe_unused)
 	evsel = leader = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
+					PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", !evsel->attr.exclude_hv);
@@ -895,7 +897,7 @@ static int test__group5(struct perf_evlist *evlist __maybe_unused)
 	evsel = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_INSTRUCTIONS == evsel->attr.config);
+					PERF_COUNT_HW_INSTRUCTIONS == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", !evsel->attr.exclude_hv);
@@ -909,7 +911,7 @@ static int test__group5(struct perf_evlist *evlist __maybe_unused)
 	evsel = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
+					PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", !evsel->attr.exclude_hv);
@@ -932,7 +934,7 @@ static int test__group_gh1(struct perf_evlist *evlist)
 	evsel = leader = perf_evlist__first(evlist);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
+					PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", !evsel->attr.exclude_hv);
@@ -948,7 +950,7 @@ static int test__group_gh1(struct perf_evlist *evlist)
 	evsel = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CACHE_MISSES == evsel->attr.config);
+					PERF_COUNT_HW_CACHE_MISSES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", !evsel->attr.exclude_hv);
@@ -972,7 +974,7 @@ static int test__group_gh2(struct perf_evlist *evlist)
 	evsel = leader = perf_evlist__first(evlist);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
+					PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", !evsel->attr.exclude_hv);
@@ -988,7 +990,7 @@ static int test__group_gh2(struct perf_evlist *evlist)
 	evsel = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CACHE_MISSES == evsel->attr.config);
+					PERF_COUNT_HW_CACHE_MISSES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", !evsel->attr.exclude_hv);
@@ -1012,7 +1014,7 @@ static int test__group_gh3(struct perf_evlist *evlist)
 	evsel = leader = perf_evlist__first(evlist);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
+					PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
@@ -1028,7 +1030,7 @@ static int test__group_gh3(struct perf_evlist *evlist)
 	evsel = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CACHE_MISSES == evsel->attr.config);
+					PERF_COUNT_HW_CACHE_MISSES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
@@ -1052,7 +1054,7 @@ static int test__group_gh4(struct perf_evlist *evlist)
 	evsel = leader = perf_evlist__first(evlist);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
+					PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
@@ -1068,7 +1070,7 @@ static int test__group_gh4(struct perf_evlist *evlist)
 	evsel = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CACHE_MISSES == evsel->attr.config);
+					PERF_COUNT_HW_CACHE_MISSES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
@@ -1091,7 +1093,7 @@ static int test__leader_sample1(struct perf_evlist *evlist)
 	evsel = leader = perf_evlist__first(evlist);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
+					PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", !evsel->attr.exclude_hv);
@@ -1106,7 +1108,7 @@ static int test__leader_sample1(struct perf_evlist *evlist)
 	evsel = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CACHE_MISSES == evsel->attr.config);
+					PERF_COUNT_HW_CACHE_MISSES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", !evsel->attr.exclude_hv);
@@ -1120,7 +1122,7 @@ static int test__leader_sample1(struct perf_evlist *evlist)
 	evsel = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_BRANCH_MISSES == evsel->attr.config);
+					PERF_COUNT_HW_BRANCH_MISSES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", !evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", !evsel->attr.exclude_hv);
@@ -1144,7 +1146,7 @@ static int test__leader_sample2(struct perf_evlist *evlist __maybe_unused)
 	evsel = leader = perf_evlist__first(evlist);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_INSTRUCTIONS == evsel->attr.config);
+					PERF_COUNT_HW_INSTRUCTIONS == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
@@ -1159,7 +1161,7 @@ static int test__leader_sample2(struct perf_evlist *evlist __maybe_unused)
 	evsel = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_BRANCH_MISSES == evsel->attr.config);
+					PERF_COUNT_HW_BRANCH_MISSES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong exclude_user", !evsel->attr.exclude_user);
 	TEST_ASSERT_VAL("wrong exclude_kernel", evsel->attr.exclude_kernel);
 	TEST_ASSERT_VAL("wrong exclude_hv", evsel->attr.exclude_hv);
@@ -1196,7 +1198,7 @@ static int test__pinned_group(struct perf_evlist *evlist)
 	evsel = leader = perf_evlist__first(evlist);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
+					PERF_COUNT_HW_CPU_CYCLES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong group name", !evsel->group_name);
 	TEST_ASSERT_VAL("wrong leader", evsel->leader == leader);
 	TEST_ASSERT_VAL("wrong pinned", evsel->attr.pinned);
@@ -1205,13 +1207,13 @@ static int test__pinned_group(struct perf_evlist *evlist)
 	evsel = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_HARDWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_CACHE_MISSES == evsel->attr.config);
+					PERF_COUNT_HW_CACHE_MISSES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong pinned", !evsel->attr.pinned);
 
 	/* branch-misses - ditto */
 	evsel = perf_evsel__next(evsel);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_HW_BRANCH_MISSES == evsel->attr.config);
+					PERF_COUNT_HW_BRANCH_MISSES == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong pinned", !evsel->attr.pinned);
 
 	return 0;
@@ -1225,7 +1227,7 @@ static int test__checkevent_breakpoint_len(struct perf_evlist *evlist)
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_BREAKPOINT == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config", 0 == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong bp_type", (HW_BREAKPOINT_R | HW_BREAKPOINT_W) ==
-					 evsel->attr.bp_type);
+					evsel->attr.bp_type);
 	TEST_ASSERT_VAL("wrong bp_len", HW_BREAKPOINT_LEN_1 ==
 					evsel->attr.bp_len);
 
@@ -1240,7 +1242,7 @@ static int test__checkevent_breakpoint_len_w(struct perf_evlist *evlist)
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_BREAKPOINT == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config", 0 == evsel->attr.config);
 	TEST_ASSERT_VAL("wrong bp_type", HW_BREAKPOINT_W ==
-					 evsel->attr.bp_type);
+					evsel->attr.bp_type);
 	TEST_ASSERT_VAL("wrong bp_len", HW_BREAKPOINT_LEN_2 ==
 					evsel->attr.bp_len);
 
@@ -1267,7 +1269,7 @@ static int test__checkevent_precise_max_modifier(struct perf_evlist *evlist)
 	TEST_ASSERT_VAL("wrong number of entries", 2 == evlist->nr_entries);
 	TEST_ASSERT_VAL("wrong type", PERF_TYPE_SOFTWARE == evsel->attr.type);
 	TEST_ASSERT_VAL("wrong config",
-			PERF_COUNT_SW_TASK_CLOCK == evsel->attr.config);
+					PERF_COUNT_SW_TASK_CLOCK == evsel->attr.config);
 	return 0;
 }
 
@@ -1313,30 +1315,36 @@ static int count_tracepoints(void)
 
 	TEST_ASSERT_VAL("Can't open events dir", events_dir);
 
-	while ((events_ent = readdir(events_dir))) {
+	while ((events_ent = readdir(events_dir)))
+	{
 		char sys_path[PATH_MAX];
 		struct dirent *sys_ent;
 		DIR *sys_dir;
 
 		if (!strcmp(events_ent->d_name, ".")
-		    || !strcmp(events_ent->d_name, "..")
-		    || !strcmp(events_ent->d_name, "enable")
-		    || !strcmp(events_ent->d_name, "header_event")
-		    || !strcmp(events_ent->d_name, "header_page"))
+			|| !strcmp(events_ent->d_name, "..")
+			|| !strcmp(events_ent->d_name, "enable")
+			|| !strcmp(events_ent->d_name, "header_event")
+			|| !strcmp(events_ent->d_name, "header_page"))
+		{
 			continue;
+		}
 
 		scnprintf(sys_path, PATH_MAX, "%s/%s",
-			  tracing_events_path, events_ent->d_name);
+				  tracing_events_path, events_ent->d_name);
 
 		sys_dir = opendir(sys_path);
 		TEST_ASSERT_VAL("Can't open sys dir", sys_dir);
 
-		while ((sys_ent = readdir(sys_dir))) {
+		while ((sys_ent = readdir(sys_dir)))
+		{
 			if (!strcmp(sys_ent->d_name, ".")
-			    || !strcmp(sys_ent->d_name, "..")
-			    || !strcmp(sys_ent->d_name, "enable")
-			    || !strcmp(sys_ent->d_name, "filter"))
+				|| !strcmp(sys_ent->d_name, "..")
+				|| !strcmp(sys_ent->d_name, "enable")
+				|| !strcmp(sys_ent->d_name, "filter"))
+			{
 				continue;
+			}
 
 			cnt++;
 		}
@@ -1351,19 +1359,21 @@ static int count_tracepoints(void)
 static int test__all_tracepoints(struct perf_evlist *evlist)
 {
 	TEST_ASSERT_VAL("wrong events count",
-			count_tracepoints() == evlist->nr_entries);
+					count_tracepoints() == evlist->nr_entries);
 
 	return test__checkevent_tracepoint_multi(evlist);
 }
 
-struct evlist_test {
+struct evlist_test
+{
 	const char *name;
 	__u32 type;
 	const int id;
 	int (*check)(struct perf_evlist *evlist);
 };
 
-static struct evlist_test test__events[] = {
+static struct evlist_test test__events[] =
+{
 	{
 		.name  = "syscalls:sys_enter_openat",
 		.check = test__checkevent_tracepoint,
@@ -1633,7 +1643,8 @@ static struct evlist_test test__events[] = {
 	},
 };
 
-static struct evlist_test test__events_pmu[] = {
+static struct evlist_test test__events_pmu[] =
+{
 	{
 		.name  = "cpu/config=10,config1,config2=3,period=1000/u",
 		.check = test__checkevent_pmu,
@@ -1651,13 +1662,15 @@ static struct evlist_test test__events_pmu[] = {
 	},
 };
 
-struct terms_test {
+struct terms_test
+{
 	const char *str;
 	__u32 type;
 	int (*check)(struct list_head *terms);
 };
 
-static struct terms_test test__terms[] = {
+static struct terms_test test__terms[] =
+{
 	[0] = {
 		.str   = "config=10,config1,config2=3,umask=1",
 		.check = test__checkterms_simple,
@@ -1670,14 +1683,21 @@ static int test_event(struct evlist_test *e)
 	int ret;
 
 	evlist = perf_evlist__new();
+
 	if (evlist == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	ret = parse_events(evlist, e->name, NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_debug("failed to parse event '%s', err %d\n",
-			 e->name, ret);
-	} else {
+				 e->name, ret);
+	}
+	else
+	{
 		ret = e->check(evlist);
 	}
 
@@ -1691,13 +1711,17 @@ static int test_events(struct evlist_test *events, unsigned cnt)
 	int ret1, ret2 = 0;
 	unsigned i;
 
-	for (i = 0; i < cnt; i++) {
+	for (i = 0; i < cnt; i++)
+	{
 		struct evlist_test *e = &events[i];
 
 		pr_debug("running test %d '%s'\n", e->id, e->name);
 		ret1 = test_event(e);
+
 		if (ret1)
+		{
 			ret2 = ret1;
+		}
 	}
 
 	return ret2;
@@ -1711,9 +1735,11 @@ static int test_term(struct terms_test *t)
 	INIT_LIST_HEAD(&terms);
 
 	ret = parse_events_terms(&terms, t->str);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_debug("failed to parse terms '%s', err %d\n",
-			 t->str , ret);
+				 t->str , ret);
 		return ret;
 	}
 
@@ -1728,13 +1754,17 @@ static int test_terms(struct terms_test *terms, unsigned cnt)
 	int ret = 0;
 	unsigned i;
 
-	for (i = 0; i < cnt; i++) {
+	for (i = 0; i < cnt; i++)
+	{
 		struct terms_test *t = &terms[i];
 
 		pr_debug("running test %d '%s'\n", i, t->str);
 		ret = test_term(t);
+
 		if (ret)
+		{
 			break;
+		}
 	}
 
 	return ret;
@@ -1747,11 +1777,15 @@ static int test_pmu(void)
 	int ret;
 
 	snprintf(path, PATH_MAX, "%s/bus/event_source/devices/cpu/format/",
-		 sysfs__mountpoint());
+			 sysfs__mountpoint());
 
 	ret = stat(path, &st);
+
 	if (ret)
+	{
 		pr_debug("omitting PMU cpu tests\n");
+	}
+
 	return !ret;
 }
 
@@ -1764,28 +1798,35 @@ static int test_pmu_events(void)
 	int ret;
 
 	snprintf(path, PATH_MAX, "%s/bus/event_source/devices/cpu/events/",
-		 sysfs__mountpoint());
+			 sysfs__mountpoint());
 
 	ret = stat(path, &st);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_debug("omitting PMU cpu events tests\n");
 		return 0;
 	}
 
 	dir = opendir(path);
-	if (!dir) {
+
+	if (!dir)
+	{
 		pr_debug("can't open pmu event dir");
 		return -1;
 	}
 
-	while (!ret && (ent = readdir(dir))) {
+	while (!ret && (ent = readdir(dir)))
+	{
 #define MAX_NAME 100
 		struct evlist_test e;
 		char name[MAX_NAME];
 
 		/* Names containing . are special and cannot be used directly */
 		if (strchr(ent->d_name, '.'))
+		{
 			continue;
+		}
 
 		snprintf(name, MAX_NAME, "cpu/event=%s/u", ent->d_name);
 
@@ -1793,8 +1834,12 @@ static int test_pmu_events(void)
 		e.check = test__checkevent_pmu_events;
 
 		ret = test_event(&e);
+
 		if (ret)
+		{
 			break;
+		}
+
 		snprintf(name, MAX_NAME, "%s:u,cpu/event=%s/u", ent->d_name, ent->d_name);
 		e.name  = name;
 		e.check = test__checkevent_pmu_events_mix;
@@ -1811,7 +1856,9 @@ static void debug_warn(const char *warn, va_list params)
 	char msg[1024];
 
 	if (!verbose)
+	{
 		return;
+	}
 
 	vsnprintf(msg, sizeof(msg), warn, params);
 	fprintf(stderr, " Warning: %s\n", msg);
@@ -1822,28 +1869,37 @@ int test__parse_events(int subtest __maybe_unused)
 	int ret1, ret2 = 0;
 
 #define TEST_EVENTS(tests)				\
-do {							\
-	ret1 = test_events(tests, ARRAY_SIZE(tests));	\
-	if (!ret2)					\
-		ret2 = ret1;				\
-} while (0)
+	do {							\
+		ret1 = test_events(tests, ARRAY_SIZE(tests));	\
+		if (!ret2)					\
+			ret2 = ret1;				\
+	} while (0)
 
 	set_warning_routine(debug_warn);
 
 	TEST_EVENTS(test__events);
 
 	if (test_pmu())
+	{
 		TEST_EVENTS(test__events_pmu);
+	}
 
-	if (test_pmu()) {
+	if (test_pmu())
+	{
 		int ret = test_pmu_events();
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	ret1 = test_terms(test__terms, ARRAY_SIZE(test__terms));
+
 	if (!ret2)
+	{
 		ret2 = ret1;
+	}
 
 	return ret2;
 }

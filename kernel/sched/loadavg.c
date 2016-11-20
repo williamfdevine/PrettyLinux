@@ -85,7 +85,8 @@ long calc_load_fold_active(struct rq *this_rq, long adjust)
 	nr_active = this_rq->nr_running - adjust;
 	nr_active += (long)this_rq->nr_uninterruptible;
 
-	if (nr_active != this_rq->calc_load_active) {
+	if (nr_active != this_rq->calc_load_active)
+	{
 		delta = nr_active - this_rq->calc_load_active;
 		this_rq->calc_load_active = nr_active;
 	}
@@ -102,8 +103,11 @@ calc_load(unsigned long load, unsigned long exp, unsigned long active)
 	unsigned long newload;
 
 	newload = load * exp + active * (FIXED_1 - exp);
+
 	if (active >= load)
-		newload += FIXED_1-1;
+	{
+		newload += FIXED_1 - 1;
+	}
 
 	return newload / FIXED_1;
 }
@@ -169,7 +173,9 @@ static inline int calc_load_write_idx(void)
 	 * next idle-delta.
 	 */
 	if (!time_before(jiffies, calc_load_update))
+	{
 		idx++;
+	}
 
 	return idx & 1;
 }
@@ -189,7 +195,9 @@ void calc_load_enter_idle(void)
 	 * into the pending idle delta.
 	 */
 	delta = calc_load_fold_active(this_rq, 0);
-	if (delta) {
+
+	if (delta)
+	{
 		int idx = calc_load_write_idx();
 
 		atomic_long_add(delta, &calc_load_idle[idx]);
@@ -204,7 +212,9 @@ void calc_load_exit_idle(void)
 	 * If we're still before the sample window, we're done.
 	 */
 	if (time_before(jiffies, this_rq->calc_load_update))
+	{
 		return;
+	}
 
 	/*
 	 * We woke inside or after the sample window, this means we're already
@@ -212,8 +222,11 @@ void calc_load_exit_idle(void)
 	 * sync up for the next window.
 	 */
 	this_rq->calc_load_update = calc_load_update;
+
 	if (time_before(jiffies, this_rq->calc_load_update + 10))
+	{
 		this_rq->calc_load_update += LOAD_FREQ;
+	}
 }
 
 static long calc_load_fold_idle(void)
@@ -222,7 +235,9 @@ static long calc_load_fold_idle(void)
 	long delta = 0;
 
 	if (atomic_long_read(&calc_load_idle[idx]))
+	{
 		delta = atomic_long_xchg(&calc_load_idle[idx], 0);
+	}
 
 	return delta;
 }
@@ -247,16 +262,24 @@ fixed_power_int(unsigned long x, unsigned int frac_bits, unsigned int n)
 {
 	unsigned long result = 1UL << frac_bits;
 
-	if (n) {
-		for (;;) {
-			if (n & 1) {
+	if (n)
+	{
+		for (;;)
+		{
+			if (n & 1)
+			{
 				result *= x;
 				result += 1UL << (frac_bits - 1);
 				result >>= frac_bits;
 			}
+
 			n >>= 1;
+
 			if (!n)
+			{
 				break;
+			}
+
 			x *= x;
 			x += 1UL << (frac_bits - 1);
 			x >>= frac_bits;
@@ -291,7 +314,7 @@ fixed_power_int(unsigned long x, unsigned int frac_bits, unsigned int n)
  */
 static unsigned long
 calc_load_n(unsigned long load, unsigned long exp,
-	    unsigned long active, unsigned int n)
+			unsigned long active, unsigned int n)
 {
 	return calc_load(load, fixed_power_int(exp, FSHIFT, n), active);
 }
@@ -309,7 +332,8 @@ static void calc_global_nohz(void)
 {
 	long delta, active, n;
 
-	if (!time_before(jiffies, calc_load_update + 10)) {
+	if (!time_before(jiffies, calc_load_update + 10))
+	{
 		/*
 		 * Catch-up, fold however many we are behind still
 		 */
@@ -354,14 +378,19 @@ void calc_global_load(unsigned long ticks)
 	long active, delta;
 
 	if (time_before(jiffies, calc_load_update + 10))
+	{
 		return;
+	}
 
 	/*
 	 * Fold the 'old' idle-delta to include all NO_HZ cpus.
 	 */
 	delta = calc_load_fold_idle();
+
 	if (delta)
+	{
 		atomic_long_add(delta, &calc_load_tasks);
+	}
 
 	active = atomic_long_read(&calc_load_tasks);
 	active = active > 0 ? active * FIXED_1 : 0;
@@ -387,11 +416,16 @@ void calc_global_load_tick(struct rq *this_rq)
 	long delta;
 
 	if (time_before(jiffies, this_rq->calc_load_update))
+	{
 		return;
+	}
 
 	delta  = calc_load_fold_active(this_rq, 0);
+
 	if (delta)
+	{
 		atomic_long_add(delta, &calc_load_tasks);
+	}
 
 	this_rq->calc_load_update += LOAD_FREQ;
 }

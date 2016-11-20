@@ -22,7 +22,8 @@
 
 #include "ath.h"
 
-enum ctl_group {
+enum ctl_group
+{
 	CTL_FCC = 0x10,
 	CTL_MKK = 0x40,
 	CTL_ETSI = 0x30,
@@ -53,13 +54,15 @@ enum ctl_group {
 #define CHANNEL_HALF_BW         10
 #define CHANNEL_QUARTER_BW      5
 
-struct country_code_to_enum_rd {
+struct country_code_to_enum_rd
+{
 	u16 countryCode;
 	u16 regDmnEnum;
 	const char *isoName;
 };
 
-enum CountryCode {
+enum CountryCode
+{
 	CTRY_ALBANIA = 8,
 	CTRY_ALGERIA = 12,
 	CTRY_ARGENTINA = 32,
@@ -252,12 +255,12 @@ enum CountryCode {
 bool ath_is_world_regd(struct ath_regulatory *reg);
 bool ath_is_49ghz_allowed(u16 redomain);
 int ath_regd_init(struct ath_regulatory *reg, struct wiphy *wiphy,
-		  void (*reg_notifier)(struct wiphy *wiphy,
-				       struct regulatory_request *request));
+				  void (*reg_notifier)(struct wiphy *wiphy,
+									   struct regulatory_request *request));
 u32 ath_regd_get_band_ctl(struct ath_regulatory *reg,
-			  enum nl80211_band band);
+						  enum nl80211_band band);
 void ath_reg_notifier_apply(struct wiphy *wiphy,
-			    struct regulatory_request *request,
-			    struct ath_regulatory *reg);
+							struct regulatory_request *request,
+							struct ath_regulatory *reg);
 
 #endif

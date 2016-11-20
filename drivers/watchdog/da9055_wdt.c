@@ -26,21 +26,24 @@
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-		 "Watchdog cannot be stopped once started (default="
-		 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 #define DA9055_DEF_TIMEOUT	4
 #define DA9055_TWDMIN		256
 
-struct da9055_wdt_data {
+struct da9055_wdt_data
+{
 	struct watchdog_device wdt;
 	struct da9055 *da9055;
 };
 
-static const struct {
+static const struct
+{
 	u8 reg_val;
 	int user_time;  /* In seconds */
-} da9055_wdt_maps[] = {
+} da9055_wdt_maps[] =
+{
 	{ 0, 0 },
 	{ 1, 2 },
 	{ 2, 4 },
@@ -54,7 +57,7 @@ static const struct {
 };
 
 static int da9055_wdt_set_timeout(struct watchdog_device *wdt_dev,
-				  unsigned int timeout)
+								  unsigned int timeout)
 {
 	struct da9055_wdt_data *driver_data = watchdog_get_drvdata(wdt_dev);
 	struct da9055 *da9055 = driver_data->da9055;
@@ -62,18 +65,24 @@ static int da9055_wdt_set_timeout(struct watchdog_device *wdt_dev,
 
 	for (i = 0; i < ARRAY_SIZE(da9055_wdt_maps); i++)
 		if (da9055_wdt_maps[i].user_time == timeout)
+		{
 			break;
+		}
 
 	if (i == ARRAY_SIZE(da9055_wdt_maps))
+	{
 		ret = -EINVAL;
+	}
 	else
 		ret = da9055_reg_update(da9055, DA9055_REG_CONTROL_B,
-					DA9055_TWDSCALE_MASK,
-					da9055_wdt_maps[i].reg_val <<
-					DA9055_TWDSCALE_SHIFT);
-	if (ret < 0) {
+								DA9055_TWDSCALE_MASK,
+								da9055_wdt_maps[i].reg_val <<
+								DA9055_TWDSCALE_SHIFT);
+
+	if (ret < 0)
+	{
 		dev_err(da9055->dev,
-			"Failed to update timescale bit, %d\n", ret);
+				"Failed to update timescale bit, %d\n", ret);
 		return ret;
 	}
 
@@ -95,7 +104,7 @@ static int da9055_wdt_ping(struct watchdog_device *wdt_dev)
 
 	/* Reset the watchdog timer */
 	return da9055_reg_update(da9055, DA9055_REG_CONTROL_E,
-				 DA9055_WATCHDOG_MASK, 1);
+							 DA9055_WATCHDOG_MASK, 1);
 }
 
 static int da9055_wdt_start(struct watchdog_device *wdt_dev)
@@ -108,12 +117,14 @@ static int da9055_wdt_stop(struct watchdog_device *wdt_dev)
 	return da9055_wdt_set_timeout(wdt_dev, 0);
 }
 
-static struct watchdog_info da9055_wdt_info = {
+static struct watchdog_info da9055_wdt_info =
+{
 	.options	= WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
 	.identity	= "DA9055 Watchdog",
 };
 
-static const struct watchdog_ops da9055_wdt_ops = {
+static const struct watchdog_ops da9055_wdt_ops =
+{
 	.owner = THIS_MODULE,
 	.start = da9055_wdt_start,
 	.stop = da9055_wdt_stop,
@@ -129,9 +140,12 @@ static int da9055_wdt_probe(struct platform_device *pdev)
 	int ret;
 
 	driver_data = devm_kzalloc(&pdev->dev, sizeof(*driver_data),
-				   GFP_KERNEL);
+							   GFP_KERNEL);
+
 	if (!driver_data)
+	{
 		return -ENOMEM;
+	}
 
 	driver_data->da9055 = da9055;
 
@@ -145,7 +159,9 @@ static int da9055_wdt_probe(struct platform_device *pdev)
 	watchdog_set_drvdata(da9055_wdt, driver_data);
 
 	ret = da9055_wdt_stop(da9055_wdt);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to stop watchdog, %d\n", ret);
 		goto err;
 	}
@@ -153,9 +169,10 @@ static int da9055_wdt_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, driver_data);
 
 	ret = watchdog_register_device(&driver_data->wdt);
+
 	if (ret != 0)
 		dev_err(da9055->dev, "watchdog_register_device() failed: %d\n",
-			ret);
+				ret);
 
 err:
 	return ret;
@@ -170,7 +187,8 @@ static int da9055_wdt_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver da9055_wdt_driver = {
+static struct platform_driver da9055_wdt_driver =
+{
 	.probe = da9055_wdt_probe,
 	.remove = da9055_wdt_remove,
 	.driver = {

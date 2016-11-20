@@ -37,14 +37,14 @@
 #include <subdev/vga.h>
 
 #define bioslog(lvl, fmt, args...) do {                                        \
-	nvkm_printk(init->subdev, lvl, info, "0x%04x[%c]: "fmt,                \
-		    init->offset, init_exec(init) ?                            \
-		    '0' + (init->nested - 1) : ' ', ##args);                   \
-} while(0)
+		nvkm_printk(init->subdev, lvl, info, "0x%04x[%c]: "fmt,                \
+					init->offset, init_exec(init) ?                            \
+					'0' + (init->nested - 1) : ' ', ##args);                   \
+	} while(0)
 #define cont(fmt, args...) do {                                                \
-	if (init->subdev->debug >= NV_DBG_TRACE)                               \
-		printk(fmt, ##args);                                           \
-} while(0)
+		if (init->subdev->debug >= NV_DBG_TRACE)                               \
+			printk(fmt, ##args);                                           \
+	} while(0)
 #define trace(fmt, args...) bioslog(TRACE, fmt, ##args)
 #define warn(fmt, args...) bioslog(WARN, fmt, ##args)
 #define error(fmt, args...) bioslog(ERROR, fmt, ##args)
@@ -62,8 +62,8 @@ init_exec(struct nvbios_init *init)
 static inline void
 init_exec_set(struct nvbios_init *init, bool exec)
 {
-	if (exec) init->execute &= 0xfd;
-	else      init->execute |= 0x02;
+	if (exec) { init->execute &= 0xfd; }
+	else { init->execute |= 0x02; }
 }
 
 static inline void
@@ -75,8 +75,8 @@ init_exec_inv(struct nvbios_init *init)
 static inline void
 init_exec_force(struct nvbios_init *init, bool exec)
 {
-	if (exec) init->execute |= 0x04;
-	else      init->execute &= 0xfb;
+	if (exec) { init->execute |= 0x04; }
+	else { init->execute &= 0xfb; }
 }
 
 /******************************************************************************
@@ -86,33 +86,48 @@ init_exec_force(struct nvbios_init *init, bool exec)
 static inline int
 init_or(struct nvbios_init *init)
 {
-	if (init_exec(init)) {
+	if (init_exec(init))
+	{
 		if (init->outp)
-			return ffs(init->outp->or) - 1;
+		{
+			return ffs(init->outp-> or ) - 1;
+		}
+
 		error("script needs OR!!\n");
 	}
+
 	return 0;
 }
 
 static inline int
 init_link(struct nvbios_init *init)
 {
-	if (init_exec(init)) {
+	if (init_exec(init))
+	{
 		if (init->outp)
+		{
 			return !(init->outp->sorconf.link & 1);
+		}
+
 		error("script needs OR link\n");
 	}
+
 	return 0;
 }
 
 static inline int
 init_crtc(struct nvbios_init *init)
 {
-	if (init_exec(init)) {
+	if (init_exec(init))
+	{
 		if (init->crtc >= 0)
+		{
 			return init->crtc;
+		}
+
 		error("script needs crtc\n");
 	}
+
 	return 0;
 }
 
@@ -124,12 +139,17 @@ init_conn(struct nvbios_init *init)
 	u8  ver, hdr;
 	u32 conn;
 
-	if (init_exec(init)) {
-		if (init->outp) {
+	if (init_exec(init))
+	{
+		if (init->outp)
+		{
 			conn = init->outp->connector;
 			conn = nvbios_connEp(bios, conn, &ver, &hdr, &connE);
+
 			if (conn)
+			{
 				return connE.type;
+			}
 		}
 
 		error("script needs connector type\n");
@@ -154,16 +174,21 @@ init_nvreg(struct nvbios_init *init, u32 reg)
 	/* GF8+ display scripts need register addresses mangled a bit to
 	 * select a specific CRTC/OR
 	 */
-	if (init->bios->subdev.device->card_type >= NV_50) {
-		if (reg & 0x80000000) {
+	if (init->bios->subdev.device->card_type >= NV_50)
+	{
+		if (reg & 0x80000000)
+		{
 			reg += init_crtc(init) * 0x800;
 			reg &= ~0x80000000;
 		}
 
-		if (reg & 0x40000000) {
+		if (reg & 0x40000000)
+		{
 			reg += init_or(init) * 0x800;
 			reg &= ~0x40000000;
-			if (reg & 0x20000000) {
+
+			if (reg & 0x20000000)
+			{
 				reg += init_link(init) * 0x80;
 				reg &= ~0x20000000;
 			}
@@ -171,7 +196,9 @@ init_nvreg(struct nvbios_init *init, u32 reg)
 	}
 
 	if (reg & ~0x00fffffc)
+	{
 		warn("unknown bits in register 0x%08x\n", reg);
+	}
 
 	return nvkm_devinit_mmio(devinit, reg);
 }
@@ -181,8 +208,12 @@ init_rd32(struct nvbios_init *init, u32 reg)
 {
 	struct nvkm_device *device = init->bios->subdev.device;
 	reg = init_nvreg(init, reg);
+
 	if (reg != ~0 && init_exec(init))
+	{
 		return nvkm_rd32(device, reg);
+	}
+
 	return 0x00000000;
 }
 
@@ -191,8 +222,11 @@ init_wr32(struct nvbios_init *init, u32 reg, u32 val)
 {
 	struct nvkm_device *device = init->bios->subdev.device;
 	reg = init_nvreg(init, reg);
+
 	if (reg != ~0 && init_exec(init))
+	{
 		nvkm_wr32(device, reg, val);
+	}
 }
 
 static u32
@@ -200,11 +234,14 @@ init_mask(struct nvbios_init *init, u32 reg, u32 mask, u32 val)
 {
 	struct nvkm_device *device = init->bios->subdev.device;
 	reg = init_nvreg(init, reg);
-	if (reg != ~0 && init_exec(init)) {
+
+	if (reg != ~0 && init_exec(init))
+	{
 		u32 tmp = nvkm_rd32(device, reg);
 		nvkm_wr32(device, reg, (tmp & ~mask) | val);
 		return tmp;
 	}
+
 	return 0x00000000;
 }
 
@@ -212,7 +249,10 @@ static u8
 init_rdport(struct nvbios_init *init, u16 port)
 {
 	if (init_exec(init))
+	{
 		return nvkm_rdport(init->subdev->device, init->crtc, port);
+	}
+
 	return 0x00;
 }
 
@@ -220,17 +260,22 @@ static void
 init_wrport(struct nvbios_init *init, u16 port, u8 value)
 {
 	if (init_exec(init))
+	{
 		nvkm_wrport(init->subdev->device, init->crtc, port, value);
+	}
 }
 
 static u8
 init_rdvgai(struct nvbios_init *init, u16 port, u8 index)
 {
 	struct nvkm_subdev *subdev = init->subdev;
-	if (init_exec(init)) {
+
+	if (init_exec(init))
+	{
 		int head = init->crtc < 0 ? 0 : init->crtc;
 		return nvkm_rdvgai(subdev->device, head, port, index);
 	}
+
 	return 0x00;
 }
 
@@ -240,20 +285,27 @@ init_wrvgai(struct nvbios_init *init, u16 port, u8 index, u8 value)
 	struct nvkm_device *device = init->subdev->device;
 
 	/* force head 0 for updates to cr44, it only exists on first head */
-	if (device->card_type < NV_50) {
+	if (device->card_type < NV_50)
+	{
 		if (port == 0x03d4 && index == 0x44)
+		{
 			init->crtc = 0;
+		}
 	}
 
-	if (init_exec(init)) {
+	if (init_exec(init))
+	{
 		int head = init->crtc < 0 ? 0 : init->crtc;
 		nvkm_wrvgai(device, head, port, index, value);
 	}
 
 	/* select head 1 if cr44 write selected it */
-	if (device->card_type < NV_50) {
+	if (device->card_type < NV_50)
+	{
 		if (port == 0x03d4 && index == 0x44 && value == 3)
+		{
 			init->crtc = 1;
+		}
 	}
 }
 
@@ -263,15 +315,21 @@ init_i2c(struct nvbios_init *init, int index)
 	struct nvkm_i2c *i2c = init->bios->subdev.device->i2c;
 	struct nvkm_i2c_bus *bus;
 
-	if (index == 0xff) {
+	if (index == 0xff)
+	{
 		index = NVKM_I2C_BUS_PRI;
+
 		if (init->outp && init->outp->i2c_upper_default)
+		{
 			index = NVKM_I2C_BUS_SEC;
-	} else
-	if (index == 0x80) {
+		}
+	}
+	else if (index == 0x80)
+	{
 		index = NVKM_I2C_BUS_PRI;
-	} else
-	if (index == 0x81) {
+	}
+	else if (index == 0x81)
+	{
 		index = NVKM_I2C_BUS_SEC;
 	}
 
@@ -283,8 +341,12 @@ static int
 init_rdi2cr(struct nvbios_init *init, u8 index, u8 addr, u8 reg)
 {
 	struct i2c_adapter *adap = init_i2c(init, index);
+
 	if (adap && init_exec(init))
+	{
 		return nvkm_rdi2cr(adap, addr, reg);
+	}
+
 	return -ENODEV;
 }
 
@@ -292,8 +354,12 @@ static int
 init_wri2cr(struct nvbios_init *init, u8 index, u8 addr, u8 reg, u8 val)
 {
 	struct i2c_adapter *adap = init_i2c(init, index);
+
 	if (adap && init_exec(init))
+	{
 		return nvkm_wri2cr(adap, addr, reg, val);
+	}
+
 	return -ENODEV;
 }
 
@@ -301,11 +367,17 @@ static struct nvkm_i2c_aux *
 init_aux(struct nvbios_init *init)
 {
 	struct nvkm_i2c *i2c = init->bios->subdev.device->i2c;
-	if (!init->outp) {
+
+	if (!init->outp)
+	{
 		if (init_exec(init))
+		{
 			error("script needs output for aux\n");
+		}
+
 		return NULL;
 	}
+
 	return nvkm_i2c_aux_find(i2c, init->outp->i2c_index);
 }
 
@@ -315,10 +387,15 @@ init_rdauxr(struct nvbios_init *init, u32 addr)
 	struct nvkm_i2c_aux *aux = init_aux(init);
 	u8 data;
 
-	if (aux && init_exec(init)) {
+	if (aux && init_exec(init))
+	{
 		int ret = nvkm_rdaux(aux, addr, &data, 1);
+
 		if (ret == 0)
+		{
 			return data;
+		}
+
 		trace("auxch read failed with %d\n", ret);
 	}
 
@@ -329,12 +406,19 @@ static int
 init_wrauxr(struct nvbios_init *init, u32 addr, u8 data)
 {
 	struct nvkm_i2c_aux *aux = init_aux(init);
-	if (aux && init_exec(init)) {
+
+	if (aux && init_exec(init))
+	{
 		int ret = nvkm_wraux(aux, addr, &data, 1);
+
 		if (ret)
+		{
 			trace("auxch write failed with %d\n", ret);
+		}
+
 		return ret;
 	}
+
 	return -ENODEV;
 }
 
@@ -342,10 +426,15 @@ static void
 init_prog_pll(struct nvbios_init *init, u32 id, u32 freq)
 {
 	struct nvkm_devinit *devinit = init->bios->subdev.device->devinit;
-	if (init_exec(init)) {
+
+	if (init_exec(init))
+	{
 		int ret = nvkm_devinit_pll_set(devinit, id, freq);
+
 		if (ret)
+		{
 			warn("failed to prog pll 0x%08x to %dkHz\n", id, freq);
+		}
 	}
 }
 
@@ -358,12 +447,14 @@ init_table(struct nvkm_bios *bios, u16 *len)
 {
 	struct bit_entry bit_I;
 
-	if (!bit_entry(bios, 'I', &bit_I)) {
+	if (!bit_entry(bios, 'I', &bit_I))
+	{
 		*len = bit_I.length;
 		return bit_I.offset;
 	}
 
-	if (bmp_version(bios) >= 0x0510) {
+	if (bmp_version(bios) >= 0x0510)
+	{
 		*len = 14;
 		return bios->bmp_offset + 75;
 	}
@@ -376,11 +467,17 @@ init_table_(struct nvbios_init *init, u16 offset, const char *name)
 {
 	struct nvkm_bios *bios = init->bios;
 	u16 len, data = init_table(bios, &len);
-	if (data) {
-		if (len >= offset + 2) {
+
+	if (data)
+	{
+		if (len >= offset + 2)
+		{
 			data = nvbios_rd16(bios, data + offset);
+
 			if (data)
+			{
 				return data;
+			}
 
 			warn("%s pointer invalid\n", name);
 			return 0x0000;
@@ -409,17 +506,23 @@ init_script(struct nvkm_bios *bios, int index)
 	struct nvbios_init init = { .bios = bios };
 	u16 bmp_ver = bmp_version(bios), data;
 
-	if (bmp_ver && bmp_ver < 0x0510) {
+	if (bmp_ver && bmp_ver < 0x0510)
+	{
 		if (index > 1 || bmp_ver < 0x0100)
+		{
 			return 0x0000;
+		}
 
 		data = bios->bmp_offset + (bmp_ver < 0x0200 ? 14 : 18);
 		return nvbios_rd16(bios, data + (index * 2));
 	}
 
 	data = init_script_table(&init);
+
 	if (data)
+	{
 		return nvbios_rd16(bios, data + (index * 2));
+	}
 
 	return 0x0000;
 }
@@ -428,8 +531,12 @@ static u16
 init_unknown_script(struct nvkm_bios *bios)
 {
 	u16 len, data = init_table(bios, &len);
+
 	if (data && len >= 16)
+	{
 		return nvbios_rd16(bios, data + 14);
+	}
+
 	return 0x0000;
 }
 
@@ -451,7 +558,10 @@ init_ram_restrict(struct nvbios_init *init)
 	 * in case *not* re-reading the strap causes similar breakage.
 	 */
 	if (!init->ramcfg || init->bios->version.major < 0x70)
+	{
 		init->ramcfg = 0x80000000 | nvbios_ramcfg_index(init->subdev);
+	}
+
 	return (init->ramcfg & 0x7fffffff);
 }
 
@@ -460,12 +570,19 @@ init_xlat_(struct nvbios_init *init, u8 index, u8 offset)
 {
 	struct nvkm_bios *bios = init->bios;
 	u16 table = init_xlat_table(init);
-	if (table) {
+
+	if (table)
+	{
 		u16 data = nvbios_rd16(bios, table + (index * 2));
+
 		if (data)
+		{
 			return nvbios_rd08(bios, data + offset);
+		}
+
 		warn("xlat table pointer %d invalid\n", index);
 	}
+
 	return 0x00;
 }
 
@@ -478,14 +595,17 @@ init_condition_met(struct nvbios_init *init, u8 cond)
 {
 	struct nvkm_bios *bios = init->bios;
 	u16 table = init_condition_table(init);
-	if (table) {
+
+	if (table)
+	{
 		u32 reg = nvbios_rd32(bios, table + (cond * 12) + 0);
 		u32 msk = nvbios_rd32(bios, table + (cond * 12) + 4);
 		u32 val = nvbios_rd32(bios, table + (cond * 12) + 8);
 		trace("\t[0x%02x] (R[0x%06x] & 0x%08x) == 0x%08x\n",
-		      cond, reg, msk, val);
+			  cond, reg, msk, val);
 		return (init_rd32(init, reg) & msk) == val;
 	}
+
 	return false;
 }
 
@@ -494,15 +614,18 @@ init_io_condition_met(struct nvbios_init *init, u8 cond)
 {
 	struct nvkm_bios *bios = init->bios;
 	u16 table = init_io_condition_table(init);
-	if (table) {
+
+	if (table)
+	{
 		u16 port = nvbios_rd16(bios, table + (cond * 5) + 0);
 		u8 index = nvbios_rd08(bios, table + (cond * 5) + 2);
 		u8  mask = nvbios_rd08(bios, table + (cond * 5) + 3);
 		u8 value = nvbios_rd08(bios, table + (cond * 5) + 4);
 		trace("\t[0x%02x] (0x%04x[0x%02x] & 0x%02x) == 0x%02x\n",
-		      cond, port, index, mask, value);
+			  cond, port, index, mask, value);
 		return (init_rdvgai(init, port, index) & mask) == value;
 	}
+
 	return false;
 }
 
@@ -511,7 +634,9 @@ init_io_flag_condition_met(struct nvbios_init *init, u8 cond)
 {
 	struct nvkm_bios *bios = init->bios;
 	u16 table = init_io_flag_condition_table(init);
-	if (table) {
+
+	if (table)
+	{
 		u16 port = nvbios_rd16(bios, table + (cond * 9) + 0);
 		u8 index = nvbios_rd08(bios, table + (cond * 9) + 2);
 		u8  mask = nvbios_rd08(bios, table + (cond * 9) + 3);
@@ -522,6 +647,7 @@ init_io_flag_condition_met(struct nvbios_init *init, u8 cond)
 		u8 ioval = (init_rdvgai(init, port, index) & mask) >> shift;
 		return (nvbios_rd08(bios, data + ioval) & dmask) == value;
 	}
+
 	return false;
 }
 
@@ -529,7 +655,10 @@ static inline u32
 init_shift(u32 data, u8 shift)
 {
 	if (shift < 0x80)
+	{
 		return data >> shift;
+	}
+
 	return data << (0x100 - shift);
 }
 
@@ -544,24 +673,40 @@ init_tmds_reg(struct nvbios_init *init, u8 tmds)
 	 * CR58 for CR57 = 0 to index a table of offsets to the basic
 	 * 0x6808b0 address, and then flip the offset by 8.
 	 */
-	const int pramdac_offset[13] = {
-		0, 0, 0x8, 0, 0x2000, 0, 0, 0, 0x2008, 0, 0, 0, 0x2000 };
-	const u32 pramdac_table[4] = {
-		0x6808b0, 0x6808b8, 0x6828b0, 0x6828b8 };
+	const int pramdac_offset[13] =
+	{
+		0, 0, 0x8, 0, 0x2000, 0, 0, 0, 0x2008, 0, 0, 0, 0x2000
+	};
+	const u32 pramdac_table[4] =
+	{
+		0x6808b0, 0x6808b8, 0x6828b0, 0x6828b8
+	};
 
-	if (tmds >= 0x80) {
-		if (init->outp) {
-			u32 dacoffset = pramdac_offset[init->outp->or];
+	if (tmds >= 0x80)
+	{
+		if (init->outp)
+		{
+			u32 dacoffset = pramdac_offset[init->outp-> or ];
+
 			if (tmds == 0x81)
+			{
 				dacoffset ^= 8;
+			}
+
 			return 0x6808b0 + dacoffset;
 		}
 
 		if (init_exec(init))
+		{
 			error("tmds opcodes need dcb\n");
-	} else {
+		}
+	}
+	else
+	{
 		if (tmds < ARRAY_SIZE(pramdac_table))
+		{
 			return pramdac_table[tmds];
+		}
 
 		error("tmds selector 0x%02x unknown\n", tmds);
 	}
@@ -583,18 +728,24 @@ init_reserved(struct nvbios_init *init)
 	u8 opcode = nvbios_rd08(init->bios, init->offset);
 	u8 length, i;
 
-	switch (opcode) {
-	case 0xaa:
-		length = 4;
-		break;
-	default:
-		length = 1;
-		break;
+	switch (opcode)
+	{
+		case 0xaa:
+			length = 4;
+			break;
+
+		default:
+			length = 1;
+			break;
 	}
 
 	trace("RESERVED 0x%02x\t", opcode);
+
 	for (i = 1; i < length; i++)
+	{
 		cont(" 0x%02x", nvbios_rd08(init->bios, init->offset + i));
+	}
+
 	cont("\n");
 	init->offset += length;
 }
@@ -627,23 +778,29 @@ init_io_restrict_prog(struct nvbios_init *init)
 	u8 conf, i;
 
 	trace("IO_RESTRICT_PROG\tR[0x%06x] = "
-	      "((0x%04x[0x%02x] & 0x%02x) >> %d) [{\n",
-	      reg, port, index, mask, shift);
+		  "((0x%04x[0x%02x] & 0x%02x) >> %d) [{\n",
+		  reg, port, index, mask, shift);
 	init->offset += 11;
 
 	conf = (init_rdvgai(init, port, index) & mask) >> shift;
-	for (i = 0; i < count; i++) {
+
+	for (i = 0; i < count; i++)
+	{
 		u32 data = nvbios_rd32(bios, init->offset);
 
-		if (i == conf) {
+		if (i == conf)
+		{
 			trace("\t0x%08x *\n", data);
 			init_wr32(init, reg, data);
-		} else {
+		}
+		else
+		{
 			trace("\t0x%08x\n", data);
 		}
 
 		init->offset += 4;
 	}
+
 	trace("}]\n");
 }
 
@@ -663,12 +820,18 @@ init_repeat(struct nvbios_init *init)
 
 	init->repeat = init->offset;
 	init->repend = init->offset;
-	while (count--) {
+
+	while (count--)
+	{
 		init->offset = init->repeat;
 		nvbios_exec(init);
+
 		if (count)
+		{
 			trace("REPEAT\t0x%02x\n", count);
+		}
 	}
+
 	init->offset = init->repend;
 	init->repeat = repeat;
 }
@@ -691,25 +854,35 @@ init_io_restrict_pll(struct nvbios_init *init)
 	u8 conf, i;
 
 	trace("IO_RESTRICT_PLL\tR[0x%06x] =PLL= "
-	      "((0x%04x[0x%02x] & 0x%02x) >> 0x%02x) IOFCOND 0x%02x [{\n",
-	      reg, port, index, mask, shift, iofc);
+		  "((0x%04x[0x%02x] & 0x%02x) >> 0x%02x) IOFCOND 0x%02x [{\n",
+		  reg, port, index, mask, shift, iofc);
 	init->offset += 12;
 
 	conf = (init_rdvgai(init, port, index) & mask) >> shift;
-	for (i = 0; i < count; i++) {
+
+	for (i = 0; i < count; i++)
+	{
 		u32 freq = nvbios_rd16(bios, init->offset) * 10;
 
-		if (i == conf) {
+		if (i == conf)
+		{
 			trace("\t%dkHz *\n", freq);
+
 			if (iofc > 0 && init_io_flag_condition_met(init, iofc))
+			{
 				freq *= 2;
+			}
+
 			init_prog_pll(init, reg, freq);
-		} else {
+		}
+		else
+		{
 			trace("\t%dkHz\n", freq);
 		}
 
 		init->offset += 2;
 	}
+
 	trace("}]\n");
 }
 
@@ -723,7 +896,8 @@ init_end_repeat(struct nvbios_init *init)
 	trace("END_REPEAT\n");
 	init->offset += 1;
 
-	if (init->repeat) {
+	if (init->repeat)
+	{
 		init->repend = init->offset;
 		init->offset = 0;
 	}
@@ -746,9 +920,9 @@ init_copy(struct nvbios_init *init)
 	u8  data;
 
 	trace("COPY\t0x%04x[0x%02x] &= 0x%02x |= "
-	      "((R[0x%06x] %s 0x%02x) & 0x%02x)\n",
-	      port, index, mask, reg, (shift & 0x80) ? "<<" : ">>",
-	      (shift & 0x80) ? (0x100 - shift) : shift, smask);
+		  "((R[0x%06x] %s 0x%02x) & 0x%02x)\n",
+		  port, index, mask, reg, (shift & 0x80) ? "<<" : ">>",
+		  (shift & 0x80) ? (0x100 - shift) : shift, smask);
 	init->offset += 11;
 
 	data  = init_rdvgai(init, port, index) & mask;
@@ -782,7 +956,9 @@ init_io_flag_condition(struct nvbios_init *init)
 	init->offset += 2;
 
 	if (!init_io_flag_condition_met(init, cond))
+	{
 		init_exec_set(init, false);
+	}
 }
 
 /**
@@ -802,35 +978,51 @@ init_generic_condition(struct nvbios_init *init)
 	trace("GENERIC_CONDITION\t0x%02x 0x%02x\n", cond, size);
 	init->offset += 3;
 
-	switch (cond) {
-	case 0:
-		if (init_conn(init) != DCB_CONNECTOR_eDP)
-			init_exec_set(init, false);
-		break;
-	case 1:
-	case 2:
-		if ( init->outp &&
-		    (data = nvbios_dpout_match(bios, DCB_OUTPUT_DP,
-					       (init->outp->or << 0) |
-					       (init->outp->sorconf.link << 6),
-					       &ver, &hdr, &cnt, &len, &info)))
-		{
-			if (!(info.flags & cond))
+	switch (cond)
+	{
+		case 0:
+			if (init_conn(init) != DCB_CONNECTOR_eDP)
+			{
 				init_exec_set(init, false);
-			break;
-		}
+			}
 
-		if (init_exec(init))
-			warn("script needs dp output table data\n");
-		break;
-	case 5:
-		if (!(init_rdauxr(init, 0x0d) & 1))
-			init_exec_set(init, false);
-		break;
-	default:
-		warn("INIT_GENERIC_CONDITON: unknown 0x%02x\n", cond);
-		init->offset += size;
-		break;
+			break;
+
+		case 1:
+		case 2:
+			if ( init->outp &&
+				 (data = nvbios_dpout_match(bios, DCB_OUTPUT_DP,
+											(init->outp-> or << 0) |
+											(init->outp->sorconf.link << 6),
+											&ver, &hdr, &cnt, &len, &info)))
+			{
+				if (!(info.flags & cond))
+				{
+					init_exec_set(init, false);
+				}
+
+				break;
+			}
+
+			if (init_exec(init))
+			{
+				warn("script needs dp output table data\n");
+			}
+
+			break;
+
+		case 5:
+			if (!(init_rdauxr(init, 0x0d) & 1))
+			{
+				init_exec_set(init, false);
+			}
+
+			break;
+
+		default:
+			warn("INIT_GENERIC_CONDITON: unknown 0x%02x\n", cond);
+			init->offset += size;
+			break;
 	}
 }
 
@@ -846,11 +1038,11 @@ init_io_mask_or(struct nvbios_init *init)
 	u8    or = init_or(init);
 	u8  data;
 
-	trace("IO_MASK_OR\t0x03d4[0x%02x] &= ~(1 << 0x%02x)\n", index, or);
+	trace("IO_MASK_OR\t0x03d4[0x%02x] &= ~(1 << 0x%02x)\n", index, or );
 	init->offset += 2;
 
 	data = init_rdvgai(init, 0x03d4, index);
-	init_wrvgai(init, 0x03d4, index, data &= ~(1 << or));
+	init_wrvgai(init, 0x03d4, index, data &= ~(1 << or ));
 }
 
 /**
@@ -865,11 +1057,11 @@ init_io_or(struct nvbios_init *init)
 	u8    or = init_or(init);
 	u8  data;
 
-	trace("IO_OR\t0x03d4[0x%02x] |= (1 << 0x%02x)\n", index, or);
+	trace("IO_OR\t0x03d4[0x%02x] |= (1 << 0x%02x)\n", index, or );
 	init->offset += 2;
 
 	data = init_rdvgai(init, 0x03d4, index);
-	init_wrvgai(init, 0x03d4, index, data | (1 << or));
+	init_wrvgai(init, 0x03d4, index, data | (1 << or ));
 }
 
 /**
@@ -924,7 +1116,8 @@ init_idx_addr_latched(struct nvbios_init *init)
 	trace("\tCTRL &= 0x%08x |= 0x%08x\n", mask, data);
 	init->offset += 18;
 
-	while (count--) {
+	while (count--)
+	{
 		u8 iaddr = nvbios_rd08(bios, init->offset + 0);
 		u8 idata = nvbios_rd08(bios, init->offset + 1);
 
@@ -953,21 +1146,29 @@ init_io_restrict_pll2(struct nvbios_init *init)
 	u8  conf, i;
 
 	trace("IO_RESTRICT_PLL2\t"
-	      "R[0x%06x] =PLL= ((0x%04x[0x%02x] & 0x%02x) >> 0x%02x) [{\n",
-	      reg, port, index, mask, shift);
+		  "R[0x%06x] =PLL= ((0x%04x[0x%02x] & 0x%02x) >> 0x%02x) [{\n",
+		  reg, port, index, mask, shift);
 	init->offset += 11;
 
 	conf = (init_rdvgai(init, port, index) & mask) >> shift;
-	for (i = 0; i < count; i++) {
+
+	for (i = 0; i < count; i++)
+	{
 		u32 freq = nvbios_rd32(bios, init->offset);
-		if (i == conf) {
+
+		if (i == conf)
+		{
 			trace("\t%dkHz *\n", freq);
 			init_prog_pll(init, reg, freq);
-		} else {
+		}
+		else
+		{
 			trace("\t%dkHz\n", freq);
 		}
+
 		init->offset += 4;
 	}
+
 	trace("}]\n");
 }
 
@@ -1003,7 +1204,8 @@ init_i2c_byte(struct nvbios_init *init)
 	trace("I2C_BYTE\tI2C[0x%02x][0x%02x]\n", index, addr);
 	init->offset += 4;
 
-	while (count--) {
+	while (count--)
+	{
 		u8  reg = nvbios_rd08(bios, init->offset + 0);
 		u8 mask = nvbios_rd08(bios, init->offset + 1);
 		u8 data = nvbios_rd08(bios, init->offset + 2);
@@ -1013,8 +1215,12 @@ init_i2c_byte(struct nvbios_init *init)
 		init->offset += 3;
 
 		val = init_rdi2cr(init, index, addr, reg);
+
 		if (val < 0)
+		{
 			continue;
+		}
+
 		init_wri2cr(init, index, addr, reg, (val & mask) | data);
 	}
 }
@@ -1034,7 +1240,8 @@ init_zm_i2c_byte(struct nvbios_init *init)
 	trace("ZM_I2C_BYTE\tI2C[0x%02x][0x%02x]\n", index, addr);
 	init->offset += 4;
 
-	while (count--) {
+	while (count--)
+	{
 		u8  reg = nvbios_rd08(bios, init->offset + 0);
 		u8 data = nvbios_rd08(bios, init->offset + 1);
 
@@ -1061,21 +1268,26 @@ init_zm_i2c(struct nvbios_init *init)
 	trace("ZM_I2C\tI2C[0x%02x][0x%02x]\n", index, addr);
 	init->offset += 4;
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		data[i] = nvbios_rd08(bios, init->offset);
 		trace("\t0x%02x\n", data[i]);
 		init->offset++;
 	}
 
-	if (init_exec(init)) {
+	if (init_exec(init))
+	{
 		struct i2c_adapter *adap = init_i2c(init, index);
-		struct i2c_msg msg = {
+		struct i2c_msg msg =
+		{
 			.addr = addr, .flags = 0, .len = count, .buf = data,
 		};
 		int ret;
 
 		if (adap && (ret = i2c_transfer(adap, &msg, 1)) != 1)
+		{
 			warn("i2c wr failed, %d\n", ret);
+		}
 	}
 }
 
@@ -1094,11 +1306,13 @@ init_tmds(struct nvbios_init *init)
 	u32 reg = init_tmds_reg(init, tmds);
 
 	trace("TMDS\tT[0x%02x][0x%02x] &= 0x%02x |= 0x%02x\n",
-	      tmds, addr, mask, data);
+		  tmds, addr, mask, data);
 	init->offset += 5;
 
 	if (reg == 0)
+	{
 		return;
+	}
 
 	init_wr32(init, reg + 0, addr | 0x00010000);
 	init_wr32(init, reg + 4, data | (init_rd32(init, reg + 4) & mask));
@@ -1120,7 +1334,8 @@ init_zm_tmds_group(struct nvbios_init *init)
 	trace("TMDS_ZM_GROUP\tT[0x%02x]\n", tmds);
 	init->offset += 3;
 
-	while (count--) {
+	while (count--)
+	{
 		u8 addr = nvbios_rd08(bios, init->offset + 0);
 		u8 data = nvbios_rd08(bios, init->offset + 1);
 
@@ -1150,7 +1365,9 @@ init_cr_idx_adr_latch(struct nvbios_init *init)
 	init->offset += 5;
 
 	save0 = init_rdvgai(init, 0x03d4, addr0);
-	while (count--) {
+
+	while (count--)
+	{
 		u8 data = nvbios_rd08(bios, init->offset);
 
 		trace("\t\t[0x%02x] = 0x%02x\n", base, data);
@@ -1159,6 +1376,7 @@ init_cr_idx_adr_latch(struct nvbios_init *init)
 		init_wrvgai(init, 0x03d4, addr0, base++);
 		init_wrvgai(init, 0x03d4, addr1, data);
 	}
+
 	init_wrvgai(init, 0x03d4, addr0, save0);
 }
 
@@ -1212,7 +1430,8 @@ init_zm_cr_group(struct nvbios_init *init)
 	trace("ZM_CR_GROUP\n");
 	init->offset += 2;
 
-	while (count--) {
+	while (count--)
+	{
 		u8 addr = nvbios_rd08(bios, init->offset + 0);
 		u8 data = nvbios_rd08(bios, init->offset + 1);
 
@@ -1239,11 +1458,17 @@ init_condition_time(struct nvbios_init *init)
 	init->offset += 3;
 
 	if (!init_exec(init))
+	{
 		return;
+	}
 
-	while (wait--) {
+	while (wait--)
+	{
 		if (init_condition_met(init, cond))
+		{
 			return;
+		}
+
 		mdelay(20);
 	}
 
@@ -1264,7 +1489,9 @@ init_ltime(struct nvbios_init *init)
 	init->offset += 3;
 
 	if (init_exec(init))
+	{
 		mdelay(msec);
+	}
 }
 
 /**
@@ -1281,7 +1508,8 @@ init_zm_reg_sequence(struct nvbios_init *init)
 	trace("ZM_REG_SEQUENCE\t0x%02x\n", count);
 	init->offset += 6;
 
-	while (count--) {
+	while (count--)
+	{
 		u32 data = nvbios_rd32(bios, init->offset);
 
 		trace("\t\tR[0x%06x] = 0x%08x\n", base, data);
@@ -1305,7 +1533,7 @@ init_pll_indirect(struct nvbios_init *init)
 	u32 freq = (u32)nvbios_rd16(bios, addr) * 1000;
 
 	trace("PLL_INDIRECT\tR[0x%06x] =PLL= VBIOS[%04x] = %dkHz\n",
-	      reg, addr, freq);
+		  reg, addr, freq);
 	init->offset += 7;
 
 	init_prog_pll(init, reg, freq);
@@ -1324,7 +1552,7 @@ init_zm_reg_indirect(struct nvbios_init *init)
 	u32 data = nvbios_rd32(bios, addr);
 
 	trace("ZM_REG_INDIRECT\tR[0x%06x] = VBIOS[0x%04x] = 0x%08x\n",
-	      reg, addr, data);
+		  reg, addr, data);
 	init->offset += 7;
 
 	init_wr32(init, addr, data);
@@ -1343,13 +1571,17 @@ init_sub_direct(struct nvbios_init *init)
 
 	trace("SUB_DIRECT\t0x%04x\n", addr);
 
-	if (init_exec(init)) {
+	if (init_exec(init))
+	{
 		save = init->offset;
 		init->offset = addr;
-		if (nvbios_exec(init)) {
+
+		if (nvbios_exec(init))
+		{
 			error("error parsing sub-table\n");
 			return;
 		}
+
 		init->offset = save;
 	}
 
@@ -1369,9 +1601,13 @@ init_jump(struct nvbios_init *init)
 	trace("JUMP\t0x%04x\n", offset);
 
 	if (init_exec(init))
+	{
 		init->offset = offset;
+	}
 	else
+	{
 		init->offset += 3;
+	}
 }
 
 /**
@@ -1390,13 +1626,16 @@ init_i2c_if(struct nvbios_init *init)
 	u8 value;
 
 	trace("I2C_IF\tI2C[0x%02x][0x%02x][0x%02x] & 0x%02x == 0x%02x\n",
-	      index, addr, reg, mask, data);
+		  index, addr, reg, mask, data);
 	init->offset += 6;
 	init_exec_force(init, true);
 
 	value = init_rdi2cr(init, index, addr, reg);
+
 	if ((value & mask) != data)
+	{
 		init_exec_set(init, false);
+	}
 
 	init_exec_force(init, false);
 }
@@ -1418,9 +1657,9 @@ init_copy_nv_reg(struct nvbios_init *init)
 	u32 data;
 
 	trace("COPY_NV_REG\tR[0x%06x] &= 0x%08x |= "
-	      "((R[0x%06x] %s 0x%02x) & 0x%08x ^ 0x%08x)\n",
-	      dreg, dmask, sreg, (shift & 0x80) ? "<<" : ">>",
-	      (shift & 0x80) ? (0x100 - shift) : shift, smask, sxor);
+		  "((R[0x%06x] %s 0x%02x) & 0x%08x ^ 0x%08x)\n",
+		  dreg, dmask, sreg, (shift & 0x80) ? "<<" : ">>",
+		  (shift & 0x80) ? (0x100 - shift) : shift, smask, sxor);
 	init->offset += 22;
 
 	data = init_shift(init_rd32(init, sreg), shift);
@@ -1458,8 +1697,12 @@ init_compute_mem(struct nvbios_init *init)
 	init->offset += 1;
 
 	init_exec_force(init, true);
+
 	if (init_exec(init))
+	{
 		nvkm_devinit_meminit(devinit);
+	}
+
 	init_exec_force(init, false);
 }
 
@@ -1498,8 +1741,12 @@ static u16
 init_configure_mem_clk(struct nvbios_init *init)
 {
 	u16 mdata = bmp_mem_init_table(init->bios);
+
 	if (mdata)
+	{
 		mdata += (init_rdvgai(init, 0x03d4, 0x3c) >> 4) * 66;
+	}
+
 	return mdata;
 }
 
@@ -1513,34 +1760,47 @@ init_configure_mem(struct nvbios_init *init)
 	trace("CONFIGURE_MEM\n");
 	init->offset += 1;
 
-	if (bios->version.major > 2) {
+	if (bios->version.major > 2)
+	{
 		init_done(init);
 		return;
 	}
+
 	init_exec_force(init, true);
 
 	mdata = init_configure_mem_clk(init);
 	sdata = bmp_sdr_seq_table(bios);
+
 	if (nvbios_rd08(bios, mdata) & 0x01)
+	{
 		sdata = bmp_ddr_seq_table(bios);
+	}
+
 	mdata += 6; /* skip to data */
 
 	data = init_rdvgai(init, 0x03c4, 0x01);
 	init_wrvgai(init, 0x03c4, 0x01, data | 0x20);
 
-	for (; (addr = nvbios_rd32(bios, sdata)) != 0xffffffff; sdata += 4) {
-		switch (addr) {
-		case 0x10021c: /* CKE_NORMAL */
-		case 0x1002d0: /* CMD_REFRESH */
-		case 0x1002d4: /* CMD_PRECHARGE */
-			data = 0x00000001;
-			break;
-		default:
-			data = nvbios_rd32(bios, mdata);
-			mdata += 4;
-			if (data == 0xffffffff)
-				continue;
-			break;
+	for (; (addr = nvbios_rd32(bios, sdata)) != 0xffffffff; sdata += 4)
+	{
+		switch (addr)
+		{
+			case 0x10021c: /* CKE_NORMAL */
+			case 0x1002d0: /* CMD_REFRESH */
+			case 0x1002d4: /* CMD_PRECHARGE */
+				data = 0x00000001;
+				break;
+
+			default:
+				data = nvbios_rd32(bios, mdata);
+				mdata += 4;
+
+				if (data == 0xffffffff)
+				{
+					continue;
+				}
+
+				break;
 		}
 
 		init_wr32(init, addr, data);
@@ -1562,10 +1822,12 @@ init_configure_clk(struct nvbios_init *init)
 	trace("CONFIGURE_CLK\n");
 	init->offset += 1;
 
-	if (bios->version.major > 2) {
+	if (bios->version.major > 2)
+	{
 		init_done(init);
 		return;
 	}
+
 	init_exec_force(init, true);
 
 	mdata = init_configure_mem_clk(init);
@@ -1576,8 +1838,12 @@ init_configure_clk(struct nvbios_init *init)
 
 	/* MPLL */
 	clock = nvbios_rd16(bios, mdata + 2) * 10;
+
 	if (nvbios_rd08(bios, mdata) & 0x01)
+	{
 		clock *= 2;
+	}
+
 	init_prog_pll(init, 0x680504, clock);
 
 	init_exec_force(init, false);
@@ -1596,10 +1862,12 @@ init_configure_preinit(struct nvbios_init *init)
 	trace("CONFIGURE_PREINIT\n");
 	init->offset += 1;
 
-	if (bios->version.major > 2) {
+	if (bios->version.major > 2)
+	{
 		init_done(init);
 		return;
 	}
+
 	init_exec_force(init, true);
 
 	strap = init_rd32(init, 0x101000);
@@ -1630,7 +1898,8 @@ init_io(struct nvbios_init *init)
 	 * somehow makes things work...
 	 */
 	if (bios->subdev.device->card_type >= NV_50 &&
-	    port == 0x03c3 && data == 0x01) {
+		port == 0x03c3 && data == 0x01)
+	{
 		init_mask(init, 0x614100, 0xf0800000, 0x00800000);
 		init_mask(init, 0x00e18c, 0x00020000, 0x00020000);
 		init_mask(init, 0x614900, 0xf0800000, 0x00800000);
@@ -1663,13 +1932,18 @@ init_sub(struct nvbios_init *init)
 	trace("SUB\t0x%02x\n", index);
 
 	addr = init_script(bios, index);
-	if (addr && init_exec(init)) {
+
+	if (addr && init_exec(init))
+	{
 		save = init->offset;
 		init->offset = addr;
-		if (nvbios_exec(init)) {
+
+		if (nvbios_exec(init))
+		{
 			error("error parsing sub-table\n");
 			return;
 		}
+
 		init->offset = save;
 	}
 
@@ -1688,11 +1962,13 @@ init_ram_condition(struct nvbios_init *init)
 	u8 value = nvbios_rd08(bios, init->offset + 2);
 
 	trace("RAM_CONDITION\t"
-	      "(R[0x100000] & 0x%02x) == 0x%02x\n", mask, value);
+		  "(R[0x100000] & 0x%02x) == 0x%02x\n", mask, value);
 	init->offset += 3;
 
 	if ((init_rd32(init, 0x100000) & mask) != value)
+	{
 		init_exec_set(init, false);
+	}
 }
 
 /**
@@ -1727,7 +2003,9 @@ init_macro(struct nvbios_init *init)
 	trace("MACRO\t0x%02x\n", macro);
 
 	table = init_macro_table(init);
-	if (table) {
+
+	if (table)
+	{
 		u32 addr = nvbios_rd32(bios, table + (macro * 8) + 0);
 		u32 data = nvbios_rd32(bios, table + (macro * 8) + 4);
 		trace("\t\tR[0x%06x] = 0x%08x\n", addr, data);
@@ -1764,7 +2042,9 @@ init_strap_condition(struct nvbios_init *init)
 	init->offset += 9;
 
 	if ((init_rd32(init, 0x101000) & mask) != value)
+	{
 		init_exec_set(init, false);
+	}
 }
 
 /**
@@ -1780,11 +2060,16 @@ init_time(struct nvbios_init *init)
 	trace("TIME\t0x%04x\n", usec);
 	init->offset += 3;
 
-	if (init_exec(init)) {
+	if (init_exec(init))
+	{
 		if (usec < 1000)
+		{
 			udelay(usec);
+		}
 		else
+		{
 			mdelay((usec + 900) / 1000);
+		}
 	}
 }
 
@@ -1802,7 +2087,9 @@ init_condition(struct nvbios_init *init)
 	init->offset += 2;
 
 	if (!init_condition_met(init, cond))
+	{
 		init_exec_set(init, false);
+	}
 }
 
 /**
@@ -1819,7 +2106,9 @@ init_io_condition(struct nvbios_init *init)
 	init->offset += 2;
 
 	if (!init_io_condition_met(init, cond))
+	{
 		init_exec_set(init, false);
+	}
 }
 
 /**
@@ -1854,7 +2143,7 @@ init_index_io(struct nvbios_init *init)
 	u8 value;
 
 	trace("INDEX_IO\tI[0x%04x][0x%02x] &= 0x%02x |= 0x%02x\n",
-	      port, index, mask, data);
+		  port, index, mask, data);
 	init->offset += 6;
 
 	value = init_rdvgai(init, port, index) & mask;
@@ -1893,7 +2182,9 @@ init_zm_reg(struct nvbios_init *init)
 	init->offset += 9;
 
 	if (addr == 0x000200)
+	{
 		data |= 0x00000001;
+	}
 
 	init_wr32(init, addr, data);
 }
@@ -1914,13 +2205,17 @@ init_ram_restrict_pll(struct nvbios_init *init)
 	trace("RAM_RESTRICT_PLL\t0x%02x\n", type);
 	init->offset += 2;
 
-	for (cconf = 0; cconf < count; cconf++) {
+	for (cconf = 0; cconf < count; cconf++)
+	{
 		u32 freq = nvbios_rd32(bios, init->offset);
 
-		if (cconf == strap) {
+		if (cconf == strap)
+		{
 			trace("%dkHz *\n", freq);
 			init_prog_pll(init, type, freq);
-		} else {
+		}
+		else
+		{
 			trace("%dkHz\n", freq);
 		}
 
@@ -1941,7 +2236,9 @@ init_gpio(struct nvbios_init *init)
 	init->offset += 1;
 
 	if (init_exec(init))
+	{
 		nvkm_gpio_reset(gpio, DCB_GPIO_UNUSED);
+	}
 }
 
 /**
@@ -1960,23 +2257,30 @@ init_ram_restrict_zm_reg_group(struct nvbios_init *init)
 	u8 i, j;
 
 	trace("RAM_RESTRICT_ZM_REG_GROUP\t"
-	      "R[0x%08x] 0x%02x 0x%02x\n", addr, incr, num);
+		  "R[0x%08x] 0x%02x 0x%02x\n", addr, incr, num);
 	init->offset += 7;
 
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num; i++)
+	{
 		trace("\tR[0x%06x] = {\n", addr);
-		for (j = 0; j < count; j++) {
+
+		for (j = 0; j < count; j++)
+		{
 			u32 data = nvbios_rd32(bios, init->offset);
 
-			if (j == index) {
+			if (j == index)
+			{
 				trace("\t\t0x%08x *\n", data);
 				init_wr32(init, addr, data);
-			} else {
+			}
+			else
+			{
 				trace("\t\t0x%08x\n", data);
 			}
 
 			init->offset += 4;
 		}
+
 		trace("\t}\n");
 		addr += incr;
 	}
@@ -2013,7 +2317,8 @@ init_zm_reg_group(struct nvbios_init *init)
 	trace("ZM_REG_GROUP\tR[0x%06x] =\n", addr);
 	init->offset += 6;
 
-	while (count--) {
+	while (count--)
+	{
 		u32 data = nvbios_rd32(bios, init->offset);
 		trace("\t0x%08x\n", data);
 		init_wr32(init, addr, data);
@@ -2039,9 +2344,9 @@ init_xlat(struct nvbios_init *init)
 	u32 data;
 
 	trace("INIT_XLAT\tR[0x%06x] &= 0x%08x |= "
-	      "(X%02x((R[0x%06x] %s 0x%02x) & 0x%02x) << 0x%02x)\n",
-	      daddr, dmask, index, saddr, (sshift & 0x80) ? "<<" : ">>",
-	      (sshift & 0x80) ? (0x100 - sshift) : sshift, smask, shift);
+		  "(X%02x((R[0x%06x] %s 0x%02x) & 0x%02x) << 0x%02x)\n",
+		  daddr, dmask, index, saddr, (sshift & 0x80) ? "<<" : ">>",
+		  (sshift & 0x80) ? (0x100 - sshift) : sshift, smask, shift);
 	init->offset += 17;
 
 	data = init_shift(init_rd32(init, saddr), sshift) & smask;
@@ -2084,7 +2389,8 @@ init_auxch(struct nvbios_init *init)
 	trace("AUXCH\tAUX[0x%08x] 0x%02x\n", addr, count);
 	init->offset += 6;
 
-	while (count--) {
+	while (count--)
+	{
 		u8 mask = nvbios_rd08(bios, init->offset + 0);
 		u8 data = nvbios_rd08(bios, init->offset + 1);
 		trace("\tAUX[0x%08x] &= 0x%02x |= 0x%02x\n", addr, mask, data);
@@ -2108,7 +2414,8 @@ init_zm_auxch(struct nvbios_init *init)
 	trace("ZM_AUXCH\tAUX[0x%08x] 0x%02x\n", addr, count);
 	init->offset += 6;
 
-	while (count--) {
+	while (count--)
+	{
 		u8 data = nvbios_rd08(bios, init->offset + 0);
 		trace("\tAUX[0x%08x] = 0x%02x\n", addr, data);
 		init_wrauxr(init, addr, data);
@@ -2133,23 +2440,29 @@ init_i2c_long_if(struct nvbios_init *init)
 	struct i2c_adapter *adap;
 
 	trace("I2C_LONG_IF\t"
-	      "I2C[0x%02x][0x%02x][0x%02x%02x] & 0x%02x == 0x%02x\n",
-	      index, addr, reglo, reghi, mask, data);
+		  "I2C[0x%02x][0x%02x][0x%02x%02x] & 0x%02x == 0x%02x\n",
+		  index, addr, reglo, reghi, mask, data);
 	init->offset += 7;
 
 	adap = init_i2c(init, index);
-	if (adap) {
+
+	if (adap)
+	{
 		u8 i[2] = { reghi, reglo };
 		u8 o[1] = {};
-		struct i2c_msg msg[] = {
+		struct i2c_msg msg[] =
+		{
 			{ .addr = addr, .flags = 0, .len = 2, .buf = i },
 			{ .addr = addr, .flags = I2C_M_RD, .len = 1, .buf = o }
 		};
 		int ret;
 
 		ret = i2c_transfer(adap, msg, 2);
+
 		if (ret == 2 && ((o[0] & mask) == data))
+		{
 			return;
+		}
 	}
 
 	init_exec_set(init, false);
@@ -2173,22 +2486,36 @@ init_gpio_ne(struct nvbios_init *init)
 	init->offset += 2;
 
 	for (i = init->offset; i < init->offset + count; i++)
+	{
 		cont("0x%02x ", nvbios_rd08(bios, i));
+	}
+
 	cont("\n");
 
-	while ((data = dcb_gpio_parse(bios, 0, idx++, &ver, &len, &func))) {
-		if (func.func != DCB_GPIO_UNUSED) {
-			for (i = init->offset; i < init->offset + count; i++) {
+	while ((data = dcb_gpio_parse(bios, 0, idx++, &ver, &len, &func)))
+	{
+		if (func.func != DCB_GPIO_UNUSED)
+		{
+			for (i = init->offset; i < init->offset + count; i++)
+			{
 				if (func.func == nvbios_rd08(bios, i))
+				{
 					break;
+				}
 			}
 
 			trace("\tFUNC[0x%02x]", func.func);
-			if (i == (init->offset + count)) {
+
+			if (i == (init->offset + count))
+			{
 				cont(" *");
+
 				if (init_exec(init))
+				{
 					nvkm_gpio_reset(gpio, func.func);
+				}
 			}
+
 			cont("\n");
 		}
 	}
@@ -2196,9 +2523,11 @@ init_gpio_ne(struct nvbios_init *init)
 	init->offset += count;
 }
 
-static struct nvbios_init_opcode {
+static struct nvbios_init_opcode
+{
 	void (*exec)(struct nvbios_init *);
-} init_opcode[] = {
+} init_opcode[] =
+{
 	[0x32] = { init_io_restrict_prog },
 	[0x33] = { init_repeat },
 	[0x34] = { init_io_restrict_pll },
@@ -2276,15 +2605,20 @@ int
 nvbios_exec(struct nvbios_init *init)
 {
 	init->nested++;
-	while (init->offset) {
+
+	while (init->offset)
+	{
 		u8 opcode = nvbios_rd08(init->bios, init->offset);
-		if (opcode >= init_opcode_nr || !init_opcode[opcode].exec) {
+
+		if (opcode >= init_opcode_nr || !init_opcode[opcode].exec)
+		{
 			error("unknown opcode 0x%02x\n", opcode);
 			return -EINVAL;
 		}
 
 		init_opcode[opcode].exec(init);
 	}
+
 	init->nested--;
 	return 0;
 }
@@ -2298,9 +2632,14 @@ nvbios_init(struct nvkm_subdev *subdev, bool execute)
 	u16 data;
 
 	if (execute)
+	{
 		nvkm_debug(subdev, "running init tables\n");
-	while (!ret && (data = (init_script(bios, ++i)))) {
-		struct nvbios_init init = {
+	}
+
+	while (!ret && (data = (init_script(bios, ++i))))
+	{
+		struct nvbios_init init =
+		{
 			.subdev = subdev,
 			.bios = bios,
 			.offset = data,
@@ -2315,8 +2654,10 @@ nvbios_init(struct nvkm_subdev *subdev, bool execute)
 	/* the vbios parser will run this right after the normal init
 	 * tables, whereas the binary driver appears to run it later.
 	 */
-	if (!ret && (data = init_unknown_script(bios))) {
-		struct nvbios_init init = {
+	if (!ret && (data = init_unknown_script(bios)))
+	{
+		struct nvbios_init init =
+		{
 			.subdev = subdev,
 			.bios = bios,
 			.offset = data,

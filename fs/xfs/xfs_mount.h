@@ -28,7 +28,8 @@ struct xfs_dir_ops;
 struct xfs_da_geometry;
 
 /* dynamic preallocation free space thresholds, 5% down to 1% */
-enum {
+enum
+{
 	XFS_LOWSP_1_PCNT = 0,
 	XFS_LOWSP_2_PCNT,
 	XFS_LOWSP_3_PCNT,
@@ -43,11 +44,13 @@ enum {
  * Error classes define the subsystem the configuration belongs to.
  * Error numbers define the errors that are configurable.
  */
-enum {
+enum
+{
 	XFS_ERR_METADATA,
 	XFS_ERR_CLASS_MAX,
 };
-enum {
+enum
+{
 	XFS_ERR_DEFAULT,
 	XFS_ERR_EIO,
 	XFS_ERR_ENOSPC,
@@ -63,13 +66,15 @@ enum {
  * signed 32-bit long is sufficient for a HZ value up to 24855.  Making it
  * signed lets us store the special "-1" value, meaning retry forever.
  */
-struct xfs_error_cfg {
+struct xfs_error_cfg
+{
 	struct xfs_kobj	kobj;
 	int		max_retries;
 	long		retry_timeout;	/* in jiffies, -1 = infinite */
 };
 
-typedef struct xfs_mount {
+typedef struct xfs_mount
+{
 	struct super_block	*m_super;
 	xfs_tid_t		m_tid;		/* next unused tid for fs */
 	struct xfs_ail		*m_ail;		/* fs active log item list */
@@ -168,7 +173,7 @@ typedef struct xfs_mount {
 						     trimming */
 	bool			m_update_sb;	/* sb needs update in mount */
 	int64_t			m_low_space[XFS_LOWSP_MAX];
-						/* low free space thresholds */
+	/* low free space thresholds */
 	struct xfs_kobj		m_kobj;
 	struct xfs_kobj		m_error_kobj;
 	struct xfs_kobj		m_error_meta_kobj;
@@ -279,19 +284,22 @@ static inline unsigned long
 xfs_preferred_iosize(xfs_mount_t *mp)
 {
 	if (mp->m_flags & XFS_MOUNT_COMPAT_IOSIZE)
+	{
 		return PAGE_SIZE;
+	}
+
 	return (mp->m_swidth ?
-		(mp->m_swidth << mp->m_sb.sb_blocklog) :
-		((mp->m_flags & XFS_MOUNT_DFLT_IOSIZE) ?
-			(1 << (int)MAX(mp->m_readio_log, mp->m_writeio_log)) :
-			PAGE_SIZE));
+			(mp->m_swidth << mp->m_sb.sb_blocklog) :
+			((mp->m_flags & XFS_MOUNT_DFLT_IOSIZE) ?
+			 (1 << (int)MAX(mp->m_readio_log, mp->m_writeio_log)) :
+			 PAGE_SIZE));
 }
 
 #define XFS_LAST_UNMOUNT_WAS_CLEAN(mp)	\
-				((mp)->m_flags & XFS_MOUNT_WAS_CLEAN)
+	((mp)->m_flags & XFS_MOUNT_WAS_CLEAN)
 #define XFS_FORCED_SHUTDOWN(mp)	((mp)->m_flags & XFS_MOUNT_FS_SHUTDOWN)
 void xfs_do_force_shutdown(struct xfs_mount *mp, int flags, char *fname,
-		int lnnum);
+						   int lnnum);
 #define xfs_force_shutdown(m,f)	\
 	xfs_do_force_shutdown(m, f, __FILE__, __LINE__)
 
@@ -337,13 +345,15 @@ xfs_mp_fail_writes(struct xfs_mount *mp)
 #endif
 
 /* per-AG block reservation data structures*/
-enum xfs_ag_resv_type {
+enum xfs_ag_resv_type
+{
 	XFS_AG_RESV_NONE = 0,
 	XFS_AG_RESV_METADATA,
 	XFS_AG_RESV_AGFL,
 };
 
-struct xfs_ag_resv {
+struct xfs_ag_resv
+{
 	/* number of blocks originally reserved here */
 	xfs_extlen_t			ar_orig_reserved;
 	/* number of blocks reserved here */
@@ -356,7 +366,8 @@ struct xfs_ag_resv {
  * Per-ag incore structure, copies of information in agf and agi, to improve the
  * performance of allocation group selection.
  */
-typedef struct xfs_perag {
+typedef struct xfs_perag
+{
 	struct xfs_mount *pag_mount;	/* owner filesystem */
 	xfs_agnumber_t	pag_agno;	/* AG this structure belongs to */
 	atomic_t	pag_ref;	/* perag reference count */
@@ -365,7 +376,7 @@ typedef struct xfs_perag {
 	char		pagf_metadata;	/* the agf is preferred to be metadata */
 	char		pagi_inodeok;	/* The agi is ok for inodes */
 	__uint8_t	pagf_levels[XFS_BTNUM_AGF];
-					/* # of levels in bno & cnt btree */
+	/* # of levels in bno & cnt btree */
 	__uint32_t	pagf_flcount;	/* count of blocks in freelist */
 	xfs_extlen_t	pagf_freeblks;	/* total free blocks */
 	xfs_extlen_t	pagf_longest;	/* longest free space */
@@ -414,13 +425,16 @@ xfs_perag_resv(
 	struct xfs_perag	*pag,
 	enum xfs_ag_resv_type	type)
 {
-	switch (type) {
-	case XFS_AG_RESV_METADATA:
-		return &pag->pag_meta_resv;
-	case XFS_AG_RESV_AGFL:
-		return &pag->pag_agfl_resv;
-	default:
-		return NULL;
+	switch (type)
+	{
+		case XFS_AG_RESV_METADATA:
+			return &pag->pag_meta_resv;
+
+		case XFS_AG_RESV_AGFL:
+			return &pag->pag_agfl_resv;
+
+		default:
+			return NULL;
 	}
 }
 
@@ -429,13 +443,13 @@ extern int	xfs_log_sbcount(xfs_mount_t *);
 extern __uint64_t xfs_default_resblks(xfs_mount_t *mp);
 extern int	xfs_mountfs(xfs_mount_t *mp);
 extern int	xfs_initialize_perag(xfs_mount_t *mp, xfs_agnumber_t agcount,
-				     xfs_agnumber_t *maxagi);
+								 xfs_agnumber_t *maxagi);
 extern void	xfs_unmountfs(xfs_mount_t *);
 
 extern int	xfs_mod_icount(struct xfs_mount *mp, int64_t delta);
 extern int	xfs_mod_ifree(struct xfs_mount *mp, int64_t delta);
 extern int	xfs_mod_fdblocks(struct xfs_mount *mp, int64_t delta,
-				 bool reserved);
+							 bool reserved);
 extern int	xfs_mod_frextents(struct xfs_mount *mp, int64_t delta);
 
 extern struct xfs_buf *xfs_getsb(xfs_mount_t *, int);
@@ -449,9 +463,9 @@ extern int	xfs_dev_is_read_only(struct xfs_mount *, char *);
 extern void	xfs_set_low_space_thresholds(struct xfs_mount *);
 
 int	xfs_zero_extent(struct xfs_inode *ip, xfs_fsblock_t start_fsb,
-			xfs_off_t count_fsb);
+					xfs_off_t count_fsb);
 
-struct xfs_error_cfg * xfs_error_get_cfg(struct xfs_mount *mp,
-		int error_class, int error);
+struct xfs_error_cfg *xfs_error_get_cfg(struct xfs_mount *mp,
+										int error_class, int error);
 
 #endif	/* __XFS_MOUNT_H__ */

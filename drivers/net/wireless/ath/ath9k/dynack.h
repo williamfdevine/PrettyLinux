@@ -28,17 +28,20 @@ struct ath_node;
  * @t_rb: ring buffer tail
  * @tstamp: ACK RX timestamp buffer
  */
-struct ath_dyn_rxbuf {
+struct ath_dyn_rxbuf
+{
 	u16 h_rb, t_rb;
 	u32 tstamp[ATH_DYN_BUF];
 };
 
-struct ts_info {
+struct ts_info
+{
 	u32 tstamp;
 	u32 dur;
 };
 
-struct haddr_pair {
+struct haddr_pair
+{
 	u8 h_dest[ETH_ALEN];
 	u8 h_src[ETH_ALEN];
 };
@@ -50,7 +53,8 @@ struct haddr_pair {
  * @addr: dest/src address pair for a given TX frame
  * @ts: TX frame timestamp buffer
  */
-struct ath_dyn_txbuf {
+struct ath_dyn_txbuf
+{
 	u16 h_rb, t_rb;
 	struct haddr_pair addr[ATH_DYN_BUF];
 	struct ts_info ts[ATH_DYN_BUF];
@@ -66,7 +70,8 @@ struct ath_dyn_txbuf {
  * @ack_rbf: ACK ts ring buffer
  * @st_rbf: status ts ring buffer
  */
-struct ath_dynack {
+struct ath_dynack
+{
 	bool enabled;
 	int ackto;
 	unsigned long lto;
@@ -86,18 +91,18 @@ void ath_dynack_node_deinit(struct ath_hw *ah, struct ath_node *an);
 void ath_dynack_init(struct ath_hw *ah);
 void ath_dynack_sample_ack_ts(struct ath_hw *ah, struct sk_buff *skb, u32 ts);
 void ath_dynack_sample_tx_ts(struct ath_hw *ah, struct sk_buff *skb,
-			     struct ath_tx_status *ts);
+							 struct ath_tx_status *ts);
 #else
 static inline void ath_dynack_init(struct ath_hw *ah) {}
 static inline void ath_dynack_node_init(struct ath_hw *ah,
-					struct ath_node *an) {}
+										struct ath_node *an) {}
 static inline void ath_dynack_node_deinit(struct ath_hw *ah,
-					  struct ath_node *an) {}
+		struct ath_node *an) {}
 static inline void ath_dynack_sample_ack_ts(struct ath_hw *ah,
-					    struct sk_buff *skb, u32 ts) {}
+		struct sk_buff *skb, u32 ts) {}
 static inline void ath_dynack_sample_tx_ts(struct ath_hw *ah,
-					   struct sk_buff *skb,
-					   struct ath_tx_status *ts) {}
+		struct sk_buff *skb,
+		struct ath_tx_status *ts) {}
 #endif
 
 #endif /* DYNACK_H */

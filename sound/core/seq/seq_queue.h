@@ -30,20 +30,21 @@
 
 #define SEQ_QUEUE_NO_OWNER (-1)
 
-struct snd_seq_queue {
+struct snd_seq_queue
+{
 	int queue;		/* queue number */
 
 	char name[64];		/* name of this queue */
 
 	struct snd_seq_prioq	*tickq;		/* midi tick event queue */
-	struct snd_seq_prioq	*timeq;		/* real-time event queue */	
-	
+	struct snd_seq_prioq	*timeq;		/* real-time event queue */
+
 	struct snd_seq_timer *timer;	/* time keeper for this queue */
 	int	owner;		/* client that 'owns' the timer */
-	unsigned int	locked:1,	/* timer is only accesibble by owner if set */
-		klocked:1,	/* kernel lock (after START) */	
-		check_again:1,
-		check_blocked:1;
+	unsigned int	locked: 1,	/* timer is only accesibble by owner if set */
+				klocked: 1,	/* kernel lock (after START) */
+				check_again: 1,
+				check_blocked: 1;
 
 	unsigned int flags;		/* status flags */
 	unsigned int info_flags;	/* info for sync */
@@ -66,7 +67,7 @@ int snd_seq_queue_get_cur_queues(void);
 /* init queues structure */
 int snd_seq_queues_init(void);
 
-/* delete queues */ 
+/* delete queues */
 void snd_seq_queues_delete(void);
 
 
@@ -118,12 +119,12 @@ int snd_seq_control_queue(struct snd_seq_event *ev, int atomic, int hop);
 #if defined(i386) || defined(i486)
 
 #define udiv_qrnnd(q, r, n1, n0, d) \
-  __asm__ ("divl %4"		\
-	   : "=a" ((u32)(q)),	\
-	     "=d" ((u32)(r))	\
-	   : "0" ((u32)(n0)),	\
-	     "1" ((u32)(n1)),	\
-	     "rm" ((u32)(d)))
+	__asm__ ("divl %4"		\
+			 : "=a" ((u32)(q)),	\
+			 "=d" ((u32)(r))	\
+			 : "0" ((u32)(n0)),	\
+			 "1" ((u32)(n1)),	\
+			 "rm" ((u32)(d)))
 
 #define u64_div(x,y,q) do {u32 __tmp; udiv_qrnnd(q, __tmp, (x)>>32, x, y);} while (0)
 #define u64_mod(x,y,r) do {u32 __tmp; udiv_qrnnd(__tmp, q, (x)>>32, x, y);} while (0)

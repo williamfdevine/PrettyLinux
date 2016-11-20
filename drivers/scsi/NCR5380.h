@@ -1,4 +1,4 @@
-/* 
+/*
  * NCR 5380 defines
  *
  * Copyright 1993, Drew Eckhardt
@@ -7,7 +7,7 @@
  * 	drew@colorado.edu
  *      +1 (303) 666-5836
  *
- * For more information, please consult 
+ * For more information, please consult
  *
  * NCR 5380 Family
  * SCSI Protocol Controller
@@ -59,7 +59,7 @@
 
 #define NDEBUG_ANY		0xFFFFFFFFUL
 
-/* 
+/*
  * The contents of the OUTPUT DATA register are asserted on the bus when
  * either arbitration is occurring or the phase-indicating signals (
  * IO, CD, MSG) in the TARGET COMMAND register and the ASSERT DATA
@@ -82,15 +82,15 @@
 #define ICR_ASSERT_DATA		0x01	/* rw SCSI_DATA_REG is asserted */
 
 #ifdef DIFFERENTIAL
-#define ICR_BASE		ICR_DIFF_ENABLE
+	#define ICR_BASE		ICR_DIFF_ENABLE
 #else
-#define ICR_BASE		0
+	#define ICR_BASE		0
 #endif
 
 #define MODE_REG		2
 /*
- * Note : BLOCK_DMA code will keep DRQ asserted for the duration of the 
- * transfer, causing the chip to hog the bus.  You probably don't want 
+ * Note : BLOCK_DMA code will keep DRQ asserted for the duration of the
+ * transfer, causing the chip to hog the bus.  You probably don't want
  * this.
  */
 #define MR_BLOCK_DMA_MODE	0x80	/* rw block mode DMA */
@@ -103,9 +103,9 @@
 #define MR_ARBITRATE		0x01	/* rw start arbitration */
 
 #ifdef PARITY
-#define MR_BASE			MR_ENABLE_PAR_CHECK
+	#define MR_BASE			MR_ENABLE_PAR_CHECK
 #else
-#define MR_BASE			0
+	#define MR_BASE			0
 #endif
 
 #define TARGET_COMMAND_REG	3
@@ -117,7 +117,7 @@
 
 #define STATUS_REG		4	/* ro */
 /*
- * Note : a set bit indicates an active signal, driven by us or another 
+ * Note : a set bit indicates an active signal, driven by us or another
  * device.
  */
 #define SR_RST			0x80
@@ -130,7 +130,7 @@
 #define SR_DBP			0x01
 
 /*
- * Setting a bit in this register will cause an interrupt to be generated when 
+ * Setting a bit in this register will cause an interrupt to be generated when
  * BSY is false and SEL true and this bit is asserted  on the bus.
  */
 #define SELECT_ENABLE_REG	4	/* wo */
@@ -148,7 +148,7 @@
 /* Write any value to this register to start a DMA send */
 #define START_DMA_SEND_REG	5	/* wo */
 
-/* 
+/*
  * Used in DMA transfer mode, data is latched from the SCSI bus on
  * the falling edge of REQ (ini) or ACK (tgt)
  */
@@ -175,9 +175,9 @@
 #define CSR_GATED_53C80_IRQ    0x01	/* ro  Last block xferred */
 
 #if 0
-#define CSR_BASE CSR_SCSI_BUFF_INTR | CSR_53C80_INTR
+	#define CSR_BASE CSR_SCSI_BUFF_INTR | CSR_53C80_INTR
 #else
-#define CSR_BASE CSR_53C80_INTR
+	#define CSR_BASE CSR_53C80_INTR
 #endif
 
 /* Note : PHASE_* macros are based on the values of the STATUS register */
@@ -191,16 +191,16 @@
 #define PHASE_MSGIN		(SR_MSG | SR_CD | SR_IO)
 #define PHASE_UNKNOWN		0xff
 
-/* 
- * Convert status register phase to something we can use to set phase in 
- * the target register so we can get phase mismatch interrupts on DMA 
+/*
+ * Convert status register phase to something we can use to set phase in
+ * the target register so we can get phase mismatch interrupts on DMA
  * transfers.
  */
 
 #define PHASE_SR_TO_TCR(phase) ((phase) >> 2)
 
 /*
- * These are "special" values for the irq and dma_channel fields of the 
+ * These are "special" values for the irq and dma_channel fields of the
  * Scsi_Host structure
  */
 
@@ -210,7 +210,7 @@
 #define PORT_AUTO	0xffff	/* autoprobe io port for 53c400a */
 
 #ifndef NO_IRQ
-#define NO_IRQ		0
+	#define NO_IRQ		0
 #endif
 
 #define FLAG_DMA_FIXUP			1	/* Use DMA errata workarounds */
@@ -218,7 +218,8 @@
 #define FLAG_LATE_DMA_SETUP		32	/* Setup NCR before DMA H/W */
 #define FLAG_TOSHIBA_DELAY		128	/* Allow for borken CD-ROMs */
 
-struct NCR5380_hostdata {
+struct NCR5380_hostdata
+{
 	NCR5380_implementation_fields;		/* implementation specific */
 	struct Scsi_Host *host;			/* Host backpointer */
 	unsigned char id_mask, id_higher_mask;	/* 1 << id, all bits greater */
@@ -244,7 +245,8 @@ struct NCR5380_hostdata {
 
 #ifdef __KERNEL__
 
-struct NCR5380_cmd {
+struct NCR5380_cmd
+{
 	struct list_head list;
 };
 
@@ -258,16 +260,16 @@ static inline struct scsi_cmnd *NCR5380_to_scmd(struct NCR5380_cmd *ncmd_ptr)
 }
 
 #ifndef NDEBUG
-#define NDEBUG (0)
+	#define NDEBUG (0)
 #endif
 
 #define dprintk(flg, fmt, ...) \
 	do { if ((NDEBUG) & (flg)) \
-		printk(KERN_DEBUG fmt, ## __VA_ARGS__); } while (0)
+			printk(KERN_DEBUG fmt, ## __VA_ARGS__); } while (0)
 
 #define dsprintk(flg, host, fmt, ...) \
 	do { if ((NDEBUG) & (flg)) \
-		shost_printk(KERN_DEBUG, host, fmt, ## __VA_ARGS__); \
+			shost_printk(KERN_DEBUG, host, fmt, ## __VA_ARGS__); \
 	} while (0)
 
 #if NDEBUG
@@ -297,10 +299,10 @@ static int NCR5380_transfer_pio(struct Scsi_Host *instance, unsigned char *phase
 static int NCR5380_poll_politely2(struct Scsi_Host *, int, int, int, int, int, int, int);
 
 static inline int NCR5380_poll_politely(struct Scsi_Host *instance,
-					int reg, int bit, int val, int wait)
+										int reg, int bit, int val, int wait)
 {
 	return NCR5380_poll_politely2(instance, reg, bit, val,
-						reg, bit, val, wait);
+								  reg, bit, val, wait);
 }
 
 #endif				/* __KERNEL__ */

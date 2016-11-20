@@ -21,7 +21,8 @@
 
 #include <asm/mach-ath79/ar71xx_regs.h>
 
-struct rb4xx_spi {
+struct rb4xx_spi
+{
 	void __iomem *base;
 	struct clk *clk;
 };
@@ -41,8 +42,11 @@ static inline void do_spi_clk(struct rb4xx_spi *rbspi, u32 spi_ioc, int value)
 	u32 regval;
 
 	regval = spi_ioc;
+
 	if (value & BIT(0))
+	{
 		regval |= AR71XX_SPI_IOC_DO;
+	}
 
 	rb4xx_write(rbspi, AR71XX_SPI_REG_IOC, regval);
 	rb4xx_write(rbspi, AR71XX_SPI_REG_IOC, regval | AR71XX_SPI_IOC_CLK);
@@ -53,20 +57,28 @@ static void do_spi_byte(struct rb4xx_spi *rbspi, u32 spi_ioc, u8 byte)
 	int i;
 
 	for (i = 7; i >= 0; i--)
+	{
 		do_spi_clk(rbspi, spi_ioc, byte >> i);
+	}
 }
 
 /* The CS2 pin is used to clock in a second bit per clock cycle. */
 static inline void do_spi_clk_two(struct rb4xx_spi *rbspi, u32 spi_ioc,
-				   u8 value)
+								  u8 value)
 {
 	u32 regval;
 
 	regval = spi_ioc;
+
 	if (value & BIT(1))
+	{
 		regval |= AR71XX_SPI_IOC_DO;
+	}
+
 	if (value & BIT(0))
+	{
 		regval |= AR71XX_SPI_IOC_CS2;
+	}
 
 	rb4xx_write(rbspi, AR71XX_SPI_REG_IOC, regval);
 	rb4xx_write(rbspi, AR71XX_SPI_REG_IOC, regval | AR71XX_SPI_IOC_CLK);
@@ -92,11 +104,11 @@ static void rb4xx_set_cs(struct spi_device *spi, bool enable)
 	 */
 	if (enable)
 		rb4xx_write(rbspi, AR71XX_SPI_REG_IOC,
-			    AR71XX_SPI_IOC_CS0 | AR71XX_SPI_IOC_CS1);
+					AR71XX_SPI_IOC_CS0 | AR71XX_SPI_IOC_CS1);
 }
 
 static int rb4xx_transfer_one(struct spi_master *master,
-			      struct spi_device *spi, struct spi_transfer *t)
+							  struct spi_device *spi, struct spi_transfer *t)
 {
 	struct rb4xx_spi *rbspi = spi_master_get_devdata(master);
 	int i;
@@ -112,23 +124,38 @@ static int rb4xx_transfer_one(struct spi_master *master,
 	 */
 	if (spi->chip_select == 2)
 		/* MMC */
+	{
 		spi_ioc = AR71XX_SPI_IOC_CS0;
+	}
 	else
 		/* Boot flash and CPLD */
+	{
 		spi_ioc = AR71XX_SPI_IOC_CS1;
+	}
 
 	tx_buf = t->tx_buf;
 	rx_buf = t->rx_buf;
-	for (i = 0; i < t->len; ++i) {
+
+	for (i = 0; i < t->len; ++i)
+	{
 		if (t->tx_nbits == SPI_NBITS_DUAL)
 			/* CPLD can use two-wire transfers */
+		{
 			do_spi_byte_two(rbspi, spi_ioc, tx_buf[i]);
+		}
 		else
+		{
 			do_spi_byte(rbspi, spi_ioc, tx_buf[i]);
+		}
+
 		if (!rx_buf)
+		{
 			continue;
+		}
+
 		rx_buf[i] = rb4xx_read(rbspi, AR71XX_SPI_REG_RDS);
 	}
+
 	spi_finalize_current_transfer(master);
 
 	return 0;
@@ -145,16 +172,25 @@ static int rb4xx_spi_probe(struct platform_device *pdev)
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	spi_base = devm_ioremap_resource(&pdev->dev, r);
+
 	if (IS_ERR(spi_base))
+	{
 		return PTR_ERR(spi_base);
+	}
 
 	master = spi_alloc_master(&pdev->dev, sizeof(*rbspi));
+
 	if (!master)
+	{
 		return -ENOMEM;
+	}
 
 	ahb_clk = devm_clk_get(&pdev->dev, "ahb");
+
 	if (IS_ERR(ahb_clk))
+	{
 		return PTR_ERR(ahb_clk);
+	}
 
 	master->bus_num = 0;
 	master->num_chipselect = 3;
@@ -165,14 +201,19 @@ static int rb4xx_spi_probe(struct platform_device *pdev)
 	master->set_cs = rb4xx_set_cs;
 
 	err = devm_spi_register_master(&pdev->dev, master);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "failed to register SPI master\n");
 		return err;
 	}
 
 	err = clk_prepare_enable(ahb_clk);
+
 	if (err)
+	{
 		return err;
+	}
 
 	rbspi = spi_master_get_devdata(master);
 	rbspi->base = spi_base;
@@ -194,7 +235,8 @@ static int rb4xx_spi_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver rb4xx_spi_drv = {
+static struct platform_driver rb4xx_spi_drv =
+{
 	.probe = rb4xx_spi_probe,
 	.remove = rb4xx_spi_remove,
 	.driver = {

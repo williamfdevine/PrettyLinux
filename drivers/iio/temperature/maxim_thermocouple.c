@@ -27,16 +27,18 @@
 
 #define MAXIM_THERMOCOUPLE_DRV_NAME	"maxim_thermocouple"
 
-enum {
+enum
+{
 	MAX6675,
 	MAX31855,
 };
 
-static const struct iio_chan_spec max6675_channels[] = {
+static const struct iio_chan_spec max6675_channels[] =
+{
 	{	/* thermocouple temperature */
 		.type = IIO_TEMP,
 		.info_mask_separate =
-			BIT(IIO_CHAN_INFO_RAW) | BIT(IIO_CHAN_INFO_SCALE),
+		BIT(IIO_CHAN_INFO_RAW) | BIT(IIO_CHAN_INFO_SCALE),
 		.scan_index = 0,
 		.scan_type = {
 			.sign = 's',
@@ -49,12 +51,13 @@ static const struct iio_chan_spec max6675_channels[] = {
 	IIO_CHAN_SOFT_TIMESTAMP(1),
 };
 
-static const struct iio_chan_spec max31855_channels[] = {
+static const struct iio_chan_spec max31855_channels[] =
+{
 	{	/* thermocouple temperature */
 		.type = IIO_TEMP,
 		.address = 2,
 		.info_mask_separate =
-			BIT(IIO_CHAN_INFO_RAW) | BIT(IIO_CHAN_INFO_SCALE),
+		BIT(IIO_CHAN_INFO_RAW) | BIT(IIO_CHAN_INFO_SCALE),
 		.scan_index = 0,
 		.scan_type = {
 			.sign = 's',
@@ -70,7 +73,7 @@ static const struct iio_chan_spec max31855_channels[] = {
 		.channel2 = IIO_MOD_TEMP_AMBIENT,
 		.modified = 1,
 		.info_mask_separate =
-			BIT(IIO_CHAN_INFO_RAW) | BIT(IIO_CHAN_INFO_SCALE),
+		BIT(IIO_CHAN_INFO_RAW) | BIT(IIO_CHAN_INFO_SCALE),
 		.scan_index = 1,
 		.scan_type = {
 			.sign = 's',
@@ -85,7 +88,8 @@ static const struct iio_chan_spec max31855_channels[] = {
 
 static const unsigned long max31855_scan_masks[] = {0x3, 0};
 
-struct maxim_thermocouple_chip {
+struct maxim_thermocouple_chip
+{
 	const struct iio_chan_spec *channels;
 	const unsigned long *scan_masks;
 	u8 num_channels;
@@ -95,23 +99,25 @@ struct maxim_thermocouple_chip {
 	u32 status_bit;
 };
 
-static const struct maxim_thermocouple_chip maxim_thermocouple_chips[] = {
+static const struct maxim_thermocouple_chip maxim_thermocouple_chips[] =
+{
 	[MAX6675] = {
-			.channels = max6675_channels,
-			.num_channels = ARRAY_SIZE(max6675_channels),
-			.read_size = 2,
-			.status_bit = BIT(2),
-		},
+		.channels = max6675_channels,
+		.num_channels = ARRAY_SIZE(max6675_channels),
+		.read_size = 2,
+		.status_bit = BIT(2),
+	},
 	[MAX31855] = {
-			.channels = max31855_channels,
-			.num_channels = ARRAY_SIZE(max31855_channels),
-			.read_size = 4,
-			.scan_masks = max31855_scan_masks,
-			.status_bit = BIT(16),
-		},
+		.channels = max31855_channels,
+		.num_channels = ARRAY_SIZE(max31855_channels),
+		.read_size = 4,
+		.scan_masks = max31855_scan_masks,
+		.status_bit = BIT(16),
+	},
 };
 
-struct maxim_thermocouple_data {
+struct maxim_thermocouple_data
+{
 	struct spi_device *spi;
 	const struct maxim_thermocouple_chip *chip;
 
@@ -119,7 +125,7 @@ struct maxim_thermocouple_data {
 };
 
 static int maxim_thermocouple_read(struct maxim_thermocouple_data *data,
-				   struct iio_chan_spec const *chan, int *val)
+								   struct iio_chan_spec const *chan, int *val)
 {
 	unsigned int storage_bytes = data->chip->read_size;
 	unsigned int shift = chan->scan_type.shift + (chan->address * 8);
@@ -127,25 +133,32 @@ static int maxim_thermocouple_read(struct maxim_thermocouple_data *data,
 	__be32 buf32;
 	int ret;
 
-	switch (storage_bytes) {
-	case 2:
-		ret = spi_read(data->spi, (void *)&buf16, storage_bytes);
-		*val = be16_to_cpu(buf16);
-		break;
-	case 4:
-		ret = spi_read(data->spi, (void *)&buf32, storage_bytes);
-		*val = be32_to_cpu(buf32);
-		break;
-	default:
-		ret = -EINVAL;
+	switch (storage_bytes)
+	{
+		case 2:
+			ret = spi_read(data->spi, (void *)&buf16, storage_bytes);
+			*val = be16_to_cpu(buf16);
+			break;
+
+		case 4:
+			ret = spi_read(data->spi, (void *)&buf32, storage_bytes);
+			*val = be32_to_cpu(buf32);
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* check to be sure this is a valid reading */
 	if (*val & data->chip->status_bit)
+	{
 		return -EINVAL;
+	}
 
 	*val = sign_extend32(*val >> shift, chan->scan_type.realbits - 1);
 
@@ -160,9 +173,11 @@ static irqreturn_t maxim_thermocouple_trigger_handler(int irq, void *private)
 	int ret;
 
 	ret = spi_read(data->spi, data->buffer, data->chip->read_size);
-	if (!ret) {
+
+	if (!ret)
+	{
 		iio_push_to_buffers_with_timestamp(indio_dev, data->buffer,
-						   iio_get_time_ns(indio_dev));
+										   iio_get_time_ns(indio_dev));
 	}
 
 	iio_trigger_notify_done(indio_dev->trig);
@@ -171,43 +186,54 @@ static irqreturn_t maxim_thermocouple_trigger_handler(int irq, void *private)
 }
 
 static int maxim_thermocouple_read_raw(struct iio_dev *indio_dev,
-				       struct iio_chan_spec const *chan,
-				       int *val, int *val2, long mask)
+									   struct iio_chan_spec const *chan,
+									   int *val, int *val2, long mask)
 {
 	struct maxim_thermocouple_data *data = iio_priv(indio_dev);
 	int ret = -EINVAL;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		ret = iio_device_claim_direct_mode(indio_dev);
-		if (ret)
-			return ret;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			ret = iio_device_claim_direct_mode(indio_dev);
 
-		ret = maxim_thermocouple_read(data, chan, val);
-		iio_device_release_direct_mode(indio_dev);
+			if (ret)
+			{
+				return ret;
+			}
 
-		if (!ret)
-			return IIO_VAL_INT;
+			ret = maxim_thermocouple_read(data, chan, val);
+			iio_device_release_direct_mode(indio_dev);
 
-		break;
-	case IIO_CHAN_INFO_SCALE:
-		switch (chan->channel2) {
-		case IIO_MOD_TEMP_AMBIENT:
-			*val = 62;
-			*val2 = 500000; /* 1000 * 0.0625 */
-			ret = IIO_VAL_INT_PLUS_MICRO;
+			if (!ret)
+			{
+				return IIO_VAL_INT;
+			}
+
 			break;
-		default:
-			*val = 250; /* 1000 * 0.25 */
-			ret = IIO_VAL_INT;
-		};
-		break;
+
+		case IIO_CHAN_INFO_SCALE:
+			switch (chan->channel2)
+			{
+				case IIO_MOD_TEMP_AMBIENT:
+					*val = 62;
+					*val2 = 500000; /* 1000 * 0.0625 */
+					ret = IIO_VAL_INT_PLUS_MICRO;
+					break;
+
+				default:
+					*val = 250; /* 1000 * 0.25 */
+					ret = IIO_VAL_INT;
+			};
+
+			break;
 	}
 
 	return ret;
 }
 
-static const struct iio_info maxim_thermocouple_info = {
+static const struct iio_info maxim_thermocouple_info =
+{
 	.driver_module = THIS_MODULE,
 	.read_raw = maxim_thermocouple_read_raw,
 };
@@ -222,8 +248,11 @@ static int maxim_thermocouple_probe(struct spi_device *spi)
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*data));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	indio_dev->info = &maxim_thermocouple_info;
 	indio_dev->name = MAXIM_THERMOCOUPLE_DRV_NAME;
@@ -237,13 +266,19 @@ static int maxim_thermocouple_probe(struct spi_device *spi)
 	data->chip = chip;
 
 	ret = iio_triggered_buffer_setup(indio_dev, NULL,
-				maxim_thermocouple_trigger_handler, NULL);
+									 maxim_thermocouple_trigger_handler, NULL);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret)
+	{
 		goto error_unreg_buffer;
+	}
 
 	return 0;
 
@@ -263,14 +298,16 @@ static int maxim_thermocouple_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct spi_device_id maxim_thermocouple_id[] = {
+static const struct spi_device_id maxim_thermocouple_id[] =
+{
 	{"max6675", MAX6675},
 	{"max31855", MAX31855},
 	{},
 };
 MODULE_DEVICE_TABLE(spi, maxim_thermocouple_id);
 
-static struct spi_driver maxim_thermocouple_driver = {
+static struct spi_driver maxim_thermocouple_driver =
+{
 	.driver = {
 		.name	= MAXIM_THERMOCOUPLE_DRV_NAME,
 	},

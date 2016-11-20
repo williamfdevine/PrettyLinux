@@ -54,7 +54,7 @@
 #include <linux/mutex.h>
 
 static int ipcomp6_err(struct sk_buff *skb, struct inet6_skb_parm *opt,
-				u8 type, u8 code, int offset, __be32 info)
+					   u8 type, u8 code, int offset, __be32 info)
 {
 	struct net *net = dev_net(skb->dev);
 	__be32 spi;
@@ -64,19 +64,29 @@ static int ipcomp6_err(struct sk_buff *skb, struct inet6_skb_parm *opt,
 	struct xfrm_state *x;
 
 	if (type != ICMPV6_PKT_TOOBIG &&
-	    type != NDISC_REDIRECT)
+		type != NDISC_REDIRECT)
+	{
 		return 0;
+	}
 
 	spi = htonl(ntohs(ipcomph->cpi));
 	x = xfrm_state_lookup(net, skb->mark, (const xfrm_address_t *)&iph->daddr,
-			      spi, IPPROTO_COMP, AF_INET6);
+						  spi, IPPROTO_COMP, AF_INET6);
+
 	if (!x)
+	{
 		return 0;
+	}
 
 	if (type == NDISC_REDIRECT)
+	{
 		ip6_redirect(skb, net, skb->dev->ifindex, 0);
+	}
 	else
+	{
 		ip6_update_pmtu(skb, net, info, 0, 0);
+	}
+
 	xfrm_state_put(x);
 
 	return 0;
@@ -88,13 +98,19 @@ static struct xfrm_state *ipcomp6_tunnel_create(struct xfrm_state *x)
 	struct xfrm_state *t = NULL;
 
 	t = xfrm_state_alloc(net);
+
 	if (!t)
+	{
 		goto out;
+	}
 
 	t->id.proto = IPPROTO_IPV6;
 	t->id.spi = xfrm6_tunnel_alloc_spi(net, (xfrm_address_t *)&x->props.saddr);
+
 	if (!t->id.spi)
+	{
 		goto error;
+	}
 
 	memcpy(t->id.daddr.a6, x->id.daddr.a6, sizeof(struct in6_addr));
 	memcpy(&t->sel, &x->sel, sizeof(t->sel));
@@ -104,7 +120,9 @@ static struct xfrm_state *ipcomp6_tunnel_create(struct xfrm_state *x)
 	memcpy(&t->mark, &x->mark, sizeof(t->mark));
 
 	if (xfrm_init_state(t))
+	{
 		goto error;
+	}
 
 	atomic_set(&t->tunnel_users, 1);
 
@@ -127,18 +145,25 @@ static int ipcomp6_tunnel_attach(struct xfrm_state *x)
 	u32 mark = x->mark.m & x->mark.v;
 
 	spi = xfrm6_tunnel_spi_lookup(net, (xfrm_address_t *)&x->props.saddr);
+
 	if (spi)
 		t = xfrm_state_lookup(net, mark, (xfrm_address_t *)&x->id.daddr,
-					      spi, IPPROTO_IPV6, AF_INET6);
-	if (!t) {
+							  spi, IPPROTO_IPV6, AF_INET6);
+
+	if (!t)
+	{
 		t = ipcomp6_tunnel_create(x);
-		if (!t) {
+
+		if (!t)
+		{
 			err = -EINVAL;
 			goto out;
 		}
+
 		xfrm_state_insert(t);
 		xfrm_state_hold(t);
 	}
+
 	x->tunnel = t;
 	atomic_inc(&t->tunnel_users);
 
@@ -151,24 +176,35 @@ static int ipcomp6_init_state(struct xfrm_state *x)
 	int err = -EINVAL;
 
 	x->props.header_len = 0;
-	switch (x->props.mode) {
-	case XFRM_MODE_TRANSPORT:
-		break;
-	case XFRM_MODE_TUNNEL:
-		x->props.header_len += sizeof(struct ipv6hdr);
-		break;
-	default:
-		goto out;
+
+	switch (x->props.mode)
+	{
+		case XFRM_MODE_TRANSPORT:
+			break;
+
+		case XFRM_MODE_TUNNEL:
+			x->props.header_len += sizeof(struct ipv6hdr);
+			break;
+
+		default:
+			goto out;
 	}
 
 	err = ipcomp_init_state(x);
-	if (err)
-		goto out;
 
-	if (x->props.mode == XFRM_MODE_TUNNEL) {
+	if (err)
+	{
+		goto out;
+	}
+
+	if (x->props.mode == XFRM_MODE_TUNNEL)
+	{
 		err = ipcomp6_tunnel_attach(x);
+
 		if (err)
+		{
 			goto out;
+		}
 	}
 
 	err = 0;
@@ -181,7 +217,8 @@ static int ipcomp6_rcv_cb(struct sk_buff *skb, int err)
 	return 0;
 }
 
-static const struct xfrm_type ipcomp6_type = {
+static const struct xfrm_type ipcomp6_type =
+{
 	.description	= "IPCOMP6",
 	.owner		= THIS_MODULE,
 	.proto		= IPPROTO_COMP,
@@ -192,7 +229,8 @@ static const struct xfrm_type ipcomp6_type = {
 	.hdr_offset	= xfrm6_find_1stfragopt,
 };
 
-static struct xfrm6_protocol ipcomp6_protocol = {
+static struct xfrm6_protocol ipcomp6_protocol =
+{
 	.handler	= xfrm6_rcv,
 	.cb_handler	= ipcomp6_rcv_cb,
 	.err_handler	= ipcomp6_err,
@@ -201,24 +239,33 @@ static struct xfrm6_protocol ipcomp6_protocol = {
 
 static int __init ipcomp6_init(void)
 {
-	if (xfrm_register_type(&ipcomp6_type, AF_INET6) < 0) {
+	if (xfrm_register_type(&ipcomp6_type, AF_INET6) < 0)
+	{
 		pr_info("%s: can't add xfrm type\n", __func__);
 		return -EAGAIN;
 	}
-	if (xfrm6_protocol_register(&ipcomp6_protocol, IPPROTO_COMP) < 0) {
+
+	if (xfrm6_protocol_register(&ipcomp6_protocol, IPPROTO_COMP) < 0)
+	{
 		pr_info("%s: can't add protocol\n", __func__);
 		xfrm_unregister_type(&ipcomp6_type, AF_INET6);
 		return -EAGAIN;
 	}
+
 	return 0;
 }
 
 static void __exit ipcomp6_fini(void)
 {
 	if (xfrm6_protocol_deregister(&ipcomp6_protocol, IPPROTO_COMP) < 0)
+	{
 		pr_info("%s: can't remove protocol\n", __func__);
+	}
+
 	if (xfrm_unregister_type(&ipcomp6_type, AF_INET6) < 0)
+	{
 		pr_info("%s: can't remove xfrm type\n", __func__);
+	}
 }
 
 module_init(ipcomp6_init);

@@ -29,19 +29,21 @@ static void setup_cmd_submit_pdu(struct usbip_header *pdup,  struct urb *urb)
 	struct vhci_device *vdev = priv->vdev;
 
 	usbip_dbg_vhci_tx("URB, local devnum %u, remote devid %u\n",
-			  usb_pipedevice(urb->pipe), vdev->devid);
+					  usb_pipedevice(urb->pipe), vdev->devid);
 
 	pdup->base.command   = USBIP_CMD_SUBMIT;
 	pdup->base.seqnum    = priv->seqnum;
 	pdup->base.devid     = vdev->devid;
 	pdup->base.direction = usb_pipein(urb->pipe) ?
-		USBIP_DIR_IN : USBIP_DIR_OUT;
+						   USBIP_DIR_IN : USBIP_DIR_OUT;
 	pdup->base.ep	     = usb_pipeendpoint(urb->pipe);
 
 	usbip_pack_pdu(pdup, urb, USBIP_CMD_SUBMIT, 1);
 
 	if (urb->setup_packet)
+	{
 		memcpy(pdup->u.cmd_submit.setup, urb->setup_packet, 8);
+	}
 }
 
 static struct vhci_priv *dequeue_from_priv_tx(struct vhci_device *vdev)
@@ -51,7 +53,8 @@ static struct vhci_priv *dequeue_from_priv_tx(struct vhci_device *vdev)
 
 	spin_lock_irqsave(&vdev->priv_lock, flags);
 
-	list_for_each_entry_safe(priv, tmp, &vdev->priv_tx, list) {
+	list_for_each_entry_safe(priv, tmp, &vdev->priv_tx, list)
+	{
 		list_move_tail(&priv->list, &vdev->priv_rx);
 		spin_unlock_irqrestore(&vdev->priv_lock, flags);
 		return priv;
@@ -72,7 +75,8 @@ static int vhci_send_cmd_submit(struct vhci_device *vdev)
 
 	size_t total_size = 0;
 
-	while ((priv = dequeue_from_priv_tx(vdev)) != NULL) {
+	while ((priv = dequeue_from_priv_tx(vdev)) != NULL)
+	{
 		int ret;
 		struct urb *urb = priv->urb;
 		struct usbip_header pdu_header;
@@ -94,20 +98,24 @@ static int vhci_send_cmd_submit(struct vhci_device *vdev)
 		txsize += sizeof(pdu_header);
 
 		/* 2. setup transfer buffer */
-		if (!usb_pipein(urb->pipe) && urb->transfer_buffer_length > 0) {
+		if (!usb_pipein(urb->pipe) && urb->transfer_buffer_length > 0)
+		{
 			iov[1].iov_base = urb->transfer_buffer;
 			iov[1].iov_len  = urb->transfer_buffer_length;
 			txsize += urb->transfer_buffer_length;
 		}
 
 		/* 3. setup iso_packet_descriptor */
-		if (usb_pipetype(urb->pipe) == PIPE_ISOCHRONOUS) {
+		if (usb_pipetype(urb->pipe) == PIPE_ISOCHRONOUS)
+		{
 			ssize_t len = 0;
 
 			iso_buffer = usbip_alloc_iso_desc_pdu(urb, &len);
-			if (!iso_buffer) {
+
+			if (!iso_buffer)
+			{
 				usbip_event_add(&vdev->ud,
-						SDEV_EVENT_ERROR_MALLOC);
+								SDEV_EVENT_ERROR_MALLOC);
 				return -1;
 			}
 
@@ -117,9 +125,11 @@ static int vhci_send_cmd_submit(struct vhci_device *vdev)
 		}
 
 		ret = kernel_sendmsg(vdev->ud.tcp_socket, &msg, iov, 3, txsize);
-		if (ret != txsize) {
+
+		if (ret != txsize)
+		{
 			pr_err("sendmsg failed!, ret=%d for %zd\n", ret,
-			       txsize);
+				   txsize);
 			kfree(iso_buffer);
 			usbip_event_add(&vdev->ud, VDEV_EVENT_ERROR_TCP);
 			return -1;
@@ -141,7 +151,8 @@ static struct vhci_unlink *dequeue_from_unlink_tx(struct vhci_device *vdev)
 
 	spin_lock_irqsave(&vdev->priv_lock, flags);
 
-	list_for_each_entry_safe(unlink, tmp, &vdev->unlink_tx, list) {
+	list_for_each_entry_safe(unlink, tmp, &vdev->unlink_tx, list)
+	{
 		list_move_tail(&unlink->list, &vdev->unlink_rx);
 		spin_unlock_irqrestore(&vdev->priv_lock, flags);
 		return unlink;
@@ -162,7 +173,8 @@ static int vhci_send_cmd_unlink(struct vhci_device *vdev)
 
 	size_t total_size = 0;
 
-	while ((unlink = dequeue_from_unlink_tx(vdev)) != NULL) {
+	while ((unlink = dequeue_from_unlink_tx(vdev)) != NULL)
+	{
 		int ret;
 		struct usbip_header pdu_header;
 
@@ -187,9 +199,11 @@ static int vhci_send_cmd_unlink(struct vhci_device *vdev)
 		txsize += sizeof(pdu_header);
 
 		ret = kernel_sendmsg(vdev->ud.tcp_socket, &msg, iov, 1, txsize);
-		if (ret != txsize) {
+
+		if (ret != txsize)
+		{
 			pr_err("sendmsg failed!, ret=%d for %zd\n", ret,
-			       txsize);
+				   txsize);
 			usbip_event_add(&vdev->ud, VDEV_EVENT_ERROR_TCP);
 			return -1;
 		}
@@ -207,17 +221,22 @@ int vhci_tx_loop(void *data)
 	struct usbip_device *ud = data;
 	struct vhci_device *vdev = container_of(ud, struct vhci_device, ud);
 
-	while (!kthread_should_stop()) {
+	while (!kthread_should_stop())
+	{
 		if (vhci_send_cmd_submit(vdev) < 0)
+		{
 			break;
+		}
 
 		if (vhci_send_cmd_unlink(vdev) < 0)
+		{
 			break;
+		}
 
 		wait_event_interruptible(vdev->waitq_tx,
-					 (!list_empty(&vdev->priv_tx) ||
-					  !list_empty(&vdev->unlink_tx) ||
-					  kthread_should_stop()));
+								 (!list_empty(&vdev->priv_tx) ||
+								  !list_empty(&vdev->unlink_tx) ||
+								  kthread_should_stop()));
 
 		usbip_dbg_vhci_tx("pending urbs ?, now wake up\n");
 	}

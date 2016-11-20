@@ -21,7 +21,8 @@
 
 MODULE_LICENSE("GPL");
 
-const char *const key_being_used_for[NR__KEY_BEING_USED_FOR] = {
+const char *const key_being_used_for[NR__KEY_BEING_USED_FOR] =
+{
 	[VERIFYING_MODULE_SIGNATURE]		= "mod sig",
 	[VERIFYING_FIRMWARE_SIGNATURE]		= "firmware sig",
 	[VERIFYING_KEXEC_PE_SIGNATURE]		= "kexec PE sig",
@@ -46,9 +47,9 @@ static DECLARE_RWSEM(asymmetric_key_parsers_sem);
  * lookup is by the former, but the latter must also match.
  */
 struct key *find_asymmetric_key(struct key *keyring,
-				const struct asymmetric_key_id *id_0,
-				const struct asymmetric_key_id *id_1,
-				bool partial)
+								const struct asymmetric_key_id *id_0,
+								const struct asymmetric_key_id *id_1,
+								bool partial)
 {
 	struct key *key;
 	key_ref_t ref;
@@ -56,26 +57,36 @@ struct key *find_asymmetric_key(struct key *keyring,
 	char *req, *p;
 	int len;
 
-	if (id_0) {
+	if (id_0)
+	{
 		lookup = id_0->data;
 		len = id_0->len;
-	} else {
+	}
+	else
+	{
 		lookup = id_1->data;
 		len = id_1->len;
 	}
 
 	/* Construct an identifier "id:<keyid>". */
 	p = req = kmalloc(2 + 1 + len * 2 + 1, GFP_KERNEL);
-	if (!req)
-		return ERR_PTR(-ENOMEM);
 
-	if (partial) {
+	if (!req)
+	{
+		return ERR_PTR(-ENOMEM);
+	}
+
+	if (partial)
+	{
 		*p++ = 'i';
 		*p++ = 'd';
-	} else {
+	}
+	else
+	{
 		*p++ = 'e';
 		*p++ = 'x';
 	}
+
 	*p++ = ':';
 	p = bin2hex(p, lookup, len);
 	*p = 0;
@@ -83,32 +94,44 @@ struct key *find_asymmetric_key(struct key *keyring,
 	pr_debug("Look up: \"%s\"\n", req);
 
 	ref = keyring_search(make_key_ref(keyring, 1),
-			     &key_type_asymmetric, req);
+						 &key_type_asymmetric, req);
+
 	if (IS_ERR(ref))
+	{
 		pr_debug("Request for key '%s' err %ld\n", req, PTR_ERR(ref));
+	}
+
 	kfree(req);
 
-	if (IS_ERR(ref)) {
-		switch (PTR_ERR(ref)) {
+	if (IS_ERR(ref))
+	{
+		switch (PTR_ERR(ref))
+		{
 			/* Hide some search errors */
-		case -EACCES:
-		case -ENOTDIR:
-		case -EAGAIN:
-			return ERR_PTR(-ENOKEY);
-		default:
-			return ERR_CAST(ref);
+			case -EACCES:
+			case -ENOTDIR:
+			case -EAGAIN:
+				return ERR_PTR(-ENOKEY);
+
+			default:
+				return ERR_CAST(ref);
 		}
 	}
 
 	key = key_ref_to_ptr(ref);
-	if (id_0 && id_1) {
+
+	if (id_0 && id_1)
+	{
 		const struct asymmetric_key_ids *kids = asymmetric_key_ids(key);
 
-		if (!kids->id[0]) {
+		if (!kids->id[0])
+		{
 			pr_debug("First ID matches, but second is missing\n");
 			goto reject;
 		}
-		if (!asymmetric_key_id_same(id_1, kids->id[1])) {
+
+		if (!asymmetric_key_id_same(id_1, kids->id[1]))
+		{
 			pr_debug("First ID matches, but second does not\n");
 			goto reject;
 		}
@@ -133,16 +156,20 @@ EXPORT_SYMBOL_GPL(find_asymmetric_key);
  * Construct an asymmetric key ID from a pair of binary blobs.
  */
 struct asymmetric_key_id *asymmetric_key_generate_id(const void *val_1,
-						     size_t len_1,
-						     const void *val_2,
-						     size_t len_2)
+		size_t len_1,
+		const void *val_2,
+		size_t len_2)
 {
 	struct asymmetric_key_id *kid;
 
 	kid = kmalloc(sizeof(struct asymmetric_key_id) + len_1 + len_2,
-		      GFP_KERNEL);
+				  GFP_KERNEL);
+
 	if (!kid)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	kid->len = len_1 + len_2;
 	memcpy(kid->data, val_1, len_1);
 	memcpy(kid->data + len_1, val_2, len_2);
@@ -155,12 +182,18 @@ EXPORT_SYMBOL_GPL(asymmetric_key_generate_id);
  * @kid_1, @kid_2: The key IDs to compare
  */
 bool asymmetric_key_id_same(const struct asymmetric_key_id *kid1,
-			    const struct asymmetric_key_id *kid2)
+							const struct asymmetric_key_id *kid2)
 {
 	if (!kid1 || !kid2)
+	{
 		return false;
+	}
+
 	if (kid1->len != kid2->len)
+	{
 		return false;
+	}
+
 	return memcmp(kid1->data, kid2->data, kid1->len) == 0;
 }
 EXPORT_SYMBOL_GPL(asymmetric_key_id_same);
@@ -171,14 +204,20 @@ EXPORT_SYMBOL_GPL(asymmetric_key_id_same);
  * @kid_1, @kid_2: The key IDs to compare
  */
 bool asymmetric_key_id_partial(const struct asymmetric_key_id *kid1,
-			       const struct asymmetric_key_id *kid2)
+							   const struct asymmetric_key_id *kid2)
 {
 	if (!kid1 || !kid2)
+	{
 		return false;
+	}
+
 	if (kid1->len < kid2->len)
+	{
 		return false;
+	}
+
 	return memcmp(kid1->data + (kid1->len - kid2->len),
-		      kid2->data, kid2->len) == 0;
+				  kid2->data, kid2->len) == 0;
 }
 EXPORT_SYMBOL_GPL(asymmetric_key_id_partial);
 
@@ -192,22 +231,28 @@ static bool asymmetric_match_key_ids(
 	const struct asymmetric_key_ids *kids,
 	const struct asymmetric_key_id *match_id,
 	bool (*match)(const struct asymmetric_key_id *kid1,
-		      const struct asymmetric_key_id *kid2))
+				  const struct asymmetric_key_id *kid2))
 {
 	int i;
 
 	if (!kids || !match_id)
+	{
 		return false;
+	}
+
 	for (i = 0; i < ARRAY_SIZE(kids->id); i++)
 		if (match(kids->id[i], match_id))
+		{
 			return true;
+		}
+
 	return false;
 }
 
 /* helper function can be called directly with pre-allocated memory */
 inline int __asymmetric_key_hex_to_key_id(const char *id,
-				   struct asymmetric_key_id *match_id,
-				   size_t hexlen)
+		struct asymmetric_key_id *match_id,
+		size_t hexlen)
 {
 	match_id->len = hexlen;
 	return hex2bin(match_id->data, id, hexlen);
@@ -224,20 +269,33 @@ struct asymmetric_key_id *asymmetric_key_hex_to_key_id(const char *id)
 	int ret;
 
 	if (!*id)
+	{
 		return ERR_PTR(-EINVAL);
+	}
+
 	asciihexlen = strlen(id);
+
 	if (asciihexlen & 1)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	match_id = kmalloc(sizeof(struct asymmetric_key_id) + asciihexlen / 2,
-			   GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!match_id)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	ret = __asymmetric_key_hex_to_key_id(id, match_id, asciihexlen / 2);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		kfree(match_id);
 		return ERR_PTR(-EINVAL);
 	}
+
 	return match_id;
 }
 
@@ -245,26 +303,26 @@ struct asymmetric_key_id *asymmetric_key_hex_to_key_id(const char *id)
  * Match asymmetric keys by an exact match on an ID.
  */
 static bool asymmetric_key_cmp(const struct key *key,
-			       const struct key_match_data *match_data)
+							   const struct key_match_data *match_data)
 {
 	const struct asymmetric_key_ids *kids = asymmetric_key_ids(key);
 	const struct asymmetric_key_id *match_id = match_data->preparsed;
 
 	return asymmetric_match_key_ids(kids, match_id,
-					asymmetric_key_id_same);
+									asymmetric_key_id_same);
 }
 
 /*
  * Match asymmetric keys by a partial match on an IDs.
  */
 static bool asymmetric_key_cmp_partial(const struct key *key,
-				       const struct key_match_data *match_data)
+									   const struct key_match_data *match_data)
 {
 	const struct asymmetric_key_ids *kids = asymmetric_key_ids(key);
 	const struct asymmetric_key_id *match_id = match_data->preparsed;
 
 	return asymmetric_match_key_ids(kids, match_id,
-					asymmetric_key_id_partial);
+									asymmetric_key_id_partial);
 }
 
 /*
@@ -289,23 +347,34 @@ static int asymmetric_key_match_preparse(struct key_match_data *match_data)
 		asymmetric_key_cmp;
 
 	if (!spec || !*spec)
+	{
 		return -EINVAL;
+	}
+
 	if (spec[0] == 'i' &&
-	    spec[1] == 'd' &&
-	    spec[2] == ':') {
+		spec[1] == 'd' &&
+		spec[2] == ':')
+	{
 		id = spec + 3;
 		cmp = asymmetric_key_cmp_partial;
-	} else if (spec[0] == 'e' &&
-		   spec[1] == 'x' &&
-		   spec[2] == ':') {
+	}
+	else if (spec[0] == 'e' &&
+			 spec[1] == 'x' &&
+			 spec[2] == ':')
+	{
 		id = spec + 3;
-	} else {
+	}
+	else
+	{
 		goto default_match;
 	}
 
 	match_id = asymmetric_key_hex_to_key_id(id);
+
 	if (IS_ERR(match_id))
+	{
 		return PTR_ERR(match_id);
+	}
 
 	match_data->preparsed = match_id;
 	match_data->cmp = cmp;
@@ -337,19 +406,24 @@ static void asymmetric_key_describe(const struct key *key, struct seq_file *m)
 
 	seq_puts(m, key->description);
 
-	if (subtype) {
+	if (subtype)
+	{
 		seq_puts(m, ": ");
 		subtype->describe(key, m);
 
-		if (kids && kids->id[1]) {
+		if (kids && kids->id[1])
+		{
 			kid = kids->id[1];
 			seq_putc(m, ' ');
 			n = kid->len;
 			p = kid->data;
-			if (n > 4) {
+
+			if (n > 4)
+			{
 				p += n - 4;
 				n = 4;
 			}
+
 			seq_printf(m, "%*phN", n, p);
 		}
 
@@ -374,18 +448,23 @@ static int asymmetric_key_preparse(struct key_preparsed_payload *prep)
 	pr_devel("==>%s()\n", __func__);
 
 	if (prep->datalen == 0)
+	{
 		return -EINVAL;
+	}
 
 	down_read(&asymmetric_key_parsers_sem);
 
 	ret = -EBADMSG;
-	list_for_each_entry(parser, &asymmetric_key_parsers, link) {
+	list_for_each_entry(parser, &asymmetric_key_parsers, link)
+	{
 		pr_debug("Trying parser '%s'\n", parser->name);
 
 		ret = parser->parse(prep);
-		if (ret != -EBADMSG) {
+
+		if (ret != -EBADMSG)
+		{
 			pr_debug("Parser recognised the format (ret %d)\n",
-				 ret);
+					 ret);
 			break;
 		}
 	}
@@ -402,9 +481,13 @@ static void asymmetric_key_free_kids(struct asymmetric_key_ids *kids)
 {
 	int i;
 
-	if (kids) {
+	if (kids)
+	{
 		for (i = 0; i < ARRAY_SIZE(kids->id); i++)
+		{
 			kfree(kids->id[i]);
+		}
+
 		kfree(kids);
 	}
 }
@@ -419,11 +502,13 @@ static void asymmetric_key_free_preparse(struct key_preparsed_payload *prep)
 
 	pr_devel("==>%s()\n", __func__);
 
-	if (subtype) {
+	if (subtype)
+	{
 		subtype->destroy(prep->payload.data[asym_crypto],
-				 prep->payload.data[asym_auth]);
+						 prep->payload.data[asym_auth]);
 		module_put(subtype->owner);
 	}
+
 	asymmetric_key_free_kids(kids);
 	kfree(prep->description);
 }
@@ -443,7 +528,8 @@ static void asymmetric_key_destroy(struct key *key)
 	key->payload.data[asym_key_ids] = NULL;
 	key->payload.data[asym_auth] = NULL;
 
-	if (subtype) {
+	if (subtype)
+	{
 		subtype->destroy(data, auth);
 		module_put(subtype->owner);
 	}
@@ -451,7 +537,8 @@ static void asymmetric_key_destroy(struct key *key)
 	asymmetric_key_free_kids(kids);
 }
 
-struct key_type key_type_asymmetric = {
+struct key_type key_type_asymmetric =
+{
 	.name		= "asymmetric",
 	.preparse	= asymmetric_key_preparse,
 	.free_preparse	= asymmetric_key_free_preparse,
@@ -474,10 +561,12 @@ int register_asymmetric_key_parser(struct asymmetric_key_parser *parser)
 
 	down_write(&asymmetric_key_parsers_sem);
 
-	list_for_each_entry(cursor, &asymmetric_key_parsers, link) {
-		if (strcmp(cursor->name, parser->name) == 0) {
+	list_for_each_entry(cursor, &asymmetric_key_parsers, link)
+	{
+		if (strcmp(cursor->name, parser->name) == 0)
+		{
 			pr_err("Asymmetric key parser '%s' already registered\n",
-			       parser->name);
+				   parser->name);
 			ret = -EEXIST;
 			goto out;
 		}

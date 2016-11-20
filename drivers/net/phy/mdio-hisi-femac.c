@@ -32,7 +32,8 @@
 #define BIT_PHY_ADDR_OFFSET	8
 #define BIT_WR_DATA_OFFSET	16
 
-struct hisi_femac_mdio_data {
+struct hisi_femac_mdio_data
+{
 	struct clk *clk;
 	void __iomem *membase;
 };
@@ -42,7 +43,7 @@ static int hisi_femac_mdio_wait_ready(struct hisi_femac_mdio_data *data)
 	u32 val;
 
 	return readl_poll_timeout(data->membase + MDIO_RWCTRL,
-				  val, val & MDIO_RW_FINISH, 20, 10000);
+							  val, val & MDIO_RW_FINISH, 20, 10000);
 }
 
 static int hisi_femac_mdio_read(struct mii_bus *bus, int mii_id, int regnum)
@@ -51,32 +52,41 @@ static int hisi_femac_mdio_read(struct mii_bus *bus, int mii_id, int regnum)
 	int ret;
 
 	ret = hisi_femac_mdio_wait_ready(data);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	writel((mii_id << BIT_PHY_ADDR_OFFSET) | regnum,
-	       data->membase + MDIO_RWCTRL);
+		   data->membase + MDIO_RWCTRL);
 
 	ret = hisi_femac_mdio_wait_ready(data);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return readl(data->membase + MDIO_RO_DATA) & 0xFFFF;
 }
 
 static int hisi_femac_mdio_write(struct mii_bus *bus, int mii_id, int regnum,
-				 u16 value)
+								 u16 value)
 {
 	struct hisi_femac_mdio_data *data = bus->priv;
 	int ret;
 
 	ret = hisi_femac_mdio_wait_ready(data);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	writel(MDIO_WRITE | (value << BIT_WR_DATA_OFFSET) |
-	       (mii_id << BIT_PHY_ADDR_OFFSET) | regnum,
-	       data->membase + MDIO_RWCTRL);
+		   (mii_id << BIT_PHY_ADDR_OFFSET) | regnum,
+		   data->membase + MDIO_RWCTRL);
 
 	return hisi_femac_mdio_wait_ready(data);
 }
@@ -90,8 +100,11 @@ static int hisi_femac_mdio_probe(struct platform_device *pdev)
 	int ret;
 
 	bus = mdiobus_alloc_size(sizeof(*data));
+
 	if (!bus)
+	{
 		return -ENOMEM;
+	}
 
 	bus->name = "hisi_femac_mii_bus";
 	bus->read = &hisi_femac_mdio_read;
@@ -102,24 +115,34 @@ static int hisi_femac_mdio_probe(struct platform_device *pdev)
 	data = bus->priv;
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	data->membase = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(data->membase)) {
+
+	if (IS_ERR(data->membase))
+	{
 		ret = PTR_ERR(data->membase);
 		goto err_out_free_mdiobus;
 	}
 
 	data->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(data->clk)) {
+
+	if (IS_ERR(data->clk))
+	{
 		ret = PTR_ERR(data->clk);
 		goto err_out_free_mdiobus;
 	}
 
 	ret = clk_prepare_enable(data->clk);
+
 	if (ret)
+	{
 		goto err_out_free_mdiobus;
+	}
 
 	ret = of_mdiobus_register(bus, np);
+
 	if (ret)
+	{
 		goto err_out_disable_clk;
+	}
 
 	platform_set_drvdata(pdev, bus);
 
@@ -144,13 +167,15 @@ static int hisi_femac_mdio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id hisi_femac_mdio_dt_ids[] = {
+static const struct of_device_id hisi_femac_mdio_dt_ids[] =
+{
 	{ .compatible = "hisilicon,hisi-femac-mdio" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, hisi_femac_mdio_dt_ids);
 
-static struct platform_driver hisi_femac_mdio_driver = {
+static struct platform_driver hisi_femac_mdio_driver =
+{
 	.probe = hisi_femac_mdio_probe,
 	.remove = hisi_femac_mdio_remove,
 	.driver = {

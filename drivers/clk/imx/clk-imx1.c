@@ -33,7 +33,8 @@
 
 static const char *prem_sel_clks[] = { "clk32_premult", "clk16m", };
 static const char *clko_sel_clks[] = { "per1", "hclk", "clk48m", "clk16m",
-				       "prem", "fclk", };
+									   "prem", "fclk",
+									 };
 
 static struct clk *clk[IMX1_CLK_MAX];
 static struct clk_onecell_data clk_data;

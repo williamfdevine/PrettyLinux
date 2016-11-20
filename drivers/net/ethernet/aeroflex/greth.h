@@ -78,7 +78,8 @@
 #define MAX_FRAME_SIZE		1520
 
 /* GRETH APB registers */
-struct greth_regs {
+struct greth_regs
+{
 	u32 control;
 	u32 status;
 	u32 esa_msb;
@@ -92,12 +93,14 @@ struct greth_regs {
 };
 
 /* GRETH buffer descriptor */
-struct greth_bd {
+struct greth_bd
+{
 	u32 stat;
 	u32 addr;
 };
 
-struct greth_private {
+struct greth_private
+{
 	struct sk_buff *rx_skbuff[GRETH_RXBD_NUM];
 	struct sk_buff *tx_skbuff[GRETH_TXBD_NUM];
 

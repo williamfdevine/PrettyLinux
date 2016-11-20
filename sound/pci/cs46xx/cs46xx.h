@@ -68,7 +68,7 @@
 #define BA0_CLKCR2                              0x00000404
 #define BA0_PLLM                                0x00000408
 #define BA0_PLLCC                               0x0000040C
-#define BA0_FRR                                 0x00000410 
+#define BA0_FRR                                 0x00000410
 #define BA0_CFL1                                0x00000414
 #define BA0_CFL2                                0x00000418
 #define BA0_SERMC1                              0x00000420
@@ -86,7 +86,7 @@
 #define BA0_SERBWP                              0x00000450
 #define BA0_SERBRP                              0x00000454
 #ifndef NO_CS4612
-#define BA0_ASER_FADDR                          0x00000458
+	#define BA0_ASER_FADDR                          0x00000458
 #endif
 #define BA0_ACCTL                               0x00000460
 #define BA0_ACSTS                               0x00000464
@@ -106,59 +106,59 @@
 #define BA0_MIDRP                               0x0000049C
 #define BA0_JSIO                                0x000004A0
 #ifndef NO_CS4612
-#define BA0_ASER_MASTER                         0x000004A4
+	#define BA0_ASER_MASTER                         0x000004A4
 #endif
 #define BA0_CFGI                                0x000004B0
 #define BA0_SSVID                               0x000004B4
 #define BA0_GPIOR                               0x000004B8
 #ifndef NO_CS4612
-#define BA0_EGPIODR                             0x000004BC
-#define BA0_EGPIOPTR                            0x000004C0
-#define BA0_EGPIOTR                             0x000004C4
-#define BA0_EGPIOWR                             0x000004C8
-#define BA0_EGPIOSR                             0x000004CC
-#define BA0_SERC6                               0x000004D0
-#define BA0_SERC7                               0x000004D4
-#define BA0_SERACC                              0x000004D8
-#define BA0_ACCTL2                              0x000004E0
-#define BA0_ACSTS2                              0x000004E4
-#define BA0_ACOSV2                              0x000004E8
-#define BA0_ACCAD2                              0x000004EC
-#define BA0_ACCDA2                              0x000004F0
-#define BA0_ACISV2                              0x000004F4
-#define BA0_ACSAD2                              0x000004F8
-#define BA0_ACSDA2                              0x000004FC
-#define BA0_IOTAC0                              0x00000500
-#define BA0_IOTAC1                              0x00000504
-#define BA0_IOTAC2                              0x00000508
-#define BA0_IOTAC3                              0x0000050C
-#define BA0_IOTAC4                              0x00000510
-#define BA0_IOTAC5                              0x00000514
-#define BA0_IOTAC6                              0x00000518
-#define BA0_IOTAC7                              0x0000051C
-#define BA0_IOTAC8                              0x00000520
-#define BA0_IOTAC9                              0x00000524
-#define BA0_IOTAC10                             0x00000528
-#define BA0_IOTAC11                             0x0000052C
-#define BA0_IOTFR0                              0x00000540
-#define BA0_IOTFR1                              0x00000544
-#define BA0_IOTFR2                              0x00000548
-#define BA0_IOTFR3                              0x0000054C
-#define BA0_IOTFR4                              0x00000550
-#define BA0_IOTFR5                              0x00000554
-#define BA0_IOTFR6                              0x00000558
-#define BA0_IOTFR7                              0x0000055C
-#define BA0_IOTFIFO                             0x00000580
-#define BA0_IOTRRD                              0x00000584
-#define BA0_IOTFP                               0x00000588
-#define BA0_IOTCR                               0x0000058C
-#define BA0_DPCID                               0x00000590
-#define BA0_DPCIA                               0x00000594
-#define BA0_DPCIC                               0x00000598
-#define BA0_PCPCIR                              0x00000600
-#define BA0_PCPCIG                              0x00000604
-#define BA0_PCPCIEN                             0x00000608
-#define BA0_EPCIPMC                             0x00000610
+	#define BA0_EGPIODR                             0x000004BC
+	#define BA0_EGPIOPTR                            0x000004C0
+	#define BA0_EGPIOTR                             0x000004C4
+	#define BA0_EGPIOWR                             0x000004C8
+	#define BA0_EGPIOSR                             0x000004CC
+	#define BA0_SERC6                               0x000004D0
+	#define BA0_SERC7                               0x000004D4
+	#define BA0_SERACC                              0x000004D8
+	#define BA0_ACCTL2                              0x000004E0
+	#define BA0_ACSTS2                              0x000004E4
+	#define BA0_ACOSV2                              0x000004E8
+	#define BA0_ACCAD2                              0x000004EC
+	#define BA0_ACCDA2                              0x000004F0
+	#define BA0_ACISV2                              0x000004F4
+	#define BA0_ACSAD2                              0x000004F8
+	#define BA0_ACSDA2                              0x000004FC
+	#define BA0_IOTAC0                              0x00000500
+	#define BA0_IOTAC1                              0x00000504
+	#define BA0_IOTAC2                              0x00000508
+	#define BA0_IOTAC3                              0x0000050C
+	#define BA0_IOTAC4                              0x00000510
+	#define BA0_IOTAC5                              0x00000514
+	#define BA0_IOTAC6                              0x00000518
+	#define BA0_IOTAC7                              0x0000051C
+	#define BA0_IOTAC8                              0x00000520
+	#define BA0_IOTAC9                              0x00000524
+	#define BA0_IOTAC10                             0x00000528
+	#define BA0_IOTAC11                             0x0000052C
+	#define BA0_IOTFR0                              0x00000540
+	#define BA0_IOTFR1                              0x00000544
+	#define BA0_IOTFR2                              0x00000548
+	#define BA0_IOTFR3                              0x0000054C
+	#define BA0_IOTFR4                              0x00000550
+	#define BA0_IOTFR5                              0x00000554
+	#define BA0_IOTFR6                              0x00000558
+	#define BA0_IOTFR7                              0x0000055C
+	#define BA0_IOTFIFO                             0x00000580
+	#define BA0_IOTRRD                              0x00000584
+	#define BA0_IOTFP                               0x00000588
+	#define BA0_IOTCR                               0x0000058C
+	#define BA0_DPCID                               0x00000590
+	#define BA0_DPCIA                               0x00000594
+	#define BA0_DPCIC                               0x00000598
+	#define BA0_PCPCIR                              0x00000600
+	#define BA0_PCPCIG                              0x00000604
+	#define BA0_PCPCIEN                             0x00000608
+	#define BA0_EPCIPMC                             0x00000610
 #endif
 
 /*
@@ -211,10 +211,10 @@
 #define HISR_FROVR                              0x00080000
 #define HISR_MIDI                               0x00100000
 #ifdef NO_CS4612
-#define HISR_RESERVED                           0x0FE00000
+	#define HISR_RESERVED                           0x0FE00000
 #else
-#define HISR_SBINT                              0x00200000
-#define HISR_RESERVED                           0x0FC00000
+	#define HISR_SBINT                              0x00200000
+	#define HISR_RESERVED                           0x0FC00000
 #endif
 #define HISR_H0P                                0x40000000
 #define HISR_INTENA                             0x80000000
@@ -418,41 +418,41 @@
  */
 #define PLLCC_CDR_MASK                          0x00000007
 #ifndef NO_CS4610
-#define PLLCC_CDR_240_350_MHZ                   0x00000000
-#define PLLCC_CDR_184_265_MHZ                   0x00000001
-#define PLLCC_CDR_144_205_MHZ                   0x00000002
-#define PLLCC_CDR_111_160_MHZ                   0x00000003
-#define PLLCC_CDR_87_123_MHZ                    0x00000004
-#define PLLCC_CDR_67_96_MHZ                     0x00000005
-#define PLLCC_CDR_52_74_MHZ                     0x00000006
-#define PLLCC_CDR_45_58_MHZ                     0x00000007
+	#define PLLCC_CDR_240_350_MHZ                   0x00000000
+	#define PLLCC_CDR_184_265_MHZ                   0x00000001
+	#define PLLCC_CDR_144_205_MHZ                   0x00000002
+	#define PLLCC_CDR_111_160_MHZ                   0x00000003
+	#define PLLCC_CDR_87_123_MHZ                    0x00000004
+	#define PLLCC_CDR_67_96_MHZ                     0x00000005
+	#define PLLCC_CDR_52_74_MHZ                     0x00000006
+	#define PLLCC_CDR_45_58_MHZ                     0x00000007
 #endif
 #ifndef NO_CS4612
-#define PLLCC_CDR_271_398_MHZ                   0x00000000
-#define PLLCC_CDR_227_330_MHZ                   0x00000001
-#define PLLCC_CDR_167_239_MHZ                   0x00000002
-#define PLLCC_CDR_150_215_MHZ                   0x00000003
-#define PLLCC_CDR_107_154_MHZ                   0x00000004
-#define PLLCC_CDR_98_140_MHZ                    0x00000005
-#define PLLCC_CDR_73_104_MHZ                    0x00000006
-#define PLLCC_CDR_63_90_MHZ                     0x00000007
+	#define PLLCC_CDR_271_398_MHZ                   0x00000000
+	#define PLLCC_CDR_227_330_MHZ                   0x00000001
+	#define PLLCC_CDR_167_239_MHZ                   0x00000002
+	#define PLLCC_CDR_150_215_MHZ                   0x00000003
+	#define PLLCC_CDR_107_154_MHZ                   0x00000004
+	#define PLLCC_CDR_98_140_MHZ                    0x00000005
+	#define PLLCC_CDR_73_104_MHZ                    0x00000006
+	#define PLLCC_CDR_63_90_MHZ                     0x00000007
 #endif
 #define PLLCC_LPF_MASK                          0x000000F8
 #ifndef NO_CS4610
-#define PLLCC_LPF_23850_60000_KHZ               0x00000000
-#define PLLCC_LPF_7960_26290_KHZ                0x00000008
-#define PLLCC_LPF_4160_10980_KHZ                0x00000018
-#define PLLCC_LPF_1740_4580_KHZ                 0x00000038
-#define PLLCC_LPF_724_1910_KHZ                  0x00000078
-#define PLLCC_LPF_317_798_KHZ                   0x000000F8
+	#define PLLCC_LPF_23850_60000_KHZ               0x00000000
+	#define PLLCC_LPF_7960_26290_KHZ                0x00000008
+	#define PLLCC_LPF_4160_10980_KHZ                0x00000018
+	#define PLLCC_LPF_1740_4580_KHZ                 0x00000038
+	#define PLLCC_LPF_724_1910_KHZ                  0x00000078
+	#define PLLCC_LPF_317_798_KHZ                   0x000000F8
 #endif
 #ifndef NO_CS4612
-#define PLLCC_LPF_25580_64530_KHZ               0x00000000
-#define PLLCC_LPF_14360_37270_KHZ               0x00000008
-#define PLLCC_LPF_6100_16020_KHZ                0x00000018
-#define PLLCC_LPF_2540_6690_KHZ                 0x00000038
-#define PLLCC_LPF_1050_2780_KHZ                 0x00000078
-#define PLLCC_LPF_450_1160_KHZ                  0x000000F8
+	#define PLLCC_LPF_25580_64530_KHZ               0x00000000
+	#define PLLCC_LPF_14360_37270_KHZ               0x00000008
+	#define PLLCC_LPF_6100_16020_KHZ                0x00000018
+	#define PLLCC_LPF_2540_6690_KHZ                 0x00000038
+	#define PLLCC_LPF_1050_2780_KHZ                 0x00000078
+	#define PLLCC_LPF_450_1160_KHZ                  0x000000F8
 #endif
 
 /*
@@ -461,15 +461,15 @@
 #define FRR_FAB_MASK                            0x00000003
 #define FRR_MASK_MASK                           0x0000001C
 #ifdef NO_CS4612
-#define FRR_CFOP_MASK                           0x000000E0
+	#define FRR_CFOP_MASK                           0x000000E0
 #else
-#define FRR_CFOP_MASK                           0x00000FE0
+	#define FRR_CFOP_MASK                           0x00000FE0
 #endif
 #define FRR_CFOP_NOT_DVD                        0x00000020
 #define FRR_CFOP_A3D                            0x00000040
 #define FRR_CFOP_128_PIN                        0x00000080
 #ifndef NO_CS4612
-#define FRR_CFOP_CS4280                         0x00000800
+	#define FRR_CFOP_CS4280                         0x00000800
 #endif
 #define FRR_FAB_SHIFT                           0
 #define FRR_MASK_SHIFT                          2
@@ -587,9 +587,9 @@
  *  register.
  */
 #ifdef NO_CS4612
-#define SERBAD_FAD_MASK                         0x000000FF
+	#define SERBAD_FAD_MASK                         0x000000FF
 #else
-#define SERBAD_FAD_MASK                         0x000001FF
+	#define SERBAD_FAD_MASK                         0x000001FF
 #endif
 #define SERBAD_FAD_SHIFT                        0
 
@@ -617,12 +617,12 @@
  *  The following defines are for the flags in the async FIFO address register.
  */
 #ifndef NO_CS4612
-#define ASER_FADDR_A1_MASK                      0x000001FF
-#define ASER_FADDR_EN1                          0x00008000
-#define ASER_FADDR_A2_MASK                      0x01FF0000
-#define ASER_FADDR_EN2                          0x80000000
-#define ASER_FADDR_A1_SHIFT                     0
-#define ASER_FADDR_A2_SHIFT                     16
+	#define ASER_FADDR_A1_MASK                      0x000001FF
+	#define ASER_FADDR_EN1                          0x00008000
+	#define ASER_FADDR_A2_MASK                      0x01FF0000
+	#define ASER_FADDR_EN2                          0x80000000
+	#define ASER_FADDR_A1_SHIFT                     0
+	#define ASER_FADDR_A2_SHIFT                     16
 #endif
 
 /*
@@ -635,7 +635,7 @@
 #define ACCTL_CRW                               0x00000010
 #define ACCTL_ASYN                              0x00000020
 #ifndef NO_CS4612
-#define ACCTL_TC                                0x00000040
+	#define ACCTL_TC                                0x00000040
 #endif
 
 /*
@@ -644,7 +644,7 @@
 #define ACSTS_CRDY                              0x00000001
 #define ACSTS_VSTS                              0x00000002
 #ifndef NO_CS4612
-#define ACSTS_WKUP                              0x00000004
+	#define ACSTS_WKUP                              0x00000004
 #endif
 
 /*
@@ -789,7 +789,7 @@
  *  port enable register.
  */
 #ifndef NO_CS4612
-#define ASER_MASTER_ME                          0x00000001
+	#define ASER_MASTER_ME                          0x00000001
 #endif
 
 /*
@@ -823,15 +823,15 @@
  *  register.
  */
 #ifndef NO_CS4612
-#define EGPIODR_GPOE0                           0x00000001
-#define EGPIODR_GPOE1                           0x00000002
-#define EGPIODR_GPOE2                           0x00000004
-#define EGPIODR_GPOE3                           0x00000008
-#define EGPIODR_GPOE4                           0x00000010
-#define EGPIODR_GPOE5                           0x00000020
-#define EGPIODR_GPOE6                           0x00000040
-#define EGPIODR_GPOE7                           0x00000080
-#define EGPIODR_GPOE8                           0x00000100
+	#define EGPIODR_GPOE0                           0x00000001
+	#define EGPIODR_GPOE1                           0x00000002
+	#define EGPIODR_GPOE2                           0x00000004
+	#define EGPIODR_GPOE3                           0x00000008
+	#define EGPIODR_GPOE4                           0x00000010
+	#define EGPIODR_GPOE5                           0x00000020
+	#define EGPIODR_GPOE6                           0x00000040
+	#define EGPIODR_GPOE7                           0x00000080
+	#define EGPIODR_GPOE8                           0x00000100
 #endif
 
 /*
@@ -839,15 +839,15 @@
  *  type register.
  */
 #ifndef NO_CS4612
-#define EGPIOPTR_GPPT0                          0x00000001
-#define EGPIOPTR_GPPT1                          0x00000002
-#define EGPIOPTR_GPPT2                          0x00000004
-#define EGPIOPTR_GPPT3                          0x00000008
-#define EGPIOPTR_GPPT4                          0x00000010
-#define EGPIOPTR_GPPT5                          0x00000020
-#define EGPIOPTR_GPPT6                          0x00000040
-#define EGPIOPTR_GPPT7                          0x00000080
-#define EGPIOPTR_GPPT8                          0x00000100
+	#define EGPIOPTR_GPPT0                          0x00000001
+	#define EGPIOPTR_GPPT1                          0x00000002
+	#define EGPIOPTR_GPPT2                          0x00000004
+	#define EGPIOPTR_GPPT3                          0x00000008
+	#define EGPIOPTR_GPPT4                          0x00000010
+	#define EGPIOPTR_GPPT5                          0x00000020
+	#define EGPIOPTR_GPPT6                          0x00000040
+	#define EGPIOPTR_GPPT7                          0x00000080
+	#define EGPIOPTR_GPPT8                          0x00000100
 #endif
 
 /*
@@ -855,15 +855,15 @@
  *  register.
  */
 #ifndef NO_CS4612
-#define EGPIOTR_GPS0                            0x00000001
-#define EGPIOTR_GPS1                            0x00000002
-#define EGPIOTR_GPS2                            0x00000004
-#define EGPIOTR_GPS3                            0x00000008
-#define EGPIOTR_GPS4                            0x00000010
-#define EGPIOTR_GPS5                            0x00000020
-#define EGPIOTR_GPS6                            0x00000040
-#define EGPIOTR_GPS7                            0x00000080
-#define EGPIOTR_GPS8                            0x00000100
+	#define EGPIOTR_GPS0                            0x00000001
+	#define EGPIOTR_GPS1                            0x00000002
+	#define EGPIOTR_GPS2                            0x00000004
+	#define EGPIOTR_GPS3                            0x00000008
+	#define EGPIOTR_GPS4                            0x00000010
+	#define EGPIOTR_GPS5                            0x00000020
+	#define EGPIOTR_GPS6                            0x00000040
+	#define EGPIOTR_GPS7                            0x00000080
+	#define EGPIOTR_GPS8                            0x00000100
 #endif
 
 /*
@@ -871,15 +871,15 @@
  *  register.
  */
 #ifndef NO_CS4612
-#define EGPIOWR_GPW0                            0x00000001
-#define EGPIOWR_GPW1                            0x00000002
-#define EGPIOWR_GPW2                            0x00000004
-#define EGPIOWR_GPW3                            0x00000008
-#define EGPIOWR_GPW4                            0x00000010
-#define EGPIOWR_GPW5                            0x00000020
-#define EGPIOWR_GPW6                            0x00000040
-#define EGPIOWR_GPW7                            0x00000080
-#define EGPIOWR_GPW8                            0x00000100
+	#define EGPIOWR_GPW0                            0x00000001
+	#define EGPIOWR_GPW1                            0x00000002
+	#define EGPIOWR_GPW2                            0x00000004
+	#define EGPIOWR_GPW3                            0x00000008
+	#define EGPIOWR_GPW4                            0x00000010
+	#define EGPIOWR_GPW5                            0x00000020
+	#define EGPIOWR_GPW6                            0x00000040
+	#define EGPIOWR_GPW7                            0x00000080
+	#define EGPIOWR_GPW8                            0x00000100
 #endif
 
 /*
@@ -887,15 +887,15 @@
  *  register.
  */
 #ifndef NO_CS4612
-#define EGPIOSR_GPS0                            0x00000001
-#define EGPIOSR_GPS1                            0x00000002
-#define EGPIOSR_GPS2                            0x00000004
-#define EGPIOSR_GPS3                            0x00000008
-#define EGPIOSR_GPS4                            0x00000010
-#define EGPIOSR_GPS5                            0x00000020
-#define EGPIOSR_GPS6                            0x00000040
-#define EGPIOSR_GPS7                            0x00000080
-#define EGPIOSR_GPS8                            0x00000100
+	#define EGPIOSR_GPS0                            0x00000001
+	#define EGPIOSR_GPS1                            0x00000002
+	#define EGPIOSR_GPS2                            0x00000004
+	#define EGPIOSR_GPS3                            0x00000008
+	#define EGPIOSR_GPS4                            0x00000010
+	#define EGPIOSR_GPS5                            0x00000020
+	#define EGPIOSR_GPS6                            0x00000040
+	#define EGPIOSR_GPS7                            0x00000080
+	#define EGPIOSR_GPS8                            0x00000100
 #endif
 
 /*
@@ -903,7 +903,7 @@
  *  register.
  */
 #ifndef NO_CS4612
-#define SERC6_ASDO2EN                           0x00000001
+	#define SERC6_ASDO2EN                           0x00000001
 #endif
 
 /*
@@ -911,11 +911,11 @@
  *  register.
  */
 #ifndef NO_CS4612
-#define SERC7_ASDI2EN                           0x00000001
-#define SERC7_POSILB                            0x00000002
-#define SERC7_SIPOLB                            0x00000004
-#define SERC7_SOSILB                            0x00000008
-#define SERC7_SISOLB                            0x00000010
+	#define SERC7_ASDI2EN                           0x00000001
+	#define SERC7_POSILB                            0x00000002
+	#define SERC7_SIPOLB                            0x00000004
+	#define SERC7_SOSILB                            0x00000008
+	#define SERC7_SISOLB                            0x00000010
 #endif
 
 /*
@@ -923,33 +923,33 @@
  *  configuration register.
  */
 #ifndef NO_CS4612
-#define SERACC_CHIP_TYPE_MASK                  0x00000001
-#define SERACC_CHIP_TYPE_1_03                  0x00000000
-#define SERACC_CHIP_TYPE_2_0                   0x00000001
-#define SERACC_TWO_CODECS                      0x00000002
-#define SERACC_MDM                             0x00000004
-#define SERACC_HSP                             0x00000008
-#define SERACC_ODT                             0x00000010 /* only CS4630 */
+	#define SERACC_CHIP_TYPE_MASK                  0x00000001
+	#define SERACC_CHIP_TYPE_1_03                  0x00000000
+	#define SERACC_CHIP_TYPE_2_0                   0x00000001
+	#define SERACC_TWO_CODECS                      0x00000002
+	#define SERACC_MDM                             0x00000004
+	#define SERACC_HSP                             0x00000008
+	#define SERACC_ODT                             0x00000010 /* only CS4630 */
 #endif
 
 /*
  *  The following defines are for the flags in the AC97 control register 2.
  */
 #ifndef NO_CS4612
-#define ACCTL2_RSTN                             0x00000001
-#define ACCTL2_ESYN                             0x00000002
-#define ACCTL2_VFRM                             0x00000004
-#define ACCTL2_DCV                              0x00000008
-#define ACCTL2_CRW                              0x00000010
-#define ACCTL2_ASYN                             0x00000020
+	#define ACCTL2_RSTN                             0x00000001
+	#define ACCTL2_ESYN                             0x00000002
+	#define ACCTL2_VFRM                             0x00000004
+	#define ACCTL2_DCV                              0x00000008
+	#define ACCTL2_CRW                              0x00000010
+	#define ACCTL2_ASYN                             0x00000020
 #endif
 
 /*
  *  The following defines are for the flags in the AC97 status register 2.
  */
 #ifndef NO_CS4612
-#define ACSTS2_CRDY                             0x00000001
-#define ACSTS2_VSTS                             0x00000002
+	#define ACSTS2_CRDY                             0x00000001
+	#define ACSTS2_VSTS                             0x00000002
 #endif
 
 /*
@@ -957,16 +957,16 @@
  *  register 2.
  */
 #ifndef NO_CS4612
-#define ACOSV2_SLV3                             0x00000001
-#define ACOSV2_SLV4                             0x00000002
-#define ACOSV2_SLV5                             0x00000004
-#define ACOSV2_SLV6                             0x00000008
-#define ACOSV2_SLV7                             0x00000010
-#define ACOSV2_SLV8                             0x00000020
-#define ACOSV2_SLV9                             0x00000040
-#define ACOSV2_SLV10                            0x00000080
-#define ACOSV2_SLV11                            0x00000100
-#define ACOSV2_SLV12                            0x00000200
+	#define ACOSV2_SLV3                             0x00000001
+	#define ACOSV2_SLV4                             0x00000002
+	#define ACOSV2_SLV5                             0x00000004
+	#define ACOSV2_SLV6                             0x00000008
+	#define ACOSV2_SLV7                             0x00000010
+	#define ACOSV2_SLV8                             0x00000020
+	#define ACOSV2_SLV9                             0x00000040
+	#define ACOSV2_SLV10                            0x00000080
+	#define ACOSV2_SLV11                            0x00000100
+	#define ACOSV2_SLV12                            0x00000200
 #endif
 
 /*
@@ -974,8 +974,8 @@
  *  register 2.
  */
 #ifndef NO_CS4612
-#define ACCAD2_CI_MASK                          0x0000007F
-#define ACCAD2_CI_SHIFT                         0
+	#define ACCAD2_CI_MASK                          0x0000007F
+	#define ACCAD2_CI_SHIFT                         0
 #endif
 
 /*
@@ -983,8 +983,8 @@
  *  2.
  */
 #ifndef NO_CS4612
-#define ACCDA2_CD_MASK                          0x0000FFFF
-#define ACCDA2_CD_SHIFT                         0  
+	#define ACCDA2_CD_MASK                          0x0000FFFF
+	#define ACCDA2_CD_SHIFT                         0
 #endif
 
 /*
@@ -992,16 +992,16 @@
  *  register 2.
  */
 #ifndef NO_CS4612
-#define ACISV2_ISV3                             0x00000001
-#define ACISV2_ISV4                             0x00000002
-#define ACISV2_ISV5                             0x00000004
-#define ACISV2_ISV6                             0x00000008
-#define ACISV2_ISV7                             0x00000010
-#define ACISV2_ISV8                             0x00000020
-#define ACISV2_ISV9                             0x00000040
-#define ACISV2_ISV10                            0x00000080
-#define ACISV2_ISV11                            0x00000100
-#define ACISV2_ISV12                            0x00000200
+	#define ACISV2_ISV3                             0x00000001
+	#define ACISV2_ISV4                             0x00000002
+	#define ACISV2_ISV5                             0x00000004
+	#define ACISV2_ISV6                             0x00000008
+	#define ACISV2_ISV7                             0x00000010
+	#define ACISV2_ISV8                             0x00000020
+	#define ACISV2_ISV9                             0x00000040
+	#define ACISV2_ISV10                            0x00000080
+	#define ACISV2_ISV11                            0x00000100
+	#define ACISV2_ISV12                            0x00000200
 #endif
 
 /*
@@ -1009,16 +1009,16 @@
  *  register 2.
  */
 #ifndef NO_CS4612
-#define ACSAD2_SI_MASK                          0x0000007F
-#define ACSAD2_SI_SHIFT                         0
+	#define ACSAD2_SI_MASK                          0x0000007F
+	#define ACSAD2_SI_SHIFT                         0
 #endif
 
 /*
  *  The following defines are for the flags in the AC97 status data register 2.
  */
 #ifndef NO_CS4612
-#define ACSDA2_SD_MASK                          0x0000FFFF
-#define ACSDA2_SD_SHIFT                         0
+	#define ACSDA2_SD_MASK                          0x0000FFFF
+	#define ACSDA2_SD_SHIFT                         0
 #endif
 
 /*
@@ -1026,19 +1026,19 @@
  *  registers (all 12).
  */
 #ifndef NO_CS4612
-#define IOTAC_SA_MASK                           0x0000FFFF
-#define IOTAC_MSK_MASK                          0x000F0000
-#define IOTAC_IODC_MASK                         0x06000000
-#define IOTAC_IODC_16_BIT                       0x00000000
-#define IOTAC_IODC_10_BIT                       0x02000000
-#define IOTAC_IODC_12_BIT                       0x04000000
-#define IOTAC_WSPI                              0x08000000
-#define IOTAC_RSPI                              0x10000000
-#define IOTAC_WSE                               0x20000000
-#define IOTAC_WE                                0x40000000
-#define IOTAC_RE                                0x80000000
-#define IOTAC_SA_SHIFT                          0
-#define IOTAC_MSK_SHIFT                         16
+	#define IOTAC_SA_MASK                           0x0000FFFF
+	#define IOTAC_MSK_MASK                          0x000F0000
+	#define IOTAC_IODC_MASK                         0x06000000
+	#define IOTAC_IODC_16_BIT                       0x00000000
+	#define IOTAC_IODC_10_BIT                       0x02000000
+	#define IOTAC_IODC_12_BIT                       0x04000000
+	#define IOTAC_WSPI                              0x08000000
+	#define IOTAC_RSPI                              0x10000000
+	#define IOTAC_WSE                               0x20000000
+	#define IOTAC_WE                                0x40000000
+	#define IOTAC_RE                                0x80000000
+	#define IOTAC_SA_SHIFT                          0
+	#define IOTAC_MSK_SHIFT                         16
 #endif
 
 /*
@@ -1046,26 +1046,26 @@
  *  (all 8).
  */
 #ifndef NO_CS4612
-#define IOTFR_D_MASK                            0x0000FFFF
-#define IOTFR_A_MASK                            0x000F0000
-#define IOTFR_R_MASK                            0x0F000000
-#define IOTFR_ALL                               0x40000000
-#define IOTFR_VL                                0x80000000
-#define IOTFR_D_SHIFT                           0
-#define IOTFR_A_SHIFT                           16
-#define IOTFR_R_SHIFT                           24
+	#define IOTFR_D_MASK                            0x0000FFFF
+	#define IOTFR_A_MASK                            0x000F0000
+	#define IOTFR_R_MASK                            0x0F000000
+	#define IOTFR_ALL                               0x40000000
+	#define IOTFR_VL                                0x80000000
+	#define IOTFR_D_SHIFT                           0
+	#define IOTFR_A_SHIFT                           16
+	#define IOTFR_R_SHIFT                           24
 #endif
 
 /*
  *  The following defines are for the flags in the I/O trap FIFO register.
  */
 #ifndef NO_CS4612
-#define IOTFIFO_BA_MASK                         0x00003FFF
-#define IOTFIFO_S_MASK                          0x00FF0000
-#define IOTFIFO_OF                              0x40000000
-#define IOTFIFO_SPIOF                           0x80000000
-#define IOTFIFO_BA_SHIFT                        0
-#define IOTFIFO_S_SHIFT                         16
+	#define IOTFIFO_BA_MASK                         0x00003FFF
+	#define IOTFIFO_S_MASK                          0x00FF0000
+	#define IOTFIFO_OF                              0x40000000
+	#define IOTFIFO_SPIOF                           0x80000000
+	#define IOTFIFO_BA_SHIFT                        0
+	#define IOTFIFO_S_SHIFT                         16
 #endif
 
 /*
@@ -1073,9 +1073,9 @@
  *  register.
  */
 #ifndef NO_CS4612
-#define IOTRRD_D_MASK                           0x0000FFFF
-#define IOTRRD_RDV                              0x80000000
-#define IOTRRD_D_SHIFT                          0
+	#define IOTRRD_D_MASK                           0x0000FFFF
+	#define IOTRRD_RDV                              0x80000000
+	#define IOTRRD_D_SHIFT                          0
 #endif
 
 /*
@@ -1083,70 +1083,70 @@
  *  register.
  */
 #ifndef NO_CS4612
-#define IOTFP_CA_MASK                           0x00003FFF
-#define IOTFP_PA_MASK                           0x3FFF0000
-#define IOTFP_CA_SHIFT                          0
-#define IOTFP_PA_SHIFT                          16
+	#define IOTFP_CA_MASK                           0x00003FFF
+	#define IOTFP_PA_MASK                           0x3FFF0000
+	#define IOTFP_CA_SHIFT                          0
+	#define IOTFP_PA_SHIFT                          16
 #endif
 
 /*
  *  The following defines are for the flags in the I/O trap control register.
  */
 #ifndef NO_CS4612
-#define IOTCR_ITD                               0x00000001
-#define IOTCR_HRV                               0x00000002
-#define IOTCR_SRV                               0x00000004
-#define IOTCR_DTI                               0x00000008
-#define IOTCR_DFI                               0x00000010
-#define IOTCR_DDP                               0x00000020
-#define IOTCR_JTE                               0x00000040
-#define IOTCR_PPE                               0x00000080
+	#define IOTCR_ITD                               0x00000001
+	#define IOTCR_HRV                               0x00000002
+	#define IOTCR_SRV                               0x00000004
+	#define IOTCR_DTI                               0x00000008
+	#define IOTCR_DFI                               0x00000010
+	#define IOTCR_DDP                               0x00000020
+	#define IOTCR_JTE                               0x00000040
+	#define IOTCR_PPE                               0x00000080
 #endif
 
 /*
  *  The following defines are for the flags in the direct PCI data register.
  */
 #ifndef NO_CS4612
-#define DPCID_D_MASK                            0xFFFFFFFF
-#define DPCID_D_SHIFT                           0
+	#define DPCID_D_MASK                            0xFFFFFFFF
+	#define DPCID_D_SHIFT                           0
 #endif
 
 /*
  *  The following defines are for the flags in the direct PCI address register.
  */
 #ifndef NO_CS4612
-#define DPCIA_A_MASK                            0xFFFFFFFF
-#define DPCIA_A_SHIFT                           0
+	#define DPCIA_A_MASK                            0xFFFFFFFF
+	#define DPCIA_A_SHIFT                           0
 #endif
 
 /*
  *  The following defines are for the flags in the direct PCI command register.
  */
 #ifndef NO_CS4612
-#define DPCIC_C_MASK                            0x0000000F
-#define DPCIC_C_IOREAD                          0x00000002
-#define DPCIC_C_IOWRITE                         0x00000003
-#define DPCIC_BE_MASK                           0x000000F0
+	#define DPCIC_C_MASK                            0x0000000F
+	#define DPCIC_C_IOREAD                          0x00000002
+	#define DPCIC_C_IOWRITE                         0x00000003
+	#define DPCIC_BE_MASK                           0x000000F0
 #endif
 
 /*
  *  The following defines are for the flags in the PC/PCI request register.
  */
 #ifndef NO_CS4612
-#define PCPCIR_RDC_MASK                         0x00000007
-#define PCPCIR_C_MASK                           0x00007000
-#define PCPCIR_REQ                              0x00008000
-#define PCPCIR_RDC_SHIFT                        0
-#define PCPCIR_C_SHIFT                          12
+	#define PCPCIR_RDC_MASK                         0x00000007
+	#define PCPCIR_C_MASK                           0x00007000
+	#define PCPCIR_REQ                              0x00008000
+	#define PCPCIR_RDC_SHIFT                        0
+	#define PCPCIR_C_SHIFT                          12
 #endif
 
 /*
  *  The following defines are for the flags in the PC/PCI grant register.
- */ 
+ */
 #ifndef NO_CS4612
-#define PCPCIG_GDC_MASK                         0x00000007
-#define PCPCIG_VL                               0x00008000
-#define PCPCIG_GDC_SHIFT                        0
+	#define PCPCIG_GDC_MASK                         0x00000007
+	#define PCPCIG_VL                               0x00008000
+	#define PCPCIG_GDC_SHIFT                        0
 #endif
 
 /*
@@ -1154,7 +1154,7 @@
  *  register.
  */
 #ifndef NO_CS4612
-#define PCPCIEN_EN                              0x00000001
+	#define PCPCIEN_EN                              0x00000001
 #endif
 
 /*
@@ -1162,9 +1162,9 @@
  *  management control register.
  */
 #ifndef NO_CS4612
-#define EPCIPMC_GWU                             0x00000001
-#define EPCIPMC_FSPC                            0x00000002
-#endif 
+	#define EPCIPMC_GWU                             0x00000001
+	#define EPCIPMC_FSPC                            0x00000002
+#endif
 
 /*
  *  The following defines are for the flags in the SP control register.
@@ -1177,9 +1177,9 @@
 #define SPCR_RSTSP                              0x00000040
 #define SPCR_OREN                               0x00000080
 #ifndef NO_CS4612
-#define SPCR_PCIINT                             0x00000100
-#define SPCR_OINTD                              0x00000200
-#define SPCR_CRE                                0x00008000
+	#define SPCR_PCIINT                             0x00000100
+	#define SPCR_OINTD                              0x00000200
+	#define SPCR_CRE                                0x00008000
 #endif
 
 /*
@@ -1190,9 +1190,9 @@
 #define DREG_RGBK_MASK                          0x00000700
 #define DREG_TRAP                               0x00000800
 #if !defined(NO_CS4612)
-#if !defined(NO_CS4615)
-#define DREG_TRAPX                              0x00001000
-#endif
+	#if !defined(NO_CS4615)
+		#define DREG_TRAPX                              0x00001000
+	#endif
 #endif
 #define DREG_REGID_SHIFT                        0
 #define DREG_RGBK_SHIFT                         8
@@ -1228,24 +1228,24 @@
 #define DREG_REGID_INDIRECT_ADDRESS             0x0000010E
 #define DREG_REGID_TOP_OF_STACK                 0x0000010F
 #if !defined(NO_CS4612)
-#if !defined(NO_CS4615)
-#define DREG_REGID_TRAP_8                       0x00000110
-#define DREG_REGID_TRAP_9                       0x00000111
-#define DREG_REGID_TRAP_10                      0x00000112
-#define DREG_REGID_TRAP_11                      0x00000113
-#define DREG_REGID_TRAP_12                      0x00000114
-#define DREG_REGID_TRAP_13                      0x00000115
-#define DREG_REGID_TRAP_14                      0x00000116
-#define DREG_REGID_TRAP_15                      0x00000117
-#define DREG_REGID_TRAP_16                      0x00000118
-#define DREG_REGID_TRAP_17                      0x00000119
-#define DREG_REGID_TRAP_18                      0x0000011A
-#define DREG_REGID_TRAP_19                      0x0000011B
-#define DREG_REGID_TRAP_20                      0x0000011C
-#define DREG_REGID_TRAP_21                      0x0000011D
-#define DREG_REGID_TRAP_22                      0x0000011E
-#define DREG_REGID_TRAP_23                      0x0000011F
-#endif
+	#if !defined(NO_CS4615)
+		#define DREG_REGID_TRAP_8                       0x00000110
+		#define DREG_REGID_TRAP_9                       0x00000111
+		#define DREG_REGID_TRAP_10                      0x00000112
+		#define DREG_REGID_TRAP_11                      0x00000113
+		#define DREG_REGID_TRAP_12                      0x00000114
+		#define DREG_REGID_TRAP_13                      0x00000115
+		#define DREG_REGID_TRAP_14                      0x00000116
+		#define DREG_REGID_TRAP_15                      0x00000117
+		#define DREG_REGID_TRAP_16                      0x00000118
+		#define DREG_REGID_TRAP_17                      0x00000119
+		#define DREG_REGID_TRAP_18                      0x0000011A
+		#define DREG_REGID_TRAP_19                      0x0000011B
+		#define DREG_REGID_TRAP_20                      0x0000011C
+		#define DREG_REGID_TRAP_21                      0x0000011D
+		#define DREG_REGID_TRAP_22                      0x0000011E
+		#define DREG_REGID_TRAP_23                      0x0000011F
+	#endif
 #endif
 #define DREG_REGID_RSA0_LOW                     0x00000200
 #define DREG_REGID_RSA0_HIGH                    0x00000201
@@ -1316,24 +1316,24 @@
 #define DREG_REGID_TRAP_WRITE_6                 0x00000506
 #define DREG_REGID_TRAP_WRITE_7                 0x00000507
 #if !defined(NO_CS4612)
-#if !defined(NO_CS4615)
-#define DREG_REGID_TRAP_WRITE_8                 0x00000510
-#define DREG_REGID_TRAP_WRITE_9                 0x00000511
-#define DREG_REGID_TRAP_WRITE_10                0x00000512
-#define DREG_REGID_TRAP_WRITE_11                0x00000513
-#define DREG_REGID_TRAP_WRITE_12                0x00000514
-#define DREG_REGID_TRAP_WRITE_13                0x00000515
-#define DREG_REGID_TRAP_WRITE_14                0x00000516
-#define DREG_REGID_TRAP_WRITE_15                0x00000517
-#define DREG_REGID_TRAP_WRITE_16                0x00000518
-#define DREG_REGID_TRAP_WRITE_17                0x00000519
-#define DREG_REGID_TRAP_WRITE_18                0x0000051A
-#define DREG_REGID_TRAP_WRITE_19                0x0000051B
-#define DREG_REGID_TRAP_WRITE_20                0x0000051C
-#define DREG_REGID_TRAP_WRITE_21                0x0000051D
-#define DREG_REGID_TRAP_WRITE_22                0x0000051E
-#define DREG_REGID_TRAP_WRITE_23                0x0000051F
-#endif
+	#if !defined(NO_CS4615)
+		#define DREG_REGID_TRAP_WRITE_8                 0x00000510
+		#define DREG_REGID_TRAP_WRITE_9                 0x00000511
+		#define DREG_REGID_TRAP_WRITE_10                0x00000512
+		#define DREG_REGID_TRAP_WRITE_11                0x00000513
+		#define DREG_REGID_TRAP_WRITE_12                0x00000514
+		#define DREG_REGID_TRAP_WRITE_13                0x00000515
+		#define DREG_REGID_TRAP_WRITE_14                0x00000516
+		#define DREG_REGID_TRAP_WRITE_15                0x00000517
+		#define DREG_REGID_TRAP_WRITE_16                0x00000518
+		#define DREG_REGID_TRAP_WRITE_17                0x00000519
+		#define DREG_REGID_TRAP_WRITE_18                0x0000051A
+		#define DREG_REGID_TRAP_WRITE_19                0x0000051B
+		#define DREG_REGID_TRAP_WRITE_20                0x0000051C
+		#define DREG_REGID_TRAP_WRITE_21                0x0000051D
+		#define DREG_REGID_TRAP_WRITE_22                0x0000051E
+		#define DREG_REGID_TRAP_WRITE_23                0x0000051F
+	#endif
 #endif
 #define DREG_REGID_MAC0_ACC0_LOW                0x00000600
 #define DREG_REGID_MAC0_ACC1_LOW                0x00000601
@@ -1607,7 +1607,7 @@
  *
  */
 
-#define CS46XX_MODE_OUTPUT	(1<<0)	 /* MIDI UART - output */ 
+#define CS46XX_MODE_OUTPUT	(1<<0)	 /* MIDI UART - output */
 #define CS46XX_MODE_INPUT	(1<<1)	 /* MIDI UART - input */
 
 /*
@@ -1632,20 +1632,22 @@
 #define CS46XX_MIXER_SPDIF_OUTPUT_ELEMENT   2
 
 
-struct snd_cs46xx_pcm {
+struct snd_cs46xx_pcm
+{
 	struct snd_dma_buffer hw_buf;
-  
+
 	unsigned int ctl;
 	unsigned int shift;	/* Shift count to trasform frames in bytes */
 	struct snd_pcm_indirect pcm_rec;
 	struct snd_pcm_substream *substream;
 
-	struct dsp_pcm_channel_descriptor * pcm_channel;
+	struct dsp_pcm_channel_descriptor *pcm_channel;
 
 	int pcm_channel_id;    /* Fron Rear, Center Lfe  ... */
 };
 
-struct snd_cs46xx_region {
+struct snd_cs46xx_region
+{
 	char name[24];
 	unsigned long base;
 	void __iomem *remap_addr;
@@ -1653,12 +1655,15 @@ struct snd_cs46xx_region {
 	struct resource *resource;
 };
 
-struct snd_cs46xx {
+struct snd_cs46xx
+{
 	int irq;
 	unsigned long ba0_addr;
 	unsigned long ba1_addr;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			struct snd_cs46xx_region ba0;
 			struct snd_cs46xx_region data0;
 			struct snd_cs46xx_region data1;
@@ -1669,8 +1674,9 @@ struct snd_cs46xx {
 	} region;
 
 	unsigned int mode;
-	
-	struct {
+
+	struct
+	{
 		struct snd_dma_buffer hw_buf;
 
 		unsigned int ctl;
@@ -1699,7 +1705,7 @@ struct snd_cs46xx {
 	int amplifier;
 	void (*amplifier_ctrl)(struct snd_cs46xx *, int);
 	void (*active_ctrl)(struct snd_cs46xx *, int);
-  	void (*mixer_init)(struct snd_cs46xx *);
+	void (*mixer_init)(struct snd_cs46xx *);
 
 	int acpi_port;
 	struct snd_kcontrol *eapd_switch; /* for amplifier hack */
@@ -1711,7 +1717,7 @@ struct snd_cs46xx {
 #ifdef CONFIG_SND_CS46XX_NEW_DSP
 	struct mutex spos_mutex;
 
-	struct dsp_spos_instance * dsp_spos_instance;
+	struct dsp_spos_instance *dsp_spos_instance;
 
 	struct snd_pcm *pcm_rear;
 	struct snd_pcm *pcm_center_lfe;
@@ -1732,9 +1738,9 @@ struct snd_cs46xx {
 };
 
 int snd_cs46xx_create(struct snd_card *card,
-		      struct pci_dev *pci,
-		      int external_amp, int thinkpad,
-		      struct snd_cs46xx **rcodec);
+					  struct pci_dev *pci,
+					  int external_amp, int thinkpad,
+					  struct snd_cs46xx **rcodec);
 extern const struct dev_pm_ops snd_cs46xx_pm;
 
 int snd_cs46xx_pcm(struct snd_cs46xx *chip, int device);

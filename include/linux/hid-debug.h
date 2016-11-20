@@ -38,7 +38,8 @@ void hid_debug_exit(void);
 void hid_debug_event(struct hid_device *, char *);
 
 
-struct hid_debug_list {
+struct hid_debug_list
+{
 	char *hid_debug_buf;
 	int head;
 	int tail;

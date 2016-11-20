@@ -26,25 +26,28 @@
 #define CACHELINESIZE	32
 
 static void pxa2xx_map_inval_cache(struct map_info *map, unsigned long from,
-				      ssize_t len)
+								   ssize_t len)
 {
 	unsigned long start = (unsigned long)map->cached + from;
 	unsigned long end = start + len;
 
 	start &= ~(CACHELINESIZE - 1);
-	while (start < end) {
+
+	while (start < end)
+	{
 		/* invalidate D cache line */
 		asm volatile ("mcr p15, 0, %0, c7, c6, 1" : : "r" (start));
 		start += CACHELINESIZE;
 	}
 }
 
-struct pxa2xx_flash_info {
+struct pxa2xx_flash_info
+{
 	struct mtd_info		*mtd;
 	struct map_info		map;
 };
 
-static const char * const probes[] = { "RedBoot", "cmdlinepart", NULL };
+static const char *const probes[] = { "RedBoot", "cmdlinepart", NULL };
 
 static int pxa2xx_flash_probe(struct platform_device *pdev)
 {
@@ -53,12 +56,18 @@ static int pxa2xx_flash_probe(struct platform_device *pdev)
 	struct resource *res;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		return -ENODEV;
+	}
 
 	info = kzalloc(sizeof(struct pxa2xx_flash_info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	info->map.name = flash->name;
 	info->map.bankwidth = flash->width;
@@ -66,37 +75,48 @@ static int pxa2xx_flash_probe(struct platform_device *pdev)
 	info->map.size = resource_size(res);
 
 	info->map.virt = ioremap(info->map.phys, info->map.size);
-	if (!info->map.virt) {
+
+	if (!info->map.virt)
+	{
 		printk(KERN_WARNING "Failed to ioremap %s\n",
-		       info->map.name);
+			   info->map.name);
 		return -ENOMEM;
 	}
+
 	info->map.cached =
 		ioremap_cached(info->map.phys, info->map.size);
+
 	if (!info->map.cached)
 		printk(KERN_WARNING "Failed to ioremap cached %s\n",
-		       info->map.name);
+			   info->map.name);
+
 	info->map.inval_cache = pxa2xx_map_inval_cache;
 	simple_map_init(&info->map);
 
 	printk(KERN_NOTICE
-	       "Probing %s at physical address 0x%08lx"
-	       " (%d-bit bankwidth)\n",
-	       info->map.name, (unsigned long)info->map.phys,
-	       info->map.bankwidth * 8);
+		   "Probing %s at physical address 0x%08lx"
+		   " (%d-bit bankwidth)\n",
+		   info->map.name, (unsigned long)info->map.phys,
+		   info->map.bankwidth * 8);
 
 	info->mtd = do_map_probe(flash->map_name, &info->map);
 
-	if (!info->mtd) {
+	if (!info->mtd)
+	{
 		iounmap((void *)info->map.virt);
+
 		if (info->map.cached)
+		{
 			iounmap(info->map.cached);
+		}
+
 		return -EIO;
 	}
+
 	info->mtd->dev.parent = &pdev->dev;
 
 	mtd_device_parse_register(info->mtd, probes, NULL, flash->parts,
-				  flash->nr_parts);
+							  flash->nr_parts);
 
 	platform_set_drvdata(pdev, info);
 	return 0;
@@ -110,8 +130,12 @@ static int pxa2xx_flash_remove(struct platform_device *dev)
 
 	map_destroy(info->mtd);
 	iounmap(info->map.virt);
+
 	if (info->map.cached)
+	{
 		iounmap(info->map.cached);
+	}
+
 	kfree(info);
 	return 0;
 }
@@ -122,13 +146,16 @@ static void pxa2xx_flash_shutdown(struct platform_device *dev)
 	struct pxa2xx_flash_info *info = platform_get_drvdata(dev);
 
 	if (info && mtd_suspend(info->mtd) == 0)
+	{
 		mtd_resume(info->mtd);
+	}
 }
 #else
 #define pxa2xx_flash_shutdown NULL
 #endif
 
-static struct platform_driver pxa2xx_flash_driver = {
+static struct platform_driver pxa2xx_flash_driver =
+{
 	.driver = {
 		.name		= "pxa2xx-flash",
 	},

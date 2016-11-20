@@ -31,7 +31,8 @@ static int uhci_platform_init(struct usb_hcd *hcd)
 	return 0;
 }
 
-static const struct hc_driver uhci_platform_hc_driver = {
+static const struct hc_driver uhci_platform_hc_driver =
+{
 	.description =		hcd_name,
 	.product_desc =		"Generic UHCI Host Controller",
 	.hcd_priv_size =	sizeof(struct uhci_hcd),
@@ -69,7 +70,9 @@ static int uhci_hcd_platform_probe(struct platform_device *pdev)
 	int ret;
 
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * Right now device-tree probed devices don't get dma_mask set.
@@ -77,20 +80,29 @@ static int uhci_hcd_platform_probe(struct platform_device *pdev)
 	 * Once we have dma capability bindings this can go away.
 	 */
 	ret = dma_coerce_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	hcd = usb_create_hcd(&uhci_platform_hc_driver, &pdev->dev,
-			pdev->name);
+						 pdev->name);
+
 	if (!hcd)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	hcd->regs = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(hcd->regs)) {
+
+	if (IS_ERR(hcd->regs))
+	{
 		ret = PTR_ERR(hcd->regs);
 		goto err_rmr;
 	}
+
 	hcd->rsrc_start = res->start;
 	hcd->rsrc_len = resource_size(res);
 
@@ -99,8 +111,11 @@ static int uhci_hcd_platform_probe(struct platform_device *pdev)
 	uhci->regs = hcd->regs;
 
 	ret = usb_add_hcd(hcd, pdev->resource[1].start, IRQF_SHARED);
+
 	if (ret)
+	{
 		goto err_rmr;
+	}
 
 	device_wakeup_enable(hcd->self.controller);
 	return 0;
@@ -135,14 +150,16 @@ static void uhci_hcd_platform_shutdown(struct platform_device *op)
 	uhci_hc_died(hcd_to_uhci(hcd));
 }
 
-static const struct of_device_id platform_uhci_ids[] = {
+static const struct of_device_id platform_uhci_ids[] =
+{
 	{ .compatible = "generic-uhci", },
 	{ .compatible = "platform-uhci", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, platform_uhci_ids);
 
-static struct platform_driver uhci_platform_driver = {
+static struct platform_driver uhci_platform_driver =
+{
 	.probe		= uhci_hcd_platform_probe,
 	.remove		= uhci_hcd_platform_remove,
 	.shutdown	= uhci_hcd_platform_shutdown,

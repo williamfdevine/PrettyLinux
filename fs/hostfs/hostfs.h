@@ -37,7 +37,8 @@
  * "struct iattr *"). -BlaisorBlade
  */
 
-struct hostfs_iattr {
+struct hostfs_iattr
+{
 	unsigned int	ia_valid;
 	unsigned short	ia_mode;
 	uid_t		ia_uid;
@@ -48,7 +49,8 @@ struct hostfs_iattr {
 	struct timespec	ia_ctime;
 };
 
-struct hostfs_stat {
+struct hostfs_stat
+{
 	unsigned long long ino;
 	unsigned int mode;
 	unsigned int nlink;
@@ -68,14 +70,14 @@ extern int open_file(char *path, int r, int w, int append);
 extern void *open_dir(char *path, int *err_out);
 extern void seek_dir(void *stream, unsigned long long pos);
 extern char *read_dir(void *stream, unsigned long long *pos_out,
-		      unsigned long long *ino_out, int *len_out,
-		      unsigned int *type_out);
+					  unsigned long long *ino_out, int *len_out,
+					  unsigned int *type_out);
 extern void close_file(void *stream);
 extern int replace_file(int oldfd, int fd);
 extern void close_dir(void *stream);
 extern int read_file(int fd, unsigned long long *offset, char *buf, int len);
 extern int write_file(int fd, unsigned long long *offset, const char *buf,
-		      int len);
+					  int len);
 extern int lseek_file(int fd, long long offset, int whence);
 extern int fsync_file(int fd, int datasync);
 extern int file_create(char *name, int mode);
@@ -85,14 +87,14 @@ extern int unlink_file(const char *file);
 extern int do_mkdir(const char *file, int mode);
 extern int do_rmdir(const char *file);
 extern int do_mknod(const char *file, int mode, unsigned int major,
-		    unsigned int minor);
+					unsigned int minor);
 extern int link_file(const char *from, const char *to);
 extern int hostfs_do_readlink(char *file, char *buf, int size);
 extern int rename_file(char *from, char *to);
 extern int rename2_file(char *from, char *to, unsigned int flags);
 extern int do_statfs(char *root, long *bsize_out, long long *blocks_out,
-		     long long *bfree_out, long long *bavail_out,
-		     long long *files_out, long long *ffree_out,
-		     void *fsid_out, int fsid_size, long *namelen_out);
+					 long long *bfree_out, long long *bavail_out,
+					 long long *files_out, long long *ffree_out,
+					 void *fsid_out, int fsid_size, long *namelen_out);
 
 #endif

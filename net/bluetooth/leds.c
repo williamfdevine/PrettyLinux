@@ -13,28 +13,33 @@
 
 DEFINE_LED_TRIGGER(bt_power_led_trigger);
 
-struct hci_basic_led_trigger {
+struct hci_basic_led_trigger
+{
 	struct led_trigger	led_trigger;
 	struct hci_dev		*hdev;
 };
 
 #define to_hci_basic_led_trigger(arg) container_of(arg, \
-			struct hci_basic_led_trigger, led_trigger)
+		struct hci_basic_led_trigger, led_trigger)
 
 void hci_leds_update_powered(struct hci_dev *hdev, bool enabled)
 {
 	if (hdev->power_led)
 		led_trigger_event(hdev->power_led,
-				  enabled ? LED_FULL : LED_OFF);
+						  enabled ? LED_FULL : LED_OFF);
 
-	if (!enabled) {
+	if (!enabled)
+	{
 		struct hci_dev *d;
 
 		read_lock(&hci_dev_list_lock);
 
-		list_for_each_entry(d, &hci_dev_list, list) {
+		list_for_each_entry(d, &hci_dev_list, list)
+		{
 			if (test_bit(HCI_UP, &d->flags))
+			{
 				enabled = true;
+			}
 		}
 
 		read_unlock(&hci_dev_list_lock);
@@ -55,25 +60,33 @@ static void power_activate(struct led_classdev *led_cdev)
 }
 
 static struct led_trigger *led_allocate_basic(struct hci_dev *hdev,
-			void (*activate)(struct led_classdev *led_cdev),
-			const char *name)
+		void (*activate)(struct led_classdev *led_cdev),
+		const char *name)
 {
 	struct hci_basic_led_trigger *htrig;
 
 	htrig =	devm_kzalloc(&hdev->dev, sizeof(*htrig), GFP_KERNEL);
+
 	if (!htrig)
+	{
 		return NULL;
+	}
 
 	htrig->hdev = hdev;
 	htrig->led_trigger.activate = activate;
 	htrig->led_trigger.name = devm_kasprintf(&hdev->dev, GFP_KERNEL,
-						 "%s-%s", hdev->name,
-						 name);
+							  "%s-%s", hdev->name,
+							  name);
+
 	if (!htrig->led_trigger.name)
+	{
 		goto err_alloc;
+	}
 
 	if (devm_led_trigger_register(&hdev->dev, &htrig->led_trigger))
+	{
 		goto err_register;
+	}
 
 	return &htrig->led_trigger;
 

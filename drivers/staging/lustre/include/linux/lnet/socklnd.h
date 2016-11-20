@@ -45,7 +45,8 @@
 
 #define SOCKLND_CONN_ACK	SOCKLND_CONN_BULK_IN
 
-typedef struct {
+typedef struct
+{
 	__u32		kshm_magic;	/* magic number of socklnd message */
 	__u32		kshm_version;	/* version of socklnd message */
 	lnet_nid_t      kshm_src_nid;	/* sender's nid */
@@ -59,7 +60,8 @@ typedef struct {
 	__u32		kshm_ips[0];	/* IP addrs */
 } WIRE_ATTR ksock_hello_msg_t;
 
-typedef struct {
+typedef struct
+{
 	lnet_hdr_t	ksnm_hdr;	/* lnet hdr */
 
 	/*
@@ -70,11 +72,13 @@ typedef struct {
 	 */
 } WIRE_ATTR ksock_lnet_msg_t;
 
-typedef struct {
+typedef struct
+{
 	__u32	ksm_type;		/* type of socklnd message */
 	__u32	ksm_csum;		/* checksum if != 0 */
 	__u64	ksm_zc_cookies[2];	/* Zero-Copy request/ACK cookie */
-	union {
+	union
+	{
 		ksock_lnet_msg_t lnetmsg;/* lnet message, it's empty if
 					  * it's NOOP */
 	} WIRE_ATTR ksm_u;

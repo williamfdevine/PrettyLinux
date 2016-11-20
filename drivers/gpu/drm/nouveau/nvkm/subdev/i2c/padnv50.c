@@ -25,7 +25,8 @@
 #include "bus.h"
 
 static const struct nvkm_i2c_pad_func
-nv50_i2c_pad_func = {
+	nv50_i2c_pad_func =
+{
 	.bus_new_4 = nv50_i2c_bus_new,
 };
 

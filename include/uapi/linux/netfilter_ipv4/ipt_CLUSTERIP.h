@@ -4,10 +4,11 @@
 #include <linux/types.h>
 #include <linux/if_ether.h>
 
-enum clusterip_hashmode {
-    CLUSTERIP_HASHMODE_SIP = 0,
-    CLUSTERIP_HASHMODE_SIP_SPT,
-    CLUSTERIP_HASHMODE_SIP_SPT_DPT,
+enum clusterip_hashmode
+{
+	CLUSTERIP_HASHMODE_SIP = 0,
+	CLUSTERIP_HASHMODE_SIP_SPT,
+	CLUSTERIP_HASHMODE_SIP_SPT_DPT,
 };
 
 #define CLUSTERIP_HASHMODE_MAX CLUSTERIP_HASHMODE_SIP_SPT_DPT
@@ -18,7 +19,8 @@ enum clusterip_hashmode {
 
 struct clusterip_config;
 
-struct ipt_clusterip_tgt_info {
+struct ipt_clusterip_tgt_info
+{
 
 	__u32 flags;
 

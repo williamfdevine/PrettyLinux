@@ -94,7 +94,7 @@
 #define PLLCTL0                               0x0020
 #define MASK_PLL_PRD                          0xf000
 #define SET_PLL_PRD(prd)                      ((((prd) - 1) << 12) &\
-						MASK_PLL_PRD)
+		MASK_PLL_PRD)
 #define MASK_PLL_FBD                          0x01ff
 #define SET_PLL_FBD(fbd)                      (((fbd) - 1) & MASK_PLL_FBD)
 
@@ -348,18 +348,18 @@
 #define MASK_PHY_AUTO_RST1                    0xf0
 #define MASK_PHY_AUTO_RST1_OFF                0x00
 #define SET_PHY_AUTO_RST1_US(us)             ((((us) / 200) << 4) & \
-						MASK_PHY_AUTO_RST1)
+		MASK_PHY_AUTO_RST1)
 #define MASK_FREQ_RANGE_MODE                  0x0f
 #define SET_FREQ_RANGE_MODE_CYCLES(cycles)   (((cycles) - 1) & \
-						MASK_FREQ_RANGE_MODE)
+		MASK_FREQ_RANGE_MODE)
 
 #define PHY_CTL2                              0x8533 /* Not in REF_01 */
 #define MASK_PHY_AUTO_RST4                    0x04
 #define MASK_PHY_AUTO_RST3                    0x02
 #define MASK_PHY_AUTO_RST2                    0x01
 #define MASK_PHY_AUTO_RSTn                    (MASK_PHY_AUTO_RST4 | \
-						MASK_PHY_AUTO_RST3 | \
-						MASK_PHY_AUTO_RST2)
+		MASK_PHY_AUTO_RST3 | \
+		MASK_PHY_AUTO_RST2)
 
 #define PHY_EN                                0x8534
 #define MASK_ENABLE_PHY                       0x01
@@ -606,7 +606,7 @@
 #define DIV_MODE                              0x8665 /* Not in REF_01 */
 #define MASK_DIV_DLY                          0xf0
 #define SET_DIV_DLY_MS(milliseconds)         ((((milliseconds) / 100) << 4) & \
-						MASK_DIV_DLY)
+		MASK_DIV_DLY)
 #define MASK_DIV_MODE                         0x01
 
 #define NCO_F0_MOD                            0x8670
@@ -627,10 +627,10 @@
 #define NO_PKT_LIMIT                          0x870B
 #define MASK_NO_ACP_LIMIT                     0xf0
 #define SET_NO_ACP_LIMIT_MS(milliseconds)    ((((milliseconds) / 80) << 4) & \
-						MASK_NO_ACP_LIMIT)
+		MASK_NO_ACP_LIMIT)
 #define MASK_NO_AVI_LIMIT                     0x0f
 #define SET_NO_AVI_LIMIT_MS(milliseconds)    (((milliseconds) / 80) & \
-						MASK_NO_AVI_LIMIT)
+		MASK_NO_AVI_LIMIT)
 
 #define NO_PKT_CLR                            0x870C
 #define MASK_NO_VS_CLR                        0x40

@@ -12,23 +12,24 @@
 #include <linux/socket.h>   /* for SO_TIMESTAMPING */
 
 /* SO_TIMESTAMPING gets an integer bit field comprised of these values */
-enum {
-	SOF_TIMESTAMPING_TX_HARDWARE = (1<<0),
-	SOF_TIMESTAMPING_TX_SOFTWARE = (1<<1),
-	SOF_TIMESTAMPING_RX_HARDWARE = (1<<2),
-	SOF_TIMESTAMPING_RX_SOFTWARE = (1<<3),
-	SOF_TIMESTAMPING_SOFTWARE = (1<<4),
-	SOF_TIMESTAMPING_SYS_HARDWARE = (1<<5),
-	SOF_TIMESTAMPING_RAW_HARDWARE = (1<<6),
-	SOF_TIMESTAMPING_OPT_ID = (1<<7),
-	SOF_TIMESTAMPING_TX_SCHED = (1<<8),
-	SOF_TIMESTAMPING_TX_ACK = (1<<9),
-	SOF_TIMESTAMPING_OPT_CMSG = (1<<10),
-	SOF_TIMESTAMPING_OPT_TSONLY = (1<<11),
+enum
+{
+	SOF_TIMESTAMPING_TX_HARDWARE = (1 << 0),
+	SOF_TIMESTAMPING_TX_SOFTWARE = (1 << 1),
+	SOF_TIMESTAMPING_RX_HARDWARE = (1 << 2),
+	SOF_TIMESTAMPING_RX_SOFTWARE = (1 << 3),
+	SOF_TIMESTAMPING_SOFTWARE = (1 << 4),
+	SOF_TIMESTAMPING_SYS_HARDWARE = (1 << 5),
+	SOF_TIMESTAMPING_RAW_HARDWARE = (1 << 6),
+	SOF_TIMESTAMPING_OPT_ID = (1 << 7),
+	SOF_TIMESTAMPING_TX_SCHED = (1 << 8),
+	SOF_TIMESTAMPING_TX_ACK = (1 << 9),
+	SOF_TIMESTAMPING_OPT_CMSG = (1 << 10),
+	SOF_TIMESTAMPING_OPT_TSONLY = (1 << 11),
 
 	SOF_TIMESTAMPING_LAST = SOF_TIMESTAMPING_OPT_TSONLY,
 	SOF_TIMESTAMPING_MASK = (SOF_TIMESTAMPING_LAST - 1) |
-				 SOF_TIMESTAMPING_LAST
+							SOF_TIMESTAMPING_LAST
 };
 
 /*
@@ -37,9 +38,9 @@ enum {
  * Recording flags can be set both via socket options and control messages.
  */
 #define SOF_TIMESTAMPING_TX_RECORD_MASK	(SOF_TIMESTAMPING_TX_HARDWARE | \
-					 SOF_TIMESTAMPING_TX_SOFTWARE | \
-					 SOF_TIMESTAMPING_TX_SCHED | \
-					 SOF_TIMESTAMPING_TX_ACK)
+		SOF_TIMESTAMPING_TX_SOFTWARE | \
+		SOF_TIMESTAMPING_TX_SCHED | \
+		SOF_TIMESTAMPING_TX_ACK)
 
 /**
  * struct hwtstamp_config - %SIOCGHWTSTAMP and %SIOCSHWTSTAMP parameter
@@ -54,14 +55,16 @@ enum {
  * the driver may use a more general filter mode.  In this case
  * @rx_filter will indicate the actual mode on return.
  */
-struct hwtstamp_config {
+struct hwtstamp_config
+{
 	int flags;
 	int tx_type;
 	int rx_filter;
 };
 
 /* possible values for hwtstamp_config->tx_type */
-enum hwtstamp_tx_types {
+enum hwtstamp_tx_types
+{
 	/*
 	 * No outgoing packet will need hardware time stamping;
 	 * should a packet arrive which asks for it, no hardware
@@ -88,7 +91,8 @@ enum hwtstamp_tx_types {
 };
 
 /* possible values for hwtstamp_config->rx_filter */
-enum hwtstamp_rx_filters {
+enum hwtstamp_rx_filters
+{
 	/* time stamp no incoming packet at all */
 	HWTSTAMP_FILTER_NONE,
 

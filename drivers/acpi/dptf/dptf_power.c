@@ -27,22 +27,22 @@
  * PBSS : Battery steady power
  */
 #define DPTF_POWER_SHOW(name, object) \
-static ssize_t name##_show(struct device *dev,\
-			   struct device_attribute *attr,\
-			   char *buf)\
-{\
-	struct platform_device *pdev = to_platform_device(dev);\
-	struct acpi_device *acpi_dev = platform_get_drvdata(pdev);\
-	unsigned long long val;\
-	acpi_status status;\
-\
-	status = acpi_evaluate_integer(acpi_dev->handle, #object,\
-				       NULL, &val);\
-	if (ACPI_SUCCESS(status))\
-		return sprintf(buf, "%d\n", (int)val);\
-	else \
-		return -EINVAL;\
-}
+	static ssize_t name##_show(struct device *dev,\
+							   struct device_attribute *attr,\
+							   char *buf)\
+	{\
+		struct platform_device *pdev = to_platform_device(dev);\
+		struct acpi_device *acpi_dev = platform_get_drvdata(pdev);\
+		unsigned long long val;\
+		acpi_status status;\
+		\
+		status = acpi_evaluate_integer(acpi_dev->handle, #object,\
+									   NULL, &val);\
+		if (ACPI_SUCCESS(status))\
+			return sprintf(buf, "%d\n", (int)val);\
+		else \
+			return -EINVAL;\
+	}
 
 DPTF_POWER_SHOW(max_platform_power_mw, PMAX)
 DPTF_POWER_SHOW(platform_power_source, PSRC)
@@ -56,7 +56,8 @@ static DEVICE_ATTR_RO(adapter_rating_mw);
 static DEVICE_ATTR_RO(battery_steady_power_mw);
 static DEVICE_ATTR_RO(charger_type);
 
-static struct attribute *dptf_power_attrs[] = {
+static struct attribute *dptf_power_attrs[] =
+{
 	&dev_attr_max_platform_power_mw.attr,
 	&dev_attr_platform_power_source.attr,
 	&dev_attr_adapter_rating_mw.attr,
@@ -65,7 +66,8 @@ static struct attribute *dptf_power_attrs[] = {
 	NULL
 };
 
-static struct attribute_group dptf_power_attribute_group = {
+static struct attribute_group dptf_power_attribute_group =
+{
 	.attrs = dptf_power_attrs,
 	.name = "dptf_power"
 };
@@ -78,20 +80,31 @@ static int dptf_power_add(struct platform_device *pdev)
 	int result;
 
 	acpi_dev = ACPI_COMPANION(&(pdev->dev));
+
 	if (!acpi_dev)
+	{
 		return -ENODEV;
+	}
 
 	status = acpi_evaluate_integer(acpi_dev->handle, "PTYP", NULL, &ptype);
+
 	if (ACPI_FAILURE(status))
+	{
 		return -ENODEV;
+	}
 
 	if (ptype != 0x11)
+	{
 		return -ENODEV;
+	}
 
 	result = sysfs_create_group(&pdev->dev.kobj,
-				    &dptf_power_attribute_group);
+								&dptf_power_attribute_group);
+
 	if (result)
+	{
 		return result;
+	}
 
 	platform_set_drvdata(pdev, acpi_dev);
 
@@ -106,13 +119,15 @@ static int dptf_power_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct acpi_device_id int3407_device_ids[] = {
+static const struct acpi_device_id int3407_device_ids[] =
+{
 	{"INT3407", 0},
 	{"", 0},
 };
 MODULE_DEVICE_TABLE(acpi, int3407_device_ids);
 
-static struct platform_driver dptf_power_driver = {
+static struct platform_driver dptf_power_driver =
+{
 	.probe = dptf_power_add,
 	.remove = dptf_power_remove,
 	.driver = {

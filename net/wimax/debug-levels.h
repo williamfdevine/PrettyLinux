@@ -30,7 +30,8 @@
 #include <linux/wimax/debug.h>
 
 /* List of all the enabled modules */
-enum d_module {
+enum d_module
+{
 	D_SUBMODULE_DECLARE(debugfs),
 	D_SUBMODULE_DECLARE(id_table),
 	D_SUBMODULE_DECLARE(op_msg),

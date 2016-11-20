@@ -33,7 +33,8 @@
 #define MAX_SUBFRAME_COUNT	64
 
 /* for Rx reordering buffer control */
-struct recv_reorder_ctrl {
+struct recv_reorder_ctrl
+{
 	struct adapter	*padapter;
 	u8 enable;
 	u16 indicate_seq;/* wstart_b, init_value=0xffff */
@@ -43,43 +44,46 @@ struct recv_reorder_ctrl {
 	struct timer_list reordering_ctrl_timer;
 };
 
-struct	stainfo_rxcache	{
+struct	stainfo_rxcache
+{
 	u16	tid_rxseq[16];
-/*
-	unsigned short	tid0_rxseq;
-	unsigned short	tid1_rxseq;
-	unsigned short	tid2_rxseq;
-	unsigned short	tid3_rxseq;
-	unsigned short	tid4_rxseq;
-	unsigned short	tid5_rxseq;
-	unsigned short	tid6_rxseq;
-	unsigned short	tid7_rxseq;
-	unsigned short	tid8_rxseq;
-	unsigned short	tid9_rxseq;
-	unsigned short	tid10_rxseq;
-	unsigned short	tid11_rxseq;
-	unsigned short	tid12_rxseq;
-	unsigned short	tid13_rxseq;
-	unsigned short	tid14_rxseq;
-	unsigned short	tid15_rxseq;
-*/
+	/*
+		unsigned short	tid0_rxseq;
+		unsigned short	tid1_rxseq;
+		unsigned short	tid2_rxseq;
+		unsigned short	tid3_rxseq;
+		unsigned short	tid4_rxseq;
+		unsigned short	tid5_rxseq;
+		unsigned short	tid6_rxseq;
+		unsigned short	tid7_rxseq;
+		unsigned short	tid8_rxseq;
+		unsigned short	tid9_rxseq;
+		unsigned short	tid10_rxseq;
+		unsigned short	tid11_rxseq;
+		unsigned short	tid12_rxseq;
+		unsigned short	tid13_rxseq;
+		unsigned short	tid14_rxseq;
+		unsigned short	tid15_rxseq;
+	*/
 };
 
-struct signal_stat {
+struct signal_stat
+{
 	u8	update_req;		/* used to indicate */
 	u8	avg_val;		/* avg of valid elements */
 	u32	total_num;		/* num of valid elements */
 	u32	total_val;		/* sum of valid elements */
 };
 #define MAX_PATH_NUM_92CS		3
-struct phy_info {
+struct phy_info
+{
 	u8	RxPWDBAll;
 	u8	SignalQuality;	 /*  in 0-100 index. */
 	u8	RxMIMOSignalQuality[MAX_PATH_NUM_92CS]; /* EVM */
 	u8	RxMIMOSignalStrength[MAX_PATH_NUM_92CS];/*  in 0~100 index */
 	s8	RxPower; /*  in dBm Translate from PWdB */
-/*  Real power in dBm for this packet, no beautification and aggregation.
- * Keep this raw info to be used for the other procedures. */
+	/*  Real power in dBm for this packet, no beautification and aggregation.
+	 * Keep this raw info to be used for the other procedures. */
 	s8	recvpower;
 	u8	BTRxRSSIPercentage;
 	u8	SignalStrength; /*  in 0-100 index. */
@@ -87,7 +91,8 @@ struct phy_info {
 	u8	RxSNR[MAX_PATH_NUM_92CS];/* per-path's SNR */
 };
 
-struct rx_pkt_attrib {
+struct rx_pkt_attrib
+{
 	u16	pkt_len;
 	u8	physt;
 	u8	drvinfo_sz;
@@ -144,7 +149,8 @@ struct rx_pkt_attrib {
 #define RXDESC_SIZE	24
 #define RXDESC_OFFSET RXDESC_SIZE
 
-struct recv_stat {
+struct recv_stat
+{
 	__le32 rxdw0;
 	__le32 rxdw1;
 	__le32 rxdw2;
@@ -162,7 +168,8 @@ recv_thread(passive) ; returnpkt(dispatch)
 
 using enter_critical section to protect
 */
-struct recv_priv {
+struct recv_priv
+{
 	struct __queue free_recv_queue;
 	struct __queue recv_pending_queue;
 	struct __queue uc_swdec_pending_queue;
@@ -205,16 +212,18 @@ struct recv_priv {
 
 #define rtw_set_signal_stat_timer(recvpriv)			\
 	mod_timer(&(recvpriv)->signal_stat_timer, jiffies +	\
-		  msecs_to_jiffies((recvpriv)->signal_stat_sampling_interval))
+			  msecs_to_jiffies((recvpriv)->signal_stat_sampling_interval))
 
-struct sta_recv_priv {
+struct sta_recv_priv
+{
 	spinlock_t lock;
 	int	option;
 	struct __queue defrag_q; /* keeping the fragment frame until defrag */
 	struct	stainfo_rxcache rxcache;
 };
 
-struct recv_buf {
+struct recv_buf
+{
 	struct adapter *adapter;
 	struct urb *purb;
 	struct sk_buff *pskb;
@@ -236,7 +245,8 @@ struct recv_buf {
 	len = (unsigned int )(tail - data);
 
 */
-struct recv_frame {
+struct recv_frame
+{
 	struct list_head list;
 	struct sk_buff	 *pkt;
 	struct adapter  *adapter;
@@ -254,15 +264,15 @@ struct recv_frame {
 struct recv_frame *_rtw_alloc_recvframe(struct __queue *pfree_recv_queue);
 struct recv_frame *rtw_alloc_recvframe(struct __queue *pfree_recv_queue);
 void rtw_init_recvframe(struct recv_frame *precvframe,
-			struct recv_priv *precvpriv);
+						struct recv_priv *precvpriv);
 int  rtw_free_recvframe(struct recv_frame *precvframe,
-			struct __queue *pfree_recv_queue);
+						struct __queue *pfree_recv_queue);
 #define rtw_dequeue_recvframe(queue) rtw_alloc_recvframe(queue)
 int _rtw_enqueue_recvframe(struct recv_frame *precvframe,
-			   struct __queue *queue);
+						   struct __queue *queue);
 int rtw_enqueue_recvframe(struct recv_frame *precvframe, struct __queue *queue);
 void rtw_free_recvframe_queue(struct __queue *pframequeue,
-			      struct __queue *pfree_recv_queue);
+							  struct __queue *pfree_recv_queue);
 u32 rtw_free_uc_swdec_pending_queue(struct adapter *adapter);
 
 void rtw_reordering_ctrl_timeout_handler(unsigned long data);
@@ -271,7 +281,10 @@ static inline u8 *get_rxmem(struct recv_frame *precvframe)
 {
 	/* always return rx_head... */
 	if (precvframe == NULL)
+	{
 		return NULL;
+	}
+
 	return precvframe->rx_head;
 }
 
@@ -283,12 +296,18 @@ static inline u8 *recvframe_pull(struct recv_frame *precvframe, int sz)
 	 * the updated rx_data to the caller */
 
 	if (precvframe == NULL)
+	{
 		return NULL;
+	}
+
 	precvframe->rx_data += sz;
-	if (precvframe->rx_data > precvframe->rx_tail) {
+
+	if (precvframe->rx_data > precvframe->rx_tail)
+	{
 		precvframe->rx_data -= sz;
 		return NULL;
 	}
+
 	precvframe->len -= sz;
 	return precvframe->rx_data;
 }
@@ -300,14 +319,18 @@ static inline u8 *recvframe_put(struct recv_frame *precvframe, int sz)
 	/* after putting, rx_tail must be still larger than rx_end. */
 
 	if (precvframe == NULL)
+	{
 		return NULL;
+	}
 
 	precvframe->rx_tail += sz;
 
-	if (precvframe->rx_tail > precvframe->rx_end) {
+	if (precvframe->rx_tail > precvframe->rx_end)
+	{
 		precvframe->rx_tail -= sz;
 		return NULL;
 	}
+
 	precvframe->len += sz;
 	return precvframe->rx_tail;
 }
@@ -321,12 +344,18 @@ static inline u8 *recvframe_pull_tail(struct recv_frame *precvframe, int sz)
 	/* after pulling, rx_end must be still larger than rx_data. */
 
 	if (precvframe == NULL)
+	{
 		return NULL;
+	}
+
 	precvframe->rx_tail -= sz;
-	if (precvframe->rx_tail < precvframe->rx_data) {
+
+	if (precvframe->rx_tail < precvframe->rx_data)
+	{
 		precvframe->rx_tail += sz;
 		return NULL;
 	}
+
 	precvframe->len -= sz;
 	return precvframe->rx_tail;
 }

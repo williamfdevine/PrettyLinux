@@ -14,7 +14,8 @@
  * @oscillator_frequency:       - oscillator frequency in Hz
  */
 
-struct mcp251x_platform_data {
+struct mcp251x_platform_data
+{
 	unsigned long oscillator_frequency;
 };
 

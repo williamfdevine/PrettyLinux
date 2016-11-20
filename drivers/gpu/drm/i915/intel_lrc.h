@@ -57,7 +57,8 @@
 #define GEN8_CSB_READ_PTR(csb_status) \
 	(((csb_status) & GEN8_CSB_READ_PTR_MASK) >> 8)
 
-enum {
+enum
+{
 	INTEL_CONTEXT_SCHEDULE_IN = 0,
 	INTEL_CONTEXT_SCHEDULE_OUT,
 };
@@ -83,17 +84,17 @@ struct i915_gem_context;
 
 uint32_t intel_lr_context_size(struct intel_engine_cs *engine);
 void intel_lr_context_unpin(struct i915_gem_context *ctx,
-			    struct intel_engine_cs *engine);
+							struct intel_engine_cs *engine);
 
 struct drm_i915_private;
 
 void intel_lr_context_resume(struct drm_i915_private *dev_priv);
 uint64_t intel_lr_context_descriptor(struct i915_gem_context *ctx,
-				     struct intel_engine_cs *engine);
+									 struct intel_engine_cs *engine);
 
 /* Execlists */
 int intel_sanitize_enable_execlists(struct drm_i915_private *dev_priv,
-				    int enable_execlists);
+									int enable_execlists);
 void intel_execlists_enable_submission(struct drm_i915_private *dev_priv);
 
 #endif /* _INTEL_LRC_H_ */

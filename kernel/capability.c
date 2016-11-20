@@ -47,7 +47,7 @@ static void warn_legacy_capability_use(void)
 	char name[sizeof(current->comm)];
 
 	pr_info_once("warning: `%s' uses 32-bit capabilities (legacy support in use)\n",
-		     get_task_comm(name, current));
+				 get_task_comm(name, current));
 }
 
 /*
@@ -71,7 +71,7 @@ static void warn_deprecated_v2(void)
 	char name[sizeof(current->comm)];
 
 	pr_info_once("warning: `%s' uses deprecated v2 capabilities in a way that may be insecure\n",
-		     get_task_comm(name, current));
+				 get_task_comm(name, current));
 }
 
 /*
@@ -83,25 +83,34 @@ static int cap_validate_magic(cap_user_header_t header, unsigned *tocopy)
 	__u32 version;
 
 	if (get_user(version, &header->version))
+	{
 		return -EFAULT;
+	}
 
-	switch (version) {
-	case _LINUX_CAPABILITY_VERSION_1:
-		warn_legacy_capability_use();
-		*tocopy = _LINUX_CAPABILITY_U32S_1;
-		break;
-	case _LINUX_CAPABILITY_VERSION_2:
-		warn_deprecated_v2();
+	switch (version)
+	{
+		case _LINUX_CAPABILITY_VERSION_1:
+			warn_legacy_capability_use();
+			*tocopy = _LINUX_CAPABILITY_U32S_1;
+			break;
+
+		case _LINUX_CAPABILITY_VERSION_2:
+			warn_deprecated_v2();
+
 		/*
 		 * fall through - v3 is otherwise equivalent to v2.
 		 */
-	case _LINUX_CAPABILITY_VERSION_3:
-		*tocopy = _LINUX_CAPABILITY_U32S_3;
-		break;
-	default:
-		if (put_user((u32)_KERNEL_CAPABILITY_VERSION, &header->version))
-			return -EFAULT;
-		return -EINVAL;
+		case _LINUX_CAPABILITY_VERSION_3:
+			*tocopy = _LINUX_CAPABILITY_U32S_3;
+			break;
+
+		default:
+			if (put_user((u32)_KERNEL_CAPABILITY_VERSION, &header->version))
+			{
+				return -EFAULT;
+			}
+
+			return -EINVAL;
 	}
 
 	return 0;
@@ -115,24 +124,33 @@ static int cap_validate_magic(cap_user_header_t header, unsigned *tocopy)
  * locks to when we are reading the caps of another process.
  */
 static inline int cap_get_target_pid(pid_t pid, kernel_cap_t *pEp,
-				     kernel_cap_t *pIp, kernel_cap_t *pPp)
+									 kernel_cap_t *pIp, kernel_cap_t *pPp)
 {
 	int ret;
 
-	if (pid && (pid != task_pid_vnr(current))) {
+	if (pid && (pid != task_pid_vnr(current)))
+	{
 		struct task_struct *target;
 
 		rcu_read_lock();
 
 		target = find_task_by_vpid(pid);
+
 		if (!target)
+		{
 			ret = -ESRCH;
+		}
 		else
+		{
 			ret = security_capget(target, pEp, pIp, pPp);
+		}
 
 		rcu_read_unlock();
-	} else
+	}
+	else
+	{
 		ret = security_capget(current, pEp, pIp, pPp);
+	}
 
 	return ret;
 }
@@ -154,21 +172,31 @@ SYSCALL_DEFINE2(capget, cap_user_header_t, header, cap_user_data_t, dataptr)
 	kernel_cap_t pE, pI, pP;
 
 	ret = cap_validate_magic(header, &tocopy);
+
 	if ((dataptr == NULL) || (ret != 0))
+	{
 		return ((dataptr == NULL) && (ret == -EINVAL)) ? 0 : ret;
+	}
 
 	if (get_user(pid, &header->pid))
+	{
 		return -EFAULT;
+	}
 
 	if (pid < 0)
+	{
 		return -EINVAL;
+	}
 
 	ret = cap_get_target_pid(pid, &pE, &pI, &pP);
-	if (!ret) {
+
+	if (!ret)
+	{
 		struct __user_cap_data_struct kdata[_KERNEL_CAPABILITY_U32S];
 		unsigned i;
 
-		for (i = 0; i < tocopy; i++) {
+		for (i = 0; i < tocopy; i++)
+		{
 			kdata[i].effective = pE.cap[i];
 			kdata[i].permitted = pP.cap[i];
 			kdata[i].inheritable = pI.cap[i];
@@ -194,7 +222,8 @@ SYSCALL_DEFINE2(capget, cap_user_header_t, header, cap_user_data_t, dataptr)
 		 * fails.
 		 */
 		if (copy_to_user(dataptr, kdata, tocopy
-				 * sizeof(struct __user_cap_data_struct))) {
+						 * sizeof(struct __user_cap_data_struct)))
+		{
 			return -EFAULT;
 		}
 	}
@@ -230,29 +259,44 @@ SYSCALL_DEFINE2(capset, cap_user_header_t, header, const cap_user_data_t, data)
 	pid_t pid;
 
 	ret = cap_validate_magic(header, &tocopy);
+
 	if (ret != 0)
+	{
 		return ret;
+	}
 
 	if (get_user(pid, &header->pid))
+	{
 		return -EFAULT;
+	}
 
 	/* may only affect current now */
 	if (pid != 0 && pid != task_pid_vnr(current))
+	{
 		return -EPERM;
+	}
 
 	copybytes = tocopy * sizeof(struct __user_cap_data_struct);
+
 	if (copybytes > sizeof(kdata))
+	{
 		return -EFAULT;
+	}
 
 	if (copy_from_user(&kdata, data, copybytes))
+	{
 		return -EFAULT;
+	}
 
-	for (i = 0; i < tocopy; i++) {
+	for (i = 0; i < tocopy; i++)
+	{
 		effective.cap[i] = kdata[i].effective;
 		permitted.cap[i] = kdata[i].permitted;
 		inheritable.cap[i] = kdata[i].inheritable;
 	}
-	while (i < _KERNEL_CAPABILITY_U32S) {
+
+	while (i < _KERNEL_CAPABILITY_U32S)
+	{
 		effective.cap[i] = 0;
 		permitted.cap[i] = 0;
 		inheritable.cap[i] = 0;
@@ -264,13 +308,19 @@ SYSCALL_DEFINE2(capset, cap_user_header_t, header, const cap_user_data_t, data)
 	inheritable.cap[CAP_LAST_U32] &= CAP_LAST_U32_VALID_MASK;
 
 	new = prepare_creds();
+
 	if (!new)
+	{
 		return -ENOMEM;
+	}
 
 	ret = security_capset(new, current_cred(),
-			      &effective, &inheritable, &permitted);
+						  &effective, &inheritable, &permitted);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	audit_log_capset(new, current_cred());
 
@@ -293,7 +343,7 @@ error:
  * Note that this does not set PF_SUPERPRIV on the task.
  */
 bool has_ns_capability(struct task_struct *t,
-		       struct user_namespace *ns, int cap)
+					   struct user_namespace *ns, int cap)
 {
 	int ret;
 
@@ -333,7 +383,7 @@ bool has_capability(struct task_struct *t, int cap)
  * Note that this does not set PF_SUPERPRIV on the task.
  */
 bool has_ns_capability_noaudit(struct task_struct *t,
-			       struct user_namespace *ns, int cap)
+							   struct user_namespace *ns, int cap)
 {
 	int ret;
 
@@ -365,17 +415,21 @@ static bool ns_capable_common(struct user_namespace *ns, int cap, bool audit)
 {
 	int capable;
 
-	if (unlikely(!cap_valid(cap))) {
+	if (unlikely(!cap_valid(cap)))
+	{
 		pr_crit("capable() called with invalid cap=%u\n", cap);
 		BUG();
 	}
 
 	capable = audit ? security_capable(current_cred(), ns, cap) :
 			  security_capable_noaudit(current_cred(), ns, cap);
-	if (capable == 0) {
+
+	if (capable == 0)
+	{
 		current->flags |= PF_SUPERPRIV;
 		return true;
 	}
+
 	return false;
 }
 
@@ -444,13 +498,17 @@ EXPORT_SYMBOL(capable);
  * actually be privileged.
  */
 bool file_ns_capable(const struct file *file, struct user_namespace *ns,
-		     int cap)
+					 int cap)
 {
 	if (WARN_ON_ONCE(!cap_valid(cap)))
+	{
 		return false;
+	}
 
 	if (security_capable(file->f_cred, ns, cap) == 0)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -470,6 +528,6 @@ bool capable_wrt_inode_uidgid(const struct inode *inode, int cap)
 	struct user_namespace *ns = current_user_ns();
 
 	return ns_capable(ns, cap) && kuid_has_mapping(ns, inode->i_uid) &&
-		kgid_has_mapping(ns, inode->i_gid);
+		   kgid_has_mapping(ns, inode->i_gid);
 }
 EXPORT_SYMBOL(capable_wrt_inode_uidgid);

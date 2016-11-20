@@ -54,7 +54,7 @@ void cpm_line_cr_cmd(struct uart_cpm_port *port, int cmd)
 }
 
 void __iomem *cpm_uart_map_pram(struct uart_cpm_port *port,
-				struct device_node *np)
+								struct device_node *np)
 {
 	void __iomem *pram;
 	unsigned long offset;
@@ -65,27 +65,39 @@ void __iomem *cpm_uart_map_pram(struct uart_cpm_port *port,
 	 * during console setup.
 	 */
 	if (IS_SMC(port) && port->smcup)
+	{
 		return port->smcup;
+	}
 	else if (!IS_SMC(port) && port->sccup)
+	{
 		return port->sccup;
+	}
 
 	if (of_address_to_resource(np, 1, &res))
+	{
 		return NULL;
+	}
 
 	len = resource_size(&res);
 	pram = ioremap(res.start, len);
+
 	if (!pram)
+	{
 		return NULL;
+	}
 
 	if (!IS_SMC(port))
+	{
 		return pram;
+	}
 
-	if (len != 2) {
+	if (len != 2)
+	{
 		printk(KERN_WARNING "cpm_uart[%d]: device tree references "
-			"SMC pram, using boot loader/wrapper pram mapping. "
-			"Please fix your device tree to reference the pram "
-			"base register instead.\n",
-			port->port.line);
+			   "SMC pram, using boot loader/wrapper pram mapping. "
+			   "Please fix your device tree to reference the pram "
+			   "base register instead.\n",
+			   port->port.line);
 		return pram;
 	}
 
@@ -98,7 +110,9 @@ void __iomem *cpm_uart_map_pram(struct uart_cpm_port *port,
 void cpm_uart_unmap_pram(struct uart_cpm_port *port, void __iomem *pram)
 {
 	if (!IS_SMC(port))
+	{
 		iounmap(pram);
+	}
 }
 
 /*
@@ -119,28 +133,33 @@ int cpm_uart_allocbuf(struct uart_cpm_port *pinfo, unsigned int is_con)
 
 	dpmemsz = sizeof(cbd_t) * (pinfo->rx_nrfifos + pinfo->tx_nrfifos);
 	dp_offset = cpm_dpalloc(dpmemsz, 8);
-	if (IS_ERR_VALUE(dp_offset)) {
+
+	if (IS_ERR_VALUE(dp_offset))
+	{
 		printk(KERN_ERR
-		       "cpm_uart_cpm.c: could not allocate buffer descriptors\n");
+			   "cpm_uart_cpm.c: could not allocate buffer descriptors\n");
 		return -ENOMEM;
 	}
 
 	dp_mem = cpm_dpram_addr(dp_offset);
 
 	memsz = L1_CACHE_ALIGN(pinfo->rx_nrfifos * pinfo->rx_fifosize) +
-	    L1_CACHE_ALIGN(pinfo->tx_nrfifos * pinfo->tx_fifosize);
-	if (is_con) {
+			L1_CACHE_ALIGN(pinfo->tx_nrfifos * pinfo->tx_fifosize);
+
+	if (is_con)
+	{
 		mem_addr = kzalloc(memsz, GFP_NOWAIT);
 		dma_addr = virt_to_bus(mem_addr);
 	}
 	else
 		mem_addr = dma_alloc_coherent(pinfo->port.dev, memsz, &dma_addr,
-					      GFP_KERNEL);
+									  GFP_KERNEL);
 
-	if (mem_addr == NULL) {
+	if (mem_addr == NULL)
+	{
 		cpm_dpfree(dp_offset);
 		printk(KERN_ERR
-		       "cpm_uart_cpm.c: could not allocate coherent memory\n");
+			   "cpm_uart_cpm.c: could not allocate coherent memory\n");
 		return -ENOMEM;
 	}
 
@@ -151,7 +170,7 @@ int cpm_uart_allocbuf(struct uart_cpm_port *pinfo, unsigned int is_con)
 
 	pinfo->rx_buf = mem_addr;
 	pinfo->tx_buf = pinfo->rx_buf + L1_CACHE_ALIGN(pinfo->rx_nrfifos
-						       * pinfo->rx_fifosize);
+					* pinfo->rx_fifosize);
 
 	pinfo->rx_bd_base = (cbd_t __iomem *)dp_mem;
 	pinfo->tx_bd_base = pinfo->rx_bd_base + pinfo->rx_nrfifos;
@@ -162,10 +181,10 @@ int cpm_uart_allocbuf(struct uart_cpm_port *pinfo, unsigned int is_con)
 void cpm_uart_freebuf(struct uart_cpm_port *pinfo)
 {
 	dma_free_coherent(pinfo->port.dev, L1_CACHE_ALIGN(pinfo->rx_nrfifos *
-							  pinfo->rx_fifosize) +
-			  L1_CACHE_ALIGN(pinfo->tx_nrfifos *
-					 pinfo->tx_fifosize), (void __force *)pinfo->mem_addr,
-			  pinfo->dma_addr);
+					  pinfo->rx_fifosize) +
+					  L1_CACHE_ALIGN(pinfo->tx_nrfifos *
+									 pinfo->tx_fifosize), (void __force *)pinfo->mem_addr,
+					  pinfo->dma_addr);
 
 	cpm_dpfree(pinfo->dp_addr);
 }

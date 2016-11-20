@@ -32,30 +32,39 @@
 bool
 nvkm_sw_chan_mthd(struct nvkm_sw_chan *chan, int subc, u32 mthd, u32 data)
 {
-	switch (mthd) {
-	case 0x0000:
-		return true;
-	case 0x0500:
-		nvkm_event_send(&chan->event, 1, 0, NULL, 0);
-		return true;
-	default:
-		if (chan->func->mthd)
-			return chan->func->mthd(chan, subc, mthd, data);
-		break;
+	switch (mthd)
+	{
+		case 0x0000:
+			return true;
+
+		case 0x0500:
+			nvkm_event_send(&chan->event, 1, 0, NULL, 0);
+			return true;
+
+		default:
+			if (chan->func->mthd)
+			{
+				return chan->func->mthd(chan, subc, mthd, data);
+			}
+
+			break;
 	}
+
 	return false;
 }
 
 static int
 nvkm_sw_chan_event_ctor(struct nvkm_object *object, void *data, u32 size,
-			struct nvkm_notify *notify)
+						struct nvkm_notify *notify)
 {
-	union {
+	union
+	{
 		struct nvif_notify_uevent_req none;
 	} *req = data;
 	int ret = -ENOSYS;
 
-	if (!(ret = nvif_unvers(ret, &data, &size, req->none))) {
+	if (!(ret = nvif_unvers(ret, &data, &size, req->none)))
+	{
 		notify->size  = sizeof(struct nvif_notify_uevent_rep);
 		notify->types = 1;
 		notify->index = 0;
@@ -65,7 +74,8 @@ nvkm_sw_chan_event_ctor(struct nvkm_object *object, void *data, u32 size,
 }
 
 static const struct nvkm_event_func
-nvkm_sw_chan_event = {
+	nvkm_sw_chan_event =
+{
 	.ctor = nvkm_sw_chan_event_ctor,
 };
 
@@ -78,7 +88,10 @@ nvkm_sw_chan_dtor(struct nvkm_object *object)
 	void *data = chan;
 
 	if (chan->func->dtor)
+	{
 		data = chan->func->dtor(chan);
+	}
+
 	nvkm_event_fini(&chan->event);
 
 	spin_lock_irqsave(&sw->engine.lock, flags);
@@ -88,14 +101,15 @@ nvkm_sw_chan_dtor(struct nvkm_object *object)
 }
 
 static const struct nvkm_object_func
-nvkm_sw_chan = {
+	nvkm_sw_chan =
+{
 	.dtor = nvkm_sw_chan_dtor,
 };
 
 int
 nvkm_sw_chan_ctor(const struct nvkm_sw_chan_func *func, struct nvkm_sw *sw,
-		  struct nvkm_fifo_chan *fifo, const struct nvkm_oclass *oclass,
-		  struct nvkm_sw_chan *chan)
+				  struct nvkm_fifo_chan *fifo, const struct nvkm_oclass *oclass,
+				  struct nvkm_sw_chan *chan)
 {
 	unsigned long flags;
 

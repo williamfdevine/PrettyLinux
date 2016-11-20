@@ -35,10 +35,11 @@
 #define ENET_BRCM_TAG_LEN	4
 #define ENET_PAD		10
 #define UMAC_MAX_MTU_SIZE	(ETH_DATA_LEN + ETH_HLEN + VLAN_HLEN + \
-				 ENET_BRCM_TAG_LEN + ETH_FCS_LEN + ENET_PAD)
+							 ENET_BRCM_TAG_LEN + ETH_FCS_LEN + ENET_PAD)
 
 /* Transmit status block */
-struct bcm_tsb {
+struct bcm_tsb
+{
 	u32 pcp_dei_vid;
 #define PCP_DEI_MASK		0xf
 #define VID_SHIFT		4
@@ -56,7 +57,8 @@ struct bcm_tsb {
 /* Receive status block uses the same
  * definitions as the DMA descriptor
  */
-struct bcm_rsb {
+struct bcm_rsb
+{
 	u32 rx_status_len;
 	u32 brcm_egress_tag;
 };
@@ -320,24 +322,24 @@ struct bcm_rsb {
 #define SYS_PORT_TDMA_OFFSET		0x4000
 #define TDMA_WRITE_PORT_OFFSET		0x0000
 #define TDMA_WRITE_PORT_HI(i)		(TDMA_WRITE_PORT_OFFSET + \
-					(i) * TDMA_PORT_SIZE)
+									 (i) * TDMA_PORT_SIZE)
 #define TDMA_WRITE_PORT_LO(i)		(TDMA_WRITE_PORT_OFFSET + \
-					sizeof(u32) + (i) * TDMA_PORT_SIZE)
+									 sizeof(u32) + (i) * TDMA_PORT_SIZE)
 
 #define TDMA_READ_PORT_OFFSET		(TDMA_WRITE_PORT_OFFSET + \
-					(TDMA_NUM_RINGS * TDMA_PORT_SIZE))
+									 (TDMA_NUM_RINGS * TDMA_PORT_SIZE))
 #define TDMA_READ_PORT_HI(i)		(TDMA_READ_PORT_OFFSET + \
-					(i) * TDMA_PORT_SIZE)
+									 (i) * TDMA_PORT_SIZE)
 #define TDMA_READ_PORT_LO(i)		(TDMA_READ_PORT_OFFSET + \
-					sizeof(u32) + (i) * TDMA_PORT_SIZE)
+									 sizeof(u32) + (i) * TDMA_PORT_SIZE)
 
 #define TDMA_READ_PORT_CMD_OFFSET	(TDMA_READ_PORT_OFFSET + \
-					(TDMA_NUM_RINGS * TDMA_PORT_SIZE))
+									 (TDMA_NUM_RINGS * TDMA_PORT_SIZE))
 #define TDMA_READ_PORT_CMD(i)		(TDMA_READ_PORT_CMD_OFFSET + \
-					(i) * sizeof(u32))
+									 (i) * sizeof(u32))
 
 #define TDMA_DESC_RING_00_BASE		(TDMA_READ_PORT_CMD_OFFSET + \
-					(TDMA_NUM_RINGS * sizeof(u32)))
+									 (TDMA_NUM_RINGS * sizeof(u32)))
 
 /* Register offsets and defines relatives to a specific ring number */
 #define RING_HEAD_TAIL_PTR		0x00
@@ -389,24 +391,24 @@ struct bcm_rsb {
 
 /* Defininition for a given TX ring base address */
 #define TDMA_DESC_RING_BASE(i)		(TDMA_DESC_RING_00_BASE + \
-					((i) * TDMA_DESC_RING_SIZE))
+									 ((i) * TDMA_DESC_RING_SIZE))
 
 /* Ring indexed register addreses */
 #define TDMA_DESC_RING_HEAD_TAIL_PTR(i)	(TDMA_DESC_RING_BASE(i) + \
-					RING_HEAD_TAIL_PTR)
+		RING_HEAD_TAIL_PTR)
 #define TDMA_DESC_RING_COUNT(i)		(TDMA_DESC_RING_BASE(i) + \
-					RING_COUNT)
+									 RING_COUNT)
 #define TDMA_DESC_RING_MAX_HYST(i)	(TDMA_DESC_RING_BASE(i) + \
-					RING_MAX_HYST)
+									 RING_MAX_HYST)
 #define TDMA_DESC_RING_INTR_CONTROL(i)	(TDMA_DESC_RING_BASE(i) + \
-					RING_INTR_CONTROL)
+		RING_INTR_CONTROL)
 #define TDMA_DESC_RING_PROD_CONS_INDEX(i) \
-					(TDMA_DESC_RING_BASE(i) + \
-					RING_PROD_CONS_INDEX)
+	(TDMA_DESC_RING_BASE(i) + \
+	 RING_PROD_CONS_INDEX)
 #define TDMA_DESC_RING_MAPPING(i)	(TDMA_DESC_RING_BASE(i) + \
-					RING_MAPPING)
+									 RING_MAPPING)
 #define TDMA_DESC_RING_PCP_DEI_VID(i)	(TDMA_DESC_RING_BASE(i) + \
-					RING_PCP_DEI_VID)
+		RING_PCP_DEI_VID)
 
 #define TDMA_CONTROL			0x600
 #define  TDMA_EN			(1 << 0)
@@ -469,7 +471,8 @@ struct bcm_rsb {
 #define TDMA_DEBUG			0x64c
 
 /* Transmit/Receive descriptor */
-struct dma_desc {
+struct dma_desc
+{
 	u32	addr_status_len;
 	u32	addr_lo;
 };
@@ -485,7 +488,8 @@ struct dma_desc {
 #define WORDS_PER_DESC			(sizeof(struct dma_desc) / sizeof(u32))
 
 /* Rx/Tx common counter group.*/
-struct bcm_sysport_pkt_counters {
+struct bcm_sysport_pkt_counters
+{
 	u32	cnt_64;		/* RO Received/Transmited 64 bytes packet */
 	u32	cnt_127;	/* RO Rx/Tx 127 bytes packet */
 	u32	cnt_255;	/* RO Rx/Tx 65-255 bytes packet */
@@ -499,7 +503,8 @@ struct bcm_sysport_pkt_counters {
 };
 
 /* RSV, Receive Status Vector */
-struct bcm_sysport_rx_counters {
+struct bcm_sysport_rx_counters
+{
 	struct  bcm_sysport_pkt_counters pkt_cnt;
 	u32	pkt;		/* RO (0x428) Received pkt count*/
 	u32	bytes;		/* RO Received byte count */
@@ -523,7 +528,8 @@ struct bcm_sysport_rx_counters {
 };
 
 /* TSV, Transmit Status Vector */
-struct bcm_sysport_tx_counters {
+struct bcm_sysport_tx_counters
+{
 	struct bcm_sysport_pkt_counters pkt_cnt;
 	u32	pkts;		/* RO (0x4a8) Transmited pkt */
 	u32	mca;		/* RO # of xmited multicast pkt */
@@ -546,7 +552,8 @@ struct bcm_sysport_tx_counters {
 	u32	uc;		/* RO (0x4f0) # of xmited unicast pkt */
 };
 
-struct bcm_sysport_mib {
+struct bcm_sysport_mib
+{
 	struct bcm_sysport_rx_counters rx;
 	struct bcm_sysport_tx_counters tx;
 	u32 rx_runt_cnt;
@@ -563,7 +570,8 @@ struct bcm_sysport_mib {
 };
 
 /* HW maintains a large list of counters */
-enum bcm_sysport_stat_type {
+enum bcm_sysport_stat_type
+{
 	BCM_SYSPORT_STAT_NETDEV = -1,
 	BCM_SYSPORT_STAT_MIB_RX,
 	BCM_SYSPORT_STAT_MIB_TX,
@@ -575,18 +583,18 @@ enum bcm_sysport_stat_type {
 
 /* Macros to help define ethtool statistics */
 #define STAT_NETDEV(m) { \
-	.stat_string = __stringify(m), \
-	.stat_sizeof = sizeof(((struct net_device_stats *)0)->m), \
-	.stat_offset = offsetof(struct net_device_stats, m), \
-	.type = BCM_SYSPORT_STAT_NETDEV, \
-}
+		.stat_string = __stringify(m), \
+					   .stat_sizeof = sizeof(((struct net_device_stats *)0)->m), \
+									  .stat_offset = offsetof(struct net_device_stats, m), \
+											  .type = BCM_SYSPORT_STAT_NETDEV, \
+	}
 
 #define STAT_MIB(str, m, _type) { \
-	.stat_string = str, \
-	.stat_sizeof = sizeof(((struct bcm_sysport_priv *)0)->m), \
-	.stat_offset = offsetof(struct bcm_sysport_priv, m), \
-	.type = _type, \
-}
+		.stat_string = str, \
+					   .stat_sizeof = sizeof(((struct bcm_sysport_priv *)0)->m), \
+									  .stat_offset = offsetof(struct bcm_sysport_priv, m), \
+											  .type = _type, \
+	}
 
 #define STAT_MIB_RX(str, m) STAT_MIB(str, m, BCM_SYSPORT_STAT_MIB_RX)
 #define STAT_MIB_TX(str, m) STAT_MIB(str, m, BCM_SYSPORT_STAT_MIB_TX)
@@ -594,22 +602,23 @@ enum bcm_sysport_stat_type {
 #define STAT_MIB_SOFT(str, m) STAT_MIB(str, m, BCM_SYSPORT_STAT_SOFT)
 
 #define STAT_RXCHK(str, m, ofs) { \
-	.stat_string = str, \
-	.stat_sizeof = sizeof(((struct bcm_sysport_priv *)0)->m), \
-	.stat_offset = offsetof(struct bcm_sysport_priv, m), \
-	.type = BCM_SYSPORT_STAT_RXCHK, \
-	.reg_offset = ofs, \
-}
+		.stat_string = str, \
+					   .stat_sizeof = sizeof(((struct bcm_sysport_priv *)0)->m), \
+									  .stat_offset = offsetof(struct bcm_sysport_priv, m), \
+											  .type = BCM_SYSPORT_STAT_RXCHK, \
+													  .reg_offset = ofs, \
+	}
 
 #define STAT_RBUF(str, m, ofs) { \
-	.stat_string = str, \
-	.stat_sizeof = sizeof(((struct bcm_sysport_priv *)0)->m), \
-	.stat_offset = offsetof(struct bcm_sysport_priv, m), \
-	.type = BCM_SYSPORT_STAT_RBUF, \
-	.reg_offset = ofs, \
-}
+		.stat_string = str, \
+					   .stat_sizeof = sizeof(((struct bcm_sysport_priv *)0)->m), \
+									  .stat_offset = offsetof(struct bcm_sysport_priv, m), \
+											  .type = BCM_SYSPORT_STAT_RBUF, \
+													  .reg_offset = ofs, \
+	}
 
-struct bcm_sysport_stats {
+struct bcm_sysport_stats
+{
 	char stat_string[ETH_GSTRING_LEN];
 	int stat_sizeof;
 	int stat_offset;
@@ -619,7 +628,8 @@ struct bcm_sysport_stats {
 };
 
 /* Software house keeping helper structure */
-struct bcm_sysport_cb {
+struct bcm_sysport_cb
+{
 	struct sk_buff	*skb;		/* SKB for RX packets */
 	void __iomem	*bd_addr;	/* Buffer descriptor PHYS addr */
 
@@ -628,7 +638,8 @@ struct bcm_sysport_cb {
 };
 
 /* Software view of the TX ring */
-struct bcm_sysport_tx_ring {
+struct bcm_sysport_tx_ring
+{
 	spinlock_t	lock;		/* Ring lock for tx reclaim/xmit */
 	struct napi_struct napi;	/* NAPI per tx queue */
 	dma_addr_t	desc_dma;	/* DMA cookie */
@@ -645,7 +656,8 @@ struct bcm_sysport_tx_ring {
 };
 
 /* Driver private structure */
-struct bcm_sysport_priv {
+struct bcm_sysport_priv
+{
 	void __iomem		*base;
 	u32			irq0_stat;
 	u32			irq0_mask;
@@ -676,12 +688,12 @@ struct bcm_sysport_priv {
 	int			old_duplex;
 
 	/* Misc fields */
-	unsigned int		rx_chk_en:1;
-	unsigned int		tsb_en:1;
-	unsigned int		crc_fwd:1;
+	unsigned int		rx_chk_en: 1;
+	unsigned int		tsb_en: 1;
+	unsigned int		crc_fwd: 1;
 	u16			rev;
 	u32			wolopts;
-	unsigned int		wol_irq_disabled:1;
+	unsigned int		wol_irq_disabled: 1;
 
 	/* MIB related fields */
 	struct bcm_sysport_mib	mib;

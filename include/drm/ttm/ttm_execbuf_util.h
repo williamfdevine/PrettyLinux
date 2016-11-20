@@ -42,7 +42,8 @@
  * @shared:         should the fence be added shared?
  */
 
-struct ttm_validate_buffer {
+struct ttm_validate_buffer
+{
 	struct list_head head;
 	struct ttm_buffer_object *bo;
 	bool shared;
@@ -59,7 +60,7 @@ struct ttm_validate_buffer {
  */
 
 extern void ttm_eu_backoff_reservation(struct ww_acquire_ctx *ticket,
-				       struct list_head *list);
+									   struct list_head *list);
 
 /**
  * function ttm_eu_reserve_buffers
@@ -96,8 +97,8 @@ extern void ttm_eu_backoff_reservation(struct ww_acquire_ctx *ticket,
  */
 
 extern int ttm_eu_reserve_buffers(struct ww_acquire_ctx *ticket,
-				  struct list_head *list, bool intr,
-				  struct list_head *dups);
+								  struct list_head *list, bool intr,
+								  struct list_head *dups);
 
 /**
  * function ttm_eu_fence_buffer_objects.
@@ -113,7 +114,7 @@ extern int ttm_eu_reserve_buffers(struct ww_acquire_ctx *ticket,
  */
 
 extern void ttm_eu_fence_buffer_objects(struct ww_acquire_ctx *ticket,
-					struct list_head *list,
-					struct fence *fence);
+										struct list_head *list,
+										struct fence *fence);
 
 #endif

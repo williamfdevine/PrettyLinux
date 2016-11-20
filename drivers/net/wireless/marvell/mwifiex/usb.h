@@ -56,14 +56,16 @@
 #define FW_DATA_XMIT_SIZE \
 	(sizeof(struct fw_header) + dlen + sizeof(u32))
 
-struct urb_context {
+struct urb_context
+{
 	struct mwifiex_adapter *adapter;
 	struct sk_buff *skb;
 	struct urb *urb;
 	u8 ep;
 };
 
-struct usb_tx_data_port {
+struct usb_tx_data_port
+{
 	u8 tx_data_ep;
 	u8 block_status;
 	atomic_t tx_data_urb_pending;
@@ -71,7 +73,8 @@ struct usb_tx_data_port {
 	struct urb_context tx_data_list[MWIFIEX_TX_DATA_URB];
 };
 
-struct usb_card_rec {
+struct usb_card_rec
+{
 	struct mwifiex_adapter *adapter;
 	struct usb_device *udev;
 	struct usb_interface *intf;
@@ -90,19 +93,22 @@ struct usb_card_rec {
 	struct usb_tx_data_port port[MWIFIEX_TX_DATA_PORT];
 };
 
-struct fw_header {
+struct fw_header
+{
 	__le32 dnld_cmd;
 	__le32 base_addr;
 	__le32 data_len;
 	__le32 crc;
 };
 
-struct fw_sync_header {
+struct fw_sync_header
+{
 	__le32 cmd;
 	__le32 seq_num;
 };
 
-struct fw_data {
+struct fw_data
+{
 	struct fw_header fw_hdr;
 	__le32 seq_num;
 	u8 data[1];

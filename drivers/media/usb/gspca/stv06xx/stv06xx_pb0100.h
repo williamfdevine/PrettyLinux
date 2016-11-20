@@ -124,7 +124,8 @@ static int pb0100_set_exposure(struct gspca_dev *gspca_dev, __s32 val);
 static int pb0100_set_autogain(struct gspca_dev *gspca_dev, __s32 val);
 static int pb0100_set_autogain_target(struct gspca_dev *gspca_dev, __s32 val);
 
-const struct stv06xx_sensor stv06xx_sensor_pb0100 = {
+const struct stv06xx_sensor stv06xx_sensor_pb0100 =
+{
 	.name = "PB-0100",
 	.i2c_flush = 1,
 	.i2c_addr = 0xba,

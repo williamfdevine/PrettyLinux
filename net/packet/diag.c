@@ -20,16 +20,31 @@ static int pdiag_put_info(const struct packet_sock *po, struct sk_buff *nlskb)
 	pinfo.pdi_tstamp = po->tp_tstamp;
 
 	pinfo.pdi_flags = 0;
+
 	if (po->running)
+	{
 		pinfo.pdi_flags |= PDI_RUNNING;
+	}
+
 	if (po->auxdata)
+	{
 		pinfo.pdi_flags |= PDI_AUXDATA;
+	}
+
 	if (po->origdev)
+	{
 		pinfo.pdi_flags |= PDI_ORIGDEV;
+	}
+
 	if (po->has_vnet_hdr)
+	{
 		pinfo.pdi_flags |= PDI_VNETHDR;
+	}
+
 	if (po->tp_loss)
+	{
 		pinfo.pdi_flags |= PDI_LOSS;
+	}
 
 	return nla_put(nlskb, PACKET_DIAG_INFO, sizeof(pinfo), &pinfo);
 }
@@ -40,15 +55,22 @@ static int pdiag_put_mclist(const struct packet_sock *po, struct sk_buff *nlskb)
 	struct packet_mclist *ml;
 
 	mca = nla_nest_start(nlskb, PACKET_DIAG_MCLIST);
+
 	if (!mca)
+	{
 		return -EMSGSIZE;
+	}
 
 	rtnl_lock();
-	for (ml = po->mclist; ml; ml = ml->next) {
+
+	for (ml = po->mclist; ml; ml = ml->next)
+	{
 		struct packet_diag_mclist *dml;
 
 		dml = nla_reserve_nohdr(nlskb, sizeof(*dml));
-		if (!dml) {
+
+		if (!dml)
+		{
 			rtnl_unlock();
 			nla_nest_cancel(nlskb, mca);
 			return -EMSGSIZE;
@@ -69,24 +91,29 @@ static int pdiag_put_mclist(const struct packet_sock *po, struct sk_buff *nlskb)
 }
 
 static int pdiag_put_ring(struct packet_ring_buffer *ring, int ver, int nl_type,
-		struct sk_buff *nlskb)
+						  struct sk_buff *nlskb)
 {
 	struct packet_diag_ring pdr;
 
 	if (!ring->pg_vec || ((ver > TPACKET_V2) &&
-				(nl_type == PACKET_DIAG_TX_RING)))
+						  (nl_type == PACKET_DIAG_TX_RING)))
+	{
 		return 0;
+	}
 
 	pdr.pdr_block_size = ring->pg_vec_pages << PAGE_SHIFT;
 	pdr.pdr_block_nr = ring->pg_vec_len;
 	pdr.pdr_frame_size = ring->frame_size;
 	pdr.pdr_frame_nr = ring->frame_max + 1;
 
-	if (ver > TPACKET_V2) {
+	if (ver > TPACKET_V2)
+	{
 		pdr.pdr_retire_tmo = ring->prb_bdqc.retire_blk_tov;
 		pdr.pdr_sizeof_priv = ring->prb_bdqc.blk_sizeof_priv;
 		pdr.pdr_features = ring->prb_bdqc.feature_req_word;
-	} else {
+	}
+	else
+	{
 		pdr.pdr_retire_tmo = 0;
 		pdr.pdr_sizeof_priv = 0;
 		pdr.pdr_features = 0;
@@ -101,10 +128,12 @@ static int pdiag_put_rings_cfg(struct packet_sock *po, struct sk_buff *skb)
 
 	mutex_lock(&po->pg_vec_lock);
 	ret = pdiag_put_ring(&po->rx_ring, po->tp_version,
-			PACKET_DIAG_RX_RING, skb);
+						 PACKET_DIAG_RX_RING, skb);
+
 	if (!ret)
 		ret = pdiag_put_ring(&po->tx_ring, po->tp_version,
-				PACKET_DIAG_TX_RING, skb);
+							 PACKET_DIAG_TX_RING, skb);
+
 	mutex_unlock(&po->pg_vec_lock);
 
 	return ret;
@@ -115,30 +144,36 @@ static int pdiag_put_fanout(struct packet_sock *po, struct sk_buff *nlskb)
 	int ret = 0;
 
 	mutex_lock(&fanout_mutex);
-	if (po->fanout) {
+
+	if (po->fanout)
+	{
 		u32 val;
 
 		val = (u32)po->fanout->id | ((u32)po->fanout->type << 16);
 		ret = nla_put_u32(nlskb, PACKET_DIAG_FANOUT, val);
 	}
+
 	mutex_unlock(&fanout_mutex);
 
 	return ret;
 }
 
 static int sk_diag_fill(struct sock *sk, struct sk_buff *skb,
-			struct packet_diag_req *req,
-			bool may_report_filterinfo,
-			struct user_namespace *user_ns,
-			u32 portid, u32 seq, u32 flags, int sk_ino)
+						struct packet_diag_req *req,
+						bool may_report_filterinfo,
+						struct user_namespace *user_ns,
+						u32 portid, u32 seq, u32 flags, int sk_ino)
 {
 	struct nlmsghdr *nlh;
 	struct packet_diag_msg *rp;
 	struct packet_sock *po = pkt_sk(sk);
 
 	nlh = nlmsg_put(skb, portid, seq, SOCK_DIAG_BY_FAMILY, sizeof(*rp), flags);
+
 	if (!nlh)
+	{
 		return -EMSGSIZE;
+	}
 
 	rp = nlmsg_data(nlh);
 	rp->pdiag_family = AF_PACKET;
@@ -148,34 +183,48 @@ static int sk_diag_fill(struct sock *sk, struct sk_buff *skb,
 	sock_diag_save_cookie(sk, rp->pdiag_cookie);
 
 	if ((req->pdiag_show & PACKET_SHOW_INFO) &&
-			pdiag_put_info(po, skb))
+		pdiag_put_info(po, skb))
+	{
 		goto out_nlmsg_trim;
+	}
 
 	if ((req->pdiag_show & PACKET_SHOW_INFO) &&
-	    nla_put_u32(skb, PACKET_DIAG_UID,
-			from_kuid_munged(user_ns, sock_i_uid(sk))))
+		nla_put_u32(skb, PACKET_DIAG_UID,
+					from_kuid_munged(user_ns, sock_i_uid(sk))))
+	{
 		goto out_nlmsg_trim;
+	}
 
 	if ((req->pdiag_show & PACKET_SHOW_MCLIST) &&
-			pdiag_put_mclist(po, skb))
+		pdiag_put_mclist(po, skb))
+	{
 		goto out_nlmsg_trim;
+	}
 
 	if ((req->pdiag_show & PACKET_SHOW_RING_CFG) &&
-			pdiag_put_rings_cfg(po, skb))
+		pdiag_put_rings_cfg(po, skb))
+	{
 		goto out_nlmsg_trim;
+	}
 
 	if ((req->pdiag_show & PACKET_SHOW_FANOUT) &&
-			pdiag_put_fanout(po, skb))
+		pdiag_put_fanout(po, skb))
+	{
 		goto out_nlmsg_trim;
+	}
 
 	if ((req->pdiag_show & PACKET_SHOW_MEMINFO) &&
-	    sock_diag_put_meminfo(sk, skb, PACKET_DIAG_MEMINFO))
+		sock_diag_put_meminfo(sk, skb, PACKET_DIAG_MEMINFO))
+	{
 		goto out_nlmsg_trim;
+	}
 
 	if ((req->pdiag_show & PACKET_SHOW_FILTER) &&
-	    sock_diag_put_filterinfo(may_report_filterinfo, sk, skb,
-				     PACKET_DIAG_FILTER))
+		sock_diag_put_filterinfo(may_report_filterinfo, sk, skb,
+								 PACKET_DIAG_FILTER))
+	{
 		goto out_nlmsg_trim;
+	}
 
 	nlmsg_end(skb, nlh);
 	return 0;
@@ -198,19 +247,28 @@ static int packet_diag_dump(struct sk_buff *skb, struct netlink_callback *cb)
 	may_report_filterinfo = netlink_net_capable(cb->skb, CAP_NET_ADMIN);
 
 	mutex_lock(&net->packet.sklist_lock);
-	sk_for_each(sk, &net->packet.sklist) {
+	sk_for_each(sk, &net->packet.sklist)
+	{
 		if (!net_eq(sock_net(sk), net))
+		{
 			continue;
+		}
+
 		if (num < s_num)
+		{
 			goto next;
+		}
 
 		if (sk_diag_fill(sk, skb, req,
-				 may_report_filterinfo,
-				 sk_user_ns(NETLINK_CB(cb->skb).sk),
-				 NETLINK_CB(cb->skb).portid,
-				 cb->nlh->nlmsg_seq, NLM_F_MULTI,
-				 sock_i_ino(sk)) < 0)
+						 may_report_filterinfo,
+						 sk_user_ns(NETLINK_CB(cb->skb).sk),
+						 NETLINK_CB(cb->skb).portid,
+						 cb->nlh->nlmsg_seq, NLM_F_MULTI,
+						 sock_i_ino(sk)) < 0)
+		{
 			goto done;
+		}
+
 next:
 		num++;
 	}
@@ -228,23 +286,34 @@ static int packet_diag_handler_dump(struct sk_buff *skb, struct nlmsghdr *h)
 	struct packet_diag_req *req;
 
 	if (nlmsg_len(h) < hdrlen)
+	{
 		return -EINVAL;
+	}
 
 	req = nlmsg_data(h);
+
 	/* Make it possible to support protocol filtering later */
 	if (req->sdiag_protocol)
+	{
 		return -EINVAL;
+	}
 
-	if (h->nlmsg_flags & NLM_F_DUMP) {
-		struct netlink_dump_control c = {
+	if (h->nlmsg_flags & NLM_F_DUMP)
+	{
+		struct netlink_dump_control c =
+		{
 			.dump = packet_diag_dump,
 		};
 		return netlink_dump_start(net->diag_nlsk, skb, h, &c);
-	} else
+	}
+	else
+	{
 		return -EOPNOTSUPP;
+	}
 }
 
-static const struct sock_diag_handler packet_diag_handler = {
+static const struct sock_diag_handler packet_diag_handler =
+{
 	.family = AF_PACKET,
 	.dump = packet_diag_handler_dump,
 };

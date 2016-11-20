@@ -23,7 +23,8 @@
 #ifdef __NVKM_PCI_AGP_H__
 #include <core/option.h>
 
-struct nvkm_device_agp_quirk {
+struct nvkm_device_agp_quirk
+{
 	u16 hostbridge_vendor;
 	u16 hostbridge_device;
 	u16 chip_vendor;
@@ -32,7 +33,8 @@ struct nvkm_device_agp_quirk {
 };
 
 static const struct nvkm_device_agp_quirk
-nvkm_device_agp_quirks[] = {
+	nvkm_device_agp_quirks[] =
+{
 	/* VIA Apollo PRO133x / GeForce FX 5600 Ultra - fdo#20341 */
 	{ PCI_VENDOR_ID_VIA, 0x0691, PCI_VENDOR_ID_NVIDIA, 0x0311, 2 },
 	/* SiS 761 does not support AGP cards, use PCI mode */
@@ -43,7 +45,8 @@ nvkm_device_agp_quirks[] = {
 void
 nvkm_agp_fini(struct nvkm_pci *pci)
 {
-	if (pci->agp.acquired) {
+	if (pci->agp.acquired)
+	{
 		agp_backend_release(pci->agp.bridge);
 		pci->agp.acquired = false;
 	}
@@ -63,7 +66,8 @@ nvkm_agp_preinit(struct nvkm_pci *pci)
 	 * enabled in the AGP bridge and we disable the card's AGP
 	 * controller we might be locking ourselves out of it.
 	 */
-	if ((mode | pci->agp.mode) & PCI_AGP_COMMAND_FW) {
+	if ((mode | pci->agp.mode) & PCI_AGP_COMMAND_FW)
+	{
 		mode = pci->agp.mode & ~PCI_AGP_COMMAND_FW;
 		agp_enable(pci->agp.bridge, mode);
 	}
@@ -84,7 +88,8 @@ nvkm_agp_preinit(struct nvkm_pci *pci)
 int
 nvkm_agp_init(struct nvkm_pci *pci)
 {
-	if (!agp_backend_acquire(pci->pdev)) {
+	if (!agp_backend_acquire(pci->pdev))
+	{
 		nvkm_error(&pci->subdev, "failed to acquire agp\n");
 		return -ENODEV;
 	}
@@ -122,10 +127,12 @@ nvkm_agp_ctor(struct nvkm_pci *pci)
 	mode = nvkm_longopt(device->cfgopt, "NvAGP", mode);
 
 	/* acquire bridge temporarily, so that we can copy its info */
-	if (!(pci->agp.bridge = agp_backend_acquire(pci->pdev))) {
+	if (!(pci->agp.bridge = agp_backend_acquire(pci->pdev)))
+	{
 		nvkm_warn(subdev, "failed to acquire agp\n");
 		return;
 	}
+
 	agp_copy_info(pci->agp.bridge, &info);
 	agp_backend_release(pci->agp.bridge);
 
@@ -136,30 +143,38 @@ nvkm_agp_ctor(struct nvkm_pci *pci)
 	pci->agp.mtrr = -1;
 
 	/* determine if bridge + chipset combination needs a workaround */
-	while (quirk->hostbridge_vendor) {
+	while (quirk->hostbridge_vendor)
+	{
 		if (info.device->vendor == quirk->hostbridge_vendor &&
-		    info.device->device == quirk->hostbridge_device &&
-		    (quirk->chip_vendor == (u16)PCI_ANY_ID ||
-		    pci->pdev->vendor == quirk->chip_vendor) &&
-		    (quirk->chip_device == (u16)PCI_ANY_ID ||
-		    pci->pdev->device == quirk->chip_device)) {
+			info.device->device == quirk->hostbridge_device &&
+			(quirk->chip_vendor == (u16)PCI_ANY_ID ||
+			 pci->pdev->vendor == quirk->chip_vendor) &&
+			(quirk->chip_device == (u16)PCI_ANY_ID ||
+			 pci->pdev->device == quirk->chip_device))
+		{
 			nvkm_info(subdev, "forcing default agp mode to %dX, "
 					  "use NvAGP=<mode> to override\n",
-				  quirk->mode);
+					  quirk->mode);
 			mode = quirk->mode;
 			break;
 		}
+
 		quirk++;
 	}
 
 	/* apply quirk / user-specified mode */
-	if (mode >= 1) {
+	if (mode >= 1)
+	{
 		if (pci->agp.mode & 0x00000008)
-			mode /= 4; /* AGPv3 */
+		{
+			mode /= 4;    /* AGPv3 */
+		}
+
 		pci->agp.mode &= ~0x00000007;
 		pci->agp.mode |= (mode & 0x7);
-	} else
-	if (mode == 0) {
+	}
+	else if (mode == 0)
+	{
 		pci->agp.bridge = NULL;
 		return;
 	}
@@ -168,7 +183,9 @@ nvkm_agp_ctor(struct nvkm_pci *pci)
 	 * lock up randomly.
 	 */
 	if (device->chipset == 0x18)
+	{
 		pci->agp.mode &= ~PCI_AGP_COMMAND_FW;
+	}
 
 	pci->agp.mtrr = arch_phys_wc_add(pci->agp.base, pci->agp.size);
 }

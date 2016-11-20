@@ -32,42 +32,55 @@ int main(int argc, char **argv)
 	int ret = -1;
 	int opt;
 
-	while ((opt = getopt(argc, argv, "F:U:i:")) != -1) {
-		switch (opt) {
-		/* General args */
-		case 'U':
-			pinned_file = optarg;
-			break;
-		case 'i':
-			ifindex = atoi(optarg);
-			break;
-		default:
-			usage();
-			goto out;
+	while ((opt = getopt(argc, argv, "F:U:i:")) != -1)
+	{
+		switch (opt)
+		{
+			/* General args */
+			case 'U':
+				pinned_file = optarg;
+				break;
+
+			case 'i':
+				ifindex = atoi(optarg);
+				break;
+
+			default:
+				usage();
+				goto out;
 		}
 	}
 
-	if (ifindex < 0 || !pinned_file) {
+	if (ifindex < 0 || !pinned_file)
+	{
 		usage();
 		goto out;
 	}
 
 	array_fd = bpf_obj_get(pinned_file);
-	if (array_fd < 0) {
+
+	if (array_fd < 0)
+	{
 		fprintf(stderr, "bpf_obj_get(%s): %s(%d)\n",
-			pinned_file, strerror(errno), errno);
+				pinned_file, strerror(errno), errno);
 		goto out;
 	}
 
 	/* bpf_tunnel_key.remote_ipv4 expects host byte orders */
 	ret = bpf_update_elem(array_fd, &array_key, &ifindex, 0);
-	if (ret) {
+
+	if (ret)
+	{
 		perror("bpf_update_elem");
 		goto out;
 	}
 
 out:
+
 	if (array_fd != -1)
+	{
 		close(array_fd);
+	}
+
 	return ret;
 }

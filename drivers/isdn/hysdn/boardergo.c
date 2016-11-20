@@ -40,16 +40,23 @@ ergo_interrupt(int intno, void *dev_id)
 	unsigned char volatile b;
 
 	if (!card)
-		return IRQ_NONE;		/* error -> spurious interrupt */
+	{
+		return IRQ_NONE;    /* error -> spurious interrupt */
+	}
+
 	if (!card->irq_enabled)
-		return IRQ_NONE;		/* other device interrupting or irq switched off */
+	{
+		return IRQ_NONE;    /* other device interrupting or irq switched off */
+	}
 
 	spin_lock_irqsave(&card->hysdn_lock, flags); /* no further irqs allowed */
 
-	if (!(bytein(card->iobase + PCI9050_INTR_REG) & PCI9050_INTR_REG_STAT1)) {
+	if (!(bytein(card->iobase + PCI9050_INTR_REG) & PCI9050_INTR_REG_STAT1))
+	{
 		spin_unlock_irqrestore(&card->hysdn_lock, flags);	/* restore old state */
 		return IRQ_NONE;		/* no interrupt requested by E1 */
 	}
+
 	/* clear any pending ints on the board */
 	dpr = card->dpram;
 	b = dpr->ToPcInt;	/* clear for ergo */
@@ -58,7 +65,10 @@ ergo_interrupt(int intno, void *dev_id)
 
 	/* start kernel task immediately after leaving all interrupts */
 	if (!card->hw_lock)
+	{
 		schedule_work(&card->irq_queue);
+	}
+
 	spin_unlock_irqrestore(&card->hysdn_lock, flags);
 	return IRQ_HANDLED;
 }				/* ergo_interrupt */
@@ -79,43 +89,60 @@ ergo_irq_bh(struct work_struct *ugli_api)
 	unsigned long flags;
 
 	if (card->state != CARD_STATE_RUN)
-		return;		/* invalid call */
+	{
+		return;    /* invalid call */
+	}
 
 	dpr = card->dpram;	/* point to DPRAM */
 
 	spin_lock_irqsave(&card->hysdn_lock, flags);
-	if (card->hw_lock) {
+
+	if (card->hw_lock)
+	{
 		spin_unlock_irqrestore(&card->hysdn_lock, flags);	/* hardware currently unavailable */
 		return;
 	}
+
 	card->hw_lock = 1;	/* we now lock the hardware */
 
-	do {
+	do
+	{
 		again = 0;	/* assume loop not to be repeated */
 
-		if (!dpr->ToHyFlag) {
+		if (!dpr->ToHyFlag)
+		{
 			/* we are able to send a buffer */
 
 			if (hysdn_sched_tx(card, dpr->ToHyBuf, &dpr->ToHySize, &dpr->ToHyChannel,
-					   ERG_TO_HY_BUF_SIZE)) {
+							   ERG_TO_HY_BUF_SIZE))
+			{
 				dpr->ToHyFlag = 1;	/* enable tx */
 				again = 1;	/* restart loop */
 			}
 		}		/* we are able to send a buffer */
-		if (dpr->ToPcFlag) {
+
+		if (dpr->ToPcFlag)
+		{
 			/* a message has arrived for us, handle it */
 
-			if (hysdn_sched_rx(card, dpr->ToPcBuf, dpr->ToPcSize, dpr->ToPcChannel)) {
+			if (hysdn_sched_rx(card, dpr->ToPcBuf, dpr->ToPcSize, dpr->ToPcChannel))
+			{
 				dpr->ToPcFlag = 0;	/* we worked the data */
 				again = 1;	/* restart loop */
 			}
 		}		/* a message has arrived for us */
-		if (again) {
+
+		if (again)
+		{
 			dpr->ToHyInt = 1;
 			dpr->ToPcInt = 1;	/* interrupt to E1 for all cards */
-		} else
-			card->hw_lock = 0;	/* free hardware again */
-	} while (again);	/* until nothing more to do */
+		}
+		else
+		{
+			card->hw_lock = 0;    /* free hardware again */
+		}
+	}
+	while (again);	/* until nothing more to do */
 
 	spin_unlock_irqrestore(&card->hysdn_lock, flags);
 }				/* ergo_irq_bh */
@@ -154,21 +181,29 @@ ergo_set_errlog_state(hysdn_card *card, int on)
 {
 	unsigned long flags;
 
-	if (card->state != CARD_STATE_RUN) {
+	if (card->state != CARD_STATE_RUN)
+	{
 		card->err_log_state = ERRLOG_STATE_OFF;		/* must be off */
 		return;
 	}
+
 	spin_lock_irqsave(&card->hysdn_lock, flags);
 
 	if (((card->err_log_state == ERRLOG_STATE_OFF) && !on) ||
-	    ((card->err_log_state == ERRLOG_STATE_ON) && on)) {
+		((card->err_log_state == ERRLOG_STATE_ON) && on))
+	{
 		spin_unlock_irqrestore(&card->hysdn_lock, flags);
 		return;		/* nothing to do */
 	}
+
 	if (on)
-		card->err_log_state = ERRLOG_STATE_START;	/* request start */
+	{
+		card->err_log_state = ERRLOG_STATE_START;    /* request start */
+	}
 	else
-		card->err_log_state = ERRLOG_STATE_STOP;	/* request stop */
+	{
+		card->err_log_state = ERRLOG_STATE_STOP;    /* request stop */
+	}
 
 	spin_unlock_irqrestore(&card->hysdn_lock, flags);
 	schedule_work(&card->irq_queue);
@@ -188,16 +223,22 @@ ergo_testram(hysdn_card *card)
 	dpr->ToHyInt = 1;	/* E1 INTR state forced */
 
 	memcpy(&dpr->ToHyBuf[ERG_TO_HY_BUF_SIZE - sizeof(TestText)], TestText,
-	       sizeof(TestText));
+		   sizeof(TestText));
+
 	if (memcmp(&dpr->ToHyBuf[ERG_TO_HY_BUF_SIZE - sizeof(TestText)], TestText,
-		   sizeof(TestText)))
+			   sizeof(TestText)))
+	{
 		return (-1);
+	}
 
 	memcpy(&dpr->ToPcBuf[ERG_TO_PC_BUF_SIZE - sizeof(TestText)], TestText,
-	       sizeof(TestText));
+		   sizeof(TestText));
+
 	if (memcmp(&dpr->ToPcBuf[ERG_TO_PC_BUF_SIZE - sizeof(TestText)], TestText,
-		   sizeof(TestText)))
+			   sizeof(TestText)))
+	{
 		return (-1);
+	}
 
 	return (0);
 }				/* ergo_testram */
@@ -212,18 +253,22 @@ ergo_testram(hysdn_card *card)
 /*****************************************************************************/
 static int
 ergo_writebootimg(struct HYSDN_CARD *card, unsigned char *buf,
-		  unsigned long offs)
+				  unsigned long offs)
 {
 	unsigned char *dst;
 	tErgDpram *dpram;
 	int cnt = (BOOT_IMG_SIZE >> 2);		/* number of words to move and swap (byte order!) */
 
 	if (card->debug_flags & LOG_POF_CARD)
+	{
 		hysdn_addlog(card, "ERGO: write bootldr offs=0x%lx ", offs);
+	}
 
 	dst = card->dpram;	/* pointer to start of DPRAM */
 	dst += (offs + ERG_DPRAM_FILL_SIZE);	/* offset in the DPRAM */
-	while (cnt--) {
+
+	while (cnt--)
+	{
 		*dst++ = *(buf + 1);	/* high byte */
 		*dst++ = *buf;	/* low byte */
 		dst += 2;	/* point to next longword */
@@ -232,10 +277,12 @@ ergo_writebootimg(struct HYSDN_CARD *card, unsigned char *buf,
 
 	/* if low words (offs = 2) have been written, clear the rest of the DPRAM, */
 	/* flush the PCI-write-buffer and take the E1 out of reset */
-	if (offs) {
+	if (offs)
+	{
 		memset(card->dpram, 0, ERG_DPRAM_FILL_SIZE);	/* fill the DPRAM still not cleared */
 		dpram = card->dpram;	/* get pointer to dpram structure */
 		dpram->ToHyNoDpramErrLog = 0xFF;	/* write a dpram register */
+
 		while (!dpram->ToHyNoDpramErrLog);	/* reread volatile register to flush PCI */
 
 		byteout(card->iobase + PCI9050_USER_IO, PCI9050_E1_RUN);	/* start E1 processor */
@@ -243,12 +290,17 @@ ergo_writebootimg(struct HYSDN_CARD *card, unsigned char *buf,
 
 		msleep_interruptible(20);		/* Timeout 20ms */
 
-		if (((tDpramBootSpooler *) card->dpram)->Len != DPRAM_SPOOLER_DATA_SIZE) {
+		if (((tDpramBootSpooler *) card->dpram)->Len != DPRAM_SPOOLER_DATA_SIZE)
+		{
 			if (card->debug_flags & LOG_POF_CARD)
+			{
 				hysdn_addlog(card, "ERGO: write bootldr no answer");
+			}
+
 			return (-ERR_BOOTIMG_FAIL);
 		}
 	}			/* start_boot_img */
+
 	return (0);		/* successful */
 }				/* ergo_writebootimg */
 
@@ -269,7 +321,9 @@ ergo_writebootseq(struct HYSDN_CARD *card, unsigned char *buf, int len)
 	int i;
 
 	if (card->debug_flags & LOG_POF_CARD)
+	{
 		hysdn_addlog(card, "ERGO: write boot seq len=%d ", len);
+	}
 
 	dst = sp->Data;		/* point to data in spool structure */
 	buflen = sp->Len;	/* maximum len of spooled data */
@@ -277,39 +331,62 @@ ergo_writebootseq(struct HYSDN_CARD *card, unsigned char *buf, int len)
 
 	/* try until all bytes written or error */
 	i = 0x1000;		/* timeout value */
-	while (len) {
+
+	while (len)
+	{
 
 		/* first determine the number of bytes that may be buffered */
-		do {
+		do
+		{
 			tmp_rdptr = sp->RdPtr;	/* first read the pointer */
 			i--;	/* decrement timeout */
-		} while (i && (tmp_rdptr != sp->RdPtr));	/* wait for stable pointer */
+		}
+		while (i && (tmp_rdptr != sp->RdPtr));	/* wait for stable pointer */
 
-		if (!i) {
+		if (!i)
+		{
 			if (card->debug_flags & LOG_POF_CARD)
+			{
 				hysdn_addlog(card, "ERGO: write boot seq timeout");
+			}
+
 			return (-ERR_BOOTSEQ_FAIL);	/* value not stable -> timeout */
 		}
+
 		if ((nr_write = tmp_rdptr - wr_mirror - 1) < 0)
-			nr_write += buflen;	/* now we got number of free bytes - 1 in buffer */
+		{
+			nr_write += buflen;    /* now we got number of free bytes - 1 in buffer */
+		}
 
 		if (!nr_write)
-			continue;	/* no free bytes in buffer */
+		{
+			continue;    /* no free bytes in buffer */
+		}
 
 		if (nr_write > len)
-			nr_write = len;		/* limit if last few bytes */
+		{
+			nr_write = len;    /* limit if last few bytes */
+		}
+
 		i = 0x1000;	/* reset timeout value */
 
 		/* now we know how much bytes we may put in the puffer */
 		len -= nr_write;	/* we savely could adjust len before output */
-		while (nr_write--) {
+
+		while (nr_write--)
+		{
 			*(dst + wr_mirror) = *buf++;	/* output one byte */
+
 			if (++wr_mirror >= buflen)
+			{
 				wr_mirror = 0;
+			}
+
 			sp->WrPtr = wr_mirror;	/* announce the next byte to E1 */
 		}		/* while (nr_write) */
 
 	}			/* while (len) */
+
 	return (0);
 }				/* ergo_writebootseq */
 
@@ -328,34 +405,47 @@ ergo_waitpofready(struct HYSDN_CARD *card)
 	int i;
 
 	if (card->debug_flags & LOG_POF_CARD)
+	{
 		hysdn_addlog(card, "ERGO: waiting for pof ready");
-	while (timecnt--) {
+	}
+
+	while (timecnt--)
+	{
 		/* wait until timeout  */
 
-		if (dpr->ToPcFlag) {
+		if (dpr->ToPcFlag)
+		{
 			/* data has arrived */
 
 			if ((dpr->ToPcChannel != CHAN_SYSTEM) ||
-			    (dpr->ToPcSize < MIN_RDY_MSG_SIZE) ||
-			    (dpr->ToPcSize > MAX_RDY_MSG_SIZE) ||
-			    ((*(unsigned long *) dpr->ToPcBuf) != RDY_MAGIC))
-				break;	/* an error occurred */
+				(dpr->ToPcSize < MIN_RDY_MSG_SIZE) ||
+				(dpr->ToPcSize > MAX_RDY_MSG_SIZE) ||
+				((*(unsigned long *) dpr->ToPcBuf) != RDY_MAGIC))
+			{
+				break;    /* an error occurred */
+			}
 
 			/* Check for additional data delivered during SysReady */
 			msg_size = dpr->ToPcSize - RDY_MAGIC_SIZE;
+
 			if (msg_size > 0)
 				if (EvalSysrTokData(card, dpr->ToPcBuf + RDY_MAGIC_SIZE, msg_size))
+				{
 					break;
+				}
 
 			if (card->debug_flags & LOG_POF_RECORD)
+			{
 				hysdn_addlog(card, "ERGO: pof boot success");
+			}
+
 			spin_lock_irqsave(&card->hysdn_lock, flags);
 
 			card->state = CARD_STATE_RUN;	/* now card is running */
 			/* enable the cards interrupt */
 			byteout(card->iobase + PCI9050_INTR_REG,
-				bytein(card->iobase + PCI9050_INTR_REG) |
-				(PCI9050_INTR_REG_ENPCI | PCI9050_INTR_REG_EN1));
+					bytein(card->iobase + PCI9050_INTR_REG) |
+					(PCI9050_INTR_REG_ENPCI | PCI9050_INTR_REG_EN1));
 			card->irq_enabled = 1;	/* we are ready to receive interrupts */
 
 			dpr->ToPcFlag = 0;	/* reset data indicator */
@@ -363,25 +453,34 @@ ergo_waitpofready(struct HYSDN_CARD *card)
 			dpr->ToPcInt = 1;	/* interrupt to E1 for all cards */
 
 			spin_unlock_irqrestore(&card->hysdn_lock, flags);
+
 			if ((hynet_enable & (1 << card->myid))
-			    && (i = hysdn_net_create(card)))
+				&& (i = hysdn_net_create(card)))
 			{
 				ergo_stopcard(card);
 				card->state = CARD_STATE_BOOTERR;
 				return (i);
 			}
+
 #ifdef CONFIG_HYSDN_CAPI
-			if ((i = hycapi_capi_create(card))) {
+
+			if ((i = hycapi_capi_create(card)))
+			{
 				printk(KERN_WARNING "HYSDN: failed to create capi-interface.\n");
 			}
+
 #endif /* CONFIG_HYSDN_CAPI */
 			return (0);	/* success */
 		}		/* data has arrived */
+
 		msleep_interruptible(50);		/* Timeout 50ms */
 	}			/* wait until timeout */
 
 	if (card->debug_flags & LOG_POF_CARD)
+	{
 		hysdn_addlog(card, "ERGO: pof boot ready timeout");
+	}
+
 	return (-ERR_POF_TIMEOUT);
 }				/* ergo_waitpofready */
 
@@ -413,23 +512,33 @@ int
 ergo_inithardware(hysdn_card *card)
 {
 	if (!request_region(card->iobase + PCI9050_INTR_REG, 1, "HYSDN"))
+	{
 		return (-1);
-	if (!request_region(card->iobase + PCI9050_USER_IO, 1, "HYSDN")) {
+	}
+
+	if (!request_region(card->iobase + PCI9050_USER_IO, 1, "HYSDN"))
+	{
 		release_region(card->iobase + PCI9050_INTR_REG, 1);
 		return (-1);	/* ports already in use */
 	}
+
 	card->memend = card->membase + ERG_DPRAM_PAGE_SIZE - 1;
-	if (!(card->dpram = ioremap(card->membase, ERG_DPRAM_PAGE_SIZE))) {
+
+	if (!(card->dpram = ioremap(card->membase, ERG_DPRAM_PAGE_SIZE)))
+	{
 		release_region(card->iobase + PCI9050_INTR_REG, 1);
 		release_region(card->iobase + PCI9050_USER_IO, 1);
 		return (-1);
 	}
 
 	ergo_stopcard(card);	/* disable interrupts */
-	if (request_irq(card->irq, ergo_interrupt, IRQF_SHARED, "HYSDN", card)) {
+
+	if (request_irq(card->irq, ergo_interrupt, IRQF_SHARED, "HYSDN", card))
+	{
 		ergo_releasehardware(card); /* return the acquired hardware */
 		return (-1);
 	}
+
 	/* success, now setup the function pointers */
 	card->stopcard = ergo_stopcard;
 	card->releasehardware = ergo_releasehardware;

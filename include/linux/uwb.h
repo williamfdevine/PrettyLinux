@@ -57,7 +57,8 @@ struct uwb_dbg;
  * A UWB device may either by a neighbor or part of a local radio
  * controller.
  */
-struct uwb_dev {
+struct uwb_dev
+{
 	struct mutex mutex;
 	struct list_head list_node;
 	struct device dev;
@@ -84,20 +85,23 @@ enum { UWB_RC_CTX_MAX = 256 };
 
 
 /** Notification chain head for UWB generated events to listeners */
-struct uwb_notifs_chain {
+struct uwb_notifs_chain
+{
 	struct list_head list;
 	struct mutex mutex;
 };
 
 /* Beacon cache list */
-struct uwb_beca {
+struct uwb_beca
+{
 	struct list_head list;
 	size_t entries;
 	struct mutex mutex;
 };
 
 /* Event handling thread. */
-struct uwbd {
+struct uwbd
+{
 	int pid;
 	struct task_struct *task;
 	wait_queue_head_t wq;
@@ -109,7 +113,8 @@ struct uwbd {
  * struct uwb_mas_bm - a bitmap of all MAS in a superframe
  * @bm: a bitmap of length #UWB_NUM_MAS
  */
-struct uwb_mas_bm {
+struct uwb_mas_bm
+{
 	DECLARE_BITMAP(bm, UWB_NUM_MAS);
 	DECLARE_BITMAP(unsafe_bm, UWB_NUM_MAS);
 	int safe;
@@ -138,7 +143,8 @@ struct uwb_mas_bm {
  *
  * FIXME: further target states TBD.
  */
-enum uwb_rsv_state {
+enum uwb_rsv_state
+{
 	UWB_RSV_STATE_NONE = 0,
 	UWB_RSV_STATE_O_INITIATED,
 	UWB_RSV_STATE_O_PENDING,
@@ -161,7 +167,8 @@ enum uwb_rsv_state {
 	UWB_RSV_STATE_LAST,
 };
 
-enum uwb_rsv_target_type {
+enum uwb_rsv_target_type
+{
 	UWB_RSV_TARGET_DEV,
 	UWB_RSV_TARGET_DEVADDR,
 };
@@ -173,15 +180,18 @@ enum uwb_rsv_target_type {
  * (UWB_RSV_TARGET_DEV); or (e.g., in the case of WUSB) targeted at a
  * specific (private) DevAddr (UWB_RSV_TARGET_DEVADDR).
  */
-struct uwb_rsv_target {
+struct uwb_rsv_target
+{
 	enum uwb_rsv_target_type type;
-	union {
+	union
+	{
 		struct uwb_dev *dev;
 		struct uwb_dev_addr devaddr;
 	};
 };
 
-struct uwb_rsv_move {
+struct uwb_rsv_move
+{
 	struct uwb_mas_bm final_mas;
 	struct uwb_ie_drp *companion_drp_ie;
 	struct uwb_mas_bm companion_mas;
@@ -236,7 +246,8 @@ typedef void (*uwb_rsv_cb_f)(struct uwb_rsv *rsv);
  * uniquely identified by just the stream index.  A number of stream
  * indexes (UWB_NUM_GLOBAL_STREAMS) are reserved for this.
  */
-struct uwb_rsv {
+struct uwb_rsv
+{
 	struct uwb_rc *rc;
 	struct list_head rc_node;
 	struct list_head pal_node;
@@ -296,7 +307,8 @@ static inline void uwb_mas_bm_copy_le(void *dst, const struct uwb_mas_bm *mas)
  *
  * [ECMA-368] section 17.4.3.
  */
-struct uwb_drp_avail {
+struct uwb_drp_avail
+{
 	DECLARE_BITMAP(global, UWB_NUM_MAS);
 	DECLARE_BITMAP(local, UWB_NUM_MAS);
 	DECLARE_BITMAP(pending, UWB_NUM_MAS);
@@ -304,7 +316,8 @@ struct uwb_drp_avail {
 	bool ie_valid;
 };
 
-struct uwb_drp_backoff_win {
+struct uwb_drp_backoff_win
+{
 	u8 window;
 	u8 n;
 	int total_expired;
@@ -316,12 +329,12 @@ const char *uwb_rsv_state_str(enum uwb_rsv_state state);
 const char *uwb_rsv_type_str(enum uwb_drp_type type);
 
 struct uwb_rsv *uwb_rsv_create(struct uwb_rc *rc, uwb_rsv_cb_f cb,
-			       void *pal_priv);
+							   void *pal_priv);
 void uwb_rsv_destroy(struct uwb_rsv *rsv);
 
 int uwb_rsv_establish(struct uwb_rsv *rsv);
 int uwb_rsv_modify(struct uwb_rsv *rsv,
-		   int max_mas, int min_mas, int sparsity);
+				   int max_mas, int min_mas, int sparsity);
 void uwb_rsv_terminate(struct uwb_rsv *rsv);
 
 void uwb_rsv_accept(struct uwb_rsv *rsv, uwb_rsv_cb_f cb, void *pal_priv);
@@ -368,7 +381,8 @@ void uwb_rsv_get_usable_mas(struct uwb_rsv *orig_rsv, struct uwb_mas_bm *mas);
  * @ies_mutex:   protect the IE cache
  * @dbg:         information for the debug interface
  */
-struct uwb_rc {
+struct uwb_rc
+{
 	struct uwb_dev uwb_dev;
 	int index;
 	u16 version;
@@ -381,7 +395,7 @@ struct uwb_rc {
 	int (*reset)(struct uwb_rc *rc);
 	int (*filter_cmd)(struct uwb_rc *, struct uwb_rccb **, size_t *);
 	int (*filter_event)(struct uwb_rc *, struct uwb_rceb **, const size_t,
-			    size_t *, size_t *);
+						size_t *, size_t *);
 
 	spinlock_t neh_lock;		/* protects neh_* and ctx_* */
 	struct list_head neh_list;	/* Open NE handles */
@@ -391,66 +405,67 @@ struct uwb_rc {
 	int beaconing;			/* Beaconing state [channel number] */
 	int beaconing_forced;
 	int scanning;
-	enum uwb_scan_type scan_type:3;
-	unsigned ready:1;
-	struct uwb_notifs_chain notifs_chain;
-	struct uwb_beca uwb_beca;
+	enum uwb_scan_type scan_type : 3;
+		unsigned ready: 1;
+		struct uwb_notifs_chain notifs_chain;
+		struct uwb_beca uwb_beca;
 
-	struct uwbd uwbd;
+		struct uwbd uwbd;
 
-	struct uwb_drp_backoff_win bow;
-	struct uwb_drp_avail drp_avail;
-	struct list_head reservations;
-	struct list_head cnflt_alien_list;
-	struct uwb_mas_bm cnflt_alien_bitmap;
-	struct mutex rsvs_mutex;
-	spinlock_t rsvs_lock;
-	struct workqueue_struct *rsv_workq;
+		struct uwb_drp_backoff_win bow;
+		struct uwb_drp_avail drp_avail;
+		struct list_head reservations;
+		struct list_head cnflt_alien_list;
+		struct uwb_mas_bm cnflt_alien_bitmap;
+		struct mutex rsvs_mutex;
+		spinlock_t rsvs_lock;
+		struct workqueue_struct *rsv_workq;
 
-	struct delayed_work rsv_update_work;
-	struct delayed_work rsv_alien_bp_work;
-	int set_drp_ie_pending;
-	struct mutex ies_mutex;
-	struct uwb_rc_cmd_set_ie *ies;
-	size_t ies_capacity;
+		struct delayed_work rsv_update_work;
+		struct delayed_work rsv_alien_bp_work;
+		int set_drp_ie_pending;
+		struct mutex ies_mutex;
+		struct uwb_rc_cmd_set_ie *ies;
+		size_t ies_capacity;
 
-	struct list_head pals;
-	int active_pals;
+		struct list_head pals;
+		int active_pals;
 
-	struct uwb_dbg *dbg;
-};
+		struct uwb_dbg *dbg;
+	};
 
 
-/**
- * struct uwb_pal - a UWB PAL
- * @name:    descriptive name for this PAL (wusbhc, wlp, etc.).
- * @device:  a device for the PAL.  Used to link the PAL and the radio
- *           controller in sysfs.
- * @rc:      the radio controller the PAL uses.
- * @channel_changed: called when the channel used by the radio changes.
- *           A channel of -1 means the channel has been stopped.
- * @new_rsv: called when a peer requests a reservation (may be NULL if
- *           the PAL cannot accept reservation requests).
- * @channel: channel being used by the PAL; 0 if the PAL isn't using
- *           the radio; -1 if the PAL wishes to use the radio but
- *           cannot.
- * @debugfs_dir: a debugfs directory which the PAL can use for its own
- *           debugfs files.
- *
- * A Protocol Adaptation Layer (PAL) is a user of the WiMedia UWB
- * radio platform (e.g., WUSB, WLP or Bluetooth UWB AMP).
- *
- * The PALs using a radio controller must register themselves to
- * permit the UWB stack to coordinate usage of the radio between the
- * various PALs or to allow PALs to response to certain requests from
- * peers.
- *
- * A struct uwb_pal should be embedded in a containing structure
- * belonging to the PAL and initialized with uwb_pal_init()).  Fields
- * should be set appropriately by the PAL before registering the PAL
- * with uwb_pal_register().
- */
-struct uwb_pal {
+	/**
+	 * struct uwb_pal - a UWB PAL
+	 * @name:    descriptive name for this PAL (wusbhc, wlp, etc.).
+	 * @device:  a device for the PAL.  Used to link the PAL and the radio
+	 *           controller in sysfs.
+	 * @rc:      the radio controller the PAL uses.
+	 * @channel_changed: called when the channel used by the radio changes.
+	 *           A channel of -1 means the channel has been stopped.
+	 * @new_rsv: called when a peer requests a reservation (may be NULL if
+	 *           the PAL cannot accept reservation requests).
+	 * @channel: channel being used by the PAL; 0 if the PAL isn't using
+	 *           the radio; -1 if the PAL wishes to use the radio but
+	 *           cannot.
+	 * @debugfs_dir: a debugfs directory which the PAL can use for its own
+	 *           debugfs files.
+	 *
+	 * A Protocol Adaptation Layer (PAL) is a user of the WiMedia UWB
+	 * radio platform (e.g., WUSB, WLP or Bluetooth UWB AMP).
+	 *
+	 * The PALs using a radio controller must register themselves to
+	 * permit the UWB stack to coordinate usage of the radio between the
+	 * various PALs or to allow PALs to response to certain requests from
+	 * peers.
+	 *
+	 * A struct uwb_pal should be embedded in a containing structure
+	 * belonging to the PAL and initialized with uwb_pal_init()).  Fields
+	 * should be set appropriately by the PAL before registering the PAL
+	 * with uwb_pal_register().
+	 */
+	struct uwb_pal
+{
 	struct list_head node;
 	const char *name;
 	struct device *device;
@@ -477,7 +492,7 @@ void uwb_radio_stop(struct uwb_pal *pal);
  * UWB Radio Controllers
  */
 struct uwb_dev *uwb_dev_get_by_devaddr(struct uwb_rc *rc,
-				       const struct uwb_dev_addr *devaddr);
+									   const struct uwb_dev_addr *devaddr);
 struct uwb_dev *uwb_dev_get_by_rc(struct uwb_dev *, struct uwb_rc *);
 static inline void uwb_dev_get(struct uwb_dev *uwb_dev)
 {
@@ -509,19 +524,19 @@ struct uwb_rc *uwb_rc_get_by_grandpa(const struct device *);
 void uwb_rc_put(struct uwb_rc *rc);
 
 typedef void (*uwb_rc_cmd_cb_f)(struct uwb_rc *rc, void *arg,
-                                struct uwb_rceb *reply, ssize_t reply_size);
+								struct uwb_rceb *reply, ssize_t reply_size);
 
 int uwb_rc_cmd_async(struct uwb_rc *rc, const char *cmd_name,
-		     struct uwb_rccb *cmd, size_t cmd_size,
-		     u8 expected_type, u16 expected_event,
-		     uwb_rc_cmd_cb_f cb, void *arg);
+					 struct uwb_rccb *cmd, size_t cmd_size,
+					 u8 expected_type, u16 expected_event,
+					 uwb_rc_cmd_cb_f cb, void *arg);
 ssize_t uwb_rc_cmd(struct uwb_rc *rc, const char *cmd_name,
-		   struct uwb_rccb *cmd, size_t cmd_size,
-		   struct uwb_rceb *reply, size_t reply_size);
+				   struct uwb_rccb *cmd, size_t cmd_size,
+				   struct uwb_rceb *reply, size_t reply_size);
 ssize_t uwb_rc_vcmd(struct uwb_rc *rc, const char *cmd_name,
-		    struct uwb_rccb *cmd, size_t cmd_size,
-		    u8 expected_type, u16 expected_event,
-		    struct uwb_rceb **preply);
+					struct uwb_rccb *cmd, size_t cmd_size,
+					u8 expected_type, u16 expected_event,
+					struct uwb_rceb **preply);
 
 size_t __uwb_addr_print(char *, size_t, const unsigned char *, int);
 
@@ -534,28 +549,28 @@ int __uwb_dev_addr_assigned_check(struct device *, void *);
 
 /* Print in @buf a pretty repr of @addr */
 static inline size_t uwb_dev_addr_print(char *buf, size_t buf_size,
-					const struct uwb_dev_addr *addr)
+										const struct uwb_dev_addr *addr)
 {
 	return __uwb_addr_print(buf, buf_size, addr->data, 0);
 }
 
 /* Print in @buf a pretty repr of @addr */
 static inline size_t uwb_mac_addr_print(char *buf, size_t buf_size,
-					const struct uwb_mac_addr *addr)
+										const struct uwb_mac_addr *addr)
 {
 	return __uwb_addr_print(buf, buf_size, addr->data, 1);
 }
 
 /* @returns 0 if device addresses @addr2 and @addr1 are equal */
 static inline int uwb_dev_addr_cmp(const struct uwb_dev_addr *addr1,
-				   const struct uwb_dev_addr *addr2)
+								   const struct uwb_dev_addr *addr2)
 {
 	return memcmp(addr1, addr2, sizeof(*addr1));
 }
 
 /* @returns 0 if MAC addresses @addr2 and @addr1 are equal */
 static inline int uwb_mac_addr_cmp(const struct uwb_mac_addr *addr1,
-				   const struct uwb_mac_addr *addr2)
+								   const struct uwb_mac_addr *addr2)
 {
 	return memcmp(addr1, addr2, sizeof(*addr1));
 }
@@ -563,7 +578,8 @@ static inline int uwb_mac_addr_cmp(const struct uwb_mac_addr *addr1,
 /* @returns !0 if a MAC @addr is a broadcast address */
 static inline int uwb_mac_addr_bcast(const struct uwb_mac_addr *addr)
 {
-	struct uwb_mac_addr bcast = {
+	struct uwb_mac_addr bcast =
+	{
 		.data = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff }
 	};
 	return !uwb_mac_addr_cmp(addr, &bcast);
@@ -572,7 +588,8 @@ static inline int uwb_mac_addr_bcast(const struct uwb_mac_addr *addr)
 /* @returns !0 if a MAC @addr is all zeroes*/
 static inline int uwb_mac_addr_unset(const struct uwb_mac_addr *addr)
 {
-	struct uwb_mac_addr unset = {
+	struct uwb_mac_addr unset =
+	{
 		.data = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
 	};
 	return !uwb_mac_addr_cmp(addr, &unset);
@@ -580,7 +597,7 @@ static inline int uwb_mac_addr_unset(const struct uwb_mac_addr *addr)
 
 /* @returns !0 if the address is in use. */
 static inline unsigned __uwb_dev_addr_assigned(struct uwb_rc *rc,
-					       struct uwb_dev_addr *addr)
+		struct uwb_dev_addr *addr)
 {
 	return uwb_dev_for_each(rc, __uwb_dev_addr_assigned_check, addr);
 }
@@ -619,13 +636,15 @@ static inline bool uwb_rsv_is_owner(struct uwb_rsv *rsv)
  * maintains a list of all registered handlers and will notify all
  * nodes when an event occurs.
  */
-enum uwb_notifs {
+enum uwb_notifs
+{
 	UWB_NOTIF_ONAIR,
 	UWB_NOTIF_OFFAIR,
 };
 
 /* Callback function registered with UWB */
-struct uwb_notifs_handler {
+struct uwb_notifs_handler
+{
 	struct list_head list_node;
 	void (*cb)(void *, struct uwb_dev *, enum uwb_notifs);
 	void *data;
@@ -671,28 +690,31 @@ int uwb_notifs_deregister(struct uwb_rc *, struct uwb_notifs_handler *);
  *          bits (that's why that is zero); others are there mostly to
  *          cover for bugs and weirdos.
  */
-struct uwb_est_entry {
+struct uwb_est_entry
+{
 	size_t size;
 	unsigned offset;
 	enum { UWB_EST_16 = 0, UWB_EST_8 = 1 } type;
 };
 
 int uwb_est_register(u8 type, u8 code_high, u16 vendor, u16 product,
-		     const struct uwb_est_entry *, size_t entries);
+					 const struct uwb_est_entry *, size_t entries);
 int uwb_est_unregister(u8 type, u8 code_high, u16 vendor, u16 product,
-		       const struct uwb_est_entry *, size_t entries);
+					   const struct uwb_est_entry *, size_t entries);
 ssize_t uwb_est_find_size(struct uwb_rc *rc, const struct uwb_rceb *rceb,
-			  size_t len);
+						  size_t len);
 
 /* -- Misc */
 
-enum {
+enum
+{
 	EDC_MAX_ERRORS = 10,
 	EDC_ERROR_TIMEFRAME = HZ,
 };
 
 /* error density counter */
-struct edc {
+struct edc
+{
 	unsigned long timestart;
 	u16 errorcount;
 };
@@ -717,14 +739,19 @@ static inline int edc_inc(struct edc *err_hist, u16 max_err, u16 timeframe)
 	unsigned long now;
 
 	now = jiffies;
-	if (now - err_hist->timestart > timeframe) {
+
+	if (now - err_hist->timestart > timeframe)
+	{
 		err_hist->errorcount = 1;
 		err_hist->timestart = now;
-	} else if (++err_hist->errorcount > max_err) {
-			err_hist->errorcount = 0;
-			err_hist->timestart = now;
-			return 1;
 	}
+	else if (++err_hist->errorcount > max_err)
+	{
+		err_hist->errorcount = 0;
+		err_hist->timestart = now;
+		return 1;
+	}
+
 	return 0;
 }
 
@@ -762,7 +789,8 @@ int uwb_rc_ie_rm(struct uwb_rc *uwb_rc, enum uwb_ie element_id);
  * currently unlocked (It is not ultraprecise but does the trick. Bite
  * me).
  */
-struct stats {
+struct stats
+{
 	s8 min, max;
 	s16 sigma;
 	atomic_t samples;
@@ -781,26 +809,37 @@ void stats_add_sample(struct stats *stats, s8 sample)
 	s8 min, max;
 	s16 sigma;
 	unsigned samples = atomic_read(&stats->samples);
-	if (samples == 0) {	/* it was zero before, so we initialize */
+
+	if (samples == 0)  	/* it was zero before, so we initialize */
+	{
 		min = 127;
 		max = -128;
 		sigma = 0;
-	} else {
+	}
+	else
+	{
 		min = stats->min;
 		max = stats->max;
 		sigma = stats->sigma;
 	}
 
 	if (sample < min)	/* compute new values */
+	{
 		min = sample;
+	}
 	else if (sample > max)
+	{
 		max = sample;
+	}
+
 	sigma += sample;
 
 	stats->min = min;	/* commit */
 	stats->max = max;
 	stats->sigma = sigma;
-	if (atomic_add_return(1, &stats->samples) > 255) {
+
+	if (atomic_add_return(1, &stats->samples) > 255)
+	{
 		/* wrapped around! reset */
 		stats->sigma = sigma / 256;
 		atomic_set(&stats->samples, 1);
@@ -811,18 +850,23 @@ static inline ssize_t stats_show(struct stats *stats, char *buf)
 {
 	int min, max, avg;
 	int samples = atomic_read(&stats->samples);
+
 	if (samples == 0)
+	{
 		min = max = avg = 0;
-	else {
+	}
+	else
+	{
 		min = stats->min;
 		max = stats->max;
 		avg = stats->sigma / samples;
 	}
+
 	return scnprintf(buf, PAGE_SIZE, "%d %d %d\n", min, max, avg);
 }
 
 static inline ssize_t stats_store(struct stats *stats, const char *buf,
-				  size_t size)
+								  size_t size)
 {
 	stats_init(stats);
 	return size;

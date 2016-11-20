@@ -33,7 +33,8 @@
 #define LONG_ONKEY_EN		(1 << 1)
 #define ONKEY_STATUS		(1 << 0)
 
-struct pm860x_onkey_info {
+struct pm860x_onkey_info
+{
 	struct input_dev	*idev;
 	struct pm860x_chip	*chip;
 	struct i2c_client	*i2c;
@@ -64,22 +65,30 @@ static int pm860x_onkey_probe(struct platform_device *pdev)
 	int irq, ret;
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "No IRQ resource!\n");
 		return -EINVAL;
 	}
 
 	info = devm_kzalloc(&pdev->dev, sizeof(struct pm860x_onkey_info),
-			    GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
+
 	info->chip = chip;
 	info->i2c = (chip->id == CHIP_PM8607) ? chip->client : chip->companion;
 	info->dev = &pdev->dev;
 	info->irq = irq;
 
 	info->idev = devm_input_allocate_device(&pdev->dev);
-	if (!info->idev) {
+
+	if (!info->idev)
+	{
 		dev_err(chip->dev, "Failed to allocate input dev\n");
 		return -ENOMEM;
 	}
@@ -92,17 +101,21 @@ static int pm860x_onkey_probe(struct platform_device *pdev)
 	info->idev->keybit[BIT_WORD(KEY_POWER)] = BIT_MASK(KEY_POWER);
 
 	ret = input_register_device(info->idev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(chip->dev, "Can't register input device: %d\n", ret);
 		return ret;
 	}
 
 	ret = devm_request_threaded_irq(&pdev->dev, info->irq, NULL,
-					pm860x_onkey_handler, IRQF_ONESHOT,
-					"onkey", info);
-	if (ret < 0) {
+									pm860x_onkey_handler, IRQF_ONESHOT,
+									"onkey", info);
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "Failed to request IRQ: #%d: %d\n",
-			info->irq, ret);
+				info->irq, ret);
 		return ret;
 	}
 
@@ -118,7 +131,10 @@ static int __maybe_unused pm860x_onkey_suspend(struct device *dev)
 	struct pm860x_chip *chip = dev_get_drvdata(pdev->dev.parent);
 
 	if (device_may_wakeup(dev))
+	{
 		chip->wakeup_flag |= 1 << PM8607_IRQ_ONKEY;
+	}
+
 	return 0;
 }
 static int __maybe_unused pm860x_onkey_resume(struct device *dev)
@@ -127,13 +143,17 @@ static int __maybe_unused pm860x_onkey_resume(struct device *dev)
 	struct pm860x_chip *chip = dev_get_drvdata(pdev->dev.parent);
 
 	if (device_may_wakeup(dev))
+	{
 		chip->wakeup_flag &= ~(1 << PM8607_IRQ_ONKEY);
+	}
+
 	return 0;
 }
 
 static SIMPLE_DEV_PM_OPS(pm860x_onkey_pm_ops, pm860x_onkey_suspend, pm860x_onkey_resume);
 
-static struct platform_driver pm860x_onkey_driver = {
+static struct platform_driver pm860x_onkey_driver =
+{
 	.driver		= {
 		.name	= "88pm860x-onkey",
 		.pm	= &pm860x_onkey_pm_ops,

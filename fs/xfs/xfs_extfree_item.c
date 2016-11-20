@@ -44,10 +44,15 @@ xfs_efi_item_free(
 	struct xfs_efi_log_item	*efip)
 {
 	kmem_free(efip->efi_item.li_lv_shadow);
+
 	if (efip->efi_format.efi_nextents > XFS_EFI_MAX_FAST_EXTENTS)
+	{
 		kmem_free(efip);
+	}
 	else
+	{
 		kmem_zone_free(xfs_efi_zone, efip);
+	}
 }
 
 /*
@@ -60,7 +65,7 @@ xfs_efi_item_sizeof(
 	struct xfs_efi_log_item *efip)
 {
 	return sizeof(struct xfs_efi_log_format) +
-	       (efip->efi_format.efi_nextents - 1) * sizeof(xfs_extent_t);
+		   (efip->efi_format.efi_nextents - 1) * sizeof(xfs_extent_t);
 }
 
 STATIC void
@@ -89,14 +94,14 @@ xfs_efi_item_format(
 	struct xfs_log_iovec	*vecp = NULL;
 
 	ASSERT(atomic_read(&efip->efi_next_extent) ==
-				efip->efi_format.efi_nextents);
+		   efip->efi_format.efi_nextents);
 
 	efip->efi_format.efi_type = XFS_LI_EFI;
 	efip->efi_format.efi_size = 1;
 
 	xlog_copy_iovec(lv, &vecp, XLOG_REG_TYPE_EFI_FORMAT,
-			&efip->efi_format,
-			xfs_efi_item_sizeof(efip));
+					&efip->efi_format,
+					xfs_efi_item_sizeof(efip));
 }
 
 
@@ -151,7 +156,9 @@ xfs_efi_item_unlock(
 	struct xfs_log_item	*lip)
 {
 	if (lip->li_flags & XFS_LI_ABORTED)
+	{
 		xfs_efi_item_free(EFI_ITEM(lip));
+	}
 }
 
 /*
@@ -183,7 +190,8 @@ xfs_efi_item_committing(
 /*
  * This is the ops vector shared by all efi log items.
  */
-static const struct xfs_item_ops xfs_efi_item_ops = {
+static const struct xfs_item_ops xfs_efi_item_ops =
+{
 	.iop_size	= xfs_efi_item_size,
 	.iop_format	= xfs_efi_item_format,
 	.iop_pin	= xfs_efi_item_pin,
@@ -208,11 +216,15 @@ xfs_efi_init(
 	uint			size;
 
 	ASSERT(nextents > 0);
-	if (nextents > XFS_EFI_MAX_FAST_EXTENTS) {
+
+	if (nextents > XFS_EFI_MAX_FAST_EXTENTS)
+	{
 		size = (uint)(sizeof(xfs_efi_log_item_t) +
-			((nextents - 1) * sizeof(xfs_extent_t)));
+					  ((nextents - 1) * sizeof(xfs_extent_t)));
 		efip = kmem_zalloc(size, KM_SLEEP);
-	} else {
+	}
+	else
+	{
 		efip = kmem_zone_zalloc(xfs_efi_zone, KM_SLEEP);
 	}
 
@@ -237,45 +249,57 @@ xfs_efi_copy_format(xfs_log_iovec_t *buf, xfs_efi_log_format_t *dst_efi_fmt)
 {
 	xfs_efi_log_format_t *src_efi_fmt = buf->i_addr;
 	uint i;
-	uint len = sizeof(xfs_efi_log_format_t) + 
-		(src_efi_fmt->efi_nextents - 1) * sizeof(xfs_extent_t);  
-	uint len32 = sizeof(xfs_efi_log_format_32_t) + 
-		(src_efi_fmt->efi_nextents - 1) * sizeof(xfs_extent_32_t);  
-	uint len64 = sizeof(xfs_efi_log_format_64_t) + 
-		(src_efi_fmt->efi_nextents - 1) * sizeof(xfs_extent_64_t);  
+	uint len = sizeof(xfs_efi_log_format_t) +
+			   (src_efi_fmt->efi_nextents - 1) * sizeof(xfs_extent_t);
+	uint len32 = sizeof(xfs_efi_log_format_32_t) +
+				 (src_efi_fmt->efi_nextents - 1) * sizeof(xfs_extent_32_t);
+	uint len64 = sizeof(xfs_efi_log_format_64_t) +
+				 (src_efi_fmt->efi_nextents - 1) * sizeof(xfs_extent_64_t);
 
-	if (buf->i_len == len) {
-		memcpy((char *)dst_efi_fmt, (char*)src_efi_fmt, len);
+	if (buf->i_len == len)
+	{
+		memcpy((char *)dst_efi_fmt, (char *)src_efi_fmt, len);
 		return 0;
-	} else if (buf->i_len == len32) {
+	}
+	else if (buf->i_len == len32)
+	{
 		xfs_efi_log_format_32_t *src_efi_fmt_32 = buf->i_addr;
 
 		dst_efi_fmt->efi_type     = src_efi_fmt_32->efi_type;
 		dst_efi_fmt->efi_size     = src_efi_fmt_32->efi_size;
 		dst_efi_fmt->efi_nextents = src_efi_fmt_32->efi_nextents;
 		dst_efi_fmt->efi_id       = src_efi_fmt_32->efi_id;
-		for (i = 0; i < dst_efi_fmt->efi_nextents; i++) {
+
+		for (i = 0; i < dst_efi_fmt->efi_nextents; i++)
+		{
 			dst_efi_fmt->efi_extents[i].ext_start =
 				src_efi_fmt_32->efi_extents[i].ext_start;
 			dst_efi_fmt->efi_extents[i].ext_len =
 				src_efi_fmt_32->efi_extents[i].ext_len;
 		}
+
 		return 0;
-	} else if (buf->i_len == len64) {
+	}
+	else if (buf->i_len == len64)
+	{
 		xfs_efi_log_format_64_t *src_efi_fmt_64 = buf->i_addr;
 
 		dst_efi_fmt->efi_type     = src_efi_fmt_64->efi_type;
 		dst_efi_fmt->efi_size     = src_efi_fmt_64->efi_size;
 		dst_efi_fmt->efi_nextents = src_efi_fmt_64->efi_nextents;
 		dst_efi_fmt->efi_id       = src_efi_fmt_64->efi_id;
-		for (i = 0; i < dst_efi_fmt->efi_nextents; i++) {
+
+		for (i = 0; i < dst_efi_fmt->efi_nextents; i++)
+		{
 			dst_efi_fmt->efi_extents[i].ext_start =
 				src_efi_fmt_64->efi_extents[i].ext_start;
 			dst_efi_fmt->efi_extents[i].ext_len =
 				src_efi_fmt_64->efi_extents[i].ext_len;
 		}
+
 		return 0;
 	}
+
 	return -EFSCORRUPTED;
 }
 
@@ -290,7 +314,8 @@ void
 xfs_efi_release(
 	struct xfs_efi_log_item	*efip)
 {
-	if (atomic_dec_and_test(&efip->efi_refcount)) {
+	if (atomic_dec_and_test(&efip->efi_refcount))
+	{
 		xfs_trans_ail_remove(&efip->efi_item, SHUTDOWN_LOG_IO_ERROR);
 		xfs_efi_item_free(efip);
 	}
@@ -305,10 +330,15 @@ STATIC void
 xfs_efd_item_free(struct xfs_efd_log_item *efdp)
 {
 	kmem_free(efdp->efd_item.li_lv_shadow);
+
 	if (efdp->efd_format.efd_nextents > XFS_EFD_MAX_FAST_EXTENTS)
+	{
 		kmem_free(efdp);
+	}
 	else
+	{
 		kmem_zone_free(xfs_efd_zone, efdp);
+	}
 }
 
 /*
@@ -321,7 +351,7 @@ xfs_efd_item_sizeof(
 	struct xfs_efd_log_item *efdp)
 {
 	return sizeof(xfs_efd_log_format_t) +
-	       (efdp->efd_format.efd_nextents - 1) * sizeof(xfs_extent_t);
+		   (efdp->efd_format.efd_nextents - 1) * sizeof(xfs_extent_t);
 }
 
 STATIC void
@@ -355,8 +385,8 @@ xfs_efd_item_format(
 	efdp->efd_format.efd_size = 1;
 
 	xlog_copy_iovec(lv, &vecp, XLOG_REG_TYPE_EFD_FORMAT,
-			&efdp->efd_format,
-			xfs_efd_item_sizeof(efdp));
+					&efdp->efd_format,
+					xfs_efd_item_sizeof(efdp));
 }
 
 /*
@@ -401,7 +431,8 @@ xfs_efd_item_unlock(
 {
 	struct xfs_efd_log_item	*efdp = EFD_ITEM(lip);
 
-	if (lip->li_flags & XFS_LI_ABORTED) {
+	if (lip->li_flags & XFS_LI_ABORTED)
+	{
 		xfs_efi_release(efdp->efd_efip);
 		xfs_efd_item_free(efdp);
 	}
@@ -429,7 +460,7 @@ xfs_efd_item_committed(
 	xfs_efi_release(efdp->efd_efip);
 	xfs_efd_item_free(efdp);
 
-	return (xfs_lsn_t)-1;
+	return (xfs_lsn_t) - 1;
 }
 
 /*
@@ -449,7 +480,8 @@ xfs_efd_item_committing(
 /*
  * This is the ops vector shared by all efd log items.
  */
-static const struct xfs_item_ops xfs_efd_item_ops = {
+static const struct xfs_item_ops xfs_efd_item_ops =
+{
 	.iop_size	= xfs_efd_item_size,
 	.iop_format	= xfs_efd_item_format,
 	.iop_pin	= xfs_efd_item_pin,
@@ -474,11 +506,15 @@ xfs_efd_init(
 	uint			size;
 
 	ASSERT(nextents > 0);
-	if (nextents > XFS_EFD_MAX_FAST_EXTENTS) {
+
+	if (nextents > XFS_EFD_MAX_FAST_EXTENTS)
+	{
 		size = (uint)(sizeof(xfs_efd_log_item_t) +
-			((nextents - 1) * sizeof(xfs_extent_t)));
+					  ((nextents - 1) * sizeof(xfs_extent_t)));
 		efdp = kmem_zalloc(size, KM_SLEEP);
-	} else {
+	}
+	else
+	{
 		efdp = kmem_zone_zalloc(xfs_efd_zone, KM_SLEEP);
 	}
 
@@ -514,14 +550,17 @@ xfs_efi_recover(
 	 * EFI.  If any are bad, then assume that all are bad and
 	 * just toss the EFI.
 	 */
-	for (i = 0; i < efip->efi_format.efi_nextents; i++) {
+	for (i = 0; i < efip->efi_format.efi_nextents; i++)
+	{
 		extp = &efip->efi_format.efi_extents[i];
 		startblock_fsb = XFS_BB_TO_FSB(mp,
-				   XFS_FSB_TO_DADDR(mp, extp->ext_start));
+									   XFS_FSB_TO_DADDR(mp, extp->ext_start));
+
 		if (startblock_fsb == 0 ||
-		    extp->ext_len == 0 ||
-		    startblock_fsb >= mp->m_sb.sb_dblocks ||
-		    extp->ext_len >= mp->m_sb.sb_agblocks) {
+			extp->ext_len == 0 ||
+			startblock_fsb >= mp->m_sb.sb_dblocks ||
+			extp->ext_len >= mp->m_sb.sb_agblocks)
+		{
 			/*
 			 * This will pull the EFI from the AIL and
 			 * free the memory associated with it.
@@ -533,17 +572,26 @@ xfs_efi_recover(
 	}
 
 	error = xfs_trans_alloc(mp, &M_RES(mp)->tr_itruncate, 0, 0, 0, &tp);
+
 	if (error)
+	{
 		return error;
+	}
+
 	efdp = xfs_trans_get_efd(tp, efip, efip->efi_format.efi_nextents);
 
 	xfs_rmap_skip_owner_update(&oinfo);
-	for (i = 0; i < efip->efi_format.efi_nextents; i++) {
+
+	for (i = 0; i < efip->efi_format.efi_nextents; i++)
+	{
 		extp = &efip->efi_format.efi_extents[i];
 		error = xfs_trans_free_extent(tp, efdp, extp->ext_start,
-					      extp->ext_len, &oinfo);
+									  extp->ext_len, &oinfo);
+
 		if (error)
+		{
 			goto abort_error;
+		}
 
 	}
 

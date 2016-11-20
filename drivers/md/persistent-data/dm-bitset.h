@@ -64,14 +64,15 @@
  * Opaque object.  Unlike dm_array_info, you should have one of these per
  * bitset.  Initialise with dm_disk_bitset_init().
  */
-struct dm_disk_bitset {
+struct dm_disk_bitset
+{
 	struct dm_array_info array_info;
 
 	uint32_t current_index;
 	uint64_t current_bits;
 
-	bool current_index_set:1;
-	bool dirty:1;
+	bool current_index_set: 1;
+	bool dirty: 1;
 };
 
 /*
@@ -82,7 +83,7 @@ struct dm_disk_bitset {
  * info - the structure being initialised
  */
 void dm_disk_bitset_init(struct dm_transaction_manager *tm,
-			 struct dm_disk_bitset *info);
+						 struct dm_disk_bitset *info);
 
 /*
  * Create an empty, zero length bitset.
@@ -103,8 +104,8 @@ int dm_bitset_empty(struct dm_disk_bitset *info, dm_block_t *new_root);
  * new_root - on success, points to the new root block
  */
 int dm_bitset_resize(struct dm_disk_bitset *info, dm_block_t old_root,
-		     uint32_t old_nr_entries, uint32_t new_nr_entries,
-		     bool default_value, dm_block_t *new_root);
+					 uint32_t old_nr_entries, uint32_t new_nr_entries,
+					 bool default_value, dm_block_t *new_root);
 
 /*
  * Frees the bitset.
@@ -122,7 +123,7 @@ int dm_bitset_del(struct dm_disk_bitset *info, dm_block_t root);
  * -ENODATA will be returned if the index is out of bounds.
  */
 int dm_bitset_set_bit(struct dm_disk_bitset *info, dm_block_t root,
-		      uint32_t index, dm_block_t *new_root);
+					  uint32_t index, dm_block_t *new_root);
 
 /*
  * Clears a bit.
@@ -135,7 +136,7 @@ int dm_bitset_set_bit(struct dm_disk_bitset *info, dm_block_t root,
  * -ENODATA will be returned if the index is out of bounds.
  */
 int dm_bitset_clear_bit(struct dm_disk_bitset *info, dm_block_t root,
-			uint32_t index, dm_block_t *new_root);
+						uint32_t index, dm_block_t *new_root);
 
 /*
  * Tests a bit.
@@ -149,7 +150,7 @@ int dm_bitset_clear_bit(struct dm_disk_bitset *info, dm_block_t root,
  * -ENODATA will be returned if the index is out of bounds.
  */
 int dm_bitset_test_bit(struct dm_disk_bitset *info, dm_block_t root,
-		       uint32_t index, dm_block_t *new_root, bool *result);
+					   uint32_t index, dm_block_t *new_root, bool *result);
 
 /*
  * Flush any cached changes to disk.
@@ -159,7 +160,7 @@ int dm_bitset_test_bit(struct dm_disk_bitset *info, dm_block_t root,
  * new_root - on success, points to the new root block
  */
 int dm_bitset_flush(struct dm_disk_bitset *info, dm_block_t root,
-		    dm_block_t *new_root);
+					dm_block_t *new_root);
 
 /*----------------------------------------------------------------*/
 

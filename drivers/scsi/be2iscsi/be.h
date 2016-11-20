@@ -29,13 +29,15 @@
 #define BE_GEN2 2
 #define BE_GEN3 3
 #define BE_GEN4	4
-struct be_dma_mem {
+struct be_dma_mem
+{
 	void *va;
 	dma_addr_t dma;
 	u32 size;
 };
 
-struct be_queue_info {
+struct be_queue_info
+{
 	struct be_dma_mem dma_mem;
 	u16 len;
 	u16 entry_size;		/* Size of an element in the queue */
@@ -83,7 +85,8 @@ static inline void queue_tail_inc(struct be_queue_info *q)
 
 /*ISCSI */
 
-struct be_aic_obj {		/* Adaptive interrupt coalescing (AIC) info */
+struct be_aic_obj  		/* Adaptive interrupt coalescing (AIC) info */
+{
 	bool enable;
 	u32 min_eqd;		/* in usecs */
 	u32 max_eqd;		/* in usecs */
@@ -93,7 +96,8 @@ struct be_aic_obj {		/* Adaptive interrupt coalescing (AIC) info */
 	u64 eq_prev;		/* Used to calculate eqe */
 };
 
-struct be_eq_obj {
+struct be_eq_obj
+{
 	bool todo_mcc_cq;
 	bool todo_cq;
 	u32 cq_count;
@@ -104,12 +108,14 @@ struct be_eq_obj {
 	struct irq_poll	iopoll;
 };
 
-struct be_mcc_obj {
+struct be_mcc_obj
+{
 	struct be_queue_info q;
 	struct be_queue_info cq;
 };
 
-struct beiscsi_mcc_tag_state {
+struct beiscsi_mcc_tag_state
+{
 	unsigned long tag_state;
 #define MCC_TAG_STATE_RUNNING	0
 #define MCC_TAG_STATE_TIMEOUT	1
@@ -119,7 +125,8 @@ struct beiscsi_mcc_tag_state {
 	struct be_dma_mem tag_mem_state;
 };
 
-struct be_ctrl_info {
+struct be_ctrl_info
+{
 	u8 __iomem *csr;
 	u8 __iomem *db;		/* Door Bell */
 	u8 __iomem *pcicfg;	/* PCI config space */
@@ -161,12 +168,12 @@ struct be_ctrl_info {
 
 /* Returns number of pages spanned by the data starting at the given addr */
 #define PAGES_4K_SPANNED(_address, size)				\
-		((u32)((((size_t)(_address) & (PAGE_SIZE_4K - 1)) +	\
+	((u32)((((size_t)(_address) & (PAGE_SIZE_4K - 1)) +	\
 			(size) + (PAGE_SIZE_4K - 1)) >> PAGE_SHIFT_4K))
 
 /* Returns bit offset within a DWORD of a bitfield */
 #define AMAP_BIT_OFFSET(_struct, field)					\
-		(((size_t)&(((_struct *)0)->field))%32)
+	(((size_t)&(((_struct *)0)->field))%32)
 
 /* Returns the bit mask of the field that is NOT shifted into location. */
 static inline u32 amap_mask(u32 bitsize)
@@ -175,7 +182,7 @@ static inline u32 amap_mask(u32 bitsize)
 }
 
 static inline void amap_set(void *ptr, u32 dw_offset, u32 mask,
-					u32 offset, u32 value)
+							u32 offset, u32 value)
 {
 	u32 *dw = (u32 *) ptr + dw_offset;
 	*dw &= ~(mask << offset);
@@ -183,11 +190,11 @@ static inline void amap_set(void *ptr, u32 dw_offset, u32 mask,
 }
 
 #define AMAP_SET_BITS(_struct, field, ptr, val)				\
-		amap_set(ptr,						\
-			offsetof(_struct, field)/32,			\
-			amap_mask(sizeof(((_struct *)0)->field)),	\
-			AMAP_BIT_OFFSET(_struct, field),		\
-			val)
+	amap_set(ptr,						\
+			 offsetof(_struct, field)/32,			\
+			 amap_mask(sizeof(((_struct *)0)->field)),	\
+			 AMAP_BIT_OFFSET(_struct, field),		\
+			 val)
 
 static inline u32 amap_get(void *ptr, u32 dw_offset, u32 mask, u32 offset)
 {
@@ -196,10 +203,10 @@ static inline u32 amap_get(void *ptr, u32 dw_offset, u32 mask, u32 offset)
 }
 
 #define AMAP_GET_BITS(_struct, field, ptr)				\
-		amap_get(ptr,						\
-			offsetof(_struct, field)/32,			\
-			amap_mask(sizeof(((_struct *)0)->field)),	\
-			AMAP_BIT_OFFSET(_struct, field))
+	amap_get(ptr,						\
+			 offsetof(_struct, field)/32,			\
+			 amap_mask(sizeof(((_struct *)0)->field)),	\
+			 AMAP_BIT_OFFSET(_struct, field))
 
 #define be_dws_cpu_to_le(wrb, len) swap_dws(wrb, len)
 #define be_dws_le_to_cpu(wrb, len) swap_dws(wrb, len)
@@ -208,11 +215,15 @@ static inline void swap_dws(void *wrb, int len)
 #ifdef __BIG_ENDIAN
 	u32 *dw = wrb;
 	WARN_ON(len % 4);
-	do {
+
+	do
+	{
 		*dw = cpu_to_le32(*dw);
 		dw++;
 		len -= 4;
-	} while (len);
+	}
+	while (len);
+
 #endif /* __BIG_ENDIAN */
 }
 #endif /* BEISCSI_H */

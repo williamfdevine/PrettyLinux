@@ -48,7 +48,8 @@ enum ath5k_phy_error_code;
  * @ATH5K_ANI_MODE_AUTO: Automatically control immunity parameters based on the
  *			amount of OFDM and CCK frame errors (default).
  */
-enum ath5k_ani_mode {
+enum ath5k_ani_mode
+{
 	ATH5K_ANI_MODE_OFF		= 0,
 	ATH5K_ANI_MODE_MANUAL_LOW	= 1,
 	ATH5K_ANI_MODE_MANUAL_HIGH	= 2,
@@ -75,7 +76,8 @@ enum ath5k_ani_mode {
  * @sum_ofdm_errors: Sum of OFDM timing errors (for stats)
  * @sum_cck_errors: Sum of all CCK timing errors (for stats)
  */
-struct ath5k_ani_state {
+struct ath5k_ani_state
+{
 	enum ath5k_ani_mode	ani_mode;
 
 	/* state */
@@ -105,7 +107,7 @@ void ath5k_ani_init(struct ath5k_hw *ah, enum ath5k_ani_mode mode);
 void ath5k_ani_mib_intr(struct ath5k_hw *ah);
 void ath5k_ani_calibration(struct ath5k_hw *ah);
 void ath5k_ani_phy_error_report(struct ath5k_hw *ah,
-				enum ath5k_phy_error_code phyerr);
+								enum ath5k_phy_error_code phyerr);
 
 /* for manual control */
 void ath5k_ani_set_noise_immunity_level(struct ath5k_hw *ah, int level);

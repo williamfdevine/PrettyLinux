@@ -82,8 +82,11 @@ void drm_modeset_lock_all(struct drm_device *dev)
 	int ret;
 
 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+
 	if (WARN_ON(!ctx))
+	{
 		return;
+	}
 
 	mutex_lock(&config->mutex);
 
@@ -91,8 +94,11 @@ void drm_modeset_lock_all(struct drm_device *dev)
 
 retry:
 	ret = drm_modeset_lock_all_ctx(dev, ctx);
-	if (ret < 0) {
-		if (ret == -EDEADLK) {
+
+	if (ret < 0)
+	{
+		if (ret == -EDEADLK)
+		{
 			drm_modeset_backoff(ctx);
 			goto retry;
 		}
@@ -134,7 +140,9 @@ void drm_modeset_unlock_all(struct drm_device *dev)
 	struct drm_modeset_acquire_ctx *ctx = config->acquire_ctx;
 
 	if (WARN_ON(!ctx))
+	{
 		return;
+	}
 
 	config->acquire_ctx = NULL;
 	drm_modeset_drop_locks(ctx);
@@ -160,31 +168,45 @@ EXPORT_SYMBOL(drm_modeset_unlock_all);
  * converted to universal planes yet.
  */
 void drm_modeset_lock_crtc(struct drm_crtc *crtc,
-			   struct drm_plane *plane)
+						   struct drm_plane *plane)
 {
 	struct drm_modeset_acquire_ctx *ctx;
 	int ret;
 
 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+
 	if (WARN_ON(!ctx))
+	{
 		return;
+	}
 
 	drm_modeset_acquire_init(ctx, 0);
 
 retry:
 	ret = drm_modeset_lock(&crtc->mutex, ctx);
+
 	if (ret)
+	{
 		goto fail;
+	}
 
-	if (plane) {
+	if (plane)
+	{
 		ret = drm_modeset_lock(&plane->mutex, ctx);
-		if (ret)
-			goto fail;
 
-		if (plane->crtc) {
+		if (ret)
+		{
+			goto fail;
+		}
+
+		if (plane->crtc)
+		{
 			ret = drm_modeset_lock(&plane->crtc->mutex, ctx);
+
 			if (ret)
+			{
 				goto fail;
+			}
 		}
 	}
 
@@ -198,7 +220,9 @@ retry:
 	return;
 
 fail:
-	if (ret == -EDEADLK) {
+
+	if (ret == -EDEADLK)
+	{
 		drm_modeset_backoff(ctx);
 		goto retry;
 	}
@@ -218,7 +242,9 @@ struct drm_modeset_acquire_ctx *
 drm_modeset_legacy_acquire_ctx(struct drm_crtc *crtc)
 {
 	if (crtc->acquire_ctx)
+	{
 		return crtc->acquire_ctx;
+	}
 
 	WARN_ON(!crtc->dev->mode_config.acquire_ctx);
 
@@ -238,7 +264,9 @@ void drm_modeset_unlock_crtc(struct drm_crtc *crtc)
 	struct drm_modeset_acquire_ctx *ctx = crtc->acquire_ctx;
 
 	if (WARN_ON(!ctx))
+	{
 		return;
+	}
 
 	crtc->acquire_ctx = NULL;
 	drm_modeset_drop_locks(ctx);
@@ -260,10 +288,12 @@ void drm_warn_on_modeset_not_all_locked(struct drm_device *dev)
 
 	/* Locking is currently fubar in the panic handler. */
 	if (oops_in_progress)
+	{
 		return;
+	}
 
 	drm_for_each_crtc(crtc, dev)
-		WARN_ON(!drm_modeset_is_locked(&crtc->mutex));
+	WARN_ON(!drm_modeset_is_locked(&crtc->mutex));
 
 	WARN_ON(!drm_modeset_is_locked(&dev->mode_config.connection_mutex));
 	WARN_ON(!mutex_is_locked(&dev->mode_config.mutex));
@@ -276,7 +306,7 @@ EXPORT_SYMBOL(drm_warn_on_modeset_not_all_locked);
  * @flags: for future
  */
 void drm_modeset_acquire_init(struct drm_modeset_acquire_ctx *ctx,
-		uint32_t flags)
+							  uint32_t flags)
 {
 	memset(ctx, 0, sizeof(*ctx));
 	ww_acquire_init(&ctx->ww_ctx, &crtc_ww_class);
@@ -303,11 +333,13 @@ EXPORT_SYMBOL(drm_modeset_acquire_fini);
 void drm_modeset_drop_locks(struct drm_modeset_acquire_ctx *ctx)
 {
 	WARN_ON(ctx->contended);
-	while (!list_empty(&ctx->locked)) {
+
+	while (!list_empty(&ctx->locked))
+	{
 		struct drm_modeset_lock *lock;
 
 		lock = list_first_entry(&ctx->locked,
-				struct drm_modeset_lock, head);
+								struct drm_modeset_lock, head);
 
 		drm_modeset_unlock(lock);
 	}
@@ -315,41 +347,60 @@ void drm_modeset_drop_locks(struct drm_modeset_acquire_ctx *ctx)
 EXPORT_SYMBOL(drm_modeset_drop_locks);
 
 static inline int modeset_lock(struct drm_modeset_lock *lock,
-		struct drm_modeset_acquire_ctx *ctx,
-		bool interruptible, bool slow)
+							   struct drm_modeset_acquire_ctx *ctx,
+							   bool interruptible, bool slow)
 {
 	int ret;
 
 	WARN_ON(ctx->contended);
 
-	if (ctx->trylock_only) {
+	if (ctx->trylock_only)
+	{
 		lockdep_assert_held(&ctx->ww_ctx);
 
 		if (!ww_mutex_trylock(&lock->mutex))
+		{
 			return -EBUSY;
+		}
 		else
+		{
 			return 0;
-	} else if (interruptible && slow) {
+		}
+	}
+	else if (interruptible && slow)
+	{
 		ret = ww_mutex_lock_slow_interruptible(&lock->mutex, &ctx->ww_ctx);
-	} else if (interruptible) {
+	}
+	else if (interruptible)
+	{
 		ret = ww_mutex_lock_interruptible(&lock->mutex, &ctx->ww_ctx);
-	} else if (slow) {
+	}
+	else if (slow)
+	{
 		ww_mutex_lock_slow(&lock->mutex, &ctx->ww_ctx);
 		ret = 0;
-	} else {
+	}
+	else
+	{
 		ret = ww_mutex_lock(&lock->mutex, &ctx->ww_ctx);
 	}
-	if (!ret) {
+
+	if (!ret)
+	{
 		WARN_ON(!list_empty(&lock->head));
 		list_add(&lock->head, &ctx->locked);
-	} else if (ret == -EALREADY) {
+	}
+	else if (ret == -EALREADY)
+	{
 		/* we already hold the lock.. this is fine.  For atomic
 		 * we will need to be able to drm_modeset_lock() things
 		 * without having to keep track of what is already locked
 		 * or not.
 		 */
 		ret = 0;
-	} else if (ret == -EDEADLK) {
+	}
+	else if (ret == -EDEADLK)
+	{
 		ctx->contended = lock;
 	}
 
@@ -357,14 +408,16 @@ static inline int modeset_lock(struct drm_modeset_lock *lock,
 }
 
 static int modeset_backoff(struct drm_modeset_acquire_ctx *ctx,
-		bool interruptible)
+						   bool interruptible)
 {
 	struct drm_modeset_lock *contended = ctx->contended;
 
 	ctx->contended = NULL;
 
 	if (WARN_ON(!contended))
+	{
 		return 0;
+	}
 
 	drm_modeset_drop_locks(ctx);
 
@@ -409,10 +462,12 @@ EXPORT_SYMBOL(drm_modeset_backoff_interruptible);
  * to take any more locks without first calling drm_modeset_backoff().
  */
 int drm_modeset_lock(struct drm_modeset_lock *lock,
-		struct drm_modeset_acquire_ctx *ctx)
+					 struct drm_modeset_acquire_ctx *ctx)
 {
 	if (ctx)
+	{
 		return modeset_lock(lock, ctx, false, false);
+	}
 
 	ww_mutex_lock(&lock->mutex, NULL);
 	return 0;
@@ -427,10 +482,12 @@ EXPORT_SYMBOL(drm_modeset_lock);
  * Interruptible version of drm_modeset_lock()
  */
 int drm_modeset_lock_interruptible(struct drm_modeset_lock *lock,
-		struct drm_modeset_acquire_ctx *ctx)
+								   struct drm_modeset_acquire_ctx *ctx)
 {
 	if (ctx)
+	{
 		return modeset_lock(lock, ctx, true, false);
+	}
 
 	return ww_mutex_lock_interruptible(&lock->mutex, NULL);
 }
@@ -466,26 +523,37 @@ EXPORT_SYMBOL(drm_modeset_unlock);
  * Returns: 0 on success or a negative error-code on failure.
  */
 int drm_modeset_lock_all_ctx(struct drm_device *dev,
-			     struct drm_modeset_acquire_ctx *ctx)
+							 struct drm_modeset_acquire_ctx *ctx)
 {
 	struct drm_crtc *crtc;
 	struct drm_plane *plane;
 	int ret;
 
 	ret = drm_modeset_lock(&dev->mode_config.connection_mutex, ctx);
-	if (ret)
-		return ret;
 
-	drm_for_each_crtc(crtc, dev) {
-		ret = drm_modeset_lock(&crtc->mutex, ctx);
-		if (ret)
-			return ret;
+	if (ret)
+	{
+		return ret;
 	}
 
-	drm_for_each_plane(plane, dev) {
-		ret = drm_modeset_lock(&plane->mutex, ctx);
+	drm_for_each_crtc(crtc, dev)
+	{
+		ret = drm_modeset_lock(&crtc->mutex, ctx);
+
 		if (ret)
+		{
 			return ret;
+		}
+	}
+
+	drm_for_each_plane(plane, dev)
+	{
+		ret = drm_modeset_lock(&plane->mutex, ctx);
+
+		if (ret)
+		{
+			return ret;
+		}
 	}
 
 	return 0;

@@ -5,8 +5,8 @@
 
 #ifndef _HAVE_ARCH_IPV6_CSUM
 __sum16 csum_ipv6_magic(const struct in6_addr *saddr,
-			const struct in6_addr *daddr,
-			__u32 len, __u8 proto, __wsum csum)
+						const struct in6_addr *daddr,
+						__u32 len, __u8 proto, __wsum csum)
 {
 
 	int carry;
@@ -68,10 +68,14 @@ int udp6_csum_init(struct sk_buff *skb, struct udphdr *uh, int proto)
 	UDP_SKB_CB(skb)->partial_cov = 0;
 	UDP_SKB_CB(skb)->cscov = skb->len;
 
-	if (proto == IPPROTO_UDPLITE) {
+	if (proto == IPPROTO_UDPLITE)
+	{
 		err = udplite_checksum_init(skb, uh);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	/* To support RFC 6936 (allow zero checksum in UDP/IPV6 for tunnels)
@@ -83,7 +87,7 @@ int udp6_csum_init(struct sk_buff *skb, struct udphdr *uh, int proto)
 	 * force to int.
 	 */
 	return (__force int)skb_checksum_init_zero_check(skb, proto, uh->check,
-							 ip6_compute_pseudo);
+			ip6_compute_pseudo);
 }
 EXPORT_SYMBOL(udp6_csum_init);
 
@@ -91,21 +95,31 @@ EXPORT_SYMBOL(udp6_csum_init);
  * for the simple case like when setting the checksum for a UDP tunnel.
  */
 void udp6_set_csum(bool nocheck, struct sk_buff *skb,
-		   const struct in6_addr *saddr,
-		   const struct in6_addr *daddr, int len)
+				   const struct in6_addr *saddr,
+				   const struct in6_addr *daddr, int len)
 {
 	struct udphdr *uh = udp_hdr(skb);
 
 	if (nocheck)
+	{
 		uh->check = 0;
+	}
 	else if (skb_is_gso(skb))
+	{
 		uh->check = ~udp_v6_check(len, saddr, daddr, 0);
-	else if (skb->ip_summed == CHECKSUM_PARTIAL) {
+	}
+	else if (skb->ip_summed == CHECKSUM_PARTIAL)
+	{
 		uh->check = 0;
 		uh->check = udp_v6_check(len, saddr, daddr, lco_csum(skb));
+
 		if (uh->check == 0)
+		{
 			uh->check = CSUM_MANGLED_0;
-	} else {
+		}
+	}
+	else
+	{
 		skb->ip_summed = CHECKSUM_PARTIAL;
 		skb->csum_start = skb_transport_header(skb) - skb->head;
 		skb->csum_offset = offsetof(struct udphdr, check);

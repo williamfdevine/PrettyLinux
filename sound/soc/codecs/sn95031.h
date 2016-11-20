@@ -121,13 +121,14 @@
 #define SN95031_ADC_ONE_LSB_MULTIPLIER 2346
 
 
-struct mfld_jack_data {
+struct mfld_jack_data
+{
 	int intr_id;
 	int micbias_vol;
 	struct snd_soc_jack *mfld_jack;
 };
 
 extern void sn95031_jack_detection(struct snd_soc_codec *codec,
-	struct mfld_jack_data *jack_data);
+								   struct mfld_jack_data *jack_data);
 
 #endif

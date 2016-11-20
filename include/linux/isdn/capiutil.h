@@ -38,15 +38,15 @@ static inline void capimsg_setu8(void *m, int off, __u8 val)
 static inline void capimsg_setu16(void *m, int off, __u16 val)
 {
 	((__u8 *)m)[off] = val & 0xff;
-	((__u8 *)m)[off+1] = (val >> 8) & 0xff;
+	((__u8 *)m)[off + 1] = (val >> 8) & 0xff;
 }
 
 static inline void capimsg_setu32(void *m, int off, __u32 val)
 {
 	((__u8 *)m)[off] = val & 0xff;
-	((__u8 *)m)[off+1] = (val >> 8) & 0xff;
-	((__u8 *)m)[off+2] = (val >> 16) & 0xff;
-	((__u8 *)m)[off+3] = (val >> 24) & 0xff;
+	((__u8 *)m)[off + 1] = (val >> 8) & 0xff;
+	((__u8 *)m)[off + 2] = (val >> 16) & 0xff;
+	((__u8 *)m)[off + 3] = (val >> 24) & 0xff;
 }
 
 #define	CAPIMSG_SETLEN(m, len)		capimsg_setu16(m, 0, len)
@@ -61,7 +61,8 @@ static inline void capimsg_setu32(void *m, int off, __u32 val)
 
 typedef __u8 *_cstruct;
 
-typedef enum {
+typedef enum
+{
 	CAPI_COMPOSE,
 	CAPI_DEFAULT
 } _cmstruct;
@@ -74,7 +75,8 @@ typedef enum {
    parameter in the _cmsg structure
  */
 
-typedef struct {
+typedef struct
+{
 	/* Header */
 	__u16 ApplId;
 	__u8 Command;
@@ -82,7 +84,8 @@ typedef struct {
 	__u16 Messagenumber;
 
 	/* Parameter */
-	union {
+	union
+	{
 		__u32 adrController;
 		__u32 adrPLCI;
 		__u32 adrNCCI;
@@ -147,22 +150,22 @@ typedef struct {
  * capi_cmsg2message() assembles the parameter from _cmsg to a CAPI 2.0
  * conform message
  */
-unsigned capi_cmsg2message(_cmsg * cmsg, __u8 * msg);
+unsigned capi_cmsg2message(_cmsg *cmsg, __u8 *msg);
 
 /*
  *  capi_message2cmsg disassembles a CAPI message an writes the parameter
  *  into _cmsg for easy access
  */
-unsigned capi_message2cmsg(_cmsg * cmsg, __u8 * msg);
+unsigned capi_message2cmsg(_cmsg *cmsg, __u8 *msg);
 
 /*
  * capi_cmsg_header() fills the _cmsg structure with default values, so only
  * parameter with non default values must be changed before sending the
  * message.
  */
-unsigned capi_cmsg_header(_cmsg * cmsg, __u16 _ApplId,
-			  __u8 _Command, __u8 _Subcommand,
-			  __u16 _Messagenumber, __u32 _Controller);
+unsigned capi_cmsg_header(_cmsg *cmsg, __u16 _ApplId,
+						  __u8 _Command, __u8 _Subcommand,
+						  __u16 _Messagenumber, __u32 _Controller);
 
 /*-----------------------------------------------------------------------*/
 
@@ -172,7 +175,8 @@ unsigned capi_cmsg_header(_cmsg * cmsg, __u16 _ApplId,
 
 char *capi_cmd2str(__u8 cmd, __u8 subcmd);
 
-typedef struct {
+typedef struct
+{
 	u_char	*buf;
 	u_char	*p;
 	size_t	size;
@@ -191,38 +195,38 @@ _cdebbuf *capi_message2str(__u8 *msg);
 
 /*-----------------------------------------------------------------------*/
 
-static inline void capi_cmsg_answer(_cmsg * cmsg)
+static inline void capi_cmsg_answer(_cmsg *cmsg)
 {
 	cmsg->Subcommand |= 0x01;
 }
 
 /*-----------------------------------------------------------------------*/
 
-static inline void capi_fill_CONNECT_B3_REQ(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-					    __u32 adr,
-					    _cstruct NCPI)
+static inline void capi_fill_CONNECT_B3_REQ(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr,
+		_cstruct NCPI)
 {
 	capi_cmsg_header(cmsg, ApplId, 0x82, 0x80, Messagenumber, adr);
 	cmsg->NCPI = NCPI;
 }
 
-static inline void capi_fill_FACILITY_REQ(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-					  __u32 adr,
-					  __u16 FacilitySelector,
-				       _cstruct FacilityRequestParameter)
+static inline void capi_fill_FACILITY_REQ(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr,
+		__u16 FacilitySelector,
+		_cstruct FacilityRequestParameter)
 {
 	capi_cmsg_header(cmsg, ApplId, 0x80, 0x80, Messagenumber, adr);
 	cmsg->FacilitySelector = FacilitySelector;
 	cmsg->FacilityRequestParameter = FacilityRequestParameter;
 }
 
-static inline void capi_fill_INFO_REQ(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-				      __u32 adr,
-				      _cstruct CalledPartyNumber,
-				      _cstruct BChannelinformation,
-				      _cstruct Keypadfacility,
-				      _cstruct Useruserdata,
-				      _cstruct Facilitydataarray)
+static inline void capi_fill_INFO_REQ(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+									  __u32 adr,
+									  _cstruct CalledPartyNumber,
+									  _cstruct BChannelinformation,
+									  _cstruct Keypadfacility,
+									  _cstruct Useruserdata,
+									  _cstruct Facilitydataarray)
 {
 	capi_cmsg_header(cmsg, ApplId, 0x08, 0x80, Messagenumber, adr);
 	cmsg->CalledPartyNumber = CalledPartyNumber;
@@ -232,13 +236,13 @@ static inline void capi_fill_INFO_REQ(_cmsg * cmsg, __u16 ApplId, __u16 Messagen
 	cmsg->Facilitydataarray = Facilitydataarray;
 }
 
-static inline void capi_fill_LISTEN_REQ(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-					__u32 adr,
-					__u32 InfoMask,
-					__u32 CIPmask,
-					__u32 CIPmask2,
-					_cstruct CallingPartyNumber,
-					_cstruct CallingPartySubaddress)
+static inline void capi_fill_LISTEN_REQ(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+										__u32 adr,
+										__u32 InfoMask,
+										__u32 CIPmask,
+										__u32 CIPmask2,
+										_cstruct CallingPartyNumber,
+										_cstruct CallingPartySubaddress)
 {
 	capi_cmsg_header(cmsg, ApplId, 0x05, 0x80, Messagenumber, adr);
 	cmsg->InfoMask = InfoMask;
@@ -248,12 +252,12 @@ static inline void capi_fill_LISTEN_REQ(_cmsg * cmsg, __u16 ApplId, __u16 Messag
 	cmsg->CallingPartySubaddress = CallingPartySubaddress;
 }
 
-static inline void capi_fill_ALERT_REQ(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-				       __u32 adr,
-				       _cstruct BChannelinformation,
-				       _cstruct Keypadfacility,
-				       _cstruct Useruserdata,
-				       _cstruct Facilitydataarray)
+static inline void capi_fill_ALERT_REQ(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+									   __u32 adr,
+									   _cstruct BChannelinformation,
+									   _cstruct Keypadfacility,
+									   _cstruct Useruserdata,
+									   _cstruct Facilitydataarray)
 {
 	capi_cmsg_header(cmsg, ApplId, 0x01, 0x80, Messagenumber, adr);
 	cmsg->BChannelinformation = BChannelinformation;
@@ -262,26 +266,26 @@ static inline void capi_fill_ALERT_REQ(_cmsg * cmsg, __u16 ApplId, __u16 Message
 	cmsg->Facilitydataarray = Facilitydataarray;
 }
 
-static inline void capi_fill_CONNECT_REQ(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-					 __u32 adr,
-					 __u16 CIPValue,
-					 _cstruct CalledPartyNumber,
-					 _cstruct CallingPartyNumber,
-					 _cstruct CalledPartySubaddress,
-					 _cstruct CallingPartySubaddress,
-					 __u16 B1protocol,
-					 __u16 B2protocol,
-					 __u16 B3protocol,
-					 _cstruct B1configuration,
-					 _cstruct B2configuration,
-					 _cstruct B3configuration,
-					 _cstruct BC,
-					 _cstruct LLC,
-					 _cstruct HLC,
-					 _cstruct BChannelinformation,
-					 _cstruct Keypadfacility,
-					 _cstruct Useruserdata,
-					 _cstruct Facilitydataarray)
+static inline void capi_fill_CONNECT_REQ(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr,
+		__u16 CIPValue,
+		_cstruct CalledPartyNumber,
+		_cstruct CallingPartyNumber,
+		_cstruct CalledPartySubaddress,
+		_cstruct CallingPartySubaddress,
+		__u16 B1protocol,
+		__u16 B2protocol,
+		__u16 B3protocol,
+		_cstruct B1configuration,
+		_cstruct B2configuration,
+		_cstruct B3configuration,
+		_cstruct BC,
+		_cstruct LLC,
+		_cstruct HLC,
+		_cstruct BChannelinformation,
+		_cstruct Keypadfacility,
+		_cstruct Useruserdata,
+		_cstruct Facilitydataarray)
 {
 
 	capi_cmsg_header(cmsg, ApplId, 0x02, 0x80, Messagenumber, adr);
@@ -305,12 +309,12 @@ static inline void capi_fill_CONNECT_REQ(_cmsg * cmsg, __u16 ApplId, __u16 Messa
 	cmsg->Facilitydataarray = Facilitydataarray;
 }
 
-static inline void capi_fill_DATA_B3_REQ(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-					 __u32 adr,
-					 __u32 Data,
-					 __u16 DataLength,
-					 __u16 DataHandle,
-					 __u16 Flags)
+static inline void capi_fill_DATA_B3_REQ(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr,
+		__u32 Data,
+		__u16 DataLength,
+		__u16 DataHandle,
+		__u16 Flags)
 {
 
 	capi_cmsg_header(cmsg, ApplId, 0x86, 0x80, Messagenumber, adr);
@@ -320,12 +324,12 @@ static inline void capi_fill_DATA_B3_REQ(_cmsg * cmsg, __u16 ApplId, __u16 Messa
 	cmsg->Flags = Flags;
 }
 
-static inline void capi_fill_DISCONNECT_REQ(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-					    __u32 adr,
-					    _cstruct BChannelinformation,
-					    _cstruct Keypadfacility,
-					    _cstruct Useruserdata,
-					    _cstruct Facilitydataarray)
+static inline void capi_fill_DISCONNECT_REQ(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr,
+		_cstruct BChannelinformation,
+		_cstruct Keypadfacility,
+		_cstruct Useruserdata,
+		_cstruct Facilitydataarray)
 {
 
 	capi_cmsg_header(cmsg, ApplId, 0x04, 0x80, Messagenumber, adr);
@@ -335,21 +339,21 @@ static inline void capi_fill_DISCONNECT_REQ(_cmsg * cmsg, __u16 ApplId, __u16 Me
 	cmsg->Facilitydataarray = Facilitydataarray;
 }
 
-static inline void capi_fill_DISCONNECT_B3_REQ(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-					       __u32 adr,
-					       _cstruct NCPI)
+static inline void capi_fill_DISCONNECT_B3_REQ(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr,
+		_cstruct NCPI)
 {
 
 	capi_cmsg_header(cmsg, ApplId, 0x84, 0x80, Messagenumber, adr);
 	cmsg->NCPI = NCPI;
 }
 
-static inline void capi_fill_MANUFACTURER_REQ(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-					      __u32 adr,
-					      __u32 ManuID,
-					      __u32 Class,
-					      __u32 Function,
-					      _cstruct ManuData)
+static inline void capi_fill_MANUFACTURER_REQ(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr,
+		__u32 ManuID,
+		__u32 Class,
+		__u32 Function,
+		_cstruct ManuData)
 {
 
 	capi_cmsg_header(cmsg, ApplId, 0xff, 0x80, Messagenumber, adr);
@@ -359,23 +363,23 @@ static inline void capi_fill_MANUFACTURER_REQ(_cmsg * cmsg, __u16 ApplId, __u16 
 	cmsg->ManuData = ManuData;
 }
 
-static inline void capi_fill_RESET_B3_REQ(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-					  __u32 adr,
-					  _cstruct NCPI)
+static inline void capi_fill_RESET_B3_REQ(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr,
+		_cstruct NCPI)
 {
 
 	capi_cmsg_header(cmsg, ApplId, 0x87, 0x80, Messagenumber, adr);
 	cmsg->NCPI = NCPI;
 }
 
-static inline void capi_fill_SELECT_B_PROTOCOL_REQ(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-						   __u32 adr,
-						   __u16 B1protocol,
-						   __u16 B2protocol,
-						   __u16 B3protocol,
-						_cstruct B1configuration,
-						_cstruct B2configuration,
-						_cstruct B3configuration)
+static inline void capi_fill_SELECT_B_PROTOCOL_REQ(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr,
+		__u16 B1protocol,
+		__u16 B2protocol,
+		__u16 B3protocol,
+		_cstruct B1configuration,
+		_cstruct B2configuration,
+		_cstruct B3configuration)
 {
 
 	capi_cmsg_header(cmsg, ApplId, 0x41, 0x80, Messagenumber, adr);
@@ -387,22 +391,22 @@ static inline void capi_fill_SELECT_B_PROTOCOL_REQ(_cmsg * cmsg, __u16 ApplId, _
 	cmsg->B3configuration = B3configuration;
 }
 
-static inline void capi_fill_CONNECT_RESP(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-					  __u32 adr,
-					  __u16 Reject,
-					  __u16 B1protocol,
-					  __u16 B2protocol,
-					  __u16 B3protocol,
-					  _cstruct B1configuration,
-					  _cstruct B2configuration,
-					  _cstruct B3configuration,
-					  _cstruct ConnectedNumber,
-					  _cstruct ConnectedSubaddress,
-					  _cstruct LLC,
-					  _cstruct BChannelinformation,
-					  _cstruct Keypadfacility,
-					  _cstruct Useruserdata,
-					  _cstruct Facilitydataarray)
+static inline void capi_fill_CONNECT_RESP(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr,
+		__u16 Reject,
+		__u16 B1protocol,
+		__u16 B2protocol,
+		__u16 B3protocol,
+		_cstruct B1configuration,
+		_cstruct B2configuration,
+		_cstruct B3configuration,
+		_cstruct ConnectedNumber,
+		_cstruct ConnectedSubaddress,
+		_cstruct LLC,
+		_cstruct BChannelinformation,
+		_cstruct Keypadfacility,
+		_cstruct Useruserdata,
+		_cstruct Facilitydataarray)
 {
 	capi_cmsg_header(cmsg, ApplId, 0x02, 0x83, Messagenumber, adr);
 	cmsg->Reject = Reject;
@@ -421,82 +425,82 @@ static inline void capi_fill_CONNECT_RESP(_cmsg * cmsg, __u16 ApplId, __u16 Mess
 	cmsg->Facilitydataarray = Facilitydataarray;
 }
 
-static inline void capi_fill_CONNECT_ACTIVE_RESP(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-						 __u32 adr)
+static inline void capi_fill_CONNECT_ACTIVE_RESP(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr)
 {
 
 	capi_cmsg_header(cmsg, ApplId, 0x03, 0x83, Messagenumber, adr);
 }
 
-static inline void capi_fill_CONNECT_B3_ACTIVE_RESP(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-						    __u32 adr)
+static inline void capi_fill_CONNECT_B3_ACTIVE_RESP(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr)
 {
 
 	capi_cmsg_header(cmsg, ApplId, 0x83, 0x83, Messagenumber, adr);
 }
 
-static inline void capi_fill_CONNECT_B3_RESP(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-					     __u32 adr,
-					     __u16 Reject,
-					     _cstruct NCPI)
+static inline void capi_fill_CONNECT_B3_RESP(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr,
+		__u16 Reject,
+		_cstruct NCPI)
 {
 	capi_cmsg_header(cmsg, ApplId, 0x82, 0x83, Messagenumber, adr);
 	cmsg->Reject = Reject;
 	cmsg->NCPI = NCPI;
 }
 
-static inline void capi_fill_CONNECT_B3_T90_ACTIVE_RESP(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-							__u32 adr)
+static inline void capi_fill_CONNECT_B3_T90_ACTIVE_RESP(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr)
 {
 
 	capi_cmsg_header(cmsg, ApplId, 0x88, 0x83, Messagenumber, adr);
 }
 
-static inline void capi_fill_DATA_B3_RESP(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-					  __u32 adr,
-					  __u16 DataHandle)
+static inline void capi_fill_DATA_B3_RESP(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr,
+		__u16 DataHandle)
 {
 
 	capi_cmsg_header(cmsg, ApplId, 0x86, 0x83, Messagenumber, adr);
 	cmsg->DataHandle = DataHandle;
 }
 
-static inline void capi_fill_DISCONNECT_B3_RESP(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-						__u32 adr)
+static inline void capi_fill_DISCONNECT_B3_RESP(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr)
 {
 
 	capi_cmsg_header(cmsg, ApplId, 0x84, 0x83, Messagenumber, adr);
 }
 
-static inline void capi_fill_DISCONNECT_RESP(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-					     __u32 adr)
+static inline void capi_fill_DISCONNECT_RESP(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr)
 {
 
 	capi_cmsg_header(cmsg, ApplId, 0x04, 0x83, Messagenumber, adr);
 }
 
-static inline void capi_fill_FACILITY_RESP(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-					   __u32 adr,
-					   __u16 FacilitySelector)
+static inline void capi_fill_FACILITY_RESP(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr,
+		__u16 FacilitySelector)
 {
 
 	capi_cmsg_header(cmsg, ApplId, 0x80, 0x83, Messagenumber, adr);
 	cmsg->FacilitySelector = FacilitySelector;
 }
 
-static inline void capi_fill_INFO_RESP(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-				       __u32 adr)
+static inline void capi_fill_INFO_RESP(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+									   __u32 adr)
 {
 
 	capi_cmsg_header(cmsg, ApplId, 0x08, 0x83, Messagenumber, adr);
 }
 
-static inline void capi_fill_MANUFACTURER_RESP(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-					       __u32 adr,
-					       __u32 ManuID,
-					       __u32 Class,
-					       __u32 Function,
-					       _cstruct ManuData)
+static inline void capi_fill_MANUFACTURER_RESP(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr,
+		__u32 ManuID,
+		__u32 Class,
+		__u32 Function,
+		_cstruct ManuData)
 {
 
 	capi_cmsg_header(cmsg, ApplId, 0xff, 0x83, Messagenumber, adr);
@@ -506,8 +510,8 @@ static inline void capi_fill_MANUFACTURER_RESP(_cmsg * cmsg, __u16 ApplId, __u16
 	cmsg->ManuData = ManuData;
 }
 
-static inline void capi_fill_RESET_B3_RESP(_cmsg * cmsg, __u16 ApplId, __u16 Messagenumber,
-					   __u32 adr)
+static inline void capi_fill_RESET_B3_RESP(_cmsg *cmsg, __u16 ApplId, __u16 Messagenumber,
+		__u32 adr)
 {
 
 	capi_cmsg_header(cmsg, ApplId, 0x87, 0x83, Messagenumber, adr);

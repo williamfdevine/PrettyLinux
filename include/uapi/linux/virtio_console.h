@@ -43,7 +43,8 @@
 
 #define VIRTIO_CONSOLE_BAD_ID		(~(__u32)0)
 
-struct virtio_console_config {
+struct virtio_console_config
+{
 	/* colums of the screens */
 	__u16 cols;
 	/* rows of the screens */
@@ -58,7 +59,8 @@ struct virtio_console_config {
  * A message that's passed between the Host and the Guest for a
  * particular port.
  */
-struct virtio_console_control {
+struct virtio_console_control
+{
 	__virtio32 id;		/* Port number */
 	__virtio16 event;	/* The kind of control event (see below) */
 	__virtio16 value;	/* Extra information for the key */

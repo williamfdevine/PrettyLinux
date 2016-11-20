@@ -28,12 +28,13 @@
 #include "ct20k1reg.h"
 
 #if BITS_PER_LONG == 32
-#define CT_XFI_DMA_MASK		DMA_BIT_MASK(32) /* 32 bit PTE */
+	#define CT_XFI_DMA_MASK		DMA_BIT_MASK(32) /* 32 bit PTE */
 #else
-#define CT_XFI_DMA_MASK		DMA_BIT_MASK(64) /* 64 bit PTE */
+	#define CT_XFI_DMA_MASK		DMA_BIT_MASK(64) /* 64 bit PTE */
 #endif
 
-struct hw20k1 {
+struct hw20k1
+{
 	struct hw hw;
 	spinlock_t reg_20k1_lock;
 	spinlock_t reg_pci_lock;
@@ -87,21 +88,24 @@ static void hw_write_pci(struct hw *hw, u32 reg, u32 data);
 #define MPRLH_PITCH	0xFFFFFFFF
 
 /* SRC resource register dirty flags */
-union src_dirty {
-	struct {
-		u16 ctl:1;
-		u16 ccr:1;
-		u16 sa:1;
-		u16 la:1;
-		u16 ca:1;
-		u16 mpr:1;
-		u16 czbfs:1;	/* Clear Z-Buffers */
-		u16 rsv:9;
+union src_dirty
+{
+	struct
+	{
+		u16 ctl: 1;
+		u16 ccr: 1;
+		u16 sa: 1;
+		u16 la: 1;
+		u16 ca: 1;
+		u16 mpr: 1;
+		u16 czbfs: 1;	/* Clear Z-Buffers */
+		u16 rsv: 9;
 	} bf;
 	u16 data;
 };
 
-struct src_rsc_ctrl_blk {
+struct src_rsc_ctrl_blk
+{
 	unsigned int	ctl;
 	unsigned int 	ccr;
 	unsigned int	ca;
@@ -112,23 +116,26 @@ struct src_rsc_ctrl_blk {
 };
 
 /* SRC manager control block */
-union src_mgr_dirty {
-	struct {
-		u16 enb0:1;
-		u16 enb1:1;
-		u16 enb2:1;
-		u16 enb3:1;
-		u16 enb4:1;
-		u16 enb5:1;
-		u16 enb6:1;
-		u16 enb7:1;
-		u16 enbsa:1;
-		u16 rsv:7;
+union src_mgr_dirty
+{
+	struct
+	{
+		u16 enb0: 1;
+		u16 enb1: 1;
+		u16 enb2: 1;
+		u16 enb3: 1;
+		u16 enb4: 1;
+		u16 enb5: 1;
+		u16 enb6: 1;
+		u16 enb7: 1;
+		u16 enbsa: 1;
+		u16 rsv: 7;
 	} bf;
 	u16 data;
 };
 
-struct src_mgr_ctrl_blk {
+struct src_mgr_ctrl_blk
+{
 	unsigned int		enbsa;
 	unsigned int		enb[8];
 	union src_mgr_dirty	dirty;
@@ -139,21 +146,25 @@ struct src_mgr_ctrl_blk {
 #define SRCAIM_NXT	0x00FF0000
 #define SRCAIM_SRC	0xFF000000
 
-struct srcimap {
+struct srcimap
+{
 	unsigned int srcaim;
 	unsigned int idx;
 };
 
 /* SRCIMP manager register dirty flags */
-union srcimp_mgr_dirty {
-	struct {
-		u16 srcimap:1;
-		u16 rsv:15;
+union srcimp_mgr_dirty
+{
+	struct
+	{
+		u16 srcimap: 1;
+		u16 rsv: 15;
 	} bf;
 	u16 data;
 };
 
-struct srcimp_mgr_ctrl_blk {
+struct srcimp_mgr_ctrl_blk
+{
 	struct srcimap		srcimap;
 	union srcimp_mgr_dirty	dirty;
 };
@@ -168,8 +179,11 @@ static int src_get_rsc_ctrl_blk(void **rblk)
 
 	*rblk = NULL;
 	blk = kzalloc(sizeof(*blk), GFP_KERNEL);
+
 	if (!blk)
+	{
 		return -ENOMEM;
+	}
 
 	*rblk = blk;
 
@@ -371,52 +385,70 @@ static int src_commit_write(struct hw *hw, unsigned int idx, void *blk)
 	struct src_rsc_ctrl_blk *ctl = blk;
 	int i;
 
-	if (ctl->dirty.bf.czbfs) {
+	if (ctl->dirty.bf.czbfs)
+	{
 		/* Clear Z-Buffer registers */
 		for (i = 0; i < 8; i++)
-			hw_write_20kx(hw, SRCUPZ+idx*0x100+i*0x4, 0);
+		{
+			hw_write_20kx(hw, SRCUPZ + idx * 0x100 + i * 0x4, 0);
+		}
 
 		for (i = 0; i < 4; i++)
-			hw_write_20kx(hw, SRCDN0Z+idx*0x100+i*0x4, 0);
+		{
+			hw_write_20kx(hw, SRCDN0Z + idx * 0x100 + i * 0x4, 0);
+		}
 
 		for (i = 0; i < 8; i++)
-			hw_write_20kx(hw, SRCDN1Z+idx*0x100+i*0x4, 0);
+		{
+			hw_write_20kx(hw, SRCDN1Z + idx * 0x100 + i * 0x4, 0);
+		}
 
 		ctl->dirty.bf.czbfs = 0;
 	}
-	if (ctl->dirty.bf.mpr) {
+
+	if (ctl->dirty.bf.mpr)
+	{
 		/* Take the parameter mixer resource in the same group as that
 		 * the idx src is in for simplicity. Unlike src, all conjugate
 		 * parameter mixer resources must be programmed for
 		 * corresponding conjugate src resources. */
 		unsigned int pm_idx = src_param_pitch_mixer(idx);
-		hw_write_20kx(hw, PRING_LO_HI+4*pm_idx, ctl->mpr);
-		hw_write_20kx(hw, PMOPLO+8*pm_idx, 0x3);
-		hw_write_20kx(hw, PMOPHI+8*pm_idx, 0x0);
+		hw_write_20kx(hw, PRING_LO_HI + 4 * pm_idx, ctl->mpr);
+		hw_write_20kx(hw, PMOPLO + 8 * pm_idx, 0x3);
+		hw_write_20kx(hw, PMOPHI + 8 * pm_idx, 0x0);
 		ctl->dirty.bf.mpr = 0;
 	}
-	if (ctl->dirty.bf.sa) {
-		hw_write_20kx(hw, SRCSA+idx*0x100, ctl->sa);
+
+	if (ctl->dirty.bf.sa)
+	{
+		hw_write_20kx(hw, SRCSA + idx * 0x100, ctl->sa);
 		ctl->dirty.bf.sa = 0;
 	}
-	if (ctl->dirty.bf.la) {
-		hw_write_20kx(hw, SRCLA+idx*0x100, ctl->la);
+
+	if (ctl->dirty.bf.la)
+	{
+		hw_write_20kx(hw, SRCLA + idx * 0x100, ctl->la);
 		ctl->dirty.bf.la = 0;
 	}
-	if (ctl->dirty.bf.ca) {
-		hw_write_20kx(hw, SRCCA+idx*0x100, ctl->ca);
+
+	if (ctl->dirty.bf.ca)
+	{
+		hw_write_20kx(hw, SRCCA + idx * 0x100, ctl->ca);
 		ctl->dirty.bf.ca = 0;
 	}
 
 	/* Write srccf register */
-	hw_write_20kx(hw, SRCCF+idx*0x100, 0x0);
+	hw_write_20kx(hw, SRCCF + idx * 0x100, 0x0);
 
-	if (ctl->dirty.bf.ccr) {
-		hw_write_20kx(hw, SRCCCR+idx*0x100, ctl->ccr);
+	if (ctl->dirty.bf.ccr)
+	{
+		hw_write_20kx(hw, SRCCCR + idx * 0x100, ctl->ccr);
 		ctl->dirty.bf.ccr = 0;
 	}
-	if (ctl->dirty.bf.ctl) {
-		hw_write_20kx(hw, SRCCTL+idx*0x100, ctl->ctl);
+
+	if (ctl->dirty.bf.ctl)
+	{
+		hw_write_20kx(hw, SRCCTL + idx * 0x100, ctl->ctl);
 		ctl->dirty.bf.ctl = 0;
 	}
 
@@ -427,7 +459,7 @@ static int src_get_ca(struct hw *hw, unsigned int idx, void *blk)
 {
 	struct src_rsc_ctrl_blk *ctl = blk;
 
-	ctl->ca = hw_read_20kx(hw, SRCCA+idx*0x100);
+	ctl->ca = hw_read_20kx(hw, SRCCA + idx * 0x100);
 	ctl->dirty.bf.ca = 0;
 
 	return get_field(ctl->ca, SRCCA_CA);
@@ -447,21 +479,21 @@ static int src_mgr_enbs_src(void *blk, unsigned int idx)
 {
 	((struct src_mgr_ctrl_blk *)blk)->enbsa = ~(0x0);
 	((struct src_mgr_ctrl_blk *)blk)->dirty.bf.enbsa = 1;
-	((struct src_mgr_ctrl_blk *)blk)->enb[idx/32] |= (0x1 << (idx%32));
+	((struct src_mgr_ctrl_blk *)blk)->enb[idx / 32] |= (0x1 << (idx % 32));
 	return 0;
 }
 
 static int src_mgr_enb_src(void *blk, unsigned int idx)
 {
-	((struct src_mgr_ctrl_blk *)blk)->enb[idx/32] |= (0x1 << (idx%32));
-	((struct src_mgr_ctrl_blk *)blk)->dirty.data |= (0x1 << (idx/32));
+	((struct src_mgr_ctrl_blk *)blk)->enb[idx / 32] |= (0x1 << (idx % 32));
+	((struct src_mgr_ctrl_blk *)blk)->dirty.data |= (0x1 << (idx / 32));
 	return 0;
 }
 
 static int src_mgr_dsb_src(void *blk, unsigned int idx)
 {
-	((struct src_mgr_ctrl_blk *)blk)->enb[idx/32] &= ~(0x1 << (idx%32));
-	((struct src_mgr_ctrl_blk *)blk)->dirty.data |= (0x1 << (idx/32));
+	((struct src_mgr_ctrl_blk *)blk)->enb[idx / 32] &= ~(0x1 << (idx % 32));
+	((struct src_mgr_ctrl_blk *)blk)->dirty.data |= (0x1 << (idx / 32));
 	return 0;
 }
 
@@ -471,16 +503,23 @@ static int src_mgr_commit_write(struct hw *hw, void *blk)
 	int i;
 	unsigned int ret;
 
-	if (ctl->dirty.bf.enbsa) {
-		do {
+	if (ctl->dirty.bf.enbsa)
+	{
+		do
+		{
 			ret = hw_read_20kx(hw, SRCENBSTAT);
-		} while (ret & 0x1);
+		}
+		while (ret & 0x1);
+
 		hw_write_20kx(hw, SRCENBS, ctl->enbsa);
 		ctl->dirty.bf.enbsa = 0;
 	}
-	for (i = 0; i < 8; i++) {
-		if ((ctl->dirty.data & (0x1 << i))) {
-			hw_write_20kx(hw, SRCENB+(i*0x100), ctl->enb[i]);
+
+	for (i = 0; i < 8; i++)
+	{
+		if ((ctl->dirty.data & (0x1 << i)))
+		{
+			hw_write_20kx(hw, SRCENB + (i * 0x100), ctl->enb[i]);
 			ctl->dirty.data &= ~(0x1 << i);
 		}
 	}
@@ -494,8 +533,11 @@ static int src_mgr_get_ctrl_blk(void **rblk)
 
 	*rblk = NULL;
 	blk = kzalloc(sizeof(*blk), GFP_KERNEL);
+
 	if (!blk)
+	{
 		return -ENOMEM;
+	}
 
 	*rblk = blk;
 
@@ -515,8 +557,11 @@ static int srcimp_mgr_get_ctrl_blk(void **rblk)
 
 	*rblk = NULL;
 	blk = kzalloc(sizeof(*blk), GFP_KERNEL);
+
 	if (!blk)
+	{
 		return -ENOMEM;
+	}
 
 	*rblk = blk;
 
@@ -570,9 +615,10 @@ static int srcimp_mgr_commit_write(struct hw *hw, void *blk)
 {
 	struct srcimp_mgr_ctrl_blk *ctl = blk;
 
-	if (ctl->dirty.bf.srcimap) {
-		hw_write_20kx(hw, SRCIMAP+ctl->srcimap.idx*0x100,
-						ctl->srcimap.srcaim);
+	if (ctl->dirty.bf.srcimap)
+	{
+		hw_write_20kx(hw, SRCIMAP + ctl->srcimap.idx * 0x100,
+					  ctl->srcimap.srcaim);
 		ctl->dirty.bf.srcimap = 0;
 	}
 
@@ -591,17 +637,20 @@ static int srcimp_mgr_commit_write(struct hw *hw, void *blk)
 #define AMOPHI_SE	0x80000000
 
 /* AMIXER resource register dirty flags */
-union amixer_dirty {
-	struct {
-		u16 amoplo:1;
-		u16 amophi:1;
-		u16 rsv:14;
+union amixer_dirty
+{
+	struct
+	{
+		u16 amoplo: 1;
+		u16 amophi: 1;
+		u16 rsv: 14;
 	} bf;
 	u16 data;
 };
 
 /* AMIXER resource control block */
-struct amixer_rsc_ctrl_blk {
+struct amixer_rsc_ctrl_blk
+{
 	unsigned int		amoplo;
 	unsigned int		amophi;
 	union amixer_dirty	dirty;
@@ -674,10 +723,11 @@ static int amixer_commit_write(struct hw *hw, unsigned int idx, void *blk)
 {
 	struct amixer_rsc_ctrl_blk *ctl = blk;
 
-	if (ctl->dirty.bf.amoplo || ctl->dirty.bf.amophi) {
-		hw_write_20kx(hw, AMOPLO+idx*8, ctl->amoplo);
+	if (ctl->dirty.bf.amoplo || ctl->dirty.bf.amophi)
+	{
+		hw_write_20kx(hw, AMOPLO + idx * 8, ctl->amoplo);
 		ctl->dirty.bf.amoplo = 0;
-		hw_write_20kx(hw, AMOPHI+idx*8, ctl->amophi);
+		hw_write_20kx(hw, AMOPHI + idx * 8, ctl->amophi);
 		ctl->dirty.bf.amophi = 0;
 	}
 
@@ -702,8 +752,11 @@ static int amixer_rsc_get_ctrl_blk(void **rblk)
 
 	*rblk = NULL;
 	blk = kzalloc(sizeof(*blk), GFP_KERNEL);
+
 	if (!blk)
+	{
 		return -ENOMEM;
+	}
 
 	*rblk = blk;
 
@@ -753,31 +806,37 @@ static int amixer_mgr_put_ctrl_blk(void *blk)
 #define SRTCTL_ET	0x80000000
 
 /* DAIO Receiver register dirty flags */
-union dai_dirty {
-	struct {
-		u16 srtctl:1;
-		u16 rsv:15;
+union dai_dirty
+{
+	struct
+	{
+		u16 srtctl: 1;
+		u16 rsv: 15;
 	} bf;
 	u16 data;
 };
 
 /* DAIO Receiver control block */
-struct dai_ctrl_blk {
+struct dai_ctrl_blk
+{
 	unsigned int	srtctl;
 	union dai_dirty	dirty;
 };
 
 /* S/PDIF Transmitter register dirty flags */
-union dao_dirty {
-	struct {
-		u16 spos:1;
-		u16 rsv:15;
+union dao_dirty
+{
+	struct
+	{
+		u16 spos: 1;
+		u16 rsv: 15;
 	} bf;
 	u16 data;
 };
 
 /* S/PDIF Transmitter control block */
-struct dao_ctrl_blk {
+struct dao_ctrl_blk
+{
 	unsigned int 	spos; /* S/PDIF Output Channel Status Register */
 	union dao_dirty	dirty;
 };
@@ -786,7 +845,8 @@ struct dao_ctrl_blk {
 #define AIM_ARC		0x00000FFF
 #define AIM_NXT		0x007F0000
 
-struct daoimap {
+struct daoimap
+{
 	unsigned int aim;
 	unsigned int idx;
 };
@@ -810,20 +870,23 @@ struct daoimap {
 #define SPICTL_VM	0x00000010
 
 /* DAIO manager register dirty flags */
-union daio_mgr_dirty {
-	struct {
-		u32 i2soctl:4;
-		u32 i2sictl:4;
-		u32 spoctl:4;
-		u32 spictl:4;
-		u32 daoimap:1;
-		u32 rsv:15;
+union daio_mgr_dirty
+{
+	struct
+	{
+		u32 i2soctl: 4;
+		u32 i2sictl: 4;
+		u32 spoctl: 4;
+		u32 spictl: 4;
+		u32 daoimap: 1;
+		u32 rsv: 15;
 	} bf;
 	u32 data;
 };
 
 /* DAIO manager control block */
-struct daio_mgr_ctrl_blk {
+struct daio_mgr_ctrl_blk
+{
 	unsigned int		i2sctl;
 	unsigned int		spoctl;
 	unsigned int		spictl;
@@ -889,14 +952,19 @@ static int dai_commit_write(struct hw *hw, unsigned int idx, void *blk)
 {
 	struct dai_ctrl_blk *ctl = blk;
 
-	if (ctl->dirty.bf.srtctl) {
-		if (idx < 4) {
+	if (ctl->dirty.bf.srtctl)
+	{
+		if (idx < 4)
+		{
 			/* S/PDIF SRTs */
-			hw_write_20kx(hw, SRTSCTL+0x4*idx, ctl->srtctl);
-		} else {
+			hw_write_20kx(hw, SRTSCTL + 0x4 * idx, ctl->srtctl);
+		}
+		else
+		{
 			/* I2S SRT */
 			hw_write_20kx(hw, SRTICTL, ctl->srtctl);
 		}
+
 		ctl->dirty.bf.srtctl = 0;
 	}
 
@@ -909,8 +977,11 @@ static int dai_get_ctrl_blk(void **rblk)
 
 	*rblk = NULL;
 	blk = kzalloc(sizeof(*blk), GFP_KERNEL);
+
 	if (!blk)
+	{
 		return -ENOMEM;
+	}
 
 	*rblk = blk;
 
@@ -935,11 +1006,14 @@ static int dao_commit_write(struct hw *hw, unsigned int idx, void *blk)
 {
 	struct dao_ctrl_blk *ctl = blk;
 
-	if (ctl->dirty.bf.spos) {
-		if (idx < 4) {
+	if (ctl->dirty.bf.spos)
+	{
+		if (idx < 4)
+		{
 			/* S/PDIF SPOSx */
-			hw_write_20kx(hw, SPOS+0x4*idx, ctl->spos);
+			hw_write_20kx(hw, SPOS + 0x4 * idx, ctl->spos);
 		}
+
 		ctl->dirty.bf.spos = 0;
 	}
 
@@ -958,8 +1032,11 @@ static int dao_get_ctrl_blk(void **rblk)
 
 	*rblk = NULL;
 	blk = kzalloc(sizeof(*blk), GFP_KERNEL);
+
 	if (!blk)
+	{
 		return -ENOMEM;
+	}
 
 	*rblk = blk;
 
@@ -977,16 +1054,20 @@ static int daio_mgr_enb_dai(void *blk, unsigned int idx)
 {
 	struct daio_mgr_ctrl_blk *ctl = blk;
 
-	if (idx < 4) {
+	if (idx < 4)
+	{
 		/* S/PDIF input */
-		set_field(&ctl->spictl, SPICTL_EN << (idx*8), 1);
+		set_field(&ctl->spictl, SPICTL_EN << (idx * 8), 1);
 		ctl->dirty.bf.spictl |= (0x1 << idx);
-	} else {
+	}
+	else
+	{
 		/* I2S input */
 		idx %= 4;
-		set_field(&ctl->i2sctl, I2SCTL_EI << (idx*8), 1);
+		set_field(&ctl->i2sctl, I2SCTL_EI << (idx * 8), 1);
 		ctl->dirty.bf.i2sictl |= (0x1 << idx);
 	}
+
 	return 0;
 }
 
@@ -994,16 +1075,20 @@ static int daio_mgr_dsb_dai(void *blk, unsigned int idx)
 {
 	struct daio_mgr_ctrl_blk *ctl = blk;
 
-	if (idx < 4) {
+	if (idx < 4)
+	{
 		/* S/PDIF input */
-		set_field(&ctl->spictl, SPICTL_EN << (idx*8), 0);
+		set_field(&ctl->spictl, SPICTL_EN << (idx * 8), 0);
 		ctl->dirty.bf.spictl |= (0x1 << idx);
-	} else {
+	}
+	else
+	{
 		/* I2S input */
 		idx %= 4;
-		set_field(&ctl->i2sctl, I2SCTL_EI << (idx*8), 0);
+		set_field(&ctl->i2sctl, I2SCTL_EI << (idx * 8), 0);
 		ctl->dirty.bf.i2sictl |= (0x1 << idx);
 	}
+
 	return 0;
 }
 
@@ -1011,16 +1096,20 @@ static int daio_mgr_enb_dao(void *blk, unsigned int idx)
 {
 	struct daio_mgr_ctrl_blk *ctl = blk;
 
-	if (idx < 4) {
+	if (idx < 4)
+	{
 		/* S/PDIF output */
-		set_field(&ctl->spoctl, SPOCTL_OE << (idx*8), 1);
+		set_field(&ctl->spoctl, SPOCTL_OE << (idx * 8), 1);
 		ctl->dirty.bf.spoctl |= (0x1 << idx);
-	} else {
+	}
+	else
+	{
 		/* I2S output */
 		idx %= 4;
-		set_field(&ctl->i2sctl, I2SCTL_EA << (idx*8), 1);
+		set_field(&ctl->i2sctl, I2SCTL_EA << (idx * 8), 1);
 		ctl->dirty.bf.i2soctl |= (0x1 << idx);
 	}
+
 	return 0;
 }
 
@@ -1028,16 +1117,20 @@ static int daio_mgr_dsb_dao(void *blk, unsigned int idx)
 {
 	struct daio_mgr_ctrl_blk *ctl = blk;
 
-	if (idx < 4) {
+	if (idx < 4)
+	{
 		/* S/PDIF output */
-		set_field(&ctl->spoctl, SPOCTL_OE << (idx*8), 0);
+		set_field(&ctl->spoctl, SPOCTL_OE << (idx * 8), 0);
 		ctl->dirty.bf.spoctl |= (0x1 << idx);
-	} else {
+	}
+	else
+	{
 		/* I2S output */
 		idx %= 4;
-		set_field(&ctl->i2sctl, I2SCTL_EA << (idx*8), 0);
+		set_field(&ctl->i2sctl, I2SCTL_EA << (idx * 8), 0);
 		ctl->dirty.bf.i2soctl |= (0x1 << idx);
 	}
+
 	return 0;
 }
 
@@ -1045,36 +1138,46 @@ static int daio_mgr_dao_init(void *blk, unsigned int idx, unsigned int conf)
 {
 	struct daio_mgr_ctrl_blk *ctl = blk;
 
-	if (idx < 4) {
+	if (idx < 4)
+	{
 		/* S/PDIF output */
-		switch ((conf & 0x7)) {
-		case 0:
-			set_field(&ctl->spoctl, SPOCTL_SR << (idx*8), 3);
-			break; /* CDIF */
-		case 1:
-			set_field(&ctl->spoctl, SPOCTL_SR << (idx*8), 0);
-			break;
-		case 2:
-			set_field(&ctl->spoctl, SPOCTL_SR << (idx*8), 1);
-			break;
-		case 4:
-			set_field(&ctl->spoctl, SPOCTL_SR << (idx*8), 2);
-			break;
-		default:
-			break;
+		switch ((conf & 0x7))
+		{
+			case 0:
+				set_field(&ctl->spoctl, SPOCTL_SR << (idx * 8), 3);
+				break; /* CDIF */
+
+			case 1:
+				set_field(&ctl->spoctl, SPOCTL_SR << (idx * 8), 0);
+				break;
+
+			case 2:
+				set_field(&ctl->spoctl, SPOCTL_SR << (idx * 8), 1);
+				break;
+
+			case 4:
+				set_field(&ctl->spoctl, SPOCTL_SR << (idx * 8), 2);
+				break;
+
+			default:
+				break;
 		}
-		set_field(&ctl->spoctl, SPOCTL_LIV << (idx*8),
-			  (conf >> 4) & 0x1); /* Non-audio */
-		set_field(&ctl->spoctl, SPOCTL_RIV << (idx*8),
-			  (conf >> 4) & 0x1); /* Non-audio */
-		set_field(&ctl->spoctl, SPOCTL_OS << (idx*8),
-			  ((conf >> 3) & 0x1) ? 2 : 2); /* Raw */
+
+		set_field(&ctl->spoctl, SPOCTL_LIV << (idx * 8),
+				  (conf >> 4) & 0x1); /* Non-audio */
+		set_field(&ctl->spoctl, SPOCTL_RIV << (idx * 8),
+				  (conf >> 4) & 0x1); /* Non-audio */
+		set_field(&ctl->spoctl, SPOCTL_OS << (idx * 8),
+				  ((conf >> 3) & 0x1) ? 2 : 2); /* Raw */
 
 		ctl->dirty.bf.spoctl |= (0x1 << idx);
-	} else {
+	}
+	else
+	{
 		/* I2S output */
 		/*idx %= 4; */
 	}
+
 	return 0;
 }
 
@@ -1110,36 +1213,57 @@ static int daio_mgr_commit_write(struct hw *hw, void *blk)
 	struct daio_mgr_ctrl_blk *ctl = blk;
 	int i;
 
-	if (ctl->dirty.bf.i2sictl || ctl->dirty.bf.i2soctl) {
-		for (i = 0; i < 4; i++) {
+	if (ctl->dirty.bf.i2sictl || ctl->dirty.bf.i2soctl)
+	{
+		for (i = 0; i < 4; i++)
+		{
 			if ((ctl->dirty.bf.i2sictl & (0x1 << i)))
+			{
 				ctl->dirty.bf.i2sictl &= ~(0x1 << i);
+			}
 
 			if ((ctl->dirty.bf.i2soctl & (0x1 << i)))
+			{
 				ctl->dirty.bf.i2soctl &= ~(0x1 << i);
+			}
 		}
+
 		hw_write_20kx(hw, I2SCTL, ctl->i2sctl);
 		mdelay(1);
 	}
-	if (ctl->dirty.bf.spoctl) {
-		for (i = 0; i < 4; i++) {
+
+	if (ctl->dirty.bf.spoctl)
+	{
+		for (i = 0; i < 4; i++)
+		{
 			if ((ctl->dirty.bf.spoctl & (0x1 << i)))
+			{
 				ctl->dirty.bf.spoctl &= ~(0x1 << i);
+			}
 		}
+
 		hw_write_20kx(hw, SPOCTL, ctl->spoctl);
 		mdelay(1);
 	}
-	if (ctl->dirty.bf.spictl) {
-		for (i = 0; i < 4; i++) {
+
+	if (ctl->dirty.bf.spictl)
+	{
+		for (i = 0; i < 4; i++)
+		{
 			if ((ctl->dirty.bf.spictl & (0x1 << i)))
+			{
 				ctl->dirty.bf.spictl &= ~(0x1 << i);
+			}
 		}
+
 		hw_write_20kx(hw, SPICTL, ctl->spictl);
 		mdelay(1);
 	}
-	if (ctl->dirty.bf.daoimap) {
-		hw_write_20kx(hw, DAOIMAP+ctl->daoimap.idx*4,
-					ctl->daoimap.aim);
+
+	if (ctl->dirty.bf.daoimap)
+	{
+		hw_write_20kx(hw, DAOIMAP + ctl->daoimap.idx * 4,
+					  ctl->daoimap.aim);
 		ctl->dirty.bf.daoimap = 0;
 	}
 
@@ -1152,8 +1276,11 @@ static int daio_mgr_get_ctrl_blk(struct hw *hw, void **rblk)
 
 	*rblk = NULL;
 	blk = kzalloc(sizeof(*blk), GFP_KERNEL);
+
 	if (!blk)
+	{
 		return -ENOMEM;
+	}
 
 	blk->i2sctl = hw_read_20kx(hw, I2SCTL);
 	blk->spoctl = hw_read_20kx(hw, SPOCTL);
@@ -1181,7 +1308,10 @@ static int set_timer_irq(struct hw *hw, int enable)
 static int set_timer_tick(struct hw *hw, unsigned int ticks)
 {
 	if (ticks)
+	{
 		ticks |= TIMR_IE | TIMR_IP;
+	}
+
 	hw_write_20kx(hw, TIMR, ticks);
 	return 0;
 }
@@ -1192,21 +1322,25 @@ static unsigned int get_wc(struct hw *hw)
 }
 
 /* Card hardware initialization block */
-struct dac_conf {
+struct dac_conf
+{
 	unsigned int msr; /* master sample rate in rsrs */
 };
 
-struct adc_conf {
+struct adc_conf
+{
 	unsigned int msr; 	/* master sample rate in rsrs */
 	unsigned char input; 	/* the input source of ADC */
 	unsigned char mic20db; 	/* boost mic by 20db if input is microphone */
 };
 
-struct daio_conf {
+struct daio_conf
+{
 	unsigned int msr; /* master sample rate in rsrs */
 };
 
-struct trn_conf {
+struct trn_conf
+{
 	unsigned long vm_pgt_phys;
 };
 
@@ -1228,22 +1362,26 @@ static int hw_daio_init(struct hw *hw, const struct daio_conf *info)
 	hw_write_20kx(hw, SPOCTL, 0x0);
 	spdorg = 0x05;
 
-	switch (info->msr) {
-	case 1:
-		i2sorg |= 1;
-		spdorg |= (0x0 << 6);
-		break;
-	case 2:
-		i2sorg |= 2;
-		spdorg |= (0x1 << 6);
-		break;
-	case 4:
-		i2sorg |= 3;
-		spdorg |= (0x2 << 6);
-		break;
-	default:
-		i2sorg |= 1;
-		break;
+	switch (info->msr)
+	{
+		case 1:
+			i2sorg |= 1;
+			spdorg |= (0x0 << 6);
+			break;
+
+		case 2:
+			i2sorg |= 2;
+			spdorg |= (0x1 << 6);
+			break;
+
+		case 4:
+			i2sorg |= 3;
+			spdorg |= (0x2 << 6);
+			break;
+
+		default:
+			i2sorg |= 1;
+			break;
 	}
 
 	hw_write_20kx(hw, I2SCTL, i2sorg);
@@ -1267,20 +1405,25 @@ static int hw_trn_init(struct hw *hw, const struct trn_conf *info)
 	u32 ptp_phys_low, ptp_phys_high;
 
 	/* Set up device page table */
-	if ((~0UL) == info->vm_pgt_phys) {
+	if ((~0UL) == info->vm_pgt_phys)
+	{
 		dev_err(hw->card->dev,
-			"Wrong device page table page address!\n");
+				"Wrong device page table page address!\n");
 		return -1;
 	}
 
 	trnctl = 0x13;  /* 32-bit, 4k-size page */
 	ptp_phys_low = (u32)info->vm_pgt_phys;
 	ptp_phys_high = upper_32_bits(info->vm_pgt_phys);
+
 	if (sizeof(void *) == 8) /* 64bit address */
+	{
 		trnctl |= (1 << 2);
+	}
+
 #if 0 /* Only 4k h/w pages for simplicitiy */
 #if PAGE_SIZE == 8192
-	trnctl |= (1<<5);
+	trnctl |= (1 << 5);
 #endif
 #endif
 	hw_write_20kx(hw, PTPALX, ptp_phys_low);
@@ -1320,14 +1463,20 @@ static int hw_pll_init(struct hw *hw, unsigned int rsr)
 	int i;
 
 	pllctl = (48000 == rsr) ? 0x1480a001 : 0x1480a731;
-	for (i = 0; i < 3; i++) {
+
+	for (i = 0; i < 3; i++)
+	{
 		if (hw_read_20kx(hw, PLLCTL) == pllctl)
+		{
 			break;
+		}
 
 		hw_write_20kx(hw, PLLCTL, pllctl);
 		mdelay(40);
 	}
-	if (i >= 3) {
+
+	if (i >= 3)
+	{
 		dev_alert(hw->card->dev, "PLL initialization failed!!!\n");
 		return -EBUSY;
 	}
@@ -1346,12 +1495,19 @@ static int hw_auto_init(struct hw *hw)
 	set_field(&gctl, GCTL_EAI, 1);
 	hw_write_20kx(hw, GCTL, gctl);
 	mdelay(10);
-	for (i = 0; i < 400000; i++) {
+
+	for (i = 0; i < 400000; i++)
+	{
 		gctl = hw_read_20kx(hw, GCTL);
+
 		if (get_field(gctl, GCTL_AID))
+		{
 			break;
+		}
 	}
-	if (!get_field(gctl, GCTL_AID)) {
+
+	if (!get_field(gctl, GCTL_AID))
+	{
 		dev_alert(hw->card->dev, "Card Auto-init failed!!!\n");
 		return -EBUSY;
 	}
@@ -1362,17 +1518,25 @@ static int hw_auto_init(struct hw *hw)
 static int i2c_unlock(struct hw *hw)
 {
 	if ((hw_read_pci(hw, 0xcc) & 0xff) == 0xaa)
+	{
 		return 0;
+	}
 
 	hw_write_pci(hw, 0xcc, 0x8c);
 	hw_write_pci(hw, 0xcc, 0x0e);
+
 	if ((hw_read_pci(hw, 0xcc) & 0xff) == 0xaa)
+	{
 		return 0;
+	}
 
 	hw_write_pci(hw, 0xcc, 0xee);
 	hw_write_pci(hw, 0xcc, 0xaa);
+
 	if ((hw_read_pci(hw, 0xcc) & 0xff) == 0xaa)
+	{
 		return 0;
+	}
 
 	return -1;
 }
@@ -1380,16 +1544,21 @@ static int i2c_unlock(struct hw *hw)
 static void i2c_lock(struct hw *hw)
 {
 	if ((hw_read_pci(hw, 0xcc) & 0xff) == 0xaa)
+	{
 		hw_write_pci(hw, 0xcc, 0x00);
+	}
 }
 
 static void i2c_write(struct hw *hw, u32 device, u32 addr, u32 data)
 {
 	unsigned int ret;
 
-	do {
+	do
+	{
 		ret = hw_read_pci(hw, 0xEC);
-	} while (!(ret & 0x800000));
+	}
+	while (!(ret & 0x800000));
+
 	hw_write_pci(hw, 0xE0, device);
 	hw_write_pci(hw, 0xE4, (data << 8) | (addr & 0xff));
 }
@@ -1403,15 +1572,21 @@ static int hw_reset_dac(struct hw *hw)
 	unsigned int ret;
 
 	if (i2c_unlock(hw))
+	{
 		return -1;
+	}
 
-	do {
+	do
+	{
 		ret = hw_read_pci(hw, 0xEC);
-	} while (!(ret & 0x800000));
+	}
+	while (!(ret & 0x800000));
+
 	hw_write_pci(hw, 0xEC, 0x05);  /* write to i2c status control */
 
 	/* To be effective, need to reset the DAC twice. */
-	for (i = 0; i < 2;  i++) {
+	for (i = 0; i < 2;  i++)
+	{
 		/* set gpio */
 		mdelay(100);
 		gpioorg = (u16)hw_read_20kx(hw, GPIO);
@@ -1435,7 +1610,8 @@ static int hw_dac_init(struct hw *hw, const struct dac_conf *info)
 	u16 gpioorg;
 	unsigned int ret;
 
-	if (hw->model == CTSB055X) {
+	if (hw->model == CTSB055X)
+	{
 		/* SB055x, unmute outputs */
 		gpioorg = (u16)hw_read_20kx(hw, GPIO);
 		gpioorg &= 0xffbf;	/* set GPIO6 to low */
@@ -1452,26 +1628,35 @@ static int hw_dac_init(struct hw *hw, const struct dac_conf *info)
 	hw_reset_dac(hw);
 
 	if (i2c_unlock(hw))
+	{
 		return -1;
+	}
 
 	hw_write_pci(hw, 0xEC, 0x05);  /* write to i2c status control */
-	do {
-		ret = hw_read_pci(hw, 0xEC);
-	} while (!(ret & 0x800000));
 
-	switch (info->msr) {
-	case 1:
-		data = 0x24;
-		break;
-	case 2:
-		data = 0x25;
-		break;
-	case 4:
-		data = 0x26;
-		break;
-	default:
-		data = 0x24;
-		break;
+	do
+	{
+		ret = hw_read_pci(hw, 0xEC);
+	}
+	while (!(ret & 0x800000));
+
+	switch (info->msr)
+	{
+		case 1:
+			data = 0x24;
+			break;
+
+		case 2:
+			data = 0x25;
+			break;
+
+		case 4:
+			data = 0x26;
+			break;
+
+		default:
+			data = 0x24;
+			break;
 	}
 
 	i2c_write(hw, 0x00180080, 0x06, data);
@@ -1501,19 +1686,25 @@ static int is_adc_input_selected_SBx(struct hw *hw, enum ADCSRC type)
 	u32 data;
 
 	data = hw_read_20kx(hw, GPIO);
-	switch (type) {
-	case ADC_MICIN:
-		data = ((data & (0x1<<7)) && (data & (0x1<<8)));
-		break;
-	case ADC_LINEIN:
-		data = (!(data & (0x1<<7)) && (data & (0x1<<8)));
-		break;
-	case ADC_NONE: /* Digital I/O */
-		data = (!(data & (0x1<<8)));
-		break;
-	default:
-		data = 0;
+
+	switch (type)
+	{
+		case ADC_MICIN:
+			data = ((data & (0x1 << 7)) && (data & (0x1 << 8)));
+			break;
+
+		case ADC_LINEIN:
+			data = (!(data & (0x1 << 7)) && (data & (0x1 << 8)));
+			break;
+
+		case ADC_NONE: /* Digital I/O */
+			data = (!(data & (0x1 << 8)));
+			break;
+
+		default:
+			data = 0;
 	}
+
 	return data;
 }
 
@@ -1522,30 +1713,39 @@ static int is_adc_input_selected_hendrix(struct hw *hw, enum ADCSRC type)
 	u32 data;
 
 	data = hw_read_20kx(hw, GPIO);
-	switch (type) {
-	case ADC_MICIN:
-		data = (data & (0x1 << 7)) ? 1 : 0;
-		break;
-	case ADC_LINEIN:
-		data = (data & (0x1 << 7)) ? 0 : 1;
-		break;
-	default:
-		data = 0;
+
+	switch (type)
+	{
+		case ADC_MICIN:
+			data = (data & (0x1 << 7)) ? 1 : 0;
+			break;
+
+		case ADC_LINEIN:
+			data = (data & (0x1 << 7)) ? 0 : 1;
+			break;
+
+		default:
+			data = 0;
 	}
+
 	return data;
 }
 
 static int hw_is_adc_input_selected(struct hw *hw, enum ADCSRC type)
 {
-	switch (hw->model) {
-	case CTSB055X:
-		return is_adc_input_selected_SB055x(hw, type);
-	case CTSB073X:
-		return is_adc_input_selected_hendrix(hw, type);
-	case CTUAA:
-		return is_adc_input_selected_hendrix(hw, type);
-	default:
-		return is_adc_input_selected_SBx(hw, type);
+	switch (hw->model)
+	{
+		case CTSB055X:
+			return is_adc_input_selected_SB055x(hw, type);
+
+		case CTSB073X:
+			return is_adc_input_selected_hendrix(hw, type);
+
+		case CTUAA:
+			return is_adc_input_selected_hendrix(hw, type);
+
+		default:
+			return is_adc_input_selected_SBx(hw, type);
 	}
 }
 
@@ -1565,22 +1765,28 @@ adc_input_select_SB055x(struct hw *hw, enum ADCSRC type, unsigned char boost)
 	 */
 	data = hw_read_20kx(hw, GPIO);
 	data &= 0xec73;
-	switch (type) {
-	case ADC_MICIN:
-		data |= (0x1<<7) | (0x1<<8) | (0x1<<9) ;
-		data |= boost ? (0x1<<2) : 0;
-		break;
-	case ADC_LINEIN:
-		data |= (0x1<<8);
-		break;
-	case ADC_AUX:
-		data |= (0x1<<8) | (0x1<<12);
-		break;
-	case ADC_NONE:
-		data |= (0x1<<12);  /* set to digital */
-		break;
-	default:
-		return -1;
+
+	switch (type)
+	{
+		case ADC_MICIN:
+			data |= (0x1 << 7) | (0x1 << 8) | (0x1 << 9) ;
+			data |= boost ? (0x1 << 2) : 0;
+			break;
+
+		case ADC_LINEIN:
+			data |= (0x1 << 8);
+			break;
+
+		case ADC_AUX:
+			data |= (0x1 << 8) | (0x1 << 12);
+			break;
+
+		case ADC_NONE:
+			data |= (0x1 << 12); /* set to digital */
+			break;
+
+		default:
+			return -1;
 	}
 
 	hw_write_20kx(hw, GPIO, data);
@@ -1597,39 +1803,54 @@ adc_input_select_SBx(struct hw *hw, enum ADCSRC type, unsigned char boost)
 	unsigned int ret;
 
 	if (i2c_unlock(hw))
+	{
 		return -1;
+	}
 
-	do {
+	do
+	{
 		ret = hw_read_pci(hw, 0xEC);
-	} while (!(ret & 0x800000)); /* i2c ready poll */
+	}
+	while (!(ret & 0x800000));   /* i2c ready poll */
+
 	/* set i2c access mode as Direct Control */
 	hw_write_pci(hw, 0xEC, 0x05);
 
 	data = hw_read_20kx(hw, GPIO);
-	switch (type) {
-	case ADC_MICIN:
-		data |= ((0x1 << 7) | (0x1 << 8));
-		i2c_data = 0x1;  /* Mic-in */
-		break;
-	case ADC_LINEIN:
-		data &= ~(0x1 << 7);
-		data |= (0x1 << 8);
-		i2c_data = 0x2; /* Line-in */
-		break;
-	case ADC_NONE:
-		data &= ~(0x1 << 8);
-		i2c_data = 0x0; /* set to Digital */
-		break;
-	default:
-		i2c_lock(hw);
-		return -1;
+
+	switch (type)
+	{
+		case ADC_MICIN:
+			data |= ((0x1 << 7) | (0x1 << 8));
+			i2c_data = 0x1;  /* Mic-in */
+			break;
+
+		case ADC_LINEIN:
+			data &= ~(0x1 << 7);
+			data |= (0x1 << 8);
+			i2c_data = 0x2; /* Line-in */
+			break;
+
+		case ADC_NONE:
+			data &= ~(0x1 << 8);
+			i2c_data = 0x0; /* set to Digital */
+			break;
+
+		default:
+			i2c_lock(hw);
+			return -1;
 	}
+
 	hw_write_20kx(hw, GPIO, data);
 	i2c_write(hw, 0x001a0080, 0x2a, i2c_data);
-	if (boost) {
+
+	if (boost)
+	{
 		i2c_write(hw, 0x001a0080, 0x1c, 0xe7); /* +12dB boost */
 		i2c_write(hw, 0x001a0080, 0x1e, 0xe7); /* +12dB boost */
-	} else {
+	}
+	else
+	{
 		i2c_write(hw, 0x001a0080, 0x1c, 0xcf); /* No boost */
 		i2c_write(hw, 0x001a0080, 0x1e, 0xcf); /* No boost */
 	}
@@ -1647,34 +1868,48 @@ adc_input_select_hendrix(struct hw *hw, enum ADCSRC type, unsigned char boost)
 	unsigned int ret;
 
 	if (i2c_unlock(hw))
+	{
 		return -1;
+	}
 
-	do {
+	do
+	{
 		ret = hw_read_pci(hw, 0xEC);
-	} while (!(ret & 0x800000)); /* i2c ready poll */
+	}
+	while (!(ret & 0x800000));   /* i2c ready poll */
+
 	/* set i2c access mode as Direct Control */
 	hw_write_pci(hw, 0xEC, 0x05);
 
 	data = hw_read_20kx(hw, GPIO);
-	switch (type) {
-	case ADC_MICIN:
-		data |= (0x1 << 7);
-		i2c_data = 0x1;  /* Mic-in */
-		break;
-	case ADC_LINEIN:
-		data &= ~(0x1 << 7);
-		i2c_data = 0x2; /* Line-in */
-		break;
-	default:
-		i2c_lock(hw);
-		return -1;
+
+	switch (type)
+	{
+		case ADC_MICIN:
+			data |= (0x1 << 7);
+			i2c_data = 0x1;  /* Mic-in */
+			break;
+
+		case ADC_LINEIN:
+			data &= ~(0x1 << 7);
+			i2c_data = 0x2; /* Line-in */
+			break;
+
+		default:
+			i2c_lock(hw);
+			return -1;
 	}
+
 	hw_write_20kx(hw, GPIO, data);
 	i2c_write(hw, 0x001a0080, 0x2a, i2c_data);
-	if (boost) {
+
+	if (boost)
+	{
 		i2c_write(hw, 0x001a0080, 0x1c, 0xe7); /* +12dB boost */
 		i2c_write(hw, 0x001a0080, 0x1e, 0xe7); /* +12dB boost */
-	} else {
+	}
+	else
+	{
 		i2c_write(hw, 0x001a0080, 0x1c, 0xcf); /* No boost */
 		i2c_write(hw, 0x001a0080, 0x1e, 0xcf); /* No boost */
 	}
@@ -1688,15 +1923,19 @@ static int hw_adc_input_select(struct hw *hw, enum ADCSRC type)
 {
 	int state = type == ADC_MICIN;
 
-	switch (hw->model) {
-	case CTSB055X:
-		return adc_input_select_SB055x(hw, type, state);
-	case CTSB073X:
-		return adc_input_select_hendrix(hw, type, state);
-	case CTUAA:
-		return adc_input_select_hendrix(hw, type, state);
-	default:
-		return adc_input_select_SBx(hw, type, state);
+	switch (hw->model)
+	{
+		case CTSB055X:
+			return adc_input_select_SB055x(hw, type, state);
+
+		case CTSB073X:
+			return adc_input_select_hendrix(hw, type, state);
+
+		case CTUAA:
+			return adc_input_select_hendrix(hw, type, state);
+
+		default:
+			return adc_input_select_SBx(hw, type, state);
 	}
 }
 
@@ -1713,35 +1952,47 @@ static int adc_init_SBx(struct hw *hw, int input, int mic20db)
 	unsigned int ret;
 
 	input_source = 0x100;  /* default to analog */
-	switch (input) {
-	case ADC_MICIN:
-		adcdata = 0x1;
-		input_source = 0x180;  /* set GPIO7 to select Mic */
-		break;
-	case ADC_LINEIN:
-		adcdata = 0x2;
-		break;
-	case ADC_VIDEO:
-		adcdata = 0x4;
-		break;
-	case ADC_AUX:
-		adcdata = 0x8;
-		break;
-	case ADC_NONE:
-		adcdata = 0x0;
-		input_source = 0x0;  /* set to Digital */
-		break;
-	default:
-		adcdata = 0x0;
-		break;
+
+	switch (input)
+	{
+		case ADC_MICIN:
+			adcdata = 0x1;
+			input_source = 0x180;  /* set GPIO7 to select Mic */
+			break;
+
+		case ADC_LINEIN:
+			adcdata = 0x2;
+			break;
+
+		case ADC_VIDEO:
+			adcdata = 0x4;
+			break;
+
+		case ADC_AUX:
+			adcdata = 0x8;
+			break;
+
+		case ADC_NONE:
+			adcdata = 0x0;
+			input_source = 0x0;  /* set to Digital */
+			break;
+
+		default:
+			adcdata = 0x0;
+			break;
 	}
 
 	if (i2c_unlock(hw))
+	{
 		return -1;
+	}
 
-	do {
+	do
+	{
 		ret = hw_read_pci(hw, 0xEC);
-	} while (!(ret & 0x800000)); /* i2c ready poll */
+	}
+	while (!(ret & 0x800000));   /* i2c ready poll */
+
 	hw_write_pci(hw, 0xEC, 0x05);  /* write to i2c status control */
 
 	i2c_write(hw, 0x001a0080, 0x0e, 0x08);
@@ -1749,16 +2000,21 @@ static int adc_init_SBx(struct hw *hw, int input, int mic20db)
 	i2c_write(hw, 0x001a0080, 0x28, 0x86);
 	i2c_write(hw, 0x001a0080, 0x2a, adcdata);
 
-	if (mic20db) {
+	if (mic20db)
+	{
 		i2c_write(hw, 0x001a0080, 0x1c, 0xf7);
 		i2c_write(hw, 0x001a0080, 0x1e, 0xf7);
-	} else {
+	}
+	else
+	{
 		i2c_write(hw, 0x001a0080, 0x1c, 0xcf);
 		i2c_write(hw, 0x001a0080, 0x1e, 0xcf);
 	}
 
 	if (!(hw_read_20kx(hw, ID0) & 0x100))
+	{
 		i2c_write(hw, 0x001a0080, 0x16, 0x26);
+	}
 
 	i2c_lock(hw);
 
@@ -1773,9 +2029,13 @@ static int adc_init_SBx(struct hw *hw, int input, int mic20db)
 static int hw_adc_init(struct hw *hw, const struct adc_conf *info)
 {
 	if (hw->model == CTSB055X)
+	{
 		return adc_init_SB055x(hw, info->input, info->mic20db);
+	}
 	else
+	{
 		return adc_init_SBx(hw, info->input, info->mic20db);
+	}
 }
 
 static struct capabilities hw_capabilities(struct hw *hw)
@@ -1816,29 +2076,42 @@ static int uaa_to_xfi(struct pci_dev *pci)
 	/* By default, Hendrix card UAA Bar0 should be using memory... */
 	io_base = pci_resource_start(pci, 0);
 	mem_base = ioremap(io_base, pci_resource_len(pci, 0));
+
 	if (!mem_base)
+	{
 		return -ENOENT;
+	}
 
 	/* Read current mode from Mode Change Register */
 	for (i = 0; i < 4; i++)
+	{
 		data[i] = readl(mem_base + UAA_CORE_CHANGE);
+	}
 
 	/* Determine current mode... */
-	if (data[0] == CTLA) {
+	if (data[0] == CTLA)
+	{
 		is_uaa = ((data[1] == CTLZ && data[2] == CTLL
-			  && data[3] == CTLA) || (data[1] == CTLA
-			  && data[2] == CTLZ && data[3] == CTLL));
-	} else if (data[0] == CTLZ) {
+				   && data[3] == CTLA) || (data[1] == CTLA
+										   && data[2] == CTLZ && data[3] == CTLL));
+	}
+	else if (data[0] == CTLZ)
+	{
 		is_uaa = (data[1] == CTLL
-				&& data[2] == CTLA && data[3] == CTLA);
-	} else if (data[0] == CTLL) {
+				  && data[2] == CTLA && data[3] == CTLA);
+	}
+	else if (data[0] == CTLL)
+	{
 		is_uaa = (data[1] == CTLA
-				&& data[2] == CTLA && data[3] == CTLZ);
-	} else {
+				  && data[2] == CTLA && data[3] == CTLZ);
+	}
+	else
+	{
 		is_uaa = 0;
 	}
 
-	if (!is_uaa) {
+	if (!is_uaa)
+	{
 		/* Not in UAA mode currently. Return directly. */
 		iounmap(mem_base);
 		return 0;
@@ -1890,11 +2163,16 @@ static irqreturn_t ct_20k1_interrupt(int irq, void *dev_id)
 	unsigned int status;
 
 	status = hw_read_20kx(hw, GIP);
+
 	if (!status)
+	{
 		return IRQ_NONE;
+	}
 
 	if (hw->irq_callback)
+	{
 		hw->irq_callback(hw->irq_callback_data, status);
+	}
 
 	hw_write_20kx(hw, GIP, status);
 	return IRQ_HANDLED;
@@ -1906,47 +2184,67 @@ static int hw_card_start(struct hw *hw)
 	struct pci_dev *pci = hw->pci;
 
 	err = pci_enable_device(pci);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* Set DMA transfer mask */
 	if (dma_set_mask(&pci->dev, CT_XFI_DMA_MASK) < 0 ||
-	    dma_set_coherent_mask(&pci->dev, CT_XFI_DMA_MASK) < 0) {
+		dma_set_coherent_mask(&pci->dev, CT_XFI_DMA_MASK) < 0)
+	{
 		dev_err(hw->card->dev,
-			"architecture does not support PCI busmaster DMA with mask 0x%llx\n",
-			CT_XFI_DMA_MASK);
+				"architecture does not support PCI busmaster DMA with mask 0x%llx\n",
+				CT_XFI_DMA_MASK);
 		err = -ENXIO;
 		goto error1;
 	}
 
-	if (!hw->io_base) {
+	if (!hw->io_base)
+	{
 		err = pci_request_regions(pci, "XFi");
+
 		if (err < 0)
+		{
 			goto error1;
+		}
 
 		if (hw->model == CTUAA)
+		{
 			hw->io_base = pci_resource_start(pci, 5);
+		}
 		else
+		{
 			hw->io_base = pci_resource_start(pci, 0);
+		}
 
 	}
 
 	/* Switch to X-Fi mode from UAA mode if neeeded */
-	if (hw->model == CTUAA) {
+	if (hw->model == CTUAA)
+	{
 		err = uaa_to_xfi(pci);
+
 		if (err)
+		{
 			goto error2;
+		}
 
 	}
 
-	if (hw->irq < 0) {
+	if (hw->irq < 0)
+	{
 		err = request_irq(pci->irq, ct_20k1_interrupt, IRQF_SHARED,
-				  KBUILD_MODNAME, hw);
-		if (err < 0) {
+						  KBUILD_MODNAME, hw);
+
+		if (err < 0)
+		{
 			dev_err(hw->card->dev,
-				"XFi: Cannot get irq %d\n", pci->irq);
+					"XFi: Cannot get irq %d\n", pci->irq);
 			goto error2;
 		}
+
 		hw->irq = pci->irq;
 	}
 
@@ -1971,25 +2269,32 @@ static int hw_card_stop(struct hw *hw)
 
 	/* disable pll */
 	data = hw_read_20kx(hw, PLLCTL);
-	hw_write_20kx(hw, PLLCTL, (data & (~(0x0F<<12))));
+	hw_write_20kx(hw, PLLCTL, (data & (~(0x0F << 12))));
 
 	/* TODO: Disable interrupt and so on... */
 	if (hw->irq >= 0)
+	{
 		synchronize_irq(hw->irq);
+	}
+
 	return 0;
 }
 
 static int hw_card_shutdown(struct hw *hw)
 {
 	if (hw->irq >= 0)
+	{
 		free_irq(hw->irq, hw);
+	}
 
 	hw->irq	= -1;
 	iounmap(hw->mem_base);
 	hw->mem_base = NULL;
 
 	if (hw->io_base)
+	{
 		pci_release_regions(hw->pci);
+	}
 
 	hw->io_base = 0;
 
@@ -2010,18 +2315,27 @@ static int hw_card_init(struct hw *hw, struct card_conf *info)
 
 	/* Get PCI io port base address and do Hendrix switch if needed. */
 	err = hw_card_start(hw);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* PLL init */
 	err = hw_pll_init(hw, info->rsr);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* kick off auto-init */
 	err = hw_auto_init(hw);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* Enable audio ring */
 	gctl = hw_read_20kx(hw, GCTL);
@@ -2040,42 +2354,58 @@ static int hw_card_init(struct hw *hw, struct card_conf *info)
 	mdelay(30);
 
 	/* Detect the card ID and configure GPIO accordingly. */
-	switch (hw->model) {
-	case CTSB055X:
-		hw_write_20kx(hw, GPIOCTL, 0x13fe);
-		break;
-	case CTSB073X:
-		hw_write_20kx(hw, GPIOCTL, 0x00e6);
-		break;
-	case CTUAA:
-		hw_write_20kx(hw, GPIOCTL, 0x00c2);
-		break;
-	default:
-		hw_write_20kx(hw, GPIOCTL, 0x01e6);
-		break;
+	switch (hw->model)
+	{
+		case CTSB055X:
+			hw_write_20kx(hw, GPIOCTL, 0x13fe);
+			break;
+
+		case CTSB073X:
+			hw_write_20kx(hw, GPIOCTL, 0x00e6);
+			break;
+
+		case CTUAA:
+			hw_write_20kx(hw, GPIOCTL, 0x00c2);
+			break;
+
+		default:
+			hw_write_20kx(hw, GPIOCTL, 0x01e6);
+			break;
 	}
 
 	trn_info.vm_pgt_phys = info->vm_pgt_phys;
 	err = hw_trn_init(hw, &trn_info);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	daio_info.msr = info->msr;
 	err = hw_daio_init(hw, &daio_info);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	dac_info.msr = info->msr;
 	err = hw_dac_init(hw, &dac_info);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	adc_info.msr = info->msr;
 	adc_info.input = ADC_LINEIN;
 	adc_info.mic20db = 0;
 	err = hw_adc_init(hw, &adc_info);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	data = hw_read_20kx(hw, SRCMCTL);
 	data |= 0x1; /* Enables input from the audio ring */
@@ -2091,7 +2421,8 @@ static int hw_suspend(struct hw *hw)
 
 	hw_card_stop(hw);
 
-	if (hw->model == CTUAA) {
+	if (hw->model == CTUAA)
+	{
 		/* Switch to UAA config space. */
 		pci_write_config_dword(pci, UAA_CFG_SPACE_FLAG, 0x0);
 	}
@@ -2161,7 +2492,8 @@ static void hw_write_pci(struct hw *hw, u32 reg, u32 data)
 		&container_of(hw, struct hw20k1, hw)->reg_pci_lock, flags);
 }
 
-static struct hw ct20k1_preset = {
+static struct hw ct20k1_preset =
+{
 	.irq = -1,
 
 	.card_init = hw_card_init,
@@ -2271,8 +2603,11 @@ int create_20k1_hw_obj(struct hw **rhw)
 
 	*rhw = NULL;
 	hw20k1 = kzalloc(sizeof(*hw20k1), GFP_KERNEL);
+
 	if (!hw20k1)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&hw20k1->reg_20k1_lock);
 	spin_lock_init(&hw20k1->reg_pci_lock);
@@ -2287,7 +2622,9 @@ int create_20k1_hw_obj(struct hw **rhw)
 int destroy_20k1_hw_obj(struct hw *hw)
 {
 	if (hw->io_base)
+	{
 		hw_card_shutdown(hw);
+	}
 
 	kfree(container_of(hw, struct hw20k1, hw));
 	return 0;

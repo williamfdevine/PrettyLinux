@@ -9,7 +9,8 @@
 #include <sound/soc.h>
 #include <sound/dmaengine_pcm.h>
 
-struct sirf_audio_port {
+struct sirf_audio_port
+{
 	struct regmap *regmap;
 	struct snd_dmaengine_dai_dma_data playback_dma_data;
 	struct snd_dmaengine_dai_dma_data capture_dma_data;
@@ -20,11 +21,12 @@ static int sirf_audio_port_dai_probe(struct snd_soc_dai *dai)
 {
 	struct sirf_audio_port *port = snd_soc_dai_get_drvdata(dai);
 	snd_soc_dai_init_dma_data(dai, &port->playback_dma_data,
-			&port->capture_dma_data);
+							  &port->capture_dma_data);
 	return 0;
 }
 
-static struct snd_soc_dai_driver sirf_audio_port_dai = {
+static struct snd_soc_dai_driver sirf_audio_port_dai =
+{
 	.probe = sirf_audio_port_dai_probe,
 	.name = "sirf-audio-port",
 	.id = 0,
@@ -42,7 +44,8 @@ static struct snd_soc_dai_driver sirf_audio_port_dai = {
 	},
 };
 
-static const struct snd_soc_component_driver sirf_audio_port_component = {
+static const struct snd_soc_component_driver sirf_audio_port_component =
+{
 	.name       = "sirf-audio-port",
 };
 
@@ -52,26 +55,34 @@ static int sirf_audio_port_probe(struct platform_device *pdev)
 	struct sirf_audio_port *port;
 
 	port = devm_kzalloc(&pdev->dev,
-			sizeof(struct sirf_audio_port), GFP_KERNEL);
+						sizeof(struct sirf_audio_port), GFP_KERNEL);
+
 	if (!port)
+	{
 		return -ENOMEM;
+	}
 
 	ret = devm_snd_soc_register_component(&pdev->dev,
-			&sirf_audio_port_component, &sirf_audio_port_dai, 1);
+										  &sirf_audio_port_component, &sirf_audio_port_dai, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	platform_set_drvdata(pdev, port);
 	return devm_snd_dmaengine_pcm_register(&pdev->dev, NULL, 0);
 }
 
-static const struct of_device_id sirf_audio_port_of_match[] = {
+static const struct of_device_id sirf_audio_port_of_match[] =
+{
 	{ .compatible = "sirf,audio-port", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, sirf_audio_port_of_match);
 
-static struct platform_driver sirf_audio_port_driver = {
+static struct platform_driver sirf_audio_port_driver =
+{
 	.driver = {
 		.name = "sirf-audio-port",
 		.of_match_table = sirf_audio_port_of_match,

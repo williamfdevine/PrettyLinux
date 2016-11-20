@@ -19,7 +19,8 @@
  * @size:	Length of data
  * @data:	Binary Data Blob
  */
-struct caif_param {
+struct caif_param
+{
 	u16  size;
 	u8   data[256];
 };
@@ -36,7 +37,8 @@ struct caif_param {
  * This struct is used when connecting a CAIF channel.
  * It contains all CAIF channel configuration options.
  */
-struct caif_connect_request {
+struct caif_connect_request
+{
 	enum caif_protocol_type protocol;
 	struct sockaddr_caif sockaddr;
 	enum caif_channel_priority priority;
@@ -65,9 +67,9 @@ struct caif_connect_request {
  * and have one client_layer instance for each socket.
  */
 int caif_connect_client(struct net *net,
-			struct caif_connect_request *conn_req,
-			struct cflayer *client_layer, int *ifindex,
-			int *headroom, int *tailroom);
+						struct caif_connect_request *conn_req,
+						struct cflayer *client_layer, int *ifindex,
+						int *headroom, int *tailroom);
 
 /**
  * caif_disconnect_client - Disconnects a client from the CAIF stack.
@@ -92,8 +94,8 @@ int caif_disconnect_client(struct net *net, struct cflayer *client_layer);
  */
 
 void caif_client_register_refcnt(struct cflayer *adapt_layer,
-					void (*hold)(struct cflayer *lyr),
-					void (*put)(struct cflayer *lyr));
+								 void (*hold)(struct cflayer *lyr),
+								 void (*put)(struct cflayer *lyr));
 /**
  * caif_free_client - Free memory used to manage the client in the CAIF Stack.
  *
@@ -120,9 +122,9 @@ void caif_free_client(struct cflayer *adap_layer);
  * framing.
  */
 void caif_enroll_dev(struct net_device *dev, struct caif_dev_common *caifdev,
-			struct cflayer *link_support, int head_room,
-			struct cflayer **layer, int (**rcv_func)(
-				struct sk_buff *, struct net_device *,
-				struct packet_type *, struct net_device *));
+					 struct cflayer *link_support, int head_room,
+					 struct cflayer **layer, int (**rcv_func)(
+						 struct sk_buff *, struct net_device *,
+						 struct packet_type *, struct net_device *));
 
 #endif /* CAIF_DEV_H_ */

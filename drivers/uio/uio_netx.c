@@ -33,60 +33,78 @@
 static irqreturn_t netx_handler(int irq, struct uio_info *dev_info)
 {
 	void __iomem *int_enable_reg = dev_info->mem[0].internal_addr
-					+ DPM_HOST_INT_EN0;
+								   + DPM_HOST_INT_EN0;
 	void __iomem *int_status_reg = dev_info->mem[0].internal_addr
-					+ DPM_HOST_INT_STAT0;
+								   + DPM_HOST_INT_STAT0;
 
 	/* Is one of our interrupts enabled and active ? */
 	if (!(ioread32(int_enable_reg) & ioread32(int_status_reg)
-		& DPM_HOST_INT_MASK))
+		  & DPM_HOST_INT_MASK))
+	{
 		return IRQ_NONE;
+	}
 
 	/* Disable interrupt */
 	iowrite32(ioread32(int_enable_reg) & ~DPM_HOST_INT_GLOBAL_EN,
-		int_enable_reg);
+			  int_enable_reg);
 	return IRQ_HANDLED;
 }
 
 static int netx_pci_probe(struct pci_dev *dev,
-					const struct pci_device_id *id)
+						  const struct pci_device_id *id)
 {
 	struct uio_info *info;
 	int bar;
 
 	info = kzalloc(sizeof(struct uio_info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	if (pci_enable_device(dev))
+	{
 		goto out_free;
+	}
 
 	if (pci_request_regions(dev, "netx"))
+	{
 		goto out_disable;
+	}
 
-	switch (id->device) {
-	case PCI_DEVICE_ID_HILSCHER_NETX:
-		bar = 0;
-		info->name = "netx";
-		break;
-	case PCI_DEVICE_ID_HILSCHER_NETPLC:
-		bar = 0;
-		info->name = "netplc";
-		break;
-	default:
-		bar = 2;
-		info->name = "netx_plx";
+	switch (id->device)
+	{
+		case PCI_DEVICE_ID_HILSCHER_NETX:
+			bar = 0;
+			info->name = "netx";
+			break;
+
+		case PCI_DEVICE_ID_HILSCHER_NETPLC:
+			bar = 0;
+			info->name = "netplc";
+			break;
+
+		default:
+			bar = 2;
+			info->name = "netx_plx";
 	}
 
 	/* BAR0 or 2 points to the card's dual port memory */
 	info->mem[0].addr = pci_resource_start(dev, bar);
+
 	if (!info->mem[0].addr)
+	{
 		goto out_release;
+	}
+
 	info->mem[0].internal_addr = ioremap(pci_resource_start(dev, bar),
-						pci_resource_len(dev, bar));
+										 pci_resource_len(dev, bar));
 
 	if (!info->mem[0].internal_addr)
-			goto out_release;
+	{
+		goto out_release;
+	}
 
 	info->mem[0].size = pci_resource_len(dev, bar);
 	info->mem[0].memtype = UIO_MEM_PHYS;
@@ -99,11 +117,13 @@ static int netx_pci_probe(struct pci_dev *dev,
 	iowrite32(0, info->mem[0].internal_addr + DPM_HOST_INT_EN0);
 
 	if (uio_register_device(&dev->dev, info))
+	{
 		goto out_unmap;
+	}
 
 	pci_set_drvdata(dev, info);
 	dev_info(&dev->dev, "Found %s card, registered UIO device.\n",
-				info->name);
+			 info->name);
 
 	return 0;
 
@@ -132,7 +152,8 @@ static void netx_pci_remove(struct pci_dev *dev)
 	kfree(info);
 }
 
-static struct pci_device_id netx_pci_ids[] = {
+static struct pci_device_id netx_pci_ids[] =
+{
 	{
 		.vendor =	PCI_VENDOR_ID_HILSCHER,
 		.device =	PCI_DEVICE_ID_HILSCHER_NETX,
@@ -166,7 +187,8 @@ static struct pci_device_id netx_pci_ids[] = {
 	{ 0, }
 };
 
-static struct pci_driver netx_pci_driver = {
+static struct pci_driver netx_pci_driver =
+{
 	.name = "netx",
 	.id_table = netx_pci_ids,
 	.probe = netx_pci_probe,

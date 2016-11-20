@@ -109,13 +109,15 @@
  * @slow_cfg0: offset to XMEMC slow CS config
  * @fast_cfg1: offset to XMEMC fast CS config
  */
-struct cs_data {
+struct cs_data
+{
 	u32 enable_mask;
 	u16 slow_cfg;
 	u16 fast_cfg;
 };
 
-static const struct cs_data cs_info[] = {
+static const struct cs_data cs_info[] =
+{
 	{
 		/* CS0 */
 		.enable_mask = EBI2_CS0_ENABLE_MASK,
@@ -163,14 +165,16 @@ static const struct cs_data cs_info[] = {
  * @shift: the bit field start in the SLOW or FAST register for this
  * property
  */
-struct ebi2_xmem_prop {
+struct ebi2_xmem_prop
+{
 	const char *prop;
 	u32 max;
 	bool slowreg;
 	u16 shift;
 };
 
-static const struct ebi2_xmem_prop xmem_props[] = {
+static const struct ebi2_xmem_prop xmem_props[] =
+{
 	{
 		.prop = "qcom,xmem-recovery-cycles",
 		.max = 15,
@@ -228,10 +232,10 @@ static const struct ebi2_xmem_prop xmem_props[] = {
 };
 
 static void qcom_ebi2_setup_chipselect(struct device_node *np,
-				       struct device *dev,
-				       void __iomem *ebi2_base,
-				       void __iomem *ebi2_xmem,
-				       u32 csindex)
+									   struct device *dev,
+									   void __iomem *ebi2_base,
+									   void __iomem *ebi2_xmem,
+									   u32 csindex)
 {
 	const struct cs_data *csd;
 	u32 slowcfg, fastcfg;
@@ -249,48 +253,69 @@ static void qcom_ebi2_setup_chipselect(struct device_node *np,
 	slowcfg = 0;
 	fastcfg = 0;
 
-	for (i = 0; i < ARRAY_SIZE(xmem_props); i++) {
+	for (i = 0; i < ARRAY_SIZE(xmem_props); i++)
+	{
 		const struct ebi2_xmem_prop *xp = &xmem_props[i];
 
 		/* All are regular u32 values */
 		ret = of_property_read_u32(np, xp->prop, &val);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_dbg(dev, "could not read %s for CS%d\n",
-				xp->prop, csindex);
+					xp->prop, csindex);
 			continue;
 		}
 
 		/* First check boolean props */
-		if (xp->max == 1 && val) {
+		if (xp->max == 1 && val)
+		{
 			if (xp->slowreg)
+			{
 				slowcfg |= BIT(xp->shift);
+			}
 			else
+			{
 				fastcfg |= BIT(xp->shift);
+			}
+
 			dev_dbg(dev, "set %s flag\n", xp->prop);
 			continue;
 		}
 
 		/* We're dealing with an u32 */
-		if (val > xp->max) {
+		if (val > xp->max)
+		{
 			dev_err(dev,
-				"too high value for %s: %u, capped at %u\n",
-				xp->prop, val, xp->max);
+					"too high value for %s: %u, capped at %u\n",
+					xp->prop, val, xp->max);
 			val = xp->max;
 		}
+
 		if (xp->slowreg)
+		{
 			slowcfg |= (val << xp->shift);
+		}
 		else
+		{
 			fastcfg |= (val << xp->shift);
+		}
+
 		dev_dbg(dev, "set %s to %u\n", xp->prop, val);
 	}
 
 	dev_info(dev, "CS%u: SLOW CFG 0x%08x, FAST CFG 0x%08x\n",
-		 csindex, slowcfg, fastcfg);
+			 csindex, slowcfg, fastcfg);
 
 	if (slowcfg)
+	{
 		writel(slowcfg, ebi2_xmem + csd->slow_cfg);
+	}
+
 	if (fastcfg)
+	{
 		writel(fastcfg, ebi2_xmem + csd->fast_cfg);
+	}
 }
 
 static int qcom_ebi2_probe(struct platform_device *pdev)
@@ -308,37 +333,50 @@ static int qcom_ebi2_probe(struct platform_device *pdev)
 	int ret;
 
 	ebi2xclk = devm_clk_get(dev, "ebi2x");
+
 	if (IS_ERR(ebi2xclk))
+	{
 		return PTR_ERR(ebi2xclk);
+	}
 
 	ret = clk_prepare_enable(ebi2xclk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "could not enable EBI2X clk (%d)\n", ret);
 		return ret;
 	}
 
 	ebi2clk = devm_clk_get(dev, "ebi2");
-	if (IS_ERR(ebi2clk)) {
+
+	if (IS_ERR(ebi2clk))
+	{
 		ret = PTR_ERR(ebi2clk);
 		goto err_disable_2x_clk;
 	}
 
 	ret = clk_prepare_enable(ebi2clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "could not enable EBI2 clk\n");
 		goto err_disable_2x_clk;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ebi2_base = devm_ioremap_resource(dev, res);
-	if (IS_ERR(ebi2_base)) {
+
+	if (IS_ERR(ebi2_base))
+	{
 		ret = PTR_ERR(ebi2_base);
 		goto err_disable_clk;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 	ebi2_xmem = devm_ioremap_resource(dev, res);
-	if (IS_ERR(ebi2_xmem)) {
+
+	if (IS_ERR(ebi2_xmem))
+	{
 		ret = PTR_ERR(ebi2_xmem);
 		goto err_disable_clk;
 	}
@@ -352,33 +390,41 @@ static int qcom_ebi2_probe(struct platform_device *pdev)
 	writel(val, ebi2_base);
 
 	/* Walk over the child nodes and see what chipselects we use */
-	for_each_available_child_of_node(np, child) {
+	for_each_available_child_of_node(np, child)
+	{
 		u32 csindex;
 
 		/* Figure out the chipselect */
 		ret = of_property_read_u32(child, "reg", &csindex);
-		if (ret)
-			return ret;
 
-		if (csindex > 5) {
+		if (ret)
+		{
+			return ret;
+		}
+
+		if (csindex > 5)
+		{
 			dev_err(dev,
-				"invalid chipselect %u, we only support 0-5\n",
-				csindex);
+					"invalid chipselect %u, we only support 0-5\n",
+					csindex);
 			continue;
 		}
 
 		qcom_ebi2_setup_chipselect(child,
-					   dev,
-					   ebi2_base,
-					   ebi2_xmem,
-					   csindex);
+								   dev,
+								   ebi2_base,
+								   ebi2_xmem,
+								   csindex);
 
 		/* We have at least one child */
 		have_children = true;
 	}
 
 	if (have_children)
+	{
 		return of_platform_default_populate(np, NULL, dev);
+	}
+
 	return 0;
 
 err_disable_clk:
@@ -389,13 +435,15 @@ err_disable_2x_clk:
 	return ret;
 }
 
-static const struct of_device_id qcom_ebi2_of_match[] = {
+static const struct of_device_id qcom_ebi2_of_match[] =
+{
 	{ .compatible = "qcom,msm8660-ebi2", },
 	{ .compatible = "qcom,apq8060-ebi2", },
 	{ }
 };
 
-static struct platform_driver qcom_ebi2_driver = {
+static struct platform_driver qcom_ebi2_driver =
+{
 	.probe = qcom_ebi2_probe,
 	.driver = {
 		.name = "qcom-ebi2",

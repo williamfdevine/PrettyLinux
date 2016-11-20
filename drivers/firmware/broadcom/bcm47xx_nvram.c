@@ -26,7 +26,8 @@
 
 #define FLASH_MIN		0x00020000	/* Minimum flash size */
 
-struct nvram_header {
+struct nvram_header
+{
 	u32 magic;
 	u32 len;
 	u32 crc_ver_init;	/* 0:7 crc, 8:15 ver, 16:31 sdram_init */
@@ -43,10 +44,14 @@ static u32 find_nvram_size(void __iomem *end)
 	struct nvram_header __iomem *header;
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(nvram_sizes); i++) {
+	for (i = 0; i < ARRAY_SIZE(nvram_sizes); i++)
+	{
 		header = (struct nvram_header *)(end - nvram_sizes[i]);
+
 		if (header->magic == NVRAM_MAGIC)
+		{
 			return nvram_sizes[i];
+		}
 	}
 
 	return 0;
@@ -59,32 +64,42 @@ static int nvram_find_and_copy(void __iomem *iobase, u32 lim)
 	u32 off;
 	u32 size;
 
-	if (nvram_len) {
+	if (nvram_len)
+	{
 		pr_warn("nvram already initialized\n");
 		return -EEXIST;
 	}
 
 	/* TODO: when nvram is on nand flash check for bad blocks first. */
 	off = FLASH_MIN;
-	while (off <= lim) {
+
+	while (off <= lim)
+	{
 		/* Windowed flash access */
 		size = find_nvram_size(iobase + off);
-		if (size) {
+
+		if (size)
+		{
 			header = (struct nvram_header *)(iobase + off - size);
 			goto found;
 		}
+
 		off <<= 1;
 	}
 
 	/* Try embedded NVRAM at 4 KB and 1 KB as last resorts */
 	header = (struct nvram_header *)(iobase + 4096);
-	if (header->magic == NVRAM_MAGIC) {
+
+	if (header->magic == NVRAM_MAGIC)
+	{
 		size = NVRAM_SPACE;
 		goto found;
 	}
 
 	header = (struct nvram_header *)(iobase + 1024);
-	if (header->magic == NVRAM_MAGIC) {
+
+	if (header->magic == NVRAM_MAGIC)
+	{
 		size = NVRAM_SPACE;
 		goto found;
 	}
@@ -95,18 +110,23 @@ static int nvram_find_and_copy(void __iomem *iobase, u32 lim)
 found:
 	__ioread32_copy(nvram_buf, header, sizeof(*header) / 4);
 	nvram_len = ((struct nvram_header *)(nvram_buf))->len;
-	if (nvram_len > size) {
+
+	if (nvram_len > size)
+	{
 		pr_err("The nvram size according to the header seems to be bigger than the partition on flash\n");
 		nvram_len = size;
 	}
-	if (nvram_len >= NVRAM_SPACE) {
+
+	if (nvram_len >= NVRAM_SPACE)
+	{
 		pr_err("nvram on flash (%i bytes) is bigger than the reserved space in memory, will just copy the first %i bytes\n",
-		       nvram_len, NVRAM_SPACE - 1);
+			   nvram_len, NVRAM_SPACE - 1);
 		nvram_len = NVRAM_SPACE - 1;
 	}
+
 	/* proceed reading data after header */
 	__ioread32_copy(nvram_buf + sizeof(*header), header + 1,
-			DIV_ROUND_UP(nvram_len, 4));
+					DIV_ROUND_UP(nvram_len, 4));
 	nvram_buf[NVRAM_SPACE - 1] = '\0';
 
 	return 0;
@@ -125,8 +145,11 @@ int bcm47xx_nvram_init_from_mem(u32 base, u32 lim)
 	int err;
 
 	iobase = ioremap_nocache(base, lim);
+
 	if (!iobase)
+	{
 		return -ENOMEM;
+	}
 
 	err = nvram_find_and_copy(iobase, lim);
 
@@ -144,23 +167,31 @@ static int nvram_init(void)
 	int err;
 
 	mtd = get_mtd_device_nm("nvram");
+
 	if (IS_ERR(mtd))
+	{
 		return -ENODEV;
+	}
 
 	err = mtd_read(mtd, 0, sizeof(header), &bytes_read, (uint8_t *)&header);
+
 	if (!err && header.magic == NVRAM_MAGIC &&
-	    header.len > sizeof(header)) {
+		header.len > sizeof(header))
+	{
 		nvram_len = header.len;
-		if (nvram_len >= NVRAM_SPACE) {
+
+		if (nvram_len >= NVRAM_SPACE)
+		{
 			pr_err("nvram on flash (%i bytes) is bigger than the reserved space in memory, will just copy the first %i bytes\n",
-				header.len, NVRAM_SPACE);
+				   header.len, NVRAM_SPACE);
 			nvram_len = NVRAM_SPACE - 1;
 		}
 
 		err = mtd_read(mtd, 0, nvram_len, &nvram_len,
-			       (u8 *)nvram_buf);
+					   (u8 *)nvram_buf);
 		return err;
 	}
+
 #endif
 
 	return -ENXIO;
@@ -172,27 +203,44 @@ int bcm47xx_nvram_getenv(const char *name, char *val, size_t val_len)
 	int err;
 
 	if (!name)
+	{
 		return -EINVAL;
+	}
 
-	if (!nvram_len) {
+	if (!nvram_len)
+	{
 		err = nvram_init();
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	/* Look for name=value and return value */
 	var = &nvram_buf[sizeof(struct nvram_header)];
 	end = nvram_buf + sizeof(nvram_buf);
-	while (var < end && *var) {
+
+	while (var < end && *var)
+	{
 		eq = strchr(var, '=');
+
 		if (!eq)
+		{
 			break;
+		}
+
 		value = eq + 1;
+
 		if (eq - var == strlen(name) &&
-		    strncmp(var, name, eq - var) == 0)
+			strncmp(var, name, eq - var) == 0)
+		{
 			return snprintf(val, val_len, "%s", value);
+		}
+
 		var = value + strlen(value) + 1;
 	}
+
 	return -ENOENT;
 }
 EXPORT_SYMBOL(bcm47xx_nvram_getenv);
@@ -204,16 +252,28 @@ int bcm47xx_nvram_gpio_pin(const char *name)
 	char buf[NVRAM_MAX_GPIO_VALUE_LEN];
 
 	/* TODO: Optimize it to don't call getenv so many times */
-	for (i = 0; i < NVRAM_MAX_GPIO_ENTRIES; i++) {
+	for (i = 0; i < NVRAM_MAX_GPIO_ENTRIES; i++)
+	{
 		err = snprintf(nvram_var, sizeof(nvram_var), "gpio%i", i);
+
 		if (err <= 0)
+		{
 			continue;
+		}
+
 		err = bcm47xx_nvram_getenv(nvram_var, buf, sizeof(buf));
+
 		if (err <= 0)
+		{
 			continue;
+		}
+
 		if (!strcmp(name, buf))
+		{
 			return i;
+		}
 	}
+
 	return -ENOENT;
 }
 EXPORT_SYMBOL(bcm47xx_nvram_gpio_pin);
@@ -223,16 +283,24 @@ char *bcm47xx_nvram_get_contents(size_t *nvram_size)
 	int err;
 	char *nvram;
 
-	if (!nvram_len) {
+	if (!nvram_len)
+	{
 		err = nvram_init();
+
 		if (err)
+		{
 			return NULL;
+		}
 	}
 
 	*nvram_size = nvram_len - sizeof(struct nvram_header);
 	nvram = vmalloc(*nvram_size);
+
 	if (!nvram)
+	{
 		return NULL;
+	}
+
 	memcpy(nvram, &nvram_buf[sizeof(struct nvram_header)], *nvram_size);
 
 	return nvram;

@@ -78,7 +78,8 @@
 
 #define NVM_HW_SECTION_NUM_FAMILY_A000		10
 
-static const struct iwl_base_params iwl_a000_base_params = {
+static const struct iwl_base_params iwl_a000_base_params =
+{
 	.eeprom_size = OTP_LOW_IMAGE_SIZE_FAMILY_A000,
 	.num_of_queues = 31,
 	.shadow_ram_support = true,
@@ -89,7 +90,8 @@ static const struct iwl_base_params iwl_a000_base_params = {
 	.pcie_l1_allowed = true,
 };
 
-static const struct iwl_ht_params iwl_a000_ht_params = {
+static const struct iwl_ht_params iwl_a000_ht_params =
+{
 	.stbc = true,
 	.ldpc = true,
 	.ht40_bands = BIT(NL80211_BAND_2GHZ) | BIT(NL80211_BAND_5GHZ),
@@ -97,35 +99,36 @@ static const struct iwl_ht_params iwl_a000_ht_params = {
 
 #define IWL_DEVICE_A000							\
 	.ucode_api_max = IWL_A000_UCODE_API_MAX,			\
-	.ucode_api_min = IWL_A000_UCODE_API_MIN,			\
-	.device_family = IWL_DEVICE_FAMILY_8000,			\
-	.max_inst_size = IWL60_RTC_INST_SIZE,				\
-	.max_data_size = IWL60_RTC_DATA_SIZE,				\
-	.base_params = &iwl_a000_base_params,				\
-	.led_mode = IWL_LED_RF_STATE,					\
-	.nvm_hw_section_num = NVM_HW_SECTION_NUM_FAMILY_A000,		\
-	.non_shared_ant = ANT_A,					\
-	.dccm_offset = IWL_A000_DCCM_OFFSET,				\
-	.dccm_len = IWL_A000_DCCM_LEN,					\
-	.dccm2_offset = IWL_A000_DCCM2_OFFSET,				\
-	.dccm2_len = IWL_A000_DCCM2_LEN,				\
-	.smem_offset = IWL_A000_SMEM_OFFSET,				\
-	.smem_len = IWL_A000_SMEM_LEN,					\
-	.features = IWL_TX_CSUM_NETIF_FLAGS | NETIF_F_RXCSUM,		\
-	.apmg_not_supported = true,					\
-	.mq_rx_supported = true,					\
-	.vht_mu_mimo_supported = true,					\
-	.mac_addr_from_csr = true,					\
-	.use_tfh = true
+					 .ucode_api_min = IWL_A000_UCODE_API_MIN,			\
+									  .device_family = IWL_DEVICE_FAMILY_8000,			\
+											  .max_inst_size = IWL60_RTC_INST_SIZE,				\
+													  .max_data_size = IWL60_RTC_DATA_SIZE,				\
+															  .base_params = &iwl_a000_base_params,				\
+																	  .led_mode = IWL_LED_RF_STATE,					\
+																			  .nvm_hw_section_num = NVM_HW_SECTION_NUM_FAMILY_A000,		\
+																					  .non_shared_ant = ANT_A,					\
+																							  .dccm_offset = IWL_A000_DCCM_OFFSET,				\
+																									  .dccm_len = IWL_A000_DCCM_LEN,					\
+																											  .dccm2_offset = IWL_A000_DCCM2_OFFSET,				\
+																													  .dccm2_len = IWL_A000_DCCM2_LEN,				\
+																															  .smem_offset = IWL_A000_SMEM_OFFSET,				\
+																																	  .smem_len = IWL_A000_SMEM_LEN,					\
+																																			  .features = IWL_TX_CSUM_NETIF_FLAGS | NETIF_F_RXCSUM,		\
+																																					  .apmg_not_supported = true,					\
+																																							  .mq_rx_supported = true,					\
+																																									  .vht_mu_mimo_supported = true,					\
+																																											  .mac_addr_from_csr = true,					\
+																																													  .use_tfh = true
 
-const struct iwl_cfg iwla000_2ac_cfg = {
-		.name = "Intel(R) Dual Band Wireless AC a000",
-		.fw_name_pre = IWL_A000_FW_PRE,
-		IWL_DEVICE_A000,
-		.ht_params = &iwl_a000_ht_params,
-		.nvm_ver = IWL_A000_NVM_VERSION,
-		.nvm_calib_ver = IWL_A000_TX_POWER_VERSION,
-		.max_ht_ampdu_exponent = IEEE80211_HT_MAX_AMPDU_64K,
+const struct iwl_cfg iwla000_2ac_cfg =
+{
+	.name = "Intel(R) Dual Band Wireless AC a000",
+	.fw_name_pre = IWL_A000_FW_PRE,
+	IWL_DEVICE_A000,
+	.ht_params = &iwl_a000_ht_params,
+	.nvm_ver = IWL_A000_NVM_VERSION,
+	.nvm_calib_ver = IWL_A000_TX_POWER_VERSION,
+	.max_ht_ampdu_exponent = IEEE80211_HT_MAX_AMPDU_64K,
 };
 
 MODULE_FIRMWARE(IWL_A000_MODULE_FIRMWARE(IWL_A000_UCODE_API_MAX));

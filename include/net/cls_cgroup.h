@@ -20,7 +20,8 @@
 #include <net/inet_sock.h>
 
 #ifdef CONFIG_CGROUP_NET_CLASSID
-struct cgroup_cls_state {
+struct cgroup_cls_state
+{
 	struct cgroup_subsys_state css;
 	u32 classid;
 };
@@ -32,11 +33,13 @@ static inline u32 task_cls_classid(struct task_struct *p)
 	u32 classid;
 
 	if (in_interrupt())
+	{
 		return 0;
+	}
 
 	rcu_read_lock();
 	classid = container_of(task_css(p, net_cls_cgrp_id),
-			       struct cgroup_cls_state, css)->classid;
+						   struct cgroup_cls_state, css)->classid;
 	rcu_read_unlock();
 
 	return classid;
@@ -63,12 +66,15 @@ static inline u32 task_get_classid(const struct sk_buff *skb)
 	 * calls by looking at the number of nested bh disable calls because
 	 * softirqs always disables bh.
 	 */
-	if (in_serving_softirq()) {
+	if (in_serving_softirq())
+	{
 		struct sock *sk = skb_to_full_sk(skb);
 
 		/* If there is an sock_cgroup_classid we'll use that. */
 		if (!sk || !sk_fullsock(sk))
+		{
 			return 0;
+		}
 
 		classid = sock_cgroup_classid(&sk->sk_cgrp_data);
 	}

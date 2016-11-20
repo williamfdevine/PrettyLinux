@@ -28,15 +28,24 @@ task_work_add(struct task_struct *task, struct callback_head *work, bool notify)
 {
 	struct callback_head *head;
 
-	do {
+	do
+	{
 		head = READ_ONCE(task->task_works);
+
 		if (unlikely(head == &work_exited))
+		{
 			return -ESRCH;
+		}
+
 		work->next = head;
-	} while (cmpxchg(&task->task_works, head, work) != head);
+	}
+	while (cmpxchg(&task->task_works, head, work) != head);
 
 	if (notify)
+	{
 		set_notify_resume(task);
+	}
+
 	return 0;
 }
 
@@ -59,7 +68,10 @@ task_work_cancel(struct task_struct *task, task_work_func_t func)
 	unsigned long flags;
 
 	if (likely(!task->task_works))
+	{
 		return NULL;
+	}
+
 	/*
 	 * If cmpxchg() fails we continue without updating pprev.
 	 * Either we raced with task_work_add() which added the
@@ -67,12 +79,19 @@ task_work_cancel(struct task_struct *task, task_work_func_t func)
 	 * we raced with task_work_run(), *pprev == NULL/exited.
 	 */
 	raw_spin_lock_irqsave(&task->pi_lock, flags);
-	while ((work = lockless_dereference(*pprev))) {
+
+	while ((work = lockless_dereference(*pprev)))
+	{
 		if (work->func != func)
+		{
 			pprev = &work->next;
+		}
 		else if (cmpxchg(pprev, work, work->next) == work)
+		{
 			break;
+		}
 	}
+
 	raw_spin_unlock_irqrestore(&task->pi_lock, flags);
 
 	return work;
@@ -91,19 +110,25 @@ void task_work_run(void)
 	struct task_struct *task = current;
 	struct callback_head *work, *head, *next;
 
-	for (;;) {
+	for (;;)
+	{
 		/*
 		 * work->func() can do task_work_add(), do not set
 		 * work_exited unless the list is empty.
 		 */
-		do {
+		do
+		{
 			work = READ_ONCE(task->task_works);
 			head = !work && (task->flags & PF_EXITING) ?
-				&work_exited : NULL;
-		} while (cmpxchg(&task->task_works, work, head) != work);
+				   &work_exited : NULL;
+		}
+		while (cmpxchg(&task->task_works, work, head) != work);
 
 		if (!work)
+		{
 			break;
+		}
+
 		/*
 		 * Synchronize with task_work_cancel(). It can't remove
 		 * the first entry == work, cmpxchg(task_works) should
@@ -111,11 +136,13 @@ void task_work_run(void)
 		 */
 		raw_spin_unlock_wait(&task->pi_lock);
 
-		do {
+		do
+		{
 			next = work->next;
 			work->func(work);
 			work = next;
 			cond_resched();
-		} while (work);
+		}
+		while (work);
 	}
 }

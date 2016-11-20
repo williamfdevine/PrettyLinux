@@ -47,7 +47,8 @@
 #define DPY_W 600
 #define DPY_H 800
 
-static const struct fb_fix_screeninfo hecubafb_fix = {
+static const struct fb_fix_screeninfo hecubafb_fix =
+{
 	.id =		"hecubafb",
 	.type =		FB_TYPE_PACKED_PIXELS,
 	.visual =	FB_VISUAL_MONO01,
@@ -58,7 +59,8 @@ static const struct fb_fix_screeninfo hecubafb_fix = {
 	.accel =	FB_ACCEL_NONE,
 };
 
-static const struct fb_var_screeninfo hecubafb_var = {
+static const struct fb_var_screeninfo hecubafb_var =
+{
 	.xres		= DPY_W,
 	.yres		= DPY_H,
 	.xres_virtual	= DPY_W,
@@ -106,7 +108,8 @@ static void hecubafb_dpy_update(struct hecubafb_par *par)
 
 	apollo_send_command(par, APOLLO_START_NEW_IMG);
 
-	for (i=0; i < (DPY_W*DPY_H/8); i++) {
+	for (i = 0; i < (DPY_W * DPY_H / 8); i++)
+	{
 		apollo_send_data(par, *(buf++));
 	}
 
@@ -116,13 +119,13 @@ static void hecubafb_dpy_update(struct hecubafb_par *par)
 
 /* this is called back from the deferred io workqueue */
 static void hecubafb_dpy_deferred_io(struct fb_info *info,
-				struct list_head *pagelist)
+									 struct list_head *pagelist)
 {
 	hecubafb_dpy_update(info->par);
 }
 
 static void hecubafb_fillrect(struct fb_info *info,
-				   const struct fb_fillrect *rect)
+							  const struct fb_fillrect *rect)
 {
 	struct hecubafb_par *par = info->par;
 
@@ -132,7 +135,7 @@ static void hecubafb_fillrect(struct fb_info *info,
 }
 
 static void hecubafb_copyarea(struct fb_info *info,
-				   const struct fb_copyarea *area)
+							  const struct fb_copyarea *area)
 {
 	struct hecubafb_par *par = info->par;
 
@@ -142,7 +145,7 @@ static void hecubafb_copyarea(struct fb_info *info,
 }
 
 static void hecubafb_imageblit(struct fb_info *info,
-				const struct fb_image *image)
+							   const struct fb_image *image)
 {
 	struct hecubafb_par *par = info->par;
 
@@ -156,7 +159,7 @@ static void hecubafb_imageblit(struct fb_info *info,
  * the fb. it's inefficient to do anything less than a full screen draw
  */
 static ssize_t hecubafb_write(struct fb_info *info, const char __user *buf,
-				size_t count, loff_t *ppos)
+							  size_t count, loff_t *ppos)
 {
 	struct hecubafb_par *par = info->par;
 	unsigned long p = *ppos;
@@ -165,21 +168,29 @@ static ssize_t hecubafb_write(struct fb_info *info, const char __user *buf,
 	unsigned long total_size;
 
 	if (info->state != FBINFO_STATE_RUNNING)
+	{
 		return -EPERM;
+	}
 
 	total_size = info->fix.smem_len;
 
 	if (p > total_size)
+	{
 		return -EFBIG;
+	}
 
-	if (count > total_size) {
+	if (count > total_size)
+	{
 		err = -EFBIG;
 		count = total_size;
 	}
 
-	if (count + p > total_size) {
+	if (count + p > total_size)
+	{
 		if (!err)
+		{
 			err = -ENOSPC;
+		}
 
 		count = total_size - p;
 	}
@@ -187,17 +198,22 @@ static ssize_t hecubafb_write(struct fb_info *info, const char __user *buf,
 	dst = (void __force *) (info->screen_base + p);
 
 	if (copy_from_user(dst, buf, count))
+	{
 		err = -EFAULT;
+	}
 
 	if  (!err)
+	{
 		*ppos += count;
+	}
 
 	hecubafb_dpy_update(par);
 
 	return (err) ? err : count;
 }
 
-static struct fb_ops hecubafb_ops = {
+static struct fb_ops hecubafb_ops =
+{
 	.owner		= THIS_MODULE,
 	.fb_read        = fb_sys_read,
 	.fb_write	= hecubafb_write,
@@ -206,7 +222,8 @@ static struct fb_ops hecubafb_ops = {
 	.fb_imageblit	= hecubafb_imageblit,
 };
 
-static struct fb_deferred_io hecubafb_defio = {
+static struct fb_deferred_io hecubafb_defio =
+{
 	.delay		= HZ,
 	.deferred_io	= hecubafb_dpy_deferred_io,
 };
@@ -222,22 +239,33 @@ static int hecubafb_probe(struct platform_device *dev)
 
 	/* pick up board specific routines */
 	board = dev->dev.platform_data;
+
 	if (!board)
+	{
 		return -EINVAL;
+	}
 
 	/* try to count device specific driver, if can't, platform recalls */
 	if (!try_module_get(board->owner))
+	{
 		return -ENODEV;
+	}
 
-	videomemorysize = (DPY_W*DPY_H)/8;
+	videomemorysize = (DPY_W * DPY_H) / 8;
 
 	videomemory = vzalloc(videomemorysize);
+
 	if (!videomemory)
+	{
 		goto err_videomem_alloc;
+	}
 
 	info = framebuffer_alloc(sizeof(struct hecubafb_par), &dev->dev);
+
 	if (!info)
+	{
 		goto err_fballoc;
+	}
 
 	info->screen_base = (char __force __iomem *)videomemory;
 	info->fbops = &hecubafb_ops;
@@ -257,17 +285,24 @@ static int hecubafb_probe(struct platform_device *dev)
 	fb_deferred_io_init(info);
 
 	retval = register_framebuffer(info);
+
 	if (retval < 0)
+	{
 		goto err_fbreg;
+	}
+
 	platform_set_drvdata(dev, info);
 
 	fb_info(info, "Hecuba frame buffer device, using %dK of video memory\n",
-		videomemorysize >> 10);
+			videomemorysize >> 10);
 
 	/* this inits the dpy */
 	retval = par->board->init(par);
+
 	if (retval < 0)
+	{
 		goto err_fbreg;
+	}
 
 	return 0;
 err_fbreg:
@@ -283,20 +318,27 @@ static int hecubafb_remove(struct platform_device *dev)
 {
 	struct fb_info *info = platform_get_drvdata(dev);
 
-	if (info) {
+	if (info)
+	{
 		struct hecubafb_par *par = info->par;
 		fb_deferred_io_cleanup(info);
 		unregister_framebuffer(info);
 		vfree((void __force *)info->screen_base);
+
 		if (par->board->remove)
+		{
 			par->board->remove(par);
+		}
+
 		module_put(par->board->owner);
 		framebuffer_release(info);
 	}
+
 	return 0;
 }
 
-static struct platform_driver hecubafb_driver = {
+static struct platform_driver hecubafb_driver =
+{
 	.probe	= hecubafb_probe,
 	.remove = hecubafb_remove,
 	.driver	= {

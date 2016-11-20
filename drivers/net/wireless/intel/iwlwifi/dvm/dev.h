@@ -103,21 +103,25 @@
 #define IWL_INVALID_RATE     0xFF
 #define IWL_INVALID_VALUE    -1
 
-union iwl_ht_rate_supp {
+union iwl_ht_rate_supp
+{
 	u16 rates;
-	struct {
+	struct
+	{
 		u8 siso_rate;
 		u8 mimo_rate;
 	};
 };
 
-struct iwl_ht_config {
+struct iwl_ht_config
+{
 	bool single_chain_sufficient;
 	enum ieee80211_smps_mode smps; /* current smps mode */
 };
 
 /* QoS structures */
-struct iwl_qos_info {
+struct iwl_qos_info
+{
 	int qos_active;
 	struct iwl_qosparam_cmd def_qos_parm;
 };
@@ -136,7 +140,8 @@ struct iwl_qos_info {
  * @IWL_EMPTYING_HW_QUEUE_DELBA: tearing down a BA session - waiting for the
  *	HW queue to be empty from packets for this RA /TID.
  */
-enum iwl_agg_state {
+enum iwl_agg_state
+{
 	IWL_AGG_OFF = 0,
 	IWL_AGG_STARTING,
 	IWL_AGG_ON,
@@ -162,7 +167,8 @@ enum iwl_agg_state {
  *	we are ready to finish the Tx AGG stop / start flow.
  * @wait_for_ba: Expect block-ack before next Tx reply
  */
-struct iwl_ht_agg {
+struct iwl_ht_agg
+{
 	u32 rate_n_flags;
 	enum iwl_agg_state state;
 	u16 txq_id;
@@ -180,7 +186,8 @@ struct iwl_ht_agg {
  *	This is basically (last acked packet++).
  * @agg: aggregation state machine
  */
-struct iwl_tid_data {
+struct iwl_tid_data
+{
 	u16 seq_number;
 	u16 next_reclaimed;
 	struct iwl_ht_agg agg;
@@ -192,7 +199,8 @@ struct iwl_tid_data {
  * the commands (iwl_addsta_cmd and iwl_link_quality_cmd) without sta_lock
  * held.
  */
-struct iwl_station_entry {
+struct iwl_station_entry
+{
 	struct iwl_addsta_cmd sta;
 	u8 used, ctxid;
 	struct iwl_link_quality_cmd *lq;
@@ -205,7 +213,8 @@ struct iwl_station_entry {
  * in the structure for use by driver. This structure is places in that
  * space.
  */
-struct iwl_station_priv {
+struct iwl_station_priv
+{
 	struct iwl_rxon_context *ctx;
 	struct iwl_lq_sta lq_sta;
 	atomic_t pending_frames;
@@ -221,12 +230,14 @@ struct iwl_station_priv {
  * When mac80211 allocates a virtual interface, it can allocate
  * space for us to put data into.
  */
-struct iwl_vif_priv {
+struct iwl_vif_priv
+{
 	struct iwl_rxon_context *ctx;
 	u8 ibss_bssid_sta_id;
 };
 
-struct iwl_sensitivity_ranges {
+struct iwl_sensitivity_ranges
+{
 	u16 min_nrg_cck;
 
 	u16 nrg_th_cck;
@@ -315,13 +326,15 @@ extern const u8 iwl_bcast_addr[ETH_ALEN];
 #define NRG_NUM_PREV_STAT_L     20
 #define NUM_RX_CHAINS           3
 
-enum iwlagn_false_alarm_state {
+enum iwlagn_false_alarm_state
+{
 	IWL_FA_TOO_MANY = 0,
 	IWL_FA_TOO_FEW = 1,
 	IWL_FA_GOOD_RANGE = 2,
 };
 
-enum iwlagn_chain_noise_state {
+enum iwlagn_chain_noise_state
+{
 	IWL_CHAIN_NOISE_ALIVE = 0,  /* must be 0 */
 	IWL_CHAIN_NOISE_ACCUMULATE,
 	IWL_CHAIN_NOISE_CALIBRATED,
@@ -329,7 +342,8 @@ enum iwlagn_chain_noise_state {
 };
 
 /* Sensitivity calib data */
-struct iwl_sensitivity_data {
+struct iwl_sensitivity_data
+{
 	u32 auto_corr_ofdm;
 	u32 auto_corr_ofdm_mrc;
 	u32 auto_corr_ofdm_x1;
@@ -360,7 +374,8 @@ struct iwl_sensitivity_data {
 };
 
 /* Chain noise (differential Rx gain) calib data */
-struct iwl_chain_noise_data {
+struct iwl_chain_noise_data
+{
 	u32 active_chains;
 	u32 chain_noise_a;
 	u32 chain_noise_b;
@@ -375,13 +390,15 @@ struct iwl_chain_noise_data {
 	u8 state;
 };
 
-enum {
+enum
+{
 	MEASUREMENT_READY = (1 << 0),
 	MEASUREMENT_ACTIVE = (1 << 1),
 };
 
 /* reply_tx_statistics (for _agn devices) */
-struct reply_tx_error_statistics {
+struct reply_tx_error_statistics
+{
 	u32 pp_delay;
 	u32 pp_few_bytes;
 	u32 pp_bt_prio;
@@ -408,7 +425,8 @@ struct reply_tx_error_statistics {
 };
 
 /* reply_agg_tx_statistics (for _agn devices) */
-struct reply_agg_tx_error_statistics {
+struct reply_agg_tx_error_statistics
+{
 	u32 underrun;
 	u32 bt_prio;
 	u32 few_bytes;
@@ -441,7 +459,8 @@ struct reply_agg_tx_error_statistics {
  * @wraps_more_count: counter for wrap more than once detected
  *		      when dump ucode events
  */
-struct iwl_event_log {
+struct iwl_event_log
+{
 	bool ucode_trace;
 	u32 num_wraps;
 	u32 next_entry;
@@ -460,14 +479,16 @@ struct iwl_event_log {
 #define IWL_MAX_CONTINUE_RELOAD_CNT	4
 
 
-struct iwl_rf_reset {
+struct iwl_rf_reset
+{
 	int reset_request_count;
 	int reset_success_count;
 	int reset_reject_count;
 	unsigned long last_reset_jiffies;
 };
 
-enum iwl_rxon_context_id {
+enum iwl_rxon_context_id
+{
 	IWL_RXON_CTX_BSS,
 	IWL_RXON_CTX_PAN,
 
@@ -482,7 +503,8 @@ enum iwl_rxon_context_id {
  */
 #define IWLAGN_EXT_BEACON_TIME_POS	22
 
-struct iwl_rxon_context {
+struct iwl_rxon_context
+{
 	struct ieee80211_vif *vif;
 
 	u8 mcast_queue;
@@ -529,7 +551,8 @@ struct iwl_rxon_context {
 
 	int beacon_int;
 
-	struct {
+	struct
+	{
 		bool non_gf_sta_present;
 		u8 protection;
 		bool enabled, is_40mhz;
@@ -537,7 +560,8 @@ struct iwl_rxon_context {
 	} ht;
 };
 
-enum iwl_scan_type {
+enum iwl_scan_type
+{
 	IWL_SCAN_NORMAL,
 	IWL_SCAN_RADIO_RESET,
 };
@@ -555,7 +579,8 @@ enum iwl_scan_type {
  * @struct iwl_sensitivity_ranges: range of sensitivity values
  * @use_rts_for_aggregation: use rts/cts protection for HT traffic
  */
-struct iwl_hw_params {
+struct iwl_hw_params
+{
 	u8  tx_chains_num;
 	u8  rx_chains_num;
 	bool use_rts_for_aggregation;
@@ -573,7 +598,8 @@ struct iwl_hw_params {
  * @agg_time_limit: maximum number of uSec in aggregation
  * @bt_sco_disable: uCode should not response to BT in SCO/ESCO mode
  */
-struct iwl_dvm_bt_params {
+struct iwl_dvm_bt_params
+{
 	bool advanced_bt_coexist;
 	u8 bt_init_traffic_load;
 	u32 bt_prio_boost;
@@ -602,10 +628,11 @@ struct iwl_dvm_bt_params {
  * @temp_offset_v2: support v2 of temperature offset calibration
  * @adv_pm: advanced power management
  */
-struct iwl_dvm_cfg {
+struct iwl_dvm_cfg
+{
 	void (*set_hw_params)(struct iwl_priv *priv);
 	int (*set_channel_switch)(struct iwl_priv *priv,
-				  struct ieee80211_channel_switch *ch_switch);
+							  struct ieee80211_channel_switch *ch_switch);
 	void (*nic_config)(struct iwl_priv *priv);
 	void (*temperature)(struct iwl_priv *priv);
 
@@ -622,14 +649,16 @@ struct iwl_dvm_cfg {
 	bool adv_pm;
 };
 
-struct iwl_wipan_noa_data {
+struct iwl_wipan_noa_data
+{
 	struct rcu_head rcu_head;
 	u32 length;
 	u8 data[];
 };
 
 /* Calibration disabling bit mask */
-enum {
+enum
+{
 	IWL_CALIB_ENABLE_ALL			= 0,
 
 	IWL_SENSITIVITY_CALIB_DISABLED		= BIT(0),
@@ -644,9 +673,10 @@ enum {
 
 #define IWL_MAC80211_GET_DVM(_hw) \
 	((struct iwl_priv *) ((struct iwl_op_mode *) \
-	(_hw)->priv)->op_mode_specific)
+						  (_hw)->priv)->op_mode_specific)
 
-struct iwl_priv {
+struct iwl_priv
+{
 
 	struct iwl_trans *trans;
 	struct device *dev;		/* for debug prints only */
@@ -681,7 +711,7 @@ struct iwl_priv {
 	u8 valid_contexts;
 
 	void (*rx_handlers[REPLY_MAX])(struct iwl_priv *priv,
-				       struct iwl_rx_cmd_buffer *rxb);
+								   struct iwl_rx_cmd_buffer *rxb);
 
 	struct iwl_notif_wait_data notif_wait;
 
@@ -776,7 +806,8 @@ struct iwl_priv {
 	/* Last Rx'd beacon timestamp */
 	u64 timestamp;
 
-	struct {
+	struct
+	{
 		__le32 flag;
 		struct statistics_general_common common;
 		struct statistics_rx_non_phy rx_non_phy;
@@ -791,7 +822,8 @@ struct iwl_priv {
 		spinlock_t lock;
 	} statistics;
 #ifdef CONFIG_IWLWIFI_DEBUGFS
-	struct {
+	struct
+	{
 		struct statistics_general_common common;
 		struct statistics_rx_non_phy rx_non_phy;
 		struct statistics_rx_phy rx_ofdm;
@@ -904,7 +936,8 @@ struct iwl_priv {
 #endif
 
 	/* device_pointers: pointers to ucode event tables */
-	struct {
+	struct
+	{
 		u32 error_event_table;
 		u32 log_event_table;
 	} device_pointers;
@@ -923,7 +956,7 @@ iwl_rxon_ctx_from_vif(struct ieee80211_vif *vif)
 
 #define for_each_context(priv, ctx)				\
 	for (ctx = &priv->contexts[IWL_RXON_CTX_BSS];		\
-	     ctx < &priv->contexts[NUM_IWL_RXON_CTX]; ctx++)	\
+		 ctx < &priv->contexts[NUM_IWL_RXON_CTX]; ctx++)	\
 		if (priv->valid_contexts & BIT(ctx->ctxid))
 
 static inline int iwl_is_associated_ctx(struct iwl_rxon_context *ctx)
@@ -932,7 +965,7 @@ static inline int iwl_is_associated_ctx(struct iwl_rxon_context *ctx)
 }
 
 static inline int iwl_is_associated(struct iwl_priv *priv,
-				    enum iwl_rxon_context_id ctxid)
+									enum iwl_rxon_context_id ctxid)
 {
 	return iwl_is_associated_ctx(&priv->contexts[ctxid]);
 }
@@ -941,8 +974,12 @@ static inline int iwl_is_any_associated(struct iwl_priv *priv)
 {
 	struct iwl_rxon_context *ctx;
 	for_each_context(priv, ctx)
-		if (iwl_is_associated_ctx(ctx))
-			return true;
+
+	if (iwl_is_associated_ctx(ctx))
+	{
+		return true;
+	}
+
 	return false;
 }
 

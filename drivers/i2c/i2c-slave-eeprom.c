@@ -22,7 +22,8 @@
 #include <linux/spinlock.h>
 #include <linux/sysfs.h>
 
-struct eeprom_data {
+struct eeprom_data
+{
 	struct bin_attribute bin;
 	bool first_write;
 	spinlock_t buffer_lock;
@@ -31,44 +32,50 @@ struct eeprom_data {
 };
 
 static int i2c_slave_eeprom_slave_cb(struct i2c_client *client,
-				     enum i2c_slave_event event, u8 *val)
+									 enum i2c_slave_event event, u8 *val)
 {
 	struct eeprom_data *eeprom = i2c_get_clientdata(client);
 
-	switch (event) {
-	case I2C_SLAVE_WRITE_RECEIVED:
-		if (eeprom->first_write) {
-			eeprom->buffer_idx = *val;
-			eeprom->first_write = false;
-		} else {
-			spin_lock(&eeprom->buffer_lock);
-			eeprom->buffer[eeprom->buffer_idx++] = *val;
-			spin_unlock(&eeprom->buffer_lock);
-		}
-		break;
+	switch (event)
+	{
+		case I2C_SLAVE_WRITE_RECEIVED:
+			if (eeprom->first_write)
+			{
+				eeprom->buffer_idx = *val;
+				eeprom->first_write = false;
+			}
+			else
+			{
+				spin_lock(&eeprom->buffer_lock);
+				eeprom->buffer[eeprom->buffer_idx++] = *val;
+				spin_unlock(&eeprom->buffer_lock);
+			}
 
-	case I2C_SLAVE_READ_PROCESSED:
-		/* The previous byte made it to the bus, get next one */
-		eeprom->buffer_idx++;
+			break;
+
+		case I2C_SLAVE_READ_PROCESSED:
+			/* The previous byte made it to the bus, get next one */
+			eeprom->buffer_idx++;
+
 		/* fallthrough */
-	case I2C_SLAVE_READ_REQUESTED:
-		spin_lock(&eeprom->buffer_lock);
-		*val = eeprom->buffer[eeprom->buffer_idx];
-		spin_unlock(&eeprom->buffer_lock);
-		/*
-		 * Do not increment buffer_idx here, because we don't know if
-		 * this byte will be actually used. Read Linux I2C slave docs
-		 * for details.
-		 */
-		break;
+		case I2C_SLAVE_READ_REQUESTED:
+			spin_lock(&eeprom->buffer_lock);
+			*val = eeprom->buffer[eeprom->buffer_idx];
+			spin_unlock(&eeprom->buffer_lock);
+			/*
+			 * Do not increment buffer_idx here, because we don't know if
+			 * this byte will be actually used. Read Linux I2C slave docs
+			 * for details.
+			 */
+			break;
 
-	case I2C_SLAVE_STOP:
-	case I2C_SLAVE_WRITE_REQUESTED:
-		eeprom->first_write = true;
-		break;
+		case I2C_SLAVE_STOP:
+		case I2C_SLAVE_WRITE_REQUESTED:
+			eeprom->first_write = true;
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 	return 0;
@@ -111,8 +118,11 @@ static int i2c_slave_eeprom_probe(struct i2c_client *client, const struct i2c_de
 	unsigned size = id->driver_data;
 
 	eeprom = devm_kzalloc(&client->dev, sizeof(struct eeprom_data) + size, GFP_KERNEL);
+
 	if (!eeprom)
+	{
 		return -ENOMEM;
+	}
 
 	eeprom->first_write = true;
 	spin_lock_init(&eeprom->buffer_lock);
@@ -126,11 +136,16 @@ static int i2c_slave_eeprom_probe(struct i2c_client *client, const struct i2c_de
 	eeprom->bin.size = size;
 
 	ret = sysfs_create_bin_file(&client->dev.kobj, &eeprom->bin);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = i2c_slave_register(client, i2c_slave_eeprom_slave_cb);
-	if (ret) {
+
+	if (ret)
+	{
 		sysfs_remove_bin_file(&client->dev.kobj, &eeprom->bin);
 		return ret;
 	}
@@ -148,13 +163,15 @@ static int i2c_slave_eeprom_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id i2c_slave_eeprom_id[] = {
+static const struct i2c_device_id i2c_slave_eeprom_id[] =
+{
 	{ "slave-24c02", 2048 / 8 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, i2c_slave_eeprom_id);
 
-static struct i2c_driver i2c_slave_eeprom_driver = {
+static struct i2c_driver i2c_slave_eeprom_driver =
+{
 	.driver = {
 		.name = "i2c-slave-eeprom",
 	},

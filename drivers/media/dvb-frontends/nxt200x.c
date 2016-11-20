@@ -55,30 +55,33 @@
 #include "dvb_frontend.h"
 #include "nxt200x.h"
 
-struct nxt200x_state {
+struct nxt200x_state
+{
 
-	struct i2c_adapter* i2c;
-	const struct nxt200x_config* config;
+	struct i2c_adapter *i2c;
+	const struct nxt200x_config *config;
 	struct dvb_frontend frontend;
 
 	/* demodulator private data */
 	nxt_chip_type demod_chip;
-	u8 initialised:1;
+	u8 initialised: 1;
 };
 
 static int debug;
 #define dprintk(args...)	do { if (debug) pr_debug(args); } while (0)
 
-static int i2c_writebytes (struct nxt200x_state* state, u8 addr, u8 *buf, u8 len)
+static int i2c_writebytes (struct nxt200x_state *state, u8 addr, u8 *buf, u8 len)
 {
 	int err;
 	struct i2c_msg msg = { .addr = addr, .flags = 0, .buf = buf, .len = len };
 
-	if ((err = i2c_transfer (state->i2c, &msg, 1)) != 1) {
+	if ((err = i2c_transfer (state->i2c, &msg, 1)) != 1)
+	{
 		pr_warn("%s: i2c write error (addr 0x%02x, err == %i)\n",
-			__func__, addr, err);
+				__func__, addr, err);
 		return -EREMOTEIO;
 	}
+
 	return 0;
 }
 
@@ -87,35 +90,40 @@ static int i2c_readbytes(struct nxt200x_state *state, u8 addr, u8 *buf, u8 len)
 	int err;
 	struct i2c_msg msg = { .addr = addr, .flags = I2C_M_RD, .buf = buf, .len = len };
 
-	if ((err = i2c_transfer (state->i2c, &msg, 1)) != 1) {
+	if ((err = i2c_transfer (state->i2c, &msg, 1)) != 1)
+	{
 		pr_warn("%s: i2c read error (addr 0x%02x, err == %i)\n",
-			__func__, addr, err);
+				__func__, addr, err);
 		return -EREMOTEIO;
 	}
+
 	return 0;
 }
 
-static int nxt200x_writebytes (struct nxt200x_state* state, u8 reg,
-			       const u8 *buf, u8 len)
+static int nxt200x_writebytes (struct nxt200x_state *state, u8 reg,
+							   const u8 *buf, u8 len)
 {
 	u8 buf2[MAX_XFER_SIZE];
 	int err;
 	struct i2c_msg msg = { .addr = state->config->demod_address, .flags = 0, .buf = buf2, .len = len + 1 };
 
-	if (1 + len > sizeof(buf2)) {
+	if (1 + len > sizeof(buf2))
+	{
 		pr_warn("%s: i2c wr reg=%04x: len=%d is too big!\n",
-			 __func__, reg, len);
+				__func__, reg, len);
 		return -EINVAL;
 	}
 
 	buf2[0] = reg;
 	memcpy(&buf2[1], buf, len);
 
-	if ((err = i2c_transfer (state->i2c, &msg, 1)) != 1) {
+	if ((err = i2c_transfer (state->i2c, &msg, 1)) != 1)
+	{
 		pr_warn("%s: i2c write error (addr 0x%02x, err == %i)\n",
-			__func__, state->config->demod_address, err);
+				__func__, state->config->demod_address, err);
 		return -EREMOTEIO;
 	}
+
 	return 0;
 }
 
@@ -124,15 +132,18 @@ static int nxt200x_readbytes(struct nxt200x_state *state, u8 reg, u8 *buf, u8 le
 	u8 reg2 [] = { reg };
 
 	struct i2c_msg msg [] = { { .addr = state->config->demod_address, .flags = 0, .buf = reg2, .len = 1 },
-			{ .addr = state->config->demod_address, .flags = I2C_M_RD, .buf = buf, .len = len } };
+		{ .addr = state->config->demod_address, .flags = I2C_M_RD, .buf = buf, .len = len }
+	};
 
 	int err;
 
-	if ((err = i2c_transfer (state->i2c, msg, 2)) != 2) {
+	if ((err = i2c_transfer (state->i2c, msg, 2)) != 2)
+	{
 		pr_warn("%s: i2c read error (addr 0x%02x, err == %i)\n",
-			__func__, state->config->demod_address, err);
+				__func__, state->config->demod_address, err);
 		return -EREMOTEIO;
 	}
+
 	return 0;
 }
 
@@ -141,18 +152,26 @@ static u16 nxt200x_crc(u16 crc, u8 c)
 	u8 i;
 	u16 input = (u16) c & 0xFF;
 
-	input<<=8;
-	for(i=0; i<8; i++) {
-		if((crc^input) & 0x8000)
-			crc=(crc<<1)^CRC_CCIT_MASK;
+	input <<= 8;
+
+	for (i = 0; i < 8; i++)
+	{
+		if ((crc ^ input) & 0x8000)
+		{
+			crc = (crc << 1)^CRC_CCIT_MASK;
+		}
 		else
-			crc<<=1;
-		input<<=1;
+		{
+			crc <<= 1;
+		}
+
+		input <<= 1;
 	}
+
 	return crc;
 }
 
-static int nxt200x_writereg_multibyte (struct nxt200x_state* state, u8 reg, u8* data, u8 len)
+static int nxt200x_writereg_multibyte (struct nxt200x_state *state, u8 reg, u8 *data, u8 len)
 {
 	u8 attr, len2, buf;
 	dprintk("%s\n", __func__);
@@ -163,23 +182,32 @@ static int nxt200x_writereg_multibyte (struct nxt200x_state* state, u8 reg, u8* 
 	/* send the actual data */
 	nxt200x_writebytes(state, 0x36, data, len);
 
-	switch (state->demod_chip) {
+	switch (state->demod_chip)
+	{
 		case NXT2002:
 			len2 = len;
 			buf = 0x02;
 			break;
+
 		case NXT2004:
 			/* probably not right, but gives correct values */
 			attr = 0x02;
-			if (reg & 0x80) {
+
+			if (reg & 0x80)
+			{
 				attr = attr << 1;
+
 				if (reg & 0x04)
+				{
 					attr = attr >> 1;
+				}
 			}
+
 			/* set write bit */
 			len2 = ((attr << 4) | 0x10) | len;
 			buf = 0x80;
 			break;
+
 		default:
 			return -EINVAL;
 			break;
@@ -193,15 +221,24 @@ static int nxt200x_writereg_multibyte (struct nxt200x_state* state, u8 reg, u8* 
 
 	nxt200x_readbytes(state, 0x21, &buf, 1);
 
-	switch (state->demod_chip) {
+	switch (state->demod_chip)
+	{
 		case NXT2002:
 			if ((buf & 0x02) == 0)
+			{
 				return 0;
+			}
+
 			break;
+
 		case NXT2004:
 			if (buf == 0)
+			{
 				return 0;
+			}
+
 			break;
+
 		default:
 			return -EINVAL;
 			break;
@@ -212,7 +249,7 @@ static int nxt200x_writereg_multibyte (struct nxt200x_state* state, u8 reg, u8* 
 	return 0;
 }
 
-static int nxt200x_readreg_multibyte (struct nxt200x_state* state, u8 reg, u8* data, u8 len)
+static int nxt200x_readreg_multibyte (struct nxt200x_state *state, u8 reg, u8 *data, u8 len)
 {
 	int i;
 	u8 buf, len2, attr;
@@ -221,7 +258,8 @@ static int nxt200x_readreg_multibyte (struct nxt200x_state* state, u8 reg, u8* d
 	/* set mutli register register */
 	nxt200x_writebytes(state, 0x35, &reg, 1);
 
-	switch (state->demod_chip) {
+	switch (state->demod_chip)
+	{
 		case NXT2002:
 			/* set multi register length */
 			len2 = len & 0x80;
@@ -231,13 +269,19 @@ static int nxt200x_readreg_multibyte (struct nxt200x_state* state, u8 reg, u8* d
 			nxt200x_readbytes(state, reg, data, len);
 			return 0;
 			break;
+
 		case NXT2004:
 			/* probably not right, but gives correct values */
 			attr = 0x02;
-			if (reg & 0x80) {
+
+			if (reg & 0x80)
+			{
 				attr = attr << 1;
+
 				if (reg & 0x04)
+				{
 					attr = attr >> 1;
+				}
 			}
 
 			/* set multi register length */
@@ -249,30 +293,36 @@ static int nxt200x_readreg_multibyte (struct nxt200x_state* state, u8 reg, u8* d
 			nxt200x_writebytes(state, 0x21, &buf, 1);
 
 			/* read the actual data */
-			for(i = 0; i < len; i++) {
+			for (i = 0; i < len; i++)
+			{
 				nxt200x_readbytes(state, 0x36 + i, &data[i], 1);
 			}
+
 			return 0;
 			break;
+
 		default:
 			return -EINVAL;
 			break;
 	}
 }
 
-static void nxt200x_microcontroller_stop (struct nxt200x_state* state)
+static void nxt200x_microcontroller_stop (struct nxt200x_state *state)
 {
 	u8 buf, stopval, counter = 0;
 	dprintk("%s\n", __func__);
 
 	/* set correct stop value */
-	switch (state->demod_chip) {
+	switch (state->demod_chip)
+	{
 		case NXT2002:
 			stopval = 0x40;
 			break;
+
 		case NXT2004:
 			stopval = 0x10;
 			break;
+
 		default:
 			stopval = 0;
 			break;
@@ -281,20 +331,25 @@ static void nxt200x_microcontroller_stop (struct nxt200x_state* state)
 	buf = 0x80;
 	nxt200x_writebytes(state, 0x22, &buf, 1);
 
-	while (counter < 20) {
+	while (counter < 20)
+	{
 		nxt200x_readbytes(state, 0x31, &buf, 1);
+
 		if (buf & stopval)
+		{
 			return;
+		}
+
 		msleep(10);
 		counter++;
 	}
 
 	pr_warn("Timeout waiting for nxt200x to stop. This is ok after "
-		"firmware upload.\n");
+			"firmware upload.\n");
 	return;
 }
 
-static void nxt200x_microcontroller_start (struct nxt200x_state* state)
+static void nxt200x_microcontroller_start (struct nxt200x_state *state)
 {
 	u8 buf;
 	dprintk("%s\n", __func__);
@@ -303,7 +358,7 @@ static void nxt200x_microcontroller_start (struct nxt200x_state* state)
 	nxt200x_writebytes(state, 0x22, &buf, 1);
 }
 
-static void nxt2004_microcontroller_init (struct nxt200x_state* state)
+static void nxt2004_microcontroller_init (struct nxt200x_state *state)
 {
 	u8 buf[9];
 	u8 counter = 0;
@@ -321,10 +376,15 @@ static void nxt2004_microcontroller_init (struct nxt200x_state* state)
 	buf[0] = 0x80;
 	nxt200x_writebytes(state, 0x21, buf, 1);
 
-	while (counter < 20) {
+	while (counter < 20)
+	{
 		nxt200x_readbytes(state, 0x21, buf, 1);
+
 		if (buf[0] == 0)
+		{
 			return;
+		}
+
 		msleep(10);
 		counter++;
 	}
@@ -334,7 +394,7 @@ static void nxt2004_microcontroller_init (struct nxt200x_state* state)
 	return;
 }
 
-static int nxt200x_writetuner (struct nxt200x_state* state, u8* data)
+static int nxt200x_writetuner (struct nxt200x_state *state, u8 *data)
 {
 	u8 buf, count = 0;
 
@@ -344,20 +404,31 @@ static int nxt200x_writetuner (struct nxt200x_state* state, u8* data)
 
 	/* if NXT2004, write directly to tuner. if NXT2002, write through NXT chip.
 	 * direct write is required for Philips TUV1236D and ALPS TDHU2 */
-	switch (state->demod_chip) {
+	switch (state->demod_chip)
+	{
 		case NXT2004:
-			if (i2c_writebytes(state, data[0], data+1, 4))
+			if (i2c_writebytes(state, data[0], data + 1, 4))
+			{
 				pr_warn("error writing to tuner\n");
+			}
+
 			/* wait until we have a lock */
-			while (count < 20) {
+			while (count < 20)
+			{
 				i2c_readbytes(state, data[0], &buf, 1);
+
 				if (buf & 0x40)
+				{
 					return 0;
+				}
+
 				msleep(100);
 				count++;
 			}
+
 			pr_warn("timeout waiting for tuner lock\n");
 			break;
+
 		case NXT2002:
 			/* set the i2c transfer speed to the tuner */
 			buf = 0x03;
@@ -368,7 +439,7 @@ static int nxt200x_writetuner (struct nxt200x_state* state, u8* data)
 			nxt200x_writebytes(state, 0x34, &buf, 1);
 
 			/* write actual tuner bytes */
-			nxt200x_writebytes(state, 0x36, data+1, 4);
+			nxt200x_writebytes(state, 0x36, data + 1, 4);
 
 			/* set tuner i2c address */
 			buf = data[0] << 1;
@@ -378,34 +449,44 @@ static int nxt200x_writetuner (struct nxt200x_state* state, u8* data)
 			buf = 0x80;
 			nxt200x_writebytes(state, 0x21, &buf, 1);
 
-			while (count < 20) {
+			while (count < 20)
+			{
 				nxt200x_readbytes(state, 0x21, &buf, 1);
-				if ((buf & 0x80)== 0x00)
+
+				if ((buf & 0x80) == 0x00)
+				{
 					return 0;
+				}
+
 				msleep(100);
 				count++;
 			}
+
 			pr_warn("timeout error writing to tuner\n");
 			break;
+
 		default:
 			return -EINVAL;
 			break;
 	}
+
 	return 0;
 }
 
-static void nxt200x_agc_reset(struct nxt200x_state* state)
+static void nxt200x_agc_reset(struct nxt200x_state *state)
 {
 	u8 buf;
 	dprintk("%s\n", __func__);
 
-	switch (state->demod_chip) {
+	switch (state->demod_chip)
+	{
 		case NXT2002:
 			buf = 0x08;
 			nxt200x_writebytes(state, 0x08, &buf, 1);
 			buf = 0x00;
 			nxt200x_writebytes(state, 0x08, &buf, 1);
 			break;
+
 		case NXT2004:
 			nxt200x_readreg_multibyte(state, 0x08, &buf, 1);
 			buf = 0x08;
@@ -413,16 +494,18 @@ static void nxt200x_agc_reset(struct nxt200x_state* state)
 			buf = 0x00;
 			nxt200x_writereg_multibyte(state, 0x08, &buf, 1);
 			break;
+
 		default:
 			break;
 	}
+
 	return;
 }
 
-static int nxt2002_load_firmware (struct dvb_frontend* fe, const struct firmware *fw)
+static int nxt2002_load_firmware (struct dvb_frontend *fe, const struct firmware *fw)
 {
 
-	struct nxt200x_state* state = fe->demodulator_priv;
+	struct nxt200x_state *state = fe->demodulator_priv;
 	u8 buf[3], written = 0, chunkpos = 0;
 	u16 rambase, position, crc = 0;
 
@@ -433,9 +516,13 @@ static int nxt2002_load_firmware (struct dvb_frontend* fe, const struct firmware
 	nxt200x_readbytes(state, 0x10, buf, 1);
 
 	if (buf[0] & 0x10)
+	{
 		rambase = 0x1000;
+	}
 	else
+	{
 		rambase = 0x0000;
+	}
 
 	dprintk("rambase on this nxt2002 is %04X\n", rambase);
 
@@ -443,8 +530,10 @@ static int nxt2002_load_firmware (struct dvb_frontend* fe, const struct firmware
 	buf[0] = 0x80;
 	nxt200x_writebytes(state, 0x2B, buf, 1);
 
-	for (position = 0; position < fw->size; position++) {
-		if (written == 0) {
+	for (position = 0; position < fw->size; position++)
+	{
+		if (written == 0)
+		{
 			crc = 0;
 			chunkpos = 0x28;
 			buf[0] = ((rambase + position) >> 8);
@@ -453,19 +542,23 @@ static int nxt2002_load_firmware (struct dvb_frontend* fe, const struct firmware
 			/* write starting address */
 			nxt200x_writebytes(state, 0x29, buf, 3);
 		}
+
 		written++;
 		chunkpos++;
 
 		if ((written % 4) == 0)
-			nxt200x_writebytes(state, chunkpos, &fw->data[position-3], 4);
+		{
+			nxt200x_writebytes(state, chunkpos, &fw->data[position - 3], 4);
+		}
 
 		crc = nxt200x_crc(crc, fw->data[position]);
 
-		if ((written == 255) || (position+1 == fw->size)) {
+		if ((written == 255) || (position + 1 == fw->size))
+		{
 			/* write remaining bytes of firmware */
-			nxt200x_writebytes(state, chunkpos+4-(written %4),
-				&fw->data[position-(written %4) + 1],
-				written %4);
+			nxt200x_writebytes(state, chunkpos + 4 - (written % 4),
+							   &fw->data[position - (written % 4) + 1],
+							   written % 4);
 			buf[0] = crc << 8;
 			buf[1] = crc & 0xFF;
 
@@ -486,12 +579,12 @@ static int nxt2002_load_firmware (struct dvb_frontend* fe, const struct firmware
 	return 0;
 };
 
-static int nxt2004_load_firmware (struct dvb_frontend* fe, const struct firmware *fw)
+static int nxt2004_load_firmware (struct dvb_frontend *fe, const struct firmware *fw)
 {
 
-	struct nxt200x_state* state = fe->demodulator_priv;
+	struct nxt200x_state *state = fe->demodulator_priv;
 	u8 buf[3];
-	u16 rambase, position, crc=0;
+	u16 rambase, position, crc = 0;
 
 	dprintk("%s\n", __func__);
 	dprintk("Firmware is %zu bytes\n", fw->size);
@@ -501,10 +594,11 @@ static int nxt2004_load_firmware (struct dvb_frontend* fe, const struct firmware
 
 	/* hold the micro in reset while loading firmware */
 	buf[0] = 0x80;
-	nxt200x_writebytes(state, 0x2B, buf,1);
+	nxt200x_writebytes(state, 0x2B, buf, 1);
 
 	/* calculate firmware CRC */
-	for (position = 0; position < fw->size; position++) {
+	for (position = 0; position < fw->size; position++)
+	{
 		crc = nxt200x_crc(crc, fw->data[position]);
 	}
 
@@ -512,27 +606,29 @@ static int nxt2004_load_firmware (struct dvb_frontend* fe, const struct firmware
 	buf[1] = rambase & 0xFF;
 	buf[2] = 0x81;
 	/* write starting address */
-	nxt200x_writebytes(state,0x29,buf,3);
+	nxt200x_writebytes(state, 0x29, buf, 3);
 
-	for (position = 0; position < fw->size;) {
+	for (position = 0; position < fw->size;)
+	{
 		nxt200x_writebytes(state, 0x2C, &fw->data[position],
-			fw->size-position > 255 ? 255 : fw->size-position);
-		position += (fw->size-position > 255 ? 255 : fw->size-position);
+						   fw->size - position > 255 ? 255 : fw->size - position);
+		position += (fw->size - position > 255 ? 255 : fw->size - position);
 	}
+
 	buf[0] = crc >> 8;
 	buf[1] = crc & 0xFF;
 
 	dprintk("firmware crc is 0x%02X 0x%02X\n", buf[0], buf[1]);
 
 	/* write crc */
-	nxt200x_writebytes(state, 0x2C, buf,2);
+	nxt200x_writebytes(state, 0x2C, buf, 2);
 
 	/* do a read to stop things */
 	nxt200x_readbytes(state, 0x2C, buf, 1);
 
 	/* set transfer mode to complete */
 	buf[0] = 0x80;
-	nxt200x_writebytes(state, 0x2B, buf,1);
+	nxt200x_writebytes(state, 0x2B, buf, 1);
 
 	return 0;
 };
@@ -540,13 +636,14 @@ static int nxt2004_load_firmware (struct dvb_frontend* fe, const struct firmware
 static int nxt200x_setup_frontend_parameters(struct dvb_frontend *fe)
 {
 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-	struct nxt200x_state* state = fe->demodulator_priv;
+	struct nxt200x_state *state = fe->demodulator_priv;
 	u8 buf[5];
 
 	/* stop the micro first */
 	nxt200x_microcontroller_stop(state);
 
-	if (state->demod_chip == NXT2004) {
+	if (state->demod_chip == NXT2004)
+	{
 		/* make sure demod is set to digital */
 		buf[0] = 0x04;
 		nxt200x_writebytes(state, 0x14, buf, 1);
@@ -555,25 +652,37 @@ static int nxt200x_setup_frontend_parameters(struct dvb_frontend *fe)
 	}
 
 	/* set additional params */
-	switch (p->modulation) {
+	switch (p->modulation)
+	{
 		case QAM_64:
 		case QAM_256:
+
 			/* Set punctured clock for QAM */
 			/* This is just a guess since I am unable to test it */
 			if (state->config->set_ts_params)
+			{
 				state->config->set_ts_params(fe, 1);
+			}
+
 			break;
+
 		case VSB_8:
+
 			/* Set non-punctured clock for VSB */
 			if (state->config->set_ts_params)
+			{
 				state->config->set_ts_params(fe, 0);
+			}
+
 			break;
+
 		default:
 			return -EINVAL;
 			break;
 	}
 
-	if (fe->ops.tuner_ops.calc_regs) {
+	if (fe->ops.tuner_ops.calc_regs)
+	{
 		/* get tuning information */
 		fe->ops.tuner_ops.calc_regs(fe, buf, 5);
 
@@ -585,72 +694,93 @@ static int nxt200x_setup_frontend_parameters(struct dvb_frontend *fe)
 	nxt200x_agc_reset(state);
 
 	/* set target power level */
-	switch (p->modulation) {
+	switch (p->modulation)
+	{
 		case QAM_64:
 		case QAM_256:
 			buf[0] = 0x74;
 			break;
+
 		case VSB_8:
 			buf[0] = 0x70;
 			break;
+
 		default:
 			return -EINVAL;
 			break;
 	}
+
 	nxt200x_writebytes(state, 0x42, buf, 1);
 
 	/* configure sdm */
-	switch (state->demod_chip) {
+	switch (state->demod_chip)
+	{
 		case NXT2002:
 			buf[0] = 0x87;
 			break;
+
 		case NXT2004:
 			buf[0] = 0x07;
 			break;
+
 		default:
 			return -EINVAL;
 			break;
 	}
+
 	nxt200x_writebytes(state, 0x57, buf, 1);
 
 	/* write sdm1 input */
 	buf[0] = 0x10;
 	buf[1] = 0x00;
-	switch (state->demod_chip) {
+
+	switch (state->demod_chip)
+	{
 		case NXT2002:
 			nxt200x_writereg_multibyte(state, 0x58, buf, 2);
 			break;
+
 		case NXT2004:
 			nxt200x_writebytes(state, 0x58, buf, 2);
 			break;
+
 		default:
 			return -EINVAL;
 			break;
 	}
 
 	/* write sdmx input */
-	switch (p->modulation) {
+	switch (p->modulation)
+	{
 		case QAM_64:
-				buf[0] = 0x68;
-				break;
+			buf[0] = 0x68;
+			break;
+
 		case QAM_256:
-				buf[0] = 0x64;
-				break;
+			buf[0] = 0x64;
+			break;
+
 		case VSB_8:
-				buf[0] = 0x60;
-				break;
+			buf[0] = 0x60;
+			break;
+
 		default:
-				return -EINVAL;
-				break;
+			return -EINVAL;
+			break;
 	}
+
 	buf[1] = 0x00;
-	switch (state->demod_chip) {
+
+	switch (state->demod_chip)
+	{
 		case NXT2002:
 			nxt200x_writereg_multibyte(state, 0x5C, buf, 2);
 			break;
+
 		case NXT2004:
 			nxt200x_writebytes(state, 0x5C, buf, 2);
 			break;
+
 		default:
 			return -EINVAL;
 			break;
@@ -660,7 +790,8 @@ static int nxt200x_setup_frontend_parameters(struct dvb_frontend *fe)
 	buf[0] = 0x05;
 	nxt200x_writebytes(state, 0x43, buf, 1);
 
-	if (state->demod_chip == NXT2004) {
+	if (state->demod_chip == NXT2004)
+	{
 		/* write ??? */
 		buf[0] = 0x00;
 		buf[1] = 0x00;
@@ -670,13 +801,17 @@ static int nxt200x_setup_frontend_parameters(struct dvb_frontend *fe)
 	/* write accumulator2 input */
 	buf[0] = 0x80;
 	buf[1] = 0x00;
-	switch (state->demod_chip) {
+
+	switch (state->demod_chip)
+	{
 		case NXT2002:
 			nxt200x_writereg_multibyte(state, 0x4B, buf, 2);
 			break;
+
 		case NXT2004:
 			nxt200x_writebytes(state, 0x4B, buf, 2);
 			break;
+
 		default:
 			return -EINVAL;
 			break;
@@ -694,7 +829,8 @@ static int nxt200x_setup_frontend_parameters(struct dvb_frontend *fe)
 	buf[0] = 0x04;
 	nxt200x_writebytes(state, 0x41, buf, 1);
 
-	if (state->demod_chip == NXT2004) {
+	if (state->demod_chip == NXT2004)
+	{
 		nxt200x_readreg_multibyte(state, 0x80, buf, 1);
 		buf[0] = 0x24;
 		nxt200x_writereg_multibyte(state, 0x80, buf, 1);
@@ -723,20 +859,25 @@ static int nxt200x_setup_frontend_parameters(struct dvb_frontend *fe)
 	}
 
 	/* write agc ucgp0 */
-	switch (p->modulation) {
+	switch (p->modulation)
+	{
 		case QAM_64:
-				buf[0] = 0x02;
-				break;
+			buf[0] = 0x02;
+			break;
+
 		case QAM_256:
-				buf[0] = 0x03;
-				break;
+			buf[0] = 0x03;
+			break;
+
 		case VSB_8:
-				buf[0] = 0x00;
-				break;
+			buf[0] = 0x00;
+			break;
+
 		default:
-				return -EINVAL;
-				break;
+			return -EINVAL;
+			break;
 	}
+
 	nxt200x_writebytes(state, 0x30, buf, 1);
 
 	/* write agc control reg */
@@ -746,15 +887,19 @@ static int nxt200x_setup_frontend_parameters(struct dvb_frontend *fe)
 	/* write accumulator2 input */
 	buf[0] = 0x80;
 	buf[1] = 0x00;
-	switch (state->demod_chip) {
+
+	switch (state->demod_chip)
+	{
 		case NXT2002:
 			nxt200x_writereg_multibyte(state, 0x49, buf, 2);
 			nxt200x_writereg_multibyte(state, 0x4B, buf, 2);
 			break;
+
 		case NXT2004:
 			nxt200x_writebytes(state, 0x49, buf, 2);
 			nxt200x_writebytes(state, 0x4B, buf, 2);
 			break;
+
 		default:
 			return -EINVAL;
 			break;
@@ -766,7 +911,8 @@ static int nxt200x_setup_frontend_parameters(struct dvb_frontend *fe)
 
 	nxt200x_microcontroller_start(state);
 
-	if (state->demod_chip == NXT2004) {
+	if (state->demod_chip == NXT2004)
+	{
 		nxt2004_microcontroller_init(state);
 
 		/* ???? */
@@ -783,24 +929,27 @@ static int nxt200x_setup_frontend_parameters(struct dvb_frontend *fe)
 
 static int nxt200x_read_status(struct dvb_frontend *fe, enum fe_status *status)
 {
-	struct nxt200x_state* state = fe->demodulator_priv;
+	struct nxt200x_state *state = fe->demodulator_priv;
 	u8 lock;
 	nxt200x_readbytes(state, 0x31, &lock, 1);
 
 	*status = 0;
-	if (lock & 0x20) {
+
+	if (lock & 0x20)
+	{
 		*status |= FE_HAS_SIGNAL;
 		*status |= FE_HAS_CARRIER;
 		*status |= FE_HAS_VITERBI;
 		*status |= FE_HAS_SYNC;
 		*status |= FE_HAS_LOCK;
 	}
+
 	return 0;
 }
 
-static int nxt200x_read_ber(struct dvb_frontend* fe, u32* ber)
+static int nxt200x_read_ber(struct dvb_frontend *fe, u32 *ber)
 {
-	struct nxt200x_state* state = fe->demodulator_priv;
+	struct nxt200x_state *state = fe->demodulator_priv;
 	u8 b[3];
 
 	nxt200x_readreg_multibyte(state, 0xE6, b, 3);
@@ -810,9 +959,9 @@ static int nxt200x_read_ber(struct dvb_frontend* fe, u32* ber)
 	return 0;
 }
 
-static int nxt200x_read_signal_strength(struct dvb_frontend* fe, u16* strength)
+static int nxt200x_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
 {
-	struct nxt200x_state* state = fe->demodulator_priv;
+	struct nxt200x_state *state = fe->demodulator_priv;
 	u8 b[2];
 	u16 temp = 0;
 
@@ -829,10 +978,10 @@ static int nxt200x_read_signal_strength(struct dvb_frontend* fe, u16* strength)
 	return 0;
 }
 
-static int nxt200x_read_snr(struct dvb_frontend* fe, u16* snr)
+static int nxt200x_read_snr(struct dvb_frontend *fe, u16 *snr)
 {
 
-	struct nxt200x_state* state = fe->demodulator_priv;
+	struct nxt200x_state *state = fe->demodulator_priv;
 	u8 b[2];
 	u16 temp = 0, temp2;
 	u32 snrdb = 0;
@@ -849,23 +998,31 @@ static int nxt200x_read_snr(struct dvb_frontend* fe, u16* snr)
 
 	/* snr will be in db */
 	if (temp2 > 0x7F00)
-		snrdb = 1000*24 + ( 1000*(30-24) * ( temp2 - 0x7F00 ) / ( 0x7FFF - 0x7F00 ) );
+	{
+		snrdb = 1000 * 24 + ( 1000 * (30 - 24) * ( temp2 - 0x7F00 ) / ( 0x7FFF - 0x7F00 ) );
+	}
 	else if (temp2 > 0x7EC0)
-		snrdb = 1000*18 + ( 1000*(24-18) * ( temp2 - 0x7EC0 ) / ( 0x7F00 - 0x7EC0 ) );
+	{
+		snrdb = 1000 * 18 + ( 1000 * (24 - 18) * ( temp2 - 0x7EC0 ) / ( 0x7F00 - 0x7EC0 ) );
+	}
 	else if (temp2 > 0x7C00)
-		snrdb = 1000*12 + ( 1000*(18-12) * ( temp2 - 0x7C00 ) / ( 0x7EC0 - 0x7C00 ) );
+	{
+		snrdb = 1000 * 12 + ( 1000 * (18 - 12) * ( temp2 - 0x7C00 ) / ( 0x7EC0 - 0x7C00 ) );
+	}
 	else
-		snrdb = 1000*0 + ( 1000*(12-0) * ( temp2 - 0 ) / ( 0x7C00 - 0 ) );
+	{
+		snrdb = 1000 * 0 + ( 1000 * (12 - 0) * ( temp2 - 0 ) / ( 0x7C00 - 0 ) );
+	}
 
 	/* the value reported back from the frontend will be FFFF=32db 0000=0db */
-	*snr = snrdb * (0xFFFF/32000);
+	*snr = snrdb * (0xFFFF / 32000);
 
 	return 0;
 }
 
-static int nxt200x_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
+static int nxt200x_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
 {
-	struct nxt200x_state* state = fe->demodulator_priv;
+	struct nxt200x_state *state = fe->demodulator_priv;
 	u8 b[3];
 
 	nxt200x_readreg_multibyte(state, 0xE6, b, 3);
@@ -874,43 +1031,48 @@ static int nxt200x_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
 	return 0;
 }
 
-static int nxt200x_sleep(struct dvb_frontend* fe)
+static int nxt200x_sleep(struct dvb_frontend *fe)
 {
 	return 0;
 }
 
-static int nxt2002_init(struct dvb_frontend* fe)
+static int nxt2002_init(struct dvb_frontend *fe)
 {
-	struct nxt200x_state* state = fe->demodulator_priv;
+	struct nxt200x_state *state = fe->demodulator_priv;
 	const struct firmware *fw;
 	int ret;
 	u8 buf[2];
 
 	/* request the firmware, this will block until someone uploads it */
 	pr_debug("%s: Waiting for firmware upload (%s)...\n",
-		 __func__, NXT2002_DEFAULT_FIRMWARE);
+			 __func__, NXT2002_DEFAULT_FIRMWARE);
 	ret = request_firmware(&fw, NXT2002_DEFAULT_FIRMWARE,
-			       state->i2c->dev.parent);
+						   state->i2c->dev.parent);
 	pr_debug("%s: Waiting for firmware upload(2)...\n", __func__);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s: No firmware uploaded (timeout or file not found?)"
-		       "\n", __func__);
+			   "\n", __func__);
 		return ret;
 	}
 
 	ret = nxt2002_load_firmware(fe, fw);
 	release_firmware(fw);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s: Writing firmware to device failed\n", __func__);
 		return ret;
 	}
+
 	pr_info("%s: Firmware upload complete\n", __func__);
 
 	/* Put the micro into reset */
 	nxt200x_microcontroller_stop(state);
 
 	/* ensure transfer is complete */
-	buf[0]=0x00;
+	buf[0] = 0x00;
 	nxt200x_writebytes(state, 0x2B, buf, 1);
 
 	/* Put the micro into reset for real this time */
@@ -942,35 +1104,40 @@ static int nxt2002_init(struct dvb_frontend* fe)
 	return 0;
 }
 
-static int nxt2004_init(struct dvb_frontend* fe)
+static int nxt2004_init(struct dvb_frontend *fe)
 {
-	struct nxt200x_state* state = fe->demodulator_priv;
+	struct nxt200x_state *state = fe->demodulator_priv;
 	const struct firmware *fw;
 	int ret;
 	u8 buf[3];
 
 	/* ??? */
-	buf[0]=0x00;
+	buf[0] = 0x00;
 	nxt200x_writebytes(state, 0x1E, buf, 1);
 
 	/* request the firmware, this will block until someone uploads it */
 	pr_debug("%s: Waiting for firmware upload (%s)...\n",
-		 __func__, NXT2004_DEFAULT_FIRMWARE);
+			 __func__, NXT2004_DEFAULT_FIRMWARE);
 	ret = request_firmware(&fw, NXT2004_DEFAULT_FIRMWARE,
-			       state->i2c->dev.parent);
+						   state->i2c->dev.parent);
 	pr_debug("%s: Waiting for firmware upload(2)...\n", __func__);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s: No firmware uploaded (timeout or file not found?)"
-		       "\n", __func__);
+			   "\n", __func__);
 		return ret;
 	}
 
 	ret = nxt2004_load_firmware(fe, fw);
 	release_firmware(fw);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s: Writing firmware to device failed\n", __func__);
 		return ret;
 	}
+
 	pr_info("%s: Firmware upload complete\n", __func__);
 
 	/* ensure transfer is complete */
@@ -1114,29 +1281,35 @@ static int nxt2004_init(struct dvb_frontend* fe)
 	return 0;
 }
 
-static int nxt200x_init(struct dvb_frontend* fe)
+static int nxt200x_init(struct dvb_frontend *fe)
 {
-	struct nxt200x_state* state = fe->demodulator_priv;
+	struct nxt200x_state *state = fe->demodulator_priv;
 	int ret = 0;
 
-	if (!state->initialised) {
-		switch (state->demod_chip) {
+	if (!state->initialised)
+	{
+		switch (state->demod_chip)
+		{
 			case NXT2002:
 				ret = nxt2002_init(fe);
 				break;
+
 			case NXT2004:
 				ret = nxt2004_init(fe);
 				break;
+
 			default:
 				return -EINVAL;
 				break;
 		}
+
 		state->initialised = 1;
 	}
+
 	return ret;
 }
 
-static int nxt200x_get_tune_settings(struct dvb_frontend* fe, struct dvb_frontend_tune_settings* fesettings)
+static int nxt200x_get_tune_settings(struct dvb_frontend *fe, struct dvb_frontend_tune_settings *fesettings)
 {
 	fesettings->min_delay_ms = 500;
 	fesettings->step_size = 0;
@@ -1144,24 +1317,27 @@ static int nxt200x_get_tune_settings(struct dvb_frontend* fe, struct dvb_fronten
 	return 0;
 }
 
-static void nxt200x_release(struct dvb_frontend* fe)
+static void nxt200x_release(struct dvb_frontend *fe)
 {
-	struct nxt200x_state* state = fe->demodulator_priv;
+	struct nxt200x_state *state = fe->demodulator_priv;
 	kfree(state);
 }
 
 static struct dvb_frontend_ops nxt200x_ops;
 
-struct dvb_frontend* nxt200x_attach(const struct nxt200x_config* config,
-				   struct i2c_adapter* i2c)
+struct dvb_frontend *nxt200x_attach(const struct nxt200x_config *config,
+									struct i2c_adapter *i2c)
 {
-	struct nxt200x_state* state = NULL;
-	u8 buf [] = {0,0,0,0,0};
+	struct nxt200x_state *state = NULL;
+	u8 buf [] = {0, 0, 0, 0, 0};
 
 	/* allocate memory for the internal state */
 	state = kzalloc(sizeof(struct nxt200x_state), GFP_KERNEL);
+
 	if (state == NULL)
+	{
 		goto error;
+	}
 
 	/* setup the state */
 	state->config = config;
@@ -1173,31 +1349,43 @@ struct dvb_frontend* nxt200x_attach(const struct nxt200x_config* config,
 	dprintk("NXT info: %*ph\n", 5, buf);
 
 	/* set demod chip */
-	switch (buf[0]) {
+	switch (buf[0])
+	{
 		case 0x04:
 			state->demod_chip = NXT2002;
 			pr_info("NXT2002 Detected\n");
 			break;
+
 		case 0x05:
 			state->demod_chip = NXT2004;
 			pr_info("NXT2004 Detected\n");
 			break;
+
 		default:
 			goto error;
 	}
 
 	/* make sure demod chip is supported */
-	switch (state->demod_chip) {
+	switch (state->demod_chip)
+	{
 		case NXT2002:
-			if (buf[0] != 0x04) goto error;		/* device id */
-			if (buf[1] != 0x02) goto error;		/* fab id */
-			if (buf[2] != 0x11) goto error;		/* month */
-			if (buf[3] != 0x20) goto error;		/* year msb */
-			if (buf[4] != 0x00) goto error;		/* year lsb */
+			if (buf[0] != 0x04) { goto error; }		/* device id */
+
+			if (buf[1] != 0x02) { goto error; }		/* fab id */
+
+			if (buf[2] != 0x11) { goto error; }		/* month */
+
+			if (buf[3] != 0x20) { goto error; }		/* year msb */
+
+			if (buf[4] != 0x00) { goto error; }		/* year lsb */
+
 			break;
+
 		case NXT2004:
-			if (buf[0] != 0x05) goto error;		/* device id */
+			if (buf[0] != 0x05) { goto error; }		/* device id */
+
 			break;
+
 		default:
 			goto error;
 	}
@@ -1213,7 +1401,8 @@ error:
 	return NULL;
 }
 
-static struct dvb_frontend_ops nxt200x_ops = {
+static struct dvb_frontend_ops nxt200x_ops =
+{
 	.delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
 	.info = {
 		.name = "Nextwave NXT200X VSB/QAM frontend",
@@ -1221,8 +1410,8 @@ static struct dvb_frontend_ops nxt200x_ops = {
 		.frequency_max = 860000000,
 		.frequency_stepsize = 166666,	/* stepsize is just a guess */
 		.caps = FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
-			FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
-			FE_CAN_8VSB | FE_CAN_QAM_64 | FE_CAN_QAM_256
+		FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
+		FE_CAN_8VSB | FE_CAN_QAM_64 | FE_CAN_QAM_256
 	},
 
 	.release = nxt200x_release,

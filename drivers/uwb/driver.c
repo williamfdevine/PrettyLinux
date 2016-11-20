@@ -75,37 +75,43 @@ unsigned long beacon_timeout_ms = 500;
 
 static
 ssize_t beacon_timeout_ms_show(struct class *class,
-				struct class_attribute *attr,
-				char *buf)
+							   struct class_attribute *attr,
+							   char *buf)
 {
 	return scnprintf(buf, PAGE_SIZE, "%lu\n", beacon_timeout_ms);
 }
 
 static
 ssize_t beacon_timeout_ms_store(struct class *class,
-				struct class_attribute *attr,
-				const char *buf, size_t size)
+								struct class_attribute *attr,
+								const char *buf, size_t size)
 {
 	unsigned long bt;
 	ssize_t result;
 	result = sscanf(buf, "%lu", &bt);
+
 	if (result != 1)
+	{
 		return -EINVAL;
+	}
+
 	beacon_timeout_ms = bt;
 	return size;
 }
 
-static struct class_attribute uwb_class_attrs[] = {
+static struct class_attribute uwb_class_attrs[] =
+{
 	__ATTR(beacon_timeout_ms, S_IWUSR | S_IRUGO,
-	       beacon_timeout_ms_show, beacon_timeout_ms_store),
+	beacon_timeout_ms_show, beacon_timeout_ms_store),
 	__ATTR_NULL,
 };
 
 /** Device model classes */
-struct class uwb_rc_class = {
-	.name        = "uwb_rc",
-	.class_attrs = uwb_class_attrs,
-};
+struct class uwb_rc_class =
+	{
+			.name        = "uwb_rc",
+			.class_attrs = uwb_class_attrs,
+	};
 
 
 static int __init uwb_subsys_init(void)
@@ -113,18 +119,25 @@ static int __init uwb_subsys_init(void)
 	int result = 0;
 
 	result = uwb_est_create();
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		printk(KERN_ERR "uwb: Can't initialize EST subsystem\n");
 		goto error_est_init;
 	}
 
 	result = class_register(&uwb_rc_class);
+
 	if (result < 0)
+	{
 		goto error_uwb_rc_class_register;
+	}
 
 	/* Register the UWB bus */
 	result = bus_register(&uwb_bus_type);
-	if (result) {
+
+	if (result)
+	{
 		pr_err("%s - registering bus driver failed\n", __func__);
 		goto exit_bus;
 	}

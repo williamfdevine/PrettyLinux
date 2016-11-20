@@ -26,7 +26,8 @@
  * clock has a gate control and a fractional * divider.  The rate is calculated
  * as pll rate  * (18 / FRAC), where FRAC = 18 ~ 35.
  */
-struct clk_ref {
+struct clk_ref
+{
 	struct clk_hw hw;
 	void __iomem *reg;
 	u8 idx;
@@ -51,7 +52,7 @@ static void clk_ref_disable(struct clk_hw *hw)
 }
 
 static unsigned long clk_ref_recalc_rate(struct clk_hw *hw,
-					 unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_ref *ref = to_clk_ref(hw);
 	u64 tmp = parent_rate;
@@ -64,7 +65,7 @@ static unsigned long clk_ref_recalc_rate(struct clk_hw *hw,
 }
 
 static long clk_ref_round_rate(struct clk_hw *hw, unsigned long rate,
-			       unsigned long *prate)
+							   unsigned long *prate)
 {
 	unsigned long parent_rate = *prate;
 	u64 tmp = parent_rate;
@@ -75,9 +76,13 @@ static long clk_ref_round_rate(struct clk_hw *hw, unsigned long rate,
 	frac = tmp;
 
 	if (frac < 18)
+	{
 		frac = 18;
+	}
 	else if (frac > 35)
+	{
 		frac = 35;
+	}
 
 	tmp = parent_rate;
 	tmp *= 18;
@@ -87,7 +92,7 @@ static long clk_ref_round_rate(struct clk_hw *hw, unsigned long rate,
 }
 
 static int clk_ref_set_rate(struct clk_hw *hw, unsigned long rate,
-			    unsigned long parent_rate)
+							unsigned long parent_rate)
 {
 	struct clk_ref *ref = to_clk_ref(hw);
 	unsigned long flags;
@@ -100,9 +105,13 @@ static int clk_ref_set_rate(struct clk_hw *hw, unsigned long rate,
 	frac = tmp;
 
 	if (frac < 18)
+	{
 		frac = 18;
+	}
 	else if (frac > 35)
+	{
 		frac = 35;
+	}
 
 	spin_lock_irqsave(&mxs_lock, flags);
 
@@ -116,7 +125,8 @@ static int clk_ref_set_rate(struct clk_hw *hw, unsigned long rate,
 	return 0;
 }
 
-static const struct clk_ops clk_ref_ops = {
+static const struct clk_ops clk_ref_ops =
+{
 	.enable		= clk_ref_enable,
 	.disable	= clk_ref_disable,
 	.recalc_rate	= clk_ref_recalc_rate,
@@ -125,20 +135,23 @@ static const struct clk_ops clk_ref_ops = {
 };
 
 struct clk *mxs_clk_ref(const char *name, const char *parent_name,
-			void __iomem *reg, u8 idx)
+						void __iomem *reg, u8 idx)
 {
 	struct clk_ref *ref;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	ref = kzalloc(sizeof(*ref), GFP_KERNEL);
+
 	if (!ref)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = &clk_ref_ops;
 	init.flags = 0;
-	init.parent_names = (parent_name ? &parent_name: NULL);
+	init.parent_names = (parent_name ? &parent_name : NULL);
 	init.num_parents = (parent_name ? 1 : 0);
 
 	ref->reg = reg;
@@ -146,8 +159,11 @@ struct clk *mxs_clk_ref(const char *name, const char *parent_name,
 	ref->hw.init = &init;
 
 	clk = clk_register(NULL, &ref->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(ref);
+	}
 
 	return clk;
 }

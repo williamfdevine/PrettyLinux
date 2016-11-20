@@ -32,7 +32,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /*
  * Header for dynamically allocated rpc buffers.
  */
-struct rpc_buffer {
+struct rpc_buffer
+{
 	size_t	len;
 	char	data[];
 };
@@ -40,7 +41,7 @@ struct rpc_buffer {
 static inline int rpc_reply_expected(struct rpc_task *task)
 {
 	return (task->tk_msg.rpc_proc != NULL) &&
-		(task->tk_msg.rpc_proc->p_decode != NULL);
+		   (task->tk_msg.rpc_proc->p_decode != NULL);
 }
 
 static inline int sock_is_loopback(struct sock *sk)
@@ -49,16 +50,20 @@ static inline int sock_is_loopback(struct sock *sk)
 	int loopback = 0;
 	rcu_read_lock();
 	dst = rcu_dereference(sk->sk_dst_cache);
+
 	if (dst && dst->dev &&
-	    (dst->dev->features & NETIF_F_LOOPBACK))
+		(dst->dev->features & NETIF_F_LOOPBACK))
+	{
 		loopback = 1;
+	}
+
 	rcu_read_unlock();
 	return loopback;
 }
 
 int svc_send_common(struct socket *sock, struct xdr_buf *xdr,
-		    struct page *headpage, unsigned long headoffset,
-		    struct page *tailpage, unsigned long tailoffset);
+					struct page *headpage, unsigned long headoffset,
+					struct page *tailpage, unsigned long tailoffset);
 
 int rpc_clients_notifier_register(void);
 void rpc_clients_notifier_unregister(void);

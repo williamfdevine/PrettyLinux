@@ -21,12 +21,14 @@ extern spinlock_t ctrl_gating_lock;
 
 struct device_node;
 
-struct coreclk_ratio {
+struct coreclk_ratio
+{
 	int id;
 	const char *name;
 };
 
-struct coreclk_soc_desc {
+struct coreclk_soc_desc
+{
 	u32 (*get_tclk_freq)(void __iomem *sar);
 	u32 (*get_cpu_freq)(void __iomem *sar);
 	void (*get_clk_ratio)(void __iomem *sar, int id, int *mult, int *div);
@@ -37,7 +39,8 @@ struct coreclk_soc_desc {
 	int num_ratios;
 };
 
-struct clk_gating_soc_desc {
+struct clk_gating_soc_desc
+{
 	const char *name;
 	const char *parent;
 	int bit_idx;
@@ -45,10 +48,10 @@ struct clk_gating_soc_desc {
 };
 
 void __init mvebu_coreclk_setup(struct device_node *np,
-				const struct coreclk_soc_desc *desc);
+								const struct coreclk_soc_desc *desc);
 
 void __init mvebu_clk_gating_setup(struct device_node *np,
-				   const struct clk_gating_soc_desc *desc);
+								   const struct clk_gating_soc_desc *desc);
 
 /*
  * This function is shared among the Kirkwood, Armada 370, Armada XP

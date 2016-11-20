@@ -63,7 +63,7 @@
 
 #define     CN23XX_CONFIG_SRIOV_BAR_START	   0x19C
 #define     CN23XX_CONFIG_SRIOV_BARX(i)		\
-		(CN23XX_CONFIG_SRIOV_BAR_START + (i * 4))
+	(CN23XX_CONFIG_SRIOV_BAR_START + (i * 4))
 #define     CN23XX_CONFIG_SRIOV_BAR_PF		   0x08
 #define     CN23XX_CONFIG_SRIOV_BAR_64BIT	   0x04
 #define     CN23XX_CONFIG_SRIOV_BAR_IO		   0x01
@@ -74,7 +74,7 @@
 #define    CN23XX_PORT_OFFSET                      0x10
 
 #define    CN23XX_SLI_CTL_PORT(p)                  \
-		(CN23XX_SLI_CTL_PORT_START + ((p) * CN23XX_PORT_OFFSET))
+	(CN23XX_SLI_CTL_PORT_START + ((p) * CN23XX_PORT_OFFSET))
 
 /* 2 scatch registers (64-bit)  */
 #define    CN23XX_SLI_WINDOW_CTL                   0x282E0
@@ -134,9 +134,9 @@
 #define    CN23XX_PF_RINFO_OFFSET                 0x10
 
 #define CN23XX_SLI_PKT_MAC_RINFO64(mac, pf)		\
-		(CN23XX_SLI_PKT_MAC_RINFO_START64 +     \
-		 ((mac) * CN23XX_MAC_RINFO_OFFSET) +	\
-		 ((pf) * CN23XX_PF_RINFO_OFFSET))
+	(CN23XX_SLI_PKT_MAC_RINFO_START64 +     \
+	 ((mac) * CN23XX_MAC_RINFO_OFFSET) +	\
+	 ((pf) * CN23XX_PF_RINFO_OFFSET))
 
 /** mask for total rings, setting TRS to base */
 #define    CN23XX_PKT_MAC_CTL_RINFO_TRS               BIT_ULL(16)
@@ -173,19 +173,19 @@
 
 /*------- Request Queue Macros ---------*/
 #define    CN23XX_SLI_IQ_PKT_CONTROL64(iq)          \
-		(CN23XX_SLI_IQ_PKT_CONTROL_START64 + ((iq) * CN23XX_IQ_OFFSET))
+	(CN23XX_SLI_IQ_PKT_CONTROL_START64 + ((iq) * CN23XX_IQ_OFFSET))
 
 #define    CN23XX_SLI_IQ_BASE_ADDR64(iq)          \
-		(CN23XX_SLI_IQ_BASE_ADDR_START64 + ((iq) * CN23XX_IQ_OFFSET))
+	(CN23XX_SLI_IQ_BASE_ADDR_START64 + ((iq) * CN23XX_IQ_OFFSET))
 
 #define    CN23XX_SLI_IQ_SIZE(iq)                 \
-		(CN23XX_SLI_IQ_SIZE_START + ((iq) * CN23XX_IQ_OFFSET))
+	(CN23XX_SLI_IQ_SIZE_START + ((iq) * CN23XX_IQ_OFFSET))
 
 #define    CN23XX_SLI_IQ_DOORBELL(iq)             \
-		(CN23XX_SLI_IQ_DOORBELL_START + ((iq) * CN23XX_IQ_OFFSET))
+	(CN23XX_SLI_IQ_DOORBELL_START + ((iq) * CN23XX_IQ_OFFSET))
 
 #define    CN23XX_SLI_IQ_INSTR_COUNT64(iq)          \
-		(CN23XX_SLI_IQ_INSTR_COUNT_START64 + ((iq) * CN23XX_IQ_OFFSET))
+	(CN23XX_SLI_IQ_INSTR_COUNT_START64 + ((iq) * CN23XX_IQ_OFFSET))
 
 /*------------------ Masks ----------------*/
 #define    CN23XX_PKT_INPUT_CTL_VF_NUM                  BIT_ULL(32)
@@ -223,15 +223,15 @@
 
 #ifdef __LITTLE_ENDIAN_BITFIELD
 #define    CN23XX_PKT_INPUT_CTL_MASK				\
-		(CN23XX_PKT_INPUT_CTL_RDSIZE		|	\
-		 CN23XX_PKT_INPUT_CTL_DATA_ES_64B_SWAP	|	\
-		 CN23XX_PKT_INPUT_CTL_USE_CSR)
+	(CN23XX_PKT_INPUT_CTL_RDSIZE		|	\
+	 CN23XX_PKT_INPUT_CTL_DATA_ES_64B_SWAP	|	\
+	 CN23XX_PKT_INPUT_CTL_USE_CSR)
 #else
 #define    CN23XX_PKT_INPUT_CTL_MASK				\
-		(CN23XX_PKT_INPUT_CTL_RDSIZE		|	\
-		 CN23XX_PKT_INPUT_CTL_DATA_ES_64B_SWAP	|	\
-		 CN23XX_PKT_INPUT_CTL_USE_CSR		|	\
-		 CN23XX_PKT_INPUT_CTL_GATHER_ES_64B_SWAP)
+	(CN23XX_PKT_INPUT_CTL_RDSIZE		|	\
+	 CN23XX_PKT_INPUT_CTL_DATA_ES_64B_SWAP	|	\
+	 CN23XX_PKT_INPUT_CTL_USE_CSR		|	\
+	 CN23XX_PKT_INPUT_CTL_GATHER_ES_64B_SWAP)
 #endif
 
 /** Masks for SLI_PKT_IN_DONE(0..63)_CNTS Register */
@@ -285,35 +285,35 @@
 /*------- Output Queue Macros ---------*/
 
 #define    CN23XX_SLI_OQ_PKT_CONTROL(oq)          \
-		(CN23XX_SLI_OQ_PKT_CONTROL_START + ((oq) * CN23XX_OQ_OFFSET))
+	(CN23XX_SLI_OQ_PKT_CONTROL_START + ((oq) * CN23XX_OQ_OFFSET))
 
 #define    CN23XX_SLI_OQ_BASE_ADDR64(oq)          \
-		(CN23XX_SLI_OQ_BASE_ADDR_START64 + ((oq) * CN23XX_OQ_OFFSET))
+	(CN23XX_SLI_OQ_BASE_ADDR_START64 + ((oq) * CN23XX_OQ_OFFSET))
 
 #define    CN23XX_SLI_OQ_SIZE(oq)                 \
-		(CN23XX_SLI_OQ_SIZE_START + ((oq) * CN23XX_OQ_OFFSET))
+	(CN23XX_SLI_OQ_SIZE_START + ((oq) * CN23XX_OQ_OFFSET))
 
 #define    CN23XX_SLI_OQ_BUFF_INFO_SIZE(oq)                 \
-		(CN23XX_SLI_OQ0_BUFF_INFO_SIZE + ((oq) * CN23XX_OQ_OFFSET))
+	(CN23XX_SLI_OQ0_BUFF_INFO_SIZE + ((oq) * CN23XX_OQ_OFFSET))
 
 #define    CN23XX_SLI_OQ_PKTS_SENT(oq)            \
-		(CN23XX_SLI_OQ_PKT_SENT_START + ((oq) * CN23XX_OQ_OFFSET))
+	(CN23XX_SLI_OQ_PKT_SENT_START + ((oq) * CN23XX_OQ_OFFSET))
 
 #define    CN23XX_SLI_OQ_PKTS_CREDIT(oq)          \
-		(CN23XX_SLI_OQ_PKT_CREDITS_START + ((oq) * CN23XX_OQ_OFFSET))
+	(CN23XX_SLI_OQ_PKT_CREDITS_START + ((oq) * CN23XX_OQ_OFFSET))
 
 #define    CN23XX_SLI_OQ_PKT_INT_LEVELS(oq)		\
-		(CN23XX_SLI_OQ_PKT_INT_LEVELS_START64 +	\
-		 ((oq) * CN23XX_OQ_OFFSET))
+	(CN23XX_SLI_OQ_PKT_INT_LEVELS_START64 +	\
+	 ((oq) * CN23XX_OQ_OFFSET))
 
 /*Macro's for accessing CNT and TIME separately from INT_LEVELS*/
 #define    CN23XX_SLI_OQ_PKT_INT_LEVELS_CNT(oq)		\
-		(CN23XX_SLI_OQ_PKT_INT_LEVELS_START64 + \
-		 ((oq) * CN23XX_OQ_OFFSET))
+	(CN23XX_SLI_OQ_PKT_INT_LEVELS_START64 + \
+	 ((oq) * CN23XX_OQ_OFFSET))
 
 #define    CN23XX_SLI_OQ_PKT_INT_LEVELS_TIME(oq)	\
-		(CN23XX_SLI_OQ_PKT_INT_LEVELS_START64 +	\
-		 ((oq) * CN23XX_OQ_OFFSET) + 4)
+	(CN23XX_SLI_OQ_PKT_INT_LEVELS_START64 +	\
+	 ((oq) * CN23XX_OQ_OFFSET) + 4)
 
 /*------------------ Masks ----------------*/
 #define    CN23XX_PKT_OUTPUT_CTL_TENB                  BIT(13)
@@ -338,17 +338,17 @@
 #define    CN23XX_SLI_MBOX_SIG_IDX_OFFSET	     0x8
 
 #define    CN23XX_SLI_PKT_MBOX_INT(q)          \
-		(CN23XX_SLI_PKT_MBOX_INT_START + ((q) * CN23XX_SLI_MBOX_OFFSET))
+	(CN23XX_SLI_PKT_MBOX_INT_START + ((q) * CN23XX_SLI_MBOX_OFFSET))
 
 #define    CN23XX_SLI_PKT_PF_VF_MBOX_SIG(q, idx)		\
-		(CN23XX_SLI_PKT_PF_VF_MBOX_SIG_START +		\
-		 ((q) * CN23XX_SLI_MBOX_OFFSET +		\
-		  (idx) * CN23XX_SLI_MBOX_SIG_IDX_OFFSET))
+	(CN23XX_SLI_PKT_PF_VF_MBOX_SIG_START +		\
+	 ((q) * CN23XX_SLI_MBOX_OFFSET +		\
+	  (idx) * CN23XX_SLI_MBOX_SIG_IDX_OFFSET))
 
 #define    CN23XX_SLI_MAC_PF_MBOX_INT(mac, pf)		\
-		(CN23XX_SLI_MAC_PF_MBOX_INT_START +	\
-		 ((mac) * CN23XX_MAC_INT_OFFSET +	\
-		  (pf) * CN23XX_PF_INT_OFFSET))
+	(CN23XX_SLI_MAC_PF_MBOX_INT_START +	\
+	 ((mac) * CN23XX_MAC_INT_OFFSET +	\
+	  (pf) * CN23XX_PF_INT_OFFSET))
 
 /*######################### DMA Counters #########################*/
 
@@ -369,19 +369,19 @@
 
 /*---------- DMA Counter Macros ---------*/
 #define    CN23XX_DMA_CNT(dq)                      \
-		(CN23XX_DMA_CNT_START + ((dq) * CN23XX_DMA_OFFSET))
+	(CN23XX_DMA_CNT_START + ((dq) * CN23XX_DMA_OFFSET))
 
 #define    CN23XX_DMA_INT_LEVEL(dq)                \
-		(CN23XX_DMA_INT_LEVEL_START + ((dq) * CN23XX_DMA_OFFSET))
+	(CN23XX_DMA_INT_LEVEL_START + ((dq) * CN23XX_DMA_OFFSET))
 
 #define    CN23XX_DMA_PKT_INT_LEVEL(dq)            \
-		(CN23XX_DMA_INT_LEVEL_START + ((dq) * CN23XX_DMA_OFFSET))
+	(CN23XX_DMA_INT_LEVEL_START + ((dq) * CN23XX_DMA_OFFSET))
 
 #define    CN23XX_DMA_TIME_INT_LEVEL(dq)           \
-		(CN23XX_DMA_INT_LEVEL_START + 4 + ((dq) * CN23XX_DMA_OFFSET))
+	(CN23XX_DMA_INT_LEVEL_START + 4 + ((dq) * CN23XX_DMA_OFFSET))
 
 #define    CN23XX_DMA_TIM(dq)                     \
-		(CN23XX_DMA_TIM_START + ((dq) * CN23XX_DMA_OFFSET))
+	(CN23XX_DMA_TIM_START + ((dq) * CN23XX_DMA_OFFSET))
 
 /*######################## MSIX TABLE #########################*/
 
@@ -410,14 +410,14 @@
 #define    CN23XX_SLI_INT_ENB64            0x27080
 
 #define    CN23XX_SLI_MAC_PF_INT_SUM64(mac, pf)			\
-		(CN23XX_SLI_INT_SUM64 +				\
-		 ((mac) * CN23XX_MAC_INT_OFFSET) +		\
-		 ((pf) * CN23XX_PF_INT_OFFSET))
+	(CN23XX_SLI_INT_SUM64 +				\
+	 ((mac) * CN23XX_MAC_INT_OFFSET) +		\
+	 ((pf) * CN23XX_PF_INT_OFFSET))
 
 #define    CN23XX_SLI_MAC_PF_INT_ENB64(mac, pf)		\
-		(CN23XX_SLI_INT_ENB64 +			\
-		 ((mac) * CN23XX_MAC_INT_OFFSET) +	\
-		 ((pf) * CN23XX_PF_INT_OFFSET))
+	(CN23XX_SLI_INT_ENB64 +			\
+	 ((mac) * CN23XX_MAC_INT_OFFSET) +	\
+	 ((pf) * CN23XX_PF_INT_OFFSET))
 
 /* 1 register (64-bit) to indicate which Output Queue reached pkt threshold */
 #define    CN23XX_SLI_PKT_CNT_INT                0x29130
@@ -477,7 +477,7 @@
 #define    CN23XX_INTR_DMA1_DATA                 (CN23XX_INTR_DMA1_TIME)
 
 #define    CN23XX_INTR_DMA_DATA                  \
-		(CN23XX_INTR_DMA0_DATA | CN23XX_INTR_DMA1_DATA)
+	(CN23XX_INTR_DMA0_DATA | CN23XX_INTR_DMA1_DATA)
 
 /* By fault only TIME based */
 #define    CN23XX_INTR_PKT_DATA                  (CN23XX_INTR_PKT_TIME)
@@ -488,32 +488,32 @@
 
 /* Sum of interrupts for all PCI-Express Data Interrupts */
 #define    CN23XX_INTR_PCIE_DATA                 \
-		(CN23XX_INTR_DMA_DATA | CN23XX_INTR_PKT_DAT)
+	(CN23XX_INTR_DMA_DATA | CN23XX_INTR_PKT_DAT)
 
 /* Sum of interrupts for error events */
 #define    CN23XX_INTR_ERR			\
-		(CN23XX_INTR_M0UPB0_ERR	|	\
-		 CN23XX_INTR_M0UPWI_ERR	|	\
-		 CN23XX_INTR_M0UNB0_ERR	|	\
-		 CN23XX_INTR_M0UNWI_ERR	|	\
-		 CN23XX_INTR_DMAVF_ERR	|	\
-		 CN23XX_INTR_DMAPF_ERR	|	\
-		 CN23XX_INTR_PKTPF_ERR	|	\
-		 CN23XX_INTR_PPPF_ERR	|	\
-		 CN23XX_INTR_PPVF_ERR)
+	(CN23XX_INTR_M0UPB0_ERR	|	\
+	 CN23XX_INTR_M0UPWI_ERR	|	\
+	 CN23XX_INTR_M0UNB0_ERR	|	\
+	 CN23XX_INTR_M0UNWI_ERR	|	\
+	 CN23XX_INTR_DMAVF_ERR	|	\
+	 CN23XX_INTR_DMAPF_ERR	|	\
+	 CN23XX_INTR_PKTPF_ERR	|	\
+	 CN23XX_INTR_PPPF_ERR	|	\
+	 CN23XX_INTR_PPVF_ERR)
 
 /* Programmed Mask for Interrupt Sum */
 #define    CN23XX_INTR_MASK			\
-		(CN23XX_INTR_DMA_DATA	|	\
-		 CN23XX_INTR_DMA0_FORCE	|	\
-		 CN23XX_INTR_DMA1_FORCE	|	\
-		 CN23XX_INTR_MIO_INT	|	\
-		 CN23XX_INTR_ERR)
+	(CN23XX_INTR_DMA_DATA	|	\
+	 CN23XX_INTR_DMA0_FORCE	|	\
+	 CN23XX_INTR_DMA1_FORCE	|	\
+	 CN23XX_INTR_MIO_INT	|	\
+	 CN23XX_INTR_ERR)
 
 /* 4 Registers (64 - bit) */
 #define    CN23XX_SLI_S2M_PORT_CTL_START         0x23D80
 #define    CN23XX_SLI_S2M_PORTX_CTL(port)	\
-		(CN23XX_SLI_S2M_PORT_CTL_START + (port * 0x10))
+	(CN23XX_SLI_S2M_PORT_CTL_START + (port * 0x10))
 
 #define    CN23XX_SLI_MAC_NUMBER                 0x20050
 
@@ -526,8 +526,8 @@
 #define    CN23XX_BAR1_INDEX_OFFSET                3
 
 #define    CN23XX_PEM_BAR1_INDEX_REG(port, idx)		\
-		(CN23XX_PEM_BAR1_INDEX_START + ((port) << CN23XX_PEM_OFFSET) + \
-		 ((idx) << CN23XX_BAR1_INDEX_OFFSET))
+	(CN23XX_PEM_BAR1_INDEX_START + ((port) << CN23XX_PEM_OFFSET) + \
+	 ((idx) << CN23XX_BAR1_INDEX_OFFSET))
 
 /*############################ DPI #########################*/
 
@@ -561,19 +561,19 @@
  */
 #define    CN23XX_DPI_DMA_REQQ0_CTL       0x0001df0000000180ULL
 #define    CN23XX_DPI_DMA_REQQ_CTL(q_no)	\
-		(CN23XX_DPI_DMA_REQQ0_CTL + (q_no * 8))
+	(CN23XX_DPI_DMA_REQQ0_CTL + (q_no * 8))
 
 /* 6 register (64-bit) - DPI_ENG(0..5)_BUF
  * Provides DMA Engine FIFO (Queue) Size
  */
 #define    CN23XX_DPI_DMA_ENG0_BUF        0x0001df0000000880ULL
 #define    CN23XX_DPI_DMA_ENG_BUF(eng)   \
-		(CN23XX_DPI_DMA_ENG0_BUF + (eng * 8))
+	(CN23XX_DPI_DMA_ENG0_BUF + (eng * 8))
 
 /* 4 Registers (64-bit) */
 #define    CN23XX_DPI_SLI_PRT_CFG_START   0x0001df0000000900ULL
 #define    CN23XX_DPI_SLI_PRTX_CFG(port)        \
-		(CN23XX_DPI_SLI_PRT_CFG_START + (port * 0x8))
+	(CN23XX_DPI_SLI_PRT_CFG_START + (port * 0x8))
 
 /* Masks for DPI_DMA_CONTROL Register */
 #define    CN23XX_DPI_DMA_COMMIT_MODE     BIT_ULL(58)
@@ -588,10 +588,10 @@
 #define    CN23XX_DPI_DMA_O_MODE          BIT(14)
 
 #define    CN23XX_DPI_DMA_CTL_MASK			\
-		(CN23XX_DPI_DMA_COMMIT_MODE	|	\
-		 CN23XX_DPI_DMA_PKT_EN		|	\
-		 CN23XX_DPI_DMA_O_ES		|	\
-		 CN23XX_DPI_DMA_O_MODE)
+	(CN23XX_DPI_DMA_COMMIT_MODE	|	\
+	 CN23XX_DPI_DMA_PKT_EN		|	\
+	 CN23XX_DPI_DMA_O_ES		|	\
+	 CN23XX_DPI_DMA_O_MODE)
 
 /*############################ RST #########################*/
 

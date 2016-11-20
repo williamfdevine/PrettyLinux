@@ -7,14 +7,14 @@
 #define SBNI_H
 
 #ifdef SBNI_DEBUG
-#define DP( A ) A
+	#define DP( A ) A
 #else
-#define DP( A )
+	#define DP( A )
 #endif
 
 
 /* We don't have official vendor id yet... */
-#define SBNI_PCI_VENDOR 	0x55 
+#define SBNI_PCI_VENDOR 	0x55
 #define SBNI_PCI_DEVICE 	0x9f
 
 #define ISA_MODE 0x00
@@ -22,14 +22,16 @@
 
 #define	SBNI_IO_EXTENT	4
 
-enum sbni_reg {
+enum sbni_reg
+{
 	CSR0 = 0,
 	CSR1 = 1,
 	DAT  = 2
 };
 
 /* CSR0 mapping */
-enum {
+enum
+{
 	BU_EMP = 0x02,
 	RC_CHK = 0x04,
 	CT_ZER = 0x08,
@@ -43,7 +45,8 @@ enum {
 /* CSR1 mapping */
 #define PR_RES 0x80
 
-struct sbni_csr1 {
+struct sbni_csr1
+{
 #ifdef __LITTLE_ENDIAN_BITFIELD
 	u8 rxl	: 5;
 	u8 rate	: 2;
@@ -66,7 +69,8 @@ struct sbni_csr1 {
 
 
 /* state flags */
-enum {
+enum
+{
 	FL_WAIT_ACK    = 0x01,
 	FL_NEED_RESEND = 0x02,
 	FL_PREV_OK     = 0x04,
@@ -79,7 +83,8 @@ enum {
 };
 
 
-enum {
+enum
+{
 	DEFAULT_IOBASEADDR = 0x210,
 	DEFAULT_INTERRUPTNUMBER = 5,
 	DEFAULT_RATE = 0,
@@ -103,7 +108,8 @@ enum {
 #define SBNI_MAX_NUM_CARDS	16
 
 /* internal SBNI-specific statistics */
-struct sbni_in_stats {
+struct sbni_in_stats
+{
 	u32	all_rx_number;
 	u32	bad_rx_number;
 	u32	timeout_number;
@@ -121,7 +127,8 @@ struct sbni_in_stats {
 
 
 /* data packet for SIOCDEVGHWSTATE/SIOCDEVSHWSTATE ioctl requests */
-struct sbni_flags {
+struct sbni_flags
+{
 	u32	rxl		: 4;
 	u32	rate		: 2;
 	u32	fixed_rxl	: 1;
@@ -133,14 +140,14 @@ struct sbni_flags {
  * CRC-32 stuff
  */
 #define CRC32(c,crc) (crc32tab[((size_t)(crc) ^ (c)) & 0xff] ^ (((crc) >> 8) & 0x00FFFFFF))
-      /* CRC generator 0xEDB88320 */
-      /* CRC remainder 0x2144DF1C */
-      /* CRC initial value 0x00000000 */
+/* CRC generator 0xEDB88320 */
+/* CRC remainder 0x2144DF1C */
+/* CRC initial value 0x00000000 */
 #define CRC32_REMAINDER 0x2144DF1C
 #define CRC32_INITIAL 0x00000000
 
 #ifndef __initdata
-#define __initdata
+	#define __initdata
 #endif
 
 #endif

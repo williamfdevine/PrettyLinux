@@ -50,11 +50,15 @@ static int clk_periph_is_enabled(struct clk_hw *hw)
 	int state = 1;
 
 	if (!(read_enb(gate) & periph_clk_to_bit(gate)))
+	{
 		state = 0;
+	}
 
 	if (!(gate->flags & TEGRA_PERIPH_NO_RESET))
 		if (read_rst(gate) & periph_clk_to_bit(gate))
+		{
 			state = 0;
+		}
 
 	return state;
 }
@@ -67,7 +71,9 @@ static int clk_periph_enable(struct clk_hw *hw)
 	spin_lock_irqsave(&periph_ref_lock, flags);
 
 	gate->enable_refcnt[gate->clk_num]++;
-	if (gate->enable_refcnt[gate->clk_num] > 1) {
+
+	if (gate->enable_refcnt[gate->clk_num] > 1)
+	{
 		spin_unlock_irqrestore(&periph_ref_lock, flags);
 		return 0;
 	}
@@ -76,14 +82,17 @@ static int clk_periph_enable(struct clk_hw *hw)
 	udelay(2);
 
 	if (!(gate->flags & TEGRA_PERIPH_NO_RESET) &&
-	    !(gate->flags & TEGRA_PERIPH_MANUAL_RESET)) {
-		if (read_rst(gate) & periph_clk_to_bit(gate)) {
+		!(gate->flags & TEGRA_PERIPH_MANUAL_RESET))
+	{
+		if (read_rst(gate) & periph_clk_to_bit(gate))
+		{
 			udelay(5); /* reset propogation delay */
 			write_rst_clr(periph_clk_to_bit(gate), gate);
 		}
 	}
 
-	if (gate->flags & TEGRA_PERIPH_WAR_1005168) {
+	if (gate->flags & TEGRA_PERIPH_WAR_1005168)
+	{
 		writel_relaxed(0, gate->clk_base + LVL2_CLK_GATE_OVRE);
 		writel_relaxed(BIT(22), gate->clk_base + LVL2_CLK_GATE_OVRE);
 		udelay(1);
@@ -103,7 +112,9 @@ static void clk_periph_disable(struct clk_hw *hw)
 	spin_lock_irqsave(&periph_ref_lock, flags);
 
 	gate->enable_refcnt[gate->clk_num]--;
-	if (gate->enable_refcnt[gate->clk_num] > 0) {
+
+	if (gate->enable_refcnt[gate->clk_num] > 0)
+	{
 		spin_unlock_irqrestore(&periph_ref_lock, flags);
 		return;
 	}
@@ -114,14 +125,17 @@ static void clk_periph_disable(struct clk_hw *hw)
 	 * peripheral access after disabling clock
 	 */
 	if (gate->flags & TEGRA_PERIPH_ON_APB)
+	{
 		tegra_read_chipid();
+	}
 
 	write_enb_clr(periph_clk_to_bit(gate), gate);
 
 	spin_unlock_irqrestore(&periph_ref_lock, flags);
 }
 
-const struct clk_ops tegra_clk_periph_gate_ops = {
+const struct clk_ops tegra_clk_periph_gate_ops =
+{
 	.is_enabled = clk_periph_is_enabled,
 	.enable = clk_periph_enable,
 	.disable = clk_periph_disable,
@@ -137,11 +151,16 @@ struct clk *tegra_clk_register_periph_gate(const char *name,
 	const struct tegra_clk_periph_regs *pregs;
 
 	pregs = get_reg_bank(clk_num);
+
 	if (!pregs)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	gate = kzalloc(sizeof(*gate), GFP_KERNEL);
-	if (!gate) {
+
+	if (!gate)
+	{
 		pr_err("%s: could not allocate periph gate clk\n", __func__);
 		return ERR_PTR(-ENOMEM);
 	}
@@ -163,8 +182,11 @@ struct clk *tegra_clk_register_periph_gate(const char *name,
 	gate->hw.init = &init;
 
 	clk = clk_register(NULL, &gate->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(gate);
+	}
 
 	return clk;
 }

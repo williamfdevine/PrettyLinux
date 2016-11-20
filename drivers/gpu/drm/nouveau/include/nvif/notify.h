@@ -1,7 +1,8 @@
 #ifndef __NVIF_NOTIFY_H__
 #define __NVIF_NOTIFY_H__
 
-struct nvif_notify {
+struct nvif_notify
+{
 	struct nvif_object *object;
 	int index;
 
@@ -24,8 +25,8 @@ struct nvif_notify {
 };
 
 int  nvif_notify_init(struct nvif_object *, int (*func)(struct nvif_notify *),
-		      bool work, u8 type, void *data, u32 size, u32 reply,
-		      struct nvif_notify *);
+					  bool work, u8 type, void *data, u32 size, u32 reply,
+					  struct nvif_notify *);
 int  nvif_notify_fini(struct nvif_notify *);
 int  nvif_notify_get(struct nvif_notify *);
 int  nvif_notify_put(struct nvif_notify *);

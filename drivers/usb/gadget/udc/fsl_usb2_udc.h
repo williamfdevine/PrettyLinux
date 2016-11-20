@@ -20,8 +20,9 @@
 #define USB_MAX_CTRL_PAYLOAD		64
 #define USB_DR_SYS_OFFSET		0x400
 
- /* USB DR device mode registers (Little Endian) */
-struct usb_dr_device {
+/* USB DR device mode registers (Little Endian) */
+struct usb_dr_device
+{
 	/* Capability register */
 	u8 res1[256];
 	u16 caplength;		/* Capability Register Length */
@@ -57,8 +58,9 @@ struct usb_dr_device {
 	u32 endptctrl[6];	/* Endpoint Control Registers */
 };
 
- /* USB DR host mode registers (Little Endian) */
-struct usb_dr_host {
+/* USB DR host mode registers (Little Endian) */
+struct usb_dr_host
+{
 	/* Capability register */
 	u8 res1[256];
 	u16 caplength;		/* Capability Register Length */
@@ -94,8 +96,9 @@ struct usb_dr_host {
 	u32 endptctrl[6];	/* Endpoint Control Registers */
 };
 
- /* non-EHCI USB system interface registers (Big Endian) */
-struct usb_sys_interface {
+/* non-EHCI USB system interface registers (Big Endian) */
+struct usb_sys_interface
+{
 	u32 snoop1;
 	u32 snoop2;
 	u32 age_cnt_thresh;	/* Age Count Threshold Register */
@@ -367,7 +370,8 @@ struct usb_sys_interface {
  * Rem: all the variables of qh are LittleEndian Mode
  * and NEXT_POINTER_MASK should operate on a LittleEndian, Phy Addr
  */
-struct ep_queue_head {
+struct ep_queue_head
+{
 	u32 max_pkt_length;	/* Mult(31-30) , Zlt(29) , Max Pkt len
 				   and IOS(15) */
 	u32 curr_dtd_ptr;	/* Current dTD Pointer(31-5) */
@@ -402,7 +406,8 @@ struct ep_queue_head {
 
 /* Endpoint Transfer Descriptor data struct */
 /* Rem: all the variables of td are LittleEndian Mode */
-struct ep_td_struct {
+struct ep_td_struct
+{
 	u32 next_td_ptr;	/* Next TD pointer(31-5), T(0) set
 				   indicate invalid */
 	u32 size_ioc_sts;	/* Total bytes (30-16), IOC (15),
@@ -431,8 +436,8 @@ struct ep_td_struct {
 #define  DTD_PACKET_SIZE                      0x7FFF0000
 #define  DTD_LENGTH_BIT_POS                   16
 #define  DTD_ERROR_MASK                       (DTD_STATUS_HALTED | \
-                                               DTD_STATUS_DATA_BUFF_ERR | \
-                                               DTD_STATUS_TRANSACTION_ERR)
+		DTD_STATUS_DATA_BUFF_ERR | \
+		DTD_STATUS_TRANSACTION_ERR)
 /* Alignment requirements; must be a power of two */
 #define DTD_ALIGNMENT				0x20
 #define QH_ALIGNMENT				2048
@@ -444,13 +449,14 @@ struct ep_td_struct {
 
 /* ### driver private data
  */
-struct fsl_req {
+struct fsl_req
+{
 	struct usb_request req;
 	struct list_head queue;
 	/* ep_queue() func will add
 	   a request->queue into a udc_ep->queue 'd tail */
 	struct fsl_ep *ep;
-	unsigned mapped:1;
+	unsigned mapped: 1;
 
 	struct ep_td_struct *head, *tail;	/* For dTD List
 						   cpu endian Virtual addr */
@@ -459,7 +465,8 @@ struct fsl_req {
 
 #define REQ_UNCOMPLETE			1
 
-struct fsl_ep {
+struct fsl_ep
+{
 	struct usb_ep ep;
 	struct list_head queue;
 	struct fsl_udc *udc;
@@ -467,13 +474,14 @@ struct fsl_ep {
 	struct usb_gadget *gadget;
 
 	char name[14];
-	unsigned stopped:1;
+	unsigned stopped: 1;
 };
 
 #define EP_DIR_IN	1
 #define EP_DIR_OUT	0
 
-struct fsl_udc {
+struct fsl_udc
+{
 	struct usb_gadget gadget;
 	struct usb_gadget_driver *driver;
 	struct fsl_usb2_platform_data *pdata;
@@ -485,12 +493,12 @@ struct fsl_udc {
 	struct usb_ctrlrequest local_setup_buff;
 	spinlock_t lock;
 	struct usb_phy *transceiver;
-	unsigned softconnect:1;
-	unsigned vbus_active:1;
-	unsigned stopped:1;
-	unsigned remote_wakeup:1;
-	unsigned already_stopped:1;
-	unsigned big_endian_desc:1;
+	unsigned softconnect: 1;
+	unsigned vbus_active: 1;
+	unsigned stopped: 1;
+	unsigned remote_wakeup: 1;
+	unsigned already_stopped: 1;
+	unsigned big_endian_desc: 1;
 
 	struct ep_queue_head *ep_qh;	/* Endpoints Queue-Head */
 	struct fsl_req *status_req;	/* ep0 status request */
@@ -514,30 +522,41 @@ struct fsl_udc {
 
 #ifdef DEBUG
 #define DBG(fmt, args...) 	printk(KERN_DEBUG "[%s]  " fmt "\n", \
-				__func__, ## args)
+								   __func__, ## args)
 #else
 #define DBG(fmt, args...)	do{}while(0)
 #endif
 
 #if 0
-static void dump_msg(const char *label, const u8 * buf, unsigned int length)
+static void dump_msg(const char *label, const u8 *buf, unsigned int length)
 {
 	unsigned int start, num, i;
 	char line[52], *p;
 
 	if (length >= 512)
+	{
 		return;
+	}
+
 	DBG("%s, length %u:\n", label, length);
 	start = 0;
-	while (length > 0) {
+
+	while (length > 0)
+	{
 		num = min(length, 16u);
 		p = line;
-		for (i = 0; i < num; ++i) {
+
+		for (i = 0; i < num; ++i)
+		{
 			if (i == 8)
+			{
 				*p++ = ' ';
+			}
+
 			sprintf(p, " %02x", buf[i]);
 			p += 3;
 		}
+
 		*p = 0;
 		printk(KERN_DEBUG "%6x: %s\n", start, line);
 		buf += num;
@@ -548,9 +567,9 @@ static void dump_msg(const char *label, const u8 * buf, unsigned int length)
 #endif
 
 #ifdef VERBOSE
-#define VDBG		DBG
+	#define VDBG		DBG
 #else
-#define VDBG(stuff...)	do{}while(0)
+	#define VDBG(stuff...)	do{}while(0)
 #endif
 
 #define ERR(stuff...)		pr_err("udc: " stuff)
@@ -574,22 +593,24 @@ static void dump_msg(const char *label, const u8 * buf, unsigned int length)
 #define ep_index(EP)		((EP)->ep.desc->bEndpointAddress&0xF)
 #define ep_maxpacket(EP)	((EP)->ep.maxpacket)
 #define ep_is_in(EP)	( (ep_index(EP) == 0) ? (EP->udc->ep0_dir == \
-			USB_DIR_IN) : ((EP)->ep.desc->bEndpointAddress \
-			& USB_DIR_IN)==USB_DIR_IN)
+						  USB_DIR_IN) : ((EP)->ep.desc->bEndpointAddress \
+								  & USB_DIR_IN)==USB_DIR_IN)
 #define get_ep_by_pipe(udc, pipe)	((pipe == 1)? &udc->eps[0]: \
-					&udc->eps[pipe])
+									 &udc->eps[pipe])
 #define get_pipe_by_windex(windex)	((windex & USB_ENDPOINT_NUMBER_MASK) \
-					* 2 + ((windex & USB_DIR_IN) ? 1 : 0))
+									 * 2 + ((windex & USB_DIR_IN) ? 1 : 0))
 #define get_pipe_by_ep(EP)	(ep_index(EP) * 2 + ep_is_in(EP))
 
 static inline struct ep_queue_head *get_qh_by_ep(struct fsl_ep *ep)
 {
 	/* we only have one ep0 structure but two queue heads */
 	if (ep_index(ep) != 0)
+	{
 		return ep->qh;
+	}
 	else
 		return &ep->udc->ep_qh[(ep->udc->ep0_dir ==
-				USB_DIR_IN) ? 1 : 0];
+								USB_DIR_IN) ? 1 : 0];
 }
 
 struct platform_device;

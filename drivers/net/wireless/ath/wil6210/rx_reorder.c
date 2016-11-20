@@ -41,14 +41,16 @@ static inline int reorder_index(struct wil_tid_ampdu_rx *r, u16 seq)
 }
 
 static void wil_release_reorder_frame(struct wil6210_priv *wil,
-				      struct wil_tid_ampdu_rx *r,
-				      int index)
+									  struct wil_tid_ampdu_rx *r,
+									  int index)
 {
 	struct net_device *ndev = wil_to_ndev(wil);
 	struct sk_buff *skb = r->reorder_buf[index];
 
 	if (!skb)
+	{
 		goto no_frame;
+	}
 
 	/* release the frame from the reorder ring buffer */
 	r->stored_mpdu_num--;
@@ -60,8 +62,8 @@ no_frame:
 }
 
 static void wil_release_reorder_frames(struct wil6210_priv *wil,
-				       struct wil_tid_ampdu_rx *r,
-				       u16 hseq)
+									   struct wil_tid_ampdu_rx *r,
+									   u16 hseq)
 {
 	int index;
 
@@ -71,19 +73,22 @@ static void wil_release_reorder_frames(struct wil6210_priv *wil,
 	 * and thus on loop exit it should be
 	 * r->head_seq_num == hseq
 	 */
-	while (seq_less(r->head_seq_num, hseq) && r->stored_mpdu_num) {
+	while (seq_less(r->head_seq_num, hseq) && r->stored_mpdu_num)
+	{
 		index = reorder_index(r, r->head_seq_num);
 		wil_release_reorder_frame(wil, r, index);
 	}
+
 	r->head_seq_num = hseq;
 }
 
 static void wil_reorder_release(struct wil6210_priv *wil,
-				struct wil_tid_ampdu_rx *r)
+								struct wil_tid_ampdu_rx *r)
 {
 	int index = reorder_index(r, r->head_seq_num);
 
-	while (r->reorder_buf[index]) {
+	while (r->reorder_buf[index])
+	{
 		wil_release_reorder_frame(wil, r, index);
 		index = reorder_index(r, r->head_seq_num);
 	}
@@ -106,9 +111,10 @@ __acquires(&sta->tid_rx_lock) __releases(&sta->tid_rx_lock)
 	int index;
 
 	wil_dbg_txrx(wil, "MID %d CID %d TID %d Seq 0x%03x mcast %01x\n",
-		     mid, cid, tid, seq, mcast);
+				 mid, cid, tid, seq, mcast);
 
-	if (unlikely(mcast)) {
+	if (unlikely(mcast))
+	{
 		wil_netif_rx_any(skb, ndev);
 		return;
 	}
@@ -116,7 +122,9 @@ __acquires(&sta->tid_rx_lock) __releases(&sta->tid_rx_lock)
 	spin_lock(&sta->tid_rx_lock);
 
 	r = sta->tid_rx[tid];
-	if (!r) {
+
+	if (!r)
+	{
 		wil_netif_rx_any(skb, ndev);
 		goto out;
 	}
@@ -132,31 +140,37 @@ __acquires(&sta->tid_rx_lock) __releases(&sta->tid_rx_lock)
 	 * Another scenario, Rx get delayed and we got packet from before
 	 * BACK. Pass it to the stack and wait.
 	 */
-	if (r->first_time) {
+	if (r->first_time)
+	{
 		r->first_time = false;
-		if (seq != r->head_seq_num) {
-			if (seq_less(seq, r->head_seq_num)) {
+
+		if (seq != r->head_seq_num)
+		{
+			if (seq_less(seq, r->head_seq_num))
+			{
 				wil_err(wil,
-					"Error: frame with early sequence 0x%03x, should be 0x%03x. Waiting...\n",
-					seq, r->head_seq_num);
+						"Error: frame with early sequence 0x%03x, should be 0x%03x. Waiting...\n",
+						seq, r->head_seq_num);
 				r->first_time = true;
 				wil_netif_rx_any(skb, ndev);
 				goto out;
 			}
+
 			wil_err(wil,
-				"Error: 1-st frame with wrong sequence 0x%03x, should be 0x%03x. Fixing...\n",
-				seq, r->head_seq_num);
+					"Error: 1-st frame with wrong sequence 0x%03x, should be 0x%03x. Fixing...\n",
+					seq, r->head_seq_num);
 			r->head_seq_num = seq;
 			r->ssn = seq;
 		}
 	}
 
 	/* frame with out of date sequence number */
-	if (seq_less(seq, r->head_seq_num)) {
+	if (seq_less(seq, r->head_seq_num))
+	{
 		r->ssn_last_drop = seq;
 		r->drop_old++;
 		wil_dbg_txrx(wil, "Rx drop: old seq 0x%03x head 0x%03x\n",
-			     seq, r->head_seq_num);
+					 seq, r->head_seq_num);
 		dev_kfree_skb(skb);
 		goto out;
 	}
@@ -165,7 +179,8 @@ __acquires(&sta->tid_rx_lock) __releases(&sta->tid_rx_lock)
 	 * If frame the sequence number exceeds our buffering window
 	 * size release some previous frames to make room for this one.
 	 */
-	if (!seq_less(seq, r->head_seq_num + r->buf_size)) {
+	if (!seq_less(seq, r->head_seq_num + r->buf_size))
+	{
 		hseq = seq_inc(seq_sub(seq, r->buf_size));
 		/* release stored frames up to new head to stack */
 		wil_release_reorder_frames(wil, r, hseq);
@@ -176,7 +191,8 @@ __acquires(&sta->tid_rx_lock) __releases(&sta->tid_rx_lock)
 	index = reorder_index(r, seq);
 
 	/* check if we already stored this frame */
-	if (r->reorder_buf[index]) {
+	if (r->reorder_buf[index])
+	{
 		r->drop_dup++;
 		wil_dbg_txrx(wil, "Rx drop: dup seq 0x%03x\n", seq);
 		dev_kfree_skb(skb);
@@ -189,7 +205,8 @@ __acquires(&sta->tid_rx_lock) __releases(&sta->tid_rx_lock)
 	 * If it is first but there's something stored, we may be able
 	 * to release frames after this one.
 	 */
-	if (seq == r->head_seq_num && r->stored_mpdu_num == 0) {
+	if (seq == r->head_seq_num && r->stored_mpdu_num == 0)
+	{
 		r->head_seq_num = seq_inc(r->head_seq_num);
 		wil_netif_rx_any(skb, ndev);
 		goto out;
@@ -214,17 +231,22 @@ void wil_rx_bar(struct wil6210_priv *wil, u8 cid, u8 tid, u16 seq)
 	spin_lock(&sta->tid_rx_lock);
 
 	r = sta->tid_rx[tid];
-	if (!r) {
+
+	if (!r)
+	{
 		wil_err(wil, "BAR for non-existing CID %d TID %d\n", cid, tid);
 		goto out;
 	}
-	if (seq_less(seq, r->head_seq_num)) {
+
+	if (seq_less(seq, r->head_seq_num))
+	{
 		wil_err(wil, "BAR Seq 0x%03x preceding head 0x%03x\n",
-			seq, r->head_seq_num);
+				seq, r->head_seq_num);
 		goto out;
 	}
+
 	wil_dbg_txrx(wil, "BAR: CID %d TID %d Seq 0x%03x head 0x%03x\n",
-		     cid, tid, seq, r->head_seq_num);
+				 cid, tid, seq, r->head_seq_num);
 	wil_release_reorder_frames(wil, r, seq);
 
 out:
@@ -232,18 +254,22 @@ out:
 }
 
 struct wil_tid_ampdu_rx *wil_tid_ampdu_rx_alloc(struct wil6210_priv *wil,
-						int size, u16 ssn)
+		int size, u16 ssn)
 {
 	struct wil_tid_ampdu_rx *r = kzalloc(sizeof(*r), GFP_KERNEL);
 
 	if (!r)
+	{
 		return NULL;
+	}
 
 	r->reorder_buf =
 		kcalloc(size, sizeof(struct sk_buff *), GFP_KERNEL);
 	r->reorder_time =
 		kcalloc(size, sizeof(unsigned long), GFP_KERNEL);
-	if (!r->reorder_buf || !r->reorder_time) {
+
+	if (!r->reorder_buf || !r->reorder_time)
+	{
 		kfree(r->reorder_buf);
 		kfree(r->reorder_time);
 		kfree(r);
@@ -259,12 +285,14 @@ struct wil_tid_ampdu_rx *wil_tid_ampdu_rx_alloc(struct wil6210_priv *wil,
 }
 
 void wil_tid_ampdu_rx_free(struct wil6210_priv *wil,
-			   struct wil_tid_ampdu_rx *r)
+						   struct wil_tid_ampdu_rx *r)
 {
 	int i;
 
 	if (!r)
+	{
 		return;
+	}
 
 	/* Do not pass remaining frames to the network stack - it may be
 	 * not expecting to get any more Rx. Rx from here may lead to
@@ -272,7 +300,9 @@ void wil_tid_ampdu_rx_free(struct wil6210_priv *wil,
 	 * released.
 	 */
 	for (i = 0; i < r->buf_size; i++)
+	{
 		kfree_skb(r->reorder_buf[i]);
+	}
 
 	kfree(r->reorder_buf);
 	kfree(r->reorder_time);
@@ -283,18 +313,20 @@ void wil_tid_ampdu_rx_free(struct wil6210_priv *wil,
 static u16 wil_agg_size(struct wil6210_priv *wil, u16 req_agg_wsize)
 {
 	u16 max_agg_size = min_t(u16, WIL_MAX_AGG_WSIZE, WIL_MAX_AMPDU_SIZE /
-				 (mtu_max + WIL_MAX_MPDU_OVERHEAD));
+							 (mtu_max + WIL_MAX_MPDU_OVERHEAD));
 
 	if (!req_agg_wsize)
+	{
 		return max_agg_size;
+	}
 
 	return min(max_agg_size, req_agg_wsize);
 }
 
 /* Block Ack - Rx side (recipient) */
 int wil_addba_rx_request(struct wil6210_priv *wil, u8 cidxtid,
-			 u8 dialog_token, __le16 ba_param_set,
-			 __le16 ba_timeout, __le16 ba_seq_ctrl)
+						 u8 dialog_token, __le16 ba_param_set,
+						 __le16 ba_timeout, __le16 ba_seq_ctrl)
 __acquires(&sta->tid_rx_lock) __releases(&sta->tid_rx_lock)
 {
 	u16 param_set = le16_to_cpu(ba_param_set);
@@ -320,37 +352,46 @@ __acquires(&sta->tid_rx_lock) __releases(&sta->tid_rx_lock)
 	parse_cidxtid(cidxtid, &cid, &tid);
 
 	/* sanity checks */
-	if (cid >= WIL6210_MAX_CID) {
+	if (cid >= WIL6210_MAX_CID)
+	{
 		wil_err(wil, "BACK: invalid CID %d\n", cid);
 		rc = -EINVAL;
 		goto out;
 	}
 
 	sta = &wil->sta[cid];
-	if (sta->status != wil_sta_connected) {
+
+	if (sta->status != wil_sta_connected)
+	{
 		wil_err(wil, "BACK: CID %d not connected\n", cid);
 		rc = -EINVAL;
 		goto out;
 	}
 
 	wil_dbg_wmi(wil,
-		    "ADDBA request for CID %d %pM TID %d size %d timeout %d AMSDU%s policy %d token %d SSN 0x%03x\n",
-		    cid, sta->addr, tid, req_agg_wsize, agg_timeout,
-		    agg_amsdu ? "+" : "-", !!ba_policy, dialog_token, ssn);
+				"ADDBA request for CID %d %pM TID %d size %d timeout %d AMSDU%s policy %d token %d SSN 0x%03x\n",
+				cid, sta->addr, tid, req_agg_wsize, agg_timeout,
+				agg_amsdu ? "+" : "-", !!ba_policy, dialog_token, ssn);
 
 	/* apply policies */
-	if (ba_policy) {
+	if (ba_policy)
+	{
 		wil_err(wil, "BACK requested unsupported ba_policy == 1\n");
 		status = WLAN_STATUS_INVALID_QOS_PARAM;
 	}
+
 	if (status == WLAN_STATUS_SUCCESS)
+	{
 		agg_wsize = wil_agg_size(wil, req_agg_wsize);
+	}
 
 	rc = wmi_addba_rx_resp(wil, cid, tid, dialog_token, status,
-			       agg_amsdu, agg_wsize, agg_timeout);
-	if (rc || (status != WLAN_STATUS_SUCCESS)) {
+						   agg_amsdu, agg_wsize, agg_timeout);
+
+	if (rc || (status != WLAN_STATUS_SUCCESS))
+	{
 		wil_err(wil, "%s: do not apply ba, rc(%d), status(%d)\n",
-			__func__, rc, status);
+				__func__, rc, status);
 		goto out;
 	}
 
@@ -373,20 +414,26 @@ int wil_addba_tx_request(struct wil6210_priv *wil, u8 ringid, u16 wsize)
 	struct vring_tx_data *txdata = &wil->vring_tx_data[ringid];
 	int rc = 0;
 
-	if (txdata->addba_in_progress) {
+	if (txdata->addba_in_progress)
+	{
 		wil_dbg_misc(wil, "ADDBA for vring[%d] already in progress\n",
-			     ringid);
+					 ringid);
 		goto out;
 	}
-	if (txdata->agg_wsize) {
+
+	if (txdata->agg_wsize)
+	{
 		wil_dbg_misc(wil,
-			     "ADDBA for vring[%d] already done for wsize %d\n",
-			     ringid, txdata->agg_wsize);
+					 "ADDBA for vring[%d] already done for wsize %d\n",
+					 ringid, txdata->agg_wsize);
 		goto out;
 	}
+
 	txdata->addba_in_progress = true;
 	rc = wmi_addba(wil, ringid, agg_wsize, agg_timeout);
-	if (rc) {
+
+	if (rc)
+	{
 		wil_err(wil, "%s: wmi_addba failed, rc (%d)", __func__, rc);
 		txdata->addba_in_progress = false;
 	}

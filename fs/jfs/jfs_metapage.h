@@ -21,7 +21,8 @@
 
 #include <linux/pagemap.h>
 
-struct metapage {
+struct metapage
+{
 	/* Common logsyncblk prefix (see jfs_logmgr.h) */
 	u16 xflag;
 	u16 unused;
@@ -60,14 +61,14 @@ struct metapage {
 extern int metapage_init(void);
 extern void metapage_exit(void);
 extern struct metapage *__get_metapage(struct inode *inode,
-				  unsigned long lblock, unsigned int size,
-				  int absolute, unsigned long new);
+									   unsigned long lblock, unsigned int size,
+									   int absolute, unsigned long new);
 
 #define read_metapage(inode, lblock, size, absolute)\
-	 __get_metapage(inode, lblock, size, absolute, false)
+	__get_metapage(inode, lblock, size, absolute, false)
 
 #define get_metapage(inode, lblock, size, absolute)\
-	 __get_metapage(inode, lblock, size, absolute, true)
+	__get_metapage(inode, lblock, size, absolute, true)
 
 extern void release_metapage(struct metapage *);
 extern void grab_metapage(struct metapage *);
@@ -104,11 +105,14 @@ static inline void metapage_nohomeok(struct metapage *mp)
 {
 	struct page *page = mp->page;
 	lock_page(page);
-	if (!mp->nohomeok++) {
+
+	if (!mp->nohomeok++)
+	{
 		mark_metapage_dirty(mp);
 		get_page(page);
 		wait_on_page_writeback(page);
 	}
+
 	unlock_page(page);
 }
 
@@ -119,7 +123,9 @@ static inline void metapage_nohomeok(struct metapage *mp)
 static inline void metapage_wait_for_io(struct metapage *mp)
 {
 	if (test_bit(META_io, &mp->flag))
+	{
 		wait_on_page_writeback(mp->page);
+	}
 }
 
 /*
@@ -128,7 +134,9 @@ static inline void metapage_wait_for_io(struct metapage *mp)
 static inline void _metapage_homeok(struct metapage *mp)
 {
 	if (!--mp->nohomeok)
+	{
 		put_page(mp->page);
+	}
 }
 
 static inline void metapage_homeok(struct metapage *mp)

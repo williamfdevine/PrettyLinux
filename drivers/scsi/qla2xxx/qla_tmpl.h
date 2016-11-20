@@ -10,7 +10,8 @@
 
 #define IOBASE_ADDR	offsetof(struct device_reg_24xx, iobase_addr)
 
-struct __packed qla27xx_fwdt_template {
+struct __packed qla27xx_fwdt_template
+{
 	uint32_t template_type;
 	uint32_t entry_offset;
 	uint32_t template_size;
@@ -60,8 +61,10 @@ struct __packed qla27xx_fwdt_template {
 
 #define DRIVER_FLAG_SKIP_ENTRY		BIT_7
 
-struct __packed qla27xx_fwdt_entry {
-	struct __packed {
+struct __packed qla27xx_fwdt_entry
+{
+	struct __packed
+	{
 		uint32_t entry_type;
 		uint32_t entry_size;
 		uint32_t reserved_1;
@@ -70,28 +73,34 @@ struct __packed qla27xx_fwdt_entry {
 		uint8_t  reserved_2[2];
 		uint8_t  driver_flags;
 	} hdr;
-	union __packed {
-		struct __packed {
+	union __packed
+	{
+		struct __packed
+		{
 		} t0;
 
-		struct __packed {
+		struct __packed
+		{
 		} t255;
 
-		struct __packed {
+		struct __packed
+		{
 			uint32_t base_addr;
 			uint8_t  reg_width;
 			uint16_t reg_count;
 			uint8_t  pci_offset;
 		} t256;
 
-		struct __packed {
+		struct __packed
+		{
 			uint32_t base_addr;
 			uint32_t write_data;
 			uint8_t  pci_offset;
 			uint8_t  reserved[3];
 		} t257;
 
-		struct __packed {
+		struct __packed
+		{
 			uint32_t base_addr;
 			uint8_t  reg_width;
 			uint16_t reg_count;
@@ -101,7 +110,8 @@ struct __packed qla27xx_fwdt_entry {
 			uint32_t bank;
 		} t258;
 
-		struct __packed {
+		struct __packed
+		{
 			uint32_t base_addr;
 			uint32_t write_data;
 			uint8_t  reserved[2];
@@ -110,31 +120,36 @@ struct __packed qla27xx_fwdt_entry {
 			uint32_t bank;
 		} t259;
 
-		struct __packed {
+		struct __packed
+		{
 			uint8_t pci_offset;
 			uint8_t reserved[3];
 		} t260;
 
-		struct __packed {
+		struct __packed
+		{
 			uint8_t pci_offset;
 			uint8_t reserved[3];
 			uint32_t write_data;
 		} t261;
 
-		struct __packed {
+		struct __packed
+		{
 			uint8_t  ram_area;
 			uint8_t  reserved[3];
 			uint32_t start_addr;
 			uint32_t end_addr;
 		} t262;
 
-		struct __packed {
+		struct __packed
+		{
 			uint32_t num_queues;
 			uint8_t  queue_type;
 			uint8_t  reserved[3];
 		} t263;
 
-		struct __packed {
+		struct __packed
+		{
 			uint32_t fce_trace_size;
 			uint64_t write_pointer;
 			uint64_t base_pointer;
@@ -146,56 +161,67 @@ struct __packed qla27xx_fwdt_entry {
 			uint32_t fce_enable_mb6;
 		} t264;
 
-		struct __packed {
+		struct __packed
+		{
 		} t265;
 
-		struct __packed {
+		struct __packed
+		{
 		} t266;
 
-		struct __packed {
+		struct __packed
+		{
 			uint8_t  pci_offset;
 			uint8_t  reserved[3];
 			uint32_t data;
 		} t267;
 
-		struct __packed {
+		struct __packed
+		{
 			uint8_t  buf_type;
 			uint8_t  reserved[3];
 			uint32_t buf_size;
 			uint64_t start_addr;
 		} t268;
 
-		struct __packed {
+		struct __packed
+		{
 			uint32_t scratch_size;
 		} t269;
 
-		struct __packed {
+		struct __packed
+		{
 			uint32_t addr;
 			uint32_t count;
 		} t270;
 
-		struct __packed {
+		struct __packed
+		{
 			uint32_t addr;
 			uint32_t data;
 		} t271;
 
-		struct __packed {
+		struct __packed
+		{
 			uint32_t addr;
 			uint32_t count;
 		} t272;
 
-		struct __packed {
+		struct __packed
+		{
 			uint32_t addr;
 			uint32_t count;
 		} t273;
 
-		struct __packed {
+		struct __packed
+		{
 			uint32_t num_queues;
 			uint8_t  queue_type;
 			uint8_t  reserved[3];
 		} t274;
 
-		struct __packed {
+		struct __packed
+		{
 			uint32_t length;
 			uint8_t  buffer[];
 		} t275;

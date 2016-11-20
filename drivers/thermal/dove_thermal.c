@@ -43,7 +43,8 @@
 #define PMU_TDC1_TEMP_VALID_MASK	(0x1 << 10)
 
 /* Dove Thermal Sensor Dev Structure */
-struct dove_thermal_priv {
+struct dove_thermal_priv
+{
 	void __iomem *sensor;
 	void __iomem *control;
 };
@@ -80,29 +81,37 @@ static int dove_init_sensor(const struct dove_thermal_priv *priv)
 	writel(reg, priv->sensor);
 
 	/* Poll the sensor for the first reading */
-	for (i = 0; i < 1000000; i++) {
+	for (i = 0; i < 1000000; i++)
+	{
 		reg = readl_relaxed(priv->sensor);
+
 		if (reg & DOVE_THERMAL_TEMP_MASK)
+		{
 			break;
+		}
 	}
 
 	if (i == 1000000)
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
 
 static int dove_get_temp(struct thermal_zone_device *thermal,
-			  int *temp)
+						 int *temp)
 {
 	unsigned long reg;
 	struct dove_thermal_priv *priv = thermal->devdata;
 
 	/* Valid check */
 	reg = readl_relaxed(priv->control + PMU_TEMP_DIOD_CTRL1_REG);
-	if ((reg & PMU_TDC1_TEMP_VALID_MASK) == 0x0) {
+
+	if ((reg & PMU_TDC1_TEMP_VALID_MASK) == 0x0)
+	{
 		dev_err(&thermal->device,
-			"Temperature sensor reading not valid\n");
+				"Temperature sensor reading not valid\n");
 		return -EIO;
 	}
 
@@ -118,11 +127,13 @@ static int dove_get_temp(struct thermal_zone_device *thermal,
 	return 0;
 }
 
-static struct thermal_zone_device_ops ops = {
+static struct thermal_zone_device_ops ops =
+{
 	.get_temp = dove_get_temp,
 };
 
-static const struct of_device_id dove_thermal_id_table[] = {
+static const struct of_device_id dove_thermal_id_table[] =
+{
 	{ .compatible = "marvell,dove-thermal" },
 	{}
 };
@@ -135,30 +146,43 @@ static int dove_thermal_probe(struct platform_device *pdev)
 	int ret;
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->sensor = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(priv->sensor))
+	{
 		return PTR_ERR(priv->sensor);
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 	priv->control = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(priv->control))
+	{
 		return PTR_ERR(priv->control);
+	}
 
 	ret = dove_init_sensor(priv);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to initialize sensor\n");
 		return ret;
 	}
 
 	thermal = thermal_zone_device_register("dove_thermal", 0, 0,
-					       priv, &ops, NULL, 0, 0);
-	if (IS_ERR(thermal)) {
+										   priv, &ops, NULL, 0, 0);
+
+	if (IS_ERR(thermal))
+	{
 		dev_err(&pdev->dev,
-			"Failed to register thermal zone device\n");
+				"Failed to register thermal zone device\n");
 		return PTR_ERR(thermal);
 	}
 
@@ -179,7 +203,8 @@ static int dove_thermal_exit(struct platform_device *pdev)
 
 MODULE_DEVICE_TABLE(of, dove_thermal_id_table);
 
-static struct platform_driver dove_thermal_driver = {
+static struct platform_driver dove_thermal_driver =
+{
 	.probe = dove_thermal_probe,
 	.remove = dove_thermal_exit,
 	.driver = {

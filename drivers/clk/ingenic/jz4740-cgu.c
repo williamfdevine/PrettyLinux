@@ -53,11 +53,13 @@
 
 static struct ingenic_cgu *cgu;
 
-static const s8 pll_od_encoding[4] = {
+static const s8 pll_od_encoding[4] =
+{
 	0x0, 0x1, -1, 0x3,
 };
 
-static const struct ingenic_cgu_clk_info jz4740_cgu_clocks[] = {
+static const struct ingenic_cgu_clk_info jz4740_cgu_clocks[] =
+{
 
 	/* External clocks */
 
@@ -218,15 +220,20 @@ static void __init jz4740_cgu_init(struct device_node *np)
 	int retval;
 
 	cgu = ingenic_cgu_new(jz4740_cgu_clocks,
-			      ARRAY_SIZE(jz4740_cgu_clocks), np);
-	if (!cgu) {
+						  ARRAY_SIZE(jz4740_cgu_clocks), np);
+
+	if (!cgu)
+	{
 		pr_err("%s: failed to initialise CGU\n", __func__);
 		return;
 	}
 
 	retval = ingenic_cgu_register_clocks(cgu);
+
 	if (retval)
+	{
 		pr_err("%s: failed to register CGU Clocks\n", __func__);
+	}
 }
 CLK_OF_DECLARE(jz4740_cgu, "ingenic,jz4740-cgu", jz4740_cgu_init);
 
@@ -234,14 +241,15 @@ void jz4740_clock_set_wait_mode(enum jz4740_wait_mode mode)
 {
 	uint32_t lcr = readl(cgu->base + CGU_REG_LCR);
 
-	switch (mode) {
-	case JZ4740_WAIT_MODE_IDLE:
-		lcr &= ~LCR_SLEEP;
-		break;
+	switch (mode)
+	{
+		case JZ4740_WAIT_MODE_IDLE:
+			lcr &= ~LCR_SLEEP;
+			break;
 
-	case JZ4740_WAIT_MODE_SLEEP:
-		lcr |= LCR_SLEEP;
-		break;
+		case JZ4740_WAIT_MODE_SLEEP:
+			lcr |= LCR_SLEEP;
+			break;
 	}
 
 	writel(lcr, cgu->base + CGU_REG_LCR);
@@ -291,9 +299,12 @@ void jz4740_clock_resume(void)
 	writel(cppcr, cgu->base + CGU_REG_CPPCR);
 
 	stable = BIT(jz4740_cgu_clocks[JZ4740_CLK_PLL].pll.stable_bit);
-	do {
+
+	do
+	{
 		cppcr = readl(cgu->base + CGU_REG_CPPCR);
-	} while (!(cppcr & stable));
+	}
+	while (!(cppcr & stable));
 
 	clkgr = readl(cgu->base + CGU_REG_CLKGR);
 	clkgr &= ~JZ_CLOCK_GATE_TCU;

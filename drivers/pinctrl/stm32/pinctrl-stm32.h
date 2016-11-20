@@ -17,12 +17,14 @@
 #define STM32_PIN_AF(x)		((x) + 1)
 #define STM32_PIN_ANALOG	(STM32_PIN_AF(15) + 1)
 
-struct stm32_desc_function {
+struct stm32_desc_function
+{
 	const char *name;
 	const unsigned char num;
 };
 
-struct stm32_desc_pin {
+struct stm32_desc_pin
+{
 	struct pinctrl_pin_desc pin;
 	const struct stm32_desc_function *functions;
 };
@@ -37,10 +39,11 @@ struct stm32_desc_pin {
 #define STM32_FUNCTION(_num, _name)		\
 	{							\
 		.num = _num,					\
-		.name = _name,					\
+			   .name = _name,					\
 	}
 
-struct stm32_pinctrl_match_data {
+struct stm32_pinctrl_match_data
+{
 	const struct stm32_desc_pin *pins;
 	const unsigned int npins;
 };

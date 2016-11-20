@@ -94,14 +94,15 @@
 
 #define ACK			0xff
 
-struct dst_state {
+struct dst_state
+{
 
-	struct i2c_adapter* i2c;
+	struct i2c_adapter *i2c;
 
-	struct bt878* bt;
+	struct bt878 *bt;
 
 	/* configuration settings */
-	const struct dst_config* config;
+	const struct dst_config *config;
 
 	struct dvb_frontend frontend;
 
@@ -142,14 +143,16 @@ struct dst_state {
 	struct dvb_device *dst_ca;
 };
 
-struct tuner_types {
+struct tuner_types
+{
 	u32 tuner_type;
 	char *tuner_name;
 	char *board_name;
 	char *fw_name;
 };
 
-struct dst_types {
+struct dst_types
+{
 	char *device_id;
 	int offset;
 	u8 dst_type;
@@ -168,14 +171,14 @@ int rdc_reset_state(struct dst_state *state);
 
 int dst_wait_dst_ready(struct dst_state *state, u8 delay_mode);
 int dst_pio_disable(struct dst_state *state);
-int dst_error_recovery(struct dst_state* state);
+int dst_error_recovery(struct dst_state *state);
 int dst_error_bailout(struct dst_state *state);
-int dst_comm_init(struct dst_state* state);
+int dst_comm_init(struct dst_state *state);
 
-int write_dst(struct dst_state *state, u8 * data, u8 len);
-int read_dst(struct dst_state *state, u8 * ret, u8 len);
-u8 dst_check_sum(u8 * buf, u32 len);
-struct dst_state* dst_attach(struct dst_state* state, struct dvb_adapter *dvb_adapter);
+int write_dst(struct dst_state *state, u8 *data, u8 len);
+int read_dst(struct dst_state *state, u8 *ret, u8 len);
+u8 dst_check_sum(u8 *buf, u32 len);
+struct dst_state *dst_attach(struct dst_state *state, struct dvb_adapter *dvb_adapter);
 struct dvb_device *dst_ca_attach(struct dst_state *state, struct dvb_adapter *dvb_adapter);
 
 

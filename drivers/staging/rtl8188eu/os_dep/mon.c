@@ -34,9 +34,14 @@ static void unprotect_frame(struct sk_buff *skb, int iv_len, int icv_len)
 	hdr_len = ieee80211_hdrlen(hdr->frame_control);
 
 	if (skb->len < hdr_len + iv_len + icv_len)
+	{
 		return;
+	}
+
 	if (!ieee80211_has_protected(hdr->frame_control))
+	{
 		return;
+	}
 
 	hdr->frame_control &= ~cpu_to_le16(IEEE80211_FCTL_PROTECTED);
 
@@ -46,13 +51,17 @@ static void unprotect_frame(struct sk_buff *skb, int iv_len, int icv_len)
 }
 
 static void mon_recv_decrypted(struct net_device *dev, const u8 *data,
-			       int data_len, int iv_len, int icv_len)
+							   int data_len, int iv_len, int icv_len)
 {
 	struct sk_buff *skb;
 
 	skb = netdev_alloc_skb(dev, data_len);
+
 	if (!skb)
+	{
 		return;
+	}
+
 	memcpy(skb_put(skb, data_len), data, data_len);
 
 	/*
@@ -67,10 +76,12 @@ static void mon_recv_decrypted(struct net_device *dev, const u8 *data,
 }
 
 static void mon_recv_encrypted(struct net_device *dev, const u8 *data,
-			       int data_len)
+							   int data_len)
 {
 	if (net_ratelimit())
+	{
 		netdev_info(dev, "Encrypted packets are not supported");
+	}
 }
 
 /**
@@ -87,9 +98,14 @@ void rtl88eu_mon_recv_hook(struct net_device *dev, struct recv_frame *frame)
 	u8 *data;
 
 	if (!dev || !frame)
+	{
 		return;
+	}
+
 	if (!netif_running(dev))
+	{
 		return;
+	}
 
 	attr = &frame->attrib;
 	data = frame->rx_data;
@@ -99,9 +115,13 @@ void rtl88eu_mon_recv_hook(struct net_device *dev, struct recv_frame *frame)
 	SET_ICE_IV_LEN(iv_len, icv_len, attr->encrypt);
 
 	if (attr->bdecrypted)
+	{
 		mon_recv_decrypted(dev, data, data_len, iv_len, icv_len);
+	}
 	else
+	{
 		mon_recv_encrypted(dev, data, data_len);
+	}
 }
 
 /**
@@ -112,27 +132,34 @@ void rtl88eu_mon_recv_hook(struct net_device *dev, struct recv_frame *frame)
  * - data is not encrypted and ICV/MIC has not been appended yet.
  */
 void rtl88eu_mon_xmit_hook(struct net_device *dev, struct xmit_frame *frame,
-			   uint frag_len)
+						   uint frag_len)
 {
 	struct pkt_attrib *attr;
 	u8 *data;
 	int i, offset;
 
 	if (!dev || !frame)
+	{
 		return;
+	}
+
 	if (!netif_running(dev))
+	{
 		return;
+	}
 
 	attr = &frame->attrib;
 
 	offset = TXDESC_SIZE + frame->pkt_offset * PACKET_OFFSET_SZ;
 	data = frame->buf_addr + offset;
 
-	for (i = 0; i < attr->nr_frags - 1; i++) {
+	for (i = 0; i < attr->nr_frags - 1; i++)
+	{
 		mon_recv_decrypted(dev, data, frag_len, attr->iv_len, 0);
 		data += frag_len;
 		data = (u8 *)round_up((size_t)data, 4);
 	}
+
 	/* Last fragment has different length */
 	mon_recv_decrypted(dev, data, attr->last_txcmdsz, attr->iv_len, 0);
 }
@@ -143,7 +170,8 @@ static netdev_tx_t mon_xmit(struct sk_buff *skb, struct net_device *dev)
 	return NETDEV_TX_OK;
 }
 
-static const struct net_device_ops mon_netdev_ops = {
+static const struct net_device_ops mon_netdev_ops =
+{
 	.ndo_start_xmit		= mon_xmit,
 	.ndo_change_mtu		= eth_change_mtu,
 	.ndo_set_mac_address	= eth_mac_addr,
@@ -171,12 +199,18 @@ struct net_device *rtl88eu_mon_init(void)
 	int err;
 
 	dev = alloc_netdev(0, "mon%d", NET_NAME_UNKNOWN, mon_setup);
+
 	if (!dev)
+	{
 		goto fail;
+	}
 
 	err = register_netdev(dev);
+
 	if (err < 0)
+	{
 		goto fail_free_dev;
+	}
 
 	return dev;
 
@@ -189,7 +223,9 @@ fail:
 void rtl88eu_mon_deinit(struct net_device *dev)
 {
 	if (!dev)
+	{
 		return;
+	}
 
 	unregister_netdev(dev);
 }

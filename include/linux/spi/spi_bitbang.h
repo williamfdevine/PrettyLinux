@@ -3,7 +3,8 @@
 
 #include <linux/workqueue.h>
 
-struct spi_bitbang {
+struct spi_bitbang
+{
 	struct mutex		lock;
 	u8			busy;
 	u8			use_dma;
@@ -15,7 +16,7 @@ struct spi_bitbang {
 	 * for this transfer; zeroes restore defaults from spi_device.
 	 */
 	int	(*setup_transfer)(struct spi_device *spi,
-			struct spi_transfer *t);
+						  struct spi_transfer *t);
 
 	void	(*chipselect)(struct spi_device *spi, int is_on);
 #define	BITBANG_CS_ACTIVE	1	/* normally nCS, active low */
@@ -28,8 +29,8 @@ struct spi_bitbang {
 
 	/* txrx_word[SPI_MODE_*]() just looks like a shift register */
 	u32	(*txrx_word[4])(struct spi_device *spi,
-			unsigned nsecs,
-			u32 word, u8 bits);
+						unsigned nsecs,
+						u32 word, u8 bits);
 };
 
 /* you can call these default bitbang->master methods from your custom
@@ -38,7 +39,7 @@ struct spi_bitbang {
 extern int spi_bitbang_setup(struct spi_device *spi);
 extern void spi_bitbang_cleanup(struct spi_device *spi);
 extern int spi_bitbang_setup_transfer(struct spi_device *spi,
-				      struct spi_transfer *t);
+									  struct spi_transfer *t);
 
 /* start or stop queue processing */
 extern int spi_bitbang_start(struct spi_bitbang *spi);

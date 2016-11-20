@@ -34,7 +34,8 @@
 #define PCF50633_REG_HCLDOENA	0x3a
 #define PCF50633_REG_HCLDOOVL	0x40
 
-enum pcf50633_regulator_enable {
+enum pcf50633_regulator_enable
+{
 	PCF50633_REGULATOR_ON		= 0x01,
 	PCF50633_REGULATOR_ON_GPIO1	= 0x02,
 	PCF50633_REGULATOR_ON_GPIO2	= 0x04,
@@ -42,7 +43,8 @@ enum pcf50633_regulator_enable {
 };
 #define PCF50633_REGULATOR_ON_MASK	0x0f
 
-enum pcf50633_regulator_phase {
+enum pcf50633_regulator_phase
+{
 	PCF50633_REGULATOR_ACTPH1	= 0x00,
 	PCF50633_REGULATOR_ACTPH2	= 0x10,
 	PCF50633_REGULATOR_ACTPH3	= 0x20,
@@ -50,7 +52,8 @@ enum pcf50633_regulator_phase {
 };
 #define PCF50633_REGULATOR_ACTPH_MASK	0x30
 
-enum pcf50633_regulator_id {
+enum pcf50633_regulator_id
+{
 	PCF50633_REGULATOR_AUTO,
 	PCF50633_REGULATOR_DOWN1,
 	PCF50633_REGULATOR_DOWN2,

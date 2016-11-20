@@ -105,9 +105,9 @@
 
 #define VIA_CRDR_SDACTIVE_INTMASK \
 	(VIA_CRDR_SDINTMASK_MBDIE | VIA_CRDR_SDINTMASK_CIRIE \
-	| VIA_CRDR_SDINTMASK_CRDIE | VIA_CRDR_SDINTMASK_CRTOIE \
-	| VIA_CRDR_SDINTMASK_DTIE | VIA_CRDR_SDINTMASK_SCIE \
-	| VIA_CRDR_SDINTMASK_RCIE | VIA_CRDR_SDINTMASK_WCIE)
+	 | VIA_CRDR_SDINTMASK_CRDIE | VIA_CRDR_SDINTMASK_CRTOIE \
+	 | VIA_CRDR_SDINTMASK_DTIE | VIA_CRDR_SDINTMASK_SCIE \
+	 | VIA_CRDR_SDINTMASK_RCIE | VIA_CRDR_SDINTMASK_WCIE)
 
 #define VIA_CRDR_SDSTATUS	0x28
 /*
@@ -149,19 +149,19 @@
 	(VIA_CRDR_SDSTS_BDD | VIA_CRDR_SDSTS_ASCRDIE | VIA_CRDR_SDSTS_IO)
 #define VIA_CRDR_SDSTS_INT_MASK \
 	(VIA_CRDR_SDSTS_MBD | VIA_CRDR_SDSTS_BDD | VIA_CRDR_SDSTS_CD \
-	| VIA_CRDR_SDSTS_CIR | VIA_CRDR_SDSTS_IO | VIA_CRDR_SDSTS_CRD \
-	| VIA_CRDR_SDSTS_CRTO | VIA_CRDR_SDSTS_ASCRDIE | VIA_CRDR_SDSTS_DT \
-	| VIA_CRDR_SDSTS_SC | VIA_CRDR_SDSTS_RC | VIA_CRDR_SDSTS_WC)
+	 | VIA_CRDR_SDSTS_CIR | VIA_CRDR_SDSTS_IO | VIA_CRDR_SDSTS_CRD \
+	 | VIA_CRDR_SDSTS_CRTO | VIA_CRDR_SDSTS_ASCRDIE | VIA_CRDR_SDSTS_DT \
+	 | VIA_CRDR_SDSTS_SC | VIA_CRDR_SDSTS_RC | VIA_CRDR_SDSTS_WC)
 #define VIA_CRDR_SDSTS_W1C_MASK \
 	(VIA_CRDR_SDSTS_CECC | VIA_CRDR_SDSTS_MBD | VIA_CRDR_SDSTS_BDD \
-	| VIA_CRDR_SDSTS_CD | VIA_CRDR_SDSTS_CIR | VIA_CRDR_SDSTS_CRD \
-	| VIA_CRDR_SDSTS_CRTO | VIA_CRDR_SDSTS_ASCRDIE | VIA_CRDR_SDSTS_DT \
-	| VIA_CRDR_SDSTS_SC | VIA_CRDR_SDSTS_RC | VIA_CRDR_SDSTS_WC)
+	 | VIA_CRDR_SDSTS_CD | VIA_CRDR_SDSTS_CIR | VIA_CRDR_SDSTS_CRD \
+	 | VIA_CRDR_SDSTS_CRTO | VIA_CRDR_SDSTS_ASCRDIE | VIA_CRDR_SDSTS_DT \
+	 | VIA_CRDR_SDSTS_SC | VIA_CRDR_SDSTS_RC | VIA_CRDR_SDSTS_WC)
 #define  VIA_CRDR_SDSTS_CMD_MASK \
 	(VIA_CRDR_SDSTS_CRD | VIA_CRDR_SDSTS_CRTO | VIA_CRDR_SDSTS_SC)
 #define  VIA_CRDR_SDSTS_DATA_MASK\
 	(VIA_CRDR_SDSTS_MBD | VIA_CRDR_SDSTS_DT \
-	| VIA_CRDR_SDSTS_RC | VIA_CRDR_SDSTS_WC)
+	 | VIA_CRDR_SDSTS_RC | VIA_CRDR_SDSTS_WC)
 
 #define VIA_CRDR_SDSTATUS2	0x2a
 /*
@@ -257,7 +257,8 @@
 
 /*0xB-0xFF reserved*/
 
-enum PCI_HOST_CLK_CONTROL {
+enum PCI_HOST_CLK_CONTROL
+{
 	PCI_CLK_375K = 0x03,
 	PCI_CLK_8M = 0x04,
 	PCI_CLK_12M = 0x00,
@@ -267,7 +268,8 @@ enum PCI_HOST_CLK_CONTROL {
 	PCI_CLK_48M = 0x02
 };
 
-struct sdhcreg {
+struct sdhcreg
+{
 	u32 sdcontrol_reg;
 	u32 sdcmdarg_reg;
 	u32 sdbusmode_reg;
@@ -281,7 +283,8 @@ struct sdhcreg {
 	u32 sdextctrl_reg;
 };
 
-struct pcictrlreg {
+struct pcictrlreg
+{
 	u8 reserve[2];
 	u8 pciclkgat_reg;
 	u8 pcinfcclk_reg;
@@ -295,7 +298,8 @@ struct pcictrlreg {
 	u8 Resv;
 };
 
-struct via_crdr_mmc_host {
+struct via_crdr_mmc_host
+{
 	struct mmc_host *mmc;
 	struct mmc_request *mrq;
 	struct mmc_command *cmd;
@@ -322,9 +326,12 @@ struct via_crdr_mmc_host {
 /* some devices need a very long delay for power to stabilize */
 #define VIA_CRDR_QUIRK_300MS_PWRDELAY	0x0001
 
-static struct pci_device_id via_ids[] = {
-	{PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_9530,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0,},
+static struct pci_device_id via_ids[] =
+{
+	{
+		PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_9530,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0,
+	},
 	{0,}
 };
 
@@ -336,17 +343,17 @@ static void via_print_sdchc(struct via_crdr_mmc_host *host)
 
 	pr_debug("SDC MMIO Registers:\n");
 	pr_debug("SDCONTROL=%08x, SDCMDARG=%08x, SDBUSMODE=%08x\n",
-		 readl(addrbase + VIA_CRDR_SDCTRL),
-		 readl(addrbase + VIA_CRDR_SDCARG),
-		 readl(addrbase + VIA_CRDR_SDBUSMODE));
+			 readl(addrbase + VIA_CRDR_SDCTRL),
+			 readl(addrbase + VIA_CRDR_SDCARG),
+			 readl(addrbase + VIA_CRDR_SDBUSMODE));
 	pr_debug("SDBLKLEN=%08x, SDCURBLKCNT=%08x, SDINTMASK=%08x\n",
-		 readl(addrbase + VIA_CRDR_SDBLKLEN),
-		 readl(addrbase + VIA_CRDR_SDCURBLKCNT),
-		 readl(addrbase + VIA_CRDR_SDINTMASK));
+			 readl(addrbase + VIA_CRDR_SDBLKLEN),
+			 readl(addrbase + VIA_CRDR_SDCURBLKCNT),
+			 readl(addrbase + VIA_CRDR_SDINTMASK));
 	pr_debug("SDSTATUS=%08x, SDCLKSEL=%08x, SDEXTCTRL=%08x\n",
-		 readl(addrbase + VIA_CRDR_SDSTATUS),
-		 readl(addrbase + VIA_CRDR_SDCLKSEL),
-		 readl(addrbase + VIA_CRDR_SDEXTCTRL));
+			 readl(addrbase + VIA_CRDR_SDSTATUS),
+			 readl(addrbase + VIA_CRDR_SDCLKSEL),
+			 readl(addrbase + VIA_CRDR_SDEXTCTRL));
 }
 
 static void via_print_pcictrl(struct via_crdr_mmc_host *host)
@@ -355,12 +362,12 @@ static void via_print_pcictrl(struct via_crdr_mmc_host *host)
 
 	pr_debug("PCI Control Registers:\n");
 	pr_debug("PCICLKGATT=%02x, PCISDCCLK=%02x, PCIDMACLK=%02x\n",
-		 readb(addrbase + VIA_CRDR_PCICLKGATT),
-		 readb(addrbase + VIA_CRDR_PCISDCCLK),
-		 readb(addrbase + VIA_CRDR_PCIDMACLK));
+			 readb(addrbase + VIA_CRDR_PCICLKGATT),
+			 readb(addrbase + VIA_CRDR_PCISDCCLK),
+			 readb(addrbase + VIA_CRDR_PCIDMACLK));
 	pr_debug("PCIINTCTRL=%02x, PCIINTSTATUS=%02x\n",
-		 readb(addrbase + VIA_CRDR_PCIINTCTRL),
-		 readb(addrbase + VIA_CRDR_PCIINTSTATUS));
+			 readb(addrbase + VIA_CRDR_PCIINTCTRL),
+			 readb(addrbase + VIA_CRDR_PCIINTSTATUS));
 }
 
 static void via_save_pcictrlreg(struct via_crdr_mmc_host *host)
@@ -395,7 +402,7 @@ static void via_restore_pcictrlreg(struct via_crdr_mmc_host *host)
 	writeb(pm_pcictrl_reg->pcidmaclk_reg, addrbase + VIA_CRDR_PCIDMACLK);
 	writeb(pm_pcictrl_reg->pciintctrl_reg, addrbase + VIA_CRDR_PCIINTCTRL);
 	writeb(pm_pcictrl_reg->pciintstatus_reg,
-		addrbase + VIA_CRDR_PCIINTSTATUS);
+		   addrbase + VIA_CRDR_PCIINTSTATUS);
 	writeb(pm_pcictrl_reg->pcitmoctrl_reg, addrbase + VIA_CRDR_PCITMOCTRL);
 }
 
@@ -442,22 +449,30 @@ static void via_restore_sdcreg(struct via_crdr_mmc_host *host)
 static void via_pwron_sleep(struct via_crdr_mmc_host *sdhost)
 {
 	if (sdhost->quirks & VIA_CRDR_QUIRK_300MS_PWRDELAY)
+	{
 		msleep(300);
+	}
 	else
+	{
 		msleep(3);
+	}
 }
 
 static void via_set_ddma(struct via_crdr_mmc_host *host,
-			 dma_addr_t dmaaddr, u32 count, int dir, int enirq)
+						 dma_addr_t dmaaddr, u32 count, int dir, int enirq)
 {
 	void __iomem *addrbase;
 	u32 ctrl_data = 0;
 
 	if (enirq)
+	{
 		ctrl_data |= VIA_CRDR_DMACTRL_ENIRQ;
+	}
 
 	if (dir)
+	{
 		ctrl_data |= VIA_CRDR_DMACTRL_DIR;
+	}
 
 	addrbase = host->ddma_mmiobase;
 
@@ -469,14 +484,16 @@ static void via_set_ddma(struct via_crdr_mmc_host *host,
 	/* It seems that our DMA can not work normally with 375kHz clock */
 	/* FIXME: don't brute-force 8MHz but use PIO at 375kHz !! */
 	addrbase = host->pcictrl_mmiobase;
-	if (readb(addrbase + VIA_CRDR_PCISDCCLK) == PCI_CLK_375K) {
+
+	if (readb(addrbase + VIA_CRDR_PCISDCCLK) == PCI_CLK_375K)
+	{
 		dev_info(host->mmc->parent, "forcing card speed to 8MHz\n");
 		writeb(PCI_CLK_8M, addrbase + VIA_CRDR_PCISDCCLK);
 	}
 }
 
 static void via_sdc_preparedata(struct via_crdr_mmc_host *host,
-				struct mmc_data *data)
+								struct mmc_data *data)
 {
 	void __iomem *addrbase;
 	u32 blk_reg;
@@ -491,12 +508,12 @@ static void via_sdc_preparedata(struct via_crdr_mmc_host *host,
 	host->data = data;
 
 	count = dma_map_sg(mmc_dev(host->mmc), data->sg, data->sg_len,
-		((data->flags & MMC_DATA_READ) ?
-		PCI_DMA_FROMDEVICE : PCI_DMA_TODEVICE));
+					   ((data->flags & MMC_DATA_READ) ?
+						PCI_DMA_FROMDEVICE : PCI_DMA_TODEVICE));
 	BUG_ON(count != 1);
 
 	via_set_ddma(host, sg_dma_address(data->sg), sg_dma_len(data->sg),
-		(data->flags & MMC_DATA_WRITE) ? 1 : 0, 1);
+				 (data->flags & MMC_DATA_WRITE) ? 1 : 0, 1);
 
 	addrbase = host->sdhc_mmiobase;
 
@@ -508,7 +525,7 @@ static void via_sdc_preparedata(struct via_crdr_mmc_host *host,
 }
 
 static void via_sdc_get_response(struct via_crdr_mmc_host *host,
-				 struct mmc_command *cmd)
+								 struct mmc_command *cmd)
 {
 	void __iomem *addrbase = host->sdhc_mmiobase;
 	u32 dwdata0 = readl(addrbase + VIA_CRDR_SDRESP0);
@@ -516,41 +533,44 @@ static void via_sdc_get_response(struct via_crdr_mmc_host *host,
 	u32 dwdata2 = readl(addrbase + VIA_CRDR_SDRESP2);
 	u32 dwdata3 = readl(addrbase + VIA_CRDR_SDRESP3);
 
-	if (cmd->flags & MMC_RSP_136) {
+	if (cmd->flags & MMC_RSP_136)
+	{
 		cmd->resp[0] = ((u8) (dwdata1)) |
-		    (((u8) (dwdata0 >> 24)) << 8) |
-		    (((u8) (dwdata0 >> 16)) << 16) |
-		    (((u8) (dwdata0 >> 8)) << 24);
+					   (((u8) (dwdata0 >> 24)) << 8) |
+					   (((u8) (dwdata0 >> 16)) << 16) |
+					   (((u8) (dwdata0 >> 8)) << 24);
 
 		cmd->resp[1] = ((u8) (dwdata2)) |
-		    (((u8) (dwdata1 >> 24)) << 8) |
-		    (((u8) (dwdata1 >> 16)) << 16) |
-		    (((u8) (dwdata1 >> 8)) << 24);
+					   (((u8) (dwdata1 >> 24)) << 8) |
+					   (((u8) (dwdata1 >> 16)) << 16) |
+					   (((u8) (dwdata1 >> 8)) << 24);
 
 		cmd->resp[2] = ((u8) (dwdata3)) |
-		    (((u8) (dwdata2 >> 24)) << 8) |
-		    (((u8) (dwdata2 >> 16)) << 16) |
-		    (((u8) (dwdata2 >> 8)) << 24);
+					   (((u8) (dwdata2 >> 24)) << 8) |
+					   (((u8) (dwdata2 >> 16)) << 16) |
+					   (((u8) (dwdata2 >> 8)) << 24);
 
 		cmd->resp[3] = 0xff |
-		    ((((u8) (dwdata3 >> 24))) << 8) |
-		    (((u8) (dwdata3 >> 16)) << 16) |
-		    (((u8) (dwdata3 >> 8)) << 24);
-	} else {
+					   ((((u8) (dwdata3 >> 24))) << 8) |
+					   (((u8) (dwdata3 >> 16)) << 16) |
+					   (((u8) (dwdata3 >> 8)) << 24);
+	}
+	else
+	{
 		dwdata0 >>= 8;
 		cmd->resp[0] = ((dwdata0 & 0xff) << 24) |
-		    (((dwdata0 >> 8) & 0xff) << 16) |
-		    (((dwdata0 >> 16) & 0xff) << 8) | (dwdata1 & 0xff);
+					   (((dwdata0 >> 8) & 0xff) << 16) |
+					   (((dwdata0 >> 16) & 0xff) << 8) | (dwdata1 & 0xff);
 
 		dwdata1 >>= 8;
 		cmd->resp[1] = ((dwdata1 & 0xff) << 24) |
-		    (((dwdata1 >> 8) & 0xff) << 16) |
-		    (((dwdata1 >> 16) & 0xff) << 8);
+					   (((dwdata1 >> 8) & 0xff) << 16) |
+					   (((dwdata1 >> 16) & 0xff) << 8);
 	}
 }
 
 static void via_sdc_send_command(struct via_crdr_mmc_host *host,
-				 struct mmc_command *cmd)
+								 struct mmc_command *cmd)
 {
 	void __iomem *addrbase;
 	struct mmc_data *data;
@@ -566,52 +586,72 @@ static void via_sdc_send_command(struct via_crdr_mmc_host *host,
 	cmdctrl = cmd->opcode << 8;
 
 	/*Response type*/
-	switch (mmc_resp_type(cmd)) {
-	case MMC_RSP_NONE:
-		cmdctrl |= VIA_CRDR_SDCTRL_RSP_NONE;
-		break;
-	case MMC_RSP_R1:
-		cmdctrl |= VIA_CRDR_SDCTRL_RSP_R1;
-		break;
-	case MMC_RSP_R1B:
-		cmdctrl |= VIA_CRDR_SDCTRL_RSP_R1B;
-		break;
-	case MMC_RSP_R2:
-		cmdctrl |= VIA_CRDR_SDCTRL_RSP_R2;
-		break;
-	case MMC_RSP_R3:
-		cmdctrl |= VIA_CRDR_SDCTRL_RSP_R3;
-		break;
-	default:
-		pr_err("%s: cmd->flag is not valid\n", mmc_hostname(host->mmc));
-		break;
+	switch (mmc_resp_type(cmd))
+	{
+		case MMC_RSP_NONE:
+			cmdctrl |= VIA_CRDR_SDCTRL_RSP_NONE;
+			break;
+
+		case MMC_RSP_R1:
+			cmdctrl |= VIA_CRDR_SDCTRL_RSP_R1;
+			break;
+
+		case MMC_RSP_R1B:
+			cmdctrl |= VIA_CRDR_SDCTRL_RSP_R1B;
+			break;
+
+		case MMC_RSP_R2:
+			cmdctrl |= VIA_CRDR_SDCTRL_RSP_R2;
+			break;
+
+		case MMC_RSP_R3:
+			cmdctrl |= VIA_CRDR_SDCTRL_RSP_R3;
+			break;
+
+		default:
+			pr_err("%s: cmd->flag is not valid\n", mmc_hostname(host->mmc));
+			break;
 	}
 
 	if (!(cmd->data))
+	{
 		goto nodata;
+	}
 
 	via_sdc_preparedata(host, data);
 
 	/*Command control*/
-	if (data->blocks > 1) {
-		if (data->flags & MMC_DATA_WRITE) {
+	if (data->blocks > 1)
+	{
+		if (data->flags & MMC_DATA_WRITE)
+		{
 			cmdctrl |= VIA_CRDR_SDCTRL_WRITE;
 			cmdctrl |= VIA_CRDR_SDCTRL_MULTI_WR;
-		} else {
+		}
+		else
+		{
 			cmdctrl |= VIA_CRDR_SDCTRL_MULTI_RD;
 		}
-	} else {
-		if (data->flags & MMC_DATA_WRITE) {
+	}
+	else
+	{
+		if (data->flags & MMC_DATA_WRITE)
+		{
 			cmdctrl |= VIA_CRDR_SDCTRL_WRITE;
 			cmdctrl |= VIA_CRDR_SDCTRL_SINGLE_WR;
-		} else {
+		}
+		else
+		{
 			cmdctrl |= VIA_CRDR_SDCTRL_SINGLE_RD;
 		}
 	}
 
 nodata:
+
 	if (cmd == host->mrq->stop)
+	{
 		cmdctrl |= VIA_CRDR_SDCTRL_STOP;
+	}
 
 	cmdctrl |= VIA_CRDR_SDCTRL_START;
 
@@ -630,18 +670,26 @@ static void via_sdc_finish_data(struct via_crdr_mmc_host *host)
 	host->data = NULL;
 
 	if (data->error)
+	{
 		data->bytes_xfered = 0;
+	}
 	else
+	{
 		data->bytes_xfered = data->blocks * data->blksz;
+	}
 
 	dma_unmap_sg(mmc_dev(host->mmc), data->sg, data->sg_len,
-		((data->flags & MMC_DATA_READ) ?
-		PCI_DMA_FROMDEVICE : PCI_DMA_TODEVICE));
+				 ((data->flags & MMC_DATA_READ) ?
+				  PCI_DMA_FROMDEVICE : PCI_DMA_TODEVICE));
 
 	if (data->stop)
+	{
 		via_sdc_send_command(host, data->stop);
+	}
 	else
+	{
 		tasklet_schedule(&host->finish_tasklet);
+	}
 }
 
 static void via_sdc_finish_command(struct via_crdr_mmc_host *host)
@@ -651,7 +699,9 @@ static void via_sdc_finish_command(struct via_crdr_mmc_host *host)
 	host->cmd->error = 0;
 
 	if (!host->cmd->data)
+	{
 		tasklet_schedule(&host->finish_tasklet);
+	}
 
 	host->cmd = NULL;
 }
@@ -678,10 +728,14 @@ static void via_sdc_request(struct mmc_host *mmc, struct mmc_request *mrq)
 	host->mrq = mrq;
 
 	status = readw(host->sdhc_mmiobase + VIA_CRDR_SDSTATUS);
-	if (!(status & VIA_CRDR_SDSTS_SLOTG) || host->reject) {
+
+	if (!(status & VIA_CRDR_SDSTS_SLOTG) || host->reject)
+	{
 		host->mrq->cmd->error = -ENOMEDIUM;
 		tasklet_schedule(&host->finish_tasklet);
-	} else {
+	}
+	else
+	{
 		via_sdc_send_command(host, mrq->cmd);
 	}
 
@@ -690,7 +744,7 @@ static void via_sdc_request(struct mmc_host *mmc, struct mmc_request *mrq)
 }
 
 static void via_sdc_set_power(struct via_crdr_mmc_host *host,
-			      unsigned short power, unsigned int on)
+							  unsigned short power, unsigned int on)
 {
 	unsigned long flags;
 	u8 gatt;
@@ -700,14 +754,25 @@ static void via_sdc_set_power(struct via_crdr_mmc_host *host,
 	host->power = (1 << power);
 
 	gatt = readb(host->pcictrl_mmiobase + VIA_CRDR_PCICLKGATT);
+
 	if (host->power == MMC_VDD_165_195)
+	{
 		gatt &= ~VIA_CRDR_PCICLKGATT_3V3;
+	}
 	else
+	{
 		gatt |= VIA_CRDR_PCICLKGATT_3V3;
+	}
+
 	if (on)
+	{
 		gatt |= VIA_CRDR_PCICLKGATT_PAD_PWRON;
+	}
 	else
+	{
 		gatt &= ~VIA_CRDR_PCICLKGATT_PAD_PWRON;
+	}
+
 	writeb(gatt, host->pcictrl_mmiobase + VIA_CRDR_PCICLKGATT);
 
 	mmiowb();
@@ -733,49 +798,82 @@ static void via_sdc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 	sdextctrl = readl(addrbase + VIA_CRDR_SDEXTCTRL);
 
 	if (ios->bus_width == MMC_BUS_WIDTH_1)
+	{
 		org_data &= ~VIA_CRDR_SDMODE_4BIT;
+	}
 	else
+	{
 		org_data |= VIA_CRDR_SDMODE_4BIT;
+	}
 
 	if (ios->power_mode == MMC_POWER_OFF)
+	{
 		org_data &= ~VIA_CRDR_SDMODE_CLK_ON;
+	}
 	else
+	{
 		org_data |= VIA_CRDR_SDMODE_CLK_ON;
+	}
 
 	if (ios->timing == MMC_TIMING_SD_HS)
+	{
 		sdextctrl |= VIA_CRDR_SDEXTCTRL_HISPD;
+	}
 	else
+	{
 		sdextctrl &= ~VIA_CRDR_SDEXTCTRL_HISPD;
+	}
 
 	writel(org_data, addrbase + VIA_CRDR_SDBUSMODE);
 	writel(sdextctrl, addrbase + VIA_CRDR_SDEXTCTRL);
 
 	if (ios->clock >= 48000000)
+	{
 		clock = PCI_CLK_48M;
+	}
 	else if (ios->clock >= 33000000)
+	{
 		clock = PCI_CLK_33M;
+	}
 	else if (ios->clock >= 24000000)
+	{
 		clock = PCI_CLK_24M;
+	}
 	else if (ios->clock >= 16000000)
+	{
 		clock = PCI_CLK_16M;
+	}
 	else if (ios->clock >= 12000000)
+	{
 		clock = PCI_CLK_12M;
+	}
 	else if (ios->clock >=  8000000)
+	{
 		clock = PCI_CLK_8M;
+	}
 	else
+	{
 		clock = PCI_CLK_375K;
+	}
 
 	addrbase = host->pcictrl_mmiobase;
+
 	if (readb(addrbase + VIA_CRDR_PCISDCCLK) != clock)
+	{
 		writeb(clock, addrbase + VIA_CRDR_PCISDCCLK);
+	}
 
 	mmiowb();
 	spin_unlock_irqrestore(&host->lock, flags);
 
 	if (ios->power_mode != MMC_POWER_OFF)
+	{
 		via_sdc_set_power(host, ios->vdd, 1);
+	}
 	else
+	{
 		via_sdc_set_power(host, ios->vdd, 0);
+	}
 }
 
 static int via_sdc_get_ro(struct mmc_host *mmc)
@@ -795,7 +893,8 @@ static int via_sdc_get_ro(struct mmc_host *mmc)
 	return !(status & VIA_CRDR_SDSTS_WP);
 }
 
-static const struct mmc_host_ops via_sdc_ops = {
+static const struct mmc_host_ops via_sdc_ops =
+{
 	.request = via_sdc_request,
 	.set_ios = via_sdc_set_ios,
 	.get_ro = via_sdc_get_ro,
@@ -814,10 +913,16 @@ static void via_reset_pcictrl(struct via_crdr_mmc_host *host)
 	spin_unlock_irqrestore(&host->lock, flags);
 
 	gatt = VIA_CRDR_PCICLKGATT_PAD_PWRON;
+
 	if (host->power == MMC_VDD_165_195)
+	{
 		gatt &= VIA_CRDR_PCICLKGATT_3V3;
+	}
 	else
+	{
 		gatt |= VIA_CRDR_PCICLKGATT_3V3;
+	}
+
 	writeb(gatt, host->pcictrl_mmiobase + VIA_CRDR_PCICLKGATT);
 	via_pwron_sleep(host);
 	gatt |= VIA_CRDR_PCICLKGATT_SFTRST;
@@ -837,22 +942,31 @@ static void via_sdc_cmd_isr(struct via_crdr_mmc_host *host, u16 intmask)
 {
 	BUG_ON(intmask == 0);
 
-	if (!host->cmd) {
+	if (!host->cmd)
+	{
 		pr_err("%s: Got command interrupt 0x%x even "
-		       "though no command operation was in progress.\n",
-		       mmc_hostname(host->mmc), intmask);
+			   "though no command operation was in progress.\n",
+			   mmc_hostname(host->mmc), intmask);
 		return;
 	}
 
 	if (intmask & VIA_CRDR_SDSTS_CRTO)
+	{
 		host->cmd->error = -ETIMEDOUT;
+	}
 	else if (intmask & VIA_CRDR_SDSTS_SC)
+	{
 		host->cmd->error = -EILSEQ;
+	}
 
 	if (host->cmd->error)
+	{
 		tasklet_schedule(&host->finish_tasklet);
+	}
 	else if (intmask & VIA_CRDR_SDSTS_CRD)
+	{
 		via_sdc_finish_command(host);
+	}
 }
 
 static void via_sdc_data_isr(struct via_crdr_mmc_host *host, u16 intmask)
@@ -860,9 +974,13 @@ static void via_sdc_data_isr(struct via_crdr_mmc_host *host, u16 intmask)
 	BUG_ON(intmask == 0);
 
 	if (intmask & VIA_CRDR_SDSTS_DT)
+	{
 		host->data->error = -ETIMEDOUT;
+	}
 	else if (intmask & (VIA_CRDR_SDSTS_RC | VIA_CRDR_SDSTS_WC))
+	{
 		host->data->error = -EILSEQ;
+	}
 
 	via_sdc_finish_data(host);
 }
@@ -876,13 +994,17 @@ static irqreturn_t via_sdc_isr(int irq, void *dev_id)
 	irqreturn_t result;
 
 	if (!sdhost)
+	{
 		return IRQ_NONE;
+	}
 
 	spin_lock(&sdhost->lock);
 
 	addrbase = sdhost->pcictrl_mmiobase;
 	pci_status = readb(addrbase + VIA_CRDR_PCIINTSTATUS);
-	if (!(pci_status & VIA_CRDR_PCIINTSTATUS_SDC)) {
+
+	if (!(pci_status & VIA_CRDR_PCIINTSTATUS_SDC))
+	{
 		result = IRQ_NONE;
 		goto out;
 	}
@@ -891,34 +1013,43 @@ static irqreturn_t via_sdc_isr(int irq, void *dev_id)
 	sd_status = readw(addrbase + VIA_CRDR_SDSTATUS);
 	sd_status &= VIA_CRDR_SDSTS_INT_MASK;
 	sd_status &= ~VIA_CRDR_SDSTS_IGN_MASK;
-	if (!sd_status) {
+
+	if (!sd_status)
+	{
 		result = IRQ_NONE;
 		goto out;
 	}
 
-	if (sd_status & VIA_CRDR_SDSTS_CIR) {
+	if (sd_status & VIA_CRDR_SDSTS_CIR)
+	{
 		writew(sd_status & VIA_CRDR_SDSTS_CIR,
-			addrbase + VIA_CRDR_SDSTATUS);
+			   addrbase + VIA_CRDR_SDSTATUS);
 
 		schedule_work(&sdhost->carddet_work);
 	}
 
 	sd_status &= ~VIA_CRDR_SDSTS_CIR;
-	if (sd_status & VIA_CRDR_SDSTS_CMD_MASK) {
+
+	if (sd_status & VIA_CRDR_SDSTS_CMD_MASK)
+	{
 		writew(sd_status & VIA_CRDR_SDSTS_CMD_MASK,
-			addrbase + VIA_CRDR_SDSTATUS);
+			   addrbase + VIA_CRDR_SDSTATUS);
 		via_sdc_cmd_isr(sdhost, sd_status & VIA_CRDR_SDSTS_CMD_MASK);
 	}
-	if (sd_status & VIA_CRDR_SDSTS_DATA_MASK) {
+
+	if (sd_status & VIA_CRDR_SDSTS_DATA_MASK)
+	{
 		writew(sd_status & VIA_CRDR_SDSTS_DATA_MASK,
-			addrbase + VIA_CRDR_SDSTATUS);
+			   addrbase + VIA_CRDR_SDSTATUS);
 		via_sdc_data_isr(sdhost, sd_status & VIA_CRDR_SDSTS_DATA_MASK);
 	}
 
 	sd_status &= ~(VIA_CRDR_SDSTS_CMD_MASK | VIA_CRDR_SDSTS_DATA_MASK);
-	if (sd_status) {
+
+	if (sd_status)
+	{
 		pr_err("%s: Unexpected interrupt 0x%x\n",
-		       mmc_hostname(sdhost->mmc), sd_status);
+			   mmc_hostname(sdhost->mmc), sd_status);
 		writew(sd_status, addrbase + VIA_CRDR_SDSTATUS);
 	}
 
@@ -940,21 +1071,30 @@ static void via_sdc_timeout(unsigned long ulongdata)
 
 	spin_lock_irqsave(&sdhost->lock, flags);
 
-	if (sdhost->mrq) {
+	if (sdhost->mrq)
+	{
 		pr_err("%s: Timeout waiting for hardware interrupt."
-		       "cmd:0x%x\n", mmc_hostname(sdhost->mmc),
-		       sdhost->mrq->cmd->opcode);
+			   "cmd:0x%x\n", mmc_hostname(sdhost->mmc),
+			   sdhost->mrq->cmd->opcode);
 
-		if (sdhost->data) {
+		if (sdhost->data)
+		{
 			writel(VIA_CRDR_DMACTRL_SFTRST,
-				sdhost->ddma_mmiobase + VIA_CRDR_DMACTRL);
+				   sdhost->ddma_mmiobase + VIA_CRDR_DMACTRL);
 			sdhost->data->error = -ETIMEDOUT;
 			via_sdc_finish_data(sdhost);
-		} else {
+		}
+		else
+		{
 			if (sdhost->cmd)
+			{
 				sdhost->cmd->error = -ETIMEDOUT;
+			}
 			else
+			{
 				sdhost->mrq->cmd->error = -ETIMEDOUT;
+			}
+
 			tasklet_schedule(&sdhost->finish_tasklet);
 		}
 	}
@@ -1003,10 +1143,13 @@ static void via_sdc_card_detect(struct work_struct *work)
 
 	addrbase = host->sdhc_mmiobase;
 	status = readw(addrbase + VIA_CRDR_SDSTATUS);
-	if (!(status & VIA_CRDR_SDSTS_SLOTG)) {
-		if (host->mrq) {
+
+	if (!(status & VIA_CRDR_SDSTS_SLOTG))
+	{
+		if (host->mrq)
+		{
 			pr_err("%s: Card removed during transfer!\n",
-			       mmc_hostname(host->mmc));
+				   mmc_hostname(host->mmc));
 			host->mrq->cmd->error = -ENOMEDIUM;
 			tasklet_schedule(&host->finish_tasklet);
 		}
@@ -1059,7 +1202,7 @@ static void via_init_mmc_host(struct via_crdr_mmc_host *host)
 	INIT_WORK(&host->carddet_work, via_sdc_card_detect);
 
 	tasklet_init(&host->finish_tasklet, via_sdc_tasklet_finish,
-		     (unsigned long)host);
+				 (unsigned long)host);
 
 	addrbase = host->sdhc_mmiobase;
 	writel(0x0, addrbase + VIA_CRDR_SDINTMASK);
@@ -1083,7 +1226,7 @@ static void via_init_mmc_host(struct via_crdr_mmc_host *host)
 }
 
 static int via_sd_probe(struct pci_dev *pcidev,
-				    const struct pci_device_id *id)
+						const struct pci_device_id *id)
 {
 	struct mmc_host *mmc;
 	struct via_crdr_mmc_host *sdhost;
@@ -1092,23 +1235,31 @@ static int via_sd_probe(struct pci_dev *pcidev,
 	int ret;
 
 	pr_info(DRV_NAME
-		": VIA SDMMC controller found at %s [%04x:%04x] (rev %x)\n",
-		pci_name(pcidev), (int)pcidev->vendor, (int)pcidev->device,
-		(int)pcidev->revision);
+			": VIA SDMMC controller found at %s [%04x:%04x] (rev %x)\n",
+			pci_name(pcidev), (int)pcidev->vendor, (int)pcidev->device,
+			(int)pcidev->revision);
 
 	ret = pci_enable_device(pcidev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = pci_request_regions(pcidev, DRV_NAME);
+
 	if (ret)
+	{
 		goto disable;
+	}
 
 	pci_write_config_byte(pcidev, VIA_CRDR_PCI_WORK_MODE, 0);
 	pci_write_config_byte(pcidev, VIA_CRDR_PCI_DBG_MODE, 0);
 
 	mmc = mmc_alloc_host(sizeof(struct via_crdr_mmc_host), &pcidev->dev);
-	if (!mmc) {
+
+	if (!mmc)
+	{
 		ret = -ENOMEM;
 		goto release;
 	}
@@ -1120,7 +1271,9 @@ static int via_sd_probe(struct pci_dev *pcidev,
 	len = pci_resource_len(pcidev, 0);
 	base = pci_resource_start(pcidev, 0);
 	sdhost->mmiobase = ioremap_nocache(base, len);
-	if (!sdhost->mmiobase) {
+
+	if (!sdhost->mmiobase)
+	{
 		ret = -ENOMEM;
 		goto free_mmc_host;
 	}
@@ -1144,20 +1297,25 @@ static int via_sd_probe(struct pci_dev *pcidev,
 	via_init_mmc_host(sdhost);
 
 	ret =
-	    request_irq(pcidev->irq, via_sdc_isr, IRQF_SHARED, DRV_NAME,
-			sdhost);
+		request_irq(pcidev->irq, via_sdc_isr, IRQF_SHARED, DRV_NAME,
+					sdhost);
+
 	if (ret)
+	{
 		goto unmap;
+	}
 
 	writeb(VIA_CRDR_PCIINTCTRL_SDCIRQEN,
-	       sdhost->pcictrl_mmiobase + VIA_CRDR_PCIINTCTRL);
+		   sdhost->pcictrl_mmiobase + VIA_CRDR_PCIINTCTRL);
 	writeb(VIA_CRDR_PCITMOCTRL_1024MS,
-	       sdhost->pcictrl_mmiobase + VIA_CRDR_PCITMOCTRL);
+		   sdhost->pcictrl_mmiobase + VIA_CRDR_PCITMOCTRL);
 
 	/* device-specific quirks */
 	if (pcidev->subsystem_vendor == PCI_VENDOR_ID_LENOVO &&
-	    pcidev->subsystem_device == 0x3891)
+		pcidev->subsystem_device == 0x3891)
+	{
 		sdhost->quirks = VIA_CRDR_QUIRK_300MS_PWRDELAY;
+	}
 
 	mmc_add_host(mmc);
 
@@ -1191,19 +1349,25 @@ static void via_sd_remove(struct pci_dev *pcidev)
 	writeb(0x0, sdhost->pcictrl_mmiobase + VIA_CRDR_PCIINTCTRL);
 	mmiowb();
 
-	if (sdhost->mrq) {
+	if (sdhost->mrq)
+	{
 		pr_err("%s: Controller removed during "
-			"transfer\n", mmc_hostname(sdhost->mmc));
+			   "transfer\n", mmc_hostname(sdhost->mmc));
 
 		/* make sure all DMA is stopped */
 		writel(VIA_CRDR_DMACTRL_SFTRST,
-			sdhost->ddma_mmiobase + VIA_CRDR_DMACTRL);
+			   sdhost->ddma_mmiobase + VIA_CRDR_DMACTRL);
 		mmiowb();
 		sdhost->mrq->cmd->error = -ENOMEDIUM;
+
 		if (sdhost->mrq->stop)
+		{
 			sdhost->mrq->stop->error = -ENOMEDIUM;
+		}
+
 		tasklet_schedule(&sdhost->finish_tasklet);
 	}
+
 	spin_unlock_irqrestore(&sdhost->lock, flags);
 
 	mmc_remove_host(sdhost->mmc);
@@ -1226,8 +1390,8 @@ static void via_sd_remove(struct pci_dev *pcidev)
 	pci_disable_device(pcidev);
 
 	pr_info(DRV_NAME
-		": VIA SDMMC controller at %s [%04x:%04x] has been removed\n",
-		pci_name(pcidev), (int)pcidev->vendor, (int)pcidev->device);
+			": VIA SDMMC controller at %s [%04x:%04x] has been removed\n",
+			pci_name(pcidev), (int)pcidev->vendor, (int)pcidev->device);
 }
 
 #ifdef CONFIG_PM
@@ -1292,10 +1456,16 @@ static int via_sd_resume(struct pci_dev *pcidev)
 	sdhost = pci_get_drvdata(pcidev);
 
 	gatt = VIA_CRDR_PCICLKGATT_PAD_PWRON;
+
 	if (sdhost->power == MMC_VDD_165_195)
+	{
 		gatt &= ~VIA_CRDR_PCICLKGATT_3V3;
+	}
 	else
+	{
 		gatt |= VIA_CRDR_PCICLKGATT_3V3;
+	}
+
 	writeb(gatt, sdhost->pcictrl_mmiobase + VIA_CRDR_PCICLKGATT);
 	via_pwron_sleep(sdhost);
 	gatt |= VIA_CRDR_PCICLKGATT_SFTRST;
@@ -1307,8 +1477,11 @@ static int via_sd_resume(struct pci_dev *pcidev)
 	pci_set_power_state(pcidev, PCI_D0);
 	pci_restore_state(pcidev);
 	ret = pci_enable_device(pcidev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	via_restore_pcictrlreg(sdhost);
 	via_init_sdc_pm(sdhost);
@@ -1323,7 +1496,8 @@ static int via_sd_resume(struct pci_dev *pcidev)
 
 #endif /* CONFIG_PM */
 
-static struct pci_driver via_sd_driver = {
+static struct pci_driver via_sd_driver =
+{
 	.name = DRV_NAME,
 	.id_table = via_ids,
 	.probe = via_sd_probe,

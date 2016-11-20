@@ -38,19 +38,23 @@
 #include <linux/virtio_ids.h>
 #include <linux/virtio_config.h>
 
-struct virtio_vsock_config {
+struct virtio_vsock_config
+{
 	__le64 guest_cid;
 } __attribute__((packed));
 
-enum virtio_vsock_event_id {
+enum virtio_vsock_event_id
+{
 	VIRTIO_VSOCK_EVENT_TRANSPORT_RESET = 0,
 };
 
-struct virtio_vsock_event {
+struct virtio_vsock_event
+{
 	__le32 id;
 } __attribute__((packed));
 
-struct virtio_vsock_hdr {
+struct virtio_vsock_hdr
+{
 	__le64	src_cid;
 	__le64	dst_cid;
 	__le32	src_port;
@@ -63,11 +67,13 @@ struct virtio_vsock_hdr {
 	__le32	fwd_cnt;
 } __attribute__((packed));
 
-enum virtio_vsock_type {
+enum virtio_vsock_type
+{
 	VIRTIO_VSOCK_TYPE_STREAM = 1,
 };
 
-enum virtio_vsock_op {
+enum virtio_vsock_op
+{
 	VIRTIO_VSOCK_OP_INVALID = 0,
 
 	/* Connect operations */
@@ -86,7 +92,8 @@ enum virtio_vsock_op {
 };
 
 /* VIRTIO_VSOCK_OP_SHUTDOWN flags values */
-enum virtio_vsock_shutdown {
+enum virtio_vsock_shutdown
+{
 	VIRTIO_VSOCK_SHUTDOWN_RCV = 1,
 	VIRTIO_VSOCK_SHUTDOWN_SEND = 2,
 };

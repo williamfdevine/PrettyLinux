@@ -49,7 +49,8 @@ MODULE_PARM_DESC(irq, "ACCES 104-IDIO-16 interrupt line numbers");
  * @irq:	Interrupt line number
  * @out_state:	output bits state
  */
-struct idio_16_gpio {
+struct idio_16_gpio
+{
 	struct gpio_chip chip;
 	spinlock_t lock;
 	unsigned long irq_mask;
@@ -61,7 +62,9 @@ struct idio_16_gpio {
 static int idio_16_gpio_get_direction(struct gpio_chip *chip, unsigned offset)
 {
 	if (offset > 15)
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -72,7 +75,7 @@ static int idio_16_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
 }
 
 static int idio_16_gpio_direction_output(struct gpio_chip *chip,
-	unsigned offset, int value)
+		unsigned offset, int value)
 {
 	chip->set(chip, offset, value);
 	return 0;
@@ -81,15 +84,19 @@ static int idio_16_gpio_direction_output(struct gpio_chip *chip,
 static int idio_16_gpio_get(struct gpio_chip *chip, unsigned offset)
 {
 	struct idio_16_gpio *const idio16gpio = gpiochip_get_data(chip);
-	const unsigned mask = BIT(offset-16);
+	const unsigned mask = BIT(offset - 16);
 
 	if (offset < 16)
+	{
 		return -EINVAL;
+	}
 
 	if (offset < 24)
+	{
 		return !!(inb(idio16gpio->base + 1) & mask);
+	}
 
-	return !!(inb(idio16gpio->base + 5) & (mask>>8));
+	return !!(inb(idio16gpio->base + 5) & (mask >> 8));
 }
 
 static void idio_16_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
@@ -99,19 +106,29 @@ static void idio_16_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 	unsigned long flags;
 
 	if (offset > 15)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&idio16gpio->lock, flags);
 
 	if (value)
+	{
 		idio16gpio->out_state |= mask;
+	}
 	else
+	{
 		idio16gpio->out_state &= ~mask;
+	}
 
 	if (offset > 7)
+	{
 		outb(idio16gpio->out_state >> 8, idio16gpio->base + 4);
+	}
 	else
+	{
 		outb(idio16gpio->out_state, idio16gpio->base);
+	}
 
 	spin_unlock_irqrestore(&idio16gpio->lock, flags);
 }
@@ -129,7 +146,8 @@ static void idio_16_irq_mask(struct irq_data *data)
 
 	idio16gpio->irq_mask &= ~mask;
 
-	if (!idio16gpio->irq_mask) {
+	if (!idio16gpio->irq_mask)
+	{
 		spin_lock_irqsave(&idio16gpio->lock, flags);
 
 		outb(0, idio16gpio->base + 2);
@@ -148,7 +166,8 @@ static void idio_16_irq_unmask(struct irq_data *data)
 
 	idio16gpio->irq_mask |= mask;
 
-	if (!prev_irq_mask) {
+	if (!prev_irq_mask)
+	{
 		spin_lock_irqsave(&idio16gpio->lock, flags);
 
 		inb(idio16gpio->base + 2);
@@ -162,12 +181,15 @@ static int idio_16_irq_set_type(struct irq_data *data, unsigned flow_type)
 	/* The only valid irq types are none and both-edges */
 	if (flow_type != IRQ_TYPE_NONE &&
 		(flow_type & IRQ_TYPE_EDGE_BOTH) != IRQ_TYPE_EDGE_BOTH)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
-static struct irq_chip idio_16_irqchip = {
+static struct irq_chip idio_16_irqchip =
+{
 	.name = "104-idio-16",
 	.irq_ack = idio_16_irq_ack,
 	.irq_mask = idio_16_irq_mask,
@@ -182,7 +204,7 @@ static irqreturn_t idio_16_irq_handler(int irq, void *dev_id)
 	int gpio;
 
 	for_each_set_bit(gpio, &idio16gpio->irq_mask, chip->ngpio)
-		generic_handle_irq(irq_find_mapping(chip->irqdomain, gpio));
+	generic_handle_irq(irq_find_mapping(chip->irqdomain, gpio));
 
 	spin_lock(&idio16gpio->lock);
 
@@ -200,12 +222,16 @@ static int idio_16_probe(struct device *dev, unsigned int id)
 	int err;
 
 	idio16gpio = devm_kzalloc(dev, sizeof(*idio16gpio), GFP_KERNEL);
-	if (!idio16gpio)
-		return -ENOMEM;
 
-	if (!devm_request_region(dev, base[id], IDIO_16_EXTENT, name)) {
+	if (!idio16gpio)
+	{
+		return -ENOMEM;
+	}
+
+	if (!devm_request_region(dev, base[id], IDIO_16_EXTENT, name))
+	{
 		dev_err(dev, "Unable to lock port addresses (0x%X-0x%X)\n",
-			base[id], base[id] + IDIO_16_EXTENT);
+				base[id], base[id] + IDIO_16_EXTENT);
 		return -EBUSY;
 	}
 
@@ -228,7 +254,9 @@ static int idio_16_probe(struct device *dev, unsigned int id)
 	dev_set_drvdata(dev, idio16gpio);
 
 	err = gpiochip_add_data(&idio16gpio->chip, idio16gpio);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "GPIO registering failed (%d)\n", err);
 		return err;
 	}
@@ -238,14 +266,18 @@ static int idio_16_probe(struct device *dev, unsigned int id)
 	outb(0, base[id] + 1);
 
 	err = gpiochip_irqchip_add(&idio16gpio->chip, &idio_16_irqchip, 0,
-		handle_edge_irq, IRQ_TYPE_NONE);
-	if (err) {
+							   handle_edge_irq, IRQ_TYPE_NONE);
+
+	if (err)
+	{
 		dev_err(dev, "Could not add irqchip (%d)\n", err);
 		goto err_gpiochip_remove;
 	}
 
 	err = request_irq(irq[id], idio_16_irq_handler, 0, name, idio16gpio);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "IRQ handler registering failed (%d)\n", err);
 		goto err_gpiochip_remove;
 	}
@@ -267,7 +299,8 @@ static int idio_16_remove(struct device *dev, unsigned int id)
 	return 0;
 }
 
-static struct isa_driver idio_16_driver = {
+static struct isa_driver idio_16_driver =
+{
 	.probe = idio_16_probe,
 	.driver = {
 		.name = "104-idio-16"

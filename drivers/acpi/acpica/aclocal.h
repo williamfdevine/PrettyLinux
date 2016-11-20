@@ -89,7 +89,8 @@ union acpi_parse_object;
 
 /* Lock structure for reader/writer interfaces */
 
-struct acpi_rw_lock {
+struct acpi_rw_lock
+{
 	acpi_mutex writer_mutex;
 	acpi_mutex reader_mutex;
 	u32 num_readers;
@@ -112,14 +113,15 @@ struct acpi_rw_lock {
 /* This Thread ID means an invalid thread ID */
 
 #ifdef ACPI_OS_INVALID_THREAD_ID
-#define ACPI_INVALID_THREAD_ID          ACPI_OS_INVALID_THREAD_ID
+	#define ACPI_INVALID_THREAD_ID          ACPI_OS_INVALID_THREAD_ID
 #else
-#define ACPI_INVALID_THREAD_ID          ((acpi_thread_id) 0xFFFFFFFF)
+	#define ACPI_INVALID_THREAD_ID          ((acpi_thread_id) 0xFFFFFFFF)
 #endif
 
 /* Table for the global mutexes */
 
-struct acpi_mutex_info {
+struct acpi_mutex_info
+{
 	acpi_mutex mutex;
 	u32 use_count;
 	acpi_thread_id thread_id;
@@ -147,7 +149,8 @@ struct acpi_mutex_info {
 
 /* Operational modes of the AML interpreter/scanner */
 
-typedef enum {
+typedef enum
+{
 	ACPI_IMODE_LOAD_PASS1 = 0x01,
 	ACPI_IMODE_LOAD_PASS2 = 0x02,
 	ACPI_IMODE_EXECUTE = 0x03
@@ -164,7 +167,8 @@ typedef enum {
  * position in both the struct acpi_namespace_node and union acpi_operand_object
  * structures.
  */
-struct acpi_namespace_node {
+struct acpi_namespace_node
+{
 	union acpi_operand_object *object;	/* Interpreter object */
 	u8 descriptor_type;	/* Differentiate object descriptor types */
 	u8 type;		/* ACPI Type associated with this name */
@@ -206,7 +210,8 @@ struct acpi_namespace_node {
 
 /* Internal ACPI table management - master table list */
 
-struct acpi_table_list {
+struct acpi_table_list
+{
 	struct acpi_table_desc *tables;	/* Table descriptor array */
 	u32 current_table_count;	/* Tables currently in the array */
 	u32 max_table_count;	/* Max tables array will hold */
@@ -221,7 +226,8 @@ struct acpi_table_list {
 
 /* List to manage incoming ACPI tables */
 
-struct acpi_new_table_desc {
+struct acpi_new_table_desc
+{
 	struct acpi_table_header *table;
 	struct acpi_new_table_desc *next;
 };
@@ -230,13 +236,15 @@ struct acpi_new_table_desc {
 
 #define ACPI_INVALID_TABLE_INDEX        (0xFFFFFFFF)
 
-struct acpi_find_context {
+struct acpi_find_context
+{
 	char *search_for;
 	acpi_handle *list;
 	u32 *count;
 };
 
-struct acpi_ns_search_data {
+struct acpi_ns_search_data
+{
 	struct acpi_namespace_node *node;
 };
 
@@ -247,7 +255,8 @@ struct acpi_ns_search_data {
 
 /* Info structure used to convert external<->internal namestrings */
 
-struct acpi_namestring_info {
+struct acpi_namestring_info
+{
 	const char *external_name;
 	const char *next_external_char;
 	char *internal_name;
@@ -259,7 +268,8 @@ struct acpi_namestring_info {
 
 /* Field creation info */
 
-struct acpi_create_field_info {
+struct acpi_create_field_info
+{
 	struct acpi_namespace_node *region_node;
 	struct acpi_namespace_node *field_node;
 	struct acpi_namespace_node *register_node;
@@ -278,7 +288,7 @@ struct acpi_create_field_info {
 };
 
 typedef
-acpi_status (*acpi_internal_method) (struct acpi_walk_state * walk_state);
+acpi_status (*acpi_internal_method) (struct acpi_walk_state *walk_state);
 
 /*
  * Bitmapped ACPI types. Used internally only
@@ -308,7 +318,7 @@ acpi_status (*acpi_internal_method) (struct acpi_walk_state * walk_state);
 
 #define ACPI_BTYPE_DATA                 (ACPI_BTYPE_COMPUTE_DATA  | ACPI_BTYPE_PACKAGE)
 
-	/* Used by Copy, de_ref_of, Store, Printf, Fprintf */
+/* Used by Copy, de_ref_of, Store, Printf, Fprintf */
 
 #define ACPI_BTYPE_DATA_REFERENCE       (ACPI_BTYPE_DATA | ACPI_BTYPE_REFERENCE_OBJECT | ACPI_BTYPE_DDB_HANDLE)
 #define ACPI_BTYPE_DEVICE_OBJECTS       (ACPI_BTYPE_DEVICE | ACPI_BTYPE_THERMAL | ACPI_BTYPE_PROCESSOR)
@@ -325,7 +335,8 @@ acpi_status (*acpi_internal_method) (struct acpi_walk_state * walk_state);
  * param_count          - Number of arguments to the method
  * expected_return_btypes - Allowed type(s) for the return value
  */
-struct acpi_name_info {
+struct acpi_name_info
+{
 	char name[ACPI_NAME_SIZE];
 	u16 argument_list;
 	u8 expected_btypes;
@@ -344,7 +355,8 @@ struct acpi_name_info {
  * ACPI_PTYPE2_MIN, ACPI_PTYPE2_PKG_COUNT, ACPI_PTYPE2_COUNT,
  * ACPI_PTYPE2_FIX_VAR
  */
-struct acpi_package_info {
+struct acpi_package_info
+{
 	u8 type;
 	u8 object_type1;
 	u8 count1;
@@ -355,7 +367,8 @@ struct acpi_package_info {
 
 /* Used for ACPI_PTYPE2_FIXED */
 
-struct acpi_package_info2 {
+struct acpi_package_info2
+{
 	u8 type;
 	u8 count;
 	u8 object_type[4];
@@ -364,7 +377,8 @@ struct acpi_package_info2 {
 
 /* Used for ACPI_PTYPE1_OPTION */
 
-struct acpi_package_info3 {
+struct acpi_package_info3
+{
 	u8 type;
 	u8 count;
 	u8 object_type[2];
@@ -372,7 +386,8 @@ struct acpi_package_info3 {
 	u16 reserved;
 };
 
-struct acpi_package_info4 {
+struct acpi_package_info4
+{
 	u8 type;
 	u8 object_type1;
 	u8 count1;
@@ -381,7 +396,8 @@ struct acpi_package_info4 {
 	u16 reserved;
 };
 
-union acpi_predefined_info {
+union acpi_predefined_info
+{
 	struct acpi_name_info info;
 	struct acpi_package_info ret_info;
 	struct acpi_package_info2 ret_info2;
@@ -396,13 +412,14 @@ union acpi_predefined_info {
 /* Return object auto-repair info */
 
 typedef acpi_status (*acpi_object_converter) (struct acpi_namespace_node *
-					      scope,
-					      union acpi_operand_object *
-					      original_object,
-					      union acpi_operand_object **
-					      converted_object);
+		scope,
+		union acpi_operand_object *
+		original_object,
+		union acpi_operand_object **
+		converted_object);
 
-struct acpi_simple_repair_info {
+struct acpi_simple_repair_info
+{
 	char name[ACPI_NAME_SIZE];
 	u32 unexpected_btypes;
 	u32 package_index;
@@ -427,7 +444,8 @@ struct acpi_simple_repair_info {
 
 /* Info for running the _REG methods */
 
-struct acpi_reg_walk_info {
+struct acpi_reg_walk_info
+{
 	acpi_adr_space_type space_id;
 	u32 function;
 	u32 reg_run_count;
@@ -441,7 +459,8 @@ struct acpi_reg_walk_info {
 
 /* Dispatch info for each host-installed SCI handler */
 
-struct acpi_sci_handler_info {
+struct acpi_sci_handler_info
+{
 	struct acpi_sci_handler_info *next;
 	acpi_sci_handler address;	/* Address of handler */
 	void *context;		/* Context to be passed to handler */
@@ -449,7 +468,8 @@ struct acpi_sci_handler_info {
 
 /* Dispatch info for each GPE -- either a method or handler, cannot be both */
 
-struct acpi_gpe_handler_info {
+struct acpi_gpe_handler_info
+{
 	acpi_gpe_handler address;	/* Address of handler, if any */
 	void *context;		/* Context to be passed to handler */
 	struct acpi_namespace_node *method_node;	/* Method node for this GPE level (saved) */
@@ -459,7 +479,8 @@ struct acpi_gpe_handler_info {
 
 /* Notify info for implicit notify, multiple device objects */
 
-struct acpi_gpe_notify_info {
+struct acpi_gpe_notify_info
+{
 	struct acpi_namespace_node *device_node;	/* Device to be notified */
 	struct acpi_gpe_notify_info *next;
 };
@@ -468,7 +489,8 @@ struct acpi_gpe_notify_info {
  * GPE dispatch info. At any time, the GPE can have at most one type
  * of dispatch - Method, Handler, or Implicit Notify.
  */
-union acpi_gpe_dispatch_info {
+union acpi_gpe_dispatch_info
+{
 	struct acpi_namespace_node *method_node;	/* Method node for this GPE level */
 	struct acpi_gpe_handler_info *handler;  /* Installed GPE handler */
 	struct acpi_gpe_notify_info *notify_list;	/* List of _PRW devices for implicit notifies */
@@ -478,7 +500,8 @@ union acpi_gpe_dispatch_info {
  * Information about a GPE, one per each GPE in an array.
  * NOTE: Important to keep this struct as small as possible.
  */
-struct acpi_gpe_event_info {
+struct acpi_gpe_event_info
+{
 	union acpi_gpe_dispatch_info dispatch;	/* Either Method, Handler, or notify_list */
 	struct acpi_gpe_register_info *register_info;	/* Backpointer to register info */
 	u8 flags;		/* Misc info about this GPE */
@@ -489,7 +512,8 @@ struct acpi_gpe_event_info {
 
 /* Information about a GPE register pair, one per each status/enable pair in an array */
 
-struct acpi_gpe_register_info {
+struct acpi_gpe_register_info
+{
 	struct acpi_generic_address status_address;	/* Address of status reg */
 	struct acpi_generic_address enable_address;	/* Address of enable reg */
 	u16 base_gpe_number;	/* Base GPE number for this register */
@@ -503,7 +527,8 @@ struct acpi_gpe_register_info {
  * Information about a GPE register block, one per each installed block --
  * GPE0, GPE1, and one per each installed GPE Block Device.
  */
-struct acpi_gpe_block_info {
+struct acpi_gpe_block_info
+{
 	struct acpi_namespace_node *node;
 	struct acpi_gpe_block_info *previous;
 	struct acpi_gpe_block_info *next;
@@ -520,14 +545,16 @@ struct acpi_gpe_block_info {
 
 /* Information about GPE interrupt handlers, one per each interrupt level used for GPEs */
 
-struct acpi_gpe_xrupt_info {
+struct acpi_gpe_xrupt_info
+{
 	struct acpi_gpe_xrupt_info *previous;
 	struct acpi_gpe_xrupt_info *next;
 	struct acpi_gpe_block_info *gpe_block_list_head;	/* List of GPE blocks for this xrupt */
 	u32 interrupt_number;	/* System interrupt number */
 };
 
-struct acpi_gpe_walk_info {
+struct acpi_gpe_walk_info
+{
 	struct acpi_namespace_node *gpe_device;
 	struct acpi_gpe_block_info *gpe_block;
 	u16 count;
@@ -535,7 +562,8 @@ struct acpi_gpe_walk_info {
 	u8 execute_by_owner_id;
 };
 
-struct acpi_gpe_device_info {
+struct acpi_gpe_device_info
+{
 	u32 index;
 	u32 next_block_base_index;
 	acpi_status status;
@@ -543,18 +571,20 @@ struct acpi_gpe_device_info {
 };
 
 typedef acpi_status (*acpi_gpe_callback) (struct acpi_gpe_xrupt_info *
-					  gpe_xrupt_info,
-					  struct acpi_gpe_block_info *
-					  gpe_block, void *context);
+		gpe_xrupt_info,
+		struct acpi_gpe_block_info *
+		gpe_block, void *context);
 
 /* Information about each particular fixed event */
 
-struct acpi_fixed_event_handler {
+struct acpi_fixed_event_handler
+{
 	acpi_event_handler handler;	/* Address of handler. */
 	void *context;		/* Context to be passed to handler */
 };
 
-struct acpi_fixed_event_info {
+struct acpi_fixed_event_info
+{
 	u8 status_register_id;
 	u8 enable_register_id;
 	u16 status_bit_mask;
@@ -563,7 +593,8 @@ struct acpi_fixed_event_info {
 
 /* Information used during field processing */
 
-struct acpi_field_info {
+struct acpi_field_info
+{
 	u8 skip_field;
 	u8 field_flag;
 	u32 pkg_length;
@@ -588,22 +619,26 @@ struct acpi_field_info {
 	u16                             value; \
 	u16                             state;
 
-	/* There are 2 bytes available here until the next natural alignment boundary */
+/* There are 2 bytes available here until the next natural alignment boundary */
 
-struct acpi_common_state {
-ACPI_STATE_COMMON};
+struct acpi_common_state
+{
+	ACPI_STATE_COMMON
+};
 
 /*
  * Update state - used to traverse complex objects such as packages
  */
-struct acpi_update_state {
+struct acpi_update_state
+{
 	ACPI_STATE_COMMON union acpi_operand_object *object;
 };
 
 /*
  * Pkg state - used to traverse nested package structures
  */
-struct acpi_pkg_state {
+struct acpi_pkg_state
+{
 	ACPI_STATE_COMMON u16 index;
 	union acpi_operand_object *source_object;
 	union acpi_operand_object *dest_object;
@@ -616,7 +651,8 @@ struct acpi_pkg_state {
  * Control state - one per if/else and while constructs.
  * Allows nesting of these constructs
  */
-struct acpi_control_state {
+struct acpi_control_state
+{
 	ACPI_STATE_COMMON u16 opcode;
 	union acpi_parse_object *predicate_op;
 	u8 *aml_predicate_start;	/* Start of if/while predicate */
@@ -627,11 +663,13 @@ struct acpi_control_state {
 /*
  * Scope state - current scope during namespace lookups
  */
-struct acpi_scope_state {
+struct acpi_scope_state
+{
 	ACPI_STATE_COMMON struct acpi_namespace_node *node;
 };
 
-struct acpi_pscope_state {
+struct acpi_pscope_state
+{
 	ACPI_STATE_COMMON u32 arg_count;	/* Number of fixed arguments */
 	union acpi_parse_object *op;	/* Current op being parsed */
 	u8 *arg_end;		/* Current argument end */
@@ -643,7 +681,8 @@ struct acpi_pscope_state {
  * Thread state - one per thread across multiple walk states. Multiple walk
  * states are created when there are nested control methods executing.
  */
-struct acpi_thread_state {
+struct acpi_thread_state
+{
 	ACPI_STATE_COMMON u8 current_sync_level;	/* Mutex Sync (nested acquire) level */
 	struct acpi_walk_state *walk_state_list;	/* Head of list of walk_states for this thread */
 	union acpi_operand_object *acquired_mutex_list;	/* List of all currently acquired mutexes */
@@ -654,21 +693,23 @@ struct acpi_thread_state {
  * Result values - used to accumulate the results of nested
  * AML arguments
  */
-struct acpi_result_values {
+struct acpi_result_values
+{
 	ACPI_STATE_COMMON
-	    union acpi_operand_object *obj_desc[ACPI_RESULTS_FRAME_OBJ_NUM];
+	union acpi_operand_object *obj_desc[ACPI_RESULTS_FRAME_OBJ_NUM];
 };
 
 typedef
-acpi_status (*acpi_parse_downwards) (struct acpi_walk_state * walk_state,
-				     union acpi_parse_object ** out_op);
+acpi_status (*acpi_parse_downwards) (struct acpi_walk_state *walk_state,
+									 union acpi_parse_object **out_op);
 
 typedef
-acpi_status (*acpi_parse_upwards) (struct acpi_walk_state * walk_state);
+acpi_status (*acpi_parse_upwards) (struct acpi_walk_state *walk_state);
 
 /* Global handlers for AML Notifies */
 
-struct acpi_global_notify_handler {
+struct acpi_global_notify_handler
+{
 	acpi_notify_handler handler;
 	void *context;
 };
@@ -677,7 +718,8 @@ struct acpi_global_notify_handler {
  * Notify info - used to pass info to the deferred notify
  * handler/dispatcher.
  */
-struct acpi_notify_info {
+struct acpi_notify_info
+{
 	ACPI_STATE_COMMON u8 handler_list_id;
 	struct acpi_namespace_node *node;
 	union acpi_operand_object *handler_list_head;
@@ -686,7 +728,8 @@ struct acpi_notify_info {
 
 /* Generic state is union of structs above */
 
-union acpi_generic_state {
+union acpi_generic_state
+{
 	struct acpi_common_state common;
 	struct acpi_control_state control;
 	struct acpi_update_state update;
@@ -705,11 +748,12 @@ union acpi_generic_state {
  ****************************************************************************/
 
 typedef
-acpi_status (*acpi_execute_op) (struct acpi_walk_state * walk_state);
+acpi_status (*acpi_execute_op) (struct acpi_walk_state *walk_state);
 
 /* Address Range info block */
 
-struct acpi_address_range {
+struct acpi_address_range
+{
 	struct acpi_address_range *next;
 	struct acpi_namespace_node *region_node;
 	acpi_physical_address start_address;
@@ -725,7 +769,8 @@ struct acpi_address_range {
 /*
  * AML opcode, name, and argument layout
  */
-struct acpi_opcode_info {
+struct acpi_opcode_info
+{
 #if defined(ACPI_DISASSEMBLER) || defined(ACPI_DEBUG_OUTPUT)
 	char *name;		/* Opcode name (disassembler/debug only) */
 #endif
@@ -739,7 +784,8 @@ struct acpi_opcode_info {
 
 /* Value associated with the parse object */
 
-union acpi_parse_value {
+union acpi_parse_value
+{
 	u64 integer;		/* Integer constant (Up to 64 bits) */
 	u32 size;		/* bytelist or field size */
 	char *string;		/* NULL terminated string */
@@ -749,9 +795,9 @@ union acpi_parse_value {
 };
 
 #if defined(ACPI_DISASSEMBLER) || defined(ACPI_DEBUG_OUTPUT)
-#define ACPI_DISASM_ONLY_MEMBERS(a)     a;
+	#define ACPI_DISASM_ONLY_MEMBERS(a)     a;
 #else
-#define ACPI_DISASM_ONLY_MEMBERS(a)
+	#define ACPI_DISASM_ONLY_MEMBERS(a)
 #endif
 
 #define ACPI_PARSE_COMMON \
@@ -765,10 +811,10 @@ union acpi_parse_value {
 	union acpi_parse_value          value;          /* Value or args associated with the opcode */\
 	u8                              arg_list_length; /* Number of elements in the arg list */\
 	ACPI_DISASM_ONLY_MEMBERS (\
-	u8                              disasm_flags;   /* Used during AML disassembly */\
-	u8                              disasm_opcode;  /* Subtype used for disassembly */\
-	char                            *operator_symbol;/* Used for C-style operator name strings */\
-	char                            aml_op_name[16])	/* Op name (debug only) */
+							  u8                              disasm_flags;   /* Used during AML disassembly */\
+							  u8                              disasm_opcode;  /* Subtype used for disassembly */\
+							  char                            *operator_symbol;/* Used for C-style operator name strings */\
+							  char                            aml_op_name[16])	/* Op name (debug only) */
 
 /* Flags for disasm_flags field above */
 
@@ -788,14 +834,17 @@ union acpi_parse_value {
 /*
  * Generic operation (for example:  If, While, Store)
  */
-struct acpi_parse_obj_common {
-ACPI_PARSE_COMMON};
+struct acpi_parse_obj_common
+{
+	ACPI_PARSE_COMMON
+};
 
 /*
  * Extended Op for named ops (Scope, Method, etc.), deferred ops (Methods and op_regions),
  * and bytelists.
  */
-struct acpi_parse_obj_named {
+struct acpi_parse_obj_named
+{
 	ACPI_PARSE_COMMON u8 *path;
 	u8 *data;		/* AML body or bytelist data */
 	u32 length;		/* AML length */
@@ -806,7 +855,8 @@ struct acpi_parse_obj_named {
 
 #define ACPI_MAX_PARSEOP_NAME   20
 
-struct acpi_parse_obj_asl {
+struct acpi_parse_obj_asl
+{
 	ACPI_PARSE_COMMON union acpi_parse_object *child;
 	union acpi_parse_object *parent_method;
 	char *filename;
@@ -833,7 +883,8 @@ struct acpi_parse_obj_asl {
 	char parse_op_name[ACPI_MAX_PARSEOP_NAME];
 };
 
-union acpi_parse_object {
+union acpi_parse_object
+{
 	struct acpi_parse_obj_common common;
 	struct acpi_parse_obj_named named;
 	struct acpi_parse_obj_asl asl;
@@ -843,7 +894,8 @@ union acpi_parse_object {
  * Parse state - one state per parser invocation and each control
  * method.
  */
-struct acpi_parse_state {
+struct acpi_parse_state
+{
 	u8 *aml_start;		/* First AML byte */
 	u8 *aml;		/* Next AML byte */
 	u8 *aml_end;		/* (last + 1) AML byte */
@@ -883,7 +935,8 @@ struct acpi_parse_state {
  *
  ****************************************************************************/
 
-struct acpi_bit_register_info {
+struct acpi_bit_register_info
+{
 	u8 parent_register;
 	u8 bit_position;
 	u16 access_bit_mask;
@@ -912,7 +965,7 @@ struct acpi_bit_register_info {
 #define ACPI_PM1_CONTROL_IGNORED_BITS           0x0200	/* Bit 9 */
 #define ACPI_PM1_CONTROL_RESERVED_BITS          0xC1F8	/* Bits 14-15, 3-8 */
 #define ACPI_PM1_CONTROL_PRESERVED_BITS \
-	       (ACPI_PM1_CONTROL_IGNORED_BITS | ACPI_PM1_CONTROL_RESERVED_BITS)
+	(ACPI_PM1_CONTROL_IGNORED_BITS | ACPI_PM1_CONTROL_RESERVED_BITS)
 
 #define ACPI_PM2_CONTROL_PRESERVED_BITS         0xFFFFFFFE	/* All except bit 0 */
 
@@ -940,14 +993,14 @@ struct acpi_bit_register_info {
 #define ACPI_BITMASK_WAKE_STATUS                0x8000
 
 #define ACPI_BITMASK_ALL_FIXED_STATUS           (\
-	ACPI_BITMASK_TIMER_STATUS          | \
-	ACPI_BITMASK_BUS_MASTER_STATUS     | \
-	ACPI_BITMASK_GLOBAL_LOCK_STATUS    | \
-	ACPI_BITMASK_POWER_BUTTON_STATUS   | \
-	ACPI_BITMASK_SLEEP_BUTTON_STATUS   | \
-	ACPI_BITMASK_RT_CLOCK_STATUS       | \
-	ACPI_BITMASK_PCIEXP_WAKE_STATUS    | \
-	ACPI_BITMASK_WAKE_STATUS)
+		ACPI_BITMASK_TIMER_STATUS          | \
+		ACPI_BITMASK_BUS_MASTER_STATUS     | \
+		ACPI_BITMASK_GLOBAL_LOCK_STATUS    | \
+		ACPI_BITMASK_POWER_BUTTON_STATUS   | \
+		ACPI_BITMASK_SLEEP_BUTTON_STATUS   | \
+		ACPI_BITMASK_RT_CLOCK_STATUS       | \
+		ACPI_BITMASK_PCIEXP_WAKE_STATUS    | \
+		ACPI_BITMASK_WAKE_STATUS)
 
 #define ACPI_BITMASK_TIMER_ENABLE               0x0001
 #define ACPI_BITMASK_GLOBAL_LOCK_ENABLE         0x0020
@@ -994,7 +1047,8 @@ struct acpi_bit_register_info {
 
 #define ACPI_ALWAYS_ILLEGAL             0x00
 
-struct acpi_interface_info {
+struct acpi_interface_info
+{
 	char *name;
 	struct acpi_interface_info *next;
 	u8 flags;
@@ -1007,7 +1061,8 @@ struct acpi_interface_info {
 #define ACPI_OSI_DEFAULT_INVALID        0x08
 #define ACPI_OSI_OPTIONAL_FEATURE       (ACPI_OSI_FEATURE | ACPI_OSI_DEFAULT_INVALID | ACPI_OSI_INVALID)
 
-struct acpi_port_info {
+struct acpi_port_info
+{
 	char *name;
 	u16 start;
 	u16 end;
@@ -1085,7 +1140,8 @@ struct acpi_port_info {
  *
  ****************************************************************************/
 
-struct acpi_external_list {
+struct acpi_external_list
+{
 	char *path;
 	char *internal_path;
 	struct acpi_external_list *next;
@@ -1103,7 +1159,8 @@ struct acpi_external_list {
 #define ACPI_EXT_EXTERNAL_EMITTED           0x08	/* External() statement has been emitted */
 #define ACPI_EXT_ORIGIN_FROM_OPCODE         0x10	/* External came from a External() opcode */
 
-struct acpi_external_file {
+struct acpi_external_file
+{
 	char *path;
 	struct acpi_external_file *next;
 };
@@ -1114,7 +1171,8 @@ struct acpi_external_file {
  *
  ****************************************************************************/
 
-struct acpi_db_method_info {
+struct acpi_db_method_info
+{
 	acpi_handle method;
 	acpi_handle main_thread_gate;
 	acpi_handle thread_complete_gate;
@@ -1147,7 +1205,8 @@ struct acpi_db_method_info {
 	char index_of_thread_str[11];
 };
 
-struct acpi_integrity_info {
+struct acpi_integrity_info
+{
 	u32 nodes;
 	u32 objects;
 };
@@ -1157,7 +1216,8 @@ struct acpi_integrity_info {
 #define ACPI_DB_CONSOLE_OUTPUT          0x02
 #define ACPI_DB_DUPLICATE_OUTPUT        0x03
 
-struct acpi_object_info {
+struct acpi_object_info
+{
 	u32 types[ACPI_TOTAL_TYPES];
 };
 
@@ -1182,10 +1242,13 @@ struct acpi_object_info {
 	char                            module[ACPI_MAX_MODULE_NAME]; \
 	u8                              alloc_type;
 
-struct acpi_debug_mem_header {
-ACPI_COMMON_DEBUG_MEM_HEADER};
+struct acpi_debug_mem_header
+{
+	ACPI_COMMON_DEBUG_MEM_HEADER
+};
 
-struct acpi_debug_mem_block {
+struct acpi_debug_mem_block
+{
 	ACPI_COMMON_DEBUG_MEM_HEADER u64 user_space;
 };
 
@@ -1200,7 +1263,8 @@ struct acpi_debug_mem_block {
  *
  ****************************************************************************/
 
-struct ah_predefined_name {
+struct ah_predefined_name
+{
 	char *name;
 	char *description;
 #ifndef ACPI_ASL_COMPILER
@@ -1208,17 +1272,20 @@ struct ah_predefined_name {
 #endif
 };
 
-struct ah_device_id {
+struct ah_device_id
+{
 	char *name;
 	char *description;
 };
 
-struct ah_uuid {
+struct ah_uuid
+{
 	char *description;
 	char *string;
 };
 
-struct ah_table {
+struct ah_table
+{
 	char *signature;
 	char *description;
 };

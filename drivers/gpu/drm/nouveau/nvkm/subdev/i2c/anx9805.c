@@ -27,13 +27,15 @@
 #include "aux.h"
 #include "bus.h"
 
-struct anx9805_pad {
+struct anx9805_pad
+{
 	struct nvkm_i2c_pad base;
 	struct nvkm_i2c_bus *bus;
 	u8 addr;
 };
 
-struct anx9805_bus {
+struct anx9805_bus
+{
 	struct nvkm_i2c_bus base;
 	struct anx9805_pad *pad;
 	u8 addr;
@@ -56,35 +58,54 @@ anx9805_bus_xfer(struct nvkm_i2c_bus *base, struct i2c_msg *msgs, int num)
 	nvkm_wri2cr(adap, bus->addr, 0x43, 0x05);
 	mdelay(5);
 
-	while (cnt--) {
-		if ( (msg->flags & I2C_M_RD) && msg->addr == 0x50) {
+	while (cnt--)
+	{
+		if ( (msg->flags & I2C_M_RD) && msg->addr == 0x50)
+		{
 			nvkm_wri2cr(adap, bus->addr, 0x40, msg->addr << 1);
 			nvkm_wri2cr(adap, bus->addr, 0x41, seg);
 			nvkm_wri2cr(adap, bus->addr, 0x42, off);
 			nvkm_wri2cr(adap, bus->addr, 0x44, msg->len);
 			nvkm_wri2cr(adap, bus->addr, 0x45, 0x00);
 			nvkm_wri2cr(adap, bus->addr, 0x43, 0x01);
-			for (i = 0; i < msg->len; i++) {
+
+			for (i = 0; i < msg->len; i++)
+			{
 				j = 0;
-				while (nvkm_rdi2cr(adap, bus->addr, 0x46) & 0x10) {
+
+				while (nvkm_rdi2cr(adap, bus->addr, 0x46) & 0x10)
+				{
 					mdelay(5);
+
 					if (j++ == 32)
+					{
 						goto done;
+					}
 				}
+
 				msg->buf[i] = nvkm_rdi2cr(adap, bus->addr, 0x47);
 			}
-		} else
-		if (!(msg->flags & I2C_M_RD)) {
-			if (msg->addr == 0x50 && msg->len == 0x01) {
+		}
+		else if (!(msg->flags & I2C_M_RD))
+		{
+			if (msg->addr == 0x50 && msg->len == 0x01)
+			{
 				off = msg->buf[0];
-			} else
-			if (msg->addr == 0x30 && msg->len == 0x01) {
+			}
+			else if (msg->addr == 0x30 && msg->len == 0x01)
+			{
 				seg = msg->buf[0];
-			} else
+			}
+			else
+			{
 				goto done;
-		} else {
+			}
+		}
+		else
+		{
 			goto done;
 		}
+
 		msg++;
 	}
 
@@ -95,38 +116,49 @@ done:
 }
 
 static const struct nvkm_i2c_bus_func
-anx9805_bus_func = {
+	anx9805_bus_func =
+{
 	.xfer = anx9805_bus_xfer,
 };
 
 static int
 anx9805_bus_new(struct nvkm_i2c_pad *base, int id, u8 drive,
-		struct nvkm_i2c_bus **pbus)
+				struct nvkm_i2c_bus **pbus)
 {
 	struct anx9805_pad *pad = anx9805_pad(base);
 	struct anx9805_bus *bus;
 	int ret;
 
 	if (!(bus = kzalloc(sizeof(*bus), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pbus = &bus->base;
 	bus->pad = pad;
 
 	ret = nvkm_i2c_bus_ctor(&anx9805_bus_func, &pad->base, id, &bus->base);
-	if (ret)
-		return ret;
 
-	switch (pad->addr) {
-	case 0x39: bus->addr = 0x3d; break;
-	case 0x3b: bus->addr = 0x3f; break;
-	default:
-		return -ENOSYS;
+	if (ret)
+	{
+		return ret;
+	}
+
+	switch (pad->addr)
+	{
+		case 0x39: bus->addr = 0x3d; break;
+
+		case 0x3b: bus->addr = 0x3f; break;
+
+		default:
+			return -ENOSYS;
 	}
 
 	return 0;
 }
 
-struct anx9805_aux {
+struct anx9805_aux
+{
 	struct nvkm_i2c_aux base;
 	struct anx9805_pad *pad;
 	u8 addr;
@@ -134,7 +166,7 @@ struct anx9805_aux {
 
 static int
 anx9805_aux_xfer(struct nvkm_i2c_aux *base, bool retry,
-		 u8 type, u32 addr, u8 *data, u8 size)
+				 u8 type, u32 addr, u8 *data, u8 size)
 {
 	struct anx9805_aux *aux = anx9805_aux(base);
 	struct anx9805_pad *pad = aux->pad;
@@ -151,12 +183,18 @@ anx9805_aux_xfer(struct nvkm_i2c_aux *base, bool retry,
 	nvkm_wri2cr(adap, pad->addr, 0xf7, 0x01);
 
 	nvkm_wri2cr(adap, aux->addr, 0xe4, 0x80);
-	if (!(type & 1)) {
+
+	if (!(type & 1))
+	{
 		memcpy(buf, data, size);
 		AUX_DBG(&aux->base, "%16ph", buf);
+
 		for (i = 0; i < size; i++)
+		{
 			nvkm_wri2cr(adap, aux->addr, 0xf0 + i, buf[i]);
+		}
 	}
+
 	nvkm_wri2cr(adap, aux->addr, 0xe5, ((size - 1) << 4) | type);
 	nvkm_wri2cr(adap, aux->addr, 0xe6, (addr & 0x000ff) >>  0);
 	nvkm_wri2cr(adap, aux->addr, 0xe7, (addr & 0x0ff00) >>  8);
@@ -164,20 +202,30 @@ anx9805_aux_xfer(struct nvkm_i2c_aux *base, bool retry,
 	nvkm_wri2cr(adap, aux->addr, 0xe9, 0x01);
 
 	i = 0;
-	while ((tmp = nvkm_rdi2cr(adap, aux->addr, 0xe9)) & 0x01) {
+
+	while ((tmp = nvkm_rdi2cr(adap, aux->addr, 0xe9)) & 0x01)
+	{
 		mdelay(5);
+
 		if (i++ == 32)
+		{
 			goto done;
+		}
 	}
 
-	if ((tmp = nvkm_rdi2cr(adap, pad->addr, 0xf7)) & 0x01) {
+	if ((tmp = nvkm_rdi2cr(adap, pad->addr, 0xf7)) & 0x01)
+	{
 		ret = -EIO;
 		goto done;
 	}
 
-	if (type & 1) {
+	if (type & 1)
+	{
 		for (i = 0; i < size; i++)
+		{
 			buf[i] = nvkm_rdi2cr(adap, aux->addr, 0xf0 + i);
+		}
+
 		AUX_DBG(&aux->base, "%16ph", buf);
 		memcpy(data, buf, size);
 	}
@@ -190,7 +238,7 @@ done:
 
 static int
 anx9805_aux_lnk_ctl(struct nvkm_i2c_aux *base,
-		    int link_nr, int link_bw, bool enh)
+					int link_nr, int link_bw, bool enh)
 {
 	struct anx9805_aux *aux = anx9805_aux(base);
 	struct anx9805_pad *pad = aux->pad;
@@ -198,7 +246,7 @@ anx9805_aux_lnk_ctl(struct nvkm_i2c_aux *base,
 	u8 tmp, i;
 
 	AUX_DBG(&aux->base, "ANX9805 train %d %02x %d",
-		link_nr, link_bw, enh);
+			link_nr, link_bw, enh);
 
 	nvkm_wri2cr(adap, aux->addr, 0xa0, link_bw);
 	nvkm_wri2cr(adap, aux->addr, 0xa1, link_nr | (enh ? 0x80 : 0x00));
@@ -206,15 +254,20 @@ anx9805_aux_lnk_ctl(struct nvkm_i2c_aux *base,
 	nvkm_wri2cr(adap, aux->addr, 0xa8, 0x01);
 
 	i = 0;
-	while ((tmp = nvkm_rdi2cr(adap, aux->addr, 0xa8)) & 0x01) {
+
+	while ((tmp = nvkm_rdi2cr(adap, aux->addr, 0xa8)) & 0x01)
+	{
 		mdelay(5);
-		if (i++ == 100) {
+
+		if (i++ == 100)
+		{
 			AUX_ERR(&aux->base, "link training timeout");
 			return -ETIMEDOUT;
 		}
 	}
 
-	if (tmp & 0x70) {
+	if (tmp & 0x70)
+	{
 		AUX_ERR(&aux->base, "link training failed");
 		return -EIO;
 	}
@@ -223,52 +276,66 @@ anx9805_aux_lnk_ctl(struct nvkm_i2c_aux *base,
 }
 
 static const struct nvkm_i2c_aux_func
-anx9805_aux_func = {
+	anx9805_aux_func =
+{
 	.xfer = anx9805_aux_xfer,
 	.lnk_ctl = anx9805_aux_lnk_ctl,
 };
 
 static int
 anx9805_aux_new(struct nvkm_i2c_pad *base, int id, u8 drive,
-		struct nvkm_i2c_aux **pbus)
+				struct nvkm_i2c_aux **pbus)
 {
 	struct anx9805_pad *pad = anx9805_pad(base);
 	struct anx9805_aux *aux;
 	int ret;
 
 	if (!(aux = kzalloc(sizeof(*aux), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pbus = &aux->base;
 	aux->pad = pad;
 
 	ret = nvkm_i2c_aux_ctor(&anx9805_aux_func, &pad->base, id, &aux->base);
-	if (ret)
-		return ret;
 
-	switch (pad->addr) {
-	case 0x39: aux->addr = 0x38; break;
-	case 0x3b: aux->addr = 0x3c; break;
-	default:
-		return -ENOSYS;
+	if (ret)
+	{
+		return ret;
+	}
+
+	switch (pad->addr)
+	{
+		case 0x39: aux->addr = 0x38; break;
+
+		case 0x3b: aux->addr = 0x3c; break;
+
+		default:
+			return -ENOSYS;
 	}
 
 	return 0;
 }
 
 static const struct nvkm_i2c_pad_func
-anx9805_pad_func = {
+	anx9805_pad_func =
+{
 	.bus_new_4 = anx9805_bus_new,
 	.aux_new_6 = anx9805_aux_new,
 };
 
 int
 anx9805_pad_new(struct nvkm_i2c_bus *bus, int id, u8 addr,
-		struct nvkm_i2c_pad **ppad)
+				struct nvkm_i2c_pad **ppad)
 {
 	struct anx9805_pad *pad;
 
 	if (!(pad = kzalloc(sizeof(*pad), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*ppad = &pad->base;
 
 	nvkm_i2c_pad_ctor(&anx9805_pad_func, bus->pad->i2c, id, &pad->base);

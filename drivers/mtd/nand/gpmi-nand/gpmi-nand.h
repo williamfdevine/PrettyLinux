@@ -23,7 +23,8 @@
 #include <linux/dmaengine.h>
 
 #define GPMI_CLK_MAX 5 /* MX6Q needs five clocks */
-struct resources {
+struct resources
+{
 	void __iomem  *gpmi_regs;
 	void __iomem  *bch_regs;
 	unsigned int  dma_low_channel;
@@ -52,7 +53,8 @@ struct resources {
  * @block_mark_bit_offset:    The bit offset into the ECC-based page view at
  *                            which the underlying physical block mark appears.
  */
-struct bch_geometry {
+struct bch_geometry
+{
 	unsigned int  gf_len;
 	unsigned int  ecc_strength;
 	unsigned int  page_size;
@@ -72,13 +74,15 @@ struct bch_geometry {
  * @search_area_stride_exponent: The logarithm to base 2 of the size of a
  *                               search area in boot block strides.
  */
-struct boot_rom_geometry {
+struct boot_rom_geometry
+{
 	unsigned int  stride_size_in_pages;
 	unsigned int  search_area_stride_exponent;
 };
 
 /* DMA operations types */
-enum dma_ops_type {
+enum dma_ops_type
+{
 	DMA_FOR_COMMAND = 1,
 	DMA_FOR_READ_DATA,
 	DMA_FOR_WRITE_DATA,
@@ -109,7 +113,8 @@ enum dma_ops_type {
  *                            negative value indicates this characteristic isn't
  *                            known.
  */
-struct nand_timing {
+struct nand_timing
+{
 	int8_t  data_setup_in_ns;
 	int8_t  data_hold_in_ns;
 	int8_t  address_setup_in_ns;
@@ -119,86 +124,89 @@ struct nand_timing {
 	int8_t  tRHOH_in_ns;
 };
 
-enum gpmi_type {
+enum gpmi_type
+{
 	IS_MX23,
 	IS_MX28,
 	IS_MX6Q,
 	IS_MX6SX
 };
 
-struct gpmi_devdata {
+struct gpmi_devdata
+{
 	enum gpmi_type type;
 	int bch_max_ecc_strength;
 	int max_chain_delay; /* See the async EDO mode */
 };
 
-struct gpmi_nand_data {
-	/* flags */
+struct gpmi_nand_data
+{
+		/* flags */
 #define GPMI_ASYNC_EDO_ENABLED	(1 << 0)
 #define GPMI_TIMING_INIT_OK	(1 << 1)
-	int			flags;
-	const struct gpmi_devdata *devdata;
+		int			flags;
+		const struct gpmi_devdata *devdata;
 
-	/* System Interface */
-	struct device		*dev;
-	struct platform_device	*pdev;
+		/* System Interface */
+		struct device		*dev;
+		struct platform_device	*pdev;
 
-	/* Resources */
-	struct resources	resources;
+		/* Resources */
+		struct resources	resources;
 
-	/* Flash Hardware */
-	struct nand_timing	timing;
-	int			timing_mode;
+		/* Flash Hardware */
+		struct nand_timing	timing;
+		int			timing_mode;
 
-	/* BCH */
-	struct bch_geometry	bch_geometry;
-	struct completion	bch_done;
+		/* BCH */
+		struct bch_geometry	bch_geometry;
+		struct completion	bch_done;
 
-	/* NAND Boot issue */
-	bool			swap_block_mark;
-	struct boot_rom_geometry rom_geometry;
+		/* NAND Boot issue */
+		bool			swap_block_mark;
+		struct boot_rom_geometry rom_geometry;
 
-	/* MTD / NAND */
-	struct nand_chip	nand;
+		/* MTD / NAND */
+		struct nand_chip	nand;
 
-	/* General-use Variables */
-	int			current_chip;
-	unsigned int		command_length;
+		/* General-use Variables */
+		int			current_chip;
+		unsigned int		command_length;
 
-	/* passed from upper layer */
-	uint8_t			*upper_buf;
-	int			upper_len;
+		/* passed from upper layer */
+		uint8_t			*upper_buf;
+		int			upper_len;
 
-	/* for DMA operations */
-	bool			direct_dma_map_ok;
+		/* for DMA operations */
+		bool			direct_dma_map_ok;
 
-	struct scatterlist	cmd_sgl;
-	char			*cmd_buffer;
+		struct scatterlist	cmd_sgl;
+		char			*cmd_buffer;
 
-	struct scatterlist	data_sgl;
-	char			*data_buffer_dma;
+		struct scatterlist	data_sgl;
+		char			*data_buffer_dma;
 
-	void			*page_buffer_virt;
-	dma_addr_t		page_buffer_phys;
-	unsigned int		page_buffer_size;
+		void			*page_buffer_virt;
+		dma_addr_t		page_buffer_phys;
+		unsigned int		page_buffer_size;
 
-	void			*payload_virt;
-	dma_addr_t		payload_phys;
+		void			*payload_virt;
+		dma_addr_t		payload_phys;
 
-	void			*auxiliary_virt;
-	dma_addr_t		auxiliary_phys;
+		void			*auxiliary_virt;
+		dma_addr_t		auxiliary_phys;
 
-	void			*raw_buffer;
+		void			*raw_buffer;
 
-	/* DMA channels */
+		/* DMA channels */
 #define DMA_CHANS		8
-	struct dma_chan		*dma_chans[DMA_CHANS];
-	enum dma_ops_type	last_dma_type;
-	enum dma_ops_type	dma_type;
-	struct completion	dma_done;
+		struct dma_chan		*dma_chans[DMA_CHANS];
+		enum dma_ops_type	last_dma_type;
+		enum dma_ops_type	dma_type;
+		struct completion	dma_done;
 
-	/* private */
-	void			*private;
+		/* private */
+		void			*private;
 };
 
 /**
@@ -214,7 +222,8 @@ struct gpmi_nand_data {
  * @sample_delay_factor:       The sample delay factor.
  * @wrn_dly_sel:               The delay on the GPMI write strobe.
  */
-struct gpmi_nfc_hardware_timing {
+struct gpmi_nfc_hardware_timing
+{
 	/* for HW_GPMI_TIMING0 */
 	uint8_t  data_setup_in_cycles;
 	uint8_t  data_hold_in_cycles;
@@ -253,7 +262,8 @@ struct gpmi_nfc_hardware_timing {
  *                               progress, this is the clock frequency during
  *                               the most recent I/O transaction.
  */
-struct timing_threshod {
+struct timing_threshod
+{
 	const unsigned int      max_chip_count;
 	const unsigned int      max_data_setup_cycles;
 	const unsigned int      internal_data_setup_in_ns;
@@ -268,11 +278,11 @@ struct timing_threshod {
 extern int common_nfc_set_geometry(struct gpmi_nand_data *);
 extern struct dma_chan *get_dma_chan(struct gpmi_nand_data *);
 extern void prepare_data_dma(struct gpmi_nand_data *,
-				enum dma_data_direction dr);
+							 enum dma_data_direction dr);
 extern int start_dma_without_bch_irq(struct gpmi_nand_data *,
-				struct dma_async_tx_descriptor *);
+									 struct dma_async_tx_descriptor *);
 extern int start_dma_with_bch_irq(struct gpmi_nand_data *,
-				struct dma_async_tx_descriptor *);
+								  struct dma_async_tx_descriptor *);
 
 /* GPMI-NAND helper function library */
 extern int gpmi_init(struct gpmi_nand_data *);
@@ -287,13 +297,13 @@ extern void gpmi_end(struct gpmi_nand_data *);
 extern int gpmi_read_data(struct gpmi_nand_data *);
 extern int gpmi_send_data(struct gpmi_nand_data *);
 extern int gpmi_send_page(struct gpmi_nand_data *,
-			dma_addr_t payload, dma_addr_t auxiliary);
+						  dma_addr_t payload, dma_addr_t auxiliary);
 extern int gpmi_read_page(struct gpmi_nand_data *,
-			dma_addr_t payload, dma_addr_t auxiliary);
+						  dma_addr_t payload, dma_addr_t auxiliary);
 
 void gpmi_copy_bits(u8 *dst, size_t dst_bit_off,
-		    const u8 *src, size_t src_bit_off,
-		    size_t nbits);
+					const u8 *src, size_t src_bit_off,
+					size_t nbits);
 
 /* BCH : Status Block Completion Codes */
 #define STATUS_GOOD		0x00

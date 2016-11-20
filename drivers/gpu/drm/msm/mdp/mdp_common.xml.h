@@ -46,20 +46,23 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 
-enum mdp_chroma_samp_type {
+enum mdp_chroma_samp_type
+{
 	CHROMA_FULL = 0,
 	CHROMA_H2V1 = 1,
 	CHROMA_H1V2 = 2,
 	CHROMA_420 = 3,
 };
 
-enum mdp_fetch_type {
+enum mdp_fetch_type
+{
 	MDP_PLANE_INTERLEAVED = 0,
 	MDP_PLANE_PLANAR = 1,
 	MDP_PLANE_PSEUDO_PLANAR = 2,
 };
 
-enum mdp_mixer_stage_id {
+enum mdp_mixer_stage_id
+{
 	STAGE_UNUSED = 0,
 	STAGE_BASE = 1,
 	STAGE0 = 2,
@@ -72,28 +75,32 @@ enum mdp_mixer_stage_id {
 	STAGE_MAX = 8,
 };
 
-enum mdp_alpha_type {
+enum mdp_alpha_type
+{
 	FG_CONST = 0,
 	BG_CONST = 1,
 	FG_PIXEL = 2,
 	BG_PIXEL = 3,
 };
 
-enum mdp_component_type {
+enum mdp_component_type
+{
 	COMP_0 = 0,
 	COMP_1_2 = 1,
 	COMP_3 = 2,
 	COMP_MAX = 3,
 };
 
-enum mdp_bpc {
+enum mdp_bpc
+{
 	BPC1 = 0,
 	BPC5 = 1,
 	BPC6 = 2,
 	BPC8 = 3,
 };
 
-enum mdp_bpc_alpha {
+enum mdp_bpc_alpha
+{
 	BPC1A = 0,
 	BPC4A = 1,
 	BPC6A = 2,

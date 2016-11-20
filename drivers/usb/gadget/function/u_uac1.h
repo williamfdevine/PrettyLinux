@@ -34,7 +34,8 @@
  * function which provides control and stream interfaces.
  */
 
-struct gaudio_snd_dev {
+struct gaudio_snd_dev
+{
 	struct gaudio			*card;
 	struct file			*filp;
 	struct snd_pcm_substream	*substream;
@@ -44,7 +45,8 @@ struct gaudio_snd_dev {
 	int				rate;
 };
 
-struct gaudio {
+struct gaudio
+{
 	struct usb_function		func;
 	struct usb_gadget		*gadget;
 
@@ -56,7 +58,8 @@ struct gaudio {
 	/* TODO */
 };
 
-struct f_uac1_opts {
+struct f_uac1_opts
+{
 	struct usb_function_instance	func_inst;
 	int				req_buf_size;
 	int				req_count;
@@ -64,10 +67,10 @@ struct f_uac1_opts {
 	char				*fn_play;
 	char				*fn_cap;
 	char				*fn_cntl;
-	unsigned			bound:1;
-	unsigned			fn_play_alloc:1;
-	unsigned			fn_cap_alloc:1;
-	unsigned			fn_cntl_alloc:1;
+	unsigned			bound: 1;
+	unsigned			fn_play_alloc: 1;
+	unsigned			fn_cap_alloc: 1;
+	unsigned			fn_cntl_alloc: 1;
 	struct mutex			lock;
 	int				refcnt;
 };

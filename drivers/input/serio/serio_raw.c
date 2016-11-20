@@ -28,7 +28,8 @@ MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_LICENSE("GPL");
 
 #define SERIO_RAW_QUEUE_LEN	64
-struct serio_raw {
+struct serio_raw
+{
 	unsigned char queue[SERIO_RAW_QUEUE_LEN];
 	unsigned int tail, head;
 
@@ -42,7 +43,8 @@ struct serio_raw {
 	bool dead;
 };
 
-struct serio_raw_client {
+struct serio_raw_client
+{
 	struct fasync_struct *fasync;
 	struct serio_raw *serio_raw;
 	struct list_head node;
@@ -66,9 +68,12 @@ static struct serio_raw *serio_raw_locate(int minor)
 {
 	struct serio_raw *serio_raw;
 
-	list_for_each_entry(serio_raw, &serio_raw_list, node) {
+	list_for_each_entry(serio_raw, &serio_raw_list, node)
+	{
 		if (serio_raw->dev.minor == minor)
+		{
 			return serio_raw;
+		}
 	}
 
 	return NULL;
@@ -81,22 +86,30 @@ static int serio_raw_open(struct inode *inode, struct file *file)
 	int retval;
 
 	retval = mutex_lock_interruptible(&serio_raw_mutex);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	serio_raw = serio_raw_locate(iminor(inode));
-	if (!serio_raw) {
+
+	if (!serio_raw)
+	{
 		retval = -ENODEV;
 		goto out;
 	}
 
-	if (serio_raw->dead) {
+	if (serio_raw->dead)
+	{
 		retval = -ENODEV;
 		goto out;
 	}
 
 	client = kzalloc(sizeof(struct serio_raw_client), GFP_KERNEL);
-	if (!client) {
+
+	if (!client)
+	{
 		retval = -ENOMEM;
 		goto out;
 	}
@@ -118,7 +131,7 @@ out:
 static void serio_raw_free(struct kref *kref)
 {
 	struct serio_raw *serio_raw =
-			container_of(kref, struct serio_raw, kref);
+		container_of(kref, struct serio_raw, kref);
 
 	put_device(&serio_raw->serio->dev);
 	kfree(serio_raw);
@@ -147,7 +160,9 @@ static bool serio_raw_fetch_byte(struct serio_raw *serio_raw, char *c)
 	serio_pause_rx(serio_raw->serio);
 
 	empty = serio_raw->head == serio_raw->tail;
-	if (!empty) {
+
+	if (!empty)
+	{
 		*c = serio_raw->queue[serio_raw->tail];
 		serio_raw->tail = (serio_raw->tail + 1) % SERIO_RAW_QUEUE_LEN;
 	}
@@ -158,7 +173,7 @@ static bool serio_raw_fetch_byte(struct serio_raw *serio_raw, char *c)
 }
 
 static ssize_t serio_raw_read(struct file *file, char __user *buffer,
-			      size_t count, loff_t *ppos)
+							  size_t count, loff_t *ppos)
 {
 	struct serio_raw_client *client = file->private_data;
 	struct serio_raw *serio_raw = client->serio_raw;
@@ -166,32 +181,49 @@ static ssize_t serio_raw_read(struct file *file, char __user *buffer,
 	ssize_t read = 0;
 	int error;
 
-	for (;;) {
+	for (;;)
+	{
 		if (serio_raw->dead)
+		{
 			return -ENODEV;
+		}
 
 		if (serio_raw->head == serio_raw->tail &&
-		    (file->f_flags & O_NONBLOCK))
+			(file->f_flags & O_NONBLOCK))
+		{
 			return -EAGAIN;
+		}
 
 		if (count == 0)
+		{
 			break;
+		}
 
-		while (read < count && serio_raw_fetch_byte(serio_raw, &c)) {
+		while (read < count && serio_raw_fetch_byte(serio_raw, &c))
+		{
 			if (put_user(c, buffer++))
+			{
 				return -EFAULT;
+			}
+
 			read++;
 		}
 
 		if (read)
+		{
 			break;
+		}
 
-		if (!(file->f_flags & O_NONBLOCK)) {
+		if (!(file->f_flags & O_NONBLOCK))
+		{
 			error = wait_event_interruptible(serio_raw->wait,
-					serio_raw->head != serio_raw->tail ||
-					serio_raw->dead);
+											 serio_raw->head != serio_raw->tail ||
+											 serio_raw->dead);
+
 			if (error)
+			{
 				return error;
+			}
 		}
 	}
 
@@ -199,7 +231,7 @@ static ssize_t serio_raw_read(struct file *file, char __user *buffer,
 }
 
 static ssize_t serio_raw_write(struct file *file, const char __user *buffer,
-			       size_t count, loff_t *ppos)
+							   size_t count, loff_t *ppos)
 {
 	struct serio_raw_client *client = file->private_data;
 	struct serio_raw *serio_raw = client->serio_raw;
@@ -207,27 +239,39 @@ static ssize_t serio_raw_write(struct file *file, const char __user *buffer,
 	unsigned char c;
 
 	retval = mutex_lock_interruptible(&serio_raw_mutex);
-	if (retval)
-		return retval;
 
-	if (serio_raw->dead) {
+	if (retval)
+	{
+		return retval;
+	}
+
+	if (serio_raw->dead)
+	{
 		retval = -ENODEV;
 		goto out;
 	}
 
 	if (count > 32)
+	{
 		count = 32;
+	}
 
-	while (count--) {
-		if (get_user(c, buffer++)) {
+	while (count--)
+	{
+		if (get_user(c, buffer++))
+		{
 			retval = -EFAULT;
 			goto out;
 		}
 
-		if (serio_write(serio_raw->serio, c)) {
+		if (serio_write(serio_raw->serio, c))
+		{
 			/* Either signal error or partial write */
 			if (retval == 0)
+			{
 				retval = -EIO;
+			}
+
 			goto out;
 		}
 
@@ -248,13 +292,17 @@ static unsigned int serio_raw_poll(struct file *file, poll_table *wait)
 	poll_wait(file, &serio_raw->wait, wait);
 
 	mask = serio_raw->dead ? POLLHUP | POLLERR : POLLOUT | POLLWRNORM;
+
 	if (serio_raw->head != serio_raw->tail)
+	{
 		mask |= POLLIN | POLLRDNORM;
+	}
 
 	return mask;
 }
 
-static const struct file_operations serio_raw_fops = {
+static const struct file_operations serio_raw_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= serio_raw_open,
 	.release	= serio_raw_release,
@@ -271,7 +319,7 @@ static const struct file_operations serio_raw_fops = {
  *********************************************************************/
 
 static irqreturn_t serio_raw_interrupt(struct serio *serio, unsigned char data,
-					unsigned int dfl)
+									   unsigned int dfl)
 {
 	struct serio_raw *serio_raw = serio_get_drvdata(serio);
 	struct serio_raw_client *client;
@@ -280,10 +328,12 @@ static irqreturn_t serio_raw_interrupt(struct serio *serio, unsigned char data,
 	/* we are holding serio->lock here so we are protected */
 	serio_raw->queue[head] = data;
 	head = (head + 1) % SERIO_RAW_QUEUE_LEN;
-	if (likely(head != serio_raw->tail)) {
+
+	if (likely(head != serio_raw->tail))
+	{
 		serio_raw->head = head;
 		list_for_each_entry(client, &serio_raw->client_list, node)
-			kill_fasync(&client->fasync, SIGIO, POLL_IN);
+		kill_fasync(&client->fasync, SIGIO, POLL_IN);
 		wake_up_interruptible(&serio_raw->wait);
 	}
 
@@ -297,13 +347,15 @@ static int serio_raw_connect(struct serio *serio, struct serio_driver *drv)
 	int err;
 
 	serio_raw = kzalloc(sizeof(struct serio_raw), GFP_KERNEL);
-	if (!serio_raw) {
+
+	if (!serio_raw)
+	{
 		dev_dbg(&serio->dev, "can't allocate memory for a device\n");
 		return -ENOMEM;
 	}
 
 	snprintf(serio_raw->name, sizeof(serio_raw->name),
-		 "serio_raw%ld", (long)atomic_inc_return(&serio_raw_no));
+			 "serio_raw%ld", (long)atomic_inc_return(&serio_raw_no));
 	kref_init(&serio_raw->kref);
 	INIT_LIST_HEAD(&serio_raw->client_list);
 	init_waitqueue_head(&serio_raw->wait);
@@ -314,12 +366,18 @@ static int serio_raw_connect(struct serio *serio, struct serio_driver *drv)
 	serio_set_drvdata(serio, serio_raw);
 
 	err = serio_open(serio, drv);
+
 	if (err)
+	{
 		goto err_free;
+	}
 
 	err = mutex_lock_killable(&serio_raw_mutex);
+
 	if (err)
+	{
 		goto err_close;
+	}
 
 	list_add_tail(&serio_raw->node, &serio_raw_list);
 	mutex_unlock(&serio_raw_mutex);
@@ -330,20 +388,23 @@ static int serio_raw_connect(struct serio *serio, struct serio_driver *drv)
 	serio_raw->dev.fops = &serio_raw_fops;
 
 	err = misc_register(&serio_raw->dev);
-	if (err) {
+
+	if (err)
+	{
 		serio_raw->dev.minor = MISC_DYNAMIC_MINOR;
 		err = misc_register(&serio_raw->dev);
 	}
 
-	if (err) {
+	if (err)
+	{
 		dev_err(&serio->dev,
-			"failed to register raw access device for %s\n",
-			serio->phys);
+				"failed to register raw access device for %s\n",
+				serio->phys);
 		goto err_unlink;
 	}
 
 	dev_info(&serio->dev, "raw access enabled on %s (%s, minor %d)\n",
-		 serio->phys, serio_raw->name, serio_raw->dev.minor);
+			 serio->phys, serio_raw->name, serio_raw->dev.minor);
 	return 0;
 
 err_unlink:
@@ -361,9 +422,10 @@ static int serio_raw_reconnect(struct serio *serio)
 	struct serio_raw *serio_raw = serio_get_drvdata(serio);
 	struct serio_driver *drv = serio->drv;
 
-	if (!drv || !serio_raw) {
+	if (!drv || !serio_raw)
+	{
 		dev_dbg(&serio->dev,
-			"reconnect request, but serio is disconnected, ignoring...\n");
+				"reconnect request, but serio is disconnected, ignoring...\n");
 		return -1;
 	}
 
@@ -384,7 +446,7 @@ static void serio_raw_hangup(struct serio_raw *serio_raw)
 
 	serio_pause_rx(serio_raw->serio);
 	list_for_each_entry(client, &serio_raw->client_list, node)
-		kill_fasync(&client->fasync, SIGIO, POLL_HUP);
+	kill_fasync(&client->fasync, SIGIO, POLL_HUP);
 	serio_continue_rx(serio_raw->serio);
 
 	wake_up_interruptible(&serio_raw->wait);
@@ -410,7 +472,8 @@ static void serio_raw_disconnect(struct serio *serio)
 	serio_set_drvdata(serio, NULL);
 }
 
-static struct serio_device_id serio_raw_serio_ids[] = {
+static struct serio_device_id serio_raw_serio_ids[] =
+{
 	{
 		.type	= SERIO_8042,
 		.proto	= SERIO_ANY,
@@ -428,7 +491,8 @@ static struct serio_device_id serio_raw_serio_ids[] = {
 
 MODULE_DEVICE_TABLE(serio, serio_raw_serio_ids);
 
-static struct serio_driver serio_raw_drv = {
+static struct serio_driver serio_raw_drv =
+{
 	.driver		= {
 		.name	= "serio_raw",
 	},

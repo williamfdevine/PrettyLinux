@@ -52,7 +52,8 @@
 struct sdhci_pci_chip;
 struct sdhci_pci_slot;
 
-struct sdhci_pci_fixes {
+struct sdhci_pci_fixes
+{
 	unsigned int		quirks;
 	unsigned int		quirks2;
 	bool			allow_runtime_pm;
@@ -69,7 +70,8 @@ struct sdhci_pci_fixes {
 	const struct sdhci_ops	*ops;
 };
 
-struct sdhci_pci_slot {
+struct sdhci_pci_slot
+{
 	struct sdhci_pci_chip	*chip;
 	struct sdhci_host	*host;
 	struct sdhci_pci_data	*data;
@@ -84,12 +86,13 @@ struct sdhci_pci_slot {
 
 	void (*hw_reset)(struct sdhci_host *host);
 	int (*select_drive_strength)(struct sdhci_host *host,
-				     struct mmc_card *card,
-				     unsigned int max_dtr, int host_drv,
-				     int card_drv, int *drv_type);
+								 struct mmc_card *card,
+								 unsigned int max_dtr, int host_drv,
+								 int card_drv, int *drv_type);
 };
 
-struct sdhci_pci_chip {
+struct sdhci_pci_chip
+{
 	struct pci_dev		*pdev;
 
 	unsigned int		quirks;

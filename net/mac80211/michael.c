@@ -19,7 +19,7 @@ static void michael_block(struct michael_mic_ctx *mctx, u32 val)
 	mctx->r ^= rol32(mctx->l, 17);
 	mctx->l += mctx->r;
 	mctx->r ^= ((mctx->l & 0xff00ff00) >> 8) |
-		   ((mctx->l & 0x00ff00ff) << 8);
+			   ((mctx->l & 0x00ff00ff) << 8);
 	mctx->l += mctx->r;
 	mctx->r ^= rol32(mctx->l, 3);
 	mctx->l += mctx->r;
@@ -28,16 +28,21 @@ static void michael_block(struct michael_mic_ctx *mctx, u32 val)
 }
 
 static void michael_mic_hdr(struct michael_mic_ctx *mctx, const u8 *key,
-			    struct ieee80211_hdr *hdr)
+							struct ieee80211_hdr *hdr)
 {
 	u8 *da, *sa, tid;
 
 	da = ieee80211_get_DA(hdr);
 	sa = ieee80211_get_SA(hdr);
+
 	if (ieee80211_is_data_qos(hdr->frame_control))
+	{
 		tid = *ieee80211_get_qos_ctl(hdr) & IEEE80211_QOS_CTL_TID_MASK;
+	}
 	else
+	{
 		tid = 0;
+	}
 
 	mctx->l = get_unaligned_le32(key);
 	mctx->r = get_unaligned_le32(key + 4);
@@ -48,13 +53,13 @@ static void michael_mic_hdr(struct michael_mic_ctx *mctx, const u8 *key,
 	 */
 	michael_block(mctx, get_unaligned_le32(da));
 	michael_block(mctx, get_unaligned_le16(&da[4]) |
-			    (get_unaligned_le16(sa) << 16));
+				  (get_unaligned_le16(sa) << 16));
 	michael_block(mctx, get_unaligned_le32(&sa[2]));
 	michael_block(mctx, tid);
 }
 
 void michael_mic(const u8 *key, struct ieee80211_hdr *hdr,
-		 const u8 *data, size_t data_len, u8 *mic)
+				 const u8 *data, size_t data_len, u8 *mic)
 {
 	u32 val;
 	size_t block, blocks, left;
@@ -67,12 +72,16 @@ void michael_mic(const u8 *key, struct ieee80211_hdr *hdr,
 	left = data_len % 4;
 
 	for (block = 0; block < blocks; block++)
+	{
 		michael_block(&mctx, get_unaligned_le32(&data[block * 4]));
+	}
 
 	/* Partial block of 0..3 bytes and padding: 0x5a + 4..7 zeros to make
 	 * total length a multiple of 4. */
 	val = 0x5a;
-	while (left > 0) {
+
+	while (left > 0)
+	{
 		val <<= 8;
 		left--;
 		val |= data[blocks * 4 + left];

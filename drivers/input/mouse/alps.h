@@ -39,7 +39,8 @@
  * SS4_PACKET_ID_MULTI: There's three or more fingers on touchpad
  * SS4_PACKET_ID_STICK: A stick pointer packet
 */
-enum SS4_PACKET_ID {
+enum SS4_PACKET_ID
+{
 	SS4_PACKET_ID_IDLE = 0,
 	SS4_PACKET_ID_ONE,
 	SS4_PACKET_ID_TWO,
@@ -55,21 +56,21 @@ enum SS4_PACKET_ID {
 #define SS4_MASK_NORMAL_BUTTONS		0x07
 
 #define SS4_1F_X_V2(_b)		((_b[0] & 0x0007) |		\
-				 ((_b[1] << 3) & 0x0078) |	\
-				 ((_b[1] << 2) & 0x0380) |	\
-				 ((_b[2] << 5) & 0x1C00)	\
-				)
+							 ((_b[1] << 3) & 0x0078) |	\
+							 ((_b[1] << 2) & 0x0380) |	\
+							 ((_b[2] << 5) & 0x1C00)	\
+						 )
 
 #define SS4_1F_Y_V2(_b)		(((_b[2]) & 0x000F) |		\
-				 ((_b[3] >> 2) & 0x0030) |	\
-				 ((_b[4] << 6) & 0x03C0) |	\
-				 ((_b[4] << 5) & 0x0C00)	\
-				)
+							 ((_b[3] >> 2) & 0x0030) |	\
+							 ((_b[4] << 6) & 0x03C0) |	\
+							 ((_b[4] << 5) & 0x0C00)	\
+						 )
 
 #define SS4_1F_Z_V2(_b)		(((_b[5]) & 0x0F) |		\
-				 ((_b[5] >> 1) & 0x70) |	\
-				 ((_b[4]) & 0x80)		\
-				)
+							 ((_b[5] >> 1) & 0x70) |	\
+							 ((_b[4]) & 0x80)		\
+						 )
 
 #define SS4_1F_LFB_V2(_b)	(((_b[2] >> 4) & 0x01) == 0x01)
 
@@ -78,25 +79,25 @@ enum SS4_PACKET_ID {
 #define SS4_BTN_V2(_b)		((_b[0] >> 5) & SS4_MASK_NORMAL_BUTTONS)
 
 #define SS4_STD_MF_X_V2(_b, _i)	(((_b[0 + (_i) * 3] << 5) & 0x00E0) |	\
-				 ((_b[1 + _i * 3]  << 5) & 0x1F00)	\
-				)
+								 ((_b[1 + _i * 3]  << 5) & 0x1F00)	\
+								)
 
 #define SS4_STD_MF_Y_V2(_b, _i)	(((_b[1 + (_i) * 3] << 3) & 0x0010) |	\
-				 ((_b[2 + (_i) * 3] << 5) & 0x01E0) |	\
-				 ((_b[2 + (_i) * 3] << 4) & 0x0E00)	\
-				)
+								 ((_b[2 + (_i) * 3] << 5) & 0x01E0) |	\
+								 ((_b[2 + (_i) * 3] << 4) & 0x0E00)	\
+								)
 
 #define SS4_BTL_MF_X_V2(_b, _i)	(SS4_STD_MF_X_V2(_b, _i) |		\
-				 ((_b[0 + (_i) * 3] >> 3) & 0x0010)	\
-				)
+								 ((_b[0 + (_i) * 3] >> 3) & 0x0010)	\
+								)
 
 #define SS4_BTL_MF_Y_V2(_b, _i)	(SS4_STD_MF_Y_V2(_b, _i) | \
-				 ((_b[0 + (_i) * 3] >> 3) & 0x0008)	\
-				)
+								 ((_b[0 + (_i) * 3] >> 3) & 0x0008)	\
+								)
 
 #define SS4_MF_Z_V2(_b, _i)	(((_b[1 + (_i) * 3]) & 0x0001) |	\
-				 ((_b[1 + (_i) * 3] >> 1) & 0x0002)	\
-				)
+							 ((_b[1 + (_i) * 3] >> 1) & 0x0002)	\
+							)
 
 #define SS4_IS_MF_CONTINUE(_b)	((_b[2] & 0x10) == 0x10)
 #define SS4_IS_5F_DETECTED(_b)	((_b[2] & 0x10) == 0x10)
@@ -116,12 +117,13 @@ enum SS4_PACKET_ID {
  * V7_PACKET_ID_NEW: The finger position in slot is not continues from
  *  previous packet.
 */
-enum V7_PACKET_ID {
-	 V7_PACKET_ID_IDLE,
-	 V7_PACKET_ID_TWO,
-	 V7_PACKET_ID_MULTI,
-	 V7_PACKET_ID_NEW,
-	 V7_PACKET_ID_UNKNOWN,
+enum V7_PACKET_ID
+{
+	V7_PACKET_ID_IDLE,
+	V7_PACKET_ID_TWO,
+	V7_PACKET_ID_MULTI,
+	V7_PACKET_ID_NEW,
+	V7_PACKET_ID_UNKNOWN,
 };
 
 /**
@@ -133,7 +135,8 @@ enum V7_PACKET_ID {
  * @mask0: The mask used to check the first byte of the report.
  * @flags: Additional device capabilities (passthrough port, trackstick, etc.).
  */
-struct alps_protocol_info {
+struct alps_protocol_info
+{
 	u16 version;
 	u8 byte0, mask0;
 	unsigned int flags;
@@ -152,7 +155,8 @@ struct alps_protocol_info {
  * values returned in the "E7 report" and/or the "EC report."  This table
  * lists a number of such touchpads.
  */
-struct alps_model_info {
+struct alps_model_info
+{
 	u8 signature[3];
 	u8 command_mode_resp;
 	struct alps_protocol_info protocol_info;
@@ -169,12 +173,14 @@ struct alps_model_info {
  * register address or (write) data.  Different versions of the ALPS protocol
  * use slightly different encodings.
  */
-struct alps_nibble_commands {
+struct alps_nibble_commands
+{
 	int command;
 	unsigned char data;
 };
 
-struct alps_bitmap_point {
+struct alps_bitmap_point
+{
 	int start_bit;
 	int num_bits;
 };
@@ -196,7 +202,8 @@ struct alps_bitmap_point {
  * @ts_right: Right trackstick button is active.
  * @ts_middle: Middle trackstick button is active.
  */
-struct alps_fields {
+struct alps_fields
+{
 	unsigned int x_map;
 	unsigned int y_map;
 	unsigned int fingers;
@@ -205,16 +212,16 @@ struct alps_fields {
 	struct input_mt_pos st;
 	struct input_mt_pos mt[MAX_TOUCHES];
 
-	unsigned int first_mp:1;
-	unsigned int is_mp:1;
+	unsigned int first_mp: 1;
+	unsigned int is_mp: 1;
 
-	unsigned int left:1;
-	unsigned int right:1;
-	unsigned int middle:1;
+	unsigned int left: 1;
+	unsigned int right: 1;
+	unsigned int middle: 1;
 
-	unsigned int ts_left:1;
-	unsigned int ts_right:1;
-	unsigned int ts_middle:1;
+	unsigned int ts_left: 1;
+	unsigned int ts_right: 1;
+	unsigned int ts_middle: 1;
 };
 
 /**
@@ -250,7 +257,8 @@ struct alps_fields {
  * @quirks: Bitmap of ALPS_QUIRK_*.
  * @timer: Timer for flushing out the final report packet in the stream.
  */
-struct alps_data {
+struct alps_data
+{
 	struct psmouse *psmouse;
 	struct input_dev *dev2;
 	struct input_dev *dev3;
@@ -275,7 +283,7 @@ struct alps_data {
 	int (*hw_init)(struct psmouse *psmouse);
 	void (*process_packet)(struct psmouse *psmouse);
 	int (*decode_fields)(struct alps_fields *f, unsigned char *p,
-			      struct psmouse *psmouse);
+						 struct psmouse *psmouse);
 	void (*set_abs_params)(struct alps_data *priv, struct input_dev *dev1);
 
 	int prev_fin;

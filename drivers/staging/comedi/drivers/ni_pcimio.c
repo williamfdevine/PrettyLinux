@@ -122,7 +122,8 @@
  * 63 different possibilities.  An AO channel
  * can not act as it's own OFFSET or REFERENCE.
  */
-static const struct comedi_lrange range_ni_M_628x_ao = {
+static const struct comedi_lrange range_ni_M_628x_ao =
+{
 	8, {
 		BIP_RANGE(10),
 		BIP_RANGE(5),
@@ -136,7 +137,8 @@ static const struct comedi_lrange range_ni_M_628x_ao = {
 	}
 };
 
-static const struct comedi_lrange range_ni_M_625x_ao = {
+static const struct comedi_lrange range_ni_M_625x_ao =
+{
 	3, {
 		BIP_RANGE(10),
 		BIP_RANGE(5),
@@ -144,7 +146,8 @@ static const struct comedi_lrange range_ni_M_625x_ao = {
 	}
 };
 
-enum ni_pcimio_boardid {
+enum ni_pcimio_boardid
+{
 	BOARD_PCIMIO_16XE_50,
 	BOARD_PCIMIO_16XE_10,
 	BOARD_PCI6014,
@@ -205,7 +208,8 @@ enum ni_pcimio_boardid {
 	BOARD_PXI6143,
 };
 
-static const struct ni_board_struct ni_boards[] = {
+static const struct ni_board_struct ni_boards[] =
+{
 	[BOARD_PCIMIO_16XE_50] = {
 		.name		= "pci-mio-16xe-50",
 		.n_adchan	= 16,
@@ -990,66 +994,81 @@ static const struct ni_board_struct ni_boards[] = {
 #include "ni_mio_common.c"
 
 static int pcimio_ai_change(struct comedi_device *dev,
-			    struct comedi_subdevice *s)
+							struct comedi_subdevice *s)
 {
 	struct ni_private *devpriv = dev->private;
 	int ret;
 
 	ret = mite_buf_change(devpriv->ai_mite_ring, s);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
 static int pcimio_ao_change(struct comedi_device *dev,
-			    struct comedi_subdevice *s)
+							struct comedi_subdevice *s)
 {
 	struct ni_private *devpriv = dev->private;
 	int ret;
 
 	ret = mite_buf_change(devpriv->ao_mite_ring, s);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
 static int pcimio_gpct0_change(struct comedi_device *dev,
-			       struct comedi_subdevice *s)
+							   struct comedi_subdevice *s)
 {
 	struct ni_private *devpriv = dev->private;
 	int ret;
 
 	ret = mite_buf_change(devpriv->gpct_mite_ring[0], s);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
 static int pcimio_gpct1_change(struct comedi_device *dev,
-			       struct comedi_subdevice *s)
+							   struct comedi_subdevice *s)
 {
 	struct ni_private *devpriv = dev->private;
 	int ret;
 
 	ret = mite_buf_change(devpriv->gpct_mite_ring[1], s);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
 static int pcimio_dio_change(struct comedi_device *dev,
-			     struct comedi_subdevice *s)
+							 struct comedi_subdevice *s)
 {
 	struct ni_private *devpriv = dev->private;
 	int ret;
 
 	ret = mite_buf_change(devpriv->cdo_mite_ring, s);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -1076,19 +1095,24 @@ static void m_series_init_eeprom_buffer(struct comedi_device *dev)
 	old_iodwcr1_bits = readl(mite->mmio + MITE_IODWCR_1);
 	writel(0x0, mite->mmio + MITE_IODWBSR);
 	writel(((0x80 | window_size) | daq_phys_addr),
-	       mite->mmio + MITE_IODWBSR_1);
+		   mite->mmio + MITE_IODWBSR_1);
 	writel(0x1 | old_iodwcr1_bits, mite->mmio + MITE_IODWCR_1);
 	writel(0xf, mite->mmio + 0x30);
 
 	BUG_ON(serial_number_eeprom_length > sizeof(devpriv->serial_number));
-	for (i = 0; i < serial_number_eeprom_length; ++i) {
+
+	for (i = 0; i < serial_number_eeprom_length; ++i)
+	{
 		char *byte_ptr = (char *)&devpriv->serial_number + i;
 		*byte_ptr = ni_readb(dev, serial_number_eeprom_offset + i);
 	}
+
 	devpriv->serial_number = be32_to_cpu(devpriv->serial_number);
 
 	for (i = 0; i < M_SERIES_EEPROM_SIZE; ++i)
+	{
 		devpriv->eeprom_buffer[i] = ni_readb(dev, Start_Cal_EEPROM + i);
+	}
 
 	writel(old_iodwbsr1_bits, mite->mmio + MITE_IODWBSR_1);
 	writel(old_iodwbsr_bits, mite->mmio + MITE_IODWBSR);
@@ -1119,7 +1143,7 @@ static void init_6143(struct comedi_device *dev)
 	/*  Strobe Relay disable bit */
 	devpriv->ai_calib_source_enabled = 0;
 	ni_writew(dev, devpriv->ai_calib_source | NI6143_CALIB_CHAN_RELAY_OFF,
-		  NI6143_CALIB_CHAN_REG);
+			  NI6143_CALIB_CHAN_REG);
 	ni_writew(dev, devpriv->ai_calib_source, NI6143_CALIB_CHAN_REG);
 }
 
@@ -1128,9 +1152,14 @@ static void pcimio_detach(struct comedi_device *dev)
 	struct ni_private *devpriv = dev->private;
 
 	mio_common_detach(dev);
+
 	if (dev->irq)
+	{
 		free_irq(dev->irq, dev);
-	if (devpriv) {
+	}
+
+	if (devpriv)
+	{
 		mite_free_ring(devpriv->ai_mite_ring);
 		mite_free_ring(devpriv->ao_mite_ring);
 		mite_free_ring(devpriv->cdo_mite_ring);
@@ -1138,13 +1167,17 @@ static void pcimio_detach(struct comedi_device *dev)
 		mite_free_ring(devpriv->gpct_mite_ring[1]);
 		mite_detach(devpriv->mite);
 	}
+
 	if (dev->mmio)
+	{
 		iounmap(dev->mmio);
+	}
+
 	comedi_pci_disable(dev);
 }
 
 static int pcimio_auto_attach(struct comedi_device *dev,
-			      unsigned long context)
+							  unsigned long context)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	const struct ni_board_struct *board = NULL;
@@ -1153,78 +1186,155 @@ static int pcimio_auto_attach(struct comedi_device *dev,
 	int ret;
 
 	if (context < ARRAY_SIZE(ni_boards))
+	{
 		board = &ni_boards[context];
+	}
+
 	if (!board)
+	{
 		return -ENODEV;
+	}
+
 	dev->board_ptr = board;
 	dev->board_name = board->name;
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = ni_alloc_private(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	devpriv = dev->private;
 
 	devpriv->mite = mite_attach(dev, false);	/* use win0 */
+
 	if (!devpriv->mite)
+	{
 		return -ENOMEM;
+	}
 
 	if (board->reg_type & ni_reg_m_series_mask)
+	{
 		devpriv->is_m_series = 1;
+	}
+
 	if (board->reg_type & ni_reg_6xxx_mask)
+	{
 		devpriv->is_6xxx = 1;
+	}
+
 	if (board->reg_type == ni_reg_611x)
+	{
 		devpriv->is_611x = 1;
+	}
+
 	if (board->reg_type == ni_reg_6143)
+	{
 		devpriv->is_6143 = 1;
+	}
+
 	if (board->reg_type == ni_reg_622x)
+	{
 		devpriv->is_622x = 1;
+	}
+
 	if (board->reg_type == ni_reg_625x)
+	{
 		devpriv->is_625x = 1;
+	}
+
 	if (board->reg_type == ni_reg_628x)
+	{
 		devpriv->is_628x = 1;
+	}
+
 	if (board->reg_type & ni_reg_67xx_mask)
+	{
 		devpriv->is_67xx = 1;
+	}
+
 	if (board->reg_type == ni_reg_6711)
+	{
 		devpriv->is_6711 = 1;
+	}
+
 	if (board->reg_type == ni_reg_6713)
+	{
 		devpriv->is_6713 = 1;
+	}
 
 	devpriv->ai_mite_ring = mite_alloc_ring(devpriv->mite);
+
 	if (!devpriv->ai_mite_ring)
+	{
 		return -ENOMEM;
+	}
+
 	devpriv->ao_mite_ring = mite_alloc_ring(devpriv->mite);
+
 	if (!devpriv->ao_mite_ring)
+	{
 		return -ENOMEM;
+	}
+
 	devpriv->cdo_mite_ring = mite_alloc_ring(devpriv->mite);
+
 	if (!devpriv->cdo_mite_ring)
+	{
 		return -ENOMEM;
+	}
+
 	devpriv->gpct_mite_ring[0] = mite_alloc_ring(devpriv->mite);
+
 	if (!devpriv->gpct_mite_ring[0])
+	{
 		return -ENOMEM;
+	}
+
 	devpriv->gpct_mite_ring[1] = mite_alloc_ring(devpriv->mite);
+
 	if (!devpriv->gpct_mite_ring[1])
+	{
 		return -ENOMEM;
+	}
 
 	if (devpriv->is_m_series)
+	{
 		m_series_init_eeprom_buffer(dev);
+	}
+
 	if (devpriv->is_6143)
+	{
 		init_6143(dev);
+	}
 
 	irq = pcidev->irq;
-	if (irq) {
+
+	if (irq)
+	{
 		ret = request_irq(irq, ni_E_interrupt, IRQF_SHARED,
-				  dev->board_name, dev);
+						  dev->board_name, dev);
+
 		if (ret == 0)
+		{
 			dev->irq = irq;
+		}
 	}
 
 	ret = ni_E_init(dev, 0, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	dev->subdevices[NI_AI_SUBDEV].buf_change = &pcimio_ai_change;
 	dev->subdevices[NI_AO_SUBDEV].buf_change = &pcimio_ao_change;
@@ -1235,7 +1345,8 @@ static int pcimio_auto_attach(struct comedi_device *dev,
 	return 0;
 }
 
-static struct comedi_driver ni_pcimio_driver = {
+static struct comedi_driver ni_pcimio_driver =
+{
 	.driver_name	= "ni_pcimio",
 	.module		= THIS_MODULE,
 	.auto_attach	= pcimio_auto_attach,
@@ -1243,12 +1354,13 @@ static struct comedi_driver ni_pcimio_driver = {
 };
 
 static int ni_pcimio_pci_probe(struct pci_dev *dev,
-			       const struct pci_device_id *id)
+							   const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &ni_pcimio_driver, id->driver_data);
 }
 
-static const struct pci_device_id ni_pcimio_pci_table[] = {
+static const struct pci_device_id ni_pcimio_pci_table[] =
+{
 	{ PCI_VDEVICE(NI, 0x0162), BOARD_PCIMIO_16XE_50 },	/* 0x1620? */
 	{ PCI_VDEVICE(NI, 0x1170), BOARD_PCIMIO_16XE_10 },
 	{ PCI_VDEVICE(NI, 0x1180), BOARD_PCIMIO_16E_1 },
@@ -1308,7 +1420,8 @@ static const struct pci_device_id ni_pcimio_pci_table[] = {
 };
 MODULE_DEVICE_TABLE(pci, ni_pcimio_pci_table);
 
-static struct pci_driver ni_pcimio_pci_driver = {
+static struct pci_driver ni_pcimio_pci_driver =
+{
 	.name		= "ni_pcimio",
 	.id_table	= ni_pcimio_pci_table,
 	.probe		= ni_pcimio_pci_probe,

@@ -45,9 +45,12 @@ static int hvc_bfin_put_chars(uint32_t vt, const char *buf, int count)
 	int ret;
 
 	if (bfin_read_DBGSTAT() & EMUDOF)
+	{
 		return 0;
+	}
 
-	if (!outbound_len) {
+	if (!outbound_len)
+	{
 		outbound_len = count;
 		bfin_write_emudat(outbound_len);
 		return 0;
@@ -69,10 +72,14 @@ static int hvc_bfin_get_chars(uint32_t vt, char *buf, int count)
 	int ret;
 
 	if (!(bfin_read_DBGSTAT() & EMUDIF))
+	{
 		return 0;
+	}
+
 	emudat = bfin_read_emudat();
 
-	if (!inbound_len) {
+	if (!inbound_len)
+	{
 		inbound_len = emudat;
 		return 0;
 	}
@@ -85,7 +92,8 @@ static int hvc_bfin_get_chars(uint32_t vt, char *buf, int count)
 }
 
 /* Glue the HVC layers to the Blackfin layers */
-static const struct hv_ops hvc_bfin_get_put_ops = {
+static const struct hv_ops hvc_bfin_get_put_ops =
+{
 	.get_chars = hvc_bfin_get_chars,
 	.put_chars = hvc_bfin_put_chars,
 };

@@ -35,14 +35,16 @@
 #define IWL_TT_INCREASE_MARGIN	5
 #define IWL_TT_CT_KILL_MARGIN	3
 
-enum iwl_antenna_ok {
+enum iwl_antenna_ok
+{
 	IWL_ANT_OK_NONE,
 	IWL_ANT_OK_SINGLE,
 	IWL_ANT_OK_MULTI,
 };
 
 /* Thermal Throttling State Machine states */
-enum  iwl_tt_state {
+enum  iwl_tt_state
+{
 	IWL_TI_0,	/* normal temperature, system power state */
 	IWL_TI_1,	/* high temperature detect, low power state */
 	IWL_TI_2,	/* higher temperature detected, lower power state */
@@ -60,7 +62,8 @@ enum  iwl_tt_state {
  * based on the current thermal throttling state, and determines
  * the number of tx/rx streams and the status of HT operation.
  */
-struct iwl_tt_restriction {
+struct iwl_tt_restriction
+{
 	enum iwl_antenna_ok tx_stream;
 	enum iwl_antenna_ok rx_stream;
 	bool is_ht;
@@ -76,7 +79,8 @@ struct iwl_tt_restriction {
  * to determine the next thermal state to go based on the
  * current temperature.
  */
-struct iwl_tt_trans {
+struct iwl_tt_trans
+{
 	enum iwl_tt_state next_state;
 	u32 tt_low;
 	u32 tt_high;
@@ -100,7 +104,8 @@ struct iwl_tt_trans {
  * @ct_kill_toggle: used to toggle the CSR bit when checking uCode temperature
  * @ct_kill_exit_tm: timer to exit thermal kill
  */
-struct iwl_tt_mgmt {
+struct iwl_tt_mgmt
+{
 	enum iwl_tt_state state;
 	bool advanced_tt;
 	u8 tt_power_mode;

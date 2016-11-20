@@ -40,13 +40,19 @@ static inline struct dev_info *which_dev(struct mddev *mddev, sector_t sector)
 	 * Binary Search
 	 */
 
-	while (hi > lo) {
+	while (hi > lo)
+	{
 
 		mid = (hi + lo) / 2;
+
 		if (sector < conf->disks[mid].end_sector)
+		{
 			hi = mid;
+		}
 		else
+		{
 			lo = mid + 1;
+		}
 	}
 
 	return conf->disks + lo;
@@ -59,7 +65,8 @@ static int linear_congested(struct mddev *mddev, int bits)
 
 	conf = mddev->private;
 
-	for (i = 0; i < mddev->raid_disks && !ret ; i++) {
+	for (i = 0; i < mddev->raid_disks && !ret ; i++)
+	{
 		struct request_queue *q = bdev_get_queue(conf->disks[i].rdev->bdev);
 		ret |= bdi_congested(&q->backing_dev_info, bits);
 	}
@@ -74,7 +81,7 @@ static sector_t linear_size(struct mddev *mddev, sector_t sectors, int raid_disk
 
 	conf = mddev->private;
 	WARN_ONCE(sectors || raid_disks,
-		  "%s does not support generic reshape\n", __func__);
+			  "%s does not support generic reshape\n", __func__);
 	array_sectors = conf->array_sectors;
 
 	return array_sectors;
@@ -87,51 +94,66 @@ static struct linear_conf *linear_conf(struct mddev *mddev, int raid_disks)
 	int i, cnt;
 	bool discard_supported = false;
 
-	conf = kzalloc (sizeof (*conf) + raid_disks*sizeof(struct dev_info),
-			GFP_KERNEL);
+	conf = kzalloc (sizeof (*conf) + raid_disks * sizeof(struct dev_info),
+					GFP_KERNEL);
+
 	if (!conf)
+	{
 		return NULL;
+	}
 
 	cnt = 0;
 	conf->array_sectors = 0;
 
-	rdev_for_each(rdev, mddev) {
+	rdev_for_each(rdev, mddev)
+	{
 		int j = rdev->raid_disk;
 		struct dev_info *disk = conf->disks + j;
 		sector_t sectors;
 
-		if (j < 0 || j >= raid_disks || disk->rdev) {
+		if (j < 0 || j >= raid_disks || disk->rdev)
+		{
 			printk(KERN_ERR "md/linear:%s: disk numbering problem. Aborting!\n",
-			       mdname(mddev));
+				   mdname(mddev));
 			goto out;
 		}
 
 		disk->rdev = rdev;
-		if (mddev->chunk_sectors) {
+
+		if (mddev->chunk_sectors)
+		{
 			sectors = rdev->sectors;
 			sector_div(sectors, mddev->chunk_sectors);
 			rdev->sectors = sectors * mddev->chunk_sectors;
 		}
 
 		disk_stack_limits(mddev->gendisk, rdev->bdev,
-				  rdev->data_offset << 9);
+						  rdev->data_offset << 9);
 
 		conf->array_sectors += rdev->sectors;
 		cnt++;
 
 		if (blk_queue_discard(bdev_get_queue(rdev->bdev)))
+		{
 			discard_supported = true;
+		}
 	}
-	if (cnt != raid_disks) {
+
+	if (cnt != raid_disks)
+	{
 		printk(KERN_ERR "md/linear:%s: not enough drives present. Aborting!\n",
-		       mdname(mddev));
+			   mdname(mddev));
 		goto out;
 	}
 
 	if (!discard_supported)
+	{
 		queue_flag_clear_unlocked(QUEUE_FLAG_DISCARD, mddev->queue);
+	}
 	else
+	{
 		queue_flag_set_unlocked(QUEUE_FLAG_DISCARD, mddev->queue);
+	}
 
 	/*
 	 * Here we calculate the device offsets.
@@ -140,7 +162,7 @@ static struct linear_conf *linear_conf(struct mddev *mddev, int raid_disks)
 
 	for (i = 1; i < raid_disks; i++)
 		conf->disks[i].end_sector =
-			conf->disks[i-1].end_sector +
+			conf->disks[i - 1].end_sector +
 			conf->disks[i].rdev->sectors;
 
 	return conf;
@@ -156,19 +178,28 @@ static int linear_run (struct mddev *mddev)
 	int ret;
 
 	if (md_check_no_bitmap(mddev))
+	{
 		return -EINVAL;
+	}
+
 	conf = linear_conf(mddev, mddev->raid_disks);
 
 	if (!conf)
+	{
 		return 1;
+	}
+
 	mddev->private = conf;
 	md_set_array_sectors(mddev, linear_size(mddev, 0, 0));
 
 	ret =  md_integrity_register(mddev);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(conf);
 		mddev->private = NULL;
 	}
+
 	return ret;
 }
 
@@ -185,15 +216,19 @@ static int linear_add(struct mddev *mddev, struct md_rdev *rdev)
 	struct linear_conf *newconf, *oldconf;
 
 	if (rdev->saved_raid_disk != mddev->raid_disks)
+	{
 		return -EINVAL;
+	}
 
 	rdev->raid_disk = rdev->saved_raid_disk;
 	rdev->saved_raid_disk = -1;
 
-	newconf = linear_conf(mddev,mddev->raid_disks+1);
+	newconf = linear_conf(mddev, mddev->raid_disks + 1);
 
 	if (!newconf)
+	{
 		return -ENOMEM;
+	}
 
 	mddev_suspend(mddev);
 	oldconf = mddev->private;
@@ -221,12 +256,14 @@ static void linear_make_request(struct mddev *mddev, struct bio *bio)
 	struct bio *split;
 	sector_t start_sector, end_sector, data_offset;
 
-	if (unlikely(bio->bi_opf & REQ_PREFLUSH)) {
+	if (unlikely(bio->bi_opf & REQ_PREFLUSH))
+	{
 		md_flush_request(mddev, bio);
 		return;
 	}
 
-	do {
+	do
+	{
 		tmp_dev = which_dev(mddev, bio->bi_iter.bi_sector);
 		start_sector = tmp_dev->end_sector - tmp_dev->rdev->sectors;
 		end_sector = tmp_dev->end_sector;
@@ -234,42 +271,53 @@ static void linear_make_request(struct mddev *mddev, struct bio *bio)
 		bio->bi_bdev = tmp_dev->rdev->bdev;
 
 		if (unlikely(bio->bi_iter.bi_sector >= end_sector ||
-			     bio->bi_iter.bi_sector < start_sector))
+					 bio->bi_iter.bi_sector < start_sector))
+		{
 			goto out_of_bounds;
+		}
 
-		if (unlikely(bio_end_sector(bio) > end_sector)) {
+		if (unlikely(bio_end_sector(bio) > end_sector))
+		{
 			/* This bio crosses a device boundary, so we have to
 			 * split it.
 			 */
 			split = bio_split(bio, end_sector -
-					  bio->bi_iter.bi_sector,
-					  GFP_NOIO, fs_bio_set);
+							  bio->bi_iter.bi_sector,
+							  GFP_NOIO, fs_bio_set);
 			bio_chain(split, bio);
-		} else {
+		}
+		else
+		{
 			split = bio;
 		}
 
 		split->bi_iter.bi_sector = split->bi_iter.bi_sector -
-			start_sector + data_offset;
+								   start_sector + data_offset;
 
 		if (unlikely((bio_op(split) == REQ_OP_DISCARD) &&
-			 !blk_queue_discard(bdev_get_queue(split->bi_bdev)))) {
+					 !blk_queue_discard(bdev_get_queue(split->bi_bdev))))
+		{
 			/* Just ignore it */
 			bio_endio(split);
-		} else
+		}
+		else
+		{
 			generic_make_request(split);
-	} while (split != bio);
+		}
+	}
+	while (split != bio);
+
 	return;
 
 out_of_bounds:
 	printk(KERN_ERR
-	       "md/linear:%s: make_request: Sector %llu out of bounds on "
-	       "dev %s: %llu sectors, offset %llu\n",
-	       mdname(mddev),
-	       (unsigned long long)bio->bi_iter.bi_sector,
-	       bdevname(tmp_dev->rdev->bdev, b),
-	       (unsigned long long)tmp_dev->rdev->sectors,
-	       (unsigned long long)start_sector);
+		   "md/linear:%s: make_request: Sector %llu out of bounds on "
+		   "dev %s: %llu sectors, offset %llu\n",
+		   mdname(mddev),
+		   (unsigned long long)bio->bi_iter.bi_sector,
+		   bdevname(tmp_dev->rdev->bdev, b),
+		   (unsigned long long)tmp_dev->rdev->sectors,
+		   (unsigned long long)start_sector);
 	bio_io_error(bio);
 }
 

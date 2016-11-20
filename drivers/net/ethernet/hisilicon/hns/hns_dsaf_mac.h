@@ -20,10 +20,10 @@ struct dsaf_device;
 
 #define MAC_GMAC_SUPPORTED \
 	(SUPPORTED_10baseT_Half \
-	| SUPPORTED_10baseT_Full \
-	| SUPPORTED_100baseT_Half \
-	| SUPPORTED_100baseT_Full \
-	| SUPPORTED_Autoneg)
+	 | SUPPORTED_10baseT_Full \
+	 | SUPPORTED_100baseT_Half \
+	 | SUPPORTED_100baseT_Full \
+	 | SUPPORTED_Autoneg)
 
 #define MAC_DEFAULT_MTU	(ETH_HLEN + ETH_FCS_LEN + VLAN_HLEN + ETH_DATA_LEN)
 #define MAC_MAX_MTU		9600
@@ -40,18 +40,18 @@ struct dsaf_device;
 #define ETH_DUMP_REG	 5
 /* check mac addr broadcast */
 #define MAC_IS_BROADCAST(p)	((*(p) == 0xff) && (*((p) + 1) == 0xff) && \
-		(*((p) + 2) == 0xff) &&  (*((p) + 3) == 0xff)  && \
-		(*((p) + 4) == 0xff) && (*((p) + 5) == 0xff))
+							 (*((p) + 2) == 0xff) &&  (*((p) + 3) == 0xff)  && \
+							 (*((p) + 4) == 0xff) && (*((p) + 5) == 0xff))
 
 /* check mac addr is 01-00-5e-xx-xx-xx*/
 #define MAC_IS_L3_MULTICAST(p) ((*((p) + 0) == 0x01) && \
-			(*((p) + 1) == 0x00)   && \
-			(*((p) + 2) == 0x5e))
+								(*((p) + 1) == 0x00)   && \
+								(*((p) + 2) == 0x5e))
 
 /*check the mac addr is 0 in all bit*/
 #define MAC_IS_ALL_ZEROS(p)   ((*(p) == 0) && (*((p) + 1) == 0) && \
-	(*((p) + 2) == 0) && (*((p) + 3) == 0) && \
-	(*((p) + 4) == 0) && (*((p) + 5) == 0))
+							   (*((p) + 2) == 0) && (*((p) + 3) == 0) && \
+							   (*((p) + 4) == 0) && (*((p) + 5) == 0))
 
 /*check mac addr multicast*/
 #define MAC_IS_MULTICAST(p)	((*((u8 *)((p) + 0)) & 0x01) ? (1) : (0))
@@ -59,12 +59,14 @@ struct dsaf_device;
 /**< Number of octets (8-bit bytes) in an ethernet address */
 #define MAC_NUM_OCTETS_PER_ADDR 6
 
-struct mac_priv {
+struct mac_priv
+{
 	void *mac;
 };
 
 /* net speed */
-enum mac_speed {
+enum mac_speed
+{
 	MAC_SPEED_10	= 10,	   /**< 10 Mbps */
 	MAC_SPEED_100	= 100,	  /**< 100 Mbps */
 	MAC_SPEED_1000  = 1000,	 /**< 1000 Mbps = 1 Gbps */
@@ -72,7 +74,8 @@ enum mac_speed {
 };
 
 /*mac interface keyword	*/
-enum mac_intf {
+enum mac_intf
+{
 	MAC_IF_NONE  = 0x00000000,   /**< interface not invalid */
 	MAC_IF_MII   = 0x00010000,   /**< MII interface */
 	MAC_IF_RMII  = 0x00020000,   /**< RMII interface */
@@ -87,7 +90,8 @@ enum mac_intf {
 };
 
 /*mac mode */
-enum mac_mode {
+enum mac_mode
+{
 	/**< Invalid Ethernet mode */
 	MAC_MODE_INVALID	 = 0,
 	/**<	10 Mbps MII   */
@@ -127,7 +131,8 @@ enum mac_mode {
 };
 
 /*mac communicate mode*/
-enum mac_commom_mode {
+enum mac_commom_mode
+{
 	MAC_COMM_MODE_NONE	  = 0, /**< No transmit/receive communication */
 	MAC_COMM_MODE_RX		= 1, /**< Only receive communication */
 	MAC_COMM_MODE_TX		= 2, /**< Only transmit communication */
@@ -135,7 +140,8 @@ enum mac_commom_mode {
 };
 
 /*mac statistics */
-struct mac_statistics {
+struct mac_statistics
+{
 	u64  stat_pkts64; /* r-10G tr-DT 64 byte frame counter */
 	u64  stat_pkts65to127; /* r-10G 65 to 127 byte frame counter */
 	u64  stat_pkts128to255; /* r-10G 128 to 255 byte frame counter */
@@ -166,14 +172,14 @@ struct mac_statistics {
 	u64  in_pkts;		/* Total number of packets received.*/
 	u64  in_mcast_pkts;	/* Total number of multicast frame received */
 	u64  in_bcast_pkts;	/* Total number of broadcast frame received */
-				/* Frames received, but discarded due to */
-				/* problems within the MAC RX. */
+	/* Frames received, but discarded due to */
+	/* problems within the MAC RX. */
 	u64  in_discards;
 	u64  in_errors;		/* Number of frames received with error: */
-				/*	- FIFO Overflow Error */
-				/*	- CRC Error */
-				/*	- Frame Too Long Error */
-				/*	- Alignment Error */
+	/*	- FIFO Overflow Error */
+	/*	- CRC Error */
+	/*	- Frame Too Long Error */
+	/*	- Alignment Error */
 	u64  out_octets; /*Total number of byte sent. */
 	u64  out_pkts;	/**< Total number of packets sent .*/
 	u64  out_mcast_pkts; /* Total number of multicast frame sent */
@@ -182,13 +188,14 @@ struct mac_statistics {
 	/*			the MAC TX N/A!.*/
 	u64  out_discards;
 	u64  out_errors;	/*Number of frames transmitted with error: */
-			/*	- FIFO Overflow Error */
-			/*	- FIFO Underflow Error */
-			/*	 - Other */
+	/*	- FIFO Overflow Error */
+	/*	- FIFO Underflow Error */
+	/*	 - Other */
 };
 
 /*mac para struct ,mac get param from nic or dsaf when initialize*/
-struct mac_params {
+struct mac_params
+{
 	char addr[MAC_NUM_OCTETS_PER_ADDR];
 	void *vaddr; /*virtual address*/
 	struct device *dev;
@@ -197,11 +204,12 @@ struct mac_params {
 	enum mac_mode mac_mode;
 };
 
-struct mac_info {
+struct mac_info
+{
 	u16 speed;/* The forced speed (lower bits) in */
-		/*		 *mbps. Please use */
-		/*		 * ethtool_cmd_speed()/_set() to */
-		/*		 * access it */
+	/*		 *mbps. Please use */
+	/*		 * ethtool_cmd_speed()/_set() to */
+	/*		 * access it */
 	u8 duplex;		/* Duplex, half or full */
 	u8 auto_neg;	/* Enable or disable autonegotiation */
 	enum hnae_loop loop_mode;
@@ -213,14 +221,16 @@ struct mac_info {
 	u8 port_en;	 /*port enable*/
 };
 
-struct mac_entry_idx {
+struct mac_entry_idx
+{
 	u8 addr[MAC_NUM_OCTETS_PER_ADDR];
-	u16 vlan_id:12;
-	u16 valid:1;
-	u16 qos:3;
+	u16 vlan_id: 12;
+	u16 valid: 1;
+	u16 qos: 3;
 };
 
-struct mac_hw_stats {
+struct mac_hw_stats
+{
 	u64 rx_good_pkts;	/* only for xgmac */
 	u64 rx_good_bytes;
 	u64 rx_total_pkts;	/* only for xgmac */
@@ -307,7 +317,8 @@ struct mac_hw_stats {
 	u64 rx_bad_from_sw;	/* only for xgmac */
 };
 
-struct hns_mac_cb {
+struct hns_mac_cb
+{
 	struct device *dev;
 	struct dsaf_device *dsaf_dev;
 	struct mac_priv priv;
@@ -344,7 +355,8 @@ struct hns_mac_cb {
 	struct mac_hw_stats hw_stats;
 };
 
-struct mac_driver {
+struct mac_driver
+{
 	/*init Mac when init nic or dsaf*/
 	void (*mac_init)(void *mac_drv);
 	/*remove mac when remove nic or dsaf*/
@@ -357,12 +369,12 @@ struct mac_driver {
 	void (*set_mac_addr)(void *mac_drv,	char *mac_addr);
 	/*adjust mac mode of port,include speed and duplex*/
 	int (*adjust_link)(void *mac_drv, enum mac_speed speed,
-			   u32 full_duplex);
+					   u32 full_duplex);
 	/* config autoegotaite mode of port*/
 	void (*set_an_mode)(void *mac_drv, u8 enable);
 	/* config loopbank mode */
 	int (*config_loopback)(void *mac_drv, enum hnae_loop loop_mode,
-			       u8 enable);
+						   u8 enable);
 	/* config mtu*/
 	void (*config_max_frame_length)(void *mac_drv, u16 newval);
 	/*config PAD and CRC enable */
@@ -408,7 +420,8 @@ struct mac_driver {
 	struct device *dev;
 };
 
-struct mac_stats_string {
+struct mac_stats_string
+{
 	char desc[64];
 	unsigned long offset;
 };
@@ -425,16 +438,16 @@ static inline struct mac_driver *hns_mac_get_drv(
 }
 
 void *hns_gmac_config(struct hns_mac_cb *mac_cb,
-		      struct mac_params *mac_param);
+					  struct mac_params *mac_param);
 void *hns_xgmac_config(struct hns_mac_cb *mac_cb,
-		       struct mac_params *mac_param);
+					   struct mac_params *mac_param);
 
 int hns_mac_init(struct dsaf_device *dsaf_dev);
 void mac_adjust_link(struct net_device *net_dev);
 void hns_mac_get_link_status(struct hns_mac_cb *mac_cb,	u32 *link_status);
 int hns_mac_change_vf_addr(struct hns_mac_cb *mac_cb, u32 vmid, char *addr);
 int hns_mac_set_multi(struct hns_mac_cb *mac_cb,
-		      u32 port_num, char *addr, bool enable);
+					  u32 port_num, char *addr, bool enable);
 int hns_mac_vm_config_bc_en(struct hns_mac_cb *mac_cb, u32 vm, bool enable);
 void hns_mac_start(struct hns_mac_cb *mac_cb);
 void hns_mac_stop(struct hns_mac_cb *mac_cb);
@@ -448,9 +461,9 @@ int hns_mac_set_autoneg(struct hns_mac_cb *mac_cb, u8 enable);
 int hns_mac_set_pauseparam(struct hns_mac_cb *mac_cb, u32 rx_en, u32 tx_en);
 int hns_mac_set_mtu(struct hns_mac_cb *mac_cb, u32 new_mtu);
 int hns_mac_get_port_info(struct hns_mac_cb *mac_cb,
-			  u8 *auto_neg, u16 *speed, u8 *duplex);
+						  u8 *auto_neg, u16 *speed, u8 *duplex);
 int hns_mac_config_mac_loopback(struct hns_mac_cb *mac_cb,
-				enum hnae_loop loop, int en);
+								enum hnae_loop loop, int en);
 void hns_mac_update_stats(struct hns_mac_cb *mac_cb);
 void hns_mac_get_stats(struct hns_mac_cb *mac_cb, u64 *data);
 void hns_mac_get_strings(struct hns_mac_cb *mac_cb, int stringset, u8 *data);
@@ -459,9 +472,9 @@ void hns_mac_get_regs(struct hns_mac_cb *mac_cb, void *data);
 int hns_mac_get_regs_count(struct hns_mac_cb *mac_cb);
 void hns_set_led_opt(struct hns_mac_cb *mac_cb);
 int hns_cpld_led_set_id(struct hns_mac_cb *mac_cb,
-			enum hnae_led_state status);
+						enum hnae_led_state status);
 void hns_mac_set_promisc(struct hns_mac_cb *mac_cb, u8 en);
 int hns_mac_get_inner_port_num(struct hns_mac_cb *mac_cb,
-			       u8 vmid, u8 *port_num);
+							   u8 vmid, u8 *port_num);
 
 #endif /* _HNS_DSAF_MAC_H */

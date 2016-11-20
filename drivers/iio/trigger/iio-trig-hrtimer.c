@@ -23,21 +23,23 @@
 /* default sampling frequency - 100Hz */
 #define HRTIMER_DEFAULT_SAMPLING_FREQUENCY 100
 
-struct iio_hrtimer_info {
+struct iio_hrtimer_info
+{
 	struct iio_sw_trigger swt;
 	struct hrtimer timer;
 	unsigned long sampling_frequency;
 	ktime_t period;
 };
 
-static struct config_item_type iio_hrtimer_type = {
+static struct config_item_type iio_hrtimer_type =
+{
 	.ct_owner = THIS_MODULE,
 };
 
 static
 ssize_t iio_hrtimer_show_sampling_frequency(struct device *dev,
-					    struct device_attribute *attr,
-					    char *buf)
+		struct device_attribute *attr,
+		char *buf)
 {
 	struct iio_trigger *trig = to_iio_trigger(dev);
 	struct iio_hrtimer_info *info = iio_trigger_get_drvdata(trig);
@@ -47,8 +49,8 @@ ssize_t iio_hrtimer_show_sampling_frequency(struct device *dev,
 
 static
 ssize_t iio_hrtimer_store_sampling_frequency(struct device *dev,
-					     struct device_attribute *attr,
-					     const char *buf, size_t len)
+		struct device_attribute *attr,
+		const char *buf, size_t len)
 {
 	struct iio_trigger *trig = to_iio_trigger(dev);
 	struct iio_hrtimer_info *info = iio_trigger_get_drvdata(trig);
@@ -56,11 +58,16 @@ ssize_t iio_hrtimer_store_sampling_frequency(struct device *dev,
 	int ret;
 
 	ret = kstrtoul(buf, 10, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (!val || val > NSEC_PER_SEC)
+	{
 		return -EINVAL;
+	}
 
 	info->sampling_frequency = val;
 	info->period = ktime_set(0, NSEC_PER_SEC / val);
@@ -69,19 +76,22 @@ ssize_t iio_hrtimer_store_sampling_frequency(struct device *dev,
 }
 
 static DEVICE_ATTR(sampling_frequency, S_IRUGO | S_IWUSR,
-		   iio_hrtimer_show_sampling_frequency,
-		   iio_hrtimer_store_sampling_frequency);
+				   iio_hrtimer_show_sampling_frequency,
+				   iio_hrtimer_store_sampling_frequency);
 
-static struct attribute *iio_hrtimer_attrs[] = {
+static struct attribute *iio_hrtimer_attrs[] =
+{
 	&dev_attr_sampling_frequency.attr,
 	NULL
 };
 
-static const struct attribute_group iio_hrtimer_attr_group = {
+static const struct attribute_group iio_hrtimer_attr_group =
+{
 	.attrs = iio_hrtimer_attrs,
 };
 
-static const struct attribute_group *iio_hrtimer_attr_groups[] = {
+static const struct attribute_group *iio_hrtimer_attr_groups[] =
+{
 	&iio_hrtimer_attr_group,
 	NULL
 };
@@ -106,14 +116,17 @@ static int iio_trig_hrtimer_set_state(struct iio_trigger *trig, bool state)
 
 	if (state)
 		hrtimer_start(&trig_info->timer, trig_info->period,
-			      HRTIMER_MODE_REL);
+					  HRTIMER_MODE_REL);
 	else
+	{
 		hrtimer_cancel(&trig_info->timer);
+	}
 
 	return 0;
 }
 
-static const struct iio_trigger_ops iio_hrtimer_trigger_ops = {
+static const struct iio_trigger_ops iio_hrtimer_trigger_ops =
+{
 	.owner = THIS_MODULE,
 	.set_trigger_state = iio_trig_hrtimer_set_state,
 };
@@ -124,11 +137,16 @@ static struct iio_sw_trigger *iio_trig_hrtimer_probe(const char *name)
 	int ret;
 
 	trig_info = kzalloc(sizeof(*trig_info), GFP_KERNEL);
+
 	if (!trig_info)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	trig_info->swt.trigger = iio_trigger_alloc("%s", name);
-	if (!trig_info->swt.trigger) {
+
+	if (!trig_info->swt.trigger)
+	{
 		ret = -ENOMEM;
 		goto err_free_trig_info;
 	}
@@ -142,11 +160,14 @@ static struct iio_sw_trigger *iio_trig_hrtimer_probe(const char *name)
 
 	trig_info->sampling_frequency = HRTIMER_DEFAULT_SAMPLING_FREQUENCY;
 	trig_info->period = ktime_set(0, NSEC_PER_SEC /
-				      trig_info->sampling_frequency);
+								  trig_info->sampling_frequency);
 
 	ret = iio_trigger_register(trig_info->swt.trigger);
+
 	if (ret)
+	{
 		goto err_free_trigger;
+	}
 
 	iio_swt_group_init_type_name(&trig_info->swt, name, &iio_hrtimer_type);
 	return &trig_info->swt;
@@ -174,12 +195,14 @@ static int iio_trig_hrtimer_remove(struct iio_sw_trigger *swt)
 	return 0;
 }
 
-static const struct iio_sw_trigger_ops iio_trig_hrtimer_ops = {
+static const struct iio_sw_trigger_ops iio_trig_hrtimer_ops =
+{
 	.probe		= iio_trig_hrtimer_probe,
 	.remove		= iio_trig_hrtimer_remove,
 };
 
-static struct iio_sw_trigger_type iio_trig_hrtimer = {
+static struct iio_sw_trigger_type iio_trig_hrtimer =
+{
 	.name = "hrtimer",
 	.owner = THIS_MODULE,
 	.ops = &iio_trig_hrtimer_ops,

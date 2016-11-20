@@ -16,7 +16,8 @@
 #include <linux/clk.h>
 #include <linux/regmap.h>
 
-struct sun4i_drv {
+struct sun4i_drv
+{
 	struct sun4i_backend	*backend;
 	struct sun4i_crtc	*crtc;
 	struct sun4i_tcon	*tcon;

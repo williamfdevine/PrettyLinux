@@ -17,7 +17,8 @@
 #define ECC_CURVE_NIST_P192	0x0001
 #define ECC_CURVE_NIST_P256	0x0002
 
-struct ecdh {
+struct ecdh
+{
 	unsigned short curve_id;
 	char *key;
 	unsigned short key_size;

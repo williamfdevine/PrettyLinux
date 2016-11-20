@@ -24,18 +24,21 @@
 
 static inline int proto_ports_offset(int proto)
 {
-	switch (proto) {
-	case IPPROTO_TCP:
-	case IPPROTO_UDP:
-	case IPPROTO_DCCP:
-	case IPPROTO_ESP:	/* SPI */
-	case IPPROTO_SCTP:
-	case IPPROTO_UDPLITE:
-		return 0;
-	case IPPROTO_AH:	/* SPI */
-		return 4;
-	default:
-		return -EINVAL;
+	switch (proto)
+	{
+		case IPPROTO_TCP:
+		case IPPROTO_UDP:
+		case IPPROTO_DCCP:
+		case IPPROTO_ESP:	/* SPI */
+		case IPPROTO_SCTP:
+		case IPPROTO_UDPLITE:
+			return 0;
+
+		case IPPROTO_AH:	/* SPI */
+			return 4;
+
+		default:
+			return -EINVAL;
 	}
 }
 

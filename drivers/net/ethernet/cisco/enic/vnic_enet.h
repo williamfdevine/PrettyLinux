@@ -21,7 +21,8 @@
 #define _VNIC_ENIC_H_
 
 /* Device-specific region: enet configuration */
-struct vnic_enet_config {
+struct vnic_enet_config
+{
 	u32 flags;
 	u32 wq_desc_count;
 	u32 rq_desc_count;

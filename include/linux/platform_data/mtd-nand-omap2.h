@@ -13,14 +13,16 @@
 
 #define	GPMC_BCH_NUM_REMAINDER	8
 
-enum nand_io {
+enum nand_io
+{
 	NAND_OMAP_PREFETCH_POLLED = 0,	/* prefetch polled mode, default */
 	NAND_OMAP_POLLED,		/* polled mode, without prefetch */
 	NAND_OMAP_PREFETCH_DMA,		/* prefetch enabled sDMA mode */
 	NAND_OMAP_PREFETCH_IRQ		/* prefetch enabled irq mode */
 };
 
-enum omap_ecc {
+enum omap_ecc
+{
 	/*
 	 * 1-bit ECC: calculation and correction by SW
 	 * ECC stored at end of spare area
@@ -44,7 +46,8 @@ enum omap_ecc {
 	OMAP_ECC_BCH16_CODE_HW,
 };
 
-struct gpmc_nand_regs {
+struct gpmc_nand_regs
+{
 	void __iomem	*gpmc_nand_command;
 	void __iomem	*gpmc_nand_address;
 	void __iomem	*gpmc_nand_data;
@@ -67,7 +70,8 @@ struct gpmc_nand_regs {
 	void __iomem	*gpmc_status;
 };
 
-struct omap_nand_platform_data {
+struct omap_nand_platform_data
+{
 	int			cs;
 	struct mtd_partition	*parts;
 	int			nr_parts;

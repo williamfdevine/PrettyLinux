@@ -20,7 +20,8 @@
 /**
  * enum stp_packet_type - STP packets that an STM driver sends
  */
-enum stp_packet_type {
+enum stp_packet_type
+{
 	STP_PACKET_DATA = 0,
 	STP_PACKET_FLAG,
 	STP_PACKET_USER,
@@ -33,7 +34,8 @@ enum stp_packet_type {
 /**
  * enum stp_packet_flags - STP packet modifiers
  */
-enum stp_packet_flags {
+enum stp_packet_flags
+{
 	STP_PACKET_MARKED	= 0x1,
 	STP_PACKET_TIMESTAMPED	= 0x2,
 };
@@ -80,7 +82,8 @@ struct stm_device;
  * The @unlink callback is called when there are no more active writers so
  * that the master/channel can be quiesced.
  */
-struct stm_data {
+struct stm_data
+{
 	const char		*name;
 	struct stm_device	*stm;
 	unsigned int		sw_start;
@@ -89,22 +92,22 @@ struct stm_data {
 	unsigned int		sw_mmiosz;
 	unsigned int		hw_override;
 	ssize_t			(*packet)(struct stm_data *, unsigned int,
-					  unsigned int, unsigned int,
-					  unsigned int, unsigned int,
-					  const unsigned char *);
+							  unsigned int, unsigned int,
+							  unsigned int, unsigned int,
+							  const unsigned char *);
 	phys_addr_t		(*mmio_addr)(struct stm_data *, unsigned int,
-					     unsigned int, unsigned int);
+								 unsigned int, unsigned int);
 	int			(*link)(struct stm_data *, unsigned int,
-					unsigned int);
+						unsigned int);
 	void			(*unlink)(struct stm_data *, unsigned int,
-					  unsigned int);
+							  unsigned int);
 	long			(*set_options)(struct stm_data *, unsigned int,
-					       unsigned int, unsigned int,
-					       unsigned long);
+								   unsigned int, unsigned int,
+								   unsigned long);
 };
 
 int stm_register_device(struct device *parent, struct stm_data *stm_data,
-			struct module *owner);
+						struct module *owner);
 void stm_unregister_device(struct stm_data *stm_data);
 
 struct stm_source_device;
@@ -120,7 +123,8 @@ struct stm_source_device;
  * Fill in this structure before calling stm_source_register_device() to
  * register a source device. Also pass it to unregister and write calls.
  */
-struct stm_source_data {
+struct stm_source_data
+{
 	const char		*name;
 	struct stm_source_device *src;
 	unsigned int		percpu;
@@ -130,10 +134,10 @@ struct stm_source_data {
 };
 
 int stm_source_register_device(struct device *parent,
-			       struct stm_source_data *data);
+							   struct stm_source_data *data);
 void stm_source_unregister_device(struct stm_source_data *data);
 
 int stm_source_write(struct stm_source_data *data, unsigned int chan,
-		     const char *buf, size_t count);
+					 const char *buf, size_t count);
 
 #endif /* _STM_H_ */

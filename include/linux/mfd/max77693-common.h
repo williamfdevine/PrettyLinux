@@ -12,7 +12,8 @@
 #ifndef __LINUX_MFD_MAX77693_COMMON_H
 #define __LINUX_MFD_MAX77693_COMMON_H
 
-enum max77693_types {
+enum max77693_types
+{
 	TYPE_MAX77693_UNKNOWN,
 	TYPE_MAX77693,
 	TYPE_MAX77843,
@@ -23,7 +24,8 @@ enum max77693_types {
 /*
  * Shared also with max77843.
  */
-struct max77693_dev {
+struct max77693_dev
+{
 	struct device *dev;
 	struct i2c_client *i2c;		/* 0xCC , PMIC, Charger, Flash LED */
 	struct i2c_client *i2c_muic;	/* 0x4A , MUIC */

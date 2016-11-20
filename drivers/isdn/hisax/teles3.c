@@ -111,27 +111,50 @@ teles3_interrupt(int intno, void *dev_id)
 	spin_lock_irqsave(&cs->lock, flags);
 	val = readreg(cs->hw.teles3.hscx[1], HSCX_ISTA);
 Start_HSCX:
+
 	if (val)
+	{
 		hscx_int_main(cs, val);
+	}
+
 	val = readreg(cs->hw.teles3.isac, ISAC_ISTA);
 Start_ISAC:
+
 	if (val)
+	{
 		isac_interrupt(cs, val);
+	}
+
 	count++;
 	val = readreg(cs->hw.teles3.hscx[1], HSCX_ISTA);
-	if (val && count < MAXCOUNT) {
+
+	if (val && count < MAXCOUNT)
+	{
 		if (cs->debug & L1_DEB_HSCX)
+		{
 			debugl1(cs, "HSCX IntStat after IntRoutine");
+		}
+
 		goto Start_HSCX;
 	}
+
 	val = readreg(cs->hw.teles3.isac, ISAC_ISTA);
-	if (val && count < MAXCOUNT) {
+
+	if (val && count < MAXCOUNT)
+	{
 		if (cs->debug & L1_DEB_ISAC)
+		{
 			debugl1(cs, "ISAC IntStat after IntRoutine");
+		}
+
 		goto Start_ISAC;
 	}
+
 	if (count >= MAXCOUNT)
+	{
 		printk(KERN_WARNING "Teles3: more than %d loops in teles3_interrupt\n", count);
+	}
+
 	writereg(cs->hw.teles3.hscx[0], HSCX_MASK, 0xFF);
 	writereg(cs->hw.teles3.hscx[1], HSCX_MASK, 0xFF);
 	writereg(cs->hw.teles3.isac, ISAC_MASK, 0xFF);
@@ -146,26 +169,42 @@ static inline void
 release_ioregs(struct IsdnCardState *cs, int mask)
 {
 	if (mask & 1)
+	{
 		release_region(cs->hw.teles3.isac + 32, 32);
+	}
+
 	if (mask & 2)
+	{
 		release_region(cs->hw.teles3.hscx[0] + 32, 32);
+	}
+
 	if (mask & 4)
+	{
 		release_region(cs->hw.teles3.hscx[1] + 32, 32);
+	}
 }
 
 static void
 release_io_teles3(struct IsdnCardState *cs)
 {
-	if (cs->typ == ISDN_CTYPE_TELESPCMCIA) {
+	if (cs->typ == ISDN_CTYPE_TELESPCMCIA)
+	{
 		release_region(cs->hw.teles3.hscx[1], 96);
-	} else {
-		if (cs->hw.teles3.cfg_reg) {
-			if (cs->typ == ISDN_CTYPE_COMPAQ_ISA) {
+	}
+	else
+	{
+		if (cs->hw.teles3.cfg_reg)
+		{
+			if (cs->typ == ISDN_CTYPE_COMPAQ_ISA)
+			{
 				release_region(cs->hw.teles3.cfg_reg, 1);
-			} else {
+			}
+			else
+			{
 				release_region(cs->hw.teles3.cfg_reg, 8);
 			}
 		}
+
 		release_ioregs(cs, 0x7);
 	}
 }
@@ -175,47 +214,63 @@ reset_teles3(struct IsdnCardState *cs)
 {
 	u_char irqcfg;
 
-	if (cs->typ != ISDN_CTYPE_TELESPCMCIA) {
-		if ((cs->hw.teles3.cfg_reg) && (cs->typ != ISDN_CTYPE_COMPAQ_ISA)) {
-			switch (cs->irq) {
-			case 2:
-			case 9:
-				irqcfg = 0x00;
-				break;
-			case 3:
-				irqcfg = 0x02;
-				break;
-			case 4:
-				irqcfg = 0x04;
-				break;
-			case 5:
-				irqcfg = 0x06;
-				break;
-			case 10:
-				irqcfg = 0x08;
-				break;
-			case 11:
-				irqcfg = 0x0A;
-				break;
-			case 12:
-				irqcfg = 0x0C;
-				break;
-			case 15:
-				irqcfg = 0x0E;
-				break;
-			default:
-				return (1);
+	if (cs->typ != ISDN_CTYPE_TELESPCMCIA)
+	{
+		if ((cs->hw.teles3.cfg_reg) && (cs->typ != ISDN_CTYPE_COMPAQ_ISA))
+		{
+			switch (cs->irq)
+			{
+				case 2:
+				case 9:
+					irqcfg = 0x00;
+					break;
+
+				case 3:
+					irqcfg = 0x02;
+					break;
+
+				case 4:
+					irqcfg = 0x04;
+					break;
+
+				case 5:
+					irqcfg = 0x06;
+					break;
+
+				case 10:
+					irqcfg = 0x08;
+					break;
+
+				case 11:
+					irqcfg = 0x0A;
+					break;
+
+				case 12:
+					irqcfg = 0x0C;
+					break;
+
+				case 15:
+					irqcfg = 0x0E;
+					break;
+
+				default:
+					return (1);
 			}
+
 			byteout(cs->hw.teles3.cfg_reg + 4, irqcfg);
 			HZDELAY(HZ / 10 + 1);
 			byteout(cs->hw.teles3.cfg_reg + 4, irqcfg | 1);
 			HZDELAY(HZ / 10 + 1);
-		} else if (cs->typ == ISDN_CTYPE_COMPAQ_ISA) {
+		}
+		else if (cs->typ == ISDN_CTYPE_COMPAQ_ISA)
+		{
 			byteout(cs->hw.teles3.cfg_reg, 0xff);
 			HZDELAY(2);
 			byteout(cs->hw.teles3.cfg_reg, 0x00);
 			HZDELAY(2);
-		} else {
+		}
+		else
+		{
 			/* Reset off for 16.3 PnP , thanks to Georg Acher */
 			byteout(cs->hw.teles3.isac + 0x3c, 0);
 			HZDELAY(2);
@@ -223,6 +278,7 @@ reset_teles3(struct IsdnCardState *cs)
 			HZDELAY(2);
 		}
 	}
+
 	return (0);
 }
 
@@ -231,38 +287,50 @@ Teles_card_msg(struct IsdnCardState *cs, int mt, void *arg)
 {
 	u_long flags;
 
-	switch (mt) {
-	case CARD_RESET:
-		spin_lock_irqsave(&cs->lock, flags);
-		reset_teles3(cs);
-		spin_unlock_irqrestore(&cs->lock, flags);
-		return (0);
-	case CARD_RELEASE:
-		release_io_teles3(cs);
-		return (0);
-	case CARD_INIT:
-		spin_lock_irqsave(&cs->lock, flags);
-		inithscxisac(cs, 3);
-		spin_unlock_irqrestore(&cs->lock, flags);
-		return (0);
-	case CARD_TEST:
-		return (0);
+	switch (mt)
+	{
+		case CARD_RESET:
+			spin_lock_irqsave(&cs->lock, flags);
+			reset_teles3(cs);
+			spin_unlock_irqrestore(&cs->lock, flags);
+			return (0);
+
+		case CARD_RELEASE:
+			release_io_teles3(cs);
+			return (0);
+
+		case CARD_INIT:
+			spin_lock_irqsave(&cs->lock, flags);
+			inithscxisac(cs, 3);
+			spin_unlock_irqrestore(&cs->lock, flags);
+			return (0);
+
+		case CARD_TEST:
+			return (0);
 	}
+
 	return (0);
 }
 
 #ifdef __ISAPNP__
 
-static struct isapnp_device_id teles_ids[] = {
-	{ ISAPNP_VENDOR('T', 'A', 'G'), ISAPNP_FUNCTION(0x2110),
-	  ISAPNP_VENDOR('T', 'A', 'G'), ISAPNP_FUNCTION(0x2110),
-	  (unsigned long) "Teles 16.3 PnP" },
-	{ ISAPNP_VENDOR('C', 'T', 'X'), ISAPNP_FUNCTION(0x0),
-	  ISAPNP_VENDOR('C', 'T', 'X'), ISAPNP_FUNCTION(0x0),
-	  (unsigned long) "Creatix 16.3 PnP" },
-	{ ISAPNP_VENDOR('C', 'P', 'Q'), ISAPNP_FUNCTION(0x1002),
-	  ISAPNP_VENDOR('C', 'P', 'Q'), ISAPNP_FUNCTION(0x1002),
-	  (unsigned long) "Compaq ISDN S0" },
+static struct isapnp_device_id teles_ids[] =
+{
+	{
+		ISAPNP_VENDOR('T', 'A', 'G'), ISAPNP_FUNCTION(0x2110),
+		ISAPNP_VENDOR('T', 'A', 'G'), ISAPNP_FUNCTION(0x2110),
+		(unsigned long) "Teles 16.3 PnP"
+	},
+	{
+		ISAPNP_VENDOR('C', 'T', 'X'), ISAPNP_FUNCTION(0x0),
+		ISAPNP_VENDOR('C', 'T', 'X'), ISAPNP_FUNCTION(0x0),
+		(unsigned long) "Creatix 16.3 PnP"
+	},
+	{
+		ISAPNP_VENDOR('C', 'P', 'Q'), ISAPNP_FUNCTION(0x1002),
+		ISAPNP_VENDOR('C', 'P', 'Q'), ISAPNP_FUNCTION(0x1002),
+		(unsigned long) "Compaq ISDN S0"
+	},
 	{ 0, }
 };
 
@@ -278,178 +346,254 @@ int setup_teles3(struct IsdnCard *card)
 
 	strcpy(tmp, teles3_revision);
 	printk(KERN_INFO "HiSax: Teles IO driver Rev. %s\n", HiSax_getrev(tmp));
+
 	if ((cs->typ != ISDN_CTYPE_16_3) && (cs->typ != ISDN_CTYPE_PNP)
-	    && (cs->typ != ISDN_CTYPE_TELESPCMCIA) && (cs->typ != ISDN_CTYPE_COMPAQ_ISA))
+		&& (cs->typ != ISDN_CTYPE_TELESPCMCIA) && (cs->typ != ISDN_CTYPE_COMPAQ_ISA))
+	{
 		return (0);
+	}
 
 #ifdef __ISAPNP__
-	if (!card->para[1] && isapnp_present()) {
+
+	if (!card->para[1] && isapnp_present())
+	{
 		struct pnp_dev *pnp_d;
-		while (ipid->card_vendor) {
+
+		while (ipid->card_vendor)
+		{
 			if ((pnp_c = pnp_find_card(ipid->card_vendor,
-						   ipid->card_device, pnp_c))) {
+									   ipid->card_device, pnp_c)))
+			{
 				pnp_d = NULL;
+
 				if ((pnp_d = pnp_find_dev(pnp_c,
-							  ipid->vendor, ipid->function, pnp_d))) {
+										  ipid->vendor, ipid->function, pnp_d)))
+				{
 					int err;
 
 					printk(KERN_INFO "HiSax: %s detected\n",
-					       (char *)ipid->driver_data);
+						   (char *)ipid->driver_data);
 					pnp_disable_dev(pnp_d);
 					err = pnp_activate_dev(pnp_d);
-					if (err < 0) {
+
+					if (err < 0)
+					{
 						printk(KERN_WARNING "%s: pnp_activate_dev ret(%d)\n",
-						       __func__, err);
+							   __func__, err);
 						return (0);
 					}
+
 					card->para[3] = pnp_port_start(pnp_d, 2);
 					card->para[2] = pnp_port_start(pnp_d, 1);
 					card->para[1] = pnp_port_start(pnp_d, 0);
 					card->para[0] = pnp_irq(pnp_d, 0);
-					if (!card->para[0] || !card->para[1] || !card->para[2]) {
+
+					if (!card->para[0] || !card->para[1] || !card->para[2])
+					{
 						printk(KERN_ERR "Teles PnP:some resources are missing %ld/%lx/%lx\n",
-						       card->para[0], card->para[1], card->para[2]);
+							   card->para[0], card->para[1], card->para[2]);
 						pnp_disable_dev(pnp_d);
 						return (0);
 					}
+
 					break;
-				} else {
+				}
+				else
+				{
 					printk(KERN_ERR "Teles PnP: PnP error card found, no device\n");
 				}
 			}
+
 			ipid++;
 			pnp_c = NULL;
 		}
-		if (!ipid->card_vendor) {
+
+		if (!ipid->card_vendor)
+		{
 			printk(KERN_INFO "Teles PnP: no ISAPnP card found\n");
 			return (0);
 		}
 	}
+
 #endif
-	if (cs->typ == ISDN_CTYPE_16_3) {
+
+	if (cs->typ == ISDN_CTYPE_16_3)
+	{
 		cs->hw.teles3.cfg_reg = card->para[1];
-		switch (cs->hw.teles3.cfg_reg) {
-		case 0x180:
-		case 0x280:
-		case 0x380:
-			cs->hw.teles3.cfg_reg |= 0xc00;
-			break;
+
+		switch (cs->hw.teles3.cfg_reg)
+		{
+			case 0x180:
+			case 0x280:
+			case 0x380:
+				cs->hw.teles3.cfg_reg |= 0xc00;
+				break;
 		}
+
 		cs->hw.teles3.isac = cs->hw.teles3.cfg_reg - 0x420;
 		cs->hw.teles3.hscx[0] = cs->hw.teles3.cfg_reg - 0xc20;
 		cs->hw.teles3.hscx[1] = cs->hw.teles3.cfg_reg - 0x820;
-	} else if (cs->typ == ISDN_CTYPE_TELESPCMCIA) {
+	}
+	else if (cs->typ == ISDN_CTYPE_TELESPCMCIA)
+	{
 		cs->hw.teles3.cfg_reg = 0;
 		cs->hw.teles3.hscx[0] = card->para[1] - 0x20;
 		cs->hw.teles3.hscx[1] = card->para[1];
 		cs->hw.teles3.isac = card->para[1] + 0x20;
-	} else if (cs->typ == ISDN_CTYPE_COMPAQ_ISA) {
+	}
+	else if (cs->typ == ISDN_CTYPE_COMPAQ_ISA)
+	{
 		cs->hw.teles3.cfg_reg = card->para[3];
 		cs->hw.teles3.isac = card->para[2] - 32;
 		cs->hw.teles3.hscx[0] = card->para[1] - 32;
 		cs->hw.teles3.hscx[1] = card->para[1];
-	} else {	/* PNP */
+	}
+	else  	/* PNP */
+	{
 		cs->hw.teles3.cfg_reg = 0;
 		cs->hw.teles3.isac = card->para[1] - 32;
 		cs->hw.teles3.hscx[0] = card->para[2] - 32;
 		cs->hw.teles3.hscx[1] = card->para[2];
 	}
+
 	cs->irq = card->para[0];
 	cs->hw.teles3.isacfifo = cs->hw.teles3.isac + 0x3e;
 	cs->hw.teles3.hscxfifo[0] = cs->hw.teles3.hscx[0] + 0x3e;
 	cs->hw.teles3.hscxfifo[1] = cs->hw.teles3.hscx[1] + 0x3e;
-	if (cs->typ == ISDN_CTYPE_TELESPCMCIA) {
-		if (!request_region(cs->hw.teles3.hscx[1], 96, "HiSax Teles PCMCIA")) {
+
+	if (cs->typ == ISDN_CTYPE_TELESPCMCIA)
+	{
+		if (!request_region(cs->hw.teles3.hscx[1], 96, "HiSax Teles PCMCIA"))
+		{
 			printk(KERN_WARNING
-			       "HiSax: %s ports %x-%x already in use\n",
-			       CardType[cs->typ],
-			       cs->hw.teles3.hscx[1],
-			       cs->hw.teles3.hscx[1] + 96);
+				   "HiSax: %s ports %x-%x already in use\n",
+				   CardType[cs->typ],
+				   cs->hw.teles3.hscx[1],
+				   cs->hw.teles3.hscx[1] + 96);
 			return (0);
 		}
+
 		cs->irq_flags |= IRQF_SHARED; /* cardbus can share */
-	} else {
-		if (cs->hw.teles3.cfg_reg) {
-			if (cs->typ == ISDN_CTYPE_COMPAQ_ISA) {
-				if (!request_region(cs->hw.teles3.cfg_reg, 1, "teles3 cfg")) {
+	}
+	else
+	{
+		if (cs->hw.teles3.cfg_reg)
+		{
+			if (cs->typ == ISDN_CTYPE_COMPAQ_ISA)
+			{
+				if (!request_region(cs->hw.teles3.cfg_reg, 1, "teles3 cfg"))
+				{
 					printk(KERN_WARNING
-					       "HiSax: %s config port %x already in use\n",
-					       CardType[card->typ],
-					       cs->hw.teles3.cfg_reg);
+						   "HiSax: %s config port %x already in use\n",
+						   CardType[card->typ],
+						   cs->hw.teles3.cfg_reg);
 					return (0);
 				}
-			} else {
-				if (!request_region(cs->hw.teles3.cfg_reg, 8, "teles3 cfg")) {
+			}
+			else
+			{
+				if (!request_region(cs->hw.teles3.cfg_reg, 8, "teles3 cfg"))
+				{
 					printk(KERN_WARNING
-					       "HiSax: %s config port %x-%x already in use\n",
-					       CardType[card->typ],
-					       cs->hw.teles3.cfg_reg,
-					       cs->hw.teles3.cfg_reg + 8);
+						   "HiSax: %s config port %x-%x already in use\n",
+						   CardType[card->typ],
+						   cs->hw.teles3.cfg_reg,
+						   cs->hw.teles3.cfg_reg + 8);
 					return (0);
 				}
 			}
 		}
-		if (!request_region(cs->hw.teles3.isac + 32, 32, "HiSax isac")) {
+
+		if (!request_region(cs->hw.teles3.isac + 32, 32, "HiSax isac"))
+		{
 			printk(KERN_WARNING
-			       "HiSax: %s isac ports %x-%x already in use\n",
-			       CardType[cs->typ],
-			       cs->hw.teles3.isac + 32,
-			       cs->hw.teles3.isac + 64);
-			if (cs->hw.teles3.cfg_reg) {
-				if (cs->typ == ISDN_CTYPE_COMPAQ_ISA) {
+				   "HiSax: %s isac ports %x-%x already in use\n",
+				   CardType[cs->typ],
+				   cs->hw.teles3.isac + 32,
+				   cs->hw.teles3.isac + 64);
+
+			if (cs->hw.teles3.cfg_reg)
+			{
+				if (cs->typ == ISDN_CTYPE_COMPAQ_ISA)
+				{
 					release_region(cs->hw.teles3.cfg_reg, 1);
-				} else {
+				}
+				else
+				{
 					release_region(cs->hw.teles3.cfg_reg, 8);
 				}
 			}
+
 			return (0);
 		}
-		if (!request_region(cs->hw.teles3.hscx[0] + 32, 32, "HiSax hscx A")) {
+
+		if (!request_region(cs->hw.teles3.hscx[0] + 32, 32, "HiSax hscx A"))
+		{
 			printk(KERN_WARNING
-			       "HiSax: %s hscx A ports %x-%x already in use\n",
-			       CardType[cs->typ],
-			       cs->hw.teles3.hscx[0] + 32,
-			       cs->hw.teles3.hscx[0] + 64);
-			if (cs->hw.teles3.cfg_reg) {
-				if (cs->typ == ISDN_CTYPE_COMPAQ_ISA) {
+				   "HiSax: %s hscx A ports %x-%x already in use\n",
+				   CardType[cs->typ],
+				   cs->hw.teles3.hscx[0] + 32,
+				   cs->hw.teles3.hscx[0] + 64);
+
+			if (cs->hw.teles3.cfg_reg)
+			{
+				if (cs->typ == ISDN_CTYPE_COMPAQ_ISA)
+				{
 					release_region(cs->hw.teles3.cfg_reg, 1);
-				} else {
+				}
+				else
+				{
 					release_region(cs->hw.teles3.cfg_reg, 8);
 				}
 			}
+
 			release_ioregs(cs, 1);
 			return (0);
 		}
-		if (!request_region(cs->hw.teles3.hscx[1] + 32, 32, "HiSax hscx B")) {
+
+		if (!request_region(cs->hw.teles3.hscx[1] + 32, 32, "HiSax hscx B"))
+		{
 			printk(KERN_WARNING
-			       "HiSax: %s hscx B ports %x-%x already in use\n",
-			       CardType[cs->typ],
-			       cs->hw.teles3.hscx[1] + 32,
-			       cs->hw.teles3.hscx[1] + 64);
-			if (cs->hw.teles3.cfg_reg) {
-				if (cs->typ == ISDN_CTYPE_COMPAQ_ISA) {
+				   "HiSax: %s hscx B ports %x-%x already in use\n",
+				   CardType[cs->typ],
+				   cs->hw.teles3.hscx[1] + 32,
+				   cs->hw.teles3.hscx[1] + 64);
+
+			if (cs->hw.teles3.cfg_reg)
+			{
+				if (cs->typ == ISDN_CTYPE_COMPAQ_ISA)
+				{
 					release_region(cs->hw.teles3.cfg_reg, 1);
-				} else {
+				}
+				else
+				{
 					release_region(cs->hw.teles3.cfg_reg, 8);
 				}
 			}
+
 			release_ioregs(cs, 3);
 			return (0);
 		}
 	}
-	if ((cs->hw.teles3.cfg_reg) && (cs->typ != ISDN_CTYPE_COMPAQ_ISA)) {
-		if ((val = bytein(cs->hw.teles3.cfg_reg + 0)) != 0x51) {
+
+	if ((cs->hw.teles3.cfg_reg) && (cs->typ != ISDN_CTYPE_COMPAQ_ISA))
+	{
+		if ((val = bytein(cs->hw.teles3.cfg_reg + 0)) != 0x51)
+		{
 			printk(KERN_WARNING "Teles: 16.3 Byte at %x is %x\n",
-			       cs->hw.teles3.cfg_reg + 0, val);
+				   cs->hw.teles3.cfg_reg + 0, val);
 			release_io_teles3(cs);
 			return (0);
 		}
-		if ((val = bytein(cs->hw.teles3.cfg_reg + 1)) != 0x93) {
+
+		if ((val = bytein(cs->hw.teles3.cfg_reg + 1)) != 0x93)
+		{
 			printk(KERN_WARNING "Teles: 16.3 Byte at %x is %x\n",
-			       cs->hw.teles3.cfg_reg + 1, val);
+				   cs->hw.teles3.cfg_reg + 1, val);
 			release_io_teles3(cs);
 			return (0);
 		}
+
 		val = bytein(cs->hw.teles3.cfg_reg + 2);/* 0x1e=without AB
 							 * 0x1f=with AB
 							 * 0x1c 16.3 ???
@@ -457,27 +601,33 @@ int setup_teles3(struct IsdnCard *card)
 							 * 0x38 16.3 1.3
 							 * 0x46 16.3 with AB + Video (Teles-Vision)
 							 */
-		if (val != 0x46 && val != 0x39 && val != 0x38 && val != 0x1c && val != 0x1e && val != 0x1f) {
+
+		if (val != 0x46 && val != 0x39 && val != 0x38 && val != 0x1c && val != 0x1e && val != 0x1f)
+		{
 			printk(KERN_WARNING "Teles: 16.3 Byte at %x is %x\n",
-			       cs->hw.teles3.cfg_reg + 2, val);
+				   cs->hw.teles3.cfg_reg + 2, val);
 			release_io_teles3(cs);
 			return (0);
 		}
 	}
+
 	printk(KERN_INFO
-	       "HiSax: %s config irq:%d isac:0x%X  cfg:0x%X\n",
-	       CardType[cs->typ], cs->irq,
-	       cs->hw.teles3.isac + 32, cs->hw.teles3.cfg_reg);
+		   "HiSax: %s config irq:%d isac:0x%X  cfg:0x%X\n",
+		   CardType[cs->typ], cs->irq,
+		   cs->hw.teles3.isac + 32, cs->hw.teles3.cfg_reg);
 	printk(KERN_INFO
-	       "HiSax: hscx A:0x%X  hscx B:0x%X\n",
-	       cs->hw.teles3.hscx[0] + 32, cs->hw.teles3.hscx[1] + 32);
+		   "HiSax: hscx A:0x%X  hscx B:0x%X\n",
+		   cs->hw.teles3.hscx[0] + 32, cs->hw.teles3.hscx[1] + 32);
 
 	setup_isac(cs);
-	if (reset_teles3(cs)) {
+
+	if (reset_teles3(cs))
+	{
 		printk(KERN_WARNING "Teles3: wrong IRQ\n");
 		release_io_teles3(cs);
 		return (0);
 	}
+
 	cs->readisac = &ReadISAC;
 	cs->writeisac = &WriteISAC;
 	cs->readisacfifo = &ReadISACfifo;
@@ -488,11 +638,14 @@ int setup_teles3(struct IsdnCard *card)
 	cs->cardmsg = &Teles_card_msg;
 	cs->irq_func = &teles3_interrupt;
 	ISACVersion(cs, "Teles3:");
-	if (HscxVersion(cs, "Teles3:")) {
+
+	if (HscxVersion(cs, "Teles3:"))
+	{
 		printk(KERN_WARNING
-		       "Teles3: wrong HSCX versions check IO address\n");
+			   "Teles3: wrong HSCX versions check IO address\n");
 		release_io_teles3(cs);
 		return (0);
 	}
+
 	return (1);
 }

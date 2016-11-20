@@ -29,7 +29,7 @@ static char *sel_buffer;
 static unsigned char sel_pos(int n)
 {
 	return inverse_translate(spk_sel_cons,
-		screen_glyph(spk_sel_cons, n), 0);
+							 screen_glyph(spk_sel_cons, n), 0);
 }
 
 void speakup_clear_selection(void)
@@ -63,7 +63,8 @@ int speakup_set_selection(struct tty_struct *tty)
 	ps = spk_ys * vc->vc_size_row + (spk_xs << 1);
 	pe = spk_ye * vc->vc_size_row + (spk_xe << 1);
 
-	if (ps > pe) {
+	if (ps > pe)
+	{
 		/* make sel_start <= sel_end */
 		int tmp = ps;
 
@@ -71,11 +72,12 @@ int speakup_set_selection(struct tty_struct *tty)
 		pe = tmp;
 	}
 
-	if (spk_sel_cons != vc_cons[fg_console].d) {
+	if (spk_sel_cons != vc_cons[fg_console].d)
+	{
 		speakup_clear_selection();
 		spk_sel_cons = vc_cons[fg_console].d;
 		dev_warn(tty->dev,
-			"Selection: mark console not the same as cut\n");
+				 "Selection: mark console not the same as cut\n");
 		return -EINVAL;
 	}
 
@@ -84,50 +86,73 @@ int speakup_set_selection(struct tty_struct *tty)
 
 	/* select to end of line if on trailing space */
 	if (new_sel_end > new_sel_start &&
-	    !atedge(new_sel_end, vc->vc_size_row) &&
-	    ishardspace(sel_pos(new_sel_end))) {
+		!atedge(new_sel_end, vc->vc_size_row) &&
+		ishardspace(sel_pos(new_sel_end)))
+	{
 		for (pe = new_sel_end + 2; ; pe += 2)
 			if (!ishardspace(sel_pos(pe)) ||
-			    atedge(pe, vc->vc_size_row))
+				atedge(pe, vc->vc_size_row))
+			{
 				break;
+			}
+
 		if (ishardspace(sel_pos(pe)))
+		{
 			new_sel_end = pe;
+		}
 	}
+
 	if ((new_sel_start == sel_start) && (new_sel_end == sel_end))
-		return 0; /* no action required */
+	{
+		return 0;    /* no action required */
+	}
 
 	sel_start = new_sel_start;
 	sel_end = new_sel_end;
 	/* Allocate a new buffer before freeing the old one ... */
-	bp = kmalloc((sel_end-sel_start)/2+1, GFP_ATOMIC);
-	if (!bp) {
+	bp = kmalloc((sel_end - sel_start) / 2 + 1, GFP_ATOMIC);
+
+	if (!bp)
+	{
 		speakup_clear_selection();
 		return -ENOMEM;
 	}
+
 	kfree(sel_buffer);
 	sel_buffer = bp;
 
 	obp = bp;
-	for (i = sel_start; i <= sel_end; i += 2) {
+
+	for (i = sel_start; i <= sel_end; i += 2)
+	{
 		*bp = sel_pos(i);
+
 		if (!ishardspace(*bp++))
+		{
 			obp = bp;
-		if (!((i + 2) % vc->vc_size_row)) {
+		}
+
+		if (!((i + 2) % vc->vc_size_row))
+		{
 			/* strip trailing blanks from line and add newline,
 			 * unless non-space at end of line.
 			 */
-			if (obp != bp) {
+			if (obp != bp)
+			{
 				bp = obp;
 				*bp++ = '\r';
 			}
+
 			obp = bp;
 		}
 	}
+
 	sel_buffer_lth = bp - sel_buffer;
 	return 0;
 }
 
-struct speakup_paste_work {
+struct speakup_paste_work
+{
 	struct work_struct work;
 	struct tty_struct *tty;
 };
@@ -143,22 +168,32 @@ static void __speakup_paste_selection(struct work_struct *work)
 	DECLARE_WAITQUEUE(wait, current);
 
 	ld = tty_ldisc_ref(tty);
+
 	if (!ld)
+	{
 		goto tty_unref;
+	}
+
 	tty_buffer_lock_exclusive(&vc->port);
 
 	add_wait_queue(&vc->paste_wait, &wait);
-	while (sel_buffer && sel_buffer_lth > pasted) {
+
+	while (sel_buffer && sel_buffer_lth > pasted)
+	{
 		set_current_state(TASK_INTERRUPTIBLE);
-		if (tty_throttled(tty)) {
+
+		if (tty_throttled(tty))
+		{
 			schedule();
 			continue;
 		}
+
 		count = sel_buffer_lth - pasted;
 		count = tty_ldisc_receive_buf(ld, sel_buffer + pasted, NULL,
-					      count);
+									  count);
 		pasted += count;
 	}
+
 	remove_wait_queue(&vc->paste_wait, &wait);
 	__set_current_state(TASK_RUNNING);
 
@@ -168,15 +203,18 @@ tty_unref:
 	tty_kref_put(tty);
 }
 
-static struct speakup_paste_work speakup_paste_work = {
+static struct speakup_paste_work speakup_paste_work =
+{
 	.work = __WORK_INITIALIZER(speakup_paste_work.work,
-				   __speakup_paste_selection)
+	__speakup_paste_selection)
 };
 
 int speakup_paste_selection(struct tty_struct *tty)
 {
 	if (cmpxchg(&speakup_paste_work.tty, NULL, tty) != NULL)
+	{
 		return -EBUSY;
+	}
 
 	tty_kref_get(tty);
 	schedule_work_on(WORK_CPU_UNBOUND, &speakup_paste_work.work);

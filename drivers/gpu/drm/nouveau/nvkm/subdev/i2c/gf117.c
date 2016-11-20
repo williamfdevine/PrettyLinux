@@ -25,7 +25,8 @@
 #include "pad.h"
 
 static const struct nvkm_i2c_func
-gf117_i2c = {
+	gf117_i2c =
+{
 	.pad_x_new = gf119_i2c_pad_x_new,
 };
 

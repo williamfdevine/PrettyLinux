@@ -18,24 +18,26 @@
  */
 
 #if defined(CONFIG_SMP) || defined(CONFIG_DEBUG_SPINLOCK)
-#define LIST_BL_LOCKMASK	1UL
+	#define LIST_BL_LOCKMASK	1UL
 #else
-#define LIST_BL_LOCKMASK	0UL
+	#define LIST_BL_LOCKMASK	0UL
 #endif
 
 #ifdef CONFIG_DEBUG_LIST
-#define LIST_BL_BUG_ON(x) BUG_ON(x)
+	#define LIST_BL_BUG_ON(x) BUG_ON(x)
 #else
-#define LIST_BL_BUG_ON(x)
+	#define LIST_BL_BUG_ON(x)
 #endif
 
 
-struct hlist_bl_head {
+struct hlist_bl_head
+{
 	struct hlist_bl_node *first;
 };
 
-struct hlist_bl_node {
-	struct hlist_bl_node *next, **pprev;
+struct hlist_bl_node
+{
+	struct hlist_bl_node *next, * *pprev;
 };
 #define INIT_HLIST_BL_HEAD(ptr) \
 	((ptr)->first = NULL)
@@ -56,15 +58,15 @@ static inline bool  hlist_bl_unhashed(const struct hlist_bl_node *h)
 static inline struct hlist_bl_node *hlist_bl_first(struct hlist_bl_head *h)
 {
 	return (struct hlist_bl_node *)
-		((unsigned long)h->first & ~LIST_BL_LOCKMASK);
+		   ((unsigned long)h->first & ~LIST_BL_LOCKMASK);
 }
 
 static inline void hlist_bl_set_first(struct hlist_bl_head *h,
-					struct hlist_bl_node *n)
+									  struct hlist_bl_node *n)
 {
 	LIST_BL_BUG_ON((unsigned long)n & LIST_BL_LOCKMASK);
 	LIST_BL_BUG_ON(((unsigned long)h->first & LIST_BL_LOCKMASK) !=
-							LIST_BL_LOCKMASK);
+				   LIST_BL_LOCKMASK);
 	h->first = (struct hlist_bl_node *)((unsigned long)n | LIST_BL_LOCKMASK);
 }
 
@@ -74,13 +76,17 @@ static inline bool hlist_bl_empty(const struct hlist_bl_head *h)
 }
 
 static inline void hlist_bl_add_head(struct hlist_bl_node *n,
-					struct hlist_bl_head *h)
+									 struct hlist_bl_head *h)
 {
 	struct hlist_bl_node *first = hlist_bl_first(h);
 
 	n->next = first;
+
 	if (first)
+	{
 		first->pprev = &n->next;
+	}
+
 	n->pprev = &h->first;
 	hlist_bl_set_first(h, n);
 }
@@ -94,11 +100,14 @@ static inline void __hlist_bl_del(struct hlist_bl_node *n)
 
 	/* pprev may be `first`, so be careful not to lose the lock bit */
 	WRITE_ONCE(*pprev,
-		   (struct hlist_bl_node *)
-			((unsigned long)next |
-			 ((unsigned long)*pprev & LIST_BL_LOCKMASK)));
+			   (struct hlist_bl_node *)
+			   ((unsigned long)next |
+				((unsigned long)*pprev & LIST_BL_LOCKMASK)));
+
 	if (next)
+	{
 		next->pprev = pprev;
+	}
 }
 
 static inline void hlist_bl_del(struct hlist_bl_node *n)
@@ -110,7 +119,8 @@ static inline void hlist_bl_del(struct hlist_bl_node *n)
 
 static inline void hlist_bl_del_init(struct hlist_bl_node *n)
 {
-	if (!hlist_bl_unhashed(n)) {
+	if (!hlist_bl_unhashed(n))
+	{
 		__hlist_bl_del(n);
 		INIT_HLIST_BL_NODE(n);
 	}
@@ -141,9 +151,9 @@ static inline bool hlist_bl_is_locked(struct hlist_bl_head *b)
  */
 #define hlist_bl_for_each_entry(tpos, pos, head, member)		\
 	for (pos = hlist_bl_first(head);				\
-	     pos &&							\
-		({ tpos = hlist_bl_entry(pos, typeof(*tpos), member); 1;}); \
-	     pos = pos->next)
+		 pos &&							\
+	({ tpos = hlist_bl_entry(pos, typeof(*tpos), member); 1;}); \
+	pos = pos->next)
 
 /**
  * hlist_bl_for_each_entry_safe - iterate over list of given type safe against removal of list entry
@@ -155,8 +165,8 @@ static inline bool hlist_bl_is_locked(struct hlist_bl_head *b)
  */
 #define hlist_bl_for_each_entry_safe(tpos, pos, n, head, member)	 \
 	for (pos = hlist_bl_first(head);				 \
-	     pos && ({ n = pos->next; 1; }) && 				 \
-		({ tpos = hlist_bl_entry(pos, typeof(*tpos), member); 1;}); \
-	     pos = n)
+	pos && ({ n = pos->next; 1; }) && 				 \
+	({ tpos = hlist_bl_entry(pos, typeof(*tpos), member); 1;}); \
+	pos = n)
 
 #endif

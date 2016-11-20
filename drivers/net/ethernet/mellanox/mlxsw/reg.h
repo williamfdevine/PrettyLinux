@@ -45,7 +45,8 @@
 #include "item.h"
 #include "port.h"
 
-struct mlxsw_reg_info {
+struct mlxsw_reg_info
+{
 	u16 id;
 	u16 len; /* In u8 */
 };
@@ -61,7 +62,8 @@ struct mlxsw_reg_info {
 #define MLXSW_REG_SGCR_ID 0x2000
 #define MLXSW_REG_SGCR_LEN 0x10
 
-static const struct mlxsw_reg_info mlxsw_reg_sgcr = {
+static const struct mlxsw_reg_info mlxsw_reg_sgcr =
+{
 	.id = MLXSW_REG_SGCR_ID,
 	.len = MLXSW_REG_SGCR_LEN,
 };
@@ -87,7 +89,8 @@ static inline void mlxsw_reg_sgcr_pack(char *payload, bool llb)
 #define MLXSW_REG_SPAD_ID 0x2002
 #define MLXSW_REG_SPAD_LEN 0x10
 
-static const struct mlxsw_reg_info mlxsw_reg_spad = {
+static const struct mlxsw_reg_info mlxsw_reg_spad =
+{
 	.id = MLXSW_REG_SPAD_ID,
 	.len = MLXSW_REG_SPAD_LEN,
 };
@@ -109,7 +112,8 @@ MLXSW_ITEM_BUF(reg, spad, base_mac, 0x02, 6);
 #define MLXSW_REG_SMID_ID 0x2007
 #define MLXSW_REG_SMID_LEN 0x240
 
-static const struct mlxsw_reg_info mlxsw_reg_smid = {
+static const struct mlxsw_reg_info mlxsw_reg_smid =
+{
 	.id = MLXSW_REG_SMID_ID,
 	.len = MLXSW_REG_SMID_LEN,
 };
@@ -140,7 +144,7 @@ MLXSW_ITEM_BIT_ARRAY(reg, smid, port, 0x20, 0x20, 1);
 MLXSW_ITEM_BIT_ARRAY(reg, smid, port_mask, 0x220, 0x20, 1);
 
 static inline void mlxsw_reg_smid_pack(char *payload, u16 mid,
-				       u8 port, bool set)
+									   u8 port, bool set)
 {
 	MLXSW_REG_ZERO(smid, payload);
 	mlxsw_reg_smid_swid_set(payload, 0);
@@ -156,7 +160,8 @@ static inline void mlxsw_reg_smid_pack(char *payload, u16 mid,
 #define MLXSW_REG_SSPR_ID 0x2008
 #define MLXSW_REG_SSPR_LEN 0x8
 
-static const struct mlxsw_reg_info mlxsw_reg_sspr = {
+static const struct mlxsw_reg_info mlxsw_reg_sspr =
+{
 	.id = MLXSW_REG_SSPR_ID,
 	.len = MLXSW_REG_SSPR_LEN,
 };
@@ -215,7 +220,8 @@ static inline void mlxsw_reg_sspr_pack(char *payload, u8 local_port)
 #define MLXSW_REG_SFDAT_ID 0x2009
 #define MLXSW_REG_SFDAT_LEN 0x8
 
-static const struct mlxsw_reg_info mlxsw_reg_sfdat = {
+static const struct mlxsw_reg_info mlxsw_reg_sfdat =
+{
 	.id = MLXSW_REG_SFDAT_ID,
 	.len = MLXSW_REG_SFDAT_LEN,
 };
@@ -254,9 +260,10 @@ static inline void mlxsw_reg_sfdat_pack(char *payload, u32 age_time)
 #define MLXSW_REG_SFD_REC_LEN 0x10 /* record length */
 #define MLXSW_REG_SFD_REC_MAX_COUNT 64
 #define MLXSW_REG_SFD_LEN (MLXSW_REG_SFD_BASE_LEN +	\
-			   MLXSW_REG_SFD_REC_LEN * MLXSW_REG_SFD_REC_MAX_COUNT)
+						   MLXSW_REG_SFD_REC_LEN * MLXSW_REG_SFD_REC_MAX_COUNT)
 
-static const struct mlxsw_reg_info mlxsw_reg_sfd = {
+static const struct mlxsw_reg_info mlxsw_reg_sfd =
+{
 	.id = MLXSW_REG_SFD_ID,
 	.len = MLXSW_REG_SFD_LEN,
 };
@@ -267,7 +274,8 @@ static const struct mlxsw_reg_info mlxsw_reg_sfd = {
  */
 MLXSW_ITEM32(reg, sfd, swid, 0x00, 24, 8);
 
-enum mlxsw_reg_sfd_op {
+enum mlxsw_reg_sfd_op
+{
 	/* Dump entire FDB a (process according to record_locator) */
 	MLXSW_REG_SFD_OP_QUERY_DUMP = 0,
 	/* Query records by {MAC, VID/FID} value */
@@ -320,7 +328,7 @@ MLXSW_ITEM32(reg, sfd, record_locator, 0x04, 0, 30);
 MLXSW_ITEM32(reg, sfd, num_rec, 0x08, 0, 8);
 
 static inline void mlxsw_reg_sfd_pack(char *payload, enum mlxsw_reg_sfd_op op,
-				      u32 record_locator)
+									  u32 record_locator)
 {
 	MLXSW_REG_ZERO(sfd, payload);
 	mlxsw_reg_sfd_op_set(payload, op);
@@ -332,9 +340,10 @@ static inline void mlxsw_reg_sfd_pack(char *payload, enum mlxsw_reg_sfd_op op,
  * Access: Index
  */
 MLXSW_ITEM32_INDEXED(reg, sfd, rec_swid, MLXSW_REG_SFD_BASE_LEN, 24, 8,
-		     MLXSW_REG_SFD_REC_LEN, 0x00, false);
+					 MLXSW_REG_SFD_REC_LEN, 0x00, false);
 
-enum mlxsw_reg_sfd_rec_type {
+enum mlxsw_reg_sfd_rec_type
+{
 	MLXSW_REG_SFD_REC_TYPE_UNICAST = 0x0,
 	MLXSW_REG_SFD_REC_TYPE_UNICAST_LAG = 0x1,
 	MLXSW_REG_SFD_REC_TYPE_MULTICAST = 0x2,
@@ -345,9 +354,10 @@ enum mlxsw_reg_sfd_rec_type {
  * Access: RW
  */
 MLXSW_ITEM32_INDEXED(reg, sfd, rec_type, MLXSW_REG_SFD_BASE_LEN, 20, 4,
-		     MLXSW_REG_SFD_REC_LEN, 0x00, false);
+					 MLXSW_REG_SFD_REC_LEN, 0x00, false);
 
-enum mlxsw_reg_sfd_rec_policy {
+enum mlxsw_reg_sfd_rec_policy
+{
 	/* Replacement disabled, aging disabled. */
 	MLXSW_REG_SFD_REC_POLICY_STATIC_ENTRY = 0,
 	/* (mlag remote): Replacement enabled, aging disabled,
@@ -363,7 +373,7 @@ enum mlxsw_reg_sfd_rec_policy {
  * Access: RW
  */
 MLXSW_ITEM32_INDEXED(reg, sfd, rec_policy, MLXSW_REG_SFD_BASE_LEN, 18, 2,
-		     MLXSW_REG_SFD_REC_LEN, 0x00, false);
+					 MLXSW_REG_SFD_REC_LEN, 0x00, false);
 
 /* reg_sfd_rec_a
  * Activity. Set for new static entries. Set for static entries if a frame SMAC
@@ -372,16 +382,17 @@ MLXSW_ITEM32_INDEXED(reg, sfd, rec_policy, MLXSW_REG_SFD_BASE_LEN, 18, 2,
  * Access: RO
  */
 MLXSW_ITEM32_INDEXED(reg, sfd, rec_a, MLXSW_REG_SFD_BASE_LEN, 16, 1,
-		     MLXSW_REG_SFD_REC_LEN, 0x00, false);
+					 MLXSW_REG_SFD_REC_LEN, 0x00, false);
 
 /* reg_sfd_rec_mac
  * MAC address.
  * Access: Index
  */
 MLXSW_ITEM_BUF_INDEXED(reg, sfd, rec_mac, MLXSW_REG_SFD_BASE_LEN, 6,
-		       MLXSW_REG_SFD_REC_LEN, 0x02);
+					   MLXSW_REG_SFD_REC_LEN, 0x02);
 
-enum mlxsw_reg_sfd_rec_action {
+enum mlxsw_reg_sfd_rec_action
+{
 	/* forward */
 	MLXSW_REG_SFD_REC_ACTION_NOP = 0,
 	/* forward and trap, trap_id is FDB_TRAP */
@@ -399,7 +410,7 @@ enum mlxsw_reg_sfd_rec_action {
  * Access: RW
  */
 MLXSW_ITEM32_INDEXED(reg, sfd, rec_action, MLXSW_REG_SFD_BASE_LEN, 28, 4,
-		     MLXSW_REG_SFD_REC_LEN, 0x0C, false);
+					 MLXSW_REG_SFD_REC_LEN, 0x0C, false);
 
 /* reg_sfd_uc_sub_port
  * VEPA channel on local port.
@@ -408,7 +419,7 @@ MLXSW_ITEM32_INDEXED(reg, sfd, rec_action, MLXSW_REG_SFD_BASE_LEN, 28, 4,
  * Access: RW
  */
 MLXSW_ITEM32_INDEXED(reg, sfd, uc_sub_port, MLXSW_REG_SFD_BASE_LEN, 16, 8,
-		     MLXSW_REG_SFD_REC_LEN, 0x08, false);
+					 MLXSW_REG_SFD_REC_LEN, 0x08, false);
 
 /* reg_sfd_uc_fid_vid
  * Filtering ID or VLAN ID
@@ -421,24 +432,27 @@ MLXSW_ITEM32_INDEXED(reg, sfd, uc_sub_port, MLXSW_REG_SFD_BASE_LEN, 16, 8,
  * Access: Index
  */
 MLXSW_ITEM32_INDEXED(reg, sfd, uc_fid_vid, MLXSW_REG_SFD_BASE_LEN, 0, 16,
-		     MLXSW_REG_SFD_REC_LEN, 0x08, false);
+					 MLXSW_REG_SFD_REC_LEN, 0x08, false);
 
 /* reg_sfd_uc_system_port
  * Unique port identifier for the final destination of the packet.
  * Access: RW
  */
 MLXSW_ITEM32_INDEXED(reg, sfd, uc_system_port, MLXSW_REG_SFD_BASE_LEN, 0, 16,
-		     MLXSW_REG_SFD_REC_LEN, 0x0C, false);
+					 MLXSW_REG_SFD_REC_LEN, 0x0C, false);
 
 static inline void mlxsw_reg_sfd_rec_pack(char *payload, int rec_index,
-					  enum mlxsw_reg_sfd_rec_type rec_type,
-					  const char *mac,
-					  enum mlxsw_reg_sfd_rec_action action)
+		enum mlxsw_reg_sfd_rec_type rec_type,
+		const char *mac,
+		enum mlxsw_reg_sfd_rec_action action)
 {
 	u8 num_rec = mlxsw_reg_sfd_num_rec_get(payload);
 
 	if (rec_index >= num_rec)
+	{
 		mlxsw_reg_sfd_num_rec_set(payload, rec_index + 1);
+	}
+
 	mlxsw_reg_sfd_rec_swid_set(payload, rec_index, 0);
 	mlxsw_reg_sfd_rec_type_set(payload, rec_index, rec_type);
 	mlxsw_reg_sfd_rec_mac_memcpy_to(payload, rec_index, mac);
@@ -446,13 +460,13 @@ static inline void mlxsw_reg_sfd_rec_pack(char *payload, int rec_index,
 }
 
 static inline void mlxsw_reg_sfd_uc_pack(char *payload, int rec_index,
-					 enum mlxsw_reg_sfd_rec_policy policy,
-					 const char *mac, u16 fid_vid,
-					 enum mlxsw_reg_sfd_rec_action action,
-					 u8 local_port)
+		enum mlxsw_reg_sfd_rec_policy policy,
+		const char *mac, u16 fid_vid,
+		enum mlxsw_reg_sfd_rec_action action,
+		u8 local_port)
 {
 	mlxsw_reg_sfd_rec_pack(payload, rec_index,
-			       MLXSW_REG_SFD_REC_TYPE_UNICAST, mac, action);
+						   MLXSW_REG_SFD_REC_TYPE_UNICAST, mac, action);
 	mlxsw_reg_sfd_rec_policy_set(payload, rec_index, policy);
 	mlxsw_reg_sfd_uc_sub_port_set(payload, rec_index, 0);
 	mlxsw_reg_sfd_uc_fid_vid_set(payload, rec_index, fid_vid);
@@ -460,8 +474,8 @@ static inline void mlxsw_reg_sfd_uc_pack(char *payload, int rec_index,
 }
 
 static inline void mlxsw_reg_sfd_uc_unpack(char *payload, int rec_index,
-					   char *mac, u16 *p_fid_vid,
-					   u8 *p_local_port)
+		char *mac, u16 *p_fid_vid,
+		u8 *p_local_port)
 {
 	mlxsw_reg_sfd_rec_mac_memcpy_from(payload, rec_index, mac);
 	*p_fid_vid = mlxsw_reg_sfd_uc_fid_vid_get(payload, rec_index);
@@ -474,7 +488,7 @@ static inline void mlxsw_reg_sfd_uc_unpack(char *payload, int rec_index,
  * Access: RW
  */
 MLXSW_ITEM32_INDEXED(reg, sfd, uc_lag_sub_port, MLXSW_REG_SFD_BASE_LEN, 16, 8,
-		     MLXSW_REG_SFD_REC_LEN, 0x08, false);
+					 MLXSW_REG_SFD_REC_LEN, 0x08, false);
 
 /* reg_sfd_uc_lag_fid_vid
  * Filtering ID or VLAN ID
@@ -487,32 +501,32 @@ MLXSW_ITEM32_INDEXED(reg, sfd, uc_lag_sub_port, MLXSW_REG_SFD_BASE_LEN, 16, 8,
  * Access: Index
  */
 MLXSW_ITEM32_INDEXED(reg, sfd, uc_lag_fid_vid, MLXSW_REG_SFD_BASE_LEN, 0, 16,
-		     MLXSW_REG_SFD_REC_LEN, 0x08, false);
+					 MLXSW_REG_SFD_REC_LEN, 0x08, false);
 
 /* reg_sfd_uc_lag_lag_vid
  * Indicates VID in case of vFIDs. Reserved for FIDs.
  * Access: RW
  */
 MLXSW_ITEM32_INDEXED(reg, sfd, uc_lag_lag_vid, MLXSW_REG_SFD_BASE_LEN, 16, 12,
-		     MLXSW_REG_SFD_REC_LEN, 0x0C, false);
+					 MLXSW_REG_SFD_REC_LEN, 0x0C, false);
 
 /* reg_sfd_uc_lag_lag_id
  * LAG Identifier - pointer into the LAG descriptor table.
  * Access: RW
  */
 MLXSW_ITEM32_INDEXED(reg, sfd, uc_lag_lag_id, MLXSW_REG_SFD_BASE_LEN, 0, 10,
-		     MLXSW_REG_SFD_REC_LEN, 0x0C, false);
+					 MLXSW_REG_SFD_REC_LEN, 0x0C, false);
 
 static inline void
 mlxsw_reg_sfd_uc_lag_pack(char *payload, int rec_index,
-			  enum mlxsw_reg_sfd_rec_policy policy,
-			  const char *mac, u16 fid_vid,
-			  enum mlxsw_reg_sfd_rec_action action, u16 lag_vid,
-			  u16 lag_id)
+						  enum mlxsw_reg_sfd_rec_policy policy,
+						  const char *mac, u16 fid_vid,
+						  enum mlxsw_reg_sfd_rec_action action, u16 lag_vid,
+						  u16 lag_id)
 {
 	mlxsw_reg_sfd_rec_pack(payload, rec_index,
-			       MLXSW_REG_SFD_REC_TYPE_UNICAST_LAG,
-			       mac, action);
+						   MLXSW_REG_SFD_REC_TYPE_UNICAST_LAG,
+						   mac, action);
 	mlxsw_reg_sfd_rec_policy_set(payload, rec_index, policy);
 	mlxsw_reg_sfd_uc_lag_sub_port_set(payload, rec_index, 0);
 	mlxsw_reg_sfd_uc_lag_fid_vid_set(payload, rec_index, fid_vid);
@@ -521,8 +535,8 @@ mlxsw_reg_sfd_uc_lag_pack(char *payload, int rec_index,
 }
 
 static inline void mlxsw_reg_sfd_uc_lag_unpack(char *payload, int rec_index,
-					       char *mac, u16 *p_vid,
-					       u16 *p_lag_id)
+		char *mac, u16 *p_vid,
+		u16 *p_lag_id)
 {
 	mlxsw_reg_sfd_rec_mac_memcpy_from(payload, rec_index, mac);
 	*p_vid = mlxsw_reg_sfd_uc_lag_fid_vid_get(payload, rec_index);
@@ -537,7 +551,7 @@ static inline void mlxsw_reg_sfd_uc_lag_unpack(char *payload, int rec_index,
  * Access: RW
  */
 MLXSW_ITEM32_INDEXED(reg, sfd, mc_pgi, MLXSW_REG_SFD_BASE_LEN, 16, 13,
-		     MLXSW_REG_SFD_REC_LEN, 0x08, false);
+					 MLXSW_REG_SFD_REC_LEN, 0x08, false);
 
 /* reg_sfd_mc_fid_vid
  *
@@ -545,7 +559,7 @@ MLXSW_ITEM32_INDEXED(reg, sfd, mc_pgi, MLXSW_REG_SFD_BASE_LEN, 16, 13,
  * Access: Index
  */
 MLXSW_ITEM32_INDEXED(reg, sfd, mc_fid_vid, MLXSW_REG_SFD_BASE_LEN, 0, 16,
-		     MLXSW_REG_SFD_REC_LEN, 0x08, false);
+					 MLXSW_REG_SFD_REC_LEN, 0x08, false);
 
 /* reg_sfd_mc_mid
  *
@@ -554,15 +568,15 @@ MLXSW_ITEM32_INDEXED(reg, sfd, mc_fid_vid, MLXSW_REG_SFD_BASE_LEN, 0, 16,
  * Access: RW
  */
 MLXSW_ITEM32_INDEXED(reg, sfd, mc_mid, MLXSW_REG_SFD_BASE_LEN, 0, 16,
-		     MLXSW_REG_SFD_REC_LEN, 0x0C, false);
+					 MLXSW_REG_SFD_REC_LEN, 0x0C, false);
 
 static inline void
 mlxsw_reg_sfd_mc_pack(char *payload, int rec_index,
-		      const char *mac, u16 fid_vid,
-		      enum mlxsw_reg_sfd_rec_action action, u16 mid)
+					  const char *mac, u16 fid_vid,
+					  enum mlxsw_reg_sfd_rec_action action, u16 mid)
 {
 	mlxsw_reg_sfd_rec_pack(payload, rec_index,
-			       MLXSW_REG_SFD_REC_TYPE_MULTICAST, mac, action);
+						   MLXSW_REG_SFD_REC_TYPE_MULTICAST, mac, action);
 	mlxsw_reg_sfd_mc_pgi_set(payload, rec_index, 0x1FFF);
 	mlxsw_reg_sfd_mc_fid_vid_set(payload, rec_index, fid_vid);
 	mlxsw_reg_sfd_mc_mid_set(payload, rec_index, mid);
@@ -578,9 +592,10 @@ mlxsw_reg_sfd_mc_pack(char *payload, int rec_index,
 #define MLXSW_REG_SFN_REC_LEN 0x10 /* record length */
 #define MLXSW_REG_SFN_REC_MAX_COUNT 64
 #define MLXSW_REG_SFN_LEN (MLXSW_REG_SFN_BASE_LEN +	\
-			   MLXSW_REG_SFN_REC_LEN * MLXSW_REG_SFN_REC_MAX_COUNT)
+						   MLXSW_REG_SFN_REC_LEN * MLXSW_REG_SFN_REC_MAX_COUNT)
 
-static const struct mlxsw_reg_info mlxsw_reg_sfn = {
+static const struct mlxsw_reg_info mlxsw_reg_sfn =
+{
 	.id = MLXSW_REG_SFN_ID,
 	.len = MLXSW_REG_SFN_LEN,
 };
@@ -620,9 +635,10 @@ static inline void mlxsw_reg_sfn_pack(char *payload)
  * Access: RO
  */
 MLXSW_ITEM32_INDEXED(reg, sfn, rec_swid, MLXSW_REG_SFN_BASE_LEN, 24, 8,
-		     MLXSW_REG_SFN_REC_LEN, 0x00, false);
+					 MLXSW_REG_SFN_REC_LEN, 0x00, false);
 
-enum mlxsw_reg_sfn_rec_type {
+enum mlxsw_reg_sfn_rec_type
+{
 	/* MAC addresses learned on a regular port. */
 	MLXSW_REG_SFN_REC_TYPE_LEARNED_MAC = 0x5,
 	/* MAC addresses learned on a LAG port. */
@@ -638,14 +654,14 @@ enum mlxsw_reg_sfn_rec_type {
  * Access: RO
  */
 MLXSW_ITEM32_INDEXED(reg, sfn, rec_type, MLXSW_REG_SFN_BASE_LEN, 20, 4,
-		     MLXSW_REG_SFN_REC_LEN, 0x00, false);
+					 MLXSW_REG_SFN_REC_LEN, 0x00, false);
 
 /* reg_sfn_rec_mac
  * MAC address.
  * Access: RO
  */
 MLXSW_ITEM_BUF_INDEXED(reg, sfn, rec_mac, MLXSW_REG_SFN_BASE_LEN, 6,
-		       MLXSW_REG_SFN_REC_LEN, 0x02);
+					   MLXSW_REG_SFN_REC_LEN, 0x02);
 
 /* reg_sfn_mac_sub_port
  * VEPA channel on the local port.
@@ -653,25 +669,25 @@ MLXSW_ITEM_BUF_INDEXED(reg, sfn, rec_mac, MLXSW_REG_SFN_BASE_LEN, 6,
  * Access: RO
  */
 MLXSW_ITEM32_INDEXED(reg, sfn, mac_sub_port, MLXSW_REG_SFN_BASE_LEN, 16, 8,
-		     MLXSW_REG_SFN_REC_LEN, 0x08, false);
+					 MLXSW_REG_SFN_REC_LEN, 0x08, false);
 
 /* reg_sfn_mac_fid
  * Filtering identifier.
  * Access: RO
  */
 MLXSW_ITEM32_INDEXED(reg, sfn, mac_fid, MLXSW_REG_SFN_BASE_LEN, 0, 16,
-		     MLXSW_REG_SFN_REC_LEN, 0x08, false);
+					 MLXSW_REG_SFN_REC_LEN, 0x08, false);
 
 /* reg_sfn_mac_system_port
  * Unique port identifier for the final destination of the packet.
  * Access: RO
  */
 MLXSW_ITEM32_INDEXED(reg, sfn, mac_system_port, MLXSW_REG_SFN_BASE_LEN, 0, 16,
-		     MLXSW_REG_SFN_REC_LEN, 0x0C, false);
+					 MLXSW_REG_SFN_REC_LEN, 0x0C, false);
 
 static inline void mlxsw_reg_sfn_mac_unpack(char *payload, int rec_index,
-					    char *mac, u16 *p_vid,
-					    u8 *p_local_port)
+		char *mac, u16 *p_vid,
+		u8 *p_local_port)
 {
 	mlxsw_reg_sfn_rec_mac_memcpy_from(payload, rec_index, mac);
 	*p_vid = mlxsw_reg_sfn_mac_fid_get(payload, rec_index);
@@ -683,11 +699,11 @@ static inline void mlxsw_reg_sfn_mac_unpack(char *payload, int rec_index,
  * Access: RO
  */
 MLXSW_ITEM32_INDEXED(reg, sfn, mac_lag_lag_id, MLXSW_REG_SFN_BASE_LEN, 0, 10,
-		     MLXSW_REG_SFN_REC_LEN, 0x0C, false);
+					 MLXSW_REG_SFN_REC_LEN, 0x0C, false);
 
 static inline void mlxsw_reg_sfn_mac_lag_unpack(char *payload, int rec_index,
-						char *mac, u16 *p_vid,
-						u16 *p_lag_id)
+		char *mac, u16 *p_vid,
+		u16 *p_lag_id)
 {
 	mlxsw_reg_sfn_rec_mac_memcpy_from(payload, rec_index, mac);
 	*p_vid = mlxsw_reg_sfn_mac_fid_get(payload, rec_index);
@@ -701,7 +717,8 @@ static inline void mlxsw_reg_sfn_mac_lag_unpack(char *payload, int rec_index,
 #define MLXSW_REG_SPMS_ID 0x200D
 #define MLXSW_REG_SPMS_LEN 0x404
 
-static const struct mlxsw_reg_info mlxsw_reg_spms = {
+static const struct mlxsw_reg_info mlxsw_reg_spms =
+{
 	.id = MLXSW_REG_SPMS_ID,
 	.len = MLXSW_REG_SPMS_LEN,
 };
@@ -712,7 +729,8 @@ static const struct mlxsw_reg_info mlxsw_reg_spms = {
  */
 MLXSW_ITEM32(reg, spms, local_port, 0x00, 16, 8);
 
-enum mlxsw_reg_spms_state {
+enum mlxsw_reg_spms_state
+{
 	MLXSW_REG_SPMS_STATE_NO_CHANGE,
 	MLXSW_REG_SPMS_STATE_DISCARDING,
 	MLXSW_REG_SPMS_STATE_LEARNING,
@@ -736,7 +754,7 @@ static inline void mlxsw_reg_spms_pack(char *payload, u8 local_port)
 }
 
 static inline void mlxsw_reg_spms_vid_pack(char *payload, u16 vid,
-					   enum mlxsw_reg_spms_state state)
+		enum mlxsw_reg_spms_state state)
 {
 	mlxsw_reg_spms_state_set(payload, vid, state);
 }
@@ -748,7 +766,8 @@ static inline void mlxsw_reg_spms_vid_pack(char *payload, u16 vid,
 #define MLXSW_REG_SPVID_ID 0x200E
 #define MLXSW_REG_SPVID_LEN 0x08
 
-static const struct mlxsw_reg_info mlxsw_reg_spvid = {
+static const struct mlxsw_reg_info mlxsw_reg_spvid =
+{
 	.id = MLXSW_REG_SPVID_ID,
 	.len = MLXSW_REG_SPVID_LEN,
 };
@@ -790,9 +809,10 @@ static inline void mlxsw_reg_spvid_pack(char *payload, u8 local_port, u16 pvid)
 #define MLXSW_REG_SPVM_REC_LEN 0x04 /* record length */
 #define MLXSW_REG_SPVM_REC_MAX_COUNT 256
 #define MLXSW_REG_SPVM_LEN (MLXSW_REG_SPVM_BASE_LEN +	\
-		    MLXSW_REG_SPVM_REC_LEN * MLXSW_REG_SPVM_REC_MAX_COUNT)
+							MLXSW_REG_SPVM_REC_LEN * MLXSW_REG_SPVM_REC_MAX_COUNT)
 
-static const struct mlxsw_reg_info mlxsw_reg_spvm = {
+static const struct mlxsw_reg_info mlxsw_reg_spvm =
+{
 	.id = MLXSW_REG_SPVM_ID,
 	.len = MLXSW_REG_SPVM_LEN,
 };
@@ -836,16 +856,16 @@ MLXSW_ITEM32(reg, spvm, num_rec, 0x00, 0, 8);
  * Access: Index
  */
 MLXSW_ITEM32_INDEXED(reg, spvm, rec_i,
-		     MLXSW_REG_SPVM_BASE_LEN, 14, 1,
-		     MLXSW_REG_SPVM_REC_LEN, 0, false);
+					 MLXSW_REG_SPVM_BASE_LEN, 14, 1,
+					 MLXSW_REG_SPVM_REC_LEN, 0, false);
 
 /* reg_spvm_rec_e
  * Egress membership in VLAN ID.
  * Access: Index
  */
 MLXSW_ITEM32_INDEXED(reg, spvm, rec_e,
-		     MLXSW_REG_SPVM_BASE_LEN, 13, 1,
-		     MLXSW_REG_SPVM_REC_LEN, 0, false);
+					 MLXSW_REG_SPVM_BASE_LEN, 13, 1,
+					 MLXSW_REG_SPVM_REC_LEN, 0, false);
 
 /* reg_spvm_rec_u
  * Untagged - port is an untagged member - egress transmission uses untagged
@@ -853,20 +873,20 @@ MLXSW_ITEM32_INDEXED(reg, spvm, rec_e,
  * Access: Index
  */
 MLXSW_ITEM32_INDEXED(reg, spvm, rec_u,
-		     MLXSW_REG_SPVM_BASE_LEN, 12, 1,
-		     MLXSW_REG_SPVM_REC_LEN, 0, false);
+					 MLXSW_REG_SPVM_BASE_LEN, 12, 1,
+					 MLXSW_REG_SPVM_REC_LEN, 0, false);
 
 /* reg_spvm_rec_vid
  * Egress membership in VLAN ID.
  * Access: Index
  */
 MLXSW_ITEM32_INDEXED(reg, spvm, rec_vid,
-		     MLXSW_REG_SPVM_BASE_LEN, 0, 12,
-		     MLXSW_REG_SPVM_REC_LEN, 0, false);
+					 MLXSW_REG_SPVM_BASE_LEN, 0, 12,
+					 MLXSW_REG_SPVM_REC_LEN, 0, false);
 
 static inline void mlxsw_reg_spvm_pack(char *payload, u8 local_port,
-				       u16 vid_begin, u16 vid_end,
-				       bool is_member, bool untagged)
+									   u16 vid_begin, u16 vid_end,
+									   bool is_member, bool untagged)
 {
 	int size = vid_end - vid_begin + 1;
 	int i;
@@ -875,7 +895,8 @@ static inline void mlxsw_reg_spvm_pack(char *payload, u8 local_port,
 	mlxsw_reg_spvm_local_port_set(payload, local_port);
 	mlxsw_reg_spvm_num_rec_set(payload, size);
 
-	for (i = 0; i < size; i++) {
+	for (i = 0; i < size; i++)
+	{
 		mlxsw_reg_spvm_rec_i_set(payload, i, is_member);
 		mlxsw_reg_spvm_rec_e_set(payload, i, is_member);
 		mlxsw_reg_spvm_rec_u_set(payload, i, untagged);
@@ -891,7 +912,8 @@ static inline void mlxsw_reg_spvm_pack(char *payload, u8 local_port,
 #define MLXSW_REG_SPAFT_ID 0x2010
 #define MLXSW_REG_SPAFT_LEN 0x08
 
-static const struct mlxsw_reg_info mlxsw_reg_spaft = {
+static const struct mlxsw_reg_info mlxsw_reg_spaft =
+{
 	.id = MLXSW_REG_SPAFT_ID,
 	.len = MLXSW_REG_SPAFT_LEN,
 };
@@ -930,7 +952,7 @@ MLXSW_ITEM32(reg, spaft, allow_prio_tagged, 0x04, 30, 1);
 MLXSW_ITEM32(reg, spaft, allow_tagged, 0x04, 29, 1);
 
 static inline void mlxsw_reg_spaft_pack(char *payload, u8 local_port,
-					bool allow_untagged)
+										bool allow_untagged)
 {
 	MLXSW_REG_ZERO(spaft, payload);
 	mlxsw_reg_spaft_local_port_set(payload, local_port);
@@ -947,12 +969,14 @@ static inline void mlxsw_reg_spaft_pack(char *payload, u8 local_port,
 #define MLXSW_REG_SFGC_ID 0x2011
 #define MLXSW_REG_SFGC_LEN 0x10
 
-static const struct mlxsw_reg_info mlxsw_reg_sfgc = {
+static const struct mlxsw_reg_info mlxsw_reg_sfgc =
+{
 	.id = MLXSW_REG_SFGC_ID,
 	.len = MLXSW_REG_SFGC_LEN,
 };
 
-enum mlxsw_reg_sfgc_type {
+enum mlxsw_reg_sfgc_type
+{
 	MLXSW_REG_SFGC_TYPE_BROADCAST,
 	MLXSW_REG_SFGC_TYPE_UNKNOWN_UNICAST,
 	MLXSW_REG_SFGC_TYPE_UNREGISTERED_MULTICAST_IPV4,
@@ -970,7 +994,8 @@ enum mlxsw_reg_sfgc_type {
  */
 MLXSW_ITEM32(reg, sfgc, type, 0x00, 0, 4);
 
-enum mlxsw_reg_sfgc_bridge_type {
+enum mlxsw_reg_sfgc_bridge_type
+{
 	MLXSW_REG_SFGC_BRIDGE_TYPE_1Q_FID = 0,
 	MLXSW_REG_SFGC_BRIDGE_TYPE_VFID = 1,
 };
@@ -982,7 +1007,8 @@ enum mlxsw_reg_sfgc_bridge_type {
  */
 MLXSW_ITEM32(reg, sfgc, bridge_type, 0x04, 24, 3);
 
-enum mlxsw_flood_table_type {
+enum mlxsw_flood_table_type
+{
 	MLXSW_REG_SFGC_TABLE_TYPE_VID = 1,
 	MLXSW_REG_SFGC_TABLE_TYPE_SINGLE = 2,
 	MLXSW_REG_SFGC_TABLE_TYPE_ANY = 0,
@@ -1025,9 +1051,9 @@ MLXSW_ITEM32(reg, sfgc, counter_index, 0x0C, 0, 24);
 
 static inline void
 mlxsw_reg_sfgc_pack(char *payload, enum mlxsw_reg_sfgc_type type,
-		    enum mlxsw_reg_sfgc_bridge_type bridge_type,
-		    enum mlxsw_flood_table_type table_type,
-		    unsigned int flood_table)
+					enum mlxsw_reg_sfgc_bridge_type bridge_type,
+					enum mlxsw_flood_table_type table_type,
+					unsigned int flood_table)
 {
 	MLXSW_REG_ZERO(sfgc, payload);
 	mlxsw_reg_sfgc_type_set(payload, type);
@@ -1045,7 +1071,8 @@ mlxsw_reg_sfgc_pack(char *payload, enum mlxsw_reg_sfgc_type type,
 #define MLXSW_REG_SFTR_ID 0x2012
 #define MLXSW_REG_SFTR_LEN 0x420
 
-static const struct mlxsw_reg_info mlxsw_reg_sftr = {
+static const struct mlxsw_reg_info mlxsw_reg_sftr =
+{
 	.id = MLXSW_REG_SFTR_ID,
 	.len = MLXSW_REG_SFTR_LEN,
 };
@@ -1095,10 +1122,10 @@ MLXSW_ITEM_BIT_ARRAY(reg, sftr, port, 0x20, 0x20, 1);
 MLXSW_ITEM_BIT_ARRAY(reg, sftr, port_mask, 0x220, 0x20, 1);
 
 static inline void mlxsw_reg_sftr_pack(char *payload,
-				       unsigned int flood_table,
-				       unsigned int index,
-				       enum mlxsw_flood_table_type table_type,
-				       unsigned int range, u8 port, bool set)
+									   unsigned int flood_table,
+									   unsigned int index,
+									   enum mlxsw_flood_table_type table_type,
+									   unsigned int range, u8 port, bool set)
 {
 	MLXSW_REG_ZERO(sftr, payload);
 	mlxsw_reg_sftr_swid_set(payload, 0);
@@ -1118,7 +1145,8 @@ static inline void mlxsw_reg_sftr_pack(char *payload,
 #define MLXSW_REG_SFDF_ID 0x2013
 #define MLXSW_REG_SFDF_LEN 0x14
 
-static const struct mlxsw_reg_info mlxsw_reg_sfdf = {
+static const struct mlxsw_reg_info mlxsw_reg_sfdf =
+{
 	.id = MLXSW_REG_SFDF_ID,
 	.len = MLXSW_REG_SFDF_LEN,
 };
@@ -1129,7 +1157,8 @@ static const struct mlxsw_reg_info mlxsw_reg_sfdf = {
  */
 MLXSW_ITEM32(reg, sfdf, swid, 0x00, 24, 8);
 
-enum mlxsw_reg_sfdf_flush_type {
+enum mlxsw_reg_sfdf_flush_type
+{
 	MLXSW_REG_SFDF_FLUSH_PER_SWID,
 	MLXSW_REG_SFDF_FLUSH_PER_FID,
 	MLXSW_REG_SFDF_FLUSH_PER_PORT,
@@ -1159,7 +1188,7 @@ MLXSW_ITEM32(reg, sfdf, flush_type, 0x04, 28, 4);
 MLXSW_ITEM32(reg, sfdf, flush_static, 0x04, 24, 1);
 
 static inline void mlxsw_reg_sfdf_pack(char *payload,
-				       enum mlxsw_reg_sfdf_flush_type type)
+									   enum mlxsw_reg_sfdf_flush_type type)
 {
 	MLXSW_REG_ZERO(sfdf, payload);
 	mlxsw_reg_sfdf_flush_type_set(payload, type);
@@ -1205,12 +1234,14 @@ MLXSW_ITEM32(reg, sfdf, lag_fid_lag_id, 0x08, 0, 10);
 #define MLXSW_REG_SLDR_ID 0x2014
 #define MLXSW_REG_SLDR_LEN 0x0C /* counting in only one port in list */
 
-static const struct mlxsw_reg_info mlxsw_reg_sldr = {
+static const struct mlxsw_reg_info mlxsw_reg_sldr =
+{
 	.id = MLXSW_REG_SLDR_ID,
 	.len = MLXSW_REG_SLDR_LEN,
 };
 
-enum mlxsw_reg_sldr_op {
+enum mlxsw_reg_sldr_op
+{
 	/* Indicates a creation of a new LAG-ID, lag_id must be valid */
 	MLXSW_REG_SLDR_OP_LAG_CREATE,
 	MLXSW_REG_SLDR_OP_LAG_DESTROY,
@@ -1261,7 +1292,7 @@ MLXSW_ITEM32(reg, sldr, num_ports, 0x04, 24, 8);
 MLXSW_ITEM32_INDEXED(reg, sldr, system_port, 0x08, 0, 16, 4, 0, false);
 
 static inline void mlxsw_reg_sldr_lag_add_port_pack(char *payload, u8 lag_id,
-						    u8 local_port)
+		u8 local_port)
 {
 	MLXSW_REG_ZERO(sldr, payload);
 	mlxsw_reg_sldr_op_set(payload, MLXSW_REG_SLDR_OP_LAG_ADD_PORT_LIST);
@@ -1271,7 +1302,7 @@ static inline void mlxsw_reg_sldr_lag_add_port_pack(char *payload, u8 lag_id,
 }
 
 static inline void mlxsw_reg_sldr_lag_remove_port_pack(char *payload, u8 lag_id,
-						       u8 local_port)
+		u8 local_port)
 {
 	MLXSW_REG_ZERO(sldr, payload);
 	mlxsw_reg_sldr_op_set(payload, MLXSW_REG_SLDR_OP_LAG_REMOVE_PORT_LIST);
@@ -1288,12 +1319,14 @@ static inline void mlxsw_reg_sldr_lag_remove_port_pack(char *payload, u8 lag_id,
 #define MLXSW_REG_SLCR_ID 0x2015
 #define MLXSW_REG_SLCR_LEN 0x10
 
-static const struct mlxsw_reg_info mlxsw_reg_slcr = {
+static const struct mlxsw_reg_info mlxsw_reg_slcr =
+{
 	.id = MLXSW_REG_SLCR_ID,
 	.len = MLXSW_REG_SLCR_LEN,
 };
 
-enum mlxsw_reg_slcr_pp {
+enum mlxsw_reg_slcr_pp
+{
 	/* Global Configuration (for all ports) */
 	MLXSW_REG_SLCR_PP_GLOBAL,
 	/* Per port configuration, based on local_port field */
@@ -1316,7 +1349,8 @@ MLXSW_ITEM32(reg, slcr, pp, 0x00, 24, 1);
  */
 MLXSW_ITEM32(reg, slcr, local_port, 0x00, 16, 8);
 
-enum mlxsw_reg_slcr_type {
+enum mlxsw_reg_slcr_type
+{
 	MLXSW_REG_SLCR_TYPE_CRC, /* default */
 	MLXSW_REG_SLCR_TYPE_XOR,
 	MLXSW_REG_SLCR_TYPE_RANDOM,
@@ -1404,12 +1438,14 @@ static inline void mlxsw_reg_slcr_pack(char *payload, u16 lag_hash)
 #define MLXSW_REG_SLCOR_ID 0x2016
 #define MLXSW_REG_SLCOR_LEN 0x10
 
-static const struct mlxsw_reg_info mlxsw_reg_slcor = {
+static const struct mlxsw_reg_info mlxsw_reg_slcor =
+{
 	.id = MLXSW_REG_SLCOR_ID,
 	.len = MLXSW_REG_SLCOR_LEN,
 };
 
-enum mlxsw_reg_slcor_col {
+enum mlxsw_reg_slcor_col
+{
 	/* Port is added with collector disabled */
 	MLXSW_REG_SLCOR_COL_LAG_ADD_PORT,
 	MLXSW_REG_SLCOR_COL_LAG_COLLECTOR_ENABLED,
@@ -1444,8 +1480,8 @@ MLXSW_ITEM32(reg, slcor, lag_id, 0x00, 0, 10);
 MLXSW_ITEM32(reg, slcor, port_index, 0x04, 0, 10);
 
 static inline void mlxsw_reg_slcor_pack(char *payload,
-					u8 local_port, u16 lag_id,
-					enum mlxsw_reg_slcor_col col)
+										u8 local_port, u16 lag_id,
+										enum mlxsw_reg_slcor_col col)
 {
 	MLXSW_REG_ZERO(slcor, payload);
 	mlxsw_reg_slcor_col_set(payload, col);
@@ -1454,33 +1490,33 @@ static inline void mlxsw_reg_slcor_pack(char *payload,
 }
 
 static inline void mlxsw_reg_slcor_port_add_pack(char *payload,
-						 u8 local_port, u16 lag_id,
-						 u8 port_index)
+		u8 local_port, u16 lag_id,
+		u8 port_index)
 {
 	mlxsw_reg_slcor_pack(payload, local_port, lag_id,
-			     MLXSW_REG_SLCOR_COL_LAG_ADD_PORT);
+						 MLXSW_REG_SLCOR_COL_LAG_ADD_PORT);
 	mlxsw_reg_slcor_port_index_set(payload, port_index);
 }
 
 static inline void mlxsw_reg_slcor_port_remove_pack(char *payload,
-						    u8 local_port, u16 lag_id)
+		u8 local_port, u16 lag_id)
 {
 	mlxsw_reg_slcor_pack(payload, local_port, lag_id,
-			     MLXSW_REG_SLCOR_COL_LAG_REMOVE_PORT);
+						 MLXSW_REG_SLCOR_COL_LAG_REMOVE_PORT);
 }
 
 static inline void mlxsw_reg_slcor_col_enable_pack(char *payload,
-						   u8 local_port, u16 lag_id)
+		u8 local_port, u16 lag_id)
 {
 	mlxsw_reg_slcor_pack(payload, local_port, lag_id,
-			     MLXSW_REG_SLCOR_COL_LAG_COLLECTOR_ENABLED);
+						 MLXSW_REG_SLCOR_COL_LAG_COLLECTOR_ENABLED);
 }
 
 static inline void mlxsw_reg_slcor_col_disable_pack(char *payload,
-						    u8 local_port, u16 lag_id)
+		u8 local_port, u16 lag_id)
 {
 	mlxsw_reg_slcor_pack(payload, local_port, lag_id,
-			     MLXSW_REG_SLCOR_COL_LAG_COLLECTOR_ENABLED);
+						 MLXSW_REG_SLCOR_COL_LAG_COLLECTOR_ENABLED);
 }
 
 /* SPMLR - Switch Port MAC Learning Register
@@ -1490,7 +1526,8 @@ static inline void mlxsw_reg_slcor_col_disable_pack(char *payload,
 #define MLXSW_REG_SPMLR_ID 0x2018
 #define MLXSW_REG_SPMLR_LEN 0x8
 
-static const struct mlxsw_reg_info mlxsw_reg_spmlr = {
+static const struct mlxsw_reg_info mlxsw_reg_spmlr =
+{
 	.id = MLXSW_REG_SPMLR_ID,
 	.len = MLXSW_REG_SPMLR_LEN,
 };
@@ -1508,7 +1545,8 @@ MLXSW_ITEM32(reg, spmlr, local_port, 0x00, 16, 8);
  */
 MLXSW_ITEM32(reg, spmlr, sub_port, 0x00, 8, 8);
 
-enum mlxsw_reg_spmlr_learn_mode {
+enum mlxsw_reg_spmlr_learn_mode
+{
 	MLXSW_REG_SPMLR_LEARN_MODE_DISABLE = 0,
 	MLXSW_REG_SPMLR_LEARN_MODE_ENABLE = 2,
 	MLXSW_REG_SPMLR_LEARN_MODE_SEC = 3,
@@ -1528,7 +1566,7 @@ enum mlxsw_reg_spmlr_learn_mode {
 MLXSW_ITEM32(reg, spmlr, learn_mode, 0x04, 30, 2);
 
 static inline void mlxsw_reg_spmlr_pack(char *payload, u8 local_port,
-					enum mlxsw_reg_spmlr_learn_mode mode)
+										enum mlxsw_reg_spmlr_learn_mode mode)
 {
 	MLXSW_REG_ZERO(spmlr, payload);
 	mlxsw_reg_spmlr_local_port_set(payload, local_port);
@@ -1544,7 +1582,8 @@ static inline void mlxsw_reg_spmlr_pack(char *payload, u8 local_port,
 #define MLXSW_REG_SVFA_ID 0x201C
 #define MLXSW_REG_SVFA_LEN 0x10
 
-static const struct mlxsw_reg_info mlxsw_reg_svfa = {
+static const struct mlxsw_reg_info mlxsw_reg_svfa =
+{
 	.id = MLXSW_REG_SVFA_ID,
 	.len = MLXSW_REG_SVFA_LEN,
 };
@@ -1563,7 +1602,8 @@ MLXSW_ITEM32(reg, svfa, swid, 0x00, 24, 8);
  */
 MLXSW_ITEM32(reg, svfa, local_port, 0x00, 16, 8);
 
-enum mlxsw_reg_svfa_mt {
+enum mlxsw_reg_svfa_mt
+{
 	MLXSW_REG_SVFA_MT_VID_TO_FID,
 	MLXSW_REG_SVFA_MT_PORT_VID_TO_FID,
 };
@@ -1616,8 +1656,8 @@ MLXSW_ITEM32(reg, svfa, counter_set_type, 0x08, 24, 8);
 MLXSW_ITEM32(reg, svfa, counter_index, 0x08, 0, 24);
 
 static inline void mlxsw_reg_svfa_pack(char *payload, u8 local_port,
-				       enum mlxsw_reg_svfa_mt mt, bool valid,
-				       u16 fid, u16 vid)
+									   enum mlxsw_reg_svfa_mt mt, bool valid,
+									   u16 fid, u16 vid)
 {
 	MLXSW_REG_ZERO(svfa, payload);
 	local_port = mt == MLXSW_REG_SVFA_MT_VID_TO_FID ? 0 : local_port;
@@ -1636,7 +1676,8 @@ static inline void mlxsw_reg_svfa_pack(char *payload, u8 local_port,
 #define MLXSW_REG_SVPE_ID 0x201E
 #define MLXSW_REG_SVPE_LEN 0x4
 
-static const struct mlxsw_reg_info mlxsw_reg_svpe = {
+static const struct mlxsw_reg_info mlxsw_reg_svpe =
+{
 	.id = MLXSW_REG_SVPE_ID,
 	.len = MLXSW_REG_SVPE_LEN,
 };
@@ -1658,7 +1699,7 @@ MLXSW_ITEM32(reg, svpe, local_port, 0x00, 16, 8);
 MLXSW_ITEM32(reg, svpe, vp_en, 0x00, 8, 1);
 
 static inline void mlxsw_reg_svpe_pack(char *payload, u8 local_port,
-				       bool enable)
+									   bool enable)
 {
 	MLXSW_REG_ZERO(svpe, payload);
 	mlxsw_reg_svpe_local_port_set(payload, local_port);
@@ -1672,12 +1713,14 @@ static inline void mlxsw_reg_svpe_pack(char *payload, u8 local_port,
 #define MLXSW_REG_SFMR_ID 0x201F
 #define MLXSW_REG_SFMR_LEN 0x18
 
-static const struct mlxsw_reg_info mlxsw_reg_sfmr = {
+static const struct mlxsw_reg_info mlxsw_reg_sfmr =
+{
 	.id = MLXSW_REG_SFMR_ID,
 	.len = MLXSW_REG_SFMR_LEN,
 };
 
-enum mlxsw_reg_sfmr_op {
+enum mlxsw_reg_sfmr_op
+{
 	MLXSW_REG_SFMR_OP_CREATE_FID,
 	MLXSW_REG_SFMR_OP_DESTROY_FID,
 };
@@ -1739,8 +1782,8 @@ MLXSW_ITEM32(reg, sfmr, vv, 0x10, 31, 1);
 MLXSW_ITEM32(reg, sfmr, vni, 0x10, 0, 24);
 
 static inline void mlxsw_reg_sfmr_pack(char *payload,
-				       enum mlxsw_reg_sfmr_op op, u16 fid,
-				       u16 fid_offset)
+									   enum mlxsw_reg_sfmr_op op, u16 fid,
+									   u16 fid_offset)
 {
 	MLXSW_REG_ZERO(sfmr, payload);
 	mlxsw_reg_sfmr_op_set(payload, op);
@@ -1759,10 +1802,11 @@ static inline void mlxsw_reg_sfmr_pack(char *payload,
 #define MLXSW_REG_SPVMLR_REC_LEN 0x04 /* record length */
 #define MLXSW_REG_SPVMLR_REC_MAX_COUNT 256
 #define MLXSW_REG_SPVMLR_LEN (MLXSW_REG_SPVMLR_BASE_LEN + \
-			      MLXSW_REG_SPVMLR_REC_LEN * \
-			      MLXSW_REG_SPVMLR_REC_MAX_COUNT)
+							  MLXSW_REG_SPVMLR_REC_LEN * \
+							  MLXSW_REG_SPVMLR_REC_MAX_COUNT)
 
-static const struct mlxsw_reg_info mlxsw_reg_spvmlr = {
+static const struct mlxsw_reg_info mlxsw_reg_spvmlr =
+{
 	.id = MLXSW_REG_SPVMLR_ID,
 	.len = MLXSW_REG_SPVMLR_LEN,
 };
@@ -1787,18 +1831,18 @@ MLXSW_ITEM32(reg, spvmlr, num_rec, 0x00, 0, 8);
  * Access: RW
  */
 MLXSW_ITEM32_INDEXED(reg, spvmlr, rec_learn_enable, MLXSW_REG_SPVMLR_BASE_LEN,
-		     31, 1, MLXSW_REG_SPVMLR_REC_LEN, 0x00, false);
+					 31, 1, MLXSW_REG_SPVMLR_REC_LEN, 0x00, false);
 
 /* reg_spvmlr_rec_vid
  * VLAN ID to be added/removed from port or for querying.
  * Access: Index
  */
 MLXSW_ITEM32_INDEXED(reg, spvmlr, rec_vid, MLXSW_REG_SPVMLR_BASE_LEN, 0, 12,
-		     MLXSW_REG_SPVMLR_REC_LEN, 0x00, false);
+					 MLXSW_REG_SPVMLR_REC_LEN, 0x00, false);
 
 static inline void mlxsw_reg_spvmlr_pack(char *payload, u8 local_port,
-					 u16 vid_begin, u16 vid_end,
-					 bool learn_enable)
+		u16 vid_begin, u16 vid_end,
+		bool learn_enable)
 {
 	int num_rec = vid_end - vid_begin + 1;
 	int i;
@@ -1809,7 +1853,8 @@ static inline void mlxsw_reg_spvmlr_pack(char *payload, u8 local_port,
 	mlxsw_reg_spvmlr_local_port_set(payload, local_port);
 	mlxsw_reg_spvmlr_num_rec_set(payload, num_rec);
 
-	for (i = 0; i < num_rec; i++) {
+	for (i = 0; i < num_rec; i++)
+	{
 		mlxsw_reg_spvmlr_rec_learn_enable_set(payload, i, learn_enable);
 		mlxsw_reg_spvmlr_rec_vid_set(payload, i, vid_begin + i);
 	}
@@ -1823,7 +1868,8 @@ static inline void mlxsw_reg_spvmlr_pack(char *payload, u8 local_port,
 #define MLXSW_REG_QTCT_ID 0x400A
 #define MLXSW_REG_QTCT_LEN 0x08
 
-static const struct mlxsw_reg_info mlxsw_reg_qtct = {
+static const struct mlxsw_reg_info mlxsw_reg_qtct =
+{
 	.id = MLXSW_REG_QTCT_ID,
 	.len = MLXSW_REG_QTCT_LEN,
 };
@@ -1860,7 +1906,7 @@ MLXSW_ITEM32(reg, qtct, switch_prio, 0x00, 0, 4);
 MLXSW_ITEM32(reg, qtct, tclass, 0x04, 0, 4);
 
 static inline void mlxsw_reg_qtct_pack(char *payload, u8 local_port,
-				       u8 switch_prio, u8 tclass)
+									   u8 switch_prio, u8 tclass)
 {
 	MLXSW_REG_ZERO(qtct, payload);
 	mlxsw_reg_qtct_local_port_set(payload, local_port);
@@ -1875,7 +1921,8 @@ static inline void mlxsw_reg_qtct_pack(char *payload, u8 local_port,
 #define MLXSW_REG_QEEC_ID 0x400D
 #define MLXSW_REG_QEEC_LEN 0x1C
 
-static const struct mlxsw_reg_info mlxsw_reg_qeec = {
+static const struct mlxsw_reg_info mlxsw_reg_qeec =
+{
 	.id = MLXSW_REG_QEEC_ID,
 	.len = MLXSW_REG_QEEC_LEN,
 };
@@ -1888,7 +1935,8 @@ static const struct mlxsw_reg_info mlxsw_reg_qeec = {
  */
 MLXSW_ITEM32(reg, qeec, local_port, 0x00, 16, 8);
 
-enum mlxsw_reg_qeec_hr {
+enum mlxsw_reg_qeec_hr
+{
 	MLXSW_REG_QEEC_HIERARCY_PORT,
 	MLXSW_REG_QEEC_HIERARCY_GROUP,
 	MLXSW_REG_QEEC_HIERARCY_SUBGROUP,
@@ -1918,7 +1966,8 @@ MLXSW_ITEM32(reg, qeec, element_index, 0x04, 0, 8);
  */
 MLXSW_ITEM32(reg, qeec, next_element_index, 0x08, 0, 8);
 
-enum {
+enum
+{
 	MLXSW_REG_QEEC_BYTES_MODE,
 	MLXSW_REG_QEEC_PACKETS_MODE,
 };
@@ -1983,8 +2032,8 @@ MLXSW_ITEM32(reg, qeec, dwrr, 0x18, 15, 1);
 MLXSW_ITEM32(reg, qeec, dwrr_weight, 0x18, 0, 8);
 
 static inline void mlxsw_reg_qeec_pack(char *payload, u8 local_port,
-				       enum mlxsw_reg_qeec_hr hr, u8 index,
-				       u8 next_index)
+									   enum mlxsw_reg_qeec_hr hr, u8 index,
+									   u8 next_index)
 {
 	MLXSW_REG_ZERO(qeec, payload);
 	mlxsw_reg_qeec_local_port_set(payload, local_port);
@@ -2000,7 +2049,8 @@ static inline void mlxsw_reg_qeec_pack(char *payload, u8 local_port,
 #define MLXSW_REG_PMLP_ID 0x5002
 #define MLXSW_REG_PMLP_LEN 0x40
 
-static const struct mlxsw_reg_info mlxsw_reg_pmlp = {
+static const struct mlxsw_reg_info mlxsw_reg_pmlp =
+{
 	.id = MLXSW_REG_PMLP_ID,
 	.len = MLXSW_REG_PMLP_LEN,
 };
@@ -2059,7 +2109,8 @@ static inline void mlxsw_reg_pmlp_pack(char *payload, u8 local_port)
 #define MLXSW_REG_PMTU_ID 0x5003
 #define MLXSW_REG_PMTU_LEN 0x10
 
-static const struct mlxsw_reg_info mlxsw_reg_pmtu = {
+static const struct mlxsw_reg_info mlxsw_reg_pmtu =
+{
 	.id = MLXSW_REG_PMTU_ID,
 	.len = MLXSW_REG_PMTU_LEN,
 };
@@ -2097,7 +2148,7 @@ MLXSW_ITEM32(reg, pmtu, admin_mtu, 0x08, 16, 16);
 MLXSW_ITEM32(reg, pmtu, oper_mtu, 0x0C, 16, 16);
 
 static inline void mlxsw_reg_pmtu_pack(char *payload, u8 local_port,
-				       u16 new_mtu)
+									   u16 new_mtu)
 {
 	MLXSW_REG_ZERO(pmtu, payload);
 	mlxsw_reg_pmtu_local_port_set(payload, local_port);
@@ -2116,7 +2167,8 @@ static inline void mlxsw_reg_pmtu_pack(char *payload, u8 local_port,
 #define MLXSW_REG_PTYS_ID 0x5004
 #define MLXSW_REG_PTYS_LEN 0x40
 
-static const struct mlxsw_reg_info mlxsw_reg_ptys = {
+static const struct mlxsw_reg_info mlxsw_reg_ptys =
+{
 	.id = MLXSW_REG_PTYS_ID,
 	.len = MLXSW_REG_PTYS_LEN,
 };
@@ -2138,7 +2190,8 @@ MLXSW_ITEM32(reg, ptys, local_port, 0x00, 16, 8);
  */
 MLXSW_ITEM32(reg, ptys, proto_mask, 0x00, 0, 3);
 
-enum {
+enum
+{
 	MLXSW_REG_PTYS_AN_STATUS_NA,
 	MLXSW_REG_PTYS_AN_STATUS_OK,
 	MLXSW_REG_PTYS_AN_STATUS_FAIL,
@@ -2205,7 +2258,7 @@ MLXSW_ITEM32(reg, ptys, eth_proto_oper, 0x24, 0, 32);
 MLXSW_ITEM32(reg, ptys, eth_proto_lp_advertise, 0x30, 0, 32);
 
 static inline void mlxsw_reg_ptys_pack(char *payload, u8 local_port,
-				       u32 proto_admin)
+									   u32 proto_admin)
 {
 	MLXSW_REG_ZERO(ptys, payload);
 	mlxsw_reg_ptys_local_port_set(payload, local_port);
@@ -2214,15 +2267,23 @@ static inline void mlxsw_reg_ptys_pack(char *payload, u8 local_port,
 }
 
 static inline void mlxsw_reg_ptys_unpack(char *payload, u32 *p_eth_proto_cap,
-					 u32 *p_eth_proto_adm,
-					 u32 *p_eth_proto_oper)
+		u32 *p_eth_proto_adm,
+		u32 *p_eth_proto_oper)
 {
 	if (p_eth_proto_cap)
+	{
 		*p_eth_proto_cap = mlxsw_reg_ptys_eth_proto_cap_get(payload);
+	}
+
 	if (p_eth_proto_adm)
+	{
 		*p_eth_proto_adm = mlxsw_reg_ptys_eth_proto_admin_get(payload);
+	}
+
 	if (p_eth_proto_oper)
+	{
 		*p_eth_proto_oper = mlxsw_reg_ptys_eth_proto_oper_get(payload);
+	}
 }
 
 /* PPAD - Port Physical Address Register
@@ -2232,7 +2293,8 @@ static inline void mlxsw_reg_ptys_unpack(char *payload, u32 *p_eth_proto_cap,
 #define MLXSW_REG_PPAD_ID 0x5005
 #define MLXSW_REG_PPAD_LEN 0x10
 
-static const struct mlxsw_reg_info mlxsw_reg_ppad = {
+static const struct mlxsw_reg_info mlxsw_reg_ppad =
+{
 	.id = MLXSW_REG_PPAD_ID,
 	.len = MLXSW_REG_PPAD_LEN,
 };
@@ -2259,7 +2321,7 @@ MLXSW_ITEM32(reg, ppad, local_port, 0x00, 16, 8);
 MLXSW_ITEM_BUF(reg, ppad, mac, 0x02, 6);
 
 static inline void mlxsw_reg_ppad_pack(char *payload, bool single_base_mac,
-				       u8 local_port)
+									   u8 local_port)
 {
 	MLXSW_REG_ZERO(ppad, payload);
 	mlxsw_reg_ppad_single_base_mac_set(payload, !!single_base_mac);
@@ -2273,7 +2335,8 @@ static inline void mlxsw_reg_ppad_pack(char *payload, bool single_base_mac,
 #define MLXSW_REG_PAOS_ID 0x5006
 #define MLXSW_REG_PAOS_LEN 0x10
 
-static const struct mlxsw_reg_info mlxsw_reg_paos = {
+static const struct mlxsw_reg_info mlxsw_reg_paos =
+{
 	.id = MLXSW_REG_PAOS_ID,
 	.len = MLXSW_REG_PAOS_LEN,
 };
@@ -2337,7 +2400,7 @@ MLXSW_ITEM32(reg, paos, ee, 0x04, 30, 1);
 MLXSW_ITEM32(reg, paos, e, 0x04, 0, 2);
 
 static inline void mlxsw_reg_paos_pack(char *payload, u8 local_port,
-				       enum mlxsw_port_admin_status status)
+									   enum mlxsw_port_admin_status status)
 {
 	MLXSW_REG_ZERO(paos, payload);
 	mlxsw_reg_paos_swid_set(payload, 0);
@@ -2356,7 +2419,8 @@ static inline void mlxsw_reg_paos_pack(char *payload, u8 local_port,
 #define MLXSW_REG_PFCC_ID 0x5007
 #define MLXSW_REG_PFCC_LEN 0x20
 
-static const struct mlxsw_reg_info mlxsw_reg_pfcc = {
+static const struct mlxsw_reg_info mlxsw_reg_pfcc =
+{
 	.id = MLXSW_REG_PFCC_ID,
 	.len = MLXSW_REG_PFCC_LEN,
 };
@@ -2495,7 +2559,8 @@ static inline void mlxsw_reg_pfcc_pack(char *payload, u8 local_port)
 #define MLXSW_REG_PPCNT_ID 0x5008
 #define MLXSW_REG_PPCNT_LEN 0x100
 
-static const struct mlxsw_reg_info mlxsw_reg_ppcnt = {
+static const struct mlxsw_reg_info mlxsw_reg_ppcnt =
+{
 	.id = MLXSW_REG_PPCNT_ID,
 	.len = MLXSW_REG_PPCNT_LEN,
 };
@@ -2527,7 +2592,8 @@ MLXSW_ITEM32(reg, ppcnt, local_port, 0x00, 16, 8);
  */
 MLXSW_ITEM32(reg, ppcnt, pnat, 0x00, 14, 2);
 
-enum mlxsw_reg_ppcnt_grp {
+enum mlxsw_reg_ppcnt_grp
+{
 	MLXSW_REG_PPCNT_IEEE_8023_CNT = 0x0,
 	MLXSW_REG_PPCNT_PRIO_CNT = 0x10,
 	MLXSW_REG_PPCNT_TC_CNT = 0x11,
@@ -2574,115 +2640,115 @@ MLXSW_ITEM32(reg, ppcnt, prio_tc, 0x04, 0, 5);
  * Access: RO
  */
 MLXSW_ITEM64(reg, ppcnt, a_frames_transmitted_ok,
-	     0x08 + 0x00, 0, 64);
+			 0x08 + 0x00, 0, 64);
 
 /* reg_ppcnt_a_frames_received_ok
  * Access: RO
  */
 MLXSW_ITEM64(reg, ppcnt, a_frames_received_ok,
-	     0x08 + 0x08, 0, 64);
+			 0x08 + 0x08, 0, 64);
 
 /* reg_ppcnt_a_frame_check_sequence_errors
  * Access: RO
  */
 MLXSW_ITEM64(reg, ppcnt, a_frame_check_sequence_errors,
-	     0x08 + 0x10, 0, 64);
+			 0x08 + 0x10, 0, 64);
 
 /* reg_ppcnt_a_alignment_errors
  * Access: RO
  */
 MLXSW_ITEM64(reg, ppcnt, a_alignment_errors,
-	     0x08 + 0x18, 0, 64);
+			 0x08 + 0x18, 0, 64);
 
 /* reg_ppcnt_a_octets_transmitted_ok
  * Access: RO
  */
 MLXSW_ITEM64(reg, ppcnt, a_octets_transmitted_ok,
-	     0x08 + 0x20, 0, 64);
+			 0x08 + 0x20, 0, 64);
 
 /* reg_ppcnt_a_octets_received_ok
  * Access: RO
  */
 MLXSW_ITEM64(reg, ppcnt, a_octets_received_ok,
-	     0x08 + 0x28, 0, 64);
+			 0x08 + 0x28, 0, 64);
 
 /* reg_ppcnt_a_multicast_frames_xmitted_ok
  * Access: RO
  */
 MLXSW_ITEM64(reg, ppcnt, a_multicast_frames_xmitted_ok,
-	     0x08 + 0x30, 0, 64);
+			 0x08 + 0x30, 0, 64);
 
 /* reg_ppcnt_a_broadcast_frames_xmitted_ok
  * Access: RO
  */
 MLXSW_ITEM64(reg, ppcnt, a_broadcast_frames_xmitted_ok,
-	     0x08 + 0x38, 0, 64);
+			 0x08 + 0x38, 0, 64);
 
 /* reg_ppcnt_a_multicast_frames_received_ok
  * Access: RO
  */
 MLXSW_ITEM64(reg, ppcnt, a_multicast_frames_received_ok,
-	     0x08 + 0x40, 0, 64);
+			 0x08 + 0x40, 0, 64);
 
 /* reg_ppcnt_a_broadcast_frames_received_ok
  * Access: RO
  */
 MLXSW_ITEM64(reg, ppcnt, a_broadcast_frames_received_ok,
-	     0x08 + 0x48, 0, 64);
+			 0x08 + 0x48, 0, 64);
 
 /* reg_ppcnt_a_in_range_length_errors
  * Access: RO
  */
 MLXSW_ITEM64(reg, ppcnt, a_in_range_length_errors,
-	     0x08 + 0x50, 0, 64);
+			 0x08 + 0x50, 0, 64);
 
 /* reg_ppcnt_a_out_of_range_length_field
  * Access: RO
  */
 MLXSW_ITEM64(reg, ppcnt, a_out_of_range_length_field,
-	     0x08 + 0x58, 0, 64);
+			 0x08 + 0x58, 0, 64);
 
 /* reg_ppcnt_a_frame_too_long_errors
  * Access: RO
  */
 MLXSW_ITEM64(reg, ppcnt, a_frame_too_long_errors,
-	     0x08 + 0x60, 0, 64);
+			 0x08 + 0x60, 0, 64);
 
 /* reg_ppcnt_a_symbol_error_during_carrier
  * Access: RO
  */
 MLXSW_ITEM64(reg, ppcnt, a_symbol_error_during_carrier,
-	     0x08 + 0x68, 0, 64);
+			 0x08 + 0x68, 0, 64);
 
 /* reg_ppcnt_a_mac_control_frames_transmitted
  * Access: RO
  */
 MLXSW_ITEM64(reg, ppcnt, a_mac_control_frames_transmitted,
-	     0x08 + 0x70, 0, 64);
+			 0x08 + 0x70, 0, 64);
 
 /* reg_ppcnt_a_mac_control_frames_received
  * Access: RO
  */
 MLXSW_ITEM64(reg, ppcnt, a_mac_control_frames_received,
-	     0x08 + 0x78, 0, 64);
+			 0x08 + 0x78, 0, 64);
 
 /* reg_ppcnt_a_unsupported_opcodes_received
  * Access: RO
  */
 MLXSW_ITEM64(reg, ppcnt, a_unsupported_opcodes_received,
-	     0x08 + 0x80, 0, 64);
+			 0x08 + 0x80, 0, 64);
 
 /* reg_ppcnt_a_pause_mac_ctrl_frames_received
  * Access: RO
  */
 MLXSW_ITEM64(reg, ppcnt, a_pause_mac_ctrl_frames_received,
-	     0x08 + 0x88, 0, 64);
+			 0x08 + 0x88, 0, 64);
 
 /* reg_ppcnt_a_pause_mac_ctrl_frames_transmitted
  * Access: RO
  */
 MLXSW_ITEM64(reg, ppcnt, a_pause_mac_ctrl_frames_transmitted,
-	     0x08 + 0x90, 0, 64);
+			 0x08 + 0x90, 0, 64);
 
 /* Ethernet Per Priority Group Counters */
 
@@ -2749,8 +2815,8 @@ MLXSW_ITEM64(reg, ppcnt, tc_transmit_queue, 0x08 + 0x00, 0, 64);
 MLXSW_ITEM64(reg, ppcnt, tc_no_buffer_discard_uc, 0x08 + 0x08, 0, 64);
 
 static inline void mlxsw_reg_ppcnt_pack(char *payload, u8 local_port,
-					enum mlxsw_reg_ppcnt_grp grp,
-					u8 prio_tc)
+										enum mlxsw_reg_ppcnt_grp grp,
+										u8 prio_tc)
 {
 	MLXSW_REG_ZERO(ppcnt, payload);
 	mlxsw_reg_ppcnt_swid_set(payload, 0);
@@ -2768,12 +2834,14 @@ static inline void mlxsw_reg_ppcnt_pack(char *payload, u8 local_port,
 #define MLXSW_REG_PPTB_ID 0x500B
 #define MLXSW_REG_PPTB_LEN 0x10
 
-static const struct mlxsw_reg_info mlxsw_reg_pptb = {
+static const struct mlxsw_reg_info mlxsw_reg_pptb =
+{
 	.id = MLXSW_REG_PPTB_ID,
 	.len = MLXSW_REG_PPTB_LEN,
 };
 
-enum {
+enum
+{
 	MLXSW_REG_PPTB_MM_UM,
 	MLXSW_REG_PPTB_MM_UNICAST,
 	MLXSW_REG_PPTB_MM_MULTICAST,
@@ -2851,7 +2919,7 @@ static inline void mlxsw_reg_pptb_pack(char *payload, u8 local_port)
 }
 
 static inline void mlxsw_reg_pptb_prio_to_buff_pack(char *payload, u8 prio,
-						    u8 buff)
+		u8 buff)
 {
 	mlxsw_reg_pptb_prio_to_buff_set(payload, prio, buff);
 	mlxsw_reg_pptb_prio_to_buff_msb_set(payload, prio, buff);
@@ -2865,7 +2933,8 @@ static inline void mlxsw_reg_pptb_prio_to_buff_pack(char *payload, u8 prio,
 #define MLXSW_REG_PBMC_ID 0x500C
 #define MLXSW_REG_PBMC_LEN 0x6C
 
-static const struct mlxsw_reg_info mlxsw_reg_pbmc = {
+static const struct mlxsw_reg_info mlxsw_reg_pbmc =
+{
 	.id = MLXSW_REG_PBMC_ID,
 	.len = MLXSW_REG_PBMC_LEN,
 };
@@ -2927,7 +2996,7 @@ MLXSW_ITEM32_INDEXED(reg, pbmc, buf_size, 0x0C, 0, 16, 0x08, 0x00, false);
  * Note: In Spectrum, reserved for buffer[9].
  */
 MLXSW_ITEM32_INDEXED(reg, pbmc, buf_xoff_threshold, 0x0C, 16, 16,
-		     0x08, 0x04, false);
+					 0x08, 0x04, false);
 
 /* reg_pbmc_buf_xon_threshold
  * When the amount of data in the buffer goes below this value, device
@@ -2939,10 +3008,10 @@ MLXSW_ITEM32_INDEXED(reg, pbmc, buf_xoff_threshold, 0x0C, 16, 16,
  * Note: In Spectrum, reserved for buffer[9].
  */
 MLXSW_ITEM32_INDEXED(reg, pbmc, buf_xon_threshold, 0x0C, 0, 16,
-		     0x08, 0x04, false);
+					 0x08, 0x04, false);
 
 static inline void mlxsw_reg_pbmc_pack(char *payload, u8 local_port,
-				       u16 xoff_timer_value, u16 xoff_refresh)
+									   u16 xoff_timer_value, u16 xoff_refresh)
 {
 	MLXSW_REG_ZERO(pbmc, payload);
 	mlxsw_reg_pbmc_local_port_set(payload, local_port);
@@ -2951,8 +3020,8 @@ static inline void mlxsw_reg_pbmc_pack(char *payload, u8 local_port,
 }
 
 static inline void mlxsw_reg_pbmc_lossy_buffer_pack(char *payload,
-						    int buf_index,
-						    u16 size)
+		int buf_index,
+		u16 size)
 {
 	mlxsw_reg_pbmc_buf_lossy_set(payload, buf_index, 1);
 	mlxsw_reg_pbmc_buf_epsb_set(payload, buf_index, 0);
@@ -2960,8 +3029,8 @@ static inline void mlxsw_reg_pbmc_lossy_buffer_pack(char *payload,
 }
 
 static inline void mlxsw_reg_pbmc_lossless_buffer_pack(char *payload,
-						       int buf_index, u16 size,
-						       u16 threshold)
+		int buf_index, u16 size,
+		u16 threshold)
 {
 	mlxsw_reg_pbmc_buf_lossy_set(payload, buf_index, 0);
 	mlxsw_reg_pbmc_buf_epsb_set(payload, buf_index, 0);
@@ -2978,7 +3047,8 @@ static inline void mlxsw_reg_pbmc_lossless_buffer_pack(char *payload,
 #define MLXSW_REG_PSPA_ID 0x500D
 #define MLXSW_REG_PSPA_LEN 0x8
 
-static const struct mlxsw_reg_info mlxsw_reg_pspa = {
+static const struct mlxsw_reg_info mlxsw_reg_pspa =
+{
 	.id = MLXSW_REG_PSPA_ID,
 	.len = MLXSW_REG_PSPA_LEN,
 };
@@ -3017,7 +3087,8 @@ static inline void mlxsw_reg_pspa_pack(char *payload, u8 swid, u8 local_port)
 #define MLXSW_REG_HTGT_ID 0x7002
 #define MLXSW_REG_HTGT_LEN 0x100
 
-static const struct mlxsw_reg_info mlxsw_reg_htgt = {
+static const struct mlxsw_reg_info mlxsw_reg_htgt =
+{
 	.id = MLXSW_REG_HTGT_ID,
 	.len = MLXSW_REG_HTGT_LEN,
 };
@@ -3036,7 +3107,8 @@ MLXSW_ITEM32(reg, htgt, swid, 0x00, 24, 8);
  */
 MLXSW_ITEM32(reg, htgt, type, 0x00, 8, 4);
 
-enum mlxsw_reg_htgt_trap_group {
+enum mlxsw_reg_htgt_trap_group
+{
 	MLXSW_REG_HTGT_TRAP_GROUP_EMAD,
 	MLXSW_REG_HTGT_TRAP_GROUP_RX,
 	MLXSW_REG_HTGT_TRAP_GROUP_CTRL,
@@ -3050,7 +3122,8 @@ enum mlxsw_reg_htgt_trap_group {
  */
 MLXSW_ITEM32(reg, htgt, trap_group, 0x00, 0, 8);
 
-enum {
+enum
+{
 	MLXSW_REG_HTGT_POLICER_DISABLE,
 	MLXSW_REG_HTGT_POLICER_ENABLE,
 };
@@ -3116,25 +3189,30 @@ MLXSW_ITEM32(reg, htgt, local_path_cpu_tclass, 0x10, 16, 6);
 MLXSW_ITEM32(reg, htgt, local_path_rdq, 0x10, 0, 6);
 
 static inline void mlxsw_reg_htgt_pack(char *payload,
-				       enum mlxsw_reg_htgt_trap_group group)
+									   enum mlxsw_reg_htgt_trap_group group)
 {
 	u8 swid, rdq;
 
 	MLXSW_REG_ZERO(htgt, payload);
-	switch (group) {
-	case MLXSW_REG_HTGT_TRAP_GROUP_EMAD:
-		swid = MLXSW_PORT_SWID_ALL_SWIDS;
-		rdq = MLXSW_REG_HTGT_LOCAL_PATH_RDQ_EMAD;
-		break;
-	case MLXSW_REG_HTGT_TRAP_GROUP_RX:
-		swid = 0;
-		rdq = MLXSW_REG_HTGT_LOCAL_PATH_RDQ_RX;
-		break;
-	case MLXSW_REG_HTGT_TRAP_GROUP_CTRL:
-		swid = 0;
-		rdq = MLXSW_REG_HTGT_LOCAL_PATH_RDQ_CTRL;
-		break;
+
+	switch (group)
+	{
+		case MLXSW_REG_HTGT_TRAP_GROUP_EMAD:
+			swid = MLXSW_PORT_SWID_ALL_SWIDS;
+			rdq = MLXSW_REG_HTGT_LOCAL_PATH_RDQ_EMAD;
+			break;
+
+		case MLXSW_REG_HTGT_TRAP_GROUP_RX:
+			swid = 0;
+			rdq = MLXSW_REG_HTGT_LOCAL_PATH_RDQ_RX;
+			break;
+
+		case MLXSW_REG_HTGT_TRAP_GROUP_CTRL:
+			swid = 0;
+			rdq = MLXSW_REG_HTGT_LOCAL_PATH_RDQ_CTRL;
+			break;
 	}
+
 	mlxsw_reg_htgt_swid_set(payload, swid);
 	mlxsw_reg_htgt_type_set(payload, MLXSW_REG_HTGT_PATH_TYPE_LOCAL);
 	mlxsw_reg_htgt_trap_group_set(payload, group);
@@ -3154,12 +3232,14 @@ static inline void mlxsw_reg_htgt_pack(char *payload,
 #define MLXSW_REG_HPKT_ID 0x7003
 #define MLXSW_REG_HPKT_LEN 0x10
 
-static const struct mlxsw_reg_info mlxsw_reg_hpkt = {
+static const struct mlxsw_reg_info mlxsw_reg_hpkt =
+{
 	.id = MLXSW_REG_HPKT_ID,
 	.len = MLXSW_REG_HPKT_LEN,
 };
 
-enum {
+enum
+{
 	MLXSW_REG_HPKT_ACK_NOT_REQUIRED,
 	MLXSW_REG_HPKT_ACK_REQUIRED,
 };
@@ -3174,7 +3254,8 @@ enum {
  */
 MLXSW_ITEM32(reg, hpkt, ack, 0x00, 24, 1);
 
-enum mlxsw_reg_hpkt_action {
+enum mlxsw_reg_hpkt_action
+{
 	MLXSW_REG_HPKT_ACTION_FORWARD,
 	MLXSW_REG_HPKT_ACTION_TRAP_TO_CPU,
 	MLXSW_REG_HPKT_ACTION_MIRROR_TO_CPU,
@@ -3213,7 +3294,8 @@ MLXSW_ITEM32(reg, hpkt, trap_group, 0x00, 12, 6);
  */
 MLXSW_ITEM32(reg, hpkt, trap_id, 0x00, 0, 9);
 
-enum {
+enum
+{
 	MLXSW_REG_HPKT_CTRL_PACKET_DEFAULT,
 	MLXSW_REG_HPKT_CTRL_PACKET_NO_BUFFER,
 	MLXSW_REG_HPKT_CTRL_PACKET_USE_BUFFER,
@@ -3235,15 +3317,19 @@ static inline void mlxsw_reg_hpkt_pack(char *payload, u8 action, u16 trap_id)
 	MLXSW_REG_ZERO(hpkt, payload);
 	mlxsw_reg_hpkt_ack_set(payload, MLXSW_REG_HPKT_ACK_NOT_REQUIRED);
 	mlxsw_reg_hpkt_action_set(payload, action);
-	switch (trap_id) {
-	case MLXSW_TRAP_ID_ETHEMAD:
-	case MLXSW_TRAP_ID_PUDE:
-		trap_group = MLXSW_REG_HTGT_TRAP_GROUP_EMAD;
-		break;
-	default:
-		trap_group = MLXSW_REG_HTGT_TRAP_GROUP_RX;
-		break;
+
+	switch (trap_id)
+	{
+		case MLXSW_TRAP_ID_ETHEMAD:
+		case MLXSW_TRAP_ID_PUDE:
+			trap_group = MLXSW_REG_HTGT_TRAP_GROUP_EMAD;
+			break;
+
+		default:
+			trap_group = MLXSW_REG_HTGT_TRAP_GROUP_RX;
+			break;
 	}
+
 	mlxsw_reg_hpkt_trap_group_set(payload, trap_group);
 	mlxsw_reg_hpkt_trap_id_set(payload, trap_id);
 	mlxsw_reg_hpkt_ctrl_set(payload, MLXSW_REG_HPKT_CTRL_PACKET_DEFAULT);
@@ -3256,7 +3342,8 @@ static inline void mlxsw_reg_hpkt_pack(char *payload, u8 action, u16 trap_id)
 #define MLXSW_REG_RGCR_ID 0x8001
 #define MLXSW_REG_RGCR_LEN 0x28
 
-static const struct mlxsw_reg_info mlxsw_reg_rgcr = {
+static const struct mlxsw_reg_info mlxsw_reg_rgcr =
+{
 	.id = MLXSW_REG_RGCR_ID,
 	.len = MLXSW_REG_RGCR_LEN,
 };
@@ -3330,7 +3417,8 @@ static inline void mlxsw_reg_rgcr_pack(char *payload, bool ipv4_en)
 #define MLXSW_REG_RITR_ID 0x8002
 #define MLXSW_REG_RITR_LEN 0x40
 
-static const struct mlxsw_reg_info mlxsw_reg_ritr = {
+static const struct mlxsw_reg_info mlxsw_reg_ritr =
+{
 	.id = MLXSW_REG_RITR_ID,
 	.len = MLXSW_REG_RITR_LEN,
 };
@@ -3355,7 +3443,8 @@ MLXSW_ITEM32(reg, ritr, ipv4, 0x00, 29, 1);
  */
 MLXSW_ITEM32(reg, ritr, ipv6, 0x00, 28, 1);
 
-enum mlxsw_reg_ritr_if_type {
+enum mlxsw_reg_ritr_if_type
+{
 	MLXSW_REG_RITR_VLAN_IF,
 	MLXSW_REG_RITR_FID_IF,
 	MLXSW_REG_RITR_SP_IF,
@@ -3370,7 +3459,8 @@ enum mlxsw_reg_ritr_if_type {
  */
 MLXSW_ITEM32(reg, ritr, type, 0x00, 23, 3);
 
-enum {
+enum
+{
 	MLXSW_REG_RITR_RIF_CREATE,
 	MLXSW_REG_RITR_RIF_DEL,
 };
@@ -3462,13 +3552,17 @@ MLXSW_ITEM32(reg, ritr, vlan_if_vid, 0x08, 0, 12);
 MLXSW_ITEM32(reg, ritr, fid_if_fid, 0x08, 0, 16);
 
 static inline void mlxsw_reg_ritr_fid_set(char *payload,
-					  enum mlxsw_reg_ritr_if_type rif_type,
-					  u16 fid)
+		enum mlxsw_reg_ritr_if_type rif_type,
+		u16 fid)
 {
 	if (rif_type == MLXSW_REG_RITR_FID_IF)
+	{
 		mlxsw_reg_ritr_fid_if_fid_set(payload, fid);
+	}
 	else
+	{
 		mlxsw_reg_ritr_vlan_if_vid_set(payload, fid);
+	}
 }
 
 /* Sub-port Interface */
@@ -3500,7 +3594,7 @@ static inline void mlxsw_reg_ritr_rif_pack(char *payload, u16 rif)
 }
 
 static inline void mlxsw_reg_ritr_sp_if_pack(char *payload, bool lag,
-					     u16 system_port, u16 vid)
+		u16 system_port, u16 vid)
 {
 	mlxsw_reg_ritr_sp_if_lag_set(payload, lag);
 	mlxsw_reg_ritr_sp_if_system_port_set(payload, system_port);
@@ -3508,8 +3602,8 @@ static inline void mlxsw_reg_ritr_sp_if_pack(char *payload, bool lag,
 }
 
 static inline void mlxsw_reg_ritr_pack(char *payload, bool enable,
-				       enum mlxsw_reg_ritr_if_type type,
-				       u16 rif, u16 mtu, const char *mac)
+									   enum mlxsw_reg_ritr_if_type type,
+									   u16 rif, u16 mtu, const char *mac)
 {
 	bool op = enable ? MLXSW_REG_RITR_RIF_CREATE : MLXSW_REG_RITR_RIF_DEL;
 
@@ -3533,12 +3627,14 @@ static inline void mlxsw_reg_ritr_pack(char *payload, bool enable,
 #define MLXSW_REG_RATR_ID 0x8008
 #define MLXSW_REG_RATR_LEN 0x2C
 
-static const struct mlxsw_reg_info mlxsw_reg_ratr = {
+static const struct mlxsw_reg_info mlxsw_reg_ratr =
+{
 	.id = MLXSW_REG_RATR_ID,
 	.len = MLXSW_REG_RATR_LEN,
 };
 
-enum mlxsw_reg_ratr_op {
+enum mlxsw_reg_ratr_op
+{
 	/* Read */
 	MLXSW_REG_RATR_OP_QUERY_READ = 0,
 	/* Read and clear activity */
@@ -3598,7 +3694,8 @@ MLXSW_ITEM32(reg, ratr, adjacency_index_low, 0x04, 0, 16);
  */
 MLXSW_ITEM32(reg, ratr, egress_router_interface, 0x08, 0, 16);
 
-enum mlxsw_reg_ratr_trap_action {
+enum mlxsw_reg_ratr_trap_action
+{
 	MLXSW_REG_RATR_TRAP_ACTION_NOP,
 	MLXSW_REG_RATR_TRAP_ACTION_TRAP,
 	MLXSW_REG_RATR_TRAP_ACTION_MIRROR_TO_CPU,
@@ -3612,7 +3709,8 @@ enum mlxsw_reg_ratr_trap_action {
  */
 MLXSW_ITEM32(reg, ratr, trap_action, 0x0C, 28, 4);
 
-enum mlxsw_reg_ratr_trap_id {
+enum mlxsw_reg_ratr_trap_id
+{
 	MLXSW_REG_RATR_TRAP_ID_RTR_EGRESS0 = 0,
 	MLXSW_REG_RATR_TRAP_ID_RTR_EGRESS1 = 1,
 };
@@ -3639,8 +3737,8 @@ MLXSW_ITEM_BUF(reg, ratr, eth_destination_mac, 0x12, 6);
 
 static inline void
 mlxsw_reg_ratr_pack(char *payload,
-		    enum mlxsw_reg_ratr_op op, bool valid,
-		    u32 adjacency_index, u16 egress_rif)
+					enum mlxsw_reg_ratr_op op, bool valid,
+					u32 adjacency_index, u16 egress_rif)
 {
 	MLXSW_REG_ZERO(ratr, payload);
 	mlxsw_reg_ratr_op_set(payload, op);
@@ -3651,7 +3749,7 @@ mlxsw_reg_ratr_pack(char *payload,
 }
 
 static inline void mlxsw_reg_ratr_eth_entry_pack(char *payload,
-						 const char *dest_mac)
+		const char *dest_mac)
 {
 	mlxsw_reg_ratr_eth_destination_mac_memcpy_to(payload, dest_mac);
 }
@@ -3663,7 +3761,8 @@ static inline void mlxsw_reg_ratr_eth_entry_pack(char *payload,
 #define MLXSW_REG_RALTA_ID 0x8010
 #define MLXSW_REG_RALTA_LEN 0x04
 
-static const struct mlxsw_reg_info mlxsw_reg_ralta = {
+static const struct mlxsw_reg_info mlxsw_reg_ralta =
+{
 	.id = MLXSW_REG_RALTA_ID,
 	.len = MLXSW_REG_RALTA_LEN,
 };
@@ -3676,7 +3775,8 @@ static const struct mlxsw_reg_info mlxsw_reg_ralta = {
  */
 MLXSW_ITEM32(reg, ralta, op, 0x00, 28, 2);
 
-enum mlxsw_reg_ralxx_protocol {
+enum mlxsw_reg_ralxx_protocol
+{
 	MLXSW_REG_RALXX_PROTOCOL_IPV4,
 	MLXSW_REG_RALXX_PROTOCOL_IPV6,
 };
@@ -3697,8 +3797,8 @@ MLXSW_ITEM32(reg, ralta, protocol, 0x00, 24, 4);
 MLXSW_ITEM32(reg, ralta, tree_id, 0x00, 0, 8);
 
 static inline void mlxsw_reg_ralta_pack(char *payload, bool alloc,
-					enum mlxsw_reg_ralxx_protocol protocol,
-					u8 tree_id)
+										enum mlxsw_reg_ralxx_protocol protocol,
+										u8 tree_id)
 {
 	MLXSW_REG_ZERO(ralta, payload);
 	mlxsw_reg_ralta_op_set(payload, !alloc);
@@ -3718,7 +3818,8 @@ static inline void mlxsw_reg_ralta_pack(char *payload, bool alloc,
 #define MLXSW_REG_RALST_ID 0x8011
 #define MLXSW_REG_RALST_LEN 0x104
 
-static const struct mlxsw_reg_info mlxsw_reg_ralst = {
+static const struct mlxsw_reg_info mlxsw_reg_ralst =
+{
 	.id = MLXSW_REG_RALST_ID,
 	.len = MLXSW_REG_RALST_LEN,
 };
@@ -3756,7 +3857,7 @@ MLXSW_ITEM16_INDEXED(reg, ralst, left_child_bin, 0x04, 8, 8, 0x02, 0x00, false);
  * Access: RW
  */
 MLXSW_ITEM16_INDEXED(reg, ralst, right_child_bin, 0x04, 0, 8, 0x02, 0x00,
-		     false);
+					 false);
 
 static inline void mlxsw_reg_ralst_pack(char *payload, u8 root_bin, u8 tree_id)
 {
@@ -3764,21 +3865,21 @@ static inline void mlxsw_reg_ralst_pack(char *payload, u8 root_bin, u8 tree_id)
 
 	/* Initialize all bins to have no left or right child */
 	memset(payload + MLXSW_REG_RALST_BIN_OFFSET,
-	       MLXSW_REG_RALST_BIN_NO_CHILD, MLXSW_REG_RALST_BIN_COUNT * 2);
+		   MLXSW_REG_RALST_BIN_NO_CHILD, MLXSW_REG_RALST_BIN_COUNT * 2);
 
 	mlxsw_reg_ralst_root_bin_set(payload, root_bin);
 	mlxsw_reg_ralst_tree_id_set(payload, tree_id);
 }
 
 static inline void mlxsw_reg_ralst_bin_pack(char *payload, u8 bin_number,
-					    u8 left_child_bin,
-					    u8 right_child_bin)
+		u8 left_child_bin,
+		u8 right_child_bin)
 {
 	int bin_index = bin_number - 1;
 
 	mlxsw_reg_ralst_left_child_bin_set(payload, bin_index, left_child_bin);
 	mlxsw_reg_ralst_right_child_bin_set(payload, bin_index,
-					    right_child_bin);
+										right_child_bin);
 }
 
 /* RALTB - Router Algorithmic LPM Tree Binding Register
@@ -3788,7 +3889,8 @@ static inline void mlxsw_reg_ralst_bin_pack(char *payload, u8 bin_number,
 #define MLXSW_REG_RALTB_ID 0x8012
 #define MLXSW_REG_RALTB_LEN 0x04
 
-static const struct mlxsw_reg_info mlxsw_reg_raltb = {
+static const struct mlxsw_reg_info mlxsw_reg_raltb =
+{
 	.id = MLXSW_REG_RALTB_ID,
 	.len = MLXSW_REG_RALTB_LEN,
 };
@@ -3815,8 +3917,8 @@ MLXSW_ITEM32(reg, raltb, protocol, 0x00, 12, 4);
 MLXSW_ITEM32(reg, raltb, tree_id, 0x00, 0, 8);
 
 static inline void mlxsw_reg_raltb_pack(char *payload, u16 virtual_router,
-					enum mlxsw_reg_ralxx_protocol protocol,
-					u8 tree_id)
+										enum mlxsw_reg_ralxx_protocol protocol,
+										u8 tree_id)
 {
 	MLXSW_REG_ZERO(raltb, payload);
 	mlxsw_reg_raltb_virtual_router_set(payload, virtual_router);
@@ -3832,7 +3934,8 @@ static inline void mlxsw_reg_raltb_pack(char *payload, u16 virtual_router,
 #define MLXSW_REG_RALUE_ID 0x8013
 #define MLXSW_REG_RALUE_LEN 0x38
 
-static const struct mlxsw_reg_info mlxsw_reg_ralue = {
+static const struct mlxsw_reg_info mlxsw_reg_ralue =
+{
 	.id = MLXSW_REG_RALUE_ID,
 	.len = MLXSW_REG_RALUE_LEN,
 };
@@ -3843,7 +3946,8 @@ static const struct mlxsw_reg_info mlxsw_reg_ralue = {
  */
 MLXSW_ITEM32(reg, ralue, protocol, 0x00, 24, 4);
 
-enum mlxsw_reg_ralue_op {
+enum mlxsw_reg_ralue_op
+{
 	/* Read operation. If entry doesn't exist, the operation fails. */
 	MLXSW_REG_RALUE_OP_QUERY_READ = 0,
 	/* Clear on read operation. Used to read entry and
@@ -3923,7 +4027,8 @@ MLXSW_ITEM32(reg, ralue, prefix_len, 0x08, 0, 8);
  */
 MLXSW_ITEM32(reg, ralue, dip4, 0x18, 0, 32);
 
-enum mlxsw_reg_ralue_entry_type {
+enum mlxsw_reg_ralue_entry_type
+{
 	MLXSW_REG_RALUE_ENTRY_TYPE_MARKER_ENTRY = 1,
 	MLXSW_REG_RALUE_ENTRY_TYPE_ROUTE_ENTRY = 2,
 	MLXSW_REG_RALUE_ENTRY_TYPE_MARKER_AND_ROUTE_ENTRY = 3,
@@ -3946,7 +4051,8 @@ MLXSW_ITEM32(reg, ralue, entry_type, 0x1C, 30, 2);
  */
 MLXSW_ITEM32(reg, ralue, bmp_len, 0x1C, 16, 8);
 
-enum mlxsw_reg_ralue_action_type {
+enum mlxsw_reg_ralue_action_type
+{
 	MLXSW_REG_RALUE_ACTION_TYPE_REMOTE,
 	MLXSW_REG_RALUE_ACTION_TYPE_LOCAL,
 	MLXSW_REG_RALUE_ACTION_TYPE_IP2ME,
@@ -3963,7 +4069,8 @@ enum mlxsw_reg_ralue_action_type {
  */
 MLXSW_ITEM32(reg, ralue, action_type, 0x1C, 0, 2);
 
-enum mlxsw_reg_ralue_trap_action {
+enum mlxsw_reg_ralue_trap_action
+{
 	MLXSW_REG_RALUE_TRAP_ACTION_NOP,
 	MLXSW_REG_RALUE_TRAP_ACTION_TRAP,
 	MLXSW_REG_RALUE_TRAP_ACTION_MIRROR_TO_CPU,
@@ -4031,9 +4138,9 @@ MLXSW_ITEM32(reg, ralue, v, 0x24, 31, 1);
 MLXSW_ITEM32(reg, ralue, tunnel_ptr, 0x24, 0, 24);
 
 static inline void mlxsw_reg_ralue_pack(char *payload,
-					enum mlxsw_reg_ralxx_protocol protocol,
-					enum mlxsw_reg_ralue_op op,
-					u16 virtual_router, u8 prefix_len)
+										enum mlxsw_reg_ralxx_protocol protocol,
+										enum mlxsw_reg_ralue_op op,
+										u16 virtual_router, u8 prefix_len)
 {
 	MLXSW_REG_ZERO(ralue, payload);
 	mlxsw_reg_ralue_protocol_set(payload, protocol);
@@ -4041,15 +4148,15 @@ static inline void mlxsw_reg_ralue_pack(char *payload,
 	mlxsw_reg_ralue_virtual_router_set(payload, virtual_router);
 	mlxsw_reg_ralue_prefix_len_set(payload, prefix_len);
 	mlxsw_reg_ralue_entry_type_set(payload,
-				       MLXSW_REG_RALUE_ENTRY_TYPE_ROUTE_ENTRY);
+								   MLXSW_REG_RALUE_ENTRY_TYPE_ROUTE_ENTRY);
 	mlxsw_reg_ralue_bmp_len_set(payload, prefix_len);
 }
 
 static inline void mlxsw_reg_ralue_pack4(char *payload,
-					 enum mlxsw_reg_ralxx_protocol protocol,
-					 enum mlxsw_reg_ralue_op op,
-					 u16 virtual_router, u8 prefix_len,
-					 u32 dip)
+		enum mlxsw_reg_ralxx_protocol protocol,
+		enum mlxsw_reg_ralue_op op,
+		u16 virtual_router, u8 prefix_len,
+		u32 dip)
 {
 	mlxsw_reg_ralue_pack(payload, protocol, op, virtual_router, prefix_len);
 	mlxsw_reg_ralue_dip4_set(payload, dip);
@@ -4057,11 +4164,11 @@ static inline void mlxsw_reg_ralue_pack4(char *payload,
 
 static inline void
 mlxsw_reg_ralue_act_remote_pack(char *payload,
-				enum mlxsw_reg_ralue_trap_action trap_action,
-				u16 trap_id, u32 adjacency_index, u16 ecmp_size)
+								enum mlxsw_reg_ralue_trap_action trap_action,
+								u16 trap_id, u32 adjacency_index, u16 ecmp_size)
 {
 	mlxsw_reg_ralue_action_type_set(payload,
-					MLXSW_REG_RALUE_ACTION_TYPE_REMOTE);
+									MLXSW_REG_RALUE_ACTION_TYPE_REMOTE);
 	mlxsw_reg_ralue_trap_action_set(payload, trap_action);
 	mlxsw_reg_ralue_trap_id_set(payload, trap_id);
 	mlxsw_reg_ralue_adjacency_index_set(payload, adjacency_index);
@@ -4070,11 +4177,11 @@ mlxsw_reg_ralue_act_remote_pack(char *payload,
 
 static inline void
 mlxsw_reg_ralue_act_local_pack(char *payload,
-			       enum mlxsw_reg_ralue_trap_action trap_action,
-			       u16 trap_id, u16 local_erif)
+							   enum mlxsw_reg_ralue_trap_action trap_action,
+							   u16 trap_id, u16 local_erif)
 {
 	mlxsw_reg_ralue_action_type_set(payload,
-					MLXSW_REG_RALUE_ACTION_TYPE_LOCAL);
+									MLXSW_REG_RALUE_ACTION_TYPE_LOCAL);
 	mlxsw_reg_ralue_trap_action_set(payload, trap_action);
 	mlxsw_reg_ralue_trap_id_set(payload, trap_id);
 	mlxsw_reg_ralue_local_erif_set(payload, local_erif);
@@ -4084,7 +4191,7 @@ static inline void
 mlxsw_reg_ralue_act_ip2me_pack(char *payload)
 {
 	mlxsw_reg_ralue_action_type_set(payload,
-					MLXSW_REG_RALUE_ACTION_TYPE_IP2ME);
+									MLXSW_REG_RALUE_ACTION_TYPE_IP2ME);
 }
 
 /* RAUHT - Router Algorithmic LPM Unicast Host Table Register
@@ -4095,12 +4202,14 @@ mlxsw_reg_ralue_act_ip2me_pack(char *payload)
 #define MLXSW_REG_RAUHT_ID 0x8014
 #define MLXSW_REG_RAUHT_LEN 0x74
 
-static const struct mlxsw_reg_info mlxsw_reg_rauht = {
+static const struct mlxsw_reg_info mlxsw_reg_rauht =
+{
 	.id = MLXSW_REG_RAUHT_ID,
 	.len = MLXSW_REG_RAUHT_LEN,
 };
 
-enum mlxsw_reg_rauht_type {
+enum mlxsw_reg_rauht_type
+{
 	MLXSW_REG_RAUHT_TYPE_IPV4,
 	MLXSW_REG_RAUHT_TYPE_IPV6,
 };
@@ -4110,7 +4219,8 @@ enum mlxsw_reg_rauht_type {
  */
 MLXSW_ITEM32(reg, rauht, type, 0x00, 24, 2);
 
-enum mlxsw_reg_rauht_op {
+enum mlxsw_reg_rauht_op
+{
 	MLXSW_REG_RAUHT_OP_QUERY_READ = 0,
 	/* Read operation */
 	MLXSW_REG_RAUHT_OP_QUERY_CLEAR_ON_READ = 1,
@@ -4162,7 +4272,8 @@ MLXSW_ITEM32(reg, rauht, rif, 0x00, 0, 16);
  */
 MLXSW_ITEM32(reg, rauht, dip4, 0x1C, 0x0, 32);
 
-enum mlxsw_reg_rauht_trap_action {
+enum mlxsw_reg_rauht_trap_action
+{
 	MLXSW_REG_RAUHT_TRAP_ACTION_NOP,
 	MLXSW_REG_RAUHT_TRAP_ACTION_TRAP,
 	MLXSW_REG_RAUHT_TRAP_ACTION_MIRROR_TO_CPU,
@@ -4175,7 +4286,8 @@ enum mlxsw_reg_rauht_trap_action {
  */
 MLXSW_ITEM32(reg, rauht, trap_action, 0x60, 28, 4);
 
-enum mlxsw_reg_rauht_trap_id {
+enum mlxsw_reg_rauht_trap_id
+{
 	MLXSW_REG_RAUHT_TRAP_ID_RTR_EGRESS0,
 	MLXSW_REG_RAUHT_TRAP_ID_RTR_EGRESS1,
 };
@@ -4208,8 +4320,8 @@ MLXSW_ITEM32(reg, rauht, counter_index, 0x68, 0, 24);
 MLXSW_ITEM_BUF(reg, rauht, mac, 0x6E, 6);
 
 static inline void mlxsw_reg_rauht_pack(char *payload,
-					enum mlxsw_reg_rauht_op op, u16 rif,
-					const char *mac)
+										enum mlxsw_reg_rauht_op op, u16 rif,
+										const char *mac)
 {
 	MLXSW_REG_ZERO(rauht, payload);
 	mlxsw_reg_rauht_op_set(payload, op);
@@ -4218,8 +4330,8 @@ static inline void mlxsw_reg_rauht_pack(char *payload,
 }
 
 static inline void mlxsw_reg_rauht_pack4(char *payload,
-					 enum mlxsw_reg_rauht_op op, u16 rif,
-					 const char *mac, u32 dip)
+		enum mlxsw_reg_rauht_op op, u16 rif,
+		const char *mac, u32 dip)
 {
 	mlxsw_reg_rauht_pack(payload, op, rif, mac);
 	mlxsw_reg_rauht_dip4_set(payload, dip);
@@ -4234,7 +4346,8 @@ static inline void mlxsw_reg_rauht_pack4(char *payload,
 #define MLXSW_REG_RALEU_ID 0x8015
 #define MLXSW_REG_RALEU_LEN 0x28
 
-static const struct mlxsw_reg_info mlxsw_reg_raleu = {
+static const struct mlxsw_reg_info mlxsw_reg_raleu =
+{
 	.id = MLXSW_REG_RALEU_ID,
 	.len = MLXSW_REG_RALEU_LEN,
 };
@@ -4277,11 +4390,11 @@ MLXSW_ITEM32(reg, raleu, new_adjacency_index, 0x20, 0, 24);
 MLXSW_ITEM32(reg, raleu, new_ecmp_size, 0x24, 0, 13);
 
 static inline void mlxsw_reg_raleu_pack(char *payload,
-					enum mlxsw_reg_ralxx_protocol protocol,
-					u16 virtual_router,
-					u32 adjacency_index, u16 ecmp_size,
-					u32 new_adjacency_index,
-					u16 new_ecmp_size)
+										enum mlxsw_reg_ralxx_protocol protocol,
+										u16 virtual_router,
+										u32 adjacency_index, u16 ecmp_size,
+										u32 new_adjacency_index,
+										u16 new_ecmp_size)
 {
 	MLXSW_REG_ZERO(raleu, payload);
 	mlxsw_reg_raleu_protocol_set(payload, protocol);
@@ -4306,10 +4419,11 @@ static inline void mlxsw_reg_raleu_pack(char *payload,
 #define MLXSW_REG_RAUHTD_REC_LEN 0x20
 #define MLXSW_REG_RAUHTD_REC_MAX_NUM 32
 #define MLXSW_REG_RAUHTD_LEN (MLXSW_REG_RAUHTD_BASE_LEN + \
-		MLXSW_REG_RAUHTD_REC_MAX_NUM * MLXSW_REG_RAUHTD_REC_LEN)
+							  MLXSW_REG_RAUHTD_REC_MAX_NUM * MLXSW_REG_RAUHTD_REC_LEN)
 #define MLXSW_REG_RAUHTD_IPV4_ENT_PER_REC 4
 
-static const struct mlxsw_reg_info mlxsw_reg_rauhtd = {
+static const struct mlxsw_reg_info mlxsw_reg_rauhtd =
+{
 	.id = MLXSW_REG_RAUHTD_ID,
 	.len = MLXSW_REG_RAUHTD_LEN,
 };
@@ -4326,7 +4440,8 @@ static const struct mlxsw_reg_info mlxsw_reg_rauhtd = {
  */
 MLXSW_ITEM32(reg, rauhtd, filter_fields, 0x00, 0, 8);
 
-enum mlxsw_reg_rauhtd_op {
+enum mlxsw_reg_rauhtd_op
+{
 	MLXSW_REG_RAUHTD_OP_DUMP,
 	MLXSW_REG_RAUHTD_OP_DUMP_AND_CLEAR,
 };
@@ -4353,7 +4468,8 @@ MLXSW_ITEM32(reg, rauhtd, num_rec, 0x04, 0, 8);
  */
 MLXSW_ITEM32(reg, rauhtd, entry_a, 0x08, 16, 1);
 
-enum mlxsw_reg_rauhtd_type {
+enum mlxsw_reg_rauhtd_type
+{
 	MLXSW_REG_RAUHTD_TYPE_IPV4,
 	MLXSW_REG_RAUHTD_TYPE_IPV6,
 };
@@ -4374,7 +4490,7 @@ MLXSW_ITEM32(reg, rauhtd, type, 0x08, 0, 4);
 MLXSW_ITEM32(reg, rauhtd, entry_rif, 0x0C, 0, 16);
 
 static inline void mlxsw_reg_rauhtd_pack(char *payload,
-					 enum mlxsw_reg_rauhtd_type type)
+		enum mlxsw_reg_rauhtd_type type)
 {
 	MLXSW_REG_ZERO(rauhtd, payload);
 	mlxsw_reg_rauhtd_filter_fields_set(payload, MLXSW_REG_RAUHTD_FILTER_A);
@@ -4393,8 +4509,8 @@ static inline void mlxsw_reg_rauhtd_pack(char *payload,
  * Access: RO
  */
 MLXSW_ITEM32_INDEXED(reg, rauhtd, ipv4_rec_num_entries,
-		     MLXSW_REG_RAUHTD_BASE_LEN, 28, 2,
-		     MLXSW_REG_RAUHTD_REC_LEN, 0x00, false);
+					 MLXSW_REG_RAUHTD_BASE_LEN, 28, 2,
+					 MLXSW_REG_RAUHTD_REC_LEN, 0x00, false);
 
 /* reg_rauhtd_rec_type
  * Record type.
@@ -4403,7 +4519,7 @@ MLXSW_ITEM32_INDEXED(reg, rauhtd, ipv4_rec_num_entries,
  * Access: RO
  */
 MLXSW_ITEM32_INDEXED(reg, rauhtd, rec_type, MLXSW_REG_RAUHTD_BASE_LEN, 24, 2,
-		     MLXSW_REG_RAUHTD_REC_LEN, 0x00, false);
+					 MLXSW_REG_RAUHTD_REC_LEN, 0x00, false);
 
 #define MLXSW_REG_RAUHTD_IPV4_ENT_LEN 0x8
 
@@ -4413,25 +4529,25 @@ MLXSW_ITEM32_INDEXED(reg, rauhtd, rec_type, MLXSW_REG_RAUHTD_BASE_LEN, 24, 2,
  * Access: RO
  */
 MLXSW_ITEM32_INDEXED(reg, rauhtd, ipv4_ent_a, MLXSW_REG_RAUHTD_BASE_LEN, 16, 1,
-		     MLXSW_REG_RAUHTD_IPV4_ENT_LEN, 0x00, false);
+					 MLXSW_REG_RAUHTD_IPV4_ENT_LEN, 0x00, false);
 
 /* reg_rauhtd_ipv4_ent_rif
  * Router interface.
  * Access: RO
  */
 MLXSW_ITEM32_INDEXED(reg, rauhtd, ipv4_ent_rif, MLXSW_REG_RAUHTD_BASE_LEN, 0,
-		     16, MLXSW_REG_RAUHTD_IPV4_ENT_LEN, 0x00, false);
+					 16, MLXSW_REG_RAUHTD_IPV4_ENT_LEN, 0x00, false);
 
 /* reg_rauhtd_ipv4_ent_dip
  * Destination IPv4 address.
  * Access: RO
  */
 MLXSW_ITEM32_INDEXED(reg, rauhtd, ipv4_ent_dip, MLXSW_REG_RAUHTD_BASE_LEN, 0,
-		     32, MLXSW_REG_RAUHTD_IPV4_ENT_LEN, 0x04, false);
+					 32, MLXSW_REG_RAUHTD_IPV4_ENT_LEN, 0x04, false);
 
 static inline void mlxsw_reg_rauhtd_ent_ipv4_unpack(char *payload,
-						    int ent_index, u16 *p_rif,
-						    u32 *p_dip)
+		int ent_index, u16 *p_rif,
+		u32 *p_dip)
 {
 	*p_rif = mlxsw_reg_rauhtd_ipv4_ent_rif_get(payload, ent_index);
 	*p_dip = mlxsw_reg_rauhtd_ipv4_ent_dip_get(payload, ent_index);
@@ -4444,12 +4560,14 @@ static inline void mlxsw_reg_rauhtd_ent_ipv4_unpack(char *payload,
 #define MLXSW_REG_MFCR_ID 0x9001
 #define MLXSW_REG_MFCR_LEN 0x08
 
-static const struct mlxsw_reg_info mlxsw_reg_mfcr = {
+static const struct mlxsw_reg_info mlxsw_reg_mfcr =
+{
 	.id = MLXSW_REG_MFCR_ID,
 	.len = MLXSW_REG_MFCR_LEN,
 };
 
-enum mlxsw_reg_mfcr_pwm_frequency {
+enum mlxsw_reg_mfcr_pwm_frequency
+{
 	MLXSW_REG_MFCR_PWM_FEQ_11HZ = 0x00,
 	MLXSW_REG_MFCR_PWM_FEQ_14_7HZ = 0x01,
 	MLXSW_REG_MFCR_PWM_FEQ_22_1HZ = 0x02,
@@ -4484,7 +4602,7 @@ MLXSW_ITEM32(reg, mfcr, pwm_active, 0x04, 0, MLXSW_MFCR_PWMS_MAX);
 
 static inline void
 mlxsw_reg_mfcr_pack(char *payload,
-		    enum mlxsw_reg_mfcr_pwm_frequency pwm_frequency)
+					enum mlxsw_reg_mfcr_pwm_frequency pwm_frequency)
 {
 	MLXSW_REG_ZERO(mfcr, payload);
 	mlxsw_reg_mfcr_pwm_frequency_set(payload, pwm_frequency);
@@ -4492,8 +4610,8 @@ mlxsw_reg_mfcr_pack(char *payload,
 
 static inline void
 mlxsw_reg_mfcr_unpack(char *payload,
-		      enum mlxsw_reg_mfcr_pwm_frequency *p_pwm_frequency,
-		      u16 *p_tacho_active, u8 *p_pwm_active)
+					  enum mlxsw_reg_mfcr_pwm_frequency *p_pwm_frequency,
+					  u16 *p_tacho_active, u8 *p_pwm_active)
 {
 	*p_pwm_frequency = mlxsw_reg_mfcr_pwm_frequency_get(payload);
 	*p_tacho_active = mlxsw_reg_mfcr_tacho_active_get(payload);
@@ -4507,7 +4625,8 @@ mlxsw_reg_mfcr_unpack(char *payload,
 #define MLXSW_REG_MFSC_ID 0x9002
 #define MLXSW_REG_MFSC_LEN 0x08
 
-static const struct mlxsw_reg_info mlxsw_reg_mfsc = {
+static const struct mlxsw_reg_info mlxsw_reg_mfsc =
+{
 	.id = MLXSW_REG_MFSC_ID,
 	.len = MLXSW_REG_MFSC_LEN,
 };
@@ -4526,7 +4645,7 @@ MLXSW_ITEM32(reg, mfsc, pwm, 0x00, 24, 3);
 MLXSW_ITEM32(reg, mfsc, pwm_duty_cycle, 0x04, 0, 8);
 
 static inline void mlxsw_reg_mfsc_pack(char *payload, u8 pwm,
-				       u8 pwm_duty_cycle)
+									   u8 pwm_duty_cycle)
 {
 	MLXSW_REG_ZERO(mfsc, payload);
 	mlxsw_reg_mfsc_pwm_set(payload, pwm);
@@ -4541,7 +4660,8 @@ static inline void mlxsw_reg_mfsc_pack(char *payload, u8 pwm,
 #define MLXSW_REG_MFSM_ID 0x9003
 #define MLXSW_REG_MFSM_LEN 0x08
 
-static const struct mlxsw_reg_info mlxsw_reg_mfsm = {
+static const struct mlxsw_reg_info mlxsw_reg_mfsm =
+{
 	.id = MLXSW_REG_MFSM_ID,
 	.len = MLXSW_REG_MFSM_LEN,
 };
@@ -4572,7 +4692,8 @@ static inline void mlxsw_reg_mfsm_pack(char *payload, u8 tacho)
 #define MLXSW_REG_MTCAP_ID 0x9009
 #define MLXSW_REG_MTCAP_LEN 0x08
 
-static const struct mlxsw_reg_info mlxsw_reg_mtcap = {
+static const struct mlxsw_reg_info mlxsw_reg_mtcap =
+{
 	.id = MLXSW_REG_MTCAP_ID,
 	.len = MLXSW_REG_MTCAP_LEN,
 };
@@ -4593,7 +4714,8 @@ MLXSW_ITEM32(reg, mtcap, sensor_count, 0x00, 0, 7);
 #define MLXSW_REG_MTMP_ID 0x900A
 #define MLXSW_REG_MTMP_LEN 0x20
 
-static const struct mlxsw_reg_info mlxsw_reg_mtmp = {
+static const struct mlxsw_reg_info mlxsw_reg_mtmp =
+{
 	.id = MLXSW_REG_MTMP_ID,
 	.len = MLXSW_REG_MTMP_LEN,
 };
@@ -4644,8 +4766,8 @@ MLXSW_ITEM32(reg, mtmp, max_temperature, 0x08, 0, 16);
 MLXSW_ITEM_BUF(reg, mtmp, sensor_name, 0x18, MLXSW_REG_MTMP_SENSOR_NAME_SIZE);
 
 static inline void mlxsw_reg_mtmp_pack(char *payload, u8 sensor_index,
-				       bool max_temp_enable,
-				       bool max_temp_reset)
+									   bool max_temp_enable,
+									   bool max_temp_reset)
 {
 	MLXSW_REG_ZERO(mtmp, payload);
 	mlxsw_reg_mtmp_sensor_index_set(payload, sensor_index);
@@ -4654,21 +4776,27 @@ static inline void mlxsw_reg_mtmp_pack(char *payload, u8 sensor_index,
 }
 
 static inline void mlxsw_reg_mtmp_unpack(char *payload, unsigned int *p_temp,
-					 unsigned int *p_max_temp,
-					 char *sensor_name)
+		unsigned int *p_max_temp,
+		char *sensor_name)
 {
 	u16 temp;
 
-	if (p_temp) {
+	if (p_temp)
+	{
 		temp = mlxsw_reg_mtmp_temperature_get(payload);
 		*p_temp = MLXSW_REG_MTMP_TEMP_TO_MC(temp);
 	}
-	if (p_max_temp) {
+
+	if (p_max_temp)
+	{
 		temp = mlxsw_reg_mtmp_max_temperature_get(payload);
 		*p_max_temp = MLXSW_REG_MTMP_TEMP_TO_MC(temp);
 	}
+
 	if (sensor_name)
+	{
 		mlxsw_reg_mtmp_sensor_name_memcpy_from(payload, sensor_name);
+	}
 }
 
 /* MPAT - Monitoring Port Analyzer Table
@@ -4679,7 +4807,8 @@ static inline void mlxsw_reg_mtmp_unpack(char *payload, unsigned int *p_temp,
 #define MLXSW_REG_MPAT_ID 0x901A
 #define MLXSW_REG_MPAT_LEN 0x78
 
-static const struct mlxsw_reg_info mlxsw_reg_mpat = {
+static const struct mlxsw_reg_info mlxsw_reg_mpat =
+{
 	.id = MLXSW_REG_MPAT_ID,
 	.len = MLXSW_REG_MPAT_LEN,
 };
@@ -4724,7 +4853,7 @@ MLXSW_ITEM32(reg, mpat, qos, 0x04, 26, 1);
 MLXSW_ITEM32(reg, mpat, be, 0x04, 25, 1);
 
 static inline void mlxsw_reg_mpat_pack(char *payload, u8 pa_id,
-				       u16 system_port, bool e)
+									   u16 system_port, bool e)
 {
 	MLXSW_REG_ZERO(mpat, payload);
 	mlxsw_reg_mpat_pa_id_set(payload, pa_id);
@@ -4742,7 +4871,8 @@ static inline void mlxsw_reg_mpat_pack(char *payload, u8 pa_id,
 #define MLXSW_REG_MPAR_ID 0x901B
 #define MLXSW_REG_MPAR_LEN 0x08
 
-static const struct mlxsw_reg_info mlxsw_reg_mpar = {
+static const struct mlxsw_reg_info mlxsw_reg_mpar =
+{
 	.id = MLXSW_REG_MPAR_ID,
 	.len = MLXSW_REG_MPAR_LEN,
 };
@@ -4753,7 +4883,8 @@ static const struct mlxsw_reg_info mlxsw_reg_mpar = {
  */
 MLXSW_ITEM32(reg, mpar, local_port, 0x00, 16, 8);
 
-enum mlxsw_reg_mpar_i_e {
+enum mlxsw_reg_mpar_i_e
+{
 	MLXSW_REG_MPAR_TYPE_EGRESS,
 	MLXSW_REG_MPAR_TYPE_INGRESS,
 };
@@ -4778,8 +4909,8 @@ MLXSW_ITEM32(reg, mpar, enable, 0x04, 31, 1);
 MLXSW_ITEM32(reg, mpar, pa_id, 0x04, 0, 4);
 
 static inline void mlxsw_reg_mpar_pack(char *payload, u8 local_port,
-				       enum mlxsw_reg_mpar_i_e i_e,
-				       bool enable, u8 pa_id)
+									   enum mlxsw_reg_mpar_i_e i_e,
+									   bool enable, u8 pa_id)
 {
 	MLXSW_REG_ZERO(mpar, payload);
 	mlxsw_reg_mpar_local_port_set(payload, local_port);
@@ -4795,7 +4926,8 @@ static inline void mlxsw_reg_mpar_pack(char *payload, u8 local_port,
 #define MLXSW_REG_MLCR_ID 0x902B
 #define MLXSW_REG_MLCR_LEN 0x0C
 
-static const struct mlxsw_reg_info mlxsw_reg_mlcr = {
+static const struct mlxsw_reg_info mlxsw_reg_mlcr =
+{
 	.id = MLXSW_REG_MLCR_ID,
 	.len = MLXSW_REG_MLCR_LEN,
 };
@@ -4824,12 +4956,12 @@ MLXSW_ITEM32(reg, mlcr, beacon_duration, 0x04, 0, 16);
 MLXSW_ITEM32(reg, mlcr, beacon_remain, 0x08, 0, 16);
 
 static inline void mlxsw_reg_mlcr_pack(char *payload, u8 local_port,
-				       bool active)
+									   bool active)
 {
 	MLXSW_REG_ZERO(mlcr, payload);
 	mlxsw_reg_mlcr_local_port_set(payload, local_port);
 	mlxsw_reg_mlcr_beacon_duration_set(payload, active ?
-					   MLXSW_REG_MLCR_DURATION_MAX : 0);
+									   MLXSW_REG_MLCR_DURATION_MAX : 0);
 }
 
 /* SBPR - Shared Buffer Pools Register
@@ -4839,13 +4971,15 @@ static inline void mlxsw_reg_mlcr_pack(char *payload, u8 local_port,
 #define MLXSW_REG_SBPR_ID 0xB001
 #define MLXSW_REG_SBPR_LEN 0x14
 
-static const struct mlxsw_reg_info mlxsw_reg_sbpr = {
+static const struct mlxsw_reg_info mlxsw_reg_sbpr =
+{
 	.id = MLXSW_REG_SBPR_ID,
 	.len = MLXSW_REG_SBPR_LEN,
 };
 
 /* shared direstion enum for SBPR, SBCM, SBPM */
-enum mlxsw_reg_sbxx_dir {
+enum mlxsw_reg_sbxx_dir
+{
 	MLXSW_REG_SBXX_DIR_INGRESS,
 	MLXSW_REG_SBXX_DIR_EGRESS,
 };
@@ -4868,7 +5002,8 @@ MLXSW_ITEM32(reg, sbpr, pool, 0x00, 0, 4);
  */
 MLXSW_ITEM32(reg, sbpr, size, 0x04, 0, 24);
 
-enum mlxsw_reg_sbpr_mode {
+enum mlxsw_reg_sbpr_mode
+{
 	MLXSW_REG_SBPR_MODE_STATIC,
 	MLXSW_REG_SBPR_MODE_DYNAMIC,
 };
@@ -4880,8 +5015,8 @@ enum mlxsw_reg_sbpr_mode {
 MLXSW_ITEM32(reg, sbpr, mode, 0x08, 0, 4);
 
 static inline void mlxsw_reg_sbpr_pack(char *payload, u8 pool,
-				       enum mlxsw_reg_sbxx_dir dir,
-				       enum mlxsw_reg_sbpr_mode mode, u32 size)
+									   enum mlxsw_reg_sbxx_dir dir,
+									   enum mlxsw_reg_sbpr_mode mode, u32 size)
 {
 	MLXSW_REG_ZERO(sbpr, payload);
 	mlxsw_reg_sbpr_pool_set(payload, pool);
@@ -4899,7 +5034,8 @@ static inline void mlxsw_reg_sbpr_pack(char *payload, u8 pool,
 #define MLXSW_REG_SBCM_ID 0xB002
 #define MLXSW_REG_SBCM_LEN 0x28
 
-static const struct mlxsw_reg_info mlxsw_reg_sbcm = {
+static const struct mlxsw_reg_info mlxsw_reg_sbcm =
+{
 	.id = MLXSW_REG_SBCM_ID,
 	.len = MLXSW_REG_SBCM_LEN,
 };
@@ -4958,8 +5094,8 @@ MLXSW_ITEM32(reg, sbcm, max_buff, 0x1C, 0, 24);
 MLXSW_ITEM32(reg, sbcm, pool, 0x24, 0, 4);
 
 static inline void mlxsw_reg_sbcm_pack(char *payload, u8 local_port, u8 pg_buff,
-				       enum mlxsw_reg_sbxx_dir dir,
-				       u32 min_buff, u32 max_buff, u8 pool)
+									   enum mlxsw_reg_sbxx_dir dir,
+									   u32 min_buff, u32 max_buff, u8 pool)
 {
 	MLXSW_REG_ZERO(sbcm, payload);
 	mlxsw_reg_sbcm_local_port_set(payload, local_port);
@@ -4979,7 +5115,8 @@ static inline void mlxsw_reg_sbcm_pack(char *payload, u8 local_port, u8 pg_buff,
 #define MLXSW_REG_SBPM_ID 0xB003
 #define MLXSW_REG_SBPM_LEN 0x28
 
-static const struct mlxsw_reg_info mlxsw_reg_sbpm = {
+static const struct mlxsw_reg_info mlxsw_reg_sbpm =
+{
 	.id = MLXSW_REG_SBPM_ID,
 	.len = MLXSW_REG_SBPM_LEN,
 };
@@ -5045,8 +5182,8 @@ MLXSW_ITEM32(reg, sbpm, min_buff, 0x18, 0, 24);
 MLXSW_ITEM32(reg, sbpm, max_buff, 0x1C, 0, 24);
 
 static inline void mlxsw_reg_sbpm_pack(char *payload, u8 local_port, u8 pool,
-				       enum mlxsw_reg_sbxx_dir dir, bool clr,
-				       u32 min_buff, u32 max_buff)
+									   enum mlxsw_reg_sbxx_dir dir, bool clr,
+									   u32 min_buff, u32 max_buff)
 {
 	MLXSW_REG_ZERO(sbpm, payload);
 	mlxsw_reg_sbpm_local_port_set(payload, local_port);
@@ -5058,7 +5195,7 @@ static inline void mlxsw_reg_sbpm_pack(char *payload, u8 local_port, u8 pool,
 }
 
 static inline void mlxsw_reg_sbpm_unpack(char *payload, u32 *p_buff_occupancy,
-					 u32 *p_max_buff_occupancy)
+		u32 *p_max_buff_occupancy)
 {
 	*p_buff_occupancy = mlxsw_reg_sbpm_buff_occupancy_get(payload);
 	*p_max_buff_occupancy = mlxsw_reg_sbpm_max_buff_occupancy_get(payload);
@@ -5073,7 +5210,8 @@ static inline void mlxsw_reg_sbpm_unpack(char *payload, u32 *p_buff_occupancy,
 #define MLXSW_REG_SBMM_ID 0xB004
 #define MLXSW_REG_SBMM_LEN 0x28
 
-static const struct mlxsw_reg_info mlxsw_reg_sbmm = {
+static const struct mlxsw_reg_info mlxsw_reg_sbmm =
+{
 	.id = MLXSW_REG_SBMM_ID,
 	.len = MLXSW_REG_SBMM_LEN,
 };
@@ -5110,7 +5248,7 @@ MLXSW_ITEM32(reg, sbmm, max_buff, 0x1C, 0, 24);
 MLXSW_ITEM32(reg, sbmm, pool, 0x24, 0, 4);
 
 static inline void mlxsw_reg_sbmm_pack(char *payload, u8 prio, u32 min_buff,
-				       u32 max_buff, u8 pool)
+									   u32 max_buff, u8 pool)
 {
 	MLXSW_REG_ZERO(sbmm, payload);
 	mlxsw_reg_sbmm_prio_set(payload, prio);
@@ -5132,10 +5270,11 @@ static inline void mlxsw_reg_sbmm_pack(char *payload, u8 prio, u32 min_buff,
 #define MLXSW_REG_SBSR_REC_LEN 0x8 /* record length */
 #define MLXSW_REG_SBSR_REC_MAX_COUNT 120
 #define MLXSW_REG_SBSR_LEN (MLXSW_REG_SBSR_BASE_LEN +	\
-			    MLXSW_REG_SBSR_REC_LEN *	\
-			    MLXSW_REG_SBSR_REC_MAX_COUNT)
+							MLXSW_REG_SBSR_REC_LEN *	\
+							MLXSW_REG_SBSR_REC_MAX_COUNT)
 
-static const struct mlxsw_reg_info mlxsw_reg_sbsr = {
+static const struct mlxsw_reg_info mlxsw_reg_sbsr =
+{
 	.id = MLXSW_REG_SBSR_ID,
 	.len = MLXSW_REG_SBSR_LEN,
 };
@@ -5197,7 +5336,7 @@ static inline void mlxsw_reg_sbsr_pack(char *payload, bool clr)
  * Access: RO
  */
 MLXSW_ITEM32_INDEXED(reg, sbsr, rec_buff_occupancy, MLXSW_REG_SBSR_BASE_LEN,
-		     0, 24, MLXSW_REG_SBSR_REC_LEN, 0x00, false);
+					 0, 24, MLXSW_REG_SBSR_REC_LEN, 0x00, false);
 
 /* reg_sbsr_rec_max_buff_occupancy
  * Maximum value of buffer occupancy in cells monitored. Cleared by
@@ -5205,11 +5344,11 @@ MLXSW_ITEM32_INDEXED(reg, sbsr, rec_buff_occupancy, MLXSW_REG_SBSR_BASE_LEN,
  * Access: RO
  */
 MLXSW_ITEM32_INDEXED(reg, sbsr, rec_max_buff_occupancy, MLXSW_REG_SBSR_BASE_LEN,
-		     0, 24, MLXSW_REG_SBSR_REC_LEN, 0x04, false);
+					 0, 24, MLXSW_REG_SBSR_REC_LEN, 0x04, false);
 
 static inline void mlxsw_reg_sbsr_rec_unpack(char *payload, int rec_index,
-					     u32 *p_buff_occupancy,
-					     u32 *p_max_buff_occupancy)
+		u32 *p_buff_occupancy,
+		u32 *p_max_buff_occupancy)
 {
 	*p_buff_occupancy =
 		mlxsw_reg_sbsr_rec_buff_occupancy_get(payload, rec_index);
@@ -5228,7 +5367,8 @@ static inline void mlxsw_reg_sbsr_rec_unpack(char *payload, int rec_index,
 #define MLXSW_REG_SBIB_ID 0xB006
 #define MLXSW_REG_SBIB_LEN 0x10
 
-static const struct mlxsw_reg_info mlxsw_reg_sbib = {
+static const struct mlxsw_reg_info mlxsw_reg_sbib =
+{
 	.id = MLXSW_REG_SBIB_ID,
 	.len = MLXSW_REG_SBIB_LEN,
 };
@@ -5249,7 +5389,7 @@ MLXSW_ITEM32(reg, sbib, local_port, 0x00, 16, 8);
 MLXSW_ITEM32(reg, sbib, buff_size, 0x08, 0, 24);
 
 static inline void mlxsw_reg_sbib_pack(char *payload, u8 local_port,
-				       u32 buff_size)
+									   u32 buff_size)
 {
 	MLXSW_REG_ZERO(sbib, payload);
 	mlxsw_reg_sbib_local_port_set(payload, local_port);
@@ -5258,129 +5398,190 @@ static inline void mlxsw_reg_sbib_pack(char *payload, u8 local_port,
 
 static inline const char *mlxsw_reg_id_str(u16 reg_id)
 {
-	switch (reg_id) {
-	case MLXSW_REG_SGCR_ID:
-		return "SGCR";
-	case MLXSW_REG_SPAD_ID:
-		return "SPAD";
-	case MLXSW_REG_SMID_ID:
-		return "SMID";
-	case MLXSW_REG_SSPR_ID:
-		return "SSPR";
-	case MLXSW_REG_SFDAT_ID:
-		return "SFDAT";
-	case MLXSW_REG_SFD_ID:
-		return "SFD";
-	case MLXSW_REG_SFN_ID:
-		return "SFN";
-	case MLXSW_REG_SPMS_ID:
-		return "SPMS";
-	case MLXSW_REG_SPVID_ID:
-		return "SPVID";
-	case MLXSW_REG_SPVM_ID:
-		return "SPVM";
-	case MLXSW_REG_SPAFT_ID:
-		return "SPAFT";
-	case MLXSW_REG_SFGC_ID:
-		return "SFGC";
-	case MLXSW_REG_SFTR_ID:
-		return "SFTR";
-	case MLXSW_REG_SFDF_ID:
-		return "SFDF";
-	case MLXSW_REG_SLDR_ID:
-		return "SLDR";
-	case MLXSW_REG_SLCR_ID:
-		return "SLCR";
-	case MLXSW_REG_SLCOR_ID:
-		return "SLCOR";
-	case MLXSW_REG_SPMLR_ID:
-		return "SPMLR";
-	case MLXSW_REG_SVFA_ID:
-		return "SVFA";
-	case MLXSW_REG_SVPE_ID:
-		return "SVPE";
-	case MLXSW_REG_SFMR_ID:
-		return "SFMR";
-	case MLXSW_REG_SPVMLR_ID:
-		return "SPVMLR";
-	case MLXSW_REG_QTCT_ID:
-		return "QTCT";
-	case MLXSW_REG_QEEC_ID:
-		return "QEEC";
-	case MLXSW_REG_PMLP_ID:
-		return "PMLP";
-	case MLXSW_REG_PMTU_ID:
-		return "PMTU";
-	case MLXSW_REG_PTYS_ID:
-		return "PTYS";
-	case MLXSW_REG_PPAD_ID:
-		return "PPAD";
-	case MLXSW_REG_PAOS_ID:
-		return "PAOS";
-	case MLXSW_REG_PFCC_ID:
-		return "PFCC";
-	case MLXSW_REG_PPCNT_ID:
-		return "PPCNT";
-	case MLXSW_REG_PPTB_ID:
-		return "PPTB";
-	case MLXSW_REG_PBMC_ID:
-		return "PBMC";
-	case MLXSW_REG_PSPA_ID:
-		return "PSPA";
-	case MLXSW_REG_HTGT_ID:
-		return "HTGT";
-	case MLXSW_REG_HPKT_ID:
-		return "HPKT";
-	case MLXSW_REG_RGCR_ID:
-		return "RGCR";
-	case MLXSW_REG_RITR_ID:
-		return "RITR";
-	case MLXSW_REG_RATR_ID:
-		return "RATR";
-	case MLXSW_REG_RALTA_ID:
-		return "RALTA";
-	case MLXSW_REG_RALST_ID:
-		return "RALST";
-	case MLXSW_REG_RALTB_ID:
-		return "RALTB";
-	case MLXSW_REG_RALUE_ID:
-		return "RALUE";
-	case MLXSW_REG_RAUHT_ID:
-		return "RAUHT";
-	case MLXSW_REG_RALEU_ID:
-		return "RALEU";
-	case MLXSW_REG_RAUHTD_ID:
-		return "RAUHTD";
-	case MLXSW_REG_MFCR_ID:
-		return "MFCR";
-	case MLXSW_REG_MFSC_ID:
-		return "MFSC";
-	case MLXSW_REG_MFSM_ID:
-		return "MFSM";
-	case MLXSW_REG_MTCAP_ID:
-		return "MTCAP";
-	case MLXSW_REG_MPAT_ID:
-		return "MPAT";
-	case MLXSW_REG_MPAR_ID:
-		return "MPAR";
-	case MLXSW_REG_MTMP_ID:
-		return "MTMP";
-	case MLXSW_REG_MLCR_ID:
-		return "MLCR";
-	case MLXSW_REG_SBPR_ID:
-		return "SBPR";
-	case MLXSW_REG_SBCM_ID:
-		return "SBCM";
-	case MLXSW_REG_SBPM_ID:
-		return "SBPM";
-	case MLXSW_REG_SBMM_ID:
-		return "SBMM";
-	case MLXSW_REG_SBSR_ID:
-		return "SBSR";
-	case MLXSW_REG_SBIB_ID:
-		return "SBIB";
-	default:
-		return "*UNKNOWN*";
+	switch (reg_id)
+	{
+		case MLXSW_REG_SGCR_ID:
+			return "SGCR";
+
+		case MLXSW_REG_SPAD_ID:
+			return "SPAD";
+
+		case MLXSW_REG_SMID_ID:
+			return "SMID";
+
+		case MLXSW_REG_SSPR_ID:
+			return "SSPR";
+
+		case MLXSW_REG_SFDAT_ID:
+			return "SFDAT";
+
+		case MLXSW_REG_SFD_ID:
+			return "SFD";
+
+		case MLXSW_REG_SFN_ID:
+			return "SFN";
+
+		case MLXSW_REG_SPMS_ID:
+			return "SPMS";
+
+		case MLXSW_REG_SPVID_ID:
+			return "SPVID";
+
+		case MLXSW_REG_SPVM_ID:
+			return "SPVM";
+
+		case MLXSW_REG_SPAFT_ID:
+			return "SPAFT";
+
+		case MLXSW_REG_SFGC_ID:
+			return "SFGC";
+
+		case MLXSW_REG_SFTR_ID:
+			return "SFTR";
+
+		case MLXSW_REG_SFDF_ID:
+			return "SFDF";
+
+		case MLXSW_REG_SLDR_ID:
+			return "SLDR";
+
+		case MLXSW_REG_SLCR_ID:
+			return "SLCR";
+
+		case MLXSW_REG_SLCOR_ID:
+			return "SLCOR";
+
+		case MLXSW_REG_SPMLR_ID:
+			return "SPMLR";
+
+		case MLXSW_REG_SVFA_ID:
+			return "SVFA";
+
+		case MLXSW_REG_SVPE_ID:
+			return "SVPE";
+
+		case MLXSW_REG_SFMR_ID:
+			return "SFMR";
+
+		case MLXSW_REG_SPVMLR_ID:
+			return "SPVMLR";
+
+		case MLXSW_REG_QTCT_ID:
+			return "QTCT";
+
+		case MLXSW_REG_QEEC_ID:
+			return "QEEC";
+
+		case MLXSW_REG_PMLP_ID:
+			return "PMLP";
+
+		case MLXSW_REG_PMTU_ID:
+			return "PMTU";
+
+		case MLXSW_REG_PTYS_ID:
+			return "PTYS";
+
+		case MLXSW_REG_PPAD_ID:
+			return "PPAD";
+
+		case MLXSW_REG_PAOS_ID:
+			return "PAOS";
+
+		case MLXSW_REG_PFCC_ID:
+			return "PFCC";
+
+		case MLXSW_REG_PPCNT_ID:
+			return "PPCNT";
+
+		case MLXSW_REG_PPTB_ID:
+			return "PPTB";
+
+		case MLXSW_REG_PBMC_ID:
+			return "PBMC";
+
+		case MLXSW_REG_PSPA_ID:
+			return "PSPA";
+
+		case MLXSW_REG_HTGT_ID:
+			return "HTGT";
+
+		case MLXSW_REG_HPKT_ID:
+			return "HPKT";
+
+		case MLXSW_REG_RGCR_ID:
+			return "RGCR";
+
+		case MLXSW_REG_RITR_ID:
+			return "RITR";
+
+		case MLXSW_REG_RATR_ID:
+			return "RATR";
+
+		case MLXSW_REG_RALTA_ID:
+			return "RALTA";
+
+		case MLXSW_REG_RALST_ID:
+			return "RALST";
+
+		case MLXSW_REG_RALTB_ID:
+			return "RALTB";
+
+		case MLXSW_REG_RALUE_ID:
+			return "RALUE";
+
+		case MLXSW_REG_RAUHT_ID:
+			return "RAUHT";
+
+		case MLXSW_REG_RALEU_ID:
+			return "RALEU";
+
+		case MLXSW_REG_RAUHTD_ID:
+			return "RAUHTD";
+
+		case MLXSW_REG_MFCR_ID:
+			return "MFCR";
+
+		case MLXSW_REG_MFSC_ID:
+			return "MFSC";
+
+		case MLXSW_REG_MFSM_ID:
+			return "MFSM";
+
+		case MLXSW_REG_MTCAP_ID:
+			return "MTCAP";
+
+		case MLXSW_REG_MPAT_ID:
+			return "MPAT";
+
+		case MLXSW_REG_MPAR_ID:
+			return "MPAR";
+
+		case MLXSW_REG_MTMP_ID:
+			return "MTMP";
+
+		case MLXSW_REG_MLCR_ID:
+			return "MLCR";
+
+		case MLXSW_REG_SBPR_ID:
+			return "SBPR";
+
+		case MLXSW_REG_SBCM_ID:
+			return "SBCM";
+
+		case MLXSW_REG_SBPM_ID:
+			return "SBPM";
+
+		case MLXSW_REG_SBMM_ID:
+			return "SBMM";
+
+		case MLXSW_REG_SBSR_ID:
+			return "SBSR";
+
+		case MLXSW_REG_SBIB_ID:
+			return "SBIB";
+
+		default:
+			return "*UNKNOWN*";
 	}
 }
 

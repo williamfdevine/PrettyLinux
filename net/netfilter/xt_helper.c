@@ -34,23 +34,35 @@ helper_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	bool ret = info->invert;
 
 	ct = nf_ct_get(skb, &ctinfo);
+
 	if (!ct || !ct->master)
+	{
 		return ret;
+	}
 
 	master_help = nfct_help(ct->master);
+
 	if (!master_help)
+	{
 		return ret;
+	}
 
 	/* rcu_read_lock()ed by nf_hook_thresh */
 	helper = rcu_dereference(master_help->helper);
+
 	if (!helper)
+	{
 		return ret;
+	}
 
 	if (info->name[0] == '\0')
+	{
 		ret = !ret;
+	}
 	else
 		ret ^= !strncmp(helper->name, info->name,
-				strlen(helper->name));
+						strlen(helper->name));
+
 	return ret;
 }
 
@@ -60,11 +72,14 @@ static int helper_mt_check(const struct xt_mtchk_param *par)
 	int ret;
 
 	ret = nf_ct_l3proto_try_module_get(par->family);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_info("cannot load conntrack support for proto=%u\n",
-			par->family);
+				par->family);
 		return ret;
 	}
+
 	info->name[sizeof(info->name) - 1] = '\0';
 	return 0;
 }
@@ -74,7 +89,8 @@ static void helper_mt_destroy(const struct xt_mtdtor_param *par)
 	nf_ct_l3proto_module_put(par->family);
 }
 
-static struct xt_match helper_mt_reg __read_mostly = {
+static struct xt_match helper_mt_reg __read_mostly =
+{
 	.name       = "helper",
 	.revision   = 0,
 	.family     = NFPROTO_UNSPEC,

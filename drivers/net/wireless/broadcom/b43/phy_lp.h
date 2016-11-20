@@ -814,14 +814,16 @@
 
 
 
-enum b43_lpphy_txpctl_mode {
+enum b43_lpphy_txpctl_mode
+{
 	B43_LPPHY_TXPCTL_UNKNOWN = 0,
 	B43_LPPHY_TXPCTL_OFF,	/* TX power control is OFF */
 	B43_LPPHY_TXPCTL_SW,	/* TX power control is set to Software */
 	B43_LPPHY_TXPCTL_HW,	/* TX power control is set to Hardware */
 };
 
-struct b43_phy_lp {
+struct b43_phy_lp
+{
 	/* Current TX power control mode. */
 	enum b43_lpphy_txpctl_mode txpctl_mode;
 
@@ -900,7 +902,8 @@ struct b43_phy_lp {
 	int tx_tone_freq;
 };
 
-enum tssi_mux_mode {
+enum tssi_mux_mode
+{
 	TSSI_MUX_PREPA,
 	TSSI_MUX_POSTPA,
 	TSSI_MUX_EXT,

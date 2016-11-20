@@ -194,21 +194,21 @@
 
 /* Utilities exposed to the test definitions */
 #ifndef TH_LOG_STREAM
-#  define TH_LOG_STREAM stderr
+	#define TH_LOG_STREAM stderr
 #endif
 
 #ifndef TH_LOG_ENABLED
-#  define TH_LOG_ENABLED 1
+	#define TH_LOG_ENABLED 1
 #endif
 
 #define _TH_LOG(fmt, ...) do { \
-	if (TH_LOG_ENABLED) \
-		__TH_LOG(fmt, ##__VA_ARGS__); \
-} while (0)
+		if (TH_LOG_ENABLED) \
+			__TH_LOG(fmt, ##__VA_ARGS__); \
+	} while (0)
 
 /* Unconditional logger for internal use. */
 #define __TH_LOG(fmt, ...) \
-		fprintf(TH_LOG_STREAM, "%s:%d:%s:" fmt "\n", \
+	fprintf(TH_LOG_STREAM, "%s:%d:%s:" fmt "\n", \
 			__FILE__, __LINE__, _metadata->name, ##__VA_ARGS__)
 
 /* Defines the test function and creates the registration stub. */
@@ -219,14 +219,14 @@
 #define __TEST_IMPL(test_name, _signal) \
 	static void test_name(struct __test_metadata *_metadata); \
 	static struct __test_metadata _##test_name##_object = \
-		{ name: "global." #test_name, \
-		  fn: &test_name, termsig: _signal }; \
+	{ name: "global." #test_name, \
+	fn: &test_name, termsig: _signal }; \
 	static void __attribute__((constructor)) _register_##test_name(void) \
 	{ \
 		__register_test(&_##test_name##_object); \
 	} \
 	static void test_name( \
-		struct __test_metadata __attribute__((unused)) *_metadata)
+						   struct __test_metadata __attribute__((unused)) *_metadata)
 
 /* Wraps the struct name so we have one less argument to pass around. */
 #define _FIXTURE_DATA(fixture_name) struct _test_data_##fixture_name
@@ -245,12 +245,12 @@
  */
 #define _FIXTURE_SETUP(fixture_name) \
 	void fixture_name##_setup( \
-		struct __test_metadata __attribute__((unused)) *_metadata, \
-		_FIXTURE_DATA(fixture_name) __attribute__((unused)) *self)
+							   struct __test_metadata __attribute__((unused)) *_metadata, \
+							   _FIXTURE_DATA(fixture_name) __attribute__((unused)) *self)
 #define _FIXTURE_TEARDOWN(fixture_name) \
 	void fixture_name##_teardown( \
-		struct __test_metadata __attribute__((unused)) *_metadata, \
-		_FIXTURE_DATA(fixture_name) __attribute__((unused)) *self)
+								  struct __test_metadata __attribute__((unused)) *_metadata, \
+								  _FIXTURE_DATA(fixture_name) __attribute__((unused)) *self)
 
 /* Emits test registration and helpers for fixture-based test
  * cases.
@@ -264,10 +264,10 @@
 
 #define __TEST_F_IMPL(fixture_name, test_name, signal) \
 	static void fixture_name##_##test_name( \
-		struct __test_metadata *_metadata, \
-		_FIXTURE_DATA(fixture_name) *self); \
+											struct __test_metadata *_metadata, \
+											_FIXTURE_DATA(fixture_name) *self); \
 	static inline void wrapper_##fixture_name##_##test_name( \
-		struct __test_metadata *_metadata) \
+			struct __test_metadata *_metadata) \
 	{ \
 		/* fixture data is alloced, setup, and torn down per call. */ \
 		_FIXTURE_DATA(fixture_name) self; \
@@ -280,19 +280,19 @@
 		fixture_name##_teardown(_metadata, &self); \
 	} \
 	static struct __test_metadata \
-		      _##fixture_name##_##test_name##_object = { \
-		name: #fixture_name "." #test_name, \
-		fn: &wrapper_##fixture_name##_##test_name, \
-		termsig: signal, \
-	 }; \
+		_##fixture_name##_##test_name##_object = { \
+	name: #fixture_name "." #test_name, \
+	fn: &wrapper_##fixture_name##_##test_name, \
+	termsig: signal, \
+	}; \
 	static void __attribute__((constructor)) \
-			_register_##fixture_name##_##test_name(void) \
+	_register_##fixture_name##_##test_name(void) \
 	{ \
 		__register_test(&_##fixture_name##_##test_name##_object); \
 	} \
 	static void fixture_name##_##test_name( \
-		struct __test_metadata __attribute__((unused)) *_metadata, \
-		_FIXTURE_DATA(fixture_name) __attribute__((unused)) *self)
+											struct __test_metadata __attribute__((unused)) *_metadata, \
+											_FIXTURE_DATA(fixture_name) __attribute__((unused)) *self)
 
 /* Exports a simple wrapper to run the test harness. */
 #define _TEST_HARNESS_MAIN \
@@ -367,33 +367,34 @@
 	for (; _metadata->trigger;  _metadata->trigger = __bail(_assert))
 
 #define __EXPECT(_expected, _seen, _t, _assert) do { \
-	/* Avoid multiple evaluation of the cases */ \
-	__typeof__(_expected) __exp = (_expected); \
-	__typeof__(_seen) __seen = (_seen); \
-	if (!(__exp _t __seen)) { \
-		unsigned long long __exp_print = (uintptr_t)__exp; \
-		unsigned long long __seen_print = (uintptr_t)__seen; \
-		__TH_LOG("Expected %s (%llu) %s %s (%llu)", \
-			 #_expected, __exp_print, #_t, \
-			 #_seen, __seen_print); \
-		_metadata->passed = 0; \
-		/* Ensure the optional handler is triggered */ \
-		_metadata->trigger = 1; \
-	} \
-} while (0); OPTIONAL_HANDLER(_assert)
+		/* Avoid multiple evaluation of the cases */ \
+		__typeof__(_expected) __exp = (_expected); \
+		__typeof__(_seen) __seen = (_seen); \
+		if (!(__exp _t __seen)) { \
+			unsigned long long __exp_print = (uintptr_t)__exp; \
+			unsigned long long __seen_print = (uintptr_t)__seen; \
+			__TH_LOG("Expected %s (%llu) %s %s (%llu)", \
+					 #_expected, __exp_print, #_t, \
+					 #_seen, __seen_print); \
+			_metadata->passed = 0; \
+			/* Ensure the optional handler is triggered */ \
+			_metadata->trigger = 1; \
+		} \
+	} while (0); OPTIONAL_HANDLER(_assert)
 
 #define __EXPECT_STR(_expected, _seen, _t, _assert) do { \
-	const char *__exp = (_expected); \
-	const char *__seen = (_seen); \
-	if (!(strcmp(__exp, __seen) _t 0))  { \
-		__TH_LOG("Expected '%s' %s '%s'.", __exp, #_t, __seen); \
-		_metadata->passed = 0; \
-		_metadata->trigger = 1; \
-	} \
-} while (0); OPTIONAL_HANDLER(_assert)
+		const char *__exp = (_expected); \
+		const char *__seen = (_seen); \
+		if (!(strcmp(__exp, __seen) _t 0))  { \
+			__TH_LOG("Expected '%s' %s '%s'.", __exp, #_t, __seen); \
+			_metadata->passed = 0; \
+			_metadata->trigger = 1; \
+		} \
+	} while (0); OPTIONAL_HANDLER(_assert)
 
 /* Contains all the information for test execution and status checking. */
-struct __test_metadata {
+struct __test_metadata
+{
 	const char *name;
 	void (*fn)(struct __test_metadata *);
 	int termsig;
@@ -423,19 +424,25 @@ static int __constructor_order;
 static inline void __register_test(struct __test_metadata *t)
 {
 	__test_count++;
+
 	/* Circular linked list where only prev is circular. */
-	if (__test_list == NULL) {
+	if (__test_list == NULL)
+	{
 		__test_list = t;
 		t->next = NULL;
 		t->prev = t;
 		return;
 	}
-	if (__constructor_order == _CONSTRUCTOR_ORDER_FORWARD) {
+
+	if (__constructor_order == _CONSTRUCTOR_ORDER_FORWARD)
+	{
 		t->next = NULL;
 		t->prev = __test_list->prev;
 		t->prev->next = t;
 		__test_list->prev = t;
-	} else {
+	}
+	else
+	{
 		t->next = __test_list;
 		t->next->prev = t;
 		t->prev = t;
@@ -446,7 +453,10 @@ static inline void __register_test(struct __test_metadata *t)
 static inline int __bail(int for_realz)
 {
 	if (for_realz)
+	{
 		abort();
+	}
+
 	return 0;
 }
 
@@ -459,51 +469,72 @@ void __run_test(struct __test_metadata *t)
 	t->trigger = 0;
 	printf("[ RUN      ] %s\n", t->name);
 	child_pid = fork();
-	if (child_pid < 0) {
+
+	if (child_pid < 0)
+	{
 		printf("ERROR SPAWNING TEST CHILD\n");
 		t->passed = 0;
-	} else if (child_pid == 0) {
+	}
+	else if (child_pid == 0)
+	{
 		t->fn(t);
 		_exit(t->passed);
-	} else {
+	}
+	else
+	{
 		/* TODO(wad) add timeout support. */
 		waitpid(child_pid, &status, 0);
-		if (WIFEXITED(status)) {
+
+		if (WIFEXITED(status))
+		{
 			t->passed = t->termsig == -1 ? WEXITSTATUS(status) : 0;
-			if (t->termsig != -1) {
+
+			if (t->termsig != -1)
+			{
 				fprintf(TH_LOG_STREAM,
-					"%s: Test exited normally "
-					"instead of by signal (code: %d)\n",
-					t->name,
-					WEXITSTATUS(status));
+						"%s: Test exited normally "
+						"instead of by signal (code: %d)\n",
+						t->name,
+						WEXITSTATUS(status));
 			}
-		} else if (WIFSIGNALED(status)) {
+		}
+		else if (WIFSIGNALED(status))
+		{
 			t->passed = 0;
-			if (WTERMSIG(status) == SIGABRT) {
+
+			if (WTERMSIG(status) == SIGABRT)
+			{
 				fprintf(TH_LOG_STREAM,
-					"%s: Test terminated by assertion\n",
-					t->name);
-			} else if (WTERMSIG(status) == t->termsig) {
-				t->passed = 1;
-			} else {
-				fprintf(TH_LOG_STREAM,
-					"%s: Test terminated unexpectedly "
-					"by signal %d\n",
-					t->name,
-					WTERMSIG(status));
+						"%s: Test terminated by assertion\n",
+						t->name);
 			}
-		} else {
+			else if (WTERMSIG(status) == t->termsig)
+			{
+				t->passed = 1;
+			}
+			else
+			{
+				fprintf(TH_LOG_STREAM,
+						"%s: Test terminated unexpectedly "
+						"by signal %d\n",
+						t->name,
+						WTERMSIG(status));
+			}
+		}
+		else
+		{
 			fprintf(TH_LOG_STREAM,
-				"%s: Test ended in some other way [%u]\n",
-				t->name,
-				status);
+					"%s: Test ended in some other way [%u]\n",
+					t->name,
+					status);
 		}
 	}
+
 	printf("[     %4s ] %s\n", (t->passed ? "OK" : "FAIL"), t->name);
 }
 
 static int test_harness_run(int __attribute__((unused)) argc,
-			    char __attribute__((unused)) **argv)
+							char __attribute__((unused)) **argv)
 {
 	struct __test_metadata *t;
 	int ret = 0;
@@ -512,15 +543,23 @@ static int test_harness_run(int __attribute__((unused)) argc,
 
 	/* TODO(wad) add optional arguments similar to gtest. */
 	printf("[==========] Running %u tests from %u test cases.\n",
-	       __test_count, __fixture_count + 1);
-	for (t = __test_list; t; t = t->next) {
+		   __test_count, __fixture_count + 1);
+
+	for (t = __test_list; t; t = t->next)
+	{
 		count++;
 		__run_test(t);
+
 		if (t->passed)
+		{
 			pass_count++;
+		}
 		else
+		{
 			ret = 1;
+		}
 	}
+
 	printf("[==========] %u / %u tests passed.\n", pass_count, count);
 	printf("[  %s  ]\n", (ret ? "FAILED" : "PASSED"));
 	return ret;
@@ -529,7 +568,9 @@ static int test_harness_run(int __attribute__((unused)) argc,
 static void __attribute__((constructor)) __constructor_order_first(void)
 {
 	if (!__constructor_order)
+	{
 		__constructor_order = _CONSTRUCTOR_ORDER_FORWARD;
+	}
 }
 
 #endif  /* TEST_HARNESS_H_ */

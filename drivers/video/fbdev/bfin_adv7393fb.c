@@ -46,7 +46,8 @@ static int mode = VMODE;
 static int mem = VMEM;
 static int nocursor = 1;
 
-static const unsigned short ppi_pins[] = {
+static const unsigned short ppi_pins[] =
+{
 	P_PPI0_CLK, P_PPI0_FS1, P_PPI0_FS2,
 	P_PPI0_D0, P_PPI0_D1, P_PPI0_D2, P_PPI0_D3,
 	P_PPI0_D4, P_PPI0_D5, P_PPI0_D6, P_PPI0_D7,
@@ -59,10 +60,12 @@ static const unsigned short ppi_pins[] = {
  * card parameters
  */
 
-static struct bfin_adv7393_fb_par {
+static struct bfin_adv7393_fb_par
+{
 	/* structure holding blackfin / adv7393 parameters when
 	   screen is blanked */
-	struct {
+	struct
+	{
 		u8 Mode;	/* ntsc/pal/? */
 	} vga_state;
 	atomic_t ref_count;
@@ -70,7 +73,8 @@ static struct bfin_adv7393_fb_par {
 
 /* --------------------------------------------------------------------- */
 
-static struct fb_var_screeninfo bfin_adv7393_fb_defined = {
+static struct fb_var_screeninfo bfin_adv7393_fb_defined =
+{
 	.xres = 720,
 	.yres = 480,
 	.xres_virtual = 720,
@@ -90,7 +94,8 @@ static struct fb_var_screeninfo bfin_adv7393_fb_defined = {
 	.transp = {0, 0, 0},
 };
 
-static struct fb_fix_screeninfo bfin_adv7393_fb_fix = {
+static struct fb_fix_screeninfo bfin_adv7393_fb_fix =
+{
 	.id = "BFIN ADV7393",
 	.smem_len = 720 * 480 * 2,
 	.type = FB_TYPE_PACKED_PIXELS,
@@ -101,7 +106,8 @@ static struct fb_fix_screeninfo bfin_adv7393_fb_fix = {
 	.accel = FB_ACCEL_NONE
 };
 
-static struct fb_ops bfin_adv7393_fb_ops = {
+static struct fb_ops bfin_adv7393_fb_ops =
+{
 	.owner = THIS_MODULE,
 	.fb_open = bfin_adv7393_fb_open,
 	.fb_release = bfin_adv7393_fb_release,
@@ -117,22 +123,35 @@ static struct fb_ops bfin_adv7393_fb_ops = {
 
 static int dma_desc_list(struct adv7393fb_device *fbdev, u16 arg)
 {
-	if (arg == BUILD) {	/* Build */
+	if (arg == BUILD)  	/* Build */
+	{
 		fbdev->vb1 = l1_data_sram_zalloc(sizeof(struct dmasg));
+
 		if (fbdev->vb1 == NULL)
+		{
 			goto error;
+		}
 
 		fbdev->av1 = l1_data_sram_zalloc(sizeof(struct dmasg));
+
 		if (fbdev->av1 == NULL)
+		{
 			goto error;
+		}
 
 		fbdev->vb2 = l1_data_sram_zalloc(sizeof(struct dmasg));
+
 		if (fbdev->vb2 == NULL)
+		{
 			goto error;
+		}
 
 		fbdev->av2 = l1_data_sram_zalloc(sizeof(struct dmasg));
+
 		if (fbdev->av2 == NULL)
+		{
 			goto error;
+		}
 
 		/* Build linked DMA descriptor list */
 		fbdev->vb1->next_desc_addr = fbdev->av1;
@@ -148,7 +167,7 @@ static int dma_desc_list(struct adv7393fb_device *fbdev, u16 arg)
 		fbdev->vb1->cfg = DMA_CFG_VAL;
 
 		fbdev->vb1->x_count =
-		    fbdev->modes[mode].xres + fbdev->modes[mode].boeft_blank;
+			fbdev->modes[mode].xres + fbdev->modes[mode].boeft_blank;
 
 		fbdev->vb1->x_modify = 0;
 		fbdev->vb1->y_count = fbdev->modes[mode].vb1_lines;
@@ -159,19 +178,19 @@ static int dma_desc_list(struct adv7393fb_device *fbdev, u16 arg)
 		fbdev->av1->start_addr = (unsigned long)fbdev->fb_mem;
 		fbdev->av1->cfg = DMA_CFG_VAL;
 		fbdev->av1->x_count =
-		    fbdev->modes[mode].xres + fbdev->modes[mode].boeft_blank;
+			fbdev->modes[mode].xres + fbdev->modes[mode].boeft_blank;
 		fbdev->av1->x_modify = fbdev->modes[mode].bpp / 8;
 		fbdev->av1->y_count = fbdev->modes[mode].a_lines;
 		fbdev->av1->y_modify =
-		    (fbdev->modes[mode].xres - fbdev->modes[mode].boeft_blank +
-		     1) * (fbdev->modes[mode].bpp / 8);
+			(fbdev->modes[mode].xres - fbdev->modes[mode].boeft_blank +
+			 1) * (fbdev->modes[mode].bpp / 8);
 
 		/* Vertical Blanking Field 2 */
 
 		fbdev->vb2->start_addr = VB_DUMMY_MEMORY_SOURCE;
 		fbdev->vb2->cfg = DMA_CFG_VAL;
 		fbdev->vb2->x_count =
-		    fbdev->modes[mode].xres + fbdev->modes[mode].boeft_blank;
+			fbdev->modes[mode].xres + fbdev->modes[mode].boeft_blank;
 
 		fbdev->vb2->x_modify = 0;
 		fbdev->vb2->y_count = fbdev->modes[mode].vb2_lines;
@@ -180,19 +199,19 @@ static int dma_desc_list(struct adv7393fb_device *fbdev, u16 arg)
 		/* Active Video Field 2 */
 
 		fbdev->av2->start_addr =
-		    (unsigned long)fbdev->fb_mem + fbdev->line_len;
+			(unsigned long)fbdev->fb_mem + fbdev->line_len;
 
 		fbdev->av2->cfg = DMA_CFG_VAL;
 
 		fbdev->av2->x_count =
-		    fbdev->modes[mode].xres + fbdev->modes[mode].boeft_blank;
+			fbdev->modes[mode].xres + fbdev->modes[mode].boeft_blank;
 
 		fbdev->av2->x_modify = (fbdev->modes[mode].bpp / 8);
 		fbdev->av2->y_count = fbdev->modes[mode].a_lines;
 
 		fbdev->av2->y_modify =
-		    (fbdev->modes[mode].xres - fbdev->modes[mode].boeft_blank +
-		     1) * (fbdev->modes[mode].bpp / 8);
+			(fbdev->modes[mode].xres - fbdev->modes[mode].boeft_blank +
+			 1) * (fbdev->modes[mode].bpp / 8);
 
 		return 1;
 	}
@@ -216,7 +235,7 @@ static int bfin_config_dma(struct adv7393fb_device *fbdev)
 	set_dma_y_modify(CH_PPI, fbdev->descriptor_list_head->y_modify);
 	set_dma_start_addr(CH_PPI, fbdev->descriptor_list_head->start_addr);
 	set_dma_next_desc_addr(CH_PPI,
-			       fbdev->descriptor_list_head->next_desc_addr);
+						   fbdev->descriptor_list_head->next_desc_addr);
 	set_dma_config(CH_PPI, fbdev->descriptor_list_head->cfg);
 
 	return 1;
@@ -229,7 +248,8 @@ static void bfin_disable_dma(void)
 
 static void bfin_config_ppi(struct adv7393fb_device *fbdev)
 {
-	if (ANOMALY_05000183) {
+	if (ANOMALY_05000183)
+	{
 		bfin_write_TIMER2_CONFIG(WDTH_CAP);
 		bfin_write_TIMER_ENABLE(TIMEN2);
 	}
@@ -237,7 +257,7 @@ static void bfin_config_ppi(struct adv7393fb_device *fbdev)
 	bfin_write_PPI_CONTROL(0x381E);
 	bfin_write_PPI_FRAME(fbdev->modes[mode].tot_lines);
 	bfin_write_PPI_COUNT(fbdev->modes[mode].xres +
-			     fbdev->modes[mode].boeft_blank - 1);
+						 fbdev->modes[mode].boeft_blank - 1);
 	bfin_write_PPI_DELAY(fbdev->modes[mode].aoeft_blank - 1);
 }
 
@@ -263,16 +283,21 @@ static inline int adv7393_read(struct i2c_client *client, u8 reg)
 
 static int
 adv7393_write_block(struct i2c_client *client,
-		    const u8 *data, unsigned int len)
+					const u8 *data, unsigned int len)
 {
 	int ret = -1;
 	u8 reg;
 
-	while (len >= 2) {
+	while (len >= 2)
+	{
 		reg = *data++;
 		ret = adv7393_write(client, reg, *data++);
+
 		if (ret < 0)
+		{
 			break;
+		}
+
 		len -= 2;
 	}
 
@@ -281,23 +306,29 @@ adv7393_write_block(struct i2c_client *client,
 
 static int adv7393_mode(struct i2c_client *client, u16 mode)
 {
-	switch (mode) {
-	case POWER_ON:		/* ADV7393 Sleep mode OFF */
-		adv7393_write(client, 0x00, 0x1E);
-		break;
-	case POWER_DOWN:	/* ADV7393 Sleep mode ON */
-		adv7393_write(client, 0x00, 0x1F);
-		break;
-	case BLANK_OFF:		/* Pixel Data Valid */
-		adv7393_write(client, 0x82, 0xCB);
-		break;
-	case BLANK_ON:		/* Pixel Data Invalid */
-		adv7393_write(client, 0x82, 0x8B);
-		break;
-	default:
-		return -EINVAL;
-		break;
+	switch (mode)
+	{
+		case POWER_ON:		/* ADV7393 Sleep mode OFF */
+			adv7393_write(client, 0x00, 0x1E);
+			break;
+
+		case POWER_DOWN:	/* ADV7393 Sleep mode ON */
+			adv7393_write(client, 0x00, 0x1F);
+			break;
+
+		case BLANK_OFF:		/* Pixel Data Valid */
+			adv7393_write(client, 0x82, 0xCB);
+			break;
+
+		case BLANK_ON:		/* Pixel Data Invalid */
+			adv7393_write(client, 0x82, 0x8B);
+			break;
+
+		default:
+			return -EINVAL;
+			break;
 	}
+
 	return 0;
 }
 
@@ -310,7 +341,8 @@ static irqreturn_t ppi_irq_error(int irq, void *dev_id)
 
 	pr_debug("%s: PPI Status = 0x%X\n", __func__, status);
 
-	if (status) {
+	if (status)
+	{
 		bfin_disable_dma();	/* TODO: Check Sequence */
 		bfin_disable_ppi();
 		bfin_clear_PPI_STATUS();
@@ -327,69 +359,77 @@ static int proc_output(char *buf)
 	char *p = buf;
 
 	p += sprintf(p,
-		"Usage:\n"
-		"echo 0x[REG][Value] > adv7393\n"
-		"example: echo 0x1234 >adv7393\n"
-		"writes 0x34 into Register 0x12\n");
+				 "Usage:\n"
+				 "echo 0x[REG][Value] > adv7393\n"
+				 "example: echo 0x1234 >adv7393\n"
+				 "writes 0x34 into Register 0x12\n");
 
 	return p - buf;
 }
 
 static ssize_t
 adv7393_read_proc(struct file *file, char __user *buf,
-		  size_t size, loff_t *ppos)
+				  size_t size, loff_t *ppos)
 {
 	static const char message[] = "Usage:\n"
-		"echo 0x[REG][Value] > adv7393\n"
-		"example: echo 0x1234 >adv7393\n"
-		"writes 0x34 into Register 0x12\n";
+								  "echo 0x[REG][Value] > adv7393\n"
+								  "example: echo 0x1234 >adv7393\n"
+								  "writes 0x34 into Register 0x12\n";
 	return simple_read_from_buffer(buf, size, ppos, message,
-					sizeof(message));
+								   sizeof(message));
 }
 
 static ssize_t
-adv7393_write_proc(struct file *file, const char __user * buffer,
-		   size_t count, loff_t *ppos)
+adv7393_write_proc(struct file *file, const char __user *buffer,
+				   size_t count, loff_t *ppos)
 {
 	struct adv7393fb_device *fbdev = PDE_DATA(file_inode(file));
 	unsigned int val;
 	int ret;
 
 	ret = kstrtouint_from_user(buffer, count, 0, &val);
+
 	if (ret)
+	{
 		return -EFAULT;
+	}
 
 	adv7393_write(fbdev->client, val >> 8, val & 0xff);
 
 	return count;
 }
 
-static const struct file_operations fops = {
+static const struct file_operations fops =
+{
 	.read = adv7393_read_proc,
 	.write = adv7393_write_proc,
 	.llseek = default_llseek,
 };
 
 static int bfin_adv7393_fb_probe(struct i2c_client *client,
-				 const struct i2c_device_id *id)
+								 const struct i2c_device_id *id)
 {
 	int ret = 0;
 	struct proc_dir_entry *entry;
 
 	struct adv7393fb_device *fbdev = NULL;
 
-	if (mem > 2) {
+	if (mem > 2)
+	{
 		dev_err(&client->dev, "mem out of allowed range [1;2]\n");
 		return -EINVAL;
 	}
 
-	if (mode >= ARRAY_SIZE(known_modes)) {
+	if (mode >= ARRAY_SIZE(known_modes))
+	{
 		dev_err(&client->dev, "mode %d: not supported", mode);
 		return -EFAULT;
 	}
 
 	fbdev = kzalloc(sizeof(*fbdev), GFP_KERNEL);
-	if (!fbdev) {
+
+	if (!fbdev)
+	{
 		dev_err(&client->dev, "failed to allocate device private record");
 		return -ENOMEM;
 	}
@@ -400,36 +440,41 @@ static int bfin_adv7393_fb_probe(struct i2c_client *client,
 	fbdev->client = client;
 
 	fbdev->fb_len =
-	    mem * fbdev->modes[mode].xres * fbdev->modes[mode].xres *
-	    (fbdev->modes[mode].bpp / 8);
+		mem * fbdev->modes[mode].xres * fbdev->modes[mode].xres *
+		(fbdev->modes[mode].bpp / 8);
 
 	fbdev->line_len =
-	    fbdev->modes[mode].xres * (fbdev->modes[mode].bpp / 8);
+		fbdev->modes[mode].xres * (fbdev->modes[mode].bpp / 8);
 
 	/* Workaround "PPI Does Not Start Properly In Specific Mode" */
-	if (ANOMALY_05000400) {
+	if (ANOMALY_05000400)
+	{
 		ret = gpio_request_one(P_IDENT(P_PPI0_FS3), GPIOF_OUT_INIT_LOW,
-					"PPI0_FS3");
-		if (ret) {
+							   "PPI0_FS3");
+
+		if (ret)
+		{
 			dev_err(&client->dev, "PPI0_FS3 GPIO request failed\n");
 			ret = -EBUSY;
 			goto free_fbdev;
 		}
 	}
 
-	if (peripheral_request_list(ppi_pins, DRIVER_NAME)) {
+	if (peripheral_request_list(ppi_pins, DRIVER_NAME))
+	{
 		dev_err(&client->dev, "requesting PPI peripheral failed\n");
 		ret = -EFAULT;
 		goto free_gpio;
 	}
 
 	fbdev->fb_mem =
-	    dma_alloc_coherent(NULL, fbdev->fb_len, &fbdev->dma_handle,
-			       GFP_KERNEL);
+		dma_alloc_coherent(NULL, fbdev->fb_len, &fbdev->dma_handle,
+						   GFP_KERNEL);
 
-	if (NULL == fbdev->fb_mem) {
+	if (NULL == fbdev->fb_mem)
+	{
 		dev_err(&client->dev, "couldn't allocate dma buffer (%d bytes)\n",
-		       (u32) fbdev->fb_len);
+				(u32) fbdev->fb_len);
 		ret = -ENOMEM;
 		goto free_ppi_pins;
 	}
@@ -441,7 +486,9 @@ static int bfin_adv7393_fb_probe(struct i2c_client *client,
 	bfin_adv7393_fb_fix.line_length = fbdev->line_len;
 
 	if (mem > 1)
+	{
 		bfin_adv7393_fb_fix.ypanstep = 1;
+	}
 
 	bfin_adv7393_fb_defined.red.length = 5;
 	bfin_adv7393_fb_defined.green.length = 6;
@@ -460,27 +507,32 @@ static int bfin_adv7393_fb_probe(struct i2c_client *client,
 	fbdev->info.flags = FBINFO_DEFAULT;
 
 	fbdev->info.pseudo_palette = kzalloc(sizeof(u32) * 16, GFP_KERNEL);
-	if (!fbdev->info.pseudo_palette) {
+
+	if (!fbdev->info.pseudo_palette)
+	{
 		dev_err(&client->dev, "failed to allocate pseudo_palette\n");
 		ret = -ENOMEM;
 		goto free_fb_mem;
 	}
 
-	if (fb_alloc_cmap(&fbdev->info.cmap, BFIN_LCD_NBR_PALETTE_ENTRIES, 0) < 0) {
+	if (fb_alloc_cmap(&fbdev->info.cmap, BFIN_LCD_NBR_PALETTE_ENTRIES, 0) < 0)
+	{
 		dev_err(&client->dev, "failed to allocate colormap (%d entries)\n",
-			   BFIN_LCD_NBR_PALETTE_ENTRIES);
+				BFIN_LCD_NBR_PALETTE_ENTRIES);
 		ret = -EFAULT;
 		goto free_palette;
 	}
 
-	if (request_dma(CH_PPI, "BF5xx_PPI_DMA") < 0) {
+	if (request_dma(CH_PPI, "BF5xx_PPI_DMA") < 0)
+	{
 		dev_err(&client->dev, "unable to request PPI DMA\n");
 		ret = -EFAULT;
 		goto free_cmap;
 	}
 
 	if (request_irq(IRQ_PPI_ERROR, ppi_irq_error, 0,
-			"PPI ERROR", fbdev) < 0) {
+					"PPI ERROR", fbdev) < 0)
+	{
 		dev_err(&client->dev, "unable to request PPI ERROR IRQ\n");
 		ret = -EFAULT;
 		goto free_ch_ppi;
@@ -489,30 +541,35 @@ static int bfin_adv7393_fb_probe(struct i2c_client *client,
 	fbdev->open = 0;
 
 	ret = adv7393_write_block(client, fbdev->modes[mode].adv7393_i2c_initd,
-				fbdev->modes[mode].adv7393_i2c_initd_len);
+							  fbdev->modes[mode].adv7393_i2c_initd_len);
 
-	if (ret) {
+	if (ret)
+	{
 		dev_err(&client->dev, "i2c attach: init error\n");
 		goto free_irq_ppi;
 	}
 
 
-	if (register_framebuffer(&fbdev->info) < 0) {
+	if (register_framebuffer(&fbdev->info) < 0)
+	{
 		dev_err(&client->dev, "unable to register framebuffer\n");
 		ret = -EFAULT;
 		goto free_irq_ppi;
 	}
 
 	dev_info(&client->dev, "fb%d: %s frame buffer device\n",
-	       fbdev->info.node, fbdev->info.fix.id);
+			 fbdev->info.node, fbdev->info.fix.id);
 	dev_info(&client->dev, "fb memory address : 0x%p\n", fbdev->fb_mem);
 
 	entry = proc_create_data("driver/adv7393", 0, NULL, &fops, fbdev);
-	if (!entry) {
+
+	if (!entry)
+	{
 		dev_err(&client->dev, "unable to create /proc entry\n");
 		ret = -EFAULT;
 		goto free_fb;
 	}
+
 	return 0;
 
 free_fb:
@@ -527,12 +584,16 @@ free_palette:
 	kfree(fbdev->info.pseudo_palette);
 free_fb_mem:
 	dma_free_coherent(NULL, fbdev->fb_len, fbdev->fb_mem,
-			  fbdev->dma_handle);
+					  fbdev->dma_handle);
 free_ppi_pins:
 	peripheral_free_list(ppi_pins);
 free_gpio:
+
 	if (ANOMALY_05000400)
+	{
 		gpio_free(P_IDENT(P_PPI0_FS3));
+	}
+
 free_fbdev:
 	kfree(fbdev);
 
@@ -544,7 +605,9 @@ static int bfin_adv7393_fb_open(struct fb_info *info, int user)
 	struct adv7393fb_device *fbdev = to_adv7393fb_device(info);
 
 	fbdev->info.screen_base = (void *)fbdev->fb_mem;
-	if (!fbdev->info.screen_base) {
+
+	if (!fbdev->info.screen_base)
+	{
 		dev_err(&fbdev->client->dev, "unable to map device\n");
 		return -ENOMEM;
 	}
@@ -575,33 +638,36 @@ static int
 bfin_adv7393_fb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 {
 
-	switch (var->bits_per_pixel) {
-	case 16:/* DIRECTCOLOUR, 64k */
-		var->red.offset = info->var.red.offset;
-		var->green.offset = info->var.green.offset;
-		var->blue.offset = info->var.blue.offset;
-		var->red.length = info->var.red.length;
-		var->green.length = info->var.green.length;
-		var->blue.length = info->var.blue.length;
-		var->transp.offset = 0;
-		var->transp.length = 0;
-		var->transp.msb_right = 0;
-		var->red.msb_right = 0;
-		var->green.msb_right = 0;
-		var->blue.msb_right = 0;
-		break;
-	default:
-		pr_debug("%s: depth not supported: %u BPP\n", __func__,
-			 var->bits_per_pixel);
-		return -EINVAL;
+	switch (var->bits_per_pixel)
+	{
+		case 16:/* DIRECTCOLOUR, 64k */
+			var->red.offset = info->var.red.offset;
+			var->green.offset = info->var.green.offset;
+			var->blue.offset = info->var.blue.offset;
+			var->red.length = info->var.red.length;
+			var->green.length = info->var.green.length;
+			var->blue.length = info->var.blue.length;
+			var->transp.offset = 0;
+			var->transp.length = 0;
+			var->transp.msb_right = 0;
+			var->red.msb_right = 0;
+			var->green.msb_right = 0;
+			var->blue.msb_right = 0;
+			break;
+
+		default:
+			pr_debug("%s: depth not supported: %u BPP\n", __func__,
+					 var->bits_per_pixel);
+			return -EINVAL;
 	}
 
 	if (info->var.xres != var->xres ||
-	    info->var.yres != var->yres ||
-	    info->var.xres_virtual != var->xres_virtual ||
-	    info->var.yres_virtual != var->yres_virtual) {
+		info->var.yres != var->yres ||
+		info->var.xres_virtual != var->xres_virtual ||
+		info->var.yres_virtual != var->yres_virtual)
+	{
 		pr_debug("%s: Resolution not supported: X%u x Y%u\n",
-			 __func__, var->xres, var->yres);
+				 __func__, var->xres, var->yres);
 		return -EINVAL;
 	}
 
@@ -609,9 +675,10 @@ bfin_adv7393_fb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 	 *  Memory limit
 	 */
 
-	if ((info->fix.line_length * var->yres_virtual) > info->fix.smem_len) {
+	if ((info->fix.line_length * var->yres_virtual) > info->fix.smem_len)
+	{
 		pr_debug("%s: Memory Limit requested yres_virtual = %u\n",
-			 __func__, var->yres_virtual);
+				 __func__, var->yres_virtual);
 		return -ENOMEM;
 	}
 
@@ -626,15 +693,20 @@ bfin_adv7393_fb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
 	struct adv7393fb_device *fbdev = to_adv7393fb_device(info);
 
 	if (!var || !info)
+	{
 		return -EINVAL;
+	}
 
-	if (var->xoffset - info->var.xoffset) {
+	if (var->xoffset - info->var.xoffset)
+	{
 		/* No support for X panning for now! */
 		return -EINVAL;
 	}
+
 	dy = var->yoffset - info->var.yoffset;
 
-	if (dy) {
+	if (dy)
+	{
 		pr_debug("%s: Panning screen of %d lines\n", __func__, dy);
 
 		dmaaddr = fbdev->av1->start_addr;
@@ -654,59 +726,73 @@ static int bfin_adv7393_fb_blank(int blank, struct fb_info *info)
 {
 	struct adv7393fb_device *fbdev = to_adv7393fb_device(info);
 
-	switch (blank) {
+	switch (blank)
+	{
 
-	case VESA_NO_BLANKING:
-		/* Turn on panel */
-		adv7393_mode(fbdev->client, BLANK_OFF);
-		break;
+		case VESA_NO_BLANKING:
+			/* Turn on panel */
+			adv7393_mode(fbdev->client, BLANK_OFF);
+			break;
 
-	case VESA_VSYNC_SUSPEND:
-	case VESA_HSYNC_SUSPEND:
-	case VESA_POWERDOWN:
-		/* Turn off panel */
-		adv7393_mode(fbdev->client, BLANK_ON);
-		break;
+		case VESA_VSYNC_SUSPEND:
+		case VESA_HSYNC_SUSPEND:
+		case VESA_POWERDOWN:
+			/* Turn off panel */
+			adv7393_mode(fbdev->client, BLANK_ON);
+			break;
 
-	default:
-		return -EINVAL;
-		break;
+		default:
+			return -EINVAL;
+			break;
 	}
+
 	return 0;
 }
 
 int bfin_adv7393_fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 {
 	if (nocursor)
+	{
 		return 0;
+	}
 	else
-		return -EINVAL;	/* just to force soft_cursor() call */
+	{
+		return -EINVAL;    /* just to force soft_cursor() call */
+	}
 }
 
 static int bfin_adv7393_fb_setcolreg(u_int regno, u_int red, u_int green,
-				     u_int blue, u_int transp,
-				     struct fb_info *info)
+									 u_int blue, u_int transp,
+									 struct fb_info *info)
 {
 	if (regno >= BFIN_LCD_NBR_PALETTE_ENTRIES)
+	{
 		return -EINVAL;
+	}
 
 	if (info->var.grayscale)
 		/* grayscale = 0.30*R + 0.59*G + 0.11*B */
+	{
 		red = green = blue = (red * 77 + green * 151 + blue * 28) >> 8;
+	}
 
-	if (info->fix.visual == FB_VISUAL_TRUECOLOR) {
+	if (info->fix.visual == FB_VISUAL_TRUECOLOR)
+	{
 		u32 value;
+
 		/* Place color in the pseudopalette */
 		if (regno > 16)
+		{
 			return -EINVAL;
+		}
 
 		red   >>= (16 - info->var.red.length);
 		green >>= (16 - info->var.green.length);
 		blue  >>= (16 - info->var.blue.length);
 
 		value = (red   << info->var.red.offset) |
-			(green << info->var.green.offset)|
-			(blue  << info->var.blue.offset);
+				(green << info->var.green.offset) |
+				(blue  << info->var.blue.offset);
 		value &= 0xFFFF;
 
 		((u32 *) (info->pseudo_palette))[regno] = value;
@@ -722,7 +808,10 @@ static int bfin_adv7393_fb_remove(struct i2c_client *client)
 	adv7393_mode(client, POWER_DOWN);
 
 	if (fbdev->fb_mem)
+	{
 		dma_free_coherent(NULL, fbdev->fb_len, fbdev->fb_mem, fbdev->dma_handle);
+	}
+
 	free_dma(CH_PPI);
 	free_irq(IRQ_PPI_ERROR, fbdev);
 	unregister_framebuffer(&fbdev->info);
@@ -731,7 +820,10 @@ static int bfin_adv7393_fb_remove(struct i2c_client *client)
 	kfree(fbdev->info.pseudo_palette);
 
 	if (ANOMALY_05000400)
-		gpio_free(P_IDENT(P_PPI0_FS3));	/* FS3 */
+	{
+		gpio_free(P_IDENT(P_PPI0_FS3));    /* FS3 */
+	}
+
 	peripheral_free_list(ppi_pins);
 	kfree(fbdev);
 
@@ -743,11 +835,13 @@ static int bfin_adv7393_fb_suspend(struct device *dev)
 {
 	struct adv7393fb_device *fbdev = dev_get_drvdata(dev);
 
-	if (fbdev->open) {
+	if (fbdev->open)
+	{
 		bfin_disable_dma();
 		bfin_disable_ppi();
 		dma_desc_list(fbdev, DESTRUCT);
 	}
+
 	adv7393_mode(fbdev->client, POWER_DOWN);
 
 	return 0;
@@ -759,7 +853,8 @@ static int bfin_adv7393_fb_resume(struct device *dev)
 
 	adv7393_mode(fbdev->client, POWER_ON);
 
-	if (fbdev->open) {
+	if (fbdev->open)
+	{
 		dma_desc_list(fbdev, BUILD);
 		bfin_config_ppi(fbdev);
 		bfin_config_dma(fbdev);
@@ -769,20 +864,23 @@ static int bfin_adv7393_fb_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops bfin_adv7393_dev_pm_ops = {
+static const struct dev_pm_ops bfin_adv7393_dev_pm_ops =
+{
 	.suspend = bfin_adv7393_fb_suspend,
 	.resume  = bfin_adv7393_fb_resume,
 };
 #endif
 
-static const struct i2c_device_id bfin_adv7393_id[] = {
+static const struct i2c_device_id bfin_adv7393_id[] =
+{
 	{DRIVER_NAME, 0},
 	{}
 };
 
 MODULE_DEVICE_TABLE(i2c, bfin_adv7393_id);
 
-static struct i2c_driver bfin_adv7393_fb_driver = {
+static struct i2c_driver bfin_adv7393_fb_driver =
+{
 	.driver = {
 		.name = DRIVER_NAME,
 #ifdef CONFIG_PM
@@ -818,11 +916,11 @@ MODULE_DESCRIPTION("Frame buffer driver for ADV7393/2 Video Encoder");
 
 module_param(mode, int, 0);
 MODULE_PARM_DESC(mode,
-	"Video Mode (0=NTSC,1=PAL,2=NTSC 640x480,3=PAL 640x480,4=NTSC YCbCr input,5=PAL YCbCr input)");
+				 "Video Mode (0=NTSC,1=PAL,2=NTSC 640x480,3=PAL 640x480,4=NTSC YCbCr input,5=PAL YCbCr input)");
 
 module_param(mem, int, 0);
 MODULE_PARM_DESC(mem,
-	"Size of frame buffer memory 1=Single 2=Double Size (allows y-panning / frame stacking)");
+				 "Size of frame buffer memory 1=Single 2=Double Size (allows y-panning / frame stacking)");
 
 module_param(nocursor, int, 0644);
 MODULE_PARM_DESC(nocursor, "cursor enable/disable");

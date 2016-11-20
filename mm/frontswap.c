@@ -61,16 +61,20 @@ static u64 frontswap_succ_stores;
 static u64 frontswap_failed_stores;
 static u64 frontswap_invalidates;
 
-static inline void inc_frontswap_loads(void) {
+static inline void inc_frontswap_loads(void)
+{
 	frontswap_loads++;
 }
-static inline void inc_frontswap_succ_stores(void) {
+static inline void inc_frontswap_succ_stores(void)
+{
 	frontswap_succ_stores++;
 }
-static inline void inc_frontswap_failed_stores(void) {
+static inline void inc_frontswap_failed_stores(void)
+{
 	frontswap_failed_stores++;
 }
-static inline void inc_frontswap_invalidates(void) {
+static inline void inc_frontswap_invalidates(void)
+{
 	frontswap_invalidates++;
 }
 #else
@@ -122,31 +126,39 @@ void frontswap_register_ops(struct frontswap_ops *ops)
 	bitmap_zero(b, MAX_SWAPFILES);
 
 	spin_lock(&swap_lock);
-	plist_for_each_entry(si, &swap_active_head, list) {
+	plist_for_each_entry(si, &swap_active_head, list)
+	{
 		if (!WARN_ON(!si->frontswap_map))
+		{
 			set_bit(si->type, a);
+		}
 	}
 	spin_unlock(&swap_lock);
 
 	/* the new ops needs to know the currently active swap devices */
 	for_each_set_bit(i, a, MAX_SWAPFILES)
-		ops->init(i);
+	ops->init(i);
 
 	/*
 	 * Setting frontswap_ops must happen after the ops->init() calls
 	 * above; cmpxchg implies smp_mb() which will ensure the init is
 	 * complete at this point.
 	 */
-	do {
+	do
+	{
 		ops->next = frontswap_ops;
-	} while (cmpxchg(&frontswap_ops, ops->next, ops) != ops->next);
+	}
+	while (cmpxchg(&frontswap_ops, ops->next, ops) != ops->next);
 
 	static_branch_inc(&frontswap_enabled_key);
 
 	spin_lock(&swap_lock);
-	plist_for_each_entry(si, &swap_active_head, list) {
+	plist_for_each_entry(si, &swap_active_head, list)
+	{
 		if (si->frontswap_map)
+		{
 			set_bit(si->type, b);
+		}
 	}
 	spin_unlock(&swap_lock);
 
@@ -156,12 +168,18 @@ void frontswap_register_ops(struct frontswap_ops *ops)
 	 * calls, we re-check and do init or invalidate for any changed
 	 * bits.
 	 */
-	if (unlikely(!bitmap_equal(a, b, MAX_SWAPFILES))) {
-		for (i = 0; i < MAX_SWAPFILES; i++) {
+	if (unlikely(!bitmap_equal(a, b, MAX_SWAPFILES)))
+	{
+		for (i = 0; i < MAX_SWAPFILES; i++)
+		{
 			if (!test_bit(i, a) && test_bit(i, b))
+			{
 				ops->init(i);
+			}
 			else if (test_bit(i, a) && !test_bit(i, b))
+			{
 				ops->invalidate_area(i);
+			}
 		}
 	}
 }
@@ -200,7 +218,10 @@ void __frontswap_init(unsigned type, unsigned long *map)
 	 * has gone in frontswap. Without it there is no point of continuing.
 	 */
 	if (WARN_ON(!map))
+	{
 		return;
+	}
+
 	/*
 	 * Irregardless of whether the frontswap backend has been loaded
 	 * before this function or it will be later, we _MUST_ have the
@@ -209,28 +230,31 @@ void __frontswap_init(unsigned type, unsigned long *map)
 	frontswap_map_set(sis, map);
 
 	for_each_frontswap_ops(ops)
-		ops->init(type);
+	ops->init(type);
 }
 EXPORT_SYMBOL(__frontswap_init);
 
 bool __frontswap_test(struct swap_info_struct *sis,
-				pgoff_t offset)
+					  pgoff_t offset)
 {
 	if (sis->frontswap_map)
+	{
 		return test_bit(offset, sis->frontswap_map);
+	}
+
 	return false;
 }
 EXPORT_SYMBOL(__frontswap_test);
 
 static inline void __frontswap_set(struct swap_info_struct *sis,
-				   pgoff_t offset)
+								   pgoff_t offset)
 {
 	set_bit(offset, sis->frontswap_map);
 	atomic_inc(&sis->frontswap_pages);
 }
 
 static inline void __frontswap_clear(struct swap_info_struct *sis,
-				     pgoff_t offset)
+									 pgoff_t offset)
 {
 	clear_bit(offset, sis->frontswap_map);
 	atomic_dec(&sis->frontswap_pages);
@@ -262,27 +286,40 @@ int __frontswap_store(struct page *page)
 	 * and we can't rely on the new page replacing the old page as we may
 	 * not store to the same implementation that contains the old page.
 	 */
-	if (__frontswap_test(sis, offset)) {
+	if (__frontswap_test(sis, offset))
+	{
 		__frontswap_clear(sis, offset);
 		for_each_frontswap_ops(ops)
-			ops->invalidate_page(type, offset);
+		ops->invalidate_page(type, offset);
 	}
 
 	/* Try to store in each implementation, until one succeeds. */
-	for_each_frontswap_ops(ops) {
+	for_each_frontswap_ops(ops)
+	{
 		ret = ops->store(type, offset, page);
+
 		if (!ret) /* successful store */
+		{
 			break;
+		}
 	}
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		__frontswap_set(sis, offset);
 		inc_frontswap_succ_stores();
-	} else {
+	}
+	else
+	{
 		inc_frontswap_failed_stores();
 	}
+
 	if (frontswap_writethrough_enabled)
 		/* report failure so swap also writes to swap device */
+	{
 		ret = -1;
+	}
+
 	return ret;
 }
 EXPORT_SYMBOL(__frontswap_store);
@@ -306,21 +343,32 @@ int __frontswap_load(struct page *page)
 	VM_BUG_ON(sis == NULL);
 
 	if (!__frontswap_test(sis, offset))
+	{
 		return -1;
+	}
 
 	/* Try loading from each implementation, until one succeeds. */
-	for_each_frontswap_ops(ops) {
+	for_each_frontswap_ops(ops)
+	{
 		ret = ops->load(type, offset, page);
+
 		if (!ret) /* successful load */
+		{
 			break;
+		}
 	}
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		inc_frontswap_loads();
-		if (frontswap_tmem_exclusive_gets_enabled) {
+
+		if (frontswap_tmem_exclusive_gets_enabled)
+		{
 			SetPageDirty(page);
 			__frontswap_clear(sis, offset);
 		}
 	}
+
 	return ret;
 }
 EXPORT_SYMBOL(__frontswap_load);
@@ -338,10 +386,12 @@ void __frontswap_invalidate_page(unsigned type, pgoff_t offset)
 	VM_BUG_ON(sis == NULL);
 
 	if (!__frontswap_test(sis, offset))
+	{
 		return;
+	}
 
 	for_each_frontswap_ops(ops)
-		ops->invalidate_page(type, offset);
+	ops->invalidate_page(type, offset);
 	__frontswap_clear(sis, offset);
 	inc_frontswap_invalidates();
 }
@@ -360,10 +410,12 @@ void __frontswap_invalidate_area(unsigned type)
 	VM_BUG_ON(sis == NULL);
 
 	if (sis->frontswap_map == NULL)
+	{
 		return;
+	}
 
 	for_each_frontswap_ops(ops)
-		ops->invalidate_area(type);
+	ops->invalidate_area(type);
 	atomic_set(&sis->frontswap_pages, 0);
 	bitmap_zero(sis->frontswap_map, sis->max);
 }
@@ -376,12 +428,12 @@ static unsigned long __frontswap_curr_pages(void)
 
 	assert_spin_locked(&swap_lock);
 	plist_for_each_entry(si, &swap_active_head, list)
-		totalpages += atomic_read(&si->frontswap_pages);
+	totalpages += atomic_read(&si->frontswap_pages);
 	return totalpages;
 }
 
 static int __frontswap_unuse_pages(unsigned long total, unsigned long *unused,
-					int *swapid)
+								   int *swapid)
 {
 	int ret = -EINVAL;
 	struct swap_info_struct *si = NULL;
@@ -390,19 +442,27 @@ static int __frontswap_unuse_pages(unsigned long total, unsigned long *unused,
 	unsigned long pages = 0, pages_to_unuse = 0;
 
 	assert_spin_locked(&swap_lock);
-	plist_for_each_entry(si, &swap_active_head, list) {
+	plist_for_each_entry(si, &swap_active_head, list)
+	{
 		si_frontswap_pages = atomic_read(&si->frontswap_pages);
-		if (total_pages_to_unuse < si_frontswap_pages) {
+
+		if (total_pages_to_unuse < si_frontswap_pages)
+		{
 			pages = pages_to_unuse = total_pages_to_unuse;
-		} else {
+		}
+		else
+		{
 			pages = si_frontswap_pages;
 			pages_to_unuse = 0; /* unuse all */
 		}
+
 		/* ensure there is enough RAM to fetch pages from frontswap */
-		if (security_vm_enough_memory_mm(current->mm, pages)) {
+		if (security_vm_enough_memory_mm(current->mm, pages))
+		{
 			ret = -ENOMEM;
 			continue;
 		}
+
 		vm_unacct_memory(pages);
 		*unused = pages_to_unuse;
 		*swapid = si->type;
@@ -419,19 +479,22 @@ static int __frontswap_unuse_pages(unsigned long total, unsigned long *unused,
  * error code when there is an error.
  */
 static int __frontswap_shrink(unsigned long target_pages,
-				unsigned long *pages_to_unuse,
-				int *type)
+							  unsigned long *pages_to_unuse,
+							  int *type)
 {
 	unsigned long total_pages = 0, total_pages_to_unuse;
 
 	assert_spin_locked(&swap_lock);
 
 	total_pages = __frontswap_curr_pages();
-	if (total_pages <= target_pages) {
+
+	if (total_pages <= target_pages)
+	{
 		/* Nothing to do */
 		*pages_to_unuse = 0;
 		return 1;
 	}
+
 	total_pages_to_unuse = total_pages - target_pages;
 	return __frontswap_unuse_pages(total_pages_to_unuse, pages_to_unuse, type);
 }
@@ -457,8 +520,12 @@ void frontswap_shrink(unsigned long target_pages)
 	spin_lock(&swap_lock);
 	ret = __frontswap_shrink(target_pages, &pages_to_unuse, &type);
 	spin_unlock(&swap_lock);
+
 	if (ret == 0)
+	{
 		try_to_unuse(type, true, pages_to_unuse);
+	}
+
 	return;
 }
 EXPORT_SYMBOL(frontswap_shrink);
@@ -484,14 +551,18 @@ static int __init init_frontswap(void)
 {
 #ifdef CONFIG_DEBUG_FS
 	struct dentry *root = debugfs_create_dir("frontswap", NULL);
+
 	if (root == NULL)
+	{
 		return -ENXIO;
+	}
+
 	debugfs_create_u64("loads", S_IRUGO, root, &frontswap_loads);
 	debugfs_create_u64("succ_stores", S_IRUGO, root, &frontswap_succ_stores);
 	debugfs_create_u64("failed_stores", S_IRUGO, root,
-				&frontswap_failed_stores);
+					   &frontswap_failed_stores);
 	debugfs_create_u64("invalidates", S_IRUGO,
-				root, &frontswap_invalidates);
+					   root, &frontswap_invalidates);
 #endif
 	return 0;
 }

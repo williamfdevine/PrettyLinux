@@ -55,7 +55,8 @@
 
 struct krb5_ctx;
 
-struct gss_krb5_enctype {
+struct gss_krb5_enctype
+{
 	const u32		etype;		/* encryption (key) type */
 	const u32		ctype;		/* checksum type */
 	const char		*name;		/* "friendly" name */
@@ -72,20 +73,20 @@ struct gss_krb5_enctype {
 	const u32		keybytes;	/* raw key len, in bytes */
 	const u32		keylength;	/* final key len, in bytes */
 	u32 (*encrypt) (struct crypto_skcipher *tfm,
-			void *iv, void *in, void *out,
-			int length);		/* encryption function */
+					void *iv, void *in, void *out,
+					int length);		/* encryption function */
 	u32 (*decrypt) (struct crypto_skcipher *tfm,
-			void *iv, void *in, void *out,
-			int length);		/* decryption function */
+					void *iv, void *in, void *out,
+					int length);		/* decryption function */
 	u32 (*mk_key) (const struct gss_krb5_enctype *gk5e,
-		       struct xdr_netobj *in,
-		       struct xdr_netobj *out);	/* complete key generation */
+				   struct xdr_netobj *in,
+				   struct xdr_netobj *out);	/* complete key generation */
 	u32 (*encrypt_v2) (struct krb5_ctx *kctx, u32 offset,
-			   struct xdr_buf *buf,
-			   struct page **pages); /* v2 encryption function */
+					   struct xdr_buf *buf,
+					   struct page **pages); /* v2 encryption function */
 	u32 (*decrypt_v2) (struct krb5_ctx *kctx, u32 offset,
-			   struct xdr_buf *buf, u32 *headskip,
-			   u32 *tailskip);	/* v2 decryption function */
+					   struct xdr_buf *buf, u32 *headskip,
+					   u32 *tailskip);	/* v2 decryption function */
 };
 
 /* krb5_ctx flags definitions */
@@ -93,7 +94,8 @@ struct gss_krb5_enctype {
 #define KRB5_CTX_FLAG_CFX               0x00000002
 #define KRB5_CTX_FLAG_ACCEPTOR_SUBKEY   0x00000004
 
-struct krb5_ctx {
+struct krb5_ctx
+{
 	int			initiate; /* 1 = initiating, 0 = accepting */
 	u32			enctype;
 	u32			flags;
@@ -138,7 +140,8 @@ extern spinlock_t krb5_seq_lock;
 #define KG2_RESP_FLAG_ERROR             0x0001
 #define KG2_RESP_FLAG_DELEG_OK          0x0002
 
-enum sgn_alg {
+enum sgn_alg
+{
 	SGN_ALG_DES_MAC_MD5 = 0x0000,
 	SGN_ALG_MD2_5 = 0x0001,
 	SGN_ALG_DES_MAC = 0x0002,
@@ -146,7 +149,8 @@ enum sgn_alg {
 	SGN_ALG_HMAC_MD5 = 0x0011,	/* microsoft w2k; no support */
 	SGN_ALG_HMAC_SHA1_DES3_KD = 0x0004
 };
-enum seal_alg {
+enum seal_alg
+{
 	SEAL_ALG_NONE = 0xffff,
 	SEAL_ALG_DES = 0x0000,
 	SEAL_ALG_1 = 0x0001,		/* not published */
@@ -182,8 +186,8 @@ enum seal_alg {
 #define KG_EMPTY_CCACHE                          (39756044L)
 #define KG_NO_CTYPES                             (39756045L)
 
-/* per Kerberos v5 protocol spec crypto types from the wire. 
- * these get mapped to linux kernel crypto routines.  
+/* per Kerberos v5 protocol spec crypto types from the wire.
+ * these get mapped to linux kernel crypto routines.
  */
 #define ENCTYPE_NULL            0x0000
 #define ENCTYPE_DES_CBC_CRC     0x0001	/* DES cbc mode with CRC-32 */
@@ -227,105 +231,105 @@ enum seal_alg {
  */
 #define GSS_KRB5_MAX_SLACK_NEEDED \
 	(GSS_KRB5_TOK_HDR_LEN     /* gss token header */         \
-	+ GSS_KRB5_MAX_CKSUM_LEN  /* gss token checksum */       \
-	+ GSS_KRB5_MAX_BLOCKSIZE  /* confounder */               \
-	+ GSS_KRB5_MAX_BLOCKSIZE  /* possible padding */         \
-	+ GSS_KRB5_TOK_HDR_LEN    /* encrypted hdr in v2 token */\
-	+ GSS_KRB5_MAX_CKSUM_LEN  /* encryption hmac */          \
-	+ 4 + 4                   /* RPC verifier */             \
-	+ GSS_KRB5_TOK_HDR_LEN                                   \
-	+ GSS_KRB5_MAX_CKSUM_LEN)
+	 + GSS_KRB5_MAX_CKSUM_LEN  /* gss token checksum */       \
+	 + GSS_KRB5_MAX_BLOCKSIZE  /* confounder */               \
+	 + GSS_KRB5_MAX_BLOCKSIZE  /* possible padding */         \
+	 + GSS_KRB5_TOK_HDR_LEN    /* encrypted hdr in v2 token */\
+	 + GSS_KRB5_MAX_CKSUM_LEN  /* encryption hmac */          \
+	 + 4 + 4                   /* RPC verifier */             \
+	 + GSS_KRB5_TOK_HDR_LEN                                   \
+	 + GSS_KRB5_MAX_CKSUM_LEN)
 
 u32
 make_checksum(struct krb5_ctx *kctx, char *header, int hdrlen,
-		struct xdr_buf *body, int body_offset, u8 *cksumkey,
-		unsigned int usage, struct xdr_netobj *cksumout);
+			  struct xdr_buf *body, int body_offset, u8 *cksumkey,
+			  unsigned int usage, struct xdr_netobj *cksumout);
 
 u32
 make_checksum_v2(struct krb5_ctx *, char *header, int hdrlen,
-		 struct xdr_buf *body, int body_offset, u8 *key,
-		 unsigned int usage, struct xdr_netobj *cksum);
+				 struct xdr_buf *body, int body_offset, u8 *key,
+				 unsigned int usage, struct xdr_netobj *cksum);
 
 u32 gss_get_mic_kerberos(struct gss_ctx *, struct xdr_buf *,
-		struct xdr_netobj *);
+						 struct xdr_netobj *);
 
 u32 gss_verify_mic_kerberos(struct gss_ctx *, struct xdr_buf *,
-		struct xdr_netobj *);
+							struct xdr_netobj *);
 
 u32
 gss_wrap_kerberos(struct gss_ctx *ctx_id, int offset,
-		struct xdr_buf *outbuf, struct page **pages);
+				  struct xdr_buf *outbuf, struct page **pages);
 
 u32
 gss_unwrap_kerberos(struct gss_ctx *ctx_id, int offset,
-		struct xdr_buf *buf);
+					struct xdr_buf *buf);
 
 
 u32
 krb5_encrypt(struct crypto_skcipher *key,
-	     void *iv, void *in, void *out, int length);
+			 void *iv, void *in, void *out, int length);
 
 u32
 krb5_decrypt(struct crypto_skcipher *key,
-	     void *iv, void *in, void *out, int length); 
+			 void *iv, void *in, void *out, int length);
 
 int
 gss_encrypt_xdr_buf(struct crypto_skcipher *tfm, struct xdr_buf *outbuf,
-		    int offset, struct page **pages);
+					int offset, struct page **pages);
 
 int
 gss_decrypt_xdr_buf(struct crypto_skcipher *tfm, struct xdr_buf *inbuf,
-		    int offset);
+					int offset);
 
 s32
 krb5_make_seq_num(struct krb5_ctx *kctx,
-		struct crypto_skcipher *key,
-		int direction,
-		u32 seqnum, unsigned char *cksum, unsigned char *buf);
+				  struct crypto_skcipher *key,
+				  int direction,
+				  u32 seqnum, unsigned char *cksum, unsigned char *buf);
 
 s32
 krb5_get_seq_num(struct krb5_ctx *kctx,
-	       unsigned char *cksum,
-	       unsigned char *buf, int *direction, u32 *seqnum);
+				 unsigned char *cksum,
+				 unsigned char *buf, int *direction, u32 *seqnum);
 
 int
 xdr_extend_head(struct xdr_buf *buf, unsigned int base, unsigned int shiftlen);
 
 u32
 krb5_derive_key(const struct gss_krb5_enctype *gk5e,
-		const struct xdr_netobj *inkey,
-		struct xdr_netobj *outkey,
-		const struct xdr_netobj *in_constant,
-		gfp_t gfp_mask);
+				const struct xdr_netobj *inkey,
+				struct xdr_netobj *outkey,
+				const struct xdr_netobj *in_constant,
+				gfp_t gfp_mask);
 
 u32
 gss_krb5_des3_make_key(const struct gss_krb5_enctype *gk5e,
-		       struct xdr_netobj *randombits,
-		       struct xdr_netobj *key);
+					   struct xdr_netobj *randombits,
+					   struct xdr_netobj *key);
 
 u32
 gss_krb5_aes_make_key(const struct gss_krb5_enctype *gk5e,
-		      struct xdr_netobj *randombits,
-		      struct xdr_netobj *key);
+					  struct xdr_netobj *randombits,
+					  struct xdr_netobj *key);
 
 u32
 gss_krb5_aes_encrypt(struct krb5_ctx *kctx, u32 offset,
-		     struct xdr_buf *buf,
-		     struct page **pages);
+					 struct xdr_buf *buf,
+					 struct page **pages);
 
 u32
 gss_krb5_aes_decrypt(struct krb5_ctx *kctx, u32 offset,
-		     struct xdr_buf *buf, u32 *plainoffset,
-		     u32 *plainlen);
+					 struct xdr_buf *buf, u32 *plainoffset,
+					 u32 *plainlen);
 
 int
 krb5_rc4_setup_seq_key(struct krb5_ctx *kctx,
-		       struct crypto_skcipher *cipher,
-		       unsigned char *cksum);
+					   struct crypto_skcipher *cipher,
+					   unsigned char *cksum);
 
 int
 krb5_rc4_setup_enc_key(struct krb5_ctx *kctx,
-		       struct crypto_skcipher *cipher,
-		       s32 seqnum);
+					   struct crypto_skcipher *cipher,
+					   s32 seqnum);
 void
 gss_krb5_make_confounder(char *p, u32 conflen);

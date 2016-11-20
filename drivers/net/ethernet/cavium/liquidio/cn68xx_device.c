@@ -38,9 +38,10 @@ static void lio_cn68xx_set_dpi_regs(struct octeon_device *oct)
 
 	lio_pci_writeq(oct, CN6XXX_DPI_DMA_CTL_MASK, CN6XXX_DPI_DMA_CONTROL);
 	dev_dbg(&oct->pci_dev->dev, "DPI_DMA_CONTROL: 0x%016llx\n",
-		lio_pci_readq(oct, CN6XXX_DPI_DMA_CONTROL));
+			lio_pci_readq(oct, CN6XXX_DPI_DMA_CONTROL));
 
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < 6; i++)
+	{
 		/* Prevent service of instruction queue for all DMA engines
 		 * Engine 5 will remain 0. Engines 0 - 4 will be setup by
 		 * core.
@@ -48,7 +49,7 @@ static void lio_cn68xx_set_dpi_regs(struct octeon_device *oct)
 		lio_pci_writeq(oct, 0, CN6XXX_DPI_DMA_ENG_ENB(i));
 		lio_pci_writeq(oct, fifo_sizes[i], CN6XXX_DPI_DMA_ENG_BUF(i));
 		dev_dbg(&oct->pci_dev->dev, "DPI_ENG_BUF%d: 0x%016llx\n", i,
-			lio_pci_readq(oct, CN6XXX_DPI_DMA_ENG_BUF(i)));
+				lio_pci_readq(oct, CN6XXX_DPI_DMA_ENG_BUF(i)));
 	}
 
 	/* DPI_SLI_PRT_CFG has MPS and MRRS settings that will be set
@@ -57,7 +58,7 @@ static void lio_cn68xx_set_dpi_regs(struct octeon_device *oct)
 
 	lio_pci_writeq(oct, 1, CN6XXX_DPI_CTL);
 	dev_dbg(&oct->pci_dev->dev, "DPI_CTL: 0x%016llx\n",
-		lio_pci_readq(oct, CN6XXX_DPI_CTL));
+			lio_pci_readq(oct, CN6XXX_DPI_CTL));
 }
 
 static int lio_cn68xx_soft_reset(struct octeon_device *oct)
@@ -83,10 +84,15 @@ static void lio_cn68xx_setup_pkt_ctl_regs(struct octeon_device *oct)
 	octeon_write_csr64(oct, CN68XX_SLI_TX_PIPE, tx_pipe);
 
 	if (CFG_GET_IS_SLI_BP_ON(cn68xx->conf))
+	{
 		pktctl |= 0xF;
+	}
 	else
 		/* Disable per-port backpressure. */
+	{
 		pktctl &= ~0xF;
+	}
+
 	octeon_write_csr64(oct, CN6XXX_SLI_PKT_CTL, pktctl);
 }
 
@@ -131,11 +137,14 @@ int lio_setup_cn68xx_octeon_device(struct octeon_device *oct)
 	u16 card_type = LIO_410NV;
 
 	if (octeon_map_pci_barx(oct, 0, 0))
+	{
 		return 1;
+	}
 
-	if (octeon_map_pci_barx(oct, 1, MAX_BAR1_IOREMAP_SIZE)) {
+	if (octeon_map_pci_barx(oct, 1, MAX_BAR1_IOREMAP_SIZE))
+	{
 		dev_err(&oct->pci_dev->dev, "%s CN68XX BAR1 map failed\n",
-			__func__);
+				__func__);
 		octeon_unmap_pci_barx(oct, 0);
 		return 1;
 	}
@@ -164,15 +173,19 @@ int lio_setup_cn68xx_octeon_device(struct octeon_device *oct)
 
 	/* Determine variant of card */
 	if (lio_is_210nv(oct))
+	{
 		card_type = LIO_210NV;
+	}
 
 	cn68xx->conf = (struct octeon_config *)
-		       oct_get_config_info(oct, card_type);
-	if (!cn68xx->conf) {
+				   oct_get_config_info(oct, card_type);
+
+	if (!cn68xx->conf)
+	{
 		dev_err(&oct->pci_dev->dev, "%s No Config found for CN68XX %s\n",
-			__func__,
-			(card_type == LIO_410NV) ? LIO_410NV_NAME :
-			LIO_210NV_NAME);
+				__func__,
+				(card_type == LIO_410NV) ? LIO_410NV_NAME :
+				LIO_210NV_NAME);
 		octeon_unmap_pci_barx(oct, 0);
 		octeon_unmap_pci_barx(oct, 1);
 		return 1;

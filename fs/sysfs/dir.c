@@ -24,11 +24,14 @@ void sysfs_warn_dup(struct kernfs_node *parent, const char *name)
 	char *buf;
 
 	buf = kzalloc(PATH_MAX, GFP_KERNEL);
+
 	if (buf)
+	{
 		kernfs_path(parent, buf, PATH_MAX);
+	}
 
 	WARN(1, KERN_WARNING "sysfs: cannot create duplicate filename '%s/%s'\n",
-	     buf, name);
+		 buf, name);
 
 	kfree(buf);
 }
@@ -45,18 +48,29 @@ int sysfs_create_dir_ns(struct kobject *kobj, const void *ns)
 	BUG_ON(!kobj);
 
 	if (kobj->parent)
+	{
 		parent = kobj->parent->sd;
+	}
 	else
+	{
 		parent = sysfs_root_kn;
+	}
 
 	if (!parent)
+	{
 		return -ENOENT;
+	}
 
 	kn = kernfs_create_dir_ns(parent, kobject_name(kobj),
-				  S_IRWXU | S_IRUGO | S_IXUGO, kobj, ns);
-	if (IS_ERR(kn)) {
+							  S_IRWXU | S_IRUGO | S_IXUGO, kobj, ns);
+
+	if (IS_ERR(kn))
+	{
 		if (PTR_ERR(kn) == -EEXIST)
+		{
 			sysfs_warn_dup(parent, kobject_name(kobj));
+		}
+
 		return PTR_ERR(kn);
 	}
 
@@ -92,14 +106,15 @@ void sysfs_remove_dir(struct kobject *kobj)
 	kobj->sd = NULL;
 	spin_unlock(&sysfs_symlink_target_lock);
 
-	if (kn) {
+	if (kn)
+	{
 		WARN_ON_ONCE(kernfs_type(kn) != KERNFS_DIR);
 		kernfs_remove(kn);
 	}
 }
 
 int sysfs_rename_dir_ns(struct kobject *kobj, const char *new_name,
-			const void *new_ns)
+						const void *new_ns)
 {
 	struct kernfs_node *parent;
 	int ret;
@@ -111,13 +126,13 @@ int sysfs_rename_dir_ns(struct kobject *kobj, const char *new_name,
 }
 
 int sysfs_move_dir_ns(struct kobject *kobj, struct kobject *new_parent_kobj,
-		      const void *new_ns)
+					  const void *new_ns)
 {
 	struct kernfs_node *kn = kobj->sd;
 	struct kernfs_node *new_parent;
 
 	new_parent = new_parent_kobj && new_parent_kobj->sd ?
-		new_parent_kobj->sd : sysfs_root_kn;
+				 new_parent_kobj->sd : sysfs_root_kn;
 
 	return kernfs_rename_ns(kn, new_parent, kn->name, new_ns);
 }
@@ -132,9 +147,14 @@ int sysfs_create_mount_point(struct kobject *parent_kobj, const char *name)
 	struct kernfs_node *kn, *parent = parent_kobj->sd;
 
 	kn = kernfs_create_empty_dir(parent, name);
-	if (IS_ERR(kn)) {
+
+	if (IS_ERR(kn))
+	{
 		if (PTR_ERR(kn) == -EEXIST)
+		{
 			sysfs_warn_dup(parent, name);
+		}
+
 		return PTR_ERR(kn);
 	}
 

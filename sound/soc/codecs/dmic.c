@@ -27,7 +27,8 @@
 #include <sound/soc.h>
 #include <sound/soc-dapm.h>
 
-static struct snd_soc_dai_driver dmic_dai = {
+static struct snd_soc_dai_driver dmic_dai =
+{
 	.name = "dmic-hifi",
 	.capture = {
 		.stream_name = "Capture",
@@ -35,22 +36,25 @@ static struct snd_soc_dai_driver dmic_dai = {
 		.channels_max = 8,
 		.rates = SNDRV_PCM_RATE_CONTINUOUS,
 		.formats = SNDRV_PCM_FMTBIT_S32_LE
-			| SNDRV_PCM_FMTBIT_S24_LE
-			| SNDRV_PCM_FMTBIT_S16_LE,
+		| SNDRV_PCM_FMTBIT_S24_LE
+		| SNDRV_PCM_FMTBIT_S16_LE,
 	},
 };
 
-static const struct snd_soc_dapm_widget dmic_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget dmic_dapm_widgets[] =
+{
 	SND_SOC_DAPM_AIF_OUT("DMIC AIF", "Capture", 0,
-			     SND_SOC_NOPM, 0, 0),
+	SND_SOC_NOPM, 0, 0),
 	SND_SOC_DAPM_INPUT("DMic"),
 };
 
-static const struct snd_soc_dapm_route intercon[] = {
+static const struct snd_soc_dapm_route intercon[] =
+{
 	{"DMIC AIF", NULL, "DMic"},
 };
 
-static struct snd_soc_codec_driver soc_dmic = {
+static struct snd_soc_codec_driver soc_dmic =
+{
 	.component_driver = {
 		.dapm_widgets		= dmic_dapm_widgets,
 		.num_dapm_widgets	= ARRAY_SIZE(dmic_dapm_widgets),
@@ -62,7 +66,7 @@ static struct snd_soc_codec_driver soc_dmic = {
 static int dmic_dev_probe(struct platform_device *pdev)
 {
 	return snd_soc_register_codec(&pdev->dev,
-			&soc_dmic, &dmic_dai, 1);
+								  &soc_dmic, &dmic_dai, 1);
 }
 
 static int dmic_dev_remove(struct platform_device *pdev)
@@ -73,7 +77,8 @@ static int dmic_dev_remove(struct platform_device *pdev)
 
 MODULE_ALIAS("platform:dmic-codec");
 
-static struct platform_driver dmic_driver = {
+static struct platform_driver dmic_driver =
+{
 	.driver = {
 		.name = "dmic-codec",
 	},

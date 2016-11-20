@@ -60,7 +60,8 @@
 
 static u32 vmw_msg_enabled = 1;
 
-enum rpc_msg_type {
+enum rpc_msg_type
+{
 	MSG_TYPE_OPEN,
 	MSG_TYPE_SENDSIZE,
 	MSG_TYPE_SENDPAYLOAD,
@@ -70,7 +71,8 @@ enum rpc_msg_type {
 	MSG_TYPE_CLOSE,
 };
 
-struct rpc_channel {
+struct rpc_channel
+{
 	u16 channel_id;
 	u32 cookie_high;
 	u32 cookie_low;
@@ -91,13 +93,15 @@ static int vmw_open_channel(struct rpc_channel *channel, unsigned int protocol)
 	unsigned long eax, ebx, ecx, edx, si = 0, di = 0;
 
 	VMW_PORT(VMW_PORT_CMD_OPEN_CHANNEL,
-		(protocol | GUESTMSG_FLAG_COOKIE), si, di,
-		VMW_HYPERVISOR_PORT,
-		VMW_HYPERVISOR_MAGIC,
-		eax, ebx, ecx, edx, si, di);
+			 (protocol | GUESTMSG_FLAG_COOKIE), si, di,
+			 VMW_HYPERVISOR_PORT,
+			 VMW_HYPERVISOR_MAGIC,
+			 eax, ebx, ecx, edx, si, di);
 
 	if ((HIGH_WORD(ecx) & MESSAGE_STATUS_SUCCESS) == 0)
+	{
 		return -EINVAL;
+	}
 
 	channel->channel_id  = HIGH_WORD(edx);
 	channel->cookie_high = si;
@@ -124,13 +128,15 @@ static int vmw_close_channel(struct rpc_channel *channel)
 	di  = channel->cookie_low;
 
 	VMW_PORT(VMW_PORT_CMD_CLOSE_CHANNEL,
-		0, si, di,
-		(VMW_HYPERVISOR_PORT | (channel->channel_id << 16)),
-		VMW_HYPERVISOR_MAGIC,
-		eax, ebx, ecx, edx, si, di);
+			 0, si, di,
+			 (VMW_HYPERVISOR_PORT | (channel->channel_id << 16)),
+			 VMW_HYPERVISOR_MAGIC,
+			 eax, ebx, ecx, edx, si, di);
 
 	if ((HIGH_WORD(ecx) & MESSAGE_STATUS_SUCCESS) == 0)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -152,7 +158,8 @@ static int vmw_send_msg(struct rpc_channel *channel, const char *msg)
 	int retries = 0;
 
 
-	while (retries < RETRIES) {
+	while (retries < RETRIES)
+	{
 		retries++;
 
 		/* Set up additional parameters */
@@ -160,13 +167,14 @@ static int vmw_send_msg(struct rpc_channel *channel, const char *msg)
 		di  = channel->cookie_low;
 
 		VMW_PORT(VMW_PORT_CMD_SENDSIZE,
-			msg_len, si, di,
-			VMW_HYPERVISOR_PORT | (channel->channel_id << 16),
-			VMW_HYPERVISOR_MAGIC,
-			eax, ebx, ecx, edx, si, di);
+				 msg_len, si, di,
+				 VMW_HYPERVISOR_PORT | (channel->channel_id << 16),
+				 VMW_HYPERVISOR_MAGIC,
+				 eax, ebx, ecx, edx, si, di);
 
 		if ((HIGH_WORD(ecx) & MESSAGE_STATUS_SUCCESS) == 0 ||
-		    (HIGH_WORD(ecx) & MESSAGE_STATUS_HB) == 0) {
+			(HIGH_WORD(ecx) & MESSAGE_STATUS_HB) == 0)
+		{
 			/* Expected success + high-bandwidth. Give up. */
 			return -EINVAL;
 		}
@@ -183,12 +191,17 @@ static int vmw_send_msg(struct rpc_channel *channel, const char *msg)
 			VMW_HYPERVISOR_MAGIC, bp,
 			eax, ebx, ecx, edx, si, di);
 
-		if ((HIGH_WORD(ebx) & MESSAGE_STATUS_SUCCESS) != 0) {
+		if ((HIGH_WORD(ebx) & MESSAGE_STATUS_SUCCESS) != 0)
+		{
 			return 0;
-		} else if ((HIGH_WORD(ebx) & MESSAGE_STATUS_CPT) != 0) {
+		}
+		else if ((HIGH_WORD(ebx) & MESSAGE_STATUS_CPT) != 0)
+		{
 			/* A checkpoint occurred. Retry. */
 			continue;
-		} else {
+		}
+		else
+		{
 			break;
 		}
 	}
@@ -208,7 +221,7 @@ STACK_FRAME_NON_STANDARD(vmw_send_msg);
  * @msg_len: message length
  */
 static int vmw_recv_msg(struct rpc_channel *channel, void **msg,
-			size_t *msg_len)
+						size_t *msg_len)
 {
 	unsigned long eax, ebx, ecx, edx, si, di, bp;
 	char *reply;
@@ -219,7 +232,8 @@ static int vmw_recv_msg(struct rpc_channel *channel, void **msg,
 	*msg_len = 0;
 	*msg = NULL;
 
-	while (retries < RETRIES) {
+	while (retries < RETRIES)
+	{
 		retries++;
 
 		/* Set up additional parameters */
@@ -227,24 +241,29 @@ static int vmw_recv_msg(struct rpc_channel *channel, void **msg,
 		di  = channel->cookie_low;
 
 		VMW_PORT(VMW_PORT_CMD_RECVSIZE,
-			0, si, di,
-			(VMW_HYPERVISOR_PORT | (channel->channel_id << 16)),
-			VMW_HYPERVISOR_MAGIC,
-			eax, ebx, ecx, edx, si, di);
+				 0, si, di,
+				 (VMW_HYPERVISOR_PORT | (channel->channel_id << 16)),
+				 VMW_HYPERVISOR_MAGIC,
+				 eax, ebx, ecx, edx, si, di);
 
 		if ((HIGH_WORD(ecx) & MESSAGE_STATUS_SUCCESS) == 0 ||
-		    (HIGH_WORD(ecx) & MESSAGE_STATUS_HB) == 0) {
+			(HIGH_WORD(ecx) & MESSAGE_STATUS_HB) == 0)
+		{
 			DRM_ERROR("Failed to get reply size\n");
 			return -EINVAL;
 		}
 
 		/* No reply available.  This is okay. */
 		if ((HIGH_WORD(ecx) & MESSAGE_STATUS_DORECV) == 0)
+		{
 			return 0;
+		}
 
 		reply_len = ebx;
 		reply     = kzalloc(reply_len + 1, GFP_KERNEL);
-		if (reply == NULL) {
+
+		if (reply == NULL)
+		{
 			DRM_ERROR("Cannot allocate memory for reply\n");
 			return -ENOMEM;
 		}
@@ -262,10 +281,12 @@ static int vmw_recv_msg(struct rpc_channel *channel, void **msg,
 			VMW_HYPERVISOR_MAGIC, bp,
 			eax, ebx, ecx, edx, si, di);
 
-		if ((HIGH_WORD(ebx) & MESSAGE_STATUS_SUCCESS) == 0) {
+		if ((HIGH_WORD(ebx) & MESSAGE_STATUS_SUCCESS) == 0)
+		{
 			kfree(reply);
 
-			if ((HIGH_WORD(ebx) & MESSAGE_STATUS_CPT) != 0) {
+			if ((HIGH_WORD(ebx) & MESSAGE_STATUS_CPT) != 0)
+			{
 				/* A checkpoint occurred. Retry. */
 				continue;
 			}
@@ -281,15 +302,17 @@ static int vmw_recv_msg(struct rpc_channel *channel, void **msg,
 		di  = channel->cookie_low;
 
 		VMW_PORT(VMW_PORT_CMD_RECVSTATUS,
-			MESSAGE_STATUS_SUCCESS, si, di,
-			(VMW_HYPERVISOR_PORT | (channel->channel_id << 16)),
-			VMW_HYPERVISOR_MAGIC,
-			eax, ebx, ecx, edx, si, di);
+				 MESSAGE_STATUS_SUCCESS, si, di,
+				 (VMW_HYPERVISOR_PORT | (channel->channel_id << 16)),
+				 VMW_HYPERVISOR_MAGIC,
+				 eax, ebx, ecx, edx, si, di);
 
-		if ((HIGH_WORD(ecx) & MESSAGE_STATUS_SUCCESS) == 0) {
+		if ((HIGH_WORD(ecx) & MESSAGE_STATUS_SUCCESS) == 0)
+		{
 			kfree(reply);
 
-			if ((HIGH_WORD(ecx) & MESSAGE_STATUS_CPT) != 0) {
+			if ((HIGH_WORD(ecx) & MESSAGE_STATUS_CPT) != 0)
+			{
 				/* A checkpoint occurred. Retry. */
 				continue;
 			}
@@ -301,7 +324,9 @@ static int vmw_recv_msg(struct rpc_channel *channel, void **msg,
 	}
 
 	if (retries == RETRIES)
+	{
 		return -EINVAL;
+	}
 
 	*msg_len = reply_len;
 	*msg     = reply;
@@ -324,7 +349,7 @@ STACK_FRAME_NON_STANDARD(vmw_recv_msg);
  * Returns: 0 on success
  */
 int vmw_host_get_guestinfo(const char *guest_info_param,
-			   char *buffer, size_t *length)
+						   char *buffer, size_t *length)
 {
 	struct rpc_channel channel;
 	char *msg, *reply = NULL;
@@ -333,14 +358,20 @@ int vmw_host_get_guestinfo(const char *guest_info_param,
 
 
 	if (!vmw_msg_enabled)
+	{
 		return -ENODEV;
+	}
 
 	if (!guest_info_param || !length)
+	{
 		return -EINVAL;
+	}
 
 	msg_len = strlen(guest_info_param) + strlen("info-get ") + 1;
 	msg = kzalloc(msg_len, GFP_KERNEL);
-	if (msg == NULL) {
+
+	if (msg == NULL)
+	{
 		DRM_ERROR("Cannot allocate memory to get %s", guest_info_param);
 		return -ENOMEM;
 	}
@@ -348,15 +379,17 @@ int vmw_host_get_guestinfo(const char *guest_info_param,
 	sprintf(msg, "info-get %s", guest_info_param);
 
 	if (vmw_open_channel(&channel, RPCI_PROTOCOL_NUM) ||
-	    vmw_send_msg(&channel, msg) ||
-	    vmw_recv_msg(&channel, (void *) &reply, &reply_len) ||
-	    vmw_close_channel(&channel)) {
+		vmw_send_msg(&channel, msg) ||
+		vmw_recv_msg(&channel, (void *) &reply, &reply_len) ||
+		vmw_close_channel(&channel))
+	{
 		DRM_ERROR("Failed to get %s", guest_info_param);
 
 		ret = -EINVAL;
 	}
 
-	if (buffer && reply && reply_len > 0) {
+	if (buffer && reply && reply_len > 0)
+	{
 		/* Remove reply code, which are the first 2 characters of
 		 * the reply
 		 */
@@ -364,7 +397,9 @@ int vmw_host_get_guestinfo(const char *guest_info_param,
 		reply_len = min(reply_len, *length);
 
 		if (reply_len > 0)
+		{
 			memcpy(buffer, reply + 2, reply_len);
+		}
 	}
 
 	*length = reply_len;
@@ -393,14 +428,20 @@ int vmw_host_log(const char *log)
 
 
 	if (!vmw_msg_enabled)
+	{
 		return -ENODEV;
+	}
 
 	if (!log)
+	{
 		return ret;
+	}
 
 	msg_len = strlen(log) + strlen("log ") + 1;
 	msg = kzalloc(msg_len, GFP_KERNEL);
-	if (msg == NULL) {
+
+	if (msg == NULL)
+	{
 		DRM_ERROR("Cannot allocate memory for log message\n");
 		return -ENOMEM;
 	}
@@ -408,8 +449,9 @@ int vmw_host_log(const char *log)
 	sprintf(msg, "log %s", log);
 
 	if (vmw_open_channel(&channel, RPCI_PROTOCOL_NUM) ||
-	    vmw_send_msg(&channel, msg) ||
-	    vmw_close_channel(&channel)) {
+		vmw_send_msg(&channel, msg) ||
+		vmw_close_channel(&channel))
+	{
 		DRM_ERROR("Failed to send log\n");
 
 		ret = -EINVAL;

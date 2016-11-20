@@ -31,19 +31,22 @@
 
 #define AFFS_ROOT_BMAPS		25
 
-struct affs_date {
+struct affs_date
+{
 	__be32 days;
 	__be32 mins;
 	__be32 ticks;
 };
 
-struct affs_short_date {
+struct affs_short_date
+{
 	__be16 days;
 	__be16 mins;
 	__be16 ticks;
 };
 
-struct affs_root_head {
+struct affs_root_head
+{
 	__be32 ptype;
 	__be32 spare1;
 	__be32 spare2;
@@ -53,7 +56,8 @@ struct affs_root_head {
 	__be32 hashtable[1];
 };
 
-struct affs_root_tail {
+struct affs_root_tail
+{
 	__be32 bm_flag;
 	__be32 bm_blk[AFFS_ROOT_BMAPS];
 	__be32 bm_ext;
@@ -69,7 +73,8 @@ struct affs_root_tail {
 	__be32 stype;
 };
 
-struct affs_head {
+struct affs_head
+{
 	__be32 ptype;
 	__be32 key;
 	__be32 block_count;
@@ -79,7 +84,8 @@ struct affs_head {
 	__be32 table[1];
 };
 
-struct affs_tail {
+struct affs_tail
+{
 	__be32 spare1;
 	__be16 uid;
 	__be16 gid;

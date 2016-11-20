@@ -101,13 +101,16 @@ void controller_handler(const double xk, double *yk)
 	double p_term, i_term, d_term;
 
 	ek = p_param.t_target - xk; /* error */
-	if (ek >= 3.0) {
+
+	if (ek >= 3.0)
+	{
 		syslog(LOG_DEBUG, "PID: %3.1f Below set point %3.1f, stop\n",
-			xk, p_param.t_target);
+			   xk, p_param.t_target);
 		controller_reset();
 		*yk = 0.0;
 		return;
 	}
+
 	/* compute intermediate PID terms */
 	p_term = -p_param.kp * (xk - xk_1);
 	i_term = p_param.kp * p_param.ki * p_param.ts * ek;
@@ -120,9 +123,13 @@ void controller_handler(const double xk, double *yk)
 
 	/* clamp output adjustment range */
 	if (*yk < -LIMIT_HIGH)
+	{
 		*yk = -LIMIT_HIGH;
+	}
 	else if (*yk > -LIMIT_LOW)
+	{
 		*yk = -LIMIT_LOW;
+	}
 
 	p_param.y_k = *yk;
 

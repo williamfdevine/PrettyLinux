@@ -29,7 +29,8 @@
 #include "osdep_service.h"
 #include "wifi.h"
 
-struct ht_priv {
+struct ht_priv
+{
 	unsigned int	ht_option;
 	unsigned int	ampdu_enable;/*for enable Tx A-MPDU*/
 	unsigned char	baddbareq_issued[16];

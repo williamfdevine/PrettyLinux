@@ -24,14 +24,14 @@
 
 #ifdef PCI
 #define	IMASK_FAST	(IS_PLINT1 | IS_PLINT2 | IS_TIMINT | IS_TOKEN | \
-			 IS_MINTR2 | IS_MINTR3 | IS_R1_P | \
-			 IS_R1_C | IS_XA_C | IS_XS_C)
+					 IS_MINTR2 | IS_MINTR3 | IS_R1_P | \
+					 IS_R1_C | IS_XA_C | IS_XS_C)
 #endif
 
 #ifdef	PCI
-#define	ISR_MASK	(IS_MINTR1 | IS_R1_F | IS_XS_F| IS_XA_F | IMASK_FAST)
+	#define	ISR_MASK	(IS_MINTR1 | IS_R1_F | IS_XS_F| IS_XA_F | IMASK_FAST)
 #else
-#define	ISR_MASK	(IS_MINTR1 | IS_MINTR2 | IMASK_FAST)
+	#define	ISR_MASK	(IS_MINTR1 | IS_MINTR2 | IMASK_FAST)
 #endif
 
 #define	FMA_FM_CMDREG1	FMA(FM_CMDREG1)
@@ -49,8 +49,8 @@
 #define	FMA_ST2L	FMA(FM_ST2L)
 #define	FMA_ST2U	FMA(FM_ST2U)
 #ifdef	SUPERNET_3
-#define FMA_ST3L	FMA(FM_ST3L)
-#define FMA_ST3U	FMA(FM_ST3U)
+	#define FMA_ST3L	FMA(FM_ST3L)
+	#define FMA_ST3U	FMA(FM_ST3U)
 #endif
 
 #define TMODE_RRQ	RQ_RRQ
@@ -63,8 +63,8 @@
 #define FMA_FM_ST2L	FMA_ST2L
 #define FMA_FM_ST2U	FMA_ST2U
 #ifdef	SUPERNET_3
-#define FMA_FM_ST3L	FMA_ST3L
-#define FMA_FM_ST3U	FMA_ST3U
+	#define FMA_FM_ST3L	FMA_ST3L
+	#define FMA_FM_ST3U	FMA_ST3U
 #endif
 
 #define FMA_FM_SWPR	FMA(FM_SWPR)
@@ -85,12 +85,12 @@
 
 /* Define default for DRV_PCM_STATE_CHANGE */
 #ifndef	DRV_PCM_STATE_CHANGE
-#define	DRV_PCM_STATE_CHANGE(smc,plc,p_state)	/* nothing */
+	#define	DRV_PCM_STATE_CHANGE(smc,plc,p_state)	/* nothing */
 #endif
 
 /* Define default for DRV_RMT_INDICATION */
 #ifndef	DRV_RMT_INDICATION
-#define	DRV_RMT_INDICATION(smc,i)	/* nothing */
+	#define	DRV_RMT_INDICATION(smc,i)	/* nothing */
 #endif
 
 #endif	/* n_SKFBIINC_ */

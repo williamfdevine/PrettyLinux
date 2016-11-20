@@ -55,7 +55,8 @@ enum mode_set_atomic;
  * These hooks are used by the legacy CRTC helpers, the transitional plane
  * helpers and the new atomic modesetting helpers.
  */
-struct drm_crtc_helper_funcs {
+struct drm_crtc_helper_funcs
+{
 	/**
 	 * @dpms:
 	 *
@@ -151,8 +152,8 @@ struct drm_crtc_helper_funcs {
 	 * operation should be rejected.
 	 */
 	bool (*mode_fixup)(struct drm_crtc *crtc,
-			   const struct drm_display_mode *mode,
-			   struct drm_display_mode *adjusted_mode);
+					   const struct drm_display_mode *mode,
+					   struct drm_display_mode *adjusted_mode);
 
 	/**
 	 * @mode_set:
@@ -170,8 +171,8 @@ struct drm_crtc_helper_funcs {
 	 * 0 on success or a negative error code on failure.
 	 */
 	int (*mode_set)(struct drm_crtc *crtc, struct drm_display_mode *mode,
-			struct drm_display_mode *adjusted_mode, int x, int y,
-			struct drm_framebuffer *old_fb);
+					struct drm_display_mode *adjusted_mode, int x, int y,
+					struct drm_framebuffer *old_fb);
 
 	/**
 	 * @mode_set_nofb:
@@ -214,7 +215,7 @@ struct drm_crtc_helper_funcs {
 	 * 0 on success or a negative error code on failure.
 	 */
 	int (*mode_set_base)(struct drm_crtc *crtc, int x, int y,
-			     struct drm_framebuffer *old_fb);
+						 struct drm_framebuffer *old_fb);
 
 	/**
 	 * @mode_set_base_atomic:
@@ -231,8 +232,8 @@ struct drm_crtc_helper_funcs {
 	 * 0 on success or a negative error code on failure.
 	 */
 	int (*mode_set_base_atomic)(struct drm_crtc *crtc,
-				    struct drm_framebuffer *fb, int x, int y,
-				    enum mode_set_atomic);
+								struct drm_framebuffer *fb, int x, int y,
+								enum mode_set_atomic);
 
 	/**
 	 * @load_lut:
@@ -347,7 +348,7 @@ struct drm_crtc_helper_funcs {
 	 * deadlock.
 	 */
 	int (*atomic_check)(struct drm_crtc *crtc,
-			    struct drm_crtc_state *state);
+						struct drm_crtc_state *state);
 
 	/**
 	 * @atomic_begin:
@@ -368,7 +369,7 @@ struct drm_crtc_helper_funcs {
 	 * transitional plane helpers, but it is optional.
 	 */
 	void (*atomic_begin)(struct drm_crtc *crtc,
-			     struct drm_crtc_state *old_crtc_state);
+						 struct drm_crtc_state *old_crtc_state);
 	/**
 	 * @atomic_flush:
 	 *
@@ -392,7 +393,7 @@ struct drm_crtc_helper_funcs {
 	 * transitional plane helpers, but it is optional.
 	 */
 	void (*atomic_flush)(struct drm_crtc *crtc,
-			     struct drm_crtc_state *old_crtc_state);
+						 struct drm_crtc_state *old_crtc_state);
 
 	/**
 	 * @atomic_disable:
@@ -414,7 +415,7 @@ struct drm_crtc_helper_funcs {
 	 * of @disable.
 	 */
 	void (*atomic_disable)(struct drm_crtc *crtc,
-			       struct drm_crtc_state *old_crtc_state);
+						   struct drm_crtc_state *old_crtc_state);
 };
 
 /**
@@ -423,7 +424,7 @@ struct drm_crtc_helper_funcs {
  * @funcs: helper vtable to set for @crtc
  */
 static inline void drm_crtc_helper_add(struct drm_crtc *crtc,
-				       const struct drm_crtc_helper_funcs *funcs)
+									   const struct drm_crtc_helper_funcs *funcs)
 {
 	crtc->helper_private = funcs;
 }
@@ -434,7 +435,8 @@ static inline void drm_crtc_helper_add(struct drm_crtc *crtc,
  * These hooks are used by the legacy CRTC helpers, the transitional plane
  * helpers and the new atomic modesetting helpers.
  */
-struct drm_encoder_helper_funcs {
+struct drm_encoder_helper_funcs
+{
 	/**
 	 * @dpms:
 	 *
@@ -499,8 +501,8 @@ struct drm_encoder_helper_funcs {
 	 * operation should be rejected.
 	 */
 	bool (*mode_fixup)(struct drm_encoder *encoder,
-			   const struct drm_display_mode *mode,
-			   struct drm_display_mode *adjusted_mode);
+					   const struct drm_display_mode *mode,
+					   struct drm_display_mode *adjusted_mode);
 
 	/**
 	 * @prepare:
@@ -555,8 +557,8 @@ struct drm_encoder_helper_funcs {
 	 * @atomic_mode_set can be used instead.
 	 */
 	void (*mode_set)(struct drm_encoder *encoder,
-			 struct drm_display_mode *mode,
-			 struct drm_display_mode *adjusted_mode);
+					 struct drm_display_mode *mode,
+					 struct drm_display_mode *adjusted_mode);
 
 	/**
 	 * @atomic_mode_set:
@@ -578,8 +580,8 @@ struct drm_encoder_helper_funcs {
 	 * go from the encoder to the current connector.
 	 */
 	void (*atomic_mode_set)(struct drm_encoder *encoder,
-				struct drm_crtc_state *crtc_state,
-				struct drm_connector_state *conn_state);
+							struct drm_crtc_state *crtc_state,
+							struct drm_connector_state *conn_state);
 
 	/**
 	 * @get_crtc:
@@ -613,7 +615,7 @@ struct drm_encoder_helper_funcs {
 	 * Currently radeon, amdgpu and nouveau are using it.
 	 */
 	enum drm_connector_status (*detect)(struct drm_encoder *encoder,
-					    struct drm_connector *connector);
+										struct drm_connector *connector);
 
 	/**
 	 * @disable:
@@ -689,8 +691,8 @@ struct drm_encoder_helper_funcs {
 	 * deadlock.
 	 */
 	int (*atomic_check)(struct drm_encoder *encoder,
-			    struct drm_crtc_state *crtc_state,
-			    struct drm_connector_state *conn_state);
+						struct drm_crtc_state *crtc_state,
+						struct drm_connector_state *conn_state);
 };
 
 /**
@@ -699,7 +701,7 @@ struct drm_encoder_helper_funcs {
  * @funcs: helper vtable to set for @encoder
  */
 static inline void drm_encoder_helper_add(struct drm_encoder *encoder,
-					  const struct drm_encoder_helper_funcs *funcs)
+		const struct drm_encoder_helper_funcs *funcs)
 {
 	encoder->helper_private = funcs;
 }
@@ -710,7 +712,8 @@ static inline void drm_encoder_helper_add(struct drm_encoder *encoder,
  * These functions are used by the atomic and legacy modeset helpers and by the
  * probe helpers.
  */
-struct drm_connector_helper_funcs {
+struct drm_connector_helper_funcs
+{
 	/**
 	 * @get_modes:
 	 *
@@ -771,7 +774,7 @@ struct drm_connector_helper_funcs {
 	 * &drm_mode_status.
 	 */
 	enum drm_mode_status (*mode_valid)(struct drm_connector *connector,
-					   struct drm_display_mode *mode);
+									   struct drm_display_mode *mode);
 	/**
 	 * @best_encoder:
 	 *
@@ -829,7 +832,7 @@ struct drm_connector_helper_funcs {
 	 * for this.
 	 */
 	struct drm_encoder *(*atomic_best_encoder)(struct drm_connector *connector,
-						   struct drm_connector_state *connector_state);
+			struct drm_connector_state *connector_state);
 };
 
 /**
@@ -838,7 +841,7 @@ struct drm_connector_helper_funcs {
  * @funcs: helper vtable to set for @connector
  */
 static inline void drm_connector_helper_add(struct drm_connector *connector,
-					    const struct drm_connector_helper_funcs *funcs)
+		const struct drm_connector_helper_funcs *funcs)
 {
 	connector->helper_private = funcs;
 }
@@ -849,7 +852,8 @@ static inline void drm_connector_helper_add(struct drm_connector *connector,
  * These functions are used by the atomic helpers and by the transitional plane
  * helpers.
  */
-struct drm_plane_helper_funcs {
+struct drm_plane_helper_funcs
+{
 	/**
 	 * @prepare_fb:
 	 *
@@ -879,7 +883,7 @@ struct drm_plane_helper_funcs {
 	 * everything else must complete successfully.
 	 */
 	int (*prepare_fb)(struct drm_plane *plane,
-			  struct drm_plane_state *new_state);
+					  struct drm_plane_state *new_state);
 	/**
 	 * @cleanup_fb:
 	 *
@@ -890,7 +894,7 @@ struct drm_plane_helper_funcs {
 	 * transitional plane helpers, but it is optional.
 	 */
 	void (*cleanup_fb)(struct drm_plane *plane,
-			   struct drm_plane_state *old_state);
+					   struct drm_plane_state *old_state);
 
 	/**
 	 * @atomic_check:
@@ -929,7 +933,7 @@ struct drm_plane_helper_funcs {
 	 * deadlock.
 	 */
 	int (*atomic_check)(struct drm_plane *plane,
-			    struct drm_plane_state *state);
+						struct drm_plane_state *state);
 
 	/**
 	 * @atomic_update:
@@ -947,7 +951,7 @@ struct drm_plane_helper_funcs {
 	 * transitional plane helpers, but it is optional.
 	 */
 	void (*atomic_update)(struct drm_plane *plane,
-			      struct drm_plane_state *old_state);
+						  struct drm_plane_state *old_state);
 	/**
 	 * @atomic_disable:
 	 *
@@ -970,7 +974,7 @@ struct drm_plane_helper_funcs {
 	 * transitional plane helpers, but it is optional.
 	 */
 	void (*atomic_disable)(struct drm_plane *plane,
-			       struct drm_plane_state *old_state);
+						   struct drm_plane_state *old_state);
 };
 
 /**
@@ -979,7 +983,7 @@ struct drm_plane_helper_funcs {
  * @funcs: helper vtable to set for @plane
  */
 static inline void drm_plane_helper_add(struct drm_plane *plane,
-					const struct drm_plane_helper_funcs *funcs)
+										const struct drm_plane_helper_funcs *funcs)
 {
 	plane->helper_private = funcs;
 }
@@ -989,7 +993,8 @@ static inline void drm_plane_helper_add(struct drm_plane *plane,
  *
  * These helper functions are used by the atomic helpers.
  */
-struct drm_mode_config_helper_funcs {
+struct drm_mode_config_helper_funcs
+{
 	/**
 	 * @atomic_commit_tail:
 	 *

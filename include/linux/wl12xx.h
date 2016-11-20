@@ -26,7 +26,8 @@
 
 #include <linux/err.h>
 
-struct wl1251_platform_data {
+struct wl1251_platform_data
+{
 	int power_gpio;
 	/* SDIO only: IRQ number if WLAN_IRQ line is used, 0 for SDIO IRQs */
 	int irq;

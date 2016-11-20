@@ -28,11 +28,13 @@
 #include <media/davinci/vpbe_types.h>
 
 /* OSD configuration info */
-struct osd_config_info {
+struct osd_config_info
+{
 	char module_name[32];
 };
 
-struct vpbe_output {
+struct vpbe_output
+{
 	struct v4l2_output output;
 	/*
 	 * If output capabilities include dv_timings, list supported timings
@@ -67,25 +69,28 @@ struct vpbe_output {
 };
 
 /* encoder configuration info */
-struct encoder_config_info {
+struct encoder_config_info
+{
 	char module_name[32];
 	/* Is this an i2c device ? */
-	unsigned int is_i2c:1;
+	unsigned int is_i2c: 1;
 	/* i2c subdevice board info */
 	struct i2c_board_info board_info;
 };
 
 /*amplifier configuration info */
-struct amp_config_info {
+struct amp_config_info
+{
 	char module_name[32];
 	/* Is this an i2c device ? */
-	unsigned int is_i2c:1;
+	unsigned int is_i2c: 1;
 	/* i2c subdevice board info */
 	struct i2c_board_info board_info;
 };
 
 /* structure for defining vpbe display subsystem components */
-struct vpbe_config {
+struct vpbe_config
+{
 	char module_name[32];
 	/* i2c bus adapter no */
 	int i2c_adapter_id;
@@ -103,33 +108,34 @@ struct vpbe_config {
 
 struct vpbe_device;
 
-struct vpbe_device_ops {
+struct vpbe_device_ops
+{
 	/* crop cap for the display */
 	int (*g_cropcap)(struct vpbe_device *vpbe_dev,
-			 struct v4l2_cropcap *cropcap);
+					 struct v4l2_cropcap *cropcap);
 
 	/* Enumerate the outputs */
 	int (*enum_outputs)(struct vpbe_device *vpbe_dev,
-			    struct v4l2_output *output);
+						struct v4l2_output *output);
 
 	/* Set output to the given index */
 	int (*set_output)(struct vpbe_device *vpbe_dev,
-			 int index);
+					  int index);
 
 	/* Get current output */
 	unsigned int (*get_output)(struct vpbe_device *vpbe_dev);
 
 	/* Set DV preset at current output */
 	int (*s_dv_timings)(struct vpbe_device *vpbe_dev,
-			   struct v4l2_dv_timings *dv_timings);
+						struct v4l2_dv_timings *dv_timings);
 
 	/* Get DV presets supported at the output */
 	int (*g_dv_timings)(struct vpbe_device *vpbe_dev,
-			   struct v4l2_dv_timings *dv_timings);
+						struct v4l2_dv_timings *dv_timings);
 
 	/* Enumerate the DV Presets supported at the output */
 	int (*enum_dv_timings)(struct vpbe_device *vpbe_dev,
-			       struct v4l2_enum_dv_timings *timings_info);
+						   struct v4l2_enum_dv_timings *timings_info);
 
 	/* Set std at the output */
 	int (*s_std)(struct vpbe_device *vpbe_dev, v4l2_std_id std_id);
@@ -145,21 +151,22 @@ struct vpbe_device_ops {
 
 	/* Get the current mode info */
 	int (*get_mode_info)(struct vpbe_device *vpbe_dev,
-			     struct vpbe_enc_mode_info*);
+						 struct vpbe_enc_mode_info *);
 
 	/*
 	 * Set the current mode in the encoder. Alternate way of setting
 	 * standard or DV preset or custom timings in the encoder
 	 */
 	int (*set_mode)(struct vpbe_device *vpbe_dev,
-			struct vpbe_enc_mode_info*);
+					struct vpbe_enc_mode_info *);
 	/* Power management operations */
 	int (*suspend)(struct vpbe_device *vpbe_dev);
 	int (*resume)(struct vpbe_device *vpbe_dev);
 };
 
 /* struct for vpbe device */
-struct vpbe_device {
+struct vpbe_device
+{
 	/* V4l2 device */
 	struct v4l2_device v4l2_dev;
 	/* vpbe dispay controller cfg */

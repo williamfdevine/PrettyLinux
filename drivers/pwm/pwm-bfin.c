@@ -14,15 +14,18 @@
 #include <asm/gptimers.h>
 #include <asm/portmux.h>
 
-struct bfin_pwm_chip {
+struct bfin_pwm_chip
+{
 	struct pwm_chip chip;
 };
 
-struct bfin_pwm {
+struct bfin_pwm
+{
 	unsigned short pin;
 };
 
-static const unsigned short pwm_to_gptimer_per[] = {
+static const unsigned short pwm_to_gptimer_per[] =
+{
 	P_TMR0, P_TMR1, P_TMR2, P_TMR3, P_TMR4, P_TMR5,
 	P_TMR6, P_TMR7, P_TMR8, P_TMR9, P_TMR10, P_TMR11,
 };
@@ -33,16 +36,23 @@ static int bfin_pwm_request(struct pwm_chip *chip, struct pwm_device *pwm)
 	int ret;
 
 	if (pwm->hwpwm >= ARRAY_SIZE(pwm_to_gptimer_per))
+	{
 		return -EINVAL;
+	}
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	priv->pin = pwm_to_gptimer_per[pwm->hwpwm];
 
 	ret = peripheral_request(priv->pin, NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(priv);
 		return ret;
 	}
@@ -56,14 +66,15 @@ static void bfin_pwm_free(struct pwm_chip *chip, struct pwm_device *pwm)
 {
 	struct bfin_pwm *priv = pwm_get_chip_data(pwm);
 
-	if (priv) {
+	if (priv)
+	{
 		peripheral_free(priv->pin);
 		kfree(priv);
 	}
 }
 
 static int bfin_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
-		int duty_ns, int period_ns)
+						   int duty_ns, int period_ns)
 {
 	struct bfin_pwm *priv = pwm_get_chip_data(pwm);
 	unsigned long period, duty;
@@ -78,7 +89,9 @@ static int bfin_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	duty = period - val;
 
 	if (duty >= period)
+	{
 		duty = period - 1;
+	}
 
 	set_gptimer_config(priv->pin, TIMER_MODE_PWM | TIMER_PERIOD_CNT);
 	set_gptimer_pwidth(priv->pin, duty);
@@ -103,7 +116,8 @@ static void bfin_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 	disable_gptimer(priv->pin);
 }
 
-static struct pwm_ops bfin_pwm_ops = {
+static struct pwm_ops bfin_pwm_ops =
+{
 	.request = bfin_pwm_request,
 	.free = bfin_pwm_free,
 	.config = bfin_pwm_config,
@@ -118,7 +132,9 @@ static int bfin_pwm_probe(struct platform_device *pdev)
 	int ret;
 
 	pwm = devm_kzalloc(&pdev->dev, sizeof(*pwm), GFP_KERNEL);
-	if (!pwm) {
+
+	if (!pwm)
+	{
 		dev_err(&pdev->dev, "failed to allocate memory\n");
 		return -ENOMEM;
 	}
@@ -131,7 +147,9 @@ static int bfin_pwm_probe(struct platform_device *pdev)
 	pwm->chip.npwm = 12;
 
 	ret = pwmchip_add(&pwm->chip);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "pwmchip_add() failed: %d\n", ret);
 		return ret;
 	}
@@ -146,7 +164,8 @@ static int bfin_pwm_remove(struct platform_device *pdev)
 	return pwmchip_remove(&pwm->chip);
 }
 
-static struct platform_driver bfin_pwm_driver = {
+static struct platform_driver bfin_pwm_driver =
+{
 	.driver = {
 		.name = "bfin-pwm",
 	},

@@ -44,12 +44,13 @@
 /*--------------------------------------------------------------------------*\
  * Hardware definition
 \*--------------------------------------------------------------------------*/
-static const struct snd_pcm_hardware atmel_pcm_dma_hardware = {
+static const struct snd_pcm_hardware atmel_pcm_dma_hardware =
+{
 	.info			= SNDRV_PCM_INFO_MMAP |
-				  SNDRV_PCM_INFO_MMAP_VALID |
-				  SNDRV_PCM_INFO_INTERLEAVED |
-				  SNDRV_PCM_INFO_RESUME |
-				  SNDRV_PCM_INFO_PAUSE,
+	SNDRV_PCM_INFO_MMAP_VALID |
+	SNDRV_PCM_INFO_INTERLEAVED |
+	SNDRV_PCM_INFO_RESUME |
+	SNDRV_PCM_INFO_PAUSE,
 	.period_bytes_min	= 256,		/* lighting DMA overhead */
 	.period_bytes_max	= 2 * 0xffff,	/* if 2 bytes format */
 	.periods_min		= 8,
@@ -64,19 +65,20 @@ static const struct snd_pcm_hardware atmel_pcm_dma_hardware = {
  * check if any overrun occured.
  */
 static void atmel_pcm_dma_irq(u32 ssc_sr,
-	struct snd_pcm_substream *substream)
+							  struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct atmel_pcm_dma_params *prtd;
 
 	prtd = snd_soc_dai_get_dma_data(rtd->cpu_dai, substream);
 
-	if (ssc_sr & prtd->mask->ssc_error) {
+	if (ssc_sr & prtd->mask->ssc_error)
+	{
 		if (snd_pcm_running(substream))
 			pr_warn("atmel-pcm: buffer %s on %s (SSC_SR=%#x)\n",
-				substream->stream == SNDRV_PCM_STREAM_PLAYBACK
-				? "underrun" : "overrun", prtd->name,
-				ssc_sr);
+					substream->stream == SNDRV_PCM_STREAM_PLAYBACK
+					? "underrun" : "overrun", prtd->name,
+					ssc_sr);
 
 		/* stop RX and capture: will be enabled again at restart */
 		ssc_writex(prtd->ssc->regs, SSC_CR, prtd->mask->ssc_disable);
@@ -89,7 +91,7 @@ static void atmel_pcm_dma_irq(u32 ssc_sr,
 }
 
 static int atmel_pcm_configure_dma(struct snd_pcm_substream *substream,
-	struct snd_pcm_hw_params *params, struct dma_slave_config *slave_config)
+								   struct snd_pcm_hw_params *params, struct dma_slave_config *slave_config)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct atmel_pcm_dma_params *prtd;
@@ -100,7 +102,9 @@ static int atmel_pcm_configure_dma(struct snd_pcm_substream *substream,
 	ssc = prtd->ssc;
 
 	ret = snd_hwparams_to_dma_slave_config(substream, params, slave_config);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("atmel-pcm: hwparams to dma slave configure failed\n");
 		return ret;
 	}
@@ -116,7 +120,8 @@ static int atmel_pcm_configure_dma(struct snd_pcm_substream *substream,
 	return 0;
 }
 
-static const struct snd_dmaengine_pcm_config atmel_dmaengine_pcm_config = {
+static const struct snd_dmaengine_pcm_config atmel_dmaengine_pcm_config =
+{
 	.prepare_slave_config = atmel_pcm_configure_dma,
 	.pcm_hardware = &atmel_pcm_dma_hardware,
 	.prealloc_buffer_size = 64 * 1024,

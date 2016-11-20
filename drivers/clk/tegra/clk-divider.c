@@ -30,41 +30,53 @@
 #define PERIPH_CLK_UART_DIV_ENB BIT(24)
 
 static int get_div(struct tegra_clk_frac_div *divider, unsigned long rate,
-		   unsigned long parent_rate)
+				   unsigned long parent_rate)
 {
 	u64 divider_ux1 = parent_rate;
 	u8 flags = divider->flags;
 	int mul;
 
 	if (!rate)
+	{
 		return 0;
+	}
 
 	mul = get_mul(divider);
 
 	if (!(flags & TEGRA_DIVIDER_INT))
+	{
 		divider_ux1 *= mul;
+	}
 
 	if (flags & TEGRA_DIVIDER_ROUND_UP)
+	{
 		divider_ux1 += rate - 1;
+	}
 
 	do_div(divider_ux1, rate);
 
 	if (flags & TEGRA_DIVIDER_INT)
+	{
 		divider_ux1 *= mul;
+	}
 
 	divider_ux1 -= mul;
 
 	if ((s64)divider_ux1 < 0)
+	{
 		return 0;
+	}
 
 	if (divider_ux1 > get_max_div(divider))
+	{
 		return get_max_div(divider);
+	}
 
 	return divider_ux1;
 }
 
 static unsigned long clk_frac_div_recalc_rate(struct clk_hw *hw,
-					     unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct tegra_clk_frac_div *divider = to_clk_frac_div(hw);
 	u32 reg;
@@ -85,18 +97,23 @@ static unsigned long clk_frac_div_recalc_rate(struct clk_hw *hw,
 }
 
 static long clk_frac_div_round_rate(struct clk_hw *hw, unsigned long rate,
-				   unsigned long *prate)
+									unsigned long *prate)
 {
 	struct tegra_clk_frac_div *divider = to_clk_frac_div(hw);
 	int div, mul;
 	unsigned long output_rate = *prate;
 
 	if (!rate)
+	{
 		return output_rate;
+	}
 
 	div = get_div(divider, rate, output_rate);
+
 	if (div < 0)
+	{
 		return *prate;
+	}
 
 	mul = get_mul(divider);
 
@@ -104,7 +121,7 @@ static long clk_frac_div_round_rate(struct clk_hw *hw, unsigned long rate,
 }
 
 static int clk_frac_div_set_rate(struct clk_hw *hw, unsigned long rate,
-				unsigned long parent_rate)
+								 unsigned long parent_rate)
 {
 	struct tegra_clk_frac_div *divider = to_clk_frac_div(hw);
 	int div;
@@ -112,53 +129,70 @@ static int clk_frac_div_set_rate(struct clk_hw *hw, unsigned long rate,
 	u32 val;
 
 	div = get_div(divider, rate, parent_rate);
+
 	if (div < 0)
+	{
 		return div;
+	}
 
 	if (divider->lock)
+	{
 		spin_lock_irqsave(divider->lock, flags);
+	}
 
 	val = readl_relaxed(divider->reg);
 	val &= ~(div_mask(divider) << divider->shift);
 	val |= div << divider->shift;
 
-	if (divider->flags & TEGRA_DIVIDER_UART) {
+	if (divider->flags & TEGRA_DIVIDER_UART)
+	{
 		if (div)
+		{
 			val |= PERIPH_CLK_UART_DIV_ENB;
+		}
 		else
+		{
 			val &= ~PERIPH_CLK_UART_DIV_ENB;
+		}
 	}
 
 	if (divider->flags & TEGRA_DIVIDER_FIXED)
+	{
 		val |= pll_out_override(divider);
+	}
 
 	writel_relaxed(val, divider->reg);
 
 	if (divider->lock)
+	{
 		spin_unlock_irqrestore(divider->lock, flags);
+	}
 
 	return 0;
 }
 
-const struct clk_ops tegra_clk_frac_div_ops = {
+const struct clk_ops tegra_clk_frac_div_ops =
+{
 	.recalc_rate = clk_frac_div_recalc_rate,
 	.set_rate = clk_frac_div_set_rate,
 	.round_rate = clk_frac_div_round_rate,
 };
 
 struct clk *tegra_clk_register_divider(const char *name,
-		const char *parent_name, void __iomem *reg,
-		unsigned long flags, u8 clk_divider_flags, u8 shift, u8 width,
-		u8 frac_width, spinlock_t *lock)
+									   const char *parent_name, void __iomem *reg,
+									   unsigned long flags, u8 clk_divider_flags, u8 shift, u8 width,
+									   u8 frac_width, spinlock_t *lock)
 {
 	struct tegra_clk_frac_div *divider;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	divider = kzalloc(sizeof(*divider), GFP_KERNEL);
-	if (!divider) {
+
+	if (!divider)
+	{
 		pr_err("%s: could not allocate fractional divider clk\n",
-		       __func__);
+			   __func__);
 		return ERR_PTR(-ENOMEM);
 	}
 
@@ -179,21 +213,25 @@ struct clk *tegra_clk_register_divider(const char *name,
 	divider->hw.init = &init;
 
 	clk = clk_register(NULL, &divider->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(divider);
+	}
 
 	return clk;
 }
 
-static const struct clk_div_table mc_div_table[] = {
+static const struct clk_div_table mc_div_table[] =
+{
 	{ .val = 0, .div = 2 },
 	{ .val = 1, .div = 1 },
 	{ .val = 0, .div = 0 },
 };
 
 struct clk *tegra_clk_register_mc(const char *name, const char *parent_name,
-				  void __iomem *reg, spinlock_t *lock)
+								  void __iomem *reg, spinlock_t *lock)
 {
 	return clk_register_divider_table(NULL, name, parent_name, 0, reg,
-					  16, 1, 0, mc_div_table, lock);
+									  16, 1, 0, mc_div_table, lock);
 }

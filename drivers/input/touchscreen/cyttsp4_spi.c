@@ -44,7 +44,7 @@
 #define CY_SPI_DATA_BUF_SIZE	(CY_SPI_CMD_BYTES + CY_SPI_DATA_SIZE)
 
 static int cyttsp_spi_xfer(struct device *dev, u8 *xfer_buf,
-			   u8 op, u16 reg, u8 *buf, int length)
+						   u8 op, u16 reg, u8 *buf, int length)
 {
 	struct spi_device *spi = to_spi_device(dev);
 	struct spi_message msg;
@@ -54,9 +54,10 @@ static int cyttsp_spi_xfer(struct device *dev, u8 *xfer_buf,
 	int retval;
 	int i;
 
-	if (length > CY_SPI_DATA_SIZE) {
+	if (length > CY_SPI_DATA_SIZE)
+	{
 		dev_err(dev, "%s: length %d is too big.\n",
-			__func__, length);
+				__func__, length);
 		return -EINVAL;
 	}
 
@@ -64,10 +65,15 @@ static int cyttsp_spi_xfer(struct device *dev, u8 *xfer_buf,
 	memset(rd_buf, 0, CY_SPI_CMD_BYTES);
 
 	wr_buf[0] = op + (((reg >> 8) & 0x1) ? CY_SPI_A8_BIT : 0);
-	if (op == CY_SPI_WR_OP) {
+
+	if (op == CY_SPI_WR_OP)
+	{
 		wr_buf[1] = reg & 0xFF;
+
 		if (length > 0)
+		{
 			memcpy(wr_buf + CY_SPI_CMD_BYTES, buf, length);
+		}
 	}
 
 	memset(xfer, 0, sizeof(xfer));
@@ -79,30 +85,34 @@ static int cyttsp_spi_xfer(struct device *dev, u8 *xfer_buf,
 	*/
 	xfer[0].tx_buf = wr_buf;
 	xfer[0].rx_buf = rd_buf;
-	switch (op) {
-	case CY_SPI_WR_OP:
-		xfer[0].len = length + CY_SPI_CMD_BYTES;
-		spi_message_add_tail(&xfer[0], &msg);
-		break;
 
-	case CY_SPI_RD_OP:
-		xfer[0].len = CY_SPI_RD_HEADER_BYTES;
-		spi_message_add_tail(&xfer[0], &msg);
+	switch (op)
+	{
+		case CY_SPI_WR_OP:
+			xfer[0].len = length + CY_SPI_CMD_BYTES;
+			spi_message_add_tail(&xfer[0], &msg);
+			break;
 
-		xfer[1].rx_buf = buf;
-		xfer[1].len = length;
-		spi_message_add_tail(&xfer[1], &msg);
-		break;
+		case CY_SPI_RD_OP:
+			xfer[0].len = CY_SPI_RD_HEADER_BYTES;
+			spi_message_add_tail(&xfer[0], &msg);
 
-	default:
-		dev_err(dev, "%s: bad operation code=%d\n", __func__, op);
-		return -EINVAL;
+			xfer[1].rx_buf = buf;
+			xfer[1].len = length;
+			spi_message_add_tail(&xfer[1], &msg);
+			break;
+
+		default:
+			dev_err(dev, "%s: bad operation code=%d\n", __func__, op);
+			return -EINVAL;
 	}
 
 	retval = spi_sync(spi, &msg);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		dev_dbg(dev, "%s: spi_sync() error %d, len=%d, op=%d\n",
-			__func__, retval, xfer[1].len, op);
+				__func__, retval, xfer[1].len, op);
 
 		/*
 		 * do not return here since was a bad ACK sequence
@@ -111,15 +121,17 @@ static int cyttsp_spi_xfer(struct device *dev, u8 *xfer_buf,
 		 */
 	}
 
-	if (rd_buf[CY_SPI_SYNC_BYTE] != CY_SPI_SYNC_ACK) {
+	if (rd_buf[CY_SPI_SYNC_BYTE] != CY_SPI_SYNC_ACK)
+	{
 		dev_dbg(dev, "%s: operation %d failed\n", __func__, op);
 
 		for (i = 0; i < CY_SPI_CMD_BYTES; i++)
 			dev_dbg(dev, "%s: test rd_buf[%d]:0x%02x\n",
-				__func__, i, rd_buf[i]);
+					__func__, i, rd_buf[i]);
+
 		for (i = 0; i < length; i++)
 			dev_dbg(dev, "%s: test buf[%d]:0x%02x\n",
-				__func__, i, buf[i]);
+					__func__, i, buf[i]);
 
 		return -EIO;
 	}
@@ -128,26 +140,30 @@ static int cyttsp_spi_xfer(struct device *dev, u8 *xfer_buf,
 }
 
 static int cyttsp_spi_read_block_data(struct device *dev, u8 *xfer_buf,
-				      u16 addr, u8 length, void *data)
+									  u16 addr, u8 length, void *data)
 {
 	int rc;
 
 	rc = cyttsp_spi_xfer(dev, xfer_buf, CY_SPI_WR_OP, addr, NULL, 0);
+
 	if (rc)
+	{
 		return rc;
+	}
 	else
 		return cyttsp_spi_xfer(dev, xfer_buf, CY_SPI_RD_OP, addr, data,
-				length);
+							   length);
 }
 
 static int cyttsp_spi_write_block_data(struct device *dev, u8 *xfer_buf,
-				       u16 addr, u8 length, const void *data)
+									   u16 addr, u8 length, const void *data)
 {
 	return cyttsp_spi_xfer(dev, xfer_buf, CY_SPI_WR_OP, addr, (void *)data,
-			length);
+						   length);
 }
 
-static const struct cyttsp4_bus_ops cyttsp_spi_bus_ops = {
+static const struct cyttsp4_bus_ops cyttsp_spi_bus_ops =
+{
 	.bustype	= BUS_SPI,
 	.write		= cyttsp_spi_write_block_data,
 	.read		= cyttsp_spi_read_block_data,
@@ -162,14 +178,16 @@ static int cyttsp4_spi_probe(struct spi_device *spi)
 	spi->bits_per_word = CY_SPI_BITS_PER_WORD;
 	spi->mode = SPI_MODE_0;
 	error = spi_setup(spi);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		dev_err(&spi->dev, "%s: SPI setup error %d\n",
-			__func__, error);
+				__func__, error);
 		return error;
 	}
 
 	ts = cyttsp4_probe(&cyttsp_spi_bus_ops, &spi->dev, spi->irq,
-			  CY_SPI_DATA_BUF_SIZE);
+					   CY_SPI_DATA_BUF_SIZE);
 
 	return PTR_ERR_OR_ZERO(ts);
 }
@@ -182,7 +200,8 @@ static int cyttsp4_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static struct spi_driver cyttsp4_spi_driver = {
+static struct spi_driver cyttsp4_spi_driver =
+{
 	.driver = {
 		.name	= CYTTSP4_SPI_NAME,
 		.pm	= &cyttsp4_pm_ops,

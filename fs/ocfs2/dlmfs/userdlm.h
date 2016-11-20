@@ -46,7 +46,8 @@
 					      * workqueue */
 #define USER_LOCK_IN_CANCEL     (0x00000020)
 
-struct user_lock_res {
+struct user_lock_res
+{
 	spinlock_t               l_lock;
 
 	int                      l_flags;
@@ -70,24 +71,25 @@ struct user_lock_res {
 extern struct workqueue_struct *user_dlm_worker;
 
 void user_dlm_lock_res_init(struct user_lock_res *lockres,
-			    struct dentry *dentry);
+							struct dentry *dentry);
 int user_dlm_destroy_lock(struct user_lock_res *lockres);
 int user_dlm_cluster_lock(struct user_lock_res *lockres,
-			  int level,
-			  int lkm_flags);
+						  int level,
+						  int lkm_flags);
 void user_dlm_cluster_unlock(struct user_lock_res *lockres,
-			     int level);
+							 int level);
 void user_dlm_write_lvb(struct inode *inode,
-			const char *val,
-			unsigned int len);
+						const char *val,
+						unsigned int len);
 ssize_t user_dlm_read_lvb(struct inode *inode,
-			  char *val,
-			  unsigned int len);
+						  char *val,
+						  unsigned int len);
 struct ocfs2_cluster_connection *user_dlm_register(const struct qstr *name);
 void user_dlm_unregister(struct ocfs2_cluster_connection *conn);
 void user_dlm_set_locking_protocol(void);
 
-struct dlmfs_inode_private {
+struct dlmfs_inode_private
+{
 	struct ocfs2_cluster_connection	*ip_conn;
 
 	struct user_lock_res ip_lockres; /* unused for directories. */
@@ -99,12 +101,13 @@ struct dlmfs_inode_private {
 static inline struct dlmfs_inode_private *
 DLMFS_I(struct inode *inode)
 {
-        return container_of(inode,
-			    struct dlmfs_inode_private,
-			    ip_vfs_inode);
+	return container_of(inode,
+						struct dlmfs_inode_private,
+						ip_vfs_inode);
 }
 
-struct dlmfs_filp_private {
+struct dlmfs_filp_private
+{
 	int                  fp_lock_level;
 };
 

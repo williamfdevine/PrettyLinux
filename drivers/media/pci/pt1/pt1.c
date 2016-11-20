@@ -46,21 +46,25 @@
 #define PT1_NR_UPACKETS 1024
 #define PT1_NR_BUFS 511
 
-struct pt1_buffer_page {
+struct pt1_buffer_page
+{
 	__le32 upackets[PT1_NR_UPACKETS];
 };
 
-struct pt1_table_page {
+struct pt1_table_page
+{
 	__le32 next_pfn;
 	__le32 buf_pfns[PT1_NR_BUFS];
 };
 
-struct pt1_buffer {
+struct pt1_buffer
+{
 	struct pt1_buffer_page *page;
 	dma_addr_t addr;
 };
 
-struct pt1_table {
+struct pt1_table
+{
 	struct pt1_table_page *page;
 	dma_addr_t addr;
 	struct pt1_buffer bufs[PT1_NR_BUFS];
@@ -70,7 +74,8 @@ struct pt1_table {
 
 struct pt1_adapter;
 
-struct pt1 {
+struct pt1
+{
 	struct pci_dev *pdev;
 	void __iomem *regs;
 	struct i2c_adapter i2c_adap;
@@ -86,7 +91,8 @@ struct pt1 {
 	int reset;
 };
 
-struct pt1_adapter {
+struct pt1_adapter
+{
 	struct pt1 *pt1;
 	int index;
 
@@ -101,7 +107,7 @@ struct pt1_adapter {
 	struct dmxdev dmxdev;
 	struct dvb_frontend *fe;
 	int (*orig_set_voltage)(struct dvb_frontend *fe,
-				enum fe_sec_voltage voltage);
+							enum fe_sec_voltage voltage);
 	int (*orig_sleep)(struct dvb_frontend *fe);
 	int (*orig_init)(struct dvb_frontend *fe);
 
@@ -146,11 +152,17 @@ static void pt1_unregister_tables(struct pt1 *pt1)
 static int pt1_sync(struct pt1 *pt1)
 {
 	int i;
-	for (i = 0; i < 57; i++) {
+
+	for (i = 0; i < 57; i++)
+	{
 		if (pt1_read_reg(pt1, 0) & 0x20000000)
+		{
 			return 0;
+		}
+
 		pt1_write_reg(pt1, 0, 0x00000008);
 	}
+
 	dev_err(&pt1->pdev->dev, "could not sync\n");
 	return -EIO;
 }
@@ -160,10 +172,13 @@ static u64 pt1_identify(struct pt1 *pt1)
 	int i;
 	u64 id;
 	id = 0;
-	for (i = 0; i < 57; i++) {
+
+	for (i = 0; i < 57; i++)
+	{
 		id |= (u64)(pt1_read_reg(pt1, 0) >> 30 & 1) << i;
 		pt1_write_reg(pt1, 0, 0x00000008);
 	}
+
 	return id;
 }
 
@@ -171,11 +186,17 @@ static int pt1_unlock(struct pt1 *pt1)
 {
 	int i;
 	pt1_write_reg(pt1, 0, 0x00000008);
-	for (i = 0; i < 3; i++) {
+
+	for (i = 0; i < 3; i++)
+	{
 		if (pt1_read_reg(pt1, 0) & 0x80000000)
+		{
 			return 0;
+		}
+
 		schedule_timeout_uninterruptible((HZ + 999) / 1000);
 	}
+
 	dev_err(&pt1->pdev->dev, "could not unlock\n");
 	return -EIO;
 }
@@ -185,11 +206,17 @@ static int pt1_reset_pci(struct pt1 *pt1)
 	int i;
 	pt1_write_reg(pt1, 0, 0x01010000);
 	pt1_write_reg(pt1, 0, 0x01000000);
-	for (i = 0; i < 10; i++) {
+
+	for (i = 0; i < 10; i++)
+	{
 		if (pt1_read_reg(pt1, 0) & 0x00000001)
+		{
 			return 0;
+		}
+
 		schedule_timeout_uninterruptible((HZ + 999) / 1000);
 	}
+
 	dev_err(&pt1->pdev->dev, "could not reset PCI\n");
 	return -EIO;
 }
@@ -199,11 +226,17 @@ static int pt1_reset_ram(struct pt1 *pt1)
 	int i;
 	pt1_write_reg(pt1, 0, 0x02020000);
 	pt1_write_reg(pt1, 0, 0x02000000);
-	for (i = 0; i < 10; i++) {
+
+	for (i = 0; i < 10; i++)
+	{
 		if (pt1_read_reg(pt1, 0) & 0x00000002)
+		{
 			return 0;
+		}
+
 		schedule_timeout_uninterruptible((HZ + 999) / 1000);
 	}
+
 	dev_err(&pt1->pdev->dev, "could not reset RAM\n");
 	return -EIO;
 }
@@ -214,13 +247,20 @@ static int pt1_do_enable_ram(struct pt1 *pt1)
 	u32 status;
 	status = pt1_read_reg(pt1, 0) & 0x00000004;
 	pt1_write_reg(pt1, 0, 0x00000002);
-	for (i = 0; i < 10; i++) {
-		for (j = 0; j < 1024; j++) {
+
+	for (i = 0; i < 10; i++)
+	{
+		for (j = 0; j < 1024; j++)
+		{
 			if ((pt1_read_reg(pt1, 0) & 0x00000004) != status)
+			{
 				return 0;
+			}
 		}
+
 		schedule_timeout_uninterruptible((HZ + 999) / 1000);
 	}
+
 	dev_err(&pt1->pdev->dev, "could not enable RAM\n");
 	return -EIO;
 }
@@ -231,11 +271,17 @@ static int pt1_enable_ram(struct pt1 *pt1)
 	int phase;
 	schedule_timeout_uninterruptible((HZ + 999) / 1000);
 	phase = pt1->pdev->device == 0x211a ? 128 : 166;
-	for (i = 0; i < phase; i++) {
+
+	for (i = 0; i < phase; i++)
+	{
 		ret = pt1_do_enable_ram(pt1);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
+
 	return 0;
 }
 
@@ -252,8 +298,11 @@ static void pt1_set_stream(struct pt1 *pt1, int index, int enabled)
 static void pt1_init_streams(struct pt1 *pt1)
 {
 	int i;
+
 	for (i = 0; i < PT1_NR_ADAPS; i++)
+	{
 		pt1_set_stream(pt1, i, 0);
+	}
 }
 
 static int pt1_filter(struct pt1 *pt1, struct pt1_buffer_page *page)
@@ -267,40 +316,60 @@ static int pt1_filter(struct pt1 *pt1, struct pt1_buffer_page *page)
 	int sc;
 
 	if (!page->upackets[PT1_NR_UPACKETS - 1])
+	{
 		return 0;
+	}
 
-	for (i = 0; i < PT1_NR_UPACKETS; i++) {
+	for (i = 0; i < PT1_NR_UPACKETS; i++)
+	{
 		upacket = le32_to_cpu(page->upackets[i]);
 		index = (upacket >> 29) - 1;
+
 		if (index < 0 || index >=  PT1_NR_ADAPS)
+		{
 			continue;
+		}
 
 		adap = pt1->adaps[index];
+
 		if (upacket >> 25 & 1)
+		{
 			adap->upacket_count = 0;
+		}
 		else if (!adap->upacket_count)
+		{
 			continue;
+		}
 
 		if (upacket >> 24 & 1)
 			printk_ratelimited(KERN_INFO "earth-pt1: device "
-				"buffer overflowing. table[%d] buf[%d]\n",
-				pt1->table_index, pt1->buf_index);
+							   "buffer overflowing. table[%d] buf[%d]\n",
+							   pt1->table_index, pt1->buf_index);
+
 		sc = upacket >> 26 & 0x7;
+
 		if (adap->st_count != -1 && sc != ((adap->st_count + 1) & 0x7))
 			printk_ratelimited(KERN_INFO "earth-pt1: data loss"
-				" in streamID(adapter)[%d]\n", index);
+							   " in streamID(adapter)[%d]\n", index);
+
 		adap->st_count = sc;
 
 		buf = adap->buf;
 		offset = adap->packet_count * 188 + adap->upacket_count * 3;
 		buf[offset] = upacket >> 16;
 		buf[offset + 1] = upacket >> 8;
-		if (adap->upacket_count != 62)
-			buf[offset + 2] = upacket;
 
-		if (++adap->upacket_count >= 63) {
+		if (adap->upacket_count != 62)
+		{
+			buf[offset + 2] = upacket;
+		}
+
+		if (++adap->upacket_count >= 63)
+		{
 			adap->upacket_count = 0;
-			if (++adap->packet_count >= 21) {
+
+			if (++adap->packet_count >= 21)
+			{
 				dvb_dmx_swfilter_packets(&adap->demux, buf, 21);
 				adap->packet_count = 0;
 			}
@@ -319,20 +388,27 @@ static int pt1_thread(void *data)
 	pt1 = data;
 	set_freezable();
 
-	while (!kthread_should_stop()) {
+	while (!kthread_should_stop())
+	{
 		try_to_freeze();
 
 		page = pt1->tables[pt1->table_index].bufs[pt1->buf_index].page;
-		if (!pt1_filter(pt1, page)) {
+
+		if (!pt1_filter(pt1, page))
+		{
 			schedule_timeout_interruptible((HZ + 999) / 1000);
 			continue;
 		}
 
-		if (++pt1->buf_index >= PT1_NR_BUFS) {
+		if (++pt1->buf_index >= PT1_NR_BUFS)
+		{
 			pt1_increment_table_count(pt1);
 			pt1->buf_index = 0;
+
 			if (++pt1->table_index >= pt1_nr_tables)
+			{
 				pt1->table_index = 0;
+			}
 		}
 	}
 
@@ -350,9 +426,12 @@ static void *pt1_alloc_page(struct pt1 *pt1, dma_addr_t *addrp, u32 *pfnp)
 	dma_addr_t addr;
 
 	page = dma_alloc_coherent(&pt1->pdev->dev, PT1_PAGE_SIZE, &addr,
-				  GFP_KERNEL);
+							  GFP_KERNEL);
+
 	if (page == NULL)
+	{
 		return NULL;
+	}
 
 	BUG_ON(addr & (PT1_PAGE_SIZE - 1));
 	BUG_ON(addr >> PT1_PAGE_SHIFT >> 31 >> 1);
@@ -374,8 +453,11 @@ pt1_init_buffer(struct pt1 *pt1, struct pt1_buffer *buf,  u32 *pfnp)
 	dma_addr_t addr;
 
 	page = pt1_alloc_page(pt1, &addr, pfnp);
+
 	if (page == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	page->upackets[PT1_NR_UPACKETS - 1] = 0;
 
@@ -389,7 +471,9 @@ static void pt1_cleanup_table(struct pt1 *pt1, struct pt1_table *table)
 	int i;
 
 	for (i = 0; i < PT1_NR_BUFS; i++)
+	{
 		pt1_cleanup_buffer(pt1, &table->bufs[i]);
+	}
 
 	pt1_free_page(pt1, table->page, table->addr);
 }
@@ -403,13 +487,20 @@ pt1_init_table(struct pt1 *pt1, struct pt1_table *table, u32 *pfnp)
 	u32 buf_pfn;
 
 	page = pt1_alloc_page(pt1, &addr, pfnp);
-	if (page == NULL)
-		return -ENOMEM;
 
-	for (i = 0; i < PT1_NR_BUFS; i++) {
+	if (page == NULL)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < PT1_NR_BUFS; i++)
+	{
 		ret = pt1_init_buffer(pt1, &table->bufs[i], &buf_pfn);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 
 		page->buf_pfns[i] = cpu_to_le32(buf_pfn);
 	}
@@ -420,8 +511,11 @@ pt1_init_table(struct pt1 *pt1, struct pt1_table *table, u32 *pfnp)
 	return 0;
 
 err:
+
 	while (i--)
+	{
 		pt1_cleanup_buffer(pt1, &table->bufs[i]);
+	}
 
 	pt1_free_page(pt1, page, addr);
 	return ret;
@@ -436,7 +530,9 @@ static void pt1_cleanup_tables(struct pt1 *pt1)
 	pt1_unregister_tables(pt1);
 
 	for (i = 0; i < pt1_nr_tables; i++)
+	{
 		pt1_cleanup_table(pt1, &tables[i]);
+	}
 
 	vfree(tables);
 }
@@ -448,23 +544,37 @@ static int pt1_init_tables(struct pt1 *pt1)
 	u32 first_pfn, pfn;
 
 	tables = vmalloc(sizeof(struct pt1_table) * pt1_nr_tables);
+
 	if (tables == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	pt1_init_table_count(pt1);
 
 	i = 0;
-	if (pt1_nr_tables) {
+
+	if (pt1_nr_tables)
+	{
 		ret = pt1_init_table(pt1, &tables[0], &first_pfn);
+
 		if (ret)
+		{
 			goto err;
+		}
+
 		i++;
 	}
 
-	while (i < pt1_nr_tables) {
+	while (i < pt1_nr_tables)
+	{
 		ret = pt1_init_table(pt1, &tables[i], &pfn);
+
 		if (ret)
+		{
 			goto err;
+		}
+
 		tables[i - 1].page->next_pfn = cpu_to_le32(pfn);
 		i++;
 	}
@@ -476,8 +586,11 @@ static int pt1_init_tables(struct pt1 *pt1)
 	return 0;
 
 err:
+
 	while (i--)
+	{
 		pt1_cleanup_table(pt1, &tables[i]);
+	}
 
 	vfree(tables);
 	return ret;
@@ -488,13 +601,18 @@ static int pt1_start_polling(struct pt1 *pt1)
 	int ret = 0;
 
 	mutex_lock(&pt1->lock);
-	if (!pt1->kthread) {
+
+	if (!pt1->kthread)
+	{
 		pt1->kthread = kthread_run(pt1_thread, pt1, "earth-pt1");
-		if (IS_ERR(pt1->kthread)) {
+
+		if (IS_ERR(pt1->kthread))
+		{
 			ret = PTR_ERR(pt1->kthread);
 			pt1->kthread = NULL;
 		}
 	}
+
 	mutex_unlock(&pt1->lock);
 	return ret;
 }
@@ -503,14 +621,21 @@ static int pt1_start_feed(struct dvb_demux_feed *feed)
 {
 	struct pt1_adapter *adap;
 	adap = container_of(feed->demux, struct pt1_adapter, demux);
-	if (!adap->users++) {
+
+	if (!adap->users++)
+	{
 		int ret;
 
 		ret = pt1_start_polling(adap->pt1);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		pt1_set_stream(adap->pt1, adap->index, 1);
 	}
+
 	return 0;
 }
 
@@ -519,13 +644,18 @@ static void pt1_stop_polling(struct pt1 *pt1)
 	int i, count;
 
 	mutex_lock(&pt1->lock);
-	for (i = 0, count = 0; i < PT1_NR_ADAPS; i++)
-		count += pt1->adaps[i]->users;
 
-	if (count == 0 && pt1->kthread) {
+	for (i = 0, count = 0; i < PT1_NR_ADAPS; i++)
+	{
+		count += pt1->adaps[i]->users;
+	}
+
+	if (count == 0 && pt1->kthread)
+	{
 		kthread_stop(pt1->kthread);
 		pt1->kthread = NULL;
 	}
+
 	mutex_unlock(&pt1->lock);
 }
 
@@ -533,10 +663,13 @@ static int pt1_stop_feed(struct dvb_demux_feed *feed)
 {
 	struct pt1_adapter *adap;
 	adap = container_of(feed->demux, struct pt1_adapter, demux);
-	if (!--adap->users) {
+
+	if (!--adap->users)
+	{
 		pt1_set_stream(adap->pt1, adap->index, 0);
 		pt1_stop_polling(adap->pt1);
 	}
+
 	return 0;
 }
 
@@ -546,7 +679,8 @@ pt1_update_power(struct pt1 *pt1)
 	int bits;
 	int i;
 	struct pt1_adapter *adap;
-	static const int sleep_bits[] = {
+	static const int sleep_bits[] =
+	{
 		1 << 4,
 		1 << 6 | 1 << 7,
 		1 << 5,
@@ -555,22 +689,29 @@ pt1_update_power(struct pt1 *pt1)
 
 	bits = pt1->power | !pt1->reset << 3;
 	mutex_lock(&pt1->lock);
-	for (i = 0; i < PT1_NR_ADAPS; i++) {
+
+	for (i = 0; i < PT1_NR_ADAPS; i++)
+	{
 		adap = pt1->adaps[i];
-		switch (adap->voltage) {
-		case SEC_VOLTAGE_13: /* actually 11V */
-			bits |= 1 << 1;
-			break;
-		case SEC_VOLTAGE_18: /* actually 15V */
-			bits |= 1 << 1 | 1 << 2;
-			break;
-		default:
-			break;
+
+		switch (adap->voltage)
+		{
+			case SEC_VOLTAGE_13: /* actually 11V */
+				bits |= 1 << 1;
+				break;
+
+			case SEC_VOLTAGE_18: /* actually 15V */
+				bits |= 1 << 1 | 1 << 2;
+				break;
+
+			default:
+				break;
 		}
 
 		/* XXX: The bits should be changed depending on adap->sleep. */
 		bits |= sleep_bits[i];
 	}
+
 	pt1_write_reg(pt1, 1, bits);
 	mutex_unlock(&pt1->lock);
 }
@@ -584,9 +725,13 @@ static int pt1_set_voltage(struct dvb_frontend *fe, enum fe_sec_voltage voltage)
 	pt1_update_power(adap->pt1);
 
 	if (adap->orig_set_voltage)
+	{
 		return adap->orig_set_voltage(fe, voltage);
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static int pt1_sleep(struct dvb_frontend *fe)
@@ -598,9 +743,13 @@ static int pt1_sleep(struct dvb_frontend *fe)
 	pt1_update_power(adap->pt1);
 
 	if (adap->orig_sleep)
+	{
 		return adap->orig_sleep(fe);
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static int pt1_wakeup(struct dvb_frontend *fe)
@@ -613,9 +762,13 @@ static int pt1_wakeup(struct dvb_frontend *fe)
 	schedule_timeout_uninterruptible((HZ + 999) / 1000);
 
 	if (adap->orig_init)
+	{
 		return adap->orig_init(fe);
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static void pt1_free_adapter(struct pt1_adapter *adap)
@@ -641,7 +794,9 @@ pt1_alloc_adapter(struct pt1 *pt1)
 	int ret;
 
 	adap = kzalloc(sizeof(struct pt1_adapter), GFP_KERNEL);
-	if (!adap) {
+
+	if (!adap)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
@@ -652,7 +807,9 @@ pt1_alloc_adapter(struct pt1 *pt1)
 	adap->sleep = 1;
 
 	buf = (u8 *)__get_free_page(GFP_KERNEL);
-	if (!buf) {
+
+	if (!buf)
+	{
 		ret = -ENOMEM;
 		goto err_kfree;
 	}
@@ -665,9 +822,12 @@ pt1_alloc_adapter(struct pt1 *pt1)
 	dvb_adap = &adap->adap;
 	dvb_adap->priv = adap;
 	ret = dvb_register_adapter(dvb_adap, DRIVER_NAME, THIS_MODULE,
-				   &pt1->pdev->dev, adapter_nr);
+							   &pt1->pdev->dev, adapter_nr);
+
 	if (ret < 0)
+	{
 		goto err_free_page;
+	}
 
 	demux = &adap->demux;
 	demux->dmx.capabilities = DMX_TS_FILTERING | DMX_SECTION_FILTERING;
@@ -678,16 +838,22 @@ pt1_alloc_adapter(struct pt1 *pt1)
 	demux->stop_feed = pt1_stop_feed;
 	demux->write_to_decoder = NULL;
 	ret = dvb_dmx_init(demux);
+
 	if (ret < 0)
+	{
 		goto err_unregister_adapter;
+	}
 
 	dmxdev = &adap->dmxdev;
 	dmxdev->filternum = 256;
 	dmxdev->demux = &demux->dmx;
 	dmxdev->capabilities = 0;
 	ret = dvb_dmxdev_init(dmxdev, dvb_adap);
+
 	if (ret < 0)
+	{
 		goto err_dmx_release;
+	}
 
 	return adap;
 
@@ -706,8 +872,11 @@ err:
 static void pt1_cleanup_adapters(struct pt1 *pt1)
 {
 	int i;
+
 	for (i = 0; i < PT1_NR_ADAPS; i++)
+	{
 		pt1_free_adapter(pt1->adaps[i]);
+	}
 }
 
 static int pt1_init_adapters(struct pt1 *pt1)
@@ -716,9 +885,12 @@ static int pt1_init_adapters(struct pt1 *pt1)
 	struct pt1_adapter *adap;
 	int ret;
 
-	for (i = 0; i < PT1_NR_ADAPS; i++) {
+	for (i = 0; i < PT1_NR_ADAPS; i++)
+	{
 		adap = pt1_alloc_adapter(pt1);
-		if (IS_ERR(adap)) {
+
+		if (IS_ERR(adap))
+		{
 			ret = PTR_ERR(adap);
 			goto err;
 		}
@@ -726,11 +898,15 @@ static int pt1_init_adapters(struct pt1 *pt1)
 		adap->index = i;
 		pt1->adaps[i] = adap;
 	}
+
 	return 0;
 
 err:
+
 	while (i--)
+	{
 		pt1_free_adapter(pt1->adaps[i]);
+	}
 
 	return ret;
 }
@@ -752,8 +928,11 @@ static int pt1_init_frontend(struct pt1_adapter *adap, struct dvb_frontend *fe)
 	fe->ops.init = pt1_wakeup;
 
 	ret = dvb_register_frontend(&adap->adap, fe);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	adap->fe = fe;
 	return 0;
@@ -762,16 +941,21 @@ static int pt1_init_frontend(struct pt1_adapter *adap, struct dvb_frontend *fe)
 static void pt1_cleanup_frontends(struct pt1 *pt1)
 {
 	int i;
+
 	for (i = 0; i < PT1_NR_ADAPS; i++)
+	{
 		pt1_cleanup_frontend(pt1->adaps[i]);
+	}
 }
 
-struct pt1_config {
+struct pt1_config
+{
 	struct va1j5jf8007s_config va1j5jf8007s_config;
 	struct va1j5jf8007t_config va1j5jf8007t_config;
 };
 
-static const struct pt1_config pt1_configs[2] = {
+static const struct pt1_config pt1_configs[2] =
+{
 	{
 		{
 			.demod_address = 0x1b,
@@ -793,7 +977,8 @@ static const struct pt1_config pt1_configs[2] = {
 	},
 };
 
-static const struct pt1_config pt2_configs[2] = {
+static const struct pt1_config pt2_configs[2] =
+{
 	{
 		{
 			.demod_address = 0x1b,
@@ -828,58 +1013,83 @@ static int pt1_init_frontends(struct pt1 *pt1)
 
 	i2c_adap = &pt1->i2c_adap;
 	configs = pt1->pdev->device == 0x211a ? pt1_configs : pt2_configs;
-	do {
+
+	do
+	{
 		config = &configs[i / 2];
 
 		fe[i] = va1j5jf8007s_attach(&config->va1j5jf8007s_config,
-					    i2c_adap);
-		if (!fe[i]) {
+									i2c_adap);
+
+		if (!fe[i])
+		{
 			ret = -ENODEV; /* This does not sound nice... */
 			goto err;
 		}
+
 		i++;
 
 		fe[i] = va1j5jf8007t_attach(&config->va1j5jf8007t_config,
-					    i2c_adap);
-		if (!fe[i]) {
+									i2c_adap);
+
+		if (!fe[i])
+		{
 			ret = -ENODEV;
 			goto err;
 		}
+
 		i++;
 
 		ret = va1j5jf8007s_prepare(fe[i - 2]);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 
 		ret = va1j5jf8007t_prepare(fe[i - 1]);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 
-	} while (i < 4);
+	}
+	while (i < 4);
 
-	do {
+	do
+	{
 		ret = pt1_init_frontend(pt1->adaps[j], fe[j]);
+
 		if (ret < 0)
+		{
 			goto err;
-	} while (++j < 4);
+		}
+	}
+	while (++j < 4);
 
 	return 0;
 
 err:
+
 	while (i-- > j)
+	{
 		fe[i]->ops.release(fe[i]);
+	}
 
 	while (j--)
+	{
 		dvb_unregister_frontend(fe[j]);
+	}
 
 	return ret;
 }
 
 static void pt1_i2c_emit(struct pt1 *pt1, int addr, int busy, int read_enable,
-			 int clock, int data, int next_addr)
+						 int clock, int data, int next_addr)
 {
 	pt1_write_reg(pt1, 4, addr << 18 | busy << 13 | read_enable << 12 |
-		      !clock << 11 | !data << 10 | next_addr);
+				  !clock << 11 | !data << 10 | next_addr);
 }
 
 static void pt1_i2c_write_bit(struct pt1 *pt1, int addr, int *addrp, int data)
@@ -902,8 +1112,12 @@ static void pt1_i2c_read_bit(struct pt1 *pt1, int addr, int *addrp)
 static void pt1_i2c_write_byte(struct pt1 *pt1, int addr, int *addrp, int data)
 {
 	int i;
+
 	for (i = 0; i < 8; i++)
+	{
 		pt1_i2c_write_bit(pt1, addr, &addr, data >> (7 - i) & 1);
+	}
+
 	pt1_i2c_write_bit(pt1, addr, &addr, 1);
 	*addrp = addr;
 }
@@ -911,8 +1125,12 @@ static void pt1_i2c_write_byte(struct pt1 *pt1, int addr, int *addrp, int data)
 static void pt1_i2c_read_byte(struct pt1 *pt1, int addr, int *addrp, int last)
 {
 	int i;
+
 	for (i = 0; i < 8; i++)
+	{
 		pt1_i2c_read_bit(pt1, addr, &addr);
+	}
+
 	pt1_i2c_write_bit(pt1, addr, &addr, last);
 	*addrp = addr;
 }
@@ -931,8 +1149,12 @@ pt1_i2c_write_msg(struct pt1 *pt1, int addr, int *addrp, struct i2c_msg *msg)
 	int i;
 	pt1_i2c_prepare(pt1, addr, &addr);
 	pt1_i2c_write_byte(pt1, addr, &addr, msg->addr << 1);
+
 	for (i = 0; i < msg->len; i++)
+	{
 		pt1_i2c_write_byte(pt1, addr, &addr, msg->buf[i]);
+	}
+
 	*addrp = addr;
 }
 
@@ -942,8 +1164,12 @@ pt1_i2c_read_msg(struct pt1 *pt1, int addr, int *addrp, struct i2c_msg *msg)
 	int i;
 	pt1_i2c_prepare(pt1, addr, &addr);
 	pt1_i2c_write_byte(pt1, addr, &addr, msg->addr << 1 | 1);
+
 	for (i = 0; i < msg->len; i++)
+	{
 		pt1_i2c_read_byte(pt1, addr, &addr, i == msg->len - 1);
+	}
+
 	*addrp = addr;
 }
 
@@ -954,11 +1180,18 @@ static int pt1_i2c_end(struct pt1 *pt1, int addr)
 	pt1_i2c_emit(pt1, addr + 2, 1, 0, 1, 1, 0);
 
 	pt1_write_reg(pt1, 0, 0x00000004);
-	do {
+
+	do
+	{
 		if (signal_pending(current))
+		{
 			return -EINTR;
+		}
+
 		schedule_timeout_interruptible((HZ + 999) / 1000);
-	} while (pt1_read_reg(pt1, 0) & 0x00000080);
+	}
+	while (pt1_read_reg(pt1, 0) & 0x00000080);
+
 	return 0;
 }
 
@@ -970,12 +1203,14 @@ static void pt1_i2c_begin(struct pt1 *pt1, int *addrp)
 	pt1_i2c_emit(pt1, addr,     0, 0, 1, 1, addr /* itself */);
 	addr = addr + 1;
 
-	if (!pt1->i2c_running) {
+	if (!pt1->i2c_running)
+	{
 		pt1_i2c_emit(pt1, addr,     1, 0, 1, 1, addr + 1);
 		pt1_i2c_emit(pt1, addr + 1, 1, 0, 1, 0, addr + 2);
 		addr = addr + 2;
 		pt1->i2c_running = 1;
 	}
+
 	*addrp = addr;
 }
 
@@ -990,41 +1225,63 @@ static int pt1_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
 
 	pt1 = i2c_get_adapdata(adap);
 
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num; i++)
+	{
 		msg = &msgs[i];
+
 		if (msg->flags & I2C_M_RD)
+		{
 			return -ENOTSUPP;
+		}
 
 		if (i + 1 < num)
+		{
 			next_msg = &msgs[i + 1];
+		}
 		else
+		{
 			next_msg = NULL;
+		}
 
-		if (next_msg && next_msg->flags & I2C_M_RD) {
+		if (next_msg && next_msg->flags & I2C_M_RD)
+		{
 			i++;
 
 			len = next_msg->len;
+
 			if (len > 4)
+			{
 				return -ENOTSUPP;
+			}
 
 			pt1_i2c_begin(pt1, &addr);
 			pt1_i2c_write_msg(pt1, addr, &addr, msg);
 			pt1_i2c_read_msg(pt1, addr, &addr, next_msg);
 			ret = pt1_i2c_end(pt1, addr);
+
 			if (ret < 0)
+			{
 				return ret;
+			}
 
 			word = pt1_read_reg(pt1, 2);
-			while (len--) {
+
+			while (len--)
+			{
 				next_msg->buf[len] = word;
 				word >>= 8;
 			}
-		} else {
+		}
+		else
+		{
 			pt1_i2c_begin(pt1, &addr);
 			pt1_i2c_write_msg(pt1, addr, &addr, msg);
 			ret = pt1_i2c_end(pt1, addr);
+
 			if (ret < 0)
+			{
 				return ret;
+			}
 		}
 	}
 
@@ -1036,7 +1293,8 @@ static u32 pt1_i2c_func(struct i2c_adapter *adap)
 	return I2C_FUNC_I2C;
 }
 
-static const struct i2c_algorithm pt1_i2c_algo = {
+static const struct i2c_algorithm pt1_i2c_algo =
+{
 	.master_xfer = pt1_i2c_xfer,
 	.functionality = pt1_i2c_func,
 };
@@ -1044,15 +1302,21 @@ static const struct i2c_algorithm pt1_i2c_algo = {
 static void pt1_i2c_wait(struct pt1 *pt1)
 {
 	int i;
+
 	for (i = 0; i < 128; i++)
+	{
 		pt1_i2c_emit(pt1, 0, 0, 0, 1, 1, 0);
+	}
 }
 
 static void pt1_i2c_init(struct pt1 *pt1)
 {
 	int i;
+
 	for (i = 0; i < 1024; i++)
+	{
 		pt1_i2c_emit(pt1, i, 0, 0, 1, 1, 0);
+	}
 }
 
 static void pt1_remove(struct pci_dev *pdev)
@@ -1064,7 +1328,10 @@ static void pt1_remove(struct pci_dev *pdev)
 	regs = pt1->regs;
 
 	if (pt1->kthread)
+	{
 		kthread_stop(pt1->kthread);
+	}
+
 	pt1_cleanup_tables(pt1);
 	pt1_cleanup_frontends(pt1);
 	pt1_disable_ram(pt1);
@@ -1087,27 +1354,40 @@ static int pt1_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	struct i2c_adapter *i2c_adap;
 
 	ret = pci_enable_device(pdev);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	ret = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
+
 	if (ret < 0)
+	{
 		goto err_pci_disable_device;
+	}
 
 	pci_set_master(pdev);
 
 	ret = pci_request_regions(pdev, DRIVER_NAME);
+
 	if (ret < 0)
+	{
 		goto err_pci_disable_device;
+	}
 
 	regs = pci_iomap(pdev, 0, 0);
-	if (!regs) {
+
+	if (!regs)
+	{
 		ret = -EIO;
 		goto err_pci_release_regions;
 	}
 
 	pt1 = kzalloc(sizeof(struct pt1), GFP_KERNEL);
-	if (!pt1) {
+
+	if (!pt1)
+	{
 		ret = -ENOMEM;
 		goto err_pci_iounmap;
 	}
@@ -1118,8 +1398,11 @@ static int pt1_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	pci_set_drvdata(pdev, pt1);
 
 	ret = pt1_init_adapters(pt1);
+
 	if (ret < 0)
+	{
 		goto err_kfree;
+	}
 
 	mutex_init(&pt1->lock);
 
@@ -1134,33 +1417,51 @@ static int pt1_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	strcpy(i2c_adap->name, DRIVER_NAME);
 	i2c_set_adapdata(i2c_adap, pt1);
 	ret = i2c_add_adapter(i2c_adap);
+
 	if (ret < 0)
+	{
 		goto err_pt1_cleanup_adapters;
+	}
 
 	pt1_i2c_init(pt1);
 	pt1_i2c_wait(pt1);
 
 	ret = pt1_sync(pt1);
+
 	if (ret < 0)
+	{
 		goto err_i2c_del_adapter;
+	}
 
 	pt1_identify(pt1);
 
 	ret = pt1_unlock(pt1);
+
 	if (ret < 0)
+	{
 		goto err_i2c_del_adapter;
+	}
 
 	ret = pt1_reset_pci(pt1);
+
 	if (ret < 0)
+	{
 		goto err_i2c_del_adapter;
+	}
 
 	ret = pt1_reset_ram(pt1);
+
 	if (ret < 0)
+	{
 		goto err_i2c_del_adapter;
+	}
 
 	ret = pt1_enable_ram(pt1);
+
 	if (ret < 0)
+	{
 		goto err_i2c_del_adapter;
+	}
 
 	pt1_init_streams(pt1);
 
@@ -1173,12 +1474,18 @@ static int pt1_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	schedule_timeout_uninterruptible((HZ + 999) / 1000);
 
 	ret = pt1_init_frontends(pt1);
+
 	if (ret < 0)
+	{
 		goto err_pt1_disable_ram;
+	}
 
 	ret = pt1_init_tables(pt1);
+
 	if (ret < 0)
+	{
 		goto err_pt1_cleanup_frontends;
+	}
 
 	return 0;
 
@@ -1206,14 +1513,16 @@ err:
 
 }
 
-static struct pci_device_id pt1_id_table[] = {
+static struct pci_device_id pt1_id_table[] =
+{
 	{ PCI_DEVICE(0x10ee, 0x211a) },
 	{ PCI_DEVICE(0x10ee, 0x222a) },
 	{ },
 };
 MODULE_DEVICE_TABLE(pci, pt1_id_table);
 
-static struct pci_driver pt1_driver = {
+static struct pci_driver pt1_driver =
+{
 	.name		= DRIVER_NAME,
 	.probe		= pt1_probe,
 	.remove		= pt1_remove,

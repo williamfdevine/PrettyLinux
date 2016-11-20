@@ -58,7 +58,7 @@ fld_debugfs_targets_seq_show(struct seq_file *m, void *unused)
 
 	spin_lock(&fld->lcf_lock);
 	list_for_each_entry(target, &fld->lcf_targets, ft_chain)
-		seq_printf(m, "%s\n", fld_target_name(target));
+	seq_printf(m, "%s\n", fld_target_name(target));
 	spin_unlock(&fld->lcf_lock);
 
 	return 0;
@@ -78,8 +78,8 @@ fld_debugfs_hash_seq_show(struct seq_file *m, void *unused)
 
 static ssize_t
 fld_debugfs_hash_seq_write(struct file *file,
-			   const char __user *buffer,
-			   size_t count, loff_t *off)
+						   const char __user *buffer,
+						   size_t count, loff_t *off)
 {
 	struct lu_client_fld *fld;
 	struct lu_fld_hash *hash = NULL;
@@ -87,30 +87,39 @@ fld_debugfs_hash_seq_write(struct file *file,
 	int i;
 
 	if (count > sizeof(fh_name))
+	{
 		return -ENAMETOOLONG;
+	}
 
 	if (copy_from_user(fh_name, buffer, count) != 0)
+	{
 		return -EFAULT;
+	}
 
 	fld = ((struct seq_file *)file->private_data)->private;
 
-	for (i = 0; fld_hash[i].fh_name; i++) {
+	for (i = 0; fld_hash[i].fh_name; i++)
+	{
 		if (count != strlen(fld_hash[i].fh_name))
+		{
 			continue;
+		}
 
-		if (!strncmp(fld_hash[i].fh_name, fh_name, count)) {
+		if (!strncmp(fld_hash[i].fh_name, fh_name, count))
+		{
 			hash = &fld_hash[i];
 			break;
 		}
 	}
 
-	if (hash) {
+	if (hash)
+	{
 		spin_lock(&fld->lcf_lock);
 		fld->lcf_hash = hash;
 		spin_unlock(&fld->lcf_lock);
 
 		CDEBUG(D_INFO, "%s: Changed hash to \"%s\"\n",
-		       fld->lcf_name, hash->fh_name);
+			   fld->lcf_name, hash->fh_name);
 	}
 
 	return count;
@@ -118,7 +127,7 @@ fld_debugfs_hash_seq_write(struct file *file,
 
 static ssize_t
 fld_debugfs_cache_flush_write(struct file *file, const char __user *buffer,
-			      size_t count, loff_t *pos)
+							  size_t count, loff_t *pos)
 {
 	struct lu_client_fld *fld = file->private_data;
 
@@ -136,7 +145,8 @@ fld_debugfs_cache_flush_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static struct file_operations fld_debugfs_cache_flush_fops = {
+static struct file_operations fld_debugfs_cache_flush_fops =
+{
 	.owner		= THIS_MODULE,
 	.open           = simple_open,
 	.write		= fld_debugfs_cache_flush_write,
@@ -146,7 +156,8 @@ static struct file_operations fld_debugfs_cache_flush_fops = {
 LPROC_SEQ_FOPS_RO(fld_debugfs_targets);
 LPROC_SEQ_FOPS(fld_debugfs_hash);
 
-struct lprocfs_vars fld_client_debugfs_list[] = {
+struct lprocfs_vars fld_client_debugfs_list[] =
+{
 	{ "targets",	 &fld_debugfs_targets_fops },
 	{ "hash",	 &fld_debugfs_hash_fops },
 	{ "cache_flush", &fld_debugfs_cache_flush_fops },

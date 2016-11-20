@@ -4,17 +4,19 @@
 #include <subdev/mc.h>
 
 void nvkm_mc_ctor(const struct nvkm_mc_func *, struct nvkm_device *,
-		  int index, struct nvkm_mc *);
+				  int index, struct nvkm_mc *);
 int nvkm_mc_new_(const struct nvkm_mc_func *, struct nvkm_device *,
-		 int index, struct nvkm_mc **);
+				 int index, struct nvkm_mc **);
 
-struct nvkm_mc_map {
+struct nvkm_mc_map
+{
 	u32 stat;
 	u32 unit;
 	bool noauto;
 };
 
-struct nvkm_mc_func {
+struct nvkm_mc_func
+{
 	void (*init)(struct nvkm_mc *);
 	const struct nvkm_mc_map *intr;
 	/* disable reporting of interrupts to host */

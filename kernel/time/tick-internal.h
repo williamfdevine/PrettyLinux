@@ -24,7 +24,7 @@ extern void tick_shutdown(unsigned int cpu);
 extern void tick_suspend(void);
 extern void tick_resume(void);
 extern bool tick_check_replacement(struct clock_event_device *curdev,
-				   struct clock_event_device *newdev);
+								   struct clock_event_device *newdev);
 extern void tick_install_replacement(struct clock_event_device *dev);
 extern int tick_is_oneshot_available(void);
 extern struct tick_device *tick_get_device(int cpu);
@@ -42,18 +42,18 @@ static inline enum clock_event_state clockevent_get_state(struct clock_event_dev
 }
 
 static inline void clockevent_set_state(struct clock_event_device *dev,
-					enum clock_event_state state)
+										enum clock_event_state state)
 {
 	dev->state_use_accessors = state;
 }
 
 extern void clockevents_shutdown(struct clock_event_device *dev);
 extern void clockevents_exchange_device(struct clock_event_device *old,
-					struct clock_event_device *new);
+										struct clock_event_device *new);
 extern void clockevents_switch_state(struct clock_event_device *dev,
-				     enum clock_event_state state);
+									 enum clock_event_state state);
 extern int clockevents_program_event(struct clock_event_device *dev,
-				     ktime_t expires, bool force);
+									 ktime_t expires, bool force);
 extern void clockevents_handle_noop(struct clock_event_device *dev);
 extern int __clockevents_update_freq(struct clock_event_device *dev, u32 freq);
 extern ssize_t sysfs_get_uname(const char *buf, char *dst, size_t cnt);
@@ -99,8 +99,8 @@ static inline void tick_resume(void) { }
 /* Oneshot related functions */
 #ifdef CONFIG_TICK_ONESHOT
 extern void tick_setup_oneshot(struct clock_event_device *newdev,
-			       void (*handler)(struct clock_event_device *),
-			       ktime_t nextevt);
+							   void (*handler)(struct clock_event_device *),
+							   ktime_t nextevt);
 extern int tick_program_event(ktime_t expires, int force);
 extern void tick_oneshot_notify(void);
 extern int tick_switch_to_oneshot(void (*handler)(struct clock_event_device *));
@@ -113,8 +113,8 @@ extern int tick_init_highres(void);
 #else /* !CONFIG_TICK_ONESHOT: */
 static inline
 void tick_setup_oneshot(struct clock_event_device *newdev,
-			void (*handler)(struct clock_event_device *),
-			ktime_t nextevt) { BUG(); }
+						void (*handler)(struct clock_event_device *),
+						ktime_t nextevt) { BUG(); }
 static inline void tick_resume_oneshot(void) { BUG(); }
 static inline int tick_program_event(ktime_t expires, int force) { return 0; }
 static inline void tick_oneshot_notify(void) { }
@@ -150,9 +150,9 @@ static inline void tick_nohz_init(void) { }
 #endif
 
 #ifdef CONFIG_NO_HZ_COMMON
-extern unsigned long tick_nohz_active;
+	extern unsigned long tick_nohz_active;
 #else
-#define tick_nohz_active (0)
+	#define tick_nohz_active (0)
 #endif
 
 #if defined(CONFIG_SMP) && defined(CONFIG_NO_HZ_COMMON)

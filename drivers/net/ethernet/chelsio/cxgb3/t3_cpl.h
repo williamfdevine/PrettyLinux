@@ -33,10 +33,11 @@
 #define T3_CPL_H
 
 #if !defined(__LITTLE_ENDIAN_BITFIELD) && !defined(__BIG_ENDIAN_BITFIELD)
-# include <asm/byteorder.h>
+	#include <asm/byteorder.h>
 #endif
 
-enum CPL_opcode {
+enum CPL_opcode
+{
 	CPL_PASS_OPEN_REQ = 0x1,
 	CPL_PASS_ACCEPT_RPL = 0x2,
 	CPL_ACT_OPEN_REQ = 0x3,
@@ -112,7 +113,8 @@ enum CPL_opcode {
 	NUM_CPL_CMDS		/* must be last and previous entries must be sorted */
 };
 
-enum CPL_error {
+enum CPL_error
+{
 	CPL_ERR_NONE = 0,
 	CPL_ERR_TCAM_PARITY = 1,
 	CPL_ERR_TCAM_FULL = 3,
@@ -131,57 +133,66 @@ enum CPL_error {
 	CPL_ERR_GENERAL = 99
 };
 
-enum {
+enum
+{
 	CPL_CONN_POLICY_AUTO = 0,
 	CPL_CONN_POLICY_ASK = 1,
 	CPL_CONN_POLICY_DENY = 3
 };
 
-enum {
+enum
+{
 	ULP_MODE_NONE = 0,
 	ULP_MODE_ISCSI = 2,
 	ULP_MODE_RDMA = 4,
 	ULP_MODE_TCPDDP = 5
 };
 
-enum {
+enum
+{
 	ULP_CRC_HEADER = 1 << 0,
 	ULP_CRC_DATA = 1 << 1
 };
 
-enum {
+enum
+{
 	CPL_PASS_OPEN_ACCEPT,
 	CPL_PASS_OPEN_REJECT
 };
 
-enum {
+enum
+{
 	CPL_ABORT_SEND_RST = 0,
 	CPL_ABORT_NO_RST,
 	CPL_ABORT_POST_CLOSE_REQ = 2
 };
 
-enum {				/* TX_PKT_LSO ethernet types */
+enum  				/* TX_PKT_LSO ethernet types */
+{
 	CPL_ETH_II,
 	CPL_ETH_II_VLAN,
 	CPL_ETH_802_3,
 	CPL_ETH_802_3_VLAN
 };
 
-enum {				/* TCP congestion control algorithms */
+enum  				/* TCP congestion control algorithms */
+{
 	CONG_ALG_RENO,
 	CONG_ALG_TAHOE,
 	CONG_ALG_NEWRENO,
 	CONG_ALG_HIGHSPEED
 };
 
-enum {			/* RSS hash type */
+enum  			/* RSS hash type */
+{
 	RSS_HASH_NONE = 0,
 	RSS_HASH_2_TUPLE = 1,
 	RSS_HASH_4_TUPLE = 2,
 	RSS_HASH_TCPV6 = 3
 };
 
-union opcode_tid {
+union opcode_tid
+{
 	__be32 opcode_tid;
 	__u8 opcode;
 };
@@ -206,37 +217,40 @@ union opcode_tid {
 /* extract the TID from a CPL command */
 #define GET_TID(cmd) (G_TID(ntohl(OPCODE_TID(cmd))))
 
-struct tcp_options {
+struct tcp_options
+{
 	__be16 mss;
 	__u8 wsf;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	 __u8:5;
-	__u8 ecn:1;
-	__u8 sack:1;
-	__u8 tstamp:1;
+	__u8: 5;
+	__u8 ecn: 1;
+	__u8 sack: 1;
+	__u8 tstamp: 1;
 #else
-	__u8 tstamp:1;
-	__u8 sack:1;
-	__u8 ecn:1;
-	 __u8:5;
+	__u8 tstamp: 1;
+	__u8 sack: 1;
+	__u8 ecn: 1;
+	__u8: 5;
 #endif
 };
 
-struct rss_header {
+struct rss_header
+{
 	__u8 opcode;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8 cpu_idx:6;
-	__u8 hash_type:2;
+	__u8 cpu_idx: 6;
+	__u8 hash_type: 2;
 #else
-	__u8 hash_type:2;
-	__u8 cpu_idx:6;
+	__u8 hash_type: 2;
+	__u8 cpu_idx: 6;
 #endif
 	__be16 cq_idx;
 	__be32 rss_hash_val;
 };
 
 #ifndef CHELSIO_FW
-struct work_request_hdr {
+struct work_request_hdr
+{
 	__be32 wr_hi;
 	__be32 wr_lo;
 };
@@ -475,7 +489,8 @@ struct work_request_hdr {
 #define V_RX_FC_VALID(x) ((x) << S_RX_FC_VALID)
 #define F_RX_FC_VALID    V_RX_FC_VALID(1U)
 
-struct cpl_pass_open_req {
+struct cpl_pass_open_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 local_port;
@@ -488,7 +503,8 @@ struct cpl_pass_open_req {
 	__be32 opt1;
 };
 
-struct cpl_pass_open_rpl {
+struct cpl_pass_open_rpl
+{
 	RSS_HDR union opcode_tid ot;
 	__be16 local_port;
 	__be16 peer_port;
@@ -498,7 +514,8 @@ struct cpl_pass_open_rpl {
 	__u8 status;
 };
 
-struct cpl_pass_establish {
+struct cpl_pass_establish
+{
 	RSS_HDR union opcode_tid ot;
 	__be16 local_port;
 	__be16 peer_port;
@@ -535,7 +552,8 @@ struct cpl_pass_establish {
 #define G_TCPOPT_SND_WSCALE(x) (((x) >> 8) & 0xf)
 #define G_TCPOPT_MSS(x)        (((x) >> 12) & 0xf)
 
-struct cpl_pass_accept_req {
+struct cpl_pass_accept_req
+{
 	RSS_HDR union opcode_tid ot;
 	__be16 local_port;
 	__be16 peer_port;
@@ -547,22 +565,23 @@ struct cpl_pass_accept_req {
 	__be16 vlan_tag;
 	__u8 src_mac[6];
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	 __u8:3;
-	__u8 addr_idx:3;
-	__u8 port_idx:1;
-	__u8 exact_match:1;
+	__u8: 3;
+	__u8 addr_idx: 3;
+	__u8 port_idx: 1;
+	__u8 exact_match: 1;
 #else
-	__u8 exact_match:1;
-	__u8 port_idx:1;
-	__u8 addr_idx:3;
-	 __u8:3;
+	__u8 exact_match: 1;
+	__u8 port_idx: 1;
+	__u8 addr_idx: 3;
+	__u8: 3;
 #endif
 	__u8 rsvd;
 	__be32 rcv_isn;
 	__be32 rsvd2;
 };
 
-struct cpl_pass_accept_rpl {
+struct cpl_pass_accept_rpl
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be32 opt2;
@@ -572,7 +591,8 @@ struct cpl_pass_accept_rpl {
 	__be32 opt0l_status;
 };
 
-struct cpl_act_open_req {
+struct cpl_act_open_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 local_port;
@@ -614,7 +634,8 @@ struct cpl_act_open_req {
 #define V_AOPEN_IFF_VLAN(x) ((x) << S_AOPEN_IFF_VLAN)
 #define G_AOPEN_IFF_VLAN(x) (((x) >> S_AOPEN_IFF_VLAN) & M_AOPEN_IFF_VLAN)
 
-struct cpl_act_open_rpl {
+struct cpl_act_open_rpl
+{
 	RSS_HDR union opcode_tid ot;
 	__be16 local_port;
 	__be16 peer_port;
@@ -625,7 +646,8 @@ struct cpl_act_open_rpl {
 	__u8 status;
 };
 
-struct cpl_act_establish {
+struct cpl_act_establish
+{
 	RSS_HDR union opcode_tid ot;
 	__be16 local_port;
 	__be16 peer_port;
@@ -638,21 +660,24 @@ struct cpl_act_establish {
 	__be32 rcv_isn;
 };
 
-struct cpl_get_tcb {
+struct cpl_get_tcb
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 cpuno;
 	__be16 rsvd;
 };
 
-struct cpl_get_tcb_rpl {
+struct cpl_get_tcb_rpl
+{
 	RSS_HDR union opcode_tid ot;
 	__u8 rsvd;
 	__u8 status;
 	__be16 len;
 };
 
-struct cpl_set_tcb {
+struct cpl_set_tcb
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__u8 reply;
@@ -665,7 +690,8 @@ struct cpl_set_tcb {
 #define V_NO_REPLY(x) ((x) << S_NO_REPLY)
 #define F_NO_REPLY    V_NO_REPLY(1U)
 
-struct cpl_set_tcb_field {
+struct cpl_set_tcb_field
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__u8 reply;
@@ -675,44 +701,49 @@ struct cpl_set_tcb_field {
 	__be64 val;
 };
 
-struct cpl_set_tcb_rpl {
+struct cpl_set_tcb_rpl
+{
 	RSS_HDR union opcode_tid ot;
 	__u8 rsvd[3];
 	__u8 status;
 };
 
-struct cpl_pcmd {
+struct cpl_pcmd
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__u8 rsvd[3];
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8 src:1;
-	__u8 bundle:1;
-	__u8 channel:1;
-	 __u8:5;
+	__u8 src: 1;
+	__u8 bundle: 1;
+	__u8 channel: 1;
+	__u8: 5;
 #else
-	 __u8:5;
-	__u8 channel:1;
-	__u8 bundle:1;
-	__u8 src:1;
+	__u8: 5;
+	__u8 channel: 1;
+	__u8 bundle: 1;
+	__u8 src: 1;
 #endif
 	__be32 pcmd_parm[2];
 };
 
-struct cpl_pcmd_reply {
+struct cpl_pcmd_reply
+{
 	RSS_HDR union opcode_tid ot;
 	__u8 status;
 	__u8 rsvd;
 	__be16 len;
 };
 
-struct cpl_close_con_req {
+struct cpl_close_con_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be32 rsvd;
 };
 
-struct cpl_close_con_rpl {
+struct cpl_close_con_rpl
+{
 	RSS_HDR union opcode_tid ot;
 	__u8 rsvd[3];
 	__u8 status;
@@ -720,7 +751,8 @@ struct cpl_close_con_rpl {
 	__be32 rcv_nxt;
 };
 
-struct cpl_close_listserv_req {
+struct cpl_close_listserv_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__u8 rsvd0;
@@ -728,13 +760,15 @@ struct cpl_close_listserv_req {
 	__be16 rsvd1;
 };
 
-struct cpl_close_listserv_rpl {
+struct cpl_close_listserv_rpl
+{
 	RSS_HDR union opcode_tid ot;
 	__u8 rsvd[3];
 	__u8 status;
 };
 
-struct cpl_abort_req_rss {
+struct cpl_abort_req_rss
+{
 	RSS_HDR union opcode_tid ot;
 	__be32 rsvd0;
 	__u8 rsvd1;
@@ -742,7 +776,8 @@ struct cpl_abort_req_rss {
 	__u8 rsvd2[6];
 };
 
-struct cpl_abort_req {
+struct cpl_abort_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be32 rsvd0;
@@ -751,7 +786,8 @@ struct cpl_abort_req {
 	__u8 rsvd2[6];
 };
 
-struct cpl_abort_rpl_rss {
+struct cpl_abort_rpl_rss
+{
 	RSS_HDR union opcode_tid ot;
 	__be32 rsvd0;
 	__u8 rsvd1;
@@ -759,7 +795,8 @@ struct cpl_abort_rpl_rss {
 	__u8 rsvd2[6];
 };
 
-struct cpl_abort_rpl {
+struct cpl_abort_rpl
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be32 rsvd0;
@@ -768,12 +805,14 @@ struct cpl_abort_rpl {
 	__u8 rsvd2[6];
 };
 
-struct cpl_peer_close {
+struct cpl_peer_close
+{
 	RSS_HDR union opcode_tid ot;
 	__be32 rcv_nxt;
 };
 
-struct tx_data_wr {
+struct tx_data_wr
+{
 	__be32 wr_hi;
 	__be32 wr_lo;
 	__be32 len;
@@ -809,7 +848,8 @@ struct tx_data_wr {
 #define V_TX_SNDBUF(x) ((x) << S_TX_SNDBUF)
 #define G_TX_SNDBUF(x) (((x) >> S_TX_SNDBUF) & M_TX_SNDBUF)
 
-struct cpl_tx_data {
+struct cpl_tx_data
+{
 	union opcode_tid ot;
 	__be32 len;
 	__be32 rsvd;
@@ -862,12 +902,14 @@ struct cpl_tx_data {
 #define V_TX_IMM_DMA(x) ((x) << S_TX_IMM_DMA)
 #define F_TX_IMM_DMA    V_TX_IMM_DMA(1U)
 
-struct cpl_tx_data_ack {
+struct cpl_tx_data_ack
+{
 	RSS_HDR union opcode_tid ot;
 	__be32 ack_seq;
 };
 
-struct cpl_wr_ack {
+struct cpl_wr_ack
+{
 	RSS_HDR union opcode_tid ot;
 	__be16 credits;
 	__be16 rsvd;
@@ -875,13 +917,15 @@ struct cpl_wr_ack {
 	__be32 snd_una;
 };
 
-struct cpl_rdma_ec_status {
+struct cpl_rdma_ec_status
+{
 	RSS_HDR union opcode_tid ot;
 	__u8 rsvd[3];
 	__u8 status;
 };
 
-struct mngt_pktsched_wr {
+struct mngt_pktsched_wr
+{
 	__be32 wr_hi;
 	__be32 wr_lo;
 	__u8 mngt_opcode;
@@ -894,7 +938,8 @@ struct mngt_pktsched_wr {
 	__u8 rsvd1[3];
 };
 
-struct cpl_iscsi_hdr {
+struct cpl_iscsi_hdr
+{
 	RSS_HDR union opcode_tid ot;
 	__be16 pdu_len_ddp;
 	__be16 len;
@@ -914,27 +959,29 @@ struct cpl_iscsi_hdr {
 #define V_ISCSI_DDP(x) ((x) << S_ISCSI_DDP)
 #define F_ISCSI_DDP    V_ISCSI_DDP(1U)
 
-struct cpl_rx_data {
+struct cpl_rx_data
+{
 	RSS_HDR union opcode_tid ot;
 	__be16 rsvd;
 	__be16 len;
 	__be32 seq;
 	__be16 urg;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8 dack_mode:2;
-	__u8 psh:1;
-	__u8 heartbeat:1;
-	 __u8:4;
+	__u8 dack_mode: 2;
+	__u8 psh: 1;
+	__u8 heartbeat: 1;
+	__u8: 4;
 #else
-	 __u8:4;
-	__u8 heartbeat:1;
-	__u8 psh:1;
-	__u8 dack_mode:2;
+	__u8: 4;
+	__u8 heartbeat: 1;
+	__u8 psh: 1;
+	__u8 dack_mode: 2;
 #endif
 	__u8 status;
 };
 
-struct cpl_rx_data_ack {
+struct cpl_rx_data_ack
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be32 credit_dack;
@@ -963,22 +1010,26 @@ struct cpl_rx_data_ack {
 #define V_RX_DACK_CHANGE(x) ((x) << S_RX_DACK_CHANGE)
 #define F_RX_DACK_CHANGE    V_RX_DACK_CHANGE(1U)
 
-struct cpl_rx_urg_notify {
+struct cpl_rx_urg_notify
+{
 	RSS_HDR union opcode_tid ot;
 	__be32 seq;
 };
 
-struct cpl_rx_ddp_complete {
+struct cpl_rx_ddp_complete
+{
 	RSS_HDR union opcode_tid ot;
 	__be32 ddp_report;
 };
 
-struct cpl_rx_data_ddp {
+struct cpl_rx_data_ddp
+{
 	RSS_HDR union opcode_tid ot;
 	__be16 urg;
 	__be16 len;
 	__be32 seq;
-	union {
+	union
+	{
 		__be32 nxt_seq;
 		__be32 ddp_report;
 	};
@@ -1080,13 +1131,15 @@ struct cpl_rx_data_ddp {
 #define V_DDP_BUF_IDX(x) ((x) << S_DDP_BUF_IDX)
 #define F_DDP_BUF_IDX    V_DDP_BUF_IDX(1U)
 
-struct cpl_tx_pkt {
+struct cpl_tx_pkt
+{
 	WR_HDR;
 	__be32 cntrl;
 	__be32 len;
 };
 
-struct cpl_tx_pkt_lso {
+struct cpl_tx_pkt_lso
+{
 	WR_HDR;
 	__be32 cntrl;
 	__be32 len;
@@ -1152,60 +1205,63 @@ struct cpl_tx_pkt_lso {
 #define V_LSO_IPV6(x) ((x) << S_LSO_IPV6)
 #define F_LSO_IPV6    V_LSO_IPV6(1U)
 
-struct cpl_trace_pkt {
+struct cpl_trace_pkt
+{
 #ifdef CHELSIO_FW
 	__u8 rss_opcode;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8 err:1;
-	 __u8:7;
+	__u8 err: 1;
+	__u8: 7;
 #else
-	 __u8:7;
-	__u8 err:1;
+	__u8: 7;
+	__u8 err: 1;
 #endif
 	__u8 rsvd0;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8 qid:4;
-	 __u8:4;
+	__u8 qid: 4;
+	__u8: 4;
 #else
-	 __u8:4;
-	__u8 qid:4;
+	__u8: 4;
+	__u8 qid: 4;
 #endif
 	__be32 tstamp;
 #endif				/* CHELSIO_FW */
 
 	__u8 opcode;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8 iff:4;
-	 __u8:4;
+	__u8 iff: 4;
+	__u8: 4;
 #else
-	 __u8:4;
-	__u8 iff:4;
+	__u8: 4;
+	__u8 iff: 4;
 #endif
 	__u8 rsvd[4];
 	__be16 len;
 };
 
-struct cpl_rx_pkt {
+struct cpl_rx_pkt
+{
 	RSS_HDR __u8 opcode;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8 iff:4;
-	__u8 csum_valid:1;
-	__u8 ipmi_pkt:1;
-	__u8 vlan_valid:1;
-	__u8 fragment:1;
+	__u8 iff: 4;
+	__u8 csum_valid: 1;
+	__u8 ipmi_pkt: 1;
+	__u8 vlan_valid: 1;
+	__u8 fragment: 1;
 #else
-	__u8 fragment:1;
-	__u8 vlan_valid:1;
-	__u8 ipmi_pkt:1;
-	__u8 csum_valid:1;
-	__u8 iff:4;
+	__u8 fragment: 1;
+	__u8 vlan_valid: 1;
+	__u8 ipmi_pkt: 1;
+	__u8 csum_valid: 1;
+	__u8 iff: 4;
 #endif
 	__be16 csum;
 	__be16 vlan;
 	__be16 len;
 };
 
-struct cpl_l2t_write_req {
+struct cpl_l2t_write_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be32 params;
@@ -1234,20 +1290,23 @@ struct cpl_l2t_write_req {
 #define V_L2T_W_PRIO(x) ((x) << S_L2T_W_PRIO)
 #define G_L2T_W_PRIO(x) (((x) >> S_L2T_W_PRIO) & M_L2T_W_PRIO)
 
-struct cpl_l2t_write_rpl {
+struct cpl_l2t_write_rpl
+{
 	RSS_HDR union opcode_tid ot;
 	__u8 status;
 	__u8 rsvd[3];
 };
 
-struct cpl_l2t_read_req {
+struct cpl_l2t_read_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be16 rsvd;
 	__be16 l2t_idx;
 };
 
-struct cpl_l2t_read_rpl {
+struct cpl_l2t_read_rpl
+{
 	RSS_HDR union opcode_tid ot;
 	__be32 params;
 	__u8 rsvd[2];
@@ -1275,16 +1334,17 @@ struct cpl_l2t_read_rpl {
 #define V_L2T_STATUS(x) ((x) << S_L2T_STATUS)
 #define G_L2T_STATUS(x) (((x) >> S_L2T_STATUS) & M_L2T_STATUS)
 
-struct cpl_smt_write_req {
+struct cpl_smt_write_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__u8 rsvd0;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8 mtu_idx:4;
-	__u8 iff:4;
+	__u8 mtu_idx: 4;
+	__u8 iff: 4;
 #else
-	__u8 iff:4;
-	__u8 mtu_idx:4;
+	__u8 iff: 4;
+	__u8 mtu_idx: 4;
 #endif
 	__be16 rsvd2;
 	__be16 rsvd3;
@@ -1293,35 +1353,38 @@ struct cpl_smt_write_req {
 	__u8 src_mac0[6];
 };
 
-struct cpl_smt_write_rpl {
+struct cpl_smt_write_rpl
+{
 	RSS_HDR union opcode_tid ot;
 	__u8 status;
 	__u8 rsvd[3];
 };
 
-struct cpl_smt_read_req {
+struct cpl_smt_read_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__u8 rsvd0;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	 __u8:4;
-	__u8 iff:4;
+	__u8: 4;
+	__u8 iff: 4;
 #else
-	__u8 iff:4;
-	 __u8:4;
+	__u8 iff: 4;
+	__u8: 4;
 #endif
 	__be16 rsvd2;
 };
 
-struct cpl_smt_read_rpl {
+struct cpl_smt_read_rpl
+{
 	RSS_HDR union opcode_tid ot;
 	__u8 status;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8 mtu_idx:4;
-	 __u8:4;
+	__u8 mtu_idx: 4;
+	__u8: 4;
 #else
-	 __u8:4;
-	__u8 mtu_idx:4;
+	__u8: 4;
+	__u8 mtu_idx: 4;
 #endif
 	__be16 rsvd2;
 	__be16 rsvd3;
@@ -1330,7 +1393,8 @@ struct cpl_smt_read_rpl {
 	__u8 src_mac0[6];
 };
 
-struct cpl_rte_delete_req {
+struct cpl_rte_delete_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be32 params;
@@ -1351,23 +1415,25 @@ struct cpl_rte_delete_req {
 #define V_RTE_READ_REQ_SELECT(x) ((x) << S_RTE_READ_REQ_SELECT)
 #define F_RTE_READ_REQ_SELECT    V_RTE_READ_REQ_SELECT(1U)
 
-struct cpl_rte_delete_rpl {
+struct cpl_rte_delete_rpl
+{
 	RSS_HDR union opcode_tid ot;
 	__u8 status;
 	__u8 rsvd[3];
 };
 
-struct cpl_rte_write_req {
+struct cpl_rte_write_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	 __u8:6;
-	__u8 write_tcam:1;
-	__u8 write_l2t_lut:1;
+	__u8: 6;
+	__u8 write_tcam: 1;
+	__u8 write_l2t_lut: 1;
 #else
-	__u8 write_l2t_lut:1;
-	__u8 write_tcam:1;
-	 __u8:6;
+	__u8 write_l2t_lut: 1;
+	__u8 write_tcam: 1;
+	__u8: 6;
 #endif
 	__u8 rsvd[3];
 	__be32 lut_params;
@@ -1388,61 +1454,68 @@ struct cpl_rte_write_req {
 #define V_RTE_WRITE_REQ_LUT_BASE(x) ((x) << S_RTE_WRITE_REQ_LUT_BASE)
 #define G_RTE_WRITE_REQ_LUT_BASE(x) (((x) >> S_RTE_WRITE_REQ_LUT_BASE) & M_RTE_WRITE_REQ_LUT_BASE)
 
-struct cpl_rte_write_rpl {
+struct cpl_rte_write_rpl
+{
 	RSS_HDR union opcode_tid ot;
 	__u8 status;
 	__u8 rsvd[3];
 };
 
-struct cpl_rte_read_req {
+struct cpl_rte_read_req
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be32 params;
 };
 
-struct cpl_rte_read_rpl {
+struct cpl_rte_read_rpl
+{
 	RSS_HDR union opcode_tid ot;
 	__u8 status;
 	__u8 rsvd0;
 	__be16 l2t_idx;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	 __u8:7;
-	__u8 select:1;
+	__u8: 7;
+	__u8 select: 1;
 #else
-	__u8 select:1;
-	 __u8:7;
+	__u8 select: 1;
+	__u8: 7;
 #endif
 	__u8 rsvd2[3];
 	__be32 addr;
 };
 
-struct cpl_tid_release {
+struct cpl_tid_release
+{
 	WR_HDR;
 	union opcode_tid ot;
 	__be32 rsvd;
 };
 
-struct cpl_barrier {
+struct cpl_barrier
+{
 	WR_HDR;
 	__u8 opcode;
 	__u8 rsvd[7];
 };
 
-struct cpl_rdma_read_req {
+struct cpl_rdma_read_req
+{
 	__u8 opcode;
 	__u8 rsvd[15];
 };
 
-struct cpl_rdma_terminate {
+struct cpl_rdma_terminate
+{
 #ifdef CHELSIO_FW
 	__u8 opcode;
 	__u8 rsvd[2];
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8 rspq:3;
-	 __u8:5;
+	__u8 rspq: 3;
+	__u8: 5;
 #else
-	 __u8:5;
-	__u8 rspq:3;
+	__u8: 5;
+	__u8 rspq: 3;
 #endif
 	__be32 tid_len;
 #endif
@@ -1473,7 +1546,8 @@ enum { ULP_MEM_READ = 2, ULP_MEM_WRITE = 3, ULP_TXPKT = 4 };
 #define M_ULPTX_NFLITS	0xFF
 #define V_ULPTX_NFLITS(x) ((x) << S_ULPTX_NFLITS)
 
-struct ulp_mem_io {
+struct ulp_mem_io
+{
 	WR_HDR;
 	__be32 cmd_lock_addr;
 	__be32 len;

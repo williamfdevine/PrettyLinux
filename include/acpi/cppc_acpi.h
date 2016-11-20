@@ -34,7 +34,8 @@
 #define	CMD_WRITE 1
 
 /* Each register has the folowing format. */
-struct cpc_reg {
+struct cpc_reg
+{
 	u8 descriptor;
 	u16 length;
 	u8 space_id;
@@ -49,17 +50,20 @@ struct cpc_reg {
  * of type ACPI_TYPE_BUFFER or
  * ACPI_TYPE_INTEGER.
  */
-struct cpc_register_resource {
+struct cpc_register_resource
+{
 	acpi_object_type type;
 	u64 __iomem *sys_mem_vaddr;
-	union {
+	union
+	{
 		struct cpc_reg reg;
 		u64 int_value;
 	} cpc_entry;
 };
 
 /* Container to hold the CPC details for each CPU */
-struct cpc_desc {
+struct cpc_desc
+{
 	int num_entries;
 	int version;
 	int cpu_id;
@@ -71,7 +75,8 @@ struct cpc_desc {
 };
 
 /* These are indexes into the per-cpu cpc_regs[]. Order is important. */
-enum cppc_regs {
+enum cppc_regs
+{
 	HIGHEST_PERF,
 	NOMINAL_PERF,
 	LOW_NON_LINEAR_PERF,
@@ -99,19 +104,22 @@ enum cppc_regs {
  * XXX: Only filling up ones which are used by governors
  * today.
  */
-struct cppc_perf_caps {
+struct cppc_perf_caps
+{
 	u32 highest_perf;
 	u32 nominal_perf;
 	u32 lowest_perf;
 };
 
-struct cppc_perf_ctrls {
+struct cppc_perf_ctrls
+{
 	u32 max_perf;
 	u32 min_perf;
 	u32 desired_perf;
 };
 
-struct cppc_perf_fb_ctrs {
+struct cppc_perf_fb_ctrs
+{
 	u64 reference;
 	u64 delivered;
 	u64 reference_perf;
@@ -119,7 +127,8 @@ struct cppc_perf_fb_ctrs {
 };
 
 /* Per CPU container for runtime CPPC management. */
-struct cppc_cpudata {
+struct cppc_cpudata
+{
 	int cpu;
 	struct cppc_perf_caps perf_caps;
 	struct cppc_perf_ctrls perf_ctrls;

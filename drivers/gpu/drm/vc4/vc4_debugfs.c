@@ -15,7 +15,8 @@
 #include "vc4_drv.h"
 #include "vc4_regs.h"
 
-static const struct drm_info_list vc4_debugfs_list[] = {
+static const struct drm_info_list vc4_debugfs_list[] =
+{
 	{"bo_stats", vc4_bo_stats_debugfs, 0},
 	{"dpi_regs", vc4_dpi_debugfs_regs, 0},
 	{"hdmi_regs", vc4_hdmi_debugfs_regs, 0},
@@ -33,7 +34,7 @@ int
 vc4_debugfs_init(struct drm_minor *minor)
 {
 	return drm_debugfs_create_files(vc4_debugfs_list, VC4_DEBUGFS_ENTRIES,
-					minor->debugfs_root, minor);
+									minor->debugfs_root, minor);
 }
 
 void

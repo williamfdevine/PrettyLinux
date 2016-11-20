@@ -28,15 +28,17 @@ static struct cpufreq_driver ucv2_driver;
 static int ucv2_verify_speed(struct cpufreq_policy *policy)
 {
 	if (policy->cpu)
+	{
 		return -EINVAL;
+	}
 
 	cpufreq_verify_within_cpu_limits(policy);
 	return 0;
 }
 
 static int ucv2_target(struct cpufreq_policy *policy,
-			 unsigned int target_freq,
-			 unsigned int relation)
+					   unsigned int target_freq,
+					   unsigned int relation)
 {
 	struct cpufreq_freqs freqs;
 	int ret;
@@ -54,7 +56,9 @@ static int ucv2_target(struct cpufreq_policy *policy,
 static int __init ucv2_cpu_init(struct cpufreq_policy *policy)
 {
 	if (policy->cpu != 0)
+	{
 		return -EINVAL;
+	}
 
 	policy->min = policy->cpuinfo.min_freq = 250000;
 	policy->max = policy->cpuinfo.max_freq = 1000000;
@@ -63,7 +67,8 @@ static int __init ucv2_cpu_init(struct cpufreq_policy *policy)
 	return PTR_ERR_OR_ZERO(policy->clk);
 }
 
-static struct cpufreq_driver ucv2_driver = {
+static struct cpufreq_driver ucv2_driver =
+{
 	.flags		= CPUFREQ_STICKY,
 	.verify		= ucv2_verify_speed,
 	.target		= ucv2_target,

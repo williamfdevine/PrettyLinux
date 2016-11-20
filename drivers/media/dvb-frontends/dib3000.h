@@ -42,11 +42,11 @@ struct dib_fe_xfer_ops
 };
 
 #if IS_REACHABLE(CONFIG_DVB_DIB3000MB)
-extern struct dvb_frontend* dib3000mb_attach(const struct dib3000_config* config,
-					     struct i2c_adapter* i2c, struct dib_fe_xfer_ops *xfer_ops);
+extern struct dvb_frontend *dib3000mb_attach(const struct dib3000_config *config,
+		struct i2c_adapter *i2c, struct dib_fe_xfer_ops *xfer_ops);
 #else
-static inline struct dvb_frontend* dib3000mb_attach(const struct dib3000_config* config,
-					     struct i2c_adapter* i2c, struct dib_fe_xfer_ops *xfer_ops)
+static inline struct dvb_frontend *dib3000mb_attach(const struct dib3000_config *config,
+		struct i2c_adapter *i2c, struct dib_fe_xfer_ops *xfer_ops)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

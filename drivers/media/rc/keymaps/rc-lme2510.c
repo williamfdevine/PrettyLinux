@@ -13,7 +13,8 @@
 #include <linux/module.h>
 
 
-static struct rc_map_table lme2510_rc[] = {
+static struct rc_map_table lme2510_rc[] =
+{
 	/* Type 1 - 26 buttons */
 	{ 0xef12ba45, KEY_0 },
 	{ 0xef12a05f, KEY_1 },
@@ -85,7 +86,8 @@ static struct rc_map_table lme2510_rc[] = {
 	{ 0xff00a55a, KEY_STOP },
 };
 
-static struct rc_map_list lme2510_map = {
+static struct rc_map_list lme2510_map =
+{
 	.map = {
 		.scan    = lme2510_rc,
 		.size    = ARRAY_SIZE(lme2510_rc),

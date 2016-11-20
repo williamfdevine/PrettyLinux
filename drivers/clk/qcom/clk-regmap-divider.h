@@ -17,7 +17,8 @@
 #include <linux/clk-provider.h>
 #include "clk-regmap.h"
 
-struct clk_regmap_div {
+struct clk_regmap_div
+{
 	u32			reg;
 	u32			shift;
 	u32			width;

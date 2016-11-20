@@ -69,11 +69,16 @@ __state_in_grace(struct net *net, bool open)
 	struct lock_manager *lm;
 
 	if (!open)
+	{
 		return !list_empty(grace_list);
+	}
 
-	list_for_each_entry(lm, grace_list, list) {
+	list_for_each_entry(lm, grace_list, list)
+	{
 		if (lm->block_opens)
+		{
 			return true;
+		}
 	}
 	return false;
 }
@@ -107,7 +112,8 @@ grace_exit_net(struct net *net)
 	BUG_ON(!list_empty(grace_list));
 }
 
-static struct pernet_operations grace_net_ops = {
+static struct pernet_operations grace_net_ops =
+{
 	.init = grace_init_net,
 	.exit = grace_exit_net,
 	.id   = &grace_net_id,

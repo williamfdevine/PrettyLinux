@@ -78,9 +78,13 @@ aic5_handle(struct pt_regs *regs)
 	irqstat = irq_reg_readl(bgc, AT91_AIC5_ISR);
 
 	if (!irqstat)
+	{
 		irq_reg_writel(bgc, 0, AT91_AIC5_EOICR);
+	}
 	else
+	{
 		handle_domain_irq(aic5_domain, irqnr, regs);
+	}
 }
 
 static void aic5_mask(struct irq_data *d)
@@ -142,8 +146,12 @@ static int aic5_set_type(struct irq_data *d, unsigned type)
 	irq_reg_writel(bgc, d->hwirq, AT91_AIC5_SSR);
 	smr = irq_reg_readl(bgc, AT91_AIC5_SMR);
 	ret = aic_common_set_type(d, type, &smr);
+
 	if (!ret)
+	{
 		irq_reg_writel(bgc, smr, AT91_AIC5_SMR);
+	}
+
 	irq_gc_unlock(bgc);
 
 	return ret;
@@ -160,17 +168,28 @@ static void aic5_suspend(struct irq_data *d)
 	u32 mask;
 
 	irq_gc_lock(bgc);
-	for (i = 0; i < dgc->irqs_per_chip; i++) {
+
+	for (i = 0; i < dgc->irqs_per_chip; i++)
+	{
 		mask = 1 << i;
+
 		if ((mask & gc->mask_cache) == (mask & gc->wake_active))
+		{
 			continue;
+		}
 
 		irq_reg_writel(bgc, i + gc->irq_base, AT91_AIC5_SSR);
+
 		if (mask & gc->wake_active)
+		{
 			irq_reg_writel(bgc, 1, AT91_AIC5_IECR);
+		}
 		else
+		{
 			irq_reg_writel(bgc, 1, AT91_AIC5_IDCR);
+		}
 	}
+
 	irq_gc_unlock(bgc);
 }
 
@@ -184,17 +203,28 @@ static void aic5_resume(struct irq_data *d)
 	u32 mask;
 
 	irq_gc_lock(bgc);
-	for (i = 0; i < dgc->irqs_per_chip; i++) {
+
+	for (i = 0; i < dgc->irqs_per_chip; i++)
+	{
 		mask = 1 << i;
+
 		if ((mask & gc->mask_cache) == (mask & gc->wake_active))
+		{
 			continue;
+		}
 
 		irq_reg_writel(bgc, i + gc->irq_base, AT91_AIC5_SSR);
+
 		if (mask & gc->mask_cache)
+		{
 			irq_reg_writel(bgc, 1, AT91_AIC5_IECR);
+		}
 		else
+		{
 			irq_reg_writel(bgc, 1, AT91_AIC5_IDCR);
+		}
 	}
+
 	irq_gc_unlock(bgc);
 }
 
@@ -207,11 +237,14 @@ static void aic5_pm_shutdown(struct irq_data *d)
 	int i;
 
 	irq_gc_lock(bgc);
-	for (i = 0; i < dgc->irqs_per_chip; i++) {
+
+	for (i = 0; i < dgc->irqs_per_chip; i++)
+	{
 		irq_reg_writel(bgc, i + gc->irq_base, AT91_AIC5_SSR);
 		irq_reg_writel(bgc, 1, AT91_AIC5_IDCR);
 		irq_reg_writel(bgc, 1, AT91_AIC5_ICCR);
 	}
+
 	irq_gc_unlock(bgc);
 }
 #else
@@ -230,7 +263,9 @@ static void __init aic5_hw_init(struct irq_domain *domain)
 	 * will not Lock out nIRQ
 	 */
 	for (i = 0; i < 8; i++)
+	{
 		irq_reg_writel(gc, 0, AT91_AIC5_EOICR);
+	}
 
 	/*
 	 * Spurious Interrupt ID in Spurious Vector Register.
@@ -243,7 +278,8 @@ static void __init aic5_hw_init(struct irq_domain *domain)
 	irq_reg_writel(gc, 0, AT91_AIC5_DCR);
 
 	/* Disable and clear all interrupts initially */
-	for (i = 0; i < domain->revmap_size; i++) {
+	for (i = 0; i < domain->revmap_size; i++)
+	{
 		irq_reg_writel(gc, i, AT91_AIC5_SSR);
 		irq_reg_writel(gc, i, AT91_AIC5_SVR);
 		irq_reg_writel(gc, 1, AT91_AIC5_IDCR);
@@ -252,10 +288,10 @@ static void __init aic5_hw_init(struct irq_domain *domain)
 }
 
 static int aic5_irq_domain_xlate(struct irq_domain *d,
-				 struct device_node *ctrlr,
-				 const u32 *intspec, unsigned int intsize,
-				 irq_hw_number_t *out_hwirq,
-				 unsigned int *out_type)
+								 struct device_node *ctrlr,
+								 const u32 *intspec, unsigned int intsize,
+								 irq_hw_number_t *out_hwirq,
+								 unsigned int *out_type)
 {
 	struct irq_chip_generic *bgc = irq_get_domain_generic_chip(d, 0);
 	unsigned long flags;
@@ -263,12 +299,17 @@ static int aic5_irq_domain_xlate(struct irq_domain *d,
 	int ret;
 
 	if (!bgc)
+	{
 		return -EINVAL;
+	}
 
 	ret = aic_common_irq_domain_xlate(d, ctrlr, intspec, intsize,
-					  out_hwirq, out_type);
+									  out_hwirq, out_type);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	irq_gc_lock_irqsave(bgc, flags);
 	irq_reg_writel(bgc, *out_hwirq, AT91_AIC5_SSR);
@@ -280,7 +321,8 @@ static int aic5_irq_domain_xlate(struct irq_domain *d,
 	return ret;
 }
 
-static const struct irq_domain_ops aic5_irq_ops = {
+static const struct irq_domain_ops aic5_irq_ops =
+{
 	.map	= irq_map_generic_chip,
 	.xlate	= aic5_irq_domain_xlate,
 };
@@ -290,15 +332,16 @@ static void __init sama5d3_aic_irq_fixup(struct device_node *root)
 	aic_common_rtc_irq_fixup(root);
 }
 
-static const struct of_device_id aic5_irq_fixups[] __initconst = {
+static const struct of_device_id aic5_irq_fixups[] __initconst =
+{
 	{ .compatible = "atmel,sama5d3", .data = sama5d3_aic_irq_fixup },
 	{ .compatible = "atmel,sama5d4", .data = sama5d3_aic_irq_fixup },
 	{ /* sentinel */ },
 };
 
 static int __init aic5_of_init(struct device_node *node,
-			       struct device_node *parent,
-			       int nirqs)
+							   struct device_node *parent,
+							   int nirqs)
 {
 	struct irq_chip_generic *gc;
 	struct irq_domain *domain;
@@ -306,19 +349,28 @@ static int __init aic5_of_init(struct device_node *node,
 	int i;
 
 	if (nirqs > NR_AIC5_IRQS)
+	{
 		return -EINVAL;
+	}
 
 	if (aic5_domain)
+	{
 		return -EEXIST;
+	}
 
 	domain = aic_common_of_init(node, &aic5_irq_ops, "atmel-aic5",
-				    nirqs, aic5_irq_fixups);
+								nirqs, aic5_irq_fixups);
+
 	if (IS_ERR(domain))
+	{
 		return PTR_ERR(domain);
+	}
 
 	aic5_domain = domain;
 	nchips = aic5_domain->revmap_size / 32;
-	for (i = 0; i < nchips; i++) {
+
+	for (i = 0; i < nchips; i++)
+	{
 		gc = irq_get_domain_generic_chip(domain, i * 32);
 
 		gc->chip_types[0].regs.eoi = AT91_AIC5_EOICR;
@@ -340,7 +392,7 @@ static int __init aic5_of_init(struct device_node *node,
 #define NR_SAMA5D2_IRQS		77
 
 static int __init sama5d2_aic5_of_init(struct device_node *node,
-				       struct device_node *parent)
+									   struct device_node *parent)
 {
 	return aic5_of_init(node, parent, NR_SAMA5D2_IRQS);
 }
@@ -349,7 +401,7 @@ IRQCHIP_DECLARE(sama5d2_aic5, "atmel,sama5d2-aic", sama5d2_aic5_of_init);
 #define NR_SAMA5D3_IRQS		48
 
 static int __init sama5d3_aic5_of_init(struct device_node *node,
-				       struct device_node *parent)
+									   struct device_node *parent)
 {
 	return aic5_of_init(node, parent, NR_SAMA5D3_IRQS);
 }
@@ -358,7 +410,7 @@ IRQCHIP_DECLARE(sama5d3_aic5, "atmel,sama5d3-aic", sama5d3_aic5_of_init);
 #define NR_SAMA5D4_IRQS		68
 
 static int __init sama5d4_aic5_of_init(struct device_node *node,
-				       struct device_node *parent)
+									   struct device_node *parent)
 {
 	return aic5_of_init(node, parent, NR_SAMA5D4_IRQS);
 }

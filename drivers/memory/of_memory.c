@@ -35,8 +35,11 @@ const struct lpddr2_min_tck *of_get_min_tck(struct device_node *np,
 	struct lpddr2_min_tck	*min;
 
 	min = devm_kzalloc(dev, sizeof(*min), GFP_KERNEL);
+
 	if (!min)
+	{
 		goto default_min_tck;
+	}
 
 	ret |= of_property_read_u32(np, "tRPab-min-tck", &min->tRPab);
 	ret |= of_property_read_u32(np, "tRCD-min-tck", &min->tRCD);
@@ -50,7 +53,8 @@ const struct lpddr2_min_tck *of_get_min_tck(struct device_node *np,
 	ret |= of_property_read_u32(np, "tCKESR-min-tck", &min->tCKESR);
 	ret |= of_property_read_u32(np, "tFAW-min-tck", &min->tFAW);
 
-	if (ret) {
+	if (ret)
+	{
 		devm_kfree(dev, min);
 		goto default_min_tck;
 	}
@@ -64,7 +68,7 @@ default_min_tck:
 EXPORT_SYMBOL(of_get_min_tck);
 
 static int of_do_get_timings(struct device_node *np,
-		struct lpddr2_timings *tim)
+							 struct lpddr2_timings *tim)
 {
 	int ret;
 
@@ -86,7 +90,7 @@ static int of_do_get_timings(struct device_node *np,
 	ret |= of_property_read_u32(np, "tZQinit", &tim->tZQinit);
 	ret |= of_property_read_u32(np, "tRAS-max-ns", &tim->tRAS_max_ns);
 	ret |= of_property_read_u32(np, "tDQSCK-max-derated",
-		&tim->tDQSCK_max_derated);
+								&tim->tDQSCK_max_derated);
 
 	return ret;
 }
@@ -112,32 +116,43 @@ const struct lpddr2_timings *of_get_ddr_timings(struct device_node *np_ddr,
 	struct device_node	*np_tim;
 	char			*tim_compat = NULL;
 
-	switch (device_type) {
-	case DDR_TYPE_LPDDR2_S2:
-	case DDR_TYPE_LPDDR2_S4:
-		tim_compat = "jedec,lpddr2-timings";
-		break;
-	default:
-		dev_warn(dev, "%s: un-supported memory type\n", __func__);
+	switch (device_type)
+	{
+		case DDR_TYPE_LPDDR2_S2:
+		case DDR_TYPE_LPDDR2_S4:
+			tim_compat = "jedec,lpddr2-timings";
+			break;
+
+		default:
+			dev_warn(dev, "%s: un-supported memory type\n", __func__);
 	}
 
 	for_each_child_of_node(np_ddr, np_tim)
-		if (of_device_is_compatible(np_tim, tim_compat))
-			arr_sz++;
+
+	if (of_device_is_compatible(np_tim, tim_compat))
+	{
+		arr_sz++;
+	}
 
 	if (arr_sz)
 		timings = devm_kzalloc(dev, sizeof(*timings) * arr_sz,
-			GFP_KERNEL);
+							   GFP_KERNEL);
 
 	if (!timings)
+	{
 		goto default_timings;
+	}
 
-	for_each_child_of_node(np_ddr, np_tim) {
-		if (of_device_is_compatible(np_tim, tim_compat)) {
-			if (of_do_get_timings(np_tim, &timings[i])) {
+	for_each_child_of_node(np_ddr, np_tim)
+	{
+		if (of_device_is_compatible(np_tim, tim_compat))
+		{
+			if (of_do_get_timings(np_tim, &timings[i]))
+			{
 				devm_kfree(dev, timings);
 				goto default_timings;
 			}
+
 			i++;
 		}
 	}

@@ -21,7 +21,7 @@
 #include "pcm512x.h"
 
 static int pcm512x_i2c_probe(struct i2c_client *i2c,
-			     const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	struct regmap *regmap;
 	struct regmap_config config = pcm512x_regmap;
@@ -31,8 +31,11 @@ static int pcm512x_i2c_probe(struct i2c_client *i2c,
 	config.write_flag_mask = 0x80;
 
 	regmap = devm_regmap_init_i2c(i2c, &config);
+
 	if (IS_ERR(regmap))
+	{
 		return PTR_ERR(regmap);
+	}
 
 	return pcm512x_probe(&i2c->dev, regmap);
 }
@@ -43,7 +46,8 @@ static int pcm512x_i2c_remove(struct i2c_client *i2c)
 	return 0;
 }
 
-static const struct i2c_device_id pcm512x_i2c_id[] = {
+static const struct i2c_device_id pcm512x_i2c_id[] =
+{
 	{ "pcm5121", },
 	{ "pcm5122", },
 	{ "pcm5141", },
@@ -52,7 +56,8 @@ static const struct i2c_device_id pcm512x_i2c_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, pcm512x_i2c_id);
 
-static const struct of_device_id pcm512x_of_match[] = {
+static const struct of_device_id pcm512x_of_match[] =
+{
 	{ .compatible = "ti,pcm5121", },
 	{ .compatible = "ti,pcm5122", },
 	{ .compatible = "ti,pcm5141", },
@@ -61,7 +66,8 @@ static const struct of_device_id pcm512x_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, pcm512x_of_match);
 
-static struct i2c_driver pcm512x_i2c_driver = {
+static struct i2c_driver pcm512x_i2c_driver =
+{
 	.probe 		= pcm512x_i2c_probe,
 	.remove 	= pcm512x_i2c_remove,
 	.id_table	= pcm512x_i2c_id,

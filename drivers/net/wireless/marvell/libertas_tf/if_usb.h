@@ -25,7 +25,8 @@ struct lbtf_private;
 #define BOOT_CMD_UPDATE_FW		0x04
 #define BOOT_CMD_MAGIC_NUMBER		0x4C56524D   /* LVRM */
 
-struct bootcmd {
+struct bootcmd
+{
 	__le32	magic;
 	uint8_t	cmd;
 	uint8_t	pad[11];
@@ -34,7 +35,8 @@ struct bootcmd {
 #define BOOT_CMD_RESP_OK		0x0001
 #define BOOT_CMD_RESP_FAIL		0x0000
 
-struct bootcmdresp {
+struct bootcmdresp
+{
 	__le32	magic;
 	uint8_t	cmd;
 	uint8_t	result;
@@ -42,7 +44,8 @@ struct bootcmdresp {
 };
 
 /** USB card description structure*/
-struct if_usb_card {
+struct if_usb_card
+{
 	struct usb_device *udev;
 	struct urb *rx_urb, *tx_urb, *cmd_urb;
 	struct lbtf_private *priv;
@@ -73,7 +76,8 @@ struct if_usb_card {
 };
 
 /** fwheader */
-struct fwheader {
+struct fwheader
+{
 	__le32 dnldcmd;
 	__le32 baseaddr;
 	__le32 datalength;
@@ -82,14 +86,16 @@ struct fwheader {
 
 #define FW_MAX_DATA_BLK_SIZE	600
 /** FWData */
-struct fwdata {
+struct fwdata
+{
 	struct fwheader hdr;
 	__le32 seqnum;
 	uint8_t data[0];
 };
 
 /** fwsyncheader */
-struct fwsyncheader {
+struct fwsyncheader
+{
 	__le32 cmd;
 	__le32 seqnum;
 };

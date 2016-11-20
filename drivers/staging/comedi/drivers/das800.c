@@ -96,14 +96,16 @@
 
 #define DAS802_16_HALF_FIFO_SZ	128
 
-struct das800_board {
+struct das800_board
+{
 	const char *name;
 	int ai_speed;
 	const struct comedi_lrange *ai_range;
 	int resolution;
 };
 
-static const struct comedi_lrange range_das801_ai = {
+static const struct comedi_lrange range_das801_ai =
+{
 	9, {
 		BIP_RANGE(5),
 		BIP_RANGE(10),
@@ -117,7 +119,8 @@ static const struct comedi_lrange range_das801_ai = {
 	}
 };
 
-static const struct comedi_lrange range_cio_das801_ai = {
+static const struct comedi_lrange range_cio_das801_ai =
+{
 	9, {
 		BIP_RANGE(5),
 		BIP_RANGE(10),
@@ -131,7 +134,8 @@ static const struct comedi_lrange range_cio_das801_ai = {
 	}
 };
 
-static const struct comedi_lrange range_das802_ai = {
+static const struct comedi_lrange range_das802_ai =
+{
 	9, {
 		BIP_RANGE(5),
 		BIP_RANGE(10),
@@ -145,7 +149,8 @@ static const struct comedi_lrange range_das802_ai = {
 	}
 };
 
-static const struct comedi_lrange range_das80216_ai = {
+static const struct comedi_lrange range_das80216_ai =
+{
 	8, {
 		BIP_RANGE(10),
 		UNI_RANGE(10),
@@ -158,7 +163,8 @@ static const struct comedi_lrange range_das80216_ai = {
 	}
 };
 
-enum das800_boardinfo {
+enum das800_boardinfo
+{
 	BOARD_DAS800,
 	BOARD_CIODAS800,
 	BOARD_DAS801,
@@ -168,7 +174,8 @@ enum das800_boardinfo {
 	BOARD_CIODAS80216,
 };
 
-static const struct das800_board das800_boards[] = {
+static const struct das800_board das800_boards[] =
+{
 	[BOARD_DAS800] = {
 		.name		= "das-800",
 		.ai_speed	= 25000,
@@ -213,12 +220,13 @@ static const struct das800_board das800_boards[] = {
 	},
 };
 
-struct das800_private {
+struct das800_private
+{
 	unsigned int do_bits;	/* digital output bits */
 };
 
 static void das800_ind_write(struct comedi_device *dev,
-			     unsigned int val, unsigned int reg)
+							 unsigned int val, unsigned int reg)
 {
 	/*
 	 * Select dev->iobase + 2 to be desired register
@@ -245,9 +253,13 @@ static void das800_enable(struct comedi_device *dev)
 	unsigned long irq_flags;
 
 	spin_lock_irqsave(&dev->spinlock, irq_flags);
+
 	/*  enable fifo-half full interrupts for cio-das802/16 */
 	if (board->resolution == 16)
+	{
 		outb(CIO_ENHF, dev->iobase + DAS800_GAIN);
+	}
+
 	/* enable hardware triggering */
 	das800_ind_write(dev, CONV_HCEN, CONV_CONTROL);
 	/* enable card's interrupt */
@@ -272,26 +284,29 @@ static int das800_cancel(struct comedi_device *dev, struct comedi_subdevice *s)
 }
 
 static int das800_ai_check_chanlist(struct comedi_device *dev,
-				    struct comedi_subdevice *s,
-				    struct comedi_cmd *cmd)
+									struct comedi_subdevice *s,
+									struct comedi_cmd *cmd)
 {
 	unsigned int chan0 = CR_CHAN(cmd->chanlist[0]);
 	unsigned int range0 = CR_RANGE(cmd->chanlist[0]);
 	int i;
 
-	for (i = 1; i < cmd->chanlist_len; i++) {
+	for (i = 1; i < cmd->chanlist_len; i++)
+	{
 		unsigned int chan = CR_CHAN(cmd->chanlist[i]);
 		unsigned int range = CR_RANGE(cmd->chanlist[i]);
 
-		if (chan != (chan0 + i) % s->n_chan) {
+		if (chan != (chan0 + i) % s->n_chan)
+		{
 			dev_dbg(dev->class_dev,
-				"chanlist must be consecutive, counting upwards\n");
+					"chanlist must be consecutive, counting upwards\n");
 			return -EINVAL;
 		}
 
-		if (range != range0) {
+		if (range != range0)
+		{
 			dev_dbg(dev->class_dev,
-				"chanlist must all have the same gain\n");
+					"chanlist must all have the same gain\n");
 			return -EINVAL;
 		}
 	}
@@ -300,8 +315,8 @@ static int das800_ai_check_chanlist(struct comedi_device *dev,
 }
 
 static int das800_ai_do_cmdtest(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_cmd *cmd)
+								struct comedi_subdevice *s,
+								struct comedi_cmd *cmd)
 {
 	const struct das800_board *board = dev->board_ptr;
 	int err = 0;
@@ -311,12 +326,14 @@ static int das800_ai_do_cmdtest(struct comedi_device *dev,
 	err |= comedi_check_trigger_src(&cmd->start_src, TRIG_NOW | TRIG_EXT);
 	err |= comedi_check_trigger_src(&cmd->scan_begin_src, TRIG_FOLLOW);
 	err |= comedi_check_trigger_src(&cmd->convert_src,
-					TRIG_TIMER | TRIG_EXT);
+									TRIG_TIMER | TRIG_EXT);
 	err |= comedi_check_trigger_src(&cmd->scan_end_src, TRIG_COUNT);
 	err |= comedi_check_trigger_src(&cmd->stop_src, TRIG_COUNT | TRIG_NONE);
 
 	if (err)
+	{
 		return 1;
+	}
 
 	/* Step 2a : make sure trigger sources are unique */
 
@@ -327,32 +344,42 @@ static int das800_ai_do_cmdtest(struct comedi_device *dev,
 	/* Step 2b : and mutually compatible */
 
 	if (err)
+	{
 		return 2;
+	}
 
 	/* Step 3: check if arguments are trivially valid */
 
 	err |= comedi_check_trigger_arg_is(&cmd->start_arg, 0);
 
-	if (cmd->convert_src == TRIG_TIMER) {
+	if (cmd->convert_src == TRIG_TIMER)
+	{
 		err |= comedi_check_trigger_arg_min(&cmd->convert_arg,
-						    board->ai_speed);
+											board->ai_speed);
 	}
 
 	err |= comedi_check_trigger_arg_min(&cmd->chanlist_len, 1);
 	err |= comedi_check_trigger_arg_is(&cmd->scan_end_arg,
-					   cmd->chanlist_len);
+									   cmd->chanlist_len);
 
 	if (cmd->stop_src == TRIG_COUNT)
+	{
 		err |= comedi_check_trigger_arg_min(&cmd->stop_arg, 1);
+	}
 	else	/* TRIG_NONE */
+	{
 		err |= comedi_check_trigger_arg_is(&cmd->stop_arg, 0);
+	}
 
 	if (err)
+	{
 		return 3;
+	}
 
 	/* step 4: fix up any arguments */
 
-	if (cmd->convert_src == TRIG_TIMER) {
+	if (cmd->convert_src == TRIG_TIMER)
+	{
 		unsigned int arg = cmd->convert_arg;
 
 		comedi_8254_cascade_ns_to_timer(dev->pacer, &arg, cmd->flags);
@@ -360,20 +387,26 @@ static int das800_ai_do_cmdtest(struct comedi_device *dev,
 	}
 
 	if (err)
+	{
 		return 4;
+	}
 
 	/* Step 5: check channel list if it exists */
 	if (cmd->chanlist && cmd->chanlist_len > 0)
+	{
 		err |= das800_ai_check_chanlist(dev, s, cmd);
+	}
 
 	if (err)
+	{
 		return 5;
+	}
 
 	return 0;
 }
 
 static int das800_ai_do_cmd(struct comedi_device *dev,
-			    struct comedi_subdevice *s)
+							struct comedi_subdevice *s)
 {
 	const struct das800_board *board = dev->board_ptr;
 	struct comedi_async *async = s->async;
@@ -394,7 +427,10 @@ static int das800_ai_do_cmd(struct comedi_device *dev,
 
 	/* set gain */
 	if (board->resolution == 12 && gain > 0)
+	{
 		gain += 0x7;
+	}
+
 	gain &= 0xf;
 	outb(gain, dev->iobase + DAS800_GAIN);
 
@@ -403,9 +439,14 @@ static int das800_ai_do_cmd(struct comedi_device *dev,
 	 */
 	conv_bits = 0;
 	conv_bits |= EACS | IEOC;
+
 	if (cmd->start_src == TRIG_EXT)
+	{
 		conv_bits |= DTEN;
-	if (cmd->convert_src == TRIG_TIMER) {
+	}
+
+	if (cmd->convert_src == TRIG_TIMER)
+	{
 		conv_bits |= CASC | ITE;
 		comedi_8254_update_divisors(dev->pacer);
 		comedi_8254_pacer_enable(dev->pacer, 1, 2, true);
@@ -442,10 +483,16 @@ static irqreturn_t das800_interrupt(int irq, void *d)
 	int i;
 
 	status = inb(dev->iobase + DAS800_STATUS);
+
 	if (!(status & IRQ))
+	{
 		return IRQ_NONE;
+	}
+
 	if (!dev->attached)
+	{
 		return IRQ_HANDLED;
+	}
 
 	async = s->async;
 	cmd = &async->cmd;
@@ -458,79 +505,100 @@ static irqreturn_t das800_interrupt(int irq, void *d)
 	 */
 
 	/* if hardware conversions are not enabled, then quit */
-	if (status == 0) {
+	if (status == 0)
+	{
 		spin_unlock_irqrestore(&dev->spinlock, irq_flags);
 		return IRQ_HANDLED;
 	}
 
-	for (i = 0; i < DAS802_16_HALF_FIFO_SZ; i++) {
+	for (i = 0; i < DAS802_16_HALF_FIFO_SZ; i++)
+	{
 		val = das800_ai_get_sample(dev);
-		if (s->maxdata == 0x0fff) {
+
+		if (s->maxdata == 0x0fff)
+		{
 			fifo_empty = !!(val & FIFO_EMPTY);
 			fifo_overflow = !!(val & FIFO_OVF);
-		} else {
+		}
+		else
+		{
 			/* cio-das802/16 has no fifo empty status bit */
 			fifo_empty = false;
 			fifo_overflow = !!(inb(dev->iobase + DAS800_GAIN) &
-						CIO_FFOV);
+							   CIO_FFOV);
 		}
+
 		if (fifo_empty || fifo_overflow)
+		{
 			break;
+		}
 
 		if (s->maxdata == 0x0fff)
-			val >>= 4;	/* 12-bit sample */
+		{
+			val >>= 4;    /* 12-bit sample */
+		}
 
 		val &= s->maxdata;
 		comedi_buf_write_samples(s, &val, 1);
 
 		if (cmd->stop_src == TRIG_COUNT &&
-		    async->scans_done >= cmd->stop_arg) {
+			async->scans_done >= cmd->stop_arg)
+		{
 			async->events |= COMEDI_CB_EOA;
 			break;
 		}
 	}
 
-	if (fifo_overflow) {
+	if (fifo_overflow)
+	{
 		spin_unlock_irqrestore(&dev->spinlock, irq_flags);
 		async->events |= COMEDI_CB_ERROR;
 		comedi_handle_events(dev, s);
 		return IRQ_HANDLED;
 	}
 
-	if (!(async->events & COMEDI_CB_CANCEL_MASK)) {
+	if (!(async->events & COMEDI_CB_CANCEL_MASK))
+	{
 		/*
 		 * Re-enable card's interrupt.
 		 * We already have spinlock, so indirect addressing is safe
 		 */
 		das800_ind_write(dev, CONTROL1_INTE | devpriv->do_bits,
-				 CONTROL1);
+						 CONTROL1);
 		spin_unlock_irqrestore(&dev->spinlock, irq_flags);
-	} else {
+	}
+	else
+	{
 		/* otherwise, stop taking data */
 		spin_unlock_irqrestore(&dev->spinlock, irq_flags);
 		das800_disable(dev);
 	}
+
 	comedi_handle_events(dev, s);
 	return IRQ_HANDLED;
 }
 
 static int das800_ai_eoc(struct comedi_device *dev,
-			 struct comedi_subdevice *s,
-			 struct comedi_insn *insn,
-			 unsigned long context)
+						 struct comedi_subdevice *s,
+						 struct comedi_insn *insn,
+						 unsigned long context)
 {
 	unsigned int status;
 
 	status = inb(dev->iobase + DAS800_STATUS);
+
 	if ((status & BUSY) == 0)
+	{
 		return 0;
+	}
+
 	return -EBUSY;
 }
 
 static int das800_ai_insn_read(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn,
-			       unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn,
+							   unsigned int *data)
 {
 	struct das800_private *devpriv = dev->private;
 	unsigned int chan = CR_CHAN(insn->chanspec);
@@ -549,23 +617,34 @@ static int das800_ai_insn_read(struct comedi_device *dev,
 
 	/* set gain / range */
 	if (s->maxdata == 0x0fff && range)
+	{
 		range += 0x7;
+	}
+
 	range &= 0xf;
 	outb(range, dev->iobase + DAS800_GAIN);
 
 	udelay(5);
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		/* trigger conversion */
 		outb_p(0, dev->iobase + DAS800_MSB);
 
 		ret = comedi_timeout(dev, s, insn, das800_ai_eoc, 0);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		val = das800_ai_get_sample(dev);
+
 		if (s->maxdata == 0x0fff)
-			val >>= 4;	/* 12-bit sample */
+		{
+			val >>= 4;    /* 12-bit sample */
+		}
+
 		data[i] = val & s->maxdata;
 	}
 
@@ -573,9 +652,9 @@ static int das800_ai_insn_read(struct comedi_device *dev,
 }
 
 static int das800_di_insn_bits(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn,
-			       unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn,
+							   unsigned int *data)
 {
 	data[1] = (inb(dev->iobase + DAS800_STATUS) >> 4) & 0x7;
 
@@ -583,19 +662,20 @@ static int das800_di_insn_bits(struct comedi_device *dev,
 }
 
 static int das800_do_insn_bits(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn,
-			       unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn,
+							   unsigned int *data)
 {
 	struct das800_private *devpriv = dev->private;
 	unsigned long irq_flags;
 
-	if (comedi_dio_update_state(s, data)) {
+	if (comedi_dio_update_state(s, data))
+	{
 		devpriv->do_bits = s->state << 4;
 
 		spin_lock_irqsave(&dev->spinlock, irq_flags);
 		das800_ind_write(dev, CONTROL1_INTE | devpriv->do_bits,
-				 CONTROL1);
+						 CONTROL1);
 		spin_unlock_irqrestore(&dev->spinlock, irq_flags);
 	}
 
@@ -625,30 +705,44 @@ static const struct das800_board *das800_probe(struct comedi_device *dev)
 	id_bits = das800_ind_read(dev, ID) & 0x3;
 	spin_unlock_irqrestore(&dev->spinlock, irq_flags);
 
-	switch (id_bits) {
-	case 0x0:
-		if (index == BOARD_DAS800 || index == BOARD_CIODAS800)
-			return board;
-		index = BOARD_DAS800;
-		break;
-	case 0x2:
-		if (index == BOARD_DAS801 || index == BOARD_CIODAS801)
-			return board;
-		index = BOARD_DAS801;
-		break;
-	case 0x3:
-		if (index == BOARD_DAS802 || index == BOARD_CIODAS802 ||
-		    index == BOARD_CIODAS80216)
-			return board;
-		index = BOARD_DAS802;
-		break;
-	default:
-		dev_dbg(dev->class_dev, "Board model: 0x%x (unknown)\n",
-			id_bits);
-		return NULL;
+	switch (id_bits)
+	{
+		case 0x0:
+			if (index == BOARD_DAS800 || index == BOARD_CIODAS800)
+			{
+				return board;
+			}
+
+			index = BOARD_DAS800;
+			break;
+
+		case 0x2:
+			if (index == BOARD_DAS801 || index == BOARD_CIODAS801)
+			{
+				return board;
+			}
+
+			index = BOARD_DAS801;
+			break;
+
+		case 0x3:
+			if (index == BOARD_DAS802 || index == BOARD_CIODAS802 ||
+				index == BOARD_CIODAS80216)
+			{
+				return board;
+			}
+
+			index = BOARD_DAS802;
+			break;
+
+		default:
+			dev_dbg(dev->class_dev, "Board model: 0x%x (unknown)\n",
+					id_bits);
+			return NULL;
 	}
+
 	dev_dbg(dev->class_dev, "Board model (probed): %s series\n",
-		das800_boards[index].name);
+			das800_boards[index].name);
 
 	return &das800_boards[index];
 }
@@ -663,34 +757,54 @@ static int das800_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	int ret;
 
 	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
+
 	if (!devpriv)
+	{
 		return -ENOMEM;
+	}
 
 	ret = comedi_request_region(dev, it->options[0], 0x8);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	board = das800_probe(dev);
+
 	if (!board)
+	{
 		return -ENODEV;
+	}
+
 	dev->board_ptr = board;
 	dev->board_name = board->name;
 
-	if (irq > 1 && irq <= 7) {
+	if (irq > 1 && irq <= 7)
+	{
 		ret = request_irq(irq, das800_interrupt, 0, dev->board_name,
-				  dev);
+						  dev);
+
 		if (ret == 0)
+		{
 			dev->irq = irq;
+		}
 	}
 
 	dev->pacer = comedi_8254_init(dev->iobase + DAS800_8254,
-				      I8254_OSC_BASE_1MHZ, I8254_IO8, 0);
+								  I8254_OSC_BASE_1MHZ, I8254_IO8, 0);
+
 	if (!dev->pacer)
+	{
 		return -ENOMEM;
+	}
 
 	ret = comedi_alloc_subdevices(dev, 3);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Analog Input subdevice */
 	s = &dev->subdevices[0];
@@ -701,7 +815,9 @@ static int das800_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	s->maxdata	= (1 << board->resolution) - 1;
 	s->range_table	= board->ai_range;
 	s->insn_read	= das800_ai_insn_read;
-	if (dev->irq) {
+
+	if (dev->irq)
+	{
 		s->subdev_flags	|= SDF_CMD_READ;
 		s->len_chanlist	= 8;
 		s->do_cmdtest	= das800_ai_do_cmdtest;
@@ -737,7 +853,8 @@ static int das800_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	return 0;
 };
 
-static struct comedi_driver driver_das800 = {
+static struct comedi_driver driver_das800 =
+{
 	.driver_name	= "das800",
 	.module		= THIS_MODULE,
 	.attach		= das800_attach,

@@ -14,7 +14,7 @@
 extern int find_via_pmu(void);
 
 extern int pmu_request(struct adb_request *req,
-		void (*done)(struct adb_request *), int nbytes, ...);
+					   void (*done)(struct adb_request *), int nbytes, ...);
 extern int pmu_queue_request(struct adb_request *req);
 extern void pmu_poll(void);
 extern void pmu_poll_adb(void); /* For use by xmon */
@@ -76,10 +76,10 @@ extern void pmu_backlight_init(void);
 
 /* some code needs to know if the PMU was suspended for hibernation */
 #if defined(CONFIG_SUSPEND) && defined(CONFIG_PPC32)
-extern int pmu_sys_suspended;
+	extern int pmu_sys_suspended;
 #else
-/* if power management is not configured it can't be suspended */
-#define pmu_sys_suspended	0
+	/* if power management is not configured it can't be suspended */
+	#define pmu_sys_suspended	0
 #endif
 
 #endif /* _LINUX_PMU_H */

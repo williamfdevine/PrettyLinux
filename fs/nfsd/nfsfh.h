@@ -25,11 +25,12 @@ static inline ino_t u32_to_ino_t(__u32 uino)
  * This is the internal representation of an NFS handle used in knfsd.
  * pre_mtime/post_version will be used to support wcc_attr's in NFSv3.
  */
-typedef struct svc_fh {
+typedef struct svc_fh
+{
 	struct knfsd_fh		fh_handle;	/* FH data */
 	int			fh_maxsize;	/* max size for fh_handle */
-	struct dentry *		fh_dentry;	/* validated dentry */
-	struct svc_export *	fh_export;	/* export pointer */
+	struct dentry 		*fh_dentry;	/* validated dentry */
+	struct svc_export 	*fh_export;	/* export pointer */
 
 	bool			fh_locked;	/* inode locked by us */
 	bool			fh_want_write;	/* remount protection taken */
@@ -55,7 +56,8 @@ typedef struct svc_fh {
 
 } svc_fh;
 
-enum nfsd_fsid {
+enum nfsd_fsid
+{
 	FSID_DEV = 0,
 	FSID_NUM,
 	FSID_MAJOR_MINOR,
@@ -66,7 +68,8 @@ enum nfsd_fsid {
 	FSID_UUID16_INUM,
 };
 
-enum fsid_source {
+enum fsid_source
+{
 	FSIDSOURCE_DEV,
 	FSIDSOURCE_FSID,
 	FSIDSOURCE_UUID,
@@ -85,76 +88,90 @@ extern enum fsid_source fsid_source(struct svc_fh *fhp);
  * client, that shouldn't be a problem.
  */
 static inline void mk_fsid(int vers, u32 *fsidv, dev_t dev, ino_t ino,
-			   u32 fsid, unsigned char *uuid)
+						   u32 fsid, unsigned char *uuid)
 {
 	u32 *up;
-	switch(vers) {
-	case FSID_DEV:
-		fsidv[0] = (__force __u32)htonl((MAJOR(dev)<<16) |
-				 MINOR(dev));
-		fsidv[1] = ino_t_to_u32(ino);
-		break;
-	case FSID_NUM:
-		fsidv[0] = fsid;
-		break;
-	case FSID_MAJOR_MINOR:
-		fsidv[0] = (__force __u32)htonl(MAJOR(dev));
-		fsidv[1] = (__force __u32)htonl(MINOR(dev));
-		fsidv[2] = ino_t_to_u32(ino);
-		break;
 
-	case FSID_ENCODE_DEV:
-		fsidv[0] = new_encode_dev(dev);
-		fsidv[1] = ino_t_to_u32(ino);
-		break;
+	switch (vers)
+	{
+		case FSID_DEV:
+			fsidv[0] = (__force __u32)htonl((MAJOR(dev) << 16) |
+											MINOR(dev));
+			fsidv[1] = ino_t_to_u32(ino);
+			break;
 
-	case FSID_UUID4_INUM:
-		/* 4 byte fsid and inode number */
-		up = (u32*)uuid;
-		fsidv[0] = ino_t_to_u32(ino);
-		fsidv[1] = up[0] ^ up[1] ^ up[2] ^ up[3];
-		break;
+		case FSID_NUM:
+			fsidv[0] = fsid;
+			break;
 
-	case FSID_UUID8:
-		/* 8 byte fsid  */
-		up = (u32*)uuid;
-		fsidv[0] = up[0] ^ up[2];
-		fsidv[1] = up[1] ^ up[3];
-		break;
+		case FSID_MAJOR_MINOR:
+			fsidv[0] = (__force __u32)htonl(MAJOR(dev));
+			fsidv[1] = (__force __u32)htonl(MINOR(dev));
+			fsidv[2] = ino_t_to_u32(ino);
+			break;
 
-	case FSID_UUID16:
-		/* 16 byte fsid - NFSv3+ only */
-		memcpy(fsidv, uuid, 16);
-		break;
+		case FSID_ENCODE_DEV:
+			fsidv[0] = new_encode_dev(dev);
+			fsidv[1] = ino_t_to_u32(ino);
+			break;
 
-	case FSID_UUID16_INUM:
-		/* 8 byte inode and 16 byte fsid */
-		*(u64*)fsidv = (u64)ino;
-		memcpy(fsidv+2, uuid, 16);
-		break;
-	default: BUG();
+		case FSID_UUID4_INUM:
+			/* 4 byte fsid and inode number */
+			up = (u32 *)uuid;
+			fsidv[0] = ino_t_to_u32(ino);
+			fsidv[1] = up[0] ^ up[1] ^ up[2] ^ up[3];
+			break;
+
+		case FSID_UUID8:
+			/* 8 byte fsid  */
+			up = (u32 *)uuid;
+			fsidv[0] = up[0] ^ up[2];
+			fsidv[1] = up[1] ^ up[3];
+			break;
+
+		case FSID_UUID16:
+			/* 16 byte fsid - NFSv3+ only */
+			memcpy(fsidv, uuid, 16);
+			break;
+
+		case FSID_UUID16_INUM:
+			/* 8 byte inode and 16 byte fsid */
+			*(u64 *)fsidv = (u64)ino;
+			memcpy(fsidv + 2, uuid, 16);
+			break;
+
+		default: BUG();
 	}
 }
 
 static inline int key_len(int type)
 {
-	switch(type) {
-	case FSID_DEV:		return 8;
-	case FSID_NUM: 		return 4;
-	case FSID_MAJOR_MINOR:	return 12;
-	case FSID_ENCODE_DEV:	return 8;
-	case FSID_UUID4_INUM:	return 8;
-	case FSID_UUID8:	return 8;
-	case FSID_UUID16:	return 16;
-	case FSID_UUID16_INUM:	return 24;
-	default: return 0;
+	switch (type)
+	{
+		case FSID_DEV:		return 8;
+
+		case FSID_NUM: 		return 4;
+
+		case FSID_MAJOR_MINOR:	return 12;
+
+		case FSID_ENCODE_DEV:	return 8;
+
+		case FSID_UUID4_INUM:	return 8;
+
+		case FSID_UUID8:	return 8;
+
+		case FSID_UUID16:	return 16;
+
+		case FSID_UUID16_INUM:	return 24;
+
+		default: return 0;
 	}
 }
 
 /*
  * Shorthand for dprintk()'s
  */
-extern char * SVCFH_fmt(struct svc_fh *fhp);
+extern char *SVCFH_fmt(struct svc_fh *fhp);
 
 /*
  * Function prototypes
@@ -168,7 +185,7 @@ static __inline__ struct svc_fh *
 fh_copy(struct svc_fh *dst, struct svc_fh *src)
 {
 	WARN_ON(src->fh_dentry || src->fh_locked);
-			
+
 	*dst = *src;
 	return dst;
 }
@@ -191,18 +208,30 @@ fh_init(struct svc_fh *fhp, int maxsize)
 static inline bool fh_match(struct knfsd_fh *fh1, struct knfsd_fh *fh2)
 {
 	if (fh1->fh_size != fh2->fh_size)
+	{
 		return false;
+	}
+
 	if (memcmp(fh1->fh_base.fh_pad, fh2->fh_base.fh_pad, fh1->fh_size) != 0)
+	{
 		return false;
+	}
+
 	return true;
 }
 
 static inline bool fh_fsid_match(struct knfsd_fh *fh1, struct knfsd_fh *fh2)
 {
 	if (fh1->fh_fsid_type != fh2->fh_fsid_type)
+	{
 		return false;
+	}
+
 	if (memcmp(fh1->fh_fsid, fh2->fh_fsid, key_len(fh1->fh_fsid_type)) != 0)
+	{
 		return false;
+	}
+
 	return true;
 }
 
@@ -249,7 +278,9 @@ fill_pre_wcc(struct svc_fh *fhp)
 	struct inode    *inode;
 
 	inode = d_inode(fhp->fh_dentry);
-	if (!fhp->fh_pre_saved) {
+
+	if (!fhp->fh_pre_saved)
+	{
 		fhp->fh_pre_mtime = inode->i_mtime;
 		fhp->fh_pre_ctime = inode->i_ctime;
 		fhp->fh_pre_size  = inode->i_size;
@@ -281,9 +312,10 @@ fh_lock_nested(struct svc_fh *fhp, unsigned int subclass)
 
 	BUG_ON(!dentry);
 
-	if (fhp->fh_locked) {
+	if (fhp->fh_locked)
+	{
 		printk(KERN_WARNING "fh_lock: %pd2 already locked!\n",
-			dentry);
+			   dentry);
 		return;
 	}
 
@@ -305,7 +337,8 @@ fh_lock(struct svc_fh *fhp)
 static inline void
 fh_unlock(struct svc_fh *fhp)
 {
-	if (fhp->fh_locked) {
+	if (fhp->fh_locked)
+	{
 		fill_post_wcc(fhp);
 		inode_unlock(d_inode(fhp->fh_dentry));
 		fhp->fh_locked = false;

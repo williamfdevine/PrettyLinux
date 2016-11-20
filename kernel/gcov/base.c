@@ -33,7 +33,9 @@ void __gcov_init(struct gcov_info *info)
 	static unsigned int gcov_version;
 
 	mutex_lock(&gcov_lock);
-	if (gcov_version == 0) {
+
+	if (gcov_version == 0)
+	{
 		gcov_version = gcov_info_version(info);
 		/*
 		 * Printing gcc's version magic may prove useful for debugging
@@ -41,13 +43,18 @@ void __gcov_init(struct gcov_info *info)
 		 */
 		pr_info("version magic: 0x%x\n", gcov_version);
 	}
+
 	/*
 	 * Add new profiling data structure to list and inform event
 	 * listener.
 	 */
 	gcov_info_link(info);
+
 	if (gcov_events_enabled)
+	{
 		gcov_event(GCOV_ADD, info);
+	}
+
 	mutex_unlock(&gcov_lock);
 }
 EXPORT_SYMBOL(__gcov_init);
@@ -114,7 +121,8 @@ void gcov_enable_events(void)
 	gcov_events_enabled = 1;
 
 	/* Perform event callback for previously registered entries. */
-	while ((info = gcov_info_next(info))) {
+	while ((info = gcov_info_next(info)))
+	{
 		gcov_event(GCOV_ADD, info);
 		cond_resched();
 	}
@@ -125,24 +133,35 @@ void gcov_enable_events(void)
 #ifdef CONFIG_MODULES
 /* Update list and generate events when modules are unloaded. */
 static int gcov_module_notifier(struct notifier_block *nb, unsigned long event,
-				void *data)
+								void *data)
 {
 	struct module *mod = data;
 	struct gcov_info *info = NULL;
 	struct gcov_info *prev = NULL;
 
 	if (event != MODULE_STATE_GOING)
+	{
 		return NOTIFY_OK;
+	}
+
 	mutex_lock(&gcov_lock);
 
 	/* Remove entries located in module from linked list. */
-	while ((info = gcov_info_next(info))) {
-		if (within_module((unsigned long)info, mod)) {
+	while ((info = gcov_info_next(info)))
+	{
+		if (within_module((unsigned long)info, mod))
+		{
 			gcov_info_unlink(prev, info);
+
 			if (gcov_events_enabled)
+			{
 				gcov_event(GCOV_REMOVE, info);
-		} else
+			}
+		}
+		else
+		{
 			prev = info;
+		}
 	}
 
 	mutex_unlock(&gcov_lock);
@@ -150,7 +169,8 @@ static int gcov_module_notifier(struct notifier_block *nb, unsigned long event,
 	return NOTIFY_OK;
 }
 
-static struct notifier_block gcov_nb = {
+static struct notifier_block gcov_nb =
+{
 	.notifier_call	= gcov_module_notifier,
 };
 

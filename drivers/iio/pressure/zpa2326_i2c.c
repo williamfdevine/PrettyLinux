@@ -25,7 +25,8 @@
  * read_flag_mask:
  *   - address bit 7 must be set to request a register read operation
  */
-static const struct regmap_config zpa2326_regmap_i2c_config = {
+static const struct regmap_config zpa2326_regmap_i2c_config =
+{
 	.reg_bits       = 8,
 	.val_bits       = 8,
 	.writeable_reg  = zpa2326_isreg_writeable,
@@ -43,22 +44,24 @@ static unsigned int zpa2326_i2c_hwid(const struct i2c_client *client)
 
 	/* Identification register bit 1 mirrors device address bit 0. */
 	return (ZPA2326_DEVICE_ID |
-		(ZPA2326_SA0(client->addr) << ZPA2326_DEVICE_ID_SA0_SHIFT));
+			(ZPA2326_SA0(client->addr) << ZPA2326_DEVICE_ID_SA0_SHIFT));
 }
 
 static int zpa2326_probe_i2c(struct i2c_client          *client,
-			     const struct i2c_device_id *i2c_id)
+							 const struct i2c_device_id *i2c_id)
 {
 	struct regmap *regmap;
 
 	regmap = devm_regmap_init_i2c(client, &zpa2326_regmap_i2c_config);
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		dev_err(&client->dev, "failed to init registers map");
 		return PTR_ERR(regmap);
 	}
 
 	return zpa2326_probe(&client->dev, i2c_id->name, client->irq,
-			     zpa2326_i2c_hwid(client), regmap);
+						 zpa2326_i2c_hwid(client), regmap);
 }
 
 static int zpa2326_remove_i2c(struct i2c_client *client)
@@ -68,21 +71,24 @@ static int zpa2326_remove_i2c(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id zpa2326_i2c_ids[] = {
+static const struct i2c_device_id zpa2326_i2c_ids[] =
+{
 	{ "zpa2326", 0 },
 	{ },
 };
 MODULE_DEVICE_TABLE(i2c, zpa2326_i2c_ids);
 
 #if defined(CONFIG_OF)
-static const struct of_device_id zpa2326_i2c_matches[] = {
+static const struct of_device_id zpa2326_i2c_matches[] =
+{
 	{ .compatible = "murata,zpa2326" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, zpa2326_i2c_matches);
 #endif
 
-static struct i2c_driver zpa2326_i2c_driver = {
+static struct i2c_driver zpa2326_i2c_driver =
+{
 	.driver = {
 		.name           = "zpa2326-i2c",
 		.of_match_table = of_match_ptr(zpa2326_i2c_matches),

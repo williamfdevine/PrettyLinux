@@ -47,7 +47,8 @@
 #define UFS_QCOM_LIMIT_DESIRED_MODE	FAST
 
 /* QCOM UFS host controller vendor specific registers */
-enum {
+enum
+{
 	REG_UFS_SYS1CLK_1US                 = 0xC0,
 	REG_UFS_TX_SYMBOL_CLK_NS_US         = 0xC4,
 	REG_UFS_LOCAL_PORT_ID_REG           = 0xC8,
@@ -72,7 +73,8 @@ enum {
 };
 
 /* QCOM UFS host controller vendor specific debug registers */
-enum {
+enum
+{
 	UFS_DBG_RD_REG_UAWM			= 0x100,
 	UFS_DBG_RD_REG_UARM			= 0x200,
 	UFS_DBG_RD_REG_TXUC			= 0x300,
@@ -110,24 +112,27 @@ enum {
 #define TEST_BUS_SUB_SEL_MASK	0x1F  /* All XXX_SEL fields are 5 bits wide */
 
 #define REG_UFS_CFG2_CGC_EN_ALL (UAWM_HW_CGC_EN | UARM_HW_CGC_EN |\
-				 TXUC_HW_CGC_EN | RXUC_HW_CGC_EN |\
-				 DFC_HW_CGC_EN | TRLUT_HW_CGC_EN |\
-				 TMRLUT_HW_CGC_EN | OCSC_HW_CGC_EN)
+								 TXUC_HW_CGC_EN | RXUC_HW_CGC_EN |\
+								 DFC_HW_CGC_EN | TRLUT_HW_CGC_EN |\
+								 TMRLUT_HW_CGC_EN | OCSC_HW_CGC_EN)
 
 /* bit offset */
-enum {
+enum
+{
 	OFFSET_UFS_PHY_SOFT_RESET           = 1,
 	OFFSET_CLK_NS_REG                   = 10,
 };
 
 /* bit masks */
-enum {
+enum
+{
 	MASK_UFS_PHY_SOFT_RESET             = 0x2,
 	MASK_TX_SYMBOL_CLK_1US_REG          = 0x3FF,
 	MASK_CLK_NS_REG                     = 0xFFFC00,
 };
 
-enum ufs_qcom_phy_init_type {
+enum ufs_qcom_phy_init_type
+{
 	UFS_PHY_INIT_FULL,
 	UFS_PHY_INIT_CFG_RESTORE,
 };
@@ -149,7 +154,7 @@ enum ufs_qcom_phy_init_type {
 
 static inline void
 ufs_qcom_get_controller_revision(struct ufs_hba *hba,
-				 u8 *major, u16 *minor, u16 *step)
+								 u8 *major, u16 *minor, u16 *step)
 {
 	u32 ver = ufshcd_readl(hba, REG_UFS_HW_VERSION);
 
@@ -161,7 +166,7 @@ ufs_qcom_get_controller_revision(struct ufs_hba *hba,
 static inline void ufs_qcom_assert_reset(struct ufs_hba *hba)
 {
 	ufshcd_rmwl(hba, MASK_UFS_PHY_SOFT_RESET,
-			1 << OFFSET_UFS_PHY_SOFT_RESET, REG_UFS_CFG1);
+				1 << OFFSET_UFS_PHY_SOFT_RESET, REG_UFS_CFG1);
 
 	/*
 	 * Make sure assertion of ufs phy reset is written to
@@ -173,7 +178,7 @@ static inline void ufs_qcom_assert_reset(struct ufs_hba *hba)
 static inline void ufs_qcom_deassert_reset(struct ufs_hba *hba)
 {
 	ufshcd_rmwl(hba, MASK_UFS_PHY_SOFT_RESET,
-			0 << OFFSET_UFS_PHY_SOFT_RESET, REG_UFS_CFG1);
+				0 << OFFSET_UFS_PHY_SOFT_RESET, REG_UFS_CFG1);
 
 	/*
 	 * Make sure de-assertion of ufs phy reset is written to
@@ -182,7 +187,8 @@ static inline void ufs_qcom_deassert_reset(struct ufs_hba *hba)
 	mb();
 }
 
-struct ufs_qcom_bus_vote {
+struct ufs_qcom_bus_vote
+{
 	uint32_t client_handle;
 	uint32_t curr_vote;
 	int min_bw_vote;
@@ -193,31 +199,34 @@ struct ufs_qcom_bus_vote {
 };
 
 /* Host controller hardware version: major.minor.step */
-struct ufs_hw_version {
+struct ufs_hw_version
+{
 	u16 step;
 	u16 minor;
 	u8 major;
 };
 
-struct ufs_qcom_testbus {
+struct ufs_qcom_testbus
+{
 	u8 select_major;
 	u8 select_minor;
 };
 
-struct ufs_qcom_host {
+struct ufs_qcom_host
+{
 	/*
 	 * Set this capability if host controller supports the QUniPro mode
 	 * and if driver wants the Host controller to operate in QUniPro mode.
 	 * Note: By default this capability will be kept enabled if host
 	 * controller supports the QUniPro mode.
 	 */
-	#define UFS_QCOM_CAP_QUNIPRO	UFS_BIT(0)
+#define UFS_QCOM_CAP_QUNIPRO	UFS_BIT(0)
 
 	/*
 	 * Set this capability if host controller can retain the secure
 	 * configuration even after UFS controller core power collapse.
 	 */
-	#define UFS_QCOM_CAP_RETAIN_SEC_CFG_AFTER_PWR_COLLAPSE	UFS_BIT(1)
+#define UFS_QCOM_CAP_RETAIN_SEC_CFG_AFTER_PWR_COLLAPSE	UFS_BIT(1)
 	u32 caps;
 
 	struct phy *generic_phy;
@@ -245,7 +254,9 @@ static inline u32
 ufs_qcom_get_debug_reg_offset(struct ufs_qcom_host *host, u32 reg)
 {
 	if (host->hw_ver.major <= 0x02)
+	{
 		return UFS_CNTLR_2_x_x_VEN_REGS_OFFSET(reg);
+	}
 
 	return UFS_CNTLR_3_x_x_VEN_REGS_OFFSET(reg);
 };
@@ -259,9 +270,13 @@ int ufs_qcom_testbus_config(struct ufs_qcom_host *host);
 static inline bool ufs_qcom_cap_qunipro(struct ufs_qcom_host *host)
 {
 	if (host->caps & UFS_QCOM_CAP_QUNIPRO)
+	{
 		return true;
+	}
 	else
+	{
 		return false;
+	}
 }
 
 #endif /* UFS_QCOM_H_ */

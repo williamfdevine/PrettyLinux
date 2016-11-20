@@ -49,21 +49,24 @@ struct adapter;
 struct sge_qset;
 struct port_info;
 
-enum mac_idx_types {
+enum mac_idx_types
+{
 	LAN_MAC_IDX	= 0,
 	SAN_MAC_IDX,
 
 	MAX_MAC_IDX
 };
 
-struct iscsi_config {
+struct iscsi_config
+{
 	__u8	mac_addr[ETH_ALEN];
 	__u32	flags;
 	int (*send)(struct port_info *pi, struct sk_buff **skb);
 	int (*recv)(struct port_info *pi, struct sk_buff *skb);
 };
 
-struct port_info {
+struct port_info
+{
 	struct adapter *adapter;
 	struct sge_qset *qs;
 	u8 port_id;
@@ -80,7 +83,8 @@ struct port_info {
 	int link_fault; /* link fault was detected */
 };
 
-enum {				/* adapter flags */
+enum  				/* adapter flags */
+{
 	FULL_INIT_DONE = (1 << 0),
 	USING_MSI = (1 << 1),
 	USING_MSIX = (1 << 2),
@@ -89,7 +93,8 @@ enum {				/* adapter flags */
 	NAPI_INIT = (1 << 5),
 };
 
-struct fl_pg_chunk {
+struct fl_pg_chunk
+{
 	struct page *page;
 	void *va;
 	unsigned int offset;
@@ -100,7 +105,8 @@ struct fl_pg_chunk {
 struct rx_desc;
 struct rx_sw_desc;
 
-struct sge_fl {                     /* SGE per free-buffer list state */
+struct sge_fl                       /* SGE per free-buffer list state */
+{
 	unsigned int buf_size;      /* size of each Rx buffer */
 	unsigned int credits;       /* # of available Rx buffers */
 	unsigned int pend_cred;     /* new buffers since last FL DB ring */
@@ -128,7 +134,8 @@ struct sge_fl {                     /* SGE per free-buffer list state */
 
 struct rsp_desc;
 
-struct sge_rspq {		/* state for an SGE response queue */
+struct sge_rspq  		/* state for an SGE response queue */
+{
 	unsigned int credits;	/* # of pending response credits */
 	unsigned int size;	/* capacity of response queue */
 	unsigned int cidx;	/* consumer index */
@@ -162,7 +169,8 @@ struct sge_rspq {		/* state for an SGE response queue */
 struct tx_desc;
 struct tx_sw_desc;
 
-struct sge_txq {		/* state for an SGE Tx queue */
+struct sge_txq  		/* state for an SGE Tx queue */
+{
 	unsigned long flags;	/* HW DMA fetch status */
 	unsigned int in_use;	/* # of in-use Tx descriptors */
 	unsigned int size;	/* # of descriptors */
@@ -185,7 +193,8 @@ struct sge_txq {		/* state for an SGE Tx queue */
 	unsigned long restarts;	/* # of queue restarts */
 };
 
-enum {				/* per port SGE statistics */
+enum  				/* per port SGE statistics */
+{
 	SGE_PSTAT_TSO,		/* # of TSO requests */
 	SGE_PSTAT_RX_CSUM_GOOD,	/* # of successful RX csum offloads */
 	SGE_PSTAT_TX_CSUM,	/* # of TX checksum offloads */
@@ -197,7 +206,8 @@ enum {				/* per port SGE statistics */
 
 struct napi_gro_fraginfo;
 
-struct sge_qset {		/* an SGE queue set */
+struct sge_qset  		/* an SGE queue set */
+{
 	struct adapter *adap;
 	struct napi_struct napi;
 	struct sge_rspq rspq;
@@ -213,12 +223,14 @@ struct sge_qset {		/* an SGE queue set */
 	unsigned long port_stats[SGE_PSTAT_MAX];
 } ____cacheline_aligned;
 
-struct sge {
+struct sge
+{
 	struct sge_qset qs[SGE_QSETS];
 	spinlock_t reg_lock;	/* guards non-atomic SGE registers (eg context) */
 };
 
-struct adapter {
+struct adapter
+{
 	struct t3cdev tdev;
 	struct list_head adapter_list;
 	void __iomem *regs;
@@ -236,7 +248,8 @@ struct adapter {
 	unsigned long irq_stats[IRQ_NUM_STATS];
 
 	int msix_nvectors;
-	struct {
+	struct
+	{
 		unsigned short vec;
 		char desc[22];
 	} msix_info[SGE_QSETS + 1];
@@ -308,7 +321,7 @@ int t3_offload_tx(struct t3cdev *tdev, struct sk_buff *skb);
 
 void t3_os_ext_intr_handler(struct adapter *adapter);
 void t3_os_link_changed(struct adapter *adapter, int port_id, int link_status,
-			int speed, int duplex, int fc);
+						int speed, int duplex, int fc);
 void t3_os_phymod_changed(struct adapter *adap, int port_id);
 void t3_os_link_fault(struct adapter *adapter, int port_id, int state);
 void t3_os_link_fault_handler(struct adapter *adapter, int port_id);
@@ -324,9 +337,9 @@ netdev_tx_t t3_eth_xmit(struct sk_buff *skb, struct net_device *dev);
 int t3_mgmt_tx(struct adapter *adap, struct sk_buff *skb);
 void t3_update_qset_coalesce(struct sge_qset *qs, const struct qset_params *p);
 int t3_sge_alloc_qset(struct adapter *adapter, unsigned int id, int nports,
-		      int irq_vec_idx, const struct qset_params *p,
-		      int ntxq, struct net_device *dev,
-		      struct netdev_queue *netdevq);
+					  int irq_vec_idx, const struct qset_params *p,
+					  int ntxq, struct net_device *dev,
+					  struct netdev_queue *netdevq);
 extern struct workqueue_struct *cxgb3_wq;
 
 int t3_get_edc_fw(struct cphy *phy, int edc_idx, int size);

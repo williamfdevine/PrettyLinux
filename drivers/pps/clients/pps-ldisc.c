@@ -37,16 +37,19 @@ static void pps_tty_dcd_change(struct tty_struct *tty, unsigned int status)
 	pps_get_ts(&ts);
 
 	pps = pps_lookup_dev(tty);
+
 	/*
 	 * This should never fail, but the ldisc locking is very
 	 * convoluted, so don't crash just in case.
 	 */
 	if (WARN_ON_ONCE(pps == NULL))
+	{
 		return;
+	}
 
 	/* Now do the PPS event report */
 	pps_event(pps, &ts, status ? PPS_CAPTUREASSERT :
-			PPS_CAPTURECLEAR, NULL);
+			  PPS_CAPTURECLEAR, NULL);
 
 	dev_dbg(pps->dev, "PPS %s at %lu\n",
 			status ? "assert" : "clear", jiffies);
@@ -67,20 +70,25 @@ static int pps_tty_open(struct tty_struct *tty)
 	snprintf(info.name, PPS_MAX_NAME_LEN, "%s%d", drv->driver_name, index);
 	snprintf(info.path, PPS_MAX_NAME_LEN, "/dev/%s%d", drv->name, index);
 	info.mode = PPS_CAPTUREBOTH | \
-			PPS_OFFSETASSERT | PPS_OFFSETCLEAR | \
-			PPS_CANWAIT | PPS_TSFMT_TSPEC;
+				PPS_OFFSETASSERT | PPS_OFFSETCLEAR | \
+				PPS_CANWAIT | PPS_TSFMT_TSPEC;
 
 	pps = pps_register_source(&info, PPS_CAPTUREBOTH | \
-				PPS_OFFSETASSERT | PPS_OFFSETCLEAR);
-	if (pps == NULL) {
+							  PPS_OFFSETASSERT | PPS_OFFSETCLEAR);
+
+	if (pps == NULL)
+	{
 		pr_err("cannot register PPS source \"%s\"\n", info.path);
 		return -ENOMEM;
 	}
+
 	pps->lookup_cookie = tty;
 
 	/* Now open the base class N_TTY ldisc */
 	ret = alias_n_tty_open(tty);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("cannot open tty ldisc \"%s\"\n", info.path);
 		goto err_unregister;
 	}
@@ -103,7 +111,9 @@ static void pps_tty_close(struct tty_struct *tty)
 	alias_n_tty_close(tty);
 
 	if (WARN_ON(!pps))
+	{
 		return;
+	}
 
 	dev_info(pps->dev, "removed\n");
 	pps_unregister_source(pps);
@@ -135,10 +145,15 @@ static int __init pps_tty_init(void)
 	pps_ldisc_ops.close = pps_tty_close;
 
 	err = tty_register_ldisc(N_PPS, &pps_ldisc_ops);
+
 	if (err)
+	{
 		pr_err("can't register PPS line discipline\n");
+	}
 	else
+	{
 		pr_info("PPS line discipline registered\n");
+	}
 
 	return err;
 }
@@ -148,10 +163,15 @@ static void __exit pps_tty_cleanup(void)
 	int err;
 
 	err = tty_unregister_ldisc(N_PPS);
+
 	if (err)
+	{
 		pr_err("can't unregister PPS line discipline\n");
+	}
 	else
+	{
 		pr_info("PPS line discipline removed\n");
+	}
 }
 
 module_init(pps_tty_init);

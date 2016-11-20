@@ -15,7 +15,8 @@
 #define CYPRESS_FX2     2
 
 /* commonly used firmware download types and function */
-struct hexline {
+struct hexline
+{
 	u8 len;
 	u32 addr;
 	u8 type;

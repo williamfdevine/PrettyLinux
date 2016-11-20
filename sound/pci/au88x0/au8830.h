@@ -239,7 +239,7 @@
 /* write: Timer period config / read: TIMER IRQ ack. */
 #define VORTEX_IRQ_STAT 0x2919c
 
-		     /* MIDI *//* GAME. */
+/* MIDI *//* GAME. */
 #define VORTEX_MIDI_DATA 0x28800
 #define VORTEX_MIDI_CMD 0x28804	/* Write command / Read status */
 

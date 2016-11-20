@@ -190,7 +190,8 @@
 #include <sound/dmaengine_pcm.h>
 #include "imx-pcm.h"
 
-struct imx_ssi {
+struct imx_ssi
+{
 	struct platform_device *ac97_dev;
 
 	struct snd_soc_dai *imx_ac97;

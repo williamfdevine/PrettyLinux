@@ -10,7 +10,7 @@
 
 /*
  * Definition of struct rusage taken from BSD 4.3 Reno
- * 
+ *
  * We don't support all of these yet, but we might as well have them....
  * Otherwise, each time we add new items, programs which depend on this
  * structure will lose.  This reduces the chances of that happening.
@@ -20,7 +20,8 @@
 #define RUSAGE_BOTH	(-2)		/* sys_wait4() uses this */
 #define	RUSAGE_THREAD	1		/* only the calling thread */
 
-struct	rusage {
+struct	rusage
+{
 	struct timeval ru_utime;	/* user time used */
 	struct timeval ru_stime;	/* system time used */
 	__kernel_long_t	ru_maxrss;	/* maximum resident set size */
@@ -39,14 +40,16 @@ struct	rusage {
 	__kernel_long_t	ru_nivcsw;	/* involuntary " */
 };
 
-struct rlimit {
+struct rlimit
+{
 	__kernel_ulong_t	rlim_cur;
 	__kernel_ulong_t	rlim_max;
 };
 
 #define RLIM64_INFINITY		(~0ULL)
 
-struct rlimit64 {
+struct rlimit64
+{
 	__u64 rlim_cur;
 	__u64 rlim_max;
 };

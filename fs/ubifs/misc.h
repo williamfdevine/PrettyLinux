@@ -67,7 +67,8 @@ static inline int ubifs_zn_cow(const struct ubifs_znode *znode)
  */
 static inline void ubifs_wake_up_bgt(struct ubifs_info *c)
 {
-	if (c->bgt && !c->need_bgt) {
+	if (c->bgt && !c->need_bgt)
+	{
 		c->need_bgt = 1;
 		wake_up_process(c->bgt);
 	}
@@ -84,9 +85,13 @@ static inline void ubifs_wake_up_bgt(struct ubifs_info *c)
 static inline struct ubifs_znode *
 ubifs_tnc_find_child(struct ubifs_znode *znode, int start)
 {
-	while (start < znode->child_cnt) {
+	while (start < znode->child_cnt)
+	{
 		if (znode->zbranch[start].znode)
+		{
 			return znode->zbranch[start].znode;
+		}
+
 		start += 1;
 	}
 
@@ -185,7 +190,7 @@ static inline int ubifs_add_dirt(struct ubifs_info *c, int lnum, int dirty)
 static inline int ubifs_return_leb(struct ubifs_info *c, int lnum)
 {
 	return ubifs_change_one_lp(c, lnum, LPROPS_NC, LPROPS_NC, 0,
-				   LPROPS_TAKEN, 0);
+							   LPROPS_TAKEN, 0);
 }
 
 /**
@@ -206,11 +211,11 @@ static inline int ubifs_idx_node_sz(const struct ubifs_info *c, int child_cnt)
  */
 static inline
 struct ubifs_branch *ubifs_idx_branch(const struct ubifs_info *c,
-				      const struct ubifs_idx_node *idx,
-				      int bnum)
+									  const struct ubifs_idx_node *idx,
+									  int bnum)
 {
 	return (struct ubifs_branch *)((void *)idx->branches +
-				       (UBIFS_BRANCH_SZ + c->key_len) * bnum);
+								   (UBIFS_BRANCH_SZ + c->key_len) * bnum);
 }
 
 /**
@@ -219,7 +224,7 @@ struct ubifs_branch *ubifs_idx_branch(const struct ubifs_info *c,
  * @idx: index node
  */
 static inline void *ubifs_idx_key(const struct ubifs_info *c,
-				  const struct ubifs_idx_node *idx)
+								  const struct ubifs_idx_node *idx)
 {
 	return (void *)((struct ubifs_branch *)idx->branches)->key;
 }
@@ -231,7 +236,7 @@ static inline void *ubifs_idx_key(const struct ubifs_info *c,
 static inline struct timespec ubifs_current_time(struct inode *inode)
 {
 	return (inode->i_sb->s_time_gran < NSEC_PER_SEC) ?
-		current_fs_time(inode->i_sb) : CURRENT_TIME_SEC;
+		   current_fs_time(inode->i_sb) : CURRENT_TIME_SEC;
 }
 
 /**
@@ -246,7 +251,7 @@ static inline struct timespec ubifs_current_time(struct inode *inode)
  * case of failure.
  */
 static inline int ubifs_tnc_lookup(struct ubifs_info *c,
-				   const union ubifs_key *key, void *node)
+								   const union ubifs_key *key, void *node)
 {
 	return ubifs_tnc_locate(c, key, node, NULL, NULL);
 }
@@ -274,7 +279,7 @@ static inline void ubifs_release_lprops(struct ubifs_info *c)
 {
 	ubifs_assert(mutex_is_locked(&c->lp_mutex));
 	ubifs_assert(c->lst.empty_lebs >= 0 &&
-		     c->lst.empty_lebs <= c->main_lebs);
+				 c->lst.empty_lebs <= c->main_lebs);
 	mutex_unlock(&c->lp_mutex);
 }
 
@@ -289,8 +294,11 @@ static inline void ubifs_release_lprops(struct ubifs_info *c)
 static inline int ubifs_next_log_lnum(const struct ubifs_info *c, int lnum)
 {
 	lnum += 1;
+
 	if (lnum > c->log_last)
+	{
 		lnum = UBIFS_LOG_LNUM;
+	}
 
 	return lnum;
 }

@@ -29,7 +29,8 @@ struct mbox_chan;
  *			before initiating the transmission if required.
  * @tx_done:		Atomic callback to tell client of data transmission
  */
-struct mbox_client {
+struct mbox_client
+{
 	struct device *dev;
 	bool tx_block;
 	unsigned long tx_tout;
@@ -41,7 +42,7 @@ struct mbox_client {
 };
 
 struct mbox_chan *mbox_request_channel_byname(struct mbox_client *cl,
-					      const char *name);
+		const char *name);
 struct mbox_chan *mbox_request_channel(struct mbox_client *cl, int index);
 int mbox_send_message(struct mbox_chan *chan, void *mssg);
 void mbox_client_txdone(struct mbox_chan *chan, int r); /* atomic */

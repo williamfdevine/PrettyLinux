@@ -38,7 +38,9 @@ static void acpi_sleep_tts_switch(u32 acpi_state)
 	acpi_status status;
 
 	status = acpi_execute_simple_method(NULL, "\\_TTS", acpi_state);
-	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+
+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
+	{
 		/*
 		 * OS can't evaluate the _TTS object correctly. Some warning
 		 * message will be printed. But it won't break anything.
@@ -52,7 +54,9 @@ static void acpi_sleep_pts_switch(u32 acpi_state)
 	acpi_status status;
 
 	status = acpi_execute_simple_method(NULL, "\\_PTS", acpi_state);
-	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+
+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
+	{
 		/*
 		 * OS can't evaluate the _PTS object correctly. Some warning
 		 * message will be printed. But it won't break anything.
@@ -62,7 +66,7 @@ static void acpi_sleep_pts_switch(u32 acpi_state)
 }
 
 static int sleep_notify_reboot(struct notifier_block *this,
-			unsigned long code, void *x)
+							   unsigned long code, void *x)
 {
 	acpi_sleep_tts_switch(ACPI_STATE_S5);
 
@@ -71,7 +75,8 @@ static int sleep_notify_reboot(struct notifier_block *this,
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block sleep_notifier = {
+static struct notifier_block sleep_notifier =
+{
 	.notifier_call	= sleep_notify_reboot,
 	.next		= NULL,
 	.priority	= 0,
@@ -80,17 +85,23 @@ static struct notifier_block sleep_notifier = {
 static int acpi_sleep_prepare(u32 acpi_state)
 {
 #ifdef CONFIG_ACPI_SLEEP
+
 	/* do we have a wakeup address for S2 and S3? */
-	if (acpi_state == ACPI_STATE_S3) {
+	if (acpi_state == ACPI_STATE_S3)
+	{
 		if (!acpi_wakeup_address)
+		{
 			return -EFAULT;
+		}
+
 		acpi_set_waking_vector(acpi_wakeup_address);
 
 	}
+
 	ACPI_FLUSH_CPU_CACHE();
 #endif
 	printk(KERN_INFO PREFIX "Preparing to enter system sleep state S%d\n",
-		acpi_state);
+		   acpi_state);
 	acpi_enable_wakeup_devices(acpi_state);
 	acpi_enter_sleep_state_prep(acpi_state);
 	return 0;
@@ -103,8 +114,8 @@ static bool acpi_sleep_state_supported(u8 sleep_state)
 
 	status = acpi_get_sleep_type_data(sleep_state, &type_a, &type_b);
 	return ACPI_SUCCESS(status) && (!acpi_gbl_reduced_hardware
-		|| (acpi_gbl_FADT.sleep_control.address
-			&& acpi_gbl_FADT.sleep_status.address));
+									|| (acpi_gbl_FADT.sleep_control.address
+										&& acpi_gbl_FADT.sleep_status.address));
 }
 
 #ifdef CONFIG_ACPI_SLEEP
@@ -171,174 +182,175 @@ static int __init init_nvs_nosave(const struct dmi_system_id *d)
 	return 0;
 }
 
-static struct dmi_system_id acpisleep_dmi_table[] __initdata = {
+static struct dmi_system_id acpisleep_dmi_table[] __initdata =
+{
 	{
-	.callback = init_old_suspend_ordering,
-	.ident = "Abit KN9 (nForce4 variant)",
-	.matches = {
-		DMI_MATCH(DMI_BOARD_VENDOR, "http://www.abit.com.tw/"),
-		DMI_MATCH(DMI_BOARD_NAME, "KN9 Series(NF-CK804)"),
+		.callback = init_old_suspend_ordering,
+		.ident = "Abit KN9 (nForce4 variant)",
+		.matches = {
+			DMI_MATCH(DMI_BOARD_VENDOR, "http://www.abit.com.tw/"),
+			DMI_MATCH(DMI_BOARD_NAME, "KN9 Series(NF-CK804)"),
 		},
 	},
 	{
-	.callback = init_old_suspend_ordering,
-	.ident = "HP xw4600 Workstation",
-	.matches = {
-		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-		DMI_MATCH(DMI_PRODUCT_NAME, "HP xw4600 Workstation"),
+		.callback = init_old_suspend_ordering,
+		.ident = "HP xw4600 Workstation",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "HP xw4600 Workstation"),
 		},
 	},
 	{
-	.callback = init_old_suspend_ordering,
-	.ident = "Asus Pundit P1-AH2 (M2N8L motherboard)",
-	.matches = {
-		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTek Computer INC."),
-		DMI_MATCH(DMI_BOARD_NAME, "M2N8L"),
+		.callback = init_old_suspend_ordering,
+		.ident = "Asus Pundit P1-AH2 (M2N8L motherboard)",
+		.matches = {
+			DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTek Computer INC."),
+			DMI_MATCH(DMI_BOARD_NAME, "M2N8L"),
 		},
 	},
 	{
-	.callback = init_old_suspend_ordering,
-	.ident = "Panasonic CF51-2L",
-	.matches = {
-		DMI_MATCH(DMI_BOARD_VENDOR,
-				"Matsushita Electric Industrial Co.,Ltd."),
-		DMI_MATCH(DMI_BOARD_NAME, "CF51-2L"),
+		.callback = init_old_suspend_ordering,
+		.ident = "Panasonic CF51-2L",
+		.matches = {
+			DMI_MATCH(DMI_BOARD_VENDOR,
+			"Matsushita Electric Industrial Co.,Ltd."),
+			DMI_MATCH(DMI_BOARD_NAME, "CF51-2L"),
 		},
 	},
 	{
-	.callback = init_nvs_nosave,
-	.ident = "Sony Vaio VGN-FW41E_H",
-	.matches = {
-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW41E_H"),
+		.callback = init_nvs_nosave,
+		.ident = "Sony Vaio VGN-FW41E_H",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW41E_H"),
 		},
 	},
 	{
-	.callback = init_nvs_nosave,
-	.ident = "Sony Vaio VGN-FW21E",
-	.matches = {
-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW21E"),
+		.callback = init_nvs_nosave,
+		.ident = "Sony Vaio VGN-FW21E",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW21E"),
 		},
 	},
 	{
-	.callback = init_nvs_nosave,
-	.ident = "Sony Vaio VGN-FW21M",
-	.matches = {
-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW21M"),
+		.callback = init_nvs_nosave,
+		.ident = "Sony Vaio VGN-FW21M",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW21M"),
 		},
 	},
 	{
-	.callback = init_nvs_nosave,
-	.ident = "Sony Vaio VPCEB17FX",
-	.matches = {
-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB17FX"),
+		.callback = init_nvs_nosave,
+		.ident = "Sony Vaio VPCEB17FX",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB17FX"),
 		},
 	},
 	{
-	.callback = init_nvs_nosave,
-	.ident = "Sony Vaio VGN-SR11M",
-	.matches = {
-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR11M"),
+		.callback = init_nvs_nosave,
+		.ident = "Sony Vaio VGN-SR11M",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR11M"),
 		},
 	},
 	{
-	.callback = init_nvs_nosave,
-	.ident = "Everex StepNote Series",
-	.matches = {
-		DMI_MATCH(DMI_SYS_VENDOR, "Everex Systems, Inc."),
-		DMI_MATCH(DMI_PRODUCT_NAME, "Everex StepNote Series"),
+		.callback = init_nvs_nosave,
+		.ident = "Everex StepNote Series",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Everex Systems, Inc."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Everex StepNote Series"),
 		},
 	},
 	{
-	.callback = init_nvs_nosave,
-	.ident = "Sony Vaio VPCEB1Z1E",
-	.matches = {
-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB1Z1E"),
+		.callback = init_nvs_nosave,
+		.ident = "Sony Vaio VPCEB1Z1E",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB1Z1E"),
 		},
 	},
 	{
-	.callback = init_nvs_nosave,
-	.ident = "Sony Vaio VGN-NW130D",
-	.matches = {
-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-NW130D"),
+		.callback = init_nvs_nosave,
+		.ident = "Sony Vaio VGN-NW130D",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "VGN-NW130D"),
 		},
 	},
 	{
-	.callback = init_nvs_nosave,
-	.ident = "Sony Vaio VPCCW29FX",
-	.matches = {
-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-		DMI_MATCH(DMI_PRODUCT_NAME, "VPCCW29FX"),
+		.callback = init_nvs_nosave,
+		.ident = "Sony Vaio VPCCW29FX",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "VPCCW29FX"),
 		},
 	},
 	{
-	.callback = init_nvs_nosave,
-	.ident = "Averatec AV1020-ED2",
-	.matches = {
-		DMI_MATCH(DMI_SYS_VENDOR, "AVERATEC"),
-		DMI_MATCH(DMI_PRODUCT_NAME, "1000 Series"),
+		.callback = init_nvs_nosave,
+		.ident = "Averatec AV1020-ED2",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "AVERATEC"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "1000 Series"),
 		},
 	},
 	{
-	.callback = init_old_suspend_ordering,
-	.ident = "Asus A8N-SLI DELUXE",
-	.matches = {
-		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
-		DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI DELUXE"),
+		.callback = init_old_suspend_ordering,
+		.ident = "Asus A8N-SLI DELUXE",
+		.matches = {
+			DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
+			DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI DELUXE"),
 		},
 	},
 	{
-	.callback = init_old_suspend_ordering,
-	.ident = "Asus A8N-SLI Premium",
-	.matches = {
-		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
-		DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI Premium"),
+		.callback = init_old_suspend_ordering,
+		.ident = "Asus A8N-SLI Premium",
+		.matches = {
+			DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
+			DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI Premium"),
 		},
 	},
 	{
-	.callback = init_nvs_nosave,
-	.ident = "Sony Vaio VGN-SR26GN_P",
-	.matches = {
-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR26GN_P"),
+		.callback = init_nvs_nosave,
+		.ident = "Sony Vaio VGN-SR26GN_P",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR26GN_P"),
 		},
 	},
 	{
-	.callback = init_nvs_nosave,
-	.ident = "Sony Vaio VPCEB1S1E",
-	.matches = {
-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB1S1E"),
+		.callback = init_nvs_nosave,
+		.ident = "Sony Vaio VPCEB1S1E",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB1S1E"),
 		},
 	},
 	{
-	.callback = init_nvs_nosave,
-	.ident = "Sony Vaio VGN-FW520F",
-	.matches = {
-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW520F"),
+		.callback = init_nvs_nosave,
+		.ident = "Sony Vaio VGN-FW520F",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW520F"),
 		},
 	},
 	{
-	.callback = init_nvs_nosave,
-	.ident = "Asus K54C",
-	.matches = {
-		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
-		DMI_MATCH(DMI_PRODUCT_NAME, "K54C"),
+		.callback = init_nvs_nosave,
+		.ident = "Asus K54C",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "K54C"),
 		},
 	},
 	{
-	.callback = init_nvs_nosave,
-	.ident = "Asus K54HR",
-	.matches = {
-		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
-		DMI_MATCH(DMI_PRODUCT_NAME, "K54HR"),
+		.callback = init_nvs_nosave,
+		.ident = "Asus K54HR",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "K54HR"),
 		},
 	},
 	{},
@@ -349,7 +361,9 @@ static void __init acpi_sleep_dmi_check(void)
 	int year;
 
 	if (dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL) && year >= 2012)
+	{
 		acpi_nvs_nosave_s3();
+	}
 
 	dmi_check_system(acpisleep_dmi_table);
 }
@@ -383,8 +397,11 @@ static int acpi_pm_pre_suspend(void)
 static int __acpi_pm_prepare(void)
 {
 	int error = acpi_sleep_prepare(acpi_target_sleep_state);
+
 	if (error)
+	{
 		acpi_target_sleep_state = ACPI_STATE_S0;
+	}
 
 	return error;
 }
@@ -396,8 +413,11 @@ static int __acpi_pm_prepare(void)
 static int acpi_pm_prepare(void)
 {
 	int error = __acpi_pm_prepare();
+
 	if (!error)
+	{
 		error = acpi_pm_pre_suspend();
+	}
 
 	return error;
 }
@@ -425,10 +445,12 @@ static void acpi_pm_finish(void)
 	suspend_nvs_free();
 
 	if (acpi_state == ACPI_STATE_S0)
+	{
 		return;
+	}
 
 	printk(KERN_INFO PREFIX "Waking up from system sleep state S%d\n",
-		acpi_state);
+		   acpi_state);
 	acpi_disable_wakeup_devices(acpi_state);
 	acpi_leave_sleep_state(acpi_state);
 
@@ -446,12 +468,16 @@ static void acpi_pm_finish(void)
 	 * We delay the event generation til now, as the PM layer requires
 	 * timekeeping to be running before we generate events. */
 	if (!pwr_btn_event_pending)
+	{
 		return;
+	}
 
 	pwr_btn_event_pending = false;
 	pwr_btn_dev = bus_find_device(&acpi_bus_type, NULL, NULL,
-				      find_powerf_dev);
-	if (pwr_btn_dev) {
+								  find_powerf_dev);
+
+	if (pwr_btn_dev)
+	{
 		pm_wakeup_event(pwr_btn_dev, 0);
 		put_device(pwr_btn_dev);
 	}
@@ -486,7 +512,8 @@ static inline void acpi_sleep_dmi_check(void) {}
 #endif /* CONFIG_ACPI_SLEEP */
 
 #ifdef CONFIG_SUSPEND
-static u32 acpi_suspend_states[] = {
+static u32 acpi_suspend_states[] =
+{
 	[PM_SUSPEND_ON] = ACPI_STATE_S0,
 	[PM_SUSPEND_STANDBY] = ACPI_STATE_S1,
 	[PM_SUSPEND_MEM] = ACPI_STATE_S3,
@@ -503,15 +530,22 @@ static int acpi_suspend_begin(suspend_state_t pm_state)
 	int error;
 
 	error = (nvs_nosave || nvs_nosave_s3) ? 0 : suspend_nvs_alloc();
-	if (error)
-		return error;
 
-	if (!sleep_states[acpi_state]) {
+	if (error)
+	{
+		return error;
+	}
+
+	if (!sleep_states[acpi_state])
+	{
 		pr_err("ACPI does not support sleep state S%u\n", acpi_state);
 		return -ENOSYS;
 	}
+
 	if (acpi_state > ACPI_STATE_S1)
+	{
 		pm_set_suspend_via_firmware();
+	}
 
 	acpi_pm_start(acpi_state);
 	return 0;
@@ -534,22 +568,32 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
 	ACPI_FLUSH_CPU_CACHE();
 
 	trace_suspend_resume(TPS("acpi_suspend"), acpi_state, true);
-	switch (acpi_state) {
-	case ACPI_STATE_S1:
-		barrier();
-		status = acpi_enter_sleep_state(acpi_state);
-		break;
 
-	case ACPI_STATE_S3:
-		if (!acpi_suspend_lowlevel)
-			return -ENOSYS;
-		error = acpi_suspend_lowlevel();
-		if (error)
-			return error;
-		pr_info(PREFIX "Low-level resume complete\n");
-		pm_set_resume_via_firmware();
-		break;
+	switch (acpi_state)
+	{
+		case ACPI_STATE_S1:
+			barrier();
+			status = acpi_enter_sleep_state(acpi_state);
+			break;
+
+		case ACPI_STATE_S3:
+			if (!acpi_suspend_lowlevel)
+			{
+				return -ENOSYS;
+			}
+
+			error = acpi_suspend_lowlevel();
+
+			if (error)
+			{
+				return error;
+			}
+
+			pr_info(PREFIX "Low-level resume complete\n");
+			pm_set_resume_via_firmware();
+			break;
 	}
+
 	trace_suspend_resume(TPS("acpi_suspend"), acpi_state, false);
 
 	/* This violates the spec but is required for bug compatibility. */
@@ -567,12 +611,14 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
 	 * event later, as we're currently too early in resume to be able to
 	 * generate wakeup events.
 	 */
-	if (ACPI_SUCCESS(status) && (acpi_state == ACPI_STATE_S3)) {
+	if (ACPI_SUCCESS(status) && (acpi_state == ACPI_STATE_S3))
+	{
 		acpi_event_status pwr_btn_status = ACPI_EVENT_FLAG_DISABLED;
 
 		acpi_get_event_status(ACPI_EVENT_POWER_BUTTON, &pwr_btn_status);
 
-		if (pwr_btn_status & ACPI_EVENT_FLAG_STATUS_SET) {
+		if (pwr_btn_status & ACPI_EVENT_FLAG_STATUS_SET)
+		{
 			acpi_clear_event(ACPI_EVENT_POWER_BUTTON);
 			/* Flag for later */
 			pwr_btn_event_pending = true;
@@ -597,19 +643,22 @@ static int acpi_suspend_state_valid(suspend_state_t pm_state)
 {
 	u32 acpi_state;
 
-	switch (pm_state) {
-	case PM_SUSPEND_ON:
-	case PM_SUSPEND_STANDBY:
-	case PM_SUSPEND_MEM:
-		acpi_state = acpi_suspend_states[pm_state];
+	switch (pm_state)
+	{
+		case PM_SUSPEND_ON:
+		case PM_SUSPEND_STANDBY:
+		case PM_SUSPEND_MEM:
+			acpi_state = acpi_suspend_states[pm_state];
 
-		return sleep_states[acpi_state];
-	default:
-		return 0;
+			return sleep_states[acpi_state];
+
+		default:
+			return 0;
 	}
 }
 
-static const struct platform_suspend_ops acpi_suspend_ops = {
+static const struct platform_suspend_ops acpi_suspend_ops =
+{
 	.valid = acpi_suspend_state_valid,
 	.begin = acpi_suspend_begin,
 	.prepare_late = acpi_pm_prepare,
@@ -627,8 +676,11 @@ static const struct platform_suspend_ops acpi_suspend_ops = {
 static int acpi_suspend_begin_old(suspend_state_t pm_state)
 {
 	int error = acpi_suspend_begin(pm_state);
+
 	if (!error)
+	{
 		error = __acpi_pm_prepare();
+	}
 
 	return error;
 }
@@ -637,7 +689,8 @@ static int acpi_suspend_begin_old(suspend_state_t pm_state)
  * The following callbacks are used if the pre-ACPI 2.0 suspend ordering has
  * been requested.
  */
-static const struct platform_suspend_ops acpi_suspend_ops_old = {
+static const struct platform_suspend_ops acpi_suspend_ops_old =
+{
 	.valid = acpi_suspend_state_valid,
 	.begin = acpi_suspend_begin_old,
 	.prepare_late = acpi_pm_pre_suspend,
@@ -658,16 +711,24 @@ static int acpi_freeze_prepare(void)
 	acpi_enable_wakeup_devices(ACPI_STATE_S0);
 	acpi_enable_all_wakeup_gpes();
 	acpi_os_wait_events_complete();
+
 	if (acpi_sci_irq_valid())
+	{
 		enable_irq_wake(acpi_sci_irq);
+	}
+
 	return 0;
 }
 
 static void acpi_freeze_restore(void)
 {
 	acpi_disable_wakeup_devices(ACPI_STATE_S0);
+
 	if (acpi_sci_irq_valid())
+	{
 		disable_irq_wake(acpi_sci_irq);
+	}
+
 	acpi_enable_all_runtime_gpes();
 }
 
@@ -676,7 +737,8 @@ static void acpi_freeze_end(void)
 	acpi_scan_lock_release();
 }
 
-static const struct platform_freeze_ops acpi_freeze_ops = {
+static const struct platform_freeze_ops acpi_freeze_ops =
+{
 	.begin = acpi_freeze_begin,
 	.prepare = acpi_freeze_prepare,
 	.restore = acpi_freeze_restore,
@@ -689,10 +751,12 @@ static void acpi_sleep_suspend_setup(void)
 
 	for (i = ACPI_STATE_S1; i < ACPI_STATE_S4; i++)
 		if (acpi_sleep_state_supported(i))
+		{
 			sleep_states[i] = 1;
+		}
 
 	suspend_set_ops(old_suspend_ordering ?
-		&acpi_suspend_ops_old : &acpi_suspend_ops);
+					&acpi_suspend_ops_old : &acpi_suspend_ops);
 	freeze_set_ops(&acpi_freeze_ops);
 }
 
@@ -714,13 +778,17 @@ static void  acpi_restore_bm_rld(void)
 	u32 resumed_bm_rld = 0;
 
 	acpi_read_bit_register(ACPI_BITREG_BUS_MASTER_RLD, &resumed_bm_rld);
+
 	if (resumed_bm_rld == saved_bm_rld)
+	{
 		return;
+	}
 
 	acpi_write_bit_register(ACPI_BITREG_BUS_MASTER_RLD, saved_bm_rld);
 }
 
-static struct syscore_ops acpi_sleep_syscore_ops = {
+static struct syscore_ops acpi_sleep_syscore_ops =
+{
 	.suspend = acpi_save_bm_rld,
 	.resume = acpi_restore_bm_rld,
 };
@@ -748,8 +816,11 @@ static int acpi_hibernation_begin(void)
 	int error;
 
 	error = nvs_nosave ? 0 : suspend_nvs_alloc();
+
 	if (!error)
+	{
 		acpi_pm_start(ACPI_STATE_S4);
+	}
 
 	return error;
 }
@@ -778,9 +849,13 @@ static void acpi_hibernation_leave(void)
 	acpi_enable();
 	/* Reprogram control registers */
 	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
+
 	/* Check the hardware signature */
 	if (facs && s4_hardware_signature != facs->hardware_signature)
+	{
 		pr_crit("ACPI: Hardware changed while hibernated, success doubtful!\n");
+	}
+
 	/* Restore the NVS memory area */
 	suspend_nvs_restore();
 	/* Allow EC transactions to happen. */
@@ -793,7 +868,8 @@ static void acpi_pm_thaw(void)
 	acpi_enable_all_runtime_gpes();
 }
 
-static const struct platform_hibernation_ops acpi_hibernation_ops = {
+static const struct platform_hibernation_ops acpi_hibernation_ops =
+{
 	.begin = acpi_hibernation_begin,
 	.end = acpi_pm_end,
 	.pre_snapshot = acpi_pm_prepare,
@@ -823,14 +899,20 @@ static int acpi_hibernation_begin_old(void)
 
 	error = acpi_sleep_prepare(ACPI_STATE_S4);
 
-	if (!error) {
+	if (!error)
+	{
 		if (!nvs_nosave)
+		{
 			error = suspend_nvs_alloc();
-		if (!error) {
+		}
+
+		if (!error)
+		{
 			acpi_target_sleep_state = ACPI_STATE_S4;
 			acpi_scan_lock_acquire();
 		}
 	}
+
 	return error;
 }
 
@@ -838,7 +920,8 @@ static int acpi_hibernation_begin_old(void)
  * The following callbacks are used if the pre-ACPI 2.0 suspend ordering has
  * been requested.
  */
-static const struct platform_hibernation_ops acpi_hibernation_ops_old = {
+static const struct platform_hibernation_ops acpi_hibernation_ops_old =
+{
 	.begin = acpi_hibernation_begin_old,
 	.end = acpi_pm_end,
 	.pre_snapshot = acpi_pm_pre_suspend,
@@ -854,17 +937,25 @@ static const struct platform_hibernation_ops acpi_hibernation_ops_old = {
 static void acpi_sleep_hibernate_setup(void)
 {
 	if (!acpi_sleep_state_supported(ACPI_STATE_S4))
+	{
 		return;
+	}
 
 	hibernation_set_ops(old_suspend_ordering ?
-			&acpi_hibernation_ops_old : &acpi_hibernation_ops);
+						&acpi_hibernation_ops_old : &acpi_hibernation_ops);
 	sleep_states[ACPI_STATE_S4] = 1;
+
 	if (nosigcheck)
+	{
 		return;
+	}
 
 	acpi_get_table(ACPI_SIG_FACS, 1, (struct acpi_table_header **)&facs);
+
 	if (facs)
+	{
 		s4_hardware_signature = facs->hardware_signature;
+	}
 }
 #else /* !CONFIG_HIBERNATION */
 static inline void acpi_sleep_hibernate_setup(void) {}
@@ -900,19 +991,27 @@ int __init acpi_sleep_init(void)
 	acpi_sleep_suspend_setup();
 	acpi_sleep_hibernate_setup();
 
-	if (acpi_sleep_state_supported(ACPI_STATE_S5)) {
+	if (acpi_sleep_state_supported(ACPI_STATE_S5))
+	{
 		sleep_states[ACPI_STATE_S5] = 1;
 		pm_power_off_prepare = acpi_power_off_prepare;
 		pm_power_off = acpi_power_off;
-	} else {
+	}
+	else
+	{
 		acpi_no_s5 = true;
 	}
 
 	supported[0] = 0;
-	for (i = 0; i < ACPI_S_STATE_COUNT; i++) {
+
+	for (i = 0; i < ACPI_S_STATE_COUNT; i++)
+	{
 		if (sleep_states[i])
+		{
 			pos += sprintf(pos, " S%d", i);
+		}
 	}
+
 	pr_info(PREFIX "(supports%s)\n", supported);
 
 	/*

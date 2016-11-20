@@ -16,23 +16,24 @@ typedef void (*conf_field_reset) (struct pci_dev *dev, int offset, void *data);
 typedef void (*conf_field_free) (struct pci_dev *dev, int offset, void *data);
 
 typedef int (*conf_dword_write) (struct pci_dev *dev, int offset, u32 value,
-				 void *data);
+								 void *data);
 typedef int (*conf_word_write) (struct pci_dev *dev, int offset, u16 value,
-				void *data);
+								void *data);
 typedef int (*conf_byte_write) (struct pci_dev *dev, int offset, u8 value,
-				void *data);
+								void *data);
 typedef int (*conf_dword_read) (struct pci_dev *dev, int offset, u32 *value,
-				void *data);
+								void *data);
 typedef int (*conf_word_read) (struct pci_dev *dev, int offset, u16 *value,
-			       void *data);
+							   void *data);
 typedef int (*conf_byte_read) (struct pci_dev *dev, int offset, u8 *value,
-			       void *data);
+							   void *data);
 
 /* These are the fields within the configuration space which we
  * are interested in intercepting reads/writes to and changing their
  * values.
  */
-struct config_field {
+struct config_field
+{
 	unsigned int offset;
 	unsigned int size;
 	unsigned int mask;
@@ -40,16 +41,20 @@ struct config_field {
 	conf_field_reset reset;
 	conf_field_free release;
 	void (*clean) (struct config_field *field);
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			conf_dword_write write;
 			conf_dword_read read;
 		} dw;
-		struct {
+		struct
+		{
 			conf_word_write write;
 			conf_word_read read;
 		} w;
-		struct {
+		struct
+		{
 			conf_byte_write write;
 			conf_byte_read read;
 		} b;
@@ -57,7 +62,8 @@ struct config_field {
 	struct list_head list;
 };
 
-struct config_field_entry {
+struct config_field_entry
+{
 	struct list_head list;
 	const struct config_field *field;
 	unsigned int base_offset;
@@ -72,53 +78,65 @@ extern bool xen_pcibk_permissive;
  * the first entry in an array (of which the ending is marked by size==0)
  */
 int xen_pcibk_config_add_field_offset(struct pci_dev *dev,
-				    const struct config_field *field,
-				    unsigned int offset);
+									  const struct config_field *field,
+									  unsigned int offset);
 
 static inline int xen_pcibk_config_add_field(struct pci_dev *dev,
-					   const struct config_field *field)
+		const struct config_field *field)
 {
 	return xen_pcibk_config_add_field_offset(dev, field, 0);
 }
 
 static inline int xen_pcibk_config_add_fields(struct pci_dev *dev,
-					    const struct config_field *field)
+		const struct config_field *field)
 {
 	int i, err = 0;
-	for (i = 0; field[i].size != 0; i++) {
+
+	for (i = 0; field[i].size != 0; i++)
+	{
 		err = xen_pcibk_config_add_field(dev, &field[i]);
+
 		if (err)
+		{
 			break;
+		}
 	}
+
 	return err;
 }
 
 static inline int xen_pcibk_config_add_fields_offset(struct pci_dev *dev,
-					const struct config_field *field,
-					unsigned int offset)
+		const struct config_field *field,
+		unsigned int offset)
 {
 	int i, err = 0;
-	for (i = 0; field[i].size != 0; i++) {
+
+	for (i = 0; field[i].size != 0; i++)
+	{
 		err = xen_pcibk_config_add_field_offset(dev, &field[i], offset);
+
 		if (err)
+		{
 			break;
+		}
 	}
+
 	return err;
 }
 
 /* Read/Write the real configuration space */
 int xen_pcibk_read_config_byte(struct pci_dev *dev, int offset, u8 *value,
-			       void *data);
+							   void *data);
 int xen_pcibk_read_config_word(struct pci_dev *dev, int offset, u16 *value,
-			       void *data);
+							   void *data);
 int xen_pcibk_read_config_dword(struct pci_dev *dev, int offset, u32 *value,
-				void *data);
+								void *data);
 int xen_pcibk_write_config_byte(struct pci_dev *dev, int offset, u8 value,
-				 void *data);
+								void *data);
 int xen_pcibk_write_config_word(struct pci_dev *dev, int offset, u16 value,
-				void *data);
+								void *data);
 int xen_pcibk_write_config_dword(struct pci_dev *dev, int offset, u32 value,
-				 void *data);
+								 void *data);
 
 int xen_pcibk_config_capability_init(void);
 

@@ -57,14 +57,16 @@ MODULE_AUTHOR("Libor Michalek");
 MODULE_DESCRIPTION("InfiniBand userspace Connection Manager access");
 MODULE_LICENSE("Dual BSD/GPL");
 
-struct ib_ucm_device {
+struct ib_ucm_device
+{
 	int			devnum;
 	struct cdev		cdev;
 	struct device		dev;
 	struct ib_device	*ib_dev;
 };
 
-struct ib_ucm_file {
+struct ib_ucm_file
+{
 	struct mutex file_mutex;
 	struct file *filp;
 	struct ib_ucm_device *device;
@@ -74,7 +76,8 @@ struct ib_ucm_file {
 	wait_queue_head_t poll_wait;
 };
 
-struct ib_ucm_context {
+struct ib_ucm_context
+{
 	int                 id;
 	struct completion   comp;
 	atomic_t            ref;
@@ -88,7 +91,8 @@ struct ib_ucm_context {
 	struct list_head    file_list; /* member in file ctx list */
 };
 
-struct ib_ucm_event {
+struct ib_ucm_event
+{
 	struct ib_ucm_context *ctx;
 	struct list_head file_list; /* member in file event list */
 	struct list_head ctx_list;  /* member in ctx event list */
@@ -101,7 +105,8 @@ struct ib_ucm_event {
 	int info_len;
 };
 
-enum {
+enum
+{
 	IB_UCM_MAJOR = 231,
 	IB_UCM_BASE_MINOR = 224,
 	IB_UCM_MAX_DEVICES = 32
@@ -112,7 +117,8 @@ enum {
 static void ib_ucm_add_one(struct ib_device *device);
 static void ib_ucm_remove_one(struct ib_device *device, void *client_data);
 
-static struct ib_client ucm_client = {
+static struct ib_client ucm_client =
+{
 	.name   = "ucm",
 	.add    = ib_ucm_add_one,
 	.remove = ib_ucm_remove_one
@@ -128,12 +134,20 @@ static struct ib_ucm_context *ib_ucm_ctx_get(struct ib_ucm_file *file, int id)
 
 	mutex_lock(&ctx_id_mutex);
 	ctx = idr_find(&ctx_id_table, id);
+
 	if (!ctx)
+	{
 		ctx = ERR_PTR(-ENOENT);
+	}
 	else if (ctx->file != file)
+	{
 		ctx = ERR_PTR(-EINVAL);
+	}
 	else
+	{
 		atomic_inc(&ctx->ref);
+	}
+
 	mutex_unlock(&ctx_id_mutex);
 
 	return ctx;
@@ -142,7 +156,9 @@ static struct ib_ucm_context *ib_ucm_ctx_get(struct ib_ucm_file *file, int id)
 static void ib_ucm_ctx_put(struct ib_ucm_context *ctx)
 {
 	if (atomic_dec_and_test(&ctx->ref))
+	{
 		complete(&ctx->comp);
+	}
 }
 
 static inline int ib_ucm_new_cm_id(int event)
@@ -156,21 +172,26 @@ static void ib_ucm_cleanup_events(struct ib_ucm_context *ctx)
 
 	mutex_lock(&ctx->file->file_mutex);
 	list_del(&ctx->file_list);
-	while (!list_empty(&ctx->events)) {
+
+	while (!list_empty(&ctx->events))
+	{
 
 		uevent = list_entry(ctx->events.next,
-				    struct ib_ucm_event, ctx_list);
+							struct ib_ucm_event, ctx_list);
 		list_del(&uevent->file_list);
 		list_del(&uevent->ctx_list);
 		mutex_unlock(&ctx->file->file_mutex);
 
 		/* clear incoming connections. */
 		if (ib_ucm_new_cm_id(uevent->resp.event))
+		{
 			ib_destroy_cm_id(uevent->cm_id);
+		}
 
 		kfree(uevent);
 		mutex_lock(&ctx->file->file_mutex);
 	}
+
 	mutex_unlock(&ctx->file->file_mutex);
 }
 
@@ -178,9 +199,12 @@ static struct ib_ucm_context *ib_ucm_ctx_alloc(struct ib_ucm_file *file)
 {
 	struct ib_ucm_context *ctx;
 
-	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
+	ctx = kzalloc(sizeof * ctx, GFP_KERNEL);
+
 	if (!ctx)
+	{
 		return NULL;
+	}
 
 	atomic_set(&ctx->ref, 1);
 	init_completion(&ctx->comp);
@@ -190,8 +214,11 @@ static struct ib_ucm_context *ib_ucm_ctx_alloc(struct ib_ucm_file *file)
 	mutex_lock(&ctx_id_mutex);
 	ctx->id = idr_alloc(&ctx_id_table, ctx, 0, 0, GFP_KERNEL);
 	mutex_unlock(&ctx_id_mutex);
+
 	if (ctx->id < 0)
+	{
 		goto error;
+	}
 
 	list_add_tail(&ctx->file_list, &file->ctxs);
 	return ctx;
@@ -202,7 +229,7 @@ error:
 }
 
 static void ib_ucm_event_req_get(struct ib_ucm_req_event_resp *ureq,
-				 struct ib_cm_req_event_param *kreq)
+								 struct ib_cm_req_event_param *kreq)
 {
 	ureq->remote_ca_guid             = kreq->remote_ca_guid;
 	ureq->remote_qkey                = kreq->remote_qkey;
@@ -220,13 +247,14 @@ static void ib_ucm_event_req_get(struct ib_ucm_req_event_resp *ureq,
 	ureq->port			 = kreq->port;
 
 	ib_copy_path_rec_to_user(&ureq->primary_path, kreq->primary_path);
+
 	if (kreq->alternate_path)
 		ib_copy_path_rec_to_user(&ureq->alternate_path,
-					 kreq->alternate_path);
+								 kreq->alternate_path);
 }
 
 static void ib_ucm_event_rep_get(struct ib_ucm_rep_event_resp *urep,
-				 struct ib_cm_rep_event_param *krep)
+								 struct ib_cm_rep_event_param *krep)
 {
 	urep->remote_ca_guid      = krep->remote_ca_guid;
 	urep->remote_qkey         = krep->remote_qkey;
@@ -242,7 +270,7 @@ static void ib_ucm_event_rep_get(struct ib_ucm_rep_event_resp *urep,
 }
 
 static void ib_ucm_event_sidr_rep_get(struct ib_ucm_sidr_rep_event_resp *urep,
-				      struct ib_cm_sidr_rep_event_param *krep)
+									  struct ib_cm_sidr_rep_event_param *krep)
 {
 	urep->status = krep->status;
 	urep->qkey   = krep->qkey;
@@ -250,93 +278,114 @@ static void ib_ucm_event_sidr_rep_get(struct ib_ucm_sidr_rep_event_resp *urep,
 };
 
 static int ib_ucm_event_process(struct ib_cm_event *evt,
-				struct ib_ucm_event *uvt)
+								struct ib_ucm_event *uvt)
 {
 	void *info = NULL;
 
-	switch (evt->event) {
-	case IB_CM_REQ_RECEIVED:
-		ib_ucm_event_req_get(&uvt->resp.u.req_resp,
-				     &evt->param.req_rcvd);
-		uvt->data_len      = IB_CM_REQ_PRIVATE_DATA_SIZE;
-		uvt->resp.present  = IB_UCM_PRES_PRIMARY;
-		uvt->resp.present |= (evt->param.req_rcvd.alternate_path ?
-				      IB_UCM_PRES_ALTERNATE : 0);
-		break;
-	case IB_CM_REP_RECEIVED:
-		ib_ucm_event_rep_get(&uvt->resp.u.rep_resp,
-				     &evt->param.rep_rcvd);
-		uvt->data_len = IB_CM_REP_PRIVATE_DATA_SIZE;
-		break;
-	case IB_CM_RTU_RECEIVED:
-		uvt->data_len = IB_CM_RTU_PRIVATE_DATA_SIZE;
-		uvt->resp.u.send_status = evt->param.send_status;
-		break;
-	case IB_CM_DREQ_RECEIVED:
-		uvt->data_len = IB_CM_DREQ_PRIVATE_DATA_SIZE;
-		uvt->resp.u.send_status = evt->param.send_status;
-		break;
-	case IB_CM_DREP_RECEIVED:
-		uvt->data_len = IB_CM_DREP_PRIVATE_DATA_SIZE;
-		uvt->resp.u.send_status = evt->param.send_status;
-		break;
-	case IB_CM_MRA_RECEIVED:
-		uvt->resp.u.mra_resp.timeout =
-					evt->param.mra_rcvd.service_timeout;
-		uvt->data_len = IB_CM_MRA_PRIVATE_DATA_SIZE;
-		break;
-	case IB_CM_REJ_RECEIVED:
-		uvt->resp.u.rej_resp.reason = evt->param.rej_rcvd.reason;
-		uvt->data_len = IB_CM_REJ_PRIVATE_DATA_SIZE;
-		uvt->info_len = evt->param.rej_rcvd.ari_length;
-		info	      = evt->param.rej_rcvd.ari;
-		break;
-	case IB_CM_LAP_RECEIVED:
-		ib_copy_path_rec_to_user(&uvt->resp.u.lap_resp.path,
-					 evt->param.lap_rcvd.alternate_path);
-		uvt->data_len = IB_CM_LAP_PRIVATE_DATA_SIZE;
-		uvt->resp.present = IB_UCM_PRES_ALTERNATE;
-		break;
-	case IB_CM_APR_RECEIVED:
-		uvt->resp.u.apr_resp.status = evt->param.apr_rcvd.ap_status;
-		uvt->data_len = IB_CM_APR_PRIVATE_DATA_SIZE;
-		uvt->info_len = evt->param.apr_rcvd.info_len;
-		info	      = evt->param.apr_rcvd.apr_info;
-		break;
-	case IB_CM_SIDR_REQ_RECEIVED:
-		uvt->resp.u.sidr_req_resp.pkey =
-					evt->param.sidr_req_rcvd.pkey;
-		uvt->resp.u.sidr_req_resp.port =
-					evt->param.sidr_req_rcvd.port;
-		uvt->data_len = IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE;
-		break;
-	case IB_CM_SIDR_REP_RECEIVED:
-		ib_ucm_event_sidr_rep_get(&uvt->resp.u.sidr_rep_resp,
-					  &evt->param.sidr_rep_rcvd);
-		uvt->data_len = IB_CM_SIDR_REP_PRIVATE_DATA_SIZE;
-		uvt->info_len = evt->param.sidr_rep_rcvd.info_len;
-		info	      = evt->param.sidr_rep_rcvd.info;
-		break;
-	default:
-		uvt->resp.u.send_status = evt->param.send_status;
-		break;
+	switch (evt->event)
+	{
+		case IB_CM_REQ_RECEIVED:
+			ib_ucm_event_req_get(&uvt->resp.u.req_resp,
+								 &evt->param.req_rcvd);
+			uvt->data_len      = IB_CM_REQ_PRIVATE_DATA_SIZE;
+			uvt->resp.present  = IB_UCM_PRES_PRIMARY;
+			uvt->resp.present |= (evt->param.req_rcvd.alternate_path ?
+								  IB_UCM_PRES_ALTERNATE : 0);
+			break;
+
+		case IB_CM_REP_RECEIVED:
+			ib_ucm_event_rep_get(&uvt->resp.u.rep_resp,
+								 &evt->param.rep_rcvd);
+			uvt->data_len = IB_CM_REP_PRIVATE_DATA_SIZE;
+			break;
+
+		case IB_CM_RTU_RECEIVED:
+			uvt->data_len = IB_CM_RTU_PRIVATE_DATA_SIZE;
+			uvt->resp.u.send_status = evt->param.send_status;
+			break;
+
+		case IB_CM_DREQ_RECEIVED:
+			uvt->data_len = IB_CM_DREQ_PRIVATE_DATA_SIZE;
+			uvt->resp.u.send_status = evt->param.send_status;
+			break;
+
+		case IB_CM_DREP_RECEIVED:
+			uvt->data_len = IB_CM_DREP_PRIVATE_DATA_SIZE;
+			uvt->resp.u.send_status = evt->param.send_status;
+			break;
+
+		case IB_CM_MRA_RECEIVED:
+			uvt->resp.u.mra_resp.timeout =
+				evt->param.mra_rcvd.service_timeout;
+			uvt->data_len = IB_CM_MRA_PRIVATE_DATA_SIZE;
+			break;
+
+		case IB_CM_REJ_RECEIVED:
+			uvt->resp.u.rej_resp.reason = evt->param.rej_rcvd.reason;
+			uvt->data_len = IB_CM_REJ_PRIVATE_DATA_SIZE;
+			uvt->info_len = evt->param.rej_rcvd.ari_length;
+			info	      = evt->param.rej_rcvd.ari;
+			break;
+
+		case IB_CM_LAP_RECEIVED:
+			ib_copy_path_rec_to_user(&uvt->resp.u.lap_resp.path,
+									 evt->param.lap_rcvd.alternate_path);
+			uvt->data_len = IB_CM_LAP_PRIVATE_DATA_SIZE;
+			uvt->resp.present = IB_UCM_PRES_ALTERNATE;
+			break;
+
+		case IB_CM_APR_RECEIVED:
+			uvt->resp.u.apr_resp.status = evt->param.apr_rcvd.ap_status;
+			uvt->data_len = IB_CM_APR_PRIVATE_DATA_SIZE;
+			uvt->info_len = evt->param.apr_rcvd.info_len;
+			info	      = evt->param.apr_rcvd.apr_info;
+			break;
+
+		case IB_CM_SIDR_REQ_RECEIVED:
+			uvt->resp.u.sidr_req_resp.pkey =
+				evt->param.sidr_req_rcvd.pkey;
+			uvt->resp.u.sidr_req_resp.port =
+				evt->param.sidr_req_rcvd.port;
+			uvt->data_len = IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE;
+			break;
+
+		case IB_CM_SIDR_REP_RECEIVED:
+			ib_ucm_event_sidr_rep_get(&uvt->resp.u.sidr_rep_resp,
+									  &evt->param.sidr_rep_rcvd);
+			uvt->data_len = IB_CM_SIDR_REP_PRIVATE_DATA_SIZE;
+			uvt->info_len = evt->param.sidr_rep_rcvd.info_len;
+			info	      = evt->param.sidr_rep_rcvd.info;
+			break;
+
+		default:
+			uvt->resp.u.send_status = evt->param.send_status;
+			break;
 	}
 
-	if (uvt->data_len) {
+	if (uvt->data_len)
+	{
 		uvt->data = kmemdup(evt->private_data, uvt->data_len, GFP_KERNEL);
+
 		if (!uvt->data)
+		{
 			goto err1;
+		}
 
 		uvt->resp.present |= IB_UCM_PRES_DATA;
 	}
 
-	if (uvt->info_len) {
+	if (uvt->info_len)
+	{
 		uvt->info = kmemdup(info, uvt->info_len, GFP_KERNEL);
+
 		if (!uvt->info)
+		{
 			goto err2;
+		}
 
 		uvt->resp.present |= IB_UCM_PRES_INFO;
 	}
+
 	return 0;
 
 err2:
@@ -346,7 +395,7 @@ err1:
 }
 
 static int ib_ucm_event_handler(struct ib_cm_id *cm_id,
-				struct ib_cm_event *event)
+								struct ib_cm_event *event)
 {
 	struct ib_ucm_event *uevent;
 	struct ib_ucm_context *ctx;
@@ -354,9 +403,12 @@ static int ib_ucm_event_handler(struct ib_cm_id *cm_id,
 
 	ctx = cm_id->context;
 
-	uevent = kzalloc(sizeof *uevent, GFP_KERNEL);
+	uevent = kzalloc(sizeof * uevent, GFP_KERNEL);
+
 	if (!uevent)
+	{
 		goto err1;
+	}
 
 	uevent->ctx = ctx;
 	uevent->cm_id = cm_id;
@@ -365,8 +417,11 @@ static int ib_ucm_event_handler(struct ib_cm_id *cm_id,
 	uevent->resp.event = event->event;
 
 	result = ib_ucm_event_process(event, uevent);
+
 	if (result)
+	{
 		goto err2;
+	}
 
 	mutex_lock(&ctx->file->file_mutex);
 	list_add_tail(&uevent->file_list, &ctx->file->events);
@@ -383,8 +438,8 @@ err1:
 }
 
 static ssize_t ib_ucm_event(struct ib_ucm_file *file,
-			    const char __user *inbuf,
-			    int in_len, int out_len)
+							const char __user *inbuf,
+							int in_len, int out_len)
 {
 	struct ib_ucm_context *ctx;
 	struct ib_ucm_event_get cmd;
@@ -392,30 +447,43 @@ static ssize_t ib_ucm_event(struct ib_ucm_file *file,
 	int result = 0;
 
 	if (out_len < sizeof(struct ib_ucm_event_resp))
+	{
 		return -ENOSPC;
+	}
 
 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+	{
 		return -EFAULT;
+	}
 
 	mutex_lock(&file->file_mutex);
-	while (list_empty(&file->events)) {
+
+	while (list_empty(&file->events))
+	{
 		mutex_unlock(&file->file_mutex);
 
 		if (file->filp->f_flags & O_NONBLOCK)
+		{
 			return -EAGAIN;
+		}
 
 		if (wait_event_interruptible(file->poll_wait,
-					     !list_empty(&file->events)))
+									 !list_empty(&file->events)))
+		{
 			return -ERESTARTSYS;
+		}
 
 		mutex_lock(&file->file_mutex);
 	}
 
 	uevent = list_entry(file->events.next, struct ib_ucm_event, file_list);
 
-	if (ib_ucm_new_cm_id(uevent->resp.event)) {
+	if (ib_ucm_new_cm_id(uevent->resp.event))
+	{
 		ctx = ib_ucm_ctx_alloc(file);
-		if (!ctx) {
+
+		if (!ctx)
+		{
 			result = -ENOMEM;
 			goto done;
 		}
@@ -426,30 +494,39 @@ static ssize_t ib_ucm_event(struct ib_ucm_file *file,
 	}
 
 	if (copy_to_user((void __user *)(unsigned long)cmd.response,
-			 &uevent->resp, sizeof(uevent->resp))) {
+					 &uevent->resp, sizeof(uevent->resp)))
+	{
 		result = -EFAULT;
 		goto done;
 	}
 
-	if (uevent->data) {
-		if (cmd.data_len < uevent->data_len) {
+	if (uevent->data)
+	{
+		if (cmd.data_len < uevent->data_len)
+		{
 			result = -ENOMEM;
 			goto done;
 		}
+
 		if (copy_to_user((void __user *)(unsigned long)cmd.data,
-				 uevent->data, uevent->data_len)) {
+						 uevent->data, uevent->data_len))
+		{
 			result = -EFAULT;
 			goto done;
 		}
 	}
 
-	if (uevent->info) {
-		if (cmd.info_len < uevent->info_len) {
+	if (uevent->info)
+	{
+		if (cmd.info_len < uevent->info_len)
+		{
 			result = -ENOMEM;
 			goto done;
 		}
+
 		if (copy_to_user((void __user *)(unsigned long)cmd.info,
-				 uevent->info, uevent->info_len)) {
+						 uevent->info, uevent->info_len))
+		{
 			result = -EFAULT;
 			goto done;
 		}
@@ -468,8 +545,8 @@ done:
 }
 
 static ssize_t ib_ucm_create_id(struct ib_ucm_file *file,
-				const char __user *inbuf,
-				int in_len, int out_len)
+								const char __user *inbuf,
+								int in_len, int out_len)
 {
 	struct ib_ucm_create_id cmd;
 	struct ib_ucm_create_id_resp resp;
@@ -477,31 +554,43 @@ static ssize_t ib_ucm_create_id(struct ib_ucm_file *file,
 	int result;
 
 	if (out_len < sizeof(resp))
+	{
 		return -ENOSPC;
+	}
 
 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+	{
 		return -EFAULT;
+	}
 
 	mutex_lock(&file->file_mutex);
 	ctx = ib_ucm_ctx_alloc(file);
 	mutex_unlock(&file->file_mutex);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	ctx->uid = cmd.uid;
 	ctx->cm_id = ib_create_cm_id(file->device->ib_dev,
-				     ib_ucm_event_handler, ctx);
-	if (IS_ERR(ctx->cm_id)) {
+								 ib_ucm_event_handler, ctx);
+
+	if (IS_ERR(ctx->cm_id))
+	{
 		result = PTR_ERR(ctx->cm_id);
 		goto err1;
 	}
 
 	resp.id = ctx->id;
+
 	if (copy_to_user((void __user *)(unsigned long)cmd.response,
-			 &resp, sizeof(resp))) {
+					 &resp, sizeof(resp)))
+	{
 		result = -EFAULT;
 		goto err2;
 	}
+
 	return 0;
 
 err2:
@@ -515,8 +604,8 @@ err1:
 }
 
 static ssize_t ib_ucm_destroy_id(struct ib_ucm_file *file,
-				 const char __user *inbuf,
-				 int in_len, int out_len)
+								 const char __user *inbuf,
+								 int in_len, int out_len)
 {
 	struct ib_ucm_destroy_id cmd;
 	struct ib_ucm_destroy_id_resp resp;
@@ -524,23 +613,37 @@ static ssize_t ib_ucm_destroy_id(struct ib_ucm_file *file,
 	int result = 0;
 
 	if (out_len < sizeof(resp))
+	{
 		return -ENOSPC;
+	}
 
 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+	{
 		return -EFAULT;
+	}
 
 	mutex_lock(&ctx_id_mutex);
 	ctx = idr_find(&ctx_id_table, cmd.id);
+
 	if (!ctx)
+	{
 		ctx = ERR_PTR(-ENOENT);
+	}
 	else if (ctx->file != file)
+	{
 		ctx = ERR_PTR(-EINVAL);
+	}
 	else
+	{
 		idr_remove(&ctx_id_table, ctx->id);
+	}
+
 	mutex_unlock(&ctx_id_mutex);
 
 	if (IS_ERR(ctx))
+	{
 		return PTR_ERR(ctx);
+	}
 
 	ib_ucm_ctx_put(ctx);
 	wait_for_completion(&ctx->comp);
@@ -551,17 +654,20 @@ static ssize_t ib_ucm_destroy_id(struct ib_ucm_file *file,
 	ib_ucm_cleanup_events(ctx);
 
 	resp.events_reported = ctx->events_reported;
+
 	if (copy_to_user((void __user *)(unsigned long)cmd.response,
-			 &resp, sizeof(resp)))
+					 &resp, sizeof(resp)))
+	{
 		result = -EFAULT;
+	}
 
 	kfree(ctx);
 	return result;
 }
 
 static ssize_t ib_ucm_attr_id(struct ib_ucm_file *file,
-			      const char __user *inbuf,
-			      int in_len, int out_len)
+							  const char __user *inbuf,
+							  int in_len, int out_len)
 {
 	struct ib_ucm_attr_id_resp resp;
 	struct ib_ucm_attr_id cmd;
@@ -569,14 +675,21 @@ static ssize_t ib_ucm_attr_id(struct ib_ucm_file *file,
 	int result = 0;
 
 	if (out_len < sizeof(resp))
+	{
 		return -ENOSPC;
+	}
 
 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+	{
 		return -EFAULT;
+	}
 
 	ctx = ib_ucm_ctx_get(file, cmd.id);
+
 	if (IS_ERR(ctx))
+	{
 		return PTR_ERR(ctx);
+	}
 
 	resp.service_id   = ctx->cm_id->service_id;
 	resp.service_mask = ctx->cm_id->service_mask;
@@ -584,16 +697,18 @@ static ssize_t ib_ucm_attr_id(struct ib_ucm_file *file,
 	resp.remote_id    = ctx->cm_id->remote_id;
 
 	if (copy_to_user((void __user *)(unsigned long)cmd.response,
-			 &resp, sizeof(resp)))
+					 &resp, sizeof(resp)))
+	{
 		result = -EFAULT;
+	}
 
 	ib_ucm_ctx_put(ctx);
 	return result;
 }
 
 static ssize_t ib_ucm_init_qp_attr(struct ib_ucm_file *file,
-				   const char __user *inbuf,
-				   int in_len, int out_len)
+								   const char __user *inbuf,
+								   int in_len, int out_len)
 {
 	struct ib_uverbs_qp_attr resp;
 	struct ib_ucm_init_qp_attr cmd;
@@ -602,27 +717,39 @@ static ssize_t ib_ucm_init_qp_attr(struct ib_ucm_file *file,
 	int result = 0;
 
 	if (out_len < sizeof(resp))
+	{
 		return -ENOSPC;
+	}
 
 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+	{
 		return -EFAULT;
+	}
 
 	ctx = ib_ucm_ctx_get(file, cmd.id);
+
 	if (IS_ERR(ctx))
+	{
 		return PTR_ERR(ctx);
+	}
 
 	resp.qp_attr_mask = 0;
 	memset(&qp_attr, 0, sizeof qp_attr);
 	qp_attr.qp_state = cmd.qp_state;
 	result = ib_cm_init_qp_attr(ctx->cm_id, &qp_attr, &resp.qp_attr_mask);
+
 	if (result)
+	{
 		goto out;
+	}
 
 	ib_copy_qp_attr_to_user(&resp, &qp_attr);
 
 	if (copy_to_user((void __user *)(unsigned long)cmd.response,
-			 &resp, sizeof(resp)))
+					 &resp, sizeof(resp)))
+	{
 		result = -EFAULT;
+	}
 
 out:
 	ib_ucm_ctx_put(ctx);
@@ -634,30 +761,40 @@ static int ucm_validate_listen(__be64 service_id, __be64 service_mask)
 	service_id &= service_mask;
 
 	if (((service_id & IB_CMA_SERVICE_ID_MASK) == IB_CMA_SERVICE_ID) ||
-	    ((service_id & IB_SDP_SERVICE_ID_MASK) == IB_SDP_SERVICE_ID))
+		((service_id & IB_SDP_SERVICE_ID_MASK) == IB_SDP_SERVICE_ID))
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 static ssize_t ib_ucm_listen(struct ib_ucm_file *file,
-			     const char __user *inbuf,
-			     int in_len, int out_len)
+							 const char __user *inbuf,
+							 int in_len, int out_len)
 {
 	struct ib_ucm_listen cmd;
 	struct ib_ucm_context *ctx;
 	int result;
 
 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+	{
 		return -EFAULT;
+	}
 
 	ctx = ib_ucm_ctx_get(file, cmd.id);
+
 	if (IS_ERR(ctx))
+	{
 		return PTR_ERR(ctx);
+	}
 
 	result = ucm_validate_listen(cmd.service_id, cmd.service_mask);
+
 	if (result)
+	{
 		goto out;
+	}
 
 	result = ib_cm_listen(ctx->cm_id, cmd.service_id, cmd.service_mask);
 out:
@@ -666,19 +803,24 @@ out:
 }
 
 static ssize_t ib_ucm_notify(struct ib_ucm_file *file,
-			     const char __user *inbuf,
-			     int in_len, int out_len)
+							 const char __user *inbuf,
+							 int in_len, int out_len)
 {
 	struct ib_ucm_notify cmd;
 	struct ib_ucm_context *ctx;
 	int result;
 
 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+	{
 		return -EFAULT;
+	}
 
 	ctx = ib_ucm_ctx_get(file, cmd.id);
+
 	if (IS_ERR(ctx))
+	{
 		return PTR_ERR(ctx);
+	}
 
 	result = ib_cm_notify(ctx->cm_id, (enum ib_event_type) cmd.event);
 	ib_ucm_ctx_put(ctx);
@@ -692,11 +834,16 @@ static int ib_ucm_alloc_data(const void **dest, u64 src, u32 len)
 	*dest = NULL;
 
 	if (!len)
+	{
 		return 0;
+	}
 
 	data = memdup_user((void __user *)(unsigned long)src, len);
+
 	if (IS_ERR(data))
+	{
 		return PTR_ERR(data);
+	}
 
 	*dest = data;
 	return 0;
@@ -710,14 +857,20 @@ static int ib_ucm_path_get(struct ib_sa_path_rec **path, u64 src)
 	*path = NULL;
 
 	if (!src)
+	{
 		return 0;
+	}
 
 	sa_path = kmalloc(sizeof(*sa_path), GFP_KERNEL);
+
 	if (!sa_path)
+	{
 		return -ENOMEM;
+	}
 
 	if (copy_from_user(&upath, (void __user *)(unsigned long)src,
-			   sizeof(upath))) {
+					   sizeof(upath)))
+	{
 
 		kfree(sa_path);
 		return -EFAULT;
@@ -729,8 +882,8 @@ static int ib_ucm_path_get(struct ib_sa_path_rec **path, u64 src)
 }
 
 static ssize_t ib_ucm_send_req(struct ib_ucm_file *file,
-			       const char __user *inbuf,
-			       int in_len, int out_len)
+							   const char __user *inbuf,
+							   int in_len, int out_len)
 {
 	struct ib_cm_req_param param;
 	struct ib_ucm_context *ctx;
@@ -742,19 +895,30 @@ static ssize_t ib_ucm_send_req(struct ib_ucm_file *file,
 	param.alternate_path = NULL;
 
 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+	{
 		return -EFAULT;
+	}
 
 	result = ib_ucm_alloc_data(&param.private_data, cmd.data, cmd.len);
+
 	if (result)
+	{
 		goto done;
+	}
 
 	result = ib_ucm_path_get(&param.primary_path, cmd.primary_path);
+
 	if (result)
+	{
 		goto done;
+	}
 
 	result = ib_ucm_path_get(&param.alternate_path, cmd.alternate_path);
+
 	if (result)
+	{
 		goto done;
+	}
 
 	param.private_data_len           = cmd.len;
 	param.service_id                 = cmd.sid;
@@ -773,11 +937,16 @@ static ssize_t ib_ucm_send_req(struct ib_ucm_file *file,
 	param.srq                        = cmd.srq;
 
 	ctx = ib_ucm_ctx_get(file, cmd.id);
-	if (!IS_ERR(ctx)) {
+
+	if (!IS_ERR(ctx))
+	{
 		result = ib_send_cm_req(ctx->cm_id, &param);
 		ib_ucm_ctx_put(ctx);
-	} else
+	}
+	else
+	{
 		result = PTR_ERR(ctx);
+	}
 
 done:
 	kfree(param.private_data);
@@ -787,8 +956,8 @@ done:
 }
 
 static ssize_t ib_ucm_send_rep(struct ib_ucm_file *file,
-			       const char __user *inbuf,
-			       int in_len, int out_len)
+							   const char __user *inbuf,
+							   int in_len, int out_len)
 {
 	struct ib_cm_rep_param param;
 	struct ib_ucm_context *ctx;
@@ -798,11 +967,16 @@ static ssize_t ib_ucm_send_rep(struct ib_ucm_file *file,
 	param.private_data = NULL;
 
 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+	{
 		return -EFAULT;
+	}
 
 	result = ib_ucm_alloc_data(&param.private_data, cmd.data, cmd.len);
+
 	if (result)
+	{
 		return result;
+	}
 
 	param.qp_num              = cmd.qpn;
 	param.starting_psn        = cmd.psn;
@@ -815,22 +989,27 @@ static ssize_t ib_ucm_send_rep(struct ib_ucm_file *file,
 	param.srq                 = cmd.srq;
 
 	ctx = ib_ucm_ctx_get(file, cmd.id);
-	if (!IS_ERR(ctx)) {
+
+	if (!IS_ERR(ctx))
+	{
 		ctx->uid = cmd.uid;
 		result = ib_send_cm_rep(ctx->cm_id, &param);
 		ib_ucm_ctx_put(ctx);
-	} else
+	}
+	else
+	{
 		result = PTR_ERR(ctx);
+	}
 
 	kfree(param.private_data);
 	return result;
 }
 
 static ssize_t ib_ucm_send_private_data(struct ib_ucm_file *file,
-					const char __user *inbuf, int in_len,
-					int (*func)(struct ib_cm_id *cm_id,
-						    const void *private_data,
-						    u8 private_data_len))
+										const char __user *inbuf, int in_len,
+										int (*func)(struct ib_cm_id *cm_id,
+												const void *private_data,
+												u8 private_data_len))
 {
 	struct ib_ucm_private_data cmd;
 	struct ib_ucm_context *ctx;
@@ -838,52 +1017,62 @@ static ssize_t ib_ucm_send_private_data(struct ib_ucm_file *file,
 	int result;
 
 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+	{
 		return -EFAULT;
+	}
 
 	result = ib_ucm_alloc_data(&private_data, cmd.data, cmd.len);
+
 	if (result)
+	{
 		return result;
+	}
 
 	ctx = ib_ucm_ctx_get(file, cmd.id);
-	if (!IS_ERR(ctx)) {
+
+	if (!IS_ERR(ctx))
+	{
 		result = func(ctx->cm_id, private_data, cmd.len);
 		ib_ucm_ctx_put(ctx);
-	} else
+	}
+	else
+	{
 		result = PTR_ERR(ctx);
+	}
 
 	kfree(private_data);
 	return result;
 }
 
 static ssize_t ib_ucm_send_rtu(struct ib_ucm_file *file,
-			       const char __user *inbuf,
-			       int in_len, int out_len)
+							   const char __user *inbuf,
+							   int in_len, int out_len)
 {
 	return ib_ucm_send_private_data(file, inbuf, in_len, ib_send_cm_rtu);
 }
 
 static ssize_t ib_ucm_send_dreq(struct ib_ucm_file *file,
-				const char __user *inbuf,
-				int in_len, int out_len)
+								const char __user *inbuf,
+								int in_len, int out_len)
 {
 	return ib_ucm_send_private_data(file, inbuf, in_len, ib_send_cm_dreq);
 }
 
 static ssize_t ib_ucm_send_drep(struct ib_ucm_file *file,
-				const char __user *inbuf,
-				int in_len, int out_len)
+								const char __user *inbuf,
+								int in_len, int out_len)
 {
 	return ib_ucm_send_private_data(file, inbuf, in_len, ib_send_cm_drep);
 }
 
 static ssize_t ib_ucm_send_info(struct ib_ucm_file *file,
-				const char __user *inbuf, int in_len,
-				int (*func)(struct ib_cm_id *cm_id,
-					    int status,
-					    const void *info,
-					    u8 info_len,
-					    const void *data,
-					    u8 data_len))
+								const char __user *inbuf, int in_len,
+								int (*func)(struct ib_cm_id *cm_id,
+										int status,
+										const void *info,
+										u8 info_len,
+										const void *data,
+										u8 data_len))
 {
 	struct ib_ucm_context *ctx;
 	struct ib_ucm_info cmd;
@@ -892,23 +1081,36 @@ static ssize_t ib_ucm_send_info(struct ib_ucm_file *file,
 	int result;
 
 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+	{
 		return -EFAULT;
+	}
 
 	result = ib_ucm_alloc_data(&data, cmd.data, cmd.data_len);
+
 	if (result)
+	{
 		goto done;
+	}
 
 	result = ib_ucm_alloc_data(&info, cmd.info, cmd.info_len);
+
 	if (result)
+	{
 		goto done;
+	}
 
 	ctx = ib_ucm_ctx_get(file, cmd.id);
-	if (!IS_ERR(ctx)) {
+
+	if (!IS_ERR(ctx))
+	{
 		result = func(ctx->cm_id, cmd.status, info, cmd.info_len,
-			      data, cmd.data_len);
+					  data, cmd.data_len);
 		ib_ucm_ctx_put(ctx);
-	} else
+	}
+	else
+	{
 		result = PTR_ERR(ctx);
+	}
 
 done:
 	kfree(data);
@@ -917,22 +1119,22 @@ done:
 }
 
 static ssize_t ib_ucm_send_rej(struct ib_ucm_file *file,
-			       const char __user *inbuf,
-			       int in_len, int out_len)
+							   const char __user *inbuf,
+							   int in_len, int out_len)
 {
 	return ib_ucm_send_info(file, inbuf, in_len, (void *)ib_send_cm_rej);
 }
 
 static ssize_t ib_ucm_send_apr(struct ib_ucm_file *file,
-			       const char __user *inbuf,
-			       int in_len, int out_len)
+							   const char __user *inbuf,
+							   int in_len, int out_len)
 {
 	return ib_ucm_send_info(file, inbuf, in_len, (void *)ib_send_cm_apr);
 }
 
 static ssize_t ib_ucm_send_mra(struct ib_ucm_file *file,
-			       const char __user *inbuf,
-			       int in_len, int out_len)
+							   const char __user *inbuf,
+							   int in_len, int out_len)
 {
 	struct ib_ucm_context *ctx;
 	struct ib_ucm_mra cmd;
@@ -940,26 +1142,36 @@ static ssize_t ib_ucm_send_mra(struct ib_ucm_file *file,
 	int result;
 
 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+	{
 		return -EFAULT;
+	}
 
 	result = ib_ucm_alloc_data(&data, cmd.data, cmd.len);
+
 	if (result)
+	{
 		return result;
+	}
 
 	ctx = ib_ucm_ctx_get(file, cmd.id);
-	if (!IS_ERR(ctx)) {
+
+	if (!IS_ERR(ctx))
+	{
 		result = ib_send_cm_mra(ctx->cm_id, cmd.timeout, data, cmd.len);
 		ib_ucm_ctx_put(ctx);
-	} else
+	}
+	else
+	{
 		result = PTR_ERR(ctx);
+	}
 
 	kfree(data);
 	return result;
 }
 
 static ssize_t ib_ucm_send_lap(struct ib_ucm_file *file,
-			       const char __user *inbuf,
-			       int in_len, int out_len)
+							   const char __user *inbuf,
+							   int in_len, int out_len)
 {
 	struct ib_ucm_context *ctx;
 	struct ib_sa_path_rec *path = NULL;
@@ -968,22 +1180,35 @@ static ssize_t ib_ucm_send_lap(struct ib_ucm_file *file,
 	int result;
 
 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+	{
 		return -EFAULT;
+	}
 
 	result = ib_ucm_alloc_data(&data, cmd.data, cmd.len);
+
 	if (result)
+	{
 		goto done;
+	}
 
 	result = ib_ucm_path_get(&path, cmd.path);
+
 	if (result)
+	{
 		goto done;
+	}
 
 	ctx = ib_ucm_ctx_get(file, cmd.id);
-	if (!IS_ERR(ctx)) {
+
+	if (!IS_ERR(ctx))
+	{
 		result = ib_send_cm_lap(ctx->cm_id, path, data, cmd.len);
 		ib_ucm_ctx_put(ctx);
-	} else
+	}
+	else
+	{
 		result = PTR_ERR(ctx);
+	}
 
 done:
 	kfree(data);
@@ -992,8 +1217,8 @@ done:
 }
 
 static ssize_t ib_ucm_send_sidr_req(struct ib_ucm_file *file,
-				    const char __user *inbuf,
-				    int in_len, int out_len)
+									const char __user *inbuf,
+									int in_len, int out_len)
 {
 	struct ib_cm_sidr_req_param param;
 	struct ib_ucm_context *ctx;
@@ -1004,15 +1229,23 @@ static ssize_t ib_ucm_send_sidr_req(struct ib_ucm_file *file,
 	param.path = NULL;
 
 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+	{
 		return -EFAULT;
+	}
 
 	result = ib_ucm_alloc_data(&param.private_data, cmd.data, cmd.len);
+
 	if (result)
+	{
 		goto done;
+	}
 
 	result = ib_ucm_path_get(&param.path, cmd.path);
+
 	if (result)
+	{
 		goto done;
+	}
 
 	param.private_data_len = cmd.len;
 	param.service_id       = cmd.sid;
@@ -1020,11 +1253,16 @@ static ssize_t ib_ucm_send_sidr_req(struct ib_ucm_file *file,
 	param.max_cm_retries   = cmd.max_cm_retries;
 
 	ctx = ib_ucm_ctx_get(file, cmd.id);
-	if (!IS_ERR(ctx)) {
+
+	if (!IS_ERR(ctx))
+	{
 		result = ib_send_cm_sidr_req(ctx->cm_id, &param);
 		ib_ucm_ctx_put(ctx);
-	} else
+	}
+	else
+	{
 		result = PTR_ERR(ctx);
+	}
 
 done:
 	kfree(param.private_data);
@@ -1033,8 +1271,8 @@ done:
 }
 
 static ssize_t ib_ucm_send_sidr_rep(struct ib_ucm_file *file,
-				    const char __user *inbuf,
-				    int in_len, int out_len)
+									const char __user *inbuf,
+									int in_len, int out_len)
 {
 	struct ib_cm_sidr_rep_param param;
 	struct ib_ucm_sidr_rep cmd;
@@ -1044,16 +1282,24 @@ static ssize_t ib_ucm_send_sidr_rep(struct ib_ucm_file *file,
 	param.info = NULL;
 
 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+	{
 		return -EFAULT;
+	}
 
 	result = ib_ucm_alloc_data(&param.private_data,
-				   cmd.data, cmd.data_len);
+							   cmd.data, cmd.data_len);
+
 	if (result)
+	{
 		goto done;
+	}
 
 	result = ib_ucm_alloc_data(&param.info, cmd.info, cmd.info_len);
+
 	if (result)
+	{
 		goto done;
+	}
 
 	param.qp_num		= cmd.qpn;
 	param.qkey		= cmd.qkey;
@@ -1062,11 +1308,16 @@ static ssize_t ib_ucm_send_sidr_rep(struct ib_ucm_file *file,
 	param.private_data_len	= cmd.data_len;
 
 	ctx = ib_ucm_ctx_get(file, cmd.id);
-	if (!IS_ERR(ctx)) {
+
+	if (!IS_ERR(ctx))
+	{
 		result = ib_send_cm_sidr_rep(ctx->cm_id, &param);
 		ib_ucm_ctx_put(ctx);
-	} else
+	}
+	else
+	{
 		result = PTR_ERR(ctx);
+	}
 
 done:
 	kfree(param.private_data);
@@ -1075,8 +1326,9 @@ done:
 }
 
 static ssize_t (*ucm_cmd_table[])(struct ib_ucm_file *file,
-				  const char __user *inbuf,
-				  int in_len, int out_len) = {
+								  const char __user *inbuf,
+								  int in_len, int out_len) =
+{
 	[IB_USER_CM_CMD_CREATE_ID]     = ib_ucm_create_id,
 	[IB_USER_CM_CMD_DESTROY_ID]    = ib_ucm_destroy_id,
 	[IB_USER_CM_CMD_ATTR_ID]       = ib_ucm_attr_id,
@@ -1098,37 +1350,50 @@ static ssize_t (*ucm_cmd_table[])(struct ib_ucm_file *file,
 };
 
 static ssize_t ib_ucm_write(struct file *filp, const char __user *buf,
-			    size_t len, loff_t *pos)
+							size_t len, loff_t *pos)
 {
 	struct ib_ucm_file *file = filp->private_data;
 	struct ib_ucm_cmd_hdr hdr;
 	ssize_t result;
 
 	if (WARN_ON_ONCE(!ib_safe_file_access(filp)))
+	{
 		return -EACCES;
+	}
 
 	if (len < sizeof(hdr))
+	{
 		return -EINVAL;
+	}
 
 	if (copy_from_user(&hdr, buf, sizeof(hdr)))
+	{
 		return -EFAULT;
+	}
 
 	if (hdr.cmd >= ARRAY_SIZE(ucm_cmd_table))
+	{
 		return -EINVAL;
+	}
 
 	if (hdr.in + sizeof(hdr) > len)
+	{
 		return -EINVAL;
+	}
 
 	result = ucm_cmd_table[hdr.cmd](file, buf + sizeof(hdr),
-					hdr.in, hdr.out);
+									hdr.in, hdr.out);
+
 	if (!result)
+	{
 		result = len;
+	}
 
 	return result;
 }
 
 static unsigned int ib_ucm_poll(struct file *filp,
-				struct poll_table_struct *wait)
+								struct poll_table_struct *wait)
 {
 	struct ib_ucm_file *file = filp->private_data;
 	unsigned int mask = 0;
@@ -1136,7 +1401,9 @@ static unsigned int ib_ucm_poll(struct file *filp,
 	poll_wait(filp, &file->poll_wait, wait);
 
 	if (!list_empty(&file->events))
+	{
 		mask = POLLIN | POLLRDNORM;
+	}
 
 	return mask;
 }
@@ -1154,8 +1421,11 @@ static int ib_ucm_open(struct inode *inode, struct file *filp)
 	struct ib_ucm_file *file;
 
 	file = kmalloc(sizeof(*file), GFP_KERNEL);
+
 	if (!file)
+	{
 		return -ENOMEM;
+	}
 
 	INIT_LIST_HEAD(&file->events);
 	INIT_LIST_HEAD(&file->ctxs);
@@ -1176,9 +1446,11 @@ static int ib_ucm_close(struct inode *inode, struct file *filp)
 	struct ib_ucm_context *ctx;
 
 	mutex_lock(&file->file_mutex);
-	while (!list_empty(&file->ctxs)) {
+
+	while (!list_empty(&file->ctxs))
+	{
 		ctx = list_entry(file->ctxs.next,
-				 struct ib_ucm_context, file_list);
+						 struct ib_ucm_context, file_list);
 		mutex_unlock(&file->file_mutex);
 
 		mutex_lock(&ctx_id_mutex);
@@ -1191,6 +1463,7 @@ static int ib_ucm_close(struct inode *inode, struct file *filp)
 
 		mutex_lock(&file->file_mutex);
 	}
+
 	mutex_unlock(&file->file_mutex);
 	kfree(file);
 	return 0;
@@ -1203,14 +1476,21 @@ static void ib_ucm_release_dev(struct device *dev)
 
 	ucm_dev = container_of(dev, struct ib_ucm_device, dev);
 	cdev_del(&ucm_dev->cdev);
+
 	if (ucm_dev->devnum < IB_UCM_MAX_DEVICES)
+	{
 		clear_bit(ucm_dev->devnum, dev_map);
+	}
 	else
+	{
 		clear_bit(ucm_dev->devnum - IB_UCM_MAX_DEVICES, overflow_map);
+	}
+
 	kfree(ucm_dev);
 }
 
-static const struct file_operations ucm_fops = {
+static const struct file_operations ucm_fops =
+{
 	.owner	 = THIS_MODULE,
 	.open	 = ib_ucm_open,
 	.release = ib_ucm_close,
@@ -1220,7 +1500,7 @@ static const struct file_operations ucm_fops = {
 };
 
 static ssize_t show_ibdev(struct device *dev, struct device_attribute *attr,
-			  char *buf)
+						  char *buf)
 {
 	struct ib_ucm_device *ucm_dev;
 
@@ -1234,18 +1514,24 @@ static int find_overflow_devnum(void)
 {
 	int ret;
 
-	if (!overflow_maj) {
+	if (!overflow_maj)
+	{
 		ret = alloc_chrdev_region(&overflow_maj, 0, IB_UCM_MAX_DEVICES,
-					  "infiniband_cm");
-		if (ret) {
+								  "infiniband_cm");
+
+		if (ret)
+		{
 			pr_err("ucm: couldn't register dynamic device number\n");
 			return ret;
 		}
 	}
 
 	ret = find_first_zero_bit(overflow_map, IB_UCM_MAX_DEVICES);
+
 	if (ret >= IB_UCM_MAX_DEVICES)
+	{
 		return -1;
+	}
 
 	return ret;
 }
@@ -1257,24 +1543,36 @@ static void ib_ucm_add_one(struct ib_device *device)
 	struct ib_ucm_device *ucm_dev;
 
 	if (!device->alloc_ucontext || !rdma_cap_ib_cm(device, 1))
+	{
 		return;
+	}
 
-	ucm_dev = kzalloc(sizeof *ucm_dev, GFP_KERNEL);
+	ucm_dev = kzalloc(sizeof * ucm_dev, GFP_KERNEL);
+
 	if (!ucm_dev)
+	{
 		return;
+	}
 
 	ucm_dev->ib_dev = device;
 
 	devnum = find_first_zero_bit(dev_map, IB_UCM_MAX_DEVICES);
-	if (devnum >= IB_UCM_MAX_DEVICES) {
+
+	if (devnum >= IB_UCM_MAX_DEVICES)
+	{
 		devnum = find_overflow_devnum();
+
 		if (devnum < 0)
+		{
 			goto err;
+		}
 
 		ucm_dev->devnum = devnum + IB_UCM_MAX_DEVICES;
 		base = devnum + overflow_maj;
 		set_bit(devnum, overflow_map);
-	} else {
+	}
+	else
+	{
 		ucm_dev->devnum = devnum;
 		base = devnum + IB_UCM_BASE_DEV;
 		set_bit(devnum, dev_map);
@@ -1283,19 +1581,27 @@ static void ib_ucm_add_one(struct ib_device *device)
 	cdev_init(&ucm_dev->cdev, &ucm_fops);
 	ucm_dev->cdev.owner = THIS_MODULE;
 	kobject_set_name(&ucm_dev->cdev.kobj, "ucm%d", ucm_dev->devnum);
+
 	if (cdev_add(&ucm_dev->cdev, base, 1))
+	{
 		goto err;
+	}
 
 	ucm_dev->dev.class = &cm_class;
 	ucm_dev->dev.parent = device->dma_device;
 	ucm_dev->dev.devt = ucm_dev->cdev.dev;
 	ucm_dev->dev.release = ib_ucm_release_dev;
 	dev_set_name(&ucm_dev->dev, "ucm%d", ucm_dev->devnum);
+
 	if (device_register(&ucm_dev->dev))
+	{
 		goto err_cdev;
+	}
 
 	if (device_create_file(&ucm_dev->dev, &dev_attr_ibdev))
+	{
 		goto err_dev;
+	}
 
 	ib_set_client_data(device, &ucm_client, ucm_dev);
 	return;
@@ -1304,10 +1610,16 @@ err_dev:
 	device_unregister(&ucm_dev->dev);
 err_cdev:
 	cdev_del(&ucm_dev->cdev);
+
 	if (ucm_dev->devnum < IB_UCM_MAX_DEVICES)
+	{
 		clear_bit(devnum, dev_map);
+	}
 	else
+	{
 		clear_bit(devnum, overflow_map);
+	}
+
 err:
 	kfree(ucm_dev);
 	return;
@@ -1318,36 +1630,45 @@ static void ib_ucm_remove_one(struct ib_device *device, void *client_data)
 	struct ib_ucm_device *ucm_dev = client_data;
 
 	if (!ucm_dev)
+	{
 		return;
+	}
 
 	device_unregister(&ucm_dev->dev);
 }
 
 static CLASS_ATTR_STRING(abi_version, S_IRUGO,
-			 __stringify(IB_USER_CM_ABI_VERSION));
+						 __stringify(IB_USER_CM_ABI_VERSION));
 
 static int __init ib_ucm_init(void)
 {
 	int ret;
 
 	ret = register_chrdev_region(IB_UCM_BASE_DEV, IB_UCM_MAX_DEVICES,
-				     "infiniband_cm");
-	if (ret) {
+								 "infiniband_cm");
+
+	if (ret)
+	{
 		pr_err("ucm: couldn't register device number\n");
 		goto error1;
 	}
 
 	ret = class_create_file(&cm_class, &class_attr_abi_version.attr);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("ucm: couldn't create abi_version attribute\n");
 		goto error2;
 	}
 
 	ret = ib_register_client(&ucm_client);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("ucm: couldn't register client\n");
 		goto error3;
 	}
+
 	return 0;
 
 error3:
@@ -1363,8 +1684,12 @@ static void __exit ib_ucm_cleanup(void)
 	ib_unregister_client(&ucm_client);
 	class_remove_file(&cm_class, &class_attr_abi_version.attr);
 	unregister_chrdev_region(IB_UCM_BASE_DEV, IB_UCM_MAX_DEVICES);
+
 	if (overflow_maj)
+	{
 		unregister_chrdev_region(overflow_maj, IB_UCM_MAX_DEVICES);
+	}
+
 	idr_destroy(&ctx_id_table);
 }
 

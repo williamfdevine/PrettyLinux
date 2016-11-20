@@ -64,14 +64,15 @@
 	DEVICE_ATTR(_name,0200,NULL,_name##_store);
 
 #define DCDBAS_BIN_ATTR_RW(_name) \
-struct bin_attribute bin_attr_##_name = { \
-	.attr =  { .name = __stringify(_name), \
-		   .mode = 0600 }, \
-	.read =  _name##_read, \
-	.write = _name##_write, \
-}
+	struct bin_attribute bin_attr_##_name = { \
+		.attr =  { .name = __stringify(_name), \
+				   .mode = 0600 }, \
+				 .read =  _name##_read, \
+						  .write = _name##_write, \
+	}
 
-struct smi_cmd {
+struct smi_cmd
+{
 	__u32 magic;
 	__u32 ebx;
 	__u32 ecx;
@@ -81,22 +82,27 @@ struct smi_cmd {
 	__u8 command_buffer[1];
 } __attribute__ ((packed));
 
-struct apm_cmd {
+struct apm_cmd
+{
 	__u8 command;
 	__s8 status;
 	__u16 reserved;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__u8 parm[MAX_SYSMGMT_SHORTCMD_PARMBUF_LEN];
 		} __attribute__ ((packed)) shortreq;
 
-		struct {
+		struct
+		{
 			__u16 num_sg_entries;
-			struct {
+			struct
+			{
 				__u32 size;
 				__u64 addr;
 			} __attribute__ ((packed))
-			    sglist[MAX_SYSMGMT_LONGCMD_SGENTRY_NUM];
+			sglist[MAX_SYSMGMT_LONGCMD_SGENTRY_NUM];
 		} __attribute__ ((packed)) longreq;
 	} __attribute__ ((packed)) parameters;
 } __attribute__ ((packed));

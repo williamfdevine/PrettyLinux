@@ -36,11 +36,15 @@ static int check_short_pattern(uint8_t *buf, int len, int paglen, struct nand_bb
 	uint8_t *p = buf;
 
 	/* Compare the pattern */
-	for (i = 0; i < td->len; i++) {
+	for (i = 0; i < td->len; i++)
+	{
 		if (p[i] != td->pattern[i])
+		{
 			return -1;
+		}
 	}
-        return 0;
+
+	return 0;
 }
 
 /**
@@ -86,35 +90,45 @@ static int create_bbt(struct mtd_info *mtd, uint8_t *buf, struct nand_bbt_descr 
 	ops.oobbuf = buf;
 	ops.len = ops.ooboffs = ops.retlen = ops.oobretlen = 0;
 
-	for (i = startblock; i < numblocks; ) {
+	for (i = startblock; i < numblocks; )
+	{
 		int ret;
 
-		for (j = 0; j < len; j++) {
+		for (j = 0; j < len; j++)
+		{
 			/* No need to read pages fully,
 			 * just read required OOB bytes */
 			ret = onenand_bbt_read_oob(mtd,
-				from + j * this->writesize + bd->offs, &ops);
+									   from + j * this->writesize + bd->offs, &ops);
 
 			/* If it is a initial bad block, just ignore it */
 			if (ret == ONENAND_BBT_READ_FATAL_ERROR)
+			{
 				return -EIO;
+			}
 
 			if (ret || check_short_pattern(&buf[j * scanlen],
-					       scanlen, this->writesize, bd)) {
+										   scanlen, this->writesize, bd))
+			{
 				bbm->bbt[i >> 3] |= 0x03 << (i & 0x6);
 				printk(KERN_INFO "OneNAND eraseblock %d is an "
-					"initial bad block\n", i >> 1);
+					   "initial bad block\n", i >> 1);
 				mtd->ecc_stats.badblocks++;
 				break;
 			}
 		}
+
 		i += 2;
 
-		if (FLEXONENAND(this)) {
+		if (FLEXONENAND(this))
+		{
 			rgn = flexonenand_region(mtd, from);
 			from += mtd->eraseregions[rgn].erasesize;
-		} else
+		}
+		else
+		{
 			from += (1 << bbm->bbt_erase_shift);
+		}
 	}
 
 	return 0;
@@ -154,12 +168,15 @@ static int onenand_isbad_bbt(struct mtd_info *mtd, loff_t offs, int allowbbt)
 	res = (bbm->bbt[block >> 3] >> (block & 0x06)) & 0x03;
 
 	pr_debug("onenand_isbad_bbt: bbt info for offs 0x%08x: (block %d) 0x%02x\n",
-		(unsigned int) offs, block >> 1, res);
+			 (unsigned int) offs, block >> 1, res);
 
-	switch ((int) res) {
-	case 0x00:	return 0;
-	case 0x01:	return 1;
-	case 0x02:	return allowbbt ? 0 : 1;
+	switch ((int) res)
+	{
+		case 0x00:	return 0;
+
+		case 0x01:	return 1;
+
+		case 0x02:	return allowbbt ? 0 : 1;
 	}
 
 	return 1;
@@ -188,8 +205,11 @@ static int onenand_scan_bbt(struct mtd_info *mtd, struct nand_bbt_descr *bd)
 	len = this->chipsize >> (this->erase_shift + 2);
 	/* Allocate memory (2bit per block) and clear the memory bad block table */
 	bbm->bbt = kzalloc(len, GFP_KERNEL);
+
 	if (!bbm->bbt)
+	{
 		return -ENOMEM;
+	}
 
 	/* Set the bad block position */
 	bbm->badblockpos = ONENAND_BADBLOCK_POS;
@@ -198,10 +218,13 @@ static int onenand_scan_bbt(struct mtd_info *mtd, struct nand_bbt_descr *bd)
 	bbm->bbt_erase_shift = this->erase_shift;
 
 	if (!bbm->isbad_bbt)
+	{
 		bbm->isbad_bbt = onenand_isbad_bbt;
+	}
 
 	/* Scan the device to build a memory based bad block table */
-	if ((ret = onenand_memory_bbt(mtd, bd))) {
+	if ((ret = onenand_memory_bbt(mtd, bd)))
+	{
 		printk(KERN_ERR "onenand_scan_bbt: Can't scan flash and build the RAM-based BBT\n");
 		kfree(bbm->bbt);
 		bbm->bbt = NULL;
@@ -216,7 +239,8 @@ static int onenand_scan_bbt(struct mtd_info *mtd, struct nand_bbt_descr *bd)
  */
 static uint8_t scan_ff_pattern[] = { 0xff, 0xff };
 
-static struct nand_bbt_descr largepage_memorybased = {
+static struct nand_bbt_descr largepage_memorybased =
+{
 	.options = 0,
 	.offs = 0,
 	.len = 2,
@@ -236,14 +260,19 @@ int onenand_default_bbt(struct mtd_info *mtd)
 	struct bbm_info *bbm;
 
 	this->bbm = kzalloc(sizeof(struct bbm_info), GFP_KERNEL);
+
 	if (!this->bbm)
+	{
 		return -ENOMEM;
+	}
 
 	bbm = this->bbm;
 
 	/* 1KB page has same configuration as 2KB page */
 	if (!bbm->badblock_pattern)
+	{
 		bbm->badblock_pattern = &largepage_memorybased;
+	}
 
 	return onenand_scan_bbt(mtd, bbm->badblock_pattern);
 }

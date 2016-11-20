@@ -6,7 +6,8 @@
 #include <linux/list.h>
 #include <linux/types.h>
 
-struct ceph_pagelist {
+struct ceph_pagelist
+{
 	struct list_head head;
 	void *mapped_tail;
 	size_t length;
@@ -16,7 +17,8 @@ struct ceph_pagelist {
 	atomic_t refcnt;
 };
 
-struct ceph_pagelist_cursor {
+struct ceph_pagelist_cursor
+{
 	struct ceph_pagelist *pl;   /* pagelist, for error checking */
 	struct list_head *page_lru; /* page in list */
 	size_t room;		    /* room remaining to reset to */
@@ -42,10 +44,10 @@ extern int ceph_pagelist_reserve(struct ceph_pagelist *pl, size_t space);
 extern int ceph_pagelist_free_reserve(struct ceph_pagelist *pl);
 
 extern void ceph_pagelist_set_cursor(struct ceph_pagelist *pl,
-				     struct ceph_pagelist_cursor *c);
+									 struct ceph_pagelist_cursor *c);
 
 extern int ceph_pagelist_truncate(struct ceph_pagelist *pl,
-				  struct ceph_pagelist_cursor *c);
+								  struct ceph_pagelist_cursor *c);
 
 static inline int ceph_pagelist_encode_64(struct ceph_pagelist *pl, u64 v)
 {
@@ -67,13 +69,20 @@ static inline int ceph_pagelist_encode_8(struct ceph_pagelist *pl, u8 v)
 	return ceph_pagelist_append(pl, &v, 1);
 }
 static inline int ceph_pagelist_encode_string(struct ceph_pagelist *pl,
-					      char *s, size_t len)
+		char *s, size_t len)
 {
 	int ret = ceph_pagelist_encode_32(pl, len);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	if (len)
+	{
 		return ceph_pagelist_append(pl, s, len);
+	}
+
 	return 0;
 }
 

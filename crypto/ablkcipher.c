@@ -25,14 +25,16 @@
 
 #include "internal.h"
 
-struct ablkcipher_buffer {
+struct ablkcipher_buffer
+{
 	struct list_head	entry;
 	struct scatter_walk	dst;
 	unsigned int		len;
 	void			*data;
 };
 
-enum {
+enum
+{
 	ABLKCIPHER_WALK_SLOW = 1 << 0,
 };
 
@@ -45,7 +47,8 @@ void __ablkcipher_walk_complete(struct ablkcipher_walk *walk)
 {
 	struct ablkcipher_buffer *p, *tmp;
 
-	list_for_each_entry_safe(p, tmp, &walk->buffers, entry) {
+	list_for_each_entry_safe(p, tmp, &walk->buffers, entry)
+	{
 		ablkcipher_buffer_write(p);
 		list_del(&p->entry);
 		kfree(p);
@@ -54,7 +57,7 @@ void __ablkcipher_walk_complete(struct ablkcipher_walk *walk)
 EXPORT_SYMBOL_GPL(__ablkcipher_walk_complete);
 
 static inline void ablkcipher_queue_write(struct ablkcipher_walk *walk,
-					  struct ablkcipher_buffer *p)
+		struct ablkcipher_buffer *p)
 {
 	p->dst = walk->out;
 	list_add_tail(&p->entry, &walk->buffers);
@@ -71,18 +74,26 @@ static inline u8 *ablkcipher_get_spot(u8 *start, unsigned int len)
 }
 
 static inline unsigned int ablkcipher_done_slow(struct ablkcipher_walk *walk,
-						unsigned int bsize)
+		unsigned int bsize)
 {
 	unsigned int n = bsize;
 
-	for (;;) {
+	for (;;)
+	{
 		unsigned int len_this_page = scatterwalk_pagelen(&walk->out);
 
 		if (len_this_page > n)
+		{
 			len_this_page = n;
+		}
+
 		scatterwalk_advance(&walk->out, n);
+
 		if (n == len_this_page)
+		{
 			break;
+		}
+
 		n -= len_this_page;
 		scatterwalk_start(&walk->out, sg_next(walk->out.sg));
 	}
@@ -91,7 +102,7 @@ static inline unsigned int ablkcipher_done_slow(struct ablkcipher_walk *walk,
 }
 
 static inline unsigned int ablkcipher_done_fast(struct ablkcipher_walk *walk,
-						unsigned int n)
+		unsigned int n)
 {
 	scatterwalk_advance(&walk->in, n);
 	scatterwalk_advance(&walk->out, n);
@@ -100,24 +111,31 @@ static inline unsigned int ablkcipher_done_fast(struct ablkcipher_walk *walk,
 }
 
 static int ablkcipher_walk_next(struct ablkcipher_request *req,
-				struct ablkcipher_walk *walk);
+								struct ablkcipher_walk *walk);
 
 int ablkcipher_walk_done(struct ablkcipher_request *req,
-			 struct ablkcipher_walk *walk, int err)
+						 struct ablkcipher_walk *walk, int err)
 {
 	struct crypto_tfm *tfm = req->base.tfm;
 	unsigned int nbytes = 0;
 
-	if (likely(err >= 0)) {
+	if (likely(err >= 0))
+	{
 		unsigned int n = walk->nbytes - err;
 
 		if (likely(!(walk->flags & ABLKCIPHER_WALK_SLOW)))
+		{
 			n = ablkcipher_done_fast(walk, n);
-		else if (WARN_ON(err)) {
+		}
+		else if (WARN_ON(err))
+		{
 			err = -EINVAL;
 			goto err;
-		} else
+		}
+		else
+		{
 			n = ablkcipher_done_slow(walk, n);
+		}
 
 		nbytes = walk->total - n;
 		err = 0;
@@ -130,13 +148,17 @@ err:
 	walk->total = nbytes;
 	walk->nbytes = nbytes;
 
-	if (nbytes) {
+	if (nbytes)
+	{
 		crypto_yield(req->base.flags);
 		return ablkcipher_walk_next(req, walk);
 	}
 
 	if (walk->iv != req->info)
+	{
 		memcpy(req->info, walk->iv, tfm->crt_ablkcipher.ivsize);
+	}
+
 	kfree(walk->iv_buffer);
 
 	return err;
@@ -144,10 +166,10 @@ err:
 EXPORT_SYMBOL_GPL(ablkcipher_walk_done);
 
 static inline int ablkcipher_next_slow(struct ablkcipher_request *req,
-				       struct ablkcipher_walk *walk,
-				       unsigned int bsize,
-				       unsigned int alignmask,
-				       void **src_p, void **dst_p)
+									   struct ablkcipher_walk *walk,
+									   unsigned int bsize,
+									   unsigned int alignmask,
+									   void **src_p, void **dst_p)
 {
 	unsigned aligned_bsize = ALIGN(bsize, alignmask + 1);
 	struct ablkcipher_buffer *p;
@@ -156,11 +178,14 @@ static inline int ablkcipher_next_slow(struct ablkcipher_request *req,
 
 	n = ALIGN(sizeof(struct ablkcipher_buffer), alignmask + 1);
 	n += (aligned_bsize * 3 - (alignmask + 1) +
-	      (alignmask & ~(crypto_tfm_ctx_alignment() - 1)));
+		  (alignmask & ~(crypto_tfm_ctx_alignment() - 1)));
 
 	p = kmalloc(n, GFP_ATOMIC);
+
 	if (!p)
+	{
 		return ablkcipher_walk_done(req, walk, -ENOMEM);
+	}
 
 	base = p + 1;
 
@@ -184,20 +209,23 @@ static inline int ablkcipher_next_slow(struct ablkcipher_request *req,
 }
 
 static inline int ablkcipher_copy_iv(struct ablkcipher_walk *walk,
-				     struct crypto_tfm *tfm,
-				     unsigned int alignmask)
+									 struct crypto_tfm *tfm,
+									 unsigned int alignmask)
 {
 	unsigned bs = walk->blocksize;
 	unsigned int ivsize = tfm->crt_ablkcipher.ivsize;
 	unsigned aligned_bs = ALIGN(bs, alignmask + 1);
 	unsigned int size = aligned_bs * 2 + ivsize + max(aligned_bs, ivsize) -
-			    (alignmask + 1);
+						(alignmask + 1);
 	u8 *iv;
 
 	size += alignmask & ~(crypto_tfm_ctx_alignment() - 1);
 	walk->iv_buffer = kmalloc(size, GFP_ATOMIC);
+
 	if (!walk->iv_buffer)
+	{
 		return -ENOMEM;
+	}
 
 	iv = (u8 *)ALIGN((unsigned long)walk->iv_buffer, alignmask + 1);
 	iv = ablkcipher_get_spot(iv, bs) + aligned_bs;
@@ -209,7 +237,7 @@ static inline int ablkcipher_copy_iv(struct ablkcipher_walk *walk,
 }
 
 static inline int ablkcipher_next_fast(struct ablkcipher_request *req,
-				       struct ablkcipher_walk *walk)
+									   struct ablkcipher_walk *walk)
 {
 	walk->src.page = scatterwalk_page(&walk->in);
 	walk->src.offset = offset_in_page(walk->in.offset);
@@ -220,7 +248,7 @@ static inline int ablkcipher_next_fast(struct ablkcipher_request *req,
 }
 
 static int ablkcipher_walk_next(struct ablkcipher_request *req,
-				struct ablkcipher_walk *walk)
+								struct ablkcipher_walk *walk)
 {
 	struct crypto_tfm *tfm = req->base.tfm;
 	unsigned int alignmask, bsize, n;
@@ -229,7 +257,9 @@ static int ablkcipher_walk_next(struct ablkcipher_request *req,
 
 	alignmask = crypto_tfm_alg_alignmask(tfm);
 	n = walk->total;
-	if (unlikely(n < crypto_tfm_alg_blocksize(tfm))) {
+
+	if (unlikely(n < crypto_tfm_alg_blocksize(tfm)))
+	{
 		req->base.flags |= CRYPTO_TFM_RES_BAD_BLOCK_LEN;
 		return ablkcipher_walk_done(req, walk, -EINVAL);
 	}
@@ -242,10 +272,11 @@ static int ablkcipher_walk_next(struct ablkcipher_request *req,
 	n = scatterwalk_clamp(&walk->out, n);
 
 	if (n < bsize ||
-	    !scatterwalk_aligned(&walk->in, alignmask) ||
-	    !scatterwalk_aligned(&walk->out, alignmask)) {
+		!scatterwalk_aligned(&walk->in, alignmask) ||
+		!scatterwalk_aligned(&walk->out, alignmask))
+	{
 		err = ablkcipher_next_slow(req, walk, bsize, alignmask,
-					   &src, &dst);
+								   &src, &dst);
 		goto set_phys_lowmem;
 	}
 
@@ -254,7 +285,9 @@ static int ablkcipher_walk_next(struct ablkcipher_request *req,
 	return ablkcipher_next_fast(req, walk);
 
 set_phys_lowmem:
-	if (err >= 0) {
+
+	if (err >= 0)
+	{
 		walk->src.page = virt_to_page(src);
 		walk->dst.page = virt_to_page(dst);
 		walk->src.offset = ((unsigned long)src & (PAGE_SIZE - 1));
@@ -265,26 +298,36 @@ set_phys_lowmem:
 }
 
 static int ablkcipher_walk_first(struct ablkcipher_request *req,
-				 struct ablkcipher_walk *walk)
+								 struct ablkcipher_walk *walk)
 {
 	struct crypto_tfm *tfm = req->base.tfm;
 	unsigned int alignmask;
 
 	alignmask = crypto_tfm_alg_alignmask(tfm);
+
 	if (WARN_ON_ONCE(in_irq()))
+	{
 		return -EDEADLK;
+	}
 
 	walk->iv = req->info;
 	walk->nbytes = walk->total;
+
 	if (unlikely(!walk->total))
+	{
 		return 0;
+	}
 
 	walk->iv_buffer = NULL;
-	if (unlikely(((unsigned long)walk->iv & alignmask))) {
+
+	if (unlikely(((unsigned long)walk->iv & alignmask)))
+	{
 		int err = ablkcipher_copy_iv(walk, tfm, alignmask);
 
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	scatterwalk_start(&walk->in, walk->in.sg);
@@ -294,7 +337,7 @@ static int ablkcipher_walk_first(struct ablkcipher_request *req,
 }
 
 int ablkcipher_walk_phys(struct ablkcipher_request *req,
-			 struct ablkcipher_walk *walk)
+						 struct ablkcipher_walk *walk)
 {
 	walk->blocksize = crypto_tfm_alg_blocksize(req->base.tfm);
 	return ablkcipher_walk_first(req, walk);
@@ -302,7 +345,7 @@ int ablkcipher_walk_phys(struct ablkcipher_request *req,
 EXPORT_SYMBOL_GPL(ablkcipher_walk_phys);
 
 static int setkey_unaligned(struct crypto_ablkcipher *tfm, const u8 *key,
-			    unsigned int keylen)
+							unsigned int keylen)
 {
 	struct ablkcipher_alg *cipher = crypto_ablkcipher_alg(tfm);
 	unsigned long alignmask = crypto_ablkcipher_alignmask(tfm);
@@ -312,8 +355,11 @@ static int setkey_unaligned(struct crypto_ablkcipher *tfm, const u8 *key,
 
 	absize = keylen + alignmask;
 	buffer = kmalloc(absize, GFP_ATOMIC);
+
 	if (!buffer)
+	{
 		return -ENOMEM;
+	}
 
 	alignbuffer = (u8 *)ALIGN((unsigned long)buffer, alignmask + 1);
 	memcpy(alignbuffer, key, keylen);
@@ -324,36 +370,41 @@ static int setkey_unaligned(struct crypto_ablkcipher *tfm, const u8 *key,
 }
 
 static int setkey(struct crypto_ablkcipher *tfm, const u8 *key,
-		  unsigned int keylen)
+				  unsigned int keylen)
 {
 	struct ablkcipher_alg *cipher = crypto_ablkcipher_alg(tfm);
 	unsigned long alignmask = crypto_ablkcipher_alignmask(tfm);
 
-	if (keylen < cipher->min_keysize || keylen > cipher->max_keysize) {
+	if (keylen < cipher->min_keysize || keylen > cipher->max_keysize)
+	{
 		crypto_ablkcipher_set_flags(tfm, CRYPTO_TFM_RES_BAD_KEY_LEN);
 		return -EINVAL;
 	}
 
 	if ((unsigned long)key & alignmask)
+	{
 		return setkey_unaligned(tfm, key, keylen);
+	}
 
 	return cipher->setkey(tfm, key, keylen);
 }
 
 static unsigned int crypto_ablkcipher_ctxsize(struct crypto_alg *alg, u32 type,
-					      u32 mask)
+		u32 mask)
 {
 	return alg->cra_ctxsize;
 }
 
 static int crypto_init_ablkcipher_ops(struct crypto_tfm *tfm, u32 type,
-				      u32 mask)
+									  u32 mask)
 {
 	struct ablkcipher_alg *alg = &tfm->__crt_alg->cra_ablkcipher;
 	struct ablkcipher_tfm *crt = &tfm->crt_ablkcipher;
 
 	if (alg->ivsize > PAGE_SIZE / 8)
+	{
 		return -EINVAL;
+	}
 
 	crt->setkey = setkey;
 	crt->encrypt = alg->encrypt;
@@ -370,8 +421,8 @@ static int crypto_ablkcipher_report(struct sk_buff *skb, struct crypto_alg *alg)
 	struct crypto_report_blkcipher rblkcipher;
 
 	strncpy(rblkcipher.type, "ablkcipher", sizeof(rblkcipher.type));
-	strncpy(rblkcipher.geniv, alg->cra_ablkcipher.geniv ?: "<default>",
-		sizeof(rblkcipher.geniv));
+	strncpy(rblkcipher.geniv, alg->cra_ablkcipher.geniv ? : "<default>",
+			sizeof(rblkcipher.geniv));
 
 	rblkcipher.blocksize = alg->cra_blocksize;
 	rblkcipher.min_keysize = alg->cra_ablkcipher.min_keysize;
@@ -379,8 +430,11 @@ static int crypto_ablkcipher_report(struct sk_buff *skb, struct crypto_alg *alg)
 	rblkcipher.ivsize = alg->cra_ablkcipher.ivsize;
 
 	if (nla_put(skb, CRYPTOCFGA_REPORT_BLKCIPHER,
-		    sizeof(struct crypto_report_blkcipher), &rblkcipher))
+				sizeof(struct crypto_report_blkcipher), &rblkcipher))
+	{
 		goto nla_put_failure;
+	}
+
 	return 0;
 
 nla_put_failure:
@@ -394,22 +448,23 @@ static int crypto_ablkcipher_report(struct sk_buff *skb, struct crypto_alg *alg)
 #endif
 
 static void crypto_ablkcipher_show(struct seq_file *m, struct crypto_alg *alg)
-	__attribute__ ((unused));
+__attribute__ ((unused));
 static void crypto_ablkcipher_show(struct seq_file *m, struct crypto_alg *alg)
 {
 	struct ablkcipher_alg *ablkcipher = &alg->cra_ablkcipher;
 
 	seq_printf(m, "type         : ablkcipher\n");
 	seq_printf(m, "async        : %s\n", alg->cra_flags & CRYPTO_ALG_ASYNC ?
-					     "yes" : "no");
+			   "yes" : "no");
 	seq_printf(m, "blocksize    : %u\n", alg->cra_blocksize);
 	seq_printf(m, "min keysize  : %u\n", ablkcipher->min_keysize);
 	seq_printf(m, "max keysize  : %u\n", ablkcipher->max_keysize);
 	seq_printf(m, "ivsize       : %u\n", ablkcipher->ivsize);
-	seq_printf(m, "geniv        : %s\n", ablkcipher->geniv ?: "<default>");
+	seq_printf(m, "geniv        : %s\n", ablkcipher->geniv ? : "<default>");
 }
 
-const struct crypto_type crypto_ablkcipher_type = {
+const struct crypto_type crypto_ablkcipher_type =
+{
 	.ctxsize = crypto_ablkcipher_ctxsize,
 	.init = crypto_init_ablkcipher_ops,
 #ifdef CONFIG_PROC_FS
@@ -420,16 +475,18 @@ const struct crypto_type crypto_ablkcipher_type = {
 EXPORT_SYMBOL_GPL(crypto_ablkcipher_type);
 
 static int crypto_init_givcipher_ops(struct crypto_tfm *tfm, u32 type,
-				      u32 mask)
+									 u32 mask)
 {
 	struct ablkcipher_alg *alg = &tfm->__crt_alg->cra_ablkcipher;
 	struct ablkcipher_tfm *crt = &tfm->crt_ablkcipher;
 
 	if (alg->ivsize > PAGE_SIZE / 8)
+	{
 		return -EINVAL;
+	}
 
 	crt->setkey = tfm->__crt_alg->cra_flags & CRYPTO_ALG_GENIV ?
-		      alg->setkey : setkey;
+				  alg->setkey : setkey;
 	crt->encrypt = alg->encrypt;
 	crt->decrypt = alg->decrypt;
 	crt->base = __crypto_ablkcipher_cast(tfm);
@@ -444,8 +501,8 @@ static int crypto_givcipher_report(struct sk_buff *skb, struct crypto_alg *alg)
 	struct crypto_report_blkcipher rblkcipher;
 
 	strncpy(rblkcipher.type, "givcipher", sizeof(rblkcipher.type));
-	strncpy(rblkcipher.geniv, alg->cra_ablkcipher.geniv ?: "<built-in>",
-		sizeof(rblkcipher.geniv));
+	strncpy(rblkcipher.geniv, alg->cra_ablkcipher.geniv ? : "<built-in>",
+			sizeof(rblkcipher.geniv));
 
 	rblkcipher.blocksize = alg->cra_blocksize;
 	rblkcipher.min_keysize = alg->cra_ablkcipher.min_keysize;
@@ -453,8 +510,11 @@ static int crypto_givcipher_report(struct sk_buff *skb, struct crypto_alg *alg)
 	rblkcipher.ivsize = alg->cra_ablkcipher.ivsize;
 
 	if (nla_put(skb, CRYPTOCFGA_REPORT_BLKCIPHER,
-		    sizeof(struct crypto_report_blkcipher), &rblkcipher))
+				sizeof(struct crypto_report_blkcipher), &rblkcipher))
+	{
 		goto nla_put_failure;
+	}
+
 	return 0;
 
 nla_put_failure:
@@ -468,22 +528,23 @@ static int crypto_givcipher_report(struct sk_buff *skb, struct crypto_alg *alg)
 #endif
 
 static void crypto_givcipher_show(struct seq_file *m, struct crypto_alg *alg)
-	__attribute__ ((unused));
+__attribute__ ((unused));
 static void crypto_givcipher_show(struct seq_file *m, struct crypto_alg *alg)
 {
 	struct ablkcipher_alg *ablkcipher = &alg->cra_ablkcipher;
 
 	seq_printf(m, "type         : givcipher\n");
 	seq_printf(m, "async        : %s\n", alg->cra_flags & CRYPTO_ALG_ASYNC ?
-					     "yes" : "no");
+			   "yes" : "no");
 	seq_printf(m, "blocksize    : %u\n", alg->cra_blocksize);
 	seq_printf(m, "min keysize  : %u\n", ablkcipher->min_keysize);
 	seq_printf(m, "max keysize  : %u\n", ablkcipher->max_keysize);
 	seq_printf(m, "ivsize       : %u\n", ablkcipher->ivsize);
-	seq_printf(m, "geniv        : %s\n", ablkcipher->geniv ?: "<built-in>");
+	seq_printf(m, "geniv        : %s\n", ablkcipher->geniv ? : "<built-in>");
 }
 
-const struct crypto_type crypto_givcipher_type = {
+const struct crypto_type crypto_givcipher_type =
+{
 	.ctxsize = crypto_ablkcipher_ctxsize,
 	.init = crypto_init_givcipher_ops,
 #ifdef CONFIG_PROC_FS

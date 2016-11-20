@@ -110,19 +110,21 @@
 #define ATOM_IO_SYSIO		2
 #define ATOM_IO_IIO		0x80
 
-struct card_info {
+struct card_info
+{
 	struct drm_device *dev;
 	void (* reg_write)(struct card_info *, uint32_t, uint32_t);   /*  filled by driver */
-        uint32_t (* reg_read)(struct card_info *, uint32_t);          /*  filled by driver */
+	uint32_t (* reg_read)(struct card_info *, uint32_t);          /*  filled by driver */
 	void (* ioreg_write)(struct card_info *, uint32_t, uint32_t);   /*  filled by driver */
-        uint32_t (* ioreg_read)(struct card_info *, uint32_t);          /*  filled by driver */
+	uint32_t (* ioreg_read)(struct card_info *, uint32_t);          /*  filled by driver */
 	void (* mc_write)(struct card_info *, uint32_t, uint32_t);   /*  filled by driver */
-        uint32_t (* mc_read)(struct card_info *, uint32_t);          /*  filled by driver */
+	uint32_t (* mc_read)(struct card_info *, uint32_t);          /*  filled by driver */
 	void (* pll_write)(struct card_info *, uint32_t, uint32_t);   /*  filled by driver */
-        uint32_t (* pll_read)(struct card_info *, uint32_t);          /*  filled by driver */
+	uint32_t (* pll_read)(struct card_info *, uint32_t);          /*  filled by driver */
 };
 
-struct atom_context {
+struct atom_context
+{
 	struct card_info *card;
 	struct mutex mutex;
 	struct mutex scratch_mutex;
@@ -150,9 +152,9 @@ int atom_execute_table_scratch_unlocked(struct atom_context *, int, uint32_t *);
 int atom_asic_init(struct atom_context *);
 void atom_destroy(struct atom_context *);
 bool atom_parse_data_header(struct atom_context *ctx, int index, uint16_t *size,
-			    uint8_t *frev, uint8_t *crev, uint16_t *data_start);
+							uint8_t *frev, uint8_t *crev, uint16_t *data_start);
 bool atom_parse_cmd_header(struct atom_context *ctx, int index,
-			   uint8_t *frev, uint8_t *crev);
+						   uint8_t *frev, uint8_t *crev);
 int atom_allocate_fb_scratch(struct atom_context *ctx);
 #include "atom-types.h"
 #include "atombios.h"

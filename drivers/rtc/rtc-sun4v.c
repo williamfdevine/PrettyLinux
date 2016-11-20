@@ -21,16 +21,24 @@ static unsigned long hypervisor_get_time(void)
 
 retry:
 	ret = sun4v_tod_get(&time);
+
 	if (ret == HV_EOK)
+	{
 		return time;
-	if (ret == HV_EWOULDBLOCK) {
-		if (--retries > 0) {
+	}
+
+	if (ret == HV_EWOULDBLOCK)
+	{
+		if (--retries > 0)
+		{
 			udelay(100);
 			goto retry;
 		}
+
 		pr_warn("tod_get() timed out.\n");
 		return 0;
 	}
+
 	pr_warn("tod_get() not supported.\n");
 	return 0;
 }
@@ -48,16 +56,24 @@ static int hypervisor_set_time(unsigned long secs)
 
 retry:
 	ret = sun4v_tod_set(secs);
+
 	if (ret == HV_EOK)
+	{
 		return 0;
-	if (ret == HV_EWOULDBLOCK) {
-		if (--retries > 0) {
+	}
+
+	if (ret == HV_EWOULDBLOCK)
+	{
+		if (--retries > 0)
+		{
 			udelay(100);
 			goto retry;
 		}
+
 		pr_warn("tod_set() timed out.\n");
 		return -EAGAIN;
 	}
+
 	pr_warn("tod_set() not supported.\n");
 	return -EOPNOTSUPP;
 }
@@ -68,13 +84,17 @@ static int sun4v_set_time(struct device *dev, struct rtc_time *tm)
 	int err;
 
 	err = rtc_tm_to_time(tm, &secs);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return hypervisor_set_time(secs);
 }
 
-static const struct rtc_class_ops sun4v_rtc_ops = {
+static const struct rtc_class_ops sun4v_rtc_ops =
+{
 	.read_time	= sun4v_read_time,
 	.set_time	= sun4v_set_time,
 };
@@ -84,15 +104,19 @@ static int __init sun4v_rtc_probe(struct platform_device *pdev)
 	struct rtc_device *rtc;
 
 	rtc = devm_rtc_device_register(&pdev->dev, "sun4v",
-				&sun4v_rtc_ops, THIS_MODULE);
+								   &sun4v_rtc_ops, THIS_MODULE);
+
 	if (IS_ERR(rtc))
+	{
 		return PTR_ERR(rtc);
+	}
 
 	platform_set_drvdata(pdev, rtc);
 	return 0;
 }
 
-static struct platform_driver sun4v_rtc_driver = {
+static struct platform_driver sun4v_rtc_driver =
+{
 	.driver		= {
 		.name	= "rtc-sun4v",
 	},

@@ -31,7 +31,8 @@
 struct pp_eventmgr;
 enum amd_pp_event;
 
-enum PEM_EventDataValid {
+enum PEM_EventDataValid
+{
 	PEM_EventDataValid_RequestedStateID = 0,
 	PEM_EventDataValid_RequestedUILabel,
 	PEM_EventDataValid_NewPowerState,
@@ -65,8 +66,8 @@ typedef enum PEM_EventDataValid PEM_EventDataValid;
 
 /* Number of ULONG entries used by event data valid bits */
 #define PEM_MAX_NUM_EVENTDATAVALID_ULONG_ENTRIES                                 \
-		((PEM_EventDataValid_Max + PEM_MAX_NUM_EVENTDATAVALID_BITS_PER_FIELD - 1) /  \
-		PEM_MAX_NUM_EVENTDATAVALID_BITS_PER_FIELD)
+	((PEM_EventDataValid_Max + PEM_MAX_NUM_EVENTDATAVALID_BITS_PER_FIELD - 1) /  \
+	 PEM_MAX_NUM_EVENTDATAVALID_BITS_PER_FIELD)
 
 static inline void pem_set_event_data_valid(unsigned long *fields, PEM_EventDataValid valid_field)
 {
@@ -83,10 +84,11 @@ static inline void pem_unset_event_data_valid(unsigned long *fields, PEM_EventDa
 static inline unsigned long pem_is_event_data_valid(const unsigned long *fields, PEM_EventDataValid valid_field)
 {
 	return fields[valid_field / PEM_MAX_NUM_EVENTDATAVALID_BITS_PER_FIELD] &
-		(1UL << (valid_field % PEM_MAX_NUM_EVENTDATAVALID_BITS_PER_FIELD));
+		   (1UL << (valid_field % PEM_MAX_NUM_EVENTDATAVALID_BITS_PER_FIELD));
 }
 
-struct pem_event_data {
+struct pem_event_data
+{
 	unsigned long	valid_fields[100];
 	unsigned long   requested_state_id;
 	enum PP_StateUILabel requested_ui_label;
@@ -102,7 +104,7 @@ struct pem_event_data {
 };
 
 int pem_handle_event(struct pp_eventmgr *eventmgr, enum amd_pp_event event,
-		     struct pem_event_data *event_data);
+					 struct pem_event_data *event_data);
 
 bool pem_is_hw_access_blocked(struct pp_eventmgr *eventmgr);
 

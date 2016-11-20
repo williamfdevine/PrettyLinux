@@ -218,7 +218,8 @@
 #define TX_POWER_NEAR_FIELD_THRESH_LVL1			67
 #define TXPWRTRACK_MAX_IDX				 6
 
-struct swat_t {
+struct swat_t
+{
 	u8 failure_cnt;
 	u8 try_flag;
 	u8 stop_trying;
@@ -230,12 +231,14 @@ struct swat_t {
 
 };
 
-enum FAT_STATE {
+enum FAT_STATE
+{
 	FAT_NORMAL_STATE = 0,
 	FAT_TRAINING_STATE = 1,
 };
 
-enum tag_dynamic_init_gain_operation_type_definition {
+enum tag_dynamic_init_gain_operation_type_definition
+{
 	DIG_TYPE_THRESH_HIGH = 0,
 	DIG_TYPE_THRESH_LOW = 1,
 	DIG_TYPE_BACKOFF = 2,
@@ -246,34 +249,38 @@ enum tag_dynamic_init_gain_operation_type_definition {
 	DIG_OP_TYPE_MAX
 };
 
-enum dm_1r_cca_e {
+enum dm_1r_cca_e
+{
 	CCA_1R = 0,
 	CCA_2R = 1,
 	CCA_MAX = 2,
 };
 
-enum dm_rf_e {
+enum dm_rf_e
+{
 	RF_SAVE = 0,
 	RF_NORMAL = 1,
 	RF_MAX = 2,
 };
 
-enum dm_sw_ant_switch_e {
+enum dm_sw_ant_switch_e
+{
 	ANS_ANTENNA_B = 1,
 	ANS_ANTENNA_A = 2,
 	ANS_ANTENNA_MAX = 3,
 };
 
-enum pwr_track_control_method {
+enum pwr_track_control_method
+{
 	BBSWING,
 	TXAGC
 };
 
 void rtl88e_dm_set_tx_ant_by_tx_info(struct ieee80211_hw *hw,
-				     u8 *pdesc, u32 mac_id);
+									 u8 *pdesc, u32 mac_id);
 void rtl88e_dm_ant_sel_statistics(struct ieee80211_hw *hw,
-				  u8 antsel_tr_mux, u32 mac_id,
-				  u32 rx_pwdb_all);
+								  u8 antsel_tr_mux, u32 mac_id,
+								  u32 rx_pwdb_all);
 void rtl88e_dm_fast_antenna_training_callback(unsigned long data);
 void rtl88e_dm_init(struct ieee80211_hw *hw);
 void rtl88e_dm_watchdog(struct ieee80211_hw *hw);
@@ -282,5 +289,5 @@ void rtl88e_dm_init_edca_turbo(struct ieee80211_hw *hw);
 void rtl88e_dm_check_txpower_tracking(struct ieee80211_hw *hw);
 void rtl88e_dm_init_rate_adaptive_mask(struct ieee80211_hw *hw);
 void rtl88e_dm_txpower_track_adjust(struct ieee80211_hw *hw,
-	u8 type, u8 *pdirection, u32 *poutwrite_val);
+									u8 type, u8 *pdirection, u32 *poutwrite_val);
 #endif

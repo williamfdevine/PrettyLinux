@@ -34,12 +34,14 @@
 struct xt_match;
 struct xt_target;
 
-struct ebt_counter {
+struct ebt_counter
+{
 	__u64 pcnt;
 	__u64 bcnt;
 };
 
-struct ebt_replace {
+struct ebt_replace
+{
 	char name[EBT_TABLE_MAXNAMELEN];
 	unsigned int valid_hooks;
 	/* nr of rules in the table */
@@ -55,7 +57,8 @@ struct ebt_replace {
 	char __user *entries;
 };
 
-struct ebt_replace_kernel {
+struct ebt_replace_kernel
+{
 	char name[EBT_TABLE_MAXNAMELEN];
 	unsigned int valid_hooks;
 	/* nr of rules in the table */
@@ -71,7 +74,8 @@ struct ebt_replace_kernel {
 	char *entries;
 };
 
-struct ebt_entries {
+struct ebt_entries
+{
 	/* this field is always set to zero
 	 * See EBT_ENTRY_OR_ENTRIES.
 	 * Must be same size as ebt_entry.bitmask */
@@ -105,7 +109,7 @@ struct ebt_entries {
 #define EBT_SOURCEMAC 0x08
 #define EBT_DESTMAC 0x10
 #define EBT_F_MASK (EBT_NOPROTO | EBT_802_3 | EBT_SOURCEMAC | EBT_DESTMAC \
-   | EBT_ENTRY_OR_ENTRIES)
+					| EBT_ENTRY_OR_ENTRIES)
 
 #define EBT_IPROTO 0x01
 #define EBT_IIN 0x02
@@ -115,10 +119,12 @@ struct ebt_entries {
 #define EBT_ILOGICALIN 0x20
 #define EBT_ILOGICALOUT 0x40
 #define EBT_INV_MASK (EBT_IPROTO | EBT_IIN | EBT_IOUT | EBT_ILOGICALIN \
-   | EBT_ILOGICALOUT | EBT_ISOURCE | EBT_IDEST)
+					  | EBT_ILOGICALOUT | EBT_ISOURCE | EBT_IDEST)
 
-struct ebt_entry_match {
-	union {
+struct ebt_entry_match
+{
+	union
+	{
 		char name[EBT_FUNCTION_MAXNAMELEN];
 		struct xt_match *match;
 	} u;
@@ -127,8 +133,10 @@ struct ebt_entry_match {
 	unsigned char data[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
 };
 
-struct ebt_entry_watcher {
-	union {
+struct ebt_entry_watcher
+{
+	union
+	{
 		char name[EBT_FUNCTION_MAXNAMELEN];
 		struct xt_target *watcher;
 	} u;
@@ -137,8 +145,10 @@ struct ebt_entry_watcher {
 	unsigned char data[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
 };
 
-struct ebt_entry_target {
-	union {
+struct ebt_entry_target
+{
+	union
+	{
 		char name[EBT_FUNCTION_MAXNAMELEN];
 		struct xt_target *target;
 	} u;
@@ -148,13 +158,15 @@ struct ebt_entry_target {
 };
 
 #define EBT_STANDARD_TARGET "standard"
-struct ebt_standard_target {
+struct ebt_standard_target
+{
 	struct ebt_entry_target target;
 	int verdict;
 };
 
 /* one entry */
-struct ebt_entry {
+struct ebt_entry
+{
 	/* this needs to be the first field */
 	unsigned int bitmask;
 	unsigned int invflags;
@@ -197,72 +209,72 @@ struct ebt_entry {
 /* blatently stolen from ip_tables.h
  * fn returns 0 to continue iteration */
 #define EBT_MATCH_ITERATE(e, fn, args...)                   \
-({                                                          \
-	unsigned int __i;                                   \
-	int __ret = 0;                                      \
-	struct ebt_entry_match *__match;                    \
-	                                                    \
-	for (__i = sizeof(struct ebt_entry);                \
-	     __i < (e)->watchers_offset;                    \
-	     __i += __match->match_size +                   \
-	     sizeof(struct ebt_entry_match)) {              \
-		__match = (void *)(e) + __i;                \
-		                                            \
-		__ret = fn(__match , ## args);              \
-		if (__ret != 0)                             \
-			break;                              \
-	}                                                   \
-	if (__ret == 0) {                                   \
-		if (__i != (e)->watchers_offset)            \
-			__ret = -EINVAL;                    \
-	}                                                   \
-	__ret;                                              \
-})
+	({                                                          \
+		unsigned int __i;                                   \
+		int __ret = 0;                                      \
+		struct ebt_entry_match *__match;                    \
+		\
+		for (__i = sizeof(struct ebt_entry);                \
+			 __i < (e)->watchers_offset;                    \
+			 __i += __match->match_size +                   \
+					sizeof(struct ebt_entry_match)) {              \
+			__match = (void *)(e) + __i;                \
+			\
+			__ret = fn(__match , ## args);              \
+			if (__ret != 0)                             \
+				break;                              \
+		}                                                   \
+		if (__ret == 0) {                                   \
+			if (__i != (e)->watchers_offset)            \
+				__ret = -EINVAL;                    \
+		}                                                   \
+		__ret;                                              \
+	})
 
 #define EBT_WATCHER_ITERATE(e, fn, args...)                 \
-({                                                          \
-	unsigned int __i;                                   \
-	int __ret = 0;                                      \
-	struct ebt_entry_watcher *__watcher;                \
-	                                                    \
-	for (__i = e->watchers_offset;                      \
-	     __i < (e)->target_offset;                      \
-	     __i += __watcher->watcher_size +               \
-	     sizeof(struct ebt_entry_watcher)) {            \
-		__watcher = (void *)(e) + __i;              \
-		                                            \
-		__ret = fn(__watcher , ## args);            \
-		if (__ret != 0)                             \
-			break;                              \
-	}                                                   \
-	if (__ret == 0) {                                   \
-		if (__i != (e)->target_offset)              \
-			__ret = -EINVAL;                    \
-	}                                                   \
-	__ret;                                              \
-})
+	({                                                          \
+		unsigned int __i;                                   \
+		int __ret = 0;                                      \
+		struct ebt_entry_watcher *__watcher;                \
+		\
+		for (__i = e->watchers_offset;                      \
+			 __i < (e)->target_offset;                      \
+			 __i += __watcher->watcher_size +               \
+					sizeof(struct ebt_entry_watcher)) {            \
+			__watcher = (void *)(e) + __i;              \
+			\
+			__ret = fn(__watcher , ## args);            \
+			if (__ret != 0)                             \
+				break;                              \
+		}                                                   \
+		if (__ret == 0) {                                   \
+			if (__i != (e)->target_offset)              \
+				__ret = -EINVAL;                    \
+		}                                                   \
+		__ret;                                              \
+	})
 
 #define EBT_ENTRY_ITERATE(entries, size, fn, args...)       \
-({                                                          \
-	unsigned int __i;                                   \
-	int __ret = 0;                                      \
-	struct ebt_entry *__entry;                          \
-	                                                    \
-	for (__i = 0; __i < (size);) {                      \
-		__entry = (void *)(entries) + __i;          \
-		__ret = fn(__entry , ## args);              \
-		if (__ret != 0)                             \
-			break;                              \
-		if (__entry->bitmask != 0)                  \
-			__i += __entry->next_offset;        \
-		else                                        \
-			__i += sizeof(struct ebt_entries);  \
-	}                                                   \
-	if (__ret == 0) {                                   \
-		if (__i != (size))                          \
-			__ret = -EINVAL;                    \
-	}                                                   \
-	__ret;                                              \
-})
+	({                                                          \
+		unsigned int __i;                                   \
+		int __ret = 0;                                      \
+		struct ebt_entry *__entry;                          \
+		\
+		for (__i = 0; __i < (size);) {                      \
+			__entry = (void *)(entries) + __i;          \
+			__ret = fn(__entry , ## args);              \
+			if (__ret != 0)                             \
+				break;                              \
+			if (__entry->bitmask != 0)                  \
+				__i += __entry->next_offset;        \
+			else                                        \
+				__i += sizeof(struct ebt_entries);  \
+		}                                                   \
+		if (__ret == 0) {                                   \
+			if (__i != (size))                          \
+				__ret = -EINVAL;                    \
+		}                                                   \
+		__ret;                                              \
+	})
 
 #endif /* _UAPI__LINUX_BRIDGE_EFF_H */

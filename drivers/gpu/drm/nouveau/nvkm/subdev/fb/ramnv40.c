@@ -41,21 +41,30 @@ nv40_ram_calc(struct nvkm_ram *base, u32 freq)
 	int log2P, ret;
 
 	ret = nvbios_pll_parse(bios, 0x04, &pll);
-	if (ret) {
+
+	if (ret)
+	{
 		nvkm_error(subdev, "mclk pll data not found\n");
 		return ret;
 	}
 
 	ret = nv04_pll_calc(subdev, &pll, freq, &N1, &M1, &N2, &M2, &log2P);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ram->ctrl  = 0x80000000 | (log2P << 16);
 	ram->ctrl |= min(pll.bias_p + log2P, (int)pll.max_p) << 20;
-	if (N2 == M2) {
+
+	if (N2 == M2)
+	{
 		ram->ctrl |= 0x00000100;
 		ram->coef  = (N1 << 8) | M1;
-	} else {
+	}
+	else
+	{
 		ram->ctrl |= 0x40000000;
 		ram->coef  = (N2 << 24) | (M2 << 16) | (N1 << 8) | M1;
 	}
@@ -76,37 +85,52 @@ nv40_ram_prog(struct nvkm_ram *base)
 	int i;
 
 	/* determine which CRTCs are active, fetch VGA_SR1 for each */
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		u32 vbl = nvkm_rd32(device, 0x600808 + (i * 0x2000));
 		u32 cnt = 0;
-		do {
-			if (vbl != nvkm_rd32(device, 0x600808 + (i * 0x2000))) {
+
+		do
+		{
+			if (vbl != nvkm_rd32(device, 0x600808 + (i * 0x2000)))
+			{
 				nvkm_wr08(device, 0x0c03c4 + (i * 0x2000), 0x01);
 				sr1[i] = nvkm_rd08(device, 0x0c03c5 + (i * 0x2000));
+
 				if (!(sr1[i] & 0x20))
+				{
 					crtc_mask |= (1 << i);
+				}
+
 				break;
 			}
+
 			udelay(1);
-		} while (cnt++ < 32);
+		}
+		while (cnt++ < 32);
 	}
 
 	/* wait for vblank start on active crtcs, disable memory access */
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		if (!(crtc_mask & (1 << i)))
+		{
 			continue;
+		}
 
 		nvkm_msec(device, 2000,
-			u32 tmp = nvkm_rd32(device, 0x600808 + (i * 0x2000));
-			if (!(tmp & 0x00010000))
-				break;
-		);
+				  u32 tmp = nvkm_rd32(device, 0x600808 + (i * 0x2000));
+
+				  if (!(tmp & 0x00010000))
+				  break;
+				 );
 
 		nvkm_msec(device, 2000,
-			u32 tmp = nvkm_rd32(device, 0x600808 + (i * 0x2000));
-			if ( (tmp & 0x00010000))
-				break;
-		);
+				  u32 tmp = nvkm_rd32(device, 0x600808 + (i * 0x2000));
+
+				  if ( (tmp & 0x00010000))
+				  break;
+				 );
 
 		nvkm_wr08(device, 0x0c03c4 + (i * 0x2000), 0x01);
 		nvkm_wr08(device, 0x0c03c5 + (i * 0x2000), sr1[i] | 0x20);
@@ -121,26 +145,31 @@ nv40_ram_prog(struct nvkm_ram *base)
 
 	/* change the PLL of each memory partition */
 	nvkm_mask(device, 0x00c040, 0x0000c000, 0x00000000);
-	switch (device->chipset) {
-	case 0x40:
-	case 0x45:
-	case 0x41:
-	case 0x42:
-	case 0x47:
-		nvkm_mask(device, 0x004044, 0xc0771100, ram->ctrl);
-		nvkm_mask(device, 0x00402c, 0xc0771100, ram->ctrl);
-		nvkm_wr32(device, 0x004048, ram->coef);
-		nvkm_wr32(device, 0x004030, ram->coef);
-	case 0x43:
-	case 0x49:
-	case 0x4b:
-		nvkm_mask(device, 0x004038, 0xc0771100, ram->ctrl);
-		nvkm_wr32(device, 0x00403c, ram->coef);
-	default:
-		nvkm_mask(device, 0x004020, 0xc0771100, ram->ctrl);
-		nvkm_wr32(device, 0x004024, ram->coef);
-		break;
+
+	switch (device->chipset)
+	{
+		case 0x40:
+		case 0x45:
+		case 0x41:
+		case 0x42:
+		case 0x47:
+			nvkm_mask(device, 0x004044, 0xc0771100, ram->ctrl);
+			nvkm_mask(device, 0x00402c, 0xc0771100, ram->ctrl);
+			nvkm_wr32(device, 0x004048, ram->coef);
+			nvkm_wr32(device, 0x004030, ram->coef);
+
+		case 0x43:
+		case 0x49:
+		case 0x4b:
+			nvkm_mask(device, 0x004038, 0xc0771100, ram->ctrl);
+			nvkm_wr32(device, 0x00403c, ram->coef);
+
+		default:
+			nvkm_mask(device, 0x004020, 0xc0771100, ram->ctrl);
+			nvkm_wr32(device, 0x004024, ram->coef);
+			break;
 	}
+
 	udelay(100);
 	nvkm_mask(device, 0x00c040, 0x0000c000, 0x0000c000);
 
@@ -150,8 +179,10 @@ nv40_ram_prog(struct nvkm_ram *base)
 	udelay(100);
 
 	/* execute memory reset script from vbios */
-	if (!bit_entry(bios, 'M', &M)) {
-		struct nvbios_init init = {
+	if (!bit_entry(bios, 'M', &M))
+	{
+		struct nvbios_init init =
+		{
 			.subdev = subdev,
 			.bios = bios,
 			.offset = nvbios_rd16(bios, M.offset + 0x00),
@@ -164,15 +195,19 @@ nv40_ram_prog(struct nvkm_ram *base)
 	/* make sure we're in vblank (hopefully the same one as before), and
 	 * then re-enable crtc memory access
 	 */
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		if (!(crtc_mask & (1 << i)))
+		{
 			continue;
+		}
 
 		nvkm_msec(device, 2000,
-			u32 tmp = nvkm_rd32(device, 0x600808 + (i * 0x2000));
-			if ( (tmp & 0x00010000))
-				break;
-		);
+				  u32 tmp = nvkm_rd32(device, 0x600808 + (i * 0x2000));
+
+				  if ( (tmp & 0x00010000))
+				  break;
+				 );
 
 		nvkm_wr08(device, 0x0c03c4 + (i * 0x2000), 0x01);
 		nvkm_wr08(device, 0x0c03c5 + (i * 0x2000), sr1[i]);
@@ -187,7 +222,8 @@ nv40_ram_tidy(struct nvkm_ram *base)
 }
 
 static const struct nvkm_ram_func
-nv40_ram_func = {
+	nv40_ram_func =
+{
 	.calc = nv40_ram_calc,
 	.prog = nv40_ram_prog,
 	.tidy = nv40_ram_tidy,
@@ -195,11 +231,15 @@ nv40_ram_func = {
 
 int
 nv40_ram_new_(struct nvkm_fb *fb, enum nvkm_ram_type type, u64 size,
-	      u32 tags, struct nvkm_ram **pram)
+			  u32 tags, struct nvkm_ram **pram)
 {
 	struct nv40_ram *ram;
+
 	if (!(ram = kzalloc(sizeof(*ram), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pram = &ram->base;
 	return nvkm_ram_ctor(&nv40_ram_func, fb, type, size, tags, &ram->base);
 }
@@ -214,16 +254,23 @@ nv40_ram_new(struct nvkm_fb *fb, struct nvkm_ram **pram)
 	enum nvkm_ram_type type = NVKM_RAM_TYPE_UNKNOWN;
 	int ret;
 
-	switch (pbus1218 & 0x00000300) {
-	case 0x00000000: type = NVKM_RAM_TYPE_SDRAM; break;
-	case 0x00000100: type = NVKM_RAM_TYPE_DDR1 ; break;
-	case 0x00000200: type = NVKM_RAM_TYPE_GDDR3; break;
-	case 0x00000300: type = NVKM_RAM_TYPE_DDR2 ; break;
+	switch (pbus1218 & 0x00000300)
+	{
+		case 0x00000000: type = NVKM_RAM_TYPE_SDRAM; break;
+
+		case 0x00000100: type = NVKM_RAM_TYPE_DDR1 ; break;
+
+		case 0x00000200: type = NVKM_RAM_TYPE_GDDR3; break;
+
+		case 0x00000300: type = NVKM_RAM_TYPE_DDR2 ; break;
 	}
 
 	ret = nv40_ram_new_(fb, type, size, tags, pram);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	(*pram)->parts = (nvkm_rd32(device, 0x100200) & 0x00000003) + 1;
 	return 0;

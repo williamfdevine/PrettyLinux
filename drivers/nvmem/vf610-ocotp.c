@@ -61,7 +61,8 @@
 
 #define DEF_RELAX				20
 
-static const int base_to_fuse_addr_mappings[][2] = {
+static const int base_to_fuse_addr_mappings[][2] =
+{
 	{0x400, 0x00},
 	{0x410, 0x01},
 	{0x420, 0x02},
@@ -94,7 +95,8 @@ static const int base_to_fuse_addr_mappings[][2] = {
 	{0xCF0, 0x7F},
 };
 
-struct vf610_ocotp {
+struct vf610_ocotp
+{
 	void __iomem *base;
 	struct clk *clk;
 	struct device *dev;
@@ -107,9 +109,12 @@ static int vf610_ocotp_wait_busy(void __iomem *base)
 	int timeout = VF610_OCOTP_TIMEOUT;
 
 	while ((readl(base) & OCOTP_CTRL_BUSY) && --timeout)
+	{
 		udelay(10);
+	}
 
-	if (!timeout) {
+	if (!timeout)
+	{
 		writel(OCOTP_CTRL_ERR, base + OCOTP_CTRL_CLR);
 		return -ETIMEDOUT;
 	}
@@ -143,16 +148,19 @@ static int vf610_get_fuse_address(int base_addr_offset)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(base_to_fuse_addr_mappings); i++) {
+	for (i = 0; i < ARRAY_SIZE(base_to_fuse_addr_mappings); i++)
+	{
 		if (base_to_fuse_addr_mappings[i][0] == base_addr_offset)
+		{
 			return base_to_fuse_addr_mappings[i][1];
+		}
 	}
 
 	return -EINVAL;
 }
 
 static int vf610_ocotp_read(void *context, unsigned int offset,
-			void *val, size_t bytes)
+							void *val, size_t bytes)
 {
 	struct vf610_ocotp *ocotp = context;
 	void __iomem *base = ocotp->base;
@@ -160,13 +168,19 @@ static int vf610_ocotp_read(void *context, unsigned int offset,
 	int fuse_addr;
 	int ret;
 
-	while (bytes > 0) {
+	while (bytes > 0)
+	{
 		fuse_addr = vf610_get_fuse_address(offset);
-		if (fuse_addr > 0) {
+
+		if (fuse_addr > 0)
+		{
 			writel(ocotp->timing, base + OCOTP_TIMING);
 			ret = vf610_ocotp_wait_busy(base + OCOTP_CTRL_REG);
+
 			if (ret)
+			{
 				return ret;
+			}
 
 			reg = readl(base + OCOTP_CTRL_REG);
 			reg &= ~OCOTP_CTRL_ADDR_MASK;
@@ -175,14 +189,18 @@ static int vf610_ocotp_read(void *context, unsigned int offset,
 			writel(reg, base + OCOTP_CTRL_REG);
 
 			writel(OCOTP_READ_CTRL_READ_FUSE,
-				base + OCOTP_READ_CTRL_REG);
+				   base + OCOTP_READ_CTRL_REG);
 			ret = vf610_ocotp_wait_busy(base + OCOTP_CTRL_REG);
-			if (ret)
-				return ret;
 
-			if (readl(base) & OCOTP_CTRL_ERR) {
+			if (ret)
+			{
+				return ret;
+			}
+
+			if (readl(base) & OCOTP_CTRL_ERR)
+			{
 				dev_dbg(ocotp->dev, "Error reading from fuse address %x\n",
-					fuse_addr);
+						fuse_addr);
 				writel(OCOTP_CTRL_ERR, base + OCOTP_CTRL_CLR);
 			}
 
@@ -192,7 +210,9 @@ static int vf610_ocotp_read(void *context, unsigned int offset,
 			 * value and return.
 			 */
 			*buf = readl(base + OCOTP_READ_FUSE_DATA);
-		} else {
+		}
+		else
+		{
 			*buf = 0;
 		}
 
@@ -204,7 +224,8 @@ static int vf610_ocotp_read(void *context, unsigned int offset,
 	return 0;
 }
 
-static struct nvmem_config ocotp_config = {
+static struct nvmem_config ocotp_config =
+{
 	.name = "ocotp",
 	.owner = THIS_MODULE,
 	.stride = 4,
@@ -212,7 +233,8 @@ static struct nvmem_config ocotp_config = {
 	.reg_read = vf610_ocotp_read,
 };
 
-static const struct of_device_id ocotp_of_match[] = {
+static const struct of_device_id ocotp_of_match[] =
+{
 	{ .compatible = "fsl,vf610-ocotp", },
 	{/* sentinel */},
 };
@@ -232,19 +254,27 @@ static int vf610_ocotp_probe(struct platform_device *pdev)
 	struct vf610_ocotp *ocotp_dev;
 
 	ocotp_dev = devm_kzalloc(&pdev->dev,
-			sizeof(struct vf610_ocotp), GFP_KERNEL);
+							 sizeof(struct vf610_ocotp), GFP_KERNEL);
+
 	if (!ocotp_dev)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ocotp_dev->base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(ocotp_dev->base))
+	{
 		return PTR_ERR(ocotp_dev->base);
+	}
 
 	ocotp_dev->clk = devm_clk_get(dev, NULL);
-	if (IS_ERR(ocotp_dev->clk)) {
+
+	if (IS_ERR(ocotp_dev->clk))
+	{
 		dev_err(dev, "failed getting clock, err = %ld\n",
-			PTR_ERR(ocotp_dev->clk));
+				PTR_ERR(ocotp_dev->clk));
 		return PTR_ERR(ocotp_dev->clk);
 	}
 
@@ -253,8 +283,11 @@ static int vf610_ocotp_probe(struct platform_device *pdev)
 	ocotp_config.dev = dev;
 
 	ocotp_dev->nvmem = nvmem_register(&ocotp_config);
+
 	if (IS_ERR(ocotp_dev->nvmem))
+	{
 		return PTR_ERR(ocotp_dev->nvmem);
+	}
 
 	ocotp_dev->dev = dev;
 	platform_set_drvdata(pdev, ocotp_dev);
@@ -264,7 +297,8 @@ static int vf610_ocotp_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver vf610_ocotp_driver = {
+static struct platform_driver vf610_ocotp_driver =
+{
 	.probe = vf610_ocotp_probe,
 	.remove = vf610_ocotp_remove,
 	.driver = {

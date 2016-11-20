@@ -46,9 +46,9 @@
 
 #define ARM_SMCCC_CALL_VAL(type, calling_convention, owner, func_num) \
 	(((type) << ARM_SMCCC_TYPE_SHIFT) | \
-	((calling_convention) << ARM_SMCCC_CALL_CONV_SHIFT) | \
-	(((owner) & ARM_SMCCC_OWNER_MASK) << ARM_SMCCC_OWNER_SHIFT) | \
-	((func_num) & ARM_SMCCC_FUNC_MASK))
+	 ((calling_convention) << ARM_SMCCC_CALL_CONV_SHIFT) | \
+	 (((owner) & ARM_SMCCC_OWNER_MASK) << ARM_SMCCC_OWNER_SHIFT) | \
+	 ((func_num) & ARM_SMCCC_FUNC_MASK))
 
 #define ARM_SMCCC_OWNER_ARCH		0
 #define ARM_SMCCC_OWNER_CPU		1
@@ -64,7 +64,8 @@
  * struct arm_smccc_res - Result from SMC/HVC call
  * @a0-a3 result values from registers 0 to 3
  */
-struct arm_smccc_res {
+struct arm_smccc_res
+{
 	unsigned long a0;
 	unsigned long a1;
 	unsigned long a2;
@@ -82,9 +83,9 @@ struct arm_smccc_res {
  * from register 0 to 3 on return from the SMC instruction.
  */
 asmlinkage void arm_smccc_smc(unsigned long a0, unsigned long a1,
-			unsigned long a2, unsigned long a3, unsigned long a4,
-			unsigned long a5, unsigned long a6, unsigned long a7,
-			struct arm_smccc_res *res);
+							  unsigned long a2, unsigned long a3, unsigned long a4,
+							  unsigned long a5, unsigned long a6, unsigned long a7,
+							  struct arm_smccc_res *res);
 
 /**
  * arm_smccc_hvc() - make HVC calls
@@ -97,8 +98,8 @@ asmlinkage void arm_smccc_smc(unsigned long a0, unsigned long a1,
  * the content from register 0 to 3 on return from the HVC instruction.
  */
 asmlinkage void arm_smccc_hvc(unsigned long a0, unsigned long a1,
-			unsigned long a2, unsigned long a3, unsigned long a4,
-			unsigned long a5, unsigned long a6, unsigned long a7,
-			struct arm_smccc_res *res);
+							  unsigned long a2, unsigned long a3, unsigned long a4,
+							  unsigned long a5, unsigned long a6, unsigned long a7,
+							  struct arm_smccc_res *res);
 
 #endif /*__LINUX_ARM_SMCCC_H*/

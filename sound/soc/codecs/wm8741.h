@@ -214,7 +214,8 @@
 
 #define  WM8741_SYSCLK 0
 
-struct wm8741_platform_data {
+struct wm8741_platform_data
+{
 	u32 diff_mode;   /* Differential Output Mode */
 };
 

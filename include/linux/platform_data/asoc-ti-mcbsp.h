@@ -30,12 +30,14 @@
 #define MCBSP_CONFIG_TYPE4	0x4
 
 /* Platform specific configuration */
-struct omap_mcbsp_ops {
+struct omap_mcbsp_ops
+{
 	void (*request)(unsigned int);
 	void (*free)(unsigned int);
 };
 
-struct omap_mcbsp_platform_data {
+struct omap_mcbsp_platform_data
+{
 	struct omap_mcbsp_ops *ops;
 	u16 buffer_size;
 	u8 reg_size;
@@ -51,7 +53,8 @@ struct omap_mcbsp_platform_data {
  * omap_mcbsp_dev_attr - OMAP McBSP device attributes for omap_hwmod
  * @sidetone: name of the sidetone device
  */
-struct omap_mcbsp_dev_attr {
+struct omap_mcbsp_dev_attr
+{
 	const char *sidetone;
 };
 

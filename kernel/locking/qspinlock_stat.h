@@ -40,7 +40,8 @@
  *
  * There may be slight difference between pv_kick_wake and pv_kick_unlock.
  */
-enum qlock_stats {
+enum qlock_stats
+{
 	qstat_pv_hash_hops,
 	qstat_pv_kick_unlock,
 	qstat_pv_kick_wake,
@@ -65,7 +66,8 @@ enum qlock_stats {
 #include <linux/sched.h>
 #include <linux/fs.h>
 
-static const char * const qstat_names[qstat_num + 1] = {
+static const char *const qstat_names[qstat_num + 1] =
+{
 	[qstat_pv_hash_hops]	   = "pv_hash_hops",
 	[qstat_pv_kick_unlock]     = "pv_kick_unlock",
 	[qstat_pv_kick_wake]       = "pv_kick_wake",
@@ -99,7 +101,7 @@ static DEFINE_PER_CPU(u64, pv_kick_time);
  *    Average hops/hash = pv_hash_hops/pv_kick_unlock
  */
 static ssize_t qstat_read(struct file *file, char __user *user_buf,
-			  size_t count, loff_t *ppos)
+						  size_t count, loff_t *ppos)
 {
 	char buf[64];
 	int cpu, counter, len;
@@ -108,37 +110,46 @@ static ssize_t qstat_read(struct file *file, char __user *user_buf,
 	/*
 	 * Get the counter ID stored in file->f_inode->i_private
 	 */
-	if (!file->f_inode) {
+	if (!file->f_inode)
+	{
 		WARN_ON_ONCE(1);
 		return -EBADF;
 	}
+
 	counter = (long)(file->f_inode->i_private);
 
 	if (counter >= qstat_num)
+	{
 		return -EBADF;
+	}
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		stat += per_cpu(qstats[counter], cpu);
+
 		/*
 		 * Need to sum additional counter for some of them
 		 */
-		switch (counter) {
+		switch (counter)
+		{
 
-		case qstat_pv_latency_kick:
-		case qstat_pv_hash_hops:
-			kicks += per_cpu(qstats[qstat_pv_kick_unlock], cpu);
-			break;
+			case qstat_pv_latency_kick:
+			case qstat_pv_hash_hops:
+				kicks += per_cpu(qstats[qstat_pv_kick_unlock], cpu);
+				break;
 
-		case qstat_pv_latency_wake:
-			kicks += per_cpu(qstats[qstat_pv_kick_wake], cpu);
-			break;
+			case qstat_pv_latency_wake:
+				kicks += per_cpu(qstats[qstat_pv_kick_wake], cpu);
+				break;
 		}
 	}
 
-	if (counter == qstat_pv_hash_hops) {
+	if (counter == qstat_pv_hash_hops)
+	{
 		u64 frac = 0;
 
-		if (kicks) {
+		if (kicks)
+		{
 			frac = 100ULL * do_div(stat, kicks);
 			frac = DIV_ROUND_CLOSEST_ULL(frac, kicks);
 		}
@@ -147,15 +158,21 @@ static ssize_t qstat_read(struct file *file, char __user *user_buf,
 		 * Return a X.XX decimal number
 		 */
 		len = snprintf(buf, sizeof(buf) - 1, "%llu.%02llu\n", stat, frac);
-	} else {
+	}
+	else
+	{
 		/*
 		 * Round to the nearest ns
 		 */
 		if ((counter == qstat_pv_latency_kick) ||
-		    (counter == qstat_pv_latency_wake)) {
+			(counter == qstat_pv_latency_wake))
+		{
 			if (kicks)
+			{
 				stat = DIV_ROUND_CLOSEST_ULL(stat, kicks);
+			}
 		}
+
 		len = snprintf(buf, sizeof(buf) - 1, "%llu\n", stat);
 	}
 
@@ -170,26 +187,33 @@ static ssize_t qstat_read(struct file *file, char __user *user_buf,
  * to make sure that the counters are very likely to be all cleared.
  */
 static ssize_t qstat_write(struct file *file, const char __user *user_buf,
-			   size_t count, loff_t *ppos)
+						   size_t count, loff_t *ppos)
 {
 	int cpu;
 
 	/*
 	 * Get the counter ID stored in file->f_inode->i_private
 	 */
-	if (!file->f_inode) {
+	if (!file->f_inode)
+	{
 		WARN_ON_ONCE(1);
 		return -EBADF;
 	}
-	if ((long)(file->f_inode->i_private) != qstat_reset_cnts)
-		return count;
 
-	for_each_possible_cpu(cpu) {
+	if ((long)(file->f_inode->i_private) != qstat_reset_cnts)
+	{
+		return count;
+	}
+
+	for_each_possible_cpu(cpu)
+	{
 		int i;
 		unsigned long *ptr = per_cpu_ptr(qstats, cpu);
 
 		for (i = 0 ; i < qstat_num; i++)
+		{
 			WRITE_ONCE(ptr[i], 0);
+		}
 	}
 	return count;
 }
@@ -197,7 +221,8 @@ static ssize_t qstat_write(struct file *file, const char __user *user_buf,
 /*
  * Debugfs data structures
  */
-static const struct file_operations fops_qstat = {
+static const struct file_operations fops_qstat =
+{
 	.read = qstat_read,
 	.write = qstat_write,
 	.llseek = default_llseek,
@@ -212,7 +237,9 @@ static int __init init_qspinlock_stat(void)
 	int i;
 
 	if (!d_qstat)
+	{
 		goto out;
+	}
 
 	/*
 	 * Create the debugfs files
@@ -223,12 +250,16 @@ static int __init init_qspinlock_stat(void)
 	 */
 	for (i = 0; i < qstat_num; i++)
 		if (!debugfs_create_file(qstat_names[i], 0400, d_qstat,
-					 (void *)(long)i, &fops_qstat))
+								 (void *)(long)i, &fops_qstat))
+		{
 			goto fail_undo;
+		}
 
 	if (!debugfs_create_file(qstat_names[qstat_reset_cnts], 0200, d_qstat,
-				 (void *)(long)qstat_reset_cnts, &fops_qstat))
+							 (void *)(long)qstat_reset_cnts, &fops_qstat))
+	{
 		goto fail_undo;
+	}
 
 	return 0;
 fail_undo:
@@ -245,7 +276,9 @@ fs_initcall(init_qspinlock_stat);
 static inline void qstat_inc(enum qlock_stats stat, bool cond)
 {
 	if (cond)
+	{
 		this_cpu_inc(qstats[stat]);
+	}
 }
 
 /*
@@ -277,9 +310,11 @@ static inline void __pv_wait(u8 *ptr, u8 val)
 
 	*pkick_time = 0;
 	pv_wait(ptr, val);
-	if (*pkick_time) {
+
+	if (*pkick_time)
+	{
 		this_cpu_add(qstats[qstat_pv_latency_wake],
-			     sched_clock() - *pkick_time);
+					 sched_clock() - *pkick_time);
 		qstat_inc(qstat_pv_kick_wake, true);
 	}
 }

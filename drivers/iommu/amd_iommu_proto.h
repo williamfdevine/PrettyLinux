@@ -49,10 +49,10 @@ extern int amd_iommu_unregister_ppr_notifier(struct notifier_block *nb);
 extern void amd_iommu_domain_direct_map(struct iommu_domain *dom);
 extern int amd_iommu_domain_enable_v2(struct iommu_domain *dom, int pasids);
 extern int amd_iommu_flush_page(struct iommu_domain *dom, int pasid,
-				u64 address);
+								u64 address);
 extern int amd_iommu_flush_tlb(struct iommu_domain *dom, int pasid);
 extern int amd_iommu_domain_set_gcr3(struct iommu_domain *dom, int pasid,
-				     unsigned long cr3);
+									 unsigned long cr3);
 extern int amd_iommu_domain_clear_gcr3(struct iommu_domain *dom, int pasid);
 extern struct iommu_domain *amd_iommu_get_v2_domain(struct pci_dev *pdev);
 
@@ -61,7 +61,7 @@ extern bool amd_iommu_pc_supported(void);
 extern u8 amd_iommu_pc_get_max_banks(u16 devid);
 extern u8 amd_iommu_pc_get_max_counters(u16 devid);
 extern int amd_iommu_pc_get_set_reg_val(u16 devid, u8 bank, u8 cntr, u8 fxn,
-				    u64 *value, bool is_write);
+										u64 *value, bool is_write);
 
 #ifdef CONFIG_IRQ_REMAP
 extern int amd_iommu_create_irq_domain(struct amd_iommu *iommu);
@@ -77,18 +77,20 @@ static inline int amd_iommu_create_irq_domain(struct amd_iommu *iommu)
 #define PPR_FAILURE			0xf
 
 extern int amd_iommu_complete_ppr(struct pci_dev *pdev, int pasid,
-				  int status, int tag);
+								  int status, int tag);
 
 static inline bool is_rd890_iommu(struct pci_dev *pdev)
 {
 	return (pdev->vendor == PCI_VENDOR_ID_ATI) &&
-	       (pdev->device == PCI_DEVICE_ID_RD890_IOMMU);
+		   (pdev->device == PCI_DEVICE_ID_RD890_IOMMU);
 }
 
 static inline bool iommu_feature(struct amd_iommu *iommu, u64 f)
 {
 	if (!(iommu->cap & (1 << IOMMU_CAP_EFR)))
+	{
 		return false;
+	}
 
 	return !!(iommu->features & f);
 }

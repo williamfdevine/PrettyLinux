@@ -24,18 +24,19 @@ struct jz4780_bch;
  * @bytes: ECC bytes per step.
  * @strength: number of correctable bits per ECC step.
  */
-struct jz4780_bch_params {
+struct jz4780_bch_params
+{
 	int size;
 	int bytes;
 	int strength;
 };
 
 int jz4780_bch_calculate(struct jz4780_bch *bch,
-				struct jz4780_bch_params *params,
-				const u8 *buf, u8 *ecc_code);
+						 struct jz4780_bch_params *params,
+						 const u8 *buf, u8 *ecc_code);
 int jz4780_bch_correct(struct jz4780_bch *bch,
-			      struct jz4780_bch_params *params, u8 *buf,
-			      u8 *ecc_code);
+					   struct jz4780_bch_params *params, u8 *buf,
+					   u8 *ecc_code);
 
 void jz4780_bch_release(struct jz4780_bch *bch);
 struct jz4780_bch *of_jz4780_bch_get(struct device_node *np);

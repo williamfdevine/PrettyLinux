@@ -11,9 +11,9 @@
 #define EM_486		6	/* Perhaps disused */
 #define EM_860		7
 #define EM_MIPS		8	/* MIPS R3000 (officially, big-endian only) */
-				/* Next two are historical and binaries and
-				   modules of these types will be rejected by
-				   Linux.  */
+/* Next two are historical and binaries and
+   modules of these types will be rejected by
+   Linux.  */
 #define EM_MIPS_RS3_LE	10	/* MIPS R3000 little-endian */
 #define EM_MIPS_RS4_BE	10	/* MIPS R4000 big-endian */
 

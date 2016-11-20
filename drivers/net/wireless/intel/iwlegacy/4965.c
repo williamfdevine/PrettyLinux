@@ -45,7 +45,7 @@
  *   it's a pretty good bet that everything between them is good, too.
  */
 static int
-il4965_verify_inst_sparse(struct il_priv *il, __le32 * image, u32 len)
+il4965_verify_inst_sparse(struct il_priv *il, __le32 *image, u32 len)
 {
 	u32 val;
 	int ret = 0;
@@ -54,17 +54,23 @@ il4965_verify_inst_sparse(struct il_priv *il, __le32 * image, u32 len)
 
 	D_INFO("ucode inst image size is %u\n", len);
 
-	for (i = 0; i < len; i += 100, image += 100 / sizeof(u32)) {
+	for (i = 0; i < len; i += 100, image += 100 / sizeof(u32))
+	{
 		/* read data comes through single port, auto-incr addr */
 		/* NOTE: Use the debugless read so we don't flood kernel log
 		 * if IL_DL_IO is set */
 		il_wr(il, HBUS_TARG_MEM_RADDR, i + IL4965_RTC_INST_LOWER_BOUND);
 		val = _il_rd(il, HBUS_TARG_MEM_RDAT);
-		if (val != le32_to_cpu(*image)) {
+
+		if (val != le32_to_cpu(*image))
+		{
 			ret = -EIO;
 			errcnt++;
+
 			if (errcnt >= 3)
+			{
 				break;
+			}
 		}
 	}
 
@@ -76,7 +82,7 @@ il4965_verify_inst_sparse(struct il_priv *il, __le32 * image, u32 len)
  *     looking at all data.
  */
 static int
-il4965_verify_inst_full(struct il_priv *il, __le32 * image, u32 len)
+il4965_verify_inst_full(struct il_priv *il, __le32 *image, u32 len)
 {
 	u32 val;
 	u32 save_len = len;
@@ -88,24 +94,33 @@ il4965_verify_inst_full(struct il_priv *il, __le32 * image, u32 len)
 	il_wr(il, HBUS_TARG_MEM_RADDR, IL4965_RTC_INST_LOWER_BOUND);
 
 	errcnt = 0;
-	for (; len > 0; len -= sizeof(u32), image++) {
+
+	for (; len > 0; len -= sizeof(u32), image++)
+	{
 		/* read data comes through single port, auto-incr addr */
 		/* NOTE: Use the debugless read so we don't flood kernel log
 		 * if IL_DL_IO is set */
 		val = _il_rd(il, HBUS_TARG_MEM_RDAT);
-		if (val != le32_to_cpu(*image)) {
+
+		if (val != le32_to_cpu(*image))
+		{
 			IL_ERR("uCode INST section is invalid at "
-			       "offset 0x%x, is 0x%x, s/b 0x%x\n",
-			       save_len - len, val, le32_to_cpu(*image));
+				   "offset 0x%x, is 0x%x, s/b 0x%x\n",
+				   save_len - len, val, le32_to_cpu(*image));
 			ret = -EIO;
 			errcnt++;
+
 			if (errcnt >= 20)
+			{
 				break;
+			}
 		}
 	}
 
 	if (!errcnt)
+	{
 		D_INFO("ucode image in INSTRUCTION memory is good\n");
+	}
 
 	return ret;
 }
@@ -125,7 +140,9 @@ il4965_verify_ucode(struct il_priv *il)
 	image = (__le32 *) il->ucode_boot.v_addr;
 	len = il->ucode_boot.len;
 	ret = il4965_verify_inst_sparse(il, image, len);
-	if (!ret) {
+
+	if (!ret)
+	{
 		D_INFO("Bootstrap uCode is good in inst SRAM\n");
 		return 0;
 	}
@@ -134,7 +151,9 @@ il4965_verify_ucode(struct il_priv *il)
 	image = (__le32 *) il->ucode_init.v_addr;
 	len = il->ucode_init.len;
 	ret = il4965_verify_inst_sparse(il, image, len);
-	if (!ret) {
+
+	if (!ret)
+	{
 		D_INFO("Initialize uCode is good in inst SRAM\n");
 		return 0;
 	}
@@ -143,7 +162,9 @@ il4965_verify_ucode(struct il_priv *il)
 	image = (__le32 *) il->ucode_code.v_addr;
 	len = il->ucode_code.len;
 	ret = il4965_verify_inst_sparse(il, image, len);
-	if (!ret) {
+
+	if (!ret)
+	{
 		D_INFO("Runtime uCode is good in inst SRAM\n");
 		return 0;
 	}
@@ -178,19 +199,23 @@ il4965_eeprom_acquire_semaphore(struct il_priv *il)
 	u16 count;
 	int ret;
 
-	for (count = 0; count < EEPROM_SEM_RETRY_LIMIT; count++) {
+	for (count = 0; count < EEPROM_SEM_RETRY_LIMIT; count++)
+	{
 		/* Request semaphore */
 		il_set_bit(il, CSR_HW_IF_CONFIG_REG,
-			   CSR_HW_IF_CONFIG_REG_BIT_EEPROM_OWN_SEM);
+				   CSR_HW_IF_CONFIG_REG_BIT_EEPROM_OWN_SEM);
 
 		/* See if we got it */
 		ret =
-		    _il_poll_bit(il, CSR_HW_IF_CONFIG_REG,
-				 CSR_HW_IF_CONFIG_REG_BIT_EEPROM_OWN_SEM,
-				 CSR_HW_IF_CONFIG_REG_BIT_EEPROM_OWN_SEM,
-				 EEPROM_SEM_TIMEOUT);
+			_il_poll_bit(il, CSR_HW_IF_CONFIG_REG,
+						 CSR_HW_IF_CONFIG_REG_BIT_EEPROM_OWN_SEM,
+						 CSR_HW_IF_CONFIG_REG_BIT_EEPROM_OWN_SEM,
+						 EEPROM_SEM_TIMEOUT);
+
 		if (ret >= 0)
+		{
 			return ret;
+		}
 	}
 
 	return ret;
@@ -200,7 +225,7 @@ void
 il4965_eeprom_release_semaphore(struct il_priv *il)
 {
 	il_clear_bit(il, CSR_HW_IF_CONFIG_REG,
-		     CSR_HW_IF_CONFIG_REG_BIT_EEPROM_OWN_SEM);
+				 CSR_HW_IF_CONFIG_REG_BIT_EEPROM_OWN_SEM);
 
 }
 
@@ -214,25 +239,27 @@ il4965_eeprom_check_version(struct il_priv *il)
 	calib_ver = il_eeprom_query16(il, EEPROM_4965_CALIB_VERSION_OFFSET);
 
 	if (eeprom_ver < il->cfg->eeprom_ver ||
-	    calib_ver < il->cfg->eeprom_calib_ver)
+		calib_ver < il->cfg->eeprom_calib_ver)
+	{
 		goto err;
+	}
 
 	IL_INFO("device EEPROM VER=0x%x, CALIB=0x%x\n", eeprom_ver, calib_ver);
 
 	return 0;
 err:
 	IL_ERR("Unsupported (too old) EEPROM VER=0x%x < 0x%x "
-	       "CALIB=0x%x < 0x%x\n", eeprom_ver, il->cfg->eeprom_ver,
-	       calib_ver, il->cfg->eeprom_calib_ver);
+		   "CALIB=0x%x < 0x%x\n", eeprom_ver, il->cfg->eeprom_ver,
+		   calib_ver, il->cfg->eeprom_calib_ver);
 	return -EINVAL;
 
 }
 
 void
-il4965_eeprom_get_mac(const struct il_priv *il, u8 * mac)
+il4965_eeprom_get_mac(const struct il_priv *il, u8 *mac)
 {
 	const u8 *addr = il_eeprom_query_addr(il,
-					      EEPROM_MAC_ADDRESS);
+										  EEPROM_MAC_ADDRESS);
 	memcpy(mac, addr, ETH_ALEN);
 }
 
@@ -240,7 +267,8 @@ il4965_eeprom_get_mac(const struct il_priv *il, u8 * mac)
 static int
 il4965_send_led_cmd(struct il_priv *il, struct il_led_cmd *led_cmd)
 {
-	struct il_host_cmd cmd = {
+	struct il_host_cmd cmd =
+	{
 		.id = C_LEDS,
 		.len = sizeof(struct il_led_cmd),
 		.data = led_cmd,
@@ -250,8 +278,11 @@ il4965_send_led_cmd(struct il_priv *il, struct il_led_cmd *led_cmd)
 	u32 reg;
 
 	reg = _il_rd(il, CSR_LED_REG);
+
 	if (reg != (reg & CSR_LED_BSM_CTRL_MSK))
+	{
 		_il_wr(il, CSR_LED_REG, reg & CSR_LED_BSM_CTRL_MSK);
+	}
 
 	return il_send_cmd(il, &cmd);
 }
@@ -289,14 +320,18 @@ il4965_verify_bsm(struct il_priv *il)
 
 	/* verify BSM SRAM contents */
 	val = il_rd_prph(il, BSM_WR_DWCOUNT_REG);
+
 	for (reg = BSM_SRAM_LOWER_BOUND; reg < BSM_SRAM_LOWER_BOUND + len;
-	     reg += sizeof(u32), image++) {
+		 reg += sizeof(u32), image++)
+	{
 		val = il_rd_prph(il, reg);
-		if (val != le32_to_cpu(*image)) {
+
+		if (val != le32_to_cpu(*image))
+		{
 			IL_ERR("BSM uCode verification failed at "
-			       "addr 0x%08X+%u (of %u), is 0x%x, s/b 0x%x\n",
-			       BSM_SRAM_LOWER_BOUND, reg - BSM_SRAM_LOWER_BOUND,
-			       len, val, le32_to_cpu(*image));
+				   "addr 0x%08X+%u (of %u), is 0x%x, s/b 0x%x\n",
+				   BSM_SRAM_LOWER_BOUND, reg - BSM_SRAM_LOWER_BOUND,
+				   len, val, le32_to_cpu(*image));
 			return -EIO;
 		}
 	}
@@ -358,7 +393,9 @@ il4965_load_bsm(struct il_priv *il)
 
 	/* make sure bootstrap program is no larger than BSM's SRAM size */
 	if (len > IL49_MAX_BSM_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	/* Tell bootstrap uCode where to find the "Initialize" uCode
 	 *   in host DRAM ... host DRAM physical address bits 35:4 for 4965.
@@ -378,13 +415,18 @@ il4965_load_bsm(struct il_priv *il)
 
 	/* Fill BSM memory with bootstrap instructions */
 	for (reg_offset = BSM_SRAM_LOWER_BOUND;
-	     reg_offset < BSM_SRAM_LOWER_BOUND + len;
-	     reg_offset += sizeof(u32), image++)
+		 reg_offset < BSM_SRAM_LOWER_BOUND + len;
+		 reg_offset += sizeof(u32), image++)
+	{
 		_il_wr_prph(il, reg_offset, le32_to_cpu(*image));
+	}
 
 	ret = il4965_verify_bsm(il);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Tell BSM to copy from BSM SRAM into instruction SRAM, when asked */
 	il_wr_prph(il, BSM_WR_MEM_SRC_REG, 0x0);
@@ -396,15 +438,24 @@ il4965_load_bsm(struct il_priv *il)
 	il_wr_prph(il, BSM_WR_CTRL_REG, BSM_WR_CTRL_REG_BIT_START);
 
 	/* Wait for load of bootstrap uCode to finish */
-	for (i = 0; i < 100; i++) {
+	for (i = 0; i < 100; i++)
+	{
 		done = il_rd_prph(il, BSM_WR_CTRL_REG);
+
 		if (!(done & BSM_WR_CTRL_REG_BIT_START))
+		{
 			break;
+		}
+
 		udelay(10);
 	}
+
 	if (i < 100)
+	{
 		D_INFO("BSM write complete, poll %d iterations\n", i);
-	else {
+	}
+	else
+	{
 		IL_ERR("BSM write did not complete!\n");
 		return -EIO;
 	}
@@ -444,7 +495,7 @@ il4965_set_ucode_ptrs(struct il_priv *il)
 	/* Inst byte count must be last to set up, bit 31 signals uCode
 	 *   that all new ptr/size info is in place */
 	il_wr_prph(il, BSM_DRAM_INST_BYTECOUNT_REG,
-		   il->ucode_code.len | BSM_DRAM_INST_LOAD);
+			   il->ucode_code.len | BSM_DRAM_INST_LOAD);
 	D_INFO("Runtime uCode pointers are set.\n");
 
 	return ret;
@@ -467,7 +518,8 @@ il4965_init_alive_start(struct il_priv *il)
 	/* Bootstrap uCode has loaded initialize uCode ... verify inst image.
 	 * This is a paranoid check, because we would not have gotten the
 	 * "initialize" alive if code weren't properly loaded.  */
-	if (il4965_verify_ucode(il)) {
+	if (il4965_verify_ucode(il))
+	{
 		/* Runtime instruction load was bad;
 		 * take it all the way back down so we can try again */
 		D_INFO("Bad \"initialize\" uCode load.\n");
@@ -481,12 +533,15 @@ il4965_init_alive_start(struct il_priv *il)
 	 * load and launch runtime uCode, which will send us another "Alive"
 	 * notification. */
 	D_INFO("Initialization Alive received.\n");
-	if (il4965_set_ucode_ptrs(il)) {
+
+	if (il4965_set_ucode_ptrs(il))
+	{
 		/* Runtime instruction load won't happen;
 		 * take it all the way back down so we can try again */
 		D_INFO("Couldn't set up uCode pointers.\n");
 		goto restart;
 	}
+
 	return;
 
 restart:
@@ -497,10 +552,10 @@ static bool
 iw4965_is_ht40_channel(__le32 rxon_flags)
 {
 	int chan_mod =
-	    le32_to_cpu(rxon_flags & RXON_FLG_CHANNEL_MODE_MSK) >>
-	    RXON_FLG_CHANNEL_MODE_POS;
+		le32_to_cpu(rxon_flags & RXON_FLG_CHANNEL_MODE_MSK) >>
+		RXON_FLG_CHANNEL_MODE_POS;
 	return (chan_mod == CHANNEL_MODE_PURE_40 ||
-		chan_mod == CHANNEL_MODE_MIXED);
+			chan_mod == CHANNEL_MODE_MIXED);
 }
 
 void
@@ -516,18 +571,18 @@ il4965_nic_config(struct il_priv *il)
 	/* write radio config values to register */
 	if (EEPROM_RF_CFG_TYPE_MSK(radio_cfg) == EEPROM_4965_RF_CFG_TYPE_MAX)
 		il_set_bit(il, CSR_HW_IF_CONFIG_REG,
-			   EEPROM_RF_CFG_TYPE_MSK(radio_cfg) |
-			   EEPROM_RF_CFG_STEP_MSK(radio_cfg) |
-			   EEPROM_RF_CFG_DASH_MSK(radio_cfg));
+				   EEPROM_RF_CFG_TYPE_MSK(radio_cfg) |
+				   EEPROM_RF_CFG_STEP_MSK(radio_cfg) |
+				   EEPROM_RF_CFG_DASH_MSK(radio_cfg));
 
 	/* set CSR_HW_CONFIG_REG for uCode use */
 	il_set_bit(il, CSR_HW_IF_CONFIG_REG,
-		   CSR_HW_IF_CONFIG_REG_BIT_RADIO_SI |
-		   CSR_HW_IF_CONFIG_REG_BIT_MAC_SI);
+			   CSR_HW_IF_CONFIG_REG_BIT_RADIO_SI |
+			   CSR_HW_IF_CONFIG_REG_BIT_MAC_SI);
 
 	il->calib_info =
-	    (struct il_eeprom_calib_info *)
-	    il_eeprom_query_addr(il, EEPROM_4965_CALIB_TXPOWER_OFFSET);
+		(struct il_eeprom_calib_info *)
+		il_eeprom_query_addr(il, EEPROM_4965_CALIB_TXPOWER_OFFSET);
 
 	spin_unlock_irqrestore(&il->lock, flags);
 }
@@ -540,7 +595,8 @@ il4965_chain_noise_reset(struct il_priv *il)
 {
 	struct il_chain_noise_data *data = &(il->chain_noise_data);
 
-	if (data->state == IL_CHAIN_NOISE_ALIVE && il_is_any_associated(il)) {
+	if (data->state == IL_CHAIN_NOISE_ALIVE && il_is_any_associated(il))
+	{
 		struct il_calib_diff_gain_cmd cmd;
 
 		/* clear data for chain noise calibration algorithm */
@@ -557,26 +613,34 @@ il4965_chain_noise_reset(struct il_priv *il)
 		cmd.diff_gain_a = 0;
 		cmd.diff_gain_b = 0;
 		cmd.diff_gain_c = 0;
+
 		if (il_send_cmd_pdu(il, C_PHY_CALIBRATION, sizeof(cmd), &cmd))
+		{
 			IL_ERR("Could not send C_PHY_CALIBRATION\n");
+		}
+
 		data->state = IL_CHAIN_NOISE_ACCUMULATE;
 		D_CALIB("Run chain_noise_calibrate\n");
 	}
 }
 
 static s32
-il4965_math_div_round(s32 num, s32 denom, s32 * res)
+il4965_math_div_round(s32 num, s32 denom, s32 *res)
 {
 	s32 sign = 1;
 
-	if (num < 0) {
+	if (num < 0)
+	{
 		sign = -sign;
 		num = -num;
 	}
-	if (denom < 0) {
+
+	if (denom < 0)
+	{
 		sign = -sign;
 		denom = -denom;
 	}
+
 	*res = 1;
 	*res = ((num * 2 + denom) / (denom * 2)) * sign;
 
@@ -600,16 +664,23 @@ il4965_get_voltage_compensation(s32 eeprom_voltage, s32 current_voltage)
 	s32 comp = 0;
 
 	if (TX_POWER_IL_ILLEGAL_VOLTAGE == eeprom_voltage ||
-	    TX_POWER_IL_ILLEGAL_VOLTAGE == current_voltage)
+		TX_POWER_IL_ILLEGAL_VOLTAGE == current_voltage)
+	{
 		return 0;
+	}
 
 	il4965_math_div_round(current_voltage - eeprom_voltage,
-			      TX_POWER_IL_VOLTAGE_CODES_PER_03V, &comp);
+						  TX_POWER_IL_VOLTAGE_CODES_PER_03V, &comp);
 
 	if (current_voltage > eeprom_voltage)
+	{
 		comp *= 2;
+	}
+
 	if ((comp < -2) || (comp > 2))
+	{
 		comp = 0;
+	}
 
 	return comp;
 }
@@ -618,24 +689,34 @@ static s32
 il4965_get_tx_atten_grp(u16 channel)
 {
 	if (channel >= CALIB_IL_TX_ATTEN_GR5_FCH &&
-	    channel <= CALIB_IL_TX_ATTEN_GR5_LCH)
+		channel <= CALIB_IL_TX_ATTEN_GR5_LCH)
+	{
 		return CALIB_CH_GROUP_5;
+	}
 
 	if (channel >= CALIB_IL_TX_ATTEN_GR1_FCH &&
-	    channel <= CALIB_IL_TX_ATTEN_GR1_LCH)
+		channel <= CALIB_IL_TX_ATTEN_GR1_LCH)
+	{
 		return CALIB_CH_GROUP_1;
+	}
 
 	if (channel >= CALIB_IL_TX_ATTEN_GR2_FCH &&
-	    channel <= CALIB_IL_TX_ATTEN_GR2_LCH)
+		channel <= CALIB_IL_TX_ATTEN_GR2_LCH)
+	{
 		return CALIB_CH_GROUP_2;
+	}
 
 	if (channel >= CALIB_IL_TX_ATTEN_GR3_FCH &&
-	    channel <= CALIB_IL_TX_ATTEN_GR3_LCH)
+		channel <= CALIB_IL_TX_ATTEN_GR3_LCH)
+	{
 		return CALIB_CH_GROUP_3;
+	}
 
 	if (channel >= CALIB_IL_TX_ATTEN_GR4_FCH &&
-	    channel <= CALIB_IL_TX_ATTEN_GR4_LCH)
+		channel <= CALIB_IL_TX_ATTEN_GR4_LCH)
+	{
 		return CALIB_CH_GROUP_4;
+	}
 
 	return -EINVAL;
 }
@@ -645,13 +726,18 @@ il4965_get_sub_band(const struct il_priv *il, u32 channel)
 {
 	s32 b = -1;
 
-	for (b = 0; b < EEPROM_TX_POWER_BANDS; b++) {
+	for (b = 0; b < EEPROM_TX_POWER_BANDS; b++)
+	{
 		if (il->calib_info->band_info[b].ch_from == 0)
+		{
 			continue;
+		}
 
 		if (channel >= il->calib_info->band_info[b].ch_from &&
-		    channel <= il->calib_info->band_info[b].ch_to)
+			channel <= il->calib_info->band_info[b].ch_to)
+		{
 			break;
+		}
 	}
 
 	return b;
@@ -663,8 +749,11 @@ il4965_interpolate_value(s32 x, s32 x1, s32 y1, s32 x2, s32 y2)
 	s32 val;
 
 	if (x2 == x1)
+	{
 		return y1;
-	else {
+	}
+	else
+	{
 		il4965_math_div_round((x2 - x) * (y1 - y2), (x2 - x1), &val);
 		return val + y2;
 	}
@@ -680,7 +769,7 @@ il4965_interpolate_value(s32 x, s32 x1, s32 y1, s32 x2, s32 y2)
  */
 static int
 il4965_interpolate_chan(struct il_priv *il, u32 channel,
-			struct il_eeprom_calib_ch_info *chan_info)
+						struct il_eeprom_calib_ch_info *chan_info)
 {
 	s32 s = -1;
 	u32 c;
@@ -692,7 +781,9 @@ il4965_interpolate_chan(struct il_priv *il, u32 channel,
 	u32 ch_i2;
 
 	s = il4965_get_sub_band(il, channel);
-	if (s >= EEPROM_TX_POWER_BANDS) {
+
+	if (s >= EEPROM_TX_POWER_BANDS)
+	{
 		IL_ERR("Tx Power can not find channel %d\n", channel);
 		return -1;
 	}
@@ -702,45 +793,47 @@ il4965_interpolate_chan(struct il_priv *il, u32 channel,
 	chan_info->ch_num = (u8) channel;
 
 	D_TXPOWER("channel %d subband %d factory cal ch %d & %d\n", channel, s,
-		  ch_i1, ch_i2);
+			  ch_i1, ch_i2);
 
-	for (c = 0; c < EEPROM_TX_POWER_TX_CHAINS; c++) {
-		for (m = 0; m < EEPROM_TX_POWER_MEASUREMENTS; m++) {
+	for (c = 0; c < EEPROM_TX_POWER_TX_CHAINS; c++)
+	{
+		for (m = 0; m < EEPROM_TX_POWER_MEASUREMENTS; m++)
+		{
 			m1 = &(il->calib_info->band_info[s].ch1.
-			       measurements[c][m]);
+				   measurements[c][m]);
 			m2 = &(il->calib_info->band_info[s].ch2.
-			       measurements[c][m]);
+				   measurements[c][m]);
 			omeas = &(chan_info->measurements[c][m]);
 
 			omeas->actual_pow =
-			    (u8) il4965_interpolate_value(channel, ch_i1,
-							  m1->actual_pow, ch_i2,
-							  m2->actual_pow);
+				(u8) il4965_interpolate_value(channel, ch_i1,
+											  m1->actual_pow, ch_i2,
+											  m2->actual_pow);
 			omeas->gain_idx =
-			    (u8) il4965_interpolate_value(channel, ch_i1,
-							  m1->gain_idx, ch_i2,
-							  m2->gain_idx);
+				(u8) il4965_interpolate_value(channel, ch_i1,
+											  m1->gain_idx, ch_i2,
+											  m2->gain_idx);
 			omeas->temperature =
-			    (u8) il4965_interpolate_value(channel, ch_i1,
-							  m1->temperature,
-							  ch_i2,
-							  m2->temperature);
+				(u8) il4965_interpolate_value(channel, ch_i1,
+											  m1->temperature,
+											  ch_i2,
+											  m2->temperature);
 			omeas->pa_det =
-			    (s8) il4965_interpolate_value(channel, ch_i1,
-							  m1->pa_det, ch_i2,
-							  m2->pa_det);
+				(s8) il4965_interpolate_value(channel, ch_i1,
+											  m1->pa_det, ch_i2,
+											  m2->pa_det);
 
 			D_TXPOWER("chain %d meas %d AP1=%d AP2=%d AP=%d\n", c,
-				  m, m1->actual_pow, m2->actual_pow,
-				  omeas->actual_pow);
+					  m, m1->actual_pow, m2->actual_pow,
+					  omeas->actual_pow);
 			D_TXPOWER("chain %d meas %d NI1=%d NI2=%d NI=%d\n", c,
-				  m, m1->gain_idx, m2->gain_idx,
-				  omeas->gain_idx);
+					  m, m1->gain_idx, m2->gain_idx,
+					  omeas->gain_idx);
 			D_TXPOWER("chain %d meas %d PA1=%d PA2=%d PA=%d\n", c,
-				  m, m1->pa_det, m2->pa_det, omeas->pa_det);
+					  m, m1->pa_det, m2->pa_det, omeas->pa_det);
 			D_TXPOWER("chain %d meas %d  T1=%d  T2=%d  T=%d\n", c,
-				  m, m1->temperature, m2->temperature,
-				  omeas->temperature);
+					  m, m1->temperature, m2->temperature,
+					  omeas->temperature);
 		}
 	}
 
@@ -749,7 +842,8 @@ il4965_interpolate_chan(struct il_priv *il, u32 channel,
 
 /* bit-rate-dependent table to prevent Tx distortion, in half-dB units,
  * for OFDM 6, 12, 18, 24, 36, 48, 54, 60 MBit, and CCK all rates. */
-static s32 back_off_table[] = {
+static s32 back_off_table[] =
+{
 	10, 10, 10, 10, 10, 15, 17, 20,	/* OFDM SISO 20 MHz */
 	10, 10, 10, 10, 10, 15, 17, 20,	/* OFDM MIMO 20 MHz */
 	10, 10, 10, 10, 10, 15, 17, 20,	/* OFDM SISO 40 MHz */
@@ -759,266 +853,279 @@ static s32 back_off_table[] = {
 
 /* Thermal compensation values for txpower for various frequency ranges ...
  *   ratios from 3:1 to 4.5:1 of degrees (Celsius) per half-dB gain adjust */
-static struct il4965_txpower_comp_entry {
+static struct il4965_txpower_comp_entry
+{
 	s32 degrees_per_05db_a;
 	s32 degrees_per_05db_a_denom;
-} tx_power_cmp_tble[CALIB_CH_GROUP_MAX] = {
+} tx_power_cmp_tble[CALIB_CH_GROUP_MAX] =
+{
 	{
-	9, 2},			/* group 0 5.2, ch  34-43 */
+		9, 2
+	},			/* group 0 5.2, ch  34-43 */
 	{
-	4, 1},			/* group 1 5.2, ch  44-70 */
+		4, 1
+	},			/* group 1 5.2, ch  44-70 */
 	{
-	4, 1},			/* group 2 5.2, ch  71-124 */
+		4, 1
+	},			/* group 2 5.2, ch  71-124 */
 	{
-	4, 1},			/* group 3 5.2, ch 125-200 */
+		4, 1
+	},			/* group 3 5.2, ch 125-200 */
 	{
-	3, 1}			/* group 4 2.4, ch   all */
+		3, 1
+	}			/* group 4 2.4, ch   all */
 };
 
 static s32
 get_min_power_idx(s32 rate_power_idx, u32 band)
 {
-	if (!band) {
+	if (!band)
+	{
 		if ((rate_power_idx & 7) <= 4)
+		{
 			return MIN_TX_GAIN_IDX_52GHZ_EXT;
+		}
 	}
+
 	return MIN_TX_GAIN_IDX;
 }
 
-struct gain_entry {
+struct gain_entry
+{
 	u8 dsp;
 	u8 radio;
 };
 
-static const struct gain_entry gain_table[2][108] = {
+static const struct gain_entry gain_table[2][108] =
+{
 	/* 5.2GHz power gain idx table */
 	{
-	 {123, 0x3F},		/* highest txpower */
-	 {117, 0x3F},
-	 {110, 0x3F},
-	 {104, 0x3F},
-	 {98, 0x3F},
-	 {110, 0x3E},
-	 {104, 0x3E},
-	 {98, 0x3E},
-	 {110, 0x3D},
-	 {104, 0x3D},
-	 {98, 0x3D},
-	 {110, 0x3C},
-	 {104, 0x3C},
-	 {98, 0x3C},
-	 {110, 0x3B},
-	 {104, 0x3B},
-	 {98, 0x3B},
-	 {110, 0x3A},
-	 {104, 0x3A},
-	 {98, 0x3A},
-	 {110, 0x39},
-	 {104, 0x39},
-	 {98, 0x39},
-	 {110, 0x38},
-	 {104, 0x38},
-	 {98, 0x38},
-	 {110, 0x37},
-	 {104, 0x37},
-	 {98, 0x37},
-	 {110, 0x36},
-	 {104, 0x36},
-	 {98, 0x36},
-	 {110, 0x35},
-	 {104, 0x35},
-	 {98, 0x35},
-	 {110, 0x34},
-	 {104, 0x34},
-	 {98, 0x34},
-	 {110, 0x33},
-	 {104, 0x33},
-	 {98, 0x33},
-	 {110, 0x32},
-	 {104, 0x32},
-	 {98, 0x32},
-	 {110, 0x31},
-	 {104, 0x31},
-	 {98, 0x31},
-	 {110, 0x30},
-	 {104, 0x30},
-	 {98, 0x30},
-	 {110, 0x25},
-	 {104, 0x25},
-	 {98, 0x25},
-	 {110, 0x24},
-	 {104, 0x24},
-	 {98, 0x24},
-	 {110, 0x23},
-	 {104, 0x23},
-	 {98, 0x23},
-	 {110, 0x22},
-	 {104, 0x18},
-	 {98, 0x18},
-	 {110, 0x17},
-	 {104, 0x17},
-	 {98, 0x17},
-	 {110, 0x16},
-	 {104, 0x16},
-	 {98, 0x16},
-	 {110, 0x15},
-	 {104, 0x15},
-	 {98, 0x15},
-	 {110, 0x14},
-	 {104, 0x14},
-	 {98, 0x14},
-	 {110, 0x13},
-	 {104, 0x13},
-	 {98, 0x13},
-	 {110, 0x12},
-	 {104, 0x08},
-	 {98, 0x08},
-	 {110, 0x07},
-	 {104, 0x07},
-	 {98, 0x07},
-	 {110, 0x06},
-	 {104, 0x06},
-	 {98, 0x06},
-	 {110, 0x05},
-	 {104, 0x05},
-	 {98, 0x05},
-	 {110, 0x04},
-	 {104, 0x04},
-	 {98, 0x04},
-	 {110, 0x03},
-	 {104, 0x03},
-	 {98, 0x03},
-	 {110, 0x02},
-	 {104, 0x02},
-	 {98, 0x02},
-	 {110, 0x01},
-	 {104, 0x01},
-	 {98, 0x01},
-	 {110, 0x00},
-	 {104, 0x00},
-	 {98, 0x00},
-	 {93, 0x00},
-	 {88, 0x00},
-	 {83, 0x00},
-	 {78, 0x00},
-	 },
+		{123, 0x3F},		/* highest txpower */
+		{117, 0x3F},
+		{110, 0x3F},
+		{104, 0x3F},
+		{98, 0x3F},
+		{110, 0x3E},
+		{104, 0x3E},
+		{98, 0x3E},
+		{110, 0x3D},
+		{104, 0x3D},
+		{98, 0x3D},
+		{110, 0x3C},
+		{104, 0x3C},
+		{98, 0x3C},
+		{110, 0x3B},
+		{104, 0x3B},
+		{98, 0x3B},
+		{110, 0x3A},
+		{104, 0x3A},
+		{98, 0x3A},
+		{110, 0x39},
+		{104, 0x39},
+		{98, 0x39},
+		{110, 0x38},
+		{104, 0x38},
+		{98, 0x38},
+		{110, 0x37},
+		{104, 0x37},
+		{98, 0x37},
+		{110, 0x36},
+		{104, 0x36},
+		{98, 0x36},
+		{110, 0x35},
+		{104, 0x35},
+		{98, 0x35},
+		{110, 0x34},
+		{104, 0x34},
+		{98, 0x34},
+		{110, 0x33},
+		{104, 0x33},
+		{98, 0x33},
+		{110, 0x32},
+		{104, 0x32},
+		{98, 0x32},
+		{110, 0x31},
+		{104, 0x31},
+		{98, 0x31},
+		{110, 0x30},
+		{104, 0x30},
+		{98, 0x30},
+		{110, 0x25},
+		{104, 0x25},
+		{98, 0x25},
+		{110, 0x24},
+		{104, 0x24},
+		{98, 0x24},
+		{110, 0x23},
+		{104, 0x23},
+		{98, 0x23},
+		{110, 0x22},
+		{104, 0x18},
+		{98, 0x18},
+		{110, 0x17},
+		{104, 0x17},
+		{98, 0x17},
+		{110, 0x16},
+		{104, 0x16},
+		{98, 0x16},
+		{110, 0x15},
+		{104, 0x15},
+		{98, 0x15},
+		{110, 0x14},
+		{104, 0x14},
+		{98, 0x14},
+		{110, 0x13},
+		{104, 0x13},
+		{98, 0x13},
+		{110, 0x12},
+		{104, 0x08},
+		{98, 0x08},
+		{110, 0x07},
+		{104, 0x07},
+		{98, 0x07},
+		{110, 0x06},
+		{104, 0x06},
+		{98, 0x06},
+		{110, 0x05},
+		{104, 0x05},
+		{98, 0x05},
+		{110, 0x04},
+		{104, 0x04},
+		{98, 0x04},
+		{110, 0x03},
+		{104, 0x03},
+		{98, 0x03},
+		{110, 0x02},
+		{104, 0x02},
+		{98, 0x02},
+		{110, 0x01},
+		{104, 0x01},
+		{98, 0x01},
+		{110, 0x00},
+		{104, 0x00},
+		{98, 0x00},
+		{93, 0x00},
+		{88, 0x00},
+		{83, 0x00},
+		{78, 0x00},
+	},
 	/* 2.4GHz power gain idx table */
 	{
-	 {110, 0x3f},		/* highest txpower */
-	 {104, 0x3f},
-	 {98, 0x3f},
-	 {110, 0x3e},
-	 {104, 0x3e},
-	 {98, 0x3e},
-	 {110, 0x3d},
-	 {104, 0x3d},
-	 {98, 0x3d},
-	 {110, 0x3c},
-	 {104, 0x3c},
-	 {98, 0x3c},
-	 {110, 0x3b},
-	 {104, 0x3b},
-	 {98, 0x3b},
-	 {110, 0x3a},
-	 {104, 0x3a},
-	 {98, 0x3a},
-	 {110, 0x39},
-	 {104, 0x39},
-	 {98, 0x39},
-	 {110, 0x38},
-	 {104, 0x38},
-	 {98, 0x38},
-	 {110, 0x37},
-	 {104, 0x37},
-	 {98, 0x37},
-	 {110, 0x36},
-	 {104, 0x36},
-	 {98, 0x36},
-	 {110, 0x35},
-	 {104, 0x35},
-	 {98, 0x35},
-	 {110, 0x34},
-	 {104, 0x34},
-	 {98, 0x34},
-	 {110, 0x33},
-	 {104, 0x33},
-	 {98, 0x33},
-	 {110, 0x32},
-	 {104, 0x32},
-	 {98, 0x32},
-	 {110, 0x31},
-	 {104, 0x31},
-	 {98, 0x31},
-	 {110, 0x30},
-	 {104, 0x30},
-	 {98, 0x30},
-	 {110, 0x6},
-	 {104, 0x6},
-	 {98, 0x6},
-	 {110, 0x5},
-	 {104, 0x5},
-	 {98, 0x5},
-	 {110, 0x4},
-	 {104, 0x4},
-	 {98, 0x4},
-	 {110, 0x3},
-	 {104, 0x3},
-	 {98, 0x3},
-	 {110, 0x2},
-	 {104, 0x2},
-	 {98, 0x2},
-	 {110, 0x1},
-	 {104, 0x1},
-	 {98, 0x1},
-	 {110, 0x0},
-	 {104, 0x0},
-	 {98, 0x0},
-	 {97, 0},
-	 {96, 0},
-	 {95, 0},
-	 {94, 0},
-	 {93, 0},
-	 {92, 0},
-	 {91, 0},
-	 {90, 0},
-	 {89, 0},
-	 {88, 0},
-	 {87, 0},
-	 {86, 0},
-	 {85, 0},
-	 {84, 0},
-	 {83, 0},
-	 {82, 0},
-	 {81, 0},
-	 {80, 0},
-	 {79, 0},
-	 {78, 0},
-	 {77, 0},
-	 {76, 0},
-	 {75, 0},
-	 {74, 0},
-	 {73, 0},
-	 {72, 0},
-	 {71, 0},
-	 {70, 0},
-	 {69, 0},
-	 {68, 0},
-	 {67, 0},
-	 {66, 0},
-	 {65, 0},
-	 {64, 0},
-	 {63, 0},
-	 {62, 0},
-	 {61, 0},
-	 {60, 0},
-	 {59, 0},
-	 }
+		{110, 0x3f},		/* highest txpower */
+		{104, 0x3f},
+		{98, 0x3f},
+		{110, 0x3e},
+		{104, 0x3e},
+		{98, 0x3e},
+		{110, 0x3d},
+		{104, 0x3d},
+		{98, 0x3d},
+		{110, 0x3c},
+		{104, 0x3c},
+		{98, 0x3c},
+		{110, 0x3b},
+		{104, 0x3b},
+		{98, 0x3b},
+		{110, 0x3a},
+		{104, 0x3a},
+		{98, 0x3a},
+		{110, 0x39},
+		{104, 0x39},
+		{98, 0x39},
+		{110, 0x38},
+		{104, 0x38},
+		{98, 0x38},
+		{110, 0x37},
+		{104, 0x37},
+		{98, 0x37},
+		{110, 0x36},
+		{104, 0x36},
+		{98, 0x36},
+		{110, 0x35},
+		{104, 0x35},
+		{98, 0x35},
+		{110, 0x34},
+		{104, 0x34},
+		{98, 0x34},
+		{110, 0x33},
+		{104, 0x33},
+		{98, 0x33},
+		{110, 0x32},
+		{104, 0x32},
+		{98, 0x32},
+		{110, 0x31},
+		{104, 0x31},
+		{98, 0x31},
+		{110, 0x30},
+		{104, 0x30},
+		{98, 0x30},
+		{110, 0x6},
+		{104, 0x6},
+		{98, 0x6},
+		{110, 0x5},
+		{104, 0x5},
+		{98, 0x5},
+		{110, 0x4},
+		{104, 0x4},
+		{98, 0x4},
+		{110, 0x3},
+		{104, 0x3},
+		{98, 0x3},
+		{110, 0x2},
+		{104, 0x2},
+		{98, 0x2},
+		{110, 0x1},
+		{104, 0x1},
+		{98, 0x1},
+		{110, 0x0},
+		{104, 0x0},
+		{98, 0x0},
+		{97, 0},
+		{96, 0},
+		{95, 0},
+		{94, 0},
+		{93, 0},
+		{92, 0},
+		{91, 0},
+		{90, 0},
+		{89, 0},
+		{88, 0},
+		{87, 0},
+		{86, 0},
+		{85, 0},
+		{84, 0},
+		{83, 0},
+		{82, 0},
+		{81, 0},
+		{80, 0},
+		{79, 0},
+		{78, 0},
+		{77, 0},
+		{76, 0},
+		{75, 0},
+		{74, 0},
+		{73, 0},
+		{72, 0},
+		{71, 0},
+		{70, 0},
+		{69, 0},
+		{68, 0},
+		{67, 0},
+		{66, 0},
+		{65, 0},
+		{64, 0},
+		{63, 0},
+		{62, 0},
+		{61, 0},
+		{60, 0},
+		{59, 0},
+	}
 };
 
 static int
 il4965_fill_txpower_tbl(struct il_priv *il, u8 band, u16 channel, u8 is_ht40,
-			u8 ctrl_chan_high,
-			struct il4965_tx_power_db *tx_power_tbl)
+						u8 ctrl_chan_high,
+						struct il4965_tx_power_db *tx_power_tbl)
 {
 	u8 saturation_power;
 	s32 target_power;
@@ -1054,54 +1161,81 @@ il4965_fill_txpower_tbl(struct il_priv *il, u8 band, u16 channel, u8 is_ht40,
 	ch_info = il_get_channel_info(il, il->band, channel);
 
 	if (!il_is_channel_valid(ch_info))
+	{
 		return -EINVAL;
+	}
 
 	/* get txatten group, used to select 1) thermal txpower adjustment
 	 *   and 2) mimo txpower balance between Tx chains. */
 	txatten_grp = il4965_get_tx_atten_grp(channel);
-	if (txatten_grp < 0) {
+
+	if (txatten_grp < 0)
+	{
 		IL_ERR("Can't find txatten group for channel %d.\n", channel);
 		return txatten_grp;
 	}
 
 	D_TXPOWER("channel %d belongs to txatten group %d\n", channel,
-		  txatten_grp);
+			  txatten_grp);
 
-	if (is_ht40) {
+	if (is_ht40)
+	{
 		if (ctrl_chan_high)
+		{
 			channel -= 2;
+		}
 		else
+		{
 			channel += 2;
+		}
 	}
 
 	/* hardware txpower limits ...
 	 * saturation (clipping distortion) txpowers are in half-dBm */
 	if (band)
+	{
 		saturation_power = il->calib_info->saturation_power24;
+	}
 	else
+	{
 		saturation_power = il->calib_info->saturation_power52;
+	}
 
 	if (saturation_power < IL_TX_POWER_SATURATION_MIN ||
-	    saturation_power > IL_TX_POWER_SATURATION_MAX) {
+		saturation_power > IL_TX_POWER_SATURATION_MAX)
+	{
 		if (band)
+		{
 			saturation_power = IL_TX_POWER_DEFAULT_SATURATION_24;
+		}
 		else
+		{
 			saturation_power = IL_TX_POWER_DEFAULT_SATURATION_52;
+		}
 	}
 
 	/* regulatory txpower limits ... reg_limit values are in half-dBm,
 	 *   max_power_avg values are in dBm, convert * 2 */
 	if (is_ht40)
+	{
 		reg_limit = ch_info->ht40_max_power_avg * 2;
+	}
 	else
+	{
 		reg_limit = ch_info->max_power_avg * 2;
+	}
 
 	if ((reg_limit < IL_TX_POWER_REGULATORY_MIN) ||
-	    (reg_limit > IL_TX_POWER_REGULATORY_MAX)) {
+		(reg_limit > IL_TX_POWER_REGULATORY_MAX))
+	{
 		if (band)
+		{
 			reg_limit = IL_TX_POWER_DEFAULT_REGULATORY_24;
+		}
 		else
+		{
 			reg_limit = IL_TX_POWER_DEFAULT_REGULATORY_52;
+		}
 	}
 
 	/* Interpolate txpower calibration values for this channel,
@@ -1112,10 +1246,10 @@ il4965_fill_txpower_tbl(struct il_priv *il, u8 band, u16 channel, u8 is_ht40,
 	voltage = le16_to_cpu(il->calib_info->voltage);
 	init_voltage = (s32) le32_to_cpu(il->card_alive_init.voltage);
 	voltage_compensation =
-	    il4965_get_voltage_compensation(voltage, init_voltage);
+		il4965_get_voltage_compensation(voltage, init_voltage);
 
 	D_TXPOWER("curr volt %d eeprom volt %d volt comp %d\n", init_voltage,
-		  voltage, voltage_compensation);
+			  voltage, voltage_compensation);
 
 	/* get current temperature (Celsius) */
 	current_temp = max(il->temperature, IL_TX_POWER_TEMPERATURE_MIN);
@@ -1125,119 +1259,140 @@ il4965_fill_txpower_tbl(struct il_priv *il, u8 band, u16 channel, u8 is_ht40,
 	/* select thermal txpower adjustment params, based on channel group
 	 *   (same frequency group used for mimo txatten adjustment) */
 	degrees_per_05db_num =
-	    tx_power_cmp_tble[txatten_grp].degrees_per_05db_a;
+		tx_power_cmp_tble[txatten_grp].degrees_per_05db_a;
 	degrees_per_05db_denom =
-	    tx_power_cmp_tble[txatten_grp].degrees_per_05db_a_denom;
+		tx_power_cmp_tble[txatten_grp].degrees_per_05db_a_denom;
 
 	/* get per-chain txpower values from factory measurements */
-	for (c = 0; c < 2; c++) {
+	for (c = 0; c < 2; c++)
+	{
 		measurement = &ch_eeprom_info.measurements[c][1];
 
 		/* txgain adjustment (in half-dB steps) based on difference
 		 *   between factory and current temperature */
 		factory_temp = measurement->temperature;
 		il4965_math_div_round((current_temp -
-				       factory_temp) * degrees_per_05db_denom,
-				      degrees_per_05db_num,
-				      &temperature_comp[c]);
+							   factory_temp) * degrees_per_05db_denom,
+							  degrees_per_05db_num,
+							  &temperature_comp[c]);
 
 		factory_gain_idx[c] = measurement->gain_idx;
 		factory_actual_pwr[c] = measurement->actual_pow;
 
 		D_TXPOWER("chain = %d\n", c);
 		D_TXPOWER("fctry tmp %d, " "curr tmp %d, comp %d steps\n",
-			  factory_temp, current_temp, temperature_comp[c]);
+				  factory_temp, current_temp, temperature_comp[c]);
 
 		D_TXPOWER("fctry idx %d, fctry pwr %d\n", factory_gain_idx[c],
-			  factory_actual_pwr[c]);
+				  factory_actual_pwr[c]);
 	}
 
 	/* for each of 33 bit-rates (including 1 for CCK) */
-	for (i = 0; i < POWER_TBL_NUM_ENTRIES; i++) {
+	for (i = 0; i < POWER_TBL_NUM_ENTRIES; i++)
+	{
 		u8 is_mimo_rate;
 		union il4965_tx_power_dual_stream tx_power;
 
 		/* for mimo, reduce each chain's txpower by half
 		 * (3dB, 6 steps), so total output power is regulatory
 		 * compliant. */
-		if (i & 0x8) {
+		if (i & 0x8)
+		{
 			current_regulatory =
-			    reg_limit -
-			    IL_TX_POWER_MIMO_REGULATORY_COMPENSATION;
+				reg_limit -
+				IL_TX_POWER_MIMO_REGULATORY_COMPENSATION;
 			is_mimo_rate = 1;
-		} else {
+		}
+		else
+		{
 			current_regulatory = reg_limit;
 			is_mimo_rate = 0;
 		}
 
 		/* find txpower limit, either hardware or regulatory */
 		power_limit = saturation_power - back_off_table[i];
+
 		if (power_limit > current_regulatory)
+		{
 			power_limit = current_regulatory;
+		}
 
 		/* reduce user's txpower request if necessary
 		 * for this rate on this channel */
 		target_power = user_target_power;
+
 		if (target_power > power_limit)
+		{
 			target_power = power_limit;
+		}
 
 		D_TXPOWER("rate %d sat %d reg %d usr %d tgt %d\n", i,
-			  saturation_power - back_off_table[i],
-			  current_regulatory, user_target_power, target_power);
+				  saturation_power - back_off_table[i],
+				  current_regulatory, user_target_power, target_power);
 
 		/* for each of 2 Tx chains (radio transmitters) */
-		for (c = 0; c < 2; c++) {
+		for (c = 0; c < 2; c++)
+		{
 			s32 atten_value;
 
 			if (is_mimo_rate)
 				atten_value =
-				    (s32) le32_to_cpu(il->card_alive_init.
-						      tx_atten[txatten_grp][c]);
+					(s32) le32_to_cpu(il->card_alive_init.
+									  tx_atten[txatten_grp][c]);
 			else
+			{
 				atten_value = 0;
+			}
 
 			/* calculate idx; higher idx means lower txpower */
 			power_idx =
-			    (u8) (factory_gain_idx[c] -
-				  (target_power - factory_actual_pwr[c]) -
-				  temperature_comp[c] - voltage_compensation +
-				  atten_value);
+				(u8) (factory_gain_idx[c] -
+					  (target_power - factory_actual_pwr[c]) -
+					  temperature_comp[c] - voltage_compensation +
+					  atten_value);
 
-/*			D_TXPOWER("calculated txpower idx %d\n",
-						power_idx); */
+			/*			D_TXPOWER("calculated txpower idx %d\n",
+									power_idx); */
 
 			if (power_idx < get_min_power_idx(i, band))
+			{
 				power_idx = get_min_power_idx(i, band);
+			}
 
 			/* adjust 5 GHz idx to support negative idxes */
 			if (!band)
+			{
 				power_idx += 9;
+			}
 
 			/* CCK, rate 32, reduce txpower for CCK */
 			if (i == POWER_TBL_CCK_ENTRY)
 				power_idx +=
-				    IL_TX_POWER_CCK_COMPENSATION_C_STEP;
+					IL_TX_POWER_CCK_COMPENSATION_C_STEP;
 
 			/* stay within the table! */
-			if (power_idx > 107) {
+			if (power_idx > 107)
+			{
 				IL_WARN("txpower idx %d > 107\n", power_idx);
 				power_idx = 107;
 			}
-			if (power_idx < 0) {
+
+			if (power_idx < 0)
+			{
 				IL_WARN("txpower idx %d < 0\n", power_idx);
 				power_idx = 0;
 			}
 
 			/* fill txpower command for this rate/chain */
 			tx_power.s.radio_tx_gain[c] =
-			    gain_table[band][power_idx].radio;
+				gain_table[band][power_idx].radio;
 			tx_power.s.dsp_predis_atten[c] =
-			    gain_table[band][power_idx].dsp;
+				gain_table[band][power_idx].dsp;
 
 			D_TXPOWER("chain %d mimo %d idx %d "
-				  "gain 0x%02x dsp %d\n", c, atten_value,
-				  power_idx, tx_power.s.radio_tx_gain[c],
-				  tx_power.s.dsp_predis_atten[c]);
+					  "gain 0x%02x dsp %d\n", c, atten_value,
+					  power_idx, tx_power.s.radio_tx_gain[c],
+					  tx_power.s.dsp_predis_atten[c]);
 		}		/* for each chain */
 
 		tx_power_tbl->power_tbl[i].dw = cpu_to_le32(tx_power.dw);
@@ -1263,25 +1418,32 @@ il4965_send_tx_power(struct il_priv *il)
 	u8 ctrl_chan_high = 0;
 
 	if (WARN_ONCE
-	    (test_bit(S_SCAN_HW, &il->status),
-	     "TX Power requested while scanning!\n"))
+		(test_bit(S_SCAN_HW, &il->status),
+		 "TX Power requested while scanning!\n"))
+	{
 		return -EAGAIN;
+	}
 
 	band = il->band == NL80211_BAND_2GHZ;
 
 	is_ht40 = iw4965_is_ht40_channel(il->active.flags);
 
 	if (is_ht40 && (il->active.flags & RXON_FLG_CTRL_CHANNEL_LOC_HI_MSK))
+	{
 		ctrl_chan_high = 1;
+	}
 
 	cmd.band = band;
 	cmd.channel = il->active.channel;
 
 	ret =
-	    il4965_fill_txpower_tbl(il, band, le16_to_cpu(il->active.channel),
-				    is_ht40, ctrl_chan_high, &cmd.tx_power);
+		il4965_fill_txpower_tbl(il, band, le16_to_cpu(il->active.channel),
+								is_ht40, ctrl_chan_high, &cmd.tx_power);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ret = il_send_cmd_pdu(il, C_TX_PWR_TBL, sizeof(cmd), &cmd);
 
@@ -1298,14 +1460,15 @@ il4965_send_rxon_assoc(struct il_priv *il)
 	const struct il_rxon_cmd *rxon2 = &il->active;
 
 	if (rxon1->flags == rxon2->flags &&
-	    rxon1->filter_flags == rxon2->filter_flags &&
-	    rxon1->cck_basic_rates == rxon2->cck_basic_rates &&
-	    rxon1->ofdm_ht_single_stream_basic_rates ==
-	    rxon2->ofdm_ht_single_stream_basic_rates &&
-	    rxon1->ofdm_ht_dual_stream_basic_rates ==
-	    rxon2->ofdm_ht_dual_stream_basic_rates &&
-	    rxon1->rx_chain == rxon2->rx_chain &&
-	    rxon1->ofdm_basic_rates == rxon2->ofdm_basic_rates) {
+		rxon1->filter_flags == rxon2->filter_flags &&
+		rxon1->cck_basic_rates == rxon2->cck_basic_rates &&
+		rxon1->ofdm_ht_single_stream_basic_rates ==
+		rxon2->ofdm_ht_single_stream_basic_rates &&
+		rxon1->ofdm_ht_dual_stream_basic_rates ==
+		rxon2->ofdm_ht_dual_stream_basic_rates &&
+		rxon1->rx_chain == rxon2->rx_chain &&
+		rxon1->ofdm_basic_rates == rxon2->ofdm_basic_rates)
+	{
 		D_INFO("Using current RXON_ASSOC.  Not resending.\n");
 		return 0;
 	}
@@ -1316,14 +1479,14 @@ il4965_send_rxon_assoc(struct il_priv *il)
 	rxon_assoc.cck_basic_rates = il->staging.cck_basic_rates;
 	rxon_assoc.reserved = 0;
 	rxon_assoc.ofdm_ht_single_stream_basic_rates =
-	    il->staging.ofdm_ht_single_stream_basic_rates;
+		il->staging.ofdm_ht_single_stream_basic_rates;
 	rxon_assoc.ofdm_ht_dual_stream_basic_rates =
-	    il->staging.ofdm_ht_dual_stream_basic_rates;
+		il->staging.ofdm_ht_dual_stream_basic_rates;
 	rxon_assoc.rx_chain_select_flags = il->staging.rx_chain;
 
 	ret =
-	    il_send_cmd_pdu_async(il, C_RXON_ASSOC, sizeof(rxon_assoc),
-				  &rxon_assoc, NULL);
+		il_send_cmd_pdu_async(il, C_RXON_ASSOC, sizeof(rxon_assoc),
+							  &rxon_assoc, NULL);
 
 	return ret;
 }
@@ -1337,13 +1500,17 @@ il4965_commit_rxon(struct il_priv *il)
 	bool new_assoc = !!(il->staging.filter_flags & RXON_FILTER_ASSOC_MSK);
 
 	if (!il_is_alive(il))
+	{
 		return -EBUSY;
+	}
 
 	/* always get timestamp with Rx frame */
 	il->staging.flags |= RXON_FLG_TSF2HOST_MSK;
 
 	ret = il_check_rxon_cmd(il);
-	if (ret) {
+
+	if (ret)
+	{
 		IL_ERR("Invalid RXON configuration.  Not committing.\n");
 		return -EINVAL;
 	}
@@ -1353,18 +1520,22 @@ il4965_commit_rxon(struct il_priv *il)
 	 * abort any previous channel switch if still in process
 	 */
 	if (test_bit(S_CHANNEL_SWITCH_PENDING, &il->status) &&
-	    il->switch_channel != il->staging.channel) {
+		il->switch_channel != il->staging.channel)
+	{
 		D_11H("abort channel switch on %d\n",
-		      le16_to_cpu(il->switch_channel));
+			  le16_to_cpu(il->switch_channel));
 		il_chswitch_done(il, false);
 	}
 
 	/* If we don't need to send a full RXON, we can use
 	 * il_rxon_assoc_cmd which is used to reconfigure filter
 	 * and other flags for the current radio configuration. */
-	if (!il_full_rxon_required(il)) {
+	if (!il_full_rxon_required(il))
+	{
 		ret = il_send_rxon_assoc(il);
-		if (ret) {
+
+		if (ret)
+		{
 			IL_ERR("Error setting RXON_ASSOC (%d)\n", ret);
 			return ret;
 		}
@@ -1383,33 +1554,38 @@ il4965_commit_rxon(struct il_priv *il)
 	 * an RXON_ASSOC and the new config wants the associated mask enabled,
 	 * we must clear the associated from the active configuration
 	 * before we apply the new config */
-	if (il_is_associated(il) && new_assoc) {
+	if (il_is_associated(il) && new_assoc)
+	{
 		D_INFO("Toggling associated bit on current RXON\n");
 		active_rxon->filter_flags &= ~RXON_FILTER_ASSOC_MSK;
 
 		ret =
-		    il_send_cmd_pdu(il, C_RXON,
-				    sizeof(struct il_rxon_cmd), active_rxon);
+			il_send_cmd_pdu(il, C_RXON,
+							sizeof(struct il_rxon_cmd), active_rxon);
 
 		/* If the mask clearing failed then we set
 		 * active_rxon back to what it was previously */
-		if (ret) {
+		if (ret)
+		{
 			active_rxon->filter_flags |= RXON_FILTER_ASSOC_MSK;
 			IL_ERR("Error clearing ASSOC_MSK (%d)\n", ret);
 			return ret;
 		}
+
 		il_clear_ucode_stations(il);
 		il_restore_stations(il);
 		ret = il4965_restore_default_wep_keys(il);
-		if (ret) {
+
+		if (ret)
+		{
 			IL_ERR("Failed to restore WEP keys (%d)\n", ret);
 			return ret;
 		}
 	}
 
 	D_INFO("Sending RXON\n" "* with%s RXON_FILTER_ASSOC_MSK\n"
-	       "* channel = %d\n" "* bssid = %pM\n", (new_assoc ? "" : "out"),
-	       le16_to_cpu(il->staging.channel), il->staging.bssid_addr);
+		   "* channel = %d\n" "* bssid = %pM\n", (new_assoc ? "" : "out"),
+		   le16_to_cpu(il->staging.channel), il->staging.bssid_addr);
 
 	il_set_rxon_hwcrypto(il, !il->cfg->mod_params->sw_crypto);
 
@@ -1417,38 +1593,50 @@ il4965_commit_rxon(struct il_priv *il)
 	 * RXON unassoc clears the station table in uCode so restoration of
 	 * stations is needed after it (the RXON command) completes
 	 */
-	if (!new_assoc) {
+	if (!new_assoc)
+	{
 		ret =
-		    il_send_cmd_pdu(il, C_RXON,
-				    sizeof(struct il_rxon_cmd), &il->staging);
-		if (ret) {
+			il_send_cmd_pdu(il, C_RXON,
+							sizeof(struct il_rxon_cmd), &il->staging);
+
+		if (ret)
+		{
 			IL_ERR("Error setting new RXON (%d)\n", ret);
 			return ret;
 		}
+
 		D_INFO("Return from !new_assoc RXON.\n");
 		memcpy(active_rxon, &il->staging, sizeof(*active_rxon));
 		il_clear_ucode_stations(il);
 		il_restore_stations(il);
 		ret = il4965_restore_default_wep_keys(il);
-		if (ret) {
+
+		if (ret)
+		{
 			IL_ERR("Failed to restore WEP keys (%d)\n", ret);
 			return ret;
 		}
 	}
-	if (new_assoc) {
+
+	if (new_assoc)
+	{
 		il->start_calib = 0;
 		/* Apply the new configuration
 		 * RXON assoc doesn't clear the station table in uCode,
 		 */
 		ret =
-		    il_send_cmd_pdu(il, C_RXON,
-				    sizeof(struct il_rxon_cmd), &il->staging);
-		if (ret) {
+			il_send_cmd_pdu(il, C_RXON,
+							sizeof(struct il_rxon_cmd), &il->staging);
+
+		if (ret)
+		{
 			IL_ERR("Error setting new RXON (%d)\n", ret);
 			return ret;
 		}
+
 		memcpy(active_rxon, &il->staging, sizeof(*active_rxon));
 	}
+
 	il_print_rx_config_cmd(il);
 
 	il4965_init_sensitivity(il);
@@ -1456,7 +1644,9 @@ il4965_commit_rxon(struct il_priv *il)
 	/* If we issue a new RXON command which required a tune then we must
 	 * send a new TXPOWER command or we won't be able to Tx any frames */
 	ret = il_set_tx_power(il, il->tx_power_next, true);
-	if (ret) {
+
+	if (ret)
+	{
 		IL_ERR("Error sending TX power (%d)\n", ret);
 		return ret;
 	}
@@ -1466,7 +1656,7 @@ il4965_commit_rxon(struct il_priv *il)
 
 static int
 il4965_hw_channel_switch(struct il_priv *il,
-			 struct ieee80211_channel_switch *ch_switch)
+						 struct ieee80211_channel_switch *ch_switch)
 {
 	int rc;
 	u8 band = 0;
@@ -1483,12 +1673,16 @@ il4965_hw_channel_switch(struct il_priv *il,
 	band = (il->band == NL80211_BAND_2GHZ);
 
 	if (WARN_ON_ONCE(vif == NULL))
+	{
 		return -EIO;
+	}
 
 	is_ht40 = iw4965_is_ht40_channel(il->staging.flags);
 
 	if (is_ht40 && (il->staging.flags & RXON_FLG_CTRL_CHANNEL_LOC_HI_MSK))
+	{
 		ctrl_chan_high = 1;
+	}
 
 	cmd.band = band;
 	cmd.expect_beacon = 0;
@@ -1498,43 +1692,60 @@ il4965_hw_channel_switch(struct il_priv *il,
 	cmd.rxon_filter_flags = il->staging.filter_flags;
 	switch_count = ch_switch->count;
 	tsf_low = ch_switch->timestamp & 0x0ffffffff;
+
 	/*
 	 * calculate the ucode channel switch time
 	 * adding TSF as one of the factor for when to switch
 	 */
-	if (il->ucode_beacon_time > tsf_low && beacon_interval) {
+	if (il->ucode_beacon_time > tsf_low && beacon_interval)
+	{
 		if (switch_count >
-		    ((il->ucode_beacon_time - tsf_low) / beacon_interval)) {
+			((il->ucode_beacon_time - tsf_low) / beacon_interval))
+		{
 			switch_count -=
-			    (il->ucode_beacon_time - tsf_low) / beacon_interval;
-		} else
+				(il->ucode_beacon_time - tsf_low) / beacon_interval;
+		}
+		else
+		{
 			switch_count = 0;
+		}
 	}
+
 	if (switch_count <= 1)
+	{
 		cmd.switch_time = cpu_to_le32(il->ucode_beacon_time);
-	else {
-		switch_time_in_usec =
-		    vif->bss_conf.beacon_int * switch_count * TIME_UNIT;
-		ucode_switch_time =
-		    il_usecs_to_beacons(il, switch_time_in_usec,
-					beacon_interval);
-		cmd.switch_time =
-		    il_add_beacon_time(il, il->ucode_beacon_time,
-				       ucode_switch_time, beacon_interval);
 	}
+	else
+	{
+		switch_time_in_usec =
+			vif->bss_conf.beacon_int * switch_count * TIME_UNIT;
+		ucode_switch_time =
+			il_usecs_to_beacons(il, switch_time_in_usec,
+								beacon_interval);
+		cmd.switch_time =
+			il_add_beacon_time(il, il->ucode_beacon_time,
+							   ucode_switch_time, beacon_interval);
+	}
+
 	D_11H("uCode time for the switch is 0x%x\n", cmd.switch_time);
 	ch_info = il_get_channel_info(il, il->band, ch);
+
 	if (ch_info)
+	{
 		cmd.expect_beacon = il_is_channel_radar(ch_info);
-	else {
+	}
+	else
+	{
 		IL_ERR("invalid channel switch from %u to %u\n",
-		       il->active.channel, ch);
+			   il->active.channel, ch);
 		return -EFAULT;
 	}
 
 	rc = il4965_fill_txpower_tbl(il, band, ch, is_ht40, ctrl_chan_high,
-				     &cmd.tx_power);
-	if (rc) {
+								 &cmd.tx_power);
+
+	if (rc)
+	{
 		D_11H("error:%d  fill txpower_tbl\n", rc);
 		return rc;
 	}
@@ -1547,7 +1758,7 @@ il4965_hw_channel_switch(struct il_priv *il,
  */
 static void
 il4965_txq_update_byte_cnt_tbl(struct il_priv *il, struct il_tx_queue *txq,
-			       u16 byte_cnt)
+							   u16 byte_cnt)
 {
 	struct il4965_scd_bc_tbl *scd_bc_tbl = il->scd_bc_tbls.addr;
 	int txq_id = txq->q.id;
@@ -1564,7 +1775,7 @@ il4965_txq_update_byte_cnt_tbl(struct il_priv *il, struct il_tx_queue *txq,
 	/* If within first 64 entries, duplicate at end */
 	if (write_ptr < TFD_QUEUE_SIZE_BC_DUP)
 		scd_bc_tbl[txq_id].tfd_offset[TFD_QUEUE_SIZE_MAX + write_ptr] =
-		    bc_ent;
+			bc_ent;
 }
 
 /**
@@ -1582,13 +1793,16 @@ il4965_hw_get_temperature(struct il_priv *il)
 	u32 R4;
 
 	if (test_bit(S_TEMPERATURE, &il->status) &&
-	    (il->_4965.stats.flag & STATS_REPLY_FLG_HT40_MODE_MSK)) {
+		(il->_4965.stats.flag & STATS_REPLY_FLG_HT40_MODE_MSK))
+	{
 		D_TEMP("Running HT40 temperature calibration\n");
 		R1 = (s32) le32_to_cpu(il->card_alive_init.therm_r1[1]);
 		R2 = (s32) le32_to_cpu(il->card_alive_init.therm_r2[1]);
 		R3 = (s32) le32_to_cpu(il->card_alive_init.therm_r3[1]);
 		R4 = le32_to_cpu(il->card_alive_init.therm_r4[1]);
-	} else {
+	}
+	else
+	{
 		D_TEMP("Running temperature calibration\n");
 		R1 = (s32) le32_to_cpu(il->card_alive_init.therm_r1[0]);
 		R2 = (s32) le32_to_cpu(il->card_alive_init.therm_r2[0]);
@@ -1604,15 +1818,18 @@ il4965_hw_get_temperature(struct il_priv *il)
 	 * "initialize" ALIVE response.
 	 */
 	if (!test_bit(S_TEMPERATURE, &il->status))
+	{
 		vt = sign_extend32(R4, 23);
+	}
 	else
 		vt = sign_extend32(le32_to_cpu
-				   (il->_4965.stats.general.common.temperature),
-				   23);
+						   (il->_4965.stats.general.common.temperature),
+						   23);
 
 	D_TEMP("Calib values R[1-3]: %d %d %d R4: %d\n", R1, R2, R3, vt);
 
-	if (R3 == R1) {
+	if (R3 == R1)
+	{
 		IL_ERR("Calibration conflict R1 == R3\n");
 		return -1;
 	}
@@ -1622,10 +1839,10 @@ il4965_hw_get_temperature(struct il_priv *il)
 	temperature = TEMPERATURE_CALIB_A_VAL * (vt - R2);
 	temperature /= (R3 - R1);
 	temperature =
-	    (temperature * 97) / 100 + TEMPERATURE_CALIB_KELVIN_OFFSET;
+		(temperature * 97) / 100 + TEMPERATURE_CALIB_KELVIN_OFFSET;
 
 	D_TEMP("Calibrated temperature: %dK, %dC\n", temperature,
-	       KELVIN_TO_CELSIUS(temperature));
+		   KELVIN_TO_CELSIUS(temperature));
 
 	return temperature;
 }
@@ -1647,7 +1864,8 @@ il4965_is_temp_calib_needed(struct il_priv *il)
 {
 	int temp_diff;
 
-	if (!test_bit(S_STATS, &il->status)) {
+	if (!test_bit(S_STATS, &il->status))
+	{
 		D_TEMP("Temperature not updated -- no stats.\n");
 		return 0;
 	}
@@ -1655,15 +1873,22 @@ il4965_is_temp_calib_needed(struct il_priv *il)
 	temp_diff = il->temperature - il->last_temperature;
 
 	/* get absolute value */
-	if (temp_diff < 0) {
+	if (temp_diff < 0)
+	{
 		D_POWER("Getting cooler, delta %d\n", temp_diff);
 		temp_diff = -temp_diff;
-	} else if (temp_diff == 0)
+	}
+	else if (temp_diff == 0)
+	{
 		D_POWER("Temperature unchanged\n");
+	}
 	else
+	{
 		D_POWER("Getting warmer, delta %d\n", temp_diff);
+	}
 
-	if (temp_diff < IL_TEMPERATURE_THRESHOLD) {
+	if (temp_diff < IL_TEMPERATURE_THRESHOLD)
+	{
 		D_POWER(" => thermal txpower calib not needed\n");
 		return 0;
 	}
@@ -1679,41 +1904,49 @@ il4965_temperature_calib(struct il_priv *il)
 	s32 temp;
 
 	temp = il4965_hw_get_temperature(il);
-	if (IL_TX_POWER_TEMPERATURE_OUT_OF_RANGE(temp))
-		return;
 
-	if (il->temperature != temp) {
+	if (IL_TX_POWER_TEMPERATURE_OUT_OF_RANGE(temp))
+	{
+		return;
+	}
+
+	if (il->temperature != temp)
+	{
 		if (il->temperature)
 			D_TEMP("Temperature changed " "from %dC to %dC\n",
-			       KELVIN_TO_CELSIUS(il->temperature),
-			       KELVIN_TO_CELSIUS(temp));
+				   KELVIN_TO_CELSIUS(il->temperature),
+				   KELVIN_TO_CELSIUS(temp));
 		else
 			D_TEMP("Temperature " "initialized to %dC\n",
-			       KELVIN_TO_CELSIUS(temp));
+				   KELVIN_TO_CELSIUS(temp));
 	}
 
 	il->temperature = temp;
 	set_bit(S_TEMPERATURE, &il->status);
 
 	if (!il->disable_tx_power_cal &&
-	    unlikely(!test_bit(S_SCANNING, &il->status)) &&
-	    il4965_is_temp_calib_needed(il))
+		unlikely(!test_bit(S_SCANNING, &il->status)) &&
+		il4965_is_temp_calib_needed(il))
+	{
 		queue_work(il->workqueue, &il->txpower_work);
+	}
 }
 
 static u16
 il4965_get_hcmd_size(u8 cmd_id, u16 len)
 {
-	switch (cmd_id) {
-	case C_RXON:
-		return (u16) sizeof(struct il4965_rxon_cmd);
-	default:
-		return len;
+	switch (cmd_id)
+	{
+		case C_RXON:
+			return (u16) sizeof(struct il4965_rxon_cmd);
+
+		default:
+			return len;
 	}
 }
 
 static u16
-il4965_build_addsta_hcmd(const struct il_addsta_cmd *cmd, u8 * data)
+il4965_build_addsta_hcmd(const struct il_addsta_cmd *cmd, u8 *data)
 {
 	struct il4965_addsta_cmd *addsta = (struct il4965_addsta_cmd *)data;
 	addsta->mode = cmd->mode;
@@ -1740,7 +1973,9 @@ il4965_post_scan(struct il_priv *il)
 	 * performing the scan, fire one off if needed
 	 */
 	if (memcmp(&il->staging, &il->active, sizeof(il->staging)))
+	{
 		il_commit_rxon(il);
+	}
 }
 
 static void
@@ -1750,10 +1985,14 @@ il4965_post_associate(struct il_priv *il)
 	int ret = 0;
 
 	if (!vif || !il->is_open)
+	{
 		return;
+	}
 
 	if (test_bit(S_EXIT_PENDING, &il->status))
+	{
 		return;
+	}
 
 	il_scan_cancel_timeout(il, 200);
 
@@ -1761,55 +2000,74 @@ il4965_post_associate(struct il_priv *il)
 	il_commit_rxon(il);
 
 	ret = il_send_rxon_timing(il);
+
 	if (ret)
+	{
 		IL_WARN("RXON timing - " "Attempting to continue.\n");
+	}
 
 	il->staging.filter_flags |= RXON_FILTER_ASSOC_MSK;
 
 	il_set_rxon_ht(il, &il->current_ht_config);
 
 	if (il->ops->set_rxon_chain)
+	{
 		il->ops->set_rxon_chain(il);
+	}
 
 	il->staging.assoc_id = cpu_to_le16(vif->bss_conf.aid);
 
 	D_ASSOC("assoc id %d beacon interval %d\n", vif->bss_conf.aid,
-		vif->bss_conf.beacon_int);
+			vif->bss_conf.beacon_int);
 
 	if (vif->bss_conf.use_short_preamble)
+	{
 		il->staging.flags |= RXON_FLG_SHORT_PREAMBLE_MSK;
+	}
 	else
+	{
 		il->staging.flags &= ~RXON_FLG_SHORT_PREAMBLE_MSK;
+	}
 
-	if (il->staging.flags & RXON_FLG_BAND_24G_MSK) {
+	if (il->staging.flags & RXON_FLG_BAND_24G_MSK)
+	{
 		if (vif->bss_conf.use_short_slot)
+		{
 			il->staging.flags |= RXON_FLG_SHORT_SLOT_MSK;
+		}
 		else
+		{
 			il->staging.flags &= ~RXON_FLG_SHORT_SLOT_MSK;
+		}
 	}
 
 	il_commit_rxon(il);
 
 	D_ASSOC("Associated as %d to: %pM\n", vif->bss_conf.aid,
-		il->active.bssid_addr);
+			il->active.bssid_addr);
 
-	switch (vif->type) {
-	case NL80211_IFTYPE_STATION:
-		break;
-	case NL80211_IFTYPE_ADHOC:
-		il4965_send_beacon_cmd(il);
-		break;
-	default:
-		IL_ERR("%s Should not be called in %d mode\n", __func__,
-		       vif->type);
-		break;
+	switch (vif->type)
+	{
+		case NL80211_IFTYPE_STATION:
+			break;
+
+		case NL80211_IFTYPE_ADHOC:
+			il4965_send_beacon_cmd(il);
+			break;
+
+		default:
+			IL_ERR("%s Should not be called in %d mode\n", __func__,
+				   vif->type);
+			break;
 	}
 
 	/* the chain noise calibration will enabled PM upon completion
 	 * If chain noise has already been run, then we need to enable
 	 * power management here */
 	if (il->chain_noise_data.state == IL_CHAIN_NOISE_DONE)
+	{
 		il_power_update_mode(il, false);
+	}
 
 	/* Enable Rx differential gain and sensitivity calibrations */
 	il4965_chain_noise_reset(il);
@@ -1825,10 +2083,13 @@ il4965_config_ap(struct il_priv *il)
 	lockdep_assert_held(&il->mutex);
 
 	if (test_bit(S_EXIT_PENDING, &il->status))
+	{
 		return;
+	}
 
 	/* The following should be done only at AP bring up */
-	if (!il_is_associated(il)) {
+	if (!il_is_associated(il))
+	{
 
 		/* RXON - unassoc (to set timing command) */
 		il->staging.filter_flags &= ~RXON_FILTER_ASSOC_MSK;
@@ -1836,39 +2097,55 @@ il4965_config_ap(struct il_priv *il)
 
 		/* RXON Timing */
 		ret = il_send_rxon_timing(il);
+
 		if (ret)
 			IL_WARN("RXON timing failed - "
-				"Attempting to continue.\n");
+					"Attempting to continue.\n");
 
 		/* AP has all antennas */
 		il->chain_noise_data.active_chains = il->hw_params.valid_rx_ant;
 		il_set_rxon_ht(il, &il->current_ht_config);
+
 		if (il->ops->set_rxon_chain)
+		{
 			il->ops->set_rxon_chain(il);
+		}
 
 		il->staging.assoc_id = 0;
 
 		if (vif->bss_conf.use_short_preamble)
+		{
 			il->staging.flags |= RXON_FLG_SHORT_PREAMBLE_MSK;
-		else
-			il->staging.flags &= ~RXON_FLG_SHORT_PREAMBLE_MSK;
-
-		if (il->staging.flags & RXON_FLG_BAND_24G_MSK) {
-			if (vif->bss_conf.use_short_slot)
-				il->staging.flags |= RXON_FLG_SHORT_SLOT_MSK;
-			else
-				il->staging.flags &= ~RXON_FLG_SHORT_SLOT_MSK;
 		}
+		else
+		{
+			il->staging.flags &= ~RXON_FLG_SHORT_PREAMBLE_MSK;
+		}
+
+		if (il->staging.flags & RXON_FLG_BAND_24G_MSK)
+		{
+			if (vif->bss_conf.use_short_slot)
+			{
+				il->staging.flags |= RXON_FLG_SHORT_SLOT_MSK;
+			}
+			else
+			{
+				il->staging.flags &= ~RXON_FLG_SHORT_SLOT_MSK;
+			}
+		}
+
 		/* need to send beacon cmd before committing assoc RXON! */
 		il4965_send_beacon_cmd(il);
 		/* restore RXON assoc */
 		il->staging.filter_flags |= RXON_FILTER_ASSOC_MSK;
 		il_commit_rxon(il);
 	}
+
 	il4965_send_beacon_cmd(il);
 }
 
-const struct il_ops il4965_ops = {
+const struct il_ops il4965_ops =
+{
 	.txq_update_byte_cnt_tbl = il4965_txq_update_byte_cnt_tbl,
 	.txq_attach_buf_to_tfd = il4965_hw_txq_attach_buf_to_tfd,
 	.txq_free_tfd = il4965_hw_txq_free_tfd,
@@ -1902,7 +2179,8 @@ const struct il_ops il4965_ops = {
 	.send_led_cmd = il4965_send_led_cmd,
 };
 
-struct il_cfg il4965_cfg = {
+struct il_cfg il4965_cfg =
+{
 	.name = "Intel(R) Wireless WiFi Link 4965AGN",
 	.fw_name_pre = IL4965_FW_PRE,
 	.ucode_api_max = IL4965_UCODE_API_MAX,

@@ -19,11 +19,11 @@
  *
  * edac_mc objects
  */
-	/* on edac_mc_sysfs.c */
+/* on edac_mc_sysfs.c */
 int edac_mc_sysfs_init(void);
 void edac_mc_sysfs_exit(void);
 extern int edac_create_sysfs_mci_device(struct mem_ctl_info *mci,
-					const struct attribute_group **groups);
+										const struct attribute_group **groups);
 extern void edac_remove_sysfs_mci_device(struct mem_ctl_info *mci);
 void edac_unregister_sysfs(struct mem_ctl_info *mci);
 extern int edac_get_log_ue(void);
@@ -36,13 +36,13 @@ extern int edac_get_poll_msec(void);
 extern int edac_mc_get_poll_msec(void);
 
 unsigned edac_dimm_info_location(struct dimm_info *dimm, char *buf,
-				 unsigned len);
+								 unsigned len);
 
-	/* on edac_device.c */
+/* on edac_device.c */
 extern int edac_device_register_sysfs_main_kobj(
-				struct edac_device_ctl_info *edac_dev);
+	struct edac_device_ctl_info *edac_dev);
 extern void edac_device_unregister_sysfs_main_kobj(
-				struct edac_device_ctl_info *edac_dev);
+	struct edac_device_ctl_info *edac_dev);
 extern int edac_device_create_sysfs(struct edac_device_ctl_info *edac_dev);
 extern void edac_device_remove_sysfs(struct edac_device_ctl_info *edac_dev);
 
@@ -54,7 +54,7 @@ bool edac_stop_work(struct delayed_work *work);
 bool edac_mod_work(struct delayed_work *work, unsigned long delay);
 
 extern void edac_device_reset_delay_period(struct edac_device_ctl_info
-					   *edac_dev, unsigned long value);
+		*edac_dev, unsigned long value);
 extern void edac_mc_reset_delay_period(unsigned long value);
 
 extern void *edac_align_ptr(void **p, unsigned size, int n_elems);
@@ -74,7 +74,7 @@ struct dentry *
 edac_debugfs_create_dir_at(const char *dirname, struct dentry *parent);
 struct dentry *
 edac_debugfs_create_file(const char *name, umode_t mode, struct dentry *parent,
-			 void *data, const struct file_operations *fops);
+						 void *data, const struct file_operations *fops);
 struct dentry *
 edac_debugfs_create_x8(const char *name, umode_t mode, struct dentry *parent, u8 *value);
 struct dentry *
@@ -88,13 +88,13 @@ static inline struct dentry *
 edac_debugfs_create_dir_at(const char *dirname, struct dentry *parent)		{ return NULL; }
 static inline struct dentry *
 edac_debugfs_create_file(const char *name, umode_t mode, struct dentry *parent,
-			 void *data, const struct file_operations *fops)	{ return NULL; }
+						 void *data, const struct file_operations *fops)	{ return NULL; }
 static inline struct dentry *
 edac_debugfs_create_x8(const char *name, umode_t mode,
-		       struct dentry *parent, u8 *value)			{ return NULL; }
+					   struct dentry *parent, u8 *value)			{ return NULL; }
 static inline struct dentry *
 edac_debugfs_create_x16(const char *name, umode_t mode,
-		       struct dentry *parent, u16 *value)			{ return NULL; }
+						struct dentry *parent, u16 *value)			{ return NULL; }
 #endif
 
 /*
@@ -110,7 +110,7 @@ extern int edac_pci_get_poll_msec(void);
 extern void edac_pci_remove_sysfs(struct edac_pci_ctl_info *pci);
 extern void edac_pci_handle_pe(struct edac_pci_ctl_info *pci, const char *msg);
 extern void edac_pci_handle_npe(struct edac_pci_ctl_info *pci,
-				const char *msg);
+								const char *msg);
 #else				/* CONFIG_PCI */
 /* pre-process these away */
 #define edac_pci_do_parity_check()

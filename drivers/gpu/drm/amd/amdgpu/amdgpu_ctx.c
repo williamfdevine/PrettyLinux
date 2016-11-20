@@ -35,11 +35,15 @@ static int amdgpu_ctx_init(struct amdgpu_device *adev, struct amdgpu_ctx *ctx)
 	kref_init(&ctx->refcount);
 	spin_lock_init(&ctx->ring_lock);
 	ctx->fences = kcalloc(amdgpu_sched_jobs * AMDGPU_MAX_RINGS,
-			      sizeof(struct fence*), GFP_KERNEL);
-	if (!ctx->fences)
-		return -ENOMEM;
+						  sizeof(struct fence *), GFP_KERNEL);
 
-	for (i = 0; i < AMDGPU_MAX_RINGS; ++i) {
+	if (!ctx->fences)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < AMDGPU_MAX_RINGS; ++i)
+	{
 		ctx->rings[i].sequence = 1;
 		ctx->rings[i].fences = &ctx->fences[amdgpu_sched_jobs * i];
 	}
@@ -47,25 +51,32 @@ static int amdgpu_ctx_init(struct amdgpu_device *adev, struct amdgpu_ctx *ctx)
 	ctx->reset_counter = atomic_read(&adev->gpu_reset_counter);
 
 	/* create context entity for each ring */
-	for (i = 0; i < adev->num_rings; i++) {
+	for (i = 0; i < adev->num_rings; i++)
+	{
 		struct amdgpu_ring *ring = adev->rings[i];
 		struct amd_sched_rq *rq;
 
 		rq = &ring->sched.sched_rq[AMD_SCHED_PRIORITY_NORMAL];
 		r = amd_sched_entity_init(&ring->sched, &ctx->rings[i].entity,
-					  rq, amdgpu_sched_jobs);
+								  rq, amdgpu_sched_jobs);
+
 		if (r)
+		{
 			break;
+		}
 	}
 
-	if (i < adev->num_rings) {
+	if (i < adev->num_rings)
+	{
 		for (j = 0; j < i; j++)
 			amd_sched_entity_fini(&adev->rings[j]->sched,
-					      &ctx->rings[j].entity);
+								  &ctx->rings[j].entity);
+
 		kfree(ctx->fences);
 		ctx->fences = NULL;
 		return r;
 	}
+
 	return 0;
 }
 
@@ -75,45 +86,59 @@ static void amdgpu_ctx_fini(struct amdgpu_ctx *ctx)
 	unsigned i, j;
 
 	if (!adev)
+	{
 		return;
+	}
 
 	for (i = 0; i < AMDGPU_MAX_RINGS; ++i)
 		for (j = 0; j < amdgpu_sched_jobs; ++j)
+		{
 			fence_put(ctx->rings[i].fences[j]);
+		}
+
 	kfree(ctx->fences);
 	ctx->fences = NULL;
 
 	for (i = 0; i < adev->num_rings; i++)
 		amd_sched_entity_fini(&adev->rings[i]->sched,
-				      &ctx->rings[i].entity);
+							  &ctx->rings[i].entity);
 }
 
 static int amdgpu_ctx_alloc(struct amdgpu_device *adev,
-			    struct amdgpu_fpriv *fpriv,
-			    uint32_t *id)
+							struct amdgpu_fpriv *fpriv,
+							uint32_t *id)
 {
 	struct amdgpu_ctx_mgr *mgr = &fpriv->ctx_mgr;
 	struct amdgpu_ctx *ctx;
 	int r;
 
 	ctx = kmalloc(sizeof(*ctx), GFP_KERNEL);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_lock(&mgr->lock);
 	r = idr_alloc(&mgr->ctx_handles, ctx, 1, 0, GFP_KERNEL);
-	if (r < 0) {
+
+	if (r < 0)
+	{
 		mutex_unlock(&mgr->lock);
 		kfree(ctx);
 		return r;
 	}
+
 	*id = (uint32_t)r;
 	r = amdgpu_ctx_init(adev, ctx);
-	if (r) {
+
+	if (r)
+	{
 		idr_remove(&mgr->ctx_handles, *id);
 		*id = 0;
 		kfree(ctx);
 	}
+
 	mutex_unlock(&mgr->lock);
 	return r;
 }
@@ -136,31 +161,38 @@ static int amdgpu_ctx_free(struct amdgpu_fpriv *fpriv, uint32_t id)
 
 	mutex_lock(&mgr->lock);
 	ctx = idr_find(&mgr->ctx_handles, id);
-	if (ctx) {
+
+	if (ctx)
+	{
 		idr_remove(&mgr->ctx_handles, id);
 		kref_put(&ctx->refcount, amdgpu_ctx_do_release);
 		mutex_unlock(&mgr->lock);
 		return 0;
 	}
+
 	mutex_unlock(&mgr->lock);
 	return -EINVAL;
 }
 
 static int amdgpu_ctx_query(struct amdgpu_device *adev,
-			    struct amdgpu_fpriv *fpriv, uint32_t id,
-			    union drm_amdgpu_ctx_out *out)
+							struct amdgpu_fpriv *fpriv, uint32_t id,
+							union drm_amdgpu_ctx_out *out)
 {
 	struct amdgpu_ctx *ctx;
 	struct amdgpu_ctx_mgr *mgr;
 	unsigned reset_counter;
 
 	if (!fpriv)
+	{
 		return -EINVAL;
+	}
 
 	mgr = &fpriv->ctx_mgr;
 	mutex_lock(&mgr->lock);
 	ctx = idr_find(&mgr->ctx_handles, id);
-	if (!ctx) {
+
+	if (!ctx)
+	{
 		mutex_unlock(&mgr->lock);
 		return -EINVAL;
 	}
@@ -171,11 +203,17 @@ static int amdgpu_ctx_query(struct amdgpu_device *adev,
 
 	/* determine if a GPU reset has occured since the last call */
 	reset_counter = atomic_read(&adev->gpu_reset_counter);
+
 	/* TODO: this should ideally return NO, GUILTY, or INNOCENT. */
 	if (ctx->reset_counter == reset_counter)
+	{
 		out->state.reset_status = AMDGPU_CTX_NO_RESET;
+	}
 	else
+	{
 		out->state.reset_status = AMDGPU_CTX_UNKNOWN_RESET;
+	}
+
 	ctx->reset_counter = reset_counter;
 
 	mutex_unlock(&mgr->lock);
@@ -183,7 +221,7 @@ static int amdgpu_ctx_query(struct amdgpu_device *adev,
 }
 
 int amdgpu_ctx_ioctl(struct drm_device *dev, void *data,
-		     struct drm_file *filp)
+					 struct drm_file *filp)
 {
 	int r;
 	uint32_t id;
@@ -195,19 +233,23 @@ int amdgpu_ctx_ioctl(struct drm_device *dev, void *data,
 	r = 0;
 	id = args->in.ctx_id;
 
-	switch (args->in.op) {
-	case AMDGPU_CTX_OP_ALLOC_CTX:
-		r = amdgpu_ctx_alloc(adev, fpriv, &id);
-		args->out.alloc.ctx_id = id;
-		break;
-	case AMDGPU_CTX_OP_FREE_CTX:
-		r = amdgpu_ctx_free(fpriv, id);
-		break;
-	case AMDGPU_CTX_OP_QUERY_STATE:
-		r = amdgpu_ctx_query(adev, fpriv, id, &args->out);
-		break;
-	default:
-		return -EINVAL;
+	switch (args->in.op)
+	{
+		case AMDGPU_CTX_OP_ALLOC_CTX:
+			r = amdgpu_ctx_alloc(adev, fpriv, &id);
+			args->out.alloc.ctx_id = id;
+			break;
+
+		case AMDGPU_CTX_OP_FREE_CTX:
+			r = amdgpu_ctx_free(fpriv, id);
+			break;
+
+		case AMDGPU_CTX_OP_QUERY_STATE:
+			r = amdgpu_ctx_query(adev, fpriv, id, &args->out);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return r;
@@ -219,14 +261,20 @@ struct amdgpu_ctx *amdgpu_ctx_get(struct amdgpu_fpriv *fpriv, uint32_t id)
 	struct amdgpu_ctx_mgr *mgr;
 
 	if (!fpriv)
+	{
 		return NULL;
+	}
 
 	mgr = &fpriv->ctx_mgr;
 
 	mutex_lock(&mgr->lock);
 	ctx = idr_find(&mgr->ctx_handles, id);
+
 	if (ctx)
+	{
 		kref_get(&ctx->refcount);
+	}
+
 	mutex_unlock(&mgr->lock);
 	return ctx;
 }
@@ -234,14 +282,16 @@ struct amdgpu_ctx *amdgpu_ctx_get(struct amdgpu_fpriv *fpriv, uint32_t id)
 int amdgpu_ctx_put(struct amdgpu_ctx *ctx)
 {
 	if (ctx == NULL)
+	{
 		return -EINVAL;
+	}
 
 	kref_put(&ctx->refcount, amdgpu_ctx_do_release);
 	return 0;
 }
 
 uint64_t amdgpu_ctx_add_fence(struct amdgpu_ctx *ctx, struct amdgpu_ring *ring,
-			      struct fence *fence)
+							  struct fence *fence)
 {
 	struct amdgpu_ctx_ring *cring = & ctx->rings[ring->idx];
 	uint64_t seq = cring->sequence;
@@ -250,11 +300,16 @@ uint64_t amdgpu_ctx_add_fence(struct amdgpu_ctx *ctx, struct amdgpu_ring *ring,
 
 	idx = seq & (amdgpu_sched_jobs - 1);
 	other = cring->fences[idx];
-	if (other) {
+
+	if (other)
+	{
 		signed long r;
 		r = fence_wait_timeout(other, false, MAX_SCHEDULE_TIMEOUT);
+
 		if (r < 0)
+		{
 			DRM_ERROR("Error (%ld) waiting for fence!\n", r);
+		}
 	}
 
 	fence_get(fence);
@@ -270,20 +325,22 @@ uint64_t amdgpu_ctx_add_fence(struct amdgpu_ctx *ctx, struct amdgpu_ring *ring,
 }
 
 struct fence *amdgpu_ctx_get_fence(struct amdgpu_ctx *ctx,
-				   struct amdgpu_ring *ring, uint64_t seq)
+								   struct amdgpu_ring *ring, uint64_t seq)
 {
 	struct amdgpu_ctx_ring *cring = & ctx->rings[ring->idx];
 	struct fence *fence;
 
 	spin_lock(&ctx->ring_lock);
 
-	if (seq >= cring->sequence) {
+	if (seq >= cring->sequence)
+	{
 		spin_unlock(&ctx->ring_lock);
 		return ERR_PTR(-EINVAL);
 	}
 
 
-	if (seq + amdgpu_sched_jobs < cring->sequence) {
+	if (seq + amdgpu_sched_jobs < cring->sequence)
+	{
 		spin_unlock(&ctx->ring_lock);
 		return NULL;
 	}
@@ -308,9 +365,12 @@ void amdgpu_ctx_mgr_fini(struct amdgpu_ctx_mgr *mgr)
 
 	idp = &mgr->ctx_handles;
 
-	idr_for_each_entry(idp, ctx, id) {
+	idr_for_each_entry(idp, ctx, id)
+	{
 		if (kref_put(&ctx->refcount, amdgpu_ctx_do_release) != 1)
+		{
 			DRM_ERROR("ctx %p is still alive\n", ctx);
+		}
 	}
 
 	idr_destroy(&mgr->ctx_handles);

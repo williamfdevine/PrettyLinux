@@ -39,8 +39,11 @@ void ieee802154_xmit_worker(struct work_struct *work)
 	int res;
 
 	res = drv_xmit_sync(local, skb);
+
 	if (res)
+	{
 		goto err_tx;
+	}
 
 	ieee802154_xmit_complete(&local->hw, skb, false);
 
@@ -62,7 +65,8 @@ ieee802154_tx(struct ieee802154_local *local, struct sk_buff *skb)
 	struct net_device *dev = skb->dev;
 	int ret;
 
-	if (!(local->hw.flags & IEEE802154_HW_TX_OMIT_CKSUM)) {
+	if (!(local->hw.flags & IEEE802154_HW_TX_OMIT_CKSUM))
+	{
 		u16 crc = crc_ccitt(0, skb->data, skb->len);
 
 		put_unaligned_le16(crc, skb_put(skb, 2));
@@ -72,16 +76,21 @@ ieee802154_tx(struct ieee802154_local *local, struct sk_buff *skb)
 	ieee802154_stop_queue(&local->hw);
 
 	/* async is priority, otherwise sync is fallback */
-	if (local->ops->xmit_async) {
+	if (local->ops->xmit_async)
+	{
 		ret = drv_xmit_async(local, skb);
-		if (ret) {
+
+		if (ret)
+		{
 			ieee802154_wake_queue(&local->hw);
 			goto err_tx;
 		}
 
 		dev->stats.tx_packets++;
 		dev->stats.tx_bytes += skb->len;
-	} else {
+	}
+	else
+	{
 		local->tx_skb = skb;
 		queue_work(local->workqueue, &local->tx_work);
 	}
@@ -114,7 +123,9 @@ ieee802154_subif_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	 * with security fields but the payload is not encrypted.
 	 */
 	rc = mac802154_llsec_encrypt(&sdata->sec, skb);
-	if (rc) {
+
+	if (rc)
+	{
 		netdev_warn(dev, "encryption failed: %i\n", rc);
 		kfree_skb(skb);
 		return NETDEV_TX_OK;

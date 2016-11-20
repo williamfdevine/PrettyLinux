@@ -55,7 +55,8 @@
  * internal buffer for I2C
  */
 #define PT3_I2C_MAX 4091
-struct pt3_i2cbuf {
+struct pt3_i2cbuf
+{
 	u8  data[PT3_I2C_MAX];
 	u8  tmp;
 	u32 num_cmds;
@@ -81,7 +82,8 @@ struct pt3_i2cbuf {
  * device is passed a pointer to this struct, dma-reads it,
  * and gets the DMA buffer ring for storing TS data.
  */
-struct xfer_desc {
+struct xfer_desc
+{
 	u32 addr_l; /* bus address of target data buffer */
 	u32 addr_h;
 	u32 size;
@@ -90,13 +92,15 @@ struct xfer_desc {
 };
 
 /* A DMA mapping of a page containing xfer_desc's */
-struct xfer_desc_buffer {
+struct xfer_desc_buffer
+{
 	dma_addr_t b_addr;
 	struct xfer_desc *descs; /* PAGE_SIZE (xfer_desc[DESCS_IN_PAGE]) */
 };
 
 /* A DMA mapping of a data buffer */
-struct dma_data_buffer {
+struct dma_data_buffer
+{
 	dma_addr_t b_addr;
 	u8 *data; /* size: u8[PAGE_SIZE] */
 };
@@ -104,19 +108,22 @@ struct dma_data_buffer {
 /*
  * device things
  */
-struct pt3_adap_config {
+struct pt3_adap_config
+{
 	struct i2c_board_info demod_info;
 	struct tc90522_config demod_cfg;
 
 	struct i2c_board_info tuner_info;
-	union tuner_config {
+	union tuner_config
+	{
 		struct qm1d1c0042_config qm1d1c0042;
 		struct mxl301rf_config   mxl301rf;
 	} tuner_cfg;
 	u32 init_freq;
 };
 
-struct pt3_adapter {
+struct pt3_adapter
+{
 	struct dvb_adapter  dvb_adap;  /* dvb_adap.priv => struct pt3_board */
 	int adap_idx;
 
@@ -145,7 +152,8 @@ struct pt3_adapter {
 };
 
 
-struct pt3_board {
+struct pt3_board
+{
 	struct pci_dev *pdev;
 	void __iomem *regs[2];
 	/* regs[0]: registers, regs[1]: internal memory, used for I2C */
@@ -178,7 +186,7 @@ extern int  pt3_stop_dma(struct pt3_adapter *adap);
 extern int  pt3_proc_dma(struct pt3_adapter *adap);
 
 extern int  pt3_i2c_master_xfer(struct i2c_adapter *adap,
-				struct i2c_msg *msgs, int num);
+								struct i2c_msg *msgs, int num);
 extern u32  pt3_i2c_functionality(struct i2c_adapter *adap);
 extern void pt3_i2c_reset(struct pt3_board *pt3);
 extern int  pt3_init_all_demods(struct pt3_board *pt3);

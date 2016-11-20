@@ -70,8 +70,11 @@ static irqreturn_t aio_iiro_16_cos(int irq, void *d)
 	unsigned int val;
 
 	status = inb(dev->iobase + AIO_IIRO_16_STATUS);
+
 	if (!(status & AIO_IIRO_16_STATUS_IRQE))
+	{
 		return IRQ_NONE;
+	}
 
 	val = aio_iiro_16_read_inputs(dev);
 	val |= (status << 16);
@@ -85,13 +88,17 @@ static irqreturn_t aio_iiro_16_cos(int irq, void *d)
 static void aio_iiro_enable_irq(struct comedi_device *dev, bool enable)
 {
 	if (enable)
+	{
 		inb(dev->iobase + AIO_IIRO_16_IRQ);
+	}
 	else
+	{
 		outb(0, dev->iobase + AIO_IIRO_16_IRQ);
+	}
 }
 
 static int aio_iiro_16_cos_cancel(struct comedi_device *dev,
-				  struct comedi_subdevice *s)
+								  struct comedi_subdevice *s)
 {
 	aio_iiro_enable_irq(dev, false);
 
@@ -99,7 +106,7 @@ static int aio_iiro_16_cos_cancel(struct comedi_device *dev,
 }
 
 static int aio_iiro_16_cos_cmd(struct comedi_device *dev,
-			       struct comedi_subdevice *s)
+							   struct comedi_subdevice *s)
 {
 	aio_iiro_enable_irq(dev, true);
 
@@ -107,8 +114,8 @@ static int aio_iiro_16_cos_cmd(struct comedi_device *dev,
 }
 
 static int aio_iiro_16_cos_cmdtest(struct comedi_device *dev,
-				   struct comedi_subdevice *s,
-				   struct comedi_cmd *cmd)
+								   struct comedi_subdevice *s,
+								   struct comedi_cmd *cmd)
 {
 	int err = 0;
 
@@ -121,7 +128,9 @@ static int aio_iiro_16_cos_cmdtest(struct comedi_device *dev,
 	err |= comedi_check_trigger_src(&cmd->stop_src, TRIG_NONE);
 
 	if (err)
+	{
 		return 1;
+	}
 
 	/* Step 2a : make sure trigger sources are unique */
 	/* Step 2b : and mutually compatible */
@@ -132,11 +141,13 @@ static int aio_iiro_16_cos_cmdtest(struct comedi_device *dev,
 	err |= comedi_check_trigger_arg_is(&cmd->scan_begin_arg, 0);
 	err |= comedi_check_trigger_arg_is(&cmd->convert_arg, 0);
 	err |= comedi_check_trigger_arg_is(&cmd->scan_end_arg,
-					   cmd->chanlist_len);
+									   cmd->chanlist_len);
 	err |= comedi_check_trigger_arg_is(&cmd->stop_arg, 0);
 
 	if (err)
+	{
 		return 3;
+	}
 
 	/* Step 4: fix up any arguments */
 
@@ -146,14 +157,15 @@ static int aio_iiro_16_cos_cmdtest(struct comedi_device *dev,
 }
 
 static int aio_iiro_16_do_insn_bits(struct comedi_device *dev,
-				    struct comedi_subdevice *s,
-				    struct comedi_insn *insn,
-				    unsigned int *data)
+									struct comedi_subdevice *s,
+									struct comedi_insn *insn,
+									unsigned int *data)
 {
-	if (comedi_dio_update_state(s, data)) {
+	if (comedi_dio_update_state(s, data))
+	{
 		outb(s->state & 0xff, dev->iobase + AIO_IIRO_16_RELAY_0_7);
 		outb((s->state >> 8) & 0xff,
-		     dev->iobase + AIO_IIRO_16_RELAY_8_15);
+			 dev->iobase + AIO_IIRO_16_RELAY_8_15);
 	}
 
 	data[1] = s->state;
@@ -162,9 +174,9 @@ static int aio_iiro_16_do_insn_bits(struct comedi_device *dev,
 }
 
 static int aio_iiro_16_di_insn_bits(struct comedi_device *dev,
-				    struct comedi_subdevice *s,
-				    struct comedi_insn *insn,
-				    unsigned int *data)
+									struct comedi_subdevice *s,
+									struct comedi_insn *insn,
+									unsigned int *data)
 {
 	data[1] = aio_iiro_16_read_inputs(dev);
 
@@ -172,14 +184,17 @@ static int aio_iiro_16_di_insn_bits(struct comedi_device *dev,
 }
 
 static int aio_iiro_16_attach(struct comedi_device *dev,
-			      struct comedi_devconfig *it)
+							  struct comedi_devconfig *it)
 {
 	struct comedi_subdevice *s;
 	int ret;
 
 	ret = comedi_request_region(dev, it->options[0], 0x8);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	aio_iiro_enable_irq(dev, false);
 
@@ -187,16 +202,23 @@ static int aio_iiro_16_attach(struct comedi_device *dev,
 	 * Digital input change of state interrupts are optionally supported
 	 * using IRQ 2-7, 10-12, 14, or 15.
 	 */
-	if ((1 << it->options[1]) & 0xdcfc) {
+	if ((1 << it->options[1]) & 0xdcfc)
+	{
 		ret = request_irq(it->options[1], aio_iiro_16_cos, 0,
-				  dev->board_name, dev);
+						  dev->board_name, dev);
+
 		if (ret == 0)
+		{
 			dev->irq = it->options[1];
+		}
 	}
 
 	ret = comedi_alloc_subdevices(dev, 2);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Digital Output subdevice */
 	s = &dev->subdevices[0];
@@ -209,7 +231,7 @@ static int aio_iiro_16_attach(struct comedi_device *dev,
 
 	/* get the initial state of the relays */
 	s->state = inb(dev->iobase + AIO_IIRO_16_RELAY_0_7) |
-		   (inb(dev->iobase + AIO_IIRO_16_RELAY_8_15) << 8);
+			   (inb(dev->iobase + AIO_IIRO_16_RELAY_8_15) << 8);
 
 	/* Digital Input subdevice */
 	s = &dev->subdevices[1];
@@ -219,7 +241,9 @@ static int aio_iiro_16_attach(struct comedi_device *dev,
 	s->maxdata	= 1;
 	s->range_table	= &range_digital;
 	s->insn_bits	= aio_iiro_16_di_insn_bits;
-	if (dev->irq) {
+
+	if (dev->irq)
+	{
 		dev->read_subdev = s;
 		s->subdev_flags	|= SDF_CMD_READ | SDF_LSAMPL;
 		s->len_chanlist	= 1;
@@ -231,7 +255,8 @@ static int aio_iiro_16_attach(struct comedi_device *dev,
 	return 0;
 }
 
-static struct comedi_driver aio_iiro_16_driver = {
+static struct comedi_driver aio_iiro_16_driver =
+{
 	.driver_name	= "aio_iiro_16",
 	.module		= THIS_MODULE,
 	.attach		= aio_iiro_16_attach,

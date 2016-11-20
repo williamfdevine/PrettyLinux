@@ -22,7 +22,8 @@
 #define SEC4_SG_LEN_MASK	0x3fffffff	/* Excludes EXT and FINAL */
 #define SEC4_SG_OFFSET_MASK	0x00001fff
 
-struct sec4_sg_entry {
+struct sec4_sg_entry
+{
 	u64 ptr;
 	u32 len;
 	u32 bpid_offset;

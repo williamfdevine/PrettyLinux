@@ -64,7 +64,8 @@
 #define TIMER_EN			(1 << 31)
 #define TIMER_PERIODIC			(1 << 30)
 
-struct tegra_wdt {
+struct tegra_wdt
+{
 	struct watchdog_device	wdd;
 	void __iomem		*wdt_regs;
 	void __iomem		*tmr_regs;
@@ -74,14 +75,14 @@ struct tegra_wdt {
 static int heartbeat = WDT_HEARTBEAT;
 module_param(heartbeat, int, 0);
 MODULE_PARM_DESC(heartbeat,
-	"Watchdog heartbeats in seconds. (default = "
-	__MODULE_STRING(WDT_HEARTBEAT) ")");
+				 "Watchdog heartbeats in seconds. (default = "
+				 __MODULE_STRING(WDT_HEARTBEAT) ")");
 
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-	"Watchdog cannot be stopped once started (default="
-	__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 static int tegra_wdt_start(struct watchdog_device *wdd)
 {
@@ -106,8 +107,8 @@ static int tegra_wdt_start(struct watchdog_device *wdd)
 	 * WDT to reset the counter before expiration, through ioctls.
 	 */
 	val = WDT_TIMER_ID |
-	      (wdd->timeout << WDT_CFG_PERIOD_SHIFT) |
-	      WDT_CFG_PMC2CAR_RST_EN;
+		  (wdd->timeout << WDT_CFG_PERIOD_SHIFT) |
+		  WDT_CFG_PMC2CAR_RST_EN;
 	writel(val, wdt->wdt_regs + WDT_CFG);
 
 	writel(WDT_CMD_START_COUNTER, wdt->wdt_regs + WDT_CMD);
@@ -136,11 +137,12 @@ static int tegra_wdt_ping(struct watchdog_device *wdd)
 }
 
 static int tegra_wdt_set_timeout(struct watchdog_device *wdd,
-				 unsigned int timeout)
+								 unsigned int timeout)
 {
 	wdd->timeout = timeout;
 
-	if (watchdog_active(wdd)) {
+	if (watchdog_active(wdd))
+	{
 		tegra_wdt_stop(wdd);
 		return tegra_wdt_start(wdd);
 	}
@@ -170,15 +172,17 @@ static unsigned int tegra_wdt_get_timeleft(struct watchdog_device *wdd)
 	return (((3 - exp) * wdd->timeout) + count) / 4;
 }
 
-static const struct watchdog_info tegra_wdt_info = {
+static const struct watchdog_info tegra_wdt_info =
+{
 	.options	= WDIOF_SETTIMEOUT |
-			  WDIOF_MAGICCLOSE |
-			  WDIOF_KEEPALIVEPING,
+	WDIOF_MAGICCLOSE |
+	WDIOF_KEEPALIVEPING,
 	.firmware_version = 0,
 	.identity	= "Tegra Watchdog",
 };
 
-static const struct watchdog_ops tegra_wdt_ops = {
+static const struct watchdog_ops tegra_wdt_ops =
+{
 	.owner = THIS_MODULE,
 	.start = tegra_wdt_start,
 	.stop = tegra_wdt_stop,
@@ -198,16 +202,22 @@ static int tegra_wdt_probe(struct platform_device *pdev)
 	/* This is the timer base. */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	regs = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(regs))
+	{
 		return PTR_ERR(regs);
+	}
 
 	/*
 	 * Allocate our watchdog driver data, which has the
 	 * struct watchdog_device nested within it.
 	 */
 	wdt = devm_kzalloc(&pdev->dev, sizeof(*wdt), GFP_KERNEL);
+
 	if (!wdt)
+	{
 		return -ENOMEM;
+	}
 
 	/* Initialize struct tegra_wdt. */
 	wdt->wdt_regs = regs + WDT_BASE;
@@ -227,17 +237,19 @@ static int tegra_wdt_probe(struct platform_device *pdev)
 	watchdog_set_nowayout(wdd, nowayout);
 
 	ret = watchdog_register_device(wdd);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev,
-			"failed to register watchdog device\n");
+				"failed to register watchdog device\n");
 		return ret;
 	}
 
 	platform_set_drvdata(pdev, wdt);
 
 	dev_info(&pdev->dev,
-		 "initialized (heartbeat = %d sec, nowayout = %d)\n",
-		 heartbeat, nowayout);
+			 "initialized (heartbeat = %d sec, nowayout = %d)\n",
+			 heartbeat, nowayout);
 
 	return 0;
 }
@@ -261,7 +273,9 @@ static int tegra_wdt_runtime_suspend(struct device *dev)
 	struct tegra_wdt *wdt = dev_get_drvdata(dev);
 
 	if (watchdog_active(&wdt->wdd))
+	{
 		tegra_wdt_stop(&wdt->wdd);
+	}
 
 	return 0;
 }
@@ -271,24 +285,29 @@ static int tegra_wdt_runtime_resume(struct device *dev)
 	struct tegra_wdt *wdt = dev_get_drvdata(dev);
 
 	if (watchdog_active(&wdt->wdd))
+	{
 		tegra_wdt_start(&wdt->wdd);
+	}
 
 	return 0;
 }
 #endif
 
-static const struct of_device_id tegra_wdt_of_match[] = {
+static const struct of_device_id tegra_wdt_of_match[] =
+{
 	{ .compatible = "nvidia,tegra30-timer", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, tegra_wdt_of_match);
 
-static const struct dev_pm_ops tegra_wdt_pm_ops = {
+static const struct dev_pm_ops tegra_wdt_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(tegra_wdt_runtime_suspend,
-				tegra_wdt_runtime_resume)
+	tegra_wdt_runtime_resume)
 };
 
-static struct platform_driver tegra_wdt_driver = {
+static struct platform_driver tegra_wdt_driver =
+{
 	.probe		= tegra_wdt_probe,
 	.remove		= tegra_wdt_remove,
 	.driver		= {

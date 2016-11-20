@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-struct utimbuf {
+struct utimbuf
+{
 	__kernel_time_t actime;
 	__kernel_time_t modtime;
 };

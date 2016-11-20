@@ -7,7 +7,8 @@
 static inline void
 rq_sched_info_arrive(struct rq *rq, unsigned long long delta)
 {
-	if (rq) {
+	if (rq)
+	{
 		rq->rq_sched_info.run_delay += delta;
 		rq->rq_sched_info.pcount++;
 	}
@@ -20,14 +21,18 @@ static inline void
 rq_sched_info_depart(struct rq *rq, unsigned long long delta)
 {
 	if (rq)
+	{
 		rq->rq_cpu_time += delta;
+	}
 }
 
 static inline void
 rq_sched_info_dequeued(struct rq *rq, unsigned long long delta)
 {
 	if (rq)
+	{
 		rq->rq_sched_info.run_delay += delta;
+	}
 }
 #define schedstat_enabled()		static_branch_unlikely(&sched_schedstats)
 #define schedstat_inc(var)		do { if (schedstat_enabled()) { var++; } } while (0)
@@ -72,7 +77,10 @@ static inline void sched_info_dequeued(struct rq *rq, struct task_struct *t)
 
 	if (unlikely(sched_info_on()))
 		if (t->sched_info.last_queued)
+		{
 			delta = now - t->sched_info.last_queued;
+		}
+
 	sched_info_reset_dequeued(t);
 	t->sched_info.run_delay += delta;
 
@@ -89,7 +97,10 @@ static void sched_info_arrive(struct rq *rq, struct task_struct *t)
 	unsigned long long now = rq_clock(rq), delta = 0;
 
 	if (t->sched_info.last_queued)
+	{
 		delta = now - t->sched_info.last_queued;
+	}
+
 	sched_info_reset_dequeued(t);
 	t->sched_info.run_delay += delta;
 	t->sched_info.last_arrival = now;
@@ -107,7 +118,9 @@ static inline void sched_info_queued(struct rq *rq, struct task_struct *t)
 {
 	if (unlikely(sched_info_on()))
 		if (!t->sched_info.last_queued)
+		{
 			t->sched_info.last_queued = rq_clock(rq);
+		}
 }
 
 /*
@@ -121,12 +134,14 @@ static inline void sched_info_queued(struct rq *rq, struct task_struct *t)
 static inline void sched_info_depart(struct rq *rq, struct task_struct *t)
 {
 	unsigned long long delta = rq_clock(rq) -
-					t->sched_info.last_arrival;
+							   t->sched_info.last_arrival;
 
 	rq_sched_info_depart(rq, delta);
 
 	if (t->state == TASK_RUNNING)
+	{
 		sched_info_queued(rq, t);
+	}
 }
 
 /*
@@ -136,7 +151,7 @@ static inline void sched_info_depart(struct rq *rq, struct task_struct *t)
  */
 static inline void
 __sched_info_switch(struct rq *rq,
-		    struct task_struct *prev, struct task_struct *next)
+					struct task_struct *prev, struct task_struct *next)
 {
 	/*
 	 * prev now departs the cpu.  It's not interesting to record
@@ -144,17 +159,23 @@ __sched_info_switch(struct rq *rq,
 	 * process, however.
 	 */
 	if (prev != rq->idle)
+	{
 		sched_info_depart(rq, prev);
+	}
 
 	if (next != rq->idle)
+	{
 		sched_info_arrive(rq, next);
+	}
 }
 static inline void
 sched_info_switch(struct rq *rq,
-		  struct task_struct *prev, struct task_struct *next)
+				  struct task_struct *prev, struct task_struct *next)
 {
 	if (unlikely(sched_info_on()))
+	{
 		__sched_info_switch(rq, prev, next);
+	}
 }
 #else
 #define sched_info_queued(rq, t)		do { } while (0)
@@ -183,7 +204,9 @@ static inline bool cputimer_running(struct task_struct *tsk)
 
 	/* Check if cputimer isn't running. This is accessed without locking. */
 	if (!READ_ONCE(cputimer->running))
+	{
 		return false;
+	}
 
 	/*
 	 * After we flush the task's sum_exec_runtime to sig->sum_sched_runtime
@@ -200,7 +223,9 @@ static inline bool cputimer_running(struct task_struct *tsk)
 	 * clock delta is behind the expiring timer value.
 	 */
 	if (unlikely(!tsk->sighand))
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -216,12 +241,14 @@ static inline bool cputimer_running(struct task_struct *tsk)
  * running CPU and update the utime field there.
  */
 static inline void account_group_user_time(struct task_struct *tsk,
-					   cputime_t cputime)
+		cputime_t cputime)
 {
 	struct thread_group_cputimer *cputimer = &tsk->signal->cputimer;
 
 	if (!cputimer_running(tsk))
+	{
 		return;
+	}
 
 	atomic64_add(cputime, &cputimer->cputime_atomic.utime);
 }
@@ -237,12 +264,14 @@ static inline void account_group_user_time(struct task_struct *tsk,
  * running CPU and update the stime field there.
  */
 static inline void account_group_system_time(struct task_struct *tsk,
-					     cputime_t cputime)
+		cputime_t cputime)
 {
 	struct thread_group_cputimer *cputimer = &tsk->signal->cputimer;
 
 	if (!cputimer_running(tsk))
+	{
 		return;
+	}
 
 	atomic64_add(cputime, &cputimer->cputime_atomic.stime);
 }
@@ -258,12 +287,14 @@ static inline void account_group_system_time(struct task_struct *tsk,
  * running CPU and update the sum_exec_runtime field there.
  */
 static inline void account_group_exec_runtime(struct task_struct *tsk,
-					      unsigned long long ns)
+		unsigned long long ns)
 {
 	struct thread_group_cputimer *cputimer = &tsk->signal->cputimer;
 
 	if (!cputimer_running(tsk))
+	{
 		return;
+	}
 
 	atomic64_add(ns, &cputimer->cputime_atomic.sum_exec_runtime);
 }

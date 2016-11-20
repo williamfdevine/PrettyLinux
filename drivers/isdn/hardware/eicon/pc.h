@@ -28,7 +28,8 @@
 /*------------------------------------------------------------------*/
 /* buffer definition                                                */
 /*------------------------------------------------------------------*/
-typedef struct {
+typedef struct
+{
 	word length;          /* length of data/parameter field           */
 	byte P[270];          /* data/parameter field                     */
 } PBUFFER;

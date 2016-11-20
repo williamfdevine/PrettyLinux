@@ -20,33 +20,34 @@
 
 #include <linux/mfd/tps65086.h>
 
-struct tps65086_gpio {
+struct tps65086_gpio
+{
 	struct gpio_chip chip;
 	struct tps65086 *tps;
 };
 
 static int tps65086_gpio_get_direction(struct gpio_chip *chip,
-				       unsigned offset)
+									   unsigned offset)
 {
 	/* This device is output only */
 	return 0;
 }
 
 static int tps65086_gpio_direction_input(struct gpio_chip *chip,
-					 unsigned offset)
+		unsigned offset)
 {
 	/* This device is output only */
 	return -EINVAL;
 }
 
 static int tps65086_gpio_direction_output(struct gpio_chip *chip,
-					  unsigned offset, int value)
+		unsigned offset, int value)
 {
 	struct tps65086_gpio *gpio = gpiochip_get_data(chip);
 
 	/* Set the initial value */
 	regmap_update_bits(gpio->tps->regmap, TPS65086_GPOCTRL,
-			   BIT(4 + offset), value ? BIT(4 + offset) : 0);
+					   BIT(4 + offset), value ? BIT(4 + offset) : 0);
 
 	return 0;
 }
@@ -57,22 +58,26 @@ static int tps65086_gpio_get(struct gpio_chip *chip, unsigned offset)
 	int ret, val;
 
 	ret = regmap_read(gpio->tps->regmap, TPS65086_GPOCTRL, &val);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return val & BIT(4 + offset);
 }
 
 static void tps65086_gpio_set(struct gpio_chip *chip, unsigned offset,
-			      int value)
+							  int value)
 {
 	struct tps65086_gpio *gpio = gpiochip_get_data(chip);
 
 	regmap_update_bits(gpio->tps->regmap, TPS65086_GPOCTRL,
-			   BIT(4 + offset), value ? BIT(4 + offset) : 0);
+					   BIT(4 + offset), value ? BIT(4 + offset) : 0);
 }
 
-static const struct gpio_chip template_chip = {
+static const struct gpio_chip template_chip =
+{
 	.label			= "tps65086-gpio",
 	.owner			= THIS_MODULE,
 	.get_direction		= tps65086_gpio_get_direction,
@@ -91,8 +96,11 @@ static int tps65086_gpio_probe(struct platform_device *pdev)
 	int ret;
 
 	gpio = devm_kzalloc(&pdev->dev, sizeof(*gpio), GFP_KERNEL);
+
 	if (!gpio)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, gpio);
 
@@ -101,7 +109,9 @@ static int tps65086_gpio_probe(struct platform_device *pdev)
 	gpio->chip.parent = gpio->tps->dev;
 
 	ret = gpiochip_add_data(&gpio->chip, gpio);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Could not register gpiochip, %d\n", ret);
 		return ret;
 	}
@@ -118,13 +128,15 @@ static int tps65086_gpio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct platform_device_id tps65086_gpio_id_table[] = {
+static const struct platform_device_id tps65086_gpio_id_table[] =
+{
 	{ "tps65086-gpio", },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(platform, tps65086_gpio_id_table);
 
-static struct platform_driver tps65086_gpio_driver = {
+static struct platform_driver tps65086_gpio_driver =
+{
 	.driver = {
 		.name = "tps65086-gpio",
 	},

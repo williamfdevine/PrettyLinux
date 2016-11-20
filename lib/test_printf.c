@@ -28,17 +28,17 @@
 #define PTR2 ((void*)(long)(int)0xfedcba98)
 
 #if BITS_PER_LONG == 64
-#define PTR1_ZEROES "000000000"
-#define PTR1_SPACES "         "
-#define PTR1_STR "1234567"
-#define PTR2_STR "fffffffffedcba98"
-#define PTR_WIDTH 16
+	#define PTR1_ZEROES "000000000"
+	#define PTR1_SPACES "         "
+	#define PTR1_STR "1234567"
+	#define PTR2_STR "fffffffffedcba98"
+	#define PTR_WIDTH 16
 #else
-#define PTR1_ZEROES "0"
-#define PTR1_SPACES " "
-#define PTR1_STR "1234567"
-#define PTR2_STR "fedcba98"
-#define PTR_WIDTH 8
+	#define PTR1_ZEROES "0"
+	#define PTR1_SPACES " "
+	#define PTR1_STR "1234567"
+	#define PTR2_STR "fedcba98"
+	#define PTR_WIDTH 8
 #endif
 #define PTR_WIDTH_STR stringify(PTR_WIDTH)
 
@@ -49,56 +49,66 @@ static char *alloced_buffer __initdata;
 
 static int __printf(4, 0) __init
 do_test(int bufsize, const char *expect, int elen,
-	const char *fmt, va_list ap)
+		const char *fmt, va_list ap)
 {
 	va_list aq;
 	int ret, written;
 
 	total_tests++;
 
-	memset(alloced_buffer, FILL_CHAR, BUF_SIZE + 2*PAD_SIZE);
+	memset(alloced_buffer, FILL_CHAR, BUF_SIZE + 2 * PAD_SIZE);
 	va_copy(aq, ap);
 	ret = vsnprintf(test_buffer, bufsize, fmt, aq);
 	va_end(aq);
 
-	if (ret != elen) {
+	if (ret != elen)
+	{
 		pr_warn("vsnprintf(buf, %d, \"%s\", ...) returned %d, expected %d\n",
-			bufsize, fmt, ret, elen);
+				bufsize, fmt, ret, elen);
 		return 1;
 	}
 
-	if (memchr_inv(alloced_buffer, FILL_CHAR, PAD_SIZE)) {
+	if (memchr_inv(alloced_buffer, FILL_CHAR, PAD_SIZE))
+	{
 		pr_warn("vsnprintf(buf, %d, \"%s\", ...) wrote before buffer\n", bufsize, fmt);
 		return 1;
 	}
 
-	if (!bufsize) {
-		if (memchr_inv(test_buffer, FILL_CHAR, BUF_SIZE + PAD_SIZE)) {
+	if (!bufsize)
+	{
+		if (memchr_inv(test_buffer, FILL_CHAR, BUF_SIZE + PAD_SIZE))
+		{
 			pr_warn("vsnprintf(buf, 0, \"%s\", ...) wrote to buffer\n",
-				fmt);
+					fmt);
 			return 1;
 		}
+
 		return 0;
 	}
 
-	written = min(bufsize-1, elen);
-	if (test_buffer[written]) {
+	written = min(bufsize - 1, elen);
+
+	if (test_buffer[written])
+	{
 		pr_warn("vsnprintf(buf, %d, \"%s\", ...) did not nul-terminate buffer\n",
-			bufsize, fmt);
+				bufsize, fmt);
 		return 1;
 	}
 
-	if (memchr_inv(test_buffer + written + 1, FILL_CHAR, BUF_SIZE + PAD_SIZE - (written + 1))) {
+	if (memchr_inv(test_buffer + written + 1, FILL_CHAR, BUF_SIZE + PAD_SIZE - (written + 1)))
+	{
 		pr_warn("vsnprintf(buf, %d, \"%s\", ...) wrote beyond the nul-terminator\n",
-			bufsize, fmt);
+				bufsize, fmt);
 		return 1;
 	}
 
-	if (memcmp(test_buffer, expect, written)) {
+	if (memcmp(test_buffer, expect, written))
+	{
 		pr_warn("vsnprintf(buf, %d, \"%s\", ...) wrote '%s', expected '%.*s'\n",
-			bufsize, fmt, test_buffer, written, expect);
+				bufsize, fmt, test_buffer, written, expect);
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -109,9 +119,10 @@ __test(const char *expect, int elen, const char *fmt, ...)
 	int rand;
 	char *p;
 
-	if (elen >= BUF_SIZE) {
+	if (elen >= BUF_SIZE)
+	{
 		pr_err("error in test suite: expected output length %d too long. Format was '%s'.\n",
-		       elen, fmt);
+			   elen, fmt);
 		failed_tests++;
 		return;
 	}
@@ -125,21 +136,27 @@ __test(const char *expect, int elen, const char *fmt, ...)
 	 * be able to print it as expected.
 	 */
 	failed_tests += do_test(BUF_SIZE, expect, elen, fmt, ap);
-	rand = 1 + prandom_u32_max(elen+1);
+	rand = 1 + prandom_u32_max(elen + 1);
 	/* Since elen < BUF_SIZE, we have 1 <= rand <= BUF_SIZE. */
 	failed_tests += do_test(rand, expect, elen, fmt, ap);
 	failed_tests += do_test(0, expect, elen, fmt, ap);
 
 	p = kvasprintf(GFP_KERNEL, fmt, ap);
-	if (p) {
+
+	if (p)
+	{
 		total_tests++;
-		if (memcmp(p, expect, elen+1)) {
+
+		if (memcmp(p, expect, elen + 1))
+		{
 			pr_warn("kvasprintf(..., \"%s\", ...) returned '%s', expected '%s'\n",
-				fmt, p, expect);
+					fmt, p, expect);
 			failed_tests++;
 		}
+
 		kfree(p);
 	}
+
 	va_end(ap);
 }
 
@@ -230,9 +247,9 @@ plain(void)
 	 * zero-padded.
 	 */
 	test("|" PTR1_STR PTR1_SPACES "  |  " PTR1_SPACES PTR1_STR "|",
-	     "|%-*p|%*p|", PTR_WIDTH+2, PTR1, PTR_WIDTH+2, PTR1);
+		 "|%-*p|%*p|", PTR_WIDTH + 2, PTR1, PTR_WIDTH + 2, PTR1);
 	test("|" PTR2_STR "  |  " PTR2_STR "|",
-	     "|%-*p|%*p|", PTR_WIDTH+2, PTR2, PTR_WIDTH+2, PTR2);
+		 "|%-*p|%*p|", PTR_WIDTH + 2, PTR2, PTR_WIDTH + 2, PTR2);
 
 	/*
 	 * Unrecognized %p extensions are treated as plain %p, but the
@@ -274,9 +291,9 @@ hex_string(void)
 	const char buf[3] = {0xc0, 0xff, 0xee};
 
 	test("c0 ff ee|c0:ff:ee|c0-ff-ee|c0ffee",
-	     "%3ph|%3phC|%3phD|%3phN", buf, buf, buf, buf);
+		 "%3ph|%3phC|%3phD|%3phN", buf, buf, buf, buf);
 	test("c0 ff ee|c0:ff:ee|c0-ff-ee|c0ffee",
-	     "%*ph|%*phC|%*phD|%*phN", 3, buf, 3, buf, 3, buf, 3, buf);
+		 "%*ph|%*phC|%*phD|%*phN", 3, buf, 3, buf, 3, buf, 3, buf);
 }
 
 static void __init
@@ -322,7 +339,8 @@ static void __init
 uuid(void)
 {
 	const char uuid[16] = {0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7,
-			       0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf};
+						   0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf
+						  };
 
 	test("00010203-0405-0607-0809-0a0b0c0d0e0f", "%pUb", uuid);
 	test("00010203-0405-0607-0809-0A0B0C0D0E0F", "%pUB", uuid);
@@ -330,19 +348,28 @@ uuid(void)
 	test("03020100-0504-0706-0809-0A0B0C0D0E0F", "%pUL", uuid);
 }
 
-static struct dentry test_dentry[4] __initdata = {
-	{ .d_parent = &test_dentry[0],
-	  .d_name = QSTR_INIT(test_dentry[0].d_iname, 3),
-	  .d_iname = "foo" },
-	{ .d_parent = &test_dentry[0],
-	  .d_name = QSTR_INIT(test_dentry[1].d_iname, 5),
-	  .d_iname = "bravo" },
-	{ .d_parent = &test_dentry[1],
-	  .d_name = QSTR_INIT(test_dentry[2].d_iname, 4),
-	  .d_iname = "alfa" },
-	{ .d_parent = &test_dentry[2],
-	  .d_name = QSTR_INIT(test_dentry[3].d_iname, 5),
-	  .d_iname = "romeo" },
+static struct dentry test_dentry[4] __initdata =
+{
+	{
+		.d_parent = &test_dentry[0],
+		.d_name = QSTR_INIT(test_dentry[0].d_iname, 3),
+		.d_iname = "foo"
+	},
+	{
+		.d_parent = &test_dentry[0],
+		.d_name = QSTR_INIT(test_dentry[1].d_iname, 5),
+		.d_iname = "bravo"
+	},
+	{
+		.d_parent = &test_dentry[1],
+		.d_name = QSTR_INIT(test_dentry[2].d_iname, 4),
+		.d_iname = "alfa"
+	},
+	{
+		.d_parent = &test_dentry[2],
+		.d_name = QSTR_INIT(test_dentry[3].d_iname, 5),
+		.d_iname = "romeo"
+	},
 };
 
 static void __init
@@ -376,8 +403,11 @@ large_bitmap(void)
 {
 	const int nbits = 1 << 16;
 	unsigned long *bits = kcalloc(BITS_TO_LONGS(nbits), sizeof(long), GFP_KERNEL);
+
 	if (!bits)
+	{
 		return;
+	}
 
 	bitmap_set(bits, 1, 20);
 	bitmap_set(bits, 60000, 15);
@@ -389,7 +419,7 @@ static void __init
 bitmap(void)
 {
 	DECLARE_BITMAP(bits, 20);
-	const int primes[] = {2,3,5,7,11,13,17,19};
+	const int primes[] = {2, 3, 5, 7, 11, 13, 17, 19};
 	int i;
 
 	bitmap_zero(bits, 20);
@@ -397,7 +427,10 @@ bitmap(void)
 	test("|", "%20pbl|%*pbl", bits, 20, bits);
 
 	for (i = 0; i < ARRAY_SIZE(primes); ++i)
+	{
 		set_bit(primes[i], bits);
+	}
+
 	test("a28ac|a28ac", "%20pb|%*pb", bits, 20, bits);
 	test("2-3,5,7,11,13,17,19|2-3,5,7,11,13,17,19", "%20pbl|%*pbl", bits, 20, bits);
 
@@ -428,7 +461,7 @@ flags(void)
 	test("", "%pGp", &flags);
 
 	flags |= 1UL << PG_uptodate | 1UL << PG_dirty | 1UL << PG_lru
-		| 1UL << PG_active | 1UL << PG_swapbacked;
+			 | 1UL << PG_active | 1UL << PG_swapbacked;
 	test("uptodate|dirty|lru|active|swapbacked", "%pGp", &flags);
 
 
@@ -439,15 +472,18 @@ flags(void)
 	gfp = GFP_TRANSHUGE;
 	test("GFP_TRANSHUGE", "%pGg", &gfp);
 
-	gfp = GFP_ATOMIC|__GFP_DMA;
+	gfp = GFP_ATOMIC | __GFP_DMA;
 	test("GFP_ATOMIC|GFP_DMA", "%pGg", &gfp);
 
 	gfp = __GFP_ATOMIC;
 	test("__GFP_ATOMIC", "%pGg", &gfp);
 
 	cmp_buffer = kmalloc(BUF_SIZE, GFP_KERNEL);
+
 	if (!cmp_buffer)
+	{
 		return;
+	}
 
 	/* Any flags not translated by the table should remain numeric */
 	gfp = ~__GFP_BITS_MASK;
@@ -455,7 +491,7 @@ flags(void)
 	test(cmp_buffer, "%pGg", &gfp);
 
 	snprintf(cmp_buffer, BUF_SIZE, "__GFP_ATOMIC|%#lx",
-							(unsigned long) gfp);
+			 (unsigned long) gfp);
 	gfp |= __GFP_ATOMIC;
 	test(cmp_buffer, "%pGg", &gfp);
 
@@ -486,9 +522,13 @@ test_pointer(void)
 static int __init
 test_printf_init(void)
 {
-	alloced_buffer = kmalloc(BUF_SIZE + 2*PAD_SIZE, GFP_KERNEL);
+	alloced_buffer = kmalloc(BUF_SIZE + 2 * PAD_SIZE, GFP_KERNEL);
+
 	if (!alloced_buffer)
+	{
 		return -ENOMEM;
+	}
+
 	test_buffer = alloced_buffer + PAD_SIZE;
 
 	test_basic();
@@ -499,9 +539,13 @@ test_printf_init(void)
 	kfree(alloced_buffer);
 
 	if (failed_tests == 0)
+	{
 		pr_info("all %u tests passed\n", total_tests);
+	}
 	else
+	{
 		pr_warn("failed %u out of %u tests\n", failed_tests, total_tests);
+	}
 
 	return failed_tests ? -EINVAL : 0;
 }

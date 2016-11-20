@@ -40,23 +40,31 @@ nv40_mpeg_mthd_dma(struct nvkm_device *device, u32 mthd, u32 data)
 
 	/* only allow linear DMA objects */
 	if (!(dma0 & 0x00002000))
+	{
 		return false;
+	}
 
-	if (mthd == 0x0190) {
+	if (mthd == 0x0190)
+	{
 		/* DMA_CMD */
 		nvkm_mask(device, 0x00b300, 0x00030000, (dma0 & 0x00030000));
 		nvkm_wr32(device, 0x00b334, base);
 		nvkm_wr32(device, 0x00b324, size);
-	} else
-	if (mthd == 0x01a0) {
+	}
+	else if (mthd == 0x01a0)
+	{
 		/* DMA_DATA */
 		nvkm_mask(device, 0x00b300, 0x000c0000, (dma0 & 0x00030000) << 2);
 		nvkm_wr32(device, 0x00b360, base);
 		nvkm_wr32(device, 0x00b364, size);
-	} else {
+	}
+	else
+	{
 		/* DMA_IMAGE, VRAM only */
 		if (dma0 & 0x00030000)
+		{
 			return false;
+		}
 
 		nvkm_wr32(device, 0x00b370, base);
 		nvkm_wr32(device, 0x00b374, size);
@@ -66,7 +74,8 @@ nv40_mpeg_mthd_dma(struct nvkm_device *device, u32 mthd, u32 data)
 }
 
 static const struct nv31_mpeg_func
-nv40_mpeg = {
+	nv40_mpeg =
+{
 	.mthd_dma = nv40_mpeg_mthd_dma,
 };
 

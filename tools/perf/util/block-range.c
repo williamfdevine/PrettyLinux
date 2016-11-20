@@ -1,7 +1,8 @@
 #include "block-range.h"
 #include "annotate.h"
 
-struct {
+struct
+{
 	struct rb_root root;
 	u64 blocks;
 } block_ranges;
@@ -16,7 +17,8 @@ static void block_range__debug(void)
 	struct rb_node *rb;
 	u64 old = 0; /* NULL isn't executable */
 
-	for (rb = rb_first(&block_ranges.root); rb; rb = rb_next(rb)) {
+	for (rb = rb_first(&block_ranges.root); rb; rb = rb_next(rb))
+	{
 		struct block_range *entry = rb_entry(rb, struct block_range, node);
 
 		assert(old < entry->start);
@@ -24,6 +26,7 @@ static void block_range__debug(void)
 
 		old = entry->end;
 	}
+
 #endif
 }
 
@@ -33,16 +36,23 @@ struct block_range *block_range__find(u64 addr)
 	struct rb_node *parent = NULL;
 	struct block_range *entry;
 
-	while (*p != NULL) {
+	while (*p != NULL)
+	{
 		parent = *p;
 		entry = rb_entry(parent, struct block_range, node);
 
 		if (addr < entry->start)
+		{
 			p = &parent->rb_left;
+		}
 		else if (addr > entry->end)
+		{
 			p = &parent->rb_right;
+		}
 		else
+		{
 			return entry;
+		}
 	}
 
 	return NULL;
@@ -51,20 +61,26 @@ struct block_range *block_range__find(u64 addr)
 static inline void rb_link_left_of_node(struct rb_node *left, struct rb_node *node)
 {
 	struct rb_node **p = &node->rb_left;
-	while (*p) {
+
+	while (*p)
+	{
 		node = *p;
 		p = &node->rb_right;
 	}
+
 	rb_link_node(left, node, p);
 }
 
 static inline void rb_link_right_of_node(struct rb_node *right, struct rb_node *node)
 {
 	struct rb_node **p = &node->rb_right;
-	while (*p) {
+
+	while (*p)
+	{
 		node = *p;
 		p = &node->rb_left;
 	}
+
 	rb_link_node(right, node, p);
 }
 
@@ -82,47 +98,68 @@ struct block_range_iter block_range__create(u64 start, u64 end)
 	struct block_range *next, *entry = NULL;
 	struct block_range_iter iter = { NULL, NULL };
 
-	while (*p != NULL) {
+	while (*p != NULL)
+	{
 		parent = *p;
 		entry = rb_entry(parent, struct block_range, node);
 
 		if (start < entry->start)
+		{
 			p = &parent->rb_left;
+		}
 		else if (start > entry->end)
+		{
 			p = &parent->rb_right;
+		}
 		else
+		{
 			break;
+		}
 	}
 
 	/*
 	 * Didn't find anything.. there's a hole at @start, however @end might
 	 * be inside/behind the next range.
 	 */
-	if (!*p) {
+	if (!*p)
+	{
 		if (!entry) /* tree empty */
+		{
 			goto do_whole;
+		}
 
 		/*
 		 * If the last node is before, advance one to find the next.
 		 */
 		n = parent;
-		if (entry->end < start) {
+
+		if (entry->end < start)
+		{
 			n = rb_next(n);
+
 			if (!n)
+			{
 				goto do_whole;
+			}
 		}
+
 		next = rb_entry(n, struct block_range, node);
 
-		if (next->start <= end) { /* add head: [start...][n->start...] */
+		if (next->start <= end)   /* add head: [start...][n->start...] */
+		{
 			struct block_range *head = malloc(sizeof(struct block_range));
-			if (!head)
-				return iter;
 
-			*head = (struct block_range){
+			if (!head)
+			{
+				return iter;
+			}
+
+			*head = (struct block_range)
+			{
 				.start		= start,
-				.end		= next->start - 1,
-				.is_target	= 1,
-				.is_branch	= 0,
+					 .end		= next->start - 1,
+							.is_target	= 1,
+							  .is_branch	= 0,
 			};
 
 			rb_link_left_of_node(&head->node, &next->node);
@@ -138,14 +175,18 @@ do_whole:
 		 * The whole [start..end] range is non-overlapping.
 		 */
 		entry = malloc(sizeof(struct block_range));
-		if (!entry)
-			return iter;
 
-		*entry = (struct block_range){
+		if (!entry)
+		{
+			return iter;
+		}
+
+		*entry = (struct block_range)
+		{
 			.start		= start,
-			.end		= end,
-			.is_target	= 1,
-			.is_branch	= 1,
+				 .end		= end,
+						.is_target	= 1,
+						  .is_branch	= 1,
 		};
 
 		rb_link_node(&entry->node, parent, p);
@@ -160,19 +201,24 @@ do_whole:
 	/*
 	 * We found a range that overlapped with ours, split if needed.
 	 */
-	if (entry->start < start) { /* split: [e->start...][start...] */
+	if (entry->start < start)   /* split: [e->start...][start...] */
+	{
 		struct block_range *head = malloc(sizeof(struct block_range));
+
 		if (!head)
+		{
 			return iter;
+		}
 
-		*head = (struct block_range){
+		*head = (struct block_range)
+		{
 			.start		= entry->start,
-			.end		= start - 1,
-			.is_target	= entry->is_target,
-			.is_branch	= 0,
+				 .end		= start - 1,
+						.is_target	= entry->is_target,
+						  .is_branch	= 0,
 
-			.coverage	= entry->coverage,
-			.entry		= entry->entry,
+							.coverage	= entry->coverage,
+							   .entry		= entry->entry,
 		};
 
 		entry->start		= start;
@@ -183,8 +229,11 @@ do_whole:
 		rb_insert_color(&head->node, &block_ranges.root);
 		block_range__debug();
 
-	} else if (entry->start == start)
+	}
+	else if (entry->start == start)
+	{
 		entry->is_target = 1;
+	}
 
 	iter.start = entry;
 
@@ -194,24 +243,31 @@ do_tail:
 	 * inside or beyond it.
 	 */
 	entry = iter.start;
-	for (;;) {
+
+	for (;;)
+	{
 		/*
 		 * If @end is inside @entry, split.
 		 */
-		if (end < entry->end) { /* split: [...end][...e->end] */
+		if (end < entry->end)   /* split: [...end][...e->end] */
+		{
 			struct block_range *tail = malloc(sizeof(struct block_range));
+
 			if (!tail)
+			{
 				return iter;
+			}
 
-			*tail = (struct block_range){
+			*tail = (struct block_range)
+			{
 				.start		= end + 1,
-				.end		= entry->end,
-				.is_target	= 0,
-				.is_branch	= entry->is_branch,
+					 .end		= entry->end,
+							.is_target	= 0,
+							  .is_branch	= entry->is_branch,
 
-				.coverage	= entry->coverage,
-				.taken		= entry->taken,
-				.pred		= entry->pred,
+								.coverage	= entry->coverage,
+								   .taken		= entry->taken,
+										.pred		= entry->pred,
 			};
 
 			entry->end		= end;
@@ -230,31 +286,40 @@ do_tail:
 		/*
 		 * If @end matches @entry, done
 		 */
-		if (end == entry->end) {
+		if (end == entry->end)
+		{
 			entry->is_branch = 1;
 			iter.end = entry;
 			goto done;
 		}
 
 		next = block_range__next(entry);
+
 		if (!next)
+		{
 			goto add_tail;
+		}
 
 		/*
 		 * If @end is in beyond @entry but not inside @next, add tail.
 		 */
-		if (end < next->start) { /* add tail: [...e->end][...end] */
+		if (end < next->start)   /* add tail: [...e->end][...end] */
+		{
 			struct block_range *tail;
 add_tail:
 			tail = malloc(sizeof(struct block_range));
-			if (!tail)
-				return iter;
 
-			*tail = (struct block_range){
+			if (!tail)
+			{
+				return iter;
+			}
+
+			*tail = (struct block_range)
+			{
 				.start		= entry->end + 1,
-				.end		= end,
-				.is_target	= 0,
-				.is_branch	= 1,
+					 .end		= end,
+							.is_target	= 0,
+							  .is_branch	= 1,
 			};
 
 			rb_link_right_of_node(&tail->node, &entry->node);
@@ -268,16 +333,21 @@ add_tail:
 		/*
 		 * If there is a hole between @entry and @next, fill it.
 		 */
-		if (entry->end + 1 != next->start) {
+		if (entry->end + 1 != next->start)
+		{
 			struct block_range *hole = malloc(sizeof(struct block_range));
-			if (!hole)
-				return iter;
 
-			*hole = (struct block_range){
+			if (!hole)
+			{
+				return iter;
+			}
+
+			*hole = (struct block_range)
+			{
 				.start		= entry->end + 1,
-				.end		= next->start - 1,
-				.is_target	= 0,
-				.is_branch	= 0,
+					 .end		= next->start - 1,
+							.is_target	= 0,
+							  .is_branch	= 0,
 			};
 
 			rb_link_left_of_node(&hole->node, &next->node);
@@ -313,16 +383,22 @@ double block_range__coverage(struct block_range *br)
 {
 	struct symbol *sym;
 
-	if (!br) {
+	if (!br)
+	{
 		if (block_ranges.blocks)
+		{
 			return 0;
+		}
 
 		return -1;
 	}
 
 	sym = br->sym;
+
 	if (!sym)
+	{
 		return -1;
+	}
 
 	return (double)br->coverage / symbol__annotation(sym)->max_coverage;
 }

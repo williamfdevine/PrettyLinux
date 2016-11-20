@@ -62,10 +62,11 @@ static struct i2c_driver isl1208_driver;
 /* block read */
 static int
 isl1208_i2c_read_regs(struct i2c_client *client, u8 reg, u8 buf[],
-		      unsigned len)
+					  unsigned len)
 {
 	u8 reg_addr[1] = { reg };
-	struct i2c_msg msgs[2] = {
+	struct i2c_msg msgs[2] =
+	{
 		{
 			.addr = client->addr,
 			.len = sizeof(reg_addr),
@@ -84,18 +85,23 @@ isl1208_i2c_read_regs(struct i2c_client *client, u8 reg, u8 buf[],
 	BUG_ON(reg + len > ISL1208_REG_USR2 + 1);
 
 	ret = i2c_transfer(client->adapter, msgs, 2);
+
 	if (ret > 0)
+	{
 		ret = 0;
+	}
+
 	return ret;
 }
 
 /* block write */
 static int
 isl1208_i2c_set_regs(struct i2c_client *client, u8 reg, u8 const buf[],
-		     unsigned len)
+					 unsigned len)
 {
 	u8 i2c_buf[ISL1208_REG_USR2 + 2];
-	struct i2c_msg msgs[1] = {
+	struct i2c_msg msgs[1] =
+	{
 		{
 			.addr = client->addr,
 			.len = len + 1,
@@ -111,8 +117,12 @@ isl1208_i2c_set_regs(struct i2c_client *client, u8 reg, u8 const buf[],
 	memcpy(&i2c_buf[1], &buf[0], len);
 
 	ret = i2c_transfer(client->adapter, msgs, 1);
+
 	if (ret > 0)
+	{
 		ret = 0;
+	}
+
 	return ret;
 }
 
@@ -121,19 +131,26 @@ static int
 isl1208_i2c_validate_client(struct i2c_client *client)
 {
 	u8 regs[ISL1208_RTC_SECTION_LEN] = { 0, };
-	u8 zero_mask[ISL1208_RTC_SECTION_LEN] = {
+	u8 zero_mask[ISL1208_RTC_SECTION_LEN] =
+	{
 		0x80, 0x80, 0x40, 0xc0, 0xe0, 0x00, 0xf8
 	};
 	int i;
 	int ret;
 
 	ret = isl1208_i2c_read_regs(client, 0, regs, ISL1208_RTC_SECTION_LEN);
-	if (ret < 0)
-		return ret;
 
-	for (i = 0; i < ISL1208_RTC_SECTION_LEN; ++i) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	for (i = 0; i < ISL1208_RTC_SECTION_LEN; ++i)
+	{
 		if (regs[i] & zero_mask[i])	/* check if bits are cleared */
+		{
 			return -ENODEV;
+		}
 	}
 
 	return 0;
@@ -149,8 +166,11 @@ static int
 isl1208_i2c_get_atr(struct i2c_client *client)
 {
 	int atr = i2c_smbus_read_byte_data(client, ISL1208_REG_ATR);
+
 	if (atr < 0)
+	{
 		return atr;
+	}
 
 	/* The 6bit value in the ATR register controls the load
 	 * capacitance C_load * in steps of 0.25pF
@@ -174,8 +194,11 @@ static int
 isl1208_i2c_get_dtr(struct i2c_client *client)
 {
 	int dtr = i2c_smbus_read_byte_data(client, ISL1208_REG_DTR);
+
 	if (dtr < 0)
+	{
 		return -EIO;
+	}
 
 	/* dtr encodes adjustments of {-60,-40,-20,0,20,40,60} ppm */
 	dtr = ((dtr & 0x3) * 20) * (dtr & (1 << 2) ? -1 : 1);
@@ -190,9 +213,12 @@ isl1208_i2c_get_usr(struct i2c_client *client)
 	int ret;
 
 	ret = isl1208_i2c_read_regs(client, ISL1208_REG_USR1, buf,
-				    ISL1208_USR_SECTION_LEN);
+								ISL1208_USR_SECTION_LEN);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return (buf[1] << 8) | buf[0];
 }
@@ -206,7 +232,7 @@ isl1208_i2c_set_usr(struct i2c_client *client, u16 usr)
 	buf[1] = (usr >> 8) & 0xff;
 
 	return isl1208_i2c_set_regs(client, ISL1208_REG_USR1, buf,
-				    ISL1208_USR_SECTION_LEN);
+								ISL1208_USR_SECTION_LEN);
 }
 
 static int
@@ -214,18 +240,25 @@ isl1208_rtc_toggle_alarm(struct i2c_client *client, int enable)
 {
 	int icr = i2c_smbus_read_byte_data(client, ISL1208_REG_INT);
 
-	if (icr < 0) {
+	if (icr < 0)
+	{
 		dev_err(&client->dev, "%s: reading INT failed\n", __func__);
 		return icr;
 	}
 
 	if (enable)
+	{
 		icr |= ISL1208_REG_INT_ALME | ISL1208_REG_INT_IM;
+	}
 	else
+	{
 		icr &= ~(ISL1208_REG_INT_ALME | ISL1208_REG_INT_IM);
+	}
 
 	icr = i2c_smbus_write_byte_data(client, ISL1208_REG_INT, icr);
-	if (icr < 0) {
+
+	if (icr < 0)
+	{
 		dev_err(&client->dev, "%s: writing INT failed\n", __func__);
 		return icr;
 	}
@@ -240,34 +273,43 @@ isl1208_rtc_proc(struct device *dev, struct seq_file *seq)
 	int sr, dtr, atr, usr;
 
 	sr = isl1208_i2c_get_sr(client);
-	if (sr < 0) {
+
+	if (sr < 0)
+	{
 		dev_err(&client->dev, "%s: reading SR failed\n", __func__);
 		return sr;
 	}
 
 	seq_printf(seq, "status_reg\t:%s%s%s%s%s%s (0x%.2x)\n",
-		   (sr & ISL1208_REG_SR_RTCF) ? " RTCF" : "",
-		   (sr & ISL1208_REG_SR_BAT) ? " BAT" : "",
-		   (sr & ISL1208_REG_SR_ALM) ? " ALM" : "",
-		   (sr & ISL1208_REG_SR_WRTC) ? " WRTC" : "",
-		   (sr & ISL1208_REG_SR_XTOSCB) ? " XTOSCB" : "",
-		   (sr & ISL1208_REG_SR_ARST) ? " ARST" : "", sr);
+			   (sr & ISL1208_REG_SR_RTCF) ? " RTCF" : "",
+			   (sr & ISL1208_REG_SR_BAT) ? " BAT" : "",
+			   (sr & ISL1208_REG_SR_ALM) ? " ALM" : "",
+			   (sr & ISL1208_REG_SR_WRTC) ? " WRTC" : "",
+			   (sr & ISL1208_REG_SR_XTOSCB) ? " XTOSCB" : "",
+			   (sr & ISL1208_REG_SR_ARST) ? " ARST" : "", sr);
 
 	seq_printf(seq, "batt_status\t: %s\n",
-		   (sr & ISL1208_REG_SR_RTCF) ? "bad" : "okay");
+			   (sr & ISL1208_REG_SR_RTCF) ? "bad" : "okay");
 
 	dtr = isl1208_i2c_get_dtr(client);
+
 	if (dtr >= 0 - 1)
+	{
 		seq_printf(seq, "digital_trim\t: %d ppm\n", dtr);
+	}
 
 	atr = isl1208_i2c_get_atr(client);
+
 	if (atr >= 0)
 		seq_printf(seq, "analog_trim\t: %d.%.2d pF\n",
-			   atr >> 2, (atr & 0x3) * 25);
+				   atr >> 2, (atr & 0x3) * 25);
 
 	usr = isl1208_i2c_get_usr(client);
+
 	if (usr >= 0)
+	{
 		seq_printf(seq, "user_data\t: 0x%.4x\n", usr);
+	}
 
 	return 0;
 }
@@ -279,15 +321,19 @@ isl1208_i2c_read_time(struct i2c_client *client, struct rtc_time *tm)
 	u8 regs[ISL1208_RTC_SECTION_LEN] = { 0, };
 
 	sr = isl1208_i2c_get_sr(client);
-	if (sr < 0) {
+
+	if (sr < 0)
+	{
 		dev_err(&client->dev, "%s: reading SR failed\n", __func__);
 		return -EIO;
 	}
 
 	sr = isl1208_i2c_read_regs(client, 0, regs, ISL1208_RTC_SECTION_LEN);
-	if (sr < 0) {
+
+	if (sr < 0)
+	{
 		dev_err(&client->dev, "%s: reading RTC section failed\n",
-			__func__);
+				__func__);
 		return sr;
 	}
 
@@ -297,13 +343,20 @@ isl1208_i2c_read_time(struct i2c_client *client, struct rtc_time *tm)
 	/* HR field has a more complex interpretation */
 	{
 		const u8 _hr = regs[ISL1208_REG_HR];
+
 		if (_hr & ISL1208_REG_HR_MIL)	/* 24h format */
+		{
 			tm->tm_hour = bcd2bin(_hr & 0x3f);
-		else {
+		}
+		else
+		{
 			/* 12h format */
 			tm->tm_hour = bcd2bin(_hr & 0x1f);
+
 			if (_hr & ISL1208_REG_HR_PM)	/* PM flag set */
+			{
 				tm->tm_hour += 12;
+			}
 		}
 	}
 
@@ -322,16 +375,19 @@ isl1208_i2c_read_alarm(struct i2c_client *client, struct rtc_wkalrm *alarm)
 	u8 regs[ISL1208_ALARM_SECTION_LEN] = { 0, };
 	int icr, yr, sr = isl1208_i2c_get_sr(client);
 
-	if (sr < 0) {
+	if (sr < 0)
+	{
 		dev_err(&client->dev, "%s: reading SR failed\n", __func__);
 		return sr;
 	}
 
 	sr = isl1208_i2c_read_regs(client, ISL1208_REG_SCA, regs,
-				   ISL1208_ALARM_SECTION_LEN);
-	if (sr < 0) {
+							   ISL1208_ALARM_SECTION_LEN);
+
+	if (sr < 0)
+	{
 		dev_err(&client->dev, "%s: reading alarm section failed\n",
-			__func__);
+				__func__);
 		return sr;
 	}
 
@@ -346,17 +402,23 @@ isl1208_i2c_read_alarm(struct i2c_client *client, struct rtc_wkalrm *alarm)
 
 	/* The alarm doesn't store the year so get it from the rtc section */
 	yr = i2c_smbus_read_byte_data(client, ISL1208_REG_YR);
-	if (yr < 0) {
+
+	if (yr < 0)
+	{
 		dev_err(&client->dev, "%s: reading RTC YR failed\n", __func__);
 		return yr;
 	}
+
 	tm->tm_year = bcd2bin(yr) + 100;
 
 	icr = i2c_smbus_read_byte_data(client, ISL1208_REG_INT);
-	if (icr < 0) {
+
+	if (icr < 0)
+	{
 		dev_err(&client->dev, "%s: reading INT failed\n", __func__);
 		return icr;
 	}
+
 	alarm->enabled = !!(icr & ISL1208_REG_INT_ALME);
 
 	return 0;
@@ -372,20 +434,27 @@ isl1208_i2c_set_alarm(struct i2c_client *client, struct rtc_wkalrm *alarm)
 	int err, enable;
 
 	err = isl1208_i2c_read_time(client, &rtc_tm);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* If the alarm time is before the current time disable the alarm */
 	if (!alarm->enabled || rtc_tm_sub(alarm_tm, &rtc_tm) <= 0)
+	{
 		enable = 0x00;
+	}
 	else
+	{
 		enable = 0x80;
+	}
 
 	/* Program the alarm and enable it for each setting */
 	regs[ISL1208_REG_SCA - offs] = bin2bcd(alarm_tm->tm_sec) | enable;
 	regs[ISL1208_REG_MNA - offs] = bin2bcd(alarm_tm->tm_min) | enable;
 	regs[ISL1208_REG_HRA - offs] = bin2bcd(alarm_tm->tm_hour) |
-		ISL1208_REG_HR_MIL | enable;
+								   ISL1208_REG_HR_MIL | enable;
 
 	regs[ISL1208_REG_DTA - offs] = bin2bcd(alarm_tm->tm_mday) | enable;
 	regs[ISL1208_REG_MOA - offs] = bin2bcd(alarm_tm->tm_mon + 1) | enable;
@@ -393,16 +462,21 @@ isl1208_i2c_set_alarm(struct i2c_client *client, struct rtc_wkalrm *alarm)
 
 	/* write ALARM registers */
 	err = isl1208_i2c_set_regs(client, offs, regs,
-				  ISL1208_ALARM_SECTION_LEN);
-	if (err < 0) {
+							   ISL1208_ALARM_SECTION_LEN);
+
+	if (err < 0)
+	{
 		dev_err(&client->dev, "%s: writing ALARM section failed\n",
-			__func__);
+				__func__);
 		return err;
 	}
 
 	err = isl1208_rtc_toggle_alarm(client, enable);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -424,7 +498,9 @@ isl1208_i2c_set_time(struct i2c_client *client, struct rtc_time const *tm)
 	 * in the 2000-2099 range, so any value less than 100 is invalid.
 	 */
 	if (tm->tm_year < 100)
+	{
 		return -EINVAL;
+	}
 
 	regs[ISL1208_REG_SC] = bin2bcd(tm->tm_sec);
 	regs[ISL1208_REG_MN] = bin2bcd(tm->tm_min);
@@ -437,31 +513,39 @@ isl1208_i2c_set_time(struct i2c_client *client, struct rtc_time const *tm)
 	regs[ISL1208_REG_DW] = bin2bcd(tm->tm_wday & 7);
 
 	sr = isl1208_i2c_get_sr(client);
-	if (sr < 0) {
+
+	if (sr < 0)
+	{
 		dev_err(&client->dev, "%s: reading SR failed\n", __func__);
 		return sr;
 	}
 
 	/* set WRTC */
 	sr = i2c_smbus_write_byte_data(client, ISL1208_REG_SR,
-				       sr | ISL1208_REG_SR_WRTC);
-	if (sr < 0) {
+								   sr | ISL1208_REG_SR_WRTC);
+
+	if (sr < 0)
+	{
 		dev_err(&client->dev, "%s: writing SR failed\n", __func__);
 		return sr;
 	}
 
 	/* write RTC registers */
 	sr = isl1208_i2c_set_regs(client, 0, regs, ISL1208_RTC_SECTION_LEN);
-	if (sr < 0) {
+
+	if (sr < 0)
+	{
 		dev_err(&client->dev, "%s: writing RTC section failed\n",
-			__func__);
+				__func__);
 		return sr;
 	}
 
 	/* clear WRTC again */
 	sr = i2c_smbus_write_byte_data(client, ISL1208_REG_SR,
-				       sr & ~ISL1208_REG_SR_WRTC);
-	if (sr < 0) {
+								   sr & ~ISL1208_REG_SR_WRTC);
+
+	if (sr < 0)
+	{
 		dev_err(&client->dev, "%s: writing SR failed\n", __func__);
 		return sr;
 	}
@@ -501,19 +585,25 @@ isl1208_rtc_interrupt(int irq, void *data)
 	 * Using a mdelay/msleep didn't seem to help either, so we work around
 	 * this by continually trying to read the register for a short time.
 	 */
-	while (1) {
+	while (1)
+	{
 		sr = isl1208_i2c_get_sr(client);
-		if (sr >= 0)
-			break;
 
-		if (time_after(jiffies, timeout)) {
+		if (sr >= 0)
+		{
+			break;
+		}
+
+		if (time_after(jiffies, timeout))
+		{
 			dev_err(&client->dev, "%s: reading SR failed\n",
-				__func__);
+					__func__);
 			return sr;
 		}
 	}
 
-	if (sr & ISL1208_REG_SR_ALM) {
+	if (sr & ISL1208_REG_SR_ALM)
+	{
 		dev_dbg(&client->dev, "alarm!\n");
 
 		rtc_update_irq(rtc, 1, RTC_IRQF | RTC_AF);
@@ -521,22 +611,29 @@ isl1208_rtc_interrupt(int irq, void *data)
 		/* Clear the alarm */
 		sr &= ~ISL1208_REG_SR_ALM;
 		sr = i2c_smbus_write_byte_data(client, ISL1208_REG_SR, sr);
+
 		if (sr < 0)
 			dev_err(&client->dev, "%s: writing SR failed\n",
-				__func__);
+					__func__);
 		else
+		{
 			handled = 1;
+		}
 
 		/* Disable the alarm */
 		err = isl1208_rtc_toggle_alarm(client, 0);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	return handled ? IRQ_HANDLED : IRQ_NONE;
 }
 
-static const struct rtc_class_ops isl1208_rtc_ops = {
+static const struct rtc_class_ops isl1208_rtc_ops =
+{
 	.proc = isl1208_rtc_proc,
 	.read_time = isl1208_rtc_read_time,
 	.set_time = isl1208_rtc_set_time,
@@ -548,11 +645,14 @@ static const struct rtc_class_ops isl1208_rtc_ops = {
 
 static ssize_t
 isl1208_sysfs_show_atrim(struct device *dev,
-			 struct device_attribute *attr, char *buf)
+						 struct device_attribute *attr, char *buf)
 {
 	int atr = isl1208_i2c_get_atr(to_i2c_client(dev));
+
 	if (atr < 0)
+	{
 		return atr;
+	}
 
 	return sprintf(buf, "%d.%.2d pF\n", atr >> 2, (atr & 0x3) * 25);
 }
@@ -561,11 +661,14 @@ static DEVICE_ATTR(atrim, S_IRUGO, isl1208_sysfs_show_atrim, NULL);
 
 static ssize_t
 isl1208_sysfs_show_dtrim(struct device *dev,
-			 struct device_attribute *attr, char *buf)
+						 struct device_attribute *attr, char *buf)
 {
 	int dtr = isl1208_i2c_get_dtr(to_i2c_client(dev));
+
 	if (dtr < 0)
+	{
 		return dtr;
+	}
 
 	return sprintf(buf, "%d ppm\n", dtr);
 }
@@ -574,47 +677,61 @@ static DEVICE_ATTR(dtrim, S_IRUGO, isl1208_sysfs_show_dtrim, NULL);
 
 static ssize_t
 isl1208_sysfs_show_usr(struct device *dev,
-		       struct device_attribute *attr, char *buf)
+					   struct device_attribute *attr, char *buf)
 {
 	int usr = isl1208_i2c_get_usr(to_i2c_client(dev));
+
 	if (usr < 0)
+	{
 		return usr;
+	}
 
 	return sprintf(buf, "0x%.4x\n", usr);
 }
 
 static ssize_t
 isl1208_sysfs_store_usr(struct device *dev,
-			struct device_attribute *attr,
-			const char *buf, size_t count)
+						struct device_attribute *attr,
+						const char *buf, size_t count)
 {
 	int usr = -1;
 
-	if (buf[0] == '0' && (buf[1] == 'x' || buf[1] == 'X')) {
+	if (buf[0] == '0' && (buf[1] == 'x' || buf[1] == 'X'))
+	{
 		if (sscanf(buf, "%x", &usr) != 1)
+		{
 			return -EINVAL;
-	} else {
+		}
+	}
+	else
+	{
 		if (sscanf(buf, "%d", &usr) != 1)
+		{
 			return -EINVAL;
+		}
 	}
 
 	if (usr < 0 || usr > 0xffff)
+	{
 		return -EINVAL;
+	}
 
 	return isl1208_i2c_set_usr(to_i2c_client(dev), usr) ? -EIO : count;
 }
 
 static DEVICE_ATTR(usr, S_IRUGO | S_IWUSR, isl1208_sysfs_show_usr,
-		   isl1208_sysfs_store_usr);
+				   isl1208_sysfs_store_usr);
 
-static struct attribute *isl1208_rtc_attrs[] = {
+static struct attribute *isl1208_rtc_attrs[] =
+{
 	&dev_attr_atrim.attr,
 	&dev_attr_dtrim.attr,
 	&dev_attr_usr.attr,
 	NULL
 };
 
-static const struct attribute_group isl1208_rtc_sysfs_files = {
+static const struct attribute_group isl1208_rtc_sysfs_files =
+{
 	.attrs	= isl1208_rtc_attrs,
 };
 
@@ -625,49 +742,66 @@ isl1208_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	struct rtc_device *rtc;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		return -ENODEV;
+	}
 
 	if (isl1208_i2c_validate_client(client) < 0)
+	{
 		return -ENODEV;
+	}
 
-	if (client->irq > 0) {
+	if (client->irq > 0)
+	{
 		rc = devm_request_threaded_irq(&client->dev, client->irq, NULL,
-					       isl1208_rtc_interrupt,
-					       IRQF_SHARED | IRQF_ONESHOT,
-					       isl1208_driver.driver.name,
-					       client);
-		if (!rc) {
+									   isl1208_rtc_interrupt,
+									   IRQF_SHARED | IRQF_ONESHOT,
+									   isl1208_driver.driver.name,
+									   client);
+
+		if (!rc)
+		{
 			device_init_wakeup(&client->dev, 1);
 			enable_irq_wake(client->irq);
-		} else {
+		}
+		else
+		{
 			dev_err(&client->dev,
-				"Unable to request irq %d, no alarm support\n",
-				client->irq);
+					"Unable to request irq %d, no alarm support\n",
+					client->irq);
 			client->irq = 0;
 		}
 	}
 
 	rtc = devm_rtc_device_register(&client->dev, isl1208_driver.driver.name,
-				  &isl1208_rtc_ops,
-				  THIS_MODULE);
+								   &isl1208_rtc_ops,
+								   THIS_MODULE);
+
 	if (IS_ERR(rtc))
+	{
 		return PTR_ERR(rtc);
+	}
 
 	i2c_set_clientdata(client, rtc);
 
 	rc = isl1208_i2c_get_sr(client);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dev_err(&client->dev, "reading status failed\n");
 		return rc;
 	}
 
 	if (rc & ISL1208_REG_SR_RTCF)
 		dev_warn(&client->dev, "rtc power failure detected, "
-			 "please set clock.\n");
+				 "please set clock.\n");
 
 	rc = sysfs_create_group(&client->dev.kobj, &isl1208_rtc_sysfs_files);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	return 0;
 }
@@ -680,17 +814,19 @@ isl1208_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id isl1208_id[] = {
+static const struct i2c_device_id isl1208_id[] =
+{
 	{ "isl1208", 0 },
 	{ "isl1218", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, isl1208_id);
 
-static struct i2c_driver isl1208_driver = {
+static struct i2c_driver isl1208_driver =
+{
 	.driver = {
-		   .name = "rtc-isl1208",
-		   },
+		.name = "rtc-isl1208",
+	},
 	.probe = isl1208_probe,
 	.remove = isl1208_remove,
 	.id_table = isl1208_id,

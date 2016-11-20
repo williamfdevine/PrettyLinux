@@ -78,7 +78,8 @@ extern const struct v4l2_rect vivid_min_rect;
 extern const struct v4l2_rect vivid_max_rect;
 extern unsigned vivid_debug;
 
-struct vivid_fmt {
+struct vivid_fmt
+{
 	u32	fourcc;          /* v4l2 format id */
 	bool	is_yuv;
 	bool	can_do_overlay;
@@ -93,20 +94,23 @@ struct vivid_fmt {
 extern struct vivid_fmt vivid_formats[];
 
 /* buffer for one video frame */
-struct vivid_buffer {
+struct vivid_buffer
+{
 	/* common v4l buffer stuff -- must be first */
 	struct vb2_v4l2_buffer vb;
 	struct list_head	list;
 };
 
-enum vivid_input {
+enum vivid_input
+{
 	WEBCAM,
 	TV,
 	SVID,
 	HDMI,
 };
 
-enum vivid_signal_mode {
+enum vivid_signal_mode
+{
 	CURRENT_DV_TIMINGS,
 	CURRENT_STD = CURRENT_DV_TIMINGS,
 	NO_SIGNAL,
@@ -119,7 +123,8 @@ enum vivid_signal_mode {
 	CUSTOM_DV_TIMINGS,
 };
 
-enum vivid_colorspace {
+enum vivid_colorspace
+{
 	VIVID_CS_170M,
 	VIVID_CS_709,
 	VIVID_CS_SRGB,
@@ -134,7 +139,8 @@ enum vivid_colorspace {
 #define VIVID_INVALID_SIGNAL(mode) \
 	((mode) == NO_SIGNAL || (mode) == NO_LOCK || (mode) == OUT_OF_RANGE)
 
-struct vivid_cec_work {
+struct vivid_cec_work
+{
 	struct list_head	list;
 	struct delayed_work	work;
 	struct cec_adapter	*adap;
@@ -145,7 +151,8 @@ struct vivid_cec_work {
 	struct cec_msg		msg;
 };
 
-struct vivid_dev {
+struct vivid_dev
+{
 	unsigned			inst;
 	struct v4l2_device		v4l2_dev;
 	struct v4l2_ctrl_handler	ctrl_hdl_user_gen;
@@ -210,7 +217,8 @@ struct vivid_dev {
 	struct v4l2_ctrl		*contrast;
 	struct v4l2_ctrl		*saturation;
 	struct v4l2_ctrl		*hue;
-	struct {
+	struct
+	{
 		/* autogain/gain cluster */
 		struct v4l2_ctrl	*autogain;
 		struct v4l2_ctrl	*gain;
@@ -230,12 +238,14 @@ struct vivid_dev {
 	struct v4l2_ctrl		*colorspace;
 	struct v4l2_ctrl		*rgb_range_cap;
 	struct v4l2_ctrl		*real_rgb_range_cap;
-	struct {
+	struct
+	{
 		/* std_signal_mode/standard cluster */
 		struct v4l2_ctrl	*ctrl_std_signal_mode;
 		struct v4l2_ctrl	*ctrl_standard;
 	};
-	struct {
+	struct
+	{
 		/* dv_timings_signal_mode/timings cluster */
 		struct v4l2_ctrl	*ctrl_dv_timings_signal_mode;
 		struct v4l2_ctrl	*ctrl_dv_timings;

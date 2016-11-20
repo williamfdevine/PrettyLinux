@@ -208,8 +208,12 @@ isdn_audio_tlookup(const u_char *table, u_char *buff, unsigned long n)
 		:	"0"((long) table), "1"(n), "2"((long) buff), "3"((long) buff)
 		:	"memory", "ax");
 #else
+
 	while (n--)
+	{
 		*buff = table[*(unsigned char *)buff], buff++;
+	}
+
 #endif
 }
 
@@ -242,24 +246,24 @@ static unsigned char
 isdn_audio_linear2ulaw(int sample)
 {
 	static int exp_lut[256] =
-		{
-			0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
-			4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-			5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-			5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-			6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-			6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-			6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-			6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-			7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-			7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-			7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-			7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-			7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-			7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-			7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-			7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
-		};
+	{
+		0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
+		4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+		5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+		5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+		6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+		6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+		6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+		6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+		7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+		7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+		7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+		7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+		7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+		7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+		7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+		7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
+	};
 	int sign,
 		exponent,
 		mantissa;
@@ -267,10 +271,16 @@ isdn_audio_linear2ulaw(int sample)
 
 	/* Get the sample into sign-magnitude. */
 	sign = (sample >> 8) & 0x80;	/* set aside the sign  */
+
 	if (sign != 0)
-		sample = -sample;	/* get magnitude       */
+	{
+		sample = -sample;    /* get magnitude       */
+	}
+
 	if (sample > CLIP)
-		sample = CLIP;  /* clip the magnitude  */
+	{
+		sample = CLIP;    /* clip the magnitude  */
+	}
 
 	/* Convert from 16 bit linear to ulaw. */
 	sample = sample + BIAS;
@@ -278,9 +288,13 @@ isdn_audio_linear2ulaw(int sample)
 	mantissa = (sample >> (exponent + 3)) & 0x0F;
 	ulawbyte = ~(sign | (exponent << 4) | mantissa);
 #ifdef ZEROTRAP
+
 	/* optional CCITT trap */
 	if (ulawbyte == 0)
+	{
 		ulawbyte = 0x02;
+	}
+
 #endif
 	return (ulawbyte);
 }
@@ -301,23 +315,27 @@ static int bitmask[9] =
 static int
 isdn_audio_get_bits(adpcm_state *s, unsigned char **in, int *len)
 {
-	while (s->nleft < s->nbits) {
+	while (s->nleft < s->nbits)
+	{
 		int d = *((*in)++);
 		(*len)--;
 		s->word = (s->word << 8) | d;
 		s->nleft += 8;
 	}
+
 	s->nleft -= s->nbits;
 	return (s->word >> s->nleft) & bitmask[s->nbits];
 }
 
 static void
 isdn_audio_put_bits(int data, int nbits, adpcm_state *s,
-		    unsigned char **out, int *len)
+					unsigned char **out, int *len)
 {
 	s->word = (s->word << nbits) | (data & bitmask[nbits]);
 	s->nleft += nbits;
-	while (s->nleft >= 8) {
+
+	while (s->nleft >= 8)
+	{
 		int d = (s->word >> (s->nleft - 8));
 		*(out[0]++) = d & 255;
 		(*len)++;
@@ -329,14 +347,19 @@ adpcm_state *
 isdn_audio_adpcm_init(adpcm_state *s, int nbits)
 {
 	if (!s)
+	{
 		s = kmalloc(sizeof(adpcm_state), GFP_ATOMIC);
-	if (s) {
+	}
+
+	if (s)
+	{
 		s->a = 0;
 		s->d = 5;
 		s->word = 0;
 		s->nleft = 0;
 		s->nbits = nbits;
 	}
+
 	return s;
 }
 
@@ -344,11 +367,16 @@ dtmf_state *
 isdn_audio_dtmf_init(dtmf_state *s)
 {
 	if (!s)
+	{
 		s = kmalloc(sizeof(dtmf_state), GFP_ATOMIC);
-	if (s) {
+	}
+
+	if (s)
+	{
 		s->idx = 0;
 		s->last = ' ';
 	}
+
 	return s;
 }
 
@@ -359,34 +387,49 @@ isdn_audio_dtmf_init(dtmf_state *s)
 
 int
 isdn_audio_adpcm2xlaw(adpcm_state *s, int fmt, unsigned char *in,
-		      unsigned char *out, int len)
+					  unsigned char *out, int len)
 {
 	int a = s->a;
 	int d = s->d;
 	int nbits = s->nbits;
 	int olen = 0;
 
-	while (len) {
+	while (len)
+	{
 		int e = isdn_audio_get_bits(s, &in, &len);
 		int sign;
 
 		if (nbits == 4 && e == 0)
+		{
 			d = 4;
+		}
+
 		sign = (e >> (nbits - 1)) ? -1 : 1;
 		e &= bitmask[nbits - 1];
 		a += sign * ((e << 1) + 1) * d >> 1;
+
 		if (d & 1)
+		{
 			a++;
+		}
+
 		if (fmt)
 			*out++ = isdn_audio_ulaw_to_alaw[
-				isdn_audio_linear2ulaw(a << 2)];
+						 isdn_audio_linear2ulaw(a << 2)];
 		else
+		{
 			*out++ = isdn_audio_linear2ulaw(a << 2);
+		}
+
 		olen++;
 		d = (d * Mx[nbits - 2][e] + 0x2000) >> 14;
+
 		if (d < 5)
+		{
 			d = 5;
+		}
 	}
+
 	s->a = a;
 	s->d = d;
 	return olen;
@@ -394,44 +437,65 @@ isdn_audio_adpcm2xlaw(adpcm_state *s, int fmt, unsigned char *in,
 
 int
 isdn_audio_xlaw2adpcm(adpcm_state *s, int fmt, unsigned char *in,
-		      unsigned char *out, int len)
+					  unsigned char *out, int len)
 {
 	int a = s->a;
 	int d = s->d;
 	int nbits = s->nbits;
 	int olen = 0;
 
-	while (len--) {
+	while (len--)
+	{
 		int e = 0,
 			nmax = 1 << (nbits - 1);
 		int sign,
 			delta;
 
 		if (fmt)
+		{
 			delta = (isdn_audio_alaw_to_s16[*in++] >> 2) - a;
+		}
 		else
+		{
 			delta = (isdn_audio_ulaw_to_s16[*in++] >> 2) - a;
-		if (delta < 0) {
+		}
+
+		if (delta < 0)
+		{
 			e = nmax;
 			delta = -delta;
 		}
-		while (--nmax && delta > d) {
+
+		while (--nmax && delta > d)
+		{
 			delta -= d;
 			e++;
 		}
+
 		if (nbits == 4 && ((e & 0x0f) == 0))
+		{
 			e = 8;
+		}
+
 		isdn_audio_put_bits(e, nbits, s, &out, &olen);
 		sign = (e >> (nbits - 1)) ? -1 : 1;
 		e &= bitmask[nbits - 1];
 
 		a += sign * ((e << 1) + 1) * d >> 1;
+
 		if (d & 1)
+		{
 			a++;
+		}
+
 		d = (d * Mx[nbits - 2][e] + 0x2000) >> 14;
+
 		if (d < 5)
+		{
 			d = 5;
+		}
 	}
+
 	s->a = a;
 	s->d = d;
 	return olen;
@@ -456,37 +520,49 @@ isdn_audio_goertzel(int *sample, modem_info *info)
 	int *result;
 
 	skb = dev_alloc_skb(sizeof(int) * NCOEFF);
-	if (!skb) {
+
+	if (!skb)
+	{
 		printk(KERN_WARNING
-		       "isdn_audio: Could not alloc DTMF result for ttyI%d\n",
-		       info->line);
+			   "isdn_audio: Could not alloc DTMF result for ttyI%d\n",
+			   info->line);
 		return;
 	}
+
 	result = (int *) skb_put(skb, sizeof(int) * NCOEFF);
-	for (k = 0; k < NCOEFF; k++) {
+
+	for (k = 0; k < NCOEFF; k++)
+	{
 		sk = sk1 = sk2 = 0;
-		for (n = 0; n < DTMF_NPOINTS; n++) {
+
+		for (n = 0; n < DTMF_NPOINTS; n++)
+		{
 			sk = sample[n] + ((cos2pik[k] * sk1) >> 15) - sk2;
 			sk2 = sk1;
 			sk1 = sk;
 		}
+
 		/* Avoid overflows */
 		sk >>= 1;
 		sk2 >>= 1;
+
 		/* compute |X(k)|**2 */
 		/* report overflows. This should not happen. */
 		/* Comment this out if desired */
 		if (sk < -32768 || sk > 32767)
 			printk(KERN_DEBUG
-			       "isdn_audio: dtmf goertzel overflow, sk=%d\n", sk);
+				   "isdn_audio: dtmf goertzel overflow, sk=%d\n", sk);
+
 		if (sk2 < -32768 || sk2 > 32767)
 			printk(KERN_DEBUG
-			       "isdn_audio: dtmf goertzel overflow, sk2=%d\n", sk2);
+				   "isdn_audio: dtmf goertzel overflow, sk2=%d\n", sk2);
+
 		result[k] =
 			((sk * sk) >> AMP_BITS) -
 			((((cos2pik[k] * sk) >> 15) * sk2) >> AMP_BITS) +
 			((sk2 * sk2) >> AMP_BITS);
 	}
+
 	skb_queue_tail(&info->dtmf_queue, skb);
 	isdn_timer_ctrl(ISDN_TIMER_MODEMREAD, 1);
 }
@@ -506,59 +582,97 @@ isdn_audio_eval_dtmf(modem_info *info)
 	char *p;
 	int thresh;
 
-	while ((skb = skb_dequeue(&info->dtmf_queue))) {
+	while ((skb = skb_dequeue(&info->dtmf_queue)))
+	{
 		result = (int *) skb->data;
 		s = info->dtmf_state;
 		grp[LOGRP] = grp[HIGRP] = -1;
 		silence = 0;
 		thresh = 0;
-		for (i = 0; i < NCOEFF; i++) {
-			if (result[i] > DTMF_TRESH) {
+
+		for (i = 0; i < NCOEFF; i++)
+		{
+			if (result[i] > DTMF_TRESH)
+			{
 				if (result[i] > thresh)
+				{
 					thresh = result[i];
+				}
 			}
 			else if (result[i] < SILENCE_TRESH)
+			{
 				silence++;
+			}
 		}
+
 		if (silence == NCOEFF)
+		{
 			what = ' ';
-		else {
-			if (thresh > 0)	{
+		}
+		else
+		{
+			if (thresh > 0)
+			{
 				thresh = thresh >> 4;  /* touchtones must match within 12 dB */
-				for (i = 0; i < NCOEFF; i++) {
+
+				for (i = 0; i < NCOEFF; i++)
+				{
 					if (result[i] < thresh)
-						continue;  /* ignore */
+					{
+						continue;    /* ignore */
+					}
+
 					/* good level found. This is allowed only one time per group */
-					if (i < NCOEFF / 2) {
+					if (i < NCOEFF / 2)
+					{
 						/* lowgroup*/
-						if (grp[LOGRP] >= 0) {
+						if (grp[LOGRP] >= 0)
+						{
 							// Bad. Another tone found. */
 							grp[LOGRP] = -1;
 							break;
 						}
 						else
+						{
 							grp[LOGRP] = i;
+						}
 					}
-					else { /* higroup */
-						if (grp[HIGRP] >= 0) { // Bad. Another tone found. */
+					else   /* higroup */
+					{
+						if (grp[HIGRP] >= 0)   // Bad. Another tone found. */
+						{
 							grp[HIGRP] = -1;
 							break;
 						}
 						else
-							grp[HIGRP] = i - NCOEFF/2;
+						{
+							grp[HIGRP] = i - NCOEFF / 2;
+						}
 					}
 				}
-				if ((grp[LOGRP] >= 0) && (grp[HIGRP] >= 0)) {
+
+				if ((grp[LOGRP] >= 0) && (grp[HIGRP] >= 0))
+				{
 					what = dtmf_matrix[grp[LOGRP]][grp[HIGRP]];
+
 					if (s->last != ' ' && s->last != '.')
-						s->last = what;	/* min. 1 non-DTMF between DTMF */
-				} else
+					{
+						s->last = what;    /* min. 1 non-DTMF between DTMF */
+					}
+				}
+				else
+				{
 					what = '.';
+				}
 			}
 			else
+			{
 				what = '.';
+			}
 		}
-		if ((what != s->last) && (what != ' ') && (what != '.')) {
+
+		if ((what != s->last) && (what != ' ') && (what != '.'))
+		{
 			printk(KERN_DEBUG "dtmf: tt='%c'\n", what);
 			p = skb->data;
 			*p++ = 0x10;
@@ -570,12 +684,20 @@ isdn_audio_eval_dtmf(modem_info *info)
 			ch = info->isdn_channel;
 			__skb_queue_tail(&dev->drv[di]->rpqueue[ch], skb);
 			dev->drv[di]->rcvcount[ch] += 2;
+
 			/* Schedule dequeuing */
 			if ((dev->modempoll) && (info->rcvsched))
+			{
 				isdn_timer_ctrl(ISDN_TIMER_MODEMREAD, 1);
+			}
+
 			wake_up_interruptible(&dev->drv[di]->rcv_waitq[ch]);
-		} else
+		}
+		else
+		{
 			kfree_skb(skb);
+		}
+
 		s->last = what;
 	}
 }
@@ -596,13 +718,22 @@ isdn_audio_calc_dtmf(modem_info *info, unsigned char *buf, int len, int fmt)
 	int i;
 	int c;
 
-	while (len) {
+	while (len)
+	{
 		c = DTMF_NPOINTS - s->idx;
+
 		if (c > len)
+		{
 			c = len;
+		}
+
 		if (c <= 0)
+		{
 			break;
-		for (i = 0; i < c; i++) {
+		}
+
+		for (i = 0; i < c; i++)
+		{
 			if (fmt)
 				s->buf[s->idx++] =
 					isdn_audio_alaw_to_s16[*buf++] >> (15 - AMP_BITS);
@@ -610,10 +741,13 @@ isdn_audio_calc_dtmf(modem_info *info, unsigned char *buf, int len, int fmt)
 				s->buf[s->idx++] =
 					isdn_audio_ulaw_to_s16[*buf++] >> (15 - AMP_BITS);
 		}
-		if (s->idx == DTMF_NPOINTS) {
+
+		if (s->idx == DTMF_NPOINTS)
+		{
 			isdn_audio_goertzel(s->buf, info);
 			s->idx = 0;
 		}
+
 		len -= c;
 	}
 }
@@ -622,11 +756,16 @@ silence_state *
 isdn_audio_silence_init(silence_state *s)
 {
 	if (!s)
+	{
 		s = kmalloc(sizeof(silence_state), GFP_ATOMIC);
-	if (s) {
+	}
+
+	if (s)
+	{
 		s->idx = 0;
 		s->state = 0;
 	}
+
 	return s;
 }
 
@@ -637,22 +776,31 @@ isdn_audio_calc_silence(modem_info *info, unsigned char *buf, int len, int fmt)
 	int i;
 	signed char c;
 
-	if (!info->emu.vpar[1]) return;
+	if (!info->emu.vpar[1]) { return; }
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		if (fmt)
+		{
 			c = isdn_audio_alaw_to_ulaw[*buf++];
+		}
 		else
+		{
 			c = *buf++;
+		}
 
-		if (c > 0) c -= 128;
+		if (c > 0) { c -= 128; }
+
 		c = abs(c);
 
-		if (c > (info->emu.vpar[1] * 4)) {
+		if (c > (info->emu.vpar[1] * 4))
+		{
 			s->idx = 0;
 			s->state = 1;
-		} else {
-			if (s->idx < 210000) s->idx++;
+		}
+		else
+		{
+			if (s->idx < 210000) { s->idx++; }
 		}
 	}
 }
@@ -666,12 +814,15 @@ isdn_audio_put_dle_code(modem_info *info, u_char code)
 	char *p;
 
 	skb = dev_alloc_skb(2);
-	if (!skb) {
+
+	if (!skb)
+	{
 		printk(KERN_WARNING
-		       "isdn_audio: Could not alloc skb for ttyI%d\n",
-		       info->line);
+			   "isdn_audio: Could not alloc skb for ttyI%d\n",
+			   info->line);
 		return;
 	}
+
 	p = (char *) skb_put(skb, 2);
 	p[0] = 0x10;
 	p[1] = code;
@@ -681,9 +832,13 @@ isdn_audio_put_dle_code(modem_info *info, u_char code)
 	ch = info->isdn_channel;
 	__skb_queue_tail(&dev->drv[di]->rpqueue[ch], skb);
 	dev->drv[di]->rcvcount[ch] += 2;
+
 	/* Schedule dequeuing */
 	if ((dev->modempoll) && (info->rcvsched))
+	{
 		isdn_timer_ctrl(ISDN_TIMER_MODEMREAD, 1);
+	}
+
 	wake_up_interruptible(&dev->drv[di]->rcv_waitq[ch]);
 }
 
@@ -695,17 +850,24 @@ isdn_audio_eval_silence(modem_info *info)
 
 	what = ' ';
 
-	if (s->idx > (info->emu.vpar[2] * 800)) {
+	if (s->idx > (info->emu.vpar[2] * 800))
+	{
 		s->idx = 0;
-		if (!s->state) {	/* silence from beginning of rec */
+
+		if (!s->state)  	/* silence from beginning of rec */
+		{
 			what = 's';
-		} else {
+		}
+		else
+		{
 			what = 'q';
 		}
 	}
-	if ((what == 's') || (what == 'q')) {
+
+	if ((what == 's') || (what == 'q'))
+	{
 		printk(KERN_DEBUG "ttyI%d: %s\n", info->line,
-		       (what == 's') ? "silence" : "quiet");
+			   (what == 's') ? "silence" : "quiet");
 		isdn_audio_put_dle_code(info, what);
 	}
 }

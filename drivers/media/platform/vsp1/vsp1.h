@@ -51,7 +51,8 @@ struct vsp1_uds;
 #define VSP1_HAS_WPF_VFLIP	(1 << 5)
 #define VSP1_HAS_WPF_HFLIP	(1 << 6)
 
-struct vsp1_device_info {
+struct vsp1_device_info
+{
 	u32 version;
 	const char *model;
 	unsigned int gen;
@@ -63,7 +64,8 @@ struct vsp1_device_info {
 	bool uapi;
 };
 
-struct vsp1_device {
+struct vsp1_device
+{
 	struct device *dev;
 	const struct vsp1_device_info *info;
 	u32 version;

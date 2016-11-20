@@ -590,12 +590,14 @@ extern const struct regmap_config wm8350_regmap;
 
 struct wm8350;
 
-struct wm8350_hwmon {
+struct wm8350_hwmon
+{
 	struct platform_device *pdev;
 	struct device *classdev;
 };
 
-struct wm8350 {
+struct wm8350
+{
 	struct device *dev;
 
 	/* device IO */
@@ -630,7 +632,8 @@ struct wm8350 {
  * @irq_base: Base IRQ for genirq (not currently used).
  * @gpio_base: Base for gpiolib.
  */
-struct wm8350_platform_data {
+struct wm8350_platform_data
+{
 	int (*init)(struct wm8350 *wm8350);
 	int irq_high;
 	int irq_base;
@@ -642,7 +645,7 @@ struct wm8350_platform_data {
  * WM8350 device initialisation and exit.
  */
 int wm8350_device_init(struct wm8350 *wm8350, int irq,
-		       struct wm8350_platform_data *pdata);
+					   struct wm8350_platform_data *pdata);
 void wm8350_device_exit(struct wm8350 *wm8350);
 
 /*
@@ -661,15 +664,17 @@ int wm8350_block_write(struct wm8350 *wm8350, int reg, int size, u16 *src);
  * WM8350 internal interrupts
  */
 static inline int wm8350_register_irq(struct wm8350 *wm8350, int irq,
-				      irq_handler_t handler,
-				      unsigned long flags,
-				      const char *name, void *data)
+									  irq_handler_t handler,
+									  unsigned long flags,
+									  const char *name, void *data)
 {
 	if (!wm8350->irq_base)
+	{
 		return -ENODEV;
+	}
 
 	return request_threaded_irq(irq + wm8350->irq_base, NULL,
-				    handler, flags, name, data);
+								handler, flags, name, data);
 }
 
 static inline void wm8350_free_irq(struct wm8350 *wm8350, int irq, void *data)
@@ -688,7 +693,7 @@ static inline void wm8350_unmask_irq(struct wm8350 *wm8350, int irq)
 }
 
 int wm8350_irq_init(struct wm8350 *wm8350, int irq,
-		    struct wm8350_platform_data *pdata);
+					struct wm8350_platform_data *pdata);
 int wm8350_irq_exit(struct wm8350 *wm8350);
 
 #endif

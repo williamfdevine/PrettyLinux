@@ -35,14 +35,16 @@
 
 static struct watchdog_device st_wdog_dev;
 
-struct st_wdog_syscfg {
+struct st_wdog_syscfg
+{
 	unsigned int reset_type_reg;
 	unsigned int reset_type_mask;
 	unsigned int enable_reg;
 	unsigned int enable_mask;
 };
 
-struct st_wdog {
+struct st_wdog
+{
 	void __iomem *base;
 	struct device *dev;
 	struct regmap *regmap;
@@ -52,12 +54,14 @@ struct st_wdog {
 	bool warm_reset;
 };
 
-static struct st_wdog_syscfg stih407_syscfg = {
+static struct st_wdog_syscfg stih407_syscfg =
+{
 	.enable_reg		= 0x204,
 	.enable_mask		= BIT(19),
 };
 
-static const struct of_device_id st_wdog_match[] = {
+static const struct of_device_id st_wdog_match[] =
+{
 	{
 		.compatible = "st,stih407-lpc",
 		.data = &stih407_syscfg,
@@ -71,15 +75,15 @@ static void st_wdog_setup(struct st_wdog *st_wdog, bool enable)
 	/* Type of watchdog reset - 0: Cold 1: Warm */
 	if (st_wdog->syscfg->reset_type_reg)
 		regmap_update_bits(st_wdog->regmap,
-				   st_wdog->syscfg->reset_type_reg,
-				   st_wdog->syscfg->reset_type_mask,
-				   st_wdog->warm_reset);
+						   st_wdog->syscfg->reset_type_reg,
+						   st_wdog->syscfg->reset_type_mask,
+						   st_wdog->warm_reset);
 
 	/* Mask/unmask watchdog reset */
 	regmap_update_bits(st_wdog->regmap,
-			   st_wdog->syscfg->enable_reg,
-			   st_wdog->syscfg->enable_mask,
-			   enable ? 0 : st_wdog->syscfg->enable_mask);
+					   st_wdog->syscfg->enable_reg,
+					   st_wdog->syscfg->enable_mask,
+					   enable ? 0 : st_wdog->syscfg->enable_mask);
 }
 
 static void st_wdog_load_timer(struct st_wdog *st_wdog, unsigned int timeout)
@@ -109,7 +113,7 @@ static int st_wdog_stop(struct watchdog_device *wdd)
 }
 
 static int st_wdog_set_timeout(struct watchdog_device *wdd,
-			       unsigned int timeout)
+							   unsigned int timeout)
 {
 	struct st_wdog *st_wdog = watchdog_get_drvdata(wdd);
 
@@ -128,12 +132,14 @@ static int st_wdog_keepalive(struct watchdog_device *wdd)
 	return 0;
 }
 
-static const struct watchdog_info st_wdog_info = {
+static const struct watchdog_info st_wdog_info =
+{
 	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE,
 	.identity = "ST LPC WDT",
 };
 
-static const struct watchdog_ops st_wdog_ops = {
+static const struct watchdog_ops st_wdog_ops =
+{
 	.owner		= THIS_MODULE,
 	.start		= st_wdog_start,
 	.stop		= st_wdog_stop,
@@ -141,7 +147,8 @@ static const struct watchdog_ops st_wdog_ops = {
 	.set_timeout	= st_wdog_set_timeout,
 };
 
-static struct watchdog_device st_wdog_dev = {
+static struct watchdog_device st_wdog_dev =
+{
 	.info		= &st_wdog_info,
 	.ops		= &st_wdog_ops,
 };
@@ -159,39 +166,56 @@ static int st_wdog_probe(struct platform_device *pdev)
 	int ret;
 
 	ret = of_property_read_u32(np, "st,lpc-mode", &mode);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "An LPC mode must be provided\n");
 		return -EINVAL;
 	}
 
 	/* LPC can either run as a Clocksource or in RTC or WDT mode */
 	if (mode != ST_LPC_MODE_WDT)
+	{
 		return -ENODEV;
+	}
 
 	st_wdog = devm_kzalloc(&pdev->dev, sizeof(*st_wdog), GFP_KERNEL);
+
 	if (!st_wdog)
+	{
 		return -ENOMEM;
+	}
 
 	match = of_match_device(st_wdog_match, &pdev->dev);
-	if (!match) {
+
+	if (!match)
+	{
 		dev_err(&pdev->dev, "Couldn't match device\n");
 		return -ENODEV;
 	}
+
 	st_wdog->syscfg	= (struct st_wdog_syscfg *)match->data;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	regmap = syscon_regmap_lookup_by_phandle(np, "st,syscfg");
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		dev_err(&pdev->dev, "No syscfg phandle specified\n");
 		return PTR_ERR(regmap);
 	}
 
 	clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "Unable to request clock\n");
 		return PTR_ERR(clk);
 	}
@@ -203,15 +227,19 @@ static int st_wdog_probe(struct platform_device *pdev)
 	st_wdog->warm_reset	= of_property_read_bool(np, "st,warm_reset");
 	st_wdog->clkrate	= clk_get_rate(st_wdog->clk);
 
-	if (!st_wdog->clkrate) {
+	if (!st_wdog->clkrate)
+	{
 		dev_err(&pdev->dev, "Unable to fetch clock rate\n");
 		return -EINVAL;
 	}
+
 	st_wdog_dev.max_timeout = 0xFFFFFFFF / st_wdog->clkrate;
 	st_wdog_dev.parent = &pdev->dev;
 
 	ret = clk_prepare_enable(clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Unable to enable clock\n");
 		return ret;
 	}
@@ -221,14 +249,18 @@ static int st_wdog_probe(struct platform_device *pdev)
 
 	/* Init Watchdog timeout with value in DT */
 	ret = watchdog_init_timeout(&st_wdog_dev, 0, &pdev->dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Unable to initialise watchdog timeout\n");
 		clk_disable_unprepare(clk);
 		return ret;
 	}
 
 	ret = watchdog_register_device(&st_wdog_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Unable to register watchdog\n");
 		clk_disable_unprepare(clk);
 		return ret;
@@ -237,7 +269,7 @@ static int st_wdog_probe(struct platform_device *pdev)
 	st_wdog_setup(st_wdog, true);
 
 	dev_info(&pdev->dev, "LPC Watchdog driver registered, reset type is %s",
-		 st_wdog->warm_reset ? "warm" : "cold");
+			 st_wdog->warm_reset ? "warm" : "cold");
 
 	return ret;
 }
@@ -259,7 +291,9 @@ static int st_wdog_suspend(struct device *dev)
 	struct st_wdog *st_wdog = watchdog_get_drvdata(&st_wdog_dev);
 
 	if (watchdog_active(&st_wdog_dev))
+	{
 		st_wdog_stop(&st_wdog_dev);
+	}
 
 	st_wdog_setup(st_wdog, false);
 
@@ -274,7 +308,9 @@ static int st_wdog_resume(struct device *dev)
 	int ret;
 
 	ret = clk_enable(st_wdog->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Unable to re-enable clock\n");
 		watchdog_unregister_device(&st_wdog_dev);
 		clk_unprepare(st_wdog->clk);
@@ -283,7 +319,8 @@ static int st_wdog_resume(struct device *dev)
 
 	st_wdog_setup(st_wdog, true);
 
-	if (watchdog_active(&st_wdog_dev)) {
+	if (watchdog_active(&st_wdog_dev))
+	{
 		st_wdog_load_timer(st_wdog, st_wdog_dev.timeout);
 		st_wdog_start(&st_wdog_dev);
 	}
@@ -293,10 +330,11 @@ static int st_wdog_resume(struct device *dev)
 #endif
 
 static SIMPLE_DEV_PM_OPS(st_wdog_pm_ops,
-			 st_wdog_suspend,
-			 st_wdog_resume);
+						 st_wdog_suspend,
+						 st_wdog_resume);
 
-static struct platform_driver st_wdog_driver = {
+static struct platform_driver st_wdog_driver =
+{
 	.driver	= {
 		.name = "st-lpc-wdt",
 		.pm = &st_wdog_pm_ops,

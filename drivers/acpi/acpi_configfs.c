@@ -17,13 +17,14 @@
 
 static struct config_group *acpi_table_group;
 
-struct acpi_table {
+struct acpi_table
+{
 	struct config_item cfg;
 	struct acpi_table_header *header;
 };
 
 static ssize_t acpi_table_aml_write(struct config_item *cfg,
-				    const void *data, size_t size)
+									const void *data, size_t size)
 {
 	const struct acpi_table_header *header = data;
 	struct acpi_table *table;
@@ -31,17 +32,20 @@ static ssize_t acpi_table_aml_write(struct config_item *cfg,
 
 	table = container_of(cfg, struct acpi_table, cfg);
 
-	if (table->header) {
+	if (table->header)
+	{
 		pr_err("table already loaded\n");
 		return -EBUSY;
 	}
 
-	if (header->length != size) {
+	if (header->length != size)
+	{
 		pr_err("invalid table length\n");
 		return -EINVAL;
 	}
 
-	if (memcmp(header->signature, ACPI_SIG_SSDT, 4)) {
+	if (memcmp(header->signature, ACPI_SIG_SSDT, 4))
+	{
 		pr_err("invalid table signature\n");
 		return -EINVAL;
 	}
@@ -49,11 +53,16 @@ static ssize_t acpi_table_aml_write(struct config_item *cfg,
 	table = container_of(cfg, struct acpi_table, cfg);
 
 	table->header = kmemdup(header, header->length, GFP_KERNEL);
+
 	if (!table->header)
+	{
 		return -ENOMEM;
+	}
 
 	ret = acpi_load_table(table->header);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(table->header);
 		table->header = NULL;
 	}
@@ -66,21 +75,27 @@ static inline struct acpi_table_header *get_header(struct config_item *cfg)
 	struct acpi_table *table = container_of(cfg, struct acpi_table, cfg);
 
 	if (!table->header)
+	{
 		pr_err("table not loaded\n");
+	}
 
 	return table->header;
 }
 
 static ssize_t acpi_table_aml_read(struct config_item *cfg,
-				   void *data, size_t size)
+								   void *data, size_t size)
 {
 	struct acpi_table_header *h = get_header(cfg);
 
 	if (!h)
+	{
 		return -EINVAL;
+	}
 
 	if (data)
+	{
 		memcpy(data, h, h->length);
+	}
 
 	return h->length;
 }
@@ -89,7 +104,8 @@ static ssize_t acpi_table_aml_read(struct config_item *cfg,
 
 CONFIGFS_BIN_ATTR(acpi_table_, aml, NULL, MAX_ACPI_TABLE_SIZE);
 
-struct configfs_bin_attribute *acpi_table_bin_attrs[] = {
+struct configfs_bin_attribute *acpi_table_bin_attrs[] =
+{
 	&acpi_table_attr_aml,
 	NULL,
 };
@@ -99,7 +115,9 @@ ssize_t acpi_table_signature_show(struct config_item *cfg, char *str)
 	struct acpi_table_header *h = get_header(cfg);
 
 	if (!h)
+	{
 		return -EINVAL;
+	}
 
 	return sprintf(str, "%.*s\n", ACPI_NAME_SIZE, h->signature);
 }
@@ -109,7 +127,9 @@ ssize_t acpi_table_length_show(struct config_item *cfg, char *str)
 	struct acpi_table_header *h = get_header(cfg);
 
 	if (!h)
+	{
 		return -EINVAL;
+	}
 
 	return sprintf(str, "%d\n", h->length);
 }
@@ -119,7 +139,9 @@ ssize_t acpi_table_revision_show(struct config_item *cfg, char *str)
 	struct acpi_table_header *h = get_header(cfg);
 
 	if (!h)
+	{
 		return -EINVAL;
+	}
 
 	return sprintf(str, "%d\n", h->revision);
 }
@@ -129,7 +151,9 @@ ssize_t acpi_table_oem_id_show(struct config_item *cfg, char *str)
 	struct acpi_table_header *h = get_header(cfg);
 
 	if (!h)
+	{
 		return -EINVAL;
+	}
 
 	return sprintf(str, "%.*s\n", ACPI_OEM_ID_SIZE, h->oem_id);
 }
@@ -139,7 +163,9 @@ ssize_t acpi_table_oem_table_id_show(struct config_item *cfg, char *str)
 	struct acpi_table_header *h = get_header(cfg);
 
 	if (!h)
+	{
 		return -EINVAL;
+	}
 
 	return sprintf(str, "%.*s\n", ACPI_OEM_TABLE_ID_SIZE, h->oem_table_id);
 }
@@ -149,7 +175,9 @@ ssize_t acpi_table_oem_revision_show(struct config_item *cfg, char *str)
 	struct acpi_table_header *h = get_header(cfg);
 
 	if (!h)
+	{
 		return -EINVAL;
+	}
 
 	return sprintf(str, "%d\n", h->oem_revision);
 }
@@ -159,18 +187,22 @@ ssize_t acpi_table_asl_compiler_id_show(struct config_item *cfg, char *str)
 	struct acpi_table_header *h = get_header(cfg);
 
 	if (!h)
+	{
 		return -EINVAL;
+	}
 
 	return sprintf(str, "%.*s\n", ACPI_NAME_SIZE, h->asl_compiler_id);
 }
 
 ssize_t acpi_table_asl_compiler_revision_show(struct config_item *cfg,
-					      char *str)
+		char *str)
 {
 	struct acpi_table_header *h = get_header(cfg);
 
 	if (!h)
+	{
 		return -EINVAL;
+	}
 
 	return sprintf(str, "%d\n", h->asl_compiler_revision);
 }
@@ -184,7 +216,8 @@ CONFIGFS_ATTR_RO(acpi_table_, oem_revision);
 CONFIGFS_ATTR_RO(acpi_table_, asl_compiler_id);
 CONFIGFS_ATTR_RO(acpi_table_, asl_compiler_revision);
 
-struct configfs_attribute *acpi_table_attrs[] = {
+struct configfs_attribute *acpi_table_attrs[] =
+{
 	&acpi_table_attr_signature,
 	&acpi_table_attr_length,
 	&acpi_table_attr_revision,
@@ -196,39 +229,47 @@ struct configfs_attribute *acpi_table_attrs[] = {
 	NULL,
 };
 
-static struct config_item_type acpi_table_type = {
+static struct config_item_type acpi_table_type =
+{
 	.ct_owner = THIS_MODULE,
 	.ct_bin_attrs = acpi_table_bin_attrs,
 	.ct_attrs = acpi_table_attrs,
 };
 
 static struct config_item *acpi_table_make_item(struct config_group *group,
-						const char *name)
+		const char *name)
 {
 	struct acpi_table *table;
 
 	table = kzalloc(sizeof(*table), GFP_KERNEL);
+
 	if (!table)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	config_item_init_type_name(&table->cfg, name, &acpi_table_type);
 	return &table->cfg;
 }
 
-struct configfs_group_operations acpi_table_group_ops = {
+struct configfs_group_operations acpi_table_group_ops =
+{
 	.make_item = acpi_table_make_item,
 };
 
-static struct config_item_type acpi_tables_type = {
+static struct config_item_type acpi_tables_type =
+{
 	.ct_owner = THIS_MODULE,
 	.ct_group_ops = &acpi_table_group_ops,
 };
 
-static struct config_item_type acpi_root_group_type = {
+static struct config_item_type acpi_root_group_type =
+{
 	.ct_owner = THIS_MODULE,
 };
 
-static struct configfs_subsystem acpi_configfs = {
+static struct configfs_subsystem acpi_configfs =
+{
 	.su_group = {
 		.cg_item = {
 			.ci_namebuf = "acpi",
@@ -246,11 +287,14 @@ static int __init acpi_configfs_init(void)
 	config_group_init(root);
 
 	ret = configfs_register_subsystem(&acpi_configfs);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	acpi_table_group = configfs_register_default_group(root, "table",
-							   &acpi_tables_type);
+					   &acpi_tables_type);
 	return PTR_ERR_OR_ZERO(acpi_table_group);
 }
 module_init(acpi_configfs_init);

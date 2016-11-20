@@ -34,7 +34,8 @@
  * @async_req_enqueue: invoked by every algorithm to enqueue a request
  * @async_req_done: invoked by every algorithm to finish its request
  */
-struct qce_device {
+struct qce_device
+{
 	struct crypto_queue queue;
 	spinlock_t lock;
 	struct tasklet_struct done_tasklet;
@@ -47,7 +48,7 @@ struct qce_device {
 	int burst_size;
 	unsigned int pipe_pair_id;
 	int (*async_req_enqueue)(struct qce_device *qce,
-				 struct crypto_async_request *req);
+							 struct crypto_async_request *req);
 	void (*async_req_done)(struct qce_device *qce, int ret);
 };
 
@@ -58,7 +59,8 @@ struct qce_device {
  * @unregister_algs: invoked by core to unregister the algorithms
  * @async_req_handle: invoked by core to handle enqueued request
  */
-struct qce_algo_ops {
+struct qce_algo_ops
+{
 	u32 type;
 	int (*register_algs)(struct qce_device *qce);
 	void (*unregister_algs)(struct qce_device *qce);

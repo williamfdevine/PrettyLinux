@@ -33,9 +33,13 @@ static int sxgbe_mdio_busy_wait(void __iomem *ioaddr, unsigned int mii_data)
 {
 	unsigned long fin_time = jiffies + 3 * HZ; /* 3 seconds */
 
-	while (!time_after(jiffies, fin_time)) {
+	while (!time_after(jiffies, fin_time))
+	{
 		if (!(readl(ioaddr + mii_data) & SXGBE_MII_BUSY))
+		{
 			return 0;
+		}
+
 		cpu_relax();
 	}
 
@@ -43,17 +47,17 @@ static int sxgbe_mdio_busy_wait(void __iomem *ioaddr, unsigned int mii_data)
 }
 
 static void sxgbe_mdio_ctrl_data(struct sxgbe_priv_data *sp, u32 cmd,
-				 u16 phydata)
+								 u16 phydata)
 {
 	u32 reg = phydata;
 
 	reg |= (cmd << 16) | SXGBE_SMA_SKIP_ADDRFRM |
-	       ((sp->clk_csr & 0x7) << 19) | SXGBE_MII_BUSY;
+		   ((sp->clk_csr & 0x7) << 19) | SXGBE_MII_BUSY;
 	writel(reg, sp->ioaddr + sp->hw->mii.data);
 }
 
 static void sxgbe_mdio_c45(struct sxgbe_priv_data *sp, u32 cmd, int phyaddr,
-			   int phyreg, u16 phydata)
+						   int phyreg, u16 phydata)
 {
 	u32 reg;
 
@@ -66,7 +70,7 @@ static void sxgbe_mdio_c45(struct sxgbe_priv_data *sp, u32 cmd, int phyaddr,
 }
 
 static void sxgbe_mdio_c22(struct sxgbe_priv_data *sp, u32 cmd, int phyaddr,
-			   int phyreg, u16 phydata)
+						   int phyreg, u16 phydata)
 {
 	u32 reg;
 
@@ -80,21 +84,29 @@ static void sxgbe_mdio_c22(struct sxgbe_priv_data *sp, u32 cmd, int phyaddr,
 }
 
 static int sxgbe_mdio_access(struct sxgbe_priv_data *sp, u32 cmd, int phyaddr,
-			     int phyreg, u16 phydata)
+							 int phyreg, u16 phydata)
 {
 	const struct mii_regs *mii = &sp->hw->mii;
 	int rc;
 
 	rc = sxgbe_mdio_busy_wait(sp->ioaddr, mii->data);
-	if (rc < 0)
-		return rc;
 
-	if (phyreg & MII_ADDR_C45) {
+	if (rc < 0)
+	{
+		return rc;
+	}
+
+	if (phyreg & MII_ADDR_C45)
+	{
 		sxgbe_mdio_c45(sp, cmd, phyaddr, phyreg, phydata);
-	} else {
-		 /* Ports 0-3 only support C22. */
+	}
+	else
+	{
+		/* Ports 0-3 only support C22. */
 		if (phyaddr >= 4)
+		{
 			return -ENODEV;
+		}
 
 		sxgbe_mdio_c22(sp, cmd, phyaddr, phyreg, phydata);
 	}
@@ -116,8 +128,11 @@ static int sxgbe_mdio_read(struct mii_bus *bus, int phyaddr, int phyreg)
 	int rc;
 
 	rc = sxgbe_mdio_access(priv, SXGBE_SMA_READ_CMD, phyaddr, phyreg, 0);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	return readl(priv->ioaddr + priv->hw->mii.data) & 0xffff;
 }
@@ -131,13 +146,13 @@ static int sxgbe_mdio_read(struct mii_bus *bus, int phyaddr, int phyreg)
  * Description: this function is used for C45 and C22 MDIO write
  */
 static int sxgbe_mdio_write(struct mii_bus *bus, int phyaddr, int phyreg,
-			     u16 phydata)
+							u16 phydata)
 {
 	struct net_device *ndev = bus->priv;
 	struct sxgbe_priv_data *priv = netdev_priv(ndev);
 
 	return sxgbe_mdio_access(priv, SXGBE_SMA_WRITE_CMD, phyaddr, phyreg,
-				 phydata);
+							 phydata);
 }
 
 int sxgbe_mdio_register(struct net_device *ndev)
@@ -152,44 +167,56 @@ int sxgbe_mdio_register(struct net_device *ndev)
 
 	/* allocate the new mdio bus */
 	mdio_bus = mdiobus_alloc();
-	if (!mdio_bus) {
+
+	if (!mdio_bus)
+	{
 		netdev_err(ndev, "%s: mii bus allocation failed\n", __func__);
 		return -ENOMEM;
 	}
 
 	if (mdio_data->irqs)
+	{
 		irqlist = mdio_data->irqs;
+	}
 	else
+	{
 		irqlist = priv->mii_irq;
+	}
 
 	/* assign mii bus fields */
 	mdio_bus->name = "sxgbe";
 	mdio_bus->read = &sxgbe_mdio_read;
 	mdio_bus->write = &sxgbe_mdio_write;
 	snprintf(mdio_bus->id, MII_BUS_ID_SIZE, "%s-%x",
-		 mdio_bus->name, priv->plat->bus_id);
+			 mdio_bus->name, priv->plat->bus_id);
 	mdio_bus->priv = ndev;
 	mdio_bus->phy_mask = mdio_data->phy_mask;
 	mdio_bus->parent = priv->device;
 
 	/* register with kernel subsystem */
 	err = mdiobus_register(mdio_bus);
-	if (err != 0) {
+
+	if (err != 0)
+	{
 		netdev_err(ndev, "mdiobus register failed\n");
 		goto mdiobus_err;
 	}
 
-	for (phy_addr = 0; phy_addr < PHY_MAX_ADDR; phy_addr++) {
+	for (phy_addr = 0; phy_addr < PHY_MAX_ADDR; phy_addr++)
+	{
 		struct phy_device *phy = mdiobus_get_phy(mdio_bus, phy_addr);
 
-		if (phy) {
+		if (phy)
+		{
 			char irq_num[4];
 			char *irq_str;
+
 			/* If an IRQ was provided to be assigned after
 			 * the bus probe, do it here.
 			 */
 			if ((mdio_data->irqs == NULL) &&
-			    (mdio_data->probed_phy_irq > 0)) {
+				(mdio_data->probed_phy_irq > 0))
+			{
 				irqlist[phy_addr] = mdio_data->probed_phy_irq;
 				phy->irq = mdio_data->probed_phy_irq;
 			}
@@ -199,29 +226,37 @@ int sxgbe_mdio_register(struct net_device *ndev)
 			 * use the one probed here.
 			 */
 			if (priv->plat->phy_addr == -1)
+			{
 				priv->plat->phy_addr = phy_addr;
+			}
 
 			act = (priv->plat->phy_addr == phy_addr);
-			switch (phy->irq) {
-			case PHY_POLL:
-				irq_str = "POLL";
-				break;
-			case PHY_IGNORE_INTERRUPT:
-				irq_str = "IGNORE";
-				break;
-			default:
-				sprintf(irq_num, "%d", phy->irq);
-				irq_str = irq_num;
-				break;
+
+			switch (phy->irq)
+			{
+				case PHY_POLL:
+					irq_str = "POLL";
+					break;
+
+				case PHY_IGNORE_INTERRUPT:
+					irq_str = "IGNORE";
+					break;
+
+				default:
+					sprintf(irq_num, "%d", phy->irq);
+					irq_str = irq_num;
+					break;
 			}
+
 			netdev_info(ndev, "PHY ID %08x at %d IRQ %s (%s)%s\n",
-				    phy->phy_id, phy_addr, irq_str,
-				    phydev_name(phy), act ? " active" : "");
+						phy->phy_id, phy_addr, irq_str,
+						phydev_name(phy), act ? " active" : "");
 			phy_found = true;
 		}
 	}
 
-	if (!phy_found) {
+	if (!phy_found)
+	{
 		netdev_err(ndev, "PHY not found\n");
 		goto phyfound_err;
 	}
@@ -243,7 +278,9 @@ int sxgbe_mdio_unregister(struct net_device *ndev)
 	struct sxgbe_priv_data *priv = netdev_priv(ndev);
 
 	if (!priv->mii)
+	{
 		return 0;
+	}
 
 	mdiobus_unregister(priv->mii);
 	priv->mii->priv = NULL;

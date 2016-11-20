@@ -42,14 +42,16 @@
 #define ANUBIS_MAX_N		10
 #define ANUBIS_MAX_ROUNDS	(8 + ANUBIS_MAX_N)
 
-struct anubis_ctx {
+struct anubis_ctx
+{
 	int key_len; // in bits
 	int R;
 	u32 E[ANUBIS_MAX_ROUNDS + 1][4];
 	u32 D[ANUBIS_MAX_ROUNDS + 1][4];
 };
 
-static const u32 T0[256] = {
+static const u32 T0[256] =
+{
 	0xba69d2bbU, 0x54a84de5U, 0x2f5ebce2U, 0x74e8cd25U,
 	0x53a651f7U, 0xd3bb6bd0U, 0xd2b96fd6U, 0x4d9a29b3U,
 	0x50a05dfdU, 0xac458acfU, 0x8d070e09U, 0xbf63c6a5U,
@@ -116,7 +118,8 @@ static const u32 T0[256] = {
 	0x1f3e7c42U, 0xca890f86U, 0xaa4992dbU, 0x42841591U,
 };
 
-static const u32 T1[256] = {
+static const u32 T1[256] =
+{
 	0x69babbd2U, 0xa854e54dU, 0x5e2fe2bcU, 0xe87425cdU,
 	0xa653f751U, 0xbbd3d06bU, 0xb9d2d66fU, 0x9a4db329U,
 	0xa050fd5dU, 0x45accf8aU, 0x078d090eU, 0x63bfa5c6U,
@@ -183,7 +186,8 @@ static const u32 T1[256] = {
 	0x3e1f427cU, 0x89ca860fU, 0x49aadb92U, 0x84429115U,
 };
 
-static const u32 T2[256] = {
+static const u32 T2[256] =
+{
 	0xd2bbba69U, 0x4de554a8U, 0xbce22f5eU, 0xcd2574e8U,
 	0x51f753a6U, 0x6bd0d3bbU, 0x6fd6d2b9U, 0x29b34d9aU,
 	0x5dfd50a0U, 0x8acfac45U, 0x0e098d07U, 0xc6a5bf63U,
@@ -250,7 +254,8 @@ static const u32 T2[256] = {
 	0x7c421f3eU, 0x0f86ca89U, 0x92dbaa49U, 0x15914284U,
 };
 
-static const u32 T3[256] = {
+static const u32 T3[256] =
+{
 	0xbbd269baU, 0xe54da854U, 0xe2bc5e2fU, 0x25cde874U,
 	0xf751a653U, 0xd06bbbd3U, 0xd66fb9d2U, 0xb3299a4dU,
 	0xfd5da050U, 0xcf8a45acU, 0x090e078dU, 0xa5c663bfU,
@@ -317,7 +322,8 @@ static const u32 T3[256] = {
 	0x427c3e1fU, 0x860f89caU, 0xdb9249aaU, 0x91158442U,
 };
 
-static const u32 T4[256] = {
+static const u32 T4[256] =
+{
 	0xbabababaU, 0x54545454U, 0x2f2f2f2fU, 0x74747474U,
 	0x53535353U, 0xd3d3d3d3U, 0xd2d2d2d2U, 0x4d4d4d4dU,
 	0x50505050U, 0xacacacacU, 0x8d8d8d8dU, 0xbfbfbfbfU,
@@ -384,7 +390,8 @@ static const u32 T4[256] = {
 	0x1f1f1f1fU, 0xcacacacaU, 0xaaaaaaaaU, 0x42424242U,
 };
 
-static const u32 T5[256] = {
+static const u32 T5[256] =
+{
 	0x00000000U, 0x01020608U, 0x02040c10U, 0x03060a18U,
 	0x04081820U, 0x050a1e28U, 0x060c1430U, 0x070e1238U,
 	0x08103040U, 0x09123648U, 0x0a143c50U, 0x0b163a58U,
@@ -451,7 +458,8 @@ static const u32 T5[256] = {
 	0xfce532b3U, 0xfde734bbU, 0xfee13ea3U, 0xffe338abU,
 };
 
-static const u32 rc[] = {
+static const u32 rc[] =
+{
 	0xba542f74U, 0x53d3d24dU, 0x50ac8dbfU, 0x70529a4cU,
 	0xead597d1U, 0x33515ba6U, 0xde48a899U, 0xdb32b7fcU,
 	0xe39e919bU, 0xe2bb416eU, 0xa5cb6b95U, 0xa1f3b102U,
@@ -460,7 +468,7 @@ static const u32 rc[] = {
 };
 
 static int anubis_setkey(struct crypto_tfm *tfm, const u8 *in_key,
-			 unsigned int key_len)
+						 unsigned int key_len)
 {
 	struct anubis_ctx *ctx = crypto_tfm_ctx(tfm);
 	const __be32 *key = (const __be32 *)in_key;
@@ -469,10 +477,12 @@ static int anubis_setkey(struct crypto_tfm *tfm, const u8 *in_key,
 	u32 kappa[ANUBIS_MAX_N];
 	u32 inter[ANUBIS_MAX_N];
 
-	switch (key_len) {
+	switch (key_len)
+	{
 		case 16: case 20: case 24: case 28:
 		case 32: case 36: case 40:
 			break;
+
 		default:
 			*flags |= CRYPTO_TFM_RES_BAD_KEY_LEN;
 			return -EINVAL;
@@ -484,12 +494,15 @@ static int anubis_setkey(struct crypto_tfm *tfm, const u8 *in_key,
 
 	/* * map cipher key to initial key state (mu): */
 	for (i = 0; i < N; i++)
+	{
 		kappa[i] = be32_to_cpu(key[i]);
+	}
 
 	/*
 	 * generate R + 1 round keys:
 	 */
-	for (r = 0; r <= R; r++) {
+	for (r = 0; r <= R; r++)
+	{
 		u32 K0, K1, K2, K3;
 		/*
 		 * generate r-th round key K^r:
@@ -498,27 +511,29 @@ static int anubis_setkey(struct crypto_tfm *tfm, const u8 *in_key,
 		K1 = T4[(kappa[N - 1] >> 16) & 0xff];
 		K2 = T4[(kappa[N - 1] >>  8) & 0xff];
 		K3 = T4[(kappa[N - 1]      ) & 0xff];
-		for (i = N - 2; i >= 0; i--) {
+
+		for (i = N - 2; i >= 0; i--)
+		{
 			K0 = T4[(kappa[i] >> 24)       ] ^
-				(T5[(K0 >> 24)       ] & 0xff000000U) ^
-				(T5[(K0 >> 16) & 0xff] & 0x00ff0000U) ^
-				(T5[(K0 >>  8) & 0xff] & 0x0000ff00U) ^
-				(T5[(K0      ) & 0xff] & 0x000000ffU);
+				 (T5[(K0 >> 24)       ] & 0xff000000U) ^
+				 (T5[(K0 >> 16) & 0xff] & 0x00ff0000U) ^
+				 (T5[(K0 >>  8) & 0xff] & 0x0000ff00U) ^
+				 (T5[(K0      ) & 0xff] & 0x000000ffU);
 			K1 = T4[(kappa[i] >> 16) & 0xff] ^
-				(T5[(K1 >> 24)       ] & 0xff000000U) ^
-				(T5[(K1 >> 16) & 0xff] & 0x00ff0000U) ^
-				(T5[(K1 >>  8) & 0xff] & 0x0000ff00U) ^
-				(T5[(K1      ) & 0xff] & 0x000000ffU);
+				 (T5[(K1 >> 24)       ] & 0xff000000U) ^
+				 (T5[(K1 >> 16) & 0xff] & 0x00ff0000U) ^
+				 (T5[(K1 >>  8) & 0xff] & 0x0000ff00U) ^
+				 (T5[(K1      ) & 0xff] & 0x000000ffU);
 			K2 = T4[(kappa[i] >>  8) & 0xff] ^
-				(T5[(K2 >> 24)       ] & 0xff000000U) ^
-				(T5[(K2 >> 16) & 0xff] & 0x00ff0000U) ^
-				(T5[(K2 >>  8) & 0xff] & 0x0000ff00U) ^
-				(T5[(K2      ) & 0xff] & 0x000000ffU);
+				 (T5[(K2 >> 24)       ] & 0xff000000U) ^
+				 (T5[(K2 >> 16) & 0xff] & 0x00ff0000U) ^
+				 (T5[(K2 >>  8) & 0xff] & 0x0000ff00U) ^
+				 (T5[(K2      ) & 0xff] & 0x000000ffU);
 			K3 = T4[(kappa[i]      ) & 0xff] ^
-				(T5[(K3 >> 24)       ] & 0xff000000U) ^
-				(T5[(K3 >> 16) & 0xff] & 0x00ff0000U) ^
-				(T5[(K3 >>  8) & 0xff] & 0x0000ff00U) ^
-				(T5[(K3      ) & 0xff] & 0x000000ffU);
+				 (T5[(K3 >> 24)       ] & 0xff000000U) ^
+				 (T5[(K3 >> 16) & 0xff] & 0x00ff0000U) ^
+				 (T5[(K3 >>  8) & 0xff] & 0x0000ff00U) ^
+				 (T5[(K3      ) & 0xff] & 0x000000ffU);
 		}
 
 		ctx->E[r][0] = K0;
@@ -530,35 +545,59 @@ static int anubis_setkey(struct crypto_tfm *tfm, const u8 *in_key,
 		 * compute kappa^{r+1} from kappa^r:
 		 */
 		if (r == R)
+		{
 			break;
-		for (i = 0; i < N; i++) {
+		}
+
+		for (i = 0; i < N; i++)
+		{
 			int j = i;
 			inter[i]  = T0[(kappa[j--] >> 24)       ];
+
 			if (j < 0)
+			{
 				j = N - 1;
+			}
+
 			inter[i] ^= T1[(kappa[j--] >> 16) & 0xff];
+
 			if (j < 0)
+			{
 				j = N - 1;
+			}
+
 			inter[i] ^= T2[(kappa[j--] >>  8) & 0xff];
+
 			if (j < 0)
+			{
 				j = N - 1;
+			}
+
 			inter[i] ^= T3[(kappa[j  ]      ) & 0xff];
 		}
+
 		kappa[0] = inter[0] ^ rc[r];
+
 		for (i = 1; i < N; i++)
+		{
 			kappa[i] = inter[i];
+		}
 	}
 
 	/*
 	 * generate inverse key schedule: K'^0 = K^R, K'^R =
 	 * 				  K^0, K'^r = theta(K^{R-r}):
 	 */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		ctx->D[0][i] = ctx->E[R][i];
 		ctx->D[R][i] = ctx->E[0][i];
 	}
-	for (r = 1; r < R; r++) {
-		for (i = 0; i < 4; i++) {
+
+	for (r = 1; r < R; r++)
+	{
+		for (i = 0; i < 4; i++)
+		{
 			u32 v = ctx->E[R - r][i];
 			ctx->D[r][i] =
 				T0[T4[(v >> 24)       ] & 0xff] ^
@@ -572,7 +611,7 @@ static int anubis_setkey(struct crypto_tfm *tfm, const u8 *in_key,
 }
 
 static void anubis_crypt(u32 roundKey[ANUBIS_MAX_ROUNDS + 1][4],
-		u8 *ciphertext, const u8 *plaintext, const int R)
+						 u8 *ciphertext, const u8 *plaintext, const int R)
 {
 	const __be32 *src = (const __be32 *)plaintext;
 	__be32 *dst = (__be32 *)ciphertext;
@@ -585,13 +624,16 @@ static void anubis_crypt(u32 roundKey[ANUBIS_MAX_ROUNDS + 1][4],
 	 * and add initial round key (sigma[K^0]):
 	 */
 	for (i = 0; i < 4; i++)
+	{
 		state[i] = be32_to_cpu(src[i]) ^ roundKey[0][i];
+	}
 
 	/*
 	 * R - 1 full rounds:
 	 */
 
-	for (r = 1; r < R; r++) {
+	for (r = 1; r < R; r++)
+	{
 		inter[0] =
 			T0[(state[0] >> 24)       ] ^
 			T1[(state[1] >> 24)       ] ^
@@ -656,7 +698,9 @@ static void anubis_crypt(u32 roundKey[ANUBIS_MAX_ROUNDS + 1][4],
 	 */
 
 	for (i = 0; i < 4; i++)
+	{
 		dst[i] = cpu_to_be32(inter[i]);
+	}
 }
 
 static void anubis_encrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
@@ -671,19 +715,23 @@ static void anubis_decrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 	anubis_crypt(ctx->D, dst, src, ctx->R);
 }
 
-static struct crypto_alg anubis_alg = {
+static struct crypto_alg anubis_alg =
+{
 	.cra_name		=	"anubis",
 	.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
 	.cra_blocksize		=	ANUBIS_BLOCK_SIZE,
 	.cra_ctxsize		=	sizeof (struct anubis_ctx),
 	.cra_alignmask		=	3,
 	.cra_module		=	THIS_MODULE,
-	.cra_u			=	{ .cipher = {
-	.cia_min_keysize	=	ANUBIS_MIN_KEY_SIZE,
-	.cia_max_keysize	=	ANUBIS_MAX_KEY_SIZE,
-	.cia_setkey		= 	anubis_setkey,
-	.cia_encrypt		=	anubis_encrypt,
-	.cia_decrypt		=	anubis_decrypt } }
+	.cra_u			=	{
+		.cipher = {
+			.cia_min_keysize	=	ANUBIS_MIN_KEY_SIZE,
+			.cia_max_keysize	=	ANUBIS_MAX_KEY_SIZE,
+			.cia_setkey		= 	anubis_setkey,
+			.cia_encrypt		=	anubis_encrypt,
+			.cia_decrypt		=	anubis_decrypt
+		}
+	}
 };
 
 static int __init anubis_mod_init(void)

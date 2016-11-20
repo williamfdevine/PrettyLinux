@@ -15,26 +15,30 @@ struct clk;
 struct device;
 struct page;
 
-struct tegra_smmu_enable {
+struct tegra_smmu_enable
+{
 	unsigned int reg;
 	unsigned int bit;
 };
 
-struct tegra_mc_timing {
+struct tegra_mc_timing
+{
 	unsigned long rate;
 
 	u32 *emem_data;
 };
 
 /* latency allowance */
-struct tegra_mc_la {
+struct tegra_mc_la
+{
 	unsigned int reg;
 	unsigned int shift;
 	unsigned int mask;
 	unsigned int def;
 };
 
-struct tegra_mc_client {
+struct tegra_mc_client
+{
 	unsigned int id;
 	const char *name;
 	unsigned int swgroup;
@@ -45,13 +49,15 @@ struct tegra_mc_client {
 	struct tegra_mc_la la;
 };
 
-struct tegra_smmu_swgroup {
+struct tegra_smmu_swgroup
+{
 	const char *name;
 	unsigned int swgroup;
 	unsigned int reg;
 };
 
-struct tegra_smmu_soc {
+struct tegra_smmu_soc
+{
 	const struct tegra_mc_client *clients;
 	unsigned int num_clients;
 
@@ -70,13 +76,13 @@ struct tegra_smmu;
 
 #ifdef CONFIG_TEGRA_IOMMU_SMMU
 struct tegra_smmu *tegra_smmu_probe(struct device *dev,
-				    const struct tegra_smmu_soc *soc,
-				    struct tegra_mc *mc);
+									const struct tegra_smmu_soc *soc,
+									struct tegra_mc *mc);
 void tegra_smmu_remove(struct tegra_smmu *smmu);
 #else
 static inline struct tegra_smmu *
 tegra_smmu_probe(struct device *dev, const struct tegra_smmu_soc *soc,
-		 struct tegra_mc *mc)
+				 struct tegra_mc *mc)
 {
 	return NULL;
 }
@@ -86,7 +92,8 @@ static inline void tegra_smmu_remove(struct tegra_smmu *smmu)
 }
 #endif
 
-struct tegra_mc_soc {
+struct tegra_mc_soc
+{
 	const struct tegra_mc_client *clients;
 	unsigned int num_clients;
 
@@ -101,7 +108,8 @@ struct tegra_mc_soc {
 	const struct tegra_smmu_soc *smmu;
 };
 
-struct tegra_mc {
+struct tegra_mc
+{
 	struct device *dev;
 	struct tegra_smmu *smmu;
 	void __iomem *regs;

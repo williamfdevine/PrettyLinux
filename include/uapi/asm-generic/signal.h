@@ -48,7 +48,7 @@
 /* These should not be considered constants from userland.  */
 #define SIGRTMIN	32
 #ifndef SIGRTMAX
-#define SIGRTMAX	_NSIG
+	#define SIGRTMAX	_NSIG
 #endif
 
 /*
@@ -81,12 +81,13 @@
  */
 
 #if !defined MINSIGSTKSZ || !defined SIGSTKSZ
-#define MINSIGSTKSZ	2048
-#define SIGSTKSZ	8192
+	#define MINSIGSTKSZ	2048
+	#define SIGSTKSZ	8192
 #endif
 
 #ifndef __ASSEMBLY__
-typedef struct {
+typedef struct
+{
 	unsigned long sig[_NSIG_WORDS];
 } sigset_t;
 
@@ -96,11 +97,12 @@ typedef unsigned long old_sigset_t;
 #include <asm-generic/signal-defs.h>
 
 #ifdef SA_RESTORER
-#define __ARCH_HAS_SA_RESTORER
+	#define __ARCH_HAS_SA_RESTORER
 #endif
 
 #ifndef __KERNEL__
-struct sigaction {
+struct sigaction
+{
 	__sighandler_t sa_handler;
 	unsigned long sa_flags;
 #ifdef SA_RESTORER
@@ -110,7 +112,8 @@ struct sigaction {
 };
 #endif
 
-typedef struct sigaltstack {
+typedef struct sigaltstack
+{
 	void __user *ss_sp;
 	int ss_flags;
 	size_t ss_size;

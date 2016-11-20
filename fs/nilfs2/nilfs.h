@@ -44,7 +44,8 @@
  * @i_root: root object of the current filesystem tree
  * @vfs_inode: VFS inode object
  */
-struct nilfs_inode_info {
+struct nilfs_inode_info
+{
 	__u32 i_flags;
 	unsigned long  i_state;		/* Dynamic state flags */
 	struct nilfs_bmap *i_bmap;
@@ -94,7 +95,8 @@ static inline struct inode *NILFS_BTNC_I(struct address_space *btnc)
 /*
  * Dynamic state flags of NILFS on-memory inode (i_state)
  */
-enum {
+enum
+{
 	NILFS_I_NEW = 0,		/* Inode is newly created */
 	NILFS_I_DIRTY,			/* The file is dirty */
 	NILFS_I_QUEUED,			/* inode is in dirty_files list */
@@ -112,7 +114,8 @@ enum {
 /*
  * commit flags for nilfs_commit_super and nilfs_sync_super
  */
-enum {
+enum
+{
 	NILFS_SB_COMMIT = 0,	/* Commit a super block alternately */
 	NILFS_SB_COMMIT_ALL	/* Commit both super blocks */
 };
@@ -141,13 +144,14 @@ enum {
  * @ti_flags: Flags
  * @ti_count: Nest level
  */
-struct nilfs_transaction_info {
+struct nilfs_transaction_info
+{
 	u32			ti_magic;
 	void		       *ti_save;
-				/*
-				 * This should never be used.  If it happens,
-				 * one of other filesystems has a bug.
-				 */
+	/*
+	 * This should never be used.  If it happens,
+	 * one of other filesystems has a bug.
+	 */
 	unsigned short		ti_flags;
 	unsigned short		ti_count;
 };
@@ -167,7 +171,7 @@ struct nilfs_transaction_info {
 
 
 int nilfs_transaction_begin(struct super_block *,
-			    struct nilfs_transaction_info *, int);
+							struct nilfs_transaction_info *, int);
 int nilfs_transaction_commit(struct super_block *);
 void nilfs_transaction_abort(struct super_block *);
 
@@ -183,7 +187,10 @@ static inline int nilfs_test_transaction_flag(unsigned int flag)
 	struct nilfs_transaction_info *ti = current->journal_info;
 
 	if (ti == NULL || ti->ti_magic != NILFS_TI_MAGIC)
+	{
 		return 0;
+	}
+
 	return !!(ti->ti_flags & flag);
 }
 
@@ -229,11 +236,17 @@ static inline int nilfs_init_acl(struct inode *inode, struct inode *dir)
 static inline __u32 nilfs_mask_flags(umode_t mode, __u32 flags)
 {
 	if (S_ISDIR(mode))
+	{
 		return flags;
+	}
 	else if (S_ISREG(mode))
+	{
 		return flags & ~(FS_DIRSYNC_FL | FS_TOPDIR_FL);
+	}
 	else
+	{
 		return flags & (FS_NODUMP_FL | FS_NOATIME_FL);
+	}
 }
 
 /* dir.c */
@@ -246,7 +259,7 @@ extern int nilfs_delete_entry(struct nilfs_dir_entry *, struct page *);
 extern int nilfs_empty_dir(struct inode *);
 extern struct nilfs_dir_entry *nilfs_dotdot(struct inode *, struct page **);
 extern void nilfs_set_link(struct inode *, struct nilfs_dir_entry *,
-			   struct page *, struct inode *);
+						   struct page *, struct inode *);
 
 /* file.c */
 extern int nilfs_sync_file(struct file *, loff_t, loff_t, int);
@@ -255,7 +268,7 @@ extern int nilfs_sync_file(struct file *, loff_t, loff_t, int);
 long nilfs_ioctl(struct file *, unsigned int, unsigned long);
 long nilfs_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
 int nilfs_ioctl_prepare_clean_segments(struct the_nilfs *, struct nilfs_argv *,
-				       void **);
+									   void **);
 
 /* inode.c */
 void nilfs_inode_add_blocks(struct inode *inode, int n);
@@ -267,13 +280,13 @@ extern void nilfs_set_inode_flags(struct inode *);
 extern int nilfs_read_inode_common(struct inode *, struct nilfs_inode *);
 extern void nilfs_write_inode_common(struct inode *, struct nilfs_inode *, int);
 struct inode *nilfs_ilookup(struct super_block *sb, struct nilfs_root *root,
-			    unsigned long ino);
+							unsigned long ino);
 struct inode *nilfs_iget_locked(struct super_block *sb, struct nilfs_root *root,
-				unsigned long ino);
+								unsigned long ino);
 struct inode *nilfs_iget(struct super_block *sb, struct nilfs_root *root,
-			 unsigned long ino);
+						 unsigned long ino);
 extern struct inode *nilfs_iget_for_gc(struct super_block *sb,
-				       unsigned long ino, __u64 cno);
+									   unsigned long ino, __u64 cno);
 extern void nilfs_update_inode(struct inode *, struct buffer_head *, int);
 extern void nilfs_truncate(struct inode *);
 extern void nilfs_evict_inode(struct inode *);
@@ -286,7 +299,7 @@ int nilfs_set_file_dirty(struct inode *inode, unsigned int nr_dirty);
 extern int __nilfs_mark_inode_dirty(struct inode *, int);
 extern void nilfs_dirty_inode(struct inode *, int flags);
 int nilfs_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
-		 __u64 start, __u64 len);
+				 __u64 start, __u64 len);
 static inline int nilfs_mark_inode_dirty(struct inode *inode)
 {
 	return __nilfs_mark_inode_dirty(inode, I_DIRTY);
@@ -302,10 +315,10 @@ extern void nilfs_destroy_inode(struct inode *);
 
 extern __printf(3, 4)
 void __nilfs_msg(struct super_block *sb, const char *level,
-		 const char *fmt, ...);
+				 const char *fmt, ...);
 extern __printf(3, 4)
 void __nilfs_error(struct super_block *sb, const char *function,
-		   const char *fmt, ...);
+				   const char *fmt, ...);
 
 #ifdef CONFIG_PRINTK
 
@@ -332,25 +345,25 @@ void __nilfs_error(struct super_block *sb, const char *function,
 extern struct nilfs_super_block *
 nilfs_read_super_block(struct super_block *, u64, int, struct buffer_head **);
 extern int nilfs_store_magic_and_option(struct super_block *,
-					struct nilfs_super_block *, char *);
+										struct nilfs_super_block *, char *);
 extern int nilfs_check_feature_compatibility(struct super_block *,
-					     struct nilfs_super_block *);
+		struct nilfs_super_block *);
 extern void nilfs_set_log_cursor(struct nilfs_super_block *,
-				 struct the_nilfs *);
+								 struct the_nilfs *);
 struct nilfs_super_block **nilfs_prepare_super(struct super_block *sb,
-					       int flip);
+		int flip);
 int nilfs_commit_super(struct super_block *sb, int flag);
 int nilfs_cleanup_super(struct super_block *sb);
 int nilfs_resize_fs(struct super_block *sb, __u64 newsize);
 int nilfs_attach_checkpoint(struct super_block *sb, __u64 cno, int curr_mnt,
-			    struct nilfs_root **root);
+							struct nilfs_root **root);
 int nilfs_checkpoint_is_mounted(struct super_block *sb, __u64 cno);
 
 /* gcinode.c */
 int nilfs_gccache_submit_read_data(struct inode *, sector_t, sector_t, __u64,
-				   struct buffer_head **);
+								   struct buffer_head **);
 int nilfs_gccache_submit_read_node(struct inode *, sector_t, __u64,
-				   struct buffer_head **);
+								   struct buffer_head **);
 int nilfs_gccache_wait_and_mark_dirty(struct buffer_head *);
 int nilfs_init_gcinode(struct inode *inode);
 void nilfs_remove_all_gcinodes(struct the_nilfs *nilfs);

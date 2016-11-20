@@ -36,13 +36,15 @@
 
 #include <linux/iio/iio.h>
 
-struct mcp4531_cfg {
+struct mcp4531_cfg
+{
 	int wipers;
 	int max_pos;
 	int kohms;
 };
 
-enum mcp4531_type {
+enum mcp4531_type
+{
 	MCP453x_502,
 	MCP453x_103,
 	MCP453x_503,
@@ -77,7 +79,8 @@ enum mcp4531_type {
 	MCP466x_104,
 };
 
-static const struct mcp4531_cfg mcp4531_cfg[] = {
+static const struct mcp4531_cfg mcp4531_cfg[] =
+{
 	[MCP453x_502] = { .wipers = 1, .max_pos = 128, .kohms =   5, },
 	[MCP453x_103] = { .wipers = 1, .max_pos = 128, .kohms =  10, },
 	[MCP453x_503] = { .wipers = 1, .max_pos = 128, .kohms =  50, },
@@ -119,72 +122,86 @@ static const struct mcp4531_cfg mcp4531_cfg[] = {
 
 #define MCP4531_WIPER_SHIFT (4)
 
-struct mcp4531_data {
+struct mcp4531_data
+{
 	struct i2c_client *client;
 	const struct mcp4531_cfg *cfg;
 };
 
 #define MCP4531_CHANNEL(ch) {					\
-	.type = IIO_RESISTANCE,					\
-	.indexed = 1,						\
-	.output = 1,						\
-	.channel = (ch),					\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
-	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
-}
+		.type = IIO_RESISTANCE,					\
+				.indexed = 1,						\
+						   .output = 1,						\
+									 .channel = (ch),					\
+												.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
+														.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
+	}
 
-static const struct iio_chan_spec mcp4531_channels[] = {
+static const struct iio_chan_spec mcp4531_channels[] =
+{
 	MCP4531_CHANNEL(0),
 	MCP4531_CHANNEL(1),
 };
 
 static int mcp4531_read_raw(struct iio_dev *indio_dev,
-			    struct iio_chan_spec const *chan,
-			    int *val, int *val2, long mask)
+							struct iio_chan_spec const *chan,
+							int *val, int *val2, long mask)
 {
 	struct mcp4531_data *data = iio_priv(indio_dev);
 	int address = chan->channel << MCP4531_WIPER_SHIFT;
 	s32 ret;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		ret = i2c_smbus_read_word_swapped(data->client,
-						  MCP4531_READ | address);
-		if (ret < 0)
-			return ret;
-		*val = ret;
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_SCALE:
-		*val = 1000 * data->cfg->kohms;
-		*val2 = data->cfg->max_pos;
-		return IIO_VAL_FRACTIONAL;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			ret = i2c_smbus_read_word_swapped(data->client,
+											  MCP4531_READ | address);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			*val = ret;
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_SCALE:
+			*val = 1000 * data->cfg->kohms;
+			*val2 = data->cfg->max_pos;
+			return IIO_VAL_FRACTIONAL;
 	}
 
 	return -EINVAL;
 }
 
 static int mcp4531_write_raw(struct iio_dev *indio_dev,
-			     struct iio_chan_spec const *chan,
-			     int val, int val2, long mask)
+							 struct iio_chan_spec const *chan,
+							 int val, int val2, long mask)
 {
 	struct mcp4531_data *data = iio_priv(indio_dev);
 	int address = chan->channel << MCP4531_WIPER_SHIFT;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		if (val > data->cfg->max_pos || val < 0)
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			if (val > data->cfg->max_pos || val < 0)
+			{
+				return -EINVAL;
+			}
+
+			break;
+
+		default:
 			return -EINVAL;
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	return i2c_smbus_write_byte_data(data->client,
-					 MCP4531_WRITE | address | (val >> 8),
-					 val & 0xff);
+									 MCP4531_WRITE | address | (val >> 8),
+									 val & 0xff);
 }
 
-static const struct iio_info mcp4531_info = {
+static const struct iio_info mcp4531_info =
+{
 	.read_raw = mcp4531_read_raw,
 	.write_raw = mcp4531_write_raw,
 	.driver_module = THIS_MODULE,
@@ -193,11 +210,12 @@ static const struct iio_info mcp4531_info = {
 #ifdef CONFIG_OF
 
 #define MCP4531_COMPATIBLE(of_compatible, cfg) {	\
-			.compatible = of_compatible,	\
-			.data = &mcp4531_cfg[cfg],	\
-}
+		.compatible = of_compatible,	\
+					  .data = &mcp4531_cfg[cfg],	\
+	}
 
-static const struct of_device_id mcp4531_of_match[] = {
+static const struct of_device_id mcp4531_of_match[] =
+{
 	MCP4531_COMPATIBLE("microchip,mcp4531-502", MCP453x_502),
 	MCP4531_COMPATIBLE("microchip,mcp4531-103", MCP453x_103),
 	MCP4531_COMPATIBLE("microchip,mcp4531-503", MCP453x_503),
@@ -267,7 +285,7 @@ static const struct of_device_id mcp4531_of_match[] = {
 #endif
 
 static int mcp4531_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
 	struct mcp4531_data *data;
@@ -275,23 +293,33 @@ static int mcp4531_probe(struct i2c_client *client,
 	const struct of_device_id *match;
 
 	if (!i2c_check_functionality(client->adapter,
-				     I2C_FUNC_SMBUS_WORD_DATA)) {
+								 I2C_FUNC_SMBUS_WORD_DATA))
+	{
 		dev_err(dev, "SMBUS Word Data not supported\n");
 		return -EOPNOTSUPP;
 	}
 
 	indio_dev = devm_iio_device_alloc(dev, sizeof(*data));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
+
 	data = iio_priv(indio_dev);
 	i2c_set_clientdata(client, indio_dev);
 	data->client = client;
 
 	match = of_match_device(of_match_ptr(mcp4531_of_match), dev);
+
 	if (match)
+	{
 		data->cfg = of_device_get_match_data(dev);
+	}
 	else
+	{
 		data->cfg = &mcp4531_cfg[id->driver_data];
+	}
 
 	indio_dev->dev.parent = dev;
 	indio_dev->info = &mcp4531_info;
@@ -302,7 +330,8 @@ static int mcp4531_probe(struct i2c_client *client,
 	return devm_iio_device_register(dev, indio_dev);
 }
 
-static const struct i2c_device_id mcp4531_id[] = {
+static const struct i2c_device_id mcp4531_id[] =
+{
 	{ "mcp4531-502", MCP453x_502 },
 	{ "mcp4531-103", MCP453x_103 },
 	{ "mcp4531-503", MCP453x_503 },
@@ -371,7 +400,8 @@ static const struct i2c_device_id mcp4531_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, mcp4531_id);
 
-static struct i2c_driver mcp4531_driver = {
+static struct i2c_driver mcp4531_driver =
+{
 	.driver = {
 		.name	= "mcp4531",
 		.of_match_table = of_match_ptr(mcp4531_of_match),

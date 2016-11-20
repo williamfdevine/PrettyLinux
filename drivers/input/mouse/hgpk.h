@@ -8,7 +8,8 @@
 #define HGPK_GS		0xff       /* The GlideSensor */
 #define HGPK_PT		0xcf       /* The PenTablet */
 
-enum hgpk_model_t {
+enum hgpk_model_t
+{
 	HGPK_MODEL_PREA = 0x0a,	/* pre-B1s */
 	HGPK_MODEL_A = 0x14,	/* found on B1s, PT disabled in hardware */
 	HGPK_MODEL_B = 0x28,	/* B2s, has capacitance issues */
@@ -16,7 +17,8 @@ enum hgpk_model_t {
 	HGPK_MODEL_D = 0x50,	/* C1, mass production */
 };
 
-enum hgpk_spew_flag {
+enum hgpk_spew_flag
+{
 	NO_SPEW,
 	MAYBE_SPEWING,
 	SPEW_DETECTED,
@@ -25,14 +27,16 @@ enum hgpk_spew_flag {
 
 #define SPEW_WATCH_COUNT 42  /* at 12ms/packet, this is 1/2 second */
 
-enum hgpk_mode {
+enum hgpk_mode
+{
 	HGPK_MODE_MOUSE,
 	HGPK_MODE_GLIDESENSOR,
 	HGPK_MODE_PENTABLET,
 	HGPK_MODE_INVALID
 };
 
-struct hgpk_data {
+struct hgpk_data
+{
 	struct psmouse *psmouse;
 	enum hgpk_mode mode;
 	bool powered;

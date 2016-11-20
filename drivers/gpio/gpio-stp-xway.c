@@ -75,10 +75,11 @@
 #define xway_stp_r32(m, reg)		__raw_readl(m + reg)
 #define xway_stp_w32(m, val, reg)	__raw_writel(val, m + reg)
 #define xway_stp_w32_mask(m, clear, set, reg) \
-		ltq_w32((ltq_r32(m + reg) & ~(clear)) | (set), \
-		m + reg)
+	ltq_w32((ltq_r32(m + reg) & ~(clear)) | (set), \
+			m + reg)
 
-struct xway_stp {
+struct xway_stp
+{
 	struct gpio_chip gc;
 	void __iomem *virt;
 	u32 edge;	/* rising or falling edge triggered shift register */
@@ -103,9 +104,14 @@ static void xway_stp_set(struct gpio_chip *gc, unsigned gpio, int val)
 	struct xway_stp *chip = gpiochip_get_data(gc);
 
 	if (val)
+	{
 		chip->shadow |= BIT(gpio);
+	}
 	else
+	{
 		chip->shadow &= ~BIT(gpio);
+	}
+
 	xway_stp_w32(chip->virt, chip->shadow, XWAY_STP_CPU0);
 	xway_stp_w32_mask(chip->virt, 0, XWAY_STP_CON_SWU, XWAY_STP_CON0);
 }
@@ -136,7 +142,8 @@ static int xway_stp_request(struct gpio_chip *gc, unsigned gpio)
 {
 	struct xway_stp *chip = gpiochip_get_data(gc);
 
-	if ((gpio < 8) && (chip->reserved & BIT(gpio))) {
+	if ((gpio < 8) && (chip->reserved & BIT(gpio)))
+	{
 		dev_err(gc->parent, "GPIO %d is driven by hardware\n", gpio);
 		return -ENODEV;
 	}
@@ -159,27 +166,27 @@ static int xway_stp_hw_init(struct xway_stp *chip)
 
 	/* apply edge trigger settings for the shift register */
 	xway_stp_w32_mask(chip->virt, XWAY_STP_EDGE_MASK,
-				chip->edge, XWAY_STP_CON0);
+					  chip->edge, XWAY_STP_CON0);
 
 	/* apply led group settings */
 	xway_stp_w32_mask(chip->virt, XWAY_STP_GROUP_MASK,
-				chip->groups, XWAY_STP_CON1);
+					  chip->groups, XWAY_STP_CON1);
 
 	/* tell the hardware which pins are controlled by the dsl modem */
 	xway_stp_w32_mask(chip->virt,
-			XWAY_STP_ADSL_MASK << XWAY_STP_ADSL_SHIFT,
-			chip->dsl << XWAY_STP_ADSL_SHIFT,
-			XWAY_STP_CON0);
+					  XWAY_STP_ADSL_MASK << XWAY_STP_ADSL_SHIFT,
+					  chip->dsl << XWAY_STP_ADSL_SHIFT,
+					  XWAY_STP_CON0);
 
 	/* tell the hardware which pins are controlled by the phys */
 	xway_stp_w32_mask(chip->virt,
-			XWAY_STP_PHY_MASK << XWAY_STP_PHY1_SHIFT,
-			chip->phy1 << XWAY_STP_PHY1_SHIFT,
-			XWAY_STP_CON0);
+					  XWAY_STP_PHY_MASK << XWAY_STP_PHY1_SHIFT,
+					  chip->phy1 << XWAY_STP_PHY1_SHIFT,
+					  XWAY_STP_CON0);
 	xway_stp_w32_mask(chip->virt,
-			XWAY_STP_PHY_MASK << XWAY_STP_PHY2_SHIFT,
-			chip->phy2 << XWAY_STP_PHY2_SHIFT,
-			XWAY_STP_CON1);
+					  XWAY_STP_PHY_MASK << XWAY_STP_PHY2_SHIFT,
+					  chip->phy2 << XWAY_STP_PHY2_SHIFT,
+					  XWAY_STP_CON1);
 
 	/* mask out the hw driven bits in gpio_request */
 	chip->reserved = (chip->phy2 << 5) | (chip->phy1 << 2) | chip->dsl;
@@ -190,7 +197,7 @@ static int xway_stp_hw_init(struct xway_stp *chip)
 	 */
 	if (chip->reserved)
 		xway_stp_w32_mask(chip->virt, XWAY_STP_UPD_MASK,
-			XWAY_STP_UPD_FPI, XWAY_STP_CON1);
+						  XWAY_STP_UPD_FPI, XWAY_STP_CON1);
 
 	return 0;
 }
@@ -204,13 +211,19 @@ static int xway_stp_probe(struct platform_device *pdev)
 	int ret = 0;
 
 	chip = devm_kzalloc(&pdev->dev, sizeof(*chip), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	chip->virt = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(chip->virt))
+	{
 		return PTR_ERR(chip->virt);
+	}
 
 	chip->gc.parent = &pdev->dev;
 	chip->gc.label = "stp-xway";
@@ -222,57 +235,84 @@ static int xway_stp_probe(struct platform_device *pdev)
 
 	/* store the shadow value if one was passed by the devicetree */
 	if (!of_property_read_u32(pdev->dev.of_node, "lantiq,shadow", &shadow))
+	{
 		chip->shadow = shadow;
+	}
 
 	/* find out which gpio groups should be enabled */
 	if (!of_property_read_u32(pdev->dev.of_node, "lantiq,groups", &groups))
+	{
 		chip->groups = groups & XWAY_STP_GROUP_MASK;
+	}
 	else
+	{
 		chip->groups = XWAY_STP_GROUP0;
+	}
+
 	chip->gc.ngpio = fls(chip->groups) * 8;
 
 	/* find out which gpios are controlled by the dsl core */
 	if (!of_property_read_u32(pdev->dev.of_node, "lantiq,dsl", &dsl))
+	{
 		chip->dsl = dsl & XWAY_STP_ADSL_MASK;
+	}
 
 	/* find out which gpios are controlled by the phys */
 	if (of_machine_is_compatible("lantiq,ar9") ||
-			of_machine_is_compatible("lantiq,gr9") ||
-			of_machine_is_compatible("lantiq,vr9")) {
+		of_machine_is_compatible("lantiq,gr9") ||
+		of_machine_is_compatible("lantiq,vr9"))
+	{
 		if (!of_property_read_u32(pdev->dev.of_node, "lantiq,phy1", &phy))
+		{
 			chip->phy1 = phy & XWAY_STP_PHY_MASK;
+		}
+
 		if (!of_property_read_u32(pdev->dev.of_node, "lantiq,phy2", &phy))
+		{
 			chip->phy2 = phy & XWAY_STP_PHY_MASK;
+		}
 	}
 
 	/* check which edge trigger we should use, default to a falling edge */
 	if (!of_find_property(pdev->dev.of_node, "lantiq,rising", NULL))
+	{
 		chip->edge = XWAY_STP_FALLING;
+	}
 
 	clk = clk_get(&pdev->dev, NULL);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "Failed to get clock\n");
 		return PTR_ERR(clk);
 	}
+
 	clk_enable(clk);
 
 	ret = xway_stp_hw_init(chip);
-	if (!ret)
-		ret = devm_gpiochip_add_data(&pdev->dev, &chip->gc, chip);
 
 	if (!ret)
+	{
+		ret = devm_gpiochip_add_data(&pdev->dev, &chip->gc, chip);
+	}
+
+	if (!ret)
+	{
 		dev_info(&pdev->dev, "Init done\n");
+	}
 
 	return ret;
 }
 
-static const struct of_device_id xway_stp_match[] = {
+static const struct of_device_id xway_stp_match[] =
+{
 	{ .compatible = "lantiq,gpio-stp-xway" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, xway_stp_match);
 
-static struct platform_driver xway_stp_driver = {
+static struct platform_driver xway_stp_driver =
+{
 	.probe = xway_stp_probe,
 	.driver = {
 		.name = "gpio-stp-xway",

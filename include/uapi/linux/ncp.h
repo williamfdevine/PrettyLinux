@@ -19,7 +19,8 @@
 #define NCP_REQUEST              (0x2222)
 #define NCP_DEALLOC_SLOT_REQUEST (0x5555)
 
-struct ncp_request_header {
+struct ncp_request_header
+{
 	__u16 type;
 	__u8 sequence;
 	__u8 conn_low;
@@ -33,7 +34,8 @@ struct ncp_request_header {
 #define NCP_WATCHDOG		 (0x3E3E)
 #define NCP_POSITIVE_ACK         (0x9999)
 
-struct ncp_reply_header {
+struct ncp_reply_header
+{
 	__u16 type;
 	__u8 sequence;
 	__u8 conn_low;
@@ -46,7 +48,8 @@ struct ncp_reply_header {
 
 #define NCP_VOLNAME_LEN (16)
 #define NCP_NUMBER_OF_VOLUMES (256)
-struct ncp_volume_info {
+struct ncp_volume_info
+{
 	__u32 total_blocks;
 	__u32 free_blocks;
 	__u32 purgeable_blocks;
@@ -113,21 +116,23 @@ struct ncp_volume_info {
 
 /* access rights attributes */
 #ifndef AR_READ_ONLY
-#define AR_READ_ONLY	   0x0001
-#define AR_WRITE_ONLY	   0x0002
-#define AR_DENY_READ	   0x0004
-#define AR_DENY_WRITE	   0x0008
-#define AR_COMPATIBILITY   0x0010
-#define AR_WRITE_THROUGH   0x0040
-#define AR_OPEN_COMPRESSED 0x0100
+	#define AR_READ_ONLY	   0x0001
+	#define AR_WRITE_ONLY	   0x0002
+	#define AR_DENY_READ	   0x0004
+	#define AR_DENY_WRITE	   0x0008
+	#define AR_COMPATIBILITY   0x0010
+	#define AR_WRITE_THROUGH   0x0040
+	#define AR_OPEN_COMPRESSED 0x0100
 #endif
 
-struct nw_nfs_info {
+struct nw_nfs_info
+{
 	__u32 mode;
 	__u32 rdev;
 };
 
-struct nw_info_struct {
+struct nw_info_struct
+{
 	__u32 spaceAlloc;
 	__le32 attributes;
 	__u16 flags;
@@ -175,7 +180,8 @@ struct nw_info_struct {
 #define DM_INHERITED_RIGHTS_MASK  (cpu_to_le32(0x1000))
 #define DM_MAXIMUM_SPACE	  (cpu_to_le32(0x2000))
 
-struct nw_modify_dos_info {
+struct nw_modify_dos_info
+{
 	__le32 attributes;
 	__le16 creationDate;
 	__le16 creationTime;
@@ -192,7 +198,8 @@ struct nw_modify_dos_info {
 	__u32 maximumSpace;
 } __attribute__((packed));
 
-struct nw_search_sequence {
+struct nw_search_sequence
+{
 	__u8 volNumber;
 	__u32 dirBase;
 	__u32 sequence;

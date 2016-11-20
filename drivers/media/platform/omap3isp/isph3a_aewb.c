@@ -35,13 +35,17 @@ static void h3a_aewb_setup_regs(struct ispstat *aewb, void *priv)
 	u32 subwin;
 
 	if (aewb->state == ISPSTAT_DISABLED)
+	{
 		return;
+	}
 
 	isp_reg_writel(aewb->isp, aewb->active_buf->dma_addr,
-		       OMAP3_ISP_IOMEM_H3A, ISPH3A_AEWBUFST);
+				   OMAP3_ISP_IOMEM_H3A, ISPH3A_AEWBUFST);
 
 	if (!aewb->update)
+	{
 		return;
+	}
 
 	/* Converting config metadata into reg values */
 	pcr = conf->saturation_limit << ISPH3A_PCR_AEW_AVE2LMT_SHIFT;
@@ -59,18 +63,18 @@ static void h3a_aewb_setup_regs(struct ispstat *aewb, void *priv)
 	blk |= ((conf->blk_win_height >> 1) - 1) << ISPH3A_AEWINBLK_WINH_SHIFT;
 
 	subwin = ((conf->subsample_ver_inc >> 1) - 1) <<
-		 ISPH3A_AEWSUBWIN_AEWINCV_SHIFT;
+			 ISPH3A_AEWSUBWIN_AEWINCV_SHIFT;
 	subwin |= ((conf->subsample_hor_inc >> 1) - 1) <<
-		  ISPH3A_AEWSUBWIN_AEWINCH_SHIFT;
+			  ISPH3A_AEWSUBWIN_AEWINCH_SHIFT;
 
 	isp_reg_writel(aewb->isp, win1, OMAP3_ISP_IOMEM_H3A, ISPH3A_AEWWIN1);
 	isp_reg_writel(aewb->isp, start, OMAP3_ISP_IOMEM_H3A,
-		       ISPH3A_AEWINSTART);
+				   ISPH3A_AEWINSTART);
 	isp_reg_writel(aewb->isp, blk, OMAP3_ISP_IOMEM_H3A, ISPH3A_AEWINBLK);
 	isp_reg_writel(aewb->isp, subwin, OMAP3_ISP_IOMEM_H3A,
-		       ISPH3A_AEWSUBWIN);
+				   ISPH3A_AEWSUBWIN);
 	isp_reg_clr_set(aewb->isp, OMAP3_ISP_IOMEM_H3A, ISPH3A_PCR,
-			ISPH3A_PCR_AEW_MASK, pcr);
+					ISPH3A_PCR_AEW_MASK, pcr);
 
 	aewb->update = 0;
 	aewb->config_counter += aewb->inc_config;
@@ -80,13 +84,16 @@ static void h3a_aewb_setup_regs(struct ispstat *aewb, void *priv)
 
 static void h3a_aewb_enable(struct ispstat *aewb, int enable)
 {
-	if (enable) {
+	if (enable)
+	{
 		isp_reg_set(aewb->isp, OMAP3_ISP_IOMEM_H3A, ISPH3A_PCR,
-			    ISPH3A_PCR_AEW_EN);
+					ISPH3A_PCR_AEW_EN);
 		omap3isp_subclk_enable(aewb->isp, OMAP3_ISP_SUBCLK_AEWB);
-	} else {
+	}
+	else
+	{
 		isp_reg_clr(aewb->isp, OMAP3_ISP_IOMEM_H3A, ISPH3A_PCR,
-			    ISPH3A_PCR_AEW_EN);
+					ISPH3A_PCR_AEW_EN);
 		omap3isp_subclk_disable(aewb->isp, OMAP3_ISP_SUBCLK_AEWB);
 	}
 }
@@ -94,7 +101,7 @@ static void h3a_aewb_enable(struct ispstat *aewb, int enable)
 static int h3a_aewb_busy(struct ispstat *aewb)
 {
 	return isp_reg_readl(aewb->isp, OMAP3_ISP_IOMEM_H3A, ISPH3A_PCR)
-						& ISPH3A_PCR_BUSYAEAWB;
+		   & ISPH3A_PCR_BUSYAEAWB;
 }
 
 static u32 h3a_aewb_get_buf_size(struct omap3isp_h3a_aewb_config *conf)
@@ -118,56 +125,83 @@ static int h3a_aewb_validate_params(struct ispstat *aewb, void *new_conf)
 	u32 buf_size;
 
 	if (unlikely(user_cfg->saturation_limit >
-		     OMAP3ISP_AEWB_MAX_SATURATION_LIM))
+				 OMAP3ISP_AEWB_MAX_SATURATION_LIM))
+	{
 		return -EINVAL;
+	}
 
 	if (unlikely(user_cfg->win_height < OMAP3ISP_AEWB_MIN_WIN_H ||
-		     user_cfg->win_height > OMAP3ISP_AEWB_MAX_WIN_H ||
-		     user_cfg->win_height & 0x01))
+				 user_cfg->win_height > OMAP3ISP_AEWB_MAX_WIN_H ||
+				 user_cfg->win_height & 0x01))
+	{
 		return -EINVAL;
+	}
 
 	if (unlikely(user_cfg->win_width < OMAP3ISP_AEWB_MIN_WIN_W ||
-		     user_cfg->win_width > OMAP3ISP_AEWB_MAX_WIN_W ||
-		     user_cfg->win_width & 0x01))
+				 user_cfg->win_width > OMAP3ISP_AEWB_MAX_WIN_W ||
+				 user_cfg->win_width & 0x01))
+	{
 		return -EINVAL;
+	}
 
 	if (unlikely(user_cfg->ver_win_count < OMAP3ISP_AEWB_MIN_WINVC ||
-		     user_cfg->ver_win_count > OMAP3ISP_AEWB_MAX_WINVC))
+				 user_cfg->ver_win_count > OMAP3ISP_AEWB_MAX_WINVC))
+	{
 		return -EINVAL;
+	}
 
 	if (unlikely(user_cfg->hor_win_count < OMAP3ISP_AEWB_MIN_WINHC ||
-		     user_cfg->hor_win_count > OMAP3ISP_AEWB_MAX_WINHC))
+				 user_cfg->hor_win_count > OMAP3ISP_AEWB_MAX_WINHC))
+	{
 		return -EINVAL;
+	}
 
 	if (unlikely(user_cfg->ver_win_start > OMAP3ISP_AEWB_MAX_WINSTART))
+	{
 		return -EINVAL;
+	}
 
 	if (unlikely(user_cfg->hor_win_start > OMAP3ISP_AEWB_MAX_WINSTART))
+	{
 		return -EINVAL;
+	}
 
 	if (unlikely(user_cfg->blk_ver_win_start > OMAP3ISP_AEWB_MAX_WINSTART))
+	{
 		return -EINVAL;
+	}
 
 	if (unlikely(user_cfg->blk_win_height < OMAP3ISP_AEWB_MIN_WIN_H ||
-		     user_cfg->blk_win_height > OMAP3ISP_AEWB_MAX_WIN_H ||
-		     user_cfg->blk_win_height & 0x01))
+				 user_cfg->blk_win_height > OMAP3ISP_AEWB_MAX_WIN_H ||
+				 user_cfg->blk_win_height & 0x01))
+	{
 		return -EINVAL;
+	}
 
 	if (unlikely(user_cfg->subsample_ver_inc < OMAP3ISP_AEWB_MIN_SUB_INC ||
-		     user_cfg->subsample_ver_inc > OMAP3ISP_AEWB_MAX_SUB_INC ||
-		     user_cfg->subsample_ver_inc & 0x01))
+				 user_cfg->subsample_ver_inc > OMAP3ISP_AEWB_MAX_SUB_INC ||
+				 user_cfg->subsample_ver_inc & 0x01))
+	{
 		return -EINVAL;
+	}
 
 	if (unlikely(user_cfg->subsample_hor_inc < OMAP3ISP_AEWB_MIN_SUB_INC ||
-		     user_cfg->subsample_hor_inc > OMAP3ISP_AEWB_MAX_SUB_INC ||
-		     user_cfg->subsample_hor_inc & 0x01))
+				 user_cfg->subsample_hor_inc > OMAP3ISP_AEWB_MAX_SUB_INC ||
+				 user_cfg->subsample_hor_inc & 0x01))
+	{
 		return -EINVAL;
+	}
 
 	buf_size = h3a_aewb_get_buf_size(user_cfg);
+
 	if (buf_size > user_cfg->buf_size)
+	{
 		user_cfg->buf_size = buf_size;
+	}
 	else if (user_cfg->buf_size > OMAP3ISP_AEWB_MAX_BUF_SIZE)
+	{
 		user_cfg->buf_size = OMAP3ISP_AEWB_MAX_BUF_SIZE;
+	}
 
 	return 0;
 }
@@ -185,56 +219,80 @@ static void h3a_aewb_set_params(struct ispstat *aewb, void *new_conf)
 	struct omap3isp_h3a_aewb_config *cur_cfg = aewb->priv;
 	int update = 0;
 
-	if (cur_cfg->saturation_limit != user_cfg->saturation_limit) {
+	if (cur_cfg->saturation_limit != user_cfg->saturation_limit)
+	{
 		cur_cfg->saturation_limit = user_cfg->saturation_limit;
 		update = 1;
 	}
-	if (cur_cfg->alaw_enable != user_cfg->alaw_enable) {
+
+	if (cur_cfg->alaw_enable != user_cfg->alaw_enable)
+	{
 		cur_cfg->alaw_enable = user_cfg->alaw_enable;
 		update = 1;
 	}
-	if (cur_cfg->win_height != user_cfg->win_height) {
+
+	if (cur_cfg->win_height != user_cfg->win_height)
+	{
 		cur_cfg->win_height = user_cfg->win_height;
 		update = 1;
 	}
-	if (cur_cfg->win_width != user_cfg->win_width) {
+
+	if (cur_cfg->win_width != user_cfg->win_width)
+	{
 		cur_cfg->win_width = user_cfg->win_width;
 		update = 1;
 	}
-	if (cur_cfg->ver_win_count != user_cfg->ver_win_count) {
+
+	if (cur_cfg->ver_win_count != user_cfg->ver_win_count)
+	{
 		cur_cfg->ver_win_count = user_cfg->ver_win_count;
 		update = 1;
 	}
-	if (cur_cfg->hor_win_count != user_cfg->hor_win_count) {
+
+	if (cur_cfg->hor_win_count != user_cfg->hor_win_count)
+	{
 		cur_cfg->hor_win_count = user_cfg->hor_win_count;
 		update = 1;
 	}
-	if (cur_cfg->ver_win_start != user_cfg->ver_win_start) {
+
+	if (cur_cfg->ver_win_start != user_cfg->ver_win_start)
+	{
 		cur_cfg->ver_win_start = user_cfg->ver_win_start;
 		update = 1;
 	}
-	if (cur_cfg->hor_win_start != user_cfg->hor_win_start) {
+
+	if (cur_cfg->hor_win_start != user_cfg->hor_win_start)
+	{
 		cur_cfg->hor_win_start = user_cfg->hor_win_start;
 		update = 1;
 	}
-	if (cur_cfg->blk_ver_win_start != user_cfg->blk_ver_win_start) {
+
+	if (cur_cfg->blk_ver_win_start != user_cfg->blk_ver_win_start)
+	{
 		cur_cfg->blk_ver_win_start = user_cfg->blk_ver_win_start;
 		update = 1;
 	}
-	if (cur_cfg->blk_win_height != user_cfg->blk_win_height) {
+
+	if (cur_cfg->blk_win_height != user_cfg->blk_win_height)
+	{
 		cur_cfg->blk_win_height = user_cfg->blk_win_height;
 		update = 1;
 	}
-	if (cur_cfg->subsample_ver_inc != user_cfg->subsample_ver_inc) {
+
+	if (cur_cfg->subsample_ver_inc != user_cfg->subsample_ver_inc)
+	{
 		cur_cfg->subsample_ver_inc = user_cfg->subsample_ver_inc;
 		update = 1;
 	}
-	if (cur_cfg->subsample_hor_inc != user_cfg->subsample_hor_inc) {
+
+	if (cur_cfg->subsample_hor_inc != user_cfg->subsample_hor_inc)
+	{
 		cur_cfg->subsample_hor_inc = user_cfg->subsample_hor_inc;
 		update = 1;
 	}
 
-	if (update || !aewb->configured) {
+	if (update || !aewb->configured)
+	{
 		aewb->inc_config++;
 		aewb->update = 1;
 		cur_cfg->buf_size = h3a_aewb_get_buf_size(cur_cfg);
@@ -245,21 +303,26 @@ static long h3a_aewb_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 {
 	struct ispstat *stat = v4l2_get_subdevdata(sd);
 
-	switch (cmd) {
-	case VIDIOC_OMAP3ISP_AEWB_CFG:
-		return omap3isp_stat_config(stat, arg);
-	case VIDIOC_OMAP3ISP_STAT_REQ:
-		return omap3isp_stat_request_statistics(stat, arg);
-	case VIDIOC_OMAP3ISP_STAT_EN: {
-		unsigned long *en = arg;
-		return omap3isp_stat_enable(stat, !!*en);
-	}
+	switch (cmd)
+	{
+		case VIDIOC_OMAP3ISP_AEWB_CFG:
+			return omap3isp_stat_config(stat, arg);
+
+		case VIDIOC_OMAP3ISP_STAT_REQ:
+			return omap3isp_stat_request_statistics(stat, arg);
+
+		case VIDIOC_OMAP3ISP_STAT_EN:
+			{
+				unsigned long *en = arg;
+				return omap3isp_stat_enable(stat, !!*en);
+			}
 	}
 
 	return -ENOIOCTLCMD;
 }
 
-static const struct ispstat_ops h3a_aewb_ops = {
+static const struct ispstat_ops h3a_aewb_ops =
+{
 	.validate_params	= h3a_aewb_validate_params,
 	.set_params		= h3a_aewb_set_params,
 	.setup_regs		= h3a_aewb_setup_regs,
@@ -267,17 +330,20 @@ static const struct ispstat_ops h3a_aewb_ops = {
 	.busy			= h3a_aewb_busy,
 };
 
-static const struct v4l2_subdev_core_ops h3a_aewb_subdev_core_ops = {
+static const struct v4l2_subdev_core_ops h3a_aewb_subdev_core_ops =
+{
 	.ioctl = h3a_aewb_ioctl,
 	.subscribe_event = omap3isp_stat_subscribe_event,
 	.unsubscribe_event = omap3isp_stat_unsubscribe_event,
 };
 
-static const struct v4l2_subdev_video_ops h3a_aewb_subdev_video_ops = {
+static const struct v4l2_subdev_video_ops h3a_aewb_subdev_video_ops =
+{
 	.s_stream = omap3isp_stat_s_stream,
 };
 
-static const struct v4l2_subdev_ops h3a_aewb_subdev_ops = {
+static const struct v4l2_subdev_ops h3a_aewb_subdev_ops =
+{
 	.core = &h3a_aewb_subdev_core_ops,
 	.video = &h3a_aewb_subdev_video_ops,
 };
@@ -292,8 +358,11 @@ int omap3isp_h3a_aewb_init(struct isp_device *isp)
 	struct omap3isp_h3a_aewb_config *aewb_recover_cfg;
 
 	aewb_cfg = devm_kzalloc(isp->dev, sizeof(*aewb_cfg), GFP_KERNEL);
+
 	if (!aewb_cfg)
+	{
 		return -ENOMEM;
+	}
 
 	aewb->ops = &h3a_aewb_ops;
 	aewb->priv = aewb_cfg;
@@ -302,10 +371,12 @@ int omap3isp_h3a_aewb_init(struct isp_device *isp)
 
 	/* Set recover state configuration */
 	aewb_recover_cfg = devm_kzalloc(isp->dev, sizeof(*aewb_recover_cfg),
-					GFP_KERNEL);
-	if (!aewb_recover_cfg) {
+									GFP_KERNEL);
+
+	if (!aewb_recover_cfg)
+	{
 		dev_err(aewb->isp->dev, "AEWB: cannot allocate memory for "
-					"recover configuration.\n");
+				"recover configuration.\n");
 		return -ENOMEM;
 	}
 
@@ -315,14 +386,15 @@ int omap3isp_h3a_aewb_init(struct isp_device *isp)
 	aewb_recover_cfg->ver_win_count = OMAP3ISP_AEWB_MIN_WINVC;
 	aewb_recover_cfg->hor_win_count = OMAP3ISP_AEWB_MIN_WINHC;
 	aewb_recover_cfg->blk_ver_win_start = aewb_recover_cfg->ver_win_start +
-		aewb_recover_cfg->win_height * aewb_recover_cfg->ver_win_count;
+										  aewb_recover_cfg->win_height * aewb_recover_cfg->ver_win_count;
 	aewb_recover_cfg->blk_win_height = OMAP3ISP_AEWB_MIN_WIN_H;
 	aewb_recover_cfg->subsample_ver_inc = OMAP3ISP_AEWB_MIN_SUB_INC;
 	aewb_recover_cfg->subsample_hor_inc = OMAP3ISP_AEWB_MIN_SUB_INC;
 
-	if (h3a_aewb_validate_params(aewb, aewb_recover_cfg)) {
+	if (h3a_aewb_validate_params(aewb, aewb_recover_cfg))
+	{
 		dev_err(aewb->isp->dev, "AEWB: recover configuration is "
-					"invalid.\n");
+				"invalid.\n");
 		return -EINVAL;
 	}
 

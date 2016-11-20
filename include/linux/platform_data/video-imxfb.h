@@ -51,13 +51,15 @@
 #define DMACR_HM(x)	(((x) & 0xf) << 16)
 #define DMACR_TM(x)	((x) & 0xf)
 
-struct imx_fb_videomode {
+struct imx_fb_videomode
+{
 	struct fb_videomode mode;
 	u32 pcr;
 	unsigned char	bpp;
 };
 
-struct imx_fb_platform_data {
+struct imx_fb_platform_data
+{
 	struct imx_fb_videomode *mode;
 	int		num_modes;
 

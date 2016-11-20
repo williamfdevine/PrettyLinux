@@ -56,16 +56,16 @@
 
 #define BFAD_DRIVER_NAME	"bfa"
 #ifdef BFA_DRIVER_VERSION
-#define BFAD_DRIVER_VERSION    BFA_DRIVER_VERSION
+	#define BFAD_DRIVER_VERSION    BFA_DRIVER_VERSION
 #else
-#define BFAD_DRIVER_VERSION    "3.2.25.0"
+	#define BFAD_DRIVER_VERSION    "3.2.25.0"
 #endif
 
 #define BFAD_PROTO_NAME FCPI_NAME
 #define BFAD_IRQ_FLAGS IRQF_SHARED
 
 #ifndef FC_PORTSPEED_8GBIT
-#define FC_PORTSPEED_8GBIT 0x10
+	#define FC_PORTSPEED_8GBIT 0x10
 #endif
 
 /*
@@ -104,7 +104,8 @@
 
 #define MAX_MSIX_ENTRY 22
 
-struct bfad_msix_s {
+struct bfad_msix_s
+{
 	struct bfad_s *bfad;
 	struct msix_entry msix;
 	char name[32];
@@ -114,13 +115,15 @@ struct bfad_msix_s {
  * Only append to the enums defined here to avoid any versioning
  * needed between trace utility and driver version
  */
-enum {
+enum
+{
 	BFA_TRC_LDRV_BFAD		= 1,
 	BFA_TRC_LDRV_IM			= 2,
 	BFA_TRC_LDRV_BSG		= 3,
 };
 
-enum bfad_port_pvb_type {
+enum bfad_port_pvb_type
+{
 	BFAD_PORT_PHYS_BASE = 0,
 	BFAD_PORT_PHYS_VPORT = 1,
 	BFAD_PORT_VF_BASE = 2,
@@ -130,7 +133,8 @@ enum bfad_port_pvb_type {
 /*
  * PORT data structure
  */
-struct bfad_port_s {
+struct bfad_port_s
+{
 	struct list_head list_entry;
 	struct bfad_s	*bfad;
 	struct bfa_fcs_lport_s *fcs_port;
@@ -146,7 +150,8 @@ struct bfad_port_s {
 /*
  * VPORT data structure
  */
-struct bfad_vport_s {
+struct bfad_vport_s
+{
 	struct bfad_port_s     drv_port;
 	struct bfa_fcs_vport_s fcs_vport;
 	struct completion *comp_del;
@@ -156,13 +161,15 @@ struct bfad_vport_s {
 /*
  * VF data structure
  */
-struct bfad_vf_s {
+struct bfad_vf_s
+{
 	bfa_fcs_vf_t    fcs_vf;
 	struct bfad_port_s    base_port;	/* base port for vf */
 	struct bfad_s   *bfad;
 };
 
-struct bfad_cfg_param_s {
+struct bfad_cfg_param_s
+{
 	u32	rport_del_timeout;
 	u32	ioc_queue_depth;
 	u32	lun_queue_depth;
@@ -170,7 +177,8 @@ struct bfad_cfg_param_s {
 	u32	binding_method;
 };
 
-union bfad_tmp_buf {
+union bfad_tmp_buf
+{
 	/* From struct bfa_adapter_attr_s */
 	char		manufacturer[BFA_ADAPTER_MFG_NAME_LEN];
 	char		serial_num[BFA_ADAPTER_SERIAL_NUM_LEN];
@@ -187,7 +195,8 @@ union bfad_tmp_buf {
 /*
  * BFAD (PCI function) data structure
  */
-struct bfad_s {
+struct bfad_s
+{
 	bfa_sm_t	sm;	/* state machine */
 	struct list_head list_entry;
 	struct bfa_s	bfa;
@@ -236,7 +245,8 @@ struct bfad_s {
 };
 
 /* BFAD state machine events */
-enum bfad_sm_event {
+enum bfad_sm_event
+{
 	BFAD_E_CREATE			= 1,
 	BFAD_E_KTHREAD_CREATE_FAILED	= 2,
 	BFAD_E_INIT			= 3,
@@ -251,17 +261,20 @@ enum bfad_sm_event {
 /*
  * RPORT data structure
  */
-struct bfad_rport_s {
+struct bfad_rport_s
+{
 	struct bfa_fcs_rport_s fcs_rport;
 };
 
-struct bfad_buf_info {
+struct bfad_buf_info
+{
 	void		*virt;
 	dma_addr_t      phys;
 	u32	size;
 };
 
-struct bfad_fcxp {
+struct bfad_fcxp
+{
 	struct bfad_port_s    *port;
 	struct bfa_rport_s *bfa_rport;
 	bfa_status_t    req_status;
@@ -283,22 +296,23 @@ struct bfad_fcxp {
 	struct completion comp;
 };
 
-struct bfad_hal_comp {
+struct bfad_hal_comp
+{
 	bfa_status_t    status;
 	struct completion comp;
 };
 
 #define BFA_LOG(level, bfad, mask, fmt, arg...)				\
-do {									\
-	if (((mask) == 4) || (level[1] <= '4'))				\
-		dev_printk(level, &((bfad)->pcidev)->dev, fmt, ##arg);	\
-} while (0)
+	do {									\
+		if (((mask) == 4) || (level[1] <= '4'))				\
+			dev_printk(level, &((bfad)->pcidev)->dev, fmt, ##arg);	\
+	} while (0)
 
 bfa_status_t	bfad_vport_create(struct bfad_s *bfad, u16 vf_id,
-				  struct bfa_lport_cfg_s *port_cfg,
-				  struct device *dev);
+								  struct bfa_lport_cfg_s *port_cfg,
+								  struct device *dev);
 bfa_status_t	bfad_vf_create(struct bfad_s *bfad, u16 vf_id,
-			       struct bfa_lport_cfg_s *port_cfg);
+							   struct bfa_lport_cfg_s *port_cfg);
 bfa_status_t	bfad_cfg_pport(struct bfad_s *bfad, enum bfa_lport_role role);
 bfa_status_t	bfad_drv_init(struct bfad_s *bfad);
 bfa_status_t	bfad_start_ops(struct bfad_s *bfad);

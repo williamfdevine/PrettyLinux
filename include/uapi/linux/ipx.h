@@ -8,7 +8,8 @@
 #define IPX_MTU		576
 
 #if __UAPI_DEF_SOCKADDR_IPX
-struct sockaddr_ipx {
+struct sockaddr_ipx
+{
 	__kernel_sa_family_t sipx_family;
 	__be16		sipx_port;
 	__be32		sipx_network;
@@ -27,7 +28,8 @@ struct sockaddr_ipx {
 #define IPX_CRTITF	1
 
 #if __UAPI_DEF_IPX_ROUTE_DEFINITION
-struct ipx_route_definition {
+struct ipx_route_definition
+{
 	__be32        ipx_network;
 	__be32        ipx_router_network;
 	unsigned char ipx_router_node[IPX_NODE_LEN];
@@ -35,7 +37,8 @@ struct ipx_route_definition {
 #endif /* __UAPI_DEF_IPX_ROUTE_DEFINITION */
 
 #if __UAPI_DEF_IPX_INTERFACE_DEFINITION
-struct ipx_interface_definition {
+struct ipx_interface_definition
+{
 	__be32        ipx_network;
 	unsigned char ipx_device[16];
 	unsigned char ipx_dlink_type;
@@ -54,7 +57,8 @@ struct ipx_interface_definition {
 #endif /* __UAPI_DEF_IPX_INTERFACE_DEFINITION */
 
 #if __UAPI_DEF_IPX_CONFIG_DATA
-struct ipx_config_data {
+struct ipx_config_data
+{
 	unsigned char	ipxcfg_auto_select_primary;
 	unsigned char	ipxcfg_auto_create_interfaces;
 };
@@ -65,7 +69,8 @@ struct ipx_config_data {
  */
 
 #if __UAPI_DEF_IPX_ROUTE_DEF
-struct ipx_route_def {
+struct ipx_route_def
+{
 	__be32		ipx_network;
 	__be32		ipx_router_network;
 #define IPX_ROUTE_NO_ROUTER	0

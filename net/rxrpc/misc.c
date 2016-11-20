@@ -57,7 +57,7 @@ unsigned int rxrpc_idle_ack_delay = 0.5 * 1000;
  */
 unsigned int rxrpc_rx_window_size = RXRPC_INIT_RX_WINDOW_SIZE;
 #if (RXRPC_RXTX_BUFF_SIZE - 1) < RXRPC_INIT_RX_WINDOW_SIZE
-#error Need to reduce RXRPC_INIT_RX_WINDOW_SIZE
+	#error Need to reduce RXRPC_INIT_RX_WINDOW_SIZE
 #endif
 
 /*
@@ -77,13 +77,15 @@ unsigned int rxrpc_rx_jumbo_max = 4;
  */
 unsigned int rxrpc_resend_timeout = 4 * 1000;
 
-const char *const rxrpc_pkts[] = {
+const char *const rxrpc_pkts[] =
+{
 	"?00",
 	"DATA", "ACK", "BUSY", "ABORT", "ACKALL", "CHALL", "RESP", "DEBUG",
 	"?09", "?10", "?11", "?12", "VERSION", "?14", "?15"
 };
 
-const s8 rxrpc_ack_priority[] = {
+const s8 rxrpc_ack_priority[] =
+{
 	[0]				= 0,
 	[RXRPC_ACK_DELAY]		= 1,
 	[RXRPC_ACK_REQUESTED]		= 2,
@@ -95,12 +97,14 @@ const s8 rxrpc_ack_priority[] = {
 	[RXRPC_ACK_PING_RESPONSE]	= 8,
 };
 
-const char rxrpc_ack_names[RXRPC_ACK__INVALID + 1][4] = {
+const char rxrpc_ack_names[RXRPC_ACK__INVALID + 1][4] =
+{
 	"---", "REQ", "DUP", "OOS", "WIN", "MEM", "PNG", "PNR", "DLY",
 	"IDL", "-?-"
 };
 
-const char rxrpc_skb_traces[rxrpc_skb__nr_trace][7] = {
+const char rxrpc_skb_traces[rxrpc_skb__nr_trace][7] =
+{
 	[rxrpc_skb_rx_cleaned]		= "Rx CLN",
 	[rxrpc_skb_rx_freed]		= "Rx FRE",
 	[rxrpc_skb_rx_got]		= "Rx GOT",
@@ -117,7 +121,8 @@ const char rxrpc_skb_traces[rxrpc_skb__nr_trace][7] = {
 	[rxrpc_skb_tx_seen]		= "Tx SEE",
 };
 
-const char rxrpc_conn_traces[rxrpc_conn__nr_trace][4] = {
+const char rxrpc_conn_traces[rxrpc_conn__nr_trace][4] =
+{
 	[rxrpc_conn_new_client]		= "NWc",
 	[rxrpc_conn_new_service]	= "NWs",
 	[rxrpc_conn_queued]		= "QUE",
@@ -127,7 +132,8 @@ const char rxrpc_conn_traces[rxrpc_conn__nr_trace][4] = {
 	[rxrpc_conn_put_service]	= "PTs",
 };
 
-const char rxrpc_client_traces[rxrpc_client__nr_trace][7] = {
+const char rxrpc_client_traces[rxrpc_client__nr_trace][7] =
+{
 	[rxrpc_client_activate_chans]	= "Activa",
 	[rxrpc_client_alloc]		= "Alloc ",
 	[rxrpc_client_chan_activate]	= "ChActv",
@@ -148,7 +154,8 @@ const char rxrpc_client_traces[rxrpc_client__nr_trace][7] = {
 	[rxrpc_client_uncount]		= "Uncoun",
 };
 
-const char rxrpc_transmit_traces[rxrpc_transmit__nr_trace][4] = {
+const char rxrpc_transmit_traces[rxrpc_transmit__nr_trace][4] =
+{
 	[rxrpc_transmit_wait]		= "WAI",
 	[rxrpc_transmit_queue]		= "QUE",
 	[rxrpc_transmit_queue_last]	= "QLS",
@@ -158,7 +165,8 @@ const char rxrpc_transmit_traces[rxrpc_transmit__nr_trace][4] = {
 	[rxrpc_transmit_end]		= "END",
 };
 
-const char rxrpc_receive_traces[rxrpc_receive__nr_trace][4] = {
+const char rxrpc_receive_traces[rxrpc_receive__nr_trace][4] =
+{
 	[rxrpc_receive_incoming]	= "INC",
 	[rxrpc_receive_queue]		= "QUE",
 	[rxrpc_receive_queue_last]	= "QLS",
@@ -167,7 +175,8 @@ const char rxrpc_receive_traces[rxrpc_receive__nr_trace][4] = {
 	[rxrpc_receive_end]		= "END",
 };
 
-const char rxrpc_recvmsg_traces[rxrpc_recvmsg__nr_trace][5] = {
+const char rxrpc_recvmsg_traces[rxrpc_recvmsg__nr_trace][5] =
+{
 	[rxrpc_recvmsg_enter]		= "ENTR",
 	[rxrpc_recvmsg_wait]		= "WAIT",
 	[rxrpc_recvmsg_dequeue]		= "DEQU",
@@ -181,17 +190,20 @@ const char rxrpc_recvmsg_traces[rxrpc_recvmsg__nr_trace][5] = {
 	[rxrpc_recvmsg_return]		= "RETN",
 };
 
-const char rxrpc_rtt_tx_traces[rxrpc_rtt_tx__nr_trace][5] = {
+const char rxrpc_rtt_tx_traces[rxrpc_rtt_tx__nr_trace][5] =
+{
 	[rxrpc_rtt_tx_ping]		= "PING",
 	[rxrpc_rtt_tx_data]		= "DATA",
 };
 
-const char rxrpc_rtt_rx_traces[rxrpc_rtt_rx__nr_trace][5] = {
+const char rxrpc_rtt_rx_traces[rxrpc_rtt_rx__nr_trace][5] =
+{
 	[rxrpc_rtt_rx_ping_response]	= "PONG",
 	[rxrpc_rtt_rx_requested_ack]	= "RACK",
 };
 
-const char rxrpc_timer_traces[rxrpc_timer__nr_trace][8] = {
+const char rxrpc_timer_traces[rxrpc_timer__nr_trace][8] =
+{
 	[rxrpc_timer_begin]			= "Begin ",
 	[rxrpc_timer_expired]			= "*EXPR*",
 	[rxrpc_timer_init_for_reply]		= "IniRpl",
@@ -202,7 +214,8 @@ const char rxrpc_timer_traces[rxrpc_timer__nr_trace][8] = {
 	[rxrpc_timer_set_for_resend]		= "SetRTx",
 };
 
-const char rxrpc_propose_ack_traces[rxrpc_propose_ack__nr_trace][8] = {
+const char rxrpc_propose_ack_traces[rxrpc_propose_ack__nr_trace][8] =
+{
 	[rxrpc_propose_ack_client_tx_end]	= "ClTxEnd",
 	[rxrpc_propose_ack_input_data]		= "DataIn ",
 	[rxrpc_propose_ack_ping_for_lost_ack]	= "LostAck",
@@ -216,20 +229,23 @@ const char rxrpc_propose_ack_traces[rxrpc_propose_ack__nr_trace][8] = {
 	[rxrpc_propose_ack_terminal_ack]	= "ClTerm ",
 };
 
-const char *const rxrpc_propose_ack_outcomes[rxrpc_propose_ack__nr_outcomes] = {
+const char *const rxrpc_propose_ack_outcomes[rxrpc_propose_ack__nr_outcomes] =
+{
 	[rxrpc_propose_ack_use]			= "",
 	[rxrpc_propose_ack_update]		= " Update",
 	[rxrpc_propose_ack_subsume]		= " Subsume",
 };
 
-const char rxrpc_congest_modes[NR__RXRPC_CONGEST_MODES][10] = {
+const char rxrpc_congest_modes[NR__RXRPC_CONGEST_MODES][10] =
+{
 	[RXRPC_CALL_SLOW_START]		= "SlowStart",
 	[RXRPC_CALL_CONGEST_AVOIDANCE]	= "CongAvoid",
 	[RXRPC_CALL_PACKET_LOSS]	= "PktLoss  ",
 	[RXRPC_CALL_FAST_RETRANSMIT]	= "FastReTx ",
 };
 
-const char rxrpc_congest_changes[rxrpc_congest__nr_change][9] = {
+const char rxrpc_congest_changes[rxrpc_congest__nr_change][9] =
+{
 	[rxrpc_cong_begin_retransmission]	= " Retrans",
 	[rxrpc_cong_cleared_nacks]		= " Cleared",
 	[rxrpc_cong_new_low_nack]		= " NewLowN",

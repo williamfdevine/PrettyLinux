@@ -94,7 +94,8 @@
 
 /* gainlist same as _pgx_ below */
 
-static const struct comedi_lrange das08_pgl_ai_range = {
+static const struct comedi_lrange das08_pgl_ai_range =
+{
 	9, {
 		BIP_RANGE(10),
 		BIP_RANGE(5),
@@ -108,7 +109,8 @@ static const struct comedi_lrange das08_pgl_ai_range = {
 	}
 };
 
-static const struct comedi_lrange das08_pgh_ai_range = {
+static const struct comedi_lrange das08_pgh_ai_range =
+{
 	12, {
 		BIP_RANGE(10),
 		BIP_RANGE(5),
@@ -125,7 +127,8 @@ static const struct comedi_lrange das08_pgh_ai_range = {
 	}
 };
 
-static const struct comedi_lrange das08_pgm_ai_range = {
+static const struct comedi_lrange das08_pgm_ai_range =
+{
 	9, {
 		BIP_RANGE(10),
 		BIP_RANGE(5),
@@ -139,7 +142,8 @@ static const struct comedi_lrange das08_pgm_ai_range = {
 	}
 };
 
-static const struct comedi_lrange *const das08_ai_lranges[] = {
+static const struct comedi_lrange *const das08_ai_lranges[] =
+{
 	[das08_pg_none]		= &range_unknown,
 	[das08_bipolar5]	= &range_bipolar5,
 	[das08_pgh]		= &das08_pgh_ai_range,
@@ -147,13 +151,15 @@ static const struct comedi_lrange *const das08_ai_lranges[] = {
 	[das08_pgm]		= &das08_pgm_ai_range,
 };
 
-static const int das08_pgh_ai_gainlist[] = {
+static const int das08_pgh_ai_gainlist[] =
+{
 	8, 0, 10, 2, 12, 4, 14, 6, 1, 3, 5, 7
 };
 static const int das08_pgl_ai_gainlist[] = { 8, 0, 2, 4, 6, 1, 3, 5, 7 };
 static const int das08_pgm_ai_gainlist[] = { 8, 0, 10, 12, 14, 9, 11, 13, 15 };
 
-static const int *const das08_ai_gainlists[] = {
+static const int *const das08_ai_gainlists[] =
+{
 	[das08_pg_none]		= NULL,
 	[das08_bipolar5]	= NULL,
 	[das08_pgh]		= das08_pgh_ai_gainlist,
@@ -162,21 +168,25 @@ static const int *const das08_ai_gainlists[] = {
 };
 
 static int das08_ai_eoc(struct comedi_device *dev,
-			struct comedi_subdevice *s,
-			struct comedi_insn *insn,
-			unsigned long context)
+						struct comedi_subdevice *s,
+						struct comedi_insn *insn,
+						unsigned long context)
 {
 	unsigned int status;
 
 	status = inb(dev->iobase + DAS08_STATUS_REG);
+
 	if ((status & DAS08_STATUS_AI_BUSY) == 0)
+	{
 		return 0;
+	}
+
 	return -EBUSY;
 }
 
 static int das08_ai_insn_read(struct comedi_device *dev,
-			      struct comedi_subdevice *s,
-			      struct comedi_insn *insn, unsigned int *data)
+							  struct comedi_subdevice *s,
+							  struct comedi_insn *insn, unsigned int *data)
 {
 	const struct das08_board_struct *board = dev->board_ptr;
 	struct das08_private_struct *devpriv = dev->private;
@@ -201,33 +211,46 @@ static int das08_ai_insn_read(struct comedi_device *dev,
 	outb(devpriv->do_mux_bits, dev->iobase + DAS08_CONTROL_REG);
 	spin_unlock(&dev->spinlock);
 
-	if (devpriv->pg_gainlist) {
+	if (devpriv->pg_gainlist)
+	{
 		/* set gain/range */
 		range = CR_RANGE(insn->chanspec);
 		outb(devpriv->pg_gainlist[range],
-		     dev->iobase + DAS08_GAIN_REG);
+			 dev->iobase + DAS08_GAIN_REG);
 	}
 
-	for (n = 0; n < insn->n; n++) {
+	for (n = 0; n < insn->n; n++)
+	{
 		/* clear over-range bits for 16-bit boards */
 		if (board->ai_nbits == 16)
 			if (inb(dev->iobase + DAS08_AI_MSB_REG) & 0x80)
+			{
 				dev_info(dev->class_dev, "over-range\n");
+			}
 
 		/* trigger conversion */
 		outb_p(0, dev->iobase + DAS08_AI_TRIG_REG);
 
 		ret = comedi_timeout(dev, s, insn, das08_ai_eoc, 0);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		msb = inb(dev->iobase + DAS08_AI_MSB_REG);
 		lsb = inb(dev->iobase + DAS08_AI_LSB_REG);
-		if (board->ai_encoding == das08_encode12) {
+
+		if (board->ai_encoding == das08_encode12)
+		{
 			data[n] = (lsb >> 4) | (msb << 4);
-		} else if (board->ai_encoding == das08_pcm_encode12) {
+		}
+		else if (board->ai_encoding == das08_pcm_encode12)
+		{
 			data[n] = (msb << 8) + lsb;
-		} else if (board->ai_encoding == das08_encode16) {
+		}
+		else if (board->ai_encoding == das08_encode16)
+		{
 			/*
 			 * "JR" 16-bit boards are sign-magnitude.
 			 *
@@ -245,10 +268,16 @@ static int das08_ai_insn_read(struct comedi_device *dev,
 			 * COMEDI 16-bit bipolar data value for 0V is 0x8000.
 			 */
 			if (msb & 0x80)
+			{
 				data[n] = (1 << 15) + magnitude;
+			}
 			else
+			{
 				data[n] = (1 << 15) - magnitude;
-		} else {
+			}
+		}
+		else
+		{
 			dev_err(dev->class_dev, "bug! unknown ai encoding\n");
 			return -1;
 		}
@@ -258,8 +287,8 @@ static int das08_ai_insn_read(struct comedi_device *dev,
 }
 
 static int das08_di_insn_bits(struct comedi_device *dev,
-			      struct comedi_subdevice *s,
-			      struct comedi_insn *insn, unsigned int *data)
+							  struct comedi_subdevice *s,
+							  struct comedi_insn *insn, unsigned int *data)
 {
 	data[0] = 0;
 	data[1] = DAS08_STATUS_DI(inb(dev->iobase + DAS08_STATUS_REG));
@@ -268,12 +297,13 @@ static int das08_di_insn_bits(struct comedi_device *dev,
 }
 
 static int das08_do_insn_bits(struct comedi_device *dev,
-			      struct comedi_subdevice *s,
-			      struct comedi_insn *insn, unsigned int *data)
+							  struct comedi_subdevice *s,
+							  struct comedi_insn *insn, unsigned int *data)
 {
 	struct das08_private_struct *devpriv = dev->private;
 
-	if (comedi_dio_update_state(s, data)) {
+	if (comedi_dio_update_state(s, data))
+	{
 		/* prevent race with setting of analog input mux */
 		spin_lock(&dev->spinlock);
 		devpriv->do_mux_bits &= ~DAS08_CONTROL_DO_MASK;
@@ -288,8 +318,8 @@ static int das08_do_insn_bits(struct comedi_device *dev,
 }
 
 static int das08jr_di_insn_bits(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn, unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn, unsigned int *data)
 {
 	data[0] = 0;
 	data[1] = inb(dev->iobase + DAS08JR_DI_REG);
@@ -298,11 +328,13 @@ static int das08jr_di_insn_bits(struct comedi_device *dev,
 }
 
 static int das08jr_do_insn_bits(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn, unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn, unsigned int *data)
 {
 	if (comedi_dio_update_state(s, data))
+	{
 		outb(s->state, dev->iobase + DAS08JR_DO_REG);
+	}
 
 	data[1] = s->state;
 
@@ -310,7 +342,7 @@ static int das08jr_do_insn_bits(struct comedi_device *dev,
 }
 
 static void das08_ao_set_data(struct comedi_device *dev,
-			      unsigned int chan, unsigned int data)
+							  unsigned int chan, unsigned int data)
 {
 	const struct das08_board_struct *board = dev->board_ptr;
 	unsigned char lsb;
@@ -318,12 +350,16 @@ static void das08_ao_set_data(struct comedi_device *dev,
 
 	lsb = data & 0xff;
 	msb = (data >> 8) & 0xff;
-	if (board->is_jr) {
+
+	if (board->is_jr)
+	{
 		outb(lsb, dev->iobase + DAS08JR_AO_LSB_REG(chan));
 		outb(msb, dev->iobase + DAS08JR_AO_MSB_REG(chan));
 		/* load DACs */
 		inb(dev->iobase + DAS08JR_AO_UPDATE_REG);
-	} else {
+	}
+	else
+	{
 		outb(lsb, dev->iobase + DAS08AOX_AO_LSB_REG(chan));
 		outb(msb, dev->iobase + DAS08AOX_AO_MSB_REG(chan));
 		/* load DACs */
@@ -332,18 +368,20 @@ static void das08_ao_set_data(struct comedi_device *dev,
 }
 
 static int das08_ao_insn_write(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn,
-			       unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn,
+							   unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int val = s->readback[chan];
 	int i;
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		val = data[i];
 		das08_ao_set_data(dev, chan, val);
 	}
+
 	s->readback[chan] = val;
 
 	return insn->n;
@@ -362,12 +400,17 @@ int das08_common_attach(struct comedi_device *dev, unsigned long iobase)
 	dev->board_name = board->name;
 
 	ret = comedi_alloc_subdevices(dev, 6);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	s = &dev->subdevices[0];
+
 	/* ai */
-	if (board->ai_nbits) {
+	if (board->ai_nbits)
+	{
 		s->type = COMEDI_SUBD_AI;
 		/*
 		 * XXX some boards actually have differential
@@ -381,13 +424,17 @@ int das08_common_attach(struct comedi_device *dev, unsigned long iobase)
 		s->range_table = das08_ai_lranges[board->ai_pg];
 		s->insn_read = das08_ai_insn_read;
 		devpriv->pg_gainlist = das08_ai_gainlists[board->ai_pg];
-	} else {
+	}
+	else
+	{
 		s->type = COMEDI_SUBD_UNUSED;
 	}
 
 	s = &dev->subdevices[1];
+
 	/* ao */
-	if (board->ao_nbits) {
+	if (board->ao_nbits)
+	{
 		s->type = COMEDI_SUBD_AO;
 		s->subdev_flags = SDF_WRITABLE;
 		s->n_chan = 2;
@@ -396,66 +443,94 @@ int das08_common_attach(struct comedi_device *dev, unsigned long iobase)
 		s->insn_write = das08_ao_insn_write;
 
 		ret = comedi_alloc_subdev_readback(s);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		/* initialize all channels to 0V */
-		for (i = 0; i < s->n_chan; i++) {
+		for (i = 0; i < s->n_chan; i++)
+		{
 			s->readback[i] = s->maxdata / 2;
 			das08_ao_set_data(dev, i, s->readback[i]);
 		}
-	} else {
+	}
+	else
+	{
 		s->type = COMEDI_SUBD_UNUSED;
 	}
 
 	s = &dev->subdevices[2];
+
 	/* di */
-	if (board->di_nchan) {
+	if (board->di_nchan)
+	{
 		s->type = COMEDI_SUBD_DI;
 		s->subdev_flags = SDF_READABLE;
 		s->n_chan = board->di_nchan;
 		s->maxdata = 1;
 		s->range_table = &range_digital;
 		s->insn_bits = board->is_jr ? das08jr_di_insn_bits :
-			       das08_di_insn_bits;
-	} else {
+					   das08_di_insn_bits;
+	}
+	else
+	{
 		s->type = COMEDI_SUBD_UNUSED;
 	}
 
 	s = &dev->subdevices[3];
+
 	/* do */
-	if (board->do_nchan) {
+	if (board->do_nchan)
+	{
 		s->type = COMEDI_SUBD_DO;
 		s->subdev_flags = SDF_WRITABLE;
 		s->n_chan = board->do_nchan;
 		s->maxdata = 1;
 		s->range_table = &range_digital;
 		s->insn_bits = board->is_jr ? das08jr_do_insn_bits :
-			       das08_do_insn_bits;
-	} else {
+					   das08_do_insn_bits;
+	}
+	else
+	{
 		s->type = COMEDI_SUBD_UNUSED;
 	}
 
 	s = &dev->subdevices[4];
+
 	/* 8255 */
-	if (board->i8255_offset != 0) {
+	if (board->i8255_offset != 0)
+	{
 		ret = subdev_8255_init(dev, s, NULL, board->i8255_offset);
+
 		if (ret)
+		{
 			return ret;
-	} else {
+		}
+	}
+	else
+	{
 		s->type = COMEDI_SUBD_UNUSED;
 	}
 
 	/* Counter subdevice (8254) */
 	s = &dev->subdevices[5];
-	if (board->i8254_offset) {
+
+	if (board->i8254_offset)
+	{
 		dev->pacer = comedi_8254_init(dev->iobase + board->i8254_offset,
-					      0, I8254_IO8, 0);
+									  0, I8254_IO8, 0);
+
 		if (!dev->pacer)
+		{
 			return -ENOMEM;
+		}
 
 		comedi_8254_subdevice_init(s, dev->pacer);
-	} else {
+	}
+	else
+	{
 		s->type = COMEDI_SUBD_UNUSED;
 	}
 

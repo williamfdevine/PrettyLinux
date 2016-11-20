@@ -24,7 +24,8 @@
 #include <linux/regmap.h>
 #include "tsc200x-core.h"
 
-static const struct input_id tsc2005_input_id = {
+static const struct input_id tsc2005_input_id =
+{
 	.bustype = BUS_SPI,
 	.product = 2005,
 };
@@ -32,7 +33,8 @@ static const struct input_id tsc2005_input_id = {
 static int tsc2005_cmd(struct device *dev, u8 cmd)
 {
 	u8 tx = TSC200X_CMD | TSC200X_CMD_12BIT | cmd;
-	struct spi_transfer xfer = {
+	struct spi_transfer xfer =
+	{
 		.tx_buf         = &tx,
 		.len            = 1,
 		.bits_per_word  = 8,
@@ -45,9 +47,11 @@ static int tsc2005_cmd(struct device *dev, u8 cmd)
 	spi_message_add_tail(&xfer, &msg);
 
 	error = spi_sync(spi, &msg);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(dev, "%s: failed, command: %x, spi error: %d\n",
-			__func__, cmd, error);
+				__func__, cmd, error);
 		return error;
 	}
 
@@ -60,16 +64,22 @@ static int tsc2005_probe(struct spi_device *spi)
 
 	spi->mode = SPI_MODE_0;
 	spi->bits_per_word = 8;
+
 	if (!spi->max_speed_hz)
+	{
 		spi->max_speed_hz = TSC2005_SPI_MAX_SPEED_HZ;
+	}
 
 	error = spi_setup(spi);
+
 	if (error)
+	{
 		return error;
+	}
 
 	return tsc200x_probe(&spi->dev, spi->irq, &tsc2005_input_id,
-			     devm_regmap_init_spi(spi, &tsc200x_regmap_config),
-			     tsc2005_cmd);
+						 devm_regmap_init_spi(spi, &tsc200x_regmap_config),
+						 tsc2005_cmd);
 }
 
 static int tsc2005_remove(struct spi_device *spi)
@@ -77,7 +87,8 @@ static int tsc2005_remove(struct spi_device *spi)
 	return tsc200x_remove(&spi->dev);
 }
 
-static struct spi_driver tsc2005_driver = {
+static struct spi_driver tsc2005_driver =
+{
 	.driver	= {
 		.name	= "tsc2005",
 		.pm	= &tsc200x_pm_ops,

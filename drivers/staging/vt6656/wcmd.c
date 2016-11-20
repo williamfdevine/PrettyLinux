@@ -47,7 +47,9 @@ static int vnt_cmd_complete(struct vnt_private *priv)
 {
 
 	priv->command_state = WLAN_CMD_IDLE;
-	if (priv->free_cmd_queue == CMD_Q_SIZE) {
+
+	if (priv->free_cmd_queue == CMD_Q_SIZE)
+	{
 		/* Command Queue Empty */
 		priv->cmd_running = false;
 		return true;
@@ -59,29 +61,30 @@ static int vnt_cmd_complete(struct vnt_private *priv)
 	priv->free_cmd_queue++;
 	priv->cmd_running = true;
 
-	switch (priv->command) {
-	case WLAN_CMD_INIT_MAC80211:
-		priv->command_state = WLAN_CMD_INIT_MAC80211_START;
-		break;
+	switch (priv->command)
+	{
+		case WLAN_CMD_INIT_MAC80211:
+			priv->command_state = WLAN_CMD_INIT_MAC80211_START;
+			break;
 
-	case WLAN_CMD_TBTT_WAKEUP:
-		priv->command_state = WLAN_CMD_TBTT_WAKEUP_START;
-		break;
+		case WLAN_CMD_TBTT_WAKEUP:
+			priv->command_state = WLAN_CMD_TBTT_WAKEUP_START;
+			break;
 
-	case WLAN_CMD_BECON_SEND:
-		priv->command_state = WLAN_CMD_BECON_SEND_START;
-		break;
+		case WLAN_CMD_BECON_SEND:
+			priv->command_state = WLAN_CMD_BECON_SEND_START;
+			break;
 
-	case WLAN_CMD_SETPOWER:
-		priv->command_state = WLAN_CMD_SETPOWER_START;
-		break;
+		case WLAN_CMD_SETPOWER:
+			priv->command_state = WLAN_CMD_SETPOWER_START;
+			break;
 
-	case WLAN_CMD_CHANGE_ANTENNA:
-		priv->command_state = WLAN_CMD_CHANGE_ANTENNA_START;
-		break;
+		case WLAN_CMD_CHANGE_ANTENNA:
+			priv->command_state = WLAN_CMD_CHANGE_ANTENNA_START;
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 	vnt_cmd_timer_wait(priv, 0);
@@ -95,69 +98,93 @@ void vnt_run_command(struct work_struct *work)
 		container_of(work, struct vnt_private, run_command_work.work);
 
 	if (test_bit(DEVICE_FLAGS_DISCONNECTED, &priv->flags))
+	{
 		return;
+	}
 
 	if (!priv->cmd_running)
+	{
 		return;
+	}
 
-	switch (priv->command_state) {
-	case WLAN_CMD_INIT_MAC80211_START:
-		if (priv->mac_hw)
+	switch (priv->command_state)
+	{
+		case WLAN_CMD_INIT_MAC80211_START:
+			if (priv->mac_hw)
+			{
+				break;
+			}
+
+			dev_info(&priv->usb->dev, "Starting mac80211\n");
+
+			if (vnt_init(priv))
+			{
+				/* If fail all ends TODO retry */
+				dev_err(&priv->usb->dev, "failed to start\n");
+				ieee80211_free_hw(priv->hw);
+				return;
+			}
+
 			break;
 
-		dev_info(&priv->usb->dev, "Starting mac80211\n");
-
-		if (vnt_init(priv)) {
-			/* If fail all ends TODO retry */
-			dev_err(&priv->usb->dev, "failed to start\n");
-			ieee80211_free_hw(priv->hw);
-			return;
-		}
-
-		break;
-
-	case WLAN_CMD_TBTT_WAKEUP_START:
-		vnt_next_tbtt_wakeup(priv);
-		break;
-
-	case WLAN_CMD_BECON_SEND_START:
-		if (!priv->vif)
+		case WLAN_CMD_TBTT_WAKEUP_START:
+			vnt_next_tbtt_wakeup(priv);
 			break;
 
-		vnt_beacon_make(priv, priv->vif);
+		case WLAN_CMD_BECON_SEND_START:
+			if (!priv->vif)
+			{
+				break;
+			}
 
-		vnt_mac_reg_bits_on(priv, MAC_REG_TCR, TCR_AUTOBCNTX);
+			vnt_beacon_make(priv, priv->vif);
 
-		break;
+			vnt_mac_reg_bits_on(priv, MAC_REG_TCR, TCR_AUTOBCNTX);
 
-	case WLAN_CMD_SETPOWER_START:
+			break;
 
-		vnt_rf_setpower(priv, priv->current_rate,
-				priv->hw->conf.chandef.chan->hw_value);
+		case WLAN_CMD_SETPOWER_START:
 
-		break;
+			vnt_rf_setpower(priv, priv->current_rate,
+							priv->hw->conf.chandef.chan->hw_value);
 
-	case WLAN_CMD_CHANGE_ANTENNA_START:
-		dev_dbg(&priv->usb->dev, "Change from Antenna%d to",
-							priv->rx_antenna_sel);
+			break;
 
-		if (priv->rx_antenna_sel == 0) {
-			priv->rx_antenna_sel = 1;
-			if (priv->tx_rx_ant_inv)
-				vnt_set_antenna_mode(priv, ANT_RXA);
+		case WLAN_CMD_CHANGE_ANTENNA_START:
+			dev_dbg(&priv->usb->dev, "Change from Antenna%d to",
+					priv->rx_antenna_sel);
+
+			if (priv->rx_antenna_sel == 0)
+			{
+				priv->rx_antenna_sel = 1;
+
+				if (priv->tx_rx_ant_inv)
+				{
+					vnt_set_antenna_mode(priv, ANT_RXA);
+				}
+				else
+				{
+					vnt_set_antenna_mode(priv, ANT_RXB);
+				}
+			}
 			else
-				vnt_set_antenna_mode(priv, ANT_RXB);
-		} else {
-			priv->rx_antenna_sel = 0;
-			if (priv->tx_rx_ant_inv)
-				vnt_set_antenna_mode(priv, ANT_RXB);
-			else
-				vnt_set_antenna_mode(priv, ANT_RXA);
-		}
-		break;
+			{
+				priv->rx_antenna_sel = 0;
 
-	default:
-		break;
+				if (priv->tx_rx_ant_inv)
+				{
+					vnt_set_antenna_mode(priv, ANT_RXB);
+				}
+				else
+				{
+					vnt_set_antenna_mode(priv, ANT_RXA);
+				}
+			}
+
+			break;
+
+		default:
+			break;
 	}
 
 	vnt_cmd_complete(priv);
@@ -167,7 +194,9 @@ int vnt_schedule_command(struct vnt_private *priv, enum vnt_cmd command)
 {
 
 	if (priv->free_cmd_queue == 0)
+	{
 		return false;
+	}
 
 	priv->cmd_queue[priv->cmd_enqueue_idx] = command;
 
@@ -175,7 +204,9 @@ int vnt_schedule_command(struct vnt_private *priv, enum vnt_cmd command)
 	priv->free_cmd_queue--;
 
 	if (!priv->cmd_running)
+	{
 		vnt_cmd_complete(priv);
+	}
 
 	return true;
 

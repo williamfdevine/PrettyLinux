@@ -15,7 +15,8 @@
 /*
  * ADI twi registers layout
  */
-struct bfin_twi_regs {
+struct bfin_twi_regs
+{
 	u16 clkdiv;
 	u16 dummy1;
 	u16 control;
@@ -51,7 +52,8 @@ struct bfin_twi_regs {
 	u16 dummy16;
 };
 
-struct bfin_twi_iface {
+struct bfin_twi_iface
+{
 	int			irq;
 	spinlock_t		lock;
 	char			read_write;

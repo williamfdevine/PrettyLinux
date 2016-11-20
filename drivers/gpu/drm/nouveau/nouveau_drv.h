@@ -60,29 +60,34 @@ struct platform_device;
 #include "nouveau_fence.h"
 #include "nouveau_bios.h"
 
-struct nouveau_drm_tile {
+struct nouveau_drm_tile
+{
 	struct nouveau_fence *fence;
 	bool used;
 };
 
-enum nouveau_drm_object_route {
+enum nouveau_drm_object_route
+{
 	NVDRM_OBJECT_NVIF = NVIF_IOCTL_V0_OWNER_NVIF,
 	NVDRM_OBJECT_USIF,
 	NVDRM_OBJECT_ABI16,
 	NVDRM_OBJECT_ANY = NVIF_IOCTL_V0_OWNER_ANY,
 };
 
-enum nouveau_drm_notify_route {
+enum nouveau_drm_notify_route
+{
 	NVDRM_NOTIFY_NVIF = 0,
 	NVDRM_NOTIFY_USIF
 };
 
-enum nouveau_drm_handle {
+enum nouveau_drm_handle
+{
 	NVDRM_CHAN    = 0xcccc0000, /* |= client chid */
 	NVDRM_NVSW    = 0x55550000,
 };
 
-struct nouveau_cli {
+struct nouveau_cli
+{
 	struct nvif_client base;
 	struct nvkm_vm *vm; /*XXX*/
 	struct list_head head;
@@ -105,14 +110,16 @@ nouveau_cli(struct drm_file *fpriv)
 
 extern int nouveau_runtime_pm;
 
-struct nouveau_drm {
+struct nouveau_drm
+{
 	struct nouveau_cli client;
 	struct drm_device *dev;
 
 	struct nvif_device device;
 	struct list_head clients;
 
-	struct {
+	struct
+	{
 		struct agp_bridge_data *bridge;
 		u32 base;
 		u32 size;
@@ -120,21 +127,23 @@ struct nouveau_drm {
 	} agp;
 
 	/* TTM interface support */
-	struct {
+	struct
+	{
 		struct drm_global_reference mem_global_ref;
 		struct ttm_bo_global_ref bo_global_ref;
 		struct ttm_bo_device bdev;
 		atomic_t validate_sequence;
 		int (*move)(struct nouveau_channel *,
-			    struct ttm_buffer_object *,
-			    struct ttm_mem_reg *, struct ttm_mem_reg *);
+					struct ttm_buffer_object *,
+					struct ttm_mem_reg *, struct ttm_mem_reg *);
 		struct nouveau_channel *chan;
 		struct nvif_object copy;
 		int mtrr;
 	} ttm;
 
 	/* GEM interface support */
-	struct {
+	struct
+	{
 		u64 vram_available;
 		u64 gart_available;
 	} gem;
@@ -152,7 +161,8 @@ struct nouveau_drm {
 	struct nvif_notify flip;
 
 	/* nv10-nv40 tiling regions */
-	struct {
+	struct
+	{
 		struct nouveau_drm_tile reg[15];
 		spinlock_t lock;
 	} tile;
@@ -186,21 +196,21 @@ int nouveau_pmops_resume(struct device *);
 
 struct drm_device *
 nouveau_platform_device_create(const struct nvkm_device_tegra_func *,
-			       struct platform_device *, struct nvkm_device **);
+							   struct platform_device *, struct nvkm_device **);
 void nouveau_drm_device_remove(struct drm_device *dev);
 
 #define NV_PRINTK(l,c,f,a...) do {                                             \
-	struct nouveau_cli *_cli = (c);                                        \
-	dev_##l(_cli->dev->dev, "%s: "f, _cli->name, ##a);                     \
-} while(0)
+		struct nouveau_cli *_cli = (c);                                        \
+		dev_##l(_cli->dev->dev, "%s: "f, _cli->name, ##a);                     \
+	} while(0)
 #define NV_FATAL(drm,f,a...) NV_PRINTK(crit, &(drm)->client, f, ##a)
 #define NV_ERROR(drm,f,a...) NV_PRINTK(err, &(drm)->client, f, ##a)
 #define NV_WARN(drm,f,a...) NV_PRINTK(warn, &(drm)->client, f, ##a)
 #define NV_INFO(drm,f,a...) NV_PRINTK(info, &(drm)->client, f, ##a)
 #define NV_DEBUG(drm,f,a...) do {                                              \
-	if (unlikely(drm_debug & DRM_UT_DRIVER))                               \
-		NV_PRINTK(info, &(drm)->client, f, ##a);                       \
-} while(0)
+		if (unlikely(drm_debug & DRM_UT_DRIVER))                               \
+			NV_PRINTK(info, &(drm)->client, f, ##a);                       \
+	} while(0)
 
 extern int nouveau_modeset;
 

@@ -27,7 +27,8 @@
 
 struct clk;
 
-struct amba_device {
+struct amba_device
+{
 	struct device		dev;
 	struct resource		res;
 	struct clk		*pclk;
@@ -36,7 +37,8 @@ struct amba_device {
 	char			*driver_override;
 };
 
-struct amba_driver {
+struct amba_driver
+{
 	struct device_driver	drv;
 	int			(*probe)(struct amba_device *, const struct amba_id *);
 	int			(*remove)(struct amba_device *);
@@ -48,7 +50,8 @@ struct amba_driver {
  * Constants for the designer field of the Peripheral ID register. When bit 7
  * is set to '1', bits [6:0] should be the JEP106 manufacturer identity code.
  */
-enum amba_vendor {
+enum amba_vendor
+{
 	AMBA_VENDOR_ARM = 0x41,
 	AMBA_VENDOR_ST = 0x80,
 	AMBA_VENDOR_QCOM = 0x51,
@@ -59,7 +62,7 @@ enum amba_vendor {
 /* This is used to generate pseudo-ID for AMBA device */
 #define AMBA_LINUX_ID(conf, rev, part) \
 	(((conf) & 0xff) << 24 | ((rev) & 0xf) << 20 | \
-	AMBA_VENDOR_LINUX << 12 | ((part) & 0xfff))
+	 AMBA_VENDOR_LINUX << 12 | ((part) & 0xfff))
 
 extern struct bus_type amba_bustype;
 
@@ -75,23 +78,23 @@ void amba_device_put(struct amba_device *);
 int amba_device_add(struct amba_device *, struct resource *);
 int amba_device_register(struct amba_device *, struct resource *);
 struct amba_device *amba_apb_device_add(struct device *parent, const char *name,
-					resource_size_t base, size_t size,
-					int irq1, int irq2, void *pdata,
-					unsigned int periphid);
+										resource_size_t base, size_t size,
+										int irq1, int irq2, void *pdata,
+										unsigned int periphid);
 struct amba_device *amba_ahb_device_add(struct device *parent, const char *name,
-					resource_size_t base, size_t size,
-					int irq1, int irq2, void *pdata,
-					unsigned int periphid);
+										resource_size_t base, size_t size,
+										int irq1, int irq2, void *pdata,
+										unsigned int periphid);
 struct amba_device *
 amba_apb_device_add_res(struct device *parent, const char *name,
-			resource_size_t base, size_t size, int irq1,
-			int irq2, void *pdata, unsigned int periphid,
-			struct resource *resbase);
+						resource_size_t base, size_t size, int irq1,
+						int irq2, void *pdata, unsigned int periphid,
+						struct resource *resbase);
 struct amba_device *
 amba_ahb_device_add_res(struct device *parent, const char *name,
-			resource_size_t base, size_t size, int irq1,
-			int irq2, void *pdata, unsigned int periphid,
-			struct resource *resbase);
+						resource_size_t base, size_t size, int irq1,
+						int irq2, void *pdata, unsigned int periphid,
+						struct resource *resbase);
 void amba_device_unregister(struct amba_device *);
 struct amba_device *amba_find_device(const char *, struct device *, unsigned int, unsigned int);
 int amba_request_regions(struct amba_device *, const char *);
@@ -131,8 +134,8 @@ static inline void amba_pclk_unprepare(struct amba_device *dev)
 #define __AMBA_DEV(busid, data, mask)				\
 	{							\
 		.coherent_dma_mask = mask,			\
-		.init_name = busid,				\
-		.platform_data = data,				\
+							 .init_name = busid,				\
+										  .platform_data = data,				\
 	}
 
 /*
@@ -142,23 +145,23 @@ static inline void amba_pclk_unprepare(struct amba_device *dev)
  * USB host controllers in conventional PCs.)
  */
 #define AMBA_APB_DEVICE(name, busid, id, base, irqs, data)	\
-struct amba_device name##_device = {				\
-	.dev = __AMBA_DEV(busid, data, 0),			\
-	.res = DEFINE_RES_MEM(base, SZ_4K),			\
-	.irq = irqs,						\
-	.periphid = id,						\
-}
+	struct amba_device name##_device = {				\
+		.dev = __AMBA_DEV(busid, data, 0),			\
+			   .res = DEFINE_RES_MEM(base, SZ_4K),			\
+					  .irq = irqs,						\
+							 .periphid = id,						\
+	}
 
 /*
  * AHB devices are DMA capable, so set their DMA masks
  */
 #define AMBA_AHB_DEVICE(name, busid, id, base, irqs, data)	\
-struct amba_device name##_device = {				\
-	.dev = __AMBA_DEV(busid, data, ~0ULL),			\
-	.res = DEFINE_RES_MEM(base, SZ_4K),			\
-	.irq = irqs,						\
-	.periphid = id,						\
-}
+	struct amba_device name##_device = {				\
+		.dev = __AMBA_DEV(busid, data, ~0ULL),			\
+			   .res = DEFINE_RES_MEM(base, SZ_4K),			\
+					  .irq = irqs,						\
+							 .periphid = id,						\
+	}
 
 /*
  * module_amba_driver() - Helper macro for drivers that don't do anything

@@ -4,7 +4,8 @@
 #include <subdev/iccsense.h>
 #include <subdev/bios/extdev.h>
 
-struct nvkm_iccsense_sensor {
+struct nvkm_iccsense_sensor
+{
 	struct list_head head;
 	int id;
 	enum nvbios_extdev_type type;
@@ -13,7 +14,8 @@ struct nvkm_iccsense_sensor {
 	u8 rail_mask;
 };
 
-struct nvkm_iccsense_rail {
+struct nvkm_iccsense_rail
+{
 	struct list_head head;
 	int (*read)(struct nvkm_iccsense *, struct nvkm_iccsense_rail *);
 	struct nvkm_iccsense_sensor *sensor;

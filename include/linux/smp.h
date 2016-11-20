@@ -14,7 +14,8 @@
 #include <linux/llist.h>
 
 typedef void (*smp_call_func_t)(void *info);
-struct call_single_data {
+struct call_single_data
+{
 	struct llist_node llist;
 	smp_call_func_t func;
 	void *info;
@@ -25,7 +26,7 @@ struct call_single_data {
 extern unsigned int total_cpus;
 
 int smp_call_function_single(int cpuid, smp_call_func_t func, void *info,
-			     int wait);
+							 int wait);
 
 /*
  * Call a function on all processors
@@ -37,7 +38,7 @@ int on_each_cpu(smp_call_func_t func, void *info, int wait);
  * the local one.
  */
 void on_each_cpu_mask(const struct cpumask *mask, smp_call_func_t func,
-		void *info, bool wait);
+					  void *info, bool wait);
 
 /*
  * Call a function on each processor for which the supplied function
@@ -45,8 +46,8 @@ void on_each_cpu_mask(const struct cpumask *mask, smp_call_func_t func,
  * processor.
  */
 void on_each_cpu_cond(bool (*cond_func)(int cpu, void *info),
-		smp_call_func_t func, void *info, bool wait,
-		gfp_t gfp_flags);
+					  smp_call_func_t func, void *info, bool wait,
+					  gfp_t gfp_flags);
 
 int smp_call_function_single_async(int cpu, struct call_single_data *csd);
 
@@ -94,10 +95,10 @@ extern void smp_cpus_done(unsigned int max_cpus);
  */
 int smp_call_function(smp_call_func_t func, void *info, int wait);
 void smp_call_function_many(const struct cpumask *mask,
-			    smp_call_func_t func, void *info, bool wait);
+							smp_call_func_t func, void *info, bool wait);
 
 int smp_call_function_any(const struct cpumask *mask,
-			  smp_call_func_t func, void *info, int wait);
+						  smp_call_func_t func, void *info, int wait);
 
 void kick_all_cpus_sync(void);
 void wake_up_all_idle_cpus(void);
@@ -133,17 +134,17 @@ static inline int up_smp_call_function(smp_call_func_t func, void *info)
 	return 0;
 }
 #define smp_call_function(func, info, wait) \
-			(up_smp_call_function(func, info))
+	(up_smp_call_function(func, info))
 
 static inline void smp_send_reschedule(int cpu) { }
 #define smp_prepare_boot_cpu()			do {} while (0)
 #define smp_call_function_many(mask, func, info, wait) \
-			(up_smp_call_function(func, info))
+	(up_smp_call_function(func, info))
 static inline void call_function_init(void) { }
 
 static inline int
 smp_call_function_any(const struct cpumask *mask, smp_call_func_t func,
-		      void *info, int wait)
+					  void *info, int wait)
 {
 	return smp_call_function_single(0, func, info, wait);
 }
@@ -176,10 +177,10 @@ static inline void smp_init(void) { }
  * the warning message, as your code might not work under PREEMPT.
  */
 #ifdef CONFIG_DEBUG_PREEMPT
-  extern unsigned int debug_smp_processor_id(void);
-# define smp_processor_id() debug_smp_processor_id()
+	extern unsigned int debug_smp_processor_id(void);
+	#define smp_processor_id() debug_smp_processor_id()
 #else
-# define smp_processor_id() raw_smp_processor_id()
+	#define smp_processor_id() raw_smp_processor_id()
 #endif
 
 #define get_cpu()		({ preempt_disable(); smp_processor_id(); })
@@ -197,7 +198,7 @@ extern void arch_enable_nonboot_cpus_end(void);
 void smp_setup_processor_id(void);
 
 int smp_call_on_cpu(unsigned int cpu, int (*func)(void *), void *par,
-		    bool phys);
+					bool phys);
 
 /* SMP core functions */
 int smpcfd_prepare_cpu(unsigned int cpu);

@@ -23,7 +23,8 @@
 #define QCE_SHA_MAX_BLOCKSIZE		SHA256_BLOCK_SIZE
 #define QCE_SHA_MAX_DIGESTSIZE		SHA256_DIGEST_SIZE
 
-struct qce_sha_ctx {
+struct qce_sha_ctx
+{
 	u8 authkey[QCE_SHA_MAX_BLOCKSIZE];
 };
 
@@ -46,7 +47,8 @@ struct qce_sha_ctx {
  * @authklen: auth key length
  * @result_sg: scatterlist used for result buffer
  */
-struct qce_sha_reqctx {
+struct qce_sha_reqctx
+{
 	u8 buf[QCE_SHA_MAX_BLOCKSIZE];
 	u8 tmpbuf[QCE_SHA_MAX_BLOCKSIZE];
 	u8 digest[QCE_SHA_MAX_DIGESTSIZE];
@@ -69,7 +71,7 @@ static inline struct qce_alg_template *to_ahash_tmpl(struct crypto_tfm *tfm)
 {
 	struct crypto_ahash *ahash = __crypto_ahash_cast(tfm);
 	struct ahash_alg *alg = container_of(crypto_hash_alg_common(ahash),
-					     struct ahash_alg, halg);
+										 struct ahash_alg, halg);
 
 	return container_of(alg, struct qce_alg_template, alg.ahash);
 }

@@ -23,7 +23,7 @@
 #define _LINUX_PM_WAKEUP_H
 
 #ifndef _DEVICE_H_
-# error "please don't include this file directly"
+	# error "please don't include this file directly"
 #endif
 
 #include <linux/types.h>
@@ -51,7 +51,8 @@ struct wake_irq;
  * @active: Status of the wakeup source.
  * @has_timeout: The wakeup source has been activated with a timeout.
  */
-struct wakeup_source {
+struct wakeup_source
+{
 	const char 		*name;
 	struct list_head	entry;
 	spinlock_t		lock;
@@ -68,8 +69,8 @@ struct wakeup_source {
 	unsigned long		relax_count;
 	unsigned long		expire_count;
 	unsigned long		wakeup_count;
-	bool			active:1;
-	bool			autosleep_enabled:1;
+	bool			active: 1;
+	bool			autosleep_enabled: 1;
 };
 
 #ifdef CONFIG_PM_SLEEP
@@ -122,7 +123,7 @@ static inline bool device_can_wakeup(struct device *dev)
 }
 
 static inline void wakeup_source_prepare(struct wakeup_source *ws,
-					 const char *name) {}
+		const char *name) {}
 
 static inline struct wakeup_source *wakeup_source_create(const char *name)
 {
@@ -189,7 +190,7 @@ static inline void pm_wakeup_event(struct device *dev, unsigned int msec) {}
 #endif /* !CONFIG_PM_SLEEP */
 
 static inline void wakeup_source_init(struct wakeup_source *ws,
-				      const char *name)
+									  const char *name)
 {
 	wakeup_source_prepare(ws, name);
 	wakeup_source_add(ws);

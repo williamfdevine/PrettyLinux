@@ -15,7 +15,8 @@
 /**
  * struct tb_switch - a thunderbolt switch
  */
-struct tb_switch {
+struct tb_switch
+{
 	struct tb_regs_switch_header config;
 	struct tb_port *ports;
 	struct tb *tb;
@@ -28,7 +29,8 @@ struct tb_switch {
 /**
  * struct tb_port - a thunderbolt port, part of a tb_switch
  */
-struct tb_port {
+struct tb_port
+{
 	struct tb_regs_port_header config;
 	struct tb_switch *sw;
 	struct tb_port *remote; /* remote port, NULL if not connected */
@@ -36,7 +38,7 @@ struct tb_port {
 	u8 port; /* port number on switch */
 	bool disabled; /* disabled by eeprom */
 	struct tb_port *dual_link_port;
-	u8 link_nr:1;
+	u8 link_nr: 1;
 };
 
 /**
@@ -50,7 +52,8 @@ struct tb_port {
  * in_counter_index is the index of a counter (in TB_CFG_COUNTERS) on the in
  * port.
  */
-struct tb_path_hop {
+struct tb_path_hop
+{
 	struct tb_port *in_port;
 	struct tb_port *out_port;
 	int in_hop_index;
@@ -61,7 +64,8 @@ struct tb_path_hop {
 /**
  * enum tb_path_port - path options mask
  */
-enum tb_path_port {
+enum tb_path_port
+{
 	TB_PATH_NONE = 0,
 	TB_PATH_SOURCE = 1, /* activate on the first hop (out of src) */
 	TB_PATH_INTERNAL = 2, /* activate on other hops (not the first/last) */
@@ -76,7 +80,8 @@ enum tb_path_port {
  * tunnel two paths have to be created between the two PCIe ports.
  *
  */
-struct tb_path {
+struct tb_path
+{
 	struct tb *tb;
 	int nfc_credits; /* non flow controlled credits */
 	enum tb_path_port ingress_shared_buffer;
@@ -84,8 +89,8 @@ struct tb_path {
 	enum tb_path_port ingress_fc_enable;
 	enum tb_path_port egress_fc_enable;
 
-	int priority:3;
-	int weight:4;
+	int priority: 3;
+	int weight: 4;
 	bool drop_packages;
 	bool activated;
 	struct tb_path_hop *hops;
@@ -96,7 +101,8 @@ struct tb_path {
 /**
  * struct tb - main thunderbolt bus structure
  */
-struct tb {
+struct tb
+{
 	struct mutex lock;	/*
 				 * Big lock. Must be held when accessing cfg or
 				 * any struct tb_switch / struct tb_port.
@@ -138,51 +144,51 @@ static inline u64 tb_route(struct tb_switch *sw)
 }
 
 static inline int tb_sw_read(struct tb_switch *sw, void *buffer,
-			     enum tb_cfg_space space, u32 offset, u32 length)
+							 enum tb_cfg_space space, u32 offset, u32 length)
 {
 	return tb_cfg_read(sw->tb->ctl,
-			   buffer,
-			   tb_route(sw),
-			   0,
-			   space,
-			   offset,
-			   length);
+					   buffer,
+					   tb_route(sw),
+					   0,
+					   space,
+					   offset,
+					   length);
 }
 
 static inline int tb_sw_write(struct tb_switch *sw, void *buffer,
-			      enum tb_cfg_space space, u32 offset, u32 length)
+							  enum tb_cfg_space space, u32 offset, u32 length)
 {
 	return tb_cfg_write(sw->tb->ctl,
-			    buffer,
-			    tb_route(sw),
-			    0,
-			    space,
-			    offset,
-			    length);
+						buffer,
+						tb_route(sw),
+						0,
+						space,
+						offset,
+						length);
 }
 
 static inline int tb_port_read(struct tb_port *port, void *buffer,
-			       enum tb_cfg_space space, u32 offset, u32 length)
+							   enum tb_cfg_space space, u32 offset, u32 length)
 {
 	return tb_cfg_read(port->sw->tb->ctl,
-			   buffer,
-			   tb_route(port->sw),
-			   port->port,
-			   space,
-			   offset,
-			   length);
+					   buffer,
+					   tb_route(port->sw),
+					   port->port,
+					   space,
+					   offset,
+					   length);
 }
 
 static inline int tb_port_write(struct tb_port *port, void *buffer,
-				enum tb_cfg_space space, u32 offset, u32 length)
+								enum tb_cfg_space space, u32 offset, u32 length)
 {
 	return tb_cfg_write(port->sw->tb->ctl,
-			    buffer,
-			    tb_route(port->sw),
-			    port->port,
-			    space,
-			    offset,
-			    length);
+						buffer,
+						tb_route(port->sw),
+						port->port,
+						space,
+						offset,
+						length);
 }
 
 #define tb_err(tb, fmt, arg...) dev_err(&(tb)->nhi->pdev->dev, fmt, ## arg)
@@ -195,7 +201,7 @@ static inline int tb_port_write(struct tb_port *port, void *buffer,
 	do {                                            \
 		struct tb_switch *__sw = (sw);          \
 		level(__sw->tb, "%llx: " fmt,           \
-		      tb_route(__sw), ## arg);          \
+			  tb_route(__sw), ## arg);          \
 	} while (0)
 #define tb_sw_WARN(sw, fmt, arg...) __TB_SW_PRINT(tb_WARN, sw, fmt, ##arg)
 #define tb_sw_warn(sw, fmt, arg...) __TB_SW_PRINT(tb_warn, sw, fmt, ##arg)
@@ -206,7 +212,7 @@ static inline int tb_port_write(struct tb_port *port, void *buffer,
 	do {                                                            \
 		struct tb_port *__port = (_port);                       \
 		level(__port->sw->tb, "%llx:%x: " fmt,                  \
-		      tb_route(__port->sw), __port->port, ## arg);      \
+			  tb_route(__port->sw), __port->port, ## arg);      \
 	} while (0)
 #define tb_port_WARN(port, fmt, arg...) \
 	__TB_PORT_PRINT(tb_WARN, port, fmt, ##arg)
@@ -265,7 +271,7 @@ static inline bool tb_is_upstream_port(struct tb_port *port)
 static inline u64 tb_downstream_route(struct tb_port *port)
 {
 	return tb_route(port->sw)
-	       | ((u64) port->port << (port->sw->config.depth * 8));
+		   | ((u64) port->port << (port->sw->config.depth * 8));
 }
 
 #endif

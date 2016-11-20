@@ -111,7 +111,7 @@ struct nfp_net_r_vector;
 	do {								\
 		__typeof(desc) __d = (desc);				\
 		dma_addr_t __addr = (dma_addr);				\
-									\
+		\
 		__d->dma_addr_lo = cpu_to_le32(lower_32_bits(__addr));	\
 		__d->dma_addr_hi = upper_32_bits(__addr) & 0xff;	\
 	} while (0)
@@ -132,9 +132,12 @@ struct nfp_net_r_vector;
 #define PCIE_DESC_TX_ENCAP		BIT(1)
 #define PCIE_DESC_TX_O_IP4_CSUM	BIT(0)
 
-struct nfp_net_tx_desc {
-	union {
-		struct {
+struct nfp_net_tx_desc
+{
+	union
+	{
+		struct
+		{
 			u8 dma_addr_hi; /* High bits of host buf address */
 			__le16 dma_len;	/* Length to DMA for this desc */
 			u8 offset_eop;	/* Offset in buf where pkt starts +
@@ -164,7 +167,8 @@ struct nfp_net_tx_desc {
  * @real_len:	Number of bytes which to be produced out of the skb (valid only
  *		on the head's buffer). Equal to skb->len for non-TSO packets.
  */
-struct nfp_net_tx_buf {
+struct nfp_net_tx_buf
+{
 	struct sk_buff *skb;
 	dma_addr_t dma_addr;
 	short int fidx;
@@ -189,7 +193,8 @@ struct nfp_net_tx_buf {
  * @dma:        DMA address of the TX ring
  * @size:       Size, in bytes, of the TX ring (needed to free)
  */
-struct nfp_net_tx_ring {
+struct nfp_net_tx_ring
+{
 	struct nfp_net_r_vector *r_vec;
 
 	u32 idx;
@@ -234,19 +239,22 @@ struct nfp_net_tx_ring {
 #define PCIE_DESC_RX_VLAN		cpu_to_le16(BIT(0))
 
 #define PCIE_DESC_RX_CSUM_ALL		(PCIE_DESC_RX_IP4_CSUM |	\
-					 PCIE_DESC_RX_TCP_CSUM |	\
-					 PCIE_DESC_RX_UDP_CSUM |	\
-					 PCIE_DESC_RX_I_IP4_CSUM |	\
-					 PCIE_DESC_RX_I_TCP_CSUM |	\
-					 PCIE_DESC_RX_I_UDP_CSUM)
+									 PCIE_DESC_RX_TCP_CSUM |	\
+									 PCIE_DESC_RX_UDP_CSUM |	\
+									 PCIE_DESC_RX_I_IP4_CSUM |	\
+									 PCIE_DESC_RX_I_TCP_CSUM |	\
+									 PCIE_DESC_RX_I_UDP_CSUM)
 #define PCIE_DESC_RX_CSUM_OK_SHIFT	1
 #define __PCIE_DESC_RX_CSUM_ALL		le16_to_cpu(PCIE_DESC_RX_CSUM_ALL)
 #define __PCIE_DESC_RX_CSUM_ALL_OK	(__PCIE_DESC_RX_CSUM_ALL >>	\
-					 PCIE_DESC_RX_CSUM_OK_SHIFT)
+									 PCIE_DESC_RX_CSUM_OK_SHIFT)
 
-struct nfp_net_rx_desc {
-	union {
-		struct {
+struct nfp_net_rx_desc
+{
+	union
+	{
+		struct
+		{
 			u8 dma_addr_hi;	/* High bits of the buf address */
 			__le16 reserved; /* Must be zero */
 			u8 meta_len_dd; /* Must be zero */
@@ -254,7 +262,8 @@ struct nfp_net_rx_desc {
 			__le32 dma_addr_lo; /* Low bits of the buffer address */
 		} __packed fld;
 
-		struct {
+		struct
+		{
 			__le16 data_len; /* Length of the frame + meta data */
 			u8 reserved;
 			u8 meta_len_dd;	/* Length of meta data prepended +
@@ -271,7 +280,8 @@ struct nfp_net_rx_desc {
 
 #define NFP_NET_META_FIELD_MASK GENMASK(NFP_NET_META_FIELD_SIZE - 1, 0)
 
-struct nfp_net_rx_hash {
+struct nfp_net_rx_hash
+{
 	__be32 hash_type;
 	__be32 hash;
 };
@@ -281,7 +291,8 @@ struct nfp_net_rx_hash {
  * @skb:	sk_buff associated with this buffer
  * @dma_addr:	DMA mapping address of the buffer
  */
-struct nfp_net_rx_buf {
+struct nfp_net_rx_buf
+{
 	struct sk_buff *skb;
 	dma_addr_t dma_addr;
 };
@@ -306,7 +317,8 @@ struct nfp_net_rx_buf {
  * @bufsz:	Buffer allocation size for convenience of management routines
  *		(NOTE: this is in second cache line, do not use on fast path!)
  */
-struct nfp_net_rx_ring {
+struct nfp_net_rx_ring
+{
 	struct nfp_net_r_vector *r_vec;
 
 	u32 cnt;
@@ -361,7 +373,8 @@ struct nfp_net_rx_ring {
  * interrupt vector but might be extended in the future to allow
  * association of multiple rings per vector.
  */
-struct nfp_net_r_vector {
+struct nfp_net_r_vector
+{
 	struct nfp_net *nfp_net;
 	struct napi_struct napi;
 
@@ -394,7 +407,8 @@ struct nfp_net_r_vector {
 } ____cacheline_aligned;
 
 /* Firmware version as it is written in the 32bit value in the BAR */
-struct nfp_net_fw_version {
+struct nfp_net_fw_version
+{
 	u8 minor;
 	u8 major;
 	u8 class;
@@ -402,15 +416,16 @@ struct nfp_net_fw_version {
 } __packed;
 
 static inline bool nfp_net_fw_ver_eq(struct nfp_net_fw_version *fw_ver,
-				     u8 resv, u8 class, u8 major, u8 minor)
+									 u8 resv, u8 class, u8 major, u8 minor)
 {
 	return fw_ver->resv == resv &&
-	       fw_ver->class == class &&
-	       fw_ver->major == major &&
-	       fw_ver->minor == minor;
+		   fw_ver->class == class &&
+				   fw_ver->major == major &&
+				   fw_ver->minor == minor;
 }
 
-struct nfp_stat_pair {
+struct nfp_stat_pair
+{
 	u64 pkts;
 	u64 bytes;
 };
@@ -481,15 +496,16 @@ struct nfp_stat_pair {
  * @rx_bar:             Pointer to mapped FL/RX queues
  * @debugfs_dir:	Device directory in debugfs
  */
-struct nfp_net {
+struct nfp_net
+{
 	struct pci_dev *pdev;
 	struct net_device *netdev;
 
-	unsigned nfp_fallback:1;
-	unsigned is_vf:1;
-	unsigned is_nfp3200:1;
-	unsigned fw_loaded:1;
-	unsigned bpf_offload_skip_sw:1;
+	unsigned nfp_fallback: 1;
+	unsigned is_vf: 1;
+	unsigned is_nfp3200: 1;
+	unsigned fw_loaded: 1;
+	unsigned bpf_offload_skip_sw: 1;
 
 	u32 ctrl;
 	u32 fl_bufsz;
@@ -540,7 +556,7 @@ struct nfp_net {
 	u8 num_r_vecs;
 	struct nfp_net_r_vector r_vecs[NFP_NET_MAX_TX_RINGS];
 	struct msix_entry irq_entries[NFP_NET_NON_Q_VECTORS +
-				      NFP_NET_MAX_TX_RINGS];
+									  NFP_NET_MAX_TX_RINGS];
 
 	irq_handler_t lsc_handler;
 	char lsc_name[IFNAMSIZ + 8];
@@ -654,7 +670,8 @@ static inline void nn_pci_flush(struct nfp_net *nn)
 #define NFP_PCIE_QUEUE(_q) (0x80000 + (NFP_QCP_QUEUE_ADDR_SZ * ((_q) & 0xff)))
 
 /* nfp_qcp_ptr - Read or Write Pointer of a queue */
-enum nfp_qcp_ptr {
+enum nfp_qcp_ptr
+{
 	NFP_QCP_READ_PTR = 0,
 	NFP_QCP_WRITE_PTR
 };
@@ -666,16 +683,21 @@ enum nfp_qcp_ptr {
 #define NFP_QCP_MAX_ADD				0x3f
 
 static inline void _nfp_qcp_ptr_add(u8 __iomem *q,
-				    enum nfp_qcp_ptr ptr, u32 val)
+									enum nfp_qcp_ptr ptr, u32 val)
 {
 	u32 off;
 
 	if (ptr == NFP_QCP_READ_PTR)
+	{
 		off = NFP_QCP_QUEUE_ADD_RPTR;
+	}
 	else
+	{
 		off = NFP_QCP_QUEUE_ADD_WPTR;
+	}
 
-	while (val > NFP_QCP_MAX_ADD) {
+	while (val > NFP_QCP_MAX_ADD)
+	{
 		writel(NFP_QCP_MAX_ADD, q + off);
 		val -= NFP_QCP_MAX_ADD;
 	}
@@ -715,16 +737,24 @@ static inline u32 _nfp_qcp_read(u8 __iomem *q, enum nfp_qcp_ptr ptr)
 	u32 val;
 
 	if (ptr == NFP_QCP_READ_PTR)
+	{
 		off = NFP_QCP_QUEUE_STS_LO;
+	}
 	else
+	{
 		off = NFP_QCP_QUEUE_STS_HI;
+	}
 
 	val = readl(q + off);
 
 	if (ptr == NFP_QCP_READ_PTR)
+	{
 		return val & NFP_QCP_QUEUE_STS_LO_READPTR_mask;
+	}
 	else
+	{
 		return val & NFP_QCP_QUEUE_STS_HI_WRITEPTR_mask;
+	}
 }
 
 /**
@@ -755,10 +785,10 @@ extern const char nfp_net_driver_version[];
 
 /* Prototypes */
 void nfp_net_get_fw_version(struct nfp_net_fw_version *fw_ver,
-			    void __iomem *ctrl_bar);
+							void __iomem *ctrl_bar);
 
 struct nfp_net *nfp_net_netdev_alloc(struct pci_dev *pdev,
-				     int max_tx_rings, int max_rx_rings);
+									 int max_tx_rings, int max_rx_rings);
 void nfp_net_netdev_free(struct nfp_net *nn);
 int nfp_net_netdev_init(struct net_device *netdev);
 void nfp_net_netdev_clean(struct net_device *netdev);
@@ -798,6 +828,6 @@ static inline void nfp_net_debugfs_adapter_del(struct nfp_net *nn)
 void nfp_net_filter_stats_timer(unsigned long data);
 int
 nfp_net_bpf_offload(struct nfp_net *nn, u32 handle, __be16 proto,
-		    struct tc_cls_bpf_offload *cls_bpf);
+					struct tc_cls_bpf_offload *cls_bpf);
 
 #endif /* _NFP_NET_H_ */

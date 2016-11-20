@@ -13,7 +13,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table flydvb[] = {
+static struct rc_map_table flydvb[] =
+{
 	{ 0x01, KEY_ZOOM },		/* Full Screen */
 	{ 0x00, KEY_POWER },		/* Power */
 
@@ -52,7 +53,8 @@ static struct rc_map_table flydvb[] = {
 	{ 0x0e, KEY_NEXT },		/* End >>| */
 };
 
-static struct rc_map_list flydvb_map = {
+static struct rc_map_list flydvb_map =
+{
 	.map = {
 		.scan    = flydvb,
 		.size    = ARRAY_SIZE(flydvb),

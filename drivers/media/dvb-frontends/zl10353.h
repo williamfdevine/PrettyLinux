@@ -40,7 +40,7 @@ struct zl10353_config
 	int parallel_ts;
 
 	/* set if i2c_gate_ctrl disable is required */
-	u8 disable_i2c_gate_ctrl:1;
+	u8 disable_i2c_gate_ctrl: 1;
 
 	/* clock control registers (0x51-0x54) */
 	u8 clock_ctl_1;  /* default: 0x46 */
@@ -48,11 +48,11 @@ struct zl10353_config
 };
 
 #if IS_REACHABLE(CONFIG_DVB_ZL10353)
-extern struct dvb_frontend* zl10353_attach(const struct zl10353_config *config,
-					   struct i2c_adapter *i2c);
+extern struct dvb_frontend *zl10353_attach(const struct zl10353_config *config,
+		struct i2c_adapter *i2c);
 #else
-static inline struct dvb_frontend* zl10353_attach(const struct zl10353_config *config,
-					   struct i2c_adapter *i2c)
+static inline struct dvb_frontend *zl10353_attach(const struct zl10353_config *config,
+		struct i2c_adapter *i2c)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

@@ -49,7 +49,9 @@ void mei_me_cl_init(struct mei_me_client *me_cl)
 struct mei_me_client *mei_me_cl_get(struct mei_me_client *me_cl)
 {
 	if (me_cl && kref_get_unless_zero(&me_cl->refcnt))
+	{
 		return me_cl;
+	}
 
 	return NULL;
 }
@@ -79,7 +81,9 @@ static void mei_me_cl_release(struct kref *ref)
 void mei_me_cl_put(struct mei_me_client *me_cl)
 {
 	if (me_cl)
+	{
 		kref_put(&me_cl->refcnt, mei_me_cl_release);
+	}
 }
 
 /**
@@ -94,7 +98,9 @@ void mei_me_cl_put(struct mei_me_client *me_cl)
 static void __mei_me_cl_del(struct mei_device *dev, struct mei_me_client *me_cl)
 {
 	if (!me_cl)
+	{
 		return;
+	}
 
 	list_del_init(&me_cl->list);
 	mei_me_cl_put(me_cl);
@@ -139,17 +145,21 @@ void mei_me_cl_add(struct mei_device *dev, struct mei_me_client *me_cl)
  * Locking: dev->me_clients_rwsem
  */
 static struct mei_me_client *__mei_me_cl_by_uuid(struct mei_device *dev,
-					const uuid_le *uuid)
+		const uuid_le *uuid)
 {
 	struct mei_me_client *me_cl;
 	const uuid_le *pn;
 
 	WARN_ON(!rwsem_is_locked(&dev->me_clients_rwsem));
 
-	list_for_each_entry(me_cl, &dev->me_clients, list) {
+	list_for_each_entry(me_cl, &dev->me_clients, list)
+	{
 		pn = &me_cl->props.protocol_name;
+
 		if (uuid_le_cmp(*uuid, *pn) == 0)
+		{
 			return mei_me_cl_get(me_cl);
+		}
 	}
 
 	return NULL;
@@ -167,7 +177,7 @@ static struct mei_me_client *__mei_me_cl_by_uuid(struct mei_device *dev,
  * Locking: dev->me_clients_rwsem
  */
 struct mei_me_client *mei_me_cl_by_uuid(struct mei_device *dev,
-					const uuid_le *uuid)
+										const uuid_le *uuid)
 {
 	struct mei_me_client *me_cl;
 
@@ -195,8 +205,10 @@ struct mei_me_client *mei_me_cl_by_id(struct mei_device *dev, u8 client_id)
 	struct mei_me_client *__me_cl, *me_cl = NULL;
 
 	down_read(&dev->me_clients_rwsem);
-	list_for_each_entry(__me_cl, &dev->me_clients, list) {
-		if (__me_cl->client_id == client_id) {
+	list_for_each_entry(__me_cl, &dev->me_clients, list)
+	{
+		if (__me_cl->client_id == client_id)
+		{
 			me_cl = mei_me_cl_get(__me_cl);
 			break;
 		}
@@ -219,18 +231,22 @@ struct mei_me_client *mei_me_cl_by_id(struct mei_device *dev, u8 client_id)
  * Locking: dev->me_clients_rwsem
  */
 static struct mei_me_client *__mei_me_cl_by_uuid_id(struct mei_device *dev,
-					   const uuid_le *uuid, u8 client_id)
+		const uuid_le *uuid, u8 client_id)
 {
 	struct mei_me_client *me_cl;
 	const uuid_le *pn;
 
 	WARN_ON(!rwsem_is_locked(&dev->me_clients_rwsem));
 
-	list_for_each_entry(me_cl, &dev->me_clients, list) {
+	list_for_each_entry(me_cl, &dev->me_clients, list)
+	{
 		pn = &me_cl->props.protocol_name;
+
 		if (uuid_le_cmp(*uuid, *pn) == 0 &&
-		    me_cl->client_id == client_id)
+			me_cl->client_id == client_id)
+		{
 			return mei_me_cl_get(me_cl);
+		}
 	}
 
 	return NULL;
@@ -248,7 +264,7 @@ static struct mei_me_client *__mei_me_cl_by_uuid_id(struct mei_device *dev,
  * Return: me client or null if not found
  */
 struct mei_me_client *mei_me_cl_by_uuid_id(struct mei_device *dev,
-					   const uuid_le *uuid, u8 client_id)
+		const uuid_le *uuid, u8 client_id)
 {
 	struct mei_me_client *me_cl;
 
@@ -313,7 +329,7 @@ void mei_me_cl_rm_all(struct mei_device *dev)
 
 	down_write(&dev->me_clients_rwsem);
 	list_for_each_entry_safe(me_cl, next, &dev->me_clients, list)
-		__mei_me_cl_del(dev, me_cl);
+	__mei_me_cl_del(dev, me_cl);
 	up_write(&dev->me_clients_rwsem);
 }
 
@@ -327,11 +343,11 @@ void mei_me_cl_rm_all(struct mei_device *dev)
  *         false - otherwise
  */
 static inline bool mei_cl_cmp_id(const struct mei_cl *cl1,
-				const struct mei_cl *cl2)
+								 const struct mei_cl *cl2)
 {
 	return cl1 && cl2 &&
-		(cl1->host_client_id == cl2->host_client_id) &&
-		(mei_cl_me_id(cl1) == mei_cl_me_id(cl2));
+		   (cl1->host_client_id == cl2->host_client_id) &&
+		   (mei_cl_me_id(cl1) == mei_cl_me_id(cl2));
 }
 
 /**
@@ -342,7 +358,9 @@ static inline bool mei_cl_cmp_id(const struct mei_cl *cl1,
 void mei_io_cb_free(struct mei_cl_cb *cb)
 {
 	if (cb == NULL)
+	{
 		return;
+	}
 
 	list_del(&cb->list);
 	kfree(cb->buf.data);
@@ -359,14 +377,17 @@ void mei_io_cb_free(struct mei_cl_cb *cb)
  * Return: mei_cl_cb pointer or NULL;
  */
 static struct mei_cl_cb *mei_io_cb_init(struct mei_cl *cl,
-					enum mei_cb_file_ops type,
-					const struct file *fp)
+										enum mei_cb_file_ops type,
+										const struct file *fp)
 {
 	struct mei_cl_cb *cb;
 
 	cb = kzalloc(sizeof(struct mei_cl_cb), GFP_KERNEL);
+
 	if (!cb)
+	{
 		return NULL;
+	}
 
 	INIT_LIST_HEAD(&cb->list);
 	cb->fp = fp;
@@ -384,16 +405,21 @@ static struct mei_cl_cb *mei_io_cb_init(struct mei_cl *cl,
  * @free:  whether to free the cbs
  */
 static void __mei_io_list_flush(struct mei_cl_cb *list,
-				struct mei_cl *cl, bool free)
+								struct mei_cl *cl, bool free)
 {
 	struct mei_cl_cb *cb, *next;
 
 	/* enable removing everything if no cl is specified */
-	list_for_each_entry_safe(cb, next, &list->list, list) {
-		if (!cl || mei_cl_cmp_id(cl, cb->cl)) {
+	list_for_each_entry_safe(cb, next, &list->list, list)
+	{
+		if (!cl || mei_cl_cmp_id(cl, cb->cl))
+		{
 			list_del_init(&cb->list);
+
 			if (free)
+			{
 				mei_io_cb_free(cb);
+			}
 		}
 	}
 }
@@ -431,23 +457,31 @@ static inline void mei_io_list_free(struct mei_cl_cb *list, struct mei_cl *cl)
  * Return: cb on success and NULL on failure
  */
 struct mei_cl_cb *mei_cl_alloc_cb(struct mei_cl *cl, size_t length,
-				  enum mei_cb_file_ops fop_type,
-				  const struct file *fp)
+								  enum mei_cb_file_ops fop_type,
+								  const struct file *fp)
 {
 	struct mei_cl_cb *cb;
 
 	cb = mei_io_cb_init(cl, fop_type, fp);
+
 	if (!cb)
+	{
 		return NULL;
+	}
 
 	if (length == 0)
+	{
 		return cb;
+	}
 
 	cb->buf.data = kmalloc(length, GFP_KERNEL);
-	if (!cb->buf.data) {
+
+	if (!cb->buf.data)
+	{
 		mei_io_cb_free(cb);
 		return NULL;
 	}
+
 	cb->buf.size = length;
 
 	return cb;
@@ -466,18 +500,23 @@ struct mei_cl_cb *mei_cl_alloc_cb(struct mei_cl *cl, size_t length,
  * Locking: called under "dev->device_lock" lock
  */
 struct mei_cl_cb *mei_cl_enqueue_ctrl_wr_cb(struct mei_cl *cl, size_t length,
-					    enum mei_cb_file_ops fop_type,
-					    const struct file *fp)
+		enum mei_cb_file_ops fop_type,
+		const struct file *fp)
 {
 	struct mei_cl_cb *cb;
 
 	/* for RX always allocate at least client's mtu */
 	if (length)
+	{
 		length = max_t(size_t, length, mei_cl_mtu(cl));
+	}
 
 	cb = mei_cl_alloc_cb(cl, length, fop_type, fp);
+
 	if (!cb)
+	{
 		return NULL;
+	}
 
 	list_add_tail(&cb->list, &cl->dev->ctrl_wr_list.list);
 	return cb;
@@ -497,8 +536,11 @@ struct mei_cl_cb *mei_cl_read_cb(const struct mei_cl *cl, const struct file *fp)
 	struct mei_cl_cb *cb;
 
 	list_for_each_entry(cb, &cl->rd_completed, list)
-		if (!fp || fp == cb->fp)
-			return cb;
+
+	if (!fp || fp == cb->fp)
+	{
+		return cb;
+	}
 
 	return NULL;
 }
@@ -515,13 +557,19 @@ void mei_cl_read_cb_flush(const struct mei_cl *cl, const struct file *fp)
 	struct mei_cl_cb *cb, *next;
 
 	list_for_each_entry_safe(cb, next, &cl->rd_completed, list)
-		if (!fp || fp == cb->fp)
-			mei_io_cb_free(cb);
+
+	if (!fp || fp == cb->fp)
+	{
+		mei_io_cb_free(cb);
+	}
 
 
 	list_for_each_entry_safe(cb, next, &cl->rd_pending, list)
-		if (!fp || fp == cb->fp)
-			mei_io_cb_free(cb);
+
+	if (!fp || fp == cb->fp)
+	{
+		mei_io_cb_free(cb);
+	}
 }
 
 /**
@@ -537,7 +585,9 @@ int mei_cl_flush_queues(struct mei_cl *cl, const struct file *fp)
 	struct mei_device *dev;
 
 	if (WARN_ON(!cl || !cl->dev))
+	{
 		return -EINVAL;
+	}
 
 	dev = cl->dev;
 
@@ -586,8 +636,11 @@ struct mei_cl *mei_cl_allocate(struct mei_device *dev)
 	struct mei_cl *cl;
 
 	cl = kmalloc(sizeof(struct mei_cl), GFP_KERNEL);
+
 	if (!cl)
+	{
 		return NULL;
+	}
 
 	mei_cl_init(cl, dev);
 
@@ -610,20 +663,26 @@ int mei_cl_link(struct mei_cl *cl)
 	int id;
 
 	if (WARN_ON(!cl || !cl->dev))
+	{
 		return -EINVAL;
+	}
 
 	dev = cl->dev;
 
 	id = find_first_zero_bit(dev->host_clients_map, MEI_CLIENTS_MAX);
-	if (id >= MEI_CLIENTS_MAX) {
+
+	if (id >= MEI_CLIENTS_MAX)
+	{
 		dev_err(dev->dev, "id exceeded %d", MEI_CLIENTS_MAX);
 		return -EMFILE;
 	}
 
 	open_handle_count = dev->open_handle_count + dev->iamthif_open_count;
-	if (open_handle_count >= MEI_MAX_OPEN_HANDLE_COUNT) {
+
+	if (open_handle_count >= MEI_MAX_OPEN_HANDLE_COUNT)
+	{
 		dev_err(dev->dev, "open_handle_count exceeded %d",
-			MEI_MAX_OPEN_HANDLE_COUNT);
+				MEI_MAX_OPEN_HANDLE_COUNT);
 		return -EMFILE;
 	}
 
@@ -653,22 +712,30 @@ int mei_cl_unlink(struct mei_cl *cl)
 
 	/* don't shout on error exit path */
 	if (!cl)
+	{
 		return 0;
+	}
 
 	/* amthif might not be initialized */
 	if (!cl->dev)
+	{
 		return 0;
+	}
 
 	dev = cl->dev;
 
 	cl_dbg(dev, cl, "unlink client");
 
 	if (dev->open_handle_count > 0)
+	{
 		dev->open_handle_count--;
+	}
 
 	/* never clear the 0 bit */
 	if (cl->host_client_id)
+	{
 		clear_bit(cl->host_client_id, dev->host_clients_map);
+	}
 
 	list_del_init(&cl->link);
 
@@ -698,12 +765,14 @@ void mei_host_client_init(struct mei_device *dev)
 bool mei_hbuf_acquire(struct mei_device *dev)
 {
 	if (mei_pg_state(dev) == MEI_PG_ON ||
-	    mei_pg_in_transition(dev)) {
+		mei_pg_in_transition(dev))
+	{
 		dev_dbg(dev->dev, "device is in pg\n");
 		return false;
 	}
 
-	if (!dev->hbuf_is_ready) {
+	if (!dev->hbuf_is_ready)
+	{
 		dev_dbg(dev->dev, "hbuf is not ready\n");
 		return false;
 	}
@@ -724,22 +793,29 @@ static void mei_cl_wake_all(struct mei_cl *cl)
 	struct mei_device *dev = cl->dev;
 
 	/* synchronized under device mutex */
-	if (waitqueue_active(&cl->rx_wait)) {
+	if (waitqueue_active(&cl->rx_wait))
+	{
 		cl_dbg(dev, cl, "Waking up reading client!\n");
 		wake_up_interruptible(&cl->rx_wait);
 	}
+
 	/* synchronized under device mutex */
-	if (waitqueue_active(&cl->tx_wait)) {
+	if (waitqueue_active(&cl->tx_wait))
+	{
 		cl_dbg(dev, cl, "Waking up writing client!\n");
 		wake_up_interruptible(&cl->tx_wait);
 	}
+
 	/* synchronized under device mutex */
-	if (waitqueue_active(&cl->ev_wait)) {
+	if (waitqueue_active(&cl->ev_wait))
+	{
 		cl_dbg(dev, cl, "Waking up waiting for event clients!\n");
 		wake_up_interruptible(&cl->ev_wait);
 	}
+
 	/* synchronized under device mutex */
-	if (waitqueue_active(&cl->wait)) {
+	if (waitqueue_active(&cl->wait))
+	{
 		cl_dbg(dev, cl, "Waking up ctrl write clients!\n");
 		wake_up(&cl->wait);
 	}
@@ -756,8 +832,10 @@ void mei_cl_set_disconnected(struct mei_cl *cl)
 	struct mei_device *dev = cl->dev;
 
 	if (cl->state == MEI_FILE_DISCONNECTED ||
-	    cl->state == MEI_FILE_INITIALIZING)
+		cl->state == MEI_FILE_INITIALIZING)
+	{
 		return;
+	}
 
 	cl->state = MEI_FILE_DISCONNECTED;
 	mei_io_list_free(&dev->write_list, cl);
@@ -770,13 +848,19 @@ void mei_cl_set_disconnected(struct mei_cl *cl)
 	cl->timer_count = 0;
 
 	if (!cl->me_cl)
+	{
 		return;
+	}
 
 	if (!WARN_ON(cl->me_cl->connect_count == 0))
+	{
 		cl->me_cl->connect_count--;
+	}
 
 	if (cl->me_cl->connect_count == 0)
+	{
 		cl->me_cl->tx_flow_ctrl_creds = 0;
+	}
 
 	mei_me_cl_put(cl->me_cl);
 	cl->me_cl = NULL;
@@ -785,11 +869,15 @@ void mei_cl_set_disconnected(struct mei_cl *cl)
 static int mei_cl_set_connecting(struct mei_cl *cl, struct mei_me_client *me_cl)
 {
 	if (!mei_me_cl_get(me_cl))
+	{
 		return -ENOENT;
+	}
 
 	/* only one connection is allowed for fixed address clients */
-	if (me_cl->props.fixed_address) {
-		if (me_cl->connect_count) {
+	if (me_cl->props.fixed_address)
+	{
+		if (me_cl->connect_count)
+		{
 			mei_me_cl_put(me_cl);
 			return -EBUSY;
 		}
@@ -819,7 +907,9 @@ static int mei_cl_send_disconnect(struct mei_cl *cl, struct mei_cl_cb *cb)
 
 	ret = mei_hbm_cl_disconnect_req(dev, cl);
 	cl->status = ret;
-	if (ret) {
+
+	if (ret)
+	{
 		cl->state = MEI_FILE_DISCONNECT_REPLY;
 		return ret;
 	}
@@ -842,7 +932,7 @@ static int mei_cl_send_disconnect(struct mei_cl *cl, struct mei_cl_cb *cb)
  * Return: 0, OK; otherwise, error.
  */
 int mei_cl_irq_disconnect(struct mei_cl *cl, struct mei_cl_cb *cb,
-			    struct mei_cl_cb *cmpl_list)
+						  struct mei_cl_cb *cmpl_list)
 {
 	struct mei_device *dev = cl->dev;
 	u32 msg_slots;
@@ -853,11 +943,16 @@ int mei_cl_irq_disconnect(struct mei_cl *cl, struct mei_cl_cb *cb,
 	slots = mei_hbuf_empty_slots(dev);
 
 	if (slots < msg_slots)
+	{
 		return -EMSGSIZE;
+	}
 
 	ret = mei_cl_send_disconnect(cl, cb);
+
 	if (ret)
+	{
 		list_move_tail(&cb->list, &cmpl_list->list);
+	}
 
 	return ret;
 }
@@ -881,14 +976,19 @@ static int __mei_cl_disconnect(struct mei_cl *cl)
 	cl->state = MEI_FILE_DISCONNECTING;
 
 	cb = mei_cl_enqueue_ctrl_wr_cb(cl, 0, MEI_FOP_DISCONNECT, NULL);
-	if (!cb) {
+
+	if (!cb)
+	{
 		rets = -ENOMEM;
 		goto out;
 	}
 
-	if (mei_hbuf_acquire(dev)) {
+	if (mei_hbuf_acquire(dev))
+	{
 		rets = mei_cl_send_disconnect(cl, cb);
-		if (rets) {
+
+		if (rets)
+		{
 			cl_err(dev, cl, "failed to disconnect.\n");
 			goto out;
 		}
@@ -896,14 +996,16 @@ static int __mei_cl_disconnect(struct mei_cl *cl)
 
 	mutex_unlock(&dev->device_lock);
 	wait_event_timeout(cl->wait,
-			   cl->state == MEI_FILE_DISCONNECT_REPLY ||
-			   cl->state == MEI_FILE_DISCONNECTED,
-			   mei_secs_to_jiffies(MEI_CL_CONNECT_TIMEOUT));
+					   cl->state == MEI_FILE_DISCONNECT_REPLY ||
+					   cl->state == MEI_FILE_DISCONNECTED,
+					   mei_secs_to_jiffies(MEI_CL_CONNECT_TIMEOUT));
 	mutex_lock(&dev->device_lock);
 
 	rets = cl->status;
+
 	if (cl->state != MEI_FILE_DISCONNECT_REPLY &&
-	    cl->state != MEI_FILE_DISCONNECTED) {
+		cl->state != MEI_FILE_DISCONNECTED)
+	{
 		cl_dbg(dev, cl, "timeout on disconnect from FW client.\n");
 		rets = -ETIME;
 	}
@@ -911,8 +1013,11 @@ static int __mei_cl_disconnect(struct mei_cl *cl)
 out:
 	/* we disconnect also on error */
 	mei_cl_set_disconnected(cl);
+
 	if (!rets)
+	{
 		cl_dbg(dev, cl, "successfully disconnected from FW client.\n");
+	}
 
 	mei_io_cb_free(cb);
 	return rets;
@@ -933,22 +1038,29 @@ int mei_cl_disconnect(struct mei_cl *cl)
 	int rets;
 
 	if (WARN_ON(!cl || !cl->dev))
+	{
 		return -ENODEV;
+	}
 
 	dev = cl->dev;
 
 	cl_dbg(dev, cl, "disconnecting");
 
 	if (!mei_cl_is_connected(cl))
+	{
 		return 0;
+	}
 
-	if (mei_cl_is_fixed_address(cl)) {
+	if (mei_cl_is_fixed_address(cl))
+	{
 		mei_cl_set_disconnected(cl);
 		return 0;
 	}
 
 	rets = pm_runtime_get(dev->dev);
-	if (rets < 0 && rets != -EINPROGRESS) {
+
+	if (rets < 0 && rets != -EINPROGRESS)
+	{
 		pm_runtime_put_noidle(dev->dev);
 		cl_err(dev, cl, "rpm: get failed %d\n", rets);
 		return rets;
@@ -979,10 +1091,13 @@ static bool mei_cl_is_other_connecting(struct mei_cl *cl)
 
 	dev = cl->dev;
 
-	list_for_each_entry(cb, &dev->ctrl_rd_list.list, list) {
+	list_for_each_entry(cb, &dev->ctrl_rd_list.list, list)
+	{
 		if (cb->fop_type == MEI_FOP_CONNECT &&
-		    mei_cl_me_id(cl) == mei_cl_me_id(cb->cl))
+			mei_cl_me_id(cl) == mei_cl_me_id(cb->cl))
+		{
 			return true;
+		}
 	}
 
 	return false;
@@ -1005,7 +1120,9 @@ static int mei_cl_send_connect(struct mei_cl *cl, struct mei_cl_cb *cb)
 
 	ret = mei_hbm_cl_connect_req(dev, cl);
 	cl->status = ret;
-	if (ret) {
+
+	if (ret)
+	{
 		cl->state = MEI_FILE_DISCONNECT_REPLY;
 		return ret;
 	}
@@ -1026,7 +1143,7 @@ static int mei_cl_send_connect(struct mei_cl *cl, struct mei_cl_cb *cb)
  * Return: 0, OK; otherwise, error.
  */
 int mei_cl_irq_connect(struct mei_cl *cl, struct mei_cl_cb *cb,
-			      struct mei_cl_cb *cmpl_list)
+					   struct mei_cl_cb *cmpl_list)
 {
 	struct mei_device *dev = cl->dev;
 	u32 msg_slots;
@@ -1037,14 +1154,21 @@ int mei_cl_irq_connect(struct mei_cl *cl, struct mei_cl_cb *cb,
 	slots = mei_hbuf_empty_slots(dev);
 
 	if (mei_cl_is_other_connecting(cl))
+	{
 		return 0;
+	}
 
 	if (slots < msg_slots)
+	{
 		return -EMSGSIZE;
+	}
 
 	rets = mei_cl_send_connect(cl, cb);
+
 	if (rets)
+	{
 		list_move_tail(&cb->list, &cmpl_list->list);
+	}
 
 	return rets;
 }
@@ -1061,62 +1185,78 @@ int mei_cl_irq_connect(struct mei_cl *cl, struct mei_cl_cb *cb,
  * Return: 0 on success, <0 on failure.
  */
 int mei_cl_connect(struct mei_cl *cl, struct mei_me_client *me_cl,
-		   const struct file *fp)
+				   const struct file *fp)
 {
 	struct mei_device *dev;
 	struct mei_cl_cb *cb;
 	int rets;
 
 	if (WARN_ON(!cl || !cl->dev || !me_cl))
+	{
 		return -ENODEV;
+	}
 
 	dev = cl->dev;
 
 	rets = mei_cl_set_connecting(cl, me_cl);
-	if (rets)
-		return rets;
 
-	if (mei_cl_is_fixed_address(cl)) {
+	if (rets)
+	{
+		return rets;
+	}
+
+	if (mei_cl_is_fixed_address(cl))
+	{
 		cl->state = MEI_FILE_CONNECTED;
 		return 0;
 	}
 
 	rets = pm_runtime_get(dev->dev);
-	if (rets < 0 && rets != -EINPROGRESS) {
+
+	if (rets < 0 && rets != -EINPROGRESS)
+	{
 		pm_runtime_put_noidle(dev->dev);
 		cl_err(dev, cl, "rpm: get failed %d\n", rets);
 		goto nortpm;
 	}
 
 	cb = mei_cl_enqueue_ctrl_wr_cb(cl, 0, MEI_FOP_CONNECT, fp);
-	if (!cb) {
+
+	if (!cb)
+	{
 		rets = -ENOMEM;
 		goto out;
 	}
 
 	/* run hbuf acquire last so we don't have to undo */
-	if (!mei_cl_is_other_connecting(cl) && mei_hbuf_acquire(dev)) {
+	if (!mei_cl_is_other_connecting(cl) && mei_hbuf_acquire(dev))
+	{
 		rets = mei_cl_send_connect(cl, cb);
+
 		if (rets)
+		{
 			goto out;
+		}
 	}
 
 	mutex_unlock(&dev->device_lock);
 	wait_event_timeout(cl->wait,
-			(cl->state == MEI_FILE_CONNECTED ||
-			 cl->state == MEI_FILE_DISCONNECTED ||
-			 cl->state == MEI_FILE_DISCONNECT_REQUIRED ||
-			 cl->state == MEI_FILE_DISCONNECT_REPLY),
-			mei_secs_to_jiffies(MEI_CL_CONNECT_TIMEOUT));
+					   (cl->state == MEI_FILE_CONNECTED ||
+						cl->state == MEI_FILE_DISCONNECTED ||
+						cl->state == MEI_FILE_DISCONNECT_REQUIRED ||
+						cl->state == MEI_FILE_DISCONNECT_REPLY),
+					   mei_secs_to_jiffies(MEI_CL_CONNECT_TIMEOUT));
 	mutex_lock(&dev->device_lock);
 
-	if (!mei_cl_is_connected(cl)) {
-		if (cl->state == MEI_FILE_DISCONNECT_REQUIRED) {
+	if (!mei_cl_is_connected(cl))
+	{
+		if (cl->state == MEI_FILE_DISCONNECT_REQUIRED)
+		{
 			mei_io_list_flush(&dev->ctrl_rd_list, cl);
 			mei_io_list_flush(&dev->ctrl_wr_list, cl);
-			 /* ignore disconnect return valuue;
-			  * in case of failure reset will be invoked
-			  */
+			/* ignore disconnect return valuue;
+			 * in case of failure reset will be invoked
+			 */
 			__mei_cl_disconnect(cl);
 			rets = -EFAULT;
 			goto out;
@@ -1124,7 +1264,9 @@ int mei_cl_connect(struct mei_cl *cl, struct mei_me_client *me_cl,
 
 		/* timeout or something went really wrong */
 		if (!cl->status)
+		{
 			cl->status = -EFAULT;
+		}
 	}
 
 	rets = cl->status;
@@ -1136,8 +1278,11 @@ out:
 	mei_io_cb_free(cb);
 
 nortpm:
+
 	if (!mei_cl_is_connected(cl))
+	{
 		mei_cl_set_disconnected(cl);
+	}
 
 	return rets;
 }
@@ -1155,14 +1300,19 @@ struct mei_cl *mei_cl_alloc_linked(struct mei_device *dev)
 	int ret;
 
 	cl = mei_cl_allocate(dev);
-	if (!cl) {
+
+	if (!cl)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
 
 	ret = mei_cl_link(cl);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	return cl;
 err:
@@ -1180,18 +1330,28 @@ err:
 static int mei_cl_tx_flow_ctrl_creds(struct mei_cl *cl)
 {
 	if (WARN_ON(!cl || !cl->me_cl))
+	{
 		return -EINVAL;
+	}
 
 	if (cl->tx_flow_ctrl_creds > 0)
+	{
 		return 1;
+	}
 
 	if (mei_cl_is_fixed_address(cl))
+	{
 		return 1;
-
-	if (mei_cl_is_single_recv_buf(cl)) {
-		if (cl->me_cl->tx_flow_ctrl_creds > 0)
-			return 1;
 	}
+
+	if (mei_cl_is_single_recv_buf(cl))
+	{
+		if (cl->me_cl->tx_flow_ctrl_creds > 0)
+		{
+			return 1;
+		}
+	}
+
 	return 0;
 }
 
@@ -1208,20 +1368,34 @@ static int mei_cl_tx_flow_ctrl_creds(struct mei_cl *cl)
 static int mei_cl_tx_flow_ctrl_creds_reduce(struct mei_cl *cl)
 {
 	if (WARN_ON(!cl || !cl->me_cl))
+	{
 		return -EINVAL;
+	}
 
 	if (mei_cl_is_fixed_address(cl))
+	{
 		return 0;
+	}
 
-	if (mei_cl_is_single_recv_buf(cl)) {
+	if (mei_cl_is_single_recv_buf(cl))
+	{
 		if (WARN_ON(cl->me_cl->tx_flow_ctrl_creds <= 0))
+		{
 			return -EINVAL;
+		}
+
 		cl->me_cl->tx_flow_ctrl_creds--;
-	} else {
+	}
+	else
+	{
 		if (WARN_ON(cl->tx_flow_ctrl_creds <= 0))
+		{
 			return -EINVAL;
+		}
+
 		cl->tx_flow_ctrl_creds--;
 	}
+
 	return 0;
 }
 
@@ -1235,9 +1409,13 @@ static int mei_cl_tx_flow_ctrl_creds_reduce(struct mei_cl *cl)
 u8 mei_cl_notify_fop2req(enum mei_cb_file_ops fop)
 {
 	if (fop == MEI_FOP_NOTIFY_START)
+	{
 		return MEI_HBM_NOTIFICATION_START;
+	}
 	else
+	{
 		return MEI_HBM_NOTIFICATION_STOP;
+	}
 }
 
 /**
@@ -1250,9 +1428,13 @@ u8 mei_cl_notify_fop2req(enum mei_cb_file_ops fop)
 enum mei_cb_file_ops mei_cl_notify_req2fop(u8 req)
 {
 	if (req == MEI_HBM_NOTIFICATION_START)
+	{
 		return MEI_FOP_NOTIFY_START;
+	}
 	else
+	{
 		return MEI_FOP_NOTIFY_STOP;
+	}
 }
 
 /**
@@ -1265,7 +1447,7 @@ enum mei_cb_file_ops mei_cl_notify_req2fop(u8 req)
  * Return: 0 on such and error otherwise.
  */
 int mei_cl_irq_notify(struct mei_cl *cl, struct mei_cl_cb *cb,
-		      struct mei_cl_cb *cmpl_list)
+					  struct mei_cl_cb *cmpl_list)
 {
 	struct mei_device *dev = cl->dev;
 	u32 msg_slots;
@@ -1277,11 +1459,15 @@ int mei_cl_irq_notify(struct mei_cl *cl, struct mei_cl_cb *cb,
 	slots = mei_hbuf_empty_slots(dev);
 
 	if (slots < msg_slots)
+	{
 		return -EMSGSIZE;
+	}
 
 	request = mei_cl_notify_fop2req(cb->fop_type);
 	ret = mei_hbm_cl_notify_req(dev, cl, request);
-	if (ret) {
+
+	if (ret)
+	{
 		cl->status = ret;
 		list_move_tail(&cb->list, &cmpl_list->list);
 		return ret;
@@ -1303,7 +1489,7 @@ int mei_cl_irq_notify(struct mei_cl *cl, struct mei_cl_cb *cb,
  * Return: 0 on such and error otherwise.
  */
 int mei_cl_notify_request(struct mei_cl *cl,
-			  const struct file *fp, u8 request)
+						  const struct file *fp, u8 request)
 {
 	struct mei_device *dev;
 	struct mei_cl_cb *cb;
@@ -1311,17 +1497,22 @@ int mei_cl_notify_request(struct mei_cl *cl,
 	int rets;
 
 	if (WARN_ON(!cl || !cl->dev))
+	{
 		return -ENODEV;
+	}
 
 	dev = cl->dev;
 
-	if (!dev->hbm_f_ev_supported) {
+	if (!dev->hbm_f_ev_supported)
+	{
 		cl_dbg(dev, cl, "notifications not supported\n");
 		return -EOPNOTSUPP;
 	}
 
 	rets = pm_runtime_get(dev->dev);
-	if (rets < 0 && rets != -EINPROGRESS) {
+
+	if (rets < 0 && rets != -EINPROGRESS)
+	{
 		pm_runtime_put_noidle(dev->dev);
 		cl_err(dev, cl, "rpm: get failed %d\n", rets);
 		return rets;
@@ -1329,27 +1520,34 @@ int mei_cl_notify_request(struct mei_cl *cl,
 
 	fop_type = mei_cl_notify_req2fop(request);
 	cb = mei_cl_enqueue_ctrl_wr_cb(cl, 0, fop_type, fp);
-	if (!cb) {
+
+	if (!cb)
+	{
 		rets = -ENOMEM;
 		goto out;
 	}
 
-	if (mei_hbuf_acquire(dev)) {
-		if (mei_hbm_cl_notify_req(dev, cl, request)) {
+	if (mei_hbuf_acquire(dev))
+	{
+		if (mei_hbm_cl_notify_req(dev, cl, request))
+		{
 			rets = -ENODEV;
 			goto out;
 		}
+
 		list_move_tail(&cb->list, &dev->ctrl_rd_list.list);
 	}
 
 	mutex_unlock(&dev->device_lock);
 	wait_event_timeout(cl->wait,
-			   cl->notify_en == request || !mei_cl_is_connected(cl),
-			   mei_secs_to_jiffies(MEI_CL_CONNECT_TIMEOUT));
+					   cl->notify_en == request || !mei_cl_is_connected(cl),
+					   mei_secs_to_jiffies(MEI_CL_CONNECT_TIMEOUT));
 	mutex_lock(&dev->device_lock);
 
 	if (cl->notify_en != request && !cl->status)
+	{
 		cl->status = -EFAULT;
+	}
 
 	rets = cl->status;
 
@@ -1374,20 +1572,29 @@ void mei_cl_notify(struct mei_cl *cl)
 	struct mei_device *dev;
 
 	if (!cl || !cl->dev)
+	{
 		return;
+	}
 
 	dev = cl->dev;
 
 	if (!cl->notify_en)
+	{
 		return;
+	}
 
 	cl_dbg(dev, cl, "notify event");
 	cl->notify_ev = true;
+
 	if (!mei_cl_bus_notify_event(cl))
+	{
 		wake_up_interruptible(&cl->ev_wait);
+	}
 
 	if (cl->ev_async)
+	{
 		kill_fasync(&cl->ev_async, SIGIO, POLL_PRI);
+	}
 
 }
 
@@ -1410,25 +1617,35 @@ int mei_cl_notify_get(struct mei_cl *cl, bool block, bool *notify_ev)
 	*notify_ev = false;
 
 	if (WARN_ON(!cl || !cl->dev))
+	{
 		return -ENODEV;
+	}
 
 	dev = cl->dev;
 
 	if (!mei_cl_is_connected(cl))
+	{
 		return -ENODEV;
+	}
 
 	if (cl->notify_ev)
+	{
 		goto out;
+	}
 
 	if (!block)
+	{
 		return -EAGAIN;
+	}
 
 	mutex_unlock(&dev->device_lock);
 	rets = wait_event_interruptible(cl->ev_wait, cl->notify_ev);
 	mutex_lock(&dev->device_lock);
 
 	if (rets < 0)
+	{
 		return rets;
+	}
 
 out:
 	*notify_ev = cl->notify_ev;
@@ -1452,44 +1669,64 @@ int mei_cl_read_start(struct mei_cl *cl, size_t length, const struct file *fp)
 	int rets;
 
 	if (WARN_ON(!cl || !cl->dev))
+	{
 		return -ENODEV;
+	}
 
 	dev = cl->dev;
 
 	if (!mei_cl_is_connected(cl))
+	{
 		return -ENODEV;
+	}
 
-	if (!mei_me_cl_is_active(cl->me_cl)) {
+	if (!mei_me_cl_is_active(cl->me_cl))
+	{
 		cl_err(dev, cl, "no such me client\n");
 		return  -ENOTTY;
 	}
 
 	if (mei_cl_is_fixed_address(cl) || cl == &dev->iamthif_cl)
+	{
 		return 0;
+	}
 
 	/* HW currently supports only one pending read */
 	if (cl->rx_flow_ctrl_creds)
+	{
 		return -EBUSY;
+	}
 
 	cb = mei_cl_enqueue_ctrl_wr_cb(cl, length, MEI_FOP_READ, fp);
+
 	if (!cb)
+	{
 		return -ENOMEM;
+	}
 
 	rets = pm_runtime_get(dev->dev);
-	if (rets < 0 && rets != -EINPROGRESS) {
+
+	if (rets < 0 && rets != -EINPROGRESS)
+	{
 		pm_runtime_put_noidle(dev->dev);
 		cl_err(dev, cl, "rpm: get failed %d\n", rets);
 		goto nortpm;
 	}
 
 	rets = 0;
-	if (mei_hbuf_acquire(dev)) {
+
+	if (mei_hbuf_acquire(dev))
+	{
 		rets = mei_hbm_cl_flow_control_req(dev, cl);
+
 		if (rets < 0)
+		{
 			goto out;
+		}
 
 		list_move_tail(&cb->list, &cl->rd_pending);
 	}
+
 	cl->rx_flow_ctrl_creds++;
 
 out:
@@ -1497,8 +1734,11 @@ out:
 	pm_runtime_mark_last_busy(dev->dev);
 	pm_runtime_put_autosuspend(dev->dev);
 nortpm:
+
 	if (rets)
+	{
 		mei_io_cb_free(cb);
+	}
 
 	return rets;
 }
@@ -1514,7 +1754,7 @@ nortpm:
  * Return: 0, OK; otherwise error.
  */
 int mei_cl_irq_write(struct mei_cl *cl, struct mei_cl_cb *cb,
-		     struct mei_cl_cb *cmpl_list)
+					 struct mei_cl_cb *cmpl_list)
 {
 	struct mei_device *dev;
 	struct mei_msg_data *buf;
@@ -1526,7 +1766,9 @@ int mei_cl_irq_write(struct mei_cl *cl, struct mei_cl_cb *cb,
 	bool first_chunk;
 
 	if (WARN_ON(!cl || !cl->dev))
+	{
 		return -ENODEV;
+	}
 
 	dev = cl->dev;
 
@@ -1535,10 +1777,14 @@ int mei_cl_irq_write(struct mei_cl *cl, struct mei_cl_cb *cb,
 	first_chunk = cb->buf_idx == 0;
 
 	rets = first_chunk ? mei_cl_tx_flow_ctrl_creds(cl) : 1;
-	if (rets < 0)
-		return rets;
 
-	if (rets == 0) {
+	if (rets < 0)
+	{
+		return rets;
+	}
+
+	if (rets == 0)
+	{
 		cl_dbg(dev, cl, "No flow control credentials: not sending.\n");
 		return 0;
 	}
@@ -1552,25 +1798,32 @@ int mei_cl_irq_write(struct mei_cl *cl, struct mei_cl_cb *cb,
 	mei_hdr.reserved = 0;
 	mei_hdr.internal = cb->internal;
 
-	if (slots >= msg_slots) {
+	if (slots >= msg_slots)
+	{
 		mei_hdr.length = len;
 		mei_hdr.msg_complete = 1;
-	/* Split the message only if we can write the whole host buffer */
-	} else if (slots == dev->hbuf_depth) {
+		/* Split the message only if we can write the whole host buffer */
+	}
+	else if (slots == dev->hbuf_depth)
+	{
 		msg_slots = slots;
 		len = (slots * sizeof(u32)) - sizeof(struct mei_msg_hdr);
 		mei_hdr.length = len;
 		mei_hdr.msg_complete = 0;
-	} else {
+	}
+	else
+	{
 		/* wait for next time the host buffer is empty */
 		return 0;
 	}
 
 	cl_dbg(dev, cl, "buf: size = %zu idx = %zu\n",
-			cb->buf.size, cb->buf_idx);
+		   cb->buf.size, cb->buf_idx);
 
 	rets = mei_write_message(dev, &mei_hdr, buf->data + cb->buf_idx);
-	if (rets) {
+
+	if (rets)
+	{
 		cl->status = rets;
 		list_move_tail(&cb->list, &cmpl_list->list);
 		return rets;
@@ -1581,13 +1834,18 @@ int mei_cl_irq_write(struct mei_cl *cl, struct mei_cl_cb *cb,
 	cb->buf_idx += mei_hdr.length;
 	cb->completed = mei_hdr.msg_complete == 1;
 
-	if (first_chunk) {
+	if (first_chunk)
+	{
 		if (mei_cl_tx_flow_ctrl_creds_reduce(cl))
+		{
 			return -EIO;
+		}
 	}
 
 	if (mei_hdr.msg_complete)
+	{
 		list_move_tail(&cb->list, &dev->write_waiting_list.list);
+	}
 
 	return 0;
 }
@@ -1612,10 +1870,14 @@ int mei_cl_write(struct mei_cl *cl, struct mei_cl_cb *cb, bool blocking)
 
 
 	if (WARN_ON(!cl || !cl->dev))
+	{
 		return -ENODEV;
+	}
 
 	if (WARN_ON(!cb))
+	{
 		return -EINVAL;
+	}
 
 	dev = cl->dev;
 
@@ -1625,7 +1887,9 @@ int mei_cl_write(struct mei_cl *cl, struct mei_cl_cb *cb, bool blocking)
 	cl_dbg(dev, cl, "size=%d\n", size);
 
 	rets = pm_runtime_get(dev->dev);
-	if (rets < 0 && rets != -EINPROGRESS) {
+
+	if (rets < 0 && rets != -EINPROGRESS)
+	{
 		pm_runtime_put_noidle(dev->dev);
 		cl_err(dev, cl, "rpm: get failed %d\n", rets);
 		goto free;
@@ -1641,62 +1905,91 @@ int mei_cl_write(struct mei_cl *cl, struct mei_cl_cb *cb, bool blocking)
 	mei_hdr.internal = cb->internal;
 
 	rets = mei_cl_tx_flow_ctrl_creds(cl);
-	if (rets < 0)
-		goto err;
 
-	if (rets == 0) {
+	if (rets < 0)
+	{
+		goto err;
+	}
+
+	if (rets == 0)
+	{
 		cl_dbg(dev, cl, "No flow control credentials: not sending.\n");
 		rets = size;
 		goto out;
 	}
-	if (!mei_hbuf_acquire(dev)) {
+
+	if (!mei_hbuf_acquire(dev))
+	{
 		cl_dbg(dev, cl, "Cannot acquire the host buffer: not sending.\n");
 		rets = size;
 		goto out;
 	}
 
 	/* Check for a maximum length */
-	if (size > mei_hbuf_max_len(dev)) {
+	if (size > mei_hbuf_max_len(dev))
+	{
 		mei_hdr.length = mei_hbuf_max_len(dev);
 		mei_hdr.msg_complete = 0;
-	} else {
+	}
+	else
+	{
 		mei_hdr.length = size;
 		mei_hdr.msg_complete = 1;
 	}
 
 	rets = mei_write_message(dev, &mei_hdr, buf->data);
+
 	if (rets)
+	{
 		goto err;
+	}
 
 	rets = mei_cl_tx_flow_ctrl_creds_reduce(cl);
+
 	if (rets)
+	{
 		goto err;
+	}
 
 	cl->writing_state = MEI_WRITING;
 	cb->buf_idx = mei_hdr.length;
 	cb->completed = mei_hdr.msg_complete == 1;
 
 out:
+
 	if (mei_hdr.msg_complete)
+	{
 		list_add_tail(&cb->list, &dev->write_waiting_list.list);
+	}
 	else
+	{
 		list_add_tail(&cb->list, &dev->write_list.list);
+	}
 
 	cb = NULL;
-	if (blocking && cl->writing_state != MEI_WRITE_COMPLETE) {
+
+	if (blocking && cl->writing_state != MEI_WRITE_COMPLETE)
+	{
 
 		mutex_unlock(&dev->device_lock);
 		rets = wait_event_interruptible(cl->tx_wait,
-				cl->writing_state == MEI_WRITE_COMPLETE ||
-				(!mei_cl_is_connected(cl)));
+										cl->writing_state == MEI_WRITE_COMPLETE ||
+										(!mei_cl_is_connected(cl)));
 		mutex_lock(&dev->device_lock);
+
 		/* wait_event_interruptible returns -ERESTARTSYS */
-		if (rets) {
+		if (rets)
+		{
 			if (signal_pending(current))
+			{
 				rets = -EINTR;
+			}
+
 			goto err;
 		}
-		if (cl->writing_state != MEI_WRITE_COMPLETE) {
+
+		if (cl->writing_state != MEI_WRITE_COMPLETE)
+		{
 			rets = -EFAULT;
 			goto err;
 		}
@@ -1724,41 +2017,58 @@ void mei_cl_complete(struct mei_cl *cl, struct mei_cl_cb *cb)
 {
 	struct mei_device *dev = cl->dev;
 
-	switch (cb->fop_type) {
-	case MEI_FOP_WRITE:
-		mei_io_cb_free(cb);
-		cl->writing_state = MEI_WRITE_COMPLETE;
-		if (waitqueue_active(&cl->tx_wait)) {
-			wake_up_interruptible(&cl->tx_wait);
-		} else {
-			pm_runtime_mark_last_busy(dev->dev);
-			pm_request_autosuspend(dev->dev);
-		}
-		break;
+	switch (cb->fop_type)
+	{
+		case MEI_FOP_WRITE:
+			mei_io_cb_free(cb);
+			cl->writing_state = MEI_WRITE_COMPLETE;
 
-	case MEI_FOP_READ:
-		list_add_tail(&cb->list, &cl->rd_completed);
-		if (!mei_cl_is_fixed_address(cl) &&
-		    !WARN_ON(!cl->rx_flow_ctrl_creds))
-			cl->rx_flow_ctrl_creds--;
-		if (!mei_cl_bus_rx_event(cl))
-			wake_up_interruptible(&cl->rx_wait);
-		break;
+			if (waitqueue_active(&cl->tx_wait))
+			{
+				wake_up_interruptible(&cl->tx_wait);
+			}
+			else
+			{
+				pm_runtime_mark_last_busy(dev->dev);
+				pm_request_autosuspend(dev->dev);
+			}
 
-	case MEI_FOP_CONNECT:
-	case MEI_FOP_DISCONNECT:
-	case MEI_FOP_NOTIFY_STOP:
-	case MEI_FOP_NOTIFY_START:
-		if (waitqueue_active(&cl->wait))
-			wake_up(&cl->wait);
+			break;
 
-		break;
-	case MEI_FOP_DISCONNECT_RSP:
-		mei_io_cb_free(cb);
-		mei_cl_set_disconnected(cl);
-		break;
-	default:
-		BUG_ON(0);
+		case MEI_FOP_READ:
+			list_add_tail(&cb->list, &cl->rd_completed);
+
+			if (!mei_cl_is_fixed_address(cl) &&
+				!WARN_ON(!cl->rx_flow_ctrl_creds))
+			{
+				cl->rx_flow_ctrl_creds--;
+			}
+
+			if (!mei_cl_bus_rx_event(cl))
+			{
+				wake_up_interruptible(&cl->rx_wait);
+			}
+
+			break;
+
+		case MEI_FOP_CONNECT:
+		case MEI_FOP_DISCONNECT:
+		case MEI_FOP_NOTIFY_STOP:
+		case MEI_FOP_NOTIFY_START:
+			if (waitqueue_active(&cl->wait))
+			{
+				wake_up(&cl->wait);
+			}
+
+			break;
+
+		case MEI_FOP_DISCONNECT_RSP:
+			mei_io_cb_free(cb);
+			mei_cl_set_disconnected(cl);
+			break;
+
+		default:
+			BUG_ON(0);
 	}
 }
 
@@ -1773,5 +2083,5 @@ void mei_cl_all_disconnect(struct mei_device *dev)
 	struct mei_cl *cl;
 
 	list_for_each_entry(cl, &dev->file_list, link)
-		mei_cl_set_disconnected(cl);
+	mei_cl_set_disconnected(cl);
 }

@@ -30,13 +30,17 @@ static int adt7316_spi_multi_read(void *client, u8 reg, u8 count, u8 *data)
 	int ret = 0;
 
 	if (count > ADT7316_REG_MAX_ADDR)
+	{
 		count = ADT7316_REG_MAX_ADDR;
+	}
 
 	cmd[0] = ADT7316_SPI_CMD_WRITE;
 	cmd[1] = reg;
 
 	ret = spi_write(spi_dev, cmd, 2);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&spi_dev->dev, "SPI fail to select reg\n");
 		return ret;
 	}
@@ -44,7 +48,9 @@ static int adt7316_spi_multi_read(void *client, u8 reg, u8 count, u8 *data)
 	cmd[0] = ADT7316_SPI_CMD_READ;
 
 	ret = spi_write_then_read(spi_dev, cmd, 1, data, count);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&spi_dev->dev, "SPI read data error\n");
 		return ret;
 	}
@@ -59,15 +65,22 @@ static int adt7316_spi_multi_write(void *client, u8 reg, u8 count, u8 *data)
 	int i, ret = 0;
 
 	if (count > ADT7316_REG_MAX_ADDR)
+	{
 		count = ADT7316_REG_MAX_ADDR;
+	}
 
 	buf[0] = ADT7316_SPI_CMD_WRITE;
 	buf[1] = reg;
+
 	for (i = 0; i < count; i++)
+	{
 		buf[i + 2] = data[i];
+	}
 
 	ret = spi_write(spi_dev, buf, count + 2);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&spi_dev->dev, "SPI write error\n");
 		return ret;
 	}
@@ -91,7 +104,8 @@ static int adt7316_spi_write(void *client, u8 reg, u8 val)
 
 static int adt7316_spi_probe(struct spi_device *spi_dev)
 {
-	struct adt7316_bus bus = {
+	struct adt7316_bus bus =
+	{
 		.client = spi_dev,
 		.irq = spi_dev->irq,
 		.irq_flags = IRQF_TRIGGER_LOW,
@@ -102,9 +116,10 @@ static int adt7316_spi_probe(struct spi_device *spi_dev)
 	};
 
 	/* don't exceed max specified SPI CLK frequency */
-	if (spi_dev->max_speed_hz > ADT7316_SPI_MAX_FREQ_HZ) {
+	if (spi_dev->max_speed_hz > ADT7316_SPI_MAX_FREQ_HZ)
+	{
 		dev_err(&spi_dev->dev, "SPI CLK %d Hz?\n",
-			spi_dev->max_speed_hz);
+				spi_dev->max_speed_hz);
 		return -EINVAL;
 	}
 
@@ -116,7 +131,8 @@ static int adt7316_spi_probe(struct spi_device *spi_dev)
 	return adt7316_probe(&spi_dev->dev, &bus, spi_dev->modalias);
 }
 
-static const struct spi_device_id adt7316_spi_id[] = {
+static const struct spi_device_id adt7316_spi_id[] =
+{
 	{ "adt7316", 0 },
 	{ "adt7317", 0 },
 	{ "adt7318", 0 },
@@ -128,7 +144,8 @@ static const struct spi_device_id adt7316_spi_id[] = {
 
 MODULE_DEVICE_TABLE(spi, adt7316_spi_id);
 
-static struct spi_driver adt7316_driver = {
+static struct spi_driver adt7316_driver =
+{
 	.driver = {
 		.name = "adt7316",
 		.pm = ADT7316_PM_OPS,

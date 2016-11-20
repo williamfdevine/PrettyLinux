@@ -43,10 +43,15 @@
 static int nfs_superblock_set_dummy_root(struct super_block *sb, struct inode *inode)
 {
 	/* The mntroot acts as the dummy root dentry for this superblock */
-	if (sb->s_root == NULL) {
+	if (sb->s_root == NULL)
+	{
 		sb->s_root = d_make_root(inode);
+
 		if (sb->s_root == NULL)
+		{
 			return -ENOMEM;
+		}
+
 		ihold(inode);
 		/*
 		 * Ensure that this dentry is invisible to d_find_alias().
@@ -62,6 +67,7 @@ static int nfs_superblock_set_dummy_root(struct super_block *sb, struct inode *i
 		spin_unlock(&sb->s_root->d_lock);
 		spin_unlock(&d_inode(sb->s_root)->i_lock);
 	}
+
 	return 0;
 }
 
@@ -69,7 +75,7 @@ static int nfs_superblock_set_dummy_root(struct super_block *sb, struct inode *i
  * get an NFS2/NFS3 root dentry from the root filehandle
  */
 struct dentry *nfs_get_root(struct super_block *sb, struct nfs_fh *mntfh,
-			    const char *devname)
+							const char *devname)
 {
 	struct nfs_server *server = NFS_SB(sb);
 	struct nfs_fsinfo fsinfo;
@@ -79,31 +85,41 @@ struct dentry *nfs_get_root(struct super_block *sb, struct nfs_fh *mntfh,
 	int error;
 
 	if (!name)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	/* get the actual root for this mount */
 	fsinfo.fattr = nfs_alloc_fattr();
-	if (fsinfo.fattr == NULL) {
+
+	if (fsinfo.fattr == NULL)
+	{
 		kfree(name);
 		return ERR_PTR(-ENOMEM);
 	}
 
 	error = server->nfs_client->rpc_ops->getroot(server, mntfh, &fsinfo);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		dprintk("nfs_get_root: getattr error = %d\n", -error);
 		ret = ERR_PTR(error);
 		goto out;
 	}
 
 	inode = nfs_fhget(sb, mntfh, fsinfo.fattr, NULL);
-	if (IS_ERR(inode)) {
+
+	if (IS_ERR(inode))
+	{
 		dprintk("nfs_get_root: get root inode failed\n");
 		ret = ERR_CAST(inode);
 		goto out;
 	}
 
 	error = nfs_superblock_set_dummy_root(sb, inode);
-	if (error != 0) {
+
+	if (error != 0)
+	{
 		ret = ERR_PTR(error);
 		goto out;
 	}
@@ -113,18 +129,23 @@ struct dentry *nfs_get_root(struct super_block *sb, struct nfs_fh *mntfh,
 	 * exists, we'll pick it up at this point and use it as the root
 	 */
 	ret = d_obtain_root(inode);
-	if (IS_ERR(ret)) {
+
+	if (IS_ERR(ret))
+	{
 		dprintk("nfs_get_root: get root dentry failed\n");
 		goto out;
 	}
 
 	security_d_instantiate(ret, inode);
 	spin_lock(&ret->d_lock);
+
 	if (IS_ROOT(ret) && !ret->d_fsdata &&
-	    !(ret->d_flags & DCACHE_NFSFS_RENAMED)) {
+		!(ret->d_flags & DCACHE_NFSFS_RENAMED))
+	{
 		ret->d_fsdata = name;
 		name = NULL;
 	}
+
 	spin_unlock(&ret->d_lock);
 out:
 	kfree(name);

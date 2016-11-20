@@ -53,28 +53,29 @@
  * called for different slots concurrently and need to use locks where
  * and if appropriate. There will be no concurrent access to one slot.
  */
-struct dvb_ca_en50221 {
-	struct module *owner;
+struct dvb_ca_en50221
+{
+		struct module *owner;
 
-	int (*read_attribute_mem)(struct dvb_ca_en50221 *ca,
-				  int slot, int address);
-	int (*write_attribute_mem)(struct dvb_ca_en50221 *ca,
-				   int slot, int address, u8 value);
+		int (*read_attribute_mem)(struct dvb_ca_en50221 *ca,
+								  int slot, int address);
+		int (*write_attribute_mem)(struct dvb_ca_en50221 *ca,
+								   int slot, int address, u8 value);
 
-	int (*read_cam_control)(struct dvb_ca_en50221 *ca,
-				int slot, u8 address);
-	int (*write_cam_control)(struct dvb_ca_en50221 *ca,
-				 int slot, u8 address, u8 value);
+		int (*read_cam_control)(struct dvb_ca_en50221 *ca,
+								int slot, u8 address);
+		int (*write_cam_control)(struct dvb_ca_en50221 *ca,
+								 int slot, u8 address, u8 value);
 
-	int (*slot_reset)(struct dvb_ca_en50221 *ca, int slot);
-	int (*slot_shutdown)(struct dvb_ca_en50221 *ca, int slot);
-	int (*slot_ts_enable)(struct dvb_ca_en50221 *ca, int slot);
+		int (*slot_reset)(struct dvb_ca_en50221 *ca, int slot);
+		int (*slot_shutdown)(struct dvb_ca_en50221 *ca, int slot);
+		int (*slot_ts_enable)(struct dvb_ca_en50221 *ca, int slot);
 
-	int (*poll_slot_status)(struct dvb_ca_en50221 *ca, int slot, int open);
+		int (*poll_slot_status)(struct dvb_ca_en50221 *ca, int slot, int open);
 
-	void *data;
+		void *data;
 
-	void *private;
+		void *private;
 };
 
 /*
@@ -89,7 +90,7 @@ struct dvb_ca_en50221 {
  * @change_type: One of the DVB_CA_CAMCHANGE_* values
  */
 void dvb_ca_en50221_camchange_irq(struct dvb_ca_en50221 *pubca, int slot,
-				  int change_type);
+								  int change_type);
 
 /**
  * dvb_ca_en50221_camready_irq - A CAMREADY IRQ has occurred.
@@ -122,8 +123,8 @@ void dvb_ca_en50221_frda_irq(struct dvb_ca_en50221 *ca, int slot);
  * @return 0 on success, nonzero on failure
  */
 extern int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
-			       struct dvb_ca_en50221 *ca, int flags,
-			       int slot_count);
+							   struct dvb_ca_en50221 *ca, int flags,
+							   int slot_count);
 
 /**
  * dvb_ca_en50221_release - Release a DVB CA device.

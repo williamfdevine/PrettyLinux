@@ -62,11 +62,11 @@ static void set_mono_theme(void)
 }
 
 #define DLG_COLOR(dialog, f, b, h) \
-do {                               \
-	dlg.dialog.fg = (f);       \
-	dlg.dialog.bg = (b);       \
-	dlg.dialog.hl = (h);       \
-} while (0)
+	do {                               \
+		dlg.dialog.fg = (f);       \
+		dlg.dialog.bg = (b);       \
+		dlg.dialog.hl = (h);       \
+	} while (0)
 
 static void set_classic_theme(void)
 {
@@ -162,16 +162,27 @@ static void set_bluetitle_theme(void)
 static int set_theme(const char *theme)
 {
 	int use_color = 1;
+
 	if (!theme)
+	{
 		set_bluetitle_theme();
+	}
 	else if (strcmp(theme, "classic") == 0)
+	{
 		set_classic_theme();
+	}
 	else if (strcmp(theme, "bluetitle") == 0)
+	{
 		set_bluetitle_theme();
+	}
 	else if (strcmp(theme, "blackbg") == 0)
+	{
 		set_blackbg_theme();
+	}
 	else if (strcmp(theme, "mono") == 0)
+	{
 		use_color = 0;
+	}
 
 	return use_color;
 }
@@ -182,10 +193,15 @@ static void init_one_color(struct dialog_color *color)
 
 	pair++;
 	init_pair(pair, color->fg, color->bg);
+
 	if (color->hl)
+	{
 		color->atr = A_BOLD | COLOR_PAIR(pair);
+	}
 	else
+	{
 		color->atr = COLOR_PAIR(pair);
+	}
 }
 
 static void init_dialog_colors(void)
@@ -229,26 +245,37 @@ static void color_setup(const char *theme)
 	int use_color;
 
 	use_color = set_theme(theme);
-	if (use_color && has_colors()) {
+
+	if (use_color && has_colors())
+	{
 		start_color();
 		init_dialog_colors();
-	} else
+	}
+	else
+	{
 		set_mono_theme();
+	}
 }
 
 /*
  * Set window to attribute 'attr'
  */
-void attr_clear(WINDOW * win, int height, int width, chtype attr)
+void attr_clear(WINDOW *win, int height, int width, chtype attr)
 {
 	int i, j;
 
 	wattrset(win, attr);
-	for (i = 0; i < height; i++) {
+
+	for (i = 0; i < height; i++)
+	{
 		wmove(win, i, 0);
+
 		for (j = 0; j < width; j++)
+		{
 			waddch(win, ' ');
+		}
 	}
+
 	touchwin(win);
 }
 
@@ -260,52 +287,77 @@ void dialog_clear(void)
 	columns = getmaxx(stdscr);
 
 	attr_clear(stdscr, lines, columns, dlg.screen.atr);
+
 	/* Display background title if it exists ... - SLH */
-	if (dlg.backtitle != NULL) {
+	if (dlg.backtitle != NULL)
+	{
 		int i, len = 0, skip = 0;
 		struct subtitle_list *pos;
 
 		wattrset(stdscr, dlg.screen.atr);
 		mvwaddstr(stdscr, 0, 1, (char *)dlg.backtitle);
 
-		for (pos = dlg.subtitles; pos != NULL; pos = pos->next) {
+		for (pos = dlg.subtitles; pos != NULL; pos = pos->next)
+		{
 			/* 3 is for the arrow and spaces */
 			len += strlen(pos->text) + 3;
 		}
 
 		wmove(stdscr, 1, 1);
-		if (len > columns - 2) {
+
+		if (len > columns - 2)
+		{
 			const char *ellipsis = "[...] ";
 			waddstr(stdscr, ellipsis);
 			skip = len - (columns - 2 - strlen(ellipsis));
 		}
 
-		for (pos = dlg.subtitles; pos != NULL; pos = pos->next) {
+		for (pos = dlg.subtitles; pos != NULL; pos = pos->next)
+		{
 			if (skip == 0)
+			{
 				waddch(stdscr, ACS_RARROW);
+			}
 			else
+			{
 				skip--;
+			}
 
 			if (skip == 0)
+			{
 				waddch(stdscr, ' ');
+			}
 			else
+			{
 				skip--;
+			}
 
-			if (skip < strlen(pos->text)) {
+			if (skip < strlen(pos->text))
+			{
 				waddstr(stdscr, pos->text + skip);
 				skip = 0;
-			} else
+			}
+			else
+			{
 				skip -= strlen(pos->text);
+			}
 
 			if (skip == 0)
+			{
 				waddch(stdscr, ' ');
+			}
 			else
+			{
 				skip--;
+			}
 		}
 
 		for (i = len + 1; i < columns - 1; i++)
+		{
 			waddch(stdscr, ACS_HLINE);
+		}
 	}
+
 	wnoutrefresh(stdscr);
 }
 
@@ -322,7 +374,9 @@ int init_dialog(const char *backtitle)
 	getyx(stdscr, saved_y, saved_x);
 
 	getmaxyx(stdscr, height, width);
-	if (height < WINDOW_HEIGTH_MIN || width < WINDOW_WIDTH_MIN) {
+
+	if (height < WINDOW_HEIGTH_MIN || width < WINDOW_WIDTH_MIN)
+	{
 		endwin();
 		return -ERRDISPLAYTOOSMALL;
 	}
@@ -364,11 +418,12 @@ void end_dialog(int x, int y)
  **/
 void print_title(WINDOW *dialog, const char *title, int width)
 {
-	if (title) {
+	if (title)
+	{
 		int tlen = MIN(width - 2, strlen(title));
 		wattrset(dialog, dlg.title.atr);
 		mvwaddch(dialog, 0, (width - tlen) / 2 - 1, ' ');
-		mvwaddnstr(dialog, 0, (width - tlen)/2, title, tlen);
+		mvwaddnstr(dialog, 0, (width - tlen) / 2, title, tlen);
 		waddch(dialog, ' ');
 	}
 }
@@ -379,7 +434,7 @@ void print_title(WINDOW *dialog, const char *title, int width)
  * characters '\n' are propperly processed.  We start on a new line
  * if there is no room for at least 4 nonblanks following a double-space.
  */
-void print_autowrap(WINDOW * win, const char *prompt, int width, int y, int x)
+void print_autowrap(WINDOW *win, const char *prompt, int width, int y, int x)
 {
 	int newl, cur_x, cur_y;
 	int prompt_len, room, wlen;
@@ -389,53 +444,77 @@ void print_autowrap(WINDOW * win, const char *prompt, int width, int y, int x)
 
 	prompt_len = strlen(tempstr);
 
-	if (prompt_len <= width - x * 2) {	/* If prompt is short */
+	if (prompt_len <= width - x * 2)  	/* If prompt is short */
+	{
 		wmove(win, y, (width - prompt_len) / 2);
 		waddstr(win, tempstr);
-	} else {
+	}
+	else
+	{
 		cur_x = x;
 		cur_y = y;
 		newl = 1;
 		word = tempstr;
-		while (word && *word) {
+
+		while (word && *word)
+		{
 			sp = strpbrk(word, "\n ");
+
 			if (sp && *sp == '\n')
+			{
 				newline_separator = sp;
+			}
 
 			if (sp)
+			{
 				*sp++ = 0;
+			}
 
 			/* Wrap to next line if either the word does not fit,
 			   or it is the first word of a new sentence, and it is
 			   short, and the next word does not fit. */
 			room = width - cur_x;
 			wlen = strlen(word);
+
 			if (wlen > room ||
-			    (newl && wlen < 4 && sp
-			     && wlen + 1 + strlen(sp) > room
-			     && (!(sp2 = strpbrk(sp, "\n "))
-				 || wlen + 1 + (sp2 - sp) > room))) {
+				(newl && wlen < 4 && sp
+				 && wlen + 1 + strlen(sp) > room
+				 && (!(sp2 = strpbrk(sp, "\n "))
+					 || wlen + 1 + (sp2 - sp) > room)))
+			{
 				cur_y++;
 				cur_x = x;
 			}
+
 			wmove(win, cur_y, cur_x);
 			waddstr(win, word);
 			getyx(win, cur_y, cur_x);
 
 			/* Move to the next line if the word separator was a newline */
-			if (newline_separator) {
+			if (newline_separator)
+			{
 				cur_y++;
 				cur_x = x;
 				newline_separator = 0;
-			} else
+			}
+			else
+			{
 				cur_x++;
+			}
 
-			if (sp && *sp == ' ') {
+			if (sp && *sp == ' ')
+			{
 				cur_x++;	/* double space */
+
 				while (*++sp == ' ') ;
+
 				newl = 1;
-			} else
+			}
+			else
+			{
 				newl = 0;
+			}
+
 			word = sp;
 		}
 	}
@@ -444,28 +523,32 @@ void print_autowrap(WINDOW * win, const char *prompt, int width, int y, int x)
 /*
  * Print a button
  */
-void print_button(WINDOW * win, const char *label, int y, int x, int selected)
+void print_button(WINDOW *win, const char *label, int y, int x, int selected)
 {
 	int i, temp;
 
 	wmove(win, y, x);
 	wattrset(win, selected ? dlg.button_active.atr
-		 : dlg.button_inactive.atr);
+			 : dlg.button_inactive.atr);
 	waddstr(win, "<");
 	temp = strspn(label, " ");
 	label += temp;
 	wattrset(win, selected ? dlg.button_label_active.atr
-		 : dlg.button_label_inactive.atr);
+			 : dlg.button_label_inactive.atr);
+
 	for (i = 0; i < temp; i++)
+	{
 		waddch(win, ' ');
+	}
+
 	wattrset(win, selected ? dlg.button_key_active.atr
-		 : dlg.button_key_inactive.atr);
+			 : dlg.button_key_inactive.atr);
 	waddch(win, label[0]);
 	wattrset(win, selected ? dlg.button_label_active.atr
-		 : dlg.button_label_inactive.atr);
+			 : dlg.button_label_inactive.atr);
 	waddstr(win, (char *)label + 1);
 	wattrset(win, selected ? dlg.button_active.atr
-		 : dlg.button_inactive.atr);
+			 : dlg.button_inactive.atr);
 	waddstr(win, ">");
 	wmove(win, y, x + temp + 1);
 }
@@ -474,33 +557,54 @@ void print_button(WINDOW * win, const char *label, int y, int x, int selected)
  * Draw a rectangular box with line drawing characters
  */
 void
-draw_box(WINDOW * win, int y, int x, int height, int width,
-	 chtype box, chtype border)
+draw_box(WINDOW *win, int y, int x, int height, int width,
+		 chtype box, chtype border)
 {
 	int i, j;
 
 	wattrset(win, 0);
-	for (i = 0; i < height; i++) {
+
+	for (i = 0; i < height; i++)
+	{
 		wmove(win, y + i, x);
+
 		for (j = 0; j < width; j++)
 			if (!i && !j)
+			{
 				waddch(win, border | ACS_ULCORNER);
+			}
 			else if (i == height - 1 && !j)
+			{
 				waddch(win, border | ACS_LLCORNER);
+			}
 			else if (!i && j == width - 1)
+			{
 				waddch(win, box | ACS_URCORNER);
+			}
 			else if (i == height - 1 && j == width - 1)
+			{
 				waddch(win, box | ACS_LRCORNER);
+			}
 			else if (!i)
+			{
 				waddch(win, border | ACS_HLINE);
+			}
 			else if (i == height - 1)
+			{
 				waddch(win, box | ACS_HLINE);
+			}
 			else if (!j)
+			{
 				waddch(win, border | ACS_VLINE);
+			}
 			else if (j == width - 1)
+			{
 				waddch(win, box | ACS_VLINE);
+			}
 			else
+			{
 				waddch(win, box | ' ');
+			}
 	}
 }
 
@@ -508,20 +612,27 @@ draw_box(WINDOW * win, int y, int x, int height, int width,
  * Draw shadows along the right and bottom edge to give a more 3D look
  * to the boxes
  */
-void draw_shadow(WINDOW * win, int y, int x, int height, int width)
+void draw_shadow(WINDOW *win, int y, int x, int height, int width)
 {
 	int i;
 
-	if (has_colors()) {	/* Whether terminal supports color? */
+	if (has_colors())  	/* Whether terminal supports color? */
+	{
 		wattrset(win, dlg.shadow.atr);
 		wmove(win, y + height, x + 2);
+
 		for (i = 0; i < width; i++)
+		{
 			waddch(win, winch(win) & A_CHARTEXT);
-		for (i = y + 1; i < y + height + 1; i++) {
+		}
+
+		for (i = y + 1; i < y + height + 1; i++)
+		{
 			wmove(win, i, x + width);
 			waddch(win, winch(win) & A_CHARTEXT);
 			waddch(win, winch(win) & A_CHARTEXT);
 		}
+
 		wnoutrefresh(win);
 	}
 }
@@ -533,16 +644,24 @@ int first_alpha(const char *string, const char *exempt)
 {
 	int i, in_paren = 0, c;
 
-	for (i = 0; i < strlen(string); i++) {
+	for (i = 0; i < strlen(string); i++)
+	{
 		c = tolower(string[i]);
 
 		if (strchr("<[(", c))
+		{
 			++in_paren;
+		}
+
 		if (strchr(">])", c) && in_paren > 0)
+		{
 			--in_paren;
+		}
 
 		if ((!in_paren) && isalpha(c) && strchr(exempt, c) == 0)
+		{
 			return i;
+		}
 	}
 
 	return 0;
@@ -567,15 +686,24 @@ int on_key_esc(WINDOW *win)
 	keypad(win, FALSE);
 	key = wgetch(win);
 	key2 = wgetch(win);
-	do {
+
+	do
+	{
 		key3 = wgetch(win);
-	} while (key3 != ERR);
+	}
+	while (key3 != ERR);
+
 	nodelay(win, FALSE);
 	keypad(win, TRUE);
+
 	if (key == KEY_ESC && key2 == ERR)
+	{
 		return KEY_ESC;
+	}
 	else if (key != ERR && key != KEY_ESC && key2 == ERR)
+	{
 		ungetch(key);
+	}
 
 	return -1;
 }
@@ -595,10 +723,12 @@ void item_reset(void)
 {
 	struct dialog_list *p, *next;
 
-	for (p = item_head; p; p = next) {
+	for (p = item_head; p; p = next)
+	{
 		next = p->next;
 		free(p);
 	}
+
 	item_head = NULL;
 	item_cur = &item_nil;
 }
@@ -609,9 +739,14 @@ void item_make(const char *fmt, ...)
 	struct dialog_list *p = malloc(sizeof(*p));
 
 	if (item_head)
+	{
 		item_cur->next = p;
+	}
 	else
+	{
 		item_head = p;
+	}
+
 	item_cur = p;
 	memset(p, 0, sizeof(*p));
 
@@ -629,7 +764,7 @@ void item_add_str(const char *fmt, ...)
 
 	va_start(ap, fmt);
 	vsnprintf(item_cur->node.str + strlen(item_cur->node.str),
-		  avail, fmt, ap);
+			  avail, fmt, ap);
 	item_cur->node.str[sizeof(item_cur->node.str) - 1] = '\0';
 	va_end(ap);
 }
@@ -651,8 +786,12 @@ void item_set_selected(int val)
 int item_activate_selected(void)
 {
 	item_foreach()
-		if (item_is_selected())
-			return 1;
+
+	if (item_is_selected())
+	{
+		return 1;
+	}
+
 	return 0;
 }
 
@@ -672,7 +811,10 @@ int item_count(void)
 	struct dialog_list *p;
 
 	for (p = item_head; p; p = p->next)
+	{
 		n++;
+	}
+
 	return n;
 }
 
@@ -680,8 +822,11 @@ void item_set(int n)
 {
 	int i = 0;
 	item_foreach()
-		if (i++ == n)
-			return;
+
+	if (i++ == n)
+	{
+		return;
+	}
 }
 
 int item_n(void)
@@ -689,11 +834,16 @@ int item_n(void)
 	int n = 0;
 	struct dialog_list *p;
 
-	for (p = item_head; p; p = p->next) {
+	for (p = item_head; p; p = p->next)
+	{
 		if (p == item_cur)
+		{
 			return n;
+		}
+
 		n++;
 	}
+
 	return 0;
 }
 

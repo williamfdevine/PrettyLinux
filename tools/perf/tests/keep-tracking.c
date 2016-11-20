@@ -10,18 +10,18 @@
 #include "tests.h"
 
 #define CHECK__(x) {				\
-	while ((x) < 0) {			\
-		pr_debug(#x " failed!\n");	\
-		goto out_err;			\
-	}					\
-}
+		while ((x) < 0) {			\
+			pr_debug(#x " failed!\n");	\
+			goto out_err;			\
+		}					\
+	}
 
 #define CHECK_NOT_NULL__(x) {			\
-	while ((x) == NULL) {			\
-		pr_debug(#x " failed!\n");	\
-		goto out_err;			\
-	}					\
-}
+		while ((x) == NULL) {			\
+			pr_debug(#x " failed!\n");	\
+			goto out_err;			\
+		}					\
+	}
 
 static int find_comm(struct perf_evlist *evlist, const char *comm)
 {
@@ -29,16 +29,23 @@ static int find_comm(struct perf_evlist *evlist, const char *comm)
 	int i, found;
 
 	found = 0;
-	for (i = 0; i < evlist->nr_mmaps; i++) {
-		while ((event = perf_evlist__mmap_read(evlist, i)) != NULL) {
+
+	for (i = 0; i < evlist->nr_mmaps; i++)
+	{
+		while ((event = perf_evlist__mmap_read(evlist, i)) != NULL)
+		{
 			if (event->header.type == PERF_RECORD_COMM &&
-			    (pid_t)event->comm.pid == getpid() &&
-			    (pid_t)event->comm.tid == getpid() &&
-			    strcmp(event->comm.comm, comm) == 0)
+				(pid_t)event->comm.pid == getpid() &&
+				(pid_t)event->comm.tid == getpid() &&
+				strcmp(event->comm.comm, comm) == 0)
+			{
 				found += 1;
+			}
+
 			perf_evlist__mmap_consume(evlist, i);
 		}
 	}
+
 	return found;
 }
 
@@ -51,7 +58,8 @@ static int find_comm(struct perf_evlist *evlist, const char *comm)
  */
 int test__keep_tracking(int subtest __maybe_unused)
 {
-	struct record_opts opts = {
+	struct record_opts opts =
+	{
 		.mmap_pages	     = UINT_MAX,
 		.user_freq	     = UINT_MAX,
 		.user_interval	     = ULLONG_MAX,
@@ -88,7 +96,8 @@ int test__keep_tracking(int subtest __maybe_unused)
 	evsel->attr.disabled = 1;
 	evsel->attr.enable_on_exec = 0;
 
-	if (perf_evlist__open(evlist) < 0) {
+	if (perf_evlist__open(evlist) < 0)
+	{
 		pr_debug("Unable to open dummy and cycles event\n");
 		err = TEST_SKIP;
 		goto out_err;
@@ -109,7 +118,9 @@ int test__keep_tracking(int subtest __maybe_unused)
 	perf_evlist__disable(evlist);
 
 	found = find_comm(evlist, comm);
-	if (found != 1) {
+
+	if (found != 1)
+	{
 		pr_debug("First time, failed to find tracking event.\n");
 		goto out_err;
 	}
@@ -131,7 +142,9 @@ int test__keep_tracking(int subtest __maybe_unused)
 	perf_evlist__disable(evlist);
 
 	found = find_comm(evlist, comm);
-	if (found != 1) {
+
+	if (found != 1)
+	{
 		pr_debug("Seconf time, failed to find tracking event.\n");
 		goto out_err;
 	}
@@ -139,10 +152,14 @@ int test__keep_tracking(int subtest __maybe_unused)
 	err = 0;
 
 out_err:
-	if (evlist) {
+
+	if (evlist)
+	{
 		perf_evlist__disable(evlist);
 		perf_evlist__delete(evlist);
-	} else {
+	}
+	else
+	{
 		cpu_map__put(cpus);
 		thread_map__put(threads);
 	}

@@ -33,12 +33,16 @@ static inline unsigned long ext4_blocks_for_truncate(struct inode *inode)
 	 * will go a bit crazy if that happens, but at least we should
 	 * try not to panic the whole kernel. */
 	if (needed < 2)
+	{
 		needed = 2;
+	}
 
 	/* But we need to bound the transaction so we don't overflow the
 	 * journal. */
 	if (needed > EXT4_MAX_TRANS_DATA)
+	{
 		needed = EXT4_MAX_TRANS_DATA;
+	}
 
 	return EXT4_DATA_TRANS_BLOCKS(inode->i_sb) + needed;
 }

@@ -19,12 +19,18 @@ struct rb_node *strlist__node_new(struct rblist *rblist, const void *entry)
 	struct strlist *strlist = container_of(rblist, struct strlist, rblist);
 	struct str_node *snode = malloc(sizeof(*snode));
 
-	if (snode != NULL) {
-		if (strlist->dupstr) {
+	if (snode != NULL)
+	{
+		if (strlist->dupstr)
+		{
 			s = strdup(s);
+
 			if (s == NULL)
+			{
 				goto out_delete;
+			}
 		}
+
 		snode->s = s;
 		rc = &snode->rb_node;
 	}
@@ -39,7 +45,10 @@ out_delete:
 static void str_node__delete(struct str_node *snode, bool dupstr)
 {
 	if (dupstr)
+	{
 		zfree((char **)&snode->s);
+	}
+
 	free(snode);
 }
 
@@ -72,18 +81,27 @@ int strlist__load(struct strlist *slist, const char *filename)
 	FILE *fp = fopen(filename, "r");
 
 	if (fp == NULL)
+	{
 		return -errno;
+	}
 
-	while (fgets(entry, sizeof(entry), fp) != NULL) {
+	while (fgets(entry, sizeof(entry), fp) != NULL)
+	{
 		const size_t len = strlen(entry);
 
 		if (len == 0)
+		{
 			continue;
+		}
+
 		entry[len - 1] = '\0';
 
 		err = strlist__add(slist, entry);
+
 		if (err != 0)
+		{
 			goto out;
+		}
 	}
 
 	err = 0;
@@ -103,31 +121,41 @@ struct str_node *strlist__find(struct strlist *slist, const char *entry)
 	struct rb_node *rb_node = rblist__find(&slist->rblist, entry);
 
 	if (rb_node)
+	{
 		snode = container_of(rb_node, struct str_node, rb_node);
+	}
 
 	return snode;
 }
 
 static int strlist__parse_list_entry(struct strlist *slist, const char *s,
-				     const char *subst_dir)
+									 const char *subst_dir)
 {
 	int err;
 	char *subst = NULL;
 
 	if (strncmp(s, "file://", 7) == 0)
+	{
 		return strlist__load(slist, s + 7);
+	}
 
-	if (subst_dir) {
+	if (subst_dir)
+	{
 		err = -ENOMEM;
-		if (asprintf(&subst, "%s/%s", subst_dir, s) < 0)
-			goto out;
 
-		if (access(subst, F_OK) == 0) {
+		if (asprintf(&subst, "%s/%s", subst_dir, s) < 0)
+		{
+			goto out;
+		}
+
+		if (access(subst, F_OK) == 0)
+		{
 			err = strlist__load(slist, subst);
 			goto out;
 		}
 
-		if (slist->file_only) {
+		if (slist->file_only)
+		{
 			err = -ENOENT;
 			goto out;
 		}
@@ -144,12 +172,17 @@ static int strlist__parse_list(struct strlist *slist, const char *s, const char 
 	char *sep;
 	int err;
 
-	while ((sep = strchr(s, ',')) != NULL) {
+	while ((sep = strchr(s, ',')) != NULL)
+	{
 		*sep = '\0';
 		err = strlist__parse_list_entry(slist, s, subst_dir);
 		*sep = ',';
+
 		if (err != 0)
+		{
 			return err;
+		}
+
 		s = sep + 1;
 	}
 
@@ -160,12 +193,14 @@ struct strlist *strlist__new(const char *list, const struct strlist_config *conf
 {
 	struct strlist *slist = malloc(sizeof(*slist));
 
-	if (slist != NULL) {
+	if (slist != NULL)
+	{
 		bool dupstr = true;
 		bool file_only = false;
 		const char *dirname = NULL;
 
-		if (config) {
+		if (config)
+		{
 			dupstr = !config->dont_dupstr;
 			dirname = config->dirname;
 			file_only = config->file_only;
@@ -180,7 +215,9 @@ struct strlist *strlist__new(const char *list, const struct strlist_config *conf
 		slist->file_only = file_only;
 
 		if (list && strlist__parse_list(slist, list, dirname) != 0)
+		{
 			goto out_error;
+		}
 	}
 
 	return slist;
@@ -192,7 +229,9 @@ out_error:
 void strlist__delete(struct strlist *slist)
 {
 	if (slist != NULL)
+	{
 		rblist__delete(&slist->rblist);
+	}
 }
 
 struct str_node *strlist__entry(const struct strlist *slist, unsigned int idx)
@@ -201,8 +240,11 @@ struct str_node *strlist__entry(const struct strlist *slist, unsigned int idx)
 	struct rb_node *rb_node;
 
 	rb_node = rblist__entry(&slist->rblist, idx);
+
 	if (rb_node)
+	{
 		snode = container_of(rb_node, struct str_node, rb_node);
+	}
 
 	return snode;
 }

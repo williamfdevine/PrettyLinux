@@ -27,7 +27,8 @@
 
 #define irq_to_gpio(irq)	((irq) - gpio_to_irq(0))
 
-struct ep93xx_gpio {
+struct ep93xx_gpio
+{
 	void __iomem		*mmio_base;
 	struct gpio_chip	gc[8];
 };
@@ -55,13 +56,13 @@ static void ep93xx_gpio_update_int_params(unsigned port)
 	writeb_relaxed(0, EP93XX_GPIO_REG(int_en_register_offset[port]));
 
 	writeb_relaxed(gpio_int_type2[port],
-		EP93XX_GPIO_REG(int_type2_register_offset[port]));
+				   EP93XX_GPIO_REG(int_type2_register_offset[port]));
 
 	writeb_relaxed(gpio_int_type1[port],
-		EP93XX_GPIO_REG(int_type1_register_offset[port]));
+				   EP93XX_GPIO_REG(int_type1_register_offset[port]));
 
 	writeb(gpio_int_unmasked[port] & gpio_int_enabled[port],
-		EP93XX_GPIO_REG(int_en_register_offset[port]));
+		   EP93XX_GPIO_REG(int_en_register_offset[port]));
 }
 
 static void ep93xx_gpio_int_debounce(unsigned int irq, bool enable)
@@ -71,12 +72,16 @@ static void ep93xx_gpio_int_debounce(unsigned int irq, bool enable)
 	int port_mask = 1 << (line & 7);
 
 	if (enable)
+	{
 		gpio_int_debounce[port] |= port_mask;
+	}
 	else
+	{
 		gpio_int_debounce[port] &= ~port_mask;
+	}
 
 	writeb(gpio_int_debounce[port],
-		EP93XX_GPIO_REG(int_debounce_register_offset[port]));
+		   EP93XX_GPIO_REG(int_debounce_register_offset[port]));
 }
 
 static void ep93xx_gpio_ab_irq_handler(struct irq_desc *desc)
@@ -85,16 +90,22 @@ static void ep93xx_gpio_ab_irq_handler(struct irq_desc *desc)
 	int i;
 
 	status = readb(EP93XX_GPIO_A_INT_STATUS);
-	for (i = 0; i < 8; i++) {
-		if (status & (1 << i)) {
+
+	for (i = 0; i < 8; i++)
+	{
+		if (status & (1 << i))
+		{
 			int gpio_irq = gpio_to_irq(EP93XX_GPIO_LINE_A(0)) + i;
 			generic_handle_irq(gpio_irq);
 		}
 	}
 
 	status = readb(EP93XX_GPIO_B_INT_STATUS);
-	for (i = 0; i < 8; i++) {
-		if (status & (1 << i)) {
+
+	for (i = 0; i < 8; i++)
+	{
+		if (status & (1 << i))
+		{
 			int gpio_irq = gpio_to_irq(EP93XX_GPIO_LINE_B(0)) + i;
 			generic_handle_irq(gpio_irq);
 		}
@@ -121,7 +132,8 @@ static void ep93xx_gpio_irq_ack(struct irq_data *d)
 	int port = line >> 3;
 	int port_mask = 1 << (line & 7);
 
-	if (irqd_get_trigger_type(d) == IRQ_TYPE_EDGE_BOTH) {
+	if (irqd_get_trigger_type(d) == IRQ_TYPE_EDGE_BOTH)
+	{
 		gpio_int_type2[port] ^= port_mask; /* switch edge direction */
 		ep93xx_gpio_update_int_params(port);
 	}
@@ -136,7 +148,9 @@ static void ep93xx_gpio_irq_mask_ack(struct irq_data *d)
 	int port_mask = 1 << (line & 7);
 
 	if (irqd_get_trigger_type(d) == IRQ_TYPE_EDGE_BOTH)
-		gpio_int_type2[port] ^= port_mask; /* switch edge direction */
+	{
+		gpio_int_type2[port] ^= port_mask;    /* switch edge direction */
+	}
 
 	gpio_int_unmasked[port] &= ~port_mask;
 	ep93xx_gpio_update_int_params(port);
@@ -176,38 +190,50 @@ static int ep93xx_gpio_irq_type(struct irq_data *d, unsigned int type)
 
 	gpio_direction_input(gpio);
 
-	switch (type) {
-	case IRQ_TYPE_EDGE_RISING:
-		gpio_int_type1[port] |= port_mask;
-		gpio_int_type2[port] |= port_mask;
-		handler = handle_edge_irq;
-		break;
-	case IRQ_TYPE_EDGE_FALLING:
-		gpio_int_type1[port] |= port_mask;
-		gpio_int_type2[port] &= ~port_mask;
-		handler = handle_edge_irq;
-		break;
-	case IRQ_TYPE_LEVEL_HIGH:
-		gpio_int_type1[port] &= ~port_mask;
-		gpio_int_type2[port] |= port_mask;
-		handler = handle_level_irq;
-		break;
-	case IRQ_TYPE_LEVEL_LOW:
-		gpio_int_type1[port] &= ~port_mask;
-		gpio_int_type2[port] &= ~port_mask;
-		handler = handle_level_irq;
-		break;
-	case IRQ_TYPE_EDGE_BOTH:
-		gpio_int_type1[port] |= port_mask;
-		/* set initial polarity based on current input level */
-		if (gpio_get_value(gpio))
-			gpio_int_type2[port] &= ~port_mask; /* falling */
-		else
-			gpio_int_type2[port] |= port_mask; /* rising */
-		handler = handle_edge_irq;
-		break;
-	default:
-		return -EINVAL;
+	switch (type)
+	{
+		case IRQ_TYPE_EDGE_RISING:
+			gpio_int_type1[port] |= port_mask;
+			gpio_int_type2[port] |= port_mask;
+			handler = handle_edge_irq;
+			break;
+
+		case IRQ_TYPE_EDGE_FALLING:
+			gpio_int_type1[port] |= port_mask;
+			gpio_int_type2[port] &= ~port_mask;
+			handler = handle_edge_irq;
+			break;
+
+		case IRQ_TYPE_LEVEL_HIGH:
+			gpio_int_type1[port] &= ~port_mask;
+			gpio_int_type2[port] |= port_mask;
+			handler = handle_level_irq;
+			break;
+
+		case IRQ_TYPE_LEVEL_LOW:
+			gpio_int_type1[port] &= ~port_mask;
+			gpio_int_type2[port] &= ~port_mask;
+			handler = handle_level_irq;
+			break;
+
+		case IRQ_TYPE_EDGE_BOTH:
+			gpio_int_type1[port] |= port_mask;
+
+			/* set initial polarity based on current input level */
+			if (gpio_get_value(gpio))
+			{
+				gpio_int_type2[port] &= ~port_mask;    /* falling */
+			}
+			else
+			{
+				gpio_int_type2[port] |= port_mask;    /* rising */
+			}
+
+			handler = handle_edge_irq;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	irq_set_handler_locked(d, handler);
@@ -219,7 +245,8 @@ static int ep93xx_gpio_irq_type(struct irq_data *d, unsigned int type)
 	return 0;
 }
 
-static struct irq_chip ep93xx_gpio_irq_chip = {
+static struct irq_chip ep93xx_gpio_irq_chip =
+{
 	.name		= "GPIO",
 	.irq_ack	= ep93xx_gpio_irq_ack,
 	.irq_mask_ack	= ep93xx_gpio_irq_mask_ack,
@@ -233,37 +260,39 @@ static void ep93xx_gpio_init_irq(void)
 	int gpio_irq;
 
 	for (gpio_irq = gpio_to_irq(0);
-	     gpio_irq <= gpio_to_irq(EP93XX_GPIO_LINE_MAX_IRQ); ++gpio_irq) {
+		 gpio_irq <= gpio_to_irq(EP93XX_GPIO_LINE_MAX_IRQ); ++gpio_irq)
+	{
 		irq_set_chip_and_handler(gpio_irq, &ep93xx_gpio_irq_chip,
-					 handle_level_irq);
+								 handle_level_irq);
 		irq_clear_status_flags(gpio_irq, IRQ_NOREQUEST);
 	}
 
 	irq_set_chained_handler(IRQ_EP93XX_GPIO_AB,
-				ep93xx_gpio_ab_irq_handler);
+							ep93xx_gpio_ab_irq_handler);
 	irq_set_chained_handler(IRQ_EP93XX_GPIO0MUX,
-				ep93xx_gpio_f_irq_handler);
+							ep93xx_gpio_f_irq_handler);
 	irq_set_chained_handler(IRQ_EP93XX_GPIO1MUX,
-				ep93xx_gpio_f_irq_handler);
+							ep93xx_gpio_f_irq_handler);
 	irq_set_chained_handler(IRQ_EP93XX_GPIO2MUX,
-				ep93xx_gpio_f_irq_handler);
+							ep93xx_gpio_f_irq_handler);
 	irq_set_chained_handler(IRQ_EP93XX_GPIO3MUX,
-				ep93xx_gpio_f_irq_handler);
+							ep93xx_gpio_f_irq_handler);
 	irq_set_chained_handler(IRQ_EP93XX_GPIO4MUX,
-				ep93xx_gpio_f_irq_handler);
+							ep93xx_gpio_f_irq_handler);
 	irq_set_chained_handler(IRQ_EP93XX_GPIO5MUX,
-				ep93xx_gpio_f_irq_handler);
+							ep93xx_gpio_f_irq_handler);
 	irq_set_chained_handler(IRQ_EP93XX_GPIO6MUX,
-				ep93xx_gpio_f_irq_handler);
+							ep93xx_gpio_f_irq_handler);
 	irq_set_chained_handler(IRQ_EP93XX_GPIO7MUX,
-				ep93xx_gpio_f_irq_handler);
+							ep93xx_gpio_f_irq_handler);
 }
 
 
 /*************************************************************************
  * gpiolib interface for EP93xx on-chip GPIOs
  *************************************************************************/
-struct ep93xx_gpio_bank {
+struct ep93xx_gpio_bank
+{
 	const char	*label;
 	int		data;
 	int		dir;
@@ -274,13 +303,14 @@ struct ep93xx_gpio_bank {
 #define EP93XX_GPIO_BANK(_label, _data, _dir, _base, _debounce)	\
 	{							\
 		.label		= _label,			\
-		.data		= _data,			\
-		.dir		= _dir,				\
-		.base		= _base,			\
-		.has_debounce	= _debounce,			\
+					  .data		= _data,			\
+									.dir		= _dir,				\
+											.base		= _base,			\
+													.has_debounce	= _debounce,			\
 	}
 
-static struct ep93xx_gpio_bank ep93xx_gpio_banks[] = {
+static struct ep93xx_gpio_bank ep93xx_gpio_banks[] =
+{
 	EP93XX_GPIO_BANK("A", 0x00, 0x10, 0, true),
 	EP93XX_GPIO_BANK("B", 0x04, 0x14, 8, true),
 	EP93XX_GPIO_BANK("C", 0x08, 0x18, 40, false),
@@ -292,13 +322,15 @@ static struct ep93xx_gpio_bank ep93xx_gpio_banks[] = {
 };
 
 static int ep93xx_gpio_set_debounce(struct gpio_chip *chip,
-				    unsigned offset, unsigned debounce)
+									unsigned offset, unsigned debounce)
 {
 	int gpio = chip->base + offset;
 	int irq = gpio_to_irq(gpio);
 
 	if (irq < 0)
+	{
 		return -EINVAL;
+	}
 
 	ep93xx_gpio_int_debounce(irq, debounce ? true : false);
 
@@ -315,26 +347,32 @@ static int ep93xx_gpio_to_irq(struct gpio_chip *chip, unsigned offset)
 	int gpio = chip->base + offset;
 
 	if (gpio > EP93XX_GPIO_LINE_MAX_IRQ)
+	{
 		return -EINVAL;
+	}
 
 	return 64 + gpio;
 }
 
 static int ep93xx_gpio_add_bank(struct gpio_chip *gc, struct device *dev,
-	void __iomem *mmio_base, struct ep93xx_gpio_bank *bank)
+								void __iomem *mmio_base, struct ep93xx_gpio_bank *bank)
 {
 	void __iomem *data = mmio_base + bank->data;
 	void __iomem *dir =  mmio_base + bank->dir;
 	int err;
 
 	err = bgpio_init(gc, dev, 1, data, NULL, NULL, dir, NULL, 0);
+
 	if (err)
+	{
 		return err;
+	}
 
 	gc->label = bank->label;
 	gc->base = bank->base;
 
-	if (bank->has_debounce) {
+	if (bank->has_debounce)
+	{
 		gc->set_debounce = ep93xx_gpio_set_debounce;
 		gc->to_irq = ep93xx_gpio_to_irq;
 	}
@@ -350,22 +388,29 @@ static int ep93xx_gpio_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 
 	ep93xx_gpio = devm_kzalloc(dev, sizeof(struct ep93xx_gpio), GFP_KERNEL);
+
 	if (!ep93xx_gpio)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ep93xx_gpio->mmio_base = devm_ioremap_resource(dev, res);
-	if (IS_ERR(ep93xx_gpio->mmio_base))
-		return PTR_ERR(ep93xx_gpio->mmio_base);
 
-	for (i = 0; i < ARRAY_SIZE(ep93xx_gpio_banks); i++) {
+	if (IS_ERR(ep93xx_gpio->mmio_base))
+	{
+		return PTR_ERR(ep93xx_gpio->mmio_base);
+	}
+
+	for (i = 0; i < ARRAY_SIZE(ep93xx_gpio_banks); i++)
+	{
 		struct gpio_chip *gc = &ep93xx_gpio->gc[i];
 		struct ep93xx_gpio_bank *bank = &ep93xx_gpio_banks[i];
 
 		if (ep93xx_gpio_add_bank(gc, &pdev->dev,
-					 ep93xx_gpio->mmio_base, bank))
+								 ep93xx_gpio->mmio_base, bank))
 			dev_warn(&pdev->dev, "Unable to add gpio bank %s\n",
-				bank->label);
+					 bank->label);
 	}
 
 	ep93xx_gpio_init_irq();
@@ -373,7 +418,8 @@ static int ep93xx_gpio_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ep93xx_gpio_driver = {
+static struct platform_driver ep93xx_gpio_driver =
+{
 	.driver		= {
 		.name	= "gpio-ep93xx",
 	},
@@ -387,6 +433,6 @@ static int __init ep93xx_gpio_init(void)
 postcore_initcall(ep93xx_gpio_init);
 
 MODULE_AUTHOR("Ryan Mallon <ryan@bluewatersys.com> "
-		"H Hartley Sweeten <hsweeten@visionengravers.com>");
+			  "H Hartley Sweeten <hsweeten@visionengravers.com>");
 MODULE_DESCRIPTION("EP93XX GPIO driver");
 MODULE_LICENSE("GPL");

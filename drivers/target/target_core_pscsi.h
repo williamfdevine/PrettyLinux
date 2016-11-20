@@ -5,7 +5,7 @@
 
 /* used in pscsi_find_alloc_len() */
 #ifndef INQUIRY_DATA_SIZE
-#define INQUIRY_DATA_SIZE	0x24
+	#define INQUIRY_DATA_SIZE	0x24
 #endif
 
 /* used in pscsi_add_device_to_list() */
@@ -21,7 +21,8 @@
 
 struct scsi_device;
 
-struct pscsi_plugin_task {
+struct pscsi_plugin_task
+{
 	unsigned char pscsi_sense[TRANSPORT_SENSE_BUFFER];
 	int	pscsi_direction;
 	int	pscsi_result;
@@ -36,7 +37,8 @@ struct pscsi_plugin_task {
 #define PDF_HAS_VPD_DEV_IDENT	0x10
 #define PDF_HAS_VIRT_HOST_ID	0x20
 
-struct pscsi_dev_virt {
+struct pscsi_dev_virt
+{
 	struct se_device dev;
 	int	pdv_flags;
 	int	pdv_host_id;
@@ -48,12 +50,14 @@ struct pscsi_dev_virt {
 	struct Scsi_Host *pdv_lld_host;
 } ____cacheline_aligned;
 
-typedef enum phv_modes {
+typedef enum phv_modes
+{
 	PHV_VIRTUAL_HOST_ID,
 	PHV_LLD_SCSI_HOST_NO
 } phv_modes_t;
 
-struct pscsi_hba_virt {
+struct pscsi_hba_virt
+{
 	int			phv_host_id;
 	phv_modes_t		phv_mode;
 	struct Scsi_Host	*phv_lld_host;

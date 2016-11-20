@@ -4,7 +4,8 @@
 /* These two functions return 0 if success, or negative error code
    (e g -ENODEV if no led present) */
 
-enum {
+enum
+{
 	TPACPI_LED_MUTE,
 	TPACPI_LED_MICMUTE,
 	TPACPI_LED_MAX,

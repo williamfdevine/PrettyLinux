@@ -41,7 +41,7 @@
  */
 static inline bool
 ingenic_cgu_gate_get(struct ingenic_cgu *cgu,
-		     const struct ingenic_cgu_gate_info *info)
+					 const struct ingenic_cgu_gate_info *info)
 {
 	return readl(cgu->base + info->reg) & BIT(info->bit);
 }
@@ -58,14 +58,18 @@ ingenic_cgu_gate_get(struct ingenic_cgu *cgu,
  */
 static inline void
 ingenic_cgu_gate_set(struct ingenic_cgu *cgu,
-		     const struct ingenic_cgu_gate_info *info, bool val)
+					 const struct ingenic_cgu_gate_info *info, bool val)
 {
 	u32 clkgr = readl(cgu->base + info->reg);
 
 	if (val)
+	{
 		clkgr |= BIT(info->bit);
+	}
 	else
+	{
 		clkgr &= ~BIT(info->bit);
+	}
 
 	writel(clkgr, cgu->base + info->reg);
 }
@@ -104,15 +108,23 @@ ingenic_pll_recalc_rate(struct clk_hw *hw, unsigned long parent_rate)
 	enable = !!(ctl & BIT(pll_info->enable_bit));
 
 	if (bypass)
+	{
 		return parent_rate;
+	}
 
 	if (!enable)
+	{
 		return 0;
-
-	for (od = 0; od < pll_info->od_max; od++) {
-		if (pll_info->od_encoding[od] == od_enc)
-			break;
 	}
+
+	for (od = 0; od < pll_info->od_max; od++)
+	{
+		if (pll_info->od_encoding[od] == od_enc)
+		{
+			break;
+		}
+	}
+
 	BUG_ON(od == pll_info->od_max);
 	od++;
 
@@ -121,8 +133,8 @@ ingenic_pll_recalc_rate(struct clk_hw *hw, unsigned long parent_rate)
 
 static unsigned long
 ingenic_pll_calc(const struct ingenic_cgu_clk_info *clk_info,
-		 unsigned long rate, unsigned long parent_rate,
-		 unsigned *pm, unsigned *pn, unsigned *pod)
+				 unsigned long rate, unsigned long parent_rate,
+				 unsigned *pm, unsigned *pn, unsigned *pod)
 {
 	const struct ingenic_cgu_pll_info *pll_info;
 	unsigned m, n, od;
@@ -143,18 +155,26 @@ ingenic_pll_calc(const struct ingenic_cgu_clk_info *clk_info,
 	m = max_t(unsigned, m, pll_info->m_offset);
 
 	if (pm)
+	{
 		*pm = m;
+	}
+
 	if (pn)
+	{
 		*pn = n;
+	}
+
 	if (pod)
+	{
 		*pod = od;
+	}
 
 	return div_u64((u64)parent_rate * m, n * od);
 }
 
 static long
 ingenic_pll_round_rate(struct clk_hw *hw, unsigned long req_rate,
-		       unsigned long *prate)
+					   unsigned long *prate)
 {
 	struct ingenic_clk *ingenic_clk = to_ingenic_clk(hw);
 	struct ingenic_cgu *cgu = ingenic_clk->cgu;
@@ -168,7 +188,7 @@ ingenic_pll_round_rate(struct clk_hw *hw, unsigned long req_rate,
 
 static int
 ingenic_pll_set_rate(struct clk_hw *hw, unsigned long req_rate,
-		     unsigned long parent_rate)
+					 unsigned long parent_rate)
 {
 	const unsigned timeout = 100;
 	struct ingenic_clk *ingenic_clk = to_ingenic_clk(hw);
@@ -184,10 +204,11 @@ ingenic_pll_set_rate(struct clk_hw *hw, unsigned long req_rate,
 	pll_info = &clk_info->pll;
 
 	rate = ingenic_pll_calc(clk_info, req_rate, parent_rate,
-			       &m, &n, &od);
+							&m, &n, &od);
+
 	if (rate != req_rate)
 		pr_info("ingenic-cgu: request '%s' rate %luHz, actual %luHz\n",
-			clk_info->name, req_rate, rate);
+				clk_info->name, req_rate, rate);
 
 	spin_lock_irqsave(&cgu->lock, flags);
 	ctl = readl(cgu->base + pll_info->reg);
@@ -207,22 +228,30 @@ ingenic_pll_set_rate(struct clk_hw *hw, unsigned long req_rate,
 	writel(ctl, cgu->base + pll_info->reg);
 
 	/* wait for the PLL to stabilise */
-	for (i = 0; i < timeout; i++) {
+	for (i = 0; i < timeout; i++)
+	{
 		ctl = readl(cgu->base + pll_info->reg);
+
 		if (ctl & BIT(pll_info->stable_bit))
+		{
 			break;
+		}
+
 		mdelay(1);
 	}
 
 	spin_unlock_irqrestore(&cgu->lock, flags);
 
 	if (i == timeout)
+	{
 		return -EBUSY;
+	}
 
 	return 0;
 }
 
-static const struct clk_ops ingenic_pll_ops = {
+static const struct clk_ops ingenic_pll_ops =
+{
 	.recalc_rate = ingenic_pll_recalc_rate,
 	.round_rate = ingenic_pll_round_rate,
 	.set_rate = ingenic_pll_set_rate,
@@ -242,18 +271,22 @@ static u8 ingenic_clk_get_parent(struct clk_hw *hw)
 
 	clk_info = &cgu->clock_info[ingenic_clk->idx];
 
-	if (clk_info->type & CGU_CLK_MUX) {
+	if (clk_info->type & CGU_CLK_MUX)
+	{
 		reg = readl(cgu->base + clk_info->mux.reg);
 		hw_idx = (reg >> clk_info->mux.shift) &
-			 GENMASK(clk_info->mux.bits - 1, 0);
+				 GENMASK(clk_info->mux.bits - 1, 0);
 
 		/*
 		 * Convert the hardware index to the parent index by skipping
 		 * over any -1's in the parents array.
 		 */
-		for (i = 0; i < hw_idx; i++) {
+		for (i = 0; i < hw_idx; i++)
+		{
 			if (clk_info->parents[i] != -1)
+			{
 				idx++;
+			}
 		}
 	}
 
@@ -271,7 +304,8 @@ static int ingenic_clk_set_parent(struct clk_hw *hw, u8 idx)
 
 	clk_info = &cgu->clock_info[ingenic_clk->idx];
 
-	if (clk_info->type & CGU_CLK_MUX) {
+	if (clk_info->type & CGU_CLK_MUX)
+	{
 		/*
 		 * Convert the parent index to the hardware index by adding
 		 * 1 for any -1 in the parents array preceding the given
@@ -280,11 +314,19 @@ static int ingenic_clk_set_parent(struct clk_hw *hw, u8 idx)
 		 */
 		hw_idx = curr_idx = 0;
 		num_poss = 1 << clk_info->mux.bits;
-		for (; hw_idx < num_poss; hw_idx++) {
+
+		for (; hw_idx < num_poss; hw_idx++)
+		{
 			if (clk_info->parents[hw_idx] == -1)
+			{
 				continue;
+			}
+
 			if (curr_idx == idx)
+			{
 				break;
+			}
+
 			curr_idx++;
 		}
 
@@ -320,10 +362,11 @@ ingenic_clk_recalc_rate(struct clk_hw *hw, unsigned long parent_rate)
 
 	clk_info = &cgu->clock_info[ingenic_clk->idx];
 
-	if (clk_info->type & CGU_CLK_DIV) {
+	if (clk_info->type & CGU_CLK_DIV)
+	{
 		div_reg = readl(cgu->base + clk_info->div.reg);
 		div = (div_reg >> clk_info->div.shift) &
-		      GENMASK(clk_info->div.bits - 1, 0);
+			  GENMASK(clk_info->div.bits - 1, 0);
 		div += 1;
 		div *= clk_info->div.div;
 
@@ -335,7 +378,7 @@ ingenic_clk_recalc_rate(struct clk_hw *hw, unsigned long parent_rate)
 
 static unsigned
 ingenic_clk_calc_div(const struct ingenic_cgu_clk_info *clk_info,
-		     unsigned long parent_rate, unsigned long req_rate)
+					 unsigned long parent_rate, unsigned long req_rate)
 {
 	unsigned div;
 
@@ -359,7 +402,7 @@ ingenic_clk_calc_div(const struct ingenic_cgu_clk_info *clk_info,
 
 static long
 ingenic_clk_round_rate(struct clk_hw *hw, unsigned long req_rate,
-		       unsigned long *parent_rate)
+					   unsigned long *parent_rate)
 {
 	struct ingenic_clk *ingenic_clk = to_ingenic_clk(hw);
 	struct ingenic_cgu *cgu = ingenic_clk->cgu;
@@ -369,16 +412,20 @@ ingenic_clk_round_rate(struct clk_hw *hw, unsigned long req_rate,
 	clk_info = &cgu->clock_info[ingenic_clk->idx];
 
 	if (clk_info->type & CGU_CLK_DIV)
+	{
 		rate /= ingenic_clk_calc_div(clk_info, *parent_rate, req_rate);
+	}
 	else if (clk_info->type & CGU_CLK_FIXDIV)
+	{
 		rate /= clk_info->fixdiv.div;
+	}
 
 	return rate;
 }
 
 static int
 ingenic_clk_set_rate(struct clk_hw *hw, unsigned long req_rate,
-		     unsigned long parent_rate)
+					 unsigned long parent_rate)
 {
 	struct ingenic_clk *ingenic_clk = to_ingenic_clk(hw);
 	struct ingenic_cgu *cgu = ingenic_clk->cgu;
@@ -391,12 +438,15 @@ ingenic_clk_set_rate(struct clk_hw *hw, unsigned long req_rate,
 
 	clk_info = &cgu->clock_info[ingenic_clk->idx];
 
-	if (clk_info->type & CGU_CLK_DIV) {
+	if (clk_info->type & CGU_CLK_DIV)
+	{
 		div = ingenic_clk_calc_div(clk_info, parent_rate, req_rate);
 		rate = parent_rate / div;
 
 		if (rate != req_rate)
+		{
 			return -EINVAL;
+		}
 
 		spin_lock_irqsave(&cgu->lock, flags);
 		reg = readl(cgu->base + clk_info->div.reg);
@@ -408,25 +458,38 @@ ingenic_clk_set_rate(struct clk_hw *hw, unsigned long req_rate,
 
 		/* clear the stop bit */
 		if (clk_info->div.stop_bit != -1)
+		{
 			reg &= ~BIT(clk_info->div.stop_bit);
+		}
 
 		/* set the change enable bit */
 		if (clk_info->div.ce_bit != -1)
+		{
 			reg |= BIT(clk_info->div.ce_bit);
+		}
 
 		/* update the hardware */
 		writel(reg, cgu->base + clk_info->div.reg);
 
 		/* wait for the change to take effect */
-		if (clk_info->div.busy_bit != -1) {
-			for (i = 0; i < timeout; i++) {
+		if (clk_info->div.busy_bit != -1)
+		{
+			for (i = 0; i < timeout; i++)
+			{
 				reg = readl(cgu->base + clk_info->div.reg);
+
 				if (!(reg & BIT(clk_info->div.busy_bit)))
+				{
 					break;
+				}
+
 				mdelay(1);
 			}
+
 			if (i == timeout)
+			{
 				ret = -EBUSY;
+			}
 		}
 
 		spin_unlock_irqrestore(&cgu->lock, flags);
@@ -445,7 +508,8 @@ static int ingenic_clk_enable(struct clk_hw *hw)
 
 	clk_info = &cgu->clock_info[ingenic_clk->idx];
 
-	if (clk_info->type & CGU_CLK_GATE) {
+	if (clk_info->type & CGU_CLK_GATE)
+	{
 		/* ungate the clock */
 		spin_lock_irqsave(&cgu->lock, flags);
 		ingenic_cgu_gate_set(cgu, &clk_info->gate, false);
@@ -464,7 +528,8 @@ static void ingenic_clk_disable(struct clk_hw *hw)
 
 	clk_info = &cgu->clock_info[ingenic_clk->idx];
 
-	if (clk_info->type & CGU_CLK_GATE) {
+	if (clk_info->type & CGU_CLK_GATE)
+	{
 		/* gate the clock */
 		spin_lock_irqsave(&cgu->lock, flags);
 		ingenic_cgu_gate_set(cgu, &clk_info->gate, true);
@@ -482,7 +547,8 @@ static int ingenic_clk_is_enabled(struct clk_hw *hw)
 
 	clk_info = &cgu->clock_info[ingenic_clk->idx];
 
-	if (clk_info->type & CGU_CLK_GATE) {
+	if (clk_info->type & CGU_CLK_GATE)
+	{
 		spin_lock_irqsave(&cgu->lock, flags);
 		enabled = !ingenic_cgu_gate_get(cgu, &clk_info->gate);
 		spin_unlock_irqrestore(&cgu->lock, flags);
@@ -491,7 +557,8 @@ static int ingenic_clk_is_enabled(struct clk_hw *hw)
 	return enabled;
 }
 
-static const struct clk_ops ingenic_clk_ops = {
+static const struct clk_ops ingenic_clk_ops =
+{
 	.get_parent = ingenic_clk_get_parent,
 	.set_parent = ingenic_clk_set_parent,
 
@@ -520,31 +587,41 @@ static int ingenic_register_clock(struct ingenic_cgu *cgu, unsigned idx)
 
 	BUILD_BUG_ON(ARRAY_SIZE(clk_info->parents) > ARRAY_SIZE(parent_names));
 
-	if (clk_info->type == CGU_CLK_EXT) {
+	if (clk_info->type == CGU_CLK_EXT)
+	{
 		clk = of_clk_get_by_name(cgu->np, clk_info->name);
-		if (IS_ERR(clk)) {
+
+		if (IS_ERR(clk))
+		{
 			pr_err("%s: no external clock '%s' provided\n",
-			       __func__, clk_info->name);
+				   __func__, clk_info->name);
 			err = -ENODEV;
 			goto out;
 		}
+
 		err = clk_register_clkdev(clk, clk_info->name, NULL);
-		if (err) {
+
+		if (err)
+		{
 			clk_put(clk);
 			goto out;
 		}
+
 		cgu->clocks.clks[idx] = clk;
 		return 0;
 	}
 
-	if (!clk_info->type) {
+	if (!clk_info->type)
+	{
 		pr_err("%s: no clock type specified for '%s'\n", __func__,
-		       clk_info->name);
+			   clk_info->name);
 		goto out;
 	}
 
 	ingenic_clk = kzalloc(sizeof(*ingenic_clk), GFP_KERNEL);
-	if (!ingenic_clk) {
+
+	if (!ingenic_clk)
+	{
 		err = -ENOMEM;
 		goto out;
 	}
@@ -559,17 +636,25 @@ static int ingenic_register_clock(struct ingenic_cgu *cgu, unsigned idx)
 
 	caps = clk_info->type;
 
-	if (caps & (CGU_CLK_MUX | CGU_CLK_CUSTOM)) {
+	if (caps & (CGU_CLK_MUX | CGU_CLK_CUSTOM))
+	{
 		clk_init.num_parents = 0;
 
 		if (caps & CGU_CLK_MUX)
+		{
 			num_possible = 1 << clk_info->mux.bits;
+		}
 		else
+		{
 			num_possible = ARRAY_SIZE(clk_info->parents);
+		}
 
-		for (i = 0; i < num_possible; i++) {
+		for (i = 0; i < num_possible; i++)
+		{
 			if (clk_info->parents[i] == -1)
+			{
 				continue;
+			}
 
 			parent = cgu->clocks.clks[clk_info->parents[i]];
 			parent_names[clk_init.num_parents] =
@@ -579,90 +664,120 @@ static int ingenic_register_clock(struct ingenic_cgu *cgu, unsigned idx)
 
 		BUG_ON(!clk_init.num_parents);
 		BUG_ON(clk_init.num_parents > ARRAY_SIZE(parent_names));
-	} else {
+	}
+	else
+	{
 		BUG_ON(clk_info->parents[0] == -1);
 		clk_init.num_parents = 1;
 		parent = cgu->clocks.clks[clk_info->parents[0]];
 		parent_names[0] = __clk_get_name(parent);
 	}
 
-	if (caps & CGU_CLK_CUSTOM) {
+	if (caps & CGU_CLK_CUSTOM)
+	{
 		clk_init.ops = clk_info->custom.clk_ops;
 
 		caps &= ~CGU_CLK_CUSTOM;
 
-		if (caps) {
+		if (caps)
+		{
 			pr_err("%s: custom clock may not be combined with type 0x%x\n",
-			       __func__, caps);
+				   __func__, caps);
 			goto out;
 		}
-	} else if (caps & CGU_CLK_PLL) {
+	}
+	else if (caps & CGU_CLK_PLL)
+	{
 		clk_init.ops = &ingenic_pll_ops;
 
 		caps &= ~CGU_CLK_PLL;
 
-		if (caps) {
+		if (caps)
+		{
 			pr_err("%s: PLL may not be combined with type 0x%x\n",
-			       __func__, caps);
+				   __func__, caps);
 			goto out;
 		}
-	} else {
+	}
+	else
+	{
 		clk_init.ops = &ingenic_clk_ops;
 	}
 
 	/* nothing to do for gates or fixed dividers */
 	caps &= ~(CGU_CLK_GATE | CGU_CLK_FIXDIV);
 
-	if (caps & CGU_CLK_MUX) {
+	if (caps & CGU_CLK_MUX)
+	{
 		if (!(caps & CGU_CLK_MUX_GLITCHFREE))
+		{
 			clk_init.flags |= CLK_SET_PARENT_GATE;
+		}
 
 		caps &= ~(CGU_CLK_MUX | CGU_CLK_MUX_GLITCHFREE);
 	}
 
-	if (caps & CGU_CLK_DIV) {
+	if (caps & CGU_CLK_DIV)
+	{
 		caps &= ~CGU_CLK_DIV;
-	} else {
+	}
+	else
+	{
 		/* pass rate changes to the parent clock */
 		clk_init.flags |= CLK_SET_RATE_PARENT;
 	}
 
-	if (caps) {
+	if (caps)
+	{
 		pr_err("%s: unknown clock type 0x%x\n", __func__, caps);
 		goto out;
 	}
 
 	clk = clk_register(NULL, &ingenic_clk->hw);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_err("%s: failed to register clock '%s'\n", __func__,
-		       clk_info->name);
+			   clk_info->name);
 		err = PTR_ERR(clk);
 		goto out;
 	}
 
 	err = clk_register_clkdev(clk, clk_info->name, NULL);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	cgu->clocks.clks[idx] = clk;
 out:
+
 	if (err)
+	{
 		kfree(ingenic_clk);
+	}
+
 	return err;
 }
 
 struct ingenic_cgu *
 ingenic_cgu_new(const struct ingenic_cgu_clk_info *clock_info,
-		unsigned num_clocks, struct device_node *np)
+				unsigned num_clocks, struct device_node *np)
 {
 	struct ingenic_cgu *cgu;
 
 	cgu = kzalloc(sizeof(*cgu), GFP_KERNEL);
+
 	if (!cgu)
+	{
 		goto err_out;
+	}
 
 	cgu->base = of_iomap(np, 0);
-	if (!cgu->base) {
+
+	if (!cgu->base)
+	{
 		pr_err("%s: failed to map CGU registers\n", __func__);
 		goto err_out_free;
 	}
@@ -687,34 +802,53 @@ int ingenic_cgu_register_clocks(struct ingenic_cgu *cgu)
 	int err;
 
 	cgu->clocks.clks = kcalloc(cgu->clocks.clk_num, sizeof(struct clk *),
-				   GFP_KERNEL);
-	if (!cgu->clocks.clks) {
+							   GFP_KERNEL);
+
+	if (!cgu->clocks.clks)
+	{
 		err = -ENOMEM;
 		goto err_out;
 	}
 
-	for (i = 0; i < cgu->clocks.clk_num; i++) {
+	for (i = 0; i < cgu->clocks.clk_num; i++)
+	{
 		err = ingenic_register_clock(cgu, i);
+
 		if (err)
+		{
 			goto err_out_unregister;
+		}
 	}
 
 	err = of_clk_add_provider(cgu->np, of_clk_src_onecell_get,
-				  &cgu->clocks);
+							  &cgu->clocks);
+
 	if (err)
+	{
 		goto err_out_unregister;
+	}
 
 	return 0;
 
 err_out_unregister:
-	for (i = 0; i < cgu->clocks.clk_num; i++) {
+
+	for (i = 0; i < cgu->clocks.clk_num; i++)
+	{
 		if (!cgu->clocks.clks[i])
+		{
 			continue;
+		}
+
 		if (cgu->clock_info[i].type & CGU_CLK_EXT)
+		{
 			clk_put(cgu->clocks.clks[i]);
+		}
 		else
+		{
 			clk_unregister(cgu->clocks.clks[i]);
+		}
 	}
+
 	kfree(cgu->clocks.clks);
 err_out:
 	return err;

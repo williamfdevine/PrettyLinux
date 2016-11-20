@@ -68,12 +68,13 @@ static char driver_name[] = DRIVER_NAME;
 #define BFIN_LCD_NBR_PALETTE_ENTRIES	256
 
 #define EPPI0_18 {P_PPI0_CLK, P_PPI0_FS1, P_PPI0_FS2, P_PPI0_D0, P_PPI0_D1, P_PPI0_D2, P_PPI0_D3, \
- P_PPI0_D4, P_PPI0_D5, P_PPI0_D6, P_PPI0_D7, P_PPI0_D8, P_PPI0_D9, P_PPI0_D10, \
- P_PPI0_D11, P_PPI0_D12, P_PPI0_D13, P_PPI0_D14, P_PPI0_D15, P_PPI0_D16, P_PPI0_D17, 0}
+		P_PPI0_D4, P_PPI0_D5, P_PPI0_D6, P_PPI0_D7, P_PPI0_D8, P_PPI0_D9, P_PPI0_D10, \
+		P_PPI0_D11, P_PPI0_D12, P_PPI0_D13, P_PPI0_D14, P_PPI0_D15, P_PPI0_D16, P_PPI0_D17, 0}
 
 #define EPPI0_24 {P_PPI0_D18, P_PPI0_D19, P_PPI0_D20, P_PPI0_D21, P_PPI0_D22, P_PPI0_D23, 0}
 
-struct bfin_bf54xfb_info {
+struct bfin_bf54xfb_info
+{
 	struct fb_info *fb;
 	struct device *dev;
 
@@ -148,7 +149,7 @@ MODULE_PARM_DESC(outp_rgb666, "Output 18-bit RGB666");
 /* FS2 (Vsync) Width    = FS1 (Hsync) Period * 10 */
 #define EPPI_FS2W_LVB		(EPPI_LINE * 10)
 
- /* FS2 (Vsync) Period   = FS1 (Hsync) Period * Lines per Frame */
+/* FS2 (Vsync) Period   = FS1 (Hsync) Period * Lines per Frame */
 #define EPPI_FS2P_LAVF		(EPPI_LINE * EPPI_FRAME)
 
 /* Vertical Delay after assertion of Vsync (2 Lines) */
@@ -203,16 +204,16 @@ static void config_ppi(struct bfin_bf54xfb_info *fbi)
 
 	bfin_write_EPPI0_CLKDIV(eppi_clkdiv);
 
-/*
- * DLEN = 6 (24 bits for RGB888 out) or 5 (18 bits for RGB666 out)
- * RGB Formatting Enabled for RGB666 output, disabled for RGB888 output
- */
+	/*
+	 * DLEN = 6 (24 bits for RGB888 out) or 5 (18 bits for RGB666 out)
+	 * RGB Formatting Enabled for RGB666 output, disabled for RGB888 output
+	 */
 	if (outp_rgb666)
 		bfin_write_EPPI0_CONTROL((EPPI_CONTROL & ~DLENGTH) | DLEN_18 |
-					 RGB_FMT_EN);
+								 RGB_FMT_EN);
 	else
 		bfin_write_EPPI0_CONTROL(((EPPI_CONTROL & ~DLENGTH) | DLEN_24) &
-					 ~RGB_FMT_EN);
+								 ~RGB_FMT_EN);
 
 
 }
@@ -221,10 +222,10 @@ static int config_dma(struct bfin_bf54xfb_info *fbi)
 {
 
 	set_dma_config(CH_EPPI0,
-		       set_bfin_dma_config(DIR_READ, DMA_FLOW_AUTO,
-					   INTR_DISABLE, DIMENSION_2D,
-					   DATA_SIZE_32,
-					   DMA_NOSYNC_KEEP_DMA_BUF));
+				   set_bfin_dma_config(DIR_READ, DMA_FLOW_AUTO,
+									   INTR_DISABLE, DIMENSION_2D,
+									   DATA_SIZE_32,
+									   DMA_NOSYNC_KEEP_DMA_BUF));
 	set_dma_x_count(CH_EPPI0, (LCD_X_RES * LCD_BPP) / DMA_BUS_SIZE);
 	set_dma_x_modify(CH_EPPI0, DMA_BUS_SIZE / 8);
 	set_dma_y_count(CH_EPPI0, LCD_Y_RES);
@@ -240,22 +241,26 @@ static int request_ports(struct bfin_bf54xfb_info *fbi)
 	u16 eppi_req_18[] = EPPI0_18;
 	u16 disp = fbi->mach_info->disp;
 
-	if (gpio_request_one(disp, GPIOF_OUT_INIT_HIGH, DRIVER_NAME)) {
+	if (gpio_request_one(disp, GPIOF_OUT_INIT_HIGH, DRIVER_NAME))
+	{
 		printk(KERN_ERR "Requesting GPIO %d failed\n", disp);
 		return -EFAULT;
 	}
 
-	if (peripheral_request_list(eppi_req_18, DRIVER_NAME)) {
+	if (peripheral_request_list(eppi_req_18, DRIVER_NAME))
+	{
 		printk(KERN_ERR "Requesting Peripherals failed\n");
 		gpio_free(disp);
 		return -EFAULT;
 	}
 
-	if (!outp_rgb666) {
+	if (!outp_rgb666)
+	{
 
 		u16 eppi_req_24[] = EPPI0_24;
 
-		if (peripheral_request_list(eppi_req_24, DRIVER_NAME)) {
+		if (peripheral_request_list(eppi_req_24, DRIVER_NAME))
+		{
 			printk(KERN_ERR "Requesting Peripherals failed\n");
 			peripheral_free_list(eppi_req_18);
 			gpio_free(disp);
@@ -275,7 +280,8 @@ static void free_ports(struct bfin_bf54xfb_info *fbi)
 
 	peripheral_free_list(eppi_req_18);
 
-	if (!outp_rgb666) {
+	if (!outp_rgb666)
+	{
 		u16 eppi_req_24[] = EPPI0_24;
 		peripheral_free_list(eppi_req_24);
 	}
@@ -288,7 +294,8 @@ static int bfin_bf54x_fb_open(struct fb_info *info, int user)
 	spin_lock(&fbi->lock);
 	fbi->lq043_open_cnt++;
 
-	if (fbi->lq043_open_cnt <= 1) {
+	if (fbi->lq043_open_cnt <= 1)
+	{
 
 		bfin_write_EPPI0_CONTROL(0);
 		SSYNC();
@@ -314,7 +321,8 @@ static int bfin_bf54x_fb_release(struct fb_info *info, int user)
 
 	fbi->lq043_open_cnt--;
 
-	if (fbi->lq043_open_cnt <= 0) {
+	if (fbi->lq043_open_cnt <= 0)
+	{
 
 		bfin_write_EPPI0_CONTROL(0);
 		SSYNC();
@@ -327,33 +335,36 @@ static int bfin_bf54x_fb_release(struct fb_info *info, int user)
 }
 
 static int bfin_bf54x_fb_check_var(struct fb_var_screeninfo *var,
-				   struct fb_info *info)
+								   struct fb_info *info)
 {
 
-	switch (var->bits_per_pixel) {
-	case 24:/* TRUECOLOUR, 16m */
-		var->red.offset = 16;
-		var->green.offset = 8;
-		var->blue.offset = 0;
-		var->red.length = var->green.length = var->blue.length = 8;
-		var->transp.offset = 0;
-		var->transp.length = 0;
-		var->transp.msb_right = 0;
-		var->red.msb_right = 0;
-		var->green.msb_right = 0;
-		var->blue.msb_right = 0;
-		break;
-	default:
-		pr_debug("%s: depth not supported: %u BPP\n", __func__,
-			 var->bits_per_pixel);
-		return -EINVAL;
+	switch (var->bits_per_pixel)
+	{
+		case 24:/* TRUECOLOUR, 16m */
+			var->red.offset = 16;
+			var->green.offset = 8;
+			var->blue.offset = 0;
+			var->red.length = var->green.length = var->blue.length = 8;
+			var->transp.offset = 0;
+			var->transp.length = 0;
+			var->transp.msb_right = 0;
+			var->red.msb_right = 0;
+			var->green.msb_right = 0;
+			var->blue.msb_right = 0;
+			break;
+
+		default:
+			pr_debug("%s: depth not supported: %u BPP\n", __func__,
+					 var->bits_per_pixel);
+			return -EINVAL;
 	}
 
 	if (info->var.xres != var->xres || info->var.yres != var->yres ||
-	    info->var.xres_virtual != var->xres_virtual ||
-	    info->var.yres_virtual != var->yres_virtual) {
+		info->var.xres_virtual != var->xres_virtual ||
+		info->var.yres_virtual != var->yres_virtual)
+	{
 		pr_debug("%s: Resolution not supported: X%u x Y%u \n",
-			 __func__, var->xres, var->yres);
+				 __func__, var->xres, var->yres);
 		return -EINVAL;
 	}
 
@@ -361,9 +372,10 @@ static int bfin_bf54x_fb_check_var(struct fb_var_screeninfo *var,
 	 *  Memory limit
 	 */
 
-	if ((info->fix.line_length * var->yres_virtual) > info->fix.smem_len) {
+	if ((info->fix.line_length * var->yres_virtual) > info->fix.smem_len)
+	{
 		pr_debug("%s: Memory Limit requested yres_virtual = %u\n",
-			 __func__, var->yres_virtual);
+				 __func__, var->yres_virtual);
 		return -ENOMEM;
 	}
 
@@ -373,37 +385,48 @@ static int bfin_bf54x_fb_check_var(struct fb_var_screeninfo *var,
 int bfin_bf54x_fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 {
 	if (nocursor)
+	{
 		return 0;
+	}
 	else
-		return -EINVAL;	/* just to force soft_cursor() call */
+	{
+		return -EINVAL;    /* just to force soft_cursor() call */
+	}
 }
 
 static int bfin_bf54x_fb_setcolreg(u_int regno, u_int red, u_int green,
-				   u_int blue, u_int transp,
-				   struct fb_info *info)
+								   u_int blue, u_int transp,
+								   struct fb_info *info)
 {
 	if (regno >= BFIN_LCD_NBR_PALETTE_ENTRIES)
+	{
 		return -EINVAL;
+	}
 
-	if (info->var.grayscale) {
+	if (info->var.grayscale)
+	{
 		/* grayscale = 0.30*R + 0.59*G + 0.11*B */
 		red = green = blue = (red * 77 + green * 151 + blue * 28) >> 8;
 	}
 
-	if (info->fix.visual == FB_VISUAL_TRUECOLOR) {
+	if (info->fix.visual == FB_VISUAL_TRUECOLOR)
+	{
 
 		u32 value;
+
 		/* Place color in the pseudopalette */
 		if (regno > 16)
+		{
 			return -EINVAL;
+		}
 
 		red >>= (16 - info->var.red.length);
 		green >>= (16 - info->var.green.length);
 		blue >>= (16 - info->var.blue.length);
 
 		value = (red << info->var.red.offset) |
-		    (green << info->var.green.offset) |
-		    (blue << info->var.blue.offset);
+				(green << info->var.green.offset) |
+				(blue << info->var.blue.offset);
 		value &= 0xFFFFFF;
 
 		((u32 *) (info->pseudo_palette))[regno] = value;
@@ -413,7 +436,8 @@ static int bfin_bf54x_fb_setcolreg(u_int regno, u_int red, u_int green,
 	return 0;
 }
 
-static struct fb_ops bfin_bf54x_fb_ops = {
+static struct fb_ops bfin_bf54x_fb_ops =
+{
 	.owner = THIS_MODULE,
 	.fb_open = bfin_bf54x_fb_open,
 	.fb_release = bfin_bf54x_fb_release,
@@ -431,7 +455,8 @@ static int bl_get_brightness(struct backlight_device *bd)
 	return 0;
 }
 
-static const struct backlight_ops bfin_lq043fb_bl_ops = {
+static const struct backlight_ops bfin_lq043fb_bl_ops =
+{
 	.get_brightness = bl_get_brightness,
 };
 
@@ -461,11 +486,15 @@ static int bfin_lcd_set_contrast(struct lcd_device *dev, int contrast)
 static int bfin_lcd_check_fb(struct lcd_device *dev, struct fb_info *fi)
 {
 	if (!fi || (fi == &bfin_bf54x_fb))
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
-static struct lcd_ops bfin_lcd_ops = {
+static struct lcd_ops bfin_lcd_ops =
+{
 	.get_power = bfin_lcd_get_power,
 	.set_power = bfin_lcd_set_power,
 	.get_contrast = bfin_lcd_get_contrast,
@@ -484,7 +513,8 @@ static irqreturn_t bfin_bf54x_irq_error(int irq, void *dev_id)
 
 	bfin_write_EPPI0_STATUS(0xFFFF);
 
-	if (status) {
+	if (status)
+	{
 		bfin_write_EPPI0_CONTROL(bfin_read_EPPI0_CONTROL() & ~EPPI_EN);
 		disable_dma(CH_EPPI0);
 
@@ -508,16 +538,19 @@ static int bfin_bf54x_probe(struct platform_device *pdev)
 
 	printk(KERN_INFO DRIVER_NAME ": FrameBuffer initializing...\n");
 
-	if (request_dma(CH_EPPI0, "CH_EPPI0") < 0) {
+	if (request_dma(CH_EPPI0, "CH_EPPI0") < 0)
+	{
 		printk(KERN_ERR DRIVER_NAME
-		       ": couldn't request CH_EPPI0 DMA\n");
+			   ": couldn't request CH_EPPI0 DMA\n");
 		ret = -EFAULT;
 		goto out1;
 	}
 
 	fbinfo =
-	    framebuffer_alloc(sizeof(struct bfin_bf54xfb_info), &pdev->dev);
-	if (!fbinfo) {
+		framebuffer_alloc(sizeof(struct bfin_bf54xfb_info), &pdev->dev);
+
+	if (!fbinfo)
+	{
 		ret = -ENOMEM;
 		goto out2;
 	}
@@ -533,9 +566,10 @@ static int bfin_bf54x_probe(struct platform_device *pdev)
 
 	info->mach_info = pdev->dev.platform_data;
 
-	if (info->mach_info == NULL) {
+	if (info->mach_info == NULL)
+	{
 		dev_err(&pdev->dev,
-			"no platform data for lcd, cannot attach\n");
+				"no platform data for lcd, cannot attach\n");
 		ret = -EINVAL;
 		goto out3;
 	}
@@ -581,18 +615,19 @@ static int bfin_bf54x_probe(struct platform_device *pdev)
 	fbinfo->var.blue.length = 8;
 	fbinfo->var.transp.length = 0;
 	fbinfo->fix.smem_len = info->mach_info->xres.max *
-	    info->mach_info->yres.max * info->mach_info->bpp.max / 8;
+						   info->mach_info->yres.max * info->mach_info->bpp.max / 8;
 
 	fbinfo->fix.line_length = fbinfo->var.xres_virtual *
-	    fbinfo->var.bits_per_pixel / 8;
+							  fbinfo->var.bits_per_pixel / 8;
 
 	info->fb_buffer =
-	    dma_alloc_coherent(NULL, fbinfo->fix.smem_len, &info->dma_handle,
-			       GFP_KERNEL);
+		dma_alloc_coherent(NULL, fbinfo->fix.smem_len, &info->dma_handle,
+						   GFP_KERNEL);
 
-	if (NULL == info->fb_buffer) {
+	if (NULL == info->fb_buffer)
+	{
 		printk(KERN_ERR DRIVER_NAME
-		       ": couldn't allocate dma buffer.\n");
+			   ": couldn't allocate dma buffer.\n");
 		ret = -ENOMEM;
 		goto out3;
 	}
@@ -603,59 +638,70 @@ static int bfin_bf54x_probe(struct platform_device *pdev)
 	fbinfo->fbops = &bfin_bf54x_fb_ops;
 
 	fbinfo->pseudo_palette = devm_kzalloc(&pdev->dev, sizeof(u32) * 16,
-					      GFP_KERNEL);
-	if (!fbinfo->pseudo_palette) {
+										  GFP_KERNEL);
+
+	if (!fbinfo->pseudo_palette)
+	{
 		printk(KERN_ERR DRIVER_NAME
-		       "Fail to allocate pseudo_palette\n");
+			   "Fail to allocate pseudo_palette\n");
 
 		ret = -ENOMEM;
 		goto out4;
 	}
 
 	if (fb_alloc_cmap(&fbinfo->cmap, BFIN_LCD_NBR_PALETTE_ENTRIES, 0)
-	    < 0) {
+		< 0)
+	{
 		printk(KERN_ERR DRIVER_NAME
-		       "Fail to allocate colormap (%d entries)\n",
-		       BFIN_LCD_NBR_PALETTE_ENTRIES);
+			   "Fail to allocate colormap (%d entries)\n",
+			   BFIN_LCD_NBR_PALETTE_ENTRIES);
 		ret = -EFAULT;
 		goto out4;
 	}
 
-	if (request_ports(info)) {
+	if (request_ports(info))
+	{
 		printk(KERN_ERR DRIVER_NAME ": couldn't request gpio port.\n");
 		ret = -EFAULT;
 		goto out6;
 	}
 
 	info->irq = platform_get_irq(pdev, 0);
-	if (info->irq < 0) {
+
+	if (info->irq < 0)
+	{
 		ret = -EINVAL;
 		goto out7;
 	}
 
 	if (request_irq(info->irq, bfin_bf54x_irq_error, 0,
-			"PPI ERROR", info) < 0) {
+					"PPI ERROR", info) < 0)
+	{
 		printk(KERN_ERR DRIVER_NAME
-		       ": unable to request PPI ERROR IRQ\n");
+			   ": unable to request PPI ERROR IRQ\n");
 		ret = -EFAULT;
 		goto out7;
 	}
 
-	if (register_framebuffer(fbinfo) < 0) {
+	if (register_framebuffer(fbinfo) < 0)
+	{
 		printk(KERN_ERR DRIVER_NAME
-		       ": unable to register framebuffer.\n");
+			   ": unable to register framebuffer.\n");
 		ret = -EINVAL;
 		goto out8;
 	}
+
 #ifndef NO_BL_SUPPORT
 	memset(&props, 0, sizeof(struct backlight_properties));
 	props.type = BACKLIGHT_RAW;
 	props.max_brightness = 255;
 	bl_dev = backlight_device_register("bf54x-bl", NULL, NULL,
-					   &bfin_lq043fb_bl_ops, &props);
-	if (IS_ERR(bl_dev)) {
+									   &bfin_lq043fb_bl_ops, &props);
+
+	if (IS_ERR(bl_dev))
+	{
 		printk(KERN_ERR DRIVER_NAME
-			": unable to register backlight.\n");
+			   ": unable to register backlight.\n");
 		ret = -EINVAL;
 		unregister_framebuffer(fbinfo);
 		goto out8;
@@ -675,7 +721,7 @@ out6:
 	fb_dealloc_cmap(&fbinfo->cmap);
 out4:
 	dma_free_coherent(NULL, fbinfo->fix.smem_len, info->fb_buffer,
-			  info->dma_handle);
+					  info->dma_handle);
 out3:
 	framebuffer_release(fbinfo);
 out2:
@@ -696,7 +742,7 @@ static int bfin_bf54x_remove(struct platform_device *pdev)
 
 	if (info->fb_buffer != NULL)
 		dma_free_coherent(NULL, fbinfo->fix.smem_len, info->fb_buffer,
-				  info->dma_handle);
+						  info->dma_handle);
 
 	fb_dealloc_cmap(&fbinfo->cmap);
 
@@ -729,7 +775,8 @@ static int bfin_bf54x_resume(struct platform_device *pdev)
 	struct fb_info *fbinfo = platform_get_drvdata(pdev);
 	struct bfin_bf54xfb_info *info = fbinfo->par;
 
-	if (info->lq043_open_cnt) {
+	if (info->lq043_open_cnt)
+	{
 
 		bfin_write_EPPI0_CONTROL(0);
 		SSYNC();
@@ -749,14 +796,15 @@ static int bfin_bf54x_resume(struct platform_device *pdev)
 #define bfin_bf54x_resume	NULL
 #endif
 
-static struct platform_driver bfin_bf54x_driver = {
+static struct platform_driver bfin_bf54x_driver =
+{
 	.probe = bfin_bf54x_probe,
 	.remove = bfin_bf54x_remove,
 	.suspend = bfin_bf54x_suspend,
 	.resume = bfin_bf54x_resume,
 	.driver = {
-		   .name = DRIVER_NAME,
-		   },
+		.name = DRIVER_NAME,
+	},
 };
 module_platform_driver(bfin_bf54x_driver);
 

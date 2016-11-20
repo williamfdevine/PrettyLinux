@@ -28,7 +28,8 @@ struct aa_profile;
  * @kill: caps that when requested will result in the task being killed
  * @extended: caps that are subject finer grained mediation
  */
-struct aa_caps {
+struct aa_caps
+{
 	kernel_cap_t allow;
 	kernel_cap_t audit;
 	kernel_cap_t quiet;

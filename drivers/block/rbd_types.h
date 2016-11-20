@@ -32,7 +32,8 @@
 #define RBD_LOCK_TAG           "internal"
 #define RBD_LOCK_COOKIE_PREFIX "auto"
 
-enum rbd_notify_op {
+enum rbd_notify_op
+{
 	RBD_NOTIFY_OP_ACQUIRED_LOCK      = 0,
 	RBD_NOTIFY_OP_RELEASED_LOCK      = 1,
 	RBD_NOTIFY_OP_REQUEST_LOCK       = 2,
@@ -64,17 +65,20 @@ enum rbd_notify_op {
 #define RBD_HEADER_SIGNATURE	"RBD"
 #define RBD_HEADER_VERSION	"001.005"
 
-struct rbd_image_snap_ondisk {
+struct rbd_image_snap_ondisk
+{
 	__le64 id;
 	__le64 image_size;
 } __attribute__((packed));
 
-struct rbd_image_header_ondisk {
+struct rbd_image_header_ondisk
+{
 	char text[40];
 	char object_prefix[24];
 	char signature[4];
 	char version[8];
-	struct {
+	struct
+	{
 		__u8 order;
 		__u8 crypt_type;
 		__u8 comp_type;

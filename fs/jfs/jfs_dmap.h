@@ -65,8 +65,8 @@ static inline signed char TREEMAX(signed char *cp)
 {
 	signed char tmp1, tmp2;
 
-	tmp1 = max(*(cp+2), *(cp+3));
-	tmp2 = max(*(cp), *(cp+1));
+	tmp1 = max(*(cp + 2), *(cp + 3));
+	tmp2 = max(*(cp), *(cp + 1));
 
 	return max(tmp1, tmp2);
 }
@@ -113,7 +113,7 @@ static inline signed char TREEMAX(signed char *cp)
  *	- 1 is added to account for the control page of the map.
  */
 #define BLKTOL1(b,s)      \
-     (((((b) >> 33) << 20) + (((b) >> 33) << 10) + ((b) >> 33) + 1 + 1) << (s))
+	(((((b) >> 33) << 20) + (((b) >> 33) << 10) + ((b) >> 33) + 1 + 1) << (s))
 
 /*
  * convert disk block number to the logical block number of the dmapctl
@@ -144,7 +144,8 @@ static inline signed char TREEMAX(signed char *cp)
  *
  * dmaptree must be consistent with dmapctl.
  */
-struct dmaptree {
+struct dmaptree
+{
 	__le32 nleafs;		/* 4: number of tree leafs	*/
 	__le32 l2nleafs;	/* 4: l2 number of tree leafs	*/
 	__le32 leafidx;		/* 4: index of first tree leaf	*/
@@ -157,7 +158,8 @@ struct dmaptree {
 /*
  *	dmap page per 8K blocks bitmap
  */
-struct dmap {
+struct dmap
+{
 	__le32 nblocks;		/* 4: num blks covered by this dmap	*/
 	__le32 nfree;		/* 4: num of free blks in this dmap	*/
 	__le64 start;		/* 8: starting blkno for this dmap	*/
@@ -172,7 +174,8 @@ struct dmap {
  *
  * dmapctl must be consistent with dmaptree.
  */
-struct dmapctl {
+struct dmapctl
+{
 	__le32 nleafs;		/* 4: number of tree leafs	*/
 	__le32 l2nleafs;	/* 4: l2 number of tree leafs	*/
 	__le32 leafidx;		/* 4: index of the first tree leaf	*/
@@ -185,7 +188,8 @@ struct dmapctl {
 /*
  *	common definition for dmaptree within dmap and dmapctl
  */
-typedef union dmtree {
+typedef union dmtree
+{
 	struct dmaptree t1;
 	struct dmapctl t2;
 } dmtree_t;
@@ -201,7 +205,8 @@ typedef union dmtree {
 /*
  *	on-disk aggregate disk allocation map descriptor.
  */
-struct dbmap_disk {
+struct dbmap_disk
+{
 	__le64 dn_mapsize;	/* 8: number of blocks in aggregate	*/
 	__le64 dn_nfree;	/* 8: num free blks in aggregate map	*/
 	__le32 dn_l2nbperpage;	/* 4: number of blks per page		*/
@@ -220,7 +225,8 @@ struct dbmap_disk {
 	u8 pad[3007];		/* 3007: pad to 4096			*/
 };				/* - 4096 -				*/
 
-struct dbmap {
+struct dbmap
+{
 	s64 dn_mapsize;		/* number of blocks in aggregate	*/
 	s64 dn_nfree;		/* num free blks in aggregate map	*/
 	int dn_l2nbperpage;	/* number of blks per page		*/
@@ -240,7 +246,8 @@ struct dbmap {
 /*
  *	in-memory aggregate disk allocation map descriptor.
  */
-struct bmap {
+struct bmap
+{
 	struct dbmap db_bmap;		/* on-disk aggregate map descriptor */
 	struct inode *db_ipbmap;	/* ptr to aggregate map incore inode */
 	struct mutex db_bmaplock;	/* aggregate map lock */
@@ -297,14 +304,14 @@ extern int dbUnmount(struct inode *ipbmap, int mounterror);
 extern int dbFree(struct inode *ipbmap, s64 blkno, s64 nblocks);
 
 extern int dbUpdatePMap(struct inode *ipbmap,
-			int free, s64 blkno, s64 nblocks, struct tblock * tblk);
+						int free, s64 blkno, s64 nblocks, struct tblock *tblk);
 
 extern int dbNextAG(struct inode *ipbmap);
 
-extern int dbAlloc(struct inode *ipbmap, s64 hint, s64 nblocks, s64 * results);
+extern int dbAlloc(struct inode *ipbmap, s64 hint, s64 nblocks, s64 *results);
 
 extern int dbReAlloc(struct inode *ipbmap,
-		     s64 blkno, s64 nblocks, s64 addnblocks, s64 * results);
+					 s64 blkno, s64 nblocks, s64 addnblocks, s64 *results);
 
 extern int dbSync(struct inode *ipbmap);
 extern int dbAllocBottomUp(struct inode *ip, s64 blkno, s64 nblocks);

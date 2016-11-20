@@ -11,34 +11,35 @@ Copyright (C) 2014 STMicroelectronics
 
 extern spinlock_t clkgen_a9_lock;
 
-struct clkgen_field {
+struct clkgen_field
+{
 	unsigned int offset;
 	unsigned int mask;
 	unsigned int shift;
 };
 
 static inline unsigned long clkgen_read(void __iomem	*base,
-					  struct clkgen_field *field)
+										struct clkgen_field *field)
 {
 	return (readl(base + field->offset) >> field->shift) & field->mask;
 }
 
 
 static inline void clkgen_write(void __iomem *base, struct clkgen_field *field,
-				  unsigned long val)
+								unsigned long val)
 {
 	writel((readl(base + field->offset) &
-	       ~(field->mask << field->shift)) | (val << field->shift),
-	       base + field->offset);
+			~(field->mask << field->shift)) | (val << field->shift),
+		   base + field->offset);
 
 	return;
 }
 
 #define CLKGEN_FIELD(_offset, _mask, _shift) {		\
-				.offset	= _offset,	\
-				.mask	= _mask,	\
-				.shift	= _shift,	\
-				}
+		.offset	= _offset,	\
+				  .mask	= _mask,	\
+							.shift	= _shift,	\
+	}
 
 #define CLKGEN_READ(pll, field) clkgen_read(pll->regs_base, \
 		&pll->data->field)

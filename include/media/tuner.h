@@ -80,10 +80,10 @@
 #define TUNER_PHILIPS_FM1236_MK3	43
 
 #define TUNER_PHILIPS_4IN1		44	/* ATI TV Wonder Pro - Conexant */
-	/*
-	 * Microtune merged with Temic 12/31/1999 partially financed by Alps.
-	 * these may be similar to Temic
-	 */
+/*
+ * Microtune merged with Temic 12/31/1999 partially financed by Alps.
+ * these may be similar to Temic
+ */
 #define TUNER_MICROTUNE_4049FM5		45
 #define TUNER_PANASONIC_VP27		46
 #define TUNER_LG_NTSC_TAPE		47
@@ -155,7 +155,7 @@
 #define TDA9887_TOP_MASK		(0x3f << 8)
 #define TDA9887_TOP_SET			(1 << 13)
 #define TDA9887_TOP(top)		(TDA9887_TOP_SET | \
-					 (((16 + (top)) & 0x1f) << 8))
+								 (((16 + (top)) & 0x1f) << 8))
 
 /* config options */
 #define TDA9887_DEEMPHASIS_MASK		(3<<16)
@@ -181,7 +181,8 @@
  * proper tuner range and eventually use a different tuner chip while in
  * radio mode.
  */
-enum tuner_mode {
+enum tuner_mode
+{
 	T_RADIO		= 1 << V4L2_TUNER_RADIO,
 	T_ANALOG_TV     = 1 << V4L2_TUNER_ANALOG_TV,
 	/* Don't map V4L2_TUNER_DIGITAL_TV, as tuner-core won't use it */
@@ -223,7 +224,8 @@ enum tuner_mode {
  * when the tuner is set to TV mode.
  */
 
-struct tuner_setup {
+struct tuner_setup
+{
 	unsigned short	addr;
 	unsigned int	type;
 	unsigned int	mode_mask;

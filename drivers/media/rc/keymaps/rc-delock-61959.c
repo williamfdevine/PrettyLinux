@@ -14,7 +14,8 @@
 /*
  * Keytable for remote provided with Delock 61959
  */
-static struct rc_map_table delock_61959[] = {
+static struct rc_map_table delock_61959[] =
+{
 	{ 0x866b16, KEY_POWER2 },	/* Power */
 	{ 0x866b0c, KEY_POWER },	/* Shut Down */
 
@@ -56,7 +57,8 @@ static struct rc_map_table delock_61959[] = {
 
 };
 
-static struct rc_map_list delock_61959_map = {
+static struct rc_map_list delock_61959_map =
+{
 	.map = {
 		.scan    = delock_61959,
 		.size    = ARRAY_SIZE(delock_61959),

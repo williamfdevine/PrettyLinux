@@ -11,14 +11,15 @@
 #define BUFFER_TIMEOUT     (HZ/2)  /* 0.5 seconds */
 
 #define WRITE_RPS0(x) do { \
-	dev->d_rps0.cpu_addr[ count++ ] = cpu_to_le32(x); \
+		dev->d_rps0.cpu_addr[ count++ ] = cpu_to_le32(x); \
 	} while (0);
 
 #define WRITE_RPS1(x) do { \
-	dev->d_rps1.cpu_addr[ count++ ] = cpu_to_le32(x); \
+		dev->d_rps1.cpu_addr[ count++ ] = cpu_to_le32(x); \
 	} while (0);
 
-struct	saa7146_video_dma {
+struct	saa7146_video_dma
+{
 	u32 base_odd;
 	u32 base_even;
 	u32 prot_addr;
@@ -30,7 +31,8 @@ struct	saa7146_video_dma {
 #define FORMAT_BYTE_SWAP	0x1
 #define FORMAT_IS_PLANAR	0x2
 
-struct saa7146_format {
+struct saa7146_format
+{
 	char	*name;
 	u32	pixelformat;
 	u32	trans;
@@ -55,28 +57,31 @@ struct saa7146_standard
 };
 
 /* buffer for one video/vbi frame */
-struct saa7146_buf {
+struct saa7146_buf
+{
 	/* common v4l buffer stuff -- must be first */
 	struct videobuf_buffer vb;
 
 	/* saa7146 specific */
 	struct v4l2_pix_format  *fmt;
 	int (*activate)(struct saa7146_dev *dev,
-			struct saa7146_buf *buf,
-			struct saa7146_buf *next);
+					struct saa7146_buf *buf,
+					struct saa7146_buf *next);
 
 	/* page tables */
 	struct saa7146_pgtable  pt[3];
 };
 
-struct saa7146_dmaqueue {
+struct saa7146_dmaqueue
+{
 	struct saa7146_dev	*dev;
 	struct saa7146_buf	*curr;
 	struct list_head	queue;
 	struct timer_list	timeout;
 };
 
-struct saa7146_overlay {
+struct saa7146_overlay
+{
 	struct saa7146_fh	*fh;
 	struct v4l2_window	win;
 	struct v4l2_clip	clips[16];
@@ -84,7 +89,8 @@ struct saa7146_overlay {
 };
 
 /* per open data */
-struct saa7146_fh {
+struct saa7146_fh
+{
 	/* Must be the first field! */
 	struct v4l2_fh		fh;
 	struct saa7146_dev	*dev;
@@ -158,7 +164,7 @@ struct saa7146_ext_vv
 	/* additionally supported transmission standards */
 	struct saa7146_standard *stds;
 	int num_stds;
-	int (*std_callback)(struct saa7146_dev*, struct saa7146_standard *);
+	int (*std_callback)(struct saa7146_dev *, struct saa7146_standard *);
 
 	/* the extension can override this */
 	struct v4l2_ioctl_ops vid_ops;
@@ -169,7 +175,8 @@ struct saa7146_ext_vv
 	struct v4l2_file_operations vbi_fops;
 };
 
-struct saa7146_use_ops  {
+struct saa7146_use_ops
+{
 	void (*init)(struct saa7146_dev *, struct saa7146_vv *);
 	int(*open)(struct saa7146_dev *, struct file *);
 	void (*release)(struct saa7146_dev *, struct file *);
@@ -181,21 +188,21 @@ struct saa7146_use_ops  {
 int saa7146_register_device(struct video_device *vid, struct saa7146_dev *dev, char *name, int type);
 int saa7146_unregister_device(struct video_device *vid, struct saa7146_dev *dev);
 void saa7146_buffer_finish(struct saa7146_dev *dev, struct saa7146_dmaqueue *q, int state);
-void saa7146_buffer_next(struct saa7146_dev *dev, struct saa7146_dmaqueue *q,int vbi);
+void saa7146_buffer_next(struct saa7146_dev *dev, struct saa7146_dmaqueue *q, int vbi);
 int saa7146_buffer_queue(struct saa7146_dev *dev, struct saa7146_dmaqueue *q, struct saa7146_buf *buf);
 void saa7146_buffer_timeout(unsigned long data);
-void saa7146_dma_free(struct saa7146_dev* dev,struct videobuf_queue *q,
-						struct saa7146_buf *buf);
+void saa7146_dma_free(struct saa7146_dev *dev, struct videobuf_queue *q,
+					  struct saa7146_buf *buf);
 
-int saa7146_vv_init(struct saa7146_dev* dev, struct saa7146_ext_vv *ext_vv);
-int saa7146_vv_release(struct saa7146_dev* dev);
+int saa7146_vv_init(struct saa7146_dev *dev, struct saa7146_ext_vv *ext_vv);
+int saa7146_vv_release(struct saa7146_dev *dev);
 
 /* from saa7146_hlp.c */
 int saa7146_enable_overlay(struct saa7146_fh *fh);
 void saa7146_disable_overlay(struct saa7146_fh *fh);
 
 void saa7146_set_capture(struct saa7146_dev *dev, struct saa7146_buf *buf, struct saa7146_buf *next);
-void saa7146_write_out_dma(struct saa7146_dev* dev, int which, struct saa7146_video_dma* vdma) ;
+void saa7146_write_out_dma(struct saa7146_dev *dev, int which, struct saa7146_video_dma *vdma) ;
 void saa7146_set_hps_source_and_sync(struct saa7146_dev *saa, int source, int sync);
 void saa7146_set_gpio(struct saa7146_dev *saa, u8 pin, u8 data);
 

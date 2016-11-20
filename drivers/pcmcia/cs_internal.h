@@ -30,7 +30,8 @@
 #define BIND_FN_ALL	0xff
 
 /* Each card function gets one of these guys */
-typedef struct config_t {
+typedef struct config_t
+{
 	struct kref	ref;
 	unsigned int	state;
 
@@ -39,7 +40,8 @@ typedef struct config_t {
 } config_t;
 
 
-struct cis_cache_entry {
+struct cis_cache_entry
+{
 	struct list_head	node;
 	unsigned int		addr;
 	unsigned int		len;
@@ -47,17 +49,18 @@ struct cis_cache_entry {
 	unsigned char		cache[0];
 };
 
-struct pccard_resource_ops {
+struct pccard_resource_ops
+{
 	int	(*validate_mem)		(struct pcmcia_socket *s);
 	int	(*find_io)		(struct pcmcia_socket *s,
-					 unsigned int attr,
-					 unsigned int *base,
-					 unsigned int num,
-					 unsigned int align,
-					 struct resource **parent);
-	struct resource* (*find_mem)	(unsigned long base, unsigned long num,
-					 unsigned long align, int low,
-					 struct pcmcia_socket *s);
+						 unsigned int attr,
+						 unsigned int *base,
+						 unsigned int num,
+						 unsigned int align,
+						 struct resource **parent);
+	struct resource *(*find_mem)	(unsigned long base, unsigned long num,
+									 unsigned long align, int low,
+									 struct pcmcia_socket *s);
 	int	(*init)			(struct pcmcia_socket *s);
 	void	(*exit)			(struct pcmcia_socket *s);
 };
@@ -81,8 +84,8 @@ struct pccard_resource_ops {
  */
 extern int static_init(struct pcmcia_socket *s);
 extern struct resource *pcmcia_make_resource(resource_size_t start,
-					resource_size_t end,
-					unsigned long flags, const char *name);
+		resource_size_t end,
+		unsigned long flags, const char *name);
 
 /*
  * Stuff internal to module "pcmcia_core":
@@ -102,7 +105,8 @@ void cb_free(struct pcmcia_socket *s);
  * Stuff exported by module "pcmcia_core" to module "pcmcia"
  */
 
-struct pcmcia_callback{
+struct pcmcia_callback
+{
 	struct module	*owner;
 	int		(*add) (struct pcmcia_socket *s);
 	int		(*remove) (struct pcmcia_socket *s);
@@ -143,10 +147,10 @@ struct pcmcia_device;
 extern int pcmcia_release_configuration(struct pcmcia_device *p_dev);
 extern int pcmcia_validate_mem(struct pcmcia_socket *s);
 extern struct resource *pcmcia_find_mem_region(u_long base,
-					       u_long num,
-					       u_long align,
-					       int low,
-					       struct pcmcia_socket *s);
+		u_long num,
+		u_long align,
+		int low,
+		struct pcmcia_socket *s);
 
 void pcmcia_cleanup_irq(struct pcmcia_socket *s);
 int pcmcia_setup_irq(struct pcmcia_device *p_dev);
@@ -155,29 +159,29 @@ int pcmcia_setup_irq(struct pcmcia_device *p_dev);
 extern struct bin_attribute pccard_cis_attr;
 
 int pcmcia_read_cis_mem(struct pcmcia_socket *s, int attr,
-			u_int addr, u_int len, void *ptr);
+						u_int addr, u_int len, void *ptr);
 int pcmcia_write_cis_mem(struct pcmcia_socket *s, int attr,
-			u_int addr, u_int len, void *ptr);
+						 u_int addr, u_int len, void *ptr);
 void release_cis_mem(struct pcmcia_socket *s);
 void destroy_cis_cache(struct pcmcia_socket *s);
 int pccard_read_tuple(struct pcmcia_socket *s, unsigned int function,
-		      cisdata_t code, void *parse);
+					  cisdata_t code, void *parse);
 int pcmcia_replace_cis(struct pcmcia_socket *s,
-		       const u8 *data, const size_t len);
+					   const u8 *data, const size_t len);
 int pccard_validate_cis(struct pcmcia_socket *s, unsigned int *count);
 int verify_cis_cache(struct pcmcia_socket *s);
 
 int pccard_loop_tuple(struct pcmcia_socket *s, unsigned int function,
-		      cisdata_t code, cisparse_t *parse, void *priv_data,
-		      int (*loop_tuple) (tuple_t *tuple,
-					 cisparse_t *parse,
-					 void *priv_data));
+					  cisdata_t code, cisparse_t *parse, void *priv_data,
+					  int (*loop_tuple) (tuple_t *tuple,
+							  cisparse_t *parse,
+							  void *priv_data));
 
 int pccard_get_first_tuple(struct pcmcia_socket *s, unsigned int function,
-			tuple_t *tuple);
+						   tuple_t *tuple);
 
 int pccard_get_next_tuple(struct pcmcia_socket *s, unsigned int function,
-			tuple_t *tuple);
+						  tuple_t *tuple);
 
 int pccard_get_tuple_data(struct pcmcia_socket *s, tuple_t *tuple);
 

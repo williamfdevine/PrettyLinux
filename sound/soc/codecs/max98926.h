@@ -836,7 +836,8 @@
 #define MAX98926_REV_ID_SHIFT   0
 #define MAX98926_REV_ID_WIDTH   8
 
-struct max98926_priv {
+struct max98926_priv
+{
 	struct regmap *regmap;
 	struct snd_soc_codec *codec;
 	unsigned int sysclk;

@@ -33,7 +33,8 @@ static inline unsigned long xen_page_to_gfn(struct page *page)
 	return pfn_to_gfn(page_to_xen_pfn(page));
 }
 
-struct xen_memory_region {
+struct xen_memory_region
+{
 	unsigned long start_pfn;
 	unsigned long n_pfns;
 };

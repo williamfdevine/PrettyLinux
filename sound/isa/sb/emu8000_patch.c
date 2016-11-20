@@ -37,7 +37,8 @@ snd_emu8000_open_dma(struct snd_emu8000 *emu, int write)
 	int i;
 
 	/* reserve all 30 voices for loading */
-	for (i = 0; i < EMU8000_DRAM_VOICES; i++) {
+	for (i = 0; i < EMU8000_DRAM_VOICES; i++)
+	{
 		snd_emux_lock_voice(emu->emu, i);
 		snd_emu8000_dma_chan(emu, i, write);
 	}
@@ -63,7 +64,8 @@ snd_emu8000_close_dma(struct snd_emu8000 *emu)
 {
 	int i;
 
-	for (i = 0; i < EMU8000_DRAM_VOICES; i++) {
+	for (i = 0; i < EMU8000_DRAM_VOICES; i++)
+	{
 		snd_emu8000_dma_chan(emu, i, EMU8000_RAM_CLOSE);
 		snd_emux_unlock_voice(emu->emu, i);
 	}
@@ -85,11 +87,15 @@ static unsigned short
 read_word(const void __user *buf, int offset, int mode)
 {
 	unsigned short c;
-	if (mode & SNDRV_SFNT_SAMPLE_8BITS) {
+
+	if (mode & SNDRV_SFNT_SAMPLE_8BITS)
+	{
 		unsigned char cc;
 		get_user(cc, (unsigned char __user *)buf + offset);
 		c = cc << 8; /* convert 8bit -> 16bit */
-	} else {
+	}
+	else
+	{
 #ifdef SNDRV_LITTLE_ENDIAN
 		get_user(c, (unsigned short __user *)buf + offset);
 #else
@@ -98,8 +104,12 @@ read_word(const void __user *buf, int offset, int mode)
 		c = swab16(cc);
 #endif
 	}
+
 	if (mode & SNDRV_SFNT_SAMPLE_UNSIGNED)
-		c ^= 0x8000; /* unsigned -> signed */
+	{
+		c ^= 0x8000;    /* unsigned -> signed */
+	}
+
 	return c;
 }
 
@@ -108,10 +118,14 @@ read_word(const void __user *buf, int offset, int mode)
 static void
 snd_emu8000_write_wait(struct snd_emu8000 *emu)
 {
-	while ((EMU8000_SMALW_READ(emu) & 0x80000000) != 0) {
+	while ((EMU8000_SMALW_READ(emu) & 0x80000000) != 0)
+	{
 		schedule_timeout_interruptible(1);
+
 		if (signal_pending(current))
+		{
 			break;
+		}
 	}
 }
 
@@ -130,11 +144,16 @@ snd_emu8000_write_wait(struct snd_emu8000 *emu)
 static inline void
 write_word(struct snd_emu8000 *emu, int *offset, unsigned short data)
 {
-	if (emu8000_reset_addr) {
+	if (emu8000_reset_addr)
+	{
 		if (emu8000_reset_addr > 1)
+		{
 			snd_emu8000_write_wait(emu);
+		}
+
 		EMU8000_SMALW_WRITE(emu, *offset);
 	}
+
 	EMU8000_SMLD_WRITE(emu, data);
 	*offset += 1;
 }
@@ -145,8 +164,8 @@ write_word(struct snd_emu8000 *emu, int *offset, unsigned short data)
  */
 int
 snd_emu8000_sample_new(struct snd_emux *rec, struct snd_sf_sample *sp,
-		       struct snd_util_memhdr *hdr,
-		       const void __user *data, long count)
+					   struct snd_util_memhdr *hdr,
+					   const void __user *data, long count)
 {
 	int  i;
 	int  rc;
@@ -156,14 +175,20 @@ snd_emu8000_sample_new(struct snd_emux *rec, struct snd_sf_sample *sp,
 	struct snd_emu8000 *emu;
 
 	emu = rec->hw;
+
 	if (snd_BUG_ON(!sp))
+	{
 		return -EINVAL;
+	}
 
 	if (sp->v.size == 0)
+	{
 		return 0;
+	}
 
 	/* be sure loop points start < end */
-	if (sp->v.loopstart > sp->v.loopend) {
+	if (sp->v.loopstart > sp->v.loopend)
+	{
 		int tmp = sp->v.loopstart;
 		sp->v.loopstart = sp->v.loopend;
 		sp->v.loopend = tmp;
@@ -171,24 +196,39 @@ snd_emu8000_sample_new(struct snd_emux *rec, struct snd_sf_sample *sp,
 
 	/* compute true data size to be loaded */
 	truesize = sp->v.size;
-	if (sp->v.mode_flags & (SNDRV_SFNT_SAMPLE_BIDIR_LOOP|SNDRV_SFNT_SAMPLE_REVERSE_LOOP))
+
+	if (sp->v.mode_flags & (SNDRV_SFNT_SAMPLE_BIDIR_LOOP | SNDRV_SFNT_SAMPLE_REVERSE_LOOP))
+	{
 		truesize += sp->v.loopend - sp->v.loopstart;
+	}
+
 	if (sp->v.mode_flags & SNDRV_SFNT_SAMPLE_NO_BLANK)
+	{
 		truesize += BLANK_LOOP_SIZE;
+	}
 
 	sp->block = snd_util_mem_alloc(hdr, truesize * 2);
-	if (sp->block == NULL) {
+
+	if (sp->block == NULL)
+	{
 		/*snd_printd("EMU8000: out of memory\n");*/
 		/* not ENOMEM (for compatibility) */
 		return -ENOSPC;
 	}
 
-	if (sp->v.mode_flags & SNDRV_SFNT_SAMPLE_8BITS) {
+	if (sp->v.mode_flags & SNDRV_SFNT_SAMPLE_8BITS)
+	{
 		if (!access_ok(VERIFY_READ, data, sp->v.size))
+		{
 			return -EFAULT;
-	} else {
+		}
+	}
+	else
+	{
 		if (!access_ok(VERIFY_READ, data, sp->v.size * 2))
+		{
 			return -EFAULT;
+		}
 	}
 
 	/* recalculate address offset */
@@ -205,8 +245,11 @@ snd_emu8000_sample_new(struct snd_emux *rec, struct snd_sf_sample *sp,
 	sp->v.truesize = truesize * 2; /* in bytes */
 
 	snd_emux_terminate_all(emu->emu);
+
 	if ((rc = snd_emu8000_open_dma(emu, EMU8000_RAM_WRITE)) != 0)
+	{
 		return rc;
+	}
 
 	/* Set the address to start writing at */
 	snd_emu8000_write_wait(emu);
@@ -215,16 +258,22 @@ snd_emu8000_sample_new(struct snd_emux *rec, struct snd_sf_sample *sp,
 	/*snd_emu8000_init_fm(emu);*/
 
 #if 0
+
 	/* first block - write 48 samples for silence */
-	if (! sp->block->offset) {
-		for (i = 0; i < BLANK_HEAD_SIZE; i++) {
+	if (! sp->block->offset)
+	{
+		for (i = 0; i < BLANK_HEAD_SIZE; i++)
+		{
 			write_word(emu, &dram_offset, 0);
 		}
 	}
+
 #endif
 
 	offset = 0;
-	for (i = 0; i < sp->v.size; i++) {
+
+	for (i = 0; i < sp->v.size; i++)
+	{
 		unsigned short s;
 
 		s = read_word(data, offset, sp->v.mode_flags);
@@ -237,32 +286,42 @@ snd_emu8000_sample_new(struct snd_emux *rec, struct snd_sf_sample *sp,
 		cond_resched();
 
 		if (i == sp->v.loopend &&
-		    (sp->v.mode_flags & (SNDRV_SFNT_SAMPLE_BIDIR_LOOP|SNDRV_SFNT_SAMPLE_REVERSE_LOOP)))
+			(sp->v.mode_flags & (SNDRV_SFNT_SAMPLE_BIDIR_LOOP | SNDRV_SFNT_SAMPLE_REVERSE_LOOP)))
 		{
 			int looplen = sp->v.loopend - sp->v.loopstart;
 			int k;
 
 			/* copy reverse loop */
-			for (k = 1; k <= looplen; k++) {
+			for (k = 1; k <= looplen; k++)
+			{
 				s = read_word(data, offset - k, sp->v.mode_flags);
 				write_word(emu, &dram_offset, s);
 			}
-			if (sp->v.mode_flags & SNDRV_SFNT_SAMPLE_BIDIR_LOOP) {
+
+			if (sp->v.mode_flags & SNDRV_SFNT_SAMPLE_BIDIR_LOOP)
+			{
 				sp->v.loopend += looplen;
-			} else {
+			}
+			else
+			{
 				sp->v.loopstart += looplen;
 				sp->v.loopend += looplen;
 			}
+
 			sp->v.end += looplen;
 		}
 	}
 
 	/* if no blank loop is attached in the sample, add it */
-	if (sp->v.mode_flags & SNDRV_SFNT_SAMPLE_NO_BLANK) {
-		for (i = 0; i < BLANK_LOOP_SIZE; i++) {
+	if (sp->v.mode_flags & SNDRV_SFNT_SAMPLE_NO_BLANK)
+	{
+		for (i = 0; i < BLANK_LOOP_SIZE; i++)
+		{
 			write_word(emu, &dram_offset, 0);
 		}
-		if (sp->v.mode_flags & SNDRV_SFNT_SAMPLE_SINGLESHOT) {
+
+		if (sp->v.mode_flags & SNDRV_SFNT_SAMPLE_SINGLESHOT)
+		{
 			sp->v.loopstart = sp->v.end + BLANK_LOOP_START;
 			sp->v.loopend = sp->v.end + BLANK_LOOP_END;
 		}
@@ -285,12 +344,14 @@ snd_emu8000_sample_new(struct snd_emux *rec, struct snd_sf_sample *sp,
  */
 int
 snd_emu8000_sample_free(struct snd_emux *rec, struct snd_sf_sample *sp,
-			struct snd_util_memhdr *hdr)
+						struct snd_util_memhdr *hdr)
 {
-	if (sp->block) {
+	if (sp->block)
+	{
 		snd_util_mem_free(hdr, sp->block);
 		sp->block = NULL;
 	}
+
 	return 0;
 }
 

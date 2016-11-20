@@ -7,11 +7,11 @@
  */
 
 #ifdef FDPATCHES
-#define FD_IOPORT fdc_state[fdc].address
+	#define FD_IOPORT fdc_state[fdc].address
 #else
-/* It would be a lot saner just to force fdc_state[fdc].address to always
-   be set ! FIXME */
-#define FD_IOPORT 0x3f0
+	/* It would be a lot saner just to force fdc_state[fdc].address to always
+	be set ! FIXME */
+	#define FD_IOPORT 0x3f0
 #endif
 
 /* Fd controller regs. S&C, about page 340 */

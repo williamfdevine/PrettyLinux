@@ -11,7 +11,8 @@
  * Registers in the MESH controller.
  */
 
-struct mesh_regs {
+struct mesh_regs
+{
 	unsigned char	count_lo;
 	char pad0[15];
 	unsigned char	count_hi;

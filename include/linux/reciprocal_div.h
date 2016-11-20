@@ -19,7 +19,8 @@
  * to calculate the division A/B.
  */
 
-struct reciprocal_value {
+struct reciprocal_value
+{
 	u32 m;
 	u8 sh1, sh2;
 };

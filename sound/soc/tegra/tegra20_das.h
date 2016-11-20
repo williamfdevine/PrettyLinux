@@ -83,7 +83,8 @@
 #define TEGRA20_DAS_DAC_ID_2 1
 #define TEGRA20_DAS_DAC_ID_3 2
 
-struct tegra20_das {
+struct tegra20_das
+{
 	struct device *dev;
 	struct regmap *regmap;
 };
@@ -120,8 +121,8 @@ extern int tegra20_das_connect_dap_to_dac(int dap_id, int dac_sel);
  * sdata2rx: Is this DAP's SDATA2 pin RX (1) or TX (0)
  */
 extern int tegra20_das_connect_dap_to_dap(int dap_id, int other_dap_sel,
-					  int master, int sdata1rx,
-					  int sdata2rx);
+		int master, int sdata1rx,
+		int sdata2rx);
 
 /*
  * Connect a DAC's input to a DAP

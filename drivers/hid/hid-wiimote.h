@@ -49,14 +49,15 @@
 #define WIIPROTO_FLAG_PRO_CALIB_DONE	0x040000
 
 #define WIIPROTO_FLAGS_LEDS (WIIPROTO_FLAG_LED1 | WIIPROTO_FLAG_LED2 | \
-					WIIPROTO_FLAG_LED3 | WIIPROTO_FLAG_LED4)
+							 WIIPROTO_FLAG_LED3 | WIIPROTO_FLAG_LED4)
 #define WIIPROTO_FLAGS_IR (WIIPROTO_FLAG_IR_BASIC | WIIPROTO_FLAG_IR_EXT | \
-							WIIPROTO_FLAG_IR_FULL)
+						   WIIPROTO_FLAG_IR_FULL)
 
 /* return flag for led \num */
 #define WIIPROTO_FLAG_LED(num) (WIIPROTO_FLAG_LED1 << (num - 1))
 
-enum wiiproto_keys {
+enum wiiproto_keys
+{
 	WIIPROTO_KEY_LEFT,
 	WIIPROTO_KEY_RIGHT,
 	WIIPROTO_KEY_UP,
@@ -71,7 +72,8 @@ enum wiiproto_keys {
 	WIIPROTO_KEY_COUNT
 };
 
-enum wiimote_devtype {
+enum wiimote_devtype
+{
 	WIIMOTE_DEV_PENDING,
 	WIIMOTE_DEV_UNKNOWN,
 	WIIMOTE_DEV_GENERIC,
@@ -82,7 +84,8 @@ enum wiimote_devtype {
 	WIIMOTE_DEV_NUM,
 };
 
-enum wiimote_exttype {
+enum wiimote_exttype
+{
 	WIIMOTE_EXT_NONE,
 	WIIMOTE_EXT_UNKNOWN,
 	WIIMOTE_EXT_NUNCHUK,
@@ -92,7 +95,8 @@ enum wiimote_exttype {
 	WIIMOTE_EXT_NUM,
 };
 
-enum wiimote_mptype {
+enum wiimote_mptype
+{
 	WIIMOTE_MP_NONE,
 	WIIMOTE_MP_UNKNOWN,
 	WIIMOTE_MP_SINGLE,
@@ -100,12 +104,14 @@ enum wiimote_mptype {
 	WIIMOTE_MP_PASSTHROUGH_CLASSIC,
 };
 
-struct wiimote_buf {
+struct wiimote_buf
+{
 	__u8 data[HID_MAX_BUFFER_SIZE];
 	size_t size;
 };
 
-struct wiimote_queue {
+struct wiimote_queue
+{
 	spinlock_t lock;
 	struct work_struct worker;
 	__u8 head;
@@ -113,7 +119,8 @@ struct wiimote_queue {
 	struct wiimote_buf outq[WIIMOTE_BUFSIZE];
 };
 
-struct wiimote_state {
+struct wiimote_state
+{
 	spinlock_t lock;
 	__u32 flags;
 	__u8 accel_split[2];
@@ -140,7 +147,8 @@ struct wiimote_state {
 	__u8 cache_rumble;
 };
 
-struct wiimote_data {
+struct wiimote_data
+{
 	struct hid_device *hdev;
 	struct input_dev *input;
 	struct work_struct rumble_worker;
@@ -153,7 +161,8 @@ struct wiimote_data {
 	struct timer_list timer;
 	struct wiimote_debug *debug;
 
-	union {
+	union
+	{
 		struct input_dev *input;
 	} extension;
 
@@ -164,7 +173,8 @@ struct wiimote_data {
 
 /* wiimote modules */
 
-enum wiimod_module {
+enum wiimod_module
+{
 	WIIMOD_KEYS,
 	WIIMOD_RUMBLE,
 	WIIMOD_BATTERY,
@@ -184,18 +194,19 @@ enum wiimod_module {
 #define WIIMOD_FLAG_EXT8		0x0002
 #define WIIMOD_FLAG_EXT16		0x0004
 
-struct wiimod_ops {
+struct wiimod_ops
+{
 	__u16 flags;
 	unsigned long arg;
 	int (*probe) (const struct wiimod_ops *ops,
-		      struct wiimote_data *wdata);
+				  struct wiimote_data *wdata);
 	void (*remove) (const struct wiimod_ops *ops,
-			struct wiimote_data *wdata);
+					struct wiimote_data *wdata);
 
 	void (*in_keys) (struct wiimote_data *wdata, const __u8 *keys);
 	void (*in_accel) (struct wiimote_data *wdata, const __u8 *accel);
 	void (*in_ir) (struct wiimote_data *wdata, const __u8 *ir, bool packed,
-		       unsigned int id);
+				   unsigned int id);
 	void (*in_mp) (struct wiimote_data *wdata, const __u8 *mp);
 	void (*in_ext) (struct wiimote_data *wdata, const __u8 *ext);
 };
@@ -206,7 +217,8 @@ extern const struct wiimod_ops wiimod_mp;
 
 /* wiimote requests */
 
-enum wiiproto_reqs {
+enum wiiproto_reqs
+{
 	WIIPROTO_REQ_NULL = 0x0,
 	WIIPROTO_REQ_RUMBLE = 0x10,
 	WIIPROTO_REQ_LED = 0x11,
@@ -268,16 +280,16 @@ extern void wiiproto_req_accel(struct wiimote_data *wdata, __u8 accel);
 extern void wiiproto_req_ir1(struct wiimote_data *wdata, __u8 flags);
 extern void wiiproto_req_ir2(struct wiimote_data *wdata, __u8 flags);
 extern int wiimote_cmd_write(struct wiimote_data *wdata, __u32 offset,
-						const __u8 *wmem, __u8 size);
+							 const __u8 *wmem, __u8 size);
 extern ssize_t wiimote_cmd_read(struct wiimote_data *wdata, __u32 offset,
-							__u8 *rmem, __u8 size);
+								__u8 *rmem, __u8 size);
 
 #define wiiproto_req_rreg(wdata, os, sz) \
-				wiiproto_req_rmem((wdata), false, (os), (sz))
+	wiiproto_req_rmem((wdata), false, (os), (sz))
 #define wiiproto_req_reeprom(wdata, os, sz) \
-				wiiproto_req_rmem((wdata), true, (os), (sz))
+	wiiproto_req_rmem((wdata), true, (os), (sz))
 extern void wiiproto_req_rmem(struct wiimote_data *wdata, bool eeprom,
-						__u32 offset, __u16 size);
+							  __u32 offset, __u16 size);
 
 #ifdef CONFIG_DEBUG_FS
 
@@ -293,7 +305,7 @@ static inline void wiidebug_deinit(void *u) { }
 
 /* requires the state.lock spinlock to be held */
 static inline bool wiimote_cmd_pending(struct wiimote_data *wdata, int cmd,
-								__u32 opt)
+									   __u32 opt)
 {
 	return wdata->state.cmd == cmd && wdata->state.opt == opt;
 }
@@ -327,7 +339,7 @@ static inline void wiimote_cmd_acquire_noint(struct wiimote_data *wdata)
 
 /* requires the state.lock spinlock to be held */
 static inline void wiimote_cmd_set(struct wiimote_data *wdata, int cmd,
-								__u32 opt)
+								   __u32 opt)
 {
 	reinit_completion(&wdata->state.ready);
 	wdata->state.cmd = cmd;
@@ -348,14 +360,23 @@ static inline int wiimote_cmd_wait(struct wiimote_data *wdata)
 	 * by any other thread, anymore. */
 
 	ret = wait_for_completion_interruptible_timeout(&wdata->state.ready, HZ);
+
 	if (ret < 0)
+	{
 		return -ERESTARTSYS;
+	}
 	else if (ret == 0)
+	{
 		return -EIO;
+	}
 	else if (wdata->state.cmd != WIIPROTO_REQ_NULL)
+	{
 		return -EIO;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static inline int wiimote_cmd_wait_noint(struct wiimote_data *wdata)
@@ -364,12 +385,19 @@ static inline int wiimote_cmd_wait_noint(struct wiimote_data *wdata)
 
 	/* no locking needed; see wiimote_cmd_wait() */
 	ret = wait_for_completion_timeout(&wdata->state.ready, HZ);
+
 	if (!ret)
+	{
 		return -EIO;
+	}
 	else if (wdata->state.cmd != WIIPROTO_REQ_NULL)
+	{
 		return -EIO;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 #endif

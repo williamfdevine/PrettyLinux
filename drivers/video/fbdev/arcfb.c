@@ -68,7 +68,8 @@
 #define KS_INTACK 		0x40
 #define KS_CLRINT		0x02
 
-struct arcfb_par {
+struct arcfb_par
+{
 	unsigned long dio_addr;
 	unsigned long cio_addr;
 	unsigned long c2io_addr;
@@ -79,7 +80,8 @@ struct arcfb_par {
 	spinlock_t lock;
 };
 
-static const struct fb_fix_screeninfo arcfb_fix = {
+static const struct fb_fix_screeninfo arcfb_fix =
+{
 	.id =		"arcfb",
 	.type =		FB_TYPE_PACKED_PIXELS,
 	.visual =	FB_VISUAL_MONO01,
@@ -89,7 +91,8 @@ static const struct fb_fix_screeninfo arcfb_fix = {
 	.accel =	FB_ACCEL_NONE,
 };
 
-static const struct fb_var_screeninfo arcfb_var = {
+static const struct fb_var_screeninfo arcfb_var =
+{
 	.xres		= 128,
 	.yres		= 64,
 	.xres_virtual	= 128,
@@ -112,14 +115,14 @@ static unsigned int irq;
 static DECLARE_WAIT_QUEUE_HEAD(arcfb_waitq);
 
 static void ks108_writeb_ctl(struct arcfb_par *par,
-				unsigned int chipindex, unsigned char value)
+							 unsigned int chipindex, unsigned char value)
 {
 	unsigned char chipselval = par->cslut[chipindex];
 
-	outb(chipselval|KS_CEHI|KS_SEL_CMD, par->cio_addr);
+	outb(chipselval | KS_CEHI | KS_SEL_CMD, par->cio_addr);
 	outb(value, par->dio_addr);
 	udelay(tuhold);
-	outb(chipselval|KS_CELO|KS_SEL_CMD, par->cio_addr);
+	outb(chipselval | KS_CELO | KS_SEL_CMD, par->cio_addr);
 }
 
 static void ks108_writeb_mainctl(struct arcfb_par *par, unsigned char value)
@@ -135,44 +138,47 @@ static unsigned char ks108_readb_ctl2(struct arcfb_par *par)
 }
 
 static void ks108_writeb_data(struct arcfb_par *par,
-				unsigned int chipindex, unsigned char value)
+							  unsigned int chipindex, unsigned char value)
 {
 	unsigned char chipselval = par->cslut[chipindex];
 
-	outb(chipselval|KS_CEHI|KS_SEL_DATA, par->cio_addr);
+	outb(chipselval | KS_CEHI | KS_SEL_DATA, par->cio_addr);
 	outb(value, par->dio_addr);
 	udelay(tuhold);
-	outb(chipselval|KS_CELO|KS_SEL_DATA, par->cio_addr);
+	outb(chipselval | KS_CELO | KS_SEL_DATA, par->cio_addr);
 }
 
 static void ks108_set_start_line(struct arcfb_par *par,
-				unsigned int chipindex, unsigned char y)
+								 unsigned int chipindex, unsigned char y)
 {
-	ks108_writeb_ctl(par, chipindex, KS_SET_DPY_START_LINE|y);
+	ks108_writeb_ctl(par, chipindex, KS_SET_DPY_START_LINE | y);
 }
 
 static void ks108_set_yaddr(struct arcfb_par *par,
-				unsigned int chipindex, unsigned char y)
+							unsigned int chipindex, unsigned char y)
 {
-	ks108_writeb_ctl(par, chipindex, KS_SET_PAGE_NUM|y);
+	ks108_writeb_ctl(par, chipindex, KS_SET_PAGE_NUM | y);
 }
 
 static void ks108_set_xaddr(struct arcfb_par *par,
-				unsigned int chipindex, unsigned char x)
+							unsigned int chipindex, unsigned char x)
 {
-	ks108_writeb_ctl(par, chipindex, KS_SET_X|x);
+	ks108_writeb_ctl(par, chipindex, KS_SET_X | x);
 }
 
 static void ks108_clear_lcd(struct arcfb_par *par, unsigned int chipindex)
 {
-	int i,j;
+	int i, j;
 
-	for (i = 0; i <= 8; i++) {
+	for (i = 0; i <= 8; i++)
+	{
 		ks108_set_yaddr(par, chipindex, i);
 		ks108_set_xaddr(par, chipindex, 0);
-		for (j = 0; j < 64; j++) {
+
+		for (j = 0; j < 64; j++)
+		{
 			ks108_writeb_data(par, chipindex,
-				(unsigned char) splashval);
+							  (unsigned char) splashval);
 		}
 	}
 }
@@ -193,22 +199,28 @@ static int arcfb_release(struct fb_info *info, int user)
 	int count = atomic_read(&par->ref_count);
 
 	if (!count)
+	{
 		return -EINVAL;
+	}
+
 	atomic_dec(&par->ref_count);
 	return 0;
 }
 
 static int arcfb_pan_display(struct fb_var_screeninfo *var,
-				struct fb_info *info)
+							 struct fb_info *info)
 {
 	int i;
 	struct arcfb_par *par = info->par;
 
 	if ((var->vmode & FB_VMODE_YWRAP) && (var->yoffset < 64)
-		&& (info->var.yres <= 64)) {
-		for (i = 0; i < num_cols; i++) {
+		&& (info->var.yres <= 64))
+	{
+		for (i = 0; i < num_cols; i++)
+		{
 			ks108_set_start_line(par, i, var->yoffset);
 		}
+
 		info->var.yoffset = var->yoffset;
 		return 0;
 	}
@@ -225,14 +237,19 @@ static irqreturn_t arcfb_interrupt(int vec, void *dev_instance)
 	ctl2status = ks108_readb_ctl2(par);
 
 	if (!(ctl2status & KS_INTACK)) /* not arc generated interrupt */
+	{
 		return IRQ_NONE;
+	}
 
 	ks108_writeb_mainctl(par, KS_CLRINT);
 
 	spin_lock(&par->lock);
-        if (waitqueue_active(&arcfb_waitq)) {
-                wake_up(&arcfb_waitq);
-        }
+
+	if (waitqueue_active(&arcfb_waitq))
+	{
+		wake_up(&arcfb_waitq);
+	}
+
 	spin_unlock(&par->lock);
 
 	return IRQ_HANDLED;
@@ -245,7 +262,7 @@ static irqreturn_t arcfb_interrupt(int vec, void *dev_instance)
  * X. That's what rightshift does. bitmask selects the desired input bit.
  */
 static void arcfb_lcd_update_page(struct arcfb_par *par, unsigned int upper,
-		unsigned int left, unsigned int right, unsigned int distance)
+								  unsigned int left, unsigned int right, unsigned int distance)
 {
 	unsigned char *src;
 	unsigned int xindex, yindex, chipindex, linesize;
@@ -255,35 +272,47 @@ static void arcfb_lcd_update_page(struct arcfb_par *par, unsigned int upper,
 
 	xindex = left >> 6;
 	yindex = upper >> 6;
-	chipindex = (xindex + (yindex*num_cols));
+	chipindex = (xindex + (yindex * num_cols));
 
-	ks108_set_yaddr(par, chipindex, upper/8);
+	ks108_set_yaddr(par, chipindex, upper / 8);
 
-	linesize = par->info->var.xres/8;
-	src = (unsigned char __force *) par->info->screen_base + (left/8) +
-		(upper * linesize);
+	linesize = par->info->var.xres / 8;
+	src = (unsigned char __force *) par->info->screen_base + (left / 8) +
+		  (upper * linesize);
 	ks108_set_xaddr(par, chipindex, left);
 
-	bitmask=1;
-	rightshift=0;
-	while (left <= right) {
+	bitmask = 1;
+	rightshift = 0;
+
+	while (left <= right)
+	{
 		val = 0;
-		for (i = 0; i < 8; i++) {
-			if ( i > rightshift) {
-				val |= (*(src + (i*linesize)) & bitmask)
-						<< (i - rightshift);
-			} else {
-				val |= (*(src + (i*linesize)) & bitmask)
-						 >> (rightshift - i);
+
+		for (i = 0; i < 8; i++)
+		{
+			if ( i > rightshift)
+			{
+				val |= (*(src + (i * linesize)) & bitmask)
+					   << (i - rightshift);
+			}
+			else
+			{
+				val |= (*(src + (i * linesize)) & bitmask)
+					   >> (rightshift - i);
 			}
 		}
+
 		ks108_writeb_data(par, chipindex, val);
 		left++;
-		if (bitmask == 0x80) {
+
+		if (bitmask == 0x80)
+		{
 			bitmask = 1;
 			src++;
-			rightshift=0;
-		} else {
+			rightshift = 0;
+		}
+		else
+		{
 			bitmask <<= 1;
 			rightshift++;
 		}
@@ -297,7 +326,7 @@ static void arcfb_lcd_update_page(struct arcfb_par *par, unsigned int upper,
  * desired for the write.
  */
 static void arcfb_lcd_update_vert(struct arcfb_par *par, unsigned int top,
-		unsigned int bottom, unsigned int left, unsigned int right)
+								  unsigned int bottom, unsigned int left, unsigned int right)
 {
 	unsigned int distance, upper, lower;
 
@@ -305,7 +334,8 @@ static void arcfb_lcd_update_vert(struct arcfb_par *par, unsigned int top,
 	upper = top;
 	lower = top + 7;
 
-	while (distance > 0) {
+	while (distance > 0)
+	{
 		distance -= 8;
 		arcfb_lcd_update_page(par, upper, left, right, 8);
 		upper = lower + 1;
@@ -319,7 +349,7 @@ static void arcfb_lcd_update_vert(struct arcfb_par *par, unsigned int top,
  * block in to individual blocks no taller than 64 pixels.
  */
 static void arcfb_lcd_update_horiz(struct arcfb_par *par, unsigned int left,
-			unsigned int right, unsigned int top, unsigned int h)
+								   unsigned int right, unsigned int top, unsigned int h)
 {
 	unsigned int distance, upper, lower;
 
@@ -327,7 +357,8 @@ static void arcfb_lcd_update_horiz(struct arcfb_par *par, unsigned int left,
 	upper = floor8(top);
 	lower = min(upper + distance - 1, ceil64(upper));
 
-	while (distance > 0) {
+	while (distance > 0)
+	{
 		distance -= ((lower - upper) + 1 );
 		arcfb_lcd_update_vert(par, upper, lower, left, right);
 		upper = lower + 1;
@@ -341,7 +372,7 @@ static void arcfb_lcd_update_horiz(struct arcfb_par *par, unsigned int left,
  * and finally down to 64x8 pages.
  */
 static void arcfb_lcd_update(struct arcfb_par *par, unsigned int dx,
-			unsigned int dy, unsigned int w, unsigned int h)
+							 unsigned int dy, unsigned int w, unsigned int h)
 {
 	unsigned int left, right, distance, y;
 
@@ -354,7 +385,8 @@ static void arcfb_lcd_update(struct arcfb_par *par, unsigned int dx,
 	left = dx;
 	right = min(left + w - 1, ceil64(left));
 
-	while (distance > 0) {
+	while (distance > 0)
+	{
 		arcfb_lcd_update_horiz(par, left, right, y, h);
 		distance -= ((right - left) + 1);
 		left = right + 1;
@@ -363,7 +395,7 @@ static void arcfb_lcd_update(struct arcfb_par *par, unsigned int dx,
 }
 
 static void arcfb_fillrect(struct fb_info *info,
-			   const struct fb_fillrect *rect)
+						   const struct fb_fillrect *rect)
 {
 	struct arcfb_par *par = info->par;
 
@@ -374,7 +406,7 @@ static void arcfb_fillrect(struct fb_info *info,
 }
 
 static void arcfb_copyarea(struct fb_info *info,
-			   const struct fb_copyarea *area)
+						   const struct fb_copyarea *area)
 {
 	struct arcfb_par *par = info->par;
 
@@ -392,42 +424,52 @@ static void arcfb_imageblit(struct fb_info *info, const struct fb_image *image)
 
 	/* update the physical lcd */
 	arcfb_lcd_update(par, image->dx, image->dy, image->width,
-				image->height);
+					 image->height);
 }
 
 static int arcfb_ioctl(struct fb_info *info,
-			  unsigned int cmd, unsigned long arg)
+					   unsigned int cmd, unsigned long arg)
 {
 	void __user *argp = (void __user *)arg;
 	struct arcfb_par *par = info->par;
 	unsigned long flags;
 
-	switch (cmd) {
+	switch (cmd)
+	{
 		case FBIO_WAITEVENT:
-		{
-			DEFINE_WAIT(wait);
-			/* illegal to wait on arc if no irq will occur */
-			if (!par->irq)
-				return -EINVAL;
+			{
+				DEFINE_WAIT(wait);
 
-			/* wait until the Arc has generated an interrupt
-			 * which will wake us up */
-			spin_lock_irqsave(&par->lock, flags);
-			prepare_to_wait(&arcfb_waitq, &wait,
-					TASK_INTERRUPTIBLE);
-			spin_unlock_irqrestore(&par->lock, flags);
-			schedule();
-			finish_wait(&arcfb_waitq, &wait);
-		}
+				/* illegal to wait on arc if no irq will occur */
+				if (!par->irq)
+				{
+					return -EINVAL;
+				}
+
+				/* wait until the Arc has generated an interrupt
+				 * which will wake us up */
+				spin_lock_irqsave(&par->lock, flags);
+				prepare_to_wait(&arcfb_waitq, &wait,
+								TASK_INTERRUPTIBLE);
+				spin_unlock_irqrestore(&par->lock, flags);
+				schedule();
+				finish_wait(&arcfb_waitq, &wait);
+			}
+
 		case FBIO_GETCONTROL2:
-		{
-			unsigned char ctl2;
+			{
+				unsigned char ctl2;
 
-			ctl2 = ks108_readb_ctl2(info->par);
-			if (copy_to_user(argp, &ctl2, sizeof(ctl2)))
-				return -EFAULT;
-			return 0;
-		}
+				ctl2 = ks108_readb_ctl2(info->par);
+
+				if (copy_to_user(argp, &ctl2, sizeof(ctl2)))
+				{
+					return -EFAULT;
+				}
+
+				return 0;
+			}
+
 		default:
 			return -EINVAL;
 	}
@@ -439,31 +481,36 @@ static int arcfb_ioctl(struct fb_info *info,
  * writes since we update the lcd in each write() anyway.
  */
 static ssize_t arcfb_write(struct fb_info *info, const char __user *buf,
-			   size_t count, loff_t *ppos)
+						   size_t count, loff_t *ppos)
 {
 	/* modded from epson 1355 */
 
 	unsigned long p;
-	int err=-EINVAL;
-	unsigned int fbmemlength,x,y,w,h, bitppos, startpos, endpos, bitcount;
+	int err = -EINVAL;
+	unsigned int fbmemlength, x, y, w, h, bitppos, startpos, endpos, bitcount;
 	struct arcfb_par *par;
 	unsigned int xres;
 
 	p = *ppos;
 	par = info->par;
 	xres = info->var.xres;
-	fbmemlength = (xres * info->var.yres)/8;
+	fbmemlength = (xres * info->var.yres) / 8;
 
 	if (p > fbmemlength)
+	{
 		return -ENOSPC;
+	}
 
 	err = 0;
-	if ((count + p) > fbmemlength) {
+
+	if ((count + p) > fbmemlength)
+	{
 		count = fbmemlength - p;
 		err = -ENOSPC;
 	}
 
-	if (count) {
+	if (count)
+	{
 		char *base_addr;
 
 		base_addr = (char __force *)info->screen_base;
@@ -473,9 +520,9 @@ static ssize_t arcfb_write(struct fb_info *info, const char __user *buf,
 	}
 
 
-	bitppos = p*8;
+	bitppos = p * 8;
 	startpos = floorXres(bitppos, xres);
-	endpos = ceilXres((bitppos + (count*8)), xres);
+	endpos = ceilXres((bitppos + (count * 8)), xres);
 	bitcount = endpos - startpos;
 
 	x = startpos % xres;
@@ -485,11 +532,15 @@ static ssize_t arcfb_write(struct fb_info *info, const char __user *buf,
 	arcfb_lcd_update(par, x, y, w, h);
 
 	if (count)
+	{
 		return count;
+	}
+
 	return err;
 }
 
-static struct fb_ops arcfb_ops = {
+static struct fb_ops arcfb_ops =
+{
 	.owner		= THIS_MODULE,
 	.fb_open	= arcfb_open,
 	.fb_read        = fb_sys_read,
@@ -511,17 +562,23 @@ static int arcfb_probe(struct platform_device *dev)
 	struct arcfb_par *par;
 	int i;
 
-	videomemorysize = (((64*64)*num_cols)*num_rows)/8;
+	videomemorysize = (((64 * 64) * num_cols) * num_rows) / 8;
 
 	/* We need a flat backing store for the Arc's
 	   less-flat actual paged framebuffer */
 	videomemory = vzalloc(videomemorysize);
+
 	if (!videomemory)
+	{
 		return retval;
+	}
 
 	info = framebuffer_alloc(sizeof(struct arcfb_par), &dev->dev);
+
 	if (!info)
+	{
 		goto err;
+	}
 
 	info->screen_base = (char __iomem *)videomemory;
 	info->fbops = &arcfb_ops;
@@ -531,10 +588,12 @@ static int arcfb_probe(struct platform_device *dev)
 	par = info->par;
 	par->info = info;
 
-	if (!dio_addr || !cio_addr || !c2io_addr) {
+	if (!dio_addr || !cio_addr || !c2io_addr)
+	{
 		printk(KERN_WARNING "no IO addresses supplied\n");
 		goto err1;
 	}
+
 	par->dio_addr = dio_addr;
 	par->cio_addr = cio_addr;
 	par->c2io_addr = c2io_addr;
@@ -543,24 +602,34 @@ static int arcfb_probe(struct platform_device *dev)
 	info->flags = FBINFO_FLAG_DEFAULT;
 	spin_lock_init(&par->lock);
 	retval = register_framebuffer(info);
+
 	if (retval < 0)
+	{
 		goto err1;
+	}
+
 	platform_set_drvdata(dev, info);
-	if (irq) {
+
+	if (irq)
+	{
 		par->irq = irq;
+
 		if (request_irq(par->irq, &arcfb_interrupt, IRQF_SHARED,
-				"arcfb", info)) {
+						"arcfb", info))
+		{
 			printk(KERN_INFO
-				"arcfb: Failed req IRQ %d\n", par->irq);
+				   "arcfb: Failed req IRQ %d\n", par->irq);
 			retval = -EBUSY;
 			goto err1;
 		}
 	}
+
 	fb_info(info, "Arc frame buffer device, using %dK of video memory\n",
-		videomemorysize >> 10);
+			videomemorysize >> 10);
 
 	/* this inits the lcd but doesn't clear dirty pixels */
-	for (i = 0; i < num_cols * num_rows; i++) {
+	for (i = 0; i < num_cols * num_rows; i++)
+	{
 		ks108_writeb_ctl(par, i, KS_DPY_OFF);
 		ks108_set_start_line(par, i, 0);
 		ks108_set_yaddr(par, i, 0);
@@ -569,8 +638,10 @@ static int arcfb_probe(struct platform_device *dev)
 	}
 
 	/* if we were told to splash the screen, we just clear it */
-	if (!nosplash) {
-		for (i = 0; i < num_cols * num_rows; i++) {
+	if (!nosplash)
+	{
+		for (i = 0; i < num_cols * num_rows; i++)
+		{
 			fb_info(info, "splashing lcd %d\n", i);
 			ks108_set_start_line(par, i, 0);
 			ks108_clear_lcd(par, i);
@@ -589,15 +660,18 @@ static int arcfb_remove(struct platform_device *dev)
 {
 	struct fb_info *info = platform_get_drvdata(dev);
 
-	if (info) {
+	if (info)
+	{
 		unregister_framebuffer(info);
 		vfree((void __force *)info->screen_base);
 		framebuffer_release(info);
 	}
+
 	return 0;
 }
 
-static struct platform_driver arcfb_driver = {
+static struct platform_driver arcfb_driver =
+{
 	.probe	= arcfb_probe,
 	.remove = arcfb_remove,
 	.driver	= {
@@ -612,21 +686,32 @@ static int __init arcfb_init(void)
 	int ret;
 
 	if (!arcfb_enable)
+	{
 		return -ENXIO;
+	}
 
 	ret = platform_driver_register(&arcfb_driver);
-	if (!ret) {
+
+	if (!ret)
+	{
 		arcfb_device = platform_device_alloc("arcfb", 0);
-		if (arcfb_device) {
+
+		if (arcfb_device)
+		{
 			ret = platform_device_add(arcfb_device);
-		} else {
+		}
+		else
+		{
 			ret = -ENOMEM;
 		}
-		if (ret) {
+
+		if (ret)
+		{
 			platform_device_put(arcfb_device);
 			platform_driver_unregister(&arcfb_driver);
 		}
 	}
+
 	return ret;
 
 }

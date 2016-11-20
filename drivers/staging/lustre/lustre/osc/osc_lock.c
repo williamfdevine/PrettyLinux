@@ -56,7 +56,7 @@
 static const struct cl_lock_operations osc_lock_ops;
 static const struct cl_lock_operations osc_lock_lockless_ops;
 static void osc_lock_to_lockless(const struct lu_env *env,
-				 struct osc_lock *ols, int force);
+								 struct osc_lock *ols, int force);
 
 int osc_lock_is_lockless(const struct osc_lock *olck)
 {
@@ -73,8 +73,12 @@ static struct ldlm_lock *osc_handle_ptr(struct lustre_handle *handle)
 	struct ldlm_lock *lock;
 
 	lock = ldlm_handle2lock(handle);
+
 	if (lock)
+	{
 		LDLM_LOCK_PUT(lock);
+	}
+
 	return lock;
 }
 
@@ -88,41 +92,58 @@ static int osc_lock_invariant(struct osc_lock *ols)
 	int handle_used = lustre_handle_is_used(&ols->ols_handle);
 
 	if (ergo(osc_lock_is_lockless(ols),
-		 ols->ols_locklessable && !ols->ols_dlmlock))
+			 ols->ols_locklessable && !ols->ols_dlmlock))
+	{
 		return 1;
+	}
 
 	/*
 	 * If all the following "ergo"s are true, return 1, otherwise 0
 	 */
 	if (!ergo(olock, handle_used))
+	{
 		return 0;
+	}
 
 	if (!ergo(olock, olock->l_handle.h_cookie == ols->ols_handle.cookie))
+	{
 		return 0;
+	}
 
 	if (!ergo(handle_used,
-		  ergo(lock && olock, lock == olock) &&
-		  ergo(!lock, !olock)))
+			  ergo(lock && olock, lock == olock) &&
+			  ergo(!lock, !olock)))
+	{
 		return 0;
+	}
+
 	/*
 	 * Check that ->ols_handle and ->ols_dlmlock are consistent, but
 	 * take into account that they are set at the different time.
 	 */
 	if (!ergo(ols->ols_state == OLS_CANCELLED,
-		  !olock && !handle_used))
+			  !olock && !handle_used))
+	{
 		return 0;
+	}
+
 	/*
 	 * DLM lock is destroyed only after we have seen cancellation
 	 * ast.
 	 */
 	if (!ergo(olock && ols->ols_state < OLS_CANCELLED,
-		  !ldlm_is_destroyed(olock)))
+			  !ldlm_is_destroyed(olock)))
+	{
 		return 0;
+	}
 
 	if (!ergo(ols->ols_state == OLS_GRANTED,
-		  olock && olock->l_req_mode == olock->l_granted_mode &&
-		  ols->ols_hold))
+			  olock && olock->l_req_mode == olock->l_granted_mode &&
+			  ols->ols_hold))
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
@@ -133,7 +154,7 @@ static int osc_lock_invariant(struct osc_lock *ols)
  */
 
 static void osc_lock_fini(const struct lu_env *env,
-			  struct cl_lock_slice *slice)
+						  struct cl_lock_slice *slice)
 {
 	struct osc_lock *ols = cl2osc_lock(slice);
 
@@ -144,8 +165,8 @@ static void osc_lock_fini(const struct lu_env *env,
 }
 
 static void osc_lock_build_policy(const struct lu_env *env,
-				  const struct cl_lock *lock,
-				  ldlm_policy_data_t *policy)
+								  const struct cl_lock *lock,
+								  ldlm_policy_data_t *policy)
 {
 	const struct cl_lock_descr *d = &lock->cll_descr;
 
@@ -160,13 +181,25 @@ static __u64 osc_enq2ldlm_flags(__u32 enqflags)
 	LASSERT((enqflags & ~CEF_MASK) == 0);
 
 	if (enqflags & CEF_NONBLOCK)
+	{
 		result |= LDLM_FL_BLOCK_NOWAIT;
+	}
+
 	if (enqflags & CEF_ASYNC)
+	{
 		result |= LDLM_FL_HAS_INTENT;
+	}
+
 	if (enqflags & CEF_DISCARD_DATA)
+	{
 		result |= LDLM_FL_AST_DISCARD_DATA;
+	}
+
 	if (enqflags & CEF_PEEK)
+	{
 		result |= LDLM_FL_TEST_LOCK;
+	}
+
 	return result;
 }
 
@@ -181,9 +214,9 @@ static __u64 osc_enq2ldlm_flags(__u32 enqflags)
  * Called under lock and resource spin-locks.
  */
 static void osc_lock_lvb_update(const struct lu_env *env,
-				struct osc_object *osc,
-				struct ldlm_lock *dlmlock,
-				struct ost_lvb *lvb)
+								struct osc_object *osc,
+								struct ldlm_lock *dlmlock,
+								struct ost_lvb *lvb)
 {
 	struct cl_object *obj = osc2cl(osc);
 	struct lov_oinfo *oinfo = osc->oo_oinfo;
@@ -191,13 +224,18 @@ static void osc_lock_lvb_update(const struct lu_env *env,
 	unsigned valid;
 
 	valid = CAT_BLOCKS | CAT_ATIME | CAT_CTIME | CAT_MTIME | CAT_SIZE;
+
 	if (!lvb)
+	{
 		lvb = dlmlock->l_lvb_data;
+	}
 
 	cl_lvb2attr(attr, lvb);
 
 	cl_object_attr_lock(obj);
-	if (dlmlock) {
+
+	if (dlmlock)
+	{
 		__u64 size;
 
 		check_res_locked(dlmlock->l_resource);
@@ -208,17 +246,24 @@ static void osc_lock_lvb_update(const struct lu_env *env,
 		 * A lock on [x,y] means a KMS of up to y + 1 bytes!
 		 */
 		if (size > dlmlock->l_policy_data.l_extent.end)
+		{
 			size = dlmlock->l_policy_data.l_extent.end + 1;
-		if (size >= oinfo->loi_kms) {
+		}
+
+		if (size >= oinfo->loi_kms)
+		{
 			LDLM_DEBUG(dlmlock, "lock acquired, setting rss=%llu, kms=%llu",
-				   lvb->lvb_size, size);
+					   lvb->lvb_size, size);
 			valid |= CAT_KMS;
 			attr->cat_kms = size;
-		} else {
-			LDLM_DEBUG(dlmlock, "lock acquired, setting rss=%llu; leaving kms=%llu, end=%llu",
-				   lvb->lvb_size, oinfo->loi_kms,
-				   dlmlock->l_policy_data.l_extent.end);
 		}
+		else
+		{
+			LDLM_DEBUG(dlmlock, "lock acquired, setting rss=%llu; leaving kms=%llu, end=%llu",
+					   lvb->lvb_size, oinfo->loi_kms,
+					   dlmlock->l_policy_data.l_extent.end);
+		}
+
 		ldlm_lock_allow_match_locked(dlmlock);
 	}
 
@@ -227,7 +272,7 @@ static void osc_lock_lvb_update(const struct lu_env *env,
 }
 
 static void osc_lock_granted(const struct lu_env *env, struct osc_lock *oscl,
-			     struct lustre_handle *lockh, bool lvb_update)
+							 struct lustre_handle *lockh, bool lvb_update)
 {
 	struct ldlm_lock *dlmlock;
 
@@ -246,7 +291,8 @@ static void osc_lock_granted(const struct lu_env *env, struct osc_lock *oscl,
 	/* This may be a matched lock for glimpse request, do not hold
 	 * lock reference in that case.
 	 */
-	if (!oscl->ols_glimpse) {
+	if (!oscl->ols_glimpse)
+	{
 		/* hold a refc for non glimpse lock which will
 		 * be released in osc_lock_cancel()
 		 */
@@ -257,7 +303,9 @@ static void osc_lock_granted(const struct lu_env *env, struct osc_lock *oscl,
 
 	/* Lock must have been granted. */
 	lock_res_and_lock(dlmlock);
-	if (dlmlock->l_granted_mode == dlmlock->l_req_mode) {
+
+	if (dlmlock->l_granted_mode == dlmlock->l_req_mode)
+	{
 		struct ldlm_extent *ext = &dlmlock->l_policy_data.l_extent;
 		struct cl_lock_descr *descr = &oscl->ols_cl.cls_lock->cll_descr;
 
@@ -270,13 +318,16 @@ static void osc_lock_granted(const struct lu_env *env, struct osc_lock *oscl,
 		descr->cld_gid = ext->gid;
 
 		/* no lvb update for matched lock */
-		if (lvb_update) {
+		if (lvb_update)
+		{
 			LASSERT(oscl->ols_flags & LDLM_FL_LVB_READY);
 			osc_lock_lvb_update(env, cl2osc(oscl->ols_cl.cls_obj),
-					    dlmlock, NULL);
+								dlmlock, NULL);
 		}
+
 		LINVRNT(osc_lock_invariant(oscl));
 	}
+
 	unlock_res_and_lock(dlmlock);
 
 	LASSERT(oscl->ols_state != OLS_GRANTED);
@@ -289,7 +340,7 @@ static void osc_lock_granted(const struct lu_env *env, struct osc_lock *oscl,
  * lock.
  */
 static int osc_lock_upcall(void *cookie, struct lustre_handle *lockh,
-			   int errcode)
+						   int errcode)
 {
 	struct osc_lock *oscl = cookie;
 	struct cl_lock_slice *slice = &oscl->ols_cl;
@@ -302,20 +353,29 @@ static int osc_lock_upcall(void *cookie, struct lustre_handle *lockh,
 	LASSERT(!IS_ERR(env));
 
 	rc = ldlm_error2errno(errcode);
-	if (oscl->ols_state == OLS_ENQUEUED) {
+
+	if (oscl->ols_state == OLS_ENQUEUED)
+	{
 		oscl->ols_state = OLS_UPCALL_RECEIVED;
-	} else if (oscl->ols_state == OLS_CANCELLED) {
+	}
+	else if (oscl->ols_state == OLS_CANCELLED)
+	{
 		rc = -EIO;
-	} else {
+	}
+	else
+	{
 		CERROR("Impossible state: %d\n", oscl->ols_state);
 		LBUG();
 	}
 
 	if (rc == 0)
+	{
 		osc_lock_granted(env, oscl, lockh, errcode == ELDLM_OK);
+	}
 
 	/* Error handling, some errors are tolerable. */
-	if (oscl->ols_locklessable && rc == -EUSERS) {
+	if (oscl->ols_locklessable && rc == -EUSERS)
+	{
 		/* This is a tolerable error, turn this lock into
 		 * lockless lock.
 		 */
@@ -326,23 +386,28 @@ static int osc_lock_upcall(void *cookie, struct lustre_handle *lockh,
 		osc_lock_to_lockless(env, oscl, 1);
 		oscl->ols_state = OLS_GRANTED;
 		rc = 0;
-	} else if (oscl->ols_glimpse && rc == -ENAVAIL) {
+	}
+	else if (oscl->ols_glimpse && rc == -ENAVAIL)
+	{
 		LASSERT(oscl->ols_flags & LDLM_FL_LVB_READY);
 		osc_lock_lvb_update(env, cl2osc(slice->cls_obj),
-				    NULL, &oscl->ols_lvb);
+							NULL, &oscl->ols_lvb);
 		/* Hide the error. */
 		rc = 0;
 	}
 
 	if (oscl->ols_owner)
+	{
 		cl_sync_io_note(env, oscl->ols_owner, rc);
+	}
+
 	cl_env_nested_put(&nest, env);
 
 	return rc;
 }
 
 static int osc_lock_upcall_agl(void *cookie, struct lustre_handle *lockh,
-			       int errcode)
+							   int errcode)
 {
 	struct osc_object *osc = cookie;
 	struct ldlm_lock *dlmlock;
@@ -352,13 +417,16 @@ static int osc_lock_upcall_agl(void *cookie, struct lustre_handle *lockh,
 	env = cl_env_nested_get(&nest);
 	LASSERT(!IS_ERR(env));
 
-	if (errcode == ELDLM_LOCK_MATCHED) {
+	if (errcode == ELDLM_LOCK_MATCHED)
+	{
 		errcode = ELDLM_OK;
 		goto out;
 	}
 
 	if (errcode != ELDLM_OK)
+	{
 		goto out;
+	}
 
 	dlmlock = ldlm_handle2lock(lockh);
 	LASSERT(dlmlock);
@@ -379,7 +447,7 @@ out:
 }
 
 static int osc_lock_flush(struct osc_object *obj, pgoff_t start, pgoff_t end,
-			  enum cl_lock_mode mode, int discard)
+						  enum cl_lock_mode mode, int discard)
 {
 	struct lu_env *env;
 	struct cl_env_nest nest;
@@ -387,22 +455,32 @@ static int osc_lock_flush(struct osc_object *obj, pgoff_t start, pgoff_t end,
 	int rc2 = 0;
 
 	env = cl_env_nested_get(&nest);
-	if (IS_ERR(env))
-		return PTR_ERR(env);
 
-	if (mode == CLM_WRITE) {
+	if (IS_ERR(env))
+	{
+		return PTR_ERR(env);
+	}
+
+	if (mode == CLM_WRITE)
+	{
 		rc = osc_cache_writeback_range(env, obj, start, end, 1,
-					       discard);
+									   discard);
 		CDEBUG(D_CACHE, "object %p: [%lu -> %lu] %d pages were %s.\n",
-		       obj, start, end, rc,
-		       discard ? "discarded" : "written back");
+			   obj, start, end, rc,
+			   discard ? "discarded" : "written back");
+
 		if (rc > 0)
+		{
 			rc = 0;
+		}
 	}
 
 	rc2 = osc_lock_discard_pages(env, obj, start, end, mode);
+
 	if (rc == 0 && rc2 < 0)
+	{
 		rc = rc2;
+	}
 
 	cl_env_nested_put(&nest, env);
 	return rc;
@@ -413,8 +491,8 @@ static int osc_lock_flush(struct osc_object *obj, pgoff_t start, pgoff_t end,
  * and ldlm_lock caches.
  */
 static int osc_dlm_blocking_ast0(const struct lu_env *env,
-				 struct ldlm_lock *dlmlock,
-				 void *data, int flag)
+								 struct ldlm_lock *dlmlock,
+								 void *data, int flag)
 {
 	struct cl_object *obj = NULL;
 	int result = 0;
@@ -424,17 +502,23 @@ static int osc_dlm_blocking_ast0(const struct lu_env *env,
 	LASSERT(flag == LDLM_CB_CANCELING);
 
 	lock_res_and_lock(dlmlock);
-	if (dlmlock->l_granted_mode != dlmlock->l_req_mode) {
+
+	if (dlmlock->l_granted_mode != dlmlock->l_req_mode)
+	{
 		dlmlock->l_ast_data = NULL;
 		unlock_res_and_lock(dlmlock);
 		return 0;
 	}
 
 	discard = ldlm_is_discard_data(dlmlock);
-	if (dlmlock->l_granted_mode & (LCK_PW | LCK_GROUP))
-		mode = CLM_WRITE;
 
-	if (dlmlock->l_ast_data) {
+	if (dlmlock->l_granted_mode & (LCK_PW | LCK_GROUP))
+	{
+		mode = CLM_WRITE;
+	}
+
+	if (dlmlock->l_ast_data)
+	{
 		obj = osc2cl(dlmlock->l_ast_data);
 		dlmlock->l_ast_data = NULL;
 
@@ -446,16 +530,17 @@ static int osc_dlm_blocking_ast0(const struct lu_env *env,
 	/* if l_ast_data is NULL, the dlmlock was enqueued by AGL or
 	 * the object has been destroyed.
 	 */
-	if (obj) {
+	if (obj)
+	{
 		struct ldlm_extent *extent = &dlmlock->l_policy_data.l_extent;
 		struct cl_attr *attr = &osc_env_info(env)->oti_attr;
 		__u64 old_kms;
 
 		/* Destroy pages covered by the extent of the DLM lock */
 		result = osc_lock_flush(cl2osc(obj),
-					cl_index(obj, extent->start),
-					cl_index(obj, extent->end),
-					mode, discard);
+								cl_index(obj, extent->start),
+								cl_index(obj, extent->end),
+								mode, discard);
 
 		/* losing a lock, update kms */
 		lock_res_and_lock(dlmlock);
@@ -473,6 +558,7 @@ static int osc_dlm_blocking_ast0(const struct lu_env *env,
 
 		cl_object_put(env, obj);
 	}
+
 	return result;
 }
 
@@ -519,49 +605,61 @@ static int osc_dlm_blocking_ast0(const struct lu_env *env,
  *
  */
 static int osc_ldlm_blocking_ast(struct ldlm_lock *dlmlock,
-				 struct ldlm_lock_desc *new, void *data,
-				 int flag)
+								 struct ldlm_lock_desc *new, void *data,
+								 int flag)
 {
 	int result = 0;
 
-	switch (flag) {
-	case LDLM_CB_BLOCKING: {
-		struct lustre_handle lockh;
+	switch (flag)
+	{
+		case LDLM_CB_BLOCKING:
+			{
+				struct lustre_handle lockh;
 
-		ldlm_lock2handle(dlmlock, &lockh);
-		result = ldlm_cli_cancel(&lockh, LCF_ASYNC);
-		if (result == -ENODATA)
-			result = 0;
-		break;
+				ldlm_lock2handle(dlmlock, &lockh);
+				result = ldlm_cli_cancel(&lockh, LCF_ASYNC);
+
+				if (result == -ENODATA)
+				{
+					result = 0;
+				}
+
+				break;
+			}
+
+		case LDLM_CB_CANCELING:
+			{
+				struct lu_env *env;
+				struct cl_env_nest nest;
+
+				/*
+				 * This can be called in the context of outer IO, e.g.,
+				 *
+				 *     osc_enqueue_base()->...
+				 *	 ->ldlm_prep_elc_req()->...
+				 *	   ->ldlm_cancel_callback()->...
+				 *	     ->osc_ldlm_blocking_ast()
+				 *
+				 * new environment has to be created to not corrupt outer
+				 * context.
+				 */
+				env = cl_env_nested_get(&nest);
+
+				if (IS_ERR(env))
+				{
+					result = PTR_ERR(env);
+					break;
+				}
+
+				result = osc_dlm_blocking_ast0(env, dlmlock, data, flag);
+				cl_env_nested_put(&nest, env);
+				break;
+			}
+
+		default:
+			LBUG();
 	}
-	case LDLM_CB_CANCELING: {
-		struct lu_env *env;
-		struct cl_env_nest nest;
 
-		/*
-		 * This can be called in the context of outer IO, e.g.,
-		 *
-		 *     osc_enqueue_base()->...
-		 *	 ->ldlm_prep_elc_req()->...
-		 *	   ->ldlm_cancel_callback()->...
-		 *	     ->osc_ldlm_blocking_ast()
-		 *
-		 * new environment has to be created to not corrupt outer
-		 * context.
-		 */
-		env = cl_env_nested_get(&nest);
-		if (IS_ERR(env)) {
-			result = PTR_ERR(env);
-			break;
-		}
-
-		result = osc_dlm_blocking_ast0(env, dlmlock, data, flag);
-		cl_env_nested_put(&nest, env);
-		break;
-		}
-	default:
-		LBUG();
-	}
 	return result;
 }
 
@@ -577,17 +675,23 @@ static int osc_ldlm_glimpse_ast(struct ldlm_lock *dlmlock, void *data)
 	LASSERT(lustre_msg_get_opc(req->rq_reqmsg) == LDLM_GL_CALLBACK);
 
 	env = cl_env_nested_get(&nest);
-	if (!IS_ERR(env)) {
+
+	if (!IS_ERR(env))
+	{
 		struct cl_object *obj = NULL;
 
 		lock_res_and_lock(dlmlock);
-		if (dlmlock->l_ast_data) {
+
+		if (dlmlock->l_ast_data)
+		{
 			obj = osc2cl(dlmlock->l_ast_data);
 			cl_object_get(obj);
 		}
+
 		unlock_res_and_lock(dlmlock);
 
-		if (obj) {
+		if (obj)
+		{
 			/* Do not grab the mutex of cl_lock for glimpse.
 			 * See LU-1274 for details.
 			 * BTW, it's okay for cl_lock to be cancelled during
@@ -598,19 +702,25 @@ static int osc_ldlm_glimpse_ast(struct ldlm_lock *dlmlock, void *data)
 			cap = &req->rq_pill;
 			req_capsule_extend(cap, &RQF_LDLM_GL_CALLBACK);
 			req_capsule_set_size(cap, &RMF_DLM_LVB, RCL_SERVER,
-					     sizeof(*lvb));
+								 sizeof(*lvb));
 			result = req_capsule_server_pack(cap);
-			if (result == 0) {
+
+			if (result == 0)
+			{
 				lvb = req_capsule_server_get(cap, &RMF_DLM_LVB);
 				result = cl_object_glimpse(env, obj, lvb);
 			}
+
 			if (!exp_connect_lvb_type(req->rq_export))
 				req_capsule_shrink(&req->rq_pill,
-						   &RMF_DLM_LVB,
-						   sizeof(struct ost_lvb_v1),
-						   RCL_SERVER);
+								   &RMF_DLM_LVB,
+								   sizeof(struct ost_lvb_v1),
+								   RCL_SERVER);
+
 			cl_object_put(env, obj);
-		} else {
+		}
+		else
+		{
 			/*
 			 * These errors are normal races, so we don't want to
 			 * fill the console with messages by calling
@@ -619,31 +729,37 @@ static int osc_ldlm_glimpse_ast(struct ldlm_lock *dlmlock, void *data)
 			lustre_pack_reply(req, 1, NULL, NULL);
 			result = -ELDLM_NO_LOCK_DATA;
 		}
+
 		cl_env_nested_put(&nest, env);
-	} else {
+	}
+	else
+	{
 		result = PTR_ERR(env);
 	}
+
 	req->rq_status = result;
 	return result;
 }
 
 static int weigh_cb(const struct lu_env *env, struct cl_io *io,
-		    struct osc_page *ops, void *cbdata)
+					struct osc_page *ops, void *cbdata)
 {
 	struct cl_page *page = ops->ops_cl.cpl_page;
 
 	if (cl_page_is_vmlocked(env, page) ||
-	    PageDirty(page->cp_vmpage) || PageWriteback(page->cp_vmpage)
+		PageDirty(page->cp_vmpage) || PageWriteback(page->cp_vmpage)
 	   )
+	{
 		return CLP_GANG_ABORT;
+	}
 
 	*(pgoff_t *)cbdata = osc_index(ops) + 1;
 	return CLP_GANG_OKAY;
 }
 
 static unsigned long osc_lock_weight(const struct lu_env *env,
-				     struct osc_object *oscobj,
-				     struct ldlm_extent *extent)
+									 struct osc_object *oscobj,
+									 struct ldlm_extent *extent)
 {
 	struct cl_io *io = &osc_env_info(env)->oti_io;
 	struct cl_object *obj = cl_object_top(&oscobj->oo_cl);
@@ -653,20 +769,33 @@ static unsigned long osc_lock_weight(const struct lu_env *env,
 	io->ci_obj = obj;
 	io->ci_ignore_layout = 1;
 	result = cl_io_init(env, io, CIT_MISC, io->ci_obj);
+
 	if (result != 0)
+	{
 		return result;
+	}
 
 	page_index = cl_index(obj, extent->start);
-	do {
+
+	do
+	{
 		result = osc_page_gang_lookup(env, io, oscobj,
-					      page_index,
-					      cl_index(obj, extent->end),
-					      weigh_cb, (void *)&page_index);
+									  page_index,
+									  cl_index(obj, extent->end),
+									  weigh_cb, (void *)&page_index);
+
 		if (result == CLP_GANG_ABORT)
+		{
 			break;
+		}
+
 		if (result == CLP_GANG_RESCHED)
+		{
 			cond_resched();
-	} while (result != CLP_GANG_OKAY);
+		}
+	}
+	while (result != CLP_GANG_OKAY);
+
 	cl_io_fini(env, io);
 
 	return result == CLP_GANG_ABORT ? 1 : 0;
@@ -693,25 +822,36 @@ unsigned long osc_ldlm_weigh_ast(struct ldlm_lock *dlmlock)
 	 * variables. But just in case ..
 	 */
 	env = cl_env_nested_get(&nest);
+
 	if (IS_ERR(env))
 		/* Mostly because lack of memory, do not eliminate this lock */
+	{
 		return 1;
+	}
 
 	LASSERT(dlmlock->l_resource->lr_type == LDLM_EXTENT);
 	obj = dlmlock->l_ast_data;
-	if (!obj) {
+
+	if (!obj)
+	{
 		weight = 1;
 		goto out;
 	}
 
 	spin_lock(&obj->oo_ol_spin);
-	list_for_each_entry(oscl, &obj->oo_ol_list, ols_nextlock_oscobj) {
+	list_for_each_entry(oscl, &obj->oo_ol_list, ols_nextlock_oscobj)
+	{
 		if (oscl->ols_dlmlock && oscl->ols_dlmlock != dlmlock)
+		{
 			continue;
+		}
+
 		found = true;
 	}
 	spin_unlock(&obj->oo_ol_spin);
-	if (found) {
+
+	if (found)
+	{
 		/*
 		 * If the lock is being used by an IO, definitely not cancel it.
 		 */
@@ -727,9 +867,9 @@ out:
 }
 
 static void osc_lock_build_einfo(const struct lu_env *env,
-				 const struct cl_lock *lock,
-				 struct osc_object *osc,
-				 struct ldlm_enqueue_info *einfo)
+								 const struct cl_lock *lock,
+								 struct osc_object *osc,
+								 struct ldlm_enqueue_info *einfo)
 {
 	einfo->ei_type = LDLM_EXTENT;
 	einfo->ei_mode   = osc_cl_lock2ldlm(lock->cll_descr.cld_mode);
@@ -752,17 +892,20 @@ static void osc_lock_build_einfo(const struct lu_env *env,
  *  for large extents.
  */
 static void osc_lock_to_lockless(const struct lu_env *env,
-				 struct osc_lock *ols, int force)
+								 struct osc_lock *ols, int force)
 {
 	struct cl_lock_slice *slice = &ols->ols_cl;
 
 	LASSERT(ols->ols_state == OLS_NEW ||
-		ols->ols_state == OLS_UPCALL_RECEIVED);
+			ols->ols_state == OLS_UPCALL_RECEIVED);
 
-	if (force) {
+	if (force)
+	{
 		ols->ols_locklessable = 1;
 		slice->cls_ops = &osc_lock_lockless_ops;
-	} else {
+	}
+	else
+	{
 		struct osc_io *oio = osc_env_io(env);
 		struct cl_io *io = oio->oi_cl.cis_io;
 		struct cl_object *obj = slice->cls_obj;
@@ -771,74 +914,88 @@ static void osc_lock_to_lockless(const struct lu_env *env,
 		struct obd_connect_data *ocd;
 
 		LASSERT(io->ci_lockreq == CILR_MANDATORY ||
-			io->ci_lockreq == CILR_MAYBE ||
-			io->ci_lockreq == CILR_NEVER);
+				io->ci_lockreq == CILR_MAYBE ||
+				io->ci_lockreq == CILR_NEVER);
 
 		ocd = &class_exp2cliimp(osc_export(oob))->imp_connect_data;
 		ols->ols_locklessable = (io->ci_type != CIT_SETATTR) &&
-				(io->ci_lockreq == CILR_MAYBE) &&
-				(ocd->ocd_connect_flags & OBD_CONNECT_SRVLOCK);
+								(io->ci_lockreq == CILR_MAYBE) &&
+								(ocd->ocd_connect_flags & OBD_CONNECT_SRVLOCK);
+
 		if (io->ci_lockreq == CILR_NEVER ||
 			/* lockless IO */
-		    (ols->ols_locklessable && osc_object_is_contended(oob)) ||
+			(ols->ols_locklessable && osc_object_is_contended(oob)) ||
 			/* lockless truncate */
-		    (cl_io_is_trunc(io) &&
-		     (ocd->ocd_connect_flags & OBD_CONNECT_TRUNCLOCK) &&
-		      osd->od_lockless_truncate)) {
+			(cl_io_is_trunc(io) &&
+			 (ocd->ocd_connect_flags & OBD_CONNECT_TRUNCLOCK) &&
+			 osd->od_lockless_truncate))
+		{
 			ols->ols_locklessable = 1;
 			slice->cls_ops = &osc_lock_lockless_ops;
 		}
 	}
+
 	LASSERT(ergo(ols->ols_glimpse, !osc_lock_is_lockless(ols)));
 }
 
 static bool osc_lock_compatible(const struct osc_lock *qing,
-				const struct osc_lock *qed)
+								const struct osc_lock *qed)
 {
 	struct cl_lock_descr *qed_descr = &qed->ols_cl.cls_lock->cll_descr;
 	struct cl_lock_descr *qing_descr = &qing->ols_cl.cls_lock->cll_descr;
 
 	if (qed->ols_glimpse)
+	{
 		return true;
+	}
 
 	if (qing_descr->cld_mode == CLM_READ && qed_descr->cld_mode == CLM_READ)
+	{
 		return true;
+	}
 
 	if (qed->ols_state < OLS_GRANTED)
+	{
 		return true;
+	}
 
 	if (qed_descr->cld_mode  >= qing_descr->cld_mode &&
-	    qed_descr->cld_start <= qing_descr->cld_start &&
-	    qed_descr->cld_end   >= qing_descr->cld_end)
+		qed_descr->cld_start <= qing_descr->cld_start &&
+		qed_descr->cld_end   >= qing_descr->cld_end)
+	{
 		return true;
+	}
 
 	return false;
 }
 
 static void osc_lock_wake_waiters(const struct lu_env *env,
-				  struct osc_object *osc,
-				  struct osc_lock *oscl)
+								  struct osc_object *osc,
+								  struct osc_lock *oscl)
 {
 	spin_lock(&osc->oo_ol_spin);
 	list_del_init(&oscl->ols_nextlock_oscobj);
 	spin_unlock(&osc->oo_ol_spin);
 
 	spin_lock(&oscl->ols_lock);
-	while (!list_empty(&oscl->ols_waiting_list)) {
+
+	while (!list_empty(&oscl->ols_waiting_list))
+	{
 		struct osc_lock *scan;
 
 		scan = list_entry(oscl->ols_waiting_list.next, struct osc_lock,
-				  ols_wait_entry);
+						  ols_wait_entry);
 		list_del_init(&scan->ols_wait_entry);
 
 		cl_sync_io_note(env, scan->ols_owner, 0);
 	}
+
 	spin_unlock(&oscl->ols_lock);
 }
 
 static void osc_lock_enqueue_wait(const struct lu_env *env,
-				  struct osc_object *obj,
-				  struct osc_lock *oscl)
+								  struct osc_object *obj,
+								  struct osc_lock *oscl)
 {
 	struct osc_lock *tmp_oscl;
 	struct cl_lock_descr *need = &oscl->ols_cl.cls_lock->cll_descr;
@@ -849,24 +1006,34 @@ static void osc_lock_enqueue_wait(const struct lu_env *env,
 
 restart:
 	list_for_each_entry(tmp_oscl, &obj->oo_ol_list,
-			    ols_nextlock_oscobj) {
+						ols_nextlock_oscobj)
+	{
 		struct cl_lock_descr *descr;
 
 		if (tmp_oscl == oscl)
+		{
 			break;
+		}
 
 		descr = &tmp_oscl->ols_cl.cls_lock->cll_descr;
+
 		if (descr->cld_start > need->cld_end ||
-		    descr->cld_end   < need->cld_start)
+			descr->cld_end   < need->cld_start)
+		{
 			continue;
+		}
 
 		/* We're not supposed to give up group lock */
 		if (descr->cld_mode == CLM_GROUP)
+		{
 			break;
+		}
 
 		if (!osc_lock_is_lockless(oscl) &&
-		    osc_lock_compatible(oscl, tmp_oscl))
+			osc_lock_compatible(oscl, tmp_oscl))
+		{
 			continue;
+		}
 
 		/* wait for conflicting lock to be canceled */
 		cl_sync_io_init(waiter, 1, cl_sync_io_end);
@@ -875,7 +1042,7 @@ restart:
 		spin_lock(&tmp_oscl->ols_lock);
 		/* add oscl into tmp's ols_waiting list */
 		list_add_tail(&oscl->ols_wait_entry,
-			      &tmp_oscl->ols_waiting_list);
+					  &tmp_oscl->ols_waiting_list);
 		spin_unlock(&tmp_oscl->ols_lock);
 
 		spin_unlock(&obj->oo_ol_spin);
@@ -903,8 +1070,8 @@ restart:
  * This function does not wait for the network communication to complete.
  */
 static int osc_lock_enqueue(const struct lu_env *env,
-			    const struct cl_lock_slice *slice,
-			    struct cl_io *unused, struct cl_sync_io *anchor)
+							const struct cl_lock_slice *slice,
+							struct cl_io *unused, struct cl_sync_io *anchor)
 {
 	struct osc_thread_info *info = osc_env_info(env);
 	struct osc_io *oio = osc_env_io(env);
@@ -919,15 +1086,20 @@ static int osc_lock_enqueue(const struct lu_env *env,
 	int result;
 
 	LASSERTF(ergo(oscl->ols_glimpse, lock->cll_descr.cld_mode <= CLM_READ),
-		 "lock = %p, ols = %p\n", lock, oscl);
+			 "lock = %p, ols = %p\n", lock, oscl);
 
 	if (oscl->ols_state == OLS_GRANTED)
+	{
 		return 0;
+	}
 
 	if (oscl->ols_flags & LDLM_FL_TEST_LOCK)
+	{
 		goto enqueue_base;
+	}
 
-	if (oscl->ols_glimpse) {
+	if (oscl->ols_glimpse)
+	{
 		LASSERT(equi(oscl->ols_agl, !anchor));
 		async = true;
 		goto enqueue_base;
@@ -938,7 +1110,8 @@ static int osc_lock_enqueue(const struct lu_env *env,
 	/* we can grant lockless lock right after all conflicting locks
 	 * are canceled.
 	 */
-	if (osc_lock_is_lockless(oscl)) {
+	if (osc_lock_is_lockless(oscl))
+	{
 		oscl->ols_state = OLS_GRANTED;
 		oio->oi_lockless = 1;
 		return 0;
@@ -946,7 +1119,9 @@ static int osc_lock_enqueue(const struct lu_env *env,
 
 enqueue_base:
 	oscl->ols_state = OLS_ENQUEUED;
-	if (anchor) {
+
+	if (anchor)
+	{
 		atomic_inc(&anchor->csi_sync_nr);
 		oscl->ols_owner = anchor;
 	}
@@ -960,39 +1135,54 @@ enqueue_base:
 	ostid_build_res_name(&osc->oo_oinfo->loi_oi, resname);
 	osc_lock_build_einfo(env, lock, osc, &oscl->ols_einfo);
 	osc_lock_build_policy(env, lock, policy);
-	if (oscl->ols_agl) {
+
+	if (oscl->ols_agl)
+	{
 		oscl->ols_einfo.ei_cbdata = NULL;
 		/* hold a reference for callback */
 		cl_object_get(osc2cl(osc));
 		upcall = osc_lock_upcall_agl;
 		cookie = osc;
 	}
+
 	result = osc_enqueue_base(osc_export(osc), resname, &oscl->ols_flags,
-				  policy, &oscl->ols_lvb,
-				  osc->oo_oinfo->loi_kms_valid,
-				  upcall, cookie,
-				  &oscl->ols_einfo, PTLRPCD_SET, async,
-				  oscl->ols_agl);
-	if (result != 0) {
+							  policy, &oscl->ols_lvb,
+							  osc->oo_oinfo->loi_kms_valid,
+							  upcall, cookie,
+							  &oscl->ols_einfo, PTLRPCD_SET, async,
+							  oscl->ols_agl);
+
+	if (result != 0)
+	{
 		oscl->ols_state = OLS_CANCELLED;
 		osc_lock_wake_waiters(env, osc, oscl);
 
 		/* hide error for AGL lock. */
-		if (oscl->ols_agl) {
+		if (oscl->ols_agl)
+		{
 			cl_object_put(env, osc2cl(osc));
 			result = 0;
 		}
+
 		if (anchor)
+		{
 			cl_sync_io_note(env, anchor, result);
-	} else {
-		if (osc_lock_is_lockless(oscl)) {
+		}
+	}
+	else
+	{
+		if (osc_lock_is_lockless(oscl))
+		{
 			oio->oi_lockless = 1;
-		} else if (!async) {
+		}
+		else if (!async)
+		{
 			LASSERT(oscl->ols_state == OLS_GRANTED);
 			LASSERT(oscl->ols_hold);
 			LASSERT(oscl->ols_dlmlock);
 		}
 	}
+
 	return result;
 }
 
@@ -1004,10 +1194,14 @@ static void osc_lock_detach(const struct lu_env *env, struct osc_lock *olck)
 	struct ldlm_lock *dlmlock;
 
 	dlmlock = olck->ols_dlmlock;
-	if (!dlmlock)
-		return;
 
-	if (olck->ols_hold) {
+	if (!dlmlock)
+	{
+		return;
+	}
+
+	if (olck->ols_hold)
+	{
 		olck->ols_hold = 0;
 		osc_cancel_base(&olck->ols_handle, olck->ols_einfo.ei_mode);
 		olck->ols_handle.cookie = 0ULL;
@@ -1037,7 +1231,7 @@ static void osc_lock_detach(const struct lu_env *env, struct osc_lock *olck)
  *     - cancels ldlm lock (ldlm_cli_cancel()).
  */
 static void osc_lock_cancel(const struct lu_env *env,
-			    const struct cl_lock_slice *slice)
+							const struct cl_lock_slice *slice)
 {
 	struct osc_object *obj  = cl2osc(slice->cls_obj);
 	struct osc_lock *oscl = cl2osc_lock(slice);
@@ -1052,18 +1246,19 @@ static void osc_lock_cancel(const struct lu_env *env,
 }
 
 static int osc_lock_print(const struct lu_env *env, void *cookie,
-			  lu_printer_t p, const struct cl_lock_slice *slice)
+						  lu_printer_t p, const struct cl_lock_slice *slice)
 {
 	struct osc_lock *lock = cl2osc_lock(slice);
 
 	(*p)(env, cookie, "%p %#16llx %#llx %d %p ",
-	     lock->ols_dlmlock, lock->ols_flags, lock->ols_handle.cookie,
-	     lock->ols_state, lock->ols_owner);
+		 lock->ols_dlmlock, lock->ols_flags, lock->ols_handle.cookie,
+		 lock->ols_state, lock->ols_owner);
 	osc_lvb_print(env, cookie, p, &lock->ols_lvb);
 	return 0;
 }
 
-static const struct cl_lock_operations osc_lock_ops = {
+static const struct cl_lock_operations osc_lock_ops =
+{
 	.clo_fini    = osc_lock_fini,
 	.clo_enqueue = osc_lock_enqueue,
 	.clo_cancel  = osc_lock_cancel,
@@ -1071,7 +1266,7 @@ static const struct cl_lock_operations osc_lock_ops = {
 };
 
 static void osc_lock_lockless_cancel(const struct lu_env *env,
-				     const struct cl_lock_slice *slice)
+									 const struct cl_lock_slice *slice)
 {
 	struct osc_lock *ols = cl2osc_lock(slice);
 	struct osc_object *osc = cl2osc(slice->cls_obj);
@@ -1080,15 +1275,17 @@ static void osc_lock_lockless_cancel(const struct lu_env *env,
 
 	LASSERT(!ols->ols_dlmlock);
 	result = osc_lock_flush(osc, descr->cld_start, descr->cld_end,
-				descr->cld_mode, 0);
+							descr->cld_mode, 0);
+
 	if (result)
 		CERROR("Pages for lockless lock %p were not purged(%d)\n",
-		       ols, result);
+			   ols, result);
 
 	osc_lock_wake_waiters(env, osc, ols);
 }
 
-static const struct cl_lock_operations osc_lock_lockless_ops = {
+static const struct cl_lock_operations osc_lock_lockless_ops =
+{
 	.clo_fini	= osc_lock_fini,
 	.clo_enqueue	= osc_lock_enqueue,
 	.clo_cancel	= osc_lock_lockless_cancel,
@@ -1096,32 +1293,40 @@ static const struct cl_lock_operations osc_lock_lockless_ops = {
 };
 
 static void osc_lock_set_writer(const struct lu_env *env,
-				const struct cl_io *io,
-				struct cl_object *obj, struct osc_lock *oscl)
+								const struct cl_io *io,
+								struct cl_object *obj, struct osc_lock *oscl)
 {
 	struct cl_lock_descr *descr = &oscl->ols_cl.cls_lock->cll_descr;
 	pgoff_t io_start;
 	pgoff_t io_end;
 
 	if (!cl_object_same(io->ci_obj, obj))
+	{
 		return;
+	}
 
-	if (likely(io->ci_type == CIT_WRITE)) {
+	if (likely(io->ci_type == CIT_WRITE))
+	{
 		io_start = cl_index(obj, io->u.ci_rw.crw_pos);
 		io_end = cl_index(obj, io->u.ci_rw.crw_pos +
-				  io->u.ci_rw.crw_count - 1);
-		if (cl_io_is_append(io)) {
+						  io->u.ci_rw.crw_count - 1);
+
+		if (cl_io_is_append(io))
+		{
 			io_start = 0;
 			io_end = CL_PAGE_EOF;
 		}
-	} else {
+	}
+	else
+	{
 		LASSERT(cl_io_is_mkwrite(io));
 		io_start = io->u.ci_fault.ft_index;
 		io_end = io->u.ci_fault.ft_index;
 	}
 
 	if (descr->cld_mode >= CLM_WRITE &&
-	    descr->cld_start <= io_start && descr->cld_end >= io_end) {
+		descr->cld_start <= io_start && descr->cld_end >= io_end)
+	{
 		struct osc_io *oio = osc_env_io(env);
 
 		/* There must be only one lock to match the write region */
@@ -1131,15 +1336,18 @@ static void osc_lock_set_writer(const struct lu_env *env,
 }
 
 int osc_lock_init(const struct lu_env *env,
-		  struct cl_object *obj, struct cl_lock *lock,
-		  const struct cl_io *io)
+				  struct cl_object *obj, struct cl_lock *lock,
+				  const struct cl_io *io)
 {
 	struct osc_lock *oscl;
 	__u32 enqflags = lock->cll_descr.cld_enq_flags;
 
 	oscl = kmem_cache_zalloc(osc_lock_kmem, GFP_NOFS);
+
 	if (!oscl)
+	{
 		return -ENOMEM;
+	}
 
 	oscl->ols_state = OLS_NEW;
 	spin_lock_init(&oscl->ols_lock);
@@ -1149,9 +1357,14 @@ int osc_lock_init(const struct lu_env *env,
 
 	oscl->ols_flags = osc_enq2ldlm_flags(enqflags);
 	oscl->ols_agl = !!(enqflags & CEF_AGL);
+
 	if (oscl->ols_agl)
+	{
 		oscl->ols_flags |= LDLM_FL_BLOCK_NOWAIT;
-	if (oscl->ols_flags & LDLM_FL_HAS_INTENT) {
+	}
+
+	if (oscl->ols_flags & LDLM_FL_HAS_INTENT)
+	{
 		oscl->ols_flags |= LDLM_FL_BLOCK_GRANTED;
 		oscl->ols_glimpse = 1;
 	}
@@ -1160,16 +1373,23 @@ int osc_lock_init(const struct lu_env *env,
 
 	if (!(enqflags & CEF_MUST))
 		/* try to convert this lock to a lockless lock */
+	{
 		osc_lock_to_lockless(env, oscl, (enqflags & CEF_NEVER));
+	}
+
 	if (oscl->ols_locklessable && !(enqflags & CEF_DISCARD_DATA))
+	{
 		oscl->ols_flags |= LDLM_FL_DENY_ON_CONTENTION;
+	}
 
 	if (io->ci_type == CIT_WRITE || cl_io_is_mkwrite(io))
+	{
 		osc_lock_set_writer(env, io, obj, oscl);
+	}
 
 
 	LDLM_DEBUG_NOLOCK("lock %p, osc lock %p, flags %llx",
-			  lock, oscl, oscl->ols_flags);
+					  lock, oscl, oscl->ols_flags);
 
 	return 0;
 }
@@ -1179,8 +1399,8 @@ int osc_lock_init(const struct lu_env *env,
  * given \a except lock.
  */
 struct ldlm_lock *osc_dlmlock_at_pgoff(const struct lu_env *env,
-				       struct osc_object *obj, pgoff_t index,
-				       int pending, int canceling)
+									   struct osc_object *obj, pgoff_t index,
+									   int pending, int canceling)
 {
 	struct osc_thread_info *info = osc_env_info(env);
 	struct ldlm_res_id *resname = &info->oti_resname;
@@ -1195,22 +1415,32 @@ struct ldlm_lock *osc_dlmlock_at_pgoff(const struct lu_env *env,
 	policy->l_extent.gid = LDLM_GID_ANY;
 
 	flags = LDLM_FL_BLOCK_GRANTED | LDLM_FL_TEST_LOCK;
+
 	if (pending)
+	{
 		flags |= LDLM_FL_CBPENDING;
+	}
+
 	/*
 	 * It is fine to match any group lock since there could be only one
 	 * with a uniq gid and it conflicts with all other lock modes too
 	 */
 again:
 	mode = ldlm_lock_match(osc_export(obj)->exp_obd->obd_namespace,
-			       flags, resname, LDLM_EXTENT, policy,
-			       LCK_PR | LCK_PW | LCK_GROUP, &lockh, canceling);
-	if (mode != 0) {
+						   flags, resname, LDLM_EXTENT, policy,
+						   LCK_PR | LCK_PW | LCK_GROUP, &lockh, canceling);
+
+	if (mode != 0)
+	{
 		lock = ldlm_handle2lock(&lockh);
+
 		/* RACE: the lock is cancelled so let's try again */
 		if (unlikely(!lock))
+		{
 			goto again;
+		}
 	}
+
 	return lock;
 }
 

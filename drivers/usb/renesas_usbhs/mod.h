@@ -24,7 +24,8 @@
 /*
  *	struct
  */
-struct usbhs_irq_state {
+struct usbhs_irq_state
+{
 	u16 intsts0;
 	u16 intsts1;
 	u16 brdysts;
@@ -32,7 +33,8 @@ struct usbhs_irq_state {
 	u16 bempsts;
 };
 
-struct usbhs_mod {
+struct usbhs_mod
+{
 	char *name;
 
 	/*
@@ -47,20 +49,20 @@ struct usbhs_mod {
 
 	/* DVST (DVSQ) */
 	int (*irq_dev_state)(struct usbhs_priv *priv,
-			     struct usbhs_irq_state *irq_state);
+						 struct usbhs_irq_state *irq_state);
 
 	/* CTRT (CTSQ) */
 	int (*irq_ctrl_stage)(struct usbhs_priv *priv,
-			      struct usbhs_irq_state *irq_state);
+						  struct usbhs_irq_state *irq_state);
 
 	/* BEMP / BEMPSTS */
 	int (*irq_empty)(struct usbhs_priv *priv,
-			 struct usbhs_irq_state *irq_state);
+					 struct usbhs_irq_state *irq_state);
 	u16 irq_bempsts;
 
 	/* BRDY / BRDYSTS */
 	int (*irq_ready)(struct usbhs_priv *priv,
-			 struct usbhs_irq_state *irq_state);
+					 struct usbhs_irq_state *irq_state);
 	u16 irq_brdysts;
 
 	/*
@@ -69,24 +71,25 @@ struct usbhs_mod {
 
 	/* ATTCHE */
 	int (*irq_attch)(struct usbhs_priv *priv,
-			 struct usbhs_irq_state *irq_state);
+					 struct usbhs_irq_state *irq_state);
 
 	/* DTCHE */
 	int (*irq_dtch)(struct usbhs_priv *priv,
-			struct usbhs_irq_state *irq_state);
+					struct usbhs_irq_state *irq_state);
 
 	/* SIGN */
 	int (*irq_sign)(struct usbhs_priv *priv,
-			struct usbhs_irq_state *irq_state);
+					struct usbhs_irq_state *irq_state);
 
 	/* SACK */
 	int (*irq_sack)(struct usbhs_priv *priv,
-			struct usbhs_irq_state *irq_state);
+					struct usbhs_irq_state *irq_state);
 
 	struct usbhs_priv *priv;
 };
 
-struct usbhs_mod_info {
+struct usbhs_mod_info
+{
 	struct usbhs_mod *mod[USBHS_MAX];
 	struct usbhs_mod *curt; /* current mod */
 
@@ -101,7 +104,7 @@ struct usbhs_mod_info {
 	 * host/gadget has not been selected.
 	 */
 	int (*irq_vbus)(struct usbhs_priv *priv,
-			struct usbhs_irq_state *irq_state);
+					struct usbhs_irq_state *irq_state);
 };
 
 /*
@@ -135,7 +138,7 @@ void usbhs_irq_callback_update(struct usbhs_priv *priv, struct usbhs_mod *mod);
 		mod = usbhs_mod_get_current(priv);	\
 		!mod		? -ENODEV :		\
 		!mod->func	? 0 :			\
-		 mod->func(param);			\
+		mod->func(param);			\
 	})
 
 /*

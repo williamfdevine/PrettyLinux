@@ -94,18 +94,23 @@ static void rtl92se_fw_cb(const struct firmware *firmware, void *context)
 	RT_TRACE(rtlpriv, COMP_ERR, DBG_LOUD,
 			 "Firmware callback routine entered!\n");
 	complete(&rtlpriv->firmware_loading_complete);
-	if (!firmware) {
+
+	if (!firmware)
+	{
 		pr_err("Firmware %s not available\n", fw_name);
 		rtlpriv->max_fw_size = 0;
 		return;
 	}
-	if (firmware->size > rtlpriv->max_fw_size) {
+
+	if (firmware->size > rtlpriv->max_fw_size)
+	{
 		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-			 "Firmware is too big!\n");
+				 "Firmware is too big!\n");
 		rtlpriv->max_fw_size = 0;
 		release_firmware(firmware);
 		return;
 	}
+
 	pfirmware = (struct rt_firmware *)rtlpriv->rtlhal.pfirmware;
 	memcpy(pfirmware->sz_fw_tmpbuffer, firmware->data, firmware->size);
 	pfirmware->sz_fw_tmpbufferlen = firmware->size;
@@ -134,47 +139,47 @@ static int rtl92s_init_sw_vars(struct ieee80211_hw *hw)
 	rtlpci->transmit_config = 0;
 
 	rtlpci->receive_config =
-			RCR_APPFCS |
-			RCR_APWRMGT |
-			/*RCR_ADD3 |*/
-			RCR_AMF	|
-			RCR_ADF |
-			RCR_APP_MIC |
-			RCR_APP_ICV |
-			RCR_AICV |
-			/* Accept ICV error, CRC32 Error */
-			RCR_ACRC32 |
-			RCR_AB |
-			/* Accept Broadcast, Multicast */
-			RCR_AM	|
-			/* Accept Physical match */
-			RCR_APM |
-			/* Accept Destination Address packets */
-			/*RCR_AAP |*/
-			RCR_APP_PHYST_STAFF |
-			/* Accept PHY status */
-			RCR_APP_PHYST_RXFF |
-			(earlyrxthreshold << RCR_FIFO_OFFSET);
+		RCR_APPFCS |
+		RCR_APWRMGT |
+		/*RCR_ADD3 |*/
+		RCR_AMF	|
+		RCR_ADF |
+		RCR_APP_MIC |
+		RCR_APP_ICV |
+		RCR_AICV |
+		/* Accept ICV error, CRC32 Error */
+		RCR_ACRC32 |
+		RCR_AB |
+		/* Accept Broadcast, Multicast */
+		RCR_AM	|
+		/* Accept Physical match */
+		RCR_APM |
+		/* Accept Destination Address packets */
+		/*RCR_AAP |*/
+		RCR_APP_PHYST_STAFF |
+		/* Accept PHY status */
+		RCR_APP_PHYST_RXFF |
+		(earlyrxthreshold << RCR_FIFO_OFFSET);
 
 	rtlpci->irq_mask[0] = (u32)
-			(IMR_ROK |
-			IMR_VODOK |
-			IMR_VIDOK |
-			IMR_BEDOK |
-			IMR_BKDOK |
-			IMR_HCCADOK |
-			IMR_MGNTDOK |
-			IMR_COMDOK |
-			IMR_HIGHDOK |
-			IMR_BDOK |
-			IMR_RXCMDOK |
-			/*IMR_TIMEOUT0 |*/
-			IMR_RDU |
-			IMR_RXFOVW	|
-			IMR_BCNINT
-			/*| IMR_TXFOVW*/
-			/*| IMR_TBDOK |
-			IMR_TBDER*/);
+						  (IMR_ROK |
+						   IMR_VODOK |
+						   IMR_VIDOK |
+						   IMR_BEDOK |
+						   IMR_BKDOK |
+						   IMR_HCCADOK |
+						   IMR_MGNTDOK |
+						   IMR_COMDOK |
+						   IMR_HIGHDOK |
+						   IMR_BDOK |
+						   IMR_RXCMDOK |
+						   /*IMR_TIMEOUT0 |*/
+						   IMR_RDU |
+						   IMR_RXFOVW	|
+						   IMR_BCNINT
+						   /*| IMR_TXFOVW*/
+						   /*| IMR_TBDOK |
+						   IMR_TBDER*/);
 
 	rtlpci->irq_mask[1] = (u32) 0;
 
@@ -191,10 +196,17 @@ static int rtl92s_init_sw_vars(struct ieee80211_hw *hw)
 	rtlpriv->psc.fwctrl_lps = rtlpriv->cfg->mod_params->fwctrl_lps;
 	rtlpriv->cfg->mod_params->sw_crypto =
 		rtlpriv->cfg->mod_params->sw_crypto;
+
 	if (!rtlpriv->psc.inactiveps)
+	{
 		pr_info("Power Save off (module option)\n");
+	}
+
 	if (!rtlpriv->psc.fwctrl_lps)
+	{
 		pr_info("FW Power Save off (module option)\n");
+	}
+
 	rtlpriv->psc.reg_fwctrl_lps = 3;
 	rtlpriv->psc.reg_max_lps_awakeintvl = 5;
 	/* for ASPM, you can close aspm through
@@ -202,28 +214,39 @@ static int rtl92s_init_sw_vars(struct ieee80211_hw *hw)
 	rtl92s_init_aspm_vars(hw);
 
 	if (rtlpriv->psc.reg_fwctrl_lps == 1)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_MIN_MODE;
+	}
 	else if (rtlpriv->psc.reg_fwctrl_lps == 2)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_MAX_MODE;
+	}
 	else if (rtlpriv->psc.reg_fwctrl_lps == 3)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_DTIM_MODE;
+	}
 
 	/* for firmware buf */
 	rtlpriv->rtlhal.pfirmware = vzalloc(sizeof(struct rt_firmware));
-	if (!rtlpriv->rtlhal.pfirmware)
-		return 1;
 
-	rtlpriv->max_fw_size = RTL8190_MAX_FIRMWARE_CODE_SIZE*2 +
-			       sizeof(struct fw_hdr);
+	if (!rtlpriv->rtlhal.pfirmware)
+	{
+		return 1;
+	}
+
+	rtlpriv->max_fw_size = RTL8190_MAX_FIRMWARE_CODE_SIZE * 2 +
+						   sizeof(struct fw_hdr);
 	pr_info("Driver for Realtek RTL8192SE/RTL8191SE\n"
-		"Loading firmware %s\n", fw_name);
+			"Loading firmware %s\n", fw_name);
 	/* request fw */
 	err = request_firmware_nowait(THIS_MODULE, 1, fw_name,
-				      rtlpriv->io.dev, GFP_KERNEL, hw,
-				      rtl92se_fw_cb);
-	if (err) {
+								  rtlpriv->io.dev, GFP_KERNEL, hw,
+								  rtl92se_fw_cb);
+
+	if (err)
+	{
 		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-			 "Failed to request firmware!\n");
+				 "Failed to request firmware!\n");
 		return 1;
 	}
 
@@ -234,14 +257,15 @@ static void rtl92s_deinit_sw_vars(struct ieee80211_hw *hw)
 {
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
 
-	if (rtlpriv->rtlhal.pfirmware) {
+	if (rtlpriv->rtlhal.pfirmware)
+	{
 		vfree(rtlpriv->rtlhal.pfirmware);
 		rtlpriv->rtlhal.pfirmware = NULL;
 	}
 }
 
 static bool rtl92se_is_tx_desc_closed(struct ieee80211_hw *hw, u8 hw_queue,
-				      u16 index)
+									  u16 index)
 {
 	struct rtl_pci *rtlpci = rtl_pcidev(rtl_pcipriv(hw));
 	struct rtl8192_tx_ring *ring = &rtlpci->tx_ring[hw_queue];
@@ -249,11 +273,15 @@ static bool rtl92se_is_tx_desc_closed(struct ieee80211_hw *hw, u8 hw_queue,
 	u8 own = (u8)rtl92se_get_desc(entry, true, HW_DESC_OWN);
 
 	if (own)
+	{
 		return false;
+	}
+
 	return true;
 }
 
-static struct rtl_hal_ops rtl8192se_hal_ops = {
+static struct rtl_hal_ops rtl8192se_hal_ops =
+{
 	.init_sw_vars = rtl92s_init_sw_vars,
 	.deinit_sw_vars = rtl92s_deinit_sw_vars,
 	.read_eeprom_info = rtl92se_read_eeprom_info,
@@ -298,7 +326,8 @@ static struct rtl_hal_ops rtl8192se_hal_ops = {
 	.get_btc_status = rtl_btc_status_false,
 };
 
-static struct rtl_mod_params rtl92se_mod_params = {
+static struct rtl_mod_params rtl92se_mod_params =
+{
 	.sw_crypto = false,
 	.inactiveps = true,
 	.swctrl_lps = true,
@@ -308,7 +337,8 @@ static struct rtl_mod_params rtl92se_mod_params = {
 
 /* Because memory R/W bursting will cause system hang/crash
  * for 92se, so we don't read back after every write action */
-static const struct rtl_hal_cfg rtl92se_hal_cfg = {
+static const struct rtl_hal_cfg rtl92se_hal_cfg =
+{
 	.bar_id = 1,
 	.write_readback = false,
 	.name = "rtl92s_pci",
@@ -403,7 +433,8 @@ static const struct rtl_hal_cfg rtl92se_hal_cfg = {
 	.maps[RTL_RC_HT_RATEMCS15] = DESC_RATEMCS15,
 };
 
-static struct pci_device_id rtl92se_pci_ids[] = {
+static struct pci_device_id rtl92se_pci_ids[] =
+{
 	{RTL_PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8192, rtl92se_hal_cfg)},
 	{RTL_PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8171, rtl92se_hal_cfg)},
 	{RTL_PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8172, rtl92se_hal_cfg)},
@@ -434,7 +465,8 @@ MODULE_PARM_DESC(debug, "Set debug level (0-5) (default 0)");
 
 static SIMPLE_DEV_PM_OPS(rtlwifi_pm_ops, rtl_pci_suspend, rtl_pci_resume);
 
-static struct pci_driver rtl92se_driver = {
+static struct pci_driver rtl92se_driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = rtl92se_pci_ids,
 	.probe = rtl_pci_probe,

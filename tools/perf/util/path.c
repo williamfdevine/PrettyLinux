@@ -29,11 +29,16 @@ static char *get_pathname(void)
 static char *cleanup_path(char *path)
 {
 	/* Clean it up */
-	if (!memcmp(path, "./", 2)) {
+	if (!memcmp(path, "./", 2))
+	{
 		path += 2;
+
 		while (*path == '/')
+		{
 			path++;
+		}
 	}
+
 	return path;
 }
 
@@ -46,7 +51,11 @@ char *mkpath(const char *fmt, ...)
 	va_start(args, fmt);
 	len = vsnprintf(pathname, PATH_MAX, fmt, args);
 	va_end(args);
+
 	if (len >= PATH_MAX)
+	{
 		return bad_path;
+	}
+
 	return cleanup_path(pathname);
 }

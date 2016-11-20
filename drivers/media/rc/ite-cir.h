@@ -26,16 +26,16 @@
 #define ite_pr(level, text, ...) \
 	printk(level KBUILD_MODNAME ": " text, ## __VA_ARGS__)
 #define ite_dbg(text, ...) do { \
-	if (debug) \
-		printk(KERN_DEBUG \
-			KBUILD_MODNAME ": " text "\n" , ## __VA_ARGS__); \
-} while (0)
+		if (debug) \
+			printk(KERN_DEBUG \
+				   KBUILD_MODNAME ": " text "\n" , ## __VA_ARGS__); \
+	} while (0)
 
 #define ite_dbg_verbose(text, ...) do {\
-	if (debug > 1) \
-		printk(KERN_DEBUG \
-			KBUILD_MODNAME ": " text "\n" , ## __VA_ARGS__); \
-} while (0)
+		if (debug > 1) \
+			printk(KERN_DEBUG \
+				   KBUILD_MODNAME ": " text "\n" , ## __VA_ARGS__); \
+	} while (0)
 
 /* FIFO sizes */
 #define ITE_TX_FIFO_LEN 32
@@ -50,7 +50,8 @@
 struct ite_dev;
 
 /* struct for storing the parameters of different recognized devices */
-struct ite_dev_params {
+struct ite_dev_params
+{
 	/* model of the device */
 	const char *model;
 
@@ -117,12 +118,13 @@ struct ite_dev_params {
 
 	/* set the carrier parameters */
 	void (*set_carrier_params) (struct ite_dev *dev, bool high_freq,
-				    bool use_demodulator, u8 carrier_freq_bits,
-				    u8 allowance_bits, u8 pulse_width_bits);
+								bool use_demodulator, u8 carrier_freq_bits,
+								u8 allowance_bits, u8 pulse_width_bits);
 };
 
 /* ITE CIR device structure */
-struct ite_dev {
+struct ite_dev
+{
 	struct pnp_dev *pdev;
 	struct rc_dev *rdev;
 	struct ir_raw_event rawir;
@@ -168,7 +170,7 @@ struct ite_dev {
 
 /* convert bits to us */
 #define ITE_BITS_TO_NS(bits, sample_period) \
-((u32) ((bits) * ITE_BAUDRATE_DIVISOR * sample_period))
+	((u32) ((bits) * ITE_BAUDRATE_DIVISOR * sample_period))
 
 /*
  * n in RDCR produces a tolerance of +/- n * 6.25% around the center

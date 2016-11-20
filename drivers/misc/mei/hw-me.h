@@ -32,7 +32,8 @@
  * @fw_status: FW status
  * @quirk_probe: device exclusion quirk
  */
-struct mei_cfg {
+struct mei_cfg
+{
 	const struct mei_fw_status fw_status;
 	bool (*quirk_probe)(struct pci_dev *pdev);
 };
@@ -40,8 +41,8 @@ struct mei_cfg {
 
 #define MEI_PCI_DEVICE(dev, cfg) \
 	.vendor = PCI_VENDOR_ID_INTEL, .device = (dev), \
-	.subvendor = PCI_ANY_ID, .subdevice = PCI_ANY_ID, \
-	.driver_data = (kernel_ulong_t)&(cfg)
+			  .subvendor = PCI_ANY_ID, .subdevice = PCI_ANY_ID, \
+						   .driver_data = (kernel_ulong_t)&(cfg)
 
 
 #define MEI_ME_RPM_TIMEOUT    500 /* ms */
@@ -55,7 +56,8 @@ struct mei_cfg {
  * @pg_state: power gating state
  * @d0i3_supported: di03 support
  */
-struct mei_me_hw {
+struct mei_me_hw
+{
 	const struct mei_cfg *cfg;
 	void __iomem *mem_addr;
 	u32 intr_source;
@@ -73,7 +75,7 @@ extern const struct mei_cfg mei_me_pch8_cfg;
 extern const struct mei_cfg mei_me_pch8_sps_cfg;
 
 struct mei_device *mei_me_dev_init(struct pci_dev *pdev,
-				   const struct mei_cfg *cfg);
+								   const struct mei_cfg *cfg);
 
 int mei_me_pg_enter_sync(struct mei_device *dev);
 int mei_me_pg_exit_sync(struct mei_device *dev);

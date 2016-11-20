@@ -46,7 +46,7 @@ void ax25_setup_timers(ax25_cb *ax25)
 	setup_timer(&ax25->t2timer, ax25_t2timer_expiry, (unsigned long)ax25);
 	setup_timer(&ax25->t3timer, ax25_t3timer_expiry, (unsigned long)ax25);
 	setup_timer(&ax25->idletimer, ax25_idletimer_expiry,
-		    (unsigned long)ax25);
+				(unsigned long)ax25);
 }
 
 void ax25_start_heartbeat(ax25_cb *ax25)
@@ -67,17 +67,25 @@ void ax25_start_t2timer(ax25_cb *ax25)
 void ax25_start_t3timer(ax25_cb *ax25)
 {
 	if (ax25->t3 > 0)
+	{
 		mod_timer(&ax25->t3timer, jiffies + ax25->t3);
+	}
 	else
+	{
 		del_timer(&ax25->t3timer);
+	}
 }
 
 void ax25_start_idletimer(ax25_cb *ax25)
 {
 	if (ax25->idle > 0)
+	{
 		mod_timer(&ax25->idletimer, jiffies + ax25->idle);
+	}
 	else
+	{
 		del_timer(&ax25->idletimer);
+	}
 }
 
 void ax25_stop_heartbeat(ax25_cb *ax25)
@@ -113,7 +121,9 @@ int ax25_t1timer_running(ax25_cb *ax25)
 unsigned long ax25_display_timer(struct timer_list *timer)
 {
 	if (!timer_pending(timer))
+	{
 		return 0;
+	}
 
 	return timer->expires - jiffies;
 }
@@ -126,21 +136,30 @@ static void ax25_heartbeat_expiry(unsigned long param)
 	ax25_cb *ax25 = (ax25_cb *)param;
 
 	if (ax25->ax25_dev)
+	{
 		proto = ax25->ax25_dev->values[AX25_VALUES_PROTOCOL];
+	}
 
-	switch (proto) {
-	case AX25_PROTO_STD_SIMPLEX:
-	case AX25_PROTO_STD_DUPLEX:
-		ax25_std_heartbeat_expiry(ax25);
-		break;
+	switch (proto)
+	{
+		case AX25_PROTO_STD_SIMPLEX:
+		case AX25_PROTO_STD_DUPLEX:
+			ax25_std_heartbeat_expiry(ax25);
+			break;
 
 #ifdef CONFIG_AX25_DAMA_SLAVE
-	case AX25_PROTO_DAMA_SLAVE:
-		if (ax25->ax25_dev->dama.slave)
-			ax25_ds_heartbeat_expiry(ax25);
-		else
-			ax25_std_heartbeat_expiry(ax25);
-		break;
+
+		case AX25_PROTO_DAMA_SLAVE:
+			if (ax25->ax25_dev->dama.slave)
+			{
+				ax25_ds_heartbeat_expiry(ax25);
+			}
+			else
+			{
+				ax25_std_heartbeat_expiry(ax25);
+			}
+
+			break;
 #endif
 	}
 }
@@ -149,17 +168,22 @@ static void ax25_t1timer_expiry(unsigned long param)
 {
 	ax25_cb *ax25 = (ax25_cb *)param;
 
-	switch (ax25->ax25_dev->values[AX25_VALUES_PROTOCOL]) {
-	case AX25_PROTO_STD_SIMPLEX:
-	case AX25_PROTO_STD_DUPLEX:
-		ax25_std_t1timer_expiry(ax25);
-		break;
+	switch (ax25->ax25_dev->values[AX25_VALUES_PROTOCOL])
+	{
+		case AX25_PROTO_STD_SIMPLEX:
+		case AX25_PROTO_STD_DUPLEX:
+			ax25_std_t1timer_expiry(ax25);
+			break;
 
 #ifdef CONFIG_AX25_DAMA_SLAVE
-	case AX25_PROTO_DAMA_SLAVE:
-		if (!ax25->ax25_dev->dama.slave)
-			ax25_std_t1timer_expiry(ax25);
-		break;
+
+		case AX25_PROTO_DAMA_SLAVE:
+			if (!ax25->ax25_dev->dama.slave)
+			{
+				ax25_std_t1timer_expiry(ax25);
+			}
+
+			break;
 #endif
 	}
 }
@@ -168,17 +192,22 @@ static void ax25_t2timer_expiry(unsigned long param)
 {
 	ax25_cb *ax25 = (ax25_cb *)param;
 
-	switch (ax25->ax25_dev->values[AX25_VALUES_PROTOCOL]) {
-	case AX25_PROTO_STD_SIMPLEX:
-	case AX25_PROTO_STD_DUPLEX:
-		ax25_std_t2timer_expiry(ax25);
-		break;
+	switch (ax25->ax25_dev->values[AX25_VALUES_PROTOCOL])
+	{
+		case AX25_PROTO_STD_SIMPLEX:
+		case AX25_PROTO_STD_DUPLEX:
+			ax25_std_t2timer_expiry(ax25);
+			break;
 
 #ifdef CONFIG_AX25_DAMA_SLAVE
-	case AX25_PROTO_DAMA_SLAVE:
-		if (!ax25->ax25_dev->dama.slave)
-			ax25_std_t2timer_expiry(ax25);
-		break;
+
+		case AX25_PROTO_DAMA_SLAVE:
+			if (!ax25->ax25_dev->dama.slave)
+			{
+				ax25_std_t2timer_expiry(ax25);
+			}
+
+			break;
 #endif
 	}
 }
@@ -187,19 +216,26 @@ static void ax25_t3timer_expiry(unsigned long param)
 {
 	ax25_cb *ax25 = (ax25_cb *)param;
 
-	switch (ax25->ax25_dev->values[AX25_VALUES_PROTOCOL]) {
-	case AX25_PROTO_STD_SIMPLEX:
-	case AX25_PROTO_STD_DUPLEX:
-		ax25_std_t3timer_expiry(ax25);
-		break;
+	switch (ax25->ax25_dev->values[AX25_VALUES_PROTOCOL])
+	{
+		case AX25_PROTO_STD_SIMPLEX:
+		case AX25_PROTO_STD_DUPLEX:
+			ax25_std_t3timer_expiry(ax25);
+			break;
 
 #ifdef CONFIG_AX25_DAMA_SLAVE
-	case AX25_PROTO_DAMA_SLAVE:
-		if (ax25->ax25_dev->dama.slave)
-			ax25_ds_t3timer_expiry(ax25);
-		else
-			ax25_std_t3timer_expiry(ax25);
-		break;
+
+		case AX25_PROTO_DAMA_SLAVE:
+			if (ax25->ax25_dev->dama.slave)
+			{
+				ax25_ds_t3timer_expiry(ax25);
+			}
+			else
+			{
+				ax25_std_t3timer_expiry(ax25);
+			}
+
+			break;
 #endif
 	}
 }
@@ -208,19 +244,26 @@ static void ax25_idletimer_expiry(unsigned long param)
 {
 	ax25_cb *ax25 = (ax25_cb *)param;
 
-	switch (ax25->ax25_dev->values[AX25_VALUES_PROTOCOL]) {
-	case AX25_PROTO_STD_SIMPLEX:
-	case AX25_PROTO_STD_DUPLEX:
-		ax25_std_idletimer_expiry(ax25);
-		break;
+	switch (ax25->ax25_dev->values[AX25_VALUES_PROTOCOL])
+	{
+		case AX25_PROTO_STD_SIMPLEX:
+		case AX25_PROTO_STD_DUPLEX:
+			ax25_std_idletimer_expiry(ax25);
+			break;
 
 #ifdef CONFIG_AX25_DAMA_SLAVE
-	case AX25_PROTO_DAMA_SLAVE:
-		if (ax25->ax25_dev->dama.slave)
-			ax25_ds_idletimer_expiry(ax25);
-		else
-			ax25_std_idletimer_expiry(ax25);
-		break;
+
+		case AX25_PROTO_DAMA_SLAVE:
+			if (ax25->ax25_dev->dama.slave)
+			{
+				ax25_ds_idletimer_expiry(ax25);
+			}
+			else
+			{
+				ax25_std_idletimer_expiry(ax25);
+			}
+
+			break;
 #endif
 	}
 }

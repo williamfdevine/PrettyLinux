@@ -97,41 +97,43 @@ static int state_dbg_show(struct seq_file *s, void *p)
 	u32 tmp;
 
 	if (!udc->driver)
+	{
 		return -ENODEV;
+	}
 
 	/* basic device status */
 	seq_printf(s, DRIVER_DESC "\n"
-		   "%s version: %s\n"
-		   "Gadget driver: %s\n",
-		   driver_name, DRIVER_VERSION,
-		   udc->driver ? udc->driver->driver.name : "(none)");
+			   "%s version: %s\n"
+			   "Gadget driver: %s\n",
+			   driver_name, DRIVER_VERSION,
+			   udc->driver ? udc->driver->driver.name : "(none)");
 
 	tmp = udc_readl(udc, UDCCR);
 	seq_printf(s,
-		   "udccr=0x%0x(%s%s%s%s%s%s%s%s%s%s), con=%d,inter=%d,altinter=%d\n",
-		   tmp,
-		   (tmp & UDCCR_OEN) ? " oen":"",
-		   (tmp & UDCCR_AALTHNP) ? " aalthnp":"",
-		   (tmp & UDCCR_AHNP) ? " rem" : "",
-		   (tmp & UDCCR_BHNP) ? " rstir" : "",
-		   (tmp & UDCCR_DWRE) ? " dwre" : "",
-		   (tmp & UDCCR_SMAC) ? " smac" : "",
-		   (tmp & UDCCR_EMCE) ? " emce" : "",
-		   (tmp & UDCCR_UDR) ? " udr" : "",
-		   (tmp & UDCCR_UDA) ? " uda" : "",
-		   (tmp & UDCCR_UDE) ? " ude" : "",
-		   (tmp & UDCCR_ACN) >> UDCCR_ACN_S,
-		   (tmp & UDCCR_AIN) >> UDCCR_AIN_S,
-		   (tmp & UDCCR_AAISN) >> UDCCR_AAISN_S);
+			   "udccr=0x%0x(%s%s%s%s%s%s%s%s%s%s), con=%d,inter=%d,altinter=%d\n",
+			   tmp,
+			   (tmp & UDCCR_OEN) ? " oen" : "",
+			   (tmp & UDCCR_AALTHNP) ? " aalthnp" : "",
+			   (tmp & UDCCR_AHNP) ? " rem" : "",
+			   (tmp & UDCCR_BHNP) ? " rstir" : "",
+			   (tmp & UDCCR_DWRE) ? " dwre" : "",
+			   (tmp & UDCCR_SMAC) ? " smac" : "",
+			   (tmp & UDCCR_EMCE) ? " emce" : "",
+			   (tmp & UDCCR_UDR) ? " udr" : "",
+			   (tmp & UDCCR_UDA) ? " uda" : "",
+			   (tmp & UDCCR_UDE) ? " ude" : "",
+			   (tmp & UDCCR_ACN) >> UDCCR_ACN_S,
+			   (tmp & UDCCR_AIN) >> UDCCR_AIN_S,
+			   (tmp & UDCCR_AAISN) >> UDCCR_AAISN_S);
 	/* registers for device and ep0 */
 	seq_printf(s, "udcicr0=0x%08x udcicr1=0x%08x\n",
-		   udc_readl(udc, UDCICR0), udc_readl(udc, UDCICR1));
+			   udc_readl(udc, UDCICR0), udc_readl(udc, UDCICR1));
 	seq_printf(s, "udcisr0=0x%08x udcisr1=0x%08x\n",
-		   udc_readl(udc, UDCISR0), udc_readl(udc, UDCISR1));
+			   udc_readl(udc, UDCISR0), udc_readl(udc, UDCISR1));
 	seq_printf(s, "udcfnr=%d\n", udc_readl(udc, UDCFNR));
 	seq_printf(s, "irqs: reset=%lu, suspend=%lu, resume=%lu, reconfig=%lu\n",
-		   udc->stats.irqs_reset, udc->stats.irqs_suspend,
-		   udc->stats.irqs_resume, udc->stats.irqs_reconfig);
+			   udc->stats.irqs_reset, udc->stats.irqs_suspend,
+			   udc->stats.irqs_resume, udc->stats.irqs_reconfig);
 
 	return 0;
 }
@@ -144,24 +146,29 @@ static int queues_dbg_show(struct seq_file *s, void *p)
 	int i, maxpkt;
 
 	if (!udc->driver)
+	{
 		return -ENODEV;
+	}
 
 	/* dump endpoint queues */
-	for (i = 0; i < NR_PXA_ENDPOINTS; i++) {
+	for (i = 0; i < NR_PXA_ENDPOINTS; i++)
+	{
 		ep = &udc->pxa_ep[i];
 		maxpkt = ep->fifo_size;
 		seq_printf(s,  "%-12s max_pkt=%d %s\n",
-			   EPNAME(ep), maxpkt, "pio");
+				   EPNAME(ep), maxpkt, "pio");
 
-		if (list_empty(&ep->queue)) {
+		if (list_empty(&ep->queue))
+		{
 			seq_puts(s, "\t(nothing queued)\n");
 			continue;
 		}
 
-		list_for_each_entry(req, &ep->queue, queue) {
+		list_for_each_entry(req, &ep->queue, queue)
+		{
 			seq_printf(s,  "\treq %p len %d/%d buf %p\n",
-				   &req->req, req->req.actual,
-				   req->req.length, req->req.buf);
+					   &req->req, req->req.actual,
+					   req->req.length, req->req.buf);
 		}
 	}
 
@@ -176,29 +183,33 @@ static int eps_dbg_show(struct seq_file *s, void *p)
 	u32 tmp;
 
 	if (!udc->driver)
+	{
 		return -ENODEV;
+	}
 
 	ep = &udc->pxa_ep[0];
 	tmp = udc_ep_readl(ep, UDCCSR);
 	seq_printf(s, "udccsr0=0x%03x(%s%s%s%s%s%s%s)\n",
-		   tmp,
-		   (tmp & UDCCSR0_SA) ? " sa" : "",
-		   (tmp & UDCCSR0_RNE) ? " rne" : "",
-		   (tmp & UDCCSR0_FST) ? " fst" : "",
-		   (tmp & UDCCSR0_SST) ? " sst" : "",
-		   (tmp & UDCCSR0_DME) ? " dme" : "",
-		   (tmp & UDCCSR0_IPR) ? " ipr" : "",
-		   (tmp & UDCCSR0_OPC) ? " opc" : "");
-	for (i = 0; i < NR_PXA_ENDPOINTS; i++) {
+			   tmp,
+			   (tmp & UDCCSR0_SA) ? " sa" : "",
+			   (tmp & UDCCSR0_RNE) ? " rne" : "",
+			   (tmp & UDCCSR0_FST) ? " fst" : "",
+			   (tmp & UDCCSR0_SST) ? " sst" : "",
+			   (tmp & UDCCSR0_DME) ? " dme" : "",
+			   (tmp & UDCCSR0_IPR) ? " ipr" : "",
+			   (tmp & UDCCSR0_OPC) ? " opc" : "");
+
+	for (i = 0; i < NR_PXA_ENDPOINTS; i++)
+	{
 		ep = &udc->pxa_ep[i];
-		tmp = i? udc_ep_readl(ep, UDCCR) : udc_readl(udc, UDCCR);
+		tmp = i ? udc_ep_readl(ep, UDCCR) : udc_readl(udc, UDCCR);
 		seq_printf(s, "%-12s: IN %lu(%lu reqs), OUT %lu(%lu reqs), irqs=%lu, udccr=0x%08x, udccsr=0x%03x, udcbcr=%d\n",
-			   EPNAME(ep),
-			   ep->stats.in_bytes, ep->stats.in_ops,
-			   ep->stats.out_bytes, ep->stats.out_ops,
-			   ep->stats.irqs,
-			   tmp, udc_ep_readl(ep, UDCCSR),
-			   udc_ep_readl(ep, UDCBCR));
+				   EPNAME(ep),
+				   ep->stats.in_bytes, ep->stats.in_ops,
+				   ep->stats.out_bytes, ep->stats.out_ops,
+				   ep->stats.irqs,
+				   tmp, udc_ep_readl(ep, UDCCSR),
+				   udc_ep_readl(ep, UDCBCR));
 	}
 
 	return 0;
@@ -219,7 +230,8 @@ static int state_dbg_open(struct inode *inode, struct file *file)
 	return single_open(file, state_dbg_show, inode->i_private);
 }
 
-static const struct file_operations state_dbg_fops = {
+static const struct file_operations state_dbg_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= state_dbg_open,
 	.llseek		= seq_lseek,
@@ -227,7 +239,8 @@ static const struct file_operations state_dbg_fops = {
 	.release	= single_release,
 };
 
-static const struct file_operations queues_dbg_fops = {
+static const struct file_operations queues_dbg_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= queues_dbg_open,
 	.llseek		= seq_lseek,
@@ -235,7 +248,8 @@ static const struct file_operations queues_dbg_fops = {
 	.release	= single_release,
 };
 
-static const struct file_operations eps_dbg_fops = {
+static const struct file_operations eps_dbg_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= eps_dbg_open,
 	.llseek		= seq_lseek,
@@ -248,21 +262,35 @@ static void pxa_init_debugfs(struct pxa_udc *udc)
 	struct dentry *root, *state, *queues, *eps;
 
 	root = debugfs_create_dir(udc->gadget.name, NULL);
+
 	if (IS_ERR(root) || !root)
+	{
 		goto err_root;
+	}
 
 	state = debugfs_create_file("udcstate", 0400, root, udc,
-			&state_dbg_fops);
+								&state_dbg_fops);
+
 	if (!state)
+	{
 		goto err_state;
+	}
+
 	queues = debugfs_create_file("queues", 0400, root, udc,
-			&queues_dbg_fops);
+								 &queues_dbg_fops);
+
 	if (!queues)
+	{
 		goto err_queues;
+	}
+
 	eps = debugfs_create_file("epstate", 0400, root, udc,
-			&eps_dbg_fops);
+							  &eps_dbg_fops);
+
 	if (!eps)
+	{
 		goto err_eps;
+	}
 
 	udc->debugfs_root = root;
 	udc->debugfs_state = state;
@@ -312,17 +340,29 @@ static inline void pxa_cleanup_debugfs(struct pxa_udc *udc)
  * Returns 1 if all criteria match between pxa and usb endpoint, 0 otherwise
  */
 static int is_match_usb_pxa(struct udc_usb_ep *udc_usb_ep, struct pxa_ep *ep,
-		int config, int interface, int altsetting)
+							int config, int interface, int altsetting)
 {
 	if (usb_endpoint_num(&udc_usb_ep->desc) != ep->addr)
+	{
 		return 0;
+	}
+
 	if (usb_endpoint_dir_in(&udc_usb_ep->desc) != ep->dir_in)
+	{
 		return 0;
+	}
+
 	if (usb_endpoint_type(&udc_usb_ep->desc) != ep->type)
+	{
 		return 0;
+	}
+
 	if ((ep->config != config) || (ep->interface != interface)
-			|| (ep->alternate != altsetting))
+		|| (ep->alternate != altsetting))
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
@@ -352,7 +392,7 @@ static int is_match_usb_pxa(struct udc_usb_ep *udc_usb_ep, struct pxa_ep *ep,
  * Returns the matched pxa_ep structure or NULL if none found
  */
 static struct pxa_ep *find_pxa_ep(struct pxa_udc *udc,
-		struct udc_usb_ep *udc_usb_ep)
+								  struct udc_usb_ep *udc_usb_ep)
 {
 	int i;
 	struct pxa_ep *ep;
@@ -361,13 +401,20 @@ static struct pxa_ep *find_pxa_ep(struct pxa_udc *udc,
 	int alt = udc->last_alternate;
 
 	if (udc_usb_ep == &udc->udc_usb_ep[0])
+	{
 		return &udc->pxa_ep[0];
-
-	for (i = 1; i < NR_PXA_ENDPOINTS; i++) {
-		ep = &udc->pxa_ep[i];
-		if (is_match_usb_pxa(udc_usb_ep, ep, cfg, iface, alt))
-			return ep;
 	}
+
+	for (i = 1; i < NR_PXA_ENDPOINTS; i++)
+	{
+		ep = &udc->pxa_ep[i];
+
+		if (is_match_usb_pxa(udc_usb_ep, ep, cfg, iface, alt))
+		{
+			return ep;
+		}
+	}
+
 	return NULL;
 }
 
@@ -386,10 +433,14 @@ static void update_pxa_ep_matches(struct pxa_udc *udc)
 	int i;
 	struct udc_usb_ep *udc_usb_ep;
 
-	for (i = 1; i < NR_USB_ENDPOINTS; i++) {
+	for (i = 1; i < NR_USB_ENDPOINTS; i++)
+	{
 		udc_usb_ep = &udc->udc_usb_ep[i];
+
 		if (udc_usb_ep->pxa_ep)
+		{
 			udc_usb_ep->pxa_ep = find_pxa_ep(udc, udc_usb_ep);
+		}
 	}
 }
 
@@ -405,9 +456,13 @@ static void pio_irq_enable(struct pxa_ep *ep)
 	u32 udcicr1 = udc_readl(udc, UDCICR1);
 
 	if (index < 16)
+	{
 		udc_writel(udc, UDCICR0, udcicr0 | (3 << (index * 2)));
+	}
 	else
+	{
 		udc_writel(udc, UDCICR1, udcicr1 | (3 << ((index - 16) * 2)));
+	}
 }
 
 /**
@@ -422,9 +477,13 @@ static void pio_irq_disable(struct pxa_ep *ep)
 	u32 udcicr1 = udc_readl(udc, UDCICR1);
 
 	if (index < 16)
+	{
 		udc_writel(udc, UDCICR0, udcicr0 & ~(3 << (index * 2)));
+	}
 	else
+	{
 		udc_writel(udc, UDCICR1, udcicr1 & ~(3 << ((index - 16) * 2)));
+	}
 }
 
 /**
@@ -438,7 +497,7 @@ static inline void udc_set_mask_UDCCR(struct pxa_udc *udc, int mask)
 {
 	u32 udccr = udc_readl(udc, UDCCR);
 	udc_writel(udc, UDCCR,
-			(udccr & UDCCR_MASK_BITS) | (mask & UDCCR_MASK_BITS));
+			   (udccr & UDCCR_MASK_BITS) | (mask & UDCCR_MASK_BITS));
 }
 
 /**
@@ -452,7 +511,7 @@ static inline void udc_clear_mask_UDCCR(struct pxa_udc *udc, int mask)
 {
 	u32 udccr = udc_readl(udc, UDCCR);
 	udc_writel(udc, UDCCR,
-			(udccr & UDCCR_MASK_BITS) & ~(mask & UDCCR_MASK_BITS));
+			   (udccr & UDCCR_MASK_BITS) & ~(mask & UDCCR_MASK_BITS));
 }
 
 /**
@@ -468,7 +527,10 @@ static inline void udc_clear_mask_UDCCR(struct pxa_udc *udc, int mask)
 static inline void ep_write_UDCCSR(struct pxa_ep *ep, int mask)
 {
 	if (is_ep0(ep))
+	{
 		mask |= UDCCSR0_ACM;
+	}
+
 	udc_ep_writel(ep, UDCCSR, mask);
 }
 
@@ -481,7 +543,10 @@ static inline void ep_write_UDCCSR(struct pxa_ep *ep, int mask)
 static int ep_count_bytes_remain(struct pxa_ep *ep)
 {
 	if (ep->dir_in)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	return udc_ep_readl(ep, UDCBCR) & 0x3ff;
 }
 
@@ -500,11 +565,19 @@ static int ep_is_empty(struct pxa_ep *ep)
 	int ret;
 
 	if (!is_ep0(ep) && ep->dir_in)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	if (is_ep0(ep))
+	{
 		ret = !(udc_ep_readl(ep, UDCCSR) & UDCCSR0_RNE);
+	}
 	else
+	{
 		ret = !(udc_ep_readl(ep, UDCCSR) & UDCCSR_BNE);
+	}
+
 	return ret;
 }
 
@@ -520,9 +593,15 @@ static int ep_is_empty(struct pxa_ep *ep)
 static int ep_is_full(struct pxa_ep *ep)
 {
 	if (is_ep0(ep))
+	{
 		return (udc_ep_readl(ep, UDCCSR) & UDCCSR0_IPR);
+	}
+
 	if (!ep->dir_in)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	return (!(udc_ep_readl(ep, UDCCSR) & UDCCSR_BNF));
 }
 
@@ -535,9 +614,15 @@ static int ep_is_full(struct pxa_ep *ep)
 static int epout_has_pkt(struct pxa_ep *ep)
 {
 	if (!is_ep0(ep) && ep->dir_in)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	if (is_ep0(ep))
+	{
 		return (udc_ep_readl(ep, UDCCSR) & UDCCSR0_OPC);
+	}
+
 	return (udc_ep_readl(ep, UDCCSR) & UDCCSR_PC);
 }
 
@@ -553,8 +638,8 @@ static void set_ep0state(struct pxa_udc *udc, int state)
 
 	udc->ep0state = state;
 	ep_dbg(ep, "state=%s->%s, udccsr0=0x%03x, udcbcr=%d\n", old_stname,
-		EP0_STNAME(udc), udc_ep_readl(ep, UDCCSR),
-		udc_ep_readl(ep, UDCBCR));
+		   EP0_STNAME(udc), udc_ep_readl(ep, UDCCSR),
+		   udc_ep_readl(ep, UDCBCR));
 }
 
 /**
@@ -576,9 +661,13 @@ static void ep0_idle(struct pxa_udc *dev)
 static void inc_ep_stats_reqs(struct pxa_ep *ep, int is_in)
 {
 	if (is_in)
+	{
 		ep->stats.in_ops++;
+	}
 	else
+	{
 		ep->stats.out_ops++;
+	}
 }
 
 /**
@@ -590,9 +679,13 @@ static void inc_ep_stats_reqs(struct pxa_ep *ep, int is_in)
 static void inc_ep_stats_bytes(struct pxa_ep *ep, int count, int is_in)
 {
 	if (is_in)
+	{
 		ep->stats.in_bytes += count;
+	}
 	else
+	{
 		ep->stats.out_bytes += count;
+	}
 }
 
 /**
@@ -606,13 +699,13 @@ static void pxa_ep_setup(struct pxa_ep *ep)
 	u32 new_udccr;
 
 	new_udccr = ((ep->config << UDCCONR_CN_S) & UDCCONR_CN)
-		| ((ep->interface << UDCCONR_IN_S) & UDCCONR_IN)
-		| ((ep->alternate << UDCCONR_AISN_S) & UDCCONR_AISN)
-		| ((EPADDR(ep) << UDCCONR_EN_S) & UDCCONR_EN)
-		| ((EPXFERTYPE(ep) << UDCCONR_ET_S) & UDCCONR_ET)
-		| ((ep->dir_in) ? UDCCONR_ED : 0)
-		| ((ep->fifo_size << UDCCONR_MPS_S) & UDCCONR_MPS)
-		| UDCCONR_EE;
+				| ((ep->interface << UDCCONR_IN_S) & UDCCONR_IN)
+				| ((ep->alternate << UDCCONR_AISN_S) & UDCCONR_AISN)
+				| ((EPADDR(ep) << UDCCONR_EN_S) & UDCCONR_EN)
+				| ((EPXFERTYPE(ep) << UDCCONR_ET_S) & UDCCONR_ET)
+				| ((ep->dir_in) ? UDCCONR_ED : 0)
+				| ((ep->fifo_size << UDCCONR_MPS_S) & UDCCONR_MPS)
+				| UDCCONR_EE;
 
 	udc_ep_writel(ep, UDCCR, new_udccr);
 }
@@ -630,7 +723,9 @@ static void pxa_eps_setup(struct pxa_udc *dev)
 	dev_dbg(dev->dev, "%s: dev=%p\n", __func__, dev);
 
 	for (i = 1; i < NR_PXA_ENDPOINTS; i++)
+	{
 		pxa_ep_setup(&dev->pxa_ep[i]);
+	}
 }
 
 /**
@@ -647,9 +742,12 @@ pxa_ep_alloc_request(struct usb_ep *_ep, gfp_t gfp_flags)
 {
 	struct pxa27x_request *req;
 
-	req = kzalloc(sizeof *req, gfp_flags);
+	req = kzalloc(sizeof * req, gfp_flags);
+
 	if (!req)
+	{
 		return NULL;
+	}
 
 	INIT_LIST_HEAD(&req->queue);
 	req->in_use = 0;
@@ -687,9 +785,12 @@ static void pxa_ep_free_request(struct usb_ep *_ep, struct usb_request *_req)
 static void ep_add_request(struct pxa_ep *ep, struct pxa27x_request *req)
 {
 	if (unlikely(!req))
+	{
 		return;
+	}
+
 	ep_vdbg(ep, "req:%p, lg=%d, udccsr=0x%03x\n", req,
-		req->req.length, udc_ep_readl(ep, UDCCSR));
+			req->req.length, udc_ep_readl(ep, UDCCSR));
 
 	req->in_use = 1;
 	list_add_tail(&req->queue, &ep->queue);
@@ -710,14 +811,20 @@ static void ep_add_request(struct pxa_ep *ep, struct pxa27x_request *req)
 static void ep_del_request(struct pxa_ep *ep, struct pxa27x_request *req)
 {
 	if (unlikely(!req))
+	{
 		return;
+	}
+
 	ep_vdbg(ep, "req:%p, lg=%d, udccsr=0x%03x\n", req,
-		req->req.length, udc_ep_readl(ep, UDCCSR));
+			req->req.length, udc_ep_readl(ep, UDCCSR));
 
 	list_del_init(&req->queue);
 	req->in_use = 0;
+
 	if (!is_ep0(ep) && list_empty(&ep->queue))
+	{
 		pio_irq_disable(ep);
+	}
 }
 
 /**
@@ -732,28 +839,39 @@ static void ep_del_request(struct pxa_ep *ep, struct pxa27x_request *req)
  * Retire a pxa27x usb request. Endpoint must be locked.
  */
 static void req_done(struct pxa_ep *ep, struct pxa27x_request *req, int status,
-	unsigned long *pflags)
+					 unsigned long *pflags)
 {
 	unsigned long	flags;
 
 	ep_del_request(ep, req);
+
 	if (likely(req->req.status == -EINPROGRESS))
+	{
 		req->req.status = status;
+	}
 	else
+	{
 		status = req->req.status;
+	}
 
 	if (status && status != -ESHUTDOWN)
 		ep_dbg(ep, "complete req %p stat %d len %u/%u\n",
-			&req->req, status,
-			req->req.actual, req->req.length);
+			   &req->req, status,
+			   req->req.actual, req->req.length);
 
 	if (pflags)
+	{
 		spin_unlock_irqrestore(&ep->lock, *pflags);
+	}
+
 	local_irq_save(flags);
 	usb_gadget_giveback_request(&req->udc_usb_ep->usb_ep, &req->req);
 	local_irq_restore(flags);
+
 	if (pflags)
+	{
 		spin_lock_irqsave(&ep->lock, *pflags);
+	}
 }
 
 /**
@@ -767,7 +885,7 @@ static void req_done(struct pxa_ep *ep, struct pxa27x_request *req, int status,
  * Ends endpoint OUT request (completes usb request).
  */
 static void ep_end_out_req(struct pxa_ep *ep, struct pxa27x_request *req,
-	unsigned long *pflags)
+						   unsigned long *pflags)
 {
 	inc_ep_stats_reqs(ep, !USB_DIR_IN);
 	req_done(ep, req, 0, pflags);
@@ -785,7 +903,7 @@ static void ep_end_out_req(struct pxa_ep *ep, struct pxa27x_request *req,
  * control endpoint into idle state
  */
 static void ep0_end_out_req(struct pxa_ep *ep, struct pxa27x_request *req,
-	unsigned long *pflags)
+							unsigned long *pflags)
 {
 	set_ep0state(ep->dev, OUT_STATUS_STAGE);
 	ep_end_out_req(ep, req, pflags);
@@ -803,7 +921,7 @@ static void ep0_end_out_req(struct pxa_ep *ep, struct pxa27x_request *req,
  * Ends endpoint IN request (completes usb request).
  */
 static void ep_end_in_req(struct pxa_ep *ep, struct pxa27x_request *req,
-	unsigned long *pflags)
+						  unsigned long *pflags)
 {
 	inc_ep_stats_reqs(ep, USB_DIR_IN);
 	req_done(ep, req, 0, pflags);
@@ -821,7 +939,7 @@ static void ep_end_in_req(struct pxa_ep *ep, struct pxa27x_request *req,
  * control endpoint into status state
  */
 static void ep0_end_in_req(struct pxa_ep *ep, struct pxa27x_request *req,
-	unsigned long *pflags)
+						   unsigned long *pflags)
 {
 	set_ep0state(ep->dev, IN_STATUS_STAGE);
 	ep_end_in_req(ep, req, pflags);
@@ -843,10 +961,13 @@ static void nuke(struct pxa_ep *ep, int status)
 	unsigned long		flags;
 
 	spin_lock_irqsave(&ep->lock, flags);
-	while (!list_empty(&ep->queue)) {
+
+	while (!list_empty(&ep->queue))
+	{
 		req = list_entry(ep->queue.next, struct pxa27x_request, queue);
 		req_done(ep, req, status, &flags);
 	}
+
 	spin_unlock_irqrestore(&ep->lock, flags);
 }
 
@@ -873,12 +994,19 @@ static int read_packet(struct pxa_ep *ep, struct pxa27x_request *req)
 	prefetchw(buf);
 
 	if (likely(!ep_is_empty(ep)))
+	{
 		count = min(bytes_ep, bufferspace);
+	}
 	else /* zlp */
+	{
 		count = 0;
+	}
 
 	for (i = count; i > 0; i -= 4)
+	{
 		*buf++ = udc_ep_readl(ep, UDCDR);
+	}
+
 	req->req.actual += count;
 
 	ep_write_UDCCSR(ep, UDCCSR_PC);
@@ -899,7 +1027,7 @@ static int read_packet(struct pxa_ep *ep, struct pxa27x_request *req)
  * Returns how many bytes were actually transferred.
  */
 static int write_packet(struct pxa_ep *ep, struct pxa27x_request *req,
-			unsigned int max)
+						unsigned int max)
 {
 	int length, count, remain, i;
 	u32 *buf;
@@ -913,15 +1041,21 @@ static int write_packet(struct pxa_ep *ep, struct pxa27x_request *req,
 
 	remain = length & 0x3;
 	count = length & ~(0x3);
+
 	for (i = count; i > 0 ; i -= 4)
+	{
 		udc_ep_writel(ep, UDCDR, *buf++);
+	}
 
 	buf_8 = (u8 *)buf;
+
 	for (i = remain; i > 0; i--)
+	{
 		udc_ep_writeb(ep, UDCDR, *buf_8++);
+	}
 
 	ep_vdbg(ep, "length=%d+%d, udccsr=0x%03x\n", count, remain,
-		udc_ep_readl(ep, UDCCSR));
+			udc_ep_readl(ep, UDCCSR));
 
 	return length;
 }
@@ -944,22 +1078,26 @@ static int read_fifo(struct pxa_ep *ep, struct pxa27x_request *req)
 {
 	int count, is_short, completed = 0;
 
-	while (epout_has_pkt(ep)) {
+	while (epout_has_pkt(ep))
+	{
 		count = read_packet(ep, req);
 		inc_ep_stats_bytes(ep, count, !USB_DIR_IN);
 
 		is_short = (count < ep->fifo_size);
 		ep_dbg(ep, "read udccsr:%03x, count:%d bytes%s req %p %d/%d\n",
-			udc_ep_readl(ep, UDCCSR), count, is_short ? "/S" : "",
-			&req->req, req->req.actual, req->req.length);
+			   udc_ep_readl(ep, UDCCSR), count, is_short ? "/S" : "",
+			   &req->req, req->req.actual, req->req.length);
 
 		/* completion */
-		if (is_short || req->req.actual == req->req.length) {
+		if (is_short || req->req.actual == req->req.length)
+		{
 			completed = 1;
 			break;
 		}
+
 		/* finished that packet.  the next one may be waiting... */
 	}
+
 	return completed;
 }
 
@@ -982,18 +1120,24 @@ static int write_fifo(struct pxa_ep *ep, struct pxa27x_request *req)
 	u32 udccsr;
 
 	max = ep->fifo_size;
-	do {
+
+	do
+	{
 		is_short = 0;
 
 		udccsr = udc_ep_readl(ep, UDCCSR);
-		if (udccsr & UDCCSR_PC) {
+
+		if (udccsr & UDCCSR_PC)
+		{
 			ep_vdbg(ep, "Clearing Transmit Complete, udccsr=%x\n",
-				udccsr);
+					udccsr);
 			ep_write_UDCCSR(ep, UDCCSR_PC);
 		}
-		if (udccsr & UDCCSR_TRN) {
+
+		if (udccsr & UDCCSR_TRN)
+		{
 			ep_vdbg(ep, "Clearing Underrun on, udccsr=%x\n",
-				udccsr);
+					udccsr);
 			ep_write_UDCCSR(ep, UDCCSR_TRN);
 		}
 
@@ -1002,32 +1146,44 @@ static int write_fifo(struct pxa_ep *ep, struct pxa27x_request *req)
 		totcount += count;
 
 		/* last packet is usually short (or a zlp) */
-		if (unlikely(count < max)) {
+		if (unlikely(count < max))
+		{
 			is_last = 1;
 			is_short = 1;
-		} else {
+		}
+		else
+		{
 			if (likely(req->req.length > req->req.actual)
-					|| req->req.zero)
+				|| req->req.zero)
+			{
 				is_last = 0;
+			}
 			else
+			{
 				is_last = 1;
+			}
+
 			/* interrupt/iso maxpacket may not fill the fifo */
 			is_short = unlikely(max < ep->fifo_size);
 		}
 
 		if (is_short)
+		{
 			ep_write_UDCCSR(ep, UDCCSR_SP);
+		}
 
 		/* requests complete when all IN data is in the FIFO */
-		if (is_last) {
+		if (is_last)
+		{
 			completed = 1;
 			break;
 		}
-	} while (!ep_is_full(ep));
+	}
+	while (!ep_is_full(ep));
 
 	ep_dbg(ep, "wrote count:%d bytes%s%s, left:%d req=%p\n",
-			totcount, is_last ? "/L" : "", is_short ? "/S" : "",
-			req->req.length - req->req.actual, &req->req);
+		   totcount, is_last ? "/L" : "", is_short ? "/S" : "",
+		   req->req.length - req->req.actual, &req->req);
 
 	return completed;
 }
@@ -1047,17 +1203,19 @@ static int read_ep0_fifo(struct pxa_ep *ep, struct pxa27x_request *req)
 {
 	int count, is_short, completed = 0;
 
-	while (epout_has_pkt(ep)) {
+	while (epout_has_pkt(ep))
+	{
 		count = read_packet(ep, req);
 		ep_write_UDCCSR(ep, UDCCSR0_OPC);
 		inc_ep_stats_bytes(ep, count, !USB_DIR_IN);
 
 		is_short = (count < ep->fifo_size);
 		ep_dbg(ep, "read udccsr:%03x, count:%d bytes%s req %p %d/%d\n",
-			udc_ep_readl(ep, UDCCSR), count, is_short ? "/S" : "",
-			&req->req, req->req.actual, req->req.length);
+			   udc_ep_readl(ep, UDCCSR), count, is_short ? "/S" : "",
+			   &req->req, req->req.actual, req->req.length);
 
-		if (is_short || req->req.actual >= req->req.length) {
+		if (is_short || req->req.actual >= req->req.length)
+		{
 			completed = 1;
 			break;
 		}
@@ -1094,12 +1252,14 @@ static int write_ep0_fifo(struct pxa_ep *ep, struct pxa27x_request *req)
 
 	/* Sends either a short packet or a 0 length packet */
 	if (unlikely(is_short))
+	{
 		ep_write_UDCCSR(ep, UDCCSR0_IPR);
+	}
 
 	ep_dbg(ep, "in %d bytes%s%s, %d left, req=%p, udccsr0=0x%03x\n",
-		count, is_short ? "/S" : "", is_last ? "/L" : "",
-		req->req.length - req->req.actual,
-		&req->req, udc_ep_readl(ep, UDCCSR));
+		   count, is_short ? "/S" : "", is_last ? "/L" : "",
+		   req->req.length - req->req.actual,
+		   &req->req, udc_ep_readl(ep, UDCCSR));
 
 	return is_last;
 }
@@ -1117,7 +1277,7 @@ static int write_ep0_fifo(struct pxa_ep *ep, struct pxa27x_request *req)
  * Returns 0 if succedeed, error otherwise
  */
 static int pxa_ep_queue(struct usb_ep *_ep, struct usb_request *_req,
-			gfp_t gfp_flags)
+						gfp_t gfp_flags)
 {
 	struct udc_usb_ep	*udc_usb_ep;
 	struct pxa_ep		*ep;
@@ -1133,18 +1293,27 @@ static int pxa_ep_queue(struct usb_ep *_ep, struct usb_request *_req,
 	udc_usb_ep = container_of(_ep, struct udc_usb_ep, usb_ep);
 
 	if (unlikely(!_req || !_req->complete || !_req->buf))
+	{
 		return -EINVAL;
+	}
 
 	if (unlikely(!_ep))
+	{
 		return -EINVAL;
+	}
 
 	dev = udc_usb_ep->dev;
 	ep = udc_usb_ep->pxa_ep;
+
 	if (unlikely(!ep))
+	{
 		return -EINVAL;
+	}
 
 	dev = ep->dev;
-	if (unlikely(!dev->driver || dev->gadget.speed == USB_SPEED_UNKNOWN)) {
+
+	if (unlikely(!dev->driver || dev->gadget.speed == USB_SPEED_UNKNOWN))
+	{
 		ep_dbg(ep, "bogus device state\n");
 		return -ESHUTDOWN;
 	}
@@ -1153,24 +1322,28 @@ static int pxa_ep_queue(struct usb_ep *_ep, struct usb_request *_req,
 	 * we can report per-packet status.  that also helps with dma.
 	 */
 	if (unlikely(EPXFERTYPE_is_ISO(ep)
-			&& req->req.length > ep->fifo_size))
+				 && req->req.length > ep->fifo_size))
+	{
 		return -EMSGSIZE;
+	}
 
 	spin_lock_irqsave(&ep->lock, flags);
 	recursion_detected = ep->in_handle_ep;
 
 	is_first_req = list_empty(&ep->queue);
 	ep_dbg(ep, "queue req %p(first=%s), len %d buf %p\n",
-			_req, is_first_req ? "yes" : "no",
-			_req->length, _req->buf);
+		   _req, is_first_req ? "yes" : "no",
+		   _req->length, _req->buf);
 
-	if (!ep->enabled) {
+	if (!ep->enabled)
+	{
 		_req->status = -ESHUTDOWN;
 		rc = -ESHUTDOWN;
 		goto out_locked;
 	}
 
-	if (req->in_use) {
+	if (req->in_use)
+	{
 		ep_err(ep, "refusing to queue req %p (already queued)\n", req);
 		goto out_locked;
 	}
@@ -1182,40 +1355,59 @@ static int pxa_ep_queue(struct usb_ep *_ep, struct usb_request *_req,
 	ep_add_request(ep, req);
 	spin_unlock_irqrestore(&ep->lock, flags);
 
-	if (is_ep0(ep)) {
-		switch (dev->ep0state) {
-		case WAIT_ACK_SET_CONF_INTERF:
-			if (length == 0) {
-				ep_end_in_req(ep, req, NULL);
-			} else {
-				ep_err(ep, "got a request of %d bytes while"
-					"in state WAIT_ACK_SET_CONF_INTERF\n",
-					length);
+	if (is_ep0(ep))
+	{
+		switch (dev->ep0state)
+		{
+			case WAIT_ACK_SET_CONF_INTERF:
+				if (length == 0)
+				{
+					ep_end_in_req(ep, req, NULL);
+				}
+				else
+				{
+					ep_err(ep, "got a request of %d bytes while"
+						   "in state WAIT_ACK_SET_CONF_INTERF\n",
+						   length);
+					ep_del_request(ep, req);
+					rc = -EL2HLT;
+				}
+
+				ep0_idle(ep->dev);
+				break;
+
+			case IN_DATA_STAGE:
+				if (!ep_is_full(ep))
+					if (write_ep0_fifo(ep, req))
+					{
+						ep0_end_in_req(ep, req, NULL);
+					}
+
+				break;
+
+			case OUT_DATA_STAGE:
+				if ((length == 0) || !epout_has_pkt(ep))
+					if (read_ep0_fifo(ep, req))
+					{
+						ep0_end_out_req(ep, req, NULL);
+					}
+
+				break;
+
+			default:
+				ep_err(ep, "odd state %s to send me a request\n",
+					   EP0_STNAME(ep->dev));
 				ep_del_request(ep, req);
 				rc = -EL2HLT;
-			}
-			ep0_idle(ep->dev);
-			break;
-		case IN_DATA_STAGE:
-			if (!ep_is_full(ep))
-				if (write_ep0_fifo(ep, req))
-					ep0_end_in_req(ep, req, NULL);
-			break;
-		case OUT_DATA_STAGE:
-			if ((length == 0) || !epout_has_pkt(ep))
-				if (read_ep0_fifo(ep, req))
-					ep0_end_out_req(ep, req, NULL);
-			break;
-		default:
-			ep_err(ep, "odd state %s to send me a request\n",
-				EP0_STNAME(ep->dev));
-			ep_del_request(ep, req);
-			rc = -EL2HLT;
-			break;
+				break;
 		}
-	} else {
+	}
+	else
+	{
 		if (!recursion_detected)
+		{
 			handle_ep(ep);
+		}
 	}
 
 out:
@@ -1241,25 +1433,37 @@ static int pxa_ep_dequeue(struct usb_ep *_ep, struct usb_request *_req)
 	int			rc = -EINVAL;
 
 	if (!_ep)
+	{
 		return rc;
+	}
+
 	udc_usb_ep = container_of(_ep, struct udc_usb_ep, usb_ep);
 	ep = udc_usb_ep->pxa_ep;
+
 	if (!ep || is_ep0(ep))
+	{
 		return rc;
+	}
 
 	spin_lock_irqsave(&ep->lock, flags);
 
 	/* make sure it's actually queued on this endpoint */
-	list_for_each_entry(req, &ep->queue, queue) {
-		if (&req->req == _req) {
+	list_for_each_entry(req, &ep->queue, queue)
+	{
+		if (&req->req == _req)
+		{
 			rc = 0;
 			break;
 		}
 	}
 
 	spin_unlock_irqrestore(&ep->lock, flags);
+
 	if (!rc)
+	{
 		req_done(ep, req, -ECONNRESET, NULL);
+	}
+
 	return rc;
 }
 
@@ -1279,13 +1483,20 @@ static int pxa_ep_set_halt(struct usb_ep *_ep, int value)
 
 
 	if (!_ep)
+	{
 		return -EINVAL;
+	}
+
 	udc_usb_ep = container_of(_ep, struct udc_usb_ep, usb_ep);
 	ep = udc_usb_ep->pxa_ep;
-	if (!ep || is_ep0(ep))
-		return -EINVAL;
 
-	if (value == 0) {
+	if (!ep || is_ep0(ep))
+	{
+		return -EINVAL;
+	}
+
+	if (value == 0)
+	{
 		/*
 		 * This path (reset toggle+halt) is needed to implement
 		 * SET_INTERFACE on normal hardware.  but it can't be
@@ -1299,14 +1510,20 @@ static int pxa_ep_set_halt(struct usb_ep *_ep, int value)
 	spin_lock_irqsave(&ep->lock, flags);
 
 	rc = -EAGAIN;
+
 	if (ep->dir_in	&& (ep_is_full(ep) || !list_empty(&ep->queue)))
+	{
 		goto out;
+	}
 
 	/* FST, FEF bits are the same for control and non control endpoints */
 	rc = 0;
 	ep_write_UDCCSR(ep, UDCCSR_FST | UDCCSR_FEF);
+
 	if (is_ep0(ep))
+	{
 		set_ep0state(ep->dev, STALL);
+	}
 
 out:
 	spin_unlock_irqrestore(&ep->lock, flags);
@@ -1325,18 +1542,31 @@ static int pxa_ep_fifo_status(struct usb_ep *_ep)
 	struct udc_usb_ep	*udc_usb_ep;
 
 	if (!_ep)
+	{
 		return -ENODEV;
+	}
+
 	udc_usb_ep = container_of(_ep, struct udc_usb_ep, usb_ep);
 	ep = udc_usb_ep->pxa_ep;
+
 	if (!ep || is_ep0(ep))
+	{
 		return -ENODEV;
+	}
 
 	if (ep->dir_in)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	if (ep->dev->gadget.speed == USB_SPEED_UNKNOWN || ep_is_empty(ep))
+	{
 		return 0;
+	}
 	else
+	{
 		return ep_count_bytes_remain(ep) + 1;
+	}
 }
 
 /**
@@ -1352,27 +1582,41 @@ static void pxa_ep_fifo_flush(struct usb_ep *_ep)
 	unsigned long		flags;
 
 	if (!_ep)
+	{
 		return;
+	}
+
 	udc_usb_ep = container_of(_ep, struct udc_usb_ep, usb_ep);
 	ep = udc_usb_ep->pxa_ep;
+
 	if (!ep || is_ep0(ep))
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&ep->lock, flags);
 
 	if (unlikely(!list_empty(&ep->queue)))
+	{
 		ep_dbg(ep, "called while queue list not empty\n");
+	}
+
 	ep_dbg(ep, "called\n");
 
 	/* for OUT, just read and discard the FIFO contents. */
-	if (!ep->dir_in) {
+	if (!ep->dir_in)
+	{
 		while (!ep_is_empty(ep))
+		{
 			udc_ep_readl(ep, UDCDR);
-	} else {
+		}
+	}
+	else
+	{
 		/* most IN status is the same, but ISO can't stall */
 		ep_write_UDCCSR(ep,
-				UDCCSR_PC | UDCCSR_FEF | UDCCSR_TRN
-				| (EPXFERTYPE_is_ISO(ep) ? 0 : UDCCSR_SST));
+						UDCCSR_PC | UDCCSR_FEF | UDCCSR_TRN
+						| (EPXFERTYPE_is_ISO(ep) ? 0 : UDCCSR_SST));
 	}
 
 	spin_unlock_irqrestore(&ep->lock, flags);
@@ -1389,38 +1633,47 @@ static void pxa_ep_fifo_flush(struct usb_ep *_ep)
  * Function makes sanity checks and flushes the endpoint.
  */
 static int pxa_ep_enable(struct usb_ep *_ep,
-	const struct usb_endpoint_descriptor *desc)
+						 const struct usb_endpoint_descriptor *desc)
 {
 	struct pxa_ep		*ep;
 	struct udc_usb_ep	*udc_usb_ep;
 	struct pxa_udc		*udc;
 
 	if (!_ep || !desc)
+	{
 		return -EINVAL;
+	}
 
 	udc_usb_ep = container_of(_ep, struct udc_usb_ep, usb_ep);
-	if (udc_usb_ep->pxa_ep) {
+
+	if (udc_usb_ep->pxa_ep)
+	{
 		ep = udc_usb_ep->pxa_ep;
 		ep_warn(ep, "usb_ep %s already enabled, doing nothing\n",
-			_ep->name);
-	} else {
+				_ep->name);
+	}
+	else
+	{
 		ep = find_pxa_ep(udc_usb_ep->dev, udc_usb_ep);
 	}
 
-	if (!ep || is_ep0(ep)) {
+	if (!ep || is_ep0(ep))
+	{
 		dev_err(udc_usb_ep->dev->dev,
-			"unable to match pxa_ep for ep %s\n",
-			_ep->name);
+				"unable to match pxa_ep for ep %s\n",
+				_ep->name);
 		return -EINVAL;
 	}
 
 	if ((desc->bDescriptorType != USB_DT_ENDPOINT)
-			|| (ep->type != usb_endpoint_type(desc))) {
+		|| (ep->type != usb_endpoint_type(desc)))
+	{
 		ep_err(ep, "type mismatch\n");
 		return -EINVAL;
 	}
 
-	if (ep->fifo_size < usb_endpoint_maxp(desc)) {
+	if (ep->fifo_size < usb_endpoint_maxp(desc))
+	{
 		ep_err(ep, "bad maxpacket\n");
 		return -ERANGE;
 	}
@@ -1428,7 +1681,8 @@ static int pxa_ep_enable(struct usb_ep *_ep,
 	udc_usb_ep->pxa_ep = ep;
 	udc = ep->dev;
 
-	if (!udc->driver || udc->gadget.speed == USB_SPEED_UNKNOWN) {
+	if (!udc->driver || udc->gadget.speed == USB_SPEED_UNKNOWN)
+	{
 		ep_err(ep, "bogus device state\n");
 		return -ESHUTDOWN;
 	}
@@ -1456,12 +1710,17 @@ static int pxa_ep_disable(struct usb_ep *_ep)
 	struct udc_usb_ep	*udc_usb_ep;
 
 	if (!_ep)
+	{
 		return -EINVAL;
+	}
 
 	udc_usb_ep = container_of(_ep, struct udc_usb_ep, usb_ep);
 	ep = udc_usb_ep->pxa_ep;
+
 	if (!ep || is_ep0(ep) || !list_empty(&ep->queue))
+	{
 		return -EINVAL;
+	}
 
 	ep->enabled = 0;
 	nuke(ep, -ESHUTDOWN);
@@ -1473,7 +1732,8 @@ static int pxa_ep_disable(struct usb_ep *_ep)
 	return 0;
 }
 
-static struct usb_ep_ops pxa_ep_ops = {
+static struct usb_ep_ops pxa_ep_ops =
+{
 	.enable		= pxa_ep_enable,
 	.disable	= pxa_ep_disable,
 
@@ -1499,14 +1759,22 @@ static struct usb_ep_ops pxa_ep_ops = {
  */
 static void dplus_pullup(struct pxa_udc *udc, int on)
 {
-	if (udc->gpiod) {
+	if (udc->gpiod)
+	{
 		gpiod_set_value(udc->gpiod, on);
-	} else if (udc->udc_command) {
-		if (on)
-			udc->udc_command(PXA2XX_UDC_CMD_CONNECT);
-		else
-			udc->udc_command(PXA2XX_UDC_CMD_DISCONNECT);
 	}
+	else if (udc->udc_command)
+	{
+		if (on)
+		{
+			udc->udc_command(PXA2XX_UDC_CMD_CONNECT);
+		}
+		else
+		{
+			udc->udc_command(PXA2XX_UDC_CMD_DISCONNECT);
+		}
+	}
+
 	udc->pullup_on = on;
 }
 
@@ -1533,7 +1801,10 @@ static int pxa_udc_wakeup(struct usb_gadget *_gadget)
 
 	/* host may not have enabled remote wakeup */
 	if ((udc_readl(udc, UDCCR) & UDCCR_DWRE) == 0)
+	{
 		return -EHOSTUNREACH;
+	}
+
 	udc_set_mask_UDCCR(udc, UDCCR_UDR);
 	return 0;
 }
@@ -1597,14 +1868,22 @@ static int pxa_udc_pullup(struct usb_gadget *_gadget, int is_active)
 	struct pxa_udc *udc = to_gadget_udc(_gadget);
 
 	if (!udc->gpiod && !udc->udc_command)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	dplus_pullup(udc, is_active);
 
 	if (should_enable_udc(udc))
+	{
 		udc_enable(udc);
+	}
+
 	if (should_disable_udc(udc))
+	{
 		udc_disable(udc);
+	}
+
 	return 0;
 }
 
@@ -1626,10 +1905,16 @@ static int pxa_udc_vbus_session(struct usb_gadget *_gadget, int is_active)
 	struct pxa_udc *udc = to_gadget_udc(_gadget);
 
 	udc->vbus_sensed = is_active;
+
 	if (should_enable_udc(udc))
+	{
 		udc_enable(udc);
+	}
+
 	if (should_disable_udc(udc))
+	{
 		udc_disable(udc);
+	}
 
 	return 0;
 }
@@ -1651,8 +1936,12 @@ static int pxa_udc_vbus_draw(struct usb_gadget *_gadget, unsigned mA)
 	struct pxa_udc *udc;
 
 	udc = to_gadget_udc(_gadget);
+
 	if (!IS_ERR_OR_NULL(udc->transceiver))
+	{
 		return usb_phy_set_power(udc->transceiver, mA);
+	}
+
 	return -EOPNOTSUPP;
 }
 
@@ -1667,31 +1956,36 @@ static int pxa_udc_vbus_draw(struct usb_gadget *_gadget, unsigned mA)
  * Returns 0
  */
 static int pxa_udc_phy_event(struct notifier_block *nb, unsigned long action,
-			     void *data)
+							 void *data)
 {
 	struct usb_gadget *gadget = data;
 
-	switch (action) {
-	case USB_EVENT_VBUS:
-		usb_gadget_vbus_connect(gadget);
-		return NOTIFY_OK;
-	case USB_EVENT_NONE:
-		usb_gadget_vbus_disconnect(gadget);
-		return NOTIFY_OK;
-	default:
-		return NOTIFY_DONE;
+	switch (action)
+	{
+		case USB_EVENT_VBUS:
+			usb_gadget_vbus_connect(gadget);
+			return NOTIFY_OK;
+
+		case USB_EVENT_NONE:
+			usb_gadget_vbus_disconnect(gadget);
+			return NOTIFY_OK;
+
+		default:
+			return NOTIFY_DONE;
 	}
 }
 
-static struct notifier_block pxa27x_udc_phy = {
+static struct notifier_block pxa27x_udc_phy =
+{
 	.notifier_call = pxa_udc_phy_event,
 };
 
 static int pxa27x_udc_start(struct usb_gadget *g,
-		struct usb_gadget_driver *driver);
+							struct usb_gadget_driver *driver);
 static int pxa27x_udc_stop(struct usb_gadget *g);
 
-static const struct usb_gadget_ops pxa_udc_ops = {
+static const struct usb_gadget_ops pxa_udc_ops =
+{
 	.get_frame	= pxa_udc_get_frame,
 	.wakeup		= pxa_udc_wakeup,
 	.pullup		= pxa_udc_pullup,
@@ -1712,7 +2006,9 @@ static const struct usb_gadget_ops pxa_udc_ops = {
 static void udc_disable(struct pxa_udc *udc)
 {
 	if (!udc->enabled)
+	{
 		return;
+	}
 
 	udc_writel(udc, UDCICR0, 0);
 	udc_writel(udc, UDCICR1, 0);
@@ -1746,7 +2042,8 @@ static void udc_init_data(struct pxa_udc *dev)
 	ep0_idle(dev);
 
 	/* PXA endpoints init */
-	for (i = 0; i < NR_PXA_ENDPOINTS; i++) {
+	for (i = 0; i < NR_PXA_ENDPOINTS; i++)
+	{
 		ep = &dev->pxa_ep[i];
 
 		ep->enabled = is_ep0(ep);
@@ -1755,11 +2052,12 @@ static void udc_init_data(struct pxa_udc *dev)
 	}
 
 	/* USB endpoints init */
-	for (i = 1; i < NR_USB_ENDPOINTS; i++) {
+	for (i = 1; i < NR_USB_ENDPOINTS; i++)
+	{
 		list_add_tail(&dev->udc_usb_ep[i].usb_ep.ep_list,
-				&dev->gadget.ep_list);
+					  &dev->gadget.ep_list);
 		usb_ep_set_maxpacket_limit(&dev->udc_usb_ep[i].usb_ep,
-					   dev->udc_usb_ep[i].usb_ep.maxpacket);
+								   dev->udc_usb_ep[i].usb_ep.maxpacket);
 	}
 }
 
@@ -1773,7 +2071,9 @@ static void udc_init_data(struct pxa_udc *dev)
 static void udc_enable(struct pxa_udc *udc)
 {
 	if (udc->enabled)
+	{
 		return;
+	}
 
 	clk_enable(udc->clk);
 	udc_writel(udc, UDCICR0, 0);
@@ -1788,8 +2088,11 @@ static void udc_enable(struct pxa_udc *udc)
 	udc_set_mask_UDCCR(udc, UDCCR_UDE);
 	ep_write_UDCCSR(&udc->pxa_ep[0], UDCCSR0_ACM);
 	udelay(2);
+
 	if (udc_readl(udc, UDCCR) & UDCCR_EMCE)
+	{
 		dev_err(udc->dev, "Configuration errors, udc disabled\n");
+	}
 
 	/*
 	 * Caller must be able to sleep in order to cope with startup transients
@@ -1798,8 +2101,8 @@ static void udc_enable(struct pxa_udc *udc)
 
 	/* enable suspend/resume and reset irqs */
 	udc_writel(udc, UDCICR1,
-			UDCICR1_IECC | UDCICR1_IERU
-			| UDCICR1_IESU | UDCICR1_IERS);
+			   UDCICR1_IECC | UDCICR1_IERU
+			   | UDCICR1_IESU | UDCICR1_IERS);
 
 	/* enable ep0 irqs */
 	pio_irq_enable(&udc->pxa_ep[0]);
@@ -1823,7 +2126,7 @@ static void udc_enable(struct pxa_udc *udc)
  * Returns 0 if no error, -EINVAL, -ENODEV, -EBUSY otherwise
  */
 static int pxa27x_udc_start(struct usb_gadget *g,
-		struct usb_gadget_driver *driver)
+							struct usb_gadget_driver *driver)
 {
 	struct pxa_udc *udc = to_pxa(g);
 	int retval;
@@ -1831,17 +2134,23 @@ static int pxa27x_udc_start(struct usb_gadget *g,
 	/* first hook up the driver ... */
 	udc->driver = driver;
 
-	if (!IS_ERR_OR_NULL(udc->transceiver)) {
+	if (!IS_ERR_OR_NULL(udc->transceiver))
+	{
 		retval = otg_set_peripheral(udc->transceiver->otg,
-						&udc->gadget);
-		if (retval) {
+									&udc->gadget);
+
+		if (retval)
+		{
 			dev_err(udc->dev, "can't bind to transceiver\n");
 			goto fail;
 		}
 	}
 
 	if (should_enable_udc(udc))
+	{
 		udc_enable(udc);
+	}
+
 	return 0;
 
 fail:
@@ -1864,7 +2173,9 @@ static void stop_activity(struct pxa_udc *udc)
 	udc->gadget.speed = USB_SPEED_UNKNOWN;
 
 	for (i = 0; i < NR_USB_ENDPOINTS; i++)
+	{
 		pxa_ep_disable(&udc->udc_usb_ep[i].usb_ep);
+	}
 }
 
 /**
@@ -1883,7 +2194,10 @@ static int pxa27x_udc_stop(struct usb_gadget *g)
 	udc->driver = NULL;
 
 	if (!IS_ERR_OR_NULL(udc->transceiver))
+	{
 		return otg_set_peripheral(udc->transceiver->otg, NULL);
+	}
+
 	return 0;
 }
 
@@ -1893,10 +2207,11 @@ static int pxa27x_udc_stop(struct usb_gadget *g)
  * @req: control request
  */
 static void handle_ep0_ctrl_req(struct pxa_udc *udc,
-				struct pxa27x_request *req)
+								struct pxa27x_request *req)
 {
 	struct pxa_ep *ep = &udc->pxa_ep[0];
-	union {
+	union
+	{
 		struct usb_ctrlrequest	r;
 		u32			word[2];
 	} u;
@@ -1914,32 +2229,47 @@ static void handle_ep0_ctrl_req(struct pxa_udc *udc,
 	 * packet. Generalize to pxa27x CPUs.
 	 */
 	if (epout_has_pkt(ep) && (ep_count_bytes_remain(ep) == 0))
+	{
 		ep_write_UDCCSR(ep, UDCCSR0_OPC);
+	}
 
 	/* read SETUP packet */
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		if (unlikely(ep_is_empty(ep)))
+		{
 			goto stall;
+		}
+
 		u.word[i] = udc_ep_readl(ep, UDCDR);
 	}
 
 	have_extrabytes = !ep_is_empty(ep);
-	while (!ep_is_empty(ep)) {
+
+	while (!ep_is_empty(ep))
+	{
 		i = udc_ep_readl(ep, UDCDR);
 		ep_err(ep, "wrong to have extra bytes for setup : 0x%08x\n", i);
 	}
 
 	ep_dbg(ep, "SETUP %02x.%02x v%04x i%04x l%04x\n",
-		u.r.bRequestType, u.r.bRequest,
-		le16_to_cpu(u.r.wValue), le16_to_cpu(u.r.wIndex),
-		le16_to_cpu(u.r.wLength));
+		   u.r.bRequestType, u.r.bRequest,
+		   le16_to_cpu(u.r.wValue), le16_to_cpu(u.r.wIndex),
+		   le16_to_cpu(u.r.wLength));
+
 	if (unlikely(have_extrabytes))
+	{
 		goto stall;
+	}
 
 	if (u.r.bRequestType & USB_DIR_IN)
+	{
 		set_ep0state(udc, IN_DATA_STAGE);
+	}
 	else
+	{
 		set_ep0state(udc, OUT_DATA_STAGE);
+	}
 
 	/* Tell UDC to enter Data Stage */
 	ep_write_UDCCSR(ep, UDCCSR0_SA | UDCCSR0_OPC);
@@ -1947,14 +2277,18 @@ static void handle_ep0_ctrl_req(struct pxa_udc *udc,
 	spin_unlock_irqrestore(&ep->lock, flags);
 	i = udc->driver->setup(&udc->gadget, &u.r);
 	spin_lock_irqsave(&ep->lock, flags);
+
 	if (i < 0)
+	{
 		goto stall;
+	}
+
 out:
 	spin_unlock_irqrestore(&ep->lock, flags);
 	return;
 stall:
 	ep_dbg(ep, "protocol STALL, udccsr0=%03x err %d\n",
-		udc_ep_readl(ep, UDCCSR), i);
+		   udc_ep_readl(ep, UDCCSR), i);
 	ep_write_UDCCSR(ep, UDCCSR0_FST | UDCCSR0_FTF);
 	set_ep0state(udc, STALL);
 	goto out;
@@ -2016,71 +2350,105 @@ static void handle_ep0(struct pxa_udc *udc, int fifo_irq, int opc_irq)
 	int			completed = 0;
 
 	if (!list_empty(&ep->queue))
+	{
 		req = list_entry(ep->queue.next, struct pxa27x_request, queue);
+	}
 
 	udccsr0 = udc_ep_readl(ep, UDCCSR);
 	ep_dbg(ep, "state=%s, req=%p, udccsr0=0x%03x, udcbcr=%d, irq_msk=%x\n",
-		EP0_STNAME(udc), req, udccsr0, udc_ep_readl(ep, UDCBCR),
-		(fifo_irq << 1 | opc_irq));
+		   EP0_STNAME(udc), req, udccsr0, udc_ep_readl(ep, UDCBCR),
+		   (fifo_irq << 1 | opc_irq));
 
-	if (udccsr0 & UDCCSR0_SST) {
+	if (udccsr0 & UDCCSR0_SST)
+	{
 		ep_dbg(ep, "clearing stall status\n");
 		nuke(ep, -EPIPE);
 		ep_write_UDCCSR(ep, UDCCSR0_SST);
 		ep0_idle(udc);
 	}
 
-	if (udccsr0 & UDCCSR0_SA) {
+	if (udccsr0 & UDCCSR0_SA)
+	{
 		nuke(ep, 0);
 		set_ep0state(udc, SETUP_STAGE);
 	}
 
-	switch (udc->ep0state) {
-	case WAIT_FOR_SETUP:
-		/*
-		 * Hardware bug : beware, we cannot clear OPC, since we would
-		 * miss a potential OPC irq for a setup packet.
-		 * So, we only do ... nothing, and hope for a next irq with
-		 * UDCCSR0_SA set.
-		 */
-		break;
-	case SETUP_STAGE:
-		udccsr0 &= UDCCSR0_CTRL_REQ_MASK;
-		if (likely(udccsr0 == UDCCSR0_CTRL_REQ_MASK))
-			handle_ep0_ctrl_req(udc, req);
-		break;
-	case IN_DATA_STAGE:			/* GET_DESCRIPTOR */
-		if (epout_has_pkt(ep))
-			ep_write_UDCCSR(ep, UDCCSR0_OPC);
-		if (req && !ep_is_full(ep))
-			completed = write_ep0_fifo(ep, req);
-		if (completed)
-			ep0_end_in_req(ep, req, NULL);
-		break;
-	case OUT_DATA_STAGE:			/* SET_DESCRIPTOR */
-		if (epout_has_pkt(ep) && req)
-			completed = read_ep0_fifo(ep, req);
-		if (completed)
-			ep0_end_out_req(ep, req, NULL);
-		break;
-	case STALL:
-		ep_write_UDCCSR(ep, UDCCSR0_FST);
-		break;
-	case IN_STATUS_STAGE:
-		/*
-		 * Hardware bug : beware, we cannot clear OPC, since we would
-		 * miss a potential PC irq for a setup packet.
-		 * So, we only put the ep0 into WAIT_FOR_SETUP state.
-		 */
-		if (opc_irq)
+	switch (udc->ep0state)
+	{
+		case WAIT_FOR_SETUP:
+			/*
+			 * Hardware bug : beware, we cannot clear OPC, since we would
+			 * miss a potential OPC irq for a setup packet.
+			 * So, we only do ... nothing, and hope for a next irq with
+			 * UDCCSR0_SA set.
+			 */
+			break;
+
+		case SETUP_STAGE:
+			udccsr0 &= UDCCSR0_CTRL_REQ_MASK;
+
+			if (likely(udccsr0 == UDCCSR0_CTRL_REQ_MASK))
+			{
+				handle_ep0_ctrl_req(udc, req);
+			}
+
+			break;
+
+		case IN_DATA_STAGE:			/* GET_DESCRIPTOR */
+			if (epout_has_pkt(ep))
+			{
+				ep_write_UDCCSR(ep, UDCCSR0_OPC);
+			}
+
+			if (req && !ep_is_full(ep))
+			{
+				completed = write_ep0_fifo(ep, req);
+			}
+
+			if (completed)
+			{
+				ep0_end_in_req(ep, req, NULL);
+			}
+
+			break;
+
+		case OUT_DATA_STAGE:			/* SET_DESCRIPTOR */
+			if (epout_has_pkt(ep) && req)
+			{
+				completed = read_ep0_fifo(ep, req);
+			}
+
+			if (completed)
+			{
+				ep0_end_out_req(ep, req, NULL);
+			}
+
+			break;
+
+		case STALL:
+			ep_write_UDCCSR(ep, UDCCSR0_FST);
+			break;
+
+		case IN_STATUS_STAGE:
+
+			/*
+			 * Hardware bug : beware, we cannot clear OPC, since we would
+			 * miss a potential PC irq for a setup packet.
+			 * So, we only put the ep0 into WAIT_FOR_SETUP state.
+			 */
+			if (opc_irq)
+			{
+				ep0_idle(udc);
+			}
+
+			break;
+
+		case OUT_STATUS_STAGE:
+		case WAIT_ACK_SET_CONF_INTERF:
+			ep_warn(ep, "should never get in %s state here!!!\n",
+					EP0_STNAME(ep->dev));
 			ep0_idle(udc);
-		break;
-	case OUT_STATUS_STAGE:
-	case WAIT_ACK_SET_CONF_INTERF:
-		ep_warn(ep, "should never get in %s state here!!!\n",
-				EP0_STNAME(ep->dev));
-		ep0_idle(udc);
-		break;
+			break;
 	}
 }
 
@@ -2103,44 +2471,67 @@ static void handle_ep(struct pxa_ep *ep)
 	unsigned long		flags;
 
 	spin_lock_irqsave(&ep->lock, flags);
+
 	if (ep->in_handle_ep)
+	{
 		goto recursion_detected;
+	}
+
 	ep->in_handle_ep = 1;
 
-	do {
+	do
+	{
 		completed = 0;
 		udccsr = udc_ep_readl(ep, UDCCSR);
 
 		if (likely(!list_empty(&ep->queue)))
 			req = list_entry(ep->queue.next,
-					struct pxa27x_request, queue);
+							 struct pxa27x_request, queue);
 		else
+		{
 			req = NULL;
+		}
 
 		ep_dbg(ep, "req:%p, udccsr 0x%03x loop=%d\n",
-				req, udccsr, loop++);
+			   req, udccsr, loop++);
 
 		if (unlikely(udccsr & (UDCCSR_SST | UDCCSR_TRN)))
 			udc_ep_writel(ep, UDCCSR,
-					udccsr & (UDCCSR_SST | UDCCSR_TRN));
+						  udccsr & (UDCCSR_SST | UDCCSR_TRN));
+
 		if (!req)
+		{
 			break;
+		}
 
-		if (unlikely(is_in)) {
+		if (unlikely(is_in))
+		{
 			if (likely(!ep_is_full(ep)))
+			{
 				completed = write_fifo(ep, req);
-		} else {
+			}
+		}
+		else
+		{
 			if (likely(epout_has_pkt(ep)))
+			{
 				completed = read_fifo(ep, req);
+			}
 		}
 
-		if (completed) {
+		if (completed)
+		{
 			if (is_in)
+			{
 				ep_end_in_req(ep, req, &flags);
+			}
 			else
+			{
 				ep_end_out_req(ep, req, &flags);
+			}
 		}
-	} while (completed);
+	}
+	while (completed);
 
 	ep->in_handle_ep = 0;
 recursion_detected:
@@ -2219,35 +2610,48 @@ static void irq_handle_data(int irq, struct pxa_udc *udc)
 	u32 udcisr0 = udc_readl(udc, UDCISR0) & UDCCISR0_EP_MASK;
 	u32 udcisr1 = udc_readl(udc, UDCISR1) & UDCCISR1_EP_MASK;
 
-	if (udcisr0 & UDCISR_INT_MASK) {
+	if (udcisr0 & UDCISR_INT_MASK)
+	{
 		udc->pxa_ep[0].stats.irqs++;
 		udc_writel(udc, UDCISR0, UDCISR_INT(0, UDCISR_INT_MASK));
 		handle_ep0(udc, !!(udcisr0 & UDCICR_FIFOERR),
-				!!(udcisr0 & UDCICR_PKTCOMPL));
+				   !!(udcisr0 & UDCICR_PKTCOMPL));
 	}
 
 	udcisr0 >>= 2;
-	for (i = 1; udcisr0 != 0 && i < 16; udcisr0 >>= 2, i++) {
+
+	for (i = 1; udcisr0 != 0 && i < 16; udcisr0 >>= 2, i++)
+	{
 		if (!(udcisr0 & UDCISR_INT_MASK))
+		{
 			continue;
+		}
 
 		udc_writel(udc, UDCISR0, UDCISR_INT(i, UDCISR_INT_MASK));
 
 		WARN_ON(i >= ARRAY_SIZE(udc->pxa_ep));
-		if (i < ARRAY_SIZE(udc->pxa_ep)) {
+
+		if (i < ARRAY_SIZE(udc->pxa_ep))
+		{
 			ep = &udc->pxa_ep[i];
 			ep->stats.irqs++;
 			handle_ep(ep);
 		}
 	}
 
-	for (i = 16; udcisr1 != 0 && i < 24; udcisr1 >>= 2, i++) {
+	for (i = 16; udcisr1 != 0 && i < 24; udcisr1 >>= 2, i++)
+	{
 		udc_writel(udc, UDCISR1, UDCISR_INT(i - 16, UDCISR_INT_MASK));
+
 		if (!(udcisr1 & UDCISR_INT_MASK))
+		{
 			continue;
+		}
 
 		WARN_ON(i >= ARRAY_SIZE(udc->pxa_ep));
-		if (i < ARRAY_SIZE(udc->pxa_ep)) {
+
+		if (i < ARRAY_SIZE(udc->pxa_ep))
+		{
 			ep = &udc->pxa_ep[i];
 			ep->stats.irqs++;
 			handle_ep(ep);
@@ -2266,8 +2670,11 @@ static void irq_udc_suspend(struct pxa_udc *udc)
 	udc->stats.irqs_suspend++;
 
 	if (udc->gadget.speed != USB_SPEED_UNKNOWN
-			&& udc->driver && udc->driver->suspend)
+		&& udc->driver && udc->driver->suspend)
+	{
 		udc->driver->suspend(&udc->gadget);
+	}
+
 	ep0_idle(udc);
 }
 
@@ -2281,8 +2688,10 @@ static void irq_udc_resume(struct pxa_udc *udc)
 	udc->stats.irqs_resume++;
 
 	if (udc->gadget.speed != USB_SPEED_UNKNOWN
-			&& udc->driver && udc->driver->resume)
+		&& udc->driver && udc->driver->resume)
+	{
 		udc->driver->resume(&udc->gadget);
+	}
 }
 
 /**
@@ -2306,7 +2715,10 @@ static void irq_udc_reconfig(struct pxa_udc *udc)
 	pxa27x_change_interface(udc, interface, alternate);
 
 	if (config_change)
+	{
 		update_pxa_ep_matches(udc);
+	}
+
 	udc_set_mask_UDCCR(udc, UDCCR_SMAC);
 }
 
@@ -2323,10 +2735,12 @@ static void irq_udc_reset(struct pxa_udc *udc)
 	udc_writel(udc, UDCISR1, UDCISR1_IRRS);
 	udc->stats.irqs_reset++;
 
-	if ((udccr & UDCCR_UDA) == 0) {
+	if ((udccr & UDCCR_UDA) == 0)
+	{
 		dev_dbg(udc->dev, "USB reset start\n");
 		stop_activity(udc);
 	}
+
 	udc->gadget.speed = USB_SPEED_FULL;
 	memset(&udc->stats, 0, sizeof udc->stats);
 
@@ -2351,25 +2765,40 @@ static irqreturn_t pxa_udc_irq(int irq, void *_dev)
 	u32 udcisr1_spec;
 
 	dev_vdbg(udc->dev, "Interrupt, UDCISR0:0x%08x, UDCISR1:0x%08x, "
-		 "UDCCR:0x%08x\n", udcisr0, udcisr1, udccr);
+			 "UDCCR:0x%08x\n", udcisr0, udcisr1, udccr);
 
 	udcisr1_spec = udcisr1 & 0xf8000000;
+
 	if (unlikely(udcisr1_spec & UDCISR1_IRSU))
+	{
 		irq_udc_suspend(udc);
+	}
+
 	if (unlikely(udcisr1_spec & UDCISR1_IRRU))
+	{
 		irq_udc_resume(udc);
+	}
+
 	if (unlikely(udcisr1_spec & UDCISR1_IRCC))
+	{
 		irq_udc_reconfig(udc);
+	}
+
 	if (unlikely(udcisr1_spec & UDCISR1_IRRS))
+	{
 		irq_udc_reset(udc);
+	}
 
 	if ((udcisr0 & UDCCISR0_EP_MASK) | (udcisr1 & UDCCISR1_EP_MASK))
+	{
 		irq_handle_data(irq, udc);
+	}
 
 	return IRQ_HANDLED;
 }
 
-static struct pxa_udc memory = {
+static struct pxa_udc memory =
+{
 	.gadget = {
 		.ops		= &pxa_udc_ops,
 		.ep0		= &memory.udc_usb_ep[0].usb_ep,
@@ -2417,7 +2846,8 @@ static struct pxa_udc memory = {
 };
 
 #if defined(CONFIG_OF)
-static const struct of_device_id udc_pxa_dt_ids[] = {
+static const struct of_device_id udc_pxa_dt_ids[] =
+{
 	{ .compatible = "marvell,pxa270-udc" },
 	{}
 };
@@ -2439,55 +2869,89 @@ static int pxa_udc_probe(struct platform_device *pdev)
 	struct pxa2xx_udc_mach_info *mach = dev_get_platdata(&pdev->dev);
 	unsigned long gpio_flags;
 
-	if (mach) {
+	if (mach)
+	{
 		gpio_flags = mach->gpio_pullup_inverted ? GPIOF_ACTIVE_LOW : 0;
 		gpio = mach->gpio_pullup;
-		if (gpio_is_valid(gpio)) {
+
+		if (gpio_is_valid(gpio))
+		{
 			retval = devm_gpio_request_one(&pdev->dev, gpio,
-						       gpio_flags,
-						       "USB D+ pullup");
+										   gpio_flags,
+										   "USB D+ pullup");
+
 			if (retval)
+			{
 				return retval;
+			}
+
 			udc->gpiod = gpio_to_desc(mach->gpio_pullup);
 		}
+
 		udc->udc_command = mach->udc_command;
-	} else {
+	}
+	else
+	{
 		udc->gpiod = devm_gpiod_get(&pdev->dev, NULL, GPIOD_ASIS);
 	}
 
 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	udc->regs = devm_ioremap_resource(&pdev->dev, regs);
+
 	if (IS_ERR(udc->regs))
+	{
 		return PTR_ERR(udc->regs);
+	}
+
 	udc->irq = platform_get_irq(pdev, 0);
+
 	if (udc->irq < 0)
+	{
 		return udc->irq;
+	}
 
 	udc->dev = &pdev->dev;
-	if (of_have_populated_dt()) {
+
+	if (of_have_populated_dt())
+	{
 		udc->transceiver =
 			devm_usb_get_phy_by_phandle(udc->dev, "phys", 0);
+
 		if (IS_ERR(udc->transceiver))
+		{
 			return PTR_ERR(udc->transceiver);
-	} else {
+		}
+	}
+	else
+	{
 		udc->transceiver = usb_get_phy(USB_PHY_TYPE_USB2);
 	}
 
-	if (IS_ERR(udc->gpiod)) {
+	if (IS_ERR(udc->gpiod))
+	{
 		dev_err(&pdev->dev, "Couldn't find or request D+ gpio : %ld\n",
-			PTR_ERR(udc->gpiod));
+				PTR_ERR(udc->gpiod));
 		return PTR_ERR(udc->gpiod);
 	}
+
 	if (udc->gpiod)
+	{
 		gpiod_direction_output(udc->gpiod, 0);
+	}
 
 	udc->clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(udc->clk))
+	{
 		return PTR_ERR(udc->clk);
+	}
 
 	retval = clk_prepare(udc->clk);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	udc->vbus_sensed = 0;
 
@@ -2497,27 +2961,43 @@ static int pxa_udc_probe(struct platform_device *pdev)
 
 	/* irq setup after old hardware state is cleaned up */
 	retval = devm_request_irq(&pdev->dev, udc->irq, pxa_udc_irq,
-				  IRQF_SHARED, driver_name, udc);
-	if (retval != 0) {
+							  IRQF_SHARED, driver_name, udc);
+
+	if (retval != 0)
+	{
 		dev_err(udc->dev, "%s: can't get irq %i, err %d\n",
-			driver_name, udc->irq, retval);
+				driver_name, udc->irq, retval);
 		goto err;
 	}
 
 	if (!IS_ERR_OR_NULL(udc->transceiver))
+	{
 		usb_register_notifier(udc->transceiver, &pxa27x_udc_phy);
+	}
+
 	retval = usb_add_gadget_udc(&pdev->dev, &udc->gadget);
+
 	if (retval)
+	{
 		goto err_add_gadget;
+	}
 
 	pxa_init_debugfs(udc);
+
 	if (should_enable_udc(udc))
+	{
 		udc_enable(udc);
+	}
+
 	return 0;
 
 err_add_gadget:
+
 	if (!IS_ERR_OR_NULL(udc->transceiver))
+	{
 		usb_unregister_notifier(udc->transceiver, &pxa27x_udc_phy);
+	}
+
 err:
 	clk_unprepare(udc->clk);
 	return retval;
@@ -2535,7 +3015,10 @@ static int pxa_udc_remove(struct platform_device *_dev)
 	pxa_cleanup_debugfs(udc);
 
 	if (!IS_ERR_OR_NULL(udc->transceiver))
+	{
 		usb_unregister_notifier(udc->transceiver, &pxa27x_udc_phy);
+	}
+
 	usb_put_phy(udc->transceiver);
 
 	udc->transceiver = NULL;
@@ -2550,13 +3033,15 @@ static void pxa_udc_shutdown(struct platform_device *_dev)
 	struct pxa_udc *udc = platform_get_drvdata(_dev);
 
 	if (udc_readl(udc, UDCCR) & UDCCR_UDE)
+	{
 		udc_disable(udc);
+	}
 }
 
 #ifdef CONFIG_PXA27x
-extern void pxa27x_clear_otgph(void);
+	extern void pxa27x_clear_otgph(void);
 #else
-#define pxa27x_clear_otgph()   do {} while (0)
+	#define pxa27x_clear_otgph()   do {} while (0)
 #endif
 
 #ifdef CONFIG_PM
@@ -2581,7 +3066,9 @@ static int pxa_udc_suspend(struct platform_device *_dev, pm_message_t state)
 	dplus_pullup(udc, 0);
 
 	if (udc->driver)
+	{
 		udc->driver->disconnect(&udc->gadget);
+	}
 
 	return 0;
 }
@@ -2602,8 +3089,12 @@ static int pxa_udc_resume(struct platform_device *_dev)
 	udc_ep_writel(ep, UDCCSR, udc->udccsr0 & (UDCCSR0_FST | UDCCSR0_DME));
 
 	dplus_pullup(udc, udc->pullup_resume);
+
 	if (should_enable_udc(udc))
+	{
 		udc_enable(udc);
+	}
+
 	/*
 	 * We do not handle OTG yet.
 	 *
@@ -2622,7 +3113,8 @@ static int pxa_udc_resume(struct platform_device *_dev)
 /* work with hotplug and coldplug */
 MODULE_ALIAS("platform:pxa27x-udc");
 
-static struct platform_driver udc_driver = {
+static struct platform_driver udc_driver =
+{
 	.driver		= {
 		.name	= "pxa27x-udc",
 		.of_match_table = of_match_ptr(udc_pxa_dt_ids),

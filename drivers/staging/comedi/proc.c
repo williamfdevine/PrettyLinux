@@ -34,38 +34,53 @@ static int comedi_read(struct seq_file *m, void *v)
 	struct comedi_driver *driv;
 
 	seq_printf(m, "comedi version " COMEDI_RELEASE "\nformat string: %s\n",
-		   "\"%2d: %-20s %-20s %4d\", i, driver_name, board_name, n_subdevices");
+			   "\"%2d: %-20s %-20s %4d\", i, driver_name, board_name, n_subdevices");
 
-	for (i = 0; i < COMEDI_NUM_BOARD_MINORS; i++) {
+	for (i = 0; i < COMEDI_NUM_BOARD_MINORS; i++)
+	{
 		struct comedi_device *dev = comedi_dev_get_from_minor(i);
 
 		if (!dev)
+		{
 			continue;
+		}
 
 		down_read(&dev->attach_lock);
-		if (dev->attached) {
+
+		if (dev->attached)
+		{
 			devices_q = 1;
 			seq_printf(m, "%2d: %-20s %-20s %4d\n",
-				   i, dev->driver->driver_name,
-				   dev->board_name, dev->n_subdevices);
+					   i, dev->driver->driver_name,
+					   dev->board_name, dev->n_subdevices);
 		}
+
 		up_read(&dev->attach_lock);
 		comedi_dev_put(dev);
 	}
+
 	if (!devices_q)
+	{
 		seq_puts(m, "no devices\n");
+	}
 
 	mutex_lock(&comedi_drivers_list_lock);
-	for (driv = comedi_drivers; driv; driv = driv->next) {
+
+	for (driv = comedi_drivers; driv; driv = driv->next)
+	{
 		seq_printf(m, "%s:\n", driv->driver_name);
+
 		for (i = 0; i < driv->num_names; i++)
 			seq_printf(m, " %s\n",
-				   *(char **)((char *)driv->board_name +
-					      i * driv->offset));
+					   *(char **)((char *)driv->board_name +
+								  i * driv->offset));
 
 		if (!driv->num_names)
+		{
 			seq_printf(m, " %s\n", driv->driver_name);
+		}
 	}
+
 	mutex_unlock(&comedi_drivers_list_lock);
 
 	return 0;
@@ -79,7 +94,8 @@ static int comedi_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, comedi_read, NULL);
 }
 
-static const struct file_operations comedi_proc_fops = {
+static const struct file_operations comedi_proc_fops =
+{
 	.open		= comedi_proc_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,

@@ -27,7 +27,8 @@
 #include "btc_dpm.h"
 #include "nislands_smc.h"
 
-struct ni_clock_registers {
+struct ni_clock_registers
+{
 	u32 cg_spll_func_cntl;
 	u32 cg_spll_func_cntl_2;
 	u32 cg_spll_func_cntl_3;
@@ -44,12 +45,14 @@ struct ni_clock_registers {
 	u32 mpll_ss2;
 };
 
-struct ni_mc_reg_entry {
+struct ni_mc_reg_entry
+{
 	u32 mclk_max;
 	u32 mc_data[SMC_NISLANDS_MC_REGISTER_ARRAY_SIZE];
 };
 
-struct ni_mc_reg_table {
+struct ni_mc_reg_table
+{
 	u8 last;
 	u8 num_entries;
 	u16 valid_flag;
@@ -169,13 +172,15 @@ struct ni_cac_weights
 	bool enable_power_containment_by_default;
 };
 
-struct ni_ps {
+struct ni_ps
+{
 	u16 performance_level_count;
 	bool dc_compatible;
 	struct rv7xx_pl performance_levels[NISLANDS_MAX_SMC_PERFORMANCE_LEVELS_PER_SWSTATE];
 };
 
-struct ni_power_info {
+struct ni_power_info
+{
 	/* must be first! */
 	struct evergreen_power_info eg;
 	struct ni_clock_registers clock_registers;
@@ -232,18 +237,18 @@ struct ni_power_info {
 #define NISLANDS_DPM2_SQ_RAMP_LTI_RATIO                 0xF
 
 int ni_copy_and_switch_arb_sets(struct radeon_device *rdev,
-				u32 arb_freq_src, u32 arb_freq_dest);
+								u32 arb_freq_src, u32 arb_freq_dest);
 void ni_update_current_ps(struct radeon_device *rdev,
-			  struct radeon_ps *rps);
+						  struct radeon_ps *rps);
 void ni_update_requested_ps(struct radeon_device *rdev,
-			    struct radeon_ps *rps);
+							struct radeon_ps *rps);
 
 void ni_set_uvd_clock_before_set_eng_clock(struct radeon_device *rdev,
-					   struct radeon_ps *new_ps,
-					   struct radeon_ps *old_ps);
+		struct radeon_ps *new_ps,
+		struct radeon_ps *old_ps);
 void ni_set_uvd_clock_after_set_eng_clock(struct radeon_device *rdev,
-					  struct radeon_ps *new_ps,
-					  struct radeon_ps *old_ps);
+		struct radeon_ps *new_ps,
+		struct radeon_ps *old_ps);
 
 bool ni_dpm_vblank_too_short(struct radeon_device *rdev);
 

@@ -21,7 +21,7 @@
 #include "coresight-priv.h"
 
 static ssize_t nr_addr_cmp_show(struct device *dev,
-				struct device_attribute *attr, char *buf)
+								struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -32,8 +32,9 @@ static ssize_t nr_addr_cmp_show(struct device *dev,
 static DEVICE_ATTR_RO(nr_addr_cmp);
 
 static ssize_t nr_cntr_show(struct device *dev,
-			    struct device_attribute *attr, char *buf)
-{	unsigned long val;
+							struct device_attribute *attr, char *buf)
+{
+	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
 
 	val = drvdata->nr_cntr;
@@ -42,7 +43,7 @@ static ssize_t nr_cntr_show(struct device *dev,
 static DEVICE_ATTR_RO(nr_cntr);
 
 static ssize_t nr_ctxid_cmp_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -53,7 +54,7 @@ static ssize_t nr_ctxid_cmp_show(struct device *dev,
 static DEVICE_ATTR_RO(nr_ctxid_cmp);
 
 static ssize_t etmsr_show(struct device *dev,
-			  struct device_attribute *attr, char *buf)
+						  struct device_attribute *attr, char *buf)
 {
 	unsigned long flags, val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -73,8 +74,8 @@ static ssize_t etmsr_show(struct device *dev,
 static DEVICE_ATTR_RO(etmsr);
 
 static ssize_t reset_store(struct device *dev,
-			   struct device_attribute *attr,
-			   const char *buf, size_t size)
+						   struct device_attribute *attr,
+						   const char *buf, size_t size)
 {
 	int i, ret;
 	unsigned long val;
@@ -82,15 +83,21 @@ static ssize_t reset_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
-	if (ret)
-		return ret;
 
-	if (val) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (val)
+	{
 		spin_lock(&drvdata->spinlock);
 		memset(config, 0, sizeof(struct etm_config));
 		config->mode = ETM_MODE_EXCLUDE;
 		config->trigger_event = ETM_DEFAULT_EVENT_VAL;
-		for (i = 0; i < drvdata->nr_addr_cmp; i++) {
+
+		for (i = 0; i < drvdata->nr_addr_cmp; i++)
+		{
 			config->addr_type[i] = ETM_ADDR_TYPE_NONE;
 		}
 
@@ -103,7 +110,7 @@ static ssize_t reset_store(struct device *dev,
 static DEVICE_ATTR_WO(reset);
 
 static ssize_t mode_show(struct device *dev,
-			 struct device_attribute *attr, char *buf)
+						 struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -114,8 +121,8 @@ static ssize_t mode_show(struct device *dev,
 }
 
 static ssize_t mode_store(struct device *dev,
-			  struct device_attribute *attr,
-			  const char *buf, size_t size)
+						  struct device_attribute *attr,
+						  const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -123,49 +130,78 @@ static ssize_t mode_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	spin_lock(&drvdata->spinlock);
 	config->mode = val & ETM_MODE_ALL;
 
 	if (config->mode & ETM_MODE_EXCLUDE)
+	{
 		config->enable_ctrl1 |= ETMTECR1_INC_EXC;
+	}
 	else
+	{
 		config->enable_ctrl1 &= ~ETMTECR1_INC_EXC;
+	}
 
 	if (config->mode & ETM_MODE_CYCACC)
+	{
 		config->ctrl |= ETMCR_CYC_ACC;
+	}
 	else
+	{
 		config->ctrl &= ~ETMCR_CYC_ACC;
+	}
 
-	if (config->mode & ETM_MODE_STALL) {
-		if (!(drvdata->etmccr & ETMCCR_FIFOFULL)) {
+	if (config->mode & ETM_MODE_STALL)
+	{
+		if (!(drvdata->etmccr & ETMCCR_FIFOFULL))
+		{
 			dev_warn(drvdata->dev, "stall mode not supported\n");
 			ret = -EINVAL;
 			goto err_unlock;
 		}
-		config->ctrl |= ETMCR_STALL_MODE;
-	 } else
-		config->ctrl &= ~ETMCR_STALL_MODE;
 
-	if (config->mode & ETM_MODE_TIMESTAMP) {
-		if (!(drvdata->etmccer & ETMCCER_TIMESTAMP)) {
+		config->ctrl |= ETMCR_STALL_MODE;
+	}
+	else
+	{
+		config->ctrl &= ~ETMCR_STALL_MODE;
+	}
+
+	if (config->mode & ETM_MODE_TIMESTAMP)
+	{
+		if (!(drvdata->etmccer & ETMCCER_TIMESTAMP))
+		{
 			dev_warn(drvdata->dev, "timestamp not supported\n");
 			ret = -EINVAL;
 			goto err_unlock;
 		}
+
 		config->ctrl |= ETMCR_TIMESTAMP_EN;
-	} else
+	}
+	else
+	{
 		config->ctrl &= ~ETMCR_TIMESTAMP_EN;
+	}
 
 	if (config->mode & ETM_MODE_CTXID)
+	{
 		config->ctrl |= ETMCR_CTXID_SIZE;
+	}
 	else
+	{
 		config->ctrl &= ~ETMCR_CTXID_SIZE;
+	}
 
 	if (config->mode & (ETM_MODE_EXCL_KERN | ETM_MODE_EXCL_USER))
+	{
 		etm_config_trace_mode(config);
+	}
 
 	spin_unlock(&drvdata->spinlock);
 
@@ -178,7 +214,7 @@ err_unlock:
 static DEVICE_ATTR_RW(mode);
 
 static ssize_t trigger_event_show(struct device *dev,
-				  struct device_attribute *attr, char *buf)
+								  struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -189,8 +225,8 @@ static ssize_t trigger_event_show(struct device *dev,
 }
 
 static ssize_t trigger_event_store(struct device *dev,
-				   struct device_attribute *attr,
-				   const char *buf, size_t size)
+								   struct device_attribute *attr,
+								   const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -198,8 +234,11 @@ static ssize_t trigger_event_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	config->trigger_event = val & ETM_EVENT_MASK;
 
@@ -208,7 +247,7 @@ static ssize_t trigger_event_store(struct device *dev,
 static DEVICE_ATTR_RW(trigger_event);
 
 static ssize_t enable_event_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -219,8 +258,8 @@ static ssize_t enable_event_show(struct device *dev,
 }
 
 static ssize_t enable_event_store(struct device *dev,
-				  struct device_attribute *attr,
-				  const char *buf, size_t size)
+								  struct device_attribute *attr,
+								  const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -228,8 +267,11 @@ static ssize_t enable_event_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	config->enable_event = val & ETM_EVENT_MASK;
 
@@ -238,7 +280,7 @@ static ssize_t enable_event_store(struct device *dev,
 static DEVICE_ATTR_RW(enable_event);
 
 static ssize_t fifofull_level_show(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+								   struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -249,8 +291,8 @@ static ssize_t fifofull_level_show(struct device *dev,
 }
 
 static ssize_t fifofull_level_store(struct device *dev,
-				    struct device_attribute *attr,
-				    const char *buf, size_t size)
+									struct device_attribute *attr,
+									const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -258,8 +300,11 @@ static ssize_t fifofull_level_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	config->fifofull_level = val;
 
@@ -268,7 +313,7 @@ static ssize_t fifofull_level_store(struct device *dev,
 static DEVICE_ATTR_RW(fifofull_level);
 
 static ssize_t addr_idx_show(struct device *dev,
-			     struct device_attribute *attr, char *buf)
+							 struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -279,8 +324,8 @@ static ssize_t addr_idx_show(struct device *dev,
 }
 
 static ssize_t addr_idx_store(struct device *dev,
-			      struct device_attribute *attr,
-			      const char *buf, size_t size)
+							  struct device_attribute *attr,
+							  const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -288,11 +333,16 @@ static ssize_t addr_idx_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (val >= drvdata->nr_addr_cmp)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Use spinlock to ensure index doesn't change while it gets
@@ -307,7 +357,7 @@ static ssize_t addr_idx_store(struct device *dev,
 static DEVICE_ATTR_RW(addr_idx);
 
 static ssize_t addr_single_show(struct device *dev,
-				struct device_attribute *attr, char *buf)
+								struct device_attribute *attr, char *buf)
 {
 	u8 idx;
 	unsigned long val;
@@ -316,8 +366,10 @@ static ssize_t addr_single_show(struct device *dev,
 
 	spin_lock(&drvdata->spinlock);
 	idx = config->addr_idx;
+
 	if (!(config->addr_type[idx] == ETM_ADDR_TYPE_NONE ||
-	      config->addr_type[idx] == ETM_ADDR_TYPE_SINGLE)) {
+		  config->addr_type[idx] == ETM_ADDR_TYPE_SINGLE))
+	{
 		spin_unlock(&drvdata->spinlock);
 		return -EINVAL;
 	}
@@ -329,8 +381,8 @@ static ssize_t addr_single_show(struct device *dev,
 }
 
 static ssize_t addr_single_store(struct device *dev,
-				 struct device_attribute *attr,
-				 const char *buf, size_t size)
+								 struct device_attribute *attr,
+								 const char *buf, size_t size)
 {
 	u8 idx;
 	int ret;
@@ -339,13 +391,18 @@ static ssize_t addr_single_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	spin_lock(&drvdata->spinlock);
 	idx = config->addr_idx;
+
 	if (!(config->addr_type[idx] == ETM_ADDR_TYPE_NONE ||
-	      config->addr_type[idx] == ETM_ADDR_TYPE_SINGLE)) {
+		  config->addr_type[idx] == ETM_ADDR_TYPE_SINGLE))
+	{
 		spin_unlock(&drvdata->spinlock);
 		return -EINVAL;
 	}
@@ -359,7 +416,7 @@ static ssize_t addr_single_store(struct device *dev,
 static DEVICE_ATTR_RW(addr_single);
 
 static ssize_t addr_range_show(struct device *dev,
-			       struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	u8 idx;
 	unsigned long val1, val2;
@@ -368,14 +425,18 @@ static ssize_t addr_range_show(struct device *dev,
 
 	spin_lock(&drvdata->spinlock);
 	idx = config->addr_idx;
-	if (idx % 2 != 0) {
+
+	if (idx % 2 != 0)
+	{
 		spin_unlock(&drvdata->spinlock);
 		return -EPERM;
 	}
+
 	if (!((config->addr_type[idx] == ETM_ADDR_TYPE_NONE &&
-	       config->addr_type[idx + 1] == ETM_ADDR_TYPE_NONE) ||
-	      (config->addr_type[idx] == ETM_ADDR_TYPE_RANGE &&
-	       config->addr_type[idx + 1] == ETM_ADDR_TYPE_RANGE))) {
+		   config->addr_type[idx + 1] == ETM_ADDR_TYPE_NONE) ||
+		  (config->addr_type[idx] == ETM_ADDR_TYPE_RANGE &&
+		   config->addr_type[idx + 1] == ETM_ADDR_TYPE_RANGE)))
+	{
 		spin_unlock(&drvdata->spinlock);
 		return -EPERM;
 	}
@@ -388,8 +449,8 @@ static ssize_t addr_range_show(struct device *dev,
 }
 
 static ssize_t addr_range_store(struct device *dev,
-			      struct device_attribute *attr,
-			      const char *buf, size_t size)
+								struct device_attribute *attr,
+								const char *buf, size_t size)
 {
 	u8 idx;
 	unsigned long val1, val2;
@@ -397,21 +458,30 @@ static ssize_t addr_range_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	if (sscanf(buf, "%lx %lx", &val1, &val2) != 2)
+	{
 		return -EINVAL;
+	}
+
 	/* Lower address comparator cannot have a higher address value */
 	if (val1 > val2)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock(&drvdata->spinlock);
 	idx = config->addr_idx;
-	if (idx % 2 != 0) {
+
+	if (idx % 2 != 0)
+	{
 		spin_unlock(&drvdata->spinlock);
 		return -EPERM;
 	}
+
 	if (!((config->addr_type[idx] == ETM_ADDR_TYPE_NONE &&
-	       config->addr_type[idx + 1] == ETM_ADDR_TYPE_NONE) ||
-	      (config->addr_type[idx] == ETM_ADDR_TYPE_RANGE &&
-	       config->addr_type[idx + 1] == ETM_ADDR_TYPE_RANGE))) {
+		   config->addr_type[idx + 1] == ETM_ADDR_TYPE_NONE) ||
+		  (config->addr_type[idx] == ETM_ADDR_TYPE_RANGE &&
+		   config->addr_type[idx + 1] == ETM_ADDR_TYPE_RANGE)))
+	{
 		spin_unlock(&drvdata->spinlock);
 		return -EPERM;
 	}
@@ -420,7 +490,7 @@ static ssize_t addr_range_store(struct device *dev,
 	config->addr_type[idx] = ETM_ADDR_TYPE_RANGE;
 	config->addr_val[idx + 1] = val2;
 	config->addr_type[idx + 1] = ETM_ADDR_TYPE_RANGE;
-	config->enable_ctrl1 |= (1 << (idx/2));
+	config->enable_ctrl1 |= (1 << (idx / 2));
 	spin_unlock(&drvdata->spinlock);
 
 	return size;
@@ -428,7 +498,7 @@ static ssize_t addr_range_store(struct device *dev,
 static DEVICE_ATTR_RW(addr_range);
 
 static ssize_t addr_start_show(struct device *dev,
-			       struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	u8 idx;
 	unsigned long val;
@@ -437,8 +507,10 @@ static ssize_t addr_start_show(struct device *dev,
 
 	spin_lock(&drvdata->spinlock);
 	idx = config->addr_idx;
+
 	if (!(config->addr_type[idx] == ETM_ADDR_TYPE_NONE ||
-	      config->addr_type[idx] == ETM_ADDR_TYPE_START)) {
+		  config->addr_type[idx] == ETM_ADDR_TYPE_START))
+	{
 		spin_unlock(&drvdata->spinlock);
 		return -EPERM;
 	}
@@ -450,8 +522,8 @@ static ssize_t addr_start_show(struct device *dev,
 }
 
 static ssize_t addr_start_store(struct device *dev,
-				struct device_attribute *attr,
-				const char *buf, size_t size)
+								struct device_attribute *attr,
+								const char *buf, size_t size)
 {
 	u8 idx;
 	int ret;
@@ -460,13 +532,18 @@ static ssize_t addr_start_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	spin_lock(&drvdata->spinlock);
 	idx = config->addr_idx;
+
 	if (!(config->addr_type[idx] == ETM_ADDR_TYPE_NONE ||
-	      config->addr_type[idx] == ETM_ADDR_TYPE_START)) {
+		  config->addr_type[idx] == ETM_ADDR_TYPE_START))
+	{
 		spin_unlock(&drvdata->spinlock);
 		return -EPERM;
 	}
@@ -482,7 +559,7 @@ static ssize_t addr_start_store(struct device *dev,
 static DEVICE_ATTR_RW(addr_start);
 
 static ssize_t addr_stop_show(struct device *dev,
-			      struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	u8 idx;
 	unsigned long val;
@@ -491,8 +568,10 @@ static ssize_t addr_stop_show(struct device *dev,
 
 	spin_lock(&drvdata->spinlock);
 	idx = config->addr_idx;
+
 	if (!(config->addr_type[idx] == ETM_ADDR_TYPE_NONE ||
-	      config->addr_type[idx] == ETM_ADDR_TYPE_STOP)) {
+		  config->addr_type[idx] == ETM_ADDR_TYPE_STOP))
+	{
 		spin_unlock(&drvdata->spinlock);
 		return -EPERM;
 	}
@@ -504,8 +583,8 @@ static ssize_t addr_stop_show(struct device *dev,
 }
 
 static ssize_t addr_stop_store(struct device *dev,
-			       struct device_attribute *attr,
-			       const char *buf, size_t size)
+							   struct device_attribute *attr,
+							   const char *buf, size_t size)
 {
 	u8 idx;
 	int ret;
@@ -514,13 +593,18 @@ static ssize_t addr_stop_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	spin_lock(&drvdata->spinlock);
 	idx = config->addr_idx;
+
 	if (!(config->addr_type[idx] == ETM_ADDR_TYPE_NONE ||
-	      config->addr_type[idx] == ETM_ADDR_TYPE_STOP)) {
+		  config->addr_type[idx] == ETM_ADDR_TYPE_STOP))
+	{
 		spin_unlock(&drvdata->spinlock);
 		return -EPERM;
 	}
@@ -536,7 +620,7 @@ static ssize_t addr_stop_store(struct device *dev,
 static DEVICE_ATTR_RW(addr_stop);
 
 static ssize_t addr_acctype_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -550,8 +634,8 @@ static ssize_t addr_acctype_show(struct device *dev,
 }
 
 static ssize_t addr_acctype_store(struct device *dev,
-				  struct device_attribute *attr,
-				  const char *buf, size_t size)
+								  struct device_attribute *attr,
+								  const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -559,8 +643,11 @@ static ssize_t addr_acctype_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	spin_lock(&drvdata->spinlock);
 	config->addr_acctype[config->addr_idx] = val;
@@ -571,7 +658,7 @@ static ssize_t addr_acctype_store(struct device *dev,
 static DEVICE_ATTR_RW(addr_acctype);
 
 static ssize_t cntr_idx_show(struct device *dev,
-			     struct device_attribute *attr, char *buf)
+							 struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -582,8 +669,8 @@ static ssize_t cntr_idx_show(struct device *dev,
 }
 
 static ssize_t cntr_idx_store(struct device *dev,
-			      struct device_attribute *attr,
-			      const char *buf, size_t size)
+							  struct device_attribute *attr,
+							  const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -591,11 +678,17 @@ static ssize_t cntr_idx_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (val >= drvdata->nr_cntr)
+	{
 		return -EINVAL;
+	}
+
 	/*
 	 * Use spinlock to ensure index doesn't change while it gets
 	 * dereferenced multiple times within a spinlock block elsewhere.
@@ -609,7 +702,7 @@ static ssize_t cntr_idx_store(struct device *dev,
 static DEVICE_ATTR_RW(cntr_idx);
 
 static ssize_t cntr_rld_val_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -623,8 +716,8 @@ static ssize_t cntr_rld_val_show(struct device *dev,
 }
 
 static ssize_t cntr_rld_val_store(struct device *dev,
-				  struct device_attribute *attr,
-				  const char *buf, size_t size)
+								  struct device_attribute *attr,
+								  const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -632,8 +725,11 @@ static ssize_t cntr_rld_val_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	spin_lock(&drvdata->spinlock);
 	config->cntr_rld_val[config->cntr_idx] = val;
@@ -644,7 +740,7 @@ static ssize_t cntr_rld_val_store(struct device *dev,
 static DEVICE_ATTR_RW(cntr_rld_val);
 
 static ssize_t cntr_event_show(struct device *dev,
-			       struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -658,8 +754,8 @@ static ssize_t cntr_event_show(struct device *dev,
 }
 
 static ssize_t cntr_event_store(struct device *dev,
-				struct device_attribute *attr,
-				const char *buf, size_t size)
+								struct device_attribute *attr,
+								const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -667,8 +763,11 @@ static ssize_t cntr_event_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	spin_lock(&drvdata->spinlock);
 	config->cntr_event[config->cntr_idx] = val & ETM_EVENT_MASK;
@@ -679,7 +778,7 @@ static ssize_t cntr_event_store(struct device *dev,
 static DEVICE_ATTR_RW(cntr_event);
 
 static ssize_t cntr_rld_event_show(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+								   struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -693,8 +792,8 @@ static ssize_t cntr_rld_event_show(struct device *dev,
 }
 
 static ssize_t cntr_rld_event_store(struct device *dev,
-				    struct device_attribute *attr,
-				    const char *buf, size_t size)
+									struct device_attribute *attr,
+									const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -702,8 +801,11 @@ static ssize_t cntr_rld_event_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	spin_lock(&drvdata->spinlock);
 	config->cntr_rld_event[config->cntr_idx] = val & ETM_EVENT_MASK;
@@ -714,23 +816,27 @@ static ssize_t cntr_rld_event_store(struct device *dev,
 static DEVICE_ATTR_RW(cntr_rld_event);
 
 static ssize_t cntr_val_show(struct device *dev,
-			     struct device_attribute *attr, char *buf)
+							 struct device_attribute *attr, char *buf)
 {
 	int i, ret = 0;
 	u32 val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
 	struct etm_config *config = &drvdata->config;
 
-	if (!local_read(&drvdata->mode)) {
+	if (!local_read(&drvdata->mode))
+	{
 		spin_lock(&drvdata->spinlock);
+
 		for (i = 0; i < drvdata->nr_cntr; i++)
 			ret += sprintf(buf, "counter %d: %x\n",
-				       i, config->cntr_val[i]);
+						   i, config->cntr_val[i]);
+
 		spin_unlock(&drvdata->spinlock);
 		return ret;
 	}
 
-	for (i = 0; i < drvdata->nr_cntr; i++) {
+	for (i = 0; i < drvdata->nr_cntr; i++)
+	{
 		val = etm_readl(drvdata, ETMCNTVRn(i));
 		ret += sprintf(buf, "counter %d: %x\n", i, val);
 	}
@@ -739,8 +845,8 @@ static ssize_t cntr_val_show(struct device *dev,
 }
 
 static ssize_t cntr_val_store(struct device *dev,
-			      struct device_attribute *attr,
-			      const char *buf, size_t size)
+							  struct device_attribute *attr,
+							  const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -748,8 +854,11 @@ static ssize_t cntr_val_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	spin_lock(&drvdata->spinlock);
 	config->cntr_val[config->cntr_idx] = val;
@@ -760,7 +869,7 @@ static ssize_t cntr_val_store(struct device *dev,
 static DEVICE_ATTR_RW(cntr_val);
 
 static ssize_t seq_12_event_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -771,8 +880,8 @@ static ssize_t seq_12_event_show(struct device *dev,
 }
 
 static ssize_t seq_12_event_store(struct device *dev,
-				  struct device_attribute *attr,
-				  const char *buf, size_t size)
+								  struct device_attribute *attr,
+								  const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -780,8 +889,11 @@ static ssize_t seq_12_event_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	config->seq_12_event = val & ETM_EVENT_MASK;
 	return size;
@@ -789,7 +901,7 @@ static ssize_t seq_12_event_store(struct device *dev,
 static DEVICE_ATTR_RW(seq_12_event);
 
 static ssize_t seq_21_event_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -800,8 +912,8 @@ static ssize_t seq_21_event_show(struct device *dev,
 }
 
 static ssize_t seq_21_event_store(struct device *dev,
-				  struct device_attribute *attr,
-				  const char *buf, size_t size)
+								  struct device_attribute *attr,
+								  const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -809,8 +921,11 @@ static ssize_t seq_21_event_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	config->seq_21_event = val & ETM_EVENT_MASK;
 	return size;
@@ -818,7 +933,7 @@ static ssize_t seq_21_event_store(struct device *dev,
 static DEVICE_ATTR_RW(seq_21_event);
 
 static ssize_t seq_23_event_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -829,8 +944,8 @@ static ssize_t seq_23_event_show(struct device *dev,
 }
 
 static ssize_t seq_23_event_store(struct device *dev,
-				  struct device_attribute *attr,
-				  const char *buf, size_t size)
+								  struct device_attribute *attr,
+								  const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -838,8 +953,11 @@ static ssize_t seq_23_event_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	config->seq_23_event = val & ETM_EVENT_MASK;
 	return size;
@@ -847,7 +965,7 @@ static ssize_t seq_23_event_store(struct device *dev,
 static DEVICE_ATTR_RW(seq_23_event);
 
 static ssize_t seq_31_event_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -858,8 +976,8 @@ static ssize_t seq_31_event_show(struct device *dev,
 }
 
 static ssize_t seq_31_event_store(struct device *dev,
-				  struct device_attribute *attr,
-				  const char *buf, size_t size)
+								  struct device_attribute *attr,
+								  const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -867,8 +985,11 @@ static ssize_t seq_31_event_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	config->seq_31_event = val & ETM_EVENT_MASK;
 	return size;
@@ -876,7 +997,7 @@ static ssize_t seq_31_event_store(struct device *dev,
 static DEVICE_ATTR_RW(seq_31_event);
 
 static ssize_t seq_32_event_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -887,8 +1008,8 @@ static ssize_t seq_32_event_show(struct device *dev,
 }
 
 static ssize_t seq_32_event_store(struct device *dev,
-				  struct device_attribute *attr,
-				  const char *buf, size_t size)
+								  struct device_attribute *attr,
+								  const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -896,8 +1017,11 @@ static ssize_t seq_32_event_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	config->seq_32_event = val & ETM_EVENT_MASK;
 	return size;
@@ -905,7 +1029,7 @@ static ssize_t seq_32_event_store(struct device *dev,
 static DEVICE_ATTR_RW(seq_32_event);
 
 static ssize_t seq_13_event_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -916,8 +1040,8 @@ static ssize_t seq_13_event_show(struct device *dev,
 }
 
 static ssize_t seq_13_event_store(struct device *dev,
-				  struct device_attribute *attr,
-				  const char *buf, size_t size)
+								  struct device_attribute *attr,
+								  const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -925,8 +1049,11 @@ static ssize_t seq_13_event_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	config->seq_13_event = val & ETM_EVENT_MASK;
 	return size;
@@ -934,13 +1061,14 @@ static ssize_t seq_13_event_store(struct device *dev,
 static DEVICE_ATTR_RW(seq_13_event);
 
 static ssize_t seq_curr_state_show(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+								   struct device_attribute *attr, char *buf)
 {
 	unsigned long val, flags;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
 	struct etm_config *config = &drvdata->config;
 
-	if (!local_read(&drvdata->mode)) {
+	if (!local_read(&drvdata->mode))
+	{
 		val = config->seq_curr_state;
 		goto out;
 	}
@@ -959,8 +1087,8 @@ out:
 }
 
 static ssize_t seq_curr_state_store(struct device *dev,
-				    struct device_attribute *attr,
-				    const char *buf, size_t size)
+									struct device_attribute *attr,
+									const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -968,11 +1096,16 @@ static ssize_t seq_curr_state_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (val > ETM_SEQ_STATE_MAX_VAL)
+	{
 		return -EINVAL;
+	}
 
 	config->seq_curr_state = val;
 
@@ -981,7 +1114,7 @@ static ssize_t seq_curr_state_store(struct device *dev,
 static DEVICE_ATTR_RW(seq_curr_state);
 
 static ssize_t ctxid_idx_show(struct device *dev,
-			      struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -992,8 +1125,8 @@ static ssize_t ctxid_idx_show(struct device *dev,
 }
 
 static ssize_t ctxid_idx_store(struct device *dev,
-				struct device_attribute *attr,
-				const char *buf, size_t size)
+							   struct device_attribute *attr,
+							   const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -1001,11 +1134,16 @@ static ssize_t ctxid_idx_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (val >= drvdata->nr_ctxid_cmp)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Use spinlock to ensure index doesn't change while it gets
@@ -1020,7 +1158,7 @@ static ssize_t ctxid_idx_store(struct device *dev,
 static DEVICE_ATTR_RW(ctxid_idx);
 
 static ssize_t ctxid_pid_show(struct device *dev,
-			      struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -1034,8 +1172,8 @@ static ssize_t ctxid_pid_show(struct device *dev,
 }
 
 static ssize_t ctxid_pid_store(struct device *dev,
-			       struct device_attribute *attr,
-			       const char *buf, size_t size)
+							   struct device_attribute *attr,
+							   const char *buf, size_t size)
 {
 	int ret;
 	unsigned long vpid, pid;
@@ -1043,8 +1181,11 @@ static ssize_t ctxid_pid_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &vpid);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pid = coresight_vpid_to_pid(vpid);
 
@@ -1058,7 +1199,7 @@ static ssize_t ctxid_pid_store(struct device *dev,
 static DEVICE_ATTR_RW(ctxid_pid);
 
 static ssize_t ctxid_mask_show(struct device *dev,
-			       struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -1069,8 +1210,8 @@ static ssize_t ctxid_mask_show(struct device *dev,
 }
 
 static ssize_t ctxid_mask_store(struct device *dev,
-				struct device_attribute *attr,
-				const char *buf, size_t size)
+								struct device_attribute *attr,
+								const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -1078,8 +1219,11 @@ static ssize_t ctxid_mask_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	config->ctxid_mask = val;
 	return size;
@@ -1087,7 +1231,7 @@ static ssize_t ctxid_mask_store(struct device *dev,
 static DEVICE_ATTR_RW(ctxid_mask);
 
 static ssize_t sync_freq_show(struct device *dev,
-			      struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -1098,8 +1242,8 @@ static ssize_t sync_freq_show(struct device *dev,
 }
 
 static ssize_t sync_freq_store(struct device *dev,
-			       struct device_attribute *attr,
-			       const char *buf, size_t size)
+							   struct device_attribute *attr,
+							   const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -1107,8 +1251,11 @@ static ssize_t sync_freq_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	config->sync_freq = val & ETM_SYNC_MASK;
 	return size;
@@ -1116,7 +1263,7 @@ static ssize_t sync_freq_store(struct device *dev,
 static DEVICE_ATTR_RW(sync_freq);
 
 static ssize_t timestamp_event_show(struct device *dev,
-				    struct device_attribute *attr, char *buf)
+									struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -1127,8 +1274,8 @@ static ssize_t timestamp_event_show(struct device *dev,
 }
 
 static ssize_t timestamp_event_store(struct device *dev,
-				     struct device_attribute *attr,
-				     const char *buf, size_t size)
+									 struct device_attribute *attr,
+									 const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
@@ -1136,8 +1283,11 @@ static ssize_t timestamp_event_store(struct device *dev,
 	struct etm_config *config = &drvdata->config;
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	config->timestamp_event = val & ETM_EVENT_MASK;
 	return size;
@@ -1145,7 +1295,7 @@ static ssize_t timestamp_event_store(struct device *dev,
 static DEVICE_ATTR_RW(timestamp_event);
 
 static ssize_t cpu_show(struct device *dev,
-			struct device_attribute *attr, char *buf)
+						struct device_attribute *attr, char *buf)
 {
 	int val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -1157,7 +1307,7 @@ static ssize_t cpu_show(struct device *dev,
 static DEVICE_ATTR_RO(cpu);
 
 static ssize_t traceid_show(struct device *dev,
-			    struct device_attribute *attr, char *buf)
+							struct device_attribute *attr, char *buf)
 {
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
@@ -1168,23 +1318,27 @@ static ssize_t traceid_show(struct device *dev,
 }
 
 static ssize_t traceid_store(struct device *dev,
-			     struct device_attribute *attr,
-			     const char *buf, size_t size)
+							 struct device_attribute *attr,
+							 const char *buf, size_t size)
 {
 	int ret;
 	unsigned long val;
 	struct etm_drvdata *drvdata = dev_get_drvdata(dev->parent);
 
 	ret = kstrtoul(buf, 16, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	drvdata->traceid = val & ETM_TRACEID_MASK;
 	return size;
 }
 static DEVICE_ATTR_RW(traceid);
 
-static struct attribute *coresight_etm_attrs[] = {
+static struct attribute *coresight_etm_attrs[] =
+{
 	&dev_attr_nr_addr_cmp.attr,
 	&dev_attr_nr_cntr.attr,
 	&dev_attr_nr_ctxid_cmp.attr,
@@ -1236,7 +1390,8 @@ coresight_etm3x_simple_func(etmtssvr, ETMTSSCR);
 coresight_etm3x_simple_func(etmtecr1, ETMTECR1);
 coresight_etm3x_simple_func(etmtecr2, ETMTECR2);
 
-static struct attribute *coresight_etm_mgmt_attrs[] = {
+static struct attribute *coresight_etm_mgmt_attrs[] =
+{
 	&dev_attr_etmccr.attr,
 	&dev_attr_etmccer.attr,
 	&dev_attr_etmscr.attr,
@@ -1250,16 +1405,19 @@ static struct attribute *coresight_etm_mgmt_attrs[] = {
 	NULL,
 };
 
-static const struct attribute_group coresight_etm_group = {
+static const struct attribute_group coresight_etm_group =
+{
 	.attrs = coresight_etm_attrs,
 };
 
-static const struct attribute_group coresight_etm_mgmt_group = {
+static const struct attribute_group coresight_etm_mgmt_group =
+{
 	.attrs = coresight_etm_mgmt_attrs,
 	.name = "mgmt",
 };
 
-const struct attribute_group *coresight_etm_groups[] = {
+const struct attribute_group *coresight_etm_groups[] =
+{
 	&coresight_etm_group,
 	&coresight_etm_mgmt_group,
 	NULL,

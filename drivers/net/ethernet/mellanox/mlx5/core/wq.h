@@ -35,26 +35,30 @@
 
 #include <linux/mlx5/mlx5_ifc.h>
 
-struct mlx5_wq_param {
+struct mlx5_wq_param
+{
 	int		linear;
 	int		buf_numa_node;
 	int		db_numa_node;
 };
 
-struct mlx5_wq_ctrl {
+struct mlx5_wq_ctrl
+{
 	struct mlx5_core_dev	*mdev;
 	struct mlx5_buf		buf;
 	struct mlx5_db		db;
 };
 
-struct mlx5_wq_cyc {
+struct mlx5_wq_cyc
+{
 	void			*buf;
 	__be32			*db;
 	u16			sz_m1;
 	u8			log_stride;
 };
 
-struct mlx5_cqwq {
+struct mlx5_cqwq
+{
 	void			*buf;
 	__be32			*db;
 	u32			sz_m1;
@@ -63,7 +67,8 @@ struct mlx5_cqwq {
 	u8			log_stride;
 };
 
-struct mlx5_wq_ll {
+struct mlx5_wq_ll
+{
 	void			*buf;
 	__be32			*db;
 	__be16			*tail_next;
@@ -75,18 +80,18 @@ struct mlx5_wq_ll {
 };
 
 int mlx5_wq_cyc_create(struct mlx5_core_dev *mdev, struct mlx5_wq_param *param,
-		       void *wqc, struct mlx5_wq_cyc *wq,
-		       struct mlx5_wq_ctrl *wq_ctrl);
+					   void *wqc, struct mlx5_wq_cyc *wq,
+					   struct mlx5_wq_ctrl *wq_ctrl);
 u32 mlx5_wq_cyc_get_size(struct mlx5_wq_cyc *wq);
 
 int mlx5_cqwq_create(struct mlx5_core_dev *mdev, struct mlx5_wq_param *param,
-		     void *cqc, struct mlx5_cqwq *wq,
-		     struct mlx5_wq_ctrl *wq_ctrl);
+					 void *cqc, struct mlx5_cqwq *wq,
+					 struct mlx5_wq_ctrl *wq_ctrl);
 u32 mlx5_cqwq_get_size(struct mlx5_cqwq *wq);
 
 int mlx5_wq_ll_create(struct mlx5_core_dev *mdev, struct mlx5_wq_param *param,
-		      void *wqc, struct mlx5_wq_ll *wq,
-		      struct mlx5_wq_ctrl *wq_ctrl);
+					  void *wqc, struct mlx5_wq_ll *wq,
+					  struct mlx5_wq_ctrl *wq_ctrl);
 u32 mlx5_wq_ll_get_size(struct mlx5_wq_ll *wq);
 
 void mlx5_wq_destroy(struct mlx5_wq_ctrl *wq_ctrl);
@@ -157,7 +162,7 @@ static inline void mlx5_wq_ll_push(struct mlx5_wq_ll *wq, u16 head_next)
 }
 
 static inline void mlx5_wq_ll_pop(struct mlx5_wq_ll *wq, __be16 ix,
-				  __be16 *next_tail_next)
+								  __be16 *next_tail_next)
 {
 	*wq->tail_next = ix;
 	wq->tail_next = next_tail_next;

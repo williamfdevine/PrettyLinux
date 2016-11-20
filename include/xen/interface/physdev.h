@@ -33,7 +33,8 @@
  * @arg == pointer to physdev_eoi structure.
  */
 #define PHYSDEVOP_eoi			12
-struct physdev_eoi {
+struct physdev_eoi
+{
 	/* IN */
 	uint32_t irq;
 };
@@ -54,9 +55,10 @@ struct physdev_eoi {
  * Xen's PIRQ value.
  */
 #define PHYSDEVOP_pirq_eoi_gmfn_v2       28
-struct physdev_pirq_eoi_gmfn {
-    /* IN */
-    xen_ulong_t gmfn;
+struct physdev_pirq_eoi_gmfn
+{
+	/* IN */
+	xen_ulong_t gmfn;
 };
 
 /*
@@ -64,7 +66,8 @@ struct physdev_pirq_eoi_gmfn {
  * @arg == pointer to physdev_irq_status_query structure.
  */
 #define PHYSDEVOP_irq_status_query	 5
-struct physdev_irq_status_query {
+struct physdev_irq_status_query
+{
 	/* IN */
 	uint32_t irq;
 	/* OUT */
@@ -84,7 +87,8 @@ struct physdev_irq_status_query {
  * @arg == pointer to physdev_set_iopl structure.
  */
 #define PHYSDEVOP_set_iopl		 6
-struct physdev_set_iopl {
+struct physdev_set_iopl
+{
 	/* IN */
 	uint32_t iopl;
 };
@@ -94,9 +98,10 @@ struct physdev_set_iopl {
  * @arg == pointer to physdev_set_iobitmap structure.
  */
 #define PHYSDEVOP_set_iobitmap		 7
-struct physdev_set_iobitmap {
+struct physdev_set_iobitmap
+{
 	/* IN */
-	uint8_t * bitmap;
+	uint8_t *bitmap;
 	uint32_t nr_ports;
 };
 
@@ -106,7 +111,8 @@ struct physdev_set_iobitmap {
  */
 #define PHYSDEVOP_apic_read		 8
 #define PHYSDEVOP_apic_write		 9
-struct physdev_apic {
+struct physdev_apic
+{
 	/* IN */
 	unsigned long apic_physbase;
 	uint32_t reg;
@@ -120,7 +126,8 @@ struct physdev_apic {
  */
 #define PHYSDEVOP_alloc_irq_vector	10
 #define PHYSDEVOP_free_irq_vector	11
-struct physdev_irq {
+struct physdev_irq
+{
 	/* IN */
 	uint32_t irq;
 	/* IN or OUT */
@@ -134,59 +141,65 @@ struct physdev_irq {
 #define MAP_PIRQ_TYPE_MULTI_MSI		0x4
 
 #define PHYSDEVOP_map_pirq		13
-struct physdev_map_pirq {
-    domid_t domid;
-    /* IN */
-    int type;
-    /* IN */
-    int index;
-    /* IN or OUT */
-    int pirq;
-    /* IN - high 16 bits hold segment for ..._MSI_SEG and ..._MULTI_MSI */
-    int bus;
-    /* IN */
-    int devfn;
-    /* IN
-     * - For MSI-X contains entry number.
-     * - For MSI with ..._MULTI_MSI contains number of vectors.
-     * OUT (..._MULTI_MSI only)
-     * - Number of vectors allocated.
-     */
-    int entry_nr;
-    /* IN */
-    uint64_t table_base;
+struct physdev_map_pirq
+{
+	domid_t domid;
+	/* IN */
+	int type;
+	/* IN */
+	int index;
+	/* IN or OUT */
+	int pirq;
+	/* IN - high 16 bits hold segment for ..._MSI_SEG and ..._MULTI_MSI */
+	int bus;
+	/* IN */
+	int devfn;
+	/* IN
+	 * - For MSI-X contains entry number.
+	 * - For MSI with ..._MULTI_MSI contains number of vectors.
+	 * OUT (..._MULTI_MSI only)
+	 * - Number of vectors allocated.
+	 */
+	int entry_nr;
+	/* IN */
+	uint64_t table_base;
 };
 
 #define PHYSDEVOP_unmap_pirq		14
-struct physdev_unmap_pirq {
-    domid_t domid;
-    /* IN */
-    int pirq;
+struct physdev_unmap_pirq
+{
+	domid_t domid;
+	/* IN */
+	int pirq;
 };
 
 #define PHYSDEVOP_manage_pci_add	15
 #define PHYSDEVOP_manage_pci_remove	16
-struct physdev_manage_pci {
+struct physdev_manage_pci
+{
 	/* IN */
 	uint8_t bus;
 	uint8_t devfn;
 };
 
 #define PHYSDEVOP_restore_msi            19
-struct physdev_restore_msi {
+struct physdev_restore_msi
+{
 	/* IN */
 	uint8_t bus;
 	uint8_t devfn;
 };
 
 #define PHYSDEVOP_manage_pci_add_ext	20
-struct physdev_manage_pci_ext {
+struct physdev_manage_pci_ext
+{
 	/* IN */
 	uint8_t bus;
 	uint8_t devfn;
 	unsigned is_extfn;
 	unsigned is_virtfn;
-	struct {
+	struct
+	{
 		uint8_t bus;
 		uint8_t devfn;
 	} physfn;
@@ -196,9 +209,11 @@ struct physdev_manage_pci_ext {
  * Argument to physdev_op_compat() hypercall. Superceded by new physdev_op()
  * hypercall since 0x00030202.
  */
-struct physdev_op {
+struct physdev_op
+{
 	uint32_t cmd;
-	union {
+	union
+	{
 		struct physdev_irq_status_query	     irq_status_query;
 		struct physdev_set_iopl		     set_iopl;
 		struct physdev_set_iobitmap	     set_iobitmap;
@@ -208,29 +223,32 @@ struct physdev_op {
 };
 
 #define PHYSDEVOP_setup_gsi    21
-struct physdev_setup_gsi {
-    int gsi;
-    /* IN */
-    uint8_t triggering;
-    /* IN */
-    uint8_t polarity;
-    /* IN */
+struct physdev_setup_gsi
+{
+	int gsi;
+	/* IN */
+	uint8_t triggering;
+	/* IN */
+	uint8_t polarity;
+	/* IN */
 };
 
 #define PHYSDEVOP_get_nr_pirqs    22
-struct physdev_nr_pirqs {
-    /* OUT */
-    uint32_t nr_pirqs;
+struct physdev_nr_pirqs
+{
+	/* OUT */
+	uint32_t nr_pirqs;
 };
 
 /* type is MAP_PIRQ_TYPE_GSI or MAP_PIRQ_TYPE_MSI
  * the hypercall returns a free pirq */
 #define PHYSDEVOP_get_free_pirq    23
-struct physdev_get_free_pirq {
-    /* IN */ 
-    int type;
-    /* OUT */
-    uint32_t pirq;
+struct physdev_get_free_pirq
+{
+	/* IN */
+	int type;
+	/* OUT */
+	uint32_t pirq;
 };
 
 #define XEN_PCI_DEV_EXTFN              0x1
@@ -240,29 +258,32 @@ struct physdev_get_free_pirq {
 #define XEN_PCI_MMCFG_RESERVED         0x1
 
 #define PHYSDEVOP_pci_mmcfg_reserved    24
-struct physdev_pci_mmcfg_reserved {
-    uint64_t address;
-    uint16_t segment;
-    uint8_t start_bus;
-    uint8_t end_bus;
-    uint32_t flags;
+struct physdev_pci_mmcfg_reserved
+{
+	uint64_t address;
+	uint16_t segment;
+	uint8_t start_bus;
+	uint8_t end_bus;
+	uint32_t flags;
 };
 
 #define PHYSDEVOP_pci_device_add        25
-struct physdev_pci_device_add {
-    /* IN */
-    uint16_t seg;
-    uint8_t bus;
-    uint8_t devfn;
-    uint32_t flags;
-    struct {
-        uint8_t bus;
-        uint8_t devfn;
-    } physfn;
+struct physdev_pci_device_add
+{
+	/* IN */
+	uint16_t seg;
+	uint8_t bus;
+	uint8_t devfn;
+	uint32_t flags;
+	struct
+	{
+		uint8_t bus;
+		uint8_t devfn;
+	} physfn;
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-    uint32_t optarr[];
+	uint32_t optarr[];
 #elif defined(__GNUC__)
-    uint32_t optarr[0];
+	uint32_t optarr[0];
 #endif
 };
 
@@ -274,11 +295,12 @@ struct physdev_pci_device_add {
  */
 #define PHYSDEVOP_prepare_msix          30
 #define PHYSDEVOP_release_msix          31
-struct physdev_pci_device {
-    /* IN */
-    uint16_t seg;
-    uint8_t bus;
-    uint8_t devfn;
+struct physdev_pci_device
+{
+	/* IN */
+	uint16_t seg;
+	uint8_t bus;
+	uint8_t devfn;
 };
 
 #define PHYSDEVOP_DBGP_RESET_PREPARE    1
@@ -288,13 +310,15 @@ struct physdev_pci_device {
 #define PHYSDEVOP_DBGP_BUS_PCI          1
 
 #define PHYSDEVOP_dbgp_op               29
-struct physdev_dbgp_op {
-    /* IN */
-    uint8_t op;
-    uint8_t bus;
-    union {
-        struct physdev_pci_device pci;
-    } u;
+struct physdev_dbgp_op
+{
+	/* IN */
+	uint8_t op;
+	uint8_t bus;
+	union
+	{
+		struct physdev_pci_device pci;
+	} u;
 };
 
 /*

@@ -32,7 +32,8 @@
 
 #define MODULE_NAME_LEN MAX_PARAM_PREFIX_LEN
 
-struct modversion_info {
+struct modversion_info
+{
 	unsigned long crc;
 	char name[MODULE_NAME_LEN];
 };
@@ -40,7 +41,8 @@ struct modversion_info {
 struct module;
 struct exception_table_entry;
 
-struct module_kobject {
+struct module_kobject
+{
 	struct kobject kobj;
 	struct module *mod;
 	struct kobject *drivers_dir;
@@ -48,25 +50,27 @@ struct module_kobject {
 	struct completion *kobj_completion;
 };
 
-struct module_attribute {
+struct module_attribute
+{
 	struct attribute attr;
 	ssize_t (*show)(struct module_attribute *, struct module_kobject *,
-			char *);
+					char *);
 	ssize_t (*store)(struct module_attribute *, struct module_kobject *,
-			 const char *, size_t count);
+					 const char *, size_t count);
 	void (*setup)(struct module *, const char *);
 	int (*test)(struct module *);
 	void (*free)(struct module *);
 };
 
-struct module_version_attribute {
+struct module_version_attribute
+{
 	struct module_attribute mattr;
 	const char *module_name;
 	const char *version;
 } __attribute__ ((__aligned__(sizeof(void *))));
 
 extern ssize_t __modver_version_show(struct module_attribute *,
-				     struct module_kobject *, char *);
+									 struct module_kobject *, char *);
 
 extern struct module_attribute module_uevent;
 
@@ -142,19 +146,19 @@ extern void cleanup_module(void);
 /* This means "can be init if no module support, otherwise module load
    may call it." */
 #ifdef CONFIG_MODULES
-#define __init_or_module
-#define __initdata_or_module
-#define __initconst_or_module
-#define __INIT_OR_MODULE	.text
-#define __INITDATA_OR_MODULE	.data
-#define __INITRODATA_OR_MODULE	.section ".rodata","a",%progbits
+	#define __init_or_module
+	#define __initdata_or_module
+	#define __initconst_or_module
+	#define __INIT_OR_MODULE	.text
+	#define __INITDATA_OR_MODULE	.data
+	#define __INITRODATA_OR_MODULE	.section ".rodata","a",%progbits
 #else
-#define __init_or_module __init
-#define __initdata_or_module __initdata
-#define __initconst_or_module __initconst
-#define __INIT_OR_MODULE __INIT
-#define __INITDATA_OR_MODULE __INITDATA
-#define __INITRODATA_OR_MODULE __INITRODATA
+	#define __init_or_module __init
+	#define __initdata_or_module __initdata
+	#define __initconst_or_module __initconst
+	#define __INIT_OR_MODULE __INIT
+	#define __INITDATA_OR_MODULE __INITDATA
+	#define __INITRODATA_OR_MODULE __INITRODATA
 #endif /*CONFIG_MODULES*/
 
 /* Generic info of form tag = "info" */
@@ -210,8 +214,8 @@ extern void cleanup_module(void);
 #ifdef MODULE
 /* Creates an alias so file2alias.c can find device table. */
 #define MODULE_DEVICE_TABLE(type, name)					\
-extern const typeof(name) __mod_##type##__##name##_device_table		\
-  __attribute__ ((unused, alias(__stringify(name))))
+	extern const typeof(name) __mod_##type##__##name##_device_table		\
+	__attribute__ ((unused, alias(__stringify(name))))
 #else  /* !MODULE */
 #define MODULE_DEVICE_TABLE(type, name)
 #endif
@@ -239,14 +243,14 @@ extern const typeof(name) __mod_##type##__##name##_device_table		\
 #define MODULE_VERSION(_version)					\
 	static struct module_version_attribute ___modver_attr = {	\
 		.mattr	= {						\
-			.attr	= {					\
-				.name	= "version",			\
-				.mode	= S_IRUGO,			\
-			},						\
-			.show	= __modver_version_show,		\
-		},							\
-		.module_name	= KBUILD_MODNAME,			\
-		.version	= _version,				\
+										.attr	= {					\
+																	.name	= "version",			\
+																	.mode	= S_IRUGO,			\
+												},						\
+										.show	= __modver_version_show,		\
+				 },							\
+				  .module_name	= KBUILD_MODNAME,			\
+									.version	= _version,				\
 	};								\
 	static const struct module_version_attribute			\
 	__used __attribute__ ((__section__ ("__modver")))		\
@@ -269,13 +273,15 @@ void *__symbol_get_gpl(const char *symbol);
 #define symbol_get(x) ((typeof(&x))(__symbol_get(VMLINUX_SYMBOL_STR(x))))
 
 /* modules using other modules: kdb wants to see this. */
-struct module_use {
+struct module_use
+{
 	struct list_head source_list;
 	struct list_head target_list;
 	struct module *source, *target;
 };
 
-enum module_state {
+enum module_state
+{
 	MODULE_STATE_LIVE,	/* Normal state. */
 	MODULE_STATE_COMING,	/* Full formed, running module_init. */
 	MODULE_STATE_GOING,	/* Going away. */
@@ -284,12 +290,14 @@ enum module_state {
 
 struct module;
 
-struct mod_tree_node {
+struct mod_tree_node
+{
 	struct module *mod;
 	struct latch_tree_node node;
 };
 
-struct module_layout {
+struct module_layout
+{
 	/* The actual code + data. */
 	void *base;
 	/* Total size. */
@@ -307,20 +315,22 @@ struct module_layout {
 };
 
 #ifdef CONFIG_MODULES_TREE_LOOKUP
-/* Only touch one cacheline for common rbtree-for-core-layout case. */
-#define __module_layout_align ____cacheline_aligned
+	/* Only touch one cacheline for common rbtree-for-core-layout case. */
+	#define __module_layout_align ____cacheline_aligned
 #else
-#define __module_layout_align
+	#define __module_layout_align
 #endif
 
-struct mod_kallsyms {
+struct mod_kallsyms
+{
 	Elf_Sym *symtab;
 	unsigned int num_symtab;
 	char *strtab;
 };
 
 #ifdef CONFIG_LIVEPATCH
-struct klp_modinfo {
+struct klp_modinfo
+{
 	Elf_Ehdr hdr;
 	Elf_Shdr *sechdrs;
 	char *secstrings;
@@ -328,7 +338,8 @@ struct klp_modinfo {
 };
 #endif
 
-struct module {
+struct module
+{
 	enum module_state state;
 
 	/* Member of list of modules */
@@ -412,7 +423,7 @@ struct module {
 	/* Protected by RCU and/or module_mutex: use rcu_dereference() */
 	struct mod_kallsyms *kallsyms;
 	struct mod_kallsyms core_kallsyms;
-	
+
 	/* Section attributes */
 	struct module_sect_attrs *sect_attrs;
 
@@ -432,7 +443,7 @@ struct module {
 
 #ifdef CONFIG_TRACEPOINTS
 	unsigned int num_tracepoints;
-	struct tracepoint * const *tracepoints_ptrs;
+	struct tracepoint *const *tracepoints_ptrs;
 #endif
 #ifdef HAVE_JUMP_LABEL
 	struct jump_entry *jump_entries;
@@ -480,7 +491,7 @@ struct module {
 #endif
 } ____cacheline_aligned;
 #ifndef MODULE_ARCH_INIT
-#define MODULE_ARCH_INIT {}
+	#define MODULE_ARCH_INIT {}
 #endif
 
 extern struct mutex module_mutex;
@@ -500,17 +511,17 @@ bool is_module_percpu_address(unsigned long addr);
 bool is_module_text_address(unsigned long addr);
 
 static inline bool within_module_core(unsigned long addr,
-				      const struct module *mod)
+									  const struct module *mod)
 {
 	return (unsigned long)mod->core_layout.base <= addr &&
-	       addr < (unsigned long)mod->core_layout.base + mod->core_layout.size;
+		   addr < (unsigned long)mod->core_layout.base + mod->core_layout.size;
 }
 
 static inline bool within_module_init(unsigned long addr,
-				      const struct module *mod)
+									  const struct module *mod)
 {
 	return (unsigned long)mod->init_layout.base <= addr &&
-	       addr < (unsigned long)mod->init_layout.base + mod->init_layout.size;
+		   addr < (unsigned long)mod->init_layout.base + mod->init_layout.size;
 }
 
 static inline bool within_module(unsigned long addr, const struct module *mod)
@@ -521,10 +532,12 @@ static inline bool within_module(unsigned long addr, const struct module *mod)
 /* Search for module by name: must hold module_mutex. */
 struct module *find_module(const char *name);
 
-struct symsearch {
+struct symsearch
+{
 	const struct kernel_symbol *start, *stop;
 	const unsigned long *crcs;
-	enum {
+	enum
+	{
 		NOT_GPL_ONLY,
 		GPL_ONLY,
 		WILL_BE_GPL_ONLY,
@@ -538,10 +551,10 @@ struct symsearch {
  * Must be called with module_mutex held or preemption disabled.
  */
 const struct kernel_symbol *find_symbol(const char *name,
-					struct module **owner,
-					const unsigned long **crc,
-					bool gplok,
-					bool warn);
+										struct module **owner,
+										const unsigned long **crc,
+										bool gplok,
+										bool warn);
 
 /*
  * Walk the exported symbol table
@@ -549,23 +562,23 @@ const struct kernel_symbol *find_symbol(const char *name,
  * Must be called with module_mutex held or preemption disabled.
  */
 bool each_symbol_section(bool (*fn)(const struct symsearch *arr,
-				    struct module *owner,
-				    void *data), void *data);
+									struct module *owner,
+									void *data), void *data);
 
 /* Returns 0 and fills in value, defined and namebuf, or -ERANGE if
    symnum out of range. */
 int module_get_kallsym(unsigned int symnum, unsigned long *value, char *type,
-			char *name, char *module_name, int *exported);
+					   char *name, char *module_name, int *exported);
 
 /* Look for this name: can be of form module:name. */
 unsigned long module_kallsyms_lookup_name(const char *name);
 
 int module_kallsyms_on_each_symbol(int (*fn)(void *, const char *,
-					     struct module *, unsigned long),
-				   void *data);
+								   struct module *, unsigned long),
+								   void *data);
 
 extern void __noreturn __module_put_and_exit(struct module *mod,
-			long code);
+		long code);
 #define module_put_and_exit(code) __module_put_and_exit(THIS_MODULE, code)
 
 #ifdef CONFIG_MODULE_UNLOAD
@@ -603,21 +616,22 @@ int ref_module(struct module *a, struct module *b);
 
 /* This is a #define so the string doesn't get put in every .o file */
 #define module_name(mod)			\
-({						\
-	struct module *__mod = (mod);		\
-	__mod ? __mod->name : "kernel";		\
-})
+	({						\
+		struct module *__mod = (mod);		\
+		__mod ? __mod->name : "kernel";		\
+	})
 
 /* For kallsyms to ask for address resolution.  namebuf should be at
  * least KSYM_NAME_LEN long: a pointer to namebuf is returned if
  * found, otherwise NULL. */
 const char *module_address_lookup(unsigned long addr,
-			    unsigned long *symbolsize,
-			    unsigned long *offset,
-			    char **modname,
-			    char *namebuf);
+								  unsigned long *symbolsize,
+								  unsigned long *offset,
+								  char **modname,
+								  char *namebuf);
 int lookup_module_symbol_name(unsigned long addr, char *symname);
-int lookup_module_symbol_attrs(unsigned long addr, unsigned long *size, unsigned long *offset, char *modname, char *name);
+int lookup_module_symbol_attrs(unsigned long addr, unsigned long *size, unsigned long *offset, char *modname,
+							   char *name);
 
 int register_module_notifier(struct notifier_block *nb);
 int unregister_module_notifier(struct notifier_block *nb);
@@ -690,10 +704,10 @@ static inline void module_put(struct module *module)
 
 /* For kallsyms to ask for address resolution.  NULL means not found. */
 static inline const char *module_address_lookup(unsigned long addr,
-					  unsigned long *symbolsize,
-					  unsigned long *offset,
-					  char **modname,
-					  char *namebuf)
+		unsigned long *symbolsize,
+		unsigned long *offset,
+		char **modname,
+		char *namebuf)
 {
 	return NULL;
 }
@@ -703,14 +717,15 @@ static inline int lookup_module_symbol_name(unsigned long addr, char *symname)
 	return -ERANGE;
 }
 
-static inline int lookup_module_symbol_attrs(unsigned long addr, unsigned long *size, unsigned long *offset, char *modname, char *name)
+static inline int lookup_module_symbol_attrs(unsigned long addr, unsigned long *size, unsigned long *offset,
+		char *modname, char *name)
 {
 	return -ERANGE;
 }
 
 static inline int module_get_kallsym(unsigned int symnum, unsigned long *value,
-					char *type, char *name,
-					char *module_name, int *exported)
+									 char *type, char *name,
+									 char *module_name, int *exported)
 {
 	return -ERANGE;
 }
@@ -721,9 +736,9 @@ static inline unsigned long module_kallsyms_lookup_name(const char *name)
 }
 
 static inline int module_kallsyms_on_each_symbol(int (*fn)(void *, const char *,
-							   struct module *,
-							   unsigned long),
-						 void *data)
+		struct module *,
+		unsigned long),
+		void *data)
 {
 	return 0;
 }
@@ -753,9 +768,9 @@ static inline bool module_requested_async_probing(struct module *module)
 #endif /* CONFIG_MODULES */
 
 #ifdef CONFIG_SYSFS
-extern struct kset *module_kset;
-extern struct kobj_type module_ktype;
-extern int module_sysfs_initialized;
+	extern struct kset *module_kset;
+	extern struct kobj_type module_ktype;
+	extern int module_sysfs_initialized;
 #endif /* CONFIG_SYSFS */
 
 #define symbol_request(x) try_then_request_module(symbol_get(x), "symbol:" #x)
@@ -778,14 +793,14 @@ static inline void module_disable_ro(const struct module *mod) { }
 
 #ifdef CONFIG_GENERIC_BUG
 void module_bug_finalize(const Elf_Ehdr *, const Elf_Shdr *,
-			 struct module *);
+						 struct module *);
 void module_bug_cleanup(struct module *);
 
 #else	/* !CONFIG_GENERIC_BUG */
 
 static inline void module_bug_finalize(const Elf_Ehdr *hdr,
-					const Elf_Shdr *sechdrs,
-					struct module *mod)
+									   const Elf_Shdr *sechdrs,
+									   struct module *mod)
 {
 }
 static inline void module_bug_cleanup(struct module *mod) {}

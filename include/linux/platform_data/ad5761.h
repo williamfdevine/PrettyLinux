@@ -21,7 +21,8 @@
  * @AD5761_VOLTAGE_RANGE_0V_20V:      0V to  20V
  */
 
-enum ad5761_voltage_range {
+enum ad5761_voltage_range
+{
 	AD5761_VOLTAGE_RANGE_M10V_10V,
 	AD5761_VOLTAGE_RANGE_0V_10V,
 	AD5761_VOLTAGE_RANGE_M5V_5V,
@@ -37,7 +38,8 @@ enum ad5761_voltage_range {
  * @voltage_range: Voltage range the AD5761 is configured for
  */
 
-struct ad5761_platform_data {
+struct ad5761_platform_data
+{
 	enum ad5761_voltage_range voltage_range;
 };
 

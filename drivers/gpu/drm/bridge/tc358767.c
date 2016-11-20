@@ -176,7 +176,8 @@
 static bool tc_test_pattern;
 module_param_named(test, tc_test_pattern, bool, 0644);
 
-struct tc_edp_link {
+struct tc_edp_link
+{
 	struct drm_dp_link	base;
 	u8			assr;
 	int			scrambler_dis;
@@ -186,7 +187,8 @@ struct tc_edp_link {
 	u8			preemp;
 };
 
-struct tc_data {
+struct tc_data
+{
 	struct device		*dev;
 	struct regmap		*regmap;
 	struct drm_dp_aux	aux;
@@ -241,34 +243,47 @@ static inline struct tc_data *connector_to_tc(struct drm_connector *c)
 	} while (0)
 
 static inline int tc_poll_timeout(struct regmap *map, unsigned int addr,
-				  unsigned int cond_mask,
-				  unsigned int cond_value,
-				  unsigned long sleep_us, u64 timeout_us)
+								  unsigned int cond_mask,
+								  unsigned int cond_value,
+								  unsigned long sleep_us, u64 timeout_us)
 {
 	ktime_t timeout = ktime_add_us(ktime_get(), timeout_us);
 	unsigned int val;
 	int ret;
 
-	for (;;) {
+	for (;;)
+	{
 		ret = regmap_read(map, addr, &val);
+
 		if (ret)
+		{
 			break;
+		}
+
 		if ((val & cond_mask) == cond_value)
+		{
 			break;
-		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0) {
+		}
+
+		if (timeout_us && ktime_compare(ktime_get(), timeout) > 0)
+		{
 			ret = regmap_read(map, addr, &val);
 			break;
 		}
+
 		if (sleep_us)
+		{
 			usleep_range((sleep_us >> 2) + 1, sleep_us);
+		}
 	}
-	return ret ?: (((val & cond_mask) == cond_value) ? 0 : -ETIMEDOUT);
+
+	return ret ? : (((val & cond_mask) == cond_value) ? 0 : -ETIMEDOUT);
 }
 
 static int tc_aux_wait_busy(struct tc_data *tc, unsigned int timeout_ms)
 {
 	return tc_poll_timeout(tc->regmap, DP0_AUXSTATUS, AUX_BUSY, 0,
-			       1000, 1000 * timeout_ms);
+						   1000, 1000 * timeout_ms);
 }
 
 static int tc_aux_get_status(struct tc_data *tc, u8 *reply)
@@ -277,13 +292,20 @@ static int tc_aux_get_status(struct tc_data *tc, u8 *reply)
 	u32 value;
 
 	ret = regmap_read(tc->regmap, DP0_AUXSTATUS, &value);
+
 	if (ret < 0)
+	{
 		return ret;
-	if (value & AUX_BUSY) {
-		if (value & AUX_TIMEOUT) {
+	}
+
+	if (value & AUX_BUSY)
+	{
+		if (value & AUX_TIMEOUT)
+		{
 			dev_err(tc->dev, "i2c access timeout!\n");
 			return -ETIMEDOUT;
 		}
+
 		return -EBUSY;
 	}
 
@@ -292,7 +314,7 @@ static int tc_aux_get_status(struct tc_data *tc, u8 *reply)
 }
 
 static ssize_t tc_aux_transfer(struct drm_dp_aux *aux,
-			       struct drm_dp_aux_msg *msg)
+							   struct drm_dp_aux_msg *msg)
 {
 	struct tc_data *tc = aux_to_tc(aux);
 	size_t size = min_t(size_t, 8, msg->size);
@@ -303,27 +325,43 @@ static ssize_t tc_aux_transfer(struct drm_dp_aux *aux,
 	int ret;
 
 	if (size == 0)
+	{
 		return 0;
+	}
 
 	ret = tc_aux_wait_busy(tc, 100);
-	if (ret)
-		goto err;
 
-	if (request == DP_AUX_I2C_WRITE || request == DP_AUX_NATIVE_WRITE) {
+	if (ret)
+	{
+		goto err;
+	}
+
+	if (request == DP_AUX_I2C_WRITE || request == DP_AUX_NATIVE_WRITE)
+	{
 		/* Store data */
-		while (i < size) {
+		while (i < size)
+		{
 			if (request == DP_AUX_NATIVE_WRITE)
+			{
 				tmp = tmp | (buf[i] << (8 * (i & 0x3)));
+			}
 			else
+			{
 				tmp = (tmp << 8) | buf[i];
+			}
+
 			i++;
-			if (((i % 4) == 0) || (i == size)) {
+
+			if (((i % 4) == 0) || (i == size))
+			{
 				tc_write(DP0_AUXWDATA(i >> 2), tmp);
 				tmp = 0;
 			}
 		}
-	} else if (request != DP_AUX_I2C_READ &&
-		   request != DP_AUX_NATIVE_READ) {
+	}
+	else if (request != DP_AUX_I2C_READ &&
+			 request != DP_AUX_NATIVE_READ)
+	{
 		return -EINVAL;
 	}
 
@@ -333,18 +371,29 @@ static ssize_t tc_aux_transfer(struct drm_dp_aux *aux,
 	tc_write(DP0_AUXCFG0, ((size - 1) << 8) | request);
 
 	ret = tc_aux_wait_busy(tc, 100);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = tc_aux_get_status(tc, &msg->reply);
-	if (ret)
-		goto err;
 
-	if (request == DP_AUX_I2C_READ || request == DP_AUX_NATIVE_READ) {
+	if (ret)
+	{
+		goto err;
+	}
+
+	if (request == DP_AUX_I2C_READ || request == DP_AUX_NATIVE_READ)
+	{
 		/* Read data */
-		while (i < size) {
+		while (i < size)
+		{
 			if ((i % 4) == 0)
+			{
 				tc_read(DP0_AUXRDATA(i >> 2), &tmp);
+			}
+
 			buf[i] = tmp & 0xff;
 			tmp = tmp >> 8;
 			i++;
@@ -356,7 +405,8 @@ err:
 	return ret;
 }
 
-static const char * const training_pattern1_errors[] = {
+static const char *const training_pattern1_errors[] =
+{
 	"No errors",
 	"Aux write error",
 	"Aux read error",
@@ -365,7 +415,8 @@ static const char * const training_pattern1_errors[] = {
 	"res", "res", "res"
 };
 
-static const char * const training_pattern2_errors[] = {
+static const char *const training_pattern2_errors[] =
+{
 	"No errors",
 	"Aux write error",
 	"Aux read error",
@@ -383,16 +434,31 @@ static u32 tc_srcctrl(struct tc_data *tc)
 	u32 reg = DP0_SRCCTRL_NOTP | DP0_SRCCTRL_LANESKEW;
 
 	if (tc->link.scrambler_dis)
-		reg |= DP0_SRCCTRL_SCRMBLDIS;	/* Scrambler Disabled */
+	{
+		reg |= DP0_SRCCTRL_SCRMBLDIS;    /* Scrambler Disabled */
+	}
+
 	if (tc->link.coding8b10b)
 		/* Enable 8/10B Encoder (TxData[19:16] not used) */
+	{
 		reg |= DP0_SRCCTRL_EN810B;
+	}
+
 	if (tc->link.spread)
-		reg |= DP0_SRCCTRL_SSCG;	/* Spread Spectrum Enable */
+	{
+		reg |= DP0_SRCCTRL_SSCG;    /* Spread Spectrum Enable */
+	}
+
 	if (tc->link.base.num_lanes == 2)
-		reg |= DP0_SRCCTRL_LANES_2;	/* Two Main Channel Lanes */
+	{
+		reg |= DP0_SRCCTRL_LANES_2;    /* Two Main Channel Lanes */
+	}
+
 	if (tc->link.base.rate != 162000)
-		reg |= DP0_SRCCTRL_BW27;	/* 2.7 Gbps link */
+	{
+		reg |= DP0_SRCCTRL_BW27;    /* 2.7 Gbps link */
+	}
+
 	return reg;
 }
 
@@ -415,42 +481,55 @@ static int tc_pxl_pll_en(struct tc_data *tc, u32 refclk, u32 pixelclock)
 	int vco_hi = 0;
 
 	dev_dbg(tc->dev, "PLL: requested %d pixelclock, ref %d\n", pixelclock,
-		refclk);
+			refclk);
 	best_delta = pixelclock;
+
 	/* Loop over all possible ext_divs, skipping invalid configurations */
-	for (i_pre = 0; i_pre < ARRAY_SIZE(ext_div); i_pre++) {
+	for (i_pre = 0; i_pre < ARRAY_SIZE(ext_div); i_pre++)
+	{
 		/*
 		 * refclk / ext_pre_div should be in the 1 to 200 MHz range.
 		 * We don't allow any refclk > 200 MHz, only check lower bounds.
 		 */
 		if (refclk / ext_div[i_pre] < 1000000)
+		{
 			continue;
-		for (i_post = 0; i_post < ARRAY_SIZE(ext_div); i_post++) {
-			for (div = 1; div <= 16; div++) {
+		}
+
+		for (i_post = 0; i_post < ARRAY_SIZE(ext_div); i_post++)
+		{
+			for (div = 1; div <= 16; div++)
+			{
 				u32 clk;
 				u64 tmp;
 
 				tmp = pixelclock * ext_div[i_pre] *
-				      ext_div[i_post] * div;
+					  ext_div[i_post] * div;
 				do_div(tmp, refclk);
 				mul = tmp;
 
 				/* Check limits */
 				if ((mul < 1) || (mul > 128))
+				{
 					continue;
+				}
 
 				clk = (refclk / ext_div[i_pre] / div) * mul;
+
 				/*
 				 * refclk * mul / (ext_pre_div * pre_div)
 				 * should be in the 150 to 650 MHz range
 				 */
 				if ((clk > 650000000) || (clk < 150000000))
+				{
 					continue;
+				}
 
 				clk = clk / ext_div[i_post];
 				delta = clk - pixelclock;
 
-				if (abs(delta) < abs(best_delta)) {
+				if (abs(delta) < abs(best_delta))
+				{
 					best_pre = i_pre;
 					best_post = i_post;
 					best_div = div;
@@ -461,36 +540,46 @@ static int tc_pxl_pll_en(struct tc_data *tc, u32 refclk, u32 pixelclock)
 			}
 		}
 	}
-	if (best_pixelclock == 0) {
+
+	if (best_pixelclock == 0)
+	{
 		dev_err(tc->dev, "Failed to calc clock for %d pixelclock\n",
-			pixelclock);
+				pixelclock);
 		return -EINVAL;
 	}
 
 	dev_dbg(tc->dev, "PLL: got %d, delta %d\n", best_pixelclock,
-		best_delta);
+			best_delta);
 	dev_dbg(tc->dev, "PLL: %d / %d / %d * %d / %d\n", refclk,
-		ext_div[best_pre], best_div, best_mul, ext_div[best_post]);
+			ext_div[best_pre], best_div, best_mul, ext_div[best_post]);
 
 	/* if VCO >= 300 MHz */
 	if (refclk / ext_div[best_pre] / best_div * best_mul >= 300000000)
+	{
 		vco_hi = 1;
+	}
+
 	/* see DS */
 	if (best_div == 16)
+	{
 		best_div = 0;
+	}
+
 	if (best_mul == 128)
+	{
 		best_mul = 0;
+	}
 
 	/* Power up PLL and switch to bypass */
 	tc_write(PXL_PLLCTRL, PLLBYP | PLLEN);
 
 	tc_write(PXL_PLLPARAM,
-		 (vco_hi << 24) |		/* For PLL VCO >= 300 MHz = 1 */
-		 (ext_div[best_pre] << 20) |	/* External Pre-divider */
-		 (ext_div[best_post] << 16) |	/* External Post-divider */
-		 IN_SEL_REFCLK |		/* Use RefClk as PLL input */
-		 (best_div << 8) |		/* Divider for PLL RefClk */
-		 (best_mul << 0));		/* Multiplier for PLL */
+			 (vco_hi << 24) |		/* For PLL VCO >= 300 MHz = 1 */
+			 (ext_div[best_pre] << 20) |	/* External Pre-divider */
+			 (ext_div[best_post] << 16) |	/* External Post-divider */
+			 IN_SEL_REFCLK |		/* Use RefClk as PLL input */
+			 (best_div << 8) |		/* Divider for PLL RefClk */
+			 (best_mul << 0));		/* Multiplier for PLL */
 
 	/* Force PLL parameter update and disable bypass */
 	tc_write(PXL_PLLCTRL, PLLUPDATE | PLLEN);
@@ -540,22 +629,28 @@ static int tc_aux_link_setup(struct tc_data *tc)
 	int ret;
 
 	rate = clk_get_rate(tc->refclk);
-	switch (rate) {
-	case 38400000:
-		value = REF_FREQ_38M4;
-		break;
-	case 26000000:
-		value = REF_FREQ_26M;
-		break;
-	case 19200000:
-		value = REF_FREQ_19M2;
-		break;
-	case 13000000:
-		value = REF_FREQ_13M;
-		break;
-	default:
-		dev_err(tc->dev, "Invalid refclk rate: %lu Hz\n", rate);
-		return -EINVAL;
+
+	switch (rate)
+	{
+		case 38400000:
+			value = REF_FREQ_38M4;
+			break;
+
+		case 26000000:
+			value = REF_FREQ_26M;
+			break;
+
+		case 19200000:
+			value = REF_FREQ_19M2;
+			break;
+
+		case 13000000:
+			value = REF_FREQ_13M;
+			break;
+
+		default:
+			dev_err(tc->dev, "Invalid refclk rate: %lu Hz\n", rate);
+			return -EINVAL;
 	}
 
 	/* Setup DP-PHY / PLL */
@@ -575,17 +670,22 @@ static int tc_aux_link_setup(struct tc_data *tc)
 	tc_wait_pll_lock(tc);
 
 	ret = tc_poll_timeout(tc->regmap, DP_PHY_CTRL, PHY_RDY, PHY_RDY, 1,
-			      1000);
-	if (ret == -ETIMEDOUT) {
+						  1000);
+
+	if (ret == -ETIMEDOUT)
+	{
 		dev_err(tc->dev, "Timeout waiting for PHY to become ready");
 		return ret;
-	} else if (ret)
+	}
+	else if (ret)
+	{
 		goto err;
+	}
 
 	/* Setup AUX link */
 	tc_write(DP0_AUXCFG1, AUX_RX_FILTER_EN |
-		 (0x06 << 8) |	/* Aux Bit Period Calculator Threshold */
-		 (0x3f << 0));	/* Aux Response Timeout Timer */
+			 (0x06 << 8) |	/* Aux Bit Period Calculator Threshold */
+			 (0x3f << 0));	/* Aux Response Timeout Timer */
 
 	return 0;
 err:
@@ -601,36 +701,54 @@ static int tc_get_display_props(struct tc_data *tc)
 
 	/* Read DP Rx Link Capability */
 	ret = drm_dp_link_probe(&tc->aux, &tc->link.base);
+
 	if (ret < 0)
+	{
 		goto err_dpcd_read;
+	}
+
 	if ((tc->link.base.rate != 162000) && (tc->link.base.rate != 270000))
+	{
 		goto err_dpcd_inval;
+	}
 
 	ret = drm_dp_dpcd_readb(&tc->aux, DP_MAX_DOWNSPREAD, tmp);
+
 	if (ret < 0)
+	{
 		goto err_dpcd_read;
+	}
+
 	tc->link.spread = tmp[0] & BIT(0); /* 0.5% down spread */
 
 	ret = drm_dp_dpcd_readb(&tc->aux, DP_MAIN_LINK_CHANNEL_CODING, tmp);
+
 	if (ret < 0)
+	{
 		goto err_dpcd_read;
+	}
+
 	tc->link.coding8b10b = tmp[0] & BIT(0);
 	tc->link.scrambler_dis = 0;
 	/* read assr */
 	ret = drm_dp_dpcd_readb(&tc->aux, DP_EDP_CONFIGURATION_SET, tmp);
+
 	if (ret < 0)
+	{
 		goto err_dpcd_read;
+	}
+
 	tc->link.assr = tmp[0] & DP_ALTERNATE_SCRAMBLER_RESET_ENABLE;
 
 	dev_dbg(tc->dev, "DPCD rev: %d.%d, rate: %s, lanes: %d, framing: %s\n",
-		tc->link.base.revision >> 4, tc->link.base.revision & 0x0f,
-		(tc->link.base.rate == 162000) ? "1.62Gbps" : "2.7Gbps",
-		tc->link.base.num_lanes,
-		(tc->link.base.capabilities & DP_LINK_CAP_ENHANCED_FRAMING) ?
-		"enhanced" : "non-enhanced");
+			tc->link.base.revision >> 4, tc->link.base.revision & 0x0f,
+			(tc->link.base.rate == 162000) ? "1.62Gbps" : "2.7Gbps",
+			tc->link.base.num_lanes,
+			(tc->link.base.capabilities & DP_LINK_CAP_ENHANCED_FRAMING) ?
+			"enhanced" : "non-enhanced");
 	dev_dbg(tc->dev, "ANSI 8B/10B: %d\n", tc->link.coding8b10b);
 	dev_dbg(tc->dev, "Display ASSR: %d, TC358767 ASSR: %d\n",
-		tc->link.assr, tc->assr);
+			tc->link.assr, tc->assr);
 
 	return 0;
 
@@ -656,17 +774,17 @@ static int tc_set_video_mode(struct tc_data *tc, struct drm_display_mode *mode)
 	int vsync_len = mode->vsync_end - mode->vsync_start;
 
 	dev_dbg(tc->dev, "set mode %dx%d\n",
-		mode->hdisplay, mode->vdisplay);
+			mode->hdisplay, mode->vdisplay);
 	dev_dbg(tc->dev, "H margin %d,%d sync %d\n",
-		left_margin, right_margin, hsync_len);
+			left_margin, right_margin, hsync_len);
 	dev_dbg(tc->dev, "V margin %d,%d sync %d\n",
-		upper_margin, lower_margin, vsync_len);
+			upper_margin, lower_margin, vsync_len);
 	dev_dbg(tc->dev, "total: %dx%d\n", mode->htotal, mode->vtotal);
 
 
 	/* LCD Ctl Frame Size */
 	tc_write(VPCTRL0, (0x40 << 20) /* VSDELAY */ |
-		 OPXLFMT_RGB888 | FRMSYNC_DISABLED | MSF_DISABLED);
+			 OPXLFMT_RGB888 | FRMSYNC_DISABLED | MSF_DISABLED);
 	tc_write(HTIM01, (left_margin << 16) |		/* H back porch */
 			 (hsync_len << 0));		/* Hsync */
 	tc_write(HTIM02, (right_margin << 16) |		/* H front porch */
@@ -679,31 +797,31 @@ static int tc_set_video_mode(struct tc_data *tc, struct drm_display_mode *mode)
 
 	/* Test pattern settings */
 	tc_write(TSTCTL,
-		 (120 << 24) |	/* Red Color component value */
-		 (20 << 16) |	/* Green Color component value */
-		 (99 << 8) |	/* Blue Color component value */
-		 (1 << 4) |	/* Enable I2C Filter */
-		 (2 << 0) |	/* Color bar Mode */
-		 0);
+			 (120 << 24) |	/* Red Color component value */
+			 (20 << 16) |	/* Green Color component value */
+			 (99 << 8) |	/* Blue Color component value */
+			 (1 << 4) |	/* Enable I2C Filter */
+			 (2 << 0) |	/* Color bar Mode */
+			 0);
 
 	/* DP Main Stream Attributes */
 	vid_sync_dly = hsync_len + left_margin + mode->hdisplay;
 	tc_write(DP0_VIDSYNCDELAY,
-		 (0x003e << 16) |	/* thresh_dly */
-		 (vid_sync_dly << 0));
+			 (0x003e << 16) |	/* thresh_dly */
+			 (vid_sync_dly << 0));
 
 	tc_write(DP0_TOTALVAL, (mode->vtotal << 16) | (mode->htotal));
 
 	tc_write(DP0_STARTVAL,
-		 ((upper_margin + vsync_len) << 16) |
-		 ((left_margin + hsync_len) << 0));
+			 ((upper_margin + vsync_len) << 16) |
+			 ((left_margin + hsync_len) << 0));
 
 	tc_write(DP0_ACTIVEVAL, (mode->vdisplay << 16) | (mode->hdisplay));
 
 	tc_write(DP0_SYNCVAL, (vsync_len << 16) | (hsync_len << 0));
 
 	tc_write(DPIPXLFMT, VS_POL_ACTIVE_LOW | HS_POL_ACTIVE_LOW |
-		 DE_POL_ACTIVE_HIGH | SUB_CFG_TYPE_CONFIG1 | DPI_BPP_RGB888);
+			 DE_POL_ACTIVE_HIGH | SUB_CFG_TYPE_CONFIG1 | DPI_BPP_RGB888);
 
 	/*
 	 * Recommended maximum number of symbols transferred in a transfer unit:
@@ -721,18 +839,21 @@ err:
 
 static int tc_link_training(struct tc_data *tc, int pattern)
 {
-	const char * const *errors;
+	const char *const *errors;
 	u32 srcctrl = tc_srcctrl(tc) | DP0_SRCCTRL_SCRMBLDIS |
-		      DP0_SRCCTRL_AUTOCORRECT;
+				  DP0_SRCCTRL_AUTOCORRECT;
 	int timeout;
 	int retry;
 	u32 value;
 	int ret;
 
-	if (pattern == DP_TRAINING_PATTERN_1) {
+	if (pattern == DP_TRAINING_PATTERN_1)
+	{
 		srcctrl |= DP0_SRCCTRL_TP1;
 		errors = training_pattern1_errors;
-	} else {
+	}
+	else
+	{
 		srcctrl |= DP0_SRCCTRL_TP2;
 		errors = training_pattern2_errors;
 	}
@@ -741,12 +862,14 @@ static int tc_link_training(struct tc_data *tc, int pattern)
 	tc_write(DP0_SNKLTCTRL, DP_LINK_SCRAMBLING_DISABLE | pattern);
 
 	tc_write(DP0_LTLOOPCTRL,
-		 (0x0f << 28) |	/* Defer Iteration Count */
-		 (0x0f << 24) |	/* Loop Iteration Count */
-		 (0x0d << 0));	/* Loop Timer Delay */
+			 (0x0f << 28) |	/* Defer Iteration Count */
+			 (0x0f << 24) |	/* Loop Iteration Count */
+			 (0x0d << 0));	/* Loop Timer Delay */
 
 	retry = 5;
-	do {
+
+	do
+	{
 		/* Set DP0 Training Pattern */
 		tc_write(DP0_SRCCTRL, srcctrl);
 
@@ -755,45 +878,67 @@ static int tc_link_training(struct tc_data *tc, int pattern)
 
 		/* wait */
 		timeout = 1000;
-		do {
+
+		do
+		{
 			tc_read(DP0_LTSTAT, &value);
 			udelay(1);
-		} while ((!(value & LT_LOOPDONE)) && (--timeout));
-		if (timeout == 0) {
+		}
+		while ((!(value & LT_LOOPDONE)) && (--timeout));
+
+		if (timeout == 0)
+		{
 			dev_err(tc->dev, "Link training timeout!\n");
-		} else {
+		}
+		else
+		{
 			int pattern = (value >> 11) & 0x3;
 			int error = (value >> 8) & 0x7;
 
 			dev_dbg(tc->dev,
-				"Link training phase %d done after %d uS: %s\n",
-				pattern, 1000 - timeout, errors[error]);
+					"Link training phase %d done after %d uS: %s\n",
+					pattern, 1000 - timeout, errors[error]);
+
 			if (pattern == DP_TRAINING_PATTERN_1 && error == 0)
+			{
 				break;
-			if (pattern == DP_TRAINING_PATTERN_2) {
+			}
+
+			if (pattern == DP_TRAINING_PATTERN_2)
+			{
 				value &= LT_CHANNEL1_EQ_BITS |
-					 LT_INTERLANE_ALIGN_DONE |
-					 LT_CHANNEL0_EQ_BITS;
+						 LT_INTERLANE_ALIGN_DONE |
+						 LT_CHANNEL0_EQ_BITS;
+
 				/* in case of two lanes */
 				if ((tc->link.base.num_lanes == 2) &&
-				    (value == (LT_CHANNEL1_EQ_BITS |
-					       LT_INTERLANE_ALIGN_DONE |
-					       LT_CHANNEL0_EQ_BITS)))
+					(value == (LT_CHANNEL1_EQ_BITS |
+							   LT_INTERLANE_ALIGN_DONE |
+							   LT_CHANNEL0_EQ_BITS)))
+				{
 					break;
+				}
+
 				/* in case of one line */
 				if ((tc->link.base.num_lanes == 1) &&
-				    (value == (LT_INTERLANE_ALIGN_DONE |
-					       LT_CHANNEL0_EQ_BITS)))
+					(value == (LT_INTERLANE_ALIGN_DONE |
+							   LT_CHANNEL0_EQ_BITS)))
+				{
 					break;
+				}
 			}
 		}
+
 		/* restart */
 		tc_write(DP0CTL, 0);
 		usleep_range(10, 20);
-	} while (--retry);
-	if (retry == 0) {
+	}
+	while (--retry);
+
+	if (retry == 0)
+	{
 		dev_err(tc->dev, "Failed to finish training phase %d\n",
-			pattern);
+				pattern);
 	}
 
 	return 0;
@@ -816,32 +961,41 @@ static int tc_main_link_setup(struct tc_data *tc)
 
 	/* display mode should be set at this point */
 	if (!tc->mode)
+	{
 		return -EINVAL;
+	}
 
 	/* from excel file - DP0_SrcCtrl */
 	tc_write(DP0_SRCCTRL, DP0_SRCCTRL_SCRMBLDIS | DP0_SRCCTRL_EN810B |
-		 DP0_SRCCTRL_LANESKEW | DP0_SRCCTRL_LANES_2 |
-		 DP0_SRCCTRL_BW27 | DP0_SRCCTRL_AUTOCORRECT);
+			 DP0_SRCCTRL_LANESKEW | DP0_SRCCTRL_LANES_2 |
+			 DP0_SRCCTRL_BW27 | DP0_SRCCTRL_AUTOCORRECT);
 	/* from excel file - DP1_SrcCtrl */
 	tc_write(0x07a0, 0x00003083);
 
 	rate = clk_get_rate(tc->refclk);
-	switch (rate) {
-	case 38400000:
-		value = REF_FREQ_38M4;
-		break;
-	case 26000000:
-		value = REF_FREQ_26M;
-		break;
-	case 19200000:
-		value = REF_FREQ_19M2;
-		break;
-	case 13000000:
-		value = REF_FREQ_13M;
-		break;
-	default:
-		return -EINVAL;
+
+	switch (rate)
+	{
+		case 38400000:
+			value = REF_FREQ_38M4;
+			break;
+
+		case 26000000:
+			value = REF_FREQ_26M;
+			break;
+
+		case 19200000:
+			value = REF_FREQ_19M2;
+			break;
+
+		case 13000000:
+			value = REF_FREQ_13M;
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	value |= SYSCLK_SEL_LSCLK | LSCLK_DIV_2;
 	tc_write(SYS_PLLPARAM, value);
 	/* Setup Main Link */
@@ -857,11 +1011,15 @@ static int tc_main_link_setup(struct tc_data *tc)
 	tc_wait_pll_lock(tc);
 
 	/* PXL PLL setup */
-	if (tc_test_pattern) {
+	if (tc_test_pattern)
+	{
 		ret = tc_pxl_pll_en(tc, clk_get_rate(tc->refclk),
-				    1000 * tc->mode->clock);
+							1000 * tc->mode->clock);
+
 		if (ret)
+		{
 			goto err;
+		}
 	}
 
 	/* Reset/Enable Main Links */
@@ -872,20 +1030,27 @@ static int tc_main_link_setup(struct tc_data *tc)
 	tc_write(DP_PHY_CTRL, dp_phy_ctrl);
 
 	timeout = 1000;
-	do {
+
+	do
+	{
 		tc_read(DP_PHY_CTRL, &value);
 		udelay(1);
-	} while ((!(value & PHY_RDY)) && (--timeout));
+	}
+	while ((!(value & PHY_RDY)) && (--timeout));
 
-	if (timeout == 0) {
+	if (timeout == 0)
+	{
 		dev_err(dev, "timeout waiting for phy become ready");
 		return -ETIMEDOUT;
 	}
 
 	/* Set misc: 8 bits per color */
 	ret = regmap_update_bits(tc->regmap, DP0_MISC, BPC_8, BPC_8);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	/*
 	 * ASSR mode
@@ -894,22 +1059,31 @@ static int tc_main_link_setup(struct tc_data *tc)
 	 *
 	 * check is tc configured for same mode
 	 */
-	if (tc->assr != tc->link.assr) {
+	if (tc->assr != tc->link.assr)
+	{
 		dev_dbg(dev, "Trying to set display to ASSR: %d\n",
-			tc->assr);
+				tc->assr);
 		/* try to set ASSR on display side */
 		tmp[0] = tc->assr;
 		ret = drm_dp_dpcd_writeb(aux, DP_EDP_CONFIGURATION_SET, tmp[0]);
+
 		if (ret < 0)
+		{
 			goto err_dpcd_read;
+		}
+
 		/* read back */
 		ret = drm_dp_dpcd_readb(aux, DP_EDP_CONFIGURATION_SET, tmp);
-		if (ret < 0)
-			goto err_dpcd_read;
 
-		if (tmp[0] != tc->assr) {
+		if (ret < 0)
+		{
+			goto err_dpcd_read;
+		}
+
+		if (tmp[0] != tc->assr)
+		{
 			dev_warn(dev, "Failed to switch display ASSR to %d, falling back to unscrambled mode\n",
-				 tc->assr);
+					 tc->assr);
 			/* trying with disabled scrambler */
 			tc->link.scrambler_dis = 1;
 		}
@@ -917,78 +1091,117 @@ static int tc_main_link_setup(struct tc_data *tc)
 
 	/* Setup Link & DPRx Config for Training */
 	ret = drm_dp_link_configure(aux, &tc->link.base);
+
 	if (ret < 0)
+	{
 		goto err_dpcd_write;
+	}
 
 	/* DOWNSPREAD_CTRL */
 	tmp[0] = tc->link.spread ? DP_SPREAD_AMP_0_5 : 0x00;
 	/* MAIN_LINK_CHANNEL_CODING_SET */
 	tmp[1] =  tc->link.coding8b10b ? DP_SET_ANSI_8B10B : 0x00;
 	ret = drm_dp_dpcd_write(aux, DP_DOWNSPREAD_CTRL, tmp, 2);
+
 	if (ret < 0)
+	{
 		goto err_dpcd_write;
+	}
 
 	ret = tc_link_training(tc, DP_TRAINING_PATTERN_1);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = tc_link_training(tc, DP_TRAINING_PATTERN_2);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	/* Clear DPCD 0x102 */
 	/* Note: Can Not use DP0_SNKLTCTRL (0x06E4) short cut */
 	tmp[0] = tc->link.scrambler_dis ? DP_LINK_SCRAMBLING_DISABLE : 0x00;
 	ret = drm_dp_dpcd_writeb(aux, DP_TRAINING_PATTERN_SET, tmp[0]);
+
 	if (ret < 0)
+	{
 		goto err_dpcd_write;
+	}
 
 	/* Clear Training Pattern, set AutoCorrect Mode = 1 */
 	tc_write(DP0_SRCCTRL, tc_srcctrl(tc) | DP0_SRCCTRL_AUTOCORRECT);
 
 	/* Wait */
 	timeout = 100;
-	do {
+
+	do
+	{
 		udelay(1);
 		/* Read DPCD 0x202-0x207 */
 		ret = drm_dp_dpcd_read_link_status(aux, tmp + 2);
-		if (ret < 0)
-			goto err_dpcd_read;
-		ready = (tmp[2] == ((DP_CHANNEL_EQ_BITS << 4) | /* Lane1 */
-				     DP_CHANNEL_EQ_BITS));      /* Lane0 */
-		aligned = tmp[4] & DP_INTERLANE_ALIGN_DONE;
-	} while ((--timeout) && !(ready && aligned));
 
-	if (timeout == 0) {
+		if (ret < 0)
+		{
+			goto err_dpcd_read;
+		}
+
+		ready = (tmp[2] == ((DP_CHANNEL_EQ_BITS << 4) | /* Lane1 */
+							DP_CHANNEL_EQ_BITS));      /* Lane0 */
+		aligned = tmp[4] & DP_INTERLANE_ALIGN_DONE;
+	}
+	while ((--timeout) && !(ready && aligned));
+
+	if (timeout == 0)
+	{
 		/* Read DPCD 0x200-0x201 */
 		ret = drm_dp_dpcd_read(aux, DP_SINK_COUNT, tmp, 2);
+
 		if (ret < 0)
+		{
 			goto err_dpcd_read;
+		}
+
 		dev_info(dev, "0x0200 SINK_COUNT: 0x%02x\n", tmp[0]);
 		dev_info(dev, "0x0201 DEVICE_SERVICE_IRQ_VECTOR: 0x%02x\n",
-			 tmp[1]);
+				 tmp[1]);
 		dev_info(dev, "0x0202 LANE0_1_STATUS: 0x%02x\n", tmp[2]);
 		dev_info(dev, "0x0204 LANE_ALIGN_STATUS_UPDATED: 0x%02x\n",
-			 tmp[4]);
+				 tmp[4]);
 		dev_info(dev, "0x0205 SINK_STATUS: 0x%02x\n", tmp[5]);
 		dev_info(dev, "0x0206 ADJUST_REQUEST_LANE0_1: 0x%02x\n",
-			 tmp[6]);
+				 tmp[6]);
 
 		if (!ready)
+		{
 			dev_err(dev, "Lane0/1 not ready\n");
+		}
+
 		if (!aligned)
+		{
 			dev_err(dev, "Lane0/1 not aligned\n");
+		}
+
 		return -EAGAIN;
 	}
 
 	ret = tc_set_video_mode(tc, tc->mode);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	/* Set M/N */
 	ret = tc_stream_clock_calc(tc);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	return 0;
 err_dpcd_read:
@@ -1007,10 +1220,15 @@ static int tc_main_link_stream(struct tc_data *tc, int state)
 
 	dev_dbg(tc->dev, "stream: %d\n", state);
 
-	if (state) {
+	if (state)
+	{
 		value = VID_MN_GEN | DP_EN;
+
 		if (tc->link.base.capabilities & DP_LINK_CAP_ENHANCED_FRAMING)
+		{
 			value |= EF_EN;
+		}
+
 		tc_write(DP0CTL, value);
 		/*
 		 * VID_EN assertion should be delayed by at least N * LSCLK
@@ -1024,12 +1242,20 @@ static int tc_main_link_stream(struct tc_data *tc, int state)
 		tc_write(DP0CTL, value);
 		/* Set input interface */
 		value = DP0_AUDSRC_NO_INPUT;
+
 		if (tc_test_pattern)
+		{
 			value |= DP0_VIDSRC_COLOR_BAR;
+		}
 		else
+		{
 			value |= DP0_VIDSRC_DPI_RX;
+		}
+
 		tc_write(SYSCTRL, value);
-	} else {
+	}
+	else
+	{
 		tc_write(DP0CTL, 0);
 	}
 
@@ -1057,13 +1283,17 @@ static void tc_bridge_enable(struct drm_bridge *bridge)
 	int ret;
 
 	ret = tc_main_link_setup(tc);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(tc->dev, "main link setup error: %d\n", ret);
 		return;
 	}
 
 	ret = tc_main_link_stream(tc, 1);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(tc->dev, "main link stream start error: %d\n", ret);
 		return;
 	}
@@ -1079,8 +1309,11 @@ static void tc_bridge_disable(struct drm_bridge *bridge)
 	drm_panel_disable(tc->panel);
 
 	ret = tc_main_link_stream(tc, 0);
+
 	if (ret < 0)
+	{
 		dev_err(tc->dev, "main link stream stop error: %d\n", ret);
+	}
 }
 
 static void tc_bridge_post_disable(struct drm_bridge *bridge)
@@ -1091,8 +1324,8 @@ static void tc_bridge_post_disable(struct drm_bridge *bridge)
 }
 
 static bool tc_bridge_mode_fixup(struct drm_bridge *bridge,
-				 const struct drm_display_mode *mode,
-				 struct drm_display_mode *adj)
+								 const struct drm_display_mode *mode,
+								 struct drm_display_mode *adj)
 {
 	/* Fixup sync polarities, both hsync and vsync are active low */
 	adj->flags = mode->flags;
@@ -1103,15 +1336,15 @@ static bool tc_bridge_mode_fixup(struct drm_bridge *bridge,
 }
 
 static int tc_connector_mode_valid(struct drm_connector *connector,
-				   struct drm_display_mode *mode)
+								   struct drm_display_mode *mode)
 {
 	/* Accept any mode */
 	return MODE_OK;
 }
 
 static void tc_bridge_mode_set(struct drm_bridge *bridge,
-			       struct drm_display_mode *mode,
-			       struct drm_display_mode *adj)
+							   struct drm_display_mode *mode,
+							   struct drm_display_mode *adj)
 {
 	struct tc_data *tc = bridge_to_tc(bridge);
 
@@ -1124,18 +1357,25 @@ static int tc_connector_get_modes(struct drm_connector *connector)
 	struct edid *edid;
 	unsigned int count;
 
-	if (tc->panel && tc->panel->funcs && tc->panel->funcs->get_modes) {
+	if (tc->panel && tc->panel->funcs && tc->panel->funcs->get_modes)
+	{
 		count = tc->panel->funcs->get_modes(tc->panel);
+
 		if (count > 0)
+		{
 			return count;
+		}
 	}
 
 	edid = drm_get_edid(connector, &tc->aux.ddc);
 
 	kfree(tc->edid);
 	tc->edid = edid;
+
 	if (!edid)
+	{
 		return 0;
+	}
 
 	drm_mode_connector_update_edid_property(connector, edid);
 	count = drm_add_edid_modes(connector, edid);
@@ -1144,11 +1384,11 @@ static int tc_connector_get_modes(struct drm_connector *connector)
 }
 
 static void tc_connector_set_polling(struct tc_data *tc,
-				     struct drm_connector *connector)
+									 struct drm_connector *connector)
 {
 	/* TODO: add support for HPD */
 	connector->polled = DRM_CONNECTOR_POLL_CONNECT |
-			    DRM_CONNECTOR_POLL_DISCONNECT;
+						DRM_CONNECTOR_POLL_DISCONNECT;
 }
 
 static struct drm_encoder *
@@ -1159,13 +1399,15 @@ tc_connector_best_encoder(struct drm_connector *connector)
 	return tc->bridge.encoder;
 }
 
-static const struct drm_connector_helper_funcs tc_connector_helper_funcs = {
+static const struct drm_connector_helper_funcs tc_connector_helper_funcs =
+{
 	.get_modes = tc_connector_get_modes,
 	.mode_valid = tc_connector_mode_valid,
 	.best_encoder = tc_connector_best_encoder,
 };
 
-static const struct drm_connector_funcs tc_connector_funcs = {
+static const struct drm_connector_funcs tc_connector_funcs =
+{
 	.dpms = drm_atomic_helper_connector_dpms,
 	.fill_modes = drm_helper_probe_single_connector_modes,
 	.detect = tc_connector_detect,
@@ -1185,21 +1427,27 @@ static int tc_bridge_attach(struct drm_bridge *bridge)
 	/* Create eDP connector */
 	drm_connector_helper_add(&tc->connector, &tc_connector_helper_funcs);
 	ret = drm_connector_init(drm, &tc->connector, &tc_connector_funcs,
-				 DRM_MODE_CONNECTOR_eDP);
+							 DRM_MODE_CONNECTOR_eDP);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (tc->panel)
+	{
 		drm_panel_attach(tc->panel, &tc->connector);
+	}
 
 	drm_display_info_set_bus_formats(&tc->connector.display_info,
-					 &bus_format, 1);
+									 &bus_format, 1);
 	drm_mode_connector_attach_encoder(&tc->connector, tc->bridge.encoder);
 
 	return 0;
 }
 
-static const struct drm_bridge_funcs tc_bridge_funcs = {
+static const struct drm_bridge_funcs tc_bridge_funcs =
+{
 	.attach = tc_bridge_attach,
 	.mode_set = tc_bridge_mode_set,
 	.pre_enable = tc_bridge_pre_enable,
@@ -1214,7 +1462,8 @@ static bool tc_readable_reg(struct device *dev, unsigned int reg)
 	return reg != SYSCTRL;
 }
 
-static const struct regmap_range tc_volatile_ranges[] = {
+static const struct regmap_range tc_volatile_ranges[] =
+{
 	regmap_reg_range(DP0_AUXWDATA(0), DP0_AUXSTATUS),
 	regmap_reg_range(DP0_LTSTAT, DP0_SNKLTCHGREQ),
 	regmap_reg_range(DP_PHY_CTRL, DP_PHY_CTRL),
@@ -1222,7 +1471,8 @@ static const struct regmap_range tc_volatile_ranges[] = {
 	regmap_reg_range(VFUEN0, VFUEN0),
 };
 
-static const struct regmap_access_table tc_volatile_table = {
+static const struct regmap_access_table tc_volatile_table =
+{
 	.yes_ranges = tc_volatile_ranges,
 	.n_yes_ranges = ARRAY_SIZE(tc_volatile_ranges),
 };
@@ -1230,11 +1480,12 @@ static const struct regmap_access_table tc_volatile_table = {
 static bool tc_writeable_reg(struct device *dev, unsigned int reg)
 {
 	return (reg != TC_IDREG) &&
-	       (reg != DP0_LTSTAT) &&
-	       (reg != DP0_SNKLTCHGREQ);
+		   (reg != DP0_LTSTAT) &&
+		   (reg != DP0_SNKLTCHGREQ);
 }
 
-static const struct regmap_config tc_regmap_config = {
+static const struct regmap_config tc_regmap_config =
+{
 	.name = "tc358767",
 	.reg_bits = 16,
 	.val_bits = 32,
@@ -1256,77 +1507,105 @@ static int tc_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	int ret;
 
 	tc = devm_kzalloc(dev, sizeof(*tc), GFP_KERNEL);
+
 	if (!tc)
+	{
 		return -ENOMEM;
+	}
 
 	tc->dev = dev;
 
 	/* port@2 is the output port */
 	ep = of_graph_get_endpoint_by_regs(dev->of_node, 2, -1);
-	if (ep) {
+
+	if (ep)
+	{
 		struct device_node *remote;
 
 		remote = of_graph_get_remote_port_parent(ep);
-		if (!remote) {
+
+		if (!remote)
+		{
 			dev_warn(dev, "endpoint %s not connected\n",
-				 ep->full_name);
+					 ep->full_name);
 			of_node_put(ep);
 			return -ENODEV;
 		}
+
 		of_node_put(ep);
 		tc->panel = of_drm_find_panel(remote);
-		if (tc->panel) {
+
+		if (tc->panel)
+		{
 			dev_dbg(dev, "found panel %s\n", remote->full_name);
-		} else {
+		}
+		else
+		{
 			dev_dbg(dev, "waiting for panel %s\n",
-				remote->full_name);
+					remote->full_name);
 			of_node_put(remote);
 			return -EPROBE_DEFER;
 		}
+
 		of_node_put(remote);
 	}
 
 	/* Shut down GPIO is optional */
 	tc->sd_gpio = devm_gpiod_get_optional(dev, "shutdown", GPIOD_OUT_HIGH);
-	if (IS_ERR(tc->sd_gpio))
-		return PTR_ERR(tc->sd_gpio);
 
-	if (tc->sd_gpio) {
+	if (IS_ERR(tc->sd_gpio))
+	{
+		return PTR_ERR(tc->sd_gpio);
+	}
+
+	if (tc->sd_gpio)
+	{
 		gpiod_set_value_cansleep(tc->sd_gpio, 0);
 		usleep_range(5000, 10000);
 	}
 
 	/* Reset GPIO is optional */
 	tc->reset_gpio = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
-	if (IS_ERR(tc->reset_gpio))
-		return PTR_ERR(tc->reset_gpio);
 
-	if (tc->reset_gpio) {
+	if (IS_ERR(tc->reset_gpio))
+	{
+		return PTR_ERR(tc->reset_gpio);
+	}
+
+	if (tc->reset_gpio)
+	{
 		gpiod_set_value_cansleep(tc->reset_gpio, 1);
 		usleep_range(5000, 10000);
 	}
 
 	tc->refclk = devm_clk_get(dev, "ref");
-	if (IS_ERR(tc->refclk)) {
+
+	if (IS_ERR(tc->refclk))
+	{
 		ret = PTR_ERR(tc->refclk);
 		dev_err(dev, "Failed to get refclk: %d\n", ret);
 		return ret;
 	}
 
 	tc->regmap = devm_regmap_init_i2c(client, &tc_regmap_config);
-	if (IS_ERR(tc->regmap)) {
+
+	if (IS_ERR(tc->regmap))
+	{
 		ret = PTR_ERR(tc->regmap);
 		dev_err(dev, "Failed to initialize regmap: %d\n", ret);
 		return ret;
 	}
 
 	ret = regmap_read(tc->regmap, TC_IDREG, &tc->rev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(tc->dev, "can not read device ID: %d\n", ret);
 		return ret;
 	}
 
-	if ((tc->rev != 0x6601) && (tc->rev != 0x6603)) {
+	if ((tc->rev != 0x6601) && (tc->rev != 0x6603))
+	{
 		dev_err(tc->dev, "invalid device ID: 0x%08x\n", tc->rev);
 		return -EINVAL;
 	}
@@ -1334,27 +1613,38 @@ static int tc_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	tc->assr = (tc->rev == 0x6601); /* Enable ASSR for eDP panels */
 
 	ret = tc_aux_link_setup(tc);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Register DP AUX channel */
 	tc->aux.name = "TC358767 AUX i2c adapter";
 	tc->aux.dev = tc->dev;
 	tc->aux.transfer = tc_aux_transfer;
 	ret = drm_dp_aux_register(&tc->aux);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = tc_get_display_props(tc);
+
 	if (ret)
+	{
 		goto err_unregister_aux;
+	}
 
 	tc_connector_set_polling(tc, &tc->connector);
 
 	tc->bridge.funcs = &tc_bridge_funcs;
 	tc->bridge.of_node = dev->of_node;
 	ret = drm_bridge_add(&tc->bridge);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to add drm_bridge: %d\n", ret);
 		goto err_unregister_aux;
 	}
@@ -1379,19 +1669,22 @@ static int tc_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id tc358767_i2c_ids[] = {
+static const struct i2c_device_id tc358767_i2c_ids[] =
+{
 	{ "tc358767", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, tc358767_i2c_ids);
 
-static const struct of_device_id tc358767_of_ids[] = {
+static const struct of_device_id tc358767_of_ids[] =
+{
 	{ .compatible = "toshiba,tc358767", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, tc358767_of_ids);
 
-static struct i2c_driver tc358767_driver = {
+static struct i2c_driver tc358767_driver =
+{
 	.driver = {
 		.name = "tc358767",
 		.of_match_table = tc358767_of_ids,

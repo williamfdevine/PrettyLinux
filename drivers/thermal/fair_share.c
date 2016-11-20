@@ -38,19 +38,26 @@ static int get_trip_level(struct thermal_zone_device *tz)
 	enum thermal_trip_type trip_type;
 
 	if (tz->trips == 0 || !tz->ops->get_trip_temp)
+	{
 		return 0;
+	}
 
-	for (count = 0; count < tz->trips; count++) {
+	for (count = 0; count < tz->trips; count++)
+	{
 		tz->ops->get_trip_temp(tz, count, &trip_temp);
+
 		if (tz->temperature < trip_temp)
+		{
 			break;
+		}
 	}
 
 	/*
 	 * count > 0 only if temperature is greater than first trip
 	 * point, in which case, trip_point = count - 1
 	 */
-	if (count > 0) {
+	if (count > 0)
+	{
 		tz->ops->get_trip_type(tz, count - 1, &trip_type);
 		trace_thermal_zone_trip(tz, count - 1, trip_type);
 	}
@@ -59,7 +66,7 @@ static int get_trip_level(struct thermal_zone_device *tz)
 }
 
 static long get_target_state(struct thermal_zone_device *tz,
-		struct thermal_cooling_device *cdev, int percentage, int level)
+							 struct thermal_cooling_device *cdev, int percentage, int level)
 {
 	unsigned long max_state;
 
@@ -93,28 +100,38 @@ static int fair_share_throttle(struct thermal_zone_device *tz, int trip)
 	int total_instance = 0;
 	int cur_trip_level = get_trip_level(tz);
 
-	list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
+	list_for_each_entry(instance, &tz->thermal_instances, tz_node)
+	{
 		if (instance->trip != trip)
+		{
 			continue;
+		}
 
 		total_weight += instance->weight;
 		total_instance++;
 	}
 
-	list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
+	list_for_each_entry(instance, &tz->thermal_instances, tz_node)
+	{
 		int percentage;
 		struct thermal_cooling_device *cdev = instance->cdev;
 
 		if (instance->trip != trip)
+		{
 			continue;
+		}
 
 		if (!total_weight)
+		{
 			percentage = 100 / total_instance;
+		}
 		else
+		{
 			percentage = (instance->weight * 100) / total_weight;
+		}
 
 		instance->target = get_target_state(tz, cdev, percentage,
-						    cur_trip_level);
+											cur_trip_level);
 
 		mutex_lock(&instance->cdev->lock);
 		instance->cdev->updated = false;
@@ -124,7 +141,8 @@ static int fair_share_throttle(struct thermal_zone_device *tz, int trip)
 	return 0;
 }
 
-static struct thermal_governor thermal_gov_fair_share = {
+static struct thermal_governor thermal_gov_fair_share =
+{
 	.name		= "fair_share",
 	.throttle	= fair_share_throttle,
 };

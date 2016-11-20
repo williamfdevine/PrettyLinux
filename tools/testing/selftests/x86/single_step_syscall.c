@@ -40,25 +40,28 @@
 #include <sys/user.h>
 
 static void sethandler(int sig, void (*handler)(int, siginfo_t *, void *),
-		       int flags)
+					   int flags)
 {
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_sigaction = handler;
 	sa.sa_flags = SA_SIGINFO | flags;
 	sigemptyset(&sa.sa_mask);
+
 	if (sigaction(sig, &sa, 0))
+	{
 		err(1, "sigaction");
+	}
 }
 
 static volatile sig_atomic_t sig_traps;
 
 #ifdef __x86_64__
-# define REG_IP REG_RIP
-# define WIDTH "q"
+	#define REG_IP REG_RIP
+	#define WIDTH "q"
 #else
-# define REG_IP REG_EIP
-# define WIDTH "l"
+	#define REG_IP REG_EIP
+	#define WIDTH "l"
 #endif
 
 static unsigned long get_eflags(void)
@@ -71,16 +74,17 @@ static unsigned long get_eflags(void)
 static void set_eflags(unsigned long eflags)
 {
 	asm volatile ("push" WIDTH " %0\n\tpopf" WIDTH
-		      : : "rm" (eflags) : "flags");
+				  : : "rm" (eflags) : "flags");
 }
 
 #define X86_EFLAGS_TF (1UL << 8)
 
 static void sigtrap(int sig, siginfo_t *info, void *ctx_void)
 {
-	ucontext_t *ctx = (ucontext_t*)ctx_void;
+	ucontext_t *ctx = (ucontext_t *)ctx_void;
 
-	if (get_eflags() & X86_EFLAGS_TF) {
+	if (get_eflags() & X86_EFLAGS_TF)
+	{
 		set_eflags(get_eflags() & ~X86_EFLAGS_TF);
 		printf("[WARN]\tSIGTRAP handler had TF set\n");
 		_exit(1);
@@ -88,11 +92,12 @@ static void sigtrap(int sig, siginfo_t *info, void *ctx_void)
 
 	sig_traps++;
 
-	if (sig_traps == 10000 || sig_traps == 10001) {
+	if (sig_traps == 10000 || sig_traps == 10001)
+	{
 		printf("[WARN]\tHit %d SIGTRAPs with si_addr 0x%lx, ip 0x%lx\n",
-		       (int)sig_traps,
-		       (unsigned long)info->si_addr,
-		       (unsigned long)ctx->uc_mcontext.gregs[REG_IP]);
+			   (int)sig_traps,
+			   (unsigned long)info->si_addr,
+			   (unsigned long)ctx->uc_mcontext.gregs[REG_IP]);
 	}
 }
 
@@ -101,12 +106,14 @@ static void check_result(void)
 	unsigned long new_eflags = get_eflags();
 	set_eflags(new_eflags & ~X86_EFLAGS_TF);
 
-	if (!sig_traps) {
+	if (!sig_traps)
+	{
 		printf("[FAIL]\tNo SIGTRAP\n");
 		exit(1);
 	}
 
-	if (!(new_eflags & X86_EFLAGS_TF)) {
+	if (!(new_eflags & X86_EFLAGS_TF))
+	{
 		printf("[FAIL]\tTF was cleared\n");
 		exit(1);
 	}
@@ -131,10 +138,10 @@ int main()
 	set_eflags(get_eflags() | X86_EFLAGS_TF);
 	extern unsigned char post_nop[];
 	asm volatile ("pushf" WIDTH "\n\t"
-		      "pop" WIDTH " %%r11\n\t"
-		      "nop\n\t"
-		      "post_nop:"
-		      : : "c" (post_nop) : "r11");
+				  "pop" WIDTH " %%r11\n\t"
+				  "nop\n\t"
+				  "post_nop:"
+				  : : "c" (post_nop) : "r11");
 	check_result();
 #endif
 
@@ -167,14 +174,19 @@ int main()
 	/* Now make sure that another fast syscall doesn't set TF again. */
 	printf("[RUN]\tFast syscall with TF cleared\n");
 	fflush(stdout);  /* Force a syscall */
-	if (get_eflags() & X86_EFLAGS_TF) {
+
+	if (get_eflags() & X86_EFLAGS_TF)
+	{
 		printf("[FAIL]\tTF is now set\n");
 		exit(1);
 	}
-	if (sig_traps) {
+
+	if (sig_traps)
+	{
 		printf("[FAIL]\tGot SIGTRAP\n");
 		exit(1);
 	}
+
 	printf("[OK]\tNothing unexpected happened\n");
 
 	return 0;

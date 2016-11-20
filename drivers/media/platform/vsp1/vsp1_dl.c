@@ -25,19 +25,22 @@
 #define VSP1_DLH_INT_ENABLE		(1 << 1)
 #define VSP1_DLH_AUTO_START		(1 << 0)
 
-struct vsp1_dl_header_list {
+struct vsp1_dl_header_list
+{
 	u32 num_bytes;
 	u32 addr;
 } __attribute__((__packed__));
 
-struct vsp1_dl_header {
+struct vsp1_dl_header
+{
 	u32 num_lists;
 	struct vsp1_dl_header_list lists[8];
 	u32 next_header;
 	u32 flags;
 } __attribute__((__packed__));
 
-struct vsp1_dl_entry {
+struct vsp1_dl_entry
+{
 	u32 addr;
 	u32 data;
 } __attribute__((__packed__));
@@ -51,7 +54,8 @@ struct vsp1_dl_entry {
  * @size: size of the DMA memory in bytes
  * @num_entries: number of stored entries
  */
-struct vsp1_dl_body {
+struct vsp1_dl_body
+{
 	struct list_head list;
 	struct vsp1_device *vsp1;
 
@@ -72,7 +76,8 @@ struct vsp1_dl_body {
  * @fragments: list of extra display list bodies
  * @chain: entry in the display list partition chain
  */
-struct vsp1_dl_list {
+struct vsp1_dl_list
+{
 	struct list_head list;
 	struct vsp1_dl_manager *dlm;
 
@@ -86,7 +91,8 @@ struct vsp1_dl_list {
 	struct list_head chain;
 };
 
-enum vsp1_dl_mode {
+enum vsp1_dl_mode
+{
 	VSP1_DL_MODE_HEADER,
 	VSP1_DL_MODE_HEADERLESS,
 };
@@ -104,7 +110,8 @@ enum vsp1_dl_mode {
  * @gc_work: fragments garbage collector work struct
  * @gc_fragments: array of display list fragments waiting to be freed
  */
-struct vsp1_dl_manager {
+struct vsp1_dl_manager
+{
 	unsigned int index;
 	enum vsp1_dl_mode mode;
 	struct vsp1_device *vsp1;
@@ -129,8 +136,8 @@ struct vsp1_dl_manager {
  * 0 when allocated.
  */
 static int vsp1_dl_body_init(struct vsp1_device *vsp1,
-			     struct vsp1_dl_body *dlb, unsigned int num_entries,
-			     size_t extra_size)
+							 struct vsp1_dl_body *dlb, unsigned int num_entries,
+							 size_t extra_size)
 {
 	size_t size = num_entries * sizeof(*dlb->entries) + extra_size;
 
@@ -138,9 +145,12 @@ static int vsp1_dl_body_init(struct vsp1_device *vsp1,
 	dlb->size = size;
 
 	dlb->entries = dma_alloc_wc(vsp1->dev, dlb->size, &dlb->dma,
-				    GFP_KERNEL);
+								GFP_KERNEL);
+
 	if (!dlb->entries)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -165,17 +175,22 @@ static void vsp1_dl_body_cleanup(struct vsp1_dl_body *dlb)
  * allocated.
  */
 struct vsp1_dl_body *vsp1_dl_fragment_alloc(struct vsp1_device *vsp1,
-					    unsigned int num_entries)
+		unsigned int num_entries)
 {
 	struct vsp1_dl_body *dlb;
 	int ret;
 
 	dlb = kzalloc(sizeof(*dlb), GFP_KERNEL);
+
 	if (!dlb)
+	{
 		return NULL;
+	}
 
 	ret = vsp1_dl_body_init(vsp1, dlb, num_entries, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		kfree(dlb);
 		return NULL;
 	}
@@ -200,7 +215,9 @@ struct vsp1_dl_body *vsp1_dl_fragment_alloc(struct vsp1_device *vsp1,
 void vsp1_dl_fragment_free(struct vsp1_dl_body *dlb)
 {
 	if (!dlb)
+	{
 		return;
+	}
 
 	vsp1_dl_body_cleanup(dlb);
 	kfree(dlb);
@@ -234,8 +251,11 @@ static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm)
 	int ret;
 
 	dl = kzalloc(sizeof(*dl), GFP_KERNEL);
+
 	if (!dl)
+	{
 		return NULL;
+	}
 
 	INIT_LIST_HEAD(&dl->fragments);
 	dl->dlm = dlm;
@@ -246,19 +266,22 @@ static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm)
 	 * memory.
 	 */
 	header_size = dlm->mode == VSP1_DL_MODE_HEADER
-		    ? ALIGN(sizeof(struct vsp1_dl_header), 8)
-		    : 0;
+				  ? ALIGN(sizeof(struct vsp1_dl_header), 8)
+				  : 0;
 
 	ret = vsp1_dl_body_init(dlm->vsp1, &dl->body0, VSP1_DL_NUM_ENTRIES,
-				header_size);
-	if (ret < 0) {
+							header_size);
+
+	if (ret < 0)
+	{
 		kfree(dl);
 		return NULL;
 	}
 
-	if (dlm->mode == VSP1_DL_MODE_HEADER) {
+	if (dlm->mode == VSP1_DL_MODE_HEADER)
+	{
 		size_t header_offset = VSP1_DL_NUM_ENTRIES
-				     * sizeof(*dl->body0.entries);
+							   * sizeof(*dl->body0.entries);
 
 		dl->header = ((void *)dl->body0.entries) + header_offset;
 		dl->dma = dl->body0.dma + header_offset;
@@ -292,7 +315,8 @@ struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm)
 
 	spin_lock_irqsave(&dlm->lock, flags);
 
-	if (!list_empty(&dlm->free)) {
+	if (!list_empty(&dlm->free))
+	{
 		dl = list_first_entry(&dlm->free, struct vsp1_dl_list, list);
 		list_del(&dl->list);
 
@@ -314,15 +338,18 @@ static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
 	struct vsp1_dl_list *dl_child;
 
 	if (!dl)
+	{
 		return;
+	}
 
 	/*
 	 * Release any linked display-lists which were chained for a single
 	 * hardware operation.
 	 */
-	if (dl->has_chain) {
+	if (dl->has_chain)
+	{
 		list_for_each_entry(dl_child, &dl->chain, chain)
-			__vsp1_dl_list_put(dl_child);
+		__vsp1_dl_list_put(dl_child);
 	}
 
 	dl->has_chain = false;
@@ -333,7 +360,8 @@ static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
 	 * manager's list of fragments to be freed, they will be
 	 * garbage-collected by the work queue.
 	 */
-	if (!list_empty(&dl->fragments)) {
+	if (!list_empty(&dl->fragments))
+	{
 		list_splice_init(&dl->fragments, &dl->dlm->gc_fragments);
 		schedule_work(&dl->dlm->gc_work);
 	}
@@ -357,7 +385,9 @@ void vsp1_dl_list_put(struct vsp1_dl_list *dl)
 	unsigned long flags;
 
 	if (!dl)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&dl->dlm->lock, flags);
 	__vsp1_dl_list_put(dl);
@@ -395,11 +425,13 @@ void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
  * add a fragment to a header-less display list will return an error.
  */
 int vsp1_dl_list_add_fragment(struct vsp1_dl_list *dl,
-			      struct vsp1_dl_body *dlb)
+							  struct vsp1_dl_body *dlb)
 {
 	/* Multi-body lists are only available in header mode. */
 	if (dl->dlm->mode != VSP1_DL_MODE_HEADER)
+	{
 		return -EINVAL;
+	}
 
 	list_add_tail(&dlb->list, &dl->fragments);
 	return 0;
@@ -423,11 +455,13 @@ int vsp1_dl_list_add_fragment(struct vsp1_dl_list *dl,
  * display list to a chain in header-less mode will return an error.
  */
 int vsp1_dl_list_add_chain(struct vsp1_dl_list *head,
-			   struct vsp1_dl_list *dl)
+						   struct vsp1_dl_list *dl)
 {
 	/* Chained lists are only available in header mode. */
 	if (head->dlm->mode != VSP1_DL_MODE_HEADER)
+	{
 		return -EINVAL;
+	}
 
 	head->has_chain = true;
 	list_add_tail(&dl->chain, &head->chain);
@@ -447,15 +481,16 @@ static void vsp1_dl_list_fill_header(struct vsp1_dl_list *dl, bool is_last)
 	 */
 
 	hdr->num_bytes = dl->body0.num_entries
-		       * sizeof(*dl->header->lists);
+					 * sizeof(*dl->header->lists);
 
-	list_for_each_entry(dlb, &dl->fragments, list) {
+	list_for_each_entry(dlb, &dl->fragments, list)
+	{
 		num_lists++;
 		hdr++;
 
 		hdr->addr = dlb->dma;
 		hdr->num_bytes = dlb->num_entries
-			       * sizeof(*dl->header->lists);
+						 * sizeof(*dl->header->lists);
 	}
 
 	dl->header->num_lists = num_lists;
@@ -465,12 +500,15 @@ static void vsp1_dl_list_fill_header(struct vsp1_dl_list *dl, bool is_last)
 	 * the next item in the list is the display list entity which should be
 	 * automatically queued by the hardware.
 	 */
-	if (!list_empty(&dl->chain) && !is_last) {
+	if (!list_empty(&dl->chain) && !is_last)
+	{
 		struct vsp1_dl_list *next = list_next_entry(dl, chain);
 
 		dl->header->next_header = next->dma;
 		dl->header->flags = VSP1_DLH_AUTO_START;
-	} else {
+	}
+	else
+	{
 		dl->header->flags = VSP1_DLH_INT_ENABLE;
 	}
 }
@@ -484,7 +522,8 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
 
 	spin_lock_irqsave(&dlm->lock, flags);
 
-	if (dl->dlm->mode == VSP1_DL_MODE_HEADER) {
+	if (dl->dlm->mode == VSP1_DL_MODE_HEADER)
+	{
 		struct vsp1_dl_list *dl_child;
 
 		/*
@@ -495,7 +534,8 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
 		/* Fill the header for the head and chained display lists. */
 		vsp1_dl_list_fill_header(dl, list_empty(&dl->chain));
 
-		list_for_each_entry(dl_child, &dl->chain, chain) {
+		list_for_each_entry(dl_child, &dl->chain, chain)
+		{
 			bool last = list_is_last(&dl_child->chain, &dl->chain);
 
 			vsp1_dl_list_fill_header(dl_child, last);
@@ -517,7 +557,9 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
 	 * queued up to the hardware by the frame end interrupt handler.
 	 */
 	update = !!(vsp1_read(vsp1, VI6_DL_BODY_SIZE) & VI6_DL_BODY_SIZE_UPD);
-	if (update) {
+
+	if (update)
+	{
 		__vsp1_dl_list_put(dlm->pending);
 		dlm->pending = dl;
 		goto done;
@@ -529,7 +571,7 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
 	 */
 	vsp1_write(vsp1, VI6_DL_HDR_ADDR(0), dl->body0.dma);
 	vsp1_write(vsp1, VI6_DL_BODY_SIZE, VI6_DL_BODY_SIZE_UPD |
-		   (dl->body0.num_entries * sizeof(*dl->header->lists)));
+			   (dl->body0.num_entries * sizeof(*dl->header->lists)));
 
 	__vsp1_dl_list_put(dlm->queued);
 	dlm->queued = dl;
@@ -571,7 +613,9 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
 	 * in that case.
 	 */
 	if (dlm->mode == VSP1_DL_MODE_HEADER)
+	{
 		goto done;
+	}
 
 	/* The UPD bit set indicates that the commit operation raced with the
 	 * interrupt and occurred after the frame end event and UPD clear but
@@ -579,12 +623,15 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
 	 * into account yet, we'll thus skip one frame and retry.
 	 */
 	if (vsp1_read(vsp1, VI6_DL_BODY_SIZE) & VI6_DL_BODY_SIZE_UPD)
+	{
 		goto done;
+	}
 
 	/* The device starts processing the queued display list right after the
 	 * frame end interrupt. The display list thus becomes active.
 	 */
-	if (dlm->queued) {
+	if (dlm->queued)
+	{
 		dlm->active = dlm->queued;
 		dlm->queued = NULL;
 	}
@@ -592,13 +639,14 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
 	/* Now that the UPD bit has been cleared we can queue the next display
 	 * list to the hardware if one has been prepared.
 	 */
-	if (dlm->pending) {
+	if (dlm->pending)
+	{
 		struct vsp1_dl_list *dl = dlm->pending;
 
 		vsp1_write(vsp1, VI6_DL_HDR_ADDR(0), dl->body0.dma);
 		vsp1_write(vsp1, VI6_DL_BODY_SIZE, VI6_DL_BODY_SIZE_UPD |
-			   (dl->body0.num_entries *
-			    sizeof(*dl->header->lists)));
+				   (dl->body0.num_entries *
+					sizeof(*dl->header->lists)));
 
 		dlm->queued = dl;
 		dlm->pending = NULL;
@@ -612,14 +660,16 @@ done:
 void vsp1_dlm_setup(struct vsp1_device *vsp1)
 {
 	u32 ctrl = (256 << VI6_DL_CTRL_AR_WAIT_SHIFT)
-		 | VI6_DL_CTRL_DC2 | VI6_DL_CTRL_DC1 | VI6_DL_CTRL_DC0
-		 | VI6_DL_CTRL_DLE;
+			   | VI6_DL_CTRL_DC2 | VI6_DL_CTRL_DC1 | VI6_DL_CTRL_DC0
+			   | VI6_DL_CTRL_DLE;
 
 	/* The DRM pipeline operates with display lists in Continuous Frame
 	 * Mode, all other pipelines use manual start.
 	 */
 	if (vsp1->drm)
+	{
 		ctrl |= VI6_DL_CTRL_CFM0 | VI6_DL_CTRL_NH0;
+	}
 
 	vsp1_write(vsp1, VI6_DL_CTRL, ctrl);
 	vsp1_write(vsp1, VI6_DL_SWAP, VI6_DL_SWAP_LWS);
@@ -653,11 +703,12 @@ static void vsp1_dlm_fragments_free(struct vsp1_dl_manager *dlm)
 
 	spin_lock_irqsave(&dlm->lock, flags);
 
-	while (!list_empty(&dlm->gc_fragments)) {
+	while (!list_empty(&dlm->gc_fragments))
+	{
 		struct vsp1_dl_body *dlb;
 
 		dlb = list_first_entry(&dlm->gc_fragments, struct vsp1_dl_body,
-				       list);
+							   list);
 		list_del(&dlb->list);
 
 		spin_unlock_irqrestore(&dlm->lock, flags);
@@ -677,19 +728,22 @@ static void vsp1_dlm_garbage_collect(struct work_struct *work)
 }
 
 struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
-					unsigned int index,
-					unsigned int prealloc)
+										unsigned int index,
+										unsigned int prealloc)
 {
 	struct vsp1_dl_manager *dlm;
 	unsigned int i;
 
 	dlm = devm_kzalloc(vsp1->dev, sizeof(*dlm), GFP_KERNEL);
+
 	if (!dlm)
+	{
 		return NULL;
+	}
 
 	dlm->index = index;
 	dlm->mode = index == 0 && !vsp1->info->uapi
-		  ? VSP1_DL_MODE_HEADERLESS : VSP1_DL_MODE_HEADER;
+				? VSP1_DL_MODE_HEADERLESS : VSP1_DL_MODE_HEADER;
 	dlm->vsp1 = vsp1;
 
 	spin_lock_init(&dlm->lock);
@@ -697,12 +751,16 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
 	INIT_LIST_HEAD(&dlm->gc_fragments);
 	INIT_WORK(&dlm->gc_work, vsp1_dlm_garbage_collect);
 
-	for (i = 0; i < prealloc; ++i) {
+	for (i = 0; i < prealloc; ++i)
+	{
 		struct vsp1_dl_list *dl;
 
 		dl = vsp1_dl_list_alloc(dlm);
+
 		if (!dl)
+		{
 			return NULL;
+		}
 
 		list_add_tail(&dl->list, &dlm->free);
 	}
@@ -715,11 +773,14 @@ void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm)
 	struct vsp1_dl_list *dl, *next;
 
 	if (!dlm)
+	{
 		return;
+	}
 
 	cancel_work_sync(&dlm->gc_work);
 
-	list_for_each_entry_safe(dl, next, &dlm->free, list) {
+	list_for_each_entry_safe(dl, next, &dlm->free, list)
+	{
 		list_del(&dl->list);
 		vsp1_dl_list_free(dl);
 	}

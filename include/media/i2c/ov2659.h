@@ -27,7 +27,8 @@
  * struct ov2659_platform_data - ov2659 driver platform data
  * @link_frequency: target pixel clock frequency
  */
-struct ov2659_platform_data {
+struct ov2659_platform_data
+{
 	s64 link_frequency;
 };
 

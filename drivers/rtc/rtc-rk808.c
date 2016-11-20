@@ -50,7 +50,8 @@
 #define NUM_TIME_REGS	(RK808_WEEKS_REG - RK808_SECONDS_REG + 1)
 #define NUM_ALARM_REGS	(RK808_ALARM_YEARS_REG - RK808_ALARM_SECONDS_REG + 1)
 
-struct rk808_rtc {
+struct rk808_rtc
+{
 	struct rk808 *rk808;
 	struct rtc_device *rtc;
 	int irq;
@@ -84,11 +85,16 @@ static void gregorian_to_rockchip(struct rtc_time *tm)
 	rtc_time64_to_tm(time - extra_days * 86400, tm);
 
 	/* Compensate if we went back over Nov 31st (will work up to 2381) */
-	if (nov2dec_transitions(tm) < extra_days) {
+	if (nov2dec_transitions(tm) < extra_days)
+	{
 		if (tm->tm_mon + 1 == 11)
-			tm->tm_mday++;	/* This may result in 31! */
+		{
+			tm->tm_mday++;    /* This may result in 31! */
+		}
 		else
+		{
 			rtc_time64_to_tm(time - (extra_days - 1) * 86400, tm);
+		}
 	}
 }
 
@@ -102,9 +108,11 @@ static int rk808_rtc_readtime(struct device *dev, struct rtc_time *tm)
 
 	/* Force an update of the shadowed registers right now */
 	ret = regmap_update_bits(rk808->regmap, RK808_RTC_CTRL_REG,
-				 BIT_RTC_CTRL_REG_RTC_GET_TIME,
-				 BIT_RTC_CTRL_REG_RTC_GET_TIME);
-	if (ret) {
+							 BIT_RTC_CTRL_REG_RTC_GET_TIME,
+							 BIT_RTC_CTRL_REG_RTC_GET_TIME);
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to update bits rtc_ctrl: %d\n", ret);
 		return ret;
 	}
@@ -116,16 +124,20 @@ static int rk808_rtc_readtime(struct device *dev, struct rtc_time *tm)
 	 * certainly more than 31.25us: 16 * 2.5us at 400kHz bus frequency.
 	 */
 	ret = regmap_update_bits(rk808->regmap, RK808_RTC_CTRL_REG,
-				 BIT_RTC_CTRL_REG_RTC_GET_TIME,
-				 0);
-	if (ret) {
+							 BIT_RTC_CTRL_REG_RTC_GET_TIME,
+							 0);
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to update bits rtc_ctrl: %d\n", ret);
 		return ret;
 	}
 
 	ret = regmap_bulk_read(rk808->regmap, RK808_SECONDS_REG,
-			       rtc_data, NUM_TIME_REGS);
-	if (ret) {
+						   rtc_data, NUM_TIME_REGS);
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to bulk read rtc_data: %d\n", ret);
 		return ret;
 	}
@@ -139,8 +151,8 @@ static int rk808_rtc_readtime(struct device *dev, struct rtc_time *tm)
 	tm->tm_wday = bcd2bin(rtc_data[6] & WEEKS_REG_MSK);
 	rockchip_to_gregorian(tm);
 	dev_dbg(dev, "RTC date/time %4d-%02d-%02d(%d) %02d:%02d:%02d\n",
-		1900 + tm->tm_year, tm->tm_mon + 1, tm->tm_mday,
-		tm->tm_wday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+			1900 + tm->tm_year, tm->tm_mon + 1, tm->tm_mday,
+			tm->tm_wday, tm->tm_hour, tm->tm_min, tm->tm_sec);
 
 	return ret;
 }
@@ -154,8 +166,8 @@ static int rk808_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	int ret;
 
 	dev_dbg(dev, "set RTC date/time %4d-%02d-%02d(%d) %02d:%02d:%02d\n",
-		1900 + tm->tm_year, tm->tm_mon + 1, tm->tm_mday,
-		tm->tm_wday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+			1900 + tm->tm_year, tm->tm_mon + 1, tm->tm_mday,
+			tm->tm_wday, tm->tm_hour, tm->tm_min, tm->tm_sec);
 	gregorian_to_rockchip(tm);
 	rtc_data[0] = bin2bcd(tm->tm_sec);
 	rtc_data[1] = bin2bcd(tm->tm_min);
@@ -167,26 +179,34 @@ static int rk808_rtc_set_time(struct device *dev, struct rtc_time *tm)
 
 	/* Stop RTC while updating the RTC registers */
 	ret = regmap_update_bits(rk808->regmap, RK808_RTC_CTRL_REG,
-				 BIT_RTC_CTRL_REG_STOP_RTC_M,
-				 BIT_RTC_CTRL_REG_STOP_RTC_M);
-	if (ret) {
+							 BIT_RTC_CTRL_REG_STOP_RTC_M,
+							 BIT_RTC_CTRL_REG_STOP_RTC_M);
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to update RTC control: %d\n", ret);
 		return ret;
 	}
 
 	ret = regmap_bulk_write(rk808->regmap, RK808_SECONDS_REG,
-				rtc_data, NUM_TIME_REGS);
-	if (ret) {
+							rtc_data, NUM_TIME_REGS);
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to bull write rtc_data: %d\n", ret);
 		return ret;
 	}
+
 	/* Start RTC again */
 	ret = regmap_update_bits(rk808->regmap, RK808_RTC_CTRL_REG,
-				 BIT_RTC_CTRL_REG_STOP_RTC_M, 0);
-	if (ret) {
+							 BIT_RTC_CTRL_REG_STOP_RTC_M, 0);
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to update RTC control: %d\n", ret);
 		return ret;
 	}
+
 	return 0;
 }
 
@@ -200,7 +220,7 @@ static int rk808_rtc_readalarm(struct device *dev, struct rtc_wkalrm *alrm)
 	int ret;
 
 	ret = regmap_bulk_read(rk808->regmap, RK808_ALARM_SECONDS_REG,
-			       alrm_data, NUM_ALARM_REGS);
+						   alrm_data, NUM_ALARM_REGS);
 
 	alrm->time.tm_sec = bcd2bin(alrm_data[0] & SECONDS_REG_MSK);
 	alrm->time.tm_min = bcd2bin(alrm_data[1] & MINUTES_REG_MAK);
@@ -211,15 +231,17 @@ static int rk808_rtc_readalarm(struct device *dev, struct rtc_wkalrm *alrm)
 	rockchip_to_gregorian(&alrm->time);
 
 	ret = regmap_read(rk808->regmap, RK808_RTC_INT_REG, &int_reg);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to read RTC INT REG: %d\n", ret);
 		return ret;
 	}
 
 	dev_dbg(dev, "alrm read RTC date/time %4d-%02d-%02d(%d) %02d:%02d:%02d\n",
-		1900 + alrm->time.tm_year, alrm->time.tm_mon + 1,
-		alrm->time.tm_mday, alrm->time.tm_wday, alrm->time.tm_hour,
-		alrm->time.tm_min, alrm->time.tm_sec);
+			1900 + alrm->time.tm_year, alrm->time.tm_mon + 1,
+			alrm->time.tm_mday, alrm->time.tm_wday, alrm->time.tm_hour,
+			alrm->time.tm_min, alrm->time.tm_sec);
 
 	alrm->enabled = (int_reg & BIT_RTC_INTERRUPTS_REG_IT_ALARM_M) ? 1 : 0;
 
@@ -232,7 +254,7 @@ static int rk808_rtc_stop_alarm(struct rk808_rtc *rk808_rtc)
 	int ret;
 
 	ret = regmap_update_bits(rk808->regmap, RK808_RTC_INT_REG,
-				 BIT_RTC_INTERRUPTS_REG_IT_ALARM_M, 0);
+							 BIT_RTC_INTERRUPTS_REG_IT_ALARM_M, 0);
 
 	return ret;
 }
@@ -243,8 +265,8 @@ static int rk808_rtc_start_alarm(struct rk808_rtc *rk808_rtc)
 	int ret;
 
 	ret = regmap_update_bits(rk808->regmap, RK808_RTC_INT_REG,
-				 BIT_RTC_INTERRUPTS_REG_IT_ALARM_M,
-				 BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
+							 BIT_RTC_INTERRUPTS_REG_IT_ALARM_M,
+							 BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
 
 	return ret;
 }
@@ -257,14 +279,17 @@ static int rk808_rtc_setalarm(struct device *dev, struct rtc_wkalrm *alrm)
 	int ret;
 
 	ret = rk808_rtc_stop_alarm(rk808_rtc);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to stop alarm: %d\n", ret);
 		return ret;
 	}
+
 	dev_dbg(dev, "alrm set RTC date/time %4d-%02d-%02d(%d) %02d:%02d:%02d\n",
-		1900 + alrm->time.tm_year, alrm->time.tm_mon + 1,
-		alrm->time.tm_mday, alrm->time.tm_wday, alrm->time.tm_hour,
-		alrm->time.tm_min, alrm->time.tm_sec);
+			1900 + alrm->time.tm_year, alrm->time.tm_mon + 1,
+			alrm->time.tm_mday, alrm->time.tm_wday, alrm->time.tm_hour,
+			alrm->time.tm_min, alrm->time.tm_sec);
 
 	gregorian_to_rockchip(&alrm->time);
 	alrm_data[0] = bin2bcd(alrm->time.tm_sec);
@@ -275,28 +300,37 @@ static int rk808_rtc_setalarm(struct device *dev, struct rtc_wkalrm *alrm)
 	alrm_data[5] = bin2bcd(alrm->time.tm_year - 100);
 
 	ret = regmap_bulk_write(rk808->regmap, RK808_ALARM_SECONDS_REG,
-				alrm_data, NUM_ALARM_REGS);
-	if (ret) {
+							alrm_data, NUM_ALARM_REGS);
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to bulk write: %d\n", ret);
 		return ret;
 	}
-	if (alrm->enabled) {
+
+	if (alrm->enabled)
+	{
 		ret = rk808_rtc_start_alarm(rk808_rtc);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "Failed to start alarm: %d\n", ret);
 			return ret;
 		}
 	}
+
 	return 0;
 }
 
 static int rk808_rtc_alarm_irq_enable(struct device *dev,
-				      unsigned int enabled)
+									  unsigned int enabled)
 {
 	struct rk808_rtc *rk808_rtc = dev_get_drvdata(dev);
 
 	if (enabled)
+	{
 		return rk808_rtc_start_alarm(rk808_rtc);
+	}
 
 	return rk808_rtc_stop_alarm(rk808_rtc);
 }
@@ -319,20 +353,23 @@ static irqreturn_t rk808_alarm_irq(int irq, void *data)
 	int ret;
 
 	ret = regmap_write(rk808->regmap, RK808_RTC_STATUS_REG,
-			   RTC_STATUS_MASK);
-	if (ret) {
+					   RTC_STATUS_MASK);
+
+	if (ret)
+	{
 		dev_err(&client->dev,
-			"%s:Failed to update RTC status: %d\n", __func__, ret);
+				"%s:Failed to update RTC status: %d\n", __func__, ret);
 		return ret;
 	}
 
 	rtc_update_irq(rk808_rtc->rtc, 1, RTC_IRQF | RTC_AF);
 	dev_dbg(&client->dev,
-		 "%s:irq=%d\n", __func__, irq);
+			"%s:irq=%d\n", __func__, irq);
 	return IRQ_HANDLED;
 }
 
-static const struct rtc_class_ops rk808_rtc_ops = {
+static const struct rtc_class_ops rk808_rtc_ops =
+{
 	.read_time = rk808_rtc_readtime,
 	.set_time = rk808_rtc_set_time,
 	.read_alarm = rk808_rtc_readalarm,
@@ -348,7 +385,9 @@ static int rk808_rtc_suspend(struct device *dev)
 	struct rk808_rtc *rk808_rtc = dev_get_drvdata(&pdev->dev);
 
 	if (device_may_wakeup(dev))
+	{
 		enable_irq_wake(rk808_rtc->irq);
+	}
 
 	return 0;
 }
@@ -362,14 +401,16 @@ static int rk808_rtc_resume(struct device *dev)
 	struct rk808_rtc *rk808_rtc = dev_get_drvdata(&pdev->dev);
 
 	if (device_may_wakeup(dev))
+	{
 		disable_irq_wake(rk808_rtc->irq);
+	}
 
 	return 0;
 }
 #endif
 
 static SIMPLE_DEV_PM_OPS(rk808_rtc_pm_ops,
-	rk808_rtc_suspend, rk808_rtc_resume);
+						 rk808_rtc_suspend, rk808_rtc_resume);
 
 static int rk808_rtc_probe(struct platform_device *pdev)
 {
@@ -379,71 +420,92 @@ static int rk808_rtc_probe(struct platform_device *pdev)
 	int ret;
 
 	rk808_rtc = devm_kzalloc(&pdev->dev, sizeof(*rk808_rtc), GFP_KERNEL);
+
 	if (rk808_rtc == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, rk808_rtc);
 	rk808_rtc->rk808 = rk808;
 
 	/* start rtc running by default, and use shadowed timer. */
 	ret = regmap_update_bits(rk808->regmap, RK808_RTC_CTRL_REG,
-				 BIT_RTC_CTRL_REG_STOP_RTC_M |
-				 BIT_RTC_CTRL_REG_RTC_READSEL_M,
-				 BIT_RTC_CTRL_REG_RTC_READSEL_M);
-	if (ret) {
+							 BIT_RTC_CTRL_REG_STOP_RTC_M |
+							 BIT_RTC_CTRL_REG_RTC_READSEL_M,
+							 BIT_RTC_CTRL_REG_RTC_READSEL_M);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev,
-			"Failed to update RTC control: %d\n", ret);
+				"Failed to update RTC control: %d\n", ret);
 		return ret;
 	}
 
 	ret = regmap_write(rk808->regmap, RK808_RTC_STATUS_REG,
-			   RTC_STATUS_MASK);
-	if (ret) {
+					   RTC_STATUS_MASK);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev,
-			"Failed to write RTC status: %d\n", ret);
-			return ret;
+				"Failed to write RTC status: %d\n", ret);
+		return ret;
 	}
 
 	/* set init time */
 	ret = rk808_rtc_readtime(&pdev->dev, &tm);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to read RTC time\n");
 		return ret;
 	}
+
 	ret = rtc_valid_tm(&tm);
+
 	if (ret)
+	{
 		dev_warn(&pdev->dev, "invalid date/time\n");
+	}
 
 	device_init_wakeup(&pdev->dev, 1);
 
 	rk808_rtc->rtc = devm_rtc_device_register(&pdev->dev, "rk808-rtc",
-						  &rk808_rtc_ops, THIS_MODULE);
-	if (IS_ERR(rk808_rtc->rtc)) {
+					 &rk808_rtc_ops, THIS_MODULE);
+
+	if (IS_ERR(rk808_rtc->rtc))
+	{
 		ret = PTR_ERR(rk808_rtc->rtc);
 		return ret;
 	}
 
 	rk808_rtc->irq = platform_get_irq(pdev, 0);
-	if (rk808_rtc->irq < 0) {
+
+	if (rk808_rtc->irq < 0)
+	{
 		if (rk808_rtc->irq != -EPROBE_DEFER)
 			dev_err(&pdev->dev, "Wake up is not possible as irq = %d\n",
-				rk808_rtc->irq);
+					rk808_rtc->irq);
+
 		return rk808_rtc->irq;
 	}
 
 	/* request alarm irq of rk808 */
 	ret = devm_request_threaded_irq(&pdev->dev, rk808_rtc->irq, NULL,
-					rk808_alarm_irq, 0,
-					"RTC alarm", rk808_rtc);
-	if (ret) {
+									rk808_alarm_irq, 0,
+									"RTC alarm", rk808_rtc);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to request alarm IRQ %d: %d\n",
-			rk808_rtc->irq, ret);
+				rk808_rtc->irq, ret);
 	}
 
 	return ret;
 }
 
-static struct platform_driver rk808_rtc_driver = {
+static struct platform_driver rk808_rtc_driver =
+{
 	.probe = rk808_rtc_probe,
 	.driver = {
 		.name = "rk808-rtc",

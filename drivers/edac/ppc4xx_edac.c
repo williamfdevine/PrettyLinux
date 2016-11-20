@@ -135,10 +135,10 @@
  */
 #define SDRAM_MBCF_SZ_MiB_MIN		4
 #define SDRAM_MBCF_SZ_TO_MiB(n)		(SDRAM_MBCF_SZ_MiB_MIN \
-					 << (SDRAM_MBCF_SZ_DECODE(n)))
+									 << (SDRAM_MBCF_SZ_DECODE(n)))
 #define SDRAM_MBCF_SZ_TO_PAGES(n)	(SDRAM_MBCF_SZ_MiB_MIN \
-					 << (20 - PAGE_SHIFT + \
-					     SDRAM_MBCF_SZ_DECODE(n)))
+									 << (20 - PAGE_SHIFT + \
+											 SDRAM_MBCF_SZ_DECODE(n)))
 
 /*
  * The ibm,sdram-4xx-ddr2 Device Control Registers (DCRs) are
@@ -162,9 +162,11 @@
 /*
  * PPC4xx SDRAM memory controller private instance data
  */
-struct ppc4xx_edac_pdata {
+struct ppc4xx_edac_pdata
+{
 	dcr_host_t dcr_host;	/* Indirect DCR address/data window mapping */
-	struct {
+	struct
+	{
 		int sec;	/* Single-bit correctable error IRQ assigned */
 		int ded;	/* Double-bit detectable error IRQ assigned */
 	} irqs;
@@ -174,7 +176,8 @@ struct ppc4xx_edac_pdata {
  * Various status data gathered and manipulated when checking and
  * reporting ECC status.
  */
-struct ppc4xx_ecc_status {
+struct ppc4xx_ecc_status
+{
 	u32 ecces;
 	u32 besr;
 	u32 bearh;
@@ -193,7 +196,8 @@ static int ppc4xx_edac_remove(struct platform_device *device);
  * Device tree node type and compatible tuples this driver can match
  * on.
  */
-static const struct of_device_id ppc4xx_edac_match[] = {
+static const struct of_device_id ppc4xx_edac_match[] =
+{
 	{
 		.compatible	= "ibm,sdram-4xx-ddr2"
 	},
@@ -201,7 +205,8 @@ static const struct of_device_id ppc4xx_edac_match[] = {
 };
 MODULE_DEVICE_TABLE(of, ppc4xx_edac_match);
 
-static struct platform_driver ppc4xx_edac_driver = {
+static struct platform_driver ppc4xx_edac_driver =
+{
 	.probe			= ppc4xx_edac_probe,
 	.remove			= ppc4xx_edac_remove,
 	.driver = {
@@ -221,7 +226,8 @@ static const unsigned ppc4xx_edac_nr_chans = 1;
  * Strings associated with PLB master IDs capable of being posted in
  * SDRAM_BESR or SDRAM_WMIRQ on uncorrectable ECC errors.
  */
-static const char * const ppc4xx_plb_masters[9] = {
+static const char *const ppc4xx_plb_masters[9] =
+{
 	[SDRAM_PLB_M0ID_ICU]	= "ICU",
 	[SDRAM_PLB_M0ID_PCIE0]	= "PCI-E 0",
 	[SDRAM_PLB_M0ID_PCIE1]	= "PCI-E 1",
@@ -247,8 +253,8 @@ static inline u32
 mfsdram(const dcr_host_t *dcr_host, unsigned int idcr_n)
 {
 	return __mfdcri(dcr_host->base + SDRAM_DCR_ADDR_OFFSET,
-			dcr_host->base + SDRAM_DCR_DATA_OFFSET,
-			idcr_n);
+					dcr_host->base + SDRAM_DCR_DATA_OFFSET,
+					idcr_n);
 }
 
 /**
@@ -264,9 +270,9 @@ static inline void
 mtsdram(const dcr_host_t *dcr_host, unsigned int idcr_n, u32 value)
 {
 	return __mtdcri(dcr_host->base + SDRAM_DCR_ADDR_OFFSET,
-			dcr_host->base + SDRAM_DCR_DATA_OFFSET,
-			idcr_n,
-			value);
+					dcr_host->base + SDRAM_DCR_DATA_OFFSET,
+					idcr_n,
+					value);
 }
 
 /**
@@ -283,15 +289,18 @@ mtsdram(const dcr_host_t *dcr_host, unsigned int idcr_n, u32 value)
  */
 static bool
 ppc4xx_edac_check_bank_error(const struct ppc4xx_ecc_status *status,
-			     unsigned int bank)
+							 unsigned int bank)
 {
-	switch (bank) {
-	case 0:
-		return status->ecces & SDRAM_ECCES_BK0ER;
-	case 1:
-		return status->ecces & SDRAM_ECCES_BK1ER;
-	default:
-		return false;
+	switch (bank)
+	{
+		case 0:
+			return status->ecces & SDRAM_ECCES_BK0ER;
+
+		case 1:
+			return status->ecces & SDRAM_ECCES_BK1ER;
+
+		default:
+			return false;
 	}
 }
 
@@ -314,9 +323,9 @@ ppc4xx_edac_check_bank_error(const struct ppc4xx_ecc_status *status,
  */
 static int
 ppc4xx_edac_generate_bank_message(const struct mem_ctl_info *mci,
-				  const struct ppc4xx_ecc_status *status,
-				  char *buffer,
-				  size_t size)
+								  const struct ppc4xx_ecc_status *status,
+								  char *buffer,
+								  size_t size)
 {
 	int n, total = 0;
 	unsigned int row, rows;
@@ -324,19 +333,25 @@ ppc4xx_edac_generate_bank_message(const struct mem_ctl_info *mci,
 	n = snprintf(buffer, size, "%s: Banks: ", mci->dev_name);
 
 	if (n < 0 || n >= size)
+	{
 		goto fail;
+	}
 
 	buffer += n;
 	size -= n;
 	total += n;
 
-	for (rows = 0, row = 0; row < mci->nr_csrows; row++) {
-		if (ppc4xx_edac_check_bank_error(status, row)) {
+	for (rows = 0, row = 0; row < mci->nr_csrows; row++)
+	{
+		if (ppc4xx_edac_check_bank_error(status, row))
+		{
 			n = snprintf(buffer, size, "%s%u",
-					(rows++ ? ", " : ""), row);
+						 (rows++ ? ", " : ""), row);
 
 			if (n < 0 || n >= size)
+			{
 				goto fail;
+			}
 
 			buffer += n;
 			size -= n;
@@ -347,13 +362,15 @@ ppc4xx_edac_generate_bank_message(const struct mem_ctl_info *mci,
 	n = snprintf(buffer, size, "%s; ", rows ? "" : "None");
 
 	if (n < 0 || n >= size)
+	{
 		goto fail;
+	}
 
 	buffer += n;
 	size -= n;
 	total += n;
 
- fail:
+fail:
 	return total;
 }
 
@@ -376,40 +393,49 @@ ppc4xx_edac_generate_bank_message(const struct mem_ctl_info *mci,
  */
 static int
 ppc4xx_edac_generate_checkbit_message(const struct mem_ctl_info *mci,
-				      const struct ppc4xx_ecc_status *status,
-				      char *buffer,
-				      size_t size)
+									  const struct ppc4xx_ecc_status *status,
+									  char *buffer,
+									  size_t size)
 {
 	const struct ppc4xx_edac_pdata *pdata = mci->pvt_info;
 	const char *ckber = NULL;
 
-	switch (status->ecces & SDRAM_ECCES_CKBER_MASK) {
-	case SDRAM_ECCES_CKBER_NONE:
-		ckber = "None";
-		break;
-	case SDRAM_ECCES_CKBER_32_ECC_0_3:
-		ckber = "ECC0:3";
-		break;
-	case SDRAM_ECCES_CKBER_32_ECC_4_8:
-		switch (mfsdram(&pdata->dcr_host, SDRAM_MCOPT1) &
-			SDRAM_MCOPT1_WDTH_MASK) {
-		case SDRAM_MCOPT1_WDTH_16:
+	switch (status->ecces & SDRAM_ECCES_CKBER_MASK)
+	{
+		case SDRAM_ECCES_CKBER_NONE:
+			ckber = "None";
+			break;
+
+		case SDRAM_ECCES_CKBER_32_ECC_0_3:
 			ckber = "ECC0:3";
 			break;
-		case SDRAM_MCOPT1_WDTH_32:
-			ckber = "ECC4:8";
+
+		case SDRAM_ECCES_CKBER_32_ECC_4_8:
+			switch (mfsdram(&pdata->dcr_host, SDRAM_MCOPT1) &
+					SDRAM_MCOPT1_WDTH_MASK)
+			{
+				case SDRAM_MCOPT1_WDTH_16:
+					ckber = "ECC0:3";
+					break;
+
+				case SDRAM_MCOPT1_WDTH_32:
+					ckber = "ECC4:8";
+					break;
+
+				default:
+					ckber = "Unknown";
+					break;
+			}
+
 			break;
+
+		case SDRAM_ECCES_CKBER_32_ECC_0_8:
+			ckber = "ECC0:8";
+			break;
+
 		default:
 			ckber = "Unknown";
 			break;
-		}
-		break;
-	case SDRAM_ECCES_CKBER_32_ECC_0_8:
-		ckber = "ECC0:8";
-		break;
-	default:
-		ckber = "Unknown";
-		break;
 	}
 
 	return snprintf(buffer, size, "Checkbit Error: %s", ckber);
@@ -434,9 +460,9 @@ ppc4xx_edac_generate_checkbit_message(const struct mem_ctl_info *mci,
  */
 static int
 ppc4xx_edac_generate_lane_message(const struct mem_ctl_info *mci,
-				  const struct ppc4xx_ecc_status *status,
-				  char *buffer,
-				  size_t size)
+								  const struct ppc4xx_ecc_status *status,
+								  char *buffer,
+								  size_t size)
 {
 	int n, total = 0;
 	unsigned int lane, lanes;
@@ -446,20 +472,26 @@ ppc4xx_edac_generate_lane_message(const struct mem_ctl_info *mci,
 	n = snprintf(buffer, size, "; Byte Lane Errors: ");
 
 	if (n < 0 || n >= size)
+	{
 		goto fail;
+	}
 
 	buffer += n;
 	size -= n;
 	total += n;
 
-	for (lanes = 0, lane = first_lane; lane < lane_count; lane++) {
-		if ((status->ecces & SDRAM_ECCES_BNCE_ENCODE(lane)) != 0) {
+	for (lanes = 0, lane = first_lane; lane < lane_count; lane++)
+	{
+		if ((status->ecces & SDRAM_ECCES_BNCE_ENCODE(lane)) != 0)
+		{
 			n = snprintf(buffer, size,
-				     "%s%u",
-				     (lanes++ ? ", " : ""), lane);
+						 "%s%u",
+						 (lanes++ ? ", " : ""), lane);
 
 			if (n < 0 || n >= size)
+			{
 				goto fail;
+			}
 
 			buffer += n;
 			size -= n;
@@ -470,13 +502,15 @@ ppc4xx_edac_generate_lane_message(const struct mem_ctl_info *mci,
 	n = snprintf(buffer, size, "%s; ", lanes ? "" : "None");
 
 	if (n < 0 || n >= size)
+	{
 		goto fail;
+	}
 
 	buffer += n;
 	size -= n;
 	total += n;
 
- fail:
+fail:
 	return total;
 }
 
@@ -499,16 +533,18 @@ ppc4xx_edac_generate_lane_message(const struct mem_ctl_info *mci,
  */
 static int
 ppc4xx_edac_generate_ecc_message(const struct mem_ctl_info *mci,
-				 const struct ppc4xx_ecc_status *status,
-				 char *buffer,
-				 size_t size)
+								 const struct ppc4xx_ecc_status *status,
+								 char *buffer,
+								 size_t size)
 {
 	int n, total = 0;
 
 	n = ppc4xx_edac_generate_bank_message(mci, status, buffer, size);
 
 	if (n < 0 || n >= size)
+	{
 		goto fail;
+	}
 
 	buffer += n;
 	size -= n;
@@ -517,7 +553,9 @@ ppc4xx_edac_generate_ecc_message(const struct mem_ctl_info *mci,
 	n = ppc4xx_edac_generate_checkbit_message(mci, status, buffer, size);
 
 	if (n < 0 || n >= size)
+	{
 		goto fail;
+	}
 
 	buffer += n;
 	size -= n;
@@ -526,13 +564,15 @@ ppc4xx_edac_generate_ecc_message(const struct mem_ctl_info *mci,
 	n = ppc4xx_edac_generate_lane_message(mci, status, buffer, size);
 
 	if (n < 0 || n >= size)
+	{
 		goto fail;
+	}
 
 	buffer += n;
 	size -= n;
 	total += n;
 
- fail:
+fail:
 	return total;
 }
 
@@ -555,30 +595,34 @@ ppc4xx_edac_generate_ecc_message(const struct mem_ctl_info *mci,
  */
 static int
 ppc4xx_edac_generate_plb_message(const struct mem_ctl_info *mci,
-				 const struct ppc4xx_ecc_status *status,
-				 char *buffer,
-				 size_t size)
+								 const struct ppc4xx_ecc_status *status,
+								 char *buffer,
+								 size_t size)
 {
 	unsigned int master;
 	bool read;
 
 	if ((status->besr & SDRAM_BESR_MASK) == 0)
+	{
 		return 0;
+	}
 
 	if ((status->besr & SDRAM_BESR_M0ET_MASK) == SDRAM_BESR_M0ET_NONE)
+	{
 		return 0;
+	}
 
 	read = ((status->besr & SDRAM_BESR_M0RW_MASK) == SDRAM_BESR_M0RW_READ);
 
 	master = SDRAM_BESR_M0ID_DECODE(status->besr);
 
 	return snprintf(buffer, size,
-			"%s error w/ PLB master %u \"%s\"; ",
-			(read ? "Read" : "Write"),
-			master,
-			(((master >= SDRAM_PLB_M0ID_FIRST) &&
-			  (master <= SDRAM_PLB_M0ID_LAST)) ?
-			 ppc4xx_plb_masters[master] : "UNKNOWN"));
+					"%s error w/ PLB master %u \"%s\"; ",
+					(read ? "Read" : "Write"),
+					master,
+					(((master >= SDRAM_PLB_M0ID_FIRST) &&
+					  (master <= SDRAM_PLB_M0ID_LAST)) ?
+					 ppc4xx_plb_masters[master] : "UNKNOWN"));
 }
 
 /**
@@ -596,19 +640,23 @@ ppc4xx_edac_generate_plb_message(const struct mem_ctl_info *mci,
  */
 static void
 ppc4xx_edac_generate_message(const struct mem_ctl_info *mci,
-			     const struct ppc4xx_ecc_status *status,
-			     char *buffer,
-			     size_t size)
+							 const struct ppc4xx_ecc_status *status,
+							 char *buffer,
+							 size_t size)
 {
 	int n;
 
 	if (buffer == NULL || size == 0)
+	{
 		return;
+	}
 
 	n = ppc4xx_edac_generate_ecc_message(mci, status, buffer, size);
 
 	if (n < 0 || n >= size)
+	{
 		return;
+	}
 
 	buffer += n;
 	size -= n;
@@ -629,25 +677,25 @@ ppc4xx_edac_generate_message(const struct mem_ctl_info *mci,
  */
 static void
 ppc4xx_ecc_dump_status(const struct mem_ctl_info *mci,
-		       const struct ppc4xx_ecc_status *status)
+					   const struct ppc4xx_ecc_status *status)
 {
 	char message[PPC4XX_EDAC_MESSAGE_SIZE];
 
 	ppc4xx_edac_generate_message(mci, status, message, sizeof(message));
 
 	ppc4xx_edac_mc_printk(KERN_INFO, mci,
-			      "\n"
-			      "\tECCES: 0x%08x\n"
-			      "\tWMIRQ: 0x%08x\n"
-			      "\tBESR:  0x%08x\n"
-			      "\tBEAR:  0x%08x%08x\n"
-			      "\t%s\n",
-			      status->ecces,
-			      status->wmirq,
-			      status->besr,
-			      status->bearh,
-			      status->bearl,
-			      message);
+						  "\n"
+						  "\tECCES: 0x%08x\n"
+						  "\tWMIRQ: 0x%08x\n"
+						  "\tBESR:  0x%08x\n"
+						  "\tBEAR:  0x%08x%08x\n"
+						  "\t%s\n",
+						  status->ecces,
+						  status->wmirq,
+						  status->besr,
+						  status->bearh,
+						  status->bearl,
+						  message);
 }
 #endif /* DEBUG */
 
@@ -666,7 +714,7 @@ ppc4xx_ecc_dump_status(const struct mem_ctl_info *mci,
  */
 static void
 ppc4xx_ecc_get_status(const struct mem_ctl_info *mci,
-		      struct ppc4xx_ecc_status *status)
+					  struct ppc4xx_ecc_status *status)
 {
 	const struct ppc4xx_edac_pdata *pdata = mci->pvt_info;
 	const dcr_host_t *dcr_host = &pdata->dcr_host;
@@ -691,7 +739,7 @@ ppc4xx_ecc_get_status(const struct mem_ctl_info *mci,
  */
 static void
 ppc4xx_ecc_clear_status(const struct mem_ctl_info *mci,
-			const struct ppc4xx_ecc_status *status)
+						const struct ppc4xx_ecc_status *status)
 {
 	const struct ppc4xx_edac_pdata *pdata = mci->pvt_info;
 	const dcr_host_t *dcr_host = &pdata->dcr_host;
@@ -718,7 +766,7 @@ ppc4xx_ecc_clear_status(const struct mem_ctl_info *mci,
  */
 static void
 ppc4xx_edac_handle_ce(struct mem_ctl_info *mci,
-		      const struct ppc4xx_ecc_status *status)
+					  const struct ppc4xx_ecc_status *status)
 {
 	int row;
 	char message[PPC4XX_EDAC_MESSAGE_SIZE];
@@ -728,9 +776,9 @@ ppc4xx_edac_handle_ce(struct mem_ctl_info *mci,
 	for (row = 0; row < mci->nr_csrows; row++)
 		if (ppc4xx_edac_check_bank_error(status, row))
 			edac_mc_handle_error(HW_EVENT_ERR_CORRECTED, mci, 1,
-					     0, 0, 0,
-					     row, 0, -1,
-					     message, "");
+								 0, 0, 0,
+								 row, 0, -1,
+								 message, "");
 }
 
 /**
@@ -746,7 +794,7 @@ ppc4xx_edac_handle_ce(struct mem_ctl_info *mci,
  */
 static void
 ppc4xx_edac_handle_ue(struct mem_ctl_info *mci,
-		      const struct ppc4xx_ecc_status *status)
+					  const struct ppc4xx_ecc_status *status)
 {
 	const u64 bear = ((u64)status->bearh << 32 | status->bearl);
 	const unsigned long page = bear >> PAGE_SHIFT;
@@ -759,9 +807,9 @@ ppc4xx_edac_handle_ue(struct mem_ctl_info *mci,
 	for (row = 0; row < mci->nr_csrows; row++)
 		if (ppc4xx_edac_check_bank_error(status, row))
 			edac_mc_handle_error(HW_EVENT_ERR_UNCORRECTED, mci, 1,
-					     page, offset, 0,
-					     row, 0, -1,
-					     message, "");
+								 page, offset, 0,
+								 row, 0, -1,
+								 message, "");
 }
 
 /**
@@ -785,15 +833,23 @@ ppc4xx_edac_check(struct mem_ctl_info *mci)
 	ppc4xx_ecc_get_status(mci, &status);
 
 #ifdef DEBUG
+
 	if (count++ % 30 == 0)
+	{
 		ppc4xx_ecc_dump_status(mci, &status);
+	}
+
 #endif
 
 	if (status.ecces & SDRAM_ECCES_UE)
+	{
 		ppc4xx_edac_handle_ue(mci, &status);
+	}
 
 	if (status.ecces & SDRAM_ECCES_CE)
+	{
 		ppc4xx_edac_handle_ce(mci, &status);
+	}
 
 	ppc4xx_ecc_clear_status(mci, &status);
 }
@@ -840,38 +896,44 @@ ppc4xx_edac_isr(int irq, void *dev_id)
  */
 static enum dev_type ppc4xx_edac_get_dtype(u32 mcopt1)
 {
-	switch (mcopt1 & SDRAM_MCOPT1_WDTH_MASK) {
-	case SDRAM_MCOPT1_WDTH_16:
-		return DEV_X2;
-	case SDRAM_MCOPT1_WDTH_32:
-		return DEV_X4;
-	default:
-		return DEV_UNKNOWN;
-	}
-}
+	switch (mcopt1 & SDRAM_MCOPT1_WDTH_MASK)
+	{
+		case SDRAM_MCOPT1_WDTH_16:
+					return DEV_X2;
 
-/**
- * ppc4xx_edac_get_mtype - return controller memory type
- * @mcopt1: The 32-bit Memory Controller Option 1 register value
- *          currently set for the controller, from which the memory type
- *          is derived.
- *
- * This routine returns the EDAC memory type appropriate for the
- * current controller configuration.
- *
- * Returns a memory type enumeration.
- */
-static enum mem_type ppc4xx_edac_get_mtype(u32 mcopt1)
+			case SDRAM_MCOPT1_WDTH_32:
+				return DEV_X4;
+
+			default:
+				return DEV_UNKNOWN;
+		}
+	}
+
+	/**
+	 * ppc4xx_edac_get_mtype - return controller memory type
+	 * @mcopt1: The 32-bit Memory Controller Option 1 register value
+	 *          currently set for the controller, from which the memory type
+	 *          is derived.
+	 *
+	 * This routine returns the EDAC memory type appropriate for the
+	 * current controller configuration.
+	 *
+	 * Returns a memory type enumeration.
+	 */
+	static enum mem_type ppc4xx_edac_get_mtype(u32 mcopt1)
 {
 	bool rden = ((mcopt1 & SDRAM_MCOPT1_RDEN_MASK) == SDRAM_MCOPT1_RDEN);
 
-	switch (mcopt1 & SDRAM_MCOPT1_DDR_TYPE_MASK) {
-	case SDRAM_MCOPT1_DDR2_TYPE:
-		return rden ? MEM_RDDR2 : MEM_DDR2;
-	case SDRAM_MCOPT1_DDR1_TYPE:
-		return rden ? MEM_RDDR : MEM_DDR;
-	default:
-		return MEM_UNKNOWN;
+	switch (mcopt1 & SDRAM_MCOPT1_DDR_TYPE_MASK)
+	{
+		case SDRAM_MCOPT1_DDR2_TYPE:
+			return rden ? MEM_RDDR2 : MEM_DDR2;
+
+		case SDRAM_MCOPT1_DDR1_TYPE:
+			return rden ? MEM_RDDR : MEM_DDR;
+
+		default:
+			return MEM_UNKNOWN;
 	}
 }
 
@@ -909,18 +971,25 @@ static int ppc4xx_edac_init_csrows(struct mem_ctl_info *mci, u32 mcopt1)
 	/* Establish EDAC mode */
 
 	if (mci->edac_cap & EDAC_FLAG_SECDED)
+	{
 		edac_mode = EDAC_SECDED;
+	}
 	else if (mci->edac_cap & EDAC_FLAG_EC)
+	{
 		edac_mode = EDAC_EC;
+	}
 	else
+	{
 		edac_mode = EDAC_NONE;
+	}
 
 	/*
 	 * Initialize each chip select row structure which correspond
 	 * 1:1 with a controller bank/rank.
 	 */
 
-	for (row = 0; row < mci->nr_csrows; row++) {
+	for (row = 0; row < mci->nr_csrows; row++)
+	{
 		struct csrow_info *csi = mci->csrows[row];
 
 		/*
@@ -931,34 +1000,38 @@ static int ppc4xx_edac_init_csrows(struct mem_ctl_info *mci, u32 mcopt1)
 		mbxcf = mfsdram(&pdata->dcr_host, SDRAM_MBXCF(row));
 
 		if ((mbxcf & SDRAM_MBCF_BE_MASK) != SDRAM_MBCF_BE_ENABLE)
+		{
 			continue;
+		}
 
 		/* Map the bank configuration size setting to pages. */
 
 		size = mbxcf & SDRAM_MBCF_SZ_MASK;
 
-		switch (size) {
-		case SDRAM_MBCF_SZ_4MB:
-		case SDRAM_MBCF_SZ_8MB:
-		case SDRAM_MBCF_SZ_16MB:
-		case SDRAM_MBCF_SZ_32MB:
-		case SDRAM_MBCF_SZ_64MB:
-		case SDRAM_MBCF_SZ_128MB:
-		case SDRAM_MBCF_SZ_256MB:
-		case SDRAM_MBCF_SZ_512MB:
-		case SDRAM_MBCF_SZ_1GB:
-		case SDRAM_MBCF_SZ_2GB:
-		case SDRAM_MBCF_SZ_4GB:
-		case SDRAM_MBCF_SZ_8GB:
-			nr_pages = SDRAM_MBCF_SZ_TO_PAGES(size);
-			break;
-		default:
-			ppc4xx_edac_mc_printk(KERN_ERR, mci,
-					      "Unrecognized memory bank %d "
-					      "size 0x%08x\n",
-					      row, SDRAM_MBCF_SZ_DECODE(size));
-			status = -EINVAL;
-			goto done;
+		switch (size)
+		{
+			case SDRAM_MBCF_SZ_4MB:
+			case SDRAM_MBCF_SZ_8MB:
+			case SDRAM_MBCF_SZ_16MB:
+			case SDRAM_MBCF_SZ_32MB:
+			case SDRAM_MBCF_SZ_64MB:
+			case SDRAM_MBCF_SZ_128MB:
+			case SDRAM_MBCF_SZ_256MB:
+			case SDRAM_MBCF_SZ_512MB:
+			case SDRAM_MBCF_SZ_1GB:
+			case SDRAM_MBCF_SZ_2GB:
+			case SDRAM_MBCF_SZ_4GB:
+			case SDRAM_MBCF_SZ_8GB:
+				nr_pages = SDRAM_MBCF_SZ_TO_PAGES(size);
+				break;
+
+			default:
+				ppc4xx_edac_mc_printk(KERN_ERR, mci,
+									  "Unrecognized memory bank %d "
+									  "size 0x%08x\n",
+									  row, SDRAM_MBCF_SZ_DECODE(size));
+				status = -EINVAL;
+				goto done;
 		}
 
 		/*
@@ -973,7 +1046,8 @@ static int ppc4xx_edac_init_csrows(struct mem_ctl_info *mci, u32 mcopt1)
 		 * possible values would be the PLB width (16), the
 		 * page size (PAGE_SIZE) or the memory width (2 or 4).
 		 */
-		for (j = 0; j < csi->nr_channels; j++) {
+		for (j = 0; j < csi->nr_channels; j++)
+		{
 			struct dimm_info *dimm = csi->channels[j]->dimm;
 
 			dimm->nr_pages  = nr_pages / csi->nr_channels;
@@ -986,7 +1060,7 @@ static int ppc4xx_edac_init_csrows(struct mem_ctl_info *mci, u32 mcopt1)
 		}
 	}
 
- done:
+done:
 	return status;
 }
 
@@ -1009,8 +1083,8 @@ static int ppc4xx_edac_init_csrows(struct mem_ctl_info *mci, u32 mcopt1)
  * Returns 0 if OK; otherwise, < 0 on error.
  */
 static int ppc4xx_edac_mc_init(struct mem_ctl_info *mci,
-			       struct platform_device *op,
-			       const dcr_host_t *dcr_host, u32 mcopt1)
+							   struct platform_device *op,
+							   const dcr_host_t *dcr_host, u32 mcopt1)
 {
 	int status = 0;
 	const u32 memcheck = (mcopt1 & SDRAM_MCOPT1_MCHK_MASK);
@@ -1018,7 +1092,9 @@ static int ppc4xx_edac_mc_init(struct mem_ctl_info *mci,
 	const struct device_node *np = op->dev.of_node;
 
 	if (of_match_device(ppc4xx_edac_match, &op->dev) == NULL)
+	{
 		return -EINVAL;
+	}
 
 	/* Initial driver pointers and private data */
 
@@ -1033,11 +1109,11 @@ static int ppc4xx_edac_mc_init(struct mem_ctl_info *mci,
 	/* Initialize controller capabilities and configuration */
 
 	mci->mtype_cap		= (MEM_FLAG_DDR | MEM_FLAG_RDDR |
-				   MEM_FLAG_DDR2 | MEM_FLAG_RDDR2);
+						   MEM_FLAG_DDR2 | MEM_FLAG_RDDR2);
 
 	mci->edac_ctl_cap	= (EDAC_FLAG_NONE |
-				   EDAC_FLAG_EC |
-				   EDAC_FLAG_SECDED);
+						   EDAC_FLAG_EC |
+						   EDAC_FLAG_SECDED);
 
 	mci->scrub_cap		= SCRUB_NONE;
 	mci->scrub_mode		= SCRUB_NONE;
@@ -1047,17 +1123,20 @@ static int ppc4xx_edac_mc_init(struct mem_ctl_info *mci,
 	 * settings. Scrubbing is only useful if reporting is enabled.
 	 */
 
-	switch (memcheck) {
-	case SDRAM_MCOPT1_MCHK_CHK:
-		mci->edac_cap	= EDAC_FLAG_EC;
-		break;
-	case SDRAM_MCOPT1_MCHK_CHK_REP:
-		mci->edac_cap	= (EDAC_FLAG_EC | EDAC_FLAG_SECDED);
-		mci->scrub_mode	= SCRUB_SW_SRC;
-		break;
-	default:
-		mci->edac_cap	= EDAC_FLAG_NONE;
-		break;
+	switch (memcheck)
+	{
+		case SDRAM_MCOPT1_MCHK_CHK:
+			mci->edac_cap	= EDAC_FLAG_EC;
+			break;
+
+		case SDRAM_MCOPT1_MCHK_CHK_REP:
+			mci->edac_cap	= (EDAC_FLAG_EC | EDAC_FLAG_SECDED);
+			mci->scrub_mode	= SCRUB_SW_SRC;
+			break;
+
+		default:
+			mci->edac_cap	= EDAC_FLAG_NONE;
+			break;
 	}
 
 	/* Initialize strings */
@@ -1065,7 +1144,7 @@ static int ppc4xx_edac_mc_init(struct mem_ctl_info *mci,
 	mci->mod_name		= PPC4XX_EDAC_MODULE_NAME;
 	mci->mod_ver		= PPC4XX_EDAC_MODULE_REVISION;
 	mci->ctl_name		= ppc4xx_edac_match->compatible,
-	mci->dev_name		= np->full_name;
+			  mci->dev_name		= np->full_name;
 
 	/* Initialize callbacks */
 
@@ -1078,7 +1157,7 @@ static int ppc4xx_edac_mc_init(struct mem_ctl_info *mci,
 
 	if (status)
 		ppc4xx_edac_mc_printk(KERN_ERR, mci,
-				      "Failed to initialize rows!\n");
+							  "Failed to initialize rows!\n");
 
 	return status;
 }
@@ -1099,7 +1178,7 @@ static int ppc4xx_edac_mc_init(struct mem_ctl_info *mci,
  * mapped and assigned.
  */
 static int ppc4xx_edac_register_irq(struct platform_device *op,
-				    struct mem_ctl_info *mci)
+									struct mem_ctl_info *mci)
 {
 	int status = 0;
 	int ded_irq, sec_irq;
@@ -1109,37 +1188,40 @@ static int ppc4xx_edac_register_irq(struct platform_device *op,
 	ded_irq = irq_of_parse_and_map(np, INTMAP_ECCDED_INDEX);
 	sec_irq = irq_of_parse_and_map(np, INTMAP_ECCSEC_INDEX);
 
-	if (!ded_irq || !sec_irq) {
+	if (!ded_irq || !sec_irq)
+	{
 		ppc4xx_edac_mc_printk(KERN_ERR, mci,
-				      "Unable to map interrupts.\n");
+							  "Unable to map interrupts.\n");
 		status = -ENODEV;
 		goto fail;
 	}
 
 	status = request_irq(ded_irq,
-			     ppc4xx_edac_isr,
-			     0,
-			     "[EDAC] MC ECCDED",
-			     mci);
+						 ppc4xx_edac_isr,
+						 0,
+						 "[EDAC] MC ECCDED",
+						 mci);
 
-	if (status < 0) {
+	if (status < 0)
+	{
 		ppc4xx_edac_mc_printk(KERN_ERR, mci,
-				      "Unable to request irq %d for ECC DED",
-				      ded_irq);
+							  "Unable to request irq %d for ECC DED",
+							  ded_irq);
 		status = -ENODEV;
 		goto fail1;
 	}
 
 	status = request_irq(sec_irq,
-			     ppc4xx_edac_isr,
-			     0,
-			     "[EDAC] MC ECCSEC",
-			     mci);
+						 ppc4xx_edac_isr,
+						 0,
+						 "[EDAC] MC ECCSEC",
+						 mci);
 
-	if (status < 0) {
+	if (status < 0)
+	{
 		ppc4xx_edac_mc_printk(KERN_ERR, mci,
-				      "Unable to request irq %d for ECC SEC",
-				      sec_irq);
+							  "Unable to request irq %d for ECC SEC",
+							  sec_irq);
 		status = -ENODEV;
 		goto fail2;
 	}
@@ -1152,13 +1234,13 @@ static int ppc4xx_edac_register_irq(struct platform_device *op,
 
 	return 0;
 
- fail2:
+fail2:
 	free_irq(sec_irq, mci);
 
- fail1:
+fail1:
 	free_irq(ded_irq, mci);
 
- fail:
+fail:
 	return status;
 }
 
@@ -1177,28 +1259,32 @@ static int ppc4xx_edac_register_irq(struct platform_device *op,
  * error.
  */
 static int ppc4xx_edac_map_dcrs(const struct device_node *np,
-				dcr_host_t *dcr_host)
+								dcr_host_t *dcr_host)
 {
 	unsigned int dcr_base, dcr_len;
 
 	if (np == NULL || dcr_host == NULL)
+	{
 		return -EINVAL;
+	}
 
 	/* Get the DCR resource extent and sanity check the values. */
 
 	dcr_base = dcr_resource_start(np, 0);
 	dcr_len = dcr_resource_len(np, 0);
 
-	if (dcr_base == 0 || dcr_len == 0) {
+	if (dcr_base == 0 || dcr_len == 0)
+	{
 		ppc4xx_edac_printk(KERN_ERR,
-				   "Failed to obtain DCR property.\n");
+						   "Failed to obtain DCR property.\n");
 		return -ENODEV;
 	}
 
-	if (dcr_len != SDRAM_DCR_RESOURCE_LEN) {
+	if (dcr_len != SDRAM_DCR_RESOURCE_LEN)
+	{
 		ppc4xx_edac_printk(KERN_ERR,
-				   "Unexpected DCR length %d, expected %d.\n",
-				   dcr_len, SDRAM_DCR_RESOURCE_LEN);
+						   "Unexpected DCR length %d, expected %d.\n",
+						   dcr_len, SDRAM_DCR_RESOURCE_LEN);
 		return -ENODEV;
 	}
 
@@ -1206,9 +1292,10 @@ static int ppc4xx_edac_map_dcrs(const struct device_node *np,
 
 	*dcr_host = dcr_map(np, dcr_base, dcr_len);
 
-	if (!DCR_MAP_OK(*dcr_host)) {
+	if (!DCR_MAP_OK(*dcr_host))
+	{
 		ppc4xx_edac_printk(KERN_INFO, "Failed to map DCRs.\n");
-		    return -ENODEV;
+		return -ENODEV;
 	}
 
 	return 0;
@@ -1241,9 +1328,10 @@ static int ppc4xx_edac_probe(struct platform_device *op)
 	 */
 
 	if (!of_device_is_compatible(np, "ibm,sdram-405ex") &&
-	    !of_device_is_compatible(np, "ibm,sdram-405exr")) {
+		!of_device_is_compatible(np, "ibm,sdram-405exr"))
+	{
 		ppc4xx_edac_printk(KERN_NOTICE,
-				   "Only the PPC405EX[r] is supported.\n");
+						   "Only the PPC405EX[r] is supported.\n");
 		return -ENODEV;
 	}
 
@@ -1255,7 +1343,9 @@ static int ppc4xx_edac_probe(struct platform_device *op)
 	status = ppc4xx_edac_map_dcrs(np, &dcr_host);
 
 	if (status)
+	{
 		return status;
+	}
 
 	/*
 	 * First determine whether ECC is enabled at all. If not,
@@ -1266,9 +1356,10 @@ static int ppc4xx_edac_probe(struct platform_device *op)
 	mcopt1 = mfsdram(&dcr_host, SDRAM_MCOPT1);
 	memcheck = (mcopt1 & SDRAM_MCOPT1_MCHK_MASK);
 
-	if (memcheck == SDRAM_MCOPT1_MCHK_NON) {
+	if (memcheck == SDRAM_MCOPT1_MCHK_NON)
+	{
 		ppc4xx_edac_printk(KERN_INFO, "%s: No ECC memory detected or "
-				   "ECC is disabled.\n", np->full_name);
+						   "ECC is disabled.\n", np->full_name);
 		status = -ENODEV;
 		goto done;
 	}
@@ -1285,20 +1376,23 @@ static int ppc4xx_edac_probe(struct platform_device *op)
 	layers[1].size = ppc4xx_edac_nr_chans;
 	layers[1].is_virt_csrow = false;
 	mci = edac_mc_alloc(ppc4xx_edac_instance, ARRAY_SIZE(layers), layers,
-			    sizeof(struct ppc4xx_edac_pdata));
-	if (mci == NULL) {
+						sizeof(struct ppc4xx_edac_pdata));
+
+	if (mci == NULL)
+	{
 		ppc4xx_edac_printk(KERN_ERR, "%s: "
-				   "Failed to allocate EDAC MC instance!\n",
-				   np->full_name);
+						   "Failed to allocate EDAC MC instance!\n",
+						   np->full_name);
 		status = -ENOMEM;
 		goto done;
 	}
 
 	status = ppc4xx_edac_mc_init(mci, op, &dcr_host, mcopt1);
 
-	if (status) {
+	if (status)
+	{
 		ppc4xx_edac_mc_printk(KERN_ERR, mci,
-				      "Failed to initialize instance!\n");
+							  "Failed to initialize instance!\n");
 		goto fail;
 	}
 
@@ -1308,31 +1402,35 @@ static int ppc4xx_edac_probe(struct platform_device *op)
 	 * and, if necessary, register interrupts.
 	 */
 
-	if (edac_mc_add_mc(mci)) {
+	if (edac_mc_add_mc(mci))
+	{
 		ppc4xx_edac_mc_printk(KERN_ERR, mci,
-				      "Failed to add instance!\n");
+							  "Failed to add instance!\n");
 		status = -ENODEV;
 		goto fail;
 	}
 
-	if (edac_op_state == EDAC_OPSTATE_INT) {
+	if (edac_op_state == EDAC_OPSTATE_INT)
+	{
 		status = ppc4xx_edac_register_irq(op, mci);
 
 		if (status)
+		{
 			goto fail1;
+		}
 	}
 
 	ppc4xx_edac_instance++;
 
 	return 0;
 
- fail1:
+fail1:
 	edac_mc_del_mc(mci->pdev);
 
- fail:
+fail:
 	edac_mc_free(mci);
 
- done:
+done:
 	return status;
 }
 
@@ -1354,7 +1452,8 @@ ppc4xx_edac_remove(struct platform_device *op)
 	struct mem_ctl_info *mci = dev_get_drvdata(&op->dev);
 	struct ppc4xx_edac_pdata *pdata = mci->pvt_info;
 
-	if (edac_op_state == EDAC_OPSTATE_INT) {
+	if (edac_op_state == EDAC_OPSTATE_INT)
+	{
 		free_irq(pdata->irqs.sec, mci);
 		free_irq(pdata->irqs.ded, mci);
 	}
@@ -1379,21 +1478,23 @@ ppc4xx_edac_remove(struct platform_device *op)
 static inline void __init
 ppc4xx_edac_opstate_init(void)
 {
-	switch (edac_op_state) {
-	case EDAC_OPSTATE_POLL:
-	case EDAC_OPSTATE_INT:
-		break;
-	default:
-		edac_op_state = EDAC_OPSTATE_INT;
-		break;
+	switch (edac_op_state)
+	{
+		case EDAC_OPSTATE_POLL:
+		case EDAC_OPSTATE_INT:
+			break;
+
+		default:
+			edac_op_state = EDAC_OPSTATE_INT;
+			break;
 	}
 
 	ppc4xx_edac_printk(KERN_INFO, "Reporting type: %s\n",
-			   ((edac_op_state == EDAC_OPSTATE_POLL) ?
-			    EDAC_OPSTATE_POLL_STR :
-			    ((edac_op_state == EDAC_OPSTATE_INT) ?
-			     EDAC_OPSTATE_INT_STR :
-			     EDAC_OPSTATE_UNKNOWN_STR)));
+					   ((edac_op_state == EDAC_OPSTATE_POLL) ?
+						EDAC_OPSTATE_POLL_STR :
+						((edac_op_state == EDAC_OPSTATE_INT) ?
+						 EDAC_OPSTATE_INT_STR :
+						 EDAC_OPSTATE_UNKNOWN_STR)));
 }
 
 /**
@@ -1435,4 +1536,4 @@ MODULE_AUTHOR("Grant Erickson <gerickson@nuovations.com>");
 MODULE_DESCRIPTION("EDAC MC Driver for the PPC4xx IBM DDR2 Memory Controller");
 module_param(edac_op_state, int, 0444);
 MODULE_PARM_DESC(edac_op_state, "EDAC Error Reporting State: "
-		 "0=" EDAC_OPSTATE_POLL_STR ", 2=" EDAC_OPSTATE_INT_STR);
+				 "0=" EDAC_OPSTATE_POLL_STR ", 2=" EDAC_OPSTATE_INT_STR);

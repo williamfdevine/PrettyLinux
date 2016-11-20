@@ -63,20 +63,24 @@ static u64 skx_tolm, skx_tohm;
  * information, and also some that are local to each of the two
  * memory controllers on the die.
  */
-struct skx_dev {
+struct skx_dev
+{
 	struct list_head	list;
 	u8			bus[4];
 	struct pci_dev	*sad_all;
 	struct pci_dev	*util_all;
 	u32	mcroute;
-	struct skx_imc {
+	struct skx_imc
+	{
 		struct mem_ctl_info *mci;
 		u8	mc;	/* system wide mc# */
 		u8	lmc;	/* socket relative mc# */
 		u8	src_id, node_id;
-		struct skx_channel {
+		struct skx_channel
+		{
 			struct pci_dev *cdev;
-			struct skx_dimm {
+			struct skx_dimm
+			{
 				u8	close_pg;
 				u8	bank_xor_enable;
 				u8	fine_grain_bank;
@@ -88,11 +92,13 @@ struct skx_dev {
 };
 static int skx_num_sockets;
 
-struct skx_pvt {
+struct skx_pvt
+{
 	struct skx_imc	*imc;
 };
 
-struct decoded_addr {
+struct decoded_addr
+{
 	struct skx_dev *dev;
 	u64	addr;
 	int	socket;
@@ -115,19 +121,24 @@ static struct skx_dev *get_skx_dev(u8 bus, u8 idx)
 {
 	struct skx_dev *d;
 
-	list_for_each_entry(d, &skx_edac_list, list) {
+	list_for_each_entry(d, &skx_edac_list, list)
+	{
 		if (d->bus[idx] == bus)
+		{
 			return d;
+		}
 	}
 
 	return NULL;
 }
 
-enum munittype {
+enum munittype
+{
 	CHAN0, CHAN1, CHAN2, SAD_ALL, UTIL_ALL, SAD
 };
 
-struct munit {
+struct munit
+{
 	u16	did;
 	u16	devfn[NUM_IMC];
 	u8	busidx;
@@ -140,7 +151,8 @@ struct munit {
  * number and function numbers to tell which memory controller the
  * device belongs to.
  */
-static const struct munit skx_all_munits[] = {
+static const struct munit skx_all_munits[] =
+{
 	{ 0x2054, { }, 1, 1, SAD_ALL },
 	{ 0x2055, { }, 1, 1, UTIL_ALL },
 	{ 0x2040, { PCI_DEVFN(10, 0), PCI_DEVFN(12, 0) }, 2, 2, CHAN0 },
@@ -163,23 +175,32 @@ static int get_all_bus_mappings(void)
 	int ndev = 0;
 
 	prev = NULL;
-	for (;;) {
+
+	for (;;)
+	{
 		pdev = pci_get_device(PCI_VENDOR_ID_INTEL, 0x2016, prev);
+
 		if (!pdev)
+		{
 			break;
+		}
+
 		ndev++;
 		d = kzalloc(sizeof(*d), GFP_KERNEL);
-		if (!d) {
+
+		if (!d)
+		{
 			pci_dev_put(pdev);
 			return -ENOMEM;
 		}
+
 		pci_read_config_dword(pdev, 0xCC, &reg);
 		d->bus[0] =  GET_BITFIELD(reg, 0, 7);
 		d->bus[1] =  GET_BITFIELD(reg, 8, 15);
 		d->bus[2] =  GET_BITFIELD(reg, 16, 23);
 		d->bus[3] =  GET_BITFIELD(reg, 24, 31);
 		edac_dbg(2, "busses: %x, %x, %x, %x\n",
-			 d->bus[0], d->bus[1], d->bus[2], d->bus[3]);
+				 d->bus[0], d->bus[1], d->bus[2], d->bus[3]);
 		list_add_tail(&d->list, &skx_edac_list);
 		skx_num_sockets++;
 		prev = pdev;
@@ -196,61 +217,89 @@ static int get_all_munits(const struct munit *m)
 	int i = 0, ndev = 0;
 
 	prev = NULL;
-	for (;;) {
+
+	for (;;)
+	{
 		pdev = pci_get_device(PCI_VENDOR_ID_INTEL, m->did, prev);
+
 		if (!pdev)
+		{
 			break;
+		}
+
 		ndev++;
-		if (m->per_socket == NUM_IMC) {
+
+		if (m->per_socket == NUM_IMC)
+		{
 			for (i = 0; i < NUM_IMC; i++)
 				if (m->devfn[i] == pdev->devfn)
+				{
 					break;
+				}
+
 			if (i == NUM_IMC)
+			{
 				goto fail;
+			}
 		}
+
 		d = get_skx_dev(pdev->bus->number, m->busidx);
+
 		if (!d)
+		{
 			goto fail;
+		}
 
 		/* Be sure that the device is enabled */
-		if (unlikely(pci_enable_device(pdev) < 0)) {
+		if (unlikely(pci_enable_device(pdev) < 0))
+		{
 			skx_printk(KERN_ERR,
-				"Couldn't enable %04x:%04x\n", PCI_VENDOR_ID_INTEL, m->did);
+					   "Couldn't enable %04x:%04x\n", PCI_VENDOR_ID_INTEL, m->did);
 			goto fail;
 		}
 
-		switch (m->mtype) {
-		case CHAN0: case CHAN1: case CHAN2:
-			pci_dev_get(pdev);
-			d->imc[i].chan[m->mtype].cdev = pdev;
-			break;
-		case SAD_ALL:
-			pci_dev_get(pdev);
-			d->sad_all = pdev;
-			break;
-		case UTIL_ALL:
-			pci_dev_get(pdev);
-			d->util_all = pdev;
-			break;
-		case SAD:
-			/*
-			 * one of these devices per core, including cores
-			 * that don't exist on this SKU. Ignore any that
-			 * read a route table of zero, make sure all the
-			 * non-zero values match.
-			 */
-			pci_read_config_dword(pdev, 0xB4, &reg);
-			if (reg != 0) {
-				if (d->mcroute == 0)
-					d->mcroute = reg;
-				else if (d->mcroute != reg) {
-					skx_printk(KERN_ERR,
-						"mcroute mismatch\n");
-					goto fail;
+		switch (m->mtype)
+		{
+			case CHAN0: case CHAN1: case CHAN2:
+				pci_dev_get(pdev);
+				d->imc[i].chan[m->mtype].cdev = pdev;
+				break;
+
+			case SAD_ALL:
+				pci_dev_get(pdev);
+				d->sad_all = pdev;
+				break;
+
+			case UTIL_ALL:
+				pci_dev_get(pdev);
+				d->util_all = pdev;
+				break;
+
+			case SAD:
+				/*
+				 * one of these devices per core, including cores
+				 * that don't exist on this SKU. Ignore any that
+				 * read a route table of zero, make sure all the
+				 * non-zero values match.
+				 */
+				pci_read_config_dword(pdev, 0xB4, &reg);
+
+				if (reg != 0)
+				{
+					if (d->mcroute == 0)
+					{
+						d->mcroute = reg;
+					}
+					else if (d->mcroute != reg)
+					{
+						skx_printk(KERN_ERR,
+								   "mcroute mismatch\n");
+						goto fail;
+					}
 				}
-			}
-			ndev--;
-			break;
+
+				ndev--;
+				break;
 		}
 
 		prev = pdev;
@@ -262,7 +311,8 @@ fail:
 	return -ENODEV;
 }
 
-const struct x86_cpu_id skx_cpuids[] = {
+const struct x86_cpu_id skx_cpuids[] =
+{
 	{ X86_VENDOR_INTEL, 6, 0x55, 0, 0 },	/* Skylake */
 	{ }
 };
@@ -287,14 +337,16 @@ static u8 skx_get_node_id(struct skx_dev *d)
 }
 
 static int get_dimm_attr(u32 reg, int lobit, int hibit, int add, int minval,
-			 int maxval, char *name)
+						 int maxval, char *name)
 {
 	u32 val = GET_BITFIELD(reg, lobit, hibit);
 
-	if (val < minval || val > maxval) {
+	if (val < minval || val > maxval)
+	{
 		edac_dbg(2, "bad %s = %d (raw=%x)\n", name, val, reg);
 		return -EINVAL;
 	}
+
 	return val + add;
 }
 
@@ -306,14 +358,18 @@ static int get_dimm_attr(u32 reg, int lobit, int hibit, int add, int minval,
 
 static int get_width(u32 mtr)
 {
-	switch (GET_BITFIELD(mtr, 8, 9)) {
-	case 0:
-		return DEV_X4;
-	case 1:
-		return DEV_X8;
-	case 2:
-		return DEV_X16;
+	switch (GET_BITFIELD(mtr, 8, 9))
+	{
+		case 0:
+			return DEV_X4;
+
+		case 1:
+			return DEV_X8;
+
+		case 2:
+			return DEV_X16;
 	}
+
 	return DEV_UNKNOWN;
 }
 
@@ -323,7 +379,9 @@ static int skx_get_hi_lo(void)
 	u32 reg;
 
 	pdev = pci_get_device(PCI_VENDOR_ID_INTEL, 0x2034, NULL);
-	if (!pdev) {
+
+	if (!pdev)
+	{
 		edac_dbg(0, "Can't get tolm/tohm\n");
 		return -ENODEV;
 	}
@@ -342,13 +400,16 @@ static int skx_get_hi_lo(void)
 }
 
 static int get_dimm_info(u32 mtr, u32 amap, struct dimm_info *dimm,
-			 struct skx_imc *imc, int chan, int dimmno)
+						 struct skx_imc *imc, int chan, int dimmno)
 {
 	int  banks = 16, ranks, rows, cols, npages;
 	u64 size;
 
 	if (!IS_DIMM_PRESENT(mtr))
+	{
 		return 0;
+	}
+
 	ranks = numrank(mtr);
 	rows = numrow(mtr);
 	cols = numcol(mtr);
@@ -360,8 +421,8 @@ static int get_dimm_info(u32 mtr, u32 amap, struct dimm_info *dimm,
 	npages = MiB_TO_PAGES(size);
 
 	edac_dbg(0, "mc#%d: channel %d, dimm %d, %lld Mb (%d pages) bank: %d, rank: %d, row: %#x, col: %#x\n",
-		 imc->mc, chan, dimmno, size, npages,
-		 banks, ranks, rows, cols);
+			 imc->mc, chan, dimmno, size, npages,
+			 banks, ranks, rows, cols);
 
 	imc->chan[chan].dimms[dimmno].close_pg = GET_BITFIELD(mtr, 0, 0);
 	imc->chan[chan].dimms[dimmno].bank_xor_enable = GET_BITFIELD(mtr, 9, 9);
@@ -375,7 +436,7 @@ static int get_dimm_info(u32 mtr, u32 amap, struct dimm_info *dimm,
 	dimm->mtype = MEM_DDR4;
 	dimm->edac_mode = EDAC_SECDED; /* likely better than this */
 	snprintf(dimm->label, sizeof(dimm->label), "CPU_SrcID#%u_MC#%u_Chan#%u_DIMM#%u",
-		 imc->src_id, imc->lmc, chan, dimmno);
+			 imc->src_id, imc->lmc, chan, dimmno);
 
 	return 1;
 }
@@ -401,17 +462,22 @@ static int skx_get_dimm_config(struct mem_ctl_info *mci)
 	u32 mtr, amap;
 	int ndimms;
 
-	for (i = 0; i < NUM_CHANNELS; i++) {
+	for (i = 0; i < NUM_CHANNELS; i++)
+	{
 		ndimms = 0;
 		pci_read_config_dword(imc->chan[i].cdev, 0x8C, &amap);
-		for (j = 0; j < NUM_DIMMS; j++) {
+
+		for (j = 0; j < NUM_DIMMS; j++)
+		{
 			dimm = EDAC_DIMM_PTR(mci->layers, mci->dimms,
-					     mci->n_layers, i, j, 0);
+								 mci->n_layers, i, j, 0);
 			pci_read_config_dword(imc->chan[i].cdev,
-					0x80 + 4*j, &mtr);
+								  0x80 + 4 * j, &mtr);
 			ndimms += get_dimm_info(mtr, amap, dimm, imc, i, j);
 		}
-		if (ndimms && !skx_check_ecc(imc->chan[0].cdev)) {
+
+		if (ndimms && !skx_check_ecc(imc->chan[0].cdev))
+		{
 			skx_printk(KERN_ERR, "ECC is disabled on imc %d\n", imc->mc);
 			return -ENODEV;
 		}
@@ -425,7 +491,9 @@ static void skx_unregister_mci(struct skx_imc *imc)
 	struct mem_ctl_info *mci = imc->mci;
 
 	if (!mci)
+	{
 		return;
+	}
 
 	edac_dbg(0, "MC%d: mci = %p\n", imc->mc, mci);
 
@@ -453,10 +521,12 @@ static int skx_register_mci(struct skx_imc *imc)
 	layers[1].size = NUM_DIMMS;
 	layers[1].is_virt_csrow = true;
 	mci = edac_mc_alloc(imc->mc, ARRAY_SIZE(layers), layers,
-			    sizeof(struct skx_pvt));
+						sizeof(struct skx_pvt));
 
 	if (unlikely(!mci))
+	{
 		return -ENOMEM;
+	}
 
 	edac_dbg(0, "MC#%d: mci = %p\n", imc->mc, mci);
 
@@ -466,7 +536,7 @@ static int skx_register_mci(struct skx_imc *imc)
 	pvt->imc = imc;
 
 	mci->ctl_name = kasprintf(GFP_KERNEL, "Skylake Socket#%d IMC#%d",
-				  imc->node_id, imc->lmc);
+							  imc->node_id, imc->lmc);
 	mci->mtype_cap = MEM_FLAG_DDR4;
 	mci->edac_ctl_cap = EDAC_FLAG_NONE;
 	mci->edac_cap = EDAC_FLAG_NONE;
@@ -476,14 +546,18 @@ static int skx_register_mci(struct skx_imc *imc)
 	mci->ctl_page_to_phys = NULL;
 
 	rc = skx_get_dimm_config(mci);
+
 	if (rc < 0)
+	{
 		goto fail;
+	}
 
 	/* record ptr to the generic device */
 	mci->pdev = &pdev->dev;
 
 	/* add this new MC control structure to EDAC's list of MCs */
-	if (unlikely(edac_mc_add_mc(mci))) {
+	if (unlikely(edac_mc_add_mc(mci)))
+	{
 		edac_dbg(0, "MC: failed edac_mc_add_mc()\n");
 		rc = -EINVAL;
 		goto fail;
@@ -526,92 +600,124 @@ static bool skx_sad_decode(struct decoded_addr *res)
 	int remote = 0;
 
 	/* Simple sanity check for I/O space or out of range */
-	if (addr >= skx_tohm || (addr >= skx_tolm && addr < BIT_ULL(32))) {
+	if (addr >= skx_tohm || (addr >= skx_tolm && addr < BIT_ULL(32)))
+	{
 		edac_dbg(0, "Address %llx out of range\n", addr);
 		return false;
 	}
 
 restart:
 	prev_limit = 0;
-	for (i = 0; i < SKX_MAX_SAD; i++) {
+
+	for (i = 0; i < SKX_MAX_SAD; i++)
+	{
 		SKX_GET_SAD(d, i, sad);
 		limit = SKX_SAD_LIMIT(sad);
-		if (SKX_SAD_ENABLE(sad)) {
+
+		if (SKX_SAD_ENABLE(sad))
+		{
 			if (addr >= prev_limit && addr <= limit)
+			{
 				goto sad_found;
+			}
 		}
+
 		prev_limit = limit + 1;
 	}
+
 	edac_dbg(0, "No SAD entry for %llx\n", addr);
 	return false;
 
 sad_found:
 	SKX_GET_ILV(d, i, ilv);
 
-	switch (SKX_SAD_INTERLEAVE(sad)) {
-	case 0:
-		idx = GET_BITFIELD(addr, 6, 8);
-		break;
-	case 1:
-		idx = GET_BITFIELD(addr, 8, 10);
-		break;
-	case 2:
-		idx = GET_BITFIELD(addr, 12, 14);
-		break;
-	case 3:
-		idx = GET_BITFIELD(addr, 30, 32);
-		break;
+	switch (SKX_SAD_INTERLEAVE(sad))
+	{
+		case 0:
+			idx = GET_BITFIELD(addr, 6, 8);
+			break;
+
+		case 1:
+			idx = GET_BITFIELD(addr, 8, 10);
+			break;
+
+		case 2:
+			idx = GET_BITFIELD(addr, 12, 14);
+			break;
+
+		case 3:
+			idx = GET_BITFIELD(addr, 30, 32);
+			break;
 	}
 
 	tgt = GET_BITFIELD(ilv, 4 * idx, 4 * idx + 3);
 
 	/* If point to another node, find it and start over */
-	if (SKX_ILV_REMOTE(tgt)) {
-		if (remote) {
+	if (SKX_ILV_REMOTE(tgt))
+	{
+		if (remote)
+		{
 			edac_dbg(0, "Double remote!\n");
 			return false;
 		}
+
 		remote = 1;
-		list_for_each_entry(d, &skx_edac_list, list) {
+		list_for_each_entry(d, &skx_edac_list, list)
+		{
 			if (d->imc[0].src_id == SKX_ILV_TARGET(tgt))
+			{
 				goto restart;
+			}
 		}
 		edac_dbg(0, "Can't find node %d\n", SKX_ILV_TARGET(tgt));
 		return false;
 	}
 
 	if (SKX_SAD_MOD3(sad) == 0)
+	{
 		lchan = SKX_ILV_TARGET(tgt);
-	else {
-		switch (SKX_SAD_MOD3MODE(sad)) {
-		case 0:
-			shift = 6;
-			break;
-		case 1:
-			shift = 8;
-			break;
-		case 2:
-			shift = 12;
-			break;
-		default:
-			edac_dbg(0, "illegal mod3mode\n");
-			return false;
+	}
+	else
+	{
+		switch (SKX_SAD_MOD3MODE(sad))
+		{
+			case 0:
+				shift = 6;
+				break;
+
+			case 1:
+				shift = 8;
+				break;
+
+			case 2:
+				shift = 12;
+				break;
+
+			default:
+				edac_dbg(0, "illegal mod3mode\n");
+				return false;
 		}
-		switch (SKX_SAD_MOD3ASMOD2(sad)) {
-		case 0:
-			lchan = (addr >> shift) % 3;
-			break;
-		case 1:
-			lchan = (addr >> shift) % 2;
-			break;
-		case 2:
-			lchan = (addr >> shift) % 2;
-			lchan = (lchan << 1) | ~lchan;
-			break;
-		case 3:
-			lchan = ((addr >> shift) % 2) << 1;
-			break;
+
+		switch (SKX_SAD_MOD3ASMOD2(sad))
+		{
+			case 0:
+				lchan = (addr >> shift) % 3;
+				break;
+
+			case 1:
+				lchan = (addr >> shift) % 2;
+				break;
+
+			case 2:
+				lchan = (addr >> shift) % 2;
+				lchan = (lchan << 1) | ~lchan;
+				break;
+
+			case 3:
+				lchan = ((addr >> shift) % 2) << 1;
+				break;
 		}
+
 		lchan = (lchan << 1) | (SKX_ILV_TARGET(tgt) & 1);
 	}
 
@@ -621,7 +727,7 @@ sad_found:
 	res->channel = GET_BITFIELD(d->mcroute, lchan * 2 + 18, lchan * 2 + 19);
 
 	edac_dbg(2, "%llx: socket=%d imc=%d channel=%d\n",
-		 res->addr, res->socket, res->imc, res->channel);
+			 res->addr, res->socket, res->imc, res->channel);
 	return true;
 }
 
@@ -661,12 +767,17 @@ static bool skx_tad_decode(struct decoded_addr *res)
 	int skt_interleave_bit, chn_interleave_bit;
 	u64 channel_addr;
 
-	for (i = 0; i < SKX_MAX_TAD; i++) {
+	for (i = 0; i < SKX_MAX_TAD; i++)
+	{
 		SKX_GET_TADBASE(res->dev, res->imc, i, base);
 		SKX_GET_TADWAYNESS(res->dev, res->imc, i, wayness);
+
 		if (SKX_TAD_BASE(base) <= res->addr && res->addr <= SKX_TAD_LIMIT(wayness))
+		{
 			goto tad_found;
+		}
 	}
+
 	edac_dbg(0, "No TAD entry for %llx\n", res->addr);
 	return false;
 
@@ -679,24 +790,27 @@ tad_found:
 	SKX_GET_TADCHNILVOFFSET(res->dev, res->imc, res->channel, i, chnilvoffset);
 	channel_addr = res->addr - SKX_TAD_OFFSET(chnilvoffset);
 
-	if (res->chanways == 3 && skt_interleave_bit > chn_interleave_bit) {
+	if (res->chanways == 3 && skt_interleave_bit > chn_interleave_bit)
+	{
 		/* Must handle channel first, then socket */
 		channel_addr = skx_do_interleave(channel_addr, chn_interleave_bit,
-						 res->chanways, channel_addr);
+										 res->chanways, channel_addr);
 		channel_addr = skx_do_interleave(channel_addr, skt_interleave_bit,
-						 res->sktways, channel_addr);
-	} else {
+										 res->sktways, channel_addr);
+	}
+	else
+	{
 		/* Handle socket then channel. Preserve low bits from original address */
 		channel_addr = skx_do_interleave(channel_addr, skt_interleave_bit,
-						 res->sktways, res->addr);
+										 res->sktways, res->addr);
 		channel_addr = skx_do_interleave(channel_addr, chn_interleave_bit,
-						 res->chanways, res->addr);
+										 res->chanways, res->addr);
 	}
 
 	res->chan_addr = channel_addr;
 
 	edac_dbg(2, "%llx: chan_addr=%llx sktways=%d chanways=%d\n",
-		 res->addr, res->chan_addr, res->sktways, res->chanways);
+			 res->addr, res->chan_addr, res->sktways, res->chanways);
 	return true;
 }
 
@@ -704,10 +818,10 @@ tad_found:
 
 #define SKX_GET_RIRWAYNESS(d, mc, ch, i, reg)		\
 	pci_read_config_dword((d)->imc[mc].chan[ch].cdev,	\
-			      0x108 + 4 * (i), &reg)
+						  0x108 + 4 * (i), &reg)
 #define SKX_GET_RIRILV(d, mc, ch, idx, i, reg)		\
 	pci_read_config_dword((d)->imc[mc].chan[ch].cdev,	\
-			      0x120 + 16 * idx + 4 * (i), &reg)
+						  0x120 + 16 * idx + 4 * (i), &reg)
 
 #define	SKX_RIR_VALID(b) GET_BITFIELD((b), 31, 31)
 #define	SKX_RIR_LIMIT(b) (((u64)GET_BITFIELD((b), 1, 11) << 29) | MASK29)
@@ -723,20 +837,31 @@ static bool skx_rir_decode(struct decoded_addr *res)
 	u64 rank_addr, prev_limit = 0, limit;
 
 	if (res->dev->imc[res->imc].chan[res->channel].dimms[0].close_pg)
+	{
 		shift = 6;
+	}
 	else
+	{
 		shift = 13;
+	}
 
-	for (i = 0; i < SKX_MAX_RIR; i++) {
+	for (i = 0; i < SKX_MAX_RIR; i++)
+	{
 		SKX_GET_RIRWAYNESS(res->dev, res->imc, res->channel, i, rirway);
 		limit = SKX_RIR_LIMIT(rirway);
-		if (SKX_RIR_VALID(rirway)) {
+
+		if (SKX_RIR_VALID(rirway))
+		{
 			if (prev_limit <= res->chan_addr &&
-			    res->chan_addr <= limit)
+				res->chan_addr <= limit)
+			{
 				goto rir_found;
+			}
 		}
+
 		prev_limit = limit;
 	}
+
 	edac_dbg(0, "No RIR entry for %llx\n", res->addr);
 	return false;
 
@@ -757,24 +882,29 @@ rir_found:
 	res->rank = chan_rank % 4;
 
 	edac_dbg(2, "%llx: dimm=%d rank=%d chan_rank=%d rank_addr=%llx\n",
-		 res->addr, res->dimm, res->rank,
-		 res->channel_rank, res->rank_address);
+			 res->addr, res->dimm, res->rank,
+			 res->channel_rank, res->rank_address);
 	return true;
 }
 
-static u8 skx_close_row[] = {
+static u8 skx_close_row[] =
+{
 	15, 16, 17, 18, 20, 21, 22, 28, 10, 11, 12, 13, 29, 30, 31, 32, 33
 };
-static u8 skx_close_column[] = {
+static u8 skx_close_column[] =
+{
 	3, 4, 5, 14, 19, 23, 24, 25, 26, 27
 };
-static u8 skx_open_row[] = {
+static u8 skx_open_row[] =
+{
 	14, 15, 16, 20, 28, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31, 32, 33
 };
-static u8 skx_open_column[] = {
+static u8 skx_open_column[] =
+{
 	3, 4, 5, 6, 7, 8, 9, 10, 11, 12
 };
-static u8 skx_open_fine_column[] = {
+static u8 skx_open_fine_column[] =
+{
 	3, 4, 5, 7, 8, 9, 10, 11, 12, 13
 };
 
@@ -783,7 +913,10 @@ static int skx_bits(u64 addr, int nbits, u8 *bits)
 	int i, res = 0;
 
 	for (i = 0; i < nbits; i++)
+	{
 		res |= ((addr >> bits[i]) & 1) << i;
+	}
+
 	return res;
 }
 
@@ -792,7 +925,9 @@ static int skx_bank_bits(u64 addr, int b0, int b1, int do_xor, int x0, int x1)
 	int ret = GET_BITFIELD(addr, b0, b0) | (GET_BITFIELD(addr, b1, b1) << 1);
 
 	if (do_xor)
+	{
 		ret ^= GET_BITFIELD(addr, x0, x0) | (GET_BITFIELD(addr, x1, x1) << 1);
+	}
 
 	return ret;
 }
@@ -802,26 +937,36 @@ static bool skx_mad_decode(struct decoded_addr *r)
 	struct skx_dimm *dimm = &r->dev->imc[r->imc].chan[r->channel].dimms[r->dimm];
 	int bg0 = dimm->fine_grain_bank ? 6 : 13;
 
-	if (dimm->close_pg) {
+	if (dimm->close_pg)
+	{
 		r->row = skx_bits(r->rank_address, dimm->rowbits, skx_close_row);
 		r->column = skx_bits(r->rank_address, dimm->colbits, skx_close_column);
 		r->column |= 0x400; /* C10 is autoprecharge, always set */
 		r->bank_address = skx_bank_bits(r->rank_address, 8, 9, dimm->bank_xor_enable, 22, 28);
 		r->bank_group = skx_bank_bits(r->rank_address, 6, 7, dimm->bank_xor_enable, 20, 21);
-	} else {
+	}
+	else
+	{
 		r->row = skx_bits(r->rank_address, dimm->rowbits, skx_open_row);
+
 		if (dimm->fine_grain_bank)
+		{
 			r->column = skx_bits(r->rank_address, dimm->colbits, skx_open_fine_column);
+		}
 		else
+		{
 			r->column = skx_bits(r->rank_address, dimm->colbits, skx_open_column);
+		}
+
 		r->bank_address = skx_bank_bits(r->rank_address, 18, 19, dimm->bank_xor_enable, 22, 23);
 		r->bank_group = skx_bank_bits(r->rank_address, bg0, 17, dimm->bank_xor_enable, 20, 21);
 	}
+
 	r->row &= (1u << dimm->rowbits) - 1;
 
 	edac_dbg(2, "%llx: row=%x col=%x bank_addr=%d bank_group=%d\n",
-		 r->addr, r->row, r->column, r->bank_address,
-		 r->bank_group);
+			 r->addr, r->row, r->column, r->bank_address,
+			 r->bank_group);
 	return true;
 }
 
@@ -829,7 +974,7 @@ static bool skx_decode(struct decoded_addr *res)
 {
 
 	return skx_sad_decode(res) && skx_tad_decode(res) &&
-		skx_rir_decode(res) && skx_mad_decode(res);
+		   skx_rir_decode(res) && skx_mad_decode(res);
 }
 
 #ifdef CONFIG_EDAC_DEBUG
@@ -854,7 +999,7 @@ static int debugfs_u64_set(void *data, u64 val)
 DEFINE_SIMPLE_ATTRIBUTE(fops_u64_wo, NULL, debugfs_u64_set, "%llu\n");
 
 static struct dentry *mydebugfs_create(const char *name, umode_t mode,
-				       struct dentry *parent, u64 *value)
+									   struct dentry *parent, u64 *value)
 {
 	return debugfs_create_file(name, mode, parent, value, &fops_u64_wo);
 }
@@ -880,8 +1025,8 @@ static void teardown_skx_debug(void)
 #endif /*CONFIG_EDAC_DEBUG*/
 
 static void skx_mce_output_error(struct mem_ctl_info *mci,
-				 const struct mce *m,
-				 struct decoded_addr *res)
+								 const struct mce *m,
+								 struct decoded_addr *res)
 {
 	enum hw_event_mc_err_type tp_event;
 	char *type, *optype, msg[256];
@@ -896,15 +1041,21 @@ static void skx_mce_output_error(struct mem_ctl_info *mci,
 
 	recoverable = GET_BITFIELD(m->status, 56, 56);
 
-	if (uncorrected_error) {
-		if (ripv) {
+	if (uncorrected_error)
+	{
+		if (ripv)
+		{
 			type = "FATAL";
 			tp_event = HW_EVENT_ERR_FATAL;
-		} else {
+		}
+		else
+		{
 			type = "NON_FATAL";
 			tp_event = HW_EVENT_ERR_UNCORRECTED;
 		}
-	} else {
+	}
+	else
+	{
 		type = "CORRECTED";
 		tp_event = HW_EVENT_ERR_CORRECTED;
 	}
@@ -920,50 +1071,59 @@ static void skx_mce_output_error(struct mem_ctl_info *mci,
 	 *	cccc = channel
 	 * If the mask doesn't match, report an error to the parsing logic
 	 */
-	if (!((errcode & 0xef80) == 0x80)) {
+	if (!((errcode & 0xef80) == 0x80))
+	{
 		optype = "Can't parse: it is not a mem";
-	} else {
-		switch (optypenum) {
-		case 0:
-			optype = "generic undef request error";
-			break;
-		case 1:
-			optype = "memory read error";
-			break;
-		case 2:
-			optype = "memory write error";
-			break;
-		case 3:
-			optype = "addr/cmd error";
-			break;
-		case 4:
-			optype = "memory scrubbing error";
-			break;
-		default:
-			optype = "reserved";
-			break;
+	}
+	else
+	{
+		switch (optypenum)
+		{
+			case 0:
+				optype = "generic undef request error";
+				break;
+
+			case 1:
+				optype = "memory read error";
+				break;
+
+			case 2:
+				optype = "memory write error";
+				break;
+
+			case 3:
+				optype = "addr/cmd error";
+				break;
+
+			case 4:
+				optype = "memory scrubbing error";
+				break;
+
+			default:
+				optype = "reserved";
+				break;
 		}
 	}
 
 	snprintf(msg, sizeof(msg),
-		 "%s%s err_code:%04x:%04x socket:%d imc:%d rank:%d bg:%d ba:%d row:%x col:%x",
-		 overflow ? " OVERFLOW" : "",
-		 (uncorrected_error && recoverable) ? " recoverable" : "",
-		 mscod, errcode,
-		 res->socket, res->imc, res->rank,
-		 res->bank_group, res->bank_address, res->row, res->column);
+			 "%s%s err_code:%04x:%04x socket:%d imc:%d rank:%d bg:%d ba:%d row:%x col:%x",
+			 overflow ? " OVERFLOW" : "",
+			 (uncorrected_error && recoverable) ? " recoverable" : "",
+			 mscod, errcode,
+			 res->socket, res->imc, res->rank,
+			 res->bank_group, res->bank_address, res->row, res->column);
 
 	edac_dbg(0, "%s\n", msg);
 
 	/* Call the helper to output message */
 	edac_mc_handle_error(tp_event, mci, core_err_cnt,
-			     m->addr >> PAGE_SHIFT, m->addr & ~PAGE_MASK, 0,
-			     res->channel, res->dimm, -1,
-			     optype, msg);
+						 m->addr >> PAGE_SHIFT, m->addr & ~PAGE_MASK, 0,
+						 res->channel, res->dimm, -1,
+						 optype, msg);
 }
 
 static int skx_mce_check_error(struct notifier_block *nb, unsigned long val,
-			       void *data)
+							   void *data)
 {
 	struct mce *mce = (struct mce *)data;
 	struct decoded_addr res;
@@ -971,41 +1131,54 @@ static int skx_mce_check_error(struct notifier_block *nb, unsigned long val,
 	char *type;
 
 	if (get_edac_report_status() == EDAC_REPORTING_DISABLED)
+	{
 		return NOTIFY_DONE;
+	}
 
 	/* ignore unless this is memory related with an address */
 	if ((mce->status & 0xefff) >> 7 != 1 || !(mce->status & MCI_STATUS_ADDRV))
+	{
 		return NOTIFY_DONE;
+	}
 
 	res.addr = mce->addr;
+
 	if (!skx_decode(&res))
+	{
 		return NOTIFY_DONE;
+	}
+
 	mci = res.dev->imc[res.imc].mci;
 
 	if (mce->mcgstatus & MCG_STATUS_MCIP)
+	{
 		type = "Exception";
+	}
 	else
+	{
 		type = "Event";
+	}
 
 	skx_mc_printk(mci, KERN_DEBUG, "HANDLING MCE MEMORY ERROR\n");
 
 	skx_mc_printk(mci, KERN_DEBUG, "CPU %d: Machine Check %s: %Lx "
-			  "Bank %d: %016Lx\n", mce->extcpu, type,
-			  mce->mcgstatus, mce->bank, mce->status);
+				  "Bank %d: %016Lx\n", mce->extcpu, type,
+				  mce->mcgstatus, mce->bank, mce->status);
 	skx_mc_printk(mci, KERN_DEBUG, "TSC %llx ", mce->tsc);
 	skx_mc_printk(mci, KERN_DEBUG, "ADDR %llx ", mce->addr);
 	skx_mc_printk(mci, KERN_DEBUG, "MISC %llx ", mce->misc);
 
 	skx_mc_printk(mci, KERN_DEBUG, "PROCESSOR %u:%x TIME %llu SOCKET "
-			  "%u APIC %x\n", mce->cpuvendor, mce->cpuid,
-			  mce->time, mce->socketid, mce->apicid);
+				  "%u APIC %x\n", mce->cpuvendor, mce->cpuid,
+				  mce->time, mce->socketid, mce->apicid);
 
 	skx_mce_output_error(mci, mce, &res);
 
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block skx_mce_dec = {
+static struct notifier_block skx_mce_dec =
+{
 	.notifier_call = skx_mce_check_error,
 };
 
@@ -1016,13 +1189,20 @@ static void skx_remove(void)
 
 	edac_dbg(0, "\n");
 
-	list_for_each_entry_safe(d, tmp, &skx_edac_list, list) {
+	list_for_each_entry_safe(d, tmp, &skx_edac_list, list)
+	{
 		list_del(&d->list);
-		for (i = 0; i < NUM_IMC; i++) {
+
+		for (i = 0; i < NUM_IMC; i++)
+		{
 			skx_unregister_mci(&d->imc[i]);
+
 			for (j = 0; j < NUM_CHANNELS; j++)
+			{
 				pci_dev_put(d->imc[i].chan[j].cdev);
+			}
 		}
+
 		pci_dev_put(d->util_all);
 		pci_dev_put(d->sad_all);
 
@@ -1047,45 +1227,68 @@ int __init skx_init(void)
 	edac_dbg(2, "\n");
 
 	id = x86_match_cpu(skx_cpuids);
+
 	if (!id)
+	{
 		return -ENODEV;
+	}
 
 	rc = skx_get_hi_lo();
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = get_all_bus_mappings();
+
 	if (rc < 0)
+	{
 		goto fail;
-	if (rc == 0) {
+	}
+
+	if (rc == 0)
+	{
 		edac_dbg(2, "No memory controllers found\n");
 		return -ENODEV;
 	}
 
-	for (m = skx_all_munits; m->did; m++) {
+	for (m = skx_all_munits; m->did; m++)
+	{
 		rc = get_all_munits(m);
+
 		if (rc < 0)
+		{
 			goto fail;
-		if (rc != m->per_socket * skx_num_sockets) {
+		}
+
+		if (rc != m->per_socket * skx_num_sockets)
+		{
 			edac_dbg(2, "Expected %d, got %d of %x\n",
-				 m->per_socket * skx_num_sockets, rc, m->did);
+					 m->per_socket * skx_num_sockets, rc, m->did);
 			rc = -ENODEV;
 			goto fail;
 		}
 	}
 
-	list_for_each_entry(d, &skx_edac_list, list) {
+	list_for_each_entry(d, &skx_edac_list, list)
+	{
 		src_id = get_src_id(d);
 		node_id = skx_get_node_id(d);
 		edac_dbg(2, "src_id=%d node_id=%d\n", src_id, node_id);
-		for (i = 0; i < NUM_IMC; i++) {
+
+		for (i = 0; i < NUM_IMC; i++)
+		{
 			d->imc[i].mc = mc++;
 			d->imc[i].lmc = i;
 			d->imc[i].src_id = src_id;
 			d->imc[i].node_id = node_id;
 			rc = skx_register_mci(&d->imc[i]);
+
 			if (rc < 0)
+			{
 				goto fail;
+			}
 		}
 	}
 

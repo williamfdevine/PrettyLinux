@@ -20,7 +20,8 @@
 #define LP55XX_CLOCK_INT	1
 #define LP55XX_CLOCK_EXT	2
 
-struct lp55xx_led_config {
+struct lp55xx_led_config
+{
 	const char *name;
 	const char *default_trigger;
 	u8 chan_nr;
@@ -28,7 +29,8 @@ struct lp55xx_led_config {
 	u8 max_current;
 };
 
-struct lp55xx_predef_pattern {
+struct lp55xx_predef_pattern
+{
 	const u8 *r;
 	const u8 *g;
 	const u8 *b;
@@ -37,7 +39,8 @@ struct lp55xx_predef_pattern {
 	u8 size_b;
 };
 
-enum lp8501_pwr_sel {
+enum lp8501_pwr_sel
+{
 	LP8501_ALL_VDD,		/* D1~9 are connected to VDD */
 	LP8501_6VDD_3VOUT,	/* D1~6 with VDD, D7~9 with VOUT */
 	LP8501_3VDD_6VOUT,	/* D1~6 with VOUT, D7~9 with VDD */
@@ -57,7 +60,8 @@ enum lp8501_pwr_sel {
  * @num_patterns      : Number of patterns
  * @update_config     : Value of CONFIG register
  */
-struct lp55xx_platform_data {
+struct lp55xx_platform_data
+{
 
 	/* LED channel configuration */
 	struct lp55xx_led_config *led_config;

@@ -18,7 +18,8 @@
 #define AK881X_FIELD		(1 << 2)
 #define AK881X_COMPONENT	(1 << 3)
 
-struct ak881x_pdata {
+struct ak881x_pdata
+{
 	unsigned long flags;
 };
 

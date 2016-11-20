@@ -17,20 +17,20 @@
  * case for each use case.
  */
 #if defined(_CALL_ELF) && _CALL_ELF == 2
-#define STACK_FRAME_MIN_SIZE 32
-#define STACK_FRAME_TOC_POS  24
-#define __STACK_FRAME_PARAM(_param)  (32 + ((_param)*8))
-#define __STACK_FRAME_LOCAL(_num_params,_var_num)  ((STACK_FRAME_PARAM(_num_params)) + ((_var_num)*8))
+	#define STACK_FRAME_MIN_SIZE 32
+	#define STACK_FRAME_TOC_POS  24
+	#define __STACK_FRAME_PARAM(_param)  (32 + ((_param)*8))
+	#define __STACK_FRAME_LOCAL(_num_params,_var_num)  ((STACK_FRAME_PARAM(_num_params)) + ((_var_num)*8))
 #else
-#define STACK_FRAME_MIN_SIZE 112
-#define STACK_FRAME_TOC_POS  40
-#define __STACK_FRAME_PARAM(i)  (48 + ((i)*8))
+	#define STACK_FRAME_MIN_SIZE 112
+	#define STACK_FRAME_TOC_POS  40
+	#define __STACK_FRAME_PARAM(i)  (48 + ((i)*8))
 
-/*
- * Caveat: if a function passed more than 8 doublewords, the caller will have
- * made more space... which would render the 112 incorrect.
- */
-#define __STACK_FRAME_LOCAL(_num_params,_var_num)  (112 + ((_var_num)*8))
+	/*
+	* Caveat: if a function passed more than 8 doublewords, the caller will have
+	* made more space... which would render the 112 incorrect.
+	*/
+	#define __STACK_FRAME_LOCAL(_num_params,_var_num)  (112 + ((_var_num)*8))
 #endif
 
 /* Parameter x saved to the stack */

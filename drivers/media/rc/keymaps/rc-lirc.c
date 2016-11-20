@@ -12,11 +12,13 @@
 #include <media/rc-core.h>
 #include <linux/module.h>
 
-static struct rc_map_table lirc[] = {
+static struct rc_map_table lirc[] =
+{
 	{ },
 };
 
-static struct rc_map_list lirc_map = {
+static struct rc_map_list lirc_map =
+{
 	.map = {
 		.scan    = lirc,
 		.size    = ARRAY_SIZE(lirc),

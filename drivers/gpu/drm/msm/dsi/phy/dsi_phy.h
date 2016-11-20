@@ -21,13 +21,15 @@
 #define dsi_phy_read(offset) msm_readl((offset))
 #define dsi_phy_write(offset, data) msm_writel((data), (offset))
 
-struct msm_dsi_phy_ops {
+struct msm_dsi_phy_ops
+{
 	int (*enable)(struct msm_dsi_phy *phy, int src_pll_id,
-		const unsigned long bit_rate, const unsigned long esc_rate);
+				  const unsigned long bit_rate, const unsigned long esc_rate);
 	void (*disable)(struct msm_dsi_phy *phy);
 };
 
-struct msm_dsi_phy_cfg {
+struct msm_dsi_phy_cfg
+{
 	enum msm_dsi_phy_type type;
 	struct dsi_reg_config reg_cfg;
 	struct msm_dsi_phy_ops ops;
@@ -47,7 +49,8 @@ extern const struct msm_dsi_phy_cfg dsi_phy_28nm_lp_cfgs;
 extern const struct msm_dsi_phy_cfg dsi_phy_20nm_cfgs;
 extern const struct msm_dsi_phy_cfg dsi_phy_28nm_8960_cfgs;
 
-struct msm_dsi_dphy_timing {
+struct msm_dsi_dphy_timing
+{
 	u32 clk_pre;
 	u32 clk_post;
 	u32 clk_zero;
@@ -63,7 +66,8 @@ struct msm_dsi_dphy_timing {
 	u32 ta_get;
 };
 
-struct msm_dsi_phy {
+struct msm_dsi_phy
+{
 	struct platform_device *pdev;
 	void __iomem *base;
 	void __iomem *reg_base;
@@ -84,9 +88,9 @@ struct msm_dsi_phy {
  * PHY internal functions
  */
 int msm_dsi_dphy_timing_calc(struct msm_dsi_dphy_timing *timing,
-	const unsigned long bit_rate, const unsigned long esc_rate);
+							 const unsigned long bit_rate, const unsigned long esc_rate);
 void msm_dsi_phy_set_src_pll(struct msm_dsi_phy *phy, int pll_id, u32 reg,
-				u32 bit_mask);
+							 u32 bit_mask);
 
 #endif /* __DSI_PHY_H__ */
 

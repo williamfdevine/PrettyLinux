@@ -45,15 +45,15 @@
 #define AUDIO_SRAM_CHANNEL	SRAM_CH08
 
 #define dprintk(level, fmt, arg...)				\
-do {								\
-	if (debug >= level)					\
-		pr_info("%s/1: " fmt, chip->dev->name, ##arg);	\
-} while (0)
+	do {								\
+		if (debug >= level)					\
+			pr_info("%s/1: " fmt, chip->dev->name, ##arg);	\
+	} while (0)
 #define dprintk_core(level, fmt, arg...)				\
-do {									\
-	if (debug >= level)						\
-		printk(KERN_DEBUG "%s/1: " fmt, chip->dev->name, ##arg); \
-} while (0)
+	do {									\
+		if (debug >= level)						\
+			printk(KERN_DEBUG "%s/1: " fmt, chip->dev->name, ##arg); \
+	} while (0)
 
 /****************************************************************************
 	Data type declarations - Can be moded to a header file later
@@ -61,7 +61,8 @@ do {									\
 
 static int devno;
 
-struct cx25821_audio_buffer {
+struct cx25821_audio_buffer
+{
 	unsigned int bpl;
 	struct cx25821_riscmem risc;
 	void			*vaddr;
@@ -70,7 +71,8 @@ struct cx25821_audio_buffer {
 	int                     nr_pages;
 };
 
-struct cx25821_audio_dev {
+struct cx25821_audio_dev
+{
 	struct cx25821_dev *dev;
 	struct cx25821_dmaqueue q;
 
@@ -151,29 +153,41 @@ static int cx25821_alsa_dma_init(struct cx25821_audio_dev *chip, int nr_pages)
 	int i;
 
 	buf->vaddr = vmalloc_32(nr_pages << PAGE_SHIFT);
-	if (NULL == buf->vaddr) {
+
+	if (NULL == buf->vaddr)
+	{
 		dprintk(1, "vmalloc_32(%d pages) failed\n", nr_pages);
 		return -ENOMEM;
 	}
 
 	dprintk(1, "vmalloc is at addr 0x%08lx, size=%d\n",
-				(unsigned long)buf->vaddr,
-				nr_pages << PAGE_SHIFT);
+			(unsigned long)buf->vaddr,
+			nr_pages << PAGE_SHIFT);
 
 	memset(buf->vaddr, 0, nr_pages << PAGE_SHIFT);
 	buf->nr_pages = nr_pages;
 
 	buf->sglist = vzalloc(buf->nr_pages * sizeof(*buf->sglist));
+
 	if (NULL == buf->sglist)
+	{
 		goto vzalloc_err;
+	}
 
 	sg_init_table(buf->sglist, buf->nr_pages);
-	for (i = 0; i < buf->nr_pages; i++) {
+
+	for (i = 0; i < buf->nr_pages; i++)
+	{
 		pg = vmalloc_to_page(buf->vaddr + i * PAGE_SIZE);
+
 		if (NULL == pg)
+		{
 			goto vmalloc_to_page_err;
+		}
+
 		sg_set_page(&buf->sglist[i], pg, PAGE_SIZE, 0);
 	}
+
 	return 0;
 
 vmalloc_to_page_err:
@@ -190,12 +204,14 @@ static int cx25821_alsa_dma_map(struct cx25821_audio_dev *dev)
 	struct cx25821_audio_buffer *buf = dev->buf;
 
 	buf->sglen = dma_map_sg(&dev->pci->dev, buf->sglist,
-			buf->nr_pages, PCI_DMA_FROMDEVICE);
+							buf->nr_pages, PCI_DMA_FROMDEVICE);
 
-	if (0 == buf->sglen) {
+	if (0 == buf->sglen)
+	{
 		pr_warn("%s: cx25821_alsa_map_sg failed\n", __func__);
 		return -ENOMEM;
 	}
+
 	return 0;
 }
 
@@ -204,7 +220,9 @@ static int cx25821_alsa_dma_unmap(struct cx25821_audio_dev *dev)
 	struct cx25821_audio_buffer *buf = dev->buf;
 
 	if (!buf->sglen)
+	{
 		return 0;
+	}
 
 	dma_unmap_sg(&dev->pci->dev, buf->sglist, buf->sglen, PCI_DMA_FROMDEVICE);
 	buf->sglen = 0;
@@ -229,7 +247,7 @@ static int _cx25821_start_audio_dma(struct cx25821_audio_dev *chip)
 	struct cx25821_audio_buffer *buf = chip->buf;
 	struct cx25821_dev *dev = chip->dev;
 	const struct sram_channel *audio_ch =
-	    &cx25821_sram_channels[AUDIO_SRAM_CHANNEL];
+			&cx25821_sram_channels[AUDIO_SRAM_CHANNEL];
 	u32 tmp = 0;
 
 	/* enable output on the GPIO 0 for the MCLK ADC (Audio) */
@@ -237,11 +255,11 @@ static int _cx25821_start_audio_dma(struct cx25821_audio_dev *chip)
 
 	/* Make sure RISC/FIFO are off before changing FIFO/RISC settings */
 	cx_clear(AUD_INT_DMA_CTL,
-		 FLD_AUD_DST_A_RISC_EN | FLD_AUD_DST_A_FIFO_EN);
+			 FLD_AUD_DST_A_RISC_EN | FLD_AUD_DST_A_FIFO_EN);
 
 	/* setup fifo + format - out channel */
 	cx25821_sram_channel_setup_audio(chip->dev, audio_ch, buf->bpl,
-					 buf->risc.dma);
+									 buf->risc.dma);
 
 	/* sets bpl size */
 	cx_write(AUD_A_LNGTH, buf->bpl);
@@ -254,7 +272,7 @@ static int _cx25821_start_audio_dma(struct cx25821_audio_dev *chip)
 	/* Set the input mode to 16-bit */
 	tmp = cx_read(AUD_A_CFG);
 	cx_write(AUD_A_CFG, tmp | FLD_AUD_DST_PK_MODE | FLD_AUD_DST_ENABLE |
-		 FLD_AUD_CLK_ENABLE);
+			 FLD_AUD_CLK_ENABLE);
 
 	/*
 	pr_info("DEBUG: Start audio DMA, %d B/line, cmds_start(0x%x)= %d lines/FIFO, %d periods, %d byte buffer\n",
@@ -265,7 +283,7 @@ static int _cx25821_start_audio_dma(struct cx25821_audio_dev *chip)
 
 	/* Enables corresponding bits at AUD_INT_STAT */
 	cx_write(AUD_A_INT_MSK, FLD_AUD_DST_RISCI1 | FLD_AUD_DST_OF |
-		 FLD_AUD_DST_SYNC | FLD_AUD_DST_OPC_ERR);
+			 FLD_AUD_DST_SYNC | FLD_AUD_DST_OPC_ERR);
 
 	/* Clean any pending interrupt bits already set */
 	cx_write(AUD_A_INT_STAT, ~0);
@@ -276,7 +294,7 @@ static int _cx25821_start_audio_dma(struct cx25821_audio_dev *chip)
 	/* Turn on audio downstream fifo and risc enable 0x101 */
 	tmp = cx_read(AUD_INT_DMA_CTL);
 	cx_set(AUD_INT_DMA_CTL, tmp |
-	       (FLD_AUD_DST_A_RISC_EN | FLD_AUD_DST_A_FIFO_EN));
+		   (FLD_AUD_DST_A_RISC_EN | FLD_AUD_DST_A_FIFO_EN));
 
 	mdelay(100);
 	return 0;
@@ -291,12 +309,12 @@ static int _cx25821_stop_audio_dma(struct cx25821_audio_dev *chip)
 
 	/* stop dma */
 	cx_clear(AUD_INT_DMA_CTL,
-		 FLD_AUD_DST_A_RISC_EN | FLD_AUD_DST_A_FIFO_EN);
+			 FLD_AUD_DST_A_RISC_EN | FLD_AUD_DST_A_FIFO_EN);
 
 	/* disable irqs */
 	cx_clear(PCI_INT_MSK, PCI_MSK_AUD_INT);
 	cx_clear(AUD_A_INT_MSK, AUD_INT_OPC_ERR | AUD_INT_DN_SYNC |
-		 AUD_INT_DN_RISCI2 | AUD_INT_DN_RISCI1);
+			 AUD_INT_DN_RISCI2 | AUD_INT_DN_RISCI1);
 
 	return 0;
 }
@@ -306,7 +324,8 @@ static int _cx25821_stop_audio_dma(struct cx25821_audio_dev *chip)
 /*
  * BOARD Specific: IRQ dma bits
  */
-static char *cx25821_aud_irqs[32] = {
+static char *cx25821_aud_irqs[32] =
+{
 	"dn_risci1", "up_risci1", "rds_dn_risc1",	/* 0-2 */
 	NULL,						/* reserved */
 	"dn_risci2", "up_risci2", "rds_dn_risc2",	/* 4-6 */
@@ -323,35 +342,42 @@ static char *cx25821_aud_irqs[32] = {
  * BOARD Specific: Threats IRQ audio specific calls
  */
 static void cx25821_aud_irq(struct cx25821_audio_dev *chip, u32 status,
-			    u32 mask)
+							u32 mask)
 {
 	struct cx25821_dev *dev = chip->dev;
 
 	if (0 == (status & mask))
+	{
 		return;
+	}
 
 	cx_write(AUD_A_INT_STAT, status);
+
 	if (debug > 1 || (status & mask & ~0xff))
 		cx25821_print_irqbits(dev->name, "irq aud", cx25821_aud_irqs,
-				ARRAY_SIZE(cx25821_aud_irqs), status, mask);
+							  ARRAY_SIZE(cx25821_aud_irqs), status, mask);
 
 	/* risc op code error */
-	if (status & AUD_INT_OPC_ERR) {
+	if (status & AUD_INT_OPC_ERR)
+	{
 		pr_warn("WARNING %s/1: Audio risc op code error\n", dev->name);
 
 		cx_clear(AUD_INT_DMA_CTL,
-			 FLD_AUD_DST_A_RISC_EN | FLD_AUD_DST_A_FIFO_EN);
+				 FLD_AUD_DST_A_RISC_EN | FLD_AUD_DST_A_FIFO_EN);
 		cx25821_sram_channel_dump_audio(dev,
-				&cx25821_sram_channels[AUDIO_SRAM_CHANNEL]);
+										&cx25821_sram_channels[AUDIO_SRAM_CHANNEL]);
 	}
-	if (status & AUD_INT_DN_SYNC) {
+
+	if (status & AUD_INT_DN_SYNC)
+	{
 		pr_warn("WARNING %s: Downstream sync error!\n", dev->name);
 		cx_write(AUD_A_GPCNT_CTL, GP_COUNT_CONTROL_RESET);
 		return;
 	}
 
 	/* risc1 downstream */
-	if (status & AUD_INT_DN_RISCI1) {
+	if (status & AUD_INT_DN_RISCI1)
+	{
 		atomic_set(&chip->count, cx_read(AUD_A_GPCNT));
 		snd_pcm_period_elapsed(chip->substream);
 	}
@@ -372,21 +398,27 @@ static irqreturn_t cx25821_irq(int irq, void *dev_id)
 	audint_mask = cx_read(AUD_A_INT_MSK);
 	status = cx_read(PCI_INT_STAT);
 
-	for (loop = 0; loop < 1; loop++) {
+	for (loop = 0; loop < 1; loop++)
+	{
 		status = cx_read(PCI_INT_STAT);
-		if (0 == status) {
+
+		if (0 == status)
+		{
 			status = cx_read(PCI_INT_STAT);
 			audint_status = cx_read(AUD_A_INT_STAT);
 			audint_mask = cx_read(AUD_A_INT_MSK);
 
-			if (status) {
+			if (status)
+			{
 				handled = 1;
 				cx_write(PCI_INT_STAT, status);
 
 				cx25821_aud_irq(chip, audint_status,
-						audint_mask);
+								audint_mask);
 				break;
-			} else {
+			}
+			else
+			{
 				goto out;
 			}
 		}
@@ -400,7 +432,9 @@ static irqreturn_t cx25821_irq(int irq, void *dev_id)
 	pci_status = cx_read(PCI_INT_STAT);
 
 	if (handled)
+	{
 		cx_write(PCI_INT_STAT, pci_status);
+	}
 
 out:
 	return IRQ_RETVAL(handled);
@@ -432,9 +466,10 @@ static int dsp_buffer_free(struct cx25821_audio_dev *chip)
  * Digital hardware definition
  */
 #define DEFAULT_FIFO_SIZE	384
-static struct snd_pcm_hardware snd_cx25821_digital_hw = {
+static struct snd_pcm_hardware snd_cx25821_digital_hw =
+{
 	.info = SNDRV_PCM_INFO_MMAP | SNDRV_PCM_INFO_INTERLEAVED |
-		SNDRV_PCM_INFO_BLOCK_TRANSFER | SNDRV_PCM_INFO_MMAP_VALID,
+	SNDRV_PCM_INFO_BLOCK_TRANSFER | SNDRV_PCM_INFO_MMAP_VALID,
 	.formats = SNDRV_PCM_FMTBIT_S16_LE,
 
 	.rates = SNDRV_PCM_RATE_48000,
@@ -462,28 +497,35 @@ static int snd_cx25821_pcm_open(struct snd_pcm_substream *substream)
 	int err;
 	unsigned int bpl = 0;
 
-	if (!chip) {
+	if (!chip)
+	{
 		pr_err("DEBUG: cx25821 can't find device struct. Can't proceed with open\n");
 		return -ENODEV;
 	}
 
 	err = snd_pcm_hw_constraint_pow2(runtime, 0,
-					 SNDRV_PCM_HW_PARAM_PERIODS);
+									 SNDRV_PCM_HW_PARAM_PERIODS);
+
 	if (err < 0)
+	{
 		goto _error;
+	}
 
 	chip->substream = substream;
 
 	runtime->hw = snd_cx25821_digital_hw;
 
 	if (cx25821_sram_channels[AUDIO_SRAM_CHANNEL].fifo_size !=
-	    DEFAULT_FIFO_SIZE) {
+		DEFAULT_FIFO_SIZE)
+	{
 		/* since there are 3 audio Clusters */
 		bpl = cx25821_sram_channels[AUDIO_SRAM_CHANNEL].fifo_size / 3;
 		bpl &= ~7;	/* must be multiple of 8 */
 
 		if (bpl > AUDIO_LINE_SIZE)
+		{
 			bpl = AUDIO_LINE_SIZE;
+		}
 
 		runtime->hw.period_bytes_min = bpl;
 		runtime->hw.period_bytes_max = bpl;
@@ -507,13 +549,14 @@ static int snd_cx25821_close(struct snd_pcm_substream *substream)
  * hw_params callback
  */
 static int snd_cx25821_hw_params(struct snd_pcm_substream *substream,
-				 struct snd_pcm_hw_params *hw_params)
+								 struct snd_pcm_hw_params *hw_params)
 {
 	struct cx25821_audio_dev *chip = snd_pcm_substream_chip(substream);
 	struct cx25821_audio_buffer *buf;
 	int ret;
 
-	if (substream->runtime->dma_area) {
+	if (substream->runtime->dma_area)
+	{
 		dsp_buffer_free(chip);
 		substream->runtime->dma_area = NULL;
 	}
@@ -526,27 +569,40 @@ static int snd_cx25821_hw_params(struct snd_pcm_substream *substream,
 	BUG_ON(chip->num_periods & (chip->num_periods - 1));
 
 	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+
 	if (NULL == buf)
+	{
 		return -ENOMEM;
+	}
 
 	if (chip->period_size > AUDIO_LINE_SIZE)
+	{
 		chip->period_size = AUDIO_LINE_SIZE;
+	}
 
 	buf->bpl = chip->period_size;
 	chip->buf = buf;
 
 	ret = cx25821_alsa_dma_init(chip,
-			(PAGE_ALIGN(chip->dma_size) >> PAGE_SHIFT));
+								(PAGE_ALIGN(chip->dma_size) >> PAGE_SHIFT));
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	ret = cx25821_alsa_dma_map(chip);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	ret = cx25821_risc_databuffer_audio(chip->pci, &buf->risc, buf->sglist,
-			chip->period_size, chip->num_periods, 1);
-	if (ret < 0) {
+										chip->period_size, chip->num_periods, 1);
+
+	if (ret < 0)
+	{
 		pr_info("DEBUG: ERROR after cx25821_risc_databuffer_audio()\n");
 		goto error;
 	}
@@ -575,7 +631,8 @@ static int snd_cx25821_hw_free(struct snd_pcm_substream *substream)
 {
 	struct cx25821_audio_dev *chip = snd_pcm_substream_chip(substream);
 
-	if (substream->runtime->dma_area) {
+	if (substream->runtime->dma_area)
+	{
 		dsp_buffer_free(chip);
 		substream->runtime->dma_area = NULL;
 	}
@@ -595,7 +652,7 @@ static int snd_cx25821_prepare(struct snd_pcm_substream *substream)
  * trigger callback
  */
 static int snd_cx25821_card_trigger(struct snd_pcm_substream *substream,
-				    int cmd)
+									int cmd)
 {
 	struct cx25821_audio_dev *chip = snd_pcm_substream_chip(substream);
 	int err = 0;
@@ -603,16 +660,19 @@ static int snd_cx25821_card_trigger(struct snd_pcm_substream *substream,
 	/* Local interrupts are already disabled by ALSA */
 	spin_lock(&chip->reg_lock);
 
-	switch (cmd) {
-	case SNDRV_PCM_TRIGGER_START:
-		err = _cx25821_start_audio_dma(chip);
-		break;
-	case SNDRV_PCM_TRIGGER_STOP:
-		err = _cx25821_stop_audio_dma(chip);
-		break;
-	default:
-		err = -EINVAL;
-		break;
+	switch (cmd)
+	{
+		case SNDRV_PCM_TRIGGER_START:
+			err = _cx25821_start_audio_dma(chip);
+			break;
+
+		case SNDRV_PCM_TRIGGER_STOP:
+			err = _cx25821_stop_audio_dma(chip);
+			break;
+
+		default:
+			err = -EINVAL;
+			break;
 	}
 
 	spin_unlock(&chip->reg_lock);
@@ -624,7 +684,7 @@ static int snd_cx25821_card_trigger(struct snd_pcm_substream *substream,
  * pointer callback
  */
 static snd_pcm_uframes_t snd_cx25821_pointer(struct snd_pcm_substream
-					     *substream)
+		*substream)
 {
 	struct cx25821_audio_dev *chip = snd_pcm_substream_chip(substream);
 	struct snd_pcm_runtime *runtime = substream->runtime;
@@ -639,7 +699,7 @@ static snd_pcm_uframes_t snd_cx25821_pointer(struct snd_pcm_substream
  * page callback (needed for mmap)
  */
 static struct page *snd_cx25821_page(struct snd_pcm_substream *substream,
-				     unsigned long offset)
+									 unsigned long offset)
 {
 	void *pageptr = substream->runtime->dma_area + offset;
 
@@ -649,7 +709,8 @@ static struct page *snd_cx25821_page(struct snd_pcm_substream *substream,
 /*
  * operators
  */
-static const struct snd_pcm_ops snd_cx25821_pcm_ops = {
+static const struct snd_pcm_ops snd_cx25821_pcm_ops =
+{
 	.open = snd_cx25821_pcm_open,
 	.close = snd_cx25821_close,
 	.ioctl = snd_pcm_lib_ioctl,
@@ -666,16 +727,19 @@ static const struct snd_pcm_ops snd_cx25821_pcm_ops = {
  * Sets up the name and hooks up the callbacks
  */
 static int snd_cx25821_pcm(struct cx25821_audio_dev *chip, int device,
-			   char *name)
+						   char *name)
 {
 	struct snd_pcm *pcm;
 	int err;
 
 	err = snd_pcm_new(chip->card, name, device, 0, 1, &pcm);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		pr_info("ERROR: FAILED snd_pcm_new() in %s\n", __func__);
 		return err;
 	}
+
 	pcm->private_data = chip;
 	pcm->info_flags = 0;
 	strcpy(pcm->name, name);
@@ -693,7 +757,8 @@ static int snd_cx25821_pcm(struct cx25821_audio_dev *chip, int device,
  * Only boards with eeprom and byte 1 at eeprom=1 have it
  */
 
-static const struct pci_device_id __maybe_unused cx25821_audio_pci_tbl[] = {
+static const struct pci_device_id __maybe_unused cx25821_audio_pci_tbl[] =
+{
 	{0x14f1, 0x0920, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
 	{0,}
 };
@@ -709,23 +774,27 @@ static int cx25821_audio_initdev(struct cx25821_dev *dev)
 	struct cx25821_audio_dev *chip;
 	int err;
 
-	if (devno >= SNDRV_CARDS) {
+	if (devno >= SNDRV_CARDS)
+	{
 		pr_info("DEBUG ERROR: devno >= SNDRV_CARDS %s\n", __func__);
 		return -ENODEV;
 	}
 
-	if (!enable[devno]) {
+	if (!enable[devno])
+	{
 		++devno;
 		pr_info("DEBUG ERROR: !enable[devno] %s\n", __func__);
 		return -ENOENT;
 	}
 
 	err = snd_card_new(&dev->pci->dev, index[devno], id[devno],
-			   THIS_MODULE,
-			   sizeof(struct cx25821_audio_dev), &card);
-	if (err < 0) {
+					   THIS_MODULE,
+					   sizeof(struct cx25821_audio_dev), &card);
+
+	if (err < 0)
+	{
 		pr_info("DEBUG ERROR: cannot create snd_card_new in %s\n",
-			__func__);
+				__func__);
 		return err;
 	}
 
@@ -743,33 +812,38 @@ static int cx25821_audio_initdev(struct cx25821_dev *dev)
 	chip->irq = dev->pci->irq;
 
 	err = request_irq(dev->pci->irq, cx25821_irq,
-			  IRQF_SHARED, chip->dev->name, chip);
+					  IRQF_SHARED, chip->dev->name, chip);
 
-	if (err < 0) {
+	if (err < 0)
+	{
 		pr_err("ERROR %s: can't get IRQ %d for ALSA\n", chip->dev->name,
-			dev->pci->irq);
+			   dev->pci->irq);
 		goto error;
 	}
 
 	err = snd_cx25821_pcm(chip, 0, "cx25821 Digital");
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		pr_info("DEBUG ERROR: cannot create snd_cx25821_pcm %s\n",
-			__func__);
+				__func__);
 		goto error;
 	}
 
 	strcpy(card->shortname, "cx25821");
 	sprintf(card->longname, "%s at 0x%lx irq %d", chip->dev->name,
-		chip->iobase, chip->irq);
+			chip->iobase, chip->irq);
 	strcpy(card->mixername, "CX25821");
 
 	pr_info("%s/%i: ALSA support for cx25821 boards\n", card->driver,
-		devno);
+			devno);
 
 	err = snd_card_register(card);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		pr_info("DEBUG ERROR: cannot register sound card %s\n",
-			__func__);
+				__func__);
 		goto error;
 	}
 
@@ -801,8 +875,11 @@ static void cx25821_audio_fini(void)
 	int ret;
 
 	ret = driver_for_each_device(drv, NULL, NULL, cx25821_alsa_exit_callback);
+
 	if (ret)
+	{
 		pr_err("%s failed to find a cx25821 driver.\n", __func__);
+	}
 }
 
 static int cx25821_alsa_init_callback(struct device *dev, void *data)

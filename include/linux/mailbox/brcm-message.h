@@ -14,14 +14,16 @@
 
 #include <linux/scatterlist.h>
 
-enum brcm_message_type {
+enum brcm_message_type
+{
 	BRCM_MESSAGE_UNKNOWN = 0,
 	BRCM_MESSAGE_SPU,
 	BRCM_MESSAGE_SBA,
 	BRCM_MESSAGE_MAX,
 };
 
-struct brcm_sba_command {
+struct brcm_sba_command
+{
 	u64 cmd;
 #define BRCM_SBA_CMD_TYPE_A		BIT(0)
 #define BRCM_SBA_CMD_TYPE_B		BIT(1)
@@ -37,14 +39,18 @@ struct brcm_sba_command {
 	size_t output_len;
 };
 
-struct brcm_message {
+struct brcm_message
+{
 	enum brcm_message_type type;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			struct scatterlist *src;
 			struct scatterlist *dst;
 		} spu;
-		struct {
+		struct
+		{
 			struct brcm_sba_command *cmds;
 			unsigned int cmds_count;
 		} sba;

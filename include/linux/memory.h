@@ -22,7 +22,8 @@
 
 #define MIN_MEMORY_BLOCK_SIZE     (1UL << SECTION_SIZE_BITS)
 
-struct memory_block {
+struct memory_block
+{
 	unsigned long start_section_nr;
 	unsigned long end_section_nr;
 	unsigned long state;		/* serialized by the dev->lock */
@@ -45,7 +46,8 @@ unsigned long memory_block_size_bytes(void);
 #define	MEM_CANCEL_ONLINE	(1<<4)
 #define	MEM_CANCEL_OFFLINE	(1<<5)
 
-struct memory_notify {
+struct memory_notify
+{
 	unsigned long start_pfn;
 	unsigned long nr_pages;
 	int status_change_nid_normal;
@@ -60,7 +62,8 @@ struct memory_notify {
  */
 #define MEM_ISOLATE_COUNT	(1<<0)
 
-struct memory_isolate_notify {
+struct memory_isolate_notify
+{
 	unsigned long start_pfn;	/* Start of range to check */
 	unsigned int nr_pages;		/* # pages in range to check */
 	unsigned int pages_found;	/* # pages owned found by callbacks */
@@ -110,26 +113,26 @@ extern int register_memory_isolate_notifier(struct notifier_block *nb);
 extern void unregister_memory_isolate_notifier(struct notifier_block *nb);
 extern int register_new_memory(int, struct mem_section *);
 extern int memory_block_change_state(struct memory_block *mem,
-				     unsigned long to_state,
-				     unsigned long from_state_req);
+									 unsigned long to_state,
+									 unsigned long from_state_req);
 #ifdef CONFIG_MEMORY_HOTREMOVE
-extern int unregister_memory_section(struct mem_section *);
+	extern int unregister_memory_section(struct mem_section *);
 #endif
 extern int memory_dev_init(void);
 extern int memory_notify(unsigned long val, void *v);
 extern int memory_isolate_notify(unsigned long val, void *v);
 extern struct memory_block *find_memory_block_hinted(struct mem_section *,
-							struct memory_block *);
+		struct memory_block *);
 extern struct memory_block *find_memory_block(struct mem_section *);
 #define CONFIG_MEM_BLOCK_SIZE	(PAGES_PER_SECTION<<PAGE_SHIFT)
 #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
 
 #ifdef CONFIG_MEMORY_HOTPLUG
 #define hotplug_memory_notifier(fn, pri) ({		\
-	static __meminitdata struct notifier_block fn##_mem_nb =\
+		static __meminitdata struct notifier_block fn##_mem_nb =\
 		{ .notifier_call = fn, .priority = pri };\
-	register_memory_notifier(&fn##_mem_nb);			\
-})
+		register_memory_notifier(&fn##_mem_nb);			\
+	})
 #define register_hotmemory_notifier(nb)		register_memory_notifier(nb)
 #define unregister_hotmemory_notifier(nb) 	unregister_memory_notifier(nb)
 #else

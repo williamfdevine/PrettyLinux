@@ -30,21 +30,28 @@ static void devm_component_release(struct device *dev, void *res)
  * unregistered.
  */
 int devm_snd_soc_register_component(struct device *dev,
-			 const struct snd_soc_component_driver *cmpnt_drv,
-			 struct snd_soc_dai_driver *dai_drv, int num_dai)
+									const struct snd_soc_component_driver *cmpnt_drv,
+									struct snd_soc_dai_driver *dai_drv, int num_dai)
 {
 	struct device **ptr;
 	int ret;
 
 	ptr = devres_alloc(devm_component_release, sizeof(*ptr), GFP_KERNEL);
+
 	if (!ptr)
+	{
 		return -ENOMEM;
+	}
 
 	ret = snd_soc_register_component(dev, cmpnt_drv, dai_drv, num_dai);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		*ptr = dev;
 		devres_add(dev, ptr);
-	} else {
+	}
+	else
+	{
 		devres_free(ptr);
 	}
 
@@ -66,20 +73,27 @@ static void devm_platform_release(struct device *dev, void *res)
  * unregistered.
  */
 int devm_snd_soc_register_platform(struct device *dev,
-			const struct snd_soc_platform_driver *platform_drv)
+								   const struct snd_soc_platform_driver *platform_drv)
 {
 	struct device **ptr;
 	int ret;
 
 	ptr = devres_alloc(devm_platform_release, sizeof(*ptr), GFP_KERNEL);
+
 	if (!ptr)
+	{
 		return -ENOMEM;
+	}
 
 	ret = snd_soc_register_platform(dev, platform_drv);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		*ptr = dev;
 		devres_add(dev, ptr);
-	} else {
+	}
+	else
+	{
 		devres_free(ptr);
 	}
 
@@ -106,14 +120,21 @@ int devm_snd_soc_register_card(struct device *dev, struct snd_soc_card *card)
 	int ret;
 
 	ptr = devres_alloc(devm_card_release, sizeof(*ptr), GFP_KERNEL);
+
 	if (!ptr)
+	{
 		return -ENOMEM;
+	}
 
 	ret = snd_soc_register_card(card);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		*ptr = card;
 		devres_add(dev, ptr);
-	} else {
+	}
+	else
+	{
 		devres_free(ptr);
 	}
 
@@ -138,20 +159,27 @@ static void devm_dmaengine_pcm_release(struct device *dev, void *res)
  * device is unregistered.
  */
 int devm_snd_dmaengine_pcm_register(struct device *dev,
-	const struct snd_dmaengine_pcm_config *config, unsigned int flags)
+									const struct snd_dmaengine_pcm_config *config, unsigned int flags)
 {
 	struct device **ptr;
 	int ret;
 
 	ptr = devres_alloc(devm_dmaengine_pcm_release, sizeof(*ptr), GFP_KERNEL);
+
 	if (!ptr)
+	{
 		return -ENOMEM;
+	}
 
 	ret = snd_dmaengine_pcm_register(dev, config, flags);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		*ptr = dev;
 		devres_add(dev, ptr);
-	} else {
+	}
+	else
+	{
 		devres_free(ptr);
 	}
 

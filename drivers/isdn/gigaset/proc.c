@@ -16,7 +16,7 @@
 #include "gigaset.h"
 
 static ssize_t show_cidmode(struct device *dev,
-			    struct device_attribute *attr, char *buf)
+							struct device_attribute *attr, char *buf)
 {
 	struct cardstate *cs = dev_get_drvdata(dev);
 
@@ -24,29 +24,40 @@ static ssize_t show_cidmode(struct device *dev,
 }
 
 static ssize_t set_cidmode(struct device *dev, struct device_attribute *attr,
-			   const char *buf, size_t count)
+						   const char *buf, size_t count)
 {
 	struct cardstate *cs = dev_get_drvdata(dev);
 	long int value;
 	char *end;
 
 	value = simple_strtol(buf, &end, 0);
+
 	while (*end)
 		if (!isspace(*end++))
+		{
 			return -EINVAL;
+		}
+
 	if (value < 0 || value > 1)
+	{
 		return -EINVAL;
+	}
 
 	if (mutex_lock_interruptible(&cs->mutex))
+	{
 		return -ERESTARTSYS;
+	}
 
 	cs->waiting = 1;
+
 	if (!gigaset_add_event(cs, &cs->at_state, EV_PROC_CIDMODE,
-			       NULL, value, NULL)) {
+						   NULL, value, NULL))
+	{
 		cs->waiting = 0;
 		mutex_unlock(&cs->mutex);
 		return -ENOMEM;
 	}
+
 	gigaset_schedule_event(cs);
 
 	wait_event(cs->waitqueue, !cs->waiting);
@@ -62,7 +73,9 @@ static DEVICE_ATTR(cidmode, S_IRUGO | S_IWUSR, show_cidmode, set_cidmode);
 void gigaset_free_dev_sysfs(struct cardstate *cs)
 {
 	if (!cs->tty_dev)
+	{
 		return;
+	}
 
 	gig_dbg(DEBUG_INIT, "removing sysfs entries");
 	device_remove_file(cs->tty_dev, &dev_attr_cidmode);
@@ -72,9 +85,14 @@ void gigaset_free_dev_sysfs(struct cardstate *cs)
 void gigaset_init_dev_sysfs(struct cardstate *cs)
 {
 	if (!cs->tty_dev)
+	{
 		return;
+	}
 
 	gig_dbg(DEBUG_INIT, "setting up sysfs");
+
 	if (device_create_file(cs->tty_dev, &dev_attr_cidmode))
+	{
 		pr_err("could not create sysfs attribute\n");
+	}
 }

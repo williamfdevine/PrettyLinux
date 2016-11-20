@@ -25,7 +25,8 @@
 
 
 /* NFSv2 file types - beware, these are not the same in NFSv3 */
-enum nfs2_ftype {
+enum nfs2_ftype
+{
 	NF2NON = 0,
 	NF2REG = 1,
 	NF2DIR = 2,
@@ -37,7 +38,8 @@ enum nfs2_ftype {
 	NF2FIFO = 8
 };
 
-struct nfs2_fh {
+struct nfs2_fh
+{
 	char			data[NFS2_FHSIZE];
 };
 

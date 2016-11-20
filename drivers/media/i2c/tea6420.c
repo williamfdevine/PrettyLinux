@@ -1,31 +1,31 @@
- /*
-    tea6420 - i2c-driver for the tea6420 by SGS Thomson
+/*
+   tea6420 - i2c-driver for the tea6420 by SGS Thomson
 
-    Copyright (C) 1998-2003 Michael Hunold <michael@mihu.de>
-    Copyright (C) 2008 Hans Verkuil <hverkuil@xs4all.nl>
+   Copyright (C) 1998-2003 Michael Hunold <michael@mihu.de>
+   Copyright (C) 2008 Hans Verkuil <hverkuil@xs4all.nl>
 
-    The tea6420 is a bus controlled audio-matrix with 5 stereo inputs,
-    4 stereo outputs and gain control for each output.
-    It is cascadable, i.e. it can be found at the addresses 0x98
-    and 0x9a on the i2c-bus.
+   The tea6420 is a bus controlled audio-matrix with 5 stereo inputs,
+   4 stereo outputs and gain control for each output.
+   It is cascadable, i.e. it can be found at the addresses 0x98
+   and 0x9a on the i2c-bus.
 
-    For detailed informations download the specifications directly
-    from SGS Thomson at http://www.st.com
+   For detailed informations download the specifications directly
+   from SGS Thomson at http://www.st.com
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
 
 
 #include <linux/module.h>
@@ -48,7 +48,7 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
 /* make a connection between the input 'i' and the output 'o'
    with gain 'g' (note: i = 6 means 'mute') */
 static int tea6420_s_routing(struct v4l2_subdev *sd,
-			     u32 i, u32 o, u32 config)
+							 u32 i, u32 o, u32 config)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	int g = (o >> 4) & 0xf;
@@ -60,71 +60,94 @@ static int tea6420_s_routing(struct v4l2_subdev *sd,
 
 	/* check if the parameters are valid */
 	if (i < 1 || i > 6 || o < 1 || o > 4 || g < 0 || g > 6 || g % 2 != 0)
+	{
 		return -EINVAL;
+	}
 
 	byte = ((o - 1) << 5);
 	byte |= (i - 1);
 
 	/* to understand this, have a look at the tea6420-specs (p.5) */
-	switch (g) {
-	case 0:
-		byte |= (3 << 3);
-		break;
-	case 2:
-		byte |= (2 << 3);
-		break;
-	case 4:
-		byte |= (1 << 3);
-		break;
-	case 6:
-		break;
+	switch (g)
+	{
+		case 0:
+			byte |= (3 << 3);
+			break;
+
+		case 2:
+			byte |= (2 << 3);
+			break;
+
+		case 4:
+			byte |= (1 << 3);
+			break;
+
+		case 6:
+			break;
 	}
 
 	ret = i2c_smbus_write_byte(client, byte);
-	if (ret) {
+
+	if (ret)
+	{
 		v4l2_dbg(1, debug, sd,
-			"i2c_smbus_write_byte() failed, ret:%d\n", ret);
+				 "i2c_smbus_write_byte() failed, ret:%d\n", ret);
 		return -EIO;
 	}
+
 	return 0;
 }
 
 /* ----------------------------------------------------------------------- */
 
-static const struct v4l2_subdev_audio_ops tea6420_audio_ops = {
+static const struct v4l2_subdev_audio_ops tea6420_audio_ops =
+{
 	.s_routing = tea6420_s_routing,
 };
 
-static const struct v4l2_subdev_ops tea6420_ops = {
+static const struct v4l2_subdev_ops tea6420_ops =
+{
 	.audio = &tea6420_audio_ops,
 };
 
 static int tea6420_probe(struct i2c_client *client,
-			  const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct v4l2_subdev *sd;
 	int err, i;
 
 	/* let's see whether this adapter can support what we need */
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_WRITE_BYTE))
+	{
 		return -EIO;
+	}
 
 	v4l_info(client, "chip found @ 0x%x (%s)\n",
-			client->addr << 1, client->adapter->name);
+			 client->addr << 1, client->adapter->name);
 
 	sd = devm_kzalloc(&client->dev, sizeof(*sd), GFP_KERNEL);
+
 	if (sd == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	v4l2_i2c_subdev_init(sd, client, &tea6420_ops);
 
 	/* set initial values: set "mute"-input to all outputs at gain 0 */
 	err = 0;
+
 	for (i = 1; i < 5; i++)
+	{
 		err += tea6420_s_routing(sd, 6, i, 0);
-	if (err) {
+	}
+
+	if (err)
+	{
 		v4l_dbg(1, debug, client, "could not initialize tea6420\n");
 		return -ENODEV;
 	}
+
 	return 0;
 }
 
@@ -136,13 +159,15 @@ static int tea6420_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id tea6420_id[] = {
+static const struct i2c_device_id tea6420_id[] =
+{
 	{ "tea6420", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, tea6420_id);
 
-static struct i2c_driver tea6420_driver = {
+static struct i2c_driver tea6420_driver =
+{
 	.driver = {
 		.name	= "tea6420",
 	},

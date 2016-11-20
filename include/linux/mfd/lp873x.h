@@ -242,7 +242,8 @@
 /* Number of total regulators available */
 #define LP873X_NUM_REGULATOR		(LP873X_NUM_BUCK + LP873X_NUM_LDO)
 
-enum lp873x_regulator_id {
+enum lp873x_regulator_id
+{
 	/* BUCK's */
 	LP873X_BUCK_0,
 	LP873X_BUCK_1,
@@ -260,7 +261,8 @@ enum lp873x_regulator_id {
  *
  * Device data may be used to access the LP873X chip
  */
-struct lp873x {
+struct lp873x
+{
 	struct device *dev;
 	u8 rev;
 	struct regmap *regmap;

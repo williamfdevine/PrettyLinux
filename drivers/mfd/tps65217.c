@@ -33,21 +33,25 @@
 #include <linux/mfd/core.h>
 #include <linux/mfd/tps65217.h>
 
-static struct resource charger_resources[] = {
+static struct resource charger_resources[] =
+{
 	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_AC, "AC"),
 	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_USB, "USB"),
 };
 
-static struct resource pb_resources[] = {
+static struct resource pb_resources[] =
+{
 	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_PB, "PB"),
 };
 
-struct tps65217_irq {
+struct tps65217_irq
+{
 	int mask;
 	int interrupt;
 };
 
-static const struct tps65217_irq tps65217_irqs[] = {
+static const struct tps65217_irq tps65217_irqs[] =
+{
 	[TPS65217_IRQ_PB] = {
 		.mask = TPS65217_INT_PBM,
 		.interrupt = TPS65217_INT_PBI,
@@ -75,9 +79,12 @@ static void tps65217_irq_sync_unlock(struct irq_data *data)
 	int ret;
 
 	ret = tps65217_reg_write(tps, TPS65217_REG_INT, tps->irq_mask,
-				TPS65217_PROTECT_NONE);
+							 TPS65217_PROTECT_NONE);
+
 	if (ret != 0)
+	{
 		dev_err(tps->dev, "Failed to sync IRQ masks\n");
+	}
 
 	mutex_unlock(&tps->irq_lock);
 }
@@ -104,14 +111,16 @@ static void tps65217_irq_disable(struct irq_data *data)
 	tps->irq_mask |= irq_data->mask;
 }
 
-static struct irq_chip tps65217_irq_chip = {
+static struct irq_chip tps65217_irq_chip =
+{
 	.irq_bus_lock		= tps65217_irq_lock,
 	.irq_bus_sync_unlock	= tps65217_irq_sync_unlock,
 	.irq_enable		= tps65217_irq_enable,
 	.irq_disable		= tps65217_irq_disable,
 };
 
-static struct mfd_cell tps65217s[] = {
+static struct mfd_cell tps65217s[] =
+{
 	{
 		.name = "tps65217-pmic",
 		.of_compatible = "ti,tps65217-pmic",
@@ -143,27 +152,33 @@ static irqreturn_t tps65217_irq_thread(int irq, void *data)
 	int ret;
 
 	ret = tps65217_reg_read(tps, TPS65217_REG_INT, &status);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(tps->dev, "Failed to read IRQ status: %d\n",
-			ret);
+				ret);
 		return IRQ_NONE;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(tps65217_irqs); i++) {
-		if (status & tps65217_irqs[i].interrupt) {
+	for (i = 0; i < ARRAY_SIZE(tps65217_irqs); i++)
+	{
+		if (status & tps65217_irqs[i].interrupt)
+		{
 			handle_nested_irq(irq_find_mapping(tps->irq_domain, i));
 			handled = true;
 		}
 	}
 
 	if (handled)
+	{
 		return IRQ_HANDLED;
+	}
 
 	return IRQ_NONE;
 }
 
 static int tps65217_irq_map(struct irq_domain *h, unsigned int virq,
-			irq_hw_number_t hw)
+							irq_hw_number_t hw)
 {
 	struct tps65217 *tps = h->host_data;
 
@@ -176,7 +191,8 @@ static int tps65217_irq_map(struct irq_domain *h, unsigned int virq,
 	return 0;
 }
 
-static const struct irq_domain_ops tps65217_irq_domain_ops = {
+static const struct irq_domain_ops tps65217_irq_domain_ops =
+{
 	.map = tps65217_irq_map,
 };
 
@@ -189,23 +205,27 @@ static int tps65217_irq_init(struct tps65217 *tps, int irq)
 
 	/* Mask all interrupt sources */
 	tps->irq_mask = (TPS65217_INT_RESERVEDM | TPS65217_INT_PBM
-			| TPS65217_INT_ACM | TPS65217_INT_USBM);
+					 | TPS65217_INT_ACM | TPS65217_INT_USBM);
 	tps65217_reg_write(tps, TPS65217_REG_INT, tps->irq_mask,
-			TPS65217_PROTECT_NONE);
+					   TPS65217_PROTECT_NONE);
 
 	tps->irq_domain = irq_domain_add_linear(tps->dev->of_node,
-		TPS65217_NUM_IRQ, &tps65217_irq_domain_ops, tps);
-	if (!tps->irq_domain) {
+											TPS65217_NUM_IRQ, &tps65217_irq_domain_ops, tps);
+
+	if (!tps->irq_domain)
+	{
 		dev_err(tps->dev, "Could not create IRQ domain\n");
 		return -ENOMEM;
 	}
 
 	ret = devm_request_threaded_irq(tps->dev, irq, NULL,
-					tps65217_irq_thread, IRQF_ONESHOT,
-					"tps65217-irq", tps);
-	if (ret) {
+									tps65217_irq_thread, IRQF_ONESHOT,
+									"tps65217-irq", tps);
+
+	if (ret)
+	{
 		dev_err(tps->dev, "Failed to request IRQ %d: %d\n",
-			irq, ret);
+				irq, ret);
 		return ret;
 	}
 
@@ -220,7 +240,7 @@ static int tps65217_irq_init(struct tps65217 *tps, int irq)
  * @val: Contians the value
  */
 int tps65217_reg_read(struct tps65217 *tps, unsigned int reg,
-			unsigned int *val)
+					  unsigned int *val)
 {
 	return regmap_read(tps->regmap, reg, val);
 }
@@ -235,38 +255,57 @@ EXPORT_SYMBOL_GPL(tps65217_reg_read);
  * @level: Password protected level
  */
 int tps65217_reg_write(struct tps65217 *tps, unsigned int reg,
-			unsigned int val, unsigned int level)
+					   unsigned int val, unsigned int level)
 {
 	int ret;
 	unsigned int xor_reg_val;
 
-	switch (level) {
-	case TPS65217_PROTECT_NONE:
-		return regmap_write(tps->regmap, reg, val);
-	case TPS65217_PROTECT_L1:
-		xor_reg_val = reg ^ TPS65217_PASSWORD_REGS_UNLOCK;
-		ret = regmap_write(tps->regmap, TPS65217_REG_PASSWORD,
-							xor_reg_val);
-		if (ret < 0)
-			return ret;
+	switch (level)
+	{
+		case TPS65217_PROTECT_NONE:
+			return regmap_write(tps->regmap, reg, val);
 
-		return regmap_write(tps->regmap, reg, val);
-	case TPS65217_PROTECT_L2:
-		xor_reg_val = reg ^ TPS65217_PASSWORD_REGS_UNLOCK;
-		ret = regmap_write(tps->regmap, TPS65217_REG_PASSWORD,
-							xor_reg_val);
-		if (ret < 0)
-			return ret;
-		ret = regmap_write(tps->regmap, reg, val);
-		if (ret < 0)
-			return ret;
-		ret = regmap_write(tps->regmap, TPS65217_REG_PASSWORD,
-							xor_reg_val);
-		if (ret < 0)
-			return ret;
-		return regmap_write(tps->regmap, reg, val);
-	default:
-		return -EINVAL;
+		case TPS65217_PROTECT_L1:
+			xor_reg_val = reg ^ TPS65217_PASSWORD_REGS_UNLOCK;
+			ret = regmap_write(tps->regmap, TPS65217_REG_PASSWORD,
+							   xor_reg_val);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			return regmap_write(tps->regmap, reg, val);
+
+		case TPS65217_PROTECT_L2:
+			xor_reg_val = reg ^ TPS65217_PASSWORD_REGS_UNLOCK;
+			ret = regmap_write(tps->regmap, TPS65217_REG_PASSWORD,
+							   xor_reg_val);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			ret = regmap_write(tps->regmap, reg, val);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			ret = regmap_write(tps->regmap, TPS65217_REG_PASSWORD,
+							   xor_reg_val);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			return regmap_write(tps->regmap, reg, val);
+
+		default:
+			return -EINVAL;
 	}
 }
 EXPORT_SYMBOL_GPL(tps65217_reg_write);
@@ -281,13 +320,15 @@ EXPORT_SYMBOL_GPL(tps65217_reg_write);
  * @level: Password protected level
  */
 static int tps65217_update_bits(struct tps65217 *tps, unsigned int reg,
-		unsigned int mask, unsigned int val, unsigned int level)
+								unsigned int mask, unsigned int val, unsigned int level)
 {
 	int ret;
 	unsigned int data;
 
 	ret = tps65217_reg_read(tps, reg, &data);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(tps->dev, "Read from reg 0x%x failed\n", reg);
 		return ret;
 	}
@@ -296,21 +337,24 @@ static int tps65217_update_bits(struct tps65217 *tps, unsigned int reg,
 	data |= val & mask;
 
 	ret = tps65217_reg_write(tps, reg, data, level);
+
 	if (ret)
+	{
 		dev_err(tps->dev, "Write for reg 0x%x failed\n", reg);
+	}
 
 	return ret;
 }
 
 int tps65217_set_bits(struct tps65217 *tps, unsigned int reg,
-		unsigned int mask, unsigned int val, unsigned int level)
+					  unsigned int mask, unsigned int val, unsigned int level)
 {
 	return tps65217_update_bits(tps, reg, mask, val, level);
 }
 EXPORT_SYMBOL_GPL(tps65217_set_bits);
 
 int tps65217_clear_bits(struct tps65217 *tps, unsigned int reg,
-		unsigned int mask, unsigned int level)
+						unsigned int mask, unsigned int level)
 {
 	return tps65217_update_bits(tps, reg, mask, 0, level);
 }
@@ -318,15 +362,18 @@ EXPORT_SYMBOL_GPL(tps65217_clear_bits);
 
 static bool tps65217_volatile_reg(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case TPS65217_REG_INT:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case TPS65217_REG_INT:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
-static const struct regmap_config tps65217_regmap_config = {
+static const struct regmap_config tps65217_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 
@@ -334,14 +381,15 @@ static const struct regmap_config tps65217_regmap_config = {
 	.volatile_reg = tps65217_volatile_reg,
 };
 
-static const struct of_device_id tps65217_of_match[] = {
+static const struct of_device_id tps65217_of_match[] =
+{
 	{ .compatible = "ti,tps65217", .data = (void *)TPS65217 },
 	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(of, tps65217_of_match);
 
 static int tps65217_probe(struct i2c_client *client,
-				const struct i2c_device_id *ids)
+						  const struct i2c_device_id *ids)
 {
 	struct tps65217 *tps;
 	unsigned int version;
@@ -350,87 +398,112 @@ static int tps65217_probe(struct i2c_client *client,
 	bool status_off = false;
 	int ret;
 
-	if (client->dev.of_node) {
+	if (client->dev.of_node)
+	{
 		match = of_match_device(tps65217_of_match, &client->dev);
-		if (!match) {
+
+		if (!match)
+		{
 			dev_err(&client->dev,
-				"Failed to find matching dt id\n");
+					"Failed to find matching dt id\n");
 			return -EINVAL;
 		}
+
 		chip_id = (unsigned long)match->data;
 		status_off = of_property_read_bool(client->dev.of_node,
-					"ti,pmic-shutdown-controller");
+										   "ti,pmic-shutdown-controller");
 	}
 
-	if (!chip_id) {
+	if (!chip_id)
+	{
 		dev_err(&client->dev, "id is null.\n");
 		return -ENODEV;
 	}
 
 	tps = devm_kzalloc(&client->dev, sizeof(*tps), GFP_KERNEL);
+
 	if (!tps)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(client, tps);
 	tps->dev = &client->dev;
 	tps->id = chip_id;
 
 	tps->regmap = devm_regmap_init_i2c(client, &tps65217_regmap_config);
-	if (IS_ERR(tps->regmap)) {
+
+	if (IS_ERR(tps->regmap))
+	{
 		ret = PTR_ERR(tps->regmap);
 		dev_err(tps->dev, "Failed to allocate register map: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
-	if (client->irq) {
+	if (client->irq)
+	{
 		tps65217_irq_init(tps, client->irq);
-	} else {
+	}
+	else
+	{
 		int i;
 
 		/* Don't tell children about IRQ resources which won't fire */
 		for (i = 0; i < ARRAY_SIZE(tps65217s); i++)
+		{
 			tps65217s[i].num_resources = 0;
+		}
 	}
 
 	ret = devm_mfd_add_devices(tps->dev, -1, tps65217s,
-				   ARRAY_SIZE(tps65217s), NULL, 0,
-				   tps->irq_domain);
-	if (ret < 0) {
+							   ARRAY_SIZE(tps65217s), NULL, 0,
+							   tps->irq_domain);
+
+	if (ret < 0)
+	{
 		dev_err(tps->dev, "mfd_add_devices failed: %d\n", ret);
 		return ret;
 	}
 
 	ret = tps65217_reg_read(tps, TPS65217_REG_CHIPID, &version);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(tps->dev, "Failed to read revision register: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
 	/* Set the PMIC to shutdown on PWR_EN toggle */
-	if (status_off) {
+	if (status_off)
+	{
 		ret = tps65217_set_bits(tps, TPS65217_REG_STATUS,
-				TPS65217_STATUS_OFF, TPS65217_STATUS_OFF,
-				TPS65217_PROTECT_NONE);
+								TPS65217_STATUS_OFF, TPS65217_STATUS_OFF,
+								TPS65217_PROTECT_NONE);
+
 		if (ret)
+		{
 			dev_warn(tps->dev, "unable to set the status OFF\n");
+		}
 	}
 
 	dev_info(tps->dev, "TPS65217 ID %#x version 1.%d\n",
-			(version & TPS65217_CHIPID_CHIP_MASK) >> 4,
-			version & TPS65217_CHIPID_REV_MASK);
+			 (version & TPS65217_CHIPID_CHIP_MASK) >> 4,
+			 version & TPS65217_CHIPID_REV_MASK);
 
 	return 0;
 }
 
-static const struct i2c_device_id tps65217_id_table[] = {
+static const struct i2c_device_id tps65217_id_table[] =
+{
 	{"tps65217", TPS65217},
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(i2c, tps65217_id_table);
 
-static struct i2c_driver tps65217_driver = {
+static struct i2c_driver tps65217_driver =
+{
 	.driver		= {
 		.name	= "tps65217",
 		.of_match_table = tps65217_of_match,

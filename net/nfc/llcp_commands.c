@@ -27,7 +27,8 @@
 #include "nfc.h"
 #include "llcp.h"
 
-static u8 llcp_tlv_length[LLCP_TLV_MAX] = {
+static u8 llcp_tlv_length[LLCP_TLV_MAX] =
+{
 	0,
 	1, /* VERSION */
 	2, /* MIUX */
@@ -44,7 +45,9 @@ static u8 llcp_tlv_length[LLCP_TLV_MAX] = {
 static u8 llcp_tlv8(u8 *tlv, u8 type)
 {
 	if (tlv[0] != type || tlv[1] != llcp_tlv_length[tlv[0]])
+	{
 		return 0;
+	}
 
 	return tlv[2];
 }
@@ -52,7 +55,9 @@ static u8 llcp_tlv8(u8 *tlv, u8 type)
 static u16 llcp_tlv16(u8 *tlv, u8 type)
 {
 	if (tlv[0] != type || tlv[1] != llcp_tlv_length[tlv[0]])
+	{
 		return 0;
+	}
 
 	return be16_to_cpu(*((__be16 *)(tlv + 2)));
 }
@@ -95,18 +100,28 @@ u8 *nfc_llcp_build_tlv(u8 type, u8 *value, u8 value_length, u8 *tlv_length)
 	pr_debug("type %d\n", type);
 
 	if (type >= LLCP_TLV_MAX)
+	{
 		return NULL;
+	}
 
 	length = llcp_tlv_length[type];
+
 	if (length == 0 && value_length == 0)
+	{
 		return NULL;
+	}
 	else if (length == 0)
+	{
 		length = value_length;
+	}
 
 	*tlv_length = 2 + length;
 	tlv = kzalloc(2 + length, GFP_KERNEL);
+
 	if (tlv == NULL)
+	{
 		return tlv;
+	}
 
 	tlv[0] = type;
 	tlv[1] = length;
@@ -121,15 +136,20 @@ struct nfc_llcp_sdp_tlv *nfc_llcp_build_sdres_tlv(u8 tid, u8 sap)
 	u8 value[2];
 
 	sdres = kzalloc(sizeof(struct nfc_llcp_sdp_tlv), GFP_KERNEL);
+
 	if (sdres == NULL)
+	{
 		return NULL;
+	}
 
 	value[0] = tid;
 	value[1] = sap;
 
 	sdres->tlv = nfc_llcp_build_tlv(LLCP_TLV_SDRES, value, 2,
-					&sdres->tlv_len);
-	if (sdres->tlv == NULL) {
+									&sdres->tlv_len);
+
+	if (sdres->tlv == NULL)
+	{
 		kfree(sdres);
 		return NULL;
 	}
@@ -143,23 +163,30 @@ struct nfc_llcp_sdp_tlv *nfc_llcp_build_sdres_tlv(u8 tid, u8 sap)
 }
 
 struct nfc_llcp_sdp_tlv *nfc_llcp_build_sdreq_tlv(u8 tid, char *uri,
-						  size_t uri_len)
+		size_t uri_len)
 {
 	struct nfc_llcp_sdp_tlv *sdreq;
 
 	pr_debug("uri: %s, len: %zu\n", uri, uri_len);
 
 	sdreq = kzalloc(sizeof(struct nfc_llcp_sdp_tlv), GFP_KERNEL);
+
 	if (sdreq == NULL)
+	{
 		return NULL;
+	}
 
 	sdreq->tlv_len = uri_len + 3;
 
 	if (uri[uri_len - 1] == 0)
+	{
 		sdreq->tlv_len--;
+	}
 
 	sdreq->tlv = kzalloc(sdreq->tlv_len + 1, GFP_KERNEL);
-	if (sdreq->tlv == NULL) {
+
+	if (sdreq->tlv == NULL)
+	{
 		kfree(sdreq);
 		return NULL;
 	}
@@ -190,7 +217,8 @@ void nfc_llcp_free_sdp_tlv_list(struct hlist_head *head)
 	struct nfc_llcp_sdp_tlv *sdp;
 	struct hlist_node *n;
 
-	hlist_for_each_entry_safe(sdp, n, head, node) {
+	hlist_for_each_entry_safe(sdp, n, head, node)
+	{
 		hlist_del(&sdp->node);
 
 		nfc_llcp_free_sdp_tlv(sdp);
@@ -198,40 +226,49 @@ void nfc_llcp_free_sdp_tlv_list(struct hlist_head *head)
 }
 
 int nfc_llcp_parse_gb_tlv(struct nfc_llcp_local *local,
-			  u8 *tlv_array, u16 tlv_array_len)
+						  u8 *tlv_array, u16 tlv_array_len)
 {
 	u8 *tlv = tlv_array, type, length, offset = 0;
 
 	pr_debug("TLV array length %d\n", tlv_array_len);
 
 	if (local == NULL)
+	{
 		return -ENODEV;
+	}
 
-	while (offset < tlv_array_len) {
+	while (offset < tlv_array_len)
+	{
 		type = tlv[0];
 		length = tlv[1];
 
 		pr_debug("type 0x%x length %d\n", type, length);
 
-		switch (type) {
-		case LLCP_TLV_VERSION:
-			local->remote_version = llcp_tlv_version(tlv);
-			break;
-		case LLCP_TLV_MIUX:
-			local->remote_miu = llcp_tlv_miux(tlv) + 128;
-			break;
-		case LLCP_TLV_WKS:
-			local->remote_wks = llcp_tlv_wks(tlv);
-			break;
-		case LLCP_TLV_LTO:
-			local->remote_lto = llcp_tlv_lto(tlv) * 10;
-			break;
-		case LLCP_TLV_OPT:
-			local->remote_opt = llcp_tlv_opt(tlv);
-			break;
-		default:
-			pr_err("Invalid gt tlv value 0x%x\n", type);
-			break;
+		switch (type)
+		{
+			case LLCP_TLV_VERSION:
+				local->remote_version = llcp_tlv_version(tlv);
+				break;
+
+			case LLCP_TLV_MIUX:
+				local->remote_miu = llcp_tlv_miux(tlv) + 128;
+				break;
+
+			case LLCP_TLV_WKS:
+				local->remote_wks = llcp_tlv_wks(tlv);
+				break;
+
+			case LLCP_TLV_LTO:
+				local->remote_lto = llcp_tlv_lto(tlv) * 10;
+				break;
+
+			case LLCP_TLV_OPT:
+				local->remote_opt = llcp_tlv_opt(tlv);
+				break;
+
+			default:
+				pr_err("Invalid gt tlv value 0x%x\n", type);
+				break;
 		}
 
 		offset += length + 2;
@@ -239,41 +276,48 @@ int nfc_llcp_parse_gb_tlv(struct nfc_llcp_local *local,
 	}
 
 	pr_debug("version 0x%x miu %d lto %d opt 0x%x wks 0x%x\n",
-		 local->remote_version, local->remote_miu,
-		 local->remote_lto, local->remote_opt,
-		 local->remote_wks);
+			 local->remote_version, local->remote_miu,
+			 local->remote_lto, local->remote_opt,
+			 local->remote_wks);
 
 	return 0;
 }
 
 int nfc_llcp_parse_connection_tlv(struct nfc_llcp_sock *sock,
-				  u8 *tlv_array, u16 tlv_array_len)
+								  u8 *tlv_array, u16 tlv_array_len)
 {
 	u8 *tlv = tlv_array, type, length, offset = 0;
 
 	pr_debug("TLV array length %d\n", tlv_array_len);
 
 	if (sock == NULL)
+	{
 		return -ENOTCONN;
+	}
 
-	while (offset < tlv_array_len) {
+	while (offset < tlv_array_len)
+	{
 		type = tlv[0];
 		length = tlv[1];
 
 		pr_debug("type 0x%x length %d\n", type, length);
 
-		switch (type) {
-		case LLCP_TLV_MIUX:
-			sock->remote_miu = llcp_tlv_miux(tlv) + 128;
-			break;
-		case LLCP_TLV_RW:
-			sock->remote_rw = llcp_tlv_rw(tlv);
-			break;
-		case LLCP_TLV_SN:
-			break;
-		default:
-			pr_err("Invalid gt tlv value 0x%x\n", type);
-			break;
+		switch (type)
+		{
+			case LLCP_TLV_MIUX:
+				sock->remote_miu = llcp_tlv_miux(tlv) + 128;
+				break;
+
+			case LLCP_TLV_RW:
+				sock->remote_rw = llcp_tlv_rw(tlv);
+				break;
+
+			case LLCP_TLV_SN:
+				break;
+
+			default:
+				pr_err("Invalid gt tlv value 0x%x\n", type);
+				break;
 		}
 
 		offset += length + 2;
@@ -281,13 +325,13 @@ int nfc_llcp_parse_connection_tlv(struct nfc_llcp_sock *sock,
 	}
 
 	pr_debug("sock %p rw %d miu %d\n", sock,
-		 sock->remote_rw, sock->remote_miu);
+			 sock->remote_rw, sock->remote_miu);
 
 	return 0;
 }
 
 static struct sk_buff *llcp_add_header(struct sk_buff *pdu,
-				       u8 dsap, u8 ssap, u8 ptype)
+									   u8 dsap, u8 ssap, u8 ptype)
 {
 	u8 header[2];
 
@@ -304,12 +348,14 @@ static struct sk_buff *llcp_add_header(struct sk_buff *pdu,
 }
 
 static struct sk_buff *llcp_add_tlv(struct sk_buff *pdu, u8 *tlv,
-				    u8 tlv_length)
+									u8 tlv_length)
 {
 	/* XXX Add an skb length check */
 
 	if (tlv == NULL)
+	{
 		return NULL;
+	}
 
 	memcpy(skb_put(pdu, tlv_length), tlv, tlv_length);
 
@@ -317,17 +363,21 @@ static struct sk_buff *llcp_add_tlv(struct sk_buff *pdu, u8 *tlv,
 }
 
 static struct sk_buff *llcp_allocate_pdu(struct nfc_llcp_sock *sock,
-					 u8 cmd, u16 size)
+		u8 cmd, u16 size)
 {
 	struct sk_buff *skb;
 	int err;
 
 	if (sock->ssap == 0)
+	{
 		return NULL;
+	}
 
 	skb = nfc_alloc_send_skb(sock->dev, &sock->sk, MSG_DONTWAIT,
-				 size + LLCP_HEADER_SIZE, &err);
-	if (skb == NULL) {
+							 size + LLCP_HEADER_SIZE, &err);
+
+	if (skb == NULL)
+	{
 		pr_err("Could not allocate PDU\n");
 		return NULL;
 	}
@@ -346,16 +396,25 @@ int nfc_llcp_send_disconnect(struct nfc_llcp_sock *sock)
 	pr_debug("Sending DISC\n");
 
 	local = sock->local;
+
 	if (local == NULL)
+	{
 		return -ENODEV;
+	}
 
 	dev = sock->dev;
+
 	if (dev == NULL)
+	{
 		return -ENODEV;
+	}
 
 	skb = llcp_allocate_pdu(sock, LLCP_PDU_DISC, 0);
+
 	if (skb == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	skb_queue_tail(&local->tx_queue, skb);
 
@@ -371,15 +430,21 @@ int nfc_llcp_send_symm(struct nfc_dev *dev)
 	pr_debug("Sending SYMM\n");
 
 	local = nfc_llcp_find_local(dev);
+
 	if (local == NULL)
+	{
 		return -ENODEV;
+	}
 
 	size += LLCP_HEADER_SIZE;
 	size += dev->tx_headroom + dev->tx_tailroom + NFC_HEADER_SIZE;
 
 	skb = alloc_skb(size, GFP_KERNEL);
+
 	if (skb == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	skb_reserve(skb, dev->tx_headroom + NFC_HEADER_SIZE);
 
@@ -390,7 +455,7 @@ int nfc_llcp_send_symm(struct nfc_dev *dev)
 	nfc_llcp_send_to_raw_sock(local, skb, NFC_DIRECTION_TX);
 
 	return nfc_data_exchange(dev, local->target_idx, skb,
-				 nfc_llcp_recv, local);
+							 nfc_llcp_recv, local);
 }
 
 int nfc_llcp_send_connect(struct nfc_llcp_sock *sock)
@@ -407,24 +472,28 @@ int nfc_llcp_send_connect(struct nfc_llcp_sock *sock)
 	pr_debug("Sending CONNECT\n");
 
 	local = sock->local;
-	if (local == NULL)
-		return -ENODEV;
 
-	if (sock->service_name != NULL) {
+	if (local == NULL)
+	{
+		return -ENODEV;
+	}
+
+	if (sock->service_name != NULL)
+	{
 		service_name_tlv = nfc_llcp_build_tlv(LLCP_TLV_SN,
-						      sock->service_name,
-						      sock->service_name_len,
-						      &service_name_tlv_length);
+											  sock->service_name,
+											  sock->service_name_len,
+											  &service_name_tlv_length);
 		size += service_name_tlv_length;
 	}
 
 	/* If the socket parameters are not set, use the local ones */
 	miux = be16_to_cpu(sock->miux) > LLCP_MAX_MIUX ?
-		local->miux : sock->miux;
+		   local->miux : sock->miux;
 	rw = sock->rw > LLCP_MAX_RW ? local->rw : sock->rw;
 
 	miux_tlv = nfc_llcp_build_tlv(LLCP_TLV_MIUX, (u8 *)&miux, 0,
-				      &miux_tlv_length);
+								  &miux_tlv_length);
 	size += miux_tlv_length;
 
 	rw_tlv = nfc_llcp_build_tlv(LLCP_TLV_RW, &rw, 0, &rw_tlv_length);
@@ -433,7 +502,9 @@ int nfc_llcp_send_connect(struct nfc_llcp_sock *sock)
 	pr_debug("SKB size %d SN length %zu\n", size, sock->service_name_len);
 
 	skb = llcp_allocate_pdu(sock, LLCP_PDU_CONNECT, size);
-	if (skb == NULL) {
+
+	if (skb == NULL)
+	{
 		err = -ENOMEM;
 		goto error_tlv;
 	}
@@ -447,8 +518,11 @@ int nfc_llcp_send_connect(struct nfc_llcp_sock *sock)
 	err = 0;
 
 error_tlv:
+
 	if (err)
+	{
 		pr_err("error %d\n", err);
+	}
 
 	kfree(service_name_tlv);
 	kfree(miux_tlv);
@@ -470,23 +544,28 @@ int nfc_llcp_send_cc(struct nfc_llcp_sock *sock)
 	pr_debug("Sending CC\n");
 
 	local = sock->local;
+
 	if (local == NULL)
+	{
 		return -ENODEV;
+	}
 
 	/* If the socket parameters are not set, use the local ones */
 	miux = be16_to_cpu(sock->miux) > LLCP_MAX_MIUX ?
-		local->miux : sock->miux;
+		   local->miux : sock->miux;
 	rw = sock->rw > LLCP_MAX_RW ? local->rw : sock->rw;
 
 	miux_tlv = nfc_llcp_build_tlv(LLCP_TLV_MIUX, (u8 *)&miux, 0,
-				      &miux_tlv_length);
+								  &miux_tlv_length);
 	size += miux_tlv_length;
 
 	rw_tlv = nfc_llcp_build_tlv(LLCP_TLV_RW, &rw, 0, &rw_tlv_length);
 	size += rw_tlv_length;
 
 	skb = llcp_allocate_pdu(sock, LLCP_PDU_CC, size);
-	if (skb == NULL) {
+
+	if (skb == NULL)
+	{
 		err = -ENOMEM;
 		goto error_tlv;
 	}
@@ -499,8 +578,11 @@ int nfc_llcp_send_cc(struct nfc_llcp_sock *sock)
 	err = 0;
 
 error_tlv:
+
 	if (err)
+	{
 		pr_err("error %d\n", err);
+	}
 
 	kfree(miux_tlv);
 	kfree(rw_tlv);
@@ -509,26 +591,34 @@ error_tlv:
 }
 
 static struct sk_buff *nfc_llcp_allocate_snl(struct nfc_llcp_local *local,
-					     size_t tlv_length)
+		size_t tlv_length)
 {
 	struct sk_buff *skb;
 	struct nfc_dev *dev;
 	u16 size = 0;
 
 	if (local == NULL)
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
 	dev = local->dev;
+
 	if (dev == NULL)
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
 	size += LLCP_HEADER_SIZE;
 	size += dev->tx_headroom + dev->tx_tailroom + NFC_HEADER_SIZE;
 	size += tlv_length;
 
 	skb = alloc_skb(size, GFP_KERNEL);
+
 	if (skb == NULL)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	skb_reserve(skb, dev->tx_headroom + NFC_HEADER_SIZE);
 
@@ -538,17 +628,21 @@ static struct sk_buff *nfc_llcp_allocate_snl(struct nfc_llcp_local *local,
 }
 
 int nfc_llcp_send_snl_sdres(struct nfc_llcp_local *local,
-			    struct hlist_head *tlv_list, size_t tlvs_len)
+							struct hlist_head *tlv_list, size_t tlvs_len)
 {
 	struct nfc_llcp_sdp_tlv *sdp;
 	struct hlist_node *n;
 	struct sk_buff *skb;
 
 	skb = nfc_llcp_allocate_snl(local, tlvs_len);
-	if (IS_ERR(skb))
-		return PTR_ERR(skb);
 
-	hlist_for_each_entry_safe(sdp, n, tlv_list, node) {
+	if (IS_ERR(skb))
+	{
+		return PTR_ERR(skb);
+	}
+
+	hlist_for_each_entry_safe(sdp, n, tlv_list, node)
+	{
 		memcpy(skb_put(skb, sdp->tlv_len), sdp->tlv, sdp->tlv_len);
 
 		hlist_del(&sdp->node);
@@ -562,27 +656,31 @@ int nfc_llcp_send_snl_sdres(struct nfc_llcp_local *local,
 }
 
 int nfc_llcp_send_snl_sdreq(struct nfc_llcp_local *local,
-			    struct hlist_head *tlv_list, size_t tlvs_len)
+							struct hlist_head *tlv_list, size_t tlvs_len)
 {
 	struct nfc_llcp_sdp_tlv *sdreq;
 	struct hlist_node *n;
 	struct sk_buff *skb;
 
 	skb = nfc_llcp_allocate_snl(local, tlvs_len);
+
 	if (IS_ERR(skb))
+	{
 		return PTR_ERR(skb);
+	}
 
 	mutex_lock(&local->sdreq_lock);
 
 	if (hlist_empty(&local->pending_sdreqs))
 		mod_timer(&local->sdreq_timer,
-			  jiffies + msecs_to_jiffies(3 * local->remote_lto));
+				  jiffies + msecs_to_jiffies(3 * local->remote_lto));
 
-	hlist_for_each_entry_safe(sdreq, n, tlv_list, node) {
+	hlist_for_each_entry_safe(sdreq, n, tlv_list, node)
+	{
 		pr_debug("tid %d for %s\n", sdreq->tid, sdreq->uri);
 
 		memcpy(skb_put(skb, sdreq->tlv_len), sdreq->tlv,
-		       sdreq->tlv_len);
+			   sdreq->tlv_len);
 
 		hlist_del(&sdreq->node);
 
@@ -605,18 +703,26 @@ int nfc_llcp_send_dm(struct nfc_llcp_local *local, u8 ssap, u8 dsap, u8 reason)
 	pr_debug("Sending DM reason 0x%x\n", reason);
 
 	if (local == NULL)
+	{
 		return -ENODEV;
+	}
 
 	dev = local->dev;
+
 	if (dev == NULL)
+	{
 		return -ENODEV;
+	}
 
 	size += LLCP_HEADER_SIZE;
 	size += dev->tx_headroom + dev->tx_tailroom + NFC_HEADER_SIZE;
 
 	skb = alloc_skb(size, GFP_KERNEL);
+
 	if (skb == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	skb_reserve(skb, dev->tx_headroom + NFC_HEADER_SIZE);
 
@@ -630,7 +736,7 @@ int nfc_llcp_send_dm(struct nfc_llcp_local *local, u8 ssap, u8 dsap, u8 reason)
 }
 
 int nfc_llcp_send_i_frame(struct nfc_llcp_sock *sock,
-			  struct msghdr *msg, size_t len)
+						  struct msghdr *msg, size_t len)
 {
 	struct sk_buff *pdu;
 	struct sock *sk = &sock->sk;
@@ -642,31 +748,40 @@ int nfc_llcp_send_i_frame(struct nfc_llcp_sock *sock,
 	pr_debug("Send I frame len %zd\n", len);
 
 	local = sock->local;
+
 	if (local == NULL)
+	{
 		return -ENODEV;
+	}
 
 	/* Remote is ready but has not acknowledged our frames */
-	if((sock->remote_ready &&
-	    skb_queue_len(&sock->tx_pending_queue) >= sock->remote_rw &&
-	    skb_queue_len(&sock->tx_queue) >= 2 * sock->remote_rw)) {
+	if ((sock->remote_ready &&
+		 skb_queue_len(&sock->tx_pending_queue) >= sock->remote_rw &&
+		 skb_queue_len(&sock->tx_queue) >= 2 * sock->remote_rw))
+	{
 		pr_err("Pending queue is full %d frames\n",
-		       skb_queue_len(&sock->tx_pending_queue));
+			   skb_queue_len(&sock->tx_pending_queue));
 		return -ENOBUFS;
 	}
 
 	/* Remote is not ready and we've been queueing enough frames */
 	if ((!sock->remote_ready &&
-	     skb_queue_len(&sock->tx_queue) >= 2 * sock->remote_rw)) {
+		 skb_queue_len(&sock->tx_queue) >= 2 * sock->remote_rw))
+	{
 		pr_err("Tx queue is full %d frames\n",
-		       skb_queue_len(&sock->tx_queue));
+			   skb_queue_len(&sock->tx_queue));
 		return -ENOBUFS;
 	}
 
 	msg_data = kmalloc(len, GFP_USER | __GFP_NOWARN);
-	if (msg_data == NULL)
-		return -ENOMEM;
 
-	if (memcpy_from_msg(msg_data, msg, len)) {
+	if (msg_data == NULL)
+	{
+		return -ENOMEM;
+	}
+
+	if (memcpy_from_msg(msg_data, msg, len))
+	{
 		kfree(msg_data);
 		return -EFAULT;
 	}
@@ -674,18 +789,21 @@ int nfc_llcp_send_i_frame(struct nfc_llcp_sock *sock,
 	remaining_len = len;
 	msg_ptr = msg_data;
 
-	do {
+	do
+	{
 		remote_miu = sock->remote_miu > LLCP_MAX_MIU ?
-				LLCP_DEFAULT_MIU : sock->remote_miu;
+					 LLCP_DEFAULT_MIU : sock->remote_miu;
 
 		frag_len = min_t(size_t, remote_miu, remaining_len);
 
 		pr_debug("Fragment %zd bytes remaining %zd",
-			 frag_len, remaining_len);
+				 frag_len, remaining_len);
 
 		pdu = llcp_allocate_pdu(sock, LLCP_PDU_I,
-					frag_len + LLCP_SEQUENCE_SIZE);
-		if (pdu == NULL) {
+								frag_len + LLCP_SEQUENCE_SIZE);
+
+		if (pdu == NULL)
+		{
 			kfree(msg_data);
 			return -ENOMEM;
 		}
@@ -693,7 +811,9 @@ int nfc_llcp_send_i_frame(struct nfc_llcp_sock *sock,
 		skb_put(pdu, LLCP_SEQUENCE_SIZE);
 
 		if (likely(frag_len > 0))
+		{
 			memcpy(skb_put(pdu, frag_len), msg_ptr, frag_len);
+		}
 
 		skb_queue_tail(&sock->tx_queue, pdu);
 
@@ -705,7 +825,8 @@ int nfc_llcp_send_i_frame(struct nfc_llcp_sock *sock,
 
 		remaining_len -= frag_len;
 		msg_ptr += frag_len;
-	} while (remaining_len > 0);
+	}
+	while (remaining_len > 0);
 
 	kfree(msg_data);
 
@@ -713,7 +834,7 @@ int nfc_llcp_send_i_frame(struct nfc_llcp_sock *sock,
 }
 
 int nfc_llcp_send_ui_frame(struct nfc_llcp_sock *sock, u8 ssap, u8 dsap,
-			   struct msghdr *msg, size_t len)
+						   struct msghdr *msg, size_t len)
 {
 	struct sk_buff *pdu;
 	struct nfc_llcp_local *local;
@@ -725,14 +846,21 @@ int nfc_llcp_send_ui_frame(struct nfc_llcp_sock *sock, u8 ssap, u8 dsap,
 	pr_debug("Send UI frame len %zd\n", len);
 
 	local = sock->local;
+
 	if (local == NULL)
+	{
 		return -ENODEV;
+	}
 
 	msg_data = kmalloc(len, GFP_USER | __GFP_NOWARN);
-	if (msg_data == NULL)
-		return -ENOMEM;
 
-	if (memcpy_from_msg(msg_data, msg, len)) {
+	if (msg_data == NULL)
+	{
+		return -ENOMEM;
+	}
+
+	if (memcpy_from_msg(msg_data, msg, len))
+	{
 		kfree(msg_data);
 		return -EFAULT;
 	}
@@ -740,18 +868,21 @@ int nfc_llcp_send_ui_frame(struct nfc_llcp_sock *sock, u8 ssap, u8 dsap,
 	remaining_len = len;
 	msg_ptr = msg_data;
 
-	do {
+	do
+	{
 		remote_miu = sock->remote_miu > LLCP_MAX_MIU ?
-				local->remote_miu : sock->remote_miu;
+					 local->remote_miu : sock->remote_miu;
 
 		frag_len = min_t(size_t, remote_miu, remaining_len);
 
 		pr_debug("Fragment %zd bytes remaining %zd",
-			 frag_len, remaining_len);
+				 frag_len, remaining_len);
 
 		pdu = nfc_alloc_send_skb(sock->dev, &sock->sk, MSG_DONTWAIT,
-					 frag_len + LLCP_HEADER_SIZE, &err);
-		if (pdu == NULL) {
+								 frag_len + LLCP_HEADER_SIZE, &err);
+
+		if (pdu == NULL)
+		{
 			pr_err("Could not allocate PDU\n");
 			continue;
 		}
@@ -759,14 +890,17 @@ int nfc_llcp_send_ui_frame(struct nfc_llcp_sock *sock, u8 ssap, u8 dsap,
 		pdu = llcp_add_header(pdu, dsap, ssap, LLCP_PDU_UI);
 
 		if (likely(frag_len > 0))
+		{
 			memcpy(skb_put(pdu, frag_len), msg_ptr, frag_len);
+		}
 
 		/* No need to check for the peer RW for UI frames */
 		skb_queue_tail(&local->tx_queue, pdu);
 
 		remaining_len -= frag_len;
 		msg_ptr += frag_len;
-	} while (remaining_len > 0);
+	}
+	while (remaining_len > 0);
 
 	kfree(msg_data);
 
@@ -781,12 +915,18 @@ int nfc_llcp_send_rr(struct nfc_llcp_sock *sock)
 	pr_debug("Send rr nr %d\n", sock->recv_n);
 
 	local = sock->local;
+
 	if (local == NULL)
+	{
 		return -ENODEV;
+	}
 
 	skb = llcp_allocate_pdu(sock, LLCP_PDU_RR, LLCP_SEQUENCE_SIZE);
+
 	if (skb == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	skb_put(skb, LLCP_SEQUENCE_SIZE);
 

@@ -1,4 +1,4 @@
-/* 
+/*
    You may distribute this file under either of the two licenses that
    follow at your discretion.
 */
@@ -17,7 +17,7 @@ shown in the file LICENSE, or under the license shown below. The
 technical and financial contributors to Coda are listed in the file
 CREDITS.
 
-                        Additional copyrights 
+                        Additional copyrights
 */
 
 /*
@@ -52,14 +52,14 @@ Mellon the rights to redistribute these changes without encumbrance.
 /*
  *
  * Based on cfs.h from Mach, but revamped for increased simplicity.
- * Linux modifications by 
+ * Linux modifications by
  * Peter Braam, Aug 1996
  */
 #ifndef _CODA_HEADER_
 #define _CODA_HEADER_
 
 #if defined(__linux__)
-typedef unsigned long long u_quad_t;
+	typedef unsigned long long u_quad_t;
 #endif
 #include <uapi/linux/coda.h>
-#endif 
+#endif

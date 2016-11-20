@@ -24,7 +24,8 @@
 #define PQI_DEVICE_SIGNATURE	"PQI DREG"
 
 /* This structure is defined by the PQI specification. */
-struct pqi_device_registers {
+struct pqi_device_registers
+{
 	__le64	signature;
 	u8	function_and_status_code;
 	u8	reserved[7];
@@ -70,7 +71,8 @@ struct pqi_device_registers {
  * care about are defined here.  The offsets mentioned in the
  * comments are the offsets from the PCIe BAR 0.
  */
-struct pqi_ctrl_registers {
+struct pqi_ctrl_registers
+{
 	u8	reserved[0x20];
 	__le32	sis_host_to_ctrl_doorbell;		/* 20h */
 	u8	reserved1[0x34 - (0x20 + sizeof(__le32))];
@@ -97,12 +99,14 @@ struct pqi_ctrl_registers {
 
 #define PQI_DEVICE_REGISTERS_OFFSET	0x4000
 
-enum pqi_io_path {
+enum pqi_io_path
+{
 	RAID_PATH = 0,
 	AIO_PATH = 1
 };
 
-struct pqi_sg_descriptor {
+struct pqi_sg_descriptor
+{
 	__le64	address;
 	__le32	length;
 	__le32	flags;
@@ -112,13 +116,14 @@ struct pqi_sg_descriptor {
 #define CISS_SG_LAST	0x40000000
 #define CISS_SG_CHAIN	0x80000000
 
-struct pqi_iu_header {
+struct pqi_iu_header
+{
 	u8	iu_type;
 	u8	reserved;
 	__le16	iu_length;	/* in bytes - does not include the length */
-				/* of this header */
+	/* of this header */
 	__le16	response_queue_id;	/* specifies the OQ where the */
-					/*   response IU is to be delivered */
+	/*   response IU is to be delivered */
 	u8	work_area[2];	/* reserved for driver use */
 };
 
@@ -128,18 +133,22 @@ struct pqi_iu_header {
  */
 #define PQI_REQUEST_HEADER_LENGTH	4
 
-struct pqi_general_admin_request {
+struct pqi_general_admin_request
+{
 	struct pqi_iu_header header;
 	__le16	request_id;
 	u8	function_code;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u8	reserved[33];
 			__le32	buffer_length;
 			struct pqi_sg_descriptor sg_descriptor;
 		} report_device_capability;
 
-		struct {
+		struct
+		{
 			u8	reserved;
 			__le16	queue_id;
 			u8	reserved1[2];
@@ -152,7 +161,8 @@ struct pqi_general_admin_request {
 			__le32	vendor_specific;
 		} create_operational_iq;
 
-		struct {
+		struct
+		{
 			u8	reserved;
 			__le16	queue_id;
 			u8	reserved1[2];
@@ -170,13 +180,15 @@ struct pqi_general_admin_request {
 			__le32	vendor_specific;
 		} create_operational_oq;
 
-		struct {
+		struct
+		{
 			u8	reserved;
 			__le16	queue_id;
 			u8	reserved1[50];
 		} delete_operational_queue;
 
-		struct {
+		struct
+		{
 			u8	reserved;
 			__le16	queue_id;
 			u8	reserved1[46];
@@ -186,19 +198,23 @@ struct pqi_general_admin_request {
 	} data;
 };
 
-struct pqi_general_admin_response {
+struct pqi_general_admin_response
+{
 	struct pqi_iu_header header;
 	__le16	request_id;
 	u8	function_code;
 	u8	status;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u8	status_descriptor[4];
 			__le64	iq_pi_offset;
 			u8	reserved[40];
 		} create_operational_iq;
 
-		struct {
+		struct
+		{
 			u8	status_descriptor[4];
 			__le64	oq_ci_offset;
 			u8	reserved[40];
@@ -206,7 +222,8 @@ struct pqi_general_admin_response {
 	} data;
 };
 
-struct pqi_iu_layer_descriptor {
+struct pqi_iu_layer_descriptor
+{
 	u8	inbound_spanning_supported : 1;
 	u8	reserved : 7;
 	u8	reserved1[5];
@@ -217,7 +234,8 @@ struct pqi_iu_layer_descriptor {
 	__le16	max_outbound_iu_length;
 };
 
-struct pqi_device_capability {
+struct pqi_device_capability
+{
 	__le16	data_length;
 	u8	reserved[6];
 	u8	iq_arbitration_priority_support_bitmask;
@@ -247,7 +265,8 @@ struct pqi_device_capability {
 
 #define PQI_MAX_EMBEDDED_SG_DESCRIPTORS		4
 
-struct pqi_raid_path_request {
+struct pqi_raid_path_request
+{
 	struct pqi_iu_header header;
 	__le16	request_id;
 	__le16	nexus_id;
@@ -271,7 +290,8 @@ struct pqi_raid_path_request {
 		sg_descriptors[PQI_MAX_EMBEDDED_SG_DESCRIPTORS];
 };
 
-struct pqi_aio_path_request {
+struct pqi_aio_path_request
+{
 	struct pqi_iu_header header;
 	__le16	request_id;
 	u8	reserved1[2];
@@ -299,24 +319,29 @@ struct pqi_aio_path_request {
 		sg_descriptors[PQI_MAX_EMBEDDED_SG_DESCRIPTORS];
 };
 
-struct pqi_io_response {
+struct pqi_io_response
+{
 	struct pqi_iu_header header;
 	__le16	request_id;
 	__le16	error_index;
 	u8	reserved2[4];
 };
 
-struct pqi_general_management_request {
+struct pqi_general_management_request
+{
 	struct pqi_iu_header header;
 	__le16	request_id;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u8	reserved[2];
 			__le32	buffer_length;
 			struct pqi_sg_descriptor sg_descriptors[3];
 		} report_event_configuration;
 
-		struct {
+		struct
+		{
 			__le16	global_event_oq_id;
 			__le32	buffer_length;
 			struct pqi_sg_descriptor sg_descriptors[3];
@@ -324,13 +349,15 @@ struct pqi_general_management_request {
 	} data;
 };
 
-struct pqi_event_descriptor {
+struct pqi_event_descriptor
+{
 	u8	event_type;
 	u8	reserved;
 	__le16	oq_id;
 };
 
-struct pqi_event_config {
+struct pqi_event_config
+{
 	u8	reserved[2];
 	u8	num_event_descriptors;
 	u8	reserved1;
@@ -339,7 +366,8 @@ struct pqi_event_config {
 
 #define PQI_MAX_EVENT_DESCRIPTORS	255
 
-struct pqi_event_response {
+struct pqi_event_response
+{
 	struct pqi_iu_header header;
 	u8	event_type;
 	u8	reserved2 : 7;
@@ -349,7 +377,8 @@ struct pqi_event_response {
 	u8	data[16];
 };
 
-struct pqi_event_acknowledge_request {
+struct pqi_event_acknowledge_request
+{
 	struct pqi_iu_header header;
 	u8	event_type;
 	u8	reserved2;
@@ -357,7 +386,8 @@ struct pqi_event_acknowledge_request {
 	__le32	additional_event_id;
 };
 
-struct pqi_task_management_request {
+struct pqi_task_management_request
+{
 	struct pqi_iu_header header;
 	__le16	request_id;
 	__le16	nexus_id;
@@ -373,7 +403,8 @@ struct pqi_task_management_request {
 
 #define SOP_TASK_MANAGEMENT_LUN_RESET	0x8
 
-struct pqi_task_management_response {
+struct pqi_task_management_response
+{
 	struct pqi_iu_header header;
 	__le16	request_id;
 	__le16	nexus_id;
@@ -381,7 +412,8 @@ struct pqi_task_management_response {
 	u8	response_code;
 };
 
-struct pqi_aio_error_info {
+struct pqi_aio_error_info
+{
 	u8	status;
 	u8	service_response;
 	u8	data_present;
@@ -392,7 +424,8 @@ struct pqi_aio_error_info {
 	u8	data[256];
 };
 
-struct pqi_raid_error_info {
+struct pqi_raid_error_info
+{
 	u8	data_in_result;
 	u8	data_out_result;
 	u8	reserved[3];
@@ -534,12 +567,12 @@ typedef u32 pqi_index_t;
 /* SOP data direction flags */
 #define SOP_NO_DIRECTION_FLAG	0
 #define SOP_WRITE_FLAG		1	/* host writes data to Data-Out */
-					/* buffer */
+/* buffer */
 #define SOP_READ_FLAG		2	/* host receives data from Data-In */
-					/* buffer */
+/* buffer */
 #define SOP_BIDIRECTIONAL	3	/* data is transferred from the */
-					/* Data-Out buffer and data is */
-					/* transferred to the Data-In buffer */
+/* Data-Out buffer and data is */
+/* transferred to the Data-In buffer */
 
 #define SOP_TASK_ATTRIBUTE_SIMPLE		0
 #define SOP_TASK_ATTRIBUTE_HEAD_OF_QUEUE	1
@@ -560,18 +593,20 @@ typedef u32 pqi_index_t;
  * The purpose of this structure is to obtain proper alignment of objects in
  * an admin queue pair.
  */
-struct pqi_admin_queues_aligned {
+struct pqi_admin_queues_aligned
+{
 	__aligned(PQI_QUEUE_ELEMENT_ARRAY_ALIGNMENT)
-		u8	iq_element_array[PQI_ADMIN_IQ_ELEMENT_LENGTH]
-					[PQI_ADMIN_IQ_NUM_ELEMENTS];
+	u8	iq_element_array[PQI_ADMIN_IQ_ELEMENT_LENGTH]
+	[PQI_ADMIN_IQ_NUM_ELEMENTS];
 	__aligned(PQI_QUEUE_ELEMENT_ARRAY_ALIGNMENT)
-		u8	oq_element_array[PQI_ADMIN_OQ_ELEMENT_LENGTH]
-					[PQI_ADMIN_OQ_NUM_ELEMENTS];
+	u8	oq_element_array[PQI_ADMIN_OQ_ELEMENT_LENGTH]
+	[PQI_ADMIN_OQ_NUM_ELEMENTS];
 	__aligned(PQI_ADMIN_INDEX_ALIGNMENT) pqi_index_t iq_ci;
 	__aligned(PQI_ADMIN_INDEX_ALIGNMENT) pqi_index_t oq_pi;
 };
 
-struct pqi_admin_queues {
+struct pqi_admin_queues
+{
 	void		*iq_element_array;
 	void		*oq_element_array;
 	volatile pqi_index_t *iq_ci;
@@ -588,7 +623,8 @@ struct pqi_admin_queues {
 	u16		int_msg_num;
 };
 
-struct pqi_queue_group {
+struct pqi_queue_group
+{
 	struct pqi_ctrl_info *ctrl_info;	/* backpointer */
 	u16		iq_id[2];
 	u16		oq_id;
@@ -609,7 +645,8 @@ struct pqi_queue_group {
 	struct list_head request_list[2];
 };
 
-struct pqi_event_queue {
+struct pqi_event_queue
+{
 	u16		oq_id;
 	u16		int_msg_num;
 	void		*oq_element_array;
@@ -623,7 +660,8 @@ struct pqi_event_queue {
 #define PQI_DEFAULT_QUEUE_GROUP		0
 #define PQI_MAX_QUEUE_GROUPS		PQI_MAX_MSIX_VECTORS
 
-struct pqi_encryption_info {
+struct pqi_encryption_info
+{
 	u16	data_encryption_key_index;
 	u32	encrypt_tweak_lower;
 	u32	encrypt_tweak_upper;
@@ -641,23 +679,27 @@ struct pqi_encryption_info {
 
 #pragma pack(1)
 
-struct report_lun_header {
+struct report_lun_header
+{
 	__be32	list_length;
 	u8	extended_response;
 	u8	reserved[3];
 };
 
-struct report_log_lun_extended_entry {
+struct report_log_lun_extended_entry
+{
 	u8	lunid[8];
 	u8	volume_id[16];
 };
 
-struct report_log_lun_extended {
+struct report_log_lun_extended
+{
 	struct report_lun_header header;
 	struct report_log_lun_extended_entry lun_entries[1];
 };
 
-struct report_phys_lun_extended_entry {
+struct report_phys_lun_extended_entry
+{
 	u8	lunid[8];
 	__be64	wwid;
 	u8	device_type;
@@ -671,12 +713,14 @@ struct report_phys_lun_extended_entry {
 #define REPORT_PHYS_LUN_DEV_FLAG_NON_DISK	0x1
 #define REPORT_PHYS_LUN_DEV_FLAG_AIO_ENABLED	0x8
 
-struct report_phys_lun_extended {
+struct report_phys_lun_extended
+{
 	struct report_lun_header header;
 	struct report_phys_lun_extended_entry lun_entries[1];
 };
 
-struct raid_map_disk_data {
+struct raid_map_disk_data
+{
 	u32	aio_handle;
 	u8	xor_mult[2];
 	u8	reserved[2];
@@ -685,25 +729,26 @@ struct raid_map_disk_data {
 /* constants for flags field of RAID map */
 #define RAID_MAP_ENCRYPTION_ENABLED	0x1
 
-struct raid_map {
+struct raid_map
+{
 	__le32	structure_size;		/* size of entire structure in bytes */
 	__le32	volume_blk_size;	/* bytes / block in the volume */
 	__le64	volume_blk_cnt;		/* logical blocks on the volume */
 	u8	phys_blk_shift;		/* shift factor to convert between */
-					/* units of logical blocks and */
-					/* physical disk blocks */
+	/* units of logical blocks and */
+	/* physical disk blocks */
 	u8	parity_rotation_shift;	/* shift factor to convert between */
-					/* units of logical stripes and */
-					/* physical stripes */
+	/* units of logical stripes and */
+	/* physical stripes */
 	__le16	strip_size;		/* blocks used on each disk / stripe */
 	__le64	disk_starting_blk;	/* first disk block used in volume */
 	__le64	disk_blk_cnt;		/* disk blocks used by volume / disk */
 	__le16	data_disks_per_row;	/* data disk entries / row in the map */
 	__le16	metadata_disks_per_row;	/* mirror/parity disk entries / row */
-					/* in the map */
+	/* in the map */
 	__le16	row_cnt;		/* rows in each layout map */
 	__le16	layout_map_count;	/* layout maps (1 map per */
-					/* mirror parity group) */
+	/* mirror parity group) */
 	__le16	flags;
 	__le16	data_encryption_key_index;
 	u8	reserved[16];
@@ -714,11 +759,12 @@ struct raid_map {
 
 #define RAID_CTLR_LUNID		"\0\0\0\0\0\0\0\0"
 
-struct pqi_scsi_dev {
+struct pqi_scsi_dev
+{
 	int	devtype;		/* as reported by INQUIRY commmand */
 	u8	device_type;		/* as reported by */
-					/* BMIC_IDENTIFY_PHYSICAL_DEVICE */
-					/* only valid for devtype = TYPE_DISK */
+	/* BMIC_IDENTIFY_PHYSICAL_DEVICE */
+	/* only valid for devtype = TYPE_DISK */
 	int	bus;
 	int	target;
 	int	lun;
@@ -751,7 +797,7 @@ struct pqi_scsi_dev {
 	int	offload_enabled;	/* I/O accel RAID offload enabled */
 	int	offload_enabled_pending;
 	int	offload_to_mirror;	/* Send next I/O accelerator RAID */
-					/* offload request to mirror drive. */
+	/* offload request to mirror drive. */
 	struct raid_map *raid_map;	/* I/O accelerator RAID map */
 
 	struct pqi_sas_port *sas_port;
@@ -775,7 +821,8 @@ struct pqi_scsi_dev {
 #pragma pack(1)
 
 /* structure for CISS_VPD_LV_STATUS */
-struct ciss_vpd_logical_volume_status {
+struct ciss_vpd_logical_volume_status
+{
 	u8	peripheral_info;
 	u8	page_code;
 	u8	reserved;
@@ -820,15 +867,17 @@ struct ciss_vpd_logical_volume_status {
 
 /* constants for flags field of ciss_vpd_logical_volume_status */
 #define CISS_LV_FLAGS_NO_HOST_IO	0x1	/* volume not available for */
-						/* host I/O */
+/* host I/O */
 
 /* for SAS hosts and SAS expanders */
-struct pqi_sas_node {
+struct pqi_sas_node
+{
 	struct device *parent_dev;
 	struct list_head port_list_head;
 };
 
-struct pqi_sas_port {
+struct pqi_sas_port
+{
 	struct list_head port_list_entry;
 	u64	sas_address;
 	struct sas_port *port;
@@ -838,18 +887,20 @@ struct pqi_sas_port {
 	struct sas_rphy *rphy;
 };
 
-struct pqi_sas_phy {
+struct pqi_sas_phy
+{
 	struct list_head phy_list_entry;
 	struct sas_phy *phy;
 	struct pqi_sas_port *parent_port;
 	bool	added_to_port;
 };
 
-struct pqi_io_request {
+struct pqi_io_request
+{
 	atomic_t	refcount;
 	u16		index;
 	void (*io_complete_callback)(struct pqi_io_request *io_request,
-		void *context);
+								 void *context);
 	void		*context;
 	int		status;
 	struct scsi_cmnd *scmd;
@@ -870,7 +921,8 @@ struct pqi_io_request {
 #define PQI_EVENT_AIO_CONFIG_CHANGE	6
 #define PQI_NUM_SUPPORTED_EVENTS	7
 
-struct pqi_event {
+struct pqi_event
+{
 	bool	pending;
 	u8	event_type;
 	__le16	event_id;
@@ -882,9 +934,10 @@ struct pqi_event {
 #define PQI_RESERVED_IO_SLOTS_SYNCHRONOUS_REQUESTS	3
 #define PQI_RESERVED_IO_SLOTS				\
 	(PQI_RESERVED_IO_SLOTS_LUN_RESET + PQI_RESERVED_IO_SLOTS_EVENT_ACK + \
-	PQI_RESERVED_IO_SLOTS_SYNCHRONOUS_REQUESTS)
+	 PQI_RESERVED_IO_SLOTS_SYNCHRONOUS_REQUESTS)
 
-struct pqi_ctrl_info {
+struct pqi_ctrl_info
+{
 	unsigned int	ctrl_id;
 	struct pci_dev	*pci_dev;
 	char		firmware_version[11];
@@ -965,7 +1018,8 @@ struct pqi_ctrl_info {
 	struct semaphore lun_reset_sem;
 };
 
-enum pqi_ctrl_mode {
+enum pqi_ctrl_mode
+{
 	UNKNOWN,
 	PQI_MODE
 };
@@ -1005,13 +1059,14 @@ enum pqi_ctrl_mode {
 #define CISS_GET_LEVEL_2_TARGET(lunid)		((lunid)[6])
 #define CISS_GET_DRIVE_NUMBER(lunid)		\
 	(((CISS_GET_BUS((lunid)) - 1) << 8) +	\
-	CISS_GET_LEVEL_2_TARGET((lunid)))
+	 CISS_GET_LEVEL_2_TARGET((lunid)))
 
 #define NO_TIMEOUT		((unsigned long) -1)
 
 #pragma pack(1)
 
-struct bmic_identify_controller {
+struct bmic_identify_controller
+{
 	u8	configured_logical_drive_count;
 	__le32	configuration_signature;
 	u8	firmware_version[4];
@@ -1024,7 +1079,8 @@ struct bmic_identify_controller {
 	u8	reserved3[32];
 };
 
-struct bmic_identify_physical_device {
+struct bmic_identify_physical_device
+{
 	u8	scsi_bus;		/* SCSI Bus number on controller */
 	u8	scsi_id;		/* SCSI ID on this bus */
 	__le16	block_size;		/* sector size in bytes */
@@ -1048,7 +1104,7 @@ struct bmic_identify_physical_device {
 	__le32	rpm;			/* drive rotational speed in RPM */
 	u8	device_type;		/* type of drive */
 	u8	sata_version;		/* only valid when device_type = */
-					/* BMIC_DEVICE_TYPE_SATA */
+	/* BMIC_DEVICE_TYPE_SATA */
 	__le64	big_total_block_count;
 	__le64	ris_starting_lba;
 	__le32	ris_size;
@@ -1097,7 +1153,7 @@ struct bmic_identify_physical_device {
 int pqi_add_sas_host(struct Scsi_Host *shost, struct pqi_ctrl_info *ctrl_info);
 void pqi_delete_sas_host(struct pqi_ctrl_info *ctrl_info);
 int pqi_add_sas_device(struct pqi_sas_node *pqi_sas_node,
-	struct pqi_scsi_dev *device);
+					   struct pqi_scsi_dev *device);
 void pqi_remove_sas_device(struct pqi_scsi_dev *device);
 struct pqi_scsi_dev *pqi_find_device_by_sas_rphy(
 	struct pqi_ctrl_info *ctrl_info, struct sas_rphy *rphy);

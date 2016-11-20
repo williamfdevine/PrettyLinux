@@ -29,7 +29,8 @@
  * count tree.  The leaf values for this tree is the 32-bit ref count.
  */
 
-struct disk_index_entry {
+struct disk_index_entry
+{
 	__le64 blocknr;
 	__le32 nr_free;
 	__le32 none_free_before;
@@ -37,7 +38,8 @@ struct disk_index_entry {
 
 
 #define MAX_METADATA_BITMAPS 255
-struct disk_metadata_index {
+struct disk_metadata_index
+{
 	__le32 csum;
 	__le32 padding;
 	__le64 blocknr;
@@ -54,7 +56,8 @@ typedef int (*open_index_fn)(struct ll_disk *ll);
 typedef dm_block_t (*max_index_entries_fn)(struct ll_disk *ll);
 typedef int (*commit_fn)(struct ll_disk *ll);
 
-struct ll_disk {
+struct ll_disk
+{
 	struct dm_transaction_manager *tm;
 	struct dm_btree_info bitmap_info;
 	struct dm_btree_info ref_count_info;
@@ -78,10 +81,11 @@ struct ll_disk {
 	open_index_fn open_index;
 	max_index_entries_fn max_entries;
 	commit_fn commit;
-	bool bitmap_index_changed:1;
+	bool bitmap_index_changed: 1;
 };
 
-struct disk_sm_root {
+struct disk_sm_root
+{
 	__le64 nr_blocks;
 	__le64 nr_allocated;
 	__le64 bitmap_root;
@@ -90,13 +94,15 @@ struct disk_sm_root {
 
 #define ENTRIES_PER_BYTE 4
 
-struct disk_bitmap_header {
+struct disk_bitmap_header
+{
 	__le32 csum;
 	__le32 not_used;
 	__le64 blocknr;
 } __packed;
 
-enum allocation_event {
+enum allocation_event
+{
 	SM_NONE,
 	SM_ALLOC,
 	SM_FREE,
@@ -108,7 +114,7 @@ int sm_ll_extend(struct ll_disk *ll, dm_block_t extra_blocks);
 int sm_ll_lookup_bitmap(struct ll_disk *ll, dm_block_t b, uint32_t *result);
 int sm_ll_lookup(struct ll_disk *ll, dm_block_t b, uint32_t *result);
 int sm_ll_find_free_block(struct ll_disk *ll, dm_block_t begin,
-			  dm_block_t end, dm_block_t *result);
+						  dm_block_t end, dm_block_t *result);
 int sm_ll_insert(struct ll_disk *ll, dm_block_t b, uint32_t ref_count, enum allocation_event *ev);
 int sm_ll_inc(struct ll_disk *ll, dm_block_t b, enum allocation_event *ev);
 int sm_ll_dec(struct ll_disk *ll, dm_block_t b, enum allocation_event *ev);
@@ -116,11 +122,11 @@ int sm_ll_commit(struct ll_disk *ll);
 
 int sm_ll_new_metadata(struct ll_disk *ll, struct dm_transaction_manager *tm);
 int sm_ll_open_metadata(struct ll_disk *ll, struct dm_transaction_manager *tm,
-			void *root_le, size_t len);
+						void *root_le, size_t len);
 
 int sm_ll_new_disk(struct ll_disk *ll, struct dm_transaction_manager *tm);
 int sm_ll_open_disk(struct ll_disk *ll, struct dm_transaction_manager *tm,
-		    void *root_le, size_t len);
+					void *root_le, size_t len);
 
 /*----------------------------------------------------------------*/
 

@@ -14,21 +14,26 @@
 #include "ccu_mp.h"
 
 static void ccu_mp_find_best(unsigned long parent, unsigned long rate,
-			     unsigned int max_m, unsigned int max_p,
-			     unsigned int *m, unsigned int *p)
+							 unsigned int max_m, unsigned int max_p,
+							 unsigned int *m, unsigned int *p)
 {
 	unsigned long best_rate = 0;
 	unsigned int best_m = 0, best_p = 0;
 	unsigned int _m, _p;
 
-	for (_p = 1; _p <= max_p; _p <<= 1) {
-		for (_m = 1; _m <= max_m; _m++) {
+	for (_p = 1; _p <= max_p; _p <<= 1)
+	{
+		for (_m = 1; _m <= max_m; _m++)
+		{
 			unsigned long tmp_rate = parent / _p / _m;
 
 			if (tmp_rate > rate)
+			{
 				continue;
+			}
 
-			if ((rate - tmp_rate) < (rate - best_rate)) {
+			if ((rate - tmp_rate) < (rate - best_rate))
+			{
 				best_rate = tmp_rate;
 				best_m = _m;
 				best_p = _p;
@@ -41,16 +46,16 @@ static void ccu_mp_find_best(unsigned long parent, unsigned long rate,
 }
 
 static unsigned long ccu_mp_round_rate(struct ccu_mux_internal *mux,
-				       unsigned long parent_rate,
-				       unsigned long rate,
-				       void *data)
+									   unsigned long parent_rate,
+									   unsigned long rate,
+									   void *data)
 {
 	struct ccu_mp *cmp = data;
 	unsigned int max_m, max_p;
 	unsigned int m, p;
 
-	max_m = cmp->m.max ?: 1 << cmp->m.width;
-	max_p = cmp->p.max ?: 1 << ((1 << cmp->p.width) - 1);
+	max_m = cmp->m.max ? : 1 << cmp->m.width;
+	max_p = cmp->p.max ? : 1 << ((1 << cmp->p.width) - 1);
 
 	ccu_mp_find_best(parent_rate, rate, max_m, max_p, &m, &p);
 
@@ -79,7 +84,7 @@ static int ccu_mp_is_enabled(struct clk_hw *hw)
 }
 
 static unsigned long ccu_mp_recalc_rate(struct clk_hw *hw,
-					unsigned long parent_rate)
+										unsigned long parent_rate)
 {
 	struct ccu_mp *cmp = hw_to_ccu_mp(hw);
 	unsigned int m, p;
@@ -97,16 +102,16 @@ static unsigned long ccu_mp_recalc_rate(struct clk_hw *hw,
 }
 
 static int ccu_mp_determine_rate(struct clk_hw *hw,
-				 struct clk_rate_request *req)
+								 struct clk_rate_request *req)
 {
 	struct ccu_mp *cmp = hw_to_ccu_mp(hw);
 
 	return ccu_mux_helper_determine_rate(&cmp->common, &cmp->mux,
-					     req, ccu_mp_round_rate, cmp);
+										 req, ccu_mp_round_rate, cmp);
 }
 
 static int ccu_mp_set_rate(struct clk_hw *hw, unsigned long rate,
-			   unsigned long parent_rate)
+						   unsigned long parent_rate)
 {
 	struct ccu_mp *cmp = hw_to_ccu_mp(hw);
 	unsigned long flags;
@@ -114,8 +119,8 @@ static int ccu_mp_set_rate(struct clk_hw *hw, unsigned long rate,
 	unsigned int m, p;
 	u32 reg;
 
-	max_m = cmp->m.max ?: 1 << cmp->m.width;
-	max_p = cmp->p.max ?: 1 << ((1 << cmp->p.width) - 1);
+	max_m = cmp->m.max ? : 1 << cmp->m.width;
+	max_p = cmp->p.max ? : 1 << ((1 << cmp->p.width) - 1);
 
 	ccu_mp_find_best(parent_rate, rate, max_m, max_p, &m, &p);
 
@@ -126,7 +131,7 @@ static int ccu_mp_set_rate(struct clk_hw *hw, unsigned long rate,
 	reg &= ~GENMASK(cmp->p.width + cmp->p.shift - 1, cmp->p.shift);
 
 	writel(reg | (ilog2(p) << cmp->p.shift) | ((m - 1) << cmp->m.shift),
-	       cmp->common.base + cmp->common.reg);
+		   cmp->common.base + cmp->common.reg);
 
 	spin_unlock_irqrestore(cmp->common.lock, flags);
 
@@ -147,7 +152,8 @@ static int ccu_mp_set_parent(struct clk_hw *hw, u8 index)
 	return ccu_mux_helper_set_parent(&cmp->common, &cmp->mux, index);
 }
 
-const struct clk_ops ccu_mp_ops = {
+const struct clk_ops ccu_mp_ops =
+{
 	.disable	= ccu_mp_disable,
 	.enable		= ccu_mp_enable,
 	.is_enabled	= ccu_mp_is_enabled,

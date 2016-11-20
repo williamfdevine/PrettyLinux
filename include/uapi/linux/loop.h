@@ -17,7 +17,8 @@
 /*
  * Loop flags
  */
-enum {
+enum
+{
 	LO_FLAGS_READ_ONLY	= 1,
 	LO_FLAGS_AUTOCLEAR	= 4,
 	LO_FLAGS_PARTSCAN	= 8,
@@ -28,7 +29,8 @@ enum {
 #include <linux/types.h>	/* for __u64 */
 
 /* Backwards compatibility version */
-struct loop_info {
+struct loop_info
+{
 	int		   lo_number;		/* ioctl r/o */
 	__kernel_old_dev_t lo_device; 		/* ioctl r/o */
 	unsigned long	   lo_inode; 		/* ioctl r/o */
@@ -43,7 +45,8 @@ struct loop_info {
 	char		   reserved[4];
 };
 
-struct loop_info64 {
+struct loop_info64
+{
 	__u64		   lo_device;			/* ioctl r/o */
 	__u64		   lo_inode;			/* ioctl r/o */
 	__u64		   lo_rdevice;			/* ioctl r/o */

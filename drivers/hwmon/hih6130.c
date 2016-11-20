@@ -45,7 +45,8 @@
  * @humidity: cached humidity measurement value
  * @write_length: length for I2C measurement request
  */
-struct hih6130 {
+struct hih6130
+{
 	struct i2c_client *client;
 	struct mutex lock;
 	bool valid;
@@ -98,7 +99,8 @@ static int hih6130_update_measurements(struct device *dev)
 	int ret = 0;
 	int t;
 	unsigned char tmp[4];
-	struct i2c_msg msgs[1] = {
+	struct i2c_msg msgs[1] =
+	{
 		{
 			.addr = client->addr,
 			.flags = I2C_M_RD,
@@ -120,7 +122,8 @@ static int hih6130_update_measurements(struct device *dev)
 	 * than it can react against better response times in conditions more
 	 * favourable than specified in the datasheet.
 	 */
-	if (time_after(jiffies, hih6130->last_update + HZ) || !hih6130->valid) {
+	if (time_after(jiffies, hih6130->last_update + HZ) || !hih6130->valid)
+	{
 
 		/*
 		 * Write to slave address to request a measurement.
@@ -131,17 +134,24 @@ static int hih6130_update_measurements(struct device *dev)
 		 */
 		tmp[0] = 0;
 		ret = i2c_master_send(client, tmp, hih6130->write_length);
+
 		if (ret < 0)
+		{
 			goto out;
+		}
 
 		/* measurement cycle time is ~36.65msec */
 		msleep(40);
 
 		ret = i2c_transfer(client->adapter, msgs, 1);
-		if (ret < 0)
-			goto out;
 
-		if ((tmp[0] & 0xC0) != 0) {
+		if (ret < 0)
+		{
+			goto out;
+		}
+
+		if ((tmp[0] & 0xC0) != 0)
+		{
 			dev_err(&client->dev, "Error while reading measurement result\n");
 			ret = -EIO;
 			goto out;
@@ -156,6 +166,7 @@ static int hih6130_update_measurements(struct device *dev)
 		hih6130->last_update = jiffies;
 		hih6130->valid = true;
 	}
+
 out:
 	mutex_unlock(&hih6130->lock);
 
@@ -172,15 +183,19 @@ out:
  * Returns number of bytes written into buffer, negative errno on error.
  */
 static ssize_t hih6130_show_temperature(struct device *dev,
-					struct device_attribute *attr,
-					char *buf)
+										struct device_attribute *attr,
+										char *buf)
 {
 	struct hih6130 *hih6130 = dev_get_drvdata(dev);
 	int ret;
 
 	ret = hih6130_update_measurements(dev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return sprintf(buf, "%d\n", hih6130->temperature);
 }
 
@@ -194,24 +209,29 @@ static ssize_t hih6130_show_temperature(struct device *dev,
  * Returns number of bytes written into buffer, negative errno on error.
  */
 static ssize_t hih6130_show_humidity(struct device *dev,
-				     struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	struct hih6130 *hih6130 = dev_get_drvdata(dev);
 	int ret;
 
 	ret = hih6130_update_measurements(dev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return sprintf(buf, "%d\n", hih6130->humidity);
 }
 
 /* sysfs attributes */
 static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, hih6130_show_temperature,
-	NULL, 0);
+						  NULL, 0);
 static SENSOR_DEVICE_ATTR(humidity1_input, S_IRUGO, hih6130_show_humidity,
-	NULL, 0);
+						  NULL, 0);
 
-static struct attribute *hih6130_attrs[] = {
+static struct attribute *hih6130_attrs[] =
+{
 	&sensor_dev_attr_temp1_input.dev_attr.attr,
 	&sensor_dev_attr_humidity1_input.dev_attr.attr,
 	NULL
@@ -220,41 +240,49 @@ static struct attribute *hih6130_attrs[] = {
 ATTRIBUTE_GROUPS(hih6130);
 
 static int hih6130_probe(struct i2c_client *client,
-				   const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
 	struct hih6130 *hih6130;
 	struct device *hwmon_dev;
 
-	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		dev_err(&client->dev, "adapter does not support true I2C\n");
 		return -ENODEV;
 	}
 
 	hih6130 = devm_kzalloc(dev, sizeof(*hih6130), GFP_KERNEL);
+
 	if (!hih6130)
+	{
 		return -ENOMEM;
+	}
 
 	hih6130->client = client;
 	mutex_init(&hih6130->lock);
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_QUICK))
+	{
 		hih6130->write_length = 1;
+	}
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-							   hih6130,
-							   hih6130_groups);
+				hih6130,
+				hih6130_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
 /* Device ID table */
-static const struct i2c_device_id hih6130_id[] = {
+static const struct i2c_device_id hih6130_id[] =
+{
 	{ "hih6130", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, hih6130_id);
 
-static struct i2c_driver hih6130_driver = {
+static struct i2c_driver hih6130_driver =
+{
 	.driver.name = "hih6130",
 	.probe       = hih6130_probe,
 	.id_table    = hih6130_id,

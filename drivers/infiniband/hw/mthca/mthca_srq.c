@@ -41,11 +41,13 @@
 #include "mthca_memfree.h"
 #include "mthca_wqe.h"
 
-enum {
+enum
+{
 	MTHCA_MAX_DIRECT_SRQ_SIZE = 4 * PAGE_SIZE
 };
 
-struct mthca_tavor_srq_context {
+struct mthca_tavor_srq_context
+{
 	__be64 wqe_base_ds;	/* low 6 bits is descriptor size */
 	__be32 state_pd;
 	__be32 lkey;
@@ -55,7 +57,8 @@ struct mthca_tavor_srq_context {
 	u32    reserved[2];
 };
 
-struct mthca_arbel_srq_context {
+struct mthca_arbel_srq_context
+{
 	__be32 state_logsize_srqn;
 	__be32 lkey;
 	__be32 db_index;
@@ -72,10 +75,12 @@ struct mthca_arbel_srq_context {
 static void *get_wqe(struct mthca_srq *srq, int n)
 {
 	if (srq->is_direct)
+	{
 		return srq->queue.direct.buf + (n << srq->wqe_shift);
+	}
 	else
 		return srq->queue.page_list[(n << srq->wqe_shift) >> PAGE_SHIFT].buf +
-			((n << srq->wqe_shift) & (PAGE_SIZE - 1));
+			   ((n << srq->wqe_shift) & (PAGE_SIZE - 1));
 }
 
 /*
@@ -93,11 +98,11 @@ static inline int *wqe_to_link(void *wqe)
 }
 
 static void mthca_tavor_init_srq_context(struct mthca_dev *dev,
-					 struct mthca_pd *pd,
-					 struct mthca_srq *srq,
-					 struct mthca_tavor_srq_context *context)
+		struct mthca_pd *pd,
+		struct mthca_srq *srq,
+		struct mthca_tavor_srq_context *context)
 {
-	memset(context, 0, sizeof *context);
+	memset(context, 0, sizeof * context);
 
 	context->wqe_base_ds = cpu_to_be64(1 << (srq->wqe_shift - 4));
 	context->state_pd    = cpu_to_be32(pd->pd_num);
@@ -107,17 +112,19 @@ static void mthca_tavor_init_srq_context(struct mthca_dev *dev,
 		context->uar =
 			cpu_to_be32(to_mucontext(pd->ibpd.uobject->context)->uar.index);
 	else
+	{
 		context->uar = cpu_to_be32(dev->driver_uar.index);
+	}
 }
 
 static void mthca_arbel_init_srq_context(struct mthca_dev *dev,
-					 struct mthca_pd *pd,
-					 struct mthca_srq *srq,
-					 struct mthca_arbel_srq_context *context)
+		struct mthca_pd *pd,
+		struct mthca_srq *srq,
+		struct mthca_arbel_srq_context *context)
 {
 	int logsize, max;
 
-	memset(context, 0, sizeof *context);
+	memset(context, 0, sizeof * context);
 
 	/*
 	 * Put max in a temporary variable to work around gcc bug
@@ -129,23 +136,27 @@ static void mthca_arbel_init_srq_context(struct mthca_dev *dev,
 	context->lkey = cpu_to_be32(srq->mr.ibmr.lkey);
 	context->db_index = cpu_to_be32(srq->db_index);
 	context->logstride_usrpage = cpu_to_be32((srq->wqe_shift - 4) << 29);
+
 	if (pd->ibpd.uobject)
 		context->logstride_usrpage |=
 			cpu_to_be32(to_mucontext(pd->ibpd.uobject->context)->uar.index);
 	else
+	{
 		context->logstride_usrpage |= cpu_to_be32(dev->driver_uar.index);
+	}
+
 	context->eq_pd = cpu_to_be32(MTHCA_EQ_ASYNC << 24 | pd->pd_num);
 }
 
 static void mthca_free_srq_buf(struct mthca_dev *dev, struct mthca_srq *srq)
 {
 	mthca_buf_free(dev, srq->max << srq->wqe_shift, &srq->queue,
-		       srq->is_direct, &srq->mr);
+				   srq->is_direct, &srq->mr);
 	kfree(srq->wrid);
 }
 
 static int mthca_alloc_srq_buf(struct mthca_dev *dev, struct mthca_pd *pd,
-			       struct mthca_srq *srq)
+							   struct mthca_srq *srq)
 {
 	struct mthca_data_seg *scatter;
 	void *wqe;
@@ -153,16 +164,23 @@ static int mthca_alloc_srq_buf(struct mthca_dev *dev, struct mthca_pd *pd,
 	int i;
 
 	if (pd->ibpd.uobject)
+	{
 		return 0;
+	}
 
 	srq->wrid = kmalloc(srq->max * sizeof (u64), GFP_KERNEL);
+
 	if (!srq->wrid)
+	{
 		return -ENOMEM;
+	}
 
 	err = mthca_buf_alloc(dev, srq->max << srq->wqe_shift,
-			      MTHCA_MAX_DIRECT_SRQ_SIZE,
-			      &srq->queue, &srq->is_direct, pd, 1, &srq->mr);
-	if (err) {
+						  MTHCA_MAX_DIRECT_SRQ_SIZE,
+						  &srq->queue, &srq->is_direct, pd, 1, &srq->mr);
+
+	if (err)
+	{
 		kfree(srq->wrid);
 		return err;
 	}
@@ -172,23 +190,29 @@ static int mthca_alloc_srq_buf(struct mthca_dev *dev, struct mthca_pd *pd,
 	 * linked into the list of free WQEs.  In addition, set the
 	 * scatter list L_Keys to the sentry value of 0x100.
 	 */
-	for (i = 0; i < srq->max; ++i) {
+	for (i = 0; i < srq->max; ++i)
+	{
 		struct mthca_next_seg *next;
 
 		next = wqe = get_wqe(srq, i);
 
-		if (i < srq->max - 1) {
+		if (i < srq->max - 1)
+		{
 			*wqe_to_link(wqe) = i + 1;
 			next->nda_op = htonl(((i + 1) << srq->wqe_shift) | 1);
-		} else {
+		}
+		else
+		{
 			*wqe_to_link(wqe) = -1;
 			next->nda_op = 0;
 		}
 
 		for (scatter = wqe + sizeof (struct mthca_next_seg);
-		     (void *) scatter < wqe + (1 << srq->wqe_shift);
-		     ++scatter)
+			 (void *) scatter < wqe + (1 << srq->wqe_shift);
+			 ++scatter)
+		{
 			scatter->lkey = cpu_to_be32(MTHCA_INVAL_LKEY);
+		}
 	}
 
 	srq->last = get_wqe(srq, srq->max - 1);
@@ -197,7 +221,7 @@ static int mthca_alloc_srq_buf(struct mthca_dev *dev, struct mthca_pd *pd,
 }
 
 int mthca_alloc_srq(struct mthca_dev *dev, struct mthca_pd *pd,
-		    struct ib_srq_attr *attr, struct mthca_srq *srq)
+					struct ib_srq_attr *attr, struct mthca_srq *srq)
 {
 	struct mthca_mailbox *mailbox;
 	int ds;
@@ -205,40 +229,58 @@ int mthca_alloc_srq(struct mthca_dev *dev, struct mthca_pd *pd,
 
 	/* Sanity check SRQ size before proceeding */
 	if (attr->max_wr  > dev->limits.max_srq_wqes ||
-	    attr->max_sge > dev->limits.max_srq_sge)
+		attr->max_sge > dev->limits.max_srq_sge)
+	{
 		return -EINVAL;
+	}
 
 	srq->max      = attr->max_wr;
 	srq->max_gs   = attr->max_sge;
 	srq->counter  = 0;
 
 	if (mthca_is_memfree(dev))
+	{
 		srq->max = roundup_pow_of_two(srq->max + 1);
+	}
 	else
+	{
 		srq->max = srq->max + 1;
+	}
 
 	ds = max(64UL,
-		 roundup_pow_of_two(sizeof (struct mthca_next_seg) +
-				    srq->max_gs * sizeof (struct mthca_data_seg)));
+			 roundup_pow_of_two(sizeof (struct mthca_next_seg) +
+								srq->max_gs * sizeof (struct mthca_data_seg)));
 
 	if (!mthca_is_memfree(dev) && (ds > dev->limits.max_desc_sz))
+	{
 		return -EINVAL;
+	}
 
 	srq->wqe_shift = ilog2(ds);
 
 	srq->srqn = mthca_alloc(&dev->srq_table.alloc);
+
 	if (srq->srqn == -1)
+	{
 		return -ENOMEM;
+	}
 
-	if (mthca_is_memfree(dev)) {
+	if (mthca_is_memfree(dev))
+	{
 		err = mthca_table_get(dev, dev->srq_table.table, srq->srqn);
-		if (err)
-			goto err_out;
 
-		if (!pd->ibpd.uobject) {
+		if (err)
+		{
+			goto err_out;
+		}
+
+		if (!pd->ibpd.uobject)
+		{
 			srq->db_index = mthca_alloc_db(dev, MTHCA_DB_TYPE_SRQ,
-						       srq->srqn, &srq->db);
-			if (srq->db_index < 0) {
+										   srq->srqn, &srq->db);
+
+			if (srq->db_index < 0)
+			{
 				err = -ENOMEM;
 				goto err_out_icm;
 			}
@@ -246,14 +288,19 @@ int mthca_alloc_srq(struct mthca_dev *dev, struct mthca_pd *pd,
 	}
 
 	mailbox = mthca_alloc_mailbox(dev, GFP_KERNEL);
-	if (IS_ERR(mailbox)) {
+
+	if (IS_ERR(mailbox))
+	{
 		err = PTR_ERR(mailbox);
 		goto err_out_db;
 	}
 
 	err = mthca_alloc_srq_buf(dev, pd, srq);
+
 	if (err)
+	{
 		goto err_out_mailbox;
+	}
 
 	spin_lock_init(&srq->lock);
 	srq->refcount = 1;
@@ -261,24 +308,32 @@ int mthca_alloc_srq(struct mthca_dev *dev, struct mthca_pd *pd,
 	mutex_init(&srq->mutex);
 
 	if (mthca_is_memfree(dev))
+	{
 		mthca_arbel_init_srq_context(dev, pd, srq, mailbox->buf);
+	}
 	else
+	{
 		mthca_tavor_init_srq_context(dev, pd, srq, mailbox->buf);
+	}
 
 	err = mthca_SW2HW_SRQ(dev, mailbox, srq->srqn);
 
-	if (err) {
+	if (err)
+	{
 		mthca_warn(dev, "SW2HW_SRQ failed (%d)\n", err);
 		goto err_out_free_buf;
 	}
 
 	spin_lock_irq(&dev->srq_table.lock);
+
 	if (mthca_array_set(&dev->srq_table.srq,
-			    srq->srqn & (dev->limits.num_srqs - 1),
-			    srq)) {
+						srq->srqn & (dev->limits.num_srqs - 1),
+						srq))
+	{
 		spin_unlock_irq(&dev->srq_table.lock);
 		goto err_out_free_srq;
 	}
+
 	spin_unlock_irq(&dev->srq_table.lock);
 
 	mthca_free_mailbox(dev, mailbox);
@@ -293,19 +348,28 @@ int mthca_alloc_srq(struct mthca_dev *dev, struct mthca_pd *pd,
 
 err_out_free_srq:
 	err = mthca_HW2SW_SRQ(dev, mailbox, srq->srqn);
+
 	if (err)
+	{
 		mthca_warn(dev, "HW2SW_SRQ failed (%d)\n", err);
+	}
 
 err_out_free_buf:
+
 	if (!pd->ibpd.uobject)
+	{
 		mthca_free_srq_buf(dev, srq);
+	}
 
 err_out_mailbox:
 	mthca_free_mailbox(dev, mailbox);
 
 err_out_db:
+
 	if (!pd->ibpd.uobject && mthca_is_memfree(dev))
+	{
 		mthca_free_db(dev, MTHCA_DB_TYPE_SRQ, srq->db_index);
+	}
 
 err_out_icm:
 	mthca_table_put(dev, dev->srq_table.table, srq->srqn);
@@ -333,27 +397,36 @@ void mthca_free_srq(struct mthca_dev *dev, struct mthca_srq *srq)
 	int err;
 
 	mailbox = mthca_alloc_mailbox(dev, GFP_KERNEL);
-	if (IS_ERR(mailbox)) {
+
+	if (IS_ERR(mailbox))
+	{
 		mthca_warn(dev, "No memory for mailbox to free SRQ.\n");
 		return;
 	}
 
 	err = mthca_HW2SW_SRQ(dev, mailbox, srq->srqn);
+
 	if (err)
+	{
 		mthca_warn(dev, "HW2SW_SRQ failed (%d)\n", err);
+	}
 
 	spin_lock_irq(&dev->srq_table.lock);
 	mthca_array_clear(&dev->srq_table.srq,
-			  srq->srqn & (dev->limits.num_srqs - 1));
+					  srq->srqn & (dev->limits.num_srqs - 1));
 	--srq->refcount;
 	spin_unlock_irq(&dev->srq_table.lock);
 
 	wait_event(srq->wait, !get_srq_refcount(dev, srq));
 
-	if (!srq->ibsrq.uobject) {
+	if (!srq->ibsrq.uobject)
+	{
 		mthca_free_srq_buf(dev, srq);
+
 		if (mthca_is_memfree(dev))
+		{
 			mthca_free_db(dev, MTHCA_DB_TYPE_SRQ, srq->db_index);
+		}
 	}
 
 	mthca_table_put(dev, dev->srq_table.table, srq->srqn);
@@ -362,7 +435,7 @@ void mthca_free_srq(struct mthca_dev *dev, struct mthca_srq *srq)
 }
 
 int mthca_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
-		     enum ib_srq_attr_mask attr_mask, struct ib_udata *udata)
+					 enum ib_srq_attr_mask attr_mask, struct ib_udata *udata)
 {
 	struct mthca_dev *dev = to_mdev(ibsrq->device);
 	struct mthca_srq *srq = to_msrq(ibsrq);
@@ -370,12 +443,18 @@ int mthca_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
 
 	/* We don't support resizing SRQs (yet?) */
 	if (attr_mask & IB_SRQ_MAX_WR)
+	{
 		return -EINVAL;
+	}
 
-	if (attr_mask & IB_SRQ_LIMIT) {
+	if (attr_mask & IB_SRQ_LIMIT)
+	{
 		u32 max_wr = mthca_is_memfree(dev) ? srq->max - 1 : srq->max;
+
 		if (attr->srq_limit > max_wr)
+		{
 			return -EINVAL;
+		}
 
 		mutex_lock(&srq->mutex);
 		ret = mthca_ARM_SRQ(dev, srq->srqn, attr->srq_limit);
@@ -395,17 +474,26 @@ int mthca_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *srq_attr)
 	int err;
 
 	mailbox = mthca_alloc_mailbox(dev, GFP_KERNEL);
+
 	if (IS_ERR(mailbox))
+	{
 		return PTR_ERR(mailbox);
+	}
 
 	err = mthca_QUERY_SRQ(dev, srq->srqn, mailbox);
-	if (err)
-		goto out;
 
-	if (mthca_is_memfree(dev)) {
+	if (err)
+	{
+		goto out;
+	}
+
+	if (mthca_is_memfree(dev))
+	{
 		arbel_ctx = mailbox->buf;
 		srq_attr->srq_limit = be16_to_cpu(arbel_ctx->limit_watermark);
-	} else {
+	}
+	else
+	{
 		tavor_ctx = mailbox->buf;
 		srq_attr->srq_limit = be16_to_cpu(tavor_ctx->limit_watermark);
 	}
@@ -420,24 +508,31 @@ out:
 }
 
 void mthca_srq_event(struct mthca_dev *dev, u32 srqn,
-		     enum ib_event_type event_type)
+					 enum ib_event_type event_type)
 {
 	struct mthca_srq *srq;
 	struct ib_event event;
 
 	spin_lock(&dev->srq_table.lock);
 	srq = mthca_array_get(&dev->srq_table.srq, srqn & (dev->limits.num_srqs - 1));
+
 	if (srq)
+	{
 		++srq->refcount;
+	}
+
 	spin_unlock(&dev->srq_table.lock);
 
-	if (!srq) {
+	if (!srq)
+	{
 		mthca_warn(dev, "Async event for bogus SRQ %08x\n", srqn);
 		return;
 	}
 
 	if (!srq->ibsrq.event_handler)
+	{
 		goto out;
+	}
 
 	event.device      = &dev->ib_dev;
 	event.event       = event_type;
@@ -446,8 +541,12 @@ void mthca_srq_event(struct mthca_dev *dev, u32 srqn,
 
 out:
 	spin_lock(&dev->srq_table.lock);
+
 	if (!--srq->refcount)
+	{
 		wake_up(&srq->wait);
+	}
+
 	spin_unlock(&dev->srq_table.lock);
 }
 
@@ -473,7 +572,7 @@ void mthca_free_srq_wqe(struct mthca_srq *srq, u32 wqe_addr)
 }
 
 int mthca_tavor_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
-			      struct ib_recv_wr **bad_wr)
+							  struct ib_recv_wr **bad_wr)
 {
 	struct mthca_dev *dev = to_mdev(ibsrq->device);
 	struct mthca_srq *srq = to_msrq(ibsrq);
@@ -491,12 +590,14 @@ int mthca_tavor_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
 
 	first_ind = srq->first_free;
 
-	for (nreq = 0; wr; wr = wr->next) {
+	for (nreq = 0; wr; wr = wr->next)
+	{
 		ind       = srq->first_free;
 		wqe       = get_wqe(srq, ind);
 		next_ind  = *wqe_to_link(wqe);
 
-		if (unlikely(next_ind < 0)) {
+		if (unlikely(next_ind < 0))
+		{
 			mthca_err(dev, "SRQ %06x full\n", srq->srqn);
 			err = -ENOMEM;
 			*bad_wr = wr;
@@ -511,20 +612,24 @@ int mthca_tavor_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
 
 		wqe += sizeof (struct mthca_next_seg);
 
-		if (unlikely(wr->num_sge > srq->max_gs)) {
+		if (unlikely(wr->num_sge > srq->max_gs))
+		{
 			err = -EINVAL;
 			*bad_wr = wr;
 			srq->last = prev_wqe;
 			break;
 		}
 
-		for (i = 0; i < wr->num_sge; ++i) {
+		for (i = 0; i < wr->num_sge; ++i)
+		{
 			mthca_set_data_seg(wqe, wr->sg_list + i);
 			wqe += sizeof (struct mthca_data_seg);
 		}
 
 		if (i < srq->max_gs)
+		{
 			mthca_set_data_seg_inval(wqe);
+		}
 
 		((struct mthca_next_seg *) prev_wqe)->ee_nds =
 			cpu_to_be32(MTHCA_NEXT_DBD);
@@ -533,7 +638,9 @@ int mthca_tavor_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
 		srq->first_free = next_ind;
 
 		++nreq;
-		if (unlikely(nreq == MTHCA_TAVOR_MAX_WQES_PER_RECV_DB)) {
+
+		if (unlikely(nreq == MTHCA_TAVOR_MAX_WQES_PER_RECV_DB))
+		{
 			nreq = 0;
 
 			/*
@@ -543,14 +650,15 @@ int mthca_tavor_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
 			wmb();
 
 			mthca_write64(first_ind << srq->wqe_shift, srq->srqn << 8,
-				      dev->kar + MTHCA_RECEIVE_DOORBELL,
-				      MTHCA_GET_DOORBELL_LOCK(&dev->doorbell_lock));
+						  dev->kar + MTHCA_RECEIVE_DOORBELL,
+						  MTHCA_GET_DOORBELL_LOCK(&dev->doorbell_lock));
 
 			first_ind = srq->first_free;
 		}
 	}
 
-	if (likely(nreq)) {
+	if (likely(nreq))
+	{
 		/*
 		 * Make sure that descriptors are written before
 		 * doorbell is rung.
@@ -558,8 +666,8 @@ int mthca_tavor_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
 		wmb();
 
 		mthca_write64(first_ind << srq->wqe_shift, (srq->srqn << 8) | nreq,
-			      dev->kar + MTHCA_RECEIVE_DOORBELL,
-			      MTHCA_GET_DOORBELL_LOCK(&dev->doorbell_lock));
+					  dev->kar + MTHCA_RECEIVE_DOORBELL,
+					  MTHCA_GET_DOORBELL_LOCK(&dev->doorbell_lock));
 	}
 
 	/*
@@ -573,7 +681,7 @@ int mthca_tavor_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
 }
 
 int mthca_arbel_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
-			      struct ib_recv_wr **bad_wr)
+							  struct ib_recv_wr **bad_wr)
 {
 	struct mthca_dev *dev = to_mdev(ibsrq->device);
 	struct mthca_srq *srq = to_msrq(ibsrq);
@@ -587,12 +695,14 @@ int mthca_arbel_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
 
 	spin_lock_irqsave(&srq->lock, flags);
 
-	for (nreq = 0; wr; ++nreq, wr = wr->next) {
+	for (nreq = 0; wr; ++nreq, wr = wr->next)
+	{
 		ind       = srq->first_free;
 		wqe       = get_wqe(srq, ind);
 		next_ind  = *wqe_to_link(wqe);
 
-		if (unlikely(next_ind < 0)) {
+		if (unlikely(next_ind < 0))
+		{
 			mthca_err(dev, "SRQ %06x full\n", srq->srqn);
 			err = -ENOMEM;
 			*bad_wr = wr;
@@ -604,25 +714,30 @@ int mthca_arbel_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
 
 		wqe += sizeof (struct mthca_next_seg);
 
-		if (unlikely(wr->num_sge > srq->max_gs)) {
+		if (unlikely(wr->num_sge > srq->max_gs))
+		{
 			err = -EINVAL;
 			*bad_wr = wr;
 			break;
 		}
 
-		for (i = 0; i < wr->num_sge; ++i) {
+		for (i = 0; i < wr->num_sge; ++i)
+		{
 			mthca_set_data_seg(wqe, wr->sg_list + i);
 			wqe += sizeof (struct mthca_data_seg);
 		}
 
 		if (i < srq->max_gs)
+		{
 			mthca_set_data_seg_inval(wqe);
+		}
 
 		srq->wrid[ind]  = wr->wr_id;
 		srq->first_free = next_ind;
 	}
 
-	if (likely(nreq)) {
+	if (likely(nreq))
+	{
 		srq->counter += nreq;
 
 		/*
@@ -640,7 +755,9 @@ int mthca_arbel_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
 int mthca_max_srq_sge(struct mthca_dev *dev)
 {
 	if (mthca_is_memfree(dev))
+	{
 		return dev->limits.max_sg;
+	}
 
 	/*
 	 * SRQ allocations are based on powers of 2 for Tavor,
@@ -657,9 +774,9 @@ int mthca_max_srq_sge(struct mthca_dev *dev)
 	 * the FW max_sg value returned.
 	 */
 	return min_t(int, dev->limits.max_sg,
-		     ((1 << (fls(dev->limits.max_desc_sz) - 1)) -
-		      sizeof (struct mthca_next_seg)) /
-		     sizeof (struct mthca_data_seg));
+				 ((1 << (fls(dev->limits.max_desc_sz) - 1)) -
+				  sizeof (struct mthca_next_seg)) /
+				 sizeof (struct mthca_data_seg));
 }
 
 int mthca_init_srq_table(struct mthca_dev *dev)
@@ -667,21 +784,29 @@ int mthca_init_srq_table(struct mthca_dev *dev)
 	int err;
 
 	if (!(dev->mthca_flags & MTHCA_FLAG_SRQ))
+	{
 		return 0;
+	}
 
 	spin_lock_init(&dev->srq_table.lock);
 
 	err = mthca_alloc_init(&dev->srq_table.alloc,
-			       dev->limits.num_srqs,
-			       dev->limits.num_srqs - 1,
-			       dev->limits.reserved_srqs);
+						   dev->limits.num_srqs,
+						   dev->limits.num_srqs - 1,
+						   dev->limits.reserved_srqs);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = mthca_array_init(&dev->srq_table.srq,
-			       dev->limits.num_srqs);
+						   dev->limits.num_srqs);
+
 	if (err)
+	{
 		mthca_alloc_cleanup(&dev->srq_table.alloc);
+	}
 
 	return err;
 }
@@ -689,7 +814,9 @@ int mthca_init_srq_table(struct mthca_dev *dev)
 void mthca_cleanup_srq_table(struct mthca_dev *dev)
 {
 	if (!(dev->mthca_flags & MTHCA_FLAG_SRQ))
+	{
 		return;
+	}
 
 	mthca_array_cleanup(&dev->srq_table.srq, dev->limits.num_srqs);
 	mthca_alloc_cleanup(&dev->srq_table.alloc);

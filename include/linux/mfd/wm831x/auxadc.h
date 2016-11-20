@@ -197,7 +197,8 @@ struct wm831x;
 #define WM831X_AUX_CAL_FACTOR  0xfff
 #define WM831X_AUX_CAL_NOMINAL 0x222
 
-enum wm831x_auxadc {
+enum wm831x_auxadc
+{
 	WM831X_AUX_CAL = 15,
 	WM831X_AUX_BKUP_BATT = 10,
 	WM831X_AUX_WALL = 9,

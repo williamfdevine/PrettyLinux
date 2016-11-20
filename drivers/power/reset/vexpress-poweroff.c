@@ -25,10 +25,14 @@ static void vexpress_reset_do(struct device *dev, const char *what)
 	int err = -ENOENT;
 	struct regmap *reg = dev_get_drvdata(dev);
 
-	if (reg) {
+	if (reg)
+	{
 		err = regmap_write(reg, 0, 0);
+
 		if (!err)
+		{
 			mdelay(1000);
+		}
 	}
 
 	dev_emerg(dev, "Unable to %s (%d)\n", what, err);
@@ -44,14 +48,15 @@ static void vexpress_power_off(void)
 static struct device *vexpress_restart_device;
 
 static int vexpress_restart(struct notifier_block *this, unsigned long mode,
-			     void *cmd)
+							void *cmd)
 {
 	vexpress_reset_do(vexpress_restart_device, "restart");
 
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block vexpress_restart_nb = {
+static struct notifier_block vexpress_restart_nb =
+{
 	.notifier_call = vexpress_restart,
 	.priority = 128,
 };
@@ -69,18 +74,21 @@ static ssize_t vexpress_reset_active_store(struct device *dev,
 	int err = kstrtol(buf, 0, &value);
 
 	if (!err && value)
+	{
 		vexpress_restart_device = dev;
+	}
 
 	return err ? err : count;
 }
 
 static DEVICE_ATTR(active, S_IRUGO | S_IWUSR, vexpress_reset_active_show,
-		   vexpress_reset_active_store);
+				   vexpress_reset_active_store);
 
 
 enum vexpress_reset_func { FUNC_RESET, FUNC_SHUTDOWN, FUNC_REBOOT };
 
-static const struct of_device_id vexpress_reset_of_match[] = {
+static const struct of_device_id vexpress_reset_of_match[] =
+{
 	{
 		.compatible = "arm,vexpress-reset",
 		.data = (void *)FUNC_RESET,
@@ -100,10 +108,13 @@ static int _vexpress_register_restart_handler(struct device *dev)
 
 	vexpress_restart_device = dev;
 	err = register_restart_handler(&vexpress_restart_nb);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "cannot register restart handler (err=%d)\n", err);
 		return err;
 	}
+
 	device_create_file(dev, &dev_attr_active);
 
 	return 0;
@@ -112,36 +123,49 @@ static int _vexpress_register_restart_handler(struct device *dev)
 static int vexpress_reset_probe(struct platform_device *pdev)
 {
 	const struct of_device_id *match =
-			of_match_device(vexpress_reset_of_match, &pdev->dev);
+		of_match_device(vexpress_reset_of_match, &pdev->dev);
 	struct regmap *regmap;
 	int ret = 0;
 
 	if (!match)
+	{
 		return -EINVAL;
+	}
 
 	regmap = devm_regmap_init_vexpress_config(&pdev->dev);
+
 	if (IS_ERR(regmap))
+	{
 		return PTR_ERR(regmap);
+	}
+
 	dev_set_drvdata(&pdev->dev, regmap);
 
-	switch ((enum vexpress_reset_func)match->data) {
-	case FUNC_SHUTDOWN:
-		vexpress_power_off_device = &pdev->dev;
-		pm_power_off = vexpress_power_off;
-		break;
-	case FUNC_RESET:
-		if (!vexpress_restart_device)
+	switch ((enum vexpress_reset_func)match->data)
+	{
+		case FUNC_SHUTDOWN:
+			vexpress_power_off_device = &pdev->dev;
+			pm_power_off = vexpress_power_off;
+			break;
+
+		case FUNC_RESET:
+			if (!vexpress_restart_device)
+			{
+				ret = _vexpress_register_restart_handler(&pdev->dev);
+			}
+
+			break;
+
+		case FUNC_REBOOT:
 			ret = _vexpress_register_restart_handler(&pdev->dev);
-		break;
-	case FUNC_REBOOT:
-		ret = _vexpress_register_restart_handler(&pdev->dev);
-		break;
+			break;
 	};
 
 	return ret;
 }
 
-static struct platform_driver vexpress_reset_driver = {
+static struct platform_driver vexpress_reset_driver =
+{
 	.probe = vexpress_reset_probe,
 	.driver = {
 		.name = "vexpress-reset",

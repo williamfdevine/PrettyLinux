@@ -52,12 +52,14 @@ static inline u8 button_status(void)
 #define BUTTONS_POLL_INTERVAL	30	/* msec */
 #define BUTTONS_COUNT_THRESHOLD	3
 
-static const unsigned short sgi_map[] = {
+static const unsigned short sgi_map[] =
+{
 	KEY_VOLUMEDOWN,
 	KEY_VOLUMEUP
 };
 
-struct buttons_dev {
+struct buttons_dev
+{
 	struct input_polled_dev *poll_dev;
 	unsigned short keymap[ARRAY_SIZE(sgi_map)];
 	int count[ARRAY_SIZE(sgi_map)];
@@ -72,19 +74,26 @@ static void handle_buttons(struct input_polled_dev *dev)
 
 	status = button_status();
 
-	for (i = 0; i < ARRAY_SIZE(bdev->keymap); i++) {
-		if (status & (1U << i)) {
-			if (++bdev->count[i] == BUTTONS_COUNT_THRESHOLD) {
+	for (i = 0; i < ARRAY_SIZE(bdev->keymap); i++)
+	{
+		if (status & (1U << i))
+		{
+			if (++bdev->count[i] == BUTTONS_COUNT_THRESHOLD)
+			{
 				input_event(input, EV_MSC, MSC_SCAN, i);
 				input_report_key(input, bdev->keymap[i], 1);
 				input_sync(input);
 			}
-		} else {
-			if (bdev->count[i] >= BUTTONS_COUNT_THRESHOLD) {
+		}
+		else
+		{
+			if (bdev->count[i] >= BUTTONS_COUNT_THRESHOLD)
+			{
 				input_event(input, EV_MSC, MSC_SCAN, i);
 				input_report_key(input, bdev->keymap[i], 0);
 				input_sync(input);
 			}
+
 			bdev->count[i] = 0;
 		}
 	}
@@ -99,7 +108,9 @@ static int sgi_buttons_probe(struct platform_device *pdev)
 
 	bdev = kzalloc(sizeof(struct buttons_dev), GFP_KERNEL);
 	poll_dev = input_allocate_polled_device();
-	if (!bdev || !poll_dev) {
+
+	if (!bdev || !poll_dev)
+	{
 		error = -ENOMEM;
 		goto err_free_mem;
 	}
@@ -122,20 +133,27 @@ static int sgi_buttons_probe(struct platform_device *pdev)
 
 	input_set_capability(input, EV_MSC, MSC_SCAN);
 	__set_bit(EV_KEY, input->evbit);
+
 	for (i = 0; i < ARRAY_SIZE(sgi_map); i++)
+	{
 		__set_bit(bdev->keymap[i], input->keybit);
+	}
+
 	__clear_bit(KEY_RESERVED, input->keybit);
 
 	bdev->poll_dev = poll_dev;
 	platform_set_drvdata(pdev, bdev);
 
 	error = input_register_polled_device(poll_dev);
+
 	if (error)
+	{
 		goto err_free_mem;
+	}
 
 	return 0;
 
- err_free_mem:
+err_free_mem:
 	input_free_polled_device(poll_dev);
 	kfree(bdev);
 	return error;
@@ -152,7 +170,8 @@ static int sgi_buttons_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver sgi_buttons_driver = {
+static struct platform_driver sgi_buttons_driver =
+{
 	.probe	= sgi_buttons_probe,
 	.remove	= sgi_buttons_remove,
 	.driver	= {

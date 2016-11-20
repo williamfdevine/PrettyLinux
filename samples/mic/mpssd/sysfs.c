@@ -32,32 +32,44 @@ readsysfs(char *dir, char *entry)
 	int len;
 
 	if (dir == NULL)
+	{
 		snprintf(filename, PATH_MAX, "%s/%s", MICSYSFSDIR, entry);
+	}
 	else
 		snprintf(filename, PATH_MAX,
-			 "%s/%s/%s", MICSYSFSDIR, dir, entry);
+				 "%s/%s/%s", MICSYSFSDIR, dir, entry);
 
 	fd = open(filename, O_RDONLY);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		mpsslog("Failed to open sysfs entry '%s': %s\n",
-			filename, strerror(errno));
+				filename, strerror(errno));
 		return NULL;
 	}
 
 	len = read(fd, value, sizeof(value));
-	if (len < 0) {
+
+	if (len < 0)
+	{
 		mpsslog("Failed to read sysfs entry '%s': %s\n",
-			filename, strerror(errno));
+				filename, strerror(errno));
 		goto readsys_ret;
 	}
+
 	if (len == 0)
+	{
 		goto readsys_ret;
+	}
 
 	value[len - 1] = '\0';
 
 	string = malloc(strlen(value) + 1);
+
 	if (string)
+	{
 		strcpy(string, value);
+	}
 
 readsys_ret:
 	close(fd);
@@ -72,31 +84,42 @@ setsysfs(char *dir, char *entry, char *value)
 	int fd, ret = 0;
 
 	if (dir == NULL)
+	{
 		snprintf(filename, PATH_MAX, "%s/%s", MICSYSFSDIR, entry);
+	}
 	else
 		snprintf(filename, PATH_MAX, "%s/%s/%s",
-			 MICSYSFSDIR, dir, entry);
+				 MICSYSFSDIR, dir, entry);
 
 	oldvalue = readsysfs(dir, entry);
 
 	fd = open(filename, O_RDWR);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		ret = errno;
 		mpsslog("Failed to open sysfs entry '%s': %s\n",
-			filename, strerror(errno));
+				filename, strerror(errno));
 		goto done;
 	}
 
-	if (!oldvalue || strcmp(value, oldvalue)) {
-		if (write(fd, value, strlen(value)) < 0) {
+	if (!oldvalue || strcmp(value, oldvalue))
+	{
+		if (write(fd, value, strlen(value)) < 0)
+		{
 			ret = errno;
 			mpsslog("Failed to write new sysfs entry '%s': %s\n",
-				filename, strerror(errno));
+					filename, strerror(errno));
 		}
 	}
+
 	close(fd);
 done:
+
 	if (oldvalue)
+	{
 		free(oldvalue);
+	}
+
 	return ret;
 }

@@ -58,8 +58,8 @@
 #define SIS190_TX_TIMEOUT	(6*HZ)
 #define SIS190_PHY_TIMEOUT	(10*HZ)
 #define SIS190_MSG_DEFAULT	(NETIF_MSG_DRV | NETIF_MSG_PROBE | \
-				 NETIF_MSG_LINK | NETIF_MSG_IFUP | \
-				 NETIF_MSG_IFDOWN)
+							 NETIF_MSG_LINK | NETIF_MSG_IFUP | \
+							 NETIF_MSG_IFDOWN)
 
 /* Enhanced PHY access register bit definitions */
 #define EhnMIIread		0x0000
@@ -80,7 +80,8 @@
 
 #define SIS_PCI_COMMIT()	SIS_R32(IntrControl)
 
-enum sis190_registers {
+enum sis190_registers
+{
 	TxControl		= 0x00,
 	TxDescStartAddr		= 0x04,
 	rsv0			= 0x08,	// reserved
@@ -115,7 +116,8 @@ enum sis190_registers {
 	rsv4			= 0x7c, // reserved
 };
 
-enum sis190_register_content {
+enum sis190_register_content
+{
 	/* IntrStatus */
 	SoftInt			= 0x40000000,	// unused
 	Timeup			= 0x20000000,	// unused
@@ -165,21 +167,24 @@ enum sis190_register_content {
 	TBILinkOK		= 0x02000000,	// unused
 };
 
-struct TxDesc {
+struct TxDesc
+{
 	__le32 PSize;
 	__le32 status;
 	__le32 addr;
 	__le32 size;
 };
 
-struct RxDesc {
+struct RxDesc
+{
 	__le32 PSize;
 	__le32 status;
 	__le32 addr;
 	__le32 size;
 };
 
-enum _DescStatusBit {
+enum _DescStatusBit
+{
 	/* _Desc.status */
 	OWNbit		= 0x80000000, // RXOWN/TXOWN
 	INTbit		= 0x40000000, // RXINT/TXINT
@@ -231,14 +236,15 @@ enum _DescStatusBit {
 	COLON		= 0x00020000,
 	CRCOK		= 0x00010000,
 	RxSizeMask	= 0x0000ffff
-	/*
-	 * The asic could apparently do vlan, TSO, jumbo (sis191 only) and
-	 * provide two (unused with Linux) Tx queues. No publicly
-	 * available documentation alas.
-	 */
+				  /*
+				   * The asic could apparently do vlan, TSO, jumbo (sis191 only) and
+				   * provide two (unused with Linux) Tx queues. No publicly
+				   * available documentation alas.
+				   */
 };
 
-enum sis190_eeprom_access_register_bits {
+enum sis190_eeprom_access_register_bits
+{
 	EECS	= 0x00000001,	// unused
 	EECLK	= 0x00000002,	// unused
 	EEDO	= 0x00000008,	// unused
@@ -249,20 +255,23 @@ enum sis190_eeprom_access_register_bits {
 };
 
 /* EEPROM Addresses */
-enum sis190_eeprom_address {
+enum sis190_eeprom_address
+{
 	EEPROMSignature	= 0x00,
 	EEPROMCLK	= 0x01,	// unused
 	EEPROMInfo	= 0x02,
 	EEPROMMACAddr	= 0x03
 };
 
-enum sis190_feature {
+enum sis190_feature
+{
 	F_HAS_RGMII	= 1,
 	F_PHY_88E1111	= 2,
 	F_PHY_BCM5461	= 4
 };
 
-struct sis190_private {
+struct sis190_private
+{
 	void __iomem *mmio_addr;
 	struct pci_dev *pci_dev;
 	struct net_device *dev;
@@ -285,14 +294,16 @@ struct sis190_private {
 	struct list_head first_phy;
 	u32 features;
 	u32 negotiated_lpa;
-	enum {
+	enum
+	{
 		LNK_OFF,
 		LNK_ON,
 		LNK_AUTONEG,
 	} link_status;
 };
 
-struct sis190_phy {
+struct sis190_phy
+{
 	struct list_head list;
 	int phy_id;
 	u16 id[2];
@@ -300,19 +311,22 @@ struct sis190_phy {
 	u8  type;
 };
 
-enum sis190_phy_type {
+enum sis190_phy_type
+{
 	UNKNOWN	= 0x00,
 	HOME	= 0x01,
 	LAN	= 0x02,
 	MIX	= 0x03
 };
 
-static struct mii_chip_info {
-        const char *name;
-        u16 id[2];
-        unsigned int type;
+static struct mii_chip_info
+{
+	const char *name;
+	u16 id[2];
+	unsigned int type;
 	u32 feature;
-} mii_chip_table[] = {
+} mii_chip_table[] =
+{
 	{ "Atheros PHY",          { 0x004d, 0xd010 }, LAN, 0 },
 	{ "Atheros PHY AR8012",   { 0x004d, 0xd020 }, LAN, 0 },
 	{ "Broadcom PHY BCM5461", { 0x0020, 0x60c0 }, LAN, F_PHY_BCM5461 },
@@ -323,14 +337,17 @@ static struct mii_chip_info {
 	{ NULL, }
 };
 
-static const struct {
+static const struct
+{
 	const char *name;
-} sis_chip_info[] = {
+} sis_chip_info[] =
+{
 	{ "SiS 190 PCI Fast Ethernet adapter" },
 	{ "SiS 191 PCI Gigabit Ethernet adapter" },
 };
 
-static const struct pci_device_id sis190_pci_tbl[] = {
+static const struct pci_device_id sis190_pci_tbl[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_SI, 0x0190), 0, 0, 0 },
 	{ PCI_DEVICE(PCI_VENDOR_ID_SI, 0x0191), 0, 0, 1 },
 	{ 0, },
@@ -340,7 +357,8 @@ MODULE_DEVICE_TABLE(pci, sis190_pci_tbl);
 
 static int rx_copybreak = 200;
 
-static struct {
+static struct
+{
 	u32 msg_enable;
 } debug = { -1 };
 
@@ -370,27 +388,33 @@ static void __mdio_cmd(void __iomem *ioaddr, u32 ctl)
 
 	msleep(1);
 
-	for (i = 0; i < 100; i++) {
+	for (i = 0; i < 100; i++)
+	{
 		if (!(SIS_R32(GMIIControl) & EhnMIInotDone))
+		{
 			break;
+		}
+
 		msleep(1);
 	}
 
 	if (i > 99)
+	{
 		pr_err("PHY command failed !\n");
+	}
 }
 
 static void mdio_write(void __iomem *ioaddr, int phy_id, int reg, int val)
 {
 	__mdio_cmd(ioaddr, EhnMIIreq | EhnMIIwrite |
-		(((u32) reg) << EhnMIIregShift) | (phy_id << EhnMIIpmdShift) |
-		(((u32) val) << EhnMIIdataShift));
+			   (((u32) reg) << EhnMIIregShift) | (phy_id << EhnMIIpmdShift) |
+			   (((u32) val) << EhnMIIdataShift));
 }
 
 static int mdio_read(void __iomem *ioaddr, int phy_id, int reg)
 {
 	__mdio_cmd(ioaddr, EhnMIIreq | EhnMIIread |
-		(((u32) reg) << EhnMIIregShift) | (phy_id << EhnMIIpmdShift));
+			   (((u32) reg) << EhnMIIregShift) | (phy_id << EhnMIIpmdShift));
 
 	return (u16) (SIS_R32(GMIIControl) >> EhnMIIdataShift);
 }
@@ -421,15 +445,20 @@ static u16 sis190_read_eeprom(void __iomem *ioaddr, u32 reg)
 	unsigned int i;
 
 	if (!(SIS_R32(ROMControl) & 0x0002))
+	{
 		return 0;
+	}
 
 	SIS_W32(ROMInterface, EEREQ | EEROP | (reg << 10));
 
-	for (i = 0; i < 200; i++) {
-		if (!(SIS_R32(ROMInterface) & EEREQ)) {
+	for (i = 0; i < 200; i++)
+	{
+		if (!(SIS_R32(ROMInterface) & EEREQ))
+		{
 			data = (SIS_R32(ROMInterface) & 0xffff0000) >> 16;
 			break;
 		}
+
 		msleep(1);
 	}
 
@@ -469,7 +498,7 @@ static inline void sis190_give_to_asic(struct RxDesc *desc, u32 rx_buf_sz)
 }
 
 static inline void sis190_map_to_asic(struct RxDesc *desc, dma_addr_t mapping,
-				      u32 rx_buf_sz)
+									  u32 rx_buf_sz)
 {
 	desc->addr = cpu_to_le32(mapping);
 	sis190_give_to_asic(desc, rx_buf_sz);
@@ -485,19 +514,27 @@ static inline void sis190_make_unusable_by_asic(struct RxDesc *desc)
 }
 
 static struct sk_buff *sis190_alloc_rx_skb(struct sis190_private *tp,
-					   struct RxDesc *desc)
+		struct RxDesc *desc)
 {
 	u32 rx_buf_sz = tp->rx_buf_sz;
 	struct sk_buff *skb;
 	dma_addr_t mapping;
 
 	skb = netdev_alloc_skb(tp->dev, rx_buf_sz);
+
 	if (unlikely(!skb))
+	{
 		goto skb_alloc_failed;
+	}
+
 	mapping = pci_map_single(tp->pci_dev, skb->data, tp->rx_buf_sz,
-			PCI_DMA_FROMDEVICE);
+							 PCI_DMA_FROMDEVICE);
+
 	if (pci_dma_mapping_error(tp->pci_dev, mapping))
+	{
 		goto out;
+	}
+
 	sis190_map_to_asic(desc, mapping, rx_buf_sz);
 
 	return skb;
@@ -510,40 +547,51 @@ skb_alloc_failed:
 }
 
 static u32 sis190_rx_fill(struct sis190_private *tp, struct net_device *dev,
-			  u32 start, u32 end)
+						  u32 start, u32 end)
 {
 	u32 cur;
 
-	for (cur = start; cur < end; cur++) {
+	for (cur = start; cur < end; cur++)
+	{
 		unsigned int i = cur % NUM_RX_DESC;
 
 		if (tp->Rx_skbuff[i])
+		{
 			continue;
+		}
 
 		tp->Rx_skbuff[i] = sis190_alloc_rx_skb(tp, tp->RxDescRing + i);
 
 		if (!tp->Rx_skbuff[i])
+		{
 			break;
+		}
 	}
+
 	return cur - start;
 }
 
 static bool sis190_try_rx_copy(struct sis190_private *tp,
-			       struct sk_buff **sk_buff, int pkt_size,
-			       dma_addr_t addr)
+							   struct sk_buff **sk_buff, int pkt_size,
+							   dma_addr_t addr)
 {
 	struct sk_buff *skb;
 	bool done = false;
 
 	if (pkt_size >= rx_copybreak)
+	{
 		goto out;
+	}
 
 	skb = netdev_alloc_skb_ip_align(tp->dev, pkt_size);
+
 	if (!skb)
+	{
 		goto out;
+	}
 
 	pci_dma_sync_single_for_cpu(tp->pci_dev, addr, tp->rx_buf_sz,
-				PCI_DMA_FROMDEVICE);
+								PCI_DMA_FROMDEVICE);
 	skb_copy_to_linear_data(skb, sk_buff[0]->data, pkt_size);
 	*sk_buff = skb;
 	done = true;
@@ -556,23 +604,33 @@ static inline int sis190_rx_pkt_err(u32 status, struct net_device_stats *stats)
 #define ErrMask	(OVRUN | SHORT | LIMIT | MIIER | NIBON | COLON | ABORT)
 
 	if ((status & CRCOK) && !(status & ErrMask))
+	{
 		return 0;
+	}
 
 	if (!(status & CRCOK))
+	{
 		stats->rx_crc_errors++;
+	}
 	else if (status & OVRUN)
+	{
 		stats->rx_over_errors++;
+	}
 	else if (status & (SHORT | LIMIT))
+	{
 		stats->rx_length_errors++;
+	}
 	else if (status & (MIIER | NIBON | COLON))
+	{
 		stats->rx_frame_errors++;
+	}
 
 	stats->rx_errors++;
 	return -1;
 }
 
 static int sis190_rx_interrupt(struct net_device *dev,
-			       struct sis190_private *tp, void __iomem *ioaddr)
+							   struct sis190_private *tp, void __iomem *ioaddr)
 {
 	struct net_device_stats *stats = &dev->stats;
 	u32 rx_left, cur_rx = tp->cur_rx;
@@ -581,29 +639,36 @@ static int sis190_rx_interrupt(struct net_device *dev,
 	rx_left = NUM_RX_DESC + tp->dirty_rx - cur_rx;
 	rx_left = sis190_rx_quota(rx_left, (u32) dev->quota);
 
-	for (; rx_left > 0; rx_left--, cur_rx++) {
+	for (; rx_left > 0; rx_left--, cur_rx++)
+	{
 		unsigned int entry = cur_rx % NUM_RX_DESC;
 		struct RxDesc *desc = tp->RxDescRing + entry;
 		u32 status;
 
 		if (le32_to_cpu(desc->status) & OWNbit)
+		{
 			break;
+		}
 
 		status = le32_to_cpu(desc->PSize);
 
 		//netif_info(tp, intr, dev, "Rx PSize = %08x\n", status);
 
 		if (sis190_rx_pkt_err(status, stats) < 0)
+		{
 			sis190_give_to_asic(desc, tp->rx_buf_sz);
-		else {
+		}
+		else
+		{
 			struct sk_buff *skb = tp->Rx_skbuff[entry];
 			dma_addr_t addr = le32_to_cpu(desc->addr);
 			int pkt_size = (status & RxSizeMask) - 4;
 			struct pci_dev *pdev = tp->pci_dev;
 
-			if (unlikely(pkt_size > tp->rx_buf_sz)) {
+			if (unlikely(pkt_size > tp->rx_buf_sz))
+			{
 				netif_info(tp, intr, dev,
-					   "(frag) status = %08x\n", status);
+						   "(frag) status = %08x\n", status);
 				stats->rx_dropped++;
 				stats->rx_length_errors++;
 				sis190_give_to_asic(desc, tp->rx_buf_sz);
@@ -611,13 +676,16 @@ static int sis190_rx_interrupt(struct net_device *dev,
 			}
 
 
-			if (sis190_try_rx_copy(tp, &skb, pkt_size, addr)) {
+			if (sis190_try_rx_copy(tp, &skb, pkt_size, addr))
+			{
 				pci_dma_sync_single_for_device(pdev, addr,
-					tp->rx_buf_sz, PCI_DMA_FROMDEVICE);
+											   tp->rx_buf_sz, PCI_DMA_FROMDEVICE);
 				sis190_give_to_asic(desc, tp->rx_buf_sz);
-			} else {
+			}
+			else
+			{
 				pci_unmap_single(pdev, addr, tp->rx_buf_sz,
-						 PCI_DMA_FROMDEVICE);
+								 PCI_DMA_FROMDEVICE);
 				tp->Rx_skbuff[entry] = NULL;
 				sis190_make_unusable_by_asic(desc);
 			}
@@ -629,26 +697,36 @@ static int sis190_rx_interrupt(struct net_device *dev,
 
 			stats->rx_packets++;
 			stats->rx_bytes += pkt_size;
+
 			if ((status & BCAST) == MCAST)
+			{
 				stats->multicast++;
+			}
 		}
 	}
+
 	count = cur_rx - tp->cur_rx;
 	tp->cur_rx = cur_rx;
 
 	delta = sis190_rx_fill(tp, dev, tp->dirty_rx, tp->cur_rx);
+
 	if (!delta && count)
+	{
 		netif_info(tp, intr, dev, "no Rx buffer allocated\n");
+	}
+
 	tp->dirty_rx += delta;
 
 	if ((tp->dirty_rx + NUM_RX_DESC) == tp->cur_rx)
+	{
 		netif_emerg(tp, intr, dev, "Rx buffers exhausted\n");
+	}
 
 	return count;
 }
 
 static void sis190_unmap_tx_skb(struct pci_dev *pdev, struct sk_buff *skb,
-				struct TxDesc *desc)
+								struct TxDesc *desc)
 {
 	unsigned int len;
 
@@ -664,16 +742,29 @@ static inline int sis190_tx_pkt_err(u32 status, struct net_device_stats *stats)
 #define TxErrMask	(WND | TABRT | FIFO | LINK)
 
 	if (!unlikely(status & TxErrMask))
+	{
 		return 0;
+	}
 
 	if (status & WND)
+	{
 		stats->tx_window_errors++;
+	}
+
 	if (status & TABRT)
+	{
 		stats->tx_aborted_errors++;
+	}
+
 	if (status & FIFO)
+	{
 		stats->tx_fifo_errors++;
+	}
+
 	if (status & LINK)
+	{
 		stats->tx_carrier_errors++;
+	}
 
 	stats->tx_errors++;
 
@@ -681,7 +772,7 @@ static inline int sis190_tx_pkt_err(u32 status, struct net_device_stats *stats)
 }
 
 static void sis190_tx_interrupt(struct net_device *dev,
-				struct sis190_private *tp, void __iomem *ioaddr)
+								struct sis190_private *tp, void __iomem *ioaddr)
 {
 	struct net_device_stats *stats = &dev->stats;
 	u32 pending, dirty_tx = tp->dirty_tx;
@@ -695,18 +786,22 @@ static void sis190_tx_interrupt(struct net_device *dev,
 	pending = tp->cur_tx - dirty_tx;
 	queue_stopped = (pending == NUM_TX_DESC);
 
-	for (; pending; pending--, dirty_tx++) {
+	for (; pending; pending--, dirty_tx++)
+	{
 		unsigned int entry = dirty_tx % NUM_TX_DESC;
 		struct TxDesc *txd = tp->TxDescRing + entry;
 		u32 status = le32_to_cpu(txd->status);
 		struct sk_buff *skb;
 
 		if (status & OWNbit)
+		{
 			break;
+		}
 
 		skb = tp->Tx_skbuff[entry];
 
-		if (likely(sis190_tx_pkt_err(status, stats) == 0)) {
+		if (likely(sis190_tx_pkt_err(status, stats) == 0))
+		{
 			stats->tx_packets++;
 			stats->tx_bytes += skb->len;
 			stats->collisions += ((status & ColCountMask) - 1);
@@ -717,11 +812,15 @@ static void sis190_tx_interrupt(struct net_device *dev,
 		dev_kfree_skb_irq(skb);
 	}
 
-	if (tp->dirty_tx != dirty_tx) {
+	if (tp->dirty_tx != dirty_tx)
+	{
 		tp->dirty_tx = dirty_tx;
 		smp_wmb();
+
 		if (queue_stopped)
+		{
 			netif_wake_queue(dev);
+		}
 	}
 }
 
@@ -740,30 +839,39 @@ static irqreturn_t sis190_irq(int irq, void *__dev)
 	status = SIS_R32(IntrStatus);
 
 	if ((status == 0xffffffff) || !status)
+	{
 		goto out;
+	}
 
 	handled = 1;
 
-	if (unlikely(!netif_running(dev))) {
+	if (unlikely(!netif_running(dev)))
+	{
 		sis190_asic_down(ioaddr);
 		goto out;
 	}
 
 	SIS_W32(IntrStatus, status);
 
-//	netif_info(tp, intr, dev, "status = %08x\n", status);
+	//	netif_info(tp, intr, dev, "status = %08x\n", status);
 
-	if (status & LinkChange) {
+	if (status & LinkChange)
+	{
 		netif_info(tp, intr, dev, "link change\n");
 		del_timer(&tp->timer);
 		schedule_work(&tp->phy_task);
 	}
 
 	if (status & RxQInt)
+	{
 		sis190_rx_interrupt(dev, tp, ioaddr);
+	}
 
 	if (status & TxQ0Int)
+	{
 		sis190_tx_interrupt(dev, tp, ioaddr);
+	}
+
 out:
 	return IRQ_RETVAL(handled);
 }
@@ -781,12 +889,12 @@ static void sis190_netpoll(struct net_device *dev)
 #endif
 
 static void sis190_free_rx_skb(struct sis190_private *tp,
-			       struct sk_buff **sk_buff, struct RxDesc *desc)
+							   struct sk_buff **sk_buff, struct RxDesc *desc)
 {
 	struct pci_dev *pdev = tp->pci_dev;
 
 	pci_unmap_single(pdev, le32_to_cpu(desc->addr), tp->rx_buf_sz,
-			 PCI_DMA_FROMDEVICE);
+					 PCI_DMA_FROMDEVICE);
 	dev_kfree_skb(*sk_buff);
 	*sk_buff = NULL;
 	sis190_make_unusable_by_asic(desc);
@@ -796,9 +904,13 @@ static void sis190_rx_clear(struct sis190_private *tp)
 {
 	unsigned int i;
 
-	for (i = 0; i < NUM_RX_DESC; i++) {
+	for (i = 0; i < NUM_RX_DESC; i++)
+	{
 		if (!tp->Rx_skbuff[i])
+		{
 			continue;
+		}
+
 		sis190_free_rx_skb(tp, tp->Rx_skbuff + i, tp->RxDescRing + i);
 	}
 }
@@ -818,7 +930,9 @@ static int sis190_init_ring(struct net_device *dev)
 	memset(tp->Rx_skbuff, 0x0, NUM_RX_DESC * sizeof(struct sk_buff *));
 
 	if (sis190_rx_fill(tp, dev, 0, NUM_RX_DESC) != NUM_RX_DESC)
+	{
 		goto err_rx_clear;
+	}
 
 	sis190_mark_as_last_descriptor(tp->RxDescRing + NUM_RX_DESC - 1);
 
@@ -837,22 +951,28 @@ static void sis190_set_rx_mode(struct net_device *dev)
 	u32 mc_filter[2];	/* Multicast hash filter */
 	u16 rx_mode;
 
-	if (dev->flags & IFF_PROMISC) {
+	if (dev->flags & IFF_PROMISC)
+	{
 		rx_mode =
 			AcceptBroadcast | AcceptMulticast | AcceptMyPhys |
 			AcceptAllPhys;
 		mc_filter[1] = mc_filter[0] = 0xffffffff;
-	} else if ((netdev_mc_count(dev) > multicast_filter_limit) ||
-		   (dev->flags & IFF_ALLMULTI)) {
+	}
+	else if ((netdev_mc_count(dev) > multicast_filter_limit) ||
+			 (dev->flags & IFF_ALLMULTI))
+	{
 		/* Too many to filter perfectly -- accept all multicasts. */
 		rx_mode = AcceptBroadcast | AcceptMulticast | AcceptMyPhys;
 		mc_filter[1] = mc_filter[0] = 0xffffffff;
-	} else {
+	}
+	else
+	{
 		struct netdev_hw_addr *ha;
 
 		rx_mode = AcceptBroadcast | AcceptMyPhys;
 		mc_filter[1] = mc_filter[0] = 0;
-		netdev_for_each_mc_addr(ha, dev) {
+		netdev_for_each_mc_addr(ha, dev)
+		{
 			int bit_nr =
 				ether_crc(ETH_ALEN, ha->addr) & 0x3f;
 			mc_filter[bit_nr >> 5] |= 1 << (bit_nr & 31);
@@ -922,39 +1042,61 @@ static void sis190_phy_task(struct work_struct *work)
 	rtnl_lock();
 
 	if (!netif_running(dev))
+	{
 		goto out_unlock;
+	}
 
 	val = mdio_read(ioaddr, phy_id, MII_BMCR);
-	if (val & BMCR_RESET) {
+
+	if (val & BMCR_RESET)
+	{
 		// FIXME: needlessly high ?  -- FR 02/07/2005
-		mod_timer(&tp->timer, jiffies + HZ/10);
+		mod_timer(&tp->timer, jiffies + HZ / 10);
 		goto out_unlock;
 	}
 
 	val = mdio_read_latched(ioaddr, phy_id, MII_BMSR);
-	if (!(val & BMSR_ANEGCOMPLETE) && tp->link_status != LNK_AUTONEG) {
+
+	if (!(val & BMSR_ANEGCOMPLETE) && tp->link_status != LNK_AUTONEG)
+	{
 		netif_carrier_off(dev);
 		netif_warn(tp, link, dev, "auto-negotiating...\n");
 		tp->link_status = LNK_AUTONEG;
-	} else if ((val & BMSR_LSTATUS) && tp->link_status != LNK_ON) {
+	}
+	else if ((val & BMSR_LSTATUS) && tp->link_status != LNK_ON)
+	{
 		/* Rejoice ! */
-		struct {
+		struct
+		{
 			int val;
 			u32 ctl;
 			const char *msg;
-		} reg31[] = {
-			{ LPA_1000FULL, 0x07000c00 | 0x00001000,
-				"1000 Mbps Full Duplex" },
-			{ LPA_1000HALF, 0x07000c00,
-				"1000 Mbps Half Duplex" },
-			{ LPA_100FULL, 0x04000800 | 0x00001000,
-				"100 Mbps Full Duplex" },
-			{ LPA_100HALF, 0x04000800,
-				"100 Mbps Half Duplex" },
-			{ LPA_10FULL, 0x04000400 | 0x00001000,
-				"10 Mbps Full Duplex" },
-			{ LPA_10HALF, 0x04000400,
-				"10 Mbps Half Duplex" },
+		} reg31[] =
+		{
+			{
+				LPA_1000FULL, 0x07000c00 | 0x00001000,
+				"1000 Mbps Full Duplex"
+			},
+			{
+				LPA_1000HALF, 0x07000c00,
+				"1000 Mbps Half Duplex"
+			},
+			{
+				LPA_100FULL, 0x04000800 | 0x00001000,
+				"100 Mbps Full Duplex"
+			},
+			{
+				LPA_100HALF, 0x04000800,
+				"100 Mbps Half Duplex"
+			},
+			{
+				LPA_10FULL, 0x04000400 | 0x00001000,
+				"10 Mbps Full Duplex"
+			},
+			{
+				LPA_10HALF, 0x04000400,
+				"10 Mbps Half Duplex"
+			},
 			{ 0, 0x04000400, "unknown" }
 		}, *p = NULL;
 		u16 adv, autoexp, gigadv, gigrec;
@@ -966,31 +1108,43 @@ static void sis190_phy_task(struct work_struct *work)
 		adv = mdio_read(ioaddr, phy_id, MII_ADVERTISE);
 		autoexp = mdio_read(ioaddr, phy_id, MII_EXPANSION);
 		netif_info(tp, link, dev, "mii lpa=%04x adv=%04x exp=%04x\n",
-			   val, adv, autoexp);
+				   val, adv, autoexp);
 
-		if (val & LPA_NPAGE && autoexp & EXPANSION_NWAY) {
+		if (val & LPA_NPAGE && autoexp & EXPANSION_NWAY)
+		{
 			/* check for gigabit speed */
 			gigadv = mdio_read(ioaddr, phy_id, MII_CTRL1000);
 			gigrec = mdio_read(ioaddr, phy_id, MII_STAT1000);
 			val = (gigadv & (gigrec >> 2));
+
 			if (val & ADVERTISE_1000FULL)
+			{
 				p = reg31;
+			}
 			else if (val & ADVERTISE_1000HALF)
+			{
 				p = reg31 + 1;
+			}
 		}
-		if (!p) {
+
+		if (!p)
+		{
 			val &= adv;
 
-			for (p = reg31; p->val; p++) {
+			for (p = reg31; p->val; p++)
+			{
 				if ((val & p->val) == p->val)
+				{
 					break;
+				}
 			}
 		}
 
 		p->ctl |= SIS_R32(StationControl) & ~0x0f001c00;
 
 		if ((tp->features & F_HAS_RGMII) &&
-		    (tp->features & F_PHY_BCM5461)) {
+			(tp->features & F_PHY_BCM5461))
+		{
 			// Set Tx Delay in RGMII mode.
 			mdio_write(ioaddr, phy_id, 0x18, 0xf1c7);
 			udelay(200);
@@ -1000,7 +1154,8 @@ static void sis190_phy_task(struct work_struct *work)
 
 		SIS_W32(StationControl, p->ctl);
 
-		if (tp->features & F_HAS_RGMII) {
+		if (tp->features & F_HAS_RGMII)
+		{
 			SIS_W32(RGDelay, 0x0441);
 			SIS_W32(RGDelay, 0x0440);
 		}
@@ -1010,8 +1165,12 @@ static void sis190_phy_task(struct work_struct *work)
 		netif_info(tp, link, dev, "link on %s mode\n", p->msg);
 		netif_carrier_on(dev);
 		tp->link_status = LNK_ON;
-	} else if (!(val & BMSR_LSTATUS) && tp->link_status != LNK_AUTONEG)
+	}
+	else if (!(val & BMSR_LSTATUS) && tp->link_status != LNK_AUTONEG)
+	{
 		tp->link_status = LNK_OFF;
+	}
+
 	mod_timer(&tp->timer, jiffies + SIS190_PHY_TIMEOUT);
 
 out_unlock:
@@ -1024,7 +1183,9 @@ static void sis190_phy_timer(unsigned long __opaque)
 	struct sis190_private *tp = netdev_priv(dev);
 
 	if (likely(netif_running(dev)))
+	{
 		schedule_work(&tp->phy_task);
+	}
 }
 
 static inline void sis190_delete_timer(struct net_device *dev)
@@ -1047,13 +1208,15 @@ static inline void sis190_request_timer(struct net_device *dev)
 }
 
 static void sis190_set_rxbufsize(struct sis190_private *tp,
-				 struct net_device *dev)
+								 struct net_device *dev)
 {
 	unsigned int mtu = dev->mtu;
 
 	tp->rx_buf_sz = (mtu > RX_BUF_SIZE) ? mtu + ETH_HLEN + 8 : RX_BUF_SIZE;
+
 	/* RxDesc->size has a licence to kill the lower bits */
-	if (tp->rx_buf_sz & 0x07) {
+	if (tp->rx_buf_sz & 0x07)
+	{
 		tp->rx_buf_sz += 8;
 		tp->rx_buf_sz &= RX_BUF_MASK;
 	}
@@ -1072,22 +1235,34 @@ static int sis190_open(struct net_device *dev)
 	 * pci_alloc_consistent() guarantees a stronger alignment.
 	 */
 	tp->TxDescRing = pci_alloc_consistent(pdev, TX_RING_BYTES, &tp->tx_dma);
+
 	if (!tp->TxDescRing)
+	{
 		goto out;
+	}
 
 	tp->RxDescRing = pci_alloc_consistent(pdev, RX_RING_BYTES, &tp->rx_dma);
+
 	if (!tp->RxDescRing)
+	{
 		goto err_free_tx_0;
+	}
 
 	rc = sis190_init_ring(dev);
+
 	if (rc < 0)
+	{
 		goto err_free_rx_1;
+	}
 
 	sis190_request_timer(dev);
 
 	rc = request_irq(pdev->irq, sis190_irq, IRQF_SHARED, dev->name, dev);
+
 	if (rc < 0)
+	{
 		goto err_release_timer_2;
+	}
 
 	sis190_hw_start(dev);
 out:
@@ -1107,11 +1282,14 @@ static void sis190_tx_clear(struct sis190_private *tp)
 {
 	unsigned int i;
 
-	for (i = 0; i < NUM_TX_DESC; i++) {
+	for (i = 0; i < NUM_TX_DESC; i++)
+	{
 		struct sk_buff *skb = tp->Tx_skbuff[i];
 
 		if (!skb)
+		{
 			continue;
+		}
 
 		sis190_unmap_tx_skb(tp->pci_dev, skb, tp->TxDescRing + i);
 		tp->Tx_skbuff[i] = NULL;
@@ -1119,6 +1297,7 @@ static void sis190_tx_clear(struct sis190_private *tp)
 
 		tp->dev->stats.tx_dropped++;
 	}
+
 	tp->cur_tx = tp->dirty_tx = 0;
 }
 
@@ -1132,7 +1311,8 @@ static void sis190_down(struct net_device *dev)
 
 	netif_stop_queue(dev);
 
-	do {
+	do
+	{
 		spin_lock_irq(&tp->lock);
 
 		sis190_asic_down(ioaddr);
@@ -1142,11 +1322,14 @@ static void sis190_down(struct net_device *dev)
 		synchronize_irq(tp->pci_dev->irq);
 
 		if (!poll_locked)
+		{
 			poll_locked++;
+		}
 
 		synchronize_sched();
 
-	} while (SIS_R32(IntrMask));
+	}
+	while (SIS_R32(IntrMask));
 
 	sis190_tx_clear(tp);
 	sis190_rx_clear(tp);
@@ -1171,7 +1354,7 @@ static int sis190_close(struct net_device *dev)
 }
 
 static netdev_tx_t sis190_start_xmit(struct sk_buff *skb,
-				     struct net_device *dev)
+									 struct net_device *dev)
 {
 	struct sis190_private *tp = netdev_priv(dev);
 	void __iomem *ioaddr = tp->mmio_addr;
@@ -1179,30 +1362,38 @@ static netdev_tx_t sis190_start_xmit(struct sk_buff *skb,
 	struct TxDesc *desc;
 	dma_addr_t mapping;
 
-	if (unlikely(skb->len < ETH_ZLEN)) {
-		if (skb_padto(skb, ETH_ZLEN)) {
+	if (unlikely(skb->len < ETH_ZLEN))
+	{
+		if (skb_padto(skb, ETH_ZLEN))
+		{
 			dev->stats.tx_dropped++;
 			goto out;
 		}
+
 		len = ETH_ZLEN;
-	} else {
+	}
+	else
+	{
 		len = skb->len;
 	}
 
 	entry = tp->cur_tx % NUM_TX_DESC;
 	desc = tp->TxDescRing + entry;
 
-	if (unlikely(le32_to_cpu(desc->status) & OWNbit)) {
+	if (unlikely(le32_to_cpu(desc->status) & OWNbit))
+	{
 		netif_stop_queue(dev);
 		netif_err(tp, tx_err, dev,
-			  "BUG! Tx Ring full when queue awake!\n");
+				  "BUG! Tx Ring full when queue awake!\n");
 		return NETDEV_TX_BUSY;
 	}
 
 	mapping = pci_map_single(tp->pci_dev, skb->data, len, PCI_DMA_TODEVICE);
-	if (pci_dma_mapping_error(tp->pci_dev, mapping)) {
+
+	if (pci_dma_mapping_error(tp->pci_dev, mapping))
+	{
 		netif_err(tp, tx_err, dev,
-				"PCI mapping failed, dropping packet");
+				  "PCI mapping failed, dropping packet");
 		return NETDEV_TX_BUSY;
 	}
 
@@ -1212,17 +1403,25 @@ static netdev_tx_t sis190_start_xmit(struct sk_buff *skb,
 	desc->addr = cpu_to_le32(mapping);
 
 	desc->size = cpu_to_le32(len);
+
 	if (entry == (NUM_TX_DESC - 1))
+	{
 		desc->size |= cpu_to_le32(RingEnd);
+	}
 
 	wmb();
 
 	desc->status = cpu_to_le32(OWNbit | INTbit | DEFbit | CRCbit | PADbit);
-	if (tp->negotiated_lpa & (LPA_1000HALF | LPA_100HALF | LPA_10HALF)) {
+
+	if (tp->negotiated_lpa & (LPA_1000HALF | LPA_100HALF | LPA_10HALF))
+	{
 		/* Half Duplex */
 		desc->status |= cpu_to_le32(COLEN | CRSEN | BKFEN);
+
 		if (tp->negotiated_lpa & (LPA_1000HALF | LPA_1000FULL))
-			desc->status |= cpu_to_le32(EXTEN | BSTEN); /* gigabit HD */
+		{
+			desc->status |= cpu_to_le32(EXTEN | BSTEN);    /* gigabit HD */
+		}
 	}
 
 	tp->cur_tx++;
@@ -1232,12 +1431,18 @@ static netdev_tx_t sis190_start_xmit(struct sk_buff *skb,
 	SIS_W32(TxControl, 0x1a00 | CmdReset | CmdTxEnb);
 
 	dirty_tx = tp->dirty_tx;
-	if ((tp->cur_tx - NUM_TX_DESC) == dirty_tx) {
+
+	if ((tp->cur_tx - NUM_TX_DESC) == dirty_tx)
+	{
 		netif_stop_queue(dev);
 		smp_rmb();
+
 		if (dirty_tx != tp->dirty_tx)
+		{
 			netif_wake_queue(dev);
+		}
 	}
+
 out:
 	return NETDEV_TX_OK;
 }
@@ -1246,7 +1451,8 @@ static void sis190_free_phy(struct list_head *first_phy)
 {
 	struct sis190_phy *cur, *next;
 
-	list_for_each_entry_safe(cur, next, first_phy, list) {
+	list_for_each_entry_safe(cur, next, first_phy, list)
+	{
 		kfree(cur);
 	}
 }
@@ -1269,40 +1475,56 @@ static u16 sis190_default_phy(struct net_device *dev)
 
 	phy_home = phy_default = phy_lan = NULL;
 
-	list_for_each_entry(phy, &tp->first_phy, list) {
+	list_for_each_entry(phy, &tp->first_phy, list)
+	{
 		status = mdio_read_latched(ioaddr, phy->phy_id, MII_BMSR);
 
 		// Link ON & Not select default PHY & not ghost PHY.
 		if ((status & BMSR_LSTATUS) &&
-		    !phy_default &&
-		    (phy->type != UNKNOWN)) {
+			!phy_default &&
+			(phy->type != UNKNOWN))
+		{
 			phy_default = phy;
-		} else {
+		}
+		else
+		{
 			status = mdio_read(ioaddr, phy->phy_id, MII_BMCR);
 			mdio_write(ioaddr, phy->phy_id, MII_BMCR,
-				   status | BMCR_ANENABLE | BMCR_ISOLATE);
+					   status | BMCR_ANENABLE | BMCR_ISOLATE);
+
 			if (phy->type == HOME)
+			{
 				phy_home = phy;
+			}
 			else if (phy->type == LAN)
+			{
 				phy_lan = phy;
+			}
 		}
 	}
 
-	if (!phy_default) {
+	if (!phy_default)
+	{
 		if (phy_home)
+		{
 			phy_default = phy_home;
+		}
 		else if (phy_lan)
+		{
 			phy_default = phy_lan;
+		}
 		else
 			phy_default = list_first_entry(&tp->first_phy,
-						 struct sis190_phy, list);
+										   struct sis190_phy, list);
 	}
 
-	if (mii_if->phy_id != phy_default->phy_id) {
+	if (mii_if->phy_id != phy_default->phy_id)
+	{
 		mii_if->phy_id = phy_default->phy_id;
+
 		if (netif_msg_probe(tp))
 			pr_info("%s: Using transceiver at address %d as default\n",
-				pci_name(tp->pci_dev), mii_if->phy_id);
+					pci_name(tp->pci_dev), mii_if->phy_id);
 	}
 
 	status = mdio_read(ioaddr, mii_if->phy_id, MII_BMCR);
@@ -1315,8 +1537,8 @@ static u16 sis190_default_phy(struct net_device *dev)
 }
 
 static void sis190_init_phy(struct net_device *dev, struct sis190_private *tp,
-			    struct sis190_phy *phy, unsigned int phy_id,
-			    u16 mii_status)
+							struct sis190_phy *phy, unsigned int phy_id,
+							u16 mii_status)
 {
 	void __iomem *ioaddr = tp->mmio_addr;
 	struct mii_chip_info *p;
@@ -1328,36 +1550,45 @@ static void sis190_init_phy(struct net_device *dev, struct sis190_private *tp,
 	phy->id[0] = mdio_read(ioaddr, phy_id, MII_PHYSID1);
 	phy->id[1] = mdio_read(ioaddr, phy_id, MII_PHYSID2);
 
-	for (p = mii_chip_table; p->type; p++) {
+	for (p = mii_chip_table; p->type; p++)
+	{
 		if ((p->id[0] == phy->id[0]) &&
-		    (p->id[1] == (phy->id[1] & 0xfff0))) {
+			(p->id[1] == (phy->id[1] & 0xfff0)))
+		{
 			break;
 		}
 	}
 
-	if (p->id[1]) {
+	if (p->id[1])
+	{
 		phy->type = (p->type == MIX) ?
-			((mii_status & (BMSR_100FULL | BMSR_100HALF)) ?
-				LAN : HOME) : p->type;
+					((mii_status & (BMSR_100FULL | BMSR_100HALF)) ?
+					 LAN : HOME) : p->type;
 		tp->features |= p->feature;
+
 		if (netif_msg_probe(tp))
 			pr_info("%s: %s transceiver at address %d\n",
-				pci_name(tp->pci_dev), p->name, phy_id);
-	} else {
+					pci_name(tp->pci_dev), p->name, phy_id);
+	}
+	else
+	{
 		phy->type = UNKNOWN;
+
 		if (netif_msg_probe(tp))
 			pr_info("%s: unknown PHY 0x%x:0x%x transceiver at address %d\n",
-				pci_name(tp->pci_dev),
-				phy->id[0], (phy->id[1] & 0xfff0), phy_id);
+					pci_name(tp->pci_dev),
+					phy->id[0], (phy->id[1] & 0xfff0), phy_id);
 	}
 }
 
 static void sis190_mii_probe_88e1111_fixup(struct sis190_private *tp)
 {
-	if (tp->features & F_PHY_88E1111) {
+	if (tp->features & F_PHY_88E1111)
+	{
 		void __iomem *ioaddr = tp->mmio_addr;
 		int phy_id = tp->mii_if.phy_id;
-		u16 reg[2][2] = {
+		u16 reg[2][2] =
+		{
 			{ 0x808b, 0x0ce1 },
 			{ 0x808f, 0x0c60 }
 		}, *p;
@@ -1389,7 +1620,8 @@ static int sis190_mii_probe(struct net_device *dev)
 
 	INIT_LIST_HEAD(&tp->first_phy);
 
-	for (phy_id = 0; phy_id < PHY_MAX_ADDR; phy_id++) {
+	for (phy_id = 0; phy_id < PHY_MAX_ADDR; phy_id++)
+	{
 		struct sis190_phy *phy;
 		u16 status;
 
@@ -1397,10 +1629,14 @@ static int sis190_mii_probe(struct net_device *dev)
 
 		// Try next mii if the current one is not accessible.
 		if (status == 0xffff || status == 0x0000)
+		{
 			continue;
+		}
 
 		phy = kmalloc(sizeof(*phy), GFP_KERNEL);
-		if (!phy) {
+
+		if (!phy)
+		{
 			sis190_free_phy(&tp->first_phy);
 			rc = -ENOMEM;
 			goto out;
@@ -1411,10 +1647,12 @@ static int sis190_mii_probe(struct net_device *dev)
 		list_add(&tp->first_phy, &phy->list);
 	}
 
-	if (list_empty(&tp->first_phy)) {
+	if (list_empty(&tp->first_phy))
+	{
 		if (netif_msg_probe(tp))
 			pr_info("%s: No MII transceivers found!\n",
-				pci_name(tp->pci_dev));
+					pci_name(tp->pci_dev));
+
 		rc = -EIO;
 		goto out;
 	}
@@ -1459,7 +1697,9 @@ static struct net_device *sis190_init_board(struct pci_dev *pdev)
 	int rc;
 
 	dev = alloc_etherdev(sizeof(*tp));
-	if (!dev) {
+
+	if (!dev)
+	{
 		rc = -ENOMEM;
 		goto err_out_0;
 	}
@@ -1471,50 +1711,69 @@ static struct net_device *sis190_init_board(struct pci_dev *pdev)
 	tp->msg_enable = netif_msg_init(debug.msg_enable, SIS190_MSG_DEFAULT);
 
 	rc = pci_enable_device(pdev);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		if (netif_msg_probe(tp))
+		{
 			pr_err("%s: enable failure\n", pci_name(pdev));
+		}
+
 		goto err_free_dev_1;
 	}
 
 	rc = -ENODEV;
 
-	if (!(pci_resource_flags(pdev, 0) & IORESOURCE_MEM)) {
+	if (!(pci_resource_flags(pdev, 0) & IORESOURCE_MEM))
+	{
 		if (netif_msg_probe(tp))
 			pr_err("%s: region #0 is no MMIO resource\n",
-			       pci_name(pdev));
+				   pci_name(pdev));
+
 		goto err_pci_disable_2;
 	}
-	if (pci_resource_len(pdev, 0) < SIS190_REGS_SIZE) {
+
+	if (pci_resource_len(pdev, 0) < SIS190_REGS_SIZE)
+	{
 		if (netif_msg_probe(tp))
 			pr_err("%s: invalid PCI region size(s)\n",
-			       pci_name(pdev));
+				   pci_name(pdev));
+
 		goto err_pci_disable_2;
 	}
 
 	rc = pci_request_regions(pdev, DRV_NAME);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		if (netif_msg_probe(tp))
 			pr_err("%s: could not request regions\n",
-			       pci_name(pdev));
+				   pci_name(pdev));
+
 		goto err_pci_disable_2;
 	}
 
 	rc = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		if (netif_msg_probe(tp))
 			pr_err("%s: DMA configuration failed\n",
-			       pci_name(pdev));
+				   pci_name(pdev));
+
 		goto err_free_res_3;
 	}
 
 	pci_set_master(pdev);
 
 	ioaddr = ioremap(pci_resource_start(pdev, 0), SIS190_REGS_SIZE);
-	if (!ioaddr) {
+
+	if (!ioaddr)
+	{
 		if (netif_msg_probe(tp))
 			pr_err("%s: cannot remap MMIO, aborting\n",
-			       pci_name(pdev));
+				   pci_name(pdev));
+
 		rc = -EIO;
 		goto err_free_res_3;
 	}
@@ -1548,11 +1807,14 @@ static void sis190_tx_timeout(struct net_device *dev)
 
 	/* Disable Tx, if not already */
 	tmp8 = SIS_R8(TxControl);
+
 	if (tmp8 & CmdTxEnb)
+	{
 		SIS_W8(TxControl, tmp8 & ~CmdTxEnb);
+	}
 
 	netif_info(tp, tx_err, dev, "Transmit timeout, status %08x %08x\n",
-		   SIS_R32(TxControl), SIS_R32(TxSts));
+			   SIS_R32(TxControl), SIS_R32(TxSts));
 
 	/* Disable interrupts by clearing the interrupt mask. */
 	SIS_W32(IntrMask, 0x0000);
@@ -1574,7 +1836,7 @@ static void sis190_set_rgmii(struct sis190_private *tp, u8 reg)
 }
 
 static int sis190_get_mac_addr_from_eeprom(struct pci_dev *pdev,
-					   struct net_device *dev)
+		struct net_device *dev)
 {
 	struct sis190_private *tp = netdev_priv(dev);
 	void __iomem *ioaddr = tp->mmio_addr;
@@ -1582,20 +1844,25 @@ static int sis190_get_mac_addr_from_eeprom(struct pci_dev *pdev,
 	int i;
 
 	if (netif_msg_probe(tp))
+	{
 		pr_info("%s: Read MAC address from EEPROM\n", pci_name(pdev));
+	}
 
 	/* Check to see if there is a sane EEPROM */
 	sig = (u16) sis190_read_eeprom(ioaddr, EEPROMSignature);
 
-	if ((sig == 0xffff) || (sig == 0x0000)) {
+	if ((sig == 0xffff) || (sig == 0x0000))
+	{
 		if (netif_msg_probe(tp))
 			pr_info("%s: Error EEPROM read %x\n",
-				pci_name(pdev), sig);
+					pci_name(pdev), sig);
+
 		return -EIO;
 	}
 
 	/* Get MAC address from EEPROM */
-	for (i = 0; i < ETH_ALEN / 2; i++) {
+	for (i = 0; i < ETH_ALEN / 2; i++)
+	{
 		u16 w = sis190_read_eeprom(ioaddr, EEPROMMACAddr + i);
 
 		((__le16 *)dev->dev_addr)[i] = cpu_to_le16(w);
@@ -1616,7 +1883,7 @@ static int sis190_get_mac_addr_from_eeprom(struct pci_dev *pdev,
  *	MAC address is read into @net_dev->dev_addr.
  */
 static int sis190_get_mac_addr_from_apc(struct pci_dev *pdev,
-					struct net_device *dev)
+										struct net_device *dev)
 {
 	static const u16 ids[] = { 0x0965, 0x0966, 0x0968 };
 	struct sis190_private *tp = netdev_priv(dev);
@@ -1625,18 +1892,26 @@ static int sis190_get_mac_addr_from_apc(struct pci_dev *pdev,
 	unsigned int i;
 
 	if (netif_msg_probe(tp))
+	{
 		pr_info("%s: Read MAC address from APC\n", pci_name(pdev));
-
-	for (i = 0; i < ARRAY_SIZE(ids); i++) {
-		isa_bridge = pci_get_device(PCI_VENDOR_ID_SI, ids[i], NULL);
-		if (isa_bridge)
-			break;
 	}
 
-	if (!isa_bridge) {
+	for (i = 0; i < ARRAY_SIZE(ids); i++)
+	{
+		isa_bridge = pci_get_device(PCI_VENDOR_ID_SI, ids[i], NULL);
+
+		if (isa_bridge)
+		{
+			break;
+		}
+	}
+
+	if (!isa_bridge)
+	{
 		if (netif_msg_probe(tp))
 			pr_info("%s: Can not find ISA bridge\n",
-				pci_name(pdev));
+					pci_name(pdev));
+
 		return -EIO;
 	}
 
@@ -1647,10 +1922,11 @@ static int sis190_get_mac_addr_from_apc(struct pci_dev *pdev,
 	udelay(50);
 	pci_read_config_byte(isa_bridge, 0x48, &reg);
 
-        for (i = 0; i < ETH_ALEN; i++) {
-                outb(0x9 + i, 0x78);
-                dev->dev_addr[i] = inb(0x79);
-        }
+	for (i = 0; i < ETH_ALEN; i++)
+	{
+		outb(0x9 + i, 0x78);
+		dev->dev_addr[i] = inb(0x79);
+	}
 
 	outb(0x12, 0x78);
 	reg = inb(0x79);
@@ -1687,7 +1963,9 @@ static inline void sis190_init_rxfilter(struct net_device *dev)
 	SIS_W16(RxMacControl, ctl & ~0x0f00);
 
 	for (i = 0; i < ETH_ALEN; i++)
+	{
 		SIS_W8(RxMacAddr + i, dev->dev_addr[i]);
+	}
 
 	SIS_W16(RxMacControl, ctl);
 	SIS_PCI_COMMIT();
@@ -1698,14 +1976,19 @@ static int sis190_get_mac_addr(struct pci_dev *pdev, struct net_device *dev)
 	int rc;
 
 	rc = sis190_get_mac_addr_from_eeprom(pdev, dev);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		u8 reg;
 
 		pci_read_config_byte(pdev, 0x73, &reg);
 
 		if (reg & 0x00000001)
+		{
 			rc = sis190_get_mac_addr_from_apc(pdev, dev);
+		}
 	}
+
 	return rc;
 }
 
@@ -1723,15 +2006,15 @@ static void sis190_set_speed_auto(struct net_device *dev)
 	// Enable 10/100 Full/Half Mode, leave MII_ADVERTISE bit4:0
 	// unchanged.
 	mdio_write(ioaddr, phy_id, MII_ADVERTISE, (val & ADVERTISE_SLCT) |
-		   ADVERTISE_100FULL | ADVERTISE_10FULL |
-		   ADVERTISE_100HALF | ADVERTISE_10HALF);
+			   ADVERTISE_100FULL | ADVERTISE_10FULL |
+			   ADVERTISE_100HALF | ADVERTISE_10HALF);
 
 	// Enable 1000 Full Mode.
 	mdio_write(ioaddr, phy_id, MII_CTRL1000, ADVERTISE_1000FULL);
 
 	// Enable auto-negotiation and restart auto-negotiation.
 	mdio_write(ioaddr, phy_id, MII_BMCR,
-		   BMCR_ANENABLE | BMCR_ANRESTART | BMCR_RESET);
+			   BMCR_ANENABLE | BMCR_ANRESTART | BMCR_RESET);
 }
 
 static int sis190_get_settings(struct net_device *dev, struct ethtool_cmd *cmd)
@@ -1749,14 +2032,14 @@ static int sis190_set_settings(struct net_device *dev, struct ethtool_cmd *cmd)
 }
 
 static void sis190_get_drvinfo(struct net_device *dev,
-			       struct ethtool_drvinfo *info)
+							   struct ethtool_drvinfo *info)
 {
 	struct sis190_private *tp = netdev_priv(dev);
 
 	strlcpy(info->driver, DRV_NAME, sizeof(info->driver));
 	strlcpy(info->version, DRV_VERSION, sizeof(info->version));
 	strlcpy(info->bus_info, pci_name(tp->pci_dev),
-		sizeof(info->bus_info));
+			sizeof(info->bus_info));
 }
 
 static int sis190_get_regs_len(struct net_device *dev)
@@ -1765,7 +2048,7 @@ static int sis190_get_regs_len(struct net_device *dev)
 }
 
 static void sis190_get_regs(struct net_device *dev, struct ethtool_regs *regs,
-			    void *p)
+							void *p)
 {
 	struct sis190_private *tp = netdev_priv(dev);
 	unsigned long flags;
@@ -1796,7 +2079,8 @@ static void sis190_set_msglevel(struct net_device *dev, u32 value)
 	tp->msg_enable = value;
 }
 
-static const struct ethtool_ops sis190_ethtool_ops = {
+static const struct ethtool_ops sis190_ethtool_ops =
+{
 	.get_settings	= sis190_get_settings,
 	.set_settings	= sis190_set_settings,
 	.get_drvinfo	= sis190_get_drvinfo,
@@ -1813,7 +2097,7 @@ static int sis190_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 	struct sis190_private *tp = netdev_priv(dev);
 
 	return !netif_running(dev) ? -EINVAL :
-		generic_mii_ioctl(&tp->mii_if, if_mii(ifr), cmd, NULL);
+		   generic_mii_ioctl(&tp->mii_if, if_mii(ifr), cmd, NULL);
 }
 
 static int sis190_mac_addr(struct net_device  *dev, void *p)
@@ -1821,12 +2105,17 @@ static int sis190_mac_addr(struct net_device  *dev, void *p)
 	int rc;
 
 	rc = eth_mac_addr(dev, p);
+
 	if (!rc)
+	{
 		sis190_init_rxfilter(dev);
+	}
+
 	return rc;
 }
 
-static const struct net_device_ops sis190_netdev_ops = {
+static const struct net_device_ops sis190_netdev_ops =
+{
 	.ndo_open		= sis190_open,
 	.ndo_stop		= sis190_close,
 	.ndo_do_ioctl		= sis190_ioctl,
@@ -1842,7 +2131,7 @@ static const struct net_device_ops sis190_netdev_ops = {
 };
 
 static int sis190_init_one(struct pci_dev *pdev,
-			   const struct pci_device_id *ent)
+						   const struct pci_device_id *ent)
 {
 	static int printed_version = 0;
 	struct sis190_private *tp;
@@ -1850,14 +2139,20 @@ static int sis190_init_one(struct pci_dev *pdev,
 	void __iomem *ioaddr;
 	int rc;
 
-	if (!printed_version) {
+	if (!printed_version)
+	{
 		if (netif_msg_drv(&debug))
+		{
 			pr_info(SIS190_DRIVER_NAME " loaded\n");
+		}
+
 		printed_version = 1;
 	}
 
 	dev = sis190_init_board(pdev);
-	if (IS_ERR(dev)) {
+
+	if (IS_ERR(dev))
+	{
 		rc = PTR_ERR(dev);
 		goto out;
 	}
@@ -1868,8 +2163,11 @@ static int sis190_init_one(struct pci_dev *pdev,
 	ioaddr = tp->mmio_addr;
 
 	rc = sis190_get_mac_addr(pdev, dev);
+
 	if (rc < 0)
+	{
 		goto err_release_board;
+	}
 
 	sis190_init_rxfilter(dev);
 
@@ -1883,20 +2181,27 @@ static int sis190_init_one(struct pci_dev *pdev,
 	spin_lock_init(&tp->lock);
 
 	rc = sis190_mii_probe(dev);
+
 	if (rc < 0)
+	{
 		goto err_release_board;
+	}
 
 	rc = register_netdev(dev);
-	if (rc < 0)
-		goto err_remove_mii;
 
-	if (netif_msg_probe(tp)) {
+	if (rc < 0)
+	{
+		goto err_remove_mii;
+	}
+
+	if (netif_msg_probe(tp))
+	{
 		netdev_info(dev, "%s: %s at %p (IRQ: %d), %pM\n",
-			    pci_name(pdev),
-			    sis_chip_info[ent->driver_data].name,
-			    ioaddr, pdev->irq, dev->dev_addr);
+					pci_name(pdev),
+					sis_chip_info[ent->driver_data].name,
+					ioaddr, pdev->irq, dev->dev_addr);
 		netdev_info(dev, "%s mode.\n",
-			    (tp->features & F_HAS_RGMII) ? "RGMII" : "GMII");
+					(tp->features & F_HAS_RGMII) ? "RGMII" : "GMII");
 	}
 
 	netif_carrier_off(dev);
@@ -1923,7 +2228,8 @@ static void sis190_remove_one(struct pci_dev *pdev)
 	sis190_release_board(pdev);
 }
 
-static struct pci_driver sis190_pci_driver = {
+static struct pci_driver sis190_pci_driver =
+{
 	.name		= DRV_NAME,
 	.id_table	= sis190_pci_tbl,
 	.probe		= sis190_init_one,

@@ -33,7 +33,8 @@
  * The name superblock is too close to super_block, so the name has been
  * changed to jfs_superblock.  The utilities are still using the old name.
  */
-struct jfs_superblock {
+struct jfs_superblock
+{
 	char s_magic[4];	/* 4: magic number */
 	__le32 s_version;	/* 4: version number */
 

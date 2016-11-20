@@ -29,7 +29,8 @@
 static struct lock_class_key nvkm_subdev_lock_class[NVKM_SUBDEV_NR];
 
 const char *
-nvkm_subdev_name[NVKM_SUBDEV_NR] = {
+nvkm_subdev_name[NVKM_SUBDEV_NR] =
+{
 	[NVKM_SUBDEV_BAR     ] = "bar",
 	[NVKM_SUBDEV_VBIOS   ] = "bios",
 	[NVKM_SUBDEV_BUS     ] = "bus",
@@ -87,7 +88,9 @@ void
 nvkm_subdev_intr(struct nvkm_subdev *subdev)
 {
 	if (subdev->func->intr)
+	{
 		subdev->func->intr(subdev);
+	}
 }
 
 int
@@ -100,12 +103,18 @@ nvkm_subdev_fini(struct nvkm_subdev *subdev, bool suspend)
 	nvkm_trace(subdev, "%s running...\n", action);
 	time = ktime_to_us(ktime_get());
 
-	if (subdev->func->fini) {
+	if (subdev->func->fini)
+	{
 		int ret = subdev->func->fini(subdev, suspend);
-		if (ret) {
+
+		if (ret)
+		{
 			nvkm_error(subdev, "%s failed, %d\n", action, ret);
+
 			if (suspend)
+			{
 				return ret;
+			}
 		}
 	}
 
@@ -124,9 +133,12 @@ nvkm_subdev_preinit(struct nvkm_subdev *subdev)
 	nvkm_trace(subdev, "preinit running...\n");
 	time = ktime_to_us(ktime_get());
 
-	if (subdev->func->preinit) {
+	if (subdev->func->preinit)
+	{
 		int ret = subdev->func->preinit(subdev);
-		if (ret) {
+
+		if (ret)
+		{
 			nvkm_error(subdev, "preinit failed, %d\n", ret);
 			return ret;
 		}
@@ -146,12 +158,15 @@ nvkm_subdev_init(struct nvkm_subdev *subdev)
 	nvkm_trace(subdev, "init running...\n");
 	time = ktime_to_us(ktime_get());
 
-	if (subdev->func->oneinit && !subdev->oneinit) {
+	if (subdev->func->oneinit && !subdev->oneinit)
+	{
 		s64 time;
 		nvkm_trace(subdev, "one-time init running...\n");
 		time = ktime_to_us(ktime_get());
 		ret = subdev->func->oneinit(subdev);
-		if (ret) {
+
+		if (ret)
+		{
 			nvkm_error(subdev, "one-time init failed, %d\n", ret);
 			return ret;
 		}
@@ -161,9 +176,12 @@ nvkm_subdev_init(struct nvkm_subdev *subdev)
 		nvkm_trace(subdev, "one-time init completed in %lldus\n", time);
 	}
 
-	if (subdev->func->init) {
+	if (subdev->func->init)
+	{
 		ret = subdev->func->init(subdev);
-		if (ret) {
+
+		if (ret)
+		{
 			nvkm_error(subdev, "init failed, %d\n", ret);
 			return ret;
 		}
@@ -180,11 +198,16 @@ nvkm_subdev_del(struct nvkm_subdev **psubdev)
 	struct nvkm_subdev *subdev = *psubdev;
 	s64 time;
 
-	if (subdev && !WARN_ON(!subdev->func)) {
+	if (subdev && !WARN_ON(!subdev->func))
+	{
 		nvkm_trace(subdev, "destroy running...\n");
 		time = ktime_to_us(ktime_get());
+
 		if (subdev->func->dtor)
+		{
 			*psubdev = subdev->func->dtor(subdev);
+		}
+
 		time = ktime_to_us(ktime_get()) - time;
 		nvkm_trace(subdev, "destroy completed in %lldus\n", time);
 		kfree(*psubdev);
@@ -194,8 +217,8 @@ nvkm_subdev_del(struct nvkm_subdev **psubdev)
 
 void
 nvkm_subdev_ctor(const struct nvkm_subdev_func *func,
-		 struct nvkm_device *device, int index,
-		 struct nvkm_subdev *subdev)
+				 struct nvkm_device *device, int index,
+				 struct nvkm_subdev *subdev)
 {
 	const char *name = nvkm_subdev_name[index];
 	subdev->func = func;

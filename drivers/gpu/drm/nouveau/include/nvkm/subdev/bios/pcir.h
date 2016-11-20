@@ -1,6 +1,7 @@
 #ifndef __NVBIOS_PCIR_H__
 #define __NVBIOS_PCIR_H__
-struct nvbios_pcirT {
+struct nvbios_pcirT
+{
 	u16 vendor_id;
 	u16 device_id;
 	u8  class_code[3];
@@ -12,5 +13,5 @@ struct nvbios_pcirT {
 
 u32 nvbios_pcirTe(struct nvkm_bios *, u32, u8 *ver, u16 *hdr);
 u32 nvbios_pcirTp(struct nvkm_bios *, u32, u8 *ver, u16 *hdr,
-		  struct nvbios_pcirT *);
+				  struct nvbios_pcirT *);
 #endif

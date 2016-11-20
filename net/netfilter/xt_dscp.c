@@ -46,7 +46,8 @@ static int dscp_mt_check(const struct xt_mtchk_param *par)
 {
 	const struct xt_dscp_info *info = par->matchinfo;
 
-	if (info->dscp > XT_DSCP_MAX) {
+	if (info->dscp > XT_DSCP_MAX)
+	{
 		pr_info("dscp %x out of range\n", info->dscp);
 		return -EDOM;
 	}
@@ -60,13 +61,14 @@ static bool tos_mt(const struct sk_buff *skb, struct xt_action_param *par)
 
 	if (par->family == NFPROTO_IPV4)
 		return ((ip_hdr(skb)->tos & info->tos_mask) ==
-		       info->tos_value) ^ !!info->invert;
+				info->tos_value) ^ !!info->invert;
 	else
 		return ((ipv6_get_dsfield(ipv6_hdr(skb)) & info->tos_mask) ==
-		       info->tos_value) ^ !!info->invert;
+				info->tos_value) ^ !!info->invert;
 }
 
-static struct xt_match dscp_mt_reg[] __read_mostly = {
+static struct xt_match dscp_mt_reg[] __read_mostly =
+{
 	{
 		.name		= "dscp",
 		.family		= NFPROTO_IPV4,

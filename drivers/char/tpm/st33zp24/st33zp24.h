@@ -21,7 +21,8 @@
 #define TPM_WRITE_DIRECTION             0x80
 #define TPM_BUFSIZE                     2048
 
-struct st33zp24_dev {
+struct st33zp24_dev
+{
 	struct tpm_chip *chip;
 	void *phy_id;
 	const struct st33zp24_phy_ops *ops;
@@ -33,17 +34,18 @@ struct st33zp24_dev {
 };
 
 
-struct st33zp24_phy_ops {
+struct st33zp24_phy_ops
+{
 	int (*send)(void *phy_id, u8 tpm_register, u8 *tpm_data, int tpm_size);
 	int (*recv)(void *phy_id, u8 tpm_register, u8 *tpm_data, int tpm_size);
 };
 
 #ifdef CONFIG_PM_SLEEP
-int st33zp24_pm_suspend(struct device *dev);
-int st33zp24_pm_resume(struct device *dev);
+	int st33zp24_pm_suspend(struct device *dev);
+	int st33zp24_pm_resume(struct device *dev);
 #endif
 
 int st33zp24_probe(void *phy_id, const struct st33zp24_phy_ops *ops,
-		   struct device *dev, int irq, int io_lpcpd);
+				   struct device *dev, int irq, int io_lpcpd);
 int st33zp24_remove(struct tpm_chip *chip);
 #endif /* __LOCAL_ST33ZP24_H__ */

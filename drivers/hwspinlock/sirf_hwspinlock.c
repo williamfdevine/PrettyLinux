@@ -20,7 +20,8 @@
 
 #include "hwspinlock_internal.h"
 
-struct sirf_hwspinlock {
+struct sirf_hwspinlock
+{
 	void __iomem *io_base;
 	struct hwspinlock_device bank;
 };
@@ -48,7 +49,8 @@ static void sirf_hwspinlock_unlock(struct hwspinlock *lock)
 	writel(0, lock_addr);
 }
 
-static const struct hwspinlock_ops sirf_hwspinlock_ops = {
+static const struct hwspinlock_ops sirf_hwspinlock_ops =
+{
 	.trylock = sirf_hwspinlock_trylock,
 	.unlock = sirf_hwspinlock_unlock,
 };
@@ -60,19 +62,28 @@ static int sirf_hwspinlock_probe(struct platform_device *pdev)
 	int idx, ret;
 
 	if (!pdev->dev.of_node)
+	{
 		return -ENODEV;
+	}
 
 	hwspin = devm_kzalloc(&pdev->dev, sizeof(*hwspin) +
-			sizeof(*hwlock) * HW_SPINLOCK_NUMBER, GFP_KERNEL);
+						  sizeof(*hwlock) * HW_SPINLOCK_NUMBER, GFP_KERNEL);
+
 	if (!hwspin)
+	{
 		return -ENOMEM;
+	}
 
 	/* retrieve io base */
 	hwspin->io_base = of_iomap(pdev->dev.of_node, 0);
-	if (!hwspin->io_base)
-		return -ENOMEM;
 
-	for (idx = 0; idx < HW_SPINLOCK_NUMBER; idx++) {
+	if (!hwspin->io_base)
+	{
+		return -ENOMEM;
+	}
+
+	for (idx = 0; idx < HW_SPINLOCK_NUMBER; idx++)
+	{
 		hwlock = &hwspin->bank.lock[idx];
 		hwlock->priv = hwspin->io_base + HW_SPINLOCK_OFFSET(idx);
 	}
@@ -82,10 +93,13 @@ static int sirf_hwspinlock_probe(struct platform_device *pdev)
 	pm_runtime_enable(&pdev->dev);
 
 	ret = hwspin_lock_register(&hwspin->bank, &pdev->dev,
-				   &sirf_hwspinlock_ops, 0,
-				   HW_SPINLOCK_NUMBER);
+							   &sirf_hwspinlock_ops, 0,
+							   HW_SPINLOCK_NUMBER);
+
 	if (ret)
+	{
 		goto reg_failed;
+	}
 
 	return 0;
 
@@ -102,7 +116,9 @@ static int sirf_hwspinlock_remove(struct platform_device *pdev)
 	int ret;
 
 	ret = hwspin_lock_unregister(&hwspin->bank);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "%s failed: %d\n", __func__, ret);
 		return ret;
 	}
@@ -114,13 +130,15 @@ static int sirf_hwspinlock_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id sirf_hwpinlock_ids[] = {
+static const struct of_device_id sirf_hwpinlock_ids[] =
+{
 	{ .compatible = "sirf,hwspinlock", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, sirf_hwpinlock_ids);
 
-static struct platform_driver sirf_hwspinlock_driver = {
+static struct platform_driver sirf_hwspinlock_driver =
+{
 	.probe = sirf_hwspinlock_probe,
 	.remove = sirf_hwspinlock_remove,
 	.driver = {

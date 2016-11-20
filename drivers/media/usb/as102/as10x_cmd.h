@@ -46,7 +46,8 @@
 /*********************************/
 /*     TYPE DEFINITION           */
 /*********************************/
-enum control_proc {
+enum control_proc
+{
 	CONTROL_PROC_TURNON			= 0x0001,
 	CONTROL_PROC_TURNON_RSP			= 0x0100,
 	CONTROL_PROC_SET_REGISTER		= 0x0002,
@@ -88,14 +89,17 @@ enum control_proc {
 	CONTROL_PROC_TURNOFF_RSP		= 0xFF00
 };
 
-union as10x_turn_on {
+union as10x_turn_on
+{
 	/* request */
-	struct {
+	struct
+	{
 		/* request identifier */
 		__le16 proc_id;
 	} __packed req;
 	/* response */
-	struct {
+	struct
+	{
 		/* response identifier */
 		__le16 proc_id;
 		/* error */
@@ -103,14 +107,17 @@ union as10x_turn_on {
 	} __packed rsp;
 } __packed;
 
-union as10x_turn_off {
+union as10x_turn_off
+{
 	/* request */
-	struct {
+	struct
+	{
 		/* request identifier */
 		__le16 proc_id;
 	} __packed req;
 	/* response */
-	struct {
+	struct
+	{
 		/* response identifier */
 		__le16 proc_id;
 		/* error */
@@ -118,16 +125,19 @@ union as10x_turn_off {
 	} __packed rsp;
 } __packed;
 
-union as10x_set_tune {
+union as10x_set_tune
+{
 	/* request */
-	struct {
+	struct
+	{
 		/* request identifier */
 		__le16 proc_id;
 		/* tune params */
 		struct as10x_tune_args args;
 	} __packed req;
 	/* response */
-	struct {
+	struct
+	{
 		/* response identifier */
 		__le16 proc_id;
 		/* response error */
@@ -135,14 +145,17 @@ union as10x_set_tune {
 	} __packed rsp;
 } __packed;
 
-union as10x_get_tune_status {
+union as10x_get_tune_status
+{
 	/* request */
-	struct {
+	struct
+	{
 		/* request identifier */
 		__le16 proc_id;
 	} __packed req;
 	/* response */
-	struct {
+	struct
+	{
 		/* response identifier */
 		__le16 proc_id;
 		/* response error */
@@ -152,14 +165,17 @@ union as10x_get_tune_status {
 	} __packed rsp;
 } __packed;
 
-union as10x_get_tps {
+union as10x_get_tps
+{
 	/* request */
-	struct {
+	struct
+	{
 		/* request identifier */
 		__le16 proc_id;
 	} __packed req;
 	/* response */
-	struct {
+	struct
+	{
 		/* response identifier */
 		__le16 proc_id;
 		/* response error */
@@ -169,14 +185,17 @@ union as10x_get_tps {
 	} __packed rsp;
 } __packed;
 
-union as10x_common {
+union as10x_common
+{
 	/* request */
-	struct {
+	struct
+	{
 		/* request identifier */
 		__le16  proc_id;
 	} __packed req;
 	/* response */
-	struct {
+	struct
+	{
 		/* response identifier */
 		__le16 proc_id;
 		/* response error */
@@ -184,9 +203,11 @@ union as10x_common {
 	} __packed rsp;
 } __packed;
 
-union as10x_add_pid_filter {
+union as10x_add_pid_filter
+{
 	/* request */
-	struct {
+	struct
+	{
 		/* request identifier */
 		__le16  proc_id;
 		/* PID to filter */
@@ -197,7 +218,8 @@ union as10x_add_pid_filter {
 		uint8_t idx;
 	} __packed req;
 	/* response */
-	struct {
+	struct
+	{
 		/* response identifier */
 		__le16 proc_id;
 		/* response error */
@@ -207,16 +229,19 @@ union as10x_add_pid_filter {
 	} __packed rsp;
 } __packed;
 
-union as10x_del_pid_filter {
+union as10x_del_pid_filter
+{
 	/* request */
-	struct {
+	struct
+	{
 		/* request identifier */
 		__le16  proc_id;
 		/* PID to remove */
 		__le16  pid;
 	} __packed req;
 	/* response */
-	struct {
+	struct
+	{
 		/* response identifier */
 		__le16 proc_id;
 		/* response error */
@@ -224,14 +249,17 @@ union as10x_del_pid_filter {
 	} __packed rsp;
 } __packed;
 
-union as10x_start_streaming {
+union as10x_start_streaming
+{
 	/* request */
-	struct {
+	struct
+	{
 		/* request identifier */
 		__le16 proc_id;
 	} __packed req;
 	/* response */
-	struct {
+	struct
+	{
 		/* response identifier */
 		__le16 proc_id;
 		/* error */
@@ -239,14 +267,17 @@ union as10x_start_streaming {
 	} __packed rsp;
 } __packed;
 
-union as10x_stop_streaming {
+union as10x_stop_streaming
+{
 	/* request */
-	struct {
+	struct
+	{
 		/* request identifier */
 		__le16 proc_id;
 	} __packed req;
 	/* response */
-	struct {
+	struct
+	{
 		/* response identifier */
 		__le16 proc_id;
 		/* error */
@@ -254,14 +285,17 @@ union as10x_stop_streaming {
 	} __packed rsp;
 } __packed;
 
-union as10x_get_demod_stats {
+union as10x_get_demod_stats
+{
 	/* request */
-	struct {
+	struct
+	{
 		/* request identifier */
 		__le16 proc_id;
 	} __packed req;
 	/* response */
-	struct {
+	struct
+	{
 		/* response identifier */
 		__le16 proc_id;
 		/* error */
@@ -271,14 +305,17 @@ union as10x_get_demod_stats {
 	} __packed rsp;
 } __packed;
 
-union as10x_get_impulse_resp {
+union as10x_get_impulse_resp
+{
 	/* request */
-	struct {
+	struct
+	{
 		/* request identifier */
 		__le16 proc_id;
 	} __packed req;
 	/* response */
-	struct {
+	struct
+	{
 		/* response identifier */
 		__le16 proc_id;
 		/* error */
@@ -288,9 +325,11 @@ union as10x_get_impulse_resp {
 	} __packed rsp;
 } __packed;
 
-union as10x_fw_context {
+union as10x_fw_context
+{
 	/* request */
-	struct {
+	struct
+	{
 		/* request identifier */
 		__le16 proc_id;
 		/* value to write (for set context)*/
@@ -301,7 +340,8 @@ union as10x_fw_context {
 		__le16 type;
 	} __packed req;
 	/* response */
-	struct {
+	struct
+	{
 		/* response identifier */
 		__le16 proc_id;
 		/* value read (for get context) */
@@ -313,9 +353,11 @@ union as10x_fw_context {
 	} __packed rsp;
 } __packed;
 
-union as10x_set_register {
+union as10x_set_register
+{
 	/* request */
-	struct {
+	struct
+	{
 		/* response identifier */
 		__le16 proc_id;
 		/* register description */
@@ -324,7 +366,8 @@ union as10x_set_register {
 		struct as10x_register_value reg_val;
 	} __packed req;
 	/* response */
-	struct {
+	struct
+	{
 		/* response identifier */
 		__le16 proc_id;
 		/* error */
@@ -332,16 +375,19 @@ union as10x_set_register {
 	} __packed rsp;
 } __packed;
 
-union as10x_get_register {
+union as10x_get_register
+{
 	/* request */
-	struct {
+	struct
+	{
 		/* response identifier */
 		__le16 proc_id;
 		/* register description */
 		struct as10x_register_addr reg_addr;
 	} __packed req;
 	/* response */
-	struct {
+	struct
+	{
 		/* response identifier */
 		__le16 proc_id;
 		/* error */
@@ -351,16 +397,19 @@ union as10x_get_register {
 	} __packed rsp;
 } __packed;
 
-union as10x_cfg_change_mode {
+union as10x_cfg_change_mode
+{
 	/* request */
-	struct {
+	struct
+	{
 		/* request identifier */
 		__le16 proc_id;
 		/* mode */
 		uint8_t mode;
 	} __packed req;
 	/* response */
-	struct {
+	struct
+	{
 		/* response identifier */
 		__le16 proc_id;
 		/* error */
@@ -368,7 +417,8 @@ union as10x_cfg_change_mode {
 	} __packed rsp;
 } __packed;
 
-struct as10x_cmd_header_t {
+struct as10x_cmd_header_t
+{
 	__le16 req_id;
 	__le16 prog;
 	__le16 version;
@@ -377,9 +427,11 @@ struct as10x_cmd_header_t {
 
 #define DUMP_BLOCK_SIZE 16
 
-union as10x_dump_memory {
+union as10x_dump_memory
+{
 	/* request */
-	struct {
+	struct
+	{
 		/* request identifier */
 		__le16 proc_id;
 		/* dump memory type request */
@@ -390,7 +442,8 @@ union as10x_dump_memory {
 		__le16 num_blocks;
 	} __packed req;
 	/* response */
-	struct {
+	struct
+	{
 		/* response identifier */
 		__le16 proc_id;
 		/* error */
@@ -398,7 +451,8 @@ union as10x_dump_memory {
 		/* dump response */
 		uint8_t dump_rsp;
 		/* data */
-		union {
+		union
+		{
 			uint8_t  data8[DUMP_BLOCK_SIZE];
 			__le16 data16[DUMP_BLOCK_SIZE / sizeof(__le16)];
 			__le32 data32[DUMP_BLOCK_SIZE / sizeof(__le32)];
@@ -406,14 +460,17 @@ union as10x_dump_memory {
 	} __packed rsp;
 } __packed;
 
-union as10x_dumplog_memory {
-	struct {
+union as10x_dumplog_memory
+{
+	struct
+	{
 		/* request identifier */
 		__le16 proc_id;
 		/* dump memory type request */
 		uint8_t dump_req;
 	} __packed req;
-	struct {
+	struct
+	{
 		/* request identifier */
 		__le16 proc_id;
 		/* error */
@@ -425,25 +482,30 @@ union as10x_dumplog_memory {
 	} __packed rsp;
 } __packed;
 
-union as10x_raw_data {
+union as10x_raw_data
+{
 	/* request */
-	struct {
+	struct
+	{
 		__le16 proc_id;
 		uint8_t data[64 - sizeof(struct as10x_cmd_header_t)
-			     - 2 /* proc_id */];
+					 - 2 /* proc_id */];
 	} __packed req;
 	/* response */
-	struct {
+	struct
+	{
 		__le16 proc_id;
 		uint8_t error;
 		uint8_t data[64 - sizeof(struct as10x_cmd_header_t)
-			     - 2 /* proc_id */ - 1 /* rc */];
+					 - 2 /* proc_id */ - 1 /* rc */];
 	} __packed rsp;
 } __packed;
 
-struct as10x_cmd_t {
+struct as10x_cmd_t
+{
 	struct as10x_cmd_header_t header;
-	union {
+	union
+	{
 		union as10x_turn_on		turn_on;
 		union as10x_turn_off		turn_off;
 		union as10x_set_tune		set_tune;
@@ -466,7 +528,8 @@ struct as10x_cmd_t {
 	} __packed body;
 } __packed;
 
-struct as10x_token_cmd_t {
+struct as10x_token_cmd_t
+{
 	/* token cmd */
 	struct as10x_cmd_t c;
 	/* token response */
@@ -479,7 +542,7 @@ struct as10x_token_cmd_t {
 /**************************/
 
 void as10x_cmd_build(struct as10x_cmd_t *pcmd, uint16_t proc_id,
-		      uint16_t cmd_len);
+					 uint16_t cmd_len);
 int as10x_rsp_parse(struct as10x_cmd_t *r, uint16_t proc_id);
 
 /* as10x cmd */
@@ -487,36 +550,36 @@ int as10x_cmd_turn_on(struct as10x_bus_adapter_t *adap);
 int as10x_cmd_turn_off(struct as10x_bus_adapter_t *adap);
 
 int as10x_cmd_set_tune(struct as10x_bus_adapter_t *adap,
-		       struct as10x_tune_args *ptune);
+					   struct as10x_tune_args *ptune);
 
 int as10x_cmd_get_tune_status(struct as10x_bus_adapter_t *adap,
-			      struct as10x_tune_status *pstatus);
+							  struct as10x_tune_status *pstatus);
 
 int as10x_cmd_get_tps(struct as10x_bus_adapter_t *adap,
-		      struct as10x_tps *ptps);
+					  struct as10x_tps *ptps);
 
 int as10x_cmd_get_demod_stats(struct as10x_bus_adapter_t  *adap,
-			      struct as10x_demod_stats *pdemod_stats);
+							  struct as10x_demod_stats *pdemod_stats);
 
 int as10x_cmd_get_impulse_resp(struct as10x_bus_adapter_t *adap,
-			       uint8_t *is_ready);
+							   uint8_t *is_ready);
 
 /* as10x cmd stream */
 int as10x_cmd_add_PID_filter(struct as10x_bus_adapter_t *adap,
-			     struct as10x_ts_filter *filter);
+							 struct as10x_ts_filter *filter);
 int as10x_cmd_del_PID_filter(struct as10x_bus_adapter_t *adap,
-			     uint16_t pid_value);
+							 uint16_t pid_value);
 
 int as10x_cmd_start_streaming(struct as10x_bus_adapter_t *adap);
 int as10x_cmd_stop_streaming(struct as10x_bus_adapter_t *adap);
 
 /* as10x cmd cfg */
 int as10x_cmd_set_context(struct as10x_bus_adapter_t *adap,
-			  uint16_t tag,
-			  uint32_t value);
+						  uint16_t tag,
+						  uint32_t value);
 int as10x_cmd_get_context(struct as10x_bus_adapter_t *adap,
-			  uint16_t tag,
-			  uint32_t *pvalue);
+						  uint16_t tag,
+						  uint32_t *pvalue);
 
 int as10x_cmd_eLNA_change_mode(struct as10x_bus_adapter_t *adap, uint8_t mode);
 int as10x_context_rsp_parse(struct as10x_cmd_t *prsp, uint16_t proc_id);

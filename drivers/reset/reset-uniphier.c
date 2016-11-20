@@ -21,7 +21,8 @@
 #include <linux/regmap.h>
 #include <linux/reset-controller.h>
 
-struct uniphier_reset_data {
+struct uniphier_reset_data
+{
 	unsigned int id;
 	unsigned int reg;
 	unsigned int bit;
@@ -37,16 +38,16 @@ struct uniphier_reset_data {
 #define UNIPHIER_RESET(_id, _reg, _bit)			\
 	{						\
 		.id = (_id),				\
-		.reg = (_reg),				\
-		.bit = (_bit),				\
+			  .reg = (_reg),				\
+					 .bit = (_bit),				\
 	}
 
 #define UNIPHIER_RESETX(_id, _reg, _bit)		\
 	{						\
 		.id = (_id),				\
-		.reg = (_reg),				\
-		.bit = (_bit),				\
-		.flags = UNIPHIER_RESET_ACTIVE_LOW,	\
+			  .reg = (_reg),				\
+					 .bit = (_bit),				\
+							.flags = UNIPHIER_RESET_ACTIVE_LOW,	\
 	}
 
 /* System reset data */
@@ -65,12 +66,14 @@ struct uniphier_reset_data {
 #define UNIPHIER_PRO4_SYS_RESET_USB3(id, ch)		\
 	UNIPHIER_RESETX((id), 0x2000 + 0x4 * (ch), 17)
 
-const struct uniphier_reset_data uniphier_sld3_sys_reset_data[] = {
+const struct uniphier_reset_data uniphier_sld3_sys_reset_data[] =
+{
 	UNIPHIER_SLD3_SYS_RESET_STDMAC(8),	/* Ether, HSC, MIO */
 	UNIPHIER_RESET_END,
 };
 
-const struct uniphier_reset_data uniphier_pro4_sys_reset_data[] = {
+const struct uniphier_reset_data uniphier_pro4_sys_reset_data[] =
+{
 	UNIPHIER_SLD3_SYS_RESET_STDMAC(8),	/* HSC, MIO, RLE */
 	UNIPHIER_PRO4_SYS_RESET_GIO(12),	/* Ether, SATA, USB3 */
 	UNIPHIER_PRO4_SYS_RESET_USB3(14, 0),
@@ -78,7 +81,8 @@ const struct uniphier_reset_data uniphier_pro4_sys_reset_data[] = {
 	UNIPHIER_RESET_END,
 };
 
-const struct uniphier_reset_data uniphier_pro5_sys_reset_data[] = {
+const struct uniphier_reset_data uniphier_pro5_sys_reset_data[] =
+{
 	UNIPHIER_SLD3_SYS_RESET_STDMAC(8),	/* HSC */
 	UNIPHIER_PRO4_SYS_RESET_GIO(12),	/* PCIe, USB3 */
 	UNIPHIER_PRO4_SYS_RESET_USB3(14, 0),
@@ -86,7 +90,8 @@ const struct uniphier_reset_data uniphier_pro5_sys_reset_data[] = {
 	UNIPHIER_RESET_END,
 };
 
-const struct uniphier_reset_data uniphier_pxs2_sys_reset_data[] = {
+const struct uniphier_reset_data uniphier_pxs2_sys_reset_data[] =
+{
 	UNIPHIER_SLD3_SYS_RESET_STDMAC(8),	/* HSC, RLE */
 	UNIPHIER_PRO4_SYS_RESET_USB3(14, 0),
 	UNIPHIER_PRO4_SYS_RESET_USB3(15, 1),
@@ -100,12 +105,14 @@ const struct uniphier_reset_data uniphier_pxs2_sys_reset_data[] = {
 	UNIPHIER_RESET_END,
 };
 
-const struct uniphier_reset_data uniphier_ld11_sys_reset_data[] = {
+const struct uniphier_reset_data uniphier_ld11_sys_reset_data[] =
+{
 	UNIPHIER_LD11_SYS_RESET_STDMAC(8),	/* HSC, MIO */
 	UNIPHIER_RESET_END,
 };
 
-const struct uniphier_reset_data uniphier_ld20_sys_reset_data[] = {
+const struct uniphier_reset_data uniphier_ld20_sys_reset_data[] =
+{
 	UNIPHIER_LD11_SYS_RESET_STDMAC(8),	/* HSC */
 	UNIPHIER_LD20_SYS_RESET_GIO(12),	/* PCIe, USB3 */
 	UNIPHIER_RESETX(16, 0x200c, 12),	/* USB30-PHY0 */
@@ -134,7 +141,8 @@ const struct uniphier_reset_data uniphier_ld20_sys_reset_data[] = {
 #define UNIPHIER_MIO_RESET_DMAC(id)			\
 	UNIPHIER_RESETX((id), 0x110, 17)
 
-const struct uniphier_reset_data uniphier_sld3_mio_reset_data[] = {
+const struct uniphier_reset_data uniphier_sld3_mio_reset_data[] =
+{
 	UNIPHIER_MIO_RESET_SD(0, 0),
 	UNIPHIER_MIO_RESET_SD(1, 1),
 	UNIPHIER_MIO_RESET_SD(2, 2),
@@ -154,7 +162,8 @@ const struct uniphier_reset_data uniphier_sld3_mio_reset_data[] = {
 	UNIPHIER_RESET_END,
 };
 
-const struct uniphier_reset_data uniphier_pro5_sd_reset_data[] = {
+const struct uniphier_reset_data uniphier_pro5_sd_reset_data[] =
+{
 	UNIPHIER_MIO_RESET_SD(0, 0),
 	UNIPHIER_MIO_RESET_SD(1, 1),
 	UNIPHIER_MIO_RESET_EMMC_HW_RESET(6, 1),
@@ -171,7 +180,8 @@ const struct uniphier_reset_data uniphier_pro5_sd_reset_data[] = {
 #define UNIPHIER_PERI_RESET_FI2C(id, ch)		\
 	UNIPHIER_RESETX((id), 0x114, 24 + (ch))
 
-const struct uniphier_reset_data uniphier_ld4_peri_reset_data[] = {
+const struct uniphier_reset_data uniphier_ld4_peri_reset_data[] =
+{
 	UNIPHIER_PERI_RESET_UART(0, 0),
 	UNIPHIER_PERI_RESET_UART(1, 1),
 	UNIPHIER_PERI_RESET_UART(2, 2),
@@ -184,7 +194,8 @@ const struct uniphier_reset_data uniphier_ld4_peri_reset_data[] = {
 	UNIPHIER_RESET_END,
 };
 
-const struct uniphier_reset_data uniphier_pro4_peri_reset_data[] = {
+const struct uniphier_reset_data uniphier_pro4_peri_reset_data[] =
+{
 	UNIPHIER_PERI_RESET_UART(0, 0),
 	UNIPHIER_PERI_RESET_UART(1, 1),
 	UNIPHIER_PERI_RESET_UART(2, 2),
@@ -200,7 +211,8 @@ const struct uniphier_reset_data uniphier_pro4_peri_reset_data[] = {
 };
 
 /* core implementaton */
-struct uniphier_reset_priv {
+struct uniphier_reset_priv
+{
 	struct reset_controller_dev rcdev;
 	struct device *dev;
 	struct regmap *regmap;
@@ -208,29 +220,38 @@ struct uniphier_reset_priv {
 };
 
 #define to_uniphier_reset_priv(_rcdev) \
-			container_of(_rcdev, struct uniphier_reset_priv, rcdev)
+	container_of(_rcdev, struct uniphier_reset_priv, rcdev)
 
 static int uniphier_reset_update(struct reset_controller_dev *rcdev,
-				 unsigned long id, int assert)
+								 unsigned long id, int assert)
 {
 	struct uniphier_reset_priv *priv = to_uniphier_reset_priv(rcdev);
 	const struct uniphier_reset_data *p;
 
-	for (p = priv->data; p->id != UNIPHIER_RESET_ID_END; p++) {
+	for (p = priv->data; p->id != UNIPHIER_RESET_ID_END; p++)
+	{
 		unsigned int mask, val;
 
 		if (p->id != id)
+		{
 			continue;
+		}
 
 		mask = BIT(p->bit);
 
 		if (assert)
+		{
 			val = mask;
+		}
 		else
+		{
 			val = ~mask;
+		}
 
 		if (p->flags & UNIPHIER_RESET_ACTIVE_LOW)
+		{
 			val = ~val;
+		}
 
 		return regmap_write_bits(priv->regmap, p->reg, mask, val);
 	}
@@ -240,38 +261,46 @@ static int uniphier_reset_update(struct reset_controller_dev *rcdev,
 }
 
 static int uniphier_reset_assert(struct reset_controller_dev *rcdev,
-				 unsigned long id)
+								 unsigned long id)
 {
 	return uniphier_reset_update(rcdev, id, 1);
 }
 
 static int uniphier_reset_deassert(struct reset_controller_dev *rcdev,
-				   unsigned long id)
+								   unsigned long id)
 {
 	return uniphier_reset_update(rcdev, id, 0);
 }
 
 static int uniphier_reset_status(struct reset_controller_dev *rcdev,
-				 unsigned long id)
+								 unsigned long id)
 {
 	struct uniphier_reset_priv *priv = to_uniphier_reset_priv(rcdev);
 	const struct uniphier_reset_data *p;
 
-	for (p = priv->data; p->id != UNIPHIER_RESET_ID_END; p++) {
+	for (p = priv->data; p->id != UNIPHIER_RESET_ID_END; p++)
+	{
 		unsigned int val;
 		int ret, asserted;
 
 		if (p->id != id)
+		{
 			continue;
+		}
 
 		ret = regmap_read(priv->regmap, p->reg, &val);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		asserted = !!(val & BIT(p->bit));
 
 		if (p->flags & UNIPHIER_RESET_ACTIVE_LOW)
+		{
 			asserted = !asserted;
+		}
 
 		return asserted;
 	}
@@ -280,7 +309,8 @@ static int uniphier_reset_status(struct reset_controller_dev *rcdev,
 	return -EINVAL;
 }
 
-static const struct reset_control_ops uniphier_reset_ops = {
+static const struct reset_control_ops uniphier_reset_ops =
+{
 	.assert = uniphier_reset_assert,
 	.deassert = uniphier_reset_deassert,
 	.status = uniphier_reset_status,
@@ -296,24 +326,34 @@ static int uniphier_reset_probe(struct platform_device *pdev)
 	unsigned int nr_resets = 0;
 
 	data = of_device_get_match_data(dev);
+
 	if (WARN_ON(!data))
+	{
 		return -EINVAL;
+	}
 
 	parent = of_get_parent(dev->of_node); /* parent should be syscon node */
 	regmap = syscon_node_to_regmap(parent);
 	of_node_put(parent);
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		dev_err(dev, "failed to get regmap (error %ld)\n",
-			PTR_ERR(regmap));
+				PTR_ERR(regmap));
 		return PTR_ERR(regmap);
 	}
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	for (p = data; p->id != UNIPHIER_RESET_ID_END; p++)
+	{
 		nr_resets = max(nr_resets, p->id + 1);
+	}
 
 	priv->rcdev.ops = &uniphier_reset_ops;
 	priv->rcdev.owner = dev->driver->owner;
@@ -326,7 +366,8 @@ static int uniphier_reset_probe(struct platform_device *pdev)
 	return devm_reset_controller_register(&pdev->dev, &priv->rcdev);
 }
 
-static const struct of_device_id uniphier_reset_match[] = {
+static const struct of_device_id uniphier_reset_match[] =
+{
 	/* System reset */
 	{
 		.compatible = "socionext,uniphier-sld3-reset",
@@ -426,7 +467,8 @@ static const struct of_device_id uniphier_reset_match[] = {
 };
 MODULE_DEVICE_TABLE(of, uniphier_reset_match);
 
-static struct platform_driver uniphier_reset_driver = {
+static struct platform_driver uniphier_reset_driver =
+{
 	.probe = uniphier_reset_probe,
 	.driver = {
 		.name = "uniphier-reset",

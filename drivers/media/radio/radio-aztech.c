@@ -35,13 +35,14 @@ MODULE_VERSION("1.0.0");
 
 /* acceptable ports: 0x350 (JP3 shorted), 0x358 (JP3 open) */
 #ifndef CONFIG_RADIO_AZTECH_PORT
-#define CONFIG_RADIO_AZTECH_PORT -1
+	#define CONFIG_RADIO_AZTECH_PORT -1
 #endif
 
 #define AZTECH_MAX 2
 
 static int io[AZTECH_MAX] = { [0] = CONFIG_RADIO_AZTECH_PORT,
-			      [1 ... (AZTECH_MAX - 1)] = -1 };
+							  [1 ... (AZTECH_MAX - 1)] = -1
+							};
 static int radio_nr[AZTECH_MAX]	= { [0 ... (AZTECH_MAX - 1)] = -1 };
 
 module_param_array(io, int, NULL, 0444);
@@ -49,7 +50,8 @@ MODULE_PARM_DESC(io, "I/O addresses of the Aztech card (0x350 or 0x358)");
 module_param_array(radio_nr, int, NULL, 0444);
 MODULE_PARM_DESC(radio_nr, "Radio device numbers");
 
-struct aztech {
+struct aztech
+{
 	struct radio_isa_card isa;
 	int curvol;
 };
@@ -70,11 +72,19 @@ static void aztech_set_pins(void *handle, u8 pins)
 	u8 bits = az->curvol;
 
 	if (pins & LM7000_DATA)
+	{
 		bits |= AZTECH_BIT_TUN_DATA;
+	}
+
 	if (pins & LM7000_CLK)
+	{
 		bits |= AZTECH_BIT_TUN_CLK;
+	}
+
 	if (pins & LM7000_CE)
+	{
 		bits |= AZTECH_BIT_TUN_CE;
+	}
 
 	outb_p(bits, az->isa.io);
 }
@@ -96,7 +106,10 @@ static int aztech_s_frequency(struct radio_isa_card *isa, u32 freq)
 static u32 aztech_g_rxsubchans(struct radio_isa_card *isa)
 {
 	if (inb(isa->io) & AZTECH_BIT_MONO)
+	{
 		return V4L2_TUNER_SUB_MONO;
+	}
+
 	return V4L2_TUNER_SUB_STEREO;
 }
 
@@ -110,13 +123,17 @@ static int aztech_s_mute_volume(struct radio_isa_card *isa, bool mute, int vol)
 	struct aztech *az = container_of(isa, struct aztech, isa);
 
 	if (mute)
+	{
 		vol = 0;
+	}
+
 	az->curvol = (vol & 1) + ((vol & 2) << 1);
 	outb(az->curvol, isa->io);
 	return 0;
 }
 
-static const struct radio_isa_ops aztech_ops = {
+static const struct radio_isa_ops aztech_ops =
+{
 	.alloc = aztech_alloc,
 	.s_mute_volume = aztech_s_mute_volume,
 	.s_frequency = aztech_s_frequency,
@@ -126,7 +143,8 @@ static const struct radio_isa_ops aztech_ops = {
 
 static const int aztech_ioports[] = { 0x350, 0x358 };
 
-static struct radio_isa_driver aztech_driver = {
+static struct radio_isa_driver aztech_driver =
+{
 	.driver = {
 		.match		= radio_isa_match,
 		.probe		= radio_isa_probe,

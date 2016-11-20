@@ -46,7 +46,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 
-enum mmss_cc_clk {
+enum mmss_cc_clk
+{
 	CLK = 0,
 	PCLK = 1,
 };
@@ -55,9 +56,12 @@ enum mmss_cc_clk {
 
 static inline uint32_t __offset_CLK(enum mmss_cc_clk idx)
 {
-	switch (idx) {
+	switch (idx)
+	{
 		case CLK: return 0x0000004c;
+
 		case PCLK: return 0x00000130;
+
 		default: return INVALID_IDX(idx);
 	}
 }

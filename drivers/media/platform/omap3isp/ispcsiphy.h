@@ -22,7 +22,8 @@
 struct isp_csi2_device;
 struct regulator;
 
-struct isp_csiphy {
+struct isp_csiphy
+{
 	struct isp_device *isp;
 	struct mutex mutex;	/* serialize csiphy configuration */
 	u8 phy_in_use;

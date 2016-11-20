@@ -21,7 +21,8 @@
 
 #include <linux/regmap.h>
 
-struct intel_soc_pmic {
+struct intel_soc_pmic
+{
 	int irq;
 	struct regmap *regmap;
 	struct regmap_irq_chip_data *irq_chip_data;

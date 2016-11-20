@@ -26,7 +26,8 @@
 #ifndef _ALTERA_H_
 #define _ALTERA_H_
 
-struct altera_config {
+struct altera_config
+{
 	void *dev;
 	u8 *action;
 	int (*jtag_io) (void *dev, int tms, int tdi, int tdo);
@@ -39,7 +40,7 @@ extern int altera_init(struct altera_config *config, const struct firmware *fw);
 #else
 
 static inline int altera_init(struct altera_config *config,
-						const struct firmware *fw)
+							  const struct firmware *fw)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return 0;

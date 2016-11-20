@@ -29,7 +29,8 @@
 
 #define to_clk_aux(_hw) container_of(_hw, struct clk_aux, hw)
 
-static struct aux_clk_masks default_aux_masks = {
+static struct aux_clk_masks default_aux_masks =
+{
 	.eq_sel_mask = AUX_EQ_SEL_MASK,
 	.eq_sel_shift = AUX_EQ_SEL_SHIFT,
 	.eq1_mask = AUX_EQ1_SEL,
@@ -42,7 +43,7 @@ static struct aux_clk_masks default_aux_masks = {
 };
 
 static unsigned long aux_calc_rate(struct clk_hw *hw, unsigned long prate,
-		int index)
+								   int index)
 {
 	struct clk_aux *aux = to_clk_aux(hw);
 	struct aux_rate_tbl *rtbl = aux->rtbl;
@@ -53,13 +54,13 @@ static unsigned long aux_calc_rate(struct clk_hw *hw, unsigned long prate,
 }
 
 static long clk_aux_round_rate(struct clk_hw *hw, unsigned long drate,
-		unsigned long *prate)
+							   unsigned long *prate)
 {
 	struct clk_aux *aux = to_clk_aux(hw);
 	int unused;
 
 	return clk_round_rate_index(hw, drate, *prate, aux_calc_rate,
-			aux->rtbl_cnt, &unused);
+								aux->rtbl_cnt, &unused);
 }
 
 static unsigned long clk_aux_recalc_rate(struct clk_hw *hw,
@@ -70,34 +71,43 @@ static unsigned long clk_aux_recalc_rate(struct clk_hw *hw,
 	unsigned long flags = 0;
 
 	if (aux->lock)
+	{
 		spin_lock_irqsave(aux->lock, flags);
+	}
 
 	val = readl_relaxed(aux->reg);
 
 	if (aux->lock)
+	{
 		spin_unlock_irqrestore(aux->lock, flags);
+	}
 
 	eqn = (val >> aux->masks->eq_sel_shift) & aux->masks->eq_sel_mask;
+
 	if (eqn == aux->masks->eq1_mask)
+	{
 		den = 2;
+	}
 
 	/* calculate numerator */
 	num = (val >> aux->masks->xscale_sel_shift) &
-		aux->masks->xscale_sel_mask;
+		  aux->masks->xscale_sel_mask;
 
 	/* calculate denominator */
 	den *= (val >> aux->masks->yscale_sel_shift) &
-		aux->masks->yscale_sel_mask;
+		   aux->masks->yscale_sel_mask;
 
 	if (!den)
+	{
 		return 0;
+	}
 
 	return (((parent_rate / 10000) * num) / den) * 10000;
 }
 
 /* Configures new clock rate of aux */
 static int clk_aux_set_rate(struct clk_hw *hw, unsigned long drate,
-				unsigned long prate)
+							unsigned long prate)
 {
 	struct clk_aux *aux = to_clk_aux(hw);
 	struct aux_rate_tbl *rtbl = aux->rtbl;
@@ -105,60 +115,72 @@ static int clk_aux_set_rate(struct clk_hw *hw, unsigned long drate,
 	int i;
 
 	clk_round_rate_index(hw, drate, prate, aux_calc_rate, aux->rtbl_cnt,
-			&i);
+						 &i);
 
 	if (aux->lock)
+	{
 		spin_lock_irqsave(aux->lock, flags);
+	}
 
 	val = readl_relaxed(aux->reg) &
-		~(aux->masks->eq_sel_mask << aux->masks->eq_sel_shift);
+		  ~(aux->masks->eq_sel_mask << aux->masks->eq_sel_shift);
 	val |= (rtbl[i].eq & aux->masks->eq_sel_mask) <<
-		aux->masks->eq_sel_shift;
+		   aux->masks->eq_sel_shift;
 	val &= ~(aux->masks->xscale_sel_mask << aux->masks->xscale_sel_shift);
 	val |= (rtbl[i].xscale & aux->masks->xscale_sel_mask) <<
-		aux->masks->xscale_sel_shift;
+		   aux->masks->xscale_sel_shift;
 	val &= ~(aux->masks->yscale_sel_mask << aux->masks->yscale_sel_shift);
 	val |= (rtbl[i].yscale & aux->masks->yscale_sel_mask) <<
-		aux->masks->yscale_sel_shift;
+		   aux->masks->yscale_sel_shift;
 	writel_relaxed(val, aux->reg);
 
 	if (aux->lock)
+	{
 		spin_unlock_irqrestore(aux->lock, flags);
+	}
 
 	return 0;
 }
 
-static struct clk_ops clk_aux_ops = {
+static struct clk_ops clk_aux_ops =
+{
 	.recalc_rate = clk_aux_recalc_rate,
 	.round_rate = clk_aux_round_rate,
 	.set_rate = clk_aux_set_rate,
 };
 
 struct clk *clk_register_aux(const char *aux_name, const char *gate_name,
-		const char *parent_name, unsigned long flags, void __iomem *reg,
-		struct aux_clk_masks *masks, struct aux_rate_tbl *rtbl,
-		u8 rtbl_cnt, spinlock_t *lock, struct clk **gate_clk)
+							 const char *parent_name, unsigned long flags, void __iomem *reg,
+							 struct aux_clk_masks *masks, struct aux_rate_tbl *rtbl,
+							 u8 rtbl_cnt, spinlock_t *lock, struct clk **gate_clk)
 {
 	struct clk_aux *aux;
 	struct clk_init_data init;
 	struct clk *clk;
 
-	if (!aux_name || !parent_name || !reg || !rtbl || !rtbl_cnt) {
+	if (!aux_name || !parent_name || !reg || !rtbl || !rtbl_cnt)
+	{
 		pr_err("Invalid arguments passed");
 		return ERR_PTR(-EINVAL);
 	}
 
 	aux = kzalloc(sizeof(*aux), GFP_KERNEL);
-	if (!aux) {
+
+	if (!aux)
+	{
 		pr_err("could not allocate aux clk\n");
 		return ERR_PTR(-ENOMEM);
 	}
 
 	/* struct clk_aux assignments */
 	if (!masks)
+	{
 		aux->masks = &default_aux_masks;
+	}
 	else
+	{
 		aux->masks = masks;
+	}
 
 	aux->reg = reg;
 	aux->rtbl = rtbl;
@@ -173,20 +195,29 @@ struct clk *clk_register_aux(const char *aux_name, const char *gate_name,
 	init.num_parents = 1;
 
 	clk = clk_register(NULL, &aux->hw);
-	if (IS_ERR_OR_NULL(clk))
-		goto free_aux;
 
-	if (gate_name) {
+	if (IS_ERR_OR_NULL(clk))
+	{
+		goto free_aux;
+	}
+
+	if (gate_name)
+	{
 		struct clk *tgate_clk;
 
 		tgate_clk = clk_register_gate(NULL, gate_name, aux_name,
-				CLK_SET_RATE_PARENT, reg,
-				aux->masks->enable_bit, 0, lock);
+									  CLK_SET_RATE_PARENT, reg,
+									  aux->masks->enable_bit, 0, lock);
+
 		if (IS_ERR_OR_NULL(tgate_clk))
+		{
 			goto free_aux;
+		}
 
 		if (gate_clk)
+		{
 			*gate_clk = tgate_clk;
+		}
 	}
 
 	return clk;

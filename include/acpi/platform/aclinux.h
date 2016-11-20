@@ -46,11 +46,11 @@
 
 #ifdef __KERNEL__
 
-/* ACPICA external files should not include ACPICA headers directly. */
+	/* ACPICA external files should not include ACPICA headers directly. */
 
-#if !defined(BUILDING_ACPICA) && !defined(_LINUX_ACPI_H)
-#error "Please don't include <acpi/acpi.h> directly, include <linux/acpi.h> instead."
-#endif
+	#if !defined(BUILDING_ACPICA) && !defined(_LINUX_ACPI_H)
+		#error "Please don't include <acpi/acpi.h> directly, include <linux/acpi.h> instead."
+	#endif
 
 #endif
 
@@ -66,15 +66,15 @@
 /* Kernel specific ACPICA configuration */
 
 #ifdef CONFIG_ACPI_REDUCED_HARDWARE_ONLY
-#define ACPI_REDUCED_HARDWARE 1
+	#define ACPI_REDUCED_HARDWARE 1
 #endif
 
 #ifdef CONFIG_ACPI_DEBUGGER
-#define ACPI_DEBUGGER
+	#define ACPI_DEBUGGER
 #endif
 
 #ifdef CONFIG_ACPI_DEBUG
-#define ACPI_MUTEX_DEBUG
+	#define ACPI_MUTEX_DEBUG
 #endif
 
 #include <linux/string.h>
@@ -86,10 +86,10 @@
 #include <linux/slab.h>
 #include <linux/spinlock_types.h>
 #ifdef EXPORT_ACPI_INTERFACES
-#include <linux/export.h>
+	#include <linux/export.h>
 #endif
 #ifdef CONFIG_ACPI
-#include <asm/acenv.h>
+	#include <asm/acenv.h>
 #endif
 
 #define ACPI_INIT_FUNCTION __init
@@ -183,16 +183,16 @@
 #define ACPI_USE_STANDARD_HEADERS
 
 #ifdef ACPI_USE_STANDARD_HEADERS
-#include <unistd.h>
+	#include <unistd.h>
 #endif
 
 /* Define/disable kernel-specific declarators */
 
 #ifndef __init
-#define __init
+	#define __init
 #endif
 #ifndef __iomem
-#define __iomem
+	#define __iomem
 #endif
 
 /* Host-dependent types and defines for user-space ACPICA */
@@ -202,18 +202,18 @@
 
 #if defined(__ia64__)    || defined(__x86_64__) ||\
 	defined(__aarch64__) || defined(__PPC64__)
-#define ACPI_MACHINE_WIDTH          64
-#define COMPILER_DEPENDENT_INT64    long
-#define COMPILER_DEPENDENT_UINT64   unsigned long
+	#define ACPI_MACHINE_WIDTH          64
+	#define COMPILER_DEPENDENT_INT64    long
+	#define COMPILER_DEPENDENT_UINT64   unsigned long
 #else
-#define ACPI_MACHINE_WIDTH          32
-#define COMPILER_DEPENDENT_INT64    long long
-#define COMPILER_DEPENDENT_UINT64   unsigned long long
-#define ACPI_USE_NATIVE_DIVIDE
+	#define ACPI_MACHINE_WIDTH          32
+	#define COMPILER_DEPENDENT_INT64    long long
+	#define COMPILER_DEPENDENT_UINT64   unsigned long long
+	#define ACPI_USE_NATIVE_DIVIDE
 #endif
 
 #ifndef __cdecl
-#define __cdecl
+	#define __cdecl
 #endif
 
 #endif				/* __KERNEL__ */

@@ -45,17 +45,19 @@ MODULE_LICENSE("GPL");
 #define GUILLEMOT_MAX_LENGTH	17	/* 17 bytes */
 
 static short guillemot_abs_pad[] =
-	{ ABS_X, ABS_Y, ABS_THROTTLE, ABS_RUDDER, -1 };
+{ ABS_X, ABS_Y, ABS_THROTTLE, ABS_RUDDER, -1 };
 
 static short guillemot_btn_pad[] =
-	{ BTN_A, BTN_B, BTN_C, BTN_X, BTN_Y, BTN_Z, BTN_TL, BTN_TR, BTN_MODE, BTN_SELECT, -1 };
+{ BTN_A, BTN_B, BTN_C, BTN_X, BTN_Y, BTN_Z, BTN_TL, BTN_TR, BTN_MODE, BTN_SELECT, -1 };
 
-static struct {
-        int x;
-        int y;
-} guillemot_hat_to_axis[16] = {{ 0,-1}, { 1,-1}, { 1, 0}, { 1, 1}, { 0, 1}, {-1, 1}, {-1, 0}, {-1,-1}};
+static struct
+{
+	int x;
+	int y;
+} guillemot_hat_to_axis[16] = {{ 0, -1}, { 1, -1}, { 1, 0}, { 1, 1}, { 0, 1}, { -1, 1}, { -1, 0}, { -1, -1}};
 
-struct guillemot_type {
+struct guillemot_type
+{
 	unsigned char id;
 	short *abs;
 	short *btn;
@@ -63,7 +65,8 @@ struct guillemot_type {
 	char *name;
 };
 
-struct guillemot {
+struct guillemot
+{
 	struct gameport *gameport;
 	struct input_dev *dev;
 	int bads;
@@ -73,9 +76,11 @@ struct guillemot {
 	char phys[32];
 };
 
-static struct guillemot_type guillemot_type[] = {
+static struct guillemot_type guillemot_type[] =
+{
 	{ 0x00, guillemot_abs_pad, guillemot_btn_pad, 1, "Guillemot Pad" },
-	{ 0 }};
+	{ 0 }
+};
 
 /*
  * guillemot_read_packet() reads Guillemot joystick data.
@@ -89,7 +94,9 @@ static int guillemot_read_packet(struct gameport *gameport, u8 *data)
 	int i;
 
 	for (i = 0; i < GUILLEMOT_MAX_LENGTH; i++)
+	{
 		data[i] = 0;
+	}
 
 	i = 0;
 	t = gameport_time(gameport, GUILLEMOT_MAX_START);
@@ -99,10 +106,13 @@ static int guillemot_read_packet(struct gameport *gameport, u8 *data)
 	gameport_trigger(gameport);
 	v = gameport_read(gameport);
 
-	while (t > 0 && i < GUILLEMOT_MAX_LENGTH * 8) {
+	while (t > 0 && i < GUILLEMOT_MAX_LENGTH * 8)
+	{
 		t--;
 		u = v; v = gameport_read(gameport);
-		if (v & ~u & 0x10) {
+
+		if (v & ~u & 0x10)
+		{
 			data[i >> 3] |= ((v >> 5) & 1) << (i & 7);
 			i++;
 			t = s;
@@ -128,20 +138,28 @@ static void guillemot_poll(struct gameport *gameport)
 	guillemot->reads++;
 
 	if (guillemot_read_packet(guillemot->gameport, data) != GUILLEMOT_MAX_LENGTH * 8 ||
-		data[0] != 0x55 || data[16] != 0xaa) {
+		data[0] != 0x55 || data[16] != 0xaa)
+	{
 		guillemot->bads++;
-	} else {
+	}
+	else
+	{
 
 		for (i = 0; i < 6 && guillemot->type->abs[i] >= 0; i++)
+		{
 			input_report_abs(dev, guillemot->type->abs[i], data[i + 5]);
+		}
 
-		if (guillemot->type->hat) {
+		if (guillemot->type->hat)
+		{
 			input_report_abs(dev, ABS_HAT0X, guillemot_hat_to_axis[data[4] >> 4].x);
 			input_report_abs(dev, ABS_HAT0Y, guillemot_hat_to_axis[data[4] >> 4].y);
 		}
 
 		for (i = 0; i < 16 && guillemot->type->btn[i] >= 0; i++)
+		{
 			input_report_key(dev, guillemot->type->btn[i], (data[2 + (i >> 3)] >> (i & 7)) & 1);
+		}
 	}
 
 	input_sync(dev);
@@ -184,7 +202,9 @@ static int guillemot_connect(struct gameport *gameport, struct gameport_driver *
 
 	guillemot = kzalloc(sizeof(struct guillemot), GFP_KERNEL);
 	input_dev = input_allocate_device();
-	if (!guillemot || !input_dev) {
+
+	if (!guillemot || !input_dev)
+	{
 		err = -ENOMEM;
 		goto fail1;
 	}
@@ -195,23 +215,30 @@ static int guillemot_connect(struct gameport *gameport, struct gameport_driver *
 	gameport_set_drvdata(gameport, guillemot);
 
 	err = gameport_open(gameport, drv, GAMEPORT_MODE_RAW);
+
 	if (err)
+	{
 		goto fail1;
+	}
 
 	i = guillemot_read_packet(gameport, data);
 
-	if (i != GUILLEMOT_MAX_LENGTH * 8 || data[0] != 0x55 || data[16] != 0xaa) {
+	if (i != GUILLEMOT_MAX_LENGTH * 8 || data[0] != 0x55 || data[16] != 0xaa)
+	{
 		err = -ENODEV;
 		goto fail2;
 	}
 
 	for (i = 0; guillemot_type[i].name; i++)
 		if (guillemot_type[i].id == data[11])
+		{
 			break;
+		}
 
-	if (!guillemot_type[i].name) {
+	if (!guillemot_type[i].name)
+	{
 		printk(KERN_WARNING "guillemot.c: Unknown joystick on %s. [ %02x%02x:%04x, ver %d.%02d ]\n",
-			gameport->phys, data[12], data[13], data[11], data[14], data[15]);
+			   gameport->phys, data[12], data[13], data[11], data[14], data[15]);
 		err = -ENODEV;
 		goto fail2;
 	}
@@ -238,19 +265,27 @@ static int guillemot_connect(struct gameport *gameport, struct gameport_driver *
 	input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS);
 
 	for (i = 0; (t = guillemot->type->abs[i]) >= 0; i++)
+	{
 		input_set_abs_params(input_dev, t, 0, 255, 0, 0);
+	}
 
-	if (guillemot->type->hat) {
+	if (guillemot->type->hat)
+	{
 		input_set_abs_params(input_dev, ABS_HAT0X, -1, 1, 0, 0);
 		input_set_abs_params(input_dev, ABS_HAT0Y, -1, 1, 0, 0);
 	}
 
 	for (i = 0; (t = guillemot->type->btn[i]) >= 0; i++)
+	{
 		set_bit(t, input_dev->keybit);
+	}
 
 	err = input_register_device(guillemot->dev);
+
 	if (err)
+	{
 		goto fail2;
+	}
 
 	return 0;
 
@@ -271,7 +306,8 @@ static void guillemot_disconnect(struct gameport *gameport)
 	kfree(guillemot);
 }
 
-static struct gameport_driver guillemot_drv = {
+static struct gameport_driver guillemot_drv =
+{
 	.driver		= {
 		.name	= "guillemot",
 	},

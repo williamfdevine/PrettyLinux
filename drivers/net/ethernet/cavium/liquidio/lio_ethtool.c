@@ -36,13 +36,15 @@
 
 static int octnet_get_link_stats(struct net_device *netdev);
 
-struct oct_mdio_cmd_context {
+struct oct_mdio_cmd_context
+{
 	int octeon_id;
 	wait_queue_head_t wc;
 	int cond;
 };
 
-struct oct_mdio_cmd_resp {
+struct oct_mdio_cmd_resp
+{
 	u64 rh;
 	struct oct_mdio_cmd resp;
 	u64 status;
@@ -51,7 +53,8 @@ struct oct_mdio_cmd_resp {
 #define OCT_MDIO45_RESP_SIZE   (sizeof(struct oct_mdio_cmd_resp))
 
 /* Octeon's interface mode of operation */
-enum {
+enum
+{
 	INTERFACE_MODE_DISABLED,
 	INTERFACE_MODE_RGMII,
 	INTERFACE_MODE_GMII,
@@ -80,7 +83,8 @@ enum {
 #define OCT_ETHTOOL_REGSVER  1
 
 /* statistics of PF */
-static const char oct_stats_strings[][ETH_GSTRING_LEN] = {
+static const char oct_stats_strings[][ETH_GSTRING_LEN] =
+{
 	"rx_packets",
 	"tx_packets",
 	"rx_bytes",
@@ -153,7 +157,8 @@ static const char oct_stats_strings[][ETH_GSTRING_LEN] = {
 };
 
 /* statistics of host tx queue */
-static const char oct_iq_stats_strings[][ETH_GSTRING_LEN] = {
+static const char oct_iq_stats_strings[][ETH_GSTRING_LEN] =
+{
 	"packets",		/*oct->instr_queue[iq_no]->stats.tx_done*/
 	"bytes",		/*oct->instr_queue[iq_no]->stats.tx_tot_bytes*/
 	"dropped",
@@ -171,7 +176,8 @@ static const char oct_iq_stats_strings[][ETH_GSTRING_LEN] = {
 };
 
 /* statistics of host rx queue */
-static const char oct_droq_stats_strings[][ETH_GSTRING_LEN] = {
+static const char oct_droq_stats_strings[][ETH_GSTRING_LEN] =
+{
 	"packets",		/*oct->droq[oq_no]->stats.rx_pkts_received */
 	"bytes",		/*oct->droq[oq_no]->stats.rx_bytes_received */
 	"dropped",		/*oct->droq[oq_no]->stats.rx_dropped+
@@ -191,7 +197,8 @@ static const char oct_droq_stats_strings[][ETH_GSTRING_LEN] = {
 };
 
 /* LiquidIO driver private flags */
-static const char oct_priv_flags_strings[][ETH_GSTRING_LEN] = {
+static const char oct_priv_flags_strings[][ETH_GSTRING_LEN] =
+{
 };
 
 #define OCTNIC_NCMD_AUTONEG_ON  0x1
@@ -206,8 +213,9 @@ static int lio_get_settings(struct net_device *netdev, struct ethtool_cmd *ecmd)
 	linfo = &lio->linfo;
 
 	if (linfo->link.s.if_mode == INTERFACE_MODE_XAUI ||
-	    linfo->link.s.if_mode == INTERFACE_MODE_RXAUI ||
-	    linfo->link.s.if_mode == INTERFACE_MODE_XFI) {
+		linfo->link.s.if_mode == INTERFACE_MODE_RXAUI ||
+		linfo->link.s.if_mode == INTERFACE_MODE_XFI)
+	{
 		ecmd->port = PORT_FIBRE;
 		ecmd->supported =
 			(SUPPORTED_10000baseT_Full | SUPPORTED_FIBRE |
@@ -217,15 +225,20 @@ static int lio_get_settings(struct net_device *netdev, struct ethtool_cmd *ecmd)
 		ecmd->transceiver = XCVR_EXTERNAL;
 		ecmd->autoneg = AUTONEG_DISABLE;
 
-	} else {
+	}
+	else
+	{
 		dev_err(&oct->pci_dev->dev, "Unknown link interface reported %d\n",
-			linfo->link.s.if_mode);
+				linfo->link.s.if_mode);
 	}
 
-	if (linfo->link.s.link_up) {
+	if (linfo->link.s.link_up)
+	{
 		ethtool_cmd_speed_set(ecmd, linfo->link.s.speed);
 		ecmd->duplex = linfo->link.s.duplex;
-	} else {
+	}
+	else
+	{
 		ethtool_cmd_speed_set(ecmd, SPEED_UNKNOWN);
 		ecmd->duplex = DUPLEX_UNKNOWN;
 	}
@@ -246,26 +259,29 @@ lio_get_drvinfo(struct net_device *netdev, struct ethtool_drvinfo *drvinfo)
 	strcpy(drvinfo->driver, "liquidio");
 	strcpy(drvinfo->version, LIQUIDIO_VERSION);
 	strncpy(drvinfo->fw_version, oct->fw_info.liquidio_firmware_version,
-		ETHTOOL_FWVERS_LEN);
+			ETHTOOL_FWVERS_LEN);
 	strncpy(drvinfo->bus_info, pci_name(oct->pci_dev), 32);
 }
 
 static void
 lio_ethtool_get_channels(struct net_device *dev,
-			 struct ethtool_channels *channel)
+						 struct ethtool_channels *channel)
 {
 	struct lio *lio = GET_LIO(dev);
 	struct octeon_device *oct = lio->oct_dev;
 	u32 max_rx = 0, max_tx = 0, tx_count = 0, rx_count = 0;
 
-	if (OCTEON_CN6XXX(oct)) {
+	if (OCTEON_CN6XXX(oct))
+	{
 		struct octeon_config *conf6x = CHIP_FIELD(oct, cn6xxx, conf);
 
 		max_rx = CFG_GET_OQ_MAX_Q(conf6x);
 		max_tx = CFG_GET_IQ_MAX_Q(conf6x);
 		rx_count = CFG_GET_NUM_RXQS_NIC_IF(conf6x, lio->ifidx);
 		tx_count = CFG_GET_NUM_TXQS_NIC_IF(conf6x, lio->ifidx);
-	} else if (OCTEON_CN23XX_PF(oct)) {
+	}
+	else if (OCTEON_CN23XX_PF(oct))
+	{
 		struct octeon_config *conf23 = CHIP_FIELD(oct, cn23xx_pf, conf);
 
 		max_rx = CFG_GET_OQ_MAX_Q(conf23);
@@ -290,29 +306,31 @@ static int lio_get_eeprom_len(struct net_device *netdev)
 
 	board_info = (struct octeon_board_info *)(&oct_dev->boardinfo);
 	len = sprintf(buf, "boardname:%s serialnum:%s maj:%lld min:%lld\n",
-		      board_info->name, board_info->serial_number,
-		      board_info->major, board_info->minor);
+				  board_info->name, board_info->serial_number,
+				  board_info->major, board_info->minor);
 
 	return len;
 }
 
 static int
 lio_get_eeprom(struct net_device *netdev, struct ethtool_eeprom *eeprom,
-	       u8 *bytes)
+			   u8 *bytes)
 {
 	struct lio *lio = GET_LIO(netdev);
 	struct octeon_device *oct_dev = lio->oct_dev;
 	struct octeon_board_info *board_info;
 
 	if (eeprom->offset)
+	{
 		return -EINVAL;
+	}
 
 	eeprom->magic = oct_dev->pci_dev->vendor;
 	board_info = (struct octeon_board_info *)(&oct_dev->boardinfo);
 	sprintf((char *)bytes,
-		"boardname:%s serialnum:%s maj:%lld min:%lld\n",
-		board_info->name, board_info->serial_number,
-		board_info->major, board_info->minor);
+			"boardname:%s serialnum:%s maj:%lld min:%lld\n",
+			board_info->name, board_info->serial_number,
+			board_info->major, board_info->minor);
 
 	return 0;
 }
@@ -336,7 +354,9 @@ static int octnet_gpio_access(struct net_device *netdev, int addr, int val)
 	nctrl.cb_fn = liquidio_link_ctrl_cmd_completion;
 
 	ret = octnet_send_nic_ctrl_pkt(lio->oct_dev, &nctrl);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&oct->pci_dev->dev, "Failed to configure gpio value\n");
 		return -EINVAL;
 	}
@@ -362,7 +382,9 @@ static int octnet_id_active(struct net_device *netdev, int val)
 	nctrl.cb_fn = liquidio_link_ctrl_cmd_completion;
 
 	ret = octnet_send_nic_ctrl_pkt(lio->oct_dev, &nctrl);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&oct->pci_dev->dev, "Failed to configure gpio value\n");
 		return -EINVAL;
 	}
@@ -373,8 +395,8 @@ static int octnet_id_active(struct net_device *netdev, int val)
 /* Callback for when mdio command response arrives
  */
 static void octnet_mdio_resp_callback(struct octeon_device *oct,
-				      u32 status,
-				      void *buf)
+									  u32 status,
+									  void *buf)
 {
 	struct oct_mdio_cmd_context *mdio_cmd_ctx;
 	struct octeon_soft_command *sc = (struct octeon_soft_command *)buf;
@@ -382,13 +404,18 @@ static void octnet_mdio_resp_callback(struct octeon_device *oct,
 	mdio_cmd_ctx = (struct oct_mdio_cmd_context *)sc->ctxptr;
 
 	oct = lio_get_device(mdio_cmd_ctx->octeon_id);
-	if (status) {
+
+	if (status)
+	{
 		dev_err(&oct->pci_dev->dev, "MIDO instruction failed. Status: %llx\n",
-			CVM_CAST64(status));
+				CVM_CAST64(status));
 		WRITE_ONCE(mdio_cmd_ctx->cond, -1);
-	} else {
+	}
+	else
+	{
 		WRITE_ONCE(mdio_cmd_ctx->cond, 1);
 	}
+
 	wake_up_interruptible(&mdio_cmd_ctx->wc);
 }
 
@@ -406,13 +433,15 @@ octnet_mdio45_access(struct lio *lio, int op, int loc, int *value)
 	int retval = 0;
 
 	sc = (struct octeon_soft_command *)
-		octeon_alloc_soft_command(oct_dev,
-					  sizeof(struct oct_mdio_cmd),
-					  sizeof(struct oct_mdio_cmd_resp),
-					  sizeof(struct oct_mdio_cmd_context));
+		 octeon_alloc_soft_command(oct_dev,
+								   sizeof(struct oct_mdio_cmd),
+								   sizeof(struct oct_mdio_cmd_resp),
+								   sizeof(struct oct_mdio_cmd_context));
 
 	if (!sc)
+	{
 		return -ENOMEM;
+	}
 
 	mdio_cmd_ctx = (struct oct_mdio_cmd_context *)sc->ctxptr;
 	mdio_cmd_rsp = (struct oct_mdio_cmd_resp *)sc->virtrptr;
@@ -422,14 +451,18 @@ octnet_mdio45_access(struct lio *lio, int op, int loc, int *value)
 	mdio_cmd_ctx->octeon_id = lio_get_device_id(oct_dev);
 	mdio_cmd->op = op;
 	mdio_cmd->mdio_addr = loc;
+
 	if (op)
+	{
 		mdio_cmd->value1 = *value;
+	}
+
 	octeon_swap_8B_data((u64 *)mdio_cmd, sizeof(struct oct_mdio_cmd) / 8);
 
 	sc->iq_no = lio->linfo.txpciq[0].s.q_no;
 
 	octeon_prepare_soft_command(oct_dev, sc, OPCODE_NIC, OPCODE_NIC_MDIO45,
-				    0, 0, 0);
+								0, 0, 0);
 
 	sc->wait_time = 1000;
 	sc->callback = octnet_mdio_resp_callback;
@@ -439,28 +472,40 @@ octnet_mdio45_access(struct lio *lio, int op, int loc, int *value)
 
 	retval = octeon_send_soft_command(oct_dev, sc);
 
-	if (retval == IQ_SEND_FAILED) {
+	if (retval == IQ_SEND_FAILED)
+	{
 		dev_err(&oct_dev->pci_dev->dev,
-			"octnet_mdio45_access instruction failed status: %x\n",
-			retval);
+				"octnet_mdio45_access instruction failed status: %x\n",
+				retval);
 		retval = -EBUSY;
-	} else {
+	}
+	else
+	{
 		/* Sleep on a wait queue till the cond flag indicates that the
 		 * response arrived
 		 */
 		sleep_cond(&mdio_cmd_ctx->wc, &mdio_cmd_ctx->cond);
 		retval = mdio_cmd_rsp->status;
-		if (retval) {
+
+		if (retval)
+		{
 			dev_err(&oct_dev->pci_dev->dev, "octnet mdio45 access failed\n");
 			retval = -EBUSY;
-		} else {
+		}
+		else
+		{
 			octeon_swap_8B_data((u64 *)(&mdio_cmd_rsp->resp),
-					    sizeof(struct oct_mdio_cmd) / 8);
+								sizeof(struct oct_mdio_cmd) / 8);
 
-			if (READ_ONCE(mdio_cmd_ctx->cond) == 1) {
+			if (READ_ONCE(mdio_cmd_ctx->cond) == 1)
+			{
 				if (!op)
+				{
 					*value = mdio_cmd_rsp->resp.value1;
-			} else {
+				}
+			}
+			else
+			{
 				retval = -EINVAL;
 			}
 		}
@@ -472,108 +517,153 @@ octnet_mdio45_access(struct lio *lio, int op, int loc, int *value)
 }
 
 static int lio_set_phys_id(struct net_device *netdev,
-			   enum ethtool_phys_id_state state)
+						   enum ethtool_phys_id_state state)
 {
 	struct lio *lio = GET_LIO(netdev);
 	struct octeon_device *oct = lio->oct_dev;
 	int value, ret;
 
-	switch (state) {
-	case ETHTOOL_ID_ACTIVE:
-		if (oct->chip_id == OCTEON_CN66XX) {
-			octnet_gpio_access(netdev, VITESSE_PHY_GPIO_CFG,
-					   VITESSE_PHY_GPIO_DRIVEON);
-			return 2;
+	switch (state)
+	{
+		case ETHTOOL_ID_ACTIVE:
+			if (oct->chip_id == OCTEON_CN66XX)
+			{
+				octnet_gpio_access(netdev, VITESSE_PHY_GPIO_CFG,
+								   VITESSE_PHY_GPIO_DRIVEON);
+				return 2;
 
-		} else if (oct->chip_id == OCTEON_CN68XX) {
-			/* Save the current LED settings */
-			ret = octnet_mdio45_access(lio, 0,
-						   LIO68XX_LED_BEACON_ADDR,
-						   &lio->phy_beacon_val);
-			if (ret)
-				return ret;
+			}
+			else if (oct->chip_id == OCTEON_CN68XX)
+			{
+				/* Save the current LED settings */
+				ret = octnet_mdio45_access(lio, 0,
+										   LIO68XX_LED_BEACON_ADDR,
+										   &lio->phy_beacon_val);
 
-			ret = octnet_mdio45_access(lio, 0,
-						   LIO68XX_LED_CTRL_ADDR,
-						   &lio->led_ctrl_val);
-			if (ret)
-				return ret;
+				if (ret)
+				{
+					return ret;
+				}
 
-			/* Configure Beacon values */
-			value = LIO68XX_LED_BEACON_CFGON;
-			ret = octnet_mdio45_access(lio, 1,
-						   LIO68XX_LED_BEACON_ADDR,
-						   &value);
-			if (ret)
-				return ret;
+				ret = octnet_mdio45_access(lio, 0,
+										   LIO68XX_LED_CTRL_ADDR,
+										   &lio->led_ctrl_val);
 
-			value = LIO68XX_LED_CTRL_CFGON;
-			ret = octnet_mdio45_access(lio, 1,
-						   LIO68XX_LED_CTRL_ADDR,
-						   &value);
-			if (ret)
-				return ret;
-		} else if (oct->chip_id == OCTEON_CN23XX_PF_VID) {
-			octnet_id_active(netdev, LED_IDENTIFICATION_ON);
+				if (ret)
+				{
+					return ret;
+				}
 
-			/* returns 0 since updates are asynchronous */
-			return 0;
-		} else {
+				/* Configure Beacon values */
+				value = LIO68XX_LED_BEACON_CFGON;
+				ret = octnet_mdio45_access(lio, 1,
+										   LIO68XX_LED_BEACON_ADDR,
+										   &value);
+
+				if (ret)
+				{
+					return ret;
+				}
+
+				value = LIO68XX_LED_CTRL_CFGON;
+				ret = octnet_mdio45_access(lio, 1,
+										   LIO68XX_LED_CTRL_ADDR,
+										   &value);
+
+				if (ret)
+				{
+					return ret;
+				}
+			}
+			else if (oct->chip_id == OCTEON_CN23XX_PF_VID)
+			{
+				octnet_id_active(netdev, LED_IDENTIFICATION_ON);
+
+				/* returns 0 since updates are asynchronous */
+				return 0;
+			}
+			else
+			{
+				return -EINVAL;
+			}
+
+			break;
+
+		case ETHTOOL_ID_ON:
+			if (oct->chip_id == OCTEON_CN66XX)
+			{
+				octnet_gpio_access(netdev, VITESSE_PHY_GPIO_CFG,
+								   VITESSE_PHY_GPIO_HIGH);
+
+			}
+			else if (oct->chip_id == OCTEON_CN68XX)
+			{
+				return -EINVAL;
+			}
+			else
+			{
+				return -EINVAL;
+			}
+
+			break;
+
+		case ETHTOOL_ID_OFF:
+			if (oct->chip_id == OCTEON_CN66XX)
+				octnet_gpio_access(netdev, VITESSE_PHY_GPIO_CFG,
+								   VITESSE_PHY_GPIO_LOW);
+			else if (oct->chip_id == OCTEON_CN68XX)
+			{
+				return -EINVAL;
+			}
+			else
+			{
+				return -EINVAL;
+			}
+
+			break;
+
+		case ETHTOOL_ID_INACTIVE:
+			if (oct->chip_id == OCTEON_CN66XX)
+			{
+				octnet_gpio_access(netdev, VITESSE_PHY_GPIO_CFG,
+								   VITESSE_PHY_GPIO_DRIVEOFF);
+			}
+			else if (oct->chip_id == OCTEON_CN68XX)
+			{
+				/* Restore LED settings */
+				ret = octnet_mdio45_access(lio, 1,
+										   LIO68XX_LED_CTRL_ADDR,
+										   &lio->led_ctrl_val);
+
+				if (ret)
+				{
+					return ret;
+				}
+
+				ret = octnet_mdio45_access(lio, 1,
+										   LIO68XX_LED_BEACON_ADDR,
+										   &lio->phy_beacon_val);
+
+				if (ret)
+				{
+					return ret;
+				}
+			}
+			else if (oct->chip_id == OCTEON_CN23XX_PF_VID)
+			{
+				octnet_id_active(netdev, LED_IDENTIFICATION_OFF);
+
+				return 0;
+			}
+			else
+			{
+				return -EINVAL;
+			}
+
+			break;
+
+		default:
 			return -EINVAL;
-		}
-		break;
-
-	case ETHTOOL_ID_ON:
-		if (oct->chip_id == OCTEON_CN66XX) {
-			octnet_gpio_access(netdev, VITESSE_PHY_GPIO_CFG,
-					   VITESSE_PHY_GPIO_HIGH);
-
-		} else if (oct->chip_id == OCTEON_CN68XX) {
-			return -EINVAL;
-		} else {
-			return -EINVAL;
-		}
-		break;
-
-	case ETHTOOL_ID_OFF:
-		if (oct->chip_id == OCTEON_CN66XX)
-			octnet_gpio_access(netdev, VITESSE_PHY_GPIO_CFG,
-					   VITESSE_PHY_GPIO_LOW);
-		else if (oct->chip_id == OCTEON_CN68XX)
-			return -EINVAL;
-		else
-			return -EINVAL;
-
-		break;
-
-	case ETHTOOL_ID_INACTIVE:
-		if (oct->chip_id == OCTEON_CN66XX) {
-			octnet_gpio_access(netdev, VITESSE_PHY_GPIO_CFG,
-					   VITESSE_PHY_GPIO_DRIVEOFF);
-		} else if (oct->chip_id == OCTEON_CN68XX) {
-			/* Restore LED settings */
-			ret = octnet_mdio45_access(lio, 1,
-						   LIO68XX_LED_CTRL_ADDR,
-						   &lio->led_ctrl_val);
-			if (ret)
-				return ret;
-
-			ret = octnet_mdio45_access(lio, 1,
-						   LIO68XX_LED_BEACON_ADDR,
-						   &lio->phy_beacon_val);
-			if (ret)
-				return ret;
-		} else if (oct->chip_id == OCTEON_CN23XX_PF_VID) {
-			octnet_id_active(netdev, LED_IDENTIFICATION_OFF);
-
-			return 0;
-		} else {
-			return -EINVAL;
-		}
-		break;
-
-	default:
-		return -EINVAL;
 	}
 
 	return 0;
@@ -581,21 +671,24 @@ static int lio_set_phys_id(struct net_device *netdev,
 
 static void
 lio_ethtool_get_ringparam(struct net_device *netdev,
-			  struct ethtool_ringparam *ering)
+						  struct ethtool_ringparam *ering)
 {
 	struct lio *lio = GET_LIO(netdev);
 	struct octeon_device *oct = lio->oct_dev;
 	u32 tx_max_pending = 0, rx_max_pending = 0, tx_pending = 0,
-	    rx_pending = 0;
+		rx_pending = 0;
 
-	if (OCTEON_CN6XXX(oct)) {
+	if (OCTEON_CN6XXX(oct))
+	{
 		struct octeon_config *conf6x = CHIP_FIELD(oct, cn6xxx, conf);
 
 		tx_max_pending = CN6XXX_MAX_IQ_DESCRIPTORS;
 		rx_max_pending = CN6XXX_MAX_OQ_DESCRIPTORS;
 		rx_pending = CFG_GET_NUM_RX_DESCS_NIC_IF(conf6x, lio->ifidx);
 		tx_pending = CFG_GET_NUM_TX_DESCS_NIC_IF(conf6x, lio->ifidx);
-	} else if (OCTEON_CN23XX_PF(oct)) {
+	}
+	else if (OCTEON_CN23XX_PF(oct))
+	{
 		struct octeon_config *conf23 = CHIP_FIELD(oct, cn23xx_pf, conf);
 
 		tx_max_pending = CN23XX_MAX_IQ_DESCRIPTORS;
@@ -604,14 +697,17 @@ lio_ethtool_get_ringparam(struct net_device *netdev,
 		tx_pending = CFG_GET_NUM_TX_DESCS_NIC_IF(conf23, lio->ifidx);
 	}
 
-	if (lio->mtu > OCTNET_DEFAULT_FRM_SIZE - OCTNET_FRM_HEADER_SIZE) {
+	if (lio->mtu > OCTNET_DEFAULT_FRM_SIZE - OCTNET_FRM_HEADER_SIZE)
+	{
 		ering->rx_pending = 0;
 		ering->rx_max_pending = 0;
 		ering->rx_mini_pending = 0;
 		ering->rx_jumbo_pending = rx_pending;
 		ering->rx_mini_max_pending = 0;
 		ering->rx_jumbo_max_pending = rx_max_pending;
-	} else {
+	}
+	else
+	{
 		ering->rx_pending = rx_pending;
 		ering->rx_max_pending = rx_max_pending;
 		ering->rx_mini_pending = 0;
@@ -635,13 +731,14 @@ static void lio_set_msglevel(struct net_device *netdev, u32 msglvl)
 {
 	struct lio *lio = GET_LIO(netdev);
 
-	if ((msglvl ^ lio->msg_enable) & NETIF_MSG_HW) {
+	if ((msglvl ^ lio->msg_enable) & NETIF_MSG_HW)
+	{
 		if (msglvl & NETIF_MSG_HW)
 			liquidio_set_feature(netdev,
-					     OCTNET_CMD_VERBOSE_ENABLE, 0);
+								 OCTNET_CMD_VERBOSE_ENABLE, 0);
 		else
 			liquidio_set_feature(netdev,
-					     OCTNET_CMD_VERBOSE_DISABLE, 0);
+								 OCTNET_CMD_VERBOSE_DISABLE, 0);
 	}
 
 	lio->msg_enable = msglvl;
@@ -676,17 +773,24 @@ lio_set_pauseparam(struct net_device *netdev, struct ethtool_pauseparam *pause)
 	int ret = 0;
 
 	if (oct->chip_id != OCTEON_CN23XX_PF_VID)
+	{
 		return -EINVAL;
+	}
 
-	if (linfo->link.s.duplex == 0) {
+	if (linfo->link.s.duplex == 0)
+	{
 		/*no flow control for half duplex*/
 		if (pause->rx_pause || pause->tx_pause)
+		{
 			return -EINVAL;
+		}
 	}
 
 	/*do not support autoneg of link flow control*/
 	if (pause->autoneg == AUTONEG_ENABLE)
+	{
 		return -EINVAL;
+	}
 
 	memset(&nctrl, 0, sizeof(struct octnic_ctrl_pkt));
 
@@ -697,24 +801,32 @@ lio_set_pauseparam(struct net_device *netdev, struct ethtool_pauseparam *pause)
 	nctrl.netpndev = (u64)netdev;
 	nctrl.cb_fn = liquidio_link_ctrl_cmd_completion;
 
-	if (pause->rx_pause) {
+	if (pause->rx_pause)
+	{
 		/*enable rx pause*/
 		nctrl.ncmd.s.param1 = 1;
-	} else {
+	}
+	else
+	{
 		/*disable rx pause*/
 		nctrl.ncmd.s.param1 = 0;
 	}
 
-	if (pause->tx_pause) {
+	if (pause->tx_pause)
+	{
 		/*enable tx pause*/
 		nctrl.ncmd.s.param2 = 1;
-	} else {
+	}
+	else
+	{
 		/*disable tx pause*/
 		nctrl.ncmd.s.param2 = 0;
 	}
 
 	ret = octnet_send_nic_ctrl_pkt(lio->oct_dev, &nctrl);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&oct->pci_dev->dev, "Failed to set pause parameter\n");
 		return -EINVAL;
 	}
@@ -727,8 +839,8 @@ lio_set_pauseparam(struct net_device *netdev, struct ethtool_pauseparam *pause)
 
 static void
 lio_get_ethtool_stats(struct net_device *netdev,
-		      struct ethtool_stats *stats  __attribute__((unused)),
-		      u64 *data)
+					  struct ethtool_stats *stats  __attribute__((unused)),
+					  u64 *data)
 {
 	struct lio *lio = GET_LIO(netdev);
 	struct octeon_device *oct_dev = lio->oct_dev;
@@ -911,9 +1023,13 @@ lio_get_ethtool_stats(struct net_device *netdev,
 	data[i++] = CVM_CAST64(lio->link_changes);
 
 	/* TX  -- lio_update_stats(lio); */
-	for (j = 0; j < MAX_OCTEON_INSTR_QUEUES(oct_dev); j++) {
+	for (j = 0; j < MAX_OCTEON_INSTR_QUEUES(oct_dev); j++)
+	{
 		if (!(oct_dev->io_qmask.iq & (1ULL << j)))
+		{
 			continue;
+		}
+
 		/*packets to network port*/
 		/*# of packets tx to network */
 		data[i++] = CVM_CAST64(oct_dev->instr_queue[j]->stats.tx_done);
@@ -936,10 +1052,10 @@ lio_get_ethtool_stats(struct net_device *netdev,
 			CVM_CAST64(oct_dev->instr_queue[j]->stats.instr_posted);
 		/*# of instructions processed */
 		data[i++] = CVM_CAST64(oct_dev->instr_queue[j]->
-				       stats.instr_processed);
+							   stats.instr_processed);
 		/*# of instructions could not be processed */
 		data[i++] = CVM_CAST64(oct_dev->instr_queue[j]->
-				       stats.instr_dropped);
+							   stats.instr_dropped);
 		/*bytes sent through the queue */
 		data[i++] =
 			CVM_CAST64(oct_dev->instr_queue[j]->stats.bytes_sent);
@@ -955,9 +1071,12 @@ lio_get_ethtool_stats(struct net_device *netdev,
 
 	/* RX */
 	/* for (j = 0; j < oct_dev->num_oqs; j++) { */
-	for (j = 0; j < MAX_OCTEON_OUTPUT_QUEUES(oct_dev); j++) {
+	for (j = 0; j < MAX_OCTEON_OUTPUT_QUEUES(oct_dev); j++)
+	{
 		if (!(oct_dev->io_qmask.oq & (1ULL << j)))
+		{
 			continue;
+		}
 
 		/*packets send to TCP/IP network stack */
 		/*# of packets to network stack */
@@ -968,8 +1087,8 @@ lio_get_ethtool_stats(struct net_device *netdev,
 			CVM_CAST64(oct_dev->droq[j]->stats.rx_bytes_received);
 		/*# of packets dropped */
 		data[i++] = CVM_CAST64(oct_dev->droq[j]->stats.dropped_nomem +
-				       oct_dev->droq[j]->stats.dropped_toomany +
-				       oct_dev->droq[j]->stats.rx_dropped);
+							   oct_dev->droq[j]->stats.dropped_toomany +
+							   oct_dev->droq[j]->stats.rx_dropped);
 		data[i++] =
 			CVM_CAST64(oct_dev->droq[j]->stats.dropped_nomem);
 		data[i++] =
@@ -997,19 +1116,24 @@ static void lio_get_priv_flags_strings(struct lio *lio, u8 *data)
 	struct octeon_device *oct_dev = lio->oct_dev;
 	int i;
 
-	switch (oct_dev->chip_id) {
-	case OCTEON_CN23XX_PF_VID:
-		for (i = 0; i < ARRAY_SIZE(oct_priv_flags_strings); i++) {
-			sprintf(data, "%s", oct_priv_flags_strings[i]);
-			data += ETH_GSTRING_LEN;
-		}
-		break;
-	case OCTEON_CN68XX:
-	case OCTEON_CN66XX:
-		break;
-	default:
-		netif_info(lio, drv, lio->netdev, "Unknown Chip !!\n");
-		break;
+	switch (oct_dev->chip_id)
+	{
+		case OCTEON_CN23XX_PF_VID:
+			for (i = 0; i < ARRAY_SIZE(oct_priv_flags_strings); i++)
+			{
+				sprintf(data, "%s", oct_priv_flags_strings[i]);
+				data += ETH_GSTRING_LEN;
+			}
+
+			break;
+
+		case OCTEON_CN68XX:
+		case OCTEON_CN66XX:
+			break;
+
+		default:
+			netif_info(lio, drv, lio->netdev, "Unknown Chip !!\n");
+			break;
 	}
 }
 
@@ -1020,44 +1144,61 @@ static void lio_get_strings(struct net_device *netdev, u32 stringset, u8 *data)
 	int num_iq_stats, num_oq_stats, i, j;
 	int num_stats;
 
-	switch (stringset) {
-	case ETH_SS_STATS:
-		num_stats = ARRAY_SIZE(oct_stats_strings);
-		for (j = 0; j < num_stats; j++) {
-			sprintf(data, "%s", oct_stats_strings[j]);
-			data += ETH_GSTRING_LEN;
-		}
+	switch (stringset)
+	{
+		case ETH_SS_STATS:
+			num_stats = ARRAY_SIZE(oct_stats_strings);
 
-		num_iq_stats = ARRAY_SIZE(oct_iq_stats_strings);
-		for (i = 0; i < MAX_OCTEON_INSTR_QUEUES(oct_dev); i++) {
-			if (!(oct_dev->io_qmask.iq & (1ULL << i)))
-				continue;
-			for (j = 0; j < num_iq_stats; j++) {
-				sprintf(data, "tx-%d-%s", i,
-					oct_iq_stats_strings[j]);
+			for (j = 0; j < num_stats; j++)
+			{
+				sprintf(data, "%s", oct_stats_strings[j]);
 				data += ETH_GSTRING_LEN;
 			}
-		}
 
-		num_oq_stats = ARRAY_SIZE(oct_droq_stats_strings);
-		/* for (i = 0; i < oct_dev->num_oqs; i++) { */
-		for (i = 0; i < MAX_OCTEON_OUTPUT_QUEUES(oct_dev); i++) {
-			if (!(oct_dev->io_qmask.oq & (1ULL << i)))
-				continue;
-			for (j = 0; j < num_oq_stats; j++) {
-				sprintf(data, "rx-%d-%s", i,
-					oct_droq_stats_strings[j]);
-				data += ETH_GSTRING_LEN;
+			num_iq_stats = ARRAY_SIZE(oct_iq_stats_strings);
+
+			for (i = 0; i < MAX_OCTEON_INSTR_QUEUES(oct_dev); i++)
+			{
+				if (!(oct_dev->io_qmask.iq & (1ULL << i)))
+				{
+					continue;
+				}
+
+				for (j = 0; j < num_iq_stats; j++)
+				{
+					sprintf(data, "tx-%d-%s", i,
+							oct_iq_stats_strings[j]);
+					data += ETH_GSTRING_LEN;
+				}
 			}
-		}
-		break;
 
-	case ETH_SS_PRIV_FLAGS:
-		lio_get_priv_flags_strings(lio, data);
-		break;
-	default:
-		netif_info(lio, drv, lio->netdev, "Unknown Stringset !!\n");
-		break;
+			num_oq_stats = ARRAY_SIZE(oct_droq_stats_strings);
+
+			/* for (i = 0; i < oct_dev->num_oqs; i++) { */
+			for (i = 0; i < MAX_OCTEON_OUTPUT_QUEUES(oct_dev); i++)
+			{
+				if (!(oct_dev->io_qmask.oq & (1ULL << i)))
+				{
+					continue;
+				}
+
+				for (j = 0; j < num_oq_stats; j++)
+				{
+					sprintf(data, "rx-%d-%s", i,
+							oct_droq_stats_strings[j]);
+					data += ETH_GSTRING_LEN;
+				}
+			}
+
+			break;
+
+		case ETH_SS_PRIV_FLAGS:
+			lio_get_priv_flags_strings(lio, data);
+			break;
+
+		default:
+			netif_info(lio, drv, lio->netdev, "Unknown Stringset !!\n");
+			break;
 	}
 }
 
@@ -1065,15 +1206,18 @@ static int lio_get_priv_flags_ss_count(struct lio *lio)
 {
 	struct octeon_device *oct_dev = lio->oct_dev;
 
-	switch (oct_dev->chip_id) {
-	case OCTEON_CN23XX_PF_VID:
-		return ARRAY_SIZE(oct_priv_flags_strings);
-	case OCTEON_CN68XX:
-	case OCTEON_CN66XX:
-		return -EOPNOTSUPP;
-	default:
-		netif_info(lio, drv, lio->netdev, "Unknown Chip !!\n");
-		return -EOPNOTSUPP;
+	switch (oct_dev->chip_id)
+	{
+		case OCTEON_CN23XX_PF_VID:
+			return ARRAY_SIZE(oct_priv_flags_strings);
+
+		case OCTEON_CN68XX:
+		case OCTEON_CN66XX:
+			return -EOPNOTSUPP;
+
+		default:
+			netif_info(lio, drv, lio->netdev, "Unknown Chip !!\n");
+			return -EOPNOTSUPP;
 	}
 }
 
@@ -1082,20 +1226,23 @@ static int lio_get_sset_count(struct net_device *netdev, int sset)
 	struct lio *lio = GET_LIO(netdev);
 	struct octeon_device *oct_dev = lio->oct_dev;
 
-	switch (sset) {
-	case ETH_SS_STATS:
-		return (ARRAY_SIZE(oct_stats_strings) +
-			ARRAY_SIZE(oct_iq_stats_strings) * oct_dev->num_iqs +
-			ARRAY_SIZE(oct_droq_stats_strings) * oct_dev->num_oqs);
-	case ETH_SS_PRIV_FLAGS:
-		return lio_get_priv_flags_ss_count(lio);
-	default:
-		return -EOPNOTSUPP;
+	switch (sset)
+	{
+		case ETH_SS_STATS:
+			return (ARRAY_SIZE(oct_stats_strings) +
+					ARRAY_SIZE(oct_iq_stats_strings) * oct_dev->num_iqs +
+					ARRAY_SIZE(oct_droq_stats_strings) * oct_dev->num_oqs);
+
+		case ETH_SS_PRIV_FLAGS:
+			return lio_get_priv_flags_ss_count(lio);
+
+		default:
+			return -EOPNOTSUPP;
 	}
 }
 
 static int lio_get_intr_coalesce(struct net_device *netdev,
-				 struct ethtool_coalesce *intr_coal)
+								 struct ethtool_coalesce *intr_coal)
 {
 	struct lio *lio = GET_LIO(netdev);
 	struct octeon_device *oct = lio->oct_dev;
@@ -1104,37 +1251,48 @@ static int lio_get_intr_coalesce(struct net_device *netdev,
 
 	intrmod_cfg = &oct->intrmod;
 
-	switch (oct->chip_id) {
-	case OCTEON_CN23XX_PF_VID:
-		if (!intrmod_cfg->rx_enable) {
-			intr_coal->rx_coalesce_usecs = intrmod_cfg->rx_usecs;
-			intr_coal->rx_max_coalesced_frames =
-				intrmod_cfg->rx_frames;
-		}
-		if (!intrmod_cfg->tx_enable)
-			intr_coal->tx_max_coalesced_frames =
-				intrmod_cfg->tx_frames;
-		break;
-	case OCTEON_CN68XX:
-	case OCTEON_CN66XX: {
-		struct octeon_cn6xxx *cn6xxx =
-			(struct octeon_cn6xxx *)oct->chip;
+	switch (oct->chip_id)
+	{
+		case OCTEON_CN23XX_PF_VID:
+			if (!intrmod_cfg->rx_enable)
+			{
+				intr_coal->rx_coalesce_usecs = intrmod_cfg->rx_usecs;
+				intr_coal->rx_max_coalesced_frames =
+					intrmod_cfg->rx_frames;
+			}
 
-		if (!intrmod_cfg->rx_enable) {
-			intr_coal->rx_coalesce_usecs =
-				CFG_GET_OQ_INTR_TIME(cn6xxx->conf);
-			intr_coal->rx_max_coalesced_frames =
-				CFG_GET_OQ_INTR_PKT(cn6xxx->conf);
-		}
-		iq = oct->instr_queue[lio->linfo.txpciq[0].s.q_no];
-		intr_coal->tx_max_coalesced_frames = iq->fill_threshold;
-		break;
+			if (!intrmod_cfg->tx_enable)
+				intr_coal->tx_max_coalesced_frames =
+					intrmod_cfg->tx_frames;
+
+			break;
+
+		case OCTEON_CN68XX:
+		case OCTEON_CN66XX:
+			{
+				struct octeon_cn6xxx *cn6xxx =
+					(struct octeon_cn6xxx *)oct->chip;
+
+				if (!intrmod_cfg->rx_enable)
+				{
+					intr_coal->rx_coalesce_usecs =
+						CFG_GET_OQ_INTR_TIME(cn6xxx->conf);
+					intr_coal->rx_max_coalesced_frames =
+						CFG_GET_OQ_INTR_PKT(cn6xxx->conf);
+				}
+
+				iq = oct->instr_queue[lio->linfo.txpciq[0].s.q_no];
+				intr_coal->tx_max_coalesced_frames = iq->fill_threshold;
+				break;
+			}
+
+		default:
+			netif_info(lio, drv, lio->netdev, "Unknown Chip !!\n");
+			return -EINVAL;
 	}
-	default:
-		netif_info(lio, drv, lio->netdev, "Unknown Chip !!\n");
-		return -EINVAL;
-	}
-	if (intrmod_cfg->rx_enable) {
+
+	if (intrmod_cfg->rx_enable)
+	{
 		intr_coal->use_adaptive_rx_coalesce =
 			intrmod_cfg->rx_enable;
 		intr_coal->rate_sample_interval =
@@ -1150,23 +1308,26 @@ static int lio_get_intr_coalesce(struct net_device *netdev,
 		intr_coal->rx_coalesce_usecs_low =
 			intrmod_cfg->rx_mintmr_trigger;
 		intr_coal->rx_max_coalesced_frames_low =
-		    intrmod_cfg->rx_mincnt_trigger;
+			intrmod_cfg->rx_mincnt_trigger;
 	}
+
 	if (OCTEON_CN23XX_PF(oct) &&
-	    (intrmod_cfg->tx_enable)) {
+		(intrmod_cfg->tx_enable))
+	{
 		intr_coal->use_adaptive_tx_coalesce = intrmod_cfg->tx_enable;
 		intr_coal->tx_max_coalesced_frames_high =
-		    intrmod_cfg->tx_maxcnt_trigger;
+			intrmod_cfg->tx_maxcnt_trigger;
 		intr_coal->tx_max_coalesced_frames_low =
-		    intrmod_cfg->tx_mincnt_trigger;
+			intrmod_cfg->tx_mincnt_trigger;
 	}
+
 	return 0;
 }
 
 /* Callback function for intrmod */
 static void octnet_intrmod_callback(struct octeon_device *oct_dev,
-				    u32 status,
-				    void *ptr)
+									u32 status,
+									void *ptr)
 {
 	struct oct_intrmod_cmd *cmd = ptr;
 	struct octeon_soft_command *sc = cmd->sc;
@@ -1175,18 +1336,18 @@ static void octnet_intrmod_callback(struct octeon_device *oct_dev,
 
 	if (status)
 		dev_err(&oct_dev->pci_dev->dev, "intrmod config failed. Status: %llx\n",
-			CVM_CAST64(status));
+				CVM_CAST64(status));
 	else
 		dev_info(&oct_dev->pci_dev->dev,
-			 "Rx-Adaptive Interrupt moderation enabled:%llx\n",
-			 oct_dev->intrmod.rx_enable);
+				 "Rx-Adaptive Interrupt moderation enabled:%llx\n",
+				 oct_dev->intrmod.rx_enable);
 
 	octeon_free_soft_command(oct_dev, sc);
 }
 
 /*  Configure interrupt moderation parameters */
 static int octnet_set_intrmod_cfg(struct lio *lio,
-				  struct oct_intrmod_cfg *intr_cfg)
+								  struct oct_intrmod_cfg *intr_cfg)
 {
 	struct octeon_soft_command *sc;
 	struct oct_intrmod_cmd *cmd;
@@ -1196,13 +1357,15 @@ static int octnet_set_intrmod_cfg(struct lio *lio,
 
 	/* Alloc soft command */
 	sc = (struct octeon_soft_command *)
-		octeon_alloc_soft_command(oct_dev,
-					  sizeof(struct oct_intrmod_cfg),
-					  0,
-					  sizeof(struct oct_intrmod_cmd));
+		 octeon_alloc_soft_command(oct_dev,
+								   sizeof(struct oct_intrmod_cfg),
+								   0,
+								   sizeof(struct oct_intrmod_cmd));
 
 	if (!sc)
+	{
 		return -ENOMEM;
+	}
 
 	cmd = (struct oct_intrmod_cmd *)sc->ctxptr;
 	cfg = (struct oct_intrmod_cfg *)sc->virtdptr;
@@ -1216,14 +1379,16 @@ static int octnet_set_intrmod_cfg(struct lio *lio,
 	sc->iq_no = lio->linfo.txpciq[0].s.q_no;
 
 	octeon_prepare_soft_command(oct_dev, sc, OPCODE_NIC,
-				    OPCODE_NIC_INTRMOD_CFG, 0, 0, 0);
+								OPCODE_NIC_INTRMOD_CFG, 0, 0, 0);
 
 	sc->callback = octnet_intrmod_callback;
 	sc->callback_arg = cmd;
 	sc->wait_time = 1000;
 
 	retval = octeon_send_soft_command(oct_dev, sc);
-	if (retval == IQ_SEND_FAILED) {
+
+	if (retval == IQ_SEND_FAILED)
+	{
 		octeon_free_soft_command(oct_dev, sc);
 		return -EINVAL;
 	}
@@ -1233,22 +1398,23 @@ static int octnet_set_intrmod_cfg(struct lio *lio,
 
 static void
 octnet_nic_stats_callback(struct octeon_device *oct_dev,
-			  u32 status, void *ptr)
+						  u32 status, void *ptr)
 {
 	struct octeon_soft_command *sc = (struct octeon_soft_command *)ptr;
 	struct oct_nic_stats_resp *resp =
-	    (struct oct_nic_stats_resp *)sc->virtrptr;
+		(struct oct_nic_stats_resp *)sc->virtrptr;
 	struct oct_nic_stats_ctrl *ctrl =
-	    (struct oct_nic_stats_ctrl *)sc->ctxptr;
+		(struct oct_nic_stats_ctrl *)sc->ctxptr;
 	struct nic_rx_stats *rsp_rstats = &resp->stats.fromwire;
 	struct nic_tx_stats *rsp_tstats = &resp->stats.fromhost;
 
 	struct nic_rx_stats *rstats = &oct_dev->link_stats.fromwire;
 	struct nic_tx_stats *tstats = &oct_dev->link_stats.fromhost;
 
-	if ((status != OCTEON_REQUEST_TIMEOUT) && !resp->status) {
+	if ((status != OCTEON_REQUEST_TIMEOUT) && !resp->status)
+	{
 		octeon_swap_8B_data((u64 *)&resp->stats,
-				    (sizeof(struct oct_link_stats)) >> 3);
+							(sizeof(struct oct_link_stats)) >> 3);
 
 		/* RX link-level stats */
 		rstats->total_rcvd = rsp_rstats->total_rcvd;
@@ -1321,9 +1487,12 @@ octnet_nic_stats_callback(struct octeon_device *oct_dev,
 		tstats->fw_tx_vxlan = rsp_tstats->fw_tx_vxlan;
 
 		resp->status = 1;
-	} else {
+	}
+	else
+	{
 		resp->status = -1;
 	}
+
 	complete(&ctrl->complete);
 }
 
@@ -1341,13 +1510,15 @@ static int octnet_get_link_stats(struct net_device *netdev)
 
 	/* Alloc soft command */
 	sc = (struct octeon_soft_command *)
-		octeon_alloc_soft_command(oct_dev,
-					  0,
-					  sizeof(struct oct_nic_stats_resp),
-					  sizeof(struct octnic_ctrl_pkt));
+		 octeon_alloc_soft_command(oct_dev,
+								   0,
+								   sizeof(struct oct_nic_stats_resp),
+								   sizeof(struct octnic_ctrl_pkt));
 
 	if (!sc)
+	{
 		return -ENOMEM;
+	}
 
 	resp = (struct oct_nic_stats_resp *)sc->virtrptr;
 	memset(resp, 0, sizeof(struct oct_nic_stats_resp));
@@ -1360,21 +1531,24 @@ static int octnet_get_link_stats(struct net_device *netdev)
 	sc->iq_no = lio->linfo.txpciq[0].s.q_no;
 
 	octeon_prepare_soft_command(oct_dev, sc, OPCODE_NIC,
-				    OPCODE_NIC_PORT_STATS, 0, 0, 0);
+								OPCODE_NIC_PORT_STATS, 0, 0, 0);
 
 	sc->callback = octnet_nic_stats_callback;
 	sc->callback_arg = sc;
 	sc->wait_time = 500;	/*in milli seconds*/
 
 	retval = octeon_send_soft_command(oct_dev, sc);
-	if (retval == IQ_SEND_FAILED) {
+
+	if (retval == IQ_SEND_FAILED)
+	{
 		octeon_free_soft_command(oct_dev, sc);
 		return -EINVAL;
 	}
 
 	wait_for_completion_timeout(&ctrl->complete, msecs_to_jiffies(1000));
 
-	if (resp->status != 1) {
+	if (resp->status != 1)
+	{
 		octeon_free_soft_command(oct_dev, sc);
 
 		return -EINVAL;
@@ -1387,7 +1561,7 @@ static int octnet_get_link_stats(struct net_device *netdev)
 
 /* Enable/Disable auto interrupt Moderation */
 static int oct_cfg_adaptive_intr(struct lio *lio, struct ethtool_coalesce
-				 *intr_coal)
+								 *intr_coal)
 {
 	int ret = 0;
 	struct octeon_device *oct = lio->oct_dev;
@@ -1395,7 +1569,8 @@ static int oct_cfg_adaptive_intr(struct lio *lio, struct ethtool_coalesce
 
 	intrmod_cfg = &oct->intrmod;
 
-	if (oct->intrmod.rx_enable || oct->intrmod.tx_enable) {
+	if (oct->intrmod.rx_enable || oct->intrmod.tx_enable)
+	{
 		if (intr_coal->rate_sample_interval)
 			intrmod_cfg->check_intrvl =
 				intr_coal->rate_sample_interval;
@@ -1417,7 +1592,9 @@ static int oct_cfg_adaptive_intr(struct lio *lio, struct ethtool_coalesce
 			intrmod_cfg->minpkt_ratethr =
 				LIO_INTRMOD_MINPKT_RATETHR;
 	}
-	if (oct->intrmod.rx_enable) {
+
+	if (oct->intrmod.rx_enable)
+	{
 		if (intr_coal->rx_max_coalesced_frames_high)
 			intrmod_cfg->rx_maxcnt_trigger =
 				intr_coal->rx_max_coalesced_frames_high;
@@ -1446,13 +1623,16 @@ static int oct_cfg_adaptive_intr(struct lio *lio, struct ethtool_coalesce
 			intrmod_cfg->rx_mincnt_trigger =
 				LIO_INTRMOD_RXMINCNT_TRIGGER;
 	}
-	if (oct->intrmod.tx_enable) {
+
+	if (oct->intrmod.tx_enable)
+	{
 		if (intr_coal->tx_max_coalesced_frames_high)
 			intrmod_cfg->tx_maxcnt_trigger =
 				intr_coal->tx_max_coalesced_frames_high;
 		else
 			intrmod_cfg->tx_maxcnt_trigger =
 				LIO_INTRMOD_TXMAXCNT_TRIGGER;
+
 		if (intr_coal->tx_max_coalesced_frames_low)
 			intrmod_cfg->tx_mincnt_trigger =
 				intr_coal->tx_max_coalesced_frames_low;
@@ -1473,98 +1653,130 @@ oct_cfg_rx_intrcnt(struct lio *lio, struct ethtool_coalesce *intr_coal)
 	u32 rx_max_coalesced_frames;
 
 	/* Config Cnt based interrupt values */
-	switch (oct->chip_id) {
-	case OCTEON_CN68XX:
-	case OCTEON_CN66XX: {
-		struct octeon_cn6xxx *cn6xxx =
-			(struct octeon_cn6xxx *)oct->chip;
+	switch (oct->chip_id)
+	{
+		case OCTEON_CN68XX:
+		case OCTEON_CN66XX:
+			{
+				struct octeon_cn6xxx *cn6xxx =
+					(struct octeon_cn6xxx *)oct->chip;
 
-		if (!intr_coal->rx_max_coalesced_frames)
-			rx_max_coalesced_frames = CN6XXX_OQ_INTR_PKT;
-		else
-			rx_max_coalesced_frames =
-				intr_coal->rx_max_coalesced_frames;
-		octeon_write_csr(oct, CN6XXX_SLI_OQ_INT_LEVEL_PKTS,
-				 rx_max_coalesced_frames);
-		CFG_SET_OQ_INTR_PKT(cn6xxx->conf, rx_max_coalesced_frames);
-		break;
-	}
-	case OCTEON_CN23XX_PF_VID: {
-		int q_no;
+				if (!intr_coal->rx_max_coalesced_frames)
+				{
+					rx_max_coalesced_frames = CN6XXX_OQ_INTR_PKT;
+				}
+				else
+					rx_max_coalesced_frames =
+						intr_coal->rx_max_coalesced_frames;
 
-		if (!intr_coal->rx_max_coalesced_frames)
-			rx_max_coalesced_frames = oct->intrmod.rx_frames;
-		else
-			rx_max_coalesced_frames =
-			    intr_coal->rx_max_coalesced_frames;
-		for (q_no = 0; q_no < oct->num_oqs; q_no++) {
-			q_no += oct->sriov_info.pf_srn;
-			octeon_write_csr64(
-			    oct, CN23XX_SLI_OQ_PKT_INT_LEVELS(q_no),
-			    (octeon_read_csr64(
-				 oct, CN23XX_SLI_OQ_PKT_INT_LEVELS(q_no)) &
-			     (0x3fffff00000000UL)) |
-				rx_max_coalesced_frames);
-			/*consider setting resend bit*/
-		}
-		oct->intrmod.rx_frames = rx_max_coalesced_frames;
-		break;
+				octeon_write_csr(oct, CN6XXX_SLI_OQ_INT_LEVEL_PKTS,
+								 rx_max_coalesced_frames);
+				CFG_SET_OQ_INTR_PKT(cn6xxx->conf, rx_max_coalesced_frames);
+				break;
+			}
+
+		case OCTEON_CN23XX_PF_VID:
+			{
+				int q_no;
+
+				if (!intr_coal->rx_max_coalesced_frames)
+				{
+					rx_max_coalesced_frames = oct->intrmod.rx_frames;
+				}
+				else
+					rx_max_coalesced_frames =
+						intr_coal->rx_max_coalesced_frames;
+
+				for (q_no = 0; q_no < oct->num_oqs; q_no++)
+				{
+					q_no += oct->sriov_info.pf_srn;
+					octeon_write_csr64(
+						oct, CN23XX_SLI_OQ_PKT_INT_LEVELS(q_no),
+						(octeon_read_csr64(
+							 oct, CN23XX_SLI_OQ_PKT_INT_LEVELS(q_no)) &
+						 (0x3fffff00000000UL)) |
+						rx_max_coalesced_frames);
+					/*consider setting resend bit*/
+				}
+
+				oct->intrmod.rx_frames = rx_max_coalesced_frames;
+				break;
+			}
+
+		default:
+			return -EINVAL;
 	}
-	default:
-		return -EINVAL;
-	}
+
 	return 0;
 }
 
 static int oct_cfg_rx_intrtime(struct lio *lio,
-			       struct ethtool_coalesce *intr_coal)
+							   struct ethtool_coalesce *intr_coal)
 {
 	struct octeon_device *oct = lio->oct_dev;
 	u32 time_threshold, rx_coalesce_usecs;
 
 	/* Config Time based interrupt values */
-	switch (oct->chip_id) {
-	case OCTEON_CN68XX:
-	case OCTEON_CN66XX: {
-		struct octeon_cn6xxx *cn6xxx =
-			(struct octeon_cn6xxx *)oct->chip;
-		if (!intr_coal->rx_coalesce_usecs)
-			rx_coalesce_usecs = CN6XXX_OQ_INTR_TIME;
-		else
-			rx_coalesce_usecs = intr_coal->rx_coalesce_usecs;
+	switch (oct->chip_id)
+	{
+		case OCTEON_CN68XX:
+		case OCTEON_CN66XX:
+			{
+				struct octeon_cn6xxx *cn6xxx =
+					(struct octeon_cn6xxx *)oct->chip;
 
-		time_threshold = lio_cn6xxx_get_oq_ticks(oct,
-							 rx_coalesce_usecs);
-		octeon_write_csr(oct,
-				 CN6XXX_SLI_OQ_INT_LEVEL_TIME,
-				 time_threshold);
+				if (!intr_coal->rx_coalesce_usecs)
+				{
+					rx_coalesce_usecs = CN6XXX_OQ_INTR_TIME;
+				}
+				else
+				{
+					rx_coalesce_usecs = intr_coal->rx_coalesce_usecs;
+				}
 
-		CFG_SET_OQ_INTR_TIME(cn6xxx->conf, rx_coalesce_usecs);
-		break;
-	}
-	case OCTEON_CN23XX_PF_VID: {
-		u64 time_threshold;
-		int q_no;
+				time_threshold = lio_cn6xxx_get_oq_ticks(oct,
+								 rx_coalesce_usecs);
+				octeon_write_csr(oct,
+								 CN6XXX_SLI_OQ_INT_LEVEL_TIME,
+								 time_threshold);
 
-		if (!intr_coal->rx_coalesce_usecs)
-			rx_coalesce_usecs = oct->intrmod.rx_usecs;
-		else
-			rx_coalesce_usecs = intr_coal->rx_coalesce_usecs;
-		time_threshold =
-		    cn23xx_pf_get_oq_ticks(oct, (u32)rx_coalesce_usecs);
-		for (q_no = 0; q_no < oct->num_oqs; q_no++) {
-			q_no += oct->sriov_info.pf_srn;
-			octeon_write_csr64(oct,
-					   CN23XX_SLI_OQ_PKT_INT_LEVELS(q_no),
-					   (oct->intrmod.rx_frames |
-					    (time_threshold << 32)));
-			/*consider writing to resend bit here*/
-		}
-		oct->intrmod.rx_usecs = rx_coalesce_usecs;
-		break;
-	}
-	default:
-		return -EINVAL;
+				CFG_SET_OQ_INTR_TIME(cn6xxx->conf, rx_coalesce_usecs);
+				break;
+			}
+
+		case OCTEON_CN23XX_PF_VID:
+			{
+				u64 time_threshold;
+				int q_no;
+
+				if (!intr_coal->rx_coalesce_usecs)
+				{
+					rx_coalesce_usecs = oct->intrmod.rx_usecs;
+				}
+				else
+				{
+					rx_coalesce_usecs = intr_coal->rx_coalesce_usecs;
+				}
+
+				time_threshold =
+					cn23xx_pf_get_oq_ticks(oct, (u32)rx_coalesce_usecs);
+
+				for (q_no = 0; q_no < oct->num_oqs; q_no++)
+				{
+					q_no += oct->sriov_info.pf_srn;
+					octeon_write_csr64(oct,
+									   CN23XX_SLI_OQ_PKT_INT_LEVELS(q_no),
+									   (oct->intrmod.rx_frames |
+										(time_threshold << 32)));
+					/*consider writing to resend bit here*/
+				}
+
+				oct->intrmod.rx_usecs = rx_coalesce_usecs;
+				break;
+			}
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -1572,7 +1784,7 @@ static int oct_cfg_rx_intrtime(struct lio *lio,
 
 static int
 oct_cfg_tx_intrcnt(struct lio *lio, struct ethtool_coalesce *intr_coal
-		   __attribute__((unused)))
+				   __attribute__((unused)))
 {
 	struct octeon_device *oct = lio->oct_dev;
 	u32 iq_intr_pkt;
@@ -1580,40 +1792,48 @@ oct_cfg_tx_intrcnt(struct lio *lio, struct ethtool_coalesce *intr_coal
 	u64 val;
 
 	/* Config Cnt based interrupt values */
-	switch (oct->chip_id) {
-	case OCTEON_CN68XX:
-	case OCTEON_CN66XX:
-		break;
-	case OCTEON_CN23XX_PF_VID: {
-		int q_no;
+	switch (oct->chip_id)
+	{
+		case OCTEON_CN68XX:
+		case OCTEON_CN66XX:
+			break;
 
-		if (!intr_coal->tx_max_coalesced_frames)
-			iq_intr_pkt = CN23XX_DEF_IQ_INTR_THRESHOLD &
-				      CN23XX_PKT_IN_DONE_WMARK_MASK;
-		else
-			iq_intr_pkt = intr_coal->tx_max_coalesced_frames &
-				      CN23XX_PKT_IN_DONE_WMARK_MASK;
-		for (q_no = 0; q_no < oct->num_iqs; q_no++) {
-			inst_cnt_reg = (oct->instr_queue[q_no])->inst_cnt_reg;
-			val = readq(inst_cnt_reg);
-			/*clear wmark and count.dont want to write count back*/
-			val = (val & 0xFFFF000000000000ULL) |
-			      ((u64)iq_intr_pkt
-			       << CN23XX_PKT_IN_DONE_WMARK_BIT_POS);
-			writeq(val, inst_cnt_reg);
-			/*consider setting resend bit*/
-		}
-		oct->intrmod.tx_frames = iq_intr_pkt;
-		break;
+		case OCTEON_CN23XX_PF_VID:
+			{
+				int q_no;
+
+				if (!intr_coal->tx_max_coalesced_frames)
+					iq_intr_pkt = CN23XX_DEF_IQ_INTR_THRESHOLD &
+								  CN23XX_PKT_IN_DONE_WMARK_MASK;
+				else
+					iq_intr_pkt = intr_coal->tx_max_coalesced_frames &
+								  CN23XX_PKT_IN_DONE_WMARK_MASK;
+
+				for (q_no = 0; q_no < oct->num_iqs; q_no++)
+				{
+					inst_cnt_reg = (oct->instr_queue[q_no])->inst_cnt_reg;
+					val = readq(inst_cnt_reg);
+					/*clear wmark and count.dont want to write count back*/
+					val = (val & 0xFFFF000000000000ULL) |
+						  ((u64)iq_intr_pkt
+						   << CN23XX_PKT_IN_DONE_WMARK_BIT_POS);
+					writeq(val, inst_cnt_reg);
+					/*consider setting resend bit*/
+				}
+
+				oct->intrmod.tx_frames = iq_intr_pkt;
+				break;
+			}
+
+		default:
+			return -EINVAL;
 	}
-	default:
-		return -EINVAL;
-	}
+
 	return 0;
 }
 
 static int lio_set_intr_coalesce(struct net_device *netdev,
-				 struct ethtool_coalesce *intr_coal)
+								 struct ethtool_coalesce *intr_coal)
 {
 	struct lio *lio = GET_LIO(netdev);
 	int ret;
@@ -1621,30 +1841,39 @@ static int lio_set_intr_coalesce(struct net_device *netdev,
 	u32 j, q_no;
 	int db_max, db_min;
 
-	switch (oct->chip_id) {
-	case OCTEON_CN68XX:
-	case OCTEON_CN66XX:
-		db_min = CN6XXX_DB_MIN;
-		db_max = CN6XXX_DB_MAX;
-		if ((intr_coal->tx_max_coalesced_frames >= db_min) &&
-		    (intr_coal->tx_max_coalesced_frames <= db_max)) {
-			for (j = 0; j < lio->linfo.num_txpciq; j++) {
-				q_no = lio->linfo.txpciq[j].s.q_no;
-				oct->instr_queue[q_no]->fill_threshold =
-					intr_coal->tx_max_coalesced_frames;
+	switch (oct->chip_id)
+	{
+		case OCTEON_CN68XX:
+		case OCTEON_CN66XX:
+			db_min = CN6XXX_DB_MIN;
+			db_max = CN6XXX_DB_MAX;
+
+			if ((intr_coal->tx_max_coalesced_frames >= db_min) &&
+				(intr_coal->tx_max_coalesced_frames <= db_max))
+			{
+				for (j = 0; j < lio->linfo.num_txpciq; j++)
+				{
+					q_no = lio->linfo.txpciq[j].s.q_no;
+					oct->instr_queue[q_no]->fill_threshold =
+						intr_coal->tx_max_coalesced_frames;
+				}
 			}
-		} else {
-			dev_err(&oct->pci_dev->dev,
-				"LIQUIDIO: Invalid tx-frames:%d. Range is min:%d max:%d\n",
-				intr_coal->tx_max_coalesced_frames, db_min,
-				db_max);
+			else
+			{
+				dev_err(&oct->pci_dev->dev,
+						"LIQUIDIO: Invalid tx-frames:%d. Range is min:%d max:%d\n",
+						intr_coal->tx_max_coalesced_frames, db_min,
+						db_max);
+				return -EINVAL;
+			}
+
+			break;
+
+		case OCTEON_CN23XX_PF_VID:
+			break;
+
+		default:
 			return -EINVAL;
-		}
-		break;
-	case OCTEON_CN23XX_PF_VID:
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	oct->intrmod.rx_enable = intr_coal->use_adaptive_rx_coalesce ? 1 : 0;
@@ -1652,19 +1881,31 @@ static int lio_set_intr_coalesce(struct net_device *netdev,
 
 	ret = oct_cfg_adaptive_intr(lio, intr_coal);
 
-	if (!intr_coal->use_adaptive_rx_coalesce) {
+	if (!intr_coal->use_adaptive_rx_coalesce)
+	{
 		ret = oct_cfg_rx_intrtime(lio, intr_coal);
+
 		if (ret)
+		{
 			goto ret_intrmod;
+		}
 
 		ret = oct_cfg_rx_intrcnt(lio, intr_coal);
+
 		if (ret)
+		{
 			goto ret_intrmod;
+		}
 	}
-	if (!intr_coal->use_adaptive_tx_coalesce) {
+
+	if (!intr_coal->use_adaptive_tx_coalesce)
+	{
 		ret = oct_cfg_tx_intrcnt(lio, intr_coal);
+
 		if (ret)
+		{
 			goto ret_intrmod;
+		}
 	}
 
 	return 0;
@@ -1673,7 +1914,7 @@ ret_intrmod:
 }
 
 static int lio_get_ts_info(struct net_device *netdev,
-			   struct ethtool_ts_info *info)
+						   struct ethtool_ts_info *info)
 {
 	struct lio *lio = GET_LIO(netdev);
 
@@ -1688,17 +1929,21 @@ static int lio_get_ts_info(struct net_device *netdev,
 		SOF_TIMESTAMPING_SOFTWARE;
 
 	if (lio->ptp_clock)
+	{
 		info->phc_index = ptp_clock_index(lio->ptp_clock);
+	}
 	else
+	{
 		info->phc_index = -1;
+	}
 
 #ifdef PTP_HARDWARE_TIMESTAMPING
 	info->tx_types = (1 << HWTSTAMP_TX_OFF) | (1 << HWTSTAMP_TX_ON);
 
 	info->rx_filters = (1 << HWTSTAMP_FILTER_NONE) |
-			   (1 << HWTSTAMP_FILTER_PTP_V1_L4_EVENT) |
-			   (1 << HWTSTAMP_FILTER_PTP_V2_L2_EVENT) |
-			   (1 << HWTSTAMP_FILTER_PTP_V2_L4_EVENT);
+					   (1 << HWTSTAMP_FILTER_PTP_V1_L4_EVENT) |
+					   (1 << HWTSTAMP_FILTER_PTP_V2_L2_EVENT) |
+					   (1 << HWTSTAMP_FILTER_PTP_V2_L4_EVENT);
 #endif
 
 	return 0;
@@ -1716,22 +1961,27 @@ static int lio_set_settings(struct net_device *netdev, struct ethtool_cmd *ecmd)
 	linfo = &lio->linfo;
 
 	if (ecmd->autoneg != AUTONEG_ENABLE && ecmd->autoneg != AUTONEG_DISABLE)
+	{
 		return -EINVAL;
+	}
 
 	if (ecmd->autoneg == AUTONEG_DISABLE && ((ecmd->speed != SPEED_100 &&
-						  ecmd->speed != SPEED_10) ||
-						 (ecmd->duplex != DUPLEX_HALF &&
-						  ecmd->duplex != DUPLEX_FULL)))
+			ecmd->speed != SPEED_10) ||
+			(ecmd->duplex != DUPLEX_HALF &&
+			 ecmd->duplex != DUPLEX_FULL)))
+	{
 		return -EINVAL;
+	}
 
 	/* Ethtool Support is not provided for XAUI, RXAUI, and XFI Interfaces
 	 * as they operate at fixed Speed and Duplex settings
 	 */
 	if (linfo->link.s.if_mode == INTERFACE_MODE_XAUI ||
-	    linfo->link.s.if_mode == INTERFACE_MODE_RXAUI ||
-	    linfo->link.s.if_mode == INTERFACE_MODE_XFI) {
+		linfo->link.s.if_mode == INTERFACE_MODE_RXAUI ||
+		linfo->link.s.if_mode == INTERFACE_MODE_XFI)
+	{
 		dev_info(&oct->pci_dev->dev,
-			 "Autonegotiation, duplex and speed settings cannot be modified.\n");
+				 "Autonegotiation, duplex and speed settings cannot be modified.\n");
 		return -EINVAL;
 	}
 
@@ -1747,12 +1997,15 @@ static int lio_set_settings(struct net_device *netdev, struct ethtool_cmd *ecmd)
 	/* Passing the parameters sent by ethtool like Speed, Autoneg & Duplex
 	 * to SE core application using ncmd.s.more & ncmd.s.param
 	 */
-	if (ecmd->autoneg == AUTONEG_ENABLE) {
+	if (ecmd->autoneg == AUTONEG_ENABLE)
+	{
 		/* Autoneg ON */
 		nctrl.ncmd.s.more = OCTNIC_NCMD_PHY_ON |
-				     OCTNIC_NCMD_AUTONEG_ON;
+							OCTNIC_NCMD_AUTONEG_ON;
 		nctrl.ncmd.s.param1 = ecmd->advertising;
-	} else {
+	}
+	else
+	{
 		/* Autoneg OFF */
 		nctrl.ncmd.s.more = OCTNIC_NCMD_PHY_ON;
 
@@ -1762,7 +2015,9 @@ static int lio_set_settings(struct net_device *netdev, struct ethtool_cmd *ecmd)
 	}
 
 	ret = octnet_send_nic_ctrl_pkt(lio->oct_dev, &nctrl);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&oct->pci_dev->dev, "Failed to set settings\n");
 		return -1;
 	}
@@ -1772,7 +2027,8 @@ static int lio_set_settings(struct net_device *netdev, struct ethtool_cmd *ecmd)
 
 static int lio_nway_reset(struct net_device *netdev)
 {
-	if (netif_running(netdev)) {
+	if (netif_running(netdev))
+	{
 		struct ethtool_cmd ecmd;
 
 		memset(&ecmd, 0, sizeof(struct ethtool_cmd));
@@ -1781,6 +2037,7 @@ static int lio_nway_reset(struct net_device *netdev)
 		ecmd.duplex = 0;
 		lio_set_settings(netdev, &ecmd);
 	}
+
 	return 0;
 }
 
@@ -1790,11 +2047,13 @@ static int lio_get_regs_len(struct net_device *dev)
 	struct lio *lio = GET_LIO(dev);
 	struct octeon_device *oct = lio->oct_dev;
 
-	switch (oct->chip_id) {
-	case OCTEON_CN23XX_PF_VID:
-		return OCT_ETHTOOL_REGDUMP_LEN_23XX;
-	default:
-		return OCT_ETHTOOL_REGDUMP_LEN;
+	switch (oct->chip_id)
+	{
+		case OCTEON_CN23XX_PF_VID:
+			return OCT_ETHTOOL_REGDUMP_LEN_23XX;
+
+		default:
+			return OCT_ETHTOOL_REGDUMP_LEN;
 	}
 }
 
@@ -1812,207 +2071,226 @@ static int cn23xx_read_csr_reg(char *s, struct octeon_device *oct)
 	/*0x29030 or 0x29040*/
 	reg = CN23XX_SLI_PKT_MAC_RINFO64(oct->pcie_port, oct->pf_num);
 	len += sprintf(s + len,
-		       "\n[%08x] (SLI_PKT_MAC%d_PF%d_RINFO): %016llx\n",
-		       reg, oct->pcie_port, oct->pf_num,
-		       (u64)octeon_read_csr64(oct, reg));
+				   "\n[%08x] (SLI_PKT_MAC%d_PF%d_RINFO): %016llx\n",
+				   reg, oct->pcie_port, oct->pf_num,
+				   (u64)octeon_read_csr64(oct, reg));
 
 	/*0x27080 or 0x27090*/
 	reg = CN23XX_SLI_MAC_PF_INT_ENB64(oct->pcie_port, oct->pf_num);
 	len +=
-	    sprintf(s + len, "\n[%08x] (SLI_MAC%d_PF%d_INT_ENB): %016llx\n",
-		    reg, oct->pcie_port, oct->pf_num,
-		    (u64)octeon_read_csr64(oct, reg));
+		sprintf(s + len, "\n[%08x] (SLI_MAC%d_PF%d_INT_ENB): %016llx\n",
+				reg, oct->pcie_port, oct->pf_num,
+				(u64)octeon_read_csr64(oct, reg));
 
 	/*0x27000 or 0x27010*/
 	reg = CN23XX_SLI_MAC_PF_INT_SUM64(oct->pcie_port, oct->pf_num);
 	len +=
-	    sprintf(s + len, "\n[%08x] (SLI_MAC%d_PF%d_INT_SUM): %016llx\n",
-		    reg, oct->pcie_port, oct->pf_num,
-		    (u64)octeon_read_csr64(oct, reg));
+		sprintf(s + len, "\n[%08x] (SLI_MAC%d_PF%d_INT_SUM): %016llx\n",
+				reg, oct->pcie_port, oct->pf_num,
+				(u64)octeon_read_csr64(oct, reg));
 
 	/*0x29120*/
 	reg = 0x29120;
 	len += sprintf(s + len, "\n[%08x] (SLI_PKT_MEM_CTL): %016llx\n", reg,
-		       (u64)octeon_read_csr64(oct, reg));
+				   (u64)octeon_read_csr64(oct, reg));
 
 	/*0x27300*/
 	reg = 0x27300 + oct->pcie_port * CN23XX_MAC_INT_OFFSET +
-	      (oct->pf_num) * CN23XX_PF_INT_OFFSET;
+		  (oct->pf_num) * CN23XX_PF_INT_OFFSET;
 	len += sprintf(
-	    s + len, "\n[%08x] (SLI_MAC%d_PF%d_PKT_VF_INT): %016llx\n", reg,
-	    oct->pcie_port, oct->pf_num, (u64)octeon_read_csr64(oct, reg));
+			   s + len, "\n[%08x] (SLI_MAC%d_PF%d_PKT_VF_INT): %016llx\n", reg,
+			   oct->pcie_port, oct->pf_num, (u64)octeon_read_csr64(oct, reg));
 
 	/*0x27200*/
 	reg = 0x27200 + oct->pcie_port * CN23XX_MAC_INT_OFFSET +
-	      (oct->pf_num) * CN23XX_PF_INT_OFFSET;
+		  (oct->pf_num) * CN23XX_PF_INT_OFFSET;
 	len += sprintf(s + len,
-		       "\n[%08x] (SLI_MAC%d_PF%d_PP_VF_INT): %016llx\n",
-		       reg, oct->pcie_port, oct->pf_num,
-		       (u64)octeon_read_csr64(oct, reg));
+				   "\n[%08x] (SLI_MAC%d_PF%d_PP_VF_INT): %016llx\n",
+				   reg, oct->pcie_port, oct->pf_num,
+				   (u64)octeon_read_csr64(oct, reg));
 
 	/*29130*/
 	reg = CN23XX_SLI_PKT_CNT_INT;
 	len += sprintf(s + len, "\n[%08x] (SLI_PKT_CNT_INT): %016llx\n", reg,
-		       (u64)octeon_read_csr64(oct, reg));
+				   (u64)octeon_read_csr64(oct, reg));
 
 	/*0x29140*/
 	reg = CN23XX_SLI_PKT_TIME_INT;
 	len += sprintf(s + len, "\n[%08x] (SLI_PKT_TIME_INT): %016llx\n", reg,
-		       (u64)octeon_read_csr64(oct, reg));
+				   (u64)octeon_read_csr64(oct, reg));
 
 	/*0x29160*/
 	reg = 0x29160;
 	len += sprintf(s + len, "\n[%08x] (SLI_PKT_INT): %016llx\n", reg,
-		       (u64)octeon_read_csr64(oct, reg));
+				   (u64)octeon_read_csr64(oct, reg));
 
 	/*0x29180*/
 	reg = CN23XX_SLI_OQ_WMARK;
 	len += sprintf(s + len, "\n[%08x] (SLI_PKT_OUTPUT_WMARK): %016llx\n",
-		       reg, (u64)octeon_read_csr64(oct, reg));
+				   reg, (u64)octeon_read_csr64(oct, reg));
 
 	/*0x291E0*/
 	reg = CN23XX_SLI_PKT_IOQ_RING_RST;
 	len += sprintf(s + len, "\n[%08x] (SLI_PKT_RING_RST): %016llx\n", reg,
-		       (u64)octeon_read_csr64(oct, reg));
+				   (u64)octeon_read_csr64(oct, reg));
 
 	/*0x29210*/
 	reg = CN23XX_SLI_GBL_CONTROL;
 	len += sprintf(s + len,
-		       "\n[%08x] (SLI_PKT_GBL_CONTROL): %016llx\n", reg,
-		       (u64)octeon_read_csr64(oct, reg));
+				   "\n[%08x] (SLI_PKT_GBL_CONTROL): %016llx\n", reg,
+				   (u64)octeon_read_csr64(oct, reg));
 
 	/*0x29220*/
 	reg = 0x29220;
 	len += sprintf(s + len, "\n[%08x] (SLI_PKT_BIST_STATUS): %016llx\n",
-		       reg, (u64)octeon_read_csr64(oct, reg));
+				   reg, (u64)octeon_read_csr64(oct, reg));
 
 	/*PF only*/
-	if (pf_num == 0) {
+	if (pf_num == 0)
+	{
 		/*0x29260*/
 		reg = CN23XX_SLI_OUT_BP_EN_W1S;
 		len += sprintf(s + len,
-			       "\n[%08x] (SLI_PKT_OUT_BP_EN_W1S):  %016llx\n",
-			       reg, (u64)octeon_read_csr64(oct, reg));
-	} else if (pf_num == 1) {
+					   "\n[%08x] (SLI_PKT_OUT_BP_EN_W1S):  %016llx\n",
+					   reg, (u64)octeon_read_csr64(oct, reg));
+	}
+	else if (pf_num == 1)
+	{
 		/*0x29270*/
 		reg = CN23XX_SLI_OUT_BP_EN2_W1S;
 		len += sprintf(s + len,
-			       "\n[%08x] (SLI_PKT_OUT_BP_EN2_W1S): %016llx\n",
-			       reg, (u64)octeon_read_csr64(oct, reg));
+					   "\n[%08x] (SLI_PKT_OUT_BP_EN2_W1S): %016llx\n",
+					   reg, (u64)octeon_read_csr64(oct, reg));
 	}
 
-	for (i = 0; i < CN23XX_MAX_OUTPUT_QUEUES; i++) {
+	for (i = 0; i < CN23XX_MAX_OUTPUT_QUEUES; i++)
+	{
 		reg = CN23XX_SLI_OQ_BUFF_INFO_SIZE(i);
 		len +=
-		    sprintf(s + len, "\n[%08x] (SLI_PKT%d_OUT_SIZE): %016llx\n",
-			    reg, i, (u64)octeon_read_csr64(oct, reg));
+			sprintf(s + len, "\n[%08x] (SLI_PKT%d_OUT_SIZE): %016llx\n",
+					reg, i, (u64)octeon_read_csr64(oct, reg));
 	}
 
 	/*0x10040*/
-	for (i = 0; i < CN23XX_MAX_INPUT_QUEUES; i++) {
+	for (i = 0; i < CN23XX_MAX_INPUT_QUEUES; i++)
+	{
 		reg = CN23XX_SLI_IQ_INSTR_COUNT64(i);
 		len += sprintf(s + len,
-			       "\n[%08x] (SLI_PKT_IN_DONE%d_CNTS): %016llx\n",
-			       reg, i, (u64)octeon_read_csr64(oct, reg));
+					   "\n[%08x] (SLI_PKT_IN_DONE%d_CNTS): %016llx\n",
+					   reg, i, (u64)octeon_read_csr64(oct, reg));
 	}
 
 	/*0x10080*/
-	for (i = 0; i < CN23XX_MAX_OUTPUT_QUEUES; i++) {
+	for (i = 0; i < CN23XX_MAX_OUTPUT_QUEUES; i++)
+	{
 		reg = CN23XX_SLI_OQ_PKTS_CREDIT(i);
 		len += sprintf(s + len,
-			       "\n[%08x] (SLI_PKT%d_SLIST_BAOFF_DBELL): %016llx\n",
-			       reg, i, (u64)octeon_read_csr64(oct, reg));
+					   "\n[%08x] (SLI_PKT%d_SLIST_BAOFF_DBELL): %016llx\n",
+					   reg, i, (u64)octeon_read_csr64(oct, reg));
 	}
 
 	/*0x10090*/
-	for (i = 0; i < CN23XX_MAX_OUTPUT_QUEUES; i++) {
+	for (i = 0; i < CN23XX_MAX_OUTPUT_QUEUES; i++)
+	{
 		reg = CN23XX_SLI_OQ_SIZE(i);
 		len += sprintf(
-		    s + len, "\n[%08x] (SLI_PKT%d_SLIST_FIFO_RSIZE): %016llx\n",
-		    reg, i, (u64)octeon_read_csr64(oct, reg));
+				   s + len, "\n[%08x] (SLI_PKT%d_SLIST_FIFO_RSIZE): %016llx\n",
+				   reg, i, (u64)octeon_read_csr64(oct, reg));
 	}
 
 	/*0x10050*/
-	for (i = 0; i < CN23XX_MAX_OUTPUT_QUEUES; i++) {
+	for (i = 0; i < CN23XX_MAX_OUTPUT_QUEUES; i++)
+	{
 		reg = CN23XX_SLI_OQ_PKT_CONTROL(i);
 		len += sprintf(
-			s + len,
-			"\n[%08x] (SLI_PKT%d__OUTPUT_CONTROL): %016llx\n",
-			reg, i, (u64)octeon_read_csr64(oct, reg));
+				   s + len,
+				   "\n[%08x] (SLI_PKT%d__OUTPUT_CONTROL): %016llx\n",
+				   reg, i, (u64)octeon_read_csr64(oct, reg));
 	}
 
 	/*0x10070*/
-	for (i = 0; i < CN23XX_MAX_OUTPUT_QUEUES; i++) {
+	for (i = 0; i < CN23XX_MAX_OUTPUT_QUEUES; i++)
+	{
 		reg = CN23XX_SLI_OQ_BASE_ADDR64(i);
 		len += sprintf(s + len,
-			       "\n[%08x] (SLI_PKT%d_SLIST_BADDR): %016llx\n",
-			       reg, i, (u64)octeon_read_csr64(oct, reg));
+					   "\n[%08x] (SLI_PKT%d_SLIST_BADDR): %016llx\n",
+					   reg, i, (u64)octeon_read_csr64(oct, reg));
 	}
 
 	/*0x100a0*/
-	for (i = 0; i < CN23XX_MAX_OUTPUT_QUEUES; i++) {
+	for (i = 0; i < CN23XX_MAX_OUTPUT_QUEUES; i++)
+	{
 		reg = CN23XX_SLI_OQ_PKT_INT_LEVELS(i);
 		len += sprintf(s + len,
-			       "\n[%08x] (SLI_PKT%d_INT_LEVELS): %016llx\n",
-			       reg, i, (u64)octeon_read_csr64(oct, reg));
+					   "\n[%08x] (SLI_PKT%d_INT_LEVELS): %016llx\n",
+					   reg, i, (u64)octeon_read_csr64(oct, reg));
 	}
 
 	/*0x100b0*/
-	for (i = 0; i < CN23XX_MAX_OUTPUT_QUEUES; i++) {
+	for (i = 0; i < CN23XX_MAX_OUTPUT_QUEUES; i++)
+	{
 		reg = CN23XX_SLI_OQ_PKTS_SENT(i);
 		len += sprintf(s + len, "\n[%08x] (SLI_PKT%d_CNTS): %016llx\n",
-			       reg, i, (u64)octeon_read_csr64(oct, reg));
+					   reg, i, (u64)octeon_read_csr64(oct, reg));
 	}
 
 	/*0x100c0*/
-	for (i = 0; i < CN23XX_MAX_OUTPUT_QUEUES; i++) {
+	for (i = 0; i < CN23XX_MAX_OUTPUT_QUEUES; i++)
+	{
 		reg = 0x100c0 + i * CN23XX_OQ_OFFSET;
 		len += sprintf(s + len,
-			       "\n[%08x] (SLI_PKT%d_ERROR_INFO): %016llx\n",
-			       reg, i, (u64)octeon_read_csr64(oct, reg));
+					   "\n[%08x] (SLI_PKT%d_ERROR_INFO): %016llx\n",
+					   reg, i, (u64)octeon_read_csr64(oct, reg));
 
 		/*0x10000*/
-		for (i = 0; i < CN23XX_MAX_INPUT_QUEUES; i++) {
+		for (i = 0; i < CN23XX_MAX_INPUT_QUEUES; i++)
+		{
 			reg = CN23XX_SLI_IQ_PKT_CONTROL64(i);
 			len += sprintf(
-				s + len,
-				"\n[%08x] (SLI_PKT%d_INPUT_CONTROL): %016llx\n",
-				reg, i, (u64)octeon_read_csr64(oct, reg));
+					   s + len,
+					   "\n[%08x] (SLI_PKT%d_INPUT_CONTROL): %016llx\n",
+					   reg, i, (u64)octeon_read_csr64(oct, reg));
 		}
 
 		/*0x10010*/
-		for (i = 0; i < CN23XX_MAX_INPUT_QUEUES; i++) {
+		for (i = 0; i < CN23XX_MAX_INPUT_QUEUES; i++)
+		{
 			reg = CN23XX_SLI_IQ_BASE_ADDR64(i);
 			len += sprintf(
-			    s + len,
-			    "\n[%08x] (SLI_PKT%d_INSTR_BADDR): %016llx\n", reg,
-			    i, (u64)octeon_read_csr64(oct, reg));
+					   s + len,
+					   "\n[%08x] (SLI_PKT%d_INSTR_BADDR): %016llx\n", reg,
+					   i, (u64)octeon_read_csr64(oct, reg));
 		}
 
 		/*0x10020*/
-		for (i = 0; i < CN23XX_MAX_INPUT_QUEUES; i++) {
+		for (i = 0; i < CN23XX_MAX_INPUT_QUEUES; i++)
+		{
 			reg = CN23XX_SLI_IQ_DOORBELL(i);
 			len += sprintf(
-			    s + len,
-			    "\n[%08x] (SLI_PKT%d_INSTR_BAOFF_DBELL): %016llx\n",
-			    reg, i, (u64)octeon_read_csr64(oct, reg));
+					   s + len,
+					   "\n[%08x] (SLI_PKT%d_INSTR_BAOFF_DBELL): %016llx\n",
+					   reg, i, (u64)octeon_read_csr64(oct, reg));
 		}
 
 		/*0x10030*/
-		for (i = 0; i < CN23XX_MAX_INPUT_QUEUES; i++) {
+		for (i = 0; i < CN23XX_MAX_INPUT_QUEUES; i++)
+		{
 			reg = CN23XX_SLI_IQ_SIZE(i);
 			len += sprintf(
-			    s + len,
-			    "\n[%08x] (SLI_PKT%d_INSTR_FIFO_RSIZE): %016llx\n",
-			    reg, i, (u64)octeon_read_csr64(oct, reg));
+					   s + len,
+					   "\n[%08x] (SLI_PKT%d_INSTR_FIFO_RSIZE): %016llx\n",
+					   reg, i, (u64)octeon_read_csr64(oct, reg));
 		}
 
 		/*0x10040*/
 		for (i = 0; i < CN23XX_MAX_INPUT_QUEUES; i++)
+		{
 			reg = CN23XX_SLI_IQ_INSTR_COUNT64(i);
+		}
+
 		len += sprintf(s + len,
-			       "\n[%08x] (SLI_PKT_IN_DONE%d_CNTS): %016llx\n",
-			       reg, i, (u64)octeon_read_csr64(oct, reg));
+					   "\n[%08x] (SLI_PKT_IN_DONE%d_CNTS): %016llx\n",
+					   reg, i, (u64)octeon_read_csr64(oct, reg));
 	}
 
 	return len;
@@ -2028,97 +2306,101 @@ static int cn6xxx_read_csr_reg(char *s, struct octeon_device *oct)
 	len += sprintf(s + len, "\n\t Octeon CSR Registers\n\n");
 	reg = CN6XXX_WIN_WR_ADDR_LO;
 	len += sprintf(s + len, "\n[%02x] (WIN_WR_ADDR_LO): %08x\n",
-		       CN6XXX_WIN_WR_ADDR_LO, octeon_read_csr(oct, reg));
+				   CN6XXX_WIN_WR_ADDR_LO, octeon_read_csr(oct, reg));
 	reg = CN6XXX_WIN_WR_ADDR_HI;
 	len += sprintf(s + len, "[%02x] (WIN_WR_ADDR_HI): %08x\n",
-		       CN6XXX_WIN_WR_ADDR_HI, octeon_read_csr(oct, reg));
+				   CN6XXX_WIN_WR_ADDR_HI, octeon_read_csr(oct, reg));
 	reg = CN6XXX_WIN_RD_ADDR_LO;
 	len += sprintf(s + len, "[%02x] (WIN_RD_ADDR_LO): %08x\n",
-		       CN6XXX_WIN_RD_ADDR_LO, octeon_read_csr(oct, reg));
+				   CN6XXX_WIN_RD_ADDR_LO, octeon_read_csr(oct, reg));
 	reg = CN6XXX_WIN_RD_ADDR_HI;
 	len += sprintf(s + len, "[%02x] (WIN_RD_ADDR_HI): %08x\n",
-		       CN6XXX_WIN_RD_ADDR_HI, octeon_read_csr(oct, reg));
+				   CN6XXX_WIN_RD_ADDR_HI, octeon_read_csr(oct, reg));
 	reg = CN6XXX_WIN_WR_DATA_LO;
 	len += sprintf(s + len, "[%02x] (WIN_WR_DATA_LO): %08x\n",
-		       CN6XXX_WIN_WR_DATA_LO, octeon_read_csr(oct, reg));
+				   CN6XXX_WIN_WR_DATA_LO, octeon_read_csr(oct, reg));
 	reg = CN6XXX_WIN_WR_DATA_HI;
 	len += sprintf(s + len, "[%02x] (WIN_WR_DATA_HI): %08x\n",
-		       CN6XXX_WIN_WR_DATA_HI, octeon_read_csr(oct, reg));
+				   CN6XXX_WIN_WR_DATA_HI, octeon_read_csr(oct, reg));
 	len += sprintf(s + len, "[%02x] (WIN_WR_MASK_REG): %08x\n",
-		       CN6XXX_WIN_WR_MASK_REG,
-		       octeon_read_csr(oct, CN6XXX_WIN_WR_MASK_REG));
+				   CN6XXX_WIN_WR_MASK_REG,
+				   octeon_read_csr(oct, CN6XXX_WIN_WR_MASK_REG));
 
 	/* PCI  Interrupt Register */
 	len += sprintf(s + len, "\n[%x] (INT_ENABLE PORT 0): %08x\n",
-		       CN6XXX_SLI_INT_ENB64_PORT0, octeon_read_csr(oct,
-						CN6XXX_SLI_INT_ENB64_PORT0));
+				   CN6XXX_SLI_INT_ENB64_PORT0, octeon_read_csr(oct,
+						   CN6XXX_SLI_INT_ENB64_PORT0));
 	len += sprintf(s + len, "\n[%x] (INT_ENABLE PORT 1): %08x\n",
-		       CN6XXX_SLI_INT_ENB64_PORT1,
-		       octeon_read_csr(oct, CN6XXX_SLI_INT_ENB64_PORT1));
+				   CN6XXX_SLI_INT_ENB64_PORT1,
+				   octeon_read_csr(oct, CN6XXX_SLI_INT_ENB64_PORT1));
 	len += sprintf(s + len, "[%x] (INT_SUM): %08x\n", CN6XXX_SLI_INT_SUM64,
-		       octeon_read_csr(oct, CN6XXX_SLI_INT_SUM64));
+				   octeon_read_csr(oct, CN6XXX_SLI_INT_SUM64));
 
 	/* PCI  Output queue registers */
-	for (i = 0; i < oct->num_oqs; i++) {
+	for (i = 0; i < oct->num_oqs; i++)
+	{
 		reg = CN6XXX_SLI_OQ_PKTS_SENT(i);
 		len += sprintf(s + len, "\n[%x] (PKTS_SENT_%d): %08x\n",
-			       reg, i, octeon_read_csr(oct, reg));
+					   reg, i, octeon_read_csr(oct, reg));
 		reg = CN6XXX_SLI_OQ_PKTS_CREDIT(i);
 		len += sprintf(s + len, "[%x] (PKT_CREDITS_%d): %08x\n",
-			       reg, i, octeon_read_csr(oct, reg));
+					   reg, i, octeon_read_csr(oct, reg));
 	}
+
 	reg = CN6XXX_SLI_OQ_INT_LEVEL_PKTS;
 	len += sprintf(s + len, "\n[%x] (PKTS_SENT_INT_LEVEL): %08x\n",
-		       reg, octeon_read_csr(oct, reg));
+				   reg, octeon_read_csr(oct, reg));
 	reg = CN6XXX_SLI_OQ_INT_LEVEL_TIME;
 	len += sprintf(s + len, "[%x] (PKTS_SENT_TIME): %08x\n",
-		       reg, octeon_read_csr(oct, reg));
+				   reg, octeon_read_csr(oct, reg));
 
 	/* PCI  Input queue registers */
-	for (i = 0; i <= 3; i++) {
+	for (i = 0; i <= 3; i++)
+	{
 		u32 reg;
 
 		reg = CN6XXX_SLI_IQ_DOORBELL(i);
 		len += sprintf(s + len, "\n[%x] (INSTR_DOORBELL_%d): %08x\n",
-			       reg, i, octeon_read_csr(oct, reg));
+					   reg, i, octeon_read_csr(oct, reg));
 		reg = CN6XXX_SLI_IQ_INSTR_COUNT(i);
 		len += sprintf(s + len, "[%x] (INSTR_COUNT_%d): %08x\n",
-			       reg, i, octeon_read_csr(oct, reg));
+					   reg, i, octeon_read_csr(oct, reg));
 	}
 
 	/* PCI  DMA registers */
 
 	len += sprintf(s + len, "\n[%x] (DMA_CNT_0): %08x\n",
-		       CN6XXX_DMA_CNT(0),
-		       octeon_read_csr(oct, CN6XXX_DMA_CNT(0)));
+				   CN6XXX_DMA_CNT(0),
+				   octeon_read_csr(oct, CN6XXX_DMA_CNT(0)));
 	reg = CN6XXX_DMA_PKT_INT_LEVEL(0);
 	len += sprintf(s + len, "[%x] (DMA_INT_LEV_0): %08x\n",
-		       CN6XXX_DMA_PKT_INT_LEVEL(0), octeon_read_csr(oct, reg));
+				   CN6XXX_DMA_PKT_INT_LEVEL(0), octeon_read_csr(oct, reg));
 	reg = CN6XXX_DMA_TIME_INT_LEVEL(0);
 	len += sprintf(s + len, "[%x] (DMA_TIME_0): %08x\n",
-		       CN6XXX_DMA_TIME_INT_LEVEL(0),
-		       octeon_read_csr(oct, reg));
+				   CN6XXX_DMA_TIME_INT_LEVEL(0),
+				   octeon_read_csr(oct, reg));
 
 	len += sprintf(s + len, "\n[%x] (DMA_CNT_1): %08x\n",
-		       CN6XXX_DMA_CNT(1),
-		       octeon_read_csr(oct, CN6XXX_DMA_CNT(1)));
+				   CN6XXX_DMA_CNT(1),
+				   octeon_read_csr(oct, CN6XXX_DMA_CNT(1)));
 	reg = CN6XXX_DMA_PKT_INT_LEVEL(1);
 	len += sprintf(s + len, "[%x] (DMA_INT_LEV_1): %08x\n",
-		       CN6XXX_DMA_PKT_INT_LEVEL(1),
-		       octeon_read_csr(oct, reg));
+				   CN6XXX_DMA_PKT_INT_LEVEL(1),
+				   octeon_read_csr(oct, reg));
 	reg = CN6XXX_DMA_PKT_INT_LEVEL(1);
 	len += sprintf(s + len, "[%x] (DMA_TIME_1): %08x\n",
-		       CN6XXX_DMA_TIME_INT_LEVEL(1),
-		       octeon_read_csr(oct, reg));
+				   CN6XXX_DMA_TIME_INT_LEVEL(1),
+				   octeon_read_csr(oct, reg));
 
 	/* PCI  Index registers */
 
 	len += sprintf(s + len, "\n");
 
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 16; i++)
+	{
 		reg = lio_pci_readq(oct, CN6XXX_BAR1_REG(i, oct->pcie_port));
 		len += sprintf(s + len, "[%llx] (BAR1_INDEX_%02d): %08x\n",
-			       CN6XXX_BAR1_REG(i, oct->pcie_port), i, reg);
+					   CN6XXX_BAR1_REG(i, oct->pcie_port), i, reg);
 	}
 
 	return len;
@@ -2132,18 +2414,20 @@ static int cn6xxx_read_config_reg(char *s, struct octeon_device *oct)
 	/* PCI CONFIG Registers */
 
 	len += sprintf(s + len,
-		       "\n\t Octeon Config space Registers\n\n");
+				   "\n\t Octeon Config space Registers\n\n");
 
-	for (i = 0; i <= 13; i++) {
+	for (i = 0; i <= 13; i++)
+	{
 		pci_read_config_dword(oct->pci_dev, (i * 4), &val);
 		len += sprintf(s + len, "[0x%x] (Config[%d]): 0x%08x\n",
-			       (i * 4), i, val);
+					   (i * 4), i, val);
 	}
 
-	for (i = 30; i <= 34; i++) {
+	for (i = 30; i <= 34; i++)
+	{
 		pci_read_config_dword(oct->pci_dev, (i * 4), &val);
 		len += sprintf(s + len, "[0x%x] (Config[%d]): 0x%08x\n",
-			       (i * 4), i, val);
+					   (i * 4), i, val);
 	}
 
 	return len;
@@ -2151,7 +2435,7 @@ static int cn6xxx_read_config_reg(char *s, struct octeon_device *oct)
 
 /*  Return register dump user app.  */
 static void lio_get_regs(struct net_device *dev,
-			 struct ethtool_regs *regs, void *regbuf)
+						 struct ethtool_regs *regs, void *regbuf)
 {
 	struct lio *lio = GET_LIO(dev);
 	int len = 0;
@@ -2159,20 +2443,23 @@ static void lio_get_regs(struct net_device *dev,
 
 	regs->version = OCT_ETHTOOL_REGSVER;
 
-	switch (oct->chip_id) {
-	case OCTEON_CN23XX_PF_VID:
-		memset(regbuf, 0, OCT_ETHTOOL_REGDUMP_LEN_23XX);
-		len += cn23xx_read_csr_reg(regbuf + len, oct);
-		break;
-	case OCTEON_CN68XX:
-	case OCTEON_CN66XX:
-		memset(regbuf, 0, OCT_ETHTOOL_REGDUMP_LEN);
-		len += cn6xxx_read_csr_reg(regbuf + len, oct);
-		len += cn6xxx_read_config_reg(regbuf + len, oct);
-		break;
-	default:
-		dev_err(&oct->pci_dev->dev, "%s Unknown chipid: %d\n",
-			__func__, oct->chip_id);
+	switch (oct->chip_id)
+	{
+		case OCTEON_CN23XX_PF_VID:
+			memset(regbuf, 0, OCT_ETHTOOL_REGDUMP_LEN_23XX);
+			len += cn23xx_read_csr_reg(regbuf + len, oct);
+			break;
+
+		case OCTEON_CN68XX:
+		case OCTEON_CN66XX:
+			memset(regbuf, 0, OCT_ETHTOOL_REGDUMP_LEN);
+			len += cn6xxx_read_csr_reg(regbuf + len, oct);
+			len += cn6xxx_read_config_reg(regbuf + len, oct);
+			break;
+
+		default:
+			dev_err(&oct->pci_dev->dev, "%s Unknown chipid: %d\n",
+					__func__, oct->chip_id);
 	}
 }
 
@@ -2189,11 +2476,12 @@ static int lio_set_priv_flags(struct net_device *netdev, u32 flags)
 	bool intr_by_tx_bytes = !!(flags & (0x1 << OCT_PRIV_FLAG_TX_BYTES));
 
 	lio_set_priv_flag(lio->oct_dev, OCT_PRIV_FLAG_TX_BYTES,
-			  intr_by_tx_bytes);
+					  intr_by_tx_bytes);
 	return 0;
 }
 
-static const struct ethtool_ops lio_ethtool_ops = {
+static const struct ethtool_ops lio_ethtool_ops =
+{
 	.get_settings		= lio_get_settings,
 	.get_link		= ethtool_op_get_link,
 	.get_drvinfo		= lio_get_drvinfo,

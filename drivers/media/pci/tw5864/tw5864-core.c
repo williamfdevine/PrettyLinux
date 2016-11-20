@@ -78,7 +78,8 @@ MODULE_PARM_DESC(video_nr, "video devices numbers array");
  * the PCI ID database up to date.  Note that the entries must be
  * added under vendor 0x1797 (Techwell Inc.) as subsystem IDs.
  */
-static const struct pci_device_id tw5864_pci_tbl[] = {
+static const struct pci_device_id tw5864_pci_tbl[] =
+{
 	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_5864)},
 	{0,}
 };
@@ -108,22 +109,30 @@ static irqreturn_t tw5864_isr(int irq, void *dev_id)
 	u32 status;
 
 	status = tw_readl(TW5864_INTR_STATUS_L) |
-		tw_readl(TW5864_INTR_STATUS_H) << 16;
+			 tw_readl(TW5864_INTR_STATUS_H) << 16;
+
 	if (!status)
+	{
 		return IRQ_NONE;
+	}
 
 	tw_writel(TW5864_INTR_CLR_L, 0xffff);
 	tw_writel(TW5864_INTR_CLR_H, 0xffff);
 
 	if (status & TW5864_INTR_VLC_DONE)
+	{
 		tw5864_h264_isr(dev);
+	}
 
 	if (status & TW5864_INTR_TIMER)
+	{
 		tw5864_timer_isr(dev);
+	}
 
-	if (!(status & (TW5864_INTR_TIMER | TW5864_INTR_VLC_DONE))) {
+	if (!(status & (TW5864_INTR_TIMER | TW5864_INTR_VLC_DONE)))
+	{
 		dev_dbg(&dev->pci->dev, "Unknown interrupt, status 0x%08X\n",
-			status);
+				status);
 	}
 
 	return IRQ_HANDLED;
@@ -144,7 +153,8 @@ static void tw5864_h264_isr(struct tw5864_dev *dev)
 	cur_frame = &dev->h264_buf[cur_frame_index];
 	next_frame = &dev->h264_buf[next_frame_index];
 
-	if (next_frame_index != dev->h264_buf_r_index) {
+	if (next_frame_index != dev->h264_buf_r_index)
+	{
 		cur_frame->vlc_len = tw_readl(TW5864_VLC_LENGTH) << 2;
 		cur_frame->checksum = tw_readl(TW5864_VLC_CRC_REG);
 		cur_frame->input = input;
@@ -160,13 +170,19 @@ static void tw5864_h264_isr(struct tw5864_dev *dev)
 		spin_lock(&input->slock);
 		input->frame_seqno++;
 		input->frame_gop_seqno++;
+
 		if (input->frame_gop_seqno >= input->gop)
+		{
 			input->frame_gop_seqno = 0;
+		}
+
 		spin_unlock(&input->slock);
-	} else {
+	}
+	else
+	{
 		dev_err(&dev->pci->dev,
-			"Skipped frame on input %d because all buffers busy\n",
-			channel);
+				"Skipped frame on input %d because all buffers busy\n",
+				channel);
 	}
 
 	dev->encoder_busy = 0;
@@ -200,26 +216,33 @@ static void tw5864_timer_isr(struct tw5864_dev *dev)
 	spin_unlock_irqrestore(&dev->slock, flags);
 
 	if (encoder_busy)
+	{
 		return;
+	}
 
 	/*
 	 * Traversing inputs in round-robin fashion, starting from next to the
 	 * last processed one
 	 */
-	for (i = 0; i < TW5864_INPUTS; i++) {
+	for (i = 0; i < TW5864_INPUTS; i++)
+	{
 		int next_input = (i + dev->next_input) % TW5864_INPUTS;
 		struct tw5864_input *input = &dev->inputs[next_input];
 		int raw_buf_id; /* id of internal buf with last raw frame */
 
 		spin_lock_irqsave(&input->slock, flags);
+
 		if (!input->enabled)
+		{
 			goto next;
+		}
 
 		/* Check if new raw frame is available */
 		raw_buf_id = tw_mask_shift_readl(TW5864_SENIF_ORG_FRM_PTR1, 0x3,
-						 2 * input->nr);
+										 2 * input->nr);
 
-		if (input->buf_id != raw_buf_id) {
+		if (input->buf_id != raw_buf_id)
+		{
 			input->buf_id = raw_buf_id;
 			tw5864_input_deadline_update(input);
 			spin_unlock_irqrestore(&input->slock, flags);
@@ -234,37 +257,47 @@ static void tw5864_timer_isr(struct tw5864_dev *dev)
 		}
 
 		/* No new raw frame; check if channel is stuck */
-		if (time_is_after_jiffies(input->new_frame_deadline)) {
+		if (time_is_after_jiffies(input->new_frame_deadline))
+		{
 			/* If stuck, request new raw frames again */
 			tw_mask_shift_writel(TW5864_ENC_BUF_PTR_REC1, 0x3,
-					     2 * input->nr, input->buf_id + 3);
+								 2 * input->nr, input->buf_id + 3);
 			tw5864_input_deadline_update(input);
 		}
+
 next:
 		spin_unlock_irqrestore(&input->slock, flags);
 	}
 }
 
 static int tw5864_initdev(struct pci_dev *pci_dev,
-			  const struct pci_device_id *pci_id)
+						  const struct pci_device_id *pci_id)
 {
 	struct tw5864_dev *dev;
 	int err;
 
 	dev = devm_kzalloc(&pci_dev->dev, sizeof(*dev), GFP_KERNEL);
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	snprintf(dev->name, sizeof(dev->name), "tw5864:%s", pci_name(pci_dev));
 
 	err = v4l2_device_register(&pci_dev->dev, &dev->v4l2_dev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* pci init */
 	dev->pci = pci_dev;
 	err = pci_enable_device(pci_dev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&dev->pci->dev, "pci_enable_device() failed\n");
 		goto unreg_v4l2;
 	}
@@ -272,19 +305,26 @@ static int tw5864_initdev(struct pci_dev *pci_dev,
 	pci_set_master(pci_dev);
 
 	err = pci_set_dma_mask(pci_dev, DMA_BIT_MASK(32));
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&dev->pci->dev, "32 bit PCI DMA is not supported\n");
 		goto disable_pci;
 	}
 
 	/* get mmio */
 	err = pci_request_regions(pci_dev, dev->name);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&dev->pci->dev, "Cannot request regions for MMIO\n");
 		goto disable_pci;
 	}
+
 	dev->mmio = pci_ioremap_bar(pci_dev, 0);
-	if (!dev->mmio) {
+
+	if (!dev->mmio)
+	{
 		err = -EIO;
 		dev_err(&dev->pci->dev, "can't ioremap() MMIO memory\n");
 		goto release_mmio;
@@ -293,19 +333,24 @@ static int tw5864_initdev(struct pci_dev *pci_dev,
 	spin_lock_init(&dev->slock);
 
 	dev_info(&pci_dev->dev, "TW5864 hardware version: %04x\n",
-		 tw_readl(TW5864_HW_VERSION));
+			 tw_readl(TW5864_HW_VERSION));
 	dev_info(&pci_dev->dev, "TW5864 H.264 core version: %04x:%04x\n",
-		 tw_readl(TW5864_H264REV),
-		 tw_readl(TW5864_UNDECLARED_H264REV_PART2));
+			 tw_readl(TW5864_H264REV),
+			 tw_readl(TW5864_UNDECLARED_H264REV_PART2));
 
 	err = tw5864_video_init(dev, video_nr);
+
 	if (err)
+	{
 		goto unmap_mmio;
+	}
 
 	/* get irq */
 	err = devm_request_irq(&pci_dev->dev, pci_dev->irq, tw5864_isr,
-			       IRQF_SHARED, "tw5864", dev);
-	if (err < 0) {
+						   IRQF_SHARED, "tw5864", dev);
+
+	if (err < 0)
+	{
 		dev_err(&dev->pci->dev, "can't get IRQ %d\n", pci_dev->irq);
 		goto fini_video;
 	}
@@ -343,13 +388,14 @@ static void tw5864_finidev(struct pci_dev *pci_dev)
 	/* release resources */
 	iounmap(dev->mmio);
 	release_mem_region(pci_resource_start(pci_dev, 0),
-			   pci_resource_len(pci_dev, 0));
+					   pci_resource_len(pci_dev, 0));
 
 	v4l2_device_unregister(&dev->v4l2_dev);
 	devm_kfree(&pci_dev->dev, dev);
 }
 
-static struct pci_driver tw5864_pci_driver = {
+static struct pci_driver tw5864_pci_driver =
+{
 	.name = "tw5864",
 	.id_table = tw5864_pci_tbl,
 	.probe = tw5864_initdev,

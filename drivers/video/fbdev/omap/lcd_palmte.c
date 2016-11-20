@@ -26,7 +26,7 @@
 #include "omapfb.h"
 
 static int palmte_panel_init(struct lcd_panel *panel,
-				struct omapfb_device *fbdev)
+							 struct omapfb_device *fbdev)
 {
 	return 0;
 }
@@ -49,11 +49,12 @@ static unsigned long palmte_panel_get_caps(struct lcd_panel *panel)
 	return 0;
 }
 
-struct lcd_panel palmte_panel = {
+struct lcd_panel palmte_panel =
+{
 	.name		= "palmte",
 	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
-			  OMAP_LCDC_INV_HSYNC | OMAP_LCDC_HSVS_RISING_EDGE |
-			  OMAP_LCDC_HSVS_OPPOSITE,
+	OMAP_LCDC_INV_HSYNC | OMAP_LCDC_HSVS_RISING_EDGE |
+	OMAP_LCDC_HSVS_OPPOSITE,
 
 	.data_lines	= 16,
 	.bpp		= 8,
@@ -96,7 +97,8 @@ static int palmte_panel_resume(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver palmte_panel_driver = {
+static struct platform_driver palmte_panel_driver =
+{
 	.probe		= palmte_panel_probe,
 	.remove		= palmte_panel_remove,
 	.suspend	= palmte_panel_suspend,

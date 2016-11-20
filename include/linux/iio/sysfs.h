@@ -21,7 +21,8 @@ struct iio_chan_spec;
  * @l:		list head for maintaining list of dynamically created attrs
  * @c:		specification for the underlying channel
  */
-struct iio_dev_attr {
+struct iio_dev_attr
+{
 	struct device_attribute dev_attr;
 	u64 address;
 	struct list_head l;
@@ -32,8 +33,8 @@ struct iio_dev_attr {
 	container_of(_dev_attr, struct iio_dev_attr, dev_attr)
 
 ssize_t iio_read_const_attr(struct device *dev,
-			    struct device_attribute *attr,
-			    char *len);
+							struct device_attribute *attr,
+							char *len);
 
 /**
  * struct iio_const_attr - constant device specific attribute
@@ -41,7 +42,8 @@ ssize_t iio_read_const_attr(struct device *dev,
  * @string:	attribute string
  * @dev_attr:	underlying device attribute
  */
-struct iio_const_attr {
+struct iio_const_attr
+{
 	const char *string;
 	struct device_attribute dev_attr;
 };
@@ -53,25 +55,25 @@ struct iio_const_attr {
    address, in these cases pass a negative */
 #define IIO_ATTR(_name, _mode, _show, _store, _addr)		\
 	{ .dev_attr = __ATTR(_name, _mode, _show, _store),	\
-	  .address = _addr }
+				  .address = _addr }
 
 #define IIO_DEVICE_ATTR(_name, _mode, _show, _store, _addr)	\
 	struct iio_dev_attr iio_dev_attr_##_name		\
-	= IIO_ATTR(_name, _mode, _show, _store, _addr)
+		= IIO_ATTR(_name, _mode, _show, _store, _addr)
 
 #define IIO_DEVICE_ATTR_NAMED(_vname, _name, _mode, _show, _store, _addr) \
 	struct iio_dev_attr iio_dev_attr_##_vname			\
-	= IIO_ATTR(_name, _mode, _show, _store, _addr)
+		= IIO_ATTR(_name, _mode, _show, _store, _addr)
 
 #define IIO_CONST_ATTR(_name, _string)					\
 	struct iio_const_attr iio_const_attr_##_name			\
-	= { .string = _string,						\
-	    .dev_attr = __ATTR(_name, S_IRUGO, iio_read_const_attr, NULL)}
+			= { .string = _string,						\
+						  .dev_attr = __ATTR(_name, S_IRUGO, iio_read_const_attr, NULL)}
 
 #define IIO_CONST_ATTR_NAMED(_vname, _name, _string)			\
 	struct iio_const_attr iio_const_attr_##_vname			\
-	= { .string = _string,						\
-	    .dev_attr = __ATTR(_name, S_IRUGO, iio_read_const_attr, NULL)}
+			= { .string = _string,						\
+						  .dev_attr = __ATTR(_name, S_IRUGO, iio_read_const_attr, NULL)}
 
 /* Generic attributes of onetype or another */
 

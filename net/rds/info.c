@@ -61,7 +61,8 @@
  * - info source copy must be pinned, may be "large"
  */
 
-struct rds_info_iterator {
+struct rds_info_iterator
+{
 	struct page **pages;
 	void *addr;
 	unsigned long offset;
@@ -103,7 +104,8 @@ EXPORT_SYMBOL_GPL(rds_info_deregister_func);
  */
 void rds_info_iter_unmap(struct rds_info_iterator *iter)
 {
-	if (iter->addr) {
+	if (iter->addr)
+	{
 		kunmap_atomic(iter->addr);
 		iter->addr = NULL;
 	}
@@ -113,19 +115,22 @@ void rds_info_iter_unmap(struct rds_info_iterator *iter)
  * get_user_pages() called flush_dcache_page() on the pages for us.
  */
 void rds_info_copy(struct rds_info_iterator *iter, void *data,
-		   unsigned long bytes)
+				   unsigned long bytes)
 {
 	unsigned long this;
 
-	while (bytes) {
+	while (bytes)
+	{
 		if (!iter->addr)
+		{
 			iter->addr = kmap_atomic(*iter->pages);
+		}
 
 		this = min(bytes, PAGE_SIZE - iter->offset);
 
 		rdsdebug("page %p addr %p offset %lu this %lu data %p "
-			  "bytes %lu\n", *iter->pages, iter->addr,
-			  iter->offset, this, data, bytes);
+				 "bytes %lu\n", *iter->pages, iter->addr,
+				 iter->offset, this, data, bytes);
 
 		memcpy(iter->addr + iter->offset, data, this);
 
@@ -133,7 +138,8 @@ void rds_info_copy(struct rds_info_iterator *iter, void *data,
 		bytes -= this;
 		iter->offset += this;
 
-		if (iter->offset == PAGE_SIZE) {
+		if (iter->offset == PAGE_SIZE)
+		{
 			kunmap_atomic(iter->addr);
 			iter->addr = NULL;
 			iter->offset = 0;
@@ -156,7 +162,7 @@ EXPORT_SYMBOL_GPL(rds_info_copy);
  * in the snapshot.
  */
 int rds_info_getsockopt(struct socket *sock, int optname, char __user *optval,
-			int __user *optlen)
+						int __user *optlen)
 {
 	struct rds_info_iterator iter;
 	struct rds_info_lengths lens;
@@ -169,36 +175,51 @@ int rds_info_getsockopt(struct socket *sock, int optname, char __user *optval,
 	int len;
 	int total;
 
-	if (get_user(len, optlen)) {
+	if (get_user(len, optlen))
+	{
 		ret = -EFAULT;
 		goto out;
 	}
 
 	/* check for all kinds of wrapping and the like */
 	start = (unsigned long)optval;
-	if (len < 0 || len > INT_MAX - PAGE_SIZE + 1 || start + len < start) {
+
+	if (len < 0 || len > INT_MAX - PAGE_SIZE + 1 || start + len < start)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
 
 	/* a 0 len call is just trying to probe its length */
 	if (len == 0)
+	{
 		goto call_func;
+	}
 
 	nr_pages = (PAGE_ALIGN(start + len) - (start & PAGE_MASK))
-			>> PAGE_SHIFT;
+			   >> PAGE_SHIFT;
 
 	pages = kmalloc(nr_pages * sizeof(struct page *), GFP_KERNEL);
-	if (!pages) {
+
+	if (!pages)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
+
 	ret = get_user_pages_fast(start, nr_pages, 1, pages);
-	if (ret != nr_pages) {
+
+	if (ret != nr_pages)
+	{
 		if (ret > 0)
+		{
 			nr_pages = ret;
+		}
 		else
+		{
 			nr_pages = 0;
+		}
+
 		ret = -EAGAIN; /* XXX ? */
 		goto out;
 	}
@@ -207,7 +228,9 @@ int rds_info_getsockopt(struct socket *sock, int optname, char __user *optval,
 
 call_func:
 	func = rds_info_funcs[optname - RDS_INFO_FIRST];
-	if (!func) {
+
+	if (!func)
+	{
 		ret = -ENOPROTOOPT;
 		goto out;
 	}
@@ -223,20 +246,29 @@ call_func:
 
 	rds_info_iter_unmap(&iter);
 
-	if (total > len) {
+	if (total > len)
+	{
 		len = total;
 		ret = -ENOSPC;
-	} else {
+	}
+	else
+	{
 		len = total;
 		ret = lens.each;
 	}
 
 	if (put_user(len, optlen))
+	{
 		ret = -EFAULT;
+	}
 
 out:
+
 	for (i = 0; pages && i < nr_pages; i++)
+	{
 		put_page(pages[i]);
+	}
+
 	kfree(pages);
 
 	return ret;

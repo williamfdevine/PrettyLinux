@@ -7,7 +7,8 @@
  * These are set up by the setup-routine at boot-time:
  */
 
-struct screen_info {
+struct screen_info
+{
 	__u8  orig_x;		/* 0x00 */
 	__u8  orig_y;		/* 0x01 */
 	__u16 ext_mem_k;	/* 0x02 */

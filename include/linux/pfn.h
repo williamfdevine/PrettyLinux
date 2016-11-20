@@ -9,7 +9,8 @@
  * by memmap (struct page).  Whether a pfn_t has a 'struct page'
  * backing is indicated by flags in the high bits of the value.
  */
-typedef struct {
+typedef struct
+{
 	u64 val;
 } pfn_t;
 #endif

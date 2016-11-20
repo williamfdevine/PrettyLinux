@@ -17,7 +17,8 @@
 #include <linux/slab.h>
 #include <uapi/linux/gameport.h>
 
-struct gameport {
+struct gameport
+{
 
 	void *port_data;	/* Private pointer for gameport drivers */
 	char name[32];
@@ -51,7 +52,8 @@ struct gameport {
 };
 #define to_gameport_port(d)	container_of(d, struct gameport, dev)
 
-struct gameport_driver {
+struct gameport_driver
+{
 	const char *description;
 
 	int (*connect)(struct gameport *, struct gameport_driver *drv);
@@ -144,7 +146,7 @@ static inline void gameport_unpin_driver(struct gameport *gameport)
 }
 
 int __must_check __gameport_register_driver(struct gameport_driver *drv,
-				struct module *owner, const char *mod_name);
+		struct module *owner, const char *mod_name);
 
 /* use a define to avoid include chaining to get THIS_MODULE & friends */
 #define gameport_register_driver(drv) \
@@ -163,39 +165,55 @@ void gameport_unregister_driver(struct gameport_driver *drv);
  */
 #define module_gameport_driver(__gameport_driver) \
 	module_driver(__gameport_driver, gameport_register_driver, \
-		       gameport_unregister_driver)
+				  gameport_unregister_driver)
 
 
 static inline void gameport_trigger(struct gameport *gameport)
 {
 	if (gameport->trigger)
+	{
 		gameport->trigger(gameport);
+	}
 	else
+	{
 		outb(0xff, gameport->io);
+	}
 }
 
 static inline unsigned char gameport_read(struct gameport *gameport)
 {
 	if (gameport->read)
+	{
 		return gameport->read(gameport);
+	}
 	else
+	{
 		return inb(gameport->io);
+	}
 }
 
 static inline int gameport_cooked_read(struct gameport *gameport, int *axes, int *buttons)
 {
 	if (gameport->cooked_read)
+	{
 		return gameport->cooked_read(gameport, axes, buttons);
+	}
 	else
+	{
 		return -1;
+	}
 }
 
 static inline int gameport_calibrate(struct gameport *gameport, int *axes, int *max)
 {
 	if (gameport->calibrate)
+	{
 		return gameport->calibrate(gameport, axes, max);
+	}
 	else
+	{
 		return -1;
+	}
 }
 
 static inline int gameport_time(struct gameport *gameport, int time)

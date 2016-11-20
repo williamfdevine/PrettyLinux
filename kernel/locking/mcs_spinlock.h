@@ -14,7 +14,8 @@
 
 #include <asm/mcs_spinlock.h>
 
-struct mcs_spinlock {
+struct mcs_spinlock
+{
 	struct mcs_spinlock *next;
 	int locked; /* 1 if lock acquired */
 	int count;  /* nesting count, see qspinlock.c */
@@ -26,10 +27,10 @@ struct mcs_spinlock {
  * subsequent operations happen after the lock is acquired.
  */
 #define arch_mcs_spin_lock_contended(l)					\
-do {									\
-	while (!(smp_load_acquire(l)))					\
-		cpu_relax_lowlatency();					\
-} while (0)
+	do {									\
+		while (!(smp_load_acquire(l)))					\
+			cpu_relax_lowlatency();					\
+	} while (0)
 #endif
 
 #ifndef arch_mcs_spin_unlock_contended
@@ -74,7 +75,9 @@ void mcs_spin_lock(struct mcs_spinlock **lock, struct mcs_spinlock *node)
 	 * with a LOCK primitive.
 	 */
 	prev = xchg(lock, node);
-	if (likely(prev == NULL)) {
+
+	if (likely(prev == NULL))
+	{
 		/*
 		 * Lock acquired, don't need to set node->locked to 1. Threads
 		 * only spin on its own node->locked value for lock acquisition.
@@ -85,6 +88,7 @@ void mcs_spin_lock(struct mcs_spinlock **lock, struct mcs_spinlock *node)
 		 */
 		return;
 	}
+
 	WRITE_ONCE(prev->next, node);
 
 	/* Wait until the lock holder passes the lock down. */
@@ -100,15 +104,21 @@ void mcs_spin_unlock(struct mcs_spinlock **lock, struct mcs_spinlock *node)
 {
 	struct mcs_spinlock *next = READ_ONCE(node->next);
 
-	if (likely(!next)) {
+	if (likely(!next))
+	{
 		/*
 		 * Release the lock by setting it to NULL
 		 */
 		if (likely(cmpxchg_release(lock, node, NULL) == node))
+		{
 			return;
+		}
+
 		/* Wait until the next pointer is set */
 		while (!(next = READ_ONCE(node->next)))
+		{
 			cpu_relax_lowlatency();
+		}
 	}
 
 	/* Pass lock to next waiter. */

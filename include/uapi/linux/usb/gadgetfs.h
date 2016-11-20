@@ -29,7 +29,8 @@
  * stop polling this descriptor.
  */
 
-enum usb_gadgetfs_event_type {
+enum usb_gadgetfs_event_type
+{
 	GADGETFS_NOP = 0,
 
 	GADGETFS_CONNECT,
@@ -42,8 +43,10 @@ enum usb_gadgetfs_event_type {
 /* NOTE:  this structure must stay the same size and layout on
  * both 32-bit and 64-bit kernels.
  */
-struct usb_gadgetfs_event {
-	union {
+struct usb_gadgetfs_event
+{
+	union
+	{
 		/* NOP, DISCONNECT, SUSPEND: nothing
 		 * ... some hardware can't report disconnection
 		 */

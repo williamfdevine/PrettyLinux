@@ -59,9 +59,12 @@ int mpi_powm(MPI res, MPI base, MPI exp, MPI mod)
 	ep = exp->d;
 
 	if (!msize)
+	{
 		return -EINVAL;
+	}
 
-	if (!esize) {
+	if (!esize)
+	{
 		/* Exponent is zero, result is 1 mod MOD, i.e., 1 or 0
 		 * depending on if MOD equals 1.  */
 		rp[0] = 1;
@@ -75,22 +78,37 @@ int mpi_powm(MPI res, MPI base, MPI exp, MPI mod)
 	 * slightly larger, but the correct result is obtained after a final
 	 * reduction using the original MOD value.  */
 	mp = mp_marker = mpi_alloc_limb_space(msize);
+
 	if (!mp)
+	{
 		goto enomem;
+	}
+
 	mod_shift_cnt = count_leading_zeros(mod->d[msize - 1]);
+
 	if (mod_shift_cnt)
+	{
 		mpihelp_lshift(mp, mod->d, msize, mod_shift_cnt);
+	}
 	else
+	{
 		MPN_COPY(mp, mod->d, msize);
+	}
 
 	bsize = base->nlimbs;
 	bsign = base->sign;
-	if (bsize > msize) {	/* The base is larger than the module. Reduce it. */
+
+	if (bsize > msize)  	/* The base is larger than the module. Reduce it. */
+	{
 		/* Allocate (BSIZE + 1) with space for remainder and quotient.
 		 * (The quotient is (bsize - msize + 1) limbs.)  */
 		bp = bp_marker = mpi_alloc_limb_space(bsize + 1);
+
 		if (!bp)
+		{
 			goto enomem;
+		}
+
 		MPN_COPY(bp, base->d, bsize);
 		/* We don't care about the quotient, store it above the remainder,
 		 * at BP + MSIZE.  */
@@ -99,51 +117,85 @@ int mpi_powm(MPI res, MPI base, MPI exp, MPI mod)
 		/* Canonicalize the base, since we are going to multiply with it
 		 * quite a few times.  */
 		MPN_NORMALIZE(bp, bsize);
-	} else
+	}
+	else
+	{
 		bp = base->d;
+	}
 
-	if (!bsize) {
+	if (!bsize)
+	{
 		res->nlimbs = 0;
 		res->sign = 0;
 		goto leave;
 	}
 
-	if (res->alloced < size) {
+	if (res->alloced < size)
+	{
 		/* We have to allocate more space for RES.  If any of the input
 		 * parameters are identical to RES, defer deallocation of the old
 		 * space.  */
-		if (rp == ep || rp == mp || rp == bp) {
+		if (rp == ep || rp == mp || rp == bp)
+		{
 			rp = mpi_alloc_limb_space(size);
+
 			if (!rp)
+			{
 				goto enomem;
+			}
+
 			assign_rp = 1;
-		} else {
+		}
+		else
+		{
 			if (mpi_resize(res, size) < 0)
+			{
 				goto enomem;
+			}
+
 			rp = res->d;
 		}
-	} else {		/* Make BASE, EXP and MOD not overlap with RES.  */
-		if (rp == bp) {
+	}
+	else  		/* Make BASE, EXP and MOD not overlap with RES.  */
+	{
+		if (rp == bp)
+		{
 			/* RES and BASE are identical.  Allocate temp. space for BASE.  */
 			BUG_ON(bp_marker);
 			bp = bp_marker = mpi_alloc_limb_space(bsize);
+
 			if (!bp)
+			{
 				goto enomem;
+			}
+
 			MPN_COPY(bp, rp, bsize);
 		}
-		if (rp == ep) {
+
+		if (rp == ep)
+		{
 			/* RES and EXP are identical.  Allocate temp. space for EXP.  */
 			ep = ep_marker = mpi_alloc_limb_space(esize);
+
 			if (!ep)
+			{
 				goto enomem;
+			}
+
 			MPN_COPY(ep, rp, esize);
 		}
-		if (rp == mp) {
+
+		if (rp == mp)
+		{
 			/* RES and MOD are identical.  Allocate temporary space for MOD. */
 			BUG_ON(mp_marker);
 			mp = mp_marker = mpi_alloc_limb_space(msize);
+
 			if (!mp)
+			{
 				goto enomem;
+			}
+
 			MPN_COPY(mp, rp, msize);
 		}
 	}
@@ -161,8 +213,11 @@ int mpi_powm(MPI res, MPI base, MPI exp, MPI mod)
 		struct karatsuba_ctx karactx;
 
 		xp = xp_marker = mpi_alloc_limb_space(2 * (msize + 1));
+
 		if (!xp)
+		{
 			goto enomem;
+		}
 
 		memset(&karactx, 0, sizeof karactx);
 		negative_result = (ep[0] & 1) && base->sign;
@@ -183,36 +238,53 @@ int mpi_powm(MPI res, MPI base, MPI exp, MPI mod)
 		 * pointed to by XP.
 		 */
 
-		for (;;) {
-			while (c) {
+		for (;;)
+		{
+			while (c)
+			{
 				mpi_ptr_t tp;
 				mpi_size_t xsize;
 
 				/*if (mpihelp_mul_n(xp, rp, rp, rsize) < 0) goto enomem */
 				if (rsize < KARATSUBA_THRESHOLD)
+				{
 					mpih_sqr_n_basecase(xp, rp, rsize);
-				else {
-					if (!tspace) {
+				}
+				else
+				{
+					if (!tspace)
+					{
 						tsize = 2 * rsize;
 						tspace =
-						    mpi_alloc_limb_space(tsize);
+							mpi_alloc_limb_space(tsize);
+
 						if (!tspace)
+						{
 							goto enomem;
-					} else if (tsize < (2 * rsize)) {
+						}
+					}
+					else if (tsize < (2 * rsize))
+					{
 						mpi_free_limb_space(tspace);
 						tsize = 2 * rsize;
 						tspace =
-						    mpi_alloc_limb_space(tsize);
+							mpi_alloc_limb_space(tsize);
+
 						if (!tspace)
+						{
 							goto enomem;
+						}
 					}
+
 					mpih_sqr_n(xp, rp, rsize, tspace);
 				}
 
 				xsize = 2 * rsize;
-				if (xsize > msize) {
+
+				if (xsize > msize)
+				{
 					mpihelp_divrem(xp + msize, 0, xp, xsize,
-						       mp, msize);
+								   mp, msize);
 					xsize = msize;
 				}
 
@@ -221,26 +293,37 @@ int mpi_powm(MPI res, MPI base, MPI exp, MPI mod)
 				xp = tp;
 				rsize = xsize;
 
-				if ((mpi_limb_signed_t) e < 0) {
+				if ((mpi_limb_signed_t) e < 0)
+				{
 					/*mpihelp_mul( xp, rp, rsize, bp, bsize ); */
-					if (bsize < KARATSUBA_THRESHOLD) {
+					if (bsize < KARATSUBA_THRESHOLD)
+					{
 						mpi_limb_t tmp;
+
 						if (mpihelp_mul
-						    (xp, rp, rsize, bp, bsize,
-						     &tmp) < 0)
+							(xp, rp, rsize, bp, bsize,
+							 &tmp) < 0)
+						{
 							goto enomem;
-					} else {
+						}
+					}
+					else
+					{
 						if (mpihelp_mul_karatsuba_case
-						    (xp, rp, rsize, bp, bsize,
-						     &karactx) < 0)
+							(xp, rp, rsize, bp, bsize,
+							 &karactx) < 0)
+						{
 							goto enomem;
+						}
 					}
 
 					xsize = rsize + bsize;
-					if (xsize > msize) {
+
+					if (xsize > msize)
+					{
 						mpihelp_divrem(xp + msize, 0,
-							       xp, xsize, mp,
-							       msize);
+									   xp, xsize, mp,
+									   msize);
 						xsize = msize;
 					}
 
@@ -249,13 +332,18 @@ int mpi_powm(MPI res, MPI base, MPI exp, MPI mod)
 					xp = tp;
 					rsize = xsize;
 				}
+
 				e <<= 1;
 				c--;
 			}
 
 			i--;
+
 			if (i < 0)
+			{
 				break;
+			}
+
 			e = ep[i];
 			c = BITS_PER_MPI_LIMB;
 		}
@@ -266,58 +354,91 @@ int mpi_powm(MPI res, MPI base, MPI exp, MPI mod)
 		 * Also make sure the result is put in RES->d (where it already
 		 * might be, see above).
 		 */
-		if (mod_shift_cnt) {
+		if (mod_shift_cnt)
+		{
 			carry_limb =
-			    mpihelp_lshift(res->d, rp, rsize, mod_shift_cnt);
+				mpihelp_lshift(res->d, rp, rsize, mod_shift_cnt);
 			rp = res->d;
-			if (carry_limb) {
+
+			if (carry_limb)
+			{
 				rp[rsize] = carry_limb;
 				rsize++;
 			}
-		} else {
+		}
+		else
+		{
 			MPN_COPY(res->d, rp, rsize);
 			rp = res->d;
 		}
 
-		if (rsize >= msize) {
+		if (rsize >= msize)
+		{
 			mpihelp_divrem(rp + msize, 0, rp, rsize, mp, msize);
 			rsize = msize;
 		}
 
 		/* Remove any leading zero words from the result.  */
 		if (mod_shift_cnt)
+		{
 			mpihelp_rshift(rp, rp, rsize, mod_shift_cnt);
+		}
+
 		MPN_NORMALIZE(rp, rsize);
 
 		mpihelp_release_karatsuba_ctx(&karactx);
 	}
 
-	if (negative_result && rsize) {
+	if (negative_result && rsize)
+	{
 		if (mod_shift_cnt)
+		{
 			mpihelp_rshift(mp, mp, msize, mod_shift_cnt);
+		}
+
 		mpihelp_sub(rp, mp, msize, rp, rsize);
 		rsize = msize;
 		rsign = msign;
 		MPN_NORMALIZE(rp, rsize);
 	}
+
 	res->nlimbs = rsize;
 	res->sign = rsign;
 
 leave:
 	rc = 0;
 enomem:
+
 	if (assign_rp)
+	{
 		mpi_assign_limb_space(res, rp, size);
+	}
+
 	if (mp_marker)
+	{
 		mpi_free_limb_space(mp_marker);
+	}
+
 	if (bp_marker)
+	{
 		mpi_free_limb_space(bp_marker);
+	}
+
 	if (ep_marker)
+	{
 		mpi_free_limb_space(ep_marker);
+	}
+
 	if (xp_marker)
+	{
 		mpi_free_limb_space(xp_marker);
+	}
+
 	if (tspace)
+	{
 		mpi_free_limb_space(tspace);
+	}
+
 	return rc;
 }
 EXPORT_SYMBOL_GPL(mpi_powm);

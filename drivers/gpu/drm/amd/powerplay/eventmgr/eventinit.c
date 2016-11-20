@@ -30,23 +30,26 @@ void pem_init_feature_info(struct pp_eventmgr *eventmgr)
 
 	/* PowerPlay info */
 	eventmgr->ui_state_info[PP_PowerSource_AC].default_ui_lable =
-					    PP_StateUILabel_Performance;
+		PP_StateUILabel_Performance;
 
 	eventmgr->ui_state_info[PP_PowerSource_AC].current_ui_label =
-					    PP_StateUILabel_Performance;
+		PP_StateUILabel_Performance;
 
 	eventmgr->ui_state_info[PP_PowerSource_DC].default_ui_lable =
-						  PP_StateUILabel_Battery;
+		PP_StateUILabel_Battery;
 
 	eventmgr->ui_state_info[PP_PowerSource_DC].current_ui_label =
-						  PP_StateUILabel_Battery;
+		PP_StateUILabel_Battery;
 
-	if (phm_cap_enabled(eventmgr->platform_descriptor->platformCaps, PHM_PlatformCaps_PowerPlaySupport)) {
+	if (phm_cap_enabled(eventmgr->platform_descriptor->platformCaps, PHM_PlatformCaps_PowerPlaySupport))
+	{
 		eventmgr->features[PP_Feature_PowerPlay].supported = true;
 		eventmgr->features[PP_Feature_PowerPlay].version = PEM_CURRENT_POWERPLAY_FEATURE_VERSION;
 		eventmgr->features[PP_Feature_PowerPlay].enabled_default = true;
 		eventmgr->features[PP_Feature_PowerPlay].enabled = true;
-	} else {
+	}
+	else
+	{
 		eventmgr->features[PP_Feature_PowerPlay].supported = false;
 		eventmgr->features[PP_Feature_PowerPlay].enabled = false;
 		eventmgr->features[PP_Feature_PowerPlay].enabled_default = false;
@@ -112,12 +115,15 @@ void pem_init_feature_info(struct pp_eventmgr *eventmgr)
 
 	/* FFC support (enables fan and temp settings, Gemini needs temp settings) */
 	if (phm_cap_enabled(eventmgr->platform_descriptor->platformCaps, PHM_PlatformCaps_ODFuzzyFanControlSupport) ||
-	    phm_cap_enabled(eventmgr->platform_descriptor->platformCaps, PHM_PlatformCaps_GeminiRegulatorFanControlSupport)) {
+		phm_cap_enabled(eventmgr->platform_descriptor->platformCaps, PHM_PlatformCaps_GeminiRegulatorFanControlSupport))
+	{
 		eventmgr->features[PP_Feature_FFC].version = 1;
 		eventmgr->features[PP_Feature_FFC].supported = true;
 		eventmgr->features[PP_Feature_FFC].enabled = true;
 		eventmgr->features[PP_Feature_FFC].enabled_default = true;
-	} else {
+	}
+	else
+	{
 		eventmgr->features[PP_Feature_FFC].supported = false;
 		eventmgr->features[PP_Feature_FFC].enabled = false;
 		eventmgr->features[PP_Feature_FFC].enabled_default = false;
@@ -148,7 +154,7 @@ void pem_init_feature_info(struct pp_eventmgr *eventmgr)
 }
 
 static int thermal_interrupt_callback(void *private_data,
-				      unsigned src_id, const uint32_t *iv_entry)
+									  unsigned src_id, const uint32_t *iv_entry)
 {
 	/* TO DO hanle PEM_Event_ThermalNotification (struct pp_eventmgr *)private_data*/
 	printk("current thermal is out of range \n");

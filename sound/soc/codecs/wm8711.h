@@ -32,7 +32,8 @@
 #define WM8711_SYSCLK	0
 #define WM8711_DAI		0
 
-struct wm8711_setup_data {
+struct wm8711_setup_data
+{
 	unsigned short i2c_address;
 };
 

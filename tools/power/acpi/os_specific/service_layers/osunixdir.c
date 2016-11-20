@@ -54,7 +54,8 @@
 /*
  * Allocated structure returned from os_open_directory
  */
-typedef struct external_find_info {
+typedef struct external_find_info
+{
 	char *dir_pathname;
 	DIR *dir_ptr;
 	char temp_buffer[256];
@@ -78,7 +79,7 @@ typedef struct external_find_info {
  ******************************************************************************/
 
 void *acpi_os_open_directory(char *dir_pathname,
-			     char *wildcard_spec, char requested_file_type)
+							 char *wildcard_spec, char requested_file_type)
 {
 	struct external_find_info *external_info;
 	DIR *dir;
@@ -86,14 +87,18 @@ void *acpi_os_open_directory(char *dir_pathname,
 	/* Allocate the info struct that will be returned to the caller */
 
 	external_info = calloc(1, sizeof(struct external_find_info));
-	if (!external_info) {
+
+	if (!external_info)
+	{
 		return (NULL);
 	}
 
 	/* Get the directory stream */
 
 	dir = opendir(dir_pathname);
-	if (!dir) {
+
+	if (!dir)
+	{
 		fprintf(stderr, "Cannot open directory - %s\n", dir_pathname);
 		free(external_info);
 		return (NULL);
@@ -130,20 +135,25 @@ char *acpi_os_get_next_filename(void *dir_handle)
 	struct stat temp_stat;
 	int err;
 
-	while ((dir_entry = readdir(external_info->dir_ptr))) {
+	while ((dir_entry = readdir(external_info->dir_ptr)))
+	{
 		if (!fnmatch
-		    (external_info->wildcard_spec, dir_entry->d_name, 0)) {
-			if (dir_entry->d_name[0] == '.') {
+			(external_info->wildcard_spec, dir_entry->d_name, 0))
+		{
+			if (dir_entry->d_name[0] == '.')
+			{
 				continue;
 			}
 
 			str_len = strlen(dir_entry->d_name) +
-			    strlen(external_info->dir_pathname) + 2;
+					  strlen(external_info->dir_pathname) + 2;
 
 			temp_str = calloc(str_len, 1);
-			if (!temp_str) {
+
+			if (!temp_str)
+			{
 				fprintf(stderr,
-					"Could not allocate buffer for temporary string\n");
+						"Could not allocate buffer for temporary string\n");
 				return (NULL);
 			}
 
@@ -152,10 +162,12 @@ char *acpi_os_get_next_filename(void *dir_handle)
 			strcat(temp_str, dir_entry->d_name);
 
 			err = stat(temp_str, &temp_stat);
-			if (err == -1) {
+
+			if (err == -1)
+			{
 				fprintf(stderr,
-					"Cannot stat file (should not happen) - %s\n",
-					temp_str);
+						"Cannot stat file (should not happen) - %s\n",
+						temp_str);
 				free(temp_str);
 				return (NULL);
 			}
@@ -163,16 +175,17 @@ char *acpi_os_get_next_filename(void *dir_handle)
 			free(temp_str);
 
 			if ((S_ISDIR(temp_stat.st_mode)
-			     && (external_info->requested_file_type ==
-				 REQUEST_DIR_ONLY))
-			    || ((!S_ISDIR(temp_stat.st_mode)
-				 && external_info->requested_file_type ==
-				 REQUEST_FILE_ONLY))) {
+				 && (external_info->requested_file_type ==
+					 REQUEST_DIR_ONLY))
+				|| ((!S_ISDIR(temp_stat.st_mode)
+					 && external_info->requested_file_type ==
+					 REQUEST_FILE_ONLY)))
+			{
 
 				/* copy to a temp buffer because dir_entry struct is on the stack */
 
 				strcpy(external_info->temp_buffer,
-				       dir_entry->d_name);
+					   dir_entry->d_name);
 				return (external_info->temp_buffer);
 			}
 		}

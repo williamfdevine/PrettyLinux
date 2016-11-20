@@ -67,7 +67,7 @@ xfs_trans_log_finish_refcount_update(
 	int				error;
 
 	error = xfs_refcount_finish_one(tp, dop, type, startblock,
-			blockcount, new_fsb, new_len, pcur);
+									blockcount, new_fsb, new_len, pcur);
 
 	/*
 	 * Mark the transaction dirty, even on error. This ensures the
@@ -96,7 +96,7 @@ xfs_refcount_update_diff_items(
 	ra = container_of(a, struct xfs_refcount_intent, ri_list);
 	rb = container_of(b, struct xfs_refcount_intent, ri_list);
 	return  XFS_FSB_TO_AGNO(mp, ra->ri_startblock) -
-		XFS_FSB_TO_AGNO(mp, rb->ri_startblock);
+			XFS_FSB_TO_AGNO(mp, rb->ri_startblock);
 }
 
 /* Get an CUI. */
@@ -127,15 +127,18 @@ xfs_trans_set_refcount_flags(
 	enum xfs_refcount_intent_type	type)
 {
 	refc->pe_flags = 0;
-	switch (type) {
-	case XFS_REFCOUNT_INCREASE:
-	case XFS_REFCOUNT_DECREASE:
-	case XFS_REFCOUNT_ALLOC_COW:
-	case XFS_REFCOUNT_FREE_COW:
-		refc->pe_flags |= type;
-		break;
-	default:
-		ASSERT(0);
+
+	switch (type)
+	{
+		case XFS_REFCOUNT_INCREASE:
+		case XFS_REFCOUNT_DECREASE:
+		case XFS_REFCOUNT_ALLOC_COW:
+		case XFS_REFCOUNT_FREE_COW:
+			refc->pe_flags |= type;
+			break;
+
+		default:
+			ASSERT(0);
 	}
 }
 
@@ -200,14 +203,17 @@ xfs_refcount_update_finish_item(
 			refc->ri_blockcount,
 			&new_fsb, &new_aglen,
 			(struct xfs_btree_cur **)state);
+
 	/* Did we run out of reservation?  Requeue what we didn't finish. */
-	if (!error && new_aglen > 0) {
+	if (!error && new_aglen > 0)
+	{
 		ASSERT(refc->ri_type == XFS_REFCOUNT_INCREASE ||
-		       refc->ri_type == XFS_REFCOUNT_DECREASE);
+			   refc->ri_type == XFS_REFCOUNT_DECREASE);
 		refc->ri_startblock = new_fsb;
 		refc->ri_blockcount = new_aglen;
 		return -EAGAIN;
 	}
+
 	kmem_free(refc);
 	return error;
 }
@@ -243,7 +249,8 @@ xfs_refcount_update_cancel_item(
 	kmem_free(refc);
 }
 
-static const struct xfs_defer_op_type xfs_refcount_update_defer_type = {
+static const struct xfs_defer_op_type xfs_refcount_update_defer_type =
+{
 	.type		= XFS_DEFER_OPS_TYPE_REFCOUNT,
 	.max_items	= XFS_CUI_MAX_FAST_EXTENTS,
 	.diff_items	= xfs_refcount_update_diff_items,

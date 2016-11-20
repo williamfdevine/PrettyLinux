@@ -2,7 +2,8 @@
 #define __NVKM_ENUM_H__
 #include <core/os.h>
 
-struct nvkm_enum {
+struct nvkm_enum
+{
 	u32 value;
 	const char *name;
 	const void *data;
@@ -11,7 +12,8 @@ struct nvkm_enum {
 
 const struct nvkm_enum *nvkm_enum_find(const struct nvkm_enum *, u32 value);
 
-struct nvkm_bitfield {
+struct nvkm_bitfield
+{
 	u32 mask;
 	const char *name;
 };

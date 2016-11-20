@@ -29,7 +29,8 @@
  *
  * Do not reorder these banks as it will change the pin numbering
  */
-static const struct wmt_pinctrl_bank_registers wm8650_banks[] = {
+static const struct wmt_pinctrl_bank_registers wm8650_banks[] =
+{
 	WMT_PINCTRL_BANK(0x40, 0x80, 0xC0, 0x00, 0x480, 0x4C0),		/* 0 */
 	WMT_PINCTRL_BANK(0x44, 0x84, 0xC4, 0x04, 0x484, 0x4C4),		/* 1 */
 	WMT_PINCTRL_BANK(0x48, 0x88, 0xC8, 0x08, 0x488, 0x4C8),		/* 2 */
@@ -133,7 +134,8 @@ static const struct wmt_pinctrl_bank_registers wm8650_banks[] = {
 #define WMT_PIN_SD1CMD		WMT_PIN(7, 1)
 #define WMT_PIN_SD1WP		WMT_PIN(7, 13)
 
-static const struct pinctrl_pin_desc wm8650_pins[] = {
+static const struct pinctrl_pin_desc wm8650_pins[] =
+{
 	PINCTRL_PIN(WMT_PIN_EXTGPIO0, "extgpio0"),
 	PINCTRL_PIN(WMT_PIN_EXTGPIO1, "extgpio1"),
 	PINCTRL_PIN(WMT_PIN_EXTGPIO2, "extgpio2"),
@@ -228,7 +230,8 @@ static const struct pinctrl_pin_desc wm8650_pins[] = {
 };
 
 /* Order of these names must match the above list */
-static const char * const wm8650_groups[] = {
+static const char *const wm8650_groups[] =
+{
 	"extgpio0",
 	"extgpio1",
 	"extgpio2",
@@ -327,7 +330,9 @@ static int wm8650_pinctrl_probe(struct platform_device *pdev)
 	struct wmt_pinctrl_data *data;
 
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
-	if (!data) {
+
+	if (!data)
+	{
 		dev_err(&pdev->dev, "failed to allocate data\n");
 		return -ENOMEM;
 	}
@@ -347,12 +352,14 @@ static int wm8650_pinctrl_remove(struct platform_device *pdev)
 	return wmt_pinctrl_remove(pdev);
 }
 
-static const struct of_device_id wmt_pinctrl_of_match[] = {
+static const struct of_device_id wmt_pinctrl_of_match[] =
+{
 	{ .compatible = "wm,wm8650-pinctrl" },
 	{ /* sentinel */ },
 };
 
-static struct platform_driver wmt_pinctrl_driver = {
+static struct platform_driver wmt_pinctrl_driver =
+{
 	.probe	= wm8650_pinctrl_probe,
 	.remove	= wm8650_pinctrl_remove,
 	.driver = {

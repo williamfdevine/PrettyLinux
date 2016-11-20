@@ -49,7 +49,8 @@ static u32 mch_bar;
 static void __iomem *mch_regs_base;
 static u32 saved_clock;
 
-static const unsigned crvml_clocks[] = {
+static const unsigned crvml_clocks[] =
+{
 	6750,
 	13500,
 	27000,
@@ -59,12 +60,13 @@ static const unsigned crvml_clocks[] = {
 	59400,
 	74250,
 	120000
-	    /*
-	     * There are more clocks, but they are disabled on the CR board.
-	     */
+	/*
+	 * There are more clocks, but they are disabled on the CR board.
+	 */
 };
 
-static const u32 crvml_clock_bits[] = {
+static const u32 crvml_clock_bits[] =
+{
 	0x0a,
 	0x09,
 	0x08,
@@ -106,14 +108,19 @@ static int crvml_nearest_index(const struct vml_sys *sys, int clock)
 
 	cur_diff = clock - crvml_clocks[0];
 	cur_diff = (cur_diff < 0) ? -cur_diff : cur_diff;
-	for (i = 1; i < crvml_num_clocks; ++i) {
+
+	for (i = 1; i < crvml_num_clocks; ++i)
+	{
 		diff = clock - crvml_clocks[i];
 		diff = (diff < 0) ? -diff : diff;
-		if (diff < cur_diff) {
+
+		if (diff < cur_diff)
+		{
 			cur_index = i;
 			cur_diff = diff;
 		}
 	}
+
 	return cur_index;
 }
 
@@ -131,7 +138,9 @@ static int crvml_set_clock(struct vml_sys *sys, int clock)
 	index = crvml_nearest_index(sys, clock);
 
 	if (crvml_clocks[index] != clock)
+	{
 		return -EINVAL;
+	}
 
 	clock_val = ioread32(clock_reg) & ~CRVML_CLOCK_MASK;
 	clock_val = crvml_clock_bits[index] << CRVML_CLOCK_SHIFT;
@@ -141,7 +150,8 @@ static int crvml_set_clock(struct vml_sys *sys, int clock)
 	return 0;
 }
 
-static struct vml_sys cr_pll_ops = {
+static struct vml_sys cr_pll_ops =
+{
 	.name = "Carillo Ranch",
 	.save = crvml_sys_save,
 	.restore = crvml_sys_restore,
@@ -155,36 +165,44 @@ static int __init cr_pll_init(void)
 	u32 dev_en;
 
 	mch_dev = pci_get_device(PCI_VENDOR_ID_INTEL,
-					CRVML_DEVICE_MCH, NULL);
-	if (!mch_dev) {
+							 CRVML_DEVICE_MCH, NULL);
+
+	if (!mch_dev)
+	{
 		printk(KERN_ERR
-		       "Could not find Carillo Ranch MCH device.\n");
+			   "Could not find Carillo Ranch MCH device.\n");
 		return -ENODEV;
 	}
 
 	pci_read_config_dword(mch_dev, CRVML_REG_MCHEN, &dev_en);
-	if (!(dev_en & CRVML_MCHEN_BIT)) {
+
+	if (!(dev_en & CRVML_MCHEN_BIT))
+	{
 		printk(KERN_ERR
-		       "Carillo Ranch MCH device was not enabled.\n");
+			   "Carillo Ranch MCH device was not enabled.\n");
 		pci_dev_put(mch_dev);
 		return -ENODEV;
 	}
 
 	pci_read_config_dword(mch_dev, CRVML_REG_MCHBAR,
-			      &mch_bar);
+						  &mch_bar);
 	mch_regs_base =
-	    ioremap_nocache(mch_bar, CRVML_MCHMAP_SIZE);
-	if (!mch_regs_base) {
+		ioremap_nocache(mch_bar, CRVML_MCHMAP_SIZE);
+
+	if (!mch_regs_base)
+	{
 		printk(KERN_ERR
-		       "Carillo Ranch MCH device was not enabled.\n");
+			   "Carillo Ranch MCH device was not enabled.\n");
 		pci_dev_put(mch_dev);
 		return -ENODEV;
 	}
 
 	err = vmlfb_register_subsys(&cr_pll_ops);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR
-		       "Carillo Ranch failed to initialize vml_sys.\n");
+			   "Carillo Ranch failed to initialize vml_sys.\n");
 		pci_dev_put(mch_dev);
 		return err;
 	}

@@ -22,7 +22,7 @@ xfs_start_cksum(char *buffer, size_t length, unsigned long cksum_offset)
 
 	/* Calculate the rest of the CRC. */
 	return crc32c(crc, &buffer[cksum_offset + sizeof(__be32)],
-		      length - (cksum_offset + sizeof(__be32)));
+				  length - (cksum_offset + sizeof(__be32)));
 }
 
 /*

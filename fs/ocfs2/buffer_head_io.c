@@ -43,7 +43,8 @@
  *
  * These MUST be after the JBD2 bits.  Hence, we use BH_JBDPrivateStart.
  */
-enum ocfs2_state_bits {
+enum ocfs2_state_bits
+{
 	BH_NeedsValidate = BH_JBDPrivateStart,
 };
 
@@ -51,7 +52,7 @@ enum ocfs2_state_bits {
 BUFFER_FNS(NeedsValidate, needs_validate);
 
 int ocfs2_write_block(struct ocfs2_super *osb, struct buffer_head *bh,
-		      struct ocfs2_caching_info *ci)
+					  struct ocfs2_caching_info *ci)
 {
 	int ret = 0;
 
@@ -63,7 +64,8 @@ int ocfs2_write_block(struct ocfs2_super *osb, struct buffer_head *bh,
 	/* No need to check for a soft readonly file system here. non
 	 * journalled writes are only ever done on system files which
 	 * can get modified during recovery even if read-only. */
-	if (ocfs2_is_hard_readonly(osb)) {
+	if (ocfs2_is_hard_readonly(osb))
+	{
 		ret = -EROFS;
 		mlog_errno(ret);
 		goto out;
@@ -83,9 +85,12 @@ int ocfs2_write_block(struct ocfs2_super *osb, struct buffer_head *bh,
 
 	wait_on_buffer(bh);
 
-	if (buffer_uptodate(bh)) {
+	if (buffer_uptodate(bh))
+	{
 		ocfs2_set_buffer_uptodate(ci, bh);
-	} else {
+	}
+	else
+	{
 		/* We don't need to remove the clustered uptodate
 		 * information for this bh as it's not marked locally
 		 * uptodate. */
@@ -99,7 +104,7 @@ out:
 }
 
 int ocfs2_read_blocks_sync(struct ocfs2_super *osb, u64 block,
-			   unsigned int nr, struct buffer_head *bhs[])
+						   unsigned int nr, struct buffer_head *bhs[])
 {
 	int status = 0;
 	unsigned int i;
@@ -108,42 +113,53 @@ int ocfs2_read_blocks_sync(struct ocfs2_super *osb, u64 block,
 	trace_ocfs2_read_blocks_sync((unsigned long long)block, nr);
 
 	if (!nr)
+	{
 		goto bail;
+	}
 
-	for (i = 0 ; i < nr ; i++) {
-		if (bhs[i] == NULL) {
+	for (i = 0 ; i < nr ; i++)
+	{
+		if (bhs[i] == NULL)
+		{
 			bhs[i] = sb_getblk(osb->sb, block++);
-			if (bhs[i] == NULL) {
+
+			if (bhs[i] == NULL)
+			{
 				status = -ENOMEM;
 				mlog_errno(status);
 				goto bail;
 			}
 		}
+
 		bh = bhs[i];
 
-		if (buffer_jbd(bh)) {
+		if (buffer_jbd(bh))
+		{
 			trace_ocfs2_read_blocks_sync_jbd(
-					(unsigned long long)bh->b_blocknr);
+				(unsigned long long)bh->b_blocknr);
 			continue;
 		}
 
-		if (buffer_dirty(bh)) {
+		if (buffer_dirty(bh))
+		{
 			/* This should probably be a BUG, or
 			 * at least return an error. */
 			mlog(ML_ERROR,
-			     "trying to sync read a dirty "
-			     "buffer! (blocknr = %llu), skipping\n",
-			     (unsigned long long)bh->b_blocknr);
+				 "trying to sync read a dirty "
+				 "buffer! (blocknr = %llu), skipping\n",
+				 (unsigned long long)bh->b_blocknr);
 			continue;
 		}
 
 		lock_buffer(bh);
-		if (buffer_jbd(bh)) {
+
+		if (buffer_jbd(bh))
+		{
 #ifdef CATCH_BH_JBD_RACES
 			mlog(ML_ERROR,
-			     "block %llu had the JBD bit set "
-			     "while I was in lock_buffer!",
-			     (unsigned long long)bh->b_blocknr);
+				 "block %llu had the JBD bit set "
+				 "while I was in lock_buffer!",
+				 (unsigned long long)bh->b_blocknr);
 			BUG();
 #else
 			unlock_buffer(bh);
@@ -157,14 +173,18 @@ int ocfs2_read_blocks_sync(struct ocfs2_super *osb, u64 block,
 		submit_bh(REQ_OP_READ, 0, bh);
 	}
 
-	for (i = nr; i > 0; i--) {
+	for (i = nr; i > 0; i--)
+	{
 		bh = bhs[i - 1];
 
 		/* No need to wait on the buffer if it's managed by JBD. */
 		if (!buffer_jbd(bh))
+		{
 			wait_on_buffer(bh);
+		}
 
-		if (!buffer_uptodate(bh)) {
+		if (!buffer_uptodate(bh))
+		{
 			/* Status won't be cleared from here on out,
 			 * so we can safely record this and loop back
 			 * to cleanup the other buffers. */
@@ -179,9 +199,9 @@ bail:
 }
 
 int ocfs2_read_blocks(struct ocfs2_caching_info *ci, u64 block, int nr,
-		      struct buffer_head *bhs[], int flags,
-		      int (*validate)(struct super_block *sb,
-				      struct buffer_head *bh))
+					  struct buffer_head *bhs[], int flags,
+					  int (*validate)(struct super_block *sb,
+									  struct buffer_head *bh))
 {
 	int status = 0;
 	int i, ignore_cache = 0;
@@ -192,37 +212,46 @@ int ocfs2_read_blocks(struct ocfs2_caching_info *ci, u64 block, int nr,
 
 	BUG_ON(!ci);
 	BUG_ON((flags & OCFS2_BH_READAHEAD) &&
-	       (flags & OCFS2_BH_IGNORE_CACHE));
+		   (flags & OCFS2_BH_IGNORE_CACHE));
 
-	if (bhs == NULL) {
+	if (bhs == NULL)
+	{
 		status = -EINVAL;
 		mlog_errno(status);
 		goto bail;
 	}
 
-	if (nr < 0) {
+	if (nr < 0)
+	{
 		mlog(ML_ERROR, "asked to read %d blocks!\n", nr);
 		status = -EINVAL;
 		mlog_errno(status);
 		goto bail;
 	}
 
-	if (nr == 0) {
+	if (nr == 0)
+	{
 		status = 0;
 		goto bail;
 	}
 
 	ocfs2_metadata_cache_io_lock(ci);
-	for (i = 0 ; i < nr ; i++) {
-		if (bhs[i] == NULL) {
+
+	for (i = 0 ; i < nr ; i++)
+	{
+		if (bhs[i] == NULL)
+		{
 			bhs[i] = sb_getblk(sb, block++);
-			if (bhs[i] == NULL) {
+
+			if (bhs[i] == NULL)
+			{
 				ocfs2_metadata_cache_io_unlock(ci);
 				status = -ENOMEM;
 				mlog_errno(status);
 				goto bail;
 			}
 		}
+
 		bh = bhs[i];
 		ignore_cache = (flags & OCFS2_BH_IGNORE_CACHE);
 
@@ -250,24 +279,28 @@ int ocfs2_read_blocks(struct ocfs2_caching_info *ci, u64 block, int nr,
 		 *    before our is-it-in-flight check.
 		 */
 
-		if (!ignore_cache && !ocfs2_buffer_uptodate(ci, bh)) {
+		if (!ignore_cache && !ocfs2_buffer_uptodate(ci, bh))
+		{
 			trace_ocfs2_read_blocks_from_disk(
-			     (unsigned long long)bh->b_blocknr,
-			     (unsigned long long)ocfs2_metadata_cache_owner(ci));
+				(unsigned long long)bh->b_blocknr,
+				(unsigned long long)ocfs2_metadata_cache_owner(ci));
 			/* We're using ignore_cache here to say
 			 * "go to disk" */
 			ignore_cache = 1;
 		}
 
 		trace_ocfs2_read_blocks_bh((unsigned long long)bh->b_blocknr,
-			ignore_cache, buffer_jbd(bh), buffer_dirty(bh));
+								   ignore_cache, buffer_jbd(bh), buffer_dirty(bh));
 
-		if (buffer_jbd(bh)) {
+		if (buffer_jbd(bh))
+		{
 			continue;
 		}
 
-		if (ignore_cache) {
-			if (buffer_dirty(bh)) {
+		if (ignore_cache)
+		{
+			if (buffer_dirty(bh))
+			{
 				/* This should probably be a BUG, or
 				 * at least return an error. */
 				continue;
@@ -278,15 +311,19 @@ int ocfs2_read_blocks(struct ocfs2_caching_info *ci, u64 block, int nr,
 			 * previously submitted request than we are
 			 * done here. */
 			if ((flags & OCFS2_BH_READAHEAD)
-			    && ocfs2_buffer_read_ahead(ci, bh))
+				&& ocfs2_buffer_read_ahead(ci, bh))
+			{
 				continue;
+			}
 
 			lock_buffer(bh);
-			if (buffer_jbd(bh)) {
+
+			if (buffer_jbd(bh))
+			{
 #ifdef CATCH_BH_JBD_RACES
 				mlog(ML_ERROR, "block %llu had the JBD bit set "
-					       "while I was in lock_buffer!",
-				     (unsigned long long)bh->b_blocknr);
+					 "while I was in lock_buffer!",
+					 (unsigned long long)bh->b_blocknr);
 				BUG();
 #else
 				unlock_buffer(bh);
@@ -299,16 +336,21 @@ int ocfs2_read_blocks(struct ocfs2_caching_info *ci, u64 block, int nr,
 			 * completed I/O while we were waiting for the
 			 * buffer lock. */
 			if (!(flags & OCFS2_BH_IGNORE_CACHE)
-			    && !(flags & OCFS2_BH_READAHEAD)
-			    && ocfs2_buffer_uptodate(ci, bh)) {
+				&& !(flags & OCFS2_BH_READAHEAD)
+				&& ocfs2_buffer_uptodate(ci, bh))
+			{
 				unlock_buffer(bh);
 				continue;
 			}
 
 			clear_buffer_uptodate(bh);
 			get_bh(bh); /* for end_buffer_read_sync() */
+
 			if (validate)
+			{
 				set_buffer_needs_validate(bh);
+			}
+
 			bh->b_end_io = end_buffer_read_sync;
 			submit_bh(REQ_OP_READ, 0, bh);
 			continue;
@@ -317,23 +359,30 @@ int ocfs2_read_blocks(struct ocfs2_caching_info *ci, u64 block, int nr,
 
 	status = 0;
 
-	for (i = (nr - 1); i >= 0; i--) {
+	for (i = (nr - 1); i >= 0; i--)
+	{
 		bh = bhs[i];
 
-		if (!(flags & OCFS2_BH_READAHEAD)) {
-			if (status) {
+		if (!(flags & OCFS2_BH_READAHEAD))
+		{
+			if (status)
+			{
 				/* Clear the rest of the buffers on error */
 				put_bh(bh);
 				bhs[i] = NULL;
 				continue;
 			}
+
 			/* We know this can't have changed as we hold the
 			 * owner sem. Avoid doing any work on the bh if the
 			 * journal has it. */
 			if (!buffer_jbd(bh))
+			{
 				wait_on_buffer(bh);
+			}
 
-			if (!buffer_uptodate(bh)) {
+			if (!buffer_uptodate(bh))
+			{
 				/* Status won't be cleared from here on out,
 				 * so we can safely record this and loop back
 				 * to cleanup the other buffers. Don't need to
@@ -346,14 +395,17 @@ int ocfs2_read_blocks(struct ocfs2_caching_info *ci, u64 block, int nr,
 				continue;
 			}
 
-			if (buffer_needs_validate(bh)) {
+			if (buffer_needs_validate(bh))
+			{
 				/* We never set NeedsValidate if the
 				 * buffer was held by the journal, so
 				 * that better not have changed */
 				BUG_ON(buffer_jbd(bh));
 				clear_buffer_needs_validate(bh);
 				status = validate(sb, bh);
-				if (status) {
+
+				if (status)
+				{
 					put_bh(bh);
 					bhs[i] = NULL;
 					continue;
@@ -366,10 +418,11 @@ int ocfs2_read_blocks(struct ocfs2_caching_info *ci, u64 block, int nr,
 		 * completed. */
 		ocfs2_set_buffer_uptodate(ci, bh);
 	}
+
 	ocfs2_metadata_cache_io_unlock(ci);
 
 	trace_ocfs2_read_blocks_end((unsigned long long)block, nr,
-				    flags, ignore_cache);
+								flags, ignore_cache);
 
 bail:
 
@@ -378,18 +431,24 @@ bail:
 
 /* Check whether the blkno is the super block or one of the backups. */
 static void ocfs2_check_super_or_backup(struct super_block *sb,
-					sector_t blkno)
+										sector_t blkno)
 {
 	int i;
 	u64 backup_blkno;
 
 	if (blkno == OCFS2_SUPER_BLOCK_BLKNO)
+	{
 		return;
+	}
 
-	for (i = 0; i < OCFS2_MAX_BACKUP_SUPERBLOCKS; i++) {
+	for (i = 0; i < OCFS2_MAX_BACKUP_SUPERBLOCKS; i++)
+	{
 		backup_blkno = ocfs2_backup_super_blkno(sb, i);
+
 		if (backup_blkno == blkno)
+		{
 			return;
+		}
 	}
 
 	BUG();
@@ -401,7 +460,7 @@ static void ocfs2_check_super_or_backup(struct super_block *sb,
  * into this function.
  */
 int ocfs2_write_super_or_backup(struct ocfs2_super *osb,
-				struct buffer_head *bh)
+								struct buffer_head *bh)
 {
 	int ret = 0;
 	struct ocfs2_dinode *di = (struct ocfs2_dinode *)bh->b_data;
@@ -409,7 +468,8 @@ int ocfs2_write_super_or_backup(struct ocfs2_super *osb,
 	BUG_ON(buffer_jbd(bh));
 	ocfs2_check_super_or_backup(osb->sb, bh->b_blocknr);
 
-	if (ocfs2_is_hard_readonly(osb) || ocfs2_is_soft_readonly(osb)) {
+	if (ocfs2_is_hard_readonly(osb) || ocfs2_is_soft_readonly(osb))
+	{
 		ret = -EROFS;
 		mlog_errno(ret);
 		goto out;
@@ -428,7 +488,8 @@ int ocfs2_write_super_or_backup(struct ocfs2_super *osb,
 
 	wait_on_buffer(bh);
 
-	if (!buffer_uptodate(bh)) {
+	if (!buffer_uptodate(bh))
+	{
 		ret = -EIO;
 		mlog_errno(ret);
 	}

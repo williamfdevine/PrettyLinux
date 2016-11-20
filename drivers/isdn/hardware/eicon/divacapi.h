@@ -115,41 +115,49 @@ typedef struct msn_config_s MSN_CONFIG;
 typedef struct msn_config_max_s MSN_CONFIG_MAX;
 typedef struct msn_ld_s MSN_LD;
 
-struct manufacturer_profile_s {
+struct manufacturer_profile_s
+{
 	dword private_options;
 	dword rtp_primary_payloads;
 	dword rtp_additional_payloads;
 };
 
-struct fax_ncpi_s {
+struct fax_ncpi_s
+{
 	word options;
 	word format;
 };
 
-struct msn_config_s {
+struct msn_config_s
+{
 	byte msn[MAX_CPN_MASK_SIZE];
 };
 
-struct msn_config_max_s {
+struct msn_config_max_s
+{
 	MSN_CONFIG    msn_conf[MAX_MSN_CONFIG];
 };
 
-struct msn_ld_s {
+struct msn_ld_s
+{
 	dword low;
 	dword high;
 };
 
-struct api_parse_s {
+struct api_parse_s
+{
 	word          length;
 	byte *info;
 };
 
-struct api_save_s {
+struct api_save_s
+{
 	API_PARSE     parms[MAX_MSG_PARMS + 1];
 	byte          info[MAX_MSG_SIZE];
 };
 
-struct _DATA_B3_DESC {
+struct _DATA_B3_DESC
+{
 	word          Handle;
 	word          Number;
 	word          Flags;
@@ -157,7 +165,8 @@ struct _DATA_B3_DESC {
 	void *P;
 };
 
-struct _DATA_ACK_DESC {
+struct _DATA_ACK_DESC
+{
 	word          Handle;
 	word          Number;
 };
@@ -166,7 +175,8 @@ typedef void (*t_std_internal_command)(dword Id, PLCI *plci, byte Rc);
 
 /************************************************************************/
 /* Don't forget to adapt dos.asm after changing the _APPL structure!!!! */
-struct _APPL {
+struct _APPL
+{
 	word          Id;
 	word          NullCREnable;
 	word          CDEnable;
@@ -211,7 +221,8 @@ struct _APPL {
 };
 
 
-struct _PLCI {
+struct _PLCI
+{
 	ENTITY        Sig;
 	ENTITY        NL;
 	word          RNum;
@@ -268,7 +279,7 @@ struct _PLCI {
 	dword         c_ind_mask_table[C_IND_MASK_DWORDS];
 	dword         group_optimization_mask_table[C_IND_MASK_DWORDS];
 	byte          RBuffer[200];
-	dword         msg_in_queue[MSG_IN_QUEUE_SIZE/sizeof(dword)];
+	dword         msg_in_queue[MSG_IN_QUEUE_SIZE / sizeof(dword)];
 	API_SAVE      saved_msg;
 	API_SAVE      B_protocol;
 	byte          fax_connect_info_length;
@@ -335,7 +346,8 @@ struct _PLCI {
 };
 
 
-struct _NCCI {
+struct _NCCI
+{
 	byte          data_out;
 	byte          data_pending;
 	byte          data_ack_out;
@@ -345,7 +357,8 @@ struct _NCCI {
 };
 
 
-struct _DIVA_CAPI_ADAPTER {
+struct _DIVA_CAPI_ADAPTER
+{
 	IDI_CALL      request;
 	byte          Id;
 	byte          max_plci;
@@ -450,7 +463,8 @@ struct _DIVA_CAPI_ADAPTER {
 #define T30_MAX_PASSWORD_LENGTH         20
 
 typedef struct t30_info_s T30_INFO;
-struct t30_info_s {
+struct t30_info_s
+{
 	byte          code;
 	byte          rate_div_2400;
 	byte          resolution;
@@ -468,13 +482,13 @@ struct t30_info_s {
 	byte          station_id_len;
 	byte          head_line_len;
 	byte          station_id[T30_MAX_STATION_ID_LENGTH];
-/* byte          head_line[];      */
-/* byte          sub_sep_length;   */
-/* byte          sub_sep_field[];  */
-/* byte          pwd_length;       */
-/* byte          pwd_field[];      */
-/* byte          nsf_info_length;   */
-/* byte          nsf_info_field[];  */
+	/* byte          head_line[];      */
+	/* byte          sub_sep_length;   */
+	/* byte          sub_sep_field[];  */
+	/* byte          pwd_length;       */
+	/* byte          pwd_field[];      */
+	/* byte          nsf_info_length;   */
+	/* byte          nsf_info_field[];  */
 };
 
 
@@ -638,12 +652,13 @@ struct t30_info_s {
 /*------------------------------------------------------------------*/
 
 typedef struct async_s ASYNC_FORMAT;
-struct async_s {
-	unsigned pe:1;
-	unsigned parity:2;
-	unsigned spare:2;
-	unsigned stp:1;
-	unsigned ch_len:2;   /* 3th octett in CAI */
+struct async_s
+{
+	unsigned pe: 1;
+	unsigned parity: 2;
+	unsigned spare: 2;
+	unsigned stp: 1;
+	unsigned ch_len: 2;  /* 3th octett in CAI */
 };
 
 
@@ -902,17 +917,20 @@ struct async_s {
 
 typedef struct li_config_s LI_CONFIG;
 
-struct xconnect_card_address_s {
+struct xconnect_card_address_s
+{
 	dword low;
 	dword high;
 };
 
-struct xconnect_transfer_address_s {
+struct xconnect_transfer_address_s
+{
 	struct xconnect_card_address_s card_address;
 	dword offset;
 };
 
-struct li_config_s {
+struct li_config_s
+{
 	DIVA_CAPI_ADAPTER   *adapter;
 	PLCI   *plci;
 	struct xconnect_transfer_address_s send_b;

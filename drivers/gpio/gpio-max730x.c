@@ -62,14 +62,18 @@ static int max7301_direction_input(struct gpio_chip *chip, unsigned offset)
 	config = &ts->port_config[offset >> 2];
 
 	if (ts->input_pullup_active & BIT(offset))
+	{
 		pin_config = PIN_CONFIG_IN_PULLUP;
+	}
 	else
+	{
 		pin_config = PIN_CONFIG_IN_WO_PULLUP;
+	}
 
 	mutex_lock(&ts->lock);
 
 	*config = (*config & ~(PIN_CONFIG_MASK << offset_bits))
-			   | (pin_config << offset_bits);
+			  | (pin_config << offset_bits);
 
 	ret = ts->write(ts->dev, 0x08 + (offset >> 2), *config);
 
@@ -80,17 +84,20 @@ static int max7301_direction_input(struct gpio_chip *chip, unsigned offset)
 
 static int __max7301_set(struct max7301 *ts, unsigned offset, int value)
 {
-	if (value) {
+	if (value)
+	{
 		ts->out_level |= 1 << offset;
 		return ts->write(ts->dev, 0x20 + offset, 0x01);
-	} else {
+	}
+	else
+	{
 		ts->out_level &= ~(1 << offset);
 		return ts->write(ts->dev, 0x20 + offset, 0x00);
 	}
 }
 
 static int max7301_direction_output(struct gpio_chip *chip, unsigned offset,
-				    int value)
+									int value)
 {
 	struct max7301 *ts = gpiochip_get_data(chip);
 	u8 *config;
@@ -106,12 +113,14 @@ static int max7301_direction_output(struct gpio_chip *chip, unsigned offset,
 	mutex_lock(&ts->lock);
 
 	*config = (*config & ~(PIN_CONFIG_MASK << offset_bits))
-			   | (PIN_CONFIG_OUT << offset_bits);
+			  | (PIN_CONFIG_OUT << offset_bits);
 
 	ret = __max7301_set(ts, offset, value);
 
 	if (!ret)
+	{
 		ret = ts->write(ts->dev, 0x08 + (offset >> 2), *config);
+	}
 
 	mutex_unlock(&ts->lock);
 
@@ -129,18 +138,21 @@ static int max7301_get(struct gpio_chip *chip, unsigned offset)
 	mutex_lock(&ts->lock);
 
 	config = (ts->port_config[offset >> 2] >> ((offset & 3) << 1))
-			& PIN_CONFIG_MASK;
+			 & PIN_CONFIG_MASK;
 
-	switch (config) {
-	case PIN_CONFIG_OUT:
-		/* Output: return cached level */
-		level =  !!(ts->out_level & (1 << offset));
-		break;
-	case PIN_CONFIG_IN_WO_PULLUP:
-	case PIN_CONFIG_IN_PULLUP:
-		/* Input: read out */
-		level = ts->read(ts->dev, 0x20 + offset) & 0x01;
+	switch (config)
+	{
+		case PIN_CONFIG_OUT:
+			/* Output: return cached level */
+			level =  !!(ts->out_level & (1 << offset));
+			break;
+
+		case PIN_CONFIG_IN_WO_PULLUP:
+		case PIN_CONFIG_IN_PULLUP:
+			/* Input: read out */
+			level = ts->read(ts->dev, 0x20 + offset) & 0x01;
 	}
+
 	mutex_unlock(&ts->lock);
 
 	return level;
@@ -174,12 +186,16 @@ int __max730x_probe(struct max7301 *ts)
 	/* Power up the chip and disable IRQ output */
 	ts->write(dev, 0x04, 0x01);
 
-	if (pdata) {
+	if (pdata)
+	{
 		ts->input_pullup_active = pdata->input_pullup_active;
 		ts->chip.base = pdata->base;
-	} else {
+	}
+	else
+	{
 		ts->chip.base = -1;
 	}
+
 	ts->chip.label = dev->driver->name;
 
 	ts->chip.direction_input = max7301_direction_input;
@@ -193,14 +209,18 @@ int __max730x_probe(struct max7301 *ts)
 	ts->chip.owner = THIS_MODULE;
 
 	ret = gpiochip_add_data(&ts->chip, ts);
+
 	if (ret)
+	{
 		goto exit_destroy;
+	}
 
 	/*
 	 * initialize pullups according to platform data and cache the
 	 * register values for later use.
 	 */
-	for (i = 1; i < 8; i++) {
+	for (i = 1; i < 8; i++)
+	{
 		int j;
 		/*
 		 * initialize port_config with "0xAA", which means
@@ -209,11 +229,16 @@ int __max730x_probe(struct max7301 *ts)
 		 * which is not allowed according to the datasheet.
 		 */
 		ts->port_config[i] = 0xAA;
-		for (j = 0; j < 4; j++) {
+
+		for (j = 0; j < 4; j++)
+		{
 			int offset = (i - 1) * 4 + j;
 			ret = max7301_direction_input(&ts->chip, offset);
+
 			if (ret)
+			{
 				goto exit_destroy;
+			}
 		}
 	}
 
@@ -230,7 +255,9 @@ int __max730x_remove(struct device *dev)
 	struct max7301 *ts = dev_get_drvdata(dev);
 
 	if (ts == NULL)
+	{
 		return -ENODEV;
+	}
 
 	/* Power down the chip and disable IRQ output */
 	ts->write(dev, 0x04, 0x00);

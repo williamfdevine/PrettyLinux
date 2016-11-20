@@ -34,7 +34,8 @@
 #define SERIAL_TS_MODE      MN88472_TS_MODE_SERIAL
 #define PARALLEL_TS_MODE    MN88472_TS_MODE_PARALLEL
 
-struct mn88472_config {
+struct mn88472_config
+{
 	unsigned int xtal;
 
 #define MN88472_TS_MODE_SERIAL      0
@@ -53,7 +54,7 @@ struct mn88472_config {
 	 * DVB frontend.
 	 */
 	struct dvb_frontend **fe;
-	struct dvb_frontend* (*get_dvb_frontend)(struct i2c_client *);
+	struct dvb_frontend *(*get_dvb_frontend)(struct i2c_client *);
 };
 
 #endif

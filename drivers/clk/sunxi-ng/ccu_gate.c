@@ -18,7 +18,9 @@ void ccu_gate_helper_disable(struct ccu_common *common, u32 gate)
 	u32 reg;
 
 	if (!gate)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(common->lock, flags);
 
@@ -41,7 +43,9 @@ int ccu_gate_helper_enable(struct ccu_common *common, u32 gate)
 	u32 reg;
 
 	if (!gate)
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(common->lock, flags);
 
@@ -63,7 +67,9 @@ static int ccu_gate_enable(struct clk_hw *hw)
 int ccu_gate_helper_is_enabled(struct ccu_common *common, u32 gate)
 {
 	if (!gate)
+	{
 		return 1;
+	}
 
 	return readl(common->base + common->reg) & gate;
 }
@@ -75,7 +81,8 @@ static int ccu_gate_is_enabled(struct clk_hw *hw)
 	return ccu_gate_helper_is_enabled(&cg->common, cg->enable);
 }
 
-const struct clk_ops ccu_gate_ops = {
+const struct clk_ops ccu_gate_ops =
+{
 	.disable	= ccu_gate_disable,
 	.enable		= ccu_gate_enable,
 	.is_enabled	= ccu_gate_is_enabled,

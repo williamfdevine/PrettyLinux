@@ -9,7 +9,8 @@
 #define GENL_MIN_ID	NLMSG_MIN_TYPE
 #define GENL_MAX_ID	1023
 
-struct genlmsghdr {
+struct genlmsghdr
+{
 	__u8	cmd;
 	__u8	version;
 	__u16	reserved;
@@ -35,7 +36,8 @@ struct genlmsghdr {
  * Controller
  **************************************************************************/
 
-enum {
+enum
+{
 	CTRL_CMD_UNSPEC,
 	CTRL_CMD_NEWFAMILY,
 	CTRL_CMD_DELFAMILY,
@@ -51,7 +53,8 @@ enum {
 
 #define CTRL_CMD_MAX (__CTRL_CMD_MAX - 1)
 
-enum {
+enum
+{
 	CTRL_ATTR_UNSPEC,
 	CTRL_ATTR_FAMILY_ID,
 	CTRL_ATTR_FAMILY_NAME,
@@ -65,7 +68,8 @@ enum {
 
 #define CTRL_ATTR_MAX (__CTRL_ATTR_MAX - 1)
 
-enum {
+enum
+{
 	CTRL_ATTR_OP_UNSPEC,
 	CTRL_ATTR_OP_ID,
 	CTRL_ATTR_OP_FLAGS,
@@ -74,7 +78,8 @@ enum {
 
 #define CTRL_ATTR_OP_MAX (__CTRL_ATTR_OP_MAX - 1)
 
-enum {
+enum
+{
 	CTRL_ATTR_MCAST_GRP_UNSPEC,
 	CTRL_ATTR_MCAST_GRP_NAME,
 	CTRL_ATTR_MCAST_GRP_ID,

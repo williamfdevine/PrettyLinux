@@ -75,12 +75,17 @@ static struct bus_type ntb_bus;
 static void ntb_dev_release(struct device *dev);
 
 int __ntb_register_client(struct ntb_client *client, struct module *mod,
-			  const char *mod_name)
+						  const char *mod_name)
 {
 	if (!client)
+	{
 		return -EINVAL;
+	}
+
 	if (!ntb_client_ops_is_valid(&client->ops))
+	{
 		return -EINVAL;
+	}
 
 	memset(&client->drv, 0, sizeof(client->drv));
 	client->drv.bus = &ntb_bus;
@@ -100,13 +105,24 @@ EXPORT_SYMBOL(ntb_unregister_client);
 int ntb_register_device(struct ntb_dev *ntb)
 {
 	if (!ntb)
+	{
 		return -EINVAL;
+	}
+
 	if (!ntb->pdev)
+	{
 		return -EINVAL;
+	}
+
 	if (!ntb->ops)
+	{
 		return -EINVAL;
+	}
+
 	if (!ntb_dev_ops_is_valid(ntb->ops))
+	{
 		return -EINVAL;
+	}
 
 	init_completion(&ntb->released);
 
@@ -132,14 +148,19 @@ void ntb_unregister_device(struct ntb_dev *ntb)
 EXPORT_SYMBOL(ntb_unregister_device);
 
 int ntb_set_ctx(struct ntb_dev *ntb, void *ctx,
-		const struct ntb_ctx_ops *ctx_ops)
+				const struct ntb_ctx_ops *ctx_ops)
 {
 	unsigned long irqflags;
 
 	if (!ntb_ctx_ops_is_valid(ctx_ops))
+	{
 		return -EINVAL;
+	}
+
 	if (ntb->ctx_ops)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&ntb->ctx_lock, irqflags);
 	{
@@ -172,7 +193,9 @@ void ntb_link_event(struct ntb_dev *ntb)
 	spin_lock_irqsave(&ntb->ctx_lock, irqflags);
 	{
 		if (ntb->ctx_ops && ntb->ctx_ops->link_event)
+		{
 			ntb->ctx_ops->link_event(ntb->ctx);
+		}
 	}
 	spin_unlock_irqrestore(&ntb->ctx_lock, irqflags);
 }
@@ -185,7 +208,9 @@ void ntb_db_event(struct ntb_dev *ntb, int vector)
 	spin_lock_irqsave(&ntb->ctx_lock, irqflags);
 	{
 		if (ntb->ctx_ops && ntb->ctx_ops->db_event)
+		{
 			ntb->ctx_ops->db_event(ntb->ctx, vector);
+		}
 	}
 	spin_unlock_irqrestore(&ntb->ctx_lock, irqflags);
 }
@@ -202,8 +227,11 @@ static int ntb_probe(struct device *dev)
 	client = drv_ntb_client(dev->driver);
 
 	rc = client->ops.probe(client, ntb);
+
 	if (rc)
+	{
 		put_device(dev);
+	}
 
 	return rc;
 }
@@ -213,7 +241,8 @@ static int ntb_remove(struct device *dev)
 	struct ntb_dev *ntb;
 	struct ntb_client *client;
 
-	if (dev->driver) {
+	if (dev->driver)
+	{
 		ntb = dev_ntb(dev);
 		client = drv_ntb_client(dev->driver);
 
@@ -231,7 +260,8 @@ static void ntb_dev_release(struct device *dev)
 	complete(&ntb->released);
 }
 
-static struct bus_type ntb_bus = {
+static struct bus_type ntb_bus =
+{
 	.name = "ntb",
 	.probe = ntb_probe,
 	.remove = ntb_remove,

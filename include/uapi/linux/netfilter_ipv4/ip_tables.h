@@ -67,7 +67,8 @@
 #endif
 
 /* Yes, Virginia, you have to zero the padding. */
-struct ipt_ip {
+struct ipt_ip
+{
 	/* Source and destination IP addr */
 	struct in_addr src, dst;
 	/* Mask for src and dest IP addr */
@@ -102,7 +103,8 @@ struct ipt_ip {
 /* This structure defines each of the firewall rules.  Consists of 3
    parts which are 1) general IP header stuff 2) match specific
    stuff 3) the target to perform if the rule matches */
-struct ipt_entry {
+struct ipt_entry
+{
 	struct ipt_ip ip;
 
 	/* Mark with fields that we care about. */
@@ -143,7 +145,8 @@ struct ipt_entry {
 #define IPT_SO_GET_MAX			IPT_SO_GET_REVISION_TARGET
 
 /* ICMP matching stuff */
-struct ipt_icmp {
+struct ipt_icmp
+{
 	__u8 type;				/* type to match */
 	__u8 code[2];				/* range of code */
 	__u8 invflags;				/* Inverse flags */
@@ -153,7 +156,8 @@ struct ipt_icmp {
 #define IPT_ICMP_INV	0x01	/* Invert the sense of type/code test */
 
 /* The argument to IPT_SO_GET_INFO */
-struct ipt_getinfo {
+struct ipt_getinfo
+{
 	/* Which table: caller fills this in. */
 	char name[XT_TABLE_MAXNAMELEN];
 
@@ -175,12 +179,13 @@ struct ipt_getinfo {
 };
 
 /* The argument to IPT_SO_SET_REPLACE. */
-struct ipt_replace {
+struct ipt_replace
+{
 	/* Which table. */
 	char name[XT_TABLE_MAXNAMELEN];
 
 	/* Which hook entry points are valid: bitmask.  You can't
-           change this. */
+	       change this. */
 	unsigned int valid_hooks;
 
 	/* Number of entries */
@@ -206,7 +211,8 @@ struct ipt_replace {
 };
 
 /* The argument to IPT_SO_GET_ENTRIES. */
-struct ipt_get_entries {
+struct ipt_get_entries
+{
 	/* Which table: user fills this in. */
 	char name[XT_TABLE_MAXNAMELEN];
 

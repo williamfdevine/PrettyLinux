@@ -47,7 +47,8 @@ static int teles_cs_config(struct pcmcia_device *link);
 static void teles_cs_release(struct pcmcia_device *link);
 static void teles_detach(struct pcmcia_device *p_dev);
 
-typedef struct local_info_t {
+typedef struct local_info_t
+{
 	struct pcmcia_device	*p_dev;
 	int                 busy;
 	int			cardnr;
@@ -61,7 +62,9 @@ static int teles_probe(struct pcmcia_device *link)
 
 	/* Allocate space for private device-specific data */
 	local = kzalloc(sizeof(local_info_t), GFP_KERNEL);
-	if (!local) return -ENOMEM;
+
+	if (!local) { return -ENOMEM; }
+
 	local->cardnr = -1;
 
 	local->p_dev = link;
@@ -93,18 +96,30 @@ static int teles_cs_configcheck(struct pcmcia_device *p_dev, void *priv_data)
 	p_dev->resource[0]->flags &= IO_DATA_PATH_WIDTH;
 	p_dev->resource[0]->flags |= IO_DATA_PATH_WIDTH_AUTO;
 
-	if ((p_dev->resource[0]->end) && p_dev->resource[0]->start) {
+	if ((p_dev->resource[0]->end) && p_dev->resource[0]->start)
+	{
 		printk(KERN_INFO "(teles_cs: looks like the 96 model)\n");
+
 		if (!pcmcia_request_io(p_dev))
+		{
 			return 0;
-	} else {
-		printk(KERN_INFO "(teles_cs: looks like the 97 model)\n");
-		for (j = 0x2f0; j > 0x100; j -= 0x10) {
-			p_dev->resource[0]->start = j;
-			if (!pcmcia_request_io(p_dev))
-				return 0;
 		}
 	}
+	else
+	{
+		printk(KERN_INFO "(teles_cs: looks like the 97 model)\n");
+
+		for (j = 0x2f0; j > 0x100; j -= 0x10)
+		{
+			p_dev->resource[0]->start = j;
+
+			if (!pcmcia_request_io(p_dev))
+			{
+				return 0;
+			}
+		}
+	}
+
 	return -ENODEV;
 }
 
@@ -116,15 +131,23 @@ static int teles_cs_config(struct pcmcia_device *link)
 	dev_dbg(&link->dev, "teles_config(0x%p)\n", link);
 
 	i = pcmcia_loop_config(link, teles_cs_configcheck, NULL);
+
 	if (i != 0)
+	{
 		goto cs_failed;
+	}
 
 	if (!link->irq)
+	{
 		goto cs_failed;
+	}
 
 	i = pcmcia_enable_device(link);
+
 	if (i != 0)
+	{
 		goto cs_failed;
+	}
 
 	icard.para[0] = link->irq;
 	icard.para[1] = link->resource[0]->start;
@@ -132,9 +155,11 @@ static int teles_cs_config(struct pcmcia_device *link)
 	icard.typ = ISDN_CTYPE_TELESPCMCIA;
 
 	i = hisax_init_pcmcia(link, &(((local_info_t *)link->priv)->busy), &icard);
-	if (i < 0) {
+
+	if (i < 0)
+	{
 		printk(KERN_ERR "teles_cs: failed to initialize Teles PCMCIA %d at i/o %#x\n",
-		       i, (unsigned int) link->resource[0]->start);
+			   i, (unsigned int) link->resource[0]->start);
 		teles_cs_release(link);
 		return -ENODEV;
 	}
@@ -153,8 +178,10 @@ static void teles_cs_release(struct pcmcia_device *link)
 
 	dev_dbg(&link->dev, "teles_cs_release(0x%p)\n", link);
 
-	if (local) {
-		if (local->cardnr >= 0) {
+	if (local)
+	{
+		if (local->cardnr >= 0)
+		{
 			/* no unregister function with hisax */
 			HiSax_closecard(local->cardnr);
 		}
@@ -182,13 +209,15 @@ static int teles_resume(struct pcmcia_device *link)
 }
 
 
-static const struct pcmcia_device_id teles_ids[] = {
+static const struct pcmcia_device_id teles_ids[] =
+{
 	PCMCIA_DEVICE_PROD_ID12("TELES", "S0/PC", 0x67b50eae, 0xe9e70119),
 	PCMCIA_DEVICE_NULL,
 };
 MODULE_DEVICE_TABLE(pcmcia, teles_ids);
 
-static struct pcmcia_driver teles_cs_driver = {
+static struct pcmcia_driver teles_cs_driver =
+{
 	.owner		= THIS_MODULE,
 	.name		= "teles_cs",
 	.probe		= teles_probe,

@@ -32,7 +32,8 @@
 
 #include "stackglue.h"
 
-struct o2dlm_private {
+struct o2dlm_private
+{
 	struct dlm_eviction_cb op_eviction_cb;
 };
 
@@ -40,25 +41,25 @@ static struct ocfs2_stack_plugin o2cb_stack;
 
 /* These should be identical */
 #if (DLM_LOCK_IV != LKM_IVMODE)
-# error Lock modes do not match
+	# error Lock modes do not match
 #endif
 #if (DLM_LOCK_NL != LKM_NLMODE)
-# error Lock modes do not match
+	# error Lock modes do not match
 #endif
 #if (DLM_LOCK_CR != LKM_CRMODE)
-# error Lock modes do not match
+	# error Lock modes do not match
 #endif
 #if (DLM_LOCK_CW != LKM_CWMODE)
-# error Lock modes do not match
+	# error Lock modes do not match
 #endif
 #if (DLM_LOCK_PR != LKM_PRMODE)
-# error Lock modes do not match
+	# error Lock modes do not match
 #endif
 #if (DLM_LOCK_PW != LKM_PWMODE)
-# error Lock modes do not match
+	# error Lock modes do not match
 #endif
 #if (DLM_LOCK_EX != LKM_EXMODE)
-# error Lock modes do not match
+	# error Lock modes do not match
 #endif
 static inline int mode_to_o2dlm(int mode)
 {
@@ -109,7 +110,8 @@ static int flags_to_o2dlm(u32 flags)
  * DLM_CANCEL:		-DLM_ECANCEL
  */
 /* Keep in sync with dlmapi.h */
-static int status_map[] = {
+static int status_map[] =
+{
 	[DLM_NORMAL]			= 0,		/* Success */
 	[DLM_GRANTED]			= -EINVAL,
 	[DLM_DENIED]			= -EACCES,
@@ -192,17 +194,19 @@ static void o2dlm_unlock_ast_wrapper(void *astarg, enum dlm_status status)
 	 * granted lock.
 	 */
 	if (status == DLM_CANCELGRANT)
+	{
 		return;
+	}
 
 	lksb->lksb_conn->cc_proto->lp_unlock_ast(lksb, error);
 }
 
 static int o2cb_dlm_lock(struct ocfs2_cluster_connection *conn,
-			 int mode,
-			 struct ocfs2_dlm_lksb *lksb,
-			 u32 flags,
-			 void *name,
-			 unsigned int namelen)
+						 int mode,
+						 struct ocfs2_dlm_lksb *lksb,
+						 u32 flags,
+						 void *name,
+						 unsigned int namelen)
 {
 	enum dlm_status status;
 	int o2dlm_mode = mode_to_o2dlm(mode);
@@ -210,23 +214,23 @@ static int o2cb_dlm_lock(struct ocfs2_cluster_connection *conn,
 	int ret;
 
 	status = dlmlock(conn->cc_lockspace, o2dlm_mode, &lksb->lksb_o2dlm,
-			 o2dlm_flags, name, namelen,
-			 o2dlm_lock_ast_wrapper, lksb,
-			 o2dlm_blocking_ast_wrapper);
+					 o2dlm_flags, name, namelen,
+					 o2dlm_lock_ast_wrapper, lksb,
+					 o2dlm_blocking_ast_wrapper);
 	ret = dlm_status_to_errno(status);
 	return ret;
 }
 
 static int o2cb_dlm_unlock(struct ocfs2_cluster_connection *conn,
-			   struct ocfs2_dlm_lksb *lksb,
-			   u32 flags)
+						   struct ocfs2_dlm_lksb *lksb,
+						   u32 flags)
 {
 	enum dlm_status status;
 	int o2dlm_flags = flags_to_o2dlm(flags);
 	int ret;
 
 	status = dlmunlock(conn->cc_lockspace, &lksb->lksb_o2dlm,
-			   o2dlm_flags, o2dlm_unlock_ast_wrapper, lksb);
+					   o2dlm_flags, o2dlm_unlock_ast_wrapper, lksb);
 	ret = dlm_status_to_errno(status);
 	return ret;
 }
@@ -268,7 +272,9 @@ static int o2cb_cluster_check(void)
 	unsigned long netmap[BITS_TO_LONGS(O2NM_MAX_NODES)];
 
 	node_num = o2nm_this_node();
-	if (node_num == O2NM_MAX_NODES) {
+
+	if (node_num == O2NM_MAX_NODES)
+	{
 		printk(KERN_ERR "o2cb: This node has not been configured.\n");
 		return -EINVAL;
 	}
@@ -282,30 +288,46 @@ static int o2cb_cluster_check(void)
 	 * etc.) Yes, this is racy. But its not the end of the world.
 	 */
 #define	O2CB_MAP_STABILIZE_COUNT	60
-	for (i = 0; i < O2CB_MAP_STABILIZE_COUNT; ++i) {
+
+	for (i = 0; i < O2CB_MAP_STABILIZE_COUNT; ++i)
+	{
 		o2hb_fill_node_map(hbmap, sizeof(hbmap));
-		if (!test_bit(node_num, hbmap)) {
+
+		if (!test_bit(node_num, hbmap))
+		{
 			printk(KERN_ERR "o2cb: %s heartbeat has not been "
-			       "started.\n", (o2hb_global_heartbeat_active() ?
-					      "Global" : "Local"));
+				   "started.\n", (o2hb_global_heartbeat_active() ?
+								  "Global" : "Local"));
 			return -EINVAL;
 		}
+
 		o2net_fill_node_map(netmap, sizeof(netmap));
 		/* Force set the current node to allow easy compare */
 		set_bit(node_num, netmap);
+
 		if (!memcmp(hbmap, netmap, sizeof(hbmap)))
+		{
 			return 0;
+		}
+
 		if (i < O2CB_MAP_STABILIZE_COUNT - 1)
+		{
 			msleep(1000);
+		}
 	}
 
 	printk(KERN_ERR "o2cb: This node could not connect to nodes:");
 	i = -1;
+
 	while ((i = find_next_bit(hbmap, O2NM_MAX_NODES,
-				  i + 1)) < O2NM_MAX_NODES) {
+							  i + 1)) < O2NM_MAX_NODES)
+	{
 		if (!test_bit(i, netmap))
+		{
 			printk(" %u", i);
+		}
 	}
+
 	printk(".\n");
 
 	return -ENOTCONN;
@@ -320,7 +342,7 @@ static void o2dlm_eviction_cb(int node_num, void *data)
 	struct ocfs2_cluster_connection *conn = data;
 
 	printk(KERN_NOTICE "o2cb: o2dlm has evicted node %d from domain %.*s\n",
-	       node_num, conn->cc_namelen, conn->cc_name);
+		   node_num, conn->cc_namelen, conn->cc_name);
 
 	conn->cc_recovery_handler(node_num, conn->cc_recovery_data);
 }
@@ -338,21 +360,25 @@ static int o2cb_cluster_connect(struct ocfs2_cluster_connection *conn)
 
 	/* Ensure cluster stack is up and all nodes are connected */
 	rc = o2cb_cluster_check();
-	if (rc) {
+
+	if (rc)
+	{
 		printk(KERN_ERR "o2cb: Cluster check failed. Fix errors "
-		       "before retrying.\n");
+			   "before retrying.\n");
 		goto out;
 	}
 
 	priv = kzalloc(sizeof(struct o2dlm_private), GFP_KERNEL);
-	if (!priv) {
+
+	if (!priv)
+	{
 		rc = -ENOMEM;
 		goto out_free;
 	}
 
 	/* This just fills the structure in.  It is safe to pass conn. */
 	dlm_setup_eviction_cb(&priv->op_eviction_cb, o2dlm_eviction_cb,
-			      conn);
+						  conn);
 
 	conn->cc_private = priv;
 
@@ -363,7 +389,9 @@ static int o2cb_cluster_connect(struct ocfs2_cluster_connection *conn)
 	fs_version.pv_minor = conn->cc_version.pv_minor;
 
 	dlm = dlm_register_domain(conn->cc_name, dlm_key, &fs_version);
-	if (IS_ERR(dlm)) {
+
+	if (IS_ERR(dlm))
+	{
 		rc = PTR_ERR(dlm);
 		mlog_errno(rc);
 		goto out_free;
@@ -376,8 +404,11 @@ static int o2cb_cluster_connect(struct ocfs2_cluster_connection *conn)
 	dlm_register_eviction_cb(dlm, &priv->op_eviction_cb);
 
 out_free:
+
 	if (rc)
+	{
 		kfree(conn->cc_private);
+	}
 
 out:
 	return rc;
@@ -399,22 +430,28 @@ static int o2cb_cluster_disconnect(struct ocfs2_cluster_connection *conn)
 }
 
 static int o2cb_cluster_this_node(struct ocfs2_cluster_connection *conn,
-				  unsigned int *node)
+								  unsigned int *node)
 {
 	int node_num;
 
 	node_num = o2nm_this_node();
+
 	if (node_num == O2NM_INVALID_NODE_NUM)
+	{
 		return -ENOENT;
+	}
 
 	if (node_num >= O2NM_MAX_NODES)
+	{
 		return -EOVERFLOW;
+	}
 
 	*node = node_num;
 	return 0;
 }
 
-static struct ocfs2_stack_operations o2cb_stack_ops = {
+static struct ocfs2_stack_operations o2cb_stack_ops =
+{
 	.connect	= o2cb_cluster_connect,
 	.disconnect	= o2cb_cluster_disconnect,
 	.this_node	= o2cb_cluster_this_node,
@@ -426,7 +463,8 @@ static struct ocfs2_stack_operations o2cb_stack_ops = {
 	.dump_lksb	= o2cb_dump_lksb,
 };
 
-static struct ocfs2_stack_plugin o2cb_stack = {
+static struct ocfs2_stack_plugin o2cb_stack =
+{
 	.sp_name	= "o2cb",
 	.sp_ops		= &o2cb_stack_ops,
 	.sp_owner	= THIS_MODULE,

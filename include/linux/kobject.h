@@ -33,8 +33,8 @@
 #define UEVENT_BUFFER_SIZE		2048	/* buffer for the variables */
 
 #ifdef CONFIG_UEVENT_HELPER
-/* path to the userspace helper executed on an event */
-extern char uevent_helper[];
+	/* path to the userspace helper executed on an event */
+	extern char uevent_helper[];
 #endif
 
 /* counter to tag the uevent, read only except for the kobject core */
@@ -50,7 +50,8 @@ extern u64 uevent_seqnum;
  * kobject_uevent_env(kobj, KOBJ_CHANGE, env) with additional event
  * specific variables added to the event environment.
  */
-enum kobject_action {
+enum kobject_action
+{
 	KOBJ_ADD,
 	KOBJ_REMOVE,
 	KOBJ_CHANGE,
@@ -60,7 +61,8 @@ enum kobject_action {
 	KOBJ_MAX
 };
 
-struct kobject {
+struct kobject
+{
 	const char		*name;
 	struct list_head	entry;
 	struct kobject		*parent;
@@ -71,18 +73,18 @@ struct kobject {
 #ifdef CONFIG_DEBUG_KOBJECT_RELEASE
 	struct delayed_work	release;
 #endif
-	unsigned int state_initialized:1;
-	unsigned int state_in_sysfs:1;
-	unsigned int state_add_uevent_sent:1;
-	unsigned int state_remove_uevent_sent:1;
-	unsigned int uevent_suppress:1;
+	unsigned int state_initialized: 1;
+	unsigned int state_in_sysfs: 1;
+	unsigned int state_add_uevent_sent: 1;
+	unsigned int state_remove_uevent_sent: 1;
+	unsigned int uevent_suppress: 1;
 };
 
 extern __printf(2, 3)
 int kobject_set_name(struct kobject *kobj, const char *name, ...);
 extern __printf(2, 0)
 int kobject_set_name_vargs(struct kobject *kobj, const char *fmt,
-			   va_list vargs);
+						   va_list vargs);
 
 static inline const char *kobject_name(const struct kobject *kobj)
 {
@@ -92,17 +94,17 @@ static inline const char *kobject_name(const struct kobject *kobj)
 extern void kobject_init(struct kobject *kobj, struct kobj_type *ktype);
 extern __printf(3, 4) __must_check
 int kobject_add(struct kobject *kobj, struct kobject *parent,
-		const char *fmt, ...);
+				const char *fmt, ...);
 extern __printf(4, 5) __must_check
 int kobject_init_and_add(struct kobject *kobj,
-			 struct kobj_type *ktype, struct kobject *parent,
-			 const char *fmt, ...);
+						 struct kobj_type *ktype, struct kobject *parent,
+						 const char *fmt, ...);
 
 extern void kobject_del(struct kobject *kobj);
 
-extern struct kobject * __must_check kobject_create(void);
-extern struct kobject * __must_check kobject_create_and_add(const char *name,
-						struct kobject *parent);
+extern struct kobject *__must_check kobject_create(void);
+extern struct kobject *__must_check kobject_create_and_add(const char *name,
+		struct kobject *parent);
 
 extern int __must_check kobject_rename(struct kobject *, const char *new_name);
 extern int __must_check kobject_move(struct kobject *, struct kobject *);
@@ -113,7 +115,8 @@ extern void kobject_put(struct kobject *kobj);
 extern const void *kobject_namespace(struct kobject *kobj);
 extern char *kobject_get_path(struct kobject *kobj, gfp_t flag);
 
-struct kobj_type {
+struct kobj_type
+{
 	void (*release)(struct kobject *kobj);
 	const struct sysfs_ops *sysfs_ops;
 	struct attribute **default_attrs;
@@ -121,7 +124,8 @@ struct kobj_type {
 	const void *(*namespace)(struct kobject *kobj);
 };
 
-struct kobj_uevent_env {
+struct kobj_uevent_env
+{
 	char *argv[3];
 	char *envp[UEVENT_NUM_ENVP];
 	int envp_idx;
@@ -129,19 +133,21 @@ struct kobj_uevent_env {
 	int buflen;
 };
 
-struct kset_uevent_ops {
+struct kset_uevent_ops
+{
 	int (* const filter)(struct kset *kset, struct kobject *kobj);
 	const char *(* const name)(struct kset *kset, struct kobject *kobj);
 	int (* const uevent)(struct kset *kset, struct kobject *kobj,
-		      struct kobj_uevent_env *env);
+						 struct kobj_uevent_env *env);
 };
 
-struct kobj_attribute {
+struct kobj_attribute
+{
 	struct attribute attr;
 	ssize_t (*show)(struct kobject *kobj, struct kobj_attribute *attr,
-			char *buf);
+					char *buf);
 	ssize_t (*store)(struct kobject *kobj, struct kobj_attribute *attr,
-			 const char *buf, size_t count);
+					 const char *buf, size_t count);
 };
 
 extern const struct sysfs_ops kobj_sysfs_ops;
@@ -165,7 +171,8 @@ struct sock;
  * can add new environment variables, or filter out the uevents if so
  * desired.
  */
-struct kset {
+struct kset
+{
 	struct list_head list;
 	spinlock_t list_lock;
 	struct kobject kobj;
@@ -175,9 +182,9 @@ struct kset {
 extern void kset_init(struct kset *kset);
 extern int __must_check kset_register(struct kset *kset);
 extern void kset_unregister(struct kset *kset);
-extern struct kset * __must_check kset_create_and_add(const char *name,
-						const struct kset_uevent_ops *u,
-						struct kobject *parent_kobj);
+extern struct kset *__must_check kset_create_and_add(const char *name,
+		const struct kset_uevent_ops *u,
+		struct kobject *parent_kobj);
 
 static inline struct kset *to_kset(struct kobject *kobj)
 {
@@ -214,12 +221,12 @@ extern struct kobject *firmware_kobj;
 
 int kobject_uevent(struct kobject *kobj, enum kobject_action action);
 int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
-			char *envp[]);
+					   char *envp[]);
 
 __printf(2, 3)
 int add_uevent_var(struct kobj_uevent_env *env, const char *format, ...);
 
 int kobject_action_type(const char *buf, size_t count,
-			enum kobject_action *type);
+						enum kobject_action *type);
 
 #endif /* _KOBJECT_H_ */

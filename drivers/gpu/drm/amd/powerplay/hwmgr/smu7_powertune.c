@@ -31,11 +31,12 @@
 
 static uint32_t DIDTBlock_Info = SQ_IR_MASK | TCP_IR_MASK | TD_PCC_MASK;
 
-static const struct gpu_pt_config_reg GCCACConfig_Polaris10[] = {
-/* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- *      Offset                             Mask                                                Shift                                               Value       Type
- * ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- */
+static const struct gpu_pt_config_reg GCCACConfig_Polaris10[] =
+{
+	/* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	 *      Offset                             Mask                                                Shift                                               Value       Type
+	 * ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	 */
 	{   ixGC_CAC_CNTL,                     0xFFFFFFFF,                                         0,                                                  0x00060013, GPU_CONFIGREG_GC_CAC_IND },
 	{   ixGC_CAC_CNTL,                     0xFFFFFFFF,                                         0,                                                  0x00860013, GPU_CONFIGREG_GC_CAC_IND },
 	{   ixGC_CAC_CNTL,                     0xFFFFFFFF,                                         0,                                                  0x01060013, GPU_CONFIGREG_GC_CAC_IND },
@@ -62,11 +63,12 @@ static const struct gpu_pt_config_reg GCCACConfig_Polaris10[] = {
 	{   0xFFFFFFFF  }
 };
 
-static const struct gpu_pt_config_reg GCCACConfig_Polaris11[] = {
-/* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- *      Offset                             Mask                                                Shift                                               Value       Type
- * ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- */
+static const struct gpu_pt_config_reg GCCACConfig_Polaris11[] =
+{
+	/* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	 *      Offset                             Mask                                                Shift                                               Value       Type
+	 * ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	 */
 	{   ixGC_CAC_CNTL,                     0xFFFFFFFF,                                         0,                                                  0x00060011, GPU_CONFIGREG_GC_CAC_IND },
 	{   ixGC_CAC_CNTL,                     0xFFFFFFFF,                                         0,                                                  0x00860011, GPU_CONFIGREG_GC_CAC_IND },
 	{   ixGC_CAC_CNTL,                     0xFFFFFFFF,                                         0,                                                  0x01060011, GPU_CONFIGREG_GC_CAC_IND },
@@ -93,11 +95,12 @@ static const struct gpu_pt_config_reg GCCACConfig_Polaris11[] = {
 	{   0xFFFFFFFF  }
 };
 
-static const struct gpu_pt_config_reg DIDTConfig_Polaris10[] = {
-/* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- *      Offset                             Mask                                                Shift                                               Value       Type
- * ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- */
+static const struct gpu_pt_config_reg DIDTConfig_Polaris10[] =
+{
+	/* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	 *      Offset                             Mask                                                Shift                                               Value       Type
+	 * ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	 */
 	{   ixDIDT_SQ_WEIGHT0_3,               DIDT_SQ_WEIGHT0_3__WEIGHT0_MASK,                    DIDT_SQ_WEIGHT0_3__WEIGHT0__SHIFT,                  0x0073,     GPU_CONFIGREG_DIDT_IND },
 	{   ixDIDT_SQ_WEIGHT0_3,               DIDT_SQ_WEIGHT0_3__WEIGHT1_MASK,                    DIDT_SQ_WEIGHT0_3__WEIGHT1__SHIFT,                  0x00ab,     GPU_CONFIGREG_DIDT_IND },
 	{   ixDIDT_SQ_WEIGHT0_3,               DIDT_SQ_WEIGHT0_3__WEIGHT2_MASK,                    DIDT_SQ_WEIGHT0_3__WEIGHT2__SHIFT,                  0x0084,     GPU_CONFIGREG_DIDT_IND },
@@ -235,11 +238,12 @@ static const struct gpu_pt_config_reg DIDTConfig_Polaris10[] = {
 	{   0xFFFFFFFF  }
 };
 
-static const struct gpu_pt_config_reg DIDTConfig_Polaris11[] = {
-/* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- *      Offset                             Mask                                                Shift                                               Value       Type
- * ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- */
+static const struct gpu_pt_config_reg DIDTConfig_Polaris11[] =
+{
+	/* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	 *      Offset                             Mask                                                Shift                                               Value       Type
+	 * ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	 */
 	{   ixDIDT_SQ_WEIGHT0_3,               DIDT_SQ_WEIGHT0_3__WEIGHT0_MASK,                    DIDT_SQ_WEIGHT0_3__WEIGHT0__SHIFT,                  0x0073,     GPU_CONFIGREG_DIDT_IND },
 	{   ixDIDT_SQ_WEIGHT0_3,               DIDT_SQ_WEIGHT0_3__WEIGHT1_MASK,                    DIDT_SQ_WEIGHT0_3__WEIGHT1__SHIFT,                  0x00ab,     GPU_CONFIGREG_DIDT_IND },
 	{   ixDIDT_SQ_WEIGHT0_3,               DIDT_SQ_WEIGHT0_3__WEIGHT2_MASK,                    DIDT_SQ_WEIGHT0_3__WEIGHT2__SHIFT,                  0x0084,     GPU_CONFIGREG_DIDT_IND },
@@ -384,7 +388,8 @@ static int smu7_enable_didt(struct pp_hwmgr *hwmgr, const bool enable)
 	int32_t result = 0;
 	uint32_t data;
 
-	if (phm_cap_enabled(hwmgr->platform_descriptor.platformCaps, PHM_PlatformCaps_SQRamping)) {
+	if (phm_cap_enabled(hwmgr->platform_descriptor.platformCaps, PHM_PlatformCaps_SQRamping))
+	{
 		data = cgs_read_ind_register(hwmgr->device, CGS_IND_REG__DIDT, ixDIDT_SQ_CTRL0);
 		data &= ~DIDT_SQ_CTRL0__DIDT_CTRL_EN_MASK;
 		data |= ((en << DIDT_SQ_CTRL0__DIDT_CTRL_EN__SHIFT) & DIDT_SQ_CTRL0__DIDT_CTRL_EN_MASK);
@@ -393,7 +398,8 @@ static int smu7_enable_didt(struct pp_hwmgr *hwmgr, const bool enable)
 		DIDTBlock_Info |= en << SQ_Enable_SHIFT;
 	}
 
-	if (phm_cap_enabled(hwmgr->platform_descriptor.platformCaps, PHM_PlatformCaps_DBRamping)) {
+	if (phm_cap_enabled(hwmgr->platform_descriptor.platformCaps, PHM_PlatformCaps_DBRamping))
+	{
 		data = cgs_read_ind_register(hwmgr->device, CGS_IND_REG__DIDT, ixDIDT_DB_CTRL0);
 		data &= ~DIDT_DB_CTRL0__DIDT_CTRL_EN_MASK;
 		data |= ((en << DIDT_DB_CTRL0__DIDT_CTRL_EN__SHIFT) & DIDT_DB_CTRL0__DIDT_CTRL_EN_MASK);
@@ -402,7 +408,8 @@ static int smu7_enable_didt(struct pp_hwmgr *hwmgr, const bool enable)
 		DIDTBlock_Info |= en << DB_Enable_SHIFT;
 	}
 
-	if (phm_cap_enabled(hwmgr->platform_descriptor.platformCaps, PHM_PlatformCaps_TDRamping)) {
+	if (phm_cap_enabled(hwmgr->platform_descriptor.platformCaps, PHM_PlatformCaps_TDRamping))
+	{
 		data = cgs_read_ind_register(hwmgr->device, CGS_IND_REG__DIDT, ixDIDT_TD_CTRL0);
 		data &= ~DIDT_TD_CTRL0__DIDT_CTRL_EN_MASK;
 		data |= ((en << DIDT_TD_CTRL0__DIDT_CTRL_EN__SHIFT) & DIDT_TD_CTRL0__DIDT_CTRL_EN_MASK);
@@ -411,7 +418,8 @@ static int smu7_enable_didt(struct pp_hwmgr *hwmgr, const bool enable)
 		DIDTBlock_Info |= en << TD_Enable_SHIFT;
 	}
 
-	if (phm_cap_enabled(hwmgr->platform_descriptor.platformCaps, PHM_PlatformCaps_TCPRamping)) {
+	if (phm_cap_enabled(hwmgr->platform_descriptor.platformCaps, PHM_PlatformCaps_TCPRamping))
+	{
 		data = cgs_read_ind_register(hwmgr->device, CGS_IND_REG__DIDT, ixDIDT_TCP_CTRL0);
 		data &= ~DIDT_TCP_CTRL0__DIDT_CTRL_EN_MASK;
 		data |= ((en << DIDT_TCP_CTRL0__DIDT_CTRL_EN__SHIFT) & DIDT_TCP_CTRL0__DIDT_CTRL_EN_MASK);
@@ -421,13 +429,15 @@ static int smu7_enable_didt(struct pp_hwmgr *hwmgr, const bool enable)
 	}
 
 	if (enable)
+	{
 		result = smum_send_msg_to_smc_with_parameter(hwmgr->smumgr, PPSMC_MSG_Didt_Block_Function, DIDTBlock_Info);
+	}
 
 	return result;
 }
 
 static int smu7_program_pt_config_registers(struct pp_hwmgr *hwmgr,
-				const struct gpu_pt_config_reg *cac_config_regs)
+		const struct gpu_pt_config_reg *cac_config_regs)
 {
 	const struct gpu_pt_config_reg *config_regs = cac_config_regs;
 	uint32_t cache = 0;
@@ -435,49 +445,56 @@ static int smu7_program_pt_config_registers(struct pp_hwmgr *hwmgr,
 
 	PP_ASSERT_WITH_CODE((config_regs != NULL), "Invalid config register table.", return -EINVAL);
 
-	while (config_regs->offset != 0xFFFFFFFF) {
+	while (config_regs->offset != 0xFFFFFFFF)
+	{
 		if (config_regs->type == GPU_CONFIGREG_CACHE)
+		{
 			cache |= ((config_regs->value << config_regs->shift) & config_regs->mask);
-		else {
-			switch (config_regs->type) {
-			case GPU_CONFIGREG_SMC_IND:
-				data = cgs_read_ind_register(hwmgr->device, CGS_IND_REG__SMC, config_regs->offset);
-				break;
+		}
+		else
+		{
+			switch (config_regs->type)
+			{
+				case GPU_CONFIGREG_SMC_IND:
+					data = cgs_read_ind_register(hwmgr->device, CGS_IND_REG__SMC, config_regs->offset);
+					break;
 
-			case GPU_CONFIGREG_DIDT_IND:
-				data = cgs_read_ind_register(hwmgr->device, CGS_IND_REG__DIDT, config_regs->offset);
-				break;
+				case GPU_CONFIGREG_DIDT_IND:
+					data = cgs_read_ind_register(hwmgr->device, CGS_IND_REG__DIDT, config_regs->offset);
+					break;
 
-			case GPU_CONFIGREG_GC_CAC_IND:
-				data = cgs_read_ind_register(hwmgr->device, CGS_IND_REG_GC_CAC, config_regs->offset);
-				break;
+				case GPU_CONFIGREG_GC_CAC_IND:
+					data = cgs_read_ind_register(hwmgr->device, CGS_IND_REG_GC_CAC, config_regs->offset);
+					break;
 
-			default:
-				data = cgs_read_register(hwmgr->device, config_regs->offset);
-				break;
+				default:
+					data = cgs_read_register(hwmgr->device, config_regs->offset);
+					break;
 			}
 
 			data &= ~config_regs->mask;
 			data |= ((config_regs->value << config_regs->shift) & config_regs->mask);
 			data |= cache;
 
-			switch (config_regs->type) {
-			case GPU_CONFIGREG_SMC_IND:
-				cgs_write_ind_register(hwmgr->device, CGS_IND_REG__SMC, config_regs->offset, data);
-				break;
+			switch (config_regs->type)
+			{
+				case GPU_CONFIGREG_SMC_IND:
+					cgs_write_ind_register(hwmgr->device, CGS_IND_REG__SMC, config_regs->offset, data);
+					break;
 
-			case GPU_CONFIGREG_DIDT_IND:
-				cgs_write_ind_register(hwmgr->device, CGS_IND_REG__DIDT, config_regs->offset, data);
-				break;
+				case GPU_CONFIGREG_DIDT_IND:
+					cgs_write_ind_register(hwmgr->device, CGS_IND_REG__DIDT, config_regs->offset, data);
+					break;
 
-			case GPU_CONFIGREG_GC_CAC_IND:
-				cgs_write_ind_register(hwmgr->device, CGS_IND_REG_GC_CAC, config_regs->offset, data);
-				break;
+				case GPU_CONFIGREG_GC_CAC_IND:
+					cgs_write_ind_register(hwmgr->device, CGS_IND_REG_GC_CAC, config_regs->offset, data);
+					break;
 
-			default:
-				cgs_write_register(hwmgr->device, config_regs->offset, data);
-				break;
+				default:
+					cgs_write_register(hwmgr->device, config_regs->offset, data);
+					break;
 			}
+
 			cache = 0;
 		}
 
@@ -500,34 +517,43 @@ int smu7_enable_didt_config(struct pp_hwmgr *hwmgr)
 
 
 	if (result == 0)
+	{
 		num_se = sys_info.value;
+	}
 
 	if (phm_cap_enabled(hwmgr->platform_descriptor.platformCaps, PHM_PlatformCaps_SQRamping) ||
 		phm_cap_enabled(hwmgr->platform_descriptor.platformCaps, PHM_PlatformCaps_DBRamping) ||
 		phm_cap_enabled(hwmgr->platform_descriptor.platformCaps, PHM_PlatformCaps_TDRamping) ||
-		phm_cap_enabled(hwmgr->platform_descriptor.platformCaps, PHM_PlatformCaps_TCPRamping)) {
+		phm_cap_enabled(hwmgr->platform_descriptor.platformCaps, PHM_PlatformCaps_TCPRamping))
+	{
 
 		/* TO DO Pre DIDT disable clock gating */
 		value = 0;
 		value2 = cgs_read_register(hwmgr->device, mmGRBM_GFX_INDEX);
-		for (count = 0; count < num_se; count++) {
+
+		for (count = 0; count < num_se; count++)
+		{
 			value = SYS_GRBM_GFX_INDEX_DATA__INSTANCE_BROADCAST_WRITES_MASK
-				| SYS_GRBM_GFX_INDEX_DATA__SH_BROADCAST_WRITES_MASK
-				| (count << SYS_GRBM_GFX_INDEX_DATA__SE_INDEX__SHIFT);
+					| SYS_GRBM_GFX_INDEX_DATA__SH_BROADCAST_WRITES_MASK
+					| (count << SYS_GRBM_GFX_INDEX_DATA__SE_INDEX__SHIFT);
 			cgs_write_register(hwmgr->device, mmGRBM_GFX_INDEX, value);
 
-			if (hwmgr->chip_id == CHIP_POLARIS10) {
+			if (hwmgr->chip_id == CHIP_POLARIS10)
+			{
 				result = smu7_program_pt_config_registers(hwmgr, GCCACConfig_Polaris10);
 				PP_ASSERT_WITH_CODE((result == 0), "DIDT Config failed.", return result);
 				result = smu7_program_pt_config_registers(hwmgr, DIDTConfig_Polaris10);
 				PP_ASSERT_WITH_CODE((result == 0), "DIDT Config failed.", return result);
-			} else if (hwmgr->chip_id == CHIP_POLARIS11) {
+			}
+			else if (hwmgr->chip_id == CHIP_POLARIS11)
+			{
 				result = smu7_program_pt_config_registers(hwmgr, GCCACConfig_Polaris11);
 				PP_ASSERT_WITH_CODE((result == 0), "DIDT Config failed.", return result);
 				result = smu7_program_pt_config_registers(hwmgr, DIDTConfig_Polaris11);
 				PP_ASSERT_WITH_CODE((result == 0), "DIDT Config failed.", return result);
 			}
 		}
+
 		cgs_write_register(hwmgr->device, mmGRBM_GFX_INDEX, value2);
 
 		result = smu7_enable_didt(hwmgr, true);
@@ -546,7 +572,8 @@ int smu7_disable_didt_config(struct pp_hwmgr *hwmgr)
 	if (phm_cap_enabled(hwmgr->platform_descriptor.platformCaps, PHM_PlatformCaps_SQRamping) ||
 		phm_cap_enabled(hwmgr->platform_descriptor.platformCaps, PHM_PlatformCaps_DBRamping) ||
 		phm_cap_enabled(hwmgr->platform_descriptor.platformCaps, PHM_PlatformCaps_TDRamping) ||
-		phm_cap_enabled(hwmgr->platform_descriptor.platformCaps, PHM_PlatformCaps_TCPRamping)) {
+		phm_cap_enabled(hwmgr->platform_descriptor.platformCaps, PHM_PlatformCaps_TCPRamping))
+	{
 		/* TO DO Pre DIDT disable clock gating */
 
 		result = smu7_enable_didt(hwmgr, false);
@@ -563,15 +590,17 @@ int smu7_enable_smc_cac(struct pp_hwmgr *hwmgr)
 	int result = 0;
 
 	if (phm_cap_enabled(hwmgr->platform_descriptor.platformCaps,
-			PHM_PlatformCaps_CAC)) {
+						PHM_PlatformCaps_CAC))
+	{
 		int smc_result;
 		smc_result = smum_send_msg_to_smc(hwmgr->smumgr,
-				(uint16_t)(PPSMC_MSG_EnableCac));
+										  (uint16_t)(PPSMC_MSG_EnableCac));
 		PP_ASSERT_WITH_CODE((0 == smc_result),
-				"Failed to enable CAC in SMC.", result = -1);
+							"Failed to enable CAC in SMC.", result = -1);
 
 		data->cac_enabled = (0 == smc_result) ? true : false;
 	}
+
 	return result;
 }
 
@@ -581,14 +610,16 @@ int smu7_disable_smc_cac(struct pp_hwmgr *hwmgr)
 	int result = 0;
 
 	if (phm_cap_enabled(hwmgr->platform_descriptor.platformCaps,
-			PHM_PlatformCaps_CAC) && data->cac_enabled) {
+						PHM_PlatformCaps_CAC) && data->cac_enabled)
+	{
 		int smc_result = smum_send_msg_to_smc(hwmgr->smumgr,
-				(uint16_t)(PPSMC_MSG_DisableCac));
+											  (uint16_t)(PPSMC_MSG_DisableCac));
 		PP_ASSERT_WITH_CODE((smc_result == 0),
-				"Failed to disable CAC in SMC.", result = -1);
+							"Failed to disable CAC in SMC.", result = -1);
 
 		data->cac_enabled = false;
 	}
+
 	return result;
 }
 
@@ -597,9 +628,10 @@ int smu7_set_power_limit(struct pp_hwmgr *hwmgr, uint32_t n)
 	struct smu7_hwmgr *data = (struct smu7_hwmgr *)(hwmgr->backend);
 
 	if (data->power_containment_features &
-			POWERCONTAINMENT_FEATURE_PkgPwrLimit)
+		POWERCONTAINMENT_FEATURE_PkgPwrLimit)
 		return smum_send_msg_to_smc_with_parameter(hwmgr->smumgr,
 				PPSMC_MSG_PkgPwrSetLimit, n);
+
 	return 0;
 }
 
@@ -613,47 +645,61 @@ int smu7_enable_power_containment(struct pp_hwmgr *hwmgr)
 {
 	struct smu7_hwmgr *data = (struct smu7_hwmgr *)(hwmgr->backend);
 	struct phm_ppt_v1_information *table_info =
-			(struct phm_ppt_v1_information *)(hwmgr->pptable);
+		(struct phm_ppt_v1_information *)(hwmgr->pptable);
 	int smc_result;
 	int result = 0;
 	struct phm_cac_tdp_table *cac_table;
 
 	data->power_containment_features = 0;
+
 	if (hwmgr->pp_table_version == PP_TABLE_V1)
+	{
 		cac_table = table_info->cac_dtp_table;
+	}
 	else
+	{
 		cac_table = hwmgr->dyn_state.cac_dtp_table;
+	}
 
 	if (phm_cap_enabled(hwmgr->platform_descriptor.platformCaps,
-			PHM_PlatformCaps_PowerContainment)) {
+						PHM_PlatformCaps_PowerContainment))
+	{
 
-		if (data->enable_tdc_limit_feature) {
+		if (data->enable_tdc_limit_feature)
+		{
 			smc_result = smum_send_msg_to_smc(hwmgr->smumgr,
-					(uint16_t)(PPSMC_MSG_TDCLimitEnable));
+											  (uint16_t)(PPSMC_MSG_TDCLimitEnable));
 			PP_ASSERT_WITH_CODE((0 == smc_result),
-					"Failed to enable TDCLimit in SMC.", result = -1;);
+								"Failed to enable TDCLimit in SMC.", result = -1;);
+
 			if (0 == smc_result)
 				data->power_containment_features |=
-						POWERCONTAINMENT_FEATURE_TDCLimit;
+					POWERCONTAINMENT_FEATURE_TDCLimit;
 		}
 
-		if (data->enable_pkg_pwr_tracking_feature) {
+		if (data->enable_pkg_pwr_tracking_feature)
+		{
 			smc_result = smum_send_msg_to_smc(hwmgr->smumgr,
-					(uint16_t)(PPSMC_MSG_PkgPwrLimitEnable));
+											  (uint16_t)(PPSMC_MSG_PkgPwrLimitEnable));
 			PP_ASSERT_WITH_CODE((0 == smc_result),
-					"Failed to enable PkgPwrTracking in SMC.", result = -1;);
-			if (0 == smc_result) {
+								"Failed to enable PkgPwrTracking in SMC.", result = -1;);
+
+			if (0 == smc_result)
+			{
 				uint32_t default_limit =
 					(uint32_t)(cac_table->usMaximumPowerDeliveryLimit * 256);
 
 				data->power_containment_features |=
-						POWERCONTAINMENT_FEATURE_PkgPwrLimit;
+					POWERCONTAINMENT_FEATURE_PkgPwrLimit;
 
 				if (smu7_set_power_limit(hwmgr, default_limit))
+				{
 					printk(KERN_ERR "Failed to set Default Power Limit in SMC!");
+				}
 			}
 		}
 	}
+
 	return result;
 }
 
@@ -663,36 +709,41 @@ int smu7_disable_power_containment(struct pp_hwmgr *hwmgr)
 	int result = 0;
 
 	if (phm_cap_enabled(hwmgr->platform_descriptor.platformCaps,
-			PHM_PlatformCaps_PowerContainment) &&
-			data->power_containment_features) {
+						PHM_PlatformCaps_PowerContainment) &&
+		data->power_containment_features)
+	{
 		int smc_result;
 
 		if (data->power_containment_features &
-				POWERCONTAINMENT_FEATURE_TDCLimit) {
+			POWERCONTAINMENT_FEATURE_TDCLimit)
+		{
 			smc_result = smum_send_msg_to_smc(hwmgr->smumgr,
-					(uint16_t)(PPSMC_MSG_TDCLimitDisable));
+											  (uint16_t)(PPSMC_MSG_TDCLimitDisable));
 			PP_ASSERT_WITH_CODE((smc_result == 0),
-					"Failed to disable TDCLimit in SMC.",
-					result = smc_result);
+								"Failed to disable TDCLimit in SMC.",
+								result = smc_result);
 		}
 
 		if (data->power_containment_features &
-				POWERCONTAINMENT_FEATURE_DTE) {
+			POWERCONTAINMENT_FEATURE_DTE)
+		{
 			smc_result = smum_send_msg_to_smc(hwmgr->smumgr,
-					(uint16_t)(PPSMC_MSG_DisableDTE));
+											  (uint16_t)(PPSMC_MSG_DisableDTE));
 			PP_ASSERT_WITH_CODE((smc_result == 0),
-					"Failed to disable DTE in SMC.",
-					result = smc_result);
+								"Failed to disable DTE in SMC.",
+								result = smc_result);
 		}
 
 		if (data->power_containment_features &
-				POWERCONTAINMENT_FEATURE_PkgPwrLimit) {
+			POWERCONTAINMENT_FEATURE_PkgPwrLimit)
+		{
 			smc_result = smum_send_msg_to_smc(hwmgr->smumgr,
-					(uint16_t)(PPSMC_MSG_PkgPwrLimitDisable));
+											  (uint16_t)(PPSMC_MSG_PkgPwrLimitDisable));
 			PP_ASSERT_WITH_CODE((smc_result == 0),
-					"Failed to disable PkgPwrTracking in SMC.",
-					result = smc_result);
+								"Failed to disable PkgPwrTracking in SMC.",
+								result = smc_result);
 		}
+
 		data->power_containment_features = 0;
 	}
 
@@ -702,22 +753,28 @@ int smu7_disable_power_containment(struct pp_hwmgr *hwmgr)
 int smu7_power_control_set_level(struct pp_hwmgr *hwmgr)
 {
 	struct phm_ppt_v1_information *table_info =
-			(struct phm_ppt_v1_information *)(hwmgr->pptable);
+		(struct phm_ppt_v1_information *)(hwmgr->pptable);
 	struct phm_cac_tdp_table *cac_table;
 
 	int adjust_percent, target_tdp;
 	int result = 0;
 
 	if (hwmgr->pp_table_version == PP_TABLE_V1)
+	{
 		cac_table = table_info->cac_dtp_table;
+	}
 	else
+	{
 		cac_table = hwmgr->dyn_state.cac_dtp_table;
+	}
+
 	if (phm_cap_enabled(hwmgr->platform_descriptor.platformCaps,
-			PHM_PlatformCaps_PowerContainment)) {
+						PHM_PlatformCaps_PowerContainment))
+	{
 		/* adjustment percentage has already been validated */
 		adjust_percent = hwmgr->platform_descriptor.TDPAdjustmentPolarity ?
-				hwmgr->platform_descriptor.TDPAdjustment :
-				(-1 * hwmgr->platform_descriptor.TDPAdjustment);
+						 hwmgr->platform_descriptor.TDPAdjustment :
+						 (-1 * hwmgr->platform_descriptor.TDPAdjustment);
 		/* SMC requested that target_tdp to be 7 bit fraction in DPM table
 		 * but message to be 8 bit fraction for messages
 		 */

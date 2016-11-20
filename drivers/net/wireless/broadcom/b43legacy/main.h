@@ -48,15 +48,19 @@ u8 b43legacy_freq_to_channel_bg(int freq)
 	u8 channel;
 
 	if (freq == 2484)
+	{
 		channel = 14;
+	}
 	else
+	{
 		channel = (freq - 2407) / 5;
+	}
 
 	return channel;
 }
 static inline
 u8 b43legacy_freq_to_channel(struct b43legacy_wldev *dev,
-			     int freq)
+							 int freq)
 {
 	return b43legacy_freq_to_channel_bg(freq);
 }
@@ -68,16 +72,20 @@ int b43legacy_channel_to_freq_bg(u8 channel)
 	int freq;
 
 	if (channel == 14)
+	{
 		freq = 2484;
+	}
 	else
+	{
 		freq = 2407 + (5 * channel);
+	}
 
 	return freq;
 }
 
 static inline
 int b43legacy_channel_to_freq(struct b43legacy_wldev *dev,
-			      u8 channel)
+							  u8 channel)
 {
 	return b43legacy_channel_to_freq_bg(channel);
 }
@@ -86,9 +94,9 @@ static inline
 int b43legacy_is_cck_rate(int rate)
 {
 	return (rate == B43legacy_CCK_RATE_1MB ||
-		rate == B43legacy_CCK_RATE_2MB ||
-		rate == B43legacy_CCK_RATE_5MB ||
-		rate == B43legacy_CCK_RATE_11MB);
+			rate == B43legacy_CCK_RATE_2MB ||
+			rate == B43legacy_CCK_RATE_5MB ||
+			rate == B43legacy_CCK_RATE_11MB);
 }
 
 static inline
@@ -101,15 +109,15 @@ void b43legacy_tsf_read(struct b43legacy_wldev *dev, u64 *tsf);
 void b43legacy_tsf_write(struct b43legacy_wldev *dev, u64 tsf);
 
 u32 b43legacy_shm_read32(struct b43legacy_wldev *dev,
-			 u16 routing, u16 offset);
+						 u16 routing, u16 offset);
 u16 b43legacy_shm_read16(struct b43legacy_wldev *dev,
-			 u16 routing, u16 offset);
+						 u16 routing, u16 offset);
 void b43legacy_shm_write32(struct b43legacy_wldev *dev,
-			 u16 routing, u16 offset,
-			 u32 value);
+						   u16 routing, u16 offset,
+						   u32 value);
 void b43legacy_shm_write16(struct b43legacy_wldev *dev,
-			 u16 routing, u16 offset,
-			 u16 value);
+						   u16 routing, u16 offset,
+						   u16 value);
 
 u32 b43legacy_hf_read(struct b43legacy_wldev *dev);
 void b43legacy_hf_write(struct b43legacy_wldev *dev, u32 value);
@@ -122,6 +130,6 @@ void b43legacy_mac_suspend(struct b43legacy_wldev *dev);
 void b43legacy_mac_enable(struct b43legacy_wldev *dev);
 
 void b43legacy_controller_restart(struct b43legacy_wldev *dev,
-				  const char *reason);
+								  const char *reason);
 
 #endif /* B43legacy_MAIN_H_ */

@@ -19,23 +19,26 @@
 #define DM_MSG_PREFIX "cache cleaner"
 
 /* Cache entry struct. */
-struct wb_cache_entry {
+struct wb_cache_entry
+{
 	struct list_head list;
 	struct hlist_node hlist;
 
 	dm_oblock_t oblock;
 	dm_cblock_t cblock;
-	bool dirty:1;
-	bool pending:1;
+	bool dirty: 1;
+	bool pending: 1;
 };
 
-struct hash {
+struct hash
+{
 	struct hlist_head *table;
 	dm_block_t hash_bits;
 	unsigned nr_buckets;
 };
 
-struct policy {
+struct policy
+{
 	struct dm_cache_policy policy;
 	spinlock_t lock;
 
@@ -99,18 +102,25 @@ static int alloc_cache_blocks_with_hash(struct policy *p, dm_cblock_t cache_size
 	int r = -ENOMEM;
 
 	p->cblocks = vzalloc(sizeof(*p->cblocks) * from_cblock(cache_size));
-	if (p->cblocks) {
+
+	if (p->cblocks)
+	{
 		unsigned u = from_cblock(cache_size);
 
 		while (u--)
+		{
 			list_add(&p->cblocks[u].list, &p->free);
+		}
 
 		p->nr_cblocks_allocated = 0;
 
 		/* Cache entries hash. */
 		r = alloc_hash(&p->chash, from_cblock(cache_size));
+
 		if (r)
+		{
 			vfree(p->cblocks);
+		}
 	}
 
 	return r;
@@ -144,8 +154,10 @@ static struct wb_cache_entry *lookup_cache_entry(struct policy *p, dm_oblock_t o
 	struct wb_cache_entry *cur;
 	struct hlist_head *bucket = &hash->table[h];
 
-	hlist_for_each_entry(cur, bucket, hlist) {
-		if (cur->oblock == oblock) {
+	hlist_for_each_entry(cur, bucket, hlist)
+	{
+		if (cur->oblock == oblock)
+		{
 			/* Move upfront bucket for faster access. */
 			hlist_del(&cur->hlist);
 			hlist_add_head(&cur->hlist, bucket);
@@ -170,9 +182,9 @@ static void remove_cache_hash_entry(struct wb_cache_entry *e)
 
 /* Public interface (see dm-cache-policy.h */
 static int wb_map(struct dm_cache_policy *pe, dm_oblock_t oblock,
-		  bool can_block, bool can_migrate, bool discarded_oblock,
-		  struct bio *bio, struct policy_locker *locker,
-		  struct policy_result *result)
+				  bool can_block, bool can_migrate, bool discarded_oblock,
+				  struct bio *bio, struct policy_locker *locker,
+				  struct policy_result *result)
 {
 	struct policy *p = to_policy(pe);
 	struct wb_cache_entry *e;
@@ -181,13 +193,19 @@ static int wb_map(struct dm_cache_policy *pe, dm_oblock_t oblock,
 	result->op = POLICY_MISS;
 
 	if (can_block)
+	{
 		spin_lock_irqsave(&p->lock, flags);
+	}
 
 	else if (!spin_trylock_irqsave(&p->lock, flags))
+	{
 		return -EWOULDBLOCK;
+	}
 
 	e = lookup_cache_entry(p, oblock);
-	if (e) {
+
+	if (e)
+	{
 		result->op = POLICY_HIT;
 		result->cblock = e->cblock;
 
@@ -206,15 +224,22 @@ static int wb_lookup(struct dm_cache_policy *pe, dm_oblock_t oblock, dm_cblock_t
 	unsigned long flags;
 
 	if (!spin_trylock_irqsave(&p->lock, flags))
+	{
 		return -EWOULDBLOCK;
+	}
 
 	e = lookup_cache_entry(p, oblock);
-	if (e) {
+
+	if (e)
+	{
 		*cblock = e->cblock;
 		r = 0;
 
-	} else
+	}
+	else
+	{
 		r = -ENOENT;
+	}
 
 	spin_unlock_irqrestore(&p->lock, flags);
 
@@ -229,14 +254,19 @@ static void __set_clear_dirty(struct dm_cache_policy *pe, dm_oblock_t oblock, bo
 	e = lookup_cache_entry(p, oblock);
 	BUG_ON(!e);
 
-	if (set) {
-		if (!e->dirty) {
+	if (set)
+	{
+		if (!e->dirty)
+		{
 			e->dirty = true;
 			list_move(&e->list, &p->dirty);
 		}
 
-	} else {
-		if (e->dirty) {
+	}
+	else
+	{
+		if (e->dirty)
+		{
 			e->pending = false;
 			e->dirty = false;
 			list_move(&e->list, &p->clean);
@@ -267,29 +297,38 @@ static void wb_clear_dirty(struct dm_cache_policy *pe, dm_oblock_t oblock)
 static void add_cache_entry(struct policy *p, struct wb_cache_entry *e)
 {
 	insert_cache_hash_entry(p, e);
+
 	if (e->dirty)
+	{
 		list_add(&e->list, &p->dirty);
+	}
 	else
+	{
 		list_add(&e->list, &p->clean);
+	}
 }
 
 static int wb_load_mapping(struct dm_cache_policy *pe,
-			   dm_oblock_t oblock, dm_cblock_t cblock,
-			   uint32_t hint, bool hint_valid)
+						   dm_oblock_t oblock, dm_cblock_t cblock,
+						   uint32_t hint, bool hint_valid)
 {
 	int r;
 	struct policy *p = to_policy(pe);
 	struct wb_cache_entry *e = alloc_cache_entry(p);
 
-	if (e) {
+	if (e)
+	{
 		e->cblock = cblock;
 		e->oblock = oblock;
 		e->dirty = false; /* blocks default to clean */
 		add_cache_entry(p, e);
 		r = 0;
 
-	} else
+	}
+	else
+	{
 		r = -ENOMEM;
+	}
 
 	return r;
 }
@@ -329,7 +368,7 @@ static void wb_remove_mapping(struct dm_cache_policy *pe, dm_oblock_t oblock)
 }
 
 static void wb_force_mapping(struct dm_cache_policy *pe,
-				dm_oblock_t current_oblock, dm_oblock_t oblock)
+							 dm_oblock_t current_oblock, dm_oblock_t oblock)
 {
 	struct policy *p = to_policy(pe);
 	struct wb_cache_entry *e;
@@ -348,7 +387,9 @@ static struct wb_cache_entry *get_next_dirty_entry(struct policy *p)
 	struct wb_cache_entry *r;
 
 	if (list_empty(&p->dirty))
+	{
 		return NULL;
+	}
 
 	l = list_pop(&p->dirty);
 	r = container_of(l, struct wb_cache_entry, list);
@@ -358,9 +399,9 @@ static struct wb_cache_entry *get_next_dirty_entry(struct policy *p)
 }
 
 static int wb_writeback_work(struct dm_cache_policy *pe,
-			     dm_oblock_t *oblock,
-			     dm_cblock_t *cblock,
-			     bool critical_only)
+							 dm_oblock_t *oblock,
+							 dm_cblock_t *cblock,
+							 bool critical_only)
 {
 	int r = -ENOENT;
 	struct policy *p = to_policy(pe);
@@ -370,7 +411,9 @@ static int wb_writeback_work(struct dm_cache_policy *pe,
 	spin_lock_irqsave(&p->lock, flags);
 
 	e = get_next_dirty_entry(p);
-	if (e) {
+
+	if (e)
+	{
 		*oblock = e->oblock;
 		*cblock = e->cblock;
 		r = 0;
@@ -404,14 +447,16 @@ static void init_policy_functions(struct policy *p)
 }
 
 static struct dm_cache_policy *wb_create(dm_cblock_t cache_size,
-					 sector_t origin_size,
-					 sector_t cache_block_size)
+		sector_t origin_size,
+		sector_t cache_block_size)
 {
 	int r;
 	struct policy *p = kzalloc(sizeof(*p), GFP_KERNEL);
 
 	if (!p)
+	{
 		return NULL;
+	}
 
 	init_policy_functions(p);
 	INIT_LIST_HEAD(&p->free);
@@ -424,8 +469,11 @@ static struct dm_cache_policy *wb_create(dm_cblock_t cache_size,
 
 	/* Allocate cache entry structs and add them to free list. */
 	r = alloc_cache_blocks_with_hash(p, cache_size);
+
 	if (!r)
+	{
 		return &p->policy;
+	}
 
 	kfree(p);
 
@@ -433,7 +481,8 @@ static struct dm_cache_policy *wb_create(dm_cblock_t cache_size,
 }
 /*----------------------------------------------------------------------------*/
 
-static struct dm_cache_policy_type wb_policy_type = {
+static struct dm_cache_policy_type wb_policy_type =
+{
 	.name = "cleaner",
 	.version = {1, 0, 0},
 	.hint_size = 4,
@@ -446,12 +495,14 @@ static int __init wb_init(void)
 	int r = dm_cache_policy_register(&wb_policy_type);
 
 	if (r < 0)
+	{
 		DMERR("register failed %d", r);
+	}
 	else
 		DMINFO("version %u.%u.%u loaded",
-		       wb_policy_type.version[0],
-		       wb_policy_type.version[1],
-		       wb_policy_type.version[2]);
+			   wb_policy_type.version[0],
+			   wb_policy_type.version[1],
+			   wb_policy_type.version[2]);
 
 	return r;
 }

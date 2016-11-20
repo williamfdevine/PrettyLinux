@@ -37,7 +37,8 @@
 
 extern unsigned int wcn36xx_dbg_mask;
 
-enum wcn36xx_debug_mask {
+enum wcn36xx_debug_mask
+{
 	WCN36XX_DBG_DXE		= 0x00000001,
 	WCN36XX_DBG_DXE_DUMP	= 0x00000002,
 	WCN36XX_DBG_SMD		= 0x00000004,
@@ -66,18 +67,19 @@ enum wcn36xx_debug_mask {
 	printk(KERN_INFO pr_fmt(fmt), ##arg)
 
 #define wcn36xx_dbg(mask, fmt, arg...) do {			\
-	if (wcn36xx_dbg_mask & mask)					\
-		printk(KERN_DEBUG pr_fmt(fmt), ##arg);	\
-} while (0)
+		if (wcn36xx_dbg_mask & mask)					\
+			printk(KERN_DEBUG pr_fmt(fmt), ##arg);	\
+	} while (0)
 
 #define wcn36xx_dbg_dump(mask, prefix_str, buf, len) do {	\
-	if (wcn36xx_dbg_mask & mask)					\
-		print_hex_dump(KERN_DEBUG, pr_fmt(prefix_str),	\
-			       DUMP_PREFIX_OFFSET, 32, 1,	\
-			       buf, len, false);		\
-} while (0)
+		if (wcn36xx_dbg_mask & mask)					\
+			print_hex_dump(KERN_DEBUG, pr_fmt(prefix_str),	\
+						   DUMP_PREFIX_OFFSET, 32, 1,	\
+						   buf, len, false);		\
+	} while (0)
 
-enum wcn36xx_ampdu_state {
+enum wcn36xx_ampdu_state
+{
 	WCN36XX_AMPDU_NONE,
 	WCN36XX_AMPDU_INIT,
 	WCN36XX_AMPDU_START,
@@ -94,11 +96,15 @@ enum wcn36xx_ampdu_state {
 static inline void buff_to_be(u32 *buf, size_t len)
 {
 	int i;
+
 	for (i = 0; i < len; i++)
+	{
 		buf[i] = cpu_to_be32(buf[i]);
+	}
 }
 
-struct nv_data {
+struct nv_data
+{
 	int	is_valid;
 	u8	table;
 };
@@ -108,7 +114,8 @@ struct nv_data {
  * @open: hook must be called when wcn36xx wants to open control channel.
  * @tx: sends a buffer.
  */
-struct wcn36xx_platform_ctrl_ops {
+struct wcn36xx_platform_ctrl_ops
+{
 	int (*open)(void *drv_priv, void *rsp_cb);
 	void (*close)(void);
 	int (*tx)(char *buf, size_t len);
@@ -123,7 +130,8 @@ struct wcn36xx_platform_ctrl_ops {
  * HW after first config_bss call and must be used in delete_bss and
  * enter/exit_bmps.
  */
-struct wcn36xx_vif {
+struct wcn36xx_vif
+{
 	struct list_head list;
 	u8 dtim_period;
 	enum ani_ed_type encrypt_type;
@@ -163,7 +171,8 @@ struct wcn36xx_vif {
  * |smd_delete_sta|  sta_index  |   sta_index	|
  * |______________|_____________|_______________|
  */
-struct wcn36xx_sta {
+struct wcn36xx_sta
+{
 	struct wcn36xx_vif *vif;
 	u16 aid;
 	u16 tid;
@@ -181,7 +190,8 @@ struct wcn36xx_sta {
 	int non_agg_frame_ct;
 };
 struct wcn36xx_dxe_ch;
-struct wcn36xx {
+struct wcn36xx
+{
 	struct ieee80211_hw	*hw;
 	struct device		*dev;
 	struct list_head	vif_list;
@@ -243,15 +253,15 @@ struct wcn36xx {
 };
 
 static inline bool wcn36xx_is_fw_version(struct wcn36xx *wcn,
-					 u8 major,
-					 u8 minor,
-					 u8 version,
-					 u8 revision)
+		u8 major,
+		u8 minor,
+		u8 version,
+		u8 revision)
 {
 	return (wcn->fw_major == major &&
-		wcn->fw_minor == minor &&
-		wcn->fw_version == version &&
-		wcn->fw_revision == revision);
+			wcn->fw_minor == minor &&
+			wcn->fw_version == version &&
+			wcn->fw_revision == revision);
 }
 void wcn36xx_set_default_rates(struct wcn36xx_hal_supported_rates *rates);
 

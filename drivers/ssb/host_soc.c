@@ -39,7 +39,7 @@ static u32 ssb_host_soc_read32(struct ssb_device *dev, u16 offset)
 
 #ifdef CONFIG_SSB_BLOCKIO
 static void ssb_host_soc_block_read(struct ssb_device *dev, void *buffer,
-				    size_t count, u16 offset, u8 reg_width)
+									size_t count, u16 offset, u8 reg_width)
 {
 	struct ssb_bus *bus = dev->bus;
 	void __iomem *addr;
@@ -47,41 +47,56 @@ static void ssb_host_soc_block_read(struct ssb_device *dev, void *buffer,
 	offset += dev->core_index * SSB_CORE_SIZE;
 	addr = bus->mmio + offset;
 
-	switch (reg_width) {
-	case sizeof(u8): {
-		u8 *buf = buffer;
+	switch (reg_width)
+	{
+		case sizeof(u8):
+			{
+				u8 *buf = buffer;
 
-		while (count) {
-			*buf = __raw_readb(addr);
-			buf++;
-			count--;
-		}
-		break;
-	}
-	case sizeof(u16): {
-		__le16 *buf = buffer;
+				while (count)
+				{
+					*buf = __raw_readb(addr);
+					buf++;
+					count--;
+				}
 
-		SSB_WARN_ON(count & 1);
-		while (count) {
-			*buf = (__force __le16)__raw_readw(addr);
-			buf++;
-			count -= 2;
-		}
-		break;
-	}
-	case sizeof(u32): {
-		__le32 *buf = buffer;
+				break;
+			}
 
-		SSB_WARN_ON(count & 3);
-		while (count) {
-			*buf = (__force __le32)__raw_readl(addr);
-			buf++;
-			count -= 4;
-		}
-		break;
-	}
-	default:
-		SSB_WARN_ON(1);
+		case sizeof(u16):
+			{
+				__le16 *buf = buffer;
+
+				SSB_WARN_ON(count & 1);
+
+				while (count)
+				{
+					*buf = (__force __le16)__raw_readw(addr);
+					buf++;
+					count -= 2;
+				}
+
+				break;
+			}
+
+		case sizeof(u32):
+			{
+				__le32 *buf = buffer;
+
+				SSB_WARN_ON(count & 3);
+
+				while (count)
+				{
+					*buf = (__force __le32)__raw_readl(addr);
+					buf++;
+					count -= 4;
+				}
+
+				break;
+			}
+
+		default:
+			SSB_WARN_ON(1);
 	}
 }
 #endif /* CONFIG_SSB_BLOCKIO */
@@ -112,7 +127,7 @@ static void ssb_host_soc_write32(struct ssb_device *dev, u16 offset, u32 value)
 
 #ifdef CONFIG_SSB_BLOCKIO
 static void ssb_host_soc_block_write(struct ssb_device *dev, const void *buffer,
-				     size_t count, u16 offset, u8 reg_width)
+									 size_t count, u16 offset, u8 reg_width)
 {
 	struct ssb_bus *bus = dev->bus;
 	void __iomem *addr;
@@ -120,47 +135,63 @@ static void ssb_host_soc_block_write(struct ssb_device *dev, const void *buffer,
 	offset += dev->core_index * SSB_CORE_SIZE;
 	addr = bus->mmio + offset;
 
-	switch (reg_width) {
-	case sizeof(u8): {
-		const u8 *buf = buffer;
+	switch (reg_width)
+	{
+		case sizeof(u8):
+			{
+				const u8 *buf = buffer;
 
-		while (count) {
-			__raw_writeb(*buf, addr);
-			buf++;
-			count--;
-		}
-		break;
-	}
-	case sizeof(u16): {
-		const __le16 *buf = buffer;
+				while (count)
+				{
+					__raw_writeb(*buf, addr);
+					buf++;
+					count--;
+				}
 
-		SSB_WARN_ON(count & 1);
-		while (count) {
-			__raw_writew((__force u16)(*buf), addr);
-			buf++;
-			count -= 2;
-		}
-		break;
-	}
-	case sizeof(u32): {
-		const __le32 *buf = buffer;
+				break;
+			}
 
-		SSB_WARN_ON(count & 3);
-		while (count) {
-			__raw_writel((__force u32)(*buf), addr);
-			buf++;
-			count -= 4;
-		}
-		break;
-	}
-	default:
-		SSB_WARN_ON(1);
+		case sizeof(u16):
+			{
+				const __le16 *buf = buffer;
+
+				SSB_WARN_ON(count & 1);
+
+				while (count)
+				{
+					__raw_writew((__force u16)(*buf), addr);
+					buf++;
+					count -= 2;
+				}
+
+				break;
+			}
+
+		case sizeof(u32):
+			{
+				const __le32 *buf = buffer;
+
+				SSB_WARN_ON(count & 3);
+
+				while (count)
+				{
+					__raw_writel((__force u32)(*buf), addr);
+					buf++;
+					count -= 4;
+				}
+
+				break;
+			}
+
+		default:
+			SSB_WARN_ON(1);
 	}
 }
 #endif /* CONFIG_SSB_BLOCKIO */
 
 /* Ops for the plain SSB bus without a host-device (no PCI or PCMCIA). */
-const struct ssb_bus_ops ssb_host_soc_ops = {
+const struct ssb_bus_ops ssb_host_soc_ops =
+{
 	.read8		= ssb_host_soc_read8,
 	.read16		= ssb_host_soc_read16,
 	.read32		= ssb_host_soc_read32,
@@ -174,7 +205,7 @@ const struct ssb_bus_ops ssb_host_soc_ops = {
 };
 
 int ssb_host_soc_get_invariants(struct ssb_bus *bus,
-				struct ssb_init_invariants *iv)
+								struct ssb_init_invariants *iv)
 {
 	char buf[20];
 	int len, err;
@@ -183,28 +214,39 @@ int ssb_host_soc_get_invariants(struct ssb_bus *bus,
 	memset(&iv->boardinfo, 0, sizeof(struct ssb_boardinfo));
 
 	len = bcm47xx_nvram_getenv("boardvendor", buf, sizeof(buf));
-	if (len > 0) {
+
+	if (len > 0)
+	{
 		err = kstrtou16(strim(buf), 0, &iv->boardinfo.vendor);
+
 		if (err)
 			pr_warn("Couldn't parse nvram board vendor entry with value \"%s\"\n",
-				buf);
+					buf);
 	}
+
 	if (!iv->boardinfo.vendor)
+	{
 		iv->boardinfo.vendor = SSB_BOARDVENDOR_BCM;
+	}
 
 	len = bcm47xx_nvram_getenv("boardtype", buf, sizeof(buf));
-	if (len > 0) {
+
+	if (len > 0)
+	{
 		err = kstrtou16(strim(buf), 0, &iv->boardinfo.type);
+
 		if (err)
 			pr_warn("Couldn't parse nvram board type entry with value \"%s\"\n",
-				buf);
+					buf);
 	}
 
 	memset(&iv->sprom, 0, sizeof(struct ssb_sprom));
 	ssb_fill_sprom_with_fallback(bus, &iv->sprom);
 
 	if (bcm47xx_nvram_getenv("cardbus", buf, sizeof(buf)) >= 0)
+	{
 		iv->has_cardbus_slot = !!simple_strtoul(buf, NULL, 10);
+	}
 
 	return 0;
 }

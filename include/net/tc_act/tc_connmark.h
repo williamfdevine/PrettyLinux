@@ -3,7 +3,8 @@
 
 #include <net/act_api.h>
 
-struct tcf_connmark_info {
+struct tcf_connmark_info
+{
 	struct tc_action common;
 	struct net *net;
 	u16 zone;

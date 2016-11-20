@@ -30,7 +30,8 @@
 #define DA9055_OUTPUT			DA9055_PUSH_PULL
 #define DA9055_IRQ_GPI0			3
 
-struct da9055_gpio {
+struct da9055_gpio
+{
 	struct da9055 *da9055;
 	struct gpio_chip gp;
 };
@@ -43,21 +44,34 @@ static int da9055_gpio_get(struct gpio_chip *gc, unsigned offset)
 
 	/* Get GPIO direction */
 	ret = da9055_reg_read(gpio->da9055, (offset >> 1) + DA9055_REG_GPIO0_1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	gpio_direction = ret & (DA9055_PORT_MASK) << DA9055_PORT_SHIFT(offset);
 	gpio_direction >>= DA9055_PORT_SHIFT(offset);
-	switch (gpio_direction) {
-	case DA9055_INPUT:
-		ret = da9055_reg_read(gpio->da9055, DA9055_REG_STATUS_B);
-		if (ret < 0)
-			return ret;
-		break;
-	case DA9055_OUTPUT:
-		ret = da9055_reg_read(gpio->da9055, DA9055_REG_GPIO_MODE0_2);
-		if (ret < 0)
-			return ret;
+
+	switch (gpio_direction)
+	{
+		case DA9055_INPUT:
+			ret = da9055_reg_read(gpio->da9055, DA9055_REG_STATUS_B);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			break;
+
+		case DA9055_OUTPUT:
+			ret = da9055_reg_read(gpio->da9055, DA9055_REG_GPIO_MODE0_2);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
 	}
 
 	return ret & (1 << offset);
@@ -69,9 +83,9 @@ static void da9055_gpio_set(struct gpio_chip *gc, unsigned offset, int value)
 	struct da9055_gpio *gpio = gpiochip_get_data(gc);
 
 	da9055_reg_update(gpio->da9055,
-			DA9055_REG_GPIO_MODE0_2,
-			1 << offset,
-			value << offset);
+					  DA9055_REG_GPIO_MODE0_2,
+					  1 << offset,
+					  value << offset);
 }
 
 static int da9055_gpio_direction_input(struct gpio_chip *gc, unsigned offset)
@@ -80,32 +94,35 @@ static int da9055_gpio_direction_input(struct gpio_chip *gc, unsigned offset)
 	unsigned char reg_byte;
 
 	reg_byte = (DA9055_ACT_LOW | DA9055_GPI)
-				<< DA9055_PORT_SHIFT(offset);
+			   << DA9055_PORT_SHIFT(offset);
 
 	return da9055_reg_update(gpio->da9055, (offset >> 1) +
-				DA9055_REG_GPIO0_1,
-				DA9055_PORT_MASK <<
-				DA9055_PORT_SHIFT(offset),
-				reg_byte);
+							 DA9055_REG_GPIO0_1,
+							 DA9055_PORT_MASK <<
+							 DA9055_PORT_SHIFT(offset),
+							 reg_byte);
 }
 
 static int da9055_gpio_direction_output(struct gpio_chip *gc,
-					unsigned offset, int value)
+										unsigned offset, int value)
 {
 	struct da9055_gpio *gpio = gpiochip_get_data(gc);
 	unsigned char reg_byte;
 	int ret;
 
 	reg_byte = (DA9055_VDD_IO | DA9055_PUSH_PULL)
-					<< DA9055_PORT_SHIFT(offset);
+			   << DA9055_PORT_SHIFT(offset);
 
 	ret = da9055_reg_update(gpio->da9055, (offset >> 1) +
-				DA9055_REG_GPIO0_1,
-				DA9055_PORT_MASK <<
-				DA9055_PORT_SHIFT(offset),
-				reg_byte);
+							DA9055_REG_GPIO0_1,
+							DA9055_PORT_MASK <<
+							DA9055_PORT_SHIFT(offset),
+							reg_byte);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	da9055_gpio_set(gc, offset, value);
 
@@ -118,10 +135,11 @@ static int da9055_gpio_to_irq(struct gpio_chip *gc, u32 offset)
 	struct da9055 *da9055 = gpio->da9055;
 
 	return regmap_irq_get_virq(da9055->irq_data,
-				  DA9055_IRQ_GPI0 + offset);
+							   DA9055_IRQ_GPI0 + offset);
 }
 
-static const struct gpio_chip reference_gp = {
+static const struct gpio_chip reference_gp =
+{
 	.label = "da9055-gpio",
 	.owner = THIS_MODULE,
 	.get = da9055_gpio_get,
@@ -141,18 +159,26 @@ static int da9055_gpio_probe(struct platform_device *pdev)
 	int ret;
 
 	gpio = devm_kzalloc(&pdev->dev, sizeof(*gpio), GFP_KERNEL);
+
 	if (!gpio)
+	{
 		return -ENOMEM;
+	}
 
 	gpio->da9055 = dev_get_drvdata(pdev->dev.parent);
 	pdata = dev_get_platdata(gpio->da9055->dev);
 
 	gpio->gp = reference_gp;
+
 	if (pdata && pdata->gpio_base)
+	{
 		gpio->gp.base = pdata->gpio_base;
+	}
 
 	ret = devm_gpiochip_add_data(&pdev->dev, &gpio->gp, gpio);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Could not register gpiochip, %d\n", ret);
 		return ret;
 	}
@@ -162,7 +188,8 @@ static int da9055_gpio_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver da9055_gpio_driver = {
+static struct platform_driver da9055_gpio_driver =
+{
 	.probe = da9055_gpio_probe,
 	.driver = {
 		.name	= "da9055-gpio",

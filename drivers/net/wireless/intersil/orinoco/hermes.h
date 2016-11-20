@@ -197,7 +197,8 @@
 /* Shift amount for key ID in RXSTAT and TXCTRL */
 #define	HERMES_MIC_KEY_ID_SHIFT		11
 
-struct hermes_tx_descriptor {
+struct hermes_tx_descriptor
+{
 	__le16 status;
 	__le16 reserved1;
 	__le16 reserved2;
@@ -229,7 +230,8 @@ struct hermes_tx_descriptor {
 #define HERMES_INQ_LINKSTATUS		(0xF200)
 #define HERMES_INQ_SEC_STAT_AGERE	(0xF202)
 
-struct hermes_tallies_frame {
+struct hermes_tallies_frame
+{
 	__le16 TxUnicastFrames;
 	__le16 TxMulticastFrames;
 	__le16 TxFragments;
@@ -259,7 +261,8 @@ struct hermes_tallies_frame {
 /* Grabbed from wlan-ng - Thanks Mark... - Jean II
  * This is the result of a scan inquiry command */
 /* Structure describing info about an Access Point */
-struct prism2_scan_apinfo {
+struct prism2_scan_apinfo
+{
 	__le16 channel;		/* Channel where the AP sits */
 	__le16 noise;		/* Noise level */
 	__le16 level;		/* Signal level */
@@ -275,7 +278,8 @@ struct prism2_scan_apinfo {
 
 /* Same stuff for the Lucent/Agere card.
  * Thanks to h1kari <h1kari AT dachb0den.com> - Jean II */
-struct agere_scan_apinfo {
+struct agere_scan_apinfo
+{
 	__le16 channel;		/* Channel where the AP sits */
 	__le16 noise;		/* Noise level */
 	__le16 level;		/* Signal level */
@@ -288,7 +292,8 @@ struct agere_scan_apinfo {
 } __packed;
 
 /* Moustafa: Scan structure for Symbol cards */
-struct symbol_scan_apinfo {
+struct symbol_scan_apinfo
+{
 	u8 channel;		/* Channel where the AP sits */
 	u8 unknown1;		/* 8 in 2.9x and 3.9x f/w, 0 otherwise */
 	__le16 noise;		/* Noise level */
@@ -305,7 +310,8 @@ struct symbol_scan_apinfo {
 	u8 unknown3[8];		/* Always 0, appeared in f/w 3.91-68 */
 } __packed;
 
-union hermes_scan_info {
+union hermes_scan_info
+{
 	struct agere_scan_apinfo	a;
 	struct prism2_scan_apinfo	p;
 	struct symbol_scan_apinfo	s;
@@ -315,7 +321,8 @@ union hermes_scan_info {
  * wl_lkm calls this an ACS scan (Automatic Channel Select).
  * Keep out of union hermes_scan_info because it is much bigger than
  * the older scan structures. */
-struct agere_ext_scan_info {
+struct agere_ext_scan_info
+{
 	__le16	reserved0;
 
 	u8	noise;
@@ -353,21 +360,25 @@ struct agere_ext_scan_info {
 #define HERMES_LINKSTATUS_AP_IN_RANGE     (0x0005)
 #define HERMES_LINKSTATUS_ASSOC_FAILED    (0x0006)
 
-struct hermes_linkstatus {
+struct hermes_linkstatus
+{
 	__le16 linkstatus;         /* Link status */
 } __packed;
 
-struct hermes_response {
+struct hermes_response
+{
 	u16 status, resp0, resp1, resp2;
 };
 
 /* "ID" structure - used for ESSID and station nickname */
-struct hermes_idstring {
+struct hermes_idstring
+{
 	__le16 len;
 	__le16 val[16];
 } __packed;
 
-struct hermes_multicast {
+struct hermes_multicast
+{
 	u8 addr[HERMES_MAX_MULTICAST][ETH_ALEN];
 } __packed;
 
@@ -377,28 +388,29 @@ struct hermes_multicast {
 struct hermes;
 
 /* Functions to access hardware */
-struct hermes_ops {
+struct hermes_ops
+{
 	int (*init)(struct hermes *hw);
 	int (*cmd_wait)(struct hermes *hw, u16 cmd, u16 parm0,
-			struct hermes_response *resp);
+					struct hermes_response *resp);
 	int (*init_cmd_wait)(struct hermes *hw, u16 cmd,
-			     u16 parm0, u16 parm1, u16 parm2,
-			     struct hermes_response *resp);
+						 u16 parm0, u16 parm1, u16 parm2,
+						 struct hermes_response *resp);
 	int (*allocate)(struct hermes *hw, u16 size, u16 *fid);
 	int (*read_ltv)(struct hermes *hw, int bap, u16 rid, unsigned buflen,
-			u16 *length, void *buf);
+					u16 *length, void *buf);
 	int (*write_ltv)(struct hermes *hw, int bap, u16 rid,
-			 u16 length, const void *value);
+					 u16 length, const void *value);
 	int (*bap_pread)(struct hermes *hw, int bap, void *buf, int len,
-			 u16 id, u16 offset);
+					 u16 id, u16 offset);
 	int (*bap_pwrite)(struct hermes *hw, int bap, const void *buf,
-			  int len, u16 id, u16 offset);
+					  int len, u16 id, u16 offset);
 	int (*read_pda)(struct hermes *hw, __le16 *pda,
-			u32 pda_addr, u16 pda_len);
+					u32 pda_addr, u16 pda_len);
 	int (*program_init)(struct hermes *hw, u32 entry_point);
 	int (*program_end)(struct hermes *hw);
 	int (*program)(struct hermes *hw, const char *buf,
-		       u32 addr, u32 len);
+				   u32 addr, u32 len);
 	void (*lock_irqsave)(spinlock_t *lock, unsigned long *flags);
 	void (*unlock_irqrestore)(spinlock_t *lock, unsigned long *flags);
 	void (*lock_irq)(spinlock_t *lock);
@@ -406,7 +418,8 @@ struct hermes_ops {
 };
 
 /* Basic control structure */
-struct hermes {
+struct hermes
+{
 	void __iomem *iobase;
 	int reg_spacing;
 #define HERMES_16BIT_REGSPACING	0
@@ -428,7 +441,7 @@ struct hermes {
 
 /* Function prototypes */
 void hermes_struct_init(struct hermes *hw, void __iomem *address,
-			int reg_spacing);
+						int reg_spacing);
 
 /* Inline functions */
 
@@ -446,13 +459,13 @@ static inline void hermes_set_irqmask(struct hermes *hw, u16 events)
 static inline int hermes_enable_port(struct hermes *hw, int port)
 {
 	return hw->ops->cmd_wait(hw, HERMES_CMD_ENABLE | (port << 8),
-				 0, NULL);
+							 0, NULL);
 }
 
 static inline int hermes_disable_port(struct hermes *hw, int port)
 {
 	return hw->ops->cmd_wait(hw, HERMES_CMD_DISABLE | (port << 8),
-				 0, NULL);
+							 0, NULL);
 }
 
 /* Initiate an INQUIRE command (tallies or scan).  The result will come as an
@@ -467,40 +480,45 @@ static inline int hermes_inquire(struct hermes *hw, u16 rid)
 
 /* Note that for the next two, the count is in 16-bit words, not bytes */
 static inline void hermes_read_words(struct hermes *hw, int off,
-				     void *buf, unsigned count)
+									 void *buf, unsigned count)
 {
 	off = off << hw->reg_spacing;
 	ioread16_rep(hw->iobase + off, buf, count);
 }
 
 static inline void hermes_write_bytes(struct hermes *hw, int off,
-				      const char *buf, unsigned count)
+									  const char *buf, unsigned count)
 {
 	off = off << hw->reg_spacing;
 	iowrite16_rep(hw->iobase + off, buf, count >> 1);
+
 	if (unlikely(count & 1))
+	{
 		iowrite8(buf[count - 1], hw->iobase + off);
+	}
 }
 
 static inline void hermes_clear_words(struct hermes *hw, int off,
-				      unsigned count)
+									  unsigned count)
 {
 	unsigned i;
 
 	off = off << hw->reg_spacing;
 
 	for (i = 0; i < count; i++)
+	{
 		iowrite16(0, hw->iobase + off);
+	}
 }
 
 #define HERMES_READ_RECORD(hw, bap, rid, buf) \
 	(hw->ops->read_ltv((hw), (bap), (rid), sizeof(*buf), NULL, (buf)))
 #define HERMES_WRITE_RECORD(hw, bap, rid, buf) \
 	(hw->ops->write_ltv((hw), (bap), (rid), \
-			    HERMES_BYTES_TO_RECLEN(sizeof(*buf)), (buf)))
+						HERMES_BYTES_TO_RECLEN(sizeof(*buf)), (buf)))
 
 static inline int hermes_read_wordrec(struct hermes *hw, int bap, u16 rid,
-				      u16 *word)
+									  u16 *word)
 {
 	__le16 rec;
 	int err;
@@ -511,7 +529,7 @@ static inline int hermes_read_wordrec(struct hermes *hw, int bap, u16 rid,
 }
 
 static inline int hermes_write_wordrec(struct hermes *hw, int bap, u16 rid,
-				       u16 word)
+									   u16 word)
 {
 	__le16 rec = cpu_to_le16(word);
 	return HERMES_WRITE_RECORD(hw, bap, rid, &rec);

@@ -20,10 +20,10 @@ static void trace_printk_irq_work(struct irq_work *work)
 	trace_printk(trace_printk_test_global_str_irq);
 
 	trace_printk("(irq) This is a %s that will use trace_bprintk()\n",
-		     "static string");
+				 "static string");
 
 	trace_printk(trace_printk_test_global_str_fmt,
-		     "(irq) ", "dynamic string");
+				 "(irq) ", "dynamic string");
 }
 
 static int __init trace_printk_init(void)
@@ -37,7 +37,7 @@ static int __init trace_printk_init(void)
 	irq_work_queue(&irqwork);
 
 	trace_printk("This is a %s that will use trace_bprintk()\n",
-		     "static string");
+				 "static string");
 
 	trace_printk(trace_printk_test_global_str_fmt, "", "dynamic string");
 

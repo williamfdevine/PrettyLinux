@@ -29,7 +29,8 @@ struct amdgpu_device;
 /*
  * R6xx+ IH ring
  */
-struct amdgpu_ih_ring {
+struct amdgpu_ih_ring
+{
 	struct amdgpu_bo	*ring_obj;
 	volatile uint32_t	*ring;
 	unsigned		rptr;
@@ -46,7 +47,8 @@ struct amdgpu_ih_ring {
 	dma_addr_t		rb_dma_addr; /* only used when use_bus_addr = true */
 };
 
-struct amdgpu_iv_entry {
+struct amdgpu_iv_entry
+{
 	unsigned src_id;
 	unsigned src_data;
 	unsigned ring_id;
@@ -56,7 +58,7 @@ struct amdgpu_iv_entry {
 };
 
 int amdgpu_ih_ring_init(struct amdgpu_device *adev, unsigned ring_size,
-			bool use_bus_addr);
+						bool use_bus_addr);
 void amdgpu_ih_ring_fini(struct amdgpu_device *adev);
 int amdgpu_ih_process(struct amdgpu_device *adev);
 

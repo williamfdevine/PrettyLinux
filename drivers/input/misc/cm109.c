@@ -44,7 +44,8 @@ static char *phone = "kip1000";
 module_param(phone, charp, S_IRUSR);
 MODULE_PARM_DESC(phone, "Phone name {kip1000, gtalk, usbph01, atcom}");
 
-enum {
+enum
+{
 	/* HID Registers */
 	HID_IR0 = 0x00, /* Record/Playback-mute button, Volume up/down  */
 	HID_IR1 = 0x01, /* GPI, generic registers or EEPROM_DATA0       */
@@ -81,14 +82,16 @@ enum {
 };
 
 /* CM109 protocol packet */
-struct cm109_ctl_packet {
+struct cm109_ctl_packet
+{
 	u8 byte[4];
 } __attribute__ ((packed));
 
 enum { USB_PKT_LEN = sizeof(struct cm109_ctl_packet) };
 
 /* CM109 device structure */
-struct cm109_dev {
+struct cm109_dev
+{
 	struct input_dev *idev;	 /* input device */
 	struct usb_device *udev; /* usb device */
 	struct usb_interface *intf;
@@ -108,17 +111,17 @@ struct cm109_dev {
 	 * They have to be separate since they are accessed from IRQ
 	 * context.
 	 */
-	unsigned irq_urb_pending:1;	/* irq_urb is in flight */
-	unsigned ctl_urb_pending:1;	/* ctl_urb is in flight */
-	unsigned buzzer_pending:1;	/* need to issue buzz command */
+	unsigned irq_urb_pending: 1;	/* irq_urb is in flight */
+	unsigned ctl_urb_pending: 1;	/* ctl_urb is in flight */
+	unsigned buzzer_pending: 1;	/* need to issue buzz command */
 	spinlock_t ctl_submit_lock;
 
 	unsigned char buzzer_state;	/* on/off */
 
 	/* flags */
-	unsigned open:1;
-	unsigned resetting:1;
-	unsigned shutdown:1;
+	unsigned open: 1;
+	unsigned resetting: 1;
+	unsigned shutdown: 1;
 
 	/* This mutex protects writes to the above flags */
 	struct mutex pm_mutex;
@@ -137,14 +140,20 @@ struct cm109_dev {
 
 static unsigned short special_keymap(int code)
 {
-	if (code > 0xff) {
-		switch (code - 0xff) {
-		case RECORD_MUTE:	return KEY_MICMUTE;
-		case PLAYBACK_MUTE:	return KEY_MUTE;
-		case VOLUME_DOWN:	return KEY_VOLUMEDOWN;
-		case VOLUME_UP:		return KEY_VOLUMEUP;
+	if (code > 0xff)
+	{
+		switch (code - 0xff)
+		{
+			case RECORD_MUTE:	return KEY_MICMUTE;
+
+			case PLAYBACK_MUTE:	return KEY_MUTE;
+
+			case VOLUME_DOWN:	return KEY_VOLUMEDOWN;
+
+			case VOLUME_UP:		return KEY_VOLUMEUP;
 		}
 	}
+
 	return KEY_RESERVED;
 }
 
@@ -174,24 +183,41 @@ pin:  3    2    1    0
  */
 static unsigned short keymap_kip1000(int scancode)
 {
-	switch (scancode) {				/* phone key:   */
-	case 0x82: return KEY_NUMERIC_0;		/*   0          */
-	case 0x14: return KEY_NUMERIC_1;		/*   1          */
-	case 0x12: return KEY_NUMERIC_2;		/*   2          */
-	case 0x11: return KEY_NUMERIC_3;		/*   3          */
-	case 0x24: return KEY_NUMERIC_4;		/*   4          */
-	case 0x22: return KEY_NUMERIC_5;		/*   5          */
-	case 0x21: return KEY_NUMERIC_6;		/*   6          */
-	case 0x44: return KEY_NUMERIC_7;		/*   7          */
-	case 0x42: return KEY_NUMERIC_8;		/*   8          */
-	case 0x41: return KEY_NUMERIC_9;		/*   9          */
-	case 0x81: return KEY_NUMERIC_POUND;		/*   #          */
-	case 0x84: return KEY_NUMERIC_STAR;		/*   *          */
-	case 0x88: return KEY_ENTER;			/*   pickup     */
-	case 0x48: return KEY_ESC;			/*   hangup     */
-	case 0x28: return KEY_LEFT;			/*   IN         */
-	case 0x18: return KEY_RIGHT;			/*   OUT        */
-	default:   return special_keymap(scancode);
+	switch (scancode)  				/* phone key:   */
+	{
+		case 0x82: return KEY_NUMERIC_0;		/*   0          */
+
+		case 0x14: return KEY_NUMERIC_1;		/*   1          */
+
+		case 0x12: return KEY_NUMERIC_2;		/*   2          */
+
+		case 0x11: return KEY_NUMERIC_3;		/*   3          */
+
+		case 0x24: return KEY_NUMERIC_4;		/*   4          */
+
+		case 0x22: return KEY_NUMERIC_5;		/*   5          */
+
+		case 0x21: return KEY_NUMERIC_6;		/*   6          */
+
+		case 0x44: return KEY_NUMERIC_7;		/*   7          */
+
+		case 0x42: return KEY_NUMERIC_8;		/*   8          */
+
+		case 0x41: return KEY_NUMERIC_9;		/*   9          */
+
+		case 0x81: return KEY_NUMERIC_POUND;		/*   #          */
+
+		case 0x84: return KEY_NUMERIC_STAR;		/*   *          */
+
+		case 0x88: return KEY_ENTER;			/*   pickup     */
+
+		case 0x48: return KEY_ESC;			/*   hangup     */
+
+		case 0x28: return KEY_LEFT;			/*   IN         */
+
+		case 0x18: return KEY_RIGHT;			/*   OUT        */
+
+		default:   return special_keymap(scancode);
 	}
 }
 
@@ -207,24 +233,41 @@ static unsigned short keymap_kip1000(int scancode)
 */
 static unsigned short keymap_gtalk(int scancode)
 {
-	switch (scancode) {
-	case 0x11: return KEY_NUMERIC_0;
-	case 0x21: return KEY_NUMERIC_1;
-	case 0x41: return KEY_NUMERIC_2;
-	case 0x81: return KEY_NUMERIC_3;
-	case 0x12: return KEY_NUMERIC_4;
-	case 0x22: return KEY_NUMERIC_5;
-	case 0x42: return KEY_NUMERIC_6;
-	case 0x82: return KEY_NUMERIC_7;
-	case 0x14: return KEY_NUMERIC_8;
-	case 0x24: return KEY_NUMERIC_9;
-	case 0x44: return KEY_NUMERIC_POUND;	/* # */
-	case 0x84: return KEY_NUMERIC_STAR;	/* * */
-	case 0x18: return KEY_ENTER;		/* Talk (green handset) */
-	case 0x28: return KEY_ESC;		/* End (red handset) */
-	case 0x48: return KEY_UP;		/* Menu up (rocker switch) */
-	case 0x88: return KEY_DOWN;		/* Menu down (rocker switch) */
-	default:   return special_keymap(scancode);
+	switch (scancode)
+	{
+		case 0x11: return KEY_NUMERIC_0;
+
+		case 0x21: return KEY_NUMERIC_1;
+
+		case 0x41: return KEY_NUMERIC_2;
+
+		case 0x81: return KEY_NUMERIC_3;
+
+		case 0x12: return KEY_NUMERIC_4;
+
+		case 0x22: return KEY_NUMERIC_5;
+
+		case 0x42: return KEY_NUMERIC_6;
+
+		case 0x82: return KEY_NUMERIC_7;
+
+		case 0x14: return KEY_NUMERIC_8;
+
+		case 0x24: return KEY_NUMERIC_9;
+
+		case 0x44: return KEY_NUMERIC_POUND;	/* # */
+
+		case 0x84: return KEY_NUMERIC_STAR;	/* * */
+
+		case 0x18: return KEY_ENTER;		/* Talk (green handset) */
+
+		case 0x28: return KEY_ESC;		/* End (red handset) */
+
+		case 0x48: return KEY_UP;		/* Menu up (rocker switch) */
+
+		case 0x88: return KEY_DOWN;		/* Menu down (rocker switch) */
+
+		default:   return special_keymap(scancode);
 	}
 }
 
@@ -236,30 +279,47 @@ static unsigned short keymap_gtalk(int scancode)
  */
 static unsigned short keymap_usbph01(int scancode)
 {
-	switch (scancode) {
-	case 0x11: return KEY_NUMERIC_0;		/*   0          */
-	case 0x21: return KEY_NUMERIC_1;		/*   1          */
-	case 0x41: return KEY_NUMERIC_2;		/*   2          */
-	case 0x81: return KEY_NUMERIC_3;		/*   3          */
-	case 0x12: return KEY_NUMERIC_4;		/*   4          */
-	case 0x22: return KEY_NUMERIC_5;		/*   5          */
-	case 0x42: return KEY_NUMERIC_6;		/*   6          */
-	case 0x82: return KEY_NUMERIC_7;		/*   7          */
-	case 0x14: return KEY_NUMERIC_8;		/*   8          */
-	case 0x24: return KEY_NUMERIC_9;		/*   9          */
-	case 0x44: return KEY_NUMERIC_POUND;		/*   #          */
-	case 0x84: return KEY_NUMERIC_STAR;		/*   *          */
-	case 0x18: return KEY_ENTER;			/*   pickup     */
-	case 0x28: return KEY_ESC;			/*   hangup     */
-	case 0x48: return KEY_LEFT;			/*   IN         */
-	case 0x88: return KEY_RIGHT;			/*   OUT        */
-	default:   return special_keymap(scancode);
+	switch (scancode)
+	{
+		case 0x11: return KEY_NUMERIC_0;		/*   0          */
+
+		case 0x21: return KEY_NUMERIC_1;		/*   1          */
+
+		case 0x41: return KEY_NUMERIC_2;		/*   2          */
+
+		case 0x81: return KEY_NUMERIC_3;		/*   3          */
+
+		case 0x12: return KEY_NUMERIC_4;		/*   4          */
+
+		case 0x22: return KEY_NUMERIC_5;		/*   5          */
+
+		case 0x42: return KEY_NUMERIC_6;		/*   6          */
+
+		case 0x82: return KEY_NUMERIC_7;		/*   7          */
+
+		case 0x14: return KEY_NUMERIC_8;		/*   8          */
+
+		case 0x24: return KEY_NUMERIC_9;		/*   9          */
+
+		case 0x44: return KEY_NUMERIC_POUND;		/*   #          */
+
+		case 0x84: return KEY_NUMERIC_STAR;		/*   *          */
+
+		case 0x18: return KEY_ENTER;			/*   pickup     */
+
+		case 0x28: return KEY_ESC;			/*   hangup     */
+
+		case 0x48: return KEY_LEFT;			/*   IN         */
+
+		case 0x88: return KEY_RIGHT;			/*   OUT        */
+
+		default:   return special_keymap(scancode);
 	}
 }
 
 /*
  * Keymap for ATCom AU-100
- * http://www.atcom.cn/products.html 
+ * http://www.atcom.cn/products.html
  * http://www.packetizer.com/products/au100/
  * http://www.voip-info.org/wiki/view/AU-100
  *
@@ -267,24 +327,41 @@ static unsigned short keymap_usbph01(int scancode)
  */
 static unsigned short keymap_atcom(int scancode)
 {
-	switch (scancode) {				/* phone key:   */
-	case 0x82: return KEY_NUMERIC_0;		/*   0          */
-	case 0x11: return KEY_NUMERIC_1;		/*   1          */
-	case 0x12: return KEY_NUMERIC_2;		/*   2          */
-	case 0x14: return KEY_NUMERIC_3;		/*   3          */
-	case 0x21: return KEY_NUMERIC_4;		/*   4          */
-	case 0x22: return KEY_NUMERIC_5;		/*   5          */
-	case 0x24: return KEY_NUMERIC_6;		/*   6          */
-	case 0x41: return KEY_NUMERIC_7;		/*   7          */
-	case 0x42: return KEY_NUMERIC_8;		/*   8          */
-	case 0x44: return KEY_NUMERIC_9;		/*   9          */
-	case 0x84: return KEY_NUMERIC_POUND;		/*   #          */
-	case 0x81: return KEY_NUMERIC_STAR;		/*   *          */
-	case 0x18: return KEY_ENTER;			/*   pickup     */
-	case 0x28: return KEY_ESC;			/*   hangup     */
-	case 0x48: return KEY_LEFT;			/* left arrow   */
-	case 0x88: return KEY_RIGHT;			/* right arrow  */
-	default:   return special_keymap(scancode);
+	switch (scancode)  				/* phone key:   */
+	{
+		case 0x82: return KEY_NUMERIC_0;		/*   0          */
+
+		case 0x11: return KEY_NUMERIC_1;		/*   1          */
+
+		case 0x12: return KEY_NUMERIC_2;		/*   2          */
+
+		case 0x14: return KEY_NUMERIC_3;		/*   3          */
+
+		case 0x21: return KEY_NUMERIC_4;		/*   4          */
+
+		case 0x22: return KEY_NUMERIC_5;		/*   5          */
+
+		case 0x24: return KEY_NUMERIC_6;		/*   6          */
+
+		case 0x41: return KEY_NUMERIC_7;		/*   7          */
+
+		case 0x42: return KEY_NUMERIC_8;		/*   8          */
+
+		case 0x44: return KEY_NUMERIC_9;		/*   9          */
+
+		case 0x84: return KEY_NUMERIC_POUND;		/*   #          */
+
+		case 0x81: return KEY_NUMERIC_STAR;		/*   *          */
+
+		case 0x18: return KEY_ENTER;			/*   pickup     */
+
+		case 0x28: return KEY_ESC;			/*   hangup     */
+
+		case 0x48: return KEY_LEFT;			/* left arrow   */
+
+		case 0x88: return KEY_RIGHT;			/* right arrow  */
+
+		default:   return special_keymap(scancode);
 	}
 }
 
@@ -298,13 +375,16 @@ static void report_key(struct cm109_dev *dev, int key)
 {
 	struct input_dev *idev = dev->idev;
 
-	if (dev->key_code >= 0) {
+	if (dev->key_code >= 0)
+	{
 		/* old key up */
 		input_report_key(idev, dev->key_code, 0);
 	}
 
 	dev->key_code = key;
-	if (key >= 0) {
+
+	if (key >= 0)
+	{
 		/* new valid key */
 		input_report_key(idev, key, 1);
 	}
@@ -324,17 +404,24 @@ static void cm109_report_special(struct cm109_dev *dev)
 	unsigned short keycode;
 	int i;
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		keycode = dev->keymap[0xff + BIT(i)];
+
 		if (keycode == KEY_RESERVED)
+		{
 			continue;
+		}
 
 		input_report_key(idev, keycode, data & BIT(i));
-		if (data & autorelease & BIT(i)) {
+
+		if (data & autorelease & BIT(i))
+		{
 			input_sync(idev);
 			input_report_key(idev, keycode, 0);
 		}
 	}
+
 	input_sync(idev);
 }
 
@@ -347,15 +434,20 @@ static void cm109_submit_buzz_toggle(struct cm109_dev *dev)
 	int error;
 
 	if (dev->buzzer_state)
+	{
 		dev->ctl_data->byte[HID_OR0] |= BUZZER_ON;
+	}
 	else
+	{
 		dev->ctl_data->byte[HID_OR0] &= ~BUZZER_ON;
+	}
 
 	error = usb_submit_urb(dev->urb_ctl, GFP_ATOMIC);
+
 	if (error)
 		dev_err(&dev->intf->dev,
-			"%s: usb_submit_urb (urb_ctl) failed %d\n",
-			__func__, error);
+				"%s: usb_submit_urb (urb_ctl) failed %d\n",
+				__func__, error);
 }
 
 /*
@@ -369,17 +461,21 @@ static void cm109_urb_irq_callback(struct urb *urb)
 	unsigned long flags;
 
 	dev_dbg(&dev->intf->dev, "### URB IRQ: [0x%02x 0x%02x 0x%02x 0x%02x] keybit=0x%02x\n",
-	     dev->irq_data->byte[0],
-	     dev->irq_data->byte[1],
-	     dev->irq_data->byte[2],
-	     dev->irq_data->byte[3],
-	     dev->keybit);
+			dev->irq_data->byte[0],
+			dev->irq_data->byte[1],
+			dev->irq_data->byte[2],
+			dev->irq_data->byte[3],
+			dev->keybit);
 
-	if (status) {
+	if (status)
+	{
 		if (status == -ESHUTDOWN)
+		{
 			return;
+		}
+
 		dev_err_ratelimited(&dev->intf->dev, "%s: urb status %d\n",
-				    __func__, status);
+							__func__, status);
 		goto out;
 	}
 
@@ -387,34 +483,47 @@ static void cm109_urb_irq_callback(struct urb *urb)
 	cm109_report_special(dev);
 
 	/* Scan key column */
-	if (dev->keybit == 0xf) {
+	if (dev->keybit == 0xf)
+	{
 
 		/* Any changes ? */
 		if ((dev->gpi & 0xf0) == (dev->irq_data->byte[HID_IR1] & 0xf0))
+		{
 			goto out;
+		}
 
 		dev->gpi = dev->irq_data->byte[HID_IR1] & 0xf0;
 		dev->keybit = 0x1;
-	} else {
+	}
+	else
+	{
 		report_key(dev, dev->keymap[dev->irq_data->byte[HID_IR1]]);
 
 		dev->keybit <<= 1;
+
 		if (dev->keybit > 0x8)
+		{
 			dev->keybit = 0xf;
+		}
 	}
 
- out:
+out:
 
 	spin_lock_irqsave(&dev->ctl_submit_lock, flags);
 
 	dev->irq_urb_pending = 0;
 
-	if (likely(!dev->shutdown)) {
+	if (likely(!dev->shutdown))
+	{
 
 		if (dev->buzzer_state)
+		{
 			dev->ctl_data->byte[HID_OR0] |= BUZZER_ON;
+		}
 		else
+		{
 			dev->ctl_data->byte[HID_OR0] &= ~BUZZER_ON;
+		}
 
 		dev->ctl_data->byte[HID_OR1] = dev->keybit;
 		dev->ctl_data->byte[HID_OR2] = dev->keybit;
@@ -423,10 +532,11 @@ static void cm109_urb_irq_callback(struct urb *urb)
 		dev->ctl_urb_pending = 1;
 
 		error = usb_submit_urb(dev->urb_ctl, GFP_ATOMIC);
+
 		if (error)
 			dev_err(&dev->intf->dev,
-				"%s: usb_submit_urb (urb_ctl) failed %d\n",
-				__func__, error);
+					"%s: usb_submit_urb (urb_ctl) failed %d\n",
+					__func__, error);
 	}
 
 	spin_unlock_irqrestore(&dev->ctl_submit_lock, flags);
@@ -440,36 +550,45 @@ static void cm109_urb_ctl_callback(struct urb *urb)
 	unsigned long flags;
 
 	dev_dbg(&dev->intf->dev, "### URB CTL: [0x%02x 0x%02x 0x%02x 0x%02x]\n",
-	     dev->ctl_data->byte[0],
-	     dev->ctl_data->byte[1],
-	     dev->ctl_data->byte[2],
-	     dev->ctl_data->byte[3]);
+			dev->ctl_data->byte[0],
+			dev->ctl_data->byte[1],
+			dev->ctl_data->byte[2],
+			dev->ctl_data->byte[3]);
 
-	if (status) {
+	if (status)
+	{
 		if (status == -ESHUTDOWN)
+		{
 			return;
+		}
+
 		dev_err_ratelimited(&dev->intf->dev, "%s: urb status %d\n",
-				    __func__, status);
+							__func__, status);
 	}
 
 	spin_lock_irqsave(&dev->ctl_submit_lock, flags);
 
 	dev->ctl_urb_pending = 0;
 
-	if (likely(!dev->shutdown)) {
+	if (likely(!dev->shutdown))
+	{
 
-		if (dev->buzzer_pending || status) {
+		if (dev->buzzer_pending || status)
+		{
 			dev->buzzer_pending = 0;
 			dev->ctl_urb_pending = 1;
 			cm109_submit_buzz_toggle(dev);
-		} else if (likely(!dev->irq_urb_pending)) {
+		}
+		else if (likely(!dev->irq_urb_pending))
+		{
 			/* ask for key data */
 			dev->irq_urb_pending = 1;
 			error = usb_submit_urb(dev->urb_irq, GFP_ATOMIC);
+
 			if (error)
 				dev_err(&dev->intf->dev,
-					"%s: usb_submit_urb (urb_irq) failed %d\n",
-					__func__, error);
+						"%s: usb_submit_urb (urb_irq) failed %d\n",
+						__func__, error);
 		}
 	}
 
@@ -482,10 +601,13 @@ static void cm109_toggle_buzzer_async(struct cm109_dev *dev)
 
 	spin_lock_irqsave(&dev->ctl_submit_lock, flags);
 
-	if (dev->ctl_urb_pending) {
+	if (dev->ctl_urb_pending)
+	{
 		/* URB completion will resubmit */
 		dev->buzzer_pending = 1;
-	} else {
+	}
+	else
+	{
 		dev->ctl_urb_pending = 1;
 		cm109_submit_buzz_toggle(dev);
 	}
@@ -498,21 +620,26 @@ static void cm109_toggle_buzzer_sync(struct cm109_dev *dev, int on)
 	int error;
 
 	if (on)
+	{
 		dev->ctl_data->byte[HID_OR0] |= BUZZER_ON;
+	}
 	else
+	{
 		dev->ctl_data->byte[HID_OR0] &= ~BUZZER_ON;
+	}
 
 	error = usb_control_msg(dev->udev,
-				usb_sndctrlpipe(dev->udev, 0),
-				dev->ctl_req->bRequest,
-				dev->ctl_req->bRequestType,
-				le16_to_cpu(dev->ctl_req->wValue),
-				le16_to_cpu(dev->ctl_req->wIndex),
-				dev->ctl_data,
-				USB_PKT_LEN, USB_CTRL_SET_TIMEOUT);
+							usb_sndctrlpipe(dev->udev, 0),
+							dev->ctl_req->bRequest,
+							dev->ctl_req->bRequestType,
+							le16_to_cpu(dev->ctl_req->wValue),
+							le16_to_cpu(dev->ctl_req->wIndex),
+							dev->ctl_data,
+							USB_PKT_LEN, USB_CTRL_SET_TIMEOUT);
+
 	if (error < 0 && error != -EINTR)
 		dev_err(&dev->intf->dev, "%s: usb_control_msg() failed %d\n",
-			__func__, error);
+				__func__, error);
 }
 
 static void cm109_stop_traffic(struct cm109_dev *dev)
@@ -534,7 +661,8 @@ static void cm109_stop_traffic(struct cm109_dev *dev)
 
 static void cm109_restore_state(struct cm109_dev *dev)
 {
-	if (dev->open) {
+	if (dev->open)
+	{
 		/*
 		 * Restore buzzer state.
 		 * This will also kick regular URB submission
@@ -553,9 +681,11 @@ static int cm109_input_open(struct input_dev *idev)
 	int error;
 
 	error = usb_autopm_get_interface(dev->intf);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		dev_err(&idev->dev, "%s - cannot autoresume, result %d\n",
-			__func__, error);
+				__func__, error);
 		return error;
 	}
 
@@ -572,16 +702,21 @@ static int cm109_input_open(struct input_dev *idev)
 	dev->ctl_data->byte[HID_OR3] = 0x00;
 
 	error = usb_submit_urb(dev->urb_ctl, GFP_KERNEL);
+
 	if (error)
 		dev_err(&dev->intf->dev, "%s: usb_submit_urb (urb_ctl) failed %d\n",
-			__func__, error);
+				__func__, error);
 	else
+	{
 		dev->open = 1;
+	}
 
 	mutex_unlock(&dev->pm_mutex);
 
 	if (error)
+	{
 		usb_autopm_put_interface(dev->intf);
+	}
 
 	return error;
 }
@@ -606,26 +741,33 @@ static void cm109_input_close(struct input_dev *idev)
 }
 
 static int cm109_input_ev(struct input_dev *idev, unsigned int type,
-			  unsigned int code, int value)
+						  unsigned int code, int value)
 {
 	struct cm109_dev *dev = input_get_drvdata(idev);
 
 	dev_dbg(&dev->intf->dev,
-		"input_ev: type=%u code=%u value=%d\n", type, code, value);
+			"input_ev: type=%u code=%u value=%d\n", type, code, value);
 
 	if (type != EV_SND)
+	{
 		return -EINVAL;
+	}
 
-	switch (code) {
-	case SND_TONE:
-	case SND_BELL:
-		dev->buzzer_state = !!value;
-		if (!dev->resetting)
-			cm109_toggle_buzzer_async(dev);
-		return 0;
+	switch (code)
+	{
+		case SND_TONE:
+		case SND_BELL:
+			dev->buzzer_state = !!value;
 
-	default:
-		return -EINVAL;
+			if (!dev->resetting)
+			{
+				cm109_toggle_buzzer_async(dev);
+			}
+
+			return 0;
+
+		default:
+			return -EINVAL;
 	}
 }
 
@@ -634,24 +776,28 @@ static int cm109_input_ev(struct input_dev *idev, unsigned int type,
  * Linux interface and usb initialisation
  *****************************************************************************/
 
-struct driver_info {
+struct driver_info
+{
 	char *name;
 };
 
-static const struct driver_info info_cm109 = {
+static const struct driver_info info_cm109 =
+{
 	.name = "CM109 USB driver",
 };
 
-enum {
+enum
+{
 	VENDOR_ID        = 0x0d8c, /* C-Media Electronics */
 	PRODUCT_ID_CM109 = 0x000e, /* CM109 defines range 0x0008 - 0x000f */
 };
 
 /* table of devices that work with this driver */
-static const struct usb_device_id cm109_usb_table[] = {
+static const struct usb_device_id cm109_usb_table[] =
+{
 	{
 		.match_flags = USB_DEVICE_ID_MATCH_DEVICE |
-				USB_DEVICE_ID_MATCH_INT_INFO,
+		USB_DEVICE_ID_MATCH_INT_INFO,
 		.idVendor = VENDOR_ID,
 		.idProduct = PRODUCT_ID_CM109,
 		.bInterfaceClass = USB_CLASS_HID,
@@ -666,12 +812,14 @@ static const struct usb_device_id cm109_usb_table[] = {
 static void cm109_usb_cleanup(struct cm109_dev *dev)
 {
 	kfree(dev->ctl_req);
+
 	if (dev->ctl_data)
 		usb_free_coherent(dev->udev, USB_PKT_LEN,
-				  dev->ctl_data, dev->ctl_dma);
+						  dev->ctl_data, dev->ctl_dma);
+
 	if (dev->irq_data)
 		usb_free_coherent(dev->udev, USB_PKT_LEN,
-				  dev->irq_data, dev->irq_dma);
+						  dev->irq_data, dev->irq_dma);
 
 	usb_free_urb(dev->urb_irq);	/* parameter validation in core/urb */
 	usb_free_urb(dev->urb_ctl);	/* parameter validation in core/urb */
@@ -688,7 +836,7 @@ static void cm109_usb_disconnect(struct usb_interface *interface)
 }
 
 static int cm109_usb_probe(struct usb_interface *intf,
-			   const struct usb_device_id *id)
+						   const struct usb_device_id *id)
 {
 	struct usb_device *udev = interface_to_usbdev(intf);
 	struct driver_info *nfo = (struct driver_info *)id->driver_info;
@@ -703,11 +851,16 @@ static int cm109_usb_probe(struct usb_interface *intf,
 	endpoint = &interface->endpoint[0].desc;
 
 	if (!usb_endpoint_is_int_in(endpoint))
+	{
 		return -ENODEV;
+	}
 
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&dev->ctl_submit_lock);
 	mutex_init(&dev->pm_mutex);
@@ -716,59 +869,78 @@ static int cm109_usb_probe(struct usb_interface *intf,
 	dev->intf = intf;
 
 	dev->idev = input_dev = input_allocate_device();
+
 	if (!input_dev)
+	{
 		goto err_out;
+	}
 
 	/* allocate usb buffers */
 	dev->irq_data = usb_alloc_coherent(udev, USB_PKT_LEN,
-					   GFP_KERNEL, &dev->irq_dma);
+									   GFP_KERNEL, &dev->irq_dma);
+
 	if (!dev->irq_data)
+	{
 		goto err_out;
+	}
 
 	dev->ctl_data = usb_alloc_coherent(udev, USB_PKT_LEN,
-					   GFP_KERNEL, &dev->ctl_dma);
+									   GFP_KERNEL, &dev->ctl_dma);
+
 	if (!dev->ctl_data)
+	{
 		goto err_out;
+	}
 
 	dev->ctl_req = kmalloc(sizeof(*(dev->ctl_req)), GFP_KERNEL);
+
 	if (!dev->ctl_req)
+	{
 		goto err_out;
+	}
 
 	/* allocate urb structures */
 	dev->urb_irq = usb_alloc_urb(0, GFP_KERNEL);
+
 	if (!dev->urb_irq)
+	{
 		goto err_out;
+	}
 
 	dev->urb_ctl = usb_alloc_urb(0, GFP_KERNEL);
+
 	if (!dev->urb_ctl)
+	{
 		goto err_out;
+	}
 
 	/* get a handle to the interrupt data pipe */
 	pipe = usb_rcvintpipe(udev, endpoint->bEndpointAddress);
 	ret = usb_maxpacket(udev, pipe, usb_pipeout(pipe));
+
 	if (ret != USB_PKT_LEN)
 		dev_err(&intf->dev, "invalid payload size %d, expected %d\n",
-			ret, USB_PKT_LEN);
+				ret, USB_PKT_LEN);
 
 	/* initialise irq urb */
 	usb_fill_int_urb(dev->urb_irq, udev, pipe, dev->irq_data,
-			 USB_PKT_LEN,
-			 cm109_urb_irq_callback, dev, endpoint->bInterval);
+					 USB_PKT_LEN,
+					 cm109_urb_irq_callback, dev, endpoint->bInterval);
 	dev->urb_irq->transfer_dma = dev->irq_dma;
 	dev->urb_irq->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
 	dev->urb_irq->dev = udev;
 
 	/* initialise ctl urb */
 	dev->ctl_req->bRequestType = USB_TYPE_CLASS | USB_RECIP_INTERFACE |
-					USB_DIR_OUT;
+								 USB_DIR_OUT;
 	dev->ctl_req->bRequest = USB_REQ_SET_CONFIGURATION;
 	dev->ctl_req->wValue = cpu_to_le16(0x200);
 	dev->ctl_req->wIndex = cpu_to_le16(interface->desc.bInterfaceNumber);
 	dev->ctl_req->wLength = cpu_to_le16(USB_PKT_LEN);
 
 	usb_fill_control_urb(dev->urb_ctl, udev, usb_sndctrlpipe(udev, 0),
-			     (void *)dev->ctl_req, dev->ctl_data, USB_PKT_LEN,
-			     cm109_urb_ctl_callback, dev);
+						 (void *)dev->ctl_req, dev->ctl_data, USB_PKT_LEN,
+						 cm109_urb_ctl_callback, dev);
 	dev->urb_ctl->transfer_dma = dev->ctl_dma;
 	dev->urb_ctl->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
 	dev->urb_ctl->dev = udev;
@@ -796,22 +968,27 @@ static int cm109_usb_probe(struct usb_interface *intf,
 	input_dev->sndbit[0] = BIT_MASK(SND_BELL) | BIT_MASK(SND_TONE);
 
 	/* register available key events */
-	for (i = 0; i < KEYMAP_SIZE; i++) {
+	for (i = 0; i < KEYMAP_SIZE; i++)
+	{
 		unsigned short k = keymap(i);
 		dev->keymap[i] = k;
 		__set_bit(k, input_dev->keybit);
 	}
+
 	__clear_bit(KEY_RESERVED, input_dev->keybit);
 
 	error = input_register_device(dev->idev);
+
 	if (error)
+	{
 		goto err_out;
+	}
 
 	usb_set_intfdata(intf, dev);
 
 	return 0;
 
- err_out:
+err_out:
 	input_free_device(input_dev);
 	cm109_usb_cleanup(dev);
 	return error;
@@ -875,7 +1052,8 @@ static int cm109_usb_post_reset(struct usb_interface *intf)
 	return 0;
 }
 
-static struct usb_driver cm109_driver = {
+static struct usb_driver cm109_driver =
+{
 	.name		= "cm109",
 	.probe		= cm109_usb_probe,
 	.disconnect	= cm109_usb_disconnect,
@@ -891,25 +1069,34 @@ static struct usb_driver cm109_driver = {
 static int __init cm109_select_keymap(void)
 {
 	/* Load the phone keymap */
-	if (!strcasecmp(phone, "kip1000")) {
+	if (!strcasecmp(phone, "kip1000"))
+	{
 		keymap = keymap_kip1000;
 		printk(KERN_INFO KBUILD_MODNAME ": "
-			"Keymap for Komunikate KIP1000 phone loaded\n");
-	} else if (!strcasecmp(phone, "gtalk")) {
+			   "Keymap for Komunikate KIP1000 phone loaded\n");
+	}
+	else if (!strcasecmp(phone, "gtalk"))
+	{
 		keymap = keymap_gtalk;
 		printk(KERN_INFO KBUILD_MODNAME ": "
-			"Keymap for Genius G-talk phone loaded\n");
-	} else if (!strcasecmp(phone, "usbph01")) {
+			   "Keymap for Genius G-talk phone loaded\n");
+	}
+	else if (!strcasecmp(phone, "usbph01"))
+	{
 		keymap = keymap_usbph01;
 		printk(KERN_INFO KBUILD_MODNAME ": "
-			"Keymap for Allied-Telesis Corega USBPH01 phone loaded\n");
-	} else if (!strcasecmp(phone, "atcom")) {
+			   "Keymap for Allied-Telesis Corega USBPH01 phone loaded\n");
+	}
+	else if (!strcasecmp(phone, "atcom"))
+	{
 		keymap = keymap_atcom;
 		printk(KERN_INFO KBUILD_MODNAME ": "
-			"Keymap for ATCom AU-100 phone loaded\n");
-	} else {
+			   "Keymap for ATCom AU-100 phone loaded\n");
+	}
+	else
+	{
 		printk(KERN_ERR KBUILD_MODNAME ": "
-			"Unsupported phone: %s\n", phone);
+			   "Unsupported phone: %s\n", phone);
 		return -EINVAL;
 	}
 
@@ -921,15 +1108,21 @@ static int __init cm109_init(void)
 	int err;
 
 	err = cm109_select_keymap();
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = usb_register(&cm109_driver);
+
 	if (err)
+	{
 		return err;
+	}
 
 	printk(KERN_INFO KBUILD_MODNAME ": "
-		DRIVER_DESC ": " DRIVER_VERSION " (C) " DRIVER_AUTHOR "\n");
+		   DRIVER_DESC ": " DRIVER_VERSION " (C) " DRIVER_AUTHOR "\n");
 
 	return 0;
 }

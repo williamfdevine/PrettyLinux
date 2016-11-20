@@ -40,7 +40,10 @@ snd_seq_oss_writeq_new(struct seq_oss_devinfo *dp, int maxlen)
 	struct snd_seq_client_pool pool;
 
 	if ((q = kzalloc(sizeof(*q), GFP_KERNEL)) == NULL)
+	{
 		return NULL;
+	}
+
 	q->dp = dp;
 	q->maxlen = maxlen;
 	spin_lock_init(&q->sync_lock);
@@ -64,7 +67,8 @@ snd_seq_oss_writeq_new(struct seq_oss_devinfo *dp, int maxlen)
 void
 snd_seq_oss_writeq_delete(struct seq_oss_writeq *q)
 {
-	if (q) {
+	if (q)
+	{
 		snd_seq_oss_writeq_clear(q);	/* to be sure */
 		kfree(q);
 	}
@@ -97,10 +101,14 @@ snd_seq_oss_writeq_sync(struct seq_oss_writeq *q)
 	abstime_t time;
 
 	time = snd_seq_oss_timer_cur_tick(dp->timer);
-	if (q->sync_time >= time)
-		return 0; /* already finished */
 
-	if (! q->sync_event_put) {
+	if (q->sync_time >= time)
+	{
+		return 0;    /* already finished */
+	}
+
+	if (! q->sync_event_put)
+	{
 		struct snd_seq_event ev;
 		union evrec *rec;
 
@@ -119,11 +127,18 @@ snd_seq_oss_writeq_sync(struct seq_oss_writeq *q)
 	}
 
 	wait_event_interruptible_timeout(q->sync_sleep, ! q->sync_event_put, HZ);
+
 	if (signal_pending(current))
 		/* interrupted - return 0 to finish sync */
+	{
 		q->sync_event_put = 0;
+	}
+
 	if (! q->sync_event_put || q->sync_time >= time)
+	{
 		return 0;
+	}
+
 	return 1;
 }
 

@@ -11,7 +11,8 @@
 #ifndef __LINUX_SND_RT5651_H
 #define __LINUX_SND_RT5651_H
 
-struct rt5651_platform_data {
+struct rt5651_platform_data
+{
 	/* IN2 can optionally be differential */
 	bool in2_diff;
 

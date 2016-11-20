@@ -85,7 +85,8 @@
 #define VFDI_EV_DATA_LBN 0
 #define VFDI_EV_DATA_WIDTH 16
 
-struct vfdi_endpoint {
+struct vfdi_endpoint
+{
 	u8 mac_addr[ETH_ALEN];
 	__be16 tci;
 };
@@ -105,7 +106,8 @@ struct vfdi_endpoint {
  * @VFDI_OP_CLEAR_STATUS_PAGE: Clear the DMA page(s) used for status
  *	updates from PF.
  */
-enum vfdi_op {
+enum vfdi_op
+{
 	VFDI_OP_RESPONSE = 0,
 	VFDI_OP_INIT_EVQ = 1,
 	VFDI_OP_INIT_RXQ = 2,
@@ -162,18 +164,22 @@ enum vfdi_op {
  *	512 vfdi_endpoint structures into each page.  These addresses
  *	must be page-aligned.
  */
-struct vfdi_req {
+struct vfdi_req
+{
 	u32 op;
 	u32 reserved1;
 	s32 rc;
 	u32 reserved2;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u32 index;
 			u32 buf_count;
 			u64 addr[];
 		} init_evq;
-		struct {
+		struct
+		{
 			u32 index;
 			u32 buf_count;
 			u32 evq;
@@ -183,7 +189,8 @@ struct vfdi_req {
 			u32 reserved;
 			u64 addr[];
 		} init_rxq;
-		struct {
+		struct
+		{
 			u32 index;
 			u32 buf_count;
 			u32 evq;
@@ -194,13 +201,15 @@ struct vfdi_req {
 			u32 reserved;
 			u64 addr[];
 		} init_txq;
-		struct {
+		struct
+		{
 			u32 rxq;
 			u32 flags;
 #define VFDI_MAC_FILTER_FLAG_RSS 1
 #define VFDI_MAC_FILTER_FLAG_SCATTER 2
 		} mac_filter;
-		struct {
+		struct
+		{
 			u64 dma_addr;
 			u64 peer_page_count;
 			u64 peer_page_addr[];
@@ -234,7 +243,8 @@ struct vfdi_req {
  *	for interrupt moderation timers, in nanoseconds. This member is only
  *	present if @length is sufficiently large.
  */
-struct vfdi_status {
+struct vfdi_status
+{
 	u32 generation_start;
 	u32 generation_end;
 	u32 version;

@@ -42,20 +42,21 @@
  * that is 8, 16, or 32 bits.
  */
 #define FSLDMA_PCM_FORMATS (SNDRV_PCM_FMTBIT_S8 	| \
-			    SNDRV_PCM_FMTBIT_U8 	| \
-			    SNDRV_PCM_FMTBIT_S16_LE     | \
-			    SNDRV_PCM_FMTBIT_S16_BE     | \
-			    SNDRV_PCM_FMTBIT_U16_LE     | \
-			    SNDRV_PCM_FMTBIT_U16_BE     | \
-			    SNDRV_PCM_FMTBIT_S24_LE     | \
-			    SNDRV_PCM_FMTBIT_S24_BE     | \
-			    SNDRV_PCM_FMTBIT_U24_LE     | \
-			    SNDRV_PCM_FMTBIT_U24_BE     | \
-			    SNDRV_PCM_FMTBIT_S32_LE     | \
-			    SNDRV_PCM_FMTBIT_S32_BE     | \
-			    SNDRV_PCM_FMTBIT_U32_LE     | \
-			    SNDRV_PCM_FMTBIT_U32_BE)
-struct dma_object {
+							SNDRV_PCM_FMTBIT_U8 	| \
+							SNDRV_PCM_FMTBIT_S16_LE     | \
+							SNDRV_PCM_FMTBIT_S16_BE     | \
+							SNDRV_PCM_FMTBIT_U16_LE     | \
+							SNDRV_PCM_FMTBIT_U16_BE     | \
+							SNDRV_PCM_FMTBIT_S24_LE     | \
+							SNDRV_PCM_FMTBIT_S24_BE     | \
+							SNDRV_PCM_FMTBIT_U24_LE     | \
+							SNDRV_PCM_FMTBIT_U24_BE     | \
+							SNDRV_PCM_FMTBIT_S32_LE     | \
+							SNDRV_PCM_FMTBIT_S32_BE     | \
+							SNDRV_PCM_FMTBIT_U32_LE     | \
+							SNDRV_PCM_FMTBIT_U32_BE)
+struct dma_object
+{
 	struct snd_soc_platform_driver dai;
 	dma_addr_t ssi_stx_phys;
 	dma_addr_t ssi_srx_phys;
@@ -93,7 +94,8 @@ struct dma_object {
  * @buffer period_size: the size of a single period
  * @num_periods: the number of periods in the DMA buffer
  */
-struct fsl_dma_private {
+struct fsl_dma_private
+{
 	struct fsl_dma_link_descriptor link[NUM_DMA_LINKS];
 	struct ccsr_dma_channel __iomem *dma_channel;
 	unsigned int irq;
@@ -128,18 +130,19 @@ struct fsl_dma_private {
  * limitation in the SSI driver requires the sample rates for playback and
  * capture to be the same.
  */
-static const struct snd_pcm_hardware fsl_dma_hardware = {
+static const struct snd_pcm_hardware fsl_dma_hardware =
+{
 
 	.info   		= SNDRV_PCM_INFO_INTERLEAVED |
-				  SNDRV_PCM_INFO_MMAP |
-				  SNDRV_PCM_INFO_MMAP_VALID |
-				  SNDRV_PCM_INFO_JOINT_DUPLEX |
-				  SNDRV_PCM_INFO_PAUSE,
+	SNDRV_PCM_INFO_MMAP |
+	SNDRV_PCM_INFO_MMAP_VALID |
+	SNDRV_PCM_INFO_JOINT_DUPLEX |
+	SNDRV_PCM_INFO_PAUSE,
 	.formats		= FSLDMA_PCM_FORMATS,
 	.period_bytes_min       = 512,  	/* A reasonable limit */
-	.period_bytes_max       = (u32) -1,
+	.period_bytes_max       = (u32) - 1,
 	.periods_min    	= NUM_DMA_LINKS,
-	.periods_max    	= (unsigned int) -1,
+	.periods_max    	= (unsigned int) - 1,
 	.buffer_bytes_max       = 128 * 1024,   /* A reasonable limit */
 };
 
@@ -163,23 +166,26 @@ static void fsl_dma_abort_stream(struct snd_pcm_substream *substream)
 static void fsl_dma_update_pointers(struct fsl_dma_private *dma_private)
 {
 	struct fsl_dma_link_descriptor *link =
-		&dma_private->link[dma_private->current_link];
+			&dma_private->link[dma_private->current_link];
 
 	/* Update our link descriptors to point to the next period. On a 36-bit
 	 * system, we also need to update the ESAD bits.  We also set (keep) the
 	 * snoop bits.  See the comments in fsl_dma_hw_params() about snooping.
 	 */
-	if (dma_private->substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
+	if (dma_private->substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+	{
 		link->source_addr = cpu_to_be32(dma_private->dma_buf_next);
 #ifdef CONFIG_PHYS_64BIT
 		link->source_attr = cpu_to_be32(CCSR_DMA_ATR_SNOOP |
-			upper_32_bits(dma_private->dma_buf_next));
+										upper_32_bits(dma_private->dma_buf_next));
 #endif
-	} else {
+	}
+	else
+	{
 		link->dest_addr = cpu_to_be32(dma_private->dma_buf_next);
 #ifdef CONFIG_PHYS_64BIT
 		link->dest_attr = cpu_to_be32(CCSR_DMA_ATR_SNOOP |
-			upper_32_bits(dma_private->dma_buf_next));
+									  upper_32_bits(dma_private->dma_buf_next));
 #endif
 	}
 
@@ -187,10 +193,14 @@ static void fsl_dma_update_pointers(struct fsl_dma_private *dma_private)
 	dma_private->dma_buf_next += dma_private->period_size;
 
 	if (dma_private->dma_buf_next >= dma_private->dma_buf_end)
+	{
 		dma_private->dma_buf_next = dma_private->dma_buf_phys;
+	}
 
 	if (++dma_private->current_link >= NUM_DMA_LINKS)
+	{
 		dma_private->current_link = 0;
+	}
 }
 
 /**
@@ -214,7 +224,8 @@ static irqreturn_t fsl_dma_isr(int irq, void *dev_id)
 	 */
 	sr = in_be32(&dma_channel->sr);
 
-	if (sr & CCSR_DMA_SR_TE) {
+	if (sr & CCSR_DMA_SR_TE)
+	{
 		dev_err(dev, "dma transmit error\n");
 		fsl_dma_abort_stream(substream);
 		sr2 |= CCSR_DMA_SR_TE;
@@ -222,24 +233,31 @@ static irqreturn_t fsl_dma_isr(int irq, void *dev_id)
 	}
 
 	if (sr & CCSR_DMA_SR_CH)
+	{
 		ret = IRQ_HANDLED;
+	}
 
-	if (sr & CCSR_DMA_SR_PE) {
+	if (sr & CCSR_DMA_SR_PE)
+	{
 		dev_err(dev, "dma programming error\n");
 		fsl_dma_abort_stream(substream);
 		sr2 |= CCSR_DMA_SR_PE;
 		ret = IRQ_HANDLED;
 	}
 
-	if (sr & CCSR_DMA_SR_EOLNI) {
+	if (sr & CCSR_DMA_SR_EOLNI)
+	{
 		sr2 |= CCSR_DMA_SR_EOLNI;
 		ret = IRQ_HANDLED;
 	}
 
 	if (sr & CCSR_DMA_SR_CB)
+	{
 		ret = IRQ_HANDLED;
+	}
 
-	if (sr & CCSR_DMA_SR_EOSI) {
+	if (sr & CCSR_DMA_SR_EOSI)
+	{
 		/* Tell ALSA we completed a period. */
 		snd_pcm_period_elapsed(substream);
 
@@ -249,20 +267,25 @@ static irqreturn_t fsl_dma_isr(int irq, void *dev_id)
 		 * the number of links.
 		 */
 		if (dma_private->num_periods != NUM_DMA_LINKS)
+		{
 			fsl_dma_update_pointers(dma_private);
+		}
 
 		sr2 |= CCSR_DMA_SR_EOSI;
 		ret = IRQ_HANDLED;
 	}
 
-	if (sr & CCSR_DMA_SR_EOLSI) {
+	if (sr & CCSR_DMA_SR_EOLSI)
+	{
 		sr2 |= CCSR_DMA_SR_EOLSI;
 		ret = IRQ_HANDLED;
 	}
 
 	/* Clear the bits that we set */
 	if (sr2)
+	{
 		out_be32(&dma_channel->sr, sr2);
+	}
 
 	return ret;
 }
@@ -289,28 +312,37 @@ static int fsl_dma_new(struct snd_soc_pcm_runtime *rtd)
 	int ret;
 
 	ret = dma_coerce_mask_and_coherent(card->dev, DMA_BIT_MASK(36));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Some codecs have separate DAIs for playback and capture, so we
 	 * should allocate a DMA buffer only for the streams that are valid.
 	 */
 
-	if (pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream) {
+	if (pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream)
+	{
 		ret = snd_dma_alloc_pages(SNDRV_DMA_TYPE_DEV, card->dev,
-			fsl_dma_hardware.buffer_bytes_max,
-			&pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream->dma_buffer);
-		if (ret) {
+								  fsl_dma_hardware.buffer_bytes_max,
+								  &pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream->dma_buffer);
+
+		if (ret)
+		{
 			dev_err(card->dev, "can't alloc playback dma buffer\n");
 			return ret;
 		}
 	}
 
-	if (pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream) {
+	if (pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream)
+	{
 		ret = snd_dma_alloc_pages(SNDRV_DMA_TYPE_DEV, card->dev,
-			fsl_dma_hardware.buffer_bytes_max,
-			&pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream->dma_buffer);
-		if (ret) {
+								  fsl_dma_hardware.buffer_bytes_max,
+								  &pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream->dma_buffer);
+
+		if (ret)
+		{
 			dev_err(card->dev, "can't alloc capture dma buffer\n");
 			snd_dma_free_pages(&pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream->dma_buffer);
 			return ret;
@@ -404,29 +436,39 @@ static int fsl_dma_open(struct snd_pcm_substream *substream)
 	 * into periods.
 	 */
 	ret = snd_pcm_hw_constraint_integer(runtime,
-		SNDRV_PCM_HW_PARAM_PERIODS);
-	if (ret < 0) {
+										SNDRV_PCM_HW_PARAM_PERIODS);
+
+	if (ret < 0)
+	{
 		dev_err(dev, "invalid buffer size\n");
 		return ret;
 	}
 
 	channel = substream->stream == SNDRV_PCM_STREAM_PLAYBACK ? 0 : 1;
 
-	if (dma->assigned) {
+	if (dma->assigned)
+	{
 		dev_err(dev, "dma channel already assigned\n");
 		return -EBUSY;
 	}
 
 	dma_private = dma_alloc_coherent(dev, sizeof(struct fsl_dma_private),
-					 &ld_buf_phys, GFP_KERNEL);
-	if (!dma_private) {
+									 &ld_buf_phys, GFP_KERNEL);
+
+	if (!dma_private)
+	{
 		dev_err(dev, "can't allocate dma private data\n");
 		return -ENOMEM;
 	}
+
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+	{
 		dma_private->ssi_sxx_phys = dma->ssi_stx_phys;
+	}
 	else
+	{
 		dma_private->ssi_sxx_phys = dma->ssi_srx_phys;
+	}
 
 	dma_private->ssi_fifo_depth = dma->ssi_fifo_depth;
 	dma_private->dma_channel = dma->channel;
@@ -436,12 +478,14 @@ static int fsl_dma_open(struct snd_pcm_substream *substream)
 	dma_private->dma_buf_phys = substream->dma_buffer.addr;
 
 	ret = request_irq(dma_private->irq, fsl_dma_isr, 0, "fsldma-audio",
-			  dma_private);
-	if (ret) {
+					  dma_private);
+
+	if (ret)
+	{
 		dev_err(dev, "can't register ISR for IRQ %u (ret=%i)\n",
-			dma_private->irq, ret);
+				dma_private->irq, ret);
 		dma_free_coherent(dev, sizeof(struct fsl_dma_private),
-			dma_private, dma_private->ld_buf_phys);
+						  dma_private, dma_private->ld_buf_phys);
 		return ret;
 	}
 
@@ -456,21 +500,23 @@ static int fsl_dma_open(struct snd_pcm_substream *substream)
 	dma_channel = dma_private->dma_channel;
 
 	temp_link = dma_private->ld_buf_phys +
-		sizeof(struct fsl_dma_link_descriptor);
+				sizeof(struct fsl_dma_link_descriptor);
 
-	for (i = 0; i < NUM_DMA_LINKS; i++) {
+	for (i = 0; i < NUM_DMA_LINKS; i++)
+	{
 		dma_private->link[i].next = cpu_to_be64(temp_link);
 
 		temp_link += sizeof(struct fsl_dma_link_descriptor);
 	}
+
 	/* The last link descriptor points to the first */
 	dma_private->link[i - 1].next = cpu_to_be64(dma_private->ld_buf_phys);
 
 	/* Tell the DMA controller where the first link descriptor is */
 	out_be32(&dma_channel->clndar,
-		CCSR_DMA_CLNDAR_ADDR(dma_private->ld_buf_phys));
+			 CCSR_DMA_CLNDAR_ADDR(dma_private->ld_buf_phys));
 	out_be32(&dma_channel->eclndar,
-		CCSR_DMA_ECLNDAR_ADDR(dma_private->ld_buf_phys));
+			 CCSR_DMA_ECLNDAR_ADDR(dma_private->ld_buf_phys));
 
 	/* The manual says the BCR must be clear before enabling EMP */
 	out_be32(&dma_channel->bcr, 0);
@@ -480,7 +526,7 @@ static int fsl_dma_open(struct snd_pcm_substream *substream)
 	 * and source/destination hold.  Also clear the Channel Abort bit.
 	 */
 	mr = in_be32(&dma_channel->mr) &
-		~(CCSR_DMA_MR_CA | CCSR_DMA_MR_DAHE | CCSR_DMA_MR_SAHE);
+		 ~(CCSR_DMA_MR_CA | CCSR_DMA_MR_DAHE | CCSR_DMA_MR_SAHE);
 
 	/*
 	 * We want External Master Start and External Master Pause enabled,
@@ -498,12 +544,12 @@ static int fsl_dma_open(struct snd_pcm_substream *substream)
 	 * the DMA controller is mis-programmed somehow.
 	 */
 	mr |= CCSR_DMA_MR_EOSIE | CCSR_DMA_MR_EIE | CCSR_DMA_MR_EMP_EN |
-		CCSR_DMA_MR_EMS_EN;
+		  CCSR_DMA_MR_EMS_EN;
 
 	/* For playback, we want the destination address to be held.  For
 	   capture, set the source address to be held. */
 	mr |= (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) ?
-		CCSR_DMA_MR_DAHE : CCSR_DMA_MR_SAHE;
+		  CCSR_DMA_MR_DAHE : CCSR_DMA_MR_SAHE;
 
 	out_be32(&dma_channel->mr, mr);
 
@@ -535,7 +581,7 @@ static int fsl_dma_open(struct snd_pcm_substream *substream)
  * 24-bit data must be padded to 32 bits.
  */
 static int fsl_dma_hw_params(struct snd_pcm_substream *substream,
-	struct snd_pcm_hw_params *hw_params)
+							 struct snd_pcm_hw_params *hw_params)
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	struct fsl_dma_private *dma_private = runtime->private_data;
@@ -573,36 +619,42 @@ static int fsl_dma_hw_params(struct snd_pcm_substream *substream,
 	dma_private->num_periods = params_periods(hw_params);
 	dma_private->dma_buf_end = dma_private->dma_buf_phys + buffer_size;
 	dma_private->dma_buf_next = dma_private->dma_buf_phys +
-		(NUM_DMA_LINKS * period_size);
+								(NUM_DMA_LINKS * period_size);
 
 	if (dma_private->dma_buf_next >= dma_private->dma_buf_end)
 		/* This happens if the number of periods == NUM_DMA_LINKS */
+	{
 		dma_private->dma_buf_next = dma_private->dma_buf_phys;
+	}
 
 	mr = in_be32(&dma_channel->mr) & ~(CCSR_DMA_MR_BWC_MASK |
-		  CCSR_DMA_MR_SAHTS_MASK | CCSR_DMA_MR_DAHTS_MASK);
+									   CCSR_DMA_MR_SAHTS_MASK | CCSR_DMA_MR_DAHTS_MASK);
 
 	/* Due to a quirk of the SSI's STX register, the target address
 	 * for the DMA operations depends on the sample size.  So we calculate
 	 * that offset here.  While we're at it, also tell the DMA controller
 	 * how much data to transfer per sample.
 	 */
-	switch (sample_bits) {
-	case 8:
-		mr |= CCSR_DMA_MR_DAHTS_1 | CCSR_DMA_MR_SAHTS_1;
-		ssi_sxx_phys += 3;
-		break;
-	case 16:
-		mr |= CCSR_DMA_MR_DAHTS_2 | CCSR_DMA_MR_SAHTS_2;
-		ssi_sxx_phys += 2;
-		break;
-	case 32:
-		mr |= CCSR_DMA_MR_DAHTS_4 | CCSR_DMA_MR_SAHTS_4;
-		break;
-	default:
-		/* We should never get here */
-		dev_err(dev, "unsupported sample size %u\n", sample_bits);
-		return -EINVAL;
+	switch (sample_bits)
+	{
+		case 8:
+			mr |= CCSR_DMA_MR_DAHTS_1 | CCSR_DMA_MR_SAHTS_1;
+			ssi_sxx_phys += 3;
+			break;
+
+		case 16:
+			mr |= CCSR_DMA_MR_DAHTS_2 | CCSR_DMA_MR_SAHTS_2;
+			ssi_sxx_phys += 2;
+			break;
+
+		case 32:
+			mr |= CCSR_DMA_MR_DAHTS_4 | CCSR_DMA_MR_SAHTS_4;
+			break;
+
+		default:
+			/* We should never get here */
+			dev_err(dev, "unsupported sample size %u\n", sample_bits);
+			return -EINVAL;
 	}
 
 	/*
@@ -640,7 +692,8 @@ static int fsl_dma_hw_params(struct snd_pcm_substream *substream,
 
 	out_be32(&dma_channel->mr, mr);
 
-	for (i = 0; i < NUM_DMA_LINKS; i++) {
+	for (i = 0; i < NUM_DMA_LINKS; i++)
+	{
 		struct fsl_dma_link_descriptor *link = &dma_private->link[i];
 
 		link->count = cpu_to_be32(period_size);
@@ -662,22 +715,25 @@ static int fsl_dma_hw_params(struct snd_pcm_substream *substream,
 		 * get more performance by not snooping, and you'll still be
 		 * okay.  You'll need to update fsl_dma_update_pointers() also.
 		 */
-		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
+		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+		{
 			link->source_addr = cpu_to_be32(temp_addr);
 			link->source_attr = cpu_to_be32(CCSR_DMA_ATR_SNOOP |
-				upper_32_bits(temp_addr));
+											upper_32_bits(temp_addr));
 
 			link->dest_addr = cpu_to_be32(ssi_sxx_phys);
 			link->dest_attr = cpu_to_be32(CCSR_DMA_ATR_NOSNOOP |
-				upper_32_bits(ssi_sxx_phys));
-		} else {
+										  upper_32_bits(ssi_sxx_phys));
+		}
+		else
+		{
 			link->source_addr = cpu_to_be32(ssi_sxx_phys);
 			link->source_attr = cpu_to_be32(CCSR_DMA_ATR_NOSNOOP |
-				upper_32_bits(ssi_sxx_phys));
+											upper_32_bits(ssi_sxx_phys));
 
 			link->dest_addr = cpu_to_be32(temp_addr);
 			link->dest_attr = cpu_to_be32(CCSR_DMA_ATR_SNOOP |
-				upper_32_bits(temp_addr));
+										  upper_32_bits(temp_addr));
 		}
 
 		temp_addr += period_size;
@@ -712,17 +768,20 @@ static snd_pcm_uframes_t fsl_dma_pointer(struct snd_pcm_substream *substream)
 	 * only have 32-bit DMA addresses.  This function is typically called
 	 * in interrupt context, so we need to optimize it.
 	 */
-	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
+	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+	{
 		position = in_be32(&dma_channel->sar);
 #ifdef CONFIG_PHYS_64BIT
 		position |= (u64)(in_be32(&dma_channel->satr) &
-				  CCSR_DMA_ATR_ESAD_MASK) << 32;
+						  CCSR_DMA_ATR_ESAD_MASK) << 32;
 #endif
-	} else {
+	}
+	else
+	{
 		position = in_be32(&dma_channel->dar);
 #ifdef CONFIG_PHYS_64BIT
 		position |= (u64)(in_be32(&dma_channel->datr) &
-				  CCSR_DMA_ATR_ESAD_MASK) << 32;
+						  CCSR_DMA_ATR_ESAD_MASK) << 32;
 #endif
 	}
 
@@ -734,10 +793,13 @@ static snd_pcm_uframes_t fsl_dma_pointer(struct snd_pcm_substream *substream)
 	 * that nothing has been received yet.
 	 */
 	if (!position)
+	{
 		return 0;
+	}
 
 	if ((position < dma_private->dma_buf_phys) ||
-	    (position > dma_private->dma_buf_end)) {
+		(position > dma_private->dma_buf_end))
+	{
 		dev_err(dev, "dma pointer is out of range, halting stream\n");
 		return SNDRV_PCM_POS_XRUN;
 	}
@@ -749,7 +811,9 @@ static snd_pcm_uframes_t fsl_dma_pointer(struct snd_pcm_substream *substream)
 	 * around.
 	 */
 	if (frames == runtime->buffer_size)
+	{
 		frames = 0;
+	}
 
 	return frames;
 }
@@ -767,7 +831,8 @@ static int fsl_dma_hw_free(struct snd_pcm_substream *substream)
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	struct fsl_dma_private *dma_private = runtime->private_data;
 
-	if (dma_private) {
+	if (dma_private)
+	{
 		struct ccsr_dma_channel __iomem *dma_channel;
 
 		dma_channel = dma_private->dma_channel;
@@ -804,13 +869,16 @@ static int fsl_dma_close(struct snd_pcm_substream *substream)
 	struct dma_object *dma =
 		container_of(rtd->platform->driver, struct dma_object, dai);
 
-	if (dma_private) {
+	if (dma_private)
+	{
 		if (dma_private->irq)
+		{
 			free_irq(dma_private->irq, dma_private);
+		}
 
 		/* Deallocate the fsl_dma_private structure */
 		dma_free_coherent(dev, sizeof(struct fsl_dma_private),
-				  dma_private, dma_private->ld_buf_phys);
+						  dma_private, dma_private->ld_buf_phys);
 		substream->runtime->private_data = NULL;
 	}
 
@@ -827,9 +895,12 @@ static void fsl_dma_free_dma_buffers(struct snd_pcm *pcm)
 	struct snd_pcm_substream *substream;
 	unsigned int i;
 
-	for (i = 0; i < ARRAY_SIZE(pcm->streams); i++) {
+	for (i = 0; i < ARRAY_SIZE(pcm->streams); i++)
+	{
 		substream = pcm->streams[i].substream;
-		if (substream) {
+
+		if (substream)
+		{
 			snd_dma_free_pages(&substream->dma_buffer);
 			substream->dma_buffer.area = NULL;
 			substream->dma_buffer.addr = 0;
@@ -852,25 +923,33 @@ static struct device_node *find_ssi_node(struct device_node *dma_channel_np)
 {
 	struct device_node *ssi_np, *np;
 
-	for_each_compatible_node(ssi_np, NULL, "fsl,mpc8610-ssi") {
+	for_each_compatible_node(ssi_np, NULL, "fsl,mpc8610-ssi")
+	{
 		/* Check each DMA phandle to see if it points to us.  We
 		 * assume that device_node pointers are a valid comparison.
 		 */
 		np = of_parse_phandle(ssi_np, "fsl,playback-dma", 0);
 		of_node_put(np);
+
 		if (np == dma_channel_np)
+		{
 			return ssi_np;
+		}
 
 		np = of_parse_phandle(ssi_np, "fsl,capture-dma", 0);
 		of_node_put(np);
+
 		if (np == dma_channel_np)
+		{
 			return ssi_np;
+		}
 	}
 
 	return NULL;
 }
 
-static struct snd_pcm_ops fsl_dma_ops = {
+static struct snd_pcm_ops fsl_dma_ops =
+{
 	.open   	= fsl_dma_open,
 	.close  	= fsl_dma_close,
 	.ioctl  	= snd_pcm_lib_ioctl,
@@ -880,7 +959,7 @@ static struct snd_pcm_ops fsl_dma_ops = {
 };
 
 static int fsl_soc_dma_probe(struct platform_device *pdev)
- {
+{
 	struct dma_object *dma;
 	struct device_node *np = pdev->dev.of_node;
 	struct device_node *ssi_np;
@@ -890,21 +969,27 @@ static int fsl_soc_dma_probe(struct platform_device *pdev)
 
 	/* Find the SSI node that points to us. */
 	ssi_np = find_ssi_node(np);
-	if (!ssi_np) {
+
+	if (!ssi_np)
+	{
 		dev_err(&pdev->dev, "cannot find parent SSI node\n");
 		return -ENODEV;
 	}
 
 	ret = of_address_to_resource(ssi_np, 0, &res);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "could not determine resources for %s\n",
-			ssi_np->full_name);
+				ssi_np->full_name);
 		of_node_put(ssi_np);
 		return ret;
 	}
 
 	dma = kzalloc(sizeof(*dma) + strlen(np->full_name), GFP_KERNEL);
-	if (!dma) {
+
+	if (!dma)
+	{
 		dev_err(&pdev->dev, "could not allocate dma object\n");
 		of_node_put(ssi_np);
 		return -ENOMEM;
@@ -920,16 +1005,23 @@ static int fsl_soc_dma_probe(struct platform_device *pdev)
 	dma->ssi_srx_phys = res.start + CCSR_SSI_SRX0;
 
 	iprop = of_get_property(ssi_np, "fsl,fifo-depth", NULL);
+
 	if (iprop)
+	{
 		dma->ssi_fifo_depth = be32_to_cpup(iprop);
+	}
 	else
-                /* Older 8610 DTs didn't have the fifo-depth property */
+		/* Older 8610 DTs didn't have the fifo-depth property */
+	{
 		dma->ssi_fifo_depth = 8;
+	}
 
 	of_node_put(ssi_np);
 
 	ret = snd_soc_register_platform(&pdev->dev, &dma->dai);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "could not register platform\n");
 		kfree(dma);
 		return ret;
@@ -955,13 +1047,15 @@ static int fsl_soc_dma_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id fsl_soc_dma_ids[] = {
+static const struct of_device_id fsl_soc_dma_ids[] =
+{
 	{ .compatible = "fsl,ssi-dma-channel", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, fsl_soc_dma_ids);
 
-static struct platform_driver fsl_soc_dma_driver = {
+static struct platform_driver fsl_soc_dma_driver =
+{
 	.driver = {
 		.name = "fsl-pcm-audio",
 		.of_match_table = fsl_soc_dma_ids,

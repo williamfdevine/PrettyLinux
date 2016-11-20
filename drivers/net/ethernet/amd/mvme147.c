@@ -36,7 +36,8 @@
 #include "7990.h"                                 /* use generic LANCE code */
 
 /* Our private data structure */
-struct m147lance_private {
+struct m147lance_private
+{
 	struct lance_private lance;
 	unsigned long ram;
 };
@@ -56,7 +57,8 @@ typedef void (*writerap_t)(void *, unsigned short);
 typedef void (*writerdp_t)(void *, unsigned short);
 typedef unsigned short (*readrdp_t)(void *);
 
-static const struct net_device_ops lance_netdev_ops = {
+static const struct net_device_ops lance_netdev_ops =
+{
 	.ndo_open		= m147lance_open,
 	.ndo_stop		= m147lance_close,
 	.ndo_start_xmit		= lance_start_xmit,
@@ -68,7 +70,7 @@ static const struct net_device_ops lance_netdev_ops = {
 };
 
 /* Initialise the one and only on-board 7990 */
-struct net_device * __init mvme147lance_probe(int unit)
+struct net_device *__init mvme147lance_probe(int unit)
 {
 	struct net_device *dev;
 	static int called;
@@ -79,15 +81,23 @@ struct net_device * __init mvme147lance_probe(int unit)
 	int err;
 
 	if (!MACH_IS_MVME147 || called)
+	{
 		return ERR_PTR(-ENODEV);
+	}
+
 	called++;
 
 	dev = alloc_etherdev(sizeof(struct m147lance_private));
+
 	if (!dev)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	if (unit >= 0)
+	{
 		sprintf(dev->name, "eth%d", unit);
+	}
 
 	/* Fill the dev fields */
 	dev->base_addr = (unsigned long)MVME147_LANCE_BASE;
@@ -100,19 +110,21 @@ struct net_device * __init mvme147lance_probe(int unit)
 	dev->dev_addr[1] = 0x00;
 	dev->dev_addr[2] = 0x3e;
 	address = address >> 8;
-	dev->dev_addr[5] = address&0xff;
+	dev->dev_addr[5] = address & 0xff;
 	address = address >> 8;
-	dev->dev_addr[4] = address&0xff;
+	dev->dev_addr[4] = address & 0xff;
 	address = address >> 8;
-	dev->dev_addr[3] = address&0xff;
+	dev->dev_addr[3] = address & 0xff;
 
 	printk("%s: MVME147 at 0x%08lx, irq %d, Hardware Address %pM\n",
-	       dev->name, dev->base_addr, MVME147_LANCE_IRQ,
-	       dev->dev_addr);
+		   dev->name, dev->base_addr, MVME147_LANCE_IRQ,
+		   dev->dev_addr);
 
 	lp = netdev_priv(dev);
 	lp->ram = __get_dma_pages(GFP_ATOMIC, 3);	/* 32K */
-	if (!lp->ram) {
+
+	if (!lp->ram)
+	{
 		printk("%s: No memory for LANCE buffers\n", dev->name);
 		free_netdev(dev);
 		return ERR_PTR(-ENOMEM);
@@ -133,7 +145,9 @@ struct net_device * __init mvme147lance_probe(int unit)
 	lp->lance.tx_ring_mod_mask = TX_RING_MOD_MASK;
 
 	err = register_netdev(dev);
-	if (err) {
+
+	if (err)
+	{
 		free_pages(lp->ram, 3);
 		free_netdev(dev);
 		return ERR_PTR(err);
@@ -162,8 +176,12 @@ static int m147lance_open(struct net_device *dev)
 	int status;
 
 	status = lance_open(dev);                 /* call generic lance open code */
+
 	if (status)
+	{
 		return status;
+	}
+
 	/* enable interrupts at board level. */
 	m147_pcc->lan_cntrl = 0;       /* clear the interrupts (if any) */
 	m147_pcc->lan_cntrl = 0x08 | 0x04;     /* Enable irq 4 */

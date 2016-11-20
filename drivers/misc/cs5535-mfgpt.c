@@ -25,17 +25,19 @@
 static int mfgpt_reset_timers;
 module_param_named(mfgptfix, mfgpt_reset_timers, int, 0644);
 MODULE_PARM_DESC(mfgptfix, "Try to reset the MFGPT timers during init; "
-		"required by some broken BIOSes (ie, TinyBIOS < 0.99) or kexec "
-		"(1 = reset the MFGPT using an undocumented bit, "
-		"2 = perform a soft reset by unconfiguring all timers); "
-		"use what works best for you.");
+				 "required by some broken BIOSes (ie, TinyBIOS < 0.99) or kexec "
+				 "(1 = reset the MFGPT using an undocumented bit, "
+				 "2 = perform a soft reset by unconfiguring all timers); "
+				 "use what works best for you.");
 
-struct cs5535_mfgpt_timer {
+struct cs5535_mfgpt_timer
+{
 	struct cs5535_mfgpt_chip *chip;
 	int nr;
 };
 
-static struct cs5535_mfgpt_chip {
+static struct cs5535_mfgpt_chip
+{
 	DECLARE_BITMAP(avail, MFGPT_MAX_TIMERS);
 	resource_size_t base;
 
@@ -45,12 +47,13 @@ static struct cs5535_mfgpt_chip {
 } cs5535_mfgpt_chip;
 
 int cs5535_mfgpt_toggle_event(struct cs5535_mfgpt_timer *timer, int cmp,
-		int event, int enable)
+							  int event, int enable)
 {
 	uint32_t msr, mask, value, dummy;
 	int shift = (cmp == MFGPT_CMP1) ? 0 : 8;
 
-	if (!timer) {
+	if (!timer)
+	{
 		WARN_ON(1);
 		return -EIO;
 	}
@@ -59,37 +62,42 @@ int cs5535_mfgpt_toggle_event(struct cs5535_mfgpt_timer *timer, int cmp,
 	 * The register maps for these are described in sections 6.17.1.x of
 	 * the AMD Geode CS5536 Companion Device Data Book.
 	 */
-	switch (event) {
-	case MFGPT_EVENT_RESET:
-		/*
-		 * XXX: According to the docs, we cannot reset timers above
-		 * 6; that is, resets for 7 and 8 will be ignored.  Is this
-		 * a problem?   -dilinger
-		 */
-		msr = MSR_MFGPT_NR;
-		mask = 1 << (timer->nr + 24);
-		break;
+	switch (event)
+	{
+		case MFGPT_EVENT_RESET:
+			/*
+			 * XXX: According to the docs, we cannot reset timers above
+			 * 6; that is, resets for 7 and 8 will be ignored.  Is this
+			 * a problem?   -dilinger
+			 */
+			msr = MSR_MFGPT_NR;
+			mask = 1 << (timer->nr + 24);
+			break;
 
-	case MFGPT_EVENT_NMI:
-		msr = MSR_MFGPT_NR;
-		mask = 1 << (timer->nr + shift);
-		break;
+		case MFGPT_EVENT_NMI:
+			msr = MSR_MFGPT_NR;
+			mask = 1 << (timer->nr + shift);
+			break;
 
-	case MFGPT_EVENT_IRQ:
-		msr = MSR_MFGPT_IRQ;
-		mask = 1 << (timer->nr + shift);
-		break;
+		case MFGPT_EVENT_IRQ:
+			msr = MSR_MFGPT_IRQ;
+			mask = 1 << (timer->nr + shift);
+			break;
 
-	default:
-		return -EIO;
+		default:
+			return -EIO;
 	}
 
 	rdmsr(msr, value, dummy);
 
 	if (enable)
+	{
 		value |= mask;
+	}
 	else
+	{
 		value &= ~mask;
+	}
 
 	wrmsr(msr, value, dummy);
 	return 0;
@@ -97,12 +105,13 @@ int cs5535_mfgpt_toggle_event(struct cs5535_mfgpt_timer *timer, int cmp,
 EXPORT_SYMBOL_GPL(cs5535_mfgpt_toggle_event);
 
 int cs5535_mfgpt_set_irq(struct cs5535_mfgpt_timer *timer, int cmp, int *irq,
-		int enable)
+						 int enable)
 {
 	uint32_t zsel, lpc, dummy;
 	int shift;
 
-	if (!timer) {
+	if (!timer)
+	{
 		WARN_ON(1);
 		return -EIO;
 	}
@@ -117,26 +126,44 @@ int cs5535_mfgpt_set_irq(struct cs5535_mfgpt_timer *timer, int cmp, int *irq,
 	 */
 	rdmsr(MSR_PIC_ZSEL_LOW, zsel, dummy);
 	shift = ((cmp == MFGPT_CMP1 ? 0 : 4) + timer->nr % 4) * 4;
+
 	if (((zsel >> shift) & 0xF) == 2)
+	{
 		return -EIO;
+	}
 
 	/* Choose IRQ: if none supplied, keep IRQ already set or use default */
 	if (!*irq)
+	{
 		*irq = (zsel >> shift) & 0xF;
+	}
+
 	if (!*irq)
+	{
 		*irq = CONFIG_CS5535_MFGPT_DEFAULT_IRQ;
+	}
 
 	/* Can't use IRQ if it's 0 (=disabled), 2, or routed to LPC */
 	if (*irq < 1 || *irq == 2 || *irq > 15)
+	{
 		return -EIO;
+	}
+
 	rdmsr(MSR_PIC_IRQM_LPC, lpc, dummy);
+
 	if (lpc & (1 << *irq))
+	{
 		return -EIO;
+	}
 
 	/* All chosen and checked - go for it */
 	if (cs5535_mfgpt_toggle_event(timer, cmp, MFGPT_EVENT_IRQ, enable))
+	{
 		return -EIO;
-	if (enable) {
+	}
+
+	if (enable)
+	{
 		zsel = (zsel & ~(0xF << shift)) | (*irq << shift);
 		wrmsr(MSR_PIC_ZSEL_LOW, zsel, dummy);
 	}
@@ -153,50 +180,71 @@ struct cs5535_mfgpt_timer *cs5535_mfgpt_alloc_timer(int timer_nr, int domain)
 	int max;
 
 	if (!mfgpt->initialized)
+	{
 		goto done;
+	}
 
 	/* only allocate timers from the working domain if requested */
 	if (domain == MFGPT_DOMAIN_WORKING)
+	{
 		max = 6;
+	}
 	else
+	{
 		max = MFGPT_MAX_TIMERS;
+	}
 
-	if (timer_nr >= max) {
+	if (timer_nr >= max)
+	{
 		/* programmer error.  silly programmers! */
 		WARN_ON(1);
 		goto done;
 	}
 
 	spin_lock_irqsave(&mfgpt->lock, flags);
-	if (timer_nr < 0) {
+
+	if (timer_nr < 0)
+	{
 		unsigned long t;
 
 		/* try to find any available timer */
 		t = find_first_bit(mfgpt->avail, max);
 		/* set timer_nr to -1 if no timers available */
 		timer_nr = t < max ? (int) t : -1;
-	} else {
+	}
+	else
+	{
 		/* check if the requested timer's available */
 		if (!test_bit(timer_nr, mfgpt->avail))
+		{
 			timer_nr = -1;
+		}
 	}
 
 	if (timer_nr >= 0)
 		/* if timer_nr is not -1, it's an available timer */
+	{
 		__clear_bit(timer_nr, mfgpt->avail);
+	}
+
 	spin_unlock_irqrestore(&mfgpt->lock, flags);
 
 	if (timer_nr < 0)
+	{
 		goto done;
+	}
 
 	timer = kmalloc(sizeof(*timer), GFP_KERNEL);
-	if (!timer) {
+
+	if (!timer)
+	{
 		/* aw hell */
 		spin_lock_irqsave(&mfgpt->lock, flags);
 		__set_bit(timer_nr, mfgpt->avail);
 		spin_unlock_irqrestore(&mfgpt->lock, flags);
 		goto done;
 	}
+
 	timer->chip = mfgpt;
 	timer->nr = timer_nr;
 	dev_info(&mfgpt->pdev->dev, "registered timer %d\n", timer_nr);
@@ -218,7 +266,9 @@ void cs5535_mfgpt_free_timer(struct cs5535_mfgpt_timer *timer)
 
 	/* timer can be made available again only if never set up */
 	val = cs5535_mfgpt_read(timer, MFGPT_REG_SETUP);
-	if (!(val & MFGPT_SETUP_SETUP)) {
+
+	if (!(val & MFGPT_SETUP_SETUP))
+	{
 		spin_lock_irqsave(&timer->chip->lock, flags);
 		__set_bit(timer->nr, timer->chip->avail);
 		spin_unlock_irqrestore(&timer->chip->lock, flags);
@@ -235,7 +285,7 @@ uint16_t cs5535_mfgpt_read(struct cs5535_mfgpt_timer *timer, uint16_t reg)
 EXPORT_SYMBOL_GPL(cs5535_mfgpt_read);
 
 void cs5535_mfgpt_write(struct cs5535_mfgpt_timer *timer, uint16_t reg,
-		uint16_t value)
+						uint16_t value)
 {
 	outw(value, timer->chip->base + reg + (timer->nr * 8));
 }
@@ -268,7 +318,8 @@ static void soft_reset(void)
 	int i;
 	struct cs5535_mfgpt_timer t;
 
-	for (i = 0; i < MFGPT_MAX_TIMERS; i++) {
+	for (i = 0; i < MFGPT_MAX_TIMERS; i++)
+	{
 		t.nr = i;
 
 		cs5535_mfgpt_toggle_event(&t, MFGPT_CMP1, MFGPT_EVENT_RESET, 0);
@@ -297,20 +348,29 @@ static int scan_timers(struct cs5535_mfgpt_chip *mfgpt)
 
 	/* bios workaround */
 	if (mfgpt_reset_timers == 1)
+	{
 		reset_all_timers();
+	}
 	else if (mfgpt_reset_timers == 2)
+	{
 		soft_reset();
+	}
 
 	/* just to be safe, protect this section w/ lock */
 	spin_lock_irqsave(&mfgpt->lock, flags);
-	for (i = 0; i < MFGPT_MAX_TIMERS; i++) {
+
+	for (i = 0; i < MFGPT_MAX_TIMERS; i++)
+	{
 		timer.nr = i;
 		val = cs5535_mfgpt_read(&timer, MFGPT_REG_SETUP);
-		if (!(val & MFGPT_SETUP_SETUP) || mfgpt_reset_timers == 2) {
+
+		if (!(val & MFGPT_SETUP_SETUP) || mfgpt_reset_timers == 2)
+		{
 			__set_bit(i, mfgpt->avail);
 			timers++;
 		}
 	}
+
 	spin_unlock_irqrestore(&mfgpt->lock, flags);
 
 	return timers;
@@ -321,9 +381,10 @@ static int cs5535_mfgpt_probe(struct platform_device *pdev)
 	struct resource *res;
 	int err = -EIO, t;
 
-	if (mfgpt_reset_timers < 0 || mfgpt_reset_timers > 2) {
+	if (mfgpt_reset_timers < 0 || mfgpt_reset_timers > 2)
+	{
 		dev_err(&pdev->dev, "Bad mfgpt_reset_timers value: %i\n",
-			mfgpt_reset_timers);
+				mfgpt_reset_timers);
 		goto done;
 	}
 
@@ -335,12 +396,15 @@ static int cs5535_mfgpt_probe(struct platform_device *pdev)
 	 * can always go back to using MSRs.. */
 
 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "can't fetch device resource info\n");
 		goto done;
 	}
 
-	if (!request_region(res->start, resource_size(res), pdev->name)) {
+	if (!request_region(res->start, resource_size(res), pdev->name))
+	{
 		dev_err(&pdev->dev, "can't request region\n");
 		goto done;
 	}
@@ -362,7 +426,8 @@ done:
 	return err;
 }
 
-static struct platform_driver cs5535_mfgpt_driver = {
+static struct platform_driver cs5535_mfgpt_driver =
+{
 	.driver = {
 		.name = DRV_NAME,
 	},

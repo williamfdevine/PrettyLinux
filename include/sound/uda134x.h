@@ -14,7 +14,8 @@
 
 #include <sound/l3.h>
 
-struct uda134x_platform_data {
+struct uda134x_platform_data
+{
 	struct l3_pins l3;
 	void (*power) (int);
 	int model;

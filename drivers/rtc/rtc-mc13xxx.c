@@ -25,7 +25,8 @@
 
 #define SEC_PER_DAY	(24 * 60 * 60)
 
-struct mc13xxx_rtc {
+struct mc13xxx_rtc
+{
 	struct rtc_device *rtc;
 	struct mc13xxx *mc13xxx;
 	int valid;
@@ -35,17 +36,19 @@ static int mc13xxx_rtc_irq_enable_unlocked(struct device *dev,
 		unsigned int enabled, int irq)
 {
 	struct mc13xxx_rtc *priv = dev_get_drvdata(dev);
-	int (*func)(struct mc13xxx *mc13xxx, int irq);
+	int (*func)(struct mc13xxx * mc13xxx, int irq);
 
 	if (!priv->valid)
+	{
 		return -ENODATA;
+	}
 
 	func = enabled ? mc13xxx_irq_unmask : mc13xxx_irq_mask;
 	return func(priv->mc13xxx, irq);
 }
 
 static int mc13xxx_rtc_alarm_irq_enable(struct device *dev,
-					unsigned int enabled)
+										unsigned int enabled)
 {
 	struct mc13xxx_rtc *priv = dev_get_drvdata(dev);
 	int ret;
@@ -65,23 +68,36 @@ static int mc13xxx_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	unsigned int seconds, days1, days2;
 
 	if (!priv->valid)
+	{
 		return -ENODATA;
+	}
 
-	do {
+	do
+	{
 		int ret;
 
 		ret = mc13xxx_reg_read(priv->mc13xxx, MC13XXX_RTCDAY, &days1);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		ret = mc13xxx_reg_read(priv->mc13xxx, MC13XXX_RTCTOD, &seconds);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		ret = mc13xxx_reg_read(priv->mc13xxx, MC13XXX_RTCDAY, &days2);
+
 		if (ret)
+		{
 			return ret;
-	} while (days1 != days2);
+		}
+	}
+	while (days1 != days2);
 
 	rtc_time64_to_tm((time64_t)days1 * SEC_PER_DAY + seconds, tm);
 
@@ -104,14 +120,21 @@ static int mc13xxx_rtc_set_mmss(struct device *dev, time64_t secs)
 	 * already updated while the time isn't yet.
 	 */
 	ret = mc13xxx_reg_read(priv->mc13xxx, MC13XXX_RTCTODA, &alarmseconds);
-	if (unlikely(ret))
-		goto out;
 
-	if (alarmseconds < SEC_PER_DAY) {
+	if (unlikely(ret))
+	{
+		goto out;
+	}
+
+	if (alarmseconds < SEC_PER_DAY)
+	{
 		ret = mc13xxx_reg_write(priv->mc13xxx,
-				MC13XXX_RTCTODA, 0x1ffff);
+								MC13XXX_RTCTODA, 0x1ffff);
+
 		if (unlikely(ret))
+		{
 			goto out;
+		}
 	}
 
 	/*
@@ -119,29 +142,46 @@ static int mc13xxx_rtc_set_mmss(struct device *dev, time64_t secs)
 	 * and seconds below
 	 */
 	ret = mc13xxx_reg_write(priv->mc13xxx, MC13XXX_RTCTOD, 0);
-	if (unlikely(ret))
-		goto out;
 
-	ret = mc13xxx_reg_write(priv->mc13xxx, MC13XXX_RTCDAY, days);
 	if (unlikely(ret))
+	{
 		goto out;
-
-	ret = mc13xxx_reg_write(priv->mc13xxx, MC13XXX_RTCTOD, seconds);
-	if (unlikely(ret))
-		goto out;
-
-	/* restore alarm */
-	if (alarmseconds < SEC_PER_DAY) {
-		ret = mc13xxx_reg_write(priv->mc13xxx,
-				MC13XXX_RTCTODA, alarmseconds);
-		if (unlikely(ret))
-			goto out;
 	}
 
-	if (!priv->valid) {
-		ret = mc13xxx_irq_ack(priv->mc13xxx, MC13XXX_IRQ_RTCRST);
+	ret = mc13xxx_reg_write(priv->mc13xxx, MC13XXX_RTCDAY, days);
+
+	if (unlikely(ret))
+	{
+		goto out;
+	}
+
+	ret = mc13xxx_reg_write(priv->mc13xxx, MC13XXX_RTCTOD, seconds);
+
+	if (unlikely(ret))
+	{
+		goto out;
+	}
+
+	/* restore alarm */
+	if (alarmseconds < SEC_PER_DAY)
+	{
+		ret = mc13xxx_reg_write(priv->mc13xxx,
+								MC13XXX_RTCTODA, alarmseconds);
+
 		if (unlikely(ret))
+		{
 			goto out;
+		}
+	}
+
+	if (!priv->valid)
+	{
+		ret = mc13xxx_irq_ack(priv->mc13xxx, MC13XXX_IRQ_RTCRST);
+
+		if (unlikely(ret))
+		{
+			goto out;
+		}
 
 		ret = mc13xxx_irq_unmask(priv->mc13xxx, MC13XXX_IRQ_RTCRST);
 	}
@@ -165,25 +205,35 @@ static int mc13xxx_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 	mc13xxx_lock(priv->mc13xxx);
 
 	ret = mc13xxx_reg_read(priv->mc13xxx, MC13XXX_RTCTODA, &seconds);
+
 	if (unlikely(ret))
+	{
 		goto out;
-	if (seconds >= SEC_PER_DAY) {
+	}
+
+	if (seconds >= SEC_PER_DAY)
+	{
 		ret = -ENODATA;
 		goto out;
 	}
 
 	ret = mc13xxx_reg_read(priv->mc13xxx, MC13XXX_RTCDAY, &days);
+
 	if (unlikely(ret))
+	{
 		goto out;
+	}
 
 	ret = mc13xxx_irq_status(priv->mc13xxx, MC13XXX_IRQ_TODA,
-			&enabled, &pending);
+							 &enabled, &pending);
 
 out:
 	mc13xxx_unlock(priv->mc13xxx);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	alarm->enabled = enabled;
 	alarm->pending = pending;
@@ -207,12 +257,18 @@ static int mc13xxx_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 
 	/* disable alarm to prevent false triggering */
 	ret = mc13xxx_reg_write(priv->mc13xxx, MC13XXX_RTCTODA, 0x1ffff);
+
 	if (unlikely(ret))
+	{
 		goto out;
+	}
 
 	ret = mc13xxx_irq_ack(priv->mc13xxx, MC13XXX_IRQ_TODA);
+
 	if (unlikely(ret))
+	{
 		goto out;
+	}
 
 	s1970 = rtc_tm_to_time64(&alarm->time);
 
@@ -220,15 +276,21 @@ static int mc13xxx_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 			(long long)s1970);
 
 	ret = mc13xxx_rtc_irq_enable_unlocked(dev, alarm->enabled,
-			MC13XXX_IRQ_TODA);
+										  MC13XXX_IRQ_TODA);
+
 	if (unlikely(ret))
+	{
 		goto out;
+	}
 
 	days = div_s64_rem(s1970, SEC_PER_DAY, &seconds);
 
 	ret = mc13xxx_reg_write(priv->mc13xxx, MC13XXX_RTCDAYA, days);
+
 	if (unlikely(ret))
+	{
 		goto out;
+	}
 
 	ret = mc13xxx_reg_write(priv->mc13xxx, MC13XXX_RTCTODA, seconds);
 
@@ -250,7 +312,8 @@ static irqreturn_t mc13xxx_rtc_alarm_handler(int irq, void *dev)
 	return IRQ_HANDLED;
 }
 
-static const struct rtc_class_ops mc13xxx_rtc_ops = {
+static const struct rtc_class_ops mc13xxx_rtc_ops =
+{
 	.read_time = mc13xxx_rtc_read_time,
 	.set_mmss64 = mc13xxx_rtc_set_mmss,
 	.read_alarm = mc13xxx_rtc_read_alarm,
@@ -277,8 +340,11 @@ static int __init mc13xxx_rtc_probe(struct platform_device *pdev)
 	struct mc13xxx *mc13xxx;
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	mc13xxx = dev_get_drvdata(pdev->dev.parent);
 	priv->mc13xxx = mc13xxx;
@@ -291,19 +357,25 @@ static int __init mc13xxx_rtc_probe(struct platform_device *pdev)
 	mc13xxx_irq_ack(mc13xxx, MC13XXX_IRQ_RTCRST);
 
 	ret = mc13xxx_irq_request(mc13xxx, MC13XXX_IRQ_RTCRST,
-			mc13xxx_rtc_reset_handler, DRIVER_NAME, priv);
+							  mc13xxx_rtc_reset_handler, DRIVER_NAME, priv);
+
 	if (ret)
+	{
 		goto err_irq_request;
+	}
 
 	ret = mc13xxx_irq_request_nounmask(mc13xxx, MC13XXX_IRQ_TODA,
-			mc13xxx_rtc_alarm_handler, DRIVER_NAME, priv);
+									   mc13xxx_rtc_alarm_handler, DRIVER_NAME, priv);
+
 	if (ret)
+	{
 		goto err_irq_request;
+	}
 
 	mc13xxx_unlock(mc13xxx);
 
 	priv->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
-					     &mc13xxx_rtc_ops, THIS_MODULE);
+										 &mc13xxx_rtc_ops, THIS_MODULE);
 
 	return 0;
 
@@ -330,7 +402,8 @@ static int mc13xxx_rtc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct platform_device_id mc13xxx_rtc_idtable[] = {
+static const struct platform_device_id mc13xxx_rtc_idtable[] =
+{
 	{
 		.name = "mc13783-rtc",
 	}, {
@@ -342,7 +415,8 @@ static const struct platform_device_id mc13xxx_rtc_idtable[] = {
 };
 MODULE_DEVICE_TABLE(platform, mc13xxx_rtc_idtable);
 
-static struct platform_driver mc13xxx_rtc_driver = {
+static struct platform_driver mc13xxx_rtc_driver =
+{
 	.id_table = mc13xxx_rtc_idtable,
 	.remove = mc13xxx_rtc_remove,
 	.driver = {

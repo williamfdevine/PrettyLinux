@@ -51,7 +51,7 @@ static int amd_gpio_direction_input(struct gpio_chip *gc, unsigned offset)
 }
 
 static int amd_gpio_direction_output(struct gpio_chip *gc, unsigned offset,
-		int value)
+									 int value)
 {
 	u32 pin_reg;
 	unsigned long flags;
@@ -60,10 +60,16 @@ static int amd_gpio_direction_output(struct gpio_chip *gc, unsigned offset,
 	spin_lock_irqsave(&gpio_dev->lock, flags);
 	pin_reg = readl(gpio_dev->base + offset * 4);
 	pin_reg |= BIT(OUTPUT_ENABLE_OFF);
+
 	if (value)
+	{
 		pin_reg |= BIT(OUTPUT_VALUE_OFF);
+	}
 	else
+	{
 		pin_reg &= ~BIT(OUTPUT_VALUE_OFF);
+	}
+
 	writel(pin_reg, gpio_dev->base + offset * 4);
 	spin_unlock_irqrestore(&gpio_dev->lock, flags);
 
@@ -91,16 +97,22 @@ static void amd_gpio_set_value(struct gpio_chip *gc, unsigned offset, int value)
 
 	spin_lock_irqsave(&gpio_dev->lock, flags);
 	pin_reg = readl(gpio_dev->base + offset * 4);
+
 	if (value)
+	{
 		pin_reg |= BIT(OUTPUT_VALUE_OFF);
+	}
 	else
+	{
 		pin_reg &= ~BIT(OUTPUT_VALUE_OFF);
+	}
+
 	writel(pin_reg, gpio_dev->base + offset * 4);
 	spin_unlock_irqrestore(&gpio_dev->lock, flags);
 }
 
 static int amd_gpio_set_debounce(struct gpio_chip *gc, unsigned offset,
-		unsigned debounce)
+								 unsigned debounce)
 {
 	u32 time;
 	u32 pin_reg;
@@ -111,7 +123,8 @@ static int amd_gpio_set_debounce(struct gpio_chip *gc, unsigned offset,
 	spin_lock_irqsave(&gpio_dev->lock, flags);
 	pin_reg = readl(gpio_dev->base + offset * 4);
 
-	if (debounce) {
+	if (debounce)
+	{
 		pin_reg |= DB_TYPE_REMOVE_GLITCH << DB_CNTRL_OFF;
 		pin_reg &= ~DB_TMR_OUT_MASK;
 		/*
@@ -124,40 +137,54 @@ static int amd_gpio_set_debounce(struct gpio_chip *gc, unsigned offset,
 		1	1	62.5 msec (2048 RtcClk)	1 sec
 		*/
 
-		if (debounce < 61) {
+		if (debounce < 61)
+		{
 			pin_reg |= 1;
 			pin_reg &= ~BIT(DB_TMR_OUT_UNIT_OFF);
 			pin_reg &= ~BIT(DB_TMR_LARGE_OFF);
-		} else if (debounce < 976) {
+		}
+		else if (debounce < 976)
+		{
 			time = debounce / 61;
 			pin_reg |= time & DB_TMR_OUT_MASK;
 			pin_reg &= ~BIT(DB_TMR_OUT_UNIT_OFF);
 			pin_reg &= ~BIT(DB_TMR_LARGE_OFF);
-		} else if (debounce < 3900) {
+		}
+		else if (debounce < 3900)
+		{
 			time = debounce / 244;
 			pin_reg |= time & DB_TMR_OUT_MASK;
 			pin_reg |= BIT(DB_TMR_OUT_UNIT_OFF);
 			pin_reg &= ~BIT(DB_TMR_LARGE_OFF);
-		} else if (debounce < 250000) {
+		}
+		else if (debounce < 250000)
+		{
 			time = debounce / 15600;
 			pin_reg |= time & DB_TMR_OUT_MASK;
 			pin_reg &= ~BIT(DB_TMR_OUT_UNIT_OFF);
 			pin_reg |= BIT(DB_TMR_LARGE_OFF);
-		} else if (debounce < 1000000) {
+		}
+		else if (debounce < 1000000)
+		{
 			time = debounce / 62500;
 			pin_reg |= time & DB_TMR_OUT_MASK;
 			pin_reg |= BIT(DB_TMR_OUT_UNIT_OFF);
 			pin_reg |= BIT(DB_TMR_LARGE_OFF);
-		} else {
+		}
+		else
+		{
 			pin_reg &= ~DB_CNTRl_MASK;
 			ret = -EINVAL;
 		}
-	} else {
+	}
+	else
+	{
 		pin_reg &= ~BIT(DB_TMR_OUT_UNIT_OFF);
 		pin_reg &= ~BIT(DB_TMR_LARGE_OFF);
 		pin_reg &= ~DB_TMR_OUT_MASK;
 		pin_reg &= ~DB_CNTRl_MASK;
 	}
+
 	writel(pin_reg, gpio_dev->base + offset * 4);
 	spin_unlock_irqrestore(&gpio_dev->lock, flags);
 
@@ -186,51 +213,71 @@ static void amd_gpio_dbg_show(struct seq_file *s, struct gpio_chip *gc)
 	char *output_value;
 	char *output_enable;
 
-	for (bank = 0; bank < AMD_GPIO_TOTAL_BANKS; bank++) {
+	for (bank = 0; bank < AMD_GPIO_TOTAL_BANKS; bank++)
+	{
 		seq_printf(s, "GPIO bank%d\t", bank);
 
-		switch (bank) {
-		case 0:
-			i = 0;
-			pin_num = AMD_GPIO_PINS_BANK0;
-			break;
-		case 1:
-			i = 64;
-			pin_num = AMD_GPIO_PINS_BANK1 + i;
-			break;
-		case 2:
-			i = 128;
-			pin_num = AMD_GPIO_PINS_BANK2 + i;
-			break;
+		switch (bank)
+		{
+			case 0:
+				i = 0;
+				pin_num = AMD_GPIO_PINS_BANK0;
+				break;
+
+			case 1:
+				i = 64;
+				pin_num = AMD_GPIO_PINS_BANK1 + i;
+				break;
+
+			case 2:
+				i = 128;
+				pin_num = AMD_GPIO_PINS_BANK2 + i;
+				break;
 		}
 
-		for (; i < pin_num; i++) {
+		for (; i < pin_num; i++)
+		{
 			seq_printf(s, "pin%d\t", i);
 			spin_lock_irqsave(&gpio_dev->lock, flags);
 			pin_reg = readl(gpio_dev->base + i * 4);
 			spin_unlock_irqrestore(&gpio_dev->lock, flags);
 
-			if (pin_reg & BIT(INTERRUPT_ENABLE_OFF)) {
+			if (pin_reg & BIT(INTERRUPT_ENABLE_OFF))
+			{
 				interrupt_enable = "interrupt is enabled|";
 
 				if (!(pin_reg & BIT(ACTIVE_LEVEL_OFF))
-				&& !(pin_reg & BIT(ACTIVE_LEVEL_OFF+1)))
+					&& !(pin_reg & BIT(ACTIVE_LEVEL_OFF + 1)))
+				{
 					active_level = "Active low|";
+				}
 				else if (pin_reg & BIT(ACTIVE_LEVEL_OFF)
-				&& !(pin_reg & BIT(ACTIVE_LEVEL_OFF+1)))
+						 && !(pin_reg & BIT(ACTIVE_LEVEL_OFF + 1)))
+				{
 					active_level = "Active high|";
+				}
 				else if (!(pin_reg & BIT(ACTIVE_LEVEL_OFF))
-					&& pin_reg & BIT(ACTIVE_LEVEL_OFF+1))
+						 && pin_reg & BIT(ACTIVE_LEVEL_OFF + 1))
+				{
 					active_level = "Active on both|";
+				}
 				else
+				{
 					active_level = "Unknow Active level|";
+				}
 
 				if (pin_reg & BIT(LEVEL_TRIG_OFF))
+				{
 					level_trig = "Level trigger|";
+				}
 				else
+				{
 					level_trig = "Edge trigger|";
+				}
 
-			} else {
+			}
+			else
+			{
 				interrupt_enable =
 					"interrupt is disabled|";
 				active_level = " ";
@@ -245,60 +292,96 @@ static void amd_gpio_dbg_show(struct seq_file *s, struct gpio_chip *gc)
 					"interrupt is masked|";
 
 			if (pin_reg & BIT(WAKE_CNTRL_OFF))
+			{
 				wake_cntrl0 = "enable wakeup in S0i3 state|";
+			}
 			else
+			{
 				wake_cntrl0 = "disable wakeup in S0i3 state|";
+			}
 
 			if (pin_reg & BIT(WAKE_CNTRL_OFF))
+			{
 				wake_cntrl1 = "enable wakeup in S3 state|";
+			}
 			else
+			{
 				wake_cntrl1 = "disable wakeup in S3 state|";
+			}
 
 			if (pin_reg & BIT(WAKE_CNTRL_OFF))
+			{
 				wake_cntrl2 = "enable wakeup in S4/S5 state|";
+			}
 			else
+			{
 				wake_cntrl2 = "disable wakeup in S4/S5 state|";
+			}
 
-			if (pin_reg & BIT(PULL_UP_ENABLE_OFF)) {
+			if (pin_reg & BIT(PULL_UP_ENABLE_OFF))
+			{
 				pull_up_enable = "pull-up is enabled|";
+
 				if (pin_reg & BIT(PULL_UP_SEL_OFF))
+				{
 					pull_up_sel = "8k pull-up|";
+				}
 				else
+				{
 					pull_up_sel = "4k pull-up|";
-			} else {
+				}
+			}
+			else
+			{
 				pull_up_enable = "pull-up is disabled|";
 				pull_up_sel = " ";
 			}
 
 			if (pin_reg & BIT(PULL_DOWN_ENABLE_OFF))
+			{
 				pull_down_enable = "pull-down is enabled|";
+			}
 			else
+			{
 				pull_down_enable = "Pull-down is disabled|";
+			}
 
-			if (pin_reg & BIT(OUTPUT_ENABLE_OFF)) {
+			if (pin_reg & BIT(OUTPUT_ENABLE_OFF))
+			{
 				pin_sts = " ";
 				output_enable = "output is enabled|";
+
 				if (pin_reg & BIT(OUTPUT_VALUE_OFF))
+				{
 					output_value = "output is high|";
+				}
 				else
+				{
 					output_value = "output is low|";
-			} else {
+				}
+			}
+			else
+			{
 				output_enable = "output is disabled|";
 				output_value = " ";
 
 				if (pin_reg & BIT(PIN_STS_OFF))
+				{
 					pin_sts = "input is high|";
+				}
 				else
+				{
 					pin_sts = "input is low|";
+				}
 			}
 
 			seq_printf(s, "%s %s %s %s %s %s\n"
-				" %s %s %s %s %s %s %s 0x%x\n",
-				level_trig, active_level, interrupt_enable,
-				interrupt_mask, wake_cntrl0, wake_cntrl1,
-				wake_cntrl2, pin_sts, pull_up_sel,
-				pull_up_enable, pull_down_enable,
-				output_value, output_enable, pin_reg);
+					   " %s %s %s %s %s %s %s 0x%x\n",
+					   level_trig, active_level, interrupt_enable,
+					   interrupt_mask, wake_cntrl0, wake_cntrl1,
+					   wake_cntrl2, pin_sts, pull_up_sel,
+					   pull_up_enable, pull_down_enable,
+					   output_value, output_enable, pin_reg);
 		}
 	}
 }
@@ -314,10 +397,10 @@ static void amd_gpio_irq_enable(struct irq_data *d)
 	struct amd_gpio *gpio_dev = gpiochip_get_data(gc);
 
 	spin_lock_irqsave(&gpio_dev->lock, flags);
-	pin_reg = readl(gpio_dev->base + (d->hwirq)*4);
+	pin_reg = readl(gpio_dev->base + (d->hwirq) * 4);
 	pin_reg |= BIT(INTERRUPT_ENABLE_OFF);
 	pin_reg |= BIT(INTERRUPT_MASK_OFF);
-	writel(pin_reg, gpio_dev->base + (d->hwirq)*4);
+	writel(pin_reg, gpio_dev->base + (d->hwirq) * 4);
 	spin_unlock_irqrestore(&gpio_dev->lock, flags);
 }
 
@@ -329,10 +412,10 @@ static void amd_gpio_irq_disable(struct irq_data *d)
 	struct amd_gpio *gpio_dev = gpiochip_get_data(gc);
 
 	spin_lock_irqsave(&gpio_dev->lock, flags);
-	pin_reg = readl(gpio_dev->base + (d->hwirq)*4);
+	pin_reg = readl(gpio_dev->base + (d->hwirq) * 4);
 	pin_reg &= ~BIT(INTERRUPT_ENABLE_OFF);
 	pin_reg &= ~BIT(INTERRUPT_MASK_OFF);
-	writel(pin_reg, gpio_dev->base + (d->hwirq)*4);
+	writel(pin_reg, gpio_dev->base + (d->hwirq) * 4);
 	spin_unlock_irqrestore(&gpio_dev->lock, flags);
 }
 
@@ -344,9 +427,9 @@ static void amd_gpio_irq_mask(struct irq_data *d)
 	struct amd_gpio *gpio_dev = gpiochip_get_data(gc);
 
 	spin_lock_irqsave(&gpio_dev->lock, flags);
-	pin_reg = readl(gpio_dev->base + (d->hwirq)*4);
+	pin_reg = readl(gpio_dev->base + (d->hwirq) * 4);
 	pin_reg &= ~BIT(INTERRUPT_MASK_OFF);
-	writel(pin_reg, gpio_dev->base + (d->hwirq)*4);
+	writel(pin_reg, gpio_dev->base + (d->hwirq) * 4);
 	spin_unlock_irqrestore(&gpio_dev->lock, flags);
 }
 
@@ -358,9 +441,9 @@ static void amd_gpio_irq_unmask(struct irq_data *d)
 	struct amd_gpio *gpio_dev = gpiochip_get_data(gc);
 
 	spin_lock_irqsave(&gpio_dev->lock, flags);
-	pin_reg = readl(gpio_dev->base + (d->hwirq)*4);
+	pin_reg = readl(gpio_dev->base + (d->hwirq) * 4);
 	pin_reg |= BIT(INTERRUPT_MASK_OFF);
-	writel(pin_reg, gpio_dev->base + (d->hwirq)*4);
+	writel(pin_reg, gpio_dev->base + (d->hwirq) * 4);
 	spin_unlock_irqrestore(&gpio_dev->lock, flags);
 }
 
@@ -389,7 +472,7 @@ static int amd_gpio_irq_set_type(struct irq_data *d, unsigned int type)
 	struct amd_gpio *gpio_dev = gpiochip_get_data(gc);
 
 	spin_lock_irqsave(&gpio_dev->lock, flags);
-	pin_reg = readl(gpio_dev->base + (d->hwirq)*4);
+	pin_reg = readl(gpio_dev->base + (d->hwirq) * 4);
 
 	/*
 	 * When level_trig is set EDGE and active_level is set HIGH in BIOS
@@ -399,63 +482,66 @@ static int amd_gpio_irq_set_type(struct irq_data *d, unsigned int type)
 	level_trig = !(pin_reg & (LEVEL_TRIGGER << LEVEL_TRIG_OFF));
 	active_level = pin_reg & (ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
 
-	if(level_trig &&
-	   ((active_level >> ACTIVE_LEVEL_OFF) == ACTIVE_HIGH))
+	if (level_trig &&
+		((active_level >> ACTIVE_LEVEL_OFF) == ACTIVE_HIGH))
+	{
 		type = IRQ_TYPE_EDGE_FALLING;
+	}
 
-	switch (type & IRQ_TYPE_SENSE_MASK) {
-	case IRQ_TYPE_EDGE_RISING:
-		pin_reg &= ~BIT(LEVEL_TRIG_OFF);
-		pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
-		pin_reg |= ACTIVE_HIGH << ACTIVE_LEVEL_OFF;
-		pin_reg |= DB_TYPE_REMOVE_GLITCH << DB_CNTRL_OFF;
-		irq_set_handler_locked(d, handle_edge_irq);
-		break;
+	switch (type & IRQ_TYPE_SENSE_MASK)
+	{
+		case IRQ_TYPE_EDGE_RISING:
+			pin_reg &= ~BIT(LEVEL_TRIG_OFF);
+			pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
+			pin_reg |= ACTIVE_HIGH << ACTIVE_LEVEL_OFF;
+			pin_reg |= DB_TYPE_REMOVE_GLITCH << DB_CNTRL_OFF;
+			irq_set_handler_locked(d, handle_edge_irq);
+			break;
 
-	case IRQ_TYPE_EDGE_FALLING:
-		pin_reg &= ~BIT(LEVEL_TRIG_OFF);
-		pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
-		pin_reg |= ACTIVE_LOW << ACTIVE_LEVEL_OFF;
-		pin_reg |= DB_TYPE_REMOVE_GLITCH << DB_CNTRL_OFF;
-		irq_set_handler_locked(d, handle_edge_irq);
-		break;
+		case IRQ_TYPE_EDGE_FALLING:
+			pin_reg &= ~BIT(LEVEL_TRIG_OFF);
+			pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
+			pin_reg |= ACTIVE_LOW << ACTIVE_LEVEL_OFF;
+			pin_reg |= DB_TYPE_REMOVE_GLITCH << DB_CNTRL_OFF;
+			irq_set_handler_locked(d, handle_edge_irq);
+			break;
 
-	case IRQ_TYPE_EDGE_BOTH:
-		pin_reg &= ~BIT(LEVEL_TRIG_OFF);
-		pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
-		pin_reg |= BOTH_EADGE << ACTIVE_LEVEL_OFF;
-		pin_reg |= DB_TYPE_REMOVE_GLITCH << DB_CNTRL_OFF;
-		irq_set_handler_locked(d, handle_edge_irq);
-		break;
+		case IRQ_TYPE_EDGE_BOTH:
+			pin_reg &= ~BIT(LEVEL_TRIG_OFF);
+			pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
+			pin_reg |= BOTH_EADGE << ACTIVE_LEVEL_OFF;
+			pin_reg |= DB_TYPE_REMOVE_GLITCH << DB_CNTRL_OFF;
+			irq_set_handler_locked(d, handle_edge_irq);
+			break;
 
-	case IRQ_TYPE_LEVEL_HIGH:
-		pin_reg |= LEVEL_TRIGGER << LEVEL_TRIG_OFF;
-		pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
-		pin_reg |= ACTIVE_HIGH << ACTIVE_LEVEL_OFF;
-		pin_reg &= ~(DB_CNTRl_MASK << DB_CNTRL_OFF);
-		pin_reg |= DB_TYPE_PRESERVE_LOW_GLITCH << DB_CNTRL_OFF;
-		irq_set_handler_locked(d, handle_level_irq);
-		break;
+		case IRQ_TYPE_LEVEL_HIGH:
+			pin_reg |= LEVEL_TRIGGER << LEVEL_TRIG_OFF;
+			pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
+			pin_reg |= ACTIVE_HIGH << ACTIVE_LEVEL_OFF;
+			pin_reg &= ~(DB_CNTRl_MASK << DB_CNTRL_OFF);
+			pin_reg |= DB_TYPE_PRESERVE_LOW_GLITCH << DB_CNTRL_OFF;
+			irq_set_handler_locked(d, handle_level_irq);
+			break;
 
-	case IRQ_TYPE_LEVEL_LOW:
-		pin_reg |= LEVEL_TRIGGER << LEVEL_TRIG_OFF;
-		pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
-		pin_reg |= ACTIVE_LOW << ACTIVE_LEVEL_OFF;
-		pin_reg &= ~(DB_CNTRl_MASK << DB_CNTRL_OFF);
-		pin_reg |= DB_TYPE_PRESERVE_HIGH_GLITCH << DB_CNTRL_OFF;
-		irq_set_handler_locked(d, handle_level_irq);
-		break;
+		case IRQ_TYPE_LEVEL_LOW:
+			pin_reg |= LEVEL_TRIGGER << LEVEL_TRIG_OFF;
+			pin_reg &= ~(ACTIVE_LEVEL_MASK << ACTIVE_LEVEL_OFF);
+			pin_reg |= ACTIVE_LOW << ACTIVE_LEVEL_OFF;
+			pin_reg &= ~(DB_CNTRl_MASK << DB_CNTRL_OFF);
+			pin_reg |= DB_TYPE_PRESERVE_HIGH_GLITCH << DB_CNTRL_OFF;
+			irq_set_handler_locked(d, handle_level_irq);
+			break;
 
-	case IRQ_TYPE_NONE:
-		break;
+		case IRQ_TYPE_NONE:
+			break;
 
-	default:
-		dev_err(&gpio_dev->pdev->dev, "Invalid type value\n");
-		ret = -EINVAL;
+		default:
+			dev_err(&gpio_dev->pdev->dev, "Invalid type value\n");
+			ret = -EINVAL;
 	}
 
 	pin_reg |= CLR_INTR_STAT << INTERRUPT_STS_OFF;
-	writel(pin_reg, gpio_dev->base + (d->hwirq)*4);
+	writel(pin_reg, gpio_dev->base + (d->hwirq) * 4);
 	spin_unlock_irqrestore(&gpio_dev->lock, flags);
 
 	return ret;
@@ -470,7 +556,8 @@ static void amd_irq_ack(struct irq_data *d)
 	*/
 }
 
-static struct irq_chip amd_gpio_irqchip = {
+static struct irq_chip amd_gpio_irqchip =
+{
 	.name         = "amd_gpio",
 	.irq_ack      = amd_irq_ack,
 	.irq_enable   = amd_gpio_irq_enable,
@@ -510,19 +597,24 @@ static void amd_gpio_irq_handler(struct irq_desc *desc)
 	 * first 46 bits indicates interrupt status.
 	 * one bit represents four interrupt sources.
 	*/
-	for (off = 0; off < 46 ; off++) {
-		if (reg64 & BIT(off)) {
-			for (i = 0; i < 4; i++) {
+	for (off = 0; off < 46 ; off++)
+	{
+		if (reg64 & BIT(off))
+		{
+			for (i = 0; i < 4; i++)
+			{
 				pin_reg = readl(gpio_dev->base +
-						(off * 4 + i) * 4);
+								(off * 4 + i) * 4);
+
 				if ((pin_reg & BIT(INTERRUPT_STS_OFF)) ||
-					(pin_reg & BIT(WAKE_STS_OFF))) {
+					(pin_reg & BIT(WAKE_STS_OFF)))
+				{
 					irq = irq_find_mapping(gc->irqdomain,
-								off * 4 + i);
+										   off * 4 + i);
 					generic_handle_irq(irq);
 					writel(pin_reg,
-						gpio_dev->base
-						+ (off * 4 + i) * 4);
+						   gpio_dev->base
+						   + (off * 4 + i) * 4);
 					handled++;
 				}
 			}
@@ -530,7 +622,9 @@ static void amd_gpio_irq_handler(struct irq_desc *desc)
 	}
 
 	if (handled == 0)
+	{
 		handle_bad_irq(desc);
+	}
 
 	spin_lock_irqsave(&gpio_dev->lock, flags);
 	reg = readl(gpio_dev->base + WAKE_INT_MASTER_REG);
@@ -549,7 +643,7 @@ static int amd_get_groups_count(struct pinctrl_dev *pctldev)
 }
 
 static const char *amd_get_group_name(struct pinctrl_dev *pctldev,
-				      unsigned group)
+									  unsigned group)
 {
 	struct amd_gpio *gpio_dev = pinctrl_dev_get_drvdata(pctldev);
 
@@ -557,9 +651,9 @@ static const char *amd_get_group_name(struct pinctrl_dev *pctldev,
 }
 
 static int amd_get_group_pins(struct pinctrl_dev *pctldev,
-			      unsigned group,
-			      const unsigned **pins,
-			      unsigned *num_pins)
+							  unsigned group,
+							  const unsigned **pins,
+							  unsigned *num_pins)
 {
 	struct amd_gpio *gpio_dev = pinctrl_dev_get_drvdata(pctldev);
 
@@ -568,7 +662,8 @@ static int amd_get_group_pins(struct pinctrl_dev *pctldev,
 	return 0;
 }
 
-static const struct pinctrl_ops amd_pinctrl_ops = {
+static const struct pinctrl_ops amd_pinctrl_ops =
+{
 	.get_groups_count	= amd_get_groups_count,
 	.get_group_name		= amd_get_group_name,
 	.get_group_pins		= amd_get_group_pins,
@@ -579,8 +674,8 @@ static const struct pinctrl_ops amd_pinctrl_ops = {
 };
 
 static int amd_pinconf_get(struct pinctrl_dev *pctldev,
-			  unsigned int pin,
-			  unsigned long *config)
+						   unsigned int pin,
+						   unsigned long *config)
 {
 	u32 pin_reg;
 	unsigned arg;
@@ -589,29 +684,31 @@ static int amd_pinconf_get(struct pinctrl_dev *pctldev,
 	enum pin_config_param param = pinconf_to_config_param(*config);
 
 	spin_lock_irqsave(&gpio_dev->lock, flags);
-	pin_reg = readl(gpio_dev->base + pin*4);
+	pin_reg = readl(gpio_dev->base + pin * 4);
 	spin_unlock_irqrestore(&gpio_dev->lock, flags);
-	switch (param) {
-	case PIN_CONFIG_INPUT_DEBOUNCE:
-		arg = pin_reg & DB_TMR_OUT_MASK;
-		break;
 
-	case PIN_CONFIG_BIAS_PULL_DOWN:
-		arg = (pin_reg >> PULL_DOWN_ENABLE_OFF) & BIT(0);
-		break;
+	switch (param)
+	{
+		case PIN_CONFIG_INPUT_DEBOUNCE:
+			arg = pin_reg & DB_TMR_OUT_MASK;
+			break;
 
-	case PIN_CONFIG_BIAS_PULL_UP:
-		arg = (pin_reg >> PULL_UP_SEL_OFF) & (BIT(0) | BIT(1));
-		break;
+		case PIN_CONFIG_BIAS_PULL_DOWN:
+			arg = (pin_reg >> PULL_DOWN_ENABLE_OFF) & BIT(0);
+			break;
 
-	case PIN_CONFIG_DRIVE_STRENGTH:
-		arg = (pin_reg >> DRV_STRENGTH_SEL_OFF) & DRV_STRENGTH_SEL_MASK;
-		break;
+		case PIN_CONFIG_BIAS_PULL_UP:
+			arg = (pin_reg >> PULL_UP_SEL_OFF) & (BIT(0) | BIT(1));
+			break;
 
-	default:
-		dev_err(&gpio_dev->pdev->dev, "Invalid config param %04x\n",
-			param);
-		return -ENOTSUPP;
+		case PIN_CONFIG_DRIVE_STRENGTH:
+			arg = (pin_reg >> DRV_STRENGTH_SEL_OFF) & DRV_STRENGTH_SEL_MASK;
+			break;
+
+		default:
+			dev_err(&gpio_dev->pdev->dev, "Invalid config param %04x\n",
+					param);
+			return -ENOTSUPP;
 	}
 
 	*config = pinconf_to_config_packed(param, arg);
@@ -620,7 +717,7 @@ static int amd_pinconf_get(struct pinctrl_dev *pctldev,
 }
 
 static int amd_pinconf_set(struct pinctrl_dev *pctldev, unsigned int pin,
-				unsigned long *configs, unsigned num_configs)
+						   unsigned long *configs, unsigned num_configs)
 {
 	int i;
 	u32 arg;
@@ -631,93 +728,112 @@ static int amd_pinconf_set(struct pinctrl_dev *pctldev, unsigned int pin,
 	struct amd_gpio *gpio_dev = pinctrl_dev_get_drvdata(pctldev);
 
 	spin_lock_irqsave(&gpio_dev->lock, flags);
-	for (i = 0; i < num_configs; i++) {
+
+	for (i = 0; i < num_configs; i++)
+	{
 		param = pinconf_to_config_param(configs[i]);
 		arg = pinconf_to_config_argument(configs[i]);
-		pin_reg = readl(gpio_dev->base + pin*4);
+		pin_reg = readl(gpio_dev->base + pin * 4);
 
-		switch (param) {
-		case PIN_CONFIG_INPUT_DEBOUNCE:
-			pin_reg &= ~DB_TMR_OUT_MASK;
-			pin_reg |= arg & DB_TMR_OUT_MASK;
-			break;
+		switch (param)
+		{
+			case PIN_CONFIG_INPUT_DEBOUNCE:
+				pin_reg &= ~DB_TMR_OUT_MASK;
+				pin_reg |= arg & DB_TMR_OUT_MASK;
+				break;
 
-		case PIN_CONFIG_BIAS_PULL_DOWN:
-			pin_reg &= ~BIT(PULL_DOWN_ENABLE_OFF);
-			pin_reg |= (arg & BIT(0)) << PULL_DOWN_ENABLE_OFF;
-			break;
+			case PIN_CONFIG_BIAS_PULL_DOWN:
+				pin_reg &= ~BIT(PULL_DOWN_ENABLE_OFF);
+				pin_reg |= (arg & BIT(0)) << PULL_DOWN_ENABLE_OFF;
+				break;
 
-		case PIN_CONFIG_BIAS_PULL_UP:
-			pin_reg &= ~BIT(PULL_UP_SEL_OFF);
-			pin_reg |= (arg & BIT(0)) << PULL_UP_SEL_OFF;
-			pin_reg &= ~BIT(PULL_UP_ENABLE_OFF);
-			pin_reg |= ((arg>>1) & BIT(0)) << PULL_UP_ENABLE_OFF;
-			break;
+			case PIN_CONFIG_BIAS_PULL_UP:
+				pin_reg &= ~BIT(PULL_UP_SEL_OFF);
+				pin_reg |= (arg & BIT(0)) << PULL_UP_SEL_OFF;
+				pin_reg &= ~BIT(PULL_UP_ENABLE_OFF);
+				pin_reg |= ((arg >> 1) & BIT(0)) << PULL_UP_ENABLE_OFF;
+				break;
 
-		case PIN_CONFIG_DRIVE_STRENGTH:
-			pin_reg &= ~(DRV_STRENGTH_SEL_MASK
-					<< DRV_STRENGTH_SEL_OFF);
-			pin_reg |= (arg & DRV_STRENGTH_SEL_MASK)
-					<< DRV_STRENGTH_SEL_OFF;
-			break;
+			case PIN_CONFIG_DRIVE_STRENGTH:
+				pin_reg &= ~(DRV_STRENGTH_SEL_MASK
+							 << DRV_STRENGTH_SEL_OFF);
+				pin_reg |= (arg & DRV_STRENGTH_SEL_MASK)
+						   << DRV_STRENGTH_SEL_OFF;
+				break;
 
-		default:
-			dev_err(&gpio_dev->pdev->dev,
-				"Invalid config param %04x\n", param);
-			ret = -ENOTSUPP;
+			default:
+				dev_err(&gpio_dev->pdev->dev,
+						"Invalid config param %04x\n", param);
+				ret = -ENOTSUPP;
 		}
 
-		writel(pin_reg, gpio_dev->base + pin*4);
+		writel(pin_reg, gpio_dev->base + pin * 4);
 	}
+
 	spin_unlock_irqrestore(&gpio_dev->lock, flags);
 
 	return ret;
 }
 
 static int amd_pinconf_group_get(struct pinctrl_dev *pctldev,
-				unsigned int group,
-				unsigned long *config)
+								 unsigned int group,
+								 unsigned long *config)
 {
 	const unsigned *pins;
 	unsigned npins;
 	int ret;
 
 	ret = amd_get_group_pins(pctldev, group, &pins, &npins);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (amd_pinconf_get(pctldev, pins[0], config))
-			return -ENOTSUPP;
+	{
+		return -ENOTSUPP;
+	}
 
 	return 0;
 }
 
 static int amd_pinconf_group_set(struct pinctrl_dev *pctldev,
-				unsigned group, unsigned long *configs,
-				unsigned num_configs)
+								 unsigned group, unsigned long *configs,
+								 unsigned num_configs)
 {
 	const unsigned *pins;
 	unsigned npins;
 	int i, ret;
 
 	ret = amd_get_group_pins(pctldev, group, &pins, &npins);
+
 	if (ret)
+	{
 		return ret;
-	for (i = 0; i < npins; i++) {
-		if (amd_pinconf_set(pctldev, pins[i], configs, num_configs))
-			return -ENOTSUPP;
 	}
+
+	for (i = 0; i < npins; i++)
+	{
+		if (amd_pinconf_set(pctldev, pins[i], configs, num_configs))
+		{
+			return -ENOTSUPP;
+		}
+	}
+
 	return 0;
 }
 
-static const struct pinconf_ops amd_pinconf_ops = {
+static const struct pinconf_ops amd_pinconf_ops =
+{
 	.pin_config_get		= amd_pinconf_get,
 	.pin_config_set		= amd_pinconf_set,
 	.pin_config_group_get = amd_pinconf_group_get,
 	.pin_config_group_set = amd_pinconf_group_set,
 };
 
-static struct pinctrl_desc amd_pinctrl_desc = {
+static struct pinctrl_desc amd_pinctrl_desc =
+{
 	.pins	= kerncz_pins,
 	.npins = ARRAY_SIZE(kerncz_pins),
 	.pctlops = &amd_pinctrl_ops,
@@ -733,25 +849,35 @@ static int amd_gpio_probe(struct platform_device *pdev)
 	struct amd_gpio *gpio_dev;
 
 	gpio_dev = devm_kzalloc(&pdev->dev,
-				sizeof(struct amd_gpio), GFP_KERNEL);
+							sizeof(struct amd_gpio), GFP_KERNEL);
+
 	if (!gpio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&gpio_dev->lock);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "Failed to get gpio io resource.\n");
 		return -EINVAL;
 	}
 
 	gpio_dev->base = devm_ioremap_nocache(&pdev->dev, res->start,
-						resource_size(res));
+										  resource_size(res));
+
 	if (!gpio_dev->base)
+	{
 		return -ENOMEM;
+	}
 
 	irq_base = platform_get_irq(pdev, 0);
-	if (irq_base < 0) {
+
+	if (irq_base < 0)
+	{
 		dev_err(&pdev->dev, "Failed to get gpio IRQ.\n");
 		return -EINVAL;
 	}
@@ -778,38 +904,47 @@ static int amd_gpio_probe(struct platform_device *pdev)
 
 	amd_pinctrl_desc.name = dev_name(&pdev->dev);
 	gpio_dev->pctrl = devm_pinctrl_register(&pdev->dev, &amd_pinctrl_desc,
-						gpio_dev);
-	if (IS_ERR(gpio_dev->pctrl)) {
+											gpio_dev);
+
+	if (IS_ERR(gpio_dev->pctrl))
+	{
 		dev_err(&pdev->dev, "Couldn't register pinctrl driver\n");
 		return PTR_ERR(gpio_dev->pctrl);
 	}
 
 	ret = gpiochip_add_data(&gpio_dev->gc, gpio_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = gpiochip_add_pin_range(&gpio_dev->gc, dev_name(&pdev->dev),
-				0, 0, TOTAL_NUMBER_OF_PINS);
-	if (ret) {
+								 0, 0, TOTAL_NUMBER_OF_PINS);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to add pin range\n");
 		goto out2;
 	}
 
 	ret = gpiochip_irqchip_add(&gpio_dev->gc,
-				&amd_gpio_irqchip,
-				0,
-				handle_simple_irq,
-				IRQ_TYPE_NONE);
-	if (ret) {
+							   &amd_gpio_irqchip,
+							   0,
+							   handle_simple_irq,
+							   IRQ_TYPE_NONE);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "could not add irqchip\n");
 		ret = -ENODEV;
 		goto out2;
 	}
 
 	gpiochip_set_chained_irqchip(&gpio_dev->gc,
-				 &amd_gpio_irqchip,
-				 irq_base,
-				 amd_gpio_irq_handler);
+								 &amd_gpio_irqchip,
+								 irq_base,
+								 amd_gpio_irq_handler);
 
 	platform_set_drvdata(pdev, gpio_dev);
 
@@ -833,14 +968,16 @@ static int amd_gpio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct acpi_device_id amd_gpio_acpi_match[] = {
+static const struct acpi_device_id amd_gpio_acpi_match[] =
+{
 	{ "AMD0030", 0 },
 	{ "AMDI0030", 0},
 	{ },
 };
 MODULE_DEVICE_TABLE(acpi, amd_gpio_acpi_match);
 
-static struct platform_driver amd_gpio_driver = {
+static struct platform_driver amd_gpio_driver =
+{
 	.driver		= {
 		.name	= "amd_gpio",
 		.acpi_match_table = ACPI_PTR(amd_gpio_acpi_match),

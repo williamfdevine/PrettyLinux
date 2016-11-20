@@ -48,7 +48,8 @@
 #define AMS_VENDOR	0x2E	/* vendor */
 
 /* AMS commands - use with the AMS_COMMAND register */
-enum ams_i2c_cmd {
+enum ams_i2c_cmd
+{
 	AMS_CMD_NOOP = 0,
 	AMS_CMD_VERSION,
 	AMS_CMD_READMEM,
@@ -61,16 +62,18 @@ enum ams_i2c_cmd {
 };
 
 static int ams_i2c_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id);
+						 const struct i2c_device_id *id);
 static int ams_i2c_remove(struct i2c_client *client);
 
-static const struct i2c_device_id ams_id[] = {
+static const struct i2c_device_id ams_id[] =
+{
 	{ "MAC,accelerometer_1", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, ams_id);
 
-static struct i2c_driver ams_i2c_driver = {
+static struct i2c_driver ams_i2c_driver =
+{
 	.driver = {
 		.name   = "ams",
 	},
@@ -97,10 +100,14 @@ static int ams_i2c_cmd(enum ams_i2c_cmd cmd)
 	ams_i2c_write(AMS_COMMAND, cmd);
 	msleep(5);
 
-	while (count--) {
+	while (count--)
+	{
 		result = ams_i2c_read(AMS_COMMAND);
+
 		if (result == 0 || result & 0x80)
+		{
 			return 0;
+		}
 
 		schedule_timeout_uninterruptible(HZ / 20);
 	}
@@ -110,30 +117,51 @@ static int ams_i2c_cmd(enum ams_i2c_cmd cmd)
 
 static void ams_i2c_set_irq(enum ams_irq reg, char enable)
 {
-	if (reg & AMS_IRQ_FREEFALL) {
+	if (reg & AMS_IRQ_FREEFALL)
+	{
 		u8 val = ams_i2c_read(AMS_CTRLX);
+
 		if (enable)
+		{
 			val |= 0x80;
+		}
 		else
+		{
 			val &= ~0x80;
+		}
+
 		ams_i2c_write(AMS_CTRLX, val);
 	}
 
-	if (reg & AMS_IRQ_SHOCK) {
+	if (reg & AMS_IRQ_SHOCK)
+	{
 		u8 val = ams_i2c_read(AMS_CTRLY);
+
 		if (enable)
+		{
 			val |= 0x80;
+		}
 		else
+		{
 			val &= ~0x80;
+		}
+
 		ams_i2c_write(AMS_CTRLY, val);
 	}
 
-	if (reg & AMS_IRQ_GLOBAL) {
+	if (reg & AMS_IRQ_GLOBAL)
+	{
 		u8 val = ams_i2c_read(AMS_CTRLZ);
+
 		if (enable)
+		{
 			val |= 0x80;
+		}
 		else
+		{
 			val &= ~0x80;
+		}
+
 		ams_i2c_write(AMS_CTRLZ, val);
 	}
 }
@@ -141,10 +169,14 @@ static void ams_i2c_set_irq(enum ams_irq reg, char enable)
 static void ams_i2c_clear_irq(enum ams_irq reg)
 {
 	if (reg & AMS_IRQ_FREEFALL)
+	{
 		ams_i2c_write(AMS_FREEFALL, 0);
+	}
 
 	if (reg & AMS_IRQ_SHOCK)
+	{
 		ams_i2c_write(AMS_SHOCK, 0);
+	}
 }
 
 static u8 ams_i2c_get_vendor(void)
@@ -160,23 +192,27 @@ static void ams_i2c_get_xyz(s8 *x, s8 *y, s8 *z)
 }
 
 static int ams_i2c_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	int vmaj, vmin;
 	int result;
 
 	/* There can be only one */
 	if (unlikely(ams_info.has_device))
+	{
 		return -ENODEV;
+	}
 
 	ams_info.i2c_client = client;
 
-	if (ams_i2c_cmd(AMS_CMD_RESET)) {
+	if (ams_i2c_cmd(AMS_CMD_RESET))
+	{
 		printk(KERN_INFO "ams: Failed to reset the device\n");
 		return -ENODEV;
 	}
 
-	if (ams_i2c_cmd(AMS_CMD_START)) {
+	if (ams_i2c_cmd(AMS_CMD_START))
+	{
 		printk(KERN_INFO "ams: Failed to start the device\n");
 		return -ENODEV;
 	}
@@ -190,9 +226,11 @@ static int ams_i2c_probe(struct i2c_client *client,
 
 	vmaj = ams_i2c_read(AMS_DATA1);
 	vmin = ams_i2c_read(AMS_DATA2);
-	if (vmaj != 1 || vmin != 52) {
+
+	if (vmaj != 1 || vmin != 52)
+	{
 		printk(KERN_INFO "ams: Incorrect device version (%d.%d)\n",
-			vmaj, vmin);
+			   vmaj, vmin);
 		return -ENODEV;
 	}
 
@@ -200,9 +238,11 @@ static int ams_i2c_probe(struct i2c_client *client,
 
 	vmaj = ams_i2c_read(AMS_DATA1);
 	vmin = ams_i2c_read(AMS_DATA2);
-	if (vmaj != 0 || vmin != 1) {
+
+	if (vmaj != 0 || vmin != 1)
+	{
 		printk(KERN_INFO "ams: Incorrect firmware version (%d.%d)\n",
-			vmaj, vmin);
+			   vmaj, vmin);
 		return -ENODEV;
 	}
 
@@ -210,8 +250,11 @@ static int ams_i2c_probe(struct i2c_client *client,
 	ams_i2c_set_irq(AMS_IRQ_ALL, 0);
 
 	result = ams_sensor_attach();
+
 	if (result < 0)
+	{
 		return result;
+	}
 
 	/* Set default values */
 	ams_i2c_write(AMS_SENSLOW, 0x15);
@@ -236,7 +279,8 @@ static int ams_i2c_probe(struct i2c_client *client,
 
 static int ams_i2c_remove(struct i2c_client *client)
 {
-	if (ams_info.has_device) {
+	if (ams_info.has_device)
+	{
 		ams_sensor_detach();
 
 		/* Disable interrupts */

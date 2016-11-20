@@ -11,7 +11,8 @@
 /* This flag indicates that 'len' field in xt_nflog_info is set*/
 #define XT_NFLOG_F_COPY_LEN		0x1
 
-struct xt_nflog_info {
+struct xt_nflog_info
+{
 	/* 'len' will be used iff you set XT_NFLOG_F_COPY_LEN in flags */
 	__u32	len;
 	__u16	group;

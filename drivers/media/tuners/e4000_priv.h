@@ -27,7 +27,8 @@
 #include <media/v4l2-subdev.h>
 #include <linux/regmap.h>
 
-struct e4000_dev {
+struct e4000_dev
+{
 	struct i2c_client *client;
 	struct regmap *regmap;
 	u32 clk;
@@ -50,14 +51,16 @@ struct e4000_dev {
 	struct v4l2_ctrl *pll_lock;
 };
 
-struct e4000_pll {
+struct e4000_pll
+{
 	u32 freq;
 	u8 div_out_reg;
 	u8 div_out;
 };
 
-static const struct e4000_pll e4000_pll_lut[] = {
-/*                                      VCO min    VCO max */
+static const struct e4000_pll e4000_pll_lut[] =
+{
+	/*                                      VCO min    VCO max */
 	{   72400000, 0x0f, 48 }, /* .......... 3475200000 */
 	{   81200000, 0x0e, 40 }, /* 2896000000 3248000000 */
 	{  108300000, 0x0d, 32 }, /* 2598400000 3465600000 */
@@ -71,12 +74,14 @@ static const struct e4000_pll e4000_pll_lut[] = {
 	{ 0xffffffff, 0x00,  2 }, /* 2400000000 .......... */
 };
 
-struct e4000_lna_filter {
+struct e4000_lna_filter
+{
 	u32 freq;
 	u8 val;
 };
 
-static const struct e4000_lna_filter e400_lna_filter_lut[] = {
+static const struct e4000_lna_filter e400_lna_filter_lut[] =
+{
 	{  370000000,  0 },
 	{  392500000,  1 },
 	{  415000000,  2 },
@@ -111,26 +116,30 @@ static const struct e4000_lna_filter e400_lna_filter_lut[] = {
 	{ 0xffffffff, 15 },
 };
 
-struct e4000_band {
+struct e4000_band
+{
 	u32 freq;
 	u8 reg07_val;
 	u8 reg78_val;
 };
 
-static const struct e4000_band e4000_band_lut[] = {
+static const struct e4000_band e4000_band_lut[] =
+{
 	{  140000000, 0x01, 0x03 },
 	{  350000000, 0x03, 0x03 },
 	{ 1000000000, 0x05, 0x03 },
 	{ 0xffffffff, 0x07, 0x00 },
 };
 
-struct e4000_if_filter {
+struct e4000_if_filter
+{
 	u32 freq;
 	u8 reg11_val;
 	u8 reg12_val;
 };
 
-static const struct e4000_if_filter e4000_if_filter_lut[] = {
+static const struct e4000_if_filter e4000_if_filter_lut[] =
+{
 	{    4300000, 0xfd, 0x1f },
 	{    4400000, 0xfd, 0x1e },
 	{    4480000, 0xfc, 0x1d },
@@ -166,12 +175,14 @@ static const struct e4000_if_filter e4000_if_filter_lut[] = {
 	{ 0xffffffff, 0x00, 0x20 },
 };
 
-struct e4000_if_gain {
+struct e4000_if_gain
+{
 	u8 reg16_val;
 	u8 reg17_val;
 };
 
-static const struct e4000_if_gain e4000_if_gain_lut[] = {
+static const struct e4000_if_gain e4000_if_gain_lut[] =
+{
 	{0x00, 0x00},
 	{0x20, 0x00},
 	{0x40, 0x00},

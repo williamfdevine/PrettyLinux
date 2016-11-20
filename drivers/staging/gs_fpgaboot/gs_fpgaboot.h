@@ -14,7 +14,8 @@
 
 #define	MAX_STR	256
 
-enum fmt_image {
+enum fmt_image
+{
 	f_bit,	/* only bitstream is supported */
 	f_rbt,
 	f_bin,
@@ -22,7 +23,8 @@ enum fmt_image {
 	f_hex,
 };
 
-enum mdownload {
+enum mdownload
+{
 	m_systemmap,	/* only system map is supported */
 	m_serial,
 	m_jtag,
@@ -32,7 +34,8 @@ enum mdownload {
  * xilinx fpgaimage information
  * NOTE: use MAX_STR instead of dynamic alloc for simplicity
  */
-struct fpgaimage {
+struct fpgaimage
+{
 	enum fmt_image	fmt_img;
 	enum mdownload	dmethod;
 

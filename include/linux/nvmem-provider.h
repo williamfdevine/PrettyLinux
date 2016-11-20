@@ -15,11 +15,12 @@
 struct nvmem_device;
 struct nvmem_cell_info;
 typedef int (*nvmem_reg_read_t)(void *priv, unsigned int offset,
-				void *val, size_t bytes);
+								void *val, size_t bytes);
 typedef int (*nvmem_reg_write_t)(void *priv, unsigned int offset,
-				 void *val, size_t bytes);
+								 void *val, size_t bytes);
 
-struct nvmem_config {
+struct nvmem_config
+{
 	struct device		*dev;
 	const char		*name;
 	int			id;

@@ -52,13 +52,15 @@
 #define IB_PMA_PORT_COUNTERS_EXT        cpu_to_be16(0x001D)
 #define IB_PMA_PORT_SAMPLES_RESULT_EXT  cpu_to_be16(0x001E)
 
-struct ib_pma_mad {
+struct ib_pma_mad
+{
 	struct ib_mad_hdr mad_hdr;
 	u8 reserved[40];
 	u8 data[192];
 } __packed;
 
-struct ib_pma_portsamplescontrol {
+struct ib_pma_portsamplescontrol
+{
 	u8 opcode;
 	u8 port_select;
 	u8 tick;
@@ -78,20 +80,23 @@ struct ib_pma_portsamplescontrol {
 	__be32 reserved2[28];
 };
 
-struct ib_pma_portsamplesresult {
+struct ib_pma_portsamplesresult
+{
 	__be16 tag;
 	__be16 sample_status;   /* only lower 2 bits */
 	__be32 counter[15];
 };
 
-struct ib_pma_portsamplesresult_ext {
+struct ib_pma_portsamplesresult_ext
+{
 	__be16 tag;
 	__be16 sample_status;   /* only lower 2 bits */
 	__be32 extended_width;  /* only upper 2 bits */
 	__be64 counter[15];
 };
 
-struct ib_pma_portcounters {
+struct ib_pma_portcounters
+{
 	u8 reserved;
 	u8 port_select;
 	__be16 counter_select;
@@ -130,7 +135,8 @@ struct ib_pma_portcounters {
 #define IB_PMA_SEL_PORT_XMIT_PACKETS            cpu_to_be16(0x4000)
 #define IB_PMA_SEL_PORT_RCV_PACKETS             cpu_to_be16(0x8000)
 
-struct ib_pma_portcounters_ext {
+struct ib_pma_portcounters_ext
+{
 	u8 reserved;
 	u8 port_select;
 	__be16 counter_select;

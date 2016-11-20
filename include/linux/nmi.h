@@ -9,7 +9,7 @@
 
 /**
  * touch_nmi_watchdog - restart NMI watchdog timeout.
- * 
+ *
  * If the architecture supports the NMI watchdog, touch_nmi_watchdog()
  * may be used to reset the timeout - for code which intentionally
  * disables interrupts for a long time. This call is stateless.
@@ -62,8 +62,8 @@ static inline bool trigger_single_cpu_backtrace(int cpu)
 
 /* generic implementation */
 void nmi_trigger_cpumask_backtrace(const cpumask_t *mask,
-				   bool exclude_self,
-				   void (*raise)(cpumask_t *mask));
+								   bool exclude_self,
+								   void (*raise)(cpumask_t *mask));
 bool nmi_cpu_backtrace(struct pt_regs *regs);
 
 #else
@@ -96,15 +96,15 @@ extern int sysctl_softlockup_all_cpu_backtrace;
 extern int sysctl_hardlockup_all_cpu_backtrace;
 struct ctl_table;
 extern int proc_watchdog(struct ctl_table *, int ,
-			 void __user *, size_t *, loff_t *);
+						 void __user *, size_t *, loff_t *);
 extern int proc_nmi_watchdog(struct ctl_table *, int ,
-			     void __user *, size_t *, loff_t *);
+							 void __user *, size_t *, loff_t *);
 extern int proc_soft_watchdog(struct ctl_table *, int ,
-			      void __user *, size_t *, loff_t *);
+							  void __user *, size_t *, loff_t *);
 extern int proc_watchdog_thresh(struct ctl_table *, int ,
-				void __user *, size_t *, loff_t *);
+								void __user *, size_t *, loff_t *);
 extern int proc_watchdog_cpumask(struct ctl_table *, int,
-				 void __user *, size_t *, loff_t *);
+								 void __user *, size_t *, loff_t *);
 extern int lockup_detector_suspend(void);
 extern void lockup_detector_resume(void);
 #else
@@ -119,7 +119,7 @@ static inline void lockup_detector_resume(void)
 #endif
 
 #ifdef CONFIG_HAVE_ACPI_APEI_NMI
-#include <asm/nmi.h>
+	#include <asm/nmi.h>
 #endif
 
 #endif

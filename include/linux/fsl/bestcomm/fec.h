@@ -15,7 +15,8 @@
 #define __BESTCOMM_FEC_H__
 
 
-struct bcom_fec_bd {
+struct bcom_fec_bd
+{
 	u32	status;
 	u32	skb_pa;
 };
@@ -34,7 +35,7 @@ struct bcom_fec_bd {
 #define BCOM_FEC_RX_BD_TR	0x00010000ul	/* Rx frame truncated */
 #define BCOM_FEC_RX_BD_LEN_MASK	0x000007fful	/* mask for length of received frame */
 #define BCOM_FEC_RX_BD_ERRORS	(BCOM_FEC_RX_BD_LG | BCOM_FEC_RX_BD_NO | \
-		BCOM_FEC_RX_BD_CR | BCOM_FEC_RX_BD_OV | BCOM_FEC_RX_BD_TR)
+								 BCOM_FEC_RX_BD_CR | BCOM_FEC_RX_BD_OV | BCOM_FEC_RX_BD_TR)
 
 
 extern struct bcom_task *

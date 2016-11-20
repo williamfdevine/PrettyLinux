@@ -22,7 +22,8 @@
 
 #include "clock.h"
 
-static struct ti_dt_clk am33xx_clks[] = {
+static struct ti_dt_clk am33xx_clks[] =
+{
 	DT_CLK(NULL, "clk_32768_ck", "clk_32768_ck"),
 	DT_CLK(NULL, "clk_rc32k_ck", "clk_rc32k_ck"),
 	DT_CLK(NULL, "virt_19200000_ck", "virt_19200000_ck"),
@@ -114,7 +115,8 @@ static struct ti_dt_clk am33xx_clks[] = {
 	{ .node_name = NULL },
 };
 
-static const char *enable_init_clks[] = {
+static const char *enable_init_clks[] =
+{
 	"dpll_ddr_m2_ck",
 	"dpll_mpu_m2_ck",
 	"l3_gclk",
@@ -134,7 +136,7 @@ int __init am33xx_dt_clk_init(void)
 	omap2_clk_disable_autoidle_all();
 
 	omap2_clk_enable_init_clocks(enable_init_clks,
-				     ARRAY_SIZE(enable_init_clks));
+								 ARRAY_SIZE(enable_init_clks));
 
 	/* TRM ERRATA: Timer 3 & 6 default parent (TCLKIN) may not be always
 	 *    physically present, in such a case HWMOD enabling of

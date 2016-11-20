@@ -25,7 +25,8 @@
 #define TX4939_RNG_RCSR_FIN	0x00000002
 #define TX4939_RNG_RCSR_ST	0x00000001
 
-struct tx4939_rng {
+struct tx4939_rng
+{
 	struct hwrng rng;
 	void __iomem *base;
 	u64 databuf[3];
@@ -68,11 +69,17 @@ static int tx4939_rng_data_present(struct hwrng *rng, int wait)
 	int i;
 
 	if (rngdev->data_avail)
+	{
 		return rngdev->data_avail;
-	for (i = 0; i < 20; i++) {
+	}
+
+	for (i = 0; i < 20; i++)
+	{
 		rng_io_start();
+
 		if (!(read_rng(rngdev->base, TX4939_RNG_RCSR)
-		      & TX4939_RNG_RCSR_ST)) {
+			  & TX4939_RNG_RCSR_ST))
+		{
 			rngdev->databuf[0] =
 				read_rng(rngdev->base, TX4939_RNG_ROR(0));
 			rngdev->databuf[1] =
@@ -83,15 +90,21 @@ static int tx4939_rng_data_present(struct hwrng *rng, int wait)
 				sizeof(rngdev->databuf) / sizeof(u32);
 			/* Start RNG */
 			write_rng(TX4939_RNG_RCSR_ST,
-				  rngdev->base, TX4939_RNG_RCSR);
+					  rngdev->base, TX4939_RNG_RCSR);
 			wait = 0;
 		}
+
 		rng_io_end();
+
 		if (!wait)
+		{
 			break;
+		}
+
 		/* 90 bus clock cycles by default for generation */
 		ndelay(90 * 5);
 	}
+
 	return rngdev->data_avail;
 }
 
@@ -111,12 +124,19 @@ static int __init tx4939_rng_probe(struct platform_device *dev)
 	int i;
 
 	rngdev = devm_kzalloc(&dev->dev, sizeof(*rngdev), GFP_KERNEL);
+
 	if (!rngdev)
+	{
 		return -ENOMEM;
+	}
+
 	r = platform_get_resource(dev, IORESOURCE_MEM, 0);
 	rngdev->base = devm_ioremap_resource(&dev->dev, r);
+
 	if (IS_ERR(rngdev->base))
+	{
 		return PTR_ERR(rngdev->base);
+	}
 
 	rngdev->rng.name = dev_name(&dev->dev);
 	rngdev->rng.data_present = tx4939_rng_data_present;
@@ -129,6 +149,7 @@ static int __init tx4939_rng_probe(struct platform_device *dev)
 	/* Start RNG */
 	write_rng(TX4939_RNG_RCSR_ST, rngdev->base, TX4939_RNG_RCSR);
 	rng_io_end();
+
 	/*
 	 * Drop first two results.  From the datasheet:
 	 * The quality of the random numbers generated immediately
@@ -137,17 +158,22 @@ static int __init tx4939_rng_probe(struct platform_device *dev)
 	 * generations; use the ones from the third or subsequent
 	 * generation.
 	 */
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		rngdev->data_avail = 0;
+
 		if (!tx4939_rng_data_present(&rngdev->rng, 1))
+		{
 			return -EIO;
+		}
 	}
 
 	platform_set_drvdata(dev, rngdev);
 	return devm_hwrng_register(&dev->dev, &rngdev->rng);
 }
 
-static struct platform_driver tx4939_rng_driver = {
+static struct platform_driver tx4939_rng_driver =
+{
 	.driver		= {
 		.name	= "tx4939-rng",
 	},

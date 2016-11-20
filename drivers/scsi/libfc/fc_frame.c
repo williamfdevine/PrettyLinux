@@ -60,9 +60,13 @@ struct fc_frame *_fc_frame_alloc(size_t len)
 	WARN_ON((len % sizeof(u32)) != 0);
 	len += sizeof(struct fc_frame_header);
 	skb = alloc_skb_fclone(len + FC_FRAME_HEADROOM + FC_FRAME_TAILROOM +
-			       NET_SKB_PAD, GFP_ATOMIC);
+						   NET_SKB_PAD, GFP_ATOMIC);
+
 	if (!skb)
+	{
 		return NULL;
+	}
+
 	skb_reserve(skb, NET_SKB_PAD + FC_FRAME_HEADROOM);
 	fp = (struct fc_frame *) skb;
 	fc_frame_init(fp);
@@ -77,15 +81,22 @@ struct fc_frame *fc_frame_alloc_fill(struct fc_lport *lp, size_t payload_len)
 	size_t fill;
 
 	fill = payload_len % 4;
+
 	if (fill != 0)
+	{
 		fill = 4 - fill;
+	}
+
 	fp = _fc_frame_alloc(payload_len + fill);
-	if (fp) {
+
+	if (fp)
+	{
 		memset((char *) fr_hdr(fp) + payload_len, 0, fill);
 		/* trim is OK, we just allocated it so there are no fragments */
 		skb_trim(fp_skb(fp),
-			 payload_len + sizeof(struct fc_frame_header));
+				 payload_len + sizeof(struct fc_frame_header));
 	}
+
 	return fp;
 }
 EXPORT_SYMBOL(fc_frame_alloc_fill);

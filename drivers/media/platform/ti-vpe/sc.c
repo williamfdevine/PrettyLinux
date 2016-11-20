@@ -25,7 +25,7 @@ void sc_dump_regs(struct sc_data *sc)
 	struct device *dev = &sc->pdev->dev;
 
 #define DUMPREG(r) dev_dbg(dev, "%-35s %08x\n", #r, \
-	ioread32(sc->base + CFG_##r))
+						   ioread32(sc->base + CFG_##r))
 
 	DUMPREG(SC0);
 	DUMPREG(SC1);
@@ -58,7 +58,7 @@ void sc_dump_regs(struct sc_data *sc)
  * input widths, after accounting for up to two levels of decimation
  */
 void sc_set_hs_coeffs(struct sc_data *sc, void *addr, unsigned int src_w,
-		unsigned int dst_w)
+					  unsigned int dst_w)
 {
 	int sixteenths;
 	int idx;
@@ -66,32 +66,53 @@ void sc_set_hs_coeffs(struct sc_data *sc, void *addr, unsigned int src_w,
 	u16 *coeff_h = addr;
 	const u16 *cp;
 
-	if (dst_w > src_w) {
+	if (dst_w > src_w)
+	{
 		idx = HS_UP_SCALE;
-	} else {
+	}
+	else
+	{
 		if ((dst_w << 1) < src_w)
-			dst_w <<= 1;	/* first level decimation */
-		if ((dst_w << 1) < src_w)
-			dst_w <<= 1;	/* second level decimation */
+		{
+			dst_w <<= 1;    /* first level decimation */
+		}
 
-		if (dst_w == src_w) {
+		if ((dst_w << 1) < src_w)
+		{
+			dst_w <<= 1;    /* second level decimation */
+		}
+
+		if (dst_w == src_w)
+		{
 			idx = HS_LE_16_16_SCALE;
-		} else {
+		}
+		else
+		{
 			sixteenths = (dst_w << 4) / src_w;
+
 			if (sixteenths < 8)
+			{
 				sixteenths = 8;
+			}
+
 			idx = HS_LT_9_16_SCALE + sixteenths - 8;
 		}
 	}
 
 	if (idx == sc->hs_index)
+	{
 		return;
+	}
 
 	cp = scaler_hs_coeffs[idx];
 
-	for (i = 0; i < SC_NUM_PHASES * 2; i++) {
+	for (i = 0; i < SC_NUM_PHASES * 2; i++)
+	{
 		for (j = 0; j < SC_H_NUM_TAPS; j++)
+		{
 			*coeff_h++ = *cp++;
+		}
+
 		/*
 		 * for each phase, the scaler expects space for 8 coefficients
 		 * in it's memory. For the horizontal scaler, we copy the first
@@ -111,7 +132,7 @@ void sc_set_hs_coeffs(struct sc_data *sc, void *addr, unsigned int src_w,
  * input heights
  */
 void sc_set_vs_coeffs(struct sc_data *sc, void *addr, unsigned int src_h,
-		unsigned int dst_h)
+					  unsigned int dst_h)
 {
 	int sixteenths;
 	int idx;
@@ -119,25 +140,40 @@ void sc_set_vs_coeffs(struct sc_data *sc, void *addr, unsigned int src_h,
 	u16 *coeff_v = addr;
 	const u16 *cp;
 
-	if (dst_h > src_h) {
+	if (dst_h > src_h)
+	{
 		idx = VS_UP_SCALE;
-	} else if (dst_h == src_h) {
+	}
+	else if (dst_h == src_h)
+	{
 		idx = VS_1_TO_1_SCALE;
-	} else {
+	}
+	else
+	{
 		sixteenths = (dst_h << 4) / src_h;
+
 		if (sixteenths < 8)
+		{
 			sixteenths = 8;
+		}
+
 		idx = VS_LT_9_16_SCALE + sixteenths - 8;
 	}
 
 	if (idx == sc->vs_index)
+	{
 		return;
+	}
 
 	cp = scaler_vs_coeffs[idx];
 
-	for (i = 0; i < SC_NUM_PHASES * 2; i++) {
+	for (i = 0; i < SC_NUM_PHASES * 2; i++)
+	{
 		for (j = 0; j < SC_V_NUM_TAPS; j++)
+		{
 			*coeff_v++ = *cp++;
+		}
+
 		/*
 		 * for the vertical scaler, we copy the first 5 coefficients and
 		 * skip the last 3 slots to move to the next row to hold
@@ -151,8 +187,8 @@ void sc_set_vs_coeffs(struct sc_data *sc, void *addr, unsigned int src_h,
 }
 
 void sc_config_scaler(struct sc_data *sc, u32 *sc_reg0, u32 *sc_reg8,
-		u32 *sc_reg17, unsigned int src_w, unsigned int src_h,
-		unsigned int dst_w, unsigned int dst_h)
+					  u32 *sc_reg17, unsigned int src_w, unsigned int src_h,
+					  unsigned int dst_w, unsigned int dst_h)
 {
 	struct device *dev = &sc->pdev->dev;
 	u32 val;
@@ -177,11 +213,12 @@ void sc_config_scaler(struct sc_data *sc, u32 *sc_reg0, u32 *sc_reg8,
 
 	/* clear all the features(they may get enabled elsewhere later) */
 	val &= ~(CFG_SELFGEN_FID | CFG_TRIM | CFG_ENABLE_SIN2_VER_INTP |
-		CFG_INTERLACE_I | CFG_DCM_4X | CFG_DCM_2X | CFG_AUTO_HS |
-		CFG_ENABLE_EV | CFG_USE_RAV | CFG_INVT_FID | CFG_SC_BYPASS |
-		CFG_INTERLACE_O | CFG_Y_PK_EN | CFG_HP_BYPASS | CFG_LINEAR);
+			 CFG_INTERLACE_I | CFG_DCM_4X | CFG_DCM_2X | CFG_AUTO_HS |
+			 CFG_ENABLE_EV | CFG_USE_RAV | CFG_INVT_FID | CFG_SC_BYPASS |
+			 CFG_INTERLACE_O | CFG_Y_PK_EN | CFG_HP_BYPASS | CFG_LINEAR);
 
-	if (src_w == dst_w && src_h == dst_h) {
+	if (src_w == dst_w && src_h == dst_h)
+	{
 		val |= CFG_SC_BYPASS;
 		sc_reg0[0] = val;
 		return;
@@ -194,13 +231,19 @@ void sc_config_scaler(struct sc_data *sc, u32 *sc_reg0, u32 *sc_reg8,
 
 	/* enable 2X or 4X decimation */
 	dcm_x = src_w / dst_w;
-	if (dcm_x > 4) {
+
+	if (dcm_x > 4)
+	{
 		val |= CFG_DCM_4X;
 		dcm_shift = 2;
-	} else if (dcm_x > 2) {
+	}
+	else if (dcm_x > 2)
+	{
 		val |= CFG_DCM_2X;
 		dcm_shift = 1;
-	} else {
+	}
+	else
+	{
 		dcm_shift = 0;
 	}
 
@@ -210,47 +253,57 @@ void sc_config_scaler(struct sc_data *sc, u32 *sc_reg0, u32 *sc_reg8,
 	col_acc_offset = 0;
 
 	dev_dbg(dev, "hs config: src_w = %d, dst_w = %d, decimation = %s, lin_acc_inc = %08x\n",
-		src_w, dst_w, dcm_shift == 2 ? "4x" :
-		(dcm_shift == 1 ? "2x" : "none"), lin_acc_inc);
+			src_w, dst_w, dcm_shift == 2 ? "4x" :
+			(dcm_shift == 1 ? "2x" : "none"), lin_acc_inc);
 
 	/* configure vertical scaler */
 
 	/* use RAV for vertical scaler if vertical downscaling is > 4x */
-	if (dst_h < (src_h >> 2)) {
+	if (dst_h < (src_h >> 2))
+	{
 		use_rav = true;
 		val |= CFG_USE_RAV;
-	} else {
+	}
+	else
+	{
 		use_rav = false;
 	}
 
-	if (use_rav) {
+	if (use_rav)
+	{
 		/* use RAV */
 		factor = (u16) ((dst_h << 10) / src_h);
 
 		row_acc_init_rav = factor + ((1 + factor) >> 1);
+
 		if (row_acc_init_rav >= 1024)
+		{
 			row_acc_init_rav -= 1024;
+		}
 
 		row_acc_init_rav_b = row_acc_init_rav +
-				(1 + (row_acc_init_rav >> 1)) -
-				(1024 >> 1);
+							 (1 + (row_acc_init_rav >> 1)) -
+							 (1024 >> 1);
 
-		if (row_acc_init_rav_b < 0) {
+		if (row_acc_init_rav_b < 0)
+		{
 			row_acc_init_rav_b += row_acc_init_rav;
 			row_acc_init_rav *= 2;
 		}
 
 		dev_dbg(dev, "vs config(RAV): src_h = %d, dst_h = %d, factor = %d, acc_init = %08x, acc_init_b = %08x\n",
-			src_h, dst_h, factor, row_acc_init_rav,
-			row_acc_init_rav_b);
-	} else {
+				src_h, dst_h, factor, row_acc_init_rav,
+				row_acc_init_rav_b);
+	}
+	else
+	{
 		/* use polyphase */
 		row_acc_inc = ((src_h - 1) << 16) / (dst_h - 1);
 		row_acc_offset = 0;
 		row_acc_offset_b = 0;
 
 		dev_dbg(dev, "vs config(POLY): src_h = %d, dst_h = %d,row_acc_inc = %08x\n",
-			src_h, dst_h, row_acc_inc);
+				src_h, dst_h, row_acc_inc);
 	}
 
 
@@ -260,13 +313,13 @@ void sc_config_scaler(struct sc_data *sc, u32 *sc_reg0, u32 *sc_reg8,
 	sc_reg0[3] = row_acc_offset_b;
 
 	sc_reg0[4] = ((lin_acc_inc_u & CFG_LIN_ACC_INC_U_MASK) <<
-			CFG_LIN_ACC_INC_U_SHIFT) | (dst_w << CFG_TAR_W_SHIFT) |
-			(dst_h << CFG_TAR_H_SHIFT);
+				  CFG_LIN_ACC_INC_U_SHIFT) | (dst_w << CFG_TAR_W_SHIFT) |
+				 (dst_h << CFG_TAR_H_SHIFT);
 
 	sc_reg0[5] = (src_w << CFG_SRC_W_SHIFT) | (src_h << CFG_SRC_H_SHIFT);
 
 	sc_reg0[6] = (row_acc_init_rav_b << CFG_ROW_ACC_INIT_RAV_B_SHIFT) |
-		(row_acc_init_rav << CFG_ROW_ACC_INIT_RAV_SHIFT);
+				 (row_acc_init_rav << CFG_ROW_ACC_INIT_RAV_SHIFT);
 
 	*sc_reg9 = lin_acc_inc;
 
@@ -284,7 +337,9 @@ struct sc_data *sc_create(struct platform_device *pdev)
 	dev_dbg(&pdev->dev, "sc_create\n");
 
 	sc = devm_kzalloc(&pdev->dev, sizeof(*sc), GFP_KERNEL);
-	if (!sc) {
+
+	if (!sc)
+	{
 		dev_err(&pdev->dev, "couldn't alloc sc_data\n");
 		return ERR_PTR(-ENOMEM);
 	}
@@ -292,13 +347,17 @@ struct sc_data *sc_create(struct platform_device *pdev)
 	sc->pdev = pdev;
 
 	sc->res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "sc");
-	if (!sc->res) {
+
+	if (!sc->res)
+	{
 		dev_err(&pdev->dev, "missing platform resources data\n");
 		return ERR_PTR(-ENODEV);
 	}
 
 	sc->base = devm_ioremap_resource(&pdev->dev, sc->res);
-	if (IS_ERR(sc->base)) {
+
+	if (IS_ERR(sc->base))
+	{
 		dev_err(&pdev->dev, "failed to ioremap\n");
 		return ERR_CAST(sc->base);
 	}

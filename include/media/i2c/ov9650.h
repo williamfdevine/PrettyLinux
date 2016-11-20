@@ -19,7 +19,8 @@
  * If any of @gpio_pwdn or @gpio_reset are unused then they should be
  * set to a negative value. @mclk_frequency must always be specified.
  */
-struct ov9650_platform_data {
+struct ov9650_platform_data
+{
 	unsigned long mclk_frequency;
 	int gpio_pwdn;
 	int gpio_reset;

@@ -34,14 +34,16 @@ struct seq_file;
 
 /* define the enumeration of all cgroup subsystems */
 #define SUBSYS(_x) _x ## _cgrp_id,
-enum cgroup_subsys_id {
+enum cgroup_subsys_id
+{
 #include <linux/cgroup_subsys.h>
 	CGROUP_SUBSYS_COUNT,
 };
 #undef SUBSYS
 
 /* bits in struct cgroup_subsys_state flags field */
-enum {
+enum
+{
 	CSS_NO_REF	= (1 << 0), /* no reference counting for this css */
 	CSS_ONLINE	= (1 << 1), /* between ->css_online() and ->css_offline() */
 	CSS_RELEASED	= (1 << 2), /* refcnt reached zero, released */
@@ -49,7 +51,8 @@ enum {
 };
 
 /* bits in struct cgroup flags field */
-enum {
+enum
+{
 	/* Control Group requires release notifications to userspace */
 	CGRP_NOTIFY_ON_RELEASE,
 	/*
@@ -61,13 +64,15 @@ enum {
 };
 
 /* cgroup_root->flags */
-enum {
+enum
+{
 	CGRP_ROOT_NOPREFIX	= (1 << 1), /* mounted subsystems have no named prefix */
 	CGRP_ROOT_XATTR		= (1 << 2), /* supports extended attributes */
 };
 
 /* cftype->flags */
-enum {
+enum
+{
 	CFTYPE_ONLY_ON_ROOT	= (1 << 0),	/* only create on root cgrp */
 	CFTYPE_NOT_ON_ROOT	= (1 << 1),	/* don't create on root cgrp */
 	CFTYPE_NO_PREFIX	= (1 << 3),	/* (DON'T USE FOR NEW FILES) no subsys prefix */
@@ -83,7 +88,8 @@ enum {
  * is used, for example, to generate file changed notifications.  This can
  * be obtained by setting cftype->file_offset.
  */
-struct cgroup_file {
+struct cgroup_file
+{
 	/* do not access any fields from outside cgroup core */
 	struct kernfs_node *kn;
 };
@@ -95,7 +101,8 @@ struct cgroup_file {
  * Fields marked with "PI:" are public and immutable and may be accessed
  * directly without synchronization.
  */
-struct cgroup_subsys_state {
+struct cgroup_subsys_state
+{
 	/* PI: the cgroup that this css is attached to */
 	struct cgroup *cgroup;
 
@@ -146,7 +153,8 @@ struct cgroup_subsys_state {
  * list_add()/del() can bump the reference count on the entire cgroup
  * set for a task.
  */
-struct css_set {
+struct css_set
+{
 	/* Reference count */
 	atomic_t refcount;
 
@@ -219,7 +227,8 @@ struct css_set {
 	struct rcu_head rcu_head;
 };
 
-struct cgroup {
+struct cgroup
+{
 	/* self css with NULL ->ss, points back to this cgroup */
 	struct cgroup_subsys_state self;
 
@@ -309,7 +318,8 @@ struct cgroup {
  * associated with a kernfs_root to form an active hierarchy.  This is
  * internal to cgroup core.  Don't access directly from controllers.
  */
-struct cgroup_root {
+struct cgroup_root
+{
 	struct kernfs_root *kf_root;
 
 	/* The bitmask of subsystems attached to this hierarchy */
@@ -350,82 +360,83 @@ struct cgroup_root {
  *	- the cgroup to use is file->f_path.dentry->d_parent->d_fsdata
  *	- the 'cftype' of the file is file->f_path.dentry->d_fsdata
  */
-struct cftype {
-	/*
-	 * By convention, the name should begin with the name of the
-	 * subsystem, followed by a period.  Zero length string indicates
-	 * end of cftype array.
-	 */
-	char name[MAX_CFTYPE_NAME];
-	unsigned long private;
+struct cftype
+{
+		/*
+		 * By convention, the name should begin with the name of the
+		 * subsystem, followed by a period.  Zero length string indicates
+		 * end of cftype array.
+		 */
+		char name[MAX_CFTYPE_NAME];
+		unsigned long private;
 
-	/*
-	 * The maximum length of string, excluding trailing nul, that can
-	 * be passed to write.  If < PAGE_SIZE-1, PAGE_SIZE-1 is assumed.
-	 */
-	size_t max_write_len;
+		/*
+		 * The maximum length of string, excluding trailing nul, that can
+		 * be passed to write.  If < PAGE_SIZE-1, PAGE_SIZE-1 is assumed.
+		 */
+		size_t max_write_len;
 
-	/* CFTYPE_* flags */
-	unsigned int flags;
+		/* CFTYPE_* flags */
+		unsigned int flags;
 
-	/*
-	 * If non-zero, should contain the offset from the start of css to
-	 * a struct cgroup_file field.  cgroup will record the handle of
-	 * the created file into it.  The recorded handle can be used as
-	 * long as the containing css remains accessible.
-	 */
-	unsigned int file_offset;
+		/*
+		 * If non-zero, should contain the offset from the start of css to
+		 * a struct cgroup_file field.  cgroup will record the handle of
+		 * the created file into it.  The recorded handle can be used as
+		 * long as the containing css remains accessible.
+		 */
+		unsigned int file_offset;
 
-	/*
-	 * Fields used for internal bookkeeping.  Initialized automatically
-	 * during registration.
-	 */
-	struct cgroup_subsys *ss;	/* NULL for cgroup core files */
-	struct list_head node;		/* anchored at ss->cfts */
-	struct kernfs_ops *kf_ops;
+		/*
+		 * Fields used for internal bookkeeping.  Initialized automatically
+		 * during registration.
+		 */
+		struct cgroup_subsys *ss;	/* NULL for cgroup core files */
+		struct list_head node;		/* anchored at ss->cfts */
+		struct kernfs_ops *kf_ops;
 
-	/*
-	 * read_u64() is a shortcut for the common case of returning a
-	 * single integer. Use it in place of read()
-	 */
-	u64 (*read_u64)(struct cgroup_subsys_state *css, struct cftype *cft);
-	/*
-	 * read_s64() is a signed version of read_u64()
-	 */
-	s64 (*read_s64)(struct cgroup_subsys_state *css, struct cftype *cft);
+		/*
+		 * read_u64() is a shortcut for the common case of returning a
+		 * single integer. Use it in place of read()
+		 */
+		u64 (*read_u64)(struct cgroup_subsys_state *css, struct cftype *cft);
+		/*
+		 * read_s64() is a signed version of read_u64()
+		 */
+		s64 (*read_s64)(struct cgroup_subsys_state *css, struct cftype *cft);
 
-	/* generic seq_file read interface */
-	int (*seq_show)(struct seq_file *sf, void *v);
+		/* generic seq_file read interface */
+		int (*seq_show)(struct seq_file *sf, void *v);
 
-	/* optional ops, implement all or none */
-	void *(*seq_start)(struct seq_file *sf, loff_t *ppos);
-	void *(*seq_next)(struct seq_file *sf, void *v, loff_t *ppos);
-	void (*seq_stop)(struct seq_file *sf, void *v);
+		/* optional ops, implement all or none */
+		void *(*seq_start)(struct seq_file *sf, loff_t *ppos);
+		void *(*seq_next)(struct seq_file *sf, void *v, loff_t *ppos);
+		void (*seq_stop)(struct seq_file *sf, void *v);
 
-	/*
-	 * write_u64() is a shortcut for the common case of accepting
-	 * a single integer (as parsed by simple_strtoull) from
-	 * userspace. Use in place of write(); return 0 or error.
-	 */
-	int (*write_u64)(struct cgroup_subsys_state *css, struct cftype *cft,
-			 u64 val);
-	/*
-	 * write_s64() is a signed version of write_u64()
-	 */
-	int (*write_s64)(struct cgroup_subsys_state *css, struct cftype *cft,
-			 s64 val);
+		/*
+		 * write_u64() is a shortcut for the common case of accepting
+		 * a single integer (as parsed by simple_strtoull) from
+		 * userspace. Use in place of write(); return 0 or error.
+		 */
+		int (*write_u64)(struct cgroup_subsys_state *css, struct cftype *cft,
+						 u64 val);
+		/*
+		 * write_s64() is a signed version of write_u64()
+		 */
+		int (*write_s64)(struct cgroup_subsys_state *css, struct cftype *cft,
+						 s64 val);
 
-	/*
-	 * write() is the generic write callback which maps directly to
-	 * kernfs write operation and overrides all other operations.
-	 * Maximum write size is determined by ->max_write_len.  Use
-	 * of_css/cft() to access the associated css and cft.
-	 */
-	ssize_t (*write)(struct kernfs_open_file *of,
-			 char *buf, size_t nbytes, loff_t off);
+		/*
+		 * write() is the generic write callback which maps directly to
+		 * kernfs write operation and overrides all other operations.
+		 * Maximum write size is determined by ->max_write_len.  Use
+		 * of_css/cft() to access the associated css and cft.
+		 */
+		ssize_t (*write)(struct kernfs_open_file *of,
+						 char *buf, size_t nbytes, loff_t off);
 
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
-	struct lock_class_key	lockdep_key;
+		struct lock_class_key	lockdep_key;
 #endif
 };
 
@@ -433,7 +444,8 @@ struct cftype {
  * Control Group subsystem type.
  * See Documentation/cgroups/cgroups.txt for details
  */
-struct cgroup_subsys {
+struct cgroup_subsys
+{
 	struct cgroup_subsys_state *(*css_alloc)(struct cgroup_subsys_state *parent_css);
 	int (*css_online)(struct cgroup_subsys_state *css);
 	void (*css_offline)(struct cgroup_subsys_state *css);
@@ -452,7 +464,7 @@ struct cgroup_subsys {
 	void (*free)(struct task_struct *task);
 	void (*bind)(struct cgroup_subsys_state *root_css);
 
-	bool early_init:1;
+	bool early_init: 1;
 
 	/*
 	 * If %true, the controller, on the default hierarchy, doesn't show
@@ -465,7 +477,7 @@ struct cgroup_subsys {
 	 * anytime and thus must be okay with offline csses from previous
 	 * hierarchies coexisting with csses for the current one.
 	 */
-	bool implicit_on_dfl:1;
+	bool implicit_on_dfl: 1;
 
 	/*
 	 * If %false, this subsystem is properly hierarchical -
@@ -479,8 +491,8 @@ struct cgroup_subsys {
 	 * cases.  Eventually, all subsystems will be made properly
 	 * hierarchical and this will go away.
 	 */
-	bool broken_hierarchy:1;
-	bool warned_broken_hierarchy:1;
+	bool broken_hierarchy: 1;
+	bool warned_broken_hierarchy: 1;
 
 	/* the following two fields are initialized automtically during boot */
 	int id;
@@ -582,17 +594,21 @@ static inline void cgroup_threadgroup_change_end(struct task_struct *tsk) {}
  * cgroups is bound and highly unlikely to be high, this seems to be the
  * better trade-off.
  */
-struct sock_cgroup_data {
-	union {
+struct sock_cgroup_data
+{
+	union
+	{
 #ifdef __LITTLE_ENDIAN
-		struct {
+		struct
+		{
 			u8	is_data;
 			u8	padding;
 			u16	prioidx;
 			u32	classid;
 		} __packed;
 #else
-		struct {
+		struct
+		{
 			u32	classid;
 			u16	prioidx;
 			u8	padding;
@@ -625,14 +641,17 @@ static inline u32 sock_cgroup_classid(struct sock_cgroup_data *skcd)
  * caller is responsible for synchronization.
  */
 static inline void sock_cgroup_set_prioidx(struct sock_cgroup_data *skcd,
-					   u16 prioidx)
+		u16 prioidx)
 {
 	struct sock_cgroup_data skcd_buf = {{ .val = READ_ONCE(skcd->val) }};
 
 	if (sock_cgroup_prioidx(&skcd_buf) == prioidx)
+	{
 		return;
+	}
 
-	if (!(skcd_buf.is_data & 1)) {
+	if (!(skcd_buf.is_data & 1))
+	{
 		skcd_buf.val = 0;
 		skcd_buf.is_data = 1;
 	}
@@ -642,14 +661,17 @@ static inline void sock_cgroup_set_prioidx(struct sock_cgroup_data *skcd,
 }
 
 static inline void sock_cgroup_set_classid(struct sock_cgroup_data *skcd,
-					   u32 classid)
+		u32 classid)
 {
 	struct sock_cgroup_data skcd_buf = {{ .val = READ_ONCE(skcd->val) }};
 
 	if (sock_cgroup_classid(&skcd_buf) == classid)
+	{
 		return;
+	}
 
-	if (!(skcd_buf.is_data & 1)) {
+	if (!(skcd_buf.is_data & 1))
+	{
 		skcd_buf.val = 0;
 		skcd_buf.is_data = 1;
 	}
@@ -660,7 +682,8 @@ static inline void sock_cgroup_set_classid(struct sock_cgroup_data *skcd,
 
 #else	/* CONFIG_SOCK_CGROUP_DATA */
 
-struct sock_cgroup_data {
+struct sock_cgroup_data
+{
 };
 
 #endif	/* CONFIG_SOCK_CGROUP_DATA */

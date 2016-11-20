@@ -19,9 +19,10 @@ static __u64 ptr_to_u64(void *ptr)
 }
 
 int bpf_create_map(enum bpf_map_type map_type, int key_size, int value_size,
-		   int max_entries, int map_flags)
+				   int max_entries, int map_flags)
 {
-	union bpf_attr attr = {
+	union bpf_attr attr =
+	{
 		.map_type = map_type,
 		.key_size = key_size,
 		.value_size = value_size,
@@ -34,7 +35,8 @@ int bpf_create_map(enum bpf_map_type map_type, int key_size, int value_size,
 
 int bpf_update_elem(int fd, void *key, void *value, unsigned long long flags)
 {
-	union bpf_attr attr = {
+	union bpf_attr attr =
+	{
 		.map_fd = fd,
 		.key = ptr_to_u64(key),
 		.value = ptr_to_u64(value),
@@ -46,7 +48,8 @@ int bpf_update_elem(int fd, void *key, void *value, unsigned long long flags)
 
 int bpf_lookup_elem(int fd, void *key, void *value)
 {
-	union bpf_attr attr = {
+	union bpf_attr attr =
+	{
 		.map_fd = fd,
 		.key = ptr_to_u64(key),
 		.value = ptr_to_u64(value),
@@ -57,7 +60,8 @@ int bpf_lookup_elem(int fd, void *key, void *value)
 
 int bpf_delete_elem(int fd, void *key)
 {
-	union bpf_attr attr = {
+	union bpf_attr attr =
+	{
 		.map_fd = fd,
 		.key = ptr_to_u64(key),
 	};
@@ -67,7 +71,8 @@ int bpf_delete_elem(int fd, void *key)
 
 int bpf_get_next_key(int fd, void *key, void *next_key)
 {
-	union bpf_attr attr = {
+	union bpf_attr attr =
+	{
 		.map_fd = fd,
 		.key = ptr_to_u64(key),
 		.next_key = ptr_to_u64(next_key),
@@ -81,10 +86,11 @@ int bpf_get_next_key(int fd, void *key, void *next_key)
 char bpf_log_buf[LOG_BUF_SIZE];
 
 int bpf_prog_load(enum bpf_prog_type prog_type,
-		  const struct bpf_insn *insns, int prog_len,
-		  const char *license, int kern_version)
+				  const struct bpf_insn *insns, int prog_len,
+				  const char *license, int kern_version)
 {
-	union bpf_attr attr = {
+	union bpf_attr attr =
+	{
 		.prog_type = prog_type,
 		.insns = ptr_to_u64((void *) insns),
 		.insn_cnt = prog_len / sizeof(struct bpf_insn),
@@ -106,7 +112,8 @@ int bpf_prog_load(enum bpf_prog_type prog_type,
 
 int bpf_obj_pin(int fd, const char *pathname)
 {
-	union bpf_attr attr = {
+	union bpf_attr attr =
+	{
 		.pathname	= ptr_to_u64((void *)pathname),
 		.bpf_fd		= fd,
 	};
@@ -116,7 +123,8 @@ int bpf_obj_pin(int fd, const char *pathname)
 
 int bpf_obj_get(const char *pathname)
 {
-	union bpf_attr attr = {
+	union bpf_attr attr =
+	{
 		.pathname	= ptr_to_u64((void *)pathname),
 	};
 
@@ -129,7 +137,9 @@ int open_raw_sock(const char *name)
 	int sock;
 
 	sock = socket(PF_PACKET, SOCK_RAW | SOCK_NONBLOCK | SOCK_CLOEXEC, htons(ETH_P_ALL));
-	if (sock < 0) {
+
+	if (sock < 0)
+	{
 		printf("cannot create raw socket\n");
 		return -1;
 	}
@@ -138,7 +148,9 @@ int open_raw_sock(const char *name)
 	sll.sll_family = AF_PACKET;
 	sll.sll_ifindex = if_nametoindex(name);
 	sll.sll_protocol = htons(ETH_P_ALL);
-	if (bind(sock, (struct sockaddr *)&sll, sizeof(sll)) < 0) {
+
+	if (bind(sock, (struct sockaddr *)&sll, sizeof(sll)) < 0)
+	{
 		printf("bind to %s: %s\n", name, strerror(errno));
 		close(sock);
 		return -1;
@@ -148,8 +160,8 @@ int open_raw_sock(const char *name)
 }
 
 int perf_event_open(struct perf_event_attr *attr, int pid, int cpu,
-		    int group_fd, unsigned long flags)
+					int group_fd, unsigned long flags)
 {
 	return syscall(__NR_perf_event_open, attr, pid, cpu,
-		       group_fd, flags);
+				   group_fd, flags);
 }

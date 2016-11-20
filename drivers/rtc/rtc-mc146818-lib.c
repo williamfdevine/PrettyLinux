@@ -4,7 +4,7 @@
 #include <linux/mc146818rtc.h>
 
 #ifdef CONFIG_ACPI
-#include <linux/acpi.h>
+	#include <linux/acpi.h>
 #endif
 
 /*
@@ -41,7 +41,9 @@ unsigned int mc146818_get_time(struct rtc_time *time)
 	 * Once the read clears, read the RTC time (again via ioctl). Easy.
 	 */
 	if (mc146818_is_updating())
+	{
 		mdelay(20);
+	}
 
 	/*
 	 * Only the values that we read from the RTC are set. We leave
@@ -60,9 +62,13 @@ unsigned int mc146818_get_time(struct rtc_time *time)
 	real_year = CMOS_READ(RTC_DEC_YEAR);
 #endif
 #ifdef CONFIG_ACPI
+
 	if (acpi_gbl_FADT.header.revision >= FADT2_REVISION_ID &&
-	    acpi_gbl_FADT.century)
+		acpi_gbl_FADT.century)
+	{
 		century = CMOS_READ(acpi_gbl_FADT.century);
+	}
+
 #endif
 	ctrl = CMOS_READ(RTC_CONTROL);
 	spin_unlock_irqrestore(&rtc_lock, flags);
@@ -83,14 +89,18 @@ unsigned int mc146818_get_time(struct rtc_time *time)
 #endif
 
 	if (century)
+	{
 		time->tm_year += (century - 19) * 100;
+	}
 
 	/*
 	 * Account for differences between how the RTC uses the values
 	 * and how they are defined in a struct rtc_time;
 	 */
 	if (time->tm_year <= 69)
+	{
 		time->tm_year += 100;
+	}
 
 	time->tm_mon--;
 
@@ -118,13 +128,15 @@ int mc146818_set_time(struct rtc_time *time)
 	sec = time->tm_sec;
 
 	if (yrs > 255)	/* They are unsigned */
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&rtc_lock, flags);
 #ifdef CONFIG_MACH_DECSTATION
 	real_yrs = yrs;
 	leap_yr = ((!((yrs + 1900) % 4) && ((yrs + 1900) % 100)) ||
-			!((yrs + 1900) % 400));
+			   !((yrs + 1900) % 400));
 	yrs = 72;
 
 	/*
@@ -132,33 +144,42 @@ int mc146818_set_time(struct rtc_time *time)
 	 * for non-leap years, so that Feb, 29th is handled
 	 * correctly.
 	 */
-	if (!leap_yr && mon < 3) {
+	if (!leap_yr && mon < 3)
+	{
 		real_yrs--;
 		yrs = 73;
 	}
+
 #endif
 
 #ifdef CONFIG_ACPI
+
 	if (acpi_gbl_FADT.header.revision >= FADT2_REVISION_ID &&
-	    acpi_gbl_FADT.century) {
+		acpi_gbl_FADT.century)
+	{
 		century = (yrs + 1900) / 100;
 		yrs %= 100;
 	}
+
 #endif
 
 	/* These limits and adjustments are independent of
 	 * whether the chip is in binary mode or not.
 	 */
-	if (yrs > 169) {
+	if (yrs > 169)
+	{
 		spin_unlock_irqrestore(&rtc_lock, flags);
 		return -EINVAL;
 	}
 
 	if (yrs >= 100)
+	{
 		yrs -= 100;
+	}
 
 	if (!(CMOS_READ(RTC_CONTROL) & RTC_DM_BINARY)
-	    || RTC_ALWAYS_BCD) {
+		|| RTC_ALWAYS_BCD)
+	{
 		sec = bin2bcd(sec);
 		min = bin2bcd(min);
 		hrs = bin2bcd(hrs);
@@ -169,9 +190,9 @@ int mc146818_set_time(struct rtc_time *time)
 	}
 
 	save_control = CMOS_READ(RTC_CONTROL);
-	CMOS_WRITE((save_control|RTC_SET), RTC_CONTROL);
+	CMOS_WRITE((save_control | RTC_SET), RTC_CONTROL);
 	save_freq_select = CMOS_READ(RTC_FREQ_SELECT);
-	CMOS_WRITE((save_freq_select|RTC_DIV_RESET2), RTC_FREQ_SELECT);
+	CMOS_WRITE((save_freq_select | RTC_DIV_RESET2), RTC_FREQ_SELECT);
 
 #ifdef CONFIG_MACH_DECSTATION
 	CMOS_WRITE(real_yrs, RTC_DEC_YEAR);
@@ -183,9 +204,13 @@ int mc146818_set_time(struct rtc_time *time)
 	CMOS_WRITE(min, RTC_MINUTES);
 	CMOS_WRITE(sec, RTC_SECONDS);
 #ifdef CONFIG_ACPI
+
 	if (acpi_gbl_FADT.header.revision >= FADT2_REVISION_ID &&
-	    acpi_gbl_FADT.century)
+		acpi_gbl_FADT.century)
+	{
 		CMOS_WRITE(century, acpi_gbl_FADT.century);
+	}
+
 #endif
 
 	CMOS_WRITE(save_control, RTC_CONTROL);

@@ -40,21 +40,24 @@
 #define WDTBASE		0x84
 #define WDT_IO_SIZE	64
 
-enum sch_chipsets {
+enum sch_chipsets
+{
 	LPC_SCH = 0,		/* Intel Poulsbo SCH */
 	LPC_ITC,		/* Intel Tunnel Creek */
 	LPC_CENTERTON,		/* Intel Centerton */
 	LPC_QUARK_X1000,	/* Intel Quark X1000 */
 };
 
-struct lpc_sch_info {
+struct lpc_sch_info
+{
 	unsigned int io_size_smbus;
 	unsigned int io_size_gpio;
 	unsigned int io_size_wdt;
 	int irq_gpio;
 };
 
-static struct lpc_sch_info sch_chipset_info[] = {
+static struct lpc_sch_info sch_chipset_info[] =
+{
 	[LPC_SCH] = {
 		.io_size_smbus = SMBUS_IO_SIZE,
 		.io_size_gpio = GPIO_IO_SIZE,
@@ -79,7 +82,8 @@ static struct lpc_sch_info sch_chipset_info[] = {
 	},
 };
 
-static const struct pci_device_id lpc_sch_ids[] = {
+static const struct pci_device_id lpc_sch_ids[] =
+{
 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_SCH_LPC), LPC_SCH },
 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_ITC_LPC), LPC_ITC },
 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_CENTERTON_ILB), LPC_CENTERTON },
@@ -92,23 +96,29 @@ MODULE_DEVICE_TABLE(pci, lpc_sch_ids);
 #define LPC_SKIP_RESOURCE	2
 
 static int lpc_sch_get_io(struct pci_dev *pdev, int where, const char *name,
-			  struct resource *res, int size)
+						  struct resource *res, int size)
 {
 	unsigned int base_addr_cfg;
 	unsigned short base_addr;
 
 	if (size == 0)
+	{
 		return LPC_NO_RESOURCE;
+	}
 
 	pci_read_config_dword(pdev, where, &base_addr_cfg);
 	base_addr = 0;
+
 	if (!(base_addr_cfg & (1 << 31)))
 		dev_warn(&pdev->dev, "Decode of the %s I/O range disabled\n",
-			 name);
+				 name);
 	else
+	{
 		base_addr = (unsigned short)base_addr_cfg;
+	}
 
-	if (base_addr == 0) {
+	if (base_addr == 0)
+	{
 		dev_warn(&pdev->dev, "I/O space for %s uninitialized\n", name);
 		return LPC_SKIP_RESOURCE;
 	}
@@ -121,19 +131,25 @@ static int lpc_sch_get_io(struct pci_dev *pdev, int where, const char *name,
 }
 
 static int lpc_sch_populate_cell(struct pci_dev *pdev, int where,
-				 const char *name, int size, int irq,
-				 int id, struct mfd_cell *cell)
+								 const char *name, int size, int irq,
+								 int id, struct mfd_cell *cell)
 {
 	struct resource *res;
 	int ret;
 
 	res = devm_kcalloc(&pdev->dev, 2, sizeof(*res), GFP_KERNEL);
+
 	if (!res)
+	{
 		return -ENOMEM;
+	}
 
 	ret = lpc_sch_get_io(pdev, where, name, res, size);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	memset(cell, 0, sizeof(*cell));
 
@@ -145,7 +161,9 @@ static int lpc_sch_populate_cell(struct pci_dev *pdev, int where,
 
 	/* Check if we need to add an IRQ resource */
 	if (irq < 0)
+	{
 		return 0;
+	}
 
 	res++;
 
@@ -166,30 +184,49 @@ static int lpc_sch_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	int ret;
 
 	ret = lpc_sch_populate_cell(dev, SMBASE, "isch_smbus",
-				    info->io_size_smbus, -1,
-				    id->device, &lpc_sch_cells[cells]);
+								info->io_size_smbus, -1,
+								id->device, &lpc_sch_cells[cells]);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (ret == 0)
+	{
 		cells++;
+	}
 
 	ret = lpc_sch_populate_cell(dev, GPIOBASE, "sch_gpio",
-				    info->io_size_gpio, info->irq_gpio,
-				    id->device, &lpc_sch_cells[cells]);
+								info->io_size_gpio, info->irq_gpio,
+								id->device, &lpc_sch_cells[cells]);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (ret == 0)
+	{
 		cells++;
+	}
 
 	ret = lpc_sch_populate_cell(dev, WDTBASE, "ie6xx_wdt",
-				    info->io_size_wdt, -1,
-				    id->device, &lpc_sch_cells[cells]);
-	if (ret < 0)
-		return ret;
-	if (ret == 0)
-		cells++;
+								info->io_size_wdt, -1,
+								id->device, &lpc_sch_cells[cells]);
 
-	if (cells == 0) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (ret == 0)
+	{
+		cells++;
+	}
+
+	if (cells == 0)
+	{
 		dev_err(&dev->dev, "All decode registers disabled.\n");
 		return -ENODEV;
 	}
@@ -202,7 +239,8 @@ static void lpc_sch_remove(struct pci_dev *dev)
 	mfd_remove_devices(&dev->dev);
 }
 
-static struct pci_driver lpc_sch_driver = {
+static struct pci_driver lpc_sch_driver =
+{
 	.name		= "lpc_sch",
 	.id_table	= lpc_sch_ids,
 	.probe		= lpc_sch_probe,

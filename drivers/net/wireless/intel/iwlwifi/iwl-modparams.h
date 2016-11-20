@@ -69,7 +69,8 @@
 
 extern struct iwl_mod_params iwlwifi_mod_params;
 
-enum iwl_power_level {
+enum iwl_power_level
+{
 	IWL_POWER_INDEX_1,
 	IWL_POWER_INDEX_2,
 	IWL_POWER_INDEX_3,
@@ -78,21 +79,24 @@ enum iwl_power_level {
 	IWL_POWER_NUM
 };
 
-enum iwl_disable_11n {
+enum iwl_disable_11n
+{
 	IWL_DISABLE_HT_ALL	 = BIT(0),
 	IWL_DISABLE_HT_TXAGG	 = BIT(1),
 	IWL_DISABLE_HT_RXAGG	 = BIT(2),
 	IWL_ENABLE_HT_TXAGG	 = BIT(3),
 };
 
-enum iwl_amsdu_size {
+enum iwl_amsdu_size
+{
 	IWL_AMSDU_DEF = 0,
 	IWL_AMSDU_4K = 1,
 	IWL_AMSDU_8K = 2,
 	IWL_AMSDU_12K = 3,
 };
 
-enum iwl_uapsd_disable {
+enum iwl_uapsd_disable
+{
 	IWL_DISABLE_UAPSD_BSS		= BIT(0),
 	IWL_DISABLE_UAPSD_P2P_CLIENT	= BIT(1),
 };
@@ -123,7 +127,8 @@ enum iwl_uapsd_disable {
  * @fw_monitor: allow to use firmware monitor
  * @disable_11ac: disable VHT capabilities, default = false.
  */
-struct iwl_mod_params {
+struct iwl_mod_params
+{
 	int sw_crypto;
 	unsigned int disable_11n;
 	int amsdu_size;

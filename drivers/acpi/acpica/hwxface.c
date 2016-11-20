@@ -75,11 +75,13 @@ acpi_status acpi_reset(void)
 	/* Check if the reset register is supported */
 
 	if (!(acpi_gbl_FADT.flags & ACPI_FADT_RESET_REGISTER) ||
-	    !reset_reg->address) {
+		!reset_reg->address)
+	{
 		return_ACPI_STATUS(AE_NOT_EXIST);
 	}
 
-	if (reset_reg->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
+	if (reset_reg->space_id == ACPI_ADR_SPACE_SYSTEM_IO)
+	{
 		/*
 		 * For I/O space, write directly to the OSL. This bypasses the port
 		 * validation mechanism, which may block a valid write to the reset
@@ -92,9 +94,11 @@ acpi_status acpi_reset(void)
 		 * BIOS code with bad register width values to go unnoticed.
 		 */
 		status = acpi_os_write_port((acpi_io_address)reset_reg->address,
-					    acpi_gbl_FADT.reset_value,
-					    ACPI_RESET_REGISTER_WIDTH);
-	} else {
+									acpi_gbl_FADT.reset_value,
+									ACPI_RESET_REGISTER_WIDTH);
+	}
+	else
+	{
 		/* Write the reset value to the reset register */
 
 		status = acpi_hw_write(acpi_gbl_FADT.reset_value, reset_reg);
@@ -133,14 +137,17 @@ acpi_status acpi_read(u64 *return_value, struct acpi_generic_address *reg)
 
 	ACPI_FUNCTION_NAME(acpi_read);
 
-	if (!return_value) {
+	if (!return_value)
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
 	/* Validate contents of the GAS register. Allow 64-bit transfers */
 
 	status = acpi_hw_validate_register(reg, 64, &address);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
@@ -148,37 +155,49 @@ acpi_status acpi_read(u64 *return_value, struct acpi_generic_address *reg)
 	 * Two address spaces supported: Memory or I/O. PCI_Config is
 	 * not supported here because the GAS structure is insufficient
 	 */
-	if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+	if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+	{
 		status = acpi_os_read_memory((acpi_physical_address)
-					     address, return_value,
-					     reg->bit_width);
-		if (ACPI_FAILURE(status)) {
+									 address, return_value,
+									 reg->bit_width);
+
+		if (ACPI_FAILURE(status))
+		{
 			return (status);
 		}
-	} else {		/* ACPI_ADR_SPACE_SYSTEM_IO, validated earlier */
+	}
+	else  		/* ACPI_ADR_SPACE_SYSTEM_IO, validated earlier */
+	{
 
 		value_lo = 0;
 		value_hi = 0;
 
 		width = reg->bit_width;
-		if (width == 64) {
+
+		if (width == 64)
+		{
 			width = 32;	/* Break into two 32-bit transfers */
 		}
 
 		status = acpi_hw_read_port((acpi_io_address)
-					   address, &value_lo, width);
-		if (ACPI_FAILURE(status)) {
+								   address, &value_lo, width);
+
+		if (ACPI_FAILURE(status))
+		{
 			return (status);
 		}
 
-		if (reg->bit_width == 64) {
+		if (reg->bit_width == 64)
+		{
 
 			/* Read the top 32 bits */
 
 			status = acpi_hw_read_port((acpi_io_address)
-						   (address + 4), &value_hi,
-						   32);
-			if (ACPI_FAILURE(status)) {
+									   (address + 4), &value_hi,
+									   32);
+
+			if (ACPI_FAILURE(status))
+			{
 				return (status);
 			}
 		}
@@ -189,10 +208,10 @@ acpi_status acpi_read(u64 *return_value, struct acpi_generic_address *reg)
 	}
 
 	ACPI_DEBUG_PRINT((ACPI_DB_IO,
-			  "Read:  %8.8X%8.8X width %2d from %8.8X%8.8X (%s)\n",
-			  ACPI_FORMAT_UINT64(*return_value), reg->bit_width,
-			  ACPI_FORMAT_UINT64(address),
-			  acpi_ut_get_region_name(reg->space_id)));
+					  "Read:  %8.8X%8.8X width %2d from %8.8X%8.8X (%s)\n",
+					  ACPI_FORMAT_UINT64(*return_value), reg->bit_width,
+					  ACPI_FORMAT_UINT64(address),
+					  acpi_ut_get_region_name(reg->space_id)));
 
 	return (AE_OK);
 }
@@ -222,7 +241,9 @@ acpi_status acpi_write(u64 value, struct acpi_generic_address *reg)
 	/* Validate contents of the GAS register. Allow 64-bit transfers */
 
 	status = acpi_hw_validate_register(reg, 64, &address);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
@@ -230,41 +251,53 @@ acpi_status acpi_write(u64 value, struct acpi_generic_address *reg)
 	 * Two address spaces supported: Memory or IO. PCI_Config is
 	 * not supported here because the GAS structure is insufficient
 	 */
-	if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+	if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+	{
 		status = acpi_os_write_memory((acpi_physical_address)
-					      address, value, reg->bit_width);
-		if (ACPI_FAILURE(status)) {
+									  address, value, reg->bit_width);
+
+		if (ACPI_FAILURE(status))
+		{
 			return (status);
 		}
-	} else {		/* ACPI_ADR_SPACE_SYSTEM_IO, validated earlier */
+	}
+	else  		/* ACPI_ADR_SPACE_SYSTEM_IO, validated earlier */
+	{
 
 		width = reg->bit_width;
-		if (width == 64) {
+
+		if (width == 64)
+		{
 			width = 32;	/* Break into two 32-bit transfers */
 		}
 
 		status = acpi_hw_write_port((acpi_io_address)
-					    address, ACPI_LODWORD(value),
-					    width);
-		if (ACPI_FAILURE(status)) {
+									address, ACPI_LODWORD(value),
+									width);
+
+		if (ACPI_FAILURE(status))
+		{
 			return (status);
 		}
 
-		if (reg->bit_width == 64) {
+		if (reg->bit_width == 64)
+		{
 			status = acpi_hw_write_port((acpi_io_address)
-						    (address + 4),
-						    ACPI_HIDWORD(value), 32);
-			if (ACPI_FAILURE(status)) {
+										(address + 4),
+										ACPI_HIDWORD(value), 32);
+
+			if (ACPI_FAILURE(status))
+			{
 				return (status);
 			}
 		}
 	}
 
 	ACPI_DEBUG_PRINT((ACPI_DB_IO,
-			  "Wrote: %8.8X%8.8X width %2d   to %8.8X%8.8X (%s)\n",
-			  ACPI_FORMAT_UINT64(value), reg->bit_width,
-			  ACPI_FORMAT_UINT64(address),
-			  acpi_ut_get_region_name(reg->space_id)));
+					  "Wrote: %8.8X%8.8X width %2d   to %8.8X%8.8X (%s)\n",
+					  ACPI_FORMAT_UINT64(value), reg->bit_width,
+					  ACPI_FORMAT_UINT64(address),
+					  acpi_ut_get_region_name(reg->space_id)));
 
 	return (status);
 }
@@ -308,27 +341,31 @@ acpi_status acpi_read_bit_register(u32 register_id, u32 *return_value)
 	/* Get the info structure corresponding to the requested ACPI Register */
 
 	bit_reg_info = acpi_hw_get_bit_register_info(register_id);
-	if (!bit_reg_info) {
+
+	if (!bit_reg_info)
+	{
 		return_ACPI_STATUS(AE_BAD_PARAMETER);
 	}
 
 	/* Read the entire parent register */
 
 	status = acpi_hw_register_read(bit_reg_info->parent_register,
-				       &register_value);
-	if (ACPI_FAILURE(status)) {
+								   &register_value);
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
 	/* Normalize the value that was read, mask off other bits */
 
 	value = ((register_value & bit_reg_info->access_bit_mask)
-		 >> bit_reg_info->bit_position);
+			 >> bit_reg_info->bit_position);
 
 	ACPI_DEBUG_PRINT((ACPI_DB_IO,
-			  "BitReg %X, ParentReg %X, Actual %8.8X, ReturnValue %8.8X\n",
-			  register_id, bit_reg_info->parent_register,
-			  register_value, value));
+					  "BitReg %X, ParentReg %X, Actual %8.8X, ReturnValue %8.8X\n",
+					  register_id, bit_reg_info->parent_register,
+					  register_value, value));
 
 	*return_value = value;
 	return_ACPI_STATUS(AE_OK);
@@ -369,7 +406,9 @@ acpi_status acpi_write_bit_register(u32 register_id, u32 value)
 	/* Get the info structure corresponding to the requested ACPI Register */
 
 	bit_reg_info = acpi_hw_get_bit_register_info(register_id);
-	if (!bit_reg_info) {
+
+	if (!bit_reg_info)
+	{
 		return_ACPI_STATUS(AE_BAD_PARAMETER);
 	}
 
@@ -379,7 +418,8 @@ acpi_status acpi_write_bit_register(u32 register_id, u32 value)
 	 * At this point, we know that the parent register is one of the
 	 * following: PM1 Status, PM1 Enable, PM1 Control, or PM2 Control
 	 */
-	if (bit_reg_info->parent_register != ACPI_REGISTER_PM1_STATUS) {
+	if (bit_reg_info->parent_register != ACPI_REGISTER_PM1_STATUS)
+	{
 		/*
 		 * 1) Case for PM1 Enable, PM1 Control, and PM2 Control
 		 *
@@ -387,8 +427,10 @@ acpi_status acpi_write_bit_register(u32 register_id, u32 value)
 		 * interested in
 		 */
 		status = acpi_hw_register_read(bit_reg_info->parent_register,
-					       &register_value);
-		if (ACPI_FAILURE(status)) {
+									   &register_value);
+
+		if (ACPI_FAILURE(status))
+		{
 			goto unlock_and_exit;
 		}
 
@@ -397,13 +439,15 @@ acpi_status acpi_write_bit_register(u32 register_id, u32 value)
 		 * and write the register
 		 */
 		ACPI_REGISTER_INSERT_VALUE(register_value,
-					   bit_reg_info->bit_position,
-					   bit_reg_info->access_bit_mask,
-					   value);
+								   bit_reg_info->bit_position,
+								   bit_reg_info->access_bit_mask,
+								   value);
 
 		status = acpi_hw_register_write(bit_reg_info->parent_register,
-						register_value);
-	} else {
+										register_value);
+	}
+	else
+	{
 		/*
 		 * 2) Case for PM1 Status
 		 *
@@ -413,24 +457,25 @@ acpi_status acpi_write_bit_register(u32 register_id, u32 value)
 		 * should be written as 0 so they will be left unchanged.
 		 */
 		register_value = ACPI_REGISTER_PREPARE_BITS(value,
-							    bit_reg_info->
-							    bit_position,
-							    bit_reg_info->
-							    access_bit_mask);
+						 bit_reg_info->
+						 bit_position,
+						 bit_reg_info->
+						 access_bit_mask);
 
 		/* No need to write the register if value is all zeros */
 
-		if (register_value) {
+		if (register_value)
+		{
 			status =
-			    acpi_hw_register_write(ACPI_REGISTER_PM1_STATUS,
-						   register_value);
+				acpi_hw_register_write(ACPI_REGISTER_PM1_STATUS,
+									   register_value);
 		}
 	}
 
 	ACPI_DEBUG_PRINT((ACPI_DB_IO,
-			  "BitReg %X, ParentReg %X, Value %8.8X, Actual %8.8X\n",
-			  register_id, bit_reg_info->parent_register, value,
-			  register_value));
+					  "BitReg %X, ParentReg %X, Value %8.8X, Actual %8.8X\n",
+					  register_id, bit_reg_info->parent_register, value,
+					  register_value));
 
 unlock_and_exit:
 
@@ -488,14 +533,17 @@ acpi_get_sleep_type_data(u8 sleep_state, u8 *sleep_type_a, u8 *sleep_type_b)
 
 	/* Validate parameters */
 
-	if ((sleep_state > ACPI_S_STATES_MAX) || !sleep_type_a || !sleep_type_b) {
+	if ((sleep_state > ACPI_S_STATES_MAX) || !sleep_type_a || !sleep_type_b)
+	{
 		return_ACPI_STATUS(AE_BAD_PARAMETER);
 	}
 
 	/* Allocate the evaluation information block */
 
 	info = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_evaluate_info));
-	if (!info) {
+
+	if (!info)
+	{
 		return_ACPI_STATUS(AE_NO_MEMORY);
 	}
 
@@ -506,8 +554,11 @@ acpi_get_sleep_type_data(u8 sleep_state, u8 *sleep_type_a, u8 *sleep_type_b)
 	info->relative_pathname = acpi_gbl_sleep_state_names[sleep_state];
 
 	status = acpi_ns_evaluate(info);
-	if (ACPI_FAILURE(status)) {
-		if (status == AE_NOT_FOUND) {
+
+	if (ACPI_FAILURE(status))
+	{
+		if (status == AE_NOT_FOUND)
+		{
 
 			/* The _Sx states are optional, ignore NOT_FOUND */
 
@@ -519,18 +570,20 @@ acpi_get_sleep_type_data(u8 sleep_state, u8 *sleep_type_a, u8 *sleep_type_b)
 
 	/* Must have a return object */
 
-	if (!info->return_object) {
+	if (!info->return_object)
+	{
 		ACPI_ERROR((AE_INFO, "No Sleep State object returned from [%s]",
-			    info->relative_pathname));
+					info->relative_pathname));
 		status = AE_AML_NO_RETURN_VALUE;
 		goto warning_cleanup;
 	}
 
 	/* Return object must be of type Package */
 
-	if (info->return_object->common.type != ACPI_TYPE_PACKAGE) {
+	if (info->return_object->common.type != ACPI_TYPE_PACKAGE)
+	{
 		ACPI_ERROR((AE_INFO,
-			    "Sleep State return object is not a Package"));
+					"Sleep State return object is not a Package"));
 		status = AE_AML_OPERAND_TYPE;
 		goto return_value_cleanup;
 	}
@@ -541,49 +594,55 @@ acpi_get_sleep_type_data(u8 sleep_state, u8 *sleep_type_a, u8 *sleep_type_b)
 	 * need to repeat them here.
 	 */
 	elements = info->return_object->package.elements;
-	switch (info->return_object->package.count) {
-	case 0:
 
-		status = AE_AML_PACKAGE_LIMIT;
-		break;
+	switch (info->return_object->package.count)
+	{
+		case 0:
 
-	case 1:
-
-		if (elements[0]->common.type != ACPI_TYPE_INTEGER) {
-			status = AE_AML_OPERAND_TYPE;
+			status = AE_AML_PACKAGE_LIMIT;
 			break;
-		}
 
-		/* A valid _Sx_ package with one integer */
+		case 1:
 
-		*sleep_type_a = (u8)elements[0]->integer.value;
-		*sleep_type_b = (u8)(elements[0]->integer.value >> 8);
-		break;
+			if (elements[0]->common.type != ACPI_TYPE_INTEGER)
+			{
+				status = AE_AML_OPERAND_TYPE;
+				break;
+			}
 
-	case 2:
-	default:
+			/* A valid _Sx_ package with one integer */
 
-		if ((elements[0]->common.type != ACPI_TYPE_INTEGER) ||
-		    (elements[1]->common.type != ACPI_TYPE_INTEGER)) {
-			status = AE_AML_OPERAND_TYPE;
+			*sleep_type_a = (u8)elements[0]->integer.value;
+			*sleep_type_b = (u8)(elements[0]->integer.value >> 8);
 			break;
-		}
 
-		/* A valid _Sx_ package with two integers */
+		case 2:
+		default:
 
-		*sleep_type_a = (u8)elements[0]->integer.value;
-		*sleep_type_b = (u8)elements[1]->integer.value;
-		break;
+			if ((elements[0]->common.type != ACPI_TYPE_INTEGER) ||
+				(elements[1]->common.type != ACPI_TYPE_INTEGER))
+			{
+				status = AE_AML_OPERAND_TYPE;
+				break;
+			}
+
+			/* A valid _Sx_ package with two integers */
+
+			*sleep_type_a = (u8)elements[0]->integer.value;
+			*sleep_type_b = (u8)elements[1]->integer.value;
+			break;
 	}
 
 return_value_cleanup:
 	acpi_ut_remove_reference(info->return_object);
 
 warning_cleanup:
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status,
-				"While evaluating Sleep State [%s]",
-				info->relative_pathname));
+						"While evaluating Sleep State [%s]",
+						info->relative_pathname));
 	}
 
 final_cleanup:

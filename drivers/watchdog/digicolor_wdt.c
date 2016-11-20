@@ -24,7 +24,8 @@
 #define TIMER_A_ENABLE_COUNT	BIT(0)
 #define TIMER_A_ENABLE_WATCHDOG	BIT(1)
 
-struct dc_wdt {
+struct dc_wdt
+{
 	void __iomem		*base;
 	struct clk		*clk;
 	spinlock_t		lock;
@@ -43,13 +44,13 @@ static void dc_wdt_set(struct dc_wdt *wdt, u32 ticks)
 	writel_relaxed(0, wdt->base + TIMER_A_CONTROL);
 	writel_relaxed(ticks, wdt->base + TIMER_A_COUNT);
 	writel_relaxed(TIMER_A_ENABLE_COUNT | TIMER_A_ENABLE_WATCHDOG,
-		       wdt->base + TIMER_A_CONTROL);
+				   wdt->base + TIMER_A_CONTROL);
 
 	spin_unlock_irqrestore(&wdt->lock, flags);
 }
 
 static int dc_wdt_restart(struct watchdog_device *wdog, unsigned long action,
-			  void *data)
+						  void *data)
 {
 	struct dc_wdt *wdt = watchdog_get_drvdata(wdog);
 
@@ -96,7 +97,8 @@ static unsigned int dc_wdt_get_timeleft(struct watchdog_device *wdog)
 	return count / clk_get_rate(wdt->clk);
 }
 
-static struct watchdog_ops dc_wdt_ops = {
+static struct watchdog_ops dc_wdt_ops =
+{
 	.owner		= THIS_MODULE,
 	.start		= dc_wdt_start,
 	.stop		= dc_wdt_stop,
@@ -105,13 +107,15 @@ static struct watchdog_ops dc_wdt_ops = {
 	.restart        = dc_wdt_restart,
 };
 
-static struct watchdog_info dc_wdt_info = {
+static struct watchdog_info dc_wdt_info =
+{
 	.options	= WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE
-			| WDIOF_KEEPALIVEPING,
+	| WDIOF_KEEPALIVEPING,
 	.identity	= "Conexant Digicolor Watchdog",
 };
 
-static struct watchdog_device dc_wdt_wdd = {
+static struct watchdog_device dc_wdt_wdd =
+{
 	.info		= &dc_wdt_info,
 	.ops		= &dc_wdt_ops,
 	.min_timeout	= 1,
@@ -125,21 +129,30 @@ static int dc_wdt_probe(struct platform_device *pdev)
 	int ret;
 
 	wdt = devm_kzalloc(dev, sizeof(struct dc_wdt), GFP_KERNEL);
+
 	if (!wdt)
+	{
 		return -ENOMEM;
+	}
+
 	platform_set_drvdata(pdev, wdt);
 
 	wdt->base = of_iomap(np, 0);
-	if (!wdt->base) {
+
+	if (!wdt->base)
+	{
 		dev_err(dev, "Failed to remap watchdog regs");
 		return -ENODEV;
 	}
 
 	wdt->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(wdt->clk)) {
+
+	if (IS_ERR(wdt->clk))
+	{
 		ret = PTR_ERR(wdt->clk);
 		goto err_iounmap;
 	}
+
 	dc_wdt_wdd.max_timeout = U32_MAX / clk_get_rate(wdt->clk);
 	dc_wdt_wdd.timeout = dc_wdt_wdd.max_timeout;
 	dc_wdt_wdd.parent = &pdev->dev;
@@ -150,7 +163,9 @@ static int dc_wdt_probe(struct platform_device *pdev)
 	watchdog_set_restart_priority(&dc_wdt_wdd, 128);
 	watchdog_init_timeout(&dc_wdt_wdd, timeout, dev);
 	ret = watchdog_register_device(&dc_wdt_wdd);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to register watchdog device");
 		goto err_iounmap;
 	}
@@ -177,13 +192,15 @@ static void dc_wdt_shutdown(struct platform_device *pdev)
 	dc_wdt_stop(&dc_wdt_wdd);
 }
 
-static const struct of_device_id dc_wdt_of_match[] = {
+static const struct of_device_id dc_wdt_of_match[] =
+{
 	{ .compatible = "cnxt,cx92755-wdt", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, dc_wdt_of_match);
 
-static struct platform_driver dc_wdt_driver = {
+static struct platform_driver dc_wdt_driver =
+{
 	.probe		= dc_wdt_probe,
 	.remove		= dc_wdt_remove,
 	.shutdown	= dc_wdt_shutdown,

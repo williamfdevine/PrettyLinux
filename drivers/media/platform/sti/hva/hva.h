@@ -36,7 +36,8 @@ extern const struct hva_enc nv21h264enc;
  * @aligned_height: height of frame (with encoder alignment constraint)
  * @size:           maximum size in bytes required for data
 */
-struct hva_frameinfo {
+struct hva_frameinfo
+{
 	u32	pixelformat;
 	u32	width;
 	u32	height;
@@ -54,7 +55,8 @@ struct hva_frameinfo {
  * @profile:      profile string
  * @level:        level string
  */
-struct hva_streaminfo {
+struct hva_streaminfo
+{
 	u32	streamformat;
 	u32	width;
 	u32	height;
@@ -82,7 +84,8 @@ struct hva_streaminfo {
  * @sei_fp:         sei frame packing arrangement enable
  * @sei_fp_type:    sei frame packing arrangement type
  */
-struct hva_controls {
+struct hva_controls
+{
 	struct v4l2_fract					time_per_frame;
 	enum v4l2_mpeg_video_bitrate_mode			bitrate_mode;
 	u32							gop_size;
@@ -111,7 +114,8 @@ struct hva_controls {
  * @vaddr:    virtual address (kernel can read/write)
  * @prepared: true if vaddr/paddr are resolved
  */
-struct hva_frame {
+struct hva_frame
+{
 	struct vb2_v4l2_buffer	vbuf;
 	struct list_head	list;
 	struct hva_frameinfo	info;
@@ -137,7 +141,8 @@ struct hva_frame {
  * @size:       size of the buffer in bytes
  * @bytesused:  number of bytes occupied by data in the buffer
  */
-struct hva_stream {
+struct hva_stream
+{
 	struct vb2_v4l2_buffer	vbuf;
 	struct list_head	list;
 	dma_addr_t		paddr;
@@ -183,7 +188,8 @@ struct hva_enc;
  *                   by encoder @open time
  * @hw_err:          true if hardware error detected
  */
-struct hva_ctx {
+struct hva_ctx
+{
 	struct hva_dev		        *hva_dev;
 	struct v4l2_fh			fh;
 	struct v4l2_ctrl_handler	ctrl_handler;
@@ -251,7 +257,8 @@ struct hva_ctx {
  * @emi_err_reg:         external memory interface error register value
  * @hec_mif_err_reg:     HEC memory interface error register value
  */
-struct hva_dev {
+struct hva_dev
+{
 	struct v4l2_device	v4l2_dev;
 	struct video_device	*vdev;
 	struct platform_device	*pdev;
@@ -300,7 +307,8 @@ struct hva_dev {
  *                (struct hva_stream)
  */
 
-struct hva_enc {
+struct hva_enc
+{
 	const char	*name;
 	u32		streamformat;
 	u32		pixelformat;
@@ -309,7 +317,7 @@ struct hva_enc {
 	int		(*open)(struct hva_ctx *ctx);
 	int		(*close)(struct hva_ctx *ctx);
 	int		(*encode)(struct hva_ctx *ctx, struct hva_frame *frame,
-				  struct hva_stream *stream);
+					  struct hva_stream *stream);
 };
 
 #endif /* HVA_H */

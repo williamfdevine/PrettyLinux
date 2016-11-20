@@ -13,7 +13,8 @@
 /**
  * struct tb_nhi - thunderbolt native host interface
  */
-struct tb_nhi {
+struct tb_nhi
+{
 	struct mutex lock; /*
 			    * Must be held during ring creation/destruction.
 			    * Is acquired by interrupt_work when dispatching
@@ -30,7 +31,8 @@ struct tb_nhi {
 /**
  * struct tb_ring - thunderbolt TX or RX ring associated with a NHI
  */
-struct tb_ring {
+struct tb_ring
+{
 	struct mutex lock; /* must be acquired after nhi->lock */
 	struct tb_nhi *nhi;
 	int size;
@@ -42,24 +44,25 @@ struct tb_ring {
 	struct list_head queue;
 	struct list_head in_flight;
 	struct work_struct work;
-	bool is_tx:1; /* rx otherwise */
-	bool running:1;
+	bool is_tx: 1; /* rx otherwise */
+	bool running: 1;
 };
 
 struct ring_frame;
-typedef void (*ring_cb)(struct tb_ring*, struct ring_frame*, bool canceled);
+typedef void (*ring_cb)(struct tb_ring *, struct ring_frame *, bool canceled);
 
 /**
  * struct ring_frame - for use with ring_rx/ring_tx
  */
-struct ring_frame {
+struct ring_frame
+{
 	dma_addr_t buffer_phy;
 	ring_cb callback;
 	struct list_head list;
-	u32 size:12; /* TX: in, RX: out*/
-	u32 flags:12; /* RX: out */
-	u32 eof:4; /* TX:in, RX: out */
-	u32 sof:4; /* TX:in, RX: out */
+	u32 size: 12; /* TX: in, RX: out*/
+	u32 flags: 12; /* RX: out */
+	u32 eof: 4; /* TX:in, RX: out */
+	u32 sof: 4; /* TX:in, RX: out */
 };
 
 #define TB_FRAME_SIZE 0x100    /* minimum size for ring_rx */

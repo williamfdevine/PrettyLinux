@@ -62,7 +62,8 @@
  * @name: Name for this transport used in misc device creation.
  * @miscdev: The misc device registered.
  */
-struct vop_info {
+struct vop_info
+{
 	struct vop_device *vpdev;
 	struct work_struct hotplug_work;
 	struct mic_irq *cookie;
@@ -90,7 +91,8 @@ struct vop_info {
  * @buf_da: dma address of buf.
  * @vdev: Back pointer to VOP virtio device for vringh_notify(..).
  */
-struct vop_vringh {
+struct vop_vringh
+{
 	struct mic_vring vring;
 	struct vringh vrh;
 	struct vringh_kiov riov;
@@ -132,7 +134,8 @@ struct vop_vringh {
  * @destroy: Track if a virtio device is being destroyed.
  * @deleted: The virtio device has been deleted.
  */
-struct vop_vdev {
+struct vop_vdev
+{
 	int virtio_id;
 	wait_queue_head_t waitq;
 	struct vop_device *vpdev;

@@ -34,14 +34,16 @@
 #define AT91_SHDW_RTTWK		BIT(16)			/* Real-time Timer Wake-up */
 #define AT91_SHDW_RTCWK		BIT(17)			/* Real-time Clock Wake-up [SAM9RL] */
 
-enum wakeup_type {
+enum wakeup_type
+{
 	AT91_SHDW_WKMODE0_NONE		= 0,
 	AT91_SHDW_WKMODE0_HIGH		= 1,
 	AT91_SHDW_WKMODE0_LOW		= 2,
 	AT91_SHDW_WKMODE0_ANYLEVEL	= 3,
 };
 
-static const char *shdwc_wakeup_modes[] = {
+static const char *shdwc_wakeup_modes[] =
+{
 	[AT91_SHDW_WKMODE0_NONE]	= "none",
 	[AT91_SHDW_WKMODE0_HIGH]	= "high",
 	[AT91_SHDW_WKMODE0_LOW]		= "low",
@@ -58,12 +60,18 @@ static void __init at91_wakeup_status(void)
 
 	/* Simple power-on, just bail out */
 	if (!reg)
+	{
 		return;
+	}
 
 	if (reg & AT91_SHDW_RTTWK)
+	{
 		reason = "RTT";
+	}
 	else if (reg & AT91_SHDW_RTCWK)
+	{
 		reason = "RTC";
+	}
 
 	pr_info("AT91: Wake-Up source: %s\n", reason);
 }
@@ -80,12 +88,17 @@ static int at91_poweroff_get_wakeup_mode(struct device_node *np)
 	int err;
 
 	err = of_property_read_string(np, "atmel,wakeup-mode", &pm);
+
 	if (err < 0)
+	{
 		return AT91_SHDW_WKMODE0_ANYLEVEL;
+	}
 
 	for (i = 0; i < ARRAY_SIZE(shdwc_wakeup_modes); i++)
 		if (!strcasecmp(pm, shdwc_wakeup_modes[i]))
+		{
 			return i;
+		}
 
 	return -ENODEV;
 }
@@ -97,26 +110,35 @@ static void at91_poweroff_dt_set_wakeup_mode(struct platform_device *pdev)
 	u32 mode = 0, tmp;
 
 	wakeup_mode = at91_poweroff_get_wakeup_mode(np);
-	if (wakeup_mode < 0) {
+
+	if (wakeup_mode < 0)
+	{
 		dev_warn(&pdev->dev, "shdwc unknown wakeup mode\n");
 		return;
 	}
 
-	if (!of_property_read_u32(np, "atmel,wakeup-counter", &tmp)) {
-		if (tmp > AT91_SHDW_CPTWK0_MAX) {
+	if (!of_property_read_u32(np, "atmel,wakeup-counter", &tmp))
+	{
+		if (tmp > AT91_SHDW_CPTWK0_MAX)
+		{
 			dev_warn(&pdev->dev,
-				 "shdwc wakeup counter 0x%x > 0x%x reduce it to 0x%x\n",
-				 tmp, AT91_SHDW_CPTWK0_MAX, AT91_SHDW_CPTWK0_MAX);
+					 "shdwc wakeup counter 0x%x > 0x%x reduce it to 0x%x\n",
+					 tmp, AT91_SHDW_CPTWK0_MAX, AT91_SHDW_CPTWK0_MAX);
 			tmp = AT91_SHDW_CPTWK0_MAX;
 		}
+
 		mode |= AT91_SHDW_CPTWK0_(tmp);
 	}
 
 	if (of_property_read_bool(np, "atmel,wakeup-rtc-timer"))
-			mode |= AT91_SHDW_RTCWKEN;
+	{
+		mode |= AT91_SHDW_RTCWKEN;
+	}
 
 	if (of_property_read_bool(np, "atmel,wakeup-rtt-timer"))
-			mode |= AT91_SHDW_RTTWKEN;
+	{
+		mode |= AT91_SHDW_RTTWKEN;
+	}
 
 	writel(wakeup_mode | mode, at91_shdwc_base + AT91_SHDW_MR);
 }
@@ -128,17 +150,24 @@ static int __init at91_poweroff_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	at91_shdwc_base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(at91_shdwc_base)) {
+
+	if (IS_ERR(at91_shdwc_base))
+	{
 		dev_err(&pdev->dev, "Could not map reset controller address\n");
 		return PTR_ERR(at91_shdwc_base);
 	}
 
 	sclk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(sclk))
+	{
 		return PTR_ERR(sclk);
+	}
 
 	ret = clk_prepare_enable(sclk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Could not enable slow clock\n");
 		return ret;
 	}
@@ -146,7 +175,9 @@ static int __init at91_poweroff_probe(struct platform_device *pdev)
 	at91_wakeup_status();
 
 	if (pdev->dev.of_node)
+	{
 		at91_poweroff_dt_set_wakeup_mode(pdev);
+	}
 
 	pm_power_off = at91_poweroff;
 
@@ -156,21 +187,25 @@ static int __init at91_poweroff_probe(struct platform_device *pdev)
 static int __exit at91_poweroff_remove(struct platform_device *pdev)
 {
 	if (pm_power_off == at91_poweroff)
+	{
 		pm_power_off = NULL;
+	}
 
 	clk_disable_unprepare(sclk);
 
 	return 0;
 }
 
-static const struct of_device_id at91_poweroff_of_match[] = {
+static const struct of_device_id at91_poweroff_of_match[] =
+{
 	{ .compatible = "atmel,at91sam9260-shdwc", },
 	{ .compatible = "atmel,at91sam9rl-shdwc", },
 	{ .compatible = "atmel,at91sam9x5-shdwc", },
 	{ /*sentinel*/ }
 };
 
-static struct platform_driver at91_poweroff_driver = {
+static struct platform_driver at91_poweroff_driver =
+{
 	.remove = __exit_p(at91_poweroff_remove),
 	.driver = {
 		.name = "at91-poweroff",

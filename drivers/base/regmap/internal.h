@@ -22,7 +22,8 @@
 struct regmap;
 struct regcache_ops;
 
-struct regmap_debugfs_off_cache {
+struct regmap_debugfs_off_cache
+{
 	struct list_head list;
 	off_t min;
 	off_t max;
@@ -30,29 +31,34 @@ struct regmap_debugfs_off_cache {
 	unsigned int max_reg;
 };
 
-struct regmap_format {
+struct regmap_format
+{
 	size_t buf_size;
 	size_t reg_bytes;
 	size_t pad_bytes;
 	size_t val_bytes;
 	void (*format_write)(struct regmap *map,
-			     unsigned int reg, unsigned int val);
+						 unsigned int reg, unsigned int val);
 	void (*format_reg)(void *buf, unsigned int reg, unsigned int shift);
 	void (*format_val)(void *buf, unsigned int val, unsigned int shift);
 	unsigned int (*parse_val)(const void *buf);
 	void (*parse_inplace)(void *buf);
 };
 
-struct regmap_async {
+struct regmap_async
+{
 	struct list_head list;
 	struct regmap *map;
 	void *work_buf;
 };
 
-struct regmap {
-	union {
+struct regmap
+{
+	union
+	{
 		struct mutex mutex;
-		struct {
+		struct
+		{
 			spinlock_t spinlock;
 			unsigned long spinlock_flags;
 		};
@@ -101,7 +107,7 @@ struct regmap {
 	int (*reg_read)(void *context, unsigned int reg, unsigned int *val);
 	int (*reg_write)(void *context, unsigned int reg, unsigned int val);
 	int (*reg_update_bits)(void *context, unsigned int reg,
-			       unsigned int mask, unsigned int val);
+						   unsigned int mask, unsigned int val);
 
 	bool defer_caching;
 
@@ -159,7 +165,8 @@ struct regmap {
 	void *selector_work_buf;	/* Scratch buffer used for selector */
 };
 
-struct regcache_ops {
+struct regcache_ops
+{
 	const char *name;
 	enum regcache_type type;
 	int (*init)(struct regmap *map);
@@ -180,9 +187,10 @@ bool regmap_volatile(struct regmap *map, unsigned int reg);
 bool regmap_precious(struct regmap *map, unsigned int reg);
 
 int _regmap_write(struct regmap *map, unsigned int reg,
-		  unsigned int val);
+				  unsigned int val);
 
-struct regmap_range_node {
+struct regmap_range_node
+{
 	struct rb_node node;
 	const char *name;
 	struct regmap *map;
@@ -198,7 +206,8 @@ struct regmap_range_node {
 	unsigned int window_len;
 };
 
-struct regmap_field {
+struct regmap_field
+{
 	struct regmap *regmap;
 	unsigned int mask;
 	/* lsb */
@@ -223,36 +232,36 @@ static inline void regmap_debugfs_exit(struct regmap *map) { }
 int regcache_init(struct regmap *map, const struct regmap_config *config);
 void regcache_exit(struct regmap *map);
 int regcache_read(struct regmap *map,
-		       unsigned int reg, unsigned int *value);
+				  unsigned int reg, unsigned int *value);
 int regcache_write(struct regmap *map,
-			unsigned int reg, unsigned int value);
+				   unsigned int reg, unsigned int value);
 int regcache_sync(struct regmap *map);
 int regcache_sync_block(struct regmap *map, void *block,
-			unsigned long *cache_present,
-			unsigned int block_base, unsigned int start,
-			unsigned int end);
+						unsigned long *cache_present,
+						unsigned int block_base, unsigned int start,
+						unsigned int end);
 
 static inline const void *regcache_get_val_addr(struct regmap *map,
-						const void *base,
-						unsigned int idx)
+		const void *base,
+		unsigned int idx)
 {
 	return base + (map->cache_word_size * idx);
 }
 
 unsigned int regcache_get_val(struct regmap *map, const void *base,
-			      unsigned int idx);
+							  unsigned int idx);
 bool regcache_set_val(struct regmap *map, void *base, unsigned int idx,
-		      unsigned int val);
+					  unsigned int val);
 int regcache_lookup_reg(struct regmap *map, unsigned int reg);
 
 int _regmap_raw_write(struct regmap *map, unsigned int reg,
-		      const void *val, size_t val_len);
+					  const void *val, size_t val_len);
 
 void regmap_async_complete_cb(struct regmap_async *async, int ret);
 
 enum regmap_endian regmap_get_val_endian(struct device *dev,
-					 const struct regmap_bus *bus,
-					 const struct regmap_config *config);
+		const struct regmap_bus *bus,
+		const struct regmap_config *config);
 
 extern struct regcache_ops regcache_rbtree_ops;
 extern struct regcache_ops regcache_lzo_ops;
@@ -261,22 +270,28 @@ extern struct regcache_ops regcache_flat_ops;
 static inline const char *regmap_name(const struct regmap *map)
 {
 	if (map->dev)
+	{
 		return dev_name(map->dev);
+	}
 
 	return map->name;
 }
 
 static inline unsigned int regmap_get_offset(const struct regmap *map,
-					     unsigned int index)
+		unsigned int index)
 {
 	if (map->reg_stride_order >= 0)
+	{
 		return index << map->reg_stride_order;
+	}
 	else
+	{
 		return index * map->reg_stride;
+	}
 }
 
 static inline unsigned int regcache_get_index_by_order(const struct regmap *map,
-						       unsigned int reg)
+		unsigned int reg)
 {
 	return reg >> map->reg_stride_order;
 }

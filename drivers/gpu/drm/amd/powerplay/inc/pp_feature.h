@@ -27,7 +27,8 @@
 /**
  * PowerPlay feature ids.
  */
-enum pp_feature {
+enum pp_feature
+{
 	PP_Feature_PowerPlay = 0,
 	PP_Feature_User2DPerformance,
 	PP_Feature_User3DPerformance,
@@ -57,7 +58,8 @@ enum pp_feature {
 /**
  * Struct for PowerPlay feature info.
  */
-struct pp_feature_info {
+struct pp_feature_info
+{
 	bool supported;               /* feature supported by PowerPlay */
 	bool enabled;                 /* feature enabled in PowerPlay */
 	bool enabled_default;        /* default enable status of the feature */

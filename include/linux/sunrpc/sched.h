@@ -21,16 +21,18 @@
  * This is the actual RPC procedure call info.
  */
 struct rpc_procinfo;
-struct rpc_message {
-	struct rpc_procinfo *	rpc_proc;	/* Procedure information */
-	void *			rpc_argp;	/* Arguments */
-	void *			rpc_resp;	/* Result */
-	struct rpc_cred *	rpc_cred;	/* Credentials */
+struct rpc_message
+{
+	struct rpc_procinfo 	*rpc_proc;	/* Procedure information */
+	void 			*rpc_argp;	/* Arguments */
+	void 			*rpc_resp;	/* Result */
+	struct rpc_cred 	*rpc_cred;	/* Credentials */
 };
 
 struct rpc_call_ops;
 struct rpc_wait_queue;
-struct rpc_wait {
+struct rpc_wait
+{
 	struct list_head	list;		/* wait queue links */
 	struct list_head	links;		/* Links to related tasks */
 	struct list_head	timer_list;	/* Timer list */
@@ -40,7 +42,8 @@ struct rpc_wait {
 /*
  * This is the RPC task struct
  */
-struct rpc_task {
+struct rpc_task
+{
 	atomic_t		tk_count;	/* Reference count */
 	int			tk_status;	/* result of last operation */
 	struct list_head	tk_task;	/* global list of tasks */
@@ -56,7 +59,8 @@ struct rpc_task {
 	unsigned long		tk_runstate;	/* Task run status */
 
 	struct rpc_wait_queue 	*tk_waitqueue;	/* RPC wait queue we're on */
-	union {
+	union
+	{
 		struct work_struct	tk_work;	/* Async task work queue */
 		struct rpc_wait		tk_wait;	/* RPC wait */
 	} u;
@@ -65,13 +69,13 @@ struct rpc_task {
 	 * RPC call state
 	 */
 	struct rpc_message	tk_msg;		/* RPC call info */
-	void *			tk_calldata;	/* Caller private data */
+	void 			*tk_calldata;	/* Caller private data */
 	const struct rpc_call_ops *tk_ops;	/* Caller callbacks */
 
-	struct rpc_clnt *	tk_client;	/* RPC client */
-	struct rpc_xprt *	tk_xprt;	/* Transport */
+	struct rpc_clnt 	*tk_client;	/* RPC client */
+	struct rpc_xprt 	*tk_xprt;	/* Transport */
 
-	struct rpc_rqst *	tk_rqstp;	/* RPC request */
+	struct rpc_rqst 	*tk_rqstp;	/* RPC request */
 
 	struct workqueue_struct	*tk_workqueue;	/* Normally rpciod, but could
 						 * be any workqueue
@@ -86,21 +90,23 @@ struct rpc_task {
 	unsigned short		tk_pid;		/* debugging aid */
 #endif
 	unsigned char		tk_priority : 2,/* Task priority */
-				tk_garb_retry : 2,
-				tk_cred_retry : 2,
-				tk_rebind_retry : 2;
+				  tk_garb_retry : 2,
+				  tk_cred_retry : 2,
+				  tk_rebind_retry : 2;
 };
 
 typedef void			(*rpc_action)(struct rpc_task *);
 
-struct rpc_call_ops {
+struct rpc_call_ops
+{
 	void (*rpc_call_prepare)(struct rpc_task *, void *);
 	void (*rpc_call_done)(struct rpc_task *, void *);
 	void (*rpc_count_stats)(struct rpc_task *, void *);
 	void (*rpc_release)(void *);
 };
 
-struct rpc_task_setup {
+struct rpc_task_setup
+{
 	struct rpc_task *task;
 	struct rpc_clnt *rpc_client;
 	struct rpc_xprt *rpc_xprt;
@@ -143,7 +149,7 @@ struct rpc_task_setup {
 #define RPC_IS_RUNNING(t)	test_bit(RPC_TASK_RUNNING, &(t)->tk_runstate)
 #define rpc_set_running(t)	set_bit(RPC_TASK_RUNNING, &(t)->tk_runstate)
 #define rpc_test_and_set_running(t) \
-				test_and_set_bit(RPC_TASK_RUNNING, &(t)->tk_runstate)
+	test_and_set_bit(RPC_TASK_RUNNING, &(t)->tk_runstate)
 #define rpc_clear_running(t)	\
 	do { \
 		smp_mb__before_atomic(); \
@@ -173,7 +179,8 @@ struct rpc_task_setup {
 #define RPC_PRIORITY_PRIVILEGED	(2)
 #define RPC_NR_PRIORITY		(1 + RPC_PRIORITY_PRIVILEGED - RPC_PRIORITY_LOW)
 
-struct rpc_timer {
+struct rpc_timer
+{
 	struct timer_list timer;
 	struct list_head list;
 	unsigned long expires;
@@ -182,7 +189,8 @@ struct rpc_timer {
 /*
  * RPC synchronization objects
  */
-struct rpc_wait_queue {
+struct rpc_wait_queue
+{
 	spinlock_t		lock;
 	struct list_head	tasks[RPC_NR_PRIORITY];	/* task queue for each priority level */
 	pid_t			owner;			/* process id of last task serviced */
@@ -192,7 +200,7 @@ struct rpc_wait_queue {
 	unsigned short		qlen;			/* total # tasks waiting in queue */
 	struct rpc_timer	timer_list;
 #if IS_ENABLED(CONFIG_SUNRPC_DEBUG) || IS_ENABLED(CONFIG_TRACEPOINTS)
-	const char *		name;
+	const char 		*name;
 #endif
 };
 
@@ -221,22 +229,22 @@ void		rpc_init_priority_wait_queue(struct rpc_wait_queue *, const char *);
 void		rpc_init_wait_queue(struct rpc_wait_queue *, const char *);
 void		rpc_destroy_wait_queue(struct rpc_wait_queue *);
 void		rpc_sleep_on(struct rpc_wait_queue *, struct rpc_task *,
-					rpc_action action);
+						 rpc_action action);
 void		rpc_sleep_on_priority(struct rpc_wait_queue *,
-					struct rpc_task *,
-					rpc_action action,
-					int priority);
+								  struct rpc_task *,
+								  rpc_action action,
+								  int priority);
 void		rpc_wake_up_queued_task(struct rpc_wait_queue *,
-					struct rpc_task *);
+									struct rpc_task *);
 void		rpc_wake_up(struct rpc_wait_queue *);
 struct rpc_task *rpc_wake_up_next(struct rpc_wait_queue *);
 struct rpc_task *rpc_wake_up_first_on_wq(struct workqueue_struct *wq,
-					struct rpc_wait_queue *,
-					bool (*)(struct rpc_task *, void *),
-					void *);
+		struct rpc_wait_queue *,
+		bool (*)(struct rpc_task *, void *),
+		void *);
 struct rpc_task *rpc_wake_up_first(struct rpc_wait_queue *,
-					bool (*)(struct rpc_task *, void *),
-					void *);
+								   bool (*)(struct rpc_task *, void *),
+								   void *);
 void		rpc_wake_up_status(struct rpc_wait_queue *, int);
 void		rpc_delay(struct rpc_task *, unsigned long);
 int		rpc_malloc(struct rpc_task *);
@@ -245,8 +253,8 @@ int		rpciod_up(void);
 void		rpciod_down(void);
 int		__rpc_wait_for_completion_task(struct rpc_task *task, wait_bit_action_f *);
 #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
-struct net;
-void		rpc_show_tasks(struct net *);
+	struct net;
+	void		rpc_show_tasks(struct net *);
 #endif
 int		rpc_init_mempool(void);
 void		rpc_destroy_mempool(void);
@@ -260,7 +268,7 @@ static inline int rpc_wait_for_completion_task(struct rpc_task *task)
 }
 
 #if IS_ENABLED(CONFIG_SUNRPC_DEBUG) || IS_ENABLED(CONFIG_TRACEPOINTS)
-static inline const char * rpc_qname(const struct rpc_wait_queue *q)
+static inline const char *rpc_qname(const struct rpc_wait_queue *q)
 {
 	return ((q && q->name) ? q->name : "unknown");
 }

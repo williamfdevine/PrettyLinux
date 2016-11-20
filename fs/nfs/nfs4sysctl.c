@@ -16,15 +16,16 @@ static const int nfs_set_port_min;
 static const int nfs_set_port_max = 65535;
 static struct ctl_table_header *nfs4_callback_sysctl_table;
 
-static struct ctl_table nfs4_cb_sysctls[] = {
+static struct ctl_table nfs4_cb_sysctls[] =
+{
 	{
 		.procname = "nfs_callback_tcpport",
 		.data = &nfs_callback_set_tcpport,
 		.maxlen = sizeof(int),
 		.mode = 0644,
 		.proc_handler = proc_dointvec_minmax,
-		.extra1 = (int *)&nfs_set_port_min,
-		.extra2 = (int *)&nfs_set_port_max,
+		.extra1 = (int *) &nfs_set_port_min,
+		.extra2 = (int *) &nfs_set_port_max,
 	},
 	{
 		.procname = "idmap_cache_timeout",
@@ -36,7 +37,8 @@ static struct ctl_table nfs4_cb_sysctls[] = {
 	{ }
 };
 
-static struct ctl_table nfs4_cb_sysctl_dir[] = {
+static struct ctl_table nfs4_cb_sysctl_dir[] =
+{
 	{
 		.procname = "nfs",
 		.mode = 0555,
@@ -45,7 +47,8 @@ static struct ctl_table nfs4_cb_sysctl_dir[] = {
 	{ }
 };
 
-static struct ctl_table nfs4_cb_sysctl_root[] = {
+static struct ctl_table nfs4_cb_sysctl_root[] =
+{
 	{
 		.procname = "fs",
 		.mode = 0555,
@@ -57,8 +60,12 @@ static struct ctl_table nfs4_cb_sysctl_root[] = {
 int nfs4_register_sysctl(void)
 {
 	nfs4_callback_sysctl_table = register_sysctl_table(nfs4_cb_sysctl_root);
+
 	if (nfs4_callback_sysctl_table == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 

@@ -27,7 +27,8 @@
 #include <linux/fb.h>
 
 /* LCD controller private state. */
-struct mmpfb_info {
+struct mmpfb_info
+{
 	struct device	*dev;
 	int	id;
 	const char	*name;

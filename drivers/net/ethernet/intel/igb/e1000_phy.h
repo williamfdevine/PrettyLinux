@@ -24,14 +24,16 @@
 #ifndef _E1000_PHY_H_
 #define _E1000_PHY_H_
 
-enum e1000_ms_type {
+enum e1000_ms_type
+{
 	e1000_ms_hw_default = 0,
 	e1000_ms_force_master,
 	e1000_ms_force_slave,
 	e1000_ms_auto
 };
 
-enum e1000_smart_speed {
+enum e1000_smart_speed
+{
 	e1000_smart_speed_default = 0,
 	e1000_smart_speed_on,
 	e1000_smart_speed_off
@@ -57,7 +59,7 @@ s32  igb_set_d3_lplu_state(struct e1000_hw *hw, bool active);
 s32  igb_setup_copper_link(struct e1000_hw *hw);
 s32  igb_write_phy_reg_igp(struct e1000_hw *hw, u32 offset, u16 data);
 s32  igb_phy_has_link(struct e1000_hw *hw, u32 iterations,
-				u32 usec_interval, bool *success);
+					  u32 usec_interval, bool *success);
 void igb_power_up_phy_copper(struct e1000_hw *hw);
 void igb_power_down_phy_copper(struct e1000_hw *hw);
 s32  igb_phy_init_script_igp3(struct e1000_hw *hw);
@@ -151,15 +153,16 @@ s32  igb_check_polarity_m88(struct e1000_hw *hw);
 
 #define E1000_SFF_ETH_FLAGS_OFFSET	0x06
 /* Flags for SFP modules compatible with ETH up to 1Gb */
-struct e1000_sfp_flags {
-	u8 e1000_base_sx:1;
-	u8 e1000_base_lx:1;
-	u8 e1000_base_cx:1;
-	u8 e1000_base_t:1;
-	u8 e100_base_lx:1;
-	u8 e100_base_fx:1;
-	u8 e10_base_bx10:1;
-	u8 e10_base_px:1;
+struct e1000_sfp_flags
+{
+	u8 e1000_base_sx: 1;
+	u8 e1000_base_lx: 1;
+	u8 e1000_base_cx: 1;
+	u8 e1000_base_t: 1;
+	u8 e100_base_lx: 1;
+	u8 e100_base_fx: 1;
+	u8 e10_base_bx10: 1;
+	u8 e10_base_px: 1;
 };
 
 #endif

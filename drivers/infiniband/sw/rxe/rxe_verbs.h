@@ -42,8 +42,8 @@
 static inline int pkey_match(u16 key1, u16 key2)
 {
 	return (((key1 & 0x7fff) != 0) &&
-		((key1 & 0x7fff) == (key2 & 0x7fff)) &&
-		((key1 & 0x8000) || (key2 & 0x8000))) ? 1 : 0;
+			((key1 & 0x7fff) == (key2 & 0x7fff)) &&
+			((key1 & 0x8000) || (key2 & 0x8000))) ? 1 : 0;
 }
 
 /* Return >0 if psn_a > psn_b
@@ -58,31 +58,37 @@ static inline int psn_compare(u32 psn_a, u32 psn_b)
 	return diff;
 }
 
-struct rxe_ucontext {
+struct rxe_ucontext
+{
 	struct rxe_pool_entry	pelem;
 	struct ib_ucontext	ibuc;
 };
 
-struct rxe_pd {
+struct rxe_pd
+{
 	struct rxe_pool_entry	pelem;
 	struct ib_pd		ibpd;
 };
 
-struct rxe_ah {
+struct rxe_ah
+{
 	struct rxe_pool_entry	pelem;
 	struct ib_ah		ibah;
 	struct rxe_pd		*pd;
 	struct rxe_av		av;
 };
 
-struct rxe_cqe {
-	union {
+struct rxe_cqe
+{
+	union
+	{
 		struct ib_wc		ibwc;
 		struct ib_uverbs_wc	uibwc;
 	};
 };
 
-struct rxe_cq {
+struct rxe_cq
+{
 	struct rxe_pool_entry	pelem;
 	struct ib_cq		ibcq;
 	struct rxe_queue	*queue;
@@ -92,7 +98,8 @@ struct rxe_cq {
 	struct tasklet_struct	comp_task;
 };
 
-enum wqe_state {
+enum wqe_state
+{
 	wqe_state_posted,
 	wqe_state_processing,
 	wqe_state_pending,
@@ -100,7 +107,8 @@ enum wqe_state {
 	wqe_state_error,
 };
 
-struct rxe_sq {
+struct rxe_sq
+{
 	int			max_wr;
 	int			max_sge;
 	int			max_inline;
@@ -108,7 +116,8 @@ struct rxe_sq {
 	struct rxe_queue	*queue;
 };
 
-struct rxe_rq {
+struct rxe_rq
+{
 	int			max_wr;
 	int			max_sge;
 	spinlock_t		producer_lock; /* guard queue producer */
@@ -116,7 +125,8 @@ struct rxe_rq {
 	struct rxe_queue	*queue;
 };
 
-struct rxe_srq {
+struct rxe_srq
+{
 	struct rxe_pool_entry	pelem;
 	struct ib_srq		ibsrq;
 	struct rxe_pd		*pd;
@@ -127,7 +137,8 @@ struct rxe_srq {
 	int			error;
 };
 
-enum rxe_qp_state {
+enum rxe_qp_state
+{
 	QP_STATE_RESET,
 	QP_STATE_INIT,
 	QP_STATE_READY,
@@ -138,7 +149,8 @@ enum rxe_qp_state {
 
 extern char *rxe_qp_state_name[];
 
-struct rxe_req_info {
+struct rxe_req_info
+{
 	enum rxe_qp_state	state;
 	int			wqe_index;
 	u32			psn;
@@ -152,7 +164,8 @@ struct rxe_req_info {
 	struct rxe_task		task;
 };
 
-struct rxe_comp_info {
+struct rxe_comp_info
+{
 	u32			psn;
 	int			opcode;
 	int			timeout;
@@ -162,24 +175,29 @@ struct rxe_comp_info {
 	struct rxe_task		task;
 };
 
-enum rdatm_res_state {
+enum rdatm_res_state
+{
 	rdatm_res_state_next,
 	rdatm_res_state_new,
 	rdatm_res_state_replay,
 };
 
-struct resp_res {
+struct resp_res
+{
 	int			type;
 	u32			first_psn;
 	u32			last_psn;
 	u32			cur_psn;
 	enum rdatm_res_state	state;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			struct sk_buff	*skb;
 		} atomic;
-		struct {
+		struct
+		{
 			struct rxe_mem	*mr;
 			u64		va_org;
 			u32		rkey;
@@ -190,7 +208,8 @@ struct resp_res {
 	};
 };
 
-struct rxe_resp_info {
+struct rxe_resp_info
+{
 	enum rxe_qp_state	state;
 	u32			msn;
 	u32			psn;
@@ -212,7 +231,8 @@ struct rxe_resp_info {
 	u64			atomic_orig;
 
 	/* SRQ only */
-	struct {
+	struct
+	{
 		struct rxe_recv_wqe	wqe;
 		struct ib_sge		sge[RXE_MAX_SGE];
 	} srq_wqe;
@@ -227,7 +247,8 @@ struct rxe_resp_info {
 	struct rxe_task		task;
 };
 
-struct rxe_qp {
+struct rxe_qp
+{
 	struct rxe_pool_entry	pelem;
 	struct ib_qp		ibqp;
 	struct ib_qp_attr	attr;
@@ -280,14 +301,16 @@ struct rxe_qp {
 	spinlock_t		state_lock; /* guard requester and completer */
 };
 
-enum rxe_mem_state {
+enum rxe_mem_state
+{
 	RXE_MEM_STATE_ZOMBIE,
 	RXE_MEM_STATE_INVALID,
 	RXE_MEM_STATE_FREE,
 	RXE_MEM_STATE_VALID,
 };
 
-enum rxe_mem_type {
+enum rxe_mem_type
+{
 	RXE_MEM_TYPE_NONE,
 	RXE_MEM_TYPE_DMA,
 	RXE_MEM_TYPE_MR,
@@ -297,18 +320,22 @@ enum rxe_mem_type {
 
 #define RXE_BUF_PER_MAP		(PAGE_SIZE / sizeof(struct rxe_phys_buf))
 
-struct rxe_phys_buf {
+struct rxe_phys_buf
+{
 	u64      addr;
 	u64      size;
 };
 
-struct rxe_map {
+struct rxe_map
+{
 	struct rxe_phys_buf	buf[RXE_BUF_PER_MAP];
 };
 
-struct rxe_mem {
+struct rxe_mem
+{
 	struct rxe_pool_entry	pelem;
-	union {
+	union
+	{
 		struct ib_mr		ibmr;
 		struct ib_mw		ibmw;
 	};
@@ -341,7 +368,8 @@ struct rxe_mem {
 	struct rxe_map		**map;
 };
 
-struct rxe_mc_grp {
+struct rxe_mc_grp
+{
 	struct rxe_pool_entry	pelem;
 	spinlock_t		mcg_lock; /* guard group */
 	struct rxe_dev		*rxe;
@@ -352,7 +380,8 @@ struct rxe_mc_grp {
 	u16			pkey;
 };
 
-struct rxe_mc_elem {
+struct rxe_mc_elem
+{
 	struct rxe_pool_entry	pelem;
 	struct list_head	qp_list;
 	struct list_head	grp_list;
@@ -360,7 +389,8 @@ struct rxe_mc_elem {
 	struct rxe_mc_grp	*grp;
 };
 
-struct rxe_port {
+struct rxe_port
+{
 	struct ib_port_attr	attr;
 	u16			*pkey_tbl;
 	__be64			port_guid;
@@ -373,7 +403,8 @@ struct rxe_port {
 };
 
 /* callbacks from rdma_rxe to network interface layer */
-struct rxe_ifc_ops {
+struct rxe_ifc_ops
+{
 	void (*release)(struct rxe_dev *rxe);
 	__be64 (*node_guid)(struct rxe_dev *rxe);
 	__be64 (*port_guid)(struct rxe_dev *rxe);
@@ -381,18 +412,19 @@ struct rxe_ifc_ops {
 	int (*mcast_add)(struct rxe_dev *rxe, union ib_gid *mgid);
 	int (*mcast_delete)(struct rxe_dev *rxe, union ib_gid *mgid);
 	int (*prepare)(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
-		       struct sk_buff *skb, u32 *crc);
+				   struct sk_buff *skb, u32 *crc);
 	int (*send)(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
-		    struct sk_buff *skb);
+				struct sk_buff *skb);
 	int (*loopback)(struct sk_buff *skb);
 	struct sk_buff *(*init_packet)(struct rxe_dev *rxe, struct rxe_av *av,
-				       int paylen, struct rxe_pkt_info *pkt);
+								   int paylen, struct rxe_pkt_info *pkt);
 	char *(*parent_name)(struct rxe_dev *rxe, unsigned int port_num);
 	enum rdma_link_layer (*link_layer)(struct rxe_dev *rxe,
-					   unsigned int port_num);
+									   unsigned int port_num);
 };
 
-struct rxe_dev {
+struct rxe_dev
+{
 	struct ib_device	ib_dev;
 	struct ib_device_attr	attr;
 	int			max_ucontext;

@@ -3,7 +3,8 @@
 
 #define TFTP_PORT 69
 
-struct tftphdr {
+struct tftphdr
+{
 	__be16 opcode;
 };
 
@@ -14,7 +15,7 @@ struct tftphdr {
 #define TFTP_OPCODE_ERROR	5
 
 extern unsigned int (*nf_nat_tftp_hook)(struct sk_buff *skb,
-				        enum ip_conntrack_info ctinfo,
-				        struct nf_conntrack_expect *exp);
+										enum ip_conntrack_info ctinfo,
+										struct nf_conntrack_expect *exp);
 
 #endif /* _NF_CONNTRACK_TFTP_H */

@@ -41,7 +41,9 @@ int get_gadget_descs(struct vudc *udc)
 	int ret;
 
 	if (!udc->driver || !udc->pullup)
+	{
 		return -EINVAL;
+	}
 
 	req.bRequestType = USB_DIR_IN | USB_TYPE_STANDARD | USB_RECIP_DEVICE;
 	req.bRequest = USB_REQ_GET_DESCRIPTOR;
@@ -52,14 +54,18 @@ int get_gadget_descs(struct vudc *udc)
 	spin_unlock(&udc->lock);
 	ret = udc->driver->setup(&(udc->gadget), &req);
 	spin_lock(&udc->lock);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	/* assuming request queue is empty; request is now on top */
 	usb_req = list_last_entry(&ep0->req_queue, struct vrequest, req_entry);
 	list_del(&usb_req->req_entry);
 
-	if (usb_req->req.length > sizeof(*ddesc)) {
+	if (usb_req->req.length > sizeof(*ddesc))
+	{
 		ret = -EOVERFLOW;
 		goto giveback_req;
 	}
@@ -79,8 +85,8 @@ out:
  * Exposes device descriptor from the gadget driver.
  */
 static ssize_t dev_desc_read(struct file *file, struct kobject *kobj,
-			     struct bin_attribute *attr, char *out,
-			     loff_t off, size_t count)
+							 struct bin_attribute *attr, char *out,
+							 loff_t off, size_t count)
 {
 	struct device *dev = kobj_to_dev(kobj);
 	struct vudc *udc = (struct vudc *)dev_get_drvdata(dev);
@@ -89,7 +95,9 @@ static ssize_t dev_desc_read(struct file *file, struct kobject *kobj,
 	int ret;
 
 	spin_lock_irqsave(&udc->lock, flags);
-	if (!udc->desc_cached) {
+
+	if (!udc->desc_cached)
+	{
 		ret = -ENODEV;
 		goto unlock;
 	}
@@ -103,7 +111,7 @@ unlock:
 static BIN_ATTR_RO(dev_desc, sizeof(struct usb_device_descriptor));
 
 static ssize_t store_sockfd(struct device *dev, struct device_attribute *attr,
-		     const char *in, size_t count)
+							const char *in, size_t count)
 {
 	struct vudc *udc = (struct vudc *) dev_get_drvdata(dev);
 	int rv;
@@ -114,19 +122,26 @@ static ssize_t store_sockfd(struct device *dev, struct device_attribute *attr,
 	int ret;
 
 	rv = kstrtoint(in, 0, &sockfd);
+
 	if (rv != 0)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&udc->lock, flags);
+
 	/* Don't export what we don't have */
-	if (!udc || !udc->driver || !udc->pullup) {
+	if (!udc || !udc->driver || !udc->pullup)
+	{
 		dev_err(dev, "no device or gadget not bound");
 		ret = -ENODEV;
 		goto unlock;
 	}
 
-	if (sockfd != -1) {
-		if (udc->connected) {
+	if (sockfd != -1)
+	{
+		if (udc->connected)
+		{
 			dev_err(dev, "Device already connected");
 			ret = -EBUSY;
 			goto unlock;
@@ -134,13 +149,16 @@ static ssize_t store_sockfd(struct device *dev, struct device_attribute *attr,
 
 		spin_lock_irq(&udc->ud.lock);
 
-		if (udc->ud.status != SDEV_ST_AVAILABLE) {
+		if (udc->ud.status != SDEV_ST_AVAILABLE)
+		{
 			ret = -EINVAL;
 			goto unlock_ud;
 		}
 
 		socket = sockfd_lookup(sockfd, &err);
-		if (!socket) {
+
+		if (!socket)
+		{
 			dev_err(dev, "failed to lookup sock");
 			ret = -EINVAL;
 			goto unlock_ud;
@@ -152,9 +170,9 @@ static ssize_t store_sockfd(struct device *dev, struct device_attribute *attr,
 		spin_unlock_irqrestore(&udc->lock, flags);
 
 		udc->ud.tcp_rx = kthread_get_run(&v_rx_loop,
-						    &udc->ud, "vudc_rx");
+										 &udc->ud, "vudc_rx");
 		udc->ud.tcp_tx = kthread_get_run(&v_tx_loop,
-						    &udc->ud, "vudc_tx");
+										 &udc->ud, "vudc_tx");
 
 		spin_lock_irqsave(&udc->lock, flags);
 		spin_lock_irq(&udc->ud.lock);
@@ -164,18 +182,24 @@ static ssize_t store_sockfd(struct device *dev, struct device_attribute *attr,
 		do_gettimeofday(&udc->start_time);
 		v_start_timer(udc);
 		udc->connected = 1;
-	} else {
-		if (!udc->connected) {
+	}
+	else
+	{
+		if (!udc->connected)
+		{
 			dev_err(dev, "Device not connected");
 			ret = -EINVAL;
 			goto unlock;
 		}
 
 		spin_lock_irq(&udc->ud.lock);
-		if (udc->ud.status != SDEV_ST_USED) {
+
+		if (udc->ud.status != SDEV_ST_USED)
+		{
 			ret = -EINVAL;
 			goto unlock_ud;
 		}
+
 		spin_unlock_irq(&udc->ud.lock);
 
 		usbip_event_add(&udc->ud, VUDC_EVENT_DOWN);
@@ -195,15 +219,17 @@ unlock:
 static DEVICE_ATTR(usbip_sockfd, S_IWUSR, NULL, store_sockfd);
 
 static ssize_t usbip_status_show(struct device *dev,
-			       struct device_attribute *attr, char *out)
+								 struct device_attribute *attr, char *out)
 {
 	struct vudc *udc = (struct vudc *) dev_get_drvdata(dev);
 	int status;
 
-	if (!udc) {
+	if (!udc)
+	{
 		dev_err(dev, "no device");
 		return -ENODEV;
 	}
+
 	spin_lock_irq(&udc->ud.lock);
 	status = udc->ud.status;
 	spin_unlock_irq(&udc->ud.lock);
@@ -212,18 +238,21 @@ static ssize_t usbip_status_show(struct device *dev,
 }
 static DEVICE_ATTR_RO(usbip_status);
 
-static struct attribute *dev_attrs[] = {
+static struct attribute *dev_attrs[] =
+{
 	&dev_attr_usbip_sockfd.attr,
 	&dev_attr_usbip_status.attr,
 	NULL,
 };
 
-static struct bin_attribute *dev_bin_attrs[] = {
+static struct bin_attribute *dev_bin_attrs[] =
+{
 	&bin_attr_dev_desc,
 	NULL,
 };
 
-const struct attribute_group vudc_attr_group = {
+const struct attribute_group vudc_attr_group =
+{
 	.attrs = dev_attrs,
 	.bin_attrs = dev_bin_attrs,
 };

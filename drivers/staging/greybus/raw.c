@@ -17,7 +17,8 @@
 
 #include "greybus.h"
 
-struct gb_raw {
+struct gb_raw
+{
 	struct gb_connection *connection;
 
 	struct list_head list;
@@ -28,7 +29,8 @@ struct gb_raw {
 	struct device *device;
 };
 
-struct raw_data {
+struct raw_data
+{
 	struct list_head entry;
 	u32 len;
 	u8 data[0];
@@ -60,20 +62,25 @@ static int receive_data(struct gb_raw *raw, u32 len, u8 *data)
 	struct device *dev = &raw->connection->bundle->dev;
 	int retval = 0;
 
-	if (len > MAX_PACKET_SIZE) {
+	if (len > MAX_PACKET_SIZE)
+	{
 		dev_err(dev, "Too big of a data packet, rejected\n");
 		return -EINVAL;
 	}
 
 	mutex_lock(&raw->list_lock);
-	if ((raw->list_data + len) > MAX_DATA_SIZE) {
+
+	if ((raw->list_data + len) > MAX_DATA_SIZE)
+	{
 		dev_err(dev, "Too much data in receive buffer, now dropping packets\n");
 		retval = -EINVAL;
 		goto exit;
 	}
 
 	raw_data = kmalloc(sizeof(*raw_data) + len, GFP_KERNEL);
-	if (!raw_data) {
+
+	if (!raw_data)
+	{
 		retval = -ENOMEM;
 		goto exit;
 	}
@@ -96,25 +103,32 @@ static int gb_raw_request_handler(struct gb_operation *op)
 	struct gb_raw_send_request *receive;
 	u32 len;
 
-	if (op->type != GB_RAW_TYPE_SEND) {
+	if (op->type != GB_RAW_TYPE_SEND)
+	{
 		dev_err(dev, "unknown request type 0x%02x\n", op->type);
 		return -EINVAL;
 	}
 
 	/* Verify size of payload */
-	if (op->request->payload_size < sizeof(*receive)) {
+	if (op->request->payload_size < sizeof(*receive))
+	{
 		dev_err(dev, "raw receive request too small (%zu < %zu)\n",
-			op->request->payload_size, sizeof(*receive));
+				op->request->payload_size, sizeof(*receive));
 		return -EINVAL;
 	}
+
 	receive = op->request->payload;
 	len = le32_to_cpu(receive->len);
-	if (len != (int)(op->request->payload_size - sizeof(__le32))) {
+
+	if (len != (int)(op->request->payload_size - sizeof(__le32)))
+	{
 		dev_err(dev, "raw receive request wrong size %d vs %d\n", len,
-			(int)(op->request->payload_size - sizeof(__le32)));
+				(int)(op->request->payload_size - sizeof(__le32)));
 		return -EINVAL;
 	}
-	if (len == 0) {
+
+	if (len == 0)
+	{
 		dev_err(dev, "raw receive request of 0 bytes?\n");
 		return -EINVAL;
 	}
@@ -129,10 +143,14 @@ static int gb_raw_send(struct gb_raw *raw, u32 len, const char __user *data)
 	int retval;
 
 	request = kmalloc(len + sizeof(*request), GFP_KERNEL);
-	if (!request)
-		return -ENOMEM;
 
-	if (copy_from_user(&request->data[0], data, len)) {
+	if (!request)
+	{
+		return -ENOMEM;
+	}
+
+	if (copy_from_user(&request->data[0], data, len))
+	{
 		kfree(request);
 		return -EFAULT;
 	}
@@ -140,15 +158,15 @@ static int gb_raw_send(struct gb_raw *raw, u32 len, const char __user *data)
 	request->len = cpu_to_le32(len);
 
 	retval = gb_operation_sync(connection, GB_RAW_TYPE_SEND,
-				   request, len + sizeof(*request),
-				   NULL, 0);
+							   request, len + sizeof(*request),
+							   NULL, 0);
 
 	kfree(request);
 	return retval;
 }
 
 static int gb_raw_probe(struct gb_bundle *bundle,
-			const struct greybus_bundle_id *id)
+						const struct greybus_bundle_id *id)
 {
 	struct greybus_descriptor_cport *cport_desc;
 	struct gb_connection *connection;
@@ -157,19 +175,29 @@ static int gb_raw_probe(struct gb_bundle *bundle,
 	int minor;
 
 	if (bundle->num_cports != 1)
+	{
 		return -ENODEV;
+	}
 
 	cport_desc = &bundle->cport_desc[0];
+
 	if (cport_desc->protocol_id != GREYBUS_PROTOCOL_RAW)
+	{
 		return -ENODEV;
+	}
 
 	raw = kzalloc(sizeof(*raw), GFP_KERNEL);
+
 	if (!raw)
+	{
 		return -ENOMEM;
+	}
 
 	connection = gb_connection_create(bundle, le16_to_cpu(cport_desc->id),
-					  gb_raw_request_handler);
-	if (IS_ERR(connection)) {
+									  gb_raw_request_handler);
+
+	if (IS_ERR(connection))
+	{
 		retval = PTR_ERR(connection);
 		goto error_free;
 	}
@@ -181,7 +209,9 @@ static int gb_raw_probe(struct gb_bundle *bundle,
 	greybus_set_drvdata(bundle, raw);
 
 	minor = ida_simple_get(&minors, 0, 0, GFP_KERNEL);
-	if (minor < 0) {
+
+	if (minor < 0)
+	{
 		retval = minor;
 		goto error_connection_destroy;
 	}
@@ -190,16 +220,24 @@ static int gb_raw_probe(struct gb_bundle *bundle,
 	cdev_init(&raw->cdev, &raw_fops);
 
 	retval = gb_connection_enable(connection);
+
 	if (retval)
+	{
 		goto error_remove_ida;
+	}
 
 	retval = cdev_add(&raw->cdev, raw->dev, 1);
+
 	if (retval)
+	{
 		goto error_connection_disable;
+	}
 
 	raw->device = device_create(raw_class, &connection->bundle->dev,
-				    raw->dev, raw, "gb!raw%d", minor);
-	if (IS_ERR(raw->device)) {
+								raw->dev, raw, "gb!raw%d", minor);
+
+	if (IS_ERR(raw->device))
+	{
 		retval = PTR_ERR(raw->device);
 		goto error_del_cdev;
 	}
@@ -238,7 +276,8 @@ static void gb_raw_disconnect(struct gb_bundle *bundle)
 	gb_connection_destroy(connection);
 
 	mutex_lock(&raw->list_lock);
-	list_for_each_entry_safe(raw_data, temp, &raw->list, entry) {
+	list_for_each_entry_safe(raw_data, temp, &raw->list, entry)
+	{
 		list_del(&raw_data->entry);
 		kfree(raw_data);
 	}
@@ -266,42 +305,55 @@ static int raw_open(struct inode *inode, struct file *file)
 }
 
 static ssize_t raw_write(struct file *file, const char __user *buf,
-			 size_t count, loff_t *ppos)
+						 size_t count, loff_t *ppos)
 {
 	struct gb_raw *raw = file->private_data;
 	int retval;
 
 	if (!count)
+	{
 		return 0;
+	}
 
 	if (count > MAX_PACKET_SIZE)
+	{
 		return -E2BIG;
+	}
 
 	retval = gb_raw_send(raw, count, buf);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	return count;
 }
 
 static ssize_t raw_read(struct file *file, char __user *buf, size_t count,
-			loff_t *ppos)
+						loff_t *ppos)
 {
 	struct gb_raw *raw = file->private_data;
 	int retval = 0;
 	struct raw_data *raw_data;
 
 	mutex_lock(&raw->list_lock);
+
 	if (list_empty(&raw->list))
+	{
 		goto exit;
+	}
 
 	raw_data = list_first_entry(&raw->list, struct raw_data, entry);
-	if (raw_data->len > count) {
+
+	if (raw_data->len > count)
+	{
 		retval = -ENOSPC;
 		goto exit;
 	}
 
-	if (copy_to_user(buf, &raw_data->data[0], raw_data->len)) {
+	if (copy_to_user(buf, &raw_data->data[0], raw_data->len))
+	{
 		retval = -EFAULT;
 		goto exit;
 	}
@@ -316,7 +368,8 @@ exit:
 	return retval;
 }
 
-static const struct file_operations raw_fops = {
+static const struct file_operations raw_fops =
+{
 	.owner		= THIS_MODULE,
 	.write		= raw_write,
 	.read		= raw_read,
@@ -324,13 +377,15 @@ static const struct file_operations raw_fops = {
 	.llseek		= noop_llseek,
 };
 
-static const struct greybus_bundle_id gb_raw_id_table[] = {
+static const struct greybus_bundle_id gb_raw_id_table[] =
+{
 	{ GREYBUS_DEVICE_CLASS(GREYBUS_CLASS_RAW) },
 	{ }
 };
 MODULE_DEVICE_TABLE(greybus, gb_raw_id_table);
 
-static struct greybus_driver gb_raw_driver = {
+static struct greybus_driver gb_raw_driver =
+{
 	.name		= "raw",
 	.probe		= gb_raw_probe,
 	.disconnect	= gb_raw_disconnect,
@@ -343,20 +398,28 @@ static int raw_init(void)
 	int retval;
 
 	raw_class = class_create(THIS_MODULE, "gb_raw");
-	if (IS_ERR(raw_class)) {
+
+	if (IS_ERR(raw_class))
+	{
 		retval = PTR_ERR(raw_class);
 		goto error_class;
 	}
 
 	retval = alloc_chrdev_region(&dev, 0, NUM_MINORS, "gb_raw");
+
 	if (retval < 0)
+	{
 		goto error_chrdev;
+	}
 
 	raw_major = MAJOR(dev);
 
 	retval = greybus_register(&gb_raw_driver);
+
 	if (retval)
+	{
 		goto error_gb;
+	}
 
 	return 0;
 

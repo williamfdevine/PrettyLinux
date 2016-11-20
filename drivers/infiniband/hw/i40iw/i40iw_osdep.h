@@ -83,79 +83,81 @@ static inline void get_32bit_val(u32 *wqe_words, u32 byte_index, u32 *value)
 	*value = wqe_words[byte_index >> 2];
 }
 
-struct i40iw_dma_mem {
+struct i40iw_dma_mem
+{
 	void *va;
 	dma_addr_t pa;
 	u32 size;
 } __packed;
 
-struct i40iw_virt_mem {
+struct i40iw_virt_mem
+{
 	void *va;
 	u32 size;
 } __packed;
 
 #define i40iw_debug(h, m, s, ...)                               \
-do {                                                            \
-	if (((m) & (h)->debug_mask))                            \
-		pr_info("i40iw " s, ##__VA_ARGS__);             \
-} while (0)
+	do {                                                            \
+		if (((m) & (h)->debug_mask))                            \
+			pr_info("i40iw " s, ##__VA_ARGS__);             \
+	} while (0)
 
 #define i40iw_flush(a)          readl((a)->hw_addr + I40E_GLGEN_STAT)
 
 #define I40E_GLHMC_VFSDCMD(_i)  (0x000C8000 + ((_i) * 4)) \
-				/* _i=0...31 */
+	/* _i=0...31 */
 #define I40E_GLHMC_VFSDCMD_MAX_INDEX    31
 #define I40E_GLHMC_VFSDCMD_PMSDIDX_SHIFT  0
 #define I40E_GLHMC_VFSDCMD_PMSDIDX_MASK  (0xFFF \
-					  << I40E_GLHMC_VFSDCMD_PMSDIDX_SHIFT)
+		<< I40E_GLHMC_VFSDCMD_PMSDIDX_SHIFT)
 #define I40E_GLHMC_VFSDCMD_PF_SHIFT       16
 #define I40E_GLHMC_VFSDCMD_PF_MASK        (0xF << I40E_GLHMC_VFSDCMD_PF_SHIFT)
 #define I40E_GLHMC_VFSDCMD_VF_SHIFT       20
 #define I40E_GLHMC_VFSDCMD_VF_MASK        (0x1FF << I40E_GLHMC_VFSDCMD_VF_SHIFT)
 #define I40E_GLHMC_VFSDCMD_PMF_TYPE_SHIFT 29
 #define I40E_GLHMC_VFSDCMD_PMF_TYPE_MASK  (0x3 \
-					   << I40E_GLHMC_VFSDCMD_PMF_TYPE_SHIFT)
+		<< I40E_GLHMC_VFSDCMD_PMF_TYPE_SHIFT)
 #define I40E_GLHMC_VFSDCMD_PMSDWR_SHIFT   31
 #define I40E_GLHMC_VFSDCMD_PMSDWR_MASK  (0x1 << I40E_GLHMC_VFSDCMD_PMSDWR_SHIFT)
 
 #define I40E_GLHMC_VFSDDATAHIGH(_i)     (0x000C8200 + ((_i) * 4)) \
-				/* _i=0...31 */
+	/* _i=0...31 */
 #define I40E_GLHMC_VFSDDATAHIGH_MAX_INDEX       31
 #define I40E_GLHMC_VFSDDATAHIGH_PMSDDATAHIGH_SHIFT 0
 #define I40E_GLHMC_VFSDDATAHIGH_PMSDDATAHIGH_MASK  (0xFFFFFFFF \
-			<< I40E_GLHMC_VFSDDATAHIGH_PMSDDATAHIGH_SHIFT)
+		<< I40E_GLHMC_VFSDDATAHIGH_PMSDDATAHIGH_SHIFT)
 
 #define I40E_GLHMC_VFSDDATALOW(_i)      (0x000C8100 + ((_i) * 4)) \
-				/* _i=0...31 */
+	/* _i=0...31 */
 #define I40E_GLHMC_VFSDDATALOW_MAX_INDEX        31
 #define I40E_GLHMC_VFSDDATALOW_PMSDVALID_SHIFT   0
 #define I40E_GLHMC_VFSDDATALOW_PMSDVALID_MASK  (0x1 \
-			<< I40E_GLHMC_VFSDDATALOW_PMSDVALID_SHIFT)
+		<< I40E_GLHMC_VFSDDATALOW_PMSDVALID_SHIFT)
 #define I40E_GLHMC_VFSDDATALOW_PMSDTYPE_SHIFT    1
 #define I40E_GLHMC_VFSDDATALOW_PMSDTYPE_MASK  (0x1 \
-			<< I40E_GLHMC_VFSDDATALOW_PMSDTYPE_SHIFT)
+		<< I40E_GLHMC_VFSDDATALOW_PMSDTYPE_SHIFT)
 #define I40E_GLHMC_VFSDDATALOW_PMSDBPCOUNT_SHIFT 2
 #define I40E_GLHMC_VFSDDATALOW_PMSDBPCOUNT_MASK  (0x3FF \
-			<< I40E_GLHMC_VFSDDATALOW_PMSDBPCOUNT_SHIFT)
+		<< I40E_GLHMC_VFSDDATALOW_PMSDBPCOUNT_SHIFT)
 #define I40E_GLHMC_VFSDDATALOW_PMSDDATALOW_SHIFT 12
 #define I40E_GLHMC_VFSDDATALOW_PMSDDATALOW_MASK  (0xFFFFF \
-			<< I40E_GLHMC_VFSDDATALOW_PMSDDATALOW_SHIFT)
+		<< I40E_GLHMC_VFSDDATALOW_PMSDDATALOW_SHIFT)
 
 #define I40E_GLPE_FWLDSTATUS                     0x0000D200
 #define I40E_GLPE_FWLDSTATUS_LOAD_REQUESTED_SHIFT 0
 #define I40E_GLPE_FWLDSTATUS_LOAD_REQUESTED_MASK  (0x1 \
-			<< I40E_GLPE_FWLDSTATUS_LOAD_REQUESTED_SHIFT)
+		<< I40E_GLPE_FWLDSTATUS_LOAD_REQUESTED_SHIFT)
 #define I40E_GLPE_FWLDSTATUS_DONE_SHIFT           1
 #define I40E_GLPE_FWLDSTATUS_DONE_MASK  (0x1 << I40E_GLPE_FWLDSTATUS_DONE_SHIFT)
 #define I40E_GLPE_FWLDSTATUS_CQP_FAIL_SHIFT       2
 #define I40E_GLPE_FWLDSTATUS_CQP_FAIL_MASK  (0x1 \
-			 << I40E_GLPE_FWLDSTATUS_CQP_FAIL_SHIFT)
+		<< I40E_GLPE_FWLDSTATUS_CQP_FAIL_SHIFT)
 #define I40E_GLPE_FWLDSTATUS_TEP_FAIL_SHIFT       3
 #define I40E_GLPE_FWLDSTATUS_TEP_FAIL_MASK  (0x1 \
-			 << I40E_GLPE_FWLDSTATUS_TEP_FAIL_SHIFT)
+		<< I40E_GLPE_FWLDSTATUS_TEP_FAIL_SHIFT)
 #define I40E_GLPE_FWLDSTATUS_OOP_FAIL_SHIFT       4
 #define I40E_GLPE_FWLDSTATUS_OOP_FAIL_MASK  (0x1 \
-			 << I40E_GLPE_FWLDSTATUS_OOP_FAIL_SHIFT)
+		<< I40E_GLPE_FWLDSTATUS_OOP_FAIL_SHIFT)
 
 struct i40iw_sc_dev;
 struct i40iw_sc_qp;
@@ -174,29 +176,29 @@ void i40iw_ieq_mpa_crc_ae(struct i40iw_sc_dev *dev, struct i40iw_sc_qp *qp);
 enum i40iw_status_code i40iw_vf_wait_vchnl_resp(struct i40iw_sc_dev *dev);
 bool i40iw_vf_clear_to_send(struct i40iw_sc_dev *dev);
 enum i40iw_status_code i40iw_ieq_check_mpacrc(struct shash_desc *desc, void *addr,
-					      u32 length, u32 value);
+		u32 length, u32 value);
 struct i40iw_sc_qp *i40iw_ieq_get_qp(struct i40iw_sc_dev *dev, struct i40iw_puda_buf *buf);
 void i40iw_ieq_update_tcpip_info(struct i40iw_puda_buf *buf, u16 length, u32 seqnum);
 void i40iw_free_hash_desc(struct shash_desc *);
 enum i40iw_status_code i40iw_init_hash_desc(struct shash_desc **);
 enum i40iw_status_code i40iw_puda_get_tcpip_info(struct i40iw_puda_completion_info *info,
-						 struct i40iw_puda_buf *buf);
+		struct i40iw_puda_buf *buf);
 enum i40iw_status_code i40iw_cqp_sds_cmd(struct i40iw_sc_dev *dev,
-					 struct i40iw_update_sds_info *info);
+		struct i40iw_update_sds_info *info);
 enum i40iw_status_code i40iw_cqp_manage_hmc_fcn_cmd(struct i40iw_sc_dev *dev,
-						    struct i40iw_hmc_fcn_info *hmcfcninfo);
+		struct i40iw_hmc_fcn_info *hmcfcninfo);
 enum i40iw_status_code i40iw_cqp_query_fpm_values_cmd(struct i40iw_sc_dev *dev,
-						      struct i40iw_dma_mem *values_mem,
-						      u8 hmc_fn_id);
+		struct i40iw_dma_mem *values_mem,
+		u8 hmc_fn_id);
 enum i40iw_status_code i40iw_cqp_commit_fpm_values_cmd(struct i40iw_sc_dev *dev,
-						       struct i40iw_dma_mem *values_mem,
-						       u8 hmc_fn_id);
+		struct i40iw_dma_mem *values_mem,
+		u8 hmc_fn_id);
 enum i40iw_status_code i40iw_alloc_query_fpm_buf(struct i40iw_sc_dev *dev,
-						 struct i40iw_dma_mem *mem);
+		struct i40iw_dma_mem *mem);
 enum i40iw_status_code i40iw_cqp_manage_vf_pble_bp(struct i40iw_sc_dev *dev,
-						   struct i40iw_manage_vf_pble_info *info);
+		struct i40iw_manage_vf_pble_info *info);
 void i40iw_cqp_spawn_worker(struct i40iw_sc_dev *dev,
-			    struct i40iw_virtchnl_work_info *work_info, u32 iw_vf_idx);
+							struct i40iw_virtchnl_work_info *work_info, u32 iw_vf_idx);
 void *i40iw_remove_head(struct list_head *list);
 
 void i40iw_term_modify_qp(struct i40iw_sc_qp *qp, u8 next_state, u8 term, u8 term_len);
@@ -205,8 +207,8 @@ void i40iw_terminate_start_timer(struct i40iw_sc_qp *qp);
 void i40iw_terminate_del_timer(struct i40iw_sc_qp *qp);
 
 enum i40iw_status_code i40iw_hw_manage_vf_pble_bp(struct i40iw_device *iwdev,
-						  struct i40iw_manage_vf_pble_info *info,
-						  bool wait);
+		struct i40iw_manage_vf_pble_info *info,
+		bool wait);
 struct i40iw_dev_pestat;
 void i40iw_hw_stats_start_timer(struct i40iw_sc_dev *);
 void i40iw_hw_stats_del_timer(struct i40iw_sc_dev *);

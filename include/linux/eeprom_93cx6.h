@@ -56,7 +56,8 @@
  * This structure is used for the communication between the driver
  * and the eeprom_93cx6 handlers for reading the eeprom.
  */
-struct eeprom_93cx6 {
+struct eeprom_93cx6
+{
 	void *data;
 
 	void (*register_read)(struct eeprom_93cx6 *eeprom);
@@ -72,15 +73,15 @@ struct eeprom_93cx6 {
 };
 
 extern void eeprom_93cx6_read(struct eeprom_93cx6 *eeprom,
-	const u8 word, u16 *data);
+							  const u8 word, u16 *data);
 extern void eeprom_93cx6_multiread(struct eeprom_93cx6 *eeprom,
-	const u8 word, __le16 *data, const u16 words);
+								   const u8 word, __le16 *data, const u16 words);
 extern void eeprom_93cx6_readb(struct eeprom_93cx6 *eeprom,
-	const u8 byte, u8 *data);
+							   const u8 byte, u8 *data);
 extern void eeprom_93cx6_multireadb(struct eeprom_93cx6 *eeprom,
-	const u8 byte, u8 *data, const u16 bytes);
+									const u8 byte, u8 *data, const u16 bytes);
 
 extern void eeprom_93cx6_wren(struct eeprom_93cx6 *eeprom, bool enable);
 
 extern void eeprom_93cx6_write(struct eeprom_93cx6 *eeprom,
-			       u8 addr, u16 data);
+							   u8 addr, u16 data);

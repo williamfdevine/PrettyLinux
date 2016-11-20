@@ -41,7 +41,8 @@
 #define AGPIOC_UNBIND32     _IOW (AGPIOC_BASE, 9, compat_uptr_t)
 #define AGPIOC_CHIPSET_FLUSH32 _IO (AGPIOC_BASE, 10)
 
-struct agp_info32 {
+struct agp_info32
+{
 	struct agp_version version;	/* version of the driver        */
 	u32 bridge_id;		/* bridge vendor/device         */
 	u32 agp_mode;		/* mode info of bridge          */
@@ -55,19 +56,22 @@ struct agp_info32 {
 /*
  * The "prot" down below needs still a "sleep" flag somehow ...
  */
-struct agp_segment32 {
+struct agp_segment32
+{
 	compat_off_t pg_start;		/* starting page to populate    */
 	compat_size_t pg_count;	/* number of pages              */
 	compat_int_t prot;		/* prot flags for mmap          */
 };
 
-struct agp_region32 {
+struct agp_region32
+{
 	compat_pid_t pid;		/* pid of process               */
 	compat_size_t seg_count;	/* number of segments           */
 	struct agp_segment32 *seg_list;
 };
 
-struct agp_allocate32 {
+struct agp_allocate32
+{
 	compat_int_t key;		/* tag of allocation            */
 	compat_size_t pg_count;	/* number of pages              */
 	u32 type;		/* 0 == normal, other devspec   */
@@ -77,12 +81,14 @@ struct agp_allocate32 {
 				 * table)                        */
 };
 
-struct agp_bind32 {
+struct agp_bind32
+{
 	compat_int_t key;		/* tag of allocation            */
 	compat_off_t pg_start;		/* starting page to populate    */
 };
 
-struct agp_unbind32 {
+struct agp_unbind32
+{
 	compat_int_t key;		/* tag of allocation            */
 	u32 priority;		/* priority for paging out      */
 };

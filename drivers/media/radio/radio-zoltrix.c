@@ -56,13 +56,14 @@ MODULE_LICENSE("GPL");
 MODULE_VERSION("0.1.99");
 
 #ifndef CONFIG_RADIO_ZOLTRIX_PORT
-#define CONFIG_RADIO_ZOLTRIX_PORT -1
+	#define CONFIG_RADIO_ZOLTRIX_PORT -1
 #endif
 
 #define ZOLTRIX_MAX 2
 
 static int io[ZOLTRIX_MAX] = { [0] = CONFIG_RADIO_ZOLTRIX_PORT,
-			       [1 ... (ZOLTRIX_MAX - 1)] = -1 };
+							   [1 ... (ZOLTRIX_MAX - 1)] = -1
+							 };
 static int radio_nr[ZOLTRIX_MAX] = { [0 ... (ZOLTRIX_MAX - 1)] = -1 };
 
 module_param_array(io, int, NULL, 0444);
@@ -70,7 +71,8 @@ MODULE_PARM_DESC(io, "I/O addresses of the Zoltrix Radio Plus card (0x20c or 0x3
 module_param_array(radio_nr, int, NULL, 0444);
 MODULE_PARM_DESC(radio_nr, "Radio device numbers");
 
-struct zoltrix {
+struct zoltrix
+{
 	struct radio_isa_card isa;
 	int curvol;
 	bool muted;
@@ -89,7 +91,9 @@ static int zoltrix_s_mute_volume(struct radio_isa_card *isa, bool mute, int vol)
 
 	zol->curvol = vol;
 	zol->muted = mute;
-	if (mute || vol == 0) {
+
+	if (mute || vol == 0)
+	{
 		outb(0, isa->io);
 		outb(0, isa->io);
 		inb(isa->io + 3);            /* Zoltrix needs to be read to confirm */
@@ -111,7 +115,8 @@ static int zoltrix_s_frequency(struct radio_isa_card *isa, u32 freq)
 	bool stereo = isa->stereo;
 	int i;
 
-	if (freq == 0) {
+	if (freq == 0)
+	{
 		v4l2_warn(v4l2_dev, "cannot set a frequency of 0.\n");
 		return -EINVAL;
 	}
@@ -130,15 +135,20 @@ static int zoltrix_s_frequency(struct radio_isa_card *isa, u32 freq)
 	outb(0xc0, isa->io);
 
 	bitmask = (bitmask ^ ((f & 0xff) << 47) ^ ((f & 0xff00) << 30) ^ (stereo << 31));
-	while (i--) {
-		if ((bitmask & 0x8000000000000000ull) != 0) {
+
+	while (i--)
+	{
+		if ((bitmask & 0x8000000000000000ull) != 0)
+		{
 			outb(0x80, isa->io);
 			udelay(50);
 			outb(0x00, isa->io);
 			udelay(50);
 			outb(0x80, isa->io);
 			udelay(50);
-		} else {
+		}
+		else
+		{
 			outb(0xc0, isa->io);
 			udelay(50);
 			outb(0x40, isa->io);
@@ -146,8 +156,10 @@ static int zoltrix_s_frequency(struct radio_isa_card *isa, u32 freq)
 			outb(0xc0, isa->io);
 			udelay(50);
 		}
+
 		bitmask *= 2;
 	}
+
 	/* termination sequence */
 	outb(0x80, isa->io);
 	outb(0xc0, isa->io);
@@ -174,7 +186,7 @@ static u32 zoltrix_g_rxsubchans(struct radio_isa_card *isa)
 	b = inb(isa->io);
 
 	return (a == b && a == 0xcf) ?
-		V4L2_TUNER_SUB_STEREO : V4L2_TUNER_SUB_MONO;
+		   V4L2_TUNER_SUB_STEREO : V4L2_TUNER_SUB_MONO;
 }
 
 static u32 zoltrix_g_signal(struct radio_isa_card *isa)
@@ -191,7 +203,9 @@ static u32 zoltrix_g_signal(struct radio_isa_card *isa)
 	b = inb(isa->io);
 
 	if (a != b)
+	{
 		return 0;
+	}
 
 	/* I found this out by playing with a binary scanner on the card io */
 	return (a == 0xcf || a == 0xdf || a == 0xef) ? 0xffff : 0;
@@ -202,7 +216,8 @@ static int zoltrix_s_stereo(struct radio_isa_card *isa, bool stereo)
 	return zoltrix_s_frequency(isa, isa->freq);
 }
 
-static const struct radio_isa_ops zoltrix_ops = {
+static const struct radio_isa_ops zoltrix_ops =
+{
 	.alloc = zoltrix_alloc,
 	.s_mute_volume = zoltrix_s_mute_volume,
 	.s_frequency = zoltrix_s_frequency,
@@ -213,7 +228,8 @@ static const struct radio_isa_ops zoltrix_ops = {
 
 static const int zoltrix_ioports[] = { 0x20c, 0x30c };
 
-static struct radio_isa_driver zoltrix_driver = {
+static struct radio_isa_driver zoltrix_driver =
+{
 	.driver = {
 		.match		= radio_isa_match,
 		.probe		= radio_isa_probe,

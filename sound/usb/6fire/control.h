@@ -16,11 +16,13 @@
 
 #include "common.h"
 
-enum {
+enum
+{
 	CONTROL_MAX_ELEMENTS = 32
 };
 
-enum {
+enum
+{
 	CONTROL_RATE_44KHZ,
 	CONTROL_RATE_48KHZ,
 	CONTROL_RATE_88KHZ,
@@ -30,11 +32,12 @@ enum {
 	CONTROL_N_RATES
 };
 
-struct control_runtime {
+struct control_runtime
+{
 	int (*update_streaming)(struct control_runtime *rt);
 	int (*set_rate)(struct control_runtime *rt, int rate);
 	int (*set_channels)(struct control_runtime *rt, int n_analog_out,
-		int n_analog_in, bool spdif_out, bool spdif_in);
+						int n_analog_in, bool spdif_out, bool spdif_in);
 
 	struct sfire_chip *chip;
 

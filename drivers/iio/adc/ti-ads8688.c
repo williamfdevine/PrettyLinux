@@ -47,7 +47,8 @@
  * @ADS8688_PLUS25VREF: Device is configured for input range 0 - 2.5 * VREF
  * @ADS8688_PLUS125VREF: Device is configured for input range 0 - 1.25 * VREF
  */
-enum ads8688_range {
+enum ads8688_range
+{
 	ADS8688_PLUSMINUS25VREF,
 	ADS8688_PLUSMINUS125VREF,
 	ADS8688_PLUSMINUS0625VREF,
@@ -55,37 +56,43 @@ enum ads8688_range {
 	ADS8688_PLUS125VREF,
 };
 
-struct ads8688_chip_info {
+struct ads8688_chip_info
+{
 	const struct iio_chan_spec *channels;
 	unsigned int num_channels;
 };
 
-struct ads8688_state {
+struct ads8688_state
+{
 	struct mutex			lock;
 	const struct ads8688_chip_info	*chip_info;
 	struct spi_device		*spi;
 	struct regulator		*reg;
 	unsigned int			vref_mv;
 	enum ads8688_range		range[8];
-	union {
+	union
+	{
 		__be32 d32;
 		u8 d8[4];
 	} data[2] ____cacheline_aligned;
 };
 
-enum ads8688_id {
+enum ads8688_id
+{
 	ID_ADS8684,
 	ID_ADS8688,
 };
 
-struct ads8688_ranges {
+struct ads8688_ranges
+{
 	enum ads8688_range range;
 	unsigned int scale;
 	int offset;
 	u8 reg;
 };
 
-static const struct ads8688_ranges ads8688_range_def[5] = {
+static const struct ads8688_ranges ads8688_range_def[5] =
+{
 	{
 		.range = ADS8688_PLUSMINUS25VREF,
 		.scale = 76295,
@@ -115,56 +122,60 @@ static const struct ads8688_ranges ads8688_range_def[5] = {
 };
 
 static ssize_t ads8688_show_scales(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+								   struct device_attribute *attr, char *buf)
 {
 	struct ads8688_state *st = iio_priv(dev_to_iio_dev(dev));
 
 	return sprintf(buf, "0.%09u 0.%09u 0.%09u\n",
-		       ads8688_range_def[0].scale * st->vref_mv,
-		       ads8688_range_def[1].scale * st->vref_mv,
-		       ads8688_range_def[2].scale * st->vref_mv);
+				   ads8688_range_def[0].scale * st->vref_mv,
+				   ads8688_range_def[1].scale * st->vref_mv,
+				   ads8688_range_def[2].scale * st->vref_mv);
 }
 
 static ssize_t ads8688_show_offsets(struct device *dev,
-				    struct device_attribute *attr, char *buf)
+									struct device_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%d %d\n", ads8688_range_def[0].offset,
-		       ads8688_range_def[3].offset);
+				   ads8688_range_def[3].offset);
 }
 
 static IIO_DEVICE_ATTR(in_voltage_scale_available, S_IRUGO,
-		       ads8688_show_scales, NULL, 0);
+					   ads8688_show_scales, NULL, 0);
 static IIO_DEVICE_ATTR(in_voltage_offset_available, S_IRUGO,
-		       ads8688_show_offsets, NULL, 0);
+					   ads8688_show_offsets, NULL, 0);
 
-static struct attribute *ads8688_attributes[] = {
+static struct attribute *ads8688_attributes[] =
+{
 	&iio_dev_attr_in_voltage_scale_available.dev_attr.attr,
 	&iio_dev_attr_in_voltage_offset_available.dev_attr.attr,
 	NULL,
 };
 
-static const struct attribute_group ads8688_attribute_group = {
+static const struct attribute_group ads8688_attribute_group =
+{
 	.attrs = ads8688_attributes,
 };
 
 #define ADS8688_CHAN(index)					\
-{								\
-	.type = IIO_VOLTAGE,					\
-	.indexed = 1,						\
-	.channel = index,					\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW)		\
-			      | BIT(IIO_CHAN_INFO_SCALE)	\
-			      | BIT(IIO_CHAN_INFO_OFFSET),	\
-}
+	{								\
+		.type = IIO_VOLTAGE,					\
+				.indexed = 1,						\
+						   .channel = index,					\
+									  .info_mask_separate = BIT(IIO_CHAN_INFO_RAW)		\
+											  | BIT(IIO_CHAN_INFO_SCALE)	\
+											  | BIT(IIO_CHAN_INFO_OFFSET),	\
+	}
 
-static const struct iio_chan_spec ads8684_channels[] = {
+static const struct iio_chan_spec ads8684_channels[] =
+{
 	ADS8688_CHAN(0),
 	ADS8688_CHAN(1),
 	ADS8688_CHAN(2),
 	ADS8688_CHAN(3),
 };
 
-static const struct iio_chan_spec ads8688_channels[] = {
+static const struct iio_chan_spec ads8688_channels[] =
+{
 	ADS8688_CHAN(0),
 	ADS8688_CHAN(1),
 	ADS8688_CHAN(2),
@@ -176,7 +187,7 @@ static const struct iio_chan_spec ads8688_channels[] = {
 };
 
 static int ads8688_prog_write(struct iio_dev *indio_dev, unsigned int addr,
-			      unsigned int val)
+							  unsigned int val)
 {
 	struct ads8688_state *st = iio_priv(indio_dev);
 	u32 tmp;
@@ -205,7 +216,8 @@ static int ads8688_read(struct iio_dev *indio_dev, unsigned int chan)
 	struct ads8688_state *st = iio_priv(indio_dev);
 	int ret;
 	u32 tmp;
-	struct spi_transfer t[] = {
+	struct spi_transfer t[] =
+	{
 		{
 			.tx_buf = &st->data[0].d8[0],
 			.len = 4,
@@ -226,15 +238,18 @@ static int ads8688_read(struct iio_dev *indio_dev, unsigned int chan)
 	st->data[1].d32 = cpu_to_be32(tmp);
 
 	ret = spi_sync_transfer(st->spi, t, ARRAY_SIZE(t));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return be32_to_cpu(st->data[1].d32) & 0xffff;
 }
 
 static int ads8688_read_raw(struct iio_dev *indio_dev,
-			    struct iio_chan_spec const *chan,
-			    int *val, int *val2, long m)
+							struct iio_chan_spec const *chan,
+							int *val, int *val2, long m)
 {
 	int ret, offset;
 	unsigned long scale_mv;
@@ -242,35 +257,44 @@ static int ads8688_read_raw(struct iio_dev *indio_dev,
 	struct ads8688_state *st = iio_priv(indio_dev);
 
 	mutex_lock(&st->lock);
-	switch (m) {
-	case IIO_CHAN_INFO_RAW:
-		ret = ads8688_read(indio_dev, chan->channel);
-		mutex_unlock(&st->lock);
-		if (ret < 0)
-			return ret;
-		*val = ret;
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_SCALE:
-		scale_mv = st->vref_mv;
-		scale_mv *= ads8688_range_def[st->range[chan->channel]].scale;
-		*val = 0;
-		*val2 = scale_mv;
-		mutex_unlock(&st->lock);
-		return IIO_VAL_INT_PLUS_NANO;
-	case IIO_CHAN_INFO_OFFSET:
-		offset = ads8688_range_def[st->range[chan->channel]].offset;
-		*val = offset;
-		mutex_unlock(&st->lock);
-		return IIO_VAL_INT;
+
+	switch (m)
+	{
+		case IIO_CHAN_INFO_RAW:
+			ret = ads8688_read(indio_dev, chan->channel);
+			mutex_unlock(&st->lock);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			*val = ret;
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_SCALE:
+			scale_mv = st->vref_mv;
+			scale_mv *= ads8688_range_def[st->range[chan->channel]].scale;
+			*val = 0;
+			*val2 = scale_mv;
+			mutex_unlock(&st->lock);
+			return IIO_VAL_INT_PLUS_NANO;
+
+		case IIO_CHAN_INFO_OFFSET:
+			offset = ads8688_range_def[st->range[chan->channel]].offset;
+			*val = offset;
+			mutex_unlock(&st->lock);
+			return IIO_VAL_INT;
 	}
+
 	mutex_unlock(&st->lock);
 
 	return -EINVAL;
 }
 
 static int ads8688_write_reg_range(struct iio_dev *indio_dev,
-				   struct iio_chan_spec const *chan,
-				   enum ads8688_range range)
+								   struct iio_chan_spec const *chan,
+								   enum ads8688_range range)
 {
 	unsigned int tmp;
 	int ret;
@@ -282,68 +306,82 @@ static int ads8688_write_reg_range(struct iio_dev *indio_dev,
 }
 
 static int ads8688_write_raw(struct iio_dev *indio_dev,
-			     struct iio_chan_spec const *chan,
-			     int val, int val2, long mask)
+							 struct iio_chan_spec const *chan,
+							 int val, int val2, long mask)
 {
 	struct ads8688_state *st = iio_priv(indio_dev);
 	unsigned int scale = 0;
 	int ret = -EINVAL, i, offset = 0;
 
 	mutex_lock(&st->lock);
-	switch (mask) {
-	case IIO_CHAN_INFO_SCALE:
-		/* If the offset is 0 the ±2.5 * VREF mode is not available */
-		offset = ads8688_range_def[st->range[chan->channel]].offset;
-		if (offset == 0 && val2 == ads8688_range_def[0].scale * st->vref_mv) {
-			mutex_unlock(&st->lock);
-			return -EINVAL;
-		}
 
-		/* Lookup new mode */
-		for (i = 0; i < ARRAY_SIZE(ads8688_range_def); i++)
-			if (val2 == ads8688_range_def[i].scale * st->vref_mv &&
-			    offset == ads8688_range_def[i].offset) {
-				ret = ads8688_write_reg_range(indio_dev, chan,
-					ads8688_range_def[i].reg);
-				break;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_SCALE:
+			/* If the offset is 0 the ±2.5 * VREF mode is not available */
+			offset = ads8688_range_def[st->range[chan->channel]].offset;
+
+			if (offset == 0 && val2 == ads8688_range_def[0].scale * st->vref_mv)
+			{
+				mutex_unlock(&st->lock);
+				return -EINVAL;
 			}
-		break;
-	case IIO_CHAN_INFO_OFFSET:
-		/*
-		 * There are only two available offsets:
-		 * 0 and -(1 << (ADS8688_REALBITS - 1))
-		 */
-		if (!(ads8688_range_def[0].offset == val ||
-		    ads8688_range_def[3].offset == val)) {
-			mutex_unlock(&st->lock);
-			return -EINVAL;
-		}
 
-		/*
-		 * If the device are in ±2.5 * VREF mode, it's not allowed to
-		 * switch to a mode where the offset is 0
-		 */
-		if (val == 0 &&
-		    st->range[chan->channel] == ADS8688_PLUSMINUS25VREF) {
-			mutex_unlock(&st->lock);
-			return -EINVAL;
-		}
+			/* Lookup new mode */
+			for (i = 0; i < ARRAY_SIZE(ads8688_range_def); i++)
+				if (val2 == ads8688_range_def[i].scale * st->vref_mv &&
+					offset == ads8688_range_def[i].offset)
+				{
+					ret = ads8688_write_reg_range(indio_dev, chan,
+												  ads8688_range_def[i].reg);
+					break;
+				}
 
-		scale = ads8688_range_def[st->range[chan->channel]].scale;
+			break;
 
-		/* Lookup new mode */
-		for (i = 0; i < ARRAY_SIZE(ads8688_range_def); i++)
-			if (val == ads8688_range_def[i].offset &&
-			    scale == ads8688_range_def[i].scale) {
-				ret = ads8688_write_reg_range(indio_dev, chan,
-					ads8688_range_def[i].reg);
-				break;
+		case IIO_CHAN_INFO_OFFSET:
+
+			/*
+			 * There are only two available offsets:
+			 * 0 and -(1 << (ADS8688_REALBITS - 1))
+			 */
+			if (!(ads8688_range_def[0].offset == val ||
+				  ads8688_range_def[3].offset == val))
+			{
+				mutex_unlock(&st->lock);
+				return -EINVAL;
 			}
-		break;
+
+			/*
+			 * If the device are in ±2.5 * VREF mode, it's not allowed to
+			 * switch to a mode where the offset is 0
+			 */
+			if (val == 0 &&
+				st->range[chan->channel] == ADS8688_PLUSMINUS25VREF)
+			{
+				mutex_unlock(&st->lock);
+				return -EINVAL;
+			}
+
+			scale = ads8688_range_def[st->range[chan->channel]].scale;
+
+			/* Lookup new mode */
+			for (i = 0; i < ARRAY_SIZE(ads8688_range_def); i++)
+				if (val == ads8688_range_def[i].offset &&
+					scale == ads8688_range_def[i].scale)
+				{
+					ret = ads8688_write_reg_range(indio_dev, chan,
+												  ads8688_range_def[i].reg);
+					break;
+				}
+
+			break;
 	}
 
 	if (!ret)
+	{
 		st->range[chan->channel] = ads8688_range_def[i].range;
+	}
 
 	mutex_unlock(&st->lock);
 
@@ -351,20 +389,23 @@ static int ads8688_write_raw(struct iio_dev *indio_dev,
 }
 
 static int ads8688_write_raw_get_fmt(struct iio_dev *indio_dev,
-				     struct iio_chan_spec const *chan,
-				     long mask)
+									 struct iio_chan_spec const *chan,
+									 long mask)
 {
-	switch (mask) {
-	case IIO_CHAN_INFO_SCALE:
-		return IIO_VAL_INT_PLUS_NANO;
-	case IIO_CHAN_INFO_OFFSET:
-		return IIO_VAL_INT;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_SCALE:
+			return IIO_VAL_INT_PLUS_NANO;
+
+		case IIO_CHAN_INFO_OFFSET:
+			return IIO_VAL_INT;
 	}
 
 	return -EINVAL;
 }
 
-static const struct iio_info ads8688_info = {
+static const struct iio_info ads8688_info =
+{
 	.read_raw = &ads8688_read_raw,
 	.write_raw = &ads8688_write_raw,
 	.write_raw_get_fmt = &ads8688_write_raw_get_fmt,
@@ -372,7 +413,8 @@ static const struct iio_info ads8688_info = {
 	.driver_module = THIS_MODULE,
 };
 
-static const struct ads8688_chip_info ads8688_chip_info_tbl[] = {
+static const struct ads8688_chip_info ads8688_chip_info_tbl[] =
+{
 	[ID_ADS8684] = {
 		.channels = ads8684_channels,
 		.num_channels = ARRAY_SIZE(ads8684_channels),
@@ -390,23 +432,36 @@ static int ads8688_probe(struct spi_device *spi)
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*st));
+
 	if (indio_dev == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	st = iio_priv(indio_dev);
 
 	st->reg = devm_regulator_get_optional(&spi->dev, "vref");
-	if (!IS_ERR(st->reg)) {
+
+	if (!IS_ERR(st->reg))
+	{
 		ret = regulator_enable(st->reg);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		ret = regulator_get_voltage(st->reg);
+
 		if (ret < 0)
+		{
 			goto error_out;
+		}
 
 		st->vref_mv = ret / 1000;
-	} else {
+	}
+	else
+	{
 		/* Use internal reference */
 		st->vref_mv = ADS8688_VREF_MV;
 	}
@@ -432,14 +487,20 @@ static int ads8688_probe(struct spi_device *spi)
 	mutex_init(&st->lock);
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret)
+	{
 		goto error_out;
+	}
 
 	return 0;
 
 error_out:
+
 	if (!IS_ERR(st->reg))
+	{
 		regulator_disable(st->reg);
+	}
 
 	return ret;
 }
@@ -452,26 +513,31 @@ static int ads8688_remove(struct spi_device *spi)
 	iio_device_unregister(indio_dev);
 
 	if (!IS_ERR(st->reg))
+	{
 		regulator_disable(st->reg);
+	}
 
 	return 0;
 }
 
-static const struct spi_device_id ads8688_id[] = {
+static const struct spi_device_id ads8688_id[] =
+{
 	{"ads8684", ID_ADS8684},
 	{"ads8688", ID_ADS8688},
 	{}
 };
 MODULE_DEVICE_TABLE(spi, ads8688_id);
 
-static const struct of_device_id ads8688_of_match[] = {
+static const struct of_device_id ads8688_of_match[] =
+{
 	{ .compatible = "ti,ads8684" },
 	{ .compatible = "ti,ads8688" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, ads8688_of_match);
 
-static struct spi_driver ads8688_driver = {
+static struct spi_driver ads8688_driver =
+{
 	.driver = {
 		.name	= "ads8688",
 		.owner	= THIS_MODULE,

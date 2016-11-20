@@ -31,13 +31,19 @@ EXPORT_SYMBOL_GPL(vsock_addr_init);
 int vsock_addr_validate(const struct sockaddr_vm *addr)
 {
 	if (!addr)
+	{
 		return -EFAULT;
+	}
 
 	if (addr->svm_family != AF_VSOCK)
+	{
 		return -EAFNOSUPPORT;
+	}
 
 	if (addr->svm_zero[0] != 0)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -56,18 +62,20 @@ void vsock_addr_unbind(struct sockaddr_vm *addr)
 EXPORT_SYMBOL_GPL(vsock_addr_unbind);
 
 bool vsock_addr_equals_addr(const struct sockaddr_vm *addr,
-			    const struct sockaddr_vm *other)
+							const struct sockaddr_vm *other)
 {
 	return addr->svm_cid == other->svm_cid &&
-		addr->svm_port == other->svm_port;
+		   addr->svm_port == other->svm_port;
 }
 EXPORT_SYMBOL_GPL(vsock_addr_equals_addr);
 
 int vsock_addr_cast(const struct sockaddr *addr,
-		    size_t len, struct sockaddr_vm **out_addr)
+					size_t len, struct sockaddr_vm **out_addr)
 {
 	if (len < sizeof(**out_addr))
+	{
 		return -EFAULT;
+	}
 
 	*out_addr = (struct sockaddr_vm *)addr;
 	return vsock_addr_validate(*out_addr);

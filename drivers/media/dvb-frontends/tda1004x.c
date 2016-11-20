@@ -1,24 +1,24 @@
-  /*
-     Driver for Philips tda1004xh OFDM Demodulator
+/*
+   Driver for Philips tda1004xh OFDM Demodulator
 
-     (c) 2003, 2004 Andrew de Quincey & Robert Schlabbach
+   (c) 2003, 2004 Andrew de Quincey & Robert Schlabbach
 
-     This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-     the Free Software Foundation; either version 2 of the License, or
-     (at your option) any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
 
-     This program is distributed in the hope that it will be useful,
-     but WITHOUT ANY WARRANTY; without even the implied warranty of
-     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 
-     GNU General Public License for more details.
+   GNU General Public License for more details.
 
-     You should have received a copy of the GNU General Public License
-     along with this program; if not, write to the Free Software
-     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-   */
+ */
 /*
  * This driver needs external firmware. Please use the commands
  * "<kerneldir>/Documentation/dvb/get_dvb_firmware tda10045",
@@ -138,10 +138,10 @@ static int tda1004x_write_byteI(struct tda1004x_state *state, int reg, int data)
 
 	if (ret != 1)
 		dprintk("%s: error reg=0x%x, data=0x%x, ret=%i\n",
-			__func__, reg, data, ret);
+				__func__, reg, data, ret);
 
 	dprintk("%s: success reg=0x%x, data=0x%x, ret=%i\n", __func__,
-		reg, data, ret);
+			reg, data, ret);
 	return (ret != 1) ? -1 : 0;
 }
 
@@ -151,7 +151,8 @@ static int tda1004x_read_byte(struct tda1004x_state *state, int reg)
 	u8 b0[] = { reg };
 	u8 b1[] = { 0 };
 	struct i2c_msg msg[] = {{ .flags = 0, .buf = b0, .len = 1 },
-				{ .flags = I2C_M_RD, .buf = b1, .len = 1 }};
+		{ .flags = I2C_M_RD, .buf = b1, .len = 1 }
+	};
 
 	dprintk("%s: reg=0x%x\n", __func__, reg);
 
@@ -159,14 +160,15 @@ static int tda1004x_read_byte(struct tda1004x_state *state, int reg)
 	msg[1].addr = state->config->demod_address;
 	ret = i2c_transfer(state->i2c, msg, 2);
 
-	if (ret != 2) {
+	if (ret != 2)
+	{
 		dprintk("%s: error reg=0x%x, ret=%i\n", __func__, reg,
-			ret);
+				ret);
 		return -EINVAL;
 	}
 
 	dprintk("%s: success reg=0x%x, data=0x%x, ret=%i\n", __func__,
-		reg, b1[0], ret);
+			reg, b1[0], ret);
 	return b1[0];
 }
 
@@ -174,12 +176,15 @@ static int tda1004x_write_mask(struct tda1004x_state *state, int reg, int mask, 
 {
 	int val;
 	dprintk("%s: reg=0x%x, mask=0x%x, data=0x%x\n", __func__, reg,
-		mask, data);
+			mask, data);
 
 	// read a byte and check
 	val = tda1004x_read_byte(state, reg);
+
 	if (val < 0)
+	{
 		return val;
+	}
 
 	// mask if off
 	val = val & ~mask;
@@ -197,10 +202,15 @@ static int tda1004x_write_buf(struct tda1004x_state *state, int reg, unsigned ch
 	dprintk("%s: reg=0x%x, len=0x%x\n", __func__, reg, len);
 
 	result = 0;
-	for (i = 0; i < len; i++) {
+
+	for (i = 0; i < len; i++)
+	{
 		result = tda1004x_write_byteI(state, reg + i, buf[i]);
+
 		if (result != 0)
+		{
 			break;
+		}
 	}
 
 	return result;
@@ -224,27 +234,28 @@ static int tda1004x_disable_tuner_i2c(struct tda1004x_state *state)
 }
 
 static int tda10045h_set_bandwidth(struct tda1004x_state *state,
-				   u32 bandwidth)
+								   u32 bandwidth)
 {
 	static u8 bandwidth_6mhz[] = { 0x02, 0x00, 0x3d, 0x00, 0x60, 0x1e, 0xa7, 0x45, 0x4f };
 	static u8 bandwidth_7mhz[] = { 0x02, 0x00, 0x37, 0x00, 0x4a, 0x2f, 0x6d, 0x76, 0xdb };
 	static u8 bandwidth_8mhz[] = { 0x02, 0x00, 0x3d, 0x00, 0x48, 0x17, 0x89, 0xc7, 0x14 };
 
-	switch (bandwidth) {
-	case 6000000:
-		tda1004x_write_buf(state, TDA10045H_CONFPLL_P, bandwidth_6mhz, sizeof(bandwidth_6mhz));
-		break;
+	switch (bandwidth)
+	{
+		case 6000000:
+			tda1004x_write_buf(state, TDA10045H_CONFPLL_P, bandwidth_6mhz, sizeof(bandwidth_6mhz));
+			break;
 
-	case 7000000:
-		tda1004x_write_buf(state, TDA10045H_CONFPLL_P, bandwidth_7mhz, sizeof(bandwidth_7mhz));
-		break;
+		case 7000000:
+			tda1004x_write_buf(state, TDA10045H_CONFPLL_P, bandwidth_7mhz, sizeof(bandwidth_7mhz));
+			break;
 
-	case 8000000:
-		tda1004x_write_buf(state, TDA10045H_CONFPLL_P, bandwidth_8mhz, sizeof(bandwidth_8mhz));
-		break;
+		case 8000000:
+			tda1004x_write_buf(state, TDA10045H_CONFPLL_P, bandwidth_8mhz, sizeof(bandwidth_8mhz));
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
 	tda1004x_write_byteI(state, TDA10045H_IOFFSET, 0);
@@ -253,7 +264,7 @@ static int tda10045h_set_bandwidth(struct tda1004x_state *state,
 }
 
 static int tda10046h_set_bandwidth(struct tda1004x_state *state,
-				   u32 bandwidth)
+								   u32 bandwidth)
 {
 	static u8 bandwidth_6mhz_53M[] = { 0x7b, 0x2e, 0x11, 0xf0, 0xd2 };
 	static u8 bandwidth_7mhz_53M[] = { 0x6a, 0x02, 0x6a, 0x43, 0x9f };
@@ -265,60 +276,75 @@ static int tda10046h_set_bandwidth(struct tda1004x_state *state,
 	int tda10046_clk53m;
 
 	if ((state->config->if_freq == TDA10046_FREQ_045) ||
-	    (state->config->if_freq == TDA10046_FREQ_052))
+		(state->config->if_freq == TDA10046_FREQ_052))
+	{
 		tda10046_clk53m = 0;
+	}
 	else
+	{
 		tda10046_clk53m = 1;
-	switch (bandwidth) {
-	case 6000000:
-		if (tda10046_clk53m)
-			tda1004x_write_buf(state, TDA10046H_TIME_WREF1, bandwidth_6mhz_53M,
-						  sizeof(bandwidth_6mhz_53M));
-		else
-			tda1004x_write_buf(state, TDA10046H_TIME_WREF1, bandwidth_6mhz_48M,
-						  sizeof(bandwidth_6mhz_48M));
-		if (state->config->if_freq == TDA10046_FREQ_045) {
-			tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_MSB, 0x0a);
-			tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_LSB, 0xab);
-		}
-		break;
+	}
 
-	case 7000000:
-		if (tda10046_clk53m)
-			tda1004x_write_buf(state, TDA10046H_TIME_WREF1, bandwidth_7mhz_53M,
-						  sizeof(bandwidth_7mhz_53M));
-		else
-			tda1004x_write_buf(state, TDA10046H_TIME_WREF1, bandwidth_7mhz_48M,
-						  sizeof(bandwidth_7mhz_48M));
-		if (state->config->if_freq == TDA10046_FREQ_045) {
-			tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_MSB, 0x0c);
-			tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_LSB, 0x00);
-		}
-		break;
+	switch (bandwidth)
+	{
+		case 6000000:
+			if (tda10046_clk53m)
+				tda1004x_write_buf(state, TDA10046H_TIME_WREF1, bandwidth_6mhz_53M,
+								   sizeof(bandwidth_6mhz_53M));
+			else
+				tda1004x_write_buf(state, TDA10046H_TIME_WREF1, bandwidth_6mhz_48M,
+								   sizeof(bandwidth_6mhz_48M));
 
-	case 8000000:
-		if (tda10046_clk53m)
-			tda1004x_write_buf(state, TDA10046H_TIME_WREF1, bandwidth_8mhz_53M,
-						  sizeof(bandwidth_8mhz_53M));
-		else
-			tda1004x_write_buf(state, TDA10046H_TIME_WREF1, bandwidth_8mhz_48M,
-						  sizeof(bandwidth_8mhz_48M));
-		if (state->config->if_freq == TDA10046_FREQ_045) {
-			tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_MSB, 0x0d);
-			tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_LSB, 0x55);
-		}
-		break;
+			if (state->config->if_freq == TDA10046_FREQ_045)
+			{
+				tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_MSB, 0x0a);
+				tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_LSB, 0xab);
+			}
 
-	default:
-		return -EINVAL;
+			break;
+
+		case 7000000:
+			if (tda10046_clk53m)
+				tda1004x_write_buf(state, TDA10046H_TIME_WREF1, bandwidth_7mhz_53M,
+								   sizeof(bandwidth_7mhz_53M));
+			else
+				tda1004x_write_buf(state, TDA10046H_TIME_WREF1, bandwidth_7mhz_48M,
+								   sizeof(bandwidth_7mhz_48M));
+
+			if (state->config->if_freq == TDA10046_FREQ_045)
+			{
+				tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_MSB, 0x0c);
+				tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_LSB, 0x00);
+			}
+
+			break;
+
+		case 8000000:
+			if (tda10046_clk53m)
+				tda1004x_write_buf(state, TDA10046H_TIME_WREF1, bandwidth_8mhz_53M,
+								   sizeof(bandwidth_8mhz_53M));
+			else
+				tda1004x_write_buf(state, TDA10046H_TIME_WREF1, bandwidth_8mhz_48M,
+								   sizeof(bandwidth_8mhz_48M));
+
+			if (state->config->if_freq == TDA10046_FREQ_045)
+			{
+				tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_MSB, 0x0d);
+				tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_LSB, 0x55);
+			}
+
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
 static int tda1004x_do_upload(struct tda1004x_state *state,
-			      const unsigned char *mem, unsigned int len,
-			      u8 dspCodeCounterReg, u8 dspCodeInReg)
+							  const unsigned char *mem, unsigned int len,
+							  u8 dspCodeCounterReg, u8 dspCodeInReg)
 {
 	u8 buf[65];
 	struct i2c_msg fw_msg = { .flags = 0, .buf = buf, .len = 0 };
@@ -331,24 +357,33 @@ static int tda1004x_do_upload(struct tda1004x_state *state,
 
 	i2c_lock_adapter(state->i2c);
 	buf[0] = dspCodeInReg;
-	while (pos != len) {
+
+	while (pos != len)
+	{
 		// work out how much to send this time
 		tx_size = len - pos;
+
 		if (tx_size > 0x10)
+		{
 			tx_size = 0x10;
+		}
 
 		// send the chunk
 		memcpy(buf + 1, mem + pos, tx_size);
 		fw_msg.len = tx_size + 1;
-		if (__i2c_transfer(state->i2c, &fw_msg, 1) != 1) {
+
+		if (__i2c_transfer(state->i2c, &fw_msg, 1) != 1)
+		{
 			printk(KERN_ERR "tda1004x: Error during firmware upload\n");
 			i2c_unlock_adapter(state->i2c);
 			return -EIO;
 		}
+
 		pos += tx_size;
 
 		dprintk("%s: fw_pos=0x%x\n", __func__, pos);
 	}
+
 	i2c_unlock_adapter(state->i2c);
 
 	/* give the DSP a chance to settle 03/10/05 Hac */
@@ -362,17 +397,25 @@ static int tda1004x_check_upload_ok(struct tda1004x_state *state)
 	u8 data1, data2;
 	unsigned long timeout;
 
-	if (state->demod_type == TDA1004X_DEMOD_TDA10046) {
+	if (state->demod_type == TDA1004X_DEMOD_TDA10046)
+	{
 		timeout = jiffies + 2 * HZ;
-		while(!(tda1004x_read_byte(state, TDA1004X_STATUS_CD) & 0x20)) {
-			if (time_after(jiffies, timeout)) {
+
+		while (!(tda1004x_read_byte(state, TDA1004X_STATUS_CD) & 0x20))
+		{
+			if (time_after(jiffies, timeout))
+			{
 				printk(KERN_ERR "tda1004x: timeout waiting for DSP ready\n");
 				break;
 			}
+
 			msleep(1);
 		}
-	} else
+	}
+	else
+	{
 		msleep(100);
+	}
 
 	// check upload was OK
 	tda1004x_write_mask(state, TDA1004X_CONFC4, 0x10, 0); // we want to read from the DSP
@@ -380,28 +423,35 @@ static int tda1004x_check_upload_ok(struct tda1004x_state *state)
 
 	data1 = tda1004x_read_byte(state, TDA1004X_DSP_DATA1);
 	data2 = tda1004x_read_byte(state, TDA1004X_DSP_DATA2);
-	if (data1 != 0x67 || data2 < 0x20 || data2 > 0x2e) {
+
+	if (data1 != 0x67 || data2 < 0x20 || data2 > 0x2e)
+	{
 		printk(KERN_INFO "tda1004x: found firmware revision %x -- invalid\n", data2);
 		return -EIO;
 	}
+
 	printk(KERN_INFO "tda1004x: found firmware revision %x -- ok\n", data2);
 	return 0;
 }
 
-static int tda10045_fwupload(struct dvb_frontend* fe)
+static int tda10045_fwupload(struct dvb_frontend *fe)
 {
-	struct tda1004x_state* state = fe->demodulator_priv;
+	struct tda1004x_state *state = fe->demodulator_priv;
 	int ret;
 	const struct firmware *fw;
 
 	/* don't re-upload unless necessary */
 	if (tda1004x_check_upload_ok(state) == 0)
+	{
 		return 0;
+	}
 
 	/* request the firmware, this will block until someone uploads it */
 	printk(KERN_INFO "tda1004x: waiting for firmware upload (%s)...\n", TDA10045_DEFAULT_FIRMWARE);
 	ret = state->config->request_firmware(fe, &fw, TDA10045_DEFAULT_FIRMWARE);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "tda1004x: no firmware upload (timeout or file not found?)\n");
 		return ret;
 	}
@@ -417,8 +467,12 @@ static int tda10045_fwupload(struct dvb_frontend* fe)
 
 	ret = tda1004x_do_upload(state, fw->data, fw->size, TDA10045H_FWPAGE, TDA10045H_CODE_IN);
 	release_firmware(fw);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	printk(KERN_INFO "tda1004x: firmware upload complete\n");
 
 	/* wait for DSP to initialise */
@@ -428,81 +482,111 @@ static int tda10045_fwupload(struct dvb_frontend* fe)
 	return tda1004x_check_upload_ok(state);
 }
 
-static void tda10046_init_plls(struct dvb_frontend* fe)
+static void tda10046_init_plls(struct dvb_frontend *fe)
 {
-	struct tda1004x_state* state = fe->demodulator_priv;
+	struct tda1004x_state *state = fe->demodulator_priv;
 	int tda10046_clk53m;
 
 	if ((state->config->if_freq == TDA10046_FREQ_045) ||
-	    (state->config->if_freq == TDA10046_FREQ_052))
+		(state->config->if_freq == TDA10046_FREQ_052))
+	{
 		tda10046_clk53m = 0;
+	}
 	else
+	{
 		tda10046_clk53m = 1;
+	}
 
 	tda1004x_write_byteI(state, TDA10046H_CONFPLL1, 0xf0);
-	if(tda10046_clk53m) {
+
+	if (tda10046_clk53m)
+	{
 		printk(KERN_INFO "tda1004x: setting up plls for 53MHz sampling clock\n");
 		tda1004x_write_byteI(state, TDA10046H_CONFPLL2, 0x08); // PLL M = 8
-	} else {
+	}
+	else
+	{
 		printk(KERN_INFO "tda1004x: setting up plls for 48MHz sampling clock\n");
 		tda1004x_write_byteI(state, TDA10046H_CONFPLL2, 0x03); // PLL M = 3
 	}
-	if (state->config->xtal_freq == TDA10046_XTAL_4M ) {
+
+	if (state->config->xtal_freq == TDA10046_XTAL_4M )
+	{
 		dprintk("%s: setting up PLLs for a 4 MHz Xtal\n", __func__);
 		tda1004x_write_byteI(state, TDA10046H_CONFPLL3, 0); // PLL P = N = 0
-	} else {
+	}
+	else
+	{
 		dprintk("%s: setting up PLLs for a 16 MHz Xtal\n", __func__);
 		tda1004x_write_byteI(state, TDA10046H_CONFPLL3, 3); // PLL P = 0, N = 3
 	}
-	if(tda10046_clk53m)
+
+	if (tda10046_clk53m)
+	{
 		tda1004x_write_byteI(state, TDA10046H_FREQ_OFFSET, 0x67);
-	else
-		tda1004x_write_byteI(state, TDA10046H_FREQ_OFFSET, 0x72);
-	/* Note clock frequency is handled implicitly */
-	switch (state->config->if_freq) {
-	case TDA10046_FREQ_045:
-		tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_MSB, 0x0c);
-		tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_LSB, 0x00);
-		break;
-	case TDA10046_FREQ_052:
-		tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_MSB, 0x0d);
-		tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_LSB, 0xc7);
-		break;
-	case TDA10046_FREQ_3617:
-		tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_MSB, 0xd7);
-		tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_LSB, 0x59);
-		break;
-	case TDA10046_FREQ_3613:
-		tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_MSB, 0xd7);
-		tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_LSB, 0x3f);
-		break;
 	}
+	else
+	{
+		tda1004x_write_byteI(state, TDA10046H_FREQ_OFFSET, 0x72);
+	}
+
+	/* Note clock frequency is handled implicitly */
+	switch (state->config->if_freq)
+	{
+		case TDA10046_FREQ_045:
+			tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_MSB, 0x0c);
+			tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_LSB, 0x00);
+			break;
+
+		case TDA10046_FREQ_052:
+			tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_MSB, 0x0d);
+			tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_LSB, 0xc7);
+			break;
+
+		case TDA10046_FREQ_3617:
+			tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_MSB, 0xd7);
+			tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_LSB, 0x59);
+			break;
+
+		case TDA10046_FREQ_3613:
+			tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_MSB, 0xd7);
+			tda1004x_write_byteI(state, TDA10046H_FREQ_PHY2_LSB, 0x3f);
+			break;
+	}
+
 	tda10046h_set_bandwidth(state, 8000000); /* default bandwidth 8 MHz */
 	/* let the PLLs settle */
 	msleep(120);
 }
 
-static int tda10046_fwupload(struct dvb_frontend* fe)
+static int tda10046_fwupload(struct dvb_frontend *fe)
 {
-	struct tda1004x_state* state = fe->demodulator_priv;
+	struct tda1004x_state *state = fe->demodulator_priv;
 	int ret, confc4;
 	const struct firmware *fw;
 
 	/* reset + wake up chip */
-	if (state->config->xtal_freq == TDA10046_XTAL_4M) {
+	if (state->config->xtal_freq == TDA10046_XTAL_4M)
+	{
 		confc4 = 0;
-	} else {
+	}
+	else
+	{
 		dprintk("%s: 16MHz Xtal, reducing I2C speed\n", __func__);
 		confc4 = 0x80;
 	}
+
 	tda1004x_write_byteI(state, TDA1004X_CONFC4, confc4);
 
 	tda1004x_write_mask(state, TDA10046H_CONF_TRISTATE1, 1, 0);
+
 	/* set GPIO 1 and 3 */
-	if (state->config->gpio_config != TDA10046_GPTRI) {
+	if (state->config->gpio_config != TDA10046_GPTRI)
+	{
 		tda1004x_write_byteI(state, TDA10046H_CONF_TRISTATE2, 0x33);
-		tda1004x_write_mask(state, TDA10046H_CONF_POLARITY, 0x0f, state->config->gpio_config &0x0f);
+		tda1004x_write_mask(state, TDA10046H_CONF_POLARITY, 0x0f, state->config->gpio_config & 0x0f);
 	}
+
 	/* let the clocks recover from sleep */
 	msleep(10);
 
@@ -512,7 +596,9 @@ static int tda10046_fwupload(struct dvb_frontend* fe)
 
 	/* don't re-upload unless necessary */
 	if (tda1004x_check_upload_ok(state) == 0)
+	{
 		return 0;
+	}
 
 	/*
 	   For i2c normal work, we need to slow down the bus speed.
@@ -533,29 +619,41 @@ static int tda10046_fwupload(struct dvb_frontend* fe)
 
 	/* Checks if eeprom firmware went without troubles */
 	if (tda1004x_check_upload_ok(state) == 0)
+	{
 		return 0;
+	}
 
 	/* eeprom firmware didn't work. Load one manually. */
 
-	if (state->config->request_firmware != NULL) {
+	if (state->config->request_firmware != NULL)
+	{
 		/* request the firmware, this will block until someone uploads it */
 		printk(KERN_INFO "tda1004x: waiting for firmware upload...\n");
 		ret = state->config->request_firmware(fe, &fw, TDA10046_DEFAULT_FIRMWARE);
-		if (ret) {
+
+		if (ret)
+		{
 			/* remain compatible to old bug: try to load with tda10045 image name */
 			ret = state->config->request_firmware(fe, &fw, TDA10045_DEFAULT_FIRMWARE);
-			if (ret) {
+
+			if (ret)
+			{
 				printk(KERN_ERR "tda1004x: no firmware upload (timeout or file not found?)\n");
 				return ret;
-			} else {
+			}
+			else
+			{
 				printk(KERN_INFO "tda1004x: please rename the firmware file to %s\n",
-						  TDA10046_DEFAULT_FIRMWARE);
+					   TDA10046_DEFAULT_FIRMWARE);
 			}
 		}
-	} else {
+	}
+	else
+	{
 		printk(KERN_ERR "tda1004x: no request function defined, can't upload from file\n");
 		return -EIO;
 	}
+
 	tda1004x_write_mask(state, TDA1004X_CONFC4, 8, 8); // going to boot from HOST
 	ret = tda1004x_do_upload(state, fw->data, fw->size, TDA10046H_CODE_CPT, TDA10046H_CODE_IN);
 	release_firmware(fw);
@@ -565,17 +663,22 @@ static int tda10046_fwupload(struct dvb_frontend* fe)
 static int tda1004x_encode_fec(int fec)
 {
 	// convert known FEC values
-	switch (fec) {
-	case FEC_1_2:
-		return 0;
-	case FEC_2_3:
-		return 1;
-	case FEC_3_4:
-		return 2;
-	case FEC_5_6:
-		return 3;
-	case FEC_7_8:
-		return 4;
+	switch (fec)
+	{
+		case FEC_1_2:
+			return 0;
+
+		case FEC_2_3:
+			return 1;
+
+		case FEC_3_4:
+			return 2;
+
+		case FEC_5_6:
+			return 3;
+
+		case FEC_7_8:
+			return 4;
 	}
 
 	// unsupported
@@ -585,40 +688,48 @@ static int tda1004x_encode_fec(int fec)
 static int tda1004x_decode_fec(int tdafec)
 {
 	// convert known FEC values
-	switch (tdafec) {
-	case 0:
-		return FEC_1_2;
-	case 1:
-		return FEC_2_3;
-	case 2:
-		return FEC_3_4;
-	case 3:
-		return FEC_5_6;
-	case 4:
-		return FEC_7_8;
+	switch (tdafec)
+	{
+		case 0:
+			return FEC_1_2;
+
+		case 1:
+			return FEC_2_3;
+
+		case 2:
+			return FEC_3_4;
+
+		case 3:
+			return FEC_5_6;
+
+		case 4:
+			return FEC_7_8;
 	}
 
 	// unsupported
 	return -1;
 }
 
-static int tda1004x_write(struct dvb_frontend* fe, const u8 buf[], int len)
+static int tda1004x_write(struct dvb_frontend *fe, const u8 buf[], int len)
 {
-	struct tda1004x_state* state = fe->demodulator_priv;
+	struct tda1004x_state *state = fe->demodulator_priv;
 
 	if (len != 2)
+	{
 		return -EINVAL;
+	}
 
 	return tda1004x_write_byteI(state, buf[0], buf[1]);
 }
 
-static int tda10045_init(struct dvb_frontend* fe)
+static int tda10045_init(struct dvb_frontend *fe)
 {
-	struct tda1004x_state* state = fe->demodulator_priv;
+	struct tda1004x_state *state = fe->demodulator_priv;
 
 	dprintk("%s\n", __func__);
 
-	if (tda10045_fwupload(fe)) {
+	if (tda10045_fwupload(fe))
+	{
 		printk("tda1004x: firmware upload failed\n");
 		return -EIO;
 	}
@@ -643,12 +754,13 @@ static int tda10045_init(struct dvb_frontend* fe)
 	return 0;
 }
 
-static int tda10046_init(struct dvb_frontend* fe)
+static int tda10046_init(struct dvb_frontend *fe)
 {
-	struct tda1004x_state* state = fe->demodulator_priv;
+	struct tda1004x_state *state = fe->demodulator_priv;
 	dprintk("%s\n", __func__);
 
-	if (tda10046_fwupload(fe)) {
+	if (tda10046_fwupload(fe))
+	{
 		printk("tda1004x: firmware upload failed\n");
 		return -EIO;
 	}
@@ -658,34 +770,43 @@ static int tda10046_init(struct dvb_frontend* fe)
 	tda1004x_write_byteI(state, TDA1004X_AUTO, 0x87);    // 100 ppm crystal, select HP stream
 	tda1004x_write_byteI(state, TDA1004X_CONFC1, 0x88);      // enable pulse killer
 
-	switch (state->config->agc_config) {
-	case TDA10046_AGC_DEFAULT:
-		tda1004x_write_byteI(state, TDA10046H_AGC_CONF, 0x00); // AGC setup
-		tda1004x_write_mask(state, TDA10046H_CONF_POLARITY, 0xf0, 0x60);  // set AGC polarities
-		break;
-	case TDA10046_AGC_IFO_AUTO_NEG:
-		tda1004x_write_byteI(state, TDA10046H_AGC_CONF, 0x0a); // AGC setup
-		tda1004x_write_mask(state, TDA10046H_CONF_POLARITY, 0xf0, 0x60);  // set AGC polarities
-		break;
-	case TDA10046_AGC_IFO_AUTO_POS:
-		tda1004x_write_byteI(state, TDA10046H_AGC_CONF, 0x0a); // AGC setup
-		tda1004x_write_mask(state, TDA10046H_CONF_POLARITY, 0xf0, 0x00);  // set AGC polarities
-		break;
-	case TDA10046_AGC_TDA827X:
-		tda1004x_write_byteI(state, TDA10046H_AGC_CONF, 0x02);   // AGC setup
-		tda1004x_write_byteI(state, TDA10046H_AGC_THR, 0x70);    // AGC Threshold
-		tda1004x_write_byteI(state, TDA10046H_AGC_RENORM, 0x08); // Gain Renormalize
-		tda1004x_write_mask(state, TDA10046H_CONF_POLARITY, 0xf0, 0x60);  // set AGC polarities
-		break;
+	switch (state->config->agc_config)
+	{
+		case TDA10046_AGC_DEFAULT:
+			tda1004x_write_byteI(state, TDA10046H_AGC_CONF, 0x00); // AGC setup
+			tda1004x_write_mask(state, TDA10046H_CONF_POLARITY, 0xf0, 0x60);  // set AGC polarities
+			break;
+
+		case TDA10046_AGC_IFO_AUTO_NEG:
+			tda1004x_write_byteI(state, TDA10046H_AGC_CONF, 0x0a); // AGC setup
+			tda1004x_write_mask(state, TDA10046H_CONF_POLARITY, 0xf0, 0x60);  // set AGC polarities
+			break;
+
+		case TDA10046_AGC_IFO_AUTO_POS:
+			tda1004x_write_byteI(state, TDA10046H_AGC_CONF, 0x0a); // AGC setup
+			tda1004x_write_mask(state, TDA10046H_CONF_POLARITY, 0xf0, 0x00);  // set AGC polarities
+			break;
+
+		case TDA10046_AGC_TDA827X:
+			tda1004x_write_byteI(state, TDA10046H_AGC_CONF, 0x02);   // AGC setup
+			tda1004x_write_byteI(state, TDA10046H_AGC_THR, 0x70);    // AGC Threshold
+			tda1004x_write_byteI(state, TDA10046H_AGC_RENORM, 0x08); // Gain Renormalize
+			tda1004x_write_mask(state, TDA10046H_CONF_POLARITY, 0xf0, 0x60);  // set AGC polarities
+			break;
 	}
-	if (state->config->ts_mode == 0) {
+
+	if (state->config->ts_mode == 0)
+	{
 		tda1004x_write_mask(state, TDA10046H_CONF_TRISTATE1, 0xc0, 0x40);
 		tda1004x_write_mask(state, 0x3a, 0x80, state->config->invert_oclk << 7);
-	} else {
+	}
+	else
+	{
 		tda1004x_write_mask(state, TDA10046H_CONF_TRISTATE1, 0xc0, 0x80);
 		tda1004x_write_mask(state, TDA10046H_CONF_POLARITY, 0x10,
 							state->config->invert_oclk << 4);
 	}
+
 	tda1004x_write_byteI(state, TDA1004X_CONFADC2, 0x38);
 	tda1004x_write_mask (state, TDA10046H_CONF_TRISTATE1, 0x3e, 0x38); // Turn IF AGC output on
 	tda1004x_write_byteI(state, TDA10046H_AGC_TUN_MIN, 0);	  // }
@@ -704,13 +825,14 @@ static int tda10046_init(struct dvb_frontend* fe)
 static int tda1004x_set_fe(struct dvb_frontend *fe)
 {
 	struct dtv_frontend_properties *fe_params = &fe->dtv_property_cache;
-	struct tda1004x_state* state = fe->demodulator_priv;
+	struct tda1004x_state *state = fe->demodulator_priv;
 	int tmp;
 	int inversion;
 
 	dprintk("%s\n", __func__);
 
-	if (state->demod_type == TDA1004X_DEMOD_TDA10046) {
+	if (state->demod_type == TDA1004X_DEMOD_TDA10046)
+	{
 		// setup auto offset
 		tda1004x_write_mask(state, TDA1004X_AUTO, 0x10, 0x10);
 		tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x80, 0);
@@ -721,15 +843,20 @@ static int tda1004x_set_fe(struct dvb_frontend *fe)
 	}
 
 	// set frequency
-	if (fe->ops.tuner_ops.set_params) {
+	if (fe->ops.tuner_ops.set_params)
+	{
 		fe->ops.tuner_ops.set_params(fe);
+
 		if (fe->ops.i2c_gate_ctrl)
+		{
 			fe->ops.i2c_gate_ctrl(fe, 0);
+		}
 	}
 
 	// Hardcoded to use auto as much as possible on the TDA10045 as it
 	// is very unreliable if AUTO mode is _not_ used.
-	if (state->demod_type == TDA1004X_DEMOD_TDA10045) {
+	if (state->demod_type == TDA1004X_DEMOD_TDA10045)
+	{
 		fe_params->code_rate_HP = FEC_AUTO;
 		fe_params->guard_interval = GUARD_INTERVAL_AUTO;
 		fe_params->transmission_mode = TRANSMISSION_MODE_AUTO;
@@ -739,159 +866,181 @@ static int tda1004x_set_fe(struct dvb_frontend *fe)
 	if ((fe_params->code_rate_HP == FEC_AUTO) ||
 		(fe_params->code_rate_LP == FEC_AUTO) ||
 		(fe_params->modulation == QAM_AUTO) ||
-		(fe_params->hierarchy == HIERARCHY_AUTO)) {
+		(fe_params->hierarchy == HIERARCHY_AUTO))
+	{
 		tda1004x_write_mask(state, TDA1004X_AUTO, 1, 1);	// enable auto
 		tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x03, 0);	/* turn off modulation bits */
 		tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x60, 0);	// turn off hierarchy bits
 		tda1004x_write_mask(state, TDA1004X_IN_CONF2, 0x3f, 0);	// turn off FEC bits
-	} else {
+	}
+	else
+	{
 		tda1004x_write_mask(state, TDA1004X_AUTO, 1, 0);	// disable auto
 
 		// set HP FEC
 		tmp = tda1004x_encode_fec(fe_params->code_rate_HP);
+
 		if (tmp < 0)
+		{
 			return tmp;
+		}
+
 		tda1004x_write_mask(state, TDA1004X_IN_CONF2, 7, tmp);
 
 		// set LP FEC
 		tmp = tda1004x_encode_fec(fe_params->code_rate_LP);
+
 		if (tmp < 0)
+		{
 			return tmp;
+		}
+
 		tda1004x_write_mask(state, TDA1004X_IN_CONF2, 0x38, tmp << 3);
 
 		/* set modulation */
-		switch (fe_params->modulation) {
-		case QPSK:
-			tda1004x_write_mask(state, TDA1004X_IN_CONF1, 3, 0);
-			break;
+		switch (fe_params->modulation)
+		{
+			case QPSK:
+				tda1004x_write_mask(state, TDA1004X_IN_CONF1, 3, 0);
+				break;
 
-		case QAM_16:
-			tda1004x_write_mask(state, TDA1004X_IN_CONF1, 3, 1);
-			break;
+			case QAM_16:
+				tda1004x_write_mask(state, TDA1004X_IN_CONF1, 3, 1);
+				break;
 
-		case QAM_64:
-			tda1004x_write_mask(state, TDA1004X_IN_CONF1, 3, 2);
-			break;
+			case QAM_64:
+				tda1004x_write_mask(state, TDA1004X_IN_CONF1, 3, 2);
+				break;
 
-		default:
-			return -EINVAL;
+			default:
+				return -EINVAL;
 		}
 
 		// set hierarchy
-		switch (fe_params->hierarchy) {
-		case HIERARCHY_NONE:
-			tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x60, 0 << 5);
-			break;
+		switch (fe_params->hierarchy)
+		{
+			case HIERARCHY_NONE:
+				tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x60, 0 << 5);
+				break;
 
-		case HIERARCHY_1:
-			tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x60, 1 << 5);
-			break;
+			case HIERARCHY_1:
+				tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x60, 1 << 5);
+				break;
 
-		case HIERARCHY_2:
-			tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x60, 2 << 5);
-			break;
+			case HIERARCHY_2:
+				tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x60, 2 << 5);
+				break;
 
-		case HIERARCHY_4:
-			tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x60, 3 << 5);
-			break;
+			case HIERARCHY_4:
+				tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x60, 3 << 5);
+				break;
 
-		default:
-			return -EINVAL;
+			default:
+				return -EINVAL;
 		}
 	}
 
 	// set bandwidth
-	switch (state->demod_type) {
-	case TDA1004X_DEMOD_TDA10045:
-		tda10045h_set_bandwidth(state, fe_params->bandwidth_hz);
-		break;
+	switch (state->demod_type)
+	{
+		case TDA1004X_DEMOD_TDA10045:
+			tda10045h_set_bandwidth(state, fe_params->bandwidth_hz);
+			break;
 
-	case TDA1004X_DEMOD_TDA10046:
-		tda10046h_set_bandwidth(state, fe_params->bandwidth_hz);
-		break;
+		case TDA1004X_DEMOD_TDA10046:
+			tda10046h_set_bandwidth(state, fe_params->bandwidth_hz);
+			break;
 	}
 
 	// set inversion
 	inversion = fe_params->inversion;
+
 	if (state->config->invert)
+	{
 		inversion = inversion ? INVERSION_OFF : INVERSION_ON;
-	switch (inversion) {
-	case INVERSION_OFF:
-		tda1004x_write_mask(state, TDA1004X_CONFC1, 0x20, 0);
-		break;
+	}
 
-	case INVERSION_ON:
-		tda1004x_write_mask(state, TDA1004X_CONFC1, 0x20, 0x20);
-		break;
+	switch (inversion)
+	{
+		case INVERSION_OFF:
+			tda1004x_write_mask(state, TDA1004X_CONFC1, 0x20, 0);
+			break;
 
-	default:
-		return -EINVAL;
+		case INVERSION_ON:
+			tda1004x_write_mask(state, TDA1004X_CONFC1, 0x20, 0x20);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	// set guard interval
-	switch (fe_params->guard_interval) {
-	case GUARD_INTERVAL_1_32:
-		tda1004x_write_mask(state, TDA1004X_AUTO, 2, 0);
-		tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x0c, 0 << 2);
-		break;
+	switch (fe_params->guard_interval)
+	{
+		case GUARD_INTERVAL_1_32:
+			tda1004x_write_mask(state, TDA1004X_AUTO, 2, 0);
+			tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x0c, 0 << 2);
+			break;
 
-	case GUARD_INTERVAL_1_16:
-		tda1004x_write_mask(state, TDA1004X_AUTO, 2, 0);
-		tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x0c, 1 << 2);
-		break;
+		case GUARD_INTERVAL_1_16:
+			tda1004x_write_mask(state, TDA1004X_AUTO, 2, 0);
+			tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x0c, 1 << 2);
+			break;
 
-	case GUARD_INTERVAL_1_8:
-		tda1004x_write_mask(state, TDA1004X_AUTO, 2, 0);
-		tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x0c, 2 << 2);
-		break;
+		case GUARD_INTERVAL_1_8:
+			tda1004x_write_mask(state, TDA1004X_AUTO, 2, 0);
+			tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x0c, 2 << 2);
+			break;
 
-	case GUARD_INTERVAL_1_4:
-		tda1004x_write_mask(state, TDA1004X_AUTO, 2, 0);
-		tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x0c, 3 << 2);
-		break;
+		case GUARD_INTERVAL_1_4:
+			tda1004x_write_mask(state, TDA1004X_AUTO, 2, 0);
+			tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x0c, 3 << 2);
+			break;
 
-	case GUARD_INTERVAL_AUTO:
-		tda1004x_write_mask(state, TDA1004X_AUTO, 2, 2);
-		tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x0c, 0 << 2);
-		break;
+		case GUARD_INTERVAL_AUTO:
+			tda1004x_write_mask(state, TDA1004X_AUTO, 2, 2);
+			tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x0c, 0 << 2);
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
 	// set transmission mode
-	switch (fe_params->transmission_mode) {
-	case TRANSMISSION_MODE_2K:
-		tda1004x_write_mask(state, TDA1004X_AUTO, 4, 0);
-		tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x10, 0 << 4);
-		break;
+	switch (fe_params->transmission_mode)
+	{
+		case TRANSMISSION_MODE_2K:
+			tda1004x_write_mask(state, TDA1004X_AUTO, 4, 0);
+			tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x10, 0 << 4);
+			break;
 
-	case TRANSMISSION_MODE_8K:
-		tda1004x_write_mask(state, TDA1004X_AUTO, 4, 0);
-		tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x10, 1 << 4);
-		break;
+		case TRANSMISSION_MODE_8K:
+			tda1004x_write_mask(state, TDA1004X_AUTO, 4, 0);
+			tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x10, 1 << 4);
+			break;
 
-	case TRANSMISSION_MODE_AUTO:
-		tda1004x_write_mask(state, TDA1004X_AUTO, 4, 4);
-		tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x10, 0);
-		break;
+		case TRANSMISSION_MODE_AUTO:
+			tda1004x_write_mask(state, TDA1004X_AUTO, 4, 4);
+			tda1004x_write_mask(state, TDA1004X_IN_CONF1, 0x10, 0);
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
 	// start the lock
-	switch (state->demod_type) {
-	case TDA1004X_DEMOD_TDA10045:
-		tda1004x_write_mask(state, TDA1004X_CONFC4, 8, 8);
-		tda1004x_write_mask(state, TDA1004X_CONFC4, 8, 0);
-		break;
+	switch (state->demod_type)
+	{
+		case TDA1004X_DEMOD_TDA10045:
+			tda1004x_write_mask(state, TDA1004X_CONFC4, 8, 8);
+			tda1004x_write_mask(state, TDA1004X_CONFC4, 8, 0);
+			break;
 
-	case TDA1004X_DEMOD_TDA10046:
-		tda1004x_write_mask(state, TDA1004X_AUTO, 0x40, 0x40);
-		msleep(1);
-		tda1004x_write_mask(state, TDA10046H_AGC_CONF, 4, 1);
-		break;
+		case TDA1004X_DEMOD_TDA10046:
+			tda1004x_write_mask(state, TDA1004X_AUTO, 0x40, 0x40);
+			msleep(1);
+			tda1004x_write_mask(state, TDA10046H_AGC_CONF, 4, 1);
+			break;
 	}
 
 	msleep(10);
@@ -900,124 +1049,159 @@ static int tda1004x_set_fe(struct dvb_frontend *fe)
 }
 
 static int tda1004x_get_fe(struct dvb_frontend *fe,
-			   struct dtv_frontend_properties *fe_params)
+						   struct dtv_frontend_properties *fe_params)
 {
-	struct tda1004x_state* state = fe->demodulator_priv;
+	struct tda1004x_state *state = fe->demodulator_priv;
 	int status;
 
 	dprintk("%s\n", __func__);
 
 	status = tda1004x_read_byte(state, TDA1004X_STATUS_CD);
+
 	if (status == -1)
+	{
 		return -EIO;
+	}
 
 	/* Only update the properties cache if device is locked */
 	if (!(status & 8))
+	{
 		return 0;
+	}
 
 	// inversion status
 	fe_params->inversion = INVERSION_OFF;
+
 	if (tda1004x_read_byte(state, TDA1004X_CONFC1) & 0x20)
+	{
 		fe_params->inversion = INVERSION_ON;
+	}
+
 	if (state->config->invert)
+	{
 		fe_params->inversion = fe_params->inversion ? INVERSION_OFF : INVERSION_ON;
+	}
 
 	// bandwidth
-	switch (state->demod_type) {
-	case TDA1004X_DEMOD_TDA10045:
-		switch (tda1004x_read_byte(state, TDA10045H_WREF_LSB)) {
-		case 0x14:
-			fe_params->bandwidth_hz = 8000000;
+	switch (state->demod_type)
+	{
+		case TDA1004X_DEMOD_TDA10045:
+			switch (tda1004x_read_byte(state, TDA10045H_WREF_LSB))
+			{
+				case 0x14:
+					fe_params->bandwidth_hz = 8000000;
+					break;
+
+				case 0xdb:
+					fe_params->bandwidth_hz = 7000000;
+					break;
+
+				case 0x4f:
+					fe_params->bandwidth_hz = 6000000;
+					break;
+			}
+
 			break;
-		case 0xdb:
-			fe_params->bandwidth_hz = 7000000;
+
+		case TDA1004X_DEMOD_TDA10046:
+			switch (tda1004x_read_byte(state, TDA10046H_TIME_WREF1))
+			{
+				case 0x5c:
+				case 0x54:
+					fe_params->bandwidth_hz = 8000000;
+					break;
+
+				case 0x6a:
+				case 0x60:
+					fe_params->bandwidth_hz = 7000000;
+					break;
+
+				case 0x7b:
+				case 0x70:
+					fe_params->bandwidth_hz = 6000000;
+					break;
+			}
+
 			break;
-		case 0x4f:
-			fe_params->bandwidth_hz = 6000000;
-			break;
-		}
-		break;
-	case TDA1004X_DEMOD_TDA10046:
-		switch (tda1004x_read_byte(state, TDA10046H_TIME_WREF1)) {
-		case 0x5c:
-		case 0x54:
-			fe_params->bandwidth_hz = 8000000;
-			break;
-		case 0x6a:
-		case 0x60:
-			fe_params->bandwidth_hz = 7000000;
-			break;
-		case 0x7b:
-		case 0x70:
-			fe_params->bandwidth_hz = 6000000;
-			break;
-		}
-		break;
 	}
 
 	// FEC
 	fe_params->code_rate_HP =
-	    tda1004x_decode_fec(tda1004x_read_byte(state, TDA1004X_OUT_CONF2) & 7);
+		tda1004x_decode_fec(tda1004x_read_byte(state, TDA1004X_OUT_CONF2) & 7);
 	fe_params->code_rate_LP =
-	    tda1004x_decode_fec((tda1004x_read_byte(state, TDA1004X_OUT_CONF2) >> 3) & 7);
+		tda1004x_decode_fec((tda1004x_read_byte(state, TDA1004X_OUT_CONF2) >> 3) & 7);
 
 	/* modulation */
-	switch (tda1004x_read_byte(state, TDA1004X_OUT_CONF1) & 3) {
-	case 0:
-		fe_params->modulation = QPSK;
-		break;
-	case 1:
-		fe_params->modulation = QAM_16;
-		break;
-	case 2:
-		fe_params->modulation = QAM_64;
-		break;
+	switch (tda1004x_read_byte(state, TDA1004X_OUT_CONF1) & 3)
+	{
+		case 0:
+			fe_params->modulation = QPSK;
+			break;
+
+		case 1:
+			fe_params->modulation = QAM_16;
+			break;
+
+		case 2:
+			fe_params->modulation = QAM_64;
+			break;
 	}
 
 	// transmission mode
 	fe_params->transmission_mode = TRANSMISSION_MODE_2K;
+
 	if (tda1004x_read_byte(state, TDA1004X_OUT_CONF1) & 0x10)
+	{
 		fe_params->transmission_mode = TRANSMISSION_MODE_8K;
+	}
 
 	// guard interval
-	switch ((tda1004x_read_byte(state, TDA1004X_OUT_CONF1) & 0x0c) >> 2) {
-	case 0:
-		fe_params->guard_interval = GUARD_INTERVAL_1_32;
-		break;
-	case 1:
-		fe_params->guard_interval = GUARD_INTERVAL_1_16;
-		break;
-	case 2:
-		fe_params->guard_interval = GUARD_INTERVAL_1_8;
-		break;
-	case 3:
-		fe_params->guard_interval = GUARD_INTERVAL_1_4;
-		break;
+	switch ((tda1004x_read_byte(state, TDA1004X_OUT_CONF1) & 0x0c) >> 2)
+	{
+		case 0:
+			fe_params->guard_interval = GUARD_INTERVAL_1_32;
+			break;
+
+		case 1:
+			fe_params->guard_interval = GUARD_INTERVAL_1_16;
+			break;
+
+		case 2:
+			fe_params->guard_interval = GUARD_INTERVAL_1_8;
+			break;
+
+		case 3:
+			fe_params->guard_interval = GUARD_INTERVAL_1_4;
+			break;
 	}
 
 	// hierarchy
-	switch ((tda1004x_read_byte(state, TDA1004X_OUT_CONF1) & 0x60) >> 5) {
-	case 0:
-		fe_params->hierarchy = HIERARCHY_NONE;
-		break;
-	case 1:
-		fe_params->hierarchy = HIERARCHY_1;
-		break;
-	case 2:
-		fe_params->hierarchy = HIERARCHY_2;
-		break;
-	case 3:
-		fe_params->hierarchy = HIERARCHY_4;
-		break;
+	switch ((tda1004x_read_byte(state, TDA1004X_OUT_CONF1) & 0x60) >> 5)
+	{
+		case 0:
+			fe_params->hierarchy = HIERARCHY_NONE;
+			break;
+
+		case 1:
+			fe_params->hierarchy = HIERARCHY_1;
+			break;
+
+		case 2:
+			fe_params->hierarchy = HIERARCHY_2;
+			break;
+
+		case 3:
+			fe_params->hierarchy = HIERARCHY_4;
+			break;
 	}
 
 	return 0;
 }
 
 static int tda1004x_read_status(struct dvb_frontend *fe,
-				enum fe_status *fe_status)
+								enum fe_status *fe_status)
 {
-	struct tda1004x_state* state = fe->demodulator_priv;
+	struct tda1004x_state *state = fe->demodulator_priv;
 	int status;
 	int cber;
 	int vber;
@@ -1026,50 +1210,86 @@ static int tda1004x_read_status(struct dvb_frontend *fe,
 
 	// read status
 	status = tda1004x_read_byte(state, TDA1004X_STATUS_CD);
+
 	if (status == -1)
+	{
 		return -EIO;
+	}
 
 	// decode
 	*fe_status = 0;
+
 	if (status & 4)
+	{
 		*fe_status |= FE_HAS_SIGNAL;
+	}
+
 	if (status & 2)
+	{
 		*fe_status |= FE_HAS_CARRIER;
+	}
+
 	if (status & 8)
+	{
 		*fe_status |= FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
+	}
 
 	// if we don't already have VITERBI (i.e. not LOCKED), see if the viterbi
 	// is getting anything valid
-	if (!(*fe_status & FE_HAS_VITERBI)) {
+	if (!(*fe_status & FE_HAS_VITERBI))
+	{
 		// read the CBER
 		cber = tda1004x_read_byte(state, TDA1004X_CBER_LSB);
+
 		if (cber == -1)
+		{
 			return -EIO;
+		}
+
 		status = tda1004x_read_byte(state, TDA1004X_CBER_MSB);
+
 		if (status == -1)
+		{
 			return -EIO;
+		}
+
 		cber |= (status << 8);
 		// The address 0x20 should be read to cope with a TDA10046 bug
 		tda1004x_read_byte(state, TDA1004X_CBER_RESET);
 
 		if (cber != 65535)
+		{
 			*fe_status |= FE_HAS_VITERBI;
+		}
 	}
 
 	// if we DO have some valid VITERBI output, but don't already have SYNC
 	// bytes (i.e. not LOCKED), see if the RS decoder is getting anything valid.
-	if ((*fe_status & FE_HAS_VITERBI) && (!(*fe_status & FE_HAS_SYNC))) {
+	if ((*fe_status & FE_HAS_VITERBI) && (!(*fe_status & FE_HAS_SYNC)))
+	{
 		// read the VBER
 		vber = tda1004x_read_byte(state, TDA1004X_VBER_LSB);
+
 		if (vber == -1)
+		{
 			return -EIO;
+		}
+
 		status = tda1004x_read_byte(state, TDA1004X_VBER_MID);
+
 		if (status == -1)
+		{
 			return -EIO;
+		}
+
 		vber |= (status << 8);
 		status = tda1004x_read_byte(state, TDA1004X_VBER_MSB);
+
 		if (status == -1)
+		{
 			return -EIO;
+		}
+
 		vber |= (status & 0x0f) << 16;
 		// The CVBER_LUT should be read to cope with TDA10046 hardware bug
 		tda1004x_read_byte(state, TDA1004X_CVBER_LUT);
@@ -1077,7 +1297,9 @@ static int tda1004x_read_status(struct dvb_frontend *fe,
 		// if RS has passed some valid TS packets, then we must be
 		// getting some SYNC bytes
 		if (vber < 16632)
+		{
 			*fe_status |= FE_HAS_SYNC;
+		}
 	}
 
 	// success
@@ -1085,46 +1307,54 @@ static int tda1004x_read_status(struct dvb_frontend *fe,
 	return 0;
 }
 
-static int tda1004x_read_signal_strength(struct dvb_frontend* fe, u16 * signal)
+static int tda1004x_read_signal_strength(struct dvb_frontend *fe, u16 *signal)
 {
-	struct tda1004x_state* state = fe->demodulator_priv;
+	struct tda1004x_state *state = fe->demodulator_priv;
 	int tmp;
 	int reg = 0;
 
 	dprintk("%s\n", __func__);
 
 	// determine the register to use
-	switch (state->demod_type) {
-	case TDA1004X_DEMOD_TDA10045:
-		reg = TDA10045H_S_AGC;
-		break;
+	switch (state->demod_type)
+	{
+		case TDA1004X_DEMOD_TDA10045:
+			reg = TDA10045H_S_AGC;
+			break;
 
-	case TDA1004X_DEMOD_TDA10046:
-		reg = TDA10046H_AGC_IF_LEVEL;
-		break;
+		case TDA1004X_DEMOD_TDA10046:
+			reg = TDA10046H_AGC_IF_LEVEL;
+			break;
 	}
 
 	// read it
 	tmp = tda1004x_read_byte(state, reg);
+
 	if (tmp < 0)
+	{
 		return -EIO;
+	}
 
 	*signal = (tmp << 8) | tmp;
 	dprintk("%s: signal=0x%x\n", __func__, *signal);
 	return 0;
 }
 
-static int tda1004x_read_snr(struct dvb_frontend* fe, u16 * snr)
+static int tda1004x_read_snr(struct dvb_frontend *fe, u16 *snr)
 {
-	struct tda1004x_state* state = fe->demodulator_priv;
+	struct tda1004x_state *state = fe->demodulator_priv;
 	int tmp;
 
 	dprintk("%s\n", __func__);
 
 	// read it
 	tmp = tda1004x_read_byte(state, TDA1004X_SNR);
+
 	if (tmp < 0)
+	{
 		return -EIO;
+	}
+
 	tmp = 255 - tmp;
 
 	*snr = ((tmp << 8) | tmp);
@@ -1132,9 +1362,9 @@ static int tda1004x_read_snr(struct dvb_frontend* fe, u16 * snr)
 	return 0;
 }
 
-static int tda1004x_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
+static int tda1004x_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
 {
-	struct tda1004x_state* state = fe->demodulator_priv;
+	struct tda1004x_state *state = fe->demodulator_priv;
 	int tmp;
 	int tmp2;
 	int counter;
@@ -1144,46 +1374,71 @@ static int tda1004x_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
 	// read the UCBLOCKS and reset
 	counter = 0;
 	tmp = tda1004x_read_byte(state, TDA1004X_UNCOR);
+
 	if (tmp < 0)
+	{
 		return -EIO;
+	}
+
 	tmp &= 0x7f;
-	while (counter++ < 5) {
+
+	while (counter++ < 5)
+	{
 		tda1004x_write_mask(state, TDA1004X_UNCOR, 0x80, 0);
 		tda1004x_write_mask(state, TDA1004X_UNCOR, 0x80, 0);
 		tda1004x_write_mask(state, TDA1004X_UNCOR, 0x80, 0);
 
 		tmp2 = tda1004x_read_byte(state, TDA1004X_UNCOR);
+
 		if (tmp2 < 0)
+		{
 			return -EIO;
+		}
+
 		tmp2 &= 0x7f;
+
 		if ((tmp2 < tmp) || (tmp2 == 0))
+		{
 			break;
+		}
 	}
 
 	if (tmp != 0x7f)
+	{
 		*ucblocks = tmp;
+	}
 	else
+	{
 		*ucblocks = 0xffffffff;
+	}
 
 	dprintk("%s: ucblocks=0x%x\n", __func__, *ucblocks);
 	return 0;
 }
 
-static int tda1004x_read_ber(struct dvb_frontend* fe, u32* ber)
+static int tda1004x_read_ber(struct dvb_frontend *fe, u32 *ber)
 {
-	struct tda1004x_state* state = fe->demodulator_priv;
+	struct tda1004x_state *state = fe->demodulator_priv;
 	int tmp;
 
 	dprintk("%s\n", __func__);
 
 	// read it in
 	tmp = tda1004x_read_byte(state, TDA1004X_CBER_LSB);
+
 	if (tmp < 0)
+	{
 		return -EIO;
+	}
+
 	*ber = tmp << 1;
 	tmp = tda1004x_read_byte(state, TDA1004X_CBER_MSB);
+
 	if (tmp < 0)
+	{
 		return -EIO;
+	}
+
 	*ber |= (tmp << 9);
 	// The address 0x20 should be read to cope with a TDA10046 bug
 	tda1004x_read_byte(state, TDA1004X_CBER_RESET);
@@ -1192,45 +1447,50 @@ static int tda1004x_read_ber(struct dvb_frontend* fe, u32* ber)
 	return 0;
 }
 
-static int tda1004x_sleep(struct dvb_frontend* fe)
+static int tda1004x_sleep(struct dvb_frontend *fe)
 {
-	struct tda1004x_state* state = fe->demodulator_priv;
+	struct tda1004x_state *state = fe->demodulator_priv;
 	int gpio_conf;
 
-	switch (state->demod_type) {
-	case TDA1004X_DEMOD_TDA10045:
-		tda1004x_write_mask(state, TDA1004X_CONFADC1, 0x10, 0x10);
-		break;
+	switch (state->demod_type)
+	{
+		case TDA1004X_DEMOD_TDA10045:
+			tda1004x_write_mask(state, TDA1004X_CONFADC1, 0x10, 0x10);
+			break;
 
-	case TDA1004X_DEMOD_TDA10046:
-		/* set outputs to tristate */
-		tda1004x_write_byteI(state, TDA10046H_CONF_TRISTATE1, 0xff);
-		/* invert GPIO 1 and 3 if desired*/
-		gpio_conf = state->config->gpio_config;
-		if (gpio_conf >= TDA10046_GP00_I)
-			tda1004x_write_mask(state, TDA10046H_CONF_POLARITY, 0x0f,
-							(gpio_conf & 0x0f) ^ 0x0a);
+		case TDA1004X_DEMOD_TDA10046:
+			/* set outputs to tristate */
+			tda1004x_write_byteI(state, TDA10046H_CONF_TRISTATE1, 0xff);
+			/* invert GPIO 1 and 3 if desired*/
+			gpio_conf = state->config->gpio_config;
 
-		tda1004x_write_mask(state, TDA1004X_CONFADC2, 0xc0, 0xc0);
-		tda1004x_write_mask(state, TDA1004X_CONFC4, 1, 1);
-		break;
+			if (gpio_conf >= TDA10046_GP00_I)
+				tda1004x_write_mask(state, TDA10046H_CONF_POLARITY, 0x0f,
+									(gpio_conf & 0x0f) ^ 0x0a);
+
+			tda1004x_write_mask(state, TDA1004X_CONFADC2, 0xc0, 0xc0);
+			tda1004x_write_mask(state, TDA1004X_CONFC4, 1, 1);
+			break;
 	}
 
 	return 0;
 }
 
-static int tda1004x_i2c_gate_ctrl(struct dvb_frontend* fe, int enable)
+static int tda1004x_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
 {
-	struct tda1004x_state* state = fe->demodulator_priv;
+	struct tda1004x_state *state = fe->demodulator_priv;
 
-	if (enable) {
+	if (enable)
+	{
 		return tda1004x_enable_tuner_i2c(state);
-	} else {
+	}
+	else
+	{
 		return tda1004x_disable_tuner_i2c(state);
 	}
 }
 
-static int tda1004x_get_tune_settings(struct dvb_frontend* fe, struct dvb_frontend_tune_settings* fesettings)
+static int tda1004x_get_tune_settings(struct dvb_frontend *fe, struct dvb_frontend_tune_settings *fesettings)
 {
 	fesettings->min_delay_ms = 800;
 	/* Drift compensation makes no sense for DVB-T */
@@ -1239,13 +1499,14 @@ static int tda1004x_get_tune_settings(struct dvb_frontend* fe, struct dvb_fronte
 	return 0;
 }
 
-static void tda1004x_release(struct dvb_frontend* fe)
+static void tda1004x_release(struct dvb_frontend *fe)
 {
 	struct tda1004x_state *state = fe->demodulator_priv;
 	kfree(state);
 }
 
-static struct dvb_frontend_ops tda10045_ops = {
+static struct dvb_frontend_ops tda10045_ops =
+{
 	.delsys = { SYS_DVBT },
 	.info = {
 		.name = "Philips TDA10045H DVB-T",
@@ -1253,10 +1514,10 @@ static struct dvb_frontend_ops tda10045_ops = {
 		.frequency_max = 858000000,
 		.frequency_stepsize = 166667,
 		.caps =
-		    FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
-		    FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
-		    FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_QAM_64 | FE_CAN_QAM_AUTO |
-		    FE_CAN_TRANSMISSION_MODE_AUTO | FE_CAN_GUARD_INTERVAL_AUTO
+		FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
+		FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
+		FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_QAM_64 | FE_CAN_QAM_AUTO |
+		FE_CAN_TRANSMISSION_MODE_AUTO | FE_CAN_GUARD_INTERVAL_AUTO
 	},
 
 	.release = tda1004x_release,
@@ -1277,15 +1538,17 @@ static struct dvb_frontend_ops tda10045_ops = {
 	.read_ucblocks = tda1004x_read_ucblocks,
 };
 
-struct dvb_frontend* tda10045_attach(const struct tda1004x_config* config,
-				     struct i2c_adapter* i2c)
+struct dvb_frontend *tda10045_attach(const struct tda1004x_config *config,
+									 struct i2c_adapter *i2c)
 {
 	struct tda1004x_state *state;
 	int id;
 
 	/* allocate memory for the internal state */
 	state = kzalloc(sizeof(struct tda1004x_state), GFP_KERNEL);
-	if (!state) {
+
+	if (!state)
+	{
 		printk(KERN_ERR "Can't allocate memory for tda10045 state\n");
 		return NULL;
 	}
@@ -1297,13 +1560,16 @@ struct dvb_frontend* tda10045_attach(const struct tda1004x_config* config,
 
 	/* check if the demod is there */
 	id = tda1004x_read_byte(state, TDA1004X_CHIPID);
-	if (id < 0) {
+
+	if (id < 0)
+	{
 		printk(KERN_ERR "tda10045: chip is not answering. Giving up.\n");
 		kfree(state);
 		return NULL;
 	}
 
-	if (id != 0x25) {
+	if (id != 0x25)
+	{
 		printk(KERN_ERR "Invalid tda1004x ID = 0x%02x. Can't proceed\n", id);
 		kfree(state);
 		return NULL;
@@ -1315,7 +1581,8 @@ struct dvb_frontend* tda10045_attach(const struct tda1004x_config* config,
 	return &state->frontend;
 }
 
-static struct dvb_frontend_ops tda10046_ops = {
+static struct dvb_frontend_ops tda10046_ops =
+{
 	.delsys = { SYS_DVBT },
 	.info = {
 		.name = "Philips TDA10046H DVB-T",
@@ -1323,10 +1590,10 @@ static struct dvb_frontend_ops tda10046_ops = {
 		.frequency_max = 858000000,
 		.frequency_stepsize = 166667,
 		.caps =
-		    FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
-		    FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
-		    FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_QAM_64 | FE_CAN_QAM_AUTO |
-		    FE_CAN_TRANSMISSION_MODE_AUTO | FE_CAN_GUARD_INTERVAL_AUTO
+		FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
+		FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
+		FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_QAM_64 | FE_CAN_QAM_AUTO |
+		FE_CAN_TRANSMISSION_MODE_AUTO | FE_CAN_GUARD_INTERVAL_AUTO
 	},
 
 	.release = tda1004x_release,
@@ -1347,15 +1614,17 @@ static struct dvb_frontend_ops tda10046_ops = {
 	.read_ucblocks = tda1004x_read_ucblocks,
 };
 
-struct dvb_frontend* tda10046_attach(const struct tda1004x_config* config,
-				     struct i2c_adapter* i2c)
+struct dvb_frontend *tda10046_attach(const struct tda1004x_config *config,
+									 struct i2c_adapter *i2c)
 {
 	struct tda1004x_state *state;
 	int id;
 
 	/* allocate memory for the internal state */
 	state = kzalloc(sizeof(struct tda1004x_state), GFP_KERNEL);
-	if (!state) {
+
+	if (!state)
+	{
 		printk(KERN_ERR "Can't allocate memory for tda10046 state\n");
 		return NULL;
 	}
@@ -1367,12 +1636,16 @@ struct dvb_frontend* tda10046_attach(const struct tda1004x_config* config,
 
 	/* check if the demod is there */
 	id = tda1004x_read_byte(state, TDA1004X_CHIPID);
-	if (id < 0) {
+
+	if (id < 0)
+	{
 		printk(KERN_ERR "tda10046: chip is not answering. Giving up.\n");
 		kfree(state);
 		return NULL;
 	}
-	if (id != 0x46) {
+
+	if (id != 0x46)
+	{
 		printk(KERN_ERR "Invalid tda1004x ID = 0x%02x. Can't proceed\n", id);
 		kfree(state);
 		return NULL;

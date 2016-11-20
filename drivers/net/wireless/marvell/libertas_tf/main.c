@@ -28,7 +28,8 @@ module_param_named(libertas_tf_debug, lbtf_debug, int, 0644);
 
 struct workqueue_struct *lbtf_wq;
 
-static const struct ieee80211_channel lbtf_channels[] = {
+static const struct ieee80211_channel lbtf_channels[] =
+{
 	{ .center_freq = 2412, .hw_value = 1 },
 	{ .center_freq = 2417, .hw_value = 2 },
 	{ .center_freq = 2422, .hw_value = 3 },
@@ -46,68 +47,99 @@ static const struct ieee80211_channel lbtf_channels[] = {
 };
 
 /* This table contains the hardware specific values for the modulation rates. */
-static const struct ieee80211_rate lbtf_rates[] = {
-	{ .bitrate = 10,
-	  .hw_value = 0, },
-	{ .bitrate = 20,
-	  .hw_value = 1,
-	  .flags = IEEE80211_RATE_SHORT_PREAMBLE },
-	{ .bitrate = 55,
-	  .hw_value = 2,
-	  .flags = IEEE80211_RATE_SHORT_PREAMBLE },
-	{ .bitrate = 110,
-	  .hw_value = 3,
-	  .flags = IEEE80211_RATE_SHORT_PREAMBLE },
-	{ .bitrate = 60,
-	  .hw_value = 5,
-	  .flags = 0 },
-	{ .bitrate = 90,
-	  .hw_value = 6,
-	  .flags = 0 },
-	{ .bitrate = 120,
-	  .hw_value = 7,
-	  .flags = 0 },
-	{ .bitrate = 180,
-	  .hw_value = 8,
-	  .flags = 0 },
-	{ .bitrate = 240,
-	  .hw_value = 9,
-	  .flags = 0 },
-	{ .bitrate = 360,
-	  .hw_value = 10,
-	  .flags = 0 },
-	{ .bitrate = 480,
-	  .hw_value = 11,
-	  .flags = 0 },
-	{ .bitrate = 540,
-	  .hw_value = 12,
-	  .flags = 0 },
+static const struct ieee80211_rate lbtf_rates[] =
+{
+	{
+		.bitrate = 10,
+		.hw_value = 0,
+	},
+	{
+		.bitrate = 20,
+		.hw_value = 1,
+		.flags = IEEE80211_RATE_SHORT_PREAMBLE
+	},
+	{
+		.bitrate = 55,
+		.hw_value = 2,
+		.flags = IEEE80211_RATE_SHORT_PREAMBLE
+	},
+	{
+		.bitrate = 110,
+		.hw_value = 3,
+		.flags = IEEE80211_RATE_SHORT_PREAMBLE
+	},
+	{
+		.bitrate = 60,
+		.hw_value = 5,
+		.flags = 0
+	},
+	{
+		.bitrate = 90,
+		.hw_value = 6,
+		.flags = 0
+	},
+	{
+		.bitrate = 120,
+		.hw_value = 7,
+		.flags = 0
+	},
+	{
+		.bitrate = 180,
+		.hw_value = 8,
+		.flags = 0
+	},
+	{
+		.bitrate = 240,
+		.hw_value = 9,
+		.flags = 0
+	},
+	{
+		.bitrate = 360,
+		.hw_value = 10,
+		.flags = 0
+	},
+	{
+		.bitrate = 480,
+		.hw_value = 11,
+		.flags = 0
+	},
+	{
+		.bitrate = 540,
+		.hw_value = 12,
+		.flags = 0
+	},
 };
 
 static void lbtf_cmd_work(struct work_struct *work)
 {
 	struct lbtf_private *priv = container_of(work, struct lbtf_private,
-					 cmd_work);
+								cmd_work);
 
 	lbtf_deb_enter(LBTF_DEB_CMD);
 
 	spin_lock_irq(&priv->driver_lock);
+
 	/* command response? */
-	if (priv->cmd_response_rxed) {
+	if (priv->cmd_response_rxed)
+	{
 		priv->cmd_response_rxed = 0;
 		spin_unlock_irq(&priv->driver_lock);
 		lbtf_process_rx_command(priv);
 		spin_lock_irq(&priv->driver_lock);
 	}
 
-	if (priv->cmd_timed_out && priv->cur_cmd) {
+	if (priv->cmd_timed_out && priv->cur_cmd)
+	{
 		struct cmd_ctrl_node *cmdnode = priv->cur_cmd;
 
-		if (++priv->nr_retries > 10) {
+		if (++priv->nr_retries > 10)
+		{
 			lbtf_complete_command(priv, cmdnode,
-					      -ETIMEDOUT);
+								  -ETIMEDOUT);
 			priv->nr_retries = 0;
-		} else {
+		}
+		else
+		{
 			priv->cur_cmd = NULL;
 
 			/* Stick it back at the _top_ of the pending
@@ -115,17 +147,21 @@ static void lbtf_cmd_work(struct work_struct *work)
 			list_add(&cmdnode->list, &priv->cmdpendingq);
 		}
 	}
+
 	priv->cmd_timed_out = 0;
 	spin_unlock_irq(&priv->driver_lock);
 
-	if (!priv->fw_ready) {
+	if (!priv->fw_ready)
+	{
 		lbtf_deb_leave_args(LBTF_DEB_CMD, "fw not ready");
 		return;
 	}
 
 	/* Execute the next command */
 	if (!priv->cur_cmd)
+	{
 		lbtf_execute_next_command(priv);
+	}
 
 	lbtf_deb_leave(LBTF_DEB_CMD);
 }
@@ -147,7 +183,9 @@ static int lbtf_setup_firmware(struct lbtf_private *priv)
 	 */
 	eth_broadcast_addr(priv->current_addr);
 	ret = lbtf_update_hw_spec(priv);
-	if (ret) {
+
+	if (ret)
+	{
 		ret = -1;
 		goto done;
 	}
@@ -173,14 +211,15 @@ static void command_timer_fn(unsigned long data)
 
 	spin_lock_irqsave(&priv->driver_lock, flags);
 
-	if (!priv->cur_cmd) {
+	if (!priv->cur_cmd)
+	{
 		printk(KERN_DEBUG "libertastf: command timer expired; "
-				  "no pending command\n");
+			   "no pending command\n");
 		goto out;
 	}
 
 	printk(KERN_DEBUG "libertas: command %x timed out\n",
-		le16_to_cpu(priv->cur_cmd->cmdbuf->command));
+		   le16_to_cpu(priv->cur_cmd->cmdbuf->command));
 
 	priv->cmd_timed_out = 1;
 	queue_work(lbtf_wq, &priv->cmd_work);
@@ -197,7 +236,7 @@ static int lbtf_init_adapter(struct lbtf_private *priv)
 
 	priv->vif = NULL;
 	setup_timer(&priv->command_timer, command_timer_fn,
-		(unsigned long)priv);
+				(unsigned long)priv);
 
 	INIT_LIST_HEAD(&priv->cmdfreeq);
 	INIT_LIST_HEAD(&priv->cmdpendingq);
@@ -206,7 +245,9 @@ static int lbtf_init_adapter(struct lbtf_private *priv)
 
 	/* Allocate the command buffers */
 	if (lbtf_allocate_cmd_buffer(priv))
+	{
 		return -1;
+	}
 
 	lbtf_deb_leave(LBTF_DEB_MAIN);
 	return 0;
@@ -221,8 +262,8 @@ static void lbtf_free_adapter(struct lbtf_private *priv)
 }
 
 static void lbtf_op_tx(struct ieee80211_hw *hw,
-		       struct ieee80211_tx_control *control,
-		       struct sk_buff *skb)
+					   struct ieee80211_tx_control *control,
+					   struct sk_buff *skb)
 {
 	struct lbtf_private *priv = hw->priv;
 
@@ -238,7 +279,7 @@ static void lbtf_op_tx(struct ieee80211_hw *hw,
 static void lbtf_tx_work(struct work_struct *work)
 {
 	struct lbtf_private *priv = container_of(work, struct lbtf_private,
-					 tx_work);
+								tx_work);
 	unsigned int len;
 	struct ieee80211_tx_info *info;
 	struct txpd *txpd;
@@ -248,12 +289,17 @@ static void lbtf_tx_work(struct work_struct *work)
 	lbtf_deb_enter(LBTF_DEB_MACOPS | LBTF_DEB_TX);
 
 	if ((priv->vif->type == NL80211_IFTYPE_AP) &&
-	    (!skb_queue_empty(&priv->bc_ps_buf)))
+		(!skb_queue_empty(&priv->bc_ps_buf)))
+	{
 		skb = skb_dequeue(&priv->bc_ps_buf);
-	else if (priv->skb_to_tx) {
+	}
+	else if (priv->skb_to_tx)
+	{
 		skb = priv->skb_to_tx;
 		priv->skb_to_tx = NULL;
-	} else {
+	}
+	else
+	{
 		lbtf_deb_leave(LBTF_DEB_MACOPS | LBTF_DEB_TX);
 		return;
 	}
@@ -262,7 +308,8 @@ static void lbtf_tx_work(struct work_struct *work)
 	info  = IEEE80211_SKB_CB(skb);
 	txpd = (struct txpd *)  skb_push(skb, sizeof(struct txpd));
 
-	if (priv->surpriseremoved) {
+	if (priv->surpriseremoved)
+	{
 		dev_kfree_skb_any(skb);
 		lbtf_deb_leave(LBTF_DEB_MACOPS | LBTF_DEB_TX);
 		return;
@@ -271,11 +318,11 @@ static void lbtf_tx_work(struct work_struct *work)
 	memset(txpd, 0, sizeof(struct txpd));
 	/* Activate per-packet rate selection */
 	txpd->tx_control |= cpu_to_le32(MRVL_PER_PACKET_RATE |
-			     ieee80211_get_tx_rate(priv->hw, info)->hw_value);
+									ieee80211_get_tx_rate(priv->hw, info)->hw_value);
 
 	/* copy destination address from 802.11 header */
 	memcpy(txpd->tx_dest_addr_high, skb->data + sizeof(struct txpd) + 4,
-		ETH_ALEN);
+		   ETH_ALEN);
 	txpd->tx_packet_length = cpu_to_le16(len);
 	txpd->tx_packet_location = cpu_to_le32(sizeof(struct txpd));
 	lbtf_deb_hex(LBTF_DEB_TX, "TX Data", skb->data, min_t(unsigned int, skb->len, 100));
@@ -284,11 +331,14 @@ static void lbtf_tx_work(struct work_struct *work)
 	priv->tx_skb = skb;
 	err = priv->hw_host_to_card(priv, MVMS_DAT, skb->data, skb->len);
 	spin_unlock_irq(&priv->driver_lock);
-	if (err) {
+
+	if (err)
+	{
 		dev_kfree_skb_any(skb);
 		priv->tx_skb = NULL;
 		pr_err("TX error: %d", err);
 	}
+
 	lbtf_deb_leave(LBTF_DEB_MACOPS | LBTF_DEB_TX);
 }
 
@@ -301,20 +351,27 @@ static int lbtf_op_start(struct ieee80211_hw *hw)
 	lbtf_deb_enter(LBTF_DEB_MACOPS);
 
 	if (!priv->fw_ready)
+
 		/* Upload firmware */
 		if (priv->hw_prog_firmware(card))
+		{
 			goto err_prog_firmware;
+		}
 
 	/* poke the firmware */
 	priv->capability = WLAN_CAPABILITY_SHORT_PREAMBLE;
 	priv->radioon = RADIO_ON;
 	priv->mac_control = CMD_ACT_MAC_RX_ON | CMD_ACT_MAC_TX_ON;
 	ret = lbtf_setup_firmware(priv);
+
 	if (ret)
+	{
 		goto err_prog_firmware;
+	}
 
 	if ((priv->fwrelease < LBTF_FW_VER_MIN) ||
-	    (priv->fwrelease > LBTF_FW_VER_MAX)) {
+		(priv->fwrelease > LBTF_FW_VER_MAX))
+	{
 		ret = -1;
 		goto err_prog_firmware;
 	}
@@ -341,7 +398,8 @@ static void lbtf_op_stop(struct ieee80211_hw *hw)
 
 	/* Flush pending command nodes */
 	spin_lock_irqsave(&priv->driver_lock, flags);
-	list_for_each_entry(cmdnode, &priv->cmdpendingq, list) {
+	list_for_each_entry(cmdnode, &priv->cmdpendingq, list)
+	{
 		cmdnode->result = -ENOENT;
 		cmdnode->cmdwaitqwoken = 1;
 		wake_up_interruptible(&cmdnode->cmdwait_q);
@@ -350,8 +408,12 @@ static void lbtf_op_stop(struct ieee80211_hw *hw)
 	spin_unlock_irqrestore(&priv->driver_lock, flags);
 	cancel_work_sync(&priv->cmd_work);
 	cancel_work_sync(&priv->tx_work);
+
 	while ((skb = skb_dequeue(&priv->bc_ps_buf)))
+	{
 		dev_kfree_skb_any(skb);
+	}
+
 	priv->radioon = RADIO_OFF;
 	lbtf_set_radio_control(priv);
 
@@ -359,40 +421,51 @@ static void lbtf_op_stop(struct ieee80211_hw *hw)
 }
 
 static int lbtf_op_add_interface(struct ieee80211_hw *hw,
-			struct ieee80211_vif *vif)
+								 struct ieee80211_vif *vif)
 {
 	struct lbtf_private *priv = hw->priv;
 	lbtf_deb_enter(LBTF_DEB_MACOPS);
-	if (priv->vif != NULL)
-		return -EOPNOTSUPP;
 
-	priv->vif = vif;
-	switch (vif->type) {
-	case NL80211_IFTYPE_MESH_POINT:
-	case NL80211_IFTYPE_AP:
-		lbtf_set_mode(priv, LBTF_AP_MODE);
-		break;
-	case NL80211_IFTYPE_STATION:
-		lbtf_set_mode(priv, LBTF_STA_MODE);
-		break;
-	default:
-		priv->vif = NULL;
+	if (priv->vif != NULL)
+	{
 		return -EOPNOTSUPP;
 	}
+
+	priv->vif = vif;
+
+	switch (vif->type)
+	{
+		case NL80211_IFTYPE_MESH_POINT:
+		case NL80211_IFTYPE_AP:
+			lbtf_set_mode(priv, LBTF_AP_MODE);
+			break;
+
+		case NL80211_IFTYPE_STATION:
+			lbtf_set_mode(priv, LBTF_STA_MODE);
+			break;
+
+		default:
+			priv->vif = NULL;
+			return -EOPNOTSUPP;
+	}
+
 	lbtf_set_mac_address(priv, (u8 *) vif->addr);
 	lbtf_deb_leave(LBTF_DEB_MACOPS);
 	return 0;
 }
 
 static void lbtf_op_remove_interface(struct ieee80211_hw *hw,
-			struct ieee80211_vif *vif)
+									 struct ieee80211_vif *vif)
 {
 	struct lbtf_private *priv = hw->priv;
 	lbtf_deb_enter(LBTF_DEB_MACOPS);
 
 	if (priv->vif->type == NL80211_IFTYPE_AP ||
-	    priv->vif->type == NL80211_IFTYPE_MESH_POINT)
+		priv->vif->type == NL80211_IFTYPE_MESH_POINT)
+	{
 		lbtf_beacon_ctrl(priv, 0, 0);
+	}
+
 	lbtf_set_mode(priv, LBTF_PASSIVE_MODE);
 	lbtf_set_bssid(priv, 0, NULL);
 	priv->vif = NULL;
@@ -405,16 +478,18 @@ static int lbtf_op_config(struct ieee80211_hw *hw, u32 changed)
 	struct ieee80211_conf *conf = &hw->conf;
 	lbtf_deb_enter(LBTF_DEB_MACOPS);
 
-	if (conf->chandef.chan->center_freq != priv->cur_freq) {
+	if (conf->chandef.chan->center_freq != priv->cur_freq)
+	{
 		priv->cur_freq = conf->chandef.chan->center_freq;
 		lbtf_set_channel(priv, conf->chandef.chan->hw_value);
 	}
+
 	lbtf_deb_leave(LBTF_DEB_MACOPS);
 	return 0;
 }
 
 static u64 lbtf_op_prepare_multicast(struct ieee80211_hw *hw,
-				     struct netdev_hw_addr_list *mc_list)
+									 struct netdev_hw_addr_list *mc_list)
 {
 	struct lbtf_private *priv = hw->priv;
 	int i;
@@ -422,21 +497,23 @@ static u64 lbtf_op_prepare_multicast(struct ieee80211_hw *hw,
 	int mc_count = netdev_hw_addr_list_count(mc_list);
 
 	if (!mc_count || mc_count > MRVDRV_MAX_MULTICAST_LIST_SIZE)
+	{
 		return mc_count;
+	}
 
 	priv->nr_of_multicastmacaddr = mc_count;
 	i = 0;
 	netdev_hw_addr_list_for_each(ha, mc_list)
-		memcpy(&priv->multicastlist[i++], ha->addr, ETH_ALEN);
+	memcpy(&priv->multicastlist[i++], ha->addr, ETH_ALEN);
 
 	return mc_count;
 }
 
 #define SUPPORTED_FIF_FLAGS  FIF_ALLMULTI
 static void lbtf_op_configure_filter(struct ieee80211_hw *hw,
-			unsigned int changed_flags,
-			unsigned int *new_flags,
-			u64 multicast)
+									 unsigned int changed_flags,
+									 unsigned int *new_flags,
+									 u64 multicast)
 {
 	struct lbtf_private *priv = hw->priv;
 	int old_mac_control = priv->mac_control;
@@ -446,24 +523,33 @@ static void lbtf_op_configure_filter(struct ieee80211_hw *hw,
 	changed_flags &= SUPPORTED_FIF_FLAGS;
 	*new_flags &= SUPPORTED_FIF_FLAGS;
 
-	if (!changed_flags) {
+	if (!changed_flags)
+	{
 		lbtf_deb_leave(LBTF_DEB_MACOPS);
 		return;
 	}
 
 	priv->mac_control &= ~CMD_ACT_MAC_PROMISCUOUS_ENABLE;
+
 	if (*new_flags & (FIF_ALLMULTI) ||
-	    multicast > MRVDRV_MAX_MULTICAST_LIST_SIZE) {
+		multicast > MRVDRV_MAX_MULTICAST_LIST_SIZE)
+	{
 		priv->mac_control |= CMD_ACT_MAC_ALL_MULTICAST_ENABLE;
 		priv->mac_control &= ~CMD_ACT_MAC_MULTICAST_ENABLE;
-	} else if (multicast) {
+	}
+	else if (multicast)
+	{
 		priv->mac_control |= CMD_ACT_MAC_MULTICAST_ENABLE;
 		priv->mac_control &= ~CMD_ACT_MAC_ALL_MULTICAST_ENABLE;
 		lbtf_cmd_set_mac_multicast_addr(priv);
-	} else {
+	}
+	else
+	{
 		priv->mac_control &= ~(CMD_ACT_MAC_MULTICAST_ENABLE |
-				       CMD_ACT_MAC_ALL_MULTICAST_ENABLE);
-		if (priv->nr_of_multicastmacaddr) {
+							   CMD_ACT_MAC_ALL_MULTICAST_ENABLE);
+
+		if (priv->nr_of_multicastmacaddr)
+		{
 			priv->nr_of_multicastmacaddr = 0;
 			lbtf_cmd_set_mac_multicast_addr(priv);
 		}
@@ -471,47 +557,62 @@ static void lbtf_op_configure_filter(struct ieee80211_hw *hw,
 
 
 	if (priv->mac_control != old_mac_control)
+	{
 		lbtf_set_mac_control(priv);
+	}
 
 	lbtf_deb_leave(LBTF_DEB_MACOPS);
 }
 
 static void lbtf_op_bss_info_changed(struct ieee80211_hw *hw,
-			struct ieee80211_vif *vif,
-			struct ieee80211_bss_conf *bss_conf,
-			u32 changes)
+									 struct ieee80211_vif *vif,
+									 struct ieee80211_bss_conf *bss_conf,
+									 u32 changes)
 {
 	struct lbtf_private *priv = hw->priv;
 	struct sk_buff *beacon;
 	lbtf_deb_enter(LBTF_DEB_MACOPS);
 
-	if (changes & (BSS_CHANGED_BEACON | BSS_CHANGED_BEACON_INT)) {
-		switch (priv->vif->type) {
-		case NL80211_IFTYPE_AP:
-		case NL80211_IFTYPE_MESH_POINT:
-			beacon = ieee80211_beacon_get(hw, vif);
-			if (beacon) {
-				lbtf_beacon_set(priv, beacon);
-				kfree_skb(beacon);
-				lbtf_beacon_ctrl(priv, 1,
-						 bss_conf->beacon_int);
-			}
-			break;
-		default:
-			break;
+	if (changes & (BSS_CHANGED_BEACON | BSS_CHANGED_BEACON_INT))
+	{
+		switch (priv->vif->type)
+		{
+			case NL80211_IFTYPE_AP:
+			case NL80211_IFTYPE_MESH_POINT:
+				beacon = ieee80211_beacon_get(hw, vif);
+
+				if (beacon)
+				{
+					lbtf_beacon_set(priv, beacon);
+					kfree_skb(beacon);
+					lbtf_beacon_ctrl(priv, 1,
+									 bss_conf->beacon_int);
+				}
+
+				break;
+
+			default:
+				break;
 		}
 	}
 
-	if (changes & BSS_CHANGED_BSSID) {
+	if (changes & BSS_CHANGED_BSSID)
+	{
 		bool activate = !is_zero_ether_addr(bss_conf->bssid);
 		lbtf_set_bssid(priv, activate, bss_conf->bssid);
 	}
 
-	if (changes & BSS_CHANGED_ERP_PREAMBLE) {
+	if (changes & BSS_CHANGED_ERP_PREAMBLE)
+	{
 		if (bss_conf->use_short_preamble)
+		{
 			priv->preamble = CMD_TYPE_SHORT_PREAMBLE;
+		}
 		else
+		{
 			priv->preamble = CMD_TYPE_LONG_PREAMBLE;
+		}
+
 		lbtf_set_radio_control(priv);
 	}
 
@@ -519,13 +620,15 @@ static void lbtf_op_bss_info_changed(struct ieee80211_hw *hw,
 }
 
 static int lbtf_op_get_survey(struct ieee80211_hw *hw, int idx,
-				struct survey_info *survey)
+							  struct survey_info *survey)
 {
 	struct lbtf_private *priv = hw->priv;
 	struct ieee80211_conf *conf = &hw->conf;
 
 	if (idx != 0)
+	{
 		return -ENOENT;
+	}
 
 	survey->channel = conf->chandef.chan;
 	survey->filled = SURVEY_INFO_NOISE_DBM;
@@ -534,7 +637,8 @@ static int lbtf_op_get_survey(struct ieee80211_hw *hw, int idx,
 	return 0;
 }
 
-static const struct ieee80211_ops lbtf_ops = {
+static const struct ieee80211_ops lbtf_ops =
+{
 	.tx			= lbtf_op_tx,
 	.start			= lbtf_op_start,
 	.stop			= lbtf_op_stop,
@@ -560,15 +664,23 @@ int lbtf_rx(struct lbtf_private *priv, struct sk_buff *skb)
 	prxpd = (struct rxpd *) skb->data;
 
 	memset(&stats, 0, sizeof(stats));
+
 	if (!(prxpd->status & cpu_to_le16(MRVDRV_RXPD_STATUS_OK)))
+	{
 		stats.flag |= RX_FLAG_FAILED_FCS_CRC;
+	}
+
 	stats.freq = priv->cur_freq;
 	stats.band = NL80211_BAND_2GHZ;
 	stats.signal = prxpd->snr;
 	priv->noise = prxpd->nf;
+
 	/* Marvell rate index has a hole at value 4 */
 	if (prxpd->rx_rate > 4)
+	{
 		--prxpd->rx_rate;
+	}
+
 	stats.rate_idx = prxpd->rx_rate;
 	skb_pull(skb, sizeof(struct rxpd));
 
@@ -578,10 +690,11 @@ int lbtf_rx(struct lbtf_private *priv, struct sk_buff *skb)
 	need_padding = ieee80211_is_data_qos(hdr->frame_control);
 	need_padding ^= ieee80211_has_a4(hdr->frame_control);
 	need_padding ^= ieee80211_is_data_qos(hdr->frame_control) &&
-			(*ieee80211_get_qos_ctl(hdr) &
-			 IEEE80211_QOS_CTL_A_MSDU_PRESENT);
+					(*ieee80211_get_qos_ctl(hdr) &
+					 IEEE80211_QOS_CTL_A_MSDU_PRESENT);
 
-	if (need_padding) {
+	if (need_padding)
+	{
 		memmove(skb->data + 2, skb->data, skb->len);
 		skb_reserve(skb, 2);
 	}
@@ -589,9 +702,9 @@ int lbtf_rx(struct lbtf_private *priv, struct sk_buff *skb)
 	memcpy(IEEE80211_SKB_RXCB(skb), &stats, sizeof(stats));
 
 	lbtf_deb_rx("rx data: skb->len-sizeof(RxPd) = %d-%zd = %zd\n",
-	       skb->len, sizeof(struct rxpd), skb->len - sizeof(struct rxpd));
+				skb->len, sizeof(struct rxpd), skb->len - sizeof(struct rxpd));
 	lbtf_deb_hex(LBTF_DEB_RX, "RX Data", skb->data,
-	             min_t(unsigned int, skb->len, 100));
+				 min_t(unsigned int, skb->len, 100));
 
 	ieee80211_rx_irqsafe(priv->hw, skb);
 
@@ -615,12 +728,18 @@ struct lbtf_private *lbtf_add_card(void *card, struct device *dmdev)
 	lbtf_deb_enter(LBTF_DEB_MAIN);
 
 	hw = ieee80211_alloc_hw(sizeof(struct lbtf_private), &lbtf_ops);
+
 	if (!hw)
+	{
 		goto done;
+	}
 
 	priv = hw->priv;
+
 	if (lbtf_init_adapter(priv))
+	{
 		goto err_init_adapter;
+	}
 
 	priv->hw = hw;
 	priv->card = card;
@@ -645,8 +764,11 @@ struct lbtf_private *lbtf_add_card(void *card, struct device *dmdev)
 
 	INIT_WORK(&priv->cmd_work, lbtf_cmd_work);
 	INIT_WORK(&priv->tx_work, lbtf_tx_work);
+
 	if (ieee80211_register_hw(hw))
+	{
 		goto err_init_adapter;
+	}
 
 	goto done;
 
@@ -675,7 +797,7 @@ int lbtf_remove_card(struct lbtf_private *priv)
 	ieee80211_unregister_hw(hw);
 	ieee80211_free_hw(hw);
 
-    lbtf_deb_leave(LBTF_DEB_MAIN);
+	lbtf_deb_leave(LBTF_DEB_MAIN);
 	return 0;
 }
 EXPORT_SYMBOL_GPL(lbtf_remove_card);
@@ -685,6 +807,7 @@ void lbtf_send_tx_feedback(struct lbtf_private *priv, u8 retrycnt, u8 fail)
 	struct ieee80211_tx_info *info = IEEE80211_SKB_CB(priv->tx_skb);
 
 	ieee80211_tx_info_clear_status(info);
+
 	/*
 	 * Commented out, otherwise we never go beyond 1Mbit/s using mac80211
 	 * default pid rc algorithm.
@@ -692,14 +815,22 @@ void lbtf_send_tx_feedback(struct lbtf_private *priv, u8 retrycnt, u8 fail)
 	 * info->status.retry_count = MRVL_DEFAULT_RETRIES - retrycnt;
 	 */
 	if (!(info->flags & IEEE80211_TX_CTL_NO_ACK) && !fail)
+	{
 		info->flags |= IEEE80211_TX_STAT_ACK;
+	}
+
 	skb_pull(priv->tx_skb, sizeof(struct txpd));
 	ieee80211_tx_status_irqsafe(priv->hw, priv->tx_skb);
 	priv->tx_skb = NULL;
+
 	if (!priv->skb_to_tx && skb_queue_empty(&priv->bc_ps_buf))
+	{
 		ieee80211_wake_queues(priv->hw);
+	}
 	else
+	{
 		queue_work(lbtf_wq, &priv->tx_work);
+	}
 }
 EXPORT_SYMBOL_GPL(lbtf_send_tx_feedback);
 
@@ -708,16 +839,22 @@ void lbtf_bcn_sent(struct lbtf_private *priv)
 	struct sk_buff *skb = NULL;
 
 	if (priv->vif->type != NL80211_IFTYPE_AP)
+	{
 		return;
+	}
 
-	if (skb_queue_empty(&priv->bc_ps_buf)) {
+	if (skb_queue_empty(&priv->bc_ps_buf))
+	{
 		bool tx_buff_bc = false;
 
-		while ((skb = ieee80211_get_buffered_bc(priv->hw, priv->vif))) {
+		while ((skb = ieee80211_get_buffered_bc(priv->hw, priv->vif)))
+		{
 			skb_queue_tail(&priv->bc_ps_buf, skb);
 			tx_buff_bc = true;
 		}
-		if (tx_buff_bc) {
+
+		if (tx_buff_bc)
+		{
 			ieee80211_stop_queues(priv->hw);
 			queue_work(lbtf_wq, &priv->tx_work);
 		}
@@ -725,7 +862,8 @@ void lbtf_bcn_sent(struct lbtf_private *priv)
 
 	skb = ieee80211_beacon_get(priv->hw, priv->vif);
 
-	if (skb) {
+	if (skb)
+	{
 		lbtf_beacon_set(priv, skb);
 		kfree_skb(skb);
 	}
@@ -736,10 +874,13 @@ static int __init lbtf_init_module(void)
 {
 	lbtf_deb_enter(LBTF_DEB_MAIN);
 	lbtf_wq = alloc_workqueue("libertastf", WQ_MEM_RECLAIM, 0);
-	if (lbtf_wq == NULL) {
+
+	if (lbtf_wq == NULL)
+	{
 		printk(KERN_ERR "libertastf: couldn't create workqueue\n");
 		return -ENOMEM;
 	}
+
 	lbtf_deb_leave(LBTF_DEB_MAIN);
 	return 0;
 }

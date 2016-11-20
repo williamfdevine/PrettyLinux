@@ -15,7 +15,8 @@
 #include <linux/slab.h>
 #include <linux/spi/spi.h>
 
-struct dac124s085_led {
+struct dac124s085_led
+{
 	struct led_classdev	ldev;
 	struct spi_device	*spi;
 	int			id;
@@ -24,7 +25,8 @@ struct dac124s085_led {
 	struct mutex		mutex;
 };
 
-struct dac124s085 {
+struct dac124s085
+{
 	struct dac124s085_led leds[4];
 };
 
@@ -34,16 +36,16 @@ struct dac124s085 {
 #define POWER_DOWN_OUTPUT	(3 << 12)
 
 static int dac124s085_set_brightness(struct led_classdev *ldev,
-				      enum led_brightness brightness)
+									 enum led_brightness brightness)
 {
 	struct dac124s085_led *led = container_of(ldev, struct dac124s085_led,
-						  ldev);
+								 ldev);
 	u16 word;
 	int ret;
 
 	mutex_lock(&led->mutex);
 	word = cpu_to_le16(((led->id) << 14) | REG_WRITE_UPDATE |
-			   (brightness & 0xfff));
+					   (brightness & 0xfff));
 	ret = spi_write(led->spi, (const u8 *)&word, sizeof(word));
 	mutex_unlock(&led->mutex);
 
@@ -57,12 +59,16 @@ static int dac124s085_probe(struct spi_device *spi)
 	int i, ret;
 
 	dac = devm_kzalloc(&spi->dev, sizeof(*dac), GFP_KERNEL);
+
 	if (!dac)
+	{
 		return -ENOMEM;
+	}
 
 	spi->bits_per_word = 16;
 
-	for (i = 0; i < ARRAY_SIZE(dac->leds); i++) {
+	for (i = 0; i < ARRAY_SIZE(dac->leds); i++)
+	{
 		led		= dac->leds + i;
 		led->id		= i;
 		led->spi	= spi;
@@ -73,8 +79,11 @@ static int dac124s085_probe(struct spi_device *spi)
 		led->ldev.max_brightness = 0xfff;
 		led->ldev.brightness_set_blocking = dac124s085_set_brightness;
 		ret = led_classdev_register(&spi->dev, &led->ldev);
+
 		if (ret < 0)
+		{
 			goto eledcr;
+		}
 	}
 
 	spi_set_drvdata(spi, dac);
@@ -82,8 +91,11 @@ static int dac124s085_probe(struct spi_device *spi)
 	return 0;
 
 eledcr:
+
 	while (i--)
+	{
 		led_classdev_unregister(&dac->leds[i].ldev);
+	}
 
 	return ret;
 }
@@ -94,12 +106,15 @@ static int dac124s085_remove(struct spi_device *spi)
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(dac->leds); i++)
+	{
 		led_classdev_unregister(&dac->leds[i].ldev);
+	}
 
 	return 0;
 }
 
-static struct spi_driver dac124s085_driver = {
+static struct spi_driver dac124s085_driver =
+{
 	.probe		= dac124s085_probe,
 	.remove		= dac124s085_remove,
 	.driver = {

@@ -22,42 +22,44 @@
 #include <asm/zorro.h>
 
 
-    /*
-     *  Zorro devices
-     */
+/*
+ *  Zorro devices
+ */
 
-struct zorro_dev {
-    struct ExpansionRom rom;
-    zorro_id id;
-    struct zorro_driver *driver;	/* which driver has allocated this device */
-    struct device dev;			/* Generic device interface */
-    u16 slotaddr;
-    u16 slotsize;
-    char name[64];
-    struct resource resource;
+struct zorro_dev
+{
+	struct ExpansionRom rom;
+	zorro_id id;
+	struct zorro_driver *driver;	/* which driver has allocated this device */
+	struct device dev;			/* Generic device interface */
+	u16 slotaddr;
+	u16 slotsize;
+	char name[64];
+	struct resource resource;
 };
 
 #define	to_zorro_dev(n)	container_of(n, struct zorro_dev, dev)
 
 
-    /*
-     *  Zorro bus
-     */
+/*
+ *  Zorro bus
+ */
 
 extern struct bus_type zorro_bus_type;
 
 
-    /*
-     *  Zorro device drivers
-     */
+/*
+ *  Zorro device drivers
+ */
 
-struct zorro_driver {
-    struct list_head node;
-    char *name;
-    const struct zorro_device_id *id_table;	/* NULL if wants all devices */
-    int (*probe)(struct zorro_dev *z, const struct zorro_device_id *id);	/* New device inserted */
-    void (*remove)(struct zorro_dev *z);	/* Device removed (NULL if not a hot-plug capable driver) */
-    struct device_driver driver;
+struct zorro_driver
+{
+	struct list_head node;
+	char *name;
+	const struct zorro_device_id *id_table;	/* NULL if wants all devices */
+	int (*probe)(struct zorro_dev *z, const struct zorro_device_id *id);	/* New device inserted */
+	void (*remove)(struct zorro_dev *z);	/* Device removed (NULL if not a hot-plug capable driver) */
+	struct device_driver driver;
 };
 
 #define	to_zorro_driver(drv)	container_of(drv, struct zorro_driver, driver)
@@ -73,7 +75,7 @@ extern void zorro_unregister_driver(struct zorro_driver *);
 extern const struct zorro_device_id *zorro_match_device(const struct zorro_device_id *ids, const struct zorro_dev *z);
 static inline struct zorro_driver *zorro_dev_driver(const struct zorro_dev *z)
 {
-    return z->driver;
+	return z->driver;
 }
 
 
@@ -81,12 +83,13 @@ extern unsigned int zorro_num_autocon;	/* # of autoconfig devices found */
 extern struct zorro_dev *zorro_autocon;
 
 
-    /*
-     * Minimal information about a Zorro device, passed from bootinfo
-     * Only available temporarily, i.e. until initmem has been freed!
-     */
+/*
+ * Minimal information about a Zorro device, passed from bootinfo
+ * Only available temporarily, i.e. until initmem has been freed!
+ */
 
-struct zorro_dev_init {
+struct zorro_dev_init
+{
 	struct ExpansionRom rom;
 	u16 slotaddr;
 	u16 slotsize;
@@ -97,12 +100,12 @@ struct zorro_dev_init {
 extern struct zorro_dev_init zorro_autocon_init[ZORRO_NUM_AUTO] __initdata;
 
 
-    /*
-     *  Zorro Functions
-     */
+/*
+ *  Zorro Functions
+ */
 
 extern struct zorro_dev *zorro_find_device(zorro_id id,
-					   struct zorro_dev *from);
+		struct zorro_dev *from);
 
 #define zorro_resource_start(z)	((z)->resource.start)
 #define zorro_resource_end(z)	((z)->resource.end)
@@ -110,9 +113,9 @@ extern struct zorro_dev *zorro_find_device(zorro_id id,
 #define zorro_resource_flags(z)	((z)->resource.flags)
 
 #define zorro_request_device(z, name) \
-    request_mem_region(zorro_resource_start(z), zorro_resource_len(z), name)
+	request_mem_region(zorro_resource_start(z), zorro_resource_len(z), name)
 #define zorro_release_device(z) \
-    release_mem_region(zorro_resource_start(z), zorro_resource_len(z))
+	release_mem_region(zorro_resource_start(z), zorro_resource_len(z))
 
 /* Similar to the helpers above, these manipulate per-zorro_dev
  * driver-specific data.  They are really just a wrapper around
@@ -129,14 +132,14 @@ static inline void zorro_set_drvdata (struct zorro_dev *z, void *data)
 }
 
 
-    /*
-     *  Bitmask indicating portions of available Zorro II RAM that are unused
-     *  by the system. Every bit represents a 64K chunk, for a maximum of 8MB
-     *  (128 chunks, physical 0x00200000-0x009fffff).
-     *
-     *  If you want to use (= allocate) portions of this RAM, you should clear
-     *  the corresponding bits.
-     */
+/*
+ *  Bitmask indicating portions of available Zorro II RAM that are unused
+ *  by the system. Every bit represents a 64K chunk, for a maximum of 8MB
+ *  (128 chunks, physical 0x00200000-0x009fffff).
+ *
+ *  If you want to use (= allocate) portions of this RAM, you should clear
+ *  the corresponding bits.
+ */
 
 extern DECLARE_BITMAP(zorro_unused_z2ram, 128);
 

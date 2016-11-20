@@ -23,22 +23,28 @@ u64 nvmet_genctr;
 void nvmet_referral_enable(struct nvmet_port *parent, struct nvmet_port *port)
 {
 	down_write(&nvmet_config_sem);
-	if (list_empty(&port->entry)) {
+
+	if (list_empty(&port->entry))
+	{
 		list_add_tail(&port->entry, &parent->referrals);
 		port->enabled = true;
 		nvmet_genctr++;
 	}
+
 	up_write(&nvmet_config_sem);
 }
 
 void nvmet_referral_disable(struct nvmet_port *port)
 {
 	down_write(&nvmet_config_sem);
-	if (!list_empty(&port->entry)) {
+
+	if (!list_empty(&port->entry))
+	{
 		port->enabled = false;
 		list_del_init(&port->entry);
 		nvmet_genctr++;
 	}
+
 	up_write(&nvmet_config_sem);
 }
 
@@ -80,31 +86,42 @@ static void nvmet_execute_get_disc_log_page(struct nvmet_req *req)
 	 * number of bytes requested by host will be sent to host.
 	 */
 	hdr = kzalloc(alloc_len, GFP_KERNEL);
-	if (!hdr) {
+
+	if (!hdr)
+	{
 		status = NVME_SC_INTERNAL;
 		goto out;
 	}
 
 	down_read(&nvmet_config_sem);
-	list_for_each_entry(p, &req->port->subsystems, entry) {
+	list_for_each_entry(p, &req->port->subsystems, entry)
+	{
 		if (!nvmet_host_allowed(req, p->subsys, ctrl->hostnqn))
+		{
 			continue;
-		if (residual_len >= entry_size) {
+		}
+
+		if (residual_len >= entry_size)
+		{
 			nvmet_format_discovery_entry(hdr, req->port,
-					p->subsys->subsysnqn,
-					NVME_NQN_NVME, numrec);
+										 p->subsys->subsysnqn,
+										 NVME_NQN_NVME, numrec);
 			residual_len -= entry_size;
 		}
+
 		numrec++;
 	}
 
-	list_for_each_entry(r, &req->port->referrals, entry) {
-		if (residual_len >= entry_size) {
+	list_for_each_entry(r, &req->port->referrals, entry)
+	{
+		if (residual_len >= entry_size)
+		{
 			nvmet_format_discovery_entry(hdr, r,
-					NVME_DISC_SUBSYS_NAME,
-					NVME_NQN_DISC, numrec);
+										 NVME_DISC_SUBSYS_NAME,
+										 NVME_NQN_DISC, numrec);
 			residual_len -= entry_size;
 		}
+
 		numrec++;
 	}
 
@@ -127,7 +144,9 @@ static void nvmet_execute_identify_disc_ctrl(struct nvmet_req *req)
 	u16 status = 0;
 
 	id = kzalloc(sizeof(*id), GFP_KERNEL);
-	if (!id) {
+
+	if (!id)
+	{
 		status = NVME_SC_INTERNAL;
 		goto out;
 	}
@@ -145,10 +164,16 @@ static void nvmet_execute_identify_disc_ctrl(struct nvmet_req *req)
 	id->maxcmd = cpu_to_le16(NVMET_MAX_CMD);
 
 	id->sgls = cpu_to_le32(1 << 0);	/* we always support SGLs */
+
 	if (ctrl->ops->has_keyed_sgls)
+	{
 		id->sgls |= cpu_to_le32(1 << 2);
+	}
+
 	if (ctrl->ops->sqe_inline_size)
+	{
 		id->sgls |= cpu_to_le32(1 << 20);
+	}
 
 	strcpy(id->subnqn, ctrl->subsys->subsysnqn);
 
@@ -165,41 +190,50 @@ int nvmet_parse_discovery_cmd(struct nvmet_req *req)
 
 	req->ns = NULL;
 
-	if (unlikely(!(req->sq->ctrl->csts & NVME_CSTS_RDY))) {
+	if (unlikely(!(req->sq->ctrl->csts & NVME_CSTS_RDY)))
+	{
 		pr_err("nvmet: got cmd %d while not ready\n",
-				cmd->common.opcode);
+			   cmd->common.opcode);
 		return NVME_SC_INVALID_OPCODE | NVME_SC_DNR;
 	}
 
-	switch (cmd->common.opcode) {
-	case nvme_admin_get_log_page:
-		req->data_len = nvmet_get_log_page_len(cmd);
+	switch (cmd->common.opcode)
+	{
+		case nvme_admin_get_log_page:
+			req->data_len = nvmet_get_log_page_len(cmd);
 
-		switch (cmd->get_log_page.lid) {
-		case NVME_LOG_DISC:
-			req->execute = nvmet_execute_get_disc_log_page;
-			return 0;
+			switch (cmd->get_log_page.lid)
+			{
+				case NVME_LOG_DISC:
+					req->execute = nvmet_execute_get_disc_log_page;
+					return 0;
+
+				default:
+					pr_err("nvmet: unsupported get_log_page lid %d\n",
+						   cmd->get_log_page.lid);
+					return NVME_SC_INVALID_OPCODE | NVME_SC_DNR;
+			}
+
+		case nvme_admin_identify:
+			req->data_len = 4096;
+
+			switch (le32_to_cpu(cmd->identify.cns))
+			{
+				case NVME_ID_CNS_CTRL:
+					req->execute =
+						nvmet_execute_identify_disc_ctrl;
+					return 0;
+
+				default:
+					pr_err("nvmet: unsupported identify cns %d\n",
+						   le32_to_cpu(cmd->identify.cns));
+					return NVME_SC_INVALID_OPCODE | NVME_SC_DNR;
+			}
+
 		default:
-			pr_err("nvmet: unsupported get_log_page lid %d\n",
-				cmd->get_log_page.lid);
-		return NVME_SC_INVALID_OPCODE | NVME_SC_DNR;
-		}
-	case nvme_admin_identify:
-		req->data_len = 4096;
-		switch (le32_to_cpu(cmd->identify.cns)) {
-		case NVME_ID_CNS_CTRL:
-			req->execute =
-				nvmet_execute_identify_disc_ctrl;
-			return 0;
-		default:
-			pr_err("nvmet: unsupported identify cns %d\n",
-				le32_to_cpu(cmd->identify.cns));
+			pr_err("nvmet: unsupported cmd %d\n",
+				   cmd->common.opcode);
 			return NVME_SC_INVALID_OPCODE | NVME_SC_DNR;
-		}
-	default:
-		pr_err("nvmet: unsupported cmd %d\n",
-				cmd->common.opcode);
-		return NVME_SC_INVALID_OPCODE | NVME_SC_DNR;
 	}
 
 	pr_err("nvmet: unhandled cmd %d\n", cmd->common.opcode);
@@ -210,8 +244,12 @@ int __init nvmet_init_discovery(void)
 {
 	nvmet_disc_subsys =
 		nvmet_subsys_alloc(NVME_DISC_SUBSYS_NAME, NVME_NQN_DISC);
+
 	if (!nvmet_disc_subsys)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 

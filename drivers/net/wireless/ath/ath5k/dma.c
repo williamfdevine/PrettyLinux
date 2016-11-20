@@ -66,13 +66,15 @@ ath5k_hw_stop_rx_dma(struct ath5k_hw *ah)
 	 * It may take some time to disable the DMA receive unit
 	 */
 	for (i = 1000; i > 0 &&
-			(ath5k_hw_reg_read(ah, AR5K_CR) & AR5K_CR_RXE) != 0;
-			i--)
+		 (ath5k_hw_reg_read(ah, AR5K_CR) & AR5K_CR_RXE) != 0;
+		 i--)
+	{
 		udelay(100);
+	}
 
 	if (!i)
 		ATH5K_DBG(ah, ATH5K_DEBUG_DMA,
-				"failed to stop RX DMA !\n");
+				  "failed to stop RX DMA !\n");
 
 	return i ? 0 : -EBUSY;
 }
@@ -97,9 +99,10 @@ ath5k_hw_get_rxdp(struct ath5k_hw *ah)
 int
 ath5k_hw_set_rxdp(struct ath5k_hw *ah, u32 phys_addr)
 {
-	if (ath5k_hw_reg_read(ah, AR5K_CR) & AR5K_CR_RXE) {
+	if (ath5k_hw_reg_read(ah, AR5K_CR) & AR5K_CR_RXE)
+	{
 		ATH5K_DBG(ah, ATH5K_DEBUG_DMA,
-				"tried to set RXDP while rx was active !\n");
+				  "tried to set RXDP while rx was active !\n");
 		return -EIO;
 	}
 
@@ -135,38 +138,50 @@ ath5k_hw_start_tx_dma(struct ath5k_hw *ah, unsigned int queue)
 
 	/* Return if queue is declared inactive */
 	if (ah->ah_txq[queue].tqi_type == AR5K_TX_QUEUE_INACTIVE)
+	{
 		return -EINVAL;
+	}
 
-	if (ah->ah_version == AR5K_AR5210) {
+	if (ah->ah_version == AR5K_AR5210)
+	{
 		tx_queue = ath5k_hw_reg_read(ah, AR5K_CR);
 
 		/*
 		 * Set the queue by type on 5210
 		 */
-		switch (ah->ah_txq[queue].tqi_type) {
-		case AR5K_TX_QUEUE_DATA:
-			tx_queue |= AR5K_CR_TXE0 & ~AR5K_CR_TXD0;
-			break;
-		case AR5K_TX_QUEUE_BEACON:
-			tx_queue |= AR5K_CR_TXE1 & ~AR5K_CR_TXD1;
-			ath5k_hw_reg_write(ah, AR5K_BCR_TQ1V | AR5K_BCR_BDMAE,
-					AR5K_BSR);
-			break;
-		case AR5K_TX_QUEUE_CAB:
-			tx_queue |= AR5K_CR_TXE1 & ~AR5K_CR_TXD1;
-			ath5k_hw_reg_write(ah, AR5K_BCR_TQ1FV | AR5K_BCR_TQ1V |
-				AR5K_BCR_BDMAE, AR5K_BSR);
-			break;
-		default:
-			return -EINVAL;
+		switch (ah->ah_txq[queue].tqi_type)
+		{
+			case AR5K_TX_QUEUE_DATA:
+				tx_queue |= AR5K_CR_TXE0 & ~AR5K_CR_TXD0;
+				break;
+
+			case AR5K_TX_QUEUE_BEACON:
+				tx_queue |= AR5K_CR_TXE1 & ~AR5K_CR_TXD1;
+				ath5k_hw_reg_write(ah, AR5K_BCR_TQ1V | AR5K_BCR_BDMAE,
+								   AR5K_BSR);
+				break;
+
+			case AR5K_TX_QUEUE_CAB:
+				tx_queue |= AR5K_CR_TXE1 & ~AR5K_CR_TXD1;
+				ath5k_hw_reg_write(ah, AR5K_BCR_TQ1FV | AR5K_BCR_TQ1V |
+								   AR5K_BCR_BDMAE, AR5K_BSR);
+				break;
+
+			default:
+				return -EINVAL;
 		}
+
 		/* Start queue */
 		ath5k_hw_reg_write(ah, tx_queue, AR5K_CR);
 		ath5k_hw_reg_read(ah, AR5K_CR);
-	} else {
+	}
+	else
+	{
 		/* Return if queue is disabled */
 		if (AR5K_REG_READ_Q(ah, AR5K_QCU_TXD, queue))
+		{
 			return -EIO;
+		}
 
 		/* Start queue */
 		AR5K_REG_WRITE_Q(ah, AR5K_QCU_TXE, queue);
@@ -194,39 +209,47 @@ ath5k_hw_stop_tx_dma(struct ath5k_hw *ah, unsigned int queue)
 
 	/* Return if queue is declared inactive */
 	if (ah->ah_txq[queue].tqi_type == AR5K_TX_QUEUE_INACTIVE)
+	{
 		return -EINVAL;
+	}
 
-	if (ah->ah_version == AR5K_AR5210) {
+	if (ah->ah_version == AR5K_AR5210)
+	{
 		tx_queue = ath5k_hw_reg_read(ah, AR5K_CR);
 
 		/*
 		 * Set by queue type
 		 */
-		switch (ah->ah_txq[queue].tqi_type) {
-		case AR5K_TX_QUEUE_DATA:
-			tx_queue |= AR5K_CR_TXD0 & ~AR5K_CR_TXE0;
-			break;
-		case AR5K_TX_QUEUE_BEACON:
-		case AR5K_TX_QUEUE_CAB:
-			/* XXX Fix me... */
-			tx_queue |= AR5K_CR_TXD1 & ~AR5K_CR_TXD1;
-			ath5k_hw_reg_write(ah, 0, AR5K_BSR);
-			break;
-		default:
-			return -EINVAL;
+		switch (ah->ah_txq[queue].tqi_type)
+		{
+			case AR5K_TX_QUEUE_DATA:
+				tx_queue |= AR5K_CR_TXD0 & ~AR5K_CR_TXE0;
+				break;
+
+			case AR5K_TX_QUEUE_BEACON:
+			case AR5K_TX_QUEUE_CAB:
+				/* XXX Fix me... */
+				tx_queue |= AR5K_CR_TXD1 & ~AR5K_CR_TXD1;
+				ath5k_hw_reg_write(ah, 0, AR5K_BSR);
+				break;
+
+			default:
+				return -EINVAL;
 		}
 
 		/* Stop queue */
 		ath5k_hw_reg_write(ah, tx_queue, AR5K_CR);
 		ath5k_hw_reg_read(ah, AR5K_CR);
-	} else {
+	}
+	else
+	{
 
 		/*
 		 * Enable DCU early termination to quickly
 		 * flush any pending frames from QCU
 		 */
 		AR5K_REG_ENABLE_BITS(ah, AR5K_QUEUE_MISC(queue),
-					AR5K_QCU_MISC_DCU_EARLY);
+							 AR5K_QCU_MISC_DCU_EARLY);
 
 		/*
 		 * Schedule TX disable and wait until queue is empty
@@ -235,80 +258,91 @@ ath5k_hw_stop_tx_dma(struct ath5k_hw *ah, unsigned int queue)
 
 		/* Wait for queue to stop */
 		for (i = 1000; i > 0 &&
-		(AR5K_REG_READ_Q(ah, AR5K_QCU_TXE, queue) != 0);
-		i--)
+			 (AR5K_REG_READ_Q(ah, AR5K_QCU_TXE, queue) != 0);
+			 i--)
+		{
 			udelay(100);
+		}
 
 		if (AR5K_REG_READ_Q(ah, AR5K_QCU_TXE, queue))
 			ATH5K_DBG(ah, ATH5K_DEBUG_DMA,
-				"queue %i didn't stop !\n", queue);
+					  "queue %i didn't stop !\n", queue);
 
 		/* Check for pending frames */
 		i = 1000;
-		do {
+
+		do
+		{
 			pending = ath5k_hw_reg_read(ah,
-				AR5K_QUEUE_STATUS(queue)) &
-				AR5K_QCU_STS_FRMPENDCNT;
+										AR5K_QUEUE_STATUS(queue)) &
+					  AR5K_QCU_STS_FRMPENDCNT;
 			udelay(100);
-		} while (--i && pending);
+		}
+		while (--i && pending);
 
 		/* For 2413+ order PCU to drop packets using
 		 * QUIET mechanism */
 		if (ah->ah_mac_version >= (AR5K_SREV_AR2414 >> 4) &&
-		    pending) {
+			pending)
+		{
 			/* Set periodicity and duration */
 			ath5k_hw_reg_write(ah,
-				AR5K_REG_SM(100, AR5K_QUIET_CTL2_QT_PER)|
-				AR5K_REG_SM(10, AR5K_QUIET_CTL2_QT_DUR),
-				AR5K_QUIET_CTL2);
+							   AR5K_REG_SM(100, AR5K_QUIET_CTL2_QT_PER) |
+							   AR5K_REG_SM(10, AR5K_QUIET_CTL2_QT_DUR),
+							   AR5K_QUIET_CTL2);
 
 			/* Enable quiet period for current TSF */
 			ath5k_hw_reg_write(ah,
-				AR5K_QUIET_CTL1_QT_EN |
-				AR5K_REG_SM(ath5k_hw_reg_read(ah,
-						AR5K_TSF_L32_5211) >> 10,
-						AR5K_QUIET_CTL1_NEXT_QT_TSF),
-				AR5K_QUIET_CTL1);
+							   AR5K_QUIET_CTL1_QT_EN |
+							   AR5K_REG_SM(ath5k_hw_reg_read(ah,
+										   AR5K_TSF_L32_5211) >> 10,
+										   AR5K_QUIET_CTL1_NEXT_QT_TSF),
+							   AR5K_QUIET_CTL1);
 
 			/* Force channel idle high */
 			AR5K_REG_ENABLE_BITS(ah, AR5K_DIAG_SW_5211,
-					AR5K_DIAG_SW_CHANNEL_IDLE_HIGH);
+								 AR5K_DIAG_SW_CHANNEL_IDLE_HIGH);
 
 			/* Wait a while and disable mechanism */
 			udelay(400);
 			AR5K_REG_DISABLE_BITS(ah, AR5K_QUIET_CTL1,
-						AR5K_QUIET_CTL1_QT_EN);
+								  AR5K_QUIET_CTL1_QT_EN);
 
 			/* Re-check for pending frames */
 			i = 100;
-			do {
+
+			do
+			{
 				pending = ath5k_hw_reg_read(ah,
-					AR5K_QUEUE_STATUS(queue)) &
-					AR5K_QCU_STS_FRMPENDCNT;
+											AR5K_QUEUE_STATUS(queue)) &
+						  AR5K_QCU_STS_FRMPENDCNT;
 				udelay(100);
-			} while (--i && pending);
+			}
+			while (--i && pending);
 
 			AR5K_REG_DISABLE_BITS(ah, AR5K_DIAG_SW_5211,
-					AR5K_DIAG_SW_CHANNEL_IDLE_HIGH);
+								  AR5K_DIAG_SW_CHANNEL_IDLE_HIGH);
 
 			if (pending)
 				ATH5K_DBG(ah, ATH5K_DEBUG_DMA,
-					"quiet mechanism didn't work q:%i !\n",
-					queue);
+						  "quiet mechanism didn't work q:%i !\n",
+						  queue);
 		}
 
 		/*
 		 * Disable DCU early termination
 		 */
 		AR5K_REG_DISABLE_BITS(ah, AR5K_QUEUE_MISC(queue),
-					AR5K_QCU_MISC_DCU_EARLY);
+							  AR5K_QCU_MISC_DCU_EARLY);
 
 		/* Clear register */
 		ath5k_hw_reg_write(ah, 0, AR5K_QCU_TXD);
-		if (pending) {
+
+		if (pending)
+		{
 			ATH5K_DBG(ah, ATH5K_DEBUG_DMA,
-					"tx dma didn't stop (q:%i, frm:%i) !\n",
-					queue, pending);
+					  "tx dma didn't stop (q:%i, frm:%i) !\n",
+					  queue, pending);
 			return -EBUSY;
 		}
 	}
@@ -329,11 +363,14 @@ ath5k_hw_stop_beacon_queue(struct ath5k_hw *ah, unsigned int queue)
 {
 	int ret;
 	ret = ath5k_hw_stop_tx_dma(ah, queue);
-	if (ret) {
+
+	if (ret)
+	{
 		ATH5K_DBG(ah, ATH5K_DEBUG_DMA,
-				"beacon queue didn't stop !\n");
+				  "beacon queue didn't stop !\n");
 		return -EIO;
 	}
+
 	return 0;
 }
 
@@ -360,19 +397,25 @@ ath5k_hw_get_txdp(struct ath5k_hw *ah, unsigned int queue)
 	 * Get the transmit queue descriptor pointer from the selected queue
 	 */
 	/*5210 doesn't have QCU*/
-	if (ah->ah_version == AR5K_AR5210) {
-		switch (ah->ah_txq[queue].tqi_type) {
-		case AR5K_TX_QUEUE_DATA:
-			tx_reg = AR5K_NOQCU_TXDP0;
-			break;
-		case AR5K_TX_QUEUE_BEACON:
-		case AR5K_TX_QUEUE_CAB:
-			tx_reg = AR5K_NOQCU_TXDP1;
-			break;
-		default:
-			return 0xffffffff;
+	if (ah->ah_version == AR5K_AR5210)
+	{
+		switch (ah->ah_txq[queue].tqi_type)
+		{
+			case AR5K_TX_QUEUE_DATA:
+				tx_reg = AR5K_NOQCU_TXDP0;
+				break;
+
+			case AR5K_TX_QUEUE_BEACON:
+			case AR5K_TX_QUEUE_CAB:
+				tx_reg = AR5K_NOQCU_TXDP1;
+				break;
+
+			default:
+				return 0xffffffff;
 		}
-	} else {
+	}
+	else
+	{
 		tx_reg = AR5K_QUEUE_TXDP(queue);
 	}
 
@@ -403,26 +446,34 @@ ath5k_hw_set_txdp(struct ath5k_hw *ah, unsigned int queue, u32 phys_addr)
 	 * Set the transmit queue descriptor pointer register by type
 	 * on 5210
 	 */
-	if (ah->ah_version == AR5K_AR5210) {
-		switch (ah->ah_txq[queue].tqi_type) {
-		case AR5K_TX_QUEUE_DATA:
-			tx_reg = AR5K_NOQCU_TXDP0;
-			break;
-		case AR5K_TX_QUEUE_BEACON:
-		case AR5K_TX_QUEUE_CAB:
-			tx_reg = AR5K_NOQCU_TXDP1;
-			break;
-		default:
-			return -EINVAL;
+	if (ah->ah_version == AR5K_AR5210)
+	{
+		switch (ah->ah_txq[queue].tqi_type)
+		{
+			case AR5K_TX_QUEUE_DATA:
+				tx_reg = AR5K_NOQCU_TXDP0;
+				break;
+
+			case AR5K_TX_QUEUE_BEACON:
+			case AR5K_TX_QUEUE_CAB:
+				tx_reg = AR5K_NOQCU_TXDP1;
+				break;
+
+			default:
+				return -EINVAL;
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		 * Set the transmit queue descriptor pointer for
 		 * the selected queue on QCU for 5211+
 		 * (this won't work if the queue is still active)
 		 */
 		if (AR5K_REG_READ_Q(ah, AR5K_QCU_TXE, queue))
+		{
 			return -EIO;
+		}
 
 		tx_reg = AR5K_QUEUE_TXDP(queue);
 	}
@@ -461,12 +512,16 @@ ath5k_hw_update_tx_triglevel(struct ath5k_hw *ah, bool increase)
 	imr = ath5k_hw_set_imr(ah, ah->ah_imr & ~AR5K_INT_GLOBAL);
 
 	trigger_level = AR5K_REG_MS(ath5k_hw_reg_read(ah, AR5K_TXCFG),
-			AR5K_TXCFG_TXFULL);
+								AR5K_TXCFG_TXFULL);
 
-	if (!increase) {
+	if (!increase)
+	{
 		if (--trigger_level < AR5K_TUNE_MIN_TX_FIFO_THRES)
+		{
 			goto done;
-	} else
+		}
+	}
+	else
 		trigger_level +=
 			((AR5K_TUNE_MAX_TX_FIFO_THRES - trigger_level) / 2);
 
@@ -474,10 +529,12 @@ ath5k_hw_update_tx_triglevel(struct ath5k_hw *ah, bool increase)
 	 * Update trigger level on success
 	 */
 	if (ah->ah_version == AR5K_AR5210)
+	{
 		ath5k_hw_reg_write(ah, trigger_level, AR5K_TRIG_LVL);
+	}
 	else
 		AR5K_REG_WRITE_BITS(ah, AR5K_TXCFG,
-				AR5K_TXCFG_TXFULL, trigger_level);
+							AR5K_TXCFG_TXFULL, trigger_level);
 
 	ret = 0;
 
@@ -534,10 +591,13 @@ ath5k_hw_get_isr(struct ath5k_hw *ah, enum ath5k_int *interrupt_mask)
 	 *
 	 * Note: PISR/SISR Not available on 5210
 	 */
-	if (ah->ah_version == AR5K_AR5210) {
+	if (ah->ah_version == AR5K_AR5210)
+	{
 		u32 isr = 0;
 		isr = ath5k_hw_reg_read(ah, AR5K_ISR);
-		if (unlikely(isr == AR5K_INT_NOCARD)) {
+
+		if (unlikely(isr == AR5K_INT_NOCARD))
+		{
 			*interrupt_mask = isr;
 			return -ENODEV;
 		}
@@ -550,8 +610,10 @@ ath5k_hw_get_isr(struct ath5k_hw *ah, enum ath5k_int *interrupt_mask)
 
 		/* Hanlde INT_FATAL */
 		if (unlikely(isr & (AR5K_ISR_SSERR | AR5K_ISR_MCABT
-						| AR5K_ISR_DPERR)))
+							| AR5K_ISR_DPERR)))
+		{
 			*interrupt_mask |= AR5K_INT_FATAL;
+		}
 
 		/*
 		 * XXX: BMISS interrupts may occur after association.
@@ -562,7 +624,9 @@ ath5k_hw_get_isr(struct ath5k_hw *ah, enum ath5k_int *interrupt_mask)
 		 */
 
 		data = isr;
-	} else {
+	}
+	else
+	{
 		u32 pisr = 0;
 		u32 pisr_clear = 0;
 		u32 sisr0 = 0;
@@ -573,7 +637,9 @@ ath5k_hw_get_isr(struct ath5k_hw *ah, enum ath5k_int *interrupt_mask)
 
 		/* Read PISR and SISRs... */
 		pisr = ath5k_hw_reg_read(ah, AR5K_PISR);
-		if (unlikely(pisr == AR5K_INT_NOCARD)) {
+
+		if (unlikely(pisr == AR5K_INT_NOCARD))
+		{
 			*interrupt_mask = pisr;
 			return -ENODEV;
 		}
@@ -625,7 +691,7 @@ ath5k_hw_get_isr(struct ath5k_hw *ah, enum ath5k_int *interrupt_mask)
 		 * 	on PISR to avoid that.
 		 */
 		pisr_clear = (pisr & ~AR5K_ISR_BITS_FROM_SISRS) |
-					(pisr & AR5K_INT_TX_ALL);
+					 (pisr & AR5K_INT_TX_ALL);
 
 		/*
 		 * Write to clear them...
@@ -656,45 +722,62 @@ ath5k_hw_get_isr(struct ath5k_hw *ah, enum ath5k_int *interrupt_mask)
 		 * so we track them all together per queue */
 		if (pisr & AR5K_ISR_TXOK)
 			ah->ah_txq_isr_txok_all |= AR5K_REG_MS(sisr0,
-						AR5K_SISR0_QCU_TXOK);
+												   AR5K_SISR0_QCU_TXOK);
 
 		if (pisr & AR5K_ISR_TXDESC)
 			ah->ah_txq_isr_txok_all |= AR5K_REG_MS(sisr0,
-						AR5K_SISR0_QCU_TXDESC);
+												   AR5K_SISR0_QCU_TXDESC);
 
 		if (pisr & AR5K_ISR_TXERR)
 			ah->ah_txq_isr_txok_all |= AR5K_REG_MS(sisr1,
-						AR5K_SISR1_QCU_TXERR);
+												   AR5K_SISR1_QCU_TXERR);
 
 		if (pisr & AR5K_ISR_TXEOL)
 			ah->ah_txq_isr_txok_all |= AR5K_REG_MS(sisr1,
-						AR5K_SISR1_QCU_TXEOL);
+												   AR5K_SISR1_QCU_TXEOL);
 
 		/* Currently this is not much useful since we treat
 		 * all queues the same way if we get a TXURN (update
 		 * tx trigger level) but we might need it later on*/
 		if (pisr & AR5K_ISR_TXURN)
 			ah->ah_txq_isr_txurn |= AR5K_REG_MS(sisr2,
-						AR5K_SISR2_QCU_TXURN);
+												AR5K_SISR2_QCU_TXURN);
 
 		/* Misc Beacon related interrupts */
 
 		/* For AR5211 */
 		if (pisr & AR5K_ISR_TIM)
+		{
 			*interrupt_mask |= AR5K_INT_TIM;
+		}
 
 		/* For AR5212+ */
-		if (pisr & AR5K_ISR_BCNMISC) {
+		if (pisr & AR5K_ISR_BCNMISC)
+		{
 			if (sisr2 & AR5K_SISR2_TIM)
+			{
 				*interrupt_mask |= AR5K_INT_TIM;
+			}
+
 			if (sisr2 & AR5K_SISR2_DTIM)
+			{
 				*interrupt_mask |= AR5K_INT_DTIM;
+			}
+
 			if (sisr2 & AR5K_SISR2_DTIM_SYNC)
+			{
 				*interrupt_mask |= AR5K_INT_DTIM_SYNC;
+			}
+
 			if (sisr2 & AR5K_SISR2_BCN_TIMEOUT)
+			{
 				*interrupt_mask |= AR5K_INT_BCN_TIMEOUT;
+			}
+
 			if (sisr2 & AR5K_SISR2_CAB_TIMEOUT)
+			{
 				*interrupt_mask |= AR5K_INT_CAB_TIMEOUT;
+			}
 		}
 
 		/* Below interrupts are unlikely to happen */
@@ -702,31 +785,38 @@ ath5k_hw_get_isr(struct ath5k_hw *ah, enum ath5k_int *interrupt_mask)
 		/* HIU = Host Interface Unit (PCI etc)
 		 * Can be one of MCABT, SSERR, DPERR from SISR2 */
 		if (unlikely(pisr & (AR5K_ISR_HIUERR)))
+		{
 			*interrupt_mask |= AR5K_INT_FATAL;
+		}
 
 		/*Beacon Not Ready*/
 		if (unlikely(pisr & (AR5K_ISR_BNR)))
+		{
 			*interrupt_mask |= AR5K_INT_BNR;
+		}
 
 		/* A queue got CBR overrun */
-		if (unlikely(pisr & (AR5K_ISR_QCBRORN))) {
+		if (unlikely(pisr & (AR5K_ISR_QCBRORN)))
+		{
 			*interrupt_mask |= AR5K_INT_QCBRORN;
 			ah->ah_txq_isr_qcborn |= AR5K_REG_MS(sisr3,
-						AR5K_SISR3_QCBRORN);
+												 AR5K_SISR3_QCBRORN);
 		}
 
 		/* A queue got CBR underrun */
-		if (unlikely(pisr & (AR5K_ISR_QCBRURN))) {
+		if (unlikely(pisr & (AR5K_ISR_QCBRURN)))
+		{
 			*interrupt_mask |= AR5K_INT_QCBRURN;
 			ah->ah_txq_isr_qcburn |= AR5K_REG_MS(sisr3,
-						AR5K_SISR3_QCBRURN);
+												 AR5K_SISR3_QCBRURN);
 		}
 
 		/* A queue got triggered */
-		if (unlikely(pisr & (AR5K_ISR_QTRIG))) {
+		if (unlikely(pisr & (AR5K_ISR_QTRIG)))
+		{
 			*interrupt_mask |= AR5K_INT_QTRIG;
 			ah->ah_txq_isr_qtrig |= AR5K_REG_MS(sisr4,
-						AR5K_SISR4_QTRIG);
+												AR5K_SISR4_QTRIG);
 		}
 
 		data = pisr;
@@ -737,7 +827,9 @@ ath5k_hw_get_isr(struct ath5k_hw *ah, enum ath5k_int *interrupt_mask)
 	 * print the register value.
 	 */
 	if (unlikely(*interrupt_mask == 0 && net_ratelimit()))
+	{
 		ATH5K_PRINTF("ISR: 0x%08x IMR: 0x%08x\n", data, ah->ah_imr);
+	}
 
 	return 0;
 }
@@ -763,7 +855,8 @@ ath5k_hw_set_imr(struct ath5k_hw *ah, enum ath5k_int new_mask)
 	 * (they will be re-enabled afterwards if AR5K_INT GLOBAL
 	 * is set again on the new mask).
 	 */
-	if (old_mask & AR5K_INT_GLOBAL) {
+	if (old_mask & AR5K_INT_GLOBAL)
+	{
 		ath5k_hw_reg_write(ah, AR5K_IER_DISABLE, AR5K_IER);
 		ath5k_hw_reg_read(ah, AR5K_IER);
 	}
@@ -774,47 +867,68 @@ ath5k_hw_set_imr(struct ath5k_hw *ah, enum ath5k_int new_mask)
 	 */
 	int_mask = new_mask & AR5K_INT_COMMON;
 
-	if (ah->ah_version != AR5K_AR5210) {
+	if (ah->ah_version != AR5K_AR5210)
+	{
 		/* Preserve per queue TXURN interrupt mask */
 		u32 simr2 = ath5k_hw_reg_read(ah, AR5K_SIMR2)
-				& AR5K_SIMR2_QCU_TXURN;
+		& AR5K_SIMR2_QCU_TXURN;
 
 		/* Fatal interrupt abstraction for 5211+ */
-		if (new_mask & AR5K_INT_FATAL) {
+		if (new_mask & AR5K_INT_FATAL)
+		{
 			int_mask |= AR5K_IMR_HIUERR;
 			simr2 |= (AR5K_SIMR2_MCABT | AR5K_SIMR2_SSERR
-				| AR5K_SIMR2_DPERR);
+			| AR5K_SIMR2_DPERR);
 		}
 
 		/* Misc beacon related interrupts */
 		if (new_mask & AR5K_INT_TIM)
+		{
 			int_mask |= AR5K_IMR_TIM;
+		}
 
 		if (new_mask & AR5K_INT_TIM)
+		{
 			simr2 |= AR5K_SISR2_TIM;
+		}
+
 		if (new_mask & AR5K_INT_DTIM)
+		{
 			simr2 |= AR5K_SISR2_DTIM;
+		}
+
 		if (new_mask & AR5K_INT_DTIM_SYNC)
+		{
 			simr2 |= AR5K_SISR2_DTIM_SYNC;
+		}
+
 		if (new_mask & AR5K_INT_BCN_TIMEOUT)
+		{
 			simr2 |= AR5K_SISR2_BCN_TIMEOUT;
+		}
+
 		if (new_mask & AR5K_INT_CAB_TIMEOUT)
+		{
 			simr2 |= AR5K_SISR2_CAB_TIMEOUT;
+		}
 
 		/*Beacon Not Ready*/
 		if (new_mask & AR5K_INT_BNR)
+		{
 			int_mask |= AR5K_INT_BNR;
+		}
 
 		/* Note: Per queue interrupt masks
 		 * are set via ath5k_hw_reset_tx_queue() (qcu.c) */
 		ath5k_hw_reg_write(ah, int_mask, AR5K_PIMR);
 		ath5k_hw_reg_write(ah, simr2, AR5K_SIMR2);
 
-	} else {
+	}
+	else {
 		/* Fatal interrupt abstraction for 5210 */
 		if (new_mask & AR5K_INT_FATAL)
 			int_mask |= (AR5K_IMR_SSERR | AR5K_IMR_MCABT
-				| AR5K_IMR_HIUERR | AR5K_IMR_DPERR);
+			| AR5K_IMR_HIUERR | AR5K_IMR_DPERR);
 
 		/* Only common interrupts left for 5210 (no SIMRs) */
 		ath5k_hw_reg_write(ah, int_mask, AR5K_IMR);
@@ -823,13 +937,16 @@ ath5k_hw_set_imr(struct ath5k_hw *ah, enum ath5k_int new_mask)
 	/* If RXNOFRM interrupt is masked disable it
 	 * by setting AR5K_RXNOFRM to zero */
 	if (!(new_mask & AR5K_INT_RXNOFRM))
+	{
 		ath5k_hw_reg_write(ah, 0, AR5K_RXNOFRM);
+	}
 
 	/* Store new interrupt mask */
 	ah->ah_imr = new_mask;
 
 	/* ..re-enable interrupts if AR5K_INT_GLOBAL is set */
-	if (new_mask & AR5K_INT_GLOBAL) {
+	if (new_mask & AR5K_INT_GLOBAL)
+	{
 		ath5k_hw_reg_write(ah, AR5K_IER_ENABLE, AR5K_IER);
 		ath5k_hw_reg_read(ah, AR5K_IER);
 	}
@@ -868,16 +985,19 @@ ath5k_hw_dma_init(struct ath5k_hw *ah)
 	 * TODO: Check out tx trigger level, it's always 64 on dumps but I
 	 * guess we can tweak it and see how it goes ;-)
 	 */
-	if (ah->ah_version != AR5K_AR5210) {
+	if (ah->ah_version != AR5K_AR5210)
+	{
 		AR5K_REG_WRITE_BITS(ah, AR5K_TXCFG,
-			AR5K_TXCFG_SDMAMR, AR5K_DMASIZE_128B);
+							AR5K_TXCFG_SDMAMR, AR5K_DMASIZE_128B);
 		AR5K_REG_WRITE_BITS(ah, AR5K_RXCFG,
-			AR5K_RXCFG_SDMAMW, AR5K_DMASIZE_128B);
+							AR5K_RXCFG_SDMAMW, AR5K_DMASIZE_128B);
 	}
 
 	/* Pre-enable interrupts on 5211/5212*/
 	if (ah->ah_version != AR5K_AR5210)
+	{
 		ath5k_hw_set_imr(ah, ah->ah_imr);
+	}
 
 }
 
@@ -903,25 +1023,35 @@ ath5k_hw_dma_stop(struct ath5k_hw *ah)
 
 	/* Stop rx dma */
 	err = ath5k_hw_stop_rx_dma(ah);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Clear any pending interrupts
 	 * and disable tx dma */
-	if (ah->ah_version != AR5K_AR5210) {
+	if (ah->ah_version != AR5K_AR5210)
+	{
 		ath5k_hw_reg_write(ah, 0xffffffff, AR5K_PISR);
 		qmax = AR5K_NUM_TX_QUEUES;
-	} else {
+	}
+	else
+	{
 		/* PISR/SISR Not available on 5210 */
 		ath5k_hw_reg_read(ah, AR5K_ISR);
 		qmax = AR5K_NUM_TX_QUEUES_NOQCU;
 	}
 
-	for (i = 0; i < qmax; i++) {
+	for (i = 0; i < qmax; i++)
+	{
 		err = ath5k_hw_stop_tx_dma(ah, i);
+
 		/* -EINVAL -> queue inactive */
 		if (err && err != -EINVAL)
+		{
 			return err;
+		}
 	}
 
 	return 0;

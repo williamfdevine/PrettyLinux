@@ -56,7 +56,7 @@
 
 #define SHIFT_AND_MASK_LE(__pdesc, __shift, __mask)		\
 	((le32_to_cpu(*(((__le32 *)(__pdesc)))) >> (__shift)) &	\
-	BIT_LEN_MASK_32(__mask))
+	 BIT_LEN_MASK_32(__mask))
 
 /* Define a macro that clears a bit field in an le32 word and
  * sets the specified value into that bit field. The resulting
@@ -67,9 +67,9 @@
 
 #define SET_BITS_OFFSET_LE(__pdesc, __shift, __len, __val)	\
 	(*(__le32 *)(__pdesc) =					\
-	(cpu_to_le32((le32_to_cpu(*((__le32 *)(__pdesc))) &	\
-	(~(BIT_OFFSET_LEN_MASK_32((__shift), __len)))) |	\
-	(((u32)(__val) & BIT_LEN_MASK_32(__len)) << (__shift)))));
+											(cpu_to_le32((le32_to_cpu(*((__le32 *)(__pdesc))) &	\
+													(~(BIT_OFFSET_LEN_MASK_32((__shift), __len)))) |	\
+													(((u32)(__val) & BIT_LEN_MASK_32(__len)) << (__shift)))));
 
 /* macros to read/write various fields in RX or TX descriptors */
 
@@ -454,18 +454,21 @@
 	 GET_RX_STATUS_DESC_RX_MCS(_pdesc) == DESC_RATE5_5M ||\
 	 GET_RX_STATUS_DESC_RX_MCS(_pdesc) == DESC_RATE11M)
 
-enum rf_optype {
+enum rf_optype
+{
 	RF_OP_BY_SW_3WIRE = 0,
 	RF_OP_BY_FW,
 	RF_OP_MAX
 };
 
-enum ic_inferiority {
+enum ic_inferiority
+{
 	IC_INFERIORITY_A = 0,
 	IC_INFERIORITY_B = 1,
 };
 
-enum fwcmd_iotype {
+enum fwcmd_iotype
+{
 	/* For DIG DM */
 	FW_CMD_DIG_ENABLE = 0,
 	FW_CMD_DIG_DISABLE = 1,
@@ -520,7 +523,8 @@ enum fwcmd_iotype {
  * and other variabel size info
  * PHY Status content as below
  */
-struct  rx_fwinfo {
+struct  rx_fwinfo
+{
 	/* DWORD 0 */
 	u8 gain_trsw[4];
 	/* DWORD 1 */
@@ -539,13 +543,14 @@ struct  rx_fwinfo {
 	/* DWORD 6 */
 	u8 sigevm;
 	u8 max_ex_pwr;
-	u8 ex_intf_flag:1;
-	u8 sgi_en:1;
-	u8 rxsc:2;
-	u8 reserve:4;
+	u8 ex_intf_flag: 1;
+	u8 sgi_en: 1;
+	u8 rxsc: 2;
+	u8 reserve: 4;
 };
 
-struct phy_sts_cck_8192s_t {
+struct phy_sts_cck_8192s_t
+{
 	u8 adc_pwdb_x[4];
 	u8 sq_rpt;
 	u8 cck_agc_rpt;

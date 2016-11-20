@@ -49,7 +49,7 @@
  * this function DONOT need to use explicit locks for invoking.
  */
 int dev_pm_opp_init_cpufreq_table(struct device *dev,
-				  struct cpufreq_frequency_table **table)
+								  struct cpufreq_frequency_table **table)
 {
 	struct dev_pm_opp *opp;
 	struct cpufreq_frequency_table *freq_table = NULL;
@@ -59,30 +59,40 @@ int dev_pm_opp_init_cpufreq_table(struct device *dev,
 	rcu_read_lock();
 
 	max_opps = dev_pm_opp_get_opp_count(dev);
-	if (max_opps <= 0) {
+
+	if (max_opps <= 0)
+	{
 		ret = max_opps ? max_opps : -ENODATA;
 		goto out;
 	}
 
 	freq_table = kcalloc((max_opps + 1), sizeof(*freq_table), GFP_ATOMIC);
-	if (!freq_table) {
+
+	if (!freq_table)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
-	for (i = 0, rate = 0; i < max_opps; i++, rate++) {
+	for (i = 0, rate = 0; i < max_opps; i++, rate++)
+	{
 		/* find next rate */
 		opp = dev_pm_opp_find_freq_ceil(dev, &rate);
-		if (IS_ERR(opp)) {
+
+		if (IS_ERR(opp))
+		{
 			ret = PTR_ERR(opp);
 			goto out;
 		}
+
 		freq_table[i].driver_data = i;
 		freq_table[i].frequency = rate / 1000;
 
 		/* Is Boost/turbo opp ? */
 		if (dev_pm_opp_is_turbo(opp))
+		{
 			freq_table[i].flags = CPUFREQ_BOOST_FREQ;
+		}
 	}
 
 	freq_table[i].driver_data = i;
@@ -92,8 +102,11 @@ int dev_pm_opp_init_cpufreq_table(struct device *dev,
 
 out:
 	rcu_read_unlock();
+
 	if (ret)
+	{
 		kfree(freq_table);
+	}
 
 	return ret;
 }
@@ -107,10 +120,12 @@ EXPORT_SYMBOL_GPL(dev_pm_opp_init_cpufreq_table);
  * Free up the table allocated by dev_pm_opp_init_cpufreq_table
  */
 void dev_pm_opp_free_cpufreq_table(struct device *dev,
-				   struct cpufreq_frequency_table **table)
+								   struct cpufreq_frequency_table **table)
 {
 	if (!table)
+	{
 		return;
+	}
 
 	kfree(*table);
 	*table = NULL;
@@ -125,18 +140,25 @@ void _dev_pm_opp_cpumask_remove_table(const struct cpumask *cpumask, bool of)
 
 	WARN_ON(cpumask_empty(cpumask));
 
-	for_each_cpu(cpu, cpumask) {
+	for_each_cpu(cpu, cpumask)
+	{
 		cpu_dev = get_cpu_device(cpu);
-		if (!cpu_dev) {
+
+		if (!cpu_dev)
+		{
 			pr_err("%s: failed to get cpu%d device\n", __func__,
-			       cpu);
+				   cpu);
 			continue;
 		}
 
 		if (of)
+		{
 			dev_pm_opp_of_remove_table(cpu_dev);
+		}
 		else
+		{
 			dev_pm_opp_remove_table(cpu_dev);
+		}
 	}
 }
 
@@ -177,7 +199,7 @@ EXPORT_SYMBOL_GPL(dev_pm_opp_cpumask_remove_table);
  * mutex cannot be locked.
  */
 int dev_pm_opp_set_sharing_cpus(struct device *cpu_dev,
-				const struct cpumask *cpumask)
+								const struct cpumask *cpumask)
 {
 	struct opp_device *opp_dev;
 	struct opp_table *opp_table;
@@ -187,26 +209,35 @@ int dev_pm_opp_set_sharing_cpus(struct device *cpu_dev,
 	mutex_lock(&opp_table_lock);
 
 	opp_table = _find_opp_table(cpu_dev);
-	if (IS_ERR(opp_table)) {
+
+	if (IS_ERR(opp_table))
+	{
 		ret = PTR_ERR(opp_table);
 		goto unlock;
 	}
 
-	for_each_cpu(cpu, cpumask) {
+	for_each_cpu(cpu, cpumask)
+	{
 		if (cpu == cpu_dev->id)
+		{
 			continue;
+		}
 
 		dev = get_cpu_device(cpu);
-		if (!dev) {
+
+		if (!dev)
+		{
 			dev_err(cpu_dev, "%s: failed to get cpu%d device\n",
-				__func__, cpu);
+					__func__, cpu);
 			continue;
 		}
 
 		opp_dev = _add_opp_dev(dev, opp_table);
-		if (!opp_dev) {
+
+		if (!opp_dev)
+		{
 			dev_err(dev, "%s: failed to add opp-dev for cpu%d device\n",
-				__func__, cpu);
+					__func__, cpu);
 			continue;
 		}
 
@@ -245,22 +276,28 @@ int dev_pm_opp_get_sharing_cpus(struct device *cpu_dev, struct cpumask *cpumask)
 	mutex_lock(&opp_table_lock);
 
 	opp_table = _find_opp_table(cpu_dev);
-	if (IS_ERR(opp_table)) {
+
+	if (IS_ERR(opp_table))
+	{
 		ret = PTR_ERR(opp_table);
 		goto unlock;
 	}
 
-	if (opp_table->shared_opp == OPP_TABLE_ACCESS_UNKNOWN) {
+	if (opp_table->shared_opp == OPP_TABLE_ACCESS_UNKNOWN)
+	{
 		ret = -EINVAL;
 		goto unlock;
 	}
 
 	cpumask_clear(cpumask);
 
-	if (opp_table->shared_opp == OPP_TABLE_ACCESS_SHARED) {
+	if (opp_table->shared_opp == OPP_TABLE_ACCESS_SHARED)
+	{
 		list_for_each_entry(opp_dev, &opp_table->dev_list, node)
-			cpumask_set_cpu(opp_dev->dev->id, cpumask);
-	} else {
+		cpumask_set_cpu(opp_dev->dev->id, cpumask);
+	}
+	else
+	{
 		cpumask_set_cpu(cpu_dev->id, cpumask);
 	}
 

@@ -15,7 +15,8 @@
 #include <linux/slab.h>
 
 
-enum {
+enum
+{
 	RP5C01_1_SECOND		= 0x0,	/* MODE 00 */
 	RP5C01_10_SECOND	= 0x1,	/* MODE 00 */
 	RP5C01_1_MINUTE		= 0x2,	/* MODE 00 and MODE 01 */
@@ -56,11 +57,12 @@ enum {
 #define RP5C01_RESET_1HZ_PULSE	(1 << 3)
 #define RP5C01_RESET_16HZ_PULSE	(1 << 2)
 #define RP5C01_RESET_SECOND	(1 << 1)	/* reset divider stages for */
-						/* seconds or smaller units */
+/* seconds or smaller units */
 #define RP5C01_RESET_ALARM	(1 << 0)	/* reset all alarm registers */
 
 
-struct rp5c01_priv {
+struct rp5c01_priv
+{
 	u32 __iomem *regs;
 	struct rtc_device *rtc;
 	spinlock_t lock;	/* against concurrent RTC/NVRAM access */
@@ -68,13 +70,13 @@ struct rp5c01_priv {
 };
 
 static inline unsigned int rp5c01_read(struct rp5c01_priv *priv,
-				       unsigned int reg)
+									   unsigned int reg)
 {
 	return __raw_readl(&priv->regs[reg]) & 0xf;
 }
 
 static inline void rp5c01_write(struct rp5c01_priv *priv, unsigned int val,
-				unsigned int reg)
+								unsigned int reg)
 {
 	__raw_writel(val, &priv->regs[reg]);
 }
@@ -87,7 +89,7 @@ static void rp5c01_lock(struct rp5c01_priv *priv)
 static void rp5c01_unlock(struct rp5c01_priv *priv)
 {
 	rp5c01_write(priv, RP5C01_MODE_TIMER_EN | RP5C01_MODE_MODE01,
-		     RP5C01_MODE);
+				 RP5C01_MODE);
 }
 
 static int rp5c01_read_time(struct device *dev, struct rtc_time *tm)
@@ -98,20 +100,23 @@ static int rp5c01_read_time(struct device *dev, struct rtc_time *tm)
 	rp5c01_lock(priv);
 
 	tm->tm_sec  = rp5c01_read(priv, RP5C01_10_SECOND) * 10 +
-		      rp5c01_read(priv, RP5C01_1_SECOND);
+				  rp5c01_read(priv, RP5C01_1_SECOND);
 	tm->tm_min  = rp5c01_read(priv, RP5C01_10_MINUTE) * 10 +
-		      rp5c01_read(priv, RP5C01_1_MINUTE);
+				  rp5c01_read(priv, RP5C01_1_MINUTE);
 	tm->tm_hour = rp5c01_read(priv, RP5C01_10_HOUR) * 10 +
-		      rp5c01_read(priv, RP5C01_1_HOUR);
+				  rp5c01_read(priv, RP5C01_1_HOUR);
 	tm->tm_mday = rp5c01_read(priv, RP5C01_10_DAY) * 10 +
-		      rp5c01_read(priv, RP5C01_1_DAY);
+				  rp5c01_read(priv, RP5C01_1_DAY);
 	tm->tm_wday = rp5c01_read(priv, RP5C01_DAY_OF_WEEK);
 	tm->tm_mon  = rp5c01_read(priv, RP5C01_10_MONTH) * 10 +
-		      rp5c01_read(priv, RP5C01_1_MONTH) - 1;
+				  rp5c01_read(priv, RP5C01_1_MONTH) - 1;
 	tm->tm_year = rp5c01_read(priv, RP5C01_10_YEAR) * 10 +
-		      rp5c01_read(priv, RP5C01_1_YEAR);
+				  rp5c01_read(priv, RP5C01_1_YEAR);
+
 	if (tm->tm_year <= 69)
+	{
 		tm->tm_year += 100;
+	}
 
 	rp5c01_unlock(priv);
 	spin_unlock_irq(&priv->lock);
@@ -134,12 +139,20 @@ static int rp5c01_set_time(struct device *dev, struct rtc_time *tm)
 	rp5c01_write(priv, tm->tm_hour % 10, RP5C01_1_HOUR);
 	rp5c01_write(priv, tm->tm_mday / 10, RP5C01_10_DAY);
 	rp5c01_write(priv, tm->tm_mday % 10, RP5C01_1_DAY);
+
 	if (tm->tm_wday != -1)
+	{
 		rp5c01_write(priv, tm->tm_wday, RP5C01_DAY_OF_WEEK);
+	}
+
 	rp5c01_write(priv, (tm->tm_mon + 1) / 10, RP5C01_10_MONTH);
 	rp5c01_write(priv, (tm->tm_mon + 1) % 10, RP5C01_1_MONTH);
+
 	if (tm->tm_year >= 100)
+	{
 		tm->tm_year -= 100;
+	}
+
 	rp5c01_write(priv, tm->tm_year / 10, RP5C01_10_YEAR);
 	rp5c01_write(priv, tm->tm_year % 10, RP5C01_1_YEAR);
 
@@ -148,7 +161,8 @@ static int rp5c01_set_time(struct device *dev, struct rtc_time *tm)
 	return 0;
 }
 
-static const struct rtc_class_ops rp5c01_rtc_ops = {
+static const struct rtc_class_ops rp5c01_rtc_ops =
+{
 	.read_time	= rp5c01_read_time,
 	.set_time	= rp5c01_set_time,
 };
@@ -161,8 +175,8 @@ static const struct rtc_class_ops rp5c01_rtc_ops = {
  */
 
 static ssize_t rp5c01_nvram_read(struct file *filp, struct kobject *kobj,
-				 struct bin_attribute *bin_attr,
-				 char *buf, loff_t pos, size_t size)
+								 struct bin_attribute *bin_attr,
+								 char *buf, loff_t pos, size_t size)
 {
 	struct device *dev = container_of(kobj, struct device, kobj);
 	struct rp5c01_priv *priv = dev_get_drvdata(dev);
@@ -170,19 +184,20 @@ static ssize_t rp5c01_nvram_read(struct file *filp, struct kobject *kobj,
 
 	spin_lock_irq(&priv->lock);
 
-	for (count = 0; count < size; count++) {
+	for (count = 0; count < size; count++)
+	{
 		u8 data;
 
 		rp5c01_write(priv,
-			     RP5C01_MODE_TIMER_EN | RP5C01_MODE_RAM_BLOCK10,
-			     RP5C01_MODE);
+					 RP5C01_MODE_TIMER_EN | RP5C01_MODE_RAM_BLOCK10,
+					 RP5C01_MODE);
 		data = rp5c01_read(priv, pos) << 4;
 		rp5c01_write(priv,
-			     RP5C01_MODE_TIMER_EN | RP5C01_MODE_RAM_BLOCK11,
-			     RP5C01_MODE);
+					 RP5C01_MODE_TIMER_EN | RP5C01_MODE_RAM_BLOCK11,
+					 RP5C01_MODE);
 		data |= rp5c01_read(priv, pos++);
 		rp5c01_write(priv, RP5C01_MODE_TIMER_EN | RP5C01_MODE_MODE01,
-			     RP5C01_MODE);
+					 RP5C01_MODE);
 		*buf++ = data;
 	}
 
@@ -191,8 +206,8 @@ static ssize_t rp5c01_nvram_read(struct file *filp, struct kobject *kobj,
 }
 
 static ssize_t rp5c01_nvram_write(struct file *filp, struct kobject *kobj,
-				  struct bin_attribute *bin_attr,
-				  char *buf, loff_t pos, size_t size)
+								  struct bin_attribute *bin_attr,
+								  char *buf, loff_t pos, size_t size)
 {
 	struct device *dev = container_of(kobj, struct device, kobj);
 	struct rp5c01_priv *priv = dev_get_drvdata(dev);
@@ -200,19 +215,20 @@ static ssize_t rp5c01_nvram_write(struct file *filp, struct kobject *kobj,
 
 	spin_lock_irq(&priv->lock);
 
-	for (count = 0; count < size; count++) {
+	for (count = 0; count < size; count++)
+	{
 		u8 data = *buf++;
 
 		rp5c01_write(priv,
-			     RP5C01_MODE_TIMER_EN | RP5C01_MODE_RAM_BLOCK10,
-			     RP5C01_MODE);
+					 RP5C01_MODE_TIMER_EN | RP5C01_MODE_RAM_BLOCK10,
+					 RP5C01_MODE);
 		rp5c01_write(priv, data >> 4, pos);
 		rp5c01_write(priv,
-			     RP5C01_MODE_TIMER_EN | RP5C01_MODE_RAM_BLOCK11,
-			     RP5C01_MODE);
+					 RP5C01_MODE_TIMER_EN | RP5C01_MODE_RAM_BLOCK11,
+					 RP5C01_MODE);
 		rp5c01_write(priv, data & 0xf, pos++);
 		rp5c01_write(priv, RP5C01_MODE_TIMER_EN | RP5C01_MODE_MODE01,
-			     RP5C01_MODE);
+					 RP5C01_MODE);
 	}
 
 	spin_unlock_irq(&priv->lock);
@@ -227,16 +243,25 @@ static int __init rp5c01_rtc_probe(struct platform_device *dev)
 	int error;
 
 	res = platform_get_resource(dev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		return -ENODEV;
+	}
 
 	priv = devm_kzalloc(&dev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	priv->regs = devm_ioremap(&dev->dev, res->start, resource_size(res));
+
 	if (!priv->regs)
+	{
 		return -ENOMEM;
+	}
 
 	sysfs_bin_attr_init(&priv->nvram_attr);
 	priv->nvram_attr.attr.name = "nvram";
@@ -250,14 +275,21 @@ static int __init rp5c01_rtc_probe(struct platform_device *dev)
 	platform_set_drvdata(dev, priv);
 
 	rtc = devm_rtc_device_register(&dev->dev, "rtc-rp5c01", &rp5c01_rtc_ops,
-				  THIS_MODULE);
+								   THIS_MODULE);
+
 	if (IS_ERR(rtc))
+	{
 		return PTR_ERR(rtc);
+	}
+
 	priv->rtc = rtc;
 
 	error = sysfs_create_bin_file(&dev->dev.kobj, &priv->nvram_attr);
+
 	if (error)
+	{
 		return error;
+	}
 
 	return 0;
 }
@@ -270,7 +302,8 @@ static int __exit rp5c01_rtc_remove(struct platform_device *dev)
 	return 0;
 }
 
-static struct platform_driver rp5c01_rtc_driver = {
+static struct platform_driver rp5c01_rtc_driver =
+{
 	.driver	= {
 		.name	= "rtc-rp5c01",
 	},

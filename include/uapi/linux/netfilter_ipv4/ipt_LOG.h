@@ -12,7 +12,8 @@
 #define IPT_LOG_MACDECODE	0x20	/* Decode MAC header */
 #define IPT_LOG_MASK		0x2f
 
-struct ipt_log_info {
+struct ipt_log_info
+{
 	unsigned char level;
 	unsigned char logflags;
 	char prefix[30];

@@ -63,28 +63,34 @@
  * and decompress it from disk.
  */
 struct squashfs_cache_entry *squashfs_cache_get(struct super_block *sb,
-	struct squashfs_cache *cache, u64 block, int length)
+		struct squashfs_cache *cache, u64 block, int length)
 {
 	int i, n;
 	struct squashfs_cache_entry *entry;
 
 	spin_lock(&cache->lock);
 
-	while (1) {
-		for (i = cache->curr_blk, n = 0; n < cache->entries; n++) {
-			if (cache->entry[i].block == block) {
+	while (1)
+	{
+		for (i = cache->curr_blk, n = 0; n < cache->entries; n++)
+		{
+			if (cache->entry[i].block == block)
+			{
 				cache->curr_blk = i;
 				break;
 			}
+
 			i = (i + 1) % cache->entries;
 		}
 
-		if (n == cache->entries) {
+		if (n == cache->entries)
+		{
 			/*
 			 * Block not in cache, if all cache entries are used
 			 * go to sleep waiting for one to become available.
 			 */
-			if (cache->unused == 0) {
+			if (cache->unused == 0)
+			{
 				cache->num_waiters++;
 				spin_unlock(&cache->lock);
 				wait_event(cache->wait_queue, cache->unused);
@@ -99,9 +105,14 @@ struct squashfs_cache_entry *squashfs_cache_get(struct super_block *sb,
 			 * be evicted from the cache.
 			 */
 			i = cache->next_blk;
-			for (n = 0; n < cache->entries; n++) {
+
+			for (n = 0; n < cache->entries; n++)
+			{
 				if (cache->entry[i].refcount == 0)
+				{
 					break;
+				}
+
 				i = (i + 1) % cache->entries;
 			}
 
@@ -121,12 +132,14 @@ struct squashfs_cache_entry *squashfs_cache_get(struct super_block *sb,
 			spin_unlock(&cache->lock);
 
 			entry->length = squashfs_read_data(sb, block, length,
-				&entry->next_index, entry->actor);
+											   &entry->next_index, entry->actor);
 
 			spin_lock(&cache->lock);
 
 			if (entry->length < 0)
+			{
 				entry->error = entry->length;
+			}
 
 			entry->pending = 0;
 
@@ -135,11 +148,15 @@ struct squashfs_cache_entry *squashfs_cache_get(struct super_block *sb,
 			 * have looked it up in the cache, and have slept
 			 * waiting for it to become available.
 			 */
-			if (entry->num_waiters) {
+			if (entry->num_waiters)
+			{
 				spin_unlock(&cache->lock);
 				wake_up_all(&entry->wait_queue);
-			} else
+			}
+			else
+			{
 				spin_unlock(&cache->lock);
+			}
 
 			goto out;
 		}
@@ -151,31 +168,40 @@ struct squashfs_cache_entry *squashfs_cache_get(struct super_block *sb,
 		 * for reuse.
 		 */
 		entry = &cache->entry[i];
+
 		if (entry->refcount == 0)
+		{
 			cache->unused--;
+		}
+
 		entry->refcount++;
 
 		/*
 		 * If the entry is currently being filled in by another process
 		 * go to sleep waiting for it to become available.
 		 */
-		if (entry->pending) {
+		if (entry->pending)
+		{
 			entry->num_waiters++;
 			spin_unlock(&cache->lock);
 			wait_event(entry->wait_queue, !entry->pending);
-		} else
+		}
+		else
+		{
 			spin_unlock(&cache->lock);
+		}
 
 		goto out;
 	}
 
 out:
 	TRACE("Got %s %d, start block %lld, refcount %d, error %d\n",
-		cache->name, i, entry->block, entry->refcount, entry->error);
+		  cache->name, i, entry->block, entry->refcount, entry->error);
 
 	if (entry->error)
 		ERROR("Unable to read %s cache entry [%llx]\n", cache->name,
-							block);
+			  block);
+
 	return entry;
 }
 
@@ -189,18 +215,23 @@ void squashfs_cache_put(struct squashfs_cache_entry *entry)
 
 	spin_lock(&cache->lock);
 	entry->refcount--;
-	if (entry->refcount == 0) {
+
+	if (entry->refcount == 0)
+	{
 		cache->unused++;
+
 		/*
 		 * If there's any processes waiting for a block to become
 		 * available, wake one up.
 		 */
-		if (cache->num_waiters) {
+		if (cache->num_waiters)
+		{
 			spin_unlock(&cache->lock);
 			wake_up(&cache->wait_queue);
 			return;
 		}
 	}
+
 	spin_unlock(&cache->lock);
 }
 
@@ -212,14 +243,22 @@ void squashfs_cache_delete(struct squashfs_cache *cache)
 	int i, j;
 
 	if (cache == NULL)
+	{
 		return;
+	}
 
-	for (i = 0; i < cache->entries; i++) {
-		if (cache->entry[i].data) {
+	for (i = 0; i < cache->entries; i++)
+	{
+		if (cache->entry[i].data)
+		{
 			for (j = 0; j < cache->pages; j++)
+			{
 				kfree(cache->entry[i].data[j]);
+			}
+
 			kfree(cache->entry[i].data);
 		}
+
 		kfree(cache->entry[i].actor);
 	}
 
@@ -234,18 +273,21 @@ void squashfs_cache_delete(struct squashfs_cache *cache)
  * is allocated as a sequence of kmalloced PAGE_SIZE buffers.
  */
 struct squashfs_cache *squashfs_cache_init(char *name, int entries,
-	int block_size)
+		int block_size)
 {
 	int i, j;
 	struct squashfs_cache *cache = kzalloc(sizeof(*cache), GFP_KERNEL);
 
-	if (cache == NULL) {
+	if (cache == NULL)
+	{
 		ERROR("Failed to allocate %s cache\n", name);
 		return NULL;
 	}
 
 	cache->entry = kcalloc(entries, sizeof(*(cache->entry)), GFP_KERNEL);
-	if (cache->entry == NULL) {
+
+	if (cache->entry == NULL)
+	{
 		ERROR("Failed to allocate %s cache\n", name);
 		goto cleanup;
 	}
@@ -262,29 +304,37 @@ struct squashfs_cache *squashfs_cache_init(char *name, int entries,
 	spin_lock_init(&cache->lock);
 	init_waitqueue_head(&cache->wait_queue);
 
-	for (i = 0; i < entries; i++) {
+	for (i = 0; i < entries; i++)
+	{
 		struct squashfs_cache_entry *entry = &cache->entry[i];
 
 		init_waitqueue_head(&cache->entry[i].wait_queue);
 		entry->cache = cache;
 		entry->block = SQUASHFS_INVALID_BLK;
 		entry->data = kcalloc(cache->pages, sizeof(void *), GFP_KERNEL);
-		if (entry->data == NULL) {
+
+		if (entry->data == NULL)
+		{
 			ERROR("Failed to allocate %s cache entry\n", name);
 			goto cleanup;
 		}
 
-		for (j = 0; j < cache->pages; j++) {
+		for (j = 0; j < cache->pages; j++)
+		{
 			entry->data[j] = kmalloc(PAGE_SIZE, GFP_KERNEL);
-			if (entry->data[j] == NULL) {
+
+			if (entry->data[j] == NULL)
+			{
 				ERROR("Failed to allocate %s buffer\n", name);
 				goto cleanup;
 			}
 		}
 
 		entry->actor = squashfs_page_actor_init(entry->data,
-						cache->pages, 0);
-		if (entry->actor == NULL) {
+												cache->pages, 0);
+
+		if (entry->actor == NULL)
+		{
 			ERROR("Failed to allocate %s cache entry\n", name);
 			goto cleanup;
 		}
@@ -304,22 +354,28 @@ cleanup:
  * bytes available.  In all cases return the number of bytes copied.
  */
 int squashfs_copy_data(void *buffer, struct squashfs_cache_entry *entry,
-		int offset, int length)
+					   int offset, int length)
 {
 	int remaining = length;
 
 	if (length == 0)
+	{
 		return 0;
+	}
 	else if (buffer == NULL)
+	{
 		return min(length, entry->length - offset);
+	}
 
-	while (offset < entry->length) {
+	while (offset < entry->length)
+	{
 		void *buff = entry->data[offset / PAGE_SIZE]
-				+ (offset % PAGE_SIZE);
+					 + (offset % PAGE_SIZE);
 		int bytes = min_t(int, entry->length - offset,
-				PAGE_SIZE - (offset % PAGE_SIZE));
+						  PAGE_SIZE - (offset % PAGE_SIZE));
 
-		if (bytes >= remaining) {
+		if (bytes >= remaining)
+		{
 			memcpy(buffer, buff, remaining);
 			remaining = 0;
 			break;
@@ -342,7 +398,7 @@ int squashfs_copy_data(void *buffer, struct squashfs_cache_entry *entry,
  * and length bytes may require reading more than one block.
  */
 int squashfs_read_metadata(struct super_block *sb, void *buffer,
-		u64 *block, int *offset, int length)
+						   u64 *block, int *offset, int length)
 {
 	struct squashfs_sb_info *msblk = sb->s_fs_info;
 	int bytes, res = length;
@@ -350,23 +406,33 @@ int squashfs_read_metadata(struct super_block *sb, void *buffer,
 
 	TRACE("Entered squashfs_read_metadata [%llx:%x]\n", *block, *offset);
 
-	while (length) {
+	while (length)
+	{
 		entry = squashfs_cache_get(sb, msblk->block_cache, *block, 0);
-		if (entry->error) {
+
+		if (entry->error)
+		{
 			res = entry->error;
 			goto error;
-		} else if (*offset >= entry->length) {
+		}
+		else if (*offset >= entry->length)
+		{
 			res = -EIO;
 			goto error;
 		}
 
 		bytes = squashfs_copy_data(buffer, entry, *offset, length);
+
 		if (buffer)
+		{
 			buffer += bytes;
+		}
+
 		length -= bytes;
 		*offset += bytes;
 
-		if (*offset == entry->length) {
+		if (*offset == entry->length)
+		{
 			*block = entry->next_index;
 			*offset = 0;
 		}
@@ -387,12 +453,12 @@ error:
  * filesystem.  If necessary read and decompress it from disk.
  */
 struct squashfs_cache_entry *squashfs_get_fragment(struct super_block *sb,
-				u64 start_block, int length)
+		u64 start_block, int length)
 {
 	struct squashfs_sb_info *msblk = sb->s_fs_info;
 
 	return squashfs_cache_get(sb, msblk->fragment_cache, start_block,
-		length);
+							  length);
 }
 
 
@@ -402,7 +468,7 @@ struct squashfs_cache_entry *squashfs_get_fragment(struct super_block *sb,
  * read/decompress code.
  */
 struct squashfs_cache_entry *squashfs_get_datablock(struct super_block *sb,
-				u64 start_block, int length)
+		u64 start_block, int length)
 {
 	struct squashfs_sb_info *msblk = sb->s_fs_info;
 
@@ -421,32 +487,43 @@ void *squashfs_read_table(struct super_block *sb, u64 block, int length)
 	struct squashfs_page_actor *actor;
 
 	table = buffer = kmalloc(length, GFP_KERNEL);
+
 	if (table == NULL)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	data = kcalloc(pages, sizeof(void *), GFP_KERNEL);
-	if (data == NULL) {
+
+	if (data == NULL)
+	{
 		res = -ENOMEM;
 		goto failed;
 	}
 
 	actor = squashfs_page_actor_init(data, pages, length);
-	if (actor == NULL) {
+
+	if (actor == NULL)
+	{
 		res = -ENOMEM;
 		goto failed2;
 	}
 
 	for (i = 0; i < pages; i++, buffer += PAGE_SIZE)
+	{
 		data[i] = buffer;
+	}
 
 	res = squashfs_read_data(sb, block, length |
-		SQUASHFS_COMPRESSED_BIT_BLOCK, NULL, actor);
+							 SQUASHFS_COMPRESSED_BIT_BLOCK, NULL, actor);
 
 	kfree(data);
 	kfree(actor);
 
 	if (res < 0)
+	{
 		goto failed;
+	}
 
 	return table;
 

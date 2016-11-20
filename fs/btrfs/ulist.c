@@ -63,7 +63,8 @@ static void ulist_fini(struct ulist *ulist)
 	struct ulist_node *node;
 	struct ulist_node *next;
 
-	list_for_each_entry_safe(node, next, &ulist->nodes, list) {
+	list_for_each_entry_safe(node, next, &ulist->nodes, list)
+	{
 		kfree(node);
 	}
 	ulist->root = RB_ROOT;
@@ -94,7 +95,9 @@ struct ulist *ulist_alloc(gfp_t gfp_mask)
 	struct ulist *ulist = kmalloc(sizeof(*ulist), gfp_mask);
 
 	if (!ulist)
+	{
 		return NULL;
+	}
 
 	ulist_init(ulist);
 
@@ -110,7 +113,10 @@ struct ulist *ulist_alloc(gfp_t gfp_mask)
 void ulist_free(struct ulist *ulist)
 {
 	if (!ulist)
+	{
 		return;
+	}
+
 	ulist_fini(ulist);
 	kfree(ulist);
 }
@@ -120,15 +126,24 @@ static struct ulist_node *ulist_rbtree_search(struct ulist *ulist, u64 val)
 	struct rb_node *n = ulist->root.rb_node;
 	struct ulist_node *u = NULL;
 
-	while (n) {
+	while (n)
+	{
 		u = rb_entry(n, struct ulist_node, rb_node);
+
 		if (u->val < val)
+		{
 			n = n->rb_right;
+		}
 		else if (u->val > val)
+		{
 			n = n->rb_left;
+		}
 		else
+		{
 			return u;
+		}
 	}
+
 	return NULL;
 }
 
@@ -147,17 +162,25 @@ static int ulist_rbtree_insert(struct ulist *ulist, struct ulist_node *ins)
 	struct rb_node *parent = NULL;
 	struct ulist_node *cur = NULL;
 
-	while (*p) {
+	while (*p)
+	{
 		parent = *p;
 		cur = rb_entry(parent, struct ulist_node, rb_node);
 
 		if (cur->val < ins->val)
+		{
 			p = &(*p)->rb_right;
+		}
 		else if (cur->val > ins->val)
+		{
 			p = &(*p)->rb_left;
+		}
 		else
+		{
 			return -EEXIST;
+		}
 	}
+
 	rb_link_node(&ins->rb_node, parent, p);
 	rb_insert_color(&ins->rb_node, &ulist->root);
 	return 0;
@@ -189,20 +212,29 @@ int ulist_add(struct ulist *ulist, u64 val, u64 aux, gfp_t gfp_mask)
 }
 
 int ulist_add_merge(struct ulist *ulist, u64 val, u64 aux,
-		    u64 *old_aux, gfp_t gfp_mask)
+					u64 *old_aux, gfp_t gfp_mask)
 {
 	int ret;
 	struct ulist_node *node;
 
 	node = ulist_rbtree_search(ulist, val);
-	if (node) {
+
+	if (node)
+	{
 		if (old_aux)
+		{
 			*old_aux = node->aux;
+		}
+
 		return 0;
 	}
+
 	node = kmalloc(sizeof(*node), gfp_mask);
+
 	if (!node)
+	{
 		return -ENOMEM;
+	}
 
 	node->val = val;
 	node->aux = aux;
@@ -230,12 +262,17 @@ int ulist_del(struct ulist *ulist, u64 val, u64 aux)
 	struct ulist_node *node;
 
 	node = ulist_rbtree_search(ulist, val);
+
 	/* Not found */
 	if (!node)
+	{
 		return 1;
+	}
 
 	if (node->aux != aux)
+	{
 		return 1;
+	}
 
 	/* Found and delete */
 	ulist_rbtree_erase(ulist, node);
@@ -263,14 +300,24 @@ struct ulist_node *ulist_next(struct ulist *ulist, struct ulist_iterator *uiter)
 	struct ulist_node *node;
 
 	if (list_empty(&ulist->nodes))
+	{
 		return NULL;
+	}
+
 	if (uiter->cur_list && uiter->cur_list->next == &ulist->nodes)
+	{
 		return NULL;
-	if (uiter->cur_list) {
+	}
+
+	if (uiter->cur_list)
+	{
 		uiter->cur_list = uiter->cur_list->next;
-	} else {
+	}
+	else
+	{
 		uiter->cur_list = ulist->nodes.next;
 	}
+
 	node = list_entry(uiter->cur_list, struct ulist_node, list);
 	return node;
 }

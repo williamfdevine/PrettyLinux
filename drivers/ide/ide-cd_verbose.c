@@ -15,27 +15,31 @@
 
 #ifndef CONFIG_BLK_DEV_IDECD_VERBOSE_ERRORS
 void ide_cd_log_error(const char *name, struct request *failed_command,
-		      struct request_sense *sense)
+					  struct request_sense *sense)
 {
 	/* Suppress printing unit attention and `in progress of becoming ready'
 	   errors when we're not being verbose. */
 	if (sense->sense_key == UNIT_ATTENTION ||
-	    (sense->sense_key == NOT_READY && (sense->asc == 4 ||
-						sense->asc == 0x3a)))
+		(sense->sense_key == NOT_READY && (sense->asc == 4 ||
+										   sense->asc == 0x3a)))
+	{
 		return;
+	}
 
 	printk(KERN_ERR "%s: error code: 0x%02x  sense_key: 0x%02x  "
-			"asc: 0x%02x  ascq: 0x%02x\n",
-			name, sense->error_code, sense->sense_key,
-			sense->asc, sense->ascq);
+		   "asc: 0x%02x  ascq: 0x%02x\n",
+		   name, sense->error_code, sense->sense_key,
+		   sense->asc, sense->ascq);
 }
 #else
 /* The generic packet command opcodes for CD/DVD Logical Units,
  * From Table 57 of the SFF8090 Ver. 3 (Mt. Fuji) draft standard. */
-static const struct {
+static const struct
+{
 	unsigned short packet_command;
-	const char * const text;
-} packet_command_texts[] = {
+	const char *const text;
+} packet_command_texts[] =
+{
 	{ GPCMD_TEST_UNIT_READY, "Test Unit Ready" },
 	{ GPCMD_REQUEST_SENSE, "Request Sense" },
 	{ GPCMD_FORMAT_UNIT, "Format Unit" },
@@ -57,8 +61,10 @@ static const struct {
 	{ GPCMD_GET_CONFIGURATION, "Get Configuration" },
 	{ GPCMD_PLAY_AUDIO_MSF, "Play Audio MSF" },
 	{ GPCMD_PLAYAUDIO_TI, "Play Audio TrackIndex" },
-	{ GPCMD_GET_EVENT_STATUS_NOTIFICATION,
-		"Get Event Status Notification" },
+	{
+		GPCMD_GET_EVENT_STATUS_NOTIFICATION,
+		"Get Event Status Notification"
+	},
 	{ GPCMD_PAUSE_RESUME, "Pause/Resume" },
 	{ GPCMD_STOP_PLAY_SCAN, "Stop Play/Scan" },
 	{ GPCMD_READ_DISC_INFO, "Read Disc Info" },
@@ -89,7 +95,8 @@ static const struct {
 };
 
 /* From Table 303 of the SFF8090 Ver. 3 (Mt. Fuji) draft standard. */
-static const char * const sense_key_texts[16] = {
+static const char *const sense_key_texts[16] =
+{
 	"No sense data",
 	"Recovered error",
 	"Not ready",
@@ -109,10 +116,12 @@ static const char * const sense_key_texts[16] = {
 };
 
 /* From Table 304 of the SFF8090 Ver. 3 (Mt. Fuji) draft standard. */
-static const struct {
+static const struct
+{
 	unsigned long asc_ascq;
-	const char * const text;
-} sense_data_texts[] = {
+	const char *const text;
+} sense_data_texts[] =
+{
 	{ 0x000000, "No additional sense information" },
 	{ 0x000011, "Play operation in progress" },
 	{ 0x000012, "Play operation paused" },
@@ -131,16 +140,22 @@ static const struct {
 	{ 0x011802, "Recovered data - the data was auto-reallocated" },
 	{ 0x011803, "Recovered data with CIRC" },
 	{ 0x011804, "Recovered data with L-EC" },
-	{ 0x015d00, "Failure prediction threshold exceeded"
-		    " - Predicted logical unit failure" },
-	{ 0x015d01, "Failure prediction threshold exceeded"
-		    " - Predicted media failure" },
+	{
+		0x015d00, "Failure prediction threshold exceeded"
+		" - Predicted logical unit failure"
+	},
+	{
+		0x015d01, "Failure prediction threshold exceeded"
+		" - Predicted media failure"
+	},
 	{ 0x015dff, "Failure prediction threshold exceeded - False" },
 	{ 0x017301, "Power calibration area almost full" },
 	{ 0x020400, "Logical unit not ready - cause not reportable" },
 	/* Following is misspelled in ATAPI 2.6, _and_ in Mt. Fuji */
-	{ 0x020401, "Logical unit not ready"
-		    " - in progress [sic] of becoming ready" },
+	{
+		0x020401, "Logical unit not ready"
+		" - in progress [sic] of becoming ready"
+	},
 	{ 0x020402, "Logical unit not ready - initializing command required" },
 	{ 0x020403, "Logical unit not ready - manual intervention required" },
 	{ 0x020404, "Logical unit not ready - format in progress" },
@@ -212,15 +227,21 @@ static const struct {
 	{ 0x055500, "System resource failure" },
 	{ 0x056300, "End of user area encountered on this track" },
 	{ 0x056400, "Illegal mode for this track or incompatible medium" },
-	{ 0x056f00, "Copy protection key exchange failure"
-		    " - Authentication failure" },
+	{
+		0x056f00, "Copy protection key exchange failure"
+		" - Authentication failure"
+	},
 	{ 0x056f01, "Copy protection key exchange failure - Key not present" },
-	{ 0x056f02, "Copy protection key exchange failure"
-		     " - Key not established" },
+	{
+		0x056f02, "Copy protection key exchange failure"
+		" - Key not established"
+	},
 	{ 0x056f03, "Read of scrambled sector without authentication" },
 	{ 0x056f04, "Media region code is mismatched to logical unit" },
-	{ 0x056f05, "Drive region must be permanent"
-		    " / region reset count error" },
+	{
+		0x056f05, "Drive region must be permanent"
+		" / region reset count error"
+	},
 	{ 0x057203, "Session fixation error - incomplete track in session" },
 	{ 0x057204, "Empty or partially written reserved track" },
 	{ 0x057205, "No more RZONE reservations are allowed" },
@@ -251,85 +272,129 @@ static const struct {
 };
 
 void ide_cd_log_error(const char *name, struct request *failed_command,
-		      struct request_sense *sense)
+					  struct request_sense *sense)
 {
 	int i;
 	const char *s = "bad sense key!";
 	char buf[80];
 
 	printk(KERN_ERR "ATAPI device %s:\n", name);
+
 	if (sense->error_code == 0x70)
+	{
 		printk(KERN_CONT "  Error: ");
+	}
 	else if (sense->error_code == 0x71)
+	{
 		printk("  Deferred Error: ");
+	}
 	else if (sense->error_code == 0x7f)
+	{
 		printk(KERN_CONT "  Vendor-specific Error: ");
+	}
 	else
+	{
 		printk(KERN_CONT "  Unknown Error Type: ");
+	}
 
 	if (sense->sense_key < ARRAY_SIZE(sense_key_texts))
+	{
 		s = sense_key_texts[sense->sense_key];
+	}
 
 	printk(KERN_CONT "%s -- (Sense key=0x%02x)\n", s, sense->sense_key);
 
-	if (sense->asc == 0x40) {
+	if (sense->asc == 0x40)
+	{
 		sprintf(buf, "Diagnostic failure on component 0x%02x",
-			sense->ascq);
+				sense->ascq);
 		s = buf;
-	} else {
+	}
+	else
+	{
 		int lo = 0, mid, hi = ARRAY_SIZE(sense_data_texts);
 		unsigned long key = (sense->sense_key << 16);
 
 		key |= (sense->asc << 8);
+
 		if (!(sense->ascq >= 0x80 && sense->ascq <= 0xdd))
+		{
 			key |= sense->ascq;
+		}
+
 		s = NULL;
 
-		while (hi > lo) {
+		while (hi > lo)
+		{
 			mid = (lo + hi) / 2;
+
 			if (sense_data_texts[mid].asc_ascq == key ||
-			    sense_data_texts[mid].asc_ascq == (0xff0000|key)) {
+				sense_data_texts[mid].asc_ascq == (0xff0000 | key))
+			{
 				s = sense_data_texts[mid].text;
 				break;
-			} else if (sense_data_texts[mid].asc_ascq > key)
+			}
+			else if (sense_data_texts[mid].asc_ascq > key)
+			{
 				hi = mid;
+			}
 			else
+			{
 				lo = mid + 1;
+			}
 		}
 	}
 
-	if (s == NULL) {
+	if (s == NULL)
+	{
 		if (sense->asc > 0x80)
+		{
 			s = "(vendor-specific error)";
+		}
 		else
+		{
 			s = "(reserved error code)";
+		}
 	}
 
 	printk(KERN_ERR "  %s -- (asc=0x%02x, ascq=0x%02x)\n",
-			s, sense->asc, sense->ascq);
+		   s, sense->asc, sense->ascq);
 
-	if (failed_command != NULL) {
+	if (failed_command != NULL)
+	{
 		int lo = 0, mid, hi = ARRAY_SIZE(packet_command_texts);
 		s = NULL;
 
-		while (hi > lo) {
+		while (hi > lo)
+		{
 			mid = (lo + hi) / 2;
+
 			if (packet_command_texts[mid].packet_command ==
-			    failed_command->cmd[0]) {
+				failed_command->cmd[0])
+			{
 				s = packet_command_texts[mid].text;
 				break;
 			}
+
 			if (packet_command_texts[mid].packet_command >
-			    failed_command->cmd[0])
+				failed_command->cmd[0])
+			{
 				hi = mid;
+			}
 			else
+			{
 				lo = mid + 1;
+			}
 		}
 
 		printk(KERN_ERR "  The failed \"%s\" packet command "
-				"was: \n  \"", s);
+			   "was: \n  \"", s);
+
 		for (i = 0; i < BLK_MAX_CDB; i++)
+		{
 			printk(KERN_CONT "%02x ", failed_command->cmd[i]);
+		}
+
 		printk(KERN_CONT "\"\n");
 	}
 
@@ -338,22 +403,26 @@ void ide_cd_log_error(const char *name, struct request *failed_command,
 	 * In the case of NOT_READY, if SKSV is set the drive can
 	 * give us nice ETA readings.
 	 */
-	if (sense->sense_key == NOT_READY && (sense->sks[0] & 0x80)) {
+	if (sense->sense_key == NOT_READY && (sense->sks[0] & 0x80))
+	{
 		int progress = (sense->sks[1] << 8 | sense->sks[2]) * 100;
 
 		printk(KERN_ERR "  Command is %02d%% complete\n",
-				progress / 0xffff);
+			   progress / 0xffff);
 	}
 
 	if (sense->sense_key == ILLEGAL_REQUEST &&
-	    (sense->sks[0] & 0x80) != 0) {
+		(sense->sks[0] & 0x80) != 0)
+	{
 		printk(KERN_ERR "  Error in %s byte %d",
-				(sense->sks[0] & 0x40) != 0 ?
-				"command packet" : "command data",
-				(sense->sks[1] << 8) + sense->sks[2]);
+			   (sense->sks[0] & 0x40) != 0 ?
+			   "command packet" : "command data",
+			   (sense->sks[1] << 8) + sense->sks[2]);
 
 		if ((sense->sks[0] & 0x40) != 0)
+		{
 			printk(KERN_CONT " bit %d", sense->sks[0] & 0x07);
+		}
 
 		printk(KERN_CONT "\n");
 	}

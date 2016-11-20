@@ -33,17 +33,17 @@
 #define FPS		30
 
 #ifdef GAMMA_ADJ
-#define GAMMA_LEN	15
-#define GAMMA_NUM	1
-#define DEFAULT_GAMMA	"36 29 12 22 1C 15 42 B7 2F 13 12 0A 11 0B 06\n"
+	#define GAMMA_LEN	15
+	#define GAMMA_NUM	1
+	#define DEFAULT_GAMMA	"36 29 12 22 1C 15 42 B7 2F 13 12 0A 11 0B 06\n"
 #endif
 
 /* ILI9163C commands */
 #define CMD_FRMCTR1	0xB1 /* Frame Rate Control */
-			     /*	(In normal mode/Full colors) */
+/*	(In normal mode/Full colors) */
 #define CMD_FRMCTR2	0xB2 /* Frame Rate Control (In Idle mode/8-colors) */
 #define CMD_FRMCTR3	0xB3 /* Frame Rate Control */
-			     /*	(In Partial mode/full colors) */
+/*	(In Partial mode/full colors) */
 #define CMD_DINVCTR	0xB4 /* Display Inversion Control */
 #define CMD_RGBBLK	0xB5 /* RGB Interface Blanking Porch setting */
 #define CMD_DFUNCTR	0xB6 /* Display Function set 5 */
@@ -77,9 +77,9 @@
  */
 
 #ifdef RED
-#define __OFFSET		32 /*see note 2 - this is the red version */
+	#define __OFFSET		32 /*see note 2 - this is the red version */
 #else
-#define __OFFSET		0  /*see note 2 - this is the black version */
+	#define __OFFSET		0  /*see note 2 - this is the black version */
 #endif
 
 static int init_display(struct fbtft_par *par)
@@ -87,7 +87,9 @@ static int init_display(struct fbtft_par *par)
 	par->fbtftops.reset(par);
 
 	if (par->gpio.cs != -1)
-		gpio_set_value(par->gpio.cs, 0);  /* Activate chip */
+	{
+		gpio_set_value(par->gpio.cs, 0);    /* Activate chip */
+	}
 
 	write_reg(par, MIPI_DCS_SOFT_RESET); /* software reset */
 	mdelay(500);
@@ -122,34 +124,39 @@ static int init_display(struct fbtft_par *par)
 }
 
 static void set_addr_win(struct fbtft_par *par, int xs, int ys,
-			 int xe, int ye)
+						 int xe, int ye)
 {
-	switch (par->info->var.rotate) {
-	case 0:
-		write_reg(par, MIPI_DCS_SET_COLUMN_ADDRESS,
-			  xs >> 8, xs & 0xff, xe >> 8, xe & 0xff);
-		write_reg(par, MIPI_DCS_SET_PAGE_ADDRESS,
-			  (ys + __OFFSET) >> 8, (ys + __OFFSET) & 0xff,
-			  (ye + __OFFSET) >> 8, (ye + __OFFSET) & 0xff);
-		break;
-	case 90:
-		write_reg(par, MIPI_DCS_SET_COLUMN_ADDRESS,
-			  (xs + __OFFSET) >> 8, (xs + __OFFSET) & 0xff,
-			  (xe + __OFFSET) >> 8, (xe + __OFFSET) & 0xff);
-		write_reg(par, MIPI_DCS_SET_PAGE_ADDRESS,
-			  ys >> 8, ys & 0xff, ye >> 8, ye & 0xff);
-		break;
-	case 180:
-	case 270:
-		write_reg(par, MIPI_DCS_SET_COLUMN_ADDRESS,
-			  xs >> 8, xs & 0xff, xe >> 8, xe & 0xff);
-		write_reg(par, MIPI_DCS_SET_PAGE_ADDRESS,
-			  ys >> 8, ys & 0xff, ye >> 8, ye & 0xff);
-		break;
-	default:
-		/* Fix incorrect setting */
-		par->info->var.rotate = 0;
+	switch (par->info->var.rotate)
+	{
+		case 0:
+			write_reg(par, MIPI_DCS_SET_COLUMN_ADDRESS,
+					  xs >> 8, xs & 0xff, xe >> 8, xe & 0xff);
+			write_reg(par, MIPI_DCS_SET_PAGE_ADDRESS,
+					  (ys + __OFFSET) >> 8, (ys + __OFFSET) & 0xff,
+					  (ye + __OFFSET) >> 8, (ye + __OFFSET) & 0xff);
+			break;
+
+		case 90:
+			write_reg(par, MIPI_DCS_SET_COLUMN_ADDRESS,
+					  (xs + __OFFSET) >> 8, (xs + __OFFSET) & 0xff,
+					  (xe + __OFFSET) >> 8, (xe + __OFFSET) & 0xff);
+			write_reg(par, MIPI_DCS_SET_PAGE_ADDRESS,
+					  ys >> 8, ys & 0xff, ye >> 8, ye & 0xff);
+			break;
+
+		case 180:
+		case 270:
+			write_reg(par, MIPI_DCS_SET_COLUMN_ADDRESS,
+					  xs >> 8, xs & 0xff, xe >> 8, xe & 0xff);
+			write_reg(par, MIPI_DCS_SET_PAGE_ADDRESS,
+					  ys >> 8, ys & 0xff, ye >> 8, ye & 0xff);
+			break;
+
+		default:
+			/* Fix incorrect setting */
+			par->info->var.rotate = 0;
 	}
+
 	write_reg(par, MIPI_DCS_WRITE_MEMORY_START);
 }
 
@@ -177,24 +184,31 @@ static int set_var(struct fbtft_par *par)
 {
 	u8 mactrl_data = 0; /* Avoid compiler warning */
 
-	switch (par->info->var.rotate) {
-	case 0:
-		mactrl_data = 0x08;
-		break;
-	case 180:
-		mactrl_data = 0xC8;
-		break;
-	case 270:
-		mactrl_data = 0xA8;
-		break;
-	case 90:
-		mactrl_data = 0x68;
-		break;
+	switch (par->info->var.rotate)
+	{
+		case 0:
+			mactrl_data = 0x08;
+			break;
+
+		case 180:
+			mactrl_data = 0xC8;
+			break;
+
+		case 270:
+			mactrl_data = 0xA8;
+			break;
+
+		case 90:
+			mactrl_data = 0x68;
+			break;
 	}
 
 	/* Colorspcae */
 	if (par->bgr)
+	{
 		mactrl_data |= (1 << 2);
+	}
+
 	write_reg(par, MIPI_DCS_SET_ADDRESS_MODE, mactrl_data);
 	write_reg(par, MIPI_DCS_WRITE_MEMORY_START);
 	return 0;
@@ -204,32 +218,36 @@ static int set_var(struct fbtft_par *par)
 #define CURVE(num, idx)  curves[num * par->gamma.num_values + idx]
 static int gamma_adj(struct fbtft_par *par, unsigned long *curves)
 {
-	unsigned long mask[] = {
+	unsigned long mask[] =
+	{
 		0x3F, 0x3F, 0x3F, 0x3F, 0x3F,
 		0x1f, 0x3f, 0x0f, 0x0f, 0x7f, 0x1f,
-		0x3F, 0x3F, 0x3F, 0x3F, 0x3F};
+		0x3F, 0x3F, 0x3F, 0x3F, 0x3F
+	};
 	int i, j;
 
 	for (i = 0; i < GAMMA_NUM; i++)
 		for (j = 0; j < GAMMA_LEN; j++)
+		{
 			CURVE(i, j) &= mask[i * par->gamma.num_values + j];
+		}
 
 	write_reg(par, CMD_PGAMMAC,
-		  CURVE(0, 0),
-		  CURVE(0, 1),
-		  CURVE(0, 2),
-		  CURVE(0, 3),
-		  CURVE(0, 4),
-		  CURVE(0, 5),
-		  CURVE(0, 6),
-		  (CURVE(0, 7) << 4) | CURVE(0, 8),
-		  CURVE(0, 9),
-		  CURVE(0, 10),
-		  CURVE(0, 11),
-		  CURVE(0, 12),
-		  CURVE(0, 13),
-		  CURVE(0, 14),
-		  CURVE(0, 15));
+			  CURVE(0, 0),
+			  CURVE(0, 1),
+			  CURVE(0, 2),
+			  CURVE(0, 3),
+			  CURVE(0, 4),
+			  CURVE(0, 5),
+			  CURVE(0, 6),
+			  (CURVE(0, 7) << 4) | CURVE(0, 8),
+			  CURVE(0, 9),
+			  CURVE(0, 10),
+			  CURVE(0, 11),
+			  CURVE(0, 12),
+			  CURVE(0, 13),
+			  CURVE(0, 14),
+			  CURVE(0, 15));
 
 	/* Write Data to GRAM mode */
 	write_reg(par, MIPI_DCS_WRITE_MEMORY_START);
@@ -240,7 +258,8 @@ static int gamma_adj(struct fbtft_par *par, unsigned long *curves)
 #undef CURVE
 #endif
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 8,
 	.width = WIDTH,
 	.height = HEIGHT,

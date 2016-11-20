@@ -24,7 +24,8 @@
  * I2C address
  * 0x60
  */
-struct si2157_config {
+struct si2157_config
+{
 	/*
 	 * frontend
 	 */

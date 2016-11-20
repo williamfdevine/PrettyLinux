@@ -17,7 +17,8 @@
 #define XT_CONNTRACK_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 3))
 
 /* flags, invflags: */
-enum {
+enum
+{
 	XT_CONNTRACK_STATE        = 1 << 0,
 	XT_CONNTRACK_PROTO        = 1 << 1,
 	XT_CONNTRACK_ORIGSRC      = 1 << 2,
@@ -34,7 +35,8 @@ enum {
 	XT_CONNTRACK_STATE_ALIAS  = 1 << 13,
 };
 
-struct xt_conntrack_mtinfo1 {
+struct xt_conntrack_mtinfo1
+{
 	union nf_inet_addr origsrc_addr, origsrc_mask;
 	union nf_inet_addr origdst_addr, origdst_mask;
 	union nf_inet_addr replsrc_addr, replsrc_mask;
@@ -47,7 +49,8 @@ struct xt_conntrack_mtinfo1 {
 	__u8 state_mask, status_mask;
 };
 
-struct xt_conntrack_mtinfo2 {
+struct xt_conntrack_mtinfo2
+{
 	union nf_inet_addr origsrc_addr, origsrc_mask;
 	union nf_inet_addr origdst_addr, origdst_mask;
 	union nf_inet_addr replsrc_addr, replsrc_mask;
@@ -60,7 +63,8 @@ struct xt_conntrack_mtinfo2 {
 	__u16 state_mask, status_mask;
 };
 
-struct xt_conntrack_mtinfo3 {
+struct xt_conntrack_mtinfo3
+{
 	union nf_inet_addr origsrc_addr, origsrc_mask;
 	union nf_inet_addr origdst_addr, origdst_mask;
 	union nf_inet_addr replsrc_addr, replsrc_mask;

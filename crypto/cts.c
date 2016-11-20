@@ -50,11 +50,13 @@
 #include <crypto/scatterwalk.h>
 #include <linux/slab.h>
 
-struct crypto_cts_ctx {
+struct crypto_cts_ctx
+{
 	struct crypto_skcipher *child;
 };
 
-struct crypto_cts_reqctx {
+struct crypto_cts_reqctx
+{
 	struct scatterlist sg[2];
 	unsigned offset;
 	struct skcipher_request subreq;
@@ -68,11 +70,11 @@ static inline u8 *crypto_cts_reqctx_space(struct skcipher_request *req)
 	struct crypto_skcipher *child = ctx->child;
 
 	return PTR_ALIGN((u8 *)(rctx + 1) + crypto_skcipher_reqsize(child),
-			 crypto_skcipher_alignmask(tfm) + 1);
+					 crypto_skcipher_alignmask(tfm) + 1);
 }
 
 static int crypto_cts_setkey(struct crypto_skcipher *parent, const u8 *key,
-			     unsigned int keylen)
+							 unsigned int keylen)
 {
 	struct crypto_cts_ctx *ctx = crypto_skcipher_ctx(parent);
 	struct crypto_skcipher *child = ctx->child;
@@ -80,10 +82,10 @@ static int crypto_cts_setkey(struct crypto_skcipher *parent, const u8 *key,
 
 	crypto_skcipher_clear_flags(child, CRYPTO_TFM_REQ_MASK);
 	crypto_skcipher_set_flags(child, crypto_skcipher_get_flags(parent) &
-					 CRYPTO_TFM_REQ_MASK);
+							  CRYPTO_TFM_REQ_MASK);
 	err = crypto_skcipher_setkey(child, key, keylen);
 	crypto_skcipher_set_flags(parent, crypto_skcipher_get_flags(child) &
-					  CRYPTO_TFM_RES_MASK);
+							  CRYPTO_TFM_RES_MASK);
 	return err;
 }
 
@@ -92,7 +94,9 @@ static void cts_cbc_crypt_done(struct crypto_async_request *areq, int err)
 	struct skcipher_request *req = areq->data;
 
 	if (err == -EINPROGRESS)
+	{
 		return;
+	}
 
 	skcipher_request_complete(req, err);
 }
@@ -121,8 +125,8 @@ static int cts_cbc_encrypt(struct skcipher_request *req)
 	memzero_explicit(d, sizeof(d));
 
 	skcipher_request_set_callback(subreq, req->base.flags &
-					      CRYPTO_TFM_REQ_MAY_BACKLOG,
-				      cts_cbc_crypt_done, req);
+								  CRYPTO_TFM_REQ_MAY_BACKLOG,
+								  cts_cbc_crypt_done, req);
 	skcipher_request_set_crypt(subreq, sg, sg, bsize, req->iv);
 	return crypto_skcipher_encrypt(subreq);
 }
@@ -132,12 +136,17 @@ static void crypto_cts_encrypt_done(struct crypto_async_request *areq, int err)
 	struct skcipher_request *req = areq->data;
 
 	if (err)
+	{
 		goto out;
+	}
 
 	err = cts_cbc_encrypt(req);
+
 	if (err == -EINPROGRESS ||
-	    (err == -EBUSY && req->base.flags & CRYPTO_TFM_REQ_MAY_BACKLOG))
+		(err == -EBUSY && req->base.flags & CRYPTO_TFM_REQ_MAY_BACKLOG))
+	{
 		return;
+	}
 
 out:
 	skcipher_request_complete(req, err);
@@ -156,12 +165,13 @@ static int crypto_cts_encrypt(struct skcipher_request *req)
 
 	skcipher_request_set_tfm(subreq, ctx->child);
 
-	if (cbc_blocks <= 0) {
+	if (cbc_blocks <= 0)
+	{
 		skcipher_request_set_callback(subreq, req->base.flags,
-					      req->base.complete,
-					      req->base.data);
+									  req->base.complete,
+									  req->base.data);
 		skcipher_request_set_crypt(subreq, req->src, req->dst, nbytes,
-					   req->iv);
+								   req->iv);
 		return crypto_skcipher_encrypt(subreq);
 	}
 
@@ -169,12 +179,12 @@ static int crypto_cts_encrypt(struct skcipher_request *req)
 	rctx->offset = offset;
 
 	skcipher_request_set_callback(subreq, req->base.flags,
-				      crypto_cts_encrypt_done, req);
+								  crypto_cts_encrypt_done, req);
 	skcipher_request_set_crypt(subreq, req->src, req->dst,
-				   offset, req->iv);
+							   offset, req->iv);
 
-	return crypto_skcipher_encrypt(subreq) ?:
-	       cts_cbc_encrypt(req);
+	return crypto_skcipher_encrypt(subreq) ? :
+		   cts_cbc_encrypt(req);
 }
 
 static int cts_cbc_decrypt(struct skcipher_request *req)
@@ -213,8 +223,8 @@ static int cts_cbc_decrypt(struct skcipher_request *req)
 	memzero_explicit(d, sizeof(d));
 
 	skcipher_request_set_callback(subreq, req->base.flags &
-					      CRYPTO_TFM_REQ_MAY_BACKLOG,
-				      cts_cbc_crypt_done, req);
+								  CRYPTO_TFM_REQ_MAY_BACKLOG,
+								  cts_cbc_crypt_done, req);
 
 	skcipher_request_set_crypt(subreq, sg, sg, bsize, space);
 	return crypto_skcipher_decrypt(subreq);
@@ -225,12 +235,17 @@ static void crypto_cts_decrypt_done(struct crypto_async_request *areq, int err)
 	struct skcipher_request *req = areq->data;
 
 	if (err)
+	{
 		goto out;
+	}
 
 	err = cts_cbc_decrypt(req);
+
 	if (err == -EINPROGRESS ||
-	    (err == -EBUSY && req->base.flags & CRYPTO_TFM_REQ_MAY_BACKLOG))
+		(err == -EBUSY && req->base.flags & CRYPTO_TFM_REQ_MAY_BACKLOG))
+	{
 		return;
+	}
 
 out:
 	skcipher_request_complete(req, err);
@@ -250,17 +265,18 @@ static int crypto_cts_decrypt(struct skcipher_request *req)
 
 	skcipher_request_set_tfm(subreq, ctx->child);
 
-	if (cbc_blocks <= 0) {
+	if (cbc_blocks <= 0)
+	{
 		skcipher_request_set_callback(subreq, req->base.flags,
-					      req->base.complete,
-					      req->base.data);
+									  req->base.complete,
+									  req->base.data);
 		skcipher_request_set_crypt(subreq, req->src, req->dst, nbytes,
-					   req->iv);
+								   req->iv);
 		return crypto_skcipher_decrypt(subreq);
 	}
 
 	skcipher_request_set_callback(subreq, req->base.flags,
-				      crypto_cts_decrypt_done, req);
+								  crypto_cts_decrypt_done, req);
 
 	space = crypto_cts_reqctx_space(req);
 
@@ -268,16 +284,18 @@ static int crypto_cts_decrypt(struct skcipher_request *req)
 	rctx->offset = offset;
 
 	if (cbc_blocks <= 1)
+	{
 		memcpy(space, req->iv, bsize);
+	}
 	else
 		scatterwalk_map_and_copy(space, req->src, offset - 2 * bsize,
-					 bsize, 0);
+								 bsize, 0);
 
 	skcipher_request_set_crypt(subreq, req->src, req->dst,
-				   offset, req->iv);
+							   offset, req->iv);
 
-	return crypto_skcipher_decrypt(subreq) ?:
-	       cts_cbc_decrypt(req);
+	return crypto_skcipher_decrypt(subreq) ? :
+		   cts_cbc_decrypt(req);
 }
 
 static int crypto_cts_init_tfm(struct crypto_skcipher *tfm)
@@ -291,17 +309,20 @@ static int crypto_cts_init_tfm(struct crypto_skcipher *tfm)
 	unsigned align;
 
 	cipher = crypto_spawn_skcipher2(spawn);
+
 	if (IS_ERR(cipher))
+	{
 		return PTR_ERR(cipher);
+	}
 
 	ctx->child = cipher;
 
 	align = crypto_skcipher_alignmask(tfm);
 	bsize = crypto_skcipher_blocksize(cipher);
 	reqsize = ALIGN(sizeof(struct crypto_cts_reqctx) +
-			crypto_skcipher_reqsize(cipher),
-			crypto_tfm_ctx_alignment()) +
-		  (align & ~(crypto_tfm_ctx_alignment() - 1)) + bsize;
+					crypto_skcipher_reqsize(cipher),
+					crypto_tfm_ctx_alignment()) +
+			  (align & ~(crypto_tfm_ctx_alignment() - 1)) + bsize;
 
 	crypto_skcipher_set_reqsize(tfm, reqsize);
 
@@ -331,42 +352,64 @@ static int crypto_cts_create(struct crypto_template *tmpl, struct rtattr **tb)
 	int err;
 
 	algt = crypto_get_attr_type(tb);
+
 	if (IS_ERR(algt))
+	{
 		return PTR_ERR(algt);
+	}
 
 	if ((algt->type ^ CRYPTO_ALG_TYPE_SKCIPHER) & algt->mask)
+	{
 		return -EINVAL;
+	}
 
 	cipher_name = crypto_attr_alg_name(tb[1]);
+
 	if (IS_ERR(cipher_name))
+	{
 		return PTR_ERR(cipher_name);
+	}
 
 	inst = kzalloc(sizeof(*inst) + sizeof(*spawn), GFP_KERNEL);
+
 	if (!inst)
+	{
 		return -ENOMEM;
+	}
 
 	spawn = skcipher_instance_ctx(inst);
 
 	crypto_set_skcipher_spawn(spawn, skcipher_crypto_instance(inst));
 	err = crypto_grab_skcipher2(spawn, cipher_name, 0,
-				    crypto_requires_sync(algt->type,
-							 algt->mask));
+								crypto_requires_sync(algt->type,
+										algt->mask));
+
 	if (err)
+	{
 		goto err_free_inst;
+	}
 
 	alg = crypto_spawn_skcipher_alg(spawn);
 
 	err = -EINVAL;
+
 	if (crypto_skcipher_alg_ivsize(alg) != alg->base.cra_blocksize)
+	{
 		goto err_drop_spawn;
+	}
 
 	if (strncmp(alg->base.cra_name, "cbc(", 4))
+	{
 		goto err_drop_spawn;
+	}
 
 	err = crypto_inst_setname(skcipher_crypto_instance(inst), "cts",
-				  &alg->base);
+							  &alg->base);
+
 	if (err)
+	{
 		goto err_drop_spawn;
+	}
 
 	inst->alg.base.cra_flags = alg->base.cra_flags & CRYPTO_ALG_ASYNC;
 	inst->alg.base.cra_priority = alg->base.cra_priority;
@@ -393,8 +436,11 @@ static int crypto_cts_create(struct crypto_template *tmpl, struct rtattr **tb)
 	inst->free = crypto_cts_free;
 
 	err = skcipher_register_instance(tmpl, inst);
+
 	if (err)
+	{
 		goto err_drop_spawn;
+	}
 
 out:
 	return err;
@@ -406,7 +452,8 @@ err_free_inst:
 	goto out;
 }
 
-static struct crypto_template crypto_cts_tmpl = {
+static struct crypto_template crypto_cts_tmpl =
+{
 	.name = "cts",
 	.create = crypto_cts_create,
 	.module = THIS_MODULE,

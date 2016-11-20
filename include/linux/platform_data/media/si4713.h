@@ -22,14 +22,16 @@
 /*
  * Platform dependent definition
  */
-struct si4713_platform_data {
+struct si4713_platform_data
+{
 	bool is_platform_device;
 };
 
 /*
  * Structure to query for Received Noise Level (RNL).
  */
-struct si4713_rnl {
+struct si4713_rnl
+{
 	__u32 index;		/* modulator index */
 	__u32 frequency;	/* frequency to peform rnl measurement */
 	__s32 rnl;		/* result of measurement in dBuV */
@@ -43,6 +45,6 @@ struct si4713_rnl {
  * Driver must return measured value in the same struture, filling 'rnl' field.
  */
 #define SI4713_IOC_MEASURE_RNL	_IOWR('V', BASE_VIDIOC_PRIVATE + 0, \
-						struct si4713_rnl)
+									  struct si4713_rnl)
 
 #endif /* ifndef SI4713_H*/

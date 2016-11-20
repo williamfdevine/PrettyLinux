@@ -74,9 +74,12 @@ int capi_conn_req(const char *calledPN, struct sk_buff **skb, int proto)
 	len = 18 + strlen(calledPN);
 
 	if (proto == ISDN_PROTO_L2_TRANS)
+	{
 		len++;
+	}
 
-	if ((*skb = dev_alloc_skb(len)) == NULL) {
+	if ((*skb = dev_alloc_skb(len)) == NULL)
+	{
 
 		printk(KERN_WARNING "capi_conn_req: alloc_skb failed\n");
 		return -1;
@@ -92,7 +95,9 @@ int capi_conn_req(const char *calledPN, struct sk_buff **skb, int proto)
 		*(skb_put(*skb, 1)) = 0x80;     /* Speech		*/
 		*(skb_put(*skb, 1)) = 0x10;     /* Circuit Mode		*/
 		*(skb_put(*skb, 1)) = 0x23;     /* A-law		*/
-	} else {
+	}
+	else
+	{
 		/* Bearer Capability - Mandatory*/
 		*(skb_put(*skb, 1)) = 2;        /* BC0.Length		*/
 		*(skb_put(*skb, 1)) = 0x88;     /* Digital Information	*/
@@ -132,7 +137,8 @@ int capi_conn_req(const char *calledPN, struct sk_buff **skb, int proto)
 int capi_conn_resp(struct pcbit_chan *chan, struct sk_buff **skb)
 {
 
-	if ((*skb = dev_alloc_skb(5)) == NULL) {
+	if ((*skb = dev_alloc_skb(5)) == NULL)
+	{
 
 		printk(KERN_WARNING "capi_conn_resp: alloc_skb failed\n");
 		return -1;
@@ -152,7 +158,8 @@ int capi_conn_active_req(struct pcbit_chan *chan, struct sk_buff **skb)
 	 * 8 bytes
 	 */
 
-	if ((*skb = dev_alloc_skb(8)) == NULL) {
+	if ((*skb = dev_alloc_skb(8)) == NULL)
+	{
 
 		printk(KERN_WARNING "capi_conn_active_req: alloc_skb failed\n");
 		return -1;
@@ -180,7 +187,8 @@ int capi_conn_active_resp(struct pcbit_chan *chan, struct sk_buff **skb)
 	 * 2 bytes
 	 */
 
-	if ((*skb = dev_alloc_skb(2)) == NULL) {
+	if ((*skb = dev_alloc_skb(2)) == NULL)
+	{
 
 		printk(KERN_WARNING "capi_conn_active_resp: alloc_skb failed\n");
 		return -1;
@@ -193,14 +201,15 @@ int capi_conn_active_resp(struct pcbit_chan *chan, struct sk_buff **skb)
 
 
 int capi_select_proto_req(struct pcbit_chan *chan, struct sk_buff **skb,
-			  int outgoing)
+						  int outgoing)
 {
 
 	/*
 	 * 18 bytes
 	 */
 
-	if ((*skb = dev_alloc_skb(18)) == NULL) {
+	if ((*skb = dev_alloc_skb(18)) == NULL)
+	{
 
 		printk(KERN_WARNING "capi_select_proto_req: alloc_skb failed\n");
 		return -1;
@@ -210,25 +219,29 @@ int capi_select_proto_req(struct pcbit_chan *chan, struct sk_buff **skb,
 
 	/* Layer2 protocol */
 
-	switch (chan->proto) {
-	case ISDN_PROTO_L2_X75I:
-		*(skb_put(*skb, 1)) = 0x05;            /* LAPB */
-		break;
-	case ISDN_PROTO_L2_HDLC:
-		*(skb_put(*skb, 1)) = 0x02;
-		break;
-	case ISDN_PROTO_L2_TRANS:
-		/*
-		 *	Voice (a-law)
-		 */
-		*(skb_put(*skb, 1)) = 0x06;
-		break;
-	default:
+	switch (chan->proto)
+	{
+		case ISDN_PROTO_L2_X75I:
+			*(skb_put(*skb, 1)) = 0x05;            /* LAPB */
+			break;
+
+		case ISDN_PROTO_L2_HDLC:
+			*(skb_put(*skb, 1)) = 0x02;
+			break;
+
+		case ISDN_PROTO_L2_TRANS:
+			/*
+			 *	Voice (a-law)
+			 */
+			*(skb_put(*skb, 1)) = 0x06;
+			break;
+
+		default:
 #ifdef DEBUG
-		printk(KERN_DEBUG "Transparent\n");
+			printk(KERN_DEBUG "Transparent\n");
 #endif
-		*(skb_put(*skb, 1)) = 0x03;
-		break;
+			*(skb_put(*skb, 1)) = 0x03;
+			break;
 	}
 
 	*(skb_put(*skb, 1)) = (outgoing ? 0x02 : 0x42);    /* Don't ask */
@@ -261,7 +274,8 @@ int capi_select_proto_req(struct pcbit_chan *chan, struct sk_buff **skb,
 int capi_activate_transp_req(struct pcbit_chan *chan, struct sk_buff **skb)
 {
 
-	if ((*skb = dev_alloc_skb(7)) == NULL) {
+	if ((*skb = dev_alloc_skb(7)) == NULL)
+	{
 
 		printk(KERN_WARNING "capi_activate_transp_req: alloc_skb failed\n");
 		return -1;
@@ -319,7 +333,8 @@ int capi_tdata_req(struct pcbit_chan *chan, struct sk_buff *skb)
 int capi_tdata_resp(struct pcbit_chan *chan, struct sk_buff **skb)
 
 {
-	if ((*skb = dev_alloc_skb(4)) == NULL) {
+	if ((*skb = dev_alloc_skb(4)) == NULL)
+	{
 
 		printk(KERN_WARNING "capi_tdata_resp: alloc_skb failed\n");
 		return -1;
@@ -336,7 +351,8 @@ int capi_tdata_resp(struct pcbit_chan *chan, struct sk_buff **skb)
 int capi_disc_req(ushort callref, struct sk_buff **skb, u_char cause)
 {
 
-	if ((*skb = dev_alloc_skb(6)) == NULL) {
+	if ((*skb = dev_alloc_skb(6)) == NULL)
+	{
 
 		printk(KERN_WARNING "capi_disc_req: alloc_skb failed\n");
 		return -1;
@@ -359,7 +375,8 @@ int capi_disc_req(ushort callref, struct sk_buff **skb, u_char cause)
 
 int capi_disc_resp(struct pcbit_chan *chan, struct sk_buff **skb)
 {
-	if ((*skb = dev_alloc_skb(2)) == NULL) {
+	if ((*skb = dev_alloc_skb(2)) == NULL)
+	{
 
 		printk(KERN_WARNING "capi_disc_resp: alloc_skb failed\n");
 		return -1;
@@ -377,8 +394,8 @@ int capi_disc_resp(struct pcbit_chan *chan, struct sk_buff **skb)
  */
 
 int capi_decode_conn_ind(struct pcbit_chan *chan,
-			 struct sk_buff *skb,
-			 struct callb_data *info)
+						 struct sk_buff *skb,
+						 struct callb_data *info)
 {
 	int CIlen, len;
 
@@ -399,14 +416,22 @@ int capi_decode_conn_ind(struct pcbit_chan *chan,
 
 	CIlen = skb->data[0];
 #ifdef DEBUG
-	if (CIlen == 1) {
+
+	if (CIlen == 1)
+	{
 
 		if (((skb->data[1]) & 0xFC) == 0x48)
+		{
 			printk(KERN_DEBUG "decode_conn_ind: chan ok\n");
+		}
+
 		printk(KERN_DEBUG "phyChan = %d\n", skb->data[1] & 0x03);
 	}
 	else
+	{
 		printk(KERN_DEBUG "conn_ind: CIlen = %d\n", CIlen);
+	}
+
 #endif
 	skb_pull(skb, CIlen + 1);
 
@@ -415,25 +440,32 @@ int capi_decode_conn_ind(struct pcbit_chan *chan,
 
 	len = skb->data[0];
 
-	if (len > 0) {
+	if (len > 0)
+	{
 		int count = 1;
 
 #ifdef DEBUG
 		printk(KERN_DEBUG "CPN: Octect 3 %02x\n", skb->data[1]);
 #endif
+
 		if ((skb->data[1] & 0x80) == 0)
+		{
 			count = 2;
+		}
 
 		if (!(info->data.setup.CallingPN = kmalloc(len - count + 1, GFP_ATOMIC)))
+		{
 			return -1;
+		}
 
 		skb_copy_from_linear_data_offset(skb, count + 1,
-						 info->data.setup.CallingPN,
-						 len - count);
+										 info->data.setup.CallingPN,
+										 len - count);
 		info->data.setup.CallingPN[len - count] = 0;
 
 	}
-	else {
+	else
+	{
 		info->data.setup.CallingPN = NULL;
 		printk(KERN_DEBUG "NULL CallingPN\n");
 	}
@@ -447,22 +479,28 @@ int capi_decode_conn_ind(struct pcbit_chan *chan,
 
 	len = skb->data[0];
 
-	if (len > 0) {
+	if (len > 0)
+	{
 		int count = 1;
 
 		if ((skb->data[1] & 0x80) == 0)
+		{
 			count = 2;
+		}
 
 		if (!(info->data.setup.CalledPN = kmalloc(len - count + 1, GFP_ATOMIC)))
+		{
 			return -1;
+		}
 
 		skb_copy_from_linear_data_offset(skb, count + 1,
-						 info->data.setup.CalledPN,
-						 len - count);
+										 info->data.setup.CalledPN,
+										 len - count);
 		info->data.setup.CalledPN[len - count] = 0;
 
 	}
-	else {
+	else
+	{
 		info->data.setup.CalledPN = NULL;
 		printk(KERN_DEBUG "NULL CalledPN\n");
 	}
@@ -489,7 +527,7 @@ int capi_decode_conn_ind(struct pcbit_chan *chan,
  */
 
 int capi_decode_conn_conf(struct pcbit_chan *chan, struct sk_buff *skb,
-			  int *complete)
+						  int *complete)
 {
 	int errcode;
 
@@ -538,13 +576,18 @@ int capi_decode_conn_actv_ind(struct pcbit_chan *chan, struct sk_buff *skb)
 	len = *(skb->data);
 
 #ifdef DEBUG
-	if (len > 1 && len < 31) {
+
+	if (len > 1 && len < 31)
+	{
 		skb_copy_from_linear_data_offset(skb, 2, str, len - 1);
 		str[len] = 0;
 		printk(KERN_DEBUG "Connected Party Number: %s\n", str);
 	}
 	else
+	{
 		printk(KERN_DEBUG "actv_ind CPN len = %d\n", len);
+	}
+
 #endif
 
 	skb_pull(skb, len + 1);
@@ -593,7 +636,9 @@ int capi_decode_actv_trans_conf(struct pcbit_chan *chan, struct sk_buff *skb)
 	ushort errcode;
 
 	if (chan->layer2link != *(skb->data))
+	{
 		printk("capi_decode_actv_trans_conf: layer2link doesn't match\n");
+	}
 
 	skb_pull(skb, 1);
 
@@ -618,7 +663,8 @@ int capi_decode_disc_ind(struct pcbit_chan *chan, struct sk_buff *skb)
 
 	for (i = 0; i < len; i++)
 		printk(KERN_DEBUG "Cause Octect %d: %02x\n", i + 3,
-		       *(skb->data + i));
+			   *(skb->data + i));
+
 #endif
 
 	skb_pull(skb, len);
@@ -634,13 +680,16 @@ int capi_decode_debug_188(u_char *hdr, ushort hdrlen)
 
 	len = hdr[0];
 
-	if (len < 64 && len == hdrlen - 1) {
+	if (len < 64 && len == hdrlen - 1)
+	{
 		memcpy(str, hdr + 1, hdrlen - 1);
 		str[hdrlen - 1] = 0;
 		printk("%s\n", str);
 	}
 	else
+	{
 		printk("debug message incorrect\n");
+	}
 
 	return 0;
 }

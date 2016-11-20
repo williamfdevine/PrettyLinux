@@ -38,7 +38,8 @@
  * @mstpsr: module stop status register (optional)
  * @lock: protects writes to SMSTPCR
  */
-struct mstp_clock_group {
+struct mstp_clock_group
+{
 	struct clk_onecell_data data;
 	void __iomem *smstpcr;
 	void __iomem *mstpsr;
@@ -51,7 +52,8 @@ struct mstp_clock_group {
  * @bit_index: control bit index
  * @group: MSTP clocks group
  */
-struct mstp_clock {
+struct mstp_clock
+{
 	struct clk_hw hw;
 	u32 bit_index;
 	struct mstp_clock_group *group;
@@ -71,26 +73,39 @@ static int cpg_mstp_clock_endisable(struct clk_hw *hw, bool enable)
 	spin_lock_irqsave(&group->lock, flags);
 
 	value = clk_readl(group->smstpcr);
+
 	if (enable)
+	{
 		value &= ~bitmask;
+	}
 	else
+	{
 		value |= bitmask;
+	}
+
 	clk_writel(value, group->smstpcr);
 
 	spin_unlock_irqrestore(&group->lock, flags);
 
 	if (!enable || !group->mstpsr)
+	{
 		return 0;
+	}
 
-	for (i = 1000; i > 0; --i) {
+	for (i = 1000; i > 0; --i)
+	{
 		if (!(clk_readl(group->mstpsr) & bitmask))
+		{
 			break;
+		}
+
 		cpu_relax();
 	}
 
-	if (!i) {
+	if (!i)
+	{
 		pr_err("%s: failed to enable %p[%d]\n", __func__,
-		       group->smstpcr, clock->bit_index);
+			   group->smstpcr, clock->bit_index);
 		return -ETIMEDOUT;
 	}
 
@@ -114,29 +129,36 @@ static int cpg_mstp_clock_is_enabled(struct clk_hw *hw)
 	u32 value;
 
 	if (group->mstpsr)
+	{
 		value = clk_readl(group->mstpsr);
+	}
 	else
+	{
 		value = clk_readl(group->smstpcr);
+	}
 
 	return !(value & BIT(clock->bit_index));
 }
 
-static const struct clk_ops cpg_mstp_clock_ops = {
+static const struct clk_ops cpg_mstp_clock_ops =
+{
 	.enable = cpg_mstp_clock_enable,
 	.disable = cpg_mstp_clock_disable,
 	.is_enabled = cpg_mstp_clock_is_enabled,
 };
 
-static struct clk * __init
+static struct clk *__init
 cpg_mstp_clock_register(const char *name, const char *parent_name,
-			unsigned int index, struct mstp_clock_group *group)
+						unsigned int index, struct mstp_clock_group *group)
 {
 	struct clk_init_data init;
 	struct mstp_clock *clock;
 	struct clk *clk;
 
 	clock = kzalloc(sizeof(*clock), GFP_KERNEL);
-	if (!clock) {
+
+	if (!clock)
+	{
 		pr_err("%s: failed to allocate MSTP clock.\n", __func__);
 		return ERR_PTR(-ENOMEM);
 	}
@@ -154,7 +176,9 @@ cpg_mstp_clock_register(const char *name, const char *parent_name,
 	clk = clk_register(NULL, &clock->hw);
 
 	if (IS_ERR(clk))
+	{
 		kfree(clock);
+	}
 
 	return clk;
 }
@@ -168,7 +192,9 @@ static void __init cpg_mstp_clocks_init(struct device_node *np)
 
 	group = kzalloc(sizeof(*group), GFP_KERNEL);
 	clks = kmalloc_array(MSTP_MAX_CLOCKS, sizeof(*clks), GFP_KERNEL);
-	if (group == NULL || clks == NULL) {
+
+	if (group == NULL || clks == NULL)
+	{
 		kfree(group);
 		kfree(clks);
 		pr_err("%s: failed to allocate group\n", __func__);
@@ -181,7 +207,8 @@ static void __init cpg_mstp_clocks_init(struct device_node *np)
 	group->smstpcr = of_iomap(np, 0);
 	group->mstpsr = of_iomap(np, 1);
 
-	if (group->smstpcr == NULL) {
+	if (group->smstpcr == NULL)
+	{
 		pr_err("%s: failed to remap SMSTPCR\n", __func__);
 		kfree(group);
 		kfree(clks);
@@ -189,14 +216,21 @@ static void __init cpg_mstp_clocks_init(struct device_node *np)
 	}
 
 	for (i = 0; i < MSTP_MAX_CLOCKS; ++i)
+	{
 		clks[i] = ERR_PTR(-ENOENT);
+	}
 
 	if (of_find_property(np, "clock-indices", &i))
+	{
 		idxname = "clock-indices";
+	}
 	else
+	{
 		idxname = "renesas,clock-indices";
+	}
 
-	for (i = 0; i < MSTP_MAX_CLOCKS; ++i) {
+	for (i = 0; i < MSTP_MAX_CLOCKS; ++i)
+	{
 		const char *parent_name;
 		const char *name;
 		u32 clkidx;
@@ -204,26 +238,35 @@ static void __init cpg_mstp_clocks_init(struct device_node *np)
 
 		/* Skip clocks with no name. */
 		ret = of_property_read_string_index(np, "clock-output-names",
-						    i, &name);
+											i, &name);
+
 		if (ret < 0 || strlen(name) == 0)
+		{
 			continue;
+		}
 
 		parent_name = of_clk_get_parent_name(np, i);
 		ret = of_property_read_u32_index(np, idxname, i, &clkidx);
-		if (parent_name == NULL || ret < 0)
-			break;
 
-		if (clkidx >= MSTP_MAX_CLOCKS) {
+		if (parent_name == NULL || ret < 0)
+		{
+			break;
+		}
+
+		if (clkidx >= MSTP_MAX_CLOCKS)
+		{
 			pr_err("%s: invalid clock %s %s index %u\n",
-			       __func__, np->name, name, clkidx);
+				   __func__, np->name, name, clkidx);
 			continue;
 		}
 
 		clks[clkidx] = cpg_mstp_clock_register(name, parent_name,
-						       clkidx, group);
-		if (!IS_ERR(clks[clkidx])) {
+											   clkidx, group);
+
+		if (!IS_ERR(clks[clkidx]))
+		{
 			group->data.clk_num = max(group->data.clk_num,
-						  clkidx + 1);
+									  clkidx + 1);
 			/*
 			 * Register a clkdev to let board code retrieve the
 			 * clock by name and register aliases for non-DT
@@ -233,9 +276,11 @@ static void __init cpg_mstp_clocks_init(struct device_node *np)
 			 * clock will be instantiated from DT.
 			 */
 			clk_register_clkdev(clks[clkidx], name, NULL);
-		} else {
+		}
+		else
+		{
 			pr_err("%s: failed to register %s %s clock (%ld)\n",
-			       __func__, np->name, name, PTR_ERR(clks[clkidx]));
+				   __func__, np->name, name, PTR_ERR(clks[clkidx]));
 		}
 	}
 
@@ -252,14 +297,19 @@ int cpg_mstp_attach_dev(struct generic_pm_domain *unused, struct device *dev)
 	int error;
 
 	while (!of_parse_phandle_with_args(np, "clocks", "#clock-cells", i,
-					   &clkspec)) {
+									   &clkspec))
+	{
 		if (of_device_is_compatible(clkspec.np,
-					    "renesas,cpg-mstp-clocks"))
+									"renesas,cpg-mstp-clocks"))
+		{
 			goto found;
+		}
 
 		/* BSC on r8a73a4/sh73a0 uses zb_clk instead of an mstp clock */
 		if (!strcmp(clkspec.np->name, "zb_clk"))
+		{
 			goto found;
+		}
 
 		of_node_put(clkspec.np);
 		i++;
@@ -272,16 +322,22 @@ found:
 	of_node_put(clkspec.np);
 
 	if (IS_ERR(clk))
+	{
 		return PTR_ERR(clk);
+	}
 
 	error = pm_clk_create(dev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(dev, "pm_clk_create failed %d\n", error);
 		goto fail_put;
 	}
 
 	error = pm_clk_add_clk(dev, clk);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(dev, "pm_clk_add_clk %pC failed %d\n", clk, error);
 		goto fail_destroy;
 	}
@@ -298,7 +354,9 @@ fail_put:
 void cpg_mstp_detach_dev(struct generic_pm_domain *unused, struct device *dev)
 {
 	if (!list_empty(&dev->power.subsys_data->clock_list))
+	{
 		pm_clk_destroy(dev);
+	}
 }
 
 void __init cpg_mstp_add_clk_domain(struct device_node *np)
@@ -306,14 +364,18 @@ void __init cpg_mstp_add_clk_domain(struct device_node *np)
 	struct generic_pm_domain *pd;
 	u32 ncells;
 
-	if (of_property_read_u32(np, "#power-domain-cells", &ncells)) {
+	if (of_property_read_u32(np, "#power-domain-cells", &ncells))
+	{
 		pr_warn("%s lacks #power-domain-cells\n", np->full_name);
 		return;
 	}
 
 	pd = kzalloc(sizeof(*pd), GFP_KERNEL);
+
 	if (!pd)
+	{
 		return;
+	}
 
 	pd->name = np->name;
 	pd->flags = GENPD_FLAG_PM_CLK;

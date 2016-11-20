@@ -1676,14 +1676,16 @@
 #define RT5677_FIRMWARE2	"rt5677_dsp_fw2.bin"
 
 /* System Clock Source */
-enum {
+enum
+{
 	RT5677_SCLK_S_MCLK,
 	RT5677_SCLK_S_PLL1,
 	RT5677_SCLK_S_RCCLK,
 };
 
 /* PLL1 Source */
-enum {
+enum
+{
 	RT5677_PLL1_S_MCLK,
 	RT5677_PLL1_S_BCLK1,
 	RT5677_PLL1_S_BCLK2,
@@ -1691,7 +1693,8 @@ enum {
 	RT5677_PLL1_S_BCLK4,
 };
 
-enum {
+enum
+{
 	RT5677_AIF1,
 	RT5677_AIF2,
 	RT5677_AIF3,
@@ -1700,7 +1703,8 @@ enum {
 	RT5677_AIFS,
 };
 
-enum {
+enum
+{
 	RT5677_GPIO1,
 	RT5677_GPIO2,
 	RT5677_GPIO3,
@@ -1710,19 +1714,22 @@ enum {
 	RT5677_GPIO_NUM,
 };
 
-enum {
+enum
+{
 	RT5677_IRQ_JD1,
 	RT5677_IRQ_JD2,
 	RT5677_IRQ_JD3,
 };
 
-enum rt5677_type {
+enum rt5677_type
+{
 	RT5677,
 	RT5676,
 };
 
 /* ASRC clock source selection */
-enum {
+enum
+{
 	RT5677_CLK_SEL_SYS,
 	RT5677_CLK_SEL_I2S1_ASRC,
 	RT5677_CLK_SEL_I2S2_ASRC,
@@ -1739,7 +1746,8 @@ enum {
 };
 
 /* filter mask */
-enum {
+enum
+{
 	RT5677_DA_STEREO_FILTER = 0x1,
 	RT5677_DA_MONO2_L_FILTER = (0x1 << 1),
 	RT5677_DA_MONO2_R_FILTER = (0x1 << 2),
@@ -1761,7 +1769,8 @@ enum {
 	RT5677_I2S4_SOURCE = (0x1 << 18),
 };
 
-struct rt5677_priv {
+struct rt5677_priv
+{
 	struct snd_soc_codec *codec;
 	struct rt5677_platform_data pdata;
 	struct regmap *regmap, *regmap_physical;
@@ -1789,6 +1798,6 @@ struct rt5677_priv {
 };
 
 int rt5677_sel_asrc_clk_src(struct snd_soc_codec *codec,
-		unsigned int filter_mask, unsigned int clk_src);
+							unsigned int filter_mask, unsigned int clk_src);
 
 #endif /* __RT5677_H__ */

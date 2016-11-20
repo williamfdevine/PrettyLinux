@@ -23,7 +23,8 @@ struct gb_operation;
  */
 #define GB_MESSAGE_TYPE_RESPONSE	((u8)0x80)
 
-enum gb_operation_result {
+enum gb_operation_result
+{
 	GB_OP_SUCCESS		= 0x00,
 	GB_OP_INTERRUPTED	= 0x01,
 	GB_OP_TIMEOUT		= 0x02,
@@ -45,7 +46,8 @@ enum gb_operation_result {
  * host-controller drivers may use the hcpriv field. All other fields are
  * intended to be private to the operations core code.
  */
-struct gb_message {
+struct gb_message
+{
 	struct gb_operation		*operation;
 	struct gb_operation_msg_hdr	*header;
 
@@ -63,7 +65,7 @@ struct gb_message {
 #define GB_OPERATION_FLAG_CORE			BIT(3)
 
 #define GB_OPERATION_FLAG_USER_MASK	(GB_OPERATION_FLAG_SHORT_RESPONSE | \
-					 GB_OPERATION_FLAG_UNIDIRECTIONAL)
+									 GB_OPERATION_FLAG_UNIDIRECTIONAL)
 
 /*
  * A Greybus operation is a remote procedure call performed over a
@@ -85,7 +87,8 @@ struct gb_message {
  * gb_operation_result().
  */
 typedef void (*gb_operation_callback)(struct gb_operation *);
-struct gb_operation {
+struct gb_operation
+{
 	struct gb_connection	*connection;
 	struct gb_message	*request;
 	struct gb_message	*response;
@@ -130,43 +133,43 @@ static inline bool gb_operation_is_core(struct gb_operation *operation)
 }
 
 void gb_connection_recv(struct gb_connection *connection,
-					void *data, size_t size);
+						void *data, size_t size);
 
 int gb_operation_result(struct gb_operation *operation);
 
 size_t gb_operation_get_payload_size_max(struct gb_connection *connection);
 struct gb_operation *
 gb_operation_create_flags(struct gb_connection *connection,
-				u8 type, size_t request_size,
-				size_t response_size, unsigned long flags,
-				gfp_t gfp);
+						  u8 type, size_t request_size,
+						  size_t response_size, unsigned long flags,
+						  gfp_t gfp);
 
 static inline struct gb_operation *
 gb_operation_create(struct gb_connection *connection,
-				u8 type, size_t request_size,
-				size_t response_size, gfp_t gfp)
+					u8 type, size_t request_size,
+					size_t response_size, gfp_t gfp)
 {
 	return gb_operation_create_flags(connection, type, request_size,
-						response_size, 0, gfp);
+									 response_size, 0, gfp);
 }
 
 struct gb_operation *
 gb_operation_create_core(struct gb_connection *connection,
-				u8 type, size_t request_size,
-				size_t response_size, unsigned long flags,
-				gfp_t gfp);
+						 u8 type, size_t request_size,
+						 size_t response_size, unsigned long flags,
+						 gfp_t gfp);
 
 void gb_operation_get(struct gb_operation *operation);
 void gb_operation_put(struct gb_operation *operation);
 
 bool gb_operation_response_alloc(struct gb_operation *operation,
-					size_t response_size, gfp_t gfp);
+								 size_t response_size, gfp_t gfp);
 
 int gb_operation_request_send(struct gb_operation *operation,
-				gb_operation_callback callback,
-				gfp_t gfp);
+							  gb_operation_callback callback,
+							  gfp_t gfp);
 int gb_operation_request_send_sync_timeout(struct gb_operation *operation,
-						unsigned int timeout);
+		unsigned int timeout);
 static inline int
 gb_operation_request_send_sync(struct gb_operation *operation)
 {
@@ -178,27 +181,27 @@ void gb_operation_cancel(struct gb_operation *operation, int errno);
 void gb_operation_cancel_incoming(struct gb_operation *operation, int errno);
 
 void greybus_message_sent(struct gb_host_device *hd,
-				struct gb_message *message, int status);
+						  struct gb_message *message, int status);
 
 int gb_operation_sync_timeout(struct gb_connection *connection, int type,
-				void *request, int request_size,
-				void *response, int response_size,
-				unsigned int timeout);
+							  void *request, int request_size,
+							  void *response, int response_size,
+							  unsigned int timeout);
 int gb_operation_unidirectional_timeout(struct gb_connection *connection,
-				int type, void *request, int request_size,
-				unsigned int timeout);
+										int type, void *request, int request_size,
+										unsigned int timeout);
 
 static inline int gb_operation_sync(struct gb_connection *connection, int type,
-		      void *request, int request_size,
-		      void *response, int response_size)
+									void *request, int request_size,
+									void *response, int response_size)
 {
 	return gb_operation_sync_timeout(connection, type,
-			request, request_size, response, response_size,
-			GB_OPERATION_TIMEOUT_DEFAULT);
+									 request, request_size, response, response_size,
+									 GB_OPERATION_TIMEOUT_DEFAULT);
 }
 
 static inline int gb_operation_unidirectional(struct gb_connection *connection,
-				int type, void *request, int request_size)
+		int type, void *request, int request_size)
 {
 	return gb_operation_unidirectional_timeout(connection, type,
 			request, request_size, GB_OPERATION_TIMEOUT_DEFAULT);

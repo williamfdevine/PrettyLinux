@@ -82,7 +82,7 @@
 /* Serializer n Control Register */
 #define DAVINCI_MCASP_XRSRCTL_BASE_REG	0x180
 #define DAVINCI_MCASP_XRSRCTL_REG(n)	(DAVINCI_MCASP_XRSRCTL_BASE_REG + \
-						(n << 2))
+		(n << 2))
 
 /* Transmit Buffer for Serializer n */
 #define DAVINCI_MCASP_TXBUF_REG(n)	(0x200 + (n << 2))

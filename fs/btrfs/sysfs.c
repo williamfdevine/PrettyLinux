@@ -36,79 +36,111 @@ static inline struct btrfs_fs_info *to_fs_info(struct kobject *kobj);
 static inline struct btrfs_fs_devices *to_fs_devs(struct kobject *kobj);
 
 static u64 get_features(struct btrfs_fs_info *fs_info,
-			enum btrfs_feature_set set)
+						enum btrfs_feature_set set)
 {
 	struct btrfs_super_block *disk_super = fs_info->super_copy;
+
 	if (set == FEAT_COMPAT)
+	{
 		return btrfs_super_compat_flags(disk_super);
+	}
 	else if (set == FEAT_COMPAT_RO)
+	{
 		return btrfs_super_compat_ro_flags(disk_super);
+	}
 	else
+	{
 		return btrfs_super_incompat_flags(disk_super);
+	}
 }
 
 static void set_features(struct btrfs_fs_info *fs_info,
-			 enum btrfs_feature_set set, u64 features)
+						 enum btrfs_feature_set set, u64 features)
 {
 	struct btrfs_super_block *disk_super = fs_info->super_copy;
+
 	if (set == FEAT_COMPAT)
+	{
 		btrfs_set_super_compat_flags(disk_super, features);
+	}
 	else if (set == FEAT_COMPAT_RO)
+	{
 		btrfs_set_super_compat_ro_flags(disk_super, features);
+	}
 	else
+	{
 		btrfs_set_super_incompat_flags(disk_super, features);
+	}
 }
 
 static int can_modify_feature(struct btrfs_feature_attr *fa)
 {
 	int val = 0;
 	u64 set, clear;
-	switch (fa->feature_set) {
-	case FEAT_COMPAT:
-		set = BTRFS_FEATURE_COMPAT_SAFE_SET;
-		clear = BTRFS_FEATURE_COMPAT_SAFE_CLEAR;
-		break;
-	case FEAT_COMPAT_RO:
-		set = BTRFS_FEATURE_COMPAT_RO_SAFE_SET;
-		clear = BTRFS_FEATURE_COMPAT_RO_SAFE_CLEAR;
-		break;
-	case FEAT_INCOMPAT:
-		set = BTRFS_FEATURE_INCOMPAT_SAFE_SET;
-		clear = BTRFS_FEATURE_INCOMPAT_SAFE_CLEAR;
-		break;
-	default:
-		pr_warn("btrfs: sysfs: unknown feature set %d\n",
-				fa->feature_set);
-		return 0;
+
+	switch (fa->feature_set)
+	{
+		case FEAT_COMPAT:
+			set = BTRFS_FEATURE_COMPAT_SAFE_SET;
+			clear = BTRFS_FEATURE_COMPAT_SAFE_CLEAR;
+			break;
+
+		case FEAT_COMPAT_RO:
+			set = BTRFS_FEATURE_COMPAT_RO_SAFE_SET;
+			clear = BTRFS_FEATURE_COMPAT_RO_SAFE_CLEAR;
+			break;
+
+		case FEAT_INCOMPAT:
+			set = BTRFS_FEATURE_INCOMPAT_SAFE_SET;
+			clear = BTRFS_FEATURE_INCOMPAT_SAFE_CLEAR;
+			break;
+
+		default:
+			pr_warn("btrfs: sysfs: unknown feature set %d\n",
+					fa->feature_set);
+			return 0;
 	}
 
 	if (set & fa->feature_bit)
+	{
 		val |= 1;
+	}
+
 	if (clear & fa->feature_bit)
+	{
 		val |= 2;
+	}
 
 	return val;
 }
 
 static ssize_t btrfs_feature_attr_show(struct kobject *kobj,
-				       struct kobj_attribute *a, char *buf)
+									   struct kobj_attribute *a, char *buf)
 {
 	int val = 0;
 	struct btrfs_fs_info *fs_info = to_fs_info(kobj);
 	struct btrfs_feature_attr *fa = to_btrfs_feature_attr(a);
-	if (fs_info) {
+
+	if (fs_info)
+	{
 		u64 features = get_features(fs_info, fa->feature_set);
+
 		if (features & fa->feature_bit)
+		{
 			val = 1;
-	} else
+		}
+	}
+	else
+	{
 		val = can_modify_feature(fa);
+	}
 
 	return snprintf(buf, PAGE_SIZE, "%d\n", val);
 }
 
 static ssize_t btrfs_feature_attr_store(struct kobject *kobj,
-					struct kobj_attribute *a,
-					const char *buf, size_t count)
+										struct kobj_attribute *a,
+										const char *buf, size_t count)
 {
 	struct btrfs_fs_info *fs_info;
 	struct btrfs_feature_attr *fa = to_btrfs_feature_attr(a);
@@ -117,23 +149,36 @@ static ssize_t btrfs_feature_attr_store(struct kobject *kobj,
 	int ret;
 
 	fs_info = to_fs_info(kobj);
+
 	if (!fs_info)
+	{
 		return -EPERM;
+	}
 
 	if (fs_info->sb->s_flags & MS_RDONLY)
+	{
 		return -EROFS;
+	}
 
 	ret = kstrtoul(skip_spaces(buf), 0, &val);
-	if (ret)
-		return ret;
 
-	if (fa->feature_set == FEAT_COMPAT) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (fa->feature_set == FEAT_COMPAT)
+	{
 		set = BTRFS_FEATURE_COMPAT_SAFE_SET;
 		clear = BTRFS_FEATURE_COMPAT_SAFE_CLEAR;
-	} else if (fa->feature_set == FEAT_COMPAT_RO) {
+	}
+	else if (fa->feature_set == FEAT_COMPAT_RO)
+	{
 		set = BTRFS_FEATURE_COMPAT_RO_SAFE_SET;
 		clear = BTRFS_FEATURE_COMPAT_RO_SAFE_CLEAR;
-	} else {
+	}
+	else
+	{
 		set = BTRFS_FEATURE_INCOMPAT_SAFE_SET;
 		clear = BTRFS_FEATURE_INCOMPAT_SAFE_CLEAR;
 	}
@@ -142,26 +187,35 @@ static ssize_t btrfs_feature_attr_store(struct kobject *kobj,
 
 	/* Nothing to do */
 	if ((val && (features & fa->feature_bit)) ||
-	    (!val && !(features & fa->feature_bit)))
+		(!val && !(features & fa->feature_bit)))
+	{
 		return count;
+	}
 
 	if ((val && !(set & fa->feature_bit)) ||
-	    (!val && !(clear & fa->feature_bit))) {
+		(!val && !(clear & fa->feature_bit)))
+	{
 		btrfs_info(fs_info,
-			"%sabling feature %s on mounted fs is not supported.",
-			val ? "En" : "Dis", fa->kobj_attr.attr.name);
+				   "%sabling feature %s on mounted fs is not supported.",
+				   val ? "En" : "Dis", fa->kobj_attr.attr.name);
 		return -EPERM;
 	}
 
 	btrfs_info(fs_info, "%s %s feature flag",
-		   val ? "Setting" : "Clearing", fa->kobj_attr.attr.name);
+			   val ? "Setting" : "Clearing", fa->kobj_attr.attr.name);
 
 	spin_lock(&fs_info->super_lock);
 	features = get_features(fs_info, fa->feature_set);
+
 	if (val)
+	{
 		features |= fa->feature_bit;
+	}
 	else
+	{
 		features &= ~fa->feature_bit;
+	}
+
 	set_features(fs_info, fa->feature_set, features);
 	spin_unlock(&fs_info->super_lock);
 
@@ -175,12 +229,13 @@ static ssize_t btrfs_feature_attr_store(struct kobject *kobj,
 }
 
 static umode_t btrfs_feature_visible(struct kobject *kobj,
-				     struct attribute *attr, int unused)
+									 struct attribute *attr, int unused)
 {
 	struct btrfs_fs_info *fs_info = to_fs_info(kobj);
 	umode_t mode = attr->mode;
 
-	if (fs_info) {
+	if (fs_info)
+	{
 		struct btrfs_feature_attr *fa;
 		u64 features;
 
@@ -188,9 +243,13 @@ static umode_t btrfs_feature_visible(struct kobject *kobj,
 		features = get_features(fs_info, fa->feature_set);
 
 		if (can_modify_feature(fa))
+		{
 			mode |= S_IWUSR;
+		}
 		else if (!(features & fa->feature_bit))
+		{
 			mode = 0;
+		}
 	}
 
 	return mode;
@@ -207,7 +266,8 @@ BTRFS_FEAT_ATTR_INCOMPAT(skinny_metadata, SKINNY_METADATA);
 BTRFS_FEAT_ATTR_INCOMPAT(no_holes, NO_HOLES);
 BTRFS_FEAT_ATTR_COMPAT_RO(free_space_tree, FREE_SPACE_TREE);
 
-static struct attribute *btrfs_supported_feature_attrs[] = {
+static struct attribute *btrfs_supported_feature_attrs[] =
+{
 	BTRFS_FEAT_ATTR_PTR(mixed_backref),
 	BTRFS_FEAT_ATTR_PTR(default_subvol),
 	BTRFS_FEAT_ATTR_PTR(mixed_groups),
@@ -221,7 +281,8 @@ static struct attribute *btrfs_supported_feature_attrs[] = {
 	NULL
 };
 
-static const struct attribute_group btrfs_feature_attr_group = {
+static const struct attribute_group btrfs_feature_attr_group =
+{
 	.name = "features",
 	.is_visible = btrfs_feature_visible,
 	.attrs = btrfs_supported_feature_attrs,
@@ -230,16 +291,24 @@ static const struct attribute_group btrfs_feature_attr_group = {
 static ssize_t btrfs_show_u64(u64 *value_ptr, spinlock_t *lock, char *buf)
 {
 	u64 val;
+
 	if (lock)
+	{
 		spin_lock(lock);
+	}
+
 	val = *value_ptr;
+
 	if (lock)
+	{
 		spin_unlock(lock);
+	}
+
 	return snprintf(buf, PAGE_SIZE, "%llu\n", val);
 }
 
 static ssize_t global_rsv_size_show(struct kobject *kobj,
-				    struct kobj_attribute *ka, char *buf)
+									struct kobj_attribute *ka, char *buf)
 {
 	struct btrfs_fs_info *fs_info = to_fs_info(kobj->parent);
 	struct btrfs_block_rsv *block_rsv = &fs_info->global_block_rsv;
@@ -248,7 +317,7 @@ static ssize_t global_rsv_size_show(struct kobject *kobj,
 BTRFS_ATTR(global_rsv_size, global_rsv_size_show);
 
 static ssize_t global_rsv_reserved_show(struct kobject *kobj,
-					struct kobj_attribute *a, char *buf)
+										struct kobj_attribute *a, char *buf)
 {
 	struct btrfs_fs_info *fs_info = to_fs_info(kobj->parent);
 	struct btrfs_block_rsv *block_rsv = &fs_info->global_block_rsv;
@@ -260,12 +329,12 @@ BTRFS_ATTR(global_rsv_reserved, global_rsv_reserved_show);
 #define to_raid_kobj(_kobj) container_of(_kobj, struct raid_kobject, kobj)
 
 static ssize_t raid_bytes_show(struct kobject *kobj,
-			       struct kobj_attribute *attr, char *buf);
+							   struct kobj_attribute *attr, char *buf);
 BTRFS_RAID_ATTR(total_bytes, raid_bytes_show);
 BTRFS_RAID_ATTR(used_bytes, raid_bytes_show);
 
 static ssize_t raid_bytes_show(struct kobject *kobj,
-			       struct kobj_attribute *attr, char *buf)
+							   struct kobj_attribute *attr, char *buf)
 
 {
 	struct btrfs_space_info *sinfo = to_space_info(kobj->parent);
@@ -274,17 +343,23 @@ static ssize_t raid_bytes_show(struct kobject *kobj,
 	u64 val = 0;
 
 	down_read(&sinfo->groups_sem);
-	list_for_each_entry(block_group, &sinfo->block_groups[index], list) {
+	list_for_each_entry(block_group, &sinfo->block_groups[index], list)
+	{
 		if (&attr->attr == BTRFS_RAID_ATTR_PTR(total_bytes))
+		{
 			val += block_group->key.offset;
+		}
 		else
+		{
 			val += btrfs_block_group_used(&block_group->item);
+		}
 	}
 	up_read(&sinfo->groups_sem);
 	return snprintf(buf, PAGE_SIZE, "%llu\n", val);
 }
 
-static struct attribute *raid_attributes[] = {
+static struct attribute *raid_attributes[] =
+{
 	BTRFS_RAID_ATTR_PTR(total_bytes),
 	BTRFS_RAID_ATTR_PTR(used_bytes),
 	NULL
@@ -295,25 +370,26 @@ static void release_raid_kobj(struct kobject *kobj)
 	kfree(to_raid_kobj(kobj));
 }
 
-struct kobj_type btrfs_raid_ktype = {
+struct kobj_type btrfs_raid_ktype =
+{
 	.sysfs_ops = &kobj_sysfs_ops,
 	.release = release_raid_kobj,
 	.default_attrs = raid_attributes,
 };
 
 #define SPACE_INFO_ATTR(field)						\
-static ssize_t btrfs_space_info_show_##field(struct kobject *kobj,	\
-					     struct kobj_attribute *a,	\
-					     char *buf)			\
-{									\
-	struct btrfs_space_info *sinfo = to_space_info(kobj);		\
-	return btrfs_show_u64(&sinfo->field, &sinfo->lock, buf);	\
-}									\
-BTRFS_ATTR(field, btrfs_space_info_show_##field)
+	static ssize_t btrfs_space_info_show_##field(struct kobject *kobj,	\
+			struct kobj_attribute *a,	\
+			char *buf)			\
+	{									\
+		struct btrfs_space_info *sinfo = to_space_info(kobj);		\
+		return btrfs_show_u64(&sinfo->field, &sinfo->lock, buf);	\
+	}									\
+	BTRFS_ATTR(field, btrfs_space_info_show_##field)
 
 static ssize_t btrfs_space_info_show_total_bytes_pinned(struct kobject *kobj,
-						       struct kobj_attribute *a,
-						       char *buf)
+		struct kobj_attribute *a,
+		char *buf)
 {
 	struct btrfs_space_info *sinfo = to_space_info(kobj);
 	s64 val = percpu_counter_sum(&sinfo->total_bytes_pinned);
@@ -331,7 +407,8 @@ SPACE_INFO_ATTR(disk_used);
 SPACE_INFO_ATTR(disk_total);
 BTRFS_ATTR(total_bytes_pinned, btrfs_space_info_show_total_bytes_pinned);
 
-static struct attribute *space_info_attrs[] = {
+static struct attribute *space_info_attrs[] =
+{
 	BTRFS_ATTR_PTR(flags),
 	BTRFS_ATTR_PTR(total_bytes),
 	BTRFS_ATTR_PTR(bytes_used),
@@ -352,20 +429,22 @@ static void space_info_release(struct kobject *kobj)
 	kfree(sinfo);
 }
 
-struct kobj_type space_info_ktype = {
+struct kobj_type space_info_ktype =
+{
 	.sysfs_ops = &kobj_sysfs_ops,
 	.release = space_info_release,
 	.default_attrs = space_info_attrs,
 };
 
-static const struct attribute *allocation_attrs[] = {
+static const struct attribute *allocation_attrs[] =
+{
 	BTRFS_ATTR_PTR(global_rsv_reserved),
 	BTRFS_ATTR_PTR(global_rsv_size),
 	NULL,
 };
 
 static ssize_t btrfs_label_show(struct kobject *kobj,
-				struct kobj_attribute *a, char *buf)
+								struct kobj_attribute *a, char *buf)
 {
 	struct btrfs_fs_info *fs_info = to_fs_info(kobj);
 	char *label = fs_info->super_copy->label;
@@ -379,17 +458,21 @@ static ssize_t btrfs_label_show(struct kobject *kobj,
 }
 
 static ssize_t btrfs_label_store(struct kobject *kobj,
-				 struct kobj_attribute *a,
-				 const char *buf, size_t len)
+								 struct kobj_attribute *a,
+								 const char *buf, size_t len)
 {
 	struct btrfs_fs_info *fs_info = to_fs_info(kobj);
 	size_t p_len;
 
 	if (!fs_info)
+	{
 		return -EPERM;
+	}
 
 	if (fs_info->sb->s_flags & MS_RDONLY)
+	{
 		return -EROFS;
+	}
 
 	/*
 	 * p_len is the len until the first occurrence of either
@@ -398,7 +481,9 @@ static ssize_t btrfs_label_store(struct kobject *kobj,
 	p_len = strcspn(buf, "\n");
 
 	if (p_len >= BTRFS_LABEL_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock(&fs_info->super_lock);
 	memset(fs_info->super_copy->label, 0, BTRFS_LABEL_SIZE);
@@ -416,7 +501,7 @@ static ssize_t btrfs_label_store(struct kobject *kobj,
 BTRFS_ATTR_RW(label, btrfs_label_show, btrfs_label_store);
 
 static ssize_t btrfs_nodesize_show(struct kobject *kobj,
-				struct kobj_attribute *a, char *buf)
+								   struct kobj_attribute *a, char *buf)
 {
 	struct btrfs_fs_info *fs_info = to_fs_info(kobj);
 
@@ -426,28 +511,29 @@ static ssize_t btrfs_nodesize_show(struct kobject *kobj,
 BTRFS_ATTR(nodesize, btrfs_nodesize_show);
 
 static ssize_t btrfs_sectorsize_show(struct kobject *kobj,
-				struct kobj_attribute *a, char *buf)
+									 struct kobj_attribute *a, char *buf)
 {
 	struct btrfs_fs_info *fs_info = to_fs_info(kobj);
 
 	return snprintf(buf, PAGE_SIZE, "%u\n",
-			fs_info->super_copy->sectorsize);
+					fs_info->super_copy->sectorsize);
 }
 
 BTRFS_ATTR(sectorsize, btrfs_sectorsize_show);
 
 static ssize_t btrfs_clone_alignment_show(struct kobject *kobj,
-				struct kobj_attribute *a, char *buf)
+		struct kobj_attribute *a, char *buf)
 {
 	struct btrfs_fs_info *fs_info = to_fs_info(kobj);
 
 	return snprintf(buf, PAGE_SIZE, "%u\n",
-			fs_info->super_copy->sectorsize);
+					fs_info->super_copy->sectorsize);
 }
 
 BTRFS_ATTR(clone_alignment, btrfs_clone_alignment_show);
 
-static const struct attribute *btrfs_attrs[] = {
+static const struct attribute *btrfs_attrs[] =
+{
 	BTRFS_ATTR_PTR(label),
 	BTRFS_ATTR_PTR(nodesize),
 	BTRFS_ATTR_PTR(sectorsize),
@@ -463,7 +549,8 @@ static void btrfs_release_fsid_kobj(struct kobject *kobj)
 	complete(&fs_devs->kobj_unregister);
 }
 
-static struct kobj_type btrfs_ktype = {
+static struct kobj_type btrfs_ktype =
+{
 	.sysfs_ops	= &kobj_sysfs_ops,
 	.release	= btrfs_release_fsid_kobj,
 };
@@ -471,14 +558,20 @@ static struct kobj_type btrfs_ktype = {
 static inline struct btrfs_fs_devices *to_fs_devs(struct kobject *kobj)
 {
 	if (kobj->ktype != &btrfs_ktype)
+	{
 		return NULL;
+	}
+
 	return container_of(kobj, struct btrfs_fs_devices, fsid_kobj);
 }
 
 static inline struct btrfs_fs_info *to_fs_info(struct kobject *kobj)
 {
 	if (kobj->ktype != &btrfs_ktype)
+	{
 		return NULL;
+	}
+
 	return to_fs_devs(kobj)->fs_info;
 }
 
@@ -486,7 +579,8 @@ static inline struct btrfs_fs_info *to_fs_info(struct kobject *kobj)
 static char btrfs_unknown_feature_names[3][NUM_FEATURE_BITS][13];
 static struct btrfs_feature_attr btrfs_feature_attrs[3][NUM_FEATURE_BITS];
 
-static const u64 supported_feature_masks[3] = {
+static const u64 supported_feature_masks[3] =
+{
 	[FEAT_COMPAT]    = BTRFS_FEATURE_COMPAT_SUPP,
 	[FEAT_COMPAT_RO] = BTRFS_FEATURE_COMPAT_RO_SUPP,
 	[FEAT_INCOMPAT]  = BTRFS_FEATURE_INCOMPAT_SUPP,
@@ -496,10 +590,12 @@ static int addrm_unknown_feature_attrs(struct btrfs_fs_info *fs_info, bool add)
 {
 	int set;
 
-	for (set = 0; set < FEAT_MAX; set++) {
+	for (set = 0; set < FEAT_MAX; set++)
+	{
 		int i;
 		struct attribute *attrs[2];
-		struct attribute_group agroup = {
+		struct attribute_group agroup =
+		{
 			.name = "features",
 			.attrs = attrs,
 		};
@@ -507,41 +603,56 @@ static int addrm_unknown_feature_attrs(struct btrfs_fs_info *fs_info, bool add)
 		features &= ~supported_feature_masks[set];
 
 		if (!features)
+		{
 			continue;
+		}
 
 		attrs[1] = NULL;
-		for (i = 0; i < NUM_FEATURE_BITS; i++) {
+
+		for (i = 0; i < NUM_FEATURE_BITS; i++)
+		{
 			struct btrfs_feature_attr *fa;
 
 			if (!(features & (1ULL << i)))
+			{
 				continue;
+			}
 
 			fa = &btrfs_feature_attrs[set][i];
 			attrs[0] = &fa->kobj_attr.attr;
-			if (add) {
+
+			if (add)
+			{
 				int ret;
 				ret = sysfs_merge_group(&fs_info->fs_devices->fsid_kobj,
-							&agroup);
+										&agroup);
+
 				if (ret)
+				{
 					return ret;
-			} else
+				}
+			}
+			else
 				sysfs_unmerge_group(&fs_info->fs_devices->fsid_kobj,
-						    &agroup);
+									&agroup);
 		}
 
 	}
+
 	return 0;
 }
 
 static void __btrfs_sysfs_remove_fsid(struct btrfs_fs_devices *fs_devs)
 {
-	if (fs_devs->device_dir_kobj) {
+	if (fs_devs->device_dir_kobj)
+	{
 		kobject_del(fs_devs->device_dir_kobj);
 		kobject_put(fs_devs->device_dir_kobj);
 		fs_devs->device_dir_kobj = NULL;
 	}
 
-	if (fs_devs->fsid_kobj.state_initialized) {
+	if (fs_devs->fsid_kobj.state_initialized)
+	{
 		kobject_del(&fs_devs->fsid_kobj);
 		kobject_put(&fs_devs->fsid_kobj);
 		wait_for_completion(&fs_devs->kobj_unregister);
@@ -553,12 +664,14 @@ void btrfs_sysfs_remove_fsid(struct btrfs_fs_devices *fs_devs)
 {
 	struct list_head *fs_uuids = btrfs_get_fs_uuids();
 
-	if (fs_devs) {
+	if (fs_devs)
+	{
 		__btrfs_sysfs_remove_fsid(fs_devs);
 		return;
 	}
 
-	list_for_each_entry(fs_devs, fs_uuids, list) {
+	list_for_each_entry(fs_devs, fs_uuids, list)
+	{
 		__btrfs_sysfs_remove_fsid(fs_devs);
 	}
 }
@@ -567,18 +680,21 @@ void btrfs_sysfs_remove_mounted(struct btrfs_fs_info *fs_info)
 {
 	btrfs_reset_fs_info_ptr(fs_info);
 
-	if (fs_info->space_info_kobj) {
+	if (fs_info->space_info_kobj)
+	{
 		sysfs_remove_files(fs_info->space_info_kobj, allocation_attrs);
 		kobject_del(fs_info->space_info_kobj);
 		kobject_put(fs_info->space_info_kobj);
 	}
+
 	addrm_unknown_feature_attrs(fs_info, false);
 	sysfs_remove_group(&fs_info->fs_devices->fsid_kobj, &btrfs_feature_attr_group);
 	sysfs_remove_files(&fs_info->fs_devices->fsid_kobj, btrfs_attrs);
 	btrfs_sysfs_rm_device_link(fs_info->fs_devices, NULL);
 }
 
-const char * const btrfs_feature_set_names[3] = {
+const char *const btrfs_feature_set_names[3] =
+{
 	[FEAT_COMPAT]	 = "compat",
 	[FEAT_COMPAT_RO] = "compat_ro",
 	[FEAT_INCOMPAT]	 = "incompat",
@@ -592,18 +708,24 @@ char *btrfs_printable_features(enum btrfs_feature_set set, u64 flags)
 	char *str;
 
 	str = kmalloc(bufsize, GFP_KERNEL);
-	if (!str)
-		return str;
 
-	for (i = 0; i < ARRAY_SIZE(btrfs_feature_attrs[set]); i++) {
+	if (!str)
+	{
+		return str;
+	}
+
+	for (i = 0; i < ARRAY_SIZE(btrfs_feature_attrs[set]); i++)
+	{
 		const char *name;
 
 		if (!(flags & (1ULL << i)))
+		{
 			continue;
+		}
 
 		name = btrfs_feature_attrs[set][i].kobj_attr.attr.name;
 		len += snprintf(str + len, bufsize - len, "%s%s",
-				len ? "," : "", name);
+						len ? "," : "", name);
 	}
 
 	return str;
@@ -615,15 +737,16 @@ static void init_feature_attrs(void)
 	int set, i;
 
 	BUILD_BUG_ON(ARRAY_SIZE(btrfs_unknown_feature_names) !=
-		     ARRAY_SIZE(btrfs_feature_attrs));
+				 ARRAY_SIZE(btrfs_feature_attrs));
 	BUILD_BUG_ON(ARRAY_SIZE(btrfs_unknown_feature_names[0]) !=
-		     ARRAY_SIZE(btrfs_feature_attrs[0]));
+				 ARRAY_SIZE(btrfs_feature_attrs[0]));
 
 	memset(btrfs_feature_attrs, 0, sizeof(btrfs_feature_attrs));
 	memset(btrfs_unknown_feature_names, 0,
-	       sizeof(btrfs_unknown_feature_names));
+		   sizeof(btrfs_unknown_feature_names));
 
-	for (i = 0; btrfs_supported_feature_attrs[i]; i++) {
+	for (i = 0; btrfs_supported_feature_attrs[i]; i++)
+	{
 		struct btrfs_feature_attr *sfa;
 		struct attribute *a = btrfs_supported_feature_attrs[i];
 		int bit;
@@ -634,16 +757,20 @@ static void init_feature_attrs(void)
 		fa->kobj_attr.attr.name = sfa->kobj_attr.attr.name;
 	}
 
-	for (set = 0; set < FEAT_MAX; set++) {
-		for (i = 0; i < ARRAY_SIZE(btrfs_feature_attrs[set]); i++) {
+	for (set = 0; set < FEAT_MAX; set++)
+	{
+		for (i = 0; i < ARRAY_SIZE(btrfs_feature_attrs[set]); i++)
+		{
 			char *name = btrfs_unknown_feature_names[set][i];
 			fa = &btrfs_feature_attrs[set][i];
 
 			if (fa->kobj_attr.attr.name)
+			{
 				continue;
+			}
 
 			snprintf(name, 13, "%s:%u",
-				 btrfs_feature_set_names[set], i);
+					 btrfs_feature_set_names[set], i);
 
 			fa->kobj_attr.attr.name = name;
 			fa->kobj_attr.attr.mode = S_IRUGO;
@@ -656,34 +783,43 @@ static void init_feature_attrs(void)
 /* when one_device is NULL, it removes all device links */
 
 int btrfs_sysfs_rm_device_link(struct btrfs_fs_devices *fs_devices,
-		struct btrfs_device *one_device)
+							   struct btrfs_device *one_device)
 {
 	struct hd_struct *disk;
 	struct kobject *disk_kobj;
 
 	if (!fs_devices->device_dir_kobj)
+	{
 		return -EINVAL;
+	}
 
-	if (one_device && one_device->bdev) {
+	if (one_device && one_device->bdev)
+	{
 		disk = one_device->bdev->bd_part;
 		disk_kobj = &part_to_dev(disk)->kobj;
 
 		sysfs_remove_link(fs_devices->device_dir_kobj,
-						disk_kobj->name);
+						  disk_kobj->name);
 	}
 
 	if (one_device)
+	{
 		return 0;
+	}
 
 	list_for_each_entry(one_device,
-			&fs_devices->devices, dev_list) {
+						&fs_devices->devices, dev_list)
+	{
 		if (!one_device->bdev)
+		{
 			continue;
+		}
+
 		disk = one_device->bdev->bd_part;
 		disk_kobj = &part_to_dev(disk)->kobj;
 
 		sysfs_remove_link(fs_devices->device_dir_kobj,
-						disk_kobj->name);
+						  disk_kobj->name);
 	}
 
 	return 0;
@@ -693,37 +829,47 @@ int btrfs_sysfs_add_device(struct btrfs_fs_devices *fs_devs)
 {
 	if (!fs_devs->device_dir_kobj)
 		fs_devs->device_dir_kobj = kobject_create_and_add("devices",
-						&fs_devs->fsid_kobj);
+								   &fs_devs->fsid_kobj);
 
 	if (!fs_devs->device_dir_kobj)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
 
 int btrfs_sysfs_add_device_link(struct btrfs_fs_devices *fs_devices,
-				struct btrfs_device *one_device)
+								struct btrfs_device *one_device)
 {
 	int error = 0;
 	struct btrfs_device *dev;
 
-	list_for_each_entry(dev, &fs_devices->devices, dev_list) {
+	list_for_each_entry(dev, &fs_devices->devices, dev_list)
+	{
 		struct hd_struct *disk;
 		struct kobject *disk_kobj;
 
 		if (!dev->bdev)
+		{
 			continue;
+		}
 
 		if (one_device && one_device != dev)
+		{
 			continue;
+		}
 
 		disk = dev->bdev->bd_part;
 		disk_kobj = &part_to_dev(disk)->kobj;
 
 		error = sysfs_create_link(fs_devices->device_dir_kobj,
-					  disk_kobj, disk_kobj->name);
+								  disk_kobj, disk_kobj->name);
+
 		if (error)
+		{
 			break;
+		}
 	}
 
 	return error;
@@ -743,14 +889,14 @@ u64 btrfs_debugfs_test;
  * And parent can be specified for seed device
  */
 int btrfs_sysfs_add_fsid(struct btrfs_fs_devices *fs_devs,
-				struct kobject *parent)
+						 struct kobject *parent)
 {
 	int error;
 
 	init_completion(&fs_devs->kobj_unregister);
 	fs_devs->fsid_kobj.kset = btrfs_kset;
 	error = kobject_init_and_add(&fs_devs->fsid_kobj,
-				&btrfs_ktype, parent, "%pU", fs_devs->fsid);
+								 &btrfs_ktype, parent, "%pU", fs_devs->fsid);
 	return error;
 }
 
@@ -763,34 +909,50 @@ int btrfs_sysfs_add_mounted(struct btrfs_fs_info *fs_info)
 	btrfs_set_fs_info_ptr(fs_info);
 
 	error = btrfs_sysfs_add_device_link(fs_devs, NULL);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = sysfs_create_files(fsid_kobj, btrfs_attrs);
-	if (error) {
+
+	if (error)
+	{
 		btrfs_sysfs_rm_device_link(fs_devs, NULL);
 		return error;
 	}
 
 	error = sysfs_create_group(fsid_kobj,
-				   &btrfs_feature_attr_group);
+							   &btrfs_feature_attr_group);
+
 	if (error)
+	{
 		goto failure;
+	}
 
 	error = addrm_unknown_feature_attrs(fs_info, true);
+
 	if (error)
+	{
 		goto failure;
+	}
 
 	fs_info->space_info_kobj = kobject_create_and_add("allocation",
-						  fsid_kobj);
-	if (!fs_info->space_info_kobj) {
+							   fsid_kobj);
+
+	if (!fs_info->space_info_kobj)
+	{
 		error = -ENOMEM;
 		goto failure;
 	}
 
 	error = sysfs_create_files(fs_info->space_info_kobj, allocation_attrs);
+
 	if (error)
+	{
 		goto failure;
+	}
 
 	return 0;
 failure:
@@ -804,7 +966,7 @@ failure:
  * values in superblock. Call after any changes to incompat/compat_ro flags
  */
 void btrfs_sysfs_feature_update(struct btrfs_fs_info *fs_info,
-		u64 bit, enum btrfs_feature_set set)
+								u64 bit, enum btrfs_feature_set set)
 {
 	struct btrfs_fs_devices *fs_devs;
 	struct kobject *fsid_kobj;
@@ -812,7 +974,9 @@ void btrfs_sysfs_feature_update(struct btrfs_fs_info *fs_info,
 	int ret;
 
 	if (!fs_info)
+	{
 		return;
+	}
 
 	features = get_features(fs_info, set);
 	ASSERT(bit & supported_feature_masks[set]);
@@ -821,7 +985,9 @@ void btrfs_sysfs_feature_update(struct btrfs_fs_info *fs_info,
 	fsid_kobj = &fs_devs->fsid_kobj;
 
 	if (!fsid_kobj->state_initialized)
+	{
 		return;
+	}
 
 	/*
 	 * FIXME: this is too heavy to update just one value, ideally we'd like
@@ -835,8 +1001,11 @@ static int btrfs_init_debugfs(void)
 {
 #ifdef CONFIG_DEBUG_FS
 	btrfs_debugfs_root_dentry = debugfs_create_dir("btrfs", NULL);
+
 	if (!btrfs_debugfs_root_dentry)
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * Example code, how to export data through debugfs.
@@ -846,7 +1015,7 @@ static int btrfs_init_debugfs(void)
 	 */
 #ifdef CONFIG_BTRFS_DEBUG
 	debugfs_create_u64("test", S_IRUGO | S_IWUSR, btrfs_debugfs_root_dentry,
-			&btrfs_debugfs_test);
+					   &btrfs_debugfs_test);
 #endif
 
 #endif
@@ -858,17 +1027,26 @@ int btrfs_init_sysfs(void)
 	int ret;
 
 	btrfs_kset = kset_create_and_add("btrfs", NULL, fs_kobj);
+
 	if (!btrfs_kset)
+	{
 		return -ENOMEM;
+	}
 
 	ret = btrfs_init_debugfs();
+
 	if (ret)
+	{
 		goto out1;
+	}
 
 	init_feature_attrs();
 	ret = sysfs_create_group(&btrfs_kset->kobj, &btrfs_feature_attr_group);
+
 	if (ret)
+	{
 		goto out2;
+	}
 
 	return 0;
 out2:

@@ -32,7 +32,7 @@
 #define ENV_SENDER_LEN		(strlen(ENV_SENDER_STR) + 8 + 1)
 #define ENV_PREFIX_STR		"SMSG_ID="
 #define ENV_PREFIX_LEN		(strlen(ENV_PREFIX_STR) + \
-				 strlen(SMSG_PREFIX) + 1)
+							 strlen(SMSG_PREFIX) + 1)
 #define ENV_TEXT_STR		"SMSG_TEXT="
 #define ENV_TEXT_LEN(msg)	(strlen(ENV_TEXT_STR) + strlen((msg)) + 1)
 
@@ -47,7 +47,8 @@ MODULE_PARM_DESC(sender, "z/VM user ID from which CP SMSGs are accepted");
 static struct device *smsg_app_dev;
 
 /* list element for queuing received messages for delivery */
-struct smsg_app_event {
+struct smsg_app_event
+{
 	struct list_head list;
 	char *buf;
 	char *envp[4];
@@ -64,17 +65,22 @@ static void smsg_app_event_free(struct smsg_app_event *ev)
 }
 
 static struct smsg_app_event *smsg_app_event_alloc(const char *from,
-						   const char *msg)
+		const char *msg)
 {
 	struct smsg_app_event *ev;
 
 	ev = kzalloc(sizeof(*ev), GFP_ATOMIC);
+
 	if (!ev)
+	{
 		return NULL;
+	}
 
 	ev->buf = kzalloc(ENV_SENDER_LEN + ENV_PREFIX_LEN +
-			  ENV_TEXT_LEN(msg), GFP_ATOMIC);
-	if (!ev->buf) {
+					  ENV_TEXT_LEN(msg), GFP_ATOMIC);
+
+	if (!ev->buf)
+	{
 		kfree(ev);
 		return NULL;
 	}
@@ -100,14 +106,18 @@ static void smsg_event_work_fn(struct work_struct *work)
 	struct device *dev;
 
 	dev = get_device(smsg_app_dev);
+
 	if (!dev)
+	{
 		return;
+	}
 
 	spin_lock_bh(&smsg_event_queue_lock);
 	list_splice_init(&smsg_event_queue, &event_queue);
 	spin_unlock_bh(&smsg_event_queue_lock);
 
-	list_for_each_entry_safe(p, n, &event_queue, list) {
+	list_for_each_entry_safe(p, n, &event_queue, list)
+	{
 		list_del(&p->list);
 		kobject_uevent_env(&dev->kobj, KOBJ_CHANGE, p->envp);
 		smsg_app_event_free(p);
@@ -124,19 +134,30 @@ static void smsg_app_callback(const char *from, char *msg)
 	/* check if the originating z/VM user ID matches
 	 * the configured sender. */
 	if (sender && strlen(sender) > 0 && strcmp(from, sender) != 0)
+	{
 		return;
+	}
 
 	/* get start of message text (skip prefix and leading blanks) */
 	msg += strlen(SMSG_PREFIX);
+
 	while (*msg && isspace(*msg))
+	{
 		msg++;
+	}
+
 	if (*msg == '\0')
+	{
 		return;
+	}
 
 	/* allocate event list element and its environment */
 	se = smsg_app_event_alloc(from, msg);
+
 	if (!se)
+	{
 		return;
+	}
 
 	/* queue event and schedule work function */
 	spin_lock(&smsg_event_queue_lock);
@@ -153,43 +174,61 @@ static int __init smsgiucv_app_init(void)
 	int rc;
 
 	if (!MACHINE_IS_VM)
+	{
 		return -ENODEV;
+	}
 
 	smsg_app_dev = kzalloc(sizeof(*smsg_app_dev), GFP_KERNEL);
+
 	if (!smsg_app_dev)
+	{
 		return -ENOMEM;
+	}
 
 	smsgiucv_drv = driver_find(SMSGIUCV_DRV_NAME, &iucv_bus);
-	if (!smsgiucv_drv) {
+
+	if (!smsgiucv_drv)
+	{
 		kfree(smsg_app_dev);
 		return -ENODEV;
 	}
 
 	rc = dev_set_name(smsg_app_dev, KMSG_COMPONENT);
-	if (rc) {
+
+	if (rc)
+	{
 		kfree(smsg_app_dev);
 		goto fail;
 	}
+
 	smsg_app_dev->bus = &iucv_bus;
 	smsg_app_dev->parent = iucv_root;
 	smsg_app_dev->release = (void (*)(struct device *)) kfree;
 	smsg_app_dev->driver = smsgiucv_drv;
 	rc = device_register(smsg_app_dev);
-	if (rc) {
+
+	if (rc)
+	{
 		put_device(smsg_app_dev);
 		goto fail;
 	}
 
 	/* convert sender to uppercase characters */
-	if (sender) {
+	if (sender)
+	{
 		int len = strlen(sender);
+
 		while (len--)
+		{
 			sender[len] = toupper(sender[len]);
+		}
 	}
 
 	/* register with the smsgiucv device driver */
 	rc = smsg_register_callback(SMSG_PREFIX, smsg_app_callback);
-	if (rc) {
+
+	if (rc)
+	{
 		device_unregister(smsg_app_dev);
 		goto fail;
 	}

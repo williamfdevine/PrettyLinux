@@ -34,17 +34,20 @@
  * @channel:	channel specification
 */
 
-struct ad5761_chip_info {
+struct ad5761_chip_info
+{
 	unsigned long int_vref;
 	const struct iio_chan_spec channel;
 };
 
-struct ad5761_range_params {
+struct ad5761_range_params
+{
 	int m;
 	int c;
 };
 
-enum ad5761_supported_device_ids {
+enum ad5761_supported_device_ids
+{
 	ID_AD5721,
 	ID_AD5721R,
 	ID_AD5761,
@@ -60,7 +63,8 @@ enum ad5761_supported_device_ids {
  * @range:		output range mode used
  * @data:		cache aligned spi buffer
  */
-struct ad5761_state {
+struct ad5761_state
+{
 	struct spi_device		*spi;
 	struct regulator		*vref_reg;
 
@@ -72,13 +76,15 @@ struct ad5761_state {
 	 * DMA (thus cache coherency maintenance) requires the
 	 * transfer buffers to live in their own cache lines.
 	 */
-	union {
+	union
+	{
 		__be32 d32;
 		u8 d8[4];
 	} data[3] ____cacheline_aligned;
 };
 
-static const struct ad5761_range_params ad5761_range_params[] = {
+static const struct ad5761_range_params ad5761_range_params[] =
+{
 	[AD5761_VOLTAGE_RANGE_M10V_10V] = {
 		.m = 80,
 		.c = 40,
@@ -135,7 +141,8 @@ static int ad5761_spi_write(struct iio_dev *indio_dev, u8 addr, u16 val)
 static int _ad5761_spi_read(struct ad5761_state *st, u8 addr, u16 *val)
 {
 	int ret;
-	struct spi_transfer xfers[] = {
+	struct spi_transfer xfers[] =
+	{
 		{
 			.tx_buf = &st->data[0].d8[1],
 			.bits_per_word = 8,
@@ -172,7 +179,7 @@ static int ad5761_spi_read(struct iio_dev *indio_dev, u8 addr, u16 *val)
 }
 
 static int ad5761_spi_set_range(struct ad5761_state *st,
-				enum ad5761_voltage_range range)
+								enum ad5761_voltage_range range)
 {
 	u16 aux;
 	int ret;
@@ -180,15 +187,23 @@ static int ad5761_spi_set_range(struct ad5761_state *st,
 	aux = (range & 0x7) | AD5761_CTRL_ETS;
 
 	if (st->use_intref)
+	{
 		aux |= AD5761_CTRL_USE_INTVREF;
+	}
 
 	ret = _ad5761_spi_write(st, AD5761_ADDR_SW_FULL_RESET, 0);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = _ad5761_spi_write(st, AD5761_ADDR_CTRL_WRITE_REG, aux);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	st->range = range;
 
@@ -196,79 +211,93 @@ static int ad5761_spi_set_range(struct ad5761_state *st,
 }
 
 static int ad5761_read_raw(struct iio_dev *indio_dev,
-			   struct iio_chan_spec const *chan,
-			   int *val,
-			   int *val2,
-			   long mask)
+						   struct iio_chan_spec const *chan,
+						   int *val,
+						   int *val2,
+						   long mask)
 {
 	struct ad5761_state *st;
 	int ret;
 	u16 aux;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		ret = ad5761_spi_read(indio_dev, AD5761_ADDR_DAC_READ, &aux);
-		if (ret)
-			return ret;
-		*val = aux >> chan->scan_type.shift;
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_SCALE:
-		st = iio_priv(indio_dev);
-		*val = st->vref * ad5761_range_params[st->range].m;
-		*val /= 10;
-		*val2 = chan->scan_type.realbits;
-		return IIO_VAL_FRACTIONAL_LOG2;
-	case IIO_CHAN_INFO_OFFSET:
-		st = iio_priv(indio_dev);
-		*val = -(1 << chan->scan_type.realbits);
-		*val *=	ad5761_range_params[st->range].c;
-		*val /=	ad5761_range_params[st->range].m;
-		return IIO_VAL_INT;
-	default:
-		return -EINVAL;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			ret = ad5761_spi_read(indio_dev, AD5761_ADDR_DAC_READ, &aux);
+
+			if (ret)
+			{
+				return ret;
+			}
+
+			*val = aux >> chan->scan_type.shift;
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_SCALE:
+			st = iio_priv(indio_dev);
+			*val = st->vref * ad5761_range_params[st->range].m;
+			*val /= 10;
+			*val2 = chan->scan_type.realbits;
+			return IIO_VAL_FRACTIONAL_LOG2;
+
+		case IIO_CHAN_INFO_OFFSET:
+			st = iio_priv(indio_dev);
+			*val = -(1 << chan->scan_type.realbits);
+			*val *=	ad5761_range_params[st->range].c;
+			*val /=	ad5761_range_params[st->range].m;
+			return IIO_VAL_INT;
+
+		default:
+			return -EINVAL;
 	}
 }
 
 static int ad5761_write_raw(struct iio_dev *indio_dev,
-			    struct iio_chan_spec const *chan,
-			    int val,
-			    int val2,
-			    long mask)
+							struct iio_chan_spec const *chan,
+							int val,
+							int val2,
+							long mask)
 {
 	u16 aux;
 
 	if (mask != IIO_CHAN_INFO_RAW)
+	{
 		return -EINVAL;
+	}
 
 	if (val2 || (val << chan->scan_type.shift) > 0xffff || val < 0)
+	{
 		return -EINVAL;
+	}
 
 	aux = val << chan->scan_type.shift;
 
 	return ad5761_spi_write(indio_dev, AD5761_ADDR_DAC_WRITE, aux);
 }
 
-static const struct iio_info ad5761_info = {
+static const struct iio_info ad5761_info =
+{
 	.read_raw = &ad5761_read_raw,
 	.write_raw = &ad5761_write_raw,
 	.driver_module = THIS_MODULE,
 };
 
 #define AD5761_CHAN(_bits) {				\
-	.type = IIO_VOLTAGE,				\
-	.output = 1,					\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),	\
-	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE) |	\
-		BIT(IIO_CHAN_INFO_OFFSET),		\
-	.scan_type = {					\
-		.sign = 'u',				\
-		.realbits = (_bits),			\
-		.storagebits = 16,			\
-		.shift = 16 - (_bits),			\
-	},						\
-}
+		.type = IIO_VOLTAGE,				\
+				.output = 1,					\
+						  .info_mask_separate = BIT(IIO_CHAN_INFO_RAW),	\
+												.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE) |	\
+														BIT(IIO_CHAN_INFO_OFFSET),		\
+														.scan_type = {					\
+																						.sign = 'u',				\
+																						.realbits = (_bits),			\
+																						.storagebits = 16,			\
+																						.shift = 16 - (_bits),			\
+																	 },						\
+	}
 
-static const struct ad5761_chip_info ad5761_chip_infos[] = {
+static const struct ad5761_chip_info ad5761_chip_infos[] =
+{
 	[ID_AD5721] = {
 		.int_vref = 0,
 		.channel = AD5761_CHAN(12),
@@ -288,16 +317,19 @@ static const struct ad5761_chip_info ad5761_chip_infos[] = {
 };
 
 static int ad5761_get_vref(struct ad5761_state *st,
-			   const struct ad5761_chip_info *chip_info)
+						   const struct ad5761_chip_info *chip_info)
 {
 	int ret;
 
 	st->vref_reg = devm_regulator_get_optional(&st->spi->dev, "vref");
-	if (PTR_ERR(st->vref_reg) == -ENODEV) {
+
+	if (PTR_ERR(st->vref_reg) == -ENODEV)
+	{
 		/* Use Internal regulator */
-		if (!chip_info->int_vref) {
+		if (!chip_info->int_vref)
+		{
 			dev_err(&st->spi->dev,
-				"Voltage reference not found\n");
+					"Voltage reference not found\n");
 			return -EIO;
 		}
 
@@ -306,29 +338,35 @@ static int ad5761_get_vref(struct ad5761_state *st,
 		return 0;
 	}
 
-	if (IS_ERR(st->vref_reg)) {
+	if (IS_ERR(st->vref_reg))
+	{
 		dev_err(&st->spi->dev,
-			"Error getting voltage reference regulator\n");
+				"Error getting voltage reference regulator\n");
 		return PTR_ERR(st->vref_reg);
 	}
 
 	ret = regulator_enable(st->vref_reg);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&st->spi->dev,
-			 "Failed to enable voltage reference\n");
+				"Failed to enable voltage reference\n");
 		return ret;
 	}
 
 	ret = regulator_get_voltage(st->vref_reg);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&st->spi->dev,
-			 "Failed to get voltage reference value\n");
+				"Failed to get voltage reference value\n");
 		goto disable_regulator_vref;
 	}
 
-	if (ret < 2000000 || ret > 3000000) {
+	if (ret < 2000000 || ret > 3000000)
+	{
 		dev_warn(&st->spi->dev,
-			 "Invalid external voltage ref. value %d uV\n", ret);
+				 "Invalid external voltage ref. value %d uV\n", ret);
 		ret = -EIO;
 		goto disable_regulator_vref;
 	}
@@ -355,8 +393,11 @@ static int ad5761_probe(struct spi_device *spi)
 	struct ad5761_platform_data *pdata = dev_get_platdata(&spi->dev);
 
 	iio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*st));
+
 	if (!iio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	st = iio_priv(iio_dev);
 
@@ -364,15 +405,23 @@ static int ad5761_probe(struct spi_device *spi)
 	spi_set_drvdata(spi, iio_dev);
 
 	ret = ad5761_get_vref(st, chip_info);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (pdata)
+	{
 		voltage_range = pdata->voltage_range;
+	}
 
 	ret = ad5761_spi_set_range(st, voltage_range);
+
 	if (ret)
+	{
 		goto disable_regulator_err;
+	}
 
 	iio_dev->dev.parent = &spi->dev;
 	iio_dev->info = &ad5761_info;
@@ -381,14 +430,20 @@ static int ad5761_probe(struct spi_device *spi)
 	iio_dev->num_channels = 1;
 	iio_dev->name = spi_get_device_id(st->spi)->name;
 	ret = iio_device_register(iio_dev);
+
 	if (ret)
+	{
 		goto disable_regulator_err;
+	}
 
 	return 0;
 
 disable_regulator_err:
+
 	if (!IS_ERR_OR_NULL(st->vref_reg))
+	{
 		regulator_disable(st->vref_reg);
+	}
 
 	return ret;
 }
@@ -401,12 +456,15 @@ static int ad5761_remove(struct spi_device *spi)
 	iio_device_unregister(iio_dev);
 
 	if (!IS_ERR_OR_NULL(st->vref_reg))
+	{
 		regulator_disable(st->vref_reg);
+	}
 
 	return 0;
 }
 
-static const struct spi_device_id ad5761_id[] = {
+static const struct spi_device_id ad5761_id[] =
+{
 	{"ad5721", ID_AD5721},
 	{"ad5721r", ID_AD5721R},
 	{"ad5761", ID_AD5761},
@@ -415,10 +473,11 @@ static const struct spi_device_id ad5761_id[] = {
 };
 MODULE_DEVICE_TABLE(spi, ad5761_id);
 
-static struct spi_driver ad5761_driver = {
+static struct spi_driver ad5761_driver =
+{
 	.driver = {
-		   .name = "ad5761",
-		   },
+		.name = "ad5761",
+	},
 	.probe = ad5761_probe,
 	.remove = ad5761_remove,
 	.id_table = ad5761_id,

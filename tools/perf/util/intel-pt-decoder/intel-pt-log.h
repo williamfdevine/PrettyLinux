@@ -26,13 +26,13 @@ void intel_pt_log_disable(void);
 void intel_pt_log_set_name(const char *name);
 
 void __intel_pt_log_packet(const struct intel_pt_pkt *packet, int pkt_len,
-			   uint64_t pos, const unsigned char *buf);
+						   uint64_t pos, const unsigned char *buf);
 
 struct intel_pt_insn;
 
 void __intel_pt_log_insn(struct intel_pt_insn *intel_pt_insn, uint64_t ip);
 void __intel_pt_log_insn_no_data(struct intel_pt_insn *intel_pt_insn,
-				 uint64_t ip);
+								 uint64_t ip);
 
 __attribute__((format(printf, 1, 2)))
 void __intel_pt_log(const char *fmt, ...);

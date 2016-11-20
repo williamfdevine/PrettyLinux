@@ -12,24 +12,28 @@
 
 #include "efistub.h"
 
-struct efi_rng_protocol {
+struct efi_rng_protocol
+{
 	efi_status_t (*get_info)(struct efi_rng_protocol *,
-				 unsigned long *, efi_guid_t *);
+							 unsigned long *, efi_guid_t *);
 	efi_status_t (*get_rng)(struct efi_rng_protocol *,
-				efi_guid_t *, unsigned long, u8 *out);
+							efi_guid_t *, unsigned long, u8 *out);
 };
 
 efi_status_t efi_get_random_bytes(efi_system_table_t *sys_table_arg,
-				  unsigned long size, u8 *out)
+								  unsigned long size, u8 *out)
 {
 	efi_guid_t rng_proto = EFI_RNG_PROTOCOL_GUID;
 	efi_status_t status;
 	struct efi_rng_protocol *rng;
 
 	status = efi_call_early(locate_protocol, &rng_proto, NULL,
-				(void **)&rng);
+							(void **)&rng);
+
 	if (status != EFI_SUCCESS)
+	{
 		return status;
+	}
 
 	return rng->get_rng(rng, NULL, size, out);
 }
@@ -40,20 +44,24 @@ efi_status_t efi_get_random_bytes(efi_system_table_t *sys_table_arg,
  * for the allocation.
  */
 static unsigned long get_entry_num_slots(efi_memory_desc_t *md,
-					 unsigned long size,
-					 unsigned long align)
+		unsigned long size,
+		unsigned long align)
 {
 	u64 start, end;
 
 	if (md->type != EFI_CONVENTIONAL_MEMORY)
+	{
 		return 0;
+	}
 
 	start = round_up(md->phys_addr, align);
 	end = round_down(md->phys_addr + md->num_pages * EFI_PAGE_SIZE - size,
-			 align);
+					 align);
 
 	if (start > end)
+	{
 		return 0;
+	}
 
 	return (end - start + 1) / align;
 }
@@ -67,10 +75,10 @@ static unsigned long get_entry_num_slots(efi_memory_desc_t *md,
 #define MD_NUM_SLOTS(md)	((md)->virt_addr)
 
 efi_status_t efi_random_alloc(efi_system_table_t *sys_table_arg,
-			      unsigned long size,
-			      unsigned long align,
-			      unsigned long *addr,
-			      unsigned long random_seed)
+							  unsigned long size,
+							  unsigned long align,
+							  unsigned long *addr,
+							  unsigned long random_seed)
 {
 	unsigned long map_size, desc_size, total_slots = 0, target_slot;
 	unsigned long buff_size;
@@ -87,14 +95,20 @@ efi_status_t efi_random_alloc(efi_system_table_t *sys_table_arg,
 	map.buff_size =	&buff_size;
 
 	status = efi_get_memory_map(sys_table_arg, &map);
+
 	if (status != EFI_SUCCESS)
+	{
 		return status;
+	}
 
 	if (align < EFI_ALLOC_ALIGN)
+	{
 		align = EFI_ALLOC_ALIGN;
+	}
 
 	/* count the suitable slots in each memory map entry */
-	for (map_offset = 0; map_offset < map_size; map_offset += desc_size) {
+	for (map_offset = 0; map_offset < map_size; map_offset += desc_size)
+	{
 		efi_memory_desc_t *md = (void *)memory_map + map_offset;
 		unsigned long slots;
 
@@ -117,12 +131,14 @@ efi_status_t efi_random_alloc(efi_system_table_t *sys_table_arg,
 	 * to calculate the randomly chosen address, and allocate it directly
 	 * using EFI_ALLOCATE_ADDRESS.
 	 */
-	for (map_offset = 0; map_offset < map_size; map_offset += desc_size) {
+	for (map_offset = 0; map_offset < map_size; map_offset += desc_size)
+	{
 		efi_memory_desc_t *md = (void *)memory_map + map_offset;
 		efi_physical_addr_t target;
 		unsigned long pages;
 
-		if (target_slot >= MD_NUM_SLOTS(md)) {
+		if (target_slot >= MD_NUM_SLOTS(md))
+		{
 			target_slot -= MD_NUM_SLOTS(md);
 			continue;
 		}
@@ -131,9 +147,13 @@ efi_status_t efi_random_alloc(efi_system_table_t *sys_table_arg,
 		pages = round_up(size, EFI_PAGE_SIZE) / EFI_PAGE_SIZE;
 
 		status = efi_call_early(allocate_pages, EFI_ALLOCATE_ADDRESS,
-					EFI_LOADER_DATA, pages, &target);
+								EFI_LOADER_DATA, pages, &target);
+
 		if (status == EFI_SUCCESS)
+		{
 			*addr = target;
+		}
+
 		break;
 	}
 

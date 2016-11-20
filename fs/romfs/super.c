@@ -78,7 +78,8 @@
 
 static struct kmem_cache *romfs_inode_cachep;
 
-static const umode_t romfs_modemap[8] = {
+static const umode_t romfs_modemap[8] =
+{
 	0,			/* hard link */
 	S_IFDIR  | 0644,	/* directory */
 	S_IFREG  | 0644,	/* regular file */
@@ -89,7 +90,8 @@ static const umode_t romfs_modemap[8] = {
 	S_IFIFO  | 0644		/* FIFO */
 };
 
-static const unsigned char romfs_dtype_table[] = {
+static const unsigned char romfs_dtype_table[] =
+{
 	DT_UNKNOWN, DT_DIR, DT_REG, DT_LNK, DT_BLK, DT_CHR, DT_SOCK, DT_FIFO
 };
 
@@ -107,22 +109,29 @@ static int romfs_readpage(struct file *file, struct page *page)
 	int ret;
 
 	buf = kmap(page);
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	/* 32 bit warning -- but not for us :) */
 	offset = page_offset(page);
 	size = i_size_read(inode);
 	fillsize = 0;
 	ret = 0;
-	if (offset < size) {
+
+	if (offset < size)
+	{
 		size -= offset;
 		fillsize = size > PAGE_SIZE ? PAGE_SIZE : size;
 
 		pos = ROMFS_I(inode)->i_dataoffset + offset;
 
 		ret = romfs_dev_read(inode->i_sb, pos, buf, fillsize);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			SetPageError(page);
 			fillsize = 0;
 			ret = -EIO;
@@ -130,9 +139,14 @@ static int romfs_readpage(struct file *file, struct page *page)
 	}
 
 	if (fillsize < PAGE_SIZE)
+	{
 		memset(buf + fillsize, 0, PAGE_SIZE - fillsize);
+	}
+
 	if (ret == 0)
+	{
 		SetPageUptodate(page);
+	}
 
 	flush_dcache_page(page);
 	kunmap(page);
@@ -140,7 +154,8 @@ static int romfs_readpage(struct file *file, struct page *page)
 	return ret;
 }
 
-static const struct address_space_operations romfs_aops = {
+static const struct address_space_operations romfs_aops =
+{
 	.readpage	= romfs_readpage
 };
 
@@ -159,48 +174,74 @@ static int romfs_readdir(struct file *file, struct dir_context *ctx)
 	maxoff = romfs_maxsize(i->i_sb);
 
 	offset = ctx->pos;
-	if (!offset) {
+
+	if (!offset)
+	{
 		offset = i->i_ino & ROMFH_MASK;
 		ret = romfs_dev_read(i->i_sb, offset, &ri, ROMFH_SIZE);
+
 		if (ret < 0)
+		{
 			goto out;
+		}
+
 		offset = be32_to_cpu(ri.spec) & ROMFH_MASK;
 	}
 
 	/* Not really failsafe, but we are read-only... */
-	for (;;) {
-		if (!offset || offset >= maxoff) {
+	for (;;)
+	{
+		if (!offset || offset >= maxoff)
+		{
 			offset = maxoff;
 			ctx->pos = offset;
 			goto out;
 		}
+
 		ctx->pos = offset;
 
 		/* Fetch inode info */
 		ret = romfs_dev_read(i->i_sb, offset, &ri, ROMFH_SIZE);
+
 		if (ret < 0)
+		{
 			goto out;
+		}
 
 		j = romfs_dev_strnlen(i->i_sb, offset + ROMFH_SIZE,
-				      sizeof(fsname) - 1);
+							  sizeof(fsname) - 1);
+
 		if (j < 0)
+		{
 			goto out;
+		}
 
 		ret = romfs_dev_read(i->i_sb, offset + ROMFH_SIZE, fsname, j);
+
 		if (ret < 0)
+		{
 			goto out;
+		}
+
 		fsname[j] = '\0';
 
 		ino = offset;
 		nextfh = be32_to_cpu(ri.next);
+
 		if ((nextfh & ROMFH_TYPE) == ROMFH_HRD)
+		{
 			ino = be32_to_cpu(ri.spec);
+		}
+
 		if (!dir_emit(ctx, fsname, j, ino,
-			    romfs_dtype_table[nextfh & ROMFH_TYPE]))
+					  romfs_dtype_table[nextfh & ROMFH_TYPE]))
+		{
 			goto out;
+		}
 
 		offset = nextfh & ROMFH_MASK;
 	}
+
 out:
 	return 0;
 }
@@ -209,7 +250,7 @@ out:
  * look up an entry in a directory
  */
 static struct dentry *romfs_lookup(struct inode *dir, struct dentry *dentry,
-				   unsigned int flags)
+								   unsigned int flags)
 {
 	unsigned long offset, maxoff;
 	struct inode *inode;
@@ -219,8 +260,11 @@ static struct dentry *romfs_lookup(struct inode *dir, struct dentry *dentry,
 
 	offset = dir->i_ino & ROMFH_MASK;
 	ret = romfs_dev_read(dir->i_sb, offset, &ri, ROMFH_SIZE);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	/* search all the file entries in the list starting from the one
 	 * pointed to by the directory's special data */
@@ -230,21 +274,33 @@ static struct dentry *romfs_lookup(struct inode *dir, struct dentry *dentry,
 	name = dentry->d_name.name;
 	len = dentry->d_name.len;
 
-	for (;;) {
+	for (;;)
+	{
 		if (!offset || offset >= maxoff)
+		{
 			goto out0;
+		}
 
 		ret = romfs_dev_read(dir->i_sb, offset, &ri, sizeof(ri));
+
 		if (ret < 0)
+		{
 			goto error;
+		}
 
 		/* try to match the first 16 bytes of name */
 		ret = romfs_dev_strcmp(dir->i_sb, offset + ROMFH_SIZE, name,
-				       len);
+							   len);
+
 		if (ret < 0)
+		{
 			goto error;
+		}
+
 		if (ret == 1)
+		{
 			break;
+		}
 
 		/* next entry */
 		offset = be32_to_cpu(ri.next) & ROMFH_MASK;
@@ -252,13 +308,18 @@ static struct dentry *romfs_lookup(struct inode *dir, struct dentry *dentry,
 
 	/* Hard link handling */
 	if ((be32_to_cpu(ri.next) & ROMFH_TYPE) == ROMFH_HRD)
+	{
 		offset = be32_to_cpu(ri.spec) & ROMFH_MASK;
+	}
 
 	inode = romfs_iget(dir->i_sb, offset);
-	if (IS_ERR(inode)) {
+
+	if (IS_ERR(inode))
+	{
 		ret = PTR_ERR(inode);
 		goto error;
 	}
+
 	goto outi;
 
 	/*
@@ -278,13 +339,15 @@ error:
 	return ERR_PTR(ret);
 }
 
-static const struct file_operations romfs_dir_operations = {
+static const struct file_operations romfs_dir_operations =
+{
 	.read		= generic_read_dir,
 	.iterate_shared	= romfs_readdir,
 	.llseek		= generic_file_llseek,
 };
 
-static const struct inode_operations romfs_dir_inode_operations = {
+static const struct inode_operations romfs_dir_inode_operations =
+{
 	.lookup		= romfs_lookup,
 };
 
@@ -304,32 +367,47 @@ static struct inode *romfs_iget(struct super_block *sb, unsigned long pos)
 
 	/* we might have to traverse a chain of "hard link" file entries to get
 	 * to the actual file */
-	for (;;) {
+	for (;;)
+	{
 		ret = romfs_dev_read(sb, pos, &ri, sizeof(ri));
+
 		if (ret < 0)
+		{
 			goto error;
+		}
 
 		/* XXX: do romfs_checksum here too (with name) */
 
 		nextfh = be32_to_cpu(ri.next);
+
 		if ((nextfh & ROMFH_TYPE) != ROMFH_HRD)
+		{
 			break;
+		}
 
 		pos = be32_to_cpu(ri.spec) & ROMFH_MASK;
 	}
 
 	/* determine the length of the filename */
 	nlen = romfs_dev_strnlen(sb, pos + ROMFH_SIZE, ROMFS_MAXFN);
+
 	if (IS_ERR_VALUE(nlen))
+	{
 		goto eio;
+	}
 
 	/* get an inode for this image position */
 	i = iget_locked(sb, pos);
+
 	if (!i)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	if (!(i->i_state & I_NEW))
+	{
 		return i;
+	}
 
 	/* precalculate the data offset */
 	inode = ROMFS_I(i);
@@ -344,32 +422,44 @@ static struct inode *romfs_iget(struct super_block *sb, unsigned long pos)
 	/* set up mode and ops */
 	mode = romfs_modemap[nextfh & ROMFH_TYPE];
 
-	switch (nextfh & ROMFH_TYPE) {
-	case ROMFH_DIR:
-		i->i_size = ROMFS_I(i)->i_metasize;
-		i->i_op = &romfs_dir_inode_operations;
-		i->i_fop = &romfs_dir_operations;
-		if (nextfh & ROMFH_EXEC)
-			mode |= S_IXUGO;
-		break;
-	case ROMFH_REG:
-		i->i_fop = &romfs_ro_fops;
-		i->i_data.a_ops = &romfs_aops;
-		if (nextfh & ROMFH_EXEC)
-			mode |= S_IXUGO;
-		break;
-	case ROMFH_SYM:
-		i->i_op = &page_symlink_inode_operations;
-		inode_nohighmem(i);
-		i->i_data.a_ops = &romfs_aops;
-		mode |= S_IRWXUGO;
-		break;
-	default:
-		/* depending on MBZ for sock/fifos */
-		nextfh = be32_to_cpu(ri.spec);
-		init_special_inode(i, mode, MKDEV(nextfh >> 16,
-						  nextfh & 0xffff));
-		break;
+	switch (nextfh & ROMFH_TYPE)
+	{
+		case ROMFH_DIR:
+			i->i_size = ROMFS_I(i)->i_metasize;
+			i->i_op = &romfs_dir_inode_operations;
+			i->i_fop = &romfs_dir_operations;
+
+			if (nextfh & ROMFH_EXEC)
+			{
+				mode |= S_IXUGO;
+			}
+
+			break;
+
+		case ROMFH_REG:
+			i->i_fop = &romfs_ro_fops;
+			i->i_data.a_ops = &romfs_aops;
+
+			if (nextfh & ROMFH_EXEC)
+			{
+				mode |= S_IXUGO;
+			}
+
+			break;
+
+		case ROMFH_SYM:
+			i->i_op = &page_symlink_inode_operations;
+			inode_nohighmem(i);
+			i->i_data.a_ops = &romfs_aops;
+			mode |= S_IRWXUGO;
+			break;
+
+		default:
+			/* depending on MBZ for sock/fifos */
+			nextfh = be32_to_cpu(ri.spec);
+			init_special_inode(i, mode, MKDEV(nextfh >> 16,
+											  nextfh & 0xffff));
+			break;
 	}
 
 	i->i_mode = mode;
@@ -439,7 +529,8 @@ static int romfs_remount(struct super_block *sb, int *flags, char *data)
 	return 0;
 }
 
-static const struct super_operations romfs_super_ops = {
+static const struct super_operations romfs_super_ops =
+{
 	.alloc_inode	= romfs_alloc_inode,
 	.destroy_inode	= romfs_destroy_inode,
 	.statfs		= romfs_statfs,
@@ -456,10 +547,13 @@ static __u32 romfs_checksum(const void *data, int size)
 
 	sum = 0;
 	size >>= 2;
-	while (size > 0) {
+
+	while (size > 0)
+	{
 		sum += be32_to_cpu(*ptr++);
 		size--;
 	}
+
 	return sum;
 }
 
@@ -476,12 +570,17 @@ static int romfs_fill_super(struct super_block *sb, void *data, int silent)
 	int ret;
 
 #ifdef CONFIG_BLOCK
-	if (!sb->s_mtd) {
+
+	if (!sb->s_mtd)
+	{
 		sb_set_blocksize(sb, ROMBSIZE);
-	} else {
+	}
+	else
+	{
 		sb->s_blocksize = ROMBSIZE;
 		sb->s_blocksize_bits = blksize_bits(ROMBSIZE);
 	}
+
 #endif
 
 	sb->s_maxbytes = 0xFFFFFFFF;
@@ -491,30 +590,41 @@ static int romfs_fill_super(struct super_block *sb, void *data, int silent)
 
 	/* read the image superblock and check it */
 	rsb = kmalloc(512, GFP_KERNEL);
+
 	if (!rsb)
+	{
 		return -ENOMEM;
+	}
 
 	sb->s_fs_info = (void *) 512;
 	ret = romfs_dev_read(sb, 0, rsb, 512);
+
 	if (ret < 0)
+	{
 		goto error_rsb;
+	}
 
 	img_size = be32_to_cpu(rsb->size);
 
 	if (sb->s_mtd && img_size > sb->s_mtd->size)
+	{
 		goto error_rsb_inval;
+	}
 
 	sb->s_fs_info = (void *) img_size;
 
 	if (rsb->word0 != ROMSB_WORD0 || rsb->word1 != ROMSB_WORD1 ||
-	    img_size < ROMFH_SIZE) {
+		img_size < ROMFH_SIZE)
+	{
 		if (!silent)
 			pr_warn("VFS: Can't find a romfs filesystem on dev %s.\n",
-			       sb->s_id);
+					sb->s_id);
+
 		goto error_rsb_inval;
 	}
 
-	if (romfs_checksum(rsb, min_t(size_t, img_size, 512))) {
+	if (romfs_checksum(rsb, min_t(size_t, img_size, 512)))
+	{
 		pr_err("bad initial checksum on dev %s.\n", sb->s_id);
 		goto error_rsb_inval;
 	}
@@ -522,9 +632,10 @@ static int romfs_fill_super(struct super_block *sb, void *data, int silent)
 	storage = sb->s_mtd ? "MTD" : "the block layer";
 
 	len = strnlen(rsb->name, ROMFS_MAXFN);
+
 	if (!silent)
 		pr_notice("Mounting image '%*.*s' through %s\n",
-			  (unsigned) len, (unsigned) len, rsb->name, storage);
+				  (unsigned) len, (unsigned) len, rsb->name, storage);
 
 	kfree(rsb);
 	rsb = NULL;
@@ -533,12 +644,18 @@ static int romfs_fill_super(struct super_block *sb, void *data, int silent)
 	pos = (ROMFH_SIZE + len + 1 + ROMFH_PAD) & ROMFH_MASK;
 
 	root = romfs_iget(sb, pos);
+
 	if (IS_ERR(root))
+	{
 		return PTR_ERR(root);
+	}
 
 	sb->s_root = d_make_root(root);
+
 	if (!sb->s_root)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 
@@ -553,8 +670,8 @@ error_rsb:
  * get a superblock for mounting
  */
 static struct dentry *romfs_mount(struct file_system_type *fs_type,
-			int flags, const char *dev_name,
-			void *data)
+								  int flags, const char *dev_name,
+								  void *data)
 {
 	struct dentry *ret = ERR_PTR(-EINVAL);
 
@@ -562,9 +679,11 @@ static struct dentry *romfs_mount(struct file_system_type *fs_type,
 	ret = mount_mtd(fs_type, flags, dev_name, data, romfs_fill_super);
 #endif
 #ifdef CONFIG_ROMFS_ON_BLOCK
+
 	if (ret == ERR_PTR(-EINVAL))
 		ret = mount_bdev(fs_type, flags, dev_name, data,
-				  romfs_fill_super);
+						 romfs_fill_super);
+
 #endif
 	return ret;
 }
@@ -575,20 +694,27 @@ static struct dentry *romfs_mount(struct file_system_type *fs_type,
 static void romfs_kill_sb(struct super_block *sb)
 {
 #ifdef CONFIG_ROMFS_ON_MTD
-	if (sb->s_mtd) {
+
+	if (sb->s_mtd)
+	{
 		kill_mtd_super(sb);
 		return;
 	}
+
 #endif
 #ifdef CONFIG_ROMFS_ON_BLOCK
-	if (sb->s_bdev) {
+
+	if (sb->s_bdev)
+	{
 		kill_block_super(sb);
 		return;
 	}
+
 #endif
 }
 
-static struct file_system_type romfs_fs_type = {
+static struct file_system_type romfs_fs_type =
+{
 	.owner		= THIS_MODULE,
 	.name		= "romfs",
 	.mount		= romfs_mount,
@@ -618,19 +744,24 @@ static int __init init_romfs_fs(void)
 
 	romfs_inode_cachep =
 		kmem_cache_create("romfs_i",
-				  sizeof(struct romfs_inode_info), 0,
-				  SLAB_RECLAIM_ACCOUNT | SLAB_MEM_SPREAD |
-				  SLAB_ACCOUNT, romfs_i_init_once);
+						  sizeof(struct romfs_inode_info), 0,
+						  SLAB_RECLAIM_ACCOUNT | SLAB_MEM_SPREAD |
+						  SLAB_ACCOUNT, romfs_i_init_once);
 
-	if (!romfs_inode_cachep) {
+	if (!romfs_inode_cachep)
+	{
 		pr_err("Failed to initialise inode cache\n");
 		return -ENOMEM;
 	}
+
 	ret = register_filesystem(&romfs_fs_type);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Failed to register filesystem\n");
 		goto error_register;
 	}
+
 	return 0;
 
 error_register:

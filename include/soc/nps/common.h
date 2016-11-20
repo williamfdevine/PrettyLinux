@@ -34,7 +34,7 @@
 #define SOC_NPS_COMMON_H
 
 #ifdef CONFIG_SMP
-#define NPS_IPI_IRQ					5
+	#define NPS_IPI_IRQ					5
 #endif
 
 #define NPS_HOST_REG_BASE			0xF6000000
@@ -52,10 +52,10 @@
 static inline void nps_ack_gic(void)
 {
 	__asm__ __volatile__ (
-	"       .word %0\n"
-	:
-	: "i"(CTOP_INST_RSPI_GIC_0_R12)
-	: "memory");
+		"       .word %0\n"
+		:
+		: "i"(CTOP_INST_RSPI_GIC_0_R12)
+		: "memory");
 }
 #else
 static inline void nps_ack_gic(void) { }
@@ -64,13 +64,16 @@ static inline void nps_ack_gic(void) { }
 #endif
 
 /* CPU global ID */
-struct global_id {
-	union {
-		struct {
+struct global_id
+{
+	union
+	{
+		struct
+		{
 #ifdef CONFIG_EZNPS_MTM_EXT
-			u32 __reserved:20, cluster:4, core:4, thread:4;
+			u32 __reserved: 20, cluster: 4, core: 4, thread: 4;
 #else
-			u32 __reserved:24, cluster:4, core:4;
+			u32 __reserved: 24, cluster: 4, core: 4;
 #endif
 		};
 		u32 value;
@@ -100,15 +103,15 @@ struct global_id {
 static inline int nps_cluster_logic_to_phys(int cluster)
 {
 #ifdef __arc__
-	 __asm__ __volatile__(
-	"       mov r3,%0\n"
-	"       .short %1\n"
-	"       .word %2\n"
-	"       mov %0,r3\n"
-	: "+r"(cluster)
-	: "i"(CTOP_INST_MOV2B_FLIP_R3_B1_B2_INST),
-	  "i"(CTOP_INST_MOV2B_FLIP_R3_B1_B2_LIMM)
-	: "r3");
+	__asm__ __volatile__(
+		"       mov r3,%0\n"
+		"       .short %1\n"
+		"       .word %2\n"
+		"       mov %0,r3\n"
+		: "+r"(cluster)
+		: "i"(CTOP_INST_MOV2B_FLIP_R3_B1_B2_INST),
+		"i"(CTOP_INST_MOV2B_FLIP_R3_B1_B2_LIMM)
+		: "r3");
 #endif
 
 	return cluster;
@@ -118,20 +121,26 @@ static inline int nps_cluster_logic_to_phys(int cluster)
 	({ struct global_id gid; gid.value = cpu; \
 		nps_cluster_logic_to_phys(gid.cluster); })
 
-struct nps_host_reg_address {
-	union {
-		struct {
-			u32 base:8, cl_x:4, cl_y:4,
-			blkid:6, reg:8, __reserved:2;
+struct nps_host_reg_address
+{
+	union
+	{
+		struct
+		{
+			u32 base: 8, cl_x: 4, cl_y: 4,
+				blkid: 6, reg: 8, __reserved: 2;
 		};
 		u32 value;
 	};
 };
 
-struct nps_host_reg_address_non_cl {
-	union {
-		struct {
-			u32 base:7, blkid:11, reg:12, __reserved:2;
+struct nps_host_reg_address_non_cl
+{
+	union
+	{
+		struct
+		{
+			u32 base: 7, blkid: 11, reg: 12, __reserved: 2;
 		};
 		u32 value;
 	};

@@ -66,7 +66,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-struct c67x00_hcd {
+struct c67x00_hcd
+{
 	spinlock_t lock;
 	struct c67x00_sie *sie;
 	unsigned int low_speed_ports;	/* bitmask of low speed ports */
@@ -121,7 +122,7 @@ void c67x00_hcd_remove(struct c67x00_sie *sie);
 int c67x00_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_flags);
 int c67x00_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status);
 void c67x00_endpoint_disable(struct usb_hcd *hcd,
-			     struct usb_host_endpoint *ep);
+							 struct usb_host_endpoint *ep);
 
 void c67x00_hcd_msg_received(struct c67x00_sie *sie, u16 msg);
 void c67x00_sched_kick(struct c67x00_hcd *c67x00);

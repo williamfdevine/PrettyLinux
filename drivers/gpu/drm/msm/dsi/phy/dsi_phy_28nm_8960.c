@@ -15,34 +15,34 @@
 #include "dsi.xml.h"
 
 static void dsi_28nm_dphy_set_timing(struct msm_dsi_phy *phy,
-		struct msm_dsi_dphy_timing *timing)
+									 struct msm_dsi_dphy_timing *timing)
 {
 	void __iomem *base = phy->base;
 
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_TIMING_CTRL_0,
-		DSI_28nm_8960_PHY_TIMING_CTRL_0_CLK_ZERO(timing->clk_zero));
+				  DSI_28nm_8960_PHY_TIMING_CTRL_0_CLK_ZERO(timing->clk_zero));
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_TIMING_CTRL_1,
-		DSI_28nm_8960_PHY_TIMING_CTRL_1_CLK_TRAIL(timing->clk_trail));
+				  DSI_28nm_8960_PHY_TIMING_CTRL_1_CLK_TRAIL(timing->clk_trail));
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_TIMING_CTRL_2,
-		DSI_28nm_8960_PHY_TIMING_CTRL_2_CLK_PREPARE(timing->clk_prepare));
+				  DSI_28nm_8960_PHY_TIMING_CTRL_2_CLK_PREPARE(timing->clk_prepare));
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_TIMING_CTRL_3, 0x0);
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_TIMING_CTRL_4,
-		DSI_28nm_8960_PHY_TIMING_CTRL_4_HS_EXIT(timing->hs_exit));
+				  DSI_28nm_8960_PHY_TIMING_CTRL_4_HS_EXIT(timing->hs_exit));
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_TIMING_CTRL_5,
-		DSI_28nm_8960_PHY_TIMING_CTRL_5_HS_ZERO(timing->hs_zero));
+				  DSI_28nm_8960_PHY_TIMING_CTRL_5_HS_ZERO(timing->hs_zero));
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_TIMING_CTRL_6,
-		DSI_28nm_8960_PHY_TIMING_CTRL_6_HS_PREPARE(timing->hs_prepare));
+				  DSI_28nm_8960_PHY_TIMING_CTRL_6_HS_PREPARE(timing->hs_prepare));
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_TIMING_CTRL_7,
-		DSI_28nm_8960_PHY_TIMING_CTRL_7_HS_TRAIL(timing->hs_trail));
+				  DSI_28nm_8960_PHY_TIMING_CTRL_7_HS_TRAIL(timing->hs_trail));
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_TIMING_CTRL_8,
-		DSI_28nm_8960_PHY_TIMING_CTRL_8_HS_RQST(timing->hs_rqst));
+				  DSI_28nm_8960_PHY_TIMING_CTRL_8_HS_RQST(timing->hs_rqst));
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_TIMING_CTRL_9,
-		DSI_28nm_8960_PHY_TIMING_CTRL_9_TA_GO(timing->ta_go) |
-		DSI_28nm_8960_PHY_TIMING_CTRL_9_TA_SURE(timing->ta_sure));
+				  DSI_28nm_8960_PHY_TIMING_CTRL_9_TA_GO(timing->ta_go) |
+				  DSI_28nm_8960_PHY_TIMING_CTRL_9_TA_SURE(timing->ta_sure));
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_TIMING_CTRL_10,
-		DSI_28nm_8960_PHY_TIMING_CTRL_10_TA_GET(timing->ta_get));
+				  DSI_28nm_8960_PHY_TIMING_CTRL_10_TA_GET(timing->ta_get));
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_TIMING_CTRL_11,
-		DSI_28nm_8960_PHY_TIMING_CTRL_11_TRIG3_CMD(0));
+				  DSI_28nm_8960_PHY_TIMING_CTRL_11_TRIG3_CMD(0));
 }
 
 static void dsi_28nm_phy_regulator_init(struct msm_dsi_phy *phy)
@@ -54,7 +54,7 @@ static void dsi_28nm_phy_regulator_init(struct msm_dsi_phy *phy)
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_MISC_REGULATOR_CTRL_2, 1);
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_MISC_REGULATOR_CTRL_3, 0);
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_MISC_REGULATOR_CTRL_4,
-		0x100);
+				  0x100);
 }
 
 static void dsi_28nm_phy_regulator_ctrl(struct msm_dsi_phy *phy)
@@ -75,7 +75,7 @@ static void dsi_28nm_phy_calibration(struct msm_dsi_phy *phy)
 	int i = 5000;
 
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_MISC_REGULATOR_CAL_PWR_CFG,
-			0x3);
+				  0x3);
 
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_MISC_CAL_SW_CFG_2, 0x0);
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_MISC_CAL_HW_CFG_1, 0x5a);
@@ -87,15 +87,19 @@ static void dsi_28nm_phy_calibration(struct msm_dsi_phy *phy)
 	usleep_range(5000, 6000);
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_MISC_CAL_HW_TRIGGER, 0x0);
 
-	do {
+	do
+	{
 		status = dsi_phy_read(base +
-				REG_DSI_28nm_8960_PHY_MISC_CAL_STATUS);
+							  REG_DSI_28nm_8960_PHY_MISC_CAL_STATUS);
 
 		if (!(status & DSI_28nm_8960_PHY_MISC_CAL_STATUS_CAL_BUSY))
+		{
 			break;
+		}
 
 		udelay(1);
-	} while (--i > 0);
+	}
+	while (--i > 0);
 }
 
 static void dsi_28nm_phy_lane_config(struct msm_dsi_phy *phy)
@@ -103,16 +107,17 @@ static void dsi_28nm_phy_lane_config(struct msm_dsi_phy *phy)
 	void __iomem *base = phy->base;
 	int i;
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		dsi_phy_write(base + REG_DSI_28nm_8960_PHY_LN_CFG_0(i), 0x80);
 		dsi_phy_write(base + REG_DSI_28nm_8960_PHY_LN_CFG_1(i), 0x45);
 		dsi_phy_write(base + REG_DSI_28nm_8960_PHY_LN_CFG_2(i), 0x00);
 		dsi_phy_write(base + REG_DSI_28nm_8960_PHY_LN_TEST_DATAPATH(i),
-			0x00);
+					  0x00);
 		dsi_phy_write(base + REG_DSI_28nm_8960_PHY_LN_TEST_STR_0(i),
-			0x01);
+					  0x01);
 		dsi_phy_write(base + REG_DSI_28nm_8960_PHY_LN_TEST_STR_1(i),
-			0x66);
+					  0x66);
 	}
 
 	dsi_phy_write(base + REG_DSI_28nm_8960_PHY_LNCK_CFG_0, 0x40);
@@ -124,16 +129,17 @@ static void dsi_28nm_phy_lane_config(struct msm_dsi_phy *phy)
 }
 
 static int dsi_28nm_phy_enable(struct msm_dsi_phy *phy, int src_pll_id,
-		const unsigned long bit_rate, const unsigned long esc_rate)
+							   const unsigned long bit_rate, const unsigned long esc_rate)
 {
 	struct msm_dsi_dphy_timing *timing = &phy->timing;
 	void __iomem *base = phy->base;
 
 	DBG("");
 
-	if (msm_dsi_dphy_timing_calc(timing, bit_rate, esc_rate)) {
+	if (msm_dsi_dphy_timing_calc(timing, bit_rate, esc_rate))
+	{
 		dev_err(&phy->pdev->dev,
-			"%s: D-PHY timing calculation failed\n", __func__);
+				"%s: D-PHY timing calculation failed\n", __func__);
 		return -EINVAL;
 	}
 
@@ -179,7 +185,8 @@ static void dsi_28nm_phy_disable(struct msm_dsi_phy *phy)
 	wmb();
 }
 
-const struct msm_dsi_phy_cfg dsi_phy_28nm_8960_cfgs = {
+const struct msm_dsi_phy_cfg dsi_phy_28nm_8960_cfgs =
+{
 	.type = MSM_DSI_PHY_28NM_8960,
 	.src_pll_truthtable = { {true, true}, {false, true} },
 	.reg_cfg = {

@@ -5,7 +5,8 @@
 
 #include "nouveau_display.h"
 
-enum nv04_fp_display_regs {
+enum nv04_fp_display_regs
+{
 	FP_DISPLAY_END,
 	FP_TOTAL,
 	FP_CRTC,
@@ -15,7 +16,8 @@ enum nv04_fp_display_regs {
 	FP_VALID_END
 };
 
-struct nv04_crtc_reg {
+struct nv04_crtc_reg
+{
 	unsigned char MiscOutReg;
 	uint8_t CRTC[0xa0];
 	uint8_t CR58[0x10];
@@ -64,18 +66,21 @@ struct nv04_crtc_reg {
 	uint32_t ctv_regs[38];
 };
 
-struct nv04_output_reg {
+struct nv04_output_reg
+{
 	uint32_t output;
 	int head;
 };
 
-struct nv04_mode_state {
+struct nv04_mode_state
+{
 	struct nv04_crtc_reg crtc_reg[2];
 	uint32_t pllsel;
 	uint32_t sel_clk;
 };
 
-struct nv04_display {
+struct nv04_display
+{
 	struct nv04_mode_state mode_reg;
 	struct nv04_mode_state saved_reg;
 	uint32_t saved_vga_font[4][16384];
@@ -109,7 +114,7 @@ bool nv04_dac_in_use(struct drm_encoder *encoder);
 int nv04_dfp_create(struct drm_connector *, struct dcb_output *);
 int nv04_dfp_get_bound_head(struct drm_device *dev, struct dcb_output *dcbent);
 void nv04_dfp_bind_head(struct drm_device *dev, struct dcb_output *dcbent,
-			       int head, bool dl);
+						int head, bool dl);
 void nv04_dfp_disable(struct drm_device *dev, int head);
 void nv04_dfp_update_fp_control(struct drm_encoder *encoder, int mode);
 
@@ -130,8 +135,10 @@ nv_two_heads(struct drm_device *dev)
 	const int impl = dev->pdev->device & 0x0ff0;
 
 	if (drm->device.info.family >= NV_DEVICE_INFO_V0_CELSIUS && impl != 0x0100 &&
-	    impl != 0x0150 && impl != 0x01a0 && impl != 0x0200)
+		impl != 0x0150 && impl != 0x01a0 && impl != 0x0200)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -149,17 +156,20 @@ nv_two_reg_pll(struct drm_device *dev)
 	const int impl = dev->pdev->device & 0x0ff0;
 
 	if (impl == 0x0310 || impl == 0x0340 || drm->device.info.family >= NV_DEVICE_INFO_V0_CURIE)
+	{
 		return true;
+	}
+
 	return false;
 }
 
 static inline bool
 nv_match_device(struct drm_device *dev, unsigned device,
-		unsigned sub_vendor, unsigned sub_device)
+				unsigned sub_vendor, unsigned sub_device)
 {
 	return dev->pdev->device == device &&
-		dev->pdev->subsystem_vendor == sub_vendor &&
-		dev->pdev->subsystem_device == sub_device;
+		   dev->pdev->subsystem_vendor == sub_vendor &&
+		   dev->pdev->subsystem_device == sub_device;
 }
 
 #include <subdev/bios.h>
@@ -167,11 +177,12 @@ nv_match_device(struct drm_device *dev, unsigned device,
 
 static inline void
 nouveau_bios_run_init_table(struct drm_device *dev, u16 table,
-			    struct dcb_output *outp, int crtc)
+							struct dcb_output *outp, int crtc)
 {
 	struct nouveau_drm *drm = nouveau_drm(dev);
 	struct nvkm_bios *bios = nvxx_bios(&drm->device);
-	struct nvbios_init init = {
+	struct nvbios_init init =
+	{
 		.subdev = &bios->subdev,
 		.bios = bios,
 		.offset = table,

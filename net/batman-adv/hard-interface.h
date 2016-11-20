@@ -30,7 +30,8 @@
 struct net_device;
 struct net;
 
-enum batadv_hard_if_state {
+enum batadv_hard_if_state
+{
 	BATADV_IF_NOT_IN_USE,
 	BATADV_IF_TO_BE_REMOVED,
 	BATADV_IF_INACTIVE,
@@ -44,7 +45,8 @@ enum batadv_hard_if_state {
  * @BATADV_IF_CLEANUP_KEEP: Don't automatically delete soft-interface
  * @BATADV_IF_CLEANUP_AUTO: Delete soft-interface after last slave was removed
  */
-enum batadv_hard_if_cleanup {
+enum batadv_hard_if_cleanup
+{
 	BATADV_IF_CLEANUP_KEEP,
 	BATADV_IF_CLEANUP_AUTO,
 };
@@ -53,12 +55,12 @@ extern struct notifier_block batadv_hard_if_notifier;
 
 bool batadv_is_wifi_netdev(struct net_device *net_device);
 bool batadv_is_wifi_iface(int ifindex);
-struct batadv_hard_iface*
+struct batadv_hard_iface *
 batadv_hardif_get_by_netdev(const struct net_device *net_dev);
 int batadv_hardif_enable_interface(struct batadv_hard_iface *hard_iface,
-				   struct net *net, const char *iface_name);
+								   struct net *net, const char *iface_name);
 void batadv_hardif_disable_interface(struct batadv_hard_iface *hard_iface,
-				     enum batadv_hard_if_cleanup autodel);
+									 enum batadv_hard_if_cleanup autodel);
 void batadv_hardif_remove_interfaces(void);
 int batadv_hardif_min_mtu(struct net_device *soft_iface);
 void batadv_update_min_mtu(struct net_device *soft_iface);
@@ -81,11 +83,16 @@ batadv_primary_if_get_selected(struct batadv_priv *bat_priv)
 
 	rcu_read_lock();
 	hard_iface = rcu_dereference(bat_priv->primary_if);
+
 	if (!hard_iface)
+	{
 		goto out;
+	}
 
 	if (!kref_get_unless_zero(&hard_iface->refcount))
+	{
 		hard_iface = NULL;
+	}
 
 out:
 	rcu_read_unlock();

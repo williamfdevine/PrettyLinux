@@ -60,9 +60,13 @@ static void meson6_clkevt_time_start(unsigned char timer, bool periodic)
 	u32 val = readl(timer_base + TIMER_ISA_MUX);
 
 	if (periodic)
+	{
 		val |= TIMER_PERIODIC_BIT(timer);
+	}
 	else
+	{
 		val &= ~TIMER_PERIODIC_BIT(timer);
+	}
 
 	writel(val | TIMER_ENABLE_BIT(timer), timer_base + TIMER_ISA_MUX);
 }
@@ -89,7 +93,7 @@ static int meson6_set_periodic(struct clock_event_device *evt)
 }
 
 static int meson6_clkevt_next_event(unsigned long evt,
-				    struct clock_event_device *unused)
+									struct clock_event_device *unused)
 {
 	meson6_clkevt_time_stop(CED_ID);
 	meson6_clkevt_time_setup(CED_ID, evt);
@@ -98,11 +102,12 @@ static int meson6_clkevt_next_event(unsigned long evt,
 	return 0;
 }
 
-static struct clock_event_device meson6_clockevent = {
+static struct clock_event_device meson6_clockevent =
+{
 	.name			= "meson6_tick",
 	.rating			= 400,
 	.features		= CLOCK_EVT_FEAT_PERIODIC |
-				  CLOCK_EVT_FEAT_ONESHOT,
+	CLOCK_EVT_FEAT_ONESHOT,
 	.set_state_shutdown	= meson6_shutdown,
 	.set_state_periodic	= meson6_set_periodic,
 	.set_state_oneshot	= meson6_set_oneshot,
@@ -119,7 +124,8 @@ static irqreturn_t meson6_timer_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction meson6_timer_irq = {
+static struct irqaction meson6_timer_irq =
+{
 	.name		= "meson6_timer",
 	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
 	.handler	= meson6_timer_interrupt,
@@ -132,13 +138,17 @@ static int __init meson6_timer_init(struct device_node *node)
 	int ret, irq;
 
 	timer_base = of_io_request_and_map(node, 0, "meson6-timer");
-	if (IS_ERR(timer_base)) {
+
+	if (IS_ERR(timer_base))
+	{
 		pr_err("Can't map registers");
 		return -ENXIO;
 	}
 
 	irq = irq_of_parse_and_map(node, 0);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		pr_err("Can't parse IRQ");
 		return -EINVAL;
 	}
@@ -151,7 +161,7 @@ static int __init meson6_timer_init(struct device_node *node)
 
 	sched_clock_register(meson6_timer_sched_read, 32, USEC_PER_SEC);
 	clocksource_mmio_init(timer_base + TIMER_ISA_VAL(CSD_ID), node->name,
-			      1000 * 1000, 300, 32, clocksource_mmio_readl_up);
+						  1000 * 1000, 300, 32, clocksource_mmio_readl_up);
 
 	/* Timer A base 1us */
 	val &= ~TIMER_CED_INPUT_MASK;
@@ -162,7 +172,9 @@ static int __init meson6_timer_init(struct device_node *node)
 	meson6_clkevt_time_stop(CED_ID);
 
 	ret = setup_irq(irq, &meson6_timer_irq);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_warn("failed to setup irq %d\n", irq);
 		return ret;
 	}
@@ -171,8 +183,8 @@ static int __init meson6_timer_init(struct device_node *node)
 	meson6_clockevent.irq = irq;
 
 	clockevents_config_and_register(&meson6_clockevent, USEC_PER_SEC,
-					1, 0xfffe);
+									1, 0xfffe);
 	return 0;
 }
 CLOCKSOURCE_OF_DECLARE(meson6, "amlogic,meson6-timer",
-		       meson6_timer_init);
+					   meson6_timer_init);

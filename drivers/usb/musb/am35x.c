@@ -83,7 +83,8 @@
 
 #define USB_MENTOR_CORE_OFFSET	0x400
 
-struct am35x_glue {
+struct am35x_glue
+{
 	struct device		*dev;
 	struct platform_device	*musb;
 	struct platform_device	*phy;
@@ -101,14 +102,14 @@ static void am35x_musb_enable(struct musb *musb)
 
 	/* Workaround: setup IRQs through both register sets. */
 	epmask = ((musb->epmask & AM35X_TX_EP_MASK) << AM35X_INTR_TX_SHIFT) |
-	       ((musb->epmask & AM35X_RX_EP_MASK) << AM35X_INTR_RX_SHIFT);
+			 ((musb->epmask & AM35X_RX_EP_MASK) << AM35X_INTR_RX_SHIFT);
 
 	musb_writel(reg_base, EP_INTR_MASK_SET_REG, epmask);
 	musb_writel(reg_base, CORE_INTR_MASK_SET_REG, AM35X_INTR_USB_MASK);
 
 	/* Force the DRVVBUS IRQ so we can start polling for ID change. */
 	musb_writel(reg_base, CORE_INTR_SRC_SET_REG,
-			AM35X_INTR_DRVVBUS << AM35X_INTR_USB_SHIFT);
+				AM35X_INTR_DRVVBUS << AM35X_INTR_USB_SHIFT);
 }
 
 /*
@@ -120,7 +121,7 @@ static void am35x_musb_disable(struct musb *musb)
 
 	musb_writel(reg_base, CORE_INTR_MASK_CLEAR_REG, AM35X_INTR_USB_MASK);
 	musb_writel(reg_base, EP_INTR_MASK_CLEAR_REG,
-			 AM35X_TX_INTR_MASK | AM35X_RX_INTR_MASK);
+				AM35X_TX_INTR_MASK | AM35X_RX_INTR_MASK);
 	musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
 	musb_writel(reg_base, USB_END_OF_INTR_REG, 0);
 }
@@ -149,38 +150,55 @@ static void otg_timer(unsigned long _musb)
 	 */
 	devctl = musb_readb(mregs, MUSB_DEVCTL);
 	dev_dbg(musb->controller, "Poll devctl %02x (%s)\n", devctl,
-		usb_otg_state_string(musb->xceiv->otg->state));
+			usb_otg_state_string(musb->xceiv->otg->state));
 
 	spin_lock_irqsave(&musb->lock, flags);
-	switch (musb->xceiv->otg->state) {
-	case OTG_STATE_A_WAIT_BCON:
-		devctl &= ~MUSB_DEVCTL_SESSION;
-		musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
 
-		devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
-		if (devctl & MUSB_DEVCTL_BDEVICE) {
-			musb->xceiv->otg->state = OTG_STATE_B_IDLE;
-			MUSB_DEV_MODE(musb);
-		} else {
-			musb->xceiv->otg->state = OTG_STATE_A_IDLE;
-			MUSB_HST_MODE(musb);
-		}
-		break;
-	case OTG_STATE_A_WAIT_VFALL:
-		musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
-		musb_writel(musb->ctrl_base, CORE_INTR_SRC_SET_REG,
-			    MUSB_INTR_VBUSERROR << AM35X_INTR_USB_SHIFT);
-		break;
-	case OTG_STATE_B_IDLE:
-		devctl = musb_readb(mregs, MUSB_DEVCTL);
-		if (devctl & MUSB_DEVCTL_BDEVICE)
-			mod_timer(&otg_workaround, jiffies + POLL_SECONDS * HZ);
-		else
-			musb->xceiv->otg->state = OTG_STATE_A_IDLE;
-		break;
-	default:
-		break;
+	switch (musb->xceiv->otg->state)
+	{
+		case OTG_STATE_A_WAIT_BCON:
+			devctl &= ~MUSB_DEVCTL_SESSION;
+			musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
+
+			devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
+
+			if (devctl & MUSB_DEVCTL_BDEVICE)
+			{
+				musb->xceiv->otg->state = OTG_STATE_B_IDLE;
+				MUSB_DEV_MODE(musb);
+			}
+			else
+			{
+				musb->xceiv->otg->state = OTG_STATE_A_IDLE;
+				MUSB_HST_MODE(musb);
+			}
+
+			break;
+
+		case OTG_STATE_A_WAIT_VFALL:
+			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
+			musb_writel(musb->ctrl_base, CORE_INTR_SRC_SET_REG,
+						MUSB_INTR_VBUSERROR << AM35X_INTR_USB_SHIFT);
+			break;
+
+		case OTG_STATE_B_IDLE:
+			devctl = musb_readb(mregs, MUSB_DEVCTL);
+
+			if (devctl & MUSB_DEVCTL_BDEVICE)
+			{
+				mod_timer(&otg_workaround, jiffies + POLL_SECONDS * HZ);
+			}
+			else
+			{
+				musb->xceiv->otg->state = OTG_STATE_A_IDLE;
+			}
+
+			break;
+
+		default:
+			break;
 	}
+
 	spin_unlock_irqrestore(&musb->lock, flags);
 }
 
@@ -189,27 +207,32 @@ static void am35x_musb_try_idle(struct musb *musb, unsigned long timeout)
 	static unsigned long last_timer;
 
 	if (timeout == 0)
+	{
 		timeout = jiffies + msecs_to_jiffies(3);
+	}
 
 	/* Never idle if active, or when VBUS timeout is not set as host */
 	if (musb->is_active || (musb->a_wait_bcon == 0 &&
-				musb->xceiv->otg->state == OTG_STATE_A_WAIT_BCON)) {
+							musb->xceiv->otg->state == OTG_STATE_A_WAIT_BCON))
+	{
 		dev_dbg(musb->controller, "%s active, deleting timer\n",
-			usb_otg_state_string(musb->xceiv->otg->state));
+				usb_otg_state_string(musb->xceiv->otg->state));
 		del_timer(&otg_workaround);
 		last_timer = jiffies;
 		return;
 	}
 
-	if (time_after(last_timer, timeout) && timer_pending(&otg_workaround)) {
+	if (time_after(last_timer, timeout) && timer_pending(&otg_workaround))
+	{
 		dev_dbg(musb->controller, "Longer idle timer already pending, ignoring...\n");
 		return;
 	}
+
 	last_timer = timeout;
 
 	dev_dbg(musb->controller, "%s inactive, starting idle timer for %u ms\n",
-		usb_otg_state_string(musb->xceiv->otg->state),
-		jiffies_to_msecs(timeout - jiffies));
+			usb_otg_state_string(musb->xceiv->otg->state),
+			jiffies_to_msecs(timeout - jiffies));
 	mod_timer(&otg_workaround, timeout);
 }
 
@@ -230,7 +253,8 @@ static irqreturn_t am35x_musb_interrupt(int irq, void *hci)
 	/* Get endpoint interrupts */
 	epintr = musb_readl(reg_base, EP_INTR_SRC_MASKED_REG);
 
-	if (epintr) {
+	if (epintr)
+	{
 		musb_writel(reg_base, EP_INTR_SRC_CLEAR_REG, epintr);
 
 		musb->int_rx =
@@ -241,15 +265,20 @@ static irqreturn_t am35x_musb_interrupt(int irq, void *hci)
 
 	/* Get usb core interrupts */
 	usbintr = musb_readl(reg_base, CORE_INTR_SRC_MASKED_REG);
-	if (!usbintr && !epintr)
-		goto eoi;
 
-	if (usbintr) {
+	if (!usbintr && !epintr)
+	{
+		goto eoi;
+	}
+
+	if (usbintr)
+	{
 		musb_writel(reg_base, CORE_INTR_SRC_CLEAR_REG, usbintr);
 
 		musb->int_usb =
 			(usbintr & AM35X_INTR_USB_MASK) >> AM35X_INTR_USB_SHIFT;
 	}
+
 	/*
 	 * DRVVBUS IRQs are the only proxy we have (a very poor one!) for
 	 * AM35x's missing ID change IRQ.  We need an ID change IRQ to
@@ -258,14 +287,17 @@ static irqreturn_t am35x_musb_interrupt(int irq, void *hci)
 	 * value but DEVCTL.BDEVICE is invalid without DEVCTL.SESSION set.
 	 * Also, DRVVBUS pulses for SRP (but not at 5V) ...
 	 */
-	if (usbintr & (AM35X_INTR_DRVVBUS << AM35X_INTR_USB_SHIFT)) {
+	if (usbintr & (AM35X_INTR_DRVVBUS << AM35X_INTR_USB_SHIFT))
+	{
 		int drvvbus = musb_readl(reg_base, USB_STAT_REG);
 		void __iomem *mregs = musb->mregs;
 		u8 devctl = musb_readb(mregs, MUSB_DEVCTL);
 		int err;
 
 		err = musb->int_usb & MUSB_INTR_VBUSERROR;
-		if (err) {
+
+		if (err)
+		{
 			/*
 			 * The Mentor core doesn't debounce VBUS as needed
 			 * to cope with device connect current spikes. This
@@ -281,13 +313,17 @@ static irqreturn_t am35x_musb_interrupt(int irq, void *hci)
 			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VFALL;
 			mod_timer(&otg_workaround, jiffies + POLL_SECONDS * HZ);
 			WARNING("VBUS error workaround (delay coming)\n");
-		} else if (drvvbus) {
+		}
+		else if (drvvbus)
+		{
 			MUSB_HST_MODE(musb);
 			otg->default_a = 1;
 			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
 			portstate(musb->port1_status |= USB_PORT_STAT_POWER);
 			del_timer(&otg_workaround);
-		} else {
+		}
+		else
+		{
 			musb->is_active = 0;
 			MUSB_DEV_MODE(musb);
 			otg->default_a = 0;
@@ -305,27 +341,37 @@ static irqreturn_t am35x_musb_interrupt(int irq, void *hci)
 	}
 
 	/* Drop spurious RX and TX if device is disconnected */
-	if (musb->int_usb & MUSB_INTR_DISCONNECT) {
+	if (musb->int_usb & MUSB_INTR_DISCONNECT)
+	{
 		musb->int_tx = 0;
 		musb->int_rx = 0;
 	}
 
 	if (musb->int_tx || musb->int_rx || musb->int_usb)
+	{
 		ret |= musb_interrupt(musb);
+	}
 
 eoi:
+
 	/* EOI needs to be written for the IRQ to be re-asserted. */
-	if (ret == IRQ_HANDLED || epintr || usbintr) {
+	if (ret == IRQ_HANDLED || epintr || usbintr)
+	{
 		/* clear level interrupt */
 		if (data->clear_irq)
+		{
 			data->clear_irq();
+		}
+
 		/* write EOI */
 		musb_writel(reg_base, USB_END_OF_INTR_REG, 0);
 	}
 
 	/* Poll for ID change */
 	if (musb->xceiv->otg->state == OTG_STATE_B_IDLE)
+	{
 		mod_timer(&otg_workaround, jiffies + POLL_SECONDS * HZ);
+	}
 
 	spin_unlock_irqrestore(&musb->lock, flags);
 
@@ -340,9 +386,13 @@ static int am35x_musb_set_mode(struct musb *musb, u8 musb_mode)
 	int     retval = 0;
 
 	if (data->set_mode)
+	{
 		data->set_mode(musb_mode);
+	}
 	else
+	{
 		retval = -EIO;
+	}
 
 	return retval;
 }
@@ -359,25 +409,35 @@ static int am35x_musb_init(struct musb *musb)
 
 	/* Returns zero if e.g. not clocked */
 	rev = musb_readl(reg_base, USB_REVISION_REG);
+
 	if (!rev)
+	{
 		return -ENODEV;
+	}
 
 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
+
 	if (IS_ERR_OR_NULL(musb->xceiv))
+	{
 		return -EPROBE_DEFER;
+	}
 
 	setup_timer(&otg_workaround, otg_timer, (unsigned long) musb);
 
 	/* Reset the musb */
 	if (data->reset)
+	{
 		data->reset();
+	}
 
 	/* Reset the controller */
 	musb_writel(reg_base, USB_CTRL_REG, AM35X_SOFT_RESET_MASK);
 
 	/* Start the on-chip PHY and its PLL. */
 	if (data->set_phy_power)
+	{
 		data->set_phy_power(1);
+	}
 
 	msleep(5);
 
@@ -385,7 +445,9 @@ static int am35x_musb_init(struct musb *musb)
 
 	/* clear level interrupt */
 	if (data->clear_irq)
+	{
 		data->clear_irq();
+	}
 
 	return 0;
 }
@@ -400,7 +462,9 @@ static int am35x_musb_exit(struct musb *musb)
 
 	/* Shutdown the on-chip PHY and its PLL. */
 	if (data->set_phy_power)
+	{
 		data->set_phy_power(0);
+	}
 
 	usb_put_phy(musb->xceiv);
 
@@ -415,29 +479,37 @@ static void am35x_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
 	int		i;
 
 	/* Read for 32bit-aligned destination address */
-	if (likely((0x03 & (unsigned long) dst) == 0) && len >= 4) {
+	if (likely((0x03 & (unsigned long) dst) == 0) && len >= 4)
+	{
 		readsl(fifo, dst, len >> 2);
 		dst += len & ~0x03;
 		len &= 0x03;
 	}
+
 	/*
 	 * Now read the remaining 1 to 3 byte or complete length if
 	 * unaligned address.
 	 */
-	if (len > 4) {
-		for (i = 0; i < (len >> 2); i++) {
+	if (len > 4)
+	{
+		for (i = 0; i < (len >> 2); i++)
+		{
 			*(u32 *) dst = musb_readl(fifo, 0);
 			dst += 4;
 		}
+
 		len &= 0x03;
 	}
-	if (len > 0) {
+
+	if (len > 0)
+	{
 		val = musb_readl(fifo, 0);
 		memcpy(dst, &val, len);
 	}
 }
 
-static const struct musb_platform_ops am35x_ops = {
+static const struct musb_platform_ops am35x_ops =
+{
 	.quirks		= MUSB_DMA_INVENTRA | MUSB_INDEXED_EP,
 	.init		= am35x_musb_init,
 	.exit		= am35x_musb_exit,
@@ -456,7 +528,8 @@ static const struct musb_platform_ops am35x_ops = {
 	.set_vbus	= am35x_musb_set_vbus,
 };
 
-static const struct platform_device_info am35x_dev_info = {
+static const struct platform_device_info am35x_dev_info =
+{
 	.name		= "musb-hdrc",
 	.id		= PLATFORM_DEVID_AUTO,
 	.dma_mask	= DMA_BIT_MASK(32),
@@ -474,31 +547,42 @@ static int am35x_probe(struct platform_device *pdev)
 	int				ret = -ENOMEM;
 
 	glue = kzalloc(sizeof(*glue), GFP_KERNEL);
+
 	if (!glue)
+	{
 		goto err0;
+	}
 
 	phy_clk = clk_get(&pdev->dev, "fck");
-	if (IS_ERR(phy_clk)) {
+
+	if (IS_ERR(phy_clk))
+	{
 		dev_err(&pdev->dev, "failed to get PHY clock\n");
 		ret = PTR_ERR(phy_clk);
 		goto err3;
 	}
 
 	clk = clk_get(&pdev->dev, "ick");
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "failed to get clock\n");
 		ret = PTR_ERR(clk);
 		goto err4;
 	}
 
 	ret = clk_enable(phy_clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to enable PHY clock\n");
 		goto err5;
 	}
 
 	ret = clk_enable(clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to enable clock\n");
 		goto err6;
 	}
@@ -510,10 +594,13 @@ static int am35x_probe(struct platform_device *pdev)
 	pdata->platform_ops		= &am35x_ops;
 
 	glue->phy = usb_phy_generic_register();
-	if (IS_ERR(glue->phy)) {
+
+	if (IS_ERR(glue->phy))
+	{
 		ret = PTR_ERR(glue->phy);
 		goto err7;
 	}
+
 	platform_set_drvdata(pdev, glue);
 
 	pinfo = am35x_dev_info;
@@ -524,7 +611,9 @@ static int am35x_probe(struct platform_device *pdev)
 	pinfo.size_data = sizeof(*pdata);
 
 	glue->musb = musb = platform_device_register_full(&pinfo);
-	if (IS_ERR(musb)) {
+
+	if (IS_ERR(musb))
+	{
 		ret = PTR_ERR(musb);
 		dev_err(&pdev->dev, "failed to register musb device: %d\n", ret);
 		goto err8;
@@ -578,7 +667,9 @@ static int am35x_suspend(struct device *dev)
 
 	/* Shutdown the on-chip PHY and its PLL. */
 	if (data->set_phy_power)
+	{
 		data->set_phy_power(0);
+	}
 
 	clk_disable(glue->phy_clk);
 	clk_disable(glue->clk);
@@ -595,16 +686,22 @@ static int am35x_resume(struct device *dev)
 
 	/* Start the on-chip PHY and its PLL. */
 	if (data->set_phy_power)
+	{
 		data->set_phy_power(1);
+	}
 
 	ret = clk_enable(glue->phy_clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to enable PHY clock\n");
 		return ret;
 	}
 
 	ret = clk_enable(glue->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to enable clock\n");
 		return ret;
 	}
@@ -615,7 +712,8 @@ static int am35x_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(am35x_pm_ops, am35x_suspend, am35x_resume);
 
-static struct platform_driver am35x_driver = {
+static struct platform_driver am35x_driver =
+{
 	.probe		= am35x_probe,
 	.remove		= am35x_remove,
 	.driver		= {

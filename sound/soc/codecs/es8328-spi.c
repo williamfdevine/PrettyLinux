@@ -16,7 +16,8 @@
 #include <sound/soc.h>
 #include "es8328.h"
 
-static const struct of_device_id es8328_of_match[] = {
+static const struct of_device_id es8328_of_match[] =
+{
 	{ .compatible = "everest,es8328", },
 	{ }
 };
@@ -25,7 +26,7 @@ MODULE_DEVICE_TABLE(of, es8328_of_match);
 static int es8328_spi_probe(struct spi_device *spi)
 {
 	return es8328_probe(&spi->dev,
-			devm_regmap_init_spi(spi, &es8328_regmap_config));
+						devm_regmap_init_spi(spi, &es8328_regmap_config));
 }
 
 static int es8328_spi_remove(struct spi_device *spi)
@@ -34,7 +35,8 @@ static int es8328_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static struct spi_driver es8328_spi_driver = {
+static struct spi_driver es8328_spi_driver =
+{
 	.driver = {
 		.name		= "es8328",
 		.of_match_table	= es8328_of_match,

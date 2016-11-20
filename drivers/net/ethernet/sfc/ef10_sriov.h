@@ -21,7 +21,8 @@
  * @mac: MAC address for the VF, zero when address is removed from the vport
  * @vlan: Default VLAN for the VF or #EFX_EF10_NO_VLAN
  */
-struct ef10_vf {
+struct ef10_vf
+{
 	struct efx_nic *efx;
 	struct pci_dev *pci_dev;
 	unsigned int vport_id;
@@ -45,19 +46,19 @@ static inline void efx_ef10_sriov_flr(struct efx_nic *efx, unsigned vf_i) {}
 int efx_ef10_sriov_set_vf_mac(struct efx_nic *efx, int vf, u8 *mac);
 
 int efx_ef10_sriov_set_vf_vlan(struct efx_nic *efx, int vf_i,
-			       u16 vlan, u8 qos);
+							   u16 vlan, u8 qos);
 
 int efx_ef10_sriov_set_vf_spoofchk(struct efx_nic *efx, int vf,
-				   bool spoofchk);
+								   bool spoofchk);
 
 int efx_ef10_sriov_get_vf_config(struct efx_nic *efx, int vf_i,
-				 struct ifla_vf_info *ivf);
+								 struct ifla_vf_info *ivf);
 
 int efx_ef10_sriov_set_vf_link_state(struct efx_nic *efx, int vf_i,
-				     int link_state);
+									 int link_state);
 
 int efx_ef10_sriov_get_phys_port_id(struct efx_nic *efx,
-				    struct netdev_phys_item_id *ppid);
+									struct netdev_phys_item_id *ppid);
 
 int efx_ef10_vswitching_probe_pf(struct efx_nic *efx);
 int efx_ef10_vswitching_probe_vf(struct efx_nic *efx);
@@ -66,13 +67,13 @@ int efx_ef10_vswitching_restore_vf(struct efx_nic *efx);
 void efx_ef10_vswitching_remove_pf(struct efx_nic *efx);
 void efx_ef10_vswitching_remove_vf(struct efx_nic *efx);
 int efx_ef10_vport_add_mac(struct efx_nic *efx,
-			   unsigned int port_id, u8 *mac);
+						   unsigned int port_id, u8 *mac);
 int efx_ef10_vport_del_mac(struct efx_nic *efx,
-			   unsigned int port_id, u8 *mac);
+						   unsigned int port_id, u8 *mac);
 int efx_ef10_vadaptor_alloc(struct efx_nic *efx, unsigned int port_id);
 int efx_ef10_vadaptor_query(struct efx_nic *efx, unsigned int port_id,
-			    u32 *port_flags, u32 *vadaptor_flags,
-			    unsigned int *vlan_tags);
+							u32 *port_flags, u32 *vadaptor_flags,
+							unsigned int *vlan_tags);
 int efx_ef10_vadaptor_free(struct efx_nic *efx, unsigned int port_id);
 
 #endif /* EF10_SRIOV_H */

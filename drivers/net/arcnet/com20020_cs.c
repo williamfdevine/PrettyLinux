@@ -56,27 +56,37 @@ static void regdump(struct net_device *dev)
 	int count;
 
 	netdev_dbg(dev, "register dump:\n");
-	for (count = 0; count < 16; count++) {
+
+	for (count = 0; count < 16; count++)
+	{
 		if (!(count % 16))
+		{
 			pr_cont("%04X:", ioaddr + count);
+		}
+
 		pr_cont(" %02X", arcnet_inb(ioaddr, count));
 	}
+
 	pr_cont("\n");
 
 	netdev_dbg(dev, "buffer0 dump:\n");
 	/* set up the address register */
 	count = 0;
 	arcnet_outb((count >> 8) | RDDATAflag | AUTOINCflag,
-		    ioaddr, com20020_REG_W_ADDR_HI);
+				ioaddr, com20020_REG_W_ADDR_HI);
 	arcnet_outb(count & 0xff, ioaddr, COM20020_REG_W_ADDR_LO);
 
-	for (count = 0; count < 256 + 32; count++) {
+	for (count = 0; count < 256 + 32; count++)
+	{
 		if (!(count % 16))
+		{
 			pr_cont("%04X:", count);
+		}
 
 		/* copy the data */
 		pr_cont(" %02X", arcnet_inb(ioaddr, COM20020_REG_RW_MEMDATA));
 	}
+
 	pr_cont("\n");
 #endif
 }
@@ -118,12 +128,18 @@ static int com20020_probe(struct pcmcia_device *p_dev)
 
 	/* Create new network device */
 	info = kzalloc(sizeof(*info), GFP_KERNEL);
+
 	if (!info)
+	{
 		goto fail_alloc_info;
+	}
 
 	dev = alloc_arcdev("");
+
 	if (!dev)
+	{
 		goto fail_alloc_dev;
+	}
 
 	lp = netdev_priv(dev);
 	lp->timeout = timeout;
@@ -167,18 +183,25 @@ static void com20020_detach(struct pcmcia_device *link)
 	 * from card services.
 	 */
 	if (dev->irq)
+	{
 		free_irq(dev->irq, dev);
+	}
 
 	com20020_release(link);
 
 	/* Unlink device structure, free bits */
 	dev_dbg(&link->dev, "unlinking...\n");
-	if (link->priv) {
+
+	if (link->priv)
+	{
 		dev = info->dev;
-		if (dev) {
+
+		if (dev)
+		{
 			dev_dbg(&link->dev, "kfree...\n");
 			free_netdev(dev);
 		}
+
 		dev_dbg(&link->dev, "kfree2...\n");
 		kfree(info);
 	}
@@ -201,23 +224,31 @@ static int com20020_config(struct pcmcia_device *link)
 	dev_dbg(&link->dev, "com20020_config\n");
 
 	dev_dbg(&link->dev, "baseport1 is %Xh\n",
-		(unsigned int)link->resource[0]->start);
+			(unsigned int)link->resource[0]->start);
 
 	i = -ENODEV;
 	link->io_lines = 16;
 
-	if (!link->resource[0]->start) {
-		for (ioaddr = 0x100; ioaddr < 0x400; ioaddr += 0x10) {
+	if (!link->resource[0]->start)
+	{
+		for (ioaddr = 0x100; ioaddr < 0x400; ioaddr += 0x10)
+		{
 			link->resource[0]->start = ioaddr;
 			i = pcmcia_request_io(link);
+
 			if (i == 0)
+			{
 				break;
+			}
 		}
-	} else {
+	}
+	else
+	{
 		i = pcmcia_request_io(link);
 	}
 
-	if (i != 0) {
+	if (i != 0)
+	{
 		dev_dbg(&link->dev, "requestIO failed totally!\n");
 		goto failed;
 	}
@@ -226,8 +257,10 @@ static int com20020_config(struct pcmcia_device *link)
 	dev_dbg(&link->dev, "got ioaddr %Xh\n", ioaddr);
 
 	dev_dbg(&link->dev, "request IRQ %d\n",
-		link->irq);
-	if (!link->irq) {
+			link->irq);
+
+	if (!link->irq)
+	{
 		dev_dbg(&link->dev, "requestIRQ failed totally!\n");
 		goto failed;
 	}
@@ -235,10 +268,14 @@ static int com20020_config(struct pcmcia_device *link)
 	dev->irq = link->irq;
 
 	ret = pcmcia_enable_device(link);
-	if (ret)
-		goto failed;
 
-	if (com20020_check(dev)) {
+	if (ret)
+	{
+		goto failed;
+	}
+
+	if (com20020_check(dev))
+	{
 		regdump(dev);
 		goto failed;
 	}
@@ -251,14 +288,15 @@ static int com20020_config(struct pcmcia_device *link)
 
 	i = com20020_found(dev, 0);	/* calls register_netdev */
 
-	if (i != 0) {
+	if (i != 0)
+	{
 		dev_notice(&link->dev,
-			   "com20020_found() failed\n");
+				   "com20020_found() failed\n");
 		goto failed;
 	}
 
 	netdev_dbg(dev, "port %#3lx, irq %d\n",
-		   dev->base_addr, dev->irq);
+			   dev->base_addr, dev->irq);
 	return 0;
 
 failed:
@@ -279,7 +317,9 @@ static int com20020_suspend(struct pcmcia_device *link)
 	struct net_device *dev = info->dev;
 
 	if (link->open)
+	{
 		netif_device_detach(dev);
+	}
 
 	return 0;
 }
@@ -289,7 +329,8 @@ static int com20020_resume(struct pcmcia_device *link)
 	struct com20020_dev *info = link->priv;
 	struct net_device *dev = info->dev;
 
-	if (link->open) {
+	if (link->open)
+	{
 		int ioaddr = dev->base_addr;
 		struct arcnet_local *lp = netdev_priv(dev);
 
@@ -301,16 +342,18 @@ static int com20020_resume(struct pcmcia_device *link)
 	return 0;
 }
 
-static const struct pcmcia_device_id com20020_ids[] = {
+static const struct pcmcia_device_id com20020_ids[] =
+{
 	PCMCIA_DEVICE_PROD_ID12("Contemporary Control Systems, Inc.",
-				"PCM20 Arcnet Adapter", 0x59991666, 0x95dfffaf),
+	"PCM20 Arcnet Adapter", 0x59991666, 0x95dfffaf),
 	PCMCIA_DEVICE_PROD_ID12("SoHard AG",
-				"SH ARC PCMCIA", 0xf8991729, 0x69dff0c7),
+	"SH ARC PCMCIA", 0xf8991729, 0x69dff0c7),
 	PCMCIA_DEVICE_NULL
 };
 MODULE_DEVICE_TABLE(pcmcia, com20020_ids);
 
-static struct pcmcia_driver com20020_cs_driver = {
+static struct pcmcia_driver com20020_cs_driver =
+{
 	.owner		= THIS_MODULE,
 	.name		= "com20020_cs",
 	.probe		= com20020_probe,

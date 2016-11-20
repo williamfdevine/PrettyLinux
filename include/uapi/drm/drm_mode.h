@@ -62,10 +62,10 @@ extern "C" {
 #define DRM_MODE_FLAG_PIXMUX			(1<<11)
 #define DRM_MODE_FLAG_DBLCLK			(1<<12)
 #define DRM_MODE_FLAG_CLKDIV2			(1<<13)
- /*
-  * When adding a new stereo mode don't forget to adjust DRM_MODE_FLAGS_3D_MAX
-  * (define not exposed to user space).
-  */
+/*
+ * When adding a new stereo mode don't forget to adjust DRM_MODE_FLAGS_3D_MAX
+ * (define not exposed to user space).
+ */
 #define DRM_MODE_FLAG_3D_MASK			(0x1f<<14)
 #define  DRM_MODE_FLAG_3D_NONE			(0<<14)
 #define  DRM_MODE_FLAG_3D_FRAME_PACKING		(1<<14)
@@ -107,7 +107,8 @@ extern "C" {
 #define DRM_MODE_DIRTY_ON       1
 #define DRM_MODE_DIRTY_ANNOTATE 2
 
-struct drm_mode_modeinfo {
+struct drm_mode_modeinfo
+{
 	__u32 clock;
 	__u16 hdisplay;
 	__u16 hsync_start;
@@ -127,7 +128,8 @@ struct drm_mode_modeinfo {
 	char name[DRM_DISPLAY_MODE_LEN];
 };
 
-struct drm_mode_card_res {
+struct drm_mode_card_res
+{
 	__u64 fb_id_ptr;
 	__u64 crtc_id_ptr;
 	__u64 connector_id_ptr;
@@ -142,7 +144,8 @@ struct drm_mode_card_res {
 	__u32 max_height;
 };
 
-struct drm_mode_crtc {
+struct drm_mode_crtc
+{
 	__u64 set_connectors_ptr;
 	__u32 count_connectors;
 
@@ -161,7 +164,8 @@ struct drm_mode_crtc {
 #define DRM_MODE_PRESENT_BOTTOM_FIELD	(1<<1)
 
 /* Planes blend with or override other bits on the CRTC */
-struct drm_mode_set_plane {
+struct drm_mode_set_plane
+{
 	__u32 plane_id;
 	__u32 crtc_id;
 	__u32 fb_id; /* fb object contains surface format type */
@@ -180,7 +184,8 @@ struct drm_mode_set_plane {
 	__u32 src_w;
 };
 
-struct drm_mode_get_plane {
+struct drm_mode_get_plane
+{
 	__u32 plane_id;
 
 	__u32 crtc_id;
@@ -193,7 +198,8 @@ struct drm_mode_get_plane {
 	__u64 format_type_ptr;
 };
 
-struct drm_mode_get_plane_res {
+struct drm_mode_get_plane_res
+{
 	__u64 plane_id_ptr;
 	__u32 count_planes;
 };
@@ -208,7 +214,8 @@ struct drm_mode_get_plane_res {
 #define DRM_MODE_ENCODER_DPMST	7
 #define DRM_MODE_ENCODER_DPI	8
 
-struct drm_mode_get_encoder {
+struct drm_mode_get_encoder
+{
 	__u32 encoder_id;
 	__u32 encoder_type;
 
@@ -248,7 +255,8 @@ struct drm_mode_get_encoder {
 #define DRM_MODE_CONNECTOR_DSI		16
 #define DRM_MODE_CONNECTOR_DPI		17
 
-struct drm_mode_get_connector {
+struct drm_mode_get_connector
+{
 
 	__u64 encoders_ptr;
 	__u64 modes_ptr;
@@ -281,10 +289,10 @@ struct drm_mode_get_connector {
 
 /* non-extended types: legacy bitmask, one bit per type: */
 #define DRM_MODE_PROP_LEGACY_TYPE  ( \
-		DRM_MODE_PROP_RANGE | \
-		DRM_MODE_PROP_ENUM | \
-		DRM_MODE_PROP_BLOB | \
-		DRM_MODE_PROP_BITMASK)
+									 DRM_MODE_PROP_RANGE | \
+									 DRM_MODE_PROP_ENUM | \
+									 DRM_MODE_PROP_BLOB | \
+									 DRM_MODE_PROP_BITMASK)
 
 /* extended-types: rather than continue to consume a bit per type,
  * grab a chunk of the bits to use as integer type id.
@@ -301,12 +309,14 @@ struct drm_mode_get_connector {
  */
 #define DRM_MODE_PROP_ATOMIC        0x80000000
 
-struct drm_mode_property_enum {
+struct drm_mode_property_enum
+{
 	__u64 value;
 	char name[DRM_PROP_NAME_LEN];
 };
 
-struct drm_mode_get_property {
+struct drm_mode_get_property
+{
 	__u64 values_ptr; /* values and blob lengths */
 	__u64 enum_blob_ptr; /* enum and blob id ptrs */
 
@@ -320,7 +330,8 @@ struct drm_mode_get_property {
 	__u32 count_enum_blobs;
 };
 
-struct drm_mode_connector_set_property {
+struct drm_mode_connector_set_property
+{
 	__u64 value;
 	__u32 prop_id;
 	__u32 connector_id;
@@ -336,7 +347,8 @@ struct drm_mode_connector_set_property {
 #define DRM_MODE_OBJECT_PLANE 0xeeeeeeee
 #define DRM_MODE_OBJECT_ANY 0
 
-struct drm_mode_obj_get_properties {
+struct drm_mode_obj_get_properties
+{
 	__u64 props_ptr;
 	__u64 prop_values_ptr;
 	__u32 count_props;
@@ -344,20 +356,23 @@ struct drm_mode_obj_get_properties {
 	__u32 obj_type;
 };
 
-struct drm_mode_obj_set_property {
+struct drm_mode_obj_set_property
+{
 	__u64 value;
 	__u32 prop_id;
 	__u32 obj_id;
 	__u32 obj_type;
 };
 
-struct drm_mode_get_blob {
+struct drm_mode_get_blob
+{
 	__u32 blob_id;
 	__u32 length;
 	__u64 data;
 };
 
-struct drm_mode_fb_cmd {
+struct drm_mode_fb_cmd
+{
 	__u32 fb_id;
 	__u32 width;
 	__u32 height;
@@ -371,7 +386,8 @@ struct drm_mode_fb_cmd {
 #define DRM_MODE_FB_INTERLACED	(1<<0) /* for interlaced framebuffers */
 #define DRM_MODE_FB_MODIFIERS	(1<<1) /* enables ->modifer[] */
 
-struct drm_mode_fb_cmd2 {
+struct drm_mode_fb_cmd2
+{
 	__u32 fb_id;
 	__u32 width;
 	__u32 height;
@@ -438,7 +454,8 @@ struct drm_mode_fb_cmd2 {
  * completely with a single color as given in the color argument.
  */
 
-struct drm_mode_fb_dirty_cmd {
+struct drm_mode_fb_dirty_cmd
+{
 	__u32 fb_id;
 	__u32 flags;
 	__u32 color;
@@ -446,7 +463,8 @@ struct drm_mode_fb_dirty_cmd {
 	__u64 clips_ptr;
 };
 
-struct drm_mode_mode_cmd {
+struct drm_mode_mode_cmd
+{
 	__u32 connector_id;
 	struct drm_mode_modeinfo mode;
 };
@@ -469,7 +487,8 @@ struct drm_mode_mode_cmd {
  *    x
  *    y
  */
-struct drm_mode_cursor {
+struct drm_mode_cursor
+{
 	__u32 flags;
 	__u32 crtc_id;
 	__s32 x;
@@ -480,7 +499,8 @@ struct drm_mode_cursor {
 	__u32 handle;
 };
 
-struct drm_mode_cursor2 {
+struct drm_mode_cursor2
+{
 	__u32 flags;
 	__u32 crtc_id;
 	__s32 x;
@@ -493,7 +513,8 @@ struct drm_mode_cursor2 {
 	__s32 hot_y;
 };
 
-struct drm_mode_crtc_lut {
+struct drm_mode_crtc_lut
+{
 	__u32 crtc_id;
 	__u32 gamma_size;
 
@@ -503,12 +524,14 @@ struct drm_mode_crtc_lut {
 	__u64 blue;
 };
 
-struct drm_color_ctm {
+struct drm_color_ctm
+{
 	/* Conversion matrix in S31.32 format. */
 	__s64 matrix[9];
 };
 
-struct drm_color_lut {
+struct drm_color_lut
+{
 	/*
 	 * Data is U0.16 fixed point format.
 	 */
@@ -523,10 +546,10 @@ struct drm_color_lut {
 #define DRM_MODE_PAGE_FLIP_TARGET_ABSOLUTE 0x4
 #define DRM_MODE_PAGE_FLIP_TARGET_RELATIVE 0x8
 #define DRM_MODE_PAGE_FLIP_TARGET (DRM_MODE_PAGE_FLIP_TARGET_ABSOLUTE | \
-				   DRM_MODE_PAGE_FLIP_TARGET_RELATIVE)
+								   DRM_MODE_PAGE_FLIP_TARGET_RELATIVE)
 #define DRM_MODE_PAGE_FLIP_FLAGS (DRM_MODE_PAGE_FLIP_EVENT | \
-				  DRM_MODE_PAGE_FLIP_ASYNC | \
-				  DRM_MODE_PAGE_FLIP_TARGET)
+								  DRM_MODE_PAGE_FLIP_ASYNC | \
+								  DRM_MODE_PAGE_FLIP_TARGET)
 
 /*
  * Request a page flip on the specified crtc.
@@ -552,7 +575,8 @@ struct drm_color_lut {
  * The reserved field must be zero.
  */
 
-struct drm_mode_crtc_page_flip {
+struct drm_mode_crtc_page_flip
+{
 	__u32 crtc_id;
 	__u32 fb_id;
 	__u32 flags;
@@ -580,7 +604,8 @@ struct drm_mode_crtc_page_flip {
  * vertical blank period.
  */
 
-struct drm_mode_crtc_page_flip_target {
+struct drm_mode_crtc_page_flip_target
+{
 	__u32 crtc_id;
 	__u32 fb_id;
 	__u32 flags;
@@ -589,7 +614,8 @@ struct drm_mode_crtc_page_flip_target {
 };
 
 /* create a dumb scanout buffer */
-struct drm_mode_create_dumb {
+struct drm_mode_create_dumb
+{
 	__u32 height;
 	__u32 width;
 	__u32 bpp;
@@ -601,7 +627,8 @@ struct drm_mode_create_dumb {
 };
 
 /* set up for mmap of a dumb scanout buffer */
-struct drm_mode_map_dumb {
+struct drm_mode_map_dumb
+{
 	/** Handle for the object being mapped. */
 	__u32 handle;
 	__u32 pad;
@@ -613,7 +640,8 @@ struct drm_mode_map_dumb {
 	__u64 offset;
 };
 
-struct drm_mode_destroy_dumb {
+struct drm_mode_destroy_dumb
+{
 	__u32 handle;
 };
 
@@ -623,13 +651,14 @@ struct drm_mode_destroy_dumb {
 #define DRM_MODE_ATOMIC_ALLOW_MODESET 0x0400
 
 #define DRM_MODE_ATOMIC_FLAGS (\
-		DRM_MODE_PAGE_FLIP_EVENT |\
-		DRM_MODE_PAGE_FLIP_ASYNC |\
-		DRM_MODE_ATOMIC_TEST_ONLY |\
-		DRM_MODE_ATOMIC_NONBLOCK |\
-		DRM_MODE_ATOMIC_ALLOW_MODESET)
+							   DRM_MODE_PAGE_FLIP_EVENT |\
+							   DRM_MODE_PAGE_FLIP_ASYNC |\
+							   DRM_MODE_ATOMIC_TEST_ONLY |\
+							   DRM_MODE_ATOMIC_NONBLOCK |\
+							   DRM_MODE_ATOMIC_ALLOW_MODESET)
 
-struct drm_mode_atomic {
+struct drm_mode_atomic
+{
 	__u32 flags;
 	__u32 count_objs;
 	__u64 objs_ptr;
@@ -644,7 +673,8 @@ struct drm_mode_atomic {
  * Create a new 'blob' data property, copying length bytes from data pointer,
  * and returning new blob ID.
  */
-struct drm_mode_create_blob {
+struct drm_mode_create_blob
+{
 	/** Pointer to data to copy. */
 	__u64 data;
 	/** Length of data to copy. */
@@ -656,7 +686,8 @@ struct drm_mode_create_blob {
 /**
  * Destroy a user-created blob property.
  */
-struct drm_mode_destroy_blob {
+struct drm_mode_destroy_blob
+{
 	__u32 blob_id;
 };
 

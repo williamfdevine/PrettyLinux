@@ -4,7 +4,8 @@
 #ifndef __LINUX_USB_USBA_H
 #define __LINUX_USB_USBA_H
 
-struct usba_ep_data {
+struct usba_ep_data
+{
 	char	*name;
 	int	index;
 	int	fifo_size;
@@ -13,7 +14,8 @@ struct usba_ep_data {
 	int	can_isoc;
 };
 
-struct usba_platform_data {
+struct usba_platform_data
+{
 	int			vbus_pin;
 	int			vbus_pin_inverted;
 	int			num_ep;

@@ -26,7 +26,8 @@
 #define PS2_FLAG_WAITID		8	/* Command execiting is GET ID */
 #define PS2_FLAG_NAK		16	/* Last transmission was NAKed */
 
-struct ps2dev {
+struct ps2dev
+{
 	struct serio *serio;
 
 	/* Ensures that only one command is executing at a time */

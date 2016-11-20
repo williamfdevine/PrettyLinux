@@ -97,9 +97,9 @@ typedef __u32			xfs_nlink_t;
 #include "xfs_message.h"
 
 #ifdef __BIG_ENDIAN
-#define XFS_NATIVE_HOST 1
+	#define XFS_NATIVE_HOST 1
 #else
-#undef XFS_NATIVE_HOST
+	#undef XFS_NATIVE_HOST
 #endif
 
 #define irix_sgid_inherit	xfs_params.sgid_inherit.val
@@ -122,11 +122,11 @@ typedef __u32			xfs_nlink_t;
 #define current_pid()		(current->pid)
 #define current_test_flags(f)	(current->flags & (f))
 #define current_set_flags_nested(sp, f)		\
-		(*(sp) = current->flags, current->flags |= (f))
+	(*(sp) = current->flags, current->flags |= (f))
 #define current_clear_flags_nested(sp, f)	\
-		(*(sp) = current->flags, current->flags &= ~(f))
+	(*(sp) = current->flags, current->flags &= ~(f))
 #define current_restore_flags_nested(sp, f)	\
-		(current->flags = ((current->flags & ~(f)) | (*(sp) & (f))))
+	(current->flags = ((current->flags & ~(f)) | (*(sp) & (f))))
 
 #define spinlock_destroy(lock)
 
@@ -167,12 +167,14 @@ static inline void delay(long ticks)
  * the XFS sysfs object heirarchy. Define it here for broad access throughout
  * the codebase.
  */
-struct xfs_kobj {
+struct xfs_kobj
+{
 	struct kobject		kobject;
 	struct completion	complete;
 };
 
-struct xstats {
+struct xstats
+{
 	struct xfsstats __percpu	*xs_stats;
 	struct xfs_kobj			xs_kobj;
 };
@@ -223,25 +225,30 @@ static inline __u32 xfs_do_div(void *a, __u32 b, int n)
 {
 	__u32	mod;
 
-	switch (n) {
+	switch (n)
+	{
 		case 4:
 			mod = *(__u32 *)a % b;
 			*(__u32 *)a = *(__u32 *)a / b;
 			return mod;
+
 		case 8:
 			{
-			unsigned long __upper, __low, __high, __mod;
-			__u64	c = *(__u64 *)a;
-			__upper = __high = c >> 32;
-			__low = c;
-			if (__high) {
-				__upper = __high % (b);
-				__high = __high / (b);
-			}
-			asm("divl %2":"=a" (__low), "=d" (__mod):"rm" (b), "0" (__low), "1" (__upper));
-			asm("":"=A" (c):"a" (__low),"d" (__high));
-			*(__u64 *)a = c;
-			return __mod;
+				unsigned long __upper, __low, __high, __mod;
+				__u64	c = *(__u64 *)a;
+				__upper = __high = c >> 32;
+				__low = c;
+
+				if (__high)
+				{
+					__upper = __high % (b);
+					__high = __high / (b);
+				}
+
+				asm("divl %2":"=a" (__low), "=d" (__mod):"rm" (b), "0" (__low), "1" (__upper));
+				asm("":"=A" (c):"a" (__low), "d" (__high));
+				*(__u64 *)a = c;
+				return __mod;
 			}
 	}
 
@@ -252,22 +259,27 @@ static inline __u32 xfs_do_div(void *a, __u32 b, int n)
 /* Side effect free 64 bit mod operation */
 static inline __u32 xfs_do_mod(void *a, __u32 b, int n)
 {
-	switch (n) {
+	switch (n)
+	{
 		case 4:
 			return *(__u32 *)a % b;
+
 		case 8:
 			{
-			unsigned long __upper, __low, __high, __mod;
-			__u64	c = *(__u64 *)a;
-			__upper = __high = c >> 32;
-			__low = c;
-			if (__high) {
-				__upper = __high % (b);
-				__high = __high / (b);
-			}
-			asm("divl %2":"=a" (__low), "=d" (__mod):"rm" (b), "0" (__low), "1" (__upper));
-			asm("":"=A" (c):"a" (__low),"d" (__high));
-			return __mod;
+				unsigned long __upper, __low, __high, __mod;
+				__u64	c = *(__u64 *)a;
+				__upper = __high = c >> 32;
+				__low = c;
+
+				if (__high)
+				{
+					__upper = __high % (b);
+					__high = __high / (b);
+				}
+
+				asm("divl %2":"=a" (__low), "=d" (__mod):"rm" (b), "0" (__low), "1" (__upper));
+				asm("":"=A" (c):"a" (__low), "d" (__high));
+				return __mod;
 			}
 	}
 
@@ -279,11 +291,13 @@ static inline __u32 xfs_do_div(void *a, __u32 b, int n)
 {
 	__u32	mod;
 
-	switch (n) {
+	switch (n)
+	{
 		case 4:
 			mod = *(__u32 *)a % b;
 			*(__u32 *)a = *(__u32 *)a / b;
 			return mod;
+
 		case 8:
 			mod = do_div(*(__u64 *)a, b);
 			return mod;
@@ -296,13 +310,15 @@ static inline __u32 xfs_do_div(void *a, __u32 b, int n)
 /* Side effect free 64 bit mod operation */
 static inline __u32 xfs_do_mod(void *a, __u32 b, int n)
 {
-	switch (n) {
+	switch (n)
+	{
 		case 4:
 			return *(__u32 *)a % b;
+
 		case 8:
 			{
-			__u64	c = *(__u64 *)a;
-			return do_div(c, b);
+				__u64	c = *(__u64 *)a;
+				return do_div(c, b);
 			}
 	}
 
@@ -337,7 +353,7 @@ static inline __uint64_t howmany_64(__uint64_t x, __uint32_t y)
 	(unlikely(expr) ? (void)0 : assfail(#expr, __FILE__, __LINE__))
 
 #ifndef STATIC
-# define STATIC noinline
+	#define STATIC noinline
 #endif
 
 #else	/* !DEBUG */
@@ -348,7 +364,7 @@ static inline __uint64_t howmany_64(__uint64_t x, __uint32_t y)
 	(unlikely(expr) ? (void)0 : asswarn(#expr, __FILE__, __LINE__))
 
 #ifndef STATIC
-# define STATIC static noinline
+	#define STATIC static noinline
 #endif
 
 #else	/* !DEBUG && !XFS_WARN */
@@ -356,16 +372,16 @@ static inline __uint64_t howmany_64(__uint64_t x, __uint32_t y)
 #define ASSERT(expr)	((void)0)
 
 #ifndef STATIC
-# define STATIC static noinline
+	#define STATIC static noinline
 #endif
 
 #endif /* XFS_WARN */
 #endif /* DEBUG */
 
 #ifdef CONFIG_XFS_RT
-#define XFS_IS_REALTIME_INODE(ip) ((ip)->i_d.di_flags & XFS_DIFLAG_REALTIME)
+	#define XFS_IS_REALTIME_INODE(ip) ((ip)->i_d.di_flags & XFS_DIFLAG_REALTIME)
 #else
-#define XFS_IS_REALTIME_INODE(ip) (0)
+	#define XFS_IS_REALTIME_INODE(ip) (0)
 #endif
 
 #endif /* __XFS_LINUX__ */

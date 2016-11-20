@@ -36,13 +36,13 @@ typedef __kernel_gid16_t        gid16_t;
 typedef unsigned long		uintptr_t;
 
 #ifdef CONFIG_HAVE_UID16
-/* This is defined by include/asm-{arch}/posix_types.h */
-typedef __kernel_old_uid_t	old_uid_t;
-typedef __kernel_old_gid_t	old_gid_t;
+	/* This is defined by include/asm-{arch}/posix_types.h */
+	typedef __kernel_old_uid_t	old_uid_t;
+	typedef __kernel_old_gid_t	old_gid_t;
 #endif /* CONFIG_UID16 */
 
 #if defined(__GNUC__)
-typedef __kernel_loff_t		loff_t;
+	typedef __kernel_loff_t		loff_t;
 #endif
 
 /*
@@ -50,33 +50,33 @@ typedef __kernel_loff_t		loff_t;
  * historical reasons:
  */
 #ifndef _SIZE_T
-#define _SIZE_T
-typedef __kernel_size_t		size_t;
+	#define _SIZE_T
+	typedef __kernel_size_t		size_t;
 #endif
 
 #ifndef _SSIZE_T
-#define _SSIZE_T
-typedef __kernel_ssize_t	ssize_t;
+	#define _SSIZE_T
+	typedef __kernel_ssize_t	ssize_t;
 #endif
 
 #ifndef _PTRDIFF_T
-#define _PTRDIFF_T
-typedef __kernel_ptrdiff_t	ptrdiff_t;
+	#define _PTRDIFF_T
+	typedef __kernel_ptrdiff_t	ptrdiff_t;
 #endif
 
 #ifndef _TIME_T
-#define _TIME_T
-typedef __kernel_time_t		time_t;
+	#define _TIME_T
+	typedef __kernel_time_t		time_t;
 #endif
 
 #ifndef _CLOCK_T
-#define _CLOCK_T
-typedef __kernel_clock_t	clock_t;
+	#define _CLOCK_T
+	typedef __kernel_clock_t	clock_t;
 #endif
 
 #ifndef _CADDR_T
-#define _CADDR_T
-typedef __kernel_caddr_t	caddr_t;
+	#define _CADDR_T
+	typedef __kernel_caddr_t	caddr_t;
 #endif
 
 /* bsd */
@@ -92,14 +92,14 @@ typedef unsigned int		uint;
 typedef unsigned long		ulong;
 
 #ifndef __BIT_TYPES_DEFINED__
-#define __BIT_TYPES_DEFINED__
+	#define __BIT_TYPES_DEFINED__
 
-typedef		__u8		u_int8_t;
-typedef		__s8		int8_t;
-typedef		__u16		u_int16_t;
-typedef		__s16		int16_t;
-typedef		__u32		u_int32_t;
-typedef		__s32		int32_t;
+	typedef		__u8		u_int8_t;
+	typedef		__s8		int8_t;
+	typedef		__u16		u_int16_t;
+	typedef		__s16		int16_t;
+	typedef		__u32		u_int32_t;
+	typedef		__s32		int32_t;
 
 #endif /* !(__BIT_TYPES_DEFINED__) */
 
@@ -108,9 +108,9 @@ typedef		__u16		uint16_t;
 typedef		__u32		uint32_t;
 
 #if defined(__GNUC__)
-typedef		__u64		uint64_t;
-typedef		__u64		u_int64_t;
-typedef		__s64		int64_t;
+	typedef		__u64		uint64_t;
+	typedef		__u64		u_int64_t;
+	typedef		__s64		int64_t;
 #endif
 
 /* this is a special 64bit data type that is 8-byte aligned */
@@ -127,11 +127,11 @@ typedef		__s64		int64_t;
  * blkcnt_t is the type of the inode's block count.
  */
 #ifdef CONFIG_LBDAF
-typedef u64 sector_t;
-typedef u64 blkcnt_t;
+	typedef u64 sector_t;
+	typedef u64 blkcnt_t;
 #else
-typedef unsigned long sector_t;
-typedef unsigned long blkcnt_t;
+	typedef unsigned long sector_t;
+	typedef unsigned long blkcnt_t;
 #endif
 
 /*
@@ -149,18 +149,18 @@ typedef unsigned long blkcnt_t;
  * so they don't care about the size of the actual bus addresses.
  */
 #ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
-typedef u64 dma_addr_t;
+	typedef u64 dma_addr_t;
 #else
-typedef u32 dma_addr_t;
+	typedef u32 dma_addr_t;
 #endif
 
 typedef unsigned __bitwise__ gfp_t;
 typedef unsigned __bitwise__ fmode_t;
 
 #ifdef CONFIG_PHYS_ADDR_T_64BIT
-typedef u64 phys_addr_t;
+	typedef u64 phys_addr_t;
 #else
-typedef u32 phys_addr_t;
+	typedef u32 phys_addr_t;
 #endif
 
 typedef phys_addr_t resource_size_t;
@@ -171,29 +171,35 @@ typedef phys_addr_t resource_size_t;
  */
 typedef unsigned long irq_hw_number_t;
 
-typedef struct {
+typedef struct
+{
 	int counter;
 } atomic_t;
 
 #ifdef CONFIG_64BIT
-typedef struct {
+typedef struct
+{
 	long counter;
 } atomic64_t;
 #endif
 
-struct list_head {
+struct list_head
+{
 	struct list_head *next, *prev;
 };
 
-struct hlist_head {
+struct hlist_head
+{
 	struct hlist_node *first;
 };
 
-struct hlist_node {
-	struct hlist_node *next, **pprev;
+struct hlist_node
+{
+	struct hlist_node *next, * *pprev;
 };
 
-struct ustat {
+struct ustat
+{
 	__kernel_daddr_t	f_tfree;
 	__kernel_ino_t		f_tinode;
 	char			f_fname[6];
@@ -219,7 +225,8 @@ struct ustat {
  *    which encode PageTail() in bit 0. The guarantee is needed to avoid
  *    false-positive PageTail().
  */
-struct callback_head {
+struct callback_head
+{
 	struct callback_head *next;
 	void (*func)(struct callback_head *head);
 } __attribute__((aligned(sizeof(void *))));

@@ -6,10 +6,12 @@
  * add_gd_partition adds a partitions details to the devices partition
  * description.
  */
-struct parsed_partitions {
+struct parsed_partitions
+{
 	struct block_device *bdev;
 	char name[BDEVNAME_SIZE];
-	struct {
+	struct
+	{
 		sector_t from;
 		sector_t size;
 		int flags;
@@ -28,19 +30,22 @@ struct parsed_partitions *
 check_partition(struct gendisk *, struct block_device *);
 
 static inline void *read_part_sector(struct parsed_partitions *state,
-				     sector_t n, Sector *p)
+									 sector_t n, Sector *p)
 {
-	if (n >= get_capacity(state->bdev->bd_disk)) {
+	if (n >= get_capacity(state->bdev->bd_disk))
+	{
 		state->access_beyond_eod = true;
 		return NULL;
 	}
+
 	return read_dev_sector(state->bdev, n, p);
 }
 
 static inline void
 put_partition(struct parsed_partitions *p, int n, sector_t from, sector_t size)
 {
-	if (n < p->limit) {
+	if (n < p->limit)
+	{
 		char tmp[1 + BDEVNAME_SIZE + 10 + 1];
 
 		p->parts[n].from = from;

@@ -41,8 +41,8 @@ static unsigned int stm_core_up;
 static struct srcu_struct stm_source_srcu;
 
 static ssize_t masters_show(struct device *dev,
-			    struct device_attribute *attr,
-			    char *buf)
+							struct device_attribute *attr,
+							char *buf)
 {
 	struct stm_device *stm = to_stm_device(dev);
 	int ret;
@@ -55,8 +55,8 @@ static ssize_t masters_show(struct device *dev,
 static DEVICE_ATTR_RO(masters);
 
 static ssize_t channels_show(struct device *dev,
-			     struct device_attribute *attr,
-			     char *buf)
+							 struct device_attribute *attr,
+							 char *buf)
 {
 	struct stm_device *stm = to_stm_device(dev);
 	int ret;
@@ -69,8 +69,8 @@ static ssize_t channels_show(struct device *dev,
 static DEVICE_ATTR_RO(channels);
 
 static ssize_t hw_override_show(struct device *dev,
-				struct device_attribute *attr,
-				char *buf)
+								struct device_attribute *attr,
+								char *buf)
 {
 	struct stm_device *stm = to_stm_device(dev);
 	int ret;
@@ -82,7 +82,8 @@ static ssize_t hw_override_show(struct device *dev,
 
 static DEVICE_ATTR_RO(hw_override);
 
-static struct attribute *stm_attrs[] = {
+static struct attribute *stm_attrs[] =
+{
 	&dev_attr_masters.attr,
 	&dev_attr_channels.attr,
 	&dev_attr_hw_override.attr,
@@ -91,10 +92,11 @@ static struct attribute *stm_attrs[] = {
 
 ATTRIBUTE_GROUPS(stm);
 
-static struct class stm_class = {
-	.name		= "stm",
-	.dev_groups	= stm_groups,
-};
+static struct class stm_class =
+	{
+			.name		= "stm",
+			.dev_groups	= stm_groups,
+	};
 
 static int stm_dev_match(struct device *dev, const void *data)
 {
@@ -121,14 +123,21 @@ struct stm_device *stm_find_device(const char *buf)
 	struct device *dev;
 
 	if (!stm_core_up)
+	{
 		return NULL;
+	}
 
 	dev = class_find_device(&stm_class, NULL, buf, stm_dev_match);
+
 	if (!dev)
+	{
 		return NULL;
+	}
 
 	stm = to_stm_device(dev);
-	if (!try_module_get(stm->owner)) {
+
+	if (!try_module_get(stm->owner))
+	{
 		/* matches class_find_device() above */
 		put_device(dev);
 		return NULL;
@@ -165,7 +174,9 @@ static inline struct stp_master *
 stm_master(struct stm_device *stm, unsigned int idx)
 {
 	if (idx < stm->data->sw_start || idx > stm->data->sw_end)
+	{
 		return NULL;
+	}
 
 	return __stm_master(stm, idx);
 }
@@ -178,8 +189,11 @@ static int stp_master_alloc(struct stm_device *stm, unsigned int idx)
 	size = ALIGN(stm->data->sw_nchannels, 8) / 8;
 	size += sizeof(struct stp_master);
 	master = kzalloc(size, GFP_ATOMIC);
+
 	if (!master)
+	{
 		return -ENOMEM;
+	}
 
 	master->nr_free = stm->data->sw_nchannels;
 	__stm_master(stm, idx) = master;
@@ -192,7 +206,9 @@ static void stp_master_free(struct stm_device *stm, unsigned int idx)
 	struct stp_master *master = stm_master(stm, idx);
 
 	if (!master)
+	{
 		return;
+	}
 
 	__stm_master(stm, idx) = NULL;
 	kfree(master);
@@ -206,10 +222,12 @@ static void stm_output_claim(struct stm_device *stm, struct stm_output *output)
 	lockdep_assert_held(&output->lock);
 
 	if (WARN_ON_ONCE(master->nr_free < output->nr_chans))
+	{
 		return;
+	}
 
 	bitmap_allocate_region(&master->chan_map[0], output->channel,
-			       ilog2(output->nr_chans));
+						   ilog2(output->nr_chans));
 
 	master->nr_free -= output->nr_chans;
 }
@@ -223,7 +241,7 @@ stm_output_disclaim(struct stm_device *stm, struct stm_output *output)
 	lockdep_assert_held(&output->lock);
 
 	bitmap_release_region(&master->chan_map[0], output->channel,
-			      ilog2(output->nr_chans));
+						  ilog2(output->nr_chans));
 
 	output->nr_chans = 0;
 	master->nr_free += output->nr_chans;
@@ -234,23 +252,32 @@ stm_output_disclaim(struct stm_device *stm, struct stm_output *output)
  * at the beginning.
  */
 static int find_free_channels(unsigned long *bitmap, unsigned int start,
-			      unsigned int end, unsigned int width)
+							  unsigned int end, unsigned int width)
 {
 	unsigned int pos;
 	int i;
 
-	for (pos = start; pos < end + 1; pos = ALIGN(pos, width)) {
+	for (pos = start; pos < end + 1; pos = ALIGN(pos, width))
+	{
 		pos = find_next_zero_bit(bitmap, end + 1, pos);
+
 		if (pos + width > end + 1)
+		{
 			break;
+		}
 
 		if (pos & (width - 1))
+		{
 			continue;
+		}
 
 		for (i = 1; i < width && !test_bit(pos + i, bitmap); i++)
 			;
+
 		if (i == width)
+		{
 			return pos;
+		}
 	}
 
 	return -1;
@@ -258,29 +285,39 @@ static int find_free_channels(unsigned long *bitmap, unsigned int start,
 
 static int
 stm_find_master_chan(struct stm_device *stm, unsigned int width,
-		     unsigned int *mstart, unsigned int mend,
-		     unsigned int *cstart, unsigned int cend)
+					 unsigned int *mstart, unsigned int mend,
+					 unsigned int *cstart, unsigned int cend)
 {
 	struct stp_master *master;
 	unsigned int midx;
 	int pos, err;
 
-	for (midx = *mstart; midx <= mend; midx++) {
-		if (!stm_master(stm, midx)) {
+	for (midx = *mstart; midx <= mend; midx++)
+	{
+		if (!stm_master(stm, midx))
+		{
 			err = stp_master_alloc(stm, midx);
+
 			if (err)
+			{
 				return err;
+			}
 		}
 
 		master = stm_master(stm, midx);
 
 		if (!master->nr_free)
+		{
 			continue;
+		}
 
 		pos = find_free_channels(master->chan_map, *cstart, cend,
-					 width);
+								 width);
+
 		if (pos < 0)
+		{
 			continue;
+		}
 
 		*mstart = midx;
 		*cstart = pos;
@@ -291,19 +328,24 @@ stm_find_master_chan(struct stm_device *stm, unsigned int width,
 }
 
 static int stm_output_assign(struct stm_device *stm, unsigned int width,
-			     struct stp_policy_node *policy_node,
-			     struct stm_output *output)
+							 struct stp_policy_node *policy_node,
+							 struct stm_output *output)
 {
 	unsigned int midx, cidx, mend, cend;
 	int ret = -EINVAL;
 
 	if (width > stm->data->sw_nchannels)
+	{
 		return -EINVAL;
+	}
 
-	if (policy_node) {
+	if (policy_node)
+	{
 		stp_policy_node_get_ranges(policy_node,
-					   &midx, &mend, &cidx, &cend);
-	} else {
+								   &midx, &mend, &cidx, &cend);
+	}
+	else
+	{
 		midx = stm->data->sw_start;
 		cidx = 0;
 		mend = stm->data->sw_end;
@@ -312,13 +354,19 @@ static int stm_output_assign(struct stm_device *stm, unsigned int width,
 
 	spin_lock(&stm->mc_lock);
 	spin_lock(&output->lock);
+
 	/* output is already assigned -- shouldn't happen */
 	if (WARN_ON_ONCE(output->nr_chans))
+	{
 		goto unlock;
+	}
 
 	ret = stm_find_master_chan(stm, width, &midx, mend, &cidx, cend);
+
 	if (ret < 0)
+	{
 		goto unlock;
+	}
 
 	output->master = midx;
 	output->channel = cidx;
@@ -338,8 +386,12 @@ static void stm_output_free(struct stm_device *stm, struct stm_output *output)
 {
 	spin_lock(&stm->mc_lock);
 	spin_lock(&output->lock);
+
 	if (output->nr_chans)
+	{
 		stm_output_disclaim(stm, output);
+	}
+
 	spin_unlock(&output->lock);
 	spin_unlock(&stm->mc_lock);
 }
@@ -364,18 +416,26 @@ static int stm_char_open(struct inode *inode, struct file *file)
 	int err = -ENODEV;
 
 	dev = class_find_device(&stm_class, NULL, &major, major_match);
+
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	stmf = kzalloc(sizeof(*stmf), GFP_KERNEL);
+
 	if (!stmf)
+	{
 		return -ENOMEM;
+	}
 
 	stm_output_init(&stmf->output);
 	stmf->stm = to_stm_device(dev);
 
 	if (!try_module_get(stmf->stm->owner))
+	{
 		goto err_free;
+	}
 
 	file->private_data = stmf;
 
@@ -396,7 +456,7 @@ static int stm_char_release(struct inode *inode, struct file *file)
 
 	if (stm->data->unlink)
 		stm->data->unlink(stm->data, stmf->output.master,
-				  stmf->output.channel);
+						  stmf->output.channel);
 
 	stm_output_free(stm, &stmf->output);
 
@@ -420,27 +480,32 @@ static int stm_file_assign(struct stm_file *stmf, char *id, unsigned int width)
 	ret = stm_output_assign(stm, width, stmf->policy_node, &stmf->output);
 
 	if (stmf->policy_node)
+	{
 		stp_policy_node_put(stmf->policy_node);
+	}
 
 	return ret;
 }
 
 static ssize_t stm_write(struct stm_data *data, unsigned int master,
-			  unsigned int channel, const char *buf, size_t count)
+						 unsigned int channel, const char *buf, size_t count)
 {
 	unsigned int flags = STP_PACKET_TIMESTAMPED;
 	const unsigned char *p = buf, nil = 0;
 	size_t pos;
 	ssize_t sz;
 
-	for (pos = 0, p = buf; count > pos; pos += sz, p += sz) {
+	for (pos = 0, p = buf; count > pos; pos += sz, p += sz)
+	{
 		sz = min_t(unsigned int, count - pos, 8);
 		sz = data->packet(data, master, channel, STP_PACKET_DATA, flags,
-				  sz, p);
+						  sz, p);
 		flags = 0;
 
 		if (sz < 0)
+		{
 			break;
+		}
 	}
 
 	data->packet(data, master, channel, STP_PACKET_FLAG, 0, 0, &nil);
@@ -449,7 +514,7 @@ static ssize_t stm_write(struct stm_data *data, unsigned int master,
 }
 
 static ssize_t stm_char_write(struct file *file, const char __user *buf,
-			      size_t count, loff_t *ppos)
+							  size_t count, loff_t *ppos)
 {
 	struct stm_file *stmf = file->private_data;
 	struct stm_device *stm = stmf->stm;
@@ -457,28 +522,39 @@ static ssize_t stm_char_write(struct file *file, const char __user *buf,
 	int err;
 
 	if (count + 1 > PAGE_SIZE)
+	{
 		count = PAGE_SIZE - 1;
+	}
 
 	/*
 	 * if no m/c have been assigned to this writer up to this
 	 * point, use "default" policy entry
 	 */
-	if (!stmf->output.nr_chans) {
+	if (!stmf->output.nr_chans)
+	{
 		err = stm_file_assign(stmf, "default", 1);
+
 		/*
 		 * EBUSY means that somebody else just assigned this
 		 * output, which is just fine for write()
 		 */
 		if (err && err != -EBUSY)
+		{
 			return err;
+		}
 	}
 
 	kbuf = kmalloc(count + 1, GFP_KERNEL);
+
 	if (!kbuf)
+	{
 		return -ENOMEM;
+	}
 
 	err = copy_from_user(kbuf, buf, count);
-	if (err) {
+
+	if (err)
+	{
 		kfree(kbuf);
 		return -EFAULT;
 	}
@@ -486,7 +562,7 @@ static ssize_t stm_char_write(struct file *file, const char __user *buf,
 	pm_runtime_get_sync(&stm->dev);
 
 	count = stm_write(stm->data, stmf->output.master, stmf->output.channel,
-			  kbuf, count);
+					  kbuf, count);
 
 	pm_runtime_mark_last_busy(&stm->dev);
 	pm_runtime_put_autosuspend(&stm->dev);
@@ -512,7 +588,8 @@ static void stm_mmap_close(struct vm_area_struct *vma)
 	pm_runtime_put_autosuspend(&stm->dev);
 }
 
-static const struct vm_operations_struct stm_mmap_vmops = {
+static const struct vm_operations_struct stm_mmap_vmops =
+{
 	.open	= stm_mmap_open,
 	.close	= stm_mmap_close,
 };
@@ -524,22 +601,30 @@ static int stm_char_mmap(struct file *file, struct vm_area_struct *vma)
 	unsigned long size, phys;
 
 	if (!stm->data->mmio_addr)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if (vma->vm_pgoff)
+	{
 		return -EINVAL;
+	}
 
 	size = vma->vm_end - vma->vm_start;
 
 	if (stmf->output.nr_chans * stm->data->sw_mmiosz != size)
+	{
 		return -EINVAL;
+	}
 
 	phys = stm->data->mmio_addr(stm->data, stmf->output.master,
-				    stmf->output.channel,
-				    stmf->output.nr_chans);
+								stmf->output.channel,
+								stmf->output.nr_chans);
 
 	if (!phys)
+	{
 		return -EINVAL;
+	}
 
 	pm_runtime_get_sync(&stm->dev);
 
@@ -559,44 +644,63 @@ static int stm_char_policy_set_ioctl(struct stm_file *stmf, void __user *arg)
 	u32 size;
 
 	if (stmf->output.nr_chans)
+	{
 		return -EBUSY;
+	}
 
 	if (copy_from_user(&size, arg, sizeof(size)))
+	{
 		return -EFAULT;
+	}
 
 	if (size >= PATH_MAX + sizeof(*id))
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * size + 1 to make sure the .id string at the bottom is terminated,
 	 * which is also why memdup_user() is not useful here
 	 */
 	id = kzalloc(size + 1, GFP_KERNEL);
-	if (!id)
-		return -ENOMEM;
 
-	if (copy_from_user(id, arg, size)) {
+	if (!id)
+	{
+		return -ENOMEM;
+	}
+
+	if (copy_from_user(id, arg, size))
+	{
 		ret = -EFAULT;
 		goto err_free;
 	}
 
 	if (id->__reserved_0 || id->__reserved_1)
+	{
 		goto err_free;
+	}
 
 	if (id->width < 1 ||
-	    id->width > PAGE_SIZE / stm->data->sw_mmiosz)
+		id->width > PAGE_SIZE / stm->data->sw_mmiosz)
+	{
 		goto err_free;
+	}
 
 	ret = stm_file_assign(stmf, id->id, id->width);
+
 	if (ret)
+	{
 		goto err_free;
+	}
 
 	if (stm->data->link)
 		ret = stm->data->link(stm->data, stmf->output.master,
-				      stmf->output.channel);
+							  stmf->output.channel);
 
 	if (ret)
+	{
 		stm_output_free(stmf->stm, &stmf->output);
+	}
 
 err_free:
 	kfree(id);
@@ -606,7 +710,8 @@ err_free:
 
 static int stm_char_policy_get_ioctl(struct stm_file *stmf, void __user *arg)
 {
-	struct stp_policy_id id = {
+	struct stp_policy_id id =
+	{
 		.size		= sizeof(id),
 		.master		= stmf->output.master,
 		.channel	= stmf->output.channel,
@@ -626,31 +731,38 @@ stm_char_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	int err = -ENOTTY;
 	u64 options;
 
-	switch (cmd) {
-	case STP_POLICY_ID_SET:
-		err = stm_char_policy_set_ioctl(stmf, (void __user *)arg);
-		if (err)
-			return err;
+	switch (cmd)
+	{
+		case STP_POLICY_ID_SET:
+			err = stm_char_policy_set_ioctl(stmf, (void __user *)arg);
 
-		return stm_char_policy_get_ioctl(stmf, (void __user *)arg);
+			if (err)
+			{
+				return err;
+			}
 
-	case STP_POLICY_ID_GET:
-		return stm_char_policy_get_ioctl(stmf, (void __user *)arg);
+			return stm_char_policy_get_ioctl(stmf, (void __user *)arg);
 
-	case STP_SET_OPTIONS:
-		if (copy_from_user(&options, (u64 __user *)arg, sizeof(u64)))
-			return -EFAULT;
+		case STP_POLICY_ID_GET:
+			return stm_char_policy_get_ioctl(stmf, (void __user *)arg);
 
-		if (stm_data->set_options)
-			err = stm_data->set_options(stm_data,
-						    stmf->output.master,
-						    stmf->output.channel,
-						    stmf->output.nr_chans,
-						    options);
+		case STP_SET_OPTIONS:
+			if (copy_from_user(&options, (u64 __user *)arg, sizeof(u64)))
+			{
+				return -EFAULT;
+			}
 
-		break;
-	default:
-		break;
+			if (stm_data->set_options)
+				err = stm_data->set_options(stm_data,
+											stmf->output.master,
+											stmf->output.channel,
+											stmf->output.nr_chans,
+											options);
+
+			break;
+
+		default:
+			break;
 	}
 
 	return err;
@@ -666,7 +778,8 @@ stm_char_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 #define stm_char_compat_ioctl	NULL
 #endif
 
-static const struct file_operations stm_fops = {
+static const struct file_operations stm_fops =
+{
 	.open		= stm_char_open,
 	.release	= stm_char_release,
 	.write		= stm_char_write,
@@ -684,26 +797,36 @@ static void stm_device_release(struct device *dev)
 }
 
 int stm_register_device(struct device *parent, struct stm_data *stm_data,
-			struct module *owner)
+						struct module *owner)
 {
 	struct stm_device *stm;
 	unsigned int nmasters;
 	int err = -ENOMEM;
 
 	if (!stm_core_up)
+	{
 		return -EPROBE_DEFER;
+	}
 
 	if (!stm_data->packet || !stm_data->sw_nchannels)
+	{
 		return -EINVAL;
+	}
 
 	nmasters = stm_data->sw_end - stm_data->sw_start + 1;
 	stm = kzalloc(sizeof(*stm) + nmasters * sizeof(void *), GFP_KERNEL);
+
 	if (!stm)
+	{
 		return -ENOMEM;
+	}
 
 	stm->major = register_chrdev(0, stm_data->name, &stm_fops);
+
 	if (stm->major < 0)
+	{
 		goto err_free;
+	}
 
 	device_initialize(&stm->dev);
 	stm->dev.devt = MKDEV(stm->major, 0);
@@ -724,12 +847,18 @@ int stm_register_device(struct device *parent, struct stm_data *stm_data,
 	stm_data->stm = stm;
 
 	err = kobject_set_name(&stm->dev.kobj, "%s", stm_data->name);
+
 	if (err)
+	{
 		goto err_device;
+	}
 
 	err = device_add(&stm->dev);
+
 	if (err)
+	{
 		goto err_device;
+	}
 
 	/*
 	 * Use delayed autosuspend to avoid bouncing back and forth
@@ -757,7 +886,7 @@ err_free:
 EXPORT_SYMBOL_GPL(stm_register_device);
 
 static int __stm_source_link_drop(struct stm_source_device *src,
-				  struct stm_device *stm);
+								  struct stm_device *stm);
 
 void stm_unregister_device(struct stm_data *stm_data)
 {
@@ -769,7 +898,8 @@ void stm_unregister_device(struct stm_data *stm_data)
 	pm_runtime_disable(&stm->dev);
 
 	mutex_lock(&stm->link_mutex);
-	list_for_each_entry_safe(src, iter, &stm->link_list, link_entry) {
+	list_for_each_entry_safe(src, iter, &stm->link_list, link_entry)
+	{
 		ret = __stm_source_link_drop(src, stm);
 		/*
 		 * src <-> stm link must not change under the same
@@ -787,12 +917,18 @@ void stm_unregister_device(struct stm_data *stm_data)
 	unregister_chrdev(stm->major, stm_data->name);
 
 	mutex_lock(&stm->policy_mutex);
+
 	if (stm->policy)
+	{
 		stp_policy_unbind(stm->policy);
+	}
+
 	mutex_unlock(&stm->policy_mutex);
 
 	for (i = stm->data->sw_start; i <= stm->data->sw_end; i++)
+	{
 		stp_master_free(stm, i);
+	}
 
 	device_unregister(&stm->dev);
 	stm_data->stm = NULL;
@@ -821,7 +957,7 @@ EXPORT_SYMBOL_GPL(stm_unregister_device);
  * Return:	0 on success, -errno otherwise.
  */
 static int stm_source_link_add(struct stm_source_device *src,
-			       struct stm_device *stm)
+							   struct stm_device *stm)
 {
 	char *id;
 	int err;
@@ -839,7 +975,9 @@ static int stm_source_link_add(struct stm_source_device *src,
 	mutex_unlock(&stm->link_mutex);
 
 	id = kstrdup(src->data->name, GFP_KERNEL);
-	if (id) {
+
+	if (id)
+	{
 		src->policy_node =
 			stp_policy_node_lookup(stm, id);
 
@@ -847,25 +985,33 @@ static int stm_source_link_add(struct stm_source_device *src,
 	}
 
 	err = stm_output_assign(stm, src->data->nr_chans,
-				src->policy_node, &src->output);
+							src->policy_node, &src->output);
 
 	if (src->policy_node)
+	{
 		stp_policy_node_put(src->policy_node);
+	}
 
 	if (err)
+	{
 		goto fail_detach;
+	}
 
 	/* this is to notify the STM device that a new link has been made */
 	if (stm->data->link)
 		err = stm->data->link(stm->data, src->output.master,
-				      src->output.channel);
+							  src->output.channel);
 
 	if (err)
+	{
 		goto fail_free_output;
+	}
 
 	/* this is to let the source carry out all necessary preparations */
 	if (src->data->link)
+	{
 		src->data->link(src->data);
+	}
 
 	return 0;
 
@@ -898,7 +1044,7 @@ fail_detach:
  * Caller must hold stm::link_mutex.
  */
 static int __stm_source_link_drop(struct stm_source_device *src,
-				  struct stm_device *stm)
+								  struct stm_device *stm)
 {
 	struct stm_device *link;
 	int ret = 0;
@@ -915,7 +1061,8 @@ static int __stm_source_link_drop(struct stm_source_device *src,
 	 * we weren't holding the src::link_lock back then; if this is the
 	 * case, tell the caller to retry.
 	 */
-	if (link != stm) {
+	if (link != stm)
+	{
 		ret = -EAGAIN;
 		goto unlock;
 	}
@@ -936,13 +1083,16 @@ unlock:
 	 * Call the unlink callbacks for both source and stm, when we know
 	 * that we have actually performed the unlinking.
 	 */
-	if (!ret) {
+	if (!ret)
+	{
 		if (src->data->unlink)
+		{
 			src->data->unlink(src->data);
+		}
 
 		if (stm->data->unlink)
 			stm->data->unlink(stm->data, src->output.master,
-					  src->output.channel);
+							  src->output.channel);
 	}
 
 	return ret;
@@ -973,7 +1123,9 @@ retry:
 	stm = srcu_dereference(src->link, &stm_source_srcu);
 
 	ret = 0;
-	if (stm) {
+
+	if (stm)
+	{
 		mutex_lock(&stm->link_mutex);
 		ret = __stm_source_link_drop(src, stm);
 		mutex_unlock(&stm->link_mutex);
@@ -983,12 +1135,14 @@ retry:
 
 	/* if it did change, retry */
 	if (ret == -EAGAIN)
+	{
 		goto retry;
+	}
 }
 
 static ssize_t stm_source_link_show(struct device *dev,
-				    struct device_attribute *attr,
-				    char *buf)
+									struct device_attribute *attr,
+									char *buf)
 {
 	struct stm_source_device *src = to_stm_source_device(dev);
 	struct stm_device *stm;
@@ -997,15 +1151,15 @@ static ssize_t stm_source_link_show(struct device *dev,
 	idx = srcu_read_lock(&stm_source_srcu);
 	stm = srcu_dereference(src->link, &stm_source_srcu);
 	ret = sprintf(buf, "%s\n",
-		      stm ? dev_name(&stm->dev) : "<none>");
+				  stm ? dev_name(&stm->dev) : "<none>");
 	srcu_read_unlock(&stm_source_srcu, idx);
 
 	return ret;
 }
 
 static ssize_t stm_source_link_store(struct device *dev,
-				     struct device_attribute *attr,
-				     const char *buf, size_t count)
+									 struct device_attribute *attr,
+									 const char *buf, size_t count)
 {
 	struct stm_source_device *src = to_stm_source_device(dev);
 	struct stm_device *link;
@@ -1014,13 +1168,18 @@ static ssize_t stm_source_link_store(struct device *dev,
 	stm_source_link_drop(src);
 
 	link = stm_find_device(buf);
+
 	if (!link)
+	{
 		return -EINVAL;
+	}
 
 	pm_runtime_get(&link->dev);
 
 	err = stm_source_link_add(src, link);
-	if (err) {
+
+	if (err)
+	{
 		pm_runtime_put_autosuspend(&link->dev);
 		/* matches the stm_find_device() above */
 		stm_put_device(link);
@@ -1031,17 +1190,19 @@ static ssize_t stm_source_link_store(struct device *dev,
 
 static DEVICE_ATTR_RW(stm_source_link);
 
-static struct attribute *stm_source_attrs[] = {
+static struct attribute *stm_source_attrs[] =
+{
 	&dev_attr_stm_source_link.attr,
 	NULL,
 };
 
 ATTRIBUTE_GROUPS(stm_source);
 
-static struct class stm_source_class = {
-	.name		= "stm_source",
-	.dev_groups	= stm_source_groups,
-};
+static struct class stm_source_class =
+	{
+			.name		= "stm_source",
+			.dev_groups	= stm_source_groups,
+	};
 
 static void stm_source_device_release(struct device *dev)
 {
@@ -1061,17 +1222,22 @@ static void stm_source_device_release(struct device *dev)
  * Return:	0 on success, -errno otherwise.
  */
 int stm_source_register_device(struct device *parent,
-			       struct stm_source_data *data)
+							   struct stm_source_data *data)
 {
 	struct stm_source_device *src;
 	int err;
 
 	if (!stm_core_up)
+	{
 		return -EPROBE_DEFER;
+	}
 
 	src = kzalloc(sizeof(*src), GFP_KERNEL);
+
 	if (!src)
+	{
 		return -ENOMEM;
+	}
 
 	device_initialize(&src->dev);
 	src->dev.class = &stm_source_class;
@@ -1079,15 +1245,21 @@ int stm_source_register_device(struct device *parent,
 	src->dev.release = stm_source_device_release;
 
 	err = kobject_set_name(&src->dev.kobj, "%s", data->name);
+
 	if (err)
+	{
 		goto err;
+	}
 
 	pm_runtime_no_callbacks(&src->dev);
 	pm_runtime_forbid(&src->dev);
 
 	err = device_add(&src->dev);
+
 	if (err)
+	{
 		goto err;
+	}
 
 	stm_output_init(&src->output);
 	spin_lock_init(&src->link_lock);
@@ -1122,27 +1294,34 @@ void stm_source_unregister_device(struct stm_source_data *data)
 EXPORT_SYMBOL_GPL(stm_source_unregister_device);
 
 int stm_source_write(struct stm_source_data *data, unsigned int chan,
-		     const char *buf, size_t count)
+					 const char *buf, size_t count)
 {
 	struct stm_source_device *src = data->src;
 	struct stm_device *stm;
 	int idx;
 
 	if (!src->output.nr_chans)
+	{
 		return -ENODEV;
+	}
 
 	if (chan >= src->output.nr_chans)
+	{
 		return -EINVAL;
+	}
 
 	idx = srcu_read_lock(&stm_source_srcu);
 
 	stm = srcu_dereference(src->link, &stm_source_srcu);
+
 	if (stm)
 		count = stm_write(stm->data, src->output.master,
-				  src->output.channel + chan,
-				  buf, count);
+						  src->output.channel + chan,
+						  buf, count);
 	else
+	{
 		count = -ENODEV;
+	}
 
 	srcu_read_unlock(&stm_source_srcu, idx);
 
@@ -1155,16 +1334,25 @@ static int __init stm_core_init(void)
 	int err;
 
 	err = class_register(&stm_class);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = class_register(&stm_source_class);
+
 	if (err)
+	{
 		goto err_stm;
+	}
 
 	err = stp_configfs_init();
+
 	if (err)
+	{
 		goto err_src;
+	}
 
 	init_srcu_struct(&stm_source_srcu);
 

@@ -36,12 +36,14 @@ static unsigned long mask[8];
  * stride		slots in a row
  */
 static void free_slots(unsigned long pos, uint16_t w, uint16_t h,
-		unsigned long *map, uint16_t stride)
+					   unsigned long *map, uint16_t stride)
 {
 	int i;
 
 	for (i = 0; i < h; i++, pos += stride)
+	{
 		bitmap_clear(map, pos, w);
+	}
 }
 
 /*
@@ -51,7 +53,7 @@ static void free_slots(unsigned long pos, uint16_t w, uint16_t h,
  * num_bits	number of bits in bitmap
  */
 static int r2l_b2t_1d(uint16_t w, unsigned long *pos, unsigned long *map,
-		size_t num_bits)
+					  size_t num_bits)
 {
 	unsigned long search_count = 0;
 	unsigned long bit;
@@ -59,10 +61,12 @@ static int r2l_b2t_1d(uint16_t w, unsigned long *pos, unsigned long *map,
 
 	*pos = num_bits - w;
 
-	while (search_count < num_bits) {
+	while (search_count < num_bits)
+	{
 		bit = find_next_bit(map, num_bits, *pos);
 
-		if (bit - *pos >= w) {
+		if (bit - *pos >= w)
+		{
 			/* found a long enough free area */
 			bitmap_set(map, *pos, w);
 			area_found = true;
@@ -87,8 +91,8 @@ static int r2l_b2t_1d(uint16_t w, unsigned long *pos, unsigned long *map,
  * stride = bits in one row of container
  */
 static int l2r_t2b(uint16_t w, uint16_t h, uint16_t a, int16_t offset,
-		unsigned long *pos, unsigned long slot_bytes,
-		unsigned long *map, size_t num_bits, size_t slot_stride)
+				   unsigned long *pos, unsigned long slot_bytes,
+				   unsigned long *map, size_t num_bits, size_t slot_stride)
 {
 	int i;
 	unsigned long index;
@@ -103,18 +107,21 @@ static int l2r_t2b(uint16_t w, uint16_t h, uint16_t a, int16_t offset,
 
 	/* FIXME Return error if slots_per_band > stride */
 
-	while (curr_bit < num_bits) {
+	while (curr_bit < num_bits)
+	{
 		*pos = bitmap_find_next_zero_area(map, num_bits, curr_bit, w,
-				a);
+										  a);
 
 		/* skip forward if we are not at right offset */
-		if (bit_offset > 0 && (*pos % slots_per_band != bit_offset)) {
+		if (bit_offset > 0 && (*pos % slots_per_band != bit_offset))
+		{
 			curr_bit = ALIGN(*pos, slots_per_band) + bit_offset;
 			continue;
 		}
 
 		/* skip forward to next row if we overlap end of row */
-		if ((*pos % slot_stride) + w > slot_stride) {
+		if ((*pos % slot_stride) + w > slot_stride)
+		{
 			curr_bit = ALIGN(*pos, slot_stride) + bit_offset;
 			continue;
 		}
@@ -123,7 +130,9 @@ static int l2r_t2b(uint16_t w, uint16_t h, uint16_t a, int16_t offset,
 
 		/* break out of look if we will go past end of container */
 		if ((*pos + slot_stride * h) > num_bits)
+		{
 			break;
+		}
 
 		/* generate mask that represents out matching pattern */
 		bitmap_clear(mask, 0, slot_stride);
@@ -133,70 +142,87 @@ static int l2r_t2b(uint16_t w, uint16_t h, uint16_t a, int16_t offset,
 		area_free = true;
 
 		/* check subsequent rows to see if complete area is free */
-		for (i = 1; i < h; i++) {
+		for (i = 1; i < h; i++)
+		{
 			index = *pos / BITS_PER_LONG + i * 8;
+
 			if (bitmap_intersects(&map[index], mask,
-				(*pos % BITS_PER_LONG) + w)) {
+								  (*pos % BITS_PER_LONG) + w))
+			{
 				area_free = false;
 				break;
 			}
 		}
 
 		if (area_free)
+		{
 			break;
+		}
 
 		/* go forward past this match */
 		if (bit_offset > 0)
+		{
 			curr_bit = ALIGN(*pos, slots_per_band) + bit_offset;
+		}
 		else
+		{
 			curr_bit = *pos + a + 1;
+		}
 	}
 
-	if (area_free) {
+	if (area_free)
+	{
 		/* set area as in-use. iterate over rows */
 		for (i = 0, index = *pos; i < h; i++, index += slot_stride)
+		{
 			bitmap_set(map, index, w);
+		}
 	}
 
 	return (area_free) ? 0 : -ENOMEM;
 }
 
 static s32 sita_reserve_1d(struct tcm *tcm, u32 num_slots,
-			   struct tcm_area *area)
+						   struct tcm_area *area)
 {
 	unsigned long pos;
 	int ret;
 
 	spin_lock(&(tcm->lock));
 	ret = r2l_b2t_1d(num_slots, &pos, tcm->bitmap, tcm->map_size);
-	if (!ret) {
+
+	if (!ret)
+	{
 		area->p0.x = pos % tcm->width;
 		area->p0.y = pos / tcm->width;
 		area->p1.x = (pos + num_slots - 1) % tcm->width;
 		area->p1.y = (pos + num_slots - 1) / tcm->width;
 	}
+
 	spin_unlock(&(tcm->lock));
 
 	return ret;
 }
 
 static s32 sita_reserve_2d(struct tcm *tcm, u16 h, u16 w, u16 align,
-				int16_t offset, uint16_t slot_bytes,
-				struct tcm_area *area)
+						   int16_t offset, uint16_t slot_bytes,
+						   struct tcm_area *area)
 {
 	unsigned long pos;
 	int ret;
 
 	spin_lock(&(tcm->lock));
 	ret = l2r_t2b(w, h, align, offset, &pos, slot_bytes, tcm->bitmap,
-			tcm->map_size, tcm->width);
+				  tcm->map_size, tcm->width);
 
-	if (!ret) {
+	if (!ret)
+	{
 		area->p0.x = pos % tcm->width;
 		area->p0.y = pos / tcm->width;
 		area->p1.x = area->p0.x + w - 1;
 		area->p1.y = area->p0.y + h - 1;
 	}
+
 	spin_unlock(&(tcm->lock));
 
 	return ret;
@@ -213,10 +239,14 @@ static s32 sita_free(struct tcm *tcm, struct tcm_area *area)
 	uint16_t w, h;
 
 	pos = area->p0.x + area->p0.y * tcm->width;
-	if (area->is2d) {
+
+	if (area->is2d)
+	{
 		w = area->p1.x - area->p0.x + 1;
 		h = area->p1.y - area->p0.y + 1;
-	} else {
+	}
+	else
+	{
 		w = area->p1.x + area->p1.y * tcm->width - pos + 1;
 		h = 1;
 	}
@@ -230,14 +260,19 @@ static s32 sita_free(struct tcm *tcm, struct tcm_area *area)
 struct tcm *sita_init(u16 width, u16 height)
 {
 	struct tcm *tcm;
-	size_t map_size = BITS_TO_LONGS(width*height) * sizeof(unsigned long);
+	size_t map_size = BITS_TO_LONGS(width * height) * sizeof(unsigned long);
 
 	if (width == 0 || height == 0)
+	{
 		return NULL;
+	}
 
 	tcm = kzalloc(sizeof(*tcm) + map_size, GFP_KERNEL);
+
 	if (!tcm)
+	{
 		goto error;
+	}
 
 	/* Updating the pointers to SiTA implementation APIs */
 	tcm->height = height;
@@ -249,9 +284,9 @@ struct tcm *sita_init(u16 width, u16 height)
 
 	spin_lock_init(&tcm->lock);
 	tcm->bitmap = (unsigned long *)(tcm + 1);
-	bitmap_clear(tcm->bitmap, 0, width*height);
+	bitmap_clear(tcm->bitmap, 0, width * height);
 
-	tcm->map_size = width*height;
+	tcm->map_size = width * height;
 
 	return tcm;
 

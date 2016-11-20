@@ -37,13 +37,15 @@ extern int gspca_debug;
 
 
 /* used to list framerates supported by a camera mode (resolution) */
-struct framerates {
+struct framerates
+{
 	const u8 *rates;
 	int nrates;
 };
 
 /* device information - set at probe time */
-struct cam {
+struct cam
+{
 	const struct v4l2_pix_format *cam_mode;	/* size nmodes */
 	const struct framerates *mode_framerates; /* must have size nmodes,
 						   * just like cam_mode */
@@ -71,39 +73,40 @@ typedef int (*cam_op) (struct gspca_dev *);
 typedef void (*cam_v_op) (struct gspca_dev *);
 typedef int (*cam_cf_op) (struct gspca_dev *, const struct usb_device_id *);
 typedef int (*cam_get_jpg_op) (struct gspca_dev *,
-				struct v4l2_jpegcompression *);
+							   struct v4l2_jpegcompression *);
 typedef int (*cam_set_jpg_op) (struct gspca_dev *,
-				const struct v4l2_jpegcompression *);
+							   const struct v4l2_jpegcompression *);
 typedef int (*cam_get_reg_op) (struct gspca_dev *,
-				struct v4l2_dbg_register *);
+							   struct v4l2_dbg_register *);
 typedef int (*cam_set_reg_op) (struct gspca_dev *,
-				const struct v4l2_dbg_register *);
+							   const struct v4l2_dbg_register *);
 typedef int (*cam_chip_info_op) (struct gspca_dev *,
-				struct v4l2_dbg_chip_info *);
+								 struct v4l2_dbg_chip_info *);
 typedef void (*cam_streamparm_op) (struct gspca_dev *,
-				  struct v4l2_streamparm *);
+								   struct v4l2_streamparm *);
 typedef void (*cam_pkt_op) (struct gspca_dev *gspca_dev,
-				u8 *data,
-				int len);
+							u8 *data,
+							int len);
 typedef int (*cam_int_pkt_op) (struct gspca_dev *gspca_dev,
-				u8 *data,
-				int len);
+							   u8 *data,
+							   int len);
 typedef void (*cam_format_op) (struct gspca_dev *gspca_dev,
-				struct v4l2_format *fmt);
+							   struct v4l2_format *fmt);
 typedef int (*cam_frmsize_op) (struct gspca_dev *gspca_dev,
-				struct v4l2_frmsizeenum *fsize);
+							   struct v4l2_frmsizeenum *fsize);
 
 /* subdriver description */
-struct sd_desc {
-/* information */
+struct sd_desc
+{
+	/* information */
 	const char *name;	/* sub-driver name */
-/* mandatory operations */
+	/* mandatory operations */
 	cam_cf_op config;	/* called on probe */
 	cam_op init;		/* called on probe and resume */
 	cam_op init_controls;	/* called on probe */
 	cam_op start;		/* called on stream on after URBs creation */
 	cam_pkt_op pkt_scan;
-/* optional operations */
+	/* optional operations */
 	cam_op isoc_init;	/* called on stream on before getting the EP */
 	cam_op isoc_nego;	/* called when URB submit failed with NOSPC */
 	cam_v_op stopN;		/* called on stream off - main alt */
@@ -129,26 +132,29 @@ struct sd_desc {
 };
 
 /* packet types when moving from iso buf to frame buf */
-enum gspca_packet_type {
+enum gspca_packet_type
+{
 	DISCARD_PACKET,
 	FIRST_PACKET,
 	INTER_PACKET,
 	LAST_PACKET
 };
 
-struct gspca_frame {
+struct gspca_frame
+{
 	__u8 *data;			/* frame buffer */
 	int vma_use_count;
 	struct v4l2_buffer v4l2_buf;
 };
 
-struct gspca_dev {
+struct gspca_dev
+{
 	struct video_device vdev;	/* !! must be the first item */
 	struct module *module;		/* subdriver handling the device */
 	struct v4l2_device v4l2_dev;
 	struct usb_device *dev;
 	struct file *capt_file;		/* file doing video capture */
-					/* protected by queue_lock */
+	/* protected by queue_lock */
 #if IS_ENABLED(CONFIG_INPUT)
 	struct input_dev *input_dev;
 	char phys[64];			/* physical device path */
@@ -160,7 +166,8 @@ struct gspca_dev {
 
 	/* autogain and exposure or gain control cluster, these are global as
 	   the autogain/exposure functions in autogain_functions.c use them */
-	struct {
+	struct
+	{
 		struct v4l2_ctrl *autogain;
 		struct v4l2_ctrl *exposure;
 		struct v4l2_ctrl *gain;
@@ -214,27 +221,27 @@ struct gspca_dev {
 };
 
 int gspca_dev_probe(struct usb_interface *intf,
-		const struct usb_device_id *id,
-		const struct sd_desc *sd_desc,
-		int dev_size,
-		struct module *module);
+					const struct usb_device_id *id,
+					const struct sd_desc *sd_desc,
+					int dev_size,
+					struct module *module);
 int gspca_dev_probe2(struct usb_interface *intf,
-		const struct usb_device_id *id,
-		const struct sd_desc *sd_desc,
-		int dev_size,
-		struct module *module);
+					 const struct usb_device_id *id,
+					 const struct sd_desc *sd_desc,
+					 int dev_size,
+					 struct module *module);
 void gspca_disconnect(struct usb_interface *intf);
 void gspca_frame_add(struct gspca_dev *gspca_dev,
-			enum gspca_packet_type packet_type,
-			const u8 *data,
-			int len);
+					 enum gspca_packet_type packet_type,
+					 const u8 *data,
+					 int len);
 #ifdef CONFIG_PM
-int gspca_suspend(struct usb_interface *intf, pm_message_t message);
-int gspca_resume(struct usb_interface *intf);
+	int gspca_suspend(struct usb_interface *intf, pm_message_t message);
+	int gspca_resume(struct usb_interface *intf);
 #endif
 int gspca_expo_autogain(struct gspca_dev *gspca_dev, int avg_lum,
-	int desired_avg_lum, int deadzone, int gain_knee, int exposure_knee);
+						int desired_avg_lum, int deadzone, int gain_knee, int exposure_knee);
 int gspca_coarse_grained_expo_autogain(struct gspca_dev *gspca_dev,
-	int avg_lum, int desired_avg_lum, int deadzone);
+									   int avg_lum, int desired_avg_lum, int deadzone);
 
 #endif /* GSPCAV2_H */

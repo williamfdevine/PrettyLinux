@@ -10,12 +10,13 @@ bool libdw__arch_set_initial_registers(Dwfl_Thread *thread, void *arg)
 	unsigned nregs;
 
 #define REG(r) ({						\
-	Dwarf_Word val = 0;					\
-	perf_reg_value(&val, user_regs, PERF_REG_X86_##r);	\
-	val;							\
-})
+		Dwarf_Word val = 0;					\
+		perf_reg_value(&val, user_regs, PERF_REG_X86_##r);	\
+		val;							\
+	})
 
-	if (user_regs->abi == PERF_SAMPLE_REGS_ABI_32) {
+	if (user_regs->abi == PERF_SAMPLE_REGS_ABI_32)
+	{
 		dwarf_regs[0] = REG(AX);
 		dwarf_regs[1] = REG(CX);
 		dwarf_regs[2] = REG(DX);
@@ -26,7 +27,9 @@ bool libdw__arch_set_initial_registers(Dwfl_Thread *thread, void *arg)
 		dwarf_regs[7] = REG(DI);
 		dwarf_regs[8] = REG(IP);
 		nregs = 9;
-	} else {
+	}
+	else
+	{
 		dwarf_regs[0]  = REG(AX);
 		dwarf_regs[1]  = REG(DX);
 		dwarf_regs[2]  = REG(CX);

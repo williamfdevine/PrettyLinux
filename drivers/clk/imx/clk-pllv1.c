@@ -20,7 +20,8 @@
 #define MFN_SIGN	(BIT(MFN_BITS - 1))
 #define MFN_MASK	(MFN_SIGN - 1)
 
-struct clk_pllv1 {
+struct clk_pllv1
+{
 	struct clk_hw	hw;
 	void __iomem	*base;
 	enum imx_pllv1_type type;
@@ -84,11 +85,16 @@ static unsigned long clk_pllv1_recalc_rate(struct clk_hw *hw,
 	 * 2's complements number.
 	 * On i.MX27 the bit 9 is the sign bit.
 	 */
-	if (mfn_is_negative(pll, mfn)) {
+	if (mfn_is_negative(pll, mfn))
+	{
 		if (is_imx27_pllv1(pll))
+		{
 			mfn_abs = mfn & MFN_MASK;
+		}
 		else
+		{
 			mfn_abs = BIT(MFN_BITS) - mfn;
+		}
 	}
 
 	rate = parent_rate * 2;
@@ -99,27 +105,35 @@ static unsigned long clk_pllv1_recalc_rate(struct clk_hw *hw,
 	do_div(ull, mfd + 1);
 
 	if (mfn_is_negative(pll, mfn))
+	{
 		ull = (rate * mfi) - ull;
+	}
 	else
+	{
 		ull = (rate * mfi) + ull;
+	}
 
 	return ull;
 }
 
-static struct clk_ops clk_pllv1_ops = {
+static struct clk_ops clk_pllv1_ops =
+{
 	.recalc_rate = clk_pllv1_recalc_rate,
 };
 
 struct clk *imx_clk_pllv1(enum imx_pllv1_type type, const char *name,
-		const char *parent, void __iomem *base)
+						  const char *parent, void __iomem *base)
 {
 	struct clk_pllv1 *pll;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	pll = kmalloc(sizeof(*pll), GFP_KERNEL);
+
 	if (!pll)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	pll->base = base;
 	pll->type = type;
@@ -133,8 +147,11 @@ struct clk *imx_clk_pllv1(enum imx_pllv1_type type, const char *name,
 	pll->hw.init = &init;
 
 	clk = clk_register(NULL, &pll->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(pll);
+	}
 
 	return clk;
 }

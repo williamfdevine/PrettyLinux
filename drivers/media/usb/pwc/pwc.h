@@ -43,7 +43,7 @@
 #include <media/videobuf2-v4l2.h>
 #include <media/videobuf2-vmalloc.h>
 #ifdef CONFIG_USB_PWC_INPUT_EVDEV
-#include <linux/input.h>
+	#include <linux/input.h>
 #endif
 #include "pwc-dec1.h"
 #include "pwc-dec23.h"
@@ -81,8 +81,8 @@
 #define PWC_DEBUG_LEVEL	(PWC_DEBUG_LEVEL_MODULE)
 
 #define PWC_DEBUG(level, fmt, args...) do {\
-	if ((PWC_DEBUG_LEVEL_ ##level) & pwc_trace) \
-		printk(KERN_DEBUG PFX fmt, ##args); \
+		if ((PWC_DEBUG_LEVEL_ ##level) & pwc_trace) \
+			printk(KERN_DEBUG PFX fmt, ##args); \
 	} while (0)
 
 #define PWC_ERROR(fmt, args...) printk(KERN_ERR PFX fmt, ##args)
@@ -199,7 +199,8 @@
 #define PSZ_VGA		0x05
 #define PSZ_MAX		6
 
-struct pwc_raw_frame {
+struct pwc_raw_frame
+{
 	__le16 type;		/* type of the webcam */
 	__le16 vbandlength;	/* Size of 4 lines compressed (used by the
 				   decompressor) */
@@ -273,7 +274,8 @@ struct pwc_device
 	int frame_total_size;	/* including header & trailer */
 	int drop_frames;
 
-	union {	/* private data for decompression engine */
+	union  	/* private data for decompression engine */
+	{
 		struct pwc_dec1_private dec1;
 		struct pwc_dec23_private dec23;
 	};
@@ -299,7 +301,8 @@ struct pwc_device
 	struct v4l2_ctrl		*contrast;
 	struct v4l2_ctrl		*saturation;
 	struct v4l2_ctrl		*gamma;
-	struct {
+	struct
+	{
 		/* awb / red-blue balance cluster */
 		struct v4l2_ctrl	*auto_white_balance;
 		struct v4l2_ctrl	*red_balance;
@@ -310,7 +313,8 @@ struct pwc_device
 		s32			last_red_balance;
 		s32			last_blue_balance;
 	};
-	struct {
+	struct
+	{
 		/* autogain / gain cluster */
 		struct v4l2_ctrl	*autogain;
 		struct v4l2_ctrl	*gain;
@@ -318,7 +322,8 @@ struct pwc_device
 		unsigned long		last_gain_update; /* In jiffies */
 		s32			last_gain;
 	};
-	struct {
+	struct
+	{
 		/* exposure_auto / exposure cluster */
 		struct v4l2_ctrl	*exposure_auto;
 		struct v4l2_ctrl	*exposure;
@@ -327,7 +332,8 @@ struct pwc_device
 		s32			last_exposure;
 	};
 	struct v4l2_ctrl		*colorfx;
-	struct {
+	struct
+	{
 		/* autocontour/contour cluster */
 		struct v4l2_ctrl	*autocontour;
 		struct v4l2_ctrl	*contour;
@@ -340,7 +346,8 @@ struct pwc_device
 	struct v4l2_ctrl		*restore_factory;
 	struct v4l2_ctrl		*awb_speed;
 	struct v4l2_ctrl		*awb_delay;
-	struct {
+	struct
+	{
 		/* motor control cluster */
 		struct v4l2_ctrl	*motor_pan;
 		struct v4l2_ctrl	*motor_tilt;
@@ -353,7 +360,7 @@ struct pwc_device
 
 /* Global variables */
 #ifdef CONFIG_USB_PWC_DEBUG
-extern int pwc_trace;
+	extern int pwc_trace;
 #endif
 
 /** Functions in pwc-misc.c */
@@ -366,12 +373,12 @@ void pwc_construct(struct pwc_device *pdev);
 /** Functions in pwc-ctrl.c */
 /* Request a certain video mode. Returns < 0 if not possible */
 extern int pwc_set_video_mode(struct pwc_device *pdev, int width, int height,
-	int pixfmt, int frames, int *compression, int send_to_cam);
+							  int pixfmt, int frames, int *compression, int send_to_cam);
 extern unsigned int pwc_get_fps(struct pwc_device *pdev, unsigned int index, unsigned int size);
 extern int pwc_set_leds(struct pwc_device *pdev, int on_value, int off_value);
 extern int pwc_get_cmos_sensor(struct pwc_device *pdev, int *sensor);
 extern int send_control_msg(struct pwc_device *pdev,
-			    u8 request, u16 value, void *buf, int buflen);
+							u8 request, u16 value, void *buf, int buflen);
 
 /* Control get / set helpers */
 int pwc_get_u8_ctrl(struct pwc_device *pdev, u8 request, u16 value, int *data);

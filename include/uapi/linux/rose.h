@@ -42,11 +42,13 @@
 #define	ROSE_LOCAL_PROCEDURE	0x13
 #define	ROSE_SHIP_ABSENT	0x39
 
-typedef struct {
+typedef struct
+{
 	char		rose_addr[5];
 } rose_address;
 
-struct sockaddr_rose {
+struct sockaddr_rose
+{
 	__kernel_sa_family_t srose_family;
 	rose_address	srose_addr;
 	ax25_address	srose_call;
@@ -54,7 +56,8 @@ struct sockaddr_rose {
 	ax25_address	srose_digi;
 };
 
-struct full_sockaddr_rose {
+struct full_sockaddr_rose
+{
 	__kernel_sa_family_t srose_family;
 	rose_address	srose_addr;
 	ax25_address	srose_call;
@@ -62,7 +65,8 @@ struct full_sockaddr_rose {
 	ax25_address	srose_digis[ROSE_MAX_DIGIS];
 };
 
-struct rose_route_struct {
+struct rose_route_struct
+{
 	rose_address	address;
 	unsigned short	mask;
 	ax25_address	neighbour;
@@ -71,12 +75,14 @@ struct rose_route_struct {
 	ax25_address	digipeaters[AX25_MAX_DIGIS];
 };
 
-struct rose_cause_struct {
+struct rose_cause_struct
+{
 	unsigned char	cause;
 	unsigned char	diagnostic;
 };
 
-struct rose_facilities_struct {
+struct rose_facilities_struct
+{
 	rose_address	source_addr,   dest_addr;
 	ax25_address	source_call,   dest_call;
 	unsigned char	source_ndigis, dest_ndigis;

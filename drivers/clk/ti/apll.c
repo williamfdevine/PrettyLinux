@@ -47,8 +47,11 @@ static int dra7_apll_enable(struct clk_hw *hw)
 	u32 v;
 
 	ad = clk->dpll_data;
+
 	if (!ad)
+	{
 		return -EINVAL;
+	}
 
 	clk_name = clk_hw_get_name(&clk->hw);
 
@@ -58,7 +61,9 @@ static int dra7_apll_enable(struct clk_hw *hw)
 	v = ti_clk_ll_ops->clk_readl(ad->idlest_reg);
 
 	if ((v & ad->idlest_mask) == state)
+	{
 		return r;
+	}
 
 	v = ti_clk_ll_ops->clk_readl(ad->control_reg);
 	v &= ~ad->enable_mask;
@@ -67,23 +72,33 @@ static int dra7_apll_enable(struct clk_hw *hw)
 
 	state <<= __ffs(ad->idlest_mask);
 
-	while (1) {
+	while (1)
+	{
 		v = ti_clk_ll_ops->clk_readl(ad->idlest_reg);
+
 		if ((v & ad->idlest_mask) == state)
+		{
 			break;
+		}
+
 		if (i > MAX_APLL_WAIT_TRIES)
+		{
 			break;
+		}
+
 		i++;
 		udelay(1);
 	}
 
-	if (i == MAX_APLL_WAIT_TRIES) {
+	if (i == MAX_APLL_WAIT_TRIES)
+	{
 		pr_warn("clock: %s failed transition to '%s'\n",
-			clk_name, (state) ? "locked" : "bypassed");
+				clk_name, (state) ? "locked" : "bypassed");
 		r = -EBUSY;
-	} else
+	}
+	else
 		pr_debug("clock: %s transition to '%s' in %d loops\n",
-			 clk_name, (state) ? "locked" : "bypassed", i);
+				 clk_name, (state) ? "locked" : "bypassed", i);
 
 	return r;
 }
@@ -126,7 +141,8 @@ static u8 dra7_init_apll_parent(struct clk_hw *hw)
 	return 0;
 }
 
-static const struct clk_ops apll_ck_ops = {
+static const struct clk_ops apll_ck_ops =
+{
 	.enable		= &dra7_apll_enable,
 	.disable	= &dra7_apll_disable,
 	.is_enabled	= &dra7_apll_is_enabled,
@@ -134,18 +150,23 @@ static const struct clk_ops apll_ck_ops = {
 };
 
 static void __init omap_clk_register_apll(struct clk_hw *hw,
-					  struct device_node *node)
+		struct device_node *node)
 {
 	struct clk_hw_omap *clk_hw = to_clk_hw_omap(hw);
 	struct dpll_data *ad = clk_hw->dpll_data;
 	struct clk *clk;
 
 	clk = of_clk_get(node, 0);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_debug("clk-ref for %s not ready, retry\n",
-			 node->name);
+				 node->name);
+
 		if (!ti_clk_retry_init(node, hw, omap_clk_register_apll))
+		{
 			return;
+		}
 
 		goto cleanup;
 	}
@@ -153,11 +174,16 @@ static void __init omap_clk_register_apll(struct clk_hw *hw,
 	ad->clk_ref = __clk_get_hw(clk);
 
 	clk = of_clk_get(node, 1);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_debug("clk-bypass for %s not ready, retry\n",
-			 node->name);
+				 node->name);
+
 		if (!ti_clk_retry_init(node, hw, omap_clk_register_apll))
+		{
 			return;
+		}
 
 		goto cleanup;
 	}
@@ -165,7 +191,9 @@ static void __init omap_clk_register_apll(struct clk_hw *hw,
 	ad->clk_bypass = __clk_get_hw(clk);
 
 	clk = clk_register(NULL, &clk_hw->hw);
-	if (!IS_ERR(clk)) {
+
+	if (!IS_ERR(clk))
+	{
 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
 		kfree(clk_hw->hw.init->parent_names);
 		kfree(clk_hw->hw.init);
@@ -189,8 +217,11 @@ static void __init of_dra7_apll_setup(struct device_node *node)
 	ad = kzalloc(sizeof(*ad), GFP_KERNEL);
 	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
 	init = kzalloc(sizeof(*init), GFP_KERNEL);
+
 	if (!ad || !clk_hw || !init)
+	{
 		goto cleanup;
+	}
 
 	clk_hw->dpll_data = ad;
 	clk_hw->hw.init = init;
@@ -200,14 +231,19 @@ static void __init of_dra7_apll_setup(struct device_node *node)
 	init->ops = &apll_ck_ops;
 
 	init->num_parents = of_clk_get_parent_count(node);
-	if (init->num_parents < 1) {
+
+	if (init->num_parents < 1)
+	{
 		pr_err("dra7 apll %s must have parent(s)\n", node->name);
 		goto cleanup;
 	}
 
 	parent_names = kzalloc(sizeof(char *) * init->num_parents, GFP_KERNEL);
+
 	if (!parent_names)
+	{
 		goto cleanup;
+	}
 
 	of_clk_parent_fill(node, parent_names, init->num_parents);
 
@@ -217,7 +253,9 @@ static void __init of_dra7_apll_setup(struct device_node *node)
 	ad->idlest_reg = ti_clk_get_reg_addr(node, 1);
 
 	if (IS_ERR(ad->control_reg) || IS_ERR(ad->idlest_reg))
+	{
 		goto cleanup;
+	}
 
 	ad->idlest_mask = 0x1;
 	ad->enable_mask = 0x3;
@@ -251,12 +289,14 @@ static int omap2_apll_is_enabled(struct clk_hw *hw)
 }
 
 static unsigned long omap2_apll_recalc(struct clk_hw *hw,
-				       unsigned long parent_rate)
+									   unsigned long parent_rate)
 {
 	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
 
 	if (omap2_apll_is_enabled(hw))
+	{
 		return clk->fixed_rate;
+	}
 
 	return 0;
 }
@@ -273,19 +313,28 @@ static int omap2_apll_enable(struct clk_hw *hw)
 	v |= OMAP2_EN_APLL_LOCKED << __ffs(ad->enable_mask);
 	ti_clk_ll_ops->clk_writel(v, ad->control_reg);
 
-	while (1) {
+	while (1)
+	{
 		v = ti_clk_ll_ops->clk_readl(ad->idlest_reg);
+
 		if (v & ad->idlest_mask)
+		{
 			break;
+		}
+
 		if (i > MAX_APLL_WAIT_TRIES)
+		{
 			break;
+		}
+
 		i++;
 		udelay(1);
 	}
 
-	if (i == MAX_APLL_WAIT_TRIES) {
+	if (i == MAX_APLL_WAIT_TRIES)
+	{
 		pr_warn("%s failed to transition to locked\n",
-			clk_hw_get_name(&clk->hw));
+				clk_hw_get_name(&clk->hw));
 		return -EBUSY;
 	}
 
@@ -304,7 +353,8 @@ static void omap2_apll_disable(struct clk_hw *hw)
 	ti_clk_ll_ops->clk_writel(v, ad->control_reg);
 }
 
-static struct clk_ops omap2_apll_ops = {
+static struct clk_ops omap2_apll_ops =
+{
 	.enable		= &omap2_apll_enable,
 	.disable	= &omap2_apll_disable,
 	.is_enabled	= &omap2_apll_is_enabled,
@@ -335,7 +385,8 @@ static void omap2_apll_deny_idle(struct clk_hw_omap *clk)
 	omap2_apll_set_autoidle(clk, OMAP2_APLL_AUTOIDLE_DISABLE);
 }
 
-static const struct clk_hw_omap_ops omap2_apll_hwops = {
+static const struct clk_hw_omap_ops omap2_apll_hwops =
+{
 	.allow_idle	= &omap2_apll_allow_idle,
 	.deny_idle	= &omap2_apll_deny_idle,
 };
@@ -354,7 +405,9 @@ static void __init of_omap2_apll_setup(struct device_node *node)
 	init = kzalloc(sizeof(*init), GFP_KERNEL);
 
 	if (!ad || !clk_hw || !init)
+	{
 		goto cleanup;
+	}
 
 	clk_hw->dpll_data = ad;
 	clk_hw->hw.init = init;
@@ -363,7 +416,9 @@ static void __init of_omap2_apll_setup(struct device_node *node)
 	clk_hw->ops = &omap2_apll_hwops;
 
 	init->num_parents = of_clk_get_parent_count(node);
-	if (init->num_parents != 1) {
+
+	if (init->num_parents != 1)
+	{
 		pr_err("%s must have one parent\n", node->name);
 		goto cleanup;
 	}
@@ -371,13 +426,16 @@ static void __init of_omap2_apll_setup(struct device_node *node)
 	parent_name = of_clk_get_parent_name(node, 0);
 	init->parent_names = &parent_name;
 
-	if (of_property_read_u32(node, "ti,clock-frequency", &val)) {
+	if (of_property_read_u32(node, "ti,clock-frequency", &val))
+	{
 		pr_err("%s missing clock-frequency\n", node->name);
 		goto cleanup;
 	}
+
 	clk_hw->fixed_rate = val;
 
-	if (of_property_read_u32(node, "ti,bit-shift", &val)) {
+	if (of_property_read_u32(node, "ti,bit-shift", &val))
+	{
 		pr_err("%s missing bit-shift\n", node->name);
 		goto cleanup;
 	}
@@ -386,7 +444,8 @@ static void __init of_omap2_apll_setup(struct device_node *node)
 	ad->enable_mask = 0x3 << val;
 	ad->autoidle_mask = 0x3 << val;
 
-	if (of_property_read_u32(node, "ti,idlest-shift", &val)) {
+	if (of_property_read_u32(node, "ti,idlest-shift", &val))
+	{
 		pr_err("%s missing idlest-shift\n", node->name);
 		goto cleanup;
 	}
@@ -398,19 +457,24 @@ static void __init of_omap2_apll_setup(struct device_node *node)
 	ad->idlest_reg = ti_clk_get_reg_addr(node, 2);
 
 	if (IS_ERR(ad->control_reg) || IS_ERR(ad->autoidle_reg) ||
-	    IS_ERR(ad->idlest_reg))
+		IS_ERR(ad->idlest_reg))
+	{
 		goto cleanup;
+	}
 
 	clk = clk_register(NULL, &clk_hw->hw);
-	if (!IS_ERR(clk)) {
+
+	if (!IS_ERR(clk))
+	{
 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
 		kfree(init);
 		return;
 	}
+
 cleanup:
 	kfree(ad);
 	kfree(clk_hw);
 	kfree(init);
 }
 CLK_OF_DECLARE(omap2_apll_clock, "ti,omap2-apll-clock",
-	       of_omap2_apll_setup);
+			   of_omap2_apll_setup);

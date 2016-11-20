@@ -26,7 +26,8 @@
 #include <linux/regulator/machine.h>
 
 /* MAX 8998 regulator ids */
-enum {
+enum
+{
 	MAX8998_LDO2 = 2,
 	MAX8998_LDO3,
 	MAX8998_LDO4,
@@ -60,7 +61,8 @@ enum {
  * @initdata: regulator init data (contraints, supplies, ...)
  * @reg_node: DT node of regulator (unused on non-DT platforms)
  */
-struct max8998_regulator_data {
+struct max8998_regulator_data
+{
 	int				id;
 	struct regulator_init_data	*initdata;
 	struct device_node		*reg_node;
@@ -95,7 +97,8 @@ struct max8998_regulator_data {
  *   If it equals 0, leave it unchanged.
  *   Otherwise, leave it unchanged.
  */
-struct max8998_platform_data {
+struct max8998_platform_data
+{
 	struct max8998_regulator_data	*regulators;
 	int				num_regulators;
 	unsigned int			irq_base;

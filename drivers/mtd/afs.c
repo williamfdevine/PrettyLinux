@@ -36,7 +36,8 @@
 
 #define AFSV1_FOOTER_MAGIC 0xA0FFFF9F
 
-struct footer_v1 {
+struct footer_v1
+{
 	u32 image_info_base;	/* Address of first word of ImageFooter  */
 	u32 image_start;	/* Start of area reserved by this footer */
 	u32 signature;		/* 'Magic' number proves it's a footer   */
@@ -44,7 +45,8 @@ struct footer_v1 {
 	u32 checksum;		/* Just this structure                   */
 };
 
-struct image_info_v1 {
+struct image_info_v1
+{
 	u32 bootFlags;		/* Boot flags, compression etc.          */
 	u32 imageNumber;	/* Unique number, selects for boot etc.  */
 	u32 loadAddress;	/* Address program should be loaded to   */
@@ -63,14 +65,16 @@ static u32 word_sum(void *words, int num)
 	u32 sum = 0;
 
 	while (num--)
+	{
 		sum += *p++;
+	}
 
 	return sum;
 }
 
 static int
 afs_read_footer_v1(struct mtd_info *mtd, u_int *img_start, u_int *iis_start,
-		   u_int off, u_int mask)
+				   u_int off, u_int mask)
 {
 	struct footer_v1 fs;
 	u_int ptr = off + mtd->erasesize - sizeof(fs);
@@ -78,12 +82,16 @@ afs_read_footer_v1(struct mtd_info *mtd, u_int *img_start, u_int *iis_start,
 	int ret;
 
 	ret = mtd_read(mtd, ptr, sizeof(fs), &sz, (u_char *)&fs);
-	if (ret >= 0 && sz != sizeof(fs))
-		ret = -EINVAL;
 
-	if (ret < 0) {
+	if (ret >= 0 && sz != sizeof(fs))
+	{
+		ret = -EINVAL;
+	}
+
+	if (ret < 0)
+	{
 		printk(KERN_ERR "AFS: mtd read failed at 0x%x: %d\n",
-			ptr, ret);
+			   ptr, ret);
 		return ret;
 	}
 
@@ -91,19 +99,25 @@ afs_read_footer_v1(struct mtd_info *mtd, u_int *img_start, u_int *iis_start,
 	 * Does it contain the magic number?
 	 */
 	if (fs.signature != AFSV1_FOOTER_MAGIC)
+	{
 		return 0;
+	}
 
 	/*
 	 * Check the checksum.
 	 */
 	if (word_sum(&fs, sizeof(fs) / sizeof(u32)) != 0xffffffff)
+	{
 		return 0;
+	}
 
 	/*
 	 * Don't touch the SIB.
 	 */
 	if (fs.type == 2)
+	{
 		return 0;
+	}
 
 	*iis_start = fs.image_info_base & mask;
 	*img_start = fs.image_start & mask;
@@ -113,14 +127,18 @@ afs_read_footer_v1(struct mtd_info *mtd, u_int *img_start, u_int *iis_start,
 	 * be located after the footer structure.
 	 */
 	if (*iis_start >= ptr)
+	{
 		return 0;
+	}
 
 	/*
 	 * Check the start of this image.  The image
 	 * data can not be located after this block.
 	 */
 	if (*img_start > off)
+	{
 		return 0;
+	}
 
 	return 1;
 }
@@ -133,10 +151,14 @@ afs_read_iis_v1(struct mtd_info *mtd, struct image_info_v1 *iis, u_int ptr)
 
 	memset(iis, 0, sizeof(*iis));
 	ret = mtd_read(mtd, ptr, sizeof(*iis), &sz, (u_char *)iis);
-	if (ret < 0)
-		goto failed;
 
-	if (sz != sizeof(*iis)) {
+	if (ret < 0)
+	{
+		goto failed;
+	}
+
+	if (sz != sizeof(*iis))
+	{
 		ret = -EINVAL;
 		goto failed;
 	}
@@ -148,22 +170,26 @@ afs_read_iis_v1(struct mtd_info *mtd, struct image_info_v1 *iis, u_int ptr)
 	 */
 	for (i = 0; i < sizeof(iis->name); i++)
 		if (iis->name[i] == '\0')
+		{
 			break;
+		}
 
 	if (i < sizeof(iis->name))
+	{
 		ret = 1;
+	}
 
 	return ret;
 
- failed:
+failed:
 	printk(KERN_ERR "AFS: mtd read failed at 0x%x: %d\n",
-		ptr, ret);
+		   ptr, ret);
 	return ret;
 }
 
 static int parse_afs_partitions(struct mtd_info *mtd,
-				const struct mtd_partition **pparts,
-				struct mtd_part_parser_data *data)
+								const struct mtd_partition **pparts,
+								struct mtd_part_parser_data *data)
 {
 	struct mtd_partition *parts;
 	u_int mask, off, idx, sz;
@@ -181,19 +207,31 @@ static int parse_afs_partitions(struct mtd_info *mtd,
 	 * partition information.  We include in this the size of
 	 * the strings.
 	 */
-	for (idx = off = sz = 0; off < mtd->size; off += mtd->erasesize) {
+	for (idx = off = sz = 0; off < mtd->size; off += mtd->erasesize)
+	{
 		struct image_info_v1 iis;
 		u_int iis_ptr, img_ptr;
 
 		ret = afs_read_footer_v1(mtd, &img_ptr, &iis_ptr, off, mask);
+
 		if (ret < 0)
+		{
 			break;
-		if (ret) {
+		}
+
+		if (ret)
+		{
 			ret = afs_read_iis_v1(mtd, &iis, iis_ptr);
+
 			if (ret < 0)
+			{
 				break;
+			}
+
 			if (ret == 0)
+			{
 				continue;
+			}
 
 			sz += sizeof(struct mtd_partition);
 			sz += strlen(iis.name) + 1;
@@ -202,34 +240,52 @@ static int parse_afs_partitions(struct mtd_info *mtd,
 	}
 
 	if (!sz)
+	{
 		return ret;
+	}
 
 	parts = kzalloc(sz, GFP_KERNEL);
+
 	if (!parts)
+	{
 		return -ENOMEM;
+	}
 
 	str = (char *)(parts + idx);
 
 	/*
 	 * Identify the partitions
 	 */
-	for (idx = off = 0; off < mtd->size; off += mtd->erasesize) {
+	for (idx = off = 0; off < mtd->size; off += mtd->erasesize)
+	{
 		struct image_info_v1 iis;
 		u_int iis_ptr, img_ptr;
 
 		/* Read the footer. */
 		ret = afs_read_footer_v1(mtd, &img_ptr, &iis_ptr, off, mask);
+
 		if (ret < 0)
+		{
 			break;
+		}
+
 		if (ret == 0)
+		{
 			continue;
+		}
 
 		/* Read the image info block */
 		ret = afs_read_iis_v1(mtd, &iis, iis_ptr);
+
 		if (ret < 0)
+		{
 			break;
+		}
+
 		if (ret == 0)
+		{
 			continue;
+		}
 
 		strcpy(str, iis.name);
 
@@ -239,14 +295,15 @@ static int parse_afs_partitions(struct mtd_info *mtd,
 		parts[idx].mask_flags	= 0;
 
 		printk("  mtd%d: at 0x%08x, %5lluKiB, %8u, %s\n",
-			idx, img_ptr, parts[idx].size / 1024,
-			iis.imageNumber, str);
+			   idx, img_ptr, parts[idx].size / 1024,
+			   iis.imageNumber, str);
 
 		idx += 1;
 		str = str + strlen(iis.name) + 1;
 	}
 
-	if (!idx) {
+	if (!idx)
+	{
 		kfree(parts);
 		parts = NULL;
 	}
@@ -255,7 +312,8 @@ static int parse_afs_partitions(struct mtd_info *mtd,
 	return idx ? idx : ret;
 }
 
-static struct mtd_part_parser afs_parser = {
+static struct mtd_part_parser afs_parser =
+{
 	.parse_fn = parse_afs_partitions,
 	.name = "afs",
 };

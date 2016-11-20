@@ -39,7 +39,8 @@ MODULE_LICENSE("GPL");
 
 
 /* specific webcam descriptor */
-struct sd {
+struct sd
+{
 	struct gspca_dev gspca_dev;  /* !! must be the first item */
 	unsigned char firmware_id[6];
 	const struct v4l2_pix_format *cap_mode;
@@ -52,30 +53,40 @@ struct sd {
 
 
 /* Camera has two resolution settings. What they are depends on model. */
-static const struct v4l2_pix_format cif_mode[] = {
-	{176, 144, V4L2_PIX_FMT_JL2005BCD, V4L2_FIELD_NONE,
+static const struct v4l2_pix_format cif_mode[] =
+{
+	{
+		176, 144, V4L2_PIX_FMT_JL2005BCD, V4L2_FIELD_NONE,
 		.bytesperline = 176,
 		.sizeimage = 176 * 144,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 0},
-	{352, 288, V4L2_PIX_FMT_JL2005BCD, V4L2_FIELD_NONE,
+		.priv = 0
+	},
+	{
+		352, 288, V4L2_PIX_FMT_JL2005BCD, V4L2_FIELD_NONE,
 		.bytesperline = 352,
 		.sizeimage = 352 * 288,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 0},
+		.priv = 0
+	},
 };
 
-static const struct v4l2_pix_format vga_mode[] = {
-	{320, 240, V4L2_PIX_FMT_JL2005BCD, V4L2_FIELD_NONE,
+static const struct v4l2_pix_format vga_mode[] =
+{
+	{
+		320, 240, V4L2_PIX_FMT_JL2005BCD, V4L2_FIELD_NONE,
 		.bytesperline = 320,
 		.sizeimage = 320 * 240,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 0},
-	{640, 480, V4L2_PIX_FMT_JL2005BCD, V4L2_FIELD_NONE,
+		.priv = 0
+	},
+	{
+		640, 480, V4L2_PIX_FMT_JL2005BCD, V4L2_FIELD_NONE,
 		.bytesperline = 640,
 		.sizeimage = 640 * 480,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 0},
+		.priv = 0
+	},
 };
 
 /*
@@ -90,11 +101,13 @@ static int jl2005c_write2(struct gspca_dev *gspca_dev, unsigned char *command)
 
 	memcpy(gspca_dev->usb_buf, command, 2);
 	retval = usb_bulk_msg(gspca_dev->dev,
-			usb_sndbulkpipe(gspca_dev->dev, 3),
-			gspca_dev->usb_buf, 2, NULL, 500);
+						  usb_sndbulkpipe(gspca_dev->dev, 3),
+						  gspca_dev->usb_buf, 2, NULL, 500);
+
 	if (retval < 0)
 		pr_err("command write [%02x] error %d\n",
-		       gspca_dev->usb_buf[0], retval);
+			   gspca_dev->usb_buf[0], retval);
+
 	return retval;
 }
 
@@ -104,11 +117,13 @@ static int jl2005c_read1(struct gspca_dev *gspca_dev)
 	int retval;
 
 	retval = usb_bulk_msg(gspca_dev->dev,
-				usb_rcvbulkpipe(gspca_dev->dev, 0x84),
-				gspca_dev->usb_buf, 1, NULL, 500);
+						  usb_rcvbulkpipe(gspca_dev->dev, 0x84),
+						  gspca_dev->usb_buf, 1, NULL, 500);
+
 	if (retval < 0)
 		pr_err("read command [0x%02x] error %d\n",
-		       gspca_dev->usb_buf[0], retval);
+			   gspca_dev->usb_buf[0], retval);
+
 	return retval;
 }
 
@@ -122,8 +137,12 @@ static int jl2005c_read_reg(struct gspca_dev *gspca_dev, unsigned char reg)
 	instruction[1] = reg;
 	/* Send the read request */
 	retval = jl2005c_write2(gspca_dev, instruction);
+
 	if (retval < 0)
+	{
 		return retval;
+	}
+
 	retval = jl2005c_read1(gspca_dev);
 
 	return retval;
@@ -138,27 +157,41 @@ static int jl2005c_start_new_frame(struct gspca_dev *gspca_dev)
 	static u8 instruction[2] = {0x7f, 0x01};
 
 	retval = jl2005c_write2(gspca_dev, instruction);
+
 	if (retval < 0)
+	{
 		return retval;
+	}
 
 	i = 0;
-	while (i < 20 && !frame_brightness) {
+
+	while (i < 20 && !frame_brightness)
+	{
 		/* If we tried 20 times, give up. */
 		retval = jl2005c_read_reg(gspca_dev, 0x7e);
+
 		if (retval < 0)
+		{
 			return retval;
+		}
+
 		frame_brightness = gspca_dev->usb_buf[0];
 		retval = jl2005c_read_reg(gspca_dev, 0x7d);
+
 		if (retval < 0)
+		{
 			return retval;
+		}
+
 		i++;
 	}
+
 	PDEBUG(D_FRAM, "frame_brightness is 0x%02x", gspca_dev->usb_buf[0]);
 	return retval;
 }
 
 static int jl2005c_write_reg(struct gspca_dev *gspca_dev, unsigned char reg,
-						    unsigned char value)
+							 unsigned char value)
 {
 	int retval;
 	u8 instruction[2];
@@ -167,8 +200,11 @@ static int jl2005c_write_reg(struct gspca_dev *gspca_dev, unsigned char reg,
 	instruction[1] = value;
 
 	retval = jl2005c_write2(gspca_dev, instruction);
+
 	if (retval < 0)
-			return retval;
+	{
+		return retval;
+	}
 
 	return retval;
 }
@@ -184,31 +220,42 @@ static int jl2005c_get_firmware_id(struct gspca_dev *gspca_dev)
 	/* Read the first ID byte once for warmup */
 	retval = jl2005c_read_reg(gspca_dev, regs_to_read[0]);
 	PDEBUG(D_PROBE, "response is %02x", gspca_dev->usb_buf[0]);
+
 	if (retval < 0)
+	{
 		return retval;
+	}
+
 	/* Now actually get the ID string */
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < 6; i++)
+	{
 		retval = jl2005c_read_reg(gspca_dev, regs_to_read[i]);
+
 		if (retval < 0)
+		{
 			return retval;
+		}
+
 		sd->firmware_id[i] = gspca_dev->usb_buf[0];
 	}
+
 	PDEBUG(D_PROBE, "firmware ID is %02x%02x%02x%02x%02x%02x",
-						sd->firmware_id[0],
-						sd->firmware_id[1],
-						sd->firmware_id[2],
-						sd->firmware_id[3],
-						sd->firmware_id[4],
-						sd->firmware_id[5]);
+		   sd->firmware_id[0],
+		   sd->firmware_id[1],
+		   sd->firmware_id[2],
+		   sd->firmware_id[3],
+		   sd->firmware_id[4],
+		   sd->firmware_id[5]);
 	return 0;
 }
 
 static int jl2005c_stream_start_vga_lg
-		    (struct gspca_dev *gspca_dev)
+(struct gspca_dev *gspca_dev)
 {
 	int i;
 	int retval = -1;
-	static u8 instruction[][2] = {
+	static u8 instruction[][2] =
+	{
 		{0x05, 0x00},
 		{0x7c, 0x00},
 		{0x7d, 0x18},
@@ -217,12 +264,17 @@ static int jl2005c_stream_start_vga_lg
 		{0x04, 0x52},
 	};
 
-	for (i = 0; i < ARRAY_SIZE(instruction); i++) {
+	for (i = 0; i < ARRAY_SIZE(instruction); i++)
+	{
 		msleep(60);
 		retval = jl2005c_write2(gspca_dev, instruction[i]);
+
 		if (retval < 0)
+		{
 			return retval;
+		}
 	}
+
 	msleep(60);
 	return retval;
 }
@@ -231,7 +283,8 @@ static int jl2005c_stream_start_vga_small(struct gspca_dev *gspca_dev)
 {
 	int i;
 	int retval = -1;
-	static u8 instruction[][2] = {
+	static u8 instruction[][2] =
+	{
 		{0x06, 0x00},
 		{0x7c, 0x00},
 		{0x7d, 0x1a},
@@ -240,12 +293,17 @@ static int jl2005c_stream_start_vga_small(struct gspca_dev *gspca_dev)
 		{0x04, 0x52},
 	};
 
-	for (i = 0; i < ARRAY_SIZE(instruction); i++) {
+	for (i = 0; i < ARRAY_SIZE(instruction); i++)
+	{
 		msleep(60);
 		retval = jl2005c_write2(gspca_dev, instruction[i]);
+
 		if (retval < 0)
+		{
 			return retval;
+		}
 	}
+
 	msleep(60);
 	return retval;
 }
@@ -254,7 +312,8 @@ static int jl2005c_stream_start_cif_lg(struct gspca_dev *gspca_dev)
 {
 	int i;
 	int retval = -1;
-	static u8 instruction[][2] = {
+	static u8 instruction[][2] =
+	{
 		{0x05, 0x00},
 		{0x7c, 0x00},
 		{0x7d, 0x30},
@@ -263,12 +322,17 @@ static int jl2005c_stream_start_cif_lg(struct gspca_dev *gspca_dev)
 		{0x04, 0x42},
 	};
 
-	for (i = 0; i < ARRAY_SIZE(instruction); i++) {
+	for (i = 0; i < ARRAY_SIZE(instruction); i++)
+	{
 		msleep(60);
 		retval = jl2005c_write2(gspca_dev, instruction[i]);
+
 		if (retval < 0)
+		{
 			return retval;
+		}
 	}
+
 	msleep(60);
 	return retval;
 }
@@ -277,7 +341,8 @@ static int jl2005c_stream_start_cif_small(struct gspca_dev *gspca_dev)
 {
 	int i;
 	int retval = -1;
-	static u8 instruction[][2] = {
+	static u8 instruction[][2] =
+	{
 		{0x06, 0x00},
 		{0x7c, 0x00},
 		{0x7d, 0x32},
@@ -286,12 +351,17 @@ static int jl2005c_stream_start_cif_small(struct gspca_dev *gspca_dev)
 		{0x04, 0x42},
 	};
 
-	for (i = 0; i < ARRAY_SIZE(instruction); i++) {
+	for (i = 0; i < ARRAY_SIZE(instruction); i++)
+	{
 		msleep(60);
 		retval = jl2005c_write2(gspca_dev, instruction[i]);
+
 		if (retval < 0)
+		{
 			return retval;
+		}
 	}
+
 	msleep(60);
 	return retval;
 }
@@ -327,37 +397,56 @@ static void jl2005c_dostream(struct work_struct *work)
 	u8 *buffer;
 
 	buffer = kmalloc(JL2005C_MAX_TRANSFER, GFP_KERNEL | GFP_DMA);
-	if (!buffer) {
+
+	if (!buffer)
+	{
 		pr_err("Couldn't allocate USB buffer\n");
 		goto quit_stream;
 	}
 
-	while (gspca_dev->present && gspca_dev->streaming) {
+	while (gspca_dev->present && gspca_dev->streaming)
+	{
 #ifdef CONFIG_PM
+
 		if (gspca_dev->frozen)
+		{
 			break;
+		}
+
 #endif
+
 		/* Check if this is a new frame. If so, start the frame first */
-		if (!header_read) {
+		if (!header_read)
+		{
 			mutex_lock(&gspca_dev->usb_lock);
 			ret = jl2005c_start_new_frame(gspca_dev);
 			mutex_unlock(&gspca_dev->usb_lock);
+
 			if (ret < 0)
+			{
 				goto quit_stream;
+			}
+
 			ret = usb_bulk_msg(gspca_dev->dev,
-				usb_rcvbulkpipe(gspca_dev->dev, 0x82),
-				buffer, JL2005C_MAX_TRANSFER, &act_len,
-				JL2005C_DATA_TIMEOUT);
+							   usb_rcvbulkpipe(gspca_dev->dev, 0x82),
+							   buffer, JL2005C_MAX_TRANSFER, &act_len,
+							   JL2005C_DATA_TIMEOUT);
 			PDEBUG(D_PACK,
-				"Got %d bytes out of %d for header",
-					act_len, JL2005C_MAX_TRANSFER);
+				   "Got %d bytes out of %d for header",
+				   act_len, JL2005C_MAX_TRANSFER);
+
 			if (ret < 0 || act_len < JL2005C_MAX_TRANSFER)
+			{
 				goto quit_stream;
+			}
+
 			/* Check whether we actually got the first blodk */
-			if (memcmp(header_sig, buffer, 2) != 0) {
+			if (memcmp(header_sig, buffer, 2) != 0)
+			{
 				pr_err("First block is not the first block\n");
 				goto quit_stream;
 			}
+
 			/* total size to fetch is byte 7, times blocksize
 			 * of which we already got act_len */
 			bytes_left = buffer[0x07] * dev->block_size - act_len;
@@ -365,37 +454,53 @@ static void jl2005c_dostream(struct work_struct *work)
 			/* We keep the header. It has other information, too.*/
 			packet_type = FIRST_PACKET;
 			gspca_frame_add(gspca_dev, packet_type,
-					buffer, act_len);
+							buffer, act_len);
 			header_read = 1;
 		}
-		while (bytes_left > 0 && gspca_dev->present) {
+
+		while (bytes_left > 0 && gspca_dev->present)
+		{
 			data_len = bytes_left > JL2005C_MAX_TRANSFER ?
-				JL2005C_MAX_TRANSFER : bytes_left;
+					   JL2005C_MAX_TRANSFER : bytes_left;
 			ret = usb_bulk_msg(gspca_dev->dev,
-				usb_rcvbulkpipe(gspca_dev->dev, 0x82),
-				buffer, data_len, &act_len,
-				JL2005C_DATA_TIMEOUT);
+							   usb_rcvbulkpipe(gspca_dev->dev, 0x82),
+							   buffer, data_len, &act_len,
+							   JL2005C_DATA_TIMEOUT);
+
 			if (ret < 0 || act_len < data_len)
+			{
 				goto quit_stream;
+			}
+
 			PDEBUG(D_PACK,
-				"Got %d bytes out of %d for frame",
-						data_len, bytes_left);
+				   "Got %d bytes out of %d for frame",
+				   data_len, bytes_left);
 			bytes_left -= data_len;
-			if (bytes_left == 0) {
+
+			if (bytes_left == 0)
+			{
 				packet_type = LAST_PACKET;
 				header_read = 0;
-			} else
+			}
+			else
+			{
 				packet_type = INTER_PACKET;
+			}
+
 			gspca_frame_add(gspca_dev, packet_type,
-					buffer, data_len);
+							buffer, data_len);
 		}
 	}
+
 quit_stream:
-	if (gspca_dev->present) {
+
+	if (gspca_dev->present)
+	{
 		mutex_lock(&gspca_dev->usb_lock);
 		jl2005c_stop(gspca_dev);
 		mutex_unlock(&gspca_dev->usb_lock);
 	}
+
 	kfree(buffer);
 }
 
@@ -404,7 +509,7 @@ quit_stream:
 
 /* This function is called at probe time */
 static int sd_config(struct gspca_dev *gspca_dev,
-			const struct usb_device_id *id)
+					 const struct usb_device_id *id)
 {
 	struct cam *cam;
 	struct sd *sd = (struct sd *) gspca_dev;
@@ -415,6 +520,7 @@ static int sd_config(struct gspca_dev *gspca_dev,
 	cam->bulk = 1;
 	/* For the rest, the camera needs to be detected */
 	jl2005c_get_firmware_id(gspca_dev);
+
 	/* Here are some known firmware IDs
 	 * First some JL2005B cameras
 	 * {0x41, 0x07, 0x04, 0x2c, 0xe8, 0xf2}	Sakar KidzCam
@@ -427,11 +533,14 @@ static int sd_config(struct gspca_dev *gspca_dev,
 	 * Based upon this scanty evidence, we can detect a CIF camera by
 	 * testing byte 0 for 0x4x.
 	 */
-	if ((sd->firmware_id[0] & 0xf0) == 0x40) {
+	if ((sd->firmware_id[0] & 0xf0) == 0x40)
+	{
 		cam->cam_mode	= cif_mode;
 		cam->nmodes	= ARRAY_SIZE(cif_mode);
 		sd->block_size	= 0x80;
-	} else {
+	}
+	else
+	{
 		cam->cam_mode	= vga_mode;
 		cam->nmodes	= ARRAY_SIZE(vga_mode);
 		sd->block_size	= 0x200;
@@ -454,26 +563,31 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	struct sd *sd = (struct sd *) gspca_dev;
 	sd->cap_mode = gspca_dev->cam.cam_mode;
 
-	switch (gspca_dev->pixfmt.width) {
-	case 640:
-		PDEBUG(D_STREAM, "Start streaming at vga resolution");
-		jl2005c_stream_start_vga_lg(gspca_dev);
-		break;
-	case 320:
-		PDEBUG(D_STREAM, "Start streaming at qvga resolution");
-		jl2005c_stream_start_vga_small(gspca_dev);
-		break;
-	case 352:
-		PDEBUG(D_STREAM, "Start streaming at cif resolution");
-		jl2005c_stream_start_cif_lg(gspca_dev);
-		break;
-	case 176:
-		PDEBUG(D_STREAM, "Start streaming at qcif resolution");
-		jl2005c_stream_start_cif_small(gspca_dev);
-		break;
-	default:
-		pr_err("Unknown resolution specified\n");
-		return -1;
+	switch (gspca_dev->pixfmt.width)
+	{
+		case 640:
+			PDEBUG(D_STREAM, "Start streaming at vga resolution");
+			jl2005c_stream_start_vga_lg(gspca_dev);
+			break;
+
+		case 320:
+			PDEBUG(D_STREAM, "Start streaming at qvga resolution");
+			jl2005c_stream_start_vga_small(gspca_dev);
+			break;
+
+		case 352:
+			PDEBUG(D_STREAM, "Start streaming at cif resolution");
+			jl2005c_stream_start_cif_lg(gspca_dev);
+			break;
+
+		case 176:
+			PDEBUG(D_STREAM, "Start streaming at qcif resolution");
+			jl2005c_stream_start_cif_small(gspca_dev);
+			break;
+
+		default:
+			pr_err("Unknown resolution specified\n");
+			return -1;
 	}
 
 	schedule_work(&sd->work_struct);
@@ -497,7 +611,8 @@ static void sd_stop0(struct gspca_dev *gspca_dev)
 
 
 /* sub-driver description */
-static const struct sd_desc sd_desc = {
+static const struct sd_desc sd_desc =
+{
 	.name = MODULE_NAME,
 	.config = sd_config,
 	.init = sd_init,
@@ -506,7 +621,8 @@ static const struct sd_desc sd_desc = {
 };
 
 /* -- module initialisation -- */
-static const struct usb_device_id device_table[] = {
+static const struct usb_device_id device_table[] =
+{
 	{USB_DEVICE(0x0979, 0x0227)},
 	{}
 };
@@ -514,13 +630,14 @@ MODULE_DEVICE_TABLE(usb, device_table);
 
 /* -- device connect -- */
 static int sd_probe(struct usb_interface *intf,
-				const struct usb_device_id *id)
+					const struct usb_device_id *id)
 {
 	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd),
-				THIS_MODULE);
+						   THIS_MODULE);
 }
 
-static struct usb_driver sd_driver = {
+static struct usb_driver sd_driver =
+{
 	.name = MODULE_NAME,
 	.id_table = device_table,
 	.probe = sd_probe,

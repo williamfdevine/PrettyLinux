@@ -55,15 +55,17 @@ static int radeon_debugfs_ring_init(struct radeon_device *rdev, struct radeon_ri
  * Returns true if the ring supports writing to scratch regs, false if not.
  */
 bool radeon_ring_supports_scratch_reg(struct radeon_device *rdev,
-				      struct radeon_ring *ring)
+									  struct radeon_ring *ring)
 {
-	switch (ring->idx) {
-	case RADEON_RING_TYPE_GFX_INDEX:
-	case CAYMAN_RING_TYPE_CP1_INDEX:
-	case CAYMAN_RING_TYPE_CP2_INDEX:
-		return true;
-	default:
-		return false;
+	switch (ring->idx)
+	{
+		case RADEON_RING_TYPE_GFX_INDEX:
+		case CAYMAN_RING_TYPE_CP1_INDEX:
+		case CAYMAN_RING_TYPE_CP2_INDEX:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
@@ -83,7 +85,9 @@ void radeon_ring_free_size(struct radeon_device *rdev, struct radeon_ring *ring)
 	ring->ring_free_dw = rptr + (ring->ring_size / 4);
 	ring->ring_free_dw -= ring->wptr;
 	ring->ring_free_dw &= ring->ptr_mask;
-	if (!ring->ring_free_dw) {
+
+	if (!ring->ring_free_dw)
+	{
 		/* this is an empty ring */
 		ring->ring_free_dw = ring->ring_size / 4;
 		/*  update lockup info to avoid false positive */
@@ -107,20 +111,32 @@ int radeon_ring_alloc(struct radeon_device *rdev, struct radeon_ring *ring, unsi
 
 	/* make sure we aren't trying to allocate more space than there is on the ring */
 	if (ndw > (ring->ring_size / 4))
+	{
 		return -ENOMEM;
+	}
+
 	/* Align requested size with padding so unlock_commit can
 	 * pad safely */
 	radeon_ring_free_size(rdev, ring);
 	ndw = (ndw + ring->align_mask) & ~ring->align_mask;
-	while (ndw > (ring->ring_free_dw - 1)) {
+
+	while (ndw > (ring->ring_free_dw - 1))
+	{
 		radeon_ring_free_size(rdev, ring);
-		if (ndw < ring->ring_free_dw) {
+
+		if (ndw < ring->ring_free_dw)
+		{
 			break;
 		}
+
 		r = radeon_fence_wait_next(rdev, ring->idx);
+
 		if (r)
+		{
 			return r;
+		}
 	}
+
 	ring->count_dw = ndw;
 	ring->wptr_old = ring->wptr;
 	return 0;
@@ -143,10 +159,13 @@ int radeon_ring_lock(struct radeon_device *rdev, struct radeon_ring *ring, unsig
 
 	mutex_lock(&rdev->ring_lock);
 	r = radeon_ring_alloc(rdev, ring, ndw);
-	if (r) {
+
+	if (r)
+	{
 		mutex_unlock(&rdev->ring_lock);
 		return r;
 	}
+
 	return 0;
 }
 
@@ -162,23 +181,32 @@ int radeon_ring_lock(struct radeon_device *rdev, struct radeon_ring *ring, unsig
  * execute new commands on the ring buffer (all asics).
  */
 void radeon_ring_commit(struct radeon_device *rdev, struct radeon_ring *ring,
-			bool hdp_flush)
+						bool hdp_flush)
 {
 	/* If we are emitting the HDP flush via the ring buffer, we need to
 	 * do it before padding.
 	 */
 	if (hdp_flush && rdev->asic->ring[ring->idx]->hdp_flush)
+	{
 		rdev->asic->ring[ring->idx]->hdp_flush(rdev, ring);
+	}
+
 	/* We pad to match fetch size */
-	while (ring->wptr & ring->align_mask) {
+	while (ring->wptr & ring->align_mask)
+	{
 		radeon_ring_write(ring, ring->nop);
 	}
+
 	mb();
+
 	/* If we are emitting the HDP flush via MMIO, we need to do it after
 	 * all CPU writes to VRAM finished.
 	 */
 	if (hdp_flush && rdev->asic->mmio_hdp_flush)
+	{
 		rdev->asic->mmio_hdp_flush(rdev);
+	}
+
 	radeon_ring_set_wptr(rdev, ring);
 }
 
@@ -193,7 +221,7 @@ void radeon_ring_commit(struct radeon_device *rdev, struct radeon_ring *ring,
  * Call radeon_ring_commit() then unlock the ring (all asics).
  */
 void radeon_ring_unlock_commit(struct radeon_device *rdev, struct radeon_ring *ring,
-			       bool hdp_flush)
+							   bool hdp_flush)
 {
 	radeon_ring_commit(rdev, ring, hdp_flush);
 	mutex_unlock(&rdev->ring_lock);
@@ -232,7 +260,7 @@ void radeon_ring_unlock_undo(struct radeon_device *rdev, struct radeon_ring *rin
  * Update the last rptr value and timestamp (all asics).
  */
 void radeon_ring_lockup_update(struct radeon_device *rdev,
-			       struct radeon_ring *ring)
+							   struct radeon_ring *ring)
 {
 	atomic_set(&ring->last_rptr, radeon_ring_get_rptr(rdev, ring));
 	atomic64_set(&ring->last_activity, jiffies_64);
@@ -250,18 +278,22 @@ bool radeon_ring_test_lockup(struct radeon_device *rdev, struct radeon_ring *rin
 	uint64_t last = atomic64_read(&ring->last_activity);
 	uint64_t elapsed;
 
-	if (rptr != atomic_read(&ring->last_rptr)) {
+	if (rptr != atomic_read(&ring->last_rptr))
+	{
 		/* ring is still working, no lockup */
 		radeon_ring_lockup_update(rdev, ring);
 		return false;
 	}
 
 	elapsed = jiffies_to_msecs(jiffies_64 - last);
-	if (radeon_lockup_timeout && elapsed >= radeon_lockup_timeout) {
+
+	if (radeon_lockup_timeout && elapsed >= radeon_lockup_timeout)
+	{
 		dev_err(rdev->dev, "ring %d stalled for more than %llumsec\n",
-			ring->idx, elapsed);
+				ring->idx, elapsed);
 		return true;
 	}
+
 	/* give a chance to the GPU ... */
 	return false;
 }
@@ -275,7 +307,7 @@ bool radeon_ring_test_lockup(struct radeon_device *rdev, struct radeon_ring *rin
  * Saves all unprocessed commits from a ring, returns the number of dwords saved.
  */
 unsigned radeon_ring_backup(struct radeon_device *rdev, struct radeon_ring *ring,
-			    uint32_t **data)
+							uint32_t **data)
 {
 	unsigned size, ptr, i;
 
@@ -283,23 +315,30 @@ unsigned radeon_ring_backup(struct radeon_device *rdev, struct radeon_ring *ring
 	mutex_lock(&rdev->ring_lock);
 	*data = NULL;
 
-	if (ring->ring_obj == NULL) {
+	if (ring->ring_obj == NULL)
+	{
 		mutex_unlock(&rdev->ring_lock);
 		return 0;
 	}
 
 	/* it doesn't make sense to save anything if all fences are signaled */
-	if (!radeon_fence_count_emitted(rdev, ring->idx)) {
+	if (!radeon_fence_count_emitted(rdev, ring->idx))
+	{
 		mutex_unlock(&rdev->ring_lock);
 		return 0;
 	}
 
 	/* calculate the number of dw on the ring */
 	if (ring->rptr_save_reg)
+	{
 		ptr = RREG32(ring->rptr_save_reg);
+	}
 	else if (rdev->wb.enabled)
+	{
 		ptr = le32_to_cpu(*ring->next_rptr_cpu_addr);
-	else {
+	}
+	else
+	{
 		/* no way to read back the next rptr */
 		mutex_unlock(&rdev->ring_lock);
 		return 0;
@@ -308,18 +347,24 @@ unsigned radeon_ring_backup(struct radeon_device *rdev, struct radeon_ring *ring
 	size = ring->wptr + (ring->ring_size / 4);
 	size -= ptr;
 	size &= ring->ptr_mask;
-	if (size == 0) {
+
+	if (size == 0)
+	{
 		mutex_unlock(&rdev->ring_lock);
 		return 0;
 	}
 
 	/* and then save the content of the ring */
 	*data = drm_malloc_ab(size, sizeof(uint32_t));
-	if (!*data) {
+
+	if (!*data)
+	{
 		mutex_unlock(&rdev->ring_lock);
 		return 0;
 	}
-	for (i = 0; i < size; ++i) {
+
+	for (i = 0; i < size; ++i)
+	{
 		(*data)[i] = ring->ring[ptr++];
 		ptr &= ring->ptr_mask;
 	}
@@ -339,19 +384,25 @@ unsigned radeon_ring_backup(struct radeon_device *rdev, struct radeon_ring *ring
  * Allocates space on the ring and restore the previously saved commands.
  */
 int radeon_ring_restore(struct radeon_device *rdev, struct radeon_ring *ring,
-			unsigned size, uint32_t *data)
+						unsigned size, uint32_t *data)
 {
 	int i, r;
 
 	if (!size || !data)
+	{
 		return 0;
+	}
 
 	/* restore the saved ring content */
 	r = radeon_ring_lock(rdev, ring, size);
-	if (r)
-		return r;
 
-	for (i = 0; i < size; ++i) {
+	if (r)
+	{
+		return r;
+	}
+
+	for (i = 0; i < size; ++i)
+	{
 		radeon_ring_write(ring, data[i]);
 	}
 
@@ -373,50 +424,70 @@ int radeon_ring_restore(struct radeon_device *rdev, struct radeon_ring *ring,
  * Returns 0 on success, error on failure.
  */
 int radeon_ring_init(struct radeon_device *rdev, struct radeon_ring *ring, unsigned ring_size,
-		     unsigned rptr_offs, u32 nop)
+					 unsigned rptr_offs, u32 nop)
 {
 	int r;
 
 	ring->ring_size = ring_size;
 	ring->rptr_offs = rptr_offs;
 	ring->nop = nop;
+
 	/* Allocate ring buffer */
-	if (ring->ring_obj == NULL) {
+	if (ring->ring_obj == NULL)
+	{
 		r = radeon_bo_create(rdev, ring->ring_size, PAGE_SIZE, true,
-				     RADEON_GEM_DOMAIN_GTT, 0, NULL,
-				     NULL, &ring->ring_obj);
-		if (r) {
+							 RADEON_GEM_DOMAIN_GTT, 0, NULL,
+							 NULL, &ring->ring_obj);
+
+		if (r)
+		{
 			dev_err(rdev->dev, "(%d) ring create failed\n", r);
 			return r;
 		}
+
 		r = radeon_bo_reserve(ring->ring_obj, false);
+
 		if (unlikely(r != 0))
+		{
 			return r;
+		}
+
 		r = radeon_bo_pin(ring->ring_obj, RADEON_GEM_DOMAIN_GTT,
-					&ring->gpu_addr);
-		if (r) {
+						  &ring->gpu_addr);
+
+		if (r)
+		{
 			radeon_bo_unreserve(ring->ring_obj);
 			dev_err(rdev->dev, "(%d) ring pin failed\n", r);
 			return r;
 		}
+
 		r = radeon_bo_kmap(ring->ring_obj,
-				       (void **)&ring->ring);
+						   (void **)&ring->ring);
 		radeon_bo_unreserve(ring->ring_obj);
-		if (r) {
+
+		if (r)
+		{
 			dev_err(rdev->dev, "(%d) ring map failed\n", r);
 			return r;
 		}
 	}
+
 	ring->ptr_mask = (ring->ring_size / 4) - 1;
 	ring->ring_free_dw = ring->ring_size / 4;
-	if (rdev->wb.enabled) {
+
+	if (rdev->wb.enabled)
+	{
 		u32 index = RADEON_WB_RING0_NEXT_RPTR + (ring->idx * 4);
 		ring->next_rptr_gpu_addr = rdev->wb.gpu_addr + index;
-		ring->next_rptr_cpu_addr = &rdev->wb.wb[index/4];
+		ring->next_rptr_cpu_addr = &rdev->wb.wb[index / 4];
 	}
-	if (radeon_debugfs_ring_init(rdev, ring)) {
+
+	if (radeon_debugfs_ring_init(rdev, ring))
+	{
 		DRM_ERROR("Failed to register debugfs file for rings !\n");
 	}
+
 	radeon_ring_lockup_update(rdev, ring);
 	return 0;
 }
@@ -441,13 +512,17 @@ void radeon_ring_fini(struct radeon_device *rdev, struct radeon_ring *ring)
 	ring->ring_obj = NULL;
 	mutex_unlock(&rdev->ring_lock);
 
-	if (ring_obj) {
+	if (ring_obj)
+	{
 		r = radeon_bo_reserve(ring_obj, false);
-		if (likely(r == 0)) {
+
+		if (likely(r == 0))
+		{
 			radeon_bo_kunmap(ring_obj);
 			radeon_bo_unpin(ring_obj);
 			radeon_bo_unreserve(ring_obj);
 		}
+
 		radeon_bo_unref(&ring_obj);
 	}
 }
@@ -462,7 +537,7 @@ static int radeon_debugfs_ring_info(struct seq_file *m, void *data)
 	struct drm_info_node *node = (struct drm_info_node *) m->private;
 	struct drm_device *dev = node->minor->dev;
 	struct radeon_device *rdev = dev->dev_private;
-	int ridx = *(int*)node->info_ent->data;
+	int ridx = *(int *)node->info_ent->data;
 	struct radeon_ring *ring = &rdev->ring[ridx];
 
 	uint32_t rptr, wptr, rptr_next;
@@ -473,44 +548,60 @@ static int radeon_debugfs_ring_info(struct seq_file *m, void *data)
 
 	wptr = radeon_ring_get_wptr(rdev, ring);
 	seq_printf(m, "wptr: 0x%08x [%5d]\n",
-		   wptr, wptr);
+			   wptr, wptr);
 
 	rptr = radeon_ring_get_rptr(rdev, ring);
 	seq_printf(m, "rptr: 0x%08x [%5d]\n",
-		   rptr, rptr);
+			   rptr, rptr);
 
-	if (ring->rptr_save_reg) {
+	if (ring->rptr_save_reg)
+	{
 		rptr_next = RREG32(ring->rptr_save_reg);
 		seq_printf(m, "rptr next(0x%04x): 0x%08x [%5d]\n",
-			   ring->rptr_save_reg, rptr_next, rptr_next);
-	} else
+				   ring->rptr_save_reg, rptr_next, rptr_next);
+	}
+	else
+	{
 		rptr_next = ~0;
+	}
 
 	seq_printf(m, "driver's copy of the wptr: 0x%08x [%5d]\n",
-		   ring->wptr, ring->wptr);
+			   ring->wptr, ring->wptr);
 	seq_printf(m, "last semaphore signal addr : 0x%016llx\n",
-		   ring->last_semaphore_signal_addr);
+			   ring->last_semaphore_signal_addr);
 	seq_printf(m, "last semaphore wait addr   : 0x%016llx\n",
-		   ring->last_semaphore_wait_addr);
+			   ring->last_semaphore_wait_addr);
 	seq_printf(m, "%u free dwords in ring\n", ring->ring_free_dw);
 	seq_printf(m, "%u dwords in ring\n", count);
 
 	if (!ring->ring)
+	{
 		return 0;
+	}
 
 	/* print 8 dw before current rptr as often it's the last executed
 	 * packet that is the root issue
 	 */
 	i = (rptr + ring->ptr_mask + 1 - 32) & ring->ptr_mask;
-	for (j = 0; j <= (count + 32); j++) {
+
+	for (j = 0; j <= (count + 32); j++)
+	{
 		seq_printf(m, "r[%5d]=0x%08x", i, ring->ring[i]);
+
 		if (rptr == i)
+		{
 			seq_puts(m, " *");
+		}
+
 		if (rptr_next == i)
+		{
 			seq_puts(m, " #");
+		}
+
 		seq_puts(m, "\n");
 		i = (i + 1) & ring->ptr_mask;
 	}
+
 	return 0;
 }
 
@@ -523,7 +614,8 @@ static int r600_uvd_index = R600_RING_TYPE_UVD_INDEX;
 static int si_vce1_index = TN_RING_TYPE_VCE1_INDEX;
 static int si_vce2_index = TN_RING_TYPE_VCE2_INDEX;
 
-static struct drm_info_list radeon_debugfs_ring_info_list[] = {
+static struct drm_info_list radeon_debugfs_ring_info_list[] =
+{
 	{"radeon_ring_gfx", radeon_debugfs_ring_info, 0, &radeon_gfx_index},
 	{"radeon_ring_cp1", radeon_debugfs_ring_info, 0, &cayman_cp1_index},
 	{"radeon_ring_cp2", radeon_debugfs_ring_info, 0, &cayman_cp2_index},
@@ -540,18 +632,26 @@ static int radeon_debugfs_ring_init(struct radeon_device *rdev, struct radeon_ri
 {
 #if defined(CONFIG_DEBUG_FS)
 	unsigned i;
-	for (i = 0; i < ARRAY_SIZE(radeon_debugfs_ring_info_list); ++i) {
+
+	for (i = 0; i < ARRAY_SIZE(radeon_debugfs_ring_info_list); ++i)
+	{
 		struct drm_info_list *info = &radeon_debugfs_ring_info_list[i];
-		int ridx = *(int*)radeon_debugfs_ring_info_list[i].data;
+		int ridx = *(int *)radeon_debugfs_ring_info_list[i].data;
 		unsigned r;
 
 		if (&rdev->ring[ridx] != ring)
+		{
 			continue;
+		}
 
 		r = radeon_debugfs_add_files(rdev, info, 1);
+
 		if (r)
+		{
 			return r;
+		}
 	}
+
 #endif
 	return 0;
 }

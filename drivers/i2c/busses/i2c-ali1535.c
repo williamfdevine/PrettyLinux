@@ -94,19 +94,19 @@
 #define ALI1535_I2C_READ	0x60
 
 #define	ALI1535_DEV10B_EN	0x80	/* Enable 10-bit addressing in	*/
-					/*  I2C read			*/
+/*  I2C read			*/
 #define	ALI1535_T_OUT		0x08	/* Time-out Command (write)	*/
 #define	ALI1535_A_HIGH_BIT9	0x08	/* Bit 9 of 10-bit address in	*/
-					/* Alert-Response-Address	*/
-					/* (read)			*/
+/* Alert-Response-Address	*/
+/* (read)			*/
 #define	ALI1535_KILL		0x04	/* Kill Command (write)		*/
 #define	ALI1535_A_HIGH_BIT8	0x04	/* Bit 8 of 10-bit address in	*/
-					/*  Alert-Response-Address	*/
-					/*  (read)			*/
+/*  Alert-Response-Address	*/
+/*  (read)			*/
 
 #define	ALI1535_D_HI_MASK	0x03	/* Mask for isolating bits 9-8	*/
-					/*  of 10-bit address in I2C	*/
-					/*  Read Command		*/
+/*  of 10-bit address in I2C	*/
+/*  Read Command		*/
 
 /* ALI1535 status register bits */
 #define ALI1535_STS_IDLE	0x04
@@ -121,9 +121,9 @@
 
 /* ALI1535 device address register bits */
 #define	ALI1535_RD_ADDR		0x01	/* Read/Write Bit in Device	*/
-					/*  Address field		*/
-					/*  -> Write = 0		*/
-					/*  -> Read  = 1		*/
+/*  Address field		*/
+/*  -> Write = 0		*/
+/*  -> Read  = 1		*/
 #define	ALI1535_SMBIO_EN	0x04	/* SMB I/O Space enable		*/
 
 static struct pci_driver ali1535_driver;
@@ -146,7 +146,9 @@ static int ali1535_setup(struct pci_dev *dev)
 	*/
 
 	retval = pci_enable_device(dev);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_err(&dev->dev, "ALI1535_smb can't enable device\n");
 		goto exit;
 	}
@@ -155,34 +157,46 @@ static int ali1535_setup(struct pci_dev *dev)
 	pci_read_config_word(dev, SMBBA, &ali1535_offset);
 	dev_dbg(&dev->dev, "ALI1535_smb is at offset 0x%04x\n", ali1535_offset);
 	ali1535_offset &= (0xffff & ~(ALI1535_SMB_IOSIZE - 1));
-	if (ali1535_offset == 0) {
+
+	if (ali1535_offset == 0)
+	{
 		dev_warn(&dev->dev,
-			"ALI1535_smb region uninitialized - upgrade BIOS?\n");
+				 "ALI1535_smb region uninitialized - upgrade BIOS?\n");
 		retval = -ENODEV;
 		goto exit;
 	}
 
 	if (pci_resource_flags(dev, 0) & IORESOURCE_IO)
+	{
 		ali1535_smba = pci_resource_start(dev, 0) + ali1535_offset;
+	}
 	else
+	{
 		ali1535_smba = ali1535_offset;
+	}
 
 	retval = acpi_check_region(ali1535_smba, ALI1535_SMB_IOSIZE,
-				   ali1535_driver.name);
+							   ali1535_driver.name);
+
 	if (retval)
+	{
 		goto exit;
+	}
 
 	if (!request_region(ali1535_smba, ALI1535_SMB_IOSIZE,
-			    ali1535_driver.name)) {
+						ali1535_driver.name))
+	{
 		dev_err(&dev->dev, "ALI1535_smb region 0x%lx already in use!\n",
-			ali1535_smba);
+				ali1535_smba);
 		retval = -EBUSY;
 		goto exit;
 	}
 
 	/* check if whole device is enabled */
 	pci_read_config_byte(dev, SMBCFG, &temp);
-	if ((temp & ALI1535_SMBIO_EN) == 0) {
+
+	if ((temp & ALI1535_SMBIO_EN) == 0)
+	{
 		dev_err(&dev->dev, "SMB device not enabled - upgrade BIOS?\n");
 		retval = -ENODEV;
 		goto exit_free;
@@ -190,7 +204,9 @@ static int ali1535_setup(struct pci_dev *dev)
 
 	/* Is SMB Host controller enabled? */
 	pci_read_config_byte(dev, SMBHSTCFG, &temp);
-	if ((temp & 1) == 0) {
+
+	if ((temp & 1) == 0)
+	{
 		dev_err(&dev->dev, "SMBus controller not enabled - upgrade BIOS?\n");
 		retval = -ENODEV;
 		goto exit_free;
@@ -225,16 +241,17 @@ static int ali1535_transaction(struct i2c_adapter *adap)
 	int timeout = 0;
 
 	dev_dbg(&adap->dev, "Transaction (pre): STS=%02x, TYP=%02x, "
-		"CMD=%02x, ADD=%02x, DAT0=%02x, DAT1=%02x\n",
-		inb_p(SMBHSTSTS), inb_p(SMBHSTTYP), inb_p(SMBHSTCMD),
-		inb_p(SMBHSTADD), inb_p(SMBHSTDAT0), inb_p(SMBHSTDAT1));
+			"CMD=%02x, ADD=%02x, DAT0=%02x, DAT1=%02x\n",
+			inb_p(SMBHSTSTS), inb_p(SMBHSTTYP), inb_p(SMBHSTCMD),
+			inb_p(SMBHSTADD), inb_p(SMBHSTDAT0), inb_p(SMBHSTDAT1));
 
 	/* get status */
 	temp = inb_p(SMBHSTSTS);
 
 	/* Make sure the SMBus host is ready to start transmitting */
 	/* Check the busy bit first */
-	if (temp & ALI1535_STS_BUSY) {
+	if (temp & ALI1535_STS_BUSY)
+	{
 		/* If the host controller is still busy, it may have timed out
 		 * in the previous transaction, resulting in a "SMBus Timeout"
 		 * printk.  I've tried the following to reset a stuck busy bit.
@@ -255,31 +272,38 @@ static int ali1535_transaction(struct i2c_adapter *adap)
 		 * again.  If that's the case you are stuck.
 		 */
 		dev_info(&adap->dev,
-			"Resetting entire SMB Bus to clear busy condition (%02x)\n",
-			temp);
+				 "Resetting entire SMB Bus to clear busy condition (%02x)\n",
+				 temp);
 		outb_p(ALI1535_T_OUT, SMBHSTTYP);
 		temp = inb_p(SMBHSTSTS);
 	}
 
 	/* now check the error bits and the busy bit */
-	if (temp & (ALI1535_STS_ERR | ALI1535_STS_BUSY)) {
+	if (temp & (ALI1535_STS_ERR | ALI1535_STS_BUSY))
+	{
 		/* do a clear-on-write */
 		outb_p(0xFF, SMBHSTSTS);
 		temp = inb_p(SMBHSTSTS);
-		if (temp & (ALI1535_STS_ERR | ALI1535_STS_BUSY)) {
+
+		if (temp & (ALI1535_STS_ERR | ALI1535_STS_BUSY))
+		{
 			/* This is probably going to be correctable only by a
 			 * power reset as one of the bits now appears to be
 			 * stuck */
 			/* This may be a bus or device with electrical problems. */
 			dev_err(&adap->dev,
-				"SMBus reset failed! (0x%02x) - controller or "
-				"device on bus is probably hung\n", temp);
+					"SMBus reset failed! (0x%02x) - controller or "
+					"device on bus is probably hung\n", temp);
 			return -EBUSY;
 		}
-	} else {
+	}
+	else
+	{
 		/* check and clear done bit */
 		if (temp & ALI1535_STS_DONE)
+		{
 			outb_p(temp, SMBHSTSTS);
+		}
 	}
 
 	/* start the transaction by writing anything to the start register */
@@ -287,19 +311,24 @@ static int ali1535_transaction(struct i2c_adapter *adap)
 
 	/* We will always wait for a fraction of a second! */
 	timeout = 0;
-	do {
+
+	do
+	{
 		usleep_range(1000, 2000);
 		temp = inb_p(SMBHSTSTS);
-	} while (((temp & ALI1535_STS_BUSY) && !(temp & ALI1535_STS_IDLE))
-		 && (timeout++ < MAX_TIMEOUT));
+	}
+	while (((temp & ALI1535_STS_BUSY) && !(temp & ALI1535_STS_IDLE))
+		   && (timeout++ < MAX_TIMEOUT));
 
 	/* If the SMBus is still busy, we give up */
-	if (timeout > MAX_TIMEOUT) {
+	if (timeout > MAX_TIMEOUT)
+	{
 		result = -ETIMEDOUT;
 		dev_err(&adap->dev, "SMBus Timeout!\n");
 	}
 
-	if (temp & ALI1535_STS_FAIL) {
+	if (temp & ALI1535_STS_FAIL)
+	{
 		result = -EIO;
 		dev_dbg(&adap->dev, "Error: Failed bus transaction\n");
 	}
@@ -308,36 +337,42 @@ static int ali1535_transaction(struct i2c_adapter *adap)
 	 * collision" into a single bit. No response is the usual case so don't
 	 * do a printk.  This means that bus collisions go unreported.
 	 */
-	if (temp & ALI1535_STS_BUSERR) {
+	if (temp & ALI1535_STS_BUSERR)
+	{
 		result = -ENXIO;
 		dev_dbg(&adap->dev,
-			"Error: no response or bus collision ADD=%02x\n",
-			inb_p(SMBHSTADD));
+				"Error: no response or bus collision ADD=%02x\n",
+				inb_p(SMBHSTADD));
 	}
 
 	/* haven't ever seen this */
-	if (temp & ALI1535_STS_DEV) {
+	if (temp & ALI1535_STS_DEV)
+	{
 		result = -EIO;
 		dev_err(&adap->dev, "Error: device error\n");
 	}
 
 	/* check to see if the "command complete" indication is set */
-	if (!(temp & ALI1535_STS_DONE)) {
+	if (!(temp & ALI1535_STS_DONE))
+	{
 		result = -ETIMEDOUT;
 		dev_err(&adap->dev, "Error: command never completed\n");
 	}
 
 	dev_dbg(&adap->dev, "Transaction (post): STS=%02x, TYP=%02x, "
-		"CMD=%02x, ADD=%02x, DAT0=%02x, DAT1=%02x\n",
-		inb_p(SMBHSTSTS), inb_p(SMBHSTTYP), inb_p(SMBHSTCMD),
-		inb_p(SMBHSTADD), inb_p(SMBHSTDAT0), inb_p(SMBHSTDAT1));
+			"CMD=%02x, ADD=%02x, DAT0=%02x, DAT1=%02x\n",
+			inb_p(SMBHSTSTS), inb_p(SMBHSTTYP), inb_p(SMBHSTCMD),
+			inb_p(SMBHSTADD), inb_p(SMBHSTDAT0), inb_p(SMBHSTDAT1));
 
 	/* take consequent actions for error conditions */
-	if (!(temp & ALI1535_STS_DONE)) {
+	if (!(temp & ALI1535_STS_DONE))
+	{
 		/* issue "kill" to reset host controller */
 		outb_p(ALI1535_KILL, SMBHSTTYP);
 		outb_p(0xFF, SMBHSTSTS);
-	} else if (temp & ALI1535_STS_ERR) {
+	}
+	else if (temp & ALI1535_STS_ERR)
+	{
 		/* issue "timeout" to reset all devices on bus */
 		outb_p(ALI1535_T_OUT, SMBHSTTYP);
 		outb_p(0xFF, SMBHSTSTS);
@@ -348,8 +383,8 @@ static int ali1535_transaction(struct i2c_adapter *adap)
 
 /* Return negative errno on error. */
 static s32 ali1535_access(struct i2c_adapter *adap, u16 addr,
-			  unsigned short flags, char read_write, u8 command,
-			  int size, union i2c_smbus_data *data)
+						  unsigned short flags, char read_write, u8 command,
+						  int size, union i2c_smbus_data *data)
 {
 	int i, len;
 	int temp;
@@ -358,115 +393,164 @@ static s32 ali1535_access(struct i2c_adapter *adap, u16 addr,
 
 	/* make sure SMBus is idle */
 	temp = inb_p(SMBHSTSTS);
+
 	for (timeout = 0;
-	     (timeout < MAX_TIMEOUT) && !(temp & ALI1535_STS_IDLE);
-	     timeout++) {
+		 (timeout < MAX_TIMEOUT) && !(temp & ALI1535_STS_IDLE);
+		 timeout++)
+	{
 		usleep_range(1000, 2000);
 		temp = inb_p(SMBHSTSTS);
 	}
+
 	if (timeout >= MAX_TIMEOUT)
+	{
 		dev_warn(&adap->dev, "Idle wait Timeout! STS=0x%02x\n", temp);
+	}
 
 	/* clear status register (clear-on-write) */
 	outb_p(0xFF, SMBHSTSTS);
 
-	switch (size) {
-	case I2C_SMBUS_QUICK:
-		outb_p(((addr & 0x7f) << 1) | (read_write & 0x01),
-		       SMBHSTADD);
-		size = ALI1535_QUICK;
-		outb_p(size, SMBHSTTYP);	/* output command */
-		break;
-	case I2C_SMBUS_BYTE:
-		outb_p(((addr & 0x7f) << 1) | (read_write & 0x01),
-		       SMBHSTADD);
-		size = ALI1535_BYTE;
-		outb_p(size, SMBHSTTYP);	/* output command */
-		if (read_write == I2C_SMBUS_WRITE)
+	switch (size)
+	{
+		case I2C_SMBUS_QUICK:
+			outb_p(((addr & 0x7f) << 1) | (read_write & 0x01),
+				   SMBHSTADD);
+			size = ALI1535_QUICK;
+			outb_p(size, SMBHSTTYP);	/* output command */
+			break;
+
+		case I2C_SMBUS_BYTE:
+			outb_p(((addr & 0x7f) << 1) | (read_write & 0x01),
+				   SMBHSTADD);
+			size = ALI1535_BYTE;
+			outb_p(size, SMBHSTTYP);	/* output command */
+
+			if (read_write == I2C_SMBUS_WRITE)
+			{
+				outb_p(command, SMBHSTCMD);
+			}
+
+			break;
+
+		case I2C_SMBUS_BYTE_DATA:
+			outb_p(((addr & 0x7f) << 1) | (read_write & 0x01),
+				   SMBHSTADD);
+			size = ALI1535_BYTE_DATA;
+			outb_p(size, SMBHSTTYP);	/* output command */
 			outb_p(command, SMBHSTCMD);
-		break;
-	case I2C_SMBUS_BYTE_DATA:
-		outb_p(((addr & 0x7f) << 1) | (read_write & 0x01),
-		       SMBHSTADD);
-		size = ALI1535_BYTE_DATA;
-		outb_p(size, SMBHSTTYP);	/* output command */
-		outb_p(command, SMBHSTCMD);
-		if (read_write == I2C_SMBUS_WRITE)
-			outb_p(data->byte, SMBHSTDAT0);
-		break;
-	case I2C_SMBUS_WORD_DATA:
-		outb_p(((addr & 0x7f) << 1) | (read_write & 0x01),
-		       SMBHSTADD);
-		size = ALI1535_WORD_DATA;
-		outb_p(size, SMBHSTTYP);	/* output command */
-		outb_p(command, SMBHSTCMD);
-		if (read_write == I2C_SMBUS_WRITE) {
-			outb_p(data->word & 0xff, SMBHSTDAT0);
-			outb_p((data->word & 0xff00) >> 8, SMBHSTDAT1);
-		}
-		break;
-	case I2C_SMBUS_BLOCK_DATA:
-		outb_p(((addr & 0x7f) << 1) | (read_write & 0x01),
-		       SMBHSTADD);
-		size = ALI1535_BLOCK_DATA;
-		outb_p(size, SMBHSTTYP);	/* output command */
-		outb_p(command, SMBHSTCMD);
-		if (read_write == I2C_SMBUS_WRITE) {
-			len = data->block[0];
-			if (len < 0) {
-				len = 0;
-				data->block[0] = len;
+
+			if (read_write == I2C_SMBUS_WRITE)
+			{
+				outb_p(data->byte, SMBHSTDAT0);
 			}
-			if (len > 32) {
-				len = 32;
-				data->block[0] = len;
+
+			break;
+
+		case I2C_SMBUS_WORD_DATA:
+			outb_p(((addr & 0x7f) << 1) | (read_write & 0x01),
+				   SMBHSTADD);
+			size = ALI1535_WORD_DATA;
+			outb_p(size, SMBHSTTYP);	/* output command */
+			outb_p(command, SMBHSTCMD);
+
+			if (read_write == I2C_SMBUS_WRITE)
+			{
+				outb_p(data->word & 0xff, SMBHSTDAT0);
+				outb_p((data->word & 0xff00) >> 8, SMBHSTDAT1);
 			}
-			outb_p(len, SMBHSTDAT0);
-			/* Reset SMBBLKDAT */
-			outb_p(inb_p(SMBHSTTYP) | ALI1535_BLOCK_CLR, SMBHSTTYP);
-			for (i = 1; i <= len; i++)
-				outb_p(data->block[i], SMBBLKDAT);
-		}
-		break;
-	default:
-		dev_warn(&adap->dev, "Unsupported transaction %d\n", size);
-		result = -EOPNOTSUPP;
-		goto EXIT;
+
+			break;
+
+		case I2C_SMBUS_BLOCK_DATA:
+			outb_p(((addr & 0x7f) << 1) | (read_write & 0x01),
+				   SMBHSTADD);
+			size = ALI1535_BLOCK_DATA;
+			outb_p(size, SMBHSTTYP);	/* output command */
+			outb_p(command, SMBHSTCMD);
+
+			if (read_write == I2C_SMBUS_WRITE)
+			{
+				len = data->block[0];
+
+				if (len < 0)
+				{
+					len = 0;
+					data->block[0] = len;
+				}
+
+				if (len > 32)
+				{
+					len = 32;
+					data->block[0] = len;
+				}
+
+				outb_p(len, SMBHSTDAT0);
+				/* Reset SMBBLKDAT */
+				outb_p(inb_p(SMBHSTTYP) | ALI1535_BLOCK_CLR, SMBHSTTYP);
+
+				for (i = 1; i <= len; i++)
+				{
+					outb_p(data->block[i], SMBBLKDAT);
+				}
+			}
+
+			break;
+
+		default:
+			dev_warn(&adap->dev, "Unsupported transaction %d\n", size);
+			result = -EOPNOTSUPP;
+			goto EXIT;
 	}
 
 	result = ali1535_transaction(adap);
-	if (result)
-		goto EXIT;
 
-	if ((read_write == I2C_SMBUS_WRITE) || (size == ALI1535_QUICK)) {
+	if (result)
+	{
+		goto EXIT;
+	}
+
+	if ((read_write == I2C_SMBUS_WRITE) || (size == ALI1535_QUICK))
+	{
 		result = 0;
 		goto EXIT;
 	}
 
-	switch (size) {
-	case ALI1535_BYTE:	/* Result put in SMBHSTDAT0 */
-		data->byte = inb_p(SMBHSTDAT0);
-		break;
-	case ALI1535_BYTE_DATA:
-		data->byte = inb_p(SMBHSTDAT0);
-		break;
-	case ALI1535_WORD_DATA:
-		data->word = inb_p(SMBHSTDAT0) + (inb_p(SMBHSTDAT1) << 8);
-		break;
-	case ALI1535_BLOCK_DATA:
-		len = inb_p(SMBHSTDAT0);
-		if (len > 32)
-			len = 32;
-		data->block[0] = len;
-		/* Reset SMBBLKDAT */
-		outb_p(inb_p(SMBHSTTYP) | ALI1535_BLOCK_CLR, SMBHSTTYP);
-		for (i = 1; i <= data->block[0]; i++) {
-			data->block[i] = inb_p(SMBBLKDAT);
-			dev_dbg(&adap->dev, "Blk: len=%d, i=%d, data=%02x\n",
-				len, i, data->block[i]);
-		}
-		break;
+	switch (size)
+	{
+		case ALI1535_BYTE:	/* Result put in SMBHSTDAT0 */
+			data->byte = inb_p(SMBHSTDAT0);
+			break;
+
+		case ALI1535_BYTE_DATA:
+			data->byte = inb_p(SMBHSTDAT0);
+			break;
+
+		case ALI1535_WORD_DATA:
+			data->word = inb_p(SMBHSTDAT0) + (inb_p(SMBHSTDAT1) << 8);
+			break;
+
+		case ALI1535_BLOCK_DATA:
+			len = inb_p(SMBHSTDAT0);
+
+			if (len > 32)
+			{
+				len = 32;
+			}
+
+			data->block[0] = len;
+			/* Reset SMBBLKDAT */
+			outb_p(inb_p(SMBHSTTYP) | ALI1535_BLOCK_CLR, SMBHSTTYP);
+
+			for (i = 1; i <= data->block[0]; i++)
+			{
+				data->block[i] = inb_p(SMBBLKDAT);
+				dev_dbg(&adap->dev, "Blk: len=%d, i=%d, data=%02x\n",
+						len, i, data->block[i]);
+			}
+
+			break;
 	}
+
 EXIT:
 	return result;
 }
@@ -475,22 +559,25 @@ EXIT:
 static u32 ali1535_func(struct i2c_adapter *adapter)
 {
 	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
-	    I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA |
-	    I2C_FUNC_SMBUS_BLOCK_DATA;
+		   I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA |
+		   I2C_FUNC_SMBUS_BLOCK_DATA;
 }
 
-static const struct i2c_algorithm smbus_algorithm = {
+static const struct i2c_algorithm smbus_algorithm =
+{
 	.smbus_xfer	= ali1535_access,
 	.functionality	= ali1535_func,
 };
 
-static struct i2c_adapter ali1535_adapter = {
+static struct i2c_adapter ali1535_adapter =
+{
 	.owner		= THIS_MODULE,
 	.class          = I2C_CLASS_HWMON | I2C_CLASS_SPD,
 	.algo		= &smbus_algorithm,
 };
 
-static const struct pci_device_id ali1535_ids[] = {
+static const struct pci_device_id ali1535_ids[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_AL, PCI_DEVICE_ID_AL_M7101) },
 	{ },
 };
@@ -499,9 +586,10 @@ MODULE_DEVICE_TABLE(pci, ali1535_ids);
 
 static int ali1535_probe(struct pci_dev *dev, const struct pci_device_id *id)
 {
-	if (ali1535_setup(dev)) {
+	if (ali1535_setup(dev))
+	{
 		dev_warn(&dev->dev,
-			"ALI1535 not detected, module not inserted.\n");
+				 "ALI1535 not detected, module not inserted.\n");
 		return -ENODEV;
 	}
 
@@ -509,7 +597,7 @@ static int ali1535_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	ali1535_adapter.dev.parent = &dev->dev;
 
 	snprintf(ali1535_adapter.name, sizeof(ali1535_adapter.name),
-		"SMBus ALI1535 adapter at %04x", ali1535_offset);
+			 "SMBus ALI1535 adapter at %04x", ali1535_offset);
 	return i2c_add_adapter(&ali1535_adapter);
 }
 
@@ -519,7 +607,8 @@ static void ali1535_remove(struct pci_dev *dev)
 	release_region(ali1535_smba, ALI1535_SMB_IOSIZE);
 }
 
-static struct pci_driver ali1535_driver = {
+static struct pci_driver ali1535_driver =
+{
 	.name		= "ali1535_smbus",
 	.id_table	= ali1535_ids,
 	.probe		= ali1535_probe,
@@ -529,8 +618,8 @@ static struct pci_driver ali1535_driver = {
 module_pci_driver(ali1535_driver);
 
 MODULE_AUTHOR("Frodo Looijaard <frodol@dds.nl>, "
-	      "Philip Edelbrock <phil@netroedge.com>, "
-	      "Mark D. Studebaker <mdsxyz123@yahoo.com> "
-	      "and Dan Eaton <dan.eaton@rocketlogix.com>");
+			  "Philip Edelbrock <phil@netroedge.com>, "
+			  "Mark D. Studebaker <mdsxyz123@yahoo.com> "
+			  "and Dan Eaton <dan.eaton@rocketlogix.com>");
 MODULE_DESCRIPTION("ALI1535 SMBus driver");
 MODULE_LICENSE("GPL");

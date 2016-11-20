@@ -25,7 +25,8 @@
 #define BTRFS_SEND_BUF_SIZE SZ_64K
 #define BTRFS_SEND_READ_SIZE (48 * SZ_1K)
 
-enum btrfs_tlv_type {
+enum btrfs_tlv_type
+{
 	BTRFS_TLV_U8,
 	BTRFS_TLV_U16,
 	BTRFS_TLV_U32,
@@ -36,12 +37,14 @@ enum btrfs_tlv_type {
 	BTRFS_TLV_TIMESPEC,
 };
 
-struct btrfs_stream_header {
+struct btrfs_stream_header
+{
 	char magic[sizeof(BTRFS_SEND_STREAM_MAGIC)];
 	__le32 version;
 } __attribute__ ((__packed__));
 
-struct btrfs_cmd_header {
+struct btrfs_cmd_header
+{
 	/* len excluding the header */
 	__le32 len;
 	__le16 cmd;
@@ -49,14 +52,16 @@ struct btrfs_cmd_header {
 	__le32 crc;
 } __attribute__ ((__packed__));
 
-struct btrfs_tlv_header {
+struct btrfs_tlv_header
+{
 	__le16 tlv_type;
 	/* len excluding the header */
 	__le16 tlv_len;
 } __attribute__ ((__packed__));
 
 /* commands */
-enum btrfs_send_cmd {
+enum btrfs_send_cmd
+{
 	BTRFS_SEND_C_UNSPEC,
 
 	BTRFS_SEND_C_SUBVOL,
@@ -92,7 +97,8 @@ enum btrfs_send_cmd {
 #define BTRFS_SEND_C_MAX (__BTRFS_SEND_C_MAX - 1)
 
 /* attributes in send stream */
-enum {
+enum
+{
 	BTRFS_SEND_A_UNSPEC,
 
 	BTRFS_SEND_A_UUID,

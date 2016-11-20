@@ -17,7 +17,7 @@
 #include "bdc.h"
 
 #ifdef CONFIG_USB_GADGET_VERBOSE
-void bdc_dbg_bd_list(struct bdc *, struct bdc_ep*);
+void bdc_dbg_bd_list(struct bdc *, struct bdc_ep *);
 void bdc_dbg_srr(struct bdc *, u32);
 void bdc_dbg_regs(struct bdc *);
 void bdc_dump_epsts(struct bdc *);

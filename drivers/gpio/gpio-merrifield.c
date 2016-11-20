@@ -37,7 +37,8 @@
 /* Intel Merrifield has 192 GPIO pins */
 #define MRFLD_NGPIO	192
 
-struct mrfld_gpio_pinrange {
+struct mrfld_gpio_pinrange
+{
 	unsigned int gpio_base;
 	unsigned int pin_base;
 	unsigned int npins;
@@ -46,18 +47,20 @@ struct mrfld_gpio_pinrange {
 #define GPIO_PINRANGE(gstart, gend, pstart)		\
 	{						\
 		.gpio_base = (gstart),			\
-		.pin_base = (pstart),			\
-		.npins = (gend) - (gstart) + 1,		\
+					 .pin_base = (pstart),			\
+								 .npins = (gend) - (gstart) + 1,		\
 	}
 
-struct mrfld_gpio {
+struct mrfld_gpio
+{
 	struct gpio_chip	chip;
 	void __iomem		*reg_base;
 	raw_spinlock_t		lock;
 	struct device		*dev;
 };
 
-static const struct mrfld_gpio_pinrange mrfld_gpio_ranges[] = {
+static const struct mrfld_gpio_pinrange mrfld_gpio_ranges[] =
+{
 	GPIO_PINRANGE(0, 11, 146),
 	GPIO_PINRANGE(12, 13, 144),
 	GPIO_PINRANGE(14, 15, 35),
@@ -87,7 +90,7 @@ static const struct mrfld_gpio_pinrange mrfld_gpio_ranges[] = {
 };
 
 static void __iomem *gpio_reg(struct gpio_chip *chip, unsigned int offset,
-			      unsigned int reg_type_offset)
+							  unsigned int reg_type_offset)
 {
 	struct mrfld_gpio *priv = gpiochip_get_data(chip);
 	u8 reg = offset / 32;
@@ -103,7 +106,7 @@ static int mrfld_gpio_get(struct gpio_chip *chip, unsigned int offset)
 }
 
 static void mrfld_gpio_set(struct gpio_chip *chip, unsigned int offset,
-			   int value)
+						   int value)
 {
 	struct mrfld_gpio *priv = gpiochip_get_data(chip);
 	void __iomem *gpsr, *gpcr;
@@ -111,10 +114,13 @@ static void mrfld_gpio_set(struct gpio_chip *chip, unsigned int offset,
 
 	raw_spin_lock_irqsave(&priv->lock, flags);
 
-	if (value) {
+	if (value)
+	{
 		gpsr = gpio_reg(chip, offset, GPSR);
 		writel(BIT(offset % 32), gpsr);
-	} else {
+	}
+	else
+	{
 		gpcr = gpio_reg(chip, offset, GPCR);
 		writel(BIT(offset % 32), gpcr);
 	}
@@ -123,7 +129,7 @@ static void mrfld_gpio_set(struct gpio_chip *chip, unsigned int offset,
 }
 
 static int mrfld_gpio_direction_input(struct gpio_chip *chip,
-				      unsigned int offset)
+									  unsigned int offset)
 {
 	struct mrfld_gpio *priv = gpiochip_get_data(chip);
 	void __iomem *gpdr = gpio_reg(chip, offset, GPDR);
@@ -142,7 +148,7 @@ static int mrfld_gpio_direction_input(struct gpio_chip *chip,
 }
 
 static int mrfld_gpio_direction_output(struct gpio_chip *chip,
-				       unsigned int offset, int value)
+									   unsigned int offset, int value)
 {
 	struct mrfld_gpio *priv = gpiochip_get_data(chip);
 	void __iomem *gpdr = gpio_reg(chip, offset, GPDR);
@@ -186,9 +192,14 @@ static void mrfld_irq_unmask_mask(struct irq_data *d, bool unmask)
 	raw_spin_lock_irqsave(&priv->lock, flags);
 
 	if (unmask)
+	{
 		value = readl(gimr) | BIT(gpio % 32);
+	}
 	else
+	{
 		value = readl(gimr) & ~BIT(gpio % 32);
+	}
+
 	writel(value, gimr);
 
 	raw_spin_unlock_irqrestore(&priv->lock, flags);
@@ -219,15 +230,25 @@ static int mrfld_irq_set_type(struct irq_data *d, unsigned int type)
 	raw_spin_lock_irqsave(&priv->lock, flags);
 
 	if (type & IRQ_TYPE_EDGE_RISING)
+	{
 		value = readl(grer) | BIT(gpio % 32);
+	}
 	else
+	{
 		value = readl(grer) & ~BIT(gpio % 32);
+	}
+
 	writel(value, grer);
 
 	if (type & IRQ_TYPE_EDGE_FALLING)
+	{
 		value = readl(gfer) | BIT(gpio % 32);
+	}
 	else
+	{
 		value = readl(gfer) & ~BIT(gpio % 32);
+	}
+
 	writel(value, gfer);
 
 	/*
@@ -235,17 +256,25 @@ static int mrfld_irq_set_type(struct irq_data *d, unsigned int type)
 	 * configure GLPR register first and then configure GITR.
 	 */
 	if (type & IRQ_TYPE_LEVEL_LOW)
+	{
 		value = readl(glpr) | BIT(gpio % 32);
+	}
 	else
+	{
 		value = readl(glpr) & ~BIT(gpio % 32);
+	}
+
 	writel(value, glpr);
 
-	if (type & IRQ_TYPE_LEVEL_MASK) {
+	if (type & IRQ_TYPE_LEVEL_MASK)
+	{
 		value = readl(gitr) | BIT(gpio % 32);
 		writel(value, gitr);
 
 		irq_set_handler_locked(d, handle_level_irq);
-	} else if (type & IRQ_TYPE_EDGE_BOTH) {
+	}
+	else if (type & IRQ_TYPE_EDGE_BOTH)
+	{
 		value = readl(gitr) & ~BIT(gpio % 32);
 		writel(value, gitr);
 
@@ -273,9 +302,14 @@ static int mrfld_irq_set_wake(struct irq_data *d, unsigned int on)
 	writel(BIT(gpio % 32), gwsr);
 
 	if (on)
+	{
 		value = readl(gwmr) | BIT(gpio % 32);
+	}
 	else
+	{
 		value = readl(gwmr) & ~BIT(gpio % 32);
+	}
+
 	writel(value, gwmr);
 
 	raw_spin_unlock_irqrestore(&priv->lock, flags);
@@ -284,7 +318,8 @@ static int mrfld_irq_set_wake(struct irq_data *d, unsigned int on)
 	return 0;
 }
 
-static struct irq_chip mrfld_irqchip = {
+static struct irq_chip mrfld_irqchip =
+{
 	.name		= "gpio-merrifield",
 	.irq_ack	= mrfld_irq_ack,
 	.irq_mask	= mrfld_irq_mask,
@@ -303,7 +338,8 @@ static void mrfld_irq_handler(struct irq_desc *desc)
 	chained_irq_enter(irqchip, desc);
 
 	/* Check GPIO controller to check which pin triggered the interrupt */
-	for (base = 0; base < priv->chip.ngpio; base += 32) {
+	for (base = 0; base < priv->chip.ngpio; base += 32)
+	{
 		void __iomem *gisr = gpio_reg(&priv->chip, base, GISR);
 		void __iomem *gimr = gpio_reg(&priv->chip, base, GIMR);
 		unsigned long pending, enabled;
@@ -314,7 +350,8 @@ static void mrfld_irq_handler(struct irq_desc *desc)
 		/* Only interrupts that are enabled */
 		pending &= enabled;
 
-		for_each_set_bit(gpio, &pending, 32) {
+		for_each_set_bit(gpio, &pending, 32)
+		{
 			unsigned int irq;
 
 			irq = irq_find_mapping(gc->irqdomain, base + gpio);
@@ -330,7 +367,8 @@ static void mrfld_irq_init_hw(struct mrfld_gpio *priv)
 	void __iomem *reg;
 	unsigned int base;
 
-	for (base = 0; base < priv->chip.ngpio; base += 32) {
+	for (base = 0; base < priv->chip.ngpio; base += 32)
+	{
 		/* Clear the rising-edge detect register */
 		reg = gpio_reg(&priv->chip, base, GRER);
 		writel(0, reg);
@@ -350,11 +388,16 @@ static int mrfld_gpio_probe(struct pci_dev *pdev, const struct pci_device_id *id
 	int retval;
 
 	retval = pcim_enable_device(pdev);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	retval = pcim_iomap_regions(pdev, BIT(1) | BIT(0), pci_name(pdev));
-	if (retval) {
+
+	if (retval)
+	{
 		dev_err(&pdev->dev, "I/O memory mapping error\n");
 		return retval;
 	}
@@ -368,7 +411,9 @@ static int mrfld_gpio_probe(struct pci_dev *pdev, const struct pci_device_id *id
 	pcim_iounmap_regions(pdev, BIT(1));
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-	if (!priv) {
+
+	if (!priv)
+	{
 		dev_err(&pdev->dev, "can't allocate chip data\n");
 		return -ENOMEM;
 	}
@@ -392,27 +437,34 @@ static int mrfld_gpio_probe(struct pci_dev *pdev, const struct pci_device_id *id
 
 	pci_set_drvdata(pdev, priv);
 	retval = devm_gpiochip_add_data(&pdev->dev, &priv->chip, priv);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_err(&pdev->dev, "gpiochip_add error %d\n", retval);
 		return retval;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(mrfld_gpio_ranges); i++) {
+	for (i = 0; i < ARRAY_SIZE(mrfld_gpio_ranges); i++)
+	{
 		range = &mrfld_gpio_ranges[i];
 		retval = gpiochip_add_pin_range(&priv->chip,
-						"pinctrl-merrifield",
-						range->gpio_base,
-						range->pin_base,
-						range->npins);
-		if (retval) {
+										"pinctrl-merrifield",
+										range->gpio_base,
+										range->pin_base,
+										range->npins);
+
+		if (retval)
+		{
 			dev_err(&pdev->dev, "failed to add GPIO pin range\n");
 			return retval;
 		}
 	}
 
 	retval = gpiochip_irqchip_add(&priv->chip, &mrfld_irqchip, irq_base,
-				      handle_simple_irq, IRQ_TYPE_NONE);
-	if (retval) {
+								  handle_simple_irq, IRQ_TYPE_NONE);
+
+	if (retval)
+	{
 		dev_err(&pdev->dev, "could not connect irqchip to gpiochip\n");
 		return retval;
 	}
@@ -420,18 +472,20 @@ static int mrfld_gpio_probe(struct pci_dev *pdev, const struct pci_device_id *id
 	mrfld_irq_init_hw(priv);
 
 	gpiochip_set_chained_irqchip(&priv->chip, &mrfld_irqchip, pdev->irq,
-				     mrfld_irq_handler);
+								 mrfld_irq_handler);
 
 	return 0;
 }
 
-static const struct pci_device_id mrfld_gpio_ids[] = {
+static const struct pci_device_id mrfld_gpio_ids[] =
+{
 	{ PCI_VDEVICE(INTEL, 0x1199) },
 	{ }
 };
 MODULE_DEVICE_TABLE(pci, mrfld_gpio_ids);
 
-static struct pci_driver mrfld_gpio_driver = {
+static struct pci_driver mrfld_gpio_driver =
+{
 	.name		= "gpio-merrifield",
 	.id_table	= mrfld_gpio_ids,
 	.probe		= mrfld_gpio_probe,

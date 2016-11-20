@@ -2009,7 +2009,8 @@
 #define RT5651_WND_WIND_SFT			13
 #define RT5651_WND_STRONG_MASK			(0x1 << 12) /* Read-Only */
 #define RT5651_WND_STRONG_SFT			12
-enum {
+enum
+{
 	RT5651_NO_WIND,
 	RT5651_BREEZE,
 	RT5651_STORM,
@@ -2032,33 +2033,38 @@ enum {
 #define RT5651_EQ_PST_VOL_SFT			0
 
 /* System Clock Source */
-enum {
+enum
+{
 	RT5651_SCLK_S_MCLK,
 	RT5651_SCLK_S_PLL1,
 	RT5651_SCLK_S_RCCLK,
 };
 
 /* PLL1 Source */
-enum {
+enum
+{
 	RT5651_PLL1_S_MCLK,
 	RT5651_PLL1_S_BCLK1,
 	RT5651_PLL1_S_BCLK2,
 };
 
-enum {
+enum
+{
 	RT5651_AIF1,
 	RT5651_AIF2,
 	RT5651_AIFS,
 };
 
-struct rt5651_pll_code {
+struct rt5651_pll_code
+{
 	bool m_bp; /* Indicates bypass m code or not. */
 	int m_code;
 	int n_code;
 	int k_code;
 };
 
-struct rt5651_priv {
+struct rt5651_priv
+{
 	struct snd_soc_codec *codec;
 	struct rt5651_platform_data pdata;
 	struct regmap *regmap;

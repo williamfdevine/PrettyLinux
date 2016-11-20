@@ -13,7 +13,8 @@
 #include "hns_dsaf_mac.h"
 #include "hns_dsaf_gmac.h"
 
-static const struct mac_stats_string g_gmac_stats_string[] = {
+static const struct mac_stats_string g_gmac_stats_string[] =
+{
 	{"gmac_rx_octets_total_ok", MAC_STATS_FIELD_OFF(rx_good_bytes)},
 	{"gmac_rx_octets_bad", MAC_STATS_FIELD_OFF(rx_bad_bytes)},
 	{"gmac_rx_uc_pkts", MAC_STATS_FIELD_OFF(rx_uc_pkts)},
@@ -68,10 +69,14 @@ static void hns_gmac_enable(void *mac_drv, enum mac_commom_mode mode)
 
 	/*enable GE rX/tX */
 	if ((mode == MAC_COMM_MODE_TX) || (mode == MAC_COMM_MODE_RX_AND_TX))
+	{
 		dsaf_set_dev_bit(drv, GMAC_PORT_EN_REG, GMAC_PORT_TX_EN_B, 1);
+	}
 
 	if ((mode == MAC_COMM_MODE_RX) || (mode == MAC_COMM_MODE_RX_AND_TX))
+	{
 		dsaf_set_dev_bit(drv, GMAC_PORT_EN_REG, GMAC_PORT_RX_EN_B, 1);
+	}
 }
 
 static void hns_gmac_disable(void *mac_drv, enum mac_commom_mode mode)
@@ -80,10 +85,14 @@ static void hns_gmac_disable(void *mac_drv, enum mac_commom_mode mode)
 
 	/*disable GE rX/tX */
 	if ((mode == MAC_COMM_MODE_TX) || (mode == MAC_COMM_MODE_RX_AND_TX))
+	{
 		dsaf_set_dev_bit(drv, GMAC_PORT_EN_REG, GMAC_PORT_TX_EN_B, 0);
+	}
 
 	if ((mode == MAC_COMM_MODE_RX) || (mode == MAC_COMM_MODE_RX_AND_TX))
+	{
 		dsaf_set_dev_bit(drv, GMAC_PORT_EN_REG, GMAC_PORT_RX_EN_B, 0);
+	}
 }
 
 /**
@@ -118,7 +127,7 @@ static void hns_gmac_set_tx_auto_pause_frames(void *mac_drv, u16 newval)
 	struct mac_driver *drv = (struct mac_driver *)mac_drv;
 
 	dsaf_set_dev_field(drv, GMAC_FC_TX_TIMER_REG, GMAC_FC_TX_TIMER_M,
-			   GMAC_FC_TX_TIMER_S, newval);
+					   GMAC_FC_TX_TIMER_S, newval);
 }
 
 static void hns_gmac_get_tx_auto_pause_frames(void *mac_drv, u16 *newval)
@@ -126,7 +135,7 @@ static void hns_gmac_get_tx_auto_pause_frames(void *mac_drv, u16 *newval)
 	struct mac_driver *drv = (struct mac_driver *)mac_drv;
 
 	*newval = dsaf_get_dev_field(drv, GMAC_FC_TX_TIMER_REG,
-				     GMAC_FC_TX_TIMER_M, GMAC_FC_TX_TIMER_S);
+								 GMAC_FC_TX_TIMER_M, GMAC_FC_TX_TIMER_S);
 }
 
 static void hns_gmac_set_rx_auto_pause_frames(void *mac_drv, u32 newval)
@@ -134,7 +143,7 @@ static void hns_gmac_set_rx_auto_pause_frames(void *mac_drv, u32 newval)
 	struct mac_driver *drv = (struct mac_driver *)mac_drv;
 
 	dsaf_set_dev_bit(drv, GMAC_PAUSE_EN_REG,
-			 GMAC_PAUSE_EN_RX_FDFC_B, !!newval);
+					 GMAC_PAUSE_EN_RX_FDFC_B, !!newval);
 }
 
 static void hns_gmac_config_max_frame_length(void *mac_drv, u16 newval)
@@ -142,10 +151,10 @@ static void hns_gmac_config_max_frame_length(void *mac_drv, u16 newval)
 	struct mac_driver *drv = (struct mac_driver *)mac_drv;
 
 	dsaf_set_dev_field(drv, GMAC_MAX_FRM_SIZE_REG, GMAC_MAX_FRM_SIZE_M,
-			   GMAC_MAX_FRM_SIZE_S, newval);
+					   GMAC_MAX_FRM_SIZE_S, newval);
 
 	dsaf_set_dev_field(drv, GAMC_RX_MAX_FRAME, GMAC_MAX_FRM_SIZE_M,
-			   GMAC_MAX_FRM_SIZE_S, newval);
+					   GMAC_MAX_FRM_SIZE_S, newval);
 }
 
 static void hns_gmac_config_an_mode(void *mac_drv, u8 newval)
@@ -153,7 +162,7 @@ static void hns_gmac_config_an_mode(void *mac_drv, u8 newval)
 	struct mac_driver *drv = (struct mac_driver *)mac_drv;
 
 	dsaf_set_dev_bit(drv, GMAC_TRANSMIT_CONTROL_REG,
-			 GMAC_TX_AN_EN_B, !!newval);
+					 GMAC_TX_AN_EN_B, !!newval);
 }
 
 static void hns_gmac_tx_loop_pkt_dis(void *mac_drv)
@@ -172,16 +181,16 @@ static void hns_gmac_set_duplex_type(void *mac_drv, u8 newval)
 	struct mac_driver *drv = (struct mac_driver *)mac_drv;
 
 	dsaf_set_dev_bit(drv, GMAC_DUPLEX_TYPE_REG,
-			 GMAC_DUPLEX_TYPE_B, !!newval);
+					 GMAC_DUPLEX_TYPE_B, !!newval);
 }
 
 static void hns_gmac_get_duplex_type(void *mac_drv,
-				     enum hns_gmac_duplex_mdoe *duplex_mode)
+									 enum hns_gmac_duplex_mdoe *duplex_mode)
 {
 	struct mac_driver *drv = (struct mac_driver *)mac_drv;
 
 	*duplex_mode = (enum hns_gmac_duplex_mdoe)dsaf_get_dev_bit(
-		drv, GMAC_DUPLEX_TYPE_REG, GMAC_DUPLEX_TYPE_B);
+					   drv, GMAC_DUPLEX_TYPE_REG, GMAC_DUPLEX_TYPE_B);
 }
 
 static void hns_gmac_get_port_mode(void *mac_drv, enum hns_port_mode *port_mode)
@@ -189,29 +198,29 @@ static void hns_gmac_get_port_mode(void *mac_drv, enum hns_port_mode *port_mode)
 	struct mac_driver *drv = (struct mac_driver *)mac_drv;
 
 	*port_mode = (enum hns_port_mode)dsaf_get_dev_field(
-		drv, GMAC_PORT_MODE_REG, GMAC_PORT_MODE_M, GMAC_PORT_MODE_S);
+					 drv, GMAC_PORT_MODE_REG, GMAC_PORT_MODE_M, GMAC_PORT_MODE_S);
 }
 
 static void hns_gmac_port_mode_get(void *mac_drv,
-				   struct hns_gmac_port_mode_cfg *port_mode)
+								   struct hns_gmac_port_mode_cfg *port_mode)
 {
 	u32 tx_ctrl;
 	u32 recv_ctrl;
 	struct mac_driver *drv = (struct mac_driver *)mac_drv;
 
 	port_mode->port_mode = (enum hns_port_mode)dsaf_get_dev_field(
-		drv, GMAC_PORT_MODE_REG, GMAC_PORT_MODE_M, GMAC_PORT_MODE_S);
+							   drv, GMAC_PORT_MODE_REG, GMAC_PORT_MODE_M, GMAC_PORT_MODE_S);
 
 	tx_ctrl = dsaf_read_dev(drv, GMAC_TRANSMIT_CONTROL_REG);
 	recv_ctrl = dsaf_read_dev(drv, GMAC_RECV_CONTROL_REG);
 
 	port_mode->max_frm_size =
 		dsaf_get_dev_field(drv, GMAC_MAX_FRM_SIZE_REG,
-				   GMAC_MAX_FRM_SIZE_M, GMAC_MAX_FRM_SIZE_S);
+						   GMAC_MAX_FRM_SIZE_M, GMAC_MAX_FRM_SIZE_S);
 	port_mode->short_runts_thr =
 		dsaf_get_dev_field(drv, GMAC_SHORT_RUNTS_THR_REG,
-				   GMAC_SHORT_RUNTS_THR_M,
-				   GMAC_SHORT_RUNTS_THR_S);
+						   GMAC_SHORT_RUNTS_THR_M,
+						   GMAC_SHORT_RUNTS_THR_S);
 
 	port_mode->pad_enable = dsaf_get_bit(tx_ctrl, GMAC_TX_PAD_EN_B);
 	port_mode->crc_add = dsaf_get_bit(tx_ctrl, GMAC_TX_CRC_ADD_B);
@@ -224,7 +233,7 @@ static void hns_gmac_port_mode_get(void *mac_drv,
 }
 
 static void hns_gmac_pause_frm_cfg(void *mac_drv, u32 rx_pause_en,
-				   u32 tx_pause_en)
+								   u32 tx_pause_en)
 {
 	u32 pause_en;
 	struct mac_driver *drv = (struct mac_driver *)mac_drv;
@@ -236,7 +245,7 @@ static void hns_gmac_pause_frm_cfg(void *mac_drv, u32 rx_pause_en,
 }
 
 static void hns_gmac_get_pausefrm_cfg(void *mac_drv, u32 *rx_pause_en,
-				      u32 *tx_pause_en)
+									  u32 *tx_pause_en)
 {
 	u32 pause_en;
 	struct mac_driver *drv = (struct mac_driver *)mac_drv;
@@ -248,35 +257,39 @@ static void hns_gmac_get_pausefrm_cfg(void *mac_drv, u32 *rx_pause_en,
 }
 
 static int hns_gmac_adjust_link(void *mac_drv, enum mac_speed speed,
-				u32 full_duplex)
+								u32 full_duplex)
 {
 	u32 tx_ctrl;
 	struct mac_driver *drv = (struct mac_driver *)mac_drv;
 
 	dsaf_set_dev_bit(drv, GMAC_DUPLEX_TYPE_REG,
-			 GMAC_DUPLEX_TYPE_B, !!full_duplex);
+					 GMAC_DUPLEX_TYPE_B, !!full_duplex);
 
-	switch (speed) {
-	case MAC_SPEED_10:
-		dsaf_set_dev_field(
-			drv, GMAC_PORT_MODE_REG,
-			GMAC_PORT_MODE_M, GMAC_PORT_MODE_S, 0x6);
-		break;
-	case MAC_SPEED_100:
-		dsaf_set_dev_field(
-			drv, GMAC_PORT_MODE_REG,
-			GMAC_PORT_MODE_M, GMAC_PORT_MODE_S, 0x7);
-		break;
-	case MAC_SPEED_1000:
-		dsaf_set_dev_field(
-			drv, GMAC_PORT_MODE_REG,
-			GMAC_PORT_MODE_M, GMAC_PORT_MODE_S, 0x8);
-		break;
-	default:
-		dev_err(drv->dev,
-			"hns_gmac_adjust_link fail, speed%d mac%d\n",
-			speed, drv->mac_id);
-		return -EINVAL;
+	switch (speed)
+	{
+		case MAC_SPEED_10:
+			dsaf_set_dev_field(
+				drv, GMAC_PORT_MODE_REG,
+				GMAC_PORT_MODE_M, GMAC_PORT_MODE_S, 0x6);
+			break;
+
+		case MAC_SPEED_100:
+			dsaf_set_dev_field(
+				drv, GMAC_PORT_MODE_REG,
+				GMAC_PORT_MODE_M, GMAC_PORT_MODE_S, 0x7);
+			break;
+
+		case MAC_SPEED_1000:
+			dsaf_set_dev_field(
+				drv, GMAC_PORT_MODE_REG,
+				GMAC_PORT_MODE_M, GMAC_PORT_MODE_S, 0x8);
+			break;
+
+		default:
+			dev_err(drv->dev,
+					"hns_gmac_adjust_link fail, speed%d mac%d\n",
+					speed, drv->mac_id);
+			return -EINVAL;
 	}
 
 	tx_ctrl = dsaf_read_dev(drv, GMAC_TRANSMIT_CONTROL_REG);
@@ -285,7 +298,7 @@ static int hns_gmac_adjust_link(void *mac_drv, enum mac_speed speed,
 	dsaf_write_dev(drv, GMAC_TRANSMIT_CONTROL_REG, tx_ctrl);
 
 	dsaf_set_dev_bit(drv, GMAC_MODE_CHANGE_EN_REG,
-			 GMAC_MODE_CHANGE_EB_B, 1);
+					 GMAC_MODE_CHANGE_EB_B, 1);
 
 	return 0;
 }
@@ -295,9 +308,9 @@ static void hns_gmac_set_uc_match(void *mac_drv, u16 en)
 	struct mac_driver *drv = mac_drv;
 
 	dsaf_set_dev_bit(drv, GMAC_REC_FILT_CONTROL_REG,
-			 GMAC_UC_MATCH_EN_B, !en);
+					 GMAC_UC_MATCH_EN_B, !en);
 	dsaf_set_dev_bit(drv, GMAC_STATION_ADDR_HIGH_2_REG,
-			 GMAC_ADDR_EN_B, !en);
+					 GMAC_ADDR_EN_B, !en);
 }
 
 static void hns_gmac_set_promisc(void *mac_drv, u8 en)
@@ -305,7 +318,9 @@ static void hns_gmac_set_promisc(void *mac_drv, u8 en)
 	struct mac_driver *drv = mac_drv;
 
 	if (drv->mac_cb->mac_type == HNAE_PORT_DEBUG)
+	{
 		hns_gmac_set_uc_match(mac_drv, en);
+	}
 }
 
 static void hns_gmac_init(void *mac_drv)
@@ -323,8 +338,11 @@ static void hns_gmac_init(void *mac_drv)
 	mdelay(10);
 	hns_gmac_disable(mac_drv, MAC_COMM_MODE_RX_AND_TX);
 	hns_gmac_tx_loop_pkt_dis(mac_drv);
+
 	if (drv->mac_cb->mac_type == HNAE_PORT_DEBUG)
+	{
 		hns_gmac_set_uc_match(mac_drv, 0);
+	}
 }
 
 void hns_gmac_update_stats(void *mac_drv)
@@ -336,86 +354,86 @@ void hns_gmac_update_stats(void *mac_drv)
 
 	/* RX */
 	hw_stats->rx_good_bytes
-		+= dsaf_read_dev(drv, GMAC_RX_OCTETS_TOTAL_OK_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_OCTETS_TOTAL_OK_REG);
 	hw_stats->rx_bad_bytes
-		+= dsaf_read_dev(drv, GMAC_RX_OCTETS_BAD_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_OCTETS_BAD_REG);
 	hw_stats->rx_uc_pkts += dsaf_read_dev(drv, GMAC_RX_UC_PKTS_REG);
 	hw_stats->rx_mc_pkts += dsaf_read_dev(drv, GMAC_RX_MC_PKTS_REG);
 	hw_stats->rx_bc_pkts += dsaf_read_dev(drv, GMAC_RX_BC_PKTS_REG);
 	hw_stats->rx_64bytes
-		+= dsaf_read_dev(drv, GMAC_RX_PKTS_64OCTETS_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_PKTS_64OCTETS_REG);
 	hw_stats->rx_65to127
-		+= dsaf_read_dev(drv, GMAC_RX_PKTS_65TO127OCTETS_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_PKTS_65TO127OCTETS_REG);
 	hw_stats->rx_128to255
-		+= dsaf_read_dev(drv, GMAC_RX_PKTS_128TO255OCTETS_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_PKTS_128TO255OCTETS_REG);
 	hw_stats->rx_256to511
-		+= dsaf_read_dev(drv, GMAC_RX_PKTS_255TO511OCTETS_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_PKTS_255TO511OCTETS_REG);
 	hw_stats->rx_512to1023
-		+= dsaf_read_dev(drv, GMAC_RX_PKTS_512TO1023OCTETS_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_PKTS_512TO1023OCTETS_REG);
 	hw_stats->rx_1024to1518
-		+= dsaf_read_dev(drv, GMAC_RX_PKTS_1024TO1518OCTETS_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_PKTS_1024TO1518OCTETS_REG);
 	hw_stats->rx_1519tomax
-		+= dsaf_read_dev(drv, GMAC_RX_PKTS_1519TOMAXOCTETS_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_PKTS_1519TOMAXOCTETS_REG);
 	hw_stats->rx_fcs_err += dsaf_read_dev(drv, GMAC_RX_FCS_ERRORS_REG);
 	hw_stats->rx_vlan_pkts += dsaf_read_dev(drv, GMAC_RX_TAGGED_REG);
 	hw_stats->rx_data_err += dsaf_read_dev(drv, GMAC_RX_DATA_ERR_REG);
 	hw_stats->rx_align_err
-		+= dsaf_read_dev(drv, GMAC_RX_ALIGN_ERRORS_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_ALIGN_ERRORS_REG);
 	hw_stats->rx_oversize
-		+= dsaf_read_dev(drv, GMAC_RX_LONG_ERRORS_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_LONG_ERRORS_REG);
 	hw_stats->rx_jabber_err
-		+= dsaf_read_dev(drv, GMAC_RX_JABBER_ERRORS_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_JABBER_ERRORS_REG);
 	hw_stats->rx_pfc_tc0
-		+= dsaf_read_dev(drv, GMAC_RX_PAUSE_MACCTRL_FRAM_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_PAUSE_MACCTRL_FRAM_REG);
 	hw_stats->rx_unknown_ctrl
-		+= dsaf_read_dev(drv, GMAC_RX_UNKNOWN_MACCTRL_FRAM_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_UNKNOWN_MACCTRL_FRAM_REG);
 	hw_stats->rx_long_err
-		+= dsaf_read_dev(drv, GMAC_RX_VERY_LONG_ERR_CNT_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_VERY_LONG_ERR_CNT_REG);
 	hw_stats->rx_minto64
-		+= dsaf_read_dev(drv, GMAC_RX_RUNT_ERR_CNT_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_RUNT_ERR_CNT_REG);
 	hw_stats->rx_under_min
-		+= dsaf_read_dev(drv, GMAC_RX_SHORT_ERR_CNT_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_SHORT_ERR_CNT_REG);
 	hw_stats->rx_filter_pkts
-		+= dsaf_read_dev(drv, GMAC_RX_FILT_PKT_CNT_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_FILT_PKT_CNT_REG);
 	hw_stats->rx_filter_bytes
-		+= dsaf_read_dev(drv, GMAC_RX_OCTETS_TOTAL_FILT_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_OCTETS_TOTAL_FILT_REG);
 	hw_stats->rx_fifo_overrun_err
-		+= dsaf_read_dev(drv, GMAC_RX_OVERRUN_CNT_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_OVERRUN_CNT_REG);
 	hw_stats->rx_len_err
-		+= dsaf_read_dev(drv, GMAC_RX_LENGTHFIELD_ERR_CNT_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_LENGTHFIELD_ERR_CNT_REG);
 	hw_stats->rx_comma_err
-		+= dsaf_read_dev(drv, GMAC_RX_FAIL_COMMA_CNT_REG);
+	+= dsaf_read_dev(drv, GMAC_RX_FAIL_COMMA_CNT_REG);
 
 	/* TX */
 	hw_stats->tx_good_bytes
-		+= dsaf_read_dev(drv, GMAC_OCTETS_TRANSMITTED_OK_REG);
+	+= dsaf_read_dev(drv, GMAC_OCTETS_TRANSMITTED_OK_REG);
 	hw_stats->tx_bad_bytes
-		+= dsaf_read_dev(drv, GMAC_OCTETS_TRANSMITTED_BAD_REG);
+	+= dsaf_read_dev(drv, GMAC_OCTETS_TRANSMITTED_BAD_REG);
 	hw_stats->tx_uc_pkts += dsaf_read_dev(drv, GMAC_TX_UC_PKTS_REG);
 	hw_stats->tx_mc_pkts += dsaf_read_dev(drv, GMAC_TX_MC_PKTS_REG);
 	hw_stats->tx_bc_pkts += dsaf_read_dev(drv, GMAC_TX_BC_PKTS_REG);
 	hw_stats->tx_64bytes
-		+= dsaf_read_dev(drv, GMAC_TX_PKTS_64OCTETS_REG);
+	+= dsaf_read_dev(drv, GMAC_TX_PKTS_64OCTETS_REG);
 	hw_stats->tx_65to127
-		+= dsaf_read_dev(drv, GMAC_TX_PKTS_65TO127OCTETS_REG);
+	+= dsaf_read_dev(drv, GMAC_TX_PKTS_65TO127OCTETS_REG);
 	hw_stats->tx_128to255
-		+= dsaf_read_dev(drv, GMAC_TX_PKTS_128TO255OCTETS_REG);
+	+= dsaf_read_dev(drv, GMAC_TX_PKTS_128TO255OCTETS_REG);
 	hw_stats->tx_256to511
-		+= dsaf_read_dev(drv, GMAC_TX_PKTS_255TO511OCTETS_REG);
+	+= dsaf_read_dev(drv, GMAC_TX_PKTS_255TO511OCTETS_REG);
 	hw_stats->tx_512to1023
-		+= dsaf_read_dev(drv, GMAC_TX_PKTS_512TO1023OCTETS_REG);
+	+= dsaf_read_dev(drv, GMAC_TX_PKTS_512TO1023OCTETS_REG);
 	hw_stats->tx_1024to1518
-		+= dsaf_read_dev(drv, GMAC_TX_PKTS_1024TO1518OCTETS_REG);
+	+= dsaf_read_dev(drv, GMAC_TX_PKTS_1024TO1518OCTETS_REG);
 	hw_stats->tx_1519tomax
-		+= dsaf_read_dev(drv, GMAC_TX_PKTS_1519TOMAXOCTETS_REG);
+	+= dsaf_read_dev(drv, GMAC_TX_PKTS_1519TOMAXOCTETS_REG);
 	hw_stats->tx_jabber_err
-		+= dsaf_read_dev(drv, GMAC_TX_EXCESSIVE_LENGTH_DROP_REG);
+	+= dsaf_read_dev(drv, GMAC_TX_EXCESSIVE_LENGTH_DROP_REG);
 	hw_stats->tx_underrun_err
-		+= dsaf_read_dev(drv, GMAC_TX_UNDERRUN_REG);
+	+= dsaf_read_dev(drv, GMAC_TX_UNDERRUN_REG);
 	hw_stats->tx_vlan += dsaf_read_dev(drv, GMAC_TX_TAGGED_REG);
 	hw_stats->tx_crc_err += dsaf_read_dev(drv, GMAC_TX_CRC_ERROR_REG);
 	hw_stats->tx_pfc_tc0
-		+= dsaf_read_dev(drv, GMAC_TX_PAUSE_FRAMES_REG);
+	+= dsaf_read_dev(drv, GMAC_TX_PAUSE_FRAMES_REG);
 }
 
 static void hns_gmac_set_mac_addr(void *mac_drv, char *mac_addr)
@@ -425,29 +443,31 @@ static void hns_gmac_set_mac_addr(void *mac_drv, char *mac_addr)
 	u32 high_val = mac_addr[1] | (mac_addr[0] << 8);
 
 	u32 low_val = mac_addr[5] | (mac_addr[4] << 8)
-		| (mac_addr[3] << 16) | (mac_addr[2] << 24);
+				  | (mac_addr[3] << 16) | (mac_addr[2] << 24);
 
 	u32 val = dsaf_read_dev(drv, GMAC_STATION_ADDR_HIGH_2_REG);
 	u32 sta_addr_en = dsaf_get_bit(val, GMAC_ADDR_EN_B);
 
 	dsaf_write_dev(drv, GMAC_STATION_ADDR_LOW_2_REG, low_val);
 	dsaf_write_dev(drv, GMAC_STATION_ADDR_HIGH_2_REG,
-		       high_val | (sta_addr_en << GMAC_ADDR_EN_B));
+				   high_val | (sta_addr_en << GMAC_ADDR_EN_B));
 }
 
 static int hns_gmac_config_loopback(void *mac_drv, enum hnae_loop loop_mode,
-				    u8 enable)
+									u8 enable)
 {
 	struct mac_driver *drv = (struct mac_driver *)mac_drv;
 
-	switch (loop_mode) {
-	case MAC_INTERNALLOOP_MAC:
-		dsaf_set_dev_bit(drv, GMAC_LOOP_REG, GMAC_LP_REG_CF2MI_LP_EN_B,
-				 !!enable);
-		break;
-	default:
-		dev_err(drv->dev, "loop_mode error\n");
-		return -EINVAL;
+	switch (loop_mode)
+	{
+		case MAC_INTERNALLOOP_MAC:
+			dsaf_set_dev_bit(drv, GMAC_LOOP_REG, GMAC_LP_REG_CF2MI_LP_EN_B,
+							 !!enable);
+			break;
+
+		default:
+			dev_err(drv->dev, "loop_mode error\n");
+			return -EINVAL;
 	}
 
 	return 0;
@@ -496,19 +516,24 @@ static void hns_gmac_get_info(void *mac_drv, struct mac_info *mac_info)
 	mac_info->duplex = duplex;
 
 	hns_gmac_get_port_mode(mac_drv, &speed);
-	switch (speed) {
-	case GMAC_10M_SGMII:
-		mac_info->speed = MAC_SPEED_10;
-		break;
-	case GMAC_100M_SGMII:
-		mac_info->speed = MAC_SPEED_100;
-		break;
-	case GMAC_1000M_SGMII:
-		mac_info->speed = MAC_SPEED_1000;
-		break;
-	default:
-		mac_info->speed = 0;
-		break;
+
+	switch (speed)
+	{
+		case GMAC_10M_SGMII:
+			mac_info->speed = MAC_SPEED_10;
+			break;
+
+		case GMAC_100M_SGMII:
+			mac_info->speed = MAC_SPEED_100;
+			break;
+
+		case GMAC_1000M_SGMII:
+			mac_info->speed = MAC_SPEED_1000;
+			break;
+
+		default:
+			mac_info->speed = 0;
+			break;
 	}
 
 	hns_gmac_get_pausefrm_cfg(mac_drv, &rx_pause, &tx_pause);
@@ -521,7 +546,7 @@ static void hns_gmac_autoneg_stat(void *mac_drv, u32 *enable)
 	struct mac_driver *drv = (struct mac_driver *)mac_drv;
 
 	*enable = dsaf_get_dev_bit(drv, GMAC_TRANSMIT_CONTROL_REG,
-				   GMAC_TX_AN_EN_B);
+							   GMAC_TX_AN_EN_B);
 }
 
 static void hns_gmac_get_link_status(void *mac_drv, u32 *link_stat)
@@ -529,7 +554,7 @@ static void hns_gmac_get_link_status(void *mac_drv, u32 *link_stat)
 	struct mac_driver *drv = (struct mac_driver *)mac_drv;
 
 	*link_stat = dsaf_get_dev_bit(drv, GMAC_AN_NEG_STATE_REG,
-				      GMAC_AN_NEG_STAT_RX_SYNC_OK_B);
+								  GMAC_AN_NEG_STAT_RX_SYNC_OK_B);
 }
 
 static void hns_gmac_get_regs(void *mac_drv, void *data)
@@ -637,7 +662,9 @@ static void hns_gmac_get_regs(void *mac_drv, void *data)
 
 	/* mark end of mac regs */
 	for (i = 89; i < 96; i++)
+	{
 		regs[i] = 0xaaaaaaaa;
+	}
 }
 
 static void hns_gmac_get_stats(void *mac_drv, u64 *data)
@@ -649,9 +676,10 @@ static void hns_gmac_get_stats(void *mac_drv, u64 *data)
 
 	hw_stats = &drv->mac_cb->hw_stats;
 
-	for (i = 0; i < ARRAY_SIZE(g_gmac_stats_string); i++) {
+	for (i = 0; i < ARRAY_SIZE(g_gmac_stats_string); i++)
+	{
 		buf[i] = DSAF_STATS_READ(hw_stats,
-			g_gmac_stats_string[i].offset);
+								 g_gmac_stats_string[i].offset);
 	}
 }
 
@@ -661,11 +689,14 @@ static void hns_gmac_get_strings(u32 stringset, u8 *data)
 	u32 i;
 
 	if (stringset != ETH_SS_STATS)
+	{
 		return;
+	}
 
-	for (i = 0; i < ARRAY_SIZE(g_gmac_stats_string); i++) {
+	for (i = 0; i < ARRAY_SIZE(g_gmac_stats_string); i++)
+	{
 		snprintf(buff, ETH_GSTRING_LEN, "%s",
-			 g_gmac_stats_string[i].desc);
+				 g_gmac_stats_string[i].desc);
 		buff = buff + ETH_GSTRING_LEN;
 	}
 }
@@ -673,7 +704,9 @@ static void hns_gmac_get_strings(u32 stringset, u8 *data)
 static int hns_gmac_get_sset_count(int stringset)
 {
 	if (stringset == ETH_SS_STATS)
+	{
 		return ARRAY_SIZE(g_gmac_stats_string);
+	}
 
 	return 0;
 }
@@ -688,8 +721,11 @@ void *hns_gmac_config(struct hns_mac_cb *mac_cb, struct mac_params *mac_param)
 	struct mac_driver *mac_drv;
 
 	mac_drv = devm_kzalloc(mac_cb->dev, sizeof(*mac_drv), GFP_KERNEL);
+
 	if (!mac_drv)
+	{
 		return NULL;
+	}
 
 	mac_drv->mac_init = hns_gmac_init;
 	mac_drv->mac_enable = hns_gmac_enable;

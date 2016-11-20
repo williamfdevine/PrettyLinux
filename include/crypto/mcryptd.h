@@ -14,7 +14,8 @@
 #include <linux/kernel.h>
 #include <crypto/hash.h>
 
-struct mcryptd_ahash {
+struct mcryptd_ahash
+{
 	struct crypto_ahash base;
 };
 
@@ -24,26 +25,31 @@ static inline struct mcryptd_ahash *__mcryptd_ahash_cast(
 	return (struct mcryptd_ahash *)tfm;
 }
 
-struct mcryptd_cpu_queue {
+struct mcryptd_cpu_queue
+{
 	struct crypto_queue queue;
 	struct work_struct work;
 };
 
-struct mcryptd_queue {
+struct mcryptd_queue
+{
 	struct mcryptd_cpu_queue __percpu *cpu_queue;
 };
 
-struct mcryptd_instance_ctx {
+struct mcryptd_instance_ctx
+{
 	struct crypto_spawn spawn;
 	struct mcryptd_queue *queue;
 };
 
-struct mcryptd_hash_ctx {
+struct mcryptd_hash_ctx
+{
 	struct crypto_ahash *child;
 	struct mcryptd_alg_state *alg_state;
 };
 
-struct mcryptd_tag {
+struct mcryptd_tag
+{
 	/* seq number of request */
 	unsigned seq_num;
 	/* arrival time of request */
@@ -52,7 +58,8 @@ struct mcryptd_tag {
 	int	cpu;
 };
 
-struct mcryptd_hash_request_ctx {
+struct mcryptd_hash_request_ctx
+{
 	struct list_head waiter;
 	crypto_completion_t complete;
 	struct mcryptd_tag tag;
@@ -63,13 +70,14 @@ struct mcryptd_hash_request_ctx {
 };
 
 struct mcryptd_ahash *mcryptd_alloc_ahash(const char *alg_name,
-					u32 type, u32 mask);
+		u32 type, u32 mask);
 struct crypto_ahash *mcryptd_ahash_child(struct mcryptd_ahash *tfm);
 struct ahash_request *mcryptd_ahash_desc(struct ahash_request *req);
 void mcryptd_free_ahash(struct mcryptd_ahash *tfm);
 void mcryptd_flusher(struct work_struct *work);
 
-enum mcryptd_req_type {
+enum mcryptd_req_type
+{
 	MCRYPTD_NONE,
 	MCRYPTD_UPDATE,
 	MCRYPTD_FINUP,
@@ -77,7 +85,8 @@ enum mcryptd_req_type {
 	MCRYPTD_FINAL
 };
 
-struct mcryptd_alg_cstate {
+struct mcryptd_alg_cstate
+{
 	unsigned long next_flush;
 	unsigned next_seq_num;
 	bool	flusher_engaged;
@@ -90,7 +99,8 @@ struct mcryptd_alg_cstate {
 	struct list_head flush_list;
 };
 
-struct mcryptd_alg_state {
+struct mcryptd_alg_state
+{
 	struct mcryptd_alg_cstate __percpu *alg_cstate;
 	unsigned long (*flusher)(struct mcryptd_alg_cstate *cstate);
 };
@@ -101,10 +111,15 @@ static inline unsigned long get_delay(unsigned long t)
 	long delay;
 
 	delay = (long) t - (long) jiffies;
+
 	if (delay <= 0)
+	{
 		return 0;
+	}
 	else
+	{
 		return (unsigned long) delay;
+	}
 }
 
 void mcryptd_arm_flusher(struct mcryptd_alg_cstate *cstate, unsigned long delay);

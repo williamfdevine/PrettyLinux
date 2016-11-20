@@ -33,16 +33,20 @@ static inline int
 nvif_notify_put_(struct nvif_notify *notify)
 {
 	struct nvif_object *object = notify->object;
-	struct {
+	struct
+	{
 		struct nvif_ioctl_v0 ioctl;
 		struct nvif_ioctl_ntfy_put_v0 ntfy;
-	} args = {
+	} args =
+	{
 		.ioctl.type = NVIF_IOCTL_V0_NTFY_PUT,
 		.ntfy.index = notify->index,
 	};
 
 	if (atomic_inc_return(&notify->putcnt) != 1)
+	{
 		return 0;
+	}
 
 	return nvif_object_ioctl(object, &args, sizeof(args), NULL);
 }
@@ -51,12 +55,18 @@ int
 nvif_notify_put(struct nvif_notify *notify)
 {
 	if (likely(notify->object) &&
-	    test_and_clear_bit(NVIF_NOTIFY_USER, &notify->flags)) {
+		test_and_clear_bit(NVIF_NOTIFY_USER, &notify->flags))
+	{
 		int ret = nvif_notify_put_(notify);
+
 		if (test_bit(NVIF_NOTIFY_WORK, &notify->flags))
+		{
 			flush_work(&notify->work);
+		}
+
 		return ret;
 	}
+
 	return 0;
 }
 
@@ -64,16 +74,20 @@ static inline int
 nvif_notify_get_(struct nvif_notify *notify)
 {
 	struct nvif_object *object = notify->object;
-	struct {
+	struct
+	{
 		struct nvif_ioctl_v0 ioctl;
 		struct nvif_ioctl_ntfy_get_v0 ntfy;
-	} args = {
+	} args =
+	{
 		.ioctl.type = NVIF_IOCTL_V0_NTFY_GET,
 		.ntfy.index = notify->index,
 	};
 
 	if (atomic_dec_return(&notify->putcnt) != 0)
+	{
 		return 0;
+	}
 
 	return nvif_object_ioctl(object, &args, sizeof(args), NULL);
 }
@@ -82,8 +96,11 @@ int
 nvif_notify_get(struct nvif_notify *notify)
 {
 	if (likely(notify->object) &&
-	    !test_and_set_bit(NVIF_NOTIFY_USER, &notify->flags))
+		!test_and_set_bit(NVIF_NOTIFY_USER, &notify->flags))
+	{
 		return nvif_notify_get_(notify);
+	}
+
 	return 0;
 }
 
@@ -91,13 +108,20 @@ static inline int
 nvif_notify_func(struct nvif_notify *notify, bool keep)
 {
 	int ret = notify->func(notify);
+
 	if (ret == NVIF_NOTIFY_KEEP ||
-	    !test_and_clear_bit(NVIF_NOTIFY_USER, &notify->flags)) {
+		!test_and_clear_bit(NVIF_NOTIFY_USER, &notify->flags))
+	{
 		if (!keep)
+		{
 			atomic_dec(&notify->putcnt);
+		}
 		else
+		{
 			nvif_notify_get_(notify);
+		}
 	}
+
 	return ret;
 }
 
@@ -112,26 +136,37 @@ int
 nvif_notify(const void *header, u32 length, const void *data, u32 size)
 {
 	struct nvif_notify *notify = NULL;
-	const union {
+	const union
+	{
 		struct nvif_notify_rep_v0 v0;
 	} *args = header;
 	int ret = NVIF_NOTIFY_DROP;
 
-	if (length == sizeof(args->v0) && args->v0.version == 0) {
+	if (length == sizeof(args->v0) && args->v0.version == 0)
+	{
 		if (WARN_ON(args->v0.route))
+		{
 			return NVIF_NOTIFY_DROP;
+		}
+
 		notify = (void *)(unsigned long)args->v0.token;
 	}
 
-	if (!WARN_ON(notify == NULL)) {
+	if (!WARN_ON(notify == NULL))
+	{
 		struct nvif_client *client = notify->object->client;
-		if (!WARN_ON(notify->size != size)) {
+
+		if (!WARN_ON(notify->size != size))
+		{
 			atomic_inc(&notify->putcnt);
-			if (test_bit(NVIF_NOTIFY_WORK, &notify->flags)) {
+
+			if (test_bit(NVIF_NOTIFY_WORK, &notify->flags))
+			{
 				memcpy((void *)notify->data, data, size);
 				schedule_work(&notify->work);
 				return NVIF_NOTIFY_DROP;
 			}
+
 			notify->data = data;
 			ret = nvif_notify_func(notify, client->driver->keep);
 			notify->data = NULL;
@@ -145,30 +180,38 @@ int
 nvif_notify_fini(struct nvif_notify *notify)
 {
 	struct nvif_object *object = notify->object;
-	struct {
+	struct
+	{
 		struct nvif_ioctl_v0 ioctl;
 		struct nvif_ioctl_ntfy_del_v0 ntfy;
-	} args = {
+	} args =
+	{
 		.ioctl.type = NVIF_IOCTL_V0_NTFY_DEL,
 		.ntfy.index = notify->index,
 	};
 	int ret = nvif_notify_put(notify);
-	if (ret >= 0 && object) {
+
+	if (ret >= 0 && object)
+	{
 		ret = nvif_object_ioctl(object, &args, sizeof(args), NULL);
-		if (ret == 0) {
+
+		if (ret == 0)
+		{
 			notify->object = NULL;
 			kfree((void *)notify->data);
 		}
 	}
+
 	return ret;
 }
 
 int
 nvif_notify_init(struct nvif_object *object, int (*func)(struct nvif_notify *),
-		 bool work, u8 event, void *data, u32 size, u32 reply,
-		 struct nvif_notify *notify)
+				 bool work, u8 event, void *data, u32 size, u32 reply,
+				 struct nvif_notify *notify)
 {
-	struct {
+	struct
+	{
 		struct nvif_ioctl_v0 ioctl;
 		struct nvif_ioctl_ntfy_new_v0 ntfy;
 		struct nvif_notify_req_v0 req;
@@ -181,16 +224,24 @@ nvif_notify_init(struct nvif_object *object, int (*func)(struct nvif_notify *),
 	notify->func = func;
 	notify->data = NULL;
 	notify->size = reply;
-	if (work) {
+
+	if (work)
+	{
 		INIT_WORK(&notify->work, nvif_notify_work);
 		set_bit(NVIF_NOTIFY_WORK, &notify->flags);
 		notify->data = kmalloc(notify->size, GFP_KERNEL);
+
 		if (!notify->data)
+		{
 			goto done;
+		}
 	}
 
 	if (!(args = kmalloc(sizeof(*args) + size, GFP_KERNEL)))
+	{
 		goto done;
+	}
+
 	args->ioctl.version = 0;
 	args->ioctl.type = NVIF_IOCTL_V0_NTFY_NEW;
 	args->ntfy.version = 0;
@@ -205,7 +256,11 @@ nvif_notify_init(struct nvif_object *object, int (*func)(struct nvif_notify *),
 	notify->index = args->ntfy.index;
 	kfree(args);
 done:
+
 	if (ret)
+	{
 		nvif_notify_fini(notify);
+	}
+
 	return ret;
 }

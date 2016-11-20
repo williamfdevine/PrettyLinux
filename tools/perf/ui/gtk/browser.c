@@ -37,9 +37,15 @@ void perf_gtk__resize_window(GtkWidget *window)
 const char *perf_gtk__get_percent_color(double percent)
 {
 	if (percent >= MIN_RED)
+	{
 		return "<span fgcolor='red'>";
+	}
+
 	if (percent >= MIN_GREEN)
+	{
 		return "<span fgcolor='dark green'>";
+	}
+
 	return NULL;
 }
 
@@ -60,9 +66,9 @@ GtkWidget *perf_gtk__setup_info_bar(void)
 	gtk_container_add(GTK_CONTAINER(content_area), label);
 
 	gtk_info_bar_add_button(GTK_INFO_BAR(info_bar), GTK_STOCK_OK,
-				GTK_RESPONSE_OK);
+							GTK_RESPONSE_OK);
 	g_signal_connect(info_bar, "response",
-			 G_CALLBACK(gtk_widget_hide), NULL);
+					 G_CALLBACK(gtk_widget_hide), NULL);
 
 	pgctx->info_bar = info_bar;
 	pgctx->message_label = label;
@@ -79,7 +85,7 @@ GtkWidget *perf_gtk__setup_statusbar(void)
 	stbar = gtk_statusbar_new();
 
 	ctxid = gtk_statusbar_get_context_id(GTK_STATUSBAR(stbar),
-					     "perf report");
+										 "perf report");
 	pgctx->statbar = stbar;
 	pgctx->statbar_ctx_id = ctxid;
 

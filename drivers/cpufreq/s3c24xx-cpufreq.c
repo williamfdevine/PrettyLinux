@@ -101,12 +101,12 @@ static inline int closer(unsigned int target, unsigned int n, unsigned int c)
 }
 
 static void s3c_cpufreq_show(const char *pfx,
-				 struct s3c_cpufreq_config *cfg)
+							 struct s3c_cpufreq_config *cfg)
 {
 	s3c_freq_dbg("%s: Fvco=%u, F=%lu, A=%lu, H=%lu (%u), P=%lu (%u)\n",
-		     pfx, cfg->pll.frequency, cfg->freq.fclk, cfg->freq.armclk,
-		     cfg->freq.hclk, cfg->divs.h_divisor,
-		     cfg->freq.pclk, cfg->divs.p_divisor);
+				 pfx, cfg->pll.frequency, cfg->freq.fclk, cfg->freq.armclk,
+				 cfg->freq.hclk, cfg->divs.h_divisor,
+				 cfg->freq.pclk, cfg->divs.p_divisor);
 }
 
 /* functions to wrapper the driver info calls to do the cpu specific work */
@@ -114,13 +114,17 @@ static void s3c_cpufreq_show(const char *pfx,
 static void s3c_cpufreq_setio(struct s3c_cpufreq_config *cfg)
 {
 	if (cfg->info->set_iotiming)
+	{
 		(cfg->info->set_iotiming)(cfg, &s3c24xx_iotiming);
+	}
 }
 
 static int s3c_cpufreq_calcio(struct s3c_cpufreq_config *cfg)
 {
 	if (cfg->info->calc_iotiming)
+	{
 		return (cfg->info->calc_iotiming)(cfg, &s3c24xx_iotiming);
+	}
 
 	return 0;
 }
@@ -147,14 +151,14 @@ static void s3c_cpufreq_setfvco(struct s3c_cpufreq_config *cfg)
 }
 
 static inline void s3c_cpufreq_updateclk(struct clk *clk,
-					 unsigned int freq)
+		unsigned int freq)
 {
 	clk_set_rate(clk, freq);
 }
 
 static int s3c_cpufreq_settarget(struct cpufreq_policy *policy,
-				 unsigned int target_freq,
-				 struct cpufreq_frequency_table *pll)
+								 unsigned int target_freq,
+								 struct cpufreq_frequency_table *pll)
 {
 	struct s3c_cpufreq_freqs freqs;
 	struct s3c_cpufreq_config cpu_new;
@@ -169,14 +173,17 @@ static int s3c_cpufreq_settarget(struct cpufreq_policy *policy,
 	cpu_new.pll = pll ? *pll : cpu_cur.pll;
 
 	if (pll)
+	{
 		freqs.pll_changing = 1;
+	}
 
 	/* update our frequencies */
 
 	cpu_new.freq.armclk = target_freq;
 	cpu_new.freq.fclk = cpu_new.pll.frequency;
 
-	if (s3c_cpufreq_calcdivs(&cpu_new) < 0) {
+	if (s3c_cpufreq_calcdivs(&cpu_new) < 0)
+	{
 		pr_err("no divisors for %d\n", target_freq);
 		goto err_notpossible;
 	}
@@ -187,8 +194,10 @@ static int s3c_cpufreq_settarget(struct cpufreq_policy *policy,
 
 	s3c_freq_dbg("%s: calculated frequencies for new\n", __func__);
 
-	if (cpu_new.freq.hclk != cpu_cur.freq.hclk) {
-		if (s3c_cpufreq_calcio(&cpu_new) < 0) {
+	if (cpu_new.freq.hclk != cpu_cur.freq.hclk)
+	{
+		if (s3c_cpufreq_calcio(&cpu_new) < 0)
+		{
 			pr_err("%s: no IO timings\n", __func__);
 			goto err_notpossible;
 		}
@@ -223,22 +232,29 @@ static int s3c_cpufreq_settarget(struct cpufreq_policy *policy,
 	local_irq_save(flags);
 
 	/* is our memory clock slowing down? */
-	if (cpu_new.freq.hclk < cpu_cur.freq.hclk) {
+	if (cpu_new.freq.hclk < cpu_cur.freq.hclk)
+	{
 		s3c_cpufreq_setrefresh(&cpu_new);
 		s3c_cpufreq_setio(&cpu_new);
 	}
 
-	if (cpu_new.freq.fclk == cpu_cur.freq.fclk) {
+	if (cpu_new.freq.fclk == cpu_cur.freq.fclk)
+	{
 		/* not changing PLL, just set the divisors */
 
 		s3c_cpufreq_setdivs(&cpu_new);
-	} else {
-		if (cpu_new.freq.fclk < cpu_cur.freq.fclk) {
+	}
+	else
+	{
+		if (cpu_new.freq.fclk < cpu_cur.freq.fclk)
+		{
 			/* slow the cpu down, then set divisors */
 
 			s3c_cpufreq_setfvco(&cpu_new);
 			s3c_cpufreq_setdivs(&cpu_new);
-		} else {
+		}
+		else
+		{
 			/* set the divisors, then speed up */
 
 			s3c_cpufreq_setdivs(&cpu_new);
@@ -247,7 +263,8 @@ static int s3c_cpufreq_settarget(struct cpufreq_policy *policy,
 	}
 
 	/* did our memory clock speed up */
-	if (cpu_new.freq.hclk > cpu_cur.freq.hclk) {
+	if (cpu_new.freq.hclk > cpu_cur.freq.hclk)
+	{
 		s3c_cpufreq_setrefresh(&cpu_new);
 		s3c_cpufreq_setio(&cpu_new);
 	}
@@ -263,7 +280,7 @@ static int s3c_cpufreq_settarget(struct cpufreq_policy *policy,
 	s3c_freq_dbg("%s: finished\n", __func__);
 	return 0;
 
- err_notpossible:
+err_notpossible:
 	pr_err("no compatible settings for %d\n", target_freq);
 	return -EINVAL;
 }
@@ -275,8 +292,8 @@ static int s3c_cpufreq_settarget(struct cpufreq_policy *policy,
  */
 
 static int s3c_cpufreq_target(struct cpufreq_policy *policy,
-			      unsigned int target_freq,
-			      unsigned int relation)
+							  unsigned int target_freq,
+							  unsigned int relation)
 {
 	struct cpufreq_frequency_table *pll;
 	unsigned int index;
@@ -285,19 +302,22 @@ static int s3c_cpufreq_target(struct cpufreq_policy *policy,
 	 * logging output (and CPU time as the calculation process is
 	 * done) */
 	if (target_freq == last_target)
+	{
 		return 0;
+	}
 
 	last_target = target_freq;
 
 	s3c_freq_dbg("%s: policy %p, target %u, relation %u\n",
-		     __func__, policy, target_freq, relation);
+				 __func__, policy, target_freq, relation);
 
-	if (ftab) {
+	if (ftab)
+	{
 		index = cpufreq_frequency_table_target(policy, target_freq,
-						       relation);
+											   relation);
 
 		s3c_freq_dbg("%s: adjust %d to entry %d (%u)\n", __func__,
-			     target_freq, index, ftab[index].frequency);
+					 target_freq, index, ftab[index].frequency);
 		target_freq = ftab[index].frequency;
 	}
 
@@ -305,11 +325,14 @@ static int s3c_cpufreq_target(struct cpufreq_policy *policy,
 
 	/* find the settings for our new frequency */
 
-	if (!pll_reg || cpu_cur.lock_pll) {
+	if (!pll_reg || cpu_cur.lock_pll)
+	{
 		/* either we've not got any PLL values, or we've locked
 		 * to the current one. */
 		pll = NULL;
-	} else {
+	}
+	else
+	{
 		struct cpufreq_policy tmp_policy;
 
 		/* we keep the cpu pll table in Hz, to ensure we get an
@@ -325,11 +348,11 @@ static int s3c_cpufreq_target(struct cpufreq_policy *policy,
 		 * the table entry's index field. */
 
 		index = cpufreq_frequency_table_target(&tmp_policy, target_freq,
-						       relation);
+											   relation);
 		pll = pll_reg + index;
 
 		s3c_freq_dbg("%s: target %u => %u\n",
-			     __func__, target_freq, pll->frequency);
+					 __func__, target_freq, pll->frequency);
 
 		target_freq = pll->frequency;
 	}
@@ -342,8 +365,11 @@ struct clk *s3c_cpufreq_clk_get(struct device *dev, const char *name)
 	struct clk *clk;
 
 	clk = clk_get(dev, name);
+
 	if (IS_ERR(clk))
+	{
 		pr_err("failed to get clock '%s'\n", name);
+	}
 
 	return clk;
 }
@@ -364,17 +390,18 @@ static int __init s3c_cpufreq_initclks(void)
 	clk_arm = s3c_cpufreq_clk_get(NULL, "armclk");
 
 	if (IS_ERR(clk_fclk) || IS_ERR(clk_hclk) || IS_ERR(clk_pclk) ||
-	    IS_ERR(_clk_mpll) || IS_ERR(clk_arm) || IS_ERR(_clk_xtal)) {
+		IS_ERR(_clk_mpll) || IS_ERR(clk_arm) || IS_ERR(_clk_xtal))
+	{
 		pr_err("%s: could not get clock(s)\n", __func__);
 		return -ENOENT;
 	}
 
 	pr_info("%s: clocks f=%lu,h=%lu,p=%lu,a=%lu\n",
-		__func__,
-		clk_get_rate(clk_fclk) / 1000,
-		clk_get_rate(clk_hclk) / 1000,
-		clk_get_rate(clk_pclk) / 1000,
-		clk_get_rate(clk_arm) / 1000);
+			__func__,
+			clk_get_rate(clk_fclk) / 1000,
+			clk_get_rate(clk_hclk) / 1000,
+			clk_get_rate(clk_pclk) / 1000,
+			clk_get_rate(clk_arm) / 1000);
 
 	return 0;
 }
@@ -411,7 +438,9 @@ static int s3c_cpufreq_resume(struct cpufreq_policy *policy)
 	 */
 
 	ret = s3c_cpufreq_settarget(NULL, suspend_freq, &suspend_pll);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s: failed to reset pll/freq\n", __func__);
 		return ret;
 	}
@@ -423,7 +452,8 @@ static int s3c_cpufreq_resume(struct cpufreq_policy *policy)
 #define s3c_cpufreq_suspend NULL
 #endif
 
-static struct cpufreq_driver s3c24xx_driver = {
+static struct cpufreq_driver s3c24xx_driver =
+{
 	.flags		= CPUFREQ_STICKY | CPUFREQ_NEED_INITIAL_FREQ_CHECK,
 	.target		= s3c_cpufreq_target,
 	.get		= cpufreq_generic_get,
@@ -436,13 +466,14 @@ static struct cpufreq_driver s3c24xx_driver = {
 
 int s3c_cpufreq_register(struct s3c_cpufreq_info *info)
 {
-	if (!info || !info->name) {
+	if (!info || !info->name)
+	{
 		pr_err("%s: failed to pass valid information\n", __func__);
 		return -EINVAL;
 	}
 
 	pr_info("S3C24XX CPU Frequency driver, %s cpu support\n",
-		info->name);
+			info->name);
 
 	/* check our driver info has valid data */
 
@@ -464,7 +495,8 @@ int __init s3c_cpufreq_setboard(struct s3c_cpufreq_board *board)
 {
 	struct s3c_cpufreq_board *ours;
 
-	if (!board) {
+	if (!board)
+	{
 		pr_info("%s: no board data\n", __func__);
 		return -EINVAL;
 	}
@@ -473,7 +505,9 @@ int __init s3c_cpufreq_setboard(struct s3c_cpufreq_board *board)
 	 * initdata. */
 
 	ours = kzalloc(sizeof(*ours), GFP_KERNEL);
-	if (ours == NULL) {
+
+	if (ours == NULL)
+	{
 		pr_err("%s: no memory\n", __func__);
 		return -ENOMEM;
 	}
@@ -488,7 +522,8 @@ static int __init s3c_cpufreq_auto_io(void)
 {
 	int ret;
 
-	if (!cpu_cur.info->get_iotiming) {
+	if (!cpu_cur.info->get_iotiming)
+	{
 		pr_err("%s: get_iotiming undefined\n", __func__);
 		return -ENOENT;
 	}
@@ -496,8 +531,11 @@ static int __init s3c_cpufreq_auto_io(void)
 	pr_info("%s: working out IO settings\n", __func__);
 
 	ret = (cpu_cur.info->get_iotiming)(&cpu_cur, &s3c24xx_iotiming);
+
 	if (ret)
+	{
 		pr_err("%s: failed to get timings\n", __func__);
+	}
 
 	return ret;
 }
@@ -516,7 +554,7 @@ static int __init s3c_cpufreq_auto_io(void)
  * used.
  */
 static void s3c_cpufreq_freq_min(struct s3c_freq *dst,
-				 struct s3c_freq *a, struct s3c_freq *b)
+								 struct s3c_freq *a, struct s3c_freq *b)
 {
 	dst->fclk = do_min(a->fclk, b->fclk);
 	dst->hclk = do_min(a->hclk, b->hclk);
@@ -540,7 +578,8 @@ static void s3c_cpufreq_update_loctkime(void)
 	u32 rate = (u32)clk_get_rate(_clk_xtal);
 	u32 val;
 
-	if (bits == 0) {
+	if (bits == 0)
+	{
 		WARN_ON(1);
 		return;
 	}
@@ -562,7 +601,9 @@ static int s3c_cpufreq_build_freq(void)
 	size++;
 
 	ftab = kzalloc(sizeof(*ftab) * size, GFP_KERNEL);
-	if (!ftab) {
+
+	if (!ftab)
+	{
 		pr_err("%s: no memory for tables\n", __func__);
 		return -ENOMEM;
 	}
@@ -579,45 +620,57 @@ static int __init s3c_cpufreq_initcall(void)
 {
 	int ret = 0;
 
-	if (cpu_cur.info && cpu_cur.board) {
+	if (cpu_cur.info && cpu_cur.board)
+	{
 		ret = s3c_cpufreq_initclks();
+
 		if (ret)
+		{
 			goto out;
+		}
 
 		/* get current settings */
 		s3c_cpufreq_getcur(&cpu_cur);
 		s3c_cpufreq_show("cur", &cpu_cur);
 
-		if (cpu_cur.board->auto_io) {
+		if (cpu_cur.board->auto_io)
+		{
 			ret = s3c_cpufreq_auto_io();
-			if (ret) {
+
+			if (ret)
+			{
 				pr_err("%s: failed to get io timing\n",
-				       __func__);
+					   __func__);
 				goto out;
 			}
 		}
 
-		if (cpu_cur.board->need_io && !cpu_cur.info->set_iotiming) {
+		if (cpu_cur.board->need_io && !cpu_cur.info->set_iotiming)
+		{
 			pr_err("%s: no IO support registered\n", __func__);
 			ret = -EINVAL;
 			goto out;
 		}
 
 		if (!cpu_cur.info->need_pll)
+		{
 			cpu_cur.lock_pll = 1;
+		}
 
 		s3c_cpufreq_update_loctkime();
 
 		s3c_cpufreq_freq_min(&cpu_cur.max, &cpu_cur.board->max,
-				     &cpu_cur.info->max);
+							 &cpu_cur.info->max);
 
 		if (cpu_cur.info->calc_freqtable)
+		{
 			s3c_cpufreq_build_freq();
+		}
 
 		ret = cpufreq_register_driver(&s3c24xx_driver);
 	}
 
- out:
+out:
 	return ret;
 }
 
@@ -631,7 +684,7 @@ late_initcall(s3c_cpufreq_initcall);
  * Register the given set of PLLs with the system.
  */
 int s3c_plltab_register(struct cpufreq_frequency_table *plls,
-			       unsigned int plls_no)
+						unsigned int plls_no)
 {
 	struct cpufreq_frequency_table *vals;
 	unsigned int size;
@@ -639,7 +692,9 @@ int s3c_plltab_register(struct cpufreq_frequency_table *plls,
 	size = sizeof(*vals) * (plls_no + 1);
 
 	vals = kzalloc(size, GFP_KERNEL);
-	if (vals) {
+
+	if (vals)
+	{
 		memcpy(vals, plls, size);
 		pll_reg = vals;
 
@@ -649,8 +704,11 @@ int s3c_plltab_register(struct cpufreq_frequency_table *plls,
 		vals->frequency = CPUFREQ_TABLE_END;
 
 		pr_info("%d PLL entries\n", plls_no);
-	} else
+	}
+	else
+	{
 		pr_err("no memory for PLL tables\n");
+	}
 
 	return vals ? 0 : -ENOMEM;
 }

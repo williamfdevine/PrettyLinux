@@ -44,14 +44,22 @@ static inline u32 ath_dynack_get_sifs(struct ath_hw *ah, int phy)
 {
 	u32 sifs = CCK_SIFS_TIME;
 
-	if (phy == WLAN_RC_PHY_OFDM) {
+	if (phy == WLAN_RC_PHY_OFDM)
+	{
 		if (IS_CHAN_QUARTER_RATE(ah->curchan))
+		{
 			sifs = OFDM_SIFS_TIME_QUARTER;
+		}
 		else if (IS_CHAN_HALF_RATE(ah->curchan))
+		{
 			sifs = OFDM_SIFS_TIME_HALF;
+		}
 		else
+		{
 			sifs = OFDM_SIFS_TIME;
+		}
 	}
+
 	return sifs;
 }
 
@@ -65,10 +73,13 @@ static inline bool ath_dynack_bssidmask(struct ath_hw *ah, const u8 *mac)
 	int i;
 	struct ath_common *common = ath9k_hw_common(ah);
 
-	for (i = 0; i < ETH_ALEN; i++) {
+	for (i = 0; i < ETH_ALEN; i++)
+	{
 		if ((common->macaddr[i] & common->bssidmask[i]) !=
-		    (mac[i] & common->bssidmask[i]))
+			(mac[i] & common->bssidmask[i]))
+		{
 			return false;
+		}
 	}
 
 	return true;
@@ -88,16 +99,20 @@ static void ath_dynack_compute_ackto(struct ath_hw *ah)
 	struct ath_common *common = ath9k_hw_common(ah);
 
 	list_for_each_entry(an, &da->nodes, list)
-		if (an->ackto > to)
-			to = an->ackto;
 
-	if (to && da->ackto != to) {
+	if (an->ackto > to)
+	{
+		to = an->ackto;
+	}
+
+	if (to && da->ackto != to)
+	{
 		u32 slottime;
 
 		slottime = (to - 3) / 2;
 		da->ackto = to;
 		ath_dbg(common, DYNACK, "ACK timeout %u slottime %u\n",
-			da->ackto, slottime);
+				da->ackto, slottime);
 		ath9k_hw_setslottime(ah, slottime);
 		ath9k_hw_set_ack_timeout(ah, da->ackto);
 		ath9k_hw_set_cts_timeout(ah, da->ackto);
@@ -122,38 +137,49 @@ static void ath_dynack_compute_to(struct ath_hw *ah)
 	rcu_read_lock();
 
 	while (da->st_rbf.h_rb != da->st_rbf.t_rb &&
-	       da->ack_rbf.h_rb != da->ack_rbf.t_rb) {
+		   da->ack_rbf.h_rb != da->ack_rbf.t_rb)
+	{
 		ack_ts = da->ack_rbf.tstamp[da->ack_rbf.h_rb];
 		st_ts = &da->st_rbf.ts[da->st_rbf.h_rb];
 		dst = da->st_rbf.addr[da->st_rbf.h_rb].h_dest;
 		src = da->st_rbf.addr[da->st_rbf.h_rb].h_src;
 
 		ath_dbg(ath9k_hw_common(ah), DYNACK,
-			"ack_ts %u st_ts %u st_dur %u [%u-%u]\n",
-			ack_ts, st_ts->tstamp, st_ts->dur,
-			da->ack_rbf.h_rb, da->st_rbf.h_rb);
+				"ack_ts %u st_ts %u st_dur %u [%u-%u]\n",
+				ack_ts, st_ts->tstamp, st_ts->dur,
+				da->ack_rbf.h_rb, da->st_rbf.h_rb);
 
-		if (ack_ts > st_ts->tstamp + st_ts->dur) {
+		if (ack_ts > st_ts->tstamp + st_ts->dur)
+		{
 			ackto = ack_ts - st_ts->tstamp - st_ts->dur;
 
-			if (ackto < MAX_DELAY) {
+			if (ackto < MAX_DELAY)
+			{
 				sta = ieee80211_find_sta_by_ifaddr(ah->hw, dst,
-								   src);
-				if (sta) {
+												   src);
+
+				if (sta)
+				{
 					an = (struct ath_node *)sta->drv_priv;
 					an->ackto = ath_dynack_ewma(an->ackto,
-								    ackto);
+												ackto);
 					ath_dbg(ath9k_hw_common(ah), DYNACK,
-						"%pM to %u\n", dst, an->ackto);
-					if (time_is_before_jiffies(da->lto)) {
+							"%pM to %u\n", dst, an->ackto);
+
+					if (time_is_before_jiffies(da->lto))
+					{
 						ath_dynack_compute_ackto(ah);
 						da->lto = jiffies + COMPUTE_TO;
 					}
 				}
+
 				INCR(da->ack_rbf.h_rb, ATH_DYN_BUF);
 			}
+
 			INCR(da->st_rbf.h_rb, ATH_DYN_BUF);
-		} else {
+		}
+		else
+		{
 			INCR(da->ack_rbf.h_rb, ATH_DYN_BUF);
 		}
 	}
@@ -169,7 +195,7 @@ static void ath_dynack_compute_to(struct ath_hw *ah)
  *
  */
 void ath_dynack_sample_tx_ts(struct ath_hw *ah, struct sk_buff *skb,
-			     struct ath_tx_status *ts)
+							 struct ath_tx_status *ts)
 {
 	u8 ridx;
 	struct ieee80211_hdr *hdr;
@@ -178,16 +204,20 @@ void ath_dynack_sample_tx_ts(struct ath_hw *ah, struct sk_buff *skb,
 	struct ieee80211_tx_info *info = IEEE80211_SKB_CB(skb);
 
 	if ((info->flags & IEEE80211_TX_CTL_NO_ACK) || !da->enabled)
+	{
 		return;
+	}
 
 	spin_lock_bh(&da->qlock);
 
 	hdr = (struct ieee80211_hdr *)skb->data;
 
 	/* late ACK */
-	if (ts->ts_status & ATH9K_TXERR_XRETRY) {
+	if (ts->ts_status & ATH9K_TXERR_XRETRY)
+	{
 		if (ieee80211_is_assoc_req(hdr->frame_control) ||
-		    ieee80211_is_assoc_resp(hdr->frame_control)) {
+			ieee80211_is_assoc_resp(hdr->frame_control))
+		{
 			ath_dbg(common, DYNACK, "late ack\n");
 			ath9k_hw_setslottime(ah, (LATEACK_TO - 3) / 2);
 			ath9k_hw_set_ack_timeout(ah, LATEACK_TO);
@@ -206,30 +236,39 @@ void ath_dynack_sample_tx_ts(struct ath_hw *ah, struct sk_buff *skb,
 	ether_addr_copy(da->st_rbf.addr[da->st_rbf.t_rb].h_dest, hdr->addr1);
 	ether_addr_copy(da->st_rbf.addr[da->st_rbf.t_rb].h_src, hdr->addr2);
 
-	if (!(info->status.rates[ridx].flags & IEEE80211_TX_RC_MCS)) {
+	if (!(info->status.rates[ridx].flags & IEEE80211_TX_RC_MCS))
+	{
 		u32 phy, sifs;
 		const struct ieee80211_rate *rate;
 		struct ieee80211_tx_rate *rates = info->status.rates;
 
 		rate = &common->sbands[info->band].bitrates[rates[ridx].idx];
+
 		if (info->band == NL80211_BAND_2GHZ &&
-		    !(rate->flags & IEEE80211_RATE_ERP_G))
+			!(rate->flags & IEEE80211_RATE_ERP_G))
+		{
 			phy = WLAN_RC_PHY_CCK;
+		}
 		else
+		{
 			phy = WLAN_RC_PHY_OFDM;
+		}
 
 		sifs = ath_dynack_get_sifs(ah, phy);
 		da->st_rbf.ts[da->st_rbf.t_rb].dur -= sifs;
 	}
 
 	ath_dbg(common, DYNACK, "{%pM} tx sample %u [dur %u][h %u-t %u]\n",
-		hdr->addr1, da->st_rbf.ts[da->st_rbf.t_rb].tstamp,
-		da->st_rbf.ts[da->st_rbf.t_rb].dur, da->st_rbf.h_rb,
-		(da->st_rbf.t_rb + 1) % ATH_DYN_BUF);
+			hdr->addr1, da->st_rbf.ts[da->st_rbf.t_rb].tstamp,
+			da->st_rbf.ts[da->st_rbf.t_rb].dur, da->st_rbf.h_rb,
+			(da->st_rbf.t_rb + 1) % ATH_DYN_BUF);
 
 	INCR(da->st_rbf.t_rb, ATH_DYN_BUF);
+
 	if (da->st_rbf.t_rb == da->st_rbf.h_rb)
+	{
 		INCR(da->st_rbf.h_rb, ATH_DYN_BUF);
+	}
 
 	ath_dynack_compute_to(ah);
 
@@ -245,25 +284,30 @@ EXPORT_SYMBOL(ath_dynack_sample_tx_ts);
  *
  */
 void ath_dynack_sample_ack_ts(struct ath_hw *ah, struct sk_buff *skb,
-			      u32 ts)
+							  u32 ts)
 {
 	struct ath_dynack *da = &ah->dynack;
 	struct ath_common *common = ath9k_hw_common(ah);
 	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)skb->data;
 
 	if (!ath_dynack_bssidmask(ah, hdr->addr1) || !da->enabled)
+	{
 		return;
+	}
 
 	spin_lock_bh(&da->qlock);
 	da->ack_rbf.tstamp[da->ack_rbf.t_rb] = ts;
 
 	ath_dbg(common, DYNACK, "rx sample %u [h %u-t %u]\n",
-		da->ack_rbf.tstamp[da->ack_rbf.t_rb],
-		da->ack_rbf.h_rb, (da->ack_rbf.t_rb + 1) % ATH_DYN_BUF);
+			da->ack_rbf.tstamp[da->ack_rbf.t_rb],
+			da->ack_rbf.h_rb, (da->ack_rbf.t_rb + 1) % ATH_DYN_BUF);
 
 	INCR(da->ack_rbf.t_rb, ATH_DYN_BUF);
+
 	if (da->ack_rbf.t_rb == da->ack_rbf.h_rb)
+	{
 		INCR(da->ack_rbf.h_rb, ATH_DYN_BUF);
+	}
 
 	ath_dynack_compute_to(ah);
 

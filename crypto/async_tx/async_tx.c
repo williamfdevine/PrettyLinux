@@ -54,14 +54,17 @@ module_exit(async_tx_exit);
  */
 struct dma_chan *
 __async_tx_find_channel(struct async_submit_ctl *submit,
-			enum dma_transaction_type tx_type)
+						enum dma_transaction_type tx_type)
 {
 	struct dma_async_tx_descriptor *depend_tx = submit->depend_tx;
 
 	/* see if we can keep the chain on one channel */
 	if (depend_tx &&
-	    dma_has_cap(tx_type, depend_tx->chan->device->cap_mask))
+		dma_has_cap(tx_type, depend_tx->chan->device->cap_mask))
+	{
 		return depend_tx->chan;
+	}
+
 	return async_dma_find_channel(tx_type);
 }
 EXPORT_SYMBOL_GPL(__async_tx_find_channel);
@@ -76,7 +79,7 @@ EXPORT_SYMBOL_GPL(__async_tx_find_channel);
  */
 static void
 async_tx_channel_switch(struct dma_async_tx_descriptor *depend_tx,
-			struct dma_async_tx_descriptor *tx)
+						struct dma_async_tx_descriptor *tx)
 {
 	struct dma_chan *chan = depend_tx->chan;
 	struct dma_device *device = chan->device;
@@ -84,14 +87,18 @@ async_tx_channel_switch(struct dma_async_tx_descriptor *depend_tx,
 
 	/* first check to see if we can still append to depend_tx */
 	txd_lock(depend_tx);
-	if (txd_parent(depend_tx) && depend_tx->chan == tx->chan) {
+
+	if (txd_parent(depend_tx) && depend_tx->chan == tx->chan)
+	{
 		txd_chain(depend_tx, tx);
 		intr_tx = NULL;
 	}
+
 	txd_unlock(depend_tx);
 
 	/* attached dependency, flush the parent channel */
-	if (!intr_tx) {
+	if (!intr_tx)
+	{
 		device->device_issue_pending(chan);
 		return;
 	}
@@ -100,11 +107,16 @@ async_tx_channel_switch(struct dma_async_tx_descriptor *depend_tx,
 	 * otherwise poll for completion
 	 */
 	if (dma_has_cap(DMA_INTERRUPT, device->cap_mask))
+	{
 		intr_tx = device->device_prep_dma_interrupt(chan, 0);
+	}
 	else
+	{
 		intr_tx = NULL;
+	}
 
-	if (intr_tx) {
+	if (intr_tx)
+	{
 		intr_tx->callback = NULL;
 		intr_tx->callback_param = NULL;
 		/* safe to chain outside the lock since we know we are
@@ -114,23 +126,31 @@ async_tx_channel_switch(struct dma_async_tx_descriptor *depend_tx,
 
 		/* check if we need to append */
 		txd_lock(depend_tx);
-		if (txd_parent(depend_tx)) {
+
+		if (txd_parent(depend_tx))
+		{
 			txd_chain(depend_tx, intr_tx);
 			async_tx_ack(intr_tx);
 			intr_tx = NULL;
 		}
+
 		txd_unlock(depend_tx);
 
-		if (intr_tx) {
+		if (intr_tx)
+		{
 			txd_clear_parent(intr_tx);
 			intr_tx->tx_submit(intr_tx);
 			async_tx_ack(intr_tx);
 		}
+
 		device->device_issue_pending(chan);
-	} else {
+	}
+	else
+	{
 		if (dma_wait_for_async_tx(depend_tx) != DMA_COMPLETE)
 			panic("%s: DMA error waiting for depend_tx\n",
-			      __func__);
+				  __func__);
+
 		tx->tx_submit(tx);
 	}
 }
@@ -146,7 +166,8 @@ async_tx_channel_switch(struct dma_async_tx_descriptor *depend_tx,
  * to prevent a circular locking dependency with drivers that already
  * hold a channel lock when calling async_tx_run_dependencies.
  */
-enum submit_disposition {
+enum submit_disposition
+{
 	ASYNC_TX_SUBMITTED,
 	ASYNC_TX_CHANNEL_SWITCH,
 	ASYNC_TX_DIRECT_SUBMIT,
@@ -154,14 +175,15 @@ enum submit_disposition {
 
 void
 async_tx_submit(struct dma_chan *chan, struct dma_async_tx_descriptor *tx,
-		struct async_submit_ctl *submit)
+				struct async_submit_ctl *submit)
 {
 	struct dma_async_tx_descriptor *depend_tx = submit->depend_tx;
 
 	tx->callback = submit->cb_fn;
 	tx->callback_param = submit->cb_param;
 
-	if (depend_tx) {
+	if (depend_tx)
+	{
 		enum submit_disposition s;
 
 		/* sanity check the dependency chain:
@@ -171,54 +193,76 @@ async_tx_submit(struct dma_chan *chan, struct dma_async_tx_descriptor *tx,
 		 * not depend on the same parent
 		 */
 		BUG_ON(async_tx_test_ack(depend_tx) || txd_next(depend_tx) ||
-		       txd_parent(tx));
+			   txd_parent(tx));
 
 		/* the lock prevents async_tx_run_dependencies from missing
 		 * the setting of ->next when ->parent != NULL
 		 */
 		txd_lock(depend_tx);
-		if (txd_parent(depend_tx)) {
+
+		if (txd_parent(depend_tx))
+		{
 			/* we have a parent so we can not submit directly
 			 * if we are staying on the same channel: append
 			 * else: channel switch
 			 */
-			if (depend_tx->chan == chan) {
+			if (depend_tx->chan == chan)
+			{
 				txd_chain(depend_tx, tx);
 				s = ASYNC_TX_SUBMITTED;
-			} else
+			}
+			else
+			{
 				s = ASYNC_TX_CHANNEL_SWITCH;
-		} else {
+			}
+		}
+		else
+		{
 			/* we do not have a parent so we may be able to submit
 			 * directly if we are staying on the same channel
 			 */
 			if (depend_tx->chan == chan)
+			{
 				s = ASYNC_TX_DIRECT_SUBMIT;
+			}
 			else
+			{
 				s = ASYNC_TX_CHANNEL_SWITCH;
+			}
 		}
+
 		txd_unlock(depend_tx);
 
-		switch (s) {
-		case ASYNC_TX_SUBMITTED:
-			break;
-		case ASYNC_TX_CHANNEL_SWITCH:
-			async_tx_channel_switch(depend_tx, tx);
-			break;
-		case ASYNC_TX_DIRECT_SUBMIT:
-			txd_clear_parent(tx);
-			tx->tx_submit(tx);
-			break;
+		switch (s)
+		{
+			case ASYNC_TX_SUBMITTED:
+				break;
+
+			case ASYNC_TX_CHANNEL_SWITCH:
+				async_tx_channel_switch(depend_tx, tx);
+				break;
+
+			case ASYNC_TX_DIRECT_SUBMIT:
+				txd_clear_parent(tx);
+				tx->tx_submit(tx);
+				break;
 		}
-	} else {
+	}
+	else
+	{
 		txd_clear_parent(tx);
 		tx->tx_submit(tx);
 	}
 
 	if (submit->flags & ASYNC_TX_ACK)
+	{
 		async_tx_ack(tx);
+	}
 
 	if (depend_tx)
+	{
 		async_tx_ack(depend_tx);
+	}
 }
 EXPORT_SYMBOL_GPL(async_tx_submit);
 
@@ -238,7 +282,8 @@ async_trigger_callback(struct async_submit_ctl *submit)
 	struct dma_async_tx_descriptor *tx;
 	struct dma_async_tx_descriptor *depend_tx = submit->depend_tx;
 
-	if (depend_tx) {
+	if (depend_tx)
+	{
 		chan = depend_tx->chan;
 		device = chan->device;
 
@@ -246,17 +291,25 @@ async_trigger_callback(struct async_submit_ctl *submit)
 		 * otherwise poll for completion
 		 */
 		if (device && !dma_has_cap(DMA_INTERRUPT, device->cap_mask))
+		{
 			device = NULL;
+		}
 
 		tx = device ? device->device_prep_dma_interrupt(chan, 0) : NULL;
-	} else
+	}
+	else
+	{
 		tx = NULL;
+	}
 
-	if (tx) {
+	if (tx)
+	{
 		pr_debug("%s: (async)\n", __func__);
 
 		async_tx_submit(chan, tx, submit);
-	} else {
+	}
+	else
+	{
 		pr_debug("%s: (sync)\n", __func__);
 
 		/* wait for any prerequisite operations */
@@ -275,14 +328,17 @@ EXPORT_SYMBOL_GPL(async_trigger_callback);
  */
 void async_tx_quiesce(struct dma_async_tx_descriptor **tx)
 {
-	if (*tx) {
+	if (*tx)
+	{
 		/* if ack is already set then we cannot be sure
 		 * we are referring to the correct operation
 		 */
 		BUG_ON(async_tx_test_ack(*tx));
+
 		if (dma_wait_for_async_tx(*tx) != DMA_COMPLETE)
 			panic("%s: DMA error waiting for transaction\n",
-			      __func__);
+				  __func__);
+
 		async_tx_ack(*tx);
 		*tx = NULL;
 	}

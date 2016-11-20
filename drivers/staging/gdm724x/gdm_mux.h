@@ -34,7 +34,8 @@
 
 #define RETRY_TIMER 30 /* msec */
 
-struct mux_pkt_header {
+struct mux_pkt_header
+{
 	__le32 start_flag;
 	__le32 seq_num;
 	__le32 payload_size;
@@ -42,7 +43,8 @@ struct mux_pkt_header {
 	unsigned char data[0];
 };
 
-struct mux_tx {
+struct mux_tx
+{
 	struct urb *urb;
 	u8 *buf;
 	int  len;
@@ -50,7 +52,8 @@ struct mux_tx {
 	void *cb_data;
 };
 
-struct mux_rx {
+struct mux_rx
+{
 	struct list_head free_list;
 	struct list_head rx_submit_list;
 	struct list_head to_host_list;
@@ -60,13 +63,14 @@ struct mux_rx {
 	u32 offset;
 	u32 len;
 	int (*callback)(void *data,
-			int len,
-			int tty_index,
-			struct tty_dev *tty_dev,
-			int complete);
+					int len,
+					int tty_index,
+					struct tty_dev *tty_dev,
+					int complete);
 };
 
-struct rx_cxt {
+struct rx_cxt
+{
 	struct list_head to_host_list;
 	struct list_head rx_submit_list;
 	struct list_head rx_free_list;
@@ -75,7 +79,8 @@ struct rx_cxt {
 	spinlock_t free_list_lock;
 };
 
-struct mux_dev {
+struct mux_dev
+{
 	struct usb_device *usbdev;
 	struct usb_interface *control_intf;
 	struct usb_interface *data_intf;
@@ -84,10 +89,10 @@ struct mux_dev {
 	struct usb_interface *intf;
 	int usb_state;
 	int (*rx_cb)(void *data,
-		     int len,
-		     int tty_index,
-		     struct tty_dev *tty_dev,
-		     int complete);
+				 int len,
+				 int tty_index,
+				 struct tty_dev *tty_dev,
+				 int complete);
 	spinlock_t write_lock;
 	struct tty_dev *tty_dev;
 };

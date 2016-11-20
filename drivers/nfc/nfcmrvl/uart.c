@@ -43,7 +43,7 @@ static int nfcmrvl_uart_nci_close(struct nfcmrvl_private *priv)
 }
 
 static int nfcmrvl_uart_nci_send(struct nfcmrvl_private *priv,
-				 struct sk_buff *skb)
+								 struct sk_buff *skb)
 {
 	struct nci_uart *nu = priv->drv_data;
 
@@ -51,16 +51,17 @@ static int nfcmrvl_uart_nci_send(struct nfcmrvl_private *priv,
 }
 
 static void nfcmrvl_uart_nci_update_config(struct nfcmrvl_private *priv,
-					   const void *param)
+		const void *param)
 {
 	struct nci_uart *nu = priv->drv_data;
 	const struct nfcmrvl_fw_uart_config *config = param;
 
 	nci_uart_set_config(nu, le32_to_cpu(config->baudrate),
-			    config->flow_control);
+						config->flow_control);
 }
 
-static struct nfcmrvl_if_ops uart_ops = {
+static struct nfcmrvl_if_ops uart_ops =
+{
 	.nci_open = nfcmrvl_uart_nci_open,
 	.nci_close = nfcmrvl_uart_nci_close,
 	.nci_send = nfcmrvl_uart_nci_send,
@@ -68,34 +69,49 @@ static struct nfcmrvl_if_ops uart_ops = {
 };
 
 static int nfcmrvl_uart_parse_dt(struct device_node *node,
-				 struct nfcmrvl_platform_data *pdata)
+								 struct nfcmrvl_platform_data *pdata)
 {
 	struct device_node *matched_node;
 	int ret;
 
 	matched_node = of_find_compatible_node(node, NULL, "marvell,nfc-uart");
-	if (!matched_node) {
+
+	if (!matched_node)
+	{
 		matched_node = of_find_compatible_node(node, NULL,
-						       "mrvl,nfc-uart");
+											   "mrvl,nfc-uart");
+
 		if (!matched_node)
+		{
 			return -ENODEV;
+		}
 	}
 
 	ret = nfcmrvl_parse_dt(matched_node, pdata);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("Failed to get generic entries\n");
 		return ret;
 	}
 
 	if (of_find_property(matched_node, "flow-control", NULL))
+	{
 		pdata->flow_control = 1;
+	}
 	else
+	{
 		pdata->flow_control = 0;
+	}
 
 	if (of_find_property(matched_node, "break-control", NULL))
+	{
 		pdata->break_control = 1;
+	}
 	else
+	{
 		pdata->break_control = 0;
+	}
 
 	return 0;
 }
@@ -118,10 +134,13 @@ static int nfcmrvl_nci_uart_open(struct nci_uart *nu)
 
 	if (nu->tty->dev->parent && nu->tty->dev->parent->of_node)
 		if (nfcmrvl_uart_parse_dt(nu->tty->dev->parent->of_node,
-					  &config) == 0)
+								  &config) == 0)
+		{
 			pdata = &config;
+		}
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		pr_info("No platform data / DT -> fallback to module params\n");
 		config.hci_muxed = hci_muxed;
 		config.reset_n_io = reset_n_io;
@@ -131,9 +150,12 @@ static int nfcmrvl_nci_uart_open(struct nci_uart *nu)
 	}
 
 	priv = nfcmrvl_nci_register_dev(NFCMRVL_PHY_UART, nu, &uart_ops,
-					nu->tty->dev, pdata);
+									nu->tty->dev, pdata);
+
 	if (IS_ERR(priv))
+	{
 		return PTR_ERR(priv);
+	}
 
 	priv->support_fw_dnld = true;
 
@@ -151,7 +173,7 @@ static void nfcmrvl_nci_uart_close(struct nci_uart *nu)
 static int nfcmrvl_nci_uart_recv(struct nci_uart *nu, struct sk_buff *skb)
 {
 	return nfcmrvl_nci_recv_frame((struct nfcmrvl_private *)nu->drv_data,
-				      skb);
+								  skb);
 }
 
 static void nfcmrvl_nci_uart_tx_start(struct nci_uart *nu)
@@ -159,10 +181,13 @@ static void nfcmrvl_nci_uart_tx_start(struct nci_uart *nu)
 	struct nfcmrvl_private *priv = (struct nfcmrvl_private *)nu->drv_data;
 
 	if (priv->ndev->nfc_dev->fw_download_in_progress)
+	{
 		return;
+	}
 
 	/* Remove BREAK to wake up the NFCC */
-	if (priv->config.break_control && nu->tty->ops->break_ctl) {
+	if (priv->config.break_control && nu->tty->ops->break_ctl)
+	{
 		nu->tty->ops->break_ctl(nu->tty, 0);
 		usleep_range(3000, 5000);
 	}
@@ -173,20 +198,24 @@ static void nfcmrvl_nci_uart_tx_done(struct nci_uart *nu)
 	struct nfcmrvl_private *priv = (struct nfcmrvl_private *)nu->drv_data;
 
 	if (priv->ndev->nfc_dev->fw_download_in_progress)
+	{
 		return;
+	}
 
 	/*
 	** To ensure that if the NFCC goes in DEEP SLEEP sate we can wake him
 	** up. we set BREAK. Once we will be ready to send again we will remove
 	** it.
 	*/
-	if (priv->config.break_control && nu->tty->ops->break_ctl) {
+	if (priv->config.break_control && nu->tty->ops->break_ctl)
+	{
 		nu->tty->ops->break_ctl(nu->tty, -1);
 		usleep_range(1000, 3000);
 	}
 }
 
-static struct nci_uart nfcmrvl_nci_uart = {
+static struct nci_uart nfcmrvl_nci_uart =
+{
 	.owner  = THIS_MODULE,
 	.name   = "nfcmrvl_uart",
 	.driver = NCI_UART_DRIVER_MARVELL,

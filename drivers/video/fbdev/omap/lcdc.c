@@ -43,13 +43,15 @@
 
 #define MAX_PALETTE_SIZE		PAGE_SIZE
 
-enum lcdc_load_mode {
+enum lcdc_load_mode
+{
 	OMAP_LCDC_LOAD_PALETTE,
 	OMAP_LCDC_LOAD_FRAME,
 	OMAP_LCDC_LOAD_PALETTE_AND_FRAME
 };
 
-static struct omap_lcd_controller {
+static struct omap_lcd_controller
+{
 	enum omapfb_update_mode	update_mode;
 	int			ext_mode;
 
@@ -95,18 +97,24 @@ static void set_load_mode(enum lcdc_load_mode mode)
 
 	l = omap_readl(OMAP_LCDC_CONTROL);
 	l &= ~(3 << 20);
-	switch (mode) {
-	case OMAP_LCDC_LOAD_PALETTE:
-		l |= 1 << 20;
-		break;
-	case OMAP_LCDC_LOAD_FRAME:
-		l |= 2 << 20;
-		break;
-	case OMAP_LCDC_LOAD_PALETTE_AND_FRAME:
-		break;
-	default:
-		BUG();
+
+	switch (mode)
+	{
+		case OMAP_LCDC_LOAD_PALETTE:
+			l |= 1 << 20;
+			break;
+
+		case OMAP_LCDC_LOAD_FRAME:
+			l |= 2 << 20;
+			break;
+
+		case OMAP_LCDC_LOAD_PALETTE_AND_FRAME:
+			break;
+
+		default:
+			BUG();
 	}
+
 	omap_writel(l, OMAP_LCDC_CONTROL);
 }
 
@@ -141,9 +149,12 @@ static void disable_controller(void)
 {
 	init_completion(&lcdc.last_frame_complete);
 	disable_controller_async();
+
 	if (!wait_for_completion_timeout(&lcdc.last_frame_complete,
-				msecs_to_jiffies(500)))
+									 msecs_to_jiffies(500)))
+	{
 		dev_err(lcdc.fbdev->dev, "timeout waiting for FRAME DONE\n");
+	}
 }
 
 static void reset_controller(u32 status)
@@ -153,18 +164,24 @@ static void reset_controller(u32 status)
 
 	disable_controller_async();
 	reset_count++;
-	if (reset_count == 1 || time_after(jiffies, last_jiffies + HZ)) {
+
+	if (reset_count == 1 || time_after(jiffies, last_jiffies + HZ))
+	{
 		dev_err(lcdc.fbdev->dev,
-			  "resetting (status %#010x,reset count %lu)\n",
-			  status, reset_count);
+				"resetting (status %#010x,reset count %lu)\n",
+				status, reset_count);
 		last_jiffies = jiffies;
 	}
-	if (reset_count < 100) {
+
+	if (reset_count < 100)
+	{
 		enable_controller();
-	} else {
+	}
+	else
+	{
 		reset_count = 0;
 		dev_err(lcdc.fbdev->dev,
-			"too many reset attempts, giving up.\n");
+				"too many reset attempts, giving up.\n");
 	}
 }
 
@@ -174,7 +191,8 @@ static void reset_controller(u32 status)
  */
 static void setup_lcd_dma(void)
 {
-	static const int dma_elem_type[] = {
+	static const int dma_elem_type[] =
+	{
 		0,
 		OMAP_DMA_DATA_TYPE_S8,
 		OMAP_DMA_DATA_TYPE_S16,
@@ -188,38 +206,51 @@ static void setup_lcd_dma(void)
 
 	src = lcdc.vram_phys + lcdc.frame_offset;
 
-	switch (var->rotate) {
-	case 0:
-		if (plane->info.mirror || (src & 3) ||
-		    lcdc.color_mode == OMAPFB_COLOR_YUV420 ||
-		    (lcdc.xres & 1))
+	switch (var->rotate)
+	{
+		case 0:
+			if (plane->info.mirror || (src & 3) ||
+				lcdc.color_mode == OMAPFB_COLOR_YUV420 ||
+				(lcdc.xres & 1))
+			{
+				esize = 2;
+			}
+			else
+			{
+				esize = 4;
+			}
+
+			xelem = lcdc.xres * lcdc.bpp / 8 / esize;
+			yelem = lcdc.yres;
+			break;
+
+		case 90:
+		case 180:
+		case 270:
+			if (cpu_is_omap15xx())
+			{
+				BUG();
+			}
+
 			esize = 2;
-		else
-			esize = 4;
-		xelem = lcdc.xres * lcdc.bpp / 8 / esize;
-		yelem = lcdc.yres;
-		break;
-	case 90:
-	case 180:
-	case 270:
-		if (cpu_is_omap15xx()) {
+			xelem = lcdc.yres * lcdc.bpp / 16;
+			yelem = lcdc.xres;
+			break;
+
+		default:
 			BUG();
-		}
-		esize = 2;
-		xelem = lcdc.yres * lcdc.bpp / 16;
-		yelem = lcdc.xres;
-		break;
-	default:
-		BUG();
-		return;
+			return;
 	}
+
 #ifdef VERBOSE
 	dev_dbg(lcdc.fbdev->dev,
-		 "setup_dma: src %#010lx esize %d xelem %d yelem %d\n",
-		 src, esize, xelem, yelem);
+			"setup_dma: src %#010lx esize %d xelem %d yelem %d\n",
+			src, esize, xelem, yelem);
 #endif
 	omap_set_lcd_dma_b1(src, xelem, yelem, dma_elem_type[esize]);
-	if (!cpu_is_omap15xx()) {
+
+	if (!cpu_is_omap15xx())
+	{
 		int bpp = lcdc.bpp;
 
 		/*
@@ -227,7 +258,10 @@ static void setup_lcd_dma(void)
 		 * YUV window embedded in a 16bpp frame buffer.
 		 */
 		if (lcdc.color_mode == OMAPFB_COLOR_YUV420)
+		{
 			bpp = 16;
+		}
+
 		/* Set virtual xres elem size */
 		omap_set_lcd_dma_b1_vxres(
 			lcdc.screen_width * bpp / 8 / esize);
@@ -235,6 +269,7 @@ static void setup_lcd_dma(void)
 		omap_set_lcd_dma_b1_rotation(var->rotate);
 		omap_set_lcd_dma_b1_mirror(plane->info.mirror);
 	}
+
 	omap_setup_lcd_dma();
 }
 
@@ -245,9 +280,13 @@ static irqreturn_t lcdc_irq_handler(int irq, void *dev_id)
 	status = omap_readl(OMAP_LCDC_STATUS);
 
 	if (status & (OMAP_LCDC_STAT_FUF | OMAP_LCDC_STAT_SYNC_LOST))
+	{
 		reset_controller(status);
-	else {
-		if (status & OMAP_LCDC_STAT_DONE) {
+	}
+	else
+	{
+		if (status & OMAP_LCDC_STAT_DONE)
+		{
 			u32 l;
 
 			/*
@@ -260,7 +299,9 @@ static irqreturn_t lcdc_irq_handler(int irq, void *dev_id)
 			omap_writel(l, OMAP_LCDC_CONTROL);
 			complete(&lcdc.last_frame_complete);
 		}
-		if (status & OMAP_LCDC_STAT_LOADED_PALETTE) {
+
+		if (status & OMAP_LCDC_STAT_LOADED_PALETTE)
+		{
 			disable_controller_async();
 			complete(&lcdc.palette_load_complete);
 		}
@@ -274,9 +315,9 @@ static irqreturn_t lcdc_irq_handler(int irq, void *dev_id)
 	 * controller.
 	 */
 	status &= ~(OMAP_LCDC_STAT_VSYNC |
-		    OMAP_LCDC_STAT_LOADED_PALETTE |
-		    OMAP_LCDC_STAT_ABC |
-		    OMAP_LCDC_STAT_LINE_INT);
+				OMAP_LCDC_STAT_LOADED_PALETTE |
+				OMAP_LCDC_STAT_ABC |
+				OMAP_LCDC_STAT_LINE_INT);
 	omap_writel(status, OMAP_LCDC_STATUS);
 	return IRQ_HANDLED;
 }
@@ -289,27 +330,32 @@ static irqreturn_t lcdc_irq_handler(int irq, void *dev_id)
  * as well as the LCD DMA.
  */
 static int omap_lcdc_setup_plane(int plane, int channel_out,
-				 unsigned long offset, int screen_width,
-				 int pos_x, int pos_y, int width, int height,
-				 int color_mode)
+								 unsigned long offset, int screen_width,
+								 int pos_x, int pos_y, int width, int height,
+								 int color_mode)
 {
 	struct fb_var_screeninfo *var = &lcdc.fbdev->fb_info[0]->var;
 	struct lcd_panel *panel = lcdc.fbdev->panel;
 	int rot_x, rot_y;
 
-	if (var->rotate == 0) {
+	if (var->rotate == 0)
+	{
 		rot_x = panel->x_res;
 		rot_y = panel->y_res;
-	} else {
+	}
+	else
+	{
 		rot_x = panel->y_res;
 		rot_y = panel->x_res;
 	}
+
 	if (plane != 0 || channel_out != 0 || pos_x != 0 || pos_y != 0 ||
-	    width > rot_x || height > rot_y) {
+		width > rot_x || height > rot_y)
+	{
 #ifdef VERBOSE
 		dev_dbg(lcdc.fbdev->dev,
-			"invalid plane params plane %d pos_x %d pos_y %d "
-			"w %d h %d\n", plane, pos_x, pos_y, width, height);
+				"invalid plane params plane %d pos_x %d pos_y %d "
+				"w %d h %d\n", plane, pos_x, pos_y, width, height);
 #endif
 		return -EINVAL;
 	}
@@ -320,52 +366,62 @@ static int omap_lcdc_setup_plane(int plane, int channel_out,
 	lcdc.screen_width = screen_width;
 	lcdc.color_mode = color_mode;
 
-	switch (color_mode) {
-	case OMAPFB_COLOR_CLUT_8BPP:
-		lcdc.bpp = 8;
-		lcdc.palette_code = 0x3000;
-		lcdc.palette_size = 512;
-		break;
-	case OMAPFB_COLOR_RGB565:
-		lcdc.bpp = 16;
-		lcdc.palette_code = 0x4000;
-		lcdc.palette_size = 32;
-		break;
-	case OMAPFB_COLOR_RGB444:
-		lcdc.bpp = 16;
-		lcdc.palette_code = 0x4000;
-		lcdc.palette_size = 32;
-		break;
-	case OMAPFB_COLOR_YUV420:
-		if (lcdc.ext_mode) {
-			lcdc.bpp = 12;
+	switch (color_mode)
+	{
+		case OMAPFB_COLOR_CLUT_8BPP:
+			lcdc.bpp = 8;
+			lcdc.palette_code = 0x3000;
+			lcdc.palette_size = 512;
 			break;
-		}
-		/* fallthrough */
-	case OMAPFB_COLOR_YUV422:
-		if (lcdc.ext_mode) {
+
+		case OMAPFB_COLOR_RGB565:
 			lcdc.bpp = 16;
+			lcdc.palette_code = 0x4000;
+			lcdc.palette_size = 32;
 			break;
-		}
+
+		case OMAPFB_COLOR_RGB444:
+			lcdc.bpp = 16;
+			lcdc.palette_code = 0x4000;
+			lcdc.palette_size = 32;
+			break;
+
+		case OMAPFB_COLOR_YUV420:
+			if (lcdc.ext_mode)
+			{
+				lcdc.bpp = 12;
+				break;
+			}
+
 		/* fallthrough */
-	default:
-		/* FIXME: other BPPs.
-		 * bpp1: code  0,     size 256
-		 * bpp2: code  0x1000 size 256
-		 * bpp4: code  0x2000 size 256
-		 * bpp12: code 0x4000 size 32
-		 */
-		dev_dbg(lcdc.fbdev->dev, "invalid color mode %d\n", color_mode);
-		BUG();
-		return -1;
+		case OMAPFB_COLOR_YUV422:
+			if (lcdc.ext_mode)
+			{
+				lcdc.bpp = 16;
+				break;
+			}
+
+		/* fallthrough */
+		default:
+			/* FIXME: other BPPs.
+			 * bpp1: code  0,     size 256
+			 * bpp2: code  0x1000 size 256
+			 * bpp4: code  0x2000 size 256
+			 * bpp12: code 0x4000 size 32
+			 */
+			dev_dbg(lcdc.fbdev->dev, "invalid color mode %d\n", color_mode);
+			BUG();
+			return -1;
 	}
 
-	if (lcdc.ext_mode) {
+	if (lcdc.ext_mode)
+	{
 		setup_lcd_dma();
 		return 0;
 	}
 
-	if (lcdc.update_mode == OMAPFB_AUTO_UPDATE) {
+	if (lcdc.update_mode == OMAPFB_AUTO_UPDATE)
+	{
 		disable_controller();
 		omap_stop_lcd_dma();
 		setup_lcd_dma();
@@ -378,10 +434,13 @@ static int omap_lcdc_setup_plane(int plane, int channel_out,
 static int omap_lcdc_enable_plane(int plane, int enable)
 {
 	dev_dbg(lcdc.fbdev->dev,
-		"plane %d enable %d update_mode %d ext_mode %d\n",
-		plane, enable, lcdc.update_mode, lcdc.ext_mode);
+			"plane %d enable %d update_mode %d ext_mode %d\n",
+			plane, enable, lcdc.update_mode, lcdc.ext_mode);
+
 	if (plane != OMAPFB_PLANE_GFX)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -401,7 +460,7 @@ static void load_palette(void)
 	*(u16 *)palette |= lcdc.palette_code;
 
 	omap_set_lcd_dma_b1(lcdc.palette_phys,
-		lcdc.palette_size / 4 + 1, 1, OMAP_DMA_DATA_TYPE_S32);
+						lcdc.palette_size / 4 + 1, 1, OMAP_DMA_DATA_TYPE_S32);
 
 	omap_set_lcd_dma_single_transfer(1);
 	omap_setup_lcd_dma();
@@ -410,9 +469,13 @@ static void load_palette(void)
 	enable_irqs(OMAP_LCDC_IRQ_LOADED_PALETTE);
 	set_load_mode(OMAP_LCDC_LOAD_PALETTE);
 	enable_controller();
+
 	if (!wait_for_completion_timeout(&lcdc.palette_load_complete,
-				msecs_to_jiffies(500)))
+									 msecs_to_jiffies(500)))
+	{
 		dev_err(lcdc.fbdev->dev, "timeout waiting for FRAME DONE\n");
+	}
+
 	/* The controller gets disabled in the irq handler */
 	disable_irqs(OMAP_LCDC_IRQ_LOADED_PALETTE);
 	omap_stop_lcd_dma();
@@ -422,20 +485,23 @@ static void load_palette(void)
 
 /* Used only in internal controller mode */
 static int omap_lcdc_setcolreg(u_int regno, u16 red, u16 green, u16 blue,
-			       u16 transp, int update_hw_pal)
+							   u16 transp, int update_hw_pal)
 {
 	u16 *palette;
 
 	if (lcdc.color_mode != OMAPFB_COLOR_CLUT_8BPP || regno > 255)
+	{
 		return -EINVAL;
+	}
 
 	palette = (u16 *)lcdc.palette_virt;
 
 	palette[regno] &= ~0x0fff;
 	palette[regno] |= ((red >> 12) << 8) | ((green >> 12) << 4 ) |
-			   (blue >> 12);
+					  (blue >> 12);
 
-	if (update_hw_pal) {
+	if (update_hw_pal)
+	{
 		disable_controller();
 		omap_stop_lcd_dma();
 		load_palette();
@@ -454,15 +520,22 @@ static void calc_ck_div(int is_tft, int pck, int *pck_div)
 	pck = max(1, pck);
 	lck = clk_get_rate(lcdc.lcd_ck);
 	*pck_div = (lck + pck - 1) / pck;
+
 	if (is_tft)
+	{
 		*pck_div = max(2, *pck_div);
+	}
 	else
+	{
 		*pck_div = max(3, *pck_div);
-	if (*pck_div > 255) {
+	}
+
+	if (*pck_div > 255)
+	{
 		/* FIXME: try to adjust logic clock divider as well */
 		*pck_div = 255;
 		dev_warn(lcdc.fbdev->dev, "pixclock %d kHz too low.\n",
-			 pck / 1000);
+				 pck / 1000);
 	}
 }
 
@@ -478,10 +551,10 @@ static void inline setup_regs(void)
 	l &= ~OMAP_LCDC_CTRL_LCD_TFT;
 	l |= is_tft ? OMAP_LCDC_CTRL_LCD_TFT : 0;
 #ifdef CONFIG_MACH_OMAP_PALMTE
-/* FIXME:if (machine_is_omap_palmte()) { */
-		/* PalmTE uses alternate TFT setting in 8BPP mode */
-		l |= (is_tft && panel->bpp == 8) ? 0x810000 : 0;
-/*	} */
+	/* FIXME:if (machine_is_omap_palmte()) { */
+	/* PalmTE uses alternate TFT setting in 8BPP mode */
+	l |= (is_tft && panel->bpp == 8) ? 0x810000 : 0;
+	/*	} */
 #endif
 	omap_writel(l, OMAP_LCDC_CONTROL);
 
@@ -508,16 +581,20 @@ static void inline setup_regs(void)
 	lck = clk_get_rate(lcdc.lcd_ck);
 
 	if (!panel->pcd)
+	{
 		calc_ck_div(is_tft, panel->pixel_clock * 1000, &pcd);
-	else {
+	}
+	else
+	{
 		dev_warn(lcdc.fbdev->dev,
-		    "Pixel clock divider value is obsolete.\n"
-		    "Try to set pixel_clock to %lu and pcd to 0 "
-		    "in drivers/video/omap/lcd_%s.c and submit a patch.\n",
-			lck / panel->pcd / 1000, panel->name);
+				 "Pixel clock divider value is obsolete.\n"
+				 "Try to set pixel_clock to %lu and pcd to 0 "
+				 "in drivers/video/omap/lcd_%s.c and submit a patch.\n",
+				 lck / panel->pcd / 1000, panel->name);
 
 		pcd = panel->pcd;
 	}
+
 	l |= pcd & 0xff;
 	l |= panel->acb << 8;
 	omap_writel(l, OMAP_LCDC_TIMING2);
@@ -535,28 +612,32 @@ static int omap_lcdc_set_update_mode(enum omapfb_update_mode mode)
 {
 	int r = 0;
 
-	if (mode != lcdc.update_mode) {
-		switch (mode) {
-		case OMAPFB_AUTO_UPDATE:
-			setup_regs();
-			load_palette();
+	if (mode != lcdc.update_mode)
+	{
+		switch (mode)
+		{
+			case OMAPFB_AUTO_UPDATE:
+				setup_regs();
+				load_palette();
 
-			/* Setup and start LCD DMA */
-			setup_lcd_dma();
+				/* Setup and start LCD DMA */
+				setup_lcd_dma();
 
-			set_load_mode(OMAP_LCDC_LOAD_FRAME);
-			enable_irqs(OMAP_LCDC_IRQ_DONE);
-			/* This will start the actual DMA transfer */
-			enable_controller();
-			lcdc.update_mode = mode;
-			break;
-		case OMAPFB_UPDATE_DISABLED:
-			disable_controller();
-			omap_stop_lcd_dma();
-			lcdc.update_mode = mode;
-			break;
-		default:
-			r = -EINVAL;
+				set_load_mode(OMAP_LCDC_LOAD_FRAME);
+				enable_irqs(OMAP_LCDC_IRQ_DONE);
+				/* This will start the actual DMA transfer */
+				enable_controller();
+				lcdc.update_mode = mode;
+				break;
+
+			case OMAPFB_UPDATE_DISABLED:
+				disable_controller();
+				omap_stop_lcd_dma();
+				lcdc.update_mode = mode;
+				break;
+
+			default:
+				r = -EINVAL;
 		}
 	}
 
@@ -589,11 +670,15 @@ int omap_lcdc_set_dma_callback(void (*callback)(void *data), void *data)
 	BUG_ON(callback == NULL);
 
 	if (lcdc.dma_callback)
+	{
 		return -EBUSY;
-	else {
+	}
+	else
+	{
 		lcdc.dma_callback = callback;
 		lcdc.dma_callback_data = data;
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL(omap_lcdc_set_dma_callback);
@@ -607,17 +692,22 @@ EXPORT_SYMBOL(omap_lcdc_free_dma_callback);
 static void lcdc_dma_handler(u16 status, void *data)
 {
 	if (lcdc.dma_callback)
+	{
 		lcdc.dma_callback(lcdc.dma_callback_data);
+	}
 }
 
 static int alloc_palette_ram(void)
 {
 	lcdc.palette_virt = dma_alloc_wc(lcdc.fbdev->dev, MAX_PALETTE_SIZE,
-					 &lcdc.palette_phys, GFP_KERNEL);
-	if (lcdc.palette_virt == NULL) {
+									 &lcdc.palette_phys, GFP_KERNEL);
+
+	if (lcdc.palette_virt == NULL)
+	{
 		dev_err(lcdc.fbdev->dev, "failed to alloc palette memory\n");
 		return -ENOMEM;
 	}
+
 	memset(lcdc.palette_virt, 0, MAX_PALETTE_SIZE);
 
 	return 0;
@@ -626,7 +716,7 @@ static int alloc_palette_ram(void)
 static void free_palette_ram(void)
 {
 	dma_free_wc(lcdc.fbdev->dev, MAX_PALETTE_SIZE, lcdc.palette_virt,
-		    lcdc.palette_phys);
+				lcdc.palette_phys);
 }
 
 static int alloc_fbmem(struct omapfb_mem_region *region)
@@ -636,18 +726,29 @@ static int alloc_fbmem(struct omapfb_mem_region *region)
 	struct lcd_panel *panel = lcdc.fbdev->panel;
 
 	bpp = panel->bpp;
+
 	if (bpp == 12)
+	{
 		bpp = 16;
+	}
+
 	frame_size = PAGE_ALIGN(panel->x_res * bpp / 8 * panel->y_res);
+
 	if (region->size > frame_size)
+	{
 		frame_size = region->size;
+	}
+
 	lcdc.vram_size = frame_size;
 	lcdc.vram_virt = dma_alloc_wc(lcdc.fbdev->dev, lcdc.vram_size,
-				      &lcdc.vram_phys, GFP_KERNEL);
-	if (lcdc.vram_virt == NULL) {
+								  &lcdc.vram_phys, GFP_KERNEL);
+
+	if (lcdc.vram_virt == NULL)
+	{
 		dev_err(lcdc.fbdev->dev, "unable to allocate FB DMA memory\n");
 		return -ENOMEM;
 	}
+
 	region->size = frame_size;
 	region->paddr = lcdc.vram_phys;
 	region->vaddr = lcdc.vram_virt;
@@ -661,17 +762,19 @@ static int alloc_fbmem(struct omapfb_mem_region *region)
 static void free_fbmem(void)
 {
 	dma_free_wc(lcdc.fbdev->dev, lcdc.vram_size, lcdc.vram_virt,
-		    lcdc.vram_phys);
+				lcdc.vram_phys);
 }
 
 static int setup_fbmem(struct omapfb_mem_desc *req_md)
 {
-	if (!req_md->region_cnt) {
+	if (!req_md->region_cnt)
+	{
 		dev_err(lcdc.fbdev->dev, "no memory regions defined\n");
 		return -EINVAL;
 	}
 
-	if (req_md->region_cnt > 1) {
+	if (req_md->region_cnt > 1)
+	{
 		dev_err(lcdc.fbdev->dev, "only one plane is supported\n");
 		req_md->region_cnt = 1;
 	}
@@ -680,7 +783,7 @@ static int setup_fbmem(struct omapfb_mem_desc *req_md)
 }
 
 static int omap_lcdc_init(struct omapfb_device *fbdev, int ext_mode,
-			  struct omapfb_mem_desc *req_vram)
+						  struct omapfb_mem_desc *req_vram)
 {
 	int r;
 	u32 l;
@@ -699,14 +802,18 @@ static int omap_lcdc_init(struct omapfb_device *fbdev, int ext_mode,
 	 * According to errata some platforms have a clock rate limitiation
 	 */
 	lcdc.lcd_ck = clk_get(fbdev->dev, "lcd_ck");
-	if (IS_ERR(lcdc.lcd_ck)) {
+
+	if (IS_ERR(lcdc.lcd_ck))
+	{
 		dev_err(fbdev->dev, "unable to access LCD clock\n");
 		r = PTR_ERR(lcdc.lcd_ck);
 		goto fail0;
 	}
 
 	tc_ck = clk_get(fbdev->dev, "tc_ck");
-	if (IS_ERR(tc_ck)) {
+
+	if (IS_ERR(tc_ck))
+	{
 		dev_err(fbdev->dev, "unable to access TC clock\n");
 		r = PTR_ERR(tc_ck);
 		goto fail1;
@@ -716,24 +823,37 @@ static int omap_lcdc_init(struct omapfb_device *fbdev, int ext_mode,
 	clk_put(tc_ck);
 
 	if (machine_is_ams_delta())
+	{
 		rate /= 4;
+	}
+
 	if (machine_is_omap_h3())
+	{
 		rate /= 3;
+	}
+
 	r = clk_set_rate(lcdc.lcd_ck, rate);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(fbdev->dev, "failed to adjust LCD rate\n");
 		goto fail1;
 	}
+
 	clk_enable(lcdc.lcd_ck);
 
 	r = request_irq(OMAP_LCDC_IRQ, lcdc_irq_handler, 0, MODULE_NAME, fbdev);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(fbdev->dev, "unable to get IRQ\n");
 		goto fail2;
 	}
 
 	r = omap_request_lcd_dma(lcdc_dma_handler, NULL);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(fbdev->dev, "unable to get LCD DMA\n");
 		goto fail3;
 	}
@@ -743,17 +863,25 @@ static int omap_lcdc_init(struct omapfb_device *fbdev, int ext_mode,
 
 	if (!ext_mode)
 		if ((r = alloc_palette_ram()) < 0)
+		{
 			goto fail4;
+		}
 
 	if ((r = setup_fbmem(req_vram)) < 0)
+	{
 		goto fail5;
+	}
 
 	pr_info("omapfb: LCDC initialized\n");
 
 	return 0;
 fail5:
+
 	if (!ext_mode)
+	{
 		free_palette_ram();
+	}
+
 fail4:
 	omap_free_lcd_dma();
 fail3:
@@ -769,7 +897,10 @@ fail0:
 static void omap_lcdc_cleanup(void)
 {
 	if (!lcdc.ext_mode)
+	{
 		free_palette_ram();
+	}
+
 	free_fbmem();
 	omap_free_lcd_dma();
 	free_irq(OMAP_LCDC_IRQ, lcdc.fbdev);
@@ -777,7 +908,8 @@ static void omap_lcdc_cleanup(void)
 	clk_put(lcdc.lcd_ck);
 }
 
-const struct lcd_ctrl omap1_int_ctrl = {
+const struct lcd_ctrl omap1_int_ctrl =
+{
 	.name			= "internal",
 	.init			= omap_lcdc_init,
 	.cleanup		= omap_lcdc_cleanup,

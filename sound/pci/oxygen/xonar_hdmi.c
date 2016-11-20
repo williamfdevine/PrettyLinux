@@ -27,7 +27,7 @@
 #include "xonar.h"
 
 static void hdmi_write_command(struct oxygen *chip, u8 command,
-			       unsigned int count, const u8 *params)
+							   unsigned int count, const u8 *params)
 {
 	unsigned int i;
 	u8 checksum;
@@ -36,16 +36,24 @@ static void hdmi_write_command(struct oxygen *chip, u8 command,
 	oxygen_write_uart(chip, 0xef);
 	oxygen_write_uart(chip, command);
 	oxygen_write_uart(chip, count);
+
 	for (i = 0; i < count; ++i)
+	{
 		oxygen_write_uart(chip, params[i]);
+	}
+
 	checksum = 0xfb + 0xef + command + count;
+
 	for (i = 0; i < count; ++i)
+	{
 		checksum += params[i];
+	}
+
 	oxygen_write_uart(chip, checksum);
 }
 
 static void xonar_hdmi_init_commands(struct oxygen *chip,
-				     struct xonar_hdmi *hdmi)
+									 struct xonar_hdmi *hdmi)
 {
 	u8 param;
 
@@ -77,40 +85,53 @@ void xonar_hdmi_resume(struct oxygen *chip, struct xonar_hdmi *hdmi)
 }
 
 void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
-				    struct snd_pcm_hardware *hardware)
+									struct snd_pcm_hardware *hardware)
 {
-	if (channel == PCM_MULTICH) {
+	if (channel == PCM_MULTICH)
+	{
 		hardware->rates = SNDRV_PCM_RATE_44100 |
-				  SNDRV_PCM_RATE_48000 |
-				  SNDRV_PCM_RATE_96000 |
-				  SNDRV_PCM_RATE_192000;
+						  SNDRV_PCM_RATE_48000 |
+						  SNDRV_PCM_RATE_96000 |
+						  SNDRV_PCM_RATE_192000;
 		hardware->rate_min = 44100;
 	}
 }
 
 void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi,
-			   struct snd_pcm_hw_params *params)
+						   struct snd_pcm_hw_params *params)
 {
 	hdmi->params[0] = 0; /* 1 = non-audio */
-	switch (params_rate(params)) {
-	case 44100:
-		hdmi->params[1] = IEC958_AES3_CON_FS_44100;
-		break;
-	case 48000:
-		hdmi->params[1] = IEC958_AES3_CON_FS_48000;
-		break;
-	default: /* 96000 */
-		hdmi->params[1] = IEC958_AES3_CON_FS_96000;
-		break;
-	case 192000:
-		hdmi->params[1] = IEC958_AES3_CON_FS_192000;
-		break;
+
+	switch (params_rate(params))
+	{
+		case 44100:
+			hdmi->params[1] = IEC958_AES3_CON_FS_44100;
+			break;
+
+		case 48000:
+			hdmi->params[1] = IEC958_AES3_CON_FS_48000;
+			break;
+
+		default: /* 96000 */
+			hdmi->params[1] = IEC958_AES3_CON_FS_96000;
+			break;
+
+		case 192000:
+			hdmi->params[1] = IEC958_AES3_CON_FS_192000;
+			break;
 	}
+
 	hdmi->params[2] = params_channels(params) / 2 - 1;
+
 	if (params_format(params) == SNDRV_PCM_FORMAT_S16_LE)
+	{
 		hdmi->params[3] = 0;
+	}
 	else
+	{
 		hdmi->params[3] = 0xc0;
+	}
+
 	hdmi->params[4] = 1; /* ? */
 	hdmi_write_command(chip, 0x54, 5, hdmi->params);
 }
@@ -118,11 +139,12 @@ void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi,
 void xonar_hdmi_uart_input(struct oxygen *chip)
 {
 	if (chip->uart_input_count >= 2 &&
-	    chip->uart_input[chip->uart_input_count - 2] == 'O' &&
-	    chip->uart_input[chip->uart_input_count - 1] == 'K') {
+		chip->uart_input[chip->uart_input_count - 2] == 'O' &&
+		chip->uart_input[chip->uart_input_count - 1] == 'K')
+	{
 		dev_dbg(chip->card->dev, "message from HDMI chip received:\n");
 		print_hex_dump_bytes("", DUMP_PREFIX_OFFSET,
-				     chip->uart_input, chip->uart_input_count);
+							 chip->uart_input, chip->uart_input_count);
 		chip->uart_input_count = 0;
 	}
 }

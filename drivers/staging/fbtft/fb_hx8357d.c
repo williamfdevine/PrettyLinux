@@ -56,65 +56,65 @@ static int init_display(struct fbtft_par *par)
 	write_reg(par, HX8357_SETPANEL, 0x05);
 
 	write_reg(par, HX8357_SETPWR1,
-		  0x00,  /* Not deep standby */
-		  0x15,  /* BT */
-		  0x1C,  /* VSPR */
-		  0x1C,  /* VSNR */
-		  0x83,  /* AP */
-		  0xAA);  /* FS */
+			  0x00,  /* Not deep standby */
+			  0x15,  /* BT */
+			  0x1C,  /* VSPR */
+			  0x1C,  /* VSNR */
+			  0x83,  /* AP */
+			  0xAA);  /* FS */
 
 	write_reg(par, HX8357D_SETSTBA,
-		  0x50,  /* OPON normal */
-		  0x50,  /* OPON idle */
-		  0x01,  /* STBA */
-		  0x3C,  /* STBA */
-		  0x1E,  /* STBA */
-		  0x08);  /* GEN */
+			  0x50,  /* OPON normal */
+			  0x50,  /* OPON idle */
+			  0x01,  /* STBA */
+			  0x3C,  /* STBA */
+			  0x1E,  /* STBA */
+			  0x08);  /* GEN */
 
 	write_reg(par, HX8357D_SETCYC,
-		  0x02,  /* NW 0x02 */
-		  0x40,  /* RTN */
-		  0x00,  /* DIV */
-		  0x2A,  /* DUM */
-		  0x2A,  /* DUM */
-		  0x0D,  /* GDON */
-		  0x78);  /* GDOFF */
+			  0x02,  /* NW 0x02 */
+			  0x40,  /* RTN */
+			  0x00,  /* DIV */
+			  0x2A,  /* DUM */
+			  0x2A,  /* DUM */
+			  0x0D,  /* GDON */
+			  0x78);  /* GDOFF */
 
 	write_reg(par, HX8357D_SETGAMMA,
-		  0x02,
-		  0x0A,
-		  0x11,
-		  0x1d,
-		  0x23,
-		  0x35,
-		  0x41,
-		  0x4b,
-		  0x4b,
-		  0x42,
-		  0x3A,
-		  0x27,
-		  0x1B,
-		  0x08,
-		  0x09,
-		  0x03,
-		  0x02,
-		  0x0A,
-		  0x11,
-		  0x1d,
-		  0x23,
-		  0x35,
-		  0x41,
-		  0x4b,
-		  0x4b,
-		  0x42,
-		  0x3A,
-		  0x27,
-		  0x1B,
-		  0x08,
-		  0x09,
-		  0x03,
-		  0x00,
-		  0x01);
+			  0x02,
+			  0x0A,
+			  0x11,
+			  0x1d,
+			  0x23,
+			  0x35,
+			  0x41,
+			  0x4b,
+			  0x4b,
+			  0x42,
+			  0x3A,
+			  0x27,
+			  0x1B,
+			  0x08,
+			  0x09,
+			  0x03,
+			  0x02,
+			  0x0A,
+			  0x11,
+			  0x1d,
+			  0x23,
+			  0x35,
+			  0x41,
+			  0x4b,
+			  0x4b,
+			  0x42,
+			  0x3A,
+			  0x27,
+			  0x1B,
+			  0x08,
+			  0x09,
+			  0x03,
+			  0x00,
+			  0x01);
 
 	/* 16 bit */
 	write_reg(par, MIPI_DCS_SET_PIXEL_FORMAT, 0x55);
@@ -141,12 +141,12 @@ static int init_display(struct fbtft_par *par)
 static void set_addr_win(struct fbtft_par *par, int xs, int ys, int xe, int ye)
 {
 	write_reg(par, MIPI_DCS_SET_COLUMN_ADDRESS,
-		  xs >> 8, xs & 0xff,  /* XSTART */
-		  xe >> 8, xe & 0xff); /* XEND */
+			  xs >> 8, xs & 0xff,  /* XSTART */
+			  xe >> 8, xe & 0xff); /* XEND */
 
 	write_reg(par, MIPI_DCS_SET_PAGE_ADDRESS,
-		  ys >> 8, ys & 0xff,  /* YSTART */
-		  ye >> 8, ye & 0xff); /* YEND */
+			  ys >> 8, ys & 0xff,  /* YSTART */
+			  ye >> 8, ye & 0xff); /* YEND */
 
 	write_reg(par, MIPI_DCS_WRITE_MEMORY_START);
 }
@@ -162,19 +162,23 @@ static int set_var(struct fbtft_par *par)
 {
 	u8 val;
 
-	switch (par->info->var.rotate) {
-	case 270:
-		val = HX8357D_MADCTL_MV | HX8357D_MADCTL_MX;
-		break;
-	case 180:
-		val = 0;
-		break;
-	case 90:
-		val = HX8357D_MADCTL_MV | HX8357D_MADCTL_MY;
-		break;
-	default:
-		val = HX8357D_MADCTL_MX | HX8357D_MADCTL_MY;
-		break;
+	switch (par->info->var.rotate)
+	{
+		case 270:
+			val = HX8357D_MADCTL_MV | HX8357D_MADCTL_MX;
+			break;
+
+		case 180:
+			val = 0;
+			break;
+
+		case 90:
+			val = HX8357D_MADCTL_MV | HX8357D_MADCTL_MY;
+			break;
+
+		default:
+			val = HX8357D_MADCTL_MX | HX8357D_MADCTL_MY;
+			break;
 	}
 
 	val |= (par->bgr ? HX8357D_MADCTL_RGB : HX8357D_MADCTL_BGR);
@@ -185,7 +189,8 @@ static int set_var(struct fbtft_par *par)
 	return 0;
 }
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 8,
 	.width = WIDTH,
 	.height = HEIGHT,

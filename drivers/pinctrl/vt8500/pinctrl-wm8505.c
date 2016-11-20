@@ -29,7 +29,8 @@
  *
  * Do not reorder these banks as it will change the pin numbering
  */
-static const struct wmt_pinctrl_bank_registers wm8505_banks[] = {
+static const struct wmt_pinctrl_bank_registers wm8505_banks[] =
+{
 	WMT_PINCTRL_BANK(0x64, 0x8C, 0xB4, 0xDC, NO_REG, NO_REG),	/* 0 */
 	WMT_PINCTRL_BANK(0x40, 0x68, 0x90, 0xB8, NO_REG, NO_REG),	/* 1 */
 	WMT_PINCTRL_BANK(0x44, 0x6C, 0x94, 0xBC, NO_REG, NO_REG),	/* 2 */
@@ -189,7 +190,8 @@ static const struct wmt_pinctrl_bank_registers wm8505_banks[] = {
 #define WMT_PIN_I2C2SCL		WMT_PIN(10, 4)
 #define WMT_PIN_I2C2SDA		WMT_PIN(10, 5)
 
-static const struct pinctrl_pin_desc wm8505_pins[] = {
+static const struct pinctrl_pin_desc wm8505_pins[] =
+{
 	PINCTRL_PIN(WMT_PIN_EXTGPIO0, "extgpio0"),
 	PINCTRL_PIN(WMT_PIN_EXTGPIO1, "extgpio1"),
 	PINCTRL_PIN(WMT_PIN_EXTGPIO2, "extgpio2"),
@@ -337,7 +339,8 @@ static const struct pinctrl_pin_desc wm8505_pins[] = {
 };
 
 /* Order of these names must match the above list */
-static const char * const wm8505_groups[] = {
+static const char *const wm8505_groups[] =
+{
 	"extgpio0",
 	"extgpio1",
 	"extgpio2",
@@ -489,7 +492,9 @@ static int wm8505_pinctrl_probe(struct platform_device *pdev)
 	struct wmt_pinctrl_data *data;
 
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
-	if (!data) {
+
+	if (!data)
+	{
 		dev_err(&pdev->dev, "failed to allocate data\n");
 		return -ENOMEM;
 	}
@@ -509,12 +514,14 @@ static int wm8505_pinctrl_remove(struct platform_device *pdev)
 	return wmt_pinctrl_remove(pdev);
 }
 
-static const struct of_device_id wmt_pinctrl_of_match[] = {
+static const struct of_device_id wmt_pinctrl_of_match[] =
+{
 	{ .compatible = "wm,wm8505-pinctrl" },
 	{ /* sentinel */ },
 };
 
-static struct platform_driver wmt_pinctrl_driver = {
+static struct platform_driver wmt_pinctrl_driver =
+{
 	.probe	= wm8505_pinctrl_probe,
 	.remove	= wm8505_pinctrl_remove,
 	.driver = {

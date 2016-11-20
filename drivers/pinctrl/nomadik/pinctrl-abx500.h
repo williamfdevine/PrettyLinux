@@ -8,20 +8,23 @@
 #define PINCTRL_AB8505	3
 
 /* pins alternate function */
-enum abx500_pin_func {
+enum abx500_pin_func
+{
 	ABX500_DEFAULT,
 	ABX500_ALT_A,
 	ABX500_ALT_B,
 	ABX500_ALT_C,
 };
 
-enum abx500_gpio_pull_updown {
+enum abx500_gpio_pull_updown
+{
 	ABX500_GPIO_PULL_DOWN = 0x0,
 	ABX500_GPIO_PULL_NONE = 0x1,
 	ABX500_GPIO_PULL_UP = 0x3,
 };
 
-enum abx500_gpio_vinsel {
+enum abx500_gpio_vinsel
+{
 	ABX500_GPIO_VINSEL_VBAT = 0x0,
 	ABX500_GPIO_VINSEL_VIN_1V8 = 0x1,
 	ABX500_GPIO_VINSEL_VDD_BIF = 0x2,
@@ -33,9 +36,10 @@ enum abx500_gpio_vinsel {
  * @groups: An array of pin groups that may select this function.
  * @ngroups: The number of entries in @groups.
  */
-struct abx500_function {
+struct abx500_function
+{
 	const char *name;
-	const char * const *groups;
+	const char *const *groups;
 	unsigned ngroups;
 };
 
@@ -49,7 +53,8 @@ struct abx500_function {
  * @altsetting: the altsetting to apply to all pins in this group to
  *	configure them to be used by a function
  */
-struct abx500_pingroup {
+struct abx500_pingroup
+{
 	const char *name;
 	const unsigned int *pins;
 	const unsigned npins;
@@ -57,15 +62,15 @@ struct abx500_pingroup {
 };
 
 #define ALTERNATE_FUNCTIONS(pin, sel_bit, alt1, alt2, alta, altb, altc)	\
-{									\
-	.pin_number = pin,						\
-	.gpiosel_bit = sel_bit,						\
-	.alt_bit1 = alt1,						\
-	.alt_bit2 = alt2,						\
-	.alta_val = alta,						\
-	.altb_val = altb,						\
-	.altc_val = altc,						\
-}
+	{									\
+		.pin_number = pin,						\
+					  .gpiosel_bit = sel_bit,						\
+									 .alt_bit1 = alt1,						\
+											 .alt_bit2 = alt2,						\
+													 .alta_val = alta,						\
+															 .altb_val = altb,						\
+																	 .altc_val = altc,						\
+	}
 
 #define UNUSED -1
 /**
@@ -85,7 +90,8 @@ struct abx500_pingroup {
  * @altb_val:		value to write in alternatfunc to select altB function
  * @altc_val:		value to write in alternatfunc to select altC function
  */
-struct alternate_functions {
+struct alternate_functions
+{
 	unsigned pin_number;
 	s8 gpiosel_bit;
 	s8 alt_bit1;
@@ -101,17 +107,18 @@ struct alternate_functions {
  *			specific pull up/down
  * @last_pin:		The pin number of the last pins
  */
-struct pullud {
+struct pullud
+{
 	unsigned first_pin;
 	unsigned last_pin;
 };
 
 #define GPIO_IRQ_CLUSTER(a, b, c)	\
-{					\
-	.start = a,			\
-	.end = b,			\
-	.to_irq = c,			\
-}
+	{					\
+		.start = a,			\
+				 .end = b,			\
+						.to_irq = c,			\
+	}
 
 /**
  * struct abx500_gpio_irq_cluster - indicates GPIOs which are interrupt
@@ -124,7 +131,8 @@ struct pullud {
  *                      read-in values into the cluster information table
  */
 
-struct abx500_gpio_irq_cluster {
+struct abx500_gpio_irq_cluster
+{
 	int start;
 	int end;
 	int to_irq;
@@ -138,7 +146,8 @@ struct abx500_gpio_irq_cluster {
  * @altfunc:		altfunc setting to be used to enable GPIO on a pin in
  *			this range (may vary)
  */
-struct abx500_pinrange {
+struct abx500_pinrange
+{
 	unsigned int offset;
 	unsigned int npins;
 	int altfunc;
@@ -173,7 +182,8 @@ struct abx500_pinrange {
  *			the interrupt line
  */
 
-struct abx500_pinctrl_soc_data {
+struct abx500_pinctrl_soc_data
+{
 	const struct abx500_pinrange *gpio_ranges;
 	unsigned gpio_num_ranges;
 	const struct pinctrl_pin_desc *pins;

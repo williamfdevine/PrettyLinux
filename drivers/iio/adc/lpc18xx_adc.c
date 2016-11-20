@@ -42,7 +42,8 @@
 /* Clock should be 4.5 MHz or less */
 #define LPC18XX_ADC_CLK_TARGET		4500000
 
-struct lpc18xx_adc {
+struct lpc18xx_adc
+{
 	struct regulator *vref;
 	void __iomem *base;
 	struct device *dev;
@@ -52,14 +53,15 @@ struct lpc18xx_adc {
 };
 
 #define LPC18XX_ADC_CHAN(_idx) {				\
-	.type = IIO_VOLTAGE,					\
-	.indexed = 1,						\
-	.channel = _idx,					\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
-	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
-}
+		.type = IIO_VOLTAGE,					\
+				.indexed = 1,						\
+						   .channel = _idx,					\
+									  .info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
+											  .info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
+	}
 
-static const struct iio_chan_spec lpc18xx_adc_iio_channels[] = {
+static const struct iio_chan_spec lpc18xx_adc_iio_channels[] =
+{
 	LPC18XX_ADC_CHAN(0),
 	LPC18XX_ADC_CHAN(1),
 	LPC18XX_ADC_CHAN(2),
@@ -79,8 +81,10 @@ static int lpc18xx_adc_read_chan(struct lpc18xx_adc *adc, unsigned int ch)
 	writel(reg, adc->base + LPC18XX_ADC_CR);
 
 	ret = readl_poll_timeout(adc->base + LPC18XX_ADC_GDR, reg,
-				 reg & LPC18XX_ADC_CONV_DONE, 3, 9);
-	if (ret) {
+							 reg & LPC18XX_ADC_CONV_DONE, 3, 9);
+
+	if (ret)
+	{
 		dev_warn(adc->dev, "adc read timed out\n");
 		return ret;
 	}
@@ -89,32 +93,37 @@ static int lpc18xx_adc_read_chan(struct lpc18xx_adc *adc, unsigned int ch)
 }
 
 static int lpc18xx_adc_read_raw(struct iio_dev *indio_dev,
-				struct iio_chan_spec const *chan,
-				int *val, int *val2, long mask)
+								struct iio_chan_spec const *chan,
+								int *val, int *val2, long mask)
 {
 	struct lpc18xx_adc *adc = iio_priv(indio_dev);
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		mutex_lock(&adc->lock);
-		*val = lpc18xx_adc_read_chan(adc, chan->channel);
-		mutex_unlock(&adc->lock);
-		if (*val < 0)
-			return *val;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			mutex_lock(&adc->lock);
+			*val = lpc18xx_adc_read_chan(adc, chan->channel);
+			mutex_unlock(&adc->lock);
 
-		return IIO_VAL_INT;
+			if (*val < 0)
+			{
+				return *val;
+			}
 
-	case IIO_CHAN_INFO_SCALE:
-		*val = regulator_get_voltage(adc->vref) / 1000;
-		*val2 = 10;
+			return IIO_VAL_INT;
 
-		return IIO_VAL_FRACTIONAL_LOG2;
+		case IIO_CHAN_INFO_SCALE:
+			*val = regulator_get_voltage(adc->vref) / 1000;
+			*val2 = 10;
+
+			return IIO_VAL_FRACTIONAL_LOG2;
 	}
 
 	return -EINVAL;
 }
 
-static const struct iio_info lpc18xx_adc_info = {
+static const struct iio_info lpc18xx_adc_info =
+{
 	.read_raw = lpc18xx_adc_read_raw,
 	.driver_module = THIS_MODULE,
 };
@@ -129,8 +138,11 @@ static int lpc18xx_adc_probe(struct platform_device *pdev)
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&pdev->dev, sizeof(*adc));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, indio_dev);
 	adc = iio_priv(indio_dev);
@@ -139,11 +151,16 @@ static int lpc18xx_adc_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	adc->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(adc->base))
+	{
 		return PTR_ERR(adc->base);
+	}
 
 	adc->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(adc->clk)) {
+
+	if (IS_ERR(adc->clk))
+	{
 		dev_err(&pdev->dev, "error getting clock\n");
 		return PTR_ERR(adc->clk);
 	}
@@ -152,7 +169,9 @@ static int lpc18xx_adc_probe(struct platform_device *pdev)
 	clkdiv = DIV_ROUND_UP(rate, LPC18XX_ADC_CLK_TARGET);
 
 	adc->vref = devm_regulator_get(&pdev->dev, "vref");
-	if (IS_ERR(adc->vref)) {
+
+	if (IS_ERR(adc->vref))
+	{
 		dev_err(&pdev->dev, "error getting regulator\n");
 		return PTR_ERR(adc->vref);
 	}
@@ -165,23 +184,29 @@ static int lpc18xx_adc_probe(struct platform_device *pdev)
 	indio_dev->num_channels = ARRAY_SIZE(lpc18xx_adc_iio_channels);
 
 	ret = regulator_enable(adc->vref);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to enable regulator\n");
 		return ret;
 	}
 
 	ret = clk_prepare_enable(adc->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to enable clock\n");
 		goto dis_reg;
 	}
 
 	adc->cr_reg = (clkdiv << LPC18XX_ADC_CR_CLKDIV_SHIFT) |
-			LPC18XX_ADC_CR_PDN;
+				  LPC18XX_ADC_CR_PDN;
 	writel(adc->cr_reg, adc->base + LPC18XX_ADC_CR);
 
 	ret = iio_device_register(indio_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to register device\n");
 		goto dis_clk;
 	}
@@ -210,13 +235,15 @@ static int lpc18xx_adc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id lpc18xx_adc_match[] = {
+static const struct of_device_id lpc18xx_adc_match[] =
+{
 	{ .compatible = "nxp,lpc1850-adc" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, lpc18xx_adc_match);
 
-static struct platform_driver lpc18xx_adc_driver = {
+static struct platform_driver lpc18xx_adc_driver =
+{
 	.probe	= lpc18xx_adc_probe,
 	.remove	= lpc18xx_adc_remove,
 	.driver	= {

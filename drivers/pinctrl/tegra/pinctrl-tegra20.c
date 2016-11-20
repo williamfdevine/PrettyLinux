@@ -355,7 +355,8 @@
 #define TEGRA_PIN_JTAG_TDI		_PIN(122)
 #define TEGRA_PIN_TEST_MODE_EN		_PIN(123)
 
-static const struct pinctrl_pin_desc tegra20_pins[] = {
+static const struct pinctrl_pin_desc tegra20_pins[] =
+{
 	PINCTRL_PIN(TEGRA_PIN_VI_GP6_PA0, "VI_GP6 PA0"),
 	PINCTRL_PIN(TEGRA_PIN_UART3_CTS_N_PA1, "UART3_CTS_N PA1"),
 	PINCTRL_PIN(TEGRA_PIN_DAP2_FS_PA2, "DAP2_FS PA2"),
@@ -680,18 +681,21 @@ static const struct pinctrl_pin_desc tegra20_pins[] = {
 	PINCTRL_PIN(TEGRA_PIN_TEST_MODE_EN, "TEST_MODE_EN"),
 };
 
-static const unsigned ata_pins[] = {
+static const unsigned ata_pins[] =
+{
 	TEGRA_PIN_GMI_CS6_N_PI3,
 	TEGRA_PIN_GMI_CS7_N_PI6,
 	TEGRA_PIN_GMI_RST_N_PI4,
 };
 
-static const unsigned atb_pins[] = {
+static const unsigned atb_pins[] =
+{
 	TEGRA_PIN_GMI_CS5_N_PI2,
 	TEGRA_PIN_GMI_DPD_PT7,
 };
 
-static const unsigned atc_pins[] = {
+static const unsigned atc_pins[] =
+{
 	TEGRA_PIN_GMI_IORDY_PI5,
 	TEGRA_PIN_GMI_WAIT_PI7,
 	TEGRA_PIN_GMI_ADV_N_PK0,
@@ -711,86 +715,101 @@ static const unsigned atc_pins[] = {
 	TEGRA_PIN_GMI_HIOR_N_PI1,
 };
 
-static const unsigned atd_pins[] = {
+static const unsigned atd_pins[] =
+{
 	TEGRA_PIN_GMI_AD8_PH0,
 	TEGRA_PIN_GMI_AD9_PH1,
 	TEGRA_PIN_GMI_AD10_PH2,
 	TEGRA_PIN_GMI_AD11_PH3,
 };
 
-static const unsigned ate_pins[] = {
+static const unsigned ate_pins[] =
+{
 	TEGRA_PIN_GMI_AD12_PH4,
 	TEGRA_PIN_GMI_AD13_PH5,
 	TEGRA_PIN_GMI_AD14_PH6,
 	TEGRA_PIN_GMI_AD15_PH7,
 };
 
-static const unsigned cdev1_pins[] = {
+static const unsigned cdev1_pins[] =
+{
 	TEGRA_PIN_DAP_MCLK1_PW4,
 };
 
-static const unsigned cdev2_pins[] = {
+static const unsigned cdev2_pins[] =
+{
 	TEGRA_PIN_DAP_MCLK2_PW5,
 };
 
-static const unsigned crtp_pins[] = {
+static const unsigned crtp_pins[] =
+{
 	TEGRA_PIN_CRT_HSYNC,
 	TEGRA_PIN_CRT_VSYNC,
 };
 
-static const unsigned csus_pins[] = {
+static const unsigned csus_pins[] =
+{
 	TEGRA_PIN_VI_MCLK_PT1,
 };
 
-static const unsigned dap1_pins[] = {
+static const unsigned dap1_pins[] =
+{
 	TEGRA_PIN_DAP1_FS_PN0,
 	TEGRA_PIN_DAP1_DIN_PN1,
 	TEGRA_PIN_DAP1_DOUT_PN2,
 	TEGRA_PIN_DAP1_SCLK_PN3,
 };
 
-static const unsigned dap2_pins[] = {
+static const unsigned dap2_pins[] =
+{
 	TEGRA_PIN_DAP2_FS_PA2,
 	TEGRA_PIN_DAP2_SCLK_PA3,
 	TEGRA_PIN_DAP2_DIN_PA4,
 	TEGRA_PIN_DAP2_DOUT_PA5,
 };
 
-static const unsigned dap3_pins[] = {
+static const unsigned dap3_pins[] =
+{
 	TEGRA_PIN_DAP3_FS_PP0,
 	TEGRA_PIN_DAP3_DIN_PP1,
 	TEGRA_PIN_DAP3_DOUT_PP2,
 	TEGRA_PIN_DAP3_SCLK_PP3,
 };
 
-static const unsigned dap4_pins[] = {
+static const unsigned dap4_pins[] =
+{
 	TEGRA_PIN_DAP4_FS_PP4,
 	TEGRA_PIN_DAP4_DIN_PP5,
 	TEGRA_PIN_DAP4_DOUT_PP6,
 	TEGRA_PIN_DAP4_SCLK_PP7,
 };
 
-static const unsigned ddc_pins[] = {
+static const unsigned ddc_pins[] =
+{
 	TEGRA_PIN_DDC_SCL,
 	TEGRA_PIN_DDC_SDA,
 };
 
-static const unsigned dta_pins[] = {
+static const unsigned dta_pins[] =
+{
 	TEGRA_PIN_VI_D0_PT4,
 	TEGRA_PIN_VI_D1_PD5,
 };
 
-static const unsigned dtb_pins[] = {
+static const unsigned dtb_pins[] =
+{
 	TEGRA_PIN_VI_D10_PT2,
 	TEGRA_PIN_VI_D11_PT3,
 };
 
-static const unsigned dtc_pins[] = {
+static const unsigned dtc_pins[] =
+{
 	TEGRA_PIN_VI_HSYNC_PD7,
 	TEGRA_PIN_VI_VSYNC_PD6,
 };
 
-static const unsigned dtd_pins[] = {
+static const unsigned dtd_pins[] =
+{
 	TEGRA_PIN_VI_PCLK_PT0,
 	TEGRA_PIN_VI_D2_PL0,
 	TEGRA_PIN_VI_D3_PL1,
@@ -802,7 +821,8 @@ static const unsigned dtd_pins[] = {
 	TEGRA_PIN_VI_D9_PL7,
 };
 
-static const unsigned dte_pins[] = {
+static const unsigned dte_pins[] =
+{
 	TEGRA_PIN_VI_GP0_PBB1,
 	TEGRA_PIN_VI_GP3_PBB4,
 	TEGRA_PIN_VI_GP4_PBB5,
@@ -810,42 +830,49 @@ static const unsigned dte_pins[] = {
 	TEGRA_PIN_VI_GP6_PA0,
 };
 
-static const unsigned dtf_pins[] = {
+static const unsigned dtf_pins[] =
+{
 	TEGRA_PIN_CAM_I2C_SCL_PBB2,
 	TEGRA_PIN_CAM_I2C_SDA_PBB3,
 };
 
-static const unsigned gma_pins[] = {
+static const unsigned gma_pins[] =
+{
 	TEGRA_PIN_GMI_AD20_PAA0,
 	TEGRA_PIN_GMI_AD21_PAA1,
 	TEGRA_PIN_GMI_AD22_PAA2,
 	TEGRA_PIN_GMI_AD23_PAA3,
 };
 
-static const unsigned gmb_pins[] = {
+static const unsigned gmb_pins[] =
+{
 	TEGRA_PIN_GMI_WP_N_PC7,
 };
 
-static const unsigned gmc_pins[] = {
+static const unsigned gmc_pins[] =
+{
 	TEGRA_PIN_GMI_AD16_PJ7,
 	TEGRA_PIN_GMI_AD17_PB0,
 	TEGRA_PIN_GMI_AD18_PB1,
 	TEGRA_PIN_GMI_AD19_PK7,
 };
 
-static const unsigned gmd_pins[] = {
+static const unsigned gmd_pins[] =
+{
 	TEGRA_PIN_GMI_CS0_N_PJ0,
 	TEGRA_PIN_GMI_CS1_N_PJ2,
 };
 
-static const unsigned gme_pins[] = {
+static const unsigned gme_pins[] =
+{
 	TEGRA_PIN_GMI_AD24_PAA4,
 	TEGRA_PIN_GMI_AD25_PAA5,
 	TEGRA_PIN_GMI_AD26_PAA6,
 	TEGRA_PIN_GMI_AD27_PAA7,
 };
 
-static const unsigned gpu_pins[] = {
+static const unsigned gpu_pins[] =
+{
 	TEGRA_PIN_PU0,
 	TEGRA_PIN_PU1,
 	TEGRA_PIN_PU2,
@@ -855,40 +882,48 @@ static const unsigned gpu_pins[] = {
 	TEGRA_PIN_PU6,
 };
 
-static const unsigned gpu7_pins[] = {
+static const unsigned gpu7_pins[] =
+{
 	TEGRA_PIN_JTAG_RTCK_PU7,
 };
 
-static const unsigned gpv_pins[] = {
+static const unsigned gpv_pins[] =
+{
 	TEGRA_PIN_PV4,
 	TEGRA_PIN_PV5,
 	TEGRA_PIN_PV6,
 };
 
-static const unsigned hdint_pins[] = {
+static const unsigned hdint_pins[] =
+{
 	TEGRA_PIN_HDMI_INT_N_PN7,
 };
 
-static const unsigned i2cp_pins[] = {
+static const unsigned i2cp_pins[] =
+{
 	TEGRA_PIN_PWR_I2C_SCL_PZ6,
 	TEGRA_PIN_PWR_I2C_SDA_PZ7,
 };
 
-static const unsigned irrx_pins[] = {
+static const unsigned irrx_pins[] =
+{
 	TEGRA_PIN_UART2_RTS_N_PJ6,
 };
 
-static const unsigned irtx_pins[] = {
+static const unsigned irtx_pins[] =
+{
 	TEGRA_PIN_UART2_CTS_N_PJ5,
 };
 
-static const unsigned kbca_pins[] = {
+static const unsigned kbca_pins[] =
+{
 	TEGRA_PIN_KB_ROW0_PR0,
 	TEGRA_PIN_KB_ROW1_PR1,
 	TEGRA_PIN_KB_ROW2_PR2,
 };
 
-static const unsigned kbcb_pins[] = {
+static const unsigned kbcb_pins[] =
+{
 	TEGRA_PIN_KB_ROW7_PR7,
 	TEGRA_PIN_KB_ROW8_PS0,
 	TEGRA_PIN_KB_ROW9_PS1,
@@ -900,23 +935,27 @@ static const unsigned kbcb_pins[] = {
 	TEGRA_PIN_KB_ROW15_PS7,
 };
 
-static const unsigned kbcc_pins[] = {
+static const unsigned kbcc_pins[] =
+{
 	TEGRA_PIN_KB_COL0_PQ0,
 	TEGRA_PIN_KB_COL1_PQ1,
 };
 
-static const unsigned kbcd_pins[] = {
+static const unsigned kbcd_pins[] =
+{
 	TEGRA_PIN_KB_ROW3_PR3,
 	TEGRA_PIN_KB_ROW4_PR4,
 	TEGRA_PIN_KB_ROW5_PR5,
 	TEGRA_PIN_KB_ROW6_PR6,
 };
 
-static const unsigned kbce_pins[] = {
+static const unsigned kbce_pins[] =
+{
 	TEGRA_PIN_KB_COL7_PQ7,
 };
 
-static const unsigned kbcf_pins[] = {
+static const unsigned kbcf_pins[] =
+{
 	TEGRA_PIN_KB_COL2_PQ2,
 	TEGRA_PIN_KB_COL3_PQ3,
 	TEGRA_PIN_KB_COL4_PQ4,
@@ -924,167 +963,208 @@ static const unsigned kbcf_pins[] = {
 	TEGRA_PIN_KB_COL6_PQ6,
 };
 
-static const unsigned lcsn_pins[] = {
+static const unsigned lcsn_pins[] =
+{
 	TEGRA_PIN_LCD_CS0_N_PN4,
 };
 
-static const unsigned ld0_pins[] = {
+static const unsigned ld0_pins[] =
+{
 	TEGRA_PIN_LCD_D0_PE0,
 };
 
-static const unsigned ld1_pins[] = {
+static const unsigned ld1_pins[] =
+{
 	TEGRA_PIN_LCD_D1_PE1,
 };
 
-static const unsigned ld2_pins[] = {
+static const unsigned ld2_pins[] =
+{
 	TEGRA_PIN_LCD_D2_PE2,
 };
 
-static const unsigned ld3_pins[] = {
+static const unsigned ld3_pins[] =
+{
 	TEGRA_PIN_LCD_D3_PE3,
 };
 
-static const unsigned ld4_pins[] = {
+static const unsigned ld4_pins[] =
+{
 	TEGRA_PIN_LCD_D4_PE4,
 };
 
-static const unsigned ld5_pins[] = {
+static const unsigned ld5_pins[] =
+{
 	TEGRA_PIN_LCD_D5_PE5,
 };
 
-static const unsigned ld6_pins[] = {
+static const unsigned ld6_pins[] =
+{
 	TEGRA_PIN_LCD_D6_PE6,
 };
 
-static const unsigned ld7_pins[] = {
+static const unsigned ld7_pins[] =
+{
 	TEGRA_PIN_LCD_D7_PE7,
 };
 
-static const unsigned ld8_pins[] = {
+static const unsigned ld8_pins[] =
+{
 	TEGRA_PIN_LCD_D8_PF0,
 };
 
-static const unsigned ld9_pins[] = {
+static const unsigned ld9_pins[] =
+{
 	TEGRA_PIN_LCD_D9_PF1,
 };
 
-static const unsigned ld10_pins[] = {
+static const unsigned ld10_pins[] =
+{
 	TEGRA_PIN_LCD_D10_PF2,
 };
 
-static const unsigned ld11_pins[] = {
+static const unsigned ld11_pins[] =
+{
 	TEGRA_PIN_LCD_D11_PF3,
 };
 
-static const unsigned ld12_pins[] = {
+static const unsigned ld12_pins[] =
+{
 	TEGRA_PIN_LCD_D12_PF4,
 };
 
-static const unsigned ld13_pins[] = {
+static const unsigned ld13_pins[] =
+{
 	TEGRA_PIN_LCD_D13_PF5,
 };
 
-static const unsigned ld14_pins[] = {
+static const unsigned ld14_pins[] =
+{
 	TEGRA_PIN_LCD_D14_PF6,
 };
 
-static const unsigned ld15_pins[] = {
+static const unsigned ld15_pins[] =
+{
 	TEGRA_PIN_LCD_D15_PF7,
 };
 
-static const unsigned ld16_pins[] = {
+static const unsigned ld16_pins[] =
+{
 	TEGRA_PIN_LCD_D16_PM0,
 };
 
-static const unsigned ld17_pins[] = {
+static const unsigned ld17_pins[] =
+{
 	TEGRA_PIN_LCD_D17_PM1,
 };
 
-static const unsigned ldc_pins[] = {
+static const unsigned ldc_pins[] =
+{
 	TEGRA_PIN_LCD_DC0_PN6,
 };
 
-static const unsigned ldi_pins[] = {
+static const unsigned ldi_pins[] =
+{
 	TEGRA_PIN_LCD_D22_PM6,
 };
 
-static const unsigned lhp0_pins[] = {
+static const unsigned lhp0_pins[] =
+{
 	TEGRA_PIN_LCD_D21_PM5,
 };
 
-static const unsigned lhp1_pins[] = {
+static const unsigned lhp1_pins[] =
+{
 	TEGRA_PIN_LCD_D18_PM2,
 };
 
-static const unsigned lhp2_pins[] = {
+static const unsigned lhp2_pins[] =
+{
 	TEGRA_PIN_LCD_D19_PM3,
 };
 
-static const unsigned lhs_pins[] = {
+static const unsigned lhs_pins[] =
+{
 	TEGRA_PIN_LCD_HSYNC_PJ3,
 };
 
-static const unsigned lm0_pins[] = {
+static const unsigned lm0_pins[] =
+{
 	TEGRA_PIN_LCD_CS1_N_PW0,
 };
 
-static const unsigned lm1_pins[] = {
+static const unsigned lm1_pins[] =
+{
 	TEGRA_PIN_LCD_M1_PW1,
 };
 
-static const unsigned lpp_pins[] = {
+static const unsigned lpp_pins[] =
+{
 	TEGRA_PIN_LCD_D23_PM7,
 };
 
-static const unsigned lpw0_pins[] = {
+static const unsigned lpw0_pins[] =
+{
 	TEGRA_PIN_LCD_PWR0_PB2,
 };
 
-static const unsigned lpw1_pins[] = {
+static const unsigned lpw1_pins[] =
+{
 	TEGRA_PIN_LCD_PWR1_PC1,
 };
 
-static const unsigned lpw2_pins[] = {
+static const unsigned lpw2_pins[] =
+{
 	TEGRA_PIN_LCD_PWR2_PC6,
 };
 
-static const unsigned lsc0_pins[] = {
+static const unsigned lsc0_pins[] =
+{
 	TEGRA_PIN_LCD_PCLK_PB3,
 };
 
-static const unsigned lsc1_pins[] = {
+static const unsigned lsc1_pins[] =
+{
 	TEGRA_PIN_LCD_WR_N_PZ3,
 };
 
-static const unsigned lsck_pins[] = {
+static const unsigned lsck_pins[] =
+{
 	TEGRA_PIN_LCD_SCK_PZ4,
 };
 
-static const unsigned lsda_pins[] = {
+static const unsigned lsda_pins[] =
+{
 	TEGRA_PIN_LCD_SDOUT_PN5,
 };
 
-static const unsigned lsdi_pins[] = {
+static const unsigned lsdi_pins[] =
+{
 	TEGRA_PIN_LCD_SDIN_PZ2,
 };
 
-static const unsigned lspi_pins[] = {
+static const unsigned lspi_pins[] =
+{
 	TEGRA_PIN_LCD_DE_PJ1,
 };
 
-static const unsigned lvp0_pins[] = {
+static const unsigned lvp0_pins[] =
+{
 	TEGRA_PIN_LCD_DC1_PV7,
 };
 
-static const unsigned lvp1_pins[] = {
+static const unsigned lvp1_pins[] =
+{
 	TEGRA_PIN_LCD_D20_PM4,
 };
 
-static const unsigned lvs_pins[] = {
+static const unsigned lvs_pins[] =
+{
 	TEGRA_PIN_LCD_VSYNC_PJ4,
 };
 
-static const unsigned ls_pins[] = {
+static const unsigned ls_pins[] =
+{
 	TEGRA_PIN_LCD_PWR0_PB2,
 	TEGRA_PIN_LCD_PWR1_PC1,
 	TEGRA_PIN_LCD_PWR2_PC6,
@@ -1096,7 +1176,8 @@ static const unsigned ls_pins[] = {
 	TEGRA_PIN_LCD_SCK_PZ4,
 };
 
-static const unsigned lc_pins[] = {
+static const unsigned lc_pins[] =
+{
 	TEGRA_PIN_LCD_PCLK_PB3,
 	TEGRA_PIN_LCD_DE_PJ1,
 	TEGRA_PIN_LCD_HSYNC_PJ3,
@@ -1107,7 +1188,8 @@ static const unsigned lc_pins[] = {
 	TEGRA_PIN_HDMI_INT_N_PN7,
 };
 
-static const unsigned ld17_0_pins[] = {
+static const unsigned ld17_0_pins[] =
+{
 	TEGRA_PIN_LCD_D0_PE0,
 	TEGRA_PIN_LCD_D1_PE1,
 	TEGRA_PIN_LCD_D2_PE2,
@@ -1128,26 +1210,31 @@ static const unsigned ld17_0_pins[] = {
 	TEGRA_PIN_LCD_D17_PM1,
 };
 
-static const unsigned ld19_18_pins[] = {
+static const unsigned ld19_18_pins[] =
+{
 	TEGRA_PIN_LCD_D18_PM2,
 	TEGRA_PIN_LCD_D19_PM3,
 };
 
-static const unsigned ld21_20_pins[] = {
+static const unsigned ld21_20_pins[] =
+{
 	TEGRA_PIN_LCD_D20_PM4,
 	TEGRA_PIN_LCD_D21_PM5,
 };
 
-static const unsigned ld23_22_pins[] = {
+static const unsigned ld23_22_pins[] =
+{
 	TEGRA_PIN_LCD_D22_PM6,
 	TEGRA_PIN_LCD_D23_PM7,
 };
 
-static const unsigned owc_pins[] = {
+static const unsigned owc_pins[] =
+{
 	TEGRA_PIN_OWC,
 };
 
-static const unsigned pmc_pins[] = {
+static const unsigned pmc_pins[] =
+{
 	TEGRA_PIN_LED_BLINK_PBB0,
 	TEGRA_PIN_SYS_CLK_REQ_PZ5,
 	TEGRA_PIN_CORE_PWR_REQ,
@@ -1155,32 +1242,38 @@ static const unsigned pmc_pins[] = {
 	TEGRA_PIN_PWR_INT_N,
 };
 
-static const unsigned pta_pins[] = {
+static const unsigned pta_pins[] =
+{
 	TEGRA_PIN_GEN2_I2C_SCL_PT5,
 	TEGRA_PIN_GEN2_I2C_SDA_PT6,
 };
 
-static const unsigned rm_pins[] = {
+static const unsigned rm_pins[] =
+{
 	TEGRA_PIN_GEN1_I2C_SCL_PC4,
 	TEGRA_PIN_GEN1_I2C_SDA_PC5,
 };
 
-static const unsigned sdb_pins[] = {
+static const unsigned sdb_pins[] =
+{
 	TEGRA_PIN_SDIO3_CMD_PA7,
 };
 
-static const unsigned sdc_pins[] = {
+static const unsigned sdc_pins[] =
+{
 	TEGRA_PIN_SDIO3_DAT0_PB7,
 	TEGRA_PIN_SDIO3_DAT1_PB6,
 	TEGRA_PIN_SDIO3_DAT2_PB5,
 	TEGRA_PIN_SDIO3_DAT3_PB4,
 };
 
-static const unsigned sdd_pins[] = {
+static const unsigned sdd_pins[] =
+{
 	TEGRA_PIN_SDIO3_CLK_PA6,
 };
 
-static const unsigned sdio1_pins[] = {
+static const unsigned sdio1_pins[] =
+{
 	TEGRA_PIN_SDIO1_CLK_PZ0,
 	TEGRA_PIN_SDIO1_CMD_PZ1,
 	TEGRA_PIN_SDIO1_DAT0_PY7,
@@ -1189,137 +1282,166 @@ static const unsigned sdio1_pins[] = {
 	TEGRA_PIN_SDIO1_DAT3_PY4,
 };
 
-static const unsigned slxa_pins[] = {
+static const unsigned slxa_pins[] =
+{
 	TEGRA_PIN_SDIO3_DAT4_PD1,
 };
 
-static const unsigned slxc_pins[] = {
+static const unsigned slxc_pins[] =
+{
 	TEGRA_PIN_SDIO3_DAT6_PD3,
 };
 
-static const unsigned slxd_pins[] = {
+static const unsigned slxd_pins[] =
+{
 	TEGRA_PIN_SDIO3_DAT7_PD4,
 };
 
-static const unsigned slxk_pins[] = {
+static const unsigned slxk_pins[] =
+{
 	TEGRA_PIN_SDIO3_DAT5_PD0,
 };
 
-static const unsigned spdi_pins[] = {
+static const unsigned spdi_pins[] =
+{
 	TEGRA_PIN_SPDIF_IN_PK6,
 };
 
-static const unsigned spdo_pins[] = {
+static const unsigned spdo_pins[] =
+{
 	TEGRA_PIN_SPDIF_OUT_PK5,
 };
 
-static const unsigned spia_pins[] = {
+static const unsigned spia_pins[] =
+{
 	TEGRA_PIN_SPI2_MOSI_PX0,
 };
 
-static const unsigned spib_pins[] = {
+static const unsigned spib_pins[] =
+{
 	TEGRA_PIN_SPI2_MISO_PX1,
 };
 
-static const unsigned spic_pins[] = {
+static const unsigned spic_pins[] =
+{
 	TEGRA_PIN_SPI2_CS0_N_PX3,
 	TEGRA_PIN_SPI2_SCK_PX2,
 };
 
-static const unsigned spid_pins[] = {
+static const unsigned spid_pins[] =
+{
 	TEGRA_PIN_SPI1_MOSI_PX4,
 };
 
-static const unsigned spie_pins[] = {
+static const unsigned spie_pins[] =
+{
 	TEGRA_PIN_SPI1_CS0_N_PX6,
 	TEGRA_PIN_SPI1_SCK_PX5,
 };
 
-static const unsigned spif_pins[] = {
+static const unsigned spif_pins[] =
+{
 	TEGRA_PIN_SPI1_MISO_PX7,
 };
 
-static const unsigned spig_pins[] = {
+static const unsigned spig_pins[] =
+{
 	TEGRA_PIN_SPI2_CS1_N_PW2,
 };
 
-static const unsigned spih_pins[] = {
+static const unsigned spih_pins[] =
+{
 	TEGRA_PIN_SPI2_CS2_N_PW3,
 };
 
-static const unsigned uaa_pins[] = {
+static const unsigned uaa_pins[] =
+{
 	TEGRA_PIN_ULPI_DATA0_PO1,
 	TEGRA_PIN_ULPI_DATA1_PO2,
 	TEGRA_PIN_ULPI_DATA2_PO3,
 	TEGRA_PIN_ULPI_DATA3_PO4,
 };
 
-static const unsigned uab_pins[] = {
+static const unsigned uab_pins[] =
+{
 	TEGRA_PIN_ULPI_DATA4_PO5,
 	TEGRA_PIN_ULPI_DATA5_PO6,
 	TEGRA_PIN_ULPI_DATA6_PO7,
 	TEGRA_PIN_ULPI_DATA7_PO0,
 };
 
-static const unsigned uac_pins[] = {
+static const unsigned uac_pins[] =
+{
 	TEGRA_PIN_PV0,
 	TEGRA_PIN_PV1,
 	TEGRA_PIN_PV2,
 	TEGRA_PIN_PV3,
 };
 
-static const unsigned ck32_pins[] = {
+static const unsigned ck32_pins[] =
+{
 	TEGRA_PIN_CLK_32_K_IN,
 };
 
-static const unsigned uad_pins[] = {
+static const unsigned uad_pins[] =
+{
 	TEGRA_PIN_UART2_RXD_PC3,
 	TEGRA_PIN_UART2_TXD_PC2,
 };
 
-static const unsigned uca_pins[] = {
+static const unsigned uca_pins[] =
+{
 	TEGRA_PIN_UART3_RXD_PW7,
 	TEGRA_PIN_UART3_TXD_PW6,
 };
 
-static const unsigned ucb_pins[] = {
+static const unsigned ucb_pins[] =
+{
 	TEGRA_PIN_UART3_CTS_N_PA1,
 	TEGRA_PIN_UART3_RTS_N_PC0,
 };
 
-static const unsigned uda_pins[] = {
+static const unsigned uda_pins[] =
+{
 	TEGRA_PIN_ULPI_CLK_PY0,
 	TEGRA_PIN_ULPI_DIR_PY1,
 	TEGRA_PIN_ULPI_NXT_PY2,
 	TEGRA_PIN_ULPI_STP_PY3,
 };
 
-static const unsigned ddrc_pins[] = {
+static const unsigned ddrc_pins[] =
+{
 	TEGRA_PIN_DDR_COMP_PD,
 	TEGRA_PIN_DDR_COMP_PU,
 };
 
-static const unsigned pmca_pins[] = {
+static const unsigned pmca_pins[] =
+{
 	TEGRA_PIN_LED_BLINK_PBB0,
 };
 
-static const unsigned pmcb_pins[] = {
+static const unsigned pmcb_pins[] =
+{
 	TEGRA_PIN_SYS_CLK_REQ_PZ5,
 };
 
-static const unsigned pmcc_pins[] = {
+static const unsigned pmcc_pins[] =
+{
 	TEGRA_PIN_CORE_PWR_REQ,
 };
 
-static const unsigned pmcd_pins[] = {
+static const unsigned pmcd_pins[] =
+{
 	TEGRA_PIN_CPU_PWR_REQ,
 };
 
-static const unsigned pmce_pins[] = {
+static const unsigned pmce_pins[] =
+{
 	TEGRA_PIN_PWR_INT_N,
 };
 
-static const unsigned xm2c_pins[] = {
+static const unsigned xm2c_pins[] =
+{
 	TEGRA_PIN_DDR_A0,
 	TEGRA_PIN_DDR_A1,
 	TEGRA_PIN_DDR_A2,
@@ -1366,7 +1488,8 @@ static const unsigned xm2c_pins[] = {
 	TEGRA_PIN_DDR_QUSE3,
 };
 
-static const unsigned xm2d_pins[] = {
+static const unsigned xm2d_pins[] =
+{
 	TEGRA_PIN_DDR_DQ0,
 	TEGRA_PIN_DDR_DQ1,
 	TEGRA_PIN_DDR_DQ2,
@@ -1401,7 +1524,8 @@ static const unsigned xm2d_pins[] = {
 	TEGRA_PIN_DDR_DQ31,
 };
 
-static const unsigned drive_ao1_pins[] = {
+static const unsigned drive_ao1_pins[] =
+{
 	TEGRA_PIN_SYS_RESET,
 	TEGRA_PIN_PWR_I2C_SCL_PZ6,
 	TEGRA_PIN_PWR_I2C_SDA_PZ7,
@@ -1415,7 +1539,8 @@ static const unsigned drive_ao1_pins[] = {
 	TEGRA_PIN_KB_ROW7_PR7,
 };
 
-static const unsigned drive_ao2_pins[] = {
+static const unsigned drive_ao2_pins[] =
+{
 	TEGRA_PIN_KB_ROW8_PS0,
 	TEGRA_PIN_KB_ROW9_PS1,
 	TEGRA_PIN_KB_ROW10_PS2,
@@ -1440,7 +1565,8 @@ static const unsigned drive_ao2_pins[] = {
 	TEGRA_PIN_CLK_32_K_IN,
 };
 
-static const unsigned drive_at1_pins[] = {
+static const unsigned drive_at1_pins[] =
+{
 	TEGRA_PIN_GMI_IORDY_PI5,
 	TEGRA_PIN_GMI_AD8_PH0,
 	TEGRA_PIN_GMI_AD9_PH1,
@@ -1456,7 +1582,8 @@ static const unsigned drive_at1_pins[] = {
 	TEGRA_PIN_GEN2_I2C_SDA_PT6,
 };
 
-static const unsigned drive_at2_pins[] = {
+static const unsigned drive_at2_pins[] =
+{
 	TEGRA_PIN_GMI_WAIT_PI7,
 	TEGRA_PIN_GMI_ADV_N_PK0,
 	TEGRA_PIN_GMI_CLK_PK1,
@@ -1478,19 +1605,23 @@ static const unsigned drive_at2_pins[] = {
 	TEGRA_PIN_GMI_RST_N_PI4,
 };
 
-static const unsigned drive_cdev1_pins[] = {
+static const unsigned drive_cdev1_pins[] =
+{
 	TEGRA_PIN_DAP_MCLK1_PW4,
 };
 
-static const unsigned drive_cdev2_pins[] = {
+static const unsigned drive_cdev2_pins[] =
+{
 	TEGRA_PIN_DAP_MCLK2_PW5,
 };
 
-static const unsigned drive_csus_pins[] = {
+static const unsigned drive_csus_pins[] =
+{
 	TEGRA_PIN_VI_MCLK_PT1,
 };
 
-static const unsigned drive_dap1_pins[] = {
+static const unsigned drive_dap1_pins[] =
+{
 	TEGRA_PIN_DAP1_FS_PN0,
 	TEGRA_PIN_DAP1_DIN_PN1,
 	TEGRA_PIN_DAP1_DOUT_PN2,
@@ -1499,28 +1630,32 @@ static const unsigned drive_dap1_pins[] = {
 	TEGRA_PIN_SPDIF_IN_PK6,
 };
 
-static const unsigned drive_dap2_pins[] = {
+static const unsigned drive_dap2_pins[] =
+{
 	TEGRA_PIN_DAP2_FS_PA2,
 	TEGRA_PIN_DAP2_SCLK_PA3,
 	TEGRA_PIN_DAP2_DIN_PA4,
 	TEGRA_PIN_DAP2_DOUT_PA5,
 };
 
-static const unsigned drive_dap3_pins[] = {
+static const unsigned drive_dap3_pins[] =
+{
 	TEGRA_PIN_DAP3_FS_PP0,
 	TEGRA_PIN_DAP3_DIN_PP1,
 	TEGRA_PIN_DAP3_DOUT_PP2,
 	TEGRA_PIN_DAP3_SCLK_PP3,
 };
 
-static const unsigned drive_dap4_pins[] = {
+static const unsigned drive_dap4_pins[] =
+{
 	TEGRA_PIN_DAP4_FS_PP4,
 	TEGRA_PIN_DAP4_DIN_PP5,
 	TEGRA_PIN_DAP4_DOUT_PP6,
 	TEGRA_PIN_DAP4_SCLK_PP7,
 };
 
-static const unsigned drive_dbg_pins[] = {
+static const unsigned drive_dbg_pins[] =
+{
 	TEGRA_PIN_PU0,
 	TEGRA_PIN_PU1,
 	TEGRA_PIN_PU2,
@@ -1539,7 +1674,8 @@ static const unsigned drive_dbg_pins[] = {
 	TEGRA_PIN_TEST_MODE_EN,
 };
 
-static const unsigned drive_lcd1_pins[] = {
+static const unsigned drive_lcd1_pins[] =
+{
 	TEGRA_PIN_LCD_PWR1_PC1,
 	TEGRA_PIN_LCD_PWR2_PC6,
 	TEGRA_PIN_LCD_SDIN_PZ2,
@@ -1550,7 +1686,8 @@ static const unsigned drive_lcd1_pins[] = {
 	TEGRA_PIN_LCD_SCK_PZ4,
 };
 
-static const unsigned drive_lcd2_pins[] = {
+static const unsigned drive_lcd2_pins[] =
+{
 	TEGRA_PIN_LCD_PWR0_PB2,
 	TEGRA_PIN_LCD_PCLK_PB3,
 	TEGRA_PIN_LCD_DE_PJ1,
@@ -1586,14 +1723,16 @@ static const unsigned drive_lcd2_pins[] = {
 	TEGRA_PIN_HDMI_INT_N_PN7,
 };
 
-static const unsigned drive_sdmmc2_pins[] = {
+static const unsigned drive_sdmmc2_pins[] =
+{
 	TEGRA_PIN_SDIO3_DAT4_PD1,
 	TEGRA_PIN_SDIO3_DAT5_PD0,
 	TEGRA_PIN_SDIO3_DAT6_PD3,
 	TEGRA_PIN_SDIO3_DAT7_PD4,
 };
 
-static const unsigned drive_sdmmc3_pins[] = {
+static const unsigned drive_sdmmc3_pins[] =
+{
 	TEGRA_PIN_SDIO3_CLK_PA6,
 	TEGRA_PIN_SDIO3_CMD_PA7,
 	TEGRA_PIN_SDIO3_DAT0_PB7,
@@ -1605,7 +1744,8 @@ static const unsigned drive_sdmmc3_pins[] = {
 	TEGRA_PIN_PV6,
 };
 
-static const unsigned drive_spi_pins[] = {
+static const unsigned drive_spi_pins[] =
+{
 	TEGRA_PIN_SPI2_MOSI_PX0,
 	TEGRA_PIN_SPI2_MISO_PX1,
 	TEGRA_PIN_SPI2_SCK_PX2,
@@ -1618,14 +1758,16 @@ static const unsigned drive_spi_pins[] = {
 	TEGRA_PIN_SPI2_CS2_N_PW3,
 };
 
-static const unsigned drive_uaa_pins[] = {
+static const unsigned drive_uaa_pins[] =
+{
 	TEGRA_PIN_ULPI_DATA0_PO1,
 	TEGRA_PIN_ULPI_DATA1_PO2,
 	TEGRA_PIN_ULPI_DATA2_PO3,
 	TEGRA_PIN_ULPI_DATA3_PO4,
 };
 
-static const unsigned drive_uab_pins[] = {
+static const unsigned drive_uab_pins[] =
+{
 	TEGRA_PIN_ULPI_DATA4_PO5,
 	TEGRA_PIN_ULPI_DATA5_PO6,
 	TEGRA_PIN_ULPI_DATA6_PO7,
@@ -1636,21 +1778,24 @@ static const unsigned drive_uab_pins[] = {
 	TEGRA_PIN_PV3,
 };
 
-static const unsigned drive_uart2_pins[] = {
+static const unsigned drive_uart2_pins[] =
+{
 	TEGRA_PIN_UART2_TXD_PC2,
 	TEGRA_PIN_UART2_RXD_PC3,
 	TEGRA_PIN_UART2_RTS_N_PJ6,
 	TEGRA_PIN_UART2_CTS_N_PJ5,
 };
 
-static const unsigned drive_uart3_pins[] = {
+static const unsigned drive_uart3_pins[] =
+{
 	TEGRA_PIN_UART3_TXD_PW6,
 	TEGRA_PIN_UART3_RXD_PW7,
 	TEGRA_PIN_UART3_RTS_N_PC0,
 	TEGRA_PIN_UART3_CTS_N_PA1,
 };
 
-static const unsigned drive_vi1_pins[] = {
+static const unsigned drive_vi1_pins[] =
+{
 	TEGRA_PIN_VI_D0_PT4,
 	TEGRA_PIN_VI_D1_PD5,
 	TEGRA_PIN_VI_D2_PL0,
@@ -1668,7 +1813,8 @@ static const unsigned drive_vi1_pins[] = {
 	TEGRA_PIN_VI_HSYNC_PD7,
 };
 
-static const unsigned drive_vi2_pins[] = {
+static const unsigned drive_vi2_pins[] =
+{
 	TEGRA_PIN_VI_GP0_PBB1,
 	TEGRA_PIN_CAM_I2C_SCL_PBB2,
 	TEGRA_PIN_CAM_I2C_SDA_PBB3,
@@ -1678,7 +1824,8 @@ static const unsigned drive_vi2_pins[] = {
 	TEGRA_PIN_VI_GP6_PA0,
 };
 
-static const unsigned drive_xm2a_pins[] = {
+static const unsigned drive_xm2a_pins[] =
+{
 	TEGRA_PIN_DDR_A0,
 	TEGRA_PIN_DDR_A1,
 	TEGRA_PIN_DDR_A2,
@@ -1707,7 +1854,8 @@ static const unsigned drive_xm2a_pins[] = {
 	TEGRA_PIN_DDR_CKE1,
 };
 
-static const unsigned drive_xm2c_pins[] = {
+static const unsigned drive_xm2c_pins[] =
+{
 	TEGRA_PIN_DDR_DQS0P,
 	TEGRA_PIN_DDR_DQS0N,
 	TEGRA_PIN_DDR_DQS1P,
@@ -1722,7 +1870,8 @@ static const unsigned drive_xm2c_pins[] = {
 	TEGRA_PIN_DDR_QUSE3,
 };
 
-static const unsigned drive_xm2d_pins[] = {
+static const unsigned drive_xm2d_pins[] =
+{
 	TEGRA_PIN_DDR_DQ0,
 	TEGRA_PIN_DDR_DQ1,
 	TEGRA_PIN_DDR_DQ2,
@@ -1761,12 +1910,14 @@ static const unsigned drive_xm2d_pins[] = {
 	TEGRA_PIN_DDR_DM3,
 };
 
-static const unsigned drive_xm2clk_pins[] = {
+static const unsigned drive_xm2clk_pins[] =
+{
 	TEGRA_PIN_DDR_CLK,
 	TEGRA_PIN_DDR_CLK_N,
 };
 
-static const unsigned drive_sdio1_pins[] = {
+static const unsigned drive_sdio1_pins[] =
+{
 	TEGRA_PIN_SDIO1_CLK_PZ0,
 	TEGRA_PIN_SDIO1_CMD_PZ1,
 	TEGRA_PIN_SDIO1_DAT0_PY7,
@@ -1775,58 +1926,68 @@ static const unsigned drive_sdio1_pins[] = {
 	TEGRA_PIN_SDIO1_DAT3_PY4,
 };
 
-static const unsigned drive_crt_pins[] = {
+static const unsigned drive_crt_pins[] =
+{
 	TEGRA_PIN_CRT_HSYNC,
 	TEGRA_PIN_CRT_VSYNC,
 };
 
-static const unsigned drive_ddc_pins[] = {
+static const unsigned drive_ddc_pins[] =
+{
 	TEGRA_PIN_DDC_SCL,
 	TEGRA_PIN_DDC_SDA,
 };
 
-static const unsigned drive_gma_pins[] = {
+static const unsigned drive_gma_pins[] =
+{
 	TEGRA_PIN_GMI_AD20_PAA0,
 	TEGRA_PIN_GMI_AD21_PAA1,
 	TEGRA_PIN_GMI_AD22_PAA2,
 	TEGRA_PIN_GMI_AD23_PAA3,
 };
 
-static const unsigned drive_gmb_pins[] = {
+static const unsigned drive_gmb_pins[] =
+{
 	TEGRA_PIN_GMI_WP_N_PC7,
 };
 
-static const unsigned drive_gmc_pins[] = {
+static const unsigned drive_gmc_pins[] =
+{
 	TEGRA_PIN_GMI_AD16_PJ7,
 	TEGRA_PIN_GMI_AD17_PB0,
 	TEGRA_PIN_GMI_AD18_PB1,
 	TEGRA_PIN_GMI_AD19_PK7,
 };
 
-static const unsigned drive_gmd_pins[] = {
+static const unsigned drive_gmd_pins[] =
+{
 	TEGRA_PIN_GMI_CS0_N_PJ0,
 	TEGRA_PIN_GMI_CS1_N_PJ2,
 };
 
-static const unsigned drive_gme_pins[] = {
+static const unsigned drive_gme_pins[] =
+{
 	TEGRA_PIN_GMI_AD24_PAA4,
 	TEGRA_PIN_GMI_AD25_PAA5,
 	TEGRA_PIN_GMI_AD26_PAA6,
 	TEGRA_PIN_GMI_AD27_PAA7,
 };
 
-static const unsigned drive_owr_pins[] = {
+static const unsigned drive_owr_pins[] =
+{
 	TEGRA_PIN_OWC,
 };
 
-static const unsigned drive_uda_pins[] = {
+static const unsigned drive_uda_pins[] =
+{
 	TEGRA_PIN_ULPI_CLK_PY0,
 	TEGRA_PIN_ULPI_DIR_PY1,
 	TEGRA_PIN_ULPI_NXT_PY2,
 	TEGRA_PIN_ULPI_STP_PY3,
 };
 
-enum tegra_mux {
+enum tegra_mux
+{
 	TEGRA_MUX_AHB_CLK,
 	TEGRA_MUX_APB_CLK,
 	TEGRA_MUX_AUDIO_SYNC,
@@ -1899,7 +2060,8 @@ enum tegra_mux {
 		.name = #fname,				\
 	}
 
-static struct tegra_function tegra20_functions[] = {
+static struct tegra_function tegra20_functions[] =
+{
 	FUNCTION(ahb_clk),
 	FUNCTION(apb_clk),
 	FUNCTION(audio_sync),
@@ -1974,82 +2136,83 @@ static struct tegra_function tegra20_functions[] = {
 
 /* Pin group with mux control, and typically tri-state and pull-up/down too */
 #define MUX_PG(pg_name, f0, f1, f2, f3,				\
-	       tri_r, tri_b, mux_r, mux_b, pupd_r, pupd_b)	\
-	{							\
-		.name = #pg_name,				\
-		.pins = pg_name##_pins,				\
-		.npins = ARRAY_SIZE(pg_name##_pins),		\
-		.funcs = {					\
-			TEGRA_MUX_ ## f0,			\
-			TEGRA_MUX_ ## f1,			\
-			TEGRA_MUX_ ## f2,			\
-			TEGRA_MUX_ ## f3,			\
-		},						\
-		.mux_reg = ((mux_r) - PIN_MUX_CTL_REG_A),	\
-		.mux_bank = 1,					\
-		.mux_bit = mux_b,				\
-		.pupd_reg = ((pupd_r) - PULLUPDOWN_REG_A),	\
-		.pupd_bank = 2,					\
-		.pupd_bit = pupd_b,				\
-		.tri_reg = ((tri_r) - TRISTATE_REG_A),		\
-		.tri_bank = 0,					\
-		.tri_bit = tri_b,				\
-		.parked_bit = -1,				\
-		.einput_bit = -1,				\
-		.odrain_bit = -1,				\
-		.lock_bit = -1,					\
-		.ioreset_bit = -1,				\
-		.rcv_sel_bit = -1,				\
-		.drv_reg = -1,					\
-	}
+			   tri_r, tri_b, mux_r, mux_b, pupd_r, pupd_b)	\
+{							\
+	.name = #pg_name,				\
+			.pins = pg_name##_pins,				\
+					.npins = ARRAY_SIZE(pg_name##_pins),		\
+							 .funcs = {					\
+														 TEGRA_MUX_ ## f0,			\
+														 TEGRA_MUX_ ## f1,			\
+														 TEGRA_MUX_ ## f2,			\
+														 TEGRA_MUX_ ## f3,			\
+									  },						\
+									  .mux_reg = ((mux_r) - PIN_MUX_CTL_REG_A),	\
+											  .mux_bank = 1,					\
+													  .mux_bit = mux_b,				\
+															  .pupd_reg = ((pupd_r) - PULLUPDOWN_REG_A),	\
+																	  .pupd_bank = 2,					\
+																			  .pupd_bit = pupd_b,				\
+																					  .tri_reg = ((tri_r) - TRISTATE_REG_A),		\
+																							  .tri_bank = 0,					\
+																									  .tri_bit = tri_b,				\
+																											  .parked_bit = -1,				\
+																													  .einput_bit = -1,				\
+																															  .odrain_bit = -1,				\
+																																	  .lock_bit = -1,					\
+																																			  .ioreset_bit = -1,				\
+																																					  .rcv_sel_bit = -1,				\
+																																							  .drv_reg = -1,					\
+}
 
 /* Pin groups with only pull up and pull down control */
 #define PULL_PG(pg_name, pupd_r, pupd_b)			\
 	{							\
 		.name = #pg_name,				\
-		.pins = pg_name##_pins,				\
-		.npins = ARRAY_SIZE(pg_name##_pins),		\
-		.mux_reg = -1,					\
-		.pupd_reg = ((pupd_r) - PULLUPDOWN_REG_A),	\
-		.pupd_bank = 2,					\
-		.pupd_bit = pupd_b,				\
-		.drv_reg = -1,					\
-		.parked_bit = -1,				\
+				.pins = pg_name##_pins,				\
+						.npins = ARRAY_SIZE(pg_name##_pins),		\
+								 .mux_reg = -1,					\
+											.pupd_reg = ((pupd_r) - PULLUPDOWN_REG_A),	\
+													.pupd_bank = 2,					\
+															.pupd_bit = pupd_b,				\
+																	.drv_reg = -1,					\
+																			.parked_bit = -1,				\
 	}
 
 /* Pin groups for drive strength registers (configurable version) */
 #define DRV_PG_EXT(pg_name, r, hsm_b, schmitt_b, lpmd_b,	\
-		   drvdn_b, drvup_b,				\
-		   slwr_b, slwr_w, slwf_b, slwf_w)		\
-	{							\
-		.name = "drive_" #pg_name,			\
-		.pins = drive_##pg_name##_pins,			\
-		.npins = ARRAY_SIZE(drive_##pg_name##_pins),	\
-		.mux_reg = -1,					\
-		.pupd_reg = -1,					\
-		.tri_reg = -1,					\
-		.drv_reg = ((r) - PINGROUP_REG_A),		\
-		.drv_bank = 3,					\
-		.parked_bit = -1,				\
-		.hsm_bit = hsm_b,				\
-		.schmitt_bit = schmitt_b,			\
-		.lpmd_bit = lpmd_b,				\
-		.drvdn_bit = drvdn_b,				\
-		.drvdn_width = 5,				\
-		.drvup_bit = drvup_b,				\
-		.drvup_width = 5,				\
-		.slwr_bit = slwr_b,				\
-		.slwr_width = slwr_w,				\
-		.slwf_bit = slwf_b,				\
-		.slwf_width = slwf_w,				\
-		.drvtype_bit = -1,				\
-	}
+				   drvdn_b, drvup_b,				\
+				   slwr_b, slwr_w, slwf_b, slwf_w)		\
+{							\
+	.name = "drive_" #pg_name,			\
+			.pins = drive_##pg_name##_pins,			\
+					.npins = ARRAY_SIZE(drive_##pg_name##_pins),	\
+							 .mux_reg = -1,					\
+										.pupd_reg = -1,					\
+												.tri_reg = -1,					\
+														.drv_reg = ((r) - PINGROUP_REG_A),		\
+																.drv_bank = 3,					\
+																		.parked_bit = -1,				\
+																				.hsm_bit = hsm_b,				\
+																						.schmitt_bit = schmitt_b,			\
+																								.lpmd_bit = lpmd_b,				\
+																										.drvdn_bit = drvdn_b,				\
+																												.drvdn_width = 5,				\
+																														.drvup_bit = drvup_b,				\
+																																.drvup_width = 5,				\
+																																		.slwr_bit = slwr_b,				\
+																																				.slwr_width = slwr_w,				\
+																																						.slwf_bit = slwf_b,				\
+																																								.slwf_width = slwf_w,				\
+																																										.drvtype_bit = -1,				\
+}
 
 /* Pin groups for drive strength registers (simple version) */
 #define DRV_PG(pg_name, r) \
 	DRV_PG_EXT(pg_name, r, 2,  3,  4, 12, 20, 28, 2, 30, 2)
 
-static const struct tegra_pingroup tegra20_groups[] = {
+static const struct tegra_pingroup tegra20_groups[] =
+{
 	/*     name,   f0,        f1,        f2,        f3,            tri r/b,  mux r/b,  pupd r/b */
 	MUX_PG(ata,    IDE,       NAND,      GMI,       RSVD4,         0x14, 0,  0x80, 24, 0xa0, 0),
 	MUX_PG(atb,    IDE,       NAND,      GMI,       SDIO4,         0x14, 1,  0x80, 16, 0xa0, 2),
@@ -2216,7 +2379,8 @@ static const struct tegra_pingroup tegra20_groups[] = {
 	DRV_PG(uda,        0x90c),
 };
 
-static const struct tegra_pinctrl_soc_data tegra20_pinctrl = {
+static const struct tegra_pinctrl_soc_data tegra20_pinctrl =
+{
 	.ngpios = NUM_GPIOS,
 	.pins = tegra20_pins,
 	.npins = ARRAY_SIZE(tegra20_pins),
@@ -2234,12 +2398,14 @@ static int tegra20_pinctrl_probe(struct platform_device *pdev)
 	return tegra_pinctrl_probe(pdev, &tegra20_pinctrl);
 }
 
-static const struct of_device_id tegra20_pinctrl_of_match[] = {
+static const struct of_device_id tegra20_pinctrl_of_match[] =
+{
 	{ .compatible = "nvidia,tegra20-pinmux", },
 	{ },
 };
 
-static struct platform_driver tegra20_pinctrl_driver = {
+static struct platform_driver tegra20_pinctrl_driver =
+{
 	.driver = {
 		.name = "tegra20-pinctrl",
 		.of_match_table = tegra20_pinctrl_of_match,

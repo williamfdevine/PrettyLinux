@@ -25,7 +25,8 @@
 
 #define MPMU_UART_PLL	0x14
 
-struct pxa1928_clk_unit {
+struct pxa1928_clk_unit
+{
 	struct mmp_clk_unit unit;
 	void __iomem *mpmu_base;
 	void __iomem *apmu_base;
@@ -33,7 +34,8 @@ struct pxa1928_clk_unit {
 	void __iomem *apbcp_base;
 };
 
-static struct mmp_param_fixed_rate_clk fixed_rate_clks[] = {
+static struct mmp_param_fixed_rate_clk fixed_rate_clks[] =
+{
 	{0, "clk32", NULL, 0, 32768},
 	{0, "vctcxo", NULL, 0, 26000000},
 	{0, "pll1_624", NULL, 0, 624000000},
@@ -42,7 +44,8 @@ static struct mmp_param_fixed_rate_clk fixed_rate_clks[] = {
 	{0, "usb_pll", NULL, 0, 480000000},
 };
 
-static struct mmp_param_fixed_factor_clk fixed_factor_clks[] = {
+static struct mmp_param_fixed_factor_clk fixed_factor_clks[] =
+{
 	{0, "pll1_d2", "pll1_624", 1, 2, 0},
 	{0, "pll1_d9", "pll1_624", 1, 9, 0},
 	{0, "pll1_d12", "pll1_624", 1, 12, 0},
@@ -53,7 +56,8 @@ static struct mmp_param_fixed_factor_clk fixed_factor_clks[] = {
 	{0, "vctcxo_d4", "vctcxo", 1, 4, 0},
 };
 
-static struct mmp_clk_factor_masks uart_factor_masks = {
+static struct mmp_clk_factor_masks uart_factor_masks =
+{
 	.factor = 2,
 	.num_mask = 0x1fff,
 	.den_mask = 0x1fff,
@@ -61,7 +65,8 @@ static struct mmp_clk_factor_masks uart_factor_masks = {
 	.den_shift = 0,
 };
 
-static struct mmp_clk_factor_tbl uart_factor_tbl[] = {
+static struct mmp_clk_factor_tbl uart_factor_tbl[] =
+{
 	{.num = 832, .den = 234},	/*58.5MHZ */
 	{.num = 1, .den = 1},		/*26MHZ */
 };
@@ -72,16 +77,16 @@ static void pxa1928_pll_init(struct pxa1928_clk_unit *pxa_unit)
 	struct mmp_clk_unit *unit = &pxa_unit->unit;
 
 	mmp_register_fixed_rate_clks(unit, fixed_rate_clks,
-					ARRAY_SIZE(fixed_rate_clks));
+								 ARRAY_SIZE(fixed_rate_clks));
 
 	mmp_register_fixed_factor_clks(unit, fixed_factor_clks,
-					ARRAY_SIZE(fixed_factor_clks));
+								   ARRAY_SIZE(fixed_factor_clks));
 
 	clk = mmp_clk_register_factor("uart_pll", "pll1_416",
-				CLK_SET_RATE_PARENT,
-				pxa_unit->mpmu_base + MPMU_UART_PLL,
-				&uart_factor_masks, uart_factor_tbl,
-				ARRAY_SIZE(uart_factor_tbl), NULL);
+								  CLK_SET_RATE_PARENT,
+								  pxa_unit->mpmu_base + MPMU_UART_PLL,
+								  &uart_factor_masks, uart_factor_tbl,
+								  ARRAY_SIZE(uart_factor_tbl), NULL);
 }
 
 static DEFINE_SPINLOCK(uart0_lock);
@@ -96,7 +101,8 @@ static const char *ssp_parent_names[] = {"vctcxo_d4", "vctcxo_d2", "vctcxo", "pl
 
 static DEFINE_SPINLOCK(reset_lock);
 
-static struct mmp_param_mux_clk apbc_mux_clks[] = {
+static struct mmp_param_mux_clk apbc_mux_clks[] =
+{
 	{0, "uart0_mux", uart_parent_names, ARRAY_SIZE(uart_parent_names), CLK_SET_RATE_PARENT, PXA1928_CLK_UART0 * 4, 4, 3, 0, &uart0_lock},
 	{0, "uart1_mux", uart_parent_names, ARRAY_SIZE(uart_parent_names), CLK_SET_RATE_PARENT, PXA1928_CLK_UART1 * 4, 4, 3, 0, &uart1_lock},
 	{0, "uart2_mux", uart_parent_names, ARRAY_SIZE(uart_parent_names), CLK_SET_RATE_PARENT, PXA1928_CLK_UART2 * 4, 4, 3, 0, &uart2_lock},
@@ -105,7 +111,8 @@ static struct mmp_param_mux_clk apbc_mux_clks[] = {
 	{0, "ssp1_mux", ssp_parent_names, ARRAY_SIZE(ssp_parent_names), CLK_SET_RATE_PARENT, PXA1928_CLK_SSP1 * 4, 4, 3, 0, &ssp1_lock},
 };
 
-static struct mmp_param_gate_clk apbc_gate_clks[] = {
+static struct mmp_param_gate_clk apbc_gate_clks[] =
+{
 	{PXA1928_CLK_TWSI0, "twsi0_clk", "vctcxo", CLK_SET_RATE_PARENT, PXA1928_CLK_TWSI0 * 4, 0x3, 0x3, 0x0, 0, &reset_lock},
 	{PXA1928_CLK_TWSI1, "twsi1_clk", "vctcxo", CLK_SET_RATE_PARENT, PXA1928_CLK_TWSI1 * 4, 0x3, 0x3, 0x0, 0, &reset_lock},
 	{PXA1928_CLK_TWSI2, "twsi2_clk", "vctcxo", CLK_SET_RATE_PARENT, PXA1928_CLK_TWSI2 * 4, 0x3, 0x3, 0x0, 0, &reset_lock},
@@ -133,10 +140,10 @@ static void pxa1928_apb_periph_clk_init(struct pxa1928_clk_unit *pxa_unit)
 	struct mmp_clk_unit *unit = &pxa_unit->unit;
 
 	mmp_register_mux_clks(unit, apbc_mux_clks, pxa_unit->apbc_base,
-				ARRAY_SIZE(apbc_mux_clks));
+						  ARRAY_SIZE(apbc_mux_clks));
 
 	mmp_register_gate_clks(unit, apbc_gate_clks, pxa_unit->apbc_base,
-				ARRAY_SIZE(apbc_gate_clks));
+						   ARRAY_SIZE(apbc_gate_clks));
 }
 
 static DEFINE_SPINLOCK(sdh0_lock);
@@ -148,15 +155,18 @@ static const char *sdh_parent_names[] = {"pll1_624", "pll5p", "pll5", "pll1_416"
 
 static DEFINE_SPINLOCK(usb_lock);
 
-static struct mmp_param_mux_clk apmu_mux_clks[] = {
+static struct mmp_param_mux_clk apmu_mux_clks[] =
+{
 	{0, "sdh_mux", sdh_parent_names, ARRAY_SIZE(sdh_parent_names), CLK_SET_RATE_PARENT, PXA1928_CLK_SDH0 * 4, 8, 2, 0, &sdh0_lock},
 };
 
-static struct mmp_param_div_clk apmu_div_clks[] = {
+static struct mmp_param_div_clk apmu_div_clks[] =
+{
 	{0, "sdh_div", "sdh_mux", 0, PXA1928_CLK_SDH0 * 4, 10, 4, CLK_DIVIDER_ONE_BASED, &sdh0_lock},
 };
 
-static struct mmp_param_gate_clk apmu_gate_clks[] = {
+static struct mmp_param_gate_clk apmu_gate_clks[] =
+{
 	{PXA1928_CLK_USB, "usb_clk", "usb_pll", 0, PXA1928_CLK_USB * 4, 0x9, 0x9, 0x0, 0, &usb_lock},
 	{PXA1928_CLK_HSIC, "hsic_clk", "usb_pll", 0, PXA1928_CLK_HSIC * 4, 0x9, 0x9, 0x0, 0, &usb_lock},
 	/* The gate clocks has mux parent. */
@@ -172,28 +182,33 @@ static void pxa1928_axi_periph_clk_init(struct pxa1928_clk_unit *pxa_unit)
 	struct mmp_clk_unit *unit = &pxa_unit->unit;
 
 	mmp_register_mux_clks(unit, apmu_mux_clks, pxa_unit->apmu_base,
-				ARRAY_SIZE(apmu_mux_clks));
+						  ARRAY_SIZE(apmu_mux_clks));
 
 	mmp_register_div_clks(unit, apmu_div_clks, pxa_unit->apmu_base,
-				ARRAY_SIZE(apmu_div_clks));
+						  ARRAY_SIZE(apmu_div_clks));
 
 	mmp_register_gate_clks(unit, apmu_gate_clks, pxa_unit->apmu_base,
-				ARRAY_SIZE(apmu_gate_clks));
+						   ARRAY_SIZE(apmu_gate_clks));
 }
 
 static void pxa1928_clk_reset_init(struct device_node *np,
-				struct pxa1928_clk_unit *pxa_unit)
+								   struct pxa1928_clk_unit *pxa_unit)
 {
 	struct mmp_clk_reset_cell *cells;
 	int i, base, nr_resets;
 
 	nr_resets = ARRAY_SIZE(apbc_gate_clks);
 	cells = kcalloc(nr_resets, sizeof(*cells), GFP_KERNEL);
+
 	if (!cells)
+	{
 		return;
+	}
 
 	base = 0;
-	for (i = 0; i < nr_resets; i++) {
+
+	for (i = 0; i < nr_resets; i++)
+	{
 		cells[base + i].clk_id = apbc_gate_clks[i].id;
 		cells[base + i].reg =
 			pxa_unit->apbc_base + apbc_gate_clks[i].offset;
@@ -210,11 +225,16 @@ static void __init pxa1928_mpmu_clk_init(struct device_node *np)
 	struct pxa1928_clk_unit *pxa_unit;
 
 	pxa_unit = kzalloc(sizeof(*pxa_unit), GFP_KERNEL);
+
 	if (!pxa_unit)
+	{
 		return;
+	}
 
 	pxa_unit->mpmu_base = of_iomap(np, 0);
-	if (!pxa_unit->mpmu_base) {
+
+	if (!pxa_unit->mpmu_base)
+	{
 		pr_err("failed to map mpmu registers\n");
 		return;
 	}
@@ -228,11 +248,16 @@ static void __init pxa1928_apmu_clk_init(struct device_node *np)
 	struct pxa1928_clk_unit *pxa_unit;
 
 	pxa_unit = kzalloc(sizeof(*pxa_unit), GFP_KERNEL);
+
 	if (!pxa_unit)
+	{
 		return;
+	}
 
 	pxa_unit->apmu_base = of_iomap(np, 0);
-	if (!pxa_unit->apmu_base) {
+
+	if (!pxa_unit->apmu_base)
+	{
 		pr_err("failed to map apmu registers\n");
 		return;
 	}
@@ -248,11 +273,16 @@ static void __init pxa1928_apbc_clk_init(struct device_node *np)
 	struct pxa1928_clk_unit *pxa_unit;
 
 	pxa_unit = kzalloc(sizeof(*pxa_unit), GFP_KERNEL);
+
 	if (!pxa_unit)
+	{
 		return;
+	}
 
 	pxa_unit->apbc_base = of_iomap(np, 0);
-	if (!pxa_unit->apbc_base) {
+
+	if (!pxa_unit->apbc_base)
+	{
 		pr_err("failed to map apbc registers\n");
 		return;
 	}

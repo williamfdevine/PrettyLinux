@@ -49,7 +49,8 @@
 
 struct da903x_chip;
 
-struct da903x_chip_ops {
+struct da903x_chip_ops
+{
 	int	(*init_chip)(struct da903x_chip *);
 	int	(*unmask_events)(struct da903x_chip *, unsigned int events);
 	int	(*mask_events)(struct da903x_chip *, unsigned int events);
@@ -57,7 +58,8 @@ struct da903x_chip_ops {
 	int	(*read_status)(struct da903x_chip *, unsigned int *status);
 };
 
-struct da903x_chip {
+struct da903x_chip
+{
 	struct i2c_client	*client;
 	struct device		*dev;
 	const struct da903x_chip_ops *ops;
@@ -72,12 +74,14 @@ struct da903x_chip {
 };
 
 static inline int __da903x_read(struct i2c_client *client,
-				int reg, uint8_t *val)
+								int reg, uint8_t *val)
 {
 	int ret;
 
 	ret = i2c_smbus_read_byte_data(client, reg);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "failed reading at 0x%02x\n", reg);
 		return ret;
 	}
@@ -87,47 +91,56 @@ static inline int __da903x_read(struct i2c_client *client,
 }
 
 static inline int __da903x_reads(struct i2c_client *client, int reg,
-				 int len, uint8_t *val)
+								 int len, uint8_t *val)
 {
 	int ret;
 
 	ret = i2c_smbus_read_i2c_block_data(client, reg, len, val);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "failed reading from 0x%02x\n", reg);
 		return ret;
 	}
+
 	return 0;
 }
 
 static inline int __da903x_write(struct i2c_client *client,
-				 int reg, uint8_t val)
+								 int reg, uint8_t val)
 {
 	int ret;
 
 	ret = i2c_smbus_write_byte_data(client, reg, val);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "failed writing 0x%02x to 0x%02x\n",
 				val, reg);
 		return ret;
 	}
+
 	return 0;
 }
 
 static inline int __da903x_writes(struct i2c_client *client, int reg,
-				  int len, uint8_t *val)
+								  int len, uint8_t *val)
 {
 	int ret;
 
 	ret = i2c_smbus_write_i2c_block_data(client, reg, len, val);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "failed writings to 0x%02x\n", reg);
 		return ret;
 	}
+
 	return 0;
 }
 
 int da903x_register_notifier(struct device *dev, struct notifier_block *nb,
-				unsigned int events)
+							 unsigned int events)
 {
 	struct da903x_chip *chip = dev_get_drvdata(dev);
 
@@ -137,7 +150,7 @@ int da903x_register_notifier(struct device *dev, struct notifier_block *nb,
 EXPORT_SYMBOL_GPL(da903x_register_notifier);
 
 int da903x_unregister_notifier(struct device *dev, struct notifier_block *nb,
-				unsigned int events)
+							   unsigned int events)
 {
 	struct da903x_chip *chip = dev_get_drvdata(dev);
 
@@ -179,13 +192,18 @@ int da903x_set_bits(struct device *dev, int reg, uint8_t bit_mask)
 	mutex_lock(&chip->lock);
 
 	ret = __da903x_read(chip->client, reg, &reg_val);
-	if (ret)
-		goto out;
 
-	if ((reg_val & bit_mask) != bit_mask) {
+	if (ret)
+	{
+		goto out;
+	}
+
+	if ((reg_val & bit_mask) != bit_mask)
+	{
 		reg_val |= bit_mask;
 		ret = __da903x_write(chip->client, reg, reg_val);
 	}
+
 out:
 	mutex_unlock(&chip->lock);
 	return ret;
@@ -201,13 +219,18 @@ int da903x_clr_bits(struct device *dev, int reg, uint8_t bit_mask)
 	mutex_lock(&chip->lock);
 
 	ret = __da903x_read(chip->client, reg, &reg_val);
-	if (ret)
-		goto out;
 
-	if (reg_val & bit_mask) {
+	if (ret)
+	{
+		goto out;
+	}
+
+	if (reg_val & bit_mask)
+	{
 		reg_val &= ~bit_mask;
 		ret = __da903x_write(chip->client, reg, reg_val);
 	}
+
 out:
 	mutex_unlock(&chip->lock);
 	return ret;
@@ -223,13 +246,18 @@ int da903x_update(struct device *dev, int reg, uint8_t val, uint8_t mask)
 	mutex_lock(&chip->lock);
 
 	ret = __da903x_read(chip->client, reg, &reg_val);
-	if (ret)
-		goto out;
 
-	if ((reg_val & mask) != val) {
+	if (ret)
+	{
+		goto out;
+	}
+
+	if ((reg_val & mask) != val)
+	{
 		reg_val = (reg_val & ~mask) | val;
 		ret = __da903x_write(chip->client, reg, reg_val);
 	}
+
 out:
 	mutex_unlock(&chip->lock);
 	return ret;
@@ -252,12 +280,18 @@ static int da9030_init_chip(struct da903x_chip *chip)
 	int err;
 
 	err = __da903x_read(chip->client, DA9030_CHIP_ID, &chip_id);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = __da903x_write(chip->client, DA9030_SYS_CTRL_A, 0xE8);
+
 	if (err)
+	{
 		return err;
+	}
 
 	dev_info(chip->dev, "DA9030 (CHIP ID: 0x%02x) detected\n", chip_id);
 	return 0;
@@ -295,8 +329,11 @@ static int da9030_read_events(struct da903x_chip *chip, unsigned int *events)
 	int ret;
 
 	ret = __da903x_reads(chip->client, DA9030_EVENT_A, 3, v);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	*events = (v[2] << 16) | (v[1] << 8) | v[0];
 	return 0;
@@ -313,12 +350,18 @@ static int da9034_init_chip(struct da903x_chip *chip)
 	int err;
 
 	err = __da903x_read(chip->client, DA9034_CHIP_ID, &chip_id);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = __da903x_write(chip->client, DA9034_SYS_CTRL_A, 0xE8);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* avoid SRAM power off during sleep*/
 	__da903x_write(chip->client, 0x10, 0x07);
@@ -374,8 +417,11 @@ static int da9034_read_events(struct da903x_chip *chip, unsigned int *events)
 	int ret;
 
 	ret = __da903x_reads(chip->client, DA9034_EVENT_A, 4, v);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	*events = (v[3] << 24) | (v[2] << 16) | (v[1] << 8) | v[0];
 	return 0;
@@ -387,8 +433,11 @@ static int da9034_read_status(struct da903x_chip *chip, unsigned int *status)
 	int ret = 0;
 
 	ret = __da903x_reads(chip->client, DA9034_STATUS_A, 2, v);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	*status = (v[1] << 8) | v[0];
 	return 0;
@@ -400,17 +449,24 @@ static void da903x_irq_work(struct work_struct *work)
 		container_of(work, struct da903x_chip, irq_work);
 	unsigned int events = 0;
 
-	while (1) {
+	while (1)
+	{
 		if (chip->ops->read_events(chip, &events))
+		{
 			break;
+		}
 
 		events &= ~chip->events_mask;
+
 		if (events == 0)
+		{
 			break;
+		}
 
 		blocking_notifier_call_chain(
-				&chip->notifier_list, events, NULL);
+			&chip->notifier_list, events, NULL);
 	}
+
 	enable_irq(chip->client->irq);
 }
 
@@ -424,7 +480,8 @@ static irqreturn_t da903x_irq_handler(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
-static const struct da903x_chip_ops da903x_ops[] = {
+static const struct da903x_chip_ops da903x_ops[] =
+{
 	[0] = {
 		.init_chip	= da9030_init_chip,
 		.unmask_events	= da9030_unmask_events,
@@ -441,7 +498,8 @@ static const struct da903x_chip_ops da903x_ops[] = {
 	}
 };
 
-static const struct i2c_device_id da903x_id_table[] = {
+static const struct i2c_device_id da903x_id_table[] =
+{
 	{ "da9030", 0 },
 	{ "da9034", 1 },
 	{ },
@@ -460,17 +518,20 @@ static int da903x_remove_subdevs(struct da903x_chip *chip)
 }
 
 static int da903x_add_subdevs(struct da903x_chip *chip,
-					struct da903x_platform_data *pdata)
+							  struct da903x_platform_data *pdata)
 {
 	struct da903x_subdev_info *subdev;
 	struct platform_device *pdev;
 	int i, ret = 0;
 
-	for (i = 0; i < pdata->num_subdevs; i++) {
+	for (i = 0; i < pdata->num_subdevs; i++)
+	{
 		subdev = &pdata->subdevs[i];
 
 		pdev = platform_device_alloc(subdev->name, subdev->id);
-		if (!pdev) {
+
+		if (!pdev)
+		{
 			ret = -ENOMEM;
 			goto failed;
 		}
@@ -479,11 +540,14 @@ static int da903x_add_subdevs(struct da903x_chip *chip,
 		pdev->dev.platform_data = subdev->platform_data;
 
 		ret = platform_device_add(pdev);
-		if (ret) {
+
+		if (ret)
+		{
 			platform_device_put(pdev);
 			goto failed;
 		}
 	}
+
 	return 0;
 
 failed:
@@ -492,7 +556,7 @@ failed:
 }
 
 static int da903x_probe(struct i2c_client *client,
-				  const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct da903x_platform_data *pdata = dev_get_platdata(&client->dev);
 	struct da903x_chip *chip;
@@ -500,9 +564,12 @@ static int da903x_probe(struct i2c_client *client,
 	int ret;
 
 	chip = devm_kzalloc(&client->dev, sizeof(struct da903x_chip),
-				GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (chip == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	chip->client = client;
 	chip->dev = &client->dev;
@@ -515,8 +582,11 @@ static int da903x_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, chip);
 
 	ret = chip->ops->init_chip(chip);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* mask and clear all IRQs */
 	chip->events_mask = 0xffffffff;
@@ -524,9 +594,11 @@ static int da903x_probe(struct i2c_client *client,
 	chip->ops->read_events(chip, &tmp);
 
 	ret = devm_request_irq(&client->dev, client->irq, da903x_irq_handler,
-			IRQF_TRIGGER_FALLING,
-			"da903x", chip);
-	if (ret) {
+						   IRQF_TRIGGER_FALLING,
+						   "da903x", chip);
+
+	if (ret)
+	{
 		dev_err(&client->dev, "failed to request irq %d\n",
 				client->irq);
 		return ret;
@@ -543,7 +615,8 @@ static int da903x_remove(struct i2c_client *client)
 	return 0;
 }
 
-static struct i2c_driver da903x_driver = {
+static struct i2c_driver da903x_driver =
+{
 	.driver	= {
 		.name	= "da903x",
 	},

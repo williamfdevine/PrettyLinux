@@ -177,7 +177,8 @@
 #define E_CUT_VERSION				BIT(14)
 #define	RF_RL_ID			(BIT(31)|BIT(30)|BIT(29)|BIT(28))
 
-enum version_8821ae {
+enum version_8821ae
+{
 	VERSION_TEST_CHIP_1T1R_8812 = 0x0004,
 	VERSION_TEST_CHIP_2T2R_8812 = 0x0024,
 	VERSION_NORMAL_TSMC_CHIP_1T1R_8812 = 0x100c,
@@ -190,7 +191,8 @@ enum version_8821ae {
 	VERSION_UNKNOWN = 0xFF,
 };
 
-enum vht_data_sc {
+enum vht_data_sc
+{
 	VHT_DATA_SC_DONOT_CARE = 0,
 	VHT_DATA_SC_20_UPPER_OF_80MHZ = 1,
 	VHT_DATA_SC_20_LOWER_OF_80MHZ = 2,
@@ -222,37 +224,38 @@ enum vht_data_sc {
 
 #define IS_1T1R(version)	((GET_CVID_RF_TYPE(version)) ? false : true)
 #define IS_1T2R(version)	((GET_CVID_RF_TYPE(version) == RF_TYPE_1T2R)\
-							? true : false)
+							 ? true : false)
 #define IS_2T2R(version)	((GET_CVID_RF_TYPE(version) == RF_TYPE_2T2R)\
-							? true : false)
+							 ? true : false)
 
 #define IS_8812_SERIES(version)	((GET_CVID_IC_TYPE(version) == CHIP_8812) ? \
-								true : false)
+								 true : false)
 #define IS_8821_SERIES(version)	((GET_CVID_IC_TYPE(version) == CHIP_8821) ? \
-								true : false)
+								 true : false)
 
 #define IS_VENDOR_8812A_TEST_CHIP(version)	((IS_8812_SERIES(version)) ? \
-					((IS_NORMAL_CHIP(version)) ? \
-						false : true) : false)
+		((IS_NORMAL_CHIP(version)) ? \
+		 false : true) : false)
 #define IS_VENDOR_8812A_MP_CHIP(version)	((IS_8812_SERIES(version)) ? \
-					((IS_NORMAL_CHIP(version)) ? \
-						true : false) : false)
+		((IS_NORMAL_CHIP(version)) ? \
+		 true : false) : false)
 #define IS_VENDOR_8812A_C_CUT(version)		((IS_8812_SERIES(version)) ? \
-					((GET_CVID_CUT_VERSION(version) == \
-					C_CUT_VERSION) ? \
-					true : false) : false)
+		((GET_CVID_CUT_VERSION(version) == \
+		  C_CUT_VERSION) ? \
+		 true : false) : false)
 
 #define IS_VENDOR_8821A_TEST_CHIP(version)	((IS_8821_SERIES(version)) ? \
-					((IS_NORMAL_CHIP(version)) ? \
-					false : true) : false)
+		((IS_NORMAL_CHIP(version)) ? \
+		 false : true) : false)
 #define IS_VENDOR_8821A_MP_CHIP(version)	((IS_8821_SERIES(version)) ? \
-					((IS_NORMAL_CHIP(version)) ? \
-						true : false) : false)
+		((IS_NORMAL_CHIP(version)) ? \
+		 true : false) : false)
 #define IS_VENDOR_8821A_B_CUT(version)		((IS_8821_SERIES(version)) ? \
-					((GET_CVID_CUT_VERSION(version) == \
-					B_CUT_VERSION) ? \
-					true : false) : false)
-enum board_type {
+		((GET_CVID_CUT_VERSION(version) == \
+		  B_CUT_VERSION) ? \
+		 true : false) : false)
+enum board_type
+{
 	ODM_BOARD_DEFAULT = 0,	  /* The DEFAULT case. */
 	ODM_BOARD_MINICARD = BIT(0), /* 0 = non-mini card, 1 = mini card. */
 	ODM_BOARD_SLIM = BIT(1), /* 0 = non-slim card, 1 = slim card */
@@ -264,39 +267,45 @@ enum board_type {
 	ODM_BOARD_EXT_LNA_5G = BIT(7), /* 1 = existing 5G ext-LNA */
 };
 
-enum rf_optype {
+enum rf_optype
+{
 	RF_OP_BY_SW_3WIRE = 0,
 	RF_OP_BY_FW,
 	RF_OP_MAX
 };
 
-enum rf_power_state {
+enum rf_power_state
+{
 	RF_ON,
 	RF_OFF,
 	RF_SLEEP,
 	RF_SHUT_DOWN,
 };
 
-enum power_save_mode {
+enum power_save_mode
+{
 	POWER_SAVE_MODE_ACTIVE,
 	POWER_SAVE_MODE_SAVE,
 };
 
-enum power_polocy_config {
+enum power_polocy_config
+{
 	POWERCFG_MAX_POWER_SAVINGS,
 	POWERCFG_GLOBAL_POWER_SAVINGS,
 	POWERCFG_LOCAL_POWER_SAVINGS,
 	POWERCFG_LENOVO,
 };
 
-enum interface_select_pci {
+enum interface_select_pci
+{
 	INTF_SEL1_MINICARD = 0,
 	INTF_SEL0_PCIE = 1,
 	INTF_SEL2_RSV = 2,
 	INTF_SEL3_RSV = 3,
 };
 
-enum hal_fw_c2h_cmd_id {
+enum hal_fw_c2h_cmd_id
+{
 	HAL_FW_C2H_CMD_READ_MACREG = 0,
 	HAL_FW_C2H_CMD_READ_BBREG = 1,
 	HAL_FW_C2H_CMD_READ_RFREG = 2,
@@ -321,7 +330,8 @@ enum hal_fw_c2h_cmd_id {
 	HAL_FW_C2H_CMD_MAX
 };
 
-enum rtl_desc_qsel {
+enum rtl_desc_qsel
+{
 	QSLT_BK = 0x2,
 	QSLT_BE = 0x0,
 	QSLT_VI = 0x5,
@@ -332,7 +342,8 @@ enum rtl_desc_qsel {
 	QSLT_CMD = 0x13,
 };
 
-enum rx_packet_type {
+enum rx_packet_type
+{
 	NORMAL_RX,
 	TX_REPORT1,
 	TX_REPORT2,
@@ -340,13 +351,15 @@ enum rx_packet_type {
 	C2H_PACKET,
 };
 
-struct phy_sts_cck_8821ae_t {
+struct phy_sts_cck_8821ae_t
+{
 	u8 adc_pwdb_X[4];
 	u8 sq_rpt;
 	u8 cck_agc_rpt;
 };
 
-struct h2c_cmd_8821ae {
+struct h2c_cmd_8821ae
+{
 	u8 element_id;
 	u32 cmd_len;
 	u8 *p_cmdbuffer;

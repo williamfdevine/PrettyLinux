@@ -11,20 +11,23 @@
 #include <uapi/linux/perf_event.h>
 #include "bpf_helpers.h"
 
-struct bpf_map_def SEC("maps") my_map = {
+struct bpf_map_def SEC("maps") my_map =
+{
 	.type = BPF_MAP_TYPE_HASH,
 	.key_size = sizeof(long),
 	.value_size = sizeof(long),
 	.max_entries = 1024,
 };
-struct bpf_map_def SEC("maps") my_map2 = {
+struct bpf_map_def SEC("maps") my_map2 =
+{
 	.type = BPF_MAP_TYPE_PERCPU_HASH,
 	.key_size = sizeof(long),
 	.value_size = sizeof(long),
 	.max_entries = 1024,
 };
 
-struct bpf_map_def SEC("maps") stackmap = {
+struct bpf_map_def SEC("maps") stackmap =
+{
 	.type = BPF_MAP_TYPE_STACK_TRACE,
 	.key_size = sizeof(u32),
 	.value_size = PERF_MAX_STACK_DEPTH * sizeof(u64),
@@ -32,17 +35,17 @@ struct bpf_map_def SEC("maps") stackmap = {
 };
 
 #define PROG(foo) \
-int foo(struct pt_regs *ctx) \
-{ \
-	long v = PT_REGS_IP(ctx), *val; \
-\
-	val = bpf_map_lookup_elem(&my_map, &v); \
-	bpf_map_update_elem(&my_map, &v, &v, BPF_ANY); \
-	bpf_map_update_elem(&my_map2, &v, &v, BPF_ANY); \
-	bpf_map_delete_elem(&my_map2, &v); \
-	bpf_get_stackid(ctx, &stackmap, BPF_F_REUSE_STACKID); \
-	return 0; \
-}
+	int foo(struct pt_regs *ctx) \
+	{ \
+		long v = PT_REGS_IP(ctx), *val; \
+		\
+		val = bpf_map_lookup_elem(&my_map, &v); \
+		bpf_map_update_elem(&my_map, &v, &v, BPF_ANY); \
+		bpf_map_update_elem(&my_map2, &v, &v, BPF_ANY); \
+		bpf_map_delete_elem(&my_map2, &v); \
+		bpf_get_stackid(ctx, &stackmap, BPF_F_REUSE_STACKID); \
+		return 0; \
+	}
 
 /* add kprobes to all possible *spin* functions */
 SEC("kprobe/spin_unlock")PROG(p1)

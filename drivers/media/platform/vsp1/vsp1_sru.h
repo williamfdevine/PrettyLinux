@@ -24,7 +24,8 @@ struct vsp1_device;
 #define SRU_PAD_SINK				0
 #define SRU_PAD_SOURCE				1
 
-struct vsp1_sru {
+struct vsp1_sru
+{
 	struct vsp1_entity entity;
 
 	struct v4l2_ctrl_handler ctrls;

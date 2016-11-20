@@ -8,7 +8,8 @@
  * an iterator with stat_start/stat_next and a stat_show callbacks.
  * The others callbacks are optional.
  */
-struct tracer_stat {
+struct tracer_stat
+{
 	/* The name of your stat file */
 	const char		*name;
 	/* Iteration over statistic entries */

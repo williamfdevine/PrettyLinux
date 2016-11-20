@@ -29,7 +29,8 @@
 
 #define PP_VALID  0x1F1F1F1F
 
-struct pp_instance {
+struct pp_instance
+{
 	uint32_t pp_valid;
 	struct pp_smumgr *smu_mgr;
 	struct pp_hwmgr *hwmgr;

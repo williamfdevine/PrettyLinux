@@ -55,25 +55,25 @@
 /* SATA host AHCI CSR */
 #define PORTCFG				0x000000a4
 #define  PORTADDR_SET(dst, src) \
-		(((dst) & ~0x0000003f) | (((u32)(src)) & 0x0000003f))
+	(((dst) & ~0x0000003f) | (((u32)(src)) & 0x0000003f))
 #define PORTPHY1CFG		0x000000a8
 #define PORTPHY1CFG_FRCPHYRDY_SET(dst, src) \
-		(((dst) & ~0x00100000) | (((u32)(src) << 0x14) & 0x00100000))
+	(((dst) & ~0x00100000) | (((u32)(src) << 0x14) & 0x00100000))
 #define PORTPHY2CFG			0x000000ac
 #define PORTPHY3CFG			0x000000b0
 #define PORTPHY4CFG			0x000000b4
 #define PORTPHY5CFG			0x000000b8
 #define SCTL0				0x0000012C
 #define PORTPHY5CFG_RTCHG_SET(dst, src) \
-		(((dst) & ~0xfff00000) | (((u32)(src) << 0x14) & 0xfff00000))
+	(((dst) & ~0xfff00000) | (((u32)(src) << 0x14) & 0xfff00000))
 #define PORTAXICFG_EN_CONTEXT_SET(dst, src) \
-		(((dst) & ~0x01000000) | (((u32)(src) << 0x18) & 0x01000000))
+	(((dst) & ~0x01000000) | (((u32)(src) << 0x18) & 0x01000000))
 #define PORTAXICFG			0x000000bc
 #define PORTAXICFG_OUTTRANS_SET(dst, src) \
-		(((dst) & ~0x00f00000) | (((u32)(src) << 0x14) & 0x00f00000))
+	(((dst) & ~0x00f00000) | (((u32)(src) << 0x14) & 0x00f00000))
 #define PORTRANSCFG			0x000000c8
 #define PORTRANSCFG_RXWM_SET(dst, src)		\
-		(((dst) & ~0x0000007f) | (((u32)(src)) & 0x0000007f))
+	(((dst) & ~0x0000007f) | (((u32)(src)) & 0x0000007f))
 
 /* SATA host controller AXI CSR */
 #define INT_SLV_TMOMASK			0x00000010
@@ -85,12 +85,14 @@
 /* Max retry for link down */
 #define MAX_LINK_DOWN_RETRY 3
 
-enum xgene_ahci_version {
+enum xgene_ahci_version
+{
 	XGENE_AHCI_V1 = 1,
 	XGENE_AHCI_V2,
 };
 
-struct xgene_ahci_context {
+struct xgene_ahci_context
+{
 	struct ahci_host_priv *hpriv;
 	struct device *dev;
 	u8 last_cmd[MAX_AHCI_CHN_PERCTR]; /* tracking the last command issued*/
@@ -107,10 +109,13 @@ static int xgene_ahci_init_memram(struct xgene_ahci_context *ctx)
 	writel(0x0, ctx->csr_diag + CFG_MEM_RAM_SHUTDOWN);
 	readl(ctx->csr_diag + CFG_MEM_RAM_SHUTDOWN); /* Force a barrier */
 	msleep(1);	/* reset may take up to 1ms */
-	if (readl(ctx->csr_diag + BLOCK_MEM_RDY) != 0xFFFFFFFF) {
+
+	if (readl(ctx->csr_diag + BLOCK_MEM_RDY) != 0xFFFFFFFF)
+	{
 		dev_err(ctx->dev, "failed to release memory from shutdown\n");
 		return -ENODEV;
 	}
+
 	return 0;
 }
 
@@ -123,9 +128,9 @@ static int xgene_ahci_init_memram(struct xgene_ahci_context *ctx)
  * @timeout : timeout for achieving the value.
  */
 static int xgene_ahci_poll_reg_val(struct ata_port *ap,
-				   void __iomem *reg, unsigned
-				   int val, unsigned long interval,
-				   unsigned long timeout)
+								   void __iomem *reg, unsigned
+								   int val, unsigned long interval,
+								   unsigned long timeout)
 {
 	unsigned long deadline;
 	unsigned int tmp;
@@ -133,7 +138,8 @@ static int xgene_ahci_poll_reg_val(struct ata_port *ap,
 	tmp = ioread32(reg);
 	deadline = ata_deadline(jiffies, timeout);
 
-	while (tmp != val && time_before(jiffies, deadline)) {
+	while (tmp != val && time_before(jiffies, deadline))
+	{
 		ata_msleep(ap, interval);
 		tmp = ioread32(reg);
 	}
@@ -162,8 +168,10 @@ static int xgene_ahci_restart_engine(struct ata_port *ap)
 	 * we restart the DMA engine.
 	 */
 	if (xgene_ahci_poll_reg_val(ap, port_mmio +
-				    PORT_CMD_ISSUE, 0x0, 1, 100))
-		  return -EBUSY;
+								PORT_CMD_ISSUE, 0x0, 1, 100))
+	{
+		return -EBUSY;
+	}
 
 	ahci_stop_engine(ap);
 	ahci_start_fis_rx(ap);
@@ -172,7 +180,8 @@ static int xgene_ahci_restart_engine(struct ata_port *ap)
 	 * Enable the PxFBS.FBS_EN bit as it
 	 * gets cleared due to stopping the engine.
 	 */
-	if (pp->fbs_supported) {
+	if (pp->fbs_supported)
+	{
 		fbs = readl(port_mmio + PORT_FBS);
 		writel(fbs | PORT_FBS_EN, port_mmio + PORT_FBS);
 		fbs = readl(port_mmio + PORT_FBS);
@@ -212,7 +221,8 @@ static unsigned int xgene_ahci_qc_issue(struct ata_queued_cmd *qc)
 	 * Write the pmp value to PxFBS.DEV
 	 * for case of Port Mulitplier.
 	 */
-	if (ctx->class[ap->port_no] == ATA_DEV_PMP) {
+	if (ctx->class[ap->port_no] == ATA_DEV_PMP)
+	{
 		port_fbs = readl(port_mmio + PORT_FBS);
 		port_fbs &= ~PORT_FBS_DEV_MASK;
 		port_fbs |= qc->dev->link->pmp << PORT_FBS_DEV_OFFSET;
@@ -220,9 +230,11 @@ static unsigned int xgene_ahci_qc_issue(struct ata_queued_cmd *qc)
 	}
 
 	if (unlikely((ctx->last_cmd[ap->port_no] == ATA_CMD_ID_ATA) ||
-	    (ctx->last_cmd[ap->port_no] == ATA_CMD_PACKET) ||
-	    (ctx->last_cmd[ap->port_no] == ATA_CMD_SMART)))
+				 (ctx->last_cmd[ap->port_no] == ATA_CMD_PACKET) ||
+				 (ctx->last_cmd[ap->port_no] == ATA_CMD_SMART)))
+	{
 		xgene_ahci_restart_engine(ap);
+	}
 
 	rc = ahci_qc_issue(qc);
 
@@ -237,7 +249,7 @@ static bool xgene_ahci_is_memram_inited(struct xgene_ahci_context *ctx)
 	void __iomem *diagcsr = ctx->csr_diag;
 
 	return (readl(diagcsr + CFG_MEM_RAM_SHUTDOWN) == 0 &&
-	        readl(diagcsr + BLOCK_MEM_RDY) == 0xFFFFFFFF);
+			readl(diagcsr + BLOCK_MEM_RDY) == 0xFFFFFFFF);
 }
 
 /**
@@ -250,13 +262,16 @@ static bool xgene_ahci_is_memram_inited(struct xgene_ahci_context *ctx)
  * does not support DEVSLP.
  */
 static unsigned int xgene_ahci_read_id(struct ata_device *dev,
-				       struct ata_taskfile *tf, u16 *id)
+									   struct ata_taskfile *tf, u16 *id)
 {
 	u32 err_mask;
 
 	err_mask = ata_do_dev_read_id(dev, tf, id);
+
 	if (err_mask)
+	{
 		return err_mask;
+	}
 
 	/*
 	 * Mask reserved area. Word78 spec of Link Power Management
@@ -283,7 +298,7 @@ static void xgene_ahci_set_phy_cfg(struct xgene_ahci_context *ctx, int channel)
 	u32 val;
 
 	dev_dbg(ctx->dev, "port configure mmio 0x%p channel %d\n",
-		mmio, channel);
+			mmio, channel);
 	val = readl(mmio + PORTCFG);
 	val = PORTADDR_SET(val, channel == 0 ? 2 : 3);
 	writel(val, mmio + PORTCFG);
@@ -361,7 +376,7 @@ static void xgene_ahci_set_phy_cfg(struct xgene_ahci_context *ctx, int channel)
  *       an warning message will be printed.
  */
 static int xgene_ahci_do_hardreset(struct ata_link *link,
-				   unsigned long deadline, bool *online)
+								   unsigned long deadline, bool *online)
 {
 	const unsigned long *timing = sata_ehc_deb_timing(&link->eh_context);
 	struct ata_port *ap = link->ap;
@@ -375,23 +390,31 @@ static int xgene_ahci_do_hardreset(struct ata_link *link,
 	int rc;
 	u32 val, sstatus;
 
-	do {
+	do
+	{
 		/* clear D2H reception area to properly wait for D2H FIS */
 		ata_tf_init(link->device, &tf);
 		tf.command = ATA_BUSY;
 		ata_tf_to_fis(&tf, 0, 0, d2h_fis);
 		rc = sata_link_hardreset(link, timing, deadline, online,
-				 ahci_check_ready);
-		if (*online) {
+								 ahci_check_ready);
+
+		if (*online)
+		{
 			val = readl(port_mmio + PORT_SCR_ERR);
+
 			if (val & (SERR_DISPARITY | SERR_10B_8B_ERR))
+			{
 				dev_warn(ctx->dev, "link has error\n");
+			}
+
 			break;
 		}
 
 		sata_scr_read(link, SCR_STATUS, &sstatus);
-	} while (link_down_retry++ < MAX_LINK_DOWN_RETRY &&
-		 (sstatus & 0xff) == 0x1);
+	}
+	while (link_down_retry++ < MAX_LINK_DOWN_RETRY &&
+		   (sstatus & 0xff) == 0x1);
 
 	/* clear all errors if any pending */
 	val = readl(port_mmio + PORT_SCR_ERR);
@@ -401,10 +424,10 @@ static int xgene_ahci_do_hardreset(struct ata_link *link,
 }
 
 static int xgene_ahci_hardreset(struct ata_link *link, unsigned int *class,
-				unsigned long deadline)
+								unsigned long deadline)
 {
 	struct ata_port *ap = link->ap;
-        struct ahci_host_priv *hpriv = ap->host->private_data;
+	struct ahci_host_priv *hpriv = ap->host->private_data;
 	void __iomem *port_mmio = ahci_port_base(ap);
 	bool online;
 	int rc;
@@ -435,7 +458,9 @@ static int xgene_ahci_hardreset(struct ata_link *link, unsigned int *class,
 	hpriv->start_engine(ap);
 
 	if (online)
+	{
 		*class = ahci_dev_classify(ap);
+	}
 
 	return rc;
 }
@@ -462,7 +487,7 @@ static void xgene_ahci_host_stop(struct ata_host *host)
  * to PMP.
  */
 static int xgene_ahci_pmp_softreset(struct ata_link *link, unsigned int *class,
-			  unsigned long deadline)
+									unsigned long deadline)
 {
 	int pmp = sata_srst_pmp(link);
 	struct ata_port *ap = link->ap;
@@ -506,7 +531,7 @@ static int xgene_ahci_pmp_softreset(struct ata_link *link, unsigned int *class,
  * 6. return
  */
 static int xgene_ahci_softreset(struct ata_link *link, unsigned int *class,
-			  unsigned long deadline)
+								unsigned long deadline)
 {
 	int pmp = sata_srst_pmp(link);
 	struct ata_port *ap = link->ap;
@@ -531,15 +556,18 @@ static int xgene_ahci_softreset(struct ata_link *link, unsigned int *class,
 
 softreset_retry:
 	rc = ahci_do_softreset(link, class, pmp,
-			       deadline, ahci_check_ready);
+						   deadline, ahci_check_ready);
 
 	ctx->class[ap->port_no] = *class;
-	if (*class != ATA_DEV_PMP) {
+
+	if (*class != ATA_DEV_PMP)
+	{
 		/*
 		 * Retry for normal drives without
 		 * setting PxFBS.DEV field with pmp value.
 		 */
-		if (retry--) {
+		if (retry--)
+		{
 			writel(port_fbs_save, port_mmio + PORT_FBS);
 			goto softreset_retry;
 		}
@@ -573,20 +601,27 @@ softreset_retry:
  * 7. Exit
  */
 static int xgene_ahci_handle_broken_edge_irq(struct ata_host *host,
-					     u32 irq_masked)
+		u32 irq_masked)
 {
 	struct ahci_host_priv *hpriv = host->private_data;
 	void __iomem *port_mmio;
 	int i;
 
-	if (!readl(hpriv->mmio + HOST_IRQ_STAT)) {
-		for (i = 0; i < host->n_ports; i++) {
+	if (!readl(hpriv->mmio + HOST_IRQ_STAT))
+	{
+		for (i = 0; i < host->n_ports; i++)
+		{
 			if (irq_masked & (1 << i))
+			{
 				continue;
+			}
 
 			port_mmio = ahci_port_base(host->ports[i]);
+
 			if (readl(port_mmio + PORT_IRQ_STAT))
+			{
 				irq_masked |= (1 << i);
+			}
 		}
 	}
 
@@ -608,8 +643,11 @@ static irqreturn_t xgene_ahci_irq_intr(int irq, void *dev_instance)
 
 	/* sigh.  0xffffffff is a valid return from h/w */
 	irq_stat = readl(mmio + HOST_IRQ_STAT);
+
 	if (!irq_stat)
+	{
 		return IRQ_NONE;
+	}
 
 	irq_masked = irq_stat & hpriv->port_map;
 
@@ -630,7 +668,8 @@ static irqreturn_t xgene_ahci_irq_intr(int irq, void *dev_instance)
 	return IRQ_RETVAL(rc);
 }
 
-static struct ata_port_operations xgene_ahci_v1_ops = {
+static struct ata_port_operations xgene_ahci_v1_ops =
+{
 	.inherits = &ahci_ops,
 	.host_stop = xgene_ahci_host_stop,
 	.hardreset = xgene_ahci_hardreset,
@@ -640,21 +679,24 @@ static struct ata_port_operations xgene_ahci_v1_ops = {
 	.pmp_softreset = xgene_ahci_pmp_softreset
 };
 
-static const struct ata_port_info xgene_ahci_v1_port_info = {
+static const struct ata_port_info xgene_ahci_v1_port_info =
+{
 	.flags = AHCI_FLAG_COMMON | ATA_FLAG_PMP,
 	.pio_mask = ATA_PIO4,
 	.udma_mask = ATA_UDMA6,
 	.port_ops = &xgene_ahci_v1_ops,
 };
 
-static struct ata_port_operations xgene_ahci_v2_ops = {
+static struct ata_port_operations xgene_ahci_v2_ops =
+{
 	.inherits = &ahci_ops,
 	.host_stop = xgene_ahci_host_stop,
 	.hardreset = xgene_ahci_hardreset,
 	.read_id = xgene_ahci_read_id,
 };
 
-static const struct ata_port_info xgene_ahci_v2_port_info = {
+static const struct ata_port_info xgene_ahci_v2_port_info =
+{
 	.flags = AHCI_FLAG_COMMON | ATA_FLAG_PMP,
 	.pio_mask = ATA_PIO4,
 	.udma_mask = ATA_UDMA6,
@@ -670,11 +712,16 @@ static int xgene_ahci_hw_init(struct ahci_host_priv *hpriv)
 
 	/* Remove IP RAM out of shutdown */
 	rc = xgene_ahci_init_memram(ctx);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	for (i = 0; i < MAX_AHCI_CHN_PERCTR; i++)
+	{
 		xgene_ahci_set_phy_cfg(ctx, i);
+	}
 
 	/* AXI disable Mask */
 	writel(0xffffffff, hpriv->mmio + HOST_IRQ_STAT);
@@ -682,7 +729,7 @@ static int xgene_ahci_hw_init(struct ahci_host_priv *hpriv)
 	writel(0, ctx->csr_core + INTSTATUSMASK);
 	val = readl(ctx->csr_core + INTSTATUSMASK); /* Force a barrier */
 	dev_dbg(ctx->dev, "top level interrupt mask 0x%X value 0x%08X\n",
-		INTSTATUSMASK, val);
+			INTSTATUSMASK, val);
 
 	writel(0x0, ctx->csr_core + ERRINTSTATUSMASK);
 	readl(ctx->csr_core + ERRINTSTATUSMASK); /* Force a barrier */
@@ -707,7 +754,7 @@ static int xgene_ahci_hw_init(struct ahci_host_priv *hpriv)
 	writel(val, ctx->csr_core + IOFMSTRWAUX);
 	val = readl(ctx->csr_core + IOFMSTRWAUX);
 	dev_dbg(ctx->dev, "coherency 0x%X value 0x%08X\n",
-		IOFMSTRWAUX, val);
+			IOFMSTRWAUX, val);
 
 	return rc;
 }
@@ -718,7 +765,9 @@ static int xgene_ahci_mux_select(struct xgene_ahci_context *ctx)
 
 	/* Check for optional MUX resource */
 	if (!ctx->csr_mux)
+	{
 		return 0;
+	}
 
 	val = readl(ctx->csr_mux + SATA_ENET_CONFIG_REG);
 	val &= ~CFG_SATA_ENET_SELECT_MASK;
@@ -727,12 +776,14 @@ static int xgene_ahci_mux_select(struct xgene_ahci_context *ctx)
 	return val & CFG_SATA_ENET_SELECT_MASK ? -1 : 0;
 }
 
-static struct scsi_host_template ahci_platform_sht = {
+static struct scsi_host_template ahci_platform_sht =
+{
 	AHCI_SHT(DRV_NAME),
 };
 
 #ifdef CONFIG_ACPI
-static const struct acpi_device_id xgene_ahci_acpi_match[] = {
+static const struct acpi_device_id xgene_ahci_acpi_match[] =
+{
 	{ "APMC0D0D", XGENE_AHCI_V1},
 	{ "APMC0D32", XGENE_AHCI_V2},
 	{},
@@ -740,7 +791,8 @@ static const struct acpi_device_id xgene_ahci_acpi_match[] = {
 MODULE_DEVICE_TABLE(acpi, xgene_ahci_acpi_match);
 #endif
 
-static const struct of_device_id xgene_ahci_of_match[] = {
+static const struct of_device_id xgene_ahci_of_match[] =
+{
 	{.compatible = "apm,xgene-ahci", .data = (void *) XGENE_AHCI_V1},
 	{.compatible = "apm,xgene-ahci-v2", .data = (void *) XGENE_AHCI_V2},
 	{},
@@ -756,16 +808,23 @@ static int xgene_ahci_probe(struct platform_device *pdev)
 	const struct of_device_id *of_devid;
 	enum xgene_ahci_version version = XGENE_AHCI_V1;
 	const struct ata_port_info *ppi[] = { &xgene_ahci_v1_port_info,
-					      &xgene_ahci_v2_port_info };
+			  &xgene_ahci_v2_port_info
+	};
 	int rc;
 
 	hpriv = ahci_platform_get_resources(pdev);
+
 	if (IS_ERR(hpriv))
+	{
 		return PTR_ERR(hpriv);
+	}
 
 	ctx = devm_kzalloc(dev, sizeof(*ctx), GFP_KERNEL);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	hpriv->plat_data = ctx;
 	ctx->hpriv = hpriv;
@@ -774,104 +833,148 @@ static int xgene_ahci_probe(struct platform_device *pdev)
 	/* Retrieve the IP core resource */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 	ctx->csr_core = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(ctx->csr_core))
+	{
 		return PTR_ERR(ctx->csr_core);
+	}
 
 	/* Retrieve the IP diagnostic resource */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
 	ctx->csr_diag = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(ctx->csr_diag))
+	{
 		return PTR_ERR(ctx->csr_diag);
+	}
 
 	/* Retrieve the IP AXI resource */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 3);
 	ctx->csr_axi = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(ctx->csr_axi))
+	{
 		return PTR_ERR(ctx->csr_axi);
+	}
 
 	/* Retrieve the optional IP mux resource */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 4);
-	if (res) {
+
+	if (res)
+	{
 		void __iomem *csr = devm_ioremap_resource(dev, res);
+
 		if (IS_ERR(csr))
+		{
 			return PTR_ERR(csr);
+		}
 
 		ctx->csr_mux = csr;
 	}
 
 	of_devid = of_match_device(xgene_ahci_of_match, dev);
-	if (of_devid) {
+
+	if (of_devid)
+	{
 		if (of_devid->data)
+		{
 			version = (enum xgene_ahci_version) of_devid->data;
+		}
 	}
+
 #ifdef CONFIG_ACPI
-	else {
+	else
+	{
 		const struct acpi_device_id *acpi_id;
 		struct acpi_device_info *info;
 		acpi_status status;
 
 		acpi_id = acpi_match_device(xgene_ahci_acpi_match, &pdev->dev);
-		if (!acpi_id) {
+
+		if (!acpi_id)
+		{
 			dev_warn(&pdev->dev, "No node entry in ACPI table. Assume version1\n");
 			version = XGENE_AHCI_V1;
-		} else if (acpi_id->driver_data) {
+		}
+		else if (acpi_id->driver_data)
+		{
 			version = (enum xgene_ahci_version) acpi_id->driver_data;
 			status = acpi_get_object_info(ACPI_HANDLE(&pdev->dev), &info);
-			if (ACPI_FAILURE(status)) {
+
+			if (ACPI_FAILURE(status))
+			{
 				dev_warn(&pdev->dev, "%s: Error reading device info. Assume version1\n",
-					__func__);
+						 __func__);
 				version = XGENE_AHCI_V1;
-			} else if (info->valid & ACPI_VALID_CID) {
+			}
+			else if (info->valid & ACPI_VALID_CID)
+			{
 				version = XGENE_AHCI_V2;
 			}
 		}
 	}
+
 #endif
 
 	dev_dbg(dev, "VAddr 0x%p Mmio VAddr 0x%p\n", ctx->csr_core,
-		hpriv->mmio);
+			hpriv->mmio);
 
 	/* Select ATA */
-	if ((rc = xgene_ahci_mux_select(ctx))) {
+	if ((rc = xgene_ahci_mux_select(ctx)))
+	{
 		dev_err(dev, "SATA mux selection failed error %d\n", rc);
 		return -ENODEV;
 	}
 
-	if (xgene_ahci_is_memram_inited(ctx)) {
+	if (xgene_ahci_is_memram_inited(ctx))
+	{
 		dev_info(dev, "skip clock and PHY initialization\n");
 		goto skip_clk_phy;
 	}
 
 	/* Due to errata, HW requires full toggle transition */
 	rc = ahci_platform_enable_clks(hpriv);
+
 	if (rc)
+	{
 		goto disable_resources;
+	}
+
 	ahci_platform_disable_clks(hpriv);
 
 	rc = ahci_platform_enable_resources(hpriv);
+
 	if (rc)
+	{
 		goto disable_resources;
+	}
 
 	/* Configure the host controller */
 	xgene_ahci_hw_init(hpriv);
 skip_clk_phy:
 
-	switch (version) {
-	case XGENE_AHCI_V1:
-		hpriv->flags = AHCI_HFLAG_NO_NCQ;
-		break;
-	case XGENE_AHCI_V2:
-		hpriv->flags |= AHCI_HFLAG_YES_FBS;
-		hpriv->irq_handler = xgene_ahci_irq_intr;
-		break;
-	default:
-		break;
+	switch (version)
+	{
+		case XGENE_AHCI_V1:
+			hpriv->flags = AHCI_HFLAG_NO_NCQ;
+			break;
+
+		case XGENE_AHCI_V2:
+			hpriv->flags |= AHCI_HFLAG_YES_FBS;
+			hpriv->irq_handler = xgene_ahci_irq_intr;
+			break;
+
+		default:
+			break;
 	}
 
 	rc = ahci_platform_init_host(pdev, hpriv, ppi[version - 1],
-				     &ahci_platform_sht);
+								 &ahci_platform_sht);
+
 	if (rc)
+	{
 		goto disable_resources;
+	}
 
 	dev_dbg(dev, "X-Gene SATA host controller initialized\n");
 	return 0;
@@ -881,7 +984,8 @@ disable_resources:
 	return rc;
 }
 
-static struct platform_driver xgene_ahci_driver = {
+static struct platform_driver xgene_ahci_driver =
+{
 	.probe = xgene_ahci_probe,
 	.remove = ata_platform_remove_one,
 	.driver = {

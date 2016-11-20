@@ -49,7 +49,8 @@ static int em3027_get_time(struct device *dev, struct rtc_time *tm)
 	unsigned char addr = EM3027_REG_WATCH_SEC;
 	unsigned char buf[7];
 
-	struct i2c_msg msgs[] = {
+	struct i2c_msg msgs[] =
+	{
 		{/* setup read addr */
 			.addr = client->addr,
 			.len = 1,
@@ -64,7 +65,8 @@ static int em3027_get_time(struct device *dev, struct rtc_time *tm)
 	};
 
 	/* read time/date registers */
-	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
+	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2)
+	{
 		dev_err(&client->dev, "%s: read error\n", __func__);
 		return -EIO;
 	}
@@ -85,7 +87,8 @@ static int em3027_set_time(struct device *dev, struct rtc_time *tm)
 	struct i2c_client *client = to_i2c_client(dev);
 	unsigned char buf[8];
 
-	struct i2c_msg msg = {
+	struct i2c_msg msg =
+	{
 		.addr = client->addr,
 		.len = 8,
 		.buf = buf,	/* write time/date */
@@ -101,7 +104,8 @@ static int em3027_set_time(struct device *dev, struct rtc_time *tm)
 	buf[7] = bin2bcd(tm->tm_year % 100);
 
 	/* write time/date registers */
-	if ((i2c_transfer(client->adapter, &msg, 1)) != 1) {
+	if ((i2c_transfer(client->adapter, &msg, 1)) != 1)
+	{
 		dev_err(&client->dev, "%s: write error\n", __func__);
 		return -EIO;
 	}
@@ -109,47 +113,56 @@ static int em3027_set_time(struct device *dev, struct rtc_time *tm)
 	return 0;
 }
 
-static const struct rtc_class_ops em3027_rtc_ops = {
+static const struct rtc_class_ops em3027_rtc_ops =
+{
 	.read_time = em3027_get_time,
 	.set_time = em3027_set_time,
 };
 
 static int em3027_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct rtc_device *rtc;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		return -ENODEV;
+	}
 
 	rtc = devm_rtc_device_register(&client->dev, em3027_driver.driver.name,
-				  &em3027_rtc_ops, THIS_MODULE);
+								   &em3027_rtc_ops, THIS_MODULE);
+
 	if (IS_ERR(rtc))
+	{
 		return PTR_ERR(rtc);
+	}
 
 	i2c_set_clientdata(client, rtc);
 
 	return 0;
 }
 
-static struct i2c_device_id em3027_id[] = {
+static struct i2c_device_id em3027_id[] =
+{
 	{ "em3027", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, em3027_id);
 
 #ifdef CONFIG_OF
-static const struct of_device_id em3027_of_match[] = {
+static const struct of_device_id em3027_of_match[] =
+{
 	{ .compatible = "emmicro,em3027", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, em3027_of_match);
 #endif
 
-static struct i2c_driver em3027_driver = {
+static struct i2c_driver em3027_driver =
+{
 	.driver = {
-		   .name = "rtc-em3027",
-		   .of_match_table = of_match_ptr(em3027_of_match),
+		.name = "rtc-em3027",
+		.of_match_table = of_match_ptr(em3027_of_match),
 	},
 	.probe = &em3027_probe,
 	.id_table = em3027_id,

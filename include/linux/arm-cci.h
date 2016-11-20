@@ -46,7 +46,7 @@ static inline int cci_ace_get_port(struct device_node *dn)
 }
 static inline int cci_disable_port_by_cpu(u64 mpidr) { return -ENODEV; }
 static inline int __cci_control_port_by_device(struct device_node *dn,
-					       bool enable)
+		bool enable)
 {
 	return -ENODEV;
 }

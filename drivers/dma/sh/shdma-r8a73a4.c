@@ -13,7 +13,8 @@
 
 static const unsigned int dma_ts_shift[] = SH_DMAE_TS_SHIFT;
 
-static const struct sh_dmae_slave_config dma_slaves[] = {
+static const struct sh_dmae_slave_config dma_slaves[] =
+{
 	{
 		.chcr		= CHCR_TX(XMIT_SZ_32BIT),
 		.mid_rid	= 0xd1,		/* MMC0 Tx */
@@ -32,12 +33,13 @@ static const struct sh_dmae_slave_config dma_slaves[] = {
 #define DMAE_CHANNEL(a, b)				\
 	{						\
 		.offset         = (a) - 0x20,		\
-		.dmars          = (a) - 0x20 + 0x40,	\
-		.chclr_bit	= (b),			\
-		.chclr_offset	= 0x80 - 0x20,		\
+						  .dmars          = (a) - 0x20 + 0x40,	\
+											.chclr_bit	= (b),			\
+													.chclr_offset	= 0x80 - 0x20,		\
 	}
 
-static const struct sh_dmae_channel dma_channels[] = {
+static const struct sh_dmae_channel dma_channels[] =
+{
 	DMAE_CHANNEL(0x8000, 0),
 	DMAE_CHANNEL(0x8080, 1),
 	DMAE_CHANNEL(0x8100, 2),
@@ -60,7 +62,8 @@ static const struct sh_dmae_channel dma_channels[] = {
 	DMAE_CHANNEL(0x8980, 19),
 };
 
-const struct sh_dmae_pdata r8a73a4_dma_pdata = {
+const struct sh_dmae_pdata r8a73a4_dma_pdata =
+{
 	.slave		= dma_slaves,
 	.slave_num	= ARRAY_SIZE(dma_slaves),
 	.channel	= dma_channels,

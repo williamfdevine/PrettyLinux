@@ -56,8 +56,12 @@ EXPORT_SYMBOL(ttm_lock_init);
 void ttm_read_unlock(struct ttm_lock *lock)
 {
 	spin_lock(&lock->lock);
+
 	if (--lock->rw == 0)
+	{
 		wake_up_all(&lock->queue);
+	}
+
 	spin_unlock(&lock->lock);
 }
 EXPORT_SYMBOL(ttm_read_unlock);
@@ -67,15 +71,20 @@ static bool __ttm_read_lock(struct ttm_lock *lock)
 	bool locked = false;
 
 	spin_lock(&lock->lock);
-	if (unlikely(lock->kill_takers)) {
+
+	if (unlikely(lock->kill_takers))
+	{
 		send_sig(lock->signal, current, 0);
 		spin_unlock(&lock->lock);
 		return false;
 	}
-	if (lock->rw >= 0 && lock->flags == 0) {
+
+	if (lock->rw >= 0 && lock->flags == 0)
+	{
 		++lock->rw;
 		locked = true;
 	}
+
 	spin_unlock(&lock->lock);
 	return locked;
 }
@@ -86,9 +95,12 @@ int ttm_read_lock(struct ttm_lock *lock, bool interruptible)
 
 	if (interruptible)
 		ret = wait_event_interruptible(lock->queue,
-					       __ttm_read_lock(lock));
+									   __ttm_read_lock(lock));
 	else
+	{
 		wait_event(lock->queue, __ttm_read_lock(lock));
+	}
+
 	return ret;
 }
 EXPORT_SYMBOL(ttm_read_lock);
@@ -100,18 +112,25 @@ static bool __ttm_read_trylock(struct ttm_lock *lock, bool *locked)
 	*locked = false;
 
 	spin_lock(&lock->lock);
-	if (unlikely(lock->kill_takers)) {
+
+	if (unlikely(lock->kill_takers))
+	{
 		send_sig(lock->signal, current, 0);
 		spin_unlock(&lock->lock);
 		return false;
 	}
-	if (lock->rw >= 0 && lock->flags == 0) {
+
+	if (lock->rw >= 0 && lock->flags == 0)
+	{
 		++lock->rw;
 		block = false;
 		*locked = true;
-	} else if (lock->flags == 0) {
+	}
+	else if (lock->flags == 0)
+	{
 		block = false;
 	}
+
 	spin_unlock(&lock->lock);
 
 	return !block;
@@ -124,11 +143,14 @@ int ttm_read_trylock(struct ttm_lock *lock, bool interruptible)
 
 	if (interruptible)
 		ret = wait_event_interruptible
-			(lock->queue, __ttm_read_trylock(lock, &locked));
+			  (lock->queue, __ttm_read_trylock(lock, &locked));
 	else
+	{
 		wait_event(lock->queue, __ttm_read_trylock(lock, &locked));
+	}
 
-	if (unlikely(ret != 0)) {
+	if (unlikely(ret != 0))
+	{
 		BUG_ON(locked);
 		return ret;
 	}
@@ -150,18 +172,25 @@ static bool __ttm_write_lock(struct ttm_lock *lock)
 	bool locked = false;
 
 	spin_lock(&lock->lock);
-	if (unlikely(lock->kill_takers)) {
+
+	if (unlikely(lock->kill_takers))
+	{
 		send_sig(lock->signal, current, 0);
 		spin_unlock(&lock->lock);
 		return false;
 	}
-	if (lock->rw == 0 && ((lock->flags & ~TTM_WRITE_LOCK_PENDING) == 0)) {
+
+	if (lock->rw == 0 && ((lock->flags & ~TTM_WRITE_LOCK_PENDING) == 0))
+	{
 		lock->rw = -1;
 		lock->flags &= ~TTM_WRITE_LOCK_PENDING;
 		locked = true;
-	} else {
+	}
+	else
+	{
 		lock->flags |= TTM_WRITE_LOCK_PENDING;
 	}
+
 	spin_unlock(&lock->lock);
 	return locked;
 }
@@ -170,17 +199,23 @@ int ttm_write_lock(struct ttm_lock *lock, bool interruptible)
 {
 	int ret = 0;
 
-	if (interruptible) {
+	if (interruptible)
+	{
 		ret = wait_event_interruptible(lock->queue,
-					       __ttm_write_lock(lock));
-		if (unlikely(ret != 0)) {
+									   __ttm_write_lock(lock));
+
+		if (unlikely(ret != 0))
+		{
 			spin_lock(&lock->lock);
 			lock->flags &= ~TTM_WRITE_LOCK_PENDING;
 			wake_up_all(&lock->queue);
 			spin_unlock(&lock->lock);
 		}
-	} else
+	}
+	else
+	{
 		wait_event(lock->queue, __ttm_write_lock(lock));
+	}
 
 	return ret;
 }
@@ -191,8 +226,12 @@ static int __ttm_vt_unlock(struct ttm_lock *lock)
 	int ret = 0;
 
 	spin_lock(&lock->lock);
+
 	if (unlikely(!(lock->flags & TTM_VT_LOCK)))
+	{
 		ret = -EINVAL;
+	}
+
 	lock->flags &= ~TTM_VT_LOCK;
 	wake_up_all(&lock->queue);
 	spin_unlock(&lock->lock);
@@ -216,35 +255,46 @@ static bool __ttm_vt_lock(struct ttm_lock *lock)
 	bool locked = false;
 
 	spin_lock(&lock->lock);
-	if (lock->rw == 0) {
+
+	if (lock->rw == 0)
+	{
 		lock->flags &= ~TTM_VT_LOCK_PENDING;
 		lock->flags |= TTM_VT_LOCK;
 		locked = true;
-	} else {
+	}
+	else
+	{
 		lock->flags |= TTM_VT_LOCK_PENDING;
 	}
+
 	spin_unlock(&lock->lock);
 	return locked;
 }
 
 int ttm_vt_lock(struct ttm_lock *lock,
-		bool interruptible,
-		struct ttm_object_file *tfile)
+				bool interruptible,
+				struct ttm_object_file *tfile)
 {
 	int ret = 0;
 
-	if (interruptible) {
+	if (interruptible)
+	{
 		ret = wait_event_interruptible(lock->queue,
-					       __ttm_vt_lock(lock));
-		if (unlikely(ret != 0)) {
+									   __ttm_vt_lock(lock));
+
+		if (unlikely(ret != 0))
+		{
 			spin_lock(&lock->lock);
 			lock->flags &= ~TTM_VT_LOCK_PENDING;
 			wake_up_all(&lock->queue);
 			spin_unlock(&lock->lock);
 			return ret;
 		}
-	} else
+	}
+	else
+	{
 		wait_event(lock->queue, __ttm_vt_lock(lock));
+	}
 
 	/*
 	 * Add a base-object, the destructor of which will
@@ -253,11 +303,16 @@ int ttm_vt_lock(struct ttm_lock *lock,
 	 */
 
 	ret = ttm_base_object_init(tfile, &lock->base, false,
-				   ttm_lock_type, &ttm_vt_lock_remove, NULL);
+							   ttm_lock_type, &ttm_vt_lock_remove, NULL);
+
 	if (ret)
+	{
 		(void)__ttm_vt_unlock(lock);
+	}
 	else
+	{
 		lock->vt_holder = tfile;
+	}
 
 	return ret;
 }
@@ -266,7 +321,7 @@ EXPORT_SYMBOL(ttm_vt_lock);
 int ttm_vt_unlock(struct ttm_lock *lock)
 {
 	return ttm_ref_object_base_unref(lock->vt_holder,
-					 lock->base.hash.key, TTM_REF_USAGE);
+									 lock->base.hash.key, TTM_REF_USAGE);
 }
 EXPORT_SYMBOL(ttm_vt_unlock);
 
@@ -284,13 +339,18 @@ static bool __ttm_suspend_lock(struct ttm_lock *lock)
 	bool locked = false;
 
 	spin_lock(&lock->lock);
-	if (lock->rw == 0) {
+
+	if (lock->rw == 0)
+	{
 		lock->flags &= ~TTM_SUSPEND_LOCK_PENDING;
 		lock->flags |= TTM_SUSPEND_LOCK;
 		locked = true;
-	} else {
+	}
+	else
+	{
 		lock->flags |= TTM_SUSPEND_LOCK_PENDING;
 	}
+
 	spin_unlock(&lock->lock);
 	return locked;
 }

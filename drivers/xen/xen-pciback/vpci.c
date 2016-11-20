@@ -15,7 +15,8 @@
 
 #define PCI_SLOT_MAX 32
 
-struct vpci_dev_data {
+struct vpci_dev_data
+{
 	/* Access to dev_list must be protected by lock */
 	struct list_head dev_list[PCI_SLOT_MAX];
 	struct mutex lock;
@@ -27,24 +28,29 @@ static inline struct list_head *list_first(struct list_head *head)
 }
 
 static struct pci_dev *__xen_pcibk_get_pci_dev(struct xen_pcibk_device *pdev,
-					       unsigned int domain,
-					       unsigned int bus,
-					       unsigned int devfn)
+		unsigned int domain,
+		unsigned int bus,
+		unsigned int devfn)
 {
 	struct pci_dev_entry *entry;
 	struct pci_dev *dev = NULL;
 	struct vpci_dev_data *vpci_dev = pdev->pci_dev_data;
 
 	if (domain != 0 || bus != 0)
+	{
 		return NULL;
+	}
 
-	if (PCI_SLOT(devfn) < PCI_SLOT_MAX) {
+	if (PCI_SLOT(devfn) < PCI_SLOT_MAX)
+	{
 		mutex_lock(&vpci_dev->lock);
 
 		list_for_each_entry(entry,
-				    &vpci_dev->dev_list[PCI_SLOT(devfn)],
-				    list) {
-			if (PCI_FUNC(entry->dev->devfn) == PCI_FUNC(devfn)) {
+							&vpci_dev->dev_list[PCI_SLOT(devfn)],
+							list)
+		{
+			if (PCI_FUNC(entry->dev->devfn) == PCI_FUNC(devfn))
+			{
 				dev = entry->dev;
 				break;
 			}
@@ -52,38 +58,44 @@ static struct pci_dev *__xen_pcibk_get_pci_dev(struct xen_pcibk_device *pdev,
 
 		mutex_unlock(&vpci_dev->lock);
 	}
+
 	return dev;
 }
 
 static inline int match_slot(struct pci_dev *l, struct pci_dev *r)
 {
 	if (pci_domain_nr(l->bus) == pci_domain_nr(r->bus)
-	    && l->bus == r->bus && PCI_SLOT(l->devfn) == PCI_SLOT(r->devfn))
+		&& l->bus == r->bus && PCI_SLOT(l->devfn) == PCI_SLOT(r->devfn))
+	{
 		return 1;
+	}
 
 	return 0;
 }
 
 static int __xen_pcibk_add_pci_dev(struct xen_pcibk_device *pdev,
-				   struct pci_dev *dev, int devid,
-				   publish_pci_dev_cb publish_cb)
+								   struct pci_dev *dev, int devid,
+								   publish_pci_dev_cb publish_cb)
 {
 	int err = 0, slot, func = -1;
 	struct pci_dev_entry *t, *dev_entry;
 	struct vpci_dev_data *vpci_dev = pdev->pci_dev_data;
 
-	if ((dev->class >> 24) == PCI_BASE_CLASS_BRIDGE) {
+	if ((dev->class >> 24) == PCI_BASE_CLASS_BRIDGE)
+	{
 		err = -EFAULT;
 		xenbus_dev_fatal(pdev->xdev, err,
-				 "Can't export bridges on the virtual PCI bus");
+						 "Can't export bridges on the virtual PCI bus");
 		goto out;
 	}
 
 	dev_entry = kmalloc(sizeof(*dev_entry), GFP_KERNEL);
-	if (!dev_entry) {
+
+	if (!dev_entry)
+	{
 		err = -ENOMEM;
 		xenbus_dev_fatal(pdev->xdev, err,
-				 "Error adding entry to virtual PCI bus");
+						 "Error adding entry to virtual PCI bus");
 		goto out;
 	}
 
@@ -95,20 +107,25 @@ static int __xen_pcibk_add_pci_dev(struct xen_pcibk_device *pdev,
 	 * Keep multi-function devices together on the virtual PCI bus, except
 	 * virtual functions.
 	 */
-	if (!dev->is_virtfn) {
-		for (slot = 0; slot < PCI_SLOT_MAX; slot++) {
+	if (!dev->is_virtfn)
+	{
+		for (slot = 0; slot < PCI_SLOT_MAX; slot++)
+		{
 			if (list_empty(&vpci_dev->dev_list[slot]))
+			{
 				continue;
+			}
 
 			t = list_entry(list_first(&vpci_dev->dev_list[slot]),
-				       struct pci_dev_entry, list);
+						   struct pci_dev_entry, list);
 
-			if (match_slot(dev, t->dev)) {
+			if (match_slot(dev, t->dev))
+			{
 				pr_info("vpci: %s: assign to virtual slot %d func %d\n",
-					pci_name(dev), slot,
-					PCI_FUNC(dev->devfn));
+						pci_name(dev), slot,
+						PCI_FUNC(dev->devfn));
 				list_add_tail(&dev_entry->list,
-					      &vpci_dev->dev_list[slot]);
+							  &vpci_dev->dev_list[slot]);
 				func = PCI_FUNC(dev->devfn);
 				goto unlock;
 			}
@@ -116,12 +133,14 @@ static int __xen_pcibk_add_pci_dev(struct xen_pcibk_device *pdev,
 	}
 
 	/* Assign to a new slot on the virtual PCI bus */
-	for (slot = 0; slot < PCI_SLOT_MAX; slot++) {
-		if (list_empty(&vpci_dev->dev_list[slot])) {
+	for (slot = 0; slot < PCI_SLOT_MAX; slot++)
+	{
+		if (list_empty(&vpci_dev->dev_list[slot]))
+		{
 			pr_info("vpci: %s: assign to virtual slot %d\n",
-				pci_name(dev), slot);
+					pci_name(dev), slot);
 			list_add_tail(&dev_entry->list,
-				      &vpci_dev->dev_list[slot]);
+						  &vpci_dev->dev_list[slot]);
 			func = dev->is_virtfn ? 0 : PCI_FUNC(dev->devfn);
 			goto unlock;
 		}
@@ -129,23 +148,27 @@ static int __xen_pcibk_add_pci_dev(struct xen_pcibk_device *pdev,
 
 	err = -ENOMEM;
 	xenbus_dev_fatal(pdev->xdev, err,
-			 "No more space on root virtual PCI bus");
+					 "No more space on root virtual PCI bus");
 
 unlock:
 	mutex_unlock(&vpci_dev->lock);
 
 	/* Publish this device. */
 	if (!err)
+	{
 		err = publish_cb(pdev, 0, 0, PCI_DEVFN(slot, func), devid);
+	}
 	else
+	{
 		kfree(dev_entry);
+	}
 
 out:
 	return err;
 }
 
 static void __xen_pcibk_release_pci_dev(struct xen_pcibk_device *pdev,
-					struct pci_dev *dev, bool lock)
+										struct pci_dev *dev, bool lock)
 {
 	int slot;
 	struct vpci_dev_data *vpci_dev = pdev->pci_dev_data;
@@ -153,11 +176,14 @@ static void __xen_pcibk_release_pci_dev(struct xen_pcibk_device *pdev,
 
 	mutex_lock(&vpci_dev->lock);
 
-	for (slot = 0; slot < PCI_SLOT_MAX; slot++) {
+	for (slot = 0; slot < PCI_SLOT_MAX; slot++)
+	{
 		struct pci_dev_entry *e;
 
-		list_for_each_entry(e, &vpci_dev->dev_list[slot], list) {
-			if (e->dev == dev) {
+		list_for_each_entry(e, &vpci_dev->dev_list[slot], list)
+		{
+			if (e->dev == dev)
+			{
 				list_del(&e->list);
 				found_dev = e->dev;
 				kfree(e);
@@ -169,12 +195,19 @@ static void __xen_pcibk_release_pci_dev(struct xen_pcibk_device *pdev,
 out:
 	mutex_unlock(&vpci_dev->lock);
 
-	if (found_dev) {
+	if (found_dev)
+	{
 		if (lock)
+		{
 			device_lock(&found_dev->dev);
+		}
+
 		pcistub_put_pci_dev(found_dev);
+
 		if (lock)
+		{
 			device_unlock(&found_dev->dev);
+		}
 	}
 }
 
@@ -184,13 +217,18 @@ static int __xen_pcibk_init_devices(struct xen_pcibk_device *pdev)
 	struct vpci_dev_data *vpci_dev;
 
 	vpci_dev = kmalloc(sizeof(*vpci_dev), GFP_KERNEL);
+
 	if (!vpci_dev)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&vpci_dev->lock);
 
 	for (slot = 0; slot < PCI_SLOT_MAX; slot++)
+	{
 		INIT_LIST_HEAD(&vpci_dev->dev_list[slot]);
+	}
 
 	pdev->pci_dev_data = vpci_dev;
 
@@ -198,7 +236,7 @@ static int __xen_pcibk_init_devices(struct xen_pcibk_device *pdev)
 }
 
 static int __xen_pcibk_publish_pci_roots(struct xen_pcibk_device *pdev,
-					 publish_pci_root_cb publish_cb)
+		publish_pci_root_cb publish_cb)
 {
 	/* The Virtual PCI bus has only one root */
 	return publish_cb(pdev, 0, 0);
@@ -209,10 +247,12 @@ static void __xen_pcibk_release_devices(struct xen_pcibk_device *pdev)
 	int slot;
 	struct vpci_dev_data *vpci_dev = pdev->pci_dev_data;
 
-	for (slot = 0; slot < PCI_SLOT_MAX; slot++) {
+	for (slot = 0; slot < PCI_SLOT_MAX; slot++)
+	{
 		struct pci_dev_entry *e, *tmp;
 		list_for_each_entry_safe(e, tmp, &vpci_dev->dev_list[slot],
-					 list) {
+								 list)
+		{
 			struct pci_dev *dev = e->dev;
 			list_del(&e->list);
 			device_lock(&dev->dev);
@@ -227,9 +267,9 @@ static void __xen_pcibk_release_devices(struct xen_pcibk_device *pdev)
 }
 
 static int __xen_pcibk_get_pcifront_dev(struct pci_dev *pcidev,
-					struct xen_pcibk_device *pdev,
-					unsigned int *domain, unsigned int *bus,
-					unsigned int *devfn)
+										struct xen_pcibk_device *pdev,
+										unsigned int *domain, unsigned int *bus,
+										unsigned int *devfn)
 {
 	struct pci_dev_entry *entry;
 	struct pci_dev *dev = NULL;
@@ -237,28 +277,35 @@ static int __xen_pcibk_get_pcifront_dev(struct pci_dev *pcidev,
 	int found = 0, slot;
 
 	mutex_lock(&vpci_dev->lock);
-	for (slot = 0; slot < PCI_SLOT_MAX; slot++) {
+
+	for (slot = 0; slot < PCI_SLOT_MAX; slot++)
+	{
 		list_for_each_entry(entry,
-			    &vpci_dev->dev_list[slot],
-			    list) {
+							&vpci_dev->dev_list[slot],
+							list)
+		{
 			dev = entry->dev;
+
 			if (dev && dev->bus->number == pcidev->bus->number
 				&& pci_domain_nr(dev->bus) ==
-					pci_domain_nr(pcidev->bus)
-				&& dev->devfn == pcidev->devfn) {
+				pci_domain_nr(pcidev->bus)
+				&& dev->devfn == pcidev->devfn)
+			{
 				found = 1;
 				*domain = 0;
 				*bus = 0;
 				*devfn = PCI_DEVFN(slot,
-					 PCI_FUNC(pcidev->devfn));
+								   PCI_FUNC(pcidev->devfn));
 			}
 		}
 	}
+
 	mutex_unlock(&vpci_dev->lock);
 	return found;
 }
 
-const struct xen_pcibk_backend xen_pcibk_vpci_backend = {
+const struct xen_pcibk_backend xen_pcibk_vpci_backend =
+{
 	.name		= "vpci",
 	.init		= __xen_pcibk_init_devices,
 	.free		= __xen_pcibk_release_devices,

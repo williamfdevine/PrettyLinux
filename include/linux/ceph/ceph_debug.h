@@ -15,9 +15,9 @@
 extern const char *ceph_file_part(const char *s, int len);
 #  define dout(fmt, ...)						\
 	pr_debug("%.*s %12.12s:%-4d : " fmt,				\
-		 8 - (int)sizeof(KBUILD_MODNAME), "    ",		\
-		 ceph_file_part(__FILE__, sizeof(__FILE__)),		\
-		 __LINE__, ##__VA_ARGS__)
+			 8 - (int)sizeof(KBUILD_MODNAME), "    ",		\
+			 ceph_file_part(__FILE__, sizeof(__FILE__)),		\
+			 __LINE__, ##__VA_ARGS__)
 # else
 /* faux printk call just to see any compiler warnings. */
 #  define dout(fmt, ...)	do {				\

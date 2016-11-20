@@ -40,7 +40,7 @@
  */
 #define IRQCHIP_ACPI_DECLARE(name, subtable, validate, data, fn)	\
 	ACPI_DECLARE_PROBE_ENTRY(irqchip, name, ACPI_SIG_MADT, 		\
-				 subtable, validate, data, fn)
+							 subtable, validate, data, fn)
 
 #ifdef CONFIG_IRQCHIP
 void irqchip_init(void);

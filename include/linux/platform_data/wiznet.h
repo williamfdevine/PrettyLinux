@@ -9,13 +9,14 @@
 
 #include <linux/if_ether.h>
 
-struct wiznet_platform_data {
+struct wiznet_platform_data
+{
 	int	link_gpio;
 	u8	mac_addr[ETH_ALEN];
 };
 
 #ifndef CONFIG_WIZNET_BUS_SHIFT
-#define CONFIG_WIZNET_BUS_SHIFT 0
+	#define CONFIG_WIZNET_BUS_SHIFT 0
 #endif
 
 #define W5100_BUS_DIRECT_SIZE	(0x8000 << CONFIG_WIZNET_BUS_SHIFT)

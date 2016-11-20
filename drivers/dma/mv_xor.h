@@ -68,11 +68,11 @@
 #define XOR_INT_ERR_MBUS	BIT(9)
 
 #define XOR_INTR_ERRORS		(XOR_INT_ERR_DECODE | XOR_INT_ERR_RDPROT | \
-				 XOR_INT_ERR_WRPROT | XOR_INT_ERR_OWN    | \
-				 XOR_INT_ERR_PAR    | XOR_INT_ERR_MBUS)
+							 XOR_INT_ERR_WRPROT | XOR_INT_ERR_OWN    | \
+							 XOR_INT_ERR_PAR    | XOR_INT_ERR_MBUS)
 
 #define XOR_INTR_MASK_VALUE	(XOR_INT_END_OF_DESC | XOR_INT_END_OF_CHAIN | \
-				 XOR_INT_STOPPED     | XOR_INTR_ERRORS)
+							 XOR_INT_STOPPED     | XOR_INTR_ERRORS)
 
 #define WINDOW_BASE(w)		(0x50 + ((w) << 2))
 #define WINDOW_SIZE(w)		(0x70 + ((w) << 2))
@@ -82,7 +82,8 @@
 
 #define WINDOW_COUNT		8
 
-struct mv_xor_device {
+struct mv_xor_device
+{
 	void __iomem	     *xor_base;
 	void __iomem	     *xor_high_base;
 	struct clk	     *clk;
@@ -109,7 +110,8 @@ struct mv_xor_device {
  * @irq_tasklet: bottom half where mv_xor_slot_cleanup runs
  * @op_in_desc: new mode of driver, each op is writen to descriptor.
  */
-struct mv_xor_chan {
+struct mv_xor_chan
+{
 	int			pending;
 	spinlock_t		lock; /* protects the descriptor slot pool */
 	void __iomem		*mmr_base;
@@ -146,7 +148,8 @@ struct mv_xor_chan {
  * @tx_list: list of slots that make up a multi-descriptor transaction
  * @async_tx: support for the async_tx api
  */
-struct mv_xor_desc_slot {
+struct mv_xor_desc_slot
+{
 	struct list_head	node;
 	enum dma_transaction_type	type;
 	void			*hw_desc;
@@ -164,7 +167,8 @@ struct mv_xor_desc_slot {
  * explains the different mv_phy_src_idx() implementation.
  */
 #if defined(__LITTLE_ENDIAN)
-struct mv_xor_desc {
+struct mv_xor_desc
+{
 	u32 status;		/* descriptor execution status */
 	u32 crc32_result;	/* result of CRC-32 calculation */
 	u32 desc_command;	/* type of operation to be carried out */
@@ -177,7 +181,8 @@ struct mv_xor_desc {
 };
 #define mv_phy_src_idx(src_idx) (src_idx)
 #else
-struct mv_xor_desc {
+struct mv_xor_desc
+{
 	u32 crc32_result;	/* result of CRC-32 calculation */
 	u32 status;		/* descriptor execution status */
 	u32 phy_next_desc;	/* next descriptor address pointer */

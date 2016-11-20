@@ -11,20 +11,26 @@
 
 static const char *get_descriptor_type_string(u8 type)
 {
-	switch (type) {
-	case GREYBUS_TYPE_INVALID:
-		return "invalid";
-	case GREYBUS_TYPE_STRING:
-		return "string";
-	case GREYBUS_TYPE_INTERFACE:
-		return "interface";
-	case GREYBUS_TYPE_CPORT:
-		return "cport";
-	case GREYBUS_TYPE_BUNDLE:
-		return "bundle";
-	default:
-		WARN_ON(1);
-		return "unknown";
+	switch (type)
+	{
+		case GREYBUS_TYPE_INVALID:
+			return "invalid";
+
+		case GREYBUS_TYPE_STRING:
+			return "string";
+
+		case GREYBUS_TYPE_INTERFACE:
+			return "interface";
+
+		case GREYBUS_TYPE_CPORT:
+			return "cport";
+
+		case GREYBUS_TYPE_BUNDLE:
+			return "bundle";
+
+		default:
+			WARN_ON(1);
+			return "unknown";
 	}
 }
 
@@ -35,7 +41,8 @@ static const char *get_descriptor_type_string(u8 type)
  * the interface descriptor).  As each is processed we remove it from
  * the list.  When we're done the list should (probably) be empty.
  */
-struct manifest_desc {
+struct manifest_desc
+{
 	struct list_head		links;
 
 	size_t				size;
@@ -55,7 +62,7 @@ static void release_manifest_descriptors(struct gb_interface *intf)
 	struct manifest_desc *next;
 
 	list_for_each_entry_safe(descriptor, next, &intf->manifest_descs, links)
-		release_manifest_descriptor(descriptor);
+	release_manifest_descriptor(descriptor);
 }
 
 static void release_cport_descriptors(struct list_head *head, u8 bundle_id)
@@ -63,14 +70,19 @@ static void release_cport_descriptors(struct list_head *head, u8 bundle_id)
 	struct manifest_desc *desc, *tmp;
 	struct greybus_descriptor_cport *desc_cport;
 
-	list_for_each_entry_safe(desc, tmp, head, links) {
+	list_for_each_entry_safe(desc, tmp, head, links)
+	{
 		desc_cport = desc->data;
 
 		if (desc->type != GREYBUS_TYPE_CPORT)
+		{
 			continue;
+		}
 
 		if (desc_cport->bundle == bundle_id)
+		{
 			release_manifest_descriptor(desc);
+		}
 	}
 }
 
@@ -80,8 +92,11 @@ static struct manifest_desc *get_next_bundle_desc(struct gb_interface *intf)
 	struct manifest_desc *next;
 
 	list_for_each_entry_safe(descriptor, next, &intf->manifest_descs, links)
-		if (descriptor->type == GREYBUS_TYPE_BUNDLE)
-			return descriptor;
+
+	if (descriptor->type == GREYBUS_TYPE_BUNDLE)
+	{
+		return descriptor;
+	}
 
 	return NULL;
 }
@@ -97,21 +112,24 @@ static struct manifest_desc *get_next_bundle_desc(struct gb_interface *intf)
  * or a negative errno.
  */
 static int identify_descriptor(struct gb_interface *intf,
-			       struct greybus_descriptor *desc, size_t size)
+							   struct greybus_descriptor *desc, size_t size)
 {
 	struct greybus_descriptor_header *desc_header = &desc->header;
 	struct manifest_desc *descriptor;
 	size_t desc_size;
 	size_t expected_size;
 
-	if (size < sizeof(*desc_header)) {
+	if (size < sizeof(*desc_header))
+	{
 		dev_err(&intf->dev, "manifest too small (%zu < %zu)\n",
 				size, sizeof(*desc_header));
 		return -EINVAL;		/* Must at least have header */
 	}
 
 	desc_size = le16_to_cpu(desc_header->size);
-	if (desc_size > size) {
+
+	if (desc_size > size)
+	{
 		dev_err(&intf->dev, "descriptor too big (%zu > %zu)\n",
 				desc_size, size);
 		return -EINVAL;
@@ -120,31 +138,37 @@ static int identify_descriptor(struct gb_interface *intf,
 	/* Descriptor needs to at least have a header */
 	expected_size = sizeof(*desc_header);
 
-	switch (desc_header->type) {
-	case GREYBUS_TYPE_STRING:
-		expected_size += sizeof(struct greybus_descriptor_string);
-		expected_size += desc->string.length;
+	switch (desc_header->type)
+	{
+		case GREYBUS_TYPE_STRING:
+			expected_size += sizeof(struct greybus_descriptor_string);
+			expected_size += desc->string.length;
 
-		/* String descriptors are padded to 4 byte boundaries */
-		expected_size = ALIGN(expected_size, 4);
-		break;
-	case GREYBUS_TYPE_INTERFACE:
-		expected_size += sizeof(struct greybus_descriptor_interface);
-		break;
-	case GREYBUS_TYPE_BUNDLE:
-		expected_size += sizeof(struct greybus_descriptor_bundle);
-		break;
-	case GREYBUS_TYPE_CPORT:
-		expected_size += sizeof(struct greybus_descriptor_cport);
-		break;
-	case GREYBUS_TYPE_INVALID:
-	default:
-		dev_err(&intf->dev, "invalid descriptor type (%u)\n",
-				desc_header->type);
-		return -EINVAL;
+			/* String descriptors are padded to 4 byte boundaries */
+			expected_size = ALIGN(expected_size, 4);
+			break;
+
+		case GREYBUS_TYPE_INTERFACE:
+			expected_size += sizeof(struct greybus_descriptor_interface);
+			break;
+
+		case GREYBUS_TYPE_BUNDLE:
+			expected_size += sizeof(struct greybus_descriptor_bundle);
+			break;
+
+		case GREYBUS_TYPE_CPORT:
+			expected_size += sizeof(struct greybus_descriptor_cport);
+			break;
+
+		case GREYBUS_TYPE_INVALID:
+		default:
+			dev_err(&intf->dev, "invalid descriptor type (%u)\n",
+					desc_header->type);
+			return -EINVAL;
 	}
 
-	if (desc_size < expected_size) {
+	if (desc_size < expected_size)
+	{
 		dev_err(&intf->dev, "%s descriptor too small (%zu < %zu)\n",
 				get_descriptor_type_string(desc_header->type),
 				desc_size, expected_size);
@@ -152,15 +176,19 @@ static int identify_descriptor(struct gb_interface *intf,
 	}
 
 	/* Descriptor bigger than what we expect */
-	if (desc_size > expected_size) {
+	if (desc_size > expected_size)
+	{
 		dev_warn(&intf->dev, "%s descriptor size mismatch (want %zu got %zu)\n",
-				get_descriptor_type_string(desc_header->type),
-				expected_size, desc_size);
+				 get_descriptor_type_string(desc_header->type),
+				 expected_size, desc_size);
 	}
 
 	descriptor = kzalloc(sizeof(*descriptor), GFP_KERNEL);
+
 	if (!descriptor)
+	{
 		return -ENOMEM;
+	}
 
 	descriptor->size = desc_size;
 	descriptor->data = (char *)desc + sizeof(*desc_header);
@@ -192,26 +220,40 @@ static char *gb_string_get(struct gb_interface *intf, u8 string_id)
 
 	/* A zero string id means no string (but no error) */
 	if (!string_id)
+	{
 		return NULL;
+	}
 
-	list_for_each_entry(descriptor, &intf->manifest_descs, links) {
+	list_for_each_entry(descriptor, &intf->manifest_descs, links)
+	{
 		if (descriptor->type != GREYBUS_TYPE_STRING)
+		{
 			continue;
+		}
 
 		desc_string = descriptor->data;
-		if (desc_string->id == string_id) {
+
+		if (desc_string->id == string_id)
+		{
 			found = true;
 			break;
 		}
 	}
+
 	if (!found)
+	{
 		return ERR_PTR(-ENOENT);
+	}
 
 	/* Allocate an extra byte so we can guarantee it's NUL-terminated */
 	string = kmemdup(&desc_string->string, desc_string->length + 1,
-				GFP_KERNEL);
+					 GFP_KERNEL);
+
 	if (!string)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	string[desc_string->length] = '\0';
 
 	/* Ok we've used this string, so we're done with it */
@@ -238,22 +280,32 @@ static u32 gb_manifest_parse_cports(struct gb_bundle *bundle)
 	int i;
 
 	/* Set up all cport descriptors associated with this bundle */
-	list_for_each_entry_safe(desc, next, &intf->manifest_descs, links) {
+	list_for_each_entry_safe(desc, next, &intf->manifest_descs, links)
+	{
 		if (desc->type != GREYBUS_TYPE_CPORT)
+		{
 			continue;
+		}
 
 		desc_cport = desc->data;
+
 		if (desc_cport->bundle != bundle_id)
+		{
 			continue;
+		}
 
 		cport_id = le16_to_cpu(desc_cport->id);
+
 		if (cport_id > CPORT_ID_MAX)
+		{
 			goto exit;
+		}
 
 		/* Nothing else should have its cport_id as control cport id */
-		if (cport_id == GB_CONTROL_CPORT_ID) {
+		if (cport_id == GB_CONTROL_CPORT_ID)
+		{
 			dev_err(&bundle->dev, "invalid cport id found (%02u)\n",
-				cport_id);
+					cport_id);
 			goto exit;
 		}
 
@@ -261,9 +313,12 @@ static u32 gb_manifest_parse_cports(struct gb_bundle *bundle)
 		 * Found one, move it to our temporary list after checking for
 		 * duplicates.
 		 */
-		list_for_each_entry(tmp, &list, links) {
+		list_for_each_entry(tmp, &list, links)
+		{
 			desc_cport = tmp->data;
-			if (cport_id == le16_to_cpu(desc_cport->id)) {
+
+			if (cport_id == le16_to_cpu(desc_cport->id))
+			{
 				dev_err(&bundle->dev,
 						"duplicate CPort %u found\n",
 						cport_id);
@@ -275,20 +330,26 @@ static u32 gb_manifest_parse_cports(struct gb_bundle *bundle)
 	}
 
 	if (!count)
+	{
 		return 0;
+	}
 
 	bundle->cport_desc = kcalloc(count, sizeof(*bundle->cport_desc),
-					GFP_KERNEL);
+								 GFP_KERNEL);
+
 	if (!bundle->cport_desc)
+	{
 		goto exit;
+	}
 
 	bundle->num_cports = count;
 
 	i = 0;
-	list_for_each_entry_safe(desc, next, &list, links) {
+	list_for_each_entry_safe(desc, next, &list, links)
+	{
 		desc_cport = desc->data;
 		memcpy(&bundle->cport_desc[i++], desc_cport,
-				sizeof(*desc_cport));
+			   sizeof(*desc_cport));
 
 		/* Release the cport descriptor */
 		release_manifest_descriptor(desc);
@@ -320,7 +381,8 @@ static u32 gb_manifest_parse_bundles(struct gb_interface *intf)
 	u8 bundle_id;
 	u8 class;
 
-	while ((desc = get_next_bundle_desc(intf))) {
+	while ((desc = get_next_bundle_desc(intf)))
+	{
 		struct greybus_descriptor_bundle *desc_bundle;
 
 		/* Found one.  Set up its bundle structure*/
@@ -332,25 +394,30 @@ static u32 gb_manifest_parse_bundles(struct gb_interface *intf)
 		release_manifest_descriptor(desc);
 
 		/* Ignore any legacy control bundles */
-		if (bundle_id == GB_CONTROL_BUNDLE_ID) {
+		if (bundle_id == GB_CONTROL_BUNDLE_ID)
+		{
 			dev_dbg(&intf->dev, "%s - ignoring control bundle\n",
 					__func__);
 			release_cport_descriptors(&intf->manifest_descs,
-								bundle_id);
+									  bundle_id);
 			continue;
 		}
 
 		/* Nothing else should have its class set to control class */
-		if (class == GREYBUS_CLASS_CONTROL) {
+		if (class == GREYBUS_CLASS_CONTROL)
+		{
 			dev_err(&intf->dev,
-				"bundle %u cannot use control class\n",
-				bundle_id);
+					"bundle %u cannot use control class\n",
+					bundle_id);
 			goto cleanup;
 		}
 
 		bundle = gb_bundle_create(intf, bundle_id, class);
+
 		if (!bundle)
+		{
 			goto cleanup;
+		}
 
 		/*
 		 * Now go set up this bundle's functions and cports.
@@ -369,7 +436,8 @@ static u32 gb_manifest_parse_bundles(struct gb_interface *intf)
 		 * bundles on failing to initialize a cport. But make sure the
 		 * bundle which needs the cport, gets destroyed properly.
 		 */
-		if (!gb_manifest_parse_cports(bundle)) {
+		if (!gb_manifest_parse_cports(bundle))
+		{
 			gb_bundle_destroy(bundle);
 			continue;
 		}
@@ -380,7 +448,8 @@ static u32 gb_manifest_parse_bundles(struct gb_interface *intf)
 	return count;
 cleanup:
 	/* An error occurred; undo any changes we've made */
-	list_for_each_entry_safe(bundle, bundle_next, &intf->bundles, links) {
+	list_for_each_entry_safe(bundle, bundle_next, &intf->bundles, links)
+	{
 		gb_bundle_destroy(bundle);
 		count--;
 	}
@@ -388,7 +457,7 @@ cleanup:
 }
 
 static bool gb_manifest_parse_interface(struct gb_interface *intf,
-					struct manifest_desc *interface_desc)
+										struct manifest_desc *interface_desc)
 {
 	struct greybus_descriptor_interface *desc_intf = interface_desc->data;
 	struct gb_control *control = intf->control;
@@ -396,13 +465,21 @@ static bool gb_manifest_parse_interface(struct gb_interface *intf,
 
 	/* Handle the strings first--they can fail */
 	str = gb_string_get(intf, desc_intf->vendor_stringid);
+
 	if (IS_ERR(str))
+	{
 		return false;
+	}
+
 	control->vendor_string = str;
 
 	str = gb_string_get(intf, desc_intf->product_stringid);
+
 	if (IS_ERR(str))
+	{
 		goto out_free_vendor_string;
+	}
+
 	control->product_string = str;
 
 	/* Assign feature flags communicated via manifest */
@@ -412,7 +489,8 @@ static bool gb_manifest_parse_interface(struct gb_interface *intf,
 	release_manifest_descriptor(interface_desc);
 
 	/* An interface must have at least one bundle descriptor */
-	if (!gb_manifest_parse_bundles(intf)) {
+	if (!gb_manifest_parse_bundles(intf))
+	{
 		dev_err(&intf->dev, "manifest bundle descriptors not valid\n");
 		goto out_err;
 	}
@@ -464,10 +542,13 @@ bool gb_manifest_parse(struct gb_interface *intf, void *data, size_t size)
 
 	/* Manifest descriptor list should be empty here */
 	if (WARN_ON(!list_empty(&intf->manifest_descs)))
+	{
 		return false;
+	}
 
 	/* we have to have at _least_ the manifest header */
-	if (size < sizeof(*header)) {
+	if (size < sizeof(*header))
+	{
 		dev_err(&intf->dev, "short manifest (%zu < %zu)\n",
 				size, sizeof(*header));
 		return false;
@@ -477,14 +558,17 @@ bool gb_manifest_parse(struct gb_interface *intf, void *data, size_t size)
 	manifest = data;
 	header = &manifest->header;
 	manifest_size = le16_to_cpu(header->size);
-	if (manifest_size != size) {
+
+	if (manifest_size != size)
+	{
 		dev_err(&intf->dev, "manifest size mismatch (%zu != %u)\n",
 				size, manifest_size);
 		return false;
 	}
 
 	/* Validate major/minor number */
-	if (header->version_major > GREYBUS_VERSION_MAJOR) {
+	if (header->version_major > GREYBUS_VERSION_MAJOR)
+	{
 		dev_err(&intf->dev, "manifest version too new (%u.%u > %u.%u)\n",
 				header->version_major, header->version_minor,
 				GREYBUS_VERSION_MAJOR, GREYBUS_VERSION_MINOR);
@@ -494,25 +578,35 @@ bool gb_manifest_parse(struct gb_interface *intf, void *data, size_t size)
 	/* OK, find all the descriptors */
 	desc = manifest->descriptors;
 	size -= sizeof(*header);
-	while (size) {
+
+	while (size)
+	{
 		int desc_size;
 
 		desc_size = identify_descriptor(intf, desc, size);
-		if (desc_size < 0) {
+
+		if (desc_size < 0)
+		{
 			result = false;
 			goto out;
 		}
+
 		desc = (struct greybus_descriptor *)((char *)desc + desc_size);
 		size -= desc_size;
 	}
 
 	/* There must be a single interface descriptor */
-	list_for_each_entry(descriptor, &intf->manifest_descs, links) {
+	list_for_each_entry(descriptor, &intf->manifest_descs, links)
+	{
 		if (descriptor->type == GREYBUS_TYPE_INTERFACE)
 			if (!found++)
+			{
 				interface_desc = descriptor;
+			}
 	}
-	if (found != 1) {
+
+	if (found != 1)
+	{
 		dev_err(&intf->dev, "manifest must have 1 interface descriptor (%u found)\n",
 				found);
 		result = false;
@@ -527,7 +621,10 @@ bool gb_manifest_parse(struct gb_interface *intf, void *data, size_t size)
 	 * don't know what newer format manifests might leave.
 	 */
 	if (result && !list_empty(&intf->manifest_descs))
+	{
 		dev_info(&intf->dev, "excess descriptors in interface manifest\n");
+	}
+
 out:
 	release_manifest_descriptors(intf);
 

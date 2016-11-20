@@ -24,13 +24,17 @@ static int adt7316_i2c_read(void *client, u8 reg, u8 *data)
 	int ret;
 
 	ret = i2c_smbus_write_byte(cl, reg);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&cl->dev, "I2C fail to select reg\n");
 		return ret;
 	}
 
 	ret = i2c_smbus_read_byte(client);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&cl->dev, "I2C read error\n");
 		return ret;
 	}
@@ -44,8 +48,11 @@ static int adt7316_i2c_write(void *client, u8 reg, u8 data)
 	int ret = 0;
 
 	ret = i2c_smbus_write_byte_data(cl, reg, data);
+
 	if (ret < 0)
+	{
 		dev_err(&cl->dev, "I2C write error\n");
+	}
 
 	return ret;
 }
@@ -56,11 +63,16 @@ static int adt7316_i2c_multi_read(void *client, u8 reg, u8 count, u8 *data)
 	int i, ret = 0;
 
 	if (count > ADT7316_REG_MAX_ADDR)
+	{
 		count = ADT7316_REG_MAX_ADDR;
+	}
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		ret = adt7316_i2c_read(cl, reg, &data[i]);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(&cl->dev, "I2C multi read error\n");
 			return ret;
 		}
@@ -75,11 +87,16 @@ static int adt7316_i2c_multi_write(void *client, u8 reg, u8 count, u8 *data)
 	int i, ret = 0;
 
 	if (count > ADT7316_REG_MAX_ADDR)
+	{
 		count = ADT7316_REG_MAX_ADDR;
+	}
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		ret = adt7316_i2c_write(cl, reg, data[i]);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(&cl->dev, "I2C multi write error\n");
 			return ret;
 		}
@@ -93,9 +110,10 @@ static int adt7316_i2c_multi_write(void *client, u8 reg, u8 count, u8 *data)
  */
 
 static int adt7316_i2c_probe(struct i2c_client *client,
-		const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
-	struct adt7316_bus bus = {
+	struct adt7316_bus bus =
+	{
 		.client = client,
 		.irq = client->irq,
 		.irq_flags = IRQF_TRIGGER_LOW,
@@ -108,7 +126,8 @@ static int adt7316_i2c_probe(struct i2c_client *client,
 	return adt7316_probe(&client->dev, &bus, id->name);
 }
 
-static const struct i2c_device_id adt7316_i2c_id[] = {
+static const struct i2c_device_id adt7316_i2c_id[] =
+{
 	{ "adt7316", 0 },
 	{ "adt7317", 0 },
 	{ "adt7318", 0 },
@@ -120,7 +139,8 @@ static const struct i2c_device_id adt7316_i2c_id[] = {
 
 MODULE_DEVICE_TABLE(i2c, adt7316_i2c_id);
 
-static struct i2c_driver adt7316_driver = {
+static struct i2c_driver adt7316_driver =
+{
 	.driver = {
 		.name = "adt7316",
 		.pm = ADT7316_PM_OPS,

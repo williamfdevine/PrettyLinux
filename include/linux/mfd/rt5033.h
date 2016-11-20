@@ -18,7 +18,8 @@
 #include <linux/power_supply.h>
 
 /* RT5033 regulator IDs */
-enum rt5033_regulators {
+enum rt5033_regulators
+{
 	RT5033_BUCK = 0,
 	RT5033_LDO,
 	RT5033_SAFE_LDO,
@@ -26,7 +27,8 @@ enum rt5033_regulators {
 	RT5033_REGULATOR_NUM,
 };
 
-struct rt5033_dev {
+struct rt5033_dev
+{
 	struct device *dev;
 
 	struct regmap *regmap;
@@ -35,7 +37,8 @@ struct rt5033_dev {
 	bool wakeup;
 };
 
-struct rt5033_battery {
+struct rt5033_battery
+{
 	struct i2c_client	*client;
 	struct rt5033_dev	*rt5033;
 	struct regmap		*regmap;
@@ -43,7 +46,8 @@ struct rt5033_battery {
 };
 
 /* RT5033 charger platform data */
-struct rt5033_charger_data {
+struct rt5033_charger_data
+{
 	unsigned int pre_uamp;
 	unsigned int pre_uvolt;
 	unsigned int const_uvolt;
@@ -51,7 +55,8 @@ struct rt5033_charger_data {
 	unsigned int fast_uamp;
 };
 
-struct rt5033_charger {
+struct rt5033_charger
+{
 	struct device		*dev;
 	struct rt5033_dev	*rt5033;
 	struct power_supply	psy;

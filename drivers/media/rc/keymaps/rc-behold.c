@@ -25,7 +25,8 @@
  * helps to descide which keycodes to assign to the buttons.
  */
 
-static struct rc_map_table behold[] = {
+static struct rc_map_table behold[] =
+{
 
 	/*  0x1c            0x12  *
 	 *  TV/FM          POWER  *
@@ -116,7 +117,8 @@ static struct rc_map_table behold[] = {
 
 };
 
-static struct rc_map_list behold_map = {
+static struct rc_map_list behold_map =
+{
 	.map = {
 		.scan    = behold,
 		.size    = ARRAY_SIZE(behold),

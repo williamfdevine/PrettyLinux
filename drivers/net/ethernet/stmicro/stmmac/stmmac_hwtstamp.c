@@ -34,7 +34,7 @@ static void stmmac_config_hw_tstamping(void __iomem *ioaddr, u32 data)
 }
 
 static u32 stmmac_config_sub_second_increment(void __iomem *ioaddr,
-					      u32 ptp_clock)
+		u32 ptp_clock)
 {
 	u32 value = readl(ioaddr + PTP_TCR);
 	unsigned long data;
@@ -47,7 +47,9 @@ static u32 stmmac_config_sub_second_increment(void __iomem *ioaddr,
 
 	/* 0.465ns accuracy */
 	if (!(value & PTP_TCR_TSCTRLSSR))
+	{
 		data = (data * 1000) / 465;
+	}
 
 	writel(data, ioaddr + PTP_SSIR);
 
@@ -68,13 +70,21 @@ static int stmmac_init_systime(void __iomem *ioaddr, u32 sec, u32 nsec)
 
 	/* wait for present system time initialize to complete */
 	limit = 10;
-	while (limit--) {
+
+	while (limit--)
+	{
 		if (!(readl(ioaddr + PTP_TCR) & PTP_TCR_TSINIT))
+		{
 			break;
+		}
+
 		mdelay(10);
 	}
+
 	if (limit < 0)
+	{
 		return -EBUSY;
+	}
 
 	return 0;
 }
@@ -92,26 +102,34 @@ static int stmmac_config_addend(void __iomem *ioaddr, u32 addend)
 
 	/* wait for present addend update to complete */
 	limit = 10;
-	while (limit--) {
+
+	while (limit--)
+	{
 		if (!(readl(ioaddr + PTP_TCR) & PTP_TCR_TSADDREG))
+		{
 			break;
+		}
+
 		mdelay(10);
 	}
+
 	if (limit < 0)
+	{
 		return -EBUSY;
+	}
 
 	return 0;
 }
 
 static int stmmac_adjust_systime(void __iomem *ioaddr, u32 sec, u32 nsec,
-				 int add_sub)
+								 int add_sub)
 {
 	u32 value;
 	int limit;
 
 	writel(sec, ioaddr + PTP_STSUR);
 	writel(((add_sub << PTP_STNSUR_ADDSUB_SHIFT) | nsec),
-		ioaddr + PTP_STNSUR);
+		   ioaddr + PTP_STNSUR);
 	/* issue command to initialize the system time value */
 	value = readl(ioaddr + PTP_TCR);
 	value |= PTP_TCR_TSUPDT;
@@ -119,13 +137,21 @@ static int stmmac_adjust_systime(void __iomem *ioaddr, u32 sec, u32 nsec,
 
 	/* wait for present system time adjust/update to complete */
 	limit = 10;
-	while (limit--) {
+
+	while (limit--)
+	{
 		if (!(readl(ioaddr + PTP_TCR) & PTP_TCR_TSUPDT))
+		{
 			break;
+		}
+
 		mdelay(10);
 	}
+
 	if (limit < 0)
+	{
 		return -EBUSY;
+	}
 
 	return 0;
 }
@@ -141,7 +167,8 @@ static u64 stmmac_get_systime(void __iomem *ioaddr)
 	return ns;
 }
 
-const struct stmmac_hwtimestamp stmmac_ptp = {
+const struct stmmac_hwtimestamp stmmac_ptp =
+{
 	.config_hw_tstamping = stmmac_config_hw_tstamping,
 	.init_systime = stmmac_init_systime,
 	.config_sub_second_increment = stmmac_config_sub_second_increment,

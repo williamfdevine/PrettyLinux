@@ -37,7 +37,8 @@
 #include <linux/init.h>
 
 #define SLOT_NAME_SIZE	10
-struct slot {
+struct slot
+{
 	u8 number;
 	struct hotplug_slot *hotplug_slot;
 	struct list_head slot_list;
@@ -52,7 +53,7 @@ static LIST_HEAD(slot_list);
 	do {							\
 		if (debug)					\
 			printk(KERN_DEBUG "%s: " format "\n",	\
-				MY_NAME, ## arg);		\
+				   MY_NAME, ## arg);		\
 	} while (0)
 #define err(format, arg...) printk(KERN_ERR "%s: " format "\n", MY_NAME, ## arg)
 #define info(format, arg...) printk(KERN_INFO "%s: " format "\n", MY_NAME, ## arg)
@@ -81,7 +82,8 @@ static int get_attention_status(struct hotplug_slot *slot, u8 *value);
 static int get_latch_status(struct hotplug_slot *slot, u8 *value);
 static int get_adapter_status(struct hotplug_slot *slot, u8 *value);
 
-static struct hotplug_slot_ops skel_hotplug_slot_ops = {
+static struct hotplug_slot_ops skel_hotplug_slot_ops =
+{
 	.enable_slot =		enable_slot,
 	.disable_slot =		disable_slot,
 	.set_attention_status =	set_attention_status,
@@ -127,19 +129,20 @@ static int set_attention_status(struct hotplug_slot *hotplug_slot, u8 status)
 
 	dbg("%s - physical_slot = %s\n", __func__, hotplug_slot->name);
 
-	switch (status) {
-	case 0:
-		/*
-		 * Fill in code here to turn light off
-		 */
-		break;
+	switch (status)
+	{
+		case 0:
+			/*
+			 * Fill in code here to turn light off
+			 */
+			break;
 
-	case 1:
-	default:
-		/*
-		 * Fill in code here to turn light on
-		 */
-		break;
+		case 1:
+		default:
+			/*
+			 * Fill in code here to turn light on
+			 */
+			break;
 	}
 
 	return retval;
@@ -152,13 +155,15 @@ static int hardware_test(struct hotplug_slot *hotplug_slot, u32 value)
 
 	dbg("%s - physical_slot = %s\n", __func__, hotplug_slot->name);
 
-	switch (value) {
-	case 0:
-		/* Specify a test here */
-		break;
-	case 1:
-		/* Specify another test here */
-		break;
+	switch (value)
+	{
+		case 0:
+			/* Specify a test here */
+			break;
+
+		case 1:
+			/* Specify another test here */
+			break;
 	}
 
 	return retval;
@@ -259,25 +264,34 @@ static int __init init_slots(void)
 	 * Create a structure for each slot, and register that slot
 	 * with the pci_hotplug subsystem.
 	 */
-	for (i = 0; i < num_slots; ++i) {
+	for (i = 0; i < num_slots; ++i)
+	{
 		slot = kzalloc(sizeof(*slot), GFP_KERNEL);
-		if (!slot) {
+
+		if (!slot)
+		{
 			retval = -ENOMEM;
 			goto error;
 		}
 
 		hotplug_slot = kzalloc(sizeof(*hotplug_slot), GFP_KERNEL);
-		if (!hotplug_slot) {
+
+		if (!hotplug_slot)
+		{
 			retval = -ENOMEM;
 			goto error_slot;
 		}
+
 		slot->hotplug_slot = hotplug_slot;
 
 		info = kzalloc(sizeof(*info), GFP_KERNEL);
-		if (!info) {
+
+		if (!info)
+		{
 			retval = -ENOMEM;
 			goto error_hpslot;
 		}
+
 		hotplug_slot->info = info;
 
 		slot->number = i;
@@ -299,7 +313,9 @@ static int __init init_slots(void)
 
 		dbg("registering slot %d\n", i);
 		retval = pci_hp_register(slot->hotplug_slot);
-		if (retval) {
+
+		if (retval)
+		{
 			err("pci_hp_register failed with error %d\n", retval);
 			goto error_info;
 		}
@@ -328,7 +344,8 @@ static void __exit cleanup_slots(void)
 	 * Memory will be freed in release_slot() callback after slot's
 	 * lifespan is finished.
 	 */
-	list_for_each_entry_safe(slot, next, &slot_list, slot_list) {
+	list_for_each_entry_safe(slot, next, &slot_list, slot_list)
+	{
 		list_del(&slot->slot_list);
 		pci_hp_deregister(slot->hotplug_slot);
 	}

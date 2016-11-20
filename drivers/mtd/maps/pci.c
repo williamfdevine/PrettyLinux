@@ -22,14 +22,16 @@
 
 struct map_pci_info;
 
-struct mtd_pci_info {
+struct mtd_pci_info
+{
 	int  (*init)(struct pci_dev *dev, struct map_pci_info *map);
 	void (*exit)(struct pci_dev *dev, struct map_pci_info *map);
 	unsigned long (*translate)(struct map_pci_info *map, unsigned long ofs);
 	const char *map_name;
 };
 
-struct map_pci_info {
+struct map_pci_info
+{
 	struct map_info map;
 	void __iomem *base;
 	void (*exit)(struct pci_dev *dev, struct map_pci_info *map);
@@ -41,7 +43,7 @@ static map_word mtd_pci_read8(struct map_info *_map, unsigned long ofs)
 {
 	struct map_pci_info *map = (struct map_pci_info *)_map;
 	map_word val;
-	val.x[0]= readb(map->base + map->translate(map, ofs));
+	val.x[0] = readb(map->base + map->translate(map, ofs));
 	return val;
 }
 
@@ -77,7 +79,8 @@ static void mtd_pci_copyto(struct map_info *_map, unsigned long to, const void *
 	memcpy_toio(map->base + map->translate(map, to), from, len);
 }
 
-static const struct map_info mtd_pci_map = {
+static const struct map_info mtd_pci_map =
+{
 	.phys =		NO_XIP,
 	.copy_from =	mtd_pci_copyfrom,
 	.copy_to =	mtd_pci_copyto,
@@ -94,14 +97,16 @@ intel_iq80310_init(struct pci_dev *dev, struct map_pci_info *map)
 
 	map->map.bankwidth = 1;
 	map->map.read = mtd_pci_read8,
-	map->map.write = mtd_pci_write8,
+			 map->map.write = mtd_pci_write8,
 
-	map->map.size     = 0x00800000;
+					  map->map.size     = 0x00800000;
 	map->base         = ioremap_nocache(pci_resource_start(dev, 0),
-					    pci_resource_len(dev, 0));
+										pci_resource_len(dev, 0));
 
 	if (!map->base)
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * We want to base the memory window at Xscale
@@ -119,7 +124,10 @@ static void
 intel_iq80310_exit(struct pci_dev *dev, struct map_pci_info *map)
 {
 	if (map->base)
+	{
 		iounmap(map->base);
+	}
+
 	pci_write_config_dword(dev, 0x44, map->map.map_priv_2);
 }
 
@@ -132,10 +140,13 @@ intel_iq80310_translate(struct map_pci_info *map, unsigned long ofs)
 	 * This mundges the flash location so we avoid
 	 * the first 80 bytes (they appear to read nonsense).
 	 */
-	if (page_addr) {
+	if (page_addr)
+	{
 		writel(0x00000008, map->base + 0x1558);
 		writel(0x00000000, map->base + 0x1550);
-	} else {
+	}
+	else
+	{
 		writel(0x00000007, map->base + 0x1558);
 		writel(0x00800000, map->base + 0x1550);
 		ofs += 0x00800000;
@@ -144,7 +155,8 @@ intel_iq80310_translate(struct map_pci_info *map, unsigned long ofs)
 	return ofs;
 }
 
-static struct mtd_pci_info intel_iq80310_info = {
+static struct mtd_pci_info intel_iq80310_info =
+{
 	.init =		intel_iq80310_init,
 	.exit =		intel_iq80310_exit,
 	.translate =	intel_iq80310_translate,
@@ -163,7 +175,8 @@ intel_dc21285_init(struct pci_dev *dev, struct map_pci_info *map)
 	base = pci_resource_start(dev, PCI_ROM_RESOURCE);
 	len  = pci_resource_len(dev, PCI_ROM_RESOURCE);
 
-	if (!len || !base) {
+	if (!len || !base)
+	{
 		/*
 		 * No ROM resource
 		 */
@@ -174,7 +187,9 @@ intel_dc21285_init(struct pci_dev *dev, struct map_pci_info *map)
 		 * We need to re-allocate PCI BAR2 address range to the
 		 * PCI ROM BAR, and disable PCI BAR2.
 		 */
-	} else {
+	}
+	else
+	{
 		/*
 		 * Hmm, if an address was allocated to the ROM resource, but
 		 * not enabled, should we be allocating a new resource for it
@@ -185,16 +200,20 @@ intel_dc21285_init(struct pci_dev *dev, struct map_pci_info *map)
 	}
 
 	if (!len || !base)
+	{
 		return -ENXIO;
+	}
 
 	map->map.bankwidth = 4;
 	map->map.read = mtd_pci_read32,
-	map->map.write = mtd_pci_write32,
-	map->map.size     = len;
+			 map->map.write = mtd_pci_write32,
+					  map->map.size     = len;
 	map->base         = ioremap_nocache(base, len);
 
 	if (!map->base)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -203,7 +222,9 @@ static void
 intel_dc21285_exit(struct pci_dev *dev, struct map_pci_info *map)
 {
 	if (map->base)
+	{
 		iounmap(map->base);
+	}
 
 	/*
 	 * We need to undo the PCI BAR2/PCI ROM BAR address alteration.
@@ -217,7 +238,8 @@ intel_dc21285_translate(struct map_pci_info *map, unsigned long ofs)
 	return ofs & 0x00ffffc0 ? ofs : (ofs ^ (1 << 5));
 }
 
-static struct mtd_pci_info intel_dc21285_info = {
+static struct mtd_pci_info intel_dc21285_info =
+{
 	.init =		intel_dc21285_init,
 	.exit =		intel_dc21285_exit,
 	.translate =	intel_dc21285_translate,
@@ -228,7 +250,8 @@ static struct mtd_pci_info intel_dc21285_info = {
  * PCI device ID table
  */
 
-static struct pci_device_id mtd_pci_ids[] = {
+static struct pci_device_id mtd_pci_ids[] =
+{
 	{
 		.vendor =	PCI_VENDOR_ID_INTEL,
 		.device =	0x530d,
@@ -236,14 +259,14 @@ static struct pci_device_id mtd_pci_ids[] = {
 		.subdevice =	PCI_ANY_ID,
 		.class =	PCI_CLASS_MEMORY_OTHER << 8,
 		.class_mask =	0xffff00,
-		.driver_data =	(unsigned long)&intel_iq80310_info,
+		.driver_data =	(unsigned long) &intel_iq80310_info,
 	},
 	{
 		.vendor =	PCI_VENDOR_ID_DEC,
 		.device =	PCI_DEVICE_ID_DEC_21285,
 		.subvendor =	0,	/* DC21285 defaults to 0 on reset */
 		.subdevice =	0,	/* DC21285 defaults to 0 on reset */
-		.driver_data =	(unsigned long)&intel_dc21285_info,
+		.driver_data =	(unsigned long) &intel_dc21285_info,
 	},
 	{ 0, }
 };
@@ -260,17 +283,26 @@ static int mtd_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	int err;
 
 	err = pci_enable_device(dev);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	err = pci_request_regions(dev, "pci mtd");
+
 	if (err)
+	{
 		goto out;
+	}
 
 	map = kmalloc(sizeof(*map), GFP_KERNEL);
 	err = -ENOMEM;
+
 	if (!map)
+	{
 		goto release;
+	}
 
 	map->map       = mtd_pci_map;
 	map->map.name  = pci_name(dev);
@@ -279,13 +311,19 @@ static int mtd_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	map->translate = info->translate;
 
 	err = info->init(dev, map);
+
 	if (err)
+	{
 		goto release;
+	}
 
 	mtd = do_map_probe(info->map_name, &map->map);
 	err = -ENODEV;
+
 	if (!mtd)
+	{
 		goto release;
+	}
 
 	mtd->owner = THIS_MODULE;
 	mtd_device_register(mtd, NULL, 0);
@@ -295,7 +333,9 @@ static int mtd_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	return 0;
 
 release:
-	if (map) {
+
+	if (map)
+	{
 		map->exit(dev, map);
 		kfree(map);
 	}
@@ -318,7 +358,8 @@ static void mtd_pci_remove(struct pci_dev *dev)
 	pci_release_regions(dev);
 }
 
-static struct pci_driver mtd_pci_driver = {
+static struct pci_driver mtd_pci_driver =
+{
 	.name =		"MTD PCI",
 	.probe =	mtd_pci_probe,
 	.remove =	mtd_pci_remove,

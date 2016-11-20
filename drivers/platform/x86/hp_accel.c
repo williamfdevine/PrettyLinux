@@ -47,7 +47,8 @@
 /* Delayed LEDs infrastructure ------------------------------------ */
 
 /* Special LED class that can defer work */
-struct delayed_led_classdev {
+struct delayed_led_classdev
+{
 	struct led_classdev led_classdev;
 	struct work_struct work;
 	enum led_brightness new_brightness;
@@ -59,16 +60,16 @@ struct delayed_led_classdev {
 static inline void delayed_set_status_worker(struct work_struct *work)
 {
 	struct delayed_led_classdev *data =
-			container_of(work, struct delayed_led_classdev, work);
+		container_of(work, struct delayed_led_classdev, work);
 
 	data->set_brightness(data, data->new_brightness);
 }
 
 static inline void delayed_sysfs_set(struct led_classdev *led_cdev,
-			      enum led_brightness brightness)
+									 enum led_brightness brightness)
 {
 	struct delayed_led_classdev *data = container_of(led_cdev,
-			     struct delayed_led_classdev, led_classdev);
+										struct delayed_led_classdev, led_classdev);
 	data->new_brightness = brightness;
 	schedule_work(&data->work);
 }
@@ -83,7 +84,8 @@ static inline void delayed_sysfs_set(struct led_classdev *led_cdev,
 #define ACCEL_4 0x28
 
 /* For automatic insertion of the module */
-static const struct acpi_device_id lis3lv02d_device_ids[] = {
+static const struct acpi_device_id lis3lv02d_device_ids[] =
+{
 	{"HPQ0004", 0}, /* HP Mobile Data Protection System PNP */
 	{"HPQ6000", 0}, /* HP Mobile Data Protection System PNP */
 	{"HPQ6007", 0}, /* HP Mobile Data Protection System PNP */
@@ -101,9 +103,12 @@ MODULE_DEVICE_TABLE(acpi, lis3lv02d_device_ids);
 static int lis3lv02d_acpi_init(struct lis3lv02d *lis3)
 {
 	struct acpi_device *dev = lis3->bus_priv;
+
 	if (acpi_evaluate_object(dev->handle, METHOD_NAME__INI,
-				 NULL, NULL) != AE_OK)
+							 NULL, NULL) != AE_OK)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -127,8 +132,12 @@ static int lis3lv02d_acpi_read(struct lis3lv02d *lis3, int reg, u8 *ret)
 	arg0.integer.value = reg;
 
 	status = acpi_evaluate_integer(dev->handle, "ALRD", &args, &lret);
+
 	if (ACPI_FAILURE(status))
+	{
 		return -EINVAL;
+	}
+
 	*ret = lret;
 	return 0;
 }
@@ -154,7 +163,9 @@ static int lis3lv02d_acpi_write(struct lis3lv02d *lis3, int reg, u8 val)
 	in_obj[1].integer.value = val;
 
 	if (acpi_evaluate_integer(dev->handle, "ALWR", &args, &ret) != AE_OK)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -171,7 +182,7 @@ static int lis3lv02d_dmi_matched(const struct dmi_system_id *dmi)
  * If the value is negative, the opposite of the hw value is used. */
 #define DEFINE_CONV(name, x, y, z)			      \
 	static union axis_conversion lis3lv02d_axis_##name = \
-		{ .as_array = { x, y, z } }
+				{ .as_array = { x, y, z } }
 DEFINE_CONV(normal, 1, 2, 3);
 DEFINE_CONV(y_inverted, 1, -2, 3);
 DEFINE_CONV(x_inverted, -1, 2, 3);
@@ -185,26 +196,27 @@ DEFINE_CONV(xy_rotated_right, 2, -1, 3);
 DEFINE_CONV(xy_swap_yz_inverted, 2, -1, -3);
 
 #define AXIS_DMI_MATCH(_ident, _name, _axis) {		\
-	.ident = _ident,				\
-	.callback = lis3lv02d_dmi_matched,		\
-	.matches = {					\
-		DMI_MATCH(DMI_PRODUCT_NAME, _name)	\
-	},						\
-	.driver_data = &lis3lv02d_axis_##_axis		\
-}
+		.ident = _ident,				\
+				 .callback = lis3lv02d_dmi_matched,		\
+							 .matches = {					\
+															 DMI_MATCH(DMI_PRODUCT_NAME, _name)	\
+										},						\
+										.driver_data = &lis3lv02d_axis_##_axis		\
+	}
 
 #define AXIS_DMI_MATCH2(_ident, _class1, _name1,	\
-				_class2, _name2,	\
-				_axis) {		\
+						_class2, _name2,	\
+						_axis) {		\
 	.ident = _ident,				\
-	.callback = lis3lv02d_dmi_matched,		\
-	.matches = {					\
-		DMI_MATCH(DMI_##_class1, _name1),	\
-		DMI_MATCH(DMI_##_class2, _name2),	\
-	},						\
-	.driver_data = &lis3lv02d_axis_##_axis		\
+			 .callback = lis3lv02d_dmi_matched,		\
+						 .matches = {					\
+														 DMI_MATCH(DMI_##_class1, _name1),	\
+														 DMI_MATCH(DMI_##_class2, _name2),	\
+									},						\
+									.driver_data = &lis3lv02d_axis_##_axis		\
 }
-static const struct dmi_system_id lis3lv02d_dmi_ids[] = {
+static const struct dmi_system_id lis3lv02d_dmi_ids[] =
+{
 	/* product names are truncated to match all kinds of a same model */
 	AXIS_DMI_MATCH("NC64x0", "HP Compaq nc64", x_inverted),
 	AXIS_DMI_MATCH("NC84x0", "HP Compaq nc84", z_inverted),
@@ -227,14 +239,14 @@ static const struct dmi_system_id lis3lv02d_dmi_ids[] = {
 	AXIS_DMI_MATCH("NC273xx", "HP EliteBook 273", y_inverted),
 	/* Intel-based HP Pavilion dv5 */
 	AXIS_DMI_MATCH2("HPDV5_I",
-			PRODUCT_NAME, "HP Pavilion dv5",
-			BOARD_NAME, "3603",
-			x_inverted),
+	PRODUCT_NAME, "HP Pavilion dv5",
+	BOARD_NAME, "3603",
+	x_inverted),
 	/* AMD-based HP Pavilion dv5 */
 	AXIS_DMI_MATCH2("HPDV5_A",
-			PRODUCT_NAME, "HP Pavilion dv5",
-			BOARD_NAME, "3600",
-			y_inverted),
+	PRODUCT_NAME, "HP Pavilion dv5",
+	BOARD_NAME, "3600",
+	y_inverted),
 	AXIS_DMI_MATCH("DV7", "HP Pavilion dv7", x_inverted),
 	AXIS_DMI_MATCH("HP8710", "HP Compaq 8710", y_inverted),
 	AXIS_DMI_MATCH("HDX18", "HP HDX 18", x_inverted),
@@ -252,13 +264,13 @@ static const struct dmi_system_id lis3lv02d_dmi_ids[] = {
 	AXIS_DMI_MATCH("HPB65xx", "HP ProBook 65", x_inverted),
 	AXIS_DMI_MATCH("HPZBook15", "HP ZBook 15", x_inverted),
 	{ NULL, }
-/* Laptop models without axis info (yet):
- * "NC6910" "HP Compaq 6910"
- * "NC2400" "HP Compaq nc2400"
- * "NX74x0" "HP Compaq nx74"
- * "NX6325" "HP Compaq nx6325"
- * "NC4400" "HP Compaq nc4400"
- */
+	/* Laptop models without axis info (yet):
+	 * "NC6910" "HP Compaq 6910"
+	 * "NC2400" "HP Compaq nc2400"
+	 * "NX74x0" "HP Compaq nx74"
+	 * "NX6325" "HP Compaq nx6325"
+	 * "NC4400" "HP Compaq nc4400"
+	 */
 };
 
 static void hpled_set(struct delayed_led_classdev *led_cdev, enum led_brightness value)
@@ -274,7 +286,8 @@ static void hpled_set(struct delayed_led_classdev *led_cdev, enum led_brightness
 	acpi_evaluate_integer(dev->handle, "ALED", &args, &ret);
 }
 
-static struct delayed_led_classdev hpled_led = {
+static struct delayed_led_classdev hpled_led =
+{
 	.led_classdev = {
 		.name			= "hp::hddprotect",
 		.default_trigger	= "none",
@@ -287,7 +300,8 @@ static struct delayed_led_classdev hpled_led = {
 static acpi_status
 lis3lv02d_get_resource(struct acpi_resource *resource, void *context)
 {
-	if (resource->type == ACPI_RESOURCE_TYPE_EXTENDED_IRQ) {
+	if (resource->type == ACPI_RESOURCE_TYPE_EXTENDED_IRQ)
+	{
 		struct acpi_resource_extended_irq *irq;
 		u32 *device_irq = context;
 
@@ -303,34 +317,44 @@ static void lis3lv02d_enum_resources(struct acpi_device *device)
 	acpi_status status;
 
 	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
-					lis3lv02d_get_resource, &lis3_dev.irq);
+								 lis3lv02d_get_resource, &lis3_dev.irq);
+
 	if (ACPI_FAILURE(status))
+	{
 		printk(KERN_DEBUG DRIVER_NAME ": Error getting resources\n");
+	}
 }
 
 static bool hp_accel_i8042_filter(unsigned char data, unsigned char str,
-				  struct serio *port)
+								  struct serio *port)
 {
 	static bool extended;
 
 	if (str & I8042_STR_AUXDATA)
+	{
 		return false;
+	}
 
-	if (data == 0xe0) {
+	if (data == 0xe0)
+	{
 		extended = true;
 		return true;
-	} else if (unlikely(extended)) {
+	}
+	else if (unlikely(extended))
+	{
 		extended = false;
 
-		switch (data) {
-		case ACCEL_1:
-		case ACCEL_2:
-		case ACCEL_3:
-		case ACCEL_4:
-			return true;
-		default:
-			serio_interrupt(port, 0xe0, 0);
-			return false;
+		switch (data)
+		{
+			case ACCEL_1:
+			case ACCEL_2:
+			case ACCEL_3:
+			case ACCEL_4:
+				return true;
+
+			default:
+				serio_interrupt(port, 0xe0, 0);
+				return false;
 		}
 	}
 
@@ -342,7 +366,9 @@ static int lis3lv02d_add(struct acpi_device *device)
 	int ret;
 
 	if (!device)
+	{
 		return -EINVAL;
+	}
 
 	lis3_dev.bus_priv = device;
 	lis3_dev.init = lis3lv02d_acpi_init;
@@ -356,27 +382,37 @@ static int lis3lv02d_add(struct acpi_device *device)
 	lis3lv02d_enum_resources(device);
 
 	/* If possible use a "standard" axes order */
-	if (lis3_dev.ac.x && lis3_dev.ac.y && lis3_dev.ac.z) {
+	if (lis3_dev.ac.x && lis3_dev.ac.y && lis3_dev.ac.z)
+	{
 		pr_info("Using custom axes %d,%d,%d\n",
-			lis3_dev.ac.x, lis3_dev.ac.y, lis3_dev.ac.z);
-	} else if (dmi_check_system(lis3lv02d_dmi_ids) == 0) {
+				lis3_dev.ac.x, lis3_dev.ac.y, lis3_dev.ac.z);
+	}
+	else if (dmi_check_system(lis3lv02d_dmi_ids) == 0)
+	{
 		pr_info("laptop model unknown, using default axes configuration\n");
 		lis3_dev.ac = lis3lv02d_axis_normal;
 	}
 
 	/* call the core layer do its init */
 	ret = lis3lv02d_init_device(&lis3_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* filter to remove HPQ6000 accelerometer data
 	 * from keyboard bus stream */
 	if (strstr(dev_name(&device->dev), "HPQ6000"))
+	{
 		i8042_install_filter(hp_accel_i8042_filter);
+	}
 
 	INIT_WORK(&hpled_led.work, delayed_set_status_worker);
 	ret = led_classdev_register(NULL, &hpled_led.led_classdev);
-	if (ret) {
+
+	if (ret)
+	{
 		lis3lv02d_joystick_disable(&lis3_dev);
 		lis3lv02d_poweroff(&lis3_dev);
 		flush_work(&hpled_led.work);
@@ -389,7 +425,9 @@ static int lis3lv02d_add(struct acpi_device *device)
 static int lis3lv02d_remove(struct acpi_device *device)
 {
 	if (!device)
+	{
 		return -EINVAL;
+	}
 
 	i8042_remove_filter(hp_accel_i8042_filter);
 	lis3lv02d_joystick_disable(&lis3_dev);
@@ -423,7 +461,8 @@ static SIMPLE_DEV_PM_OPS(hp_accel_pm, lis3lv02d_suspend, lis3lv02d_resume);
 #endif
 
 /* For the HP MDPS aka 3D Driveguard */
-static struct acpi_driver lis3lv02d_driver = {
+static struct acpi_driver lis3lv02d_driver =
+{
 	.name  = DRIVER_NAME,
 	.class = ACPI_MDPS_CLASS,
 	.ids   = lis3lv02d_device_ids,

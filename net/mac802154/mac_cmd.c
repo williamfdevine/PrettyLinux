@@ -30,11 +30,11 @@
 #include "driver-ops.h"
 
 static int mac802154_mlme_start_req(struct net_device *dev,
-				    struct ieee802154_addr *addr,
-				    u8 channel, u8 page,
-				    u8 bcn_ord, u8 sf_ord,
-				    u8 pan_coord, u8 blx,
-				    u8 coord_realign)
+									struct ieee802154_addr *addr,
+									u8 channel, u8 page,
+									u8 bcn_ord, u8 sf_ord,
+									u8 pan_coord, u8 blx,
+									u8 coord_realign)
 {
 	struct ieee802154_llsec_params params;
 	int changed = 0;
@@ -63,7 +63,7 @@ static int mac802154_mlme_start_req(struct net_device *dev,
 }
 
 static int mac802154_set_mac_params(struct net_device *dev,
-				    const struct ieee802154_mac_params *params)
+									const struct ieee802154_mac_params *params)
 {
 	struct ieee802154_sub_if_data *sdata = IEEE802154_DEV_TO_SUB_IF(dev);
 	struct ieee802154_local *local = sdata->local;
@@ -84,29 +84,41 @@ static int mac802154_set_mac_params(struct net_device *dev,
 	wpan_dev->frame_retries = params->frame_retries;
 	wpan_dev->lbt = params->lbt;
 
-	if (local->hw.phy->flags & WPAN_PHY_FLAG_TXPOWER) {
+	if (local->hw.phy->flags & WPAN_PHY_FLAG_TXPOWER)
+	{
 		ret = drv_set_tx_power(local, params->transmit_power);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
-	if (local->hw.phy->flags & WPAN_PHY_FLAG_CCA_MODE) {
+	if (local->hw.phy->flags & WPAN_PHY_FLAG_CCA_MODE)
+	{
 		ret = drv_set_cca_mode(local, &params->cca);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
-	if (local->hw.phy->flags & WPAN_PHY_FLAG_CCA_ED_LEVEL) {
+	if (local->hw.phy->flags & WPAN_PHY_FLAG_CCA_ED_LEVEL)
+	{
 		ret = drv_set_cca_ed_level(local, params->cca_ed_level);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
 }
 
 static void mac802154_get_mac_params(struct net_device *dev,
-				     struct ieee802154_mac_params *params)
+									 struct ieee802154_mac_params *params)
 {
 	struct ieee802154_sub_if_data *sdata = IEEE802154_DEV_TO_SUB_IF(dev);
 	struct wpan_dev *wpan_dev = &sdata->wpan_dev;
@@ -126,7 +138,8 @@ static void mac802154_get_mac_params(struct net_device *dev,
 	params->lbt = wpan_dev->lbt;
 }
 
-static const struct ieee802154_llsec_ops mac802154_llsec_ops = {
+static const struct ieee802154_llsec_ops mac802154_llsec_ops =
+{
 	.get_params = mac802154_get_params,
 	.set_params = mac802154_set_params,
 	.add_key = mac802154_add_key,
@@ -142,7 +155,8 @@ static const struct ieee802154_llsec_ops mac802154_llsec_ops = {
 	.unlock_table = mac802154_unlock_table,
 };
 
-struct ieee802154_mlme_ops mac802154_mlme_wpan = {
+struct ieee802154_mlme_ops mac802154_mlme_wpan =
+{
 	.start_req = mac802154_mlme_start_req,
 
 	.llsec = &mac802154_llsec_ops,

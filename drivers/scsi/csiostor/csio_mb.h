@@ -45,7 +45,8 @@
 #define CSIO_STATS_OFFSET (2)
 #define CSIO_NUM_STATS_PER_MB (6)
 
-struct fw_fcoe_port_cmd_params {
+struct fw_fcoe_port_cmd_params
+{
 	uint8_t		portid;
 	uint8_t		idx;
 	uint8_t		nstats;
@@ -53,14 +54,14 @@ struct fw_fcoe_port_cmd_params {
 
 #define CSIO_DUMP_MB(__hw, __num, __mb)					\
 	csio_dbg(__hw, "\t%llx %llx %llx %llx %llx %llx %llx %llx\n",	\
-		(unsigned long long)csio_rd_reg64(__hw, __mb),		\
-		(unsigned long long)csio_rd_reg64(__hw, __mb + 8),	\
-		(unsigned long long)csio_rd_reg64(__hw, __mb + 16),	\
-		(unsigned long long)csio_rd_reg64(__hw, __mb + 24),	\
-		(unsigned long long)csio_rd_reg64(__hw, __mb + 32),	\
-		(unsigned long long)csio_rd_reg64(__hw, __mb + 40),	\
-		(unsigned long long)csio_rd_reg64(__hw, __mb + 48),	\
-		(unsigned long long)csio_rd_reg64(__hw, __mb + 56))
+			 (unsigned long long)csio_rd_reg64(__hw, __mb),		\
+			 (unsigned long long)csio_rd_reg64(__hw, __mb + 8),	\
+			 (unsigned long long)csio_rd_reg64(__hw, __mb + 16),	\
+			 (unsigned long long)csio_rd_reg64(__hw, __mb + 24),	\
+			 (unsigned long long)csio_rd_reg64(__hw, __mb + 32),	\
+			 (unsigned long long)csio_rd_reg64(__hw, __mb + 40),	\
+			 (unsigned long long)csio_rd_reg64(__hw, __mb + 48),	\
+			 (unsigned long long)csio_rd_reg64(__hw, __mb + 56))
 
 #define CSIO_MB_MAX_REGS	8
 #define CSIO_MAX_MB_SIZE	64
@@ -72,7 +73,8 @@ enum csio_dev_master { CSIO_MASTER_CANT, CSIO_MASTER_MAY, CSIO_MASTER_MUST };
 
 enum csio_mb_owner { CSIO_MBOWNER_NONE, CSIO_MBOWNER_FW, CSIO_MBOWNER_PL };
 
-enum csio_dev_state {
+enum csio_dev_state
+{
 	CSIO_DEV_STATE_UNINIT,
 	CSIO_DEV_STATE_INIT,
 	CSIO_DEV_STATE_ERR
@@ -88,25 +90,27 @@ enum csio_dev_state {
 	 FW_PARAMS_PARAM_Y_V(0) | \
 	 FW_PARAMS_PARAM_Z_V(0))
 
-enum {
+enum
+{
 	PAUSE_RX      = 1 << 0,
 	PAUSE_TX      = 1 << 1,
 	PAUSE_AUTONEG = 1 << 2
 };
 
 #define CSIO_INIT_MBP(__mbp, __cp,  __tmo, __priv, __fn, __clear)	\
-do {									\
-	if (__clear)							\
-		memset((__cp), 0,					\
-			    CSIO_MB_MAX_REGS * sizeof(__be64));		\
-	INIT_LIST_HEAD(&(__mbp)->list);					\
-	(__mbp)->tmo		= (__tmo);				\
-	(__mbp)->priv		= (void *)(__priv);			\
-	(__mbp)->mb_cbfn	= (__fn);				\
-	(__mbp)->mb_size	= sizeof(*(__cp));			\
-} while (0)
+	do {									\
+		if (__clear)							\
+			memset((__cp), 0,					\
+				   CSIO_MB_MAX_REGS * sizeof(__be64));		\
+		INIT_LIST_HEAD(&(__mbp)->list);					\
+		(__mbp)->tmo		= (__tmo);				\
+		(__mbp)->priv		= (void *)(__priv);			\
+		(__mbp)->mb_cbfn	= (__fn);				\
+		(__mbp)->mb_size	= sizeof(*(__cp));			\
+	} while (0)
 
-struct csio_mbm_stats {
+struct csio_mbm_stats
+{
 	uint32_t	n_req;		/* number of mbox req */
 	uint32_t	n_rsp;		/* number of mbox rsp */
 	uint32_t	n_activeq;	/* number of mbox req active Q */
@@ -117,9 +121,10 @@ struct csio_mbm_stats {
 };
 
 /* Driver version of Mailbox */
-struct csio_mb {
+struct csio_mb
+{
 	struct list_head	list;			/* for req/resp */
-							/* queue in driver */
+	/* queue in driver */
 	__be64			mb[CSIO_MB_MAX_REGS];	/* MB in HW format */
 	int			mb_size;		/* Size of this
 							 * mailbox.
@@ -129,11 +134,12 @@ struct csio_mb {
 							 * object
 							 */
 	void			(*mb_cbfn) (struct csio_hw *, struct csio_mb *);
-							/* Callback fn */
+	/* Callback fn */
 	void			*priv;			/* Owner private ptr */
 };
 
-struct csio_mbm {
+struct csio_mbm
+{
 	uint32_t		a_mbox;			/* Async mbox num */
 	uint32_t		intr_idx;		/* Interrupt index */
 	struct timer_list	timer;			/* Mbox timer */
@@ -156,103 +162,103 @@ enum fw_retval csio_mb_fw_retval(struct csio_mb *);
 
 /* MB helpers */
 void csio_mb_hello(struct csio_hw *, struct csio_mb *, uint32_t,
-		   uint32_t, uint32_t, enum csio_dev_master,
-		   void (*)(struct csio_hw *, struct csio_mb *));
+				   uint32_t, uint32_t, enum csio_dev_master,
+				   void (*)(struct csio_hw *, struct csio_mb *));
 
 void csio_mb_process_hello_rsp(struct csio_hw *, struct csio_mb *,
-			       enum fw_retval *, enum csio_dev_state *,
-			       uint8_t *);
+							   enum fw_retval *, enum csio_dev_state *,
+							   uint8_t *);
 
 void csio_mb_bye(struct csio_hw *, struct csio_mb *, uint32_t,
-		 void (*)(struct csio_hw *, struct csio_mb *));
+				 void (*)(struct csio_hw *, struct csio_mb *));
 
 void csio_mb_reset(struct csio_hw *, struct csio_mb *, uint32_t, int, int,
-		   void (*)(struct csio_hw *, struct csio_mb *));
+				   void (*)(struct csio_hw *, struct csio_mb *));
 
 void csio_mb_params(struct csio_hw *, struct csio_mb *, uint32_t, unsigned int,
-		    unsigned int, unsigned int, const u32 *, u32 *, bool,
-		    void (*)(struct csio_hw *, struct csio_mb *));
+					unsigned int, unsigned int, const u32 *, u32 *, bool,
+					void (*)(struct csio_hw *, struct csio_mb *));
 
 void csio_mb_process_read_params_rsp(struct csio_hw *, struct csio_mb *,
-				enum fw_retval *, unsigned int , u32 *);
+									 enum fw_retval *, unsigned int , u32 *);
 
 void csio_mb_ldst(struct csio_hw *hw, struct csio_mb *mbp, uint32_t tmo,
-		  int reg);
+				  int reg);
 
 void csio_mb_caps_config(struct csio_hw *, struct csio_mb *, uint32_t,
-			    bool, bool, bool, bool,
-			    void (*)(struct csio_hw *, struct csio_mb *));
+						 bool, bool, bool, bool,
+						 void (*)(struct csio_hw *, struct csio_mb *));
 
 void csio_mb_port(struct csio_hw *, struct csio_mb *, uint32_t,
-		  uint8_t, bool, uint32_t, uint16_t,
-		  void (*) (struct csio_hw *, struct csio_mb *));
+				  uint8_t, bool, uint32_t, uint16_t,
+				  void (*) (struct csio_hw *, struct csio_mb *));
 
 void csio_mb_process_read_port_rsp(struct csio_hw *, struct csio_mb *,
-				   enum fw_retval *, uint16_t *);
+								   enum fw_retval *, uint16_t *);
 
 void csio_mb_initialize(struct csio_hw *, struct csio_mb *, uint32_t,
-			void (*)(struct csio_hw *, struct csio_mb *));
+						void (*)(struct csio_hw *, struct csio_mb *));
 
 void csio_mb_iq_alloc_write(struct csio_hw *, struct csio_mb *, void *,
-			uint32_t, struct csio_iq_params *,
-			void (*) (struct csio_hw *, struct csio_mb *));
+							uint32_t, struct csio_iq_params *,
+							void (*) (struct csio_hw *, struct csio_mb *));
 
 void csio_mb_iq_alloc_write_rsp(struct csio_hw *, struct csio_mb *,
-				enum fw_retval *, struct csio_iq_params *);
+								enum fw_retval *, struct csio_iq_params *);
 
 void csio_mb_iq_free(struct csio_hw *, struct csio_mb *, void *,
-		     uint32_t, struct csio_iq_params *,
-		     void (*) (struct csio_hw *, struct csio_mb *));
+					 uint32_t, struct csio_iq_params *,
+					 void (*) (struct csio_hw *, struct csio_mb *));
 
 void csio_mb_eq_ofld_alloc_write(struct csio_hw *, struct csio_mb *, void *,
-				 uint32_t, struct csio_eq_params *,
-				 void (*) (struct csio_hw *, struct csio_mb *));
+								 uint32_t, struct csio_eq_params *,
+								 void (*) (struct csio_hw *, struct csio_mb *));
 
 void csio_mb_eq_ofld_alloc_write_rsp(struct csio_hw *, struct csio_mb *,
-				     enum fw_retval *, struct csio_eq_params *);
+									 enum fw_retval *, struct csio_eq_params *);
 
 void csio_mb_eq_ofld_free(struct csio_hw *, struct csio_mb *, void *,
-			  uint32_t , struct csio_eq_params *,
-			  void (*) (struct csio_hw *, struct csio_mb *));
+						  uint32_t , struct csio_eq_params *,
+						  void (*) (struct csio_hw *, struct csio_mb *));
 
 void csio_fcoe_read_res_info_init_mb(struct csio_hw *, struct csio_mb *,
-			uint32_t,
-			void (*) (struct csio_hw *, struct csio_mb *));
+									 uint32_t,
+									 void (*) (struct csio_hw *, struct csio_mb *));
 
 void csio_write_fcoe_link_cond_init_mb(struct csio_lnode *, struct csio_mb *,
-			uint32_t, uint8_t, uint32_t, uint8_t, bool, uint32_t,
-			void (*) (struct csio_hw *, struct csio_mb *));
+									   uint32_t, uint8_t, uint32_t, uint8_t, bool, uint32_t,
+									   void (*) (struct csio_hw *, struct csio_mb *));
 
 void csio_fcoe_vnp_alloc_init_mb(struct csio_lnode *, struct csio_mb *,
-			uint32_t, uint32_t , uint32_t , uint16_t,
-			uint8_t [8], uint8_t [8],
-			void (*) (struct csio_hw *, struct csio_mb *));
+								 uint32_t, uint32_t , uint32_t , uint16_t,
+								 uint8_t [8], uint8_t [8],
+								 void (*) (struct csio_hw *, struct csio_mb *));
 
 void csio_fcoe_vnp_read_init_mb(struct csio_lnode *, struct csio_mb *,
-			uint32_t, uint32_t , uint32_t ,
-			void (*) (struct csio_hw *, struct csio_mb *));
+								uint32_t, uint32_t , uint32_t ,
+								void (*) (struct csio_hw *, struct csio_mb *));
 
 void csio_fcoe_vnp_free_init_mb(struct csio_lnode *, struct csio_mb *,
-			uint32_t , uint32_t, uint32_t ,
-			void (*) (struct csio_hw *, struct csio_mb *));
+								uint32_t , uint32_t, uint32_t ,
+								void (*) (struct csio_hw *, struct csio_mb *));
 
 void csio_fcoe_read_fcf_init_mb(struct csio_lnode *, struct csio_mb *,
-			uint32_t, uint32_t, uint32_t,
-			void (*cbfn) (struct csio_hw *, struct csio_mb *));
+								uint32_t, uint32_t, uint32_t,
+								void (*cbfn) (struct csio_hw *, struct csio_mb *));
 
 void csio_fcoe_read_portparams_init_mb(struct csio_hw *hw,
-			struct csio_mb *mbp, uint32_t mb_tmo,
-			struct fw_fcoe_port_cmd_params *portparams,
-			void (*cbfn)(struct csio_hw *, struct csio_mb *));
+									   struct csio_mb *mbp, uint32_t mb_tmo,
+									   struct fw_fcoe_port_cmd_params *portparams,
+									   void (*cbfn)(struct csio_hw *, struct csio_mb *));
 
 void csio_mb_process_portparams_rsp(struct csio_hw *hw, struct csio_mb *mbp,
-				enum fw_retval *retval,
-				struct fw_fcoe_port_cmd_params *portparams,
-				struct fw_fcoe_port_stats *portstats);
+									enum fw_retval *retval,
+									struct fw_fcoe_port_cmd_params *portparams,
+									struct fw_fcoe_port_stats *portstats);
 
 /* MB module functions */
 int csio_mbm_init(struct csio_mbm *, struct csio_hw *,
-			    void (*)(uintptr_t));
+				  void (*)(uintptr_t));
 void csio_mbm_exit(struct csio_mbm *);
 void csio_mb_intr_enable(struct csio_hw *);
 void csio_mb_intr_disable(struct csio_hw *);

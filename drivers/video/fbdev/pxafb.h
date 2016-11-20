@@ -22,14 +22,16 @@
  */
 
 /* PXA LCD DMA descriptor */
-struct pxafb_dma_descriptor {
+struct pxafb_dma_descriptor
+{
 	unsigned int fdadr;
 	unsigned int fsadr;
 	unsigned int fidr;
 	unsigned int ldcmd;
 };
 
-enum {
+enum
+{
 	PAL_NONE	= -1,
 	PAL_BASE	= 0,
 	PAL_OV1		= 1,
@@ -37,7 +39,8 @@ enum {
 	PAL_MAX,
 };
 
-enum {
+enum
+{
 	DMA_BASE	= 0,
 	DMA_UPPER	= 0,
 	DMA_LOWER	= 1,
@@ -57,19 +60,22 @@ enum {
 /* NOTE: the palette and frame dma descriptors are doubled to allow
  * the 2nd set for branch settings (FBRx)
  */
-struct pxafb_dma_buff {
+struct pxafb_dma_buff
+{
 	unsigned char palette[PAL_MAX * PALETTE_SIZE];
 	uint16_t cmd_buff[CMD_BUFF_SIZE];
 	struct pxafb_dma_descriptor pal_desc[PAL_MAX * 2];
 	struct pxafb_dma_descriptor dma_desc[DMA_MAX * 2];
 };
 
-enum {
+enum
+{
 	OVERLAY1,
 	OVERLAY2,
 };
 
-enum {
+enum
+{
 	OVERLAY_FORMAT_RGB = 0,
 	OVERLAY_FORMAT_YUV444_PACKED,
 	OVERLAY_FORMAT_YUV444_PLANAR,
@@ -83,13 +89,15 @@ enum {
 
 struct pxafb_layer;
 
-struct pxafb_layer_ops {
+struct pxafb_layer_ops
+{
 	void (*enable)(struct pxafb_layer *);
 	void (*disable)(struct pxafb_layer *);
 	void (*setup)(struct pxafb_layer *);
 };
 
-struct pxafb_layer {
+struct pxafb_layer
+{
 	struct fb_info		fb;
 	int			id;
 	int			registered;
@@ -106,7 +114,8 @@ struct pxafb_layer {
 	struct pxafb_info	*fbi;
 };
 
-struct pxafb_info {
+struct pxafb_info
+{
 	struct fb_info		fb;
 	struct device		*dev;
 	struct clk		*clk;
@@ -121,15 +130,15 @@ struct pxafb_info {
 	void __iomem		*video_mem;	/* virtual address of frame buffer */
 	unsigned long		video_mem_phys;	/* physical address of frame buffer */
 	size_t			video_mem_size;	/* size of the frame buffer */
-	u16 *			palette_cpu;	/* virtual address of palette memory */
+	u16 			*palette_cpu;	/* virtual address of palette memory */
 	u_int			palette_size;
 
 	u_int			lccr0;
 	u_int			lccr3;
 	u_int			lccr4;
-	u_int			cmap_inverse:1,
-				cmap_static:1,
-				unused:30;
+	u_int			cmap_inverse: 1,
+					cmap_static: 1,
+					unused: 30;
 
 	u_int			reg_lccr0;
 	u_int			reg_lccr1;

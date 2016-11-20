@@ -14,7 +14,8 @@
  * @TUNER_PARAM_TYPE_NTSC:	Tuner params are for NTSC color TV standard
  * @TUNER_PARAM_TYPE_DIGITAL:	Tuner params are for digital TV
  */
-enum param_type {
+enum param_type
+{
 	TUNER_PARAM_TYPE_RADIO,
 	TUNER_PARAM_TYPE_PAL,
 	TUNER_PARAM_TYPE_SECAM,
@@ -43,7 +44,8 @@ enum param_type {
  *
  * Some tuners also have an additional optional Auxiliary byte (AB).
  */
-struct tuner_range {
+struct tuner_range
+{
 	unsigned short limit;
 	unsigned char config;
 	unsigned char cb;
@@ -141,28 +143,29 @@ struct tuner_range {
  * @ranges:			Array with the frequency ranges supported by
  *				the tuner.
  */
-struct tuner_params {
+struct tuner_params
+{
 	enum param_type type;
 
-	unsigned int cb_first_if_lower_freq:1;
-	unsigned int has_tda9887:1;
-	unsigned int port1_fm_high_sensitivity:1;
-	unsigned int port2_fm_high_sensitivity:1;
-	unsigned int fm_gain_normal:1;
-	unsigned int intercarrier_mode:1;
-	unsigned int port1_active:1;
-	unsigned int port2_active:1;
-	unsigned int port1_invert_for_secam_lc:1;
-	unsigned int port2_invert_for_secam_lc:1;
-	unsigned int port1_set_for_fm_mono:1;
-	unsigned int default_pll_gating_18:1;
-	unsigned int radio_if:2;
-	signed int default_top_low:5;
-	signed int default_top_mid:5;
-	signed int default_top_high:5;
-	signed int default_top_secam_low:5;
-	signed int default_top_secam_mid:5;
-	signed int default_top_secam_high:5;
+	unsigned int cb_first_if_lower_freq: 1;
+	unsigned int has_tda9887: 1;
+	unsigned int port1_fm_high_sensitivity: 1;
+	unsigned int port2_fm_high_sensitivity: 1;
+	unsigned int fm_gain_normal: 1;
+	unsigned int intercarrier_mode: 1;
+	unsigned int port1_active: 1;
+	unsigned int port2_active: 1;
+	unsigned int port1_invert_for_secam_lc: 1;
+	unsigned int port2_invert_for_secam_lc: 1;
+	unsigned int port1_set_for_fm_mono: 1;
+	unsigned int default_pll_gating_18: 1;
+	unsigned int radio_if: 2;
+	signed int default_top_low: 5;
+	signed int default_top_mid: 5;
+	signed int default_top_high: 5;
+	signed int default_top_secam_low: 5;
+	signed int default_top_secam_mid: 5;
+	signed int default_top_secam_high: 5;
 
 	u16 iffreq;
 
@@ -170,7 +173,8 @@ struct tuner_params {
 	struct tuner_range *ranges;
 };
 
-struct tunertype {
+struct tunertype
+{
 	char *name;
 	unsigned int count;
 	struct tuner_params *params;

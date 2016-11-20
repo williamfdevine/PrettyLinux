@@ -27,7 +27,8 @@
 #include "ram.h"
 
 static const struct nvkm_fb_func
-nv47_fb = {
+	nv47_fb =
+{
 	.init = nv41_fb_init,
 	.tile.regions = 15,
 	.tile.init = nv30_fb_tile_init,

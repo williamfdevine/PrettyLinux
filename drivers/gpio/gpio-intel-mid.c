@@ -49,7 +49,8 @@
  * so the bit of reg_addr is to control pin offset's GPDR feature
 */
 
-enum GPIO_REG {
+enum GPIO_REG
+{
 	GPLR = 0,	/* pin level read-only */
 	GPDR,		/* pin direction */
 	GPSR,		/* pin set */
@@ -61,12 +62,14 @@ enum GPIO_REG {
 };
 
 /* intel_mid gpio driver data */
-struct intel_mid_gpio_ddata {
+struct intel_mid_gpio_ddata
+{
 	u16 ngpio;		/* number of gpio pins */
 	u32 chip_irq_type;	/* chip interrupt type */
 };
 
-struct intel_mid_gpio {
+struct intel_mid_gpio
+{
 	struct gpio_chip		chip;
 	void __iomem			*reg_base;
 	spinlock_t			lock;
@@ -74,7 +77,7 @@ struct intel_mid_gpio {
 };
 
 static void __iomem *gpio_reg(struct gpio_chip *chip, unsigned offset,
-			      enum GPIO_REG reg_type)
+							  enum GPIO_REG reg_type)
 {
 	struct intel_mid_gpio *priv = gpiochip_get_data(chip);
 	unsigned nreg = chip->ngpio / 32;
@@ -84,7 +87,7 @@ static void __iomem *gpio_reg(struct gpio_chip *chip, unsigned offset,
 }
 
 static void __iomem *gpio_reg_2bit(struct gpio_chip *chip, unsigned offset,
-				   enum GPIO_REG reg_type)
+								   enum GPIO_REG reg_type)
 {
 	struct intel_mid_gpio *priv = gpiochip_get_data(chip);
 	unsigned nreg = chip->ngpio / 32;
@@ -99,10 +102,12 @@ static int intel_gpio_request(struct gpio_chip *chip, unsigned offset)
 	u32 value = readl(gafr);
 	int shift = (offset % 16) << 1, af = (value >> shift) & 3;
 
-	if (af) {
+	if (af)
+	{
 		value &= ~(3 << shift);
 		writel(value, gafr);
 	}
+
 	return 0;
 }
 
@@ -117,10 +122,13 @@ static void intel_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 {
 	void __iomem *gpsr, *gpcr;
 
-	if (value) {
+	if (value)
+	{
 		gpsr = gpio_reg(chip, offset, GPSR);
 		writel(BIT(offset % 32), gpsr);
-	} else {
+	}
+	else
+	{
 		gpcr = gpio_reg(chip, offset, GPCR);
 		writel(BIT(offset % 32), gpcr);
 	}
@@ -134,7 +142,9 @@ static int intel_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
 	unsigned long flags;
 
 	if (priv->pdev)
+	{
 		pm_runtime_get(&priv->pdev->dev);
+	}
 
 	spin_lock_irqsave(&priv->lock, flags);
 	value = readl(gpdr);
@@ -143,13 +153,15 @@ static int intel_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
 	spin_unlock_irqrestore(&priv->lock, flags);
 
 	if (priv->pdev)
+	{
 		pm_runtime_put(&priv->pdev->dev);
+	}
 
 	return 0;
 }
 
 static int intel_gpio_direction_output(struct gpio_chip *chip,
-			unsigned offset, int value)
+									   unsigned offset, int value)
 {
 	struct intel_mid_gpio *priv = gpiochip_get_data(chip);
 	void __iomem *gpdr = gpio_reg(chip, offset, GPDR);
@@ -158,7 +170,9 @@ static int intel_gpio_direction_output(struct gpio_chip *chip,
 	intel_gpio_set(chip, offset, value);
 
 	if (priv->pdev)
+	{
 		pm_runtime_get(&priv->pdev->dev);
+	}
 
 	spin_lock_irqsave(&priv->lock, flags);
 	value = readl(gpdr);
@@ -167,7 +181,9 @@ static int intel_gpio_direction_output(struct gpio_chip *chip,
 	spin_unlock_irqrestore(&priv->lock, flags);
 
 	if (priv->pdev)
+	{
 		pm_runtime_put(&priv->pdev->dev);
+	}
 
 	return 0;
 }
@@ -183,27 +199,44 @@ static int intel_mid_irq_type(struct irq_data *d, unsigned type)
 	void __iomem *gfer = gpio_reg(&priv->chip, gpio, GFER);
 
 	if (gpio >= priv->chip.ngpio)
+	{
 		return -EINVAL;
+	}
 
 	if (priv->pdev)
+	{
 		pm_runtime_get(&priv->pdev->dev);
+	}
 
 	spin_lock_irqsave(&priv->lock, flags);
+
 	if (type & IRQ_TYPE_EDGE_RISING)
+	{
 		value = readl(grer) | BIT(gpio % 32);
+	}
 	else
+	{
 		value = readl(grer) & (~BIT(gpio % 32));
+	}
+
 	writel(value, grer);
 
 	if (type & IRQ_TYPE_EDGE_FALLING)
+	{
 		value = readl(gfer) | BIT(gpio % 32);
+	}
 	else
+	{
 		value = readl(gfer) & (~BIT(gpio % 32));
+	}
+
 	writel(value, gfer);
 	spin_unlock_irqrestore(&priv->lock, flags);
 
 	if (priv->pdev)
+	{
 		pm_runtime_put(&priv->pdev->dev);
+	}
 
 	return 0;
 }
@@ -216,62 +249,69 @@ static void intel_mid_irq_mask(struct irq_data *d)
 {
 }
 
-static struct irq_chip intel_mid_irqchip = {
+static struct irq_chip intel_mid_irqchip =
+{
 	.name		= "INTEL_MID-GPIO",
 	.irq_mask	= intel_mid_irq_mask,
 	.irq_unmask	= intel_mid_irq_unmask,
 	.irq_set_type	= intel_mid_irq_type,
 };
 
-static const struct intel_mid_gpio_ddata gpio_lincroft = {
+static const struct intel_mid_gpio_ddata gpio_lincroft =
+{
 	.ngpio = 64,
 };
 
-static const struct intel_mid_gpio_ddata gpio_penwell_aon = {
+static const struct intel_mid_gpio_ddata gpio_penwell_aon =
+{
 	.ngpio = 96,
 	.chip_irq_type = INTEL_MID_IRQ_TYPE_EDGE,
 };
 
-static const struct intel_mid_gpio_ddata gpio_penwell_core = {
+static const struct intel_mid_gpio_ddata gpio_penwell_core =
+{
 	.ngpio = 96,
 	.chip_irq_type = INTEL_MID_IRQ_TYPE_EDGE,
 };
 
-static const struct intel_mid_gpio_ddata gpio_cloverview_aon = {
+static const struct intel_mid_gpio_ddata gpio_cloverview_aon =
+{
 	.ngpio = 96,
 	.chip_irq_type = INTEL_MID_IRQ_TYPE_EDGE | INTEL_MID_IRQ_TYPE_LEVEL,
 };
 
-static const struct intel_mid_gpio_ddata gpio_cloverview_core = {
+static const struct intel_mid_gpio_ddata gpio_cloverview_core =
+{
 	.ngpio = 96,
 	.chip_irq_type = INTEL_MID_IRQ_TYPE_EDGE,
 };
 
-static const struct pci_device_id intel_gpio_ids[] = {
+static const struct pci_device_id intel_gpio_ids[] =
+{
 	{
 		/* Lincroft */
 		PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x080f),
-		.driver_data = (kernel_ulong_t)&gpio_lincroft,
+		.driver_data = (kernel_ulong_t) &gpio_lincroft,
 	},
 	{
 		/* Penwell AON */
 		PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x081f),
-		.driver_data = (kernel_ulong_t)&gpio_penwell_aon,
+		.driver_data = (kernel_ulong_t) &gpio_penwell_aon,
 	},
 	{
 		/* Penwell Core */
 		PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x081a),
-		.driver_data = (kernel_ulong_t)&gpio_penwell_core,
+		.driver_data = (kernel_ulong_t) &gpio_penwell_core,
 	},
 	{
 		/* Cloverview Aon */
 		PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x08eb),
-		.driver_data = (kernel_ulong_t)&gpio_cloverview_aon,
+		.driver_data = (kernel_ulong_t) &gpio_cloverview_aon,
 	},
 	{
 		/* Cloverview Core */
 		PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x08f7),
-		.driver_data = (kernel_ulong_t)&gpio_cloverview_core,
+		.driver_data = (kernel_ulong_t) &gpio_cloverview_core,
 	},
 	{ 0 }
 };
@@ -288,15 +328,18 @@ static void intel_mid_irq_handler(struct irq_desc *desc)
 	void __iomem *gedr;
 
 	/* check GPIO controller to check which pin triggered the interrupt */
-	for (base = 0; base < priv->chip.ngpio; base += 32) {
+	for (base = 0; base < priv->chip.ngpio; base += 32)
+	{
 		gedr = gpio_reg(&priv->chip, base, GEDR);
-		while ((pending = readl(gedr))) {
+
+		while ((pending = readl(gedr)))
+		{
 			gpio = __ffs(pending);
 			mask = BIT(gpio);
 			/* Clear before handling so we can't lose an edge */
 			writel(mask, gedr);
 			generic_handle_irq(irq_find_mapping(gc->irqdomain,
-							    base + gpio));
+												base + gpio));
 		}
 	}
 
@@ -308,7 +351,8 @@ static void intel_mid_irq_init_hw(struct intel_mid_gpio *priv)
 	void __iomem *reg;
 	unsigned base;
 
-	for (base = 0; base < priv->chip.ngpio; base += 32) {
+	for (base = 0; base < priv->chip.ngpio; base += 32)
+	{
 		/* Clear the rising-edge detect register */
 		reg = gpio_reg(&priv->chip, base, GRER);
 		writel(0, reg);
@@ -324,15 +368,16 @@ static void intel_mid_irq_init_hw(struct intel_mid_gpio *priv)
 static int intel_gpio_runtime_idle(struct device *dev)
 {
 	int err = pm_schedule_suspend(dev, 500);
-	return err ?: -EBUSY;
+	return err ? : -EBUSY;
 }
 
-static const struct dev_pm_ops intel_gpio_pm_ops = {
+static const struct dev_pm_ops intel_gpio_pm_ops =
+{
 	SET_RUNTIME_PM_OPS(NULL, NULL, intel_gpio_runtime_idle)
 };
 
 static int intel_gpio_probe(struct pci_dev *pdev,
-			  const struct pci_device_id *id)
+							const struct pci_device_id *id)
 {
 	void __iomem *base;
 	struct intel_mid_gpio *priv;
@@ -340,14 +385,19 @@ static int intel_gpio_probe(struct pci_dev *pdev,
 	u32 irq_base;
 	int retval;
 	struct intel_mid_gpio_ddata *ddata =
-				(struct intel_mid_gpio_ddata *)id->driver_data;
+		(struct intel_mid_gpio_ddata *)id->driver_data;
 
 	retval = pcim_enable_device(pdev);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	retval = pcim_iomap_regions(pdev, 1 << 0 | 1 << 1, pci_name(pdev));
-	if (retval) {
+
+	if (retval)
+	{
 		dev_err(&pdev->dev, "I/O memory mapping error\n");
 		return retval;
 	}
@@ -361,7 +411,9 @@ static int intel_gpio_probe(struct pci_dev *pdev,
 	pcim_iounmap_regions(pdev, 1 << 1);
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-	if (!priv) {
+
+	if (!priv)
+	{
 		dev_err(&pdev->dev, "can't allocate chip data\n");
 		return -ENOMEM;
 	}
@@ -383,28 +435,32 @@ static int intel_gpio_probe(struct pci_dev *pdev,
 
 	pci_set_drvdata(pdev, priv);
 	retval = devm_gpiochip_add_data(&pdev->dev, &priv->chip, priv);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_err(&pdev->dev, "gpiochip_add error %d\n", retval);
 		return retval;
 	}
 
 	retval = gpiochip_irqchip_add(&priv->chip,
-				      &intel_mid_irqchip,
-				      irq_base,
-				      handle_simple_irq,
-				      IRQ_TYPE_NONE);
-	if (retval) {
+								  &intel_mid_irqchip,
+								  irq_base,
+								  handle_simple_irq,
+								  IRQ_TYPE_NONE);
+
+	if (retval)
+	{
 		dev_err(&pdev->dev,
-			"could not connect irqchip to gpiochip\n");
+				"could not connect irqchip to gpiochip\n");
 		return retval;
 	}
 
 	intel_mid_irq_init_hw(priv);
 
 	gpiochip_set_chained_irqchip(&priv->chip,
-				     &intel_mid_irqchip,
-				     pdev->irq,
-				     intel_mid_irq_handler);
+								 &intel_mid_irqchip,
+								 pdev->irq,
+								 intel_mid_irq_handler);
 
 	pm_runtime_put_noidle(&pdev->dev);
 	pm_runtime_allow(&pdev->dev);
@@ -412,7 +468,8 @@ static int intel_gpio_probe(struct pci_dev *pdev,
 	return 0;
 }
 
-static struct pci_driver intel_gpio_driver = {
+static struct pci_driver intel_gpio_driver =
+{
 	.name		= "intel_mid_gpio",
 	.id_table	= intel_gpio_ids,
 	.probe		= intel_gpio_probe,

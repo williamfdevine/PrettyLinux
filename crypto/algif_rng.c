@@ -49,14 +49,15 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Stephan Mueller <smueller@chronox.de>");
 MODULE_DESCRIPTION("User-space interface for random number generators");
 
-struct rng_ctx {
+struct rng_ctx
+{
 #define MAXSIZE 128
 	unsigned int len;
 	struct crypto_rng *drng;
 };
 
 static int rng_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
-		       int flags)
+					   int flags)
 {
 	struct sock *sk = sock->sk;
 	struct alg_sock *ask = alg_sk(sk);
@@ -66,9 +67,14 @@ static int rng_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
 	u8 result[MAXSIZE];
 
 	if (len == 0)
+	{
 		return 0;
+	}
+
 	if (len > MAXSIZE)
+	{
 		len = MAXSIZE;
+	}
 
 	/*
 	 * although not strictly needed, this is a precaution against coding
@@ -83,8 +89,11 @@ static int rng_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
 	 * an error if it was not seeded properly.
 	 */
 	genlen = crypto_rng_get_bytes(ctx->drng, result, len);
+
 	if (genlen < 0)
+	{
 		return genlen;
+	}
 
 	err = memcpy_to_msg(msg, result, len);
 	memzero_explicit(result, len);
@@ -92,7 +101,8 @@ static int rng_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
 	return err ? err : len;
 }
 
-static struct proto_ops algif_rng_ops = {
+static struct proto_ops algif_rng_ops =
+{
 	.family		=	PF_ALG,
 
 	.connect	=	sock_no_connect,
@@ -140,8 +150,11 @@ static int rng_accept_parent(void *private, struct sock *sk)
 	unsigned int len = sizeof(*ctx);
 
 	ctx = sock_kmalloc(sk, len, GFP_KERNEL);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	ctx->len = len;
 
@@ -167,7 +180,8 @@ static int rng_setkey(void *private, const u8 *seed, unsigned int seedlen)
 	return crypto_rng_reset(private, seed, seedlen);
 }
 
-static const struct af_alg_type algif_type_rng = {
+static const struct af_alg_type algif_type_rng =
+{
 	.bind		=	rng_bind,
 	.release	=	rng_release,
 	.accept		=	rng_accept_parent,

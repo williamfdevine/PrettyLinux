@@ -43,17 +43,22 @@
 
 u16 cx18_service2vbi(int type)
 {
-	switch (type) {
-	case V4L2_SLICED_TELETEXT_B:
-		return CX18_SLICED_TYPE_TELETEXT_B;
-	case V4L2_SLICED_CAPTION_525:
-		return CX18_SLICED_TYPE_CAPTION_525;
-	case V4L2_SLICED_WSS_625:
-		return CX18_SLICED_TYPE_WSS_625;
-	case V4L2_SLICED_VPS:
-		return CX18_SLICED_TYPE_VPS;
-	default:
-		return 0;
+	switch (type)
+	{
+		case V4L2_SLICED_TELETEXT_B:
+			return CX18_SLICED_TYPE_TELETEXT_B;
+
+		case V4L2_SLICED_CAPTION_525:
+			return CX18_SLICED_TYPE_CAPTION_525;
+
+		case V4L2_SLICED_WSS_625:
+			return CX18_SLICED_TYPE_WSS_625;
+
+		case V4L2_SLICED_VPS:
+			return CX18_SLICED_TYPE_VPS;
+
+		default:
+			return 0;
 	}
 }
 
@@ -61,8 +66,8 @@ u16 cx18_service2vbi(int type)
 static int valid_service_line(int field, int line, int is_pal)
 {
 	return (is_pal && line >= 6 &&
-		((field == 0 && line <= 23) || (field == 1 && line <= 22))) ||
-	       (!is_pal && line >= 10 && line < 22);
+			((field == 0 && line <= 23) || (field == 1 && line <= 22))) ||
+		   (!is_pal && line >= 10 && line < 22);
 }
 
 /*
@@ -78,23 +83,45 @@ static u16 select_service_from_set(int field, int line, u16 set, int is_pal)
 	int i;
 
 	set = set & valid_set;
+
 	if (set == 0 || !valid_service_line(field, line, is_pal))
+	{
 		return 0;
-	if (!is_pal) {
+	}
+
+	if (!is_pal)
+	{
 		if (line == 21 && (set & V4L2_SLICED_CAPTION_525))
+		{
 			return V4L2_SLICED_CAPTION_525;
-	} else {
+		}
+	}
+	else
+	{
 		if (line == 16 && field == 0 && (set & V4L2_SLICED_VPS))
+		{
 			return V4L2_SLICED_VPS;
+		}
+
 		if (line == 23 && field == 0 && (set & V4L2_SLICED_WSS_625))
+		{
 			return V4L2_SLICED_WSS_625;
+		}
+
 		if (line == 23)
+		{
 			return 0;
+		}
 	}
-	for (i = 0; i < 32; i++) {
+
+	for (i = 0; i < 32; i++)
+	{
 		if ((1 << i) & set)
+		{
 			return 1 << i;
+		}
 	}
+
 	return 0;
 }
 
@@ -108,9 +135,13 @@ void cx18_expand_service_set(struct v4l2_sliced_vbi_format *fmt, int is_pal)
 	int f, l;
 
 	fmt->service_set = 0;
-	for (f = 0; f < 2; f++) {
+
+	for (f = 0; f < 2; f++)
+	{
 		for (l = 0; l < 24; l++)
+		{
 			fmt->service_lines[f][l] = select_service_from_set(f, l, set, is_pal);
+		}
 	}
 }
 
@@ -123,12 +154,15 @@ static int check_service_set(struct v4l2_sliced_vbi_format *fmt, int is_pal)
 	int f, l;
 	u16 set = 0;
 
-	for (f = 0; f < 2; f++) {
-		for (l = 0; l < 24; l++) {
+	for (f = 0; f < 2; f++)
+	{
+		for (l = 0; l < 24; l++)
+		{
 			fmt->service_lines[f][l] = select_service_from_set(f, l, fmt->service_lines[f][l], is_pal);
 			set |= fmt->service_lines[f][l];
 		}
 	}
+
 	return set != 0;
 }
 
@@ -138,15 +172,19 @@ u16 cx18_get_service_set(struct v4l2_sliced_vbi_format *fmt)
 	int f, l;
 	u16 set = 0;
 
-	for (f = 0; f < 2; f++) {
+	for (f = 0; f < 2; f++)
+	{
 		for (l = 0; l < 24; l++)
+		{
 			set |= fmt->service_lines[f][l];
+		}
 	}
+
 	return set;
 }
 
 static int cx18_g_fmt_vid_cap(struct file *file, void *fh,
-				struct v4l2_format *fmt)
+							  struct v4l2_format *fmt)
 {
 	struct cx18_open_id *id = fh2id(fh);
 	struct cx18 *cx = id->cx;
@@ -157,20 +195,25 @@ static int cx18_g_fmt_vid_cap(struct file *file, void *fh,
 	pixfmt->height = cx->cxhdl.height;
 	pixfmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
 	pixfmt->field = V4L2_FIELD_INTERLACED;
-	if (id->type == CX18_ENC_STREAM_TYPE_YUV) {
+
+	if (id->type == CX18_ENC_STREAM_TYPE_YUV)
+	{
 		pixfmt->pixelformat = s->pixelformat;
 		pixfmt->sizeimage = s->vb_bytes_per_frame;
 		pixfmt->bytesperline = s->vb_bytes_per_line;
-	} else {
+	}
+	else
+	{
 		pixfmt->pixelformat = V4L2_PIX_FMT_MPEG;
 		pixfmt->sizeimage = 128 * 1024;
 		pixfmt->bytesperline = 0;
 	}
+
 	return 0;
 }
 
 static int cx18_g_fmt_vbi_cap(struct file *file, void *fh,
-				struct v4l2_format *fmt)
+							  struct v4l2_format *fmt)
 {
 	struct cx18 *cx = fh2id(fh)->cx;
 	struct v4l2_vbi_format *vbifmt = &fmt->fmt.vbi;
@@ -189,7 +232,7 @@ static int cx18_g_fmt_vbi_cap(struct file *file, void *fh,
 }
 
 static int cx18_g_fmt_sliced_vbi_cap(struct file *file, void *fh,
-					struct v4l2_format *fmt)
+									 struct v4l2_format *fmt)
 {
 	struct cx18 *cx = fh2id(fh)->cx;
 	struct v4l2_sliced_vbi_format *vbifmt = &fmt->fmt.sliced;
@@ -207,14 +250,16 @@ static int cx18_g_fmt_sliced_vbi_cap(struct file *file, void *fh,
 	 * fmt->fmt.sliced under valid calling conditions
 	 */
 	if (v4l2_subdev_call(cx->sd_av, vbi, g_sliced_fmt, &fmt->fmt.sliced))
+	{
 		return -EINVAL;
+	}
 
 	vbifmt->service_set = cx18_get_service_set(vbifmt);
 	return 0;
 }
 
 static int cx18_try_fmt_vid_cap(struct file *file, void *fh,
-				struct v4l2_format *fmt)
+								struct v4l2_format *fmt)
 {
 	struct cx18_open_id *id = fh2id(fh);
 	struct cx18 *cx = id->cx;
@@ -224,11 +269,14 @@ static int cx18_try_fmt_vid_cap(struct file *file, void *fh,
 
 	w = min(w, 720);
 	w = max(w, 2);
-	if (id->type == CX18_ENC_STREAM_TYPE_YUV) {
+
+	if (id->type == CX18_ENC_STREAM_TYPE_YUV)
+	{
 		/* YUV height must be a multiple of 32 */
 		h &= ~0x1f;
 		min_h = 32;
 	}
+
 	h = min(h, cx->is_50hz ? 576 : 480);
 	h = max(h, min_h);
 
@@ -238,13 +286,13 @@ static int cx18_try_fmt_vid_cap(struct file *file, void *fh,
 }
 
 static int cx18_try_fmt_vbi_cap(struct file *file, void *fh,
-				struct v4l2_format *fmt)
+								struct v4l2_format *fmt)
 {
 	return cx18_g_fmt_vbi_cap(file, fh, fmt);
 }
 
 static int cx18_try_fmt_sliced_vbi_cap(struct file *file, void *fh,
-					struct v4l2_format *fmt)
+									   struct v4l2_format *fmt)
 {
 	struct cx18 *cx = fh2id(fh)->cx;
 	struct v4l2_sliced_vbi_format *vbifmt = &fmt->fmt.sliced;
@@ -255,19 +303,26 @@ static int cx18_try_fmt_sliced_vbi_cap(struct file *file, void *fh,
 
 	/* If given a service set, expand it validly & clear passed in set */
 	if (vbifmt->service_set)
+	{
 		cx18_expand_service_set(vbifmt, cx->is_50hz);
+	}
+
 	/* Sanitize the service_lines, and compute the new set if any valid */
 	if (check_service_set(vbifmt, cx->is_50hz))
+	{
 		vbifmt->service_set = cx18_get_service_set(vbifmt);
+	}
+
 	return 0;
 }
 
 static int cx18_s_fmt_vid_cap(struct file *file, void *fh,
-				struct v4l2_format *fmt)
+							  struct v4l2_format *fmt)
 {
 	struct cx18_open_id *id = fh2id(fh);
 	struct cx18 *cx = id->cx;
-	struct v4l2_subdev_format format = {
+	struct v4l2_subdev_format format =
+	{
 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
 	};
 	struct cx18_stream *s = &cx->streams[id->type];
@@ -275,25 +330,37 @@ static int cx18_s_fmt_vid_cap(struct file *file, void *fh,
 	int w, h;
 
 	ret = cx18_try_fmt_vid_cap(file, fh, fmt);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	w = fmt->fmt.pix.width;
 	h = fmt->fmt.pix.height;
 
 	if (cx->cxhdl.width == w && cx->cxhdl.height == h &&
-	    s->pixelformat == fmt->fmt.pix.pixelformat)
+		s->pixelformat == fmt->fmt.pix.pixelformat)
+	{
 		return 0;
+	}
 
 	if (atomic_read(&cx->ana_capturing) > 0)
+	{
 		return -EBUSY;
+	}
 
 	s->pixelformat = fmt->fmt.pix.pixelformat;
+
 	/* HM12 YUV size is (Y=(h*720) + UV=(h*(720/2)))
 	   UYUV YUV size is (Y=(h*720) + UV=(h*(720))) */
-	if (s->pixelformat == V4L2_PIX_FMT_HM12) {
+	if (s->pixelformat == V4L2_PIX_FMT_HM12)
+	{
 		s->vb_bytes_per_frame = h * 720 * 3 / 2;
 		s->vb_bytes_per_line = 720; /* First plane */
-	} else {
+	}
+	else
+	{
 		s->vb_bytes_per_frame = h * 720 * 2;
 		s->vb_bytes_per_line = 1440; /* Packed */
 	}
@@ -306,7 +373,7 @@ static int cx18_s_fmt_vid_cap(struct file *file, void *fh,
 }
 
 static int cx18_s_fmt_vbi_cap(struct file *file, void *fh,
-				struct v4l2_format *fmt)
+							  struct v4l2_format *fmt)
 {
 	struct cx18_open_id *id = fh2id(fh);
 	struct cx18 *cx = id->cx;
@@ -317,7 +384,9 @@ static int cx18_s_fmt_vbi_cap(struct file *file, void *fh,
 	 * if any analog capture is ongoing
 	 */
 	if (!cx18_raw_vbi(cx) && atomic_read(&cx->ana_capturing) > 0)
+	{
 		return -EBUSY;
+	}
 
 	/*
 	 * Set the digitizer registers for raw active VBI.
@@ -325,8 +394,11 @@ static int cx18_s_fmt_vbi_cap(struct file *file, void *fh,
 	 * calling conditions
 	 */
 	ret = v4l2_subdev_call(cx->sd_av, vbi, s_raw_fmt, &fmt->fmt.vbi);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Store our new v4l2 (non-)sliced VBI state */
 	cx->vbi.sliced_in->service_set = 0;
@@ -336,7 +408,7 @@ static int cx18_s_fmt_vbi_cap(struct file *file, void *fh,
 }
 
 static int cx18_s_fmt_sliced_vbi_cap(struct file *file, void *fh,
-					struct v4l2_format *fmt)
+									 struct v4l2_format *fmt)
 {
 	struct cx18_open_id *id = fh2id(fh);
 	struct cx18 *cx = id->cx;
@@ -350,7 +422,9 @@ static int cx18_s_fmt_sliced_vbi_cap(struct file *file, void *fh,
 	 * if any analog capture is ongoing
 	 */
 	if (cx18_raw_vbi(cx) && atomic_read(&cx->ana_capturing) > 0)
+	{
 		return -EBUSY;
+	}
 
 	/*
 	 * Set the service_lines requested in the digitizer/slicer registers.
@@ -358,8 +432,12 @@ static int cx18_s_fmt_sliced_vbi_cap(struct file *file, void *fh,
 	 * passed in fmt->fmt.sliced under valid calling conditions
 	 */
 	ret = v4l2_subdev_call(cx->sd_av, vbi, s_sliced_fmt, &fmt->fmt.sliced);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	/* Store our current v4l2 sliced VBI settings */
 	cx->vbi.in.type =  V4L2_BUF_TYPE_SLICED_VBI_CAPTURE;
 	memcpy(cx->vbi.sliced_in, vbifmt, sizeof(*cx->vbi.sliced_in));
@@ -368,35 +446,47 @@ static int cx18_s_fmt_sliced_vbi_cap(struct file *file, void *fh,
 
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 static int cx18_g_register(struct file *file, void *fh,
-				struct v4l2_dbg_register *reg)
+						   struct v4l2_dbg_register *reg)
 {
 	struct cx18 *cx = fh2id(fh)->cx;
 
 	if (reg->reg & 0x3)
+	{
 		return -EINVAL;
+	}
+
 	if (reg->reg >= CX18_MEM_OFFSET + CX18_MEM_SIZE)
+	{
 		return -EINVAL;
+	}
+
 	reg->size = 4;
 	reg->val = cx18_read_enc(cx, reg->reg);
 	return 0;
 }
 
 static int cx18_s_register(struct file *file, void *fh,
-				const struct v4l2_dbg_register *reg)
+						   const struct v4l2_dbg_register *reg)
 {
 	struct cx18 *cx = fh2id(fh)->cx;
 
 	if (reg->reg & 0x3)
+	{
 		return -EINVAL;
+	}
+
 	if (reg->reg >= CX18_MEM_OFFSET + CX18_MEM_SIZE)
+	{
 		return -EINVAL;
+	}
+
 	cx18_write_enc(cx, reg->val, reg->reg);
 	return 0;
 }
 #endif
 
 static int cx18_querycap(struct file *file, void *fh,
-				struct v4l2_capability *vcap)
+						 struct v4l2_capability *vcap)
 {
 	struct cx18_open_id *id = fh2id(fh);
 	struct cx18_stream *s = video_drvdata(file);
@@ -405,7 +495,7 @@ static int cx18_querycap(struct file *file, void *fh,
 	strlcpy(vcap->driver, CX18_DRIVER_NAME, sizeof(vcap->driver));
 	strlcpy(vcap->card, cx->card_name, sizeof(vcap->card));
 	snprintf(vcap->bus_info, sizeof(vcap->bus_info),
-		 "PCI:%s", pci_name(cx->pci_dev));
+			 "PCI:%s", pci_name(cx->pci_dev));
 	vcap->capabilities = cx->v4l2_cap;	/* capabilities */
 	vcap->device_caps = s->v4l2_dev_caps;	/* device capabilities */
 	vcap->capabilities |= V4L2_CAP_DEVICE_CAPS;
@@ -432,7 +522,10 @@ static int cx18_s_audio(struct file *file, void *fh, const struct v4l2_audio *vo
 	struct cx18 *cx = fh2id(fh)->cx;
 
 	if (vout->index >= cx->nof_audio_inputs)
+	{
 		return -EINVAL;
+	}
+
 	cx->audio_input = vout->index;
 	cx18_audio_set_io(cx);
 	return 0;
@@ -447,54 +540,70 @@ static int cx18_enum_input(struct file *file, void *fh, struct v4l2_input *vin)
 }
 
 static int cx18_cropcap(struct file *file, void *fh,
-			struct v4l2_cropcap *cropcap)
+						struct v4l2_cropcap *cropcap)
 {
 	struct cx18 *cx = fh2id(fh)->cx;
 
 	if (cropcap->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+	{
 		return -EINVAL;
+	}
+
 	cropcap->pixelaspect.numerator = cx->is_50hz ? 54 : 11;
 	cropcap->pixelaspect.denominator = cx->is_50hz ? 59 : 10;
 	return 0;
 }
 
 static int cx18_g_selection(struct file *file, void *fh,
-			    struct v4l2_selection *sel)
+							struct v4l2_selection *sel)
 {
 	struct cx18 *cx = fh2id(fh)->cx;
 
 	if (sel->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-		return -EINVAL;
-	switch (sel->target) {
-	case V4L2_SEL_TGT_CROP_BOUNDS:
-	case V4L2_SEL_TGT_CROP_DEFAULT:
-		sel->r.top = sel->r.left = 0;
-		sel->r.width = 720;
-		sel->r.height = cx->is_50hz ? 576 : 480;
-		break;
-	default:
+	{
 		return -EINVAL;
 	}
+
+	switch (sel->target)
+	{
+		case V4L2_SEL_TGT_CROP_BOUNDS:
+		case V4L2_SEL_TGT_CROP_DEFAULT:
+			sel->r.top = sel->r.left = 0;
+			sel->r.width = 720;
+			sel->r.height = cx->is_50hz ? 576 : 480;
+			break;
+
+		default:
+			return -EINVAL;
+	}
+
 	return 0;
 }
 
 static int cx18_enum_fmt_vid_cap(struct file *file, void *fh,
-					struct v4l2_fmtdesc *fmt)
+								 struct v4l2_fmtdesc *fmt)
 {
-	static const struct v4l2_fmtdesc formats[] = {
-		{ 0, V4L2_BUF_TYPE_VIDEO_CAPTURE, 0,
-		  "HM12 (YUV 4:1:1)", V4L2_PIX_FMT_HM12, { 0, 0, 0, 0 }
+	static const struct v4l2_fmtdesc formats[] =
+	{
+		{
+			0, V4L2_BUF_TYPE_VIDEO_CAPTURE, 0,
+			"HM12 (YUV 4:1:1)", V4L2_PIX_FMT_HM12, { 0, 0, 0, 0 }
 		},
-		{ 1, V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FMT_FLAG_COMPRESSED,
-		  "MPEG", V4L2_PIX_FMT_MPEG, { 0, 0, 0, 0 }
+		{
+			1, V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FMT_FLAG_COMPRESSED,
+			"MPEG", V4L2_PIX_FMT_MPEG, { 0, 0, 0, 0 }
 		},
-		{ 2, V4L2_BUF_TYPE_VIDEO_CAPTURE, 0,
-		  "UYVY 4:2:2", V4L2_PIX_FMT_UYVY, { 0, 0, 0, 0 }
+		{
+			2, V4L2_BUF_TYPE_VIDEO_CAPTURE, 0,
+			"UYVY 4:2:2", V4L2_PIX_FMT_UYVY, { 0, 0, 0, 0 }
 		},
 	};
 
 	if (fmt->index > ARRAY_SIZE(formats) - 1)
+	{
 		return -EINVAL;
+	}
+
 	*fmt = formats[fmt->index];
 	return 0;
 }
@@ -513,24 +622,31 @@ int cx18_s_input(struct file *file, void *fh, unsigned int inp)
 	struct cx18 *cx = id->cx;
 	v4l2_std_id std = V4L2_STD_ALL;
 	const struct cx18_card_video_input *card_input =
-				cx->card->video_inputs + inp;
+			cx->card->video_inputs + inp;
 
 	if (inp >= cx->nof_inputs)
+	{
 		return -EINVAL;
+	}
 
-	if (inp == cx->active_input) {
+	if (inp == cx->active_input)
+	{
 		CX18_DEBUG_INFO("Input unchanged\n");
 		return 0;
 	}
 
 	CX18_DEBUG_INFO("Changing input from %d to %d\n",
-			cx->active_input, inp);
+					cx->active_input, inp);
 
 	cx->active_input = inp;
 	/* Set the audio input to whatever is appropriate for the input type. */
 	cx->audio_input = cx->card->video_inputs[inp].audio_index;
+
 	if (card_input->video_type == V4L2_INPUT_TYPE_TUNER)
+	{
 		std = cx->tuner_std;
+	}
+
 	cx->streams[CX18_ENC_STREAM_TYPE_MPG].video_dev.tvnorms = std;
 	cx->streams[CX18_ENC_STREAM_TYPE_YUV].video_dev.tvnorms = std;
 	cx->streams[CX18_ENC_STREAM_TYPE_VBI].video_dev.tvnorms = std;
@@ -545,12 +661,14 @@ int cx18_s_input(struct file *file, void *fh, unsigned int inp)
 }
 
 static int cx18_g_frequency(struct file *file, void *fh,
-				struct v4l2_frequency *vf)
+							struct v4l2_frequency *vf)
 {
 	struct cx18 *cx = fh2id(fh)->cx;
 
 	if (vf->tuner != 0)
+	{
 		return -EINVAL;
+	}
 
 	cx18_call_all(cx, tuner, g_frequency, vf);
 	return 0;
@@ -562,7 +680,9 @@ int cx18_s_frequency(struct file *file, void *fh, const struct v4l2_frequency *v
 	struct cx18 *cx = id->cx;
 
 	if (vf->tuner != 0)
+	{
 		return -EINVAL;
+	}
 
 	cx18_mute(cx);
 	CX18_DEBUG_INFO("v4l2 ioctl: set frequency %d\n", vf->frequency);
@@ -585,13 +705,18 @@ int cx18_s_std(struct file *file, void *fh, v4l2_std_id std)
 	struct cx18 *cx = id->cx;
 
 	if ((std & V4L2_STD_ALL) == 0)
+	{
 		return -EINVAL;
+	}
 
 	if (std == cx->std)
+	{
 		return 0;
+	}
 
 	if (test_bit(CX18_F_I_RADIO_USER, &cx->i_flags) ||
-	    atomic_read(&cx->ana_capturing) > 0) {
+		atomic_read(&cx->ana_capturing) > 0)
+	{
 		/* Switching standard would turn off the radio or mess
 		   with already running streams, prevent that by
 		   returning EBUSY. */
@@ -608,7 +733,7 @@ int cx18_s_std(struct file *file, void *fh, v4l2_std_id std)
 	cx->vbi.start[0] = cx->is_50hz ? 6 : 10;
 	cx->vbi.start[1] = cx->is_50hz ? 318 : 273;
 	CX18_DEBUG_INFO("Switching standard to %llx.\n",
-			(unsigned long long) cx->std);
+					(unsigned long long) cx->std);
 
 	/* Tuner */
 	cx18_call_all(cx, video, s_std, cx->std);
@@ -621,7 +746,9 @@ static int cx18_s_tuner(struct file *file, void *fh, const struct v4l2_tuner *vt
 	struct cx18 *cx = id->cx;
 
 	if (vt->index != 0)
+	{
 		return -EINVAL;
+	}
 
 	cx18_call_all(cx, tuner, s_tuner, vt);
 	return 0;
@@ -632,55 +759,76 @@ static int cx18_g_tuner(struct file *file, void *fh, struct v4l2_tuner *vt)
 	struct cx18 *cx = fh2id(fh)->cx;
 
 	if (vt->index != 0)
+	{
 		return -EINVAL;
+	}
 
 	cx18_call_all(cx, tuner, g_tuner, vt);
 
 	if (vt->type == V4L2_TUNER_RADIO)
+	{
 		strlcpy(vt->name, "cx18 Radio Tuner", sizeof(vt->name));
+	}
 	else
+	{
 		strlcpy(vt->name, "cx18 TV Tuner", sizeof(vt->name));
+	}
+
 	return 0;
 }
 
 static int cx18_g_sliced_vbi_cap(struct file *file, void *fh,
-					struct v4l2_sliced_vbi_cap *cap)
+								 struct v4l2_sliced_vbi_cap *cap)
 {
 	struct cx18 *cx = fh2id(fh)->cx;
 	int set = cx->is_50hz ? V4L2_SLICED_VBI_625 : V4L2_SLICED_VBI_525;
 	int f, l;
 
 	if (cap->type != V4L2_BUF_TYPE_SLICED_VBI_CAPTURE)
+	{
 		return -EINVAL;
+	}
 
 	cap->service_set = 0;
-	for (f = 0; f < 2; f++) {
-		for (l = 0; l < 24; l++) {
-			if (valid_service_line(f, l, cx->is_50hz)) {
+
+	for (f = 0; f < 2; f++)
+	{
+		for (l = 0; l < 24; l++)
+		{
+			if (valid_service_line(f, l, cx->is_50hz))
+			{
 				/*
 				 * We can find all v4l2 supported vbi services
 				 * for the standard, on a valid line for the std
 				 */
 				cap->service_lines[f][l] = set;
 				cap->service_set |= set;
-			} else
+			}
+			else
+			{
 				cap->service_lines[f][l] = 0;
+			}
 		}
 	}
+
 	for (f = 0; f < 3; f++)
+	{
 		cap->reserved[f] = 0;
+	}
+
 	return 0;
 }
 
 static int _cx18_process_idx_data(struct cx18_buffer *buf,
-				  struct v4l2_enc_idx *idx)
+								  struct v4l2_enc_idx *idx)
 {
 	int consumed, remaining;
 	struct v4l2_enc_idx_entry *e_idx;
 	struct cx18_enc_idx_entry *e_buf;
 
 	/* Frame type lookup: 1=I, 2=P, 4=B */
-	const int mapping[8] = {
+	const int mapping[8] =
+	{
 		-1, V4L2_ENC_IDX_FRAME_I, V4L2_ENC_IDX_FRAME_P,
 		-1, V4L2_ENC_IDX_FRAME_B, -1, -1, -1
 	};
@@ -696,13 +844,14 @@ static int _cx18_process_idx_data(struct cx18_buffer *buf,
 	e_buf = (struct cx18_enc_idx_entry *) &buf->buf[buf->readpos];
 
 	while (remaining >= sizeof(struct cx18_enc_idx_entry) &&
-	       idx->entries < V4L2_ENC_IDX_ENTRIES) {
+		   idx->entries < V4L2_ENC_IDX_ENTRIES)
+	{
 
 		e_idx->offset = (((u64) le32_to_cpu(e_buf->offset_high)) << 32)
-				| le32_to_cpu(e_buf->offset_low);
+						| le32_to_cpu(e_buf->offset_low);
 
 		e_idx->pts = (((u64) (le32_to_cpu(e_buf->pts_high) & 1)) << 32)
-			     | le32_to_cpu(e_buf->pts_low);
+					 | le32_to_cpu(e_buf->pts_low);
 
 		e_idx->length = le32_to_cpu(e_buf->length);
 
@@ -721,23 +870,28 @@ static int _cx18_process_idx_data(struct cx18_buffer *buf,
 
 	/* Swallow any partial entries at the end, if there are any */
 	if (remaining > 0 && remaining < sizeof(struct cx18_enc_idx_entry))
+	{
 		consumed += remaining;
+	}
 
 	buf->readpos += consumed;
 	return consumed;
 }
 
 static int cx18_process_idx_data(struct cx18_stream *s, struct cx18_mdl *mdl,
-				 struct v4l2_enc_idx *idx)
+								 struct v4l2_enc_idx *idx)
 {
 	if (s->type != CX18_ENC_STREAM_TYPE_IDX)
+	{
 		return -EINVAL;
+	}
 
 	if (mdl->curr_buf == NULL)
 		mdl->curr_buf = list_first_entry(&mdl->buf_list,
-						 struct cx18_buffer, list);
+										 struct cx18_buffer, list);
 
-	if (list_entry_is_past_end(mdl->curr_buf, &mdl->buf_list, list)) {
+	if (list_entry_is_past_end(mdl->curr_buf, &mdl->buf_list, list))
+	{
 		/*
 		 * For some reason we've exhausted the buffers, but the MDL
 		 * object still said some data was unread.
@@ -747,25 +901,30 @@ static int cx18_process_idx_data(struct cx18_stream *s, struct cx18_mdl *mdl,
 		return 0;
 	}
 
-	list_for_each_entry_from(mdl->curr_buf, &mdl->buf_list, list) {
+	list_for_each_entry_from(mdl->curr_buf, &mdl->buf_list, list)
+	{
 
 		/* Skip any empty buffers in the MDL */
 		if (mdl->curr_buf->readpos >= mdl->curr_buf->bytesused)
+		{
 			continue;
+		}
 
 		mdl->readpos += _cx18_process_idx_data(mdl->curr_buf, idx);
 
 		/* exit when MDL drained or request satisfied */
 		if (idx->entries >= V4L2_ENC_IDX_ENTRIES ||
-		    mdl->curr_buf->readpos < mdl->curr_buf->bytesused ||
-		    mdl->readpos >= mdl->bytesused)
+			mdl->curr_buf->readpos < mdl->curr_buf->bytesused ||
+			mdl->readpos >= mdl->bytesused)
+		{
 			break;
+		}
 	}
 	return 0;
 }
 
 static int cx18_g_enc_index(struct file *file, void *fh,
-				struct v4l2_enc_idx *idx)
+							struct v4l2_enc_idx *idx)
 {
 	struct cx18 *cx = fh2id(fh)->cx;
 	struct cx18_stream *s = &cx->streams[CX18_ENC_STREAM_TYPE_IDX];
@@ -773,13 +932,19 @@ static int cx18_g_enc_index(struct file *file, void *fh,
 	struct cx18_mdl *mdl;
 
 	if (!cx18_stream_enabled(s)) /* Module options inhibited IDX stream */
+	{
 		return -EINVAL;
+	}
 
 	/* Compute the best case number of entries we can buffer */
 	tmp = s->buffers -
-			  s->bufs_per_mdl * CX18_ENC_STREAM_TYPE_IDX_FW_MDL_MIN;
+		  s->bufs_per_mdl * CX18_ENC_STREAM_TYPE_IDX_FW_MDL_MIN;
+
 	if (tmp <= 0)
+	{
 		tmp = 1;
+	}
+
 	tmp = tmp * s->buf_size / sizeof(struct cx18_enc_idx_entry);
 
 	/* Fill out the header of the return structure */
@@ -788,14 +953,20 @@ static int cx18_g_enc_index(struct file *file, void *fh,
 	memset(idx->reserved, 0, sizeof(idx->reserved));
 
 	/* Pull IDX MDLs and buffers from q_full and populate the entries */
-	do {
+	do
+	{
 		mdl = cx18_dequeue(s, &s->q_full);
+
 		if (mdl == NULL) /* No more IDX data right now */
+		{
 			break;
+		}
 
 		/* Extract the Index entry data from the MDL and buffers */
 		cx18_process_idx_data(s, mdl, idx);
-		if (mdl->readpos < mdl->bytesused) {
+
+		if (mdl->readpos < mdl->bytesused)
+		{
 			/* We finished with data remaining, push the MDL back */
 			cx18_push(s, mdl, &s->q_full);
 			break;
@@ -804,7 +975,8 @@ static int cx18_g_enc_index(struct file *file, void *fh,
 		/* We drained this MDL, schedule it to go to the firmware */
 		cx18_enqueue(s, mdl, &s->q_free);
 
-	} while (idx->entries < V4L2_ENC_IDX_ENTRIES);
+	}
+	while (idx->entries < V4L2_ENC_IDX_ENTRIES);
 
 	/* Tell the work handler to send free IDX MDLs to the firmware */
 	cx18_stream_load_fw_queue(s);
@@ -817,20 +989,24 @@ static struct videobuf_queue *cx18_vb_queue(struct cx18_open_id *id)
 	struct cx18 *cx = id->cx;
 	struct cx18_stream *s = &cx->streams[id->type];
 
-	switch (s->vb_type) {
-	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-		q = &s->vbuf_q;
-		break;
-	case V4L2_BUF_TYPE_VBI_CAPTURE:
-		break;
-	default:
-		break;
+	switch (s->vb_type)
+	{
+		case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+			q = &s->vbuf_q;
+			break;
+
+		case V4L2_BUF_TYPE_VBI_CAPTURE:
+			break;
+
+		default:
+			break;
 	}
+
 	return q;
 }
 
 static int cx18_streamon(struct file *file, void *priv,
-	enum v4l2_buf_type type)
+						 enum v4l2_buf_type type)
 {
 	struct cx18_open_id *id = file->private_data;
 	struct cx18 *cx = id->cx;
@@ -839,10 +1015,14 @@ static int cx18_streamon(struct file *file, void *priv,
 	/* Start the hardware only if we're the video device */
 	if ((s->vb_type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
 		(s->vb_type != V4L2_BUF_TYPE_VBI_CAPTURE))
+	{
 		return -EINVAL;
+	}
 
 	if (id->type != CX18_ENC_STREAM_TYPE_YUV)
+	{
 		return -EINVAL;
+	}
 
 	/* Establish a buffer timeout */
 	mod_timer(&s->vb_timeout, msecs_to_jiffies(2000) + jiffies);
@@ -851,7 +1031,7 @@ static int cx18_streamon(struct file *file, void *priv,
 }
 
 static int cx18_streamoff(struct file *file, void *priv,
-	enum v4l2_buf_type type)
+						  enum v4l2_buf_type type)
 {
 	struct cx18_open_id *id = file->private_data;
 	struct cx18 *cx = id->cx;
@@ -860,16 +1040,20 @@ static int cx18_streamoff(struct file *file, void *priv,
 	/* Start the hardware only if we're the video device */
 	if ((s->vb_type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
 		(s->vb_type != V4L2_BUF_TYPE_VBI_CAPTURE))
+	{
 		return -EINVAL;
+	}
 
 	if (id->type != CX18_ENC_STREAM_TYPE_YUV)
+	{
 		return -EINVAL;
+	}
 
 	return videobuf_streamoff(cx18_vb_queue(id));
 }
 
 static int cx18_reqbufs(struct file *file, void *priv,
-	struct v4l2_requestbuffers *rb)
+						struct v4l2_requestbuffers *rb)
 {
 	struct cx18_open_id *id = file->private_data;
 	struct cx18 *cx = id->cx;
@@ -877,13 +1061,15 @@ static int cx18_reqbufs(struct file *file, void *priv,
 
 	if ((s->vb_type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
 		(s->vb_type != V4L2_BUF_TYPE_VBI_CAPTURE))
+	{
 		return -EINVAL;
+	}
 
 	return videobuf_reqbufs(cx18_vb_queue(id), rb);
 }
 
 static int cx18_querybuf(struct file *file, void *priv,
-	struct v4l2_buffer *b)
+						 struct v4l2_buffer *b)
 {
 	struct cx18_open_id *id = file->private_data;
 	struct cx18 *cx = id->cx;
@@ -891,7 +1077,9 @@ static int cx18_querybuf(struct file *file, void *priv,
 
 	if ((s->vb_type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
 		(s->vb_type != V4L2_BUF_TYPE_VBI_CAPTURE))
+	{
 		return -EINVAL;
+	}
 
 	return videobuf_querybuf(cx18_vb_queue(id), b);
 }
@@ -904,7 +1092,9 @@ static int cx18_qbuf(struct file *file, void *priv, struct v4l2_buffer *b)
 
 	if ((s->vb_type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
 		(s->vb_type != V4L2_BUF_TYPE_VBI_CAPTURE))
+	{
 		return -EINVAL;
+	}
 
 	return videobuf_qbuf(cx18_vb_queue(id), b);
 }
@@ -917,102 +1107,128 @@ static int cx18_dqbuf(struct file *file, void *priv, struct v4l2_buffer *b)
 
 	if ((s->vb_type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
 		(s->vb_type != V4L2_BUF_TYPE_VBI_CAPTURE))
+	{
 		return -EINVAL;
+	}
 
 	return videobuf_dqbuf(cx18_vb_queue(id), b, file->f_flags & O_NONBLOCK);
 }
 
 static int cx18_encoder_cmd(struct file *file, void *fh,
-				struct v4l2_encoder_cmd *enc)
+							struct v4l2_encoder_cmd *enc)
 {
 	struct cx18_open_id *id = fh2id(fh);
 	struct cx18 *cx = id->cx;
 	u32 h;
 
-	switch (enc->cmd) {
-	case V4L2_ENC_CMD_START:
-		CX18_DEBUG_IOCTL("V4L2_ENC_CMD_START\n");
-		enc->flags = 0;
-		return cx18_start_capture(id);
+	switch (enc->cmd)
+	{
+		case V4L2_ENC_CMD_START:
+			CX18_DEBUG_IOCTL("V4L2_ENC_CMD_START\n");
+			enc->flags = 0;
+			return cx18_start_capture(id);
 
-	case V4L2_ENC_CMD_STOP:
-		CX18_DEBUG_IOCTL("V4L2_ENC_CMD_STOP\n");
-		enc->flags &= V4L2_ENC_CMD_STOP_AT_GOP_END;
-		cx18_stop_capture(id,
-				  enc->flags & V4L2_ENC_CMD_STOP_AT_GOP_END);
-		break;
+		case V4L2_ENC_CMD_STOP:
+			CX18_DEBUG_IOCTL("V4L2_ENC_CMD_STOP\n");
+			enc->flags &= V4L2_ENC_CMD_STOP_AT_GOP_END;
+			cx18_stop_capture(id,
+							  enc->flags & V4L2_ENC_CMD_STOP_AT_GOP_END);
+			break;
 
-	case V4L2_ENC_CMD_PAUSE:
-		CX18_DEBUG_IOCTL("V4L2_ENC_CMD_PAUSE\n");
-		enc->flags = 0;
-		if (!atomic_read(&cx->ana_capturing))
-			return -EPERM;
-		if (test_and_set_bit(CX18_F_I_ENC_PAUSED, &cx->i_flags))
-			return 0;
-		h = cx18_find_handle(cx);
-		if (h == CX18_INVALID_TASK_HANDLE) {
-			CX18_ERR("Can't find valid task handle for "
-				 "V4L2_ENC_CMD_PAUSE\n");
-			return -EBADFD;
-		}
-		cx18_mute(cx);
-		cx18_vapi(cx, CX18_CPU_CAPTURE_PAUSE, 1, h);
-		break;
+		case V4L2_ENC_CMD_PAUSE:
+			CX18_DEBUG_IOCTL("V4L2_ENC_CMD_PAUSE\n");
+			enc->flags = 0;
 
-	case V4L2_ENC_CMD_RESUME:
-		CX18_DEBUG_IOCTL("V4L2_ENC_CMD_RESUME\n");
-		enc->flags = 0;
-		if (!atomic_read(&cx->ana_capturing))
-			return -EPERM;
-		if (!test_and_clear_bit(CX18_F_I_ENC_PAUSED, &cx->i_flags))
-			return 0;
-		h = cx18_find_handle(cx);
-		if (h == CX18_INVALID_TASK_HANDLE) {
-			CX18_ERR("Can't find valid task handle for "
-				 "V4L2_ENC_CMD_RESUME\n");
-			return -EBADFD;
-		}
-		cx18_vapi(cx, CX18_CPU_CAPTURE_RESUME, 1, h);
-		cx18_unmute(cx);
-		break;
+			if (!atomic_read(&cx->ana_capturing))
+			{
+				return -EPERM;
+			}
 
-	default:
-		CX18_DEBUG_IOCTL("Unknown cmd %d\n", enc->cmd);
-		return -EINVAL;
+			if (test_and_set_bit(CX18_F_I_ENC_PAUSED, &cx->i_flags))
+			{
+				return 0;
+			}
+
+			h = cx18_find_handle(cx);
+
+			if (h == CX18_INVALID_TASK_HANDLE)
+			{
+				CX18_ERR("Can't find valid task handle for "
+						 "V4L2_ENC_CMD_PAUSE\n");
+				return -EBADFD;
+			}
+
+			cx18_mute(cx);
+			cx18_vapi(cx, CX18_CPU_CAPTURE_PAUSE, 1, h);
+			break;
+
+		case V4L2_ENC_CMD_RESUME:
+			CX18_DEBUG_IOCTL("V4L2_ENC_CMD_RESUME\n");
+			enc->flags = 0;
+
+			if (!atomic_read(&cx->ana_capturing))
+			{
+				return -EPERM;
+			}
+
+			if (!test_and_clear_bit(CX18_F_I_ENC_PAUSED, &cx->i_flags))
+			{
+				return 0;
+			}
+
+			h = cx18_find_handle(cx);
+
+			if (h == CX18_INVALID_TASK_HANDLE)
+			{
+				CX18_ERR("Can't find valid task handle for "
+						 "V4L2_ENC_CMD_RESUME\n");
+				return -EBADFD;
+			}
+
+			cx18_vapi(cx, CX18_CPU_CAPTURE_RESUME, 1, h);
+			cx18_unmute(cx);
+			break;
+
+		default:
+			CX18_DEBUG_IOCTL("Unknown cmd %d\n", enc->cmd);
+			return -EINVAL;
 	}
+
 	return 0;
 }
 
 static int cx18_try_encoder_cmd(struct file *file, void *fh,
-				struct v4l2_encoder_cmd *enc)
+								struct v4l2_encoder_cmd *enc)
 {
 	struct cx18 *cx = fh2id(fh)->cx;
 
-	switch (enc->cmd) {
-	case V4L2_ENC_CMD_START:
-		CX18_DEBUG_IOCTL("V4L2_ENC_CMD_START\n");
-		enc->flags = 0;
-		break;
+	switch (enc->cmd)
+	{
+		case V4L2_ENC_CMD_START:
+			CX18_DEBUG_IOCTL("V4L2_ENC_CMD_START\n");
+			enc->flags = 0;
+			break;
 
-	case V4L2_ENC_CMD_STOP:
-		CX18_DEBUG_IOCTL("V4L2_ENC_CMD_STOP\n");
-		enc->flags &= V4L2_ENC_CMD_STOP_AT_GOP_END;
-		break;
+		case V4L2_ENC_CMD_STOP:
+			CX18_DEBUG_IOCTL("V4L2_ENC_CMD_STOP\n");
+			enc->flags &= V4L2_ENC_CMD_STOP_AT_GOP_END;
+			break;
 
-	case V4L2_ENC_CMD_PAUSE:
-		CX18_DEBUG_IOCTL("V4L2_ENC_CMD_PAUSE\n");
-		enc->flags = 0;
-		break;
+		case V4L2_ENC_CMD_PAUSE:
+			CX18_DEBUG_IOCTL("V4L2_ENC_CMD_PAUSE\n");
+			enc->flags = 0;
+			break;
 
-	case V4L2_ENC_CMD_RESUME:
-		CX18_DEBUG_IOCTL("V4L2_ENC_CMD_RESUME\n");
-		enc->flags = 0;
-		break;
+		case V4L2_ENC_CMD_RESUME:
+			CX18_DEBUG_IOCTL("V4L2_ENC_CMD_RESUME\n");
+			enc->flags = 0;
+			break;
 
-	default:
-		CX18_DEBUG_IOCTL("Unknown cmd %d\n", enc->cmd);
-		return -EINVAL;
+		default:
+			CX18_DEBUG_IOCTL("Unknown cmd %d\n", enc->cmd);
+			return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -1024,11 +1240,14 @@ static int cx18_log_status(struct file *file, void *fh)
 	int i;
 
 	CX18_INFO("Version: %s  Card: %s\n", CX18_VERSION, cx->card_name);
-	if (cx->hw_flags & CX18_HW_TVEEPROM) {
+
+	if (cx->hw_flags & CX18_HW_TVEEPROM)
+	{
 		struct tveeprom tv;
 
 		cx18_read_eeprom(cx, &tv);
 	}
+
 	cx18_call_all(cx, core, log_status);
 	cx18_get_input(cx, cx->active_input, &vidin);
 	cx18_get_audio_input(cx, cx->audio_input, &audin);
@@ -1036,51 +1255,62 @@ static int cx18_log_status(struct file *file, void *fh)
 	CX18_INFO("Audio Input: %s\n", audin.name);
 	mutex_lock(&cx->gpio_lock);
 	CX18_INFO("GPIO:  direction 0x%08x, value 0x%08x\n",
-		cx->gpio_dir, cx->gpio_val);
+			  cx->gpio_dir, cx->gpio_val);
 	mutex_unlock(&cx->gpio_lock);
 	CX18_INFO("Tuner: %s\n",
-		test_bit(CX18_F_I_RADIO_USER, &cx->i_flags) ?  "Radio" : "TV");
+			  test_bit(CX18_F_I_RADIO_USER, &cx->i_flags) ?  "Radio" : "TV");
 	v4l2_ctrl_handler_log_status(&cx->cxhdl.hdl, cx->v4l2_dev.name);
 	CX18_INFO("Status flags: 0x%08lx\n", cx->i_flags);
-	for (i = 0; i < CX18_MAX_STREAMS; i++) {
+
+	for (i = 0; i < CX18_MAX_STREAMS; i++)
+	{
 		struct cx18_stream *s = &cx->streams[i];
 
 		if (s->video_dev.v4l2_dev == NULL || s->buffers == 0)
+		{
 			continue;
+		}
+
 		CX18_INFO("Stream %s: status 0x%04lx, %d%% of %d KiB (%d buffers) in use\n",
-			  s->name, s->s_flags,
-			  atomic_read(&s->q_full.depth) * s->bufs_per_mdl * 100
-			   / s->buffers,
-			  (s->buffers * s->buf_size) / 1024, s->buffers);
+				  s->name, s->s_flags,
+				  atomic_read(&s->q_full.depth) * s->bufs_per_mdl * 100
+				  / s->buffers,
+				  (s->buffers * s->buf_size) / 1024, s->buffers);
 	}
+
 	CX18_INFO("Read MPEG/VBI: %lld/%lld bytes\n",
-			(long long)cx->mpg_data_received,
-			(long long)cx->vbi_data_inserted);
+			  (long long)cx->mpg_data_received,
+			  (long long)cx->vbi_data_inserted);
 	return 0;
 }
 
 static long cx18_default(struct file *file, void *fh, bool valid_prio,
-			 unsigned int cmd, void *arg)
+						 unsigned int cmd, void *arg)
 {
 	struct cx18 *cx = fh2id(fh)->cx;
 
-	switch (cmd) {
-	case VIDIOC_INT_RESET: {
-		u32 val = *(u32 *)arg;
+	switch (cmd)
+	{
+		case VIDIOC_INT_RESET:
+			{
+				u32 val = *(u32 *)arg;
 
-		if ((val == 0) || (val & 0x01))
-			cx18_call_hw(cx, CX18_HW_GPIO_RESET_CTRL, core, reset,
-				     (u32) CX18_GPIO_RESET_Z8F0811);
-		break;
+				if ((val == 0) || (val & 0x01))
+					cx18_call_hw(cx, CX18_HW_GPIO_RESET_CTRL, core, reset,
+								 (u32) CX18_GPIO_RESET_Z8F0811);
+
+				break;
+			}
+
+		default:
+			return -ENOTTY;
 	}
 
-	default:
-		return -ENOTTY;
-	}
 	return 0;
 }
 
-static const struct v4l2_ioctl_ops cx18_ioctl_ops = {
+static const struct v4l2_ioctl_ops cx18_ioctl_ops =
+{
 	.vidioc_querycap                = cx18_querycap,
 	.vidioc_s_audio                 = cx18_s_audio,
 	.vidioc_g_audio                 = cx18_g_audio,

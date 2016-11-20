@@ -15,7 +15,8 @@ typedef void (*dm_sm_threshold_fn)(void *context);
  * struct dm_space_map keeps a record of how many times each block in a device
  * is referenced.  It needs to be fixed on disk as part of the transaction.
  */
-struct dm_space_map {
+struct dm_space_map
+{
 	void (*destroy)(struct dm_space_map *sm);
 
 	/*
@@ -41,7 +42,7 @@ struct dm_space_map {
 
 	int (*get_count)(struct dm_space_map *sm, dm_block_t b, uint32_t *result);
 	int (*count_is_more_than_one)(struct dm_space_map *sm, dm_block_t b,
-				      int *result);
+								  int *result);
 	int (*set_count)(struct dm_space_map *sm, dm_block_t b, uint32_t count);
 
 	int (*commit)(struct dm_space_map *sm);
@@ -67,9 +68,9 @@ struct dm_space_map {
 	 * when the free space in the space map drops below the threshold.
 	 */
 	int (*register_threshold_callback)(struct dm_space_map *sm,
-					   dm_block_t threshold,
-					   dm_sm_threshold_fn fn,
-					   void *context);
+									   dm_block_t threshold,
+									   dm_sm_threshold_fn fn,
+									   void *context);
 };
 
 /*----------------------------------------------------------------*/
@@ -95,19 +96,19 @@ static inline int dm_sm_get_nr_free(struct dm_space_map *sm, dm_block_t *count)
 }
 
 static inline int dm_sm_get_count(struct dm_space_map *sm, dm_block_t b,
-				  uint32_t *result)
+								  uint32_t *result)
 {
 	return sm->get_count(sm, b, result);
 }
 
 static inline int dm_sm_count_is_more_than_one(struct dm_space_map *sm,
-					       dm_block_t b, int *result)
+		dm_block_t b, int *result)
 {
 	return sm->count_is_more_than_one(sm, b, result);
 }
 
 static inline int dm_sm_set_count(struct dm_space_map *sm, dm_block_t b,
-				  uint32_t count)
+								  uint32_t count)
 {
 	return sm->set_count(sm, b, count);
 }
@@ -143,12 +144,14 @@ static inline int dm_sm_copy_root(struct dm_space_map *sm, void *copy_to_here_le
 }
 
 static inline int dm_sm_register_threshold_callback(struct dm_space_map *sm,
-						    dm_block_t threshold,
-						    dm_sm_threshold_fn fn,
-						    void *context)
+		dm_block_t threshold,
+		dm_sm_threshold_fn fn,
+		void *context)
 {
 	if (sm->register_threshold_callback)
+	{
 		return sm->register_threshold_callback(sm, threshold, fn, context);
+	}
 
 	return -EINVAL;
 }

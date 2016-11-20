@@ -63,7 +63,7 @@
 #define TCSETSF2	_IOW('T', 0x2D, struct termios2)
 #define TIOCGRS485	0x542E
 #ifndef TIOCSRS485
-#define TIOCSRS485	0x542F
+	#define TIOCSRS485	0x542F
 #endif
 #define TIOCGPTN	_IOR('T', 0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
 #define TIOCSPTLCK	_IOW('T', 0x31, int)  /* Lock/unlock Pty */
@@ -99,7 +99,7 @@
  * conflict with a Hayes modem-specific ioctl value.
  */
 #ifndef FIOQSIZE
-# define FIOQSIZE	0x5460
+	#define FIOQSIZE	0x5460
 #endif
 
 /* Used for packet mode */

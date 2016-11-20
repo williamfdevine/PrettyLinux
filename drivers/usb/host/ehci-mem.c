@@ -36,9 +36,9 @@
 /* Allocate the key transfer structures from the previously allocated pool */
 
 static inline void ehci_qtd_init(struct ehci_hcd *ehci, struct ehci_qtd *qtd,
-				  dma_addr_t dma)
+								 dma_addr_t dma)
 {
-	memset (qtd, 0, sizeof *qtd);
+	memset (qtd, 0, sizeof * qtd);
 	qtd->qtd_dma = dma;
 	qtd->hw_token = cpu_to_hc32(ehci, QTD_STS_HALT);
 	qtd->hw_next = EHCI_LIST_END(ehci);
@@ -52,9 +52,12 @@ static struct ehci_qtd *ehci_qtd_alloc (struct ehci_hcd *ehci, gfp_t flags)
 	dma_addr_t		dma;
 
 	qtd = dma_pool_alloc (ehci->qtd_pool, flags, &dma);
-	if (qtd != NULL) {
+
+	if (qtd != NULL)
+	{
 		ehci_qtd_init(ehci, qtd, dma);
 	}
+
 	return qtd;
 }
 
@@ -67,12 +70,17 @@ static inline void ehci_qtd_free (struct ehci_hcd *ehci, struct ehci_qtd *qtd)
 static void qh_destroy(struct ehci_hcd *ehci, struct ehci_qh *qh)
 {
 	/* clean qtds first, and know this is not linked */
-	if (!list_empty (&qh->qtd_list) || qh->qh_next.ptr) {
+	if (!list_empty (&qh->qtd_list) || qh->qh_next.ptr)
+	{
 		ehci_dbg (ehci, "unused qh not empty!\n");
 		BUG ();
 	}
+
 	if (qh->dummy)
+	{
 		ehci_qtd_free (ehci, qh->dummy);
+	}
+
 	dma_pool_free(ehci->qh_pool, qh->hw, qh->qh_dma);
 	kfree(qh);
 }
@@ -82,14 +90,22 @@ static struct ehci_qh *ehci_qh_alloc (struct ehci_hcd *ehci, gfp_t flags)
 	struct ehci_qh		*qh;
 	dma_addr_t		dma;
 
-	qh = kzalloc(sizeof *qh, GFP_ATOMIC);
+	qh = kzalloc(sizeof * qh, GFP_ATOMIC);
+
 	if (!qh)
+	{
 		goto done;
+	}
+
 	qh->hw = (struct ehci_qh_hw *)
-		dma_pool_alloc(ehci->qh_pool, flags, &dma);
+			 dma_pool_alloc(ehci->qh_pool, flags, &dma);
+
 	if (!qh->hw)
+	{
 		goto fail;
-	memset(qh->hw, 0, sizeof *qh->hw);
+	}
+
+	memset(qh->hw, 0, sizeof * qh->hw);
 	qh->qh_dma = dma;
 	// INIT_LIST_HEAD (&qh->qh_list);
 	INIT_LIST_HEAD (&qh->qtd_list);
@@ -97,10 +113,13 @@ static struct ehci_qh *ehci_qh_alloc (struct ehci_hcd *ehci, gfp_t flags)
 
 	/* dummy td enables safe urb queuing */
 	qh->dummy = ehci_qtd_alloc (ehci, flags);
-	if (qh->dummy == NULL) {
+
+	if (qh->dummy == NULL)
+	{
 		ehci_dbg (ehci, "no dummy td\n");
 		goto fail1;
 	}
+
 done:
 	return qh;
 fail1:
@@ -120,11 +139,17 @@ fail:
 static void ehci_mem_cleanup (struct ehci_hcd *ehci)
 {
 	if (ehci->async)
+	{
 		qh_destroy(ehci, ehci->async);
+	}
+
 	ehci->async = NULL;
 
 	if (ehci->dummy)
+	{
 		qh_destroy(ehci, ehci->dummy);
+	}
+
 	ehci->dummy = NULL;
 
 	/* DMA consistent memory and pools */
@@ -139,8 +164,9 @@ static void ehci_mem_cleanup (struct ehci_hcd *ehci)
 
 	if (ehci->periodic)
 		dma_free_coherent (ehci_to_hcd(ehci)->self.controller,
-			ehci->periodic_size * sizeof (u32),
-			ehci->periodic, ehci->periodic_dma);
+						   ehci->periodic_size * sizeof (u32),
+						   ehci->periodic, ehci->periodic_dma);
+
 	ehci->periodic = NULL;
 
 	/* shadow periodic table */
@@ -155,62 +181,79 @@ static int ehci_mem_init (struct ehci_hcd *ehci, gfp_t flags)
 
 	/* QTDs for control/bulk/intr transfers */
 	ehci->qtd_pool = dma_pool_create ("ehci_qtd",
-			ehci_to_hcd(ehci)->self.controller,
-			sizeof (struct ehci_qtd),
-			32 /* byte alignment (for hw parts) */,
-			4096 /* can't cross 4K */);
-	if (!ehci->qtd_pool) {
+									  ehci_to_hcd(ehci)->self.controller,
+									  sizeof (struct ehci_qtd),
+									  32 /* byte alignment (for hw parts) */,
+									  4096 /* can't cross 4K */);
+
+	if (!ehci->qtd_pool)
+	{
 		goto fail;
 	}
 
 	/* QHs for control/bulk/intr transfers */
 	ehci->qh_pool = dma_pool_create ("ehci_qh",
-			ehci_to_hcd(ehci)->self.controller,
-			sizeof(struct ehci_qh_hw),
-			32 /* byte alignment (for hw parts) */,
-			4096 /* can't cross 4K */);
-	if (!ehci->qh_pool) {
+									 ehci_to_hcd(ehci)->self.controller,
+									 sizeof(struct ehci_qh_hw),
+									 32 /* byte alignment (for hw parts) */,
+									 4096 /* can't cross 4K */);
+
+	if (!ehci->qh_pool)
+	{
 		goto fail;
 	}
+
 	ehci->async = ehci_qh_alloc (ehci, flags);
-	if (!ehci->async) {
+
+	if (!ehci->async)
+	{
 		goto fail;
 	}
 
 	/* ITD for high speed ISO transfers */
 	ehci->itd_pool = dma_pool_create ("ehci_itd",
-			ehci_to_hcd(ehci)->self.controller,
-			sizeof (struct ehci_itd),
-			32 /* byte alignment (for hw parts) */,
-			4096 /* can't cross 4K */);
-	if (!ehci->itd_pool) {
+									  ehci_to_hcd(ehci)->self.controller,
+									  sizeof (struct ehci_itd),
+									  32 /* byte alignment (for hw parts) */,
+									  4096 /* can't cross 4K */);
+
+	if (!ehci->itd_pool)
+	{
 		goto fail;
 	}
 
 	/* SITD for full/low speed split ISO transfers */
 	ehci->sitd_pool = dma_pool_create ("ehci_sitd",
-			ehci_to_hcd(ehci)->self.controller,
-			sizeof (struct ehci_sitd),
-			32 /* byte alignment (for hw parts) */,
-			4096 /* can't cross 4K */);
-	if (!ehci->sitd_pool) {
+									   ehci_to_hcd(ehci)->self.controller,
+									   sizeof (struct ehci_sitd),
+									   32 /* byte alignment (for hw parts) */,
+									   4096 /* can't cross 4K */);
+
+	if (!ehci->sitd_pool)
+	{
 		goto fail;
 	}
 
 	/* Hardware periodic table */
 	ehci->periodic = (__le32 *)
-		dma_alloc_coherent (ehci_to_hcd(ehci)->self.controller,
-			ehci->periodic_size * sizeof(__le32),
-			&ehci->periodic_dma, flags);
-	if (ehci->periodic == NULL) {
+					 dma_alloc_coherent (ehci_to_hcd(ehci)->self.controller,
+										 ehci->periodic_size * sizeof(__le32),
+										 &ehci->periodic_dma, flags);
+
+	if (ehci->periodic == NULL)
+	{
 		goto fail;
 	}
 
-	if (ehci->use_dummy_qh) {
+	if (ehci->use_dummy_qh)
+	{
 		struct ehci_qh_hw	*hw;
 		ehci->dummy = ehci_qh_alloc(ehci, flags);
+
 		if (!ehci->dummy)
+		{
 			goto fail;
+		}
 
 		hw = ehci->dummy->hw;
 		hw->hw_next = EHCI_LIST_END(ehci);
@@ -220,16 +263,23 @@ static int ehci_mem_init (struct ehci_hcd *ehci, gfp_t flags)
 
 		for (i = 0; i < ehci->periodic_size; i++)
 			ehci->periodic[i] = cpu_to_hc32(ehci,
-					ehci->dummy->qh_dma);
-	} else {
+											ehci->dummy->qh_dma);
+	}
+	else
+	{
 		for (i = 0; i < ehci->periodic_size; i++)
+		{
 			ehci->periodic[i] = EHCI_LIST_END(ehci);
+		}
 	}
 
 	/* software shadow of hardware table */
 	ehci->pshadow = kcalloc(ehci->periodic_size, sizeof(void *), flags);
+
 	if (ehci->pshadow != NULL)
+	{
 		return 0;
+	}
 
 fail:
 	ehci_dbg (ehci, "couldn't init memory\n");

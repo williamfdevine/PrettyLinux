@@ -14,7 +14,8 @@
 #include <linux/mmc/core.h>
 #include <linux/mod_devicetable.h>
 
-struct mmc_cid {
+struct mmc_cid
+{
 	unsigned int		manfid;
 	char			prod_name[8];
 	unsigned char		prv;
@@ -26,7 +27,8 @@ struct mmc_cid {
 	unsigned char		month;
 };
 
-struct mmc_csd {
+struct mmc_csd
+{
 	unsigned char		structure;
 	unsigned char		mmca_vsn;
 	unsigned short		cmdclass;
@@ -39,14 +41,15 @@ struct mmc_csd {
 	unsigned int		read_blkbits;
 	unsigned int		write_blkbits;
 	unsigned int		capacity;
-	unsigned int		read_partial:1,
-				read_misalign:1,
-				write_partial:1,
-				write_misalign:1,
-				dsr_imp:1;
+	unsigned int		read_partial: 1,
+				   read_misalign: 1,
+				   write_partial: 1,
+				   write_misalign: 1,
+				   dsr_imp: 1;
 };
 
-struct mmc_ext_csd {
+struct mmc_ext_csd
+{
 	u8			rev;
 	u8			erase_group_def;
 	u8			sec_feature_support;
@@ -124,7 +127,8 @@ struct mmc_ext_csd {
 #define MMC_DISCARD_FEATURE	BIT(0)                  /* CMD38 feature */
 };
 
-struct sd_scr {
+struct sd_scr
+{
 	unsigned char		sda_vsn;
 	unsigned char		sda_spec3;
 	unsigned char		bus_widths;
@@ -135,13 +139,15 @@ struct sd_scr {
 #define SD_SCR_CMD23_SUPPORT   (1<<1)
 };
 
-struct sd_ssr {
+struct sd_ssr
+{
 	unsigned int		au;			/* In sectors */
 	unsigned int		erase_timeout;		/* In milliseconds */
 	unsigned int		erase_offset;		/* In milliseconds */
 };
 
-struct sd_switch_caps {
+struct sd_switch_caps
+{
 	unsigned int		hs_max_dtr;
 	unsigned int		uhs_max_dtr;
 #define HIGH_SPEED_MAX_DTR	50000000
@@ -182,18 +188,20 @@ struct sd_switch_caps {
 #define SD_MAX_CURRENT_800	(1 << SD_SET_CURRENT_LIMIT_800)
 };
 
-struct sdio_cccr {
+struct sdio_cccr
+{
 	unsigned int		sdio_vsn;
 	unsigned int		sd_vsn;
-	unsigned int		multi_block:1,
-				low_speed:1,
-				wide_bus:1,
-				high_power:1,
-				high_speed:1,
-				disable_cd:1;
+	unsigned int		multi_block: 1,
+				   low_speed: 1,
+				   wide_bus: 1,
+				   high_power: 1,
+				   high_speed: 1,
+				   disable_cd: 1;
 };
 
-struct sdio_cis {
+struct sdio_cis
+{
 	unsigned short		vendor;
 	unsigned short		device;
 	unsigned short		blksize;
@@ -207,7 +215,8 @@ struct sdio_func_tuple;
 
 #define SDIO_MAX_FUNCS		7
 
-enum mmc_blk_status {
+enum mmc_blk_status
+{
 	MMC_BLK_SUCCESS = 0,
 	MMC_BLK_PARTIAL,
 	MMC_BLK_CMD_ERR,
@@ -231,7 +240,8 @@ enum mmc_blk_status {
 /*
  * MMC Physical partitions
  */
-struct mmc_part {
+struct mmc_part
+{
 	unsigned int	size;	/* partition size (in bytes) */
 	unsigned int	part_cfg;	/* partition type */
 	char	name[MAX_MMC_PART_NAME_LEN];
@@ -246,7 +256,8 @@ struct mmc_part {
 /*
  * MMC device
  */
-struct mmc_card {
+struct mmc_card
+{
 	struct mmc_host		*host;		/* the host this device belongs to */
 	struct device		dev;		/* the device */
 	u32			ocr;		/* the current OCR setting */
@@ -267,15 +278,15 @@ struct mmc_card {
 	unsigned int		quirks; 	/* card quirks */
 #define MMC_QUIRK_LENIENT_FN0	(1<<0)		/* allow SDIO FN0 writes outside of the VS CCCR range */
 #define MMC_QUIRK_BLKSZ_FOR_BYTE_MODE (1<<1)	/* use func->cur_blksize */
-						/* for byte mode */
+	/* for byte mode */
 #define MMC_QUIRK_NONSTD_SDIO	(1<<2)		/* non-standard SDIO card attached */
-						/* (missing CIA registers) */
+	/* (missing CIA registers) */
 #define MMC_QUIRK_NONSTD_FUNC_IF (1<<4)		/* SDIO card has nonstd function interfaces */
 #define MMC_QUIRK_DISABLE_CD	(1<<5)		/* disconnect CD/DAT[3] resistor */
 #define MMC_QUIRK_INAND_CMD38	(1<<6)		/* iNAND devices have broken CMD38 */
 #define MMC_QUIRK_BLK_NO_CMD23	(1<<7)		/* Avoid CMD23 for regular multiblock */
 #define MMC_QUIRK_BROKEN_BYTE_MODE_512 (1<<8)	/* Avoid sending 512 bytes in */
-						/* byte mode */
+	/* byte mode */
 #define MMC_QUIRK_LONG_READ_TIME (1<<9)		/* Data read time > CSD says */
 #define MMC_QUIRK_SEC_ERASE_TRIM_BROKEN (1<<10)	/* Skip secure for erase/trim */
 #define MMC_QUIRK_BROKEN_IRQ_POLLING	(1<<11)	/* Polling SDIO_CCCR_INTx could create a fake interrupt */
@@ -284,10 +295,10 @@ struct mmc_card {
 
 
 	unsigned int		erase_size;	/* erase size in sectors */
- 	unsigned int		erase_shift;	/* if erase unit is power 2 */
- 	unsigned int		pref_erase;	/* in sectors */
+	unsigned int		erase_shift;	/* if erase unit is power 2 */
+	unsigned int		pref_erase;	/* in sectors */
 	unsigned int		eg_boundary;	/* don't cross erase-group boundaries */
- 	u8			erased_byte;	/* value of erased bytes */
+	u8			erased_byte;	/* value of erased bytes */
 
 	u32			raw_cid[4];	/* raw card CID */
 	u32			raw_csd[4];	/* raw card CSD */
@@ -322,8 +333,8 @@ struct mmc_card {
  * This function fill contents in mmc_part.
  */
 static inline void mmc_part_add(struct mmc_card *card, unsigned int size,
-			unsigned int part_cfg, char *name, int idx, bool ro,
-			int area_type)
+								unsigned int part_cfg, char *name, int idx, bool ro,
+								int area_type)
 {
 	card->part[card->nr_parts].size = size;
 	card->part[card->nr_parts].part_cfg = part_cfg;
@@ -343,7 +354,8 @@ static inline bool mmc_large_sector(struct mmc_card *card)
  *  For at least some of these bugs we need a work-around.
  */
 
-struct mmc_fixup {
+struct mmc_fixup
+{
 	/* CID-specific fields. */
 	const char *name;
 
@@ -379,42 +391,42 @@ struct mmc_fixup {
 #define END_FIXUP { NULL }
 
 #define _FIXUP_EXT(_name, _manfid, _oemid, _rev_start, _rev_end,	\
-		   _cis_vendor, _cis_device,				\
-		   _fixup, _data, _ext_csd_rev)				\
-	{						   \
-		.name = (_name),			   \
-		.manfid = (_manfid),			   \
-		.oemid = (_oemid),			   \
-		.rev_start = (_rev_start),		   \
-		.rev_end = (_rev_end),			   \
-		.cis_vendor = (_cis_vendor),		   \
-		.cis_device = (_cis_device),		   \
-		.vendor_fixup = (_fixup),		   \
-		.data = (_data),			   \
-		.ext_csd_rev = (_ext_csd_rev),		   \
-	 }
+				   _cis_vendor, _cis_device,				\
+				   _fixup, _data, _ext_csd_rev)				\
+{						   \
+	.name = (_name),			   \
+			.manfid = (_manfid),			   \
+					  .oemid = (_oemid),			   \
+							   .rev_start = (_rev_start),		   \
+											.rev_end = (_rev_end),			   \
+													.cis_vendor = (_cis_vendor),		   \
+															.cis_device = (_cis_device),		   \
+																	.vendor_fixup = (_fixup),		   \
+																			.data = (_data),			   \
+																					.ext_csd_rev = (_ext_csd_rev),		   \
+}
 
 #define MMC_FIXUP_REV(_name, _manfid, _oemid, _rev_start, _rev_end,	\
-		      _fixup, _data, _ext_csd_rev)			\
-	_FIXUP_EXT(_name, _manfid,					\
+					  _fixup, _data, _ext_csd_rev)			\
+_FIXUP_EXT(_name, _manfid,					\
 		   _oemid, _rev_start, _rev_end,			\
 		   SDIO_ANY_ID, SDIO_ANY_ID,				\
 		   _fixup, _data, _ext_csd_rev)				\
 
 #define MMC_FIXUP(_name, _manfid, _oemid, _fixup, _data) \
 	MMC_FIXUP_REV(_name, _manfid, _oemid, 0, -1ull, _fixup, _data,	\
-		      EXT_CSD_REV_ANY)
+				  EXT_CSD_REV_ANY)
 
 #define MMC_FIXUP_EXT_CSD_REV(_name, _manfid, _oemid, _fixup, _data,	\
-			      _ext_csd_rev)				\
-	MMC_FIXUP_REV(_name, _manfid, _oemid, 0, -1ull, _fixup, _data,	\
-		      _ext_csd_rev)
+							  _ext_csd_rev)				\
+MMC_FIXUP_REV(_name, _manfid, _oemid, 0, -1ull, _fixup, _data,	\
+			  _ext_csd_rev)
 
 #define SDIO_FIXUP(_vendor, _device, _fixup, _data)			\
 	_FIXUP_EXT(CID_NAME_ANY, CID_MANFID_ANY,			\
-		    CID_OEMID_ANY, 0, -1ull,				\
-		   _vendor, _device,					\
-		   _fixup, _data, EXT_CSD_REV_ANY)			\
+			   CID_OEMID_ANY, 0, -1ull,				\
+			   _vendor, _device,					\
+			   _fixup, _data, EXT_CSD_REV_ANY)			\
 
 #define cid_rev(hwrev, fwrev, year, month)	\
 	(((u64) hwrev) << 40 |                  \
@@ -424,23 +436,23 @@ struct mmc_fixup {
 
 #define cid_rev_card(card)		  \
 	cid_rev(card->cid.hwrev,	  \
-		    card->cid.fwrev,      \
-		    card->cid.year,	  \
-		    card->cid.month)
+			card->cid.fwrev,      \
+			card->cid.year,	  \
+			card->cid.month)
 
-/*
- * Unconditionally quirk add/remove.
- */
+	/*
+	 * Unconditionally quirk add/remove.
+	 */
 
-static inline void __maybe_unused add_quirk(struct mmc_card *card, int data)
-{
-	card->quirks |= data;
-}
+	static inline void __maybe_unused add_quirk(struct mmc_card *card, int data)
+	{
+		card->quirks |= data;
+	}
 
-static inline void __maybe_unused remove_quirk(struct mmc_card *card, int data)
-{
-	card->quirks &= ~data;
-}
+	static inline void __maybe_unused remove_quirk(struct mmc_card *card, int data)
+	{
+		card->quirks &= ~data;
+	}
 
 #define mmc_card_mmc(c)		((c)->type == MMC_TYPE_MMC)
 #define mmc_card_sd(c)		((c)->type == MMC_TYPE_SD)
@@ -464,99 +476,108 @@ static inline void __maybe_unused remove_quirk(struct mmc_card *card, int data)
 #define mmc_card_set_suspended(c) ((c)->state |= MMC_STATE_SUSPENDED)
 #define mmc_card_clr_suspended(c) ((c)->state &= ~MMC_STATE_SUSPENDED)
 
-/*
- * Quirk add/remove for MMC products.
- */
+	/*
+	 * Quirk add/remove for MMC products.
+	 */
 
-static inline void __maybe_unused add_quirk_mmc(struct mmc_card *card, int data)
-{
-	if (mmc_card_mmc(card))
-		card->quirks |= data;
-}
+	static inline void __maybe_unused add_quirk_mmc(struct mmc_card *card, int data)
+	{
+		if (mmc_card_mmc(card))
+		{
+			card->quirks |= data;
+		}
+	}
 
-static inline void __maybe_unused remove_quirk_mmc(struct mmc_card *card,
-						   int data)
-{
-	if (mmc_card_mmc(card))
-		card->quirks &= ~data;
-}
+	static inline void __maybe_unused remove_quirk_mmc(struct mmc_card *card,
+			int data)
+	{
+		if (mmc_card_mmc(card))
+		{
+			card->quirks &= ~data;
+		}
+	}
 
-/*
- * Quirk add/remove for SD products.
- */
+	/*
+	 * Quirk add/remove for SD products.
+	 */
 
-static inline void __maybe_unused add_quirk_sd(struct mmc_card *card, int data)
-{
-	if (mmc_card_sd(card))
-		card->quirks |= data;
-}
+	static inline void __maybe_unused add_quirk_sd(struct mmc_card *card, int data)
+	{
+		if (mmc_card_sd(card))
+		{
+			card->quirks |= data;
+		}
+	}
 
-static inline void __maybe_unused remove_quirk_sd(struct mmc_card *card,
-						   int data)
-{
-	if (mmc_card_sd(card))
-		card->quirks &= ~data;
-}
+	static inline void __maybe_unused remove_quirk_sd(struct mmc_card *card,
+			int data)
+	{
+		if (mmc_card_sd(card))
+		{
+			card->quirks &= ~data;
+		}
+	}
 
-static inline int mmc_card_lenient_fn0(const struct mmc_card *c)
-{
-	return c->quirks & MMC_QUIRK_LENIENT_FN0;
-}
+	static inline int mmc_card_lenient_fn0(const struct mmc_card *c)
+	{
+		return c->quirks & MMC_QUIRK_LENIENT_FN0;
+	}
 
-static inline int mmc_blksz_for_byte_mode(const struct mmc_card *c)
-{
-	return c->quirks & MMC_QUIRK_BLKSZ_FOR_BYTE_MODE;
-}
+	static inline int mmc_blksz_for_byte_mode(const struct mmc_card *c)
+	{
+		return c->quirks & MMC_QUIRK_BLKSZ_FOR_BYTE_MODE;
+	}
 
-static inline int mmc_card_disable_cd(const struct mmc_card *c)
-{
-	return c->quirks & MMC_QUIRK_DISABLE_CD;
-}
+	static inline int mmc_card_disable_cd(const struct mmc_card *c)
+	{
+		return c->quirks & MMC_QUIRK_DISABLE_CD;
+	}
 
-static inline int mmc_card_nonstd_func_interface(const struct mmc_card *c)
-{
-	return c->quirks & MMC_QUIRK_NONSTD_FUNC_IF;
-}
+	static inline int mmc_card_nonstd_func_interface(const struct mmc_card *c)
+	{
+		return c->quirks & MMC_QUIRK_NONSTD_FUNC_IF;
+	}
 
-static inline int mmc_card_broken_byte_mode_512(const struct mmc_card *c)
-{
-	return c->quirks & MMC_QUIRK_BROKEN_BYTE_MODE_512;
-}
+	static inline int mmc_card_broken_byte_mode_512(const struct mmc_card *c)
+	{
+		return c->quirks & MMC_QUIRK_BROKEN_BYTE_MODE_512;
+	}
 
-static inline int mmc_card_long_read_time(const struct mmc_card *c)
-{
-	return c->quirks & MMC_QUIRK_LONG_READ_TIME;
-}
+	static inline int mmc_card_long_read_time(const struct mmc_card *c)
+	{
+		return c->quirks & MMC_QUIRK_LONG_READ_TIME;
+	}
 
-static inline int mmc_card_broken_irq_polling(const struct mmc_card *c)
-{
-	return c->quirks & MMC_QUIRK_BROKEN_IRQ_POLLING;
-}
+	static inline int mmc_card_broken_irq_polling(const struct mmc_card *c)
+	{
+		return c->quirks & MMC_QUIRK_BROKEN_IRQ_POLLING;
+	}
 
-static inline int mmc_card_broken_hpi(const struct mmc_card *c)
-{
-	return c->quirks & MMC_QUIRK_BROKEN_HPI;
-}
+	static inline int mmc_card_broken_hpi(const struct mmc_card *c)
+	{
+		return c->quirks & MMC_QUIRK_BROKEN_HPI;
+	}
 
 #define mmc_card_name(c)	((c)->cid.prod_name)
 #define mmc_card_id(c)		(dev_name(&(c)->dev))
 
 #define mmc_dev_to_card(d)	container_of(d, struct mmc_card, dev)
 
-/*
- * MMC device driver (e.g., Flash card, I/O card...)
- */
-struct mmc_driver {
-	struct device_driver drv;
-	int (*probe)(struct mmc_card *);
-	void (*remove)(struct mmc_card *);
-	void (*shutdown)(struct mmc_card *);
-};
+	/*
+	 * MMC device driver (e.g., Flash card, I/O card...)
+	 */
+	struct mmc_driver
+	{
+		struct device_driver drv;
+		int (*probe)(struct mmc_card *);
+		void (*remove)(struct mmc_card *);
+		void (*shutdown)(struct mmc_card *);
+	};
 
-extern int mmc_register_driver(struct mmc_driver *);
-extern void mmc_unregister_driver(struct mmc_driver *);
+	extern int mmc_register_driver(struct mmc_driver *);
+	extern void mmc_unregister_driver(struct mmc_driver *);
 
-extern void mmc_fixup_device(struct mmc_card *card,
-			     const struct mmc_fixup *table);
+	extern void mmc_fixup_device(struct mmc_card *card,
+								 const struct mmc_fixup *table);
 
 #endif /* LINUX_MMC_CARD_H */

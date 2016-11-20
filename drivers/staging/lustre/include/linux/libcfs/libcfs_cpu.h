@@ -84,7 +84,8 @@ cpumask_t *cfs_cpt_cpumask(struct cfs_cpt_table *cptab, int cpt);
  */
 int cfs_cpt_table_print(struct cfs_cpt_table *cptab, char *buf, int len);
 #else /* !CONFIG_SMP */
-struct cfs_cpt_table {
+struct cfs_cpt_table
+{
 	/* # of CPU partitions */
 	int			ctb_nparts;
 	/* cpu mask */
@@ -161,12 +162,12 @@ void cfs_cpt_unset_cpu(struct cfs_cpt_table *cptab, int cpt, int cpu);
  * return 1 if successfully set all CPUs, otherwise return 0
  */
 int cfs_cpt_set_cpumask(struct cfs_cpt_table *cptab,
-			int cpt, cpumask_t *mask);
+						int cpt, cpumask_t *mask);
 /**
  * remove all cpus in \a mask from CPU partition \a cpt
  */
 void cfs_cpt_unset_cpumask(struct cfs_cpt_table *cptab,
-			   int cpt, cpumask_t *mask);
+						   int cpt, cpumask_t *mask);
 /**
  * add all cpus in NUMA node \a node to CPU partition \a cpt
  * return 1 if successfully set all CPUs, otherwise return 0
@@ -182,12 +183,12 @@ void cfs_cpt_unset_node(struct cfs_cpt_table *cptab, int cpt, int node);
  * return 1 if successfully set all CPUs, otherwise return 0
  */
 int cfs_cpt_set_nodemask(struct cfs_cpt_table *cptab,
-			 int cpt, nodemask_t *mask);
+						 int cpt, nodemask_t *mask);
 /**
  * remove all cpus in node mask \a mask from CPU partition \a cpt
  */
 void cfs_cpt_unset_nodemask(struct cfs_cpt_table *cptab,
-			    int cpt, nodemask_t *mask);
+							int cpt, nodemask_t *mask);
 /**
  * unset all cpus for CPU partition \a cpt
  */
@@ -218,7 +219,7 @@ int cfs_percpt_number(void *vars);
 
 #define cfs_percpt_for_each(var, i, vars)		\
 	for (i = 0; i < cfs_percpt_number(vars) &&	\
-		((var) = (vars)[i]) != NULL; i++)
+		 ((var) = (vars)[i]) != NULL; i++)
 
 /*
  * percpu partition lock
@@ -236,11 +237,13 @@ int cfs_percpt_number(void *vars);
  * . change on shared data needs to take _all_ private locks,
  *   which is slow and should be really rare.
  */
-enum {
+enum
+{
 	CFS_PERCPT_LOCK_EX	= -1,	/* negative */
 };
 
-struct cfs_percpt_lock {
+struct cfs_percpt_lock
+{
 	/* cpu-partition-table for this lock */
 	struct cfs_cpt_table     *pcl_cptab;
 	/* exclusively locked */
@@ -257,7 +260,7 @@ struct cfs_percpt_lock {
  * each private lock has extra \a psize bytes padding data
  */
 struct cfs_percpt_lock *cfs_percpt_lock_create(struct cfs_cpt_table *cptab,
-					       struct lock_class_key *keys);
+		struct lock_class_key *keys);
 /* destroy a cpu-partition lock */
 void cfs_percpt_lock_free(struct cfs_percpt_lock *pcl);
 
@@ -271,16 +274,16 @@ void cfs_percpt_unlock(struct cfs_percpt_lock *pcl, int index);
 
 /* NB: don't allocate keys dynamically, lockdep needs them to be in ".data" */
 #define cfs_percpt_lock_alloc(cptab)					\
-({									\
-	static struct lock_class_key ___keys[CFS_PERCPT_LOCK_KEYS];	\
-	struct cfs_percpt_lock *___lk;					\
-									\
-	if (cfs_cpt_number(cptab) > CFS_PERCPT_LOCK_KEYS)		\
-		___lk = cfs_percpt_lock_create(cptab, NULL);		\
-	else								\
-		___lk = cfs_percpt_lock_create(cptab, ___keys);		\
-	___lk;								\
-})
+	({									\
+		static struct lock_class_key ___keys[CFS_PERCPT_LOCK_KEYS];	\
+		struct cfs_percpt_lock *___lk;					\
+		\
+		if (cfs_cpt_number(cptab) > CFS_PERCPT_LOCK_KEYS)		\
+			___lk = cfs_percpt_lock_create(cptab, NULL);		\
+		else								\
+			___lk = cfs_percpt_lock_create(cptab, ___keys);		\
+		___lk;								\
+	})
 
 /**
  * iterate over all CPU partitions in \a cptab

@@ -17,7 +17,8 @@
    Mauro Carvalho Chehab <mchehab@infradead.org>
  */
 
-static struct rc_map_table encore_enltv_fm53[] = {
+static struct rc_map_table encore_enltv_fm53[] =
+{
 	{ 0x10, KEY_POWER2},
 	{ 0x06, KEY_MUTE},
 
@@ -56,7 +57,8 @@ static struct rc_map_table encore_enltv_fm53[] = {
 	{ 0x47, KEY_SLEEP},		/* shutdown */
 };
 
-static struct rc_map_list encore_enltv_fm53_map = {
+static struct rc_map_list encore_enltv_fm53_map =
+{
 	.map = {
 		.scan    = encore_enltv_fm53,
 		.size    = ARRAY_SIZE(encore_enltv_fm53),

@@ -64,7 +64,8 @@
 #define OMAP2_RNG_OUTPUT_SIZE			0x4
 #define OMAP4_RNG_OUTPUT_SIZE			0x8
 
-enum {
+enum
+{
 	RNG_OUTPUT_L_REG = 0,
 	RNG_OUTPUT_H_REG,
 	RNG_STATUS_REG,
@@ -81,7 +82,8 @@ enum {
 	RNG_SYSCONFIG_REG,
 };
 
-static const u16 reg_map_omap2[] = {
+static const u16 reg_map_omap2[] =
+{
 	[RNG_OUTPUT_L_REG]	= 0x0,
 	[RNG_STATUS_REG]	= 0x4,
 	[RNG_CONFIG_REG]	= 0x28,
@@ -89,7 +91,8 @@ static const u16 reg_map_omap2[] = {
 	[RNG_SYSCONFIG_REG]	= 0x40,
 };
 
-static const u16 reg_map_omap4[] = {
+static const u16 reg_map_omap4[] =
+{
 	[RNG_OUTPUT_L_REG]	= 0x0,
 	[RNG_OUTPUT_H_REG]	= 0x4,
 	[RNG_STATUS_REG]	= 0x8,
@@ -115,7 +118,8 @@ struct omap_rng_dev;
  * @init: Callback for IP specific initialization sequence.
  * @cleanup: Callback for IP specific cleanup sequence.
  */
-struct omap_rng_pdata {
+struct omap_rng_pdata
+{
 	u16	*regs;
 	u32	data_size;
 	u32	(*data_present)(struct omap_rng_dev *priv);
@@ -123,7 +127,8 @@ struct omap_rng_pdata {
 	void	(*cleanup)(struct omap_rng_dev *priv);
 };
 
-struct omap_rng_dev {
+struct omap_rng_dev
+{
 	void __iomem			*base;
 	struct device			*dev;
 	const struct omap_rng_pdata	*pdata;
@@ -135,7 +140,7 @@ static inline u32 omap_rng_read(struct omap_rng_dev *priv, u16 reg)
 }
 
 static inline void omap_rng_write(struct omap_rng_dev *priv, u16 reg,
-				      u32 val)
+								  u32 val)
 {
 	__raw_writel(val, priv->base + priv->pdata->regs[reg]);
 }
@@ -147,10 +152,15 @@ static int omap_rng_data_present(struct hwrng *rng, int wait)
 
 	priv = (struct omap_rng_dev *)rng->priv;
 
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < 20; i++)
+	{
 		data = priv->pdata->data_present(priv);
+
 		if (data || !wait)
+		{
 			break;
+		}
+
 		/* RNG produces data fast enough (2+ MBit/sec, even
 		 * during "rngtest" loads, that these delays don't
 		 * seem to trigger.  We *could* use the RNG IRQ, but
@@ -158,6 +168,7 @@ static int omap_rng_data_present(struct hwrng *rng, int wait)
 		 */
 		udelay(10);
 	}
+
 	return data;
 }
 
@@ -170,10 +181,15 @@ static int omap_rng_data_read(struct hwrng *rng, u32 *data)
 	data_size = priv->pdata->data_size;
 
 	for (i = 0; i < data_size / sizeof(u32); i++)
+	{
 		data[i] = omap_rng_read(priv, RNG_OUTPUT_L_REG + i);
+	}
 
 	if (priv->pdata->regs[RNG_INTACK_REG])
+	{
 		omap_rng_write(priv, RNG_INTACK_REG, RNG_REG_INTACK_RDY_MASK);
+	}
+
 	return data_size;
 }
 
@@ -193,7 +209,8 @@ static void omap_rng_cleanup(struct hwrng *rng)
 	priv->pdata->cleanup(priv);
 }
 
-static struct hwrng omap_rng_ops = {
+static struct hwrng omap_rng_ops =
+{
 	.name		= "omap",
 	.data_present	= omap_rng_data_present,
 	.data_read	= omap_rng_data_read,
@@ -217,7 +234,8 @@ static void omap2_rng_cleanup(struct omap_rng_dev *priv)
 	omap_rng_write(priv, RNG_SYSCONFIG_REG, 0x0);
 }
 
-static struct omap_rng_pdata omap2_rng_pdata = {
+static struct omap_rng_pdata omap2_rng_pdata =
+{
 	.regs		= (u16 *)reg_map_omap2,
 	.data_size	= OMAP2_RNG_OUTPUT_SIZE,
 	.data_present	= omap2_rng_data_present,
@@ -237,7 +255,9 @@ static int omap4_rng_init(struct omap_rng_dev *priv)
 
 	/* Return if RNG is already running. */
 	if (omap_rng_read(priv, RNG_CONTROL_REG) & RNG_CONTROL_ENABLE_TRNG_MASK)
+	{
 		return 0;
+	}
 
 	val = RNG_CONFIG_MIN_REFIL_CYCLES << RNG_CONFIG_MIN_REFIL_CYCLES_SHIFT;
 	val |= RNG_CONFIG_MAX_REFIL_CYCLES << RNG_CONFIG_MAX_REFIL_CYCLES_SHIFT;
@@ -292,7 +312,8 @@ static irqreturn_t omap4_rng_irq(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct omap_rng_pdata omap4_rng_pdata = {
+static struct omap_rng_pdata omap4_rng_pdata =
+{
 	.regs		= (u16 *)reg_map_omap4,
 	.data_size	= OMAP4_RNG_OUTPUT_SIZE,
 	.data_present	= omap4_rng_data_present,
@@ -300,55 +321,66 @@ static struct omap_rng_pdata omap4_rng_pdata = {
 	.cleanup	= omap4_rng_cleanup,
 };
 
-static const struct of_device_id omap_rng_of_match[] = {
-		{
-			.compatible	= "ti,omap2-rng",
-			.data		= &omap2_rng_pdata,
-		},
-		{
-			.compatible	= "ti,omap4-rng",
-			.data		= &omap4_rng_pdata,
-		},
-		{},
+static const struct of_device_id omap_rng_of_match[] =
+{
+	{
+		.compatible	= "ti,omap2-rng",
+		.data		= &omap2_rng_pdata,
+	},
+	{
+		.compatible	= "ti,omap4-rng",
+		.data		= &omap4_rng_pdata,
+	},
+	{},
 };
 MODULE_DEVICE_TABLE(of, omap_rng_of_match);
 
 static int of_get_omap_rng_device_details(struct omap_rng_dev *priv,
-					  struct platform_device *pdev)
+		struct platform_device *pdev)
 {
 	const struct of_device_id *match;
 	struct device *dev = &pdev->dev;
 	int irq, err;
 
 	match = of_match_device(of_match_ptr(omap_rng_of_match), dev);
-	if (!match) {
+
+	if (!match)
+	{
 		dev_err(dev, "no compatible OF match\n");
 		return -EINVAL;
 	}
+
 	priv->pdata = match->data;
 
-	if (of_device_is_compatible(dev->of_node, "ti,omap4-rng")) {
+	if (of_device_is_compatible(dev->of_node, "ti,omap4-rng"))
+	{
 		irq = platform_get_irq(pdev, 0);
-		if (irq < 0) {
+
+		if (irq < 0)
+		{
 			dev_err(dev, "%s: error getting IRQ resource - %d\n",
-				__func__, irq);
+					__func__, irq);
 			return irq;
 		}
 
 		err = devm_request_irq(dev, irq, omap4_rng_irq,
-				       IRQF_TRIGGER_NONE, dev_name(dev), priv);
-		if (err) {
+							   IRQF_TRIGGER_NONE, dev_name(dev), priv);
+
+		if (err)
+		{
 			dev_err(dev, "unable to request irq %d, err = %d\n",
-				irq, err);
+					irq, err);
 			return err;
 		}
+
 		omap_rng_write(priv, RNG_INTMASK_REG, RNG_SHUTDOWN_OFLO_MASK);
 	}
+
 	return 0;
 }
 #else
 static int of_get_omap_rng_device_details(struct omap_rng_dev *omap_rng,
-					  struct platform_device *pdev)
+		struct platform_device *pdev)
 {
 	return -EINVAL;
 }
@@ -369,8 +401,11 @@ static int omap_rng_probe(struct platform_device *pdev)
 	int ret;
 
 	priv = devm_kzalloc(dev, sizeof(struct omap_rng_dev), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	omap_rng_ops.priv = (unsigned long)priv;
 	platform_set_drvdata(pdev, priv);
@@ -378,30 +413,40 @@ static int omap_rng_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->base = devm_ioremap_resource(dev, res);
-	if (IS_ERR(priv->base)) {
+
+	if (IS_ERR(priv->base))
+	{
 		ret = PTR_ERR(priv->base);
 		goto err_ioremap;
 	}
 
 	pm_runtime_enable(&pdev->dev);
 	ret = pm_runtime_get_sync(&pdev->dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to runtime_get device: %d\n", ret);
 		pm_runtime_put_noidle(&pdev->dev);
 		goto err_ioremap;
 	}
 
 	ret = (dev->of_node) ? of_get_omap_rng_device_details(priv, pdev) :
-				get_omap_rng_device_details(priv);
+		  get_omap_rng_device_details(priv);
+
 	if (ret)
+	{
 		goto err_ioremap;
+	}
 
 	ret = hwrng_register(&omap_rng_ops);
+
 	if (ret)
+	{
 		goto err_register;
+	}
 
 	dev_info(&pdev->dev, "OMAP Random Number Generator ver. %02x\n",
-		 omap_rng_read(priv, RNG_REV_REG));
+			 omap_rng_read(priv, RNG_REV_REG));
 
 	return 0;
 
@@ -443,7 +488,9 @@ static int __maybe_unused omap_rng_resume(struct device *dev)
 	int ret;
 
 	ret = pm_runtime_get_sync(dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "Failed to runtime_get device: %d\n", ret);
 		pm_runtime_put_noidle(dev);
 		return ret;
@@ -456,7 +503,8 @@ static int __maybe_unused omap_rng_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(omap_rng_pm, omap_rng_suspend, omap_rng_resume);
 
-static struct platform_driver omap_rng_driver = {
+static struct platform_driver omap_rng_driver =
+{
 	.driver = {
 		.name		= "omap_rng",
 		.pm		= &omap_rng_pm,

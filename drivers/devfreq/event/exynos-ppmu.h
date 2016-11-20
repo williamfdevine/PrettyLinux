@@ -12,12 +12,14 @@
 #ifndef __EXYNOS_PPMU_H__
 #define __EXYNOS_PPMU_H__
 
-enum ppmu_state {
+enum ppmu_state
+{
 	PPMU_DISABLE = 0,
 	PPMU_ENABLE,
 };
 
-enum ppmu_counter {
+enum ppmu_counter
+{
 	PPMU_PMNCNT0 = 0,
 	PPMU_PMNCNT1,
 	PPMU_PMNCNT2,
@@ -29,7 +31,8 @@ enum ppmu_counter {
 /***
  * PPMUv1.1 Definitions
  */
-enum ppmu_event_type {
+enum ppmu_event_type
+{
 	PPMU_RO_BUSY_CYCLE_CNT	= 0x0,
 	PPMU_WO_BUSY_CYCLE_CNT	= 0x1,
 	PPMU_RW_BUSY_CYCLE_CNT	= 0x2,
@@ -41,7 +44,8 @@ enum ppmu_event_type {
 	PPMU_WO_LATENCY		= 0x16,
 };
 
-enum ppmu_reg {
+enum ppmu_reg
+{
 	/* PPC control register */
 	PPMU_PMNC		= 0x00,
 	PPMU_CNTENS		= 0x10,
@@ -96,20 +100,23 @@ enum ppmu_reg {
 /***
  * PPMU_V2.0 definitions
  */
-enum ppmu_v2_mode {
+enum ppmu_v2_mode
+{
 	PPMU_V2_MODE_MANUAL = 0,
 	PPMU_V2_MODE_AUTO = 1,
 	PPMU_V2_MODE_CIG = 2,	/* CIG (Conditional Interrupt Generation) */
 };
 
-enum ppmu_v2_event_type {
+enum ppmu_v2_event_type
+{
 	PPMU_V2_RO_DATA_CNT	= 0x4,
 	PPMU_V2_WO_DATA_CNT	= 0x5,
 
 	PPMU_V2_EVT3_RW_DATA_CNT = 0x22,	/* Only for Event3 */
 };
 
-enum ppmu_V2_reg {
+enum ppmu_V2_reg
+{
 	/* PPC control register */
 	PPMU_V2_PMNC		= 0x04,
 	PPMU_V2_CNTENS		= 0x08,

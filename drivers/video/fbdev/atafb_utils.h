@@ -48,27 +48,29 @@
 static inline void *fb_memclear_small(void *s, size_t count)
 {
 	if (!count)
+	{
 		return 0;
+	}
 
 	asm volatile ("\n"
-		"	lsr.l	#1,%1 ; jcc 1f ; move.b %2,-(%0)\n"
-		"1:	lsr.l	#1,%1 ; jcc 1f ; move.w %2,-(%0)\n"
-		"1:	lsr.l	#1,%1 ; jcc 1f ; move.l %2,-(%0)\n"
-		"1:	lsr.l	#1,%1 ; jcc 1f ; move.l %2,-(%0) ; move.l %2,-(%0)\n"
-		"1:"
-		: "=a" (s), "=d" (count)
-		: "d" (0), "0" ((char *)s + count), "1" (count));
+				  "	lsr.l	#1,%1 ; jcc 1f ; move.b %2,-(%0)\n"
+				  "1:	lsr.l	#1,%1 ; jcc 1f ; move.w %2,-(%0)\n"
+				  "1:	lsr.l	#1,%1 ; jcc 1f ; move.l %2,-(%0)\n"
+				  "1:	lsr.l	#1,%1 ; jcc 1f ; move.l %2,-(%0) ; move.l %2,-(%0)\n"
+				  "1:"
+				  : "=a" (s), "=d" (count)
+				  : "d" (0), "0" ((char *)s + count), "1" (count));
 	asm volatile ("\n"
-		"	subq.l  #1,%1\n"
-		"	jcs	3f\n"
-		"	move.l	%2,%%d4; move.l %2,%%d5; move.l %2,%%d6\n"
-		"2:	movem.l	%2/%%d4/%%d5/%%d6,-(%0)\n"
-		"	dbra	%1,2b\n"
-		"3:"
-		: "=a" (s), "=d" (count)
-		: "d" (0), "0" (s), "1" (count)
-		: "d4", "d5", "d6"
-		);
+				  "	subq.l  #1,%1\n"
+				  "	jcs	3f\n"
+				  "	move.l	%2,%%d4; move.l %2,%%d5; move.l %2,%%d6\n"
+				  "2:	movem.l	%2/%%d4/%%d5/%%d6,-(%0)\n"
+				  "	dbra	%1,2b\n"
+				  "3:"
+				  : "=a" (s), "=d" (count)
+				  : "d" (0), "0" (s), "1" (count)
+				  : "d4", "d5", "d6"
+				 );
 
 	return 0;
 }
@@ -77,37 +79,42 @@ static inline void *fb_memclear_small(void *s, size_t count)
 static inline void *fb_memclear(void *s, size_t count)
 {
 	if (!count)
+	{
 		return 0;
+	}
 
-	if (count < 16) {
+	if (count < 16)
+	{
 		asm volatile ("\n"
-			"	lsr.l	#1,%1 ; jcc 1f ; clr.b (%0)+\n"
-			"1:	lsr.l	#1,%1 ; jcc 1f ; clr.w (%0)+\n"
-			"1:	lsr.l	#1,%1 ; jcc 1f ; clr.l (%0)+\n"
-			"1:	lsr.l	#1,%1 ; jcc 1f ; clr.l (%0)+ ; clr.l (%0)+\n"
-			"1:"
-			: "=a" (s), "=d" (count)
-			: "0" (s), "1" (count));
-	} else {
+					  "	lsr.l	#1,%1 ; jcc 1f ; clr.b (%0)+\n"
+					  "1:	lsr.l	#1,%1 ; jcc 1f ; clr.w (%0)+\n"
+					  "1:	lsr.l	#1,%1 ; jcc 1f ; clr.l (%0)+\n"
+					  "1:	lsr.l	#1,%1 ; jcc 1f ; clr.l (%0)+ ; clr.l (%0)+\n"
+					  "1:"
+					  : "=a" (s), "=d" (count)
+					  : "0" (s), "1" (count));
+	}
+	else
+	{
 		long tmp;
 		asm volatile ("\n"
-			"	move.l	%1,%2\n"
-			"	lsr.l	#1,%2 ; jcc 1f ; clr.b (%0)+ ; subq.w #1,%1\n"
-			"	lsr.l	#1,%2 ; jcs 2f\n"  /* %0 increased=>bit 2 switched*/
-			"	clr.w	(%0)+  ; subq.w  #2,%1 ; jra 2f\n"
-			"1:	lsr.l	#1,%2 ; jcc 2f\n"
-			"	clr.w	(%0)+  ; subq.w  #2,%1\n"
-			"2:	move.w	%1,%2; lsr.l #2,%1 ; jeq 6f\n"
-			"	lsr.l	#1,%1 ; jcc 3f ; clr.l (%0)+\n"
-			"3:	lsr.l	#1,%1 ; jcc 4f ; clr.l (%0)+ ; clr.l (%0)+\n"
-			"4:	subq.l	#1,%1 ; jcs 6f\n"
-			"5:	clr.l	(%0)+; clr.l (%0)+ ; clr.l (%0)+ ; clr.l (%0)+\n"
-			"	dbra	%1,5b ; clr.w %1; subq.l #1,%1; jcc 5b\n"
-			"6:	move.w	%2,%1; btst #1,%1 ; jeq 7f ; clr.w (%0)+\n"
-			"7:	btst	#0,%1 ; jeq 8f ; clr.b (%0)+\n"
-			"8:"
-			: "=a" (s), "=d" (count), "=d" (tmp)
-			: "0" (s), "1" (count));
+					  "	move.l	%1,%2\n"
+					  "	lsr.l	#1,%2 ; jcc 1f ; clr.b (%0)+ ; subq.w #1,%1\n"
+					  "	lsr.l	#1,%2 ; jcs 2f\n"  /* %0 increased=>bit 2 switched*/
+					  "	clr.w	(%0)+  ; subq.w  #2,%1 ; jra 2f\n"
+					  "1:	lsr.l	#1,%2 ; jcc 2f\n"
+					  "	clr.w	(%0)+  ; subq.w  #2,%1\n"
+					  "2:	move.w	%1,%2; lsr.l #2,%1 ; jeq 6f\n"
+					  "	lsr.l	#1,%1 ; jcc 3f ; clr.l (%0)+\n"
+					  "3:	lsr.l	#1,%1 ; jcc 4f ; clr.l (%0)+ ; clr.l (%0)+\n"
+					  "4:	subq.l	#1,%1 ; jcs 6f\n"
+					  "5:	clr.l	(%0)+; clr.l (%0)+ ; clr.l (%0)+ ; clr.l (%0)+\n"
+					  "	dbra	%1,5b ; clr.w %1; subq.l #1,%1; jcc 5b\n"
+					  "6:	move.w	%2,%1; btst #1,%1 ; jeq 7f ; clr.w (%0)+\n"
+					  "7:	btst	#0,%1 ; jeq 8f ; clr.b (%0)+\n"
+					  "8:"
+					  : "=a" (s), "=d" (count), "=d" (tmp)
+					  : "0" (s), "1" (count));
 	}
 
 	return 0;
@@ -117,25 +124,27 @@ static inline void *fb_memclear(void *s, size_t count)
 static inline void *fb_memset255(void *s, size_t count)
 {
 	if (!count)
+	{
 		return 0;
+	}
 
 	asm volatile ("\n"
-		"	lsr.l	#1,%1 ; jcc 1f ; move.b %2,-(%0)\n"
-		"1:	lsr.l	#1,%1 ; jcc 1f ; move.w %2,-(%0)\n"
-		"1:	lsr.l	#1,%1 ; jcc 1f ; move.l %2,-(%0)\n"
-		"1:	lsr.l	#1,%1 ; jcc 1f ; move.l %2,-(%0) ; move.l %2,-(%0)\n"
-		"1:"
-		: "=a" (s), "=d" (count)
-		: "d" (-1), "0" ((char *)s+count), "1" (count));
+				  "	lsr.l	#1,%1 ; jcc 1f ; move.b %2,-(%0)\n"
+				  "1:	lsr.l	#1,%1 ; jcc 1f ; move.w %2,-(%0)\n"
+				  "1:	lsr.l	#1,%1 ; jcc 1f ; move.l %2,-(%0)\n"
+				  "1:	lsr.l	#1,%1 ; jcc 1f ; move.l %2,-(%0) ; move.l %2,-(%0)\n"
+				  "1:"
+				  : "=a" (s), "=d" (count)
+				  : "d" (-1), "0" ((char *)s+count), "1" (count));
 	asm volatile ("\n"
-		"	subq.l	#1,%1 ; jcs 3f\n"
-		"	move.l	%2,%%d4; move.l %2,%%d5; move.l %2,%%d6\n"
-		"2:	movem.l	%2/%%d4/%%d5/%%d6,-(%0)\n"
-		"	dbra	%1,2b\n"
-		"3:"
-		: "=a" (s), "=d" (count)
-		: "d" (-1), "0" (s), "1" (count)
-		: "d4", "d5", "d6");
+				  "	subq.l	#1,%1 ; jcs 3f\n"
+				  "	move.l	%2,%%d4; move.l %2,%%d5; move.l %2,%%d6\n"
+				  "2:	movem.l	%2/%%d4/%%d5/%%d6,-(%0)\n"
+				  "	dbra	%1,2b\n"
+				  "3:"
+				  : "=a" (s), "=d" (count)
+				  : "d" (-1), "0" (s), "1" (count)
+				  : "d4", "d5", "d6");
 
 	return 0;
 }
@@ -143,70 +152,79 @@ static inline void *fb_memset255(void *s, size_t count)
 
 static inline void *fb_memmove(void *d, const void *s, size_t count)
 {
-	if (d < s) {
-		if (count < 16) {
+	if (d < s)
+	{
+		if (count < 16)
+		{
 			asm volatile ("\n"
-				"	lsr.l	#1,%2 ; jcc 1f ; move.b (%1)+,(%0)+\n"
-				"1:	lsr.l	#1,%2 ; jcc 1f ; move.w (%1)+,(%0)+\n"
-				"1:	lsr.l	#1,%2 ; jcc 1f ; move.l (%1)+,(%0)+\n"
-				"1:	lsr.l	#1,%2 ; jcc 1f ; move.l (%1)+,(%0)+ ; move.l (%1)+,(%0)+\n"
-				"1:"
-				: "=a" (d), "=a" (s), "=d" (count)
-				: "0" (d), "1" (s), "2" (count));
-		} else {
+						  "	lsr.l	#1,%2 ; jcc 1f ; move.b (%1)+,(%0)+\n"
+						  "1:	lsr.l	#1,%2 ; jcc 1f ; move.w (%1)+,(%0)+\n"
+						  "1:	lsr.l	#1,%2 ; jcc 1f ; move.l (%1)+,(%0)+\n"
+						  "1:	lsr.l	#1,%2 ; jcc 1f ; move.l (%1)+,(%0)+ ; move.l (%1)+,(%0)+\n"
+						  "1:"
+						  : "=a" (d), "=a" (s), "=d" (count)
+						  : "0" (d), "1" (s), "2" (count));
+		}
+		else
+		{
 			long tmp;
 			asm volatile ("\n"
-				"	move.l	%0,%3\n"
-				"	lsr.l	#1,%3 ; jcc 1f ; move.b (%1)+,(%0)+ ; subqw #1,%2\n"
-				"	lsr.l	#1,%3 ; jcs 2f\n"  /* %0 increased=>bit 2 switched*/
-				"	move.w	(%1)+,(%0)+  ; subqw  #2,%2 ; jra 2f\n"
-				"1:	lsr.l   #1,%3 ; jcc 2f\n"
-				"	move.w	(%1)+,(%0)+  ; subqw  #2,%2\n"
-				"2:	move.w	%2,%-; lsr.l #2,%2 ; jeq 6f\n"
-				"	lsr.l	#1,%2 ; jcc 3f ; move.l (%1)+,(%0)+\n"
-				"3:	lsr.l	#1,%2 ; jcc 4f ; move.l (%1)+,(%0)+ ; move.l (%1)+,(%0)+\n"
-				"4:	subq.l	#1,%2 ; jcs 6f\n"
-				"5:	move.l	(%1)+,(%0)+; move.l (%1)+,(%0)+\n"
-				"	move.l	(%1)+,(%0)+; move.l (%1)+,(%0)+\n"
-				"	dbra	%2,5b ; clr.w %2; subq.l #1,%2; jcc 5b\n"
-				"6:	move.w	%+,%2; btst #1,%2 ; jeq 7f ; move.w (%1)+,(%0)+\n"
-				"7:	btst	#0,%2 ; jeq 8f ; move.b (%1)+,(%0)+\n"
-				"8:"
-				: "=a" (d), "=a" (s), "=d" (count), "=d" (tmp)
-				: "0" (d), "1" (s), "2" (count));
+						  "	move.l	%0,%3\n"
+						  "	lsr.l	#1,%3 ; jcc 1f ; move.b (%1)+,(%0)+ ; subqw #1,%2\n"
+						  "	lsr.l	#1,%3 ; jcs 2f\n"  /* %0 increased=>bit 2 switched*/
+						  "	move.w	(%1)+,(%0)+  ; subqw  #2,%2 ; jra 2f\n"
+						  "1:	lsr.l   #1,%3 ; jcc 2f\n"
+						  "	move.w	(%1)+,(%0)+  ; subqw  #2,%2\n"
+						  "2:	move.w	%2,%-; lsr.l #2,%2 ; jeq 6f\n"
+						  "	lsr.l	#1,%2 ; jcc 3f ; move.l (%1)+,(%0)+\n"
+						  "3:	lsr.l	#1,%2 ; jcc 4f ; move.l (%1)+,(%0)+ ; move.l (%1)+,(%0)+\n"
+						  "4:	subq.l	#1,%2 ; jcs 6f\n"
+						  "5:	move.l	(%1)+,(%0)+; move.l (%1)+,(%0)+\n"
+						  "	move.l	(%1)+,(%0)+; move.l (%1)+,(%0)+\n"
+						  "	dbra	%2,5b ; clr.w %2; subq.l #1,%2; jcc 5b\n"
+						  "6:	move.w	%+,%2; btst #1,%2 ; jeq 7f ; move.w (%1)+,(%0)+\n"
+						  "7:	btst	#0,%2 ; jeq 8f ; move.b (%1)+,(%0)+\n"
+						  "8:"
+						  : "=a" (d), "=a" (s), "=d" (count), "=d" (tmp)
+						  : "0" (d), "1" (s), "2" (count));
 		}
-	} else {
-		if (count < 16) {
+	}
+	else
+	{
+		if (count < 16)
+		{
 			asm volatile ("\n"
-				"	lsr.l	#1,%2 ; jcc 1f ; move.b -(%1),-(%0)\n"
-				"1:	lsr.l	#1,%2 ; jcc 1f ; move.w -(%1),-(%0)\n"
-				"1:	lsr.l	#1,%2 ; jcc 1f ; move.l -(%1),-(%0)\n"
-				"1:	lsr.l	#1,%2 ; jcc 1f ; move.l -(%1),-(%0) ; move.l -(%1),-(%0)\n"
-				"1:"
-				: "=a" (d), "=a" (s), "=d" (count)
-				: "0" ((char *) d + count), "1" ((char *) s + count), "2" (count));
-		} else {
+						  "	lsr.l	#1,%2 ; jcc 1f ; move.b -(%1),-(%0)\n"
+						  "1:	lsr.l	#1,%2 ; jcc 1f ; move.w -(%1),-(%0)\n"
+						  "1:	lsr.l	#1,%2 ; jcc 1f ; move.l -(%1),-(%0)\n"
+						  "1:	lsr.l	#1,%2 ; jcc 1f ; move.l -(%1),-(%0) ; move.l -(%1),-(%0)\n"
+						  "1:"
+						  : "=a" (d), "=a" (s), "=d" (count)
+						  : "0" ((char *) d + count), "1" ((char *) s + count), "2" (count));
+		}
+		else
+		{
 			long tmp;
 
 			asm volatile ("\n"
-				"	move.l	%0,%3\n"
-				"	lsr.l	#1,%3 ; jcc 1f ; move.b -(%1),-(%0) ; subqw #1,%2\n"
-				"	lsr.l	#1,%3 ; jcs 2f\n"  /* %0 increased=>bit 2 switched*/
-				"	move.w	-(%1),-(%0) ; subqw  #2,%2 ; jra 2f\n"
-				"1:	lsr.l	#1,%3 ; jcc 2f\n"
-				"	move.w	-(%1),-(%0) ; subqw  #2,%2\n"
-				"2:	move.w	%2,%-; lsr.l #2,%2 ; jeq 6f\n"
-				"	lsr.l	#1,%2 ; jcc 3f ; move.l -(%1),-(%0)\n"
-				"3:	lsr.l	#1,%2 ; jcc 4f ; move.l -(%1),-(%0) ; move.l -(%1),-(%0)\n"
-				"4:	subq.l	#1,%2 ; jcs 6f\n"
-				"5:	move.l	-(%1),-(%0); move.l -(%1),-(%0)\n"
-				"	move.l	-(%1),-(%0); move.l -(%1),-(%0)\n"
-				"	dbra	%2,5b ; clr.w %2; subq.l #1,%2; jcc 5b\n"
-				"6:	move.w	%+,%2; btst #1,%2 ; jeq 7f ; move.w -(%1),-(%0)\n"
-				"7:	btst	#0,%2 ; jeq 8f ; move.b -(%1),-(%0)\n"
-				"8:"
-				: "=a" (d), "=a" (s), "=d" (count), "=d" (tmp)
-				: "0" ((char *) d + count), "1" ((char *) s + count), "2" (count));
+						  "	move.l	%0,%3\n"
+						  "	lsr.l	#1,%3 ; jcc 1f ; move.b -(%1),-(%0) ; subqw #1,%2\n"
+						  "	lsr.l	#1,%3 ; jcs 2f\n"  /* %0 increased=>bit 2 switched*/
+						  "	move.w	-(%1),-(%0) ; subqw  #2,%2 ; jra 2f\n"
+						  "1:	lsr.l	#1,%3 ; jcc 2f\n"
+						  "	move.w	-(%1),-(%0) ; subqw  #2,%2\n"
+						  "2:	move.w	%2,%-; lsr.l #2,%2 ; jeq 6f\n"
+						  "	lsr.l	#1,%2 ; jcc 3f ; move.l -(%1),-(%0)\n"
+						  "3:	lsr.l	#1,%2 ; jcc 4f ; move.l -(%1),-(%0) ; move.l -(%1),-(%0)\n"
+						  "4:	subq.l	#1,%2 ; jcs 6f\n"
+						  "5:	move.l	-(%1),-(%0); move.l -(%1),-(%0)\n"
+						  "	move.l	-(%1),-(%0); move.l -(%1),-(%0)\n"
+						  "	dbra	%2,5b ; clr.w %2; subq.l #1,%2; jcc 5b\n"
+						  "6:	move.w	%+,%2; btst #1,%2 ; jeq 7f ; move.w -(%1),-(%0)\n"
+						  "7:	btst	#0,%2 ; jeq 8f ; move.b -(%1),-(%0)\n"
+						  "8:"
+						  : "=a" (d), "=a" (s), "=d" (count), "=d" (tmp)
+						  : "0" ((char *) d + count), "1" ((char *) s + count), "2" (count));
 		}
 	}
 
@@ -219,29 +237,32 @@ static inline void *fb_memmove(void *d, const void *s, size_t count)
 static inline void fast_memmove(char *dst, const char *src, size_t size)
 {
 	if (!size)
+	{
 		return;
+	}
+
 	if (dst < src)
 		asm volatile ("\n"
-			"1:	movem.l	(%0)+,%%d0/%%d1/%%a0/%%a1\n"
-			"	movem.l	%%d0/%%d1/%%a0/%%a1,%1@\n"
-			"	addq.l	#8,%1; addq.l #8,%1\n"
-			"	dbra	%2,1b\n"
-			"	clr.w	%2; subq.l #1,%2\n"
-			"	jcc	1b"
-			: "=a" (src), "=a" (dst), "=d" (size)
-			: "0" (src), "1" (dst), "2" (size / 16 - 1)
-			: "d0", "d1", "a0", "a1", "memory");
+					  "1:	movem.l	(%0)+,%%d0/%%d1/%%a0/%%a1\n"
+					  "	movem.l	%%d0/%%d1/%%a0/%%a1,%1@\n"
+					  "	addq.l	#8,%1; addq.l #8,%1\n"
+					  "	dbra	%2,1b\n"
+					  "	clr.w	%2; subq.l #1,%2\n"
+					  "	jcc	1b"
+					  : "=a" (src), "=a" (dst), "=d" (size)
+					  : "0" (src), "1" (dst), "2" (size / 16 - 1)
+					  : "d0", "d1", "a0", "a1", "memory");
 	else
 		asm volatile ("\n"
-			"1:	subq.l	#8,%0; subq.l #8,%0\n"
-			"	movem.l	%0@,%%d0/%%d1/%%a0/%%a1\n"
-			"	movem.l	%%d0/%%d1/%%a0/%%a1,-(%1)\n"
-			"	dbra	%2,1b\n"
-			"	clr.w	%2; subq.l #1,%2\n"
-			"	jcc 1b"
-			: "=a" (src), "=a" (dst), "=d" (size)
-			: "0" (src + size), "1" (dst + size), "2" (size / 16 - 1)
-			: "d0", "d1", "a0", "a1", "memory");
+					  "1:	subq.l	#8,%0; subq.l #8,%0\n"
+					  "	movem.l	%0@,%%d0/%%d1/%%a0/%%a1\n"
+					  "	movem.l	%%d0/%%d1/%%a0/%%a1,-(%1)\n"
+					  "	dbra	%2,1b\n"
+					  "	clr.w	%2; subq.l #1,%2\n"
+					  "	jcc 1b"
+					  : "=a" (src), "=a" (dst), "=d" (size)
+					  : "0" (src + size), "1" (dst + size), "2" (size / 16 - 1)
+					  : "d0", "d1", "a0", "a1", "memory");
 }
 
 #ifdef BPL
@@ -250,7 +271,8 @@ static inline void fast_memmove(char *dst, const char *src, size_t size)
  * This expands a up to 8 bit color into two longs
  * for movel operations.
  */
-static const u32 four2long[] = {
+static const u32 four2long[] =
+{
 	0x00000000, 0x000000ff, 0x0000ff00, 0x0000ffff,
 	0x00ff0000, 0x00ff00ff, 0x00ffff00, 0x00ffffff,
 	0xff000000, 0xff0000ff, 0xff00ff00, 0xff00ffff,
@@ -323,7 +345,8 @@ static inline void fill8_2col(u8 *dst, u8 fg, u8 bg, u32 mask)
 #endif
 }
 
-static const u32 two2word[] = {
+static const u32 two2word[] =
+{
 	0x00000000, 0xffff0000, 0x0000ffff, 0xffffffff
 };
 
@@ -357,7 +380,8 @@ static inline void expand16_2col2mask(u8 fg, u8 bg, u32 fgm[], u32 bgm[])
 
 static inline u32 *fill16_col(u32 *dst, int rows, u32 m[])
 {
-	while (rows) {
+	while (rows)
+	{
 		*dst++ = m[0];
 #if BPL > 2
 		*dst++ = m[1];
@@ -368,6 +392,7 @@ static inline u32 *fill16_col(u32 *dst, int rows, u32 m[])
 #endif
 		rows--;
 	}
+
 	return dst;
 }
 
@@ -375,24 +400,27 @@ static inline void memmove32_col(void *dst, void *src, u32 mask, u32 h, u32 byte
 {
 	u32 *s, *d, v;
 
-        s = src;
-        d = dst;
-        do {
-                v = (*s++ & mask) | (*d  & ~mask);
-                *d++ = v;
+	s = src;
+	d = dst;
+
+	do
+	{
+		v = (*s++ & mask) | (*d  & ~mask);
+		*d++ = v;
 #if BPL > 2
-                v = (*s++ & mask) | (*d  & ~mask);
-                *d++ = v;
+		v = (*s++ & mask) | (*d  & ~mask);
+		*d++ = v;
 #endif
 #if BPL > 4
-                v = (*s++ & mask) | (*d  & ~mask);
-                *d++ = v;
-                v = (*s++ & mask) | (*d  & ~mask);
-                *d++ = v;
+		v = (*s++ & mask) | (*d  & ~mask);
+		*d++ = v;
+		v = (*s++ & mask) | (*d  & ~mask);
+		*d++ = v;
 #endif
-                d = (u32 *)((u8 *)d + bytes);
-                s = (u32 *)((u8 *)s + bytes);
-        } while (--h);
+		d = (u32 *)((u8 *)d + bytes);
+		s = (u32 *)((u8 *)s + bytes);
+	}
+	while (--h);
 }
 
 #endif

@@ -43,7 +43,8 @@
  * Upon receiving a device removal event, users must destroy the associated
  * RDMA identifier and release all resources allocated with the device.
  */
-enum rdma_cm_event_type {
+enum rdma_cm_event_type
+{
 	RDMA_CM_EVENT_ADDR_RESOLVED,
 	RDMA_CM_EVENT_ADDR_ERROR,
 	RDMA_CM_EVENT_ROUTE_RESOLVED,
@@ -64,7 +65,8 @@ enum rdma_cm_event_type {
 
 const char *__attribute_const__ rdma_event_msg(enum rdma_cm_event_type event);
 
-enum rdma_port_space {
+enum rdma_port_space
+{
 	RDMA_PS_SDP   = 0x0001,
 	RDMA_PS_IPOIB = 0x0002,
 	RDMA_PS_IB    = 0x013F,
@@ -77,19 +79,22 @@ enum rdma_port_space {
 #define RDMA_IB_IP_PS_UDP    0x0000000001110000ULL
 #define RDMA_IB_IP_PS_IB     0x00000000013F0000ULL
 
-struct rdma_addr {
+struct rdma_addr
+{
 	struct sockaddr_storage src_addr;
 	struct sockaddr_storage dst_addr;
 	struct rdma_dev_addr dev_addr;
 };
 
-struct rdma_route {
+struct rdma_route
+{
 	struct rdma_addr addr;
 	struct ib_sa_path_rec *path_rec;
 	int num_paths;
 };
 
-struct rdma_conn_param {
+struct rdma_conn_param
+{
 	const void *private_data;
 	u8 private_data_len;
 	u8 responder_resources;
@@ -103,7 +108,8 @@ struct rdma_conn_param {
 	u32 qkey;
 };
 
-struct rdma_ud_param {
+struct rdma_ud_param
+{
 	const void *private_data;
 	u8 private_data_len;
 	struct ib_ah_attr ah_attr;
@@ -111,16 +117,19 @@ struct rdma_ud_param {
 	u32 qkey;
 };
 
-struct rdma_cm_event {
+struct rdma_cm_event
+{
 	enum rdma_cm_event_type	 event;
 	int			 status;
-	union {
+	union
+	{
 		struct rdma_conn_param	conn;
 		struct rdma_ud_param	ud;
 	} param;
 };
 
-enum rdma_cm_state {
+enum rdma_cm_state
+{
 	RDMA_CM_IDLE,
 	RDMA_CM_ADDR_QUERY,
 	RDMA_CM_ADDR_RESOLVED,
@@ -144,9 +153,10 @@ struct rdma_cm_id;
  *   non-zero value from the callback will destroy the passed in id.
  */
 typedef int (*rdma_cm_event_handler)(struct rdma_cm_id *id,
-				     struct rdma_cm_event *event);
+									 struct rdma_cm_event *event);
 
-struct rdma_cm_id {
+struct rdma_cm_id
+{
 	struct ib_device	*device;
 	void			*context;
 	struct ib_qp		*qp;
@@ -170,9 +180,9 @@ struct rdma_cm_id {
  * The id holds a reference on the network namespace until it is destroyed.
  */
 struct rdma_cm_id *rdma_create_id(struct net *net,
-				  rdma_cm_event_handler event_handler,
-				  void *context, enum rdma_port_space ps,
-				  enum ib_qp_type qp_type);
+								  rdma_cm_event_handler event_handler,
+								  void *context, enum rdma_port_space ps,
+								  enum ib_qp_type qp_type);
 
 /**
   * rdma_destroy_id - Destroys an RDMA identifier.
@@ -208,7 +218,7 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr);
  * @timeout_ms: Time to wait for resolution to complete.
  */
 int rdma_resolve_addr(struct rdma_cm_id *id, struct sockaddr *src_addr,
-		      struct sockaddr *dst_addr, int timeout_ms);
+					  struct sockaddr *dst_addr, int timeout_ms);
 
 /**
  * rdma_resolve_route - Resolve the RDMA address bound to the RDMA identifier
@@ -228,7 +238,7 @@ int rdma_resolve_route(struct rdma_cm_id *id, int timeout_ms);
  * through their states.
  */
 int rdma_create_qp(struct rdma_cm_id *id, struct ib_pd *pd,
-		   struct ib_qp_init_attr *qp_init_attr);
+				   struct ib_qp_init_attr *qp_init_attr);
 
 /**
  * rdma_destroy_qp - Deallocate the QP associated with the specified RDMA
@@ -259,7 +269,7 @@ void rdma_destroy_qp(struct rdma_cm_id *id);
  * states can associate a QP with the rdma_cm_id by calling rdma_create_qp().
  */
 int rdma_init_qp_attr(struct rdma_cm_id *id, struct ib_qp_attr *qp_attr,
-		       int *qp_attr_mask);
+					  int *qp_attr_mask);
 
 /**
  * rdma_connect - Initiate an active connection request.
@@ -320,7 +330,7 @@ int rdma_notify(struct rdma_cm_id *id, enum ib_event_type event);
  * rdma_reject - Called to reject a connection request or response.
  */
 int rdma_reject(struct rdma_cm_id *id, const void *private_data,
-		u8 private_data_len);
+				u8 private_data_len);
 
 /**
  * rdma_disconnect - This function disconnects the associated QP and
@@ -339,7 +349,7 @@ int rdma_disconnect(struct rdma_cm_id *id);
  * to the user through the private_data pointer in multicast events.
  */
 int rdma_join_multicast(struct rdma_cm_id *id, struct sockaddr *addr,
-			u8 join_state, void *context);
+						u8 join_state, void *context);
 
 /**
  * rdma_leave_multicast - Leave the multicast group specified by the given
@@ -381,11 +391,11 @@ int rdma_set_reuseaddr(struct rdma_cm_id *id, int reuse);
  */
 int rdma_set_afonly(struct rdma_cm_id *id, int afonly);
 
- /**
- * rdma_get_service_id - Return the IB service ID for a specified address.
- * @id: Communication identifier associated with the address.
- * @addr: Address for the service ID.
- */
+/**
+* rdma_get_service_id - Return the IB service ID for a specified address.
+* @id: Communication identifier associated with the address.
+* @addr: Address for the service ID.
+*/
 __be64 rdma_get_service_id(struct rdma_cm_id *id, struct sockaddr *addr);
 
 #endif /* RDMA_CM_H */

@@ -56,13 +56,15 @@ void checklist(struct timespec *list, int size)
 	struct timespec *a, *b;
 
 	/* scan the list */
-	for (i = 0; i < size-1; i++) {
+	for (i = 0; i < size - 1; i++)
+	{
 		a = &list[i];
-		b = &list[i+1];
+		b = &list[i + 1];
 
 		/* look for any time inconsistencies */
 		if ((b->tv_sec <= a->tv_sec) &&
-			(b->tv_nsec < a->tv_nsec)) {
+			(b->tv_nsec < a->tv_nsec))
+		{
 
 			/* flag other threads */
 			done = 1;
@@ -72,13 +74,22 @@ void checklist(struct timespec *list, int size)
 
 			/* dump the list */
 			printf("\n");
-			for (j = 0; j < size; j++) {
+
+			for (j = 0; j < size; j++)
+			{
 				if (j == i)
+				{
 					printf("---------------\n");
+				}
+
 				printf("%lu:%lu\n", list[j].tv_sec, list[j].tv_nsec);
-				if (j == i+1)
+
+				if (j == i + 1)
+				{
 					printf("---------------\n");
+				}
 			}
+
 			printf("[FAILED]\n");
 
 			pthread_mutex_unlock(&print_lock);
@@ -92,19 +103,23 @@ void checklist(struct timespec *list, int size)
  */
 void *shared_thread(void *arg)
 {
-	while (!done) {
+	while (!done)
+	{
 		/* protect the list */
 		pthread_mutex_lock(&list_lock);
 
 		/* see if we're ready to check the list */
-		if (listcount >= LISTSIZE) {
+		if (listcount >= LISTSIZE)
+		{
 			checklist(global_list, LISTSIZE);
 			listcount = 0;
 		}
+
 		clock_gettime(CLOCK_MONOTONIC, &global_list[listcount++]);
 
 		pthread_mutex_unlock(&list_lock);
 	}
+
 	return NULL;
 }
 
@@ -117,12 +132,17 @@ void *independent_thread(void *arg)
 	struct timespec my_list[LISTSIZE];
 	int count;
 
-	while (!done) {
+	while (!done)
+	{
 		/* fill the list */
 		for (count = 0; count < LISTSIZE; count++)
+		{
 			clock_gettime(CLOCK_MONOTONIC, &my_list[count]);
+		}
+
 		checklist(my_list, LISTSIZE);
 	}
+
 	return NULL;
 }
 
@@ -144,29 +164,36 @@ int main(int argc, char **argv)
 	runtime = DEFAULT_RUNTIME;
 
 	/* Process arguments */
-	while ((opt = getopt(argc, argv, "t:n:i")) != -1) {
-		switch (opt) {
-		case 't':
-			runtime = atoi(optarg);
-			break;
-		case 'n':
-			thread_count = atoi(optarg);
-			break;
-		case 'i':
-			thread = independent_thread;
-			printf("using independent threads\n");
-			break;
-		default:
-			printf("Usage: %s [-t <secs>] [-n <numthreads>] [-i]\n", argv[0]);
-			printf("	-t: time to run\n");
-			printf("	-n: number of threads\n");
-			printf("	-i: use independent threads\n");
-			return -1;
+	while ((opt = getopt(argc, argv, "t:n:i")) != -1)
+	{
+		switch (opt)
+		{
+			case 't':
+				runtime = atoi(optarg);
+				break;
+
+			case 'n':
+				thread_count = atoi(optarg);
+				break;
+
+			case 'i':
+				thread = independent_thread;
+				printf("using independent threads\n");
+				break;
+
+			default:
+				printf("Usage: %s [-t <secs>] [-n <numthreads>] [-i]\n", argv[0]);
+				printf("	-t: time to run\n");
+				printf("	-n: number of threads\n");
+				printf("	-i: use independent threads\n");
+				return -1;
 		}
 	}
 
 	if (thread_count > MAX_THREADS)
+	{
 		thread_count = MAX_THREADS;
+	}
 
 
 	setbuf(stdout, NULL);
@@ -178,27 +205,39 @@ int main(int argc, char **argv)
 
 	/* spawn */
 	for (i = 0; i < thread_count; i++)
+	{
 		pthread_create(&pth[i], 0, thread, 0);
+	}
 
-	while (time(&now) < start + runtime) {
+	while (time(&now) < start + runtime)
+	{
 		sleep(1);
-		if (done) {
+
+		if (done)
+		{
 			ret = 1;
 			strftime(buf, 255, "%a, %d %b %Y %T %z", localtime(&now));
 			printf("%s\n", buf);
 			goto out;
 		}
 	}
+
 	printf("[OK]\n");
 	done = 1;
 
 out:
+
 	/* wait */
 	for (i = 0; i < thread_count; i++)
+	{
 		pthread_join(pth[i], &tret);
+	}
 
 	/* die */
 	if (ret)
+	{
 		ksft_exit_fail();
+	}
+
 	return ksft_exit_pass();
 }

@@ -96,9 +96,9 @@ MODULE_FIRMWARE(SD7220_FW_NAME);
 
 /* Forward declarations. */
 static int qib_sd7220_reg_mod(struct qib_devdata *dd, int sdnum, u32 loc,
-			      u32 data, u32 mask);
+							  u32 data, u32 mask);
 static int ibsd_mod_allchnls(struct qib_devdata *dd, int loc, int val,
-			     int mask);
+							 int mask);
 static int qib_sd_trimdone_poll(struct qib_devdata *dd);
 static void qib_sd_trimdone_monitor(struct qib_devdata *dd, const char *where);
 static int qib_sd_setvals(struct qib_devdata *dd);
@@ -109,9 +109,9 @@ static int qib_internal_presets(struct qib_devdata *dd);
 static int qib_sd_trimself(struct qib_devdata *dd, int val);
 static int epb_access(struct qib_devdata *dd, int sdnum, int claim);
 static int qib_sd7220_ib_load(struct qib_devdata *dd,
-			      const struct firmware *fw);
+							  const struct firmware *fw);
 static int qib_sd7220_ib_vfy(struct qib_devdata *dd,
-			     const struct firmware *fw);
+							 const struct firmware *fw);
 
 /*
  * Below keeps track of whether the "once per power-on" initialization has
@@ -121,13 +121,16 @@ static int qib_sd7220_ib_vfy(struct qib_devdata *dd,
  * actual uC code having been loaded.
  */
 static int qib_ibsd_ucode_loaded(struct qib_pportdata *ppd,
-				 const struct firmware *fw)
+								 const struct firmware *fw)
 {
 	struct qib_devdata *dd = ppd->dd;
 
 	if (!dd->cspec->serdes_first_init_done &&
-	    qib_sd7220_ib_vfy(dd, fw) > 0)
+		qib_sd7220_ib_vfy(dd, fw) > 0)
+	{
 		dd->cspec->serdes_first_init_done = 1;
+	}
+
 	return dd->cspec->serdes_first_init_done;
 }
 
@@ -146,18 +149,21 @@ void qib_sd7220_clr_ibpar(struct qib_devdata *dd)
 
 	/* clear, then re-enable parity errs */
 	ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, IB_MPREG6,
-		UC_PAR_CLR_D, UC_PAR_CLR_M);
-	if (ret < 0) {
+							 UC_PAR_CLR_D, UC_PAR_CLR_M);
+
+	if (ret < 0)
+	{
 		qib_dev_err(dd, "Failed clearing IBSerDes Parity err\n");
 		goto bail;
 	}
+
 	ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, IB_MPREG6, 0,
-		UC_PAR_CLR_M);
+							 UC_PAR_CLR_M);
 
 	qib_read_kreg32(dd, kr_scratch);
 	udelay(4);
 	qib_write_kreg(dd, kr_hwerrclear,
-		QLOGIC_IB_HWE_IB_UC_MEMORYPARITYERR);
+				   QLOGIC_IB_HWE_IB_UC_MEMORYPARITYERR);
 	qib_read_kreg32(dd, kr_scratch);
 bail:
 	return;
@@ -179,44 +185,68 @@ static int qib_resync_ibepb(struct qib_devdata *dd)
 
 	ret = -1;
 	chn = 0;
-	for (tries = 0; tries < (4 * IBSD_RESYNC_TRIES); ++tries) {
+
+	for (tries = 0; tries < (4 * IBSD_RESYNC_TRIES); ++tries)
+	{
 		loc = IB_PGUDP(chn);
 		ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, loc, 0, 0);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			qib_dev_err(dd, "Failed read in resync\n");
 			continue;
 		}
+
 		if (ret != 0xF0 && ret != 0x55 && tries == 0)
+		{
 			qib_dev_err(dd, "unexpected pattern in resync\n");
+		}
+
 		pat = ret ^ 0xA5; /* alternate F0 and 55 */
 		ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, loc, pat, 0xFF);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			qib_dev_err(dd, "Failed write in resync\n");
 			continue;
 		}
+
 		ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, loc, 0, 0);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			qib_dev_err(dd, "Failed re-read in resync\n");
 			continue;
 		}
-		if (ret != pat) {
+
+		if (ret != pat)
+		{
 			qib_dev_err(dd, "Failed compare1 in resync\n");
 			continue;
 		}
+
 		loc = IB_CMUDONE(chn);
 		ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, loc, 0, 0);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			qib_dev_err(dd, "Failed CMUDONE rd in resync\n");
 			continue;
 		}
-		if ((ret & 0x70) != ((chn << 4) | 0x40)) {
+
+		if ((ret & 0x70) != ((chn << 4) | 0x40))
+		{
 			qib_dev_err(dd, "Bad CMUDONE value %02X, chn %d\n",
-				    ret, chn);
+						ret, chn);
 			continue;
 		}
+
 		if (++chn == 4)
-			break;  /* Success */
+		{
+			break;    /* Success */
+		}
 	}
+
 	return (ret > 0) ? 0 : ret;
 }
 
@@ -231,7 +261,9 @@ static int qib_ibsd_reset(struct qib_devdata *dd, int assert_rst)
 	unsigned long flags;
 
 	rst_val = qib_read_kreg64(dd, kr_ibserdesctrl);
-	if (assert_rst) {
+
+	if (assert_rst)
+	{
 		/*
 		 * Vendor recommends "interrupting" uC before reset, to
 		 * minimize possible glitches.
@@ -241,8 +273,8 @@ static int qib_ibsd_reset(struct qib_devdata *dd, int assert_rst)
 		rst_val |= 1ULL;
 		/* Squelch possible parity error from _asserting_ reset */
 		qib_write_kreg(dd, kr_hwerrmask,
-			       dd->cspec->hwerrmask &
-			       ~QLOGIC_IB_HWE_IB_UC_MEMORYPARITYERR);
+					   dd->cspec->hwerrmask &
+					   ~QLOGIC_IB_HWE_IB_UC_MEMORYPARITYERR);
 		qib_write_kreg(dd, kr_ibserdesctrl, rst_val);
 		/* flush write, delay to ensure it took effect */
 		qib_read_kreg32(dd, kr_scratch);
@@ -250,7 +282,9 @@ static int qib_ibsd_reset(struct qib_devdata *dd, int assert_rst)
 		/* once it's reset, can remove interrupt */
 		epb_access(dd, IB_7220_SERDES, -1);
 		spin_unlock_irqrestore(&dd->cspec->sdepb_lock, flags);
-	} else {
+	}
+	else
+	{
 		/*
 		 * Before we de-assert reset, we need to deal with
 		 * possible glitch on the Parity-error line.
@@ -262,24 +296,34 @@ static int qib_ibsd_reset(struct qib_devdata *dd, int assert_rst)
 
 		rst_val &= ~(1ULL);
 		qib_write_kreg(dd, kr_hwerrmask,
-			       dd->cspec->hwerrmask &
-			       ~QLOGIC_IB_HWE_IB_UC_MEMORYPARITYERR);
+					   dd->cspec->hwerrmask &
+					   ~QLOGIC_IB_HWE_IB_UC_MEMORYPARITYERR);
 
 		ret = qib_resync_ibepb(dd);
+
 		if (ret < 0)
+		{
 			qib_dev_err(dd, "unable to re-sync IB EPB\n");
+		}
 
 		/* set uC control regs to suppress parity errs */
 		ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, IB_MPREG5, 1, 1);
+
 		if (ret < 0)
+		{
 			goto bail;
+		}
+
 		/* IB uC code past Version 1.32.17 allow suppression of wdog */
 		ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, IB_MPREG6, 0x80,
-			0x80);
-		if (ret < 0) {
+								 0x80);
+
+		if (ret < 0)
+		{
 			qib_dev_err(dd, "Failed to set WDOG disable\n");
 			goto bail;
 		}
+
 		qib_write_kreg(dd, kr_ibserdesctrl, rst_val);
 		/* flush write, delay for startup */
 		qib_read_kreg32(dd, kr_scratch);
@@ -287,13 +331,16 @@ static int qib_ibsd_reset(struct qib_devdata *dd, int assert_rst)
 		/* clear, then re-enable parity errs */
 		qib_sd7220_clr_ibpar(dd);
 		val = qib_read_kreg64(dd, kr_hwerrstatus);
-		if (val & QLOGIC_IB_HWE_IB_UC_MEMORYPARITYERR) {
+
+		if (val & QLOGIC_IB_HWE_IB_UC_MEMORYPARITYERR)
+		{
 			qib_dev_err(dd, "IBUC Parity still set after RST\n");
 			dd->cspec->hwerrmask &=
 				~QLOGIC_IB_HWE_IB_UC_MEMORYPARITYERR;
 		}
+
 		qib_write_kreg(dd, kr_hwerrmask,
-			dd->cspec->hwerrmask);
+					   dd->cspec->hwerrmask);
 	}
 
 bail:
@@ -301,30 +348,42 @@ bail:
 }
 
 static void qib_sd_trimdone_monitor(struct qib_devdata *dd,
-	const char *where)
+									const char *where)
 {
 	int ret, chn, baduns;
 	u64 val;
 
 	if (!where)
+	{
 		where = "?";
+	}
 
 	/* give time for reset to settle out in EPB */
 	udelay(2);
 
 	ret = qib_resync_ibepb(dd);
+
 	if (ret < 0)
+	{
 		qib_dev_err(dd, "not able to re-sync IB EPB (%s)\n", where);
+	}
 
 	/* Do "sacrificial read" to get EPB in sane state after reset */
 	ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, IB_CTRL2(0), 0, 0);
+
 	if (ret < 0)
+	{
 		qib_dev_err(dd, "Failed TRIMDONE 1st read, (%s)\n", where);
+	}
 
 	/* Check/show "summary" Trim-done bit in IBCStatus */
 	val = qib_read_kreg64(dd, kr_ibcstatus);
+
 	if (!(val & (1ULL << 11)))
+	{
 		qib_dev_err(dd, "IBCS TRIMDONE clear (%s)\n", where);
+	}
+
 	/*
 	 * Do "dummy read/mod/wr" to get EPB in sane state after reset
 	 * The default value for MPREG6 is 0.
@@ -332,55 +391,67 @@ static void qib_sd_trimdone_monitor(struct qib_devdata *dd,
 	udelay(2);
 
 	ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, IB_MPREG6, 0x80, 0x80);
+
 	if (ret < 0)
+	{
 		qib_dev_err(dd, "Failed Dummy RMW, (%s)\n", where);
+	}
+
 	udelay(10);
 
 	baduns = 0;
 
-	for (chn = 3; chn >= 0; --chn) {
+	for (chn = 3; chn >= 0; --chn)
+	{
 		/* Read CTRL reg for each channel to check TRIMDONE */
 		ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES,
-			IB_CTRL2(chn), 0, 0);
+								 IB_CTRL2(chn), 0, 0);
+
 		if (ret < 0)
 			qib_dev_err(dd,
-				"Failed checking TRIMDONE, chn %d (%s)\n",
-				chn, where);
+						"Failed checking TRIMDONE, chn %d (%s)\n",
+						chn, where);
 
-		if (!(ret & 0x10)) {
+		if (!(ret & 0x10))
+		{
 			int probe;
 
 			baduns |= (1 << chn);
 			qib_dev_err(dd,
-				"TRIMDONE cleared on chn %d (%02X). (%s)\n",
-				chn, ret, where);
+						"TRIMDONE cleared on chn %d (%02X). (%s)\n",
+						chn, ret, where);
 			probe = qib_sd7220_reg_mod(dd, IB_7220_SERDES,
-				IB_PGUDP(0), 0, 0);
+									   IB_PGUDP(0), 0, 0);
 			qib_dev_err(dd, "probe is %d (%02X)\n",
-				probe, probe);
+						probe, probe);
 			probe = qib_sd7220_reg_mod(dd, IB_7220_SERDES,
-				IB_CTRL2(chn), 0, 0);
+									   IB_CTRL2(chn), 0, 0);
 			qib_dev_err(dd, "re-read: %d (%02X)\n",
-				probe, probe);
+						probe, probe);
 			ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES,
-				IB_CTRL2(chn), 0x10, 0x10);
+									 IB_CTRL2(chn), 0x10, 0x10);
+
 			if (ret < 0)
 				qib_dev_err(dd,
-					"Err on TRIMDONE rewrite1\n");
+							"Err on TRIMDONE rewrite1\n");
 		}
 	}
-	for (chn = 3; chn >= 0; --chn) {
+
+	for (chn = 3; chn >= 0; --chn)
+	{
 		/* Read CTRL reg for each channel to check TRIMDONE */
-		if (baduns & (1 << chn)) {
+		if (baduns & (1 << chn))
+		{
 			qib_dev_err(dd,
-				"Resetting TRIMDONE on chn %d (%s)\n",
-				chn, where);
+						"Resetting TRIMDONE on chn %d (%s)\n",
+						chn, where);
 			ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES,
-				IB_CTRL2(chn), 0x10, 0x10);
+									 IB_CTRL2(chn), 0x10, 0x10);
+
 			if (ret < 0)
 				qib_dev_err(dd,
-					"Failed re-setting TRIMDONE, chn %d (%s)\n",
-					chn, where);
+							"Failed re-setting TRIMDONE, chn %d (%s)\n",
+							chn, where);
 		}
 	}
 }
@@ -399,22 +470,29 @@ int qib_sd7220_init(struct qib_devdata *dd)
 
 	/* SERDES MPU reset recorded in D0 */
 	was_reset = (qib_read_kreg64(dd, kr_ibserdesctrl) & 1);
-	if (!was_reset) {
+
+	if (!was_reset)
+	{
 		/* entered with reset not asserted, we need to do it */
 		qib_ibsd_reset(dd, 1);
 		qib_sd_trimdone_monitor(dd, "Driver-reload");
 	}
 
 	ret = request_firmware(&fw, SD7220_FW_NAME, &dd->pcidev->dev);
-	if (ret) {
+
+	if (ret)
+	{
 		qib_dev_err(dd, "Failed to load IB SERDES image\n");
 		goto done;
 	}
 
 	/* Substitute our deduced value for was_reset */
 	ret = qib_ibsd_ucode_loaded(dd->pport, fw);
+
 	if (ret < 0)
+	{
 		goto bail;
+	}
 
 	first_reset = !ret; /* First reset if IBSD uCode not yet loaded */
 	/*
@@ -422,22 +500,29 @@ int qib_sd7220_init(struct qib_devdata *dd)
 	 * are not right for IB.
 	 */
 	ret = qib_sd_early(dd);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		qib_dev_err(dd, "Failed to set IB SERDES early defaults\n");
 		goto bail;
 	}
+
 	/*
 	 * Set DAC manual trim IB.
 	 * We only do this once after chip has been reset (usually
 	 * same as once per system boot).
 	 */
-	if (first_reset) {
+	if (first_reset)
+	{
 		ret = qib_sd_dactrim(dd);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			qib_dev_err(dd, "Failed IB SERDES DAC trim\n");
 			goto bail;
 		}
 	}
+
 	/*
 	 * Set various registers (DDS and RXEQ) that will be
 	 * controlled by IBC (in 1.2 mode) to reasonable preset values
@@ -445,30 +530,43 @@ int qib_sd7220_init(struct qib_devdata *dd)
 	 * and "trimdone monitor" that might be counter-productive.
 	 */
 	ret = qib_internal_presets(dd);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		qib_dev_err(dd, "Failed to set IB SERDES presets\n");
 		goto bail;
 	}
+
 	ret = qib_sd_trimself(dd, 0x80);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		qib_dev_err(dd, "Failed to set IB SERDES TRIMSELF\n");
 		goto bail;
 	}
 
 	/* Load image, then try to verify */
 	ret = 0;        /* Assume success */
-	if (first_reset) {
+
+	if (first_reset)
+	{
 		int vfy;
 		int trim_done;
 
 		ret = qib_sd7220_ib_load(dd, fw);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			qib_dev_err(dd, "Failed to load IB SERDES image\n");
 			goto bail;
-		} else {
+		}
+		else
+		{
 			/* Loaded image, try to verify */
 			vfy = qib_sd7220_ib_vfy(dd, fw);
-			if (vfy != ret) {
+
+			if (vfy != ret)
+			{
 				qib_dev_err(dd, "SERDES PRAM VFY failed\n");
 				goto bail;
 			} /* end if verified */
@@ -488,7 +586,9 @@ int qib_sd7220_init(struct qib_devdata *dd)
 		 * PRESET, we need to clear that for this very first run.
 		 */
 		ret = ibsd_mod_allchnls(dd, START_EQ1(0), 0, 0x38);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			qib_dev_err(dd, "Failed clearing START_EQ1\n");
 			goto bail;
 		}
@@ -506,10 +606,12 @@ int qib_sd7220_init(struct qib_devdata *dd)
 		 */
 		qib_ibsd_reset(dd, 1);
 
-		if (!trim_done) {
+		if (!trim_done)
+		{
 			qib_dev_err(dd, "No TRIMDONE seen\n");
 			goto bail;
 		}
+
 		/*
 		 * DEBUG: check each time we reset if trimdone bits have
 		 * gotten cleared, and re-set them.
@@ -518,13 +620,18 @@ int qib_sd7220_init(struct qib_devdata *dd)
 		/* Remember so we do not re-do the load, dactrim, etc. */
 		dd->cspec->serdes_first_init_done = 1;
 	}
+
 	/*
 	 * setup for channel training and load values for
 	 * RxEq and DDS in tables used by IBC in IB1.2 mode
 	 */
 	ret = 0;
+
 	if (qib_sd_setvals(dd) >= 0)
+	{
 		goto done;
+	}
+
 bail:
 	ret = 1;
 done:
@@ -556,24 +663,25 @@ static int epb_access(struct qib_devdata *dd, int sdnum, int claim)
 	int owned = 0;
 	u64 oct_sel = 0;
 
-	switch (sdnum) {
-	case IB_7220_SERDES:
-		/*
-		 * The IB SERDES "ownership" is fairly simple. A single each
-		 * request/grant.
-		 */
-		acc = kr_ibsd_epb_access_ctrl;
-		break;
+	switch (sdnum)
+	{
+		case IB_7220_SERDES:
+			/*
+			 * The IB SERDES "ownership" is fairly simple. A single each
+			 * request/grant.
+			 */
+			acc = kr_ibsd_epb_access_ctrl;
+			break;
 
-	case PCIE_SERDES0:
-	case PCIE_SERDES1:
-		/* PCIe SERDES has two "octants", need to select which */
-		acc = kr_pciesd_epb_access_ctrl;
-		oct_sel = (2 << (sdnum - PCIE_SERDES0));
-		break;
+		case PCIE_SERDES0:
+		case PCIE_SERDES1:
+			/* PCIe SERDES has two "octants", need to select which */
+			acc = kr_pciesd_epb_access_ctrl;
+			oct_sel = (2 << (sdnum - PCIE_SERDES0));
+			break;
 
-	default:
-		return 0;
+		default:
+			return 0;
 	}
 
 	/* Make sure any outstanding transaction was seen */
@@ -583,7 +691,9 @@ static int epb_access(struct qib_devdata *dd, int sdnum, int claim)
 	accval = qib_read_kreg32(dd, acc);
 
 	owned = !!(accval & EPB_ACC_GNT);
-	if (claim < 0) {
+
+	if (claim < 0)
+	{
 		/* Need to release */
 		u64 pollval;
 		/*
@@ -597,9 +707,14 @@ static int epb_access(struct qib_devdata *dd, int sdnum, int claim)
 		pollval = qib_read_kreg32(dd, acc);
 		udelay(5);
 		pollval = qib_read_kreg32(dd, acc);
+
 		if (pollval & EPB_ACC_GNT)
+		{
 			owned = -1;
-	} else if (claim > 0) {
+		}
+	}
+	else if (claim > 0)
+	{
 		/* Need to claim */
 		u64 pollval;
 		u64 newval = EPB_ACC_REQ | oct_sel;
@@ -609,9 +724,13 @@ static int epb_access(struct qib_devdata *dd, int sdnum, int claim)
 		pollval = qib_read_kreg32(dd, acc);
 		udelay(5);
 		pollval = qib_read_kreg32(dd, acc);
+
 		if (!(pollval & EPB_ACC_GNT))
+		{
 			owned = -1;
+		}
 	}
+
 	return owned;
 }
 
@@ -627,16 +746,28 @@ static int epb_trans(struct qib_devdata *dd, u16 reg, u64 i_val, u64 *o_vp)
 	/* Throw away first read, as RDY bit may be stale */
 	transval = qib_read_kreg64(dd, reg);
 
-	for (tries = EPB_TRANS_TRIES; tries; --tries) {
+	for (tries = EPB_TRANS_TRIES; tries; --tries)
+	{
 		transval = qib_read_kreg32(dd, reg);
+
 		if (transval & EPB_TRANS_RDY)
+		{
 			break;
+		}
+
 		udelay(5);
 	}
+
 	if (transval & EPB_TRANS_ERR)
+	{
 		return -1;
+	}
+
 	if (tries > 0 && o_vp)
+	{
 		*o_vp = transval;
+	}
+
 	return tries;
 }
 
@@ -654,7 +785,7 @@ static int epb_trans(struct qib_devdata *dd, u16 reg, u64 i_val, u64 *o_vp)
  * register, or <0 if errors.
  */
 static int qib_sd7220_reg_mod(struct qib_devdata *dd, int sdnum, u32 loc,
-			      u32 wd, u32 mask)
+							  u32 wd, u32 mask)
 {
 	u16 trans;
 	u64 transval;
@@ -662,18 +793,19 @@ static int qib_sd7220_reg_mod(struct qib_devdata *dd, int sdnum, u32 loc,
 	int tries, ret;
 	unsigned long flags;
 
-	switch (sdnum) {
-	case IB_7220_SERDES:
-		trans = kr_ibsd_epb_transaction_reg;
-		break;
+	switch (sdnum)
+	{
+		case IB_7220_SERDES:
+			trans = kr_ibsd_epb_transaction_reg;
+			break;
 
-	case PCIE_SERDES0:
-	case PCIE_SERDES1:
-		trans = kr_pciesd_epb_transaction_reg;
-		break;
+		case PCIE_SERDES0:
+		case PCIE_SERDES1:
+			trans = kr_pciesd_epb_transaction_reg;
+			break;
 
-	default:
-		return -1;
+		default:
+			return -1;
 	}
 
 	/*
@@ -683,21 +815,33 @@ static int qib_sd7220_reg_mod(struct qib_devdata *dd, int sdnum, u32 loc,
 	spin_lock_irqsave(&dd->cspec->sdepb_lock, flags);
 
 	owned = epb_access(dd, sdnum, 1);
-	if (owned < 0) {
+
+	if (owned < 0)
+	{
 		spin_unlock_irqrestore(&dd->cspec->sdepb_lock, flags);
 		return -1;
 	}
+
 	ret = 0;
-	for (tries = EPB_TRANS_TRIES; tries; --tries) {
+
+	for (tries = EPB_TRANS_TRIES; tries; --tries)
+	{
 		transval = qib_read_kreg32(dd, trans);
+
 		if (transval & EPB_TRANS_RDY)
+		{
 			break;
+		}
+
 		udelay(5);
 	}
 
-	if (tries > 0) {
+	if (tries > 0)
+	{
 		tries = 1;      /* to make read-skip work */
-		if (mask != 0xFF) {
+
+		if (mask != 0xFF)
+		{
 			/*
 			 * Not a pure write, so need to read.
 			 * loc encodes chip-select as well as address
@@ -705,7 +849,9 @@ static int qib_sd7220_reg_mod(struct qib_devdata *dd, int sdnum, u32 loc,
 			transval = loc | EPB_RD;
 			tries = epb_trans(dd, trans, transval, &transval);
 		}
-		if (tries > 0 && mask != 0) {
+
+		if (tries > 0 && mask != 0)
+		{
 			/*
 			 * Not a pure read, so need to write.
 			 */
@@ -714,19 +860,28 @@ static int qib_sd7220_reg_mod(struct qib_devdata *dd, int sdnum, u32 loc,
 			tries = epb_trans(dd, trans, transval, &transval);
 		}
 	}
+
 	/* else, failed to see ready, what error-handling? */
 
 	/*
 	 * Release bus. Failure is an error.
 	 */
 	if (epb_access(dd, sdnum, -1) < 0)
+	{
 		ret = -1;
+	}
 	else
+	{
 		ret = transval & EPB_DATA_MASK;
+	}
 
 	spin_unlock_irqrestore(&dd->cspec->sdepb_lock, flags);
+
 	if (tries <= 0)
+	{
 		ret = -1;
+	}
+
 	return ret;
 }
 
@@ -744,7 +899,7 @@ static int qib_sd7220_reg_mod(struct qib_devdata *dd, int sdnum, u32 loc,
 
 /* Transfer date to/from uC Program RAM of IB or PCIe SerDes */
 static int qib_sd7220_ram_xfer(struct qib_devdata *dd, int sdnum, u32 loc,
-			       u8 *buf, int cnt, int rd_notwr)
+							   u8 *buf, int cnt, int rd_notwr)
 {
 	u16 trans;
 	u64 transval;
@@ -758,28 +913,31 @@ static int qib_sd7220_ram_xfer(struct qib_devdata *dd, int sdnum, u32 loc,
 	const char *op;
 
 	/* Pick appropriate transaction reg and "Chip select" for this serdes */
-	switch (sdnum) {
-	case IB_7220_SERDES:
-		csbit = 1ULL << EPB_IB_UC_CS_SHF;
-		trans = kr_ibsd_epb_transaction_reg;
-		break;
+	switch (sdnum)
+	{
+		case IB_7220_SERDES:
+			csbit = 1ULL << EPB_IB_UC_CS_SHF;
+			trans = kr_ibsd_epb_transaction_reg;
+			break;
 
-	case PCIE_SERDES0:
-	case PCIE_SERDES1:
-		/* PCIe SERDES has uC "chip select" in different bit, too */
-		csbit = 1ULL << EPB_PCIE_UC_CS_SHF;
-		trans = kr_pciesd_epb_transaction_reg;
-		break;
+		case PCIE_SERDES0:
+		case PCIE_SERDES1:
+			/* PCIe SERDES has uC "chip select" in different bit, too */
+			csbit = 1ULL << EPB_PCIE_UC_CS_SHF;
+			trans = kr_pciesd_epb_transaction_reg;
+			break;
 
-	default:
-		return -1;
+		default:
+			return -1;
 	}
 
 	op = rd_notwr ? "Rd" : "Wr";
 	spin_lock_irqsave(&dd->cspec->sdepb_lock, flags);
 
 	owned = epb_access(dd, sdnum, 1);
-	if (owned < 0) {
+
+	if (owned < 0)
+	{
 		spin_unlock_irqrestore(&dd->cspec->sdepb_lock, flags);
 		return -1;
 	}
@@ -792,15 +950,23 @@ static int qib_sd7220_ram_xfer(struct qib_devdata *dd, int sdnum, u32 loc,
 	 * The memory is 8KB.
 	 */
 	addr = loc & 0x1FFF;
-	for (tries = EPB_TRANS_TRIES; tries; --tries) {
+
+	for (tries = EPB_TRANS_TRIES; tries; --tries)
+	{
 		transval = qib_read_kreg32(dd, trans);
+
 		if (transval & EPB_TRANS_RDY)
+		{
 			break;
+		}
+
 		udelay(5);
 	}
 
 	sofar = 0;
-	if (tries > 0) {
+
+	if (tries > 0)
+	{
 		/*
 		 * Every "memory" access is doubly-indirect.
 		 * We set two bytes of address, then read/write
@@ -809,73 +975,113 @@ static int qib_sd7220_ram_xfer(struct qib_devdata *dd, int sdnum, u32 loc,
 
 		/* First, we set control to "Read" or "Write" */
 		transval = csbit | EPB_UC_CTL |
-			(rd_notwr ? EPB_ROM_R : EPB_ROM_W);
+				   (rd_notwr ? EPB_ROM_R : EPB_ROM_W);
 		tries = epb_trans(dd, trans, transval, &transval);
-		while (tries > 0 && sofar < cnt) {
-			if (!sofar) {
+
+		while (tries > 0 && sofar < cnt)
+		{
+			if (!sofar)
+			{
 				/* Only set address at start of chunk */
 				int addrbyte = (addr + sofar) >> 8;
 
 				transval = csbit | EPB_MADDRH | addrbyte;
 				tries = epb_trans(dd, trans, transval,
-						  &transval);
+								  &transval);
+
 				if (tries <= 0)
+				{
 					break;
+				}
+
 				addrbyte = (addr + sofar) & 0xFF;
 				transval = csbit | EPB_MADDRL | addrbyte;
 				tries = epb_trans(dd, trans, transval,
-						 &transval);
+								  &transval);
+
 				if (tries <= 0)
+				{
 					break;
+				}
 			}
 
 			if (rd_notwr)
+			{
 				transval = csbit | EPB_ROMDATA | EPB_RD;
+			}
 			else
+			{
 				transval = csbit | EPB_ROMDATA | buf[sofar];
+			}
+
 			tries = epb_trans(dd, trans, transval, &transval);
+
 			if (tries <= 0)
+			{
 				break;
+			}
+
 			if (rd_notwr)
+			{
 				buf[sofar] = transval & EPB_DATA_MASK;
+			}
+
 			++sofar;
 		}
+
 		/* Finally, clear control-bit for Read or Write */
 		transval = csbit | EPB_UC_CTL;
 		tries = epb_trans(dd, trans, transval, &transval);
 	}
 
 	ret = sofar;
+
 	/* Release bus. Failure is an error */
 	if (epb_access(dd, sdnum, -1) < 0)
+	{
 		ret = -1;
+	}
 
 	spin_unlock_irqrestore(&dd->cspec->sdepb_lock, flags);
+
 	if (tries <= 0)
+	{
 		ret = -1;
+	}
+
 	return ret;
 }
 
 #define PROG_CHUNK 64
 
 static int qib_sd7220_prog_ld(struct qib_devdata *dd, int sdnum,
-			      const u8 *img, int len, int offset)
+							  const u8 *img, int len, int offset)
 {
 	int cnt, sofar, req;
 
 	sofar = 0;
-	while (sofar < len) {
+
+	while (sofar < len)
+	{
 		req = len - sofar;
+
 		if (req > PROG_CHUNK)
+		{
 			req = PROG_CHUNK;
+		}
+
 		cnt = qib_sd7220_ram_xfer(dd, sdnum, offset + sofar,
-					  (u8 *)img + sofar, req, 0);
-		if (cnt < req) {
+								  (u8 *)img + sofar, req, 0);
+
+		if (cnt < req)
+		{
 			sofar = -1;
 			break;
 		}
+
 		sofar += req;
 	}
+
 	return sofar;
 }
 
@@ -883,30 +1089,44 @@ static int qib_sd7220_prog_ld(struct qib_devdata *dd, int sdnum,
 #define SD_PRAM_ERROR_LIMIT 42
 
 static int qib_sd7220_prog_vfy(struct qib_devdata *dd, int sdnum,
-			       const u8 *img, int len, int offset)
+							   const u8 *img, int len, int offset)
 {
 	int cnt, sofar, req, idx, errors;
 	unsigned char readback[VFY_CHUNK];
 
 	errors = 0;
 	sofar = 0;
-	while (sofar < len) {
+
+	while (sofar < len)
+	{
 		req = len - sofar;
+
 		if (req > VFY_CHUNK)
+		{
 			req = VFY_CHUNK;
+		}
+
 		cnt = qib_sd7220_ram_xfer(dd, sdnum, sofar + offset,
-					  readback, req, 1);
-		if (cnt < req) {
+								  readback, req, 1);
+
+		if (cnt < req)
+		{
 			/* failed in read itself */
 			sofar = -1;
 			break;
 		}
-		for (idx = 0; idx < cnt; ++idx) {
-			if (readback[idx] != img[idx+sofar])
+
+		for (idx = 0; idx < cnt; ++idx)
+		{
+			if (readback[idx] != img[idx + sofar])
+			{
 				++errors;
+			}
 		}
+
 		sofar += cnt;
 	}
+
 	return errors ? -errors : sofar;
 }
 
@@ -938,18 +1158,26 @@ static int qib_sd_trimdone_poll(struct qib_devdata *dd)
 	 * without IB_SERDES_TRIM_DONE.
 	 */
 	ret = 0;
-	for (trim_tmo = 0; trim_tmo < TRIM_TMO; ++trim_tmo) {
+
+	for (trim_tmo = 0; trim_tmo < TRIM_TMO; ++trim_tmo)
+	{
 		val = qib_read_kreg64(dd, kr_ibcstatus);
-		if (val & IB_SERDES_TRIM_DONE) {
+
+		if (val & IB_SERDES_TRIM_DONE)
+		{
 			ret = 1;
 			break;
 		}
+
 		msleep(20);
 	}
-	if (trim_tmo >= TRIM_TMO) {
+
+	if (trim_tmo >= TRIM_TMO)
+	{
 		qib_dev_err(dd, "No TRIMDONE in %d tries\n", trim_tmo);
 		ret = 0;
 	}
+
 	return ret;
 }
 
@@ -967,14 +1195,16 @@ static int qib_sd_trimdone_poll(struct qib_devdata *dd)
 
 #define DDS_VAL(amp_d, main_d, ipst_d, ipre_d, amp_s, main_s, ipst_s, ipre_s) \
 	{ { ((amp_d & 0x1F) << 1) | 1, ((amp_s & 0x1F) << 1) | 1, \
-	  (main_d << 3) | 4 | (ipre_d >> 2), \
-	  (main_s << 3) | 4 | (ipre_s >> 2), \
-	  ((ipst_d & 0xF) << 1) | ((ipre_d & 3) << 6) | 0x21, \
-	  ((ipst_s & 0xF) << 1) | ((ipre_s & 3) << 6) | 0x21 } }
+			(main_d << 3) | 4 | (ipre_d >> 2), \
+			(main_s << 3) | 4 | (ipre_s >> 2), \
+			((ipst_d & 0xF) << 1) | ((ipre_d & 3) << 6) | 0x21, \
+			((ipst_s & 0xF) << 1) | ((ipre_s & 3) << 6) | 0x21 } }
 
-static struct dds_init {
+static struct dds_init
+{
 	uint8_t reg_vals[NUM_DDS_REGS];
-} dds_init_vals[] = {
+} dds_init_vals[] =
+{
 	/*       DDR(FDR)       SDR(HDR)   */
 	/* Vendor recommends below for 3m cable */
 #define DDS_3M 0
@@ -1014,10 +1244,12 @@ static struct dds_init {
 #define RXEQ_SDR_G1CNT_Z1CNT 0x11
 #define RXEQ_SDR_ZCNT 23
 
-static struct rxeq_init {
+static struct rxeq_init
+{
 	u16 rdesc;      /* in form used in SerDesDDSRXEQ */
 	u8  rdata[4];
-} rxeq_init_vals[] = {
+} rxeq_init_vals[] =
+{
 	/* Set Rcv Eq. to Preset node */
 	RXEQ_VAL_ALL(7, 0x27, 0x10),
 	/* Set DFELTHFDR/HDR thresholds */
@@ -1067,13 +1299,17 @@ static int qib_sd_setvals(struct qib_devdata *dd)
 	 * Iterate down table within loop for each register to store.
 	 */
 	dds_reg_map = DDS_REG_MAP;
-	for (idx = 0; idx < NUM_DDS_REGS; ++idx) {
+
+	for (idx = 0; idx < NUM_DDS_REGS; ++idx)
+	{
 		data = ((dds_reg_map & 0xF) << 4) | TX_FAST_ELT;
 		writeq(data, iaddr + idx);
 		mmiowb();
 		qib_read_kreg32(dd, kr_scratch);
 		dds_reg_map >>= 4;
-		for (midx = 0; midx < DDS_ROWS; ++midx) {
+
+		for (midx = 0; midx < DDS_ROWS; ++midx)
+		{
 			u64 __iomem *daddr = taddr + ((midx << 4) + idx);
 
 			data = dds_init_vals[midx].reg_vals[idx];
@@ -1091,8 +1327,10 @@ static int qib_sd_setvals(struct qib_devdata *dd)
 	 */
 	min_idx = idx; /* RXEQ indices pick up where DDS left off */
 	taddr += 0x100; /* RXEQ data is in second half of table */
+
 	/* Iterate through RXEQ register addresses */
-	for (idx = 0; idx < RXEQ_ROWS; ++idx) {
+	for (idx = 0; idx < RXEQ_ROWS; ++idx)
+	{
 		int didx; /* "destination" */
 		int vidx;
 
@@ -1102,14 +1340,17 @@ static int qib_sd_setvals(struct qib_devdata *dd)
 		writeq(rxeq_init_vals[idx].rdesc, iaddr + didx);
 		mmiowb();
 		qib_read_kreg32(dd, kr_scratch);
+
 		/* Iterate through RXEQ values */
-		for (vidx = 0; vidx < 4; vidx++) {
+		for (vidx = 0; vidx < 4; vidx++)
+		{
 			data = rxeq_init_vals[idx].rdata[vidx];
 			writeq(data, taddr + (vidx << 6) + idx);
 			mmiowb();
 			qib_read_kreg32(dd, kr_scratch);
 		}
 	} /* end outer for (Reg-writes for RXEQ) */
+
 	return 0;
 }
 
@@ -1131,12 +1372,13 @@ static int qib_sd_setvals(struct qib_devdata *dd)
  * not explicitely written.
  */
 static int ibsd_mod_allchnls(struct qib_devdata *dd, int loc, int val,
-			     int mask)
+							 int mask)
 {
 	int ret = -1;
 	int chnl;
 
-	if (loc & EPB_GLOBAL_WR) {
+	if (loc & EPB_GLOBAL_WR)
+	{
 		/*
 		 * Our caller has assured us that we can set all four
 		 * channels at once. Trust that. If mask is not 0xFF,
@@ -1145,48 +1387,63 @@ static int ibsd_mod_allchnls(struct qib_devdata *dd, int loc, int val,
 		 */
 		loc |= (1U << EPB_IB_QUAD0_CS_SHF);
 		chnl = (loc >> (4 + EPB_ADDR_SHF)) & 7;
-		if (mask != 0xFF) {
+
+		if (mask != 0xFF)
+		{
 			ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES,
-						 loc & ~EPB_GLOBAL_WR, 0, 0);
-			if (ret < 0) {
+									 loc & ~EPB_GLOBAL_WR, 0, 0);
+
+			if (ret < 0)
+			{
 				int sloc = loc >> EPB_ADDR_SHF;
 
 				qib_dev_err(dd,
-					"pre-read failed: elt %d, addr 0x%X, chnl %d\n",
-					(sloc & 0xF),
-					(sloc >> 9) & 0x3f, chnl);
+							"pre-read failed: elt %d, addr 0x%X, chnl %d\n",
+							(sloc & 0xF),
+							(sloc >> 9) & 0x3f, chnl);
 				return ret;
 			}
+
 			val = (ret & ~mask) | (val & mask);
 		}
-		loc &=  ~(7 << (4+EPB_ADDR_SHF));
+
+		loc &=  ~(7 << (4 + EPB_ADDR_SHF));
 		ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, loc, val, 0xFF);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			int sloc = loc >> EPB_ADDR_SHF;
 
 			qib_dev_err(dd,
-				"Global WR failed: elt %d, addr 0x%X, val %02X\n",
-				(sloc & 0xF), (sloc >> 9) & 0x3f, val);
+						"Global WR failed: elt %d, addr 0x%X, val %02X\n",
+						(sloc & 0xF), (sloc >> 9) & 0x3f, val);
 		}
+
 		return ret;
 	}
+
 	/* Clear "channel" and set CS so we can simply iterate */
-	loc &=  ~(7 << (4+EPB_ADDR_SHF));
+	loc &=  ~(7 << (4 + EPB_ADDR_SHF));
 	loc |= (1U << EPB_IB_QUAD0_CS_SHF);
-	for (chnl = 0; chnl < 4; ++chnl) {
-		int cloc = loc | (chnl << (4+EPB_ADDR_SHF));
+
+	for (chnl = 0; chnl < 4; ++chnl)
+	{
+		int cloc = loc | (chnl << (4 + EPB_ADDR_SHF));
 
 		ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, cloc, val, mask);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			int sloc = loc >> EPB_ADDR_SHF;
 
 			qib_dev_err(dd,
-				"Write failed: elt %d, addr 0x%X, chnl %d, val 0x%02X, mask 0x%02X\n",
-				(sloc & 0xF), (sloc >> 9) & 0x3f, chnl,
-				val & 0xFF, mask & 0xFF);
+						"Write failed: elt %d, addr 0x%X, chnl %d, val 0x%02X, mask 0x%02X\n",
+						(sloc & 0xF), (sloc >> 9) & 0x3f, chnl,
+						val & 0xFF, mask & 0xFF);
 			break;
 		}
 	}
+
 	return ret;
 }
 
@@ -1201,15 +1458,21 @@ static int set_dds_vals(struct qib_devdata *dd, struct dds_init *ddi)
 	uint32_t regmap;
 
 	regmap = DDS_REG_MAP;
-	for (idx = 0; idx < NUM_DDS_REGS; ++idx) {
+
+	for (idx = 0; idx < NUM_DDS_REGS; ++idx)
+	{
 		reg = (regmap & 0xF);
 		regmap >>= 4;
 		data = ddi->reg_vals[idx];
 		/* Vendor says RMW not needed for these regs, use 0xFF mask */
 		ret = ibsd_mod_allchnls(dd, EPB_LOC(0, 9, reg), data, 0xFF);
+
 		if (ret < 0)
+		{
 			break;
+		}
 	}
+
 	return ret;
 }
 
@@ -1223,7 +1486,8 @@ static int set_rxeq_vals(struct qib_devdata *dd, int vsel)
 	int ridx;
 	int cnt = ARRAY_SIZE(rxeq_init_vals);
 
-	for (ridx = 0; ridx < cnt; ++ridx) {
+	for (ridx = 0; ridx < cnt; ++ridx)
+	{
 		int elt, reg, val, loc;
 
 		elt = rxeq_init_vals[ridx].rdesc & 0xF;
@@ -1232,9 +1496,13 @@ static int set_rxeq_vals(struct qib_devdata *dd, int vsel)
 		val = rxeq_init_vals[ridx].rdata[vsel];
 		/* mask of 0xFF, because hardware does full-byte store. */
 		ret = ibsd_mod_allchnls(dd, loc, val, 0xFF);
+
 		if (ret < 0)
+		{
 			break;
+		}
 	}
+
 	return ret;
 }
 
@@ -1249,9 +1517,9 @@ static int set_rxeq_vals(struct qib_devdata *dd, int vsel)
  */
 static unsigned qib_rxeq_set = 2;
 module_param_named(rxeq_default_set, qib_rxeq_set, uint,
-		   S_IWUSR | S_IRUGO);
+				   S_IWUSR | S_IRUGO);
 MODULE_PARM_DESC(rxeq_default_set,
-		 "Which set [0..3] of Rx Equalization values is default");
+				 "Which set [0..3] of Rx Equalization values is default");
 
 static int qib_internal_presets(struct qib_devdata *dd)
 {
@@ -1260,10 +1528,17 @@ static int qib_internal_presets(struct qib_devdata *dd)
 	ret = set_dds_vals(dd, dds_init_vals + DDS_3M);
 
 	if (ret < 0)
+	{
 		qib_dev_err(dd, "Failed to set default DDS values\n");
+	}
+
 	ret = set_rxeq_vals(dd, qib_rxeq_set & 3);
+
 	if (ret < 0)
+	{
 		qib_dev_err(dd, "Failed to set default RXEQ values\n");
+	}
+
 	return ret;
 }
 
@@ -1272,7 +1547,10 @@ int qib_sd7220_presets(struct qib_devdata *dd)
 	int ret = 0;
 
 	if (!dd->cspec->presets_needed)
+	{
 		return ret;
+	}
+
 	dd->cspec->presets_needed = 0;
 	/* Assert uC reset, so we don't clash with it. */
 	qib_ibsd_reset(dd, 1);
@@ -1295,11 +1573,19 @@ static int qib_sd_early(struct qib_devdata *dd)
 	int ret;
 
 	ret = ibsd_mod_allchnls(dd, RXHSCTRL0(0) | EPB_GLOBAL_WR, 0xD4, 0xFF);
+
 	if (ret < 0)
+	{
 		goto bail;
+	}
+
 	ret = ibsd_mod_allchnls(dd, START_EQ1(0) | EPB_GLOBAL_WR, 0x10, 0xFF);
+
 	if (ret < 0)
+	{
 		goto bail;
+	}
+
 	ret = ibsd_mod_allchnls(dd, START_EQ2(0) | EPB_GLOBAL_WR, 0x30, 0xFF);
 bail:
 	return ret;
@@ -1314,25 +1600,40 @@ static int qib_sd_dactrim(struct qib_devdata *dd)
 	int ret;
 
 	ret = ibsd_mod_allchnls(dd, VCDL_DAC2(0) | EPB_GLOBAL_WR, 0x2D, 0xFF);
+
 	if (ret < 0)
+	{
 		goto bail;
+	}
 
 	/* more fine-tuning of what will be default */
 	ret = ibsd_mod_allchnls(dd, VCDL_CTRL2(0), 3, 0xF);
+
 	if (ret < 0)
+	{
 		goto bail;
+	}
 
 	ret = ibsd_mod_allchnls(dd, BACTRL(0) | EPB_GLOBAL_WR, 0x40, 0xFF);
+
 	if (ret < 0)
+	{
 		goto bail;
+	}
 
 	ret = ibsd_mod_allchnls(dd, LDOUTCTRL1(0) | EPB_GLOBAL_WR, 0x04, 0xFF);
+
 	if (ret < 0)
+	{
 		goto bail;
+	}
 
 	ret = ibsd_mod_allchnls(dd, RXHSSTATUS(0) | EPB_GLOBAL_WR, 0x04, 0xFF);
+
 	if (ret < 0)
+	{
 		goto bail;
+	}
 
 	/*
 	 * Delay for max possible number of steps, with slop.
@@ -1354,21 +1655,31 @@ void toggle_7220_rclkrls(struct qib_devdata *dd)
 	int ret;
 
 	ret = ibsd_mod_allchnls(dd, loc, 0, 0x80);
+
 	if (ret < 0)
+	{
 		qib_dev_err(dd, "RCLKRLS failed to clear D7\n");
-	else {
+	}
+	else
+	{
 		udelay(1);
 		ibsd_mod_allchnls(dd, loc, 0x80, 0x80);
 	}
+
 	/* And again for good measure */
 	udelay(1);
 	ret = ibsd_mod_allchnls(dd, loc, 0, 0x80);
+
 	if (ret < 0)
+	{
 		qib_dev_err(dd, "RCLKRLS failed to clear D7\n");
-	else {
+	}
+	else
+	{
 		udelay(1);
 		ibsd_mod_allchnls(dd, loc, 0x80, 0x80);
 	}
+
 	/* Now reset xgxs and IBC to complete the recovery */
 	dd->f_xgxs_reset(dd->pport);
 }
@@ -1382,12 +1693,14 @@ void toggle_7220_rclkrls(struct qib_devdata *dd)
 void shutdown_7220_relock_poll(struct qib_devdata *dd)
 {
 	if (dd->cspec->relock_timer_active)
+	{
 		del_timer_sync(&dd->cspec->relock_timer);
+	}
 }
 
 static unsigned qib_relock_by_timer = 1;
 module_param_named(relock_by_timer, qib_relock_by_timer, uint,
-		   S_IWUSR | S_IRUGO);
+				   S_IWUSR | S_IRUGO);
 MODULE_PARM_DESC(relock_by_timer, "Allow relock attempt if link not up");
 
 static void qib_run_relock(unsigned long opaque)
@@ -1404,19 +1717,32 @@ static void qib_run_relock(unsigned long opaque)
 	 * if not stuck, our work is done.
 	 */
 	if ((dd->flags & QIB_INITTED) && !(ppd->lflags &
-	    (QIBL_IB_AUTONEG_INPROG | QIBL_LINKINIT | QIBL_LINKARMED |
-	     QIBL_LINKACTIVE))) {
-		if (qib_relock_by_timer) {
+									   (QIBL_IB_AUTONEG_INPROG | QIBL_LINKINIT | QIBL_LINKARMED |
+										QIBL_LINKACTIVE)))
+	{
+		if (qib_relock_by_timer)
+		{
 			if (!(ppd->lflags & QIBL_IB_LINK_DISABLED))
+			{
 				toggle_7220_rclkrls(dd);
+			}
 		}
+
 		/* re-set timer for next check */
 		timeoff = cs->relock_interval << 1;
+
 		if (timeoff > HZ)
+		{
 			timeoff = HZ;
+		}
+
 		cs->relock_interval = timeoff;
-	} else
+	}
+	else
+	{
 		timeoff = HZ;
+	}
+
 	mod_timer(&cs->relock_timer, jiffies + timeoff);
 }
 
@@ -1424,21 +1750,30 @@ void set_7220_relock_poll(struct qib_devdata *dd, int ibup)
 {
 	struct qib_chip_specific *cs = dd->cspec;
 
-	if (ibup) {
+	if (ibup)
+	{
 		/* We are now up, relax timer to 1 second interval */
-		if (cs->relock_timer_active) {
+		if (cs->relock_timer_active)
+		{
 			cs->relock_interval = HZ;
 			mod_timer(&cs->relock_timer, jiffies + HZ);
 		}
-	} else {
+	}
+	else
+	{
 		/* Transition to down, (re-)set timer to short interval. */
 		unsigned int timeout;
 
 		timeout = msecs_to_jiffies(RELOCK_FIRST_MS);
+
 		if (timeout == 0)
+		{
 			timeout = 1;
+		}
+
 		/* If timer has not yet been started, do so. */
-		if (!cs->relock_timer_active) {
+		if (!cs->relock_timer_active)
+		{
 			cs->relock_timer_active = 1;
 			init_timer(&cs->relock_timer);
 			cs->relock_timer.function = qib_run_relock;
@@ -1446,7 +1781,9 @@ void set_7220_relock_poll(struct qib_devdata *dd, int ibup)
 			cs->relock_interval = timeout;
 			cs->relock_timer.expires = jiffies + timeout;
 			add_timer(&cs->relock_timer);
-		} else {
+		}
+		else
+		{
 			cs->relock_interval = timeout;
 			mod_timer(&cs->relock_timer, jiffies + timeout);
 		}

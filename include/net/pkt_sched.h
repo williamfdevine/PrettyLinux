@@ -6,7 +6,8 @@
 #include <linux/if_vlan.h>
 #include <net/sch_generic.h>
 
-struct qdisc_walker {
+struct qdisc_walker
+{
 	int	stop;
 	int	skip;
 	int	count;
@@ -21,16 +22,16 @@ static inline void *qdisc_priv(struct Qdisc *q)
 	return (char *) q + QDISC_ALIGN(sizeof(struct Qdisc));
 }
 
-/* 
+/*
    Timer resolution MUST BE < 10% of min_schedulable_packet_size/bandwidth
-   
+
    Normal IP packet size ~ 512byte, hence:
 
    0.5Kbyte/1Mbyte/sec = 0.5msec, so that we need 50usec timer for
    10Mbit ethernet.
 
    10msec resolution -> <50Kbit/sec.
-   
+
    The result: [34]86 is not good choice for QoS router :-(
 
    The things are not so bad, because we may use artificial
@@ -60,7 +61,8 @@ psched_tdiff_bounded(psched_time_t tv1, psched_time_t tv2, psched_time_t bound)
 	return min(tv1 - tv2, bound);
 }
 
-struct qdisc_watchdog {
+struct qdisc_watchdog
+{
 	u64		last_expires;
 	struct hrtimer	timer;
 	struct Qdisc	*qdisc;
@@ -70,7 +72,7 @@ void qdisc_watchdog_init(struct qdisc_watchdog *wd, struct Qdisc *qdisc);
 void qdisc_watchdog_schedule_ns(struct qdisc_watchdog *wd, u64 expires);
 
 static inline void qdisc_watchdog_schedule(struct qdisc_watchdog *wd,
-					   psched_time_t expires)
+		psched_time_t expires)
 {
 	qdisc_watchdog_schedule_ns(wd, PSCHED_TICKS2NS(expires));
 }
@@ -83,7 +85,7 @@ extern struct Qdisc_ops pfifo_head_drop_qdisc_ops;
 
 int fifo_set_limit(struct Qdisc *q, unsigned int limit);
 struct Qdisc *fifo_create_dflt(struct Qdisc *sch, struct Qdisc_ops *ops,
-			       unsigned int limit);
+							   unsigned int limit);
 
 int register_qdisc(struct Qdisc_ops *qops);
 int unregister_qdisc(struct Qdisc_ops *qops);
@@ -95,24 +97,26 @@ void qdisc_hash_del(struct Qdisc *q);
 struct Qdisc *qdisc_lookup(struct net_device *dev, u32 handle);
 struct Qdisc *qdisc_lookup_class(struct net_device *dev, u32 handle);
 struct qdisc_rate_table *qdisc_get_rtab(struct tc_ratespec *r,
-					struct nlattr *tab);
+										struct nlattr *tab);
 void qdisc_put_rtab(struct qdisc_rate_table *tab);
 void qdisc_put_stab(struct qdisc_size_table *tab);
 void qdisc_warn_nonwc(const char *txt, struct Qdisc *qdisc);
 int sch_direct_xmit(struct sk_buff *skb, struct Qdisc *q,
-		    struct net_device *dev, struct netdev_queue *txq,
-		    spinlock_t *root_lock, bool validate);
+					struct net_device *dev, struct netdev_queue *txq,
+					spinlock_t *root_lock, bool validate);
 
 void __qdisc_run(struct Qdisc *q);
 
 static inline void qdisc_run(struct Qdisc *q)
 {
 	if (qdisc_run_begin(q))
+	{
 		__qdisc_run(q);
+	}
 }
 
 int tc_classify(struct sk_buff *skb, const struct tcf_proto *tp,
-		struct tcf_result *res, bool compat_mode);
+				struct tcf_result *res, bool compat_mode);
 
 static inline __be16 tc_skb_protocol(const struct sk_buff *skb)
 {
@@ -121,7 +125,10 @@ static inline __be16 tc_skb_protocol(const struct sk_buff *skb)
 	 * as the original vlan header was already stripped.
 	 */
 	if (skb_vlan_tag_present(skb))
+	{
 		return skb->vlan_proto;
+	}
+
 	return skb->protocol;
 }
 

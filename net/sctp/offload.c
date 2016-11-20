@@ -39,43 +39,55 @@ static __le32 sctp_gso_make_checksum(struct sk_buff *skb)
 }
 
 static struct sk_buff *sctp_gso_segment(struct sk_buff *skb,
-					netdev_features_t features)
+										netdev_features_t features)
 {
 	struct sk_buff *segs = ERR_PTR(-EINVAL);
 	struct sctphdr *sh;
 
 	sh = sctp_hdr(skb);
+
 	if (!pskb_may_pull(skb, sizeof(*sh)))
+	{
 		goto out;
+	}
 
 	__skb_pull(skb, sizeof(*sh));
 
-	if (skb_gso_ok(skb, features | NETIF_F_GSO_ROBUST)) {
+	if (skb_gso_ok(skb, features | NETIF_F_GSO_ROBUST))
+	{
 		/* Packet is from an untrusted source, reset gso_segs. */
 		struct skb_shared_info *pinfo = skb_shinfo(skb);
 		struct sk_buff *frag_iter;
 
 		pinfo->gso_segs = 0;
-		if (skb->len != skb->data_len) {
+
+		if (skb->len != skb->data_len)
+		{
 			/* Means we have chunks in here too */
 			pinfo->gso_segs++;
 		}
 
 		skb_walk_frags(skb, frag_iter)
-			pinfo->gso_segs++;
+		pinfo->gso_segs++;
 
 		segs = NULL;
 		goto out;
 	}
 
 	segs = skb_segment(skb, features | NETIF_F_HW_CSUM);
+
 	if (IS_ERR(segs))
+	{
 		goto out;
+	}
 
 	/* All that is left is update SCTP CRC if necessary */
-	if (!(features & NETIF_F_SCTP_CRC)) {
-		for (skb = segs; skb; skb = skb->next) {
-			if (skb->ip_summed == CHECKSUM_PARTIAL) {
+	if (!(features & NETIF_F_SCTP_CRC))
+	{
+		for (skb = segs; skb; skb = skb->next)
+		{
+			if (skb->ip_summed == CHECKSUM_PARTIAL)
+			{
 				sh = sctp_hdr(skb);
 				sh->checksum = sctp_gso_make_checksum(skb);
 			}
@@ -86,13 +98,15 @@ out:
 	return segs;
 }
 
-static const struct net_offload sctp_offload = {
+static const struct net_offload sctp_offload =
+{
 	.callbacks = {
 		.gso_segment = sctp_gso_segment,
 	},
 };
 
-static const struct net_offload sctp6_offload = {
+static const struct net_offload sctp6_offload =
+{
 	.callbacks = {
 		.gso_segment = sctp_gso_segment,
 	},
@@ -103,12 +117,18 @@ int __init sctp_offload_init(void)
 	int ret;
 
 	ret = inet_add_offload(&sctp_offload, IPPROTO_SCTP);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ret = inet6_add_offload(&sctp6_offload, IPPROTO_SCTP);
+
 	if (ret)
+	{
 		goto ipv4;
+	}
 
 	return ret;
 

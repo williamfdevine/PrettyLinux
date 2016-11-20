@@ -26,12 +26,12 @@
 #include <linux/ctype.h>
 
 void drm_crtc_enable_color_mgmt(struct drm_crtc *crtc,
-				uint degamma_lut_size,
-				bool has_ctm,
-				uint gamma_lut_size);
+								uint degamma_lut_size,
+								bool has_ctm,
+								uint gamma_lut_size);
 
 int drm_mode_crtc_set_gamma_size(struct drm_crtc *crtc,
-				 int gamma_size);
+								 int gamma_size);
 
 /**
  * drm_color_lut_extract - clamp&round LUT entries
@@ -43,13 +43,14 @@ int drm_mode_crtc_set_gamma_size(struct drm_crtc *crtc,
  * hardware.
  */
 static inline uint32_t drm_color_lut_extract(uint32_t user_input,
-					     uint32_t bit_precision)
+		uint32_t bit_precision)
 {
 	uint32_t val = user_input;
 	uint32_t max = 0xffff >> (16 - bit_precision);
 
 	/* Round only if we're not using full precision. */
-	if (bit_precision < 16) {
+	if (bit_precision < 16)
+	{
 		val += 1UL << (16 - bit_precision - 1);
 		val >>= 16 - bit_precision;
 	}

@@ -43,20 +43,23 @@
 #define EFUSE_REPEAT_THRESHOLD_		3
 #define EFUSE_ERROE_HANDLE		1
 
-struct efuse_map {
+struct efuse_map
+{
 	u8 offset;
 	u8 word_start;
 	u8 byte_start;
 	u8 byte_cnts;
 };
 
-struct pgpkt_struct {
+struct pgpkt_struct
+{
 	u8 offset;
 	u8 word_en;
 	u8 data[8];
 };
 
-enum efuse_data_item {
+enum efuse_data_item
+{
 	EFUSE_CHIP_ID = 0,
 	EFUSE_LDO_SETTING,
 	EFUSE_CLK_SETTING,
@@ -72,12 +75,14 @@ enum efuse_data_item {
 	EFUSE_TXPW_TAB
 };
 
-enum {
+enum
+{
 	VOLTAGE_V25 = 0x03,
 	LDOE25_SHIFT = 28,
 };
 
-struct efuse_priv {
+struct efuse_priv
+{
 	u8 id[2];
 	u8 ldo_setting[2];
 	u8 clk_setting[2];
@@ -99,17 +104,17 @@ u8 efuse_read_1byte(struct ieee80211_hw *hw, u16 address);
 int efuse_one_byte_read(struct ieee80211_hw *hw, u16 addr, u8 *data);
 void efuse_write_1byte(struct ieee80211_hw *hw, u16 address, u8 value);
 void read_efuse(struct ieee80211_hw *hw, u16 _offset,
-		u16 _size_byte, u8 *pbuf);
+				u16 _size_byte, u8 *pbuf);
 void efuse_shadow_read(struct ieee80211_hw *hw, u8 type,
-		       u16 offset, u32 *value);
+					   u16 offset, u32 *value);
 void efuse_shadow_write(struct ieee80211_hw *hw, u8 type,
-			u16 offset, u32 value);
+						u16 offset, u32 value);
 bool efuse_shadow_update(struct ieee80211_hw *hw);
 bool efuse_shadow_update_chk(struct ieee80211_hw *hw);
 void rtl_efuse_shadow_map_update(struct ieee80211_hw *hw);
 void efuse_force_write_vendor_Id(struct ieee80211_hw *hw);
 void efuse_re_pg_section(struct ieee80211_hw *hw, u8 section_idx);
 int rtl_get_hwinfo(struct ieee80211_hw *hw, struct rtl_priv *rtlpriv,
-		   int max_size, u8 *hwinfo, int *params);
+				   int max_size, u8 *hwinfo, int *params);
 
 #endif

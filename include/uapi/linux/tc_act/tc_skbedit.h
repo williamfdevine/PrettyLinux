@@ -29,11 +29,13 @@
 #define SKBEDIT_F_MARK			0x4
 #define SKBEDIT_F_PTYPE			0x8
 
-struct tc_skbedit {
+struct tc_skbedit
+{
 	tc_gen;
 };
 
-enum {
+enum
+{
 	TCA_SKBEDIT_UNSPEC,
 	TCA_SKBEDIT_TM,
 	TCA_SKBEDIT_PARMS,

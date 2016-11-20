@@ -73,7 +73,8 @@ int s5k4aa_init_controls(struct sd *sd);
 int s5k4aa_start(struct sd *sd);
 void s5k4aa_disconnect(struct sd *sd);
 
-static const struct m5602_sensor s5k4aa = {
+static const struct m5602_sensor s5k4aa =
+{
 	.name = "S5K4AA",
 	.i2c_slave_id = 0x5a,
 	.i2c_regW = 2,

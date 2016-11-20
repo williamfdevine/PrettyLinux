@@ -41,34 +41,43 @@ reject_tg6(struct sk_buff *skb, const struct xt_action_param *par)
 	const struct ip6t_reject_info *reject = par->targinfo;
 	struct net *net = par->net;
 
-	switch (reject->with) {
-	case IP6T_ICMP6_NO_ROUTE:
-		nf_send_unreach6(net, skb, ICMPV6_NOROUTE, par->hooknum);
-		break;
-	case IP6T_ICMP6_ADM_PROHIBITED:
-		nf_send_unreach6(net, skb, ICMPV6_ADM_PROHIBITED, par->hooknum);
-		break;
-	case IP6T_ICMP6_NOT_NEIGHBOUR:
-		nf_send_unreach6(net, skb, ICMPV6_NOT_NEIGHBOUR, par->hooknum);
-		break;
-	case IP6T_ICMP6_ADDR_UNREACH:
-		nf_send_unreach6(net, skb, ICMPV6_ADDR_UNREACH, par->hooknum);
-		break;
-	case IP6T_ICMP6_PORT_UNREACH:
-		nf_send_unreach6(net, skb, ICMPV6_PORT_UNREACH, par->hooknum);
-		break;
-	case IP6T_ICMP6_ECHOREPLY:
-		/* Do nothing */
-		break;
-	case IP6T_TCP_RESET:
-		nf_send_reset6(net, skb, par->hooknum);
-		break;
-	case IP6T_ICMP6_POLICY_FAIL:
-		nf_send_unreach6(net, skb, ICMPV6_POLICY_FAIL, par->hooknum);
-		break;
-	case IP6T_ICMP6_REJECT_ROUTE:
-		nf_send_unreach6(net, skb, ICMPV6_REJECT_ROUTE, par->hooknum);
-		break;
+	switch (reject->with)
+	{
+		case IP6T_ICMP6_NO_ROUTE:
+			nf_send_unreach6(net, skb, ICMPV6_NOROUTE, par->hooknum);
+			break;
+
+		case IP6T_ICMP6_ADM_PROHIBITED:
+			nf_send_unreach6(net, skb, ICMPV6_ADM_PROHIBITED, par->hooknum);
+			break;
+
+		case IP6T_ICMP6_NOT_NEIGHBOUR:
+			nf_send_unreach6(net, skb, ICMPV6_NOT_NEIGHBOUR, par->hooknum);
+			break;
+
+		case IP6T_ICMP6_ADDR_UNREACH:
+			nf_send_unreach6(net, skb, ICMPV6_ADDR_UNREACH, par->hooknum);
+			break;
+
+		case IP6T_ICMP6_PORT_UNREACH:
+			nf_send_unreach6(net, skb, ICMPV6_PORT_UNREACH, par->hooknum);
+			break;
+
+		case IP6T_ICMP6_ECHOREPLY:
+			/* Do nothing */
+			break;
+
+		case IP6T_TCP_RESET:
+			nf_send_reset6(net, skb, par->hooknum);
+			break;
+
+		case IP6T_ICMP6_POLICY_FAIL:
+			nf_send_unreach6(net, skb, ICMPV6_POLICY_FAIL, par->hooknum);
+			break;
+
+		case IP6T_ICMP6_REJECT_ROUTE:
+			nf_send_unreach6(net, skb, ICMPV6_REJECT_ROUTE, par->hooknum);
+			break;
 	}
 
 	return NF_DROP;
@@ -79,29 +88,35 @@ static int reject_tg6_check(const struct xt_tgchk_param *par)
 	const struct ip6t_reject_info *rejinfo = par->targinfo;
 	const struct ip6t_entry *e = par->entryinfo;
 
-	if (rejinfo->with == IP6T_ICMP6_ECHOREPLY) {
+	if (rejinfo->with == IP6T_ICMP6_ECHOREPLY)
+	{
 		pr_info("ECHOREPLY is not supported.\n");
 		return -EINVAL;
-	} else if (rejinfo->with == IP6T_TCP_RESET) {
+	}
+	else if (rejinfo->with == IP6T_TCP_RESET)
+	{
 		/* Must specify that it's a TCP packet */
 		if (!(e->ipv6.flags & IP6T_F_PROTO) ||
-		    e->ipv6.proto != IPPROTO_TCP ||
-		    (e->ipv6.invflags & XT_INV_PROTO)) {
+			e->ipv6.proto != IPPROTO_TCP ||
+			(e->ipv6.invflags & XT_INV_PROTO))
+		{
 			pr_info("TCP_RESET illegal for non-tcp\n");
 			return -EINVAL;
 		}
 	}
+
 	return 0;
 }
 
-static struct xt_target reject_tg6_reg __read_mostly = {
+static struct xt_target reject_tg6_reg __read_mostly =
+{
 	.name		= "REJECT",
 	.family		= NFPROTO_IPV6,
 	.target		= reject_tg6,
 	.targetsize	= sizeof(struct ip6t_reject_info),
 	.table		= "filter",
 	.hooks		= (1 << NF_INET_LOCAL_IN) | (1 << NF_INET_FORWARD) |
-			  (1 << NF_INET_LOCAL_OUT),
+	(1 << NF_INET_LOCAL_OUT),
 	.checkentry	= reject_tg6_check,
 	.me		= THIS_MODULE
 };

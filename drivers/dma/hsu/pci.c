@@ -33,14 +33,23 @@ static irqreturn_t hsu_pci_irq(int irq, void *dev)
 	int err;
 
 	dmaisr = readl(chip->regs + HSU_PCI_DMAISR);
-	for (i = 0; i < chip->hsu->nr_channels; i++) {
-		if (dmaisr & 0x1) {
+
+	for (i = 0; i < chip->hsu->nr_channels; i++)
+	{
+		if (dmaisr & 0x1)
+		{
 			err = hsu_dma_get_status(chip, i, &status);
+
 			if (err > 0)
+			{
 				ret |= 1;
+			}
 			else if (err == 0)
+			{
 				ret |= hsu_dma_do_irq(chip, i, status);
+			}
 		}
+
 		dmaisr >>= 1;
 	}
 
@@ -53,11 +62,16 @@ static int hsu_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	int ret;
 
 	ret = pcim_enable_device(pdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = pcim_iomap_regions(pdev, BIT(0), pci_name(pdev));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "I/O memory remapping failed\n");
 		return ret;
 	}
@@ -66,16 +80,25 @@ static int hsu_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	pci_try_set_mwi(pdev);
 
 	ret = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	chip = devm_kzalloc(&pdev->dev, sizeof(*chip), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
 
 	chip->dev = &pdev->dev;
 	chip->regs = pcim_iomap_table(pdev)[0];
@@ -86,12 +109,18 @@ static int hsu_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	pci_enable_msi(pdev);
 
 	ret = hsu_dma_probe(chip);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = request_irq(chip->irq, hsu_pci_irq, 0, "hsu_dma_pci", chip);
+
 	if (ret)
+	{
 		goto err_register_irq;
+	}
 
 	pci_set_drvdata(pdev, chip);
 
@@ -110,14 +139,16 @@ static void hsu_pci_remove(struct pci_dev *pdev)
 	hsu_dma_remove(chip);
 }
 
-static const struct pci_device_id hsu_pci_id_table[] = {
+static const struct pci_device_id hsu_pci_id_table[] =
+{
 	{ PCI_VDEVICE(INTEL, 0x081e), 0 },
 	{ PCI_VDEVICE(INTEL, 0x1192), 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(pci, hsu_pci_id_table);
 
-static struct pci_driver hsu_pci_driver = {
+static struct pci_driver hsu_pci_driver =
+{
 	.name		= "hsu_dma_pci",
 	.id_table	= hsu_pci_id_table,
 	.probe		= hsu_pci_probe,

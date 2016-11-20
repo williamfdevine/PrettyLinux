@@ -16,7 +16,8 @@
 #define VLAN_F_POP		0x1
 #define VLAN_F_PUSH		0x2
 
-struct tcf_vlan {
+struct tcf_vlan
+{
 	struct tc_action	common;
 	int			tcfv_action;
 	u16			tcfv_push_vid;
@@ -28,8 +29,12 @@ struct tcf_vlan {
 static inline bool is_tcf_vlan(const struct tc_action *a)
 {
 #ifdef CONFIG_NET_CLS_ACT
+
 	if (a->ops && a->ops->type == TCA_ACT_VLAN)
+	{
 		return true;
+	}
+
 #endif
 	return false;
 }

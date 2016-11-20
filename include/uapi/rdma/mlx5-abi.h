@@ -35,16 +35,19 @@
 
 #include <linux/types.h>
 
-enum {
+enum
+{
 	MLX5_QP_FLAG_SIGNATURE		= 1 << 0,
 	MLX5_QP_FLAG_SCATTER_CQE	= 1 << 1,
 };
 
-enum {
+enum
+{
 	MLX5_SRQ_FLAG_SIGNATURE		= 1 << 0,
 };
 
-enum {
+enum
+{
 	MLX5_WQ_FLAG_SIGNATURE		= 1 << 0,
 };
 
@@ -60,12 +63,14 @@ enum {
  * instead.
  */
 
-struct mlx5_ib_alloc_ucontext_req {
+struct mlx5_ib_alloc_ucontext_req
+{
 	__u32	total_num_uuars;
 	__u32	num_low_latency_uuars;
 };
 
-struct mlx5_ib_alloc_ucontext_req_v2 {
+struct mlx5_ib_alloc_ucontext_req_v2
+{
 	__u32	total_num_uuars;
 	__u32	num_low_latency_uuars;
 	__u32	flags;
@@ -76,15 +81,18 @@ struct mlx5_ib_alloc_ucontext_req_v2 {
 	__u32	reserved2;
 };
 
-enum mlx5_ib_alloc_ucontext_resp_mask {
+enum mlx5_ib_alloc_ucontext_resp_mask
+{
 	MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_CORE_CLOCK_OFFSET = 1UL << 0,
 };
 
-enum mlx5_user_cmds_supp_uhw {
+enum mlx5_user_cmds_supp_uhw
+{
 	MLX5_USER_CMDS_SUPP_UHW_QUERY_DEVICE = 1 << 0,
 };
 
-struct mlx5_ib_alloc_ucontext_resp {
+struct mlx5_ib_alloc_ucontext_resp
+{
 	__u32	qp_tab_size;
 	__u32	bf_reg_size;
 	__u32	tot_uuars;
@@ -104,11 +112,13 @@ struct mlx5_ib_alloc_ucontext_resp {
 	__u64	hca_core_clock_offset;
 };
 
-struct mlx5_ib_alloc_pd_resp {
+struct mlx5_ib_alloc_pd_resp
+{
 	__u32	pdn;
 };
 
-struct mlx5_ib_tso_caps {
+struct mlx5_ib_tso_caps
+{
 	__u32 max_tso; /* Maximum tso payload size in bytes */
 
 	/* Corresponding bit will be set if qp type from
@@ -118,39 +128,45 @@ struct mlx5_ib_tso_caps {
 	__u32 supported_qpts;
 };
 
-struct mlx5_ib_rss_caps {
+struct mlx5_ib_rss_caps
+{
 	__u64 rx_hash_fields_mask; /* enum mlx5_rx_hash_fields */
 	__u8 rx_hash_function; /* enum mlx5_rx_hash_function_flags */
 	__u8 reserved[7];
 };
 
-struct mlx5_ib_query_device_resp {
+struct mlx5_ib_query_device_resp
+{
 	__u32	comp_mask;
 	__u32	response_length;
 	struct	mlx5_ib_tso_caps tso_caps;
 	struct	mlx5_ib_rss_caps rss_caps;
 };
 
-struct mlx5_ib_create_cq {
+struct mlx5_ib_create_cq
+{
 	__u64	buf_addr;
 	__u64	db_addr;
 	__u32	cqe_size;
 	__u32	reserved; /* explicit padding (optional on i386) */
 };
 
-struct mlx5_ib_create_cq_resp {
+struct mlx5_ib_create_cq_resp
+{
 	__u32	cqn;
 	__u32	reserved;
 };
 
-struct mlx5_ib_resize_cq {
+struct mlx5_ib_resize_cq
+{
 	__u64	buf_addr;
 	__u16	cqe_size;
 	__u16	reserved0;
 	__u32	reserved1;
 };
 
-struct mlx5_ib_create_srq {
+struct mlx5_ib_create_srq
+{
 	__u64	buf_addr;
 	__u64	db_addr;
 	__u32	flags;
@@ -159,12 +175,14 @@ struct mlx5_ib_create_srq {
 	__u32	reserved1;
 };
 
-struct mlx5_ib_create_srq_resp {
+struct mlx5_ib_create_srq_resp
+{
 	__u32	srqn;
 	__u32	reserved;
 };
 
-struct mlx5_ib_create_qp {
+struct mlx5_ib_create_qp
+{
 	__u64	buf_addr;
 	__u64	db_addr;
 	__u32	sq_wqe_count;
@@ -177,7 +195,8 @@ struct mlx5_ib_create_qp {
 };
 
 /* RX Hash function flags */
-enum mlx5_rx_hash_function_flags {
+enum mlx5_rx_hash_function_flags
+{
 	MLX5_RX_HASH_FUNC_TOEPLITZ	= 1 << 0,
 };
 
@@ -189,7 +208,8 @@ enum mlx5_rx_hash_function_flags {
  * Note: *IPV4 and *IPV6 flags can't be enabled together on the same QP
  * and *TCP and *UDP flags can't be enabled together on the same QP.
 */
-enum mlx5_rx_hash_fields {
+enum mlx5_rx_hash_fields
+{
 	MLX5_RX_HASH_SRC_IPV4	= 1 << 0,
 	MLX5_RX_HASH_DST_IPV4	= 1 << 1,
 	MLX5_RX_HASH_SRC_IPV6	= 1 << 2,
@@ -200,7 +220,8 @@ enum mlx5_rx_hash_fields {
 	MLX5_RX_HASH_DST_PORT_UDP	= 1 << 7
 };
 
-struct mlx5_ib_create_qp_rss {
+struct mlx5_ib_create_qp_rss
+{
 	__u64 rx_hash_fields_mask; /* enum mlx5_rx_hash_fields */
 	__u8 rx_hash_function; /* enum mlx5_rx_hash_function_flags */
 	__u8 rx_key_len; /* valid only for Toeplitz */
@@ -210,18 +231,21 @@ struct mlx5_ib_create_qp_rss {
 	__u32   reserved1;
 };
 
-struct mlx5_ib_create_qp_resp {
+struct mlx5_ib_create_qp_resp
+{
 	__u32	uuar_index;
 };
 
-struct mlx5_ib_alloc_mw {
+struct mlx5_ib_alloc_mw
+{
 	__u32	comp_mask;
 	__u8	num_klms;
 	__u8	reserved1;
 	__u16	reserved2;
 };
 
-struct mlx5_ib_create_wq {
+struct mlx5_ib_create_wq
+{
 	__u64   buf_addr;
 	__u64   db_addr;
 	__u32   rq_wqe_count;
@@ -232,17 +256,20 @@ struct mlx5_ib_create_wq {
 	__u32   reserved;
 };
 
-struct mlx5_ib_create_wq_resp {
+struct mlx5_ib_create_wq_resp
+{
 	__u32	response_length;
 	__u32	reserved;
 };
 
-struct mlx5_ib_create_rwq_ind_tbl_resp {
+struct mlx5_ib_create_rwq_ind_tbl_resp
+{
 	__u32	response_length;
 	__u32	reserved;
 };
 
-struct mlx5_ib_modify_wq {
+struct mlx5_ib_modify_wq
+{
 	__u32	comp_mask;
 	__u32	reserved;
 };

@@ -101,13 +101,13 @@
 
 #define S5P_FIMV_SCRATCH_BUF_SIZE_H264_DEC_V8(w, h)	(((w) * 704) + 2176)
 #define S5P_FIMV_SCRATCH_BUF_SIZE_VP8_DEC_V8(w, h) \
-		(((w) * 576 + (h) * 128)  + 4128)
+	(((w) * 576 + (h) * 128)  + 4128)
 
 #define S5P_FIMV_SCRATCH_BUF_SIZE_H264_ENC_V8(w, h) \
-			(((w) * 592) + 2336)
+	(((w) * 592) + 2336)
 #define S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V8(w, h) \
-			(((w) * 576) + 10512 + \
-			((((((w) * 16) * ((h) * 16)) * 3) / 2) * 4))
+	(((w) * 576) + 10512 + \
+	 ((((((w) * 16) * ((h) * 16)) * 3) / 2) * 4))
 #define S5P_FIMV_ME_BUFFER_SIZE_V8(imw, imh, mbw, mbh) \
 	((DIV_ROUND_UP((mbw * 16), 64) *  DIV_ROUND_UP((mbh * 16), 64) * 256) \
 	 + (DIV_ROUND_UP((mbw) * (mbh), 32) * 16))

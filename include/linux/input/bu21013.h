@@ -20,7 +20,8 @@
  *
  * This is used to handle the platform data
  */
-struct bu21013_platform_device {
+struct bu21013_platform_device
+{
 	int touch_x_max;
 	int touch_y_max;
 	unsigned int cs_pin;

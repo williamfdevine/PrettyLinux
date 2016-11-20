@@ -42,7 +42,8 @@
  * constant across firmware revisions! Types for each item must be fixed
  * size across target and host platforms. More items may be added at the end.
  */
-struct host_interest {
+struct host_interest
+{
 	/*
 	 * Pointer to application-defined area, if any.
 	 * Set by Target application during startup.
@@ -376,20 +377,20 @@ Fw Mode/SubMode Mask
 
 #define HI_WOW_EXT_MAKE_CONFIG(num_lists, count, size) \
 	((((num_lists) << HI_WOW_EXT_NUM_LIST_SHIFT) & \
-		HI_WOW_EXT_NUM_LIST_MASK) | \
-	(((count) << HI_WOW_EXT_NUM_PATTERNS_SHIFT) & \
-		HI_WOW_EXT_NUM_PATTERNS_MASK) | \
-	(((size) << HI_WOW_EXT_PATTERN_SIZE_SHIFT) & \
-		HI_WOW_EXT_PATTERN_SIZE_MASK))
+	  HI_WOW_EXT_NUM_LIST_MASK) | \
+	 (((count) << HI_WOW_EXT_NUM_PATTERNS_SHIFT) & \
+	  HI_WOW_EXT_NUM_PATTERNS_MASK) | \
+	 (((size) << HI_WOW_EXT_PATTERN_SIZE_SHIFT) & \
+	  HI_WOW_EXT_PATTERN_SIZE_MASK))
 
 #define HI_WOW_EXT_GET_NUM_LISTS(config) \
 	(((config) & HI_WOW_EXT_NUM_LIST_MASK) >> HI_WOW_EXT_NUM_LIST_SHIFT)
 #define HI_WOW_EXT_GET_NUM_PATTERNS(config) \
 	(((config) & HI_WOW_EXT_NUM_PATTERNS_MASK) >> \
-		HI_WOW_EXT_NUM_PATTERNS_SHIFT)
+	 HI_WOW_EXT_NUM_PATTERNS_SHIFT)
 #define HI_WOW_EXT_GET_PATTERN_SIZE(config) \
 	(((config) & HI_WOW_EXT_PATTERN_SIZE_MASK) >> \
-		HI_WOW_EXT_PATTERN_SIZE_SHIFT)
+	 HI_WOW_EXT_PATTERN_SIZE_SHIFT)
 
 /*
  * Early allocation configuration
@@ -419,10 +420,10 @@ Fw Mode/SubMode Mask
 
 #define HI_EARLY_ALLOC_VALID() \
 	((((HOST_INTEREST->hi_early_alloc) & HI_EARLY_ALLOC_MAGIC_MASK) >> \
-	HI_EARLY_ALLOC_MAGIC_SHIFT) == (HI_EARLY_ALLOC_MAGIC))
+	  HI_EARLY_ALLOC_MAGIC_SHIFT) == (HI_EARLY_ALLOC_MAGIC))
 #define HI_EARLY_ALLOC_GET_IRAM_BANKS() \
 	(((HOST_INTEREST->hi_early_alloc) & HI_EARLY_ALLOC_IRAM_BANKS_MASK) \
-	>> HI_EARLY_ALLOC_IRAM_BANKS_SHIFT)
+	 >> HI_EARLY_ALLOC_IRAM_BANKS_SHIFT)
 
 /*power save flag bit definitions*/
 #define HI_PWR_SAVE_LPL_ENABLED   0x1
@@ -438,7 +439,7 @@ Fw Mode/SubMode Mask
 	((HOST_INTEREST->hi_pwr_save_flags & HI_PWR_SAVE_LPL_ENABLED))
 #define HI_DEV_LPL_TYPE_GET(_devix) \
 	(HOST_INTEREST->hi_pwr_save_flags & ((HI_PWR_SAVE_LPL_DEV_MASK) << \
-	 (HI_PWR_SAVE_LPL_DEV0_LSB + (_devix) * 2)))
+										 (HI_PWR_SAVE_LPL_DEV0_LSB + (_devix) * 2)))
 
 #define HOST_INTEREST_SMPS_IS_ALLOWED() \
 	((HOST_INTEREST->hi_smps_options & HI_SMPS_ALLOW_MASK))

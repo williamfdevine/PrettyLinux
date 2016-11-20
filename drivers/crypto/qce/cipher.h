@@ -19,7 +19,8 @@
 
 #define QCE_MAX_KEY_SIZE	64
 
-struct qce_cipher_ctx {
+struct qce_cipher_ctx
+{
 	u8 enc_key[QCE_MAX_KEY_SIZE];
 	unsigned int enc_keylen;
 	struct crypto_skcipher *fallback;
@@ -39,7 +40,8 @@ struct qce_cipher_ctx {
  * @src_sg: source sg pointer table beginning;
  * @cryptlen: crypto length
  */
-struct qce_cipher_reqctx {
+struct qce_cipher_reqctx
+{
 	unsigned long flags;
 	u8 *iv;
 	unsigned int ivsize;

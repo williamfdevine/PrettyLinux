@@ -31,21 +31,21 @@
 
 /* Status register (ms int, small fifo, IO)*/
 #define R592_STATUS			0x10
-							/* Parallel INT bits */
+/* Parallel INT bits */
 #define R592_STATUS_P_CMDNACK		(1 << 16)	/* INT reg: NACK (parallel mode) */
 #define R592_STATUS_P_BREQ		(1 << 17)	/* INT reg: card ready (parallel mode)*/
 #define R592_STATUS_P_INTERR		(1 << 18)	/* INT reg: int error (parallel mode)*/
 #define R592_STATUS_P_CED		(1 << 19)	/* INT reg: command done (parallel mode) */
 
-							/* Fifo status */
+/* Fifo status */
 #define R592_STATUS_SFIFO_FULL		(1 << 20)	/* Small Fifo almost full (last chunk is written) */
 #define R592_STATUS_SFIFO_EMPTY		(1 << 21)	/* Small Fifo empty */
 
-							/* Error detection via CRC */
+/* Error detection via CRC */
 #define R592_STATUS_SEND_ERR		(1 << 24)	/* Send failed */
 #define R592_STATUS_RECV_ERR		(1 << 25)	/* Receive failed */
 
-							/* Card state */
+/* Card state */
 #define R592_STATUS_RDY			(1 << 28)	/* RDY signal received */
 #define R592_STATUS_CED			(1 << 29)	/* INT: Command done (serial mode)*/
 #define R592_STATUS_SFIFO_INPUT		(1 << 30)	/* Small fifo received data*/
@@ -128,7 +128,8 @@
 /* Debug register, written (0xABCDEF00) when error happens - not used*/
 #define R592_REG_3C			0x3C
 
-struct r592_device {
+struct r592_device
+{
 	struct pci_dev *pci_dev;
 	struct memstick_host	*host;		/* host backpointer */
 	struct memstick_request *req;		/* current request */
@@ -164,7 +165,7 @@ struct r592_device {
 	do { \
 		if (debug >= level) \
 			printk(KERN_DEBUG DRV_NAME \
-				": " format "\n", ## __VA_ARGS__); \
+				   ": " format "\n", ## __VA_ARGS__); \
 	} while (0)
 
 

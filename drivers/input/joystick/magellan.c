@@ -51,7 +51,8 @@ static int magellan_axes[] = { ABS_X, ABS_Y, ABS_Z, ABS_RX, ABS_RY, ABS_RZ };
  * Per-Magellan data.
  */
 
-struct magellan {
+struct magellan
+{
 	struct input_dev *dev;
 	int idx;
 	unsigned char data[MAGELLAN_MAX_LENGTH];
@@ -69,40 +70,54 @@ static int magellan_crunch_nibbles(unsigned char *data, int count)
 {
 	static unsigned char nibbles[16] = "0AB3D56GH9:K<MN?";
 
-	do {
+	do
+	{
 		if (data[count] == nibbles[data[count] & 0xf])
+		{
 			data[count] = data[count] & 0xf;
+		}
 		else
+		{
 			return -1;
-	} while (--count);
+		}
+	}
+	while (--count);
 
 	return 0;
 }
 
-static void magellan_process_packet(struct magellan* magellan)
+static void magellan_process_packet(struct magellan *magellan)
 {
 	struct input_dev *dev = magellan->dev;
 	unsigned char *data = magellan->data;
 	int i, t;
 
-	if (!magellan->idx) return;
+	if (!magellan->idx) { return; }
 
-	switch (magellan->data[0]) {
+	switch (magellan->data[0])
+	{
 
 		case 'd':				/* Axis data */
-			if (magellan->idx != 25) return;
-			if (magellan_crunch_nibbles(data, 24)) return;
+			if (magellan->idx != 25) { return; }
+
+			if (magellan_crunch_nibbles(data, 24)) { return; }
+
 			for (i = 0; i < 6; i++)
 				input_report_abs(dev, magellan_axes[i],
-					(data[(i << 2) + 1] << 12 | data[(i << 2) + 2] << 8 |
-					 data[(i << 2) + 3] <<  4 | data[(i << 2) + 4]) - 32768);
+								 (data[(i << 2) + 1] << 12 | data[(i << 2) + 2] << 8 |
+								  data[(i << 2) + 3] <<  4 | data[(i << 2) + 4]) - 32768);
+
 			break;
 
 		case 'k':				/* Button data */
-			if (magellan->idx != 4) return;
-			if (magellan_crunch_nibbles(data, 3)) return;
+			if (magellan->idx != 4) { return; }
+
+			if (magellan_crunch_nibbles(data, 3)) { return; }
+
 			t = (data[1] << 1) | (data[2] << 5) | data[3];
-			for (i = 0; i < 9; i++) input_report_key(dev, magellan_buttons[i], (t >> i) & 1);
+
+			for (i = 0; i < 9; i++) { input_report_key(dev, magellan_buttons[i], (t >> i) & 1); }
+
 			break;
 	}
 
@@ -110,17 +125,23 @@ static void magellan_process_packet(struct magellan* magellan)
 }
 
 static irqreturn_t magellan_interrupt(struct serio *serio,
-		unsigned char data, unsigned int flags)
+									  unsigned char data, unsigned int flags)
 {
-	struct magellan* magellan = serio_get_drvdata(serio);
+	struct magellan *magellan = serio_get_drvdata(serio);
 
-	if (data == '\r') {
+	if (data == '\r')
+	{
 		magellan_process_packet(magellan);
 		magellan->idx = 0;
-	} else {
-		if (magellan->idx < MAGELLAN_MAX_LENGTH)
-			magellan->data[magellan->idx++] = data;
 	}
+	else
+	{
+		if (magellan->idx < MAGELLAN_MAX_LENGTH)
+		{
+			magellan->data[magellan->idx++] = data;
+		}
+	}
+
 	return IRQ_HANDLED;
 }
 
@@ -130,7 +151,7 @@ static irqreturn_t magellan_interrupt(struct serio *serio,
 
 static void magellan_disconnect(struct serio *serio)
 {
-	struct magellan* magellan = serio_get_drvdata(serio);
+	struct magellan *magellan = serio_get_drvdata(serio);
 
 	serio_close(serio);
 	serio_set_drvdata(serio, NULL);
@@ -153,8 +174,11 @@ static int magellan_connect(struct serio *serio, struct serio_driver *drv)
 
 	magellan = kzalloc(sizeof(struct magellan), GFP_KERNEL);
 	input_dev = input_allocate_device();
+
 	if (!magellan || !input_dev)
+	{
 		goto fail1;
+	}
 
 	magellan->dev = input_dev;
 	snprintf(magellan->phys, sizeof(magellan->phys), "%s/input0", serio->phys);
@@ -170,26 +194,36 @@ static int magellan_connect(struct serio *serio, struct serio_driver *drv)
 	input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS);
 
 	for (i = 0; i < 9; i++)
+	{
 		set_bit(magellan_buttons[i], input_dev->keybit);
+	}
 
 	for (i = 0; i < 6; i++)
+	{
 		input_set_abs_params(input_dev, magellan_axes[i], -360, 360, 0, 0);
+	}
 
 	serio_set_drvdata(serio, magellan);
 
 	err = serio_open(serio, drv);
+
 	if (err)
+	{
 		goto fail2;
+	}
 
 	err = input_register_device(magellan->dev);
+
 	if (err)
+	{
 		goto fail3;
+	}
 
 	return 0;
 
- fail3:	serio_close(serio);
- fail2:	serio_set_drvdata(serio, NULL);
- fail1:	input_free_device(input_dev);
+fail3:	serio_close(serio);
+fail2:	serio_set_drvdata(serio, NULL);
+fail1:	input_free_device(input_dev);
 	kfree(magellan);
 	return err;
 }
@@ -198,7 +232,8 @@ static int magellan_connect(struct serio *serio, struct serio_driver *drv)
  * The serio driver structure.
  */
 
-static struct serio_device_id magellan_serio_ids[] = {
+static struct serio_device_id magellan_serio_ids[] =
+{
 	{
 		.type	= SERIO_RS232,
 		.proto	= SERIO_MAGELLAN,
@@ -210,7 +245,8 @@ static struct serio_device_id magellan_serio_ids[] = {
 
 MODULE_DEVICE_TABLE(serio, magellan_serio_ids);
 
-static struct serio_driver magellan_drv = {
+static struct serio_driver magellan_drv =
+{
 	.driver		= {
 		.name	= "magellan",
 	},

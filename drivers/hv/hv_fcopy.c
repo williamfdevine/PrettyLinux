@@ -45,7 +45,8 @@
  * handled.
  */
 
-static struct {
+static struct
+{
 	int state;   /* hvutil_device_state */
 	int recv_len; /* number of bytes received. */
 	struct hv_fcopy_hdr  *fcopy_msg; /* current message */
@@ -93,27 +94,35 @@ static int fcopy_handle_handshake(u32 version)
 {
 	u32 our_ver = FCOPY_CURRENT_VERSION;
 
-	switch (version) {
-	case FCOPY_VERSION_0:
-		/* Daemon doesn't expect us to reply */
-		dm_reg_value = version;
-		break;
-	case FCOPY_VERSION_1:
-		/* Daemon expects us to reply with our own version */
-		if (hvutil_transport_send(hvt, &our_ver, sizeof(our_ver),
-		    fcopy_register_done))
-			return -EFAULT;
-		dm_reg_value = version;
-		break;
-	default:
-		/*
-		 * For now we will fail the registration.
-		 * If and when we have multiple versions to
-		 * deal with, we will be backward compatible.
-		 * We will add this code when needed.
-		 */
-		return -EINVAL;
+	switch (version)
+	{
+		case FCOPY_VERSION_0:
+			/* Daemon doesn't expect us to reply */
+			dm_reg_value = version;
+			break;
+
+		case FCOPY_VERSION_1:
+
+			/* Daemon expects us to reply with our own version */
+			if (hvutil_transport_send(hvt, &our_ver, sizeof(our_ver),
+									  fcopy_register_done))
+			{
+				return -EFAULT;
+			}
+
+			dm_reg_value = version;
+			break;
+
+		default:
+			/*
+			 * For now we will fail the registration.
+			 * If and when we have multiple versions to
+			 * deal with, we will be backward compatible.
+			 * We will add this code when needed.
+			 */
+			return -EINVAL;
 	}
+
 	pr_debug("FCP: userspace daemon ver. %d connected\n", version);
 	return 0;
 }
@@ -137,44 +146,53 @@ static void fcopy_send_data(struct work_struct *dummy)
 	 * that the strings can be properly terminated!
 	 */
 
-	switch (operation) {
-	case START_FILE_COPY:
-		out_len = sizeof(struct hv_start_fcopy);
-		smsg_out = kzalloc(sizeof(*smsg_out), GFP_KERNEL);
-		if (!smsg_out)
-			return;
+	switch (operation)
+	{
+		case START_FILE_COPY:
+			out_len = sizeof(struct hv_start_fcopy);
+			smsg_out = kzalloc(sizeof(*smsg_out), GFP_KERNEL);
 
-		smsg_out->hdr.operation = operation;
-		smsg_in = (struct hv_start_fcopy *)fcopy_transaction.fcopy_msg;
+			if (!smsg_out)
+			{
+				return;
+			}
 
-		utf16s_to_utf8s((wchar_t *)smsg_in->file_name, W_MAX_PATH,
-				UTF16_LITTLE_ENDIAN,
-				(__u8 *)&smsg_out->file_name, W_MAX_PATH - 1);
+			smsg_out->hdr.operation = operation;
+			smsg_in = (struct hv_start_fcopy *)fcopy_transaction.fcopy_msg;
 
-		utf16s_to_utf8s((wchar_t *)smsg_in->path_name, W_MAX_PATH,
-				UTF16_LITTLE_ENDIAN,
-				(__u8 *)&smsg_out->path_name, W_MAX_PATH - 1);
+			utf16s_to_utf8s((wchar_t *)smsg_in->file_name, W_MAX_PATH,
+							UTF16_LITTLE_ENDIAN,
+							(__u8 *)&smsg_out->file_name, W_MAX_PATH - 1);
 
-		smsg_out->copy_flags = smsg_in->copy_flags;
-		smsg_out->file_size = smsg_in->file_size;
-		out_src = smsg_out;
-		break;
+			utf16s_to_utf8s((wchar_t *)smsg_in->path_name, W_MAX_PATH,
+							UTF16_LITTLE_ENDIAN,
+							(__u8 *)&smsg_out->path_name, W_MAX_PATH - 1);
 
-	default:
-		out_src = fcopy_transaction.fcopy_msg;
-		out_len = fcopy_transaction.recv_len;
-		break;
+			smsg_out->copy_flags = smsg_in->copy_flags;
+			smsg_out->file_size = smsg_in->file_size;
+			out_src = smsg_out;
+			break;
+
+		default:
+			out_src = fcopy_transaction.fcopy_msg;
+			out_len = fcopy_transaction.recv_len;
+			break;
 	}
 
 	fcopy_transaction.state = HVUTIL_USERSPACE_REQ;
 	rc = hvutil_transport_send(hvt, out_src, out_len, NULL);
-	if (rc) {
+
+	if (rc)
+	{
 		pr_debug("FCP: failed to communicate to the daemon: %d\n", rc);
-		if (cancel_delayed_work_sync(&fcopy_timeout_work)) {
+
+		if (cancel_delayed_work_sync(&fcopy_timeout_work))
+		{
 			fcopy_respond_to_host(HV_E_FAIL);
 			fcopy_transaction.state = HVUTIL_READY;
 		}
 	}
+
 	kfree(smsg_out);
 
 	return;
@@ -205,19 +223,21 @@ fcopy_respond_to_host(int error)
 	req_id = fcopy_transaction.recv_req_id;
 
 	icmsghdr = (struct icmsg_hdr *)
-			&recv_buffer[sizeof(struct vmbuspipe_hdr)];
+			   &recv_buffer[sizeof(struct vmbuspipe_hdr)];
 
 	if (channel->onchannel_callback == NULL)
 		/*
 		 * We have raced with util driver being unloaded;
 		 * silently return.
 		 */
+	{
 		return;
+	}
 
 	icmsghdr->status = error;
 	icmsghdr->icflags = ICMSGHDRFLAG_TRANSACTION | ICMSGHDRFLAG_RESPONSE;
 	vmbus_sendpacket(channel, recv_buffer, buf_len, req_id,
-				VM_PKT_DATA_INBAND, 0);
+					 VM_PKT_DATA_INBAND, 0);
 }
 
 void hv_fcopy_onchannelcallback(void *context)
@@ -232,24 +252,33 @@ void hv_fcopy_onchannelcallback(void *context)
 	int fcopy_srv_version;
 
 	if (fcopy_transaction.state > HVUTIL_READY)
+	{
 		return;
+	}
 
 	vmbus_recvpacket(channel, recv_buffer, PAGE_SIZE * 2, &recvlen,
-			 &requestid);
+					 &requestid);
+
 	if (recvlen <= 0)
+	{
 		return;
+	}
 
 	icmsghdr = (struct icmsg_hdr *)&recv_buffer[
-			sizeof(struct vmbuspipe_hdr)];
-	if (icmsghdr->icmsgtype == ICMSGTYPE_NEGOTIATE) {
+				   sizeof(struct vmbuspipe_hdr)];
+
+	if (icmsghdr->icmsgtype == ICMSGTYPE_NEGOTIATE)
+	{
 		util_fw_version = UTIL_FW_VERSION;
 		fcopy_srv_version = WIN8_SRV_VERSION;
 		vmbus_prep_negotiate_resp(icmsghdr, negop, recv_buffer,
-				util_fw_version, fcopy_srv_version);
-	} else {
+								  util_fw_version, fcopy_srv_version);
+	}
+	else
+	{
 		fcopy_msg = (struct hv_fcopy_hdr *)&recv_buffer[
-				sizeof(struct vmbuspipe_hdr) +
-				sizeof(struct icmsg_hdr)];
+						sizeof(struct vmbuspipe_hdr) +
+						sizeof(struct icmsg_hdr)];
 
 		/*
 		 * Stash away this global state for completing the
@@ -260,11 +289,13 @@ void hv_fcopy_onchannelcallback(void *context)
 		fcopy_transaction.recv_req_id = requestid;
 		fcopy_transaction.fcopy_msg = fcopy_msg;
 
-		if (fcopy_transaction.state < HVUTIL_READY) {
+		if (fcopy_transaction.state < HVUTIL_READY)
+		{
 			/* Userspace is not registered yet */
 			fcopy_respond_to_host(HV_E_FAIL);
 			return;
 		}
+
 		fcopy_transaction.state = HVUTIL_HOSTMSG_RECEIVED;
 
 		/*
@@ -272,12 +303,13 @@ void hv_fcopy_onchannelcallback(void *context)
 		 */
 		schedule_work(&fcopy_send_work);
 		schedule_delayed_work(&fcopy_timeout_work,
-				      HV_UTIL_TIMEOUT * HZ);
+							  HV_UTIL_TIMEOUT * HZ);
 		return;
 	}
+
 	icmsghdr->icflags = ICMSGHDRFLAG_TRANSACTION | ICMSGHDRFLAG_RESPONSE;
 	vmbus_sendpacket(channel, recv_buffer, recvlen, requestid,
-			VM_PKT_DATA_INBAND, 0);
+					 VM_PKT_DATA_INBAND, 0);
 }
 
 /* Callback when data is received from userspace */
@@ -286,23 +318,30 @@ static int fcopy_on_msg(void *msg, int len)
 	int *val = (int *)msg;
 
 	if (len != sizeof(int))
+	{
 		return -EINVAL;
+	}
 
 	if (fcopy_transaction.state == HVUTIL_DEVICE_INIT)
+	{
 		return fcopy_handle_handshake(*val);
+	}
 
 	if (fcopy_transaction.state != HVUTIL_USERSPACE_REQ)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Complete the transaction by forwarding the result
 	 * to the host. But first, cancel the timeout.
 	 */
-	if (cancel_delayed_work_sync(&fcopy_timeout_work)) {
+	if (cancel_delayed_work_sync(&fcopy_timeout_work))
+	{
 		fcopy_transaction.state = HVUTIL_USERSPACE_RECV;
 		fcopy_respond_to_host(*val);
 		hv_poll_channel(fcopy_transaction.recv_channel,
-				fcopy_poll_wrapper);
+						fcopy_poll_wrapper);
 	}
 
 	return 0;
@@ -316,7 +355,9 @@ static void fcopy_on_reset(void)
 	fcopy_transaction.state = HVUTIL_DEVICE_INIT;
 
 	if (cancel_delayed_work_sync(&fcopy_timeout_work))
+	{
 		fcopy_respond_to_host(HV_E_FAIL);
+	}
 }
 
 int hv_fcopy_init(struct hv_util_service *srv)
@@ -333,9 +374,12 @@ int hv_fcopy_init(struct hv_util_service *srv)
 	fcopy_transaction.state = HVUTIL_DEVICE_INIT;
 
 	hvt = hvutil_transport_init(fcopy_devname, 0, 0,
-				    fcopy_on_msg, fcopy_on_reset);
+								fcopy_on_msg, fcopy_on_reset);
+
 	if (!hvt)
+	{
 		return -EFAULT;
+	}
 
 	return 0;
 }

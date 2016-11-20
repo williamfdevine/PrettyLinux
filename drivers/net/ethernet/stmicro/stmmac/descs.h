@@ -49,7 +49,7 @@
 #define RDES0_FRAME_LEN_SHIFT	16
 #define	RDES0_DA_FILTER_FAIL	BIT(30)
 #define	RDES0_OWN		BIT(31)
-			/* RDES1 */
+/* RDES1 */
 #define	RDES1_BUFFER1_SIZE_MASK		GENMASK(10, 0)
 #define	RDES1_BUFFER2_SIZE_MASK		GENMASK(21, 11)
 #define	RDES1_BUFFER2_SIZE_SHIFT	11
@@ -165,7 +165,8 @@
 #define RDES_EXT_PDELAY_FOLLOW_UP	7
 
 /* Basic descriptor structure for normal and alternate descriptors */
-struct dma_desc {
+struct dma_desc
+{
 	unsigned int des0;
 	unsigned int des1;
 	unsigned int des2;
@@ -173,7 +174,8 @@ struct dma_desc {
 };
 
 /* Extended descriptor structure (e.g. >= databook 3.50a) */
-struct dma_extended_desc {
+struct dma_extended_desc
+{
 	struct dma_desc basic;	/* Basic descriptors */
 	unsigned int des4;	/* Extended Status */
 	unsigned int des5;	/* Reserved */

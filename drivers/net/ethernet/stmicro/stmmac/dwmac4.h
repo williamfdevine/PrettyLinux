@@ -60,11 +60,12 @@
 #define GMAC_INT_LPI_EN			BIT(5)
 
 #define	GMAC_PCS_IRQ_DEFAULT	(GMAC_INT_RGSMIIS | GMAC_INT_PCS_LINK |	\
-				 GMAC_INT_PCS_ANE)
+								 GMAC_INT_PCS_ANE)
 
 #define	GMAC_INT_DEFAULT_MASK	GMAC_INT_PMT_EN
 
-enum dwmac4_irq_status {
+enum dwmac4_irq_status
+{
 	time_stamp_irq = 0x00001000,
 	mmc_rx_csum_offload_irq = 0x00000800,
 	mmc_tx_irq = 0x00000400,
@@ -74,7 +75,8 @@ enum dwmac4_irq_status {
 };
 
 /* MAC PMT bitmap */
-enum power_event {
+enum power_event
+{
 	pointer_reset =	0x80000000,
 	global_unicast = 0x00000200,
 	wake_up_rx_frame = 0x00000040,
@@ -146,7 +148,7 @@ enum power_event {
 #define MTL_CHAN_BASE_ADDR		0x00000d00
 #define MTL_CHAN_BASE_OFFSET		0x40
 #define MTL_CHANX_BASE_ADDR(x)		(MTL_CHAN_BASE_ADDR + \
-					(x * MTL_CHAN_BASE_OFFSET))
+									 (x * MTL_CHAN_BASE_OFFSET))
 
 #define MTL_CHAN_TX_OP_MODE(x)		MTL_CHANX_BASE_ADDR(x)
 #define MTL_CHAN_TX_DEBUG(x)		(MTL_CHANX_BASE_ADDR(x) + 0x8)
@@ -212,7 +214,7 @@ enum power_event {
 
 /* Default operating mode of the MAC */
 #define GMAC_CORE_INIT (GMAC_CONFIG_JD | GMAC_CONFIG_PS | GMAC_CONFIG_ACS | \
-			GMAC_CONFIG_BE | GMAC_CONFIG_DCRS)
+						GMAC_CONFIG_BE | GMAC_CONFIG_DCRS)
 
 /* To dump the core regs excluding  the Address Registers */
 #define	GMAC_REG_NUM	132

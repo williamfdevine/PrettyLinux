@@ -40,21 +40,28 @@ static int bf5xx_ad1836_init(struct snd_soc_pcm_runtime *rtd)
 
 	/* set cpu DAI channel mapping */
 	ret = snd_soc_dai_set_channel_map(cpu_dai, ARRAY_SIZE(channel_map),
-		channel_map, ARRAY_SIZE(channel_map), channel_map);
+									  channel_map, ARRAY_SIZE(channel_map), channel_map);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = snd_soc_dai_set_tdm_slot(cpu_dai, 0xFF, 0xFF, 8, 32);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
 #define BF5XX_AD1836_DAIFMT (SND_SOC_DAIFMT_DSP_A | SND_SOC_DAIFMT_IB_IF | \
-				SND_SOC_DAIFMT_CBM_CFM)
+							 SND_SOC_DAIFMT_CBM_CFM)
 
-static struct snd_soc_dai_link bf5xx_ad1836_dai = {
+static struct snd_soc_dai_link bf5xx_ad1836_dai =
+{
 	.name = "ad1836",
 	.stream_name = "AD1836",
 	.codec_dai_name = "ad1836-hifi",
@@ -63,7 +70,8 @@ static struct snd_soc_dai_link bf5xx_ad1836_dai = {
 	.init = bf5xx_ad1836_init,
 };
 
-static struct snd_soc_card bf5xx_ad1836 = {
+static struct snd_soc_card bf5xx_ad1836 =
+{
 	.name = "bfin-ad1836",
 	.owner = THIS_MODULE,
 	.dai_link = &bf5xx_ad1836_dai,
@@ -77,10 +85,13 @@ static int bf5xx_ad1836_driver_probe(struct platform_device *pdev)
 	int ret;
 
 	link_name = pdev->dev.platform_data;
-	if (!link_name) {
+
+	if (!link_name)
+	{
 		dev_err(&pdev->dev, "No platform data supplied\n");
 		return -EINVAL;
 	}
+
 	bf5xx_ad1836_dai.cpu_dai_name = link_name[0];
 	bf5xx_ad1836_dai.codec_name = link_name[1];
 
@@ -88,12 +99,17 @@ static int bf5xx_ad1836_driver_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, card);
 
 	ret = devm_snd_soc_register_card(&pdev->dev, card);
+
 	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to register card\n");
+	}
+
 	return ret;
 }
 
-static struct platform_driver bf5xx_ad1836_driver = {
+static struct platform_driver bf5xx_ad1836_driver =
+{
 	.driver = {
 		.name = "bfin-snd-ad1836",
 		.pm = &snd_soc_pm_ops,

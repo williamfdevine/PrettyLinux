@@ -20,7 +20,8 @@
 
 #include <asm/local.h>
 
-typedef struct {
+typedef struct
+{
 	local_t a;
 } local64_t;
 
@@ -58,7 +59,8 @@ typedef struct {
 #include <linux/atomic.h>
 
 /* Don't use typedef: don't want them to be mixed with atomic_t's. */
-typedef struct {
+typedef struct
+{
 	atomic64_t a;
 } local64_t;
 

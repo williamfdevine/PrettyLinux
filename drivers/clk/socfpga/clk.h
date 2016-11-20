@@ -42,11 +42,13 @@ void socfpga_a10_pll_init(struct device_node *node);
 void socfpga_a10_periph_init(struct device_node *node);
 void socfpga_a10_gate_init(struct device_node *node);
 
-struct socfpga_pll {
+struct socfpga_pll
+{
 	struct clk_gate	hw;
 };
 
-struct socfpga_gate_clk {
+struct socfpga_gate_clk
+{
 	struct clk_gate hw;
 	char *parent_name;
 	u32 fixed_div;
@@ -57,7 +59,8 @@ struct socfpga_gate_clk {
 	u32 clk_phase[2];
 };
 
-struct socfpga_periph_clk {
+struct socfpga_periph_clk
+{
 	struct clk_gate hw;
 	char *parent_name;
 	u32 fixed_div;

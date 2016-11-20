@@ -63,10 +63,14 @@ void sync_file_debug_remove(struct sync_file *sync_file)
 static const char *sync_status_str(int status)
 {
 	if (status == 0)
+	{
 		return "signaled";
+	}
 
 	if (status > 0)
+	{
 		return "active";
+	}
 
 	return "error";
 }
@@ -77,14 +81,17 @@ static void sync_print_fence(struct seq_file *s, struct fence *fence, bool show)
 	struct sync_timeline *parent = fence_parent(fence);
 
 	if (fence_is_signaled_locked(fence))
+	{
 		status = fence->status;
+	}
 
 	seq_printf(s, "  %s%sfence %s",
-		   show ? parent->name : "",
-		   show ? "_" : "",
-		   sync_status_str(status));
+			   show ? parent->name : "",
+			   show ? "_" : "",
+			   sync_status_str(status));
 
-	if (status <= 0) {
+	if (status <= 0)
+	{
 		struct timespec64 ts64 =
 			ktime_to_timespec64(fence->timestamp);
 
@@ -92,21 +99,25 @@ static void sync_print_fence(struct seq_file *s, struct fence *fence, bool show)
 	}
 
 	if (fence->ops->timeline_value_str &&
-		fence->ops->fence_value_str) {
+		fence->ops->fence_value_str)
+	{
 		char value[64];
 		bool success;
 
 		fence->ops->fence_value_str(fence, value, sizeof(value));
 		success = strlen(value);
 
-		if (success) {
+		if (success)
+		{
 			seq_printf(s, ": %s", value);
 
 			fence->ops->timeline_value_str(fence, value,
-						       sizeof(value));
+										   sizeof(value));
 
 			if (strlen(value))
+			{
 				seq_printf(s, " / %s", value);
+			}
 		}
 	}
 
@@ -121,7 +132,8 @@ static void sync_print_obj(struct seq_file *s, struct sync_timeline *obj)
 	seq_printf(s, "%s: %d\n", obj->name, obj->value);
 
 	spin_lock_irqsave(&obj->child_list_lock, flags);
-	list_for_each(pos, &obj->child_list_head) {
+	list_for_each(pos, &obj->child_list_head)
+	{
 		struct sync_pt *pt =
 			container_of(pos, struct sync_pt, child_list);
 		sync_print_fence(s, &pt->base, false);
@@ -130,19 +142,24 @@ static void sync_print_obj(struct seq_file *s, struct sync_timeline *obj)
 }
 
 static void sync_print_sync_file(struct seq_file *s,
-				  struct sync_file *sync_file)
+								 struct sync_file *sync_file)
 {
 	int i;
 
 	seq_printf(s, "[%p] %s: %s\n", sync_file, sync_file->name,
-		   sync_status_str(!fence_is_signaled(sync_file->fence)));
+			   sync_status_str(!fence_is_signaled(sync_file->fence)));
 
-	if (fence_is_array(sync_file->fence)) {
+	if (fence_is_array(sync_file->fence))
+	{
 		struct fence_array *array = to_fence_array(sync_file->fence);
 
 		for (i = 0; i < array->num_fences; ++i)
+		{
 			sync_print_fence(s, array->fences[i], true);
-	} else {
+		}
+	}
+	else
+	{
 		sync_print_fence(s, sync_file->fence, true);
 	}
 }
@@ -155,10 +172,11 @@ static int sync_debugfs_show(struct seq_file *s, void *unused)
 	seq_puts(s, "objs:\n--------------\n");
 
 	spin_lock_irqsave(&sync_timeline_list_lock, flags);
-	list_for_each(pos, &sync_timeline_list_head) {
+	list_for_each(pos, &sync_timeline_list_head)
+	{
 		struct sync_timeline *obj =
 			container_of(pos, struct sync_timeline,
-				     sync_timeline_list);
+						 sync_timeline_list);
 
 		sync_print_obj(s, obj);
 		seq_puts(s, "\n");
@@ -168,7 +186,8 @@ static int sync_debugfs_show(struct seq_file *s, void *unused)
 	seq_puts(s, "fences:\n--------------\n");
 
 	spin_lock_irqsave(&sync_file_list_lock, flags);
-	list_for_each(pos, &sync_file_list_head) {
+	list_for_each(pos, &sync_file_list_head)
+	{
 		struct sync_file *sync_file =
 			container_of(pos, struct sync_file, sync_file_list);
 
@@ -184,7 +203,8 @@ static int sync_info_debugfs_open(struct inode *inode, struct file *file)
 	return single_open(file, sync_debugfs_show, inode->i_private);
 }
 
-static const struct file_operations sync_info_debugfs_fops = {
+static const struct file_operations sync_info_debugfs_fops =
+{
 	.open           = sync_info_debugfs_open,
 	.read           = seq_read,
 	.llseek         = seq_lseek,
@@ -201,9 +221,9 @@ static __init int sync_debugfs_init(void)
 	 * debugfs_create_file_unsafe() is actually safe here.
 	 */
 	debugfs_create_file_unsafe("info", 0444, dbgfs, NULL,
-				   &sync_info_debugfs_fops);
+							   &sync_info_debugfs_fops);
 	debugfs_create_file_unsafe("sw_sync", 0644, dbgfs, NULL,
-				   &sw_sync_debugfs_fops);
+							   &sw_sync_debugfs_fops);
 
 	return 0;
 }
@@ -213,7 +233,8 @@ late_initcall(sync_debugfs_init);
 static char sync_dump_buf[64 * 1024];
 void sync_dump(void)
 {
-	struct seq_file s = {
+	struct seq_file s =
+	{
 		.buf = sync_dump_buf,
 		.size = sizeof(sync_dump_buf) - 1,
 	};
@@ -221,14 +242,18 @@ void sync_dump(void)
 
 	sync_debugfs_show(&s, NULL);
 
-	for (i = 0; i < s.count; i += DUMP_CHUNK) {
-		if ((s.count - i) > DUMP_CHUNK) {
+	for (i = 0; i < s.count; i += DUMP_CHUNK)
+	{
+		if ((s.count - i) > DUMP_CHUNK)
+		{
 			char c = s.buf[i + DUMP_CHUNK];
 
 			s.buf[i + DUMP_CHUNK] = 0;
 			pr_cont("%s", s.buf + i);
 			s.buf[i + DUMP_CHUNK] = c;
-		} else {
+		}
+		else
+		{
 			s.buf[s.count] = 0;
 			pr_cont("%s", s.buf + i);
 		}

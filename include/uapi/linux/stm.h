@@ -32,7 +32,8 @@
  * @size field, fill out the @id and desired @width. In return, kernel
  * fills out @master, @channel and @width.
  */
-struct stp_policy_id {
+struct stp_policy_id
+{
 	__u32		size;
 	__u16		master;
 	__u16		channel;

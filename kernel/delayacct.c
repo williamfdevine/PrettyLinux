@@ -34,15 +34,18 @@ __setup("nodelayacct", delayacct_setup_disable);
 
 void delayacct_init(void)
 {
-	delayacct_cache = KMEM_CACHE(task_delay_info, SLAB_PANIC|SLAB_ACCOUNT);
+	delayacct_cache = KMEM_CACHE(task_delay_info, SLAB_PANIC | SLAB_ACCOUNT);
 	delayacct_tsk_init(&init_task);
 }
 
 void __delayacct_tsk_init(struct task_struct *tsk)
 {
 	tsk->delays = kmem_cache_zalloc(delayacct_cache, GFP_KERNEL);
+
 	if (tsk->delays)
+	{
 		spin_lock_init(&tsk->delays->lock);
+	}
 }
 
 /*
@@ -54,7 +57,8 @@ static void delayacct_end(u64 *start, u64 *total, u32 *count)
 	s64 ns = ktime_get_ns() - *start;
 	unsigned long flags;
 
-	if (ns > 0) {
+	if (ns > 0)
+	{
 		spin_lock_irqsave(&current->delays->lock, flags);
 		*total += ns;
 		(*count)++;
@@ -72,12 +76,12 @@ void __delayacct_blkio_end(void)
 	if (current->delays->flags & DELAYACCT_PF_SWAPIN)
 		/* Swapin block I/O */
 		delayacct_end(&current->delays->blkio_start,
-			&current->delays->swapin_delay,
-			&current->delays->swapin_count);
+					  &current->delays->swapin_delay,
+					  &current->delays->swapin_count);
 	else	/* Other block I/O */
 		delayacct_end(&current->delays->blkio_start,
-			&current->delays->blkio_delay,
-			&current->delays->blkio_count);
+					  &current->delays->blkio_delay,
+					  &current->delays->blkio_count);
 }
 
 int __delayacct_add_tsk(struct taskstats *d, struct task_struct *tsk)
@@ -139,7 +143,7 @@ __u64 __delayacct_blkio_ticks(struct task_struct *tsk)
 
 	spin_lock_irqsave(&tsk->delays->lock, flags);
 	ret = nsec_to_clock_t(tsk->delays->blkio_delay +
-				tsk->delays->swapin_delay);
+						  tsk->delays->swapin_delay);
 	spin_unlock_irqrestore(&tsk->delays->lock, flags);
 	return ret;
 }
@@ -152,7 +156,7 @@ void __delayacct_freepages_start(void)
 void __delayacct_freepages_end(void)
 {
 	delayacct_end(&current->delays->freepages_start,
-			&current->delays->freepages_delay,
-			&current->delays->freepages_count);
+				  &current->delays->freepages_delay,
+				  &current->delays->freepages_count);
 }
 

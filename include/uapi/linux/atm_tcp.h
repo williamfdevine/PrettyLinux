@@ -17,7 +17,8 @@
  * All values in struct atmtcp_hdr are in network byte order
  */
 
-struct atmtcp_hdr {
+struct atmtcp_hdr
+{
 	__u16	vpi;
 	__u16	vci;
 	__u32	length;		/* ... of data part */
@@ -31,7 +32,8 @@ struct atmtcp_hdr {
 #define ATMTCP_CTRL_OPEN	1	/* request/reply */
 #define ATMTCP_CTRL_CLOSE	2	/* request/reply */
 
-struct atmtcp_control {
+struct atmtcp_control
+{
 	struct atmtcp_hdr hdr;	/* must be first */
 	int type;		/* message type; both directions */
 	atm_kptr_t vcc;		/* both directions */

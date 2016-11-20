@@ -29,7 +29,8 @@
 #include <engine/fifo.h>
 
 int
-nv50_fb_memtype[0x80] = {
+nv50_fb_memtype[0x80] =
+{
 	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0,
 	1, 1, 1, 1, 1, 1, 1, 0, 2, 2, 2, 2, 2, 2, 2, 0,
@@ -53,7 +54,8 @@ nv50_fb_memtype_valid(struct nvkm_fb *fb, u32 memtype)
 	return nv50_fb_memtype[(memtype & 0xff00) >> 8] != 0;
 }
 
-static const struct nvkm_enum vm_dispatch_subclients[] = {
+static const struct nvkm_enum vm_dispatch_subclients[] =
+{
 	{ 0x00000000, "GRCTX" },
 	{ 0x00000001, "NOTIFY" },
 	{ 0x00000002, "QUERY" },
@@ -64,14 +66,16 @@ static const struct nvkm_enum vm_dispatch_subclients[] = {
 	{}
 };
 
-static const struct nvkm_enum vm_ccache_subclients[] = {
+static const struct nvkm_enum vm_ccache_subclients[] =
+{
 	{ 0x00000000, "CB" },
 	{ 0x00000001, "TIC" },
 	{ 0x00000002, "TSC" },
 	{}
 };
 
-static const struct nvkm_enum vm_prop_subclients[] = {
+static const struct nvkm_enum vm_prop_subclients[] =
+{
 	{ 0x00000000, "RT0" },
 	{ 0x00000001, "RT1" },
 	{ 0x00000002, "RT2" },
@@ -88,19 +92,22 @@ static const struct nvkm_enum vm_prop_subclients[] = {
 	{}
 };
 
-static const struct nvkm_enum vm_pfifo_subclients[] = {
+static const struct nvkm_enum vm_pfifo_subclients[] =
+{
 	{ 0x00000000, "PUSHBUF" },
 	{ 0x00000001, "SEMAPHORE" },
 	{}
 };
 
-static const struct nvkm_enum vm_bar_subclients[] = {
+static const struct nvkm_enum vm_bar_subclients[] =
+{
 	{ 0x00000000, "FB" },
 	{ 0x00000001, "IN" },
 	{}
 };
 
-static const struct nvkm_enum vm_client[] = {
+static const struct nvkm_enum vm_client[] =
+{
 	{ 0x00000000, "STRMOUT" },
 	{ 0x00000003, "DISPATCH", vm_dispatch_subclients },
 	{ 0x00000004, "PFIFO_WRITE" },
@@ -119,7 +126,8 @@ static const struct nvkm_enum vm_client[] = {
 	{}
 };
 
-static const struct nvkm_enum vm_engine[] = {
+static const struct nvkm_enum vm_engine[] =
+{
 	{ 0x00000000, "PGRAPH" },
 	{ 0x00000001, "PVP" },
 	{ 0x00000004, "PEEPHOLE" },
@@ -136,7 +144,8 @@ static const struct nvkm_enum vm_engine[] = {
 	{}
 };
 
-static const struct nvkm_enum vm_fault[] = {
+static const struct nvkm_enum vm_fault[] =
+{
 	{ 0x00000000, "PT_NOT_PRESENT" },
 	{ 0x00000001, "PT_TOO_SHORT" },
 	{ 0x00000002, "PAGE_NOT_PRESENT" },
@@ -164,49 +173,60 @@ nv50_fb_intr(struct nvkm_fb *base)
 	int i;
 
 	idx = nvkm_rd32(device, 0x100c90);
+
 	if (!(idx & 0x80000000))
+	{
 		return;
+	}
+
 	idx &= 0x00ffffff;
 
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < 6; i++)
+	{
 		nvkm_wr32(device, 0x100c90, idx | i << 24);
 		trap[i] = nvkm_rd32(device, 0x100c94);
 	}
+
 	nvkm_wr32(device, 0x100c90, idx | 0x80000000);
 
 	/* decode status bits into something more useful */
 	if (device->chipset  < 0xa3 ||
-	    device->chipset == 0xaa || device->chipset == 0xac) {
+		device->chipset == 0xaa || device->chipset == 0xac)
+	{
 		st0 = (trap[0] & 0x0000000f) >> 0;
 		st1 = (trap[0] & 0x000000f0) >> 4;
 		st2 = (trap[0] & 0x00000f00) >> 8;
 		st3 = (trap[0] & 0x0000f000) >> 12;
-	} else {
+	}
+	else
+	{
 		st0 = (trap[0] & 0x000000ff) >> 0;
 		st1 = (trap[0] & 0x0000ff00) >> 8;
 		st2 = (trap[0] & 0x00ff0000) >> 16;
 		st3 = (trap[0] & 0xff000000) >> 24;
 	}
+
 	inst = ((trap[2] << 16) | trap[1]) << 12;
 
 	en = nvkm_enum_find(vm_engine, st0);
 	re = nvkm_enum_find(vm_fault , st1);
 	cl = nvkm_enum_find(vm_client, st2);
-	if      (cl && cl->data) sc = nvkm_enum_find(cl->data, st3);
-	else if (en && en->data) sc = nvkm_enum_find(en->data, st3);
-	else                     sc = NULL;
+
+	if      (cl && cl->data) { sc = nvkm_enum_find(cl->data, st3); }
+	else if (en && en->data) { sc = nvkm_enum_find(en->data, st3); }
+	else { sc = NULL; }
 
 	chan = nvkm_fifo_chan_inst(fifo, inst, &flags);
 	nvkm_error(subdev, "trapped %s at %02x%04x%04x on channel %d [%08x %s] "
 			   "engine %02x [%s] client %02x [%s] "
 			   "subclient %02x [%s] reason %08x [%s]\n",
-		   (trap[5] & 0x00000100) ? "read" : "write",
-		   trap[5] & 0xff, trap[4] & 0xffff, trap[3] & 0xffff,
-		   chan ? chan->chid : -1, inst,
-		   chan ? chan->object.client->name : "unknown",
-		   st0, en ? en->name : "",
-		   st2, cl ? cl->name : "", st3, sc ? sc->name : "",
-		   st1, re ? re->name : "");
+			   (trap[5] & 0x00000100) ? "read" : "write",
+			   trap[5] & 0xff, trap[4] & 0xffff, trap[3] & 0xffff,
+			   chan ? chan->chid : -1, inst,
+			   chan ? chan->object.client->name : "unknown",
+			   st0, en ? en->name : "",
+			   st2, cl ? cl->name : "", st3, sc ? sc->name : "",
+			   st1, re ? re->name : "");
 	nvkm_fifo_chan_put(fifo, flags, &chan);
 }
 
@@ -233,9 +253,10 @@ nv50_fb_dtor(struct nvkm_fb *base)
 	struct nv50_fb *fb = nv50_fb(base);
 	struct nvkm_device *device = fb->base.subdev.device;
 
-	if (fb->r100c08_page) {
+	if (fb->r100c08_page)
+	{
 		dma_unmap_page(device->dev, fb->r100c08, PAGE_SIZE,
-			       DMA_BIDIRECTIONAL);
+					   DMA_BIDIRECTIONAL);
 		__free_page(fb->r100c08_page);
 	}
 
@@ -243,7 +264,8 @@ nv50_fb_dtor(struct nvkm_fb *base)
 }
 
 static const struct nvkm_fb_func
-nv50_fb_ = {
+	nv50_fb_ =
+{
 	.dtor = nv50_fb_dtor,
 	.init = nv50_fb_init,
 	.intr = nv50_fb_intr,
@@ -253,23 +275,33 @@ nv50_fb_ = {
 
 int
 nv50_fb_new_(const struct nv50_fb_func *func, struct nvkm_device *device,
-	     int index, struct nvkm_fb **pfb)
+			 int index, struct nvkm_fb **pfb)
 {
 	struct nv50_fb *fb;
 
 	if (!(fb = kzalloc(sizeof(*fb), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	nvkm_fb_ctor(&nv50_fb_, device, index, &fb->base);
 	fb->func = func;
 	*pfb = &fb->base;
 
 	fb->r100c08_page = alloc_page(GFP_KERNEL | __GFP_ZERO);
-	if (fb->r100c08_page) {
+
+	if (fb->r100c08_page)
+	{
 		fb->r100c08 = dma_map_page(device->dev, fb->r100c08_page, 0,
-					   PAGE_SIZE, DMA_BIDIRECTIONAL);
+								   PAGE_SIZE, DMA_BIDIRECTIONAL);
+
 		if (dma_mapping_error(device->dev, fb->r100c08))
+		{
 			return -EFAULT;
-	} else {
+		}
+	}
+	else
+	{
 		nvkm_warn(&fb->base.subdev, "failed 100c08 page alloc\n");
 	}
 
@@ -277,7 +309,8 @@ nv50_fb_new_(const struct nv50_fb_func *func, struct nvkm_device *device,
 }
 
 static const struct nv50_fb_func
-nv50_fb = {
+	nv50_fb =
+{
 	.ram_new = nv50_ram_new,
 	.trap = 0x000707ff,
 };

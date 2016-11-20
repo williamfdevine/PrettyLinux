@@ -53,7 +53,8 @@
 
 #define FIP_VER		1		/* version for fip_header */
 
-struct fip_header {
+struct fip_header
+{
 	__u8	fip_ver;		/* upper 4 bits are the version */
 	__u8	fip_resv1;		/* reserved */
 	__be16	fip_op;			/* operation code */
@@ -71,7 +72,8 @@ struct fip_header {
 /*
  * fip_op.
  */
-enum fip_opcode {
+enum fip_opcode
+{
 	FIP_OP_DISC =	1,		/* discovery, advertisement, etc. */
 	FIP_OP_LS =	2,		/* Link Service request or reply */
 	FIP_OP_CTRL =	3,		/* Keep Alive / Link Reset */
@@ -84,7 +86,8 @@ enum fip_opcode {
 /*
  * Subcodes for FIP_OP_DISC.
  */
-enum fip_disc_subcode {
+enum fip_disc_subcode
+{
 	FIP_SC_SOL =	1,		/* solicitation */
 	FIP_SC_ADV =	2,		/* advertisement */
 };
@@ -92,7 +95,8 @@ enum fip_disc_subcode {
 /*
  * Subcodes for FIP_OP_LS.
  */
-enum fip_trans_subcode {
+enum fip_trans_subcode
+{
 	FIP_SC_REQ =	1,		/* request */
 	FIP_SC_REP =	2,		/* reply */
 };
@@ -100,7 +104,8 @@ enum fip_trans_subcode {
 /*
  * Subcodes for FIP_OP_RESET.
  */
-enum fip_reset_subcode {
+enum fip_reset_subcode
+{
 	FIP_SC_KEEP_ALIVE = 1,		/* keep-alive from VN_Port */
 	FIP_SC_CLR_VLINK = 2,		/* clear virtual link from VF_Port */
 };
@@ -108,7 +113,8 @@ enum fip_reset_subcode {
 /*
  * Subcodes for FIP_OP_VLAN.
  */
-enum fip_vlan_subcode {
+enum fip_vlan_subcode
+{
 	FIP_SC_VL_REQ =	1,		/* vlan request */
 	FIP_SC_VL_NOTE = 2,		/* vlan notification */
 	FIP_SC_VL_VN2VN_NOTE = 3,	/* VN2VN vlan notification */
@@ -117,7 +123,8 @@ enum fip_vlan_subcode {
 /*
  * Subcodes for FIP_OP_VN2VN.
  */
-enum fip_vn2vn_subcode {
+enum fip_vn2vn_subcode
+{
 	FIP_SC_VN_PROBE_REQ = 1,	/* probe request */
 	FIP_SC_VN_PROBE_REP = 2,	/* probe reply */
 	FIP_SC_VN_CLAIM_NOTIFY = 3,	/* claim notification */
@@ -128,7 +135,8 @@ enum fip_vn2vn_subcode {
 /*
  * flags in header fip_flags.
  */
-enum fip_flag {
+enum fip_flag
+{
 	FIP_FL_FPMA =	0x8000,		/* supports FPMA fabric-provided MACs */
 	FIP_FL_SPMA =	0x4000,		/* supports SPMA server-provided MACs */
 	FIP_FL_FCF =	0x0020,		/* originated from a controlling FCF */
@@ -142,12 +150,14 @@ enum fip_flag {
 /*
  * Common descriptor header format.
  */
-struct fip_desc {
+struct fip_desc
+{
 	__u8	fip_dtype;		/* type - see below */
 	__u8	fip_dlen;		/* length - in 32-bit words */
 };
 
-enum fip_desc_type {
+enum fip_desc_type
+{
 	FIP_DT_PRI =	1,		/* priority for forwarder selection */
 	FIP_DT_MAC =	2,		/* MAC address */
 	FIP_DT_MAP_OUI = 3,		/* FC-MAP OUI */
@@ -172,7 +182,8 @@ enum fip_desc_type {
 /*
  * FIP_DT_PRI - priority descriptor.
  */
-struct fip_pri_desc {
+struct fip_pri_desc
+{
 	struct fip_desc fd_desc;
 	__u8		fd_resvd;
 	__u8		fd_pri;		/* FCF priority:  higher is better */
@@ -181,7 +192,8 @@ struct fip_pri_desc {
 /*
  * FIP_DT_MAC - MAC address descriptor.
  */
-struct fip_mac_desc {
+struct fip_mac_desc
+{
 	struct fip_desc fd_desc;
 	__u8		fd_mac[ETH_ALEN];
 } __attribute__((packed));
@@ -189,7 +201,8 @@ struct fip_mac_desc {
 /*
  * FIP_DT_MAP - descriptor.
  */
-struct fip_map_desc {
+struct fip_map_desc
+{
 	struct fip_desc fd_desc;
 	__u8		fd_resvd[3];
 	__u8		fd_map[3];
@@ -198,7 +211,8 @@ struct fip_map_desc {
 /*
  * FIP_DT_NAME descriptor.
  */
-struct fip_wwn_desc {
+struct fip_wwn_desc
+{
 	struct fip_desc fd_desc;
 	__u8		fd_resvd[2];
 	__be64		fd_wwn;		/* 64-bit WWN, unaligned */
@@ -207,7 +221,8 @@ struct fip_wwn_desc {
 /*
  * FIP_DT_FAB descriptor.
  */
-struct fip_fab_desc {
+struct fip_fab_desc
+{
 	struct fip_desc fd_desc;
 	__be16		fd_vfid;	/* virtual fabric ID */
 	__u8		fd_resvd;
@@ -218,7 +233,8 @@ struct fip_fab_desc {
 /*
  * FIP_DT_FCOE_SIZE descriptor.
  */
-struct fip_size_desc {
+struct fip_size_desc
+{
 	struct fip_desc fd_desc;
 	__be16		fd_size;
 } __attribute__((packed));
@@ -228,7 +244,8 @@ struct fip_size_desc {
  * The encapsulated frame immediately follows this header, without
  * SOF, EOF, or CRC.
  */
-struct fip_encaps {
+struct fip_encaps
+{
 	struct fip_desc fd_desc;
 	__u8		fd_resvd[2];
 } __attribute__((packed));
@@ -236,7 +253,8 @@ struct fip_encaps {
 /*
  * FIP_DT_VN_ID - VN_Node Identifier descriptor.
  */
-struct fip_vn_desc {
+struct fip_vn_desc
+{
 	struct fip_desc fd_desc;
 	__u8		fd_mac[ETH_ALEN];
 	__u8		fd_resvd;
@@ -247,7 +265,8 @@ struct fip_vn_desc {
 /*
  * FIP_DT_FKA - Advertisement keep-alive period.
  */
-struct fip_fka_desc {
+struct fip_fka_desc
+{
 	struct fip_desc fd_desc;
 	__u8		fd_resvd;
 	__u8		fd_flags;	/* bit0 is fka disable flag */
@@ -257,7 +276,8 @@ struct fip_fka_desc {
 /*
  * flags for fip_fka_desc.fd_flags
  */
-enum fip_fka_flags {
+enum fip_fka_flags
+{
 	FIP_FKA_ADV_D =	0x01,		/* no need for FKA from ENode */
 };
 
@@ -266,7 +286,8 @@ enum fip_fka_flags {
 /*
  * FIP_DT_VLAN descriptor
  */
-struct fip_vlan_desc {
+struct fip_vlan_desc
+{
 	struct fip_desc fd_desc;
 	__be16		fd_vlan; /* Note: highest 4 bytes are unused */
 } __attribute__((packed));
@@ -274,7 +295,8 @@ struct fip_vlan_desc {
 /*
  * FIP_DT_FC4F - FC-4 features.
  */
-struct fip_fc4_feat {
+struct fip_fc4_feat
+{
 	struct fip_desc fd_desc;
 	__u8		fd_resvd[2];
 	struct fc_ns_fts fd_fts;
@@ -284,7 +306,8 @@ struct fip_fc4_feat {
 /*
  * FIP_DT_VENDOR descriptor.
  */
-struct fip_vendor_desc {
+struct fip_vendor_desc
+{
 	struct fip_desc fd_desc;
 	__u8		fd_resvd[2];
 	__u8		fd_vendor_id[8];

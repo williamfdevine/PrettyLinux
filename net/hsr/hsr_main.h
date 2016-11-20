@@ -51,7 +51,8 @@
  *
  * Field names as defined in the IEC:2010 standard for HSR.
  */
-struct hsr_tag {
+struct hsr_tag
+{
 	__be16		path_and_LSDU_size;
 	__be16		sequence_nr;
 	__be16		encap_proto;
@@ -84,17 +85,18 @@ static inline u16 get_hsr_tag_LSDU_size(struct hsr_tag *ht)
 static inline void set_hsr_tag_path(struct hsr_tag *ht, u16 path)
 {
 	ht->path_and_LSDU_size = htons(
-			(ntohs(ht->path_and_LSDU_size) & 0x0FFF) | (path << 12));
+								 (ntohs(ht->path_and_LSDU_size) & 0x0FFF) | (path << 12));
 }
 
 static inline void set_hsr_tag_LSDU_size(struct hsr_tag *ht, u16 LSDU_size)
 {
 	ht->path_and_LSDU_size = htons(
-			(ntohs(ht->path_and_LSDU_size) & 0xF000) |
-			(LSDU_size & 0x0FFF));
+								 (ntohs(ht->path_and_LSDU_size) & 0xF000) |
+								 (LSDU_size & 0x0FFF));
 }
 
-struct hsr_ethhdr {
+struct hsr_ethhdr
+{
 	struct ethhdr	ethhdr;
 	struct hsr_tag	hsr_tag;
 } __packed;
@@ -103,14 +105,16 @@ struct hsr_ethhdr {
 /* HSR Supervision Frame data types.
  * Field names as defined in the IEC:2010 standard for HSR.
  */
-struct hsr_sup_tag {
+struct hsr_sup_tag
+{
 	__be16		path_and_HSR_Ver;
 	__be16		sequence_nr;
 	__u8		HSR_TLV_Type;
 	__u8		HSR_TLV_Length;
 } __packed;
 
-struct hsr_sup_payload {
+struct hsr_sup_payload
+{
 	unsigned char	MacAddressA[ETH_ALEN];
 } __packed;
 
@@ -134,19 +138,22 @@ static inline void set_hsr_stag_HSR_Ver(struct hsr_sup_tag *hst, u16 HSR_Ver)
 	set_hsr_tag_LSDU_size((struct hsr_tag *) hst, HSR_Ver);
 }
 
-struct hsrv0_ethhdr_sp {
+struct hsrv0_ethhdr_sp
+{
 	struct ethhdr		ethhdr;
 	struct hsr_sup_tag	hsr_sup;
 } __packed;
 
-struct hsrv1_ethhdr_sp {
+struct hsrv1_ethhdr_sp
+{
 	struct ethhdr		ethhdr;
 	struct hsr_tag		hsr;
 	struct hsr_sup_tag	hsr_sup;
 } __packed;
 
 
-enum hsr_port_type {
+enum hsr_port_type
+{
 	HSR_PT_NONE = 0,	/* Must be 0, used by framereg */
 	HSR_PT_SLAVE_A,
 	HSR_PT_SLAVE_B,
@@ -155,14 +162,16 @@ enum hsr_port_type {
 	HSR_PT_PORTS,	/* This must be the last item in the enum */
 };
 
-struct hsr_port {
+struct hsr_port
+{
 	struct list_head	port_list;
 	struct net_device	*dev;
 	struct hsr_priv		*hsr;
 	enum hsr_port_type	type;
 };
 
-struct hsr_priv {
+struct hsr_priv
+{
 	struct rcu_head		rcu_head;
 	struct list_head	ports;
 	struct list_head	node_db;	/* Known HSR nodes */

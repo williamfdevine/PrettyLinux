@@ -48,43 +48,62 @@ static int sonic_open(struct net_device *dev)
 	int i;
 
 	if (sonic_debug > 2)
+	{
 		printk("sonic_open: initializing sonic driver.\n");
+	}
 
-	for (i = 0; i < SONIC_NUM_RRS; i++) {
+	for (i = 0; i < SONIC_NUM_RRS; i++)
+	{
 		struct sk_buff *skb = netdev_alloc_skb(dev, SONIC_RBSIZE + 2);
-		if (skb == NULL) {
-			while(i > 0) { /* free any that were allocated successfully */
+
+		if (skb == NULL)
+		{
+			while (i > 0)  /* free any that were allocated successfully */
+			{
 				i--;
 				dev_kfree_skb(lp->rx_skb[i]);
 				lp->rx_skb[i] = NULL;
 			}
+
 			printk(KERN_ERR "%s: couldn't allocate receive buffers\n",
-			       dev->name);
+				   dev->name);
 			return -ENOMEM;
 		}
+
 		/* align IP header unless DMA requires otherwise */
 		if (SONIC_BUS_SCALE(lp->dma_bitmode) == 2)
+		{
 			skb_reserve(skb, 2);
+		}
+
 		lp->rx_skb[i] = skb;
 	}
 
-	for (i = 0; i < SONIC_NUM_RRS; i++) {
+	for (i = 0; i < SONIC_NUM_RRS; i++)
+	{
 		dma_addr_t laddr = dma_map_single(lp->device, skb_put(lp->rx_skb[i], SONIC_RBSIZE),
-		                                  SONIC_RBSIZE, DMA_FROM_DEVICE);
-		if (!laddr) {
-			while(i > 0) { /* free any that were mapped successfully */
+										  SONIC_RBSIZE, DMA_FROM_DEVICE);
+
+		if (!laddr)
+		{
+			while (i > 0)  /* free any that were mapped successfully */
+			{
 				i--;
 				dma_unmap_single(lp->device, lp->rx_laddr[i], SONIC_RBSIZE, DMA_FROM_DEVICE);
 				lp->rx_laddr[i] = (dma_addr_t)0;
 			}
-			for (i = 0; i < SONIC_NUM_RRS; i++) {
+
+			for (i = 0; i < SONIC_NUM_RRS; i++)
+			{
 				dev_kfree_skb(lp->rx_skb[i]);
 				lp->rx_skb[i] = NULL;
 			}
+
 			printk(KERN_ERR "%s: couldn't map rx DMA buffers\n",
-			       dev->name);
+				   dev->name);
 			return -ENOMEM;
 		}
+
 		lp->rx_laddr[i] = laddr;
 	}
 
@@ -96,7 +115,9 @@ static int sonic_open(struct net_device *dev)
 	netif_start_queue(dev);
 
 	if (sonic_debug > 2)
+	{
 		printk("sonic_open: Initialization done.\n");
+	}
 
 	return 0;
 }
@@ -111,7 +132,9 @@ static int sonic_close(struct net_device *dev)
 	int i;
 
 	if (sonic_debug > 2)
+	{
 		printk("sonic_close\n");
+	}
 
 	netif_stop_queue(dev);
 
@@ -123,24 +146,32 @@ static int sonic_close(struct net_device *dev)
 	SONIC_WRITE(SONIC_CMD, SONIC_CR_RST);
 
 	/* unmap and free skbs that haven't been transmitted */
-	for (i = 0; i < SONIC_NUM_TDS; i++) {
-		if(lp->tx_laddr[i]) {
+	for (i = 0; i < SONIC_NUM_TDS; i++)
+	{
+		if (lp->tx_laddr[i])
+		{
 			dma_unmap_single(lp->device, lp->tx_laddr[i], lp->tx_len[i], DMA_TO_DEVICE);
 			lp->tx_laddr[i] = (dma_addr_t)0;
 		}
-		if(lp->tx_skb[i]) {
+
+		if (lp->tx_skb[i])
+		{
 			dev_kfree_skb(lp->tx_skb[i]);
 			lp->tx_skb[i] = NULL;
 		}
 	}
 
 	/* unmap and free the receive buffers */
-	for (i = 0; i < SONIC_NUM_RRS; i++) {
-		if(lp->rx_laddr[i]) {
+	for (i = 0; i < SONIC_NUM_RRS; i++)
+	{
+		if (lp->rx_laddr[i])
+		{
 			dma_unmap_single(lp->device, lp->rx_laddr[i], SONIC_RBSIZE, DMA_FROM_DEVICE);
 			lp->rx_laddr[i] = (dma_addr_t)0;
 		}
-		if(lp->rx_skb[i]) {
+
+		if (lp->rx_skb[i])
+		{
 			dev_kfree_skb(lp->rx_skb[i]);
 			lp->rx_skb[i] = NULL;
 		}
@@ -160,17 +191,23 @@ static void sonic_tx_timeout(struct net_device *dev)
 	SONIC_WRITE(SONIC_IMR, 0);
 	SONIC_WRITE(SONIC_ISR, 0x7fff);
 	SONIC_WRITE(SONIC_CMD, SONIC_CR_RST);
+
 	/* We could resend the original skbs. Easier to re-initialise. */
-	for (i = 0; i < SONIC_NUM_TDS; i++) {
-		if(lp->tx_laddr[i]) {
+	for (i = 0; i < SONIC_NUM_TDS; i++)
+	{
+		if (lp->tx_laddr[i])
+		{
 			dma_unmap_single(lp->device, lp->tx_laddr[i], lp->tx_len[i], DMA_TO_DEVICE);
 			lp->tx_laddr[i] = (dma_addr_t)0;
 		}
-		if(lp->tx_skb[i]) {
+
+		if (lp->tx_skb[i])
+		{
 			dev_kfree_skb(lp->tx_skb[i]);
 			lp->tx_skb[i] = NULL;
 		}
 	}
+
 	/* Try to restart the adaptor. */
 	sonic_init(dev);
 	lp->stats.tx_errors++;
@@ -206,12 +243,19 @@ static int sonic_send_packet(struct sk_buff *skb, struct net_device *dev)
 	int entry = lp->next_tx;
 
 	if (sonic_debug > 2)
+	{
 		printk("sonic_send_packet: skb=%p, dev=%p\n", skb, dev);
+	}
 
 	length = skb->len;
-	if (length < ETH_ZLEN) {
+
+	if (length < ETH_ZLEN)
+	{
 		if (skb_padto(skb, ETH_ZLEN))
+		{
 			return NETDEV_TX_OK;
+		}
+
 		length = ETH_ZLEN;
 	}
 
@@ -220,7 +264,9 @@ static int sonic_send_packet(struct sk_buff *skb, struct net_device *dev)
 	 */
 
 	laddr = dma_map_single(lp->device, skb->data, length, DMA_TO_DEVICE);
-	if (!laddr) {
+
+	if (!laddr)
+	{
 		printk(KERN_ERR "%s: failed to map tx DMA buffer.\n", dev->name);
 		dev_kfree_skb(skb);
 		return NETDEV_TX_BUSY;
@@ -233,7 +279,7 @@ static int sonic_send_packet(struct sk_buff *skb, struct net_device *dev)
 	sonic_tda_put(dev, entry, SONIC_TD_FRAG_PTR_H, laddr >> 16);
 	sonic_tda_put(dev, entry, SONIC_TD_FRAG_SIZE, length);
 	sonic_tda_put(dev, entry, SONIC_TD_LINK,
-		sonic_tda_get(dev, entry, SONIC_TD_LINK) | SONIC_EOL);
+				  sonic_tda_get(dev, entry, SONIC_TD_LINK) | SONIC_EOL);
 
 	/*
 	 * Must set tx_skb[entry] only after clearing status, and
@@ -250,16 +296,24 @@ static int sonic_send_packet(struct sk_buff *skb, struct net_device *dev)
 	lp->eol_tx = entry;
 
 	lp->next_tx = (entry + 1) & SONIC_TDS_MASK;
-	if (lp->tx_skb[lp->next_tx] != NULL) {
+
+	if (lp->tx_skb[lp->next_tx] != NULL)
+	{
 		/* The ring is full, the ISR has yet to process the next TD. */
 		if (sonic_debug > 3)
+		{
 			printk("%s: stopping queue\n", dev->name);
+		}
+
 		netif_stop_queue(dev);
 		/* after this packet, wait for ISR to free up some TDAs */
-	} else netif_start_queue(dev);
+	}
+	else { netif_start_queue(dev); }
 
 	if (sonic_debug > 2)
+	{
 		printk("sonic_send_packet: issuing Tx command\n");
+	}
 
 	SONIC_WRITE(SONIC_CMD, SONIC_CR_TXP);
 
@@ -277,17 +331,25 @@ static irqreturn_t sonic_interrupt(int irq, void *dev_id)
 	int status;
 
 	if (!(status = SONIC_READ(SONIC_ISR) & SONIC_IMR_DEFAULT))
+	{
 		return IRQ_NONE;
+	}
 
-	do {
-		if (status & SONIC_INT_PKTRX) {
+	do
+	{
+		if (status & SONIC_INT_PKTRX)
+		{
 			if (sonic_debug > 2)
+			{
 				printk("%s: packet rx\n", dev->name);
+			}
+
 			sonic_rx(dev);	/* got packet(s) */
 			SONIC_WRITE(SONIC_ISR, SONIC_INT_PKTRX); /* clear the interrupt */
 		}
 
-		if (status & SONIC_INT_TXDN) {
+		if (status & SONIC_INT_TXDN)
+		{
 			int entry = lp->cur_tx;
 			int td_status;
 			int freed_some = 0;
@@ -300,25 +362,45 @@ static irqreturn_t sonic_interrupt(int irq, void *dev_id)
 			 */
 
 			if (sonic_debug > 2)
+			{
 				printk("%s: tx done\n", dev->name);
+			}
 
-			while (lp->tx_skb[entry] != NULL) {
+			while (lp->tx_skb[entry] != NULL)
+			{
 				if ((td_status = sonic_tda_get(dev, entry, SONIC_TD_STATUS)) == 0)
+				{
 					break;
+				}
 
-				if (td_status & 0x0001) {
+				if (td_status & 0x0001)
+				{
 					lp->stats.tx_packets++;
 					lp->stats.tx_bytes += sonic_tda_get(dev, entry, SONIC_TD_PKTSIZE);
-				} else {
+				}
+				else
+				{
 					lp->stats.tx_errors++;
+
 					if (td_status & 0x0642)
+					{
 						lp->stats.tx_aborted_errors++;
+					}
+
 					if (td_status & 0x0180)
+					{
 						lp->stats.tx_carrier_errors++;
+					}
+
 					if (td_status & 0x0020)
+					{
 						lp->stats.tx_window_errors++;
+					}
+
 					if (td_status & 0x0004)
+					{
 						lp->stats.tx_fifo_errors++;
+					}
 				}
 
 				/* We must free the original skb */
@@ -329,15 +411,20 @@ static irqreturn_t sonic_interrupt(int irq, void *dev_id)
 				lp->tx_laddr[entry] = (dma_addr_t)0;
 				freed_some = 1;
 
-				if (sonic_tda_get(dev, entry, SONIC_TD_LINK) & SONIC_EOL) {
+				if (sonic_tda_get(dev, entry, SONIC_TD_LINK) & SONIC_EOL)
+				{
 					entry = (entry + 1) & SONIC_TDS_MASK;
 					break;
 				}
+
 				entry = (entry + 1) & SONIC_TDS_MASK;
 			}
 
 			if (freed_some || lp->tx_skb[entry] == NULL)
-				netif_wake_queue(dev);  /* The ring is no longer full */
+			{
+				netif_wake_queue(dev);    /* The ring is no longer full */
+			}
+
 			lp->cur_tx = entry;
 			SONIC_WRITE(SONIC_ISR, SONIC_INT_TXDN); /* clear the interrupt */
 		}
@@ -345,50 +432,74 @@ static irqreturn_t sonic_interrupt(int irq, void *dev_id)
 		/*
 		 * check error conditions
 		 */
-		if (status & SONIC_INT_RFO) {
+		if (status & SONIC_INT_RFO)
+		{
 			if (sonic_debug > 1)
+			{
 				printk("%s: rx fifo overrun\n", dev->name);
+			}
+
 			lp->stats.rx_fifo_errors++;
 			SONIC_WRITE(SONIC_ISR, SONIC_INT_RFO); /* clear the interrupt */
 		}
-		if (status & SONIC_INT_RDE) {
+
+		if (status & SONIC_INT_RDE)
+		{
 			if (sonic_debug > 1)
+			{
 				printk("%s: rx descriptors exhausted\n", dev->name);
+			}
+
 			lp->stats.rx_dropped++;
 			SONIC_WRITE(SONIC_ISR, SONIC_INT_RDE); /* clear the interrupt */
 		}
-		if (status & SONIC_INT_RBAE) {
+
+		if (status & SONIC_INT_RBAE)
+		{
 			if (sonic_debug > 1)
+			{
 				printk("%s: rx buffer area exceeded\n", dev->name);
+			}
+
 			lp->stats.rx_dropped++;
 			SONIC_WRITE(SONIC_ISR, SONIC_INT_RBAE); /* clear the interrupt */
 		}
 
 		/* counter overruns; all counters are 16bit wide */
-		if (status & SONIC_INT_FAE) {
+		if (status & SONIC_INT_FAE)
+		{
 			lp->stats.rx_frame_errors += 65536;
 			SONIC_WRITE(SONIC_ISR, SONIC_INT_FAE); /* clear the interrupt */
 		}
-		if (status & SONIC_INT_CRC) {
+
+		if (status & SONIC_INT_CRC)
+		{
 			lp->stats.rx_crc_errors += 65536;
 			SONIC_WRITE(SONIC_ISR, SONIC_INT_CRC); /* clear the interrupt */
 		}
-		if (status & SONIC_INT_MP) {
+
+		if (status & SONIC_INT_MP)
+		{
 			lp->stats.rx_missed_errors += 65536;
 			SONIC_WRITE(SONIC_ISR, SONIC_INT_MP); /* clear the interrupt */
 		}
 
 		/* transmit error */
-		if (status & SONIC_INT_TXER) {
+		if (status & SONIC_INT_TXER)
+		{
 			if ((SONIC_READ(SONIC_TCR) & SONIC_TCR_FU) && (sonic_debug > 2))
+			{
 				printk(KERN_ERR "%s: tx fifo underrun\n", dev->name);
+			}
+
 			SONIC_WRITE(SONIC_ISR, SONIC_INT_TXER); /* clear the interrupt */
 		}
 
 		/* bus retry */
-		if (status & SONIC_INT_BR) {
+		if (status & SONIC_INT_BR)
+		{
 			printk(KERN_ERR "%s: Bus retry occurred! Device interrupt disabled.\n",
-				dev->name);
+				   dev->name);
 			/* ... to help debug DMA problems causing endless interrupts. */
 			/* Bounce the eth interface to turn on the interrupt again. */
 			SONIC_WRITE(SONIC_IMR, 0);
@@ -397,8 +508,12 @@ static irqreturn_t sonic_interrupt(int irq, void *dev_id)
 
 		/* load CAM done */
 		if (status & SONIC_INT_LCD)
-			SONIC_WRITE(SONIC_ISR, SONIC_INT_LCD); /* clear the interrupt */
-	} while((status = SONIC_READ(SONIC_ISR) & SONIC_IMR_DEFAULT));
+		{
+			SONIC_WRITE(SONIC_ISR, SONIC_INT_LCD);    /* clear the interrupt */
+		}
+	}
+	while ((status = SONIC_READ(SONIC_ISR) & SONIC_IMR_DEFAULT));
+
 	return IRQ_HANDLED;
 }
 
@@ -411,7 +526,8 @@ static void sonic_rx(struct net_device *dev)
 	int status;
 	int entry = lp->cur_rx;
 
-	while (sonic_rda_get(dev, entry, SONIC_RD_IN_USE) == 0) {
+	while (sonic_rda_get(dev, entry, SONIC_RD_IN_USE) == 0)
+	{
 		struct sk_buff *used_skb;
 		struct sk_buff *new_skb;
 		dma_addr_t new_laddr;
@@ -420,20 +536,29 @@ static void sonic_rx(struct net_device *dev)
 		int pkt_len;
 
 		status = sonic_rda_get(dev, entry, SONIC_RD_STATUS);
-		if (status & SONIC_RCR_PRX) {
+
+		if (status & SONIC_RCR_PRX)
+		{
 			/* Malloc up new buffer. */
 			new_skb = netdev_alloc_skb(dev, SONIC_RBSIZE + 2);
-			if (new_skb == NULL) {
+
+			if (new_skb == NULL)
+			{
 				lp->stats.rx_dropped++;
 				break;
 			}
+
 			/* provide 16 byte IP header alignment unless DMA requires otherwise */
-			if(SONIC_BUS_SCALE(lp->dma_bitmode) == 2)
+			if (SONIC_BUS_SCALE(lp->dma_bitmode) == 2)
+			{
 				skb_reserve(new_skb, 2);
+			}
 
 			new_laddr = dma_map_single(lp->device, skb_put(new_skb, SONIC_RBSIZE),
-		                               SONIC_RBSIZE, DMA_FROM_DEVICE);
-			if (!new_laddr) {
+									   SONIC_RBSIZE, DMA_FROM_DEVICE);
+
+			if (!new_laddr)
+			{
 				dev_kfree_skb(new_skb);
 				printk(KERN_ERR "%s: Failed to map rx buffer, dropping packet.\n", dev->name);
 				lp->stats.rx_dropped++;
@@ -458,41 +583,61 @@ static void sonic_rx(struct net_device *dev)
 			bufadr_h = (unsigned long)new_laddr >> 16;
 			sonic_rra_put(dev, entry, SONIC_RR_BUFADR_L, bufadr_l);
 			sonic_rra_put(dev, entry, SONIC_RR_BUFADR_H, bufadr_h);
-		} else {
+		}
+		else
+		{
 			/* This should only happen, if we enable accepting broken packets. */
 			lp->stats.rx_errors++;
+
 			if (status & SONIC_RCR_FAER)
+			{
 				lp->stats.rx_frame_errors++;
+			}
+
 			if (status & SONIC_RCR_CRCR)
+			{
 				lp->stats.rx_crc_errors++;
+			}
 		}
-		if (status & SONIC_RCR_LPKT) {
+
+		if (status & SONIC_RCR_LPKT)
+		{
 			/*
 			 * this was the last packet out of the current receive buffer
 			 * give the buffer back to the SONIC
 			 */
 			lp->cur_rwp += SIZEOF_SONIC_RR * SONIC_BUS_SCALE(lp->dma_bitmode);
-			if (lp->cur_rwp >= lp->rra_end) lp->cur_rwp = lp->rra_laddr & 0xffff;
+
+			if (lp->cur_rwp >= lp->rra_end) { lp->cur_rwp = lp->rra_laddr & 0xffff; }
+
 			SONIC_WRITE(SONIC_RWP, lp->cur_rwp);
-			if (SONIC_READ(SONIC_ISR) & SONIC_INT_RBE) {
+
+			if (SONIC_READ(SONIC_ISR) & SONIC_INT_RBE)
+			{
 				if (sonic_debug > 2)
+				{
 					printk("%s: rx buffer exhausted\n", dev->name);
+				}
+
 				SONIC_WRITE(SONIC_ISR, SONIC_INT_RBE); /* clear the flag */
 			}
-		} else
+		}
+		else
 			printk(KERN_ERR "%s: rx desc without RCR_LPKT. Shouldn't happen !?\n",
-			     dev->name);
+				   dev->name);
+
 		/*
 		 * give back the descriptor
 		 */
 		sonic_rda_put(dev, entry, SONIC_RD_LINK,
-			sonic_rda_get(dev, entry, SONIC_RD_LINK) | SONIC_EOL);
+					  sonic_rda_get(dev, entry, SONIC_RD_LINK) | SONIC_EOL);
 		sonic_rda_put(dev, entry, SONIC_RD_IN_USE, 1);
 		sonic_rda_put(dev, lp->eol_rx, SONIC_RD_LINK,
-			sonic_rda_get(dev, lp->eol_rx, SONIC_RD_LINK) & ~SONIC_EOL);
+					  sonic_rda_get(dev, lp->eol_rx, SONIC_RD_LINK) & ~SONIC_EOL);
 		lp->eol_rx = entry;
 		lp->cur_rx = entry = (entry + 1) & SONIC_RDS_MASK;
 	}
+
 	/*
 	 * If any worth-while packets have been received, netif_rx()
 	 * has done a mark_bh(NET_BH) for us and will work on them
@@ -535,19 +680,27 @@ static void sonic_multicast_list(struct net_device *dev)
 	rcr = SONIC_READ(SONIC_RCR) & ~(SONIC_RCR_PRO | SONIC_RCR_AMC);
 	rcr |= SONIC_RCR_BRD;	/* accept broadcast packets */
 
-	if (dev->flags & IFF_PROMISC) {	/* set promiscuous mode */
+	if (dev->flags & IFF_PROMISC)  	/* set promiscuous mode */
+	{
 		rcr |= SONIC_RCR_PRO;
-	} else {
+	}
+	else
+	{
 		if ((dev->flags & IFF_ALLMULTI) ||
-		    (netdev_mc_count(dev) > 15)) {
+			(netdev_mc_count(dev) > 15))
+		{
 			rcr |= SONIC_RCR_AMC;
-		} else {
+		}
+		else
+		{
 			if (sonic_debug > 2)
 				printk("sonic_multicast_list: mc_count %d\n",
-				       netdev_mc_count(dev));
+					   netdev_mc_count(dev));
+
 			sonic_set_cam_enable(dev, 1);  /* always enable our own address */
 			i = 1;
-			netdev_for_each_mc_addr(ha, dev) {
+			netdev_for_each_mc_addr(ha, dev)
+			{
 				addr = ha->addr;
 				sonic_cda_put(dev, i, SONIC_CD_CAP0, addr[1] << 8 | addr[0]);
 				sonic_cda_put(dev, i, SONIC_CD_CAP1, addr[3] << 8 | addr[2]);
@@ -563,7 +716,9 @@ static void sonic_multicast_list(struct net_device *dev)
 	}
 
 	if (sonic_debug > 2)
+	{
 		printk("sonic_multicast_list: setting RCR=%x\n", rcr);
+	}
 
 	SONIC_WRITE(SONIC_RCR, rcr);
 }
@@ -597,9 +752,12 @@ static int sonic_init(struct net_device *dev)
 	 * initialize the receive resource area
 	 */
 	if (sonic_debug > 2)
+	{
 		printk("sonic_init: initialize receive resource area\n");
+	}
 
-	for (i = 0; i < SONIC_NUM_RRS; i++) {
+	for (i = 0; i < SONIC_NUM_RRS; i++)
+	{
 		u16 bufadr_l = (unsigned long)lp->rx_laddr[i] & 0xffff;
 		u16 bufadr_h = (unsigned long)lp->rx_laddr[i] >> 16;
 		sonic_rra_put(dev, i, SONIC_RR_BUFADR_L, bufadr_l);
@@ -610,9 +768,9 @@ static int sonic_init(struct net_device *dev)
 
 	/* initialize all RRA registers */
 	lp->rra_end = (lp->rra_laddr + SONIC_NUM_RRS * SIZEOF_SONIC_RR *
-					SONIC_BUS_SCALE(lp->dma_bitmode)) & 0xffff;
+				   SONIC_BUS_SCALE(lp->dma_bitmode)) & 0xffff;
 	lp->cur_rwp = (lp->rra_laddr + (SONIC_NUM_RRS - 1) * SIZEOF_SONIC_RR *
-					SONIC_BUS_SCALE(lp->dma_bitmode)) & 0xffff;
+				   SONIC_BUS_SCALE(lp->dma_bitmode)) & 0xffff;
 
 	SONIC_WRITE(SONIC_RSA, lp->rra_laddr & 0xffff);
 	SONIC_WRITE(SONIC_REA, lp->rra_end);
@@ -623,17 +781,25 @@ static int sonic_init(struct net_device *dev)
 
 	/* load the resource pointers */
 	if (sonic_debug > 3)
+	{
 		printk("sonic_init: issuing RRRA command\n");
+	}
 
 	SONIC_WRITE(SONIC_CMD, SONIC_CR_RRRA);
 	i = 0;
-	while (i++ < 100) {
+
+	while (i++ < 100)
+	{
 		if (SONIC_READ(SONIC_CMD) & SONIC_CR_RRRA)
+		{
 			break;
+		}
 	}
 
 	if (sonic_debug > 2)
+	{
 		printk("sonic_init: status=%x i=%d\n", SONIC_READ(SONIC_CMD), i);
+	}
 
 	/*
 	 * Initialize the receive descriptors so that they
@@ -641,8 +807,12 @@ static int sonic_init(struct net_device *dev)
 	 * descriptor point to the first again.
 	 */
 	if (sonic_debug > 2)
+	{
 		printk("sonic_init: initialize receive descriptors\n");
-	for (i=0; i<SONIC_NUM_RDS; i++) {
+	}
+
+	for (i = 0; i < SONIC_NUM_RDS; i++)
+	{
 		sonic_rda_put(dev, i, SONIC_RD_STATUS, 0);
 		sonic_rda_put(dev, i, SONIC_RD_PKTLEN, 0);
 		sonic_rda_put(dev, i, SONIC_RD_PKTPTR_L, 0);
@@ -650,12 +820,13 @@ static int sonic_init(struct net_device *dev)
 		sonic_rda_put(dev, i, SONIC_RD_SEQNO, 0);
 		sonic_rda_put(dev, i, SONIC_RD_IN_USE, 1);
 		sonic_rda_put(dev, i, SONIC_RD_LINK,
-			lp->rda_laddr +
-			((i+1) * SIZEOF_SONIC_RD * SONIC_BUS_SCALE(lp->dma_bitmode)));
+					  lp->rda_laddr +
+					  ((i + 1) * SIZEOF_SONIC_RD * SONIC_BUS_SCALE(lp->dma_bitmode)));
 	}
+
 	/* fix last descriptor */
 	sonic_rda_put(dev, SONIC_NUM_RDS - 1, SONIC_RD_LINK,
-		(lp->rda_laddr & 0xffff) | SONIC_EOL);
+				  (lp->rda_laddr & 0xffff) | SONIC_EOL);
 	lp->eol_rx = SONIC_NUM_RDS - 1;
 	lp->cur_rx = 0;
 	SONIC_WRITE(SONIC_URDA, lp->rda_laddr >> 16);
@@ -665,20 +836,25 @@ static int sonic_init(struct net_device *dev)
 	 * initialize transmit descriptors
 	 */
 	if (sonic_debug > 2)
+	{
 		printk("sonic_init: initialize transmit descriptors\n");
-	for (i = 0; i < SONIC_NUM_TDS; i++) {
+	}
+
+	for (i = 0; i < SONIC_NUM_TDS; i++)
+	{
 		sonic_tda_put(dev, i, SONIC_TD_STATUS, 0);
 		sonic_tda_put(dev, i, SONIC_TD_CONFIG, 0);
 		sonic_tda_put(dev, i, SONIC_TD_PKTSIZE, 0);
 		sonic_tda_put(dev, i, SONIC_TD_FRAG_COUNT, 0);
 		sonic_tda_put(dev, i, SONIC_TD_LINK,
-			(lp->tda_laddr & 0xffff) +
-			(i + 1) * SIZEOF_SONIC_TD * SONIC_BUS_SCALE(lp->dma_bitmode));
+					  (lp->tda_laddr & 0xffff) +
+					  (i + 1) * SIZEOF_SONIC_TD * SONIC_BUS_SCALE(lp->dma_bitmode));
 		lp->tx_skb[i] = NULL;
 	}
+
 	/* fix last descriptor */
 	sonic_tda_put(dev, SONIC_NUM_TDS - 1, SONIC_TD_LINK,
-		(lp->tda_laddr & 0xffff));
+				  (lp->tda_laddr & 0xffff));
 
 	SONIC_WRITE(SONIC_UTDA, lp->tda_laddr >> 16);
 	SONIC_WRITE(SONIC_CTDA, lp->tda_laddr & 0xffff);
@@ -694,7 +870,9 @@ static int sonic_init(struct net_device *dev)
 	sonic_set_cam_enable(dev, 1);
 
 	for (i = 0; i < 16; i++)
+	{
 		sonic_cda_put(dev, i, SONIC_CD_ENTRY_POINTER, i);
+	}
 
 	/*
 	 * initialize CAM registers
@@ -708,13 +886,19 @@ static int sonic_init(struct net_device *dev)
 	SONIC_WRITE(SONIC_CMD, SONIC_CR_LCAM);
 
 	i = 0;
-	while (i++ < 100) {
+
+	while (i++ < 100)
+	{
 		if (SONIC_READ(SONIC_ISR) & SONIC_INT_LCD)
+		{
 			break;
+		}
 	}
-	if (sonic_debug > 2) {
+
+	if (sonic_debug > 2)
+	{
 		printk("sonic_init: CMD=%x, ISR=%x\n, i=%d",
-		       SONIC_READ(SONIC_CMD), SONIC_READ(SONIC_ISR), i);
+			   SONIC_READ(SONIC_CMD), SONIC_READ(SONIC_ISR), i);
 	}
 
 	/*
@@ -728,12 +912,15 @@ static int sonic_init(struct net_device *dev)
 	SONIC_WRITE(SONIC_IMR, SONIC_IMR_DEFAULT);
 
 	cmd = SONIC_READ(SONIC_CMD);
+
 	if ((cmd & SONIC_CR_RXEN) == 0 || (cmd & SONIC_CR_STP) == 0)
+	{
 		printk(KERN_ERR "sonic_init: failed, status=%x\n", cmd);
+	}
 
 	if (sonic_debug > 2)
 		printk("sonic_init: new status=%x\n",
-		       SONIC_READ(SONIC_CMD));
+			   SONIC_READ(SONIC_CMD));
 
 	return 0;
 }

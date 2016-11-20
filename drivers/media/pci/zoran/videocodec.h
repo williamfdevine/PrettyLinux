@@ -155,7 +155,7 @@ M                       zr36055[1] 0001 0000c001 00000000 (zr36050[1])
 #define CODEC_FLAG_MPEG      0x00000002L	// MPEG1/2/4 codec
 #define CODEC_FLAG_DIVX      0x00000004L	// DIVX codec
 #define CODEC_FLAG_WAVELET   0x00000008L	// WAVELET codec
-					  // room for other types
+// room for other types
 
 #define CODEC_FLAG_MAGIC     0x00000800L	// magic key must match
 #define CODEC_FLAG_HARDWARE  0x00001000L	// is a hardware codec
@@ -220,18 +220,20 @@ M                       zr36055[1] 0001 0000c001 00000000 (zr36050[1])
 /* the structures itself ... */
 /* ========================= */
 
-struct vfe_polarity {
-	unsigned int vsync_pol:1;
-	unsigned int hsync_pol:1;
-	unsigned int field_pol:1;
-	unsigned int blank_pol:1;
-	unsigned int subimg_pol:1;
-	unsigned int poe_pol:1;
-	unsigned int pvalid_pol:1;
-	unsigned int vclk_pol:1;
+struct vfe_polarity
+{
+	unsigned int vsync_pol: 1;
+	unsigned int hsync_pol: 1;
+	unsigned int field_pol: 1;
+	unsigned int blank_pol: 1;
+	unsigned int subimg_pol: 1;
+	unsigned int poe_pol: 1;
+	unsigned int pvalid_pol: 1;
+	unsigned int vclk_pol: 1;
 };
 
-struct vfe_settings {
+struct vfe_settings
+{
 	__u32 x, y;		/* Offsets into image */
 	__u32 width, height;	/* Area to capture */
 	__u16 decimation;	/* Decimation divider */
@@ -239,22 +241,26 @@ struct vfe_settings {
 	__u16 quality;		/* quality of the video */
 };
 
-struct tvnorm {
+struct tvnorm
+{
 	u16 Wt, Wa, HStart, HSyncStart, Ht, Ha, VStart;
 };
 
-struct jpeg_com_marker {
+struct jpeg_com_marker
+{
 	int len; /* number of usable bytes in data */
 	char data[60];
 };
 
-struct jpeg_app_marker {
+struct jpeg_app_marker
+{
 	int appn; /* number app segment */
 	int len; /* number of usable bytes in data */
 	char data[60];
 };
 
-struct videocodec {
+struct videocodec
+{
 	struct module *owner;
 	/* -- filled in by slave device during register -- */
 	char name[32];
@@ -271,49 +277,50 @@ struct videocodec {
 	void *data;		/* private slave data */
 
 	/* attach/detach client functions (indirect call) */
-	int (*setup) (struct videocodec * codec);
-	int (*unset) (struct videocodec * codec);
+	int (*setup) (struct videocodec *codec);
+	int (*unset) (struct videocodec *codec);
 
 	/* main functions, every client needs them for sure! */
 	// set compression or decompression (or freeze, stop, standby, etc)
-	int (*set_mode) (struct videocodec * codec,
-			 int mode);
+	int (*set_mode) (struct videocodec *codec,
+					 int mode);
 	// setup picture size and norm (for the codec's video frontend)
-	int (*set_video) (struct videocodec * codec,
-			  struct tvnorm * norm,
-			  struct vfe_settings * cap,
-			  struct vfe_polarity * pol);
+	int (*set_video) (struct videocodec *codec,
+					  struct tvnorm *norm,
+					  struct vfe_settings *cap,
+					  struct vfe_polarity *pol);
 	// other control commands, also mmap setup etc.
-	int (*control) (struct videocodec * codec,
-			int type,
-			int size,
-			void *data);
+	int (*control) (struct videocodec *codec,
+					int type,
+					int size,
+					void *data);
 
 	/* additional setup/query/processing (may be NULL pointer) */
 	// interrupt setup / handling (for irq's delivered by master)
-	int (*setup_interrupt) (struct videocodec * codec,
-				long mode);
-	int (*handle_interrupt) (struct videocodec * codec,
-				 int source,
-				 long flag);
+	int (*setup_interrupt) (struct videocodec *codec,
+							long mode);
+	int (*handle_interrupt) (struct videocodec *codec,
+							 int source,
+							 long flag);
 	// picture interface (if any)
-	long (*put_image) (struct videocodec * codec,
-			   int tr_type,
-			   int block,
-			   long *fr_num,
-			   long *flag,
-			   long size,
-			   void *buf);
-	long (*get_image) (struct videocodec * codec,
-			   int tr_type,
-			   int block,
-			   long *fr_num,
-			   long *flag,
-			   long size,
-			   void *buf);
+	long (*put_image) (struct videocodec *codec,
+					   int tr_type,
+					   int block,
+					   long *fr_num,
+					   long *flag,
+					   long size,
+					   void *buf);
+	long (*get_image) (struct videocodec *codec,
+					   int tr_type,
+					   int block,
+					   long *fr_num,
+					   long *flag,
+					   long size,
+					   void *buf);
 };
 
-struct videocodec_master {
+struct videocodec_master
+{
 	/* -- filled in by master device for registration -- */
 	char name[32];
 	unsigned long magic;	/* may be used for client<->master attaching */
@@ -322,11 +329,11 @@ struct videocodec_master {
 
 	void *data;		/* private master data */
 
-	 __u32(*readreg) (struct videocodec * codec,
-			  __u16 reg);
-	void (*writereg) (struct videocodec * codec,
-			  __u16 reg,
-			  __u32 value);
+	__u32(*readreg) (struct videocodec *codec,
+					 __u16 reg);
+	void (*writereg) (struct videocodec *codec,
+					  __u16 reg,
+					  __u32 value);
 };
 
 

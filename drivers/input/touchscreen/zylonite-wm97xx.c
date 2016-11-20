@@ -31,7 +31,8 @@
 #include <mach/mfp.h>
 #include <mach/regs-ac97.h>
 
-struct continuous {
+struct continuous
+{
 	u16 id;    /* codec id */
 	u8 code;   /* continuous code */
 	u8 reads;  /* number of coord reads per read cycle */
@@ -40,7 +41,8 @@ struct continuous {
 
 #define WM_READS(sp) ((sp / HZ) + 1)
 
-static const struct continuous cinfo[] = {
+static const struct continuous cinfo[] =
+{
 	{ WM9713_ID2, 0, WM_READS(94),  94  },
 	{ WM9713_ID2, 1, WM_READS(120), 120 },
 	{ WM9713_ID2, 2, WM_READS(154), 154 },
@@ -84,7 +86,9 @@ static void wm97xx_acc_pen_up(struct wm97xx *wm)
 	msleep(1);
 
 	for (i = 0; i < 16; i++)
+	{
 		MODR;
+	}
 }
 
 static int wm97xx_acc_pen_down(struct wm97xx *wm)
@@ -100,32 +104,46 @@ static int wm97xx_acc_pen_down(struct wm97xx *wm)
 	 */
 	msleep(1);
 
-	if (tries > 5) {
+	if (tries > 5)
+	{
 		tries = 0;
 		return RC_PENUP;
 	}
 
 	x = MODR;
-	if (x == last) {
+
+	if (x == last)
+	{
 		tries++;
 		return RC_AGAIN;
 	}
+
 	last = x;
-	do {
+
+	do
+	{
 		if (reads)
+		{
 			x = MODR;
+		}
+
 		y = MODR;
+
 		if (pressure)
+		{
 			p = MODR;
+		}
 
 		dev_dbg(wm->dev, "Raw coordinates: x=%x, y=%x, p=%x\n",
-			x, y, p);
+				x, y, p);
 
 		/* are samples valid */
 		if ((x & WM97XX_ADCSEL_MASK) != WM97XX_ADCSEL_X ||
-		    (y & WM97XX_ADCSEL_MASK) != WM97XX_ADCSEL_Y ||
-		    (p & WM97XX_ADCSEL_MASK) != WM97XX_ADCSEL_PRES)
+			(y & WM97XX_ADCSEL_MASK) != WM97XX_ADCSEL_Y ||
+			(p & WM97XX_ADCSEL_MASK) != WM97XX_ADCSEL_PRES)
+		{
 			goto up;
+		}
 
 		/* coordinate is good */
 		tries = 0;
@@ -135,7 +153,9 @@ static int wm97xx_acc_pen_down(struct wm97xx *wm)
 		input_report_key(wm->input_dev, BTN_TOUCH, (p != 0));
 		input_sync(wm->input_dev);
 		reads++;
-	} while (reads < cinfo[sp_idx].reads);
+	}
+	while (reads < cinfo[sp_idx].reads);
+
 up:
 	return RC_PENDOWN | RC_AGAIN;
 }
@@ -146,21 +166,31 @@ static int wm97xx_acc_startup(struct wm97xx *wm)
 
 	/* check we have a codec */
 	if (wm->ac97 == NULL)
+	{
 		return -ENODEV;
+	}
 
 	/* Go you big red fire engine */
-	for (idx = 0; idx < ARRAY_SIZE(cinfo); idx++) {
+	for (idx = 0; idx < ARRAY_SIZE(cinfo); idx++)
+	{
 		if (wm->id != cinfo[idx].id)
+		{
 			continue;
+		}
+
 		sp_idx = idx;
+
 		if (cont_rate <= cinfo[idx].speed)
+		{
 			break;
+		}
 	}
+
 	wm->acc_rate = cinfo[sp_idx].code;
 	wm->acc_slot = ac97_touch_slot;
 	dev_info(wm->dev,
-		 "zylonite accelerated touchscreen driver, %d samples/sec\n",
-		 cinfo[sp_idx].speed);
+			 "zylonite accelerated touchscreen driver, %d samples/sec\n",
+			 cinfo[sp_idx].speed);
 
 	return 0;
 }
@@ -168,12 +198,17 @@ static int wm97xx_acc_startup(struct wm97xx *wm)
 static void wm97xx_irq_enable(struct wm97xx *wm, int enable)
 {
 	if (enable)
+	{
 		enable_irq(wm->pen_irq);
+	}
 	else
+	{
 		disable_irq_nosync(wm->pen_irq);
+	}
 }
 
-static struct wm97xx_mach_ops zylonite_mach_ops = {
+static struct wm97xx_mach_ops zylonite_mach_ops =
+{
 	.acc_enabled	= 1,
 	.acc_pen_up	= wm97xx_acc_pen_up,
 	.acc_pen_down	= wm97xx_acc_pen_down,
@@ -188,21 +223,25 @@ static int zylonite_wm97xx_probe(struct platform_device *pdev)
 	int gpio_touch_irq;
 
 	if (cpu_is_pxa320())
+	{
 		gpio_touch_irq = mfp_to_gpio(MFP_PIN_GPIO15);
+	}
 	else
+	{
 		gpio_touch_irq = mfp_to_gpio(MFP_PIN_GPIO26);
+	}
 
 	wm->pen_irq = gpio_to_irq(gpio_touch_irq);
 	irq_set_irq_type(wm->pen_irq, IRQ_TYPE_EDGE_BOTH);
 
 	wm97xx_config_gpio(wm, WM97XX_GPIO_13, WM97XX_GPIO_IN,
-			   WM97XX_GPIO_POL_HIGH,
-			   WM97XX_GPIO_STICKY,
-			   WM97XX_GPIO_WAKE);
+					   WM97XX_GPIO_POL_HIGH,
+					   WM97XX_GPIO_STICKY,
+					   WM97XX_GPIO_WAKE);
 	wm97xx_config_gpio(wm, WM97XX_GPIO_2, WM97XX_GPIO_OUT,
-			   WM97XX_GPIO_POL_HIGH,
-			   WM97XX_GPIO_NOTSTICKY,
-			   WM97XX_GPIO_NOWAKE);
+					   WM97XX_GPIO_POL_HIGH,
+					   WM97XX_GPIO_NOTSTICKY,
+					   WM97XX_GPIO_NOWAKE);
 
 	return wm97xx_register_mach_ops(wm, &zylonite_mach_ops);
 }
@@ -216,7 +255,8 @@ static int zylonite_wm97xx_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver zylonite_wm97xx_driver = {
+static struct platform_driver zylonite_wm97xx_driver =
+{
 	.probe	= zylonite_wm97xx_probe,
 	.remove	= zylonite_wm97xx_remove,
 	.driver	= {

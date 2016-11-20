@@ -34,7 +34,7 @@
 #define HEIGHT		220
 #define TXBUFLEN	(4 * PAGE_SIZE)
 #define DEFAULT_GAMMA	"1 3 0E 5 0 2 09 0 6 1 7 1 0 2 2\n" \
-			"3 3 17 8 4 7 05 7 6 0 3 1 6 0 0 "
+	"3 3 17 8 4 7 05 7 6 0 3 1 6 0 0 "
 
 static bool emulate;
 module_param(emulate, bool, 0);
@@ -129,22 +129,27 @@ static int set_var(struct fbtft_par *par)
 #define MY BIT(7)
 #define MX BIT(6)
 #define MV BIT(5)
-	switch (par->info->var.rotate) {
-	case 0:
-		write_reg(par, MIPI_DCS_SET_ADDRESS_MODE, par->bgr << 3);
-		break;
-	case 270:
-		write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
-			  MX | MV | (par->bgr << 3));
-		break;
-	case 180:
-		write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
-			  MX | MY | (par->bgr << 3));
-		break;
-	case 90:
-		write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
-			  MY | MV | (par->bgr << 3));
-		break;
+
+	switch (par->info->var.rotate)
+	{
+		case 0:
+			write_reg(par, MIPI_DCS_SET_ADDRESS_MODE, par->bgr << 3);
+			break;
+
+		case 270:
+			write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
+					  MX | MV | (par->bgr << 3));
+			break;
+
+		case 180:
+			write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
+					  MX | MY | (par->bgr << 3));
+			break;
+
+		case 90:
+			write_reg(par, MIPI_DCS_SET_ADDRESS_MODE,
+					  MY | MV | (par->bgr << 3));
+			break;
 	}
 
 	return 0;
@@ -160,7 +165,8 @@ static int set_var(struct fbtft_par *par)
 #define CURVE(num, idx)  curves[num * par->gamma.num_values + idx]
 static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 {
-	unsigned long mask[] = {
+	unsigned long mask[] =
+	{
 		0x0f, 0x0f, 0x1f, 0x0f, 0x0f, 0x0f, 0x1f, 0x07, 0x07, 0x07,
 		0x07, 0x07, 0x07, 0x03, 0x03, 0x0f, 0x0f, 0x1f, 0x0f, 0x0f,
 		0x0f, 0x1f, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x00, 0x00,
@@ -170,34 +176,38 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 	/* apply mask */
 	for (i = 0; i < par->gamma.num_curves; i++)
 		for (j = 0; j < par->gamma.num_values; j++)
+		{
 			CURVE(i, j) &= mask[i * par->gamma.num_values + j];
+		}
 
 	/* Gamma Set (26h) */
 	write_reg(par, MIPI_DCS_SET_GAMMA_CURVE, 1 << CURVE(1, 14));
 
 	if (CURVE(1, 14))
-		return 0; /* only GC0 can be customized */
+	{
+		return 0;    /* only GC0 can be customized */
+	}
 
 	write_reg(par, 0xC2,
-		  (CURVE(0, 8) << 4) | CURVE(0, 7),
-		  (CURVE(0, 10) << 4) | CURVE(0, 9),
-		  (CURVE(0, 12) << 4) | CURVE(0, 11),
-		  CURVE(0, 2),
-		  (CURVE(0, 4) << 4) | CURVE(0, 3),
-		  CURVE(0, 5),
-		  CURVE(0, 6),
-		  (CURVE(0, 1) << 4) | CURVE(0, 0),
-		  (CURVE(0, 14) << 2) | CURVE(0, 13));
+			  (CURVE(0, 8) << 4) | CURVE(0, 7),
+			  (CURVE(0, 10) << 4) | CURVE(0, 9),
+			  (CURVE(0, 12) << 4) | CURVE(0, 11),
+			  CURVE(0, 2),
+			  (CURVE(0, 4) << 4) | CURVE(0, 3),
+			  CURVE(0, 5),
+			  CURVE(0, 6),
+			  (CURVE(0, 1) << 4) | CURVE(0, 0),
+			  (CURVE(0, 14) << 2) | CURVE(0, 13));
 
 	write_reg(par, 0xC3,
-		  (CURVE(1, 8) << 4) | CURVE(1, 7),
-		  (CURVE(1, 10) << 4) | CURVE(1, 9),
-		  (CURVE(1, 12) << 4) | CURVE(1, 11),
-		  CURVE(1, 2),
-		  (CURVE(1, 4) << 4) | CURVE(1, 3),
-		  CURVE(1, 5),
-		  CURVE(1, 6),
-		  (CURVE(1, 1) << 4) | CURVE(1, 0));
+			  (CURVE(1, 8) << 4) | CURVE(1, 7),
+			  (CURVE(1, 10) << 4) | CURVE(1, 9),
+			  (CURVE(1, 12) << 4) | CURVE(1, 11),
+			  CURVE(1, 2),
+			  (CURVE(1, 4) << 4) | CURVE(1, 3),
+			  CURVE(1, 5),
+			  CURVE(1, 6),
+			  (CURVE(1, 1) << 4) | CURVE(1, 0));
 
 	mdelay(10);
 
@@ -206,7 +216,8 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 
 #undef CURVE
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 8,
 	.width = WIDTH,
 	.height = HEIGHT,

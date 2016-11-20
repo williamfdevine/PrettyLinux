@@ -18,12 +18,14 @@
  */
 #define NFS4_MOUNT_VERSION	1
 
-struct nfs_string {
+struct nfs_string
+{
 	unsigned int len;
-	const char __user * data;
+	const char __user *data;
 };
 
-struct nfs4_mount_data {
+struct nfs4_mount_data
+{
 	int version;				/* 1 */
 	int flags;				/* 1 */
 	int rsize;				/* 1 */
@@ -45,7 +47,7 @@ struct nfs4_mount_data {
 	struct nfs_string hostname;		/* 1 */
 	/* Server IP address */
 	unsigned int host_addrlen;		/* 1 */
-	struct sockaddr __user * host_addr;	/* 1 */
+	struct sockaddr __user *host_addr;	/* 1 */
 
 	/* Transport protocol to use */
 	int proto;				/* 1 */

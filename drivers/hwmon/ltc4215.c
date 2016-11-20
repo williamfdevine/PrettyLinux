@@ -22,7 +22,8 @@
 #include <linux/jiffies.h>
 
 /* Here are names of the chip's registers (a.k.a. commands) */
-enum ltc4215_cmd {
+enum ltc4215_cmd
+{
 	LTC4215_CONTROL			= 0x00, /* rw */
 	LTC4215_ALERT			= 0x01, /* rw */
 	LTC4215_STATUS			= 0x02, /* ro */
@@ -32,7 +33,8 @@ enum ltc4215_cmd {
 	LTC4215_ADIN			= 0x06, /* rw */
 };
 
-struct ltc4215_data {
+struct ltc4215_data
+{
 	struct i2c_client *client;
 
 	struct mutex update_lock;
@@ -53,17 +55,24 @@ static struct ltc4215_data *ltc4215_update_device(struct device *dev)
 	mutex_lock(&data->update_lock);
 
 	/* The chip's A/D updates 10 times per second */
-	if (time_after(jiffies, data->last_updated + HZ / 10) || !data->valid) {
+	if (time_after(jiffies, data->last_updated + HZ / 10) || !data->valid)
+	{
 
 		dev_dbg(&client->dev, "Starting ltc4215 update\n");
 
 		/* Read all registers */
-		for (i = 0; i < ARRAY_SIZE(data->regs); i++) {
+		for (i = 0; i < ARRAY_SIZE(data->regs); i++)
+		{
 			val = i2c_smbus_read_byte_data(client, i);
+
 			if (unlikely(val < 0))
+			{
 				data->regs[i] = 0;
+			}
 			else
+			{
 				data->regs[i] = val;
+			}
 		}
 
 		data->last_updated = jiffies;
@@ -82,26 +91,30 @@ static int ltc4215_get_voltage(struct device *dev, u8 reg)
 	const u8 regval = data->regs[reg];
 	u32 voltage = 0;
 
-	switch (reg) {
-	case LTC4215_SENSE:
-		/* 151 uV per increment */
-		voltage = regval * 151 / 1000;
-		break;
-	case LTC4215_SOURCE:
-		/* 60.5 mV per increment */
-		voltage = regval * 605 / 10;
-		break;
-	case LTC4215_ADIN:
-		/*
-		 * The ADIN input is divided by 12.5, and has 4.82 mV
-		 * per increment, so we have the additional multiply
-		 */
-		voltage = regval * 482 * 125 / 1000;
-		break;
-	default:
-		/* If we get here, the developer messed up */
-		WARN_ON_ONCE(1);
-		break;
+	switch (reg)
+	{
+		case LTC4215_SENSE:
+			/* 151 uV per increment */
+			voltage = regval * 151 / 1000;
+			break;
+
+		case LTC4215_SOURCE:
+			/* 60.5 mV per increment */
+			voltage = regval * 605 / 10;
+			break;
+
+		case LTC4215_ADIN:
+			/*
+			 * The ADIN input is divided by 12.5, and has 4.82 mV
+			 * per increment, so we have the additional multiply
+			 */
+			voltage = regval * 482 * 125 / 1000;
+			break;
+
+		default:
+			/* If we get here, the developer messed up */
+			WARN_ON_ONCE(1);
+			break;
 	}
 
 	return voltage;
@@ -137,8 +150,8 @@ static unsigned int ltc4215_get_current(struct device *dev)
 }
 
 static ssize_t ltc4215_show_voltage(struct device *dev,
-				    struct device_attribute *da,
-				    char *buf)
+									struct device_attribute *da,
+									char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
 	const int voltage = ltc4215_get_voltage(dev, attr->index);
@@ -147,8 +160,8 @@ static ssize_t ltc4215_show_voltage(struct device *dev,
 }
 
 static ssize_t ltc4215_show_current(struct device *dev,
-				    struct device_attribute *da,
-				    char *buf)
+									struct device_attribute *da,
+									char *buf)
 {
 	const unsigned int curr = ltc4215_get_current(dev);
 
@@ -156,8 +169,8 @@ static ssize_t ltc4215_show_current(struct device *dev,
 }
 
 static ssize_t ltc4215_show_power(struct device *dev,
-				  struct device_attribute *da,
-				  char *buf)
+								  struct device_attribute *da,
+								  char *buf)
 {
 	const unsigned int curr = ltc4215_get_current(dev);
 	const int output_voltage = ltc4215_get_voltage(dev, LTC4215_ADIN);
@@ -169,8 +182,8 @@ static ssize_t ltc4215_show_power(struct device *dev,
 }
 
 static ssize_t ltc4215_show_alarm(struct device *dev,
-					  struct device_attribute *da,
-					  char *buf)
+								  struct device_attribute *da,
+								  char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
 	struct ltc4215_data *data = ltc4215_update_device(dev);
@@ -191,30 +204,31 @@ static ssize_t ltc4215_show_alarm(struct device *dev,
 /* Current */
 static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO, ltc4215_show_current, NULL, 0);
 static SENSOR_DEVICE_ATTR(curr1_max_alarm, S_IRUGO, ltc4215_show_alarm, NULL,
-			  1 << 2);
+						  1 << 2);
 
 /* Power (virtual) */
 static SENSOR_DEVICE_ATTR(power1_input, S_IRUGO, ltc4215_show_power, NULL, 0);
 
 /* Input Voltage */
 static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, ltc4215_show_voltage, NULL,
-			  LTC4215_ADIN);
+						  LTC4215_ADIN);
 static SENSOR_DEVICE_ATTR(in1_max_alarm, S_IRUGO, ltc4215_show_alarm, NULL,
-			  1 << 0);
+						  1 << 0);
 static SENSOR_DEVICE_ATTR(in1_min_alarm, S_IRUGO, ltc4215_show_alarm, NULL,
-			  1 << 1);
+						  1 << 1);
 
 /* Output Voltage */
 static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, ltc4215_show_voltage, NULL,
-			  LTC4215_SOURCE);
+						  LTC4215_SOURCE);
 static SENSOR_DEVICE_ATTR(in2_min_alarm, S_IRUGO, ltc4215_show_alarm, NULL,
-			  1 << 3);
+						  1 << 3);
 
 /*
  * Finally, construct an array of pointers to members of the above objects,
  * as required for sysfs_create_group()
  */
-static struct attribute *ltc4215_attrs[] = {
+static struct attribute *ltc4215_attrs[] =
+{
 	&sensor_dev_attr_curr1_input.dev_attr.attr,
 	&sensor_dev_attr_curr1_max_alarm.dev_attr.attr,
 
@@ -232,7 +246,7 @@ static struct attribute *ltc4215_attrs[] = {
 ATTRIBUTE_GROUPS(ltc4215);
 
 static int ltc4215_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct i2c_adapter *adapter = client->adapter;
 	struct device *dev = &client->dev;
@@ -240,11 +254,16 @@ static int ltc4215_probe(struct i2c_client *client,
 	struct device *hwmon_dev;
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -ENODEV;
+	}
 
 	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	data->client = client;
 	mutex_init(&data->update_lock);
@@ -253,19 +272,21 @@ static int ltc4215_probe(struct i2c_client *client,
 	i2c_smbus_write_byte_data(client, LTC4215_FAULT, 0x00);
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-							   data,
-							   ltc4215_groups);
+				data,
+				ltc4215_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
-static const struct i2c_device_id ltc4215_id[] = {
+static const struct i2c_device_id ltc4215_id[] =
+{
 	{ "ltc4215", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, ltc4215_id);
 
 /* This is the driver that will be inserted */
-static struct i2c_driver ltc4215_driver = {
+static struct i2c_driver ltc4215_driver =
+{
 	.driver = {
 		.name	= "ltc4215",
 	},

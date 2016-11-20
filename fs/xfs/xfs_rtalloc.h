@@ -99,26 +99,26 @@ xfs_growfs_rt(
  * From xfs_rtbitmap.c
  */
 int xfs_rtcheck_range(struct xfs_mount *mp, struct xfs_trans *tp,
-		      xfs_rtblock_t start, xfs_extlen_t len, int val,
-		      xfs_rtblock_t *new, int *stat);
+					  xfs_rtblock_t start, xfs_extlen_t len, int val,
+					  xfs_rtblock_t *new, int *stat);
 int xfs_rtfind_back(struct xfs_mount *mp, struct xfs_trans *tp,
-		    xfs_rtblock_t start, xfs_rtblock_t limit,
-		    xfs_rtblock_t *rtblock);
+					xfs_rtblock_t start, xfs_rtblock_t limit,
+					xfs_rtblock_t *rtblock);
 int xfs_rtfind_forw(struct xfs_mount *mp, struct xfs_trans *tp,
-		    xfs_rtblock_t start, xfs_rtblock_t limit,
-		    xfs_rtblock_t *rtblock);
+					xfs_rtblock_t start, xfs_rtblock_t limit,
+					xfs_rtblock_t *rtblock);
 int xfs_rtmodify_range(struct xfs_mount *mp, struct xfs_trans *tp,
-		       xfs_rtblock_t start, xfs_extlen_t len, int val);
+					   xfs_rtblock_t start, xfs_extlen_t len, int val);
 int xfs_rtmodify_summary_int(struct xfs_mount *mp, struct xfs_trans *tp,
-			     int log, xfs_rtblock_t bbno, int delta,
-			     xfs_buf_t **rbpp, xfs_fsblock_t *rsb,
-			     xfs_suminfo_t *sum);
+							 int log, xfs_rtblock_t bbno, int delta,
+							 xfs_buf_t **rbpp, xfs_fsblock_t *rsb,
+							 xfs_suminfo_t *sum);
 int xfs_rtmodify_summary(struct xfs_mount *mp, struct xfs_trans *tp, int log,
-			 xfs_rtblock_t bbno, int delta, xfs_buf_t **rbpp,
-			 xfs_fsblock_t *rsb);
+						 xfs_rtblock_t bbno, int delta, xfs_buf_t **rbpp,
+						 xfs_fsblock_t *rsb);
 int xfs_rtfree_range(struct xfs_mount *mp, struct xfs_trans *tp,
-		     xfs_rtblock_t start, xfs_extlen_t len,
-		     struct xfs_buf **rbpp, xfs_fsblock_t *rsb);
+					 xfs_rtblock_t start, xfs_extlen_t len,
+					 struct xfs_buf **rbpp, xfs_fsblock_t *rsb);
 
 
 #else
@@ -131,7 +131,9 @@ xfs_rtmount_init(
 	xfs_mount_t	*mp)	/* file system mount structure */
 {
 	if (mp->m_sb.sb_rblocks == 0)
+	{
 		return 0;
+	}
 
 	xfs_warn(mp, "Not built with CONFIG_XFS_RT");
 	return -ENOSYS;

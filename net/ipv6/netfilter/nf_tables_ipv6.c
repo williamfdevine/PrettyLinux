@@ -17,8 +17,8 @@
 #include <net/netfilter/nf_tables_ipv6.h>
 
 static unsigned int nft_do_chain_ipv6(void *priv,
-				      struct sk_buff *skb,
-				      const struct nf_hook_state *state)
+									  struct sk_buff *skb,
+									  const struct nf_hook_state *state)
 {
 	struct nft_pktinfo pkt;
 
@@ -28,20 +28,23 @@ static unsigned int nft_do_chain_ipv6(void *priv,
 }
 
 static unsigned int nft_ipv6_output(void *priv,
-				    struct sk_buff *skb,
-				    const struct nf_hook_state *state)
+									struct sk_buff *skb,
+									const struct nf_hook_state *state)
 {
-	if (unlikely(skb->len < sizeof(struct ipv6hdr))) {
+	if (unlikely(skb->len < sizeof(struct ipv6hdr)))
+	{
 		if (net_ratelimit())
 			pr_info("nf_tables_ipv6: ignoring short SOCK_RAW "
-				"packet\n");
+					"packet\n");
+
 		return NF_ACCEPT;
 	}
 
 	return nft_do_chain_ipv6(priv, skb, state);
 }
 
-struct nft_af_info nft_af_ipv6 __read_mostly = {
+struct nft_af_info nft_af_ipv6 __read_mostly =
+{
 	.family		= NFPROTO_IPV6,
 	.nhooks		= NF_INET_NUMHOOKS,
 	.owner		= THIS_MODULE,
@@ -59,13 +62,18 @@ EXPORT_SYMBOL_GPL(nft_af_ipv6);
 static int nf_tables_ipv6_init_net(struct net *net)
 {
 	net->nft.ipv6 = kmalloc(sizeof(struct nft_af_info), GFP_KERNEL);
+
 	if (net->nft.ipv6 == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(net->nft.ipv6, &nft_af_ipv6, sizeof(nft_af_ipv6));
 
 	if (nft_register_afinfo(net, net->nft.ipv6) < 0)
+	{
 		goto err;
+	}
 
 	return 0;
 err:
@@ -79,21 +87,23 @@ static void nf_tables_ipv6_exit_net(struct net *net)
 	kfree(net->nft.ipv6);
 }
 
-static struct pernet_operations nf_tables_ipv6_net_ops = {
+static struct pernet_operations nf_tables_ipv6_net_ops =
+{
 	.init	= nf_tables_ipv6_init_net,
 	.exit	= nf_tables_ipv6_exit_net,
 };
 
-static const struct nf_chain_type filter_ipv6 = {
+static const struct nf_chain_type filter_ipv6 =
+{
 	.name		= "filter",
 	.type		= NFT_CHAIN_T_DEFAULT,
 	.family		= NFPROTO_IPV6,
 	.owner		= THIS_MODULE,
 	.hook_mask	= (1 << NF_INET_LOCAL_IN) |
-			  (1 << NF_INET_LOCAL_OUT) |
-			  (1 << NF_INET_FORWARD) |
-			  (1 << NF_INET_PRE_ROUTING) |
-			  (1 << NF_INET_POST_ROUTING),
+	(1 << NF_INET_LOCAL_OUT) |
+	(1 << NF_INET_FORWARD) |
+	(1 << NF_INET_PRE_ROUTING) |
+	(1 << NF_INET_POST_ROUTING),
 };
 
 static int __init nf_tables_ipv6_init(void)
@@ -101,12 +111,18 @@ static int __init nf_tables_ipv6_init(void)
 	int ret;
 
 	ret = nft_register_chain_type(&filter_ipv6);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = register_pernet_subsys(&nf_tables_ipv6_net_ops);
+
 	if (ret < 0)
+	{
 		nft_unregister_chain_type(&filter_ipv6);
+	}
 
 	return ret;
 }

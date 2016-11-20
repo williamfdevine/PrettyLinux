@@ -31,7 +31,8 @@ struct dlm_lock;
 struct dlm_ctxt;
 
 /* NOTE: changes made to this enum should be reflected in dlmdebug.c */
-enum dlm_status {
+enum dlm_status
+{
 	DLM_NORMAL = 0,           /*  0: request in progress */
 	DLM_GRANTED,              /*  1: request granted */
 	DLM_DENIED,               /*  2: request denied */
@@ -89,11 +90,11 @@ const char *dlm_errname(enum dlm_status err);
  * bring its error reporting into line with the rest of the stack,
  * these can just be replaced with calls to mlog_errno. */
 #define dlm_error(st) do {						\
-	if ((st) != DLM_RECOVERING &&					\
-	    (st) != DLM_MIGRATING &&					\
-	    (st) != DLM_FORWARD)					\
-		mlog(ML_ERROR, "dlm status = %s\n", dlm_errname((st)));	\
-} while (0)
+		if ((st) != DLM_RECOVERING &&					\
+			(st) != DLM_MIGRATING &&					\
+			(st) != DLM_FORWARD)					\
+			mlog(ML_ERROR, "dlm status = %s\n", dlm_errname((st)));	\
+	} while (0)
 
 #define DLM_LKSB_UNUSED1           0x01
 #define DLM_LKSB_PUT_LVB           0x02
@@ -108,7 +109,8 @@ const char *dlm_errname(enum dlm_status err);
 
 /* Callers are only allowed access to the lvb and status members of
  * this struct. */
-struct dlm_lockstatus {
+struct dlm_lockstatus
+{
 	enum dlm_status status;
 	u32 flags;
 	struct dlm_lock *lockid;
@@ -178,43 +180,45 @@ typedef void (dlm_bastlockfunc_t)(void *, int);
 typedef void (dlm_astunlockfunc_t)(void *, enum dlm_status);
 
 enum dlm_status dlmlock(struct dlm_ctxt *dlm,
-			int mode,
-			struct dlm_lockstatus *lksb,
-			int flags,
-			const char *name,
-			int namelen,
-			dlm_astlockfunc_t *ast,
-			void *data,
-			dlm_bastlockfunc_t *bast);
+						int mode,
+						struct dlm_lockstatus *lksb,
+						int flags,
+						const char *name,
+						int namelen,
+						dlm_astlockfunc_t *ast,
+						void *data,
+						dlm_bastlockfunc_t *bast);
 
 enum dlm_status dlmunlock(struct dlm_ctxt *dlm,
-			  struct dlm_lockstatus *lksb,
-			  int flags,
-			  dlm_astunlockfunc_t *unlockast,
-			  void *data);
+						  struct dlm_lockstatus *lksb,
+						  int flags,
+						  dlm_astunlockfunc_t *unlockast,
+						  void *data);
 
-struct dlm_protocol_version {
+struct dlm_protocol_version
+{
 	u8 pv_major;
 	u8 pv_minor;
 };
-struct dlm_ctxt * dlm_register_domain(const char *domain, u32 key,
-				      struct dlm_protocol_version *fs_proto);
+struct dlm_ctxt *dlm_register_domain(const char *domain, u32 key,
+									 struct dlm_protocol_version *fs_proto);
 
 void dlm_unregister_domain(struct dlm_ctxt *dlm);
 
 void dlm_print_one_lock(struct dlm_lock *lockid);
 
 typedef void (dlm_eviction_func)(int, void *);
-struct dlm_eviction_cb {
+struct dlm_eviction_cb
+{
 	struct list_head        ec_item;
 	dlm_eviction_func       *ec_func;
 	void                    *ec_data;
 };
 void dlm_setup_eviction_cb(struct dlm_eviction_cb *cb,
-			   dlm_eviction_func *f,
-			   void *data);
+						   dlm_eviction_func *f,
+						   void *data);
 void dlm_register_eviction_cb(struct dlm_ctxt *dlm,
-			      struct dlm_eviction_cb *cb);
+							  struct dlm_eviction_cb *cb);
 void dlm_unregister_eviction_cb(struct dlm_eviction_cb *cb);
 
 #endif /* DLMAPI_H */

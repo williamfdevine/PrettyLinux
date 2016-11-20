@@ -13,7 +13,8 @@ struct ulpi_ops;
  * @ops: I/O access
  * @dev: device interface
  */
-struct ulpi {
+struct ulpi
+{
 	struct ulpi_device_id id;
 	const struct ulpi_ops *ops;
 	struct device dev;
@@ -38,7 +39,8 @@ static inline void *ulpi_get_drvdata(struct ulpi *ulpi)
  * @remove: unbinds this driver from ULPI device
  * @driver: the name and owner members must be initialized by the drivers
  */
-struct ulpi_driver {
+struct ulpi_driver
+{
 	const struct ulpi_device_id *id_table;
 	int (*probe)(struct ulpi *ulpi);
 	void (*remove)(struct ulpi *ulpi);
@@ -56,7 +58,7 @@ void ulpi_unregister_driver(struct ulpi_driver *drv);
 
 #define module_ulpi_driver(__ulpi_driver) \
 	module_driver(__ulpi_driver, ulpi_register_driver, \
-		      ulpi_unregister_driver)
+				  ulpi_unregister_driver)
 
 int ulpi_read(struct ulpi *ulpi, u8 addr);
 int ulpi_write(struct ulpi *ulpi, u8 addr, u8 val);

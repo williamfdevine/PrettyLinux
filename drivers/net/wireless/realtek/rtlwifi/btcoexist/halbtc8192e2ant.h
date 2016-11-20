@@ -38,14 +38,16 @@
 
 #define BTC_RSSI_COEX_THRESH_TOL_8192E_2ANT		2
 
-enum bt_info_src_8192e_2ant {
+enum bt_info_src_8192e_2ant
+{
 	BT_INFO_SRC_8192E_2ANT_WIFI_FW			= 0x0,
 	BT_INFO_SRC_8192E_2ANT_BT_RSP			= 0x1,
 	BT_INFO_SRC_8192E_2ANT_BT_ACTIVE_SEND		= 0x2,
 	BT_INFO_SRC_8192E_2ANT_MAX
 };
 
-enum bt_8192e_2ant_bt_status {
+enum bt_8192e_2ant_bt_status
+{
 	BT_8192E_2ANT_BT_STATUS_NON_CONNECTED_IDLE	= 0x0,
 	BT_8192E_2ANT_BT_STATUS_CONNECTED_IDLE		= 0x1,
 	BT_8192E_2ANT_BT_STATUS_INQ_PAGE		= 0x2,
@@ -55,7 +57,8 @@ enum bt_8192e_2ant_bt_status {
 	BT_8192E_2ANT_BT_STATUS_MAX
 };
 
-enum bt_8192e_2ant_coex_algo {
+enum bt_8192e_2ant_coex_algo
+{
 	BT_8192E_2ANT_COEX_ALGO_UNDEFINED		= 0x0,
 	BT_8192E_2ANT_COEX_ALGO_SCO			= 0x1,
 	BT_8192E_2ANT_COEX_ALGO_SCO_PAN			= 0x2,
@@ -71,7 +74,8 @@ enum bt_8192e_2ant_coex_algo {
 	BT_8192E_2ANT_COEX_ALGO_MAX			= 0xc
 };
 
-struct coex_dm_8192e_2ant {
+struct coex_dm_8192e_2ant
+{
 	/* fw mechanism */
 	u8 pre_dec_bt_pwr;
 	u8 cur_dec_bt_pwr;
@@ -139,7 +143,8 @@ struct coex_dm_8192e_2ant {
 	u8 cur_ampdutime_type;
 };
 
-struct coex_sta_8192e_2ant {
+struct coex_sta_8192e_2ant
+{
 	bool bt_link_exist;
 	bool sco_exist;
 	bool a2dp_exist;
@@ -173,13 +178,13 @@ void ex_halbtc8192e2ant_lps_notify(struct btc_coexist *btcoexist, u8 type);
 void ex_halbtc8192e2ant_scan_notify(struct btc_coexist *btcoexist, u8 type);
 void ex_halbtc8192e2ant_connect_notify(struct btc_coexist *btcoexist, u8 type);
 void ex_halbtc8192e2ant_media_status_notify(struct btc_coexist *btcoexist,
-					    u8 type);
+		u8 type);
 void ex_halbtc8192e2ant_special_packet_notify(struct btc_coexist *btcoexist,
-					      u8 type);
+		u8 type);
 void ex_halbtc8192e2ant_bt_info_notify(struct btc_coexist *btcoexist,
-				       u8 *tmpbuf, u8 length);
+									   u8 *tmpbuf, u8 length);
 void ex_halbtc8192e2ant_stack_operation_notify(struct btc_coexist *btcoexist,
-					       u8 type);
+		u8 type);
 void ex_halbtc8192e2ant_halt_notify(struct btc_coexist *btcoexist);
 void ex_halbtc8192e2ant_periodical(struct btc_coexist *btcoexist);
 void ex_halbtc8192e2ant_display_coex_info(struct btc_coexist *btcoexist);

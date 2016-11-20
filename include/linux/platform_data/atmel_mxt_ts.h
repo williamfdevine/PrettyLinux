@@ -15,13 +15,15 @@
 
 #include <linux/types.h>
 
-enum mxt_suspend_mode {
+enum mxt_suspend_mode
+{
 	MXT_SUSPEND_DEEP_SLEEP	= 0,
 	MXT_SUSPEND_T9_CTRL	= 1,
 };
 
 /* The platform data for the Atmel maXTouch touchscreen driver */
-struct mxt_platform_data {
+struct mxt_platform_data
+{
 	unsigned long irqflags;
 	u8 t19_num_keys;
 	const unsigned int *t19_keymap;

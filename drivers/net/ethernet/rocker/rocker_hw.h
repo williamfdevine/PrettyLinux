@@ -15,7 +15,8 @@
 #include <linux/types.h>
 
 /* Return codes */
-enum {
+enum
+{
 	ROCKER_OK = 0,
 	ROCKER_ENOENT = 2,
 	ROCKER_ENXIO = 6,
@@ -35,7 +36,8 @@ enum {
 #define ROCKER_PCI_BAR0_SIZE		0x2000
 
 /* MSI-X vectors */
-enum {
+enum
+{
 	ROCKER_MSIX_VEC_CMD,
 	ROCKER_MSIX_VEC_EVENT,
 	ROCKER_MSIX_VEC_TEST,
@@ -82,7 +84,8 @@ enum {
 #define ROCKER_DMA_DESC_CTRL_RESET	BIT(0)
 
 /* Rocker DMA ring types */
-enum rocker_dma_type {
+enum rocker_dma_type
+{
 	ROCKER_DMA_CMD,
 	ROCKER_DMA_EVENT,
 	__ROCKER_DMA_TX,
@@ -102,7 +105,8 @@ enum rocker_dma_type {
 #define ROCKER_DMA_RX_DESC_SIZE		256
 
 /* Rocker DMA descriptor struct */
-struct rocker_desc {
+struct rocker_desc
+{
 	u64 buf_addr;
 	u64 cookie;
 	u16 buf_size;
@@ -114,13 +118,15 @@ struct rocker_desc {
 #define ROCKER_DMA_DESC_COMP_ERR_GEN	BIT(15)
 
 /* Rocker DMA TLV struct */
-struct rocker_tlv {
+struct rocker_tlv
+{
 	u32 type;
 	u16 len;
 };
 
 /* TLVs */
-enum {
+enum
+{
 	ROCKER_TLV_CMD_UNSPEC,
 	ROCKER_TLV_CMD_TYPE,	/* u16 */
 	ROCKER_TLV_CMD_INFO,	/* nest */
@@ -129,7 +135,8 @@ enum {
 	ROCKER_TLV_CMD_MAX = __ROCKER_TLV_CMD_MAX - 1,
 };
 
-enum {
+enum
+{
 	ROCKER_TLV_CMD_TYPE_UNSPEC,
 	ROCKER_TLV_CMD_TYPE_GET_PORT_SETTINGS,
 	ROCKER_TLV_CMD_TYPE_SET_PORT_SETTINGS,
@@ -149,7 +156,8 @@ enum {
 	ROCKER_TLV_CMD_TYPE_MAX = __ROCKER_TLV_CMD_TYPE_MAX - 1,
 };
 
-enum {
+enum
+{
 	ROCKER_TLV_CMD_PORT_SETTINGS_UNSPEC,
 	ROCKER_TLV_CMD_PORT_SETTINGS_PPORT,		/* u32 */
 	ROCKER_TLV_CMD_PORT_SETTINGS_SPEED,		/* u32 */
@@ -163,10 +171,11 @@ enum {
 
 	__ROCKER_TLV_CMD_PORT_SETTINGS_MAX,
 	ROCKER_TLV_CMD_PORT_SETTINGS_MAX =
-			__ROCKER_TLV_CMD_PORT_SETTINGS_MAX - 1,
+		__ROCKER_TLV_CMD_PORT_SETTINGS_MAX - 1,
 };
 
-enum {
+enum
+{
 	ROCKER_TLV_CMD_PORT_STATS_UNSPEC,
 	ROCKER_TLV_CMD_PORT_STATS_PPORT,            /* u32 */
 
@@ -184,11 +193,13 @@ enum {
 	ROCKER_TLV_CMD_PORT_STATS_MAX = __ROCKER_TLV_CMD_PORT_STATS_MAX - 1,
 };
 
-enum rocker_port_mode {
+enum rocker_port_mode
+{
 	ROCKER_PORT_MODE_OF_DPA,
 };
 
-enum {
+enum
+{
 	ROCKER_TLV_EVENT_UNSPEC,
 	ROCKER_TLV_EVENT_TYPE,	/* u16 */
 	ROCKER_TLV_EVENT_INFO,	/* nest */
@@ -197,7 +208,8 @@ enum {
 	ROCKER_TLV_EVENT_MAX = __ROCKER_TLV_EVENT_MAX - 1,
 };
 
-enum {
+enum
+{
 	ROCKER_TLV_EVENT_TYPE_UNSPEC,
 	ROCKER_TLV_EVENT_TYPE_LINK_CHANGED,
 	ROCKER_TLV_EVENT_TYPE_MAC_VLAN_SEEN,
@@ -206,17 +218,19 @@ enum {
 	ROCKER_TLV_EVENT_TYPE_MAX = __ROCKER_TLV_EVENT_TYPE_MAX - 1,
 };
 
-enum {
+enum
+{
 	ROCKER_TLV_EVENT_LINK_CHANGED_UNSPEC,
 	ROCKER_TLV_EVENT_LINK_CHANGED_PPORT,	/* u32 */
 	ROCKER_TLV_EVENT_LINK_CHANGED_LINKUP,	/* u8 */
 
 	__ROCKER_TLV_EVENT_LINK_CHANGED_MAX,
 	ROCKER_TLV_EVENT_LINK_CHANGED_MAX =
-			__ROCKER_TLV_EVENT_LINK_CHANGED_MAX - 1,
+		__ROCKER_TLV_EVENT_LINK_CHANGED_MAX - 1,
 };
 
-enum {
+enum
+{
 	ROCKER_TLV_EVENT_MAC_VLAN_UNSPEC,
 	ROCKER_TLV_EVENT_MAC_VLAN_PPORT,	/* u32 */
 	ROCKER_TLV_EVENT_MAC_VLAN_MAC,		/* binary */
@@ -226,7 +240,8 @@ enum {
 	ROCKER_TLV_EVENT_MAC_VLAN_MAX = __ROCKER_TLV_EVENT_MAC_VLAN_MAX - 1,
 };
 
-enum {
+enum
+{
 	ROCKER_TLV_RX_UNSPEC,
 	ROCKER_TLV_RX_FLAGS,		/* u16, see ROCKER_RX_FLAGS_ */
 	ROCKER_TLV_RX_CSUM,		/* u16 */
@@ -248,7 +263,8 @@ enum {
 #define ROCKER_RX_FLAGS_TCP_UDP_CSUM_GOOD	BIT(7)
 #define ROCKER_RX_FLAGS_FWD_OFFLOAD		BIT(8)
 
-enum {
+enum
+{
 	ROCKER_TLV_TX_UNSPEC,
 	ROCKER_TLV_TX_OFFLOAD,		/* u8, see ROCKER_TX_OFFLOAD_ */
 	ROCKER_TLV_TX_L3_CSUM_OFF,	/* u16 */
@@ -268,7 +284,8 @@ enum {
 
 #define ROCKER_TX_FRAGS_MAX		16
 
-enum {
+enum
+{
 	ROCKER_TLV_TX_FRAG_UNSPEC,
 	ROCKER_TLV_TX_FRAG,		/* nest */
 
@@ -276,7 +293,8 @@ enum {
 	ROCKER_TLV_TX_FRAG_MAX = __ROCKER_TLV_TX_FRAG_MAX - 1,
 };
 
-enum {
+enum
+{
 	ROCKER_TLV_TX_FRAG_ATTR_UNSPEC,
 	ROCKER_TLV_TX_FRAG_ATTR_ADDR,	/* u64 */
 	ROCKER_TLV_TX_FRAG_ATTR_LEN,	/* u16 */
@@ -286,7 +304,8 @@ enum {
 };
 
 /* cmd info nested for OF-DPA msgs */
-enum {
+enum
+{
 	ROCKER_TLV_OF_DPA_UNSPEC,
 	ROCKER_TLV_OF_DPA_TABLE_ID,		/* u16 */
 	ROCKER_TLV_OF_DPA_PRIORITY,		/* u32 */
@@ -356,7 +375,8 @@ enum {
 
 /* OF-DPA table IDs */
 
-enum rocker_of_dpa_table_id {
+enum rocker_of_dpa_table_id
+{
 	ROCKER_OF_DPA_TABLE_ID_INGRESS_PORT = 0,
 	ROCKER_OF_DPA_TABLE_ID_VLAN = 10,
 	ROCKER_OF_DPA_TABLE_ID_TERMINATION_MAC = 20,
@@ -367,7 +387,8 @@ enum rocker_of_dpa_table_id {
 };
 
 /* OF-DPA flow stats */
-enum {
+enum
+{
 	ROCKER_TLV_OF_DPA_FLOW_STAT_UNSPEC,
 	ROCKER_TLV_OF_DPA_FLOW_STAT_DURATION,	/* u32 */
 	ROCKER_TLV_OF_DPA_FLOW_STAT_RX_PKTS,	/* u64 */
@@ -378,7 +399,8 @@ enum {
 };
 
 /* OF-DPA group types */
-enum rocker_of_dpa_group_type {
+enum rocker_of_dpa_group_type
+{
 	ROCKER_OF_DPA_GROUP_TYPE_L2_INTERFACE = 0,
 	ROCKER_OF_DPA_GROUP_TYPE_L2_REWRITE,
 	ROCKER_OF_DPA_GROUP_TYPE_L3_UCAST,
@@ -391,7 +413,8 @@ enum rocker_of_dpa_group_type {
 };
 
 /* OF-DPA group L2 overlay types */
-enum rocker_of_dpa_overlay_type {
+enum rocker_of_dpa_overlay_type
+{
 	ROCKER_OF_DPA_OVERLAY_TYPE_FLOOD_UCAST = 0,
 	ROCKER_OF_DPA_OVERLAY_TYPE_FLOOD_MCAST,
 	ROCKER_OF_DPA_OVERLAY_TYPE_MCAST_UCAST,
@@ -449,7 +472,7 @@ enum rocker_of_dpa_overlay_type {
 	 ROCKER_GROUP_VLAN_SET(ntohs(vlan_id)) | ROCKER_GROUP_INDEX_SET(index))
 #define ROCKER_GROUP_L2_FLOOD(vlan_id, index) \
 	(ROCKER_GROUP_TYPE_SET(ROCKER_OF_DPA_GROUP_TYPE_L2_FLOOD) |\
-	ROCKER_GROUP_VLAN_SET(ntohs(vlan_id)) | ROCKER_GROUP_INDEX_SET(index))
+	 ROCKER_GROUP_VLAN_SET(ntohs(vlan_id)) | ROCKER_GROUP_INDEX_SET(index))
 #define ROCKER_GROUP_L3_UNICAST(index) \
 	(ROCKER_GROUP_TYPE_SET(ROCKER_OF_DPA_GROUP_TYPE_L3_UCAST) |\
 	 ROCKER_GROUP_INDEX_LONG_SET(index))

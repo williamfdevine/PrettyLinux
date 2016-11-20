@@ -110,7 +110,8 @@
 #define APDS9960_MAX_ALS_THRES_VAL	0xffff
 #define APDS9960_MAX_INT_TIME_IN_US	1000000
 
-enum apds9960_als_channel_idx {
+enum apds9960_als_channel_idx
+{
 	IDX_ALS_CLEAR, IDX_ALS_RED, IDX_ALS_GREEN, IDX_ALS_BLUE,
 };
 
@@ -118,7 +119,8 @@ enum apds9960_als_channel_idx {
 #define APDS9960_REG_ALS_CHANNEL(_colour) \
 	(APDS9960_REG_ALS_BASE + (IDX_ALS_##_colour * 2))
 
-enum apds9960_gesture_channel_idx {
+enum apds9960_gesture_channel_idx
+{
 	IDX_DIR_UP, IDX_DIR_DOWN, IDX_DIR_LEFT, IDX_DIR_RIGHT,
 };
 
@@ -126,7 +128,8 @@ enum apds9960_gesture_channel_idx {
 #define APDS9960_REG_GFIFO_DIR(_dir) \
 	(APDS9960_REG_GFIFO_BASE + IDX_DIR_##_dir)
 
-struct apds9960_data {
+struct apds9960_data
+{
 	struct i2c_client *client;
 	struct iio_dev *indio_dev;
 	struct mutex lock;
@@ -157,60 +160,70 @@ struct apds9960_data {
 	u8 buffer[4]; /* 4 8-bit channels */
 };
 
-static const struct reg_default apds9960_reg_defaults[] = {
+static const struct reg_default apds9960_reg_defaults[] =
+{
 	/* Default ALS integration time = 2.48ms */
 	{ APDS9960_REG_ATIME, 0xff },
 };
 
-static const struct regmap_range apds9960_volatile_ranges[] = {
+static const struct regmap_range apds9960_volatile_ranges[] =
+{
 	regmap_reg_range(APDS9960_REG_STATUS,
-				APDS9960_REG_PDATA),
+	APDS9960_REG_PDATA),
 	regmap_reg_range(APDS9960_REG_GFLVL,
-				APDS9960_REG_GSTATUS),
+	APDS9960_REG_GSTATUS),
 	regmap_reg_range(APDS9960_REG_GFIFO_DIR(UP),
-				APDS9960_REG_GFIFO_DIR(RIGHT)),
+	APDS9960_REG_GFIFO_DIR(RIGHT)),
 	regmap_reg_range(APDS9960_REG_IFORCE,
-				APDS9960_REG_AICLEAR),
+	APDS9960_REG_AICLEAR),
 };
 
-static const struct regmap_access_table apds9960_volatile_table = {
+static const struct regmap_access_table apds9960_volatile_table =
+{
 	.yes_ranges	= apds9960_volatile_ranges,
 	.n_yes_ranges	= ARRAY_SIZE(apds9960_volatile_ranges),
 };
 
-static const struct regmap_range apds9960_precious_ranges[] = {
+static const struct regmap_range apds9960_precious_ranges[] =
+{
 	regmap_reg_range(APDS9960_REG_RAM_START, APDS9960_REG_RAM_END),
 };
 
-static const struct regmap_access_table apds9960_precious_table = {
+static const struct regmap_access_table apds9960_precious_table =
+{
 	.yes_ranges	= apds9960_precious_ranges,
 	.n_yes_ranges	= ARRAY_SIZE(apds9960_precious_ranges),
 };
 
-static const struct regmap_range apds9960_readable_ranges[] = {
+static const struct regmap_range apds9960_readable_ranges[] =
+{
 	regmap_reg_range(APDS9960_REG_ENABLE,
-				APDS9960_REG_GSTATUS),
+	APDS9960_REG_GSTATUS),
 	regmap_reg_range(APDS9960_REG_GFIFO_DIR(UP),
-				APDS9960_REG_GFIFO_DIR(RIGHT)),
+	APDS9960_REG_GFIFO_DIR(RIGHT)),
 };
 
-static const struct regmap_access_table apds9960_readable_table = {
+static const struct regmap_access_table apds9960_readable_table =
+{
 	.yes_ranges	= apds9960_readable_ranges,
 	.n_yes_ranges	= ARRAY_SIZE(apds9960_readable_ranges),
 };
 
-static const struct regmap_range apds9960_writeable_ranges[] = {
+static const struct regmap_range apds9960_writeable_ranges[] =
+{
 	regmap_reg_range(APDS9960_REG_ENABLE, APDS9960_REG_CONFIG_2),
 	regmap_reg_range(APDS9960_REG_POFFSET_UR, APDS9960_REG_GCONF_4),
 	regmap_reg_range(APDS9960_REG_IFORCE, APDS9960_REG_AICLEAR),
 };
 
-static const struct regmap_access_table apds9960_writeable_table = {
+static const struct regmap_access_table apds9960_writeable_table =
+{
 	.yes_ranges	= apds9960_writeable_ranges,
 	.n_yes_ranges	= ARRAY_SIZE(apds9960_writeable_ranges),
 };
 
-static const struct regmap_config apds9960_regmap_config = {
+static const struct regmap_config apds9960_regmap_config =
+{
 	.name = APDS9960_REGMAP_NAME,
 	.reg_bits = 8,
 	.val_bits = 8,
@@ -227,62 +240,65 @@ static const struct regmap_config apds9960_regmap_config = {
 	.cache_type = REGCACHE_RBTREE,
 };
 
-static const struct iio_event_spec apds9960_pxs_event_spec[] = {
+static const struct iio_event_spec apds9960_pxs_event_spec[] =
+{
 	{
 		.type = IIO_EV_TYPE_THRESH,
 		.dir = IIO_EV_DIR_RISING,
 		.mask_separate = BIT(IIO_EV_INFO_VALUE) |
-			BIT(IIO_EV_INFO_ENABLE),
+		BIT(IIO_EV_INFO_ENABLE),
 	},
 	{
 		.type = IIO_EV_TYPE_THRESH,
 		.dir = IIO_EV_DIR_FALLING,
 		.mask_separate = BIT(IIO_EV_INFO_VALUE) |
-			BIT(IIO_EV_INFO_ENABLE),
+		BIT(IIO_EV_INFO_ENABLE),
 	},
 };
 
-static const struct iio_event_spec apds9960_als_event_spec[] = {
+static const struct iio_event_spec apds9960_als_event_spec[] =
+{
 	{
 		.type = IIO_EV_TYPE_THRESH,
 		.dir = IIO_EV_DIR_RISING,
 		.mask_separate = BIT(IIO_EV_INFO_VALUE) |
-			BIT(IIO_EV_INFO_ENABLE),
+		BIT(IIO_EV_INFO_ENABLE),
 	},
 	{
 		.type = IIO_EV_TYPE_THRESH,
 		.dir = IIO_EV_DIR_FALLING,
 		.mask_separate = BIT(IIO_EV_INFO_VALUE) |
-			BIT(IIO_EV_INFO_ENABLE),
+		BIT(IIO_EV_INFO_ENABLE),
 	},
 };
 
 #define APDS9960_GESTURE_CHANNEL(_dir, _si) { \
-	.type = IIO_PROXIMITY, \
-	.channel = _si + 1, \
-	.scan_index = _si, \
-	.indexed = 1, \
-	.scan_type = { \
-		.sign = 'u', \
-		.realbits = 8, \
-		.storagebits = 8, \
-	}, \
-}
+		.type = IIO_PROXIMITY, \
+				.channel = _si + 1, \
+						   .scan_index = _si, \
+										 .indexed = 1, \
+												 .scan_type = { \
+																.sign = 'u', \
+																.realbits = 8, \
+																.storagebits = 8, \
+															  }, \
+	}
 
 #define APDS9960_INTENSITY_CHANNEL(_colour) { \
-	.type = IIO_INTENSITY, \
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW), \
-	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE) | \
-			BIT(IIO_CHAN_INFO_INT_TIME), \
-	.channel2 = IIO_MOD_LIGHT_##_colour, \
-	.address = APDS9960_REG_ALS_CHANNEL(_colour), \
-	.modified = 1, \
-	.scan_index = -1, \
-}
+		.type = IIO_INTENSITY, \
+				.info_mask_separate = BIT(IIO_CHAN_INFO_RAW), \
+									  .info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE) | \
+											  BIT(IIO_CHAN_INFO_INT_TIME), \
+											  .channel2 = IIO_MOD_LIGHT_##_colour, \
+													  .address = APDS9960_REG_ALS_CHANNEL(_colour), \
+															  .modified = 1, \
+																	  .scan_index = -1, \
+	}
 
 static const unsigned long apds9960_scan_masks[] = {0xf, 0};
 
-static const struct iio_chan_spec apds9960_channels[] = {
+static const struct iio_chan_spec apds9960_channels[] =
+{
 	{
 		.type = IIO_PROXIMITY,
 		.address = APDS9960_REG_PDATA,
@@ -305,7 +321,7 @@ static const struct iio_chan_spec apds9960_channels[] = {
 		.type = IIO_INTENSITY,
 		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),
 		.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE) |
-			BIT(IIO_CHAN_INFO_INT_TIME),
+		BIT(IIO_CHAN_INFO_INT_TIME),
 		.channel2 = IIO_MOD_LIGHT_CLEAR,
 		.address = APDS9960_REG_ALS_CHANNEL(CLEAR),
 		.modified = 1,
@@ -321,7 +337,8 @@ static const struct iio_chan_spec apds9960_channels[] = {
 };
 
 /* integration time in us */
-static const int apds9960_int_time[][2] = {
+static const int apds9960_int_time[][2] =
+{
 	{ 28000, 246},
 	{100000, 219},
 	{200000, 182},
@@ -336,47 +353,55 @@ static IIO_CONST_ATTR(proximity_scale_available, "1 2 4 8");
 static IIO_CONST_ATTR(intensity_scale_available, "1 4 16 64");
 static IIO_CONST_ATTR_INT_TIME_AVAIL("0.028 0.1 0.2 0.7");
 
-static struct attribute *apds9960_attributes[] = {
+static struct attribute *apds9960_attributes[] =
+{
 	&iio_const_attr_proximity_scale_available.dev_attr.attr,
 	&iio_const_attr_intensity_scale_available.dev_attr.attr,
 	&iio_const_attr_integration_time_available.dev_attr.attr,
 	NULL,
 };
 
-static struct attribute_group apds9960_attribute_group = {
+static struct attribute_group apds9960_attribute_group =
+{
 	.attrs = apds9960_attributes,
 };
 
 static const struct reg_field apds9960_reg_field_int_als =
-				REG_FIELD(APDS9960_REG_ENABLE, 4, 4);
+	REG_FIELD(APDS9960_REG_ENABLE, 4, 4);
 
 static const struct reg_field apds9960_reg_field_int_ges =
-				REG_FIELD(APDS9960_REG_GCONF_4, 1, 1);
+	REG_FIELD(APDS9960_REG_GCONF_4, 1, 1);
 
 static const struct reg_field apds9960_reg_field_int_pxs =
-				REG_FIELD(APDS9960_REG_ENABLE, 5, 5);
+	REG_FIELD(APDS9960_REG_ENABLE, 5, 5);
 
 static const struct reg_field apds9960_reg_field_enable_als =
-				REG_FIELD(APDS9960_REG_ENABLE, 1, 1);
+	REG_FIELD(APDS9960_REG_ENABLE, 1, 1);
 
 static const struct reg_field apds9960_reg_field_enable_ges =
-				REG_FIELD(APDS9960_REG_ENABLE, 6, 6);
+	REG_FIELD(APDS9960_REG_ENABLE, 6, 6);
 
 static const struct reg_field apds9960_reg_field_enable_pxs =
-				REG_FIELD(APDS9960_REG_ENABLE, 2, 2);
+	REG_FIELD(APDS9960_REG_ENABLE, 2, 2);
 
 static int apds9960_set_it_time(struct apds9960_data *data, int val2)
 {
 	int ret = -EINVAL;
 	int idx;
 
-	for (idx = 0; idx < ARRAY_SIZE(apds9960_int_time); idx++) {
-		if (apds9960_int_time[idx][0] == val2) {
+	for (idx = 0; idx < ARRAY_SIZE(apds9960_int_time); idx++)
+	{
+		if (apds9960_int_time[idx][0] == val2)
+		{
 			mutex_lock(&data->lock);
 			ret = regmap_write(data->regmap, APDS9960_REG_ATIME,
-						 apds9960_int_time[idx][1]);
+							   apds9960_int_time[idx][1]);
+
 			if (!ret)
+			{
 				data->als_adc_int_us = val2;
+			}
+
 			mutex_unlock(&data->lock);
 			break;
 		}
@@ -390,25 +415,33 @@ static int apds9960_set_pxs_gain(struct apds9960_data *data, int val)
 	int ret = -EINVAL;
 	int idx;
 
-	for (idx = 0; idx < ARRAY_SIZE(apds9960_pxs_gain_map); idx++) {
-		if (apds9960_pxs_gain_map[idx] == val) {
+	for (idx = 0; idx < ARRAY_SIZE(apds9960_pxs_gain_map); idx++)
+	{
+		if (apds9960_pxs_gain_map[idx] == val)
+		{
 			/* pxs + gesture gains are mirrored */
 			mutex_lock(&data->lock);
 			ret = regmap_update_bits(data->regmap,
-				APDS9960_REG_CONTROL,
-				APDS9960_REG_CONTROL_PGAIN_MASK,
-				idx << APDS9960_REG_CONTROL_PGAIN_MASK_SHIFT);
-			if (ret) {
+									 APDS9960_REG_CONTROL,
+									 APDS9960_REG_CONTROL_PGAIN_MASK,
+									 idx << APDS9960_REG_CONTROL_PGAIN_MASK_SHIFT);
+
+			if (ret)
+			{
 				mutex_unlock(&data->lock);
 				break;
 			}
 
 			ret = regmap_update_bits(data->regmap,
-				APDS9960_REG_CONFIG_2,
-				APDS9960_REG_CONFIG_2_GGAIN_MASK,
-				idx << APDS9960_REG_CONFIG_2_GGAIN_MASK_SHIFT);
+									 APDS9960_REG_CONFIG_2,
+									 APDS9960_REG_CONFIG_2_GGAIN_MASK,
+									 idx << APDS9960_REG_CONFIG_2_GGAIN_MASK_SHIFT);
+
 			if (!ret)
+			{
 				data->pxs_gain = idx;
+			}
+
 			mutex_unlock(&data->lock);
 			break;
 		}
@@ -422,14 +455,20 @@ static int apds9960_set_als_gain(struct apds9960_data *data, int val)
 	int ret = -EINVAL;
 	int idx;
 
-	for (idx = 0; idx < ARRAY_SIZE(apds9960_als_gain_map); idx++) {
-		if (apds9960_als_gain_map[idx] == val) {
+	for (idx = 0; idx < ARRAY_SIZE(apds9960_als_gain_map); idx++)
+	{
+		if (apds9960_als_gain_map[idx] == val)
+		{
 			mutex_lock(&data->lock);
 			ret = regmap_update_bits(data->regmap,
-					APDS9960_REG_CONTROL,
-					APDS9960_REG_CONTROL_AGAIN_MASK, idx);
+									 APDS9960_REG_CONTROL,
+									 APDS9960_REG_CONTROL_AGAIN_MASK, idx);
+
 			if (!ret)
+			{
 				data->als_gain = idx;
+			}
+
 			mutex_unlock(&data->lock);
 			break;
 		}
@@ -446,7 +485,8 @@ static int apds9960_set_power_state(struct apds9960_data *data, bool on)
 
 	mutex_lock(&data->lock);
 
-	if (on) {
+	if (on)
+	{
 		int suspended;
 
 		suspended = pm_runtime_suspended(dev);
@@ -455,8 +495,10 @@ static int apds9960_set_power_state(struct apds9960_data *data, bool on)
 		/* Allow one integration cycle before allowing a reading */
 		if (suspended)
 			usleep_range(data->als_adc_int_us,
-				     APDS9960_MAX_INT_TIME_IN_US);
-	} else {
+						 APDS9960_MAX_INT_TIME_IN_US);
+	}
+	else
+	{
 		pm_runtime_mark_last_busy(dev);
 		ret = pm_runtime_put_autosuspend(dev);
 	}
@@ -473,150 +515,202 @@ static int apds9960_set_power_state(struct apds9960_data *data, bool on)
 #endif
 
 static int apds9960_read_raw(struct iio_dev *indio_dev,
-			     struct iio_chan_spec const *chan,
-			     int *val, int *val2, long mask)
+							 struct iio_chan_spec const *chan,
+							 int *val, int *val2, long mask)
 {
 	struct apds9960_data *data = iio_priv(indio_dev);
 	__le16 buf;
 	int ret = -EINVAL;
 
 	if (data->gesture_mode_running)
+	{
 		return -EBUSY;
+	}
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		apds9960_set_power_state(data, true);
-		switch (chan->type) {
-		case IIO_PROXIMITY:
-			ret = regmap_read(data->regmap, chan->address, val);
-			if (!ret)
-				ret = IIO_VAL_INT;
-			break;
-		case IIO_INTENSITY:
-			ret = regmap_bulk_read(data->regmap, chan->address,
-					       &buf, 2);
-			if (!ret) {
-				ret = IIO_VAL_INT;
-				*val = le16_to_cpu(buf);
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			apds9960_set_power_state(data, true);
+
+			switch (chan->type)
+			{
+				case IIO_PROXIMITY:
+					ret = regmap_read(data->regmap, chan->address, val);
+
+					if (!ret)
+					{
+						ret = IIO_VAL_INT;
+					}
+
+					break;
+
+				case IIO_INTENSITY:
+					ret = regmap_bulk_read(data->regmap, chan->address,
+										   &buf, 2);
+
+					if (!ret)
+					{
+						ret = IIO_VAL_INT;
+						*val = le16_to_cpu(buf);
+					}
+
+					break;
+
+				default:
+					ret = -EINVAL;
 			}
+
+			apds9960_set_power_state(data, false);
 			break;
-		default:
-			ret = -EINVAL;
-		}
-		apds9960_set_power_state(data, false);
-		break;
-	case IIO_CHAN_INFO_INT_TIME:
-		/* RGB + ALS sensors only have integration time */
-		mutex_lock(&data->lock);
-		switch (chan->type) {
-		case IIO_INTENSITY:
-			*val = 0;
-			*val2 = data->als_adc_int_us;
-			ret = IIO_VAL_INT_PLUS_MICRO;
+
+		case IIO_CHAN_INFO_INT_TIME:
+			/* RGB + ALS sensors only have integration time */
+			mutex_lock(&data->lock);
+
+			switch (chan->type)
+			{
+				case IIO_INTENSITY:
+					*val = 0;
+					*val2 = data->als_adc_int_us;
+					ret = IIO_VAL_INT_PLUS_MICRO;
+					break;
+
+				default:
+					ret = -EINVAL;
+			}
+
+			mutex_unlock(&data->lock);
 			break;
-		default:
-			ret = -EINVAL;
-		}
-		mutex_unlock(&data->lock);
-		break;
-	case IIO_CHAN_INFO_SCALE:
-		mutex_lock(&data->lock);
-		switch (chan->type) {
-		case IIO_PROXIMITY:
-			*val = apds9960_pxs_gain_map[data->pxs_gain];
-			ret = IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_SCALE:
+			mutex_lock(&data->lock);
+
+			switch (chan->type)
+			{
+				case IIO_PROXIMITY:
+					*val = apds9960_pxs_gain_map[data->pxs_gain];
+					ret = IIO_VAL_INT;
+					break;
+
+				case IIO_INTENSITY:
+					*val = apds9960_als_gain_map[data->als_gain];
+					ret = IIO_VAL_INT;
+					break;
+
+				default:
+					ret = -EINVAL;
+			}
+
+			mutex_unlock(&data->lock);
 			break;
-		case IIO_INTENSITY:
-			*val = apds9960_als_gain_map[data->als_gain];
-			ret = IIO_VAL_INT;
-			break;
-		default:
-			ret = -EINVAL;
-		}
-		mutex_unlock(&data->lock);
-		break;
 	}
 
 	return ret;
 };
 
 static int apds9960_write_raw(struct iio_dev *indio_dev,
-			     struct iio_chan_spec const *chan,
-			     int val, int val2, long mask)
+							  struct iio_chan_spec const *chan,
+							  int val, int val2, long mask)
 {
 	struct apds9960_data *data = iio_priv(indio_dev);
 
-	switch (mask) {
-	case IIO_CHAN_INFO_INT_TIME:
-		/* RGB + ALS sensors only have int time */
-		switch (chan->type) {
-		case IIO_INTENSITY:
-			if (val != 0)
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_INT_TIME:
+
+			/* RGB + ALS sensors only have int time */
+			switch (chan->type)
+			{
+				case IIO_INTENSITY:
+					if (val != 0)
+					{
+						return -EINVAL;
+					}
+
+					return apds9960_set_it_time(data, val2);
+
+				default:
+					return -EINVAL;
+			}
+
+		case IIO_CHAN_INFO_SCALE:
+			if (val2 != 0)
+			{
 				return -EINVAL;
-			return apds9960_set_it_time(data, val2);
+			}
+
+			switch (chan->type)
+			{
+				case IIO_PROXIMITY:
+					return apds9960_set_pxs_gain(data, val);
+
+				case IIO_INTENSITY:
+					return apds9960_set_als_gain(data, val);
+
+				default:
+					return -EINVAL;
+			}
+
 		default:
 			return -EINVAL;
-		}
-	case IIO_CHAN_INFO_SCALE:
-		if (val2 != 0)
-			return -EINVAL;
-		switch (chan->type) {
-		case IIO_PROXIMITY:
-			return apds9960_set_pxs_gain(data, val);
-		case IIO_INTENSITY:
-			return apds9960_set_als_gain(data, val);
-		default:
-			return -EINVAL;
-		}
-	default:
-		return -EINVAL;
 	};
 
 	return 0;
 }
 
 static inline int apds9960_get_thres_reg(const struct iio_chan_spec *chan,
-					 enum iio_event_direction dir,
-					 u8 *reg)
+		enum iio_event_direction dir,
+		u8 *reg)
 {
-	switch (dir) {
-	case IIO_EV_DIR_RISING:
-		switch (chan->type) {
-		case IIO_PROXIMITY:
-			*reg = APDS9960_REG_PIHT;
+	switch (dir)
+	{
+		case IIO_EV_DIR_RISING:
+			switch (chan->type)
+			{
+				case IIO_PROXIMITY:
+					*reg = APDS9960_REG_PIHT;
+					break;
+
+				case IIO_INTENSITY:
+					*reg = APDS9960_REG_AIHTL;
+					break;
+
+				default:
+					return -EINVAL;
+			}
+
 			break;
-		case IIO_INTENSITY:
-			*reg = APDS9960_REG_AIHTL;
+
+		case IIO_EV_DIR_FALLING:
+			switch (chan->type)
+			{
+				case IIO_PROXIMITY:
+					*reg = APDS9960_REG_PILT;
+					break;
+
+				case IIO_INTENSITY:
+					*reg = APDS9960_REG_AILTL;
+					break;
+
+				default:
+					return -EINVAL;
+			}
+
 			break;
+
 		default:
 			return -EINVAL;
-		}
-		break;
-	case IIO_EV_DIR_FALLING:
-		switch (chan->type) {
-		case IIO_PROXIMITY:
-			*reg = APDS9960_REG_PILT;
-			break;
-		case IIO_INTENSITY:
-			*reg = APDS9960_REG_AILTL;
-			break;
-		default:
-			return -EINVAL;
-		}
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	return 0;
 }
 
 static int apds9960_read_event(struct iio_dev *indio_dev,
-			       const struct iio_chan_spec *chan,
-			       enum iio_event_type type,
-			       enum iio_event_direction dir,
-			       enum iio_event_info info,
-			       int *val, int *val2)
+							   const struct iio_chan_spec *chan,
+							   enum iio_event_type type,
+							   enum iio_event_direction dir,
+							   enum iio_event_info info,
+							   int *val, int *val2)
 {
 	u8 reg;
 	__le16 buf;
@@ -624,23 +718,41 @@ static int apds9960_read_event(struct iio_dev *indio_dev,
 	struct apds9960_data *data = iio_priv(indio_dev);
 
 	if (info != IIO_EV_INFO_VALUE)
+	{
 		return -EINVAL;
+	}
 
 	ret = apds9960_get_thres_reg(chan, dir, &reg);
-	if (ret < 0)
-		return ret;
 
-	if (chan->type == IIO_PROXIMITY) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (chan->type == IIO_PROXIMITY)
+	{
 		ret = regmap_read(data->regmap, reg, val);
+
 		if (ret < 0)
+		{
 			return ret;
-	} else if (chan->type == IIO_INTENSITY) {
+		}
+	}
+	else if (chan->type == IIO_INTENSITY)
+	{
 		ret = regmap_bulk_read(data->regmap, reg, &buf, 2);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		*val = le16_to_cpu(buf);
-	} else
+	}
+	else
+	{
 		return -EINVAL;
+	}
 
 	*val2 = 0;
 
@@ -648,11 +760,11 @@ static int apds9960_read_event(struct iio_dev *indio_dev,
 }
 
 static int apds9960_write_event(struct iio_dev *indio_dev,
-				const struct iio_chan_spec *chan,
-				enum iio_event_type type,
-				enum iio_event_direction dir,
-				enum iio_event_info info,
-				int val, int val2)
+								const struct iio_chan_spec *chan,
+								enum iio_event_type type,
+								enum iio_event_direction dir,
+								enum iio_event_info info,
+								int val, int val2)
 {
 	u8 reg;
 	__le16 buf;
@@ -660,90 +772,132 @@ static int apds9960_write_event(struct iio_dev *indio_dev,
 	struct apds9960_data *data = iio_priv(indio_dev);
 
 	if (info != IIO_EV_INFO_VALUE)
+	{
 		return -EINVAL;
+	}
 
 	ret = apds9960_get_thres_reg(chan, dir, &reg);
-	if (ret < 0)
-		return ret;
 
-	if (chan->type == IIO_PROXIMITY) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (chan->type == IIO_PROXIMITY)
+	{
 		if (val < 0 || val > APDS9960_MAX_PXS_THRES_VAL)
+		{
 			return -EINVAL;
+		}
+
 		ret = regmap_write(data->regmap, reg, val);
+
 		if (ret < 0)
+		{
 			return ret;
-	} else if (chan->type == IIO_INTENSITY) {
+		}
+	}
+	else if (chan->type == IIO_INTENSITY)
+	{
 		if (val < 0 || val > APDS9960_MAX_ALS_THRES_VAL)
+		{
 			return -EINVAL;
+		}
+
 		buf = cpu_to_le16(val);
 		ret = regmap_bulk_write(data->regmap, reg, &buf, 2);
+
 		if (ret < 0)
+		{
 			return ret;
-	} else
+		}
+	}
+	else
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 static int apds9960_read_event_config(struct iio_dev *indio_dev,
-				      const struct iio_chan_spec *chan,
-				      enum iio_event_type type,
-				      enum iio_event_direction dir)
+									  const struct iio_chan_spec *chan,
+									  enum iio_event_type type,
+									  enum iio_event_direction dir)
 {
 	struct apds9960_data *data = iio_priv(indio_dev);
 
-	switch (chan->type) {
-	case IIO_PROXIMITY:
-		return data->pxs_int;
-	case IIO_INTENSITY:
-		return data->als_int;
-	default:
-		return -EINVAL;
+	switch (chan->type)
+	{
+		case IIO_PROXIMITY:
+			return data->pxs_int;
+
+		case IIO_INTENSITY:
+			return data->als_int;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
 static int apds9960_write_event_config(struct iio_dev *indio_dev,
-				       const struct iio_chan_spec *chan,
-				       enum iio_event_type type,
-				       enum iio_event_direction dir,
-				       int state)
+									   const struct iio_chan_spec *chan,
+									   enum iio_event_type type,
+									   enum iio_event_direction dir,
+									   int state)
 {
 	struct apds9960_data *data = iio_priv(indio_dev);
 	int ret;
 
 	state = !!state;
 
-	switch (chan->type) {
-	case IIO_PROXIMITY:
-		if (data->pxs_int == state)
-			return -EINVAL;
+	switch (chan->type)
+	{
+		case IIO_PROXIMITY:
+			if (data->pxs_int == state)
+			{
+				return -EINVAL;
+			}
 
-		ret = regmap_field_write(data->reg_int_pxs, state);
-		if (ret)
-			return ret;
-		data->pxs_int = state;
-		apds9960_set_power_state(data, state);
-		break;
-	case IIO_INTENSITY:
-		if (data->als_int == state)
-			return -EINVAL;
+			ret = regmap_field_write(data->reg_int_pxs, state);
 
-		ret = regmap_field_write(data->reg_int_als, state);
-		if (ret)
-			return ret;
-		data->als_int = state;
-		apds9960_set_power_state(data, state);
-		break;
-	default:
-		return -EINVAL;
+			if (ret)
+			{
+				return ret;
+			}
+
+			data->pxs_int = state;
+			apds9960_set_power_state(data, state);
+			break;
+
+		case IIO_INTENSITY:
+			if (data->als_int == state)
+			{
+				return -EINVAL;
+			}
+
+			ret = regmap_field_write(data->reg_int_als, state);
+
+			if (ret)
+			{
+				return ret;
+			}
+
+			data->als_int = state;
+			apds9960_set_power_state(data, state);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
-static const struct iio_info apds9960_info = {
+static const struct iio_info apds9960_info =
+{
 	.driver_module = THIS_MODULE,
 	.attrs = &apds9960_attribute_group,
 	.read_raw = apds9960_read_raw,
@@ -761,8 +915,11 @@ static inline int apds9660_fifo_is_empty(struct apds9960_data *data)
 	int ret;
 
 	ret = regmap_read(data->regmap, APDS9960_REG_GFLVL, &cnt);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return cnt;
 }
@@ -774,12 +931,15 @@ static void apds9960_read_gesture_fifo(struct apds9960_data *data)
 	mutex_lock(&data->lock);
 	data->gesture_mode_running = 1;
 
-	while (cnt || (cnt = apds9660_fifo_is_empty(data) > 0)) {
+	while (cnt || (cnt = apds9660_fifo_is_empty(data) > 0))
+	{
 		ret = regmap_bulk_read(data->regmap, APDS9960_REG_GFIFO_BASE,
-				      &data->buffer, 4);
+							   &data->buffer, 4);
 
 		if (ret)
+		{
 			goto err_read;
+		}
 
 		iio_push_to_buffers(data->indio_dev, data->buffer);
 		cnt--;
@@ -797,31 +957,37 @@ static irqreturn_t apds9960_interrupt_handler(int irq, void *private)
 	int ret, status;
 
 	ret = regmap_read(data->regmap, APDS9960_REG_STATUS, &status);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&data->client->dev, "irq status reg read failed\n");
 		return IRQ_HANDLED;
 	}
 
-	if ((status & APDS9960_REG_STATUS_ALS_INT) && data->als_int) {
+	if ((status & APDS9960_REG_STATUS_ALS_INT) && data->als_int)
+	{
 		iio_push_event(indio_dev,
-			       IIO_UNMOD_EVENT_CODE(IIO_INTENSITY, 0,
-						    IIO_EV_TYPE_THRESH,
-						    IIO_EV_DIR_EITHER),
-			       iio_get_time_ns(indio_dev));
+					   IIO_UNMOD_EVENT_CODE(IIO_INTENSITY, 0,
+											IIO_EV_TYPE_THRESH,
+											IIO_EV_DIR_EITHER),
+					   iio_get_time_ns(indio_dev));
 		regmap_write(data->regmap, APDS9960_REG_CICLEAR, 1);
 	}
 
-	if ((status & APDS9960_REG_STATUS_PS_INT) && data->pxs_int) {
+	if ((status & APDS9960_REG_STATUS_PS_INT) && data->pxs_int)
+	{
 		iio_push_event(indio_dev,
-			       IIO_UNMOD_EVENT_CODE(IIO_PROXIMITY, 0,
-						    IIO_EV_TYPE_THRESH,
-						    IIO_EV_DIR_EITHER),
-			       iio_get_time_ns(indio_dev));
+					   IIO_UNMOD_EVENT_CODE(IIO_PROXIMITY, 0,
+											IIO_EV_TYPE_THRESH,
+											IIO_EV_DIR_EITHER),
+					   iio_get_time_ns(indio_dev));
 		regmap_write(data->regmap, APDS9960_REG_PICLEAR, 1);
 	}
 
 	if (status & APDS9960_REG_STATUS_GINT)
+	{
 		apds9960_read_gesture_fifo(data);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -837,12 +1003,18 @@ static int apds9960_buffer_postenable(struct iio_dev *indio_dev)
 	int ret;
 
 	ret = regmap_field_write(data->reg_int_ges, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = regmap_field_write(data->reg_enable_ges, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pm_runtime_get_sync(&data->client->dev);
 
@@ -855,19 +1027,26 @@ static int apds9960_buffer_predisable(struct iio_dev *indio_dev)
 	int ret;
 
 	ret = regmap_field_write(data->reg_enable_ges, 0);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = regmap_field_write(data->reg_int_ges, 0);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pm_runtime_put_autosuspend(&data->client->dev);
 
 	return 0;
 }
 
-static const struct iio_buffer_setup_ops apds9960_buffer_setup_ops = {
+static const struct iio_buffer_setup_ops apds9960_buffer_setup_ops =
+{
 	.postenable = apds9960_buffer_postenable,
 	.predisable = apds9960_buffer_predisable,
 };
@@ -879,42 +1058,54 @@ static int apds9960_regfield_init(struct apds9960_data *data)
 
 	data->reg_int_als = devm_regmap_field_alloc(dev, regmap,
 						apds9960_reg_field_int_als);
-	if (IS_ERR(data->reg_int_als)) {
+
+	if (IS_ERR(data->reg_int_als))
+	{
 		dev_err(dev, "INT ALS reg field init failed\n");
 		return PTR_ERR(data->reg_int_als);
 	}
 
 	data->reg_int_ges = devm_regmap_field_alloc(dev, regmap,
 						apds9960_reg_field_int_ges);
-	if (IS_ERR(data->reg_int_ges)) {
+
+	if (IS_ERR(data->reg_int_ges))
+	{
 		dev_err(dev, "INT gesture reg field init failed\n");
 		return PTR_ERR(data->reg_int_ges);
 	}
 
 	data->reg_int_pxs = devm_regmap_field_alloc(dev, regmap,
 						apds9960_reg_field_int_pxs);
-	if (IS_ERR(data->reg_int_pxs)) {
+
+	if (IS_ERR(data->reg_int_pxs))
+	{
 		dev_err(dev, "INT pxs reg field init failed\n");
 		return PTR_ERR(data->reg_int_pxs);
 	}
 
 	data->reg_enable_als = devm_regmap_field_alloc(dev, regmap,
-						apds9960_reg_field_enable_als);
-	if (IS_ERR(data->reg_enable_als)) {
+						   apds9960_reg_field_enable_als);
+
+	if (IS_ERR(data->reg_enable_als))
+	{
 		dev_err(dev, "Enable ALS reg field init failed\n");
 		return PTR_ERR(data->reg_enable_als);
 	}
 
 	data->reg_enable_ges = devm_regmap_field_alloc(dev, regmap,
-						apds9960_reg_field_enable_ges);
-	if (IS_ERR(data->reg_enable_ges)) {
+						   apds9960_reg_field_enable_ges);
+
+	if (IS_ERR(data->reg_enable_ges))
+	{
 		dev_err(dev, "Enable gesture reg field init failed\n");
 		return PTR_ERR(data->reg_enable_ges);
 	}
 
 	data->reg_enable_pxs = devm_regmap_field_alloc(dev, regmap,
-						apds9960_reg_field_enable_pxs);
-	if (IS_ERR(data->reg_enable_pxs)) {
+						   apds9960_reg_field_enable_pxs);
+
+	if (IS_ERR(data->reg_enable_pxs))
+	{
 		dev_err(dev, "Enable PXS reg field init failed\n");
 		return PTR_ERR(data->reg_enable_pxs);
 	}
@@ -928,73 +1119,107 @@ static int apds9960_chip_init(struct apds9960_data *data)
 
 	/* Default IT for ALS of 28 ms */
 	ret = apds9960_set_it_time(data, 28000);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Ensure gesture interrupt is OFF */
 	ret = regmap_field_write(data->reg_int_ges, 0);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Disable gesture sensor, since polling is useless from user-space */
 	ret = regmap_field_write(data->reg_enable_ges, 0);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Ensure proximity interrupt is OFF */
 	ret = regmap_field_write(data->reg_int_pxs, 0);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Enable proximity sensor for polling */
 	ret = regmap_field_write(data->reg_enable_pxs, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Ensure ALS interrupt is OFF */
 	ret = regmap_field_write(data->reg_int_als, 0);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Enable ALS sensor for polling */
 	ret = regmap_field_write(data->reg_enable_als, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	/*
 	 * When enabled trigger an interrupt after 3 readings
 	 * outside threshold for ALS + PXS
 	 */
 	ret = regmap_write(data->regmap, APDS9960_REG_PERS,
-			   APDS9960_DEFAULT_PERS);
+					   APDS9960_DEFAULT_PERS);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * Wait for 4 event outside gesture threshold to prevent interrupt
 	 * flooding.
 	 */
 	ret = regmap_update_bits(data->regmap, APDS9960_REG_GCONF_1,
-			APDS9960_REG_GCONF_1_GFIFO_THRES_MASK,
-			BIT(0) << APDS9960_REG_GCONF_1_GFIFO_THRES_MASK_SHIFT);
+							 APDS9960_REG_GCONF_1_GFIFO_THRES_MASK,
+							 BIT(0) << APDS9960_REG_GCONF_1_GFIFO_THRES_MASK_SHIFT);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Default ENTER and EXIT thresholds for the GESTURE engine. */
 	ret = regmap_write(data->regmap, APDS9960_REG_GPENTH,
-			   APDS9960_DEFAULT_GPENTH);
+					   APDS9960_DEFAULT_GPENTH);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = regmap_write(data->regmap, APDS9960_REG_GEXTH,
-			   APDS9960_DEFAULT_GEXTH);
+					   APDS9960_DEFAULT_GEXTH);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return apds9960_set_powermode(data, 1);
 }
 
 static int apds9960_probe(struct i2c_client *client,
-			  const struct i2c_device_id *id)
+						  const struct i2c_device_id *id)
 {
 	struct apds9960_data *data;
 	struct iio_buffer *buffer;
@@ -1002,12 +1227,18 @@ static int apds9960_probe(struct i2c_client *client,
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	buffer = devm_iio_kfifo_allocate(&client->dev);
+
 	if (!buffer)
+	{
 		return -ENOMEM;
+	}
 
 	iio_device_attach_buffer(indio_dev, buffer);
 
@@ -1024,7 +1255,9 @@ static int apds9960_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, indio_dev);
 
 	data->regmap = devm_regmap_init_i2c(client, &apds9960_regmap_config);
-	if (IS_ERR(data->regmap)) {
+
+	if (IS_ERR(data->regmap))
+	{
 		dev_err(&client->dev, "regmap initialization failed.\n");
 		return PTR_ERR(data->regmap);
 	}
@@ -1034,8 +1267,11 @@ static int apds9960_probe(struct i2c_client *client,
 	mutex_init(&data->lock);
 
 	ret = pm_runtime_set_active(&client->dev);
+
 	if (ret)
+	{
 		goto error_power_down;
+	}
 
 	pm_runtime_enable(&client->dev);
 	pm_runtime_set_autosuspend_delay(&client->dev, 5000);
@@ -1044,31 +1280,44 @@ static int apds9960_probe(struct i2c_client *client,
 	apds9960_set_power_state(data, true);
 
 	ret = apds9960_regfield_init(data);
+
 	if (ret)
+	{
 		goto error_power_down;
+	}
 
 	ret = apds9960_chip_init(data);
-	if (ret)
-		goto error_power_down;
 
-	if (client->irq <= 0) {
+	if (ret)
+	{
+		goto error_power_down;
+	}
+
+	if (client->irq <= 0)
+	{
 		dev_err(&client->dev, "no valid irq defined\n");
 		ret = -EINVAL;
 		goto error_power_down;
 	}
+
 	ret = devm_request_threaded_irq(&client->dev, client->irq,
-					NULL, apds9960_interrupt_handler,
-					IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-					"apds9960_event",
-					indio_dev);
-	if (ret) {
+									NULL, apds9960_interrupt_handler,
+									IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+									"apds9960_event",
+									indio_dev);
+
+	if (ret)
+	{
 		dev_err(&client->dev, "request irq (%d) failed\n", client->irq);
 		goto error_power_down;
 	}
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret)
+	{
 		goto error_power_down;
+	}
 
 	apds9960_set_power_state(data, false);
 
@@ -1097,7 +1346,7 @@ static int apds9960_remove(struct i2c_client *client)
 static int apds9960_runtime_suspend(struct device *dev)
 {
 	struct apds9960_data *data =
-			iio_priv(i2c_get_clientdata(to_i2c_client(dev)));
+		iio_priv(i2c_get_clientdata(to_i2c_client(dev)));
 
 	return apds9960_set_powermode(data, 0);
 }
@@ -1105,24 +1354,27 @@ static int apds9960_runtime_suspend(struct device *dev)
 static int apds9960_runtime_resume(struct device *dev)
 {
 	struct apds9960_data *data =
-			iio_priv(i2c_get_clientdata(to_i2c_client(dev)));
+		iio_priv(i2c_get_clientdata(to_i2c_client(dev)));
 
 	return apds9960_set_powermode(data, 1);
 }
 #endif
 
-static const struct dev_pm_ops apds9960_pm_ops = {
+static const struct dev_pm_ops apds9960_pm_ops =
+{
 	SET_RUNTIME_PM_OPS(apds9960_runtime_suspend,
-			   apds9960_runtime_resume, NULL)
+	apds9960_runtime_resume, NULL)
 };
 
-static const struct i2c_device_id apds9960_id[] = {
+static const struct i2c_device_id apds9960_id[] =
+{
 	{ "apds9960", 0 },
 	{}
 };
 MODULE_DEVICE_TABLE(i2c, apds9960_id);
 
-static struct i2c_driver apds9960_driver = {
+static struct i2c_driver apds9960_driver =
+{
 	.driver = {
 		.name	= APDS9960_DRV_NAME,
 		.pm	= &apds9960_pm_ops,

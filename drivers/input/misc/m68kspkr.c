@@ -32,16 +32,22 @@ static int m68kspkr_event(struct input_dev *dev, unsigned int type, unsigned int
 	unsigned int count = 0;
 
 	if (type != EV_SND)
+	{
 		return -1;
+	}
 
-	switch (code) {
-		case SND_BELL: if (value) value = 1000;
+	switch (code)
+	{
+		case SND_BELL: if (value) { value = 1000; }
 		case SND_TONE: break;
+
 		default: return -1;
 	}
 
 	if (value > 20 && value < 32767)
+	{
 		count = 1193182 / value;
+	}
 
 	mach_beep(count, -1);
 
@@ -54,8 +60,11 @@ static int m68kspkr_probe(struct platform_device *dev)
 	int err;
 
 	input_dev = input_allocate_device();
+
 	if (!input_dev)
+	{
 		return -ENOMEM;
+	}
 
 	input_dev->name = "m68k beeper";
 	input_dev->phys = "m68k/generic";
@@ -70,7 +79,9 @@ static int m68kspkr_probe(struct platform_device *dev)
 	input_dev->event = m68kspkr_event;
 
 	err = input_register_device(input_dev);
-	if (err) {
+
+	if (err)
+	{
 		input_free_device(input_dev);
 		return err;
 	}
@@ -97,7 +108,8 @@ static void m68kspkr_shutdown(struct platform_device *dev)
 	m68kspkr_event(NULL, EV_SND, SND_BELL, 0);
 }
 
-static struct platform_driver m68kspkr_platform_driver = {
+static struct platform_driver m68kspkr_platform_driver =
+{
 	.driver		= {
 		.name	= "m68kspkr",
 	},
@@ -110,30 +122,39 @@ static int __init m68kspkr_init(void)
 {
 	int err;
 
-	if (!mach_beep) {
+	if (!mach_beep)
+	{
 		printk(KERN_INFO "m68kspkr: no lowlevel beep support\n");
 		return -ENODEV;
-        }
+	}
 
 	err = platform_driver_register(&m68kspkr_platform_driver);
+
 	if (err)
+	{
 		return err;
+	}
 
 	m68kspkr_platform_device = platform_device_alloc("m68kspkr", -1);
-	if (!m68kspkr_platform_device) {
+
+	if (!m68kspkr_platform_device)
+	{
 		err = -ENOMEM;
 		goto err_unregister_driver;
 	}
 
 	err = platform_device_add(m68kspkr_platform_device);
+
 	if (err)
+	{
 		goto err_free_device;
+	}
 
 	return 0;
 
- err_free_device:
+err_free_device:
 	platform_device_put(m68kspkr_platform_device);
- err_unregister_driver:
+err_unregister_driver:
 	platform_driver_unregister(&m68kspkr_platform_driver);
 
 	return err;

@@ -42,35 +42,51 @@ int oprofile_setup(void)
 	mutex_lock(&start_mutex);
 
 	if ((err = alloc_cpu_buffers()))
+	{
 		goto out;
+	}
 
 	if ((err = alloc_event_buffer()))
+	{
 		goto out1;
+	}
 
 	if (oprofile_ops.setup && (err = oprofile_ops.setup()))
+	{
 		goto out2;
+	}
 
 	/* Note even though this starts part of the
 	 * profiling overhead, it's necessary to prevent
 	 * us missing task deaths and eventually oopsing
 	 * when trying to process the event buffer.
 	 */
-	if (oprofile_ops.sync_start) {
+	if (oprofile_ops.sync_start)
+	{
 		int sync_ret = oprofile_ops.sync_start();
-		switch (sync_ret) {
-		case 0:
-			goto post_sync;
-		case 1:
-			goto do_generic;
-		case -1:
-			goto out3;
-		default:
-			goto out3;
+
+		switch (sync_ret)
+		{
+			case 0:
+				goto post_sync;
+
+			case 1:
+				goto do_generic;
+
+			case -1:
+				goto out3;
+
+			default:
+				goto out3;
 		}
 	}
+
 do_generic:
+
 	if ((err = sync_start()))
+	{
 		goto out3;
+	}
 
 post_sync:
 	is_setup = 1;
@@ -78,8 +94,12 @@ post_sync:
 	return 0;
 
 out3:
+
 	if (oprofile_ops.shutdown)
+	{
 		oprofile_ops.shutdown();
+	}
+
 out2:
 	free_event_buffer();
 out1:
@@ -97,7 +117,9 @@ static DECLARE_DELAYED_WORK(switch_work, switch_worker);
 static void start_switch_worker(void)
 {
 	if (oprofile_ops.switch_events)
+	{
 		schedule_delayed_work(&switch_work, oprofile_time_slice);
+	}
 }
 
 static void stop_switch_worker(void)
@@ -108,7 +130,9 @@ static void stop_switch_worker(void)
 static void switch_worker(struct work_struct *work)
 {
 	if (oprofile_ops.switch_events())
+	{
 		return;
+	}
 
 	atomic_inc(&oprofile_stats.multiplex_counter);
 	start_switch_worker();
@@ -122,18 +146,22 @@ int oprofile_set_timeout(unsigned long val_msec)
 
 	mutex_lock(&start_mutex);
 
-	if (oprofile_started) {
+	if (oprofile_started)
+	{
 		err = -EBUSY;
 		goto out;
 	}
 
-	if (!oprofile_ops.switch_events) {
+	if (!oprofile_ops.switch_events)
+	{
 		err = -EINVAL;
 		goto out;
 	}
 
 	time_slice = msecs_to_jiffies(val_msec);
-	if (time_slice == MAX_JIFFY_OFFSET) {
+
+	if (time_slice == MAX_JIFFY_OFFSET)
+	{
 		err = -EINVAL;
 		goto out;
 	}
@@ -161,17 +189,23 @@ int oprofile_start(void)
 	mutex_lock(&start_mutex);
 
 	if (!is_setup)
+	{
 		goto out;
+	}
 
 	err = 0;
 
 	if (oprofile_started)
+	{
 		goto out;
+	}
 
 	oprofile_reset_stats();
 
 	if ((err = oprofile_ops.start()))
+	{
 		goto out;
+	}
 
 	start_switch_worker();
 
@@ -186,8 +220,12 @@ out:
 void oprofile_stop(void)
 {
 	mutex_lock(&start_mutex);
+
 	if (!oprofile_started)
+	{
 		goto out;
+	}
+
 	oprofile_ops.stop();
 	oprofile_started = 0;
 
@@ -203,22 +241,33 @@ out:
 void oprofile_shutdown(void)
 {
 	mutex_lock(&start_mutex);
-	if (oprofile_ops.sync_stop) {
+
+	if (oprofile_ops.sync_stop)
+	{
 		int sync_ret = oprofile_ops.sync_stop();
-		switch (sync_ret) {
-		case 0:
-			goto post_sync;
-		case 1:
-			goto do_generic;
-		default:
-			goto post_sync;
+
+		switch (sync_ret)
+		{
+			case 0:
+				goto post_sync;
+
+			case 1:
+				goto do_generic;
+
+			default:
+				goto post_sync;
 		}
 	}
+
 do_generic:
 	sync_stop();
 post_sync:
+
 	if (oprofile_ops.shutdown)
+	{
 		oprofile_ops.shutdown();
+	}
+
 	is_setup = 0;
 	free_event_buffer();
 	free_cpu_buffers();
@@ -230,10 +279,13 @@ int oprofile_set_ulong(unsigned long *addr, unsigned long val)
 	int err = -EBUSY;
 
 	mutex_lock(&start_mutex);
-	if (!oprofile_started) {
+
+	if (!oprofile_started)
+	{
 		*addr = val;
 		err = 0;
 	}
+
 	mutex_unlock(&start_mutex);
 
 	return err;
@@ -248,19 +300,29 @@ static int __init oprofile_init(void)
 	/* always init architecture to setup backtrace support */
 	timer_mode = 0;
 	err = oprofile_arch_init(&oprofile_ops);
-	if (!err) {
+
+	if (!err)
+	{
 		if (!timer && !oprofilefs_register())
+		{
 			return 0;
+		}
+
 		oprofile_arch_exit();
 	}
 
 	/* setup timer mode: */
 	timer_mode = 1;
+
 	/* no nmi timer mode if oprofile.timer is set */
-	if (timer || op_nmi_timer_init(&oprofile_ops)) {
+	if (timer || op_nmi_timer_init(&oprofile_ops))
+	{
 		err = oprofile_timer_init(&oprofile_ops);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	return oprofilefs_register();
@@ -270,8 +332,11 @@ static int __init oprofile_init(void)
 static void __exit oprofile_exit(void)
 {
 	oprofilefs_unregister();
+
 	if (!timer_mode)
+	{
 		oprofile_arch_exit();
+	}
 }
 
 

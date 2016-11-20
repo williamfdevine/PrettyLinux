@@ -19,7 +19,8 @@
 #include <linux/tc_ematch/tc_em_text.h>
 #include <net/pkt_cls.h>
 
-struct text_match {
+struct text_match
+{
 	u16			from_offset;
 	u16			to_offset;
 	u8			from_layer;
@@ -30,7 +31,7 @@ struct text_match {
 #define EM_TEXT_PRIV(m) ((struct text_match *) (m)->data)
 
 static int em_text_match(struct sk_buff *skb, struct tcf_ematch *m,
-			 struct tcf_pkt_info *info)
+						 struct tcf_pkt_info *info)
 {
 	struct text_match *tm = EM_TEXT_PRIV(m);
 	int from, to;
@@ -45,7 +46,7 @@ static int em_text_match(struct sk_buff *skb, struct tcf_ematch *m,
 }
 
 static int em_text_change(struct net *net, void *data, int len,
-			  struct tcf_ematch *m)
+						  struct tcf_ematch *m)
 {
 	struct text_match *tm;
 	struct tcf_em_text *conf = data;
@@ -53,36 +54,53 @@ static int em_text_change(struct net *net, void *data, int len,
 	int flags = 0;
 
 	if (len < sizeof(*conf) || len < (sizeof(*conf) + conf->pattern_len))
+	{
 		return -EINVAL;
+	}
 
 	if (conf->from_layer > conf->to_layer)
+	{
 		return -EINVAL;
+	}
 
 	if (conf->from_layer == conf->to_layer &&
-	    conf->from_offset > conf->to_offset)
+		conf->from_offset > conf->to_offset)
+	{
 		return -EINVAL;
+	}
 
 retry:
 	ts_conf = textsearch_prepare(conf->algo, (u8 *) conf + sizeof(*conf),
-				     conf->pattern_len, GFP_KERNEL, flags);
+								 conf->pattern_len, GFP_KERNEL, flags);
 
 	if (flags & TS_AUTOLOAD)
+	{
 		rtnl_lock();
+	}
 
-	if (IS_ERR(ts_conf)) {
-		if (PTR_ERR(ts_conf) == -ENOENT && !(flags & TS_AUTOLOAD)) {
+	if (IS_ERR(ts_conf))
+	{
+		if (PTR_ERR(ts_conf) == -ENOENT && !(flags & TS_AUTOLOAD))
+		{
 			rtnl_unlock();
 			flags |= TS_AUTOLOAD;
 			goto retry;
-		} else
+		}
+		else
+		{
 			return PTR_ERR(ts_conf);
-	} else if (flags & TS_AUTOLOAD) {
+		}
+	}
+	else if (flags & TS_AUTOLOAD)
+	{
 		textsearch_destroy(ts_conf);
 		return -EAGAIN;
 	}
 
 	tm = kmalloc(sizeof(*tm), GFP_KERNEL);
-	if (tm == NULL) {
+
+	if (tm == NULL)
+	{
 		textsearch_destroy(ts_conf);
 		return -ENOBUFS;
 	}
@@ -102,7 +120,9 @@ retry:
 static void em_text_destroy(struct tcf_ematch *m)
 {
 	if (EM_TEXT_PRIV(m) && EM_TEXT_PRIV(m)->config)
+	{
 		textsearch_destroy(EM_TEXT_PRIV(m)->config);
+	}
 }
 
 static int em_text_dump(struct sk_buff *skb, struct tcf_ematch *m)
@@ -119,17 +139,24 @@ static int em_text_dump(struct sk_buff *skb, struct tcf_ematch *m)
 	conf.pad = 0;
 
 	if (nla_put_nohdr(skb, sizeof(conf), &conf) < 0)
+	{
 		goto nla_put_failure;
+	}
+
 	if (nla_append(skb, conf.pattern_len,
-		       textsearch_get_pattern(tm->config)) < 0)
+				   textsearch_get_pattern(tm->config)) < 0)
+	{
 		goto nla_put_failure;
+	}
+
 	return 0;
 
 nla_put_failure:
 	return -1;
 }
 
-static struct tcf_ematch_ops em_text_ops = {
+static struct tcf_ematch_ops em_text_ops =
+{
 	.kind	  = TCF_EM_TEXT,
 	.change	  = em_text_change,
 	.match	  = em_text_match,

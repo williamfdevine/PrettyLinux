@@ -28,10 +28,10 @@
 #define TUN_TYPE_MASK   0x000f
 
 /* Ioctl defines */
-#define TUNSETNOCSUM  _IOW('T', 200, int) 
-#define TUNSETDEBUG   _IOW('T', 201, int) 
-#define TUNSETIFF     _IOW('T', 202, int) 
-#define TUNSETPERSIST _IOW('T', 203, int) 
+#define TUNSETNOCSUM  _IOW('T', 200, int)
+#define TUNSETDEBUG   _IOW('T', 201, int)
+#define TUNSETIFF     _IOW('T', 202, int)
+#define TUNSETPERSIST _IOW('T', 203, int)
 #define TUNSETOWNER   _IOW('T', 204, int)
 #define TUNSETLINK    _IOW('T', 205, int)
 #define TUNSETGROUP   _IOW('T', 206, int)
@@ -84,7 +84,8 @@
 
 /* Protocol info prepended to the packets (when IFF_NO_PI is not set) */
 #define TUN_PKT_STRIP	0x0001
-struct tun_pi {
+struct tun_pi
+{
 	__u16  flags;
 	__be16 proto;
 };
@@ -98,7 +99,8 @@ struct tun_pi {
  * broadcast addr must be explicitly included in the addr list.
  */
 #define TUN_FLT_ALLMULTI 0x0001 /* Accept all multicast packets */
-struct tun_filter {
+struct tun_filter
+{
 	__u16  flags; /* TUN_FLT_ flags see above */
 	__u16  count; /* Number of addresses */
 	__u8   addr[0][ETH_ALEN];

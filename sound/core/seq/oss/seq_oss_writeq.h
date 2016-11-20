@@ -25,7 +25,8 @@
 #include "seq_oss_device.h"
 
 
-struct seq_oss_writeq {
+struct seq_oss_writeq
+{
 	struct seq_oss_devinfo *dp;
 	int maxlen;
 	abstime_t sync_time;

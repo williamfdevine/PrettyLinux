@@ -41,11 +41,11 @@
 #include <asm/byteorder.h>
 
 #if 0
-#define DEBUG(n, args...) printk(KERN_INFO args)
-#define CHECK_LOST	1
+	#define DEBUG(n, args...) printk(KERN_INFO args)
+	#define CHECK_LOST	1
 #else
-#define DEBUG(n, args...)
-#define CHECK_LOST	0
+	#define DEBUG(n, args...)
+	#define CHECK_LOST	0
 #endif
 
 /*
@@ -106,7 +106,8 @@ extern struct cpuinfo_m32r	boot_cpu_data;
 #define AR_MODE_INTERLACE	0
 #define AR_MODE_NORMAL		1
 
-struct ar {
+struct ar
+{
 	struct v4l2_device v4l2_dev;
 	struct video_device vdev;
 	int start_capture;	/* duaring capture in INT. mode. */
@@ -140,9 +141,14 @@ module_param(vga_interlace, int, 0);
 static void wait_for_vsync(void)
 {
 	while (ar_inl(ARVCR0) & ARVCR0_VDS)	/* wait for VSYNC */
+	{
 		cpu_relax();
+	}
+
 	while (!(ar_inl(ARVCR0) & ARVCR0_VDS))	/* wait for VSYNC */
+	{
 		cpu_relax();
+	}
 }
 
 static void wait_acknowledge(void)
@@ -150,16 +156,21 @@ static void wait_acknowledge(void)
 	int i;
 
 	for (i = 0; i < 1000; i++)
+	{
 		cpu_relax();
+	}
+
 	while (ar_inl(PLDI2CSTS) & PLDI2CSTS_NOACK)
+	{
 		cpu_relax();
+	}
 }
 
 /*******************************************************************
  * I2C functions
  *******************************************************************/
 static void iic(int n, unsigned long addr, unsigned long data1, unsigned long data2,
-	 unsigned long data3)
+				unsigned long data3)
 {
 	int i;
 
@@ -183,7 +194,8 @@ static void iic(int n, unsigned long addr, unsigned long data1, unsigned long da
 	ar_outl(PLDI2CSTEN_STEN, PLDI2CSTEN);
 	wait_acknowledge();
 
-	if (n == 3) {
+	if (n == 3)
+	{
 		/* Transfer data 3 */
 		ar_outl(data3, PLDI2CDATA);
 		wait_for_vsync();
@@ -193,12 +205,17 @@ static void iic(int n, unsigned long addr, unsigned long data1, unsigned long da
 
 	/* Stop */
 	for (i = 0; i < 100; i++)
+	{
 		cpu_relax();
+	}
+
 	ar_outl(2, PLDI2CCND);
 	ar_outl(2, PLDI2CCND);
 
 	while (ar_inl(PLDI2CSTS) & PLDI2CSTS_BB)
+	{
 		cpu_relax();
+	}
 }
 
 
@@ -217,11 +234,18 @@ static void init_iic(void)
 	/* I2C CLK */
 	/* 50MH-100k */
 	if (freq == 75)
-		ar_outl(369, PLDI2CFREQ);	/* BCLK = 75MHz */
+	{
+		ar_outl(369, PLDI2CFREQ);    /* BCLK = 75MHz */
+	}
 	else if (freq == 50)
-		ar_outl(244, PLDI2CFREQ);	/* BCLK = 50MHz */
+	{
+		ar_outl(244, PLDI2CFREQ);    /* BCLK = 50MHz */
+	}
 	else
-		ar_outl(244, PLDI2CFREQ);	/* default: BCLK = 50MHz */
+	{
+		ar_outl(244, PLDI2CFREQ);    /* default: BCLK = 50MHz */
+	}
+
 	ar_outl(0x1, PLDI2CCR); 	/* I2CCR Enable */
 }
 
@@ -255,16 +279,28 @@ static void wait_for_vertical_sync(struct ar *ar, int exp_line)
 	/*
 	 * check HCOUNT because we cannot check vertical sync.
 	 */
-	for (; tmout >= 0; tmout--) {
+	for (; tmout >= 0; tmout--)
+	{
 		l = ar_inl(ARVHCOUNT);
+
 		if (l == exp_line)
+		{
 			break;
+		}
 	}
+
 	if (tmout < 0)
+	{
 		v4l2_err(&ar->v4l2_dev, "lost %d -> %d\n", exp_line, l);
+	}
+
 #else
+
 	while (ar_inl(ARVHCOUNT) != exp_line)
+	{
 		cpu_relax();
+	}
+
 #endif
 }
 
@@ -284,9 +320,14 @@ static ssize_t ar_read(struct file *file, char *buf, size_t count, loff_t *ppos)
 	DEBUG(1, "ar_read()\n");
 
 	if (ar->size == AR_SIZE_QVGA)
+	{
 		arvcr1 |= ARVCR1_QVGA;
+	}
+
 	if (ar->mode == AR_MODE_NORMAL)
+	{
 		arvcr1 |= ARVCR1_NORMAL;
+	}
 
 	mutex_lock(&ar->lock);
 
@@ -312,11 +353,14 @@ static ssize_t ar_read(struct file *file, char *buf, size_t count, loff_t *ppos)
 	local_irq_restore(flags);
 	/* .... AR interrupts .... */
 	wait_event_interruptible(ar->wait, ar->start_capture == 0);
-	if (signal_pending(current)) {
+
+	if (signal_pending(current))
+	{
 		printk(KERN_ERR "arv: interrupted while get frame data.\n");
 		ret = -EINTR;
 		goto out_up;
 	}
+
 #else	/* ! USE_INT */
 	/* polling */
 	ar_outl(arvcr1, ARVCR1);
@@ -330,35 +374,59 @@ static ssize_t ar_read(struct file *file, char *buf, size_t count, loff_t *ppos)
 	ar_outl(ar->line_bytes, M32R_DMA0RBCUT_PORTL);
 
 	local_irq_save(flags);
+
 	while (ar_inl(ARVHCOUNT) != 0)		/* wait for 0 */
+	{
 		cpu_relax();
-	if (ar->mode == AR_MODE_INTERLACE && ar->size == AR_SIZE_VGA) {
-		for (h = 0; h < ar->height; h++) {
+	}
+
+	if (ar->mode == AR_MODE_INTERLACE && ar->size == AR_SIZE_VGA)
+	{
+		for (h = 0; h < ar->height; h++)
+		{
 			wait_for_vertical_sync(ar, h);
-			if (h < (AR_HEIGHT_VGA/2))
+
+			if (h < (AR_HEIGHT_VGA / 2))
+			{
 				l = h << 1;
+			}
 			else
-				l = (((h - (AR_HEIGHT_VGA/2)) << 1) + 1);
+			{
+				l = (((h - (AR_HEIGHT_VGA / 2)) << 1) + 1);
+			}
+
 			ar_outl(virt_to_phys(ar->frame[l]), M32R_DMA0CDA_PORTL);
 			enable_dma();
+
 			while (!(ar_inl(M32R_DMAEDET_PORTL) & 0x8000))
+			{
 				cpu_relax();
-			disable_dma();
-			clear_dma_status();
-			ar_outl(0xa0861300, M32R_DMA0CR0_PORTL);
-		}
-	} else {
-		for (h = 0; h < ar->height; h++) {
-			wait_for_vertical_sync(ar, h);
-			ar_outl(virt_to_phys(ar->frame[h]), M32R_DMA0CDA_PORTL);
-			enable_dma();
-			while (!(ar_inl(M32R_DMAEDET_PORTL) & 0x8000))
-				cpu_relax();
+			}
+
 			disable_dma();
 			clear_dma_status();
 			ar_outl(0xa0861300, M32R_DMA0CR0_PORTL);
 		}
 	}
+	else
+	{
+		for (h = 0; h < ar->height; h++)
+		{
+			wait_for_vertical_sync(ar, h);
+			ar_outl(virt_to_phys(ar->frame[h]), M32R_DMA0CDA_PORTL);
+			enable_dma();
+
+			while (!(ar_inl(M32R_DMAEDET_PORTL) & 0x8000))
+			{
+				cpu_relax();
+			}
+
+			disable_dma();
+			clear_dma_status();
+			ar_outl(0xa0861300, M32R_DMA0CR0_PORTL);
+		}
+	}
+
 	local_irq_restore(flags);
 #endif	/* ! USE_INT */
 
@@ -376,20 +444,27 @@ static ssize_t ar_read(struct file *file, char *buf, size_t count, loff_t *ppos)
 	py = yuv;
 	pu = py + (ar->frame_bytes / 2);
 	pv = pu + (ar->frame_bytes / 4);
-	for (h = 0; h < ar->height; h++) {
+
+	for (h = 0; h < ar->height; h++)
+	{
 		p = ar->frame[h];
-		for (w = 0; w < ar->line_bytes; w += 4) {
+
+		for (w = 0; w < ar->line_bytes; w += 4)
+		{
 			*py++ = *p++;
 			*pu++ = *p++;
 			*py++ = *p++;
 			*pv++ = *p++;
 		}
 	}
-	if (copy_to_user(buf, yuv, ar->frame_bytes)) {
+
+	if (copy_to_user(buf, yuv, ar->frame_bytes))
+	{
 		v4l2_err(&ar->v4l2_dev, "failed while copy_to_user yuv.\n");
 		ret = -EFAULT;
 		goto out_up;
 	}
+
 	DEBUG(1, "ret = %d\n", ret);
 out_up:
 	mutex_unlock(&ar->lock);
@@ -397,7 +472,7 @@ out_up:
 }
 
 static int ar_querycap(struct file *file, void  *priv,
-					struct v4l2_capability *vcap)
+					   struct v4l2_capability *vcap)
 {
 	struct ar *ar = video_drvdata(file);
 
@@ -412,7 +487,10 @@ static int ar_querycap(struct file *file, void  *priv,
 static int ar_enum_input(struct file *file, void *fh, struct v4l2_input *vin)
 {
 	if (vin->index > 0)
+	{
 		return -EINVAL;
+	}
+
 	strlcpy(vin->name, "Camera", sizeof(vin->name));
 	vin->type = V4L2_INPUT_TYPE_CAMERA;
 	vin->audioset = 0;
@@ -454,15 +532,19 @@ static int ar_try_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format *f
 	struct ar *ar = video_drvdata(file);
 	struct v4l2_pix_format *pix = &fmt->fmt.pix;
 
-	if (pix->height <= AR_HEIGHT_QVGA || pix->width <= AR_WIDTH_QVGA) {
+	if (pix->height <= AR_HEIGHT_QVGA || pix->width <= AR_WIDTH_QVGA)
+	{
 		pix->height = AR_HEIGHT_QVGA;
 		pix->width = AR_WIDTH_QVGA;
 		pix->field = V4L2_FIELD_INTERLACED;
-	} else {
+	}
+	else
+	{
 		pix->height = AR_HEIGHT_VGA;
 		pix->width = AR_WIDTH_VGA;
 		pix->field = vga_interlace ? V4L2_FIELD_INTERLACED : V4L2_FIELD_NONE;
 	}
+
 	pix->pixelformat = V4L2_PIX_FMT_YUV422P;
 	pix->bytesperline = ar->width;
 	pix->sizeimage = 2 * ar->width * ar->height;
@@ -478,24 +560,37 @@ static int ar_s_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format *fmt
 	int ret = ar_try_fmt_vid_cap(file, fh, fmt);
 
 	if (ret)
+	{
 		return ret;
+	}
+
 	mutex_lock(&ar->lock);
 	ar->width = pix->width;
 	ar->height = pix->height;
-	if (ar->width == AR_WIDTH_VGA) {
+
+	if (ar->width == AR_WIDTH_VGA)
+	{
 		ar->size = AR_SIZE_VGA;
 		ar->frame_bytes = AR_FRAME_BYTES_VGA;
 		ar->line_bytes = AR_LINE_BYTES_VGA;
+
 		if (vga_interlace)
+		{
 			ar->mode = AR_MODE_INTERLACE;
+		}
 		else
+		{
 			ar->mode = AR_MODE_NORMAL;
-	} else {
+		}
+	}
+	else
+	{
 		ar->size = AR_SIZE_QVGA;
 		ar->frame_bytes = AR_FRAME_BYTES_QVGA;
 		ar->line_bytes = AR_LINE_BYTES_QVGA;
 		ar->mode = AR_MODE_INTERLACE;
 	}
+
 	/* Ok we figured out what to use from our wide choice */
 	mutex_unlock(&ar->lock);
 	return 0;
@@ -503,16 +598,20 @@ static int ar_s_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format *fmt
 
 static int ar_enum_fmt_vid_cap(struct file *file, void *fh, struct v4l2_fmtdesc *fmt)
 {
-	static struct v4l2_fmtdesc formats[] = {
-		{ 0, 0, 0,
-		  "YUV 4:2:2 Planar", V4L2_PIX_FMT_YUV422P,
-		  { 0, 0, 0, 0 }
+	static struct v4l2_fmtdesc formats[] =
+	{
+		{
+			0, 0, 0,
+			"YUV 4:2:2 Planar", V4L2_PIX_FMT_YUV422P,
+			{ 0, 0, 0, 0 }
 		},
 	};
 	enum v4l2_buf_type type = fmt->type;
 
 	if (fmt->index > 0)
+	{
 		return -EINVAL;
+	}
 
 	*fmt = formats[fmt->index];
 	fmt->type = type;
@@ -531,18 +630,25 @@ static void ar_interrupt(int irq, void *dev)
 	unsigned int arvcr1;
 
 	line_count = ar_inl(ARVHCOUNT);			/* line number */
-	if (ar->mode == AR_MODE_INTERLACE && ar->size == AR_SIZE_VGA) {
+
+	if (ar->mode == AR_MODE_INTERLACE && ar->size == AR_SIZE_VGA)
+	{
 		/* operations for interlace mode */
 		if (line_count < (AR_HEIGHT_VGA / 2)) 	/* even line */
+		{
 			line_number = (line_count << 1);
+		}
 		else 					/* odd line */
 			line_number =
-			(((line_count - (AR_HEIGHT_VGA / 2)) << 1) + 1);
-	} else {
+				(((line_count - (AR_HEIGHT_VGA / 2)) << 1) + 1);
+	}
+	else
+	{
 		line_number = line_count;
 	}
 
-	if (line_number == 0) {
+	if (line_number == 0)
+	{
 		/*
 		 * It is an interrupt for line 0.
 		 * we have to start capture.
@@ -560,7 +666,8 @@ static void ar_interrupt(int irq, void *dev)
 		return;
 	}
 
-	if (ar->start_capture == 1 && line_number <= (ar->height - 1)) {
+	if (ar->start_capture == 1 && line_number <= (ar->height - 1))
+	{
 		disable_dma();
 		memcpy(ar->frame[line_number], ar->line_buff, ar->line_bytes);
 
@@ -568,7 +675,8 @@ static void ar_interrupt(int irq, void *dev)
 		 * if captured all line of a frame, disable AR interrupt
 		 * and wake a process up.
 		 */
-		if (line_number == (ar->height - 1)) { 	/* end  of line */
+		if (line_number == (ar->height - 1))   	/* end  of line */
+		{
 
 			ar->start_capture = 0;
 
@@ -577,7 +685,9 @@ static void ar_interrupt(int irq, void *dev)
 			arvcr1 &= ~ARVCR1_HIEN;		/* clear int. flag */
 			ar_outl(arvcr1, ARVCR1);	/* disable */
 			wake_up_interruptible(&ar->wait);
-		} else {
+		}
+		else
+		{
 #if 0
 			ar_outl(ar->line_buff, M32R_DMA0CDA_PORTL);
 			ar_outl(0xa1861300, M32R_DMA0CR0_PORTL);
@@ -608,19 +718,32 @@ static int ar_initialize(struct ar *ar)
 	 * initialize AR LSI
 	 */
 	ar_outl(0, ARVCR0);		/* assert reset of AR LSI */
+
 	for (i = 0; i < 0x18; i++)	/* wait for over 10 cycles @ 27MHz */
+	{
 		cpu_relax();
+	}
+
 	ar_outl(ARVCR0_RST, ARVCR0);	/* negate reset of AR LSI (enable) */
+
 	for (i = 0; i < 0x40d; i++)	/* wait for over 420 cycles @ 27MHz */
+	{
 		cpu_relax();
+	}
 
 	/* AR uses INT3 of CPU as interrupt pin. */
 	ar_outl(ARINTSEL_INT3, ARINTSEL);
 
 	if (ar->size == AR_SIZE_QVGA)
+	{
 		cr |= ARVCR1_QVGA;
+	}
+
 	if (ar->mode == AR_MODE_NORMAL)
+	{
 		cr |= ARVCR1_NORMAL;
+	}
+
 	ar_outl(cr, ARVCR1);
 
 	/*
@@ -629,15 +752,19 @@ static int ar_initialize(struct ar *ar)
 	 */
 	init_iic();
 
-	for (i = 0; i < 0x100000; i++) {	/* > 0xa1d10,  56ms */
-		if ((ar_inl(ARVCR0) & ARVCR0_VDS)) {	/* VSYNC */
+	for (i = 0; i < 0x100000; i++)  	/* > 0xa1d10,  56ms */
+	{
+		if ((ar_inl(ARVCR0) & ARVCR0_VDS))  	/* VSYNC */
+		{
 			found = 1;
 			break;
 		}
 	}
 
 	if (found == 0)
+	{
 		return -ENODEV;
+	}
 
 	v4l2_info(&ar->v4l2_dev, "Initializing ");
 
@@ -709,7 +836,8 @@ static int ar_initialize(struct ar *ar)
  *
  ****************************************************************************/
 
-static const struct v4l2_file_operations ar_fops = {
+static const struct v4l2_file_operations ar_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= v4l2_fh_open,
 	.release	= v4l2_fh_release,
@@ -717,7 +845,8 @@ static const struct v4l2_file_operations ar_fops = {
 	.unlocked_ioctl	= video_ioctl2,
 };
 
-static const struct v4l2_ioctl_ops ar_ioctl_ops = {
+static const struct v4l2_ioctl_ops ar_ioctl_ops =
+{
 	.vidioc_querycap    		    = ar_querycap,
 	.vidioc_g_input      		    = ar_g_input,
 	.vidioc_s_input      		    = ar_s_input,
@@ -743,25 +872,35 @@ static int __init ar_init(void)
 	v4l2_info(v4l2_dev, "Colour AR VGA driver %s\n", VERSION);
 
 	ret = v4l2_device_register(NULL, v4l2_dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		v4l2_err(v4l2_dev, "Could not register v4l2_device\n");
 		return ret;
 	}
+
 	ret = -EIO;
 
 #if USE_INT
 	/* allocate a DMA buffer for 1 line.  */
 	ar->line_buff = kmalloc(MAX_AR_LINE_BYTES, GFP_KERNEL | GFP_DMA);
-	if (ar->line_buff == NULL || !ALIGN4(ar->line_buff)) {
+
+	if (ar->line_buff == NULL || !ALIGN4(ar->line_buff))
+	{
 		v4l2_err(v4l2_dev, "buffer allocation failed for DMA.\n");
 		ret = -ENOMEM;
 		goto out_end;
 	}
+
 #endif
+
 	/* allocate buffers for a frame */
-	for (i = 0; i < MAX_AR_HEIGHT; i++) {
+	for (i = 0; i < MAX_AR_HEIGHT; i++)
+	{
 		ar->frame[i] = kmalloc(MAX_AR_LINE_BYTES, GFP_KERNEL);
-		if (ar->frame[i] == NULL || !ALIGN4(ar->frame[i])) {
+
+		if (ar->frame[i] == NULL || !ALIGN4(ar->frame[i]))
+		{
 			v4l2_err(v4l2_dev, "buffer allocation failed for frame.\n");
 			ret = -ENOMEM;
 			goto out_line_buff;
@@ -775,17 +914,25 @@ static int __init ar_init(void)
 	ar->vdev.release = video_device_release_empty;
 	video_set_drvdata(&ar->vdev, ar);
 
-	if (vga) {
+	if (vga)
+	{
 		ar->width 	= AR_WIDTH_VGA;
 		ar->height 	= AR_HEIGHT_VGA;
 		ar->size 	= AR_SIZE_VGA;
 		ar->frame_bytes = AR_FRAME_BYTES_VGA;
 		ar->line_bytes	= AR_LINE_BYTES_VGA;
+
 		if (vga_interlace)
+		{
 			ar->mode = AR_MODE_INTERLACE;
+		}
 		else
+		{
 			ar->mode = AR_MODE_NORMAL;
-	} else {
+		}
+	}
+	else
+	{
 		ar->width 	= AR_WIDTH_QVGA;
 		ar->height 	= AR_HEIGHT_QVGA;
 		ar->size 	= AR_SIZE_QVGA;
@@ -793,18 +940,23 @@ static int __init ar_init(void)
 		ar->line_bytes	= AR_LINE_BYTES_QVGA;
 		ar->mode	= AR_MODE_INTERLACE;
 	}
+
 	mutex_init(&ar->lock);
 	init_waitqueue_head(&ar->wait);
 
 #if USE_INT
-	if (request_irq(M32R_IRQ_INT3, ar_interrupt, 0, "arv", ar)) {
+
+	if (request_irq(M32R_IRQ_INT3, ar_interrupt, 0, "arv", ar))
+	{
 		v4l2_err("request_irq(%d) failed.\n", M32R_IRQ_INT3);
 		ret = -EIO;
 		goto out_irq;
 	}
+
 #endif
 
-	if (ar_initialize(ar) != 0) {
+	if (ar_initialize(ar) != 0)
+	{
 		v4l2_err(v4l2_dev, "M64278 not found.\n");
 		ret = -ENODEV;
 		goto out_dev;
@@ -816,7 +968,8 @@ static int __init ar_init(void)
 	 * device is named "video[0-64]".
 	 * video_register_device() initializes h/w using ar_initialize().
 	 */
-	if (video_register_device(&ar->vdev, VFL_TYPE_GRABBER, video_nr) != 0) {
+	if (video_register_device(&ar->vdev, VFL_TYPE_GRABBER, video_nr) != 0)
+	{
 		/* return -1, -ENFILE(full) or others */
 		v4l2_err(v4l2_dev, "register video (Colour AR) failed.\n");
 		ret = -ENODEV;
@@ -824,7 +977,7 @@ static int __init ar_init(void)
 	}
 
 	v4l2_info(v4l2_dev, "%s: Found M64278 VGA (IRQ %d, Freq %dMHz).\n",
-		video_device_node_name(&ar->vdev), M32R_IRQ_INT3, freq);
+			  video_device_node_name(&ar->vdev), M32R_IRQ_INT3, freq);
 
 	return 0;
 
@@ -834,8 +987,11 @@ out_dev:
 
 out_irq:
 #endif
+
 	for (i = 0; i < MAX_AR_HEIGHT; i++)
+	{
 		kfree(ar->frame[i]);
+	}
 
 out_line_buff:
 #if USE_INT
@@ -852,8 +1008,12 @@ static int __init ar_init_module(void)
 {
 	freq = (boot_cpu_data.bus_clock / 1000000);
 	printk(KERN_INFO "arv: Bus clock %d\n", freq);
+
 	if (freq != 50 && freq != 75)
+	{
 		freq = DEFAULT_FREQ;
+	}
+
 	return ar_init();
 }
 
@@ -867,8 +1027,12 @@ static void __exit ar_cleanup_module(void)
 #if USE_INT
 	free_irq(M32R_IRQ_INT3, ar);
 #endif
+
 	for (i = 0; i < MAX_AR_HEIGHT; i++)
+	{
 		kfree(ar->frame[i]);
+	}
+
 #if USE_INT
 	kfree(ar->line_buff);
 #endif

@@ -26,7 +26,8 @@
 #include <linux/reset.h>
 #include "sdhci-pltfm.h"
 
-struct st_mmc_platform_data {
+struct st_mmc_platform_data
+{
 	struct  reset_control *rstc;
 	struct  clk *icnclk;
 	void __iomem *top_ioaddr;
@@ -40,9 +41,9 @@ struct st_mmc_platform_data {
 #define ST_MMC_CCONFIG_TUNING_COUNT_DEFAULT	BIT(8)
 #define ST_MMC_CCONFIG_ASYNC_WAKEUP	BIT(0)
 #define ST_MMC_CCONFIG_1_DEFAULT	\
-				((ST_MMC_CCONFIG_TIMEOUT_CLK_UNIT) | \
-				 (ST_MMC_CCONFIG_TIMEOUT_CLK_FREQ) | \
-				 (ST_MMC_CCONFIG_TUNING_COUNT_DEFAULT))
+	((ST_MMC_CCONFIG_TIMEOUT_CLK_UNIT) | \
+	 (ST_MMC_CCONFIG_TIMEOUT_CLK_FREQ) | \
+	 (ST_MMC_CCONFIG_TUNING_COUNT_DEFAULT))
 
 #define ST_MMC_CCONFIG_REG_2		0x404
 #define ST_MMC_CCONFIG_HIGH_SPEED	BIT(28)
@@ -69,10 +70,10 @@ struct st_mmc_platform_data {
 #define ST_MMC_CCONFIG_SUSP_RES_SUPPORT		BIT(4)
 #define ST_MMC_CCONFIG_SDMA			BIT(0)
 #define ST_MMC_CCONFIG_3_DEFAULT	\
-			 (ST_MMC_CCONFIG_ASYNCH_INTR_SUPPORT	| \
-			  ST_MMC_CCONFIG_3P3_VOLT		| \
-			  ST_MMC_CCONFIG_SUSP_RES_SUPPORT	| \
-			  ST_MMC_CCONFIG_SDMA)
+	(ST_MMC_CCONFIG_ASYNCH_INTR_SUPPORT	| \
+	 ST_MMC_CCONFIG_3P3_VOLT		| \
+	 ST_MMC_CCONFIG_SUSP_RES_SUPPORT	| \
+	 ST_MMC_CCONFIG_SDMA)
 
 #define ST_MMC_CCONFIG_REG_4	0x40c
 #define ST_MMC_CCONFIG_D_DRIVER	BIT(20)
@@ -119,9 +120,9 @@ struct st_mmc_platform_data {
 #define ST_TOP_MMC_DLY_MAX			0xf
 
 #define ST_TOP_MMC_DYN_DLY_CONF	\
-		(ST_TOP_MMC_DLY_CTRL_TX_DLL_ENABLE | \
-		 ST_TOP_MMC_DLY_CTRL_ATUNE_NOT_CFG_DLY | \
-		 ST_TOP_MMC_START_DLL_LOCK)
+	(ST_TOP_MMC_DLY_CTRL_TX_DLL_ENABLE | \
+	 ST_TOP_MMC_DLY_CTRL_ATUNE_NOT_CFG_DLY | \
+	 ST_TOP_MMC_START_DLL_LOCK)
 
 /*
  * For clock speeds greater than 90MHz, we need to check that the
@@ -132,11 +133,13 @@ struct st_mmc_platform_data {
 static inline void st_mmcss_set_static_delay(void __iomem *ioaddr)
 {
 	if (!ioaddr)
+	{
 		return;
+	}
 
 	writel_relaxed(0x0, ioaddr + ST_TOP_MMC_DLY_CTRL);
 	writel_relaxed(ST_TOP_MMC_DLY_MAX,
-			ioaddr + ST_TOP_MMC_TX_CLK_DLY);
+				   ioaddr + ST_TOP_MMC_TX_CLK_DLY);
 }
 
 /**
@@ -155,7 +158,9 @@ static void st_mmcss_cconfig(struct device_node *np, struct sdhci_host *host)
 	u32 cconf2, cconf3, cconf4, cconf5;
 
 	if (!of_device_is_compatible(np, "st,sdhci-stih407"))
+	{
 		return;
+	}
 
 	cconf2 = ST_MMC_CCONFIG_2_DEFAULT;
 	cconf3 = ST_MMC_CCONFIG_3_DEFAULT;
@@ -163,35 +168,41 @@ static void st_mmcss_cconfig(struct device_node *np, struct sdhci_host *host)
 	cconf5 = ST_MMC_CCONFIG_5_DEFAULT;
 
 	writel_relaxed(ST_MMC_CCONFIG_1_DEFAULT,
-			host->ioaddr + ST_MMC_CCONFIG_REG_1);
+				   host->ioaddr + ST_MMC_CCONFIG_REG_1);
 
 	/* Set clock frequency, default to 50MHz if max-frequency is not
 	 * provided */
 
-	switch (mhost->f_max) {
-	case 200000000:
-		clk_set_rate(pltfm_host->clk, mhost->f_max);
-		cconf2 |= BASE_CLK_FREQ_200;
-		break;
-	case 100000000:
-		clk_set_rate(pltfm_host->clk, mhost->f_max);
-		cconf2 |= BASE_CLK_FREQ_100;
-		break;
-	default:
-		clk_set_rate(pltfm_host->clk, 50000000);
-		cconf2 |= BASE_CLK_FREQ_50;
+	switch (mhost->f_max)
+	{
+		case 200000000:
+			clk_set_rate(pltfm_host->clk, mhost->f_max);
+			cconf2 |= BASE_CLK_FREQ_200;
+			break;
+
+		case 100000000:
+			clk_set_rate(pltfm_host->clk, mhost->f_max);
+			cconf2 |= BASE_CLK_FREQ_100;
+			break;
+
+		default:
+			clk_set_rate(pltfm_host->clk, 50000000);
+			cconf2 |= BASE_CLK_FREQ_50;
 	}
 
 	writel_relaxed(cconf2, host->ioaddr + ST_MMC_CCONFIG_REG_2);
 
 	if (!mmc_card_is_removable(mhost))
+	{
 		cconf3 |= ST_MMC_CCONFIG_EMMC_SLOT_TYPE;
+	}
 	else
 		/* CARD _D ET_CTRL */
 		writel_relaxed(ST_MMC_GP_OUTPUT_CD,
-				host->ioaddr + ST_MMC_GP_OUTPUT);
+					   host->ioaddr + ST_MMC_GP_OUTPUT);
 
-	if (mhost->caps & MMC_CAP_UHS_SDR50) {
+	if (mhost->caps & MMC_CAP_UHS_SDR50)
+	{
 		/* use 1.8V */
 		cconf3 |= ST_MMC_CCONFIG_1P8_VOLT;
 		cconf4 |= ST_MMC_CCONFIG_SDR50;
@@ -201,7 +212,8 @@ static void st_mmcss_cconfig(struct device_node *np, struct sdhci_host *host)
 		cconf5 |= RETUNING_TIMER_CNT_MAX;
 	}
 
-	if (mhost->caps & MMC_CAP_UHS_SDR104) {
+	if (mhost->caps & MMC_CAP_UHS_SDR104)
+	{
 		/*
 		 * SDR104 implies the HC can support HS200 mode, so
 		 * it's mandatory to use 1.8V
@@ -213,7 +225,9 @@ static void st_mmcss_cconfig(struct device_node *np, struct sdhci_host *host)
 	}
 
 	if (mhost->caps & MMC_CAP_UHS_DDR50)
+	{
 		cconf4 |= ST_MMC_CCONFIG_DDR50;
+	}
 
 	writel_relaxed(cconf3, host->ioaddr + ST_MMC_CCONFIG_REG_3);
 	writel_relaxed(cconf4, host->ioaddr + ST_MMC_CCONFIG_REG_4);
@@ -223,11 +237,13 @@ static void st_mmcss_cconfig(struct device_node *np, struct sdhci_host *host)
 static inline void st_mmcss_set_dll(void __iomem *ioaddr)
 {
 	if (!ioaddr)
+	{
 		return;
+	}
 
 	writel_relaxed(ST_TOP_MMC_DYN_DLY_CONF,	ioaddr + ST_TOP_MMC_DLY_CTRL);
 	writel_relaxed(ST_TOP_MMC_TX_DLL_STEP_DLY_VALID,
-			ioaddr + ST_TOP_MMC_TX_DLL_STEP_DLY);
+				   ioaddr + ST_TOP_MMC_TX_DLL_STEP_DLY);
 }
 
 static int st_mmcss_lock_dll(void __iomem *ioaddr)
@@ -236,14 +252,19 @@ static int st_mmcss_lock_dll(void __iomem *ioaddr)
 	unsigned long finish = jiffies + HZ;
 
 	/* Checks if the DLL procedure is finished */
-	do {
+	do
+	{
 		curr = jiffies;
 		value = readl(ioaddr + ST_MMC_STATUS_R);
+
 		if (value & 0x1)
+		{
 			return 0;
+		}
 
 		cpu_relax();
-	} while (!time_after_eq(curr, finish));
+	}
+	while (!time_after_eq(curr, finish));
 
 	return -EBUSY;
 }
@@ -254,7 +275,8 @@ static int sdhci_st_set_dll_for_clock(struct sdhci_host *host)
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
 	struct st_mmc_platform_data *pdata = sdhci_pltfm_priv(pltfm_host);
 
-	if (host->clock > CLK_TO_CHECK_DLL_LOCK) {
+	if (host->clock > CLK_TO_CHECK_DLL_LOCK)
+	{
 		st_mmcss_set_dll(pdata->top_ioaddr);
 		ret = st_mmcss_lock_dll(host->ioaddr);
 	}
@@ -263,7 +285,7 @@ static int sdhci_st_set_dll_for_clock(struct sdhci_host *host)
 }
 
 static void sdhci_st_set_uhs_signaling(struct sdhci_host *host,
-					unsigned int uhs)
+									   unsigned int uhs)
 {
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
 	struct st_mmc_platform_data *pdata = sdhci_pltfm_priv(pltfm_host);
@@ -272,41 +294,47 @@ static void sdhci_st_set_uhs_signaling(struct sdhci_host *host,
 
 	/* Select Bus Speed Mode for host */
 	ctrl_2 &= ~SDHCI_CTRL_UHS_MASK;
-	switch (uhs) {
-	/*
-	 * Set V18_EN -- UHS modes do not work without this.
-	 * does not change signaling voltage
-	 */
 
-	case MMC_TIMING_UHS_SDR12:
-		st_mmcss_set_static_delay(pdata->top_ioaddr);
-		ctrl_2 |= SDHCI_CTRL_UHS_SDR12 | SDHCI_CTRL_VDD_180;
-		break;
-	case MMC_TIMING_UHS_SDR25:
-		st_mmcss_set_static_delay(pdata->top_ioaddr);
-		ctrl_2 |= SDHCI_CTRL_UHS_SDR25 | SDHCI_CTRL_VDD_180;
-		break;
-	case MMC_TIMING_UHS_SDR50:
-		st_mmcss_set_static_delay(pdata->top_ioaddr);
-		ctrl_2 |= SDHCI_CTRL_UHS_SDR50 | SDHCI_CTRL_VDD_180;
-		ret = sdhci_st_set_dll_for_clock(host);
-		break;
-	case MMC_TIMING_UHS_SDR104:
-	case MMC_TIMING_MMC_HS200:
-		st_mmcss_set_static_delay(pdata->top_ioaddr);
-		ctrl_2 |= SDHCI_CTRL_UHS_SDR104 | SDHCI_CTRL_VDD_180;
-		ret =  sdhci_st_set_dll_for_clock(host);
-		break;
-	case MMC_TIMING_UHS_DDR50:
-	case MMC_TIMING_MMC_DDR52:
-		st_mmcss_set_static_delay(pdata->top_ioaddr);
-		ctrl_2 |= SDHCI_CTRL_UHS_DDR50 | SDHCI_CTRL_VDD_180;
-		break;
+	switch (uhs)
+	{
+		/*
+		 * Set V18_EN -- UHS modes do not work without this.
+		 * does not change signaling voltage
+		 */
+
+		case MMC_TIMING_UHS_SDR12:
+			st_mmcss_set_static_delay(pdata->top_ioaddr);
+			ctrl_2 |= SDHCI_CTRL_UHS_SDR12 | SDHCI_CTRL_VDD_180;
+			break;
+
+		case MMC_TIMING_UHS_SDR25:
+			st_mmcss_set_static_delay(pdata->top_ioaddr);
+			ctrl_2 |= SDHCI_CTRL_UHS_SDR25 | SDHCI_CTRL_VDD_180;
+			break;
+
+		case MMC_TIMING_UHS_SDR50:
+			st_mmcss_set_static_delay(pdata->top_ioaddr);
+			ctrl_2 |= SDHCI_CTRL_UHS_SDR50 | SDHCI_CTRL_VDD_180;
+			ret = sdhci_st_set_dll_for_clock(host);
+			break;
+
+		case MMC_TIMING_UHS_SDR104:
+		case MMC_TIMING_MMC_HS200:
+			st_mmcss_set_static_delay(pdata->top_ioaddr);
+			ctrl_2 |= SDHCI_CTRL_UHS_SDR104 | SDHCI_CTRL_VDD_180;
+			ret =  sdhci_st_set_dll_for_clock(host);
+			break;
+
+		case MMC_TIMING_UHS_DDR50:
+		case MMC_TIMING_MMC_DDR52:
+			st_mmcss_set_static_delay(pdata->top_ioaddr);
+			ctrl_2 |= SDHCI_CTRL_UHS_DDR50 | SDHCI_CTRL_VDD_180;
+			break;
 	}
 
 	if (ret)
 		dev_warn(mmc_dev(host->mmc), "Error setting dll for clock "
-						"(uhs %d)\n", uhs);
+				 "(uhs %d)\n", uhs);
 
 	dev_dbg(mmc_dev(host->mmc), "uhs %d, ctrl_2 %04X\n", uhs, ctrl_2);
 
@@ -317,19 +345,23 @@ static u32 sdhci_st_readl(struct sdhci_host *host, int reg)
 {
 	u32 ret;
 
-	switch (reg) {
-	case SDHCI_CAPABILITIES:
-		ret = readl_relaxed(host->ioaddr + reg);
-		/* Support 3.3V and 1.8V */
-		ret &= ~SDHCI_CAN_VDD_300;
-		break;
-	default:
-		ret = readl_relaxed(host->ioaddr + reg);
+	switch (reg)
+	{
+		case SDHCI_CAPABILITIES:
+			ret = readl_relaxed(host->ioaddr + reg);
+			/* Support 3.3V and 1.8V */
+			ret &= ~SDHCI_CAN_VDD_300;
+			break;
+
+		default:
+			ret = readl_relaxed(host->ioaddr + reg);
 	}
+
 	return ret;
 }
 
-static const struct sdhci_ops sdhci_st_ops = {
+static const struct sdhci_ops sdhci_st_ops =
+{
 	.get_max_clock = sdhci_pltfm_clk_get_max_clock,
 	.set_clock = sdhci_set_clock,
 	.set_bus_width = sdhci_set_bus_width,
@@ -338,13 +370,14 @@ static const struct sdhci_ops sdhci_st_ops = {
 	.set_uhs_signaling = sdhci_st_set_uhs_signaling,
 };
 
-static const struct sdhci_pltfm_data sdhci_st_pdata = {
+static const struct sdhci_pltfm_data sdhci_st_pdata =
+{
 	.ops = &sdhci_st_ops,
 	.quirks = SDHCI_QUIRK_NO_ENDATTR_IN_NOPDESC |
-		SDHCI_QUIRK_CAP_CLOCK_BASE_BROKEN |
-		SDHCI_QUIRK_NO_HISPD_BIT,
+	SDHCI_QUIRK_CAP_CLOCK_BASE_BROKEN |
+	SDHCI_QUIRK_NO_HISPD_BIT,
 	.quirks2 = SDHCI_QUIRK2_PRESET_VALUE_BROKEN |
-		SDHCI_QUIRK2_STOP_WITH_TC,
+	SDHCI_QUIRK2_STOP_WITH_TC,
 };
 
 
@@ -361,24 +394,36 @@ static int sdhci_st_probe(struct platform_device *pdev)
 	struct reset_control *rstc;
 
 	clk =  devm_clk_get(&pdev->dev, "mmc");
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "Peripheral clk not found\n");
 		return PTR_ERR(clk);
 	}
 
 	/* ICN clock isn't compulsory, but use it if it's provided. */
 	icnclk = devm_clk_get(&pdev->dev, "icn");
+
 	if (IS_ERR(icnclk))
+	{
 		icnclk = NULL;
+	}
 
 	rstc = devm_reset_control_get(&pdev->dev, NULL);
+
 	if (IS_ERR(rstc))
+	{
 		rstc = NULL;
+	}
 	else
+	{
 		reset_control_deassert(rstc);
+	}
 
 	host = sdhci_pltfm_init(pdev, &sdhci_st_pdata, sizeof(*pdata));
-	if (IS_ERR(host)) {
+
+	if (IS_ERR(host))
+	{
 		dev_err(&pdev->dev, "Failed sdhci_pltfm_init\n");
 		ret = PTR_ERR(host);
 		goto err_pltfm_init;
@@ -389,7 +434,9 @@ static int sdhci_st_probe(struct platform_device *pdev)
 	pdata->rstc = rstc;
 
 	ret = mmc_of_parse(host->mmc);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed mmc_of_parse\n");
 		goto err_of;
 	}
@@ -399,9 +446,11 @@ static int sdhci_st_probe(struct platform_device *pdev)
 
 	/* Configure the FlashSS Top registers for setting eMMC TX/RX delay */
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
-					   "top-mmc-delay");
+									   "top-mmc-delay");
 	pdata->top_ioaddr = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(pdata->top_ioaddr)) {
+
+	if (IS_ERR(pdata->top_ioaddr))
+	{
 		dev_warn(&pdev->dev, "FlashSS Top Dly registers not available");
 		pdata->top_ioaddr = NULL;
 	}
@@ -413,7 +462,9 @@ static int sdhci_st_probe(struct platform_device *pdev)
 	st_mmcss_cconfig(np, host);
 
 	ret = sdhci_add_host(host);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed sdhci_add_host\n");
 		goto err_out;
 	}
@@ -423,9 +474,9 @@ static int sdhci_st_probe(struct platform_device *pdev)
 	host_version = readw_relaxed((host->ioaddr + SDHCI_HOST_VERSION));
 
 	dev_info(&pdev->dev, "SDHCI ST Initialised: Host Version: 0x%x Vendor Version 0x%x\n",
-		((host_version & SDHCI_SPEC_VER_MASK) >> SDHCI_SPEC_VER_SHIFT),
-		((host_version & SDHCI_VENDOR_VER_MASK) >>
-		SDHCI_VENDOR_VER_SHIFT));
+			 ((host_version & SDHCI_SPEC_VER_MASK) >> SDHCI_SPEC_VER_SHIFT),
+			 ((host_version & SDHCI_VENDOR_VER_MASK) >>
+			  SDHCI_VENDOR_VER_SHIFT));
 
 	return 0;
 
@@ -435,8 +486,11 @@ err_out:
 err_of:
 	sdhci_pltfm_free(pdev);
 err_pltfm_init:
+
 	if (rstc)
+	{
 		reset_control_assert(rstc);
+	}
 
 	return ret;
 }
@@ -454,7 +508,9 @@ static int sdhci_st_remove(struct platform_device *pdev)
 	clk_disable_unprepare(pdata->icnclk);
 
 	if (rstc)
+	{
 		reset_control_assert(rstc);
+	}
 
 	return ret;
 }
@@ -468,10 +524,14 @@ static int sdhci_st_suspend(struct device *dev)
 	int ret = sdhci_suspend_host(host);
 
 	if (ret)
+	{
 		goto out;
+	}
 
 	if (pdata->rstc)
+	{
 		reset_control_assert(pdata->rstc);
+	}
 
 	clk_disable_unprepare(pdata->icnclk);
 	clk_disable_unprepare(pltfm_host->clk);
@@ -490,7 +550,9 @@ static int sdhci_st_resume(struct device *dev)
 	clk_prepare_enable(pdata->icnclk);
 
 	if (pdata->rstc)
+	{
 		reset_control_deassert(pdata->rstc);
+	}
 
 	st_mmcss_cconfig(np, host);
 
@@ -500,21 +562,23 @@ static int sdhci_st_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(sdhci_st_pmops, sdhci_st_suspend, sdhci_st_resume);
 
-static const struct of_device_id st_sdhci_match[] = {
+static const struct of_device_id st_sdhci_match[] =
+{
 	{ .compatible = "st,sdhci" },
 	{},
 };
 
 MODULE_DEVICE_TABLE(of, st_sdhci_match);
 
-static struct platform_driver sdhci_st_driver = {
+static struct platform_driver sdhci_st_driver =
+{
 	.probe = sdhci_st_probe,
 	.remove = sdhci_st_remove,
 	.driver = {
-		   .name = "sdhci-st",
-		   .pm = &sdhci_st_pmops,
-		   .of_match_table = of_match_ptr(st_sdhci_match),
-		  },
+		.name = "sdhci-st",
+		.pm = &sdhci_st_pmops,
+		.of_match_table = of_match_ptr(st_sdhci_match),
+	},
 };
 
 module_platform_driver(sdhci_st_driver);

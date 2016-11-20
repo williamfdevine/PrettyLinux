@@ -46,13 +46,15 @@ struct ath10k_ce_pipe;
 #define CE_DESC_FLAGS_META_DATA_MASK ar->hw_values->ce_desc_meta_data_mask
 #define CE_DESC_FLAGS_META_DATA_LSB  ar->hw_values->ce_desc_meta_data_lsb
 
-struct ce_desc {
+struct ce_desc
+{
 	__le32 addr;
 	__le16 nbytes;
 	__le16 flags; /* %CE_DESC_FLAGS_ */
 };
 
-struct ath10k_ce_ring {
+struct ath10k_ce_ring
+{
 	/* Number of entries in this ring; must be power of 2 */
 	unsigned int nentries;
 	unsigned int nentries_mask;
@@ -105,7 +107,8 @@ struct ath10k_ce_ring {
 	void *per_transfer_context[0];
 };
 
-struct ath10k_ce_pipe {
+struct ath10k_ce_pipe
+{
 	struct ath10k *ar;
 	unsigned int id;
 
@@ -143,19 +146,19 @@ struct ce_attr;
  * Implementation note: pushes 1 buffer to Source ring
  */
 int ath10k_ce_send(struct ath10k_ce_pipe *ce_state,
-		   void *per_transfer_send_context,
-		   u32 buffer,
-		   unsigned int nbytes,
-		   /* 14 bits */
-		   unsigned int transfer_id,
-		   unsigned int flags);
+				   void *per_transfer_send_context,
+				   u32 buffer,
+				   unsigned int nbytes,
+				   /* 14 bits */
+				   unsigned int transfer_id,
+				   unsigned int flags);
 
 int ath10k_ce_send_nolock(struct ath10k_ce_pipe *ce_state,
-			  void *per_transfer_context,
-			  u32 buffer,
-			  unsigned int nbytes,
-			  unsigned int transfer_id,
-			  unsigned int flags);
+						  void *per_transfer_context,
+						  u32 buffer,
+						  unsigned int nbytes,
+						  unsigned int transfer_id,
+						  unsigned int flags);
 
 void __ath10k_ce_send_revert(struct ath10k_ce_pipe *pipe);
 
@@ -177,25 +180,25 @@ void ath10k_ce_rx_update_write_idx(struct ath10k_ce_pipe *pipe, u32 nentries);
  * Pops buffer from Dest ring.
  */
 int ath10k_ce_completed_recv_next(struct ath10k_ce_pipe *ce_state,
-				  void **per_transfer_contextp,
-				  unsigned int *nbytesp);
+								  void **per_transfer_contextp,
+								  unsigned int *nbytesp);
 /*
  * Supply data for the next completed unprocessed send descriptor.
  * Pops 1 completed send buffer from Source ring.
  */
 int ath10k_ce_completed_send_next(struct ath10k_ce_pipe *ce_state,
-				  void **per_transfer_contextp);
+								  void **per_transfer_contextp);
 
 int ath10k_ce_completed_send_next_nolock(struct ath10k_ce_pipe *ce_state,
-					 void **per_transfer_contextp);
+		void **per_transfer_contextp);
 
 /*==================CE Engine Initialization=======================*/
 
 int ath10k_ce_init_pipe(struct ath10k *ar, unsigned int ce_id,
-			const struct ce_attr *attr);
+						const struct ce_attr *attr);
 void ath10k_ce_deinit_pipe(struct ath10k *ar, unsigned int ce_id);
 int ath10k_ce_alloc_pipe(struct ath10k *ar, int ce_id,
-			 const struct ce_attr *attr);
+						 const struct ce_attr *attr);
 void ath10k_ce_free_pipe(struct ath10k *ar, int ce_id);
 
 /*==================CE Engine Shutdown=======================*/
@@ -205,12 +208,12 @@ void ath10k_ce_free_pipe(struct ath10k *ar, int ce_id);
  * this API.
  */
 int ath10k_ce_revoke_recv_next(struct ath10k_ce_pipe *ce_state,
-			       void **per_transfer_contextp,
-			       u32 *bufferp);
+							   void **per_transfer_contextp,
+							   u32 *bufferp);
 
 int ath10k_ce_completed_recv_next_nolock(struct ath10k_ce_pipe *ce_state,
-					 void **per_transfer_contextp,
-					 unsigned int *nbytesp);
+		void **per_transfer_contextp,
+		unsigned int *nbytesp);
 
 /*
  * Support clean shutdown by allowing the caller to cancel
@@ -218,10 +221,10 @@ int ath10k_ce_completed_recv_next_nolock(struct ath10k_ce_pipe *ce_state,
  * this API.
  */
 int ath10k_ce_cancel_send_next(struct ath10k_ce_pipe *ce_state,
-			       void **per_transfer_contextp,
-			       u32 *bufferp,
-			       unsigned int *nbytesp,
-			       unsigned int *transfer_idp);
+							   void **per_transfer_contextp,
+							   u32 *bufferp,
+							   unsigned int *nbytesp,
+							   unsigned int *transfer_idp);
 
 /*==================CE Interrupt Handlers====================*/
 void ath10k_ce_per_engine_service_any(struct ath10k *ar);
@@ -243,7 +246,8 @@ void ath10k_ce_enable_interrupts(struct ath10k *ar);
 #define CE_ATTR_DIS_INTR		8
 
 /* Attributes of an instance of a Copy Engine */
-struct ce_attr {
+struct ce_attr
+{
 	/* CE_ATTR_* values */
 	unsigned int flags;
 
@@ -274,7 +278,7 @@ struct ce_attr {
 #define CE_CTRL1_DST_RING_BYTE_SWAP_EN_MASK	0x00020000
 #define CE_CTRL1_DST_RING_BYTE_SWAP_EN_SET(x) \
 	(((0 | (x)) << CE_CTRL1_DST_RING_BYTE_SWAP_EN_LSB) & \
-	CE_CTRL1_DST_RING_BYTE_SWAP_EN_MASK)
+	 CE_CTRL1_DST_RING_BYTE_SWAP_EN_MASK)
 
 #define CE_CTRL1_SRC_RING_BYTE_SWAP_EN_MSB	16
 #define CE_CTRL1_SRC_RING_BYTE_SWAP_EN_LSB	16
@@ -389,16 +393,16 @@ static inline u32 ath10k_ce_base_address(struct ath10k *ar, unsigned int ce_id)
 }
 
 #define CE_WATERMARK_MASK (HOST_IS_SRC_RING_LOW_WATERMARK_MASK  | \
-			   HOST_IS_SRC_RING_HIGH_WATERMARK_MASK | \
-			   HOST_IS_DST_RING_LOW_WATERMARK_MASK  | \
-			   HOST_IS_DST_RING_HIGH_WATERMARK_MASK)
+						   HOST_IS_SRC_RING_HIGH_WATERMARK_MASK | \
+						   HOST_IS_DST_RING_LOW_WATERMARK_MASK  | \
+						   HOST_IS_DST_RING_HIGH_WATERMARK_MASK)
 
 #define CE_ERROR_MASK	(MISC_IS_AXI_ERR_MASK           | \
-			 MISC_IS_DST_ADDR_ERR_MASK      | \
-			 MISC_IS_SRC_LEN_ERR_MASK       | \
-			 MISC_IS_DST_MAX_LEN_VIO_MASK   | \
-			 MISC_IS_DST_RING_OVERFLOW_MASK | \
-			 MISC_IS_SRC_RING_OVERFLOW_MASK)
+						 MISC_IS_DST_ADDR_ERR_MASK      | \
+						 MISC_IS_SRC_LEN_ERR_MASK       | \
+						 MISC_IS_DST_MAX_LEN_VIO_MASK   | \
+						 MISC_IS_DST_RING_OVERFLOW_MASK | \
+						 MISC_IS_SRC_RING_OVERFLOW_MASK)
 
 #define CE_SRC_RING_TO_DESC(baddr, idx) \
 	(&(((struct ce_desc *)baddr)[idx]))
@@ -412,20 +416,20 @@ static inline u32 ath10k_ce_base_address(struct ath10k *ar, unsigned int ce_id)
 
 #define CE_RING_IDX_INCR(nentries_mask, idx) (((idx) + 1) & (nentries_mask))
 #define CE_RING_IDX_ADD(nentries_mask, idx, num) \
-		(((idx) + (num)) & (nentries_mask))
+	(((idx) + (num)) & (nentries_mask))
 
 #define CE_WRAPPER_INTERRUPT_SUMMARY_HOST_MSI_LSB \
-				ar->regs->ce_wrap_intr_sum_host_msi_lsb
+	ar->regs->ce_wrap_intr_sum_host_msi_lsb
 #define CE_WRAPPER_INTERRUPT_SUMMARY_HOST_MSI_MASK \
-				ar->regs->ce_wrap_intr_sum_host_msi_mask
+	ar->regs->ce_wrap_intr_sum_host_msi_mask
 #define CE_WRAPPER_INTERRUPT_SUMMARY_HOST_MSI_GET(x) \
 	(((x) & CE_WRAPPER_INTERRUPT_SUMMARY_HOST_MSI_MASK) >> \
-		CE_WRAPPER_INTERRUPT_SUMMARY_HOST_MSI_LSB)
+	 CE_WRAPPER_INTERRUPT_SUMMARY_HOST_MSI_LSB)
 #define CE_WRAPPER_INTERRUPT_SUMMARY_ADDRESS			0x0000
 
 #define CE_INTERRUPT_SUMMARY(ar) \
 	CE_WRAPPER_INTERRUPT_SUMMARY_HOST_MSI_GET( \
-		ath10k_pci_read32((ar), CE_WRAPPER_BASE_ADDRESS + \
-		CE_WRAPPER_INTERRUPT_SUMMARY_ADDRESS))
+			ath10k_pci_read32((ar), CE_WRAPPER_BASE_ADDRESS + \
+							  CE_WRAPPER_INTERRUPT_SUMMARY_ADDRESS))
 
 #endif /* _CE_H_ */

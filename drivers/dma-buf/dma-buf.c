@@ -39,7 +39,8 @@
 
 static inline int is_dma_buf_file(struct file *);
 
-struct dma_buf_list {
+struct dma_buf_list
+{
 	struct list_head head;
 	struct mutex lock;
 };
@@ -51,7 +52,9 @@ static int dma_buf_release(struct inode *inode, struct file *file)
 	struct dma_buf *dmabuf;
 
 	if (!is_dma_buf_file(file))
+	{
 		return -EINVAL;
+	}
 
 	dmabuf = file->private_data;
 
@@ -74,7 +77,9 @@ static int dma_buf_release(struct inode *inode, struct file *file)
 	mutex_unlock(&db_list.lock);
 
 	if (dmabuf->resv == (struct reservation_object *)&dmabuf[1])
+	{
 		reservation_object_fini(dmabuf->resv);
+	}
 
 	module_put(dmabuf->owner);
 	kfree(dmabuf);
@@ -86,14 +91,18 @@ static int dma_buf_mmap_internal(struct file *file, struct vm_area_struct *vma)
 	struct dma_buf *dmabuf;
 
 	if (!is_dma_buf_file(file))
+	{
 		return -EINVAL;
+	}
 
 	dmabuf = file->private_data;
 
 	/* check for overflowing the buffer's size */
 	if (vma->vm_pgoff + vma_pages(vma) >
-	    dmabuf->size >> PAGE_SHIFT)
+		dmabuf->size >> PAGE_SHIFT)
+	{
 		return -EINVAL;
+	}
 
 	return dmabuf->ops->mmap(dmabuf, vma);
 }
@@ -104,7 +113,9 @@ static loff_t dma_buf_llseek(struct file *file, loff_t offset, int whence)
 	loff_t base;
 
 	if (!is_dma_buf_file(file))
+	{
 		return -EBADF;
+	}
 
 	dmabuf = file->private_data;
 
@@ -112,14 +123,22 @@ static loff_t dma_buf_llseek(struct file *file, loff_t offset, int whence)
 	   but also allow SEEK_SET to maintain the idiomatic
 	   SEEK_END(0), SEEK_CUR(0) pattern */
 	if (whence == SEEK_END)
+	{
 		base = dmabuf->size;
+	}
 	else if (whence == SEEK_SET)
+	{
 		base = 0;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	if (offset != 0)
+	{
 		return -EINVAL;
+	}
 
 	return base + offset;
 }
@@ -145,57 +164,86 @@ static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
 	unsigned shared_count, seq;
 
 	dmabuf = file->private_data;
+
 	if (!dmabuf || !dmabuf->resv)
+	{
 		return POLLERR;
+	}
 
 	resv = dmabuf->resv;
 
 	poll_wait(file, &dmabuf->poll, poll);
 
 	events = poll_requested_events(poll) & (POLLIN | POLLOUT);
+
 	if (!events)
+	{
 		return 0;
+	}
 
 retry:
 	seq = read_seqcount_begin(&resv->seq);
 	rcu_read_lock();
 
 	fobj = rcu_dereference(resv->fence);
+
 	if (fobj)
+	{
 		shared_count = fobj->shared_count;
+	}
 	else
+	{
 		shared_count = 0;
+	}
+
 	fence_excl = rcu_dereference(resv->fence_excl);
-	if (read_seqcount_retry(&resv->seq, seq)) {
+
+	if (read_seqcount_retry(&resv->seq, seq))
+	{
 		rcu_read_unlock();
 		goto retry;
 	}
 
-	if (fence_excl && (!(events & POLLOUT) || shared_count == 0)) {
+	if (fence_excl && (!(events & POLLOUT) || shared_count == 0))
+	{
 		struct dma_buf_poll_cb_t *dcb = &dmabuf->cb_excl;
 		unsigned long pevents = POLLIN;
 
 		if (shared_count == 0)
+		{
 			pevents |= POLLOUT;
+		}
 
 		spin_lock_irq(&dmabuf->poll.lock);
-		if (dcb->active) {
+
+		if (dcb->active)
+		{
 			dcb->active |= pevents;
 			events &= ~pevents;
-		} else
+		}
+		else
+		{
 			dcb->active = pevents;
+		}
+
 		spin_unlock_irq(&dmabuf->poll.lock);
 
-		if (events & pevents) {
-			if (!fence_get_rcu(fence_excl)) {
+		if (events & pevents)
+		{
+			if (!fence_get_rcu(fence_excl))
+			{
 				/* force a recheck */
 				events &= ~pevents;
 				dma_buf_poll_cb(NULL, &dcb->cb);
-			} else if (!fence_add_callback(fence_excl, &dcb->cb,
-						       dma_buf_poll_cb)) {
+			}
+			else if (!fence_add_callback(fence_excl, &dcb->cb,
+										 dma_buf_poll_cb))
+			{
 				events &= ~pevents;
 				fence_put(fence_excl);
-			} else {
+			}
+			else
+			{
 				/*
 				 * No callback queued, wake up any additional
 				 * waiters.
@@ -206,25 +254,36 @@ retry:
 		}
 	}
 
-	if ((events & POLLOUT) && shared_count > 0) {
+	if ((events & POLLOUT) && shared_count > 0)
+	{
 		struct dma_buf_poll_cb_t *dcb = &dmabuf->cb_shared;
 		int i;
 
 		/* Only queue a new callback if no event has fired yet */
 		spin_lock_irq(&dmabuf->poll.lock);
+
 		if (dcb->active)
+		{
 			events &= ~POLLOUT;
+		}
 		else
+		{
 			dcb->active = POLLOUT;
+		}
+
 		spin_unlock_irq(&dmabuf->poll.lock);
 
 		if (!(events & POLLOUT))
+		{
 			goto out;
+		}
 
-		for (i = 0; i < shared_count; ++i) {
+		for (i = 0; i < shared_count; ++i)
+		{
 			struct fence *fence = rcu_dereference(fobj->shared[i]);
 
-			if (!fence_get_rcu(fence)) {
+			if (!fence_get_rcu(fence))
+			{
 				/*
 				 * fence refcount dropped to zero, this means
 				 * that fobj has been freed
@@ -235,18 +294,23 @@ retry:
 				dma_buf_poll_cb(NULL, &dcb->cb);
 				break;
 			}
+
 			if (!fence_add_callback(fence, &dcb->cb,
-						dma_buf_poll_cb)) {
+									dma_buf_poll_cb))
+			{
 				fence_put(fence);
 				events &= ~POLLOUT;
 				break;
 			}
+
 			fence_put(fence);
 		}
 
 		/* No callback queued, wake up any additional waiters. */
 		if (i == shared_count)
+		{
 			dma_buf_poll_cb(NULL, &dcb->cb);
+		}
 	}
 
 out:
@@ -255,7 +319,7 @@ out:
 }
 
 static long dma_buf_ioctl(struct file *file,
-			  unsigned int cmd, unsigned long arg)
+						  unsigned int cmd, unsigned long arg)
 {
 	struct dma_buf *dmabuf;
 	struct dma_buf_sync sync;
@@ -264,40 +328,55 @@ static long dma_buf_ioctl(struct file *file,
 
 	dmabuf = file->private_data;
 
-	switch (cmd) {
-	case DMA_BUF_IOCTL_SYNC:
-		if (copy_from_user(&sync, (void __user *) arg, sizeof(sync)))
-			return -EFAULT;
+	switch (cmd)
+	{
+		case DMA_BUF_IOCTL_SYNC:
+			if (copy_from_user(&sync, (void __user *) arg, sizeof(sync)))
+			{
+				return -EFAULT;
+			}
 
-		if (sync.flags & ~DMA_BUF_SYNC_VALID_FLAGS_MASK)
-			return -EINVAL;
+			if (sync.flags & ~DMA_BUF_SYNC_VALID_FLAGS_MASK)
+			{
+				return -EINVAL;
+			}
 
-		switch (sync.flags & DMA_BUF_SYNC_RW) {
-		case DMA_BUF_SYNC_READ:
-			direction = DMA_FROM_DEVICE;
-			break;
-		case DMA_BUF_SYNC_WRITE:
-			direction = DMA_TO_DEVICE;
-			break;
-		case DMA_BUF_SYNC_RW:
-			direction = DMA_BIDIRECTIONAL;
-			break;
+			switch (sync.flags & DMA_BUF_SYNC_RW)
+			{
+				case DMA_BUF_SYNC_READ:
+					direction = DMA_FROM_DEVICE;
+					break;
+
+				case DMA_BUF_SYNC_WRITE:
+					direction = DMA_TO_DEVICE;
+					break;
+
+				case DMA_BUF_SYNC_RW:
+					direction = DMA_BIDIRECTIONAL;
+					break;
+
+				default:
+					return -EINVAL;
+			}
+
+			if (sync.flags & DMA_BUF_SYNC_END)
+			{
+				ret = dma_buf_end_cpu_access(dmabuf, direction);
+			}
+			else
+			{
+				ret = dma_buf_begin_cpu_access(dmabuf, direction);
+			}
+
+			return ret;
+
 		default:
-			return -EINVAL;
-		}
-
-		if (sync.flags & DMA_BUF_SYNC_END)
-			ret = dma_buf_end_cpu_access(dmabuf, direction);
-		else
-			ret = dma_buf_begin_cpu_access(dmabuf, direction);
-
-		return ret;
-	default:
-		return -ENOTTY;
+			return -ENOTTY;
 	}
 }
 
-static const struct file_operations dma_buf_fops = {
+static const struct file_operations dma_buf_fops =
+{
 	.release	= dma_buf_release,
 	.mmap		= dma_buf_mmap_internal,
 	.llseek		= dma_buf_llseek,
@@ -337,27 +416,36 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
 	int ret;
 
 	if (!exp_info->resv)
+	{
 		alloc_size += sizeof(struct reservation_object);
+	}
 	else
 		/* prevent &dma_buf[1] == dma_buf->resv */
+	{
 		alloc_size += 1;
+	}
 
 	if (WARN_ON(!exp_info->priv
-			  || !exp_info->ops
-			  || !exp_info->ops->map_dma_buf
-			  || !exp_info->ops->unmap_dma_buf
-			  || !exp_info->ops->release
-			  || !exp_info->ops->kmap_atomic
-			  || !exp_info->ops->kmap
-			  || !exp_info->ops->mmap)) {
+				|| !exp_info->ops
+				|| !exp_info->ops->map_dma_buf
+				|| !exp_info->ops->unmap_dma_buf
+				|| !exp_info->ops->release
+				|| !exp_info->ops->kmap_atomic
+				|| !exp_info->ops->kmap
+				|| !exp_info->ops->mmap))
+	{
 		return ERR_PTR(-EINVAL);
 	}
 
 	if (!try_module_get(exp_info->owner))
+	{
 		return ERR_PTR(-ENOENT);
+	}
 
 	dmabuf = kzalloc(alloc_size, GFP_KERNEL);
-	if (!dmabuf) {
+
+	if (!dmabuf)
+	{
 		ret = -ENOMEM;
 		goto err_module;
 	}
@@ -371,15 +459,19 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
 	dmabuf->cb_excl.poll = dmabuf->cb_shared.poll = &dmabuf->poll;
 	dmabuf->cb_excl.active = dmabuf->cb_shared.active = 0;
 
-	if (!resv) {
+	if (!resv)
+	{
 		resv = (struct reservation_object *)&dmabuf[1];
 		reservation_object_init(resv);
 	}
+
 	dmabuf->resv = resv;
 
 	file = anon_inode_getfile("dmabuf", &dma_buf_fops, dmabuf,
-					exp_info->flags);
-	if (IS_ERR(file)) {
+							  exp_info->flags);
+
+	if (IS_ERR(file))
+	{
 		ret = PTR_ERR(file);
 		goto err_dmabuf;
 	}
@@ -416,11 +508,16 @@ int dma_buf_fd(struct dma_buf *dmabuf, int flags)
 	int fd;
 
 	if (!dmabuf || !dmabuf->file)
+	{
 		return -EINVAL;
+	}
 
 	fd = get_unused_fd_flags(flags);
+
 	if (fd < 0)
+	{
 		return fd;
+	}
 
 	fd_install(fd, dmabuf->file);
 
@@ -443,9 +540,12 @@ struct dma_buf *dma_buf_get(int fd)
 	file = fget(fd);
 
 	if (!file)
+	{
 		return ERR_PTR(-EBADF);
+	}
 
-	if (!is_dma_buf_file(file)) {
+	if (!is_dma_buf_file(file))
+	{
 		fput(file);
 		return ERR_PTR(-EINVAL);
 	}
@@ -463,7 +563,9 @@ EXPORT_SYMBOL_GPL(dma_buf_get);
 void dma_buf_put(struct dma_buf *dmabuf)
 {
 	if (WARN_ON(!dmabuf || !dmabuf->file))
+	{
 		return;
+	}
 
 	fput(dmabuf->file);
 }
@@ -479,28 +581,38 @@ EXPORT_SYMBOL_GPL(dma_buf_put);
  * error.
  */
 struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
-					  struct device *dev)
+		struct device *dev)
 {
 	struct dma_buf_attachment *attach;
 	int ret;
 
 	if (WARN_ON(!dmabuf || !dev))
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	attach = kzalloc(sizeof(struct dma_buf_attachment), GFP_KERNEL);
+
 	if (attach == NULL)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	attach->dev = dev;
 	attach->dmabuf = dmabuf;
 
 	mutex_lock(&dmabuf->lock);
 
-	if (dmabuf->ops->attach) {
+	if (dmabuf->ops->attach)
+	{
 		ret = dmabuf->ops->attach(dmabuf, dev, attach);
+
 		if (ret)
+		{
 			goto err_attach;
+		}
 	}
+
 	list_add(&attach->node, &dmabuf->attachments);
 
 	mutex_unlock(&dmabuf->lock);
@@ -523,12 +635,17 @@ EXPORT_SYMBOL_GPL(dma_buf_attach);
 void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
 {
 	if (WARN_ON(!dmabuf || !attach))
+	{
 		return;
+	}
 
 	mutex_lock(&dmabuf->lock);
 	list_del(&attach->node);
+
 	if (dmabuf->ops->detach)
+	{
 		dmabuf->ops->detach(dmabuf, attach);
+	}
 
 	mutex_unlock(&dmabuf->lock);
 	kfree(attach);
@@ -546,18 +663,23 @@ EXPORT_SYMBOL_GPL(dma_buf_detach);
  * on error.
  */
 struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
-					enum dma_data_direction direction)
+										enum dma_data_direction direction)
 {
 	struct sg_table *sg_table = ERR_PTR(-EINVAL);
 
 	might_sleep();
 
 	if (WARN_ON(!attach || !attach->dmabuf))
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	sg_table = attach->dmabuf->ops->map_dma_buf(attach, direction);
+
 	if (!sg_table)
+	{
 		sg_table = ERR_PTR(-ENOMEM);
+	}
 
 	return sg_table;
 }
@@ -573,32 +695,37 @@ EXPORT_SYMBOL_GPL(dma_buf_map_attachment);
  *
  */
 void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
-				struct sg_table *sg_table,
-				enum dma_data_direction direction)
+							  struct sg_table *sg_table,
+							  enum dma_data_direction direction)
 {
 	might_sleep();
 
 	if (WARN_ON(!attach || !attach->dmabuf || !sg_table))
+	{
 		return;
+	}
 
 	attach->dmabuf->ops->unmap_dma_buf(attach, sg_table,
-						direction);
+									   direction);
 }
 EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment);
 
 static int __dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
-				      enum dma_data_direction direction)
+									  enum dma_data_direction direction)
 {
 	bool write = (direction == DMA_BIDIRECTIONAL ||
-		      direction == DMA_TO_DEVICE);
+				  direction == DMA_TO_DEVICE);
 	struct reservation_object *resv = dmabuf->resv;
 	long ret;
 
 	/* Wait on any implicit rendering fences */
 	ret = reservation_object_wait_timeout_rcu(resv, write, true,
-						  MAX_SCHEDULE_TIMEOUT);
+			MAX_SCHEDULE_TIMEOUT);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -614,22 +741,28 @@ static int __dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
  * Can return negative error values, returns 0 on success.
  */
 int dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
-			     enum dma_data_direction direction)
+							 enum dma_data_direction direction)
 {
 	int ret = 0;
 
 	if (WARN_ON(!dmabuf))
+	{
 		return -EINVAL;
+	}
 
 	if (dmabuf->ops->begin_cpu_access)
+	{
 		ret = dmabuf->ops->begin_cpu_access(dmabuf, direction);
+	}
 
 	/* Ensure that all fences are waited upon - but we first allow
 	 * the native handler the chance to do so more efficiently if it
 	 * chooses. A double invocation here will be reasonably cheap no-op.
 	 */
 	if (ret == 0)
+	{
 		ret = __dma_buf_begin_cpu_access(dmabuf, direction);
+	}
 
 	return ret;
 }
@@ -646,14 +779,16 @@ EXPORT_SYMBOL_GPL(dma_buf_begin_cpu_access);
  * Can return negative error values, returns 0 on success.
  */
 int dma_buf_end_cpu_access(struct dma_buf *dmabuf,
-			   enum dma_data_direction direction)
+						   enum dma_data_direction direction)
 {
 	int ret = 0;
 
 	WARN_ON(!dmabuf);
 
 	if (dmabuf->ops->end_cpu_access)
+	{
 		ret = dmabuf->ops->end_cpu_access(dmabuf, direction);
+	}
 
 	return ret;
 }
@@ -685,12 +820,14 @@ EXPORT_SYMBOL_GPL(dma_buf_kmap_atomic);
  * This call must always succeed.
  */
 void dma_buf_kunmap_atomic(struct dma_buf *dmabuf, unsigned long page_num,
-			   void *vaddr)
+						   void *vaddr)
 {
 	WARN_ON(!dmabuf);
 
 	if (dmabuf->ops->kunmap_atomic)
+	{
 		dmabuf->ops->kunmap_atomic(dmabuf, page_num, vaddr);
+	}
 }
 EXPORT_SYMBOL_GPL(dma_buf_kunmap_atomic);
 
@@ -720,12 +857,14 @@ EXPORT_SYMBOL_GPL(dma_buf_kmap);
  * This call must always succeed.
  */
 void dma_buf_kunmap(struct dma_buf *dmabuf, unsigned long page_num,
-		    void *vaddr)
+					void *vaddr)
 {
 	WARN_ON(!dmabuf);
 
 	if (dmabuf->ops->kunmap)
+	{
 		dmabuf->ops->kunmap(dmabuf, page_num, vaddr);
+	}
 }
 EXPORT_SYMBOL_GPL(dma_buf_kunmap);
 
@@ -745,22 +884,28 @@ EXPORT_SYMBOL_GPL(dma_buf_kunmap);
  * Can return negative error values, returns 0 on success.
  */
 int dma_buf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma,
-		 unsigned long pgoff)
+				 unsigned long pgoff)
 {
 	struct file *oldfile;
 	int ret;
 
 	if (WARN_ON(!dmabuf || !vma))
+	{
 		return -EINVAL;
+	}
 
 	/* check for offset overflow */
 	if (pgoff + vma_pages(vma) < pgoff)
+	{
 		return -EOVERFLOW;
+	}
 
 	/* check for overflowing the buffer's size */
 	if (pgoff + vma_pages(vma) >
-	    dmabuf->size >> PAGE_SHIFT)
+		dmabuf->size >> PAGE_SHIFT)
+	{
 		return -EINVAL;
+	}
 
 	/* readjust the vma */
 	get_file(dmabuf->file);
@@ -769,14 +914,21 @@ int dma_buf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma,
 	vma->vm_pgoff = pgoff;
 
 	ret = dmabuf->ops->mmap(dmabuf, vma);
-	if (ret) {
+
+	if (ret)
+	{
 		/* restore old parameters on failure */
 		vma->vm_file = oldfile;
 		fput(dmabuf->file);
-	} else {
-		if (oldfile)
-			fput(oldfile);
 	}
+	else
+	{
+		if (oldfile)
+		{
+			fput(oldfile);
+		}
+	}
+
 	return ret;
 
 }
@@ -799,13 +951,19 @@ void *dma_buf_vmap(struct dma_buf *dmabuf)
 	void *ptr;
 
 	if (WARN_ON(!dmabuf))
+	{
 		return NULL;
+	}
 
 	if (!dmabuf->ops->vmap)
+	{
 		return NULL;
+	}
 
 	mutex_lock(&dmabuf->lock);
-	if (dmabuf->vmapping_counter) {
+
+	if (dmabuf->vmapping_counter)
+	{
 		dmabuf->vmapping_counter++;
 		BUG_ON(!dmabuf->vmap_ptr);
 		ptr = dmabuf->vmap_ptr;
@@ -815,10 +973,16 @@ void *dma_buf_vmap(struct dma_buf *dmabuf)
 	BUG_ON(dmabuf->vmap_ptr);
 
 	ptr = dmabuf->ops->vmap(dmabuf);
+
 	if (WARN_ON_ONCE(IS_ERR(ptr)))
+	{
 		ptr = NULL;
+	}
+
 	if (!ptr)
+	{
 		goto out_unlock;
+	}
 
 	dmabuf->vmap_ptr = ptr;
 	dmabuf->vmapping_counter = 1;
@@ -837,18 +1001,26 @@ EXPORT_SYMBOL_GPL(dma_buf_vmap);
 void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
 {
 	if (WARN_ON(!dmabuf))
+	{
 		return;
+	}
 
 	BUG_ON(!dmabuf->vmap_ptr);
 	BUG_ON(dmabuf->vmapping_counter == 0);
 	BUG_ON(dmabuf->vmap_ptr != vaddr);
 
 	mutex_lock(&dmabuf->lock);
-	if (--dmabuf->vmapping_counter == 0) {
+
+	if (--dmabuf->vmapping_counter == 0)
+	{
 		if (dmabuf->ops->vunmap)
+		{
 			dmabuf->ops->vunmap(dmabuf, vaddr);
+		}
+
 		dmabuf->vmap_ptr = NULL;
 	}
+
 	mutex_unlock(&dmabuf->lock);
 }
 EXPORT_SYMBOL_GPL(dma_buf_vunmap);
@@ -865,30 +1037,35 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
 	ret = mutex_lock_interruptible(&db_list.lock);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	seq_puts(s, "\nDma-buf Objects:\n");
 	seq_puts(s, "size\tflags\tmode\tcount\texp_name\n");
 
-	list_for_each_entry(buf_obj, &db_list.head, list_node) {
+	list_for_each_entry(buf_obj, &db_list.head, list_node)
+	{
 		ret = mutex_lock_interruptible(&buf_obj->lock);
 
-		if (ret) {
+		if (ret)
+		{
 			seq_puts(s,
-				 "\tERROR locking buffer object: skipping\n");
+					 "\tERROR locking buffer object: skipping\n");
 			continue;
 		}
 
 		seq_printf(s, "%08zu\t%08x\t%08x\t%08ld\t%s\n",
-				buf_obj->size,
-				buf_obj->file->f_flags, buf_obj->file->f_mode,
-				file_count(buf_obj->file),
-				buf_obj->exp_name);
+				   buf_obj->size,
+				   buf_obj->file->f_flags, buf_obj->file->f_mode,
+				   file_count(buf_obj->file),
+				   buf_obj->exp_name);
 
 		seq_puts(s, "\tAttached Devices:\n");
 		attach_count = 0;
 
-		list_for_each_entry(attach_obj, &buf_obj->attachments, node) {
+		list_for_each_entry(attach_obj, &buf_obj->attachments, node)
+		{
 			seq_puts(s, "\t");
 
 			seq_printf(s, "%s\n", dev_name(attach_obj->dev));
@@ -896,7 +1073,7 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
 		}
 
 		seq_printf(s, "Total %d devices attached\n\n",
-				attach_count);
+				   attach_count);
 
 		count++;
 		size += buf_obj->size;
@@ -914,7 +1091,8 @@ static int dma_buf_debug_open(struct inode *inode, struct file *file)
 	return single_open(file, dma_buf_debug_show, NULL);
 }
 
-static const struct file_operations dma_buf_debug_fops = {
+static const struct file_operations dma_buf_debug_fops =
+{
 	.open           = dma_buf_debug_open,
 	.read           = seq_read,
 	.llseek         = seq_lseek,
@@ -929,14 +1107,19 @@ static int dma_buf_init_debugfs(void)
 	int err = 0;
 
 	d = debugfs_create_dir("dma_buf", NULL);
+
 	if (IS_ERR(d))
+	{
 		return PTR_ERR(d);
+	}
 
 	dma_buf_debugfs_dir = d;
 
 	d = debugfs_create_file("bufinfo", S_IRUGO, dma_buf_debugfs_dir,
-				NULL, &dma_buf_debug_fops);
-	if (IS_ERR(d)) {
+							NULL, &dma_buf_debug_fops);
+
+	if (IS_ERR(d))
+	{
 		pr_debug("dma_buf: debugfs: failed to create node bufinfo\n");
 		debugfs_remove_recursive(dma_buf_debugfs_dir);
 		dma_buf_debugfs_dir = NULL;
@@ -949,7 +1132,9 @@ static int dma_buf_init_debugfs(void)
 static void dma_buf_uninit_debugfs(void)
 {
 	if (dma_buf_debugfs_dir)
+	{
 		debugfs_remove_recursive(dma_buf_debugfs_dir);
+	}
 }
 #else
 static inline int dma_buf_init_debugfs(void)

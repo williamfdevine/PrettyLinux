@@ -15,14 +15,17 @@
  * CRTC within a device's list of CRTCs.  Returns zero if not found.
  */
 static uint32_t drm_crtc_port_mask(struct drm_device *dev,
-				   struct device_node *port)
+								   struct device_node *port)
 {
 	unsigned int index = 0;
 	struct drm_crtc *tmp;
 
-	drm_for_each_crtc(tmp, dev) {
+	drm_for_each_crtc(tmp, dev)
+	{
 		if (tmp->port == port)
+		{
 			return 1 << index;
+		}
 
 		index++;
 	}
@@ -42,14 +45,17 @@ static uint32_t drm_crtc_port_mask(struct drm_device *dev,
  * See Documentation/devicetree/bindings/graph.txt for the bindings.
  */
 uint32_t drm_of_find_possible_crtcs(struct drm_device *dev,
-				    struct device_node *port)
+									struct device_node *port)
 {
 	struct device_node *remote_port, *ep;
 	uint32_t possible_crtcs = 0;
 
-	for_each_endpoint_of_node(port, ep) {
+	for_each_endpoint_of_node(port, ep)
+	{
 		remote_port = of_graph_get_remote_port(ep);
-		if (!remote_port) {
+
+		if (!remote_port)
+		{
 			of_node_put(ep);
 			return 0;
 		}
@@ -77,26 +83,33 @@ EXPORT_SYMBOL(drm_of_find_possible_crtcs);
  * Returns zero if successful, or one of the standard error codes if it fails.
  */
 int drm_of_component_probe(struct device *dev,
-			   int (*compare_of)(struct device *, void *),
-			   const struct component_master_ops *m_ops)
+						   int (*compare_of)(struct device *, void *),
+						   const struct component_master_ops *m_ops)
 {
 	struct device_node *ep, *port, *remote;
 	struct component_match *match = NULL;
 	int i;
 
 	if (!dev->of_node)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Bind the crtc's ports first, so that drm_of_find_possible_crtcs()
 	 * called from encoder's .bind callbacks works as expected
 	 */
-	for (i = 0; ; i++) {
+	for (i = 0; ; i++)
+	{
 		port = of_parse_phandle(dev->of_node, "ports", i);
-		if (!port)
-			break;
 
-		if (!of_device_is_available(port->parent)) {
+		if (!port)
+		{
+			break;
+		}
+
+		if (!of_device_is_available(port->parent))
+		{
 			of_node_put(port);
 			continue;
 		}
@@ -105,12 +118,14 @@ int drm_of_component_probe(struct device *dev,
 		of_node_put(port);
 	}
 
-	if (i == 0) {
+	if (i == 0)
+	{
 		dev_err(dev, "missing 'ports' property\n");
 		return -ENODEV;
 	}
 
-	if (!match) {
+	if (!match)
+	{
 		dev_err(dev, "no available port\n");
 		return -ENODEV;
 	}
@@ -118,24 +133,34 @@ int drm_of_component_probe(struct device *dev,
 	/*
 	 * For bound crtcs, bind the encoders attached to their remote endpoint
 	 */
-	for (i = 0; ; i++) {
+	for (i = 0; ; i++)
+	{
 		port = of_parse_phandle(dev->of_node, "ports", i);
-		if (!port)
-			break;
 
-		if (!of_device_is_available(port->parent)) {
+		if (!port)
+		{
+			break;
+		}
+
+		if (!of_device_is_available(port->parent))
+		{
 			of_node_put(port);
 			continue;
 		}
 
-		for_each_child_of_node(port, ep) {
+		for_each_child_of_node(port, ep)
+		{
 			remote = of_graph_get_remote_port_parent(ep);
-			if (!remote || !of_device_is_available(remote)) {
+
+			if (!remote || !of_device_is_available(remote))
+			{
 				of_node_put(remote);
 				continue;
-			} else if (!of_device_is_available(remote->parent)) {
+			}
+			else if (!of_device_is_available(remote->parent))
+			{
 				dev_warn(dev, "parent device of %s is not available\n",
-					 remote->full_name);
+						 remote->full_name);
 				of_node_put(remote);
 				continue;
 			}
@@ -159,8 +184,8 @@ EXPORT_SYMBOL(drm_of_component_probe);
  * parse the encoder endpoint connecting to the crtc port.
  */
 int drm_of_encoder_active_endpoint(struct device_node *node,
-				   struct drm_encoder *encoder,
-				   struct of_endpoint *endpoint)
+								   struct drm_encoder *encoder,
+								   struct of_endpoint *endpoint)
 {
 	struct device_node *ep;
 	struct drm_crtc *crtc = encoder->crtc;
@@ -168,12 +193,17 @@ int drm_of_encoder_active_endpoint(struct device_node *node,
 	int ret;
 
 	if (!node || !crtc)
+	{
 		return -EINVAL;
+	}
 
-	for_each_endpoint_of_node(node, ep) {
+	for_each_endpoint_of_node(node, ep)
+	{
 		port = of_graph_get_remote_port(ep);
 		of_node_put(port);
-		if (port == crtc->port) {
+
+		if (port == crtc->port)
+		{
 			ret = of_graph_parse_endpoint(ep, endpoint);
 			of_node_put(ep);
 			return ret;

@@ -2,7 +2,8 @@
 #include <linux/inotify.h>
 #include <linux/slab.h> /* struct kmem_cache */
 
-struct inotify_event_info {
+struct inotify_event_info
+{
 	struct fsnotify_event fse;
 	int wd;
 	u32 sync_cookie;
@@ -10,7 +11,8 @@ struct inotify_event_info {
 	char name[];
 };
 
-struct inotify_inode_mark {
+struct inotify_inode_mark
+{
 	struct fsnotify_mark fsn_mark;
 	int wd;
 };
@@ -21,12 +23,12 @@ static inline struct inotify_event_info *INOTIFY_E(struct fsnotify_event *fse)
 }
 
 extern void inotify_ignored_and_remove_idr(struct fsnotify_mark *fsn_mark,
-					   struct fsnotify_group *group);
+		struct fsnotify_group *group);
 extern int inotify_handle_event(struct fsnotify_group *group,
-				struct inode *inode,
-				struct fsnotify_mark *inode_mark,
-				struct fsnotify_mark *vfsmount_mark,
-				u32 mask, void *data, int data_type,
-				const unsigned char *file_name, u32 cookie);
+								struct inode *inode,
+								struct fsnotify_mark *inode_mark,
+								struct fsnotify_mark *vfsmount_mark,
+								u32 mask, void *data, int data_type,
+								const unsigned char *file_name, u32 cookie);
 
 extern const struct fsnotify_ops inotify_fsnotify_ops;

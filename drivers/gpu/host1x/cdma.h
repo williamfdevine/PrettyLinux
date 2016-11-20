@@ -41,7 +41,8 @@ struct host1x_job;
  *	update - call to update sync queue and push buffer, unpin memory
  */
 
-struct push_buffer {
+struct push_buffer
+{
 	void *mapped;			/* mapped pushbuffer memory */
 	dma_addr_t phys;		/* physical address of pushbuffer */
 	u32 fence;			/* index we've written */
@@ -49,7 +50,8 @@ struct push_buffer {
 	u32 size_bytes;
 };
 
-struct buffer_timeout {
+struct buffer_timeout
+{
 	struct delayed_work wq;		/* work queue */
 	bool initialized;		/* timer one-time setup flag */
 	struct host1x_syncpt *syncpt;	/* buffer completion syncpt */
@@ -59,13 +61,15 @@ struct buffer_timeout {
 	int client;
 };
 
-enum cdma_event {
+enum cdma_event
+{
 	CDMA_EVENT_NONE,		/* not waiting for any event */
 	CDMA_EVENT_SYNC_QUEUE_EMPTY,	/* wait for empty sync queue */
 	CDMA_EVENT_PUSH_BUFFER_SPACE	/* wait for space in push buffer */
 };
 
-struct host1x_cdma {
+struct host1x_cdma
+{
 	struct mutex lock;		/* controls access to shared state */
 	struct semaphore sem;		/* signalled when event occurs */
 	enum cdma_event event;		/* event that sem is waiting for */
@@ -92,9 +96,9 @@ void host1x_cdma_push(struct host1x_cdma *cdma, u32 op1, u32 op2);
 void host1x_cdma_end(struct host1x_cdma *cdma, struct host1x_job *job);
 void host1x_cdma_update(struct host1x_cdma *cdma);
 void host1x_cdma_peek(struct host1x_cdma *cdma, u32 dmaget, int slot,
-		      u32 *out);
+					  u32 *out);
 unsigned int host1x_cdma_wait_locked(struct host1x_cdma *cdma,
-				     enum cdma_event event);
+									 enum cdma_event event);
 void host1x_cdma_update_sync_queue(struct host1x_cdma *cdma,
-				   struct device *dev);
+								   struct device *dev);
 #endif

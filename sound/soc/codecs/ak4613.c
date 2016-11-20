@@ -75,17 +75,20 @@
 #define DFS_DOUBLE_SPEED	(1 << 2)
 #define DFS_QUAD_SPEED		(2 << 2)
 
-struct ak4613_formats {
+struct ak4613_formats
+{
 	unsigned int width;
 	unsigned int fmt;
 };
 
-struct ak4613_interface {
+struct ak4613_interface
+{
 	struct ak4613_formats capture;
 	struct ak4613_formats playback;
 };
 
-struct ak4613_priv {
+struct ak4613_priv
+{
 	struct mutex lock;
 	const struct ak4613_interface *iface;
 
@@ -105,22 +108,24 @@ struct ak4613_priv {
  */
 static const DECLARE_TLV_DB_SCALE(out_tlv, -12750, 50, 1);
 
-static const struct snd_kcontrol_new ak4613_snd_controls[] = {
+static const struct snd_kcontrol_new ak4613_snd_controls[] =
+{
 	SOC_DOUBLE_R_TLV("Digital Playback Volume1", LOUT1, ROUT1,
-			 0, 0xFF, 1, out_tlv),
+	0, 0xFF, 1, out_tlv),
 	SOC_DOUBLE_R_TLV("Digital Playback Volume2", LOUT2, ROUT2,
-			 0, 0xFF, 1, out_tlv),
+	0, 0xFF, 1, out_tlv),
 	SOC_DOUBLE_R_TLV("Digital Playback Volume3", LOUT3, ROUT3,
-			 0, 0xFF, 1, out_tlv),
+	0, 0xFF, 1, out_tlv),
 	SOC_DOUBLE_R_TLV("Digital Playback Volume4", LOUT4, ROUT4,
-			 0, 0xFF, 1, out_tlv),
+	0, 0xFF, 1, out_tlv),
 	SOC_DOUBLE_R_TLV("Digital Playback Volume5", LOUT5, ROUT5,
-			 0, 0xFF, 1, out_tlv),
+	0, 0xFF, 1, out_tlv),
 	SOC_DOUBLE_R_TLV("Digital Playback Volume6", LOUT6, ROUT6,
-			 0, 0xFF, 1, out_tlv),
+	0, 0xFF, 1, out_tlv),
 };
 
-static const struct reg_default ak4613_reg[] = {
+static const struct reg_default ak4613_reg[] =
+{
 	{ 0x0,  0x0f }, { 0x1,  0x07 }, { 0x2,  0x3f }, { 0x3,  0x20 },
 	{ 0x4,  0x20 }, { 0x5,  0x55 }, { 0x6,  0x05 }, { 0x7,  0x07 },
 	{ 0x8,  0x0f }, { 0x9,  0x07 }, { 0xa,  0x3f }, { 0xb,  0x00 },
@@ -131,7 +136,8 @@ static const struct reg_default ak4613_reg[] = {
 
 #define AUDIO_IFACE_TO_VAL(fmts) ((fmts - ak4613_iface) << 3)
 #define AUDIO_IFACE(b, fmt) { b, SND_SOC_DAIFMT_##fmt }
-static const struct ak4613_interface ak4613_iface[] = {
+static const struct ak4613_interface ak4613_iface[] =
+{
 	/* capture */				/* playback */
 	[0] = {	AUDIO_IFACE(24, LEFT_J),	AUDIO_IFACE(16, RIGHT_J) },
 	[1] = {	AUDIO_IFACE(24, LEFT_J),	AUDIO_IFACE(20, RIGHT_J) },
@@ -140,7 +146,8 @@ static const struct ak4613_interface ak4613_iface[] = {
 	[4] = {	AUDIO_IFACE(24, I2S),		AUDIO_IFACE(24, I2S) },
 };
 
-static const struct regmap_config ak4613_regmap_cfg = {
+static const struct regmap_config ak4613_regmap_cfg =
+{
 	.reg_bits		= 8,
 	.val_bits		= 8,
 	.max_register		= 0x16,
@@ -149,19 +156,22 @@ static const struct regmap_config ak4613_regmap_cfg = {
 	.cache_type		= REGCACHE_RBTREE,
 };
 
-static const struct of_device_id ak4613_of_match[] = {
+static const struct of_device_id ak4613_of_match[] =
+{
 	{ .compatible = "asahi-kasei,ak4613",	.data = &ak4613_regmap_cfg },
 	{},
 };
 MODULE_DEVICE_TABLE(of, ak4613_of_match);
 
-static const struct i2c_device_id ak4613_i2c_id[] = {
-	{ "ak4613", (kernel_ulong_t)&ak4613_regmap_cfg },
+static const struct i2c_device_id ak4613_i2c_id[] =
+{
+	{ "ak4613", (kernel_ulong_t) &ak4613_regmap_cfg },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, ak4613_i2c_id);
 
-static const struct snd_soc_dapm_widget ak4613_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget ak4613_dapm_widgets[] =
+{
 
 	/* Outputs */
 	SND_SOC_DAPM_OUTPUT("LOUT1"),
@@ -198,7 +208,8 @@ static const struct snd_soc_dapm_widget ak4613_dapm_widgets[] = {
 	SND_SOC_DAPM_ADC("ADC2", NULL, PW_MGMT2, 1, 0),
 };
 
-static const struct snd_soc_dapm_route ak4613_intercon[] = {
+static const struct snd_soc_dapm_route ak4613_intercon[] =
+{
 	{"LOUT1", NULL, "DAC1"},
 	{"LOUT2", NULL, "DAC2"},
 	{"LOUT3", NULL, "DAC3"},
@@ -231,7 +242,7 @@ static const struct snd_soc_dapm_route ak4613_intercon[] = {
 };
 
 static void ak4613_dai_shutdown(struct snd_pcm_substream *substream,
-			       struct snd_soc_dai *dai)
+								struct snd_soc_dai *dai)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct ak4613_priv *priv = snd_soc_codec_get_drvdata(codec);
@@ -239,12 +250,18 @@ static void ak4613_dai_shutdown(struct snd_pcm_substream *substream,
 
 	mutex_lock(&priv->lock);
 	priv->cnt--;
-	if (priv->cnt < 0) {
+
+	if (priv->cnt < 0)
+	{
 		dev_err(dev, "unexpected counter error\n");
 		priv->cnt = 0;
 	}
+
 	if (!priv->cnt)
+	{
 		priv->iface = NULL;
+	}
+
 	mutex_unlock(&priv->lock);
 }
 
@@ -255,45 +272,56 @@ static int ak4613_dai_set_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 
 	fmt &= SND_SOC_DAIFMT_FORMAT_MASK;
 
-	switch (fmt) {
-	case SND_SOC_DAIFMT_RIGHT_J:
-	case SND_SOC_DAIFMT_LEFT_J:
-	case SND_SOC_DAIFMT_I2S:
-		priv->fmt = fmt;
+	switch (fmt)
+	{
+		case SND_SOC_DAIFMT_RIGHT_J:
+		case SND_SOC_DAIFMT_LEFT_J:
+		case SND_SOC_DAIFMT_I2S:
+			priv->fmt = fmt;
 
-		break;
-	default:
-		return -EINVAL;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
 static bool ak4613_dai_fmt_matching(const struct ak4613_interface *iface,
-				    int is_play,
-				    unsigned int fmt, unsigned int width)
+									int is_play,
+									unsigned int fmt, unsigned int width)
 {
 	const struct ak4613_formats *fmts;
 
 	fmts = (is_play) ? &iface->playback : &iface->capture;
 
 	if (fmts->fmt != fmt)
+	{
 		return false;
+	}
 
-	if (fmt == SND_SOC_DAIFMT_RIGHT_J) {
+	if (fmt == SND_SOC_DAIFMT_RIGHT_J)
+	{
 		if (fmts->width != width)
+		{
 			return false;
-	} else {
+		}
+	}
+	else
+	{
 		if (fmts->width < width)
+		{
 			return false;
+		}
 	}
 
 	return true;
 }
 
 static int ak4613_dai_hw_params(struct snd_pcm_substream *substream,
-				struct snd_pcm_hw_params *params,
-				struct snd_soc_dai *dai)
+								struct snd_pcm_hw_params *params,
+								struct snd_soc_dai *dai)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct ak4613_priv *priv = snd_soc_codec_get_drvdata(codec);
@@ -307,22 +335,27 @@ static int ak4613_dai_hw_params(struct snd_pcm_substream *substream,
 	u8 fmt_ctrl, ctrl2;
 
 	rate = params_rate(params);
-	switch (rate) {
-	case 32000:
-	case 44100:
-	case 48000:
-		ctrl2 = DFS_NORMAL_SPEED;
-		break;
-	case 88200:
-	case 96000:
-		ctrl2 = DFS_DOUBLE_SPEED;
-		break;
-	case 176400:
-	case 192000:
-		ctrl2 = DFS_QUAD_SPEED;
-		break;
-	default:
-		return -EINVAL;
+
+	switch (rate)
+	{
+		case 32000:
+		case 44100:
+		case 48000:
+			ctrl2 = DFS_NORMAL_SPEED;
+			break;
+
+		case 88200:
+		case 96000:
+			ctrl2 = DFS_DOUBLE_SPEED;
+			break;
+
+		case 176400:
+		case 192000:
+			ctrl2 = DFS_QUAD_SPEED;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/*
@@ -335,30 +368,44 @@ static int ak4613_dai_hw_params(struct snd_pcm_substream *substream,
 	iface = NULL;
 
 	mutex_lock(&priv->lock);
-	if (priv->iface) {
+
+	if (priv->iface)
+	{
 		if (ak4613_dai_fmt_matching(priv->iface, is_play, fmt, width))
+		{
 			iface = priv->iface;
-	} else {
-		for (i = ARRAY_SIZE(ak4613_iface); i >= 0; i--) {
+		}
+	}
+	else
+	{
+		for (i = ARRAY_SIZE(ak4613_iface); i >= 0; i--)
+		{
 			if (!ak4613_dai_fmt_matching(ak4613_iface + i,
-						     is_play,
-						     fmt, width))
+										 is_play,
+										 fmt, width))
+			{
 				continue;
+			}
+
 			iface = ak4613_iface + i;
 			break;
 		}
 	}
 
 	if ((priv->iface == NULL) ||
-	    (priv->iface == iface)) {
+		(priv->iface == iface))
+	{
 		priv->iface = iface;
 		priv->cnt++;
 		ret = 0;
 	}
+
 	mutex_unlock(&priv->lock);
 
 	if (ret < 0)
+	{
 		goto hw_params_end;
+	}
 
 	fmt_ctrl = AUDIO_IFACE_TO_VAL(iface);
 
@@ -369,30 +416,37 @@ static int ak4613_dai_hw_params(struct snd_pcm_substream *substream,
 	snd_soc_write(codec, OCTRL, priv->oc);
 
 hw_params_end:
+
 	if (ret < 0)
+	{
 		dev_warn(dev, "unsupported data width/format combination\n");
+	}
 
 	return ret;
 }
 
 static int ak4613_set_bias_level(struct snd_soc_codec *codec,
-				 enum snd_soc_bias_level level)
+								 enum snd_soc_bias_level level)
 {
 	u8 mgmt1 = 0;
 
-	switch (level) {
-	case SND_SOC_BIAS_ON:
-		mgmt1 |= RSTN;
+	switch (level)
+	{
+		case SND_SOC_BIAS_ON:
+			mgmt1 |= RSTN;
+
 		/* fall through */
-	case SND_SOC_BIAS_PREPARE:
-		mgmt1 |= PMADC | PMDAC;
+		case SND_SOC_BIAS_PREPARE:
+			mgmt1 |= PMADC | PMDAC;
+
 		/* fall through */
-	case SND_SOC_BIAS_STANDBY:
-		mgmt1 |= PMVR;
+		case SND_SOC_BIAS_STANDBY:
+			mgmt1 |= PMVR;
+
 		/* fall through */
-	case SND_SOC_BIAS_OFF:
-	default:
-		break;
+		case SND_SOC_BIAS_OFF:
+		default:
+			break;
 	}
 
 	snd_soc_write(codec, PW_MGMT1, mgmt1);
@@ -400,24 +454,26 @@ static int ak4613_set_bias_level(struct snd_soc_codec *codec,
 	return 0;
 }
 
-static const struct snd_soc_dai_ops ak4613_dai_ops = {
+static const struct snd_soc_dai_ops ak4613_dai_ops =
+{
 	.shutdown	= ak4613_dai_shutdown,
 	.set_fmt	= ak4613_dai_set_fmt,
 	.hw_params	= ak4613_dai_hw_params,
 };
 
 #define AK4613_PCM_RATE		(SNDRV_PCM_RATE_32000  |\
-				 SNDRV_PCM_RATE_44100  |\
-				 SNDRV_PCM_RATE_48000  |\
-				 SNDRV_PCM_RATE_64000  |\
-				 SNDRV_PCM_RATE_88200  |\
-				 SNDRV_PCM_RATE_96000  |\
-				 SNDRV_PCM_RATE_176400 |\
-				 SNDRV_PCM_RATE_192000)
+							 SNDRV_PCM_RATE_44100  |\
+							 SNDRV_PCM_RATE_48000  |\
+							 SNDRV_PCM_RATE_64000  |\
+							 SNDRV_PCM_RATE_88200  |\
+							 SNDRV_PCM_RATE_96000  |\
+							 SNDRV_PCM_RATE_176400 |\
+							 SNDRV_PCM_RATE_192000)
 #define AK4613_PCM_FMTBIT	(SNDRV_PCM_FMTBIT_S16_LE |\
-				 SNDRV_PCM_FMTBIT_S24_LE)
+							 SNDRV_PCM_FMTBIT_S24_LE)
 
-static struct snd_soc_dai_driver ak4613_dai = {
+static struct snd_soc_dai_driver ak4613_dai =
+{
 	.name = "ak4613-hifi",
 	.playback = {
 		.stream_name	= "Playback",
@@ -454,7 +510,8 @@ static int ak4613_resume(struct snd_soc_codec *codec)
 	return regcache_sync(regmap);
 }
 
-static struct snd_soc_codec_driver soc_codec_dev_ak4613 = {
+static struct snd_soc_codec_driver soc_codec_dev_ak4613 =
+{
 	.suspend		= ak4613_suspend,
 	.resume			= ak4613_resume,
 	.set_bias_level		= ak4613_set_bias_level,
@@ -469,29 +526,37 @@ static struct snd_soc_codec_driver soc_codec_dev_ak4613 = {
 };
 
 static void ak4613_parse_of(struct ak4613_priv *priv,
-			    struct device *dev)
+							struct device *dev)
 {
 	struct device_node *np = dev->of_node;
 	char prop[32];
 	int i;
 
 	/* Input 1 - 2 */
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		snprintf(prop, sizeof(prop), "asahi-kasei,in%d-single-end", i + 1);
+
 		if (!of_get_property(np, prop, NULL))
+		{
 			priv->ic |= 1 << i;
+		}
 	}
 
 	/* Output 1 - 6 */
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < 6; i++)
+	{
 		snprintf(prop, sizeof(prop), "asahi-kasei,out%d-single-end", i + 1);
+
 		if (!of_get_property(np, prop, NULL))
+		{
 			priv->oc |= 1 << i;
+		}
 	}
 }
 
 static int ak4613_i2c_probe(struct i2c_client *i2c,
-			    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct device *dev = &i2c->dev;
 	struct device_node *np = dev->of_node;
@@ -500,22 +565,34 @@ static int ak4613_i2c_probe(struct i2c_client *i2c,
 	struct ak4613_priv *priv;
 
 	regmap_cfg = NULL;
-	if (np) {
+
+	if (np)
+	{
 		const struct of_device_id *of_id;
 
 		of_id = of_match_device(ak4613_of_match, dev);
+
 		if (of_id)
+		{
 			regmap_cfg = of_id->data;
-	} else {
+		}
+	}
+	else
+	{
 		regmap_cfg = (const struct regmap_config *)id->driver_data;
 	}
 
 	if (!regmap_cfg)
+	{
 		return -EINVAL;
+	}
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	ak4613_parse_of(priv, dev);
 
@@ -527,11 +604,14 @@ static int ak4613_i2c_probe(struct i2c_client *i2c,
 	i2c_set_clientdata(i2c, priv);
 
 	regmap = devm_regmap_init_i2c(i2c, regmap_cfg);
+
 	if (IS_ERR(regmap))
+	{
 		return PTR_ERR(regmap);
+	}
 
 	return snd_soc_register_codec(dev, &soc_codec_dev_ak4613,
-				      &ak4613_dai, 1);
+								  &ak4613_dai, 1);
 }
 
 static int ak4613_i2c_remove(struct i2c_client *client)
@@ -540,7 +620,8 @@ static int ak4613_i2c_remove(struct i2c_client *client)
 	return 0;
 }
 
-static struct i2c_driver ak4613_i2c_driver = {
+static struct i2c_driver ak4613_i2c_driver =
+{
 	.driver = {
 		.name = "ak4613-codec",
 		.of_match_table = ak4613_of_match,

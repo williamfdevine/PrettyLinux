@@ -41,7 +41,8 @@ static const struct net_proto_family *bt_proto[BT_MAX_PROTO];
 static DEFINE_RWLOCK(bt_proto_lock);
 
 static struct lock_class_key bt_lock_key[BT_MAX_PROTO];
-static const char *const bt_key_strings[BT_MAX_PROTO] = {
+static const char *const bt_key_strings[BT_MAX_PROTO] =
+{
 	"sk_lock-AF_BLUETOOTH-BTPROTO_L2CAP",
 	"sk_lock-AF_BLUETOOTH-BTPROTO_HCI",
 	"sk_lock-AF_BLUETOOTH-BTPROTO_SCO",
@@ -53,7 +54,8 @@ static const char *const bt_key_strings[BT_MAX_PROTO] = {
 };
 
 static struct lock_class_key bt_slock_key[BT_MAX_PROTO];
-static const char *const bt_slock_key_strings[BT_MAX_PROTO] = {
+static const char *const bt_slock_key_strings[BT_MAX_PROTO] =
+{
 	"slock-AF_BLUETOOTH-BTPROTO_L2CAP",
 	"slock-AF_BLUETOOTH-BTPROTO_HCI",
 	"slock-AF_BLUETOOTH-BTPROTO_SCO",
@@ -70,8 +72,8 @@ void bt_sock_reclassify_lock(struct sock *sk, int proto)
 	BUG_ON(!sock_allow_reclassification(sk));
 
 	sock_lock_init_class_and_name(sk,
-			bt_slock_key_strings[proto], &bt_slock_key[proto],
-				bt_key_strings[proto], &bt_lock_key[proto]);
+								  bt_slock_key_strings[proto], &bt_slock_key[proto],
+								  bt_key_strings[proto], &bt_lock_key[proto]);
 }
 EXPORT_SYMBOL(bt_sock_reclassify_lock);
 
@@ -80,14 +82,20 @@ int bt_sock_register(int proto, const struct net_proto_family *ops)
 	int err = 0;
 
 	if (proto < 0 || proto >= BT_MAX_PROTO)
+	{
 		return -EINVAL;
+	}
 
 	write_lock(&bt_proto_lock);
 
 	if (bt_proto[proto])
+	{
 		err = -EEXIST;
+	}
 	else
+	{
 		bt_proto[proto] = ops;
+	}
 
 	write_unlock(&bt_proto_lock);
 
@@ -98,7 +106,9 @@ EXPORT_SYMBOL(bt_sock_register);
 void bt_sock_unregister(int proto)
 {
 	if (proto < 0 || proto >= BT_MAX_PROTO)
+	{
 		return;
+	}
 
 	write_lock(&bt_proto_lock);
 	bt_proto[proto] = NULL;
@@ -107,27 +117,38 @@ void bt_sock_unregister(int proto)
 EXPORT_SYMBOL(bt_sock_unregister);
 
 static int bt_sock_create(struct net *net, struct socket *sock, int proto,
-			  int kern)
+						  int kern)
 {
 	int err;
 
 	if (net != &init_net)
+	{
 		return -EAFNOSUPPORT;
+	}
 
 	if (proto < 0 || proto >= BT_MAX_PROTO)
+	{
 		return -EINVAL;
+	}
 
 	if (!bt_proto[proto])
+	{
 		request_module("bt-proto-%d", proto);
+	}
 
 	err = -EPROTONOSUPPORT;
 
 	read_lock(&bt_proto_lock);
 
-	if (bt_proto[proto] && try_module_get(bt_proto[proto]->owner)) {
+	if (bt_proto[proto] && try_module_get(bt_proto[proto]->owner))
+	{
 		err = bt_proto[proto]->create(net, sock, proto, kern);
+
 		if (!err)
+		{
 			bt_sock_reclassify_lock(sock->sk, proto);
+		}
+
 		module_put(bt_proto[proto]->owner);
 	}
 
@@ -181,23 +202,29 @@ struct sock *bt_accept_dequeue(struct sock *parent, struct socket *newsock)
 
 	BT_DBG("parent %p", parent);
 
-	list_for_each_entry_safe(s, n, &bt_sk(parent)->accept_q, accept_q) {
+	list_for_each_entry_safe(s, n, &bt_sk(parent)->accept_q, accept_q)
+	{
 		sk = (struct sock *)s;
 
 		lock_sock(sk);
 
 		/* FIXME: Is this check still needed */
-		if (sk->sk_state == BT_CLOSED) {
+		if (sk->sk_state == BT_CLOSED)
+		{
 			bt_accept_unlink(sk);
 			release_sock(sk);
 			continue;
 		}
 
 		if (sk->sk_state == BT_CONNECTED || !newsock ||
-		    test_bit(BT_SK_DEFER_SETUP, &bt_sk(parent)->flags)) {
+			test_bit(BT_SK_DEFER_SETUP, &bt_sk(parent)->flags))
+		{
 			bt_accept_unlink(sk);
+
 			if (newsock)
+			{
 				sock_graft(sk, newsock);
+			}
 
 			release_sock(sk);
 			return sk;
@@ -211,7 +238,7 @@ struct sock *bt_accept_dequeue(struct sock *parent, struct socket *newsock)
 EXPORT_SYMBOL(bt_accept_dequeue);
 
 int bt_sock_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
-		    int flags)
+					int flags)
 {
 	int noblock = flags & MSG_DONTWAIT;
 	struct sock *sk = sock->sk;
@@ -223,37 +250,49 @@ int bt_sock_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
 	BT_DBG("sock %p sk %p len %zu", sock, sk, len);
 
 	if (flags & MSG_OOB)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	skb = skb_recv_datagram(sk, flags, noblock, &err);
-	if (!skb) {
+
+	if (!skb)
+	{
 		if (sk->sk_shutdown & RCV_SHUTDOWN)
+		{
 			return 0;
+		}
 
 		return err;
 	}
 
 	skblen = skb->len;
 	copied = skb->len;
-	if (len < copied) {
+
+	if (len < copied)
+	{
 		msg->msg_flags |= MSG_TRUNC;
 		copied = len;
 	}
 
 	skb_reset_transport_header(skb);
 	err = skb_copy_datagram_msg(skb, 0, msg, copied);
-	if (err == 0) {
+
+	if (err == 0)
+	{
 		sock_recv_ts_and_drops(msg, sk, skb);
 
 		if (bt_sk(sk)->skb_msg_name)
 			bt_sk(sk)->skb_msg_name(skb, msg->msg_name,
-						&msg->msg_namelen);
+									&msg->msg_namelen);
 	}
 
 	skb_free_datagram(sk, skb);
 
 	if (flags & MSG_TRUNC)
+	{
 		copied = skblen;
+	}
 
 	return err ? : copied;
 }
@@ -264,17 +303,25 @@ static long bt_sock_data_wait(struct sock *sk, long timeo)
 	DECLARE_WAITQUEUE(wait, current);
 
 	add_wait_queue(sk_sleep(sk), &wait);
-	for (;;) {
+
+	for (;;)
+	{
 		set_current_state(TASK_INTERRUPTIBLE);
 
 		if (!skb_queue_empty(&sk->sk_receive_queue))
+		{
 			break;
+		}
 
 		if (sk->sk_err || (sk->sk_shutdown & RCV_SHUTDOWN))
+		{
 			break;
+		}
 
 		if (signal_pending(current) || !timeo)
+		{
 			break;
+		}
 
 		sk_set_bit(SOCKWQ_ASYNC_WAITDATA, sk);
 		release_sock(sk);
@@ -289,7 +336,7 @@ static long bt_sock_data_wait(struct sock *sk, long timeo)
 }
 
 int bt_sock_stream_recvmsg(struct socket *sock, struct msghdr *msg,
-			   size_t size, int flags)
+						   size_t size, int flags)
 {
 	struct sock *sk = sock->sk;
 	int err = 0;
@@ -297,7 +344,9 @@ int bt_sock_stream_recvmsg(struct socket *sock, struct msghdr *msg,
 	long timeo;
 
 	if (flags & MSG_OOB)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	BT_DBG("sk %p size %zu", sk, size);
 
@@ -306,65 +355,96 @@ int bt_sock_stream_recvmsg(struct socket *sock, struct msghdr *msg,
 	target = sock_rcvlowat(sk, flags & MSG_WAITALL, size);
 	timeo  = sock_rcvtimeo(sk, flags & MSG_DONTWAIT);
 
-	do {
+	do
+	{
 		struct sk_buff *skb;
 		int chunk;
 
 		skb = skb_dequeue(&sk->sk_receive_queue);
-		if (!skb) {
+
+		if (!skb)
+		{
 			if (copied >= target)
+			{
 				break;
+			}
 
 			err = sock_error(sk);
+
 			if (err)
+			{
 				break;
+			}
+
 			if (sk->sk_shutdown & RCV_SHUTDOWN)
+			{
 				break;
+			}
 
 			err = -EAGAIN;
+
 			if (!timeo)
+			{
 				break;
+			}
 
 			timeo = bt_sock_data_wait(sk, timeo);
 
-			if (signal_pending(current)) {
+			if (signal_pending(current))
+			{
 				err = sock_intr_errno(timeo);
 				goto out;
 			}
+
 			continue;
 		}
 
 		chunk = min_t(unsigned int, skb->len, size);
-		if (skb_copy_datagram_msg(skb, 0, msg, chunk)) {
+
+		if (skb_copy_datagram_msg(skb, 0, msg, chunk))
+		{
 			skb_queue_head(&sk->sk_receive_queue, skb);
+
 			if (!copied)
+			{
 				copied = -EFAULT;
+			}
+
 			break;
 		}
+
 		copied += chunk;
 		size   -= chunk;
 
 		sock_recv_ts_and_drops(msg, sk, skb);
 
-		if (!(flags & MSG_PEEK)) {
+		if (!(flags & MSG_PEEK))
+		{
 			int skb_len = skb_headlen(skb);
 
-			if (chunk <= skb_len) {
+			if (chunk <= skb_len)
+			{
 				__skb_pull(skb, chunk);
-			} else {
+			}
+			else
+			{
 				struct sk_buff *frag;
 
 				__skb_pull(skb, skb_len);
 				chunk -= skb_len;
 
-				skb_walk_frags(skb, frag) {
-					if (chunk <= frag->len) {
+				skb_walk_frags(skb, frag)
+				{
+					if (chunk <= frag->len)
+					{
 						/* Pulling partial data */
 						skb->len -= chunk;
 						skb->data_len -= chunk;
 						__skb_pull(frag, chunk);
 						break;
-					} else if (frag->len) {
+					}
+					else if (frag->len)
+					{
 						/* Pulling all frag data */
 						chunk -= frag->len;
 						skb->len -= frag->len;
@@ -374,18 +454,23 @@ int bt_sock_stream_recvmsg(struct socket *sock, struct msghdr *msg,
 				}
 			}
 
-			if (skb->len) {
+			if (skb->len)
+			{
 				skb_queue_head(&sk->sk_receive_queue, skb);
 				break;
 			}
+
 			kfree_skb(skb);
 
-		} else {
+		}
+		else
+		{
 			/* put message back and return */
 			skb_queue_head(&sk->sk_receive_queue, skb);
 			break;
 		}
-	} while (size);
+	}
+	while (size);
 
 out:
 	release_sock(sk);
@@ -398,19 +483,23 @@ static inline unsigned int bt_accept_poll(struct sock *parent)
 	struct bt_sock *s, *n;
 	struct sock *sk;
 
-	list_for_each_entry_safe(s, n, &bt_sk(parent)->accept_q, accept_q) {
+	list_for_each_entry_safe(s, n, &bt_sk(parent)->accept_q, accept_q)
+	{
 		sk = (struct sock *)s;
+
 		if (sk->sk_state == BT_CONNECTED ||
-		    (test_bit(BT_SK_DEFER_SETUP, &bt_sk(parent)->flags) &&
-		     sk->sk_state == BT_CONNECT2))
+			(test_bit(BT_SK_DEFER_SETUP, &bt_sk(parent)->flags) &&
+			 sk->sk_state == BT_CONNECT2))
+		{
 			return POLLIN | POLLRDNORM;
+		}
 	}
 
 	return 0;
 }
 
 unsigned int bt_sock_poll(struct file *file, struct socket *sock,
-			  poll_table *wait)
+						  poll_table *wait)
 {
 	struct sock *sk = sock->sk;
 	unsigned int mask = 0;
@@ -420,33 +509,49 @@ unsigned int bt_sock_poll(struct file *file, struct socket *sock,
 	poll_wait(file, sk_sleep(sk), wait);
 
 	if (sk->sk_state == BT_LISTEN)
+	{
 		return bt_accept_poll(sk);
+	}
 
 	if (sk->sk_err || !skb_queue_empty(&sk->sk_error_queue))
 		mask |= POLLERR |
-			(sock_flag(sk, SOCK_SELECT_ERR_QUEUE) ? POLLPRI : 0);
+				(sock_flag(sk, SOCK_SELECT_ERR_QUEUE) ? POLLPRI : 0);
 
 	if (sk->sk_shutdown & RCV_SHUTDOWN)
+	{
 		mask |= POLLRDHUP | POLLIN | POLLRDNORM;
+	}
 
 	if (sk->sk_shutdown == SHUTDOWN_MASK)
+	{
 		mask |= POLLHUP;
+	}
 
 	if (!skb_queue_empty(&sk->sk_receive_queue))
+	{
 		mask |= POLLIN | POLLRDNORM;
+	}
 
 	if (sk->sk_state == BT_CLOSED)
+	{
 		mask |= POLLHUP;
+	}
 
 	if (sk->sk_state == BT_CONNECT ||
-			sk->sk_state == BT_CONNECT2 ||
-			sk->sk_state == BT_CONFIG)
+		sk->sk_state == BT_CONNECT2 ||
+		sk->sk_state == BT_CONFIG)
+	{
 		return mask;
+	}
 
 	if (!test_bit(BT_SK_SUSPEND, &bt_sk(sk)->flags) && sock_writeable(sk))
+	{
 		mask |= POLLOUT | POLLWRNORM | POLLWRBAND;
+	}
 	else
+	{
 		sk_set_bit(SOCKWQ_ASYNC_NOSPACE, sk);
+	}
 
 	return mask;
 }
@@ -461,39 +566,48 @@ int bt_sock_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 
 	BT_DBG("sk %p cmd %x arg %lx", sk, cmd, arg);
 
-	switch (cmd) {
-	case TIOCOUTQ:
-		if (sk->sk_state == BT_LISTEN)
-			return -EINVAL;
+	switch (cmd)
+	{
+		case TIOCOUTQ:
+			if (sk->sk_state == BT_LISTEN)
+			{
+				return -EINVAL;
+			}
 
-		amount = sk->sk_sndbuf - sk_wmem_alloc_get(sk);
-		if (amount < 0)
-			amount = 0;
-		err = put_user(amount, (int __user *) arg);
-		break;
+			amount = sk->sk_sndbuf - sk_wmem_alloc_get(sk);
 
-	case TIOCINQ:
-		if (sk->sk_state == BT_LISTEN)
-			return -EINVAL;
+			if (amount < 0)
+			{
+				amount = 0;
+			}
 
-		lock_sock(sk);
-		skb = skb_peek(&sk->sk_receive_queue);
-		amount = skb ? skb->len : 0;
-		release_sock(sk);
-		err = put_user(amount, (int __user *) arg);
-		break;
+			err = put_user(amount, (int __user *) arg);
+			break;
 
-	case SIOCGSTAMP:
-		err = sock_get_timestamp(sk, (struct timeval __user *) arg);
-		break;
+		case TIOCINQ:
+			if (sk->sk_state == BT_LISTEN)
+			{
+				return -EINVAL;
+			}
 
-	case SIOCGSTAMPNS:
-		err = sock_get_timestampns(sk, (struct timespec __user *) arg);
-		break;
+			lock_sock(sk);
+			skb = skb_peek(&sk->sk_receive_queue);
+			amount = skb ? skb->len : 0;
+			release_sock(sk);
+			err = put_user(amount, (int __user *) arg);
+			break;
 
-	default:
-		err = -ENOIOCTLCMD;
-		break;
+		case SIOCGSTAMP:
+			err = sock_get_timestamp(sk, (struct timeval __user *) arg);
+			break;
+
+		case SIOCGSTAMPNS:
+			err = sock_get_timestampns(sk, (struct timespec __user *) arg);
+			break;
+
+		default:
+			err = -ENOIOCTLCMD;
+			break;
 	}
 
 	return err;
@@ -510,13 +624,17 @@ int bt_sock_wait_state(struct sock *sk, int state, unsigned long timeo)
 
 	add_wait_queue(sk_sleep(sk), &wait);
 	set_current_state(TASK_INTERRUPTIBLE);
-	while (sk->sk_state != state) {
-		if (!timeo) {
+
+	while (sk->sk_state != state)
+	{
+		if (!timeo)
+		{
 			err = -EINPROGRESS;
 			break;
 		}
 
-		if (signal_pending(current)) {
+		if (signal_pending(current))
+		{
 			err = sock_intr_errno(timeo);
 			break;
 		}
@@ -527,9 +645,13 @@ int bt_sock_wait_state(struct sock *sk, int state, unsigned long timeo)
 		set_current_state(TASK_INTERRUPTIBLE);
 
 		err = sock_error(sk);
+
 		if (err)
+		{
 			break;
+		}
 	}
+
 	__set_current_state(TASK_RUNNING);
 	remove_wait_queue(sk_sleep(sk), &wait);
 	return err;
@@ -549,13 +671,17 @@ int bt_sock_wait_ready(struct sock *sk, unsigned long flags)
 
 	add_wait_queue(sk_sleep(sk), &wait);
 	set_current_state(TASK_INTERRUPTIBLE);
-	while (test_bit(BT_SK_SUSPEND, &bt_sk(sk)->flags)) {
-		if (!timeo) {
+
+	while (test_bit(BT_SK_SUSPEND, &bt_sk(sk)->flags))
+	{
+		if (!timeo)
+		{
 			err = -EAGAIN;
 			break;
 		}
 
-		if (signal_pending(current)) {
+		if (signal_pending(current))
+		{
 			err = sock_intr_errno(timeo);
 			break;
 		}
@@ -566,9 +692,13 @@ int bt_sock_wait_ready(struct sock *sk, unsigned long flags)
 		set_current_state(TASK_INTERRUPTIBLE);
 
 		err = sock_error(sk);
+
 		if (err)
+		{
 			break;
+		}
 	}
+
 	__set_current_state(TASK_RUNNING);
 	remove_wait_queue(sk_sleep(sk), &wait);
 
@@ -577,12 +707,13 @@ int bt_sock_wait_ready(struct sock *sk, unsigned long flags)
 EXPORT_SYMBOL(bt_sock_wait_ready);
 
 #ifdef CONFIG_PROC_FS
-struct bt_seq_state {
+struct bt_seq_state
+{
 	struct bt_sock_list *l;
 };
 
 static void *bt_seq_start(struct seq_file *seq, loff_t *pos)
-	__acquires(seq->private->l->lock)
+__acquires(seq->private->l->lock)
 {
 	struct bt_seq_state *s = seq->private;
 	struct bt_sock_list *l = s->l;
@@ -600,7 +731,7 @@ static void *bt_seq_next(struct seq_file *seq, void *v, loff_t *pos)
 }
 
 static void bt_seq_stop(struct seq_file *seq, void *v)
-	__releases(seq->private->l->lock)
+__releases(seq->private->l->lock)
 {
 	struct bt_seq_state *s = seq->private;
 	struct bt_sock_list *l = s->l;
@@ -613,40 +744,47 @@ static int bt_seq_show(struct seq_file *seq, void *v)
 	struct bt_seq_state *s = seq->private;
 	struct bt_sock_list *l = s->l;
 
-	if (v == SEQ_START_TOKEN) {
-		seq_puts(seq ,"sk               RefCnt Rmem   Wmem   User   Inode  Parent");
+	if (v == SEQ_START_TOKEN)
+	{
+		seq_puts(seq , "sk               RefCnt Rmem   Wmem   User   Inode  Parent");
 
-		if (l->custom_seq_show) {
-			seq_putc(seq, ' ');
-			l->custom_seq_show(seq, v);
-		}
-
-		seq_putc(seq, '\n');
-	} else {
-		struct sock *sk = sk_entry(v);
-		struct bt_sock *bt = bt_sk(sk);
-
-		seq_printf(seq,
-			   "%pK %-6d %-6u %-6u %-6u %-6lu %-6lu",
-			   sk,
-			   atomic_read(&sk->sk_refcnt),
-			   sk_rmem_alloc_get(sk),
-			   sk_wmem_alloc_get(sk),
-			   from_kuid(seq_user_ns(seq), sock_i_uid(sk)),
-			   sock_i_ino(sk),
-			   bt->parent? sock_i_ino(bt->parent): 0LU);
-
-		if (l->custom_seq_show) {
+		if (l->custom_seq_show)
+		{
 			seq_putc(seq, ' ');
 			l->custom_seq_show(seq, v);
 		}
 
 		seq_putc(seq, '\n');
 	}
+	else
+	{
+		struct sock *sk = sk_entry(v);
+		struct bt_sock *bt = bt_sk(sk);
+
+		seq_printf(seq,
+				   "%pK %-6d %-6u %-6u %-6u %-6lu %-6lu",
+				   sk,
+				   atomic_read(&sk->sk_refcnt),
+				   sk_rmem_alloc_get(sk),
+				   sk_wmem_alloc_get(sk),
+				   from_kuid(seq_user_ns(seq), sock_i_uid(sk)),
+				   sock_i_ino(sk),
+				   bt->parent ? sock_i_ino(bt->parent) : 0LU);
+
+		if (l->custom_seq_show)
+		{
+			seq_putc(seq, ' ');
+			l->custom_seq_show(seq, v);
+		}
+
+		seq_putc(seq, '\n');
+	}
+
 	return 0;
 }
 
-static const struct seq_operations bt_seq_ops = {
+static const struct seq_operations bt_seq_ops =
+{
 	.start = bt_seq_start,
 	.next  = bt_seq_next,
 	.stop  = bt_seq_stop,
@@ -660,15 +798,19 @@ static int bt_seq_open(struct inode *inode, struct file *file)
 
 	sk_list = PDE_DATA(inode);
 	s = __seq_open_private(file, &bt_seq_ops,
-			       sizeof(struct bt_seq_state));
+						   sizeof(struct bt_seq_state));
+
 	if (!s)
+	{
 		return -ENOMEM;
+	}
 
 	s->l = sk_list;
 	return 0;
 }
 
-static const struct file_operations bt_fops = {
+static const struct file_operations bt_fops =
+{
 	.open = bt_seq_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
@@ -676,13 +818,16 @@ static const struct file_operations bt_fops = {
 };
 
 int bt_procfs_init(struct net *net, const char *name,
-		   struct bt_sock_list *sk_list,
-		   int (* seq_show)(struct seq_file *, void *))
+				   struct bt_sock_list *sk_list,
+				   int (* seq_show)(struct seq_file *, void *))
 {
 	sk_list->custom_seq_show = seq_show;
 
 	if (!proc_create_data(name, 0, net->proc_net, &bt_fops, sk_list))
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 
@@ -692,8 +837,8 @@ void bt_procfs_cleanup(struct net *net, const char *name)
 }
 #else
 int bt_procfs_init(struct net *net, const char *name,
-		   struct bt_sock_list *sk_list,
-		   int (* seq_show)(struct seq_file *, void *))
+				   struct bt_sock_list *sk_list,
+				   int (* seq_show)(struct seq_file *, void *))
 {
 	return 0;
 }
@@ -705,7 +850,8 @@ void bt_procfs_cleanup(struct net *net, const char *name)
 EXPORT_SYMBOL(bt_procfs_init);
 EXPORT_SYMBOL(bt_procfs_cleanup);
 
-static struct net_proto_family bt_sock_family_ops = {
+static struct net_proto_family bt_sock_family_ops =
+{
 	.owner	= THIS_MODULE,
 	.family	= PF_BLUETOOTH,
 	.create	= bt_sock_create,
@@ -715,7 +861,7 @@ struct dentry *bt_debugfs;
 EXPORT_SYMBOL_GPL(bt_debugfs);
 
 #define VERSION __stringify(BT_SUBSYS_VERSION) "." \
-		__stringify(BT_SUBSYS_REVISION)
+	__stringify(BT_SUBSYS_REVISION)
 
 static int __init bt_init(void)
 {
@@ -726,19 +872,27 @@ static int __init bt_init(void)
 	BT_INFO("Core ver %s", VERSION);
 
 	err = bt_selftest();
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	bt_debugfs = debugfs_create_dir("bluetooth", NULL);
 
 	bt_leds_init();
 
 	err = bt_sysfs_init();
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = sock_register(&bt_sock_family_ops);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		bt_sysfs_cleanup();
 		return err;
 	}
@@ -746,21 +900,31 @@ static int __init bt_init(void)
 	BT_INFO("HCI device and connection manager initialized");
 
 	err = hci_sock_init();
+
 	if (err < 0)
+	{
 		goto error;
+	}
 
 	err = l2cap_init();
+
 	if (err < 0)
+	{
 		goto sock_err;
+	}
 
 	err = sco_init();
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		l2cap_exit();
 		goto sock_err;
 	}
 
 	err = mgmt_init();
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		sco_exit();
 		l2cap_exit();
 		goto sock_err;

@@ -25,7 +25,8 @@
 #include <linux/platform_device.h>
 #include <linux/scpi_protocol.h>
 
-struct scpi_clk {
+struct scpi_clk
+{
 	u32 id;
 	struct clk_hw hw;
 	struct scpi_dvfs_info *info;
@@ -37,7 +38,7 @@ struct scpi_clk {
 static struct platform_device *cpufreq_dev;
 
 static unsigned long scpi_clk_recalc_rate(struct clk_hw *hw,
-					  unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct scpi_clk *clk = to_scpi_clk(hw);
 
@@ -45,7 +46,7 @@ static unsigned long scpi_clk_recalc_rate(struct clk_hw *hw,
 }
 
 static long scpi_clk_round_rate(struct clk_hw *hw, unsigned long rate,
-				unsigned long *parent_rate)
+								unsigned long *parent_rate)
 {
 	/*
 	 * We can't figure out what rate it will be, so just return the
@@ -57,14 +58,15 @@ static long scpi_clk_round_rate(struct clk_hw *hw, unsigned long rate,
 }
 
 static int scpi_clk_set_rate(struct clk_hw *hw, unsigned long rate,
-			     unsigned long parent_rate)
+							 unsigned long parent_rate)
 {
 	struct scpi_clk *clk = to_scpi_clk(hw);
 
 	return clk->scpi_ops->clk_set_val(clk->id, rate);
 }
 
-static const struct clk_ops scpi_clk_ops = {
+static const struct clk_ops scpi_clk_ops =
+{
 	.recalc_rate = scpi_clk_recalc_rate,
 	.round_rate = scpi_clk_round_rate,
 	.set_rate = scpi_clk_set_rate,
@@ -77,35 +79,46 @@ static int __scpi_dvfs_round_rate(struct scpi_clk *clk, unsigned long rate)
 	u32 fmin = 0, fmax = ~0, ftmp;
 	const struct scpi_opp *opp = clk->info->opps;
 
-	for (idx = 0; idx < clk->info->count; idx++, opp++) {
+	for (idx = 0; idx < clk->info->count; idx++, opp++)
+	{
 		ftmp = opp->freq;
-		if (ftmp >= (u32)rate) {
+
+		if (ftmp >= (u32)rate)
+		{
 			if (ftmp <= fmax)
+			{
 				fmax = ftmp;
+			}
+
 			break;
-		} else if (ftmp >= fmin) {
+		}
+		else if (ftmp >= fmin)
+		{
 			fmin = ftmp;
 		}
 	}
+
 	return fmax != ~0 ? fmax : fmin;
 }
 
 static unsigned long scpi_dvfs_recalc_rate(struct clk_hw *hw,
-					   unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct scpi_clk *clk = to_scpi_clk(hw);
 	int idx = clk->scpi_ops->dvfs_get_idx(clk->id);
 	const struct scpi_opp *opp;
 
 	if (idx < 0)
+	{
 		return 0;
+	}
 
 	opp = clk->info->opps + idx;
 	return opp->freq;
 }
 
 static long scpi_dvfs_round_rate(struct clk_hw *hw, unsigned long rate,
-				 unsigned long *parent_rate)
+								 unsigned long *parent_rate)
 {
 	struct scpi_clk *clk = to_scpi_clk(hw);
 
@@ -119,28 +132,36 @@ static int __scpi_find_dvfs_index(struct scpi_clk *clk, unsigned long rate)
 
 	for (idx = 0; idx < max_opp; idx++, opp++)
 		if (opp->freq == rate)
+		{
 			return idx;
+		}
+
 	return -EINVAL;
 }
 
 static int scpi_dvfs_set_rate(struct clk_hw *hw, unsigned long rate,
-			      unsigned long parent_rate)
+							  unsigned long parent_rate)
 {
 	struct scpi_clk *clk = to_scpi_clk(hw);
 	int ret = __scpi_find_dvfs_index(clk, rate);
 
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return clk->scpi_ops->dvfs_set_idx(clk->id, (u8)ret);
 }
 
-static const struct clk_ops scpi_dvfs_ops = {
+static const struct clk_ops scpi_dvfs_ops =
+{
 	.recalc_rate = scpi_dvfs_recalc_rate,
 	.round_rate = scpi_dvfs_round_rate,
 	.set_rate = scpi_dvfs_set_rate,
 };
 
-static const struct of_device_id scpi_clk_match[] = {
+static const struct of_device_id scpi_clk_match[] =
+{
 	{ .compatible = "arm,scpi-dvfs-clocks", .data = &scpi_dvfs_ops, },
 	{ .compatible = "arm,scpi-variable-clocks", .data = &scpi_clk_ops, },
 	{}
@@ -148,7 +169,7 @@ static const struct of_device_id scpi_clk_match[] = {
 
 static int
 scpi_clk_ops_init(struct device *dev, const struct of_device_id *match,
-		  struct scpi_clk *sclk, const char *name)
+				  struct scpi_clk *sclk, const char *name)
 {
 	struct clk_init_data init;
 	unsigned long min = 0, max = 0;
@@ -161,24 +182,39 @@ scpi_clk_ops_init(struct device *dev, const struct of_device_id *match,
 	sclk->hw.init = &init;
 	sclk->scpi_ops = get_scpi_ops();
 
-	if (init.ops == &scpi_dvfs_ops) {
+	if (init.ops == &scpi_dvfs_ops)
+	{
 		sclk->info = sclk->scpi_ops->dvfs_get_info(sclk->id);
+
 		if (IS_ERR(sclk->info))
+		{
 			return PTR_ERR(sclk->info);
-	} else if (init.ops == &scpi_clk_ops) {
+		}
+	}
+	else if (init.ops == &scpi_clk_ops)
+	{
 		if (sclk->scpi_ops->clk_get_range(sclk->id, &min, &max) || !max)
+		{
 			return -EINVAL;
-	} else {
+		}
+	}
+	else
+	{
 		return -EINVAL;
 	}
 
 	ret = devm_clk_hw_register(dev, &sclk->hw);
+
 	if (!ret && max)
+	{
 		clk_hw_set_rate_range(&sclk->hw, min, max);
+	}
+
 	return ret;
 }
 
-struct scpi_clk_data {
+struct scpi_clk_data
+{
 	struct scpi_clk **clk;
 	unsigned int clk_num;
 };
@@ -190,54 +226,72 @@ scpi_of_clk_src_get(struct of_phandle_args *clkspec, void *data)
 	struct scpi_clk_data *clk_data = data;
 	unsigned int idx = clkspec->args[0], count;
 
-	for (count = 0; count < clk_data->clk_num; count++) {
+	for (count = 0; count < clk_data->clk_num; count++)
+	{
 		sclk = clk_data->clk[count];
+
 		if (idx == sclk->id)
+		{
 			return &sclk->hw;
+		}
 	}
 
 	return ERR_PTR(-EINVAL);
 }
 
 static int scpi_clk_add(struct device *dev, struct device_node *np,
-			const struct of_device_id *match)
+						const struct of_device_id *match)
 {
 	int idx, count, err;
 	struct scpi_clk_data *clk_data;
 
 	count = of_property_count_strings(np, "clock-output-names");
-	if (count < 0) {
+
+	if (count < 0)
+	{
 		dev_err(dev, "%s: invalid clock output count\n", np->name);
 		return -EINVAL;
 	}
 
 	clk_data = devm_kmalloc(dev, sizeof(*clk_data), GFP_KERNEL);
+
 	if (!clk_data)
+	{
 		return -ENOMEM;
+	}
 
 	clk_data->clk_num = count;
 	clk_data->clk = devm_kcalloc(dev, count, sizeof(*clk_data->clk),
-				     GFP_KERNEL);
-	if (!clk_data->clk)
-		return -ENOMEM;
+								 GFP_KERNEL);
 
-	for (idx = 0; idx < count; idx++) {
+	if (!clk_data->clk)
+	{
+		return -ENOMEM;
+	}
+
+	for (idx = 0; idx < count; idx++)
+	{
 		struct scpi_clk *sclk;
 		const char *name;
 		u32 val;
 
 		sclk = devm_kzalloc(dev, sizeof(*sclk), GFP_KERNEL);
+
 		if (!sclk)
+		{
 			return -ENOMEM;
+		}
 
 		if (of_property_read_string_index(np, "clock-output-names",
-						  idx, &name)) {
+										  idx, &name))
+		{
 			dev_err(dev, "invalid clock name @ %s\n", np->name);
 			return -EINVAL;
 		}
 
 		if (of_property_read_u32_index(np, "clock-indices",
-					       idx, &val)) {
+									   idx, &val))
+		{
 			dev_err(dev, "invalid clock index @ %s\n", np->name);
 			return -EINVAL;
 		}
@@ -245,10 +299,16 @@ static int scpi_clk_add(struct device *dev, struct device_node *np,
 		sclk->id = val;
 
 		err = scpi_clk_ops_init(dev, match, sclk, name);
+
 		if (err)
+		{
 			dev_err(dev, "failed to register clock '%s'\n", name);
+		}
 		else
+		{
 			dev_dbg(dev, "Registered clock '%s'\n", name);
+		}
+
 		clk_data->clk[idx] = sclk;
 	}
 
@@ -260,13 +320,14 @@ static int scpi_clocks_remove(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	struct device_node *child, *np = dev->of_node;
 
-	if (cpufreq_dev) {
+	if (cpufreq_dev)
+	{
 		platform_device_unregister(cpufreq_dev);
 		cpufreq_dev = NULL;
 	}
 
 	for_each_available_child_of_node(np, child)
-		of_clk_del_provider(np);
+	of_clk_del_provider(np);
 	return 0;
 }
 
@@ -278,14 +339,23 @@ static int scpi_clocks_probe(struct platform_device *pdev)
 	const struct of_device_id *match;
 
 	if (!get_scpi_ops())
+	{
 		return -ENXIO;
+	}
 
-	for_each_available_child_of_node(np, child) {
+	for_each_available_child_of_node(np, child)
+	{
 		match = of_match_node(scpi_clk_match, child);
+
 		if (!match)
+		{
 			continue;
+		}
+
 		ret = scpi_clk_add(dev, child, match);
-		if (ret) {
+
+		if (ret)
+		{
 			scpi_clocks_remove(pdev);
 			of_node_put(child);
 			return ret;
@@ -293,20 +363,25 @@ static int scpi_clocks_probe(struct platform_device *pdev)
 	}
 	/* Add the virtual cpufreq device */
 	cpufreq_dev = platform_device_register_simple("scpi-cpufreq",
-						      -1, NULL, 0);
+				  -1, NULL, 0);
+
 	if (IS_ERR(cpufreq_dev))
+	{
 		pr_warn("unable to register cpufreq device");
+	}
 
 	return 0;
 }
 
-static const struct of_device_id scpi_clocks_ids[] = {
+static const struct of_device_id scpi_clocks_ids[] =
+{
 	{ .compatible = "arm,scpi-clocks", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, scpi_clocks_ids);
 
-static struct platform_driver scpi_clocks_driver = {
+static struct platform_driver scpi_clocks_driver =
+{
 	.driver	= {
 		.name = "scpi_clocks",
 		.of_match_table = scpi_clocks_ids,

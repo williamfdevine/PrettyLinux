@@ -84,7 +84,8 @@ struct lovsub_device;
 struct lovsub_object;
 struct lovsub_lock;
 
-enum lov_device_flags {
+enum lov_device_flags
+{
 	LOV_DEV_INITIALIZED = 1 << 0
 };
 
@@ -98,7 +99,8 @@ enum lov_device_flags {
  * quantities in lov_device::ld_emerg[], and access to them is serialized
  * lov_device::ld_mutex.
  */
-struct lov_device_emerg {
+struct lov_device_emerg
+{
 	/**
 	 * Page list used to submit IO when memory is in pressure.
 	 */
@@ -121,7 +123,8 @@ struct lov_device_emerg {
 	int		 emrg_refcheck;
 };
 
-struct lov_device {
+struct lov_device
+{
 	/*
 	 * XXX Locking of lov-private data is missing.
 	 */
@@ -144,7 +147,8 @@ struct lov_device {
 /**
  * Layout type.
  */
-enum lov_layout_type {
+enum lov_layout_type
+{
 	LLT_EMPTY,	/** empty file without body (mknod + truncate) */
 	LLT_RAID0,	/** striped file */
 	LLT_RELEASED,	/** file with no objects (data in HSM) */
@@ -153,16 +157,21 @@ enum lov_layout_type {
 
 static inline char *llt2str(enum lov_layout_type llt)
 {
-	switch (llt) {
-	case LLT_EMPTY:
-		return "EMPTY";
-	case LLT_RAID0:
-		return "RAID0";
-	case LLT_RELEASED:
-		return "RELEASED";
-	case LLT_NR:
-		LBUG();
+	switch (llt)
+	{
+		case LLT_EMPTY:
+			return "EMPTY";
+
+		case LLT_RAID0:
+			return "RAID0";
+
+		case LLT_RELEASED:
+			return "RELEASED";
+
+		case LLT_NR:
+			LBUG();
 	}
+
 	LBUG();
 	return "";
 }
@@ -181,7 +190,8 @@ static inline char *llt2str(enum lov_layout_type llt)
  * current layout type, object methods perform double-dispatch, invoking
  * function corresponding to the current layout type.
  */
-struct lov_object {
+struct lov_object
+{
 	struct cl_object       lo_cl;
 	/**
 	 * Serializes object operations with transitions between layout types.
@@ -215,8 +225,10 @@ struct lov_object {
 	 */
 	struct lov_stripe_md  *lo_lsm;
 
-	union lov_layout_state {
-		struct lov_layout_raid0 {
+	union lov_layout_state
+	{
+		struct lov_layout_raid0
+		{
 			unsigned	       lo_nr;
 			/**
 			 * When this is true, lov_object::lo_attr contains
@@ -251,9 +263,11 @@ struct lov_object {
 			 */
 			struct cl_attr	 lo_attr;
 		} raid0;
-		struct lov_layout_state_empty {
+		struct lov_layout_state_empty
+		{
 		} empty;
-		struct lov_layout_state_released {
+		struct lov_layout_state_released
+		{
 		} released;
 	} u;
 	/**
@@ -266,21 +280,23 @@ struct lov_object {
 /**
  * State lov_lock keeps for each sub-lock.
  */
-struct lov_lock_sub {
+struct lov_lock_sub
+{
 	/** sub-lock itself */
 	struct cl_lock		sub_lock;
 	/** Set if the sublock has ever been enqueued, meaning it may
 	 * hold resources of underlying layers
 	 */
-	unsigned int		sub_is_enqueued:1,
-				sub_initialized:1;
+	unsigned int		sub_is_enqueued: 1,
+				   sub_initialized: 1;
 	int		  sub_stripe;
 };
 
 /**
  * lov-specific lock state.
  */
-struct lov_lock {
+struct lov_lock
+{
 	struct cl_lock_slice   lls_cl;
 	/** Number of sub-locks in this lock */
 	int		    lls_nr;
@@ -288,7 +304,8 @@ struct lov_lock {
 	struct lov_lock_sub     lls_sub[0];
 };
 
-struct lov_page {
+struct lov_page
+{
 	struct cl_page_slice	lps_cl;
 	unsigned int		lps_stripe; /* stripe index */
 };
@@ -297,14 +314,16 @@ struct lov_page {
  * Bottom half.
  */
 
-struct lovsub_device {
+struct lovsub_device
+{
 	struct cl_device   acid_cl;
 	struct lov_device *acid_super;
 	int		acid_idx;
 	struct cl_device  *acid_next;
 };
 
-struct lovsub_object {
+struct lovsub_object
+{
 	struct cl_object_header lso_header;
 	struct cl_object	lso_cl;
 	struct lov_object      *lso_super;
@@ -318,7 +337,8 @@ struct lovsub_object {
  * \todo This can be optimized for a (by far) most frequent case of a single
  * top-lock per sub-lock.
  */
-struct lov_lock_link {
+struct lov_lock_link
+{
 	struct lov_lock *lll_super;
 	/** An index within parent lock. */
 	int	      lll_idx;
@@ -332,7 +352,8 @@ struct lov_lock_link {
 /**
  * Lock state at lovsub layer.
  */
-struct lovsub_lock {
+struct lovsub_lock
+{
 	struct cl_lock_slice  lss_cl;
 	/**
 	 * List of top-locks that have given sub-lock as their part. Protected
@@ -353,17 +374,20 @@ struct lovsub_lock {
 /**
  * Describe the environment settings for sublocks.
  */
-struct lov_sublock_env {
+struct lov_sublock_env
+{
 	const struct lu_env *lse_env;
 	struct cl_io	*lse_io;
 	struct lov_io_sub   *lse_sub;
 };
 
-struct lovsub_page {
+struct lovsub_page
+{
 	struct cl_page_slice lsb_cl;
 };
 
-struct lov_thread_info {
+struct lov_thread_info
+{
 	struct cl_object_conf   lti_stripe_conf;
 	struct lu_fid	   lti_fid;
 	struct cl_lock_descr    lti_ldescr;
@@ -377,7 +401,8 @@ struct lov_thread_info {
 /**
  * State that lov_io maintains for every sub-io.
  */
-struct lov_io_sub {
+struct lov_io_sub
+{
 	int		  sub_stripe;
 	/**
 	 * sub-io for a stripe. Ideally sub-io's can be stopped and resumed
@@ -418,7 +443,8 @@ struct lov_io_sub {
 /**
  * IO state private for LOV.
  */
-struct lov_io {
+struct lov_io
+{
 	/** super-class */
 	struct cl_io_slice lis_cl;
 	/**
@@ -468,7 +494,8 @@ struct lov_io {
 	struct list_head	 lis_active;
 };
 
-struct lov_session {
+struct lov_session
+{
 	struct lov_io	  ls_io;
 	struct lov_sublock_env ls_subenv;
 };
@@ -476,14 +503,16 @@ struct lov_session {
 /**
  * State of transfer for lov.
  */
-struct lov_req {
+struct lov_req
+{
 	struct cl_req_slice lr_cl;
 };
 
 /**
  * State of transfer for lovsub.
  */
-struct lovsub_req {
+struct lovsub_req
+{
 	struct cl_req_slice lsrq_cl;
 };
 
@@ -506,56 +535,56 @@ extern struct kmem_cache *lovsub_req_kmem;
 extern struct kmem_cache *lov_lock_link_kmem;
 
 int lov_object_init(const struct lu_env *env, struct lu_object *obj,
-		    const struct lu_object_conf *conf);
+					const struct lu_object_conf *conf);
 int lovsub_object_init(const struct lu_env *env, struct lu_object *obj,
-		       const struct lu_object_conf *conf);
+					   const struct lu_object_conf *conf);
 int lov_lock_init(const struct lu_env *env, struct cl_object *obj,
-		  struct cl_lock *lock, const struct cl_io *io);
+				  struct cl_lock *lock, const struct cl_io *io);
 int lov_io_init(const struct lu_env *env, struct cl_object *obj,
-		struct cl_io *io);
+				struct cl_io *io);
 int lovsub_lock_init(const struct lu_env *env, struct cl_object *obj,
-		     struct cl_lock *lock, const struct cl_io *io);
+					 struct cl_lock *lock, const struct cl_io *io);
 
 int lov_lock_init_raid0(const struct lu_env *env, struct cl_object *obj,
-			struct cl_lock *lock, const struct cl_io *io);
+						struct cl_lock *lock, const struct cl_io *io);
 int lov_lock_init_empty(const struct lu_env *env, struct cl_object *obj,
-			struct cl_lock *lock, const struct cl_io *io);
+						struct cl_lock *lock, const struct cl_io *io);
 int lov_io_init_raid0(const struct lu_env *env, struct cl_object *obj,
-		      struct cl_io *io);
+					  struct cl_io *io);
 int lov_io_init_empty(const struct lu_env *env, struct cl_object *obj,
-		      struct cl_io *io);
+					  struct cl_io *io);
 int lov_io_init_released(const struct lu_env *env, struct cl_object *obj,
-			 struct cl_io *io);
+						 struct cl_io *io);
 void lov_lock_unlink(const struct lu_env *env, struct lov_lock_link *link,
-		     struct lovsub_lock *sub);
+					 struct lovsub_lock *sub);
 
 struct lov_io_sub *lov_sub_get(const struct lu_env *env, struct lov_io *lio,
-			       int stripe);
+							   int stripe);
 void lov_sub_put(struct lov_io_sub *sub);
 int lov_sublock_modify(const struct lu_env *env, struct lov_lock *lov,
-		       struct lovsub_lock *sublock,
-		       const struct cl_lock_descr *d, int idx);
+					   struct lovsub_lock *sublock,
+					   const struct cl_lock_descr *d, int idx);
 
 int lov_page_init(const struct lu_env *env, struct cl_object *ob,
-		  struct cl_page *page, pgoff_t index);
+				  struct cl_page *page, pgoff_t index);
 int lovsub_page_init(const struct lu_env *env, struct cl_object *ob,
-		     struct cl_page *page, pgoff_t index);
+					 struct cl_page *page, pgoff_t index);
 int lov_page_init_empty(const struct lu_env *env, struct cl_object *obj,
-			struct cl_page *page, pgoff_t index);
+						struct cl_page *page, pgoff_t index);
 int lov_page_init_raid0(const struct lu_env *env, struct cl_object *obj,
-			struct cl_page *page, pgoff_t index);
+						struct cl_page *page, pgoff_t index);
 struct lu_object *lov_object_alloc(const struct lu_env *env,
-				   const struct lu_object_header *hdr,
-				   struct lu_device *dev);
+								   const struct lu_object_header *hdr,
+								   struct lu_device *dev);
 struct lu_object *lovsub_object_alloc(const struct lu_env *env,
-				      const struct lu_object_header *hdr,
-				      struct lu_device *dev);
+									  const struct lu_object_header *hdr,
+									  struct lu_device *dev);
 
 struct lov_lock_link *lov_lock_link_find(const struct lu_env *env,
-					 struct lov_lock *lck,
-					 struct lovsub_lock *sub);
+		struct lov_lock *lck,
+		struct lovsub_lock *sub);
 struct lov_io_sub *lov_page_subio(const struct lu_env *env, struct lov_io *lio,
-				  const struct cl_page_slice *slice);
+								  const struct cl_page_slice *slice);
 
 struct lov_stripe_md *lov_lsm_addref(struct lov_object *lov);
 int lov_page_stripe(const struct cl_page *page);
@@ -718,7 +747,7 @@ static inline struct lovsub_req *cl2lovsub_req(const struct cl_req_slice *slice)
 }
 
 static inline struct lov_io *cl2lov_io(const struct lu_env *env,
-				       const struct cl_io_slice *ios)
+									   const struct cl_io_slice *ios)
 {
 	struct lov_io *lio;
 
@@ -745,13 +774,13 @@ static inline struct lov_layout_raid0 *lov_r0(struct lov_object *lov)
 {
 	LASSERT(lov->lo_type == LLT_RAID0);
 	LASSERT(lov->lo_lsm->lsm_magic == LOV_MAGIC ||
-		lov->lo_lsm->lsm_magic == LOV_MAGIC_V3);
+			lov->lo_lsm->lsm_magic == LOV_MAGIC_V3);
 	return &lov->u.raid0;
 }
 
 /* lov_pack.c */
 int lov_getstripe(struct lov_object *obj, struct lov_stripe_md *lsm,
-		  struct lov_user_md __user *lump);
+				  struct lov_user_md __user *lump);
 
 /** @} lov */
 

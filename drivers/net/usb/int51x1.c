@@ -50,7 +50,8 @@ static int int51x1_rx_fixup(struct usbnet *dev, struct sk_buff *skb)
 {
 	int len;
 
-	if (!(pskb_may_pull(skb, INT51X1_HEADER_SIZE))) {
+	if (!(pskb_may_pull(skb, INT51X1_HEADER_SIZE)))
+	{
 		netdev_err(dev->net, "unexpected tiny rx frame\n");
 		return 0;
 	}
@@ -63,7 +64,7 @@ static int int51x1_rx_fixup(struct usbnet *dev, struct sk_buff *skb)
 }
 
 static struct sk_buff *int51x1_tx_fixup(struct usbnet *dev,
-		struct sk_buff *skb, gfp_t flags)
+										struct sk_buff *skb, gfp_t flags)
 {
 	int pack_len = skb->len;
 	int pack_with_header_len = pack_len + INT51X1_HEADER_SIZE;
@@ -74,32 +75,44 @@ static struct sk_buff *int51x1_tx_fixup(struct usbnet *dev,
 
 	/* if packet and our header is smaler than 64 pad to 64 (+ ZLP) */
 	if ((pack_with_header_len) < dev->maxpacket)
+	{
 		need_tail = dev->maxpacket - pack_with_header_len + 1;
+	}
 	/*
 	 * usbnet would send a ZLP if packetlength mod urbsize == 0 for us,
 	 * but we need to know ourself, because this would add to the length
 	 * we send down to the device...
 	 */
 	else if (!(pack_with_header_len % dev->maxpacket))
+	{
 		need_tail = 1;
+	}
 
 	if (!skb_cloned(skb) &&
-			(headroom + tailroom >= need_tail + INT51X1_HEADER_SIZE)) {
-		if (headroom < INT51X1_HEADER_SIZE || tailroom < need_tail) {
+		(headroom + tailroom >= need_tail + INT51X1_HEADER_SIZE))
+	{
+		if (headroom < INT51X1_HEADER_SIZE || tailroom < need_tail)
+		{
 			skb->data = memmove(skb->head + INT51X1_HEADER_SIZE,
-					skb->data, skb->len);
+								skb->data, skb->len);
 			skb_set_tail_pointer(skb, skb->len);
 		}
-	} else {
+	}
+	else
+	{
 		struct sk_buff *skb2;
 
 		skb2 = skb_copy_expand(skb,
-				INT51X1_HEADER_SIZE,
-				need_tail,
-				flags);
+							   INT51X1_HEADER_SIZE,
+							   need_tail,
+							   flags);
 		dev_kfree_skb_any(skb);
+
 		if (!skb2)
+		{
 			return NULL;
+		}
+
 		skb = skb2;
 	}
 
@@ -109,8 +122,10 @@ static struct sk_buff *int51x1_tx_fixup(struct usbnet *dev,
 	len = (__le16 *) __skb_push(skb, INT51X1_HEADER_SIZE);
 	*len = cpu_to_le16(pack_len);
 
-	if(need_tail)
+	if (need_tail)
+	{
 		memset(__skb_put(skb, need_tail), 0, need_tail);
+	}
 
 	return skb;
 }
@@ -120,25 +135,31 @@ static void int51x1_set_multicast(struct net_device *netdev)
 	struct usbnet *dev = netdev_priv(netdev);
 	u16 filter = PACKET_TYPE_DIRECTED | PACKET_TYPE_BROADCAST;
 
-	if (netdev->flags & IFF_PROMISC) {
+	if (netdev->flags & IFF_PROMISC)
+	{
 		/* do not expect to see traffic of other PLCs */
 		filter |= PACKET_TYPE_PROMISCUOUS;
 		netdev_info(dev->net, "promiscuous mode enabled\n");
-	} else if (!netdev_mc_empty(netdev) ||
-		  (netdev->flags & IFF_ALLMULTI)) {
+	}
+	else if (!netdev_mc_empty(netdev) ||
+			 (netdev->flags & IFF_ALLMULTI))
+	{
 		filter |= PACKET_TYPE_ALL_MULTICAST;
 		netdev_dbg(dev->net, "receive all multicast enabled\n");
-	} else {
+	}
+	else
+	{
 		/* ~PROMISCUOUS, ~MULTICAST */
 		netdev_dbg(dev->net, "receive own packets only\n");
 	}
 
 	usbnet_write_cmd_async(dev, SET_ETHERNET_PACKET_FILTER,
-			       USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
-			       filter, 0, NULL, 0);
+						   USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
+						   filter, 0, NULL, 0);
 }
 
-static const struct net_device_ops int51x1_netdev_ops = {
+static const struct net_device_ops int51x1_netdev_ops =
+{
 	.ndo_open		= usbnet_open,
 	.ndo_stop		= usbnet_stop,
 	.ndo_start_xmit		= usbnet_start_xmit,
@@ -154,7 +175,9 @@ static int int51x1_bind(struct usbnet *dev, struct usb_interface *intf)
 	int status = usbnet_get_ethernet_addr(dev, 3);
 
 	if (status)
+	{
 		return status;
+	}
 
 	dev->net->hard_header_len += INT51X1_HEADER_SIZE;
 	dev->hard_mtu = dev->net->mtu + dev->net->hard_header_len;
@@ -163,7 +186,8 @@ static int int51x1_bind(struct usbnet *dev, struct usb_interface *intf)
 	return usbnet_get_endpoints(dev, intf);
 }
 
-static const struct driver_info int51x1_info = {
+static const struct driver_info int51x1_info =
+{
 	.description = "Intellon usb powerline adapter",
 	.bind        = int51x1_bind,
 	.rx_fixup    = int51x1_rx_fixup,
@@ -173,16 +197,18 @@ static const struct driver_info int51x1_info = {
 	.flags       = FLAG_ETHER,
 };
 
-static const struct usb_device_id products[] = {
+static const struct usb_device_id products[] =
+{
 	{
-	USB_DEVICE(INT51X1_VENDOR_ID, INT51X1_PRODUCT_ID),
+		USB_DEVICE(INT51X1_VENDOR_ID, INT51X1_PRODUCT_ID),
 		.driver_info = (unsigned long) &int51x1_info,
 	},
 	{},
 };
 MODULE_DEVICE_TABLE(usb, products);
 
-static struct usb_driver int51x1_driver = {
+static struct usb_driver int51x1_driver =
+{
 	.name       = "int51x1",
 	.id_table   = products,
 	.probe      = usbnet_probe,

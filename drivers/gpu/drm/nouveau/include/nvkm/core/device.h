@@ -3,7 +3,8 @@
 #include <core/event.h>
 #include <core/object.h>
 
-enum nvkm_devidx {
+enum nvkm_devidx
+{
 	NVKM_SUBDEV_PCI,
 	NVKM_SUBDEV_VBIOS,
 	NVKM_SUBDEV_DEVINIT,
@@ -66,14 +67,16 @@ enum nvkm_devidx {
 	NVKM_SUBDEV_NR
 };
 
-enum nvkm_device_type {
+enum nvkm_device_type
+{
 	NVKM_DEVICE_PCI,
 	NVKM_DEVICE_AGP,
 	NVKM_DEVICE_PCIE,
 	NVKM_DEVICE_TEGRA,
 };
 
-struct nvkm_device {
+struct nvkm_device
+{
 	const struct nvkm_device_func *func;
 	const struct nvkm_device_quirk *quirk;
 	struct device *dev;
@@ -95,7 +98,8 @@ struct nvkm_device {
 	u32 debug;
 
 	const struct nvkm_device_chip *chip;
-	enum {
+	enum
+	{
 		NV_04    = 0x04,
 		NV_10    = 0x10,
 		NV_11    = 0x11,
@@ -112,7 +116,8 @@ struct nvkm_device {
 	u8  chiprev;
 	u32 crystal;
 
-	struct {
+	struct
+	{
 		struct notifier_block nb;
 	} acpi;
 
@@ -166,7 +171,8 @@ struct nvkm_device {
 struct nvkm_subdev *nvkm_device_subdev(struct nvkm_device *, int index);
 struct nvkm_engine *nvkm_device_engine(struct nvkm_device *, int index);
 
-struct nvkm_device_func {
+struct nvkm_device_func
+{
 	struct nvkm_device_pci *(*pci)(struct nvkm_device *);
 	struct nvkm_device_tegra *(*tegra)(struct nvkm_device *);
 	void *(*dtor)(struct nvkm_device *);
@@ -178,12 +184,14 @@ struct nvkm_device_func {
 	bool cpu_coherent;
 };
 
-struct nvkm_device_quirk {
+struct nvkm_device_quirk
+{
 	u8 tv_pin_mask;
 	u8 tv_gpio;
 };
 
-struct nvkm_device_chip {
+struct nvkm_device_chip
+{
 	const char *name;
 
 	int (*bar     )(struct nvkm_device *, int idx, struct nvkm_bar **);
@@ -244,17 +252,18 @@ int nvkm_device_list(u64 *name, int size);
 #define nvkm_wr16(d,a,v) iowrite16_native((v), (d)->pri + (a))
 #define nvkm_wr32(d,a,v) iowrite32_native((v), (d)->pri + (a))
 #define nvkm_mask(d,a,m,v) ({                                                  \
-	struct nvkm_device *_device = (d);                                     \
-	u32 _addr = (a), _temp = nvkm_rd32(_device, _addr);                    \
-	nvkm_wr32(_device, _addr, (_temp & ~(m)) | (v));                       \
-	_temp;                                                                 \
-})
+		struct nvkm_device *_device = (d);                                     \
+		u32 _addr = (a), _temp = nvkm_rd32(_device, _addr);                    \
+		nvkm_wr32(_device, _addr, (_temp & ~(m)) | (v));                       \
+		_temp;                                                                 \
+	})
 
 void nvkm_device_del(struct nvkm_device **);
 
-struct nvkm_device_oclass {
+struct nvkm_device_oclass
+{
 	int (*ctor)(struct nvkm_device *, const struct nvkm_oclass *,
-		    void *data, u32 size, struct nvkm_object **);
+				void *data, u32 size, struct nvkm_object **);
 	struct nvkm_sclass base;
 };
 
@@ -262,10 +271,10 @@ extern const struct nvkm_sclass nvkm_udevice_sclass;
 
 /* device logging */
 #define nvdev_printk_(d,l,p,f,a...) do {                                       \
-	struct nvkm_device *_device = (d);                                     \
-	if (_device->debug >= (l))                                             \
-		dev_##p(_device->dev, f, ##a);                                 \
-} while(0)
+		struct nvkm_device *_device = (d);                                     \
+		if (_device->debug >= (l))                                             \
+			dev_##p(_device->dev, f, ##a);                                 \
+	} while(0)
 #define nvdev_printk(d,l,p,f,a...) nvdev_printk_((d), NV_DBG_##l, p, f, ##a)
 #define nvdev_fatal(d,f,a...) nvdev_printk((d), FATAL,   crit, f, ##a)
 #define nvdev_error(d,f,a...) nvdev_printk((d), ERROR,    err, f, ##a)

@@ -1,7 +1,7 @@
 /*
   Red Black Trees
   (C) 1999  Andrea Arcangeli <andrea@suse.de>
-  
+
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
@@ -33,14 +33,16 @@
 #include <linux/stddef.h>
 #include <linux/rcupdate.h>
 
-struct rb_node {
+struct rb_node
+{
 	unsigned long  __rb_parent_color;
 	struct rb_node *rb_right;
 	struct rb_node *rb_left;
 } __attribute__((aligned(sizeof(long))));
-    /* The alignment might seem pointless, but allegedly CRIS needs it */
+/* The alignment might seem pointless, but allegedly CRIS needs it */
 
-struct rb_root {
+struct rb_root
+{
 	struct rb_node *rb_node;
 };
 
@@ -75,12 +77,12 @@ extern struct rb_node *rb_next_postorder(const struct rb_node *);
 
 /* Fast replacement of a single node without remove/rebalance/add/rebalance */
 extern void rb_replace_node(struct rb_node *victim, struct rb_node *new,
-			    struct rb_root *root);
+							struct rb_root *root);
 extern void rb_replace_node_rcu(struct rb_node *victim, struct rb_node *new,
-				struct rb_root *root);
+								struct rb_root *root);
 
 static inline void rb_link_node(struct rb_node *node, struct rb_node *parent,
-				struct rb_node **rb_link)
+								struct rb_node **rb_link)
 {
 	node->__rb_parent_color = (unsigned long)parent;
 	node->rb_left = node->rb_right = NULL;
@@ -89,7 +91,7 @@ static inline void rb_link_node(struct rb_node *node, struct rb_node *parent,
 }
 
 static inline void rb_link_node_rcu(struct rb_node *node, struct rb_node *parent,
-				    struct rb_node **rb_link)
+									struct rb_node **rb_link)
 {
 	node->__rb_parent_color = (unsigned long)parent;
 	node->rb_left = node->rb_right = NULL;
@@ -99,7 +101,7 @@ static inline void rb_link_node_rcu(struct rb_node *node, struct rb_node *parent
 
 #define rb_entry_safe(ptr, type, member) \
 	({ typeof(ptr) ____ptr = (ptr); \
-	   ____ptr ? rb_entry(____ptr, type, member) : NULL; \
+		____ptr ? rb_entry(____ptr, type, member) : NULL; \
 	})
 
 /**
@@ -121,8 +123,8 @@ static inline void rb_link_node_rcu(struct rb_node *node, struct rb_node *parent
  */
 #define rbtree_postorder_for_each_entry_safe(pos, n, root, field) \
 	for (pos = rb_entry_safe(rb_first_postorder(root), typeof(*pos), field); \
-	     pos && ({ n = rb_entry_safe(rb_next_postorder(&pos->field), \
-			typeof(*pos), field); 1; }); \
-	     pos = n)
+	pos && ({ n = rb_entry_safe(rb_next_postorder(&pos->field), \
+								typeof(*pos), field); 1; }); \
+	pos = n)
 
 #endif	/* _LINUX_RBTREE_H */

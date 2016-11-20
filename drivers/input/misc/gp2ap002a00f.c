@@ -19,13 +19,15 @@
 #include <linux/delay.h>
 #include <linux/input/gp2ap002a00f.h>
 
-struct gp2a_data {
+struct gp2a_data
+{
 	struct input_dev *input;
 	const struct gp2a_platform_data *pdata;
 	struct i2c_client *i2c_client;
 };
 
-enum gp2a_addr {
+enum gp2a_addr
+{
 	GP2A_ADDR_PROX	= 0x0,
 	GP2A_ADDR_GAIN	= 0x1,
 	GP2A_ADDR_HYS	= 0x2,
@@ -34,7 +36,8 @@ enum gp2a_addr {
 	GP2A_ADDR_CON	= 0x6
 };
 
-enum gp2a_controls {
+enum gp2a_controls
+{
 	/* Software Shutdown control: 0 = shutdown, 1 = normal operation */
 	GP2A_CTRL_SSD	= 0x01
 };
@@ -61,13 +64,13 @@ static irqreturn_t gp2a_irq(int irq, void *handle)
 static int gp2a_enable(struct gp2a_data *dt)
 {
 	return i2c_smbus_write_byte_data(dt->i2c_client, GP2A_ADDR_OPMOD,
-					 GP2A_CTRL_SSD);
+									 GP2A_CTRL_SSD);
 }
 
 static int gp2a_disable(struct gp2a_data *dt)
 {
 	return i2c_smbus_write_byte_data(dt->i2c_client, GP2A_ADDR_OPMOD,
-					 0x00);
+									 0x00);
 }
 
 static int gp2a_device_open(struct input_dev *dev)
@@ -76,9 +79,11 @@ static int gp2a_device_open(struct input_dev *dev)
 	int error;
 
 	error = gp2a_enable(dt);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		dev_err(&dt->i2c_client->dev,
-			"unable to activate, err %d\n", error);
+				"unable to activate, err %d\n", error);
 		return error;
 	}
 
@@ -93,9 +98,10 @@ static void gp2a_device_close(struct input_dev *dev)
 	int error;
 
 	error = gp2a_disable(dt);
+
 	if (error < 0)
 		dev_err(&dt->i2c_client->dev,
-			"unable to deactivate, err %d\n", error);
+				"unable to deactivate, err %d\n", error);
 }
 
 static int gp2a_initialize(struct gp2a_data *dt)
@@ -103,19 +109,28 @@ static int gp2a_initialize(struct gp2a_data *dt)
 	int error;
 
 	error = i2c_smbus_write_byte_data(dt->i2c_client, GP2A_ADDR_GAIN,
-					  0x08);
+									  0x08);
+
 	if (error < 0)
+	{
 		return error;
+	}
 
 	error = i2c_smbus_write_byte_data(dt->i2c_client, GP2A_ADDR_HYS,
-					  0xc2);
+									  0xc2);
+
 	if (error < 0)
+	{
 		return error;
+	}
 
 	error = i2c_smbus_write_byte_data(dt->i2c_client, GP2A_ADDR_CYCLE,
-					  0x04);
+									  0x04);
+
 	if (error < 0)
+	{
 		return error;
+	}
 
 	error = gp2a_disable(dt);
 
@@ -123,27 +138,38 @@ static int gp2a_initialize(struct gp2a_data *dt)
 }
 
 static int gp2a_probe(struct i2c_client *client,
-				const struct i2c_device_id *id)
+					  const struct i2c_device_id *id)
 {
 	const struct gp2a_platform_data *pdata = dev_get_platdata(&client->dev);
 	struct gp2a_data *dt;
 	int error;
 
 	if (!pdata)
+	{
 		return -EINVAL;
+	}
 
-	if (pdata->hw_setup) {
+	if (pdata->hw_setup)
+	{
 		error = pdata->hw_setup(client);
+
 		if (error < 0)
+		{
 			return error;
+		}
 	}
 
 	error = gpio_request_one(pdata->vout_gpio, GPIOF_IN, GP2A_I2C_NAME);
+
 	if (error)
+	{
 		goto err_hw_shutdown;
+	}
 
 	dt = kzalloc(sizeof(struct gp2a_data), GFP_KERNEL);
-	if (!dt) {
+
+	if (!dt)
+	{
 		error = -ENOMEM;
 		goto err_free_gpio;
 	}
@@ -152,11 +178,16 @@ static int gp2a_probe(struct i2c_client *client,
 	dt->i2c_client = client;
 
 	error = gp2a_initialize(dt);
+
 	if (error < 0)
+	{
 		goto err_free_mem;
+	}
 
 	dt->input = input_allocate_device();
-	if (!dt->input) {
+
+	if (!dt->input)
+	{
 		error = -ENOMEM;
 		goto err_free_mem;
 	}
@@ -172,16 +203,20 @@ static int gp2a_probe(struct i2c_client *client,
 	input_set_capability(dt->input, EV_SW, SW_FRONT_PROXIMITY);
 
 	error = request_threaded_irq(client->irq, NULL, gp2a_irq,
-			IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING |
-				IRQF_ONESHOT,
-			GP2A_I2C_NAME, dt);
-	if (error) {
+								 IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING |
+								 IRQF_ONESHOT,
+								 GP2A_I2C_NAME, dt);
+
+	if (error)
+	{
 		dev_err(&client->dev, "irq request failed\n");
 		goto err_free_input_dev;
 	}
 
 	error = input_register_device(dt->input);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&client->dev, "device registration failed\n");
 		goto err_free_irq;
 	}
@@ -200,8 +235,12 @@ err_free_mem:
 err_free_gpio:
 	gpio_free(pdata->vout_gpio);
 err_hw_shutdown:
+
 	if (pdata->hw_shutdown)
+	{
 		pdata->hw_shutdown(client);
+	}
+
 	return error;
 }
 
@@ -220,7 +259,9 @@ static int gp2a_remove(struct i2c_client *client)
 	gpio_free(pdata->vout_gpio);
 
 	if (pdata->hw_shutdown)
+	{
 		pdata->hw_shutdown(client);
+	}
 
 	return 0;
 }
@@ -231,12 +272,19 @@ static int __maybe_unused gp2a_suspend(struct device *dev)
 	struct gp2a_data *dt = i2c_get_clientdata(client);
 	int retval = 0;
 
-	if (device_may_wakeup(&client->dev)) {
+	if (device_may_wakeup(&client->dev))
+	{
 		enable_irq_wake(client->irq);
-	} else {
+	}
+	else
+	{
 		mutex_lock(&dt->input->mutex);
+
 		if (dt->input->users)
+		{
 			retval = gp2a_disable(dt);
+		}
+
 		mutex_unlock(&dt->input->mutex);
 	}
 
@@ -249,12 +297,19 @@ static int __maybe_unused gp2a_resume(struct device *dev)
 	struct gp2a_data *dt = i2c_get_clientdata(client);
 	int retval = 0;
 
-	if (device_may_wakeup(&client->dev)) {
+	if (device_may_wakeup(&client->dev))
+	{
 		disable_irq_wake(client->irq);
-	} else {
+	}
+	else
+	{
 		mutex_lock(&dt->input->mutex);
+
 		if (dt->input->users)
+		{
 			retval = gp2a_enable(dt);
+		}
+
 		mutex_unlock(&dt->input->mutex);
 	}
 
@@ -263,13 +318,15 @@ static int __maybe_unused gp2a_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(gp2a_pm, gp2a_suspend, gp2a_resume);
 
-static const struct i2c_device_id gp2a_i2c_id[] = {
+static const struct i2c_device_id gp2a_i2c_id[] =
+{
 	{ GP2A_I2C_NAME, 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, gp2a_i2c_id);
 
-static struct i2c_driver gp2a_i2c_driver = {
+static struct i2c_driver gp2a_i2c_driver =
+{
 	.driver = {
 		.name	= GP2A_I2C_NAME,
 		.pm	= &gp2a_pm,

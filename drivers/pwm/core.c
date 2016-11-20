@@ -52,19 +52,27 @@ static int alloc_pwms(int pwm, unsigned int count)
 	unsigned int start;
 
 	if (pwm >= MAX_PWMS)
+	{
 		return -EINVAL;
+	}
 
 	if (pwm >= 0)
+	{
 		from = pwm;
+	}
 
 	start = bitmap_find_next_zero_area(allocated_pwms, MAX_PWMS, from,
-					   count, 0);
+									   count, 0);
 
 	if (pwm >= 0 && start != pwm)
+	{
 		return -EEXIST;
+	}
 
 	if (start + count > MAX_PWMS)
+	{
 		return -ENOSPC;
+	}
 
 	return start;
 }
@@ -73,7 +81,8 @@ static void free_pwms(struct pwm_chip *chip)
 {
 	unsigned int i;
 
-	for (i = 0; i < chip->npwm; i++) {
+	for (i = 0; i < chip->npwm; i++)
+	{
 		struct pwm_device *pwm = &chip->pwms[i];
 
 		radix_tree_delete(&pwm_tree, pwm->pwm);
@@ -90,14 +99,18 @@ static struct pwm_chip *pwmchip_find_by_name(const char *name)
 	struct pwm_chip *chip;
 
 	if (!name)
+	{
 		return NULL;
+	}
 
 	mutex_lock(&pwm_lock);
 
-	list_for_each_entry(chip, &pwm_chips, list) {
+	list_for_each_entry(chip, &pwm_chips, list)
+	{
 		const char *chip_name = dev_name(chip->dev);
 
-		if (chip_name && strcmp(chip_name, name) == 0) {
+		if (chip_name && strcmp(chip_name, name) == 0)
+		{
 			mutex_unlock(&pwm_lock);
 			return chip;
 		}
@@ -113,14 +126,21 @@ static int pwm_device_request(struct pwm_device *pwm, const char *label)
 	int err;
 
 	if (test_bit(PWMF_REQUESTED, &pwm->flags))
+	{
 		return -EBUSY;
+	}
 
 	if (!try_module_get(pwm->chip->ops->owner))
+	{
 		return -ENODEV;
+	}
 
-	if (pwm->chip->ops->request) {
+	if (pwm->chip->ops->request)
+	{
 		err = pwm->chip->ops->request(pwm->chip, pwm);
-		if (err) {
+
+		if (err)
+		{
 			module_put(pwm->chip->ops->owner);
 			return err;
 		}
@@ -138,21 +158,32 @@ of_pwm_xlate_with_flags(struct pwm_chip *pc, const struct of_phandle_args *args)
 	struct pwm_device *pwm;
 
 	if (pc->of_pwm_n_cells < 3)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	if (args->args[0] >= pc->npwm)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	pwm = pwm_request_from_chip(pc, args->args[0], NULL);
+
 	if (IS_ERR(pwm))
+	{
 		return pwm;
+	}
 
 	pwm->args.period = args->args[1];
 
 	if (args->args[2] & PWM_POLARITY_INVERTED)
+	{
 		pwm->args.polarity = PWM_POLARITY_INVERSED;
+	}
 	else
+	{
 		pwm->args.polarity = PWM_POLARITY_NORMAL;
+	}
 
 	return pwm;
 }
@@ -164,14 +195,21 @@ of_pwm_simple_xlate(struct pwm_chip *pc, const struct of_phandle_args *args)
 	struct pwm_device *pwm;
 
 	if (pc->of_pwm_n_cells < 2)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	if (args->args[0] >= pc->npwm)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	pwm = pwm_request_from_chip(pc, args->args[0], NULL);
+
 	if (IS_ERR(pwm))
+	{
 		return pwm;
+	}
 
 	pwm->args.period = args->args[1];
 
@@ -181,9 +219,12 @@ of_pwm_simple_xlate(struct pwm_chip *pc, const struct of_phandle_args *args)
 static void of_pwmchip_add(struct pwm_chip *chip)
 {
 	if (!chip->dev || !chip->dev->of_node)
+	{
 		return;
+	}
 
-	if (!chip->of_xlate) {
+	if (!chip->of_xlate)
+	{
 		chip->of_xlate = of_pwm_simple_xlate;
 		chip->of_pwm_n_cells = 2;
 	}
@@ -194,7 +235,9 @@ static void of_pwmchip_add(struct pwm_chip *chip)
 static void of_pwmchip_remove(struct pwm_chip *chip)
 {
 	if (chip->dev)
+	{
 		of_node_put(chip->dev->of_node);
+	}
 }
 
 /**
@@ -207,7 +250,9 @@ static void of_pwmchip_remove(struct pwm_chip *chip)
 int pwm_set_chip_data(struct pwm_device *pwm, void *data)
 {
 	if (!pwm)
+	{
 		return -EINVAL;
+	}
 
 	pwm->chip_data = data;
 
@@ -231,11 +276,15 @@ static bool pwm_ops_check(const struct pwm_ops *ops)
 {
 	/* driver supports legacy, non-atomic operation */
 	if (ops->config && ops->enable && ops->disable)
+	{
 		return true;
+	}
 
 	/* driver supports atomic operation */
 	if (ops->apply)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -252,33 +301,43 @@ static bool pwm_ops_check(const struct pwm_ops *ops)
  * Returns: 0 on success or a negative error code on failure.
  */
 int pwmchip_add_with_polarity(struct pwm_chip *chip,
-			      enum pwm_polarity polarity)
+							  enum pwm_polarity polarity)
 {
 	struct pwm_device *pwm;
 	unsigned int i;
 	int ret;
 
 	if (!chip || !chip->dev || !chip->ops || !chip->npwm)
+	{
 		return -EINVAL;
+	}
 
 	if (!pwm_ops_check(chip->ops))
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&pwm_lock);
 
 	ret = alloc_pwms(chip->base, chip->npwm);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	chip->pwms = kcalloc(chip->npwm, sizeof(*pwm), GFP_KERNEL);
-	if (!chip->pwms) {
+
+	if (!chip->pwms)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	chip->base = ret;
 
-	for (i = 0; i < chip->npwm; i++) {
+	for (i = 0; i < chip->npwm; i++)
+	{
 		pwm = &chip->pwms[i];
 
 		pwm->chip = chip;
@@ -287,7 +346,9 @@ int pwmchip_add_with_polarity(struct pwm_chip *chip,
 		pwm->state.polarity = polarity;
 
 		if (chip->ops->get_state)
+		{
 			chip->ops->get_state(chip, pwm, &pwm->state);
+		}
 
 		radix_tree_insert(&pwm_tree, pwm->pwm, pwm);
 	}
@@ -300,7 +361,9 @@ int pwmchip_add_with_polarity(struct pwm_chip *chip,
 	ret = 0;
 
 	if (IS_ENABLED(CONFIG_OF))
+	{
 		of_pwmchip_add(chip);
+	}
 
 	pwmchip_sysfs_export(chip);
 
@@ -343,10 +406,12 @@ int pwmchip_remove(struct pwm_chip *chip)
 
 	mutex_lock(&pwm_lock);
 
-	for (i = 0; i < chip->npwm; i++) {
+	for (i = 0; i < chip->npwm; i++)
+	{
 		struct pwm_device *pwm = &chip->pwms[i];
 
-		if (test_bit(PWMF_REQUESTED, &pwm->flags)) {
+		if (test_bit(PWMF_REQUESTED, &pwm->flags))
+		{
 			ret = -EBUSY;
 			goto out;
 		}
@@ -355,7 +420,9 @@ int pwmchip_remove(struct pwm_chip *chip)
 	list_del_init(&chip->list);
 
 	if (IS_ENABLED(CONFIG_OF))
+	{
 		of_pwmchip_remove(chip);
+	}
 
 	free_pwms(chip);
 
@@ -383,19 +450,26 @@ struct pwm_device *pwm_request(int pwm, const char *label)
 	int err;
 
 	if (pwm < 0 || pwm >= MAX_PWMS)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	mutex_lock(&pwm_lock);
 
 	dev = pwm_to_device(pwm);
-	if (!dev) {
+
+	if (!dev)
+	{
 		dev = ERR_PTR(-EPROBE_DEFER);
 		goto out;
 	}
 
 	err = pwm_device_request(dev, label);
+
 	if (err < 0)
+	{
 		dev = ERR_PTR(err);
+	}
 
 out:
 	mutex_unlock(&pwm_lock);
@@ -415,21 +489,26 @@ EXPORT_SYMBOL_GPL(pwm_request);
  * specified PWM chip or if the PWM device cannot be requested.
  */
 struct pwm_device *pwm_request_from_chip(struct pwm_chip *chip,
-					 unsigned int index,
-					 const char *label)
+		unsigned int index,
+		const char *label)
 {
 	struct pwm_device *pwm;
 	int err;
 
 	if (!chip || index >= chip->npwm)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	mutex_lock(&pwm_lock);
 	pwm = &chip->pwms[index];
 
 	err = pwm_device_request(pwm, label);
+
 	if (err < 0)
+	{
 		pwm = ERR_PTR(err);
+	}
 
 	mutex_unlock(&pwm_lock);
 	return pwm;
@@ -460,62 +539,90 @@ int pwm_apply_state(struct pwm_device *pwm, struct pwm_state *state)
 	int err;
 
 	if (!pwm || !state || !state->period ||
-	    state->duty_cycle > state->period)
+		state->duty_cycle > state->period)
+	{
 		return -EINVAL;
+	}
 
 	if (!memcmp(state, &pwm->state, sizeof(*state)))
+	{
 		return 0;
+	}
 
-	if (pwm->chip->ops->apply) {
+	if (pwm->chip->ops->apply)
+	{
 		err = pwm->chip->ops->apply(pwm->chip, pwm, state);
+
 		if (err)
+		{
 			return err;
+		}
 
 		pwm->state = *state;
-	} else {
+	}
+	else
+	{
 		/*
 		 * FIXME: restore the initial state in case of error.
 		 */
-		if (state->polarity != pwm->state.polarity) {
+		if (state->polarity != pwm->state.polarity)
+		{
 			if (!pwm->chip->ops->set_polarity)
+			{
 				return -ENOTSUPP;
+			}
 
 			/*
 			 * Changing the polarity of a running PWM is
 			 * only allowed when the PWM driver implements
 			 * ->apply().
 			 */
-			if (pwm->state.enabled) {
+			if (pwm->state.enabled)
+			{
 				pwm->chip->ops->disable(pwm->chip, pwm);
 				pwm->state.enabled = false;
 			}
 
 			err = pwm->chip->ops->set_polarity(pwm->chip, pwm,
-							   state->polarity);
+											   state->polarity);
+
 			if (err)
+			{
 				return err;
+			}
 
 			pwm->state.polarity = state->polarity;
 		}
 
 		if (state->period != pwm->state.period ||
-		    state->duty_cycle != pwm->state.duty_cycle) {
+			state->duty_cycle != pwm->state.duty_cycle)
+		{
 			err = pwm->chip->ops->config(pwm->chip, pwm,
-						     state->duty_cycle,
-						     state->period);
+										 state->duty_cycle,
+										 state->period);
+
 			if (err)
+			{
 				return err;
+			}
 
 			pwm->state.duty_cycle = state->duty_cycle;
 			pwm->state.period = state->period;
 		}
 
-		if (state->enabled != pwm->state.enabled) {
-			if (state->enabled) {
+		if (state->enabled != pwm->state.enabled)
+		{
+			if (state->enabled)
+			{
 				err = pwm->chip->ops->enable(pwm->chip, pwm);
+
 				if (err)
+				{
 					return err;
-			} else {
+				}
+			}
+			else
+			{
 				pwm->chip->ops->disable(pwm->chip, pwm);
 			}
 
@@ -536,15 +643,19 @@ EXPORT_SYMBOL_GPL(pwm_apply_state);
  * Returns: 0 on success or a negative error code on failure.
  */
 int pwm_capture(struct pwm_device *pwm, struct pwm_capture *result,
-		unsigned long timeout)
+				unsigned long timeout)
 {
 	int err;
 
 	if (!pwm || !pwm->chip->ops)
+	{
 		return -EINVAL;
+	}
 
 	if (!pwm->chip->ops->capture)
+	{
 		return -ENOSYS;
+	}
 
 	mutex_lock(&pwm_lock);
 	err = pwm->chip->ops->capture(pwm->chip, pwm, result, timeout);
@@ -578,7 +689,8 @@ int pwm_adjust_config(struct pwm_device *pwm)
 	 * In either case, we setup the new period and polarity, and assign a
 	 * duty cycle of 0.
 	 */
-	if (!state.period) {
+	if (!state.period)
+	{
 		state.duty_cycle = 0;
 		state.period = pargs.period;
 		state.polarity = pargs.polarity;
@@ -590,7 +702,8 @@ int pwm_adjust_config(struct pwm_device *pwm)
 	 * Adjust the PWM duty cycle/period based on the period value provided
 	 * in PWM args.
 	 */
-	if (pargs.period != state.period) {
+	if (pargs.period != state.period)
+	{
 		u64 dutycycle = (u64)state.duty_cycle * pargs.period;
 
 		do_div(dutycycle, state.period);
@@ -601,7 +714,8 @@ int pwm_adjust_config(struct pwm_device *pwm)
 	/*
 	 * If the polarity changed, we should also change the duty cycle.
 	 */
-	if (pargs.polarity != state.polarity) {
+	if (pargs.polarity != state.polarity)
+	{
 		state.polarity = pargs.polarity;
 		state.duty_cycle = state.period - state.duty_cycle;
 	}
@@ -617,10 +731,12 @@ static struct pwm_chip *of_node_to_pwmchip(struct device_node *np)
 	mutex_lock(&pwm_lock);
 
 	list_for_each_entry(chip, &pwm_chips, list)
-		if (chip->dev && chip->dev->of_node == np) {
-			mutex_unlock(&pwm_lock);
-			return chip;
-		}
+
+	if (chip->dev && chip->dev->of_node == np)
+	{
+		mutex_unlock(&pwm_lock);
+		return chip;
+	}
 
 	mutex_unlock(&pwm_lock);
 
@@ -654,47 +770,63 @@ struct pwm_device *of_pwm_get(struct device_node *np, const char *con_id)
 	int index = 0;
 	int err;
 
-	if (con_id) {
+	if (con_id)
+	{
 		index = of_property_match_string(np, "pwm-names", con_id);
+
 		if (index < 0)
+		{
 			return ERR_PTR(index);
+		}
 	}
 
 	err = of_parse_phandle_with_args(np, "pwms", "#pwm-cells", index,
-					 &args);
-	if (err) {
+									 &args);
+
+	if (err)
+	{
 		pr_debug("%s(): can't parse \"pwms\" property\n", __func__);
 		return ERR_PTR(err);
 	}
 
 	pc = of_node_to_pwmchip(args.np);
-	if (IS_ERR(pc)) {
+
+	if (IS_ERR(pc))
+	{
 		pr_debug("%s(): PWM chip not found\n", __func__);
 		pwm = ERR_CAST(pc);
 		goto put;
 	}
 
-	if (args.args_count != pc->of_pwm_n_cells) {
+	if (args.args_count != pc->of_pwm_n_cells)
+	{
 		pr_debug("%s: wrong #pwm-cells for %s\n", np->full_name,
-			 args.np->full_name);
+				 args.np->full_name);
 		pwm = ERR_PTR(-EINVAL);
 		goto put;
 	}
 
 	pwm = pc->of_xlate(pc, &args);
+
 	if (IS_ERR(pwm))
+	{
 		goto put;
+	}
 
 	/*
 	 * If a consumer name was not given, try to look it up from the
 	 * "pwm-names" property if it exists. Otherwise use the name of
 	 * the user device node.
 	 */
-	if (!con_id) {
+	if (!con_id)
+	{
 		err = of_property_read_string_index(np, "pwm-names", index,
-						    &con_id);
+											&con_id);
+
 		if (err < 0)
+		{
 			con_id = np->name;
+		}
 	}
 
 	pwm->label = con_id;
@@ -715,7 +847,8 @@ void pwm_add_table(struct pwm_lookup *table, size_t num)
 {
 	mutex_lock(&pwm_lookup_lock);
 
-	while (num--) {
+	while (num--)
+	{
 		list_add_tail(&table->list, &pwm_lookup_list);
 		table++;
 	}
@@ -732,7 +865,8 @@ void pwm_remove_table(struct pwm_lookup *table, size_t num)
 {
 	mutex_lock(&pwm_lookup_lock);
 
-	while (num--) {
+	while (num--)
+	{
 		list_del(&table->list);
 		table++;
 	}
@@ -766,7 +900,9 @@ struct pwm_device *pwm_get(struct device *dev, const char *con_id)
 
 	/* look up via DT first */
 	if (IS_ENABLED(CONFIG_OF) && dev && dev->of_node)
+	{
 		return of_pwm_get(dev->of_node, con_id);
+	}
 
 	/*
 	 * We look up the provider in the static table typically provided by
@@ -790,45 +926,64 @@ struct pwm_device *pwm_get(struct device *dev, const char *con_id)
 	 */
 	mutex_lock(&pwm_lookup_lock);
 
-	list_for_each_entry(p, &pwm_lookup_list, list) {
+	list_for_each_entry(p, &pwm_lookup_list, list)
+	{
 		match = 0;
 
-		if (p->dev_id) {
+		if (p->dev_id)
+		{
 			if (!dev_id || strcmp(p->dev_id, dev_id))
+			{
 				continue;
+			}
 
 			match += 2;
 		}
 
-		if (p->con_id) {
+		if (p->con_id)
+		{
 			if (!con_id || strcmp(p->con_id, con_id))
+			{
 				continue;
+			}
 
 			match += 1;
 		}
 
-		if (match > best) {
+		if (match > best)
+		{
 			chosen = p;
 
 			if (match != 3)
+			{
 				best = match;
+			}
 			else
+			{
 				break;
+			}
 		}
 	}
 
-	if (!chosen) {
+	if (!chosen)
+	{
 		pwm = ERR_PTR(-ENODEV);
 		goto out;
 	}
 
 	chip = pwmchip_find_by_name(chosen->provider);
-	if (!chip)
-		goto out;
 
-	pwm = pwm_request_from_chip(chip, chosen->index, con_id ?: dev_id);
-	if (IS_ERR(pwm))
+	if (!chip)
+	{
 		goto out;
+	}
+
+	pwm = pwm_request_from_chip(chip, chosen->index, con_id ? : dev_id);
+
+	if (IS_ERR(pwm))
+	{
+		goto out;
+	}
 
 	pwm->args.period = chosen->period;
 	pwm->args.polarity = chosen->polarity;
@@ -846,17 +1001,22 @@ EXPORT_SYMBOL_GPL(pwm_get);
 void pwm_put(struct pwm_device *pwm)
 {
 	if (!pwm)
+	{
 		return;
+	}
 
 	mutex_lock(&pwm_lock);
 
-	if (!test_and_clear_bit(PWMF_REQUESTED, &pwm->flags)) {
+	if (!test_and_clear_bit(PWMF_REQUESTED, &pwm->flags))
+	{
 		pr_warn("PWM device already freed\n");
 		goto out;
 	}
 
 	if (pwm->chip->ops->free)
+	{
 		pwm->chip->ops->free(pwm->chip, pwm);
+	}
 
 	pwm->label = NULL;
 
@@ -887,14 +1047,21 @@ struct pwm_device *devm_pwm_get(struct device *dev, const char *con_id)
 	struct pwm_device **ptr, *pwm;
 
 	ptr = devres_alloc(devm_pwm_release, sizeof(*ptr), GFP_KERNEL);
+
 	if (!ptr)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	pwm = pwm_get(dev, con_id);
-	if (!IS_ERR(pwm)) {
+
+	if (!IS_ERR(pwm))
+	{
 		*ptr = pwm;
 		devres_add(dev, ptr);
-	} else {
+	}
+	else
+	{
 		devres_free(ptr);
 	}
 
@@ -915,19 +1082,26 @@ EXPORT_SYMBOL_GPL(devm_pwm_get);
  * error code on failure.
  */
 struct pwm_device *devm_of_pwm_get(struct device *dev, struct device_node *np,
-				   const char *con_id)
+								   const char *con_id)
 {
 	struct pwm_device **ptr, *pwm;
 
 	ptr = devres_alloc(devm_pwm_release, sizeof(*ptr), GFP_KERNEL);
+
 	if (!ptr)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	pwm = of_pwm_get(np, con_id);
-	if (!IS_ERR(pwm)) {
+
+	if (!IS_ERR(pwm))
+	{
 		*ptr = pwm;
 		devres_add(dev, ptr);
-	} else {
+	}
+	else
+	{
 		devres_free(ptr);
 	}
 
@@ -940,7 +1114,9 @@ static int devm_pwm_match(struct device *dev, void *res, void *data)
 	struct pwm_device **p = res;
 
 	if (WARN_ON(!p || !*p))
+	{
 		return 0;
+	}
 
 	return *p == data;
 }
@@ -977,7 +1153,8 @@ static void pwm_dbg_show(struct pwm_chip *chip, struct seq_file *s)
 {
 	unsigned int i;
 
-	for (i = 0; i < chip->npwm; i++) {
+	for (i = 0; i < chip->npwm; i++)
+	{
 		struct pwm_device *pwm = &chip->pwms[i];
 		struct pwm_state state;
 
@@ -986,15 +1163,19 @@ static void pwm_dbg_show(struct pwm_chip *chip, struct seq_file *s)
 		seq_printf(s, " pwm-%-3d (%-20.20s):", i, pwm->label);
 
 		if (test_bit(PWMF_REQUESTED, &pwm->flags))
+		{
 			seq_puts(s, " requested");
+		}
 
 		if (state.enabled)
+		{
 			seq_puts(s, " enabled");
+		}
 
 		seq_printf(s, " period: %u ns", state.period);
 		seq_printf(s, " duty: %u ns", state.duty_cycle);
 		seq_printf(s, " polarity: %s",
-			   state.polarity ? "inverse" : "normal");
+				   state.polarity ? "inverse" : "normal");
 
 		seq_puts(s, "\n");
 	}
@@ -1025,19 +1206,24 @@ static int pwm_seq_show(struct seq_file *s, void *v)
 	struct pwm_chip *chip = list_entry(v, struct pwm_chip, list);
 
 	seq_printf(s, "%s%s/%s, %d PWM device%s\n", (char *)s->private,
-		   chip->dev->bus ? chip->dev->bus->name : "no-bus",
-		   dev_name(chip->dev), chip->npwm,
-		   (chip->npwm != 1) ? "s" : "");
+			   chip->dev->bus ? chip->dev->bus->name : "no-bus",
+			   dev_name(chip->dev), chip->npwm,
+			   (chip->npwm != 1) ? "s" : "");
 
 	if (chip->ops->dbg_show)
+	{
 		chip->ops->dbg_show(chip, s);
+	}
 	else
+	{
 		pwm_dbg_show(chip, s);
+	}
 
 	return 0;
 }
 
-static const struct seq_operations pwm_seq_ops = {
+static const struct seq_operations pwm_seq_ops =
+{
 	.start = pwm_seq_start,
 	.next = pwm_seq_next,
 	.stop = pwm_seq_stop,
@@ -1049,7 +1235,8 @@ static int pwm_seq_open(struct inode *inode, struct file *file)
 	return seq_open(file, &pwm_seq_ops);
 }
 
-static const struct file_operations pwm_debugfs_ops = {
+static const struct file_operations pwm_debugfs_ops =
+{
 	.owner = THIS_MODULE,
 	.open = pwm_seq_open,
 	.read = seq_read,
@@ -1060,7 +1247,7 @@ static const struct file_operations pwm_debugfs_ops = {
 static int __init pwm_debugfs_init(void)
 {
 	debugfs_create_file("pwm", S_IFREG | S_IRUGO, NULL, NULL,
-			    &pwm_debugfs_ops);
+						&pwm_debugfs_ops);
 
 	return 0;
 }

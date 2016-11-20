@@ -39,15 +39,18 @@ nv50_disp_root_scanoutpos(NV50_DISP_MTHD_V0)
 	const u32 blanke = nvkm_rd32(device, 0x610aec + (head * 0x540));
 	const u32 blanks = nvkm_rd32(device, 0x610af4 + (head * 0x540));
 	const u32 total  = nvkm_rd32(device, 0x610afc + (head * 0x540));
-	union {
+	union
+	{
 		struct nv50_disp_scanoutpos_v0 v0;
 	} *args = data;
 	int ret = -ENOSYS;
 
 	nvif_ioctl(object, "disp scanoutpos size %d\n", size);
-	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false))) {
+
+	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false)))
+	{
 		nvif_ioctl(object, "disp scanoutpos vers %d\n",
-			   args->v0.version);
+				   args->v0.version);
 		args->v0.vblanke = (blanke & 0xffff0000) >> 16;
 		args->v0.hblanke = (blanke & 0x0000ffff);
 		args->v0.vblanks = (blanks & 0xffff0000) >> 16;
@@ -60,8 +63,11 @@ nv50_disp_root_scanoutpos(NV50_DISP_MTHD_V0)
 		args->v0.time[1] = ktime_to_ns(ktime_get());
 		args->v0.hline =
 			nvkm_rd32(device, 0x616344 + (head * 0x800)) & 0xffff;
-	} else
+	}
+	else
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -69,7 +75,8 @@ nv50_disp_root_scanoutpos(NV50_DISP_MTHD_V0)
 int
 nv50_disp_root_mthd_(struct nvkm_object *object, u32 mthd, void *data, u32 size)
 {
-	union {
+	union
+	{
 		struct nv50_disp_mthd_v0 v0;
 		struct nv50_disp_mthd_v1 v1;
 	} *args = data;
@@ -82,110 +89,163 @@ nv50_disp_root_mthd_(struct nvkm_object *object, u32 mthd, void *data, u32 size)
 	int head, ret = -ENOSYS;
 
 	if (mthd != NV50_DISP_MTHD)
+	{
 		return -EINVAL;
+	}
 
 	nvif_ioctl(object, "disp mthd size %d\n", size);
-	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, true))) {
+
+	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, true)))
+	{
 		nvif_ioctl(object, "disp mthd vers %d mthd %02x head %d\n",
-			   args->v0.version, args->v0.method, args->v0.head);
+				   args->v0.version, args->v0.method, args->v0.head);
 		mthd = args->v0.method;
 		head = args->v0.head;
-	} else
-	if (!(ret = nvif_unpack(ret, &data, &size, args->v1, 1, 1, true))) {
+	}
+	else if (!(ret = nvif_unpack(ret, &data, &size, args->v1, 1, 1, true)))
+	{
 		nvif_ioctl(object, "disp mthd vers %d mthd %02x "
 				   "type %04x mask %04x\n",
-			   args->v1.version, args->v1.method,
-			   args->v1.hasht, args->v1.hashm);
+				   args->v1.version, args->v1.method,
+				   args->v1.hasht, args->v1.hashm);
 		mthd = args->v1.method;
 		type = args->v1.hasht;
 		mask = args->v1.hashm;
 		head = ffs((mask >> 8) & 0x0f) - 1;
-	} else
+	}
+	else
+	{
 		return ret;
+	}
 
 	if (head < 0 || head >= disp->base.head.nr)
+	{
 		return -ENXIO;
+	}
 
-	if (mask) {
-		list_for_each_entry(temp, &disp->base.outp, head) {
+	if (mask)
+	{
+		list_for_each_entry(temp, &disp->base.outp, head)
+		{
 			if ((temp->info.hasht         == type) &&
-			    (temp->info.hashm & mask) == mask) {
+				(temp->info.hashm & mask) == mask)
+			{
 				outp = temp;
 				break;
 			}
 		}
+
 		if (outp == NULL)
+		{
 			return -ENXIO;
+		}
 	}
 
-	switch (mthd) {
-	case NV50_DISP_SCANOUTPOS:
-		return func->head.scanoutpos(object, disp, data, size, head);
-	default:
-		break;
+	switch (mthd)
+	{
+		case NV50_DISP_SCANOUTPOS:
+			return func->head.scanoutpos(object, disp, data, size, head);
+
+		default:
+			break;
 	}
 
-	switch (mthd * !!outp) {
-	case NV50_DISP_MTHD_V1_DAC_PWR:
-		return func->dac.power(object, disp, data, size, head, outp);
-	case NV50_DISP_MTHD_V1_DAC_LOAD:
-		return func->dac.sense(object, disp, data, size, head, outp);
-	case NV50_DISP_MTHD_V1_SOR_PWR:
-		return func->sor.power(object, disp, data, size, head, outp);
-	case NV50_DISP_MTHD_V1_SOR_HDA_ELD:
-		if (!func->sor.hda_eld)
-			return -ENODEV;
-		return func->sor.hda_eld(object, disp, data, size, head, outp);
-	case NV50_DISP_MTHD_V1_SOR_HDMI_PWR:
-		if (!func->sor.hdmi)
-			return -ENODEV;
-		return func->sor.hdmi(object, disp, data, size, head, outp);
-	case NV50_DISP_MTHD_V1_SOR_LVDS_SCRIPT: {
-		union {
-			struct nv50_disp_sor_lvds_script_v0 v0;
-		} *args = data;
-		int ret = -ENOSYS;
-		nvif_ioctl(object, "disp sor lvds script size %d\n", size);
-		if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false))) {
-			nvif_ioctl(object, "disp sor lvds script "
-					   "vers %d name %04x\n",
-				   args->v0.version, args->v0.script);
-			disp->sor.lvdsconf = args->v0.script;
-			return 0;
-		} else
-			return ret;
-	}
-		break;
-	case NV50_DISP_MTHD_V1_SOR_DP_PWR: {
-		struct nvkm_output_dp *outpdp = nvkm_output_dp(outp);
-		union {
-			struct nv50_disp_sor_dp_pwr_v0 v0;
-		} *args = data;
-		int ret = -ENOSYS;
-		nvif_ioctl(object, "disp sor dp pwr size %d\n", size);
-		if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false))) {
-			nvif_ioctl(object, "disp sor dp pwr vers %d state %d\n",
-				   args->v0.version, args->v0.state);
-			if (args->v0.state == 0) {
-				nvkm_notify_put(&outpdp->irq);
-				outpdp->func->lnk_pwr(outpdp, 0);
-				atomic_set(&outpdp->lt.done, 0);
-				return 0;
-			} else
-			if (args->v0.state != 0) {
-				nvkm_output_dp_train(&outpdp->base, 0, true);
-				return 0;
+	switch (mthd * !!outp)
+	{
+		case NV50_DISP_MTHD_V1_DAC_PWR:
+			return func->dac.power(object, disp, data, size, head, outp);
+
+		case NV50_DISP_MTHD_V1_DAC_LOAD:
+			return func->dac.sense(object, disp, data, size, head, outp);
+
+		case NV50_DISP_MTHD_V1_SOR_PWR:
+			return func->sor.power(object, disp, data, size, head, outp);
+
+		case NV50_DISP_MTHD_V1_SOR_HDA_ELD:
+			if (!func->sor.hda_eld)
+			{
+				return -ENODEV;
 			}
-		} else
-			return ret;
-	}
-		break;
-	case NV50_DISP_MTHD_V1_PIOR_PWR:
-		if (!func->pior.power)
-			return -ENODEV;
-		return func->pior.power(object, disp, data, size, head, outp);
-	default:
-		break;
+
+			return func->sor.hda_eld(object, disp, data, size, head, outp);
+
+		case NV50_DISP_MTHD_V1_SOR_HDMI_PWR:
+			if (!func->sor.hdmi)
+			{
+				return -ENODEV;
+			}
+
+			return func->sor.hdmi(object, disp, data, size, head, outp);
+
+		case NV50_DISP_MTHD_V1_SOR_LVDS_SCRIPT:
+			{
+				union
+				{
+					struct nv50_disp_sor_lvds_script_v0 v0;
+				} *args = data;
+				int ret = -ENOSYS;
+				nvif_ioctl(object, "disp sor lvds script size %d\n", size);
+
+				if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false)))
+				{
+					nvif_ioctl(object, "disp sor lvds script "
+							   "vers %d name %04x\n",
+							   args->v0.version, args->v0.script);
+					disp->sor.lvdsconf = args->v0.script;
+					return 0;
+				}
+				else
+				{
+					return ret;
+				}
+			}
+			break;
+
+		case NV50_DISP_MTHD_V1_SOR_DP_PWR:
+			{
+				struct nvkm_output_dp *outpdp = nvkm_output_dp(outp);
+				union
+				{
+					struct nv50_disp_sor_dp_pwr_v0 v0;
+				} *args = data;
+				int ret = -ENOSYS;
+				nvif_ioctl(object, "disp sor dp pwr size %d\n", size);
+
+				if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false)))
+				{
+					nvif_ioctl(object, "disp sor dp pwr vers %d state %d\n",
+							   args->v0.version, args->v0.state);
+
+					if (args->v0.state == 0)
+					{
+						nvkm_notify_put(&outpdp->irq);
+						outpdp->func->lnk_pwr(outpdp, 0);
+						atomic_set(&outpdp->lt.done, 0);
+						return 0;
+					}
+					else if (args->v0.state != 0)
+					{
+						nvkm_output_dp_train(&outpdp->base, 0, true);
+						return 0;
+					}
+				}
+				else
+				{
+					return ret;
+				}
+			}
+			break;
+
+		case NV50_DISP_MTHD_V1_PIOR_PWR:
+			if (!func->pior.power)
+			{
+				return -ENODEV;
+			}
+
+			return func->pior.power(object, disp, data, size, head, outp);
+
+		default:
+			break;
 	}
 
 	return -EINVAL;
@@ -193,31 +253,32 @@ nv50_disp_root_mthd_(struct nvkm_object *object, u32 mthd, void *data, u32 size)
 
 static int
 nv50_disp_root_dmac_new_(const struct nvkm_oclass *oclass,
-			 void *data, u32 size, struct nvkm_object **pobject)
+						 void *data, u32 size, struct nvkm_object **pobject)
 {
 	const struct nv50_disp_dmac_oclass *sclass = oclass->priv;
 	struct nv50_disp_root *root = nv50_disp_root(oclass->parent);
 	return sclass->ctor(sclass->func, sclass->mthd, root, sclass->chid,
-			    oclass, data, size, pobject);
+						oclass, data, size, pobject);
 }
 
 static int
 nv50_disp_root_pioc_new_(const struct nvkm_oclass *oclass,
-			 void *data, u32 size, struct nvkm_object **pobject)
+						 void *data, u32 size, struct nvkm_object **pobject)
 {
 	const struct nv50_disp_pioc_oclass *sclass = oclass->priv;
 	struct nv50_disp_root *root = nv50_disp_root(oclass->parent);
 	return sclass->ctor(sclass->func, sclass->mthd, root, sclass->chid,
-			    oclass, data, size, pobject);
+						oclass, data, size, pobject);
 }
 
 static int
 nv50_disp_root_child_get_(struct nvkm_object *object, int index,
-			  struct nvkm_oclass *sclass)
+						  struct nvkm_oclass *sclass)
 {
 	struct nv50_disp_root *root = nv50_disp_root(object);
 
-	if (index < ARRAY_SIZE(root->func->dmac)) {
+	if (index < ARRAY_SIZE(root->func->dmac))
+	{
 		sclass->base = root->func->dmac[index]->base;
 		sclass->priv = root->func->dmac[index];
 		sclass->ctor = nv50_disp_root_dmac_new_;
@@ -226,7 +287,8 @@ nv50_disp_root_child_get_(struct nvkm_object *object, int index,
 
 	index -= ARRAY_SIZE(root->func->dmac);
 
-	if (index < ARRAY_SIZE(root->func->pioc)) {
+	if (index < ARRAY_SIZE(root->func->pioc))
+	{
 		sclass->base = root->func->pioc[index]->base;
 		sclass->priv = root->func->pioc[index];
 		sclass->ctor = nv50_disp_root_pioc_new_;
@@ -261,7 +323,8 @@ nv50_disp_root_dtor_(struct nvkm_object *object)
 }
 
 static const struct nvkm_object_func
-nv50_disp_root_ = {
+	nv50_disp_root_ =
+{
 	.dtor = nv50_disp_root_dtor_,
 	.init = nv50_disp_root_init_,
 	.fini = nv50_disp_root_fini_,
@@ -272,8 +335,8 @@ nv50_disp_root_ = {
 
 int
 nv50_disp_root_new_(const struct nv50_disp_root_func *func,
-		    struct nvkm_disp *base, const struct nvkm_oclass *oclass,
-		    void *data, u32 size, struct nvkm_object **pobject)
+					struct nvkm_disp *base, const struct nvkm_oclass *oclass,
+					void *data, u32 size, struct nvkm_object **pobject)
 {
 	struct nv50_disp *disp = nv50_disp(base);
 	struct nv50_disp_root *root;
@@ -281,7 +344,10 @@ nv50_disp_root_new_(const struct nv50_disp_root_func *func,
 	int ret;
 
 	if (!(root = kzalloc(sizeof(*root), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pobject = &root->object;
 
 	nvkm_object_ctor(&nv50_disp_root_, oclass, &root->object);
@@ -289,9 +355,12 @@ nv50_disp_root_new_(const struct nv50_disp_root_func *func,
 	root->disp = disp;
 
 	ret = nvkm_gpuobj_new(disp->base.engine.subdev.device, 0x10000, 0x10000,
-			      false, NULL, &root->instmem);
+						  false, NULL, &root->instmem);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return nvkm_ramht_new(device, 0x1000, 0, root->instmem, &root->ramht);
 }
@@ -321,7 +390,8 @@ nv50_disp_root_init(struct nv50_disp_root *root)
 	nvkm_wr32(device, 0x610184, tmp);
 
 	/* ... CRTC caps */
-	for (i = 0; i < disp->base.head.nr; i++) {
+	for (i = 0; i < disp->base.head.nr; i++)
+	{
 		tmp = nvkm_rd32(device, 0x616100 + (i * 0x800));
 		nvkm_wr32(device, 0x610190 + (i * 0x10), tmp);
 		tmp = nvkm_rd32(device, 0x616104 + (i * 0x800));
@@ -333,32 +403,39 @@ nv50_disp_root_init(struct nv50_disp_root *root)
 	}
 
 	/* ... DAC caps */
-	for (i = 0; i < disp->func->dac.nr; i++) {
+	for (i = 0; i < disp->func->dac.nr; i++)
+	{
 		tmp = nvkm_rd32(device, 0x61a000 + (i * 0x800));
 		nvkm_wr32(device, 0x6101d0 + (i * 0x04), tmp);
 	}
 
 	/* ... SOR caps */
-	for (i = 0; i < disp->func->sor.nr; i++) {
+	for (i = 0; i < disp->func->sor.nr; i++)
+	{
 		tmp = nvkm_rd32(device, 0x61c000 + (i * 0x800));
 		nvkm_wr32(device, 0x6101e0 + (i * 0x04), tmp);
 	}
 
 	/* ... PIOR caps */
-	for (i = 0; i < disp->func->pior.nr; i++) {
+	for (i = 0; i < disp->func->pior.nr; i++)
+	{
 		tmp = nvkm_rd32(device, 0x61e000 + (i * 0x800));
 		nvkm_wr32(device, 0x6101f0 + (i * 0x04), tmp);
 	}
 
 	/* steal display away from vbios, or something like that */
-	if (nvkm_rd32(device, 0x610024) & 0x00000100) {
+	if (nvkm_rd32(device, 0x610024) & 0x00000100)
+	{
 		nvkm_wr32(device, 0x610024, 0x00000100);
 		nvkm_mask(device, 0x6194e8, 0x00000001, 0x00000000);
+
 		if (nvkm_msec(device, 2000,
-			if (!(nvkm_rd32(device, 0x6194e8) & 0x00000002))
-				break;
-		) < 0)
-			return -EBUSY;
+					  if (!(nvkm_rd32(device, 0x6194e8) & 0x00000002))
+						  break;
+						 ) < 0)
+			{
+				return -EBUSY;
+			}
 	}
 
 	/* point at display engine memory area (hash table, objects) */
@@ -371,7 +448,8 @@ nv50_disp_root_init(struct nv50_disp_root *root)
 }
 
 static const struct nv50_disp_root_func
-nv50_disp_root = {
+	nv50_disp_root =
+{
 	.init = nv50_disp_root_init,
 	.fini = nv50_disp_root_fini,
 	.dmac = {
@@ -387,14 +465,15 @@ nv50_disp_root = {
 
 static int
 nv50_disp_root_new(struct nvkm_disp *disp, const struct nvkm_oclass *oclass,
-		   void *data, u32 size, struct nvkm_object **pobject)
+				   void *data, u32 size, struct nvkm_object **pobject)
 {
 	return nv50_disp_root_new_(&nv50_disp_root, disp, oclass,
-				   data, size, pobject);
+							   data, size, pobject);
 }
 
 const struct nvkm_disp_oclass
-nv50_disp_root_oclass = {
+	nv50_disp_root_oclass =
+{
 	.base.oclass = NV50_DISP,
 	.base.minver = -1,
 	.base.maxver = -1,

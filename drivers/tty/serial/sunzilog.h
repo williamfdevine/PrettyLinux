@@ -1,14 +1,16 @@
 #ifndef _SUNZILOG_H
 #define _SUNZILOG_H
 
-struct zilog_channel {
+struct zilog_channel
+{
 	volatile unsigned char control;
 	volatile unsigned char __pad1;
 	volatile unsigned char data;
 	volatile unsigned char __pad2;
 };
 
-struct zilog_layout {
+struct zilog_layout
+{
 	struct zilog_channel channelB;
 	struct zilog_channel channelA;
 };
@@ -274,16 +276,16 @@ struct zilog_layout {
 
 /* Misc macros */
 #define ZS_CLEARERR(channel)    do { sbus_writeb(ERR_RES, &channel->control); \
-				     udelay(5); } while(0)
+		udelay(5); } while(0)
 
 #define ZS_CLEARSTAT(channel)   do { sbus_writeb(RES_EXT_INT, &channel->control); \
-				     udelay(5); } while(0)
+		udelay(5); } while(0)
 
 #define ZS_CLEARFIFO(channel)   do { sbus_readb(&channel->data); \
-				     udelay(2); \
-				     sbus_readb(&channel->data); \
-				     udelay(2); \
-				     sbus_readb(&channel->data); \
-				     udelay(2); } while(0)
+		udelay(2); \
+		sbus_readb(&channel->data); \
+		udelay(2); \
+		sbus_readb(&channel->data); \
+		udelay(2); } while(0)
 
 #endif /* _SUNZILOG_H */

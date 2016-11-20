@@ -31,7 +31,8 @@ EXPORT_SYMBOL_GPL(nf_ct_timeout_find_get_hook);
 void (*nf_ct_timeout_put_hook)(struct ctnl_timeout *timeout) __read_mostly;
 EXPORT_SYMBOL_GPL(nf_ct_timeout_put_hook);
 
-static struct nf_ct_ext_type timeout_extend __read_mostly = {
+static struct nf_ct_ext_type timeout_extend __read_mostly =
+{
 	.len	= sizeof(struct nf_conn_timeout),
 	.align	= __alignof__(struct nf_conn_timeout),
 	.id	= NF_CT_EXT_TIMEOUT,
@@ -40,8 +41,12 @@ static struct nf_ct_ext_type timeout_extend __read_mostly = {
 int nf_conntrack_timeout_init(void)
 {
 	int ret = nf_ct_extend_register(&timeout_extend);
+
 	if (ret < 0)
+	{
 		pr_err("nf_ct_timeout: Unable to register timeout extension.\n");
+	}
+
 	return ret;
 }
 

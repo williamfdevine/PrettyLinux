@@ -8,7 +8,7 @@
 extern void genl_lock(void);
 extern void genl_unlock(void);
 #ifdef CONFIG_LOCKDEP
-extern bool lockdep_genl_is_held(void);
+	extern bool lockdep_genl_is_held(void);
 #endif
 
 /* for synchronisation between af_netlink and genetlink */
@@ -37,6 +37,6 @@ extern wait_queue_head_t genl_sk_destructing_waitq;
 	rcu_dereference_protected(p, lockdep_genl_is_held())
 
 #define MODULE_ALIAS_GENL_FAMILY(family)\
- MODULE_ALIAS_NET_PF_PROTO_NAME(PF_NETLINK, NETLINK_GENERIC, "-family-" family)
+	MODULE_ALIAS_NET_PF_PROTO_NAME(PF_NETLINK, NETLINK_GENERIC, "-family-" family)
 
 #endif	/* __LINUX_GENERIC_NETLINK_H */

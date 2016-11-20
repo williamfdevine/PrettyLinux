@@ -16,7 +16,8 @@
 #include <linux/seq_file.h>
 #include <net/netfilter/nf_conntrack.h>
 
-struct nf_conntrack_l3proto {
+struct nf_conntrack_l3proto
+{
 	/* L3 Protocol Family number. ex) PF_INET */
 	u_int16_t l3proto;
 
@@ -25,32 +26,32 @@ struct nf_conntrack_l3proto {
 
 	/*
 	 * Try to fill in the third arg: nhoff is offset of l3 proto
-         * hdr.  Return true if possible.
+	     * hdr.  Return true if possible.
 	 */
 	bool (*pkt_to_tuple)(const struct sk_buff *skb, unsigned int nhoff,
-			     struct nf_conntrack_tuple *tuple);
+						 struct nf_conntrack_tuple *tuple);
 
 	/*
 	 * Invert the per-proto part of the tuple: ie. turn xmit into reply.
 	 * Some packets can't be inverted: return 0 in that case.
 	 */
 	bool (*invert_tuple)(struct nf_conntrack_tuple *inverse,
-			     const struct nf_conntrack_tuple *orig);
+						 const struct nf_conntrack_tuple *orig);
 
 	/* Print out the per-protocol part of the tuple. */
 	void (*print_tuple)(struct seq_file *s,
-			    const struct nf_conntrack_tuple *);
+						const struct nf_conntrack_tuple *);
 
 	/*
-	 * Called before tracking. 
+	 * Called before tracking.
 	 *	*dataoff: offset of protocol header (TCP, UDP,...) in skb
 	 *	*protonum: protocol number
 	 */
 	int (*get_l4proto)(const struct sk_buff *skb, unsigned int nhoff,
-			   unsigned int *dataoff, u_int8_t *protonum);
+					   unsigned int *dataoff, u_int8_t *protonum);
 
 	int (*tuple_to_nlattr)(struct sk_buff *skb,
-			       const struct nf_conntrack_tuple *t);
+						   const struct nf_conntrack_tuple *t);
 
 	/*
 	 * Calculate size of tuple nlattr
@@ -58,7 +59,7 @@ struct nf_conntrack_l3proto {
 	int (*nlattr_tuple_size)(void);
 
 	int (*nlattr_to_tuple)(struct nlattr *tb[],
-			       struct nf_conntrack_tuple *t);
+						   struct nf_conntrack_tuple *t);
 	const struct nla_policy *nla_policy;
 
 	size_t nla_size;
@@ -74,9 +75,9 @@ extern struct nf_conntrack_l3proto __rcu *nf_ct_l3protos[AF_MAX];
 
 /* Protocol pernet registration. */
 int nf_ct_l3proto_pernet_register(struct net *net,
-				  struct nf_conntrack_l3proto *proto);
+								  struct nf_conntrack_l3proto *proto);
 void nf_ct_l3proto_pernet_unregister(struct net *net,
-				     struct nf_conntrack_l3proto *proto);
+									 struct nf_conntrack_l3proto *proto);
 
 /* Protocol global registration. */
 int nf_ct_l3proto_register(struct nf_conntrack_l3proto *proto);
@@ -91,7 +92,10 @@ static inline struct nf_conntrack_l3proto *
 __nf_ct_l3proto_find(u_int16_t l3proto)
 {
 	if (unlikely(l3proto >= AF_MAX))
+	{
 		return &nf_conntrack_l3proto_generic;
+	}
+
 	return rcu_dereference(nf_ct_l3protos[l3proto]);
 }
 

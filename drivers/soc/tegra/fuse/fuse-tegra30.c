@@ -58,7 +58,9 @@ static u32 tegra30_fuse_read(struct tegra_fuse *fuse, unsigned int offset)
 	int err;
 
 	err = clk_prepare_enable(fuse->clk);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(fuse->dev, "failed to enable FUSE clock: %d\n", err);
 		return 0;
 	}
@@ -104,13 +106,15 @@ static void __init tegra30_fuse_init(struct tegra_fuse *fuse)
 #endif
 
 #ifdef CONFIG_ARCH_TEGRA_3x_SOC
-static const struct tegra_fuse_info tegra30_fuse_info = {
+static const struct tegra_fuse_info tegra30_fuse_info =
+{
 	.read = tegra30_fuse_read,
 	.size = 0x2a4,
 	.spare = 0x144,
 };
 
-const struct tegra_fuse_soc tegra30_fuse_soc = {
+const struct tegra_fuse_soc tegra30_fuse_soc =
+{
 	.init = tegra30_fuse_init,
 	.speedo_init = tegra30_init_speedo_data,
 	.info = &tegra30_fuse_info,
@@ -118,13 +122,15 @@ const struct tegra_fuse_soc tegra30_fuse_soc = {
 #endif
 
 #ifdef CONFIG_ARCH_TEGRA_114_SOC
-static const struct tegra_fuse_info tegra114_fuse_info = {
+static const struct tegra_fuse_info tegra114_fuse_info =
+{
 	.read = tegra30_fuse_read,
 	.size = 0x2a0,
 	.spare = 0x180,
 };
 
-const struct tegra_fuse_soc tegra114_fuse_soc = {
+const struct tegra_fuse_soc tegra114_fuse_soc =
+{
 	.init = tegra30_fuse_init,
 	.speedo_init = tegra114_init_speedo_data,
 	.info = &tegra114_fuse_info,
@@ -132,13 +138,15 @@ const struct tegra_fuse_soc tegra114_fuse_soc = {
 #endif
 
 #if defined(CONFIG_ARCH_TEGRA_124_SOC) || defined(CONFIG_ARCH_TEGRA_132_SOC)
-static const struct tegra_fuse_info tegra124_fuse_info = {
+static const struct tegra_fuse_info tegra124_fuse_info =
+{
 	.read = tegra30_fuse_read,
 	.size = 0x300,
 	.spare = 0x200,
 };
 
-const struct tegra_fuse_soc tegra124_fuse_soc = {
+const struct tegra_fuse_soc tegra124_fuse_soc =
+{
 	.init = tegra30_fuse_init,
 	.speedo_init = tegra124_init_speedo_data,
 	.info = &tegra124_fuse_info,
@@ -146,13 +154,15 @@ const struct tegra_fuse_soc tegra124_fuse_soc = {
 #endif
 
 #if defined(CONFIG_ARCH_TEGRA_210_SOC)
-static const struct tegra_fuse_info tegra210_fuse_info = {
+static const struct tegra_fuse_info tegra210_fuse_info =
+{
 	.read = tegra30_fuse_read,
 	.size = 0x300,
 	.spare = 0x280,
 };
 
-const struct tegra_fuse_soc tegra210_fuse_soc = {
+const struct tegra_fuse_soc tegra210_fuse_soc =
+{
 	.init = tegra30_fuse_init,
 	.speedo_init = tegra210_init_speedo_data,
 	.info = &tegra210_fuse_info,

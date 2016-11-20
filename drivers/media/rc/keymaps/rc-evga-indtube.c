@@ -17,7 +17,8 @@
    Devin Heitmueller <devin.heitmueller@gmail.com>
  */
 
-static struct rc_map_table evga_indtube[] = {
+static struct rc_map_table evga_indtube[] =
+{
 	{ 0x12, KEY_POWER},
 	{ 0x02, KEY_MODE},	/* TV */
 	{ 0x14, KEY_MUTE},
@@ -36,7 +37,8 @@ static struct rc_map_table evga_indtube[] = {
 	{ 0x13, KEY_CAMERA},
 };
 
-static struct rc_map_list evga_indtube_map = {
+static struct rc_map_list evga_indtube_map =
+{
 	.map = {
 		.scan    = evga_indtube,
 		.size    = ARRAY_SIZE(evga_indtube),

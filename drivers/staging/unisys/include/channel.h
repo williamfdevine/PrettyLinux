@@ -39,23 +39,25 @@
 	(SIGNATURE_32(A, B, C, D) | ((u64)(SIGNATURE_32(E, F, G, H)) << 32))
 
 #ifndef lengthof
-#define lengthof(TYPE, MEMBER) (sizeof(((TYPE *)0)->MEMBER))
+	#define lengthof(TYPE, MEMBER) (sizeof(((TYPE *)0)->MEMBER))
 #endif
 #ifndef COVERQ
-#define COVERQ(v, d)  (((v) + (d) - 1) / (d))
+	#define COVERQ(v, d)  (((v) + (d) - 1) / (d))
 #endif
 #ifndef COVER
-#define COVER(v, d)   ((d) * COVERQ(v, d))
+	#define COVER(v, d)   ((d) * COVERQ(v, d))
 #endif
 
 #define ULTRA_CHANNEL_PROTOCOL_SIGNATURE  SIGNATURE_32('E', 'C', 'N', 'L')
 
-enum channel_serverstate {
+enum channel_serverstate
+{
 	CHANNELSRV_UNINITIALIZED = 0,	/* channel is in an undefined state */
 	CHANNELSRV_READY = 1	/* channel has been initialized by server */
 };
 
-enum channel_clientstate {
+enum channel_clientstate
+{
 	CHANNELCLI_DETACHED = 0,
 	CHANNELCLI_DISABLED = 1,	/* client can see channel but is NOT
 					 * allowed to use it unless given TBD
@@ -72,7 +74,7 @@ enum channel_clientstate {
 				 * using channel
 				 */
 	CHANNELCLI_OWNED = 5	/* "no worries" state - client can */
-				/* access channel anytime */
+					   /* access channel anytime */
 };
 
 #define SPAR_CHANNEL_SERVER_READY(ch) \
@@ -125,10 +127,11 @@ enum channel_clientstate {
 #define ULTRA_IO_DRIVER_SUPPORTS_ENHANCED_RCVBUF_CHECKING (0x1ULL << 6)
 
 /* Common Channel Header */
-struct channel_header {
+struct channel_header
+{
 	u64 signature;		/* Signature */
 	u32 legacy_state;	/* DEPRECATED - being replaced by */
-			/* SrvState, CliStateBoot, and CliStateOS below */
+	/* SrvState, CliStateBoot, and CliStateOS below */
 	u32 header_size;	/* sizeof(struct channel_header) */
 	u64 size;		/* Total size of this channel in bytes */
 	u64 features;		/* Flags to modify behavior */
@@ -175,7 +178,8 @@ struct channel_header {
 #define ULTRA_CHANNEL_ENABLE_INTS (0x1ULL << 0)
 
 /* Subheader for the Signal Type variation of the Common Channel */
-struct signal_queue_header {
+struct signal_queue_header
+{
 	/* 1st cache line */
 	u32 version;		/* SIGNAL_QUEUE_HEADER Version ID */
 	u32 chtype;		/* Queue type: storage, network */
@@ -222,9 +226,9 @@ struct signal_queue_header {
 		chan->QHDRFLD.size = sizeof(chan->QDATAFLD);		\
 		chan->QHDRFLD.signal_size = sizeof(QDATATYPE);		\
 		chan->QHDRFLD.sig_base_offset = (u64)(chan->QDATAFLD) -	\
-			(u64)(&chan->QHDRFLD);				\
+										(u64)(&chan->QHDRFLD);				\
 		chan->QHDRFLD.max_slots =				\
-			sizeof(chan->QDATAFLD) / sizeof(QDATATYPE);	\
+												sizeof(chan->QDATAFLD) / sizeof(QDATATYPE);	\
 		chan->QHDRFLD.max_signals = chan->QHDRFLD.max_slots - 1;\
 	} while (0)
 
@@ -235,58 +239,74 @@ struct signal_queue_header {
  */
 static inline int
 spar_check_channel_client(void __iomem *ch,
-			  uuid_le expected_uuid,
-			  char *chname,
-			  u64 expected_min_bytes,
-			  u32 expected_version,
-			  u64 expected_signature)
+						  uuid_le expected_uuid,
+						  char *chname,
+						  u64 expected_min_bytes,
+						  u32 expected_version,
+						  u64 expected_signature)
 {
-	if (uuid_le_cmp(expected_uuid, NULL_UUID_LE) != 0) {
+	if (uuid_le_cmp(expected_uuid, NULL_UUID_LE) != 0)
+	{
 		uuid_le guid;
 
 		memcpy_fromio(&guid,
-			      &((struct channel_header __iomem *)(ch))->chtype,
-			      sizeof(guid));
+					  &((struct channel_header __iomem *)(ch))->chtype,
+					  sizeof(guid));
+
 		/* caller wants us to verify type GUID */
-		if (uuid_le_cmp(guid, expected_uuid) != 0) {
+		if (uuid_le_cmp(guid, expected_uuid) != 0)
+		{
 			pr_err("Channel mismatch on channel=%s(%pUL) field=type expected=%pUL actual=%pUL\n",
-			       chname, &expected_uuid,
-			       &expected_uuid, &guid);
+				   chname, &expected_uuid,
+				   &expected_uuid, &guid);
 			return 0;
 		}
 	}
-	if (expected_min_bytes > 0) {	/* verify channel size */
+
+	if (expected_min_bytes > 0)  	/* verify channel size */
+	{
 		unsigned long long bytes =
-				readq(&((struct channel_header __iomem *)
+			readq(&((struct channel_header __iomem *)
 					(ch))->size);
-		if (bytes < expected_min_bytes) {
+
+		if (bytes < expected_min_bytes)
+		{
 			pr_err("Channel mismatch on channel=%s(%pUL) field=size expected=0x%-8.8Lx actual=0x%-8.8Lx\n",
-			       chname, &expected_uuid,
-			       (unsigned long long)expected_min_bytes, bytes);
+				   chname, &expected_uuid,
+				   (unsigned long long)expected_min_bytes, bytes);
 			return 0;
 		}
 	}
-	if (expected_version > 0) {	/* verify channel version */
+
+	if (expected_version > 0)  	/* verify channel version */
+	{
 		unsigned long ver = readl(&((struct channel_header __iomem *)
-				    (ch))->version_id);
-		if (ver != expected_version) {
+									(ch))->version_id);
+
+		if (ver != expected_version)
+		{
 			pr_err("Channel mismatch on channel=%s(%pUL) field=version expected=0x%-8.8lx actual=0x%-8.8lx\n",
-			       chname, &expected_uuid,
-			       (unsigned long)expected_version, ver);
+				   chname, &expected_uuid,
+				   (unsigned long)expected_version, ver);
 			return 0;
 		}
 	}
-	if (expected_signature > 0) {	/* verify channel signature */
+
+	if (expected_signature > 0)  	/* verify channel signature */
+	{
 		unsigned long long sig =
-				readq(&((struct channel_header __iomem *)
+			readq(&((struct channel_header __iomem *)
 					(ch))->signature);
-		if (sig != expected_signature) {
+
+		if (sig != expected_signature)
+		{
 			pr_err("Channel mismatch on channel=%s(%pUL) field=signature expected=0x%-8.8llx actual=0x%-8.8llx\n",
-			       chname, &expected_uuid,
-			       expected_signature, sig);
+				   chname, &expected_uuid,
+				   expected_signature, sig);
 			return 0;
 		}
 	}
+
 	return 1;
 }
 
@@ -296,16 +316,18 @@ spar_check_channel_client(void __iomem *ch,
  * is used to pass the EFI_DIAG_CAPTURE_PROTOCOL needed to log messages.
  */
 static inline int spar_check_channel_server(uuid_le typeuuid, char *name,
-					    u64 expected_min_bytes,
-					    u64 actual_bytes)
+		u64 expected_min_bytes,
+		u64 actual_bytes)
 {
 	if (expected_min_bytes > 0)	/* verify channel size */
-		if (actual_bytes < expected_min_bytes) {
+		if (actual_bytes < expected_min_bytes)
+		{
 			pr_err("Channel mismatch on channel=%s(%pUL) field=size expected=0x%-8.8llx actual=0x%-8.8llx\n",
-			       name, &typeuuid, expected_min_bytes,
-			       actual_bytes);
+				   name, &typeuuid, expected_min_bytes,
+				   actual_bytes);
 			return 0;
 		}
+
 	return 1;
 }
 
@@ -329,7 +351,7 @@ static inline int spar_check_channel_server(uuid_le typeuuid, char *name,
 */
 
 unsigned char spar_signal_insert(struct channel_header __iomem *ch, u32 queue,
-				 void *sig);
+								 void *sig);
 
 /*
 * Routine Description:
@@ -351,7 +373,7 @@ unsigned char spar_signal_insert(struct channel_header __iomem *ch, u32 queue,
 */
 
 unsigned char spar_signal_remove(struct channel_header __iomem *ch, u32 queue,
-				 void *sig);
+								 void *sig);
 
 /*
 * Routine Description:
@@ -373,7 +395,7 @@ unsigned char spar_signal_remove(struct channel_header __iomem *ch, u32 queue,
 * # of signals copied.
 */
 unsigned int spar_signal_remove_all(struct channel_header *ch, u32 queue,
-				    void *sig);
+									void *sig);
 
 /*
 * Routine Description:
@@ -387,7 +409,7 @@ unsigned int spar_signal_remove_all(struct channel_header *ch, u32 queue,
 * 1 if the signal queue is empty, 0 otherwise.
 */
 unsigned char spar_signalqueue_empty(struct channel_header __iomem *ch,
-				     u32 queue);
+									 u32 queue);
 
 /*
  * CHANNEL Guids
@@ -395,8 +417,8 @@ unsigned char spar_signalqueue_empty(struct channel_header __iomem *ch,
 
 /* {414815ed-c58c-11da-95a9-00e08161165f} */
 #define SPAR_VHBA_CHANNEL_PROTOCOL_UUID \
-		UUID_LE(0x414815ed, 0xc58c, 0x11da, \
-				0x95, 0xa9, 0x0, 0xe0, 0x81, 0x61, 0x16, 0x5f)
+	UUID_LE(0x414815ed, 0xc58c, 0x11da, \
+			0x95, 0xa9, 0x0, 0xe0, 0x81, 0x61, 0x16, 0x5f)
 static const uuid_le spar_vhba_channel_protocol_uuid =
 	SPAR_VHBA_CHANNEL_PROTOCOL_UUID;
 #define SPAR_VHBA_CHANNEL_PROTOCOL_UUID_STR \
@@ -404,8 +426,8 @@ static const uuid_le spar_vhba_channel_protocol_uuid =
 
 /* {8cd5994d-c58e-11da-95a9-00e08161165f} */
 #define SPAR_VNIC_CHANNEL_PROTOCOL_UUID \
-		UUID_LE(0x8cd5994d, 0xc58e, 0x11da, \
-				0x95, 0xa9, 0x0, 0xe0, 0x81, 0x61, 0x16, 0x5f)
+	UUID_LE(0x8cd5994d, 0xc58e, 0x11da, \
+			0x95, 0xa9, 0x0, 0xe0, 0x81, 0x61, 0x16, 0x5f)
 static const uuid_le spar_vnic_channel_protocol_uuid =
 	SPAR_VNIC_CHANNEL_PROTOCOL_UUID;
 #define SPAR_VNIC_CHANNEL_PROTOCOL_UUID_STR \
@@ -413,21 +435,21 @@ static const uuid_le spar_vnic_channel_protocol_uuid =
 
 /* {72120008-4AAB-11DC-8530-444553544200} */
 #define SPAR_SIOVM_UUID \
-		UUID_LE(0x72120008, 0x4AAB, 0x11DC, \
-				0x85, 0x30, 0x44, 0x45, 0x53, 0x54, 0x42, 0x00)
+	UUID_LE(0x72120008, 0x4AAB, 0x11DC, \
+			0x85, 0x30, 0x44, 0x45, 0x53, 0x54, 0x42, 0x00)
 static const uuid_le spar_siovm_uuid = SPAR_SIOVM_UUID;
 
 /* {5b52c5ac-e5f5-4d42-8dff-429eaecd221f} */
 #define SPAR_CONTROLDIRECTOR_CHANNEL_PROTOCOL_UUID  \
-		UUID_LE(0x5b52c5ac, 0xe5f5, 0x4d42, \
-				0x8d, 0xff, 0x42, 0x9e, 0xae, 0xcd, 0x22, 0x1f)
+	UUID_LE(0x5b52c5ac, 0xe5f5, 0x4d42, \
+			0x8d, 0xff, 0x42, 0x9e, 0xae, 0xcd, 0x22, 0x1f)
 
 static const uuid_le spar_controldirector_channel_protocol_uuid =
 	SPAR_CONTROLDIRECTOR_CHANNEL_PROTOCOL_UUID;
 
 /* {b4e79625-aede-4eAA-9e11-D3eddcd4504c} */
 #define SPAR_DIAG_POOL_CHANNEL_PROTOCOL_UUID				\
-		UUID_LE(0xb4e79625, 0xaede, 0x4eaa, \
-				0x9e, 0x11, 0xd3, 0xed, 0xdc, 0xd4, 0x50, 0x4c)
+	UUID_LE(0xb4e79625, 0xaede, 0x4eaa, \
+			0x9e, 0x11, 0xd3, 0xed, 0xdc, 0xd4, 0x50, 0x4c)
 
 #endif

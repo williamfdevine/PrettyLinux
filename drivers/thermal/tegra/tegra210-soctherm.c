@@ -35,7 +35,8 @@
 #define TEGRA210_THRESH_GRAIN			500
 #define TEGRA210_BPTT				9
 
-static const struct tegra_tsensor_configuration tegra210_tsensor_config = {
+static const struct tegra_tsensor_configuration tegra210_tsensor_config =
+{
 	.tall = 16300,
 	.tiddq_en = 1,
 	.ten_count = 1,
@@ -43,7 +44,8 @@ static const struct tegra_tsensor_configuration tegra210_tsensor_config = {
 	.tsample_ate = 480,
 };
 
-static const struct tegra_tsensor_group tegra210_tsensor_group_cpu = {
+static const struct tegra_tsensor_group tegra210_tsensor_group_cpu =
+{
 	.id = TEGRA124_SOCTHERM_SENSOR_CPU,
 	.name = "cpu",
 	.sensor_temp_offset = SENSOR_TEMP1,
@@ -61,7 +63,8 @@ static const struct tegra_tsensor_group tegra210_tsensor_group_cpu = {
 	.thermctl_lvl0_dn_thresh_mask = TEGRA210_THERMCTL_LVL0_DN_THRESH_MASK,
 };
 
-static const struct tegra_tsensor_group tegra210_tsensor_group_gpu = {
+static const struct tegra_tsensor_group tegra210_tsensor_group_gpu =
+{
 	.id = TEGRA124_SOCTHERM_SENSOR_GPU,
 	.name = "gpu",
 	.sensor_temp_offset = SENSOR_TEMP1,
@@ -79,7 +82,8 @@ static const struct tegra_tsensor_group tegra210_tsensor_group_gpu = {
 	.thermctl_lvl0_dn_thresh_mask = TEGRA210_THERMCTL_LVL0_DN_THRESH_MASK,
 };
 
-static const struct tegra_tsensor_group tegra210_tsensor_group_pll = {
+static const struct tegra_tsensor_group tegra210_tsensor_group_pll =
+{
 	.id = TEGRA124_SOCTHERM_SENSOR_PLLX,
 	.name = "pll",
 	.sensor_temp_offset = SENSOR_TEMP2,
@@ -95,7 +99,8 @@ static const struct tegra_tsensor_group tegra210_tsensor_group_pll = {
 	.thermctl_lvl0_dn_thresh_mask = TEGRA210_THERMCTL_LVL0_DN_THRESH_MASK,
 };
 
-static const struct tegra_tsensor_group tegra210_tsensor_group_mem = {
+static const struct tegra_tsensor_group tegra210_tsensor_group_mem =
+{
 	.id = TEGRA124_SOCTHERM_SENSOR_MEM,
 	.name = "mem",
 	.sensor_temp_offset = SENSOR_TEMP2,
@@ -113,14 +118,16 @@ static const struct tegra_tsensor_group tegra210_tsensor_group_mem = {
 	.thermctl_lvl0_dn_thresh_mask = TEGRA210_THERMCTL_LVL0_DN_THRESH_MASK,
 };
 
-static const struct tegra_tsensor_group *tegra210_tsensor_groups[] = {
+static const struct tegra_tsensor_group *tegra210_tsensor_groups[] =
+{
 	&tegra210_tsensor_group_cpu,
 	&tegra210_tsensor_group_gpu,
 	&tegra210_tsensor_group_pll,
 	&tegra210_tsensor_group_mem,
 };
 
-static const struct tegra_tsensor tegra210_tsensors[] = {
+static const struct tegra_tsensor tegra210_tsensors[] =
+{
 	{
 		.name = "cpu0",
 		.base = 0xc0,
@@ -193,7 +200,8 @@ static const struct tegra_tsensor tegra210_tsensors[] = {
  * FUSE_TSENSOR_COMMON, which are described in
  * tegra_soctherm_fuse.c
  */
-static const struct tegra_soctherm_fuse tegra210_soctherm_fuse = {
+static const struct tegra_soctherm_fuse tegra210_soctherm_fuse =
+{
 	.fuse_base_cp_mask = 0x3ff << 11,
 	.fuse_base_cp_shift = 11,
 	.fuse_base_ft_mask = 0x7ff << 21,
@@ -203,7 +211,8 @@ static const struct tegra_soctherm_fuse tegra210_soctherm_fuse = {
 	.fuse_spare_realignment = 0,
 };
 
-const struct tegra_soctherm_soc tegra210_soctherm = {
+const struct tegra_soctherm_soc tegra210_soctherm =
+{
 	.tsensors = tegra210_tsensors,
 	.num_tsensors = ARRAY_SIZE(tegra210_tsensors),
 	.ttgs = tegra210_tsensor_groups,

@@ -7,7 +7,8 @@
  * of the resume swap area from a user space to the kernel via the
  * SNAPSHOT_SET_SWAP_AREA ioctl
  */
-struct resume_swap_area {
+struct resume_swap_area
+{
 	__kernel_loff_t offset;
 	__u32 dev;
 } __attribute__((packed));
@@ -20,7 +21,7 @@ struct resume_swap_area {
 #define SNAPSHOT_FREE_SWAP_PAGES	_IO(SNAPSHOT_IOC_MAGIC, 9)
 #define SNAPSHOT_S2RAM			_IO(SNAPSHOT_IOC_MAGIC, 11)
 #define SNAPSHOT_SET_SWAP_AREA		_IOW(SNAPSHOT_IOC_MAGIC, 13, \
-							struct resume_swap_area)
+		struct resume_swap_area)
 #define SNAPSHOT_GET_IMAGE_SIZE		_IOR(SNAPSHOT_IOC_MAGIC, 14, __kernel_loff_t)
 #define SNAPSHOT_PLATFORM_SUPPORT	_IO(SNAPSHOT_IOC_MAGIC, 15)
 #define SNAPSHOT_POWER_OFF		_IO(SNAPSHOT_IOC_MAGIC, 16)

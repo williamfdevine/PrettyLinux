@@ -70,7 +70,8 @@
 #define VNIC_FNIC_LUNS_PER_TARGET_MAX       1024
 
 /* Device-specific region: scsi configuration */
-struct vnic_fc_config {
+struct vnic_fc_config
+{
 	u64 node_wwn;
 	u64 port_wwn;
 	u32 flags;

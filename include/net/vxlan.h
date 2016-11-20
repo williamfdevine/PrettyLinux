@@ -15,7 +15,8 @@
  *
  * I = VXLAN Network Identifier (VNI) present.
  */
-struct vxlanhdr {
+struct vxlanhdr
+{
 	__be32 vx_flags;
 	__be32 vx_vni;
 };
@@ -80,20 +81,21 @@ struct vxlanhdr {
  *
  * https://tools.ietf.org/html/draft-smith-vxlan-group-policy
  */
-struct vxlanhdr_gbp {
+struct vxlanhdr_gbp
+{
 	u8	vx_flags;
 #ifdef __LITTLE_ENDIAN_BITFIELD
-	u8	reserved_flags1:3,
-		policy_applied:1,
-		reserved_flags2:2,
-		dont_learn:1,
-		reserved_flags3:1;
+	u8	reserved_flags1: 3,
+	 policy_applied: 1,
+	 reserved_flags2: 2,
+	 dont_learn: 1,
+	 reserved_flags3: 1;
 #elif defined(__BIG_ENDIAN_BITFIELD)
-	u8	reserved_flags1:1,
-		dont_learn:1,
-		reserved_flags2:2,
-		policy_applied:1,
-		reserved_flags3:3;
+	u8	reserved_flags1: 1,
+	 dont_learn: 1,
+	 reserved_flags2: 2,
+	 policy_applied: 1,
+	 reserved_flags3: 3;
 #else
 #error	"Please fix <asm/byteorder.h>"
 #endif
@@ -138,21 +140,22 @@ struct vxlanhdr_gbp {
  * https://tools.ietf.org/html/draft-ietf-nvo3-vxlan-gpe-01
  */
 
-struct vxlanhdr_gpe {
+struct vxlanhdr_gpe
+{
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	u8	oam_flag:1,
-		reserved_flags1:1,
-		np_applied:1,
-		instance_applied:1,
-		version:2,
-reserved_flags2:2;
+	u8	oam_flag: 1,
+	 reserved_flags1: 1,
+	 np_applied: 1,
+	 instance_applied: 1,
+	 version: 2,
+	 reserved_flags2: 2;
 #elif defined(__BIG_ENDIAN_BITFIELD)
-	u8	reserved_flags2:2,
-		version:2,
-		instance_applied:1,
-		np_applied:1,
-		reserved_flags1:1,
-		oam_flag:1;
+	u8	reserved_flags2: 2,
+	 version: 2,
+	 instance_applied: 1,
+	 np_applied: 1,
+	 reserved_flags1: 1,
+	 oam_flag: 1;
 #endif
 	u8	reserved_flags3;
 	u8	reserved_flags4;
@@ -166,7 +169,7 @@ reserved_flags2:2;
 #define VXLAN_HF_OAM	cpu_to_be32(BIT(24))
 
 #define VXLAN_GPE_USED_BITS (VXLAN_HF_VER | VXLAN_HF_NP | VXLAN_HF_OAM | \
-			     cpu_to_be32(0xff))
+							 cpu_to_be32(0xff))
 
 /* VXLAN-GPE header Next Protocol. */
 #define VXLAN_GPE_NP_IPV4      0x01
@@ -174,12 +177,14 @@ reserved_flags2:2;
 #define VXLAN_GPE_NP_ETHERNET  0x03
 #define VXLAN_GPE_NP_NSH       0x04
 
-struct vxlan_metadata {
+struct vxlan_metadata
+{
 	u32		gbp;
 };
 
 /* per UDP socket information */
-struct vxlan_sock {
+struct vxlan_sock
+{
 	struct hlist_node hlist;
 	struct socket	 *sock;
 	struct hlist_head vni_list[VNI_HASH_SIZE];
@@ -187,13 +192,15 @@ struct vxlan_sock {
 	u32		  flags;
 };
 
-union vxlan_addr {
+union vxlan_addr
+{
 	struct sockaddr_in sin;
 	struct sockaddr_in6 sin6;
 	struct sockaddr sa;
 };
 
-struct vxlan_rdst {
+struct vxlan_rdst
+{
 	union vxlan_addr	 remote_ip;
 	__be16			 remote_port;
 	__be32			 remote_vni;
@@ -203,7 +210,8 @@ struct vxlan_rdst {
 	struct dst_cache	 dst_cache;
 };
 
-struct vxlan_config {
+struct vxlan_config
+{
 	union vxlan_addr	remote_ip;
 	union vxlan_addr	saddr;
 	__be32			vni;
@@ -222,7 +230,8 @@ struct vxlan_config {
 };
 
 /* Pseudo network device */
-struct vxlan_dev {
+struct vxlan_dev
+{
 	struct hlist_node hlist;	/* vni hash table */
 	struct list_head  next;		/* vxlan's per namespace list */
 	struct vxlan_sock __rcu *vn4_sock;	/* listening socket for IPv4 */
@@ -264,60 +273,71 @@ struct vxlan_dev {
  * order for a socket to be shareable
  */
 #define VXLAN_F_RCV_FLAGS		(VXLAN_F_GBP |			\
-					 VXLAN_F_GPE |			\
-					 VXLAN_F_UDP_ZERO_CSUM6_RX |	\
-					 VXLAN_F_REMCSUM_RX |		\
-					 VXLAN_F_REMCSUM_NOPARTIAL |	\
-					 VXLAN_F_COLLECT_METADATA)
+								 VXLAN_F_GPE |			\
+								 VXLAN_F_UDP_ZERO_CSUM6_RX |	\
+								 VXLAN_F_REMCSUM_RX |		\
+								 VXLAN_F_REMCSUM_NOPARTIAL |	\
+								 VXLAN_F_COLLECT_METADATA)
 
 /* Flags that can be set together with VXLAN_F_GPE. */
 #define VXLAN_F_ALLOWED_GPE		(VXLAN_F_GPE |			\
-					 VXLAN_F_IPV6 |			\
-					 VXLAN_F_UDP_ZERO_CSUM_TX |	\
-					 VXLAN_F_UDP_ZERO_CSUM6_TX |	\
-					 VXLAN_F_UDP_ZERO_CSUM6_RX |	\
-					 VXLAN_F_COLLECT_METADATA)
+								 VXLAN_F_IPV6 |			\
+								 VXLAN_F_UDP_ZERO_CSUM_TX |	\
+								 VXLAN_F_UDP_ZERO_CSUM6_TX |	\
+								 VXLAN_F_UDP_ZERO_CSUM6_RX |	\
+								 VXLAN_F_COLLECT_METADATA)
 
 struct net_device *vxlan_dev_create(struct net *net, const char *name,
-				    u8 name_assign_type, struct vxlan_config *conf);
+									u8 name_assign_type, struct vxlan_config *conf);
 
 static inline __be16 vxlan_dev_dst_port(struct vxlan_dev *vxlan,
-					unsigned short family)
+										unsigned short family)
 {
 #if IS_ENABLED(CONFIG_IPV6)
+
 	if (family == AF_INET6)
+	{
 		return inet_sk(vxlan->vn6_sock->sock->sk)->inet_sport;
+	}
+
 #endif
 	return inet_sk(vxlan->vn4_sock->sock->sk)->inet_sport;
 }
 
 static inline netdev_features_t vxlan_features_check(struct sk_buff *skb,
-						     netdev_features_t features)
+		netdev_features_t features)
 {
 	u8 l4_hdr = 0;
 
 	if (!skb->encapsulation)
+	{
 		return features;
+	}
 
-	switch (vlan_get_protocol(skb)) {
-	case htons(ETH_P_IP):
-		l4_hdr = ip_hdr(skb)->protocol;
-		break;
-	case htons(ETH_P_IPV6):
-		l4_hdr = ipv6_hdr(skb)->nexthdr;
-		break;
-	default:
-		return features;;
+	switch (vlan_get_protocol(skb))
+	{
+		case htons(ETH_P_IP):
+			l4_hdr = ip_hdr(skb)->protocol;
+			break;
+
+		case htons(ETH_P_IPV6):
+			l4_hdr = ipv6_hdr(skb)->nexthdr;
+			break;
+
+		default:
+			return features;;
 	}
 
 	if ((l4_hdr == IPPROTO_UDP) &&
-	    (skb->inner_protocol_type != ENCAP_TYPE_ETHER ||
-	     skb->inner_protocol != htons(ETH_P_TEB) ||
-	     (skb_inner_mac_header(skb) - skb_transport_header(skb) !=
-	      sizeof(struct udphdr) + sizeof(struct vxlanhdr)) ||
-	     (skb->ip_summed != CHECKSUM_NONE &&
-	      !can_checksum_protocol(features, inner_eth_hdr(skb)->h_proto))))
+		(skb->inner_protocol_type != ENCAP_TYPE_ETHER ||
+		 skb->inner_protocol != htons(ETH_P_TEB) ||
+		 (skb_inner_mac_header(skb) - skb_transport_header(skb) !=
+		  sizeof(struct udphdr) + sizeof(struct vxlanhdr)) ||
+		 (skb->ip_summed != CHECKSUM_NONE &&
+		  !can_checksum_protocol(features, inner_eth_hdr(skb)->h_proto))))
+	{
 		return features & ~(NETIF_F_CSUM_MASK | NETIF_F_GSO_MASK);
+	}
 
 	return features;
 }
@@ -358,8 +378,8 @@ static inline size_t vxlan_rco_start(__be32 vni_field)
 static inline size_t vxlan_rco_offset(__be32 vni_field)
 {
 	return (vni_field & VXLAN_RCO_UDP) ?
-		offsetof(struct udphdr, check) :
-		offsetof(struct tcphdr, check);
+		   offsetof(struct udphdr, check) :
+		   offsetof(struct tcphdr, check);
 }
 
 static inline __be32 vxlan_compute_rco(unsigned int start, unsigned int offset)
@@ -367,7 +387,10 @@ static inline __be32 vxlan_compute_rco(unsigned int start, unsigned int offset)
 	__be32 vni_field = cpu_to_be32(start >> VXLAN_RCO_SHIFT);
 
 	if (offset == offsetof(struct udphdr, check))
+	{
 		vni_field |= VXLAN_RCO_UDP;
+	}
+
 	return vni_field;
 }
 

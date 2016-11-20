@@ -22,55 +22,62 @@
 */
 static inline unsigned long
 __unisys_vmcall_gnuc(unsigned long tuple, unsigned long reg_ebx,
-		     unsigned long reg_ecx)
+					 unsigned long reg_ecx)
 {
 	unsigned long result = 0;
 	unsigned int cpuid_eax, cpuid_ebx, cpuid_ecx, cpuid_edx;
 
 	cpuid(0x00000001, &cpuid_eax, &cpuid_ebx, &cpuid_ecx, &cpuid_edx);
+
 	if (!(cpuid_ecx & 0x80000000))
+	{
 		return -EPERM;
+	}
 
 	__asm__ __volatile__(".byte 0x00f, 0x001, 0x0c1" : "=a"(result) :
-		"a"(tuple), "b"(reg_ebx), "c"(reg_ecx));
+						 "a"(tuple), "b"(reg_ebx), "c"(reg_ecx));
 	return result;
 }
 
 static inline unsigned long
 __unisys_extended_vmcall_gnuc(unsigned long long tuple,
-			      unsigned long long reg_ebx,
-			      unsigned long long reg_ecx,
-			      unsigned long long reg_edx)
+							  unsigned long long reg_ebx,
+							  unsigned long long reg_ecx,
+							  unsigned long long reg_edx)
 {
 	unsigned long result = 0;
 	unsigned int cpuid_eax, cpuid_ebx, cpuid_ecx, cpuid_edx;
 
 	cpuid(0x00000001, &cpuid_eax, &cpuid_ebx, &cpuid_ecx, &cpuid_edx);
+
 	if (!(cpuid_ecx & 0x80000000))
+	{
 		return -EPERM;
+	}
 
 	__asm__ __volatile__(".byte 0x00f, 0x001, 0x0c1" : "=a"(result) :
-		"a"(tuple), "b"(reg_ebx), "c"(reg_ecx), "d"(reg_edx));
+						 "a"(tuple), "b"(reg_ebx), "c"(reg_ecx), "d"(reg_edx));
 	return result;
 }
 
 #ifdef VMCALL_IO_CONTROLVM_ADDR
-#undef VMCALL_IO_CONTROLVM_ADDR
+	#undef VMCALL_IO_CONTROLVM_ADDR
 #endif	/*  */
 
 /* define subsystem number for AppOS, used in uislib driver  */
 #define MDS_APPOS 0x4000000000000000L	/* subsystem = 62 - AppOS */
-enum vmcall_monitor_interface_method_tuple { /* VMCALL identification tuples  */
-	    /* Note: when a new VMCALL is added:
-	     * - the 1st 2 hex digits correspond to one of the
-	     *   VMCALL_MONITOR_INTERFACE types and
-	     * - the next 2 hex digits are the nth relative instance of within a
-	     *   type
-	     * E.G. for VMCALL_VIRTPART_RECYCLE_PART,
-	     * - the 0x02 identifies it as a VMCALL_VIRTPART type and
-	     * - the 0x01 identifies it as the 1st instance of a VMCALL_VIRTPART
-	     *   type of VMCALL
-	     */
+enum vmcall_monitor_interface_method_tuple   /* VMCALL identification tuples  */
+{
+	/* Note: when a new VMCALL is added:
+	 * - the 1st 2 hex digits correspond to one of the
+	 *   VMCALL_MONITOR_INTERFACE types and
+	 * - the next 2 hex digits are the nth relative instance of within a
+	 *   type
+	 * E.G. for VMCALL_VIRTPART_RECYCLE_PART,
+	 * - the 0x02 identifies it as a VMCALL_VIRTPART type and
+	 * - the 0x01 identifies it as the 1st instance of a VMCALL_VIRTPART
+	 *   type of VMCALL
+	 */
 	/* used by all Guests, not just IO */
 	VMCALL_IO_CONTROLVM_ADDR = 0x0501,
 	/* Allow caller to query virtual time offset */
@@ -91,21 +98,22 @@ enum vmcall_monitor_interface_method_tuple { /* VMCALL identification tuples  */
 	__unisys_extended_vmcall_gnuc(tuple, reg_ebx, reg_ecx, reg_edx)
 #define ISSUE_IO_VMCALL(method, param, result) \
 	(result = unisys_vmcall(method, (param) & 0xFFFFFFFF,	\
-				(param) >> 32))
+							(param) >> 32))
 #define ISSUE_IO_EXTENDED_VMCALL(method, param1, param2, param3) \
 	unisys_extended_vmcall(method, param1, param2, param3)
 
-    /* The following uses VMCALL_POST_CODE_LOGEVENT interface but is currently
-     * not used much
-     */
+/* The following uses VMCALL_POST_CODE_LOGEVENT interface but is currently
+ * not used much
+ */
 #define ISSUE_IO_VMCALL_POSTCODE_SEVERITY(postcode, severity)		\
 	ISSUE_IO_EXTENDED_VMCALL(VMCALL_POST_CODE_LOGEVENT, severity,	\
-				 MDS_APPOS, postcode)
+							 MDS_APPOS, postcode)
 
 /* Structures for IO VMCALLs */
 
 /* Parameters to VMCALL_IO_CONTROLVM_ADDR interface */
-struct vmcall_io_controlvm_addr_params {
+struct vmcall_io_controlvm_addr_params
+{
 	/* The Guest-relative physical address of the ControlVm channel. */
 	/* This VMCall fills this in with the appropriate address. */
 	u64 address;	/* contents provided by this VMCALL (OUT) */
@@ -116,7 +124,8 @@ struct vmcall_io_controlvm_addr_params {
 } __packed;
 
 /******* INFO ON ISSUE_POSTCODE_LINUX() BELOW *******/
-enum driver_pc {		/* POSTCODE driver identifier tuples */
+enum driver_pc  		/* POSTCODE driver identifier tuples */
+{
 	/* visorchipset driver files */
 	VISOR_CHIPSET_PC = 0xA0,
 	VISOR_CHIPSET_PC_controlvm_c = 0xA1,
@@ -153,7 +162,8 @@ enum driver_pc {		/* POSTCODE driver identifier tuples */
 	UISLIB_PC_uisutils_c = 0xD4,
 };
 
-enum event_pc {			/* POSTCODE event identifier tuples */
+enum event_pc  			/* POSTCODE event identifier tuples */
+{
 	ATTACH_PORT_ENTRY_PC = 0x001,
 	ATTACH_PORT_FAILURE_PC = 0x002,
 	ATTACH_PORT_SUCCESS_PC = 0x003,
@@ -238,23 +248,23 @@ enum event_pc {			/* POSTCODE event identifier tuples */
 
 /* BASE FUNCTIONS */
 #define POSTCODE_LINUX_A(DRIVER_PC, EVENT_PC, pc32bit, severity)	\
-do {									\
-	unsigned long long post_code_temp;				\
-	post_code_temp = (((u64)DRIVER_PC) << 56) | (((u64)EVENT_PC) << 44) | \
-		((((u64)__LINE__) & 0xFFF) << 32) |			\
-		(((u64)pc32bit) & 0xFFFFFFFF);				\
-	ISSUE_IO_VMCALL_POSTCODE_SEVERITY(post_code_temp, severity);	\
-} while (0)
+	do {									\
+		unsigned long long post_code_temp;				\
+		post_code_temp = (((u64)DRIVER_PC) << 56) | (((u64)EVENT_PC) << 44) | \
+						 ((((u64)__LINE__) & 0xFFF) << 32) |			\
+						 (((u64)pc32bit) & 0xFFFFFFFF);				\
+		ISSUE_IO_VMCALL_POSTCODE_SEVERITY(post_code_temp, severity);	\
+	} while (0)
 
 #define POSTCODE_LINUX_B(DRIVER_PC, EVENT_PC, pc16bit1, pc16bit2, severity) \
-do {									\
-	unsigned long long post_code_temp;				\
-	post_code_temp = (((u64)DRIVER_PC) << 56) | (((u64)EVENT_PC) << 44) | \
-		((((u64)__LINE__) & 0xFFF) << 32) |			\
-		((((u64)pc16bit1) & 0xFFFF) << 16) |			\
-		(((u64)pc16bit2) & 0xFFFF);				\
-	ISSUE_IO_VMCALL_POSTCODE_SEVERITY(post_code_temp, severity);	\
-} while (0)
+	do {									\
+		unsigned long long post_code_temp;				\
+		post_code_temp = (((u64)DRIVER_PC) << 56) | (((u64)EVENT_PC) << 44) | \
+						 ((((u64)__LINE__) & 0xFFF) << 32) |			\
+						 ((((u64)pc16bit1) & 0xFFFF) << 16) |			\
+						 (((u64)pc16bit2) & 0xFFFF);				\
+		ISSUE_IO_VMCALL_POSTCODE_SEVERITY(post_code_temp, severity);	\
+	} while (0)
 
 /* MOST COMMON */
 #define POSTCODE_LINUX_2(EVENT_PC, severity)				\
@@ -265,6 +275,6 @@ do {									\
 
 #define POSTCODE_LINUX_4(EVENT_PC, pc16bit1, pc16bit2, severity)	\
 	POSTCODE_LINUX_B(CURRENT_FILE_PC, EVENT_PC, pc16bit1,		\
-			 pc16bit2, severity)
+					 pc16bit2, severity)
 
 #endif /* __IOMONINTF_H__ */

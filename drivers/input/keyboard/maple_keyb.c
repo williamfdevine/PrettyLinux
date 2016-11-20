@@ -37,14 +37,16 @@ MODULE_AUTHOR("Adrian McMenamin <adrian@mcmen.demon.co.uk");
 MODULE_DESCRIPTION("SEGA Dreamcast keyboard driver");
 MODULE_LICENSE("GPL");
 
-struct dc_kbd {
+struct dc_kbd
+{
 	struct input_dev *dev;
 	unsigned short keycode[NR_SCANCODES];
 	unsigned char new[8];
 	unsigned char old[8];
 };
 
-static const unsigned short dc_kbd_keycode[NR_SCANCODES] = {
+static const unsigned short dc_kbd_keycode[NR_SCANCODES] =
+{
 	KEY_RESERVED, KEY_RESERVED, KEY_RESERVED, KEY_RESERVED, KEY_A, KEY_B,
 	KEY_C, KEY_D, KEY_E, KEY_F, KEY_G, KEY_H, KEY_I, KEY_J, KEY_K, KEY_L,
 	KEY_M, KEY_N, KEY_O, KEY_P, KEY_Q, KEY_R, KEY_S, KEY_T, KEY_U, KEY_V,
@@ -99,39 +101,53 @@ static void dc_scan_kbd(struct dc_kbd *kbd)
 	int code, keycode;
 	int i;
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		code = i + 224;
 		keycode = kbd->keycode[code];
 		input_event(dev, EV_MSC, MSC_SCAN, code);
 		input_report_key(dev, keycode, (kbd->new[0] >> i) & 1);
 	}
 
-	for (i = 2; i < 8; i++) {
+	for (i = 2; i < 8; i++)
+	{
 		ptr = memchr(kbd->new + 2, kbd->old[i], 6);
 		code = kbd->old[i];
-		if (code > 3 && ptr == NULL) {
+
+		if (code > 3 && ptr == NULL)
+		{
 			keycode = kbd->keycode[code];
-			if (keycode) {
+
+			if (keycode)
+			{
 				input_event(dev, EV_MSC, MSC_SCAN, code);
 				input_report_key(dev, keycode, 0);
-			} else
+			}
+			else
 				dev_dbg(&dev->dev,
-					"Unknown key (scancode %#x) released.",
-					code);
+						"Unknown key (scancode %#x) released.",
+						code);
 		}
+
 		ptr = memchr(kbd->old + 2, kbd->new[i], 6);
 		code = kbd->new[i];
-		if (code > 3 && ptr) {
+
+		if (code > 3 && ptr)
+		{
 			keycode = kbd->keycode[code];
-			if (keycode) {
+
+			if (keycode)
+			{
 				input_event(dev, EV_MSC, MSC_SCAN, code);
 				input_report_key(dev, keycode, 1);
-			} else
+			}
+			else
 				dev_dbg(&dev->dev,
-					"Unknown key (scancode %#x) pressed.",
-					code);
+						"Unknown key (scancode %#x) pressed.",
+						code);
 		}
 	}
+
 	input_sync(dev);
 	memcpy(kbd->old, kbd->new, 8);
 }
@@ -146,9 +162,11 @@ static void dc_kbd_callback(struct mapleq *mq)
 	 * We should always get the lock because the only
 	 * time it may be locked is if the driver is in the cleanup phase.
 	 */
-	if (likely(mutex_trylock(&maple_keyb_mutex))) {
+	if (likely(mutex_trylock(&maple_keyb_mutex)))
+	{
 
-		if (buf[1] == mapledev->function) {
+		if (buf[1] == mapledev->function)
+		{
 			memcpy(kbd->new, buf + 2, 8);
 			dc_scan_kbd(kbd);
 		}
@@ -169,13 +187,17 @@ static int probe_maple_kbd(struct device *dev)
 	mdrv = to_maple_driver(dev->driver);
 
 	kbd = kzalloc(sizeof(struct dc_kbd), GFP_KERNEL);
-	if (!kbd) {
+
+	if (!kbd)
+	{
 		error = -ENOMEM;
 		goto fail;
 	}
 
 	idev = input_allocate_device();
-	if (!idev) {
+
+	if (!idev)
+	{
 		error = -ENOMEM;
 		goto fail_idev_alloc;
 	}
@@ -192,19 +214,25 @@ static int probe_maple_kbd(struct device *dev)
 	idev->dev.parent = &mdev->dev;
 
 	for (i = 0; i < NR_SCANCODES; i++)
+	{
 		__set_bit(dc_kbd_keycode[i], idev->keybit);
+	}
+
 	__clear_bit(KEY_RESERVED, idev->keybit);
 
 	input_set_capability(idev, EV_MSC, MSC_SCAN);
 	input_set_drvdata(idev, kbd);
 
 	error = input_register_device(idev);
+
 	if (error)
+	{
 		goto fail_register;
+	}
 
 	/* Maple polling is locked to VBLANK - which may be just 50/s */
-	maple_getcond_callback(mdev, dc_kbd_callback, HZ/50,
-		MAPLE_FUNC_KEYBOARD);
+	maple_getcond_callback(mdev, dc_kbd_callback, HZ / 50,
+						   MAPLE_FUNC_KEYBOARD);
 
 	mdev->driver = mdrv;
 
@@ -237,7 +265,8 @@ static int remove_maple_kbd(struct device *dev)
 	return 0;
 }
 
-static struct maple_driver dc_kbd_driver = {
+static struct maple_driver dc_kbd_driver =
+{
 	.function = MAPLE_FUNC_KEYBOARD,
 	.drv = {
 		.name = "Dreamcast_keyboard",

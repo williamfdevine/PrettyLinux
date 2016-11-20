@@ -19,20 +19,20 @@ void mc13xxx_unlock(struct mc13xxx *mc13xxx);
 int mc13xxx_reg_read(struct mc13xxx *mc13xxx, unsigned int offset, u32 *val);
 int mc13xxx_reg_write(struct mc13xxx *mc13xxx, unsigned int offset, u32 val);
 int mc13xxx_reg_rmw(struct mc13xxx *mc13xxx, unsigned int offset,
-		u32 mask, u32 val);
+					u32 mask, u32 val);
 
 int mc13xxx_irq_request(struct mc13xxx *mc13xxx, int irq,
-		irq_handler_t handler, const char *name, void *dev);
+						irq_handler_t handler, const char *name, void *dev);
 int mc13xxx_irq_free(struct mc13xxx *mc13xxx, int irq, void *dev);
 
 int mc13xxx_irq_status(struct mc13xxx *mc13xxx, int irq,
-		int *enabled, int *pending);
+					   int *enabled, int *pending);
 
 int mc13xxx_get_flags(struct mc13xxx *mc13xxx);
 
 int mc13xxx_adc_do_conversion(struct mc13xxx *mc13xxx,
-		unsigned int mode, unsigned int channel,
-		u8 ato, bool atox, unsigned int *sample);
+							  unsigned int mode, unsigned int channel,
+							  u8 ato, bool atox, unsigned int *sample);
 
 /* Deprecated calls */
 static inline int mc13xxx_irq_ack(struct mc13xxx *mc13xxx, int irq)
@@ -41,8 +41,8 @@ static inline int mc13xxx_irq_ack(struct mc13xxx *mc13xxx, int irq)
 }
 
 static inline int mc13xxx_irq_request_nounmask(struct mc13xxx *mc13xxx, int irq,
-					       irq_handler_t handler,
-					       const char *name, void *dev)
+		irq_handler_t handler,
+		const char *name, void *dev)
 {
 	return mc13xxx_irq_request(mc13xxx, irq, handler, name, dev);
 }
@@ -81,18 +81,21 @@ int mc13xxx_irq_unmask(struct mc13xxx *mc13xxx, int irq);
 
 struct regulator_init_data;
 
-struct mc13xxx_regulator_init_data {
+struct mc13xxx_regulator_init_data
+{
 	int id;
 	struct regulator_init_data *init_data;
 	struct device_node *node;
 };
 
-struct mc13xxx_regulator_platform_data {
+struct mc13xxx_regulator_platform_data
+{
 	int num_regulators;
 	struct mc13xxx_regulator_init_data *regulators;
 };
 
-enum {
+enum
+{
 	/* MC13783 LED IDs */
 	MC13783_LED_MD,
 	MC13783_LED_AD,
@@ -118,7 +121,8 @@ enum {
 	MC34708_LED_G,
 };
 
-struct mc13xxx_led_platform_data {
+struct mc13xxx_led_platform_data
+{
 	int id;
 	const char *name;
 	const char *default_trigger;
@@ -175,7 +179,8 @@ struct mc13xxx_led_platform_data {
 #define MC34708_LED_C0_CURRENT_R(x)	(((x) & 0x3) << 9)
 #define MC34708_LED_C0_CURRENT_G(x)	(((x) & 0x3) << 21)
 
-struct mc13xxx_leds_platform_data {
+struct mc13xxx_leds_platform_data
+{
 	struct mc13xxx_led_platform_data *led;
 	int num_leds;
 	u32 led_control[MAX_LED_CONTROL_REGS];
@@ -189,7 +194,8 @@ struct mc13xxx_leds_platform_data {
 #define MC13783_BUTTON_POL_INVERT	(1 << 3)
 #define MC13783_BUTTON_RESET_EN		(1 << 4)
 
-struct mc13xxx_buttons_platform_data {
+struct mc13xxx_buttons_platform_data
+{
 	int b1on_flags;
 	unsigned short b1on_key;
 	int b2on_flags;
@@ -201,7 +207,8 @@ struct mc13xxx_buttons_platform_data {
 #define MC13783_TS_ATO_FIRST	false
 #define MC13783_TS_ATO_EACH	true
 
-struct mc13xxx_ts_platform_data {
+struct mc13xxx_ts_platform_data
+{
 	/* Delay between Touchscreen polarization and ADC Conversion.
 	 * Given in clock ticks of a 32 kHz clock which gives a granularity of
 	 * about 30.5ms */
@@ -210,12 +217,14 @@ struct mc13xxx_ts_platform_data {
 	bool atox;
 };
 
-enum mc13783_ssi_port {
+enum mc13783_ssi_port
+{
 	MC13783_SSI1_PORT,
 	MC13783_SSI2_PORT,
 };
 
-struct mc13xxx_codec_platform_data {
+struct mc13xxx_codec_platform_data
+{
 	enum mc13783_ssi_port adc_ssi_port;
 	enum mc13783_ssi_port dac_ssi_port;
 };
@@ -225,7 +234,8 @@ struct mc13xxx_codec_platform_data {
 #define MC13XXX_USE_ADC		(1 << 2)
 #define MC13XXX_USE_RTC		(1 << 3)
 
-struct mc13xxx_platform_data {
+struct mc13xxx_platform_data
+{
 	unsigned int flags;
 
 	struct mc13xxx_regulator_platform_data regulators;
@@ -251,12 +261,12 @@ struct mc13xxx_platform_data {
 #define MC13XXX_ADC0_ADINC2		(1 << 17)
 
 #define MC13XXX_ADC0_TSMOD_MASK		(MC13XXX_ADC0_TSMOD0 | \
-					MC13XXX_ADC0_TSMOD1 | \
-					MC13XXX_ADC0_TSMOD2)
+									 MC13XXX_ADC0_TSMOD1 | \
+									 MC13XXX_ADC0_TSMOD2)
 
 #define MC13XXX_ADC0_CONFIG_MASK	(MC13XXX_ADC0_TSMOD_MASK | \
-					MC13XXX_ADC0_LICELLCON | \
-					MC13XXX_ADC0_CHRGICON | \
-					MC13XXX_ADC0_BATICON)
+									 MC13XXX_ADC0_LICELLCON | \
+									 MC13XXX_ADC0_CHRGICON | \
+									 MC13XXX_ADC0_BATICON)
 
 #endif /* ifndef __LINUX_MFD_MC13XXX_H */

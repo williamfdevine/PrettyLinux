@@ -41,7 +41,8 @@
 #define __sctp_ulpqueue_h__
 
 /* A structure to carry information to the ULP (e.g. Sockets API) */
-struct sctp_ulpq {
+struct sctp_ulpq
+{
 	char pd_mode;
 	struct sctp_association *asoc;
 	struct sk_buff_head reasm;
@@ -50,7 +51,7 @@ struct sctp_ulpq {
 
 /* Prototypes. */
 struct sctp_ulpq *sctp_ulpq_init(struct sctp_ulpq *,
-				 struct sctp_association *);
+								 struct sctp_association *);
 void sctp_ulpq_flush(struct sctp_ulpq *ulpq);
 void sctp_ulpq_free(struct sctp_ulpq *);
 

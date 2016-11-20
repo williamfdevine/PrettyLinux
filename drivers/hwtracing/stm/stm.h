@@ -27,17 +27,19 @@ void stp_policy_node_put(struct stp_policy_node *policy_node);
 void stp_policy_unbind(struct stp_policy *policy);
 
 void stp_policy_node_get_ranges(struct stp_policy_node *policy_node,
-				unsigned int *mstart, unsigned int *mend,
-				unsigned int *cstart, unsigned int *cend);
+								unsigned int *mstart, unsigned int *mend,
+								unsigned int *cstart, unsigned int *cend);
 int stp_configfs_init(void);
 void stp_configfs_exit(void);
 
-struct stp_master {
+struct stp_master
+{
 	unsigned int	nr_free;
 	unsigned long	chan_map[0];
 };
 
-struct stm_device {
+struct stm_device
+{
 	struct device		dev;
 	struct module		*owner;
 	struct stp_policy	*policy;
@@ -56,14 +58,16 @@ struct stm_device {
 #define to_stm_device(_d)				\
 	container_of((_d), struct stm_device, dev)
 
-struct stm_output {
+struct stm_output
+{
 	spinlock_t		lock;
 	unsigned int		master;
 	unsigned int		channel;
 	unsigned int		nr_chans;
 };
 
-struct stm_file {
+struct stm_file
+{
 	struct stm_device	*stm;
 	struct stp_policy_node	*policy_node;
 	struct stm_output	output;
@@ -72,7 +76,8 @@ struct stm_file {
 struct stm_device *stm_find_device(const char *name);
 void stm_put_device(struct stm_device *stm);
 
-struct stm_source_device {
+struct stm_source_device
+{
 	struct device		dev;
 	struct stm_source_data	*data;
 	spinlock_t		link_lock;

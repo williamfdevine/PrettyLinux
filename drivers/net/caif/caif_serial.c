@@ -62,7 +62,8 @@ static struct dentry *debugfsdir;
 static int caif_net_open(struct net_device *dev);
 static int caif_net_close(struct net_device *dev);
 
-struct ser_device {
+struct ser_device
+{
 	struct caif_dev_common common;
 	struct list_head node;
 	struct net_device *dev;
@@ -95,25 +96,28 @@ static inline void update_tty_status(struct ser_device *ser)
 static inline void debugfs_init(struct ser_device *ser, struct tty_struct *tty)
 {
 	ser->debugfs_tty_dir =
-			debugfs_create_dir(tty->name, debugfsdir);
-	if (!IS_ERR(ser->debugfs_tty_dir)) {
+		debugfs_create_dir(tty->name, debugfsdir);
+
+	if (!IS_ERR(ser->debugfs_tty_dir))
+	{
 		debugfs_create_blob("last_tx_msg", S_IRUSR,
-				ser->debugfs_tty_dir,
-				&ser->tx_blob);
+							ser->debugfs_tty_dir,
+							&ser->tx_blob);
 
 		debugfs_create_blob("last_rx_msg", S_IRUSR,
-				ser->debugfs_tty_dir,
-				&ser->rx_blob);
+							ser->debugfs_tty_dir,
+							&ser->rx_blob);
 
 		debugfs_create_x32("ser_state", S_IRUSR,
-				ser->debugfs_tty_dir,
-				(u32 *)&ser->state);
+						   ser->debugfs_tty_dir,
+						   (u32 *)&ser->state);
 
 		debugfs_create_x8("tty_status", S_IRUSR,
-				ser->debugfs_tty_dir,
-				&ser->tty_status);
+						  ser->debugfs_tty_dir,
+						  &ser->tty_status);
 
 	}
+
 	ser->tx_blob.data = ser->tx_data;
 	ser->tx_blob.size = 0;
 	ser->rx_blob.data = ser->rx_data;
@@ -128,7 +132,10 @@ static inline void debugfs_deinit(struct ser_device *ser)
 static inline void debugfs_rx(struct ser_device *ser, const u8 *data, int size)
 {
 	if (size > sizeof(ser->rx_data))
+	{
 		size = sizeof(ser->rx_data);
+	}
+
 	memcpy(ser->rx_data, data, size);
 	ser->rx_blob.data = ser->rx_data;
 	ser->rx_blob.size = size;
@@ -137,7 +144,10 @@ static inline void debugfs_rx(struct ser_device *ser, const u8 *data, int size)
 static inline void debugfs_tx(struct ser_device *ser, const u8 *data, int size)
 {
 	if (size > sizeof(ser->tx_data))
+	{
 		size = sizeof(ser->tx_data);
+	}
+
 	memcpy(ser->tx_data, data, size);
 	ser->tx_blob.data = ser->tx_data;
 	ser->tx_blob.size = size;
@@ -166,7 +176,7 @@ static inline void debugfs_tx(struct ser_device *ser, const u8 *data, int size)
 #endif
 
 static void ldisc_receive(struct tty_struct *tty, const u8 *data,
-			char *flags, int count)
+						  char *flags, int count)
 {
 	struct sk_buff *skb = NULL;
 	struct ser_device *ser;
@@ -185,19 +195,24 @@ static void ldisc_receive(struct tty_struct *tty, const u8 *data,
 	 * Workaround for garbage at start of transmission,
 	 * only enable if STX handling is not enabled.
 	 */
-	if (!ser->common.use_stx && !ser->tx_started) {
+	if (!ser->common.use_stx && !ser->tx_started)
+	{
 		dev_info(&ser->dev->dev,
-			"Bytes received before initial transmission -"
-			"bytes discarded.\n");
+				 "Bytes received before initial transmission -"
+				 "bytes discarded.\n");
 		return;
 	}
 
 	BUG_ON(ser->dev == NULL);
 
 	/* Get a suitable caif packet and copy in data. */
-	skb = netdev_alloc_skb(ser->dev, count+1);
+	skb = netdev_alloc_skb(ser->dev, count + 1);
+
 	if (skb == NULL)
+	{
 		return;
+	}
+
 	p = skb_put(skb, count);
 	memcpy(p, data, count);
 
@@ -206,11 +221,17 @@ static void ldisc_receive(struct tty_struct *tty, const u8 *data,
 	debugfs_rx(ser, data, count);
 	/* Push received packet up the stack. */
 	ret = netif_rx_ni(skb);
-	if (!ret) {
+
+	if (!ret)
+	{
 		ser->dev->stats.rx_packets++;
 		ser->dev->stats.rx_bytes += count;
-	} else
+	}
+	else
+	{
 		++ser->dev->stats.rx_dropped;
+	}
+
 	update_tty_status(ser);
 }
 
@@ -225,51 +246,81 @@ static int handle_tx(struct ser_device *ser)
 
 	/* Enter critical section */
 	if (test_and_set_bit(CAIF_SENDING, &ser->state))
+	{
 		return 0;
+	}
 
 	/* skb_peek is safe because handle_tx is called after skb_queue_tail */
-	while ((skb = skb_peek(&ser->head)) != NULL) {
+	while ((skb = skb_peek(&ser->head)) != NULL)
+	{
 
 		/* Make sure you don't write too much */
 		len = skb->len;
 		room = tty_write_room(tty);
+
 		if (!room)
+		{
 			break;
+		}
+
 		if (room > ser_write_chunk)
+		{
 			room = ser_write_chunk;
+		}
+
 		if (len > room)
+		{
 			len = room;
+		}
 
 		/* Write to tty or loopback */
-		if (!ser_loop) {
+		if (!ser_loop)
+		{
 			tty_wr = tty->ops->write(tty, skb->data, len);
 			update_tty_status(ser);
-		} else {
+		}
+		else
+		{
 			tty_wr = len;
 			ldisc_receive(tty, skb->data, NULL, len);
 		}
+
 		ser->dev->stats.tx_packets++;
 		ser->dev->stats.tx_bytes += tty_wr;
 
 		/* Error on TTY ?! */
 		if (tty_wr < 0)
+		{
 			goto error;
+		}
+
 		/* Reduce buffer written, and discard if empty */
 		skb_pull(skb, tty_wr);
-		if (skb->len == 0) {
+
+		if (skb->len == 0)
+		{
 			struct sk_buff *tmp = skb_dequeue(&ser->head);
 			WARN_ON(tmp != skb);
+
 			if (in_interrupt())
+			{
 				dev_kfree_skb_irq(skb);
+			}
 			else
+			{
 				kfree_skb(skb);
+			}
 		}
 	}
+
 	/* Send flow off if queue is empty */
 	if (ser->head.qlen <= SEND_QUEUE_LOW &&
 		test_and_clear_bit(CAIF_FLOW_OFF_SENT, &ser->state) &&
 		ser->common.flowctrl != NULL)
-				ser->common.flowctrl(ser->dev, ON);
+	{
+		ser->common.flowctrl(ser->dev, ON);
+	}
+
 	clear_bit(CAIF_SENDING, &ser->state);
 	return 0;
 error:
@@ -289,7 +340,9 @@ static int caif_xmit(struct sk_buff *skb, struct net_device *dev)
 		!test_and_set_bit(CAIF_FLOW_OFF_SENT, &ser->state) &&
 		ser->common.flowctrl != NULL)
 
+	{
 		ser->common.flowctrl(ser->dev, OFF);
+	}
 
 	skb_queue_tail(&ser->head, skb);
 	return handle_tx(ser);
@@ -316,9 +369,11 @@ static void ser_release(struct work_struct *work)
 	list_replace_init(&ser_release_list, &list);
 	spin_unlock(&ser_lock);
 
-	if (!list_empty(&list)) {
+	if (!list_empty(&list))
+	{
 		rtnl_lock();
-		list_for_each_entry_safe(ser, tmp, &list, node) {
+		list_for_each_entry_safe(ser, tmp, &list, node)
+		{
 			dev_close(ser->dev);
 			unregister_netdevice(ser->dev);
 			debugfs_deinit(ser);
@@ -338,20 +393,32 @@ static int ldisc_open(struct tty_struct *tty)
 
 	/* No write no play */
 	if (tty->ops->write == NULL)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	if (!capable(CAP_SYS_ADMIN) && !capable(CAP_SYS_TTY_CONFIG))
+	{
 		return -EPERM;
+	}
 
 	/* release devices to avoid name collision */
 	ser_release(NULL);
 
 	result = snprintf(name, sizeof(name), "cf%s", tty->name);
+
 	if (result >= IFNAMSIZ)
+	{
 		return -EINVAL;
+	}
+
 	dev = alloc_netdev(sizeof(*ser), name, NET_NAME_UNKNOWN,
-			   caifdev_setup);
+					   caifdev_setup);
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	ser = netdev_priv(dev);
 	ser->tty = tty_kref_get(tty);
@@ -362,7 +429,9 @@ static int ldisc_open(struct tty_struct *tty)
 	set_bit(TTY_DO_WRITE_WAKEUP, &tty->flags);
 	rtnl_lock();
 	result = register_netdevice(dev);
-	if (result) {
+
+	if (result)
+	{
 		rtnl_unlock();
 		free_netdev(dev);
 		return -ENODEV;
@@ -390,7 +459,8 @@ static void ldisc_close(struct tty_struct *tty)
 }
 
 /* The line discipline structure. */
-static struct tty_ldisc_ops caif_ldisc = {
+static struct tty_ldisc_ops caif_ldisc =
+{
 	.owner =	THIS_MODULE,
 	.magic =	TTY_LDISC_MAGIC,
 	.name =		"n_caif",
@@ -405,14 +475,18 @@ static int register_ldisc(void)
 	int result;
 
 	result = tty_register_ldisc(N_CAIF, &caif_ldisc);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		pr_err("cannot register CAIF ldisc=%d err=%d\n", N_CAIF,
-			result);
+			   result);
 		return result;
 	}
+
 	return result;
 }
-static const struct net_device_ops netdev_ops = {
+static const struct net_device_ops netdev_ops =
+{
 	.ndo_open = caif_net_open,
 	.ndo_stop = caif_net_close,
 	.ndo_start_xmit = caif_xmit

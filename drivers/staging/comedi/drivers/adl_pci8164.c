@@ -38,50 +38,61 @@
 #define PCI8164_BUF1_REG	0x06
 
 static int adl_pci8164_insn_read(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	unsigned long offset = (unsigned long)s->private;
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	int i;
 
 	for (i = 0; i < insn->n; i++)
+	{
 		data[i] = inw(dev->iobase + PCI8164_AXIS(chan) + offset);
+	}
 
 	return insn->n;
 }
 
 static int adl_pci8164_insn_write(struct comedi_device *dev,
-				  struct comedi_subdevice *s,
-				  struct comedi_insn *insn,
-				  unsigned int *data)
+								  struct comedi_subdevice *s,
+								  struct comedi_insn *insn,
+								  unsigned int *data)
 {
 	unsigned long offset = (unsigned long)s->private;
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	int i;
 
 	for (i = 0; i < insn->n; i++)
+	{
 		outw(data[i], dev->iobase + PCI8164_AXIS(chan) + offset);
+	}
 
 	return insn->n;
 }
 
 static int adl_pci8164_auto_attach(struct comedi_device *dev,
-				   unsigned long context_unused)
+								   unsigned long context_unused)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	struct comedi_subdevice *s;
 	int ret;
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	dev->iobase = pci_resource_start(pcidev, 2);
 
 	ret = comedi_alloc_subdevices(dev, 4);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* read MSTS register / write CMD register for each axis (channel) */
 	s = &dev->subdevices[0];
@@ -130,7 +141,8 @@ static int adl_pci8164_auto_attach(struct comedi_device *dev,
 	return 0;
 }
 
-static struct comedi_driver adl_pci8164_driver = {
+static struct comedi_driver adl_pci8164_driver =
+{
 	.driver_name	= "adl_pci8164",
 	.module		= THIS_MODULE,
 	.auto_attach	= adl_pci8164_auto_attach,
@@ -138,19 +150,21 @@ static struct comedi_driver adl_pci8164_driver = {
 };
 
 static int adl_pci8164_pci_probe(struct pci_dev *dev,
-				 const struct pci_device_id *id)
+								 const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &adl_pci8164_driver,
-				      id->driver_data);
+								  id->driver_data);
 }
 
-static const struct pci_device_id adl_pci8164_pci_table[] = {
+static const struct pci_device_id adl_pci8164_pci_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_ADLINK, 0x8164) },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, adl_pci8164_pci_table);
 
-static struct pci_driver adl_pci8164_pci_driver = {
+static struct pci_driver adl_pci8164_pci_driver =
+{
 	.name		= "adl_pci8164",
 	.id_table	= adl_pci8164_pci_table,
 	.probe		= adl_pci8164_pci_probe,

@@ -13,7 +13,8 @@
 #ifdef CONFIG_MAC80211_MESSAGE_TRACING
 void __sdata_info(const char *fmt, ...)
 {
-	struct va_format vaf = {
+	struct va_format vaf =
+	{
 		.fmt = fmt,
 	};
 	va_list args;
@@ -28,7 +29,8 @@ void __sdata_info(const char *fmt, ...)
 
 void __sdata_dbg(bool print, const char *fmt, ...)
 {
-	struct va_format vaf = {
+	struct va_format vaf =
+	{
 		.fmt = fmt,
 	};
 	va_list args;
@@ -37,14 +39,18 @@ void __sdata_dbg(bool print, const char *fmt, ...)
 	vaf.va = &args;
 
 	if (print)
+	{
 		pr_debug("%pV", &vaf);
+	}
+
 	trace_mac80211_dbg(&vaf);
 	va_end(args);
 }
 
 void __sdata_err(const char *fmt, ...)
 {
-	struct va_format vaf = {
+	struct va_format vaf =
+	{
 		.fmt = fmt,
 	};
 	va_list args;
@@ -59,7 +65,8 @@ void __sdata_err(const char *fmt, ...)
 
 void __wiphy_dbg(struct wiphy *wiphy, bool print, const char *fmt, ...)
 {
-	struct va_format vaf = {
+	struct va_format vaf =
+	{
 		.fmt = fmt,
 	};
 	va_list args;
@@ -68,7 +75,10 @@ void __wiphy_dbg(struct wiphy *wiphy, bool print, const char *fmt, ...)
 	vaf.va = &args;
 
 	if (print)
+	{
 		wiphy_dbg(wiphy, "%pV", &vaf);
+	}
+
 	trace_mac80211_dbg(&vaf);
 	va_end(args);
 }

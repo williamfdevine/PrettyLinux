@@ -25,20 +25,20 @@
 #define MTK_RX_HLEN		(NET_SKB_PAD + MTK_RX_ETH_HLEN + NET_IP_ALIGN)
 #define MTK_DMA_DUMMY_DESC	0xffffffff
 #define MTK_DEFAULT_MSG_ENABLE	(NETIF_MSG_DRV | \
-				 NETIF_MSG_PROBE | \
-				 NETIF_MSG_LINK | \
-				 NETIF_MSG_TIMER | \
-				 NETIF_MSG_IFDOWN | \
-				 NETIF_MSG_IFUP | \
-				 NETIF_MSG_RX_ERR | \
-				 NETIF_MSG_TX_ERR)
+								 NETIF_MSG_PROBE | \
+								 NETIF_MSG_LINK | \
+								 NETIF_MSG_TIMER | \
+								 NETIF_MSG_IFDOWN | \
+								 NETIF_MSG_IFUP | \
+								 NETIF_MSG_RX_ERR | \
+								 NETIF_MSG_TX_ERR)
 #define MTK_HW_FEATURES		(NETIF_F_IP_CSUM | \
-				 NETIF_F_RXCSUM | \
-				 NETIF_F_HW_VLAN_CTAG_TX | \
-				 NETIF_F_HW_VLAN_CTAG_RX | \
-				 NETIF_F_SG | NETIF_F_TSO | \
-				 NETIF_F_TSO6 | \
-				 NETIF_F_IPV6_CSUM)
+							 NETIF_F_RXCSUM | \
+							 NETIF_F_HW_VLAN_CTAG_TX | \
+							 NETIF_F_HW_VLAN_CTAG_RX | \
+							 NETIF_F_SG | NETIF_F_TSO | \
+							 NETIF_F_TSO6 | \
+							 NETIF_F_IPV6_CSUM)
 #define NEXT_RX_DESP_IDX(X, Y)	(((X) + 1) & ((Y) - 1))
 
 #define MTK_MAX_RX_RING_NUM	4
@@ -211,9 +211,9 @@
 #define MTK_TX_DONE_INT1	BIT(1)
 #define MTK_TX_DONE_INT0	BIT(0)
 #define MTK_RX_DONE_INT		(MTK_RX_DONE_INT0 | MTK_RX_DONE_INT1 | \
-				 MTK_RX_DONE_INT2 | MTK_RX_DONE_INT3)
+							 MTK_RX_DONE_INT2 | MTK_RX_DONE_INT3)
 #define MTK_TX_DONE_INT		(MTK_TX_DONE_INT0 | MTK_TX_DONE_INT1 | \
-				 MTK_TX_DONE_INT2 | MTK_TX_DONE_INT3)
+							 MTK_TX_DONE_INT2 | MTK_TX_DONE_INT3)
 
 /* QDMA Interrupt grouping registers */
 #define MTK_QDMA_INT_GRP1	0x1a20
@@ -307,11 +307,11 @@
 #define MAC_MCR_FORCE_DPX	BIT(1)
 #define MAC_MCR_FORCE_LINK	BIT(0)
 #define MAC_MCR_FIXED_LINK	(MAC_MCR_MAX_RX_1536 | MAC_MCR_IPG_CFG | \
-				 MAC_MCR_FORCE_MODE | MAC_MCR_TX_EN | \
-				 MAC_MCR_RX_EN | MAC_MCR_BACKOFF_EN | \
-				 MAC_MCR_BACKPR_EN | MAC_MCR_FORCE_RX_FC | \
-				 MAC_MCR_FORCE_TX_FC | MAC_MCR_SPEED_1000 | \
-				 MAC_MCR_FORCE_DPX | MAC_MCR_FORCE_LINK)
+							 MAC_MCR_FORCE_MODE | MAC_MCR_TX_EN | \
+							 MAC_MCR_RX_EN | MAC_MCR_BACKOFF_EN | \
+							 MAC_MCR_BACKPR_EN | MAC_MCR_FORCE_RX_FC | \
+							 MAC_MCR_FORCE_TX_FC | MAC_MCR_SPEED_1000 | \
+							 MAC_MCR_FORCE_DPX | MAC_MCR_FORCE_LINK)
 
 /* TRGMII RXC control register */
 #define TRGMII_RCK_CTRL		0x10300
@@ -361,14 +361,16 @@
 #define RSTCTRL_FE		BIT(6)
 #define RSTCTRL_PPE		BIT(31)
 
-struct mtk_rx_dma {
+struct mtk_rx_dma
+{
 	unsigned int rxd1;
 	unsigned int rxd2;
 	unsigned int rxd3;
 	unsigned int rxd4;
 } __packed __aligned(4);
 
-struct mtk_tx_dma {
+struct mtk_tx_dma
+{
 	unsigned int txd1;
 	unsigned int txd2;
 	unsigned int txd3;
@@ -387,7 +389,8 @@ struct mtk_mac;
  * Whenever the status IRQ triggers we can read the latest stats from these
  * counters and store them in this struct.
  */
-struct mtk_hw_stats {
+struct mtk_hw_stats
+{
 	u64 tx_bytes;
 	u64 tx_packets;
 	u64 tx_skip;
@@ -409,7 +412,8 @@ struct mtk_hw_stats {
 /* PDMA descriptor can point at 1-2 segments. This enum allows us to track how
  * memory was allocated so that it can be freed properly
  */
-enum mtk_tx_flags {
+enum mtk_tx_flags
+{
 	MTK_TX_FLAGS_SINGLE0	= 0x01,
 	MTK_TX_FLAGS_PAGE0	= 0x02,
 };
@@ -417,7 +421,8 @@ enum mtk_tx_flags {
 /* This enum allows us to identify how the clock is defined on the array of the
  * clock in the order
  */
-enum mtk_clks_map {
+enum mtk_clks_map
+{
 	MTK_CLK_ETHIF,
 	MTK_CLK_ESW,
 	MTK_CLK_GP1,
@@ -426,7 +431,8 @@ enum mtk_clks_map {
 	MTK_CLK_MAX
 };
 
-enum mtk_dev_state {
+enum mtk_dev_state
+{
 	MTK_HW_INIT,
 	MTK_RESETTING
 };
@@ -439,7 +445,8 @@ enum mtk_dev_state {
  * @dma_addr1:		The base addr of the second segment
  * @dma_len1:		The length of the second segment
  */
-struct mtk_tx_buf {
+struct mtk_tx_buf
+{
 	struct sk_buff *skb;
 	u32 flags;
 	DEFINE_DMA_UNMAP_ADDR(dma_addr0);
@@ -458,7 +465,8 @@ struct mtk_tx_buf {
  * @free_count:		QDMA uses a linked list. Track how many free descriptors
  *			are present
  */
-struct mtk_tx_ring {
+struct mtk_tx_ring
+{
 	struct mtk_tx_dma *dma;
 	struct mtk_tx_buf *buf;
 	dma_addr_t phys;
@@ -469,7 +477,8 @@ struct mtk_tx_ring {
 };
 
 /* PDMA rx ring mode */
-enum mtk_rx_flags {
+enum mtk_rx_flags
+{
 	MTK_RX_FLAGS_NORMAL = 0,
 	MTK_RX_FLAGS_HWLRO,
 };
@@ -482,7 +491,8 @@ enum mtk_rx_flags {
  * @buf_size:		The size of each packet buffer
  * @calc_idx:		The current head of ring
  */
-struct mtk_rx_ring {
+struct mtk_rx_ring
+{
 	struct mtk_rx_dma *dma;
 	u8 **data;
 	dma_addr_t phys;
@@ -526,7 +536,8 @@ struct mtk_rx_ring {
  * @state               Initialization and runtime state of the device.
  */
 
-struct mtk_eth {
+struct mtk_eth
+{
 	struct device			*dev;
 	void __iomem			*base;
 	spinlock_t			page_lock;
@@ -566,7 +577,8 @@ struct mtk_eth {
  * @trgmii		Indicate if the MAC uses TRGMII connected to internal
 			switch
  */
-struct mtk_mac {
+struct mtk_mac
+{
 	int				id;
 	int				ge_mode;
 	struct device_node		*of_node;

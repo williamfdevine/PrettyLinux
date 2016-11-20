@@ -1,7 +1,8 @@
 #ifndef _RAID10_H
 #define _RAID10_H
 
-struct raid10_info {
+struct raid10_info
+{
 	struct md_rdev	*rdev, *replacement;
 	sector_t	head_position;
 	int		recovery_disabled;	/* matches
@@ -11,14 +12,16 @@ struct raid10_info {
 						 */
 };
 
-struct r10conf {
+struct r10conf
+{
 	struct mddev		*mddev;
 	struct raid10_info	*mirrors;
 	struct raid10_info	*mirrors_new, *mirrors_old;
 	spinlock_t		device_lock;
 
 	/* geometry */
-	struct geom {
+	struct geom
+	{
 		int		raid_disks;
 		int		near_copies;  /* number of copies laid out
 					       * raid0 style */
@@ -96,7 +99,8 @@ struct r10conf {
  * for this RAID10 operation, and about their status:
  */
 
-struct r10bio {
+struct r10bio
+{
 	atomic_t		remaining; /* 'have we finished' count,
 					    * used from IRQ handlers
 					    */
@@ -122,9 +126,11 @@ struct r10bio {
 	 * We choose the number when they are allocated.
 	 * We sometimes need an extra bio to write to the replacement.
 	 */
-	struct r10dev {
+	struct r10dev
+	{
 		struct bio	*bio;
-		union {
+		union
+		{
 			struct bio	*repl_bio; /* used for resync and
 						    * writes */
 			struct md_rdev	*rdev;	   /* used for reads
@@ -136,25 +142,26 @@ struct r10bio {
 };
 
 /* bits for r10bio.state */
-enum r10bio_state {
+enum r10bio_state
+{
 	R10BIO_Uptodate,
 	R10BIO_IsSync,
 	R10BIO_IsRecover,
 	R10BIO_IsReshape,
 	R10BIO_Degraded,
-/* Set ReadError on bios that experience a read error
- * so that raid10d knows what to do with them.
- */
+	/* Set ReadError on bios that experience a read error
+	 * so that raid10d knows what to do with them.
+	 */
 	R10BIO_ReadError,
-/* If a write for this request means we can clear some
- * known-bad-block records, we set this flag.
- */
+	/* If a write for this request means we can clear some
+	 * known-bad-block records, we set this flag.
+	 */
 	R10BIO_MadeGood,
 	R10BIO_WriteError,
-/* During a reshape we might be performing IO on the
- * 'previous' part of the array, in which case this
- * flag is set
- */
+	/* During a reshape we might be performing IO on the
+	 * 'previous' part of the array, in which case this
+	 * flag is set
+	 */
 	R10BIO_Previous,
 };
 #endif

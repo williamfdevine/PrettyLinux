@@ -36,7 +36,8 @@
 
 #define OFFSET(x)	BIT((x) % 8)
 
-struct mb86s70_gpio_chip {
+struct mb86s70_gpio_chip
+{
 	struct gpio_chip gc;
 	void __iomem *base;
 	struct clk *clk;
@@ -52,7 +53,9 @@ static int mb86s70_gpio_request(struct gpio_chip *gc, unsigned gpio)
 	spin_lock_irqsave(&gchip->lock, flags);
 
 	val = readl(gchip->base + PFR(gpio));
-	if (!(val & OFFSET(gpio))) {
+
+	if (!(val & OFFSET(gpio)))
+	{
 		spin_unlock_irqrestore(&gchip->lock, flags);
 		return -EINVAL;
 	}
@@ -98,7 +101,7 @@ static int mb86s70_gpio_direction_input(struct gpio_chip *gc, unsigned gpio)
 }
 
 static int mb86s70_gpio_direction_output(struct gpio_chip *gc,
-					 unsigned gpio, int value)
+		unsigned gpio, int value)
 {
 	struct mb86s70_gpio_chip *gchip = gpiochip_get_data(gc);
 	unsigned long flags;
@@ -107,10 +110,16 @@ static int mb86s70_gpio_direction_output(struct gpio_chip *gc,
 	spin_lock_irqsave(&gchip->lock, flags);
 
 	val = readl(gchip->base + PDR(gpio));
+
 	if (value)
+	{
 		val |= OFFSET(gpio);
+	}
 	else
+	{
 		val &= ~OFFSET(gpio);
+	}
+
 	writel(val, gchip->base + PDR(gpio));
 
 	val = readl(gchip->base + DDR(gpio));
@@ -138,10 +147,16 @@ static void mb86s70_gpio_set(struct gpio_chip *gc, unsigned gpio, int value)
 	spin_lock_irqsave(&gchip->lock, flags);
 
 	val = readl(gchip->base + PDR(gpio));
+
 	if (value)
+	{
 		val |= OFFSET(gpio);
+	}
 	else
+	{
 		val &= ~OFFSET(gpio);
+	}
+
 	writel(val, gchip->base + PDR(gpio));
 
 	spin_unlock_irqrestore(&gchip->lock, flags);
@@ -154,19 +169,28 @@ static int mb86s70_gpio_probe(struct platform_device *pdev)
 	int ret;
 
 	gchip = devm_kzalloc(&pdev->dev, sizeof(*gchip), GFP_KERNEL);
+
 	if (gchip == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, gchip);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	gchip->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(gchip->base))
+	{
 		return PTR_ERR(gchip->base);
+	}
 
 	gchip->clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(gchip->clk))
+	{
 		return PTR_ERR(gchip->clk);
+	}
 
 	clk_prepare_enable(gchip->clk);
 
@@ -185,7 +209,9 @@ static int mb86s70_gpio_probe(struct platform_device *pdev)
 	gchip->gc.base = -1;
 
 	ret = gpiochip_add_data(&gchip->gc, gchip);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "couldn't register gpio driver\n");
 		clk_disable_unprepare(gchip->clk);
 	}
@@ -203,12 +229,14 @@ static int mb86s70_gpio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id mb86s70_gpio_dt_ids[] = {
+static const struct of_device_id mb86s70_gpio_dt_ids[] =
+{
 	{ .compatible = "fujitsu,mb86s70-gpio" },
 	{ /* sentinel */ }
 };
 
-static struct platform_driver mb86s70_gpio_driver = {
+static struct platform_driver mb86s70_gpio_driver =
+{
 	.driver = {
 		.name = "mb86s70-gpio",
 		.of_match_table = mb86s70_gpio_dt_ids,

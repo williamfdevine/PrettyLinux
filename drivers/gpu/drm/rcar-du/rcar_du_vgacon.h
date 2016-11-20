@@ -18,6 +18,6 @@ struct rcar_du_device;
 struct rcar_du_encoder;
 
 int rcar_du_vga_connector_init(struct rcar_du_device *rcdu,
-			       struct rcar_du_encoder *renc);
+							   struct rcar_du_encoder *renc);
 
 #endif /* __RCAR_DU_VGACON_H__ */

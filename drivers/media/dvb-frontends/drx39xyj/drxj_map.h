@@ -48,7 +48,7 @@
 #define __DRXJ_MAP__H__ INCLUDED
 
 #ifdef _REGISTERTABLE_
-#include <registertable.h>
+	#include <registertable.h>
 	extern register_table_t drxj_map[];
 	extern register_table_info_t drxj_map_info[];
 #endif

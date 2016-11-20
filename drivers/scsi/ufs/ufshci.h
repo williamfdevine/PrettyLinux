@@ -36,14 +36,16 @@
 #ifndef _UFSHCI_H
 #define _UFSHCI_H
 
-enum {
+enum
+{
 	TASK_REQ_UPIU_SIZE_DWORDS	= 8,
 	TASK_RSP_UPIU_SIZE_DWORDS	= 8,
 	ALIGNED_UPIU_SIZE		= 512,
 };
 
 /* UFSHCI Registers */
-enum {
+enum
+{
 	REG_CONTROLLER_CAPABILITIES		= 0x00,
 	REG_UFS_VERSION				= 0x08,
 	REG_CONTROLLER_DEV_ID			= 0x10,
@@ -75,7 +77,8 @@ enum {
 };
 
 /* Controller capability masks */
-enum {
+enum
+{
 	MASK_TRANSFER_REQUESTS_SLOTS		= 0x0000001F,
 	MASK_TASK_MANAGEMENT_REQUEST_SLOTS	= 0x00070000,
 	MASK_64_ADDRESSING_SUPPORT		= 0x01000000,
@@ -88,7 +91,8 @@ enum {
 #define MAJOR_VERSION_NUM_MASK		UFS_MASK(0xFFFF, 16)
 
 /* Controller UFSHCI version */
-enum {
+enum
+{
 	UFSHCI_VERSION_10 = 0x00010000, /* 1.0 */
 	UFSHCI_VERSION_11 = 0x00010100, /* 1.1 */
 	UFSHCI_VERSION_20 = 0x00000200, /* 2.0 */
@@ -127,19 +131,19 @@ enum {
 #define SYSTEM_BUS_FATAL_ERROR			UFS_BIT(17)
 
 #define UFSHCD_UIC_PWR_MASK	(UIC_HIBERNATE_ENTER |\
-				UIC_HIBERNATE_EXIT |\
-				UIC_POWER_MODE)
+							 UIC_HIBERNATE_EXIT |\
+							 UIC_POWER_MODE)
 
 #define UFSHCD_UIC_MASK		(UIC_COMMAND_COMPL | UFSHCD_UIC_PWR_MASK)
 
 #define UFSHCD_ERROR_MASK	(UIC_ERROR |\
-				DEVICE_FATAL_ERROR |\
-				CONTROLLER_FATAL_ERROR |\
-				SYSTEM_BUS_FATAL_ERROR)
+							 DEVICE_FATAL_ERROR |\
+							 CONTROLLER_FATAL_ERROR |\
+							 SYSTEM_BUS_FATAL_ERROR)
 
 #define INT_FATAL_ERRORS	(DEVICE_FATAL_ERROR |\
-				CONTROLLER_FATAL_ERROR |\
-				SYSTEM_BUS_FATAL_ERROR)
+							 CONTROLLER_FATAL_ERROR |\
+							 SYSTEM_BUS_FATAL_ERROR)
 
 /* HCS - Host Controller Status 30h */
 #define DEVICE_PRESENT				UFS_BIT(0)
@@ -150,7 +154,8 @@ enum {
 #define DEVICE_ERROR_INDICATOR			UFS_BIT(5)
 #define UIC_POWER_MODE_CHANGE_REQ_STATUS_MASK	UFS_MASK(0x7, 8)
 
-enum {
+enum
+{
 	PWR_OK		= 0x0,
 	PWR_LOCAL	= 0x01,
 	PWR_REMOTE	= 0x02,
@@ -215,19 +220,21 @@ enum {
 #define UIC_ARG_MPHY_RX_GEN_SEL_INDEX(lane) (PA_MAXDATALANES + (lane))
 
 #define UIC_ARG_MIB_SEL(attr, sel)	((((attr) & 0xFFFF) << 16) |\
-					 ((sel) & 0xFFFF))
+									 ((sel) & 0xFFFF))
 #define UIC_ARG_MIB(attr)		UIC_ARG_MIB_SEL(attr, 0)
 #define UIC_ARG_ATTR_TYPE(t)		(((t) & 0xFF) << 16)
 #define UIC_GET_ATTR_ID(v)		(((v) >> 16) & 0xFFFF)
 
 /* Link Status*/
-enum link_status {
+enum link_status
+{
 	UFSHCD_LINK_IS_DOWN	= 1,
 	UFSHCD_LINK_IS_UP	= 2,
 };
 
 /* UIC Commands */
-enum uic_cmd_dme {
+enum uic_cmd_dme
+{
 	UIC_CMD_DME_GET			= 0x01,
 	UIC_CMD_DME_SET			= 0x02,
 	UIC_CMD_DME_PEER_GET		= 0x03,
@@ -244,7 +251,8 @@ enum uic_cmd_dme {
 };
 
 /* UIC Config result code / Generic error code */
-enum {
+enum
+{
 	UIC_CMD_RESULT_SUCCESS			= 0x00,
 	UIC_CMD_RESULT_INVALID_ATTR		= 0x01,
 	UIC_CMD_RESULT_FAILURE			= 0x01,
@@ -265,7 +273,8 @@ enum {
 #define INT_AGGR_TIMEOUT_VAL(t)		(((t) & 0xFF) << 0)
 
 /* Interrupt disable masks */
-enum {
+enum
+{
 	/* Interrupt disable mask for UFSHCI v1.0 */
 	INTERRUPT_MASK_ALL_VER_10	= 0x30FFF,
 	INTERRUPT_MASK_RW_VER_10	= 0x30000,
@@ -279,18 +288,21 @@ enum {
  */
 
 /* Transfer request command type */
-enum {
+enum
+{
 	UTP_CMD_TYPE_SCSI		= 0x0,
 	UTP_CMD_TYPE_UFS		= 0x1,
 	UTP_CMD_TYPE_DEV_MANAGE		= 0x2,
 };
 
 /* To accommodate UFS2.0 required Command type */
-enum {
+enum
+{
 	UTP_CMD_TYPE_UFS_STORAGE	= 0x1,
 };
 
-enum {
+enum
+{
 	UTP_SCSI_COMMAND		= 0x00000000,
 	UTP_NATIVE_UFS_COMMAND		= 0x10000000,
 	UTP_DEVICE_MANAGEMENT_FUNCTION	= 0x20000000,
@@ -298,14 +310,16 @@ enum {
 };
 
 /* UTP Transfer Request Data Direction (DD) */
-enum {
+enum
+{
 	UTP_NO_DATA_TRANSFER	= 0x00000000,
 	UTP_HOST_TO_DEVICE	= 0x02000000,
 	UTP_DEVICE_TO_HOST	= 0x04000000,
 };
 
 /* Overall command status values */
-enum {
+enum
+{
 	OCS_SUCCESS			= 0x0,
 	OCS_INVALID_CMD_TABLE_ATTR	= 0x1,
 	OCS_INVALID_PRDT_ATTR		= 0x2,
@@ -330,7 +344,8 @@ enum {
  * @reserved: Reserved for future use DW-2
  * @size: size of physical segment DW-3
  */
-struct ufshcd_sg_entry {
+struct ufshcd_sg_entry
+{
 	__le32    base_addr;
 	__le32    upper_addr;
 	__le32    reserved;
@@ -343,7 +358,8 @@ struct ufshcd_sg_entry {
  * @response_upiu: Response UPIU Frame address
  * @prd_table: Physical Region Descriptor
  */
-struct utp_transfer_cmd_desc {
+struct utp_transfer_cmd_desc
+{
 	u8 command_upiu[ALIGNED_UPIU_SIZE];
 	u8 response_upiu[ALIGNED_UPIU_SIZE];
 	struct ufshcd_sg_entry    prd_table[SG_ALL];
@@ -356,7 +372,8 @@ struct utp_transfer_cmd_desc {
  * @dword2: Descriptor Header DW2
  * @dword3: Descriptor Header DW3
  */
-struct request_desc_header {
+struct request_desc_header
+{
 	__le32 dword_0;
 	__le32 dword_1;
 	__le32 dword_2;
@@ -373,7 +390,8 @@ struct request_desc_header {
  * @prd_table_length: Physical region descriptor length DW-7
  * @prd_table_offset: Physical region descriptor offset DW-7
  */
-struct utp_transfer_req_desc {
+struct utp_transfer_req_desc
+{
 
 	/* DW 0-3 */
 	struct request_desc_header header;
@@ -397,7 +415,8 @@ struct utp_transfer_req_desc {
  * @task_req_upiu: Pointer to task request UPIU DW-4 to DW-11
  * @task_rsp_upiu: Pointer to task response UPIU DW12 to DW-19
  */
-struct utp_task_req_desc {
+struct utp_task_req_desc
+{
 
 	/* DW 0-3 */
 	struct request_desc_header header;

@@ -20,7 +20,8 @@
 /* Forward declaration */
 struct ux500_charger;
 
-struct ux500_charger_ops {
+struct ux500_charger_ops
+{
 	int (*enable) (struct ux500_charger *, int, int, int);
 	int (*check_enable) (struct ux500_charger *, int, int);
 	int (*kick_wd) (struct ux500_charger *);
@@ -39,7 +40,8 @@ struct ux500_charger_ops {
  * @external		external charger unit (pm2xxx)
  * @power_path		USB power path support
  */
-struct ux500_charger {
+struct ux500_charger
+{
 	struct power_supply *psy;
 	struct ux500_charger_ops ops;
 	int max_out_volt;

@@ -40,7 +40,8 @@ struct fmc_driver;
  * is a catch-all driver. So null entries are allowed and we use array
  * and length. This is unlike pci and usb that use null-terminated arrays
  */
-struct fmc_fru_id {
+struct fmc_fru_id
+{
 	char *manufacturer;
 	char *product_name;
 };
@@ -52,16 +53,19 @@ struct fmc_fru_id {
  * match is based on vendor and device only. Further checks are expected
  * to happen in the probe function. Zero means "any" and catch-all is allowed.
  */
-struct fmc_sdb_one_id {
+struct fmc_sdb_one_id
+{
 	uint64_t vendor;
 	uint32_t device;
 };
-struct fmc_sdb_id {
+struct fmc_sdb_id
+{
 	struct fmc_sdb_one_id *cores;
 	int cores_nr;
 };
 
-struct fmc_device_id {
+struct fmc_device_id
+{
 	struct fmc_fru_id *fru_id;
 	int fru_id_nr;
 	struct fmc_sdb_id *sdb_id;
@@ -72,7 +76,8 @@ struct fmc_device_id {
 #define FMC_MAX_CARDS 32
 
 /* The driver is a pretty simple thing */
-struct fmc_driver {
+struct fmc_driver
+{
 	unsigned long version;
 	struct device_driver driver;
 	int (*probe)(struct fmc_device *);
@@ -88,16 +93,17 @@ struct fmc_driver {
 
 /* These are the generic parameters, that drivers may instantiate */
 #define FMC_PARAM_BUSID(_d) \
-    module_param_array_named(busid, _d.busid_val, int, &_d.busid_n, 0444)
+	module_param_array_named(busid, _d.busid_val, int, &_d.busid_n, 0444)
 #define FMC_PARAM_GATEWARE(_d) \
-    module_param_array_named(gateware, _d.gw_val, charp, &_d.gw_n, 0444)
+	module_param_array_named(gateware, _d.gw_val, charp, &_d.gw_n, 0444)
 
 /*
  * Drivers may need to configure gpio pins in the carrier. To read input
  * (a very uncommon operation, and definitely not in the hot paths), just
  * configure one gpio only and get 0 or 1 as retval of the config method
  */
-struct fmc_gpio {
+struct fmc_gpio
+{
 	char *carrier_name; /* name or NULL for virtual pins */
 	int gpio;
 	int _gpio;	/* internal use by the carrier */
@@ -117,10 +123,10 @@ struct fmc_gpio {
 
 /* GPIOF_DIR_IN etc are missing before 3.0. copy from <linux/gpio.h> */
 #ifndef GPIOF_DIR_IN
-#  define GPIOF_DIR_OUT   (0 << 0)
-#  define GPIOF_DIR_IN    (1 << 0)
-#  define GPIOF_INIT_LOW  (0 << 1)
-#  define GPIOF_INIT_HIGH (1 << 1)
+	#define GPIOF_DIR_OUT   (0 << 0)
+	#define GPIOF_DIR_IN    (1 << 0)
+	#define GPIOF_INIT_LOW  (0 << 1)
+	#define GPIOF_INIT_HIGH (1 << 1)
 #endif
 
 /*
@@ -128,24 +134,25 @@ struct fmc_gpio {
  * design completely independent of the carrier. Named GPIO pins may be
  * the exception.
  */
-struct fmc_operations {
+struct fmc_operations
+{
 	uint32_t (*read32)(struct fmc_device *fmc, int offset);
 	void (*write32)(struct fmc_device *fmc, uint32_t value, int offset);
 	int (*validate)(struct fmc_device *fmc, struct fmc_driver *drv);
 	int (*reprogram)(struct fmc_device *f, struct fmc_driver *d, char *gw);
 	int (*irq_request)(struct fmc_device *fmc, irq_handler_t h,
-			   char *name, int flags);
+					   char *name, int flags);
 	void (*irq_ack)(struct fmc_device *fmc);
 	int (*irq_free)(struct fmc_device *fmc);
 	int (*gpio_config)(struct fmc_device *fmc, struct fmc_gpio *gpio,
-			   int ngpio);
+					   int ngpio);
 	int (*read_ee)(struct fmc_device *fmc, int pos, void *d, int l);
 	int (*write_ee)(struct fmc_device *fmc, int pos, const void *d, int l);
 };
 
 /* Prefer this helper rather than calling of fmc->reprogram directly */
 extern int fmc_reprogram(struct fmc_device *f, struct fmc_driver *d, char *gw,
-		     int sdb_entry);
+						 int sdb_entry);
 
 /*
  * The device reports all information needed to access hw.
@@ -155,7 +162,8 @@ extern int fmc_reprogram(struct fmc_device *f, struct fmc_driver *d, char *gw,
  * Similarly a device that must be matched based on SDB cores must
  * fill the entry point and the core will scan the bus (FIXME: sdb match)
  */
-struct fmc_device {
+struct fmc_device
+{
 	unsigned long version;
 	unsigned long flags;
 	struct module *owner;		/* char device must pin it */
@@ -195,15 +203,22 @@ struct fmc_device {
 static inline uint32_t fmc_readl(struct fmc_device *fmc, int offset)
 {
 	if (unlikely(fmc->op->read32))
+	{
 		return fmc->op->read32(fmc, offset);
+	}
+
 	return readl(fmc->fpga_base + offset);
 }
 static inline void fmc_writel(struct fmc_device *fmc, uint32_t val, int off)
 {
 	if (unlikely(fmc->op->write32))
+	{
 		fmc->op->write32(fmc, val, off);
+	}
 	else
+	{
 		writel(val, fmc->fpga_base + off);
+	}
 }
 
 /* pci-like naming */

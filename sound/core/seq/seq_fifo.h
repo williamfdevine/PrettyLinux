@@ -27,7 +27,8 @@
 
 /* === FIFO === */
 
-struct snd_seq_fifo {
+struct snd_seq_fifo
+{
 	struct snd_seq_pool *pool;		/* FIFO pool */
 	struct snd_seq_event_cell *head;    	/* pointer to head of fifo */
 	struct snd_seq_event_cell *tail;    	/* pointer to tail of fifo */

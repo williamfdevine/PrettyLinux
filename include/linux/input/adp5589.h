@@ -76,7 +76,8 @@
 
 #define ADP5585_GPIMAPSIZE_MAX (ADP5585_GPI_PIN_END - ADP5585_GPI_PIN_BASE + 1)
 
-struct adp5589_gpi_map {
+struct adp5589_gpi_map
+{
 	unsigned short pin;
 	unsigned short sw_evt;
 };
@@ -146,7 +147,8 @@ struct adp5589_gpi_map {
 
 /* Put one of these structures in i2c_board_info platform_data */
 
-struct adp5589_kpad_platform_data {
+struct adp5589_kpad_platform_data
+{
 	unsigned keypad_en_mask;	/* Keypad (Rows/Columns) enable mask */
 	const unsigned short *keymap;	/* Pointer to keymap */
 	unsigned short keymapsize;	/* Keymap size */
@@ -174,14 +176,15 @@ struct adp5589_kpad_platform_data {
 
 struct i2c_client; /* forward declaration */
 
-struct adp5589_gpio_platform_data {
+struct adp5589_gpio_platform_data
+{
 	int	gpio_start;	/* GPIO Chip base # */
 	int	(*setup)(struct i2c_client *client,
-				int gpio, unsigned ngpio,
-				void *context);
+				 int gpio, unsigned ngpio,
+				 void *context);
 	int	(*teardown)(struct i2c_client *client,
-				int gpio, unsigned ngpio,
-				void *context);
+					int gpio, unsigned ngpio,
+					void *context);
 	void	*context;
 };
 

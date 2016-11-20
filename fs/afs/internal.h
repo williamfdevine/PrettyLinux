@@ -29,7 +29,8 @@
 struct pagevec;
 struct afs_call;
 
-typedef enum {
+typedef enum
+{
 	AFS_VL_NEW,			/* new, uninitialised record */
 	AFS_VL_CREATING,		/* creating record */
 	AFS_VL_VALID,			/* record is pending */
@@ -39,7 +40,8 @@ typedef enum {
 	AFS_VL_UNCERTAIN,		/* uncertain state (update failed) */
 } __attribute__((packed)) afs_vlocation_state_t;
 
-struct afs_mount_params {
+struct afs_mount_params
+{
 	bool			rwpath;		/* T if the parent should be considered R/W */
 	bool			force;		/* T to force cell type */
 	bool			autocell;	/* T if set auto mount operation */
@@ -54,7 +56,8 @@ struct afs_mount_params {
 /*
  * definition of how to wait for the completion of an operation
  */
-struct afs_wait_mode {
+struct afs_wait_mode
+{
 	/* RxRPC received message notification */
 	rxrpc_notify_rx_t notify_rx;
 
@@ -71,7 +74,8 @@ extern const struct afs_wait_mode afs_async_call;
 /*
  * a record of an in-progress RxRPC call
  */
-struct afs_call {
+struct afs_call
+{
 	const struct afs_call_type *type;	/* type of call */
 	const struct afs_wait_mode *wait_mode;	/* completion wait mode */
 	wait_queue_head_t	waitq;		/* processes awaiting completion */
@@ -91,7 +95,8 @@ struct afs_call {
 	pgoff_t			first;		/* first page in mapping to deal with */
 	pgoff_t			last;		/* last page in mapping to deal with */
 	size_t			offset;		/* offset into received data store */
-	enum {					/* call state */
+	enum  					/* call state */
+	{
 		AFS_CALL_REQUESTING,	/* request is being sent for outgoing call */
 		AFS_CALL_AWAIT_REPLY,	/* awaiting reply to outgoing call */
 		AFS_CALL_AWAIT_OP_ID,	/* awaiting op ID on incoming call */
@@ -118,7 +123,8 @@ struct afs_call {
 	afs_dataversion_t	store_version;	/* updated version expected from store */
 };
 
-struct afs_call_type {
+struct afs_call_type
+{
 	const char *name;
 
 	/* deliver request or reply data to an call
@@ -136,7 +142,8 @@ struct afs_call_type {
 /*
  * record of an outstanding writeback on a vnode
  */
-struct afs_writeback {
+struct afs_writeback
+{
 	struct list_head	link;		/* link in vnode->writebacks */
 	struct work_struct	writer;		/* work item to perform the writeback */
 	struct afs_vnode	*vnode;		/* vnode to which this write applies */
@@ -150,7 +157,8 @@ struct afs_writeback {
 	int			num_conflicts;	/* count of conflicting writes in list */
 	int			usage;
 	bool			conflicts;	/* T if has dependent conflicts */
-	enum {
+	enum
+	{
 		AFS_WBACK_SYNCING,		/* synchronisation being performed */
 		AFS_WBACK_PENDING,		/* write pending */
 		AFS_WBACK_CONFLICTING,		/* conflicting writes posted */
@@ -163,7 +171,8 @@ struct afs_writeback {
  * AFS superblock private data
  * - there's one superblock per volume
  */
-struct afs_super_info {
+struct afs_super_info
+{
 	struct afs_volume	*volume;	/* volume record */
 	char			rwparent;	/* T if parent is R/W AFS volume */
 };
@@ -178,7 +187,8 @@ extern struct file_system_type afs_fs_type;
 /*
  * entry in the cached cell catalogue
  */
-struct afs_cache_cell {
+struct afs_cache_cell
+{
 	char		name[AFS_MAXCELLNAME];	/* cell name (padded with NULs) */
 	struct in_addr	vl_servers[15];		/* cached cell VL servers */
 };
@@ -186,7 +196,8 @@ struct afs_cache_cell {
 /*
  * AFS cell record
  */
-struct afs_cell {
+struct afs_cell
+{
 	atomic_t		usage;
 	struct list_head	link;		/* main cell list link */
 	struct key		*anonymous_key;	/* anonymous user key for this cell */
@@ -213,7 +224,8 @@ struct afs_cell {
 /*
  * entry in the cached volume location catalogue
  */
-struct afs_cache_vlocation {
+struct afs_cache_vlocation
+{
 	/* volume name (lowercase, padded with NULs) */
 	uint8_t			name[AFS_MAXVOLNAME + 1];
 
@@ -232,7 +244,8 @@ struct afs_cache_vlocation {
 /*
  * volume -> vnode hash table entry
  */
-struct afs_cache_vhash {
+struct afs_cache_vhash
+{
 	afs_voltype_t		vtype;		/* which volume variation */
 	uint8_t			hash_bucket;	/* which hash bucket this represents */
 } __attribute__((packed));
@@ -240,7 +253,8 @@ struct afs_cache_vhash {
 /*
  * AFS volume location record
  */
-struct afs_vlocation {
+struct afs_vlocation
+{
 	atomic_t		usage;
 	time_t			time_of_death;	/* time at which put reduced usage to 0 */
 	struct list_head	link;		/* link in cell volume location list */
@@ -264,7 +278,8 @@ struct afs_vlocation {
 /*
  * AFS fileserver record
  */
-struct afs_server {
+struct afs_server
+{
 	atomic_t		usage;
 	time_t			time_of_death;	/* time at which put reduced usage to 0 */
 	struct in_addr		addr;		/* server address */
@@ -296,7 +311,8 @@ struct afs_server {
 /*
  * AFS volume access record
  */
-struct afs_volume {
+struct afs_volume
+{
 	atomic_t		usage;
 	struct afs_cell		*cell;		/* cell to which belongs (unrefd ptr) */
 	struct afs_vlocation	*vlocation;	/* volume location */
@@ -316,7 +332,8 @@ struct afs_volume {
 /*
  * vnode catalogue entry
  */
-struct afs_cache_vnode {
+struct afs_cache_vnode
+{
 	afs_vnodeid_t		vnode_id;	/* vnode ID */
 	unsigned		vnode_unique;	/* vnode ID uniquifier */
 	afs_dataversion_t	data_version;	/* data version */
@@ -325,7 +342,8 @@ struct afs_cache_vnode {
 /*
  * AFS inode private data
  */
-struct afs_vnode {
+struct afs_vnode
+{
 	struct inode		vfs_inode;	/* the VFS's inode record */
 
 	struct afs_volume	*volume;	/* volume on which vnode resides */
@@ -380,7 +398,8 @@ struct afs_vnode {
 /*
  * cached security record for one user's attempt to access a vnode
  */
-struct afs_permit {
+struct afs_permit
+{
 	struct key		*key;		/* RxRPC ticket holding a security context */
 	afs_access_t		access_mask;	/* access mask for this key */
 };
@@ -388,7 +407,8 @@ struct afs_permit {
 /*
  * cache of security records from attempts to access a vnode
  */
-struct afs_permits {
+struct afs_permits
+{
 	struct rcu_head		rcu;		/* disposal procedure */
 	int			count;		/* number of records */
 	struct afs_permit	permits[0];	/* the permits so far examined */
@@ -397,7 +417,8 @@ struct afs_permits {
 /*
  * record of one of a system's set of network interfaces
  */
-struct afs_interface {
+struct afs_interface
+{
 	struct in_addr	address;	/* IPv4 address bound to interface */
 	struct in_addr	netmask;	/* netmask applied to address */
 	unsigned	mtu;		/* MTU of interface */
@@ -411,7 +432,8 @@ struct afs_interface {
  *     time
  * - the clock sequence is a 14-bit counter to avoid duplicate times
  */
-struct afs_uuid {
+struct afs_uuid
+{
 	u32		time_low;			/* low part of timestamp */
 	u16		time_mid;			/* mid part of timestamp */
 	u16		time_hi_and_version;		/* high part of timestamp and version  */
@@ -432,16 +454,16 @@ struct afs_uuid {
  * cache.c
  */
 #ifdef CONFIG_AFS_FSCACHE
-extern struct fscache_netfs afs_cache_netfs;
-extern struct fscache_cookie_def afs_cell_cache_index_def;
-extern struct fscache_cookie_def afs_vlocation_cache_index_def;
-extern struct fscache_cookie_def afs_volume_cache_index_def;
-extern struct fscache_cookie_def afs_vnode_cache_index_def;
+	extern struct fscache_netfs afs_cache_netfs;
+	extern struct fscache_cookie_def afs_cell_cache_index_def;
+	extern struct fscache_cookie_def afs_vlocation_cache_index_def;
+	extern struct fscache_cookie_def afs_volume_cache_index_def;
+	extern struct fscache_cookie_def afs_vnode_cache_index_def;
 #else
-#define afs_cell_cache_index_def	(*(struct fscache_cookie_def *) NULL)
-#define afs_vlocation_cache_index_def	(*(struct fscache_cookie_def *) NULL)
-#define afs_volume_cache_index_def	(*(struct fscache_cookie_def *) NULL)
-#define afs_vnode_cache_index_def	(*(struct fscache_cookie_def *) NULL)
+	#define afs_cell_cache_index_def	(*(struct fscache_cookie_def *) NULL)
+	#define afs_vlocation_cache_index_def	(*(struct fscache_cookie_def *) NULL)
+	#define afs_volume_cache_index_def	(*(struct fscache_cookie_def *) NULL)
+	#define afs_vnode_cache_index_def	(*(struct fscache_cookie_def *) NULL)
 #endif
 
 /*
@@ -450,7 +472,7 @@ extern struct fscache_cookie_def afs_vnode_cache_index_def;
 extern void afs_init_callback_state(struct afs_server *);
 extern void afs_broken_callback_work(struct work_struct *);
 extern void afs_break_callbacks(struct afs_server *, size_t,
-				struct afs_callback[]);
+								struct afs_callback[]);
 extern void afs_discard_callback_on_delete(struct afs_vnode *);
 extern void afs_give_up_callback(struct afs_vnode *);
 extern void afs_dispatch_give_up_callbacks(struct work_struct *);
@@ -508,60 +530,60 @@ extern int afs_flock(struct file *, int, struct file_lock *);
  * fsclient.c
  */
 extern int afs_fs_fetch_file_status(struct afs_server *, struct key *,
-				    struct afs_vnode *, struct afs_volsync *,
-				    const struct afs_wait_mode *);
+									struct afs_vnode *, struct afs_volsync *,
+									const struct afs_wait_mode *);
 extern int afs_fs_give_up_callbacks(struct afs_server *,
-				    const struct afs_wait_mode *);
+									const struct afs_wait_mode *);
 extern int afs_fs_fetch_data(struct afs_server *, struct key *,
-			     struct afs_vnode *, off_t, size_t, struct page *,
-			     const struct afs_wait_mode *);
+							 struct afs_vnode *, off_t, size_t, struct page *,
+							 const struct afs_wait_mode *);
 extern int afs_fs_create(struct afs_server *, struct key *,
-			 struct afs_vnode *, const char *, umode_t,
-			 struct afs_fid *, struct afs_file_status *,
-			 struct afs_callback *,
-			 const struct afs_wait_mode *);
+						 struct afs_vnode *, const char *, umode_t,
+						 struct afs_fid *, struct afs_file_status *,
+						 struct afs_callback *,
+						 const struct afs_wait_mode *);
 extern int afs_fs_remove(struct afs_server *, struct key *,
-			 struct afs_vnode *, const char *, bool,
-			 const struct afs_wait_mode *);
+						 struct afs_vnode *, const char *, bool,
+						 const struct afs_wait_mode *);
 extern int afs_fs_link(struct afs_server *, struct key *, struct afs_vnode *,
-		       struct afs_vnode *, const char *,
-		       const struct afs_wait_mode *);
+					   struct afs_vnode *, const char *,
+					   const struct afs_wait_mode *);
 extern int afs_fs_symlink(struct afs_server *, struct key *,
-			  struct afs_vnode *, const char *, const char *,
-			  struct afs_fid *, struct afs_file_status *,
-			  const struct afs_wait_mode *);
+						  struct afs_vnode *, const char *, const char *,
+						  struct afs_fid *, struct afs_file_status *,
+						  const struct afs_wait_mode *);
 extern int afs_fs_rename(struct afs_server *, struct key *,
-			 struct afs_vnode *, const char *,
-			 struct afs_vnode *, const char *,
-			 const struct afs_wait_mode *);
+						 struct afs_vnode *, const char *,
+						 struct afs_vnode *, const char *,
+						 const struct afs_wait_mode *);
 extern int afs_fs_store_data(struct afs_server *, struct afs_writeback *,
-			     pgoff_t, pgoff_t, unsigned, unsigned,
-			     const struct afs_wait_mode *);
+							 pgoff_t, pgoff_t, unsigned, unsigned,
+							 const struct afs_wait_mode *);
 extern int afs_fs_setattr(struct afs_server *, struct key *,
-			  struct afs_vnode *, struct iattr *,
-			  const struct afs_wait_mode *);
+						  struct afs_vnode *, struct iattr *,
+						  const struct afs_wait_mode *);
 extern int afs_fs_get_volume_status(struct afs_server *, struct key *,
-				    struct afs_vnode *,
-				    struct afs_volume_status *,
-				    const struct afs_wait_mode *);
+									struct afs_vnode *,
+									struct afs_volume_status *,
+									const struct afs_wait_mode *);
 extern int afs_fs_set_lock(struct afs_server *, struct key *,
-			   struct afs_vnode *, afs_lock_type_t,
-			   const struct afs_wait_mode *);
+						   struct afs_vnode *, afs_lock_type_t,
+						   const struct afs_wait_mode *);
 extern int afs_fs_extend_lock(struct afs_server *, struct key *,
-			      struct afs_vnode *,
-			      const struct afs_wait_mode *);
+							  struct afs_vnode *,
+							  const struct afs_wait_mode *);
 extern int afs_fs_release_lock(struct afs_server *, struct key *,
-			       struct afs_vnode *,
-			       const struct afs_wait_mode *);
+							   struct afs_vnode *,
+							   const struct afs_wait_mode *);
 
 /*
  * inode.c
  */
 extern struct inode *afs_iget_autocell(struct inode *, const char *, int,
-				       struct key *);
+									   struct key *);
 extern struct inode *afs_iget(struct super_block *, struct key *,
-			      struct afs_fid *, struct afs_file_status *,
-			      struct afs_callback *);
+							  struct afs_fid *, struct afs_file_status *,
+							  struct afs_callback *);
 extern void afs_zap_data(struct afs_vnode *);
 extern int afs_validate(struct afs_vnode *, struct key *);
 extern int afs_getattr(struct vfsmount *, struct dentry *, struct kstat *);
@@ -607,9 +629,9 @@ extern struct socket *afs_socket;
 extern int afs_open_socket(void);
 extern void afs_close_socket(void);
 extern int afs_make_call(struct in_addr *, struct afs_call *, gfp_t,
-			 const struct afs_wait_mode *);
+						 const struct afs_wait_mode *);
 extern struct afs_call *afs_alloc_flat_call(const struct afs_call_type *,
-					    size_t, size_t);
+		size_t, size_t);
 extern void afs_flat_call_destructor(struct afs_call *);
 extern void afs_send_empty_reply(struct afs_call *);
 extern void afs_send_simple_reply(struct afs_call *, const void *, size_t);
@@ -635,13 +657,13 @@ extern int afs_permission(struct inode *, int);
 extern spinlock_t afs_server_peer_lock;
 
 #define afs_get_server(S)					\
-do {								\
-	_debug("GET SERVER %d", atomic_read(&(S)->usage));	\
-	atomic_inc(&(S)->usage);				\
-} while(0)
+	do {								\
+		_debug("GET SERVER %d", atomic_read(&(S)->usage));	\
+		atomic_inc(&(S)->usage);				\
+	} while(0)
 
 extern struct afs_server *afs_lookup_server(struct afs_cell *,
-					    const struct in_addr *);
+		const struct in_addr *);
 extern struct afs_server *afs_find_server(const struct sockaddr_rxrpc *);
 extern void afs_put_server(struct afs_server *);
 extern void __exit afs_purge_servers(void);
@@ -662,12 +684,12 @@ extern int afs_get_MAC_address(u8 *, size_t);
  * vlclient.c
  */
 extern int afs_vl_get_entry_by_name(struct in_addr *, struct key *,
-				    const char *, struct afs_cache_vlocation *,
-				    const struct afs_wait_mode *);
+									const char *, struct afs_cache_vlocation *,
+									const struct afs_wait_mode *);
 extern int afs_vl_get_entry_by_id(struct in_addr *, struct key *,
-				  afs_volid_t, afs_voltype_t,
-				  struct afs_cache_vlocation *,
-				  const struct afs_wait_mode *);
+								  afs_volid_t, afs_voltype_t,
+								  struct afs_cache_vlocation *,
+								  const struct afs_wait_mode *);
 
 /*
  * vlocation.c
@@ -676,8 +698,8 @@ extern int afs_vl_get_entry_by_id(struct in_addr *, struct key *,
 
 extern int __init afs_vlocation_update_init(void);
 extern struct afs_vlocation *afs_vlocation_lookup(struct afs_cell *,
-						  struct key *,
-						  const char *, size_t);
+		struct key *,
+		const char *, size_t);
 extern void afs_put_vlocation(struct afs_vlocation *);
 extern void afs_vlocation_purge(void);
 
@@ -695,30 +717,30 @@ static inline struct inode *AFS_VNODE_TO_I(struct afs_vnode *vnode)
 }
 
 extern void afs_vnode_finalise_status_update(struct afs_vnode *,
-					     struct afs_server *);
+		struct afs_server *);
 extern int afs_vnode_fetch_status(struct afs_vnode *, struct afs_vnode *,
-				  struct key *);
+								  struct key *);
 extern int afs_vnode_fetch_data(struct afs_vnode *, struct key *,
-				off_t, size_t, struct page *);
+								off_t, size_t, struct page *);
 extern int afs_vnode_create(struct afs_vnode *, struct key *, const char *,
-			    umode_t, struct afs_fid *, struct afs_file_status *,
-			    struct afs_callback *, struct afs_server **);
+							umode_t, struct afs_fid *, struct afs_file_status *,
+							struct afs_callback *, struct afs_server **);
 extern int afs_vnode_remove(struct afs_vnode *, struct key *, const char *,
-			    bool);
+							bool);
 extern int afs_vnode_link(struct afs_vnode *, struct afs_vnode *, struct key *,
-			  const char *);
+						  const char *);
 extern int afs_vnode_symlink(struct afs_vnode *, struct key *, const char *,
-			     const char *, struct afs_fid *,
-			     struct afs_file_status *, struct afs_server **);
+							 const char *, struct afs_fid *,
+							 struct afs_file_status *, struct afs_server **);
 extern int afs_vnode_rename(struct afs_vnode *, struct afs_vnode *,
-			    struct key *, const char *, const char *);
+							struct key *, const char *, const char *);
 extern int afs_vnode_store_data(struct afs_writeback *, pgoff_t, pgoff_t,
-				unsigned, unsigned);
+								unsigned, unsigned);
 extern int afs_vnode_setattr(struct afs_vnode *, struct key *, struct iattr *);
 extern int afs_vnode_get_volume_status(struct afs_vnode *, struct key *,
-				       struct afs_volume_status *);
+									   struct afs_volume_status *);
 extern int afs_vnode_set_lock(struct afs_vnode *, struct key *,
-			      afs_lock_type_t);
+							  afs_lock_type_t);
 extern int afs_vnode_extend_lock(struct afs_vnode *, struct key *);
 extern int afs_vnode_release_lock(struct afs_vnode *, struct key *);
 
@@ -731,7 +753,7 @@ extern void afs_put_volume(struct afs_volume *);
 extern struct afs_volume *afs_volume_lookup(struct afs_mount_params *);
 extern struct afs_server *afs_volume_pick_fileserver(struct afs_vnode *);
 extern int afs_volume_release_fileserver(struct afs_vnode *,
-					 struct afs_server *, int);
+		struct afs_server *, int);
 
 /*
  * write.c
@@ -739,11 +761,11 @@ extern int afs_volume_release_fileserver(struct afs_vnode *,
 extern int afs_set_page_dirty(struct page *);
 extern void afs_put_writeback(struct afs_writeback *);
 extern int afs_write_begin(struct file *file, struct address_space *mapping,
-			loff_t pos, unsigned len, unsigned flags,
-			struct page **pagep, void **fsdata);
+						   loff_t pos, unsigned len, unsigned flags,
+						   struct page **pagep, void **fsdata);
 extern int afs_write_end(struct file *file, struct address_space *mapping,
-			loff_t pos, unsigned len, unsigned copied,
-			struct page *page, void *fsdata);
+						 loff_t pos, unsigned len, unsigned copied,
+						 struct page *page, void *fsdata);
 extern int afs_writepage(struct page *, struct writeback_control *);
 extern int afs_writepages(struct address_space *, struct writeback_control *);
 extern void afs_pages_written_back(struct afs_vnode *, struct afs_call *);
@@ -777,22 +799,22 @@ extern unsigned afs_debug;
 #define AFS_DEBUG_KDEBUG	0x04
 
 #define _enter(FMT,...)					\
-do {							\
-	if (unlikely(afs_debug & AFS_DEBUG_KENTER))	\
-		kenter(FMT,##__VA_ARGS__);		\
-} while (0)
+	do {							\
+		if (unlikely(afs_debug & AFS_DEBUG_KENTER))	\
+			kenter(FMT,##__VA_ARGS__);		\
+	} while (0)
 
 #define _leave(FMT,...)					\
-do {							\
-	if (unlikely(afs_debug & AFS_DEBUG_KLEAVE))	\
-		kleave(FMT,##__VA_ARGS__);		\
-} while (0)
+	do {							\
+		if (unlikely(afs_debug & AFS_DEBUG_KLEAVE))	\
+			kleave(FMT,##__VA_ARGS__);		\
+	} while (0)
 
 #define _debug(FMT,...)					\
-do {							\
-	if (unlikely(afs_debug & AFS_DEBUG_KDEBUG))	\
-		kdebug(FMT,##__VA_ARGS__);		\
-} while (0)
+	do {							\
+		if (unlikely(afs_debug & AFS_DEBUG_KDEBUG))	\
+			kdebug(FMT,##__VA_ARGS__);		\
+	} while (0)
 
 #else
 #define _enter(FMT,...)	no_printk("==> %s("FMT")",__func__ ,##__VA_ARGS__)
@@ -806,84 +828,84 @@ do {							\
 #if 1 // defined(__KDEBUGALL)
 
 #define ASSERT(X)						\
-do {								\
-	if (unlikely(!(X))) {					\
-		printk(KERN_ERR "\n");				\
-		printk(KERN_ERR "AFS: Assertion failed\n");	\
-		BUG();						\
-	}							\
-} while(0)
+	do {								\
+		if (unlikely(!(X))) {					\
+			printk(KERN_ERR "\n");				\
+			printk(KERN_ERR "AFS: Assertion failed\n");	\
+			BUG();						\
+		}							\
+	} while(0)
 
 #define ASSERTCMP(X, OP, Y)						\
-do {									\
-	if (unlikely(!((X) OP (Y)))) {					\
-		printk(KERN_ERR "\n");					\
-		printk(KERN_ERR "AFS: Assertion failed\n");		\
-		printk(KERN_ERR "%lu " #OP " %lu is false\n",		\
-		       (unsigned long)(X), (unsigned long)(Y));		\
-		printk(KERN_ERR "0x%lx " #OP " 0x%lx is false\n",	\
-		       (unsigned long)(X), (unsigned long)(Y));		\
-		BUG();							\
-	}								\
-} while(0)
+	do {									\
+		if (unlikely(!((X) OP (Y)))) {					\
+			printk(KERN_ERR "\n");					\
+			printk(KERN_ERR "AFS: Assertion failed\n");		\
+			printk(KERN_ERR "%lu " #OP " %lu is false\n",		\
+				   (unsigned long)(X), (unsigned long)(Y));		\
+			printk(KERN_ERR "0x%lx " #OP " 0x%lx is false\n",	\
+				   (unsigned long)(X), (unsigned long)(Y));		\
+			BUG();							\
+		}								\
+	} while(0)
 
 #define ASSERTRANGE(L, OP1, N, OP2, H)					\
-do {									\
-	if (unlikely(!((L) OP1 (N)) || !((N) OP2 (H)))) {		\
-		printk(KERN_ERR "\n");					\
-		printk(KERN_ERR "AFS: Assertion failed\n");		\
-		printk(KERN_ERR "%lu "#OP1" %lu "#OP2" %lu is false\n",	\
-		       (unsigned long)(L), (unsigned long)(N),		\
-		       (unsigned long)(H));				\
-		printk(KERN_ERR "0x%lx "#OP1" 0x%lx "#OP2" 0x%lx is false\n", \
-		       (unsigned long)(L), (unsigned long)(N),		\
-		       (unsigned long)(H));				\
-		BUG();							\
-	}								\
-} while(0)
+	do {									\
+		if (unlikely(!((L) OP1 (N)) || !((N) OP2 (H)))) {		\
+			printk(KERN_ERR "\n");					\
+			printk(KERN_ERR "AFS: Assertion failed\n");		\
+			printk(KERN_ERR "%lu "#OP1" %lu "#OP2" %lu is false\n",	\
+				   (unsigned long)(L), (unsigned long)(N),		\
+				   (unsigned long)(H));				\
+			printk(KERN_ERR "0x%lx "#OP1" 0x%lx "#OP2" 0x%lx is false\n", \
+				   (unsigned long)(L), (unsigned long)(N),		\
+				   (unsigned long)(H));				\
+			BUG();							\
+		}								\
+	} while(0)
 
 #define ASSERTIF(C, X)						\
-do {								\
-	if (unlikely((C) && !(X))) {				\
-		printk(KERN_ERR "\n");				\
-		printk(KERN_ERR "AFS: Assertion failed\n");	\
-		BUG();						\
-	}							\
-} while(0)
+	do {								\
+		if (unlikely((C) && !(X))) {				\
+			printk(KERN_ERR "\n");				\
+			printk(KERN_ERR "AFS: Assertion failed\n");	\
+			BUG();						\
+		}							\
+	} while(0)
 
 #define ASSERTIFCMP(C, X, OP, Y)					\
-do {									\
-	if (unlikely((C) && !((X) OP (Y)))) {				\
-		printk(KERN_ERR "\n");					\
-		printk(KERN_ERR "AFS: Assertion failed\n");		\
-		printk(KERN_ERR "%lu " #OP " %lu is false\n",		\
-		       (unsigned long)(X), (unsigned long)(Y));		\
-		printk(KERN_ERR "0x%lx " #OP " 0x%lx is false\n",	\
-		       (unsigned long)(X), (unsigned long)(Y));		\
-		BUG();							\
-	}								\
-} while(0)
+	do {									\
+		if (unlikely((C) && !((X) OP (Y)))) {				\
+			printk(KERN_ERR "\n");					\
+			printk(KERN_ERR "AFS: Assertion failed\n");		\
+			printk(KERN_ERR "%lu " #OP " %lu is false\n",		\
+				   (unsigned long)(X), (unsigned long)(Y));		\
+			printk(KERN_ERR "0x%lx " #OP " 0x%lx is false\n",	\
+				   (unsigned long)(X), (unsigned long)(Y));		\
+			BUG();							\
+		}								\
+	} while(0)
 
 #else
 
 #define ASSERT(X)				\
-do {						\
-} while(0)
+	do {						\
+	} while(0)
 
 #define ASSERTCMP(X, OP, Y)			\
-do {						\
-} while(0)
+	do {						\
+	} while(0)
 
 #define ASSERTRANGE(L, OP1, N, OP2, H)		\
-do {						\
-} while(0)
+	do {						\
+	} while(0)
 
 #define ASSERTIF(C, X)				\
-do {						\
-} while(0)
+	do {						\
+	} while(0)
 
 #define ASSERTIFCMP(C, X, OP, Y)		\
-do {						\
-} while(0)
+	do {						\
+	} while(0)
 
 #endif /* __KDEBUGALL */

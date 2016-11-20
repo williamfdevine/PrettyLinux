@@ -9,11 +9,14 @@
 #include <linux/errno.h>
 
 int __percpu_init_rwsem(struct percpu_rw_semaphore *sem,
-			const char *name, struct lock_class_key *rwsem_key)
+						const char *name, struct lock_class_key *rwsem_key)
 {
 	sem->read_count = alloc_percpu(int);
+
 	if (unlikely(!sem->read_count))
+	{
 		return -ENOMEM;
+	}
 
 	/* ->rw_sem represents the whole percpu_rw_semaphore for lockdep */
 	rcu_sync_init(&sem->rss, RCU_SCHED_SYNC);
@@ -31,7 +34,9 @@ void percpu_free_rwsem(struct percpu_rw_semaphore *sem)
 	 * assumes that percpu_free_rwsem() is safe after kzalloc().
 	 */
 	if (!sem->read_count)
+	{
 		return;
+	}
 
 	rcu_sync_dtor(&sem->rss);
 	free_percpu(sem->read_count);
@@ -63,7 +68,9 @@ int __percpu_down_read(struct percpu_rw_semaphore *sem, int try)
 	 * release in percpu_up_write().
 	 */
 	if (likely(!smp_load_acquire(&sem->readers_block)))
+	{
 		return 1;
+	}
 
 	/*
 	 * Per the above comment; we still have preemption disabled and
@@ -72,7 +79,9 @@ int __percpu_down_read(struct percpu_rw_semaphore *sem, int try)
 	__percpu_up_read(sem);
 
 	if (try)
+	{
 		return 0;
+	}
 
 	/*
 	 * We either call schedule() in the wait, or we'll fall through
@@ -108,14 +117,14 @@ void __percpu_up_read(struct percpu_rw_semaphore *sem)
 EXPORT_SYMBOL_GPL(__percpu_up_read);
 
 #define per_cpu_sum(var)						\
-({									\
-	typeof(var) __sum = 0;						\
-	int cpu;							\
-	compiletime_assert_atomic_type(__sum);				\
-	for_each_possible_cpu(cpu)					\
+	({									\
+		typeof(var) __sum = 0;						\
+		int cpu;							\
+		compiletime_assert_atomic_type(__sum);				\
+		for_each_possible_cpu(cpu)					\
 		__sum += per_cpu(var, cpu);				\
-	__sum;								\
-})
+		__sum;								\
+	})
 
 /*
  * Return true if the modular sum of the sem->read_count per-CPU variable is
@@ -126,7 +135,9 @@ EXPORT_SYMBOL_GPL(__percpu_up_read);
 static bool readers_active_check(struct percpu_rw_semaphore *sem)
 {
 	if (per_cpu_sum(*sem->read_count) != 0)
+	{
 		return false;
+	}
 
 	/*
 	 * If we observed the decrement; ensure we see the entire critical

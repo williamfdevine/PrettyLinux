@@ -2,7 +2,7 @@
 #include <signal.h>
 #include <stdbool.h>
 #ifdef HAVE_BACKTRACE_SUPPORT
-#include <execinfo.h>
+	#include <execinfo.h>
 #endif
 
 #include "../../util/cache.h"
@@ -25,7 +25,8 @@ extern void hist_browser__init_hpp(void);
 
 void ui__refresh_dimensions(bool force)
 {
-	if (force || ui__need_resize) {
+	if (force || ui__need_resize)
+	{
 		ui__need_resize = 0;
 		pthread_mutex_lock(&ui__lock);
 		SLtt_get_screen_size();
@@ -44,7 +45,9 @@ static void ui__setup_sigwinch(void)
 	static bool done;
 
 	if (done)
+	{
 		return;
+	}
 
 	done = true;
 	pthread__unblock_sigwinch();
@@ -62,33 +65,46 @@ int ui__getch(int delay_secs)
 	FD_ZERO(&read_set);
 	FD_SET(0, &read_set);
 
-	if (delay_secs) {
+	if (delay_secs)
+	{
 		timeout.tv_sec = delay_secs;
 		timeout.tv_usec = 0;
 	}
 
-        err = select(1, &read_set, NULL, NULL, ptimeout);
+	err = select(1, &read_set, NULL, NULL, ptimeout);
 
 	if (err == 0)
+	{
 		return K_TIMER;
+	}
 
-	if (err == -1) {
+	if (err == -1)
+	{
 		if (errno == EINTR)
+		{
 			return K_RESIZE;
+		}
+
 		return K_ERROR;
 	}
 
 	key = SLang_getkey();
+
 	if (key != K_ESC)
+	{
 		return key;
+	}
 
 	FD_ZERO(&read_set);
 	FD_SET(0, &read_set);
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 20;
-        err = select(1, &read_set, NULL, NULL, &timeout);
+	err = select(1, &read_set, NULL, NULL, &timeout);
+
 	if (err == 0)
+	{
 		return K_ESC;
+	}
 
 	SLang_ungetkey(key);
 	return SLkp_getkey();
@@ -129,14 +145,23 @@ int ui__init(void)
 	SLtt_get_screen_size();
 
 	err = SLsmg_init_smg();
+
 	if (err < 0)
+	{
 		goto out;
+	}
+
 	err = SLang_init_tty(-1, 0, 0);
+
 	if (err < 0)
+	{
 		goto out;
+	}
 
 	err = SLkp_init();
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		pr_err("TUI initialization failed.\n");
 		goto out;
 	}
@@ -164,8 +189,8 @@ void ui__exit(bool wait_for_ok)
 {
 	if (wait_for_ok && tui_helpline__set)
 		ui__question_window("Fatal Error",
-				    ui_helpline__last_msg,
-				    "Press any key...", 0);
+							ui_helpline__last_msg,
+							"Press any key...", 0);
 
 	SLtt_set_cursor_visibility(1);
 	SLsmg_refresh();

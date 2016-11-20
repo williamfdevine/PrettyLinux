@@ -6,7 +6,8 @@
 /*
  * Device resource management aware IRQ request/free implementation.
  */
-struct irq_devres {
+struct irq_devres
+{
 	unsigned int irq;
 	void *dev_id;
 };
@@ -45,21 +46,26 @@ static int devm_irq_match(struct device *dev, void *res, void *data)
  *	separately, devm_free_irq() must be used.
  */
 int devm_request_threaded_irq(struct device *dev, unsigned int irq,
-			      irq_handler_t handler, irq_handler_t thread_fn,
-			      unsigned long irqflags, const char *devname,
-			      void *dev_id)
+							  irq_handler_t handler, irq_handler_t thread_fn,
+							  unsigned long irqflags, const char *devname,
+							  void *dev_id)
 {
 	struct irq_devres *dr;
 	int rc;
 
 	dr = devres_alloc(devm_irq_release, sizeof(struct irq_devres),
-			  GFP_KERNEL);
+					  GFP_KERNEL);
+
 	if (!dr)
+	{
 		return -ENOMEM;
+	}
 
 	rc = request_threaded_irq(irq, handler, thread_fn, irqflags, devname,
-				  dev_id);
-	if (rc) {
+							  dev_id);
+
+	if (rc)
+	{
 		devres_free(dr);
 		return rc;
 	}
@@ -92,19 +98,24 @@ EXPORT_SYMBOL(devm_request_threaded_irq);
  *	separately, devm_free_irq() must be used.
  */
 int devm_request_any_context_irq(struct device *dev, unsigned int irq,
-			      irq_handler_t handler, unsigned long irqflags,
-			      const char *devname, void *dev_id)
+								 irq_handler_t handler, unsigned long irqflags,
+								 const char *devname, void *dev_id)
 {
 	struct irq_devres *dr;
 	int rc;
 
 	dr = devres_alloc(devm_irq_release, sizeof(struct irq_devres),
-			  GFP_KERNEL);
+					  GFP_KERNEL);
+
 	if (!dr)
+	{
 		return -ENOMEM;
+	}
 
 	rc = request_any_context_irq(irq, handler, irqflags, devname, dev_id);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		devres_free(dr);
 		return rc;
 	}
@@ -133,7 +144,7 @@ void devm_free_irq(struct device *dev, unsigned int irq, void *dev_id)
 	struct irq_devres match_data = { irq, dev_id };
 
 	WARN_ON(devres_destroy(dev, devm_irq_release, devm_irq_match,
-			       &match_data));
+						   &match_data));
 	free_irq(irq, dev_id);
 }
 EXPORT_SYMBOL(devm_free_irq);

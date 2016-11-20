@@ -45,12 +45,13 @@ static int detach_port(char *port)
 {
 	int ret;
 	uint8_t portnum;
-	char path[PATH_MAX+1];
+	char path[PATH_MAX + 1];
 
 	unsigned int port_len = strlen(port);
 
 	for (unsigned int i = 0; i < port_len; i++)
-		if (!isdigit(port[i])) {
+		if (!isdigit(port[i]))
+		{
 			err("invalid port %s", port);
 			return -1;
 		}
@@ -67,14 +68,19 @@ static int detach_port(char *port)
 	rmdir(VHCI_STATE_PATH);
 
 	ret = usbip_vhci_driver_open();
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		err("open vhci_driver");
 		return -1;
 	}
 
 	ret = usbip_vhci_detach_device(portnum);
+
 	if (ret < 0)
+	{
 		return -1;
+	}
 
 	usbip_vhci_driver_close();
 
@@ -83,25 +89,31 @@ static int detach_port(char *port)
 
 int usbip_detach(int argc, char *argv[])
 {
-	static const struct option opts[] = {
+	static const struct option opts[] =
+	{
 		{ "port", required_argument, NULL, 'p' },
 		{ NULL, 0, NULL, 0 }
 	};
 	int opt;
 	int ret = -1;
 
-	for (;;) {
+	for (;;)
+	{
 		opt = getopt_long(argc, argv, "p:", opts, NULL);
 
 		if (opt == -1)
+		{
 			break;
+		}
 
-		switch (opt) {
-		case 'p':
-			ret = detach_port(optarg);
-			goto out;
-		default:
-			goto err_out;
+		switch (opt)
+		{
+			case 'p':
+				ret = detach_port(optarg);
+				goto out;
+
+			default:
+				goto err_out;
 		}
 	}
 

@@ -80,13 +80,15 @@
 #define REQ_COMPLETE	0
 #define REQ_PENDING	1
 
-struct update_param {
+struct update_param
+{
 	int	x, y, width, height;
 	int	color_mode;
 	int	flags;
 };
 
-struct hwa742_request {
+struct hwa742_request
+{
 	struct list_head entry;
 	unsigned int	 flags;
 
@@ -94,21 +96,23 @@ struct hwa742_request {
 	void		 (*complete)(void *data);
 	void		 *complete_data;
 
-	union {
+	union
+	{
 		struct update_param	update;
 		struct completion	*sync;
 	} par;
 };
 
-struct {
+struct
+{
 	enum omapfb_update_mode	update_mode;
 	enum omapfb_update_mode	update_mode_before_suspend;
 
 	struct timer_list	auto_update_timer;
 	int			stop_auto_update;
 	struct omapfb_update_window	auto_update_window;
-	unsigned		te_connected:1;
-	unsigned		vsync_only:1;
+	unsigned		te_connected: 1;
+	unsigned		vsync_only: 1;
 
 	struct hwa742_request	req_pool[REQ_POOL_SIZE];
 	struct list_head	pending_req_list;
@@ -181,12 +185,15 @@ static void set_window_regs(int x_start, int y_start, int x_end, int y_end)
 
 static void set_format_regs(int conv, int transl, int flags)
 {
-	if (flags & OMAPFB_FORMAT_FLAG_DOUBLE) {
+	if (flags & OMAPFB_FORMAT_FLAG_DOUBLE)
+	{
 		hwa742.window_type = ((hwa742.window_type & 0xfc) | 0x01);
 #ifdef VERBOSE
 		dev_dbg(hwa742.fbdev->dev, "hwa742: enabled pixel doubling\n");
 #endif
-	} else {
+	}
+	else
+	{
 		hwa742.window_type = (hwa742.window_type & 0xfc);
 #ifdef VERBOSE
 		dev_dbg(hwa742.fbdev->dev, "hwa742: disabled pixel doubling\n");
@@ -199,7 +206,7 @@ static void set_format_regs(int conv, int transl, int flags)
 }
 
 static void enable_tearsync(int y, int width, int height, int screen_height,
-			    int force_vsync)
+							int force_vsync)
 {
 	u8 b;
 
@@ -207,18 +214,21 @@ static void enable_tearsync(int y, int width, int height, int screen_height,
 	b |= 1 << 2;
 	hwa742_write_reg(HWA742_NDP_CTRL, b);
 
-	if (likely(hwa742.vsync_only || force_vsync)) {
+	if (likely(hwa742.vsync_only || force_vsync))
+	{
 		hwa742.extif->enable_tearsync(1, 0);
 		return;
 	}
 
-	if (width * hwa742.pix_tx_time < hwa742.line_upd_time) {
+	if (width * hwa742.pix_tx_time < hwa742.line_upd_time)
+	{
 		hwa742.extif->enable_tearsync(1, 0);
 		return;
 	}
 
 	if ((width * hwa742.pix_tx_time / 1000) * height <
-	    (y + height) * (hwa742.line_upd_time / 1000)) {
+		(y + height) * (hwa742.line_upd_time / 1000))
+	{
 		hwa742.extif->enable_tearsync(1, 0);
 		return;
 	}
@@ -244,14 +254,18 @@ static inline struct hwa742_request *alloc_req(void)
 	int req_flags = 0;
 
 	if (!in_interrupt())
+	{
 		down(&hwa742.req_sema);
+	}
 	else
+	{
 		req_flags = REQ_FROM_IRQ_POOL;
+	}
 
 	spin_lock_irqsave(&hwa742.req_lock, flags);
 	BUG_ON(list_empty(&hwa742.free_req_list));
 	req = list_entry(hwa742.free_req_list.next,
-			 struct hwa742_request, entry);
+					 struct hwa742_request, entry);
 	list_del(&req->entry);
 	spin_unlock_irqrestore(&hwa742.req_lock, flags);
 
@@ -268,8 +282,11 @@ static inline void free_req(struct hwa742_request *req)
 	spin_lock_irqsave(&hwa742.req_lock, flags);
 
 	list_move(&req->entry, &hwa742.free_req_list);
+
 	if (!(req->flags & REQ_FROM_IRQ_POOL))
+	{
 		up(&hwa742.req_sema);
+	}
 
 	spin_unlock_irqrestore(&hwa742.req_lock, flags);
 }
@@ -280,24 +297,29 @@ static void process_pending_requests(void)
 
 	spin_lock_irqsave(&hwa742.req_lock, flags);
 
-	while (!list_empty(&hwa742.pending_req_list)) {
+	while (!list_empty(&hwa742.pending_req_list))
+	{
 		struct hwa742_request *req;
 		void (*complete)(void *);
 		void *complete_data;
 
 		req = list_entry(hwa742.pending_req_list.next,
-				 struct hwa742_request, entry);
+						 struct hwa742_request, entry);
 		spin_unlock_irqrestore(&hwa742.req_lock, flags);
 
 		if (req->handler(req) == REQ_PENDING)
+		{
 			return;
+		}
 
 		complete = req->complete;
 		complete_data = req->complete_data;
 		free_req(req);
 
 		if (complete)
+		{
 			complete(complete_data);
+		}
 
 		spin_lock_irqsave(&hwa742.req_lock, flags);
 	}
@@ -311,13 +333,19 @@ static void submit_req_list(struct list_head *head)
 	int process = 1;
 
 	spin_lock_irqsave(&hwa742.req_lock, flags);
+
 	if (likely(!list_empty(&hwa742.pending_req_list)))
+	{
 		process = 0;
+	}
+
 	list_splice_init(head, hwa742.pending_req_list.prev);
 	spin_unlock_irqrestore(&hwa742.req_lock, flags);
 
 	if (process)
+	{
 		process_pending_requests();
+	}
 }
 
 static void request_complete(void *data)
@@ -332,7 +360,9 @@ static void request_complete(void *data)
 	free_req(req);
 
 	if (complete)
+	{
 		complete(complete_data);
+	}
 
 	process_pending_requests();
 }
@@ -354,50 +384,59 @@ static int send_frame_handler(struct hwa742_request *req)
 
 #ifdef VERBOSE
 	dev_dbg(hwa742.fbdev->dev, "x %d y %d w %d h %d scr_width %d "
-		"color_mode %d flags %d\n",
-		x, y, w, h, scr_width, color_mode, flags);
+			"color_mode %d flags %d\n",
+			x, y, w, h, scr_width, color_mode, flags);
 #endif
 
-	switch (color_mode) {
-	case OMAPFB_COLOR_YUV422:
-		bpp = 16;
-		conv = 0x08;
-		transl = 0x25;
-		break;
-	case OMAPFB_COLOR_YUV420:
-		bpp = 12;
-		conv = 0x09;
-		transl = 0x25;
-		break;
-	case OMAPFB_COLOR_RGB565:
-		bpp = 16;
-		conv = 0x01;
-		transl = 0x05;
-		break;
-	default:
-		return -EINVAL;
+	switch (color_mode)
+	{
+		case OMAPFB_COLOR_YUV422:
+			bpp = 16;
+			conv = 0x08;
+			transl = 0x25;
+			break;
+
+		case OMAPFB_COLOR_YUV420:
+			bpp = 12;
+			conv = 0x09;
+			transl = 0x25;
+			break;
+
+		case OMAPFB_COLOR_RGB565:
+			bpp = 16;
+			conv = 0x01;
+			transl = 0x05;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	if (hwa742.prev_flags != flags ||
-	    hwa742.prev_color_mode != color_mode) {
+		hwa742.prev_color_mode != color_mode)
+	{
 		set_format_regs(conv, transl, flags);
 		hwa742.prev_color_mode = color_mode;
 		hwa742.prev_flags = flags;
 	}
+
 	flags = req->par.update.flags;
+
 	if (flags & OMAPFB_FORMAT_FLAG_TEARSYNC)
 		enable_tearsync(y, scr_width, h, scr_height,
-				flags & OMAPFB_FORMAT_FLAG_FORCE_VSYNC);
+						flags & OMAPFB_FORMAT_FLAG_FORCE_VSYNC);
 	else
+	{
 		disable_tearsync();
+	}
 
 	set_window_regs(x, y, x + w, y + h);
 
 	offset = (scr_width * y + x) * bpp / 8;
 
 	hwa742.int_ctrl->setup_plane(OMAPFB_PLANE_GFX,
-			OMAPFB_CHANNEL_OUT_LCD, offset, scr_width, 0, 0, w, h,
-			color_mode);
+								 OMAPFB_CHANNEL_OUT_LCD, offset, scr_width, 0, 0, w, h,
+								 color_mode);
 
 	hwa742.extif->set_bits_per_cycle(16);
 
@@ -413,20 +452,20 @@ static void send_frame_complete(void *data)
 }
 
 #define ADD_PREQ(_x, _y, _w, _h) do {		\
-	req = alloc_req();			\
-	req->handler	= send_frame_handler;	\
-	req->complete	= send_frame_complete;	\
-	req->par.update.x = _x;			\
-	req->par.update.y = _y;			\
-	req->par.update.width  = _w;		\
-	req->par.update.height = _h;		\
-	req->par.update.color_mode = color_mode;\
-	req->par.update.flags	  = flags;	\
-	list_add_tail(&req->entry, req_head);	\
-} while(0)
+		req = alloc_req();			\
+		req->handler	= send_frame_handler;	\
+		req->complete	= send_frame_complete;	\
+		req->par.update.x = _x;			\
+		req->par.update.y = _y;			\
+		req->par.update.width  = _w;		\
+		req->par.update.height = _h;		\
+		req->par.update.color_mode = color_mode;\
+		req->par.update.flags	  = flags;	\
+		list_add_tail(&req->entry, req_head);	\
+	} while(0)
 
 static void create_req_list(struct omapfb_update_window *win,
-			    struct list_head *req_head)
+							struct list_head *req_head)
 {
 	struct hwa742_request *req;
 	int x = win->x;
@@ -439,18 +478,22 @@ static void create_req_list(struct omapfb_update_window *win,
 	flags = win->format & ~OMAPFB_FORMAT_MASK;
 	color_mode = win->format & OMAPFB_FORMAT_MASK;
 
-	if (x & 1) {
+	if (x & 1)
+	{
 		ADD_PREQ(x, y, 1, height);
 		width--;
 		x++;
 		flags &= ~OMAPFB_FORMAT_FLAG_TEARSYNC;
 	}
-	if (width & ~1) {
+
+	if (width & ~1)
+	{
 		unsigned int xspan = width & ~1;
 		unsigned int ystart = y;
 		unsigned int yspan = height;
 
-		if (xspan * height * 2 > hwa742.max_transmit_size) {
+		if (xspan * height * 2 > hwa742.max_transmit_size)
+		{
 			yspan = hwa742.max_transmit_size / (xspan * 2);
 			ADD_PREQ(x, ystart, xspan, yspan);
 			ystart += yspan;
@@ -463,15 +506,18 @@ static void create_req_list(struct omapfb_update_window *win,
 		width -= xspan;
 		flags &= ~OMAPFB_FORMAT_FLAG_TEARSYNC;
 	}
+
 	if (width)
+	{
 		ADD_PREQ(x, y, 1, height);
+	}
 }
 
 static void auto_update_complete(void *data)
 {
 	if (!hwa742.stop_auto_update)
 		mod_timer(&hwa742.auto_update_timer,
-			  jiffies + HWA742_AUTO_UPDATE_TIME);
+				  jiffies + HWA742_AUTO_UPDATE_TIME);
 }
 
 static void hwa742_update_window_auto(unsigned long arg)
@@ -489,22 +535,25 @@ static void hwa742_update_window_auto(unsigned long arg)
 }
 
 int hwa742_update_window_async(struct fb_info *fbi,
-				 struct omapfb_update_window *win,
-				 void (*complete_callback)(void *arg),
-				 void *complete_callback_data)
+							   struct omapfb_update_window *win,
+							   void (*complete_callback)(void *arg),
+							   void *complete_callback_data)
 {
 	LIST_HEAD(req_list);
 	struct hwa742_request *last;
 	int r = 0;
 
-	if (hwa742.update_mode != OMAPFB_MANUAL_UPDATE) {
+	if (hwa742.update_mode != OMAPFB_MANUAL_UPDATE)
+	{
 		dev_dbg(hwa742.fbdev->dev, "invalid update mode\n");
 		r = -EINVAL;
 		goto out;
 	}
+
 	if (unlikely(win->format &
-	    ~(0x03 | OMAPFB_FORMAT_FLAG_DOUBLE |
-	    OMAPFB_FORMAT_FLAG_TEARSYNC | OMAPFB_FORMAT_FLAG_FORCE_VSYNC))) {
+				 ~(0x03 | OMAPFB_FORMAT_FLAG_DOUBLE |
+				   OMAPFB_FORMAT_FLAG_TEARSYNC | OMAPFB_FORMAT_FLAG_FORCE_VSYNC)))
+	{
 		dev_dbg(hwa742.fbdev->dev, "invalid window flag\n");
 		r = -EINVAL;
 		goto out;
@@ -524,13 +573,15 @@ out:
 EXPORT_SYMBOL(hwa742_update_window_async);
 
 static int hwa742_setup_plane(int plane, int channel_out,
-				  unsigned long offset, int screen_width,
-				  int pos_x, int pos_y, int width, int height,
-				  int color_mode)
+							  unsigned long offset, int screen_width,
+							  int pos_x, int pos_y, int width, int height,
+							  int color_mode)
 {
 	if (plane != OMAPFB_PLANE_GFX ||
-	    channel_out != OMAPFB_CHANNEL_OUT_LCD)
+		channel_out != OMAPFB_CHANNEL_OUT_LCD)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -538,7 +589,9 @@ static int hwa742_setup_plane(int plane, int channel_out,
 static int hwa742_enable_plane(int plane, int enable)
 {
 	if (plane != 0)
+	{
 		return -EINVAL;
+	}
 
 	hwa742.int_ctrl->enable_plane(plane, enable);
 
@@ -573,7 +626,9 @@ static void hwa742_sync(void)
 static void hwa742_bind_client(struct omapfb_notifier_block *nb)
 {
 	dev_dbg(hwa742.fbdev->dev, "update_mode %d\n", hwa742.update_mode);
-	if (hwa742.update_mode == OMAPFB_MANUAL_UPDATE) {
+
+	if (hwa742.update_mode == OMAPFB_MANUAL_UPDATE)
+	{
 		omapfb_notify_clients(hwa742.fbdev, OMAPFB_EVENT_READY);
 	}
 }
@@ -581,41 +636,51 @@ static void hwa742_bind_client(struct omapfb_notifier_block *nb)
 static int hwa742_set_update_mode(enum omapfb_update_mode mode)
 {
 	if (mode != OMAPFB_MANUAL_UPDATE && mode != OMAPFB_AUTO_UPDATE &&
-	    mode != OMAPFB_UPDATE_DISABLED)
+		mode != OMAPFB_UPDATE_DISABLED)
+	{
 		return -EINVAL;
+	}
 
 	if (mode == hwa742.update_mode)
+	{
 		return 0;
+	}
 
 	dev_info(hwa742.fbdev->dev, "HWA742: setting update mode to %s\n",
-			mode == OMAPFB_UPDATE_DISABLED ? "disabled" :
-			(mode == OMAPFB_AUTO_UPDATE ? "auto" : "manual"));
+			 mode == OMAPFB_UPDATE_DISABLED ? "disabled" :
+			 (mode == OMAPFB_AUTO_UPDATE ? "auto" : "manual"));
 
-	switch (hwa742.update_mode) {
-	case OMAPFB_MANUAL_UPDATE:
-		omapfb_notify_clients(hwa742.fbdev, OMAPFB_EVENT_DISABLED);
-		break;
-	case OMAPFB_AUTO_UPDATE:
-		hwa742.stop_auto_update = 1;
-		del_timer_sync(&hwa742.auto_update_timer);
-		break;
-	case OMAPFB_UPDATE_DISABLED:
-		break;
+	switch (hwa742.update_mode)
+	{
+		case OMAPFB_MANUAL_UPDATE:
+			omapfb_notify_clients(hwa742.fbdev, OMAPFB_EVENT_DISABLED);
+			break;
+
+		case OMAPFB_AUTO_UPDATE:
+			hwa742.stop_auto_update = 1;
+			del_timer_sync(&hwa742.auto_update_timer);
+			break;
+
+		case OMAPFB_UPDATE_DISABLED:
+			break;
 	}
 
 	hwa742.update_mode = mode;
 	hwa742_sync();
 	hwa742.stop_auto_update = 0;
 
-	switch (mode) {
-	case OMAPFB_MANUAL_UPDATE:
-		omapfb_notify_clients(hwa742.fbdev, OMAPFB_EVENT_READY);
-		break;
-	case OMAPFB_AUTO_UPDATE:
-		hwa742_update_window_auto(0);
-		break;
-	case OMAPFB_UPDATE_DISABLED:
-		break;
+	switch (mode)
+	{
+		case OMAPFB_MANUAL_UPDATE:
+			omapfb_notify_clients(hwa742.fbdev, OMAPFB_EVENT_READY);
+			break;
+
+		case OMAPFB_AUTO_UPDATE:
+			hwa742_update_window_auto(0);
+			break;
+
+		case OMAPFB_UPDATE_DISABLED:
+			break;
 	}
 
 	return 0;
@@ -647,7 +712,7 @@ static int calc_reg_timing(unsigned long sysclk, int div)
 	 * CSPulseWidth = 10 ns */
 	systim = 1000000000 / (sysclk / 1000);
 	dev_dbg(hwa742.fbdev->dev, "HWA742 systim %lu ps extif_clk_period %u ps"
-		  "extif_clk_div %d\n", systim, hwa742.extif_clk_period, div);
+			"extif_clk_div %d\n", systim, hwa742.extif_clk_period, div);
 
 	t = &hwa742.reg_timings;
 	memset(t, 0, sizeof(*t));
@@ -660,20 +725,28 @@ static int calc_reg_timing(unsigned long sysclk, int div)
 	t->re_off_time = round_to_extif_ticks(t->re_on_time + 16000, div);
 	t->cs_off_time = round_to_extif_ticks(t->re_off_time + 1000, div);
 	t->we_cycle_time = round_to_extif_ticks(2 * systim + 2000, div);
+
 	if (t->we_cycle_time < t->we_off_time)
+	{
 		t->we_cycle_time = t->we_off_time;
+	}
+
 	t->re_cycle_time = round_to_extif_ticks(2 * systim + 2000, div);
+
 	if (t->re_cycle_time < t->re_off_time)
+	{
 		t->re_cycle_time = t->re_off_time;
+	}
+
 	t->cs_pulse_width = 0;
 
 	dev_dbg(hwa742.fbdev->dev, "[reg]cson %d csoff %d reon %d reoff %d\n",
-		 t->cs_on_time, t->cs_off_time, t->re_on_time, t->re_off_time);
+			t->cs_on_time, t->cs_off_time, t->re_on_time, t->re_off_time);
 	dev_dbg(hwa742.fbdev->dev, "[reg]weon %d weoff %d recyc %d wecyc %d\n",
-		 t->we_on_time, t->we_off_time, t->re_cycle_time,
-		 t->we_cycle_time);
+			t->we_on_time, t->we_off_time, t->re_cycle_time,
+			t->we_cycle_time);
 	dev_dbg(hwa742.fbdev->dev, "[reg]rdaccess %d cspulse %d\n",
-		 t->access_time, t->cs_pulse_width);
+			t->access_time, t->cs_pulse_width);
 
 	return hwa742.extif->convert_timings(t);
 }
@@ -694,7 +767,7 @@ static int calc_lut_timing(unsigned long sysclk, int div)
 	 */
 	systim = 1000000000 / (sysclk / 1000);
 	dev_dbg(hwa742.fbdev->dev, "HWA742 systim %lu ps extif_clk_period %u ps"
-		  "extif_clk_div %d\n", systim, hwa742.extif_clk_period, div);
+			"extif_clk_div %d\n", systim, hwa742.extif_clk_period, div);
 
 	t = &hwa742.lut_timings;
 	memset(t, 0, sizeof(*t));
@@ -705,26 +778,34 @@ static int calc_lut_timing(unsigned long sysclk, int div)
 	t->we_on_time = round_to_extif_ticks(t->cs_on_time + 2000, div);
 	t->re_on_time = round_to_extif_ticks(t->cs_on_time + 2000, div);
 	t->access_time = round_to_extif_ticks(t->re_on_time + 4 * systim +
-					      26000, div);
+										  26000, div);
 	t->we_off_time = round_to_extif_ticks(t->we_on_time + 1000, div);
 	t->re_off_time = round_to_extif_ticks(t->re_on_time + 4 * systim +
-					      26000, div);
+										  26000, div);
 	t->cs_off_time = round_to_extif_ticks(t->re_off_time + 1000, div);
 	t->we_cycle_time = round_to_extif_ticks(2 * systim + 2000, div);
+
 	if (t->we_cycle_time < t->we_off_time)
+	{
 		t->we_cycle_time = t->we_off_time;
+	}
+
 	t->re_cycle_time = round_to_extif_ticks(2000 + 4 * systim + 26000, div);
+
 	if (t->re_cycle_time < t->re_off_time)
+	{
 		t->re_cycle_time = t->re_off_time;
+	}
+
 	t->cs_pulse_width = 0;
 
 	dev_dbg(hwa742.fbdev->dev, "[lut]cson %d csoff %d reon %d reoff %d\n",
-		 t->cs_on_time, t->cs_off_time, t->re_on_time, t->re_off_time);
+			t->cs_on_time, t->cs_off_time, t->re_on_time, t->re_off_time);
 	dev_dbg(hwa742.fbdev->dev, "[lut]weon %d weoff %d recyc %d wecyc %d\n",
-		 t->we_on_time, t->we_off_time, t->re_cycle_time,
-		 t->we_cycle_time);
+			t->we_on_time, t->we_off_time, t->re_cycle_time,
+			t->we_cycle_time);
 	dev_dbg(hwa742.fbdev->dev, "[lut]rdaccess %d cspulse %d\n",
-		 t->access_time, t->cs_pulse_width);
+			t->access_time, t->cs_pulse_width);
 
 	return hwa742.extif->convert_timings(t);
 }
@@ -735,22 +816,34 @@ static int calc_extif_timings(unsigned long sysclk, int *extif_mem_div)
 	int div;
 
 	hwa742.extif->get_clk_info(&hwa742.extif_clk_period, &max_clk_div);
-	for (div = 1; div < max_clk_div; div++) {
+
+	for (div = 1; div < max_clk_div; div++)
+	{
 		if (calc_reg_timing(sysclk, div) == 0)
+		{
 			break;
+		}
 	}
+
 	if (div >= max_clk_div)
+	{
 		goto err;
+	}
 
 	*extif_mem_div = div;
 
-	for (div = 1; div < max_clk_div; div++) {
+	for (div = 1; div < max_clk_div; div++)
+	{
 		if (calc_lut_timing(sysclk, div) == 0)
+		{
 			break;
+		}
 	}
 
 	if (div >= max_clk_div)
+	{
 		goto err;
+	}
 
 	return 0;
 
@@ -760,7 +853,7 @@ err:
 }
 
 static void calc_hwa742_clk_rates(unsigned long ext_clk,
-				unsigned long *sys_clk, unsigned long *pix_clk)
+								  unsigned long *sys_clk, unsigned long *pix_clk)
 {
 	int pix_clk_src;
 	int sys_div = 0, sys_mul = 0;
@@ -768,20 +861,25 @@ static void calc_hwa742_clk_rates(unsigned long ext_clk,
 
 	pix_clk_src = hwa742_read_reg(HWA742_CLK_SRC_REG);
 	pix_div = ((pix_clk_src >> 3) & 0x1f) + 1;
-	if ((pix_clk_src & (0x3 << 1)) == 0) {
+
+	if ((pix_clk_src & (0x3 << 1)) == 0)
+	{
 		/* Source is the PLL */
 		sys_div = (hwa742_read_reg(HWA742_PLL_DIV_REG) & 0x3f) + 1;
 		sys_mul = (hwa742_read_reg(HWA742_PLL_4_REG) & 0x7f) + 1;
 		*sys_clk = ext_clk * sys_mul / sys_div;
-	} else	/* else source is ext clk, or oscillator */
+	}
+	else	/* else source is ext clk, or oscillator */
+	{
 		*sys_clk = ext_clk;
+	}
 
 	*pix_clk = *sys_clk / pix_div;			/* HZ */
 	dev_dbg(hwa742.fbdev->dev,
-		"ext_clk %ld pix_src %d pix_div %d sys_div %d sys_mul %d\n",
-		ext_clk, pix_clk_src & (0x3 << 1), pix_div, sys_div, sys_mul);
+			"ext_clk %ld pix_src %d pix_div %d sys_div %d sys_mul %d\n",
+			ext_clk, pix_clk_src & (0x3 << 1), pix_div, sys_div, sys_mul);
 	dev_dbg(hwa742.fbdev->dev, "sys_clk %ld pix_clk %ld\n",
-		*sys_clk, *pix_clk);
+			*sys_clk, *pix_clk);
 }
 
 
@@ -804,14 +902,16 @@ static int setup_tearsync(unsigned long pix_clk, int extif_div)
 
 	hdisp = (hwa742_read_reg(HWA742_H_DISP_REG) & 0x7f) * 8;
 	vdisp = hwa742_read_reg(HWA742_V_DISP_1_REG) +
-		((hwa742_read_reg(HWA742_V_DISP_2_REG) & 0x3) << 8);
+			((hwa742_read_reg(HWA742_V_DISP_2_REG) & 0x3) << 8);
 
 	hndp = hwa742_read_reg(HWA742_H_NDP_REG) & 0x7f;
 	vndp = hwa742_read_reg(HWA742_V_NDP_REG);
 
 	/* time to transfer one pixel (16bpp) in ps */
 	hwa742.pix_tx_time = hwa742.reg_timings.we_cycle_time;
-	if (hwa742.extif->get_max_tx_rate != NULL) {
+
+	if (hwa742.extif->get_max_tx_rate != NULL)
+	{
 		/*
 		 * The external interface might have a rate limitation,
 		 * if so, we have to maximize our transfer rate.
@@ -820,26 +920,35 @@ static int setup_tearsync(unsigned long pix_clk, int extif_div)
 		unsigned long max_tx_rate = hwa742.extif->get_max_tx_rate();
 
 		dev_dbg(hwa742.fbdev->dev, "max_tx_rate %ld HZ\n",
-			max_tx_rate);
+				max_tx_rate);
 		min_tx_time = 1000000000 / (max_tx_rate / 1000);  /* ps */
+
 		if (hwa742.pix_tx_time < min_tx_time)
+		{
 			hwa742.pix_tx_time = min_tx_time;
+		}
 	}
 
 	/* time to update one line in ps */
 	hwa742.line_upd_time = (hdisp + hndp) * 1000000 / (pix_clk / 1000);
 	hwa742.line_upd_time *= 1000;
+
 	if (hdisp * hwa742.pix_tx_time > hwa742.line_upd_time)
 		/*
 		 * transfer speed too low, we might have to use both
 		 * HS and VS
 		 */
+	{
 		use_hsvs = 1;
+	}
 	else
 		/* decent transfer speed, we'll always use only VS */
+	{
 		use_hsvs = 0;
+	}
 
-	if (use_hsvs && (hs_pol_inv || vs_pol_inv)) {
+	if (use_hsvs && (hs_pol_inv || vs_pol_inv))
+	{
 		/*
 		 * HS or'ed with VS doesn't work, use the active high
 		 * TE signal based on HNDP / VNDP
@@ -849,7 +958,9 @@ static int setup_tearsync(unsigned long pix_clk, int extif_div)
 		vs_pol_inv = 0;
 		hs = hndp;
 		vs = vndp;
-	} else {
+	}
+	else
+	{
 		/*
 		 * Use HS or'ed with VS as a TE signal if both are needed
 		 * or VNDP if only vsync is needed.
@@ -857,7 +968,9 @@ static int setup_tearsync(unsigned long pix_clk, int extif_div)
 		use_ndp = 0;
 		hs = hsw;
 		vs = vsw;
-		if (!use_hsvs) {
+
+		if (!use_hsvs)
+		{
 			hs_pol_inv = 0;
 			vs_pol_inv = 0;
 		}
@@ -870,7 +983,10 @@ static int setup_tearsync(unsigned long pix_clk, int extif_div)
 	vs *= 1000;
 
 	if (vs <= hs)
+	{
 		return -EDOM;
+	}
+
 	/* set VS to 120% of HS to minimize VS detection time */
 	vs = hs * 12 / 10;
 	/* minimize HS too */
@@ -885,25 +1001,29 @@ static int setup_tearsync(unsigned long pix_clk, int extif_div)
 	hwa742.vsync_only = !use_hsvs;
 
 	dev_dbg(hwa742.fbdev->dev,
-		"pix_clk %ld HZ pix_tx_time %ld ps line_upd_time %ld ps\n",
-		pix_clk, hwa742.pix_tx_time, hwa742.line_upd_time);
+			"pix_clk %ld HZ pix_tx_time %ld ps line_upd_time %ld ps\n",
+			pix_clk, hwa742.pix_tx_time, hwa742.line_upd_time);
 	dev_dbg(hwa742.fbdev->dev,
-		"hs %d ps vs %d ps mode %d vsync_only %d\n",
-		hs, vs, (b & 0x3), !use_hsvs);
+			"hs %d ps vs %d ps mode %d vsync_only %d\n",
+			hs, vs, (b & 0x3), !use_hsvs);
 
 	return hwa742.extif->setup_tearsync(1, hs, vs,
-					    hs_pol_inv, vs_pol_inv, extif_div);
+										hs_pol_inv, vs_pol_inv, extif_div);
 }
 
 static void hwa742_get_caps(int plane, struct omapfb_caps *caps)
 {
 	hwa742.int_ctrl->get_caps(plane, caps);
 	caps->ctrl |= OMAPFB_CAPS_MANUAL_UPDATE |
-		      OMAPFB_CAPS_WINDOW_PIXEL_DOUBLE;
+				  OMAPFB_CAPS_WINDOW_PIXEL_DOUBLE;
+
 	if (hwa742.te_connected)
+	{
 		caps->ctrl |= OMAPFB_CAPS_TEARSYNC;
+	}
+
 	caps->wnd_color |= (1 << OMAPFB_COLOR_RGB565) |
-			   (1 << OMAPFB_COLOR_YUV420);
+					   (1 << OMAPFB_COLOR_YUV420);
 }
 
 static void hwa742_suspend(void)
@@ -921,18 +1041,24 @@ static void hwa742_resume(void)
 
 	/* Disable sleep mode */
 	hwa742_write_reg(HWA742_POWER_SAVE, 0);
-	while (1) {
+
+	while (1)
+	{
 		/* Loop until PLL output is stabilized */
 		if (hwa742_read_reg(HWA742_PLL_DIV_REG) & (1 << 7))
+		{
 			break;
+		}
+
 		set_current_state(TASK_UNINTERRUPTIBLE);
 		schedule_timeout(msecs_to_jiffies(5));
 	}
+
 	hwa742_set_update_mode(hwa742.update_mode_before_suspend);
 }
 
 static int hwa742_init(struct omapfb_device *fbdev, int ext_mode,
-		       struct omapfb_mem_desc *req_vram)
+					   struct omapfb_mem_desc *req_vram)
 {
 	int r = 0, i;
 	u8 rev, conf;
@@ -954,42 +1080,59 @@ static int hwa742_init(struct omapfb_device *fbdev, int ext_mode,
 	spin_lock_init(&hwa742.req_lock);
 
 	if ((r = hwa742.int_ctrl->init(fbdev, 1, req_vram)) < 0)
+	{
 		goto err1;
+	}
 
 	if ((r = hwa742.extif->init(fbdev)) < 0)
+	{
 		goto err2;
+	}
 
 	ext_clk = clk_get_rate(hwa742.sys_ck);
+
 	if ((r = calc_extif_timings(ext_clk, &extif_mem_div)) < 0)
+	{
 		goto err3;
+	}
+
 	hwa742.extif->set_timings(&hwa742.reg_timings);
 	clk_enable(hwa742.sys_ck);
 
 	calc_hwa742_clk_rates(ext_clk, &sys_clk, &pix_clk);
+
 	if ((r = calc_extif_timings(sys_clk, &extif_mem_div)) < 0)
+	{
 		goto err4;
+	}
+
 	hwa742.extif->set_timings(&hwa742.reg_timings);
 
 	rev = hwa742_read_reg(HWA742_REV_CODE_REG);
-	if ((rev & 0xfc) != 0x80) {
+
+	if ((rev & 0xfc) != 0x80)
+	{
 		dev_err(fbdev->dev, "HWA742: invalid revision %02x\n", rev);
 		r = -ENODEV;
 		goto err4;
 	}
 
 
-	if (!(hwa742_read_reg(HWA742_PLL_DIV_REG) & 0x80)) {
+	if (!(hwa742_read_reg(HWA742_PLL_DIV_REG) & 0x80))
+	{
 		dev_err(fbdev->dev,
-		      "HWA742: controller not initialized by the bootloader\n");
+				"HWA742: controller not initialized by the bootloader\n");
 		r = -ENODEV;
 		goto err4;
 	}
 
-	if ((r = setup_tearsync(pix_clk, extif_mem_div)) < 0) {
+	if ((r = setup_tearsync(pix_clk, extif_mem_div)) < 0)
+	{
 		dev_err(hwa742.fbdev->dev,
-			"HWA742: can't setup tearing synchronization\n");
+				"HWA742: can't setup tearing synchronization\n");
 		goto err4;
 	}
+
 	hwa742.te_connected = 1;
 
 	hwa742.max_transmit_size = hwa742.extif->max_transmit_size;
@@ -1013,14 +1156,18 @@ static int hwa742_init(struct omapfb_device *fbdev, int ext_mode,
 
 	INIT_LIST_HEAD(&hwa742.free_req_list);
 	INIT_LIST_HEAD(&hwa742.pending_req_list);
+
 	for (i = 0; i < ARRAY_SIZE(hwa742.req_pool); i++)
+	{
 		list_add(&hwa742.req_pool[i].entry, &hwa742.free_req_list);
+	}
+
 	BUG_ON(i <= IRQ_REQ_POOL_SIZE);
 	sema_init(&hwa742.req_sema, i - IRQ_REQ_POOL_SIZE);
 
 	conf = hwa742_read_reg(HWA742_CONFIG_REG);
 	dev_info(fbdev->dev, ": Epson HWA742 LCD controller rev %d "
-			"initialized (CNF pins %x)\n", rev & 0x03, conf & 0x07);
+			 "initialized (CNF pins %x)\n", rev & 0x03, conf & 0x07);
 
 	return 0;
 err4:
@@ -1041,7 +1188,8 @@ static void hwa742_cleanup(void)
 	clk_disable(hwa742.sys_ck);
 }
 
-struct lcd_ctrl hwa742_ctrl = {
+struct lcd_ctrl hwa742_ctrl =
+{
 	.name			= "hwa742",
 	.init			= hwa742_init,
 	.cleanup		= hwa742_cleanup,

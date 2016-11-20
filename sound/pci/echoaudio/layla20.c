@@ -71,29 +71,32 @@ MODULE_FIRMWARE("ea/layla20_asic.fw");
 #define FW_LAYLA20_DSP	0
 #define FW_LAYLA20_ASIC	1
 
-static const struct firmware card_fw[] = {
+static const struct firmware card_fw[] =
+{
 	{0, "layla20_dsp.fw"},
 	{0, "layla20_asic.fw"}
 };
 
-static const struct pci_device_id snd_echo_ids[] = {
+static const struct pci_device_id snd_echo_ids[] =
+{
 	{0x1057, 0x1801, 0xECC0, 0x0030, 0, 0, 0},	/* DSP 56301 Layla20 rev.0 */
 	{0x1057, 0x1801, 0xECC0, 0x0031, 0, 0, 0},	/* DSP 56301 Layla20 rev.1 */
 	{0,}
 };
 
-static struct snd_pcm_hardware pcm_hardware_skel = {
+static struct snd_pcm_hardware pcm_hardware_skel =
+{
 	.info = SNDRV_PCM_INFO_MMAP |
-		SNDRV_PCM_INFO_INTERLEAVED |
-		SNDRV_PCM_INFO_BLOCK_TRANSFER |
-		SNDRV_PCM_INFO_MMAP_VALID |
-		SNDRV_PCM_INFO_PAUSE |
-		SNDRV_PCM_INFO_SYNC_START,
+	SNDRV_PCM_INFO_INTERLEAVED |
+	SNDRV_PCM_INFO_BLOCK_TRANSFER |
+	SNDRV_PCM_INFO_MMAP_VALID |
+	SNDRV_PCM_INFO_PAUSE |
+	SNDRV_PCM_INFO_SYNC_START,
 	.formats =	SNDRV_PCM_FMTBIT_U8 |
-			SNDRV_PCM_FMTBIT_S16_LE |
-			SNDRV_PCM_FMTBIT_S24_3LE |
-			SNDRV_PCM_FMTBIT_S32_LE |
-			SNDRV_PCM_FMTBIT_S32_BE,
+	SNDRV_PCM_FMTBIT_S16_LE |
+	SNDRV_PCM_FMTBIT_S24_3LE |
+	SNDRV_PCM_FMTBIT_S32_LE |
+	SNDRV_PCM_FMTBIT_S32_BE,
 	.rates = SNDRV_PCM_RATE_8000_48000 | SNDRV_PCM_RATE_CONTINUOUS,
 	.rate_min = 8000,
 	.rate_max = 50000,

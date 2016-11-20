@@ -84,15 +84,15 @@
 
 struct SMU7_PIDController
 {
-    uint32_t Ki;
-    int32_t LFWindupUL;
-    int32_t LFWindupLL;
-    uint32_t StatePrecision;
-    uint32_t LfPrecision;
-    uint32_t LfOffset;
-    uint32_t MaxState;
-    uint32_t MaxLfFraction;
-    uint32_t StateShift;
+	uint32_t Ki;
+	int32_t LFWindupUL;
+	int32_t LFWindupLL;
+	uint32_t StatePrecision;
+	uint32_t LfPrecision;
+	uint32_t LfOffset;
+	uint32_t MaxState;
+	uint32_t MaxLfFraction;
+	uint32_t StateShift;
 };
 
 typedef struct SMU7_PIDController SMU7_PIDController;
@@ -119,49 +119,50 @@ typedef struct SMU7_PIDController SMU7_PIDController;
 
 struct SMU7_Firmware_Header
 {
-    uint32_t Digest[5];
-    uint32_t Version;
-    uint32_t HeaderSize;
-    uint32_t Flags;
-    uint32_t EntryPoint;
-    uint32_t CodeSize;
-    uint32_t ImageSize;
+	uint32_t Digest[5];
+	uint32_t Version;
+	uint32_t HeaderSize;
+	uint32_t Flags;
+	uint32_t EntryPoint;
+	uint32_t CodeSize;
+	uint32_t ImageSize;
 
-    uint32_t Rtos;
-    uint32_t SoftRegisters;
-    uint32_t DpmTable;
-    uint32_t FanTable;
-    uint32_t CacConfigTable;
-    uint32_t CacStatusTable;
+	uint32_t Rtos;
+	uint32_t SoftRegisters;
+	uint32_t DpmTable;
+	uint32_t FanTable;
+	uint32_t CacConfigTable;
+	uint32_t CacStatusTable;
 
-    uint32_t mcRegisterTable;
+	uint32_t mcRegisterTable;
 
-    uint32_t mcArbDramTimingTable;
+	uint32_t mcArbDramTimingTable;
 
-    uint32_t PmFuseTable;
-    uint32_t Globals;
-    uint32_t Reserved[42];
-    uint32_t Signature;
+	uint32_t PmFuseTable;
+	uint32_t Globals;
+	uint32_t Reserved[42];
+	uint32_t Signature;
 };
 
 typedef struct SMU7_Firmware_Header SMU7_Firmware_Header;
 
 #define SMU7_FIRMWARE_HEADER_LOCATION 0x20000
 
-enum  DisplayConfig {
-    PowerDown = 1,
-    DP54x4,
-    DP54x2,
-    DP54x1,
-    DP27x4,
-    DP27x2,
-    DP27x1,
-    HDMI297,
-    HDMI162,
-    LVDS,
-    DP324x4,
-    DP324x2,
-    DP324x1
+enum  DisplayConfig
+{
+	PowerDown = 1,
+	DP54x4,
+	DP54x2,
+	DP54x1,
+	DP27x4,
+	DP27x2,
+	DP27x1,
+	HDMI297,
+	HDMI162,
+	LVDS,
+	DP324x4,
+	DP324x2,
+	DP324x1
 };
 
 #pragma pack(pop)

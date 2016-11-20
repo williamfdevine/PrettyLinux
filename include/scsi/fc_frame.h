@@ -73,11 +73,13 @@ static inline void hton24(u8 *p, u32 v)
 #define fr_fsp(fp)	(fr_cb(fp)->fr_fsp)
 #define fr_crc(fp)	(fr_cb(fp)->fr_crc)
 
-struct fc_frame {
+struct fc_frame
+{
 	struct sk_buff skb;
 };
 
-struct fcoe_rcv_info {
+struct fcoe_rcv_info
+{
 	struct fc_lport	*fr_dev;	/* transport layer private pointer */
 	struct fc_seq	*fr_seq;	/* for use with exchange manager */
 	struct fc_fcp_pkt *fr_fsp;	/* for the corresponding fcp I/O */
@@ -134,9 +136,14 @@ static inline struct fc_frame *fc_frame_alloc(struct fc_lport *dev, size_t len)
 	 * this check will usually be evaluated and eliminated at compile time.
 	 */
 	if (len && len % 4)
+	{
 		fp = fc_frame_alloc_fill(dev, len);
+	}
 	else
+	{
 		fp = _fc_frame_alloc(len);
+	}
+
 	return fp;
 }
 
@@ -201,12 +208,15 @@ static inline u32 fc_frame_did(const struct fc_frame *fp)
  * buffers being transmitted.
  */
 static inline void *fc_frame_payload_get(const struct fc_frame *fp,
-					 size_t len)
+		size_t len)
 {
 	void *pp = NULL;
 
 	if (fr_len(fp) >= sizeof(struct fc_frame_header) + len)
+	{
 		pp = fc_frame_header_get(fp) + 1;
+	}
+
 	return pp;
 }
 
@@ -220,8 +230,12 @@ static inline u8 fc_frame_payload_op(const struct fc_frame *fp)
 	u8 *cp;
 
 	cp = fc_frame_payload_get(fp, sizeof(u8));
+
 	if (!cp)
+	{
 		return 0;
+	}
+
 	return *cp;
 
 }

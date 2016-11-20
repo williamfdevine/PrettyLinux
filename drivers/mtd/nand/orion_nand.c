@@ -30,17 +30,27 @@ static void orion_nand_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl
 	u32 offs;
 
 	if (cmd == NAND_CMD_NONE)
+	{
 		return;
+	}
 
 	if (ctrl & NAND_CLE)
+	{
 		offs = (1 << board->cle);
+	}
 	else if (ctrl & NAND_ALE)
+	{
 		offs = (1 << board->ale);
+	}
 	else
+	{
 		return;
+	}
 
 	if (nc->options & NAND_BUSWIDTH_16)
+	{
 		offs <<= 1;
+	}
 
 	writeb(cmd, nc->IO_ADDR_W + offs);
 }
@@ -52,12 +62,16 @@ static void orion_nand_read_buf(struct mtd_info *mtd, uint8_t *buf, int len)
 	uint64_t *buf64;
 	int i = 0;
 
-	while (len && (unsigned long)buf & 7) {
+	while (len && (unsigned long)buf & 7)
+	{
 		*buf++ = readb(io_base);
 		len--;
 	}
+
 	buf64 = (uint64_t *)buf;
-	while (i < len/8) {
+
+	while (i < len / 8)
+	{
 		/*
 		 * Since GCC has no proper constraint (PR 43518)
 		 * force x variable to r2/r3 registers as ldrd instruction
@@ -68,9 +82,13 @@ static void orion_nand_read_buf(struct mtd_info *mtd, uint8_t *buf, int len)
 		asm volatile ("ldrd\t%0, [%1]" : "=&r" (x) : "r" (io_base));
 		buf64[i++] = x;
 	}
+
 	i *= 8;
+
 	while (i < len)
+	{
 		buf[i++] = readb(io_base);
+	}
 }
 
 static int __init orion_nand_probe(struct platform_device *pdev)
@@ -85,40 +103,70 @@ static int __init orion_nand_probe(struct platform_device *pdev)
 	u32 val = 0;
 
 	nc = devm_kzalloc(&pdev->dev,
-			sizeof(struct nand_chip),
-			GFP_KERNEL);
+					  sizeof(struct nand_chip),
+					  GFP_KERNEL);
+
 	if (!nc)
+	{
 		return -ENOMEM;
+	}
+
 	mtd = nand_to_mtd(nc);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	io_base = devm_ioremap_resource(&pdev->dev, res);
 
 	if (IS_ERR(io_base))
+	{
 		return PTR_ERR(io_base);
+	}
 
-	if (pdev->dev.of_node) {
+	if (pdev->dev.of_node)
+	{
 		board = devm_kzalloc(&pdev->dev, sizeof(struct orion_nand_data),
-					GFP_KERNEL);
+							 GFP_KERNEL);
+
 		if (!board)
+		{
 			return -ENOMEM;
+		}
+
 		if (!of_property_read_u32(pdev->dev.of_node, "cle", &val))
+		{
 			board->cle = (u8)val;
+		}
 		else
+		{
 			board->cle = 0;
+		}
+
 		if (!of_property_read_u32(pdev->dev.of_node, "ale", &val))
+		{
 			board->ale = (u8)val;
+		}
 		else
+		{
 			board->ale = 1;
+		}
+
 		if (!of_property_read_u32(pdev->dev.of_node,
-						"bank-width", &val))
+								  "bank-width", &val))
+		{
 			board->width = (u8)val * 8;
+		}
 		else
+		{
 			board->width = 8;
+		}
+
 		if (!of_property_read_u32(pdev->dev.of_node,
-						"chip-delay", &val))
+								  "chip-delay", &val))
+		{
 			board->chip_delay = (u8)val;
-	} else {
+		}
+	}
+	else
+	{
 		board = dev_get_platdata(&pdev->dev);
 	}
 
@@ -133,36 +181,47 @@ static int __init orion_nand_probe(struct platform_device *pdev)
 	nc->ecc.algo = NAND_ECC_HAMMING;
 
 	if (board->chip_delay)
+	{
 		nc->chip_delay = board->chip_delay;
+	}
 
 	WARN(board->width > 16,
-		"%d bit bus width out of range",
-		board->width);
+		 "%d bit bus width out of range",
+		 board->width);
 
 	if (board->width == 16)
+	{
 		nc->options |= NAND_BUSWIDTH_16;
+	}
 
 	if (board->dev_ready)
+	{
 		nc->dev_ready = board->dev_ready;
+	}
 
 	platform_set_drvdata(pdev, mtd);
 
 	/* Not all platforms can gate the clock, so it is not
 	   an error if the clock does not exists. */
 	clk = clk_get(&pdev->dev, NULL);
-	if (!IS_ERR(clk)) {
+
+	if (!IS_ERR(clk))
+	{
 		clk_prepare_enable(clk);
 		clk_put(clk);
 	}
 
-	if (nand_scan(mtd, 1)) {
+	if (nand_scan(mtd, 1))
+	{
 		ret = -ENXIO;
 		goto no_dev;
 	}
 
 	mtd->name = "orion_nand";
 	ret = mtd_device_register(mtd, board->parts, board->nr_parts);
-	if (ret) {
+
+	if (ret)
+	{
 		nand_release(mtd);
 		goto no_dev;
 	}
@@ -170,7 +229,9 @@ static int __init orion_nand_probe(struct platform_device *pdev)
 	return 0;
 
 no_dev:
-	if (!IS_ERR(clk)) {
+
+	if (!IS_ERR(clk))
+	{
 		clk_disable_unprepare(clk);
 		clk_put(clk);
 	}
@@ -186,7 +247,9 @@ static int orion_nand_remove(struct platform_device *pdev)
 	nand_release(mtd);
 
 	clk = clk_get(&pdev->dev, NULL);
-	if (!IS_ERR(clk)) {
+
+	if (!IS_ERR(clk))
+	{
 		clk_disable_unprepare(clk);
 		clk_put(clk);
 	}
@@ -195,14 +258,16 @@ static int orion_nand_remove(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id orion_nand_of_match_table[] = {
+static const struct of_device_id orion_nand_of_match_table[] =
+{
 	{ .compatible = "marvell,orion-nand", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, orion_nand_of_match_table);
 #endif
 
-static struct platform_driver orion_nand_driver = {
+static struct platform_driver orion_nand_driver =
+{
 	.remove		= orion_nand_remove,
 	.driver		= {
 		.name	= "orion_nand",

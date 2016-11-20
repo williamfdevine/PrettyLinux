@@ -31,15 +31,20 @@ static sig_atomic_t fail;
 
 static void signal_handler(int sig)
 {
-	if (tcheck_active()) {
+	if (tcheck_active())
+	{
 		fail = 2;
 		return;
 	}
 
 	if (sig == SIGUSR1)
+	{
 		signaled = 1;
+	}
 	else
+	{
 		fail = 1;
+	}
 }
 
 static int test_signal_tm()
@@ -50,18 +55,23 @@ static int test_signal_tm()
 	act.sa_handler = signal_handler;
 	act.sa_flags = 0;
 	sigemptyset(&act.sa_mask);
-	if (sigaction(SIGUSR1, &act, NULL) < 0) {
+
+	if (sigaction(SIGUSR1, &act, NULL) < 0)
+	{
 		perror("sigaction SIGUSR1");
 		exit(1);
 	}
-	if (sigaction(SIGALRM, &act, NULL) < 0) {
+
+	if (sigaction(SIGALRM, &act, NULL) < 0)
+	{
 		perror("sigaction SIGALRM");
 		exit(1);
 	}
 
 	SKIP_IF(!have_htm());
 
-	for (i = 0; i < MAX_ATTEMPT; i++) {
+	for (i = 0; i < MAX_ATTEMPT; i++)
+	{
 		/*
 		 * If anything bad happens in ASM and we fail to set ret
 		 * because *handwave* TM this will cause failure
@@ -74,6 +84,7 @@ static int test_signal_tm()
 		alarm(TIMEOUT);
 		FAIL_IF(tcheck_transactional());
 		rc = tm_signal_self(getpid(), SIGUSR1, &ret);
+
 		if (ret == 0xdead)
 			/*
 			 * This basically means the transaction aborted before we
@@ -82,19 +93,27 @@ static int test_signal_tm()
 			 * Yes this also means we might never make forward
 			 * progress... the alarm() will trip eventually...
 			 */
+		{
 			continue;
+		}
 
-		if (rc || ret) {
+		if (rc || ret)
+		{
 			/* Ret is actually an errno */
 			printf("TEXASR 0x%016lx, TFIAR 0x%016lx\n",
-					__builtin_get_texasr(), __builtin_get_tfiar());
+				   __builtin_get_texasr(), __builtin_get_tfiar());
 			fprintf(stderr, "(%d) Fail reason: %d rc=0x%lx ret=0x%lx\n",
 					i, fail, rc, ret);
 			FAIL_IF(ret);
 		}
-		while(!signaled && !fail)
+
+		while (!signaled && !fail)
+		{
 			asm volatile("": : :"memory");
-		if (!signaled) {
+		}
+
+		if (!signaled)
+		{
 			fprintf(stderr, "(%d) Fail reason: %d rc=0x%lx ret=0x%lx\n",
 					i, fail, rc, ret);
 			FAIL_IF(fail); /* For the line number */

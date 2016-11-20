@@ -3,7 +3,8 @@
 
 #include "dibx000_common.h"
 
-struct dib7000m_config {
+struct dib7000m_config
+{
 	u8 dvbt_mode;
 	u8 output_mpeg2_in_188_bytes;
 	u8 hostbus_diversity;
@@ -40,17 +41,17 @@ struct dib7000m_config {
 
 #if IS_REACHABLE(CONFIG_DVB_DIB7000M)
 extern struct dvb_frontend *dib7000m_attach(struct i2c_adapter *i2c_adap,
-					    u8 i2c_addr,
-					    struct dib7000m_config *cfg);
+		u8 i2c_addr,
+		struct dib7000m_config *cfg);
 extern struct i2c_adapter *dib7000m_get_i2c_master(struct dvb_frontend *,
-						   enum dibx000_i2c_interface,
-						   int);
+		enum dibx000_i2c_interface,
+		int);
 extern int dib7000m_pid_filter(struct dvb_frontend *, u8 id, u16 pid, u8 onoff);
 extern int dib7000m_pid_filter_ctrl(struct dvb_frontend *fe, u8 onoff);
 #else
 static inline
 struct dvb_frontend *dib7000m_attach(struct i2c_adapter *i2c_adap,
-				     u8 i2c_addr, struct dib7000m_config *cfg)
+									 u8 i2c_addr, struct dib7000m_config *cfg)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;
@@ -58,21 +59,21 @@ struct dvb_frontend *dib7000m_attach(struct i2c_adapter *i2c_adap,
 
 static inline
 struct i2c_adapter *dib7000m_get_i2c_master(struct dvb_frontend *demod,
-					    enum dibx000_i2c_interface intf,
-					    int gating)
+		enum dibx000_i2c_interface intf,
+		int gating)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;
 }
 static inline int dib7000m_pid_filter(struct dvb_frontend *fe, u8 id,
-						u16 pid, u8 onoff)
+									  u16 pid, u8 onoff)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return -ENODEV;
 }
 
 static inline int dib7000m_pid_filter_ctrl(struct dvb_frontend *fe,
-						uint8_t onoff)
+		uint8_t onoff)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return -ENODEV;

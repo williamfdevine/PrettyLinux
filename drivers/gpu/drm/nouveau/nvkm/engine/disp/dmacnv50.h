@@ -3,22 +3,24 @@
 #define nv50_disp_dmac(p) container_of((p), struct nv50_disp_dmac, base)
 #include "channv50.h"
 
-struct nv50_disp_dmac {
+struct nv50_disp_dmac
+{
 	const struct nv50_disp_dmac_func *func;
 	struct nv50_disp_chan base;
 	u32 push;
 };
 
-struct nv50_disp_dmac_func {
+struct nv50_disp_dmac_func
+{
 	int  (*init)(struct nv50_disp_dmac *);
 	void (*fini)(struct nv50_disp_dmac *);
 	int  (*bind)(struct nv50_disp_dmac *, struct nvkm_object *, u32 handle);
 };
 
 int nv50_disp_dmac_new_(const struct nv50_disp_dmac_func *,
-			const struct nv50_disp_chan_mthd *,
-			struct nv50_disp_root *, int chid, int head, u64 push,
-			const struct nvkm_oclass *, struct nvkm_object **);
+						const struct nv50_disp_chan_mthd *,
+						struct nv50_disp_root *, int chid, int head, u64 push,
+						const struct nvkm_oclass *, struct nvkm_object **);
 
 extern const struct nv50_disp_dmac_func nv50_disp_dmac_func;
 int nv50_disp_dmac_bind(struct nv50_disp_dmac *, struct nvkm_object *, u32);
@@ -32,12 +34,13 @@ void gf119_disp_core_fini(struct nv50_disp_dmac *);
 
 extern const struct nv50_disp_dmac_func gp104_disp_dmac_func;
 
-struct nv50_disp_dmac_oclass {
+struct nv50_disp_dmac_oclass
+{
 	int (*ctor)(const struct nv50_disp_dmac_func *,
-		    const struct nv50_disp_chan_mthd *,
-		    struct nv50_disp_root *, int chid,
-		    const struct nvkm_oclass *, void *data, u32 size,
-		    struct nvkm_object **);
+				const struct nv50_disp_chan_mthd *,
+				struct nv50_disp_root *, int chid,
+				const struct nvkm_oclass *, void *data, u32 size,
+				struct nvkm_object **);
 	struct nvkm_sclass base;
 	const struct nv50_disp_dmac_func *func;
 	const struct nv50_disp_chan_mthd *mthd;
@@ -45,20 +48,20 @@ struct nv50_disp_dmac_oclass {
 };
 
 int nv50_disp_core_new(const struct nv50_disp_dmac_func *,
-		       const struct nv50_disp_chan_mthd *,
-		       struct nv50_disp_root *, int chid,
-		       const struct nvkm_oclass *oclass, void *data, u32 size,
-		       struct nvkm_object **);
+					   const struct nv50_disp_chan_mthd *,
+					   struct nv50_disp_root *, int chid,
+					   const struct nvkm_oclass *oclass, void *data, u32 size,
+					   struct nvkm_object **);
 int nv50_disp_base_new(const struct nv50_disp_dmac_func *,
-		       const struct nv50_disp_chan_mthd *,
-		       struct nv50_disp_root *, int chid,
-		       const struct nvkm_oclass *oclass, void *data, u32 size,
-		       struct nvkm_object **);
+					   const struct nv50_disp_chan_mthd *,
+					   struct nv50_disp_root *, int chid,
+					   const struct nvkm_oclass *oclass, void *data, u32 size,
+					   struct nvkm_object **);
 int nv50_disp_ovly_new(const struct nv50_disp_dmac_func *,
-		       const struct nv50_disp_chan_mthd *,
-		       struct nv50_disp_root *, int chid,
-		       const struct nvkm_oclass *oclass, void *data, u32 size,
-		       struct nvkm_object **);
+					   const struct nv50_disp_chan_mthd *,
+					   struct nv50_disp_root *, int chid,
+					   const struct nvkm_oclass *oclass, void *data, u32 size,
+					   struct nvkm_object **);
 
 extern const struct nv50_disp_dmac_oclass nv50_disp_core_oclass;
 extern const struct nv50_disp_dmac_oclass nv50_disp_base_oclass;

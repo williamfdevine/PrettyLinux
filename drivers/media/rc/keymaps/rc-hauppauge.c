@@ -26,7 +26,8 @@
  * This table contains the complete RC5 code, instead of just the data part
  */
 
-static struct rc_map_table rc5_hauppauge_new[] = {
+static struct rc_map_table rc5_hauppauge_new[] =
+{
 	/*
 	 * Remote Controller Hauppauge Gray found on modern devices
 	 * Keycodes start with address = 0x1e
@@ -267,7 +268,8 @@ static struct rc_map_table rc5_hauppauge_new[] = {
 	{ 0x0026, KEY_SLEEP },	/* Minimize */
 };
 
-static struct rc_map_list rc5_hauppauge_new_map = {
+static struct rc_map_list rc5_hauppauge_new_map =
+{
 	.map = {
 		.scan    = rc5_hauppauge_new,
 		.size    = ARRAY_SIZE(rc5_hauppauge_new),

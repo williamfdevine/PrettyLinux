@@ -15,7 +15,8 @@
 #ifndef _ROCKCHIP_DRM_VOP_H
 #define _ROCKCHIP_DRM_VOP_H
 
-enum vop_data_format {
+enum vop_data_format
+{
 	VOP_FMT_ARGB8888 = 0,
 	VOP_FMT_RGB888,
 	VOP_FMT_RGB565,
@@ -24,19 +25,22 @@ enum vop_data_format {
 	VOP_FMT_YUV444SP,
 };
 
-struct vop_reg_data {
+struct vop_reg_data
+{
 	uint32_t offset;
 	uint32_t value;
 };
 
-struct vop_reg {
+struct vop_reg
+{
 	uint32_t offset;
 	uint32_t shift;
 	uint32_t mask;
 	bool write_mask;
 };
 
-struct vop_ctrl {
+struct vop_ctrl
+{
 	struct vop_reg standby;
 	struct vop_reg data_blank;
 	struct vop_reg gate_en;
@@ -66,7 +70,8 @@ struct vop_ctrl {
 	struct vop_reg cfg_done;
 };
 
-struct vop_intr {
+struct vop_intr
+{
 	const int *intrs;
 	uint32_t nintrs;
 	struct vop_reg enable;
@@ -74,7 +79,8 @@ struct vop_intr {
 	struct vop_reg status;
 };
 
-struct vop_scl_extension {
+struct vop_scl_extension
+{
 	struct vop_reg cbcr_vsd_mode;
 	struct vop_reg cbcr_vsu_mode;
 	struct vop_reg cbcr_hsd_mode;
@@ -98,7 +104,8 @@ struct vop_scl_extension {
 	struct vop_reg lb_mode;
 };
 
-struct vop_scl_regs {
+struct vop_scl_regs
+{
 	const struct vop_scl_extension *ext;
 
 	struct vop_reg scale_yrgb_x;
@@ -107,7 +114,8 @@ struct vop_scl_regs {
 	struct vop_reg scale_cbcr_y;
 };
 
-struct vop_win_phy {
+struct vop_win_phy
+{
 	const struct vop_scl_regs *scl;
 	const uint32_t *data_formats;
 	uint32_t nformats;
@@ -127,13 +135,15 @@ struct vop_win_phy {
 	struct vop_reg src_alpha_ctl;
 };
 
-struct vop_win_data {
+struct vop_win_data
+{
 	uint32_t base;
 	const struct vop_win_phy *phy;
 	enum drm_plane_type type;
 };
 
-struct vop_data {
+struct vop_data
+{
 	const struct vop_reg_data *init_table;
 	unsigned int table_size;
 	const struct vop_ctrl *ctrl;
@@ -149,7 +159,7 @@ struct vop_data {
 #define BUS_ERROR_INTR			(1 << 3)
 
 #define INTR_MASK			(DSP_HOLD_VALID_INTR | FS_INTR | \
-					 LINE_FLAG_INTR | BUS_ERROR_INTR)
+							 LINE_FLAG_INTR | BUS_ERROR_INTR)
 
 #define DSP_HOLD_VALID_INTR_EN(x)	((x) << 4)
 #define FS_INTR_EN(x)			((x) << 5)
@@ -190,28 +200,33 @@ struct vop_data {
 /* for use special outface */
 #define ROCKCHIP_OUT_MODE_AAAA	15
 
-enum alpha_mode {
+enum alpha_mode
+{
 	ALPHA_STRAIGHT,
 	ALPHA_INVERSE,
 };
 
-enum global_blend_mode {
+enum global_blend_mode
+{
 	ALPHA_GLOBAL,
 	ALPHA_PER_PIX,
 	ALPHA_PER_PIX_GLOBAL,
 };
 
-enum alpha_cal_mode {
+enum alpha_cal_mode
+{
 	ALPHA_SATURATION,
 	ALPHA_NO_SATURATION,
 };
 
-enum color_mode {
+enum color_mode
+{
 	ALPHA_SRC_PRE_MUL,
 	ALPHA_SRC_NO_PRE_MUL,
 };
 
-enum factor_mode {
+enum factor_mode
+{
 	ALPHA_ZERO,
 	ALPHA_ONE,
 	ALPHA_SRC,
@@ -219,13 +234,15 @@ enum factor_mode {
 	ALPHA_SRC_GLOBAL,
 };
 
-enum scale_mode {
+enum scale_mode
+{
 	SCALE_NONE = 0x0,
 	SCALE_UP   = 0x1,
 	SCALE_DOWN = 0x2
 };
 
-enum lb_mode {
+enum lb_mode
+{
 	LB_YUV_3840X5 = 0x0,
 	LB_YUV_2560X8 = 0x1,
 	LB_RGB_3840X2 = 0x2,
@@ -234,12 +251,14 @@ enum lb_mode {
 	LB_RGB_1280X8 = 0x5
 };
 
-enum sacle_up_mode {
+enum sacle_up_mode
+{
 	SCALE_UP_BIL = 0x0,
 	SCALE_UP_BIC = 0x1
 };
 
-enum scale_down_mode {
+enum scale_down_mode
+{
 	SCALE_DOWN_BIL = 0x0,
 	SCALE_DOWN_AVG = 0x1
 };
@@ -264,7 +283,7 @@ static inline uint16_t scl_cal_scale2(int src, int dst)
 #define GET_SCL_FT_BIC(src, dst)	scl_cal_scale(src, dst, 16)
 
 static inline uint16_t scl_get_bili_dn_vskip(int src_h, int dst_h,
-					     int vskiplines)
+		int vskiplines)
 {
 	int act_height;
 
@@ -276,9 +295,13 @@ static inline uint16_t scl_get_bili_dn_vskip(int src_h, int dst_h,
 static inline enum scale_mode scl_get_scl_mode(int src, int dst)
 {
 	if (src < dst)
+	{
 		return SCALE_UP;
+	}
 	else if (src > dst)
+	{
 		return SCALE_DOWN;
+	}
 
 	return SCALE_NONE;
 }
@@ -289,7 +312,9 @@ static inline int scl_get_vskiplines(uint32_t srch, uint32_t dsth)
 
 	for (vskiplines = SCL_MAX_VSKIPLINES; vskiplines > 1; vskiplines /= 2)
 		if (srch >= vskiplines * dsth * MIN_SCL_FT_AFTER_VSKIP)
+		{
 			break;
+		}
 
 	return vskiplines;
 }
@@ -299,15 +324,25 @@ static inline int scl_vop_cal_lb_mode(int width, bool is_yuv)
 	int lb_mode;
 
 	if (width > 2560)
+	{
 		lb_mode = LB_RGB_3840X2;
+	}
 	else if (width > 1920)
+	{
 		lb_mode = LB_RGB_2560X4;
+	}
 	else if (!is_yuv)
+	{
 		lb_mode = LB_RGB_1920X5;
+	}
 	else if (width > 1280)
+	{
 		lb_mode = LB_YUV_3840X5;
+	}
 	else
+	{
 		lb_mode = LB_YUV_2560X8;
+	}
 
 	return lb_mode;
 }

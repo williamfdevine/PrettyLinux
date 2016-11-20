@@ -36,7 +36,8 @@ module_param(debug, bool, 0644);
 
 MODULE_PARM_DESC(debug, "Debugging messages, 0=Off (default), 1=On");
 
-struct cs5345_state {
+struct cs5345_state
+{
 	struct v4l2_subdev sd;
 	struct v4l2_ctrl_handler hdl;
 };
@@ -68,12 +69,14 @@ static inline int cs5345_read(struct v4l2_subdev *sd, u8 reg)
 }
 
 static int cs5345_s_routing(struct v4l2_subdev *sd,
-			    u32 input, u32 output, u32 config)
+							u32 input, u32 output, u32 config)
 {
-	if ((input & 0xf) > 6) {
+	if ((input & 0xf) > 6)
+	{
 		v4l2_err(sd, "Invalid input %d.\n", input);
 		return -EINVAL;
 	}
+
 	cs5345_write(sd, 0x09, input & 0xf);
 	cs5345_write(sd, 0x05, input & 0xf0);
 	return 0;
@@ -83,15 +86,18 @@ static int cs5345_s_ctrl(struct v4l2_ctrl *ctrl)
 {
 	struct v4l2_subdev *sd = to_sd(ctrl);
 
-	switch (ctrl->id) {
-	case V4L2_CID_AUDIO_MUTE:
-		cs5345_write(sd, 0x04, ctrl->val ? 0x80 : 0);
-		return 0;
-	case V4L2_CID_AUDIO_VOLUME:
-		cs5345_write(sd, 0x07, ((u8)ctrl->val) & 0x3f);
-		cs5345_write(sd, 0x08, ((u8)ctrl->val) & 0x3f);
-		return 0;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_AUDIO_MUTE:
+			cs5345_write(sd, 0x04, ctrl->val ? 0x80 : 0);
+			return 0;
+
+		case V4L2_CID_AUDIO_VOLUME:
+			cs5345_write(sd, 0x07, ((u8)ctrl->val) & 0x3f);
+			cs5345_write(sd, 0x08, ((u8)ctrl->val) & 0x3f);
+			return 0;
 	}
+
 	return -EINVAL;
 }
 
@@ -117,20 +123,26 @@ static int cs5345_log_status(struct v4l2_subdev *sd)
 	int vol = cs5345_read(sd, 0x08) & 0x3f;
 
 	v4l2_info(sd, "Input:  %d%s\n", v,
-			(m & 0x80) ? " (muted)" : "");
+			  (m & 0x80) ? " (muted)" : "");
+
 	if (vol >= 32)
+	{
 		vol = vol - 64;
+	}
+
 	v4l2_info(sd, "Volume: %d dB\n", vol);
 	return 0;
 }
 
 /* ----------------------------------------------------------------------- */
 
-static const struct v4l2_ctrl_ops cs5345_ctrl_ops = {
+static const struct v4l2_ctrl_ops cs5345_ctrl_ops =
+{
 	.s_ctrl = cs5345_s_ctrl,
 };
 
-static const struct v4l2_subdev_core_ops cs5345_core_ops = {
+static const struct v4l2_subdev_core_ops cs5345_core_ops =
+{
 	.log_status = cs5345_log_status,
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 	.g_register = cs5345_g_register,
@@ -138,11 +150,13 @@ static const struct v4l2_subdev_core_ops cs5345_core_ops = {
 #endif
 };
 
-static const struct v4l2_subdev_audio_ops cs5345_audio_ops = {
+static const struct v4l2_subdev_audio_ops cs5345_audio_ops =
+{
 	.s_routing = cs5345_s_routing,
 };
 
-static const struct v4l2_subdev_ops cs5345_ops = {
+static const struct v4l2_subdev_ops cs5345_ops =
+{
 	.core = &cs5345_core_ops,
 	.audio = &cs5345_audio_ops,
 };
@@ -150,36 +164,45 @@ static const struct v4l2_subdev_ops cs5345_ops = {
 /* ----------------------------------------------------------------------- */
 
 static int cs5345_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct cs5345_state *state;
 	struct v4l2_subdev *sd;
 
 	/* Check if the adapter supports the needed features */
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -EIO;
+	}
 
 	v4l_info(client, "chip found @ 0x%x (%s)\n",
-			client->addr << 1, client->adapter->name);
+			 client->addr << 1, client->adapter->name);
 
 	state = devm_kzalloc(&client->dev, sizeof(*state), GFP_KERNEL);
+
 	if (state == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	sd = &state->sd;
 	v4l2_i2c_subdev_init(sd, client, &cs5345_ops);
 
 	v4l2_ctrl_handler_init(&state->hdl, 2);
 	v4l2_ctrl_new_std(&state->hdl, &cs5345_ctrl_ops,
-			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
+					  V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
 	v4l2_ctrl_new_std(&state->hdl, &cs5345_ctrl_ops,
-			V4L2_CID_AUDIO_VOLUME, -24, 24, 1, 0);
+					  V4L2_CID_AUDIO_VOLUME, -24, 24, 1, 0);
 	sd->ctrl_handler = &state->hdl;
-	if (state->hdl.error) {
+
+	if (state->hdl.error)
+	{
 		int err = state->hdl.error;
 
 		v4l2_ctrl_handler_free(&state->hdl);
 		return err;
 	}
+
 	/* set volume/mute */
 	v4l2_ctrl_handler_setup(&state->hdl);
 
@@ -203,13 +226,15 @@ static int cs5345_remove(struct i2c_client *client)
 
 /* ----------------------------------------------------------------------- */
 
-static const struct i2c_device_id cs5345_id[] = {
+static const struct i2c_device_id cs5345_id[] =
+{
 	{ "cs5345", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, cs5345_id);
 
-static struct i2c_driver cs5345_driver = {
+static struct i2c_driver cs5345_driver =
+{
 	.driver = {
 		.name	= "cs5345",
 	},

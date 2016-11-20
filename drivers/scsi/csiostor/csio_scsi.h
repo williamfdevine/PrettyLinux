@@ -91,7 +91,8 @@ extern int csio_lun_qdepth;
 /* Reference to scsi_cmnd */
 #define csio_scsi_cmnd(req)		((req)->scratch1)
 
-struct csio_scsi_stats {
+struct csio_scsi_stats
+{
 	uint64_t		n_tot_success;	/* Total number of good I/Os */
 	uint32_t		n_rn_nr_error;	/* No. of remote-node-not-
 						 * ready errors
@@ -144,7 +145,8 @@ struct csio_scsi_stats {
 	uint32_t		n_inval_scsiop;	/* No. invalid scsi op's in IQ*/
 };
 
-struct csio_scsim {
+struct csio_scsim
+{
 	struct csio_hw		*hw;		/* Pointer to HW moduel */
 	uint8_t			max_sge;	/* Max SGE */
 	uint8_t			proto_cmd_len;	/* Proto specific SCSI
@@ -161,7 +163,8 @@ struct csio_scsim {
 };
 
 /* State machine defines */
-enum csio_scsi_ev {
+enum csio_scsi_ev
+{
 	CSIO_SCSIE_START_IO = 1,		/* Start a regular SCSI IO */
 	CSIO_SCSIE_START_TM,			/* Start a TM IO */
 	CSIO_SCSIE_COMPLETED,			/* IO Completed */
@@ -174,14 +177,16 @@ enum csio_scsi_ev {
 						 */
 };
 
-enum csio_scsi_lev {
+enum csio_scsi_lev
+{
 	CSIO_LEV_ALL = 1,
 	CSIO_LEV_LNODE,
 	CSIO_LEV_RNODE,
 	CSIO_LEV_LUN,
 };
 
-struct csio_scsi_level_data {
+struct csio_scsi_level_data
+{
 	enum csio_scsi_lev	level;
 	struct csio_rnode	*rnode;
 	struct csio_lnode	*lnode;
@@ -193,14 +198,18 @@ csio_get_scsi_ioreq(struct csio_scsim *scm)
 {
 	struct csio_sm *req;
 
-	if (likely(!list_empty(&scm->ioreq_freelist))) {
+	if (likely(!list_empty(&scm->ioreq_freelist)))
+	{
 		req = list_first_entry(&scm->ioreq_freelist,
-				       struct csio_sm, sm_list);
+							   struct csio_sm, sm_list);
 		list_del_init(&req->sm_list);
 		CSIO_DEC_STATS(scm, n_free_ioreq);
 		return (struct csio_ioreq *)req;
-	} else
+	}
+	else
+	{
 		return NULL;
+	}
 }
 
 static inline void
@@ -212,7 +221,7 @@ csio_put_scsi_ioreq(struct csio_scsim *scm, struct csio_ioreq *ioreq)
 
 static inline void
 csio_put_scsi_ioreq_list(struct csio_scsim *scm, struct list_head *reqlist,
-			 int n)
+						 int n)
 {
 	list_splice_init(reqlist, &scm->ioreq_freelist);
 	scm->stats.n_free_ioreq += n;
@@ -223,14 +232,18 @@ csio_get_scsi_ddp(struct csio_scsim *scm)
 {
 	struct csio_dma_buf *ddp;
 
-	if (likely(!list_empty(&scm->ddp_freelist))) {
+	if (likely(!list_empty(&scm->ddp_freelist)))
+	{
 		ddp = list_first_entry(&scm->ddp_freelist,
-				       struct csio_dma_buf, list);
+							   struct csio_dma_buf, list);
 		list_del_init(&ddp->list);
 		CSIO_DEC_STATS(scm, n_free_ddp);
 		return ddp;
-	} else
+	}
+	else
+	{
 		return NULL;
+	}
 }
 
 static inline void
@@ -242,7 +255,7 @@ csio_put_scsi_ddp(struct csio_scsim *scm, struct csio_dma_buf *ddp)
 
 static inline void
 csio_put_scsi_ddp_list(struct csio_scsim *scm, struct list_head *reqlist,
-			 int n)
+					   int n)
 {
 	list_splice_tail_init(reqlist, &scm->ddp_freelist);
 	scm->stats.n_free_ddp += n;
@@ -252,8 +265,11 @@ static inline void
 csio_scsi_completed(struct csio_ioreq *ioreq, struct list_head *cbfn_q)
 {
 	csio_post_event(&ioreq->sm, CSIO_SCSIE_COMPLETED);
+
 	if (csio_list_deleted(&ioreq->sm.sm_list))
+	{
 		list_add_tail(&ioreq->sm.sm_list, cbfn_q);
+	}
 }
 
 static inline void
@@ -331,10 +347,10 @@ csio_scsi_close(struct csio_ioreq *ioreq)
 void csio_scsi_cleanup_io_q(struct csio_scsim *, struct list_head *);
 int csio_scsim_cleanup_io(struct csio_scsim *, bool abort);
 int csio_scsim_cleanup_io_lnode(struct csio_scsim *,
-					  struct csio_lnode *);
+								struct csio_lnode *);
 struct csio_ioreq *csio_scsi_cmpl_handler(struct csio_hw *, void *, uint32_t,
-					  struct csio_fl_dma_buf *,
-					  void *, uint8_t **);
+		struct csio_fl_dma_buf *,
+		void *, uint8_t **);
 int csio_scsi_qconfig(struct csio_hw *);
 int csio_scsim_init(struct csio_scsim *, struct csio_hw *);
 void csio_scsim_exit(struct csio_scsim *);

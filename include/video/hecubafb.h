@@ -27,7 +27,8 @@
 #define HCB_ACK_BIT 	0x80
 
 /* struct used by hecuba. board specific stuff comes from *board */
-struct hecubafb_par {
+struct hecubafb_par
+{
 	struct fb_info *info;
 	struct hecuba_board *board;
 	void (*send_command)(struct hecubafb_par *, unsigned char);
@@ -38,7 +39,8 @@ struct hecubafb_par {
 board drivers can implement wait_for_ack with interrupts if desired. if
 wait_for_ack is called with clear=0, then go to sleep and return when ack
 goes hi or if wait_for_ack with clear=1, then return when ack goes lo */
-struct hecuba_board {
+struct hecuba_board
+{
 	struct module *owner;
 	void (*remove)(struct hecubafb_par *);
 	void (*set_ctl)(struct hecubafb_par *, unsigned char, unsigned char);

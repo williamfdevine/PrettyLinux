@@ -53,7 +53,8 @@
 
 #define MUX_CLK_NUM_PARENTS		2
 
-struct meson8b_dwmac {
+struct meson8b_dwmac
+{
 	struct platform_device	*pdev;
 
 	void __iomem		*regs;
@@ -72,7 +73,7 @@ struct meson8b_dwmac {
 };
 
 static void meson8b_dwmac_mask_bits(struct meson8b_dwmac *dwmac, u32 reg,
-				    u32 mask, u32 value)
+									u32 mask, u32 value)
 {
 	u32 data;
 
@@ -91,22 +92,30 @@ static int meson8b_init_clk(struct meson8b_dwmac *dwmac)
 	char clk_name[32];
 	const char *clk_div_parents[1];
 	const char *mux_parent_names[MUX_CLK_NUM_PARENTS];
-	static struct clk_div_table clk_25m_div_table[] = {
+	static struct clk_div_table clk_25m_div_table[] =
+	{
 		{ .val = 0, .div = 5 },
 		{ .val = 1, .div = 10 },
 		{ /* sentinel */ },
 	};
 
 	/* get the mux parents from DT */
-	for (i = 0; i < MUX_CLK_NUM_PARENTS; i++) {
+	for (i = 0; i < MUX_CLK_NUM_PARENTS; i++)
+	{
 		char name[16];
 
 		snprintf(name, sizeof(name), "clkin%d", i);
 		dwmac->m250_mux_parent[i] = devm_clk_get(dev, name);
-		if (IS_ERR(dwmac->m250_mux_parent[i])) {
+
+		if (IS_ERR(dwmac->m250_mux_parent[i]))
+		{
 			ret = PTR_ERR(dwmac->m250_mux_parent[i]);
+
 			if (ret != -EPROBE_DEFER)
+			{
 				dev_err(dev, "Missing clock %s\n", name);
+			}
+
 			return ret;
 		}
 
@@ -130,8 +139,11 @@ static int meson8b_init_clk(struct meson8b_dwmac *dwmac)
 	dwmac->m250_mux.hw.init = &init;
 
 	dwmac->m250_mux_clk = devm_clk_register(dev, &dwmac->m250_mux.hw);
+
 	if (WARN_ON(IS_ERR(dwmac->m250_mux_clk)))
+	{
 		return PTR_ERR(dwmac->m250_mux_clk);
+	}
 
 	/* create the m250_div */
 	snprintf(clk_name, sizeof(clk_name), "%s#m250_div", dev_name(dev));
@@ -149,8 +161,11 @@ static int meson8b_init_clk(struct meson8b_dwmac *dwmac)
 	dwmac->m250_div.flags = CLK_DIVIDER_ONE_BASED | CLK_DIVIDER_ALLOW_ZERO;
 
 	dwmac->m250_div_clk = devm_clk_register(dev, &dwmac->m250_div.hw);
+
 	if (WARN_ON(IS_ERR(dwmac->m250_div_clk)))
+	{
 		return PTR_ERR(dwmac->m250_div_clk);
+	}
 
 	/* create the m25_div */
 	snprintf(clk_name, sizeof(clk_name), "%s#m25_div", dev_name(dev));
@@ -169,8 +184,11 @@ static int meson8b_init_clk(struct meson8b_dwmac *dwmac)
 	dwmac->m25_div.flags = CLK_DIVIDER_ALLOW_ZERO;
 
 	dwmac->m25_div_clk = devm_clk_register(dev, &dwmac->m25_div.hw);
+
 	if (WARN_ON(IS_ERR(dwmac->m25_div_clk)))
+	{
 		return PTR_ERR(dwmac->m25_div_clk);
+	}
 
 	return 0;
 }
@@ -180,60 +198,65 @@ static int meson8b_init_prg_eth(struct meson8b_dwmac *dwmac)
 	int ret;
 	unsigned long clk_rate;
 
-	switch (dwmac->phy_mode) {
-	case PHY_INTERFACE_MODE_RGMII:
-	case PHY_INTERFACE_MODE_RGMII_ID:
-	case PHY_INTERFACE_MODE_RGMII_RXID:
-	case PHY_INTERFACE_MODE_RGMII_TXID:
-		/* Generate a 25MHz clock for the PHY */
-		clk_rate = 25 * 1000 * 1000;
+	switch (dwmac->phy_mode)
+	{
+		case PHY_INTERFACE_MODE_RGMII:
+		case PHY_INTERFACE_MODE_RGMII_ID:
+		case PHY_INTERFACE_MODE_RGMII_RXID:
+		case PHY_INTERFACE_MODE_RGMII_TXID:
+			/* Generate a 25MHz clock for the PHY */
+			clk_rate = 25 * 1000 * 1000;
 
-		/* enable RGMII mode */
-		meson8b_dwmac_mask_bits(dwmac, PRG_ETH0, PRG_ETH0_RGMII_MODE,
-					PRG_ETH0_RGMII_MODE);
+			/* enable RGMII mode */
+			meson8b_dwmac_mask_bits(dwmac, PRG_ETH0, PRG_ETH0_RGMII_MODE,
+									PRG_ETH0_RGMII_MODE);
 
-		/* only relevant for RMII mode -> disable in RGMII mode */
-		meson8b_dwmac_mask_bits(dwmac, PRG_ETH0,
-					PRG_ETH0_INVERTED_RMII_CLK, 0);
+			/* only relevant for RMII mode -> disable in RGMII mode */
+			meson8b_dwmac_mask_bits(dwmac, PRG_ETH0,
+									PRG_ETH0_INVERTED_RMII_CLK, 0);
 
-		/* TX clock delay - all known boards use a 1/4 cycle delay */
-		meson8b_dwmac_mask_bits(dwmac, PRG_ETH0, PRG_ETH0_TXDLY_MASK,
-					PRG_ETH0_TXDLY_QUARTER);
-		break;
+			/* TX clock delay - all known boards use a 1/4 cycle delay */
+			meson8b_dwmac_mask_bits(dwmac, PRG_ETH0, PRG_ETH0_TXDLY_MASK,
+									PRG_ETH0_TXDLY_QUARTER);
+			break;
 
-	case PHY_INTERFACE_MODE_RMII:
-		/* Use the rate of the mux clock for the internal RMII PHY */
-		clk_rate = clk_get_rate(dwmac->m250_mux_clk);
+		case PHY_INTERFACE_MODE_RMII:
+			/* Use the rate of the mux clock for the internal RMII PHY */
+			clk_rate = clk_get_rate(dwmac->m250_mux_clk);
 
-		/* disable RGMII mode -> enables RMII mode */
-		meson8b_dwmac_mask_bits(dwmac, PRG_ETH0, PRG_ETH0_RGMII_MODE,
-					0);
+			/* disable RGMII mode -> enables RMII mode */
+			meson8b_dwmac_mask_bits(dwmac, PRG_ETH0, PRG_ETH0_RGMII_MODE,
+									0);
 
-		/* invert internal clk_rmii_i to generate 25/2.5 tx_rx_clk */
-		meson8b_dwmac_mask_bits(dwmac, PRG_ETH0,
-					PRG_ETH0_INVERTED_RMII_CLK,
-					PRG_ETH0_INVERTED_RMII_CLK);
+			/* invert internal clk_rmii_i to generate 25/2.5 tx_rx_clk */
+			meson8b_dwmac_mask_bits(dwmac, PRG_ETH0,
+									PRG_ETH0_INVERTED_RMII_CLK,
+									PRG_ETH0_INVERTED_RMII_CLK);
 
-		/* TX clock delay cannot be configured in RMII mode */
-		meson8b_dwmac_mask_bits(dwmac, PRG_ETH0, PRG_ETH0_TXDLY_MASK,
-					0);
+			/* TX clock delay cannot be configured in RMII mode */
+			meson8b_dwmac_mask_bits(dwmac, PRG_ETH0, PRG_ETH0_TXDLY_MASK,
+									0);
 
-		break;
+			break;
 
-	default:
-		dev_err(&dwmac->pdev->dev, "unsupported phy-mode %s\n",
-			phy_modes(dwmac->phy_mode));
-		return -EINVAL;
+		default:
+			dev_err(&dwmac->pdev->dev, "unsupported phy-mode %s\n",
+					phy_modes(dwmac->phy_mode));
+			return -EINVAL;
 	}
 
 	ret = clk_prepare_enable(dwmac->m25_div_clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&dwmac->pdev->dev, "failed to enable the PHY clock\n");
 		return ret;
 	}
 
 	ret = clk_set_rate(dwmac->m25_div_clk, clk_rate);
-	if (ret) {
+
+	if (ret)
+	{
 		clk_disable_unprepare(dwmac->m25_div_clk);
 
 		dev_err(&dwmac->pdev->dev, "failed to set PHY clock\n");
@@ -242,7 +265,7 @@ static int meson8b_init_prg_eth(struct meson8b_dwmac *dwmac)
 
 	/* enable TX_CLK and PHY_REF_CLK generator */
 	meson8b_dwmac_mask_bits(dwmac, PRG_ETH0, PRG_ETH0_TX_AND_PHY_REF_CLK,
-				PRG_ETH0_TX_AND_PHY_REF_CLK);
+							PRG_ETH0_TX_AND_PHY_REF_CLK);
 
 	return 0;
 }
@@ -256,36 +279,56 @@ static int meson8b_dwmac_probe(struct platform_device *pdev)
 	int ret;
 
 	ret = stmmac_get_platform_resources(pdev, &stmmac_res);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	plat_dat = stmmac_probe_config_dt(pdev, &stmmac_res.mac);
+
 	if (IS_ERR(plat_dat))
+	{
 		return PTR_ERR(plat_dat);
+	}
 
 	dwmac = devm_kzalloc(&pdev->dev, sizeof(*dwmac), GFP_KERNEL);
+
 	if (!dwmac)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 	dwmac->regs = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(dwmac->regs))
+	{
 		return PTR_ERR(dwmac->regs);
+	}
 
 	dwmac->pdev = pdev;
 	dwmac->phy_mode = of_get_phy_mode(pdev->dev.of_node);
-	if (dwmac->phy_mode < 0) {
+
+	if (dwmac->phy_mode < 0)
+	{
 		dev_err(&pdev->dev, "missing phy-mode property\n");
 		return -EINVAL;
 	}
 
 	ret = meson8b_init_clk(dwmac);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = meson8b_init_prg_eth(dwmac);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	plat_dat->bsp_priv = dwmac;
 
@@ -301,14 +344,16 @@ static int meson8b_dwmac_remove(struct platform_device *pdev)
 	return stmmac_pltfr_remove(pdev);
 }
 
-static const struct of_device_id meson8b_dwmac_match[] = {
+static const struct of_device_id meson8b_dwmac_match[] =
+{
 	{ .compatible = "amlogic,meson8b-dwmac" },
 	{ .compatible = "amlogic,meson-gxbb-dwmac" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, meson8b_dwmac_match);
 
-static struct platform_driver meson8b_dwmac_driver = {
+static struct platform_driver meson8b_dwmac_driver =
+{
 	.probe  = meson8b_dwmac_probe,
 	.remove = meson8b_dwmac_remove,
 	.driver = {

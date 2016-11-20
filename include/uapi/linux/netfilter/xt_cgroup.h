@@ -4,12 +4,14 @@
 #include <linux/types.h>
 #include <linux/limits.h>
 
-struct xt_cgroup_info_v0 {
+struct xt_cgroup_info_v0
+{
 	__u32 id;
 	__u32 invert;
 };
 
-struct xt_cgroup_info_v1 {
+struct xt_cgroup_info_v1
+{
 	__u8		has_path;
 	__u8		has_classid;
 	__u8		invert_path;

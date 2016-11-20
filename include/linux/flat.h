@@ -28,9 +28,11 @@
 #define OLD_FLAT_RELOC_TYPE_DATA	1
 #define OLD_FLAT_RELOC_TYPE_BSS		2
 
-typedef union {
+typedef union
+{
 	unsigned long	value;
-	struct {
+	struct
+	{
 # if defined(mc68000) && !defined(CONFIG_COLDFIRE)
 		signed long offset : 30;
 		unsigned long type : 2;

@@ -1,7 +1,7 @@
 /*
  *
  *		SNMP MIB entries for the IP subsystem.
- *		
+ *
  *		Alan Cox <gw4pts@gw4pts.ampr.org>
  *
  *		We don't chose to implement SNMP in the kernel (this would
@@ -15,7 +15,7 @@
  *		2 of the License, or (at your option) any later version.
  *
  */
- 
+
 #ifndef _SNMP_H
 #define _SNMP_H
 
@@ -31,20 +31,21 @@
  *  - list of entries for particular API (such as /proc/net/snmp)
  *  - name of entries.
  */
-struct snmp_mib {
+struct snmp_mib
+{
 	const char *name;
 	int entry;
 };
 
 #define SNMP_MIB_ITEM(_name,_entry)	{	\
-	.name = _name,				\
-	.entry = _entry,			\
-}
+		.name = _name,				\
+				.entry = _entry,			\
+	}
 
 #define SNMP_MIB_SENTINEL {	\
-	.name = NULL,		\
-	.entry = 0,		\
-}
+		.name = NULL,		\
+				.entry = 0,		\
+	}
 
 /*
  * We use unsigned longs for most mibs but u64 for ipstats.
@@ -53,7 +54,8 @@ struct snmp_mib {
 
 /* IPstats */
 #define IPSTATS_MIB_MAX	__IPSTATS_MIB_MAX
-struct ipstats_mib {
+struct ipstats_mib
+{
 	/* mibs[] must be first field of struct ipstats_mib */
 	u64		mibs[IPSTATS_MIB_MAX];
 	struct u64_stats_sync syncp;
@@ -61,58 +63,68 @@ struct ipstats_mib {
 
 /* ICMP */
 #define ICMP_MIB_MAX	__ICMP_MIB_MAX
-struct icmp_mib {
+struct icmp_mib
+{
 	unsigned long	mibs[ICMP_MIB_MAX];
 };
 
 #define ICMPMSG_MIB_MAX	__ICMPMSG_MIB_MAX
-struct icmpmsg_mib {
+struct icmpmsg_mib
+{
 	atomic_long_t	mibs[ICMPMSG_MIB_MAX];
 };
 
 /* ICMP6 (IPv6-ICMP) */
 #define ICMP6_MIB_MAX	__ICMP6_MIB_MAX
 /* per network ns counters */
-struct icmpv6_mib {
+struct icmpv6_mib
+{
 	unsigned long	mibs[ICMP6_MIB_MAX];
 };
 /* per device counters, (shared on all cpus) */
-struct icmpv6_mib_device {
+struct icmpv6_mib_device
+{
 	atomic_long_t	mibs[ICMP6_MIB_MAX];
 };
 
 #define ICMP6MSG_MIB_MAX  __ICMP6MSG_MIB_MAX
 /* per network ns counters */
-struct icmpv6msg_mib {
+struct icmpv6msg_mib
+{
 	atomic_long_t	mibs[ICMP6MSG_MIB_MAX];
 };
 /* per device counters, (shared on all cpus) */
-struct icmpv6msg_mib_device {
+struct icmpv6msg_mib_device
+{
 	atomic_long_t	mibs[ICMP6MSG_MIB_MAX];
 };
 
 
 /* TCP */
 #define TCP_MIB_MAX	__TCP_MIB_MAX
-struct tcp_mib {
+struct tcp_mib
+{
 	unsigned long	mibs[TCP_MIB_MAX];
 };
 
 /* UDP */
 #define UDP_MIB_MAX	__UDP_MIB_MAX
-struct udp_mib {
+struct udp_mib
+{
 	unsigned long	mibs[UDP_MIB_MAX];
 };
 
 /* Linux */
 #define LINUX_MIB_MAX	__LINUX_MIB_MAX
-struct linux_mib {
+struct linux_mib
+{
 	unsigned long	mibs[LINUX_MIB_MAX];
 };
 
 /* Linux Xfrm */
 #define LINUX_MIB_XFRMMAX	__LINUX_MIB_XFRMMAX
-struct linux_xfrm_mib {
+struct linux_xfrm_mib
+{
 	unsigned long	mibs[LINUX_MIB_XFRMMAX];
 };
 
@@ -124,22 +136,22 @@ struct linux_xfrm_mib {
 	extern __typeof__(type) __percpu *name
 
 #define __SNMP_INC_STATS(mib, field)	\
-			__this_cpu_inc(mib->mibs[field])
+	__this_cpu_inc(mib->mibs[field])
 
 #define SNMP_INC_STATS_ATOMIC_LONG(mib, field)	\
-			atomic_long_inc(&mib->mibs[field])
+	atomic_long_inc(&mib->mibs[field])
 
 #define SNMP_INC_STATS(mib, field)	\
-			this_cpu_inc(mib->mibs[field])
+	this_cpu_inc(mib->mibs[field])
 
 #define SNMP_DEC_STATS(mib, field)	\
-			this_cpu_dec(mib->mibs[field])
+	this_cpu_dec(mib->mibs[field])
 
 #define __SNMP_ADD_STATS(mib, field, addend)	\
-			__this_cpu_add(mib->mibs[field], addend)
+	__this_cpu_add(mib->mibs[field], addend)
 
 #define SNMP_ADD_STATS(mib, field, addend)	\
-			this_cpu_add(mib->mibs[field], addend)
+	this_cpu_add(mib->mibs[field], addend)
 #define SNMP_UPD_PO_STATS(mib, basefield, addend)	\
 	do { \
 		__typeof__((mib->mibs) + 0) ptr = mib->mibs;	\

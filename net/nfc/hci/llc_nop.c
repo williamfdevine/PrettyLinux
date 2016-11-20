@@ -20,7 +20,8 @@
 
 #include "llc.h"
 
-struct llc_nop {
+struct llc_nop
+{
 	struct nfc_hci_dev *hdev;
 	xmit_to_drv_t xmit_to_drv;
 	rcv_to_hci_t rcv_to_hci;
@@ -30,9 +31,9 @@ struct llc_nop {
 };
 
 static void *llc_nop_init(struct nfc_hci_dev *hdev, xmit_to_drv_t xmit_to_drv,
-			  rcv_to_hci_t rcv_to_hci, int tx_headroom,
-			  int tx_tailroom, int *rx_headroom, int *rx_tailroom,
-			  llc_failure_t llc_failure)
+						  rcv_to_hci_t rcv_to_hci, int tx_headroom,
+						  int tx_tailroom, int *rx_headroom, int *rx_tailroom,
+						  llc_failure_t llc_failure)
 {
 	struct llc_nop *llc_nop;
 
@@ -40,8 +41,11 @@ static void *llc_nop_init(struct nfc_hci_dev *hdev, xmit_to_drv_t xmit_to_drv,
 	*rx_tailroom = 0;
 
 	llc_nop = kzalloc(sizeof(struct llc_nop), GFP_KERNEL);
+
 	if (llc_nop == NULL)
+	{
 		return NULL;
+	}
 
 	llc_nop->hdev = hdev;
 	llc_nop->xmit_to_drv = xmit_to_drv;
@@ -82,7 +86,8 @@ static int llc_nop_xmit_from_hci(struct nfc_llc *llc, struct sk_buff *skb)
 	return llc_nop->xmit_to_drv(llc_nop->hdev, skb);
 }
 
-static struct nfc_llc_ops llc_nop_ops = {
+static struct nfc_llc_ops llc_nop_ops =
+{
 	.init = llc_nop_init,
 	.deinit = llc_nop_deinit,
 	.start = llc_nop_start,

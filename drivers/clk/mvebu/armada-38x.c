@@ -31,7 +31,8 @@
 #define SAR_A380_CPU_DDR_L2_FREQ_OPT	  10
 #define SAR_A380_CPU_DDR_L2_FREQ_OPT_MASK 0x1F
 
-static const u32 armada_38x_tclk_frequencies[] __initconst = {
+static const u32 armada_38x_tclk_frequencies[] __initconst =
+{
 	250000000,
 	200000000,
 };
@@ -41,11 +42,12 @@ static u32 __init armada_38x_get_tclk_freq(void __iomem *sar)
 	u8 tclk_freq_select;
 
 	tclk_freq_select = ((readl(sar) >> SAR_A380_TCLK_FREQ_OPT) &
-			    SAR_A380_TCLK_FREQ_OPT_MASK);
+						SAR_A380_TCLK_FREQ_OPT_MASK);
 	return armada_38x_tclk_frequencies[tclk_freq_select];
 }
 
-static const u32 armada_38x_cpu_frequencies[] __initconst = {
+static const u32 armada_38x_cpu_frequencies[] __initconst =
+{
 	0, 0, 0, 0,
 	1066 * 1000 * 1000, 0, 0, 0,
 	1332 * 1000 * 1000, 0, 0, 0,
@@ -57,10 +59,12 @@ static u32 __init armada_38x_get_cpu_freq(void __iomem *sar)
 	u8 cpu_freq_select;
 
 	cpu_freq_select = ((readl(sar) >> SAR_A380_CPU_DDR_L2_FREQ_OPT) &
-			   SAR_A380_CPU_DDR_L2_FREQ_OPT_MASK);
-	if (cpu_freq_select >= ARRAY_SIZE(armada_38x_cpu_frequencies)) {
+					   SAR_A380_CPU_DDR_L2_FREQ_OPT_MASK);
+
+	if (cpu_freq_select >= ARRAY_SIZE(armada_38x_cpu_frequencies))
+	{
 		pr_err("Selected CPU frequency (%d) unsupported\n",
-			cpu_freq_select);
+			   cpu_freq_select);
 		return 0;
 	}
 
@@ -69,12 +73,14 @@ static u32 __init armada_38x_get_cpu_freq(void __iomem *sar)
 
 enum { A380_CPU_TO_DDR, A380_CPU_TO_L2 };
 
-static const struct coreclk_ratio armada_38x_coreclk_ratios[] __initconst = {
+static const struct coreclk_ratio armada_38x_coreclk_ratios[] __initconst =
+{
 	{ .id = A380_CPU_TO_L2,	 .name = "l2clk" },
 	{ .id = A380_CPU_TO_DDR, .name = "ddrclk" },
 };
 
-static const int armada_38x_cpu_l2_ratios[32][2] __initconst = {
+static const int armada_38x_cpu_l2_ratios[32][2] __initconst =
+{
 	{0, 1}, {0, 1}, {0, 1}, {0, 1},
 	{1, 2}, {0, 1}, {0, 1}, {0, 1},
 	{1, 2}, {0, 1}, {0, 1}, {0, 1},
@@ -85,7 +91,8 @@ static const int armada_38x_cpu_l2_ratios[32][2] __initconst = {
 	{0, 1}, {0, 1}, {0, 1}, {0, 1},
 };
 
-static const int armada_38x_cpu_ddr_ratios[32][2] __initconst = {
+static const int armada_38x_cpu_ddr_ratios[32][2] __initconst =
+{
 	{0, 1}, {0, 1}, {0, 1}, {0, 1},
 	{1, 2}, {0, 1}, {0, 1}, {0, 1},
 	{1, 2}, {0, 1}, {0, 1}, {0, 1},
@@ -100,21 +107,24 @@ static void __init armada_38x_get_clk_ratio(
 	void __iomem *sar, int id, int *mult, int *div)
 {
 	u32 opt = ((readl(sar) >> SAR_A380_CPU_DDR_L2_FREQ_OPT) &
-		SAR_A380_CPU_DDR_L2_FREQ_OPT_MASK);
+			   SAR_A380_CPU_DDR_L2_FREQ_OPT_MASK);
 
-	switch (id) {
-	case A380_CPU_TO_L2:
-		*mult = armada_38x_cpu_l2_ratios[opt][0];
-		*div = armada_38x_cpu_l2_ratios[opt][1];
-		break;
-	case A380_CPU_TO_DDR:
-		*mult = armada_38x_cpu_ddr_ratios[opt][0];
-		*div = armada_38x_cpu_ddr_ratios[opt][1];
-		break;
+	switch (id)
+	{
+		case A380_CPU_TO_L2:
+			*mult = armada_38x_cpu_l2_ratios[opt][0];
+			*div = armada_38x_cpu_l2_ratios[opt][1];
+			break;
+
+		case A380_CPU_TO_DDR:
+			*mult = armada_38x_cpu_ddr_ratios[opt][0];
+			*div = armada_38x_cpu_ddr_ratios[opt][1];
+			break;
 	}
 }
 
-static const struct coreclk_soc_desc armada_38x_coreclks = {
+static const struct coreclk_soc_desc armada_38x_coreclks =
+{
 	.get_tclk_freq = armada_38x_get_tclk_freq,
 	.get_cpu_freq = armada_38x_get_cpu_freq,
 	.get_clk_ratio = armada_38x_get_clk_ratio,
@@ -127,12 +137,13 @@ static void __init armada_38x_coreclk_init(struct device_node *np)
 	mvebu_coreclk_setup(np, &armada_38x_coreclks);
 }
 CLK_OF_DECLARE(armada_38x_core_clk, "marvell,armada-380-core-clock",
-	       armada_38x_coreclk_init);
+			   armada_38x_coreclk_init);
 
 /*
  * Clock Gating Control
  */
-static const struct clk_gating_soc_desc armada_38x_gating_desc[] __initconst = {
+static const struct clk_gating_soc_desc armada_38x_gating_desc[] __initconst =
+{
 	{ "audio", NULL, 0 },
 	{ "ge2", NULL, 2 },
 	{ "ge1", NULL, 3 },
@@ -164,4 +175,4 @@ static void __init armada_38x_clk_gating_init(struct device_node *np)
 	mvebu_clk_gating_setup(np, armada_38x_gating_desc);
 }
 CLK_OF_DECLARE(armada_38x_clk_gating, "marvell,armada-380-gating-clock",
-	       armada_38x_clk_gating_init);
+			   armada_38x_clk_gating_init);

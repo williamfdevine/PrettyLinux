@@ -19,7 +19,8 @@
 struct drm_gem_cma_object;
 struct shmob_drm_device;
 
-struct shmob_drm_format_info {
+struct shmob_drm_format_info
+{
 	u32 fourcc;
 	unsigned int bpp;
 	bool yuv;

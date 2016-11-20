@@ -35,14 +35,18 @@
 #include "../../common/sst-dsp.h"
 
 struct sst_block *sst_create_block(struct intel_sst_drv *ctx,
-					u32 msg_id, u32 drv_id)
+								   u32 msg_id, u32 drv_id)
 {
 	struct sst_block *msg = NULL;
 
 	dev_dbg(ctx->dev, "Enter\n");
 	msg = kzalloc(sizeof(*msg), GFP_KERNEL);
+
 	if (!msg)
+	{
 		return NULL;
+	}
+
 	msg->condition = false;
 	msg->on = true;
 	msg->msg_id = msg_id;
@@ -70,17 +74,20 @@ struct sst_block *sst_create_block(struct intel_sst_drv *ctx,
  *  via dynamic debug while debugging IPC issues
  */
 int sst_wake_up_block(struct intel_sst_drv *ctx, int result,
-		u32 drv_id, u32 ipc, void *data, u32 size)
+					  u32 drv_id, u32 ipc, void *data, u32 size)
 {
 	struct sst_block *block = NULL;
 
 	dev_dbg(ctx->dev, "Enter\n");
 
 	spin_lock_bh(&ctx->block_lock);
-	list_for_each_entry(block, &ctx->block_list, node) {
+	list_for_each_entry(block, &ctx->block_list, node)
+	{
 		dev_dbg(ctx->dev, "Block ipc %d, drv_id %d\n", block->msg_id,
-							block->drv_id);
-		if (block->msg_id == ipc && block->drv_id == drv_id) {
+				block->drv_id);
+
+		if (block->msg_id == ipc && block->drv_id == drv_id)
+		{
 			dev_dbg(ctx->dev, "free up the block\n");
 			block->ret_code = result;
 			block->data = data;
@@ -93,8 +100,8 @@ int sst_wake_up_block(struct intel_sst_drv *ctx, int result,
 	}
 	spin_unlock_bh(&ctx->block_lock);
 	dev_dbg(ctx->dev,
-		"Block not found or a response received for a short msg for ipc %d, drv_id %d\n",
-		ipc, drv_id);
+			"Block not found or a response received for a short msg for ipc %d, drv_id %d\n",
+			ipc, drv_id);
 	return -EINVAL;
 }
 
@@ -104,8 +111,10 @@ int sst_free_block(struct intel_sst_drv *ctx, struct sst_block *freed)
 
 	dev_dbg(ctx->dev, "Enter\n");
 	spin_lock_bh(&ctx->block_lock);
-	list_for_each_entry_safe(block, __block, &ctx->block_list, node) {
-		if (block == freed) {
+	list_for_each_entry_safe(block, __block, &ctx->block_list, node)
+	{
+		if (block == freed)
+		{
 			pr_debug("pvt_id freed --> %d\n", freed->drv_id);
 			/* toggle the index position of pvt_id */
 			list_del(&freed->node);
@@ -122,7 +131,7 @@ int sst_free_block(struct intel_sst_drv *ctx, struct sst_block *freed)
 }
 
 int sst_post_message_mrfld(struct intel_sst_drv *sst_drv_ctx,
-		struct ipc_post *ipc_msg, bool sync)
+						   struct ipc_post *ipc_msg, bool sync)
 {
 	struct ipc_post *msg = ipc_msg;
 	union ipc_header_mrfld header;
@@ -133,20 +142,28 @@ int sst_post_message_mrfld(struct intel_sst_drv *sst_drv_ctx,
 	dev_dbg(sst_drv_ctx->dev, "Enter: sync: %d\n", sync);
 	spin_lock_irqsave(&sst_drv_ctx->ipc_spin_lock, irq_flags);
 	header.full = sst_shim_read64(sst_drv_ctx->shim, SST_IPCX);
-	if (sync) {
-		while (header.p.header_high.part.busy) {
-			if (loop_count > 25) {
+
+	if (sync)
+	{
+		while (header.p.header_high.part.busy)
+		{
+			if (loop_count > 25)
+			{
 				dev_err(sst_drv_ctx->dev,
-					"sst: Busy wait failed, cant send this msg\n");
+						"sst: Busy wait failed, cant send this msg\n");
 				retval = -EBUSY;
 				goto out;
 			}
+
 			cpu_relax();
 			loop_count++;
 			header.full = sst_shim_read64(sst_drv_ctx->shim, SST_IPCX);
 		}
-	} else {
-		if (list_empty(&sst_drv_ctx->ipc_dispatch_list)) {
+	}
+	else
+	{
+		if (list_empty(&sst_drv_ctx->ipc_dispatch_list))
+		{
 			/* queue is empty, nothing to send */
 			spin_unlock_irqrestore(&sst_drv_ctx->ipc_spin_lock, irq_flags);
 			dev_dbg(sst_drv_ctx->dev,
@@ -154,7 +171,8 @@ int sst_post_message_mrfld(struct intel_sst_drv *sst_drv_ctx,
 			return 0;
 		}
 
-		if (header.p.header_high.part.busy) {
+		if (header.p.header_high.part.busy)
+		{
 			spin_unlock_irqrestore(&sst_drv_ctx->ipc_spin_lock, irq_flags);
 			dev_dbg(sst_drv_ctx->dev, "Busy not free... post later\n");
 			return 0;
@@ -162,18 +180,19 @@ int sst_post_message_mrfld(struct intel_sst_drv *sst_drv_ctx,
 
 		/* copy msg from list */
 		msg = list_entry(sst_drv_ctx->ipc_dispatch_list.next,
-				struct ipc_post, node);
+						 struct ipc_post, node);
 		list_del(&msg->node);
 	}
+
 	dev_dbg(sst_drv_ctx->dev, "sst: Post message: header = %x\n",
-				msg->mrfld_header.p.header_high.full);
+			msg->mrfld_header.p.header_high.full);
 	dev_dbg(sst_drv_ctx->dev, "sst: size = 0x%x\n",
 			msg->mrfld_header.p.header_low_payload);
 
 	if (msg->mrfld_header.p.header_high.part.large)
 		memcpy_toio(sst_drv_ctx->mailbox + SST_MAILBOX_SEND,
-			msg->mailbox_data,
-			msg->mrfld_header.p.header_low_payload);
+					msg->mailbox_data,
+					msg->mrfld_header.p.header_low_payload);
 
 	sst_shim_write64(sst_drv_ctx->shim, SST_IPCX, msg->mrfld_header.full);
 
@@ -222,14 +241,16 @@ void intel_sst_clear_intr_mrfld(struct intel_sst_drv *sst_drv_ctx)
  * marks FW state and prints debug info of loaded FW
  */
 static void process_fw_init(struct intel_sst_drv *sst_drv_ctx,
-			void *msg)
+							void *msg)
 {
 	struct ipc_header_fw_init *init =
 		(struct ipc_header_fw_init *)msg;
 	int retval = 0;
 
 	dev_dbg(sst_drv_ctx->dev, "*** FW Init msg came***\n");
-	if (init->result) {
+
+	if (init->result)
+	{
 		sst_set_fw_state_locked(sst_drv_ctx, SST_RESET);
 		dev_err(sst_drv_ctx->dev, "FW Init failed, Error %x\n",
 				init->result);
@@ -242,7 +263,7 @@ ret:
 }
 
 static void process_fw_async_msg(struct intel_sst_drv *sst_drv_ctx,
-			struct ipc_post *msg)
+								 struct ipc_post *msg)
 {
 	u32 msg_id;
 	int str_id;
@@ -258,63 +279,86 @@ static void process_fw_async_msg(struct intel_sst_drv *sst_drv_ctx,
 	data_offset = (msg->mailbox_data + sizeof(struct ipc_dsp_hdr));
 	data_size =  msg_low - (sizeof(struct ipc_dsp_hdr));
 
-	switch (msg_id) {
-	case IPC_SST_PERIOD_ELAPSED_MRFLD:
-		pipe_id = ((struct ipc_dsp_hdr *)msg->mailbox_data)->pipe_id;
-		str_id = get_stream_id_mrfld(sst_drv_ctx, pipe_id);
-		if (str_id > 0) {
-			dev_dbg(sst_drv_ctx->dev,
-				"Period elapsed rcvd for pipe id 0x%x\n",
-				pipe_id);
-			stream = &sst_drv_ctx->streams[str_id];
-			/* If stream is dropped, skip processing this message*/
-			if (stream->status == STREAM_INIT)
-				break;
-			if (stream->period_elapsed)
-				stream->period_elapsed(stream->pcm_substream);
-			if (stream->compr_cb)
-				stream->compr_cb(stream->compr_cb_param);
-		}
-		break;
+	switch (msg_id)
+	{
+		case IPC_SST_PERIOD_ELAPSED_MRFLD:
+			pipe_id = ((struct ipc_dsp_hdr *)msg->mailbox_data)->pipe_id;
+			str_id = get_stream_id_mrfld(sst_drv_ctx, pipe_id);
 
-	case IPC_IA_DRAIN_STREAM_MRFLD:
-		pipe_id = ((struct ipc_dsp_hdr *)msg->mailbox_data)->pipe_id;
-		str_id = get_stream_id_mrfld(sst_drv_ctx, pipe_id);
-		if (str_id > 0) {
-			stream = &sst_drv_ctx->streams[str_id];
-			if (stream->drain_notify)
-				stream->drain_notify(stream->drain_cb_param);
-		}
-		break;
+			if (str_id > 0)
+			{
+				dev_dbg(sst_drv_ctx->dev,
+						"Period elapsed rcvd for pipe id 0x%x\n",
+						pipe_id);
+				stream = &sst_drv_ctx->streams[str_id];
 
-	case IPC_IA_FW_ASYNC_ERR_MRFLD:
-		dev_err(sst_drv_ctx->dev, "FW sent async error msg:\n");
-		for (i = 0; i < (data_size/4); i++)
-			print_hex_dump(KERN_DEBUG, NULL, DUMP_PREFIX_NONE,
-					16, 4, data_offset, data_size, false);
-		break;
+				/* If stream is dropped, skip processing this message*/
+				if (stream->status == STREAM_INIT)
+				{
+					break;
+				}
 
-	case IPC_IA_FW_INIT_CMPLT_MRFLD:
-		process_fw_init(sst_drv_ctx, data_offset);
-		break;
+				if (stream->period_elapsed)
+				{
+					stream->period_elapsed(stream->pcm_substream);
+				}
 
-	case IPC_IA_BUF_UNDER_RUN_MRFLD:
-		pipe_id = ((struct ipc_dsp_hdr *)msg->mailbox_data)->pipe_id;
-		str_id = get_stream_id_mrfld(sst_drv_ctx, pipe_id);
-		if (str_id > 0)
+				if (stream->compr_cb)
+				{
+					stream->compr_cb(stream->compr_cb_param);
+				}
+			}
+
+			break;
+
+		case IPC_IA_DRAIN_STREAM_MRFLD:
+			pipe_id = ((struct ipc_dsp_hdr *)msg->mailbox_data)->pipe_id;
+			str_id = get_stream_id_mrfld(sst_drv_ctx, pipe_id);
+
+			if (str_id > 0)
+			{
+				stream = &sst_drv_ctx->streams[str_id];
+
+				if (stream->drain_notify)
+				{
+					stream->drain_notify(stream->drain_cb_param);
+				}
+			}
+
+			break;
+
+		case IPC_IA_FW_ASYNC_ERR_MRFLD:
+			dev_err(sst_drv_ctx->dev, "FW sent async error msg:\n");
+
+			for (i = 0; i < (data_size / 4); i++)
+				print_hex_dump(KERN_DEBUG, NULL, DUMP_PREFIX_NONE,
+							   16, 4, data_offset, data_size, false);
+
+			break;
+
+		case IPC_IA_FW_INIT_CMPLT_MRFLD:
+			process_fw_init(sst_drv_ctx, data_offset);
+			break;
+
+		case IPC_IA_BUF_UNDER_RUN_MRFLD:
+			pipe_id = ((struct ipc_dsp_hdr *)msg->mailbox_data)->pipe_id;
+			str_id = get_stream_id_mrfld(sst_drv_ctx, pipe_id);
+
+			if (str_id > 0)
+				dev_err(sst_drv_ctx->dev,
+						"Buffer under-run for pipe:%#x str_id:%d\n",
+						pipe_id, str_id);
+
+			break;
+
+		default:
 			dev_err(sst_drv_ctx->dev,
-				"Buffer under-run for pipe:%#x str_id:%d\n",
-				pipe_id, str_id);
-		break;
-
-	default:
-		dev_err(sst_drv_ctx->dev,
-			"Unrecognized async msg from FW msg_id %#x\n", msg_id);
+					"Unrecognized async msg from FW msg_id %#x\n", msg_id);
 	}
 }
 
 void sst_process_reply_mrfld(struct intel_sst_drv *sst_drv_ctx,
-		struct ipc_post *msg)
+							 struct ipc_post *msg)
 {
 	unsigned int drv_id;
 	void *data;
@@ -332,19 +376,21 @@ void sst_process_reply_mrfld(struct intel_sst_drv *sst_drv_ctx,
 	drv_id = msg_high.part.drv_id;
 
 	/* Check for async messages first */
-	if (drv_id == SST_ASYNC_DRV_ID) {
+	if (drv_id == SST_ASYNC_DRV_ID)
+	{
 		/*FW sent async large message*/
 		process_fw_async_msg(sst_drv_ctx, msg);
 		return;
 	}
 
 	/* FW sent short error response for an IPC */
-	if (msg_high.part.result && drv_id && !msg_high.part.large) {
+	if (msg_high.part.result && drv_id && !msg_high.part.large)
+	{
 		/* 32-bit FW error code in msg_low */
 		dev_err(sst_drv_ctx->dev, "FW sent error response 0x%x", msg_low);
 		sst_wake_up_block(sst_drv_ctx, msg_high.part.result,
-			msg_high.part.drv_id,
-			msg_high.part.msg_id, NULL, 0);
+						  msg_high.part.drv_id,
+						  msg_high.part.msg_id, NULL, 0);
 		return;
 	}
 
@@ -353,21 +399,31 @@ void sst_process_reply_mrfld(struct intel_sst_drv *sst_drv_ctx,
 	 * if it is a large message, the payload contains the size to
 	 * copy from mailbox
 	 **/
-	if (msg_high.part.large) {
+	if (msg_high.part.large)
+	{
 		data = kmemdup((void *)msg->mailbox_data, msg_low, GFP_KERNEL);
+
 		if (!data)
+		{
 			return;
+		}
+
 		/* Copy command id so that we can use to put sst to reset */
 		dsp_hdr = (struct ipc_dsp_hdr *)data;
 		dev_dbg(sst_drv_ctx->dev, "cmd_id %d\n", dsp_hdr->cmd_id);
+
 		if (sst_wake_up_block(sst_drv_ctx, msg_high.part.result,
-				msg_high.part.drv_id,
-				msg_high.part.msg_id, data, msg_low))
+							  msg_high.part.drv_id,
+							  msg_high.part.msg_id, data, msg_low))
+		{
 			kfree(data);
-	} else {
+		}
+	}
+	else
+	{
 		sst_wake_up_block(sst_drv_ctx, msg_high.part.result,
-				msg_high.part.drv_id,
-				msg_high.part.msg_id, NULL, 0);
+						  msg_high.part.drv_id,
+						  msg_high.part.msg_id, NULL, 0);
 	}
 
 }

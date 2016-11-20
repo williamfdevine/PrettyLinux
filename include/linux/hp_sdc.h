@@ -27,7 +27,7 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  *
  * References:
- * 
+ *
  * HP-HIL Technical Reference Manual.  Hewlett Packard Product No. 45918A
  *
  * System Device Controller Microprocessor Firmware Theory of Operation
@@ -43,7 +43,7 @@
 #include <linux/time.h>
 #include <linux/timer.h>
 #if defined(__hppa__)
-#include <asm/hardware.h>
+	#include <asm/hardware.h>
 #endif
 
 
@@ -51,8 +51,8 @@
  */
 #define HP_SDC_MAX_REG_DELAY 20000
 
-typedef void (hp_sdc_irqhook) (int irq, void *dev_id, 
-			       uint8_t status, uint8_t data);
+typedef void (hp_sdc_irqhook) (int irq, void *dev_id,
+							   uint8_t status, uint8_t data);
 
 int hp_sdc_request_timer_irq(hp_sdc_irqhook *callback);
 int hp_sdc_request_hil_irq(hp_sdc_irqhook *callback);
@@ -61,14 +61,16 @@ int hp_sdc_release_timer_irq(hp_sdc_irqhook *callback);
 int hp_sdc_release_hil_irq(hp_sdc_irqhook *callback);
 int hp_sdc_release_cooked_irq(hp_sdc_irqhook *callback);
 
-typedef struct {
+typedef struct
+{
 	int actidx;	/* Start of act.  Acts are atomic WRT I/O to SDC */
 	int idx;	/* Index within the act */
 	int endidx;	/* transaction is over and done if idx == endidx */
 	uint8_t *seq;	/* commands/data for the transaction */
-	union {
-	  hp_sdc_irqhook   *irqhook;	/* Callback, isr or tasklet context */
-	  struct semaphore *semaphore;	/* Semaphore to sleep on. */
+	union
+	{
+		hp_sdc_irqhook   *irqhook;	/* Callback, isr or tasklet context */
+		struct semaphore *semaphore;	/* Semaphore to sleep on. */
 	} act;
 } hp_sdc_transaction;
 int __hp_sdc_enqueue_transaction(hp_sdc_transaction *this);
@@ -163,12 +165,12 @@ int hp_sdc_dequeue_transaction(hp_sdc_transaction *this);
 
 #define HP_SDC_XTD_REV		0x07	/* contains revision code */
 #define HP_SDC_XTD_REV_STRINGS(val, str) \
-switch (val) {						\
+	switch (val) {						\
 	case 0x1: str = "1820-3712"; break;		\
 	case 0x2: str = "1820-4379"; break;		\
 	case 0x3: str = "1820-4784"; break;		\
 	default: str = "unknown";			\
-};
+	};
 #define HP_SDC_XTD_BEEPER	0x08	/* TI SN76494 beeper available */
 #define HP_SDC_XTD_BBRTC	0x20	/* OKI MSM-58321 BBRTC present */
 
@@ -180,8 +182,8 @@ switch (val) {						\
 
 #define HP_SDC_CMD_SET_IM	0x40    /* 010xxxxx == set irq mask */
 
-/* The documents provided do not explicitly state that all registers betweem 
- * 0x01 and 0x1f inclusive can be read by sending their register index as a 
+/* The documents provided do not explicitly state that all registers betweem
+ * 0x01 and 0x1f inclusive can be read by sending their register index as a
  * command, but this is implied and appears to be the case.
  */
 #define HP_SDC_CMD_READ_RAM	0x00	/* Load from i8042 RAM (autoinc) */
@@ -249,7 +251,7 @@ switch (val) {						\
 #define HP_SDC_DATA		0x40	/* Data from an 8042 register */
 #define HP_SDC_HIL_CMD		0x50	/* Data from HIL MLC R1/8042 */
 #define HP_SDC_HIL_R1MASK	0x0f	/* Contents of HIL MLC R1 0:3 */
-#define HP_SDC_HIL_AUTO		0x10	/* Set if POL results from i8042 */   
+#define HP_SDC_HIL_AUTO		0x10	/* Set if POL results from i8042 */
 #define HP_SDC_HIL_ISERR	0x80	/* Has meaning as in next 4 values */
 #define HP_SDC_HIL_RC_DONE	0x80	/* i8042 auto-configured loop */
 #define HP_SDC_HIL_ERR		0x81	/* HIL MLC R2 had a bit set */
@@ -258,7 +260,8 @@ switch (val) {						\
 #define HP_SDC_HIL_DAT		0x60	/* Data from HIL MLC R0 */
 
 
-typedef struct {
+typedef struct
+{
 	rwlock_t	ibf_lock;
 	rwlock_t	lock;		/* user/tasklet lock */
 	rwlock_t	rtq_lock;	/* isr/tasklet lock */

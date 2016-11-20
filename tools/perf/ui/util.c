@@ -62,7 +62,9 @@ int ui__warning(const char *format, ...)
 int perf_error__register(struct perf_error_ops *eops)
 {
 	if (perf_eops != &default_eops)
+	{
 		return -1;
+	}
 
 	perf_eops = eops;
 	return 0;
@@ -77,7 +79,9 @@ int perf_error__register(struct perf_error_ops *eops)
 int perf_error__unregister(struct perf_error_ops *eops)
 {
 	if (perf_eops != eops)
+	{
 		return -1;
+	}
 
 	perf_eops = &default_eops;
 	return 0;

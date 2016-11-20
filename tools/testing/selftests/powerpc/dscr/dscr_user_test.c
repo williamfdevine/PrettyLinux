@@ -27,11 +27,14 @@ static int check_dscr(char *str)
 
 	cur_dscr = get_dscr();
 	cur_dscr_usr = get_dscr_usr();
-	if (cur_dscr != cur_dscr_usr) {
+
+	if (cur_dscr != cur_dscr_usr)
+	{
 		printf("%s set, kernel get %lx != user get %lx\n",
-					str, cur_dscr, cur_dscr_usr);
+			   str, cur_dscr, cur_dscr_usr);
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -41,17 +44,26 @@ int dscr_user(void)
 
 	check_dscr("");
 
-	for (i = 0; i < COUNT; i++) {
+	for (i = 0; i < COUNT; i++)
+	{
 		set_dscr(i);
+
 		if (check_dscr("kernel"))
+		{
 			return 1;
+		}
 	}
 
-	for (i = 0; i < COUNT; i++) {
+	for (i = 0; i < COUNT; i++)
+	{
 		set_dscr_usr(i);
+
 		if (check_dscr("user"))
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 

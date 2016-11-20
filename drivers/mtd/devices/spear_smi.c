@@ -93,7 +93,8 @@
 /* Flash Device Ids maintenance section */
 
 /* data structure to maintain flash ids from different vendors */
-struct flash_device {
+struct flash_device
+{
 	char *name;
 	u8 erase_cmd;
 	u32 device_id;
@@ -103,16 +104,17 @@ struct flash_device {
 };
 
 #define FLASH_ID(n, es, id, psize, ssize, size)	\
-{				\
-	.name = n,		\
-	.erase_cmd = es,	\
-	.device_id = id,	\
-	.pagesize = psize,	\
-	.sectorsize = ssize,	\
-	.size_in_bytes = size	\
-}
+	{				\
+		.name = n,		\
+				.erase_cmd = es,	\
+							 .device_id = id,	\
+										  .pagesize = psize,	\
+												  .sectorsize = ssize,	\
+														  .size_in_bytes = size	\
+	}
 
-static struct flash_device flash_devices[] = {
+static struct flash_device flash_devices[] =
+{
 	FLASH_ID("st m25p16"     , 0xd8, 0x00152020, 0x100, 0x10000, 0x200000),
 	FLASH_ID("st m25p32"     , 0xd8, 0x00162020, 0x100, 0x10000, 0x400000),
 	FLASH_ID("st m25p64"     , 0xd8, 0x00172020, 0x100, 0x10000, 0x800000),
@@ -166,7 +168,8 @@ struct spear_snor_flash;
  * @num_flashes: number of flashes actually present on board.
  * @flash: separate structure for each Serial NOR-flash attached to SMI.
  */
-struct spear_smi {
+struct spear_smi
+{
 	struct clk *clk;
 	u32 status;
 	unsigned long clk_rate;
@@ -192,7 +195,8 @@ struct spear_smi {
  * @erase_cmd: erase command may vary on different flash types
  * @fast_mode: flash supports read in fast mode
  */
-struct spear_snor_flash {
+struct spear_snor_flash
+{
 	u32 bank;
 	u32 dev_id;
 	struct mutex lock;
@@ -232,17 +236,21 @@ static int spear_smi_read_sr(struct spear_smi *dev, u32 bank)
 
 	/* performing a rsr instruction in hw mode */
 	writel((bank << BANK_SHIFT) | RD_STATUS_REG | TFIE,
-			dev->io_base + SMI_CR2);
+		   dev->io_base + SMI_CR2);
 
 	/* wait for tff */
 	ret = wait_event_interruptible_timeout(dev->cmd_complete,
-			dev->status & TFF, SMI_CMD_TIMEOUT);
+										   dev->status & TFF, SMI_CMD_TIMEOUT);
 
 	/* copy dev->status (lower 16 bits) in order to release lock */
 	if (ret > 0)
+	{
 		ret = dev->status & 0xffff;
+	}
 	else if (ret == 0)
+	{
 		ret = -ETIMEDOUT;
+	}
 
 	/* restore the ctrl regs state */
 	writel(ctrlreg1, dev->io_base + SMI_CR1);
@@ -262,24 +270,34 @@ static int spear_smi_read_sr(struct spear_smi *dev, u32 bank)
  * If successful the routine returns 0 else -EBUSY
  */
 static int spear_smi_wait_till_ready(struct spear_smi *dev, u32 bank,
-		unsigned long timeout)
+									 unsigned long timeout)
 {
 	unsigned long finish;
 	int status;
 
 	finish = jiffies + timeout;
-	do {
+
+	do
+	{
 		status = spear_smi_read_sr(dev, bank);
-		if (status < 0) {
+
+		if (status < 0)
+		{
 			if (status == -ETIMEDOUT)
-				continue; /* try till finish */
+			{
+				continue;    /* try till finish */
+			}
+
 			return status;
-		} else if (!(status & SR_WIP)) {
+		}
+		else if (!(status & SR_WIP))
+		{
 			return 0;
 		}
 
 		cond_resched();
-	} while (!time_after_eq(jiffies, finish));
+	}
+	while (!time_after_eq(jiffies, finish));
 
 	dev_err(&dev->pdev->dev, "smi controller is busy, timeout\n");
 	return -EBUSY;
@@ -301,7 +319,9 @@ static irqreturn_t spear_smi_int_handler(int irq, void *dev_id)
 	status = readl(dev->io_base + SMI_SR);
 
 	if (unlikely(!status))
+	{
 		return IRQ_NONE;
+	}
 
 	/* clear all interrupt conditions */
 	writel(0, dev->io_base + SMI_SR);
@@ -359,9 +379,12 @@ static int get_flash_index(u32 flash_id)
 	int index;
 
 	/* Matches chip-id to entire list of 'serial-nor flash' ids */
-	for (index = 0; index < ARRAY_SIZE(flash_devices); index++) {
+	for (index = 0; index < ARRAY_SIZE(flash_devices); index++)
+	{
 		if (flash_devices[index].device_id == flash_id)
+		{
 			return index;
+		}
 	}
 
 	/* Memory chip is not listed and not supported */
@@ -392,21 +415,27 @@ static int spear_smi_write_enable(struct spear_smi *dev, u32 bank)
 	writel((bank << BANK_SHIFT) | WE | TFIE, dev->io_base + SMI_CR2);
 
 	ret = wait_event_interruptible_timeout(dev->cmd_complete,
-			dev->status & TFF, SMI_CMD_TIMEOUT);
+										   dev->status & TFF, SMI_CMD_TIMEOUT);
 
 	/* restore the ctrl regs state */
 	writel(ctrlreg1, dev->io_base + SMI_CR1);
 	writel(0, dev->io_base + SMI_CR2);
 
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		ret = -EIO;
 		dev_err(&dev->pdev->dev,
-			"smi controller failed on write enable\n");
-	} else if (ret > 0) {
+				"smi controller failed on write enable\n");
+	}
+	else if (ret > 0)
+	{
 		/* check whether write mode status is set for required bank */
 		if (dev->status & (1 << (bank + WM_SHIFT)))
+		{
 			ret = 0;
-		else {
+		}
+		else
+		{
 			dev_err(&dev->pdev->dev, "couldn't enable write\n");
 			ret = -EIO;
 		}
@@ -442,18 +471,24 @@ get_sector_erase_cmd(struct spear_snor_flash *flash, u32 offset)
  * Returns 0 if successful, non-zero otherwise.
  */
 static int spear_smi_erase_sector(struct spear_smi *dev,
-		u32 bank, u32 command, u32 bytes)
+								  u32 bank, u32 command, u32 bytes)
 {
 	u32 ctrlreg1 = 0;
 	int ret;
 
 	ret = spear_smi_wait_till_ready(dev, bank, SMI_MAX_TIME_OUT);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = spear_smi_write_enable(dev, bank);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mutex_lock(&dev->lock);
 
@@ -464,16 +499,20 @@ static int spear_smi_erase_sector(struct spear_smi *dev,
 	writel(command, dev->io_base + SMI_TR);
 
 	writel((bank << BANK_SHIFT) | SEND | TFIE | (bytes << TX_LEN_SHIFT),
-			dev->io_base + SMI_CR2);
+		   dev->io_base + SMI_CR2);
 
 	ret = wait_event_interruptible_timeout(dev->cmd_complete,
-			dev->status & TFF, SMI_CMD_TIMEOUT);
+										   dev->status & TFF, SMI_CMD_TIMEOUT);
 
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		ret = -EIO;
 		dev_err(&dev->pdev->dev, "sector erase failed\n");
-	} else if (ret > 0)
-		ret = 0; /* success */
+	}
+	else if (ret > 0)
+	{
+		ret = 0;    /* success */
+	}
 
 	/* restore ctrl regs */
 	writel(ctrlreg1, dev->io_base + SMI_CR1);
@@ -499,10 +538,14 @@ static int spear_mtd_erase(struct mtd_info *mtd, struct erase_info *e_info)
 	int len, ret;
 
 	if (!flash || !dev)
+	{
 		return -ENODEV;
+	}
 
 	bank = flash->bank;
-	if (bank > dev->num_flashes - 1) {
+
+	if (bank > dev->num_flashes - 1)
+	{
 		dev_err(&dev->pdev->dev, "Invalid Bank Num");
 		return -EINVAL;
 	}
@@ -513,15 +556,19 @@ static int spear_mtd_erase(struct mtd_info *mtd, struct erase_info *e_info)
 	mutex_lock(&flash->lock);
 
 	/* now erase sectors in loop */
-	while (len) {
+	while (len)
+	{
 		command = get_sector_erase_cmd(flash, addr);
 		/* preparing the command for flash */
 		ret = spear_smi_erase_sector(dev, bank, command, 4);
-		if (ret) {
+
+		if (ret)
+		{
 			e_info->state = MTD_ERASE_FAILED;
 			mutex_unlock(&flash->lock);
 			return ret;
 		}
+
 		addr += mtd->erasesize;
 		len -= mtd->erasesize;
 	}
@@ -546,7 +593,7 @@ static int spear_mtd_erase(struct mtd_info *mtd, struct erase_info *e_info)
  * Returns 0 on success, non zero otherwise
  */
 static int spear_mtd_read(struct mtd_info *mtd, loff_t from, size_t len,
-		size_t *retlen, u8 *buf)
+						  size_t *retlen, u8 *buf)
 {
 	struct spear_snor_flash *flash = get_flash_data(mtd);
 	struct spear_smi *dev = mtd->priv;
@@ -555,9 +602,12 @@ static int spear_mtd_read(struct mtd_info *mtd, loff_t from, size_t len,
 	int ret;
 
 	if (!flash || !dev)
+	{
 		return -ENODEV;
+	}
 
-	if (flash->bank > dev->num_flashes - 1) {
+	if (flash->bank > dev->num_flashes - 1)
+	{
 		dev_err(&dev->pdev->dev, "Invalid Bank Num");
 		return -EINVAL;
 	}
@@ -569,7 +619,9 @@ static int spear_mtd_read(struct mtd_info *mtd, loff_t from, size_t len,
 
 	/* wait till previous write/erase is done. */
 	ret = spear_smi_wait_till_ready(dev, flash->bank, SMI_MAX_TIME_OUT);
-	if (ret) {
+
+	if (ret)
+	{
 		mutex_unlock(&flash->lock);
 		return ret;
 	}
@@ -578,8 +630,11 @@ static int spear_mtd_read(struct mtd_info *mtd, loff_t from, size_t len,
 	/* put smi in hw mode not wbt mode */
 	ctrlreg1 = val = readl(dev->io_base + SMI_CR1);
 	val &= ~(SW_MODE | WB_MODE);
+
 	if (flash->fast_mode)
+	{
 		val |= FAST_MODE;
+	}
 
 	writel(val, dev->io_base + SMI_CR1);
 
@@ -596,20 +651,26 @@ static int spear_mtd_read(struct mtd_info *mtd, loff_t from, size_t len,
 }
 
 static inline int spear_smi_cpy_toio(struct spear_smi *dev, u32 bank,
-		void __iomem *dest, const void *src, size_t len)
+									 void __iomem *dest, const void *src, size_t len)
 {
 	int ret;
 	u32 ctrlreg1;
 
 	/* wait until finished previous write command. */
 	ret = spear_smi_wait_till_ready(dev, bank, SMI_MAX_TIME_OUT);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* put smi in write enable */
 	ret = spear_smi_write_enable(dev, bank);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* put smi in hw, write burst mode */
 	mutex_lock(&dev->lock);
@@ -639,7 +700,7 @@ static inline int spear_smi_cpy_toio(struct spear_smi *dev, u32 bank,
  * Returns 0 on success, non zero otherwise
  */
 static int spear_mtd_write(struct mtd_info *mtd, loff_t to, size_t len,
-		size_t *retlen, const u8 *buf)
+						   size_t *retlen, const u8 *buf)
 {
 	struct spear_snor_flash *flash = get_flash_data(mtd);
 	struct spear_smi *dev = mtd->priv;
@@ -648,9 +709,12 @@ static int spear_mtd_write(struct mtd_info *mtd, loff_t to, size_t len,
 	int ret;
 
 	if (!flash || !dev)
+	{
 		return -ENODEV;
+	}
 
-	if (flash->bank > dev->num_flashes - 1) {
+	if (flash->bank > dev->num_flashes - 1)
+	{
 		dev_err(&dev->pdev->dev, "Invalid Bank Num");
 		return -EINVAL;
 	}
@@ -662,35 +726,55 @@ static int spear_mtd_write(struct mtd_info *mtd, loff_t to, size_t len,
 	page_offset = (u32)to % flash->page_size;
 
 	/* do if all the bytes fit onto one page */
-	if (page_offset + len <= flash->page_size) {
+	if (page_offset + len <= flash->page_size)
+	{
 		ret = spear_smi_cpy_toio(dev, flash->bank, dest, buf, len);
+
 		if (!ret)
+		{
 			*retlen += len;
-	} else {
+		}
+	}
+	else
+	{
 		u32 i;
 
 		/* the size of data remaining on the first page */
 		page_size = flash->page_size - page_offset;
 
 		ret = spear_smi_cpy_toio(dev, flash->bank, dest, buf,
-				page_size);
+								 page_size);
+
 		if (ret)
+		{
 			goto err_write;
+		}
 		else
+		{
 			*retlen += page_size;
+		}
 
 		/* write everything in pagesize chunks */
-		for (i = page_size; i < len; i += page_size) {
+		for (i = page_size; i < len; i += page_size)
+		{
 			page_size = len - i;
+
 			if (page_size > flash->page_size)
+			{
 				page_size = flash->page_size;
+			}
 
 			ret = spear_smi_cpy_toio(dev, flash->bank, dest + i,
-					buf + i, page_size);
+									 buf + i, page_size);
+
 			if (ret)
+			{
 				break;
+			}
 			else
+			{
 				*retlen += page_size;
+			}
 		}
 	}
 
@@ -715,8 +799,11 @@ static int spear_smi_probe_flash(struct spear_smi *dev, u32 bank)
 	u32 val = 0;
 
 	ret = spear_smi_wait_till_ready(dev, bank, SMI_PROBE_TIMEOUT);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mutex_lock(&dev->lock);
 
@@ -729,13 +816,15 @@ static int spear_smi_probe_flash(struct spear_smi *dev, u32 bank)
 	writel(OPCODE_RDID, dev->io_base + SMI_TR);
 
 	val = (bank << BANK_SHIFT) | SEND | (1 << TX_LEN_SHIFT) |
-		(3 << RX_LEN_SHIFT) | TFIE;
+		  (3 << RX_LEN_SHIFT) | TFIE;
 	writel(val, dev->io_base + SMI_CR2);
 
 	/* wait for TFF */
 	ret = wait_event_interruptible_timeout(dev->cmd_complete,
-			dev->status & TFF, SMI_CMD_TIMEOUT);
-	if (ret <= 0) {
+										   dev->status & TFF, SMI_CMD_TIMEOUT);
+
+	if (ret <= 0)
+	{
 		ret = -ENODEV;
 		goto err_probe;
 	}
@@ -757,7 +846,7 @@ err_probe:
 
 #ifdef CONFIG_OF
 static int spear_smi_probe_config_dt(struct platform_device *pdev,
-				     struct device_node *np)
+									 struct device_node *np)
 {
 	struct spear_smi_plat_data *pdata = dev_get_platdata(&pdev->dev);
 	struct device_node *pp = NULL;
@@ -767,17 +856,20 @@ static int spear_smi_probe_config_dt(struct platform_device *pdev,
 	int i = 0;
 
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	of_property_read_u32(np, "clock-rate", &val);
 	pdata->clk_rate = val;
 
 	pdata->board_flash_info = devm_kzalloc(&pdev->dev,
-					       sizeof(*pdata->board_flash_info),
-					       GFP_KERNEL);
+										   sizeof(*pdata->board_flash_info),
+										   GFP_KERNEL);
 
 	/* Fill structs for each subnode (flash device) */
-	while ((pp = of_get_next_child(np, pp))) {
+	while ((pp = of_get_next_child(np, pp)))
+	{
 		struct spear_smi_flash_info *flash_info;
 
 		flash_info = &pdata->board_flash_info[i];
@@ -789,7 +881,9 @@ static int spear_smi_probe_config_dt(struct platform_device *pdev,
 		pdata->board_flash_info->size = be32_to_cpup(&addr[1]);
 
 		if (of_get_property(pp, "st,smi-fast-mode", NULL))
+		{
 			pdata->board_flash_info->fast_mode = 1;
+		}
 
 		i++;
 	}
@@ -800,14 +894,14 @@ static int spear_smi_probe_config_dt(struct platform_device *pdev,
 }
 #else
 static int spear_smi_probe_config_dt(struct platform_device *pdev,
-				     struct device_node *np)
+									 struct device_node *np)
 {
 	return -ENOSYS;
 }
 #endif
 
 static int spear_smi_setup_banks(struct platform_device *pdev,
-				 u32 bank, struct device_node *np)
+								 u32 bank, struct device_node *np)
 {
 	struct spear_smi *dev = platform_get_drvdata(pdev);
 	struct spear_smi_flash_info *flash_info;
@@ -819,39 +913,59 @@ static int spear_smi_setup_banks(struct platform_device *pdev,
 	int ret = 0;
 
 	pdata = dev_get_platdata(&pdev->dev);
+
 	if (bank > pdata->num_flashes - 1)
+	{
 		return -EINVAL;
+	}
 
 	flash_info = &pdata->board_flash_info[bank];
+
 	if (!flash_info)
+	{
 		return -ENODEV;
+	}
 
 	flash = devm_kzalloc(&pdev->dev, sizeof(*flash), GFP_ATOMIC);
+
 	if (!flash)
+	{
 		return -ENOMEM;
+	}
+
 	flash->bank = bank;
 	flash->fast_mode = flash_info->fast_mode ? 1 : 0;
 	mutex_init(&flash->lock);
 
 	/* verify whether nor flash is really present on board */
 	flash_index = spear_smi_probe_flash(dev, bank);
-	if (flash_index < 0) {
+
+	if (flash_index < 0)
+	{
 		dev_info(&dev->pdev->dev, "smi-nor%d not found\n", bank);
 		return flash_index;
 	}
+
 	/* map the memory for nor flash chip */
 	flash->base_addr = devm_ioremap(&pdev->dev, flash_info->mem_base,
-					flash_info->size);
+									flash_info->size);
+
 	if (!flash->base_addr)
+	{
 		return -EIO;
+	}
 
 	dev->flash[bank] = flash;
 	flash->mtd.priv = dev;
 
 	if (flash_info->name)
+	{
 		flash->mtd.name = flash_info->name;
+	}
 	else
+	{
 		flash->mtd.name = flash_devices[flash_index].name;
+	}
 
 	flash->mtd.dev.parent = &pdev->dev;
 	mtd_set_of_node(&flash->mtd, np);
@@ -869,21 +983,26 @@ static int spear_smi_setup_banks(struct platform_device *pdev,
 	flash->dev_id = flash_devices[flash_index].device_id;
 
 	dev_info(&dev->pdev->dev, "mtd .name=%s .size=%llx(%lluM)\n",
-			flash->mtd.name, flash->mtd.size,
-			flash->mtd.size / (1024 * 1024));
+			 flash->mtd.name, flash->mtd.size,
+			 flash->mtd.size / (1024 * 1024));
 
 	dev_info(&dev->pdev->dev, ".erasesize = 0x%x(%uK)\n",
-			flash->mtd.erasesize, flash->mtd.erasesize / 1024);
+			 flash->mtd.erasesize, flash->mtd.erasesize / 1024);
 
 #ifndef CONFIG_OF
-	if (flash_info->partitions) {
+
+	if (flash_info->partitions)
+	{
 		parts = flash_info->partitions;
 		count = flash_info->nr_partitions;
 	}
+
 #endif
 
 	ret = mtd_device_register(&flash->mtd, parts, count);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&dev->pdev->dev, "Err MTD partition=%d\n", ret);
 		return ret;
 	}
@@ -909,22 +1028,32 @@ static int spear_smi_probe(struct platform_device *pdev)
 	int irq, ret = 0;
 	int i;
 
-	if (np) {
+	if (np)
+	{
 		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-		if (!pdata) {
+
+		if (!pdata)
+		{
 			ret = -ENOMEM;
 			goto err;
 		}
+
 		pdev->dev.platform_data = pdata;
 		ret = spear_smi_probe_config_dt(pdev, np);
-		if (ret) {
+
+		if (ret)
+		{
 			ret = -ENODEV;
 			dev_err(&pdev->dev, "no platform data\n");
 			goto err;
 		}
-	} else {
+	}
+	else
+	{
 		pdata = dev_get_platdata(&pdev->dev);
-		if (!pdata) {
+
+		if (!pdata)
+		{
 			ret = -ENODEV;
 			dev_err(&pdev->dev, "no platform data\n");
 			goto err;
@@ -932,14 +1061,18 @@ static int spear_smi_probe(struct platform_device *pdev)
 	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		ret = -ENODEV;
 		dev_err(&pdev->dev, "invalid smi irq\n");
 		goto err;
 	}
 
 	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_ATOMIC);
-	if (!dev) {
+
+	if (!dev)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
@@ -947,7 +1080,9 @@ static int spear_smi_probe(struct platform_device *pdev)
 	smi_base = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 
 	dev->io_base = devm_ioremap_resource(&pdev->dev, smi_base);
-	if (IS_ERR(dev->io_base)) {
+
+	if (IS_ERR(dev->io_base))
+	{
 		ret = PTR_ERR(dev->io_base);
 		goto err;
 	}
@@ -956,28 +1091,38 @@ static int spear_smi_probe(struct platform_device *pdev)
 	dev->clk_rate = pdata->clk_rate;
 
 	if (dev->clk_rate > SMI_MAX_CLOCK_FREQ)
+	{
 		dev->clk_rate = SMI_MAX_CLOCK_FREQ;
+	}
 
 	dev->num_flashes = pdata->num_flashes;
 
-	if (dev->num_flashes > MAX_NUM_FLASH_CHIP) {
+	if (dev->num_flashes > MAX_NUM_FLASH_CHIP)
+	{
 		dev_err(&pdev->dev, "exceeding max number of flashes\n");
 		dev->num_flashes = MAX_NUM_FLASH_CHIP;
 	}
 
 	dev->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(dev->clk)) {
+
+	if (IS_ERR(dev->clk))
+	{
 		ret = PTR_ERR(dev->clk);
 		goto err;
 	}
 
 	ret = clk_prepare_enable(dev->clk);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = devm_request_irq(&pdev->dev, irq, spear_smi_int_handler, 0,
-			       pdev->name, dev);
-	if (ret) {
+						   pdev->name, dev);
+
+	if (ret)
+	{
 		dev_err(&dev->pdev->dev, "SMI IRQ allocation failed\n");
 		goto err_irq;
 	}
@@ -988,9 +1133,12 @@ static int spear_smi_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, dev);
 
 	/* loop for each serial nor-flash which is connected to smi */
-	for (i = 0; i < dev->num_flashes; i++) {
+	for (i = 0; i < dev->num_flashes; i++)
+	{
 		ret = spear_smi_setup_banks(pdev, i, pdata->np[i]);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(&dev->pdev->dev, "bank setup failed\n");
 			goto err_irq;
 		}
@@ -1017,21 +1165,30 @@ static int spear_smi_remove(struct platform_device *pdev)
 	int ret, i;
 
 	dev = platform_get_drvdata(pdev);
-	if (!dev) {
+
+	if (!dev)
+	{
 		dev_err(&pdev->dev, "dev is null\n");
 		return -ENODEV;
 	}
 
 	/* clean up for all nor flash */
-	for (i = 0; i < dev->num_flashes; i++) {
+	for (i = 0; i < dev->num_flashes; i++)
+	{
 		flash = dev->flash[i];
+
 		if (!flash)
+		{
 			continue;
+		}
 
 		/* clean up mtd stuff */
 		ret = mtd_device_unregister(&flash->mtd);
+
 		if (ret)
+		{
 			dev_err(&pdev->dev, "error removing mtd\n");
+		}
 	}
 
 	clk_disable_unprepare(dev->clk);
@@ -1045,7 +1202,9 @@ static int spear_smi_suspend(struct device *dev)
 	struct spear_smi *sdev = dev_get_drvdata(dev);
 
 	if (sdev && sdev->clk)
+	{
 		clk_disable_unprepare(sdev->clk);
+	}
 
 	return 0;
 }
@@ -1056,10 +1215,15 @@ static int spear_smi_resume(struct device *dev)
 	int ret = -EPERM;
 
 	if (sdev && sdev->clk)
+	{
 		ret = clk_prepare_enable(sdev->clk);
+	}
 
 	if (!ret)
+	{
 		spear_smi_hw_init(sdev);
+	}
+
 	return ret;
 }
 #endif
@@ -1067,14 +1231,16 @@ static int spear_smi_resume(struct device *dev)
 static SIMPLE_DEV_PM_OPS(spear_smi_pm_ops, spear_smi_suspend, spear_smi_resume);
 
 #ifdef CONFIG_OF
-static const struct of_device_id spear_smi_id_table[] = {
+static const struct of_device_id spear_smi_id_table[] =
+{
 	{ .compatible = "st,spear600-smi" },
 	{}
 };
 MODULE_DEVICE_TABLE(of, spear_smi_id_table);
 #endif
 
-static struct platform_driver spear_smi_driver = {
+static struct platform_driver spear_smi_driver =
+{
 	.driver = {
 		.name = "smi",
 		.bus = &platform_bus_type,

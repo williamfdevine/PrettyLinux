@@ -50,7 +50,7 @@
 
 #define PS2_LINE_ERROR_BIT \
 	(PS2_LSTS_TXTDO | PS2_LSTS_STOPERR | PS2_LSTS_ACKERR | \
-	PS2_LSTS_PARERR | PS2_LSTS_RXTDO)
+	 PS2_LSTS_PARERR | PS2_LSTS_RXTDO)
 
 /* PS2 FIFO CONTROL REGISTER */
 #define PS2_FCTL_TXRST		BIT(17)
@@ -76,7 +76,8 @@
 #define PS2_SAMPLE_CLK		1000000
 #define PS2_SCLK		125000
 
-struct sun4i_ps2data {
+struct sun4i_ps2data
+{
 	struct serio *serio;
 	struct device *dev;
 
@@ -107,25 +108,29 @@ static irqreturn_t sun4i_ps2_interrupt(int irq, void *dev_id)
 	fifo_status  = readl(drvdata->reg_base + PS2_REG_FSTS);
 
 	/* Check line status register */
-	if (intr_status & PS2_LINE_ERROR_BIT) {
+	if (intr_status & PS2_LINE_ERROR_BIT)
+	{
 		rxflags = (intr_status & PS2_LINE_ERROR_BIT) ? SERIO_FRAME : 0;
 		rxflags |= (intr_status & PS2_LSTS_PARERR) ? SERIO_PARITY : 0;
 		rxflags |= (intr_status & PS2_LSTS_PARERR) ? SERIO_TIMEOUT : 0;
 
 		rval = PS2_LSTS_TXTDO | PS2_LSTS_STOPERR | PS2_LSTS_ACKERR |
-			PS2_LSTS_PARERR | PS2_LSTS_RXTDO;
+			   PS2_LSTS_PARERR | PS2_LSTS_RXTDO;
 		writel(rval, drvdata->reg_base + PS2_REG_LSTS);
 	}
 
 	/* Check FIFO status register */
-	if (fifo_status & PS2_FIFO_ERROR_BIT) {
+	if (fifo_status & PS2_FIFO_ERROR_BIT)
+	{
 		rval = PS2_FSTS_TXUF | PS2_FSTS_TXOF | PS2_FSTS_TXRDY |
-			PS2_FSTS_RXUF | PS2_FSTS_RXOF | PS2_FSTS_RXRDY;
+			   PS2_FSTS_RXUF | PS2_FSTS_RXOF | PS2_FSTS_RXRDY;
 		writel(rval, drvdata->reg_base + PS2_REG_FSTS);
 	}
 
 	rval = (fifo_status >> 16) & 0x3;
-	while (rval--) {
+
+	while (rval--)
+	{
 		byte = readl(drvdata->reg_base + PS2_REG_DATA) & 0xff;
 		serio_interrupt(drvdata->serio, byte, rxflags);
 	}
@@ -149,13 +154,13 @@ static int sun4i_ps2_open(struct serio *serio)
 
 	/* Set line control and enable interrupt */
 	rval = PS2_LCTL_STOPERREN | PS2_LCTL_ACKERREN
-		| PS2_LCTL_PARERREN | PS2_LCTL_RXDTOEN;
+		   | PS2_LCTL_PARERREN | PS2_LCTL_RXDTOEN;
 	writel(rval, drvdata->reg_base + PS2_REG_LCTL);
 
 	/* Reset FIFO */
 	rval = PS2_FCTL_TXRST | PS2_FCTL_RXRST | PS2_FCTL_TXUFIEN
-		| PS2_FCTL_TXOFIEN | PS2_FCTL_RXUFIEN
-		| PS2_FCTL_RXOFIEN | PS2_FCTL_RXRDYIEN;
+		   | PS2_FCTL_TXOFIEN | PS2_FCTL_RXUFIEN
+		   | PS2_FCTL_RXOFIEN | PS2_FCTL_RXRDYIEN;
 
 	writel(rval, drvdata->reg_base + PS2_REG_FCTL);
 
@@ -168,7 +173,7 @@ static int sun4i_ps2_open(struct serio *serio)
 
 	/* Set global control register */
 	rval = PS2_GCTL_RESET | PS2_GCTL_INTEN | PS2_GCTL_MASTER
-		| PS2_GCTL_BUSEN;
+		   | PS2_GCTL_BUSEN;
 
 	spin_lock_irqsave(&drvdata->lock, flags);
 	writel(rval, drvdata->reg_base + PS2_REG_GCTL);
@@ -194,12 +199,15 @@ static int sun4i_ps2_write(struct serio *serio, unsigned char val)
 	unsigned long expire = jiffies + msecs_to_jiffies(10000);
 	struct sun4i_ps2data *drvdata = serio->port_data;
 
-	do {
-		if (readl(drvdata->reg_base + PS2_REG_FSTS) & PS2_FSTS_TXRDY) {
+	do
+	{
+		if (readl(drvdata->reg_base + PS2_REG_FSTS) & PS2_FSTS_TXRDY)
+		{
 			writel(val, drvdata->reg_base + PS2_REG_DATA);
 			return 0;
 		}
-	} while (time_before(jiffies, expire));
+	}
+	while (time_before(jiffies, expire));
 
 	return SERIO_TIMEOUT;
 }
@@ -215,7 +223,9 @@ static int sun4i_ps2_probe(struct platform_device *pdev)
 
 	drvdata = kzalloc(sizeof(struct sun4i_ps2data), GFP_KERNEL);
 	serio = kzalloc(sizeof(struct serio), GFP_KERNEL);
-	if (!drvdata || !serio) {
+
+	if (!drvdata || !serio)
+	{
 		error = -ENOMEM;
 		goto err_free_mem;
 	}
@@ -224,28 +234,36 @@ static int sun4i_ps2_probe(struct platform_device *pdev)
 
 	/* IO */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(dev, "failed to locate registers\n");
 		error = -ENXIO;
 		goto err_free_mem;
 	}
 
 	drvdata->reg_base = ioremap(res->start, resource_size(res));
-	if (!drvdata->reg_base) {
+
+	if (!drvdata->reg_base)
+	{
 		dev_err(dev, "failed to map registers\n");
 		error = -ENOMEM;
 		goto err_free_mem;
 	}
 
 	drvdata->clk = clk_get(dev, NULL);
-	if (IS_ERR(drvdata->clk)) {
+
+	if (IS_ERR(drvdata->clk))
+	{
 		error = PTR_ERR(drvdata->clk);
 		dev_err(dev, "couldn't get clock %d\n", error);
 		goto err_ioremap;
 	}
 
 	error = clk_prepare_enable(drvdata->clk);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(dev, "failed to enable clock %d\n", error);
 		goto err_clk;
 	}
@@ -264,7 +282,9 @@ static int sun4i_ps2_probe(struct platform_device *pdev)
 
 	/* Get IRQ for the device */
 	irq = platform_get_irq(pdev, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		dev_err(dev, "no IRQ found\n");
 		error = -ENXIO;
 		goto err_disable_clk;
@@ -275,10 +295,12 @@ static int sun4i_ps2_probe(struct platform_device *pdev)
 	drvdata->dev = dev;
 
 	error = request_irq(drvdata->irq, sun4i_ps2_interrupt, 0,
-			    DRIVER_NAME, drvdata);
-	if (error) {
+						DRIVER_NAME, drvdata);
+
+	if (error)
+	{
 		dev_err(drvdata->dev, "failed to allocate interrupt %d: %d\n",
-			drvdata->irq, error);
+				drvdata->irq, error);
 		goto err_disable_clk;
 	}
 
@@ -317,14 +339,16 @@ static int sun4i_ps2_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id sun4i_ps2_match[] = {
+static const struct of_device_id sun4i_ps2_match[] =
+{
 	{ .compatible = "allwinner,sun4i-a10-ps2", },
 	{ },
 };
 
 MODULE_DEVICE_TABLE(of, sun4i_ps2_match);
 
-static struct platform_driver sun4i_ps2_driver = {
+static struct platform_driver sun4i_ps2_driver =
+{
 	.probe		= sun4i_ps2_probe,
 	.remove		= sun4i_ps2_remove,
 	.driver = {

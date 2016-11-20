@@ -36,14 +36,15 @@
 #define RTC_SAM6_BIT    (1 << 14)
 #define RTC_SAM7_BIT    (1 << 15)
 #define PIT_ALL_ON      (RTC_2HZ_BIT | RTC_SAM0_BIT | RTC_SAM1_BIT | \
-			 RTC_SAM2_BIT | RTC_SAM3_BIT | RTC_SAM4_BIT | \
-			 RTC_SAM5_BIT | RTC_SAM6_BIT | RTC_SAM7_BIT)
+						 RTC_SAM2_BIT | RTC_SAM3_BIT | RTC_SAM4_BIT | \
+						 RTC_SAM5_BIT | RTC_SAM6_BIT | RTC_SAM7_BIT)
 
 #define RTC_ENABLE_BIT  (1 << 7)
 
 #define MAX_PIE_NUM     9
 #define MAX_PIE_FREQ    512
-static const u32 PIE_BIT_DEF[MAX_PIE_NUM][2] = {
+static const u32 PIE_BIT_DEF[MAX_PIE_NUM][2] =
+{
 	{ 2,		RTC_2HZ_BIT },
 	{ 4,		RTC_SAM0_BIT },
 	{ 8,		RTC_SAM1_BIT },
@@ -72,12 +73,14 @@ static const u32 PIE_BIT_DEF[MAX_PIE_NUM][2] = {
 #define RTC_TEST2	0x2C	/*  32bit rtc test reg 2 */
 #define RTC_TEST3	0x30	/*  32bit rtc test reg 3 */
 
-enum imx_rtc_type {
+enum imx_rtc_type
+{
 	IMX1_RTC,
 	IMX21_RTC,
 };
 
-struct rtc_plat_data {
+struct rtc_plat_data
+{
 	struct rtc_device *rtc;
 	void __iomem *ioaddr;
 	int irq;
@@ -87,7 +90,8 @@ struct rtc_plat_data {
 	enum imx_rtc_type devtype;
 };
 
-static const struct platform_device_id imx_rtc_devtype[] = {
+static const struct platform_device_id imx_rtc_devtype[] =
+{
 	{
 		.name = "imx1-rtc",
 		.driver_data = IMX1_RTC,
@@ -101,7 +105,8 @@ static const struct platform_device_id imx_rtc_devtype[] = {
 MODULE_DEVICE_TABLE(platform, imx_rtc_devtype);
 
 #ifdef CONFIG_OF
-static const struct of_device_id imx_rtc_dt_ids[] = {
+static const struct of_device_id imx_rtc_dt_ids[] =
+{
 	{ .compatible = "fsl,imx1-rtc", .data = (const void *)IMX1_RTC },
 	{ .compatible = "fsl,imx21-rtc", .data = (const void *)IMX21_RTC },
 	{}
@@ -125,17 +130,19 @@ static time64_t get_alarm_or_time(struct device *dev, int time_alarm)
 	void __iomem *ioaddr = pdata->ioaddr;
 	u32 day = 0, hr = 0, min = 0, sec = 0, hr_min = 0;
 
-	switch (time_alarm) {
-	case MXC_RTC_TIME:
-		day = readw(ioaddr + RTC_DAYR);
-		hr_min = readw(ioaddr + RTC_HOURMIN);
-		sec = readw(ioaddr + RTC_SECOND);
-		break;
-	case MXC_RTC_ALARM:
-		day = readw(ioaddr + RTC_DAYALARM);
-		hr_min = readw(ioaddr + RTC_ALRM_HM) & 0xffff;
-		sec = readw(ioaddr + RTC_ALRM_SEC);
-		break;
+	switch (time_alarm)
+	{
+		case MXC_RTC_TIME:
+			day = readw(ioaddr + RTC_DAYR);
+			hr_min = readw(ioaddr + RTC_HOURMIN);
+			sec = readw(ioaddr + RTC_SECOND);
+			break;
+
+		case MXC_RTC_ALARM:
+			day = readw(ioaddr + RTC_DAYALARM);
+			hr_min = readw(ioaddr + RTC_ALRM_HM) & 0xffff;
+			sec = readw(ioaddr + RTC_ALRM_SEC);
+			break;
 	}
 
 	hr = hr_min >> 8;
@@ -166,17 +173,19 @@ static void set_alarm_or_time(struct device *dev, int time_alarm, time64_t time)
 
 	temp = (hr << 8) + min;
 
-	switch (time_alarm) {
-	case MXC_RTC_TIME:
-		writew(day, ioaddr + RTC_DAYR);
-		writew(sec, ioaddr + RTC_SECOND);
-		writew(temp, ioaddr + RTC_HOURMIN);
-		break;
-	case MXC_RTC_ALARM:
-		writew(day, ioaddr + RTC_DAYALARM);
-		writew(sec, ioaddr + RTC_ALRM_SEC);
-		writew(temp, ioaddr + RTC_ALRM_HM);
-		break;
+	switch (time_alarm)
+	{
+		case MXC_RTC_TIME:
+			writew(day, ioaddr + RTC_DAYR);
+			writew(sec, ioaddr + RTC_SECOND);
+			writew(temp, ioaddr + RTC_HOURMIN);
+			break;
+
+		case MXC_RTC_ALARM:
+			writew(day, ioaddr + RTC_DAYALARM);
+			writew(sec, ioaddr + RTC_ALRM_SEC);
+			writew(temp, ioaddr + RTC_ALRM_HM);
+			break;
 	}
 }
 
@@ -199,7 +208,7 @@ static void rtc_update_alarm(struct device *dev, struct rtc_time *alrm)
 }
 
 static void mxc_rtc_irq_enable(struct device *dev, unsigned int bit,
-				unsigned int enabled)
+							   unsigned int enabled)
 {
 	struct platform_device *pdev = to_platform_device(dev);
 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
@@ -210,9 +219,13 @@ static void mxc_rtc_irq_enable(struct device *dev, unsigned int bit,
 	reg = readw(ioaddr + RTC_RTCIENR);
 
 	if (enabled)
+	{
 		reg |= bit;
+	}
 	else
+	{
 		reg &= ~bit;
+	}
 
 	writew(reg, ioaddr + RTC_RTCIENR);
 	spin_unlock_irq(&pdata->rtc->irq_lock);
@@ -234,14 +247,17 @@ static irqreturn_t mxc_rtc_interrupt(int irq, void *dev_id)
 	writew(status, ioaddr + RTC_RTCISR);
 
 	/* update irq data & counter */
-	if (status & RTC_ALM_BIT) {
+	if (status & RTC_ALM_BIT)
+	{
 		events |= (RTC_AF | RTC_IRQF);
 		/* RTC alarm should be one-shot */
 		mxc_rtc_irq_enable(&pdev->dev, RTC_ALM_BIT, 0);
 	}
 
 	if (status & PIT_ALL_ON)
+	{
 		events |= (RTC_PF | RTC_IRQF);
+	}
 
 	rtc_update_irq(pdata->rtc, 1, events);
 	spin_unlock_irqrestore(&pdata->rtc->irq_lock, flags);
@@ -283,9 +299,11 @@ static int mxc_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	time64_t val;
 
 	/* Avoid roll-over from reading the different registers */
-	do {
+	do
+	{
 		val = get_alarm_or_time(dev, MXC_RTC_TIME);
-	} while (val != get_alarm_or_time(dev, MXC_RTC_TIME));
+	}
+	while (val != get_alarm_or_time(dev, MXC_RTC_TIME));
 
 	rtc_time64_to_tm(val, tm);
 
@@ -303,7 +321,8 @@ static int mxc_rtc_set_mmss(struct device *dev, time64_t time)
 	/*
 	 * TTC_DAYR register is 9-bit in MX1 SoC, save time and day of year only
 	 */
-	if (is_imx1_rtc(pdata)) {
+	if (is_imx1_rtc(pdata))
+	{
 		struct rtc_time tm;
 
 		rtc_time64_to_tm(time, &tm);
@@ -312,9 +331,11 @@ static int mxc_rtc_set_mmss(struct device *dev, time64_t time)
 	}
 
 	/* Avoid roll-over from reading the different registers */
-	do {
+	do
+	{
 		set_alarm_or_time(dev, MXC_RTC_TIME, time);
-	} while (time != get_alarm_or_time(dev, MXC_RTC_TIME));
+	}
+	while (time != get_alarm_or_time(dev, MXC_RTC_TIME));
 
 	return 0;
 }
@@ -353,7 +374,8 @@ static int mxc_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 }
 
 /* RTC layer */
-static struct rtc_class_ops mxc_rtc_ops = {
+static struct rtc_class_ops mxc_rtc_ops =
+{
 	.release		= mxc_rtc_release,
 	.read_time		= mxc_rtc_read_time,
 	.set_mmss64		= mxc_rtc_set_mmss,
@@ -373,50 +395,78 @@ static int mxc_rtc_probe(struct platform_device *pdev)
 	const struct of_device_id *of_id;
 
 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+
 	if (!pdata)
+	{
 		return -ENOMEM;
+	}
 
 	of_id = of_match_device(imx_rtc_dt_ids, &pdev->dev);
+
 	if (of_id)
+	{
 		pdata->devtype = (enum imx_rtc_type)of_id->data;
+	}
 	else
+	{
 		pdata->devtype = pdev->id_entry->driver_data;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	pdata->ioaddr = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(pdata->ioaddr))
+	{
 		return PTR_ERR(pdata->ioaddr);
+	}
 
 	pdata->clk_ipg = devm_clk_get(&pdev->dev, "ipg");
-	if (IS_ERR(pdata->clk_ipg)) {
+
+	if (IS_ERR(pdata->clk_ipg))
+	{
 		dev_err(&pdev->dev, "unable to get ipg clock!\n");
 		return PTR_ERR(pdata->clk_ipg);
 	}
 
 	ret = clk_prepare_enable(pdata->clk_ipg);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pdata->clk_ref = devm_clk_get(&pdev->dev, "ref");
-	if (IS_ERR(pdata->clk_ref)) {
+
+	if (IS_ERR(pdata->clk_ref))
+	{
 		dev_err(&pdev->dev, "unable to get ref clock!\n");
 		ret = PTR_ERR(pdata->clk_ref);
 		goto exit_put_clk_ipg;
 	}
 
 	ret = clk_prepare_enable(pdata->clk_ref);
+
 	if (ret)
+	{
 		goto exit_put_clk_ipg;
+	}
 
 	rate = clk_get_rate(pdata->clk_ref);
 
 	if (rate == 32768)
+	{
 		reg = RTC_INPUT_CLK_32768HZ;
+	}
 	else if (rate == 32000)
+	{
 		reg = RTC_INPUT_CLK_32000HZ;
+	}
 	else if (rate == 38400)
+	{
 		reg = RTC_INPUT_CLK_38400HZ;
-	else {
+	}
+	else
+	{
 		dev_err(&pdev->dev, "rtc clock is not valid (%lu)\n", rate);
 		ret = -EINVAL;
 		goto exit_put_clk_ref;
@@ -424,7 +474,9 @@ static int mxc_rtc_probe(struct platform_device *pdev)
 
 	reg |= RTC_ENABLE_BIT;
 	writew(reg, (pdata->ioaddr + RTC_RTCCTL));
-	if (((readw(pdata->ioaddr + RTC_RTCCTL)) & RTC_ENABLE_BIT) == 0) {
+
+	if (((readw(pdata->ioaddr + RTC_RTCCTL)) & RTC_ENABLE_BIT) == 0)
+	{
 		dev_err(&pdev->dev, "hardware module can't be enabled!\n");
 		ret = -EIO;
 		goto exit_put_clk_ref;
@@ -436,18 +488,23 @@ static int mxc_rtc_probe(struct platform_device *pdev)
 	pdata->irq = platform_get_irq(pdev, 0);
 
 	if (pdata->irq >= 0 &&
-	    devm_request_irq(&pdev->dev, pdata->irq, mxc_rtc_interrupt,
-			     IRQF_SHARED, pdev->name, pdev) < 0) {
+		devm_request_irq(&pdev->dev, pdata->irq, mxc_rtc_interrupt,
+						 IRQF_SHARED, pdev->name, pdev) < 0)
+	{
 		dev_warn(&pdev->dev, "interrupt not available.\n");
 		pdata->irq = -1;
 	}
 
 	if (pdata->irq >= 0)
+	{
 		device_init_wakeup(&pdev->dev, 1);
+	}
 
 	rtc = devm_rtc_device_register(&pdev->dev, pdev->name, &mxc_rtc_ops,
-				  THIS_MODULE);
-	if (IS_ERR(rtc)) {
+								   THIS_MODULE);
+
+	if (IS_ERR(rtc))
+	{
 		ret = PTR_ERR(rtc);
 		goto exit_put_clk_ref;
 	}
@@ -480,7 +537,9 @@ static int mxc_rtc_suspend(struct device *dev)
 	struct rtc_plat_data *pdata = dev_get_drvdata(dev);
 
 	if (device_may_wakeup(dev))
+	{
 		enable_irq_wake(pdata->irq);
+	}
 
 	return 0;
 }
@@ -490,7 +549,9 @@ static int mxc_rtc_resume(struct device *dev)
 	struct rtc_plat_data *pdata = dev_get_drvdata(dev);
 
 	if (device_may_wakeup(dev))
+	{
 		disable_irq_wake(pdata->irq);
+	}
 
 	return 0;
 }
@@ -498,11 +559,12 @@ static int mxc_rtc_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(mxc_rtc_pm_ops, mxc_rtc_suspend, mxc_rtc_resume);
 
-static struct platform_driver mxc_rtc_driver = {
+static struct platform_driver mxc_rtc_driver =
+{
 	.driver = {
-		   .name	= "mxc_rtc",
-		   .of_match_table = of_match_ptr(imx_rtc_dt_ids),
-		   .pm		= &mxc_rtc_pm_ops,
+		.name	= "mxc_rtc",
+		.of_match_table = of_match_ptr(imx_rtc_dt_ids),
+		.pm		= &mxc_rtc_pm_ops,
 	},
 	.id_table = imx_rtc_devtype,
 	.probe = mxc_rtc_probe,

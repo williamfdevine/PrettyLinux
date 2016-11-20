@@ -46,7 +46,8 @@
 #define SLIM_TABLET_5_8_INCH_RDESC_ORIG_SIZE	222
 
 /* Fixed Slim Tablet 5.8 inch descriptor */
-static __u8 slim_tablet_5_8_inch_rdesc_fixed[] = {
+static __u8 slim_tablet_5_8_inch_rdesc_fixed[] =
+{
 	0x05, 0x0D,         /*  Usage Page (Digitizer),             */
 	0x09, 0x02,         /*  Usage (Pen),                        */
 	0xA1, 0x01,         /*  Collection (Application),           */
@@ -97,7 +98,8 @@ static __u8 slim_tablet_5_8_inch_rdesc_fixed[] = {
 #define SLIM_TABLET_12_1_INCH_RDESC_ORIG_SIZE	269
 
 /* Fixed Slim Tablet 12.1 inch descriptor */
-static __u8 slim_tablet_12_1_inch_rdesc_fixed[] = {
+static __u8 slim_tablet_12_1_inch_rdesc_fixed[] =
+{
 	0x05, 0x0D,         /*  Usage Page (Digitizer),             */
 	0x09, 0x02,         /*  Usage (Pen),                        */
 	0xA1, 0x01,         /*  Collection (Application),           */
@@ -148,7 +150,8 @@ static __u8 slim_tablet_12_1_inch_rdesc_fixed[] = {
 #define Q_PAD_RDESC_ORIG_SIZE	241
 
 /* Fixed Q Pad descriptor */
-static __u8 q_pad_rdesc_fixed[] = {
+static __u8 q_pad_rdesc_fixed[] =
+{
 	0x05, 0x0D,         /*  Usage Page (Digitizer),             */
 	0x09, 0x02,         /*  Usage (Pen),                        */
 	0xA1, 0x01,         /*  Collection (Application),           */
@@ -201,7 +204,8 @@ static __u8 q_pad_rdesc_fixed[] = {
 /*
  * Fixed report descriptor for tablet with PID 0038.
  */
-static __u8 pid_0038_rdesc_fixed[] = {
+static __u8 pid_0038_rdesc_fixed[] =
+{
 	0x05, 0x0D,         /*  Usage Page (Digitizer),             */
 	0x09, 0x02,         /*  Usage (Pen),                        */
 	0xA1, 0x01,         /*  Collection (Application),           */
@@ -252,7 +256,8 @@ static __u8 pid_0038_rdesc_fixed[] = {
 #define MEDIA_TABLET_10_6_INCH_RDESC_ORIG_SIZE	300
 
 /* Fixed Media Tablet 10.6 inch descriptor */
-static __u8 media_tablet_10_6_inch_rdesc_fixed[] = {
+static __u8 media_tablet_10_6_inch_rdesc_fixed[] =
+{
 	0x05, 0x0D,         /*  Usage Page (Digitizer),             */
 	0x09, 0x02,         /*  Usage (Pen),                        */
 	0xA1, 0x01,         /*  Collection (Application),           */
@@ -311,7 +316,7 @@ static __u8 media_tablet_10_6_inch_rdesc_fixed[] = {
 	0x25, 0x01,         /*          Logical Maximum (1),        */
 	0x09, 0x38,         /*          Usage (Wheel),              */
 	0x0B, 0x38, 0x02,   /*          Usage (Consumer AC Pan),    */
-		0x0C, 0x00,
+	0x0C, 0x00,
 	0x81, 0x06,         /*          Input (Variable, Relative), */
 	0x95, 0x02,         /*          Report Count (2),           */
 	0x81, 0x03,         /*          Input (Constant, Variable), */
@@ -365,7 +370,8 @@ static __u8 media_tablet_10_6_inch_rdesc_fixed[] = {
 #define MEDIA_TABLET_14_1_INCH_RDESC_ORIG_SIZE	309
 
 /* Fixed Media Tablet 14.1 inch descriptor */
-static __u8 media_tablet_14_1_inch_rdesc_fixed[] = {
+static __u8 media_tablet_14_1_inch_rdesc_fixed[] =
+{
 	0x05, 0x0D,         /*  Usage Page (Digitizer),             */
 	0x09, 0x02,         /*  Usage (Pen),                        */
 	0xA1, 0x01,         /*  Collection (Application),           */
@@ -424,7 +430,7 @@ static __u8 media_tablet_14_1_inch_rdesc_fixed[] = {
 	0x25, 0x01,         /*          Logical Maximum (1),        */
 	0x09, 0x38,         /*          Usage (Wheel),              */
 	0x0B, 0x38, 0x02,   /*          Usage (Consumer AC Pan),    */
-		0x0C, 0x00,
+	0x0C, 0x00,
 	0x81, 0x06,         /*          Input (Variable, Relative), */
 	0xC0,               /*      End Collection,                 */
 	0xC0,               /*  End Collection,                     */
@@ -476,7 +482,8 @@ static __u8 media_tablet_14_1_inch_rdesc_fixed[] = {
 #define SIRIUS_BATTERY_FREE_TABLET_RDESC_ORIG_SIZE	335
 
 /* Fixed Sirius Battery Free Tablet descriptor */
-static __u8 sirius_battery_free_tablet_rdesc_fixed[] = {
+static __u8 sirius_battery_free_tablet_rdesc_fixed[] =
+{
 	0x05, 0x0D,         /*  Usage Page (Digitizer),             */
 	0x09, 0x02,         /*  Usage (Pen),                        */
 	0xA1, 0x01,         /*  Collection (Application),           */
@@ -603,67 +610,91 @@ static __u8 sirius_battery_free_tablet_rdesc_fixed[] = {
 };
 
 static __u8 *waltop_report_fixup(struct hid_device *hdev, __u8 *rdesc,
-		unsigned int *rsize)
+								 unsigned int *rsize)
 {
-	switch (hdev->product) {
-	case USB_DEVICE_ID_WALTOP_SLIM_TABLET_5_8_INCH:
-		if (*rsize == SLIM_TABLET_5_8_INCH_RDESC_ORIG_SIZE) {
-			rdesc = slim_tablet_5_8_inch_rdesc_fixed;
-			*rsize = sizeof(slim_tablet_5_8_inch_rdesc_fixed);
-		}
-		break;
-	case USB_DEVICE_ID_WALTOP_SLIM_TABLET_12_1_INCH:
-		if (*rsize == SLIM_TABLET_12_1_INCH_RDESC_ORIG_SIZE) {
-			rdesc = slim_tablet_12_1_inch_rdesc_fixed;
-			*rsize = sizeof(slim_tablet_12_1_inch_rdesc_fixed);
-		}
-		break;
-	case USB_DEVICE_ID_WALTOP_Q_PAD:
-		if (*rsize == Q_PAD_RDESC_ORIG_SIZE) {
-			rdesc = q_pad_rdesc_fixed;
-			*rsize = sizeof(q_pad_rdesc_fixed);
-		}
-		break;
-	case USB_DEVICE_ID_WALTOP_PID_0038:
-		if (*rsize == PID_0038_RDESC_ORIG_SIZE) {
-			rdesc = pid_0038_rdesc_fixed;
-			*rsize = sizeof(pid_0038_rdesc_fixed);
-		}
-		break;
-	case USB_DEVICE_ID_WALTOP_MEDIA_TABLET_10_6_INCH:
-		if (*rsize == MEDIA_TABLET_10_6_INCH_RDESC_ORIG_SIZE) {
-			rdesc = media_tablet_10_6_inch_rdesc_fixed;
-			*rsize = sizeof(media_tablet_10_6_inch_rdesc_fixed);
-		}
-		break;
-	case USB_DEVICE_ID_WALTOP_MEDIA_TABLET_14_1_INCH:
-		if (*rsize == MEDIA_TABLET_14_1_INCH_RDESC_ORIG_SIZE) {
-			rdesc = media_tablet_14_1_inch_rdesc_fixed;
-			*rsize = sizeof(media_tablet_14_1_inch_rdesc_fixed);
-		}
-		break;
-	case USB_DEVICE_ID_WALTOP_SIRIUS_BATTERY_FREE_TABLET:
-		if (*rsize == SIRIUS_BATTERY_FREE_TABLET_RDESC_ORIG_SIZE) {
-			rdesc = sirius_battery_free_tablet_rdesc_fixed;
-			*rsize = sizeof(sirius_battery_free_tablet_rdesc_fixed);
-		}
-		break;
+	switch (hdev->product)
+	{
+		case USB_DEVICE_ID_WALTOP_SLIM_TABLET_5_8_INCH:
+			if (*rsize == SLIM_TABLET_5_8_INCH_RDESC_ORIG_SIZE)
+			{
+				rdesc = slim_tablet_5_8_inch_rdesc_fixed;
+				*rsize = sizeof(slim_tablet_5_8_inch_rdesc_fixed);
+			}
+
+			break;
+
+		case USB_DEVICE_ID_WALTOP_SLIM_TABLET_12_1_INCH:
+			if (*rsize == SLIM_TABLET_12_1_INCH_RDESC_ORIG_SIZE)
+			{
+				rdesc = slim_tablet_12_1_inch_rdesc_fixed;
+				*rsize = sizeof(slim_tablet_12_1_inch_rdesc_fixed);
+			}
+
+			break;
+
+		case USB_DEVICE_ID_WALTOP_Q_PAD:
+			if (*rsize == Q_PAD_RDESC_ORIG_SIZE)
+			{
+				rdesc = q_pad_rdesc_fixed;
+				*rsize = sizeof(q_pad_rdesc_fixed);
+			}
+
+			break;
+
+		case USB_DEVICE_ID_WALTOP_PID_0038:
+			if (*rsize == PID_0038_RDESC_ORIG_SIZE)
+			{
+				rdesc = pid_0038_rdesc_fixed;
+				*rsize = sizeof(pid_0038_rdesc_fixed);
+			}
+
+			break;
+
+		case USB_DEVICE_ID_WALTOP_MEDIA_TABLET_10_6_INCH:
+			if (*rsize == MEDIA_TABLET_10_6_INCH_RDESC_ORIG_SIZE)
+			{
+				rdesc = media_tablet_10_6_inch_rdesc_fixed;
+				*rsize = sizeof(media_tablet_10_6_inch_rdesc_fixed);
+			}
+
+			break;
+
+		case USB_DEVICE_ID_WALTOP_MEDIA_TABLET_14_1_INCH:
+			if (*rsize == MEDIA_TABLET_14_1_INCH_RDESC_ORIG_SIZE)
+			{
+				rdesc = media_tablet_14_1_inch_rdesc_fixed;
+				*rsize = sizeof(media_tablet_14_1_inch_rdesc_fixed);
+			}
+
+			break;
+
+		case USB_DEVICE_ID_WALTOP_SIRIUS_BATTERY_FREE_TABLET:
+			if (*rsize == SIRIUS_BATTERY_FREE_TABLET_RDESC_ORIG_SIZE)
+			{
+				rdesc = sirius_battery_free_tablet_rdesc_fixed;
+				*rsize = sizeof(sirius_battery_free_tablet_rdesc_fixed);
+			}
+
+			break;
 	}
+
 	return rdesc;
 }
 
 static int waltop_raw_event(struct hid_device *hdev, struct hid_report *report,
-		     u8 *data, int size)
+							u8 *data, int size)
 {
 	/* If this is a pen input report */
-	if (report->type == HID_INPUT_REPORT && report->id == 16 && size >= 8) {
+	if (report->type == HID_INPUT_REPORT && report->id == 16 && size >= 8)
+	{
 		/*
 		 * Ignore reported pressure when a barrel button is pressed,
 		 * because it is rarely correct.
 		 */
 
 		/* If a barrel button is pressed */
-		if ((data[1] & 0xF) > 1) {
+		if ((data[1] & 0xF) > 1)
+		{
 			/* Report zero pressure */
 			data[6] = 0;
 			data[7] = 0;
@@ -672,9 +703,10 @@ static int waltop_raw_event(struct hid_device *hdev, struct hid_report *report,
 
 	/* If this is a pen input report of Sirius Battery Free Tablet */
 	if (hdev->product == USB_DEVICE_ID_WALTOP_SIRIUS_BATTERY_FREE_TABLET &&
-	    report->type == HID_INPUT_REPORT &&
-	    report->id == 16 &&
-	    size == 10) {
+		report->type == HID_INPUT_REPORT &&
+		report->id == 16 &&
+		size == 10)
+	{
 		/*
 		 * The tablet reports tilt as roughly sin(a)*21 (18 means 60
 		 * degrees).
@@ -682,7 +714,8 @@ static int waltop_raw_event(struct hid_device *hdev, struct hid_report *report,
 		 * This array stores angles as radians * 100, corresponding to
 		 * reported values up to 60 degrees, as expected by userspace.
 		 */
-		static const s8 tilt_to_radians[] = {
+		static const s8 tilt_to_radians[] =
+		{
 			0, 5, 10, 14, 19, 24, 29, 34, 40, 45,
 			50, 56, 62, 68, 74, 81, 88, 96, 105
 		};
@@ -707,9 +740,14 @@ static int waltop_raw_event(struct hid_device *hdev, struct hid_report *report,
 		 * range expected by userspace
 		 */
 		if (tilt_x > ARRAY_SIZE(tilt_to_radians) - 1)
+		{
 			tilt_x = ARRAY_SIZE(tilt_to_radians) - 1;
+		}
+
 		if (tilt_y > ARRAY_SIZE(tilt_to_radians) - 1)
+		{
 			tilt_y = ARRAY_SIZE(tilt_to_radians) - 1;
+		}
 
 		data[8] = tilt_to_radians[tilt_x] * sign_x;
 		data[9] = tilt_to_radians[tilt_y] * sign_y;
@@ -718,26 +756,42 @@ static int waltop_raw_event(struct hid_device *hdev, struct hid_report *report,
 	return 0;
 }
 
-static const struct hid_device_id waltop_devices[] = {
-	{ HID_USB_DEVICE(USB_VENDOR_ID_WALTOP,
-				USB_DEVICE_ID_WALTOP_SLIM_TABLET_5_8_INCH) },
-	{ HID_USB_DEVICE(USB_VENDOR_ID_WALTOP,
-				USB_DEVICE_ID_WALTOP_SLIM_TABLET_12_1_INCH) },
-	{ HID_USB_DEVICE(USB_VENDOR_ID_WALTOP,
-				USB_DEVICE_ID_WALTOP_Q_PAD) },
-	{ HID_USB_DEVICE(USB_VENDOR_ID_WALTOP,
-				USB_DEVICE_ID_WALTOP_PID_0038) },
-	{ HID_USB_DEVICE(USB_VENDOR_ID_WALTOP,
-				USB_DEVICE_ID_WALTOP_MEDIA_TABLET_10_6_INCH) },
-	{ HID_USB_DEVICE(USB_VENDOR_ID_WALTOP,
-				USB_DEVICE_ID_WALTOP_MEDIA_TABLET_14_1_INCH) },
-	{ HID_USB_DEVICE(USB_VENDOR_ID_WALTOP,
-			 USB_DEVICE_ID_WALTOP_SIRIUS_BATTERY_FREE_TABLET) },
+static const struct hid_device_id waltop_devices[] =
+{
+	{
+		HID_USB_DEVICE(USB_VENDOR_ID_WALTOP,
+		USB_DEVICE_ID_WALTOP_SLIM_TABLET_5_8_INCH)
+	},
+	{
+		HID_USB_DEVICE(USB_VENDOR_ID_WALTOP,
+		USB_DEVICE_ID_WALTOP_SLIM_TABLET_12_1_INCH)
+	},
+	{
+		HID_USB_DEVICE(USB_VENDOR_ID_WALTOP,
+		USB_DEVICE_ID_WALTOP_Q_PAD)
+	},
+	{
+		HID_USB_DEVICE(USB_VENDOR_ID_WALTOP,
+		USB_DEVICE_ID_WALTOP_PID_0038)
+	},
+	{
+		HID_USB_DEVICE(USB_VENDOR_ID_WALTOP,
+		USB_DEVICE_ID_WALTOP_MEDIA_TABLET_10_6_INCH)
+	},
+	{
+		HID_USB_DEVICE(USB_VENDOR_ID_WALTOP,
+		USB_DEVICE_ID_WALTOP_MEDIA_TABLET_14_1_INCH)
+	},
+	{
+		HID_USB_DEVICE(USB_VENDOR_ID_WALTOP,
+		USB_DEVICE_ID_WALTOP_SIRIUS_BATTERY_FREE_TABLET)
+	},
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, waltop_devices);
 
-static struct hid_driver waltop_driver = {
+static struct hid_driver waltop_driver =
+{
 	.name = "waltop",
 	.id_table = waltop_devices,
 	.report_fixup = waltop_report_fixup,

@@ -1,11 +1,11 @@
 /* DMA controller registers */
 #define REG8_1(a0) ((const u16[8]) { a0, a0 + 1, a0 + 2, a0 + 3, \
-				     a0 + 4, a0 + 5, a0 + 6, a0 + 7})
+		a0 + 4, a0 + 5, a0 + 6, a0 + 7})
 #define REG8_2(a0) ((const u16[8]) { a0, a0 + 2, a0 + 4, a0 + 6,	\
-				     a0 + 8, a0 + 0xa, a0 + 0xc, a0 + 0xe})
+		a0 + 8, a0 + 0xa, a0 + 0xc, a0 + 0xe})
 #define REG8_8(a0) ((const u16[8]) { a0, a0 + 8, a0 + 0x10, a0 + 0x18, \
-				     a0 + 0x20, a0 + 0x28, a0 + 0x30, \
-				     a0 + 0x38})
+		a0 + 0x20, a0 + 0x28, a0 + 0x30, \
+		a0 + 0x38})
 #define INT_STATUS		0x00
 #define PB_STATUS		0x01
 #define DMA_CMD			0x02
@@ -14,9 +14,9 @@
 #define VIDEO_PARSER_STATUS	0x05
 #define SYS_SOFT_RST		0x06
 #define DMA_PAGE_TABLE0_ADDR	((const u16[8]) { 0x08, 0xd0, 0xd2, 0xd4, \
-						  0xd6, 0xd8, 0xda, 0xdc })
+		0xd6, 0xd8, 0xda, 0xdc })
 #define DMA_PAGE_TABLE1_ADDR	((const u16[8]) { 0x09, 0xd1, 0xd3, 0xd5, \
-						  0xd7, 0xd9, 0xdb, 0xdd })
+		0xd7, 0xd9, 0xdb, 0xdd })
 #define DMA_CHANNEL_ENABLE	0x0a
 #define DMA_CONFIG		0x0b
 #define DMA_TIMER_INTERVAL	0x0c
@@ -52,8 +52,8 @@
 
 /* Video decoder registers */
 #define VDREG8(a0) ((const u16[8]) { \
-	a0 + 0x000, a0 + 0x010, a0 + 0x020, a0 + 0x030,	\
-	a0 + 0x100, a0 + 0x110, a0 + 0x120, a0 + 0x130})
+		a0 + 0x000, a0 + 0x010, a0 + 0x020, a0 + 0x030,	\
+		a0 + 0x100, a0 + 0x110, a0 + 0x120, a0 + 0x130})
 #define VIDSTAT			VDREG8(0x100)
 #define BRIGHT			VDREG8(0x101)
 #define CONTRAST		VDREG8(0x102)
@@ -102,7 +102,7 @@
 #define CLMD			VDREG2(0x197)
 #define ANPWRDOWN		VDREG2(0x1ce)
 #define AIGAIN			((const u16[8]) { 0x1d0, 0x1d1, 0x1d2, 0x1d3, \
-						  0x2d0, 0x2d1, 0x2d2, 0x2d3 })
+		0x2d0, 0x2d1, 0x2d2, 0x2d3 })
 
 #define SYS_MODE_DMA_SHIFT	13
 #define AUDIO_DMA_SIZE_SHIFT	19

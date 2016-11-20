@@ -35,9 +35,9 @@
 #define APCI2200_WDOG_REG		0x08
 
 static int apci2200_di_insn_bits(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	data[1] = inw(dev->iobase + APCI2200_DI_REG);
 
@@ -45,14 +45,16 @@ static int apci2200_di_insn_bits(struct comedi_device *dev,
 }
 
 static int apci2200_do_insn_bits(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	s->state = inw(dev->iobase + APCI2200_DO_REG);
 
 	if (comedi_dio_update_state(s, data))
+	{
 		outw(s->state, dev->iobase + APCI2200_DO_REG);
+	}
 
 	data[1] = s->state;
 
@@ -69,21 +71,27 @@ static int apci2200_reset(struct comedi_device *dev)
 }
 
 static int apci2200_auto_attach(struct comedi_device *dev,
-				unsigned long context_unused)
+								unsigned long context_unused)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	struct comedi_subdevice *s;
 	int ret;
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dev->iobase = pci_resource_start(pcidev, 1);
 
 	ret = comedi_alloc_subdevices(dev, 3);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Initialize the digital input subdevice */
 	s = &dev->subdevices[0];
@@ -106,8 +114,11 @@ static int apci2200_auto_attach(struct comedi_device *dev,
 	/* Initialize the watchdog subdevice */
 	s = &dev->subdevices[2];
 	ret = addi_watchdog_init(s, dev->iobase + APCI2200_WDOG_REG);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	apci2200_reset(dev);
 	return 0;
@@ -116,11 +127,15 @@ static int apci2200_auto_attach(struct comedi_device *dev,
 static void apci2200_detach(struct comedi_device *dev)
 {
 	if (dev->iobase)
+	{
 		apci2200_reset(dev);
+	}
+
 	comedi_pci_detach(dev);
 }
 
-static struct comedi_driver apci2200_driver = {
+static struct comedi_driver apci2200_driver =
+{
 	.driver_name	= "addi_apci_2200",
 	.module		= THIS_MODULE,
 	.auto_attach	= apci2200_auto_attach,
@@ -128,18 +143,20 @@ static struct comedi_driver apci2200_driver = {
 };
 
 static int apci2200_pci_probe(struct pci_dev *dev,
-			      const struct pci_device_id *id)
+							  const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &apci2200_driver, id->driver_data);
 }
 
-static const struct pci_device_id apci2200_pci_table[] = {
+static const struct pci_device_id apci2200_pci_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_ADDIDATA, 0x1005) },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, apci2200_pci_table);
 
-static struct pci_driver apci2200_pci_driver = {
+static struct pci_driver apci2200_pci_driver =
+{
 	.name		= "addi_apci_2200",
 	.id_table	= apci2200_pci_table,
 	.probe		= apci2200_pci_probe,

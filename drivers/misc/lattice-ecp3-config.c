@@ -46,16 +46,19 @@
 #define FPGA_CLEAR_MSLEEP	10
 #define FPGA_CLEAR_LOOP_COUNT	(FPGA_CLEAR_TIMEOUT / FPGA_CLEAR_MSLEEP)
 
-struct fpga_data {
+struct fpga_data
+{
 	struct completion fw_loaded;
 };
 
-struct ecp3_dev {
+struct ecp3_dev
+{
 	u32 jedec_id;
 	char *name;
 };
 
-static const struct ecp3_dev ecp3_dev[] = {
+static const struct ecp3_dev ecp3_dev[] =
+{
 	{
 		.jedec_id = ID_ECP3_17,
 		.name = "Lattice ECP3-17",
@@ -79,12 +82,14 @@ static void firmware_load(const struct firmware *fw, void *context)
 	u32 jedec_id;
 	u32 status;
 
-	if (fw == NULL) {
+	if (fw == NULL)
+	{
 		dev_err(&spi->dev, "Cannot load firmware, aborting\n");
 		return;
 	}
 
-	if (fw->size == 0) {
+	if (fw->size == 0)
+	{
 		dev_err(&spi->dev, "Error: Firmware size is 0!\n");
 		return;
 	}
@@ -100,14 +105,19 @@ static void firmware_load(const struct firmware *fw, void *context)
 	jedec_id = get_unaligned_be32(&rxbuf[4]);
 	dev_dbg(&spi->dev, "FPGA JTAG ID=%08x\n", jedec_id);
 
-	for (i = 0; i < ARRAY_SIZE(ecp3_dev); i++) {
+	for (i = 0; i < ARRAY_SIZE(ecp3_dev); i++)
+	{
 		if (jedec_id == ecp3_dev[i].jedec_id)
+		{
 			break;
+		}
 	}
-	if (i == ARRAY_SIZE(ecp3_dev)) {
+
+	if (i == ARRAY_SIZE(ecp3_dev))
+	{
 		dev_err(&spi->dev,
-			"Error: No supported FPGA detected (JEDEC_ID=%08x)!\n",
-			jedec_id);
+				"Error: No supported FPGA detected (JEDEC_ID=%08x)!\n",
+				jedec_id);
 		return;
 	}
 
@@ -119,7 +129,9 @@ static void firmware_load(const struct firmware *fw, void *context)
 	dev_dbg(&spi->dev, "FPGA Status=%08x\n", status);
 
 	buffer = kzalloc(fw->size + 8, GFP_KERNEL);
-	if (!buffer) {
+
+	if (!buffer)
+	{
 		dev_err(&spi->dev, "Error: Can't allocate memory!\n");
 		return;
 	}
@@ -145,20 +157,25 @@ static void firmware_load(const struct firmware *fw, void *context)
 	/*
 	 * Wait for FPGA memory to become cleared
 	 */
-	for (i = 0; i < FPGA_CLEAR_LOOP_COUNT; i++) {
+	for (i = 0; i < FPGA_CLEAR_LOOP_COUNT; i++)
+	{
 		txbuf[0] = FPGA_CMD_READ_STATUS;
 		ret = spi_write_then_read(spi, txbuf, 8, rxbuf, rx_len);
 		status = get_unaligned_be32(&rxbuf[4]);
+
 		if (status == FPGA_STATUS_CLEARED)
+		{
 			break;
+		}
 
 		msleep(FPGA_CLEAR_MSLEEP);
 	}
 
-	if (i == FPGA_CLEAR_LOOP_COUNT) {
+	if (i == FPGA_CLEAR_LOOP_COUNT)
+	{
 		dev_err(&spi->dev,
-			"Error: Timeout waiting for FPGA to clear (status=%08x)!\n",
-			status);
+				"Error: Timeout waiting for FPGA to clear (status=%08x)!\n",
+				status);
 		kfree(buffer);
 		return;
 	}
@@ -176,9 +193,13 @@ static void firmware_load(const struct firmware *fw, void *context)
 
 	/* Check result */
 	if (status & FPGA_STATUS_DONE)
+	{
 		dev_info(&spi->dev, "FPGA successfully configured!\n");
+	}
 	else
+	{
 		dev_info(&spi->dev, "FPGA not configured (DONE not set)\n");
+	}
 
 	/*
 	 * Don't forget to release the firmware again
@@ -196,17 +217,22 @@ static int lattice_ecp3_probe(struct spi_device *spi)
 	int err;
 
 	data = devm_kzalloc(&spi->dev, sizeof(*data), GFP_KERNEL);
-	if (!data) {
+
+	if (!data)
+	{
 		dev_err(&spi->dev, "Memory allocation for fpga_data failed\n");
 		return -ENOMEM;
 	}
+
 	spi_set_drvdata(spi, data);
 
 	init_completion(&data->fw_loaded);
 	err = request_firmware_nowait(THIS_MODULE, FW_ACTION_HOTPLUG,
-				      FIRMWARE_NAME, &spi->dev,
-				      GFP_KERNEL, spi, firmware_load);
-	if (err) {
+								  FIRMWARE_NAME, &spi->dev,
+								  GFP_KERNEL, spi, firmware_load);
+
+	if (err)
+	{
 		dev_err(&spi->dev, "Firmware loading failed with %d!\n", err);
 		return err;
 	}
@@ -225,14 +251,16 @@ static int lattice_ecp3_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct spi_device_id lattice_ecp3_id[] = {
+static const struct spi_device_id lattice_ecp3_id[] =
+{
 	{ "ecp3-17", 0 },
 	{ "ecp3-35", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(spi, lattice_ecp3_id);
 
-static struct spi_driver lattice_ecp3_driver = {
+static struct spi_driver lattice_ecp3_driver =
+{
 	.driver = {
 		.name = "lattice-ecp3",
 	},

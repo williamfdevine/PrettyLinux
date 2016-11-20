@@ -107,11 +107,11 @@
  * and so on, we use __leXX unless that's not practical.
  */
 #ifdef CONFIG_USB_UHCI_BIG_ENDIAN_DESC
-typedef __u32 __bitwise __hc32;
-typedef __u16 __bitwise __hc16;
+	typedef __u32 __bitwise __hc32;
+	typedef __u16 __bitwise __hc16;
 #else
-#define __hc32	__le32
-#define __hc16	__le16
+	#define __hc32	__le32
+	#define __hc16	__le16
 #endif
 
 /*
@@ -144,7 +144,8 @@ typedef __u16 __bitwise __hc16;
 					 * still be using it */
 #define QH_STATE_ACTIVE		3	/* QH is on the schedule */
 
-struct uhci_qh {
+struct uhci_qh
+{
 	/* Hardware fields */
 	__hc32 link;			/* Next QH in the schedule */
 	__hc32 element;			/* Queue element (TD) pointer */
@@ -160,7 +161,7 @@ struct uhci_qh {
 	struct uhci_td *post_td;	/* Last TD completed */
 
 	struct usb_iso_packet_descriptor *iso_packet_desc;
-					/* Next urb->iso_frame_desc entry */
+	/* Next urb->iso_frame_desc entry */
 	unsigned long advance_jiffies;	/* Time of last queue advance */
 	unsigned int unlink_frame;	/* When the QH was unlinked */
 	unsigned int period;		/* For Interrupt and Isochronous QHs */
@@ -172,11 +173,11 @@ struct uhci_qh {
 	int type;			/* Queue type (control, bulk, etc) */
 	int skel;			/* Skeleton queue number */
 
-	unsigned int initial_toggle:1;	/* Endpoint's current toggle value */
-	unsigned int needs_fixup:1;	/* Must fix the TD toggle values */
-	unsigned int is_stopped:1;	/* Queue was stopped by error/unlink */
-	unsigned int wait_expired:1;	/* QH_WAIT_TIMEOUT has expired */
-	unsigned int bandwidth_reserved:1;	/* Periodic bandwidth has
+	unsigned int initial_toggle: 1;	/* Endpoint's current toggle value */
+	unsigned int needs_fixup: 1;	/* Must fix the TD toggle values */
+	unsigned int is_stopped: 1;	/* Queue was stopped by error/unlink */
+	unsigned int wait_expired: 1;	/* QH_WAIT_TIMEOUT has expired */
+	unsigned int bandwidth_reserved: 1;	/* Periodic bandwidth has
 						 * been allocated */
 } __attribute__((aligned(16)));
 
@@ -187,7 +188,7 @@ struct uhci_qh {
 #define qh_element(qh)		ACCESS_ONCE((qh)->element)
 
 #define LINK_TO_QH(uhci, qh)	(UHCI_PTR_QH((uhci)) | \
-				cpu_to_hc32((uhci), (qh)->dma_handle))
+								 cpu_to_hc32((uhci), (qh)->dma_handle))
 
 
 /*
@@ -215,7 +216,7 @@ struct uhci_qh {
 #define uhci_maxerr(err)		((err) << TD_CTRL_C_ERR_SHIFT)
 #define uhci_status_bits(ctrl_sts)	((ctrl_sts) & 0xF60000)
 #define uhci_actual_length(ctrl_sts)	(((ctrl_sts) + 1) & \
-			TD_CTRL_ACTLEN_MASK)	/* 1-based */
+		TD_CTRL_ACTLEN_MASK)	/* 1-based */
 
 /*
  * for TD <info>: (a.k.a. Token)
@@ -229,10 +230,10 @@ struct uhci_qh {
 #define TD_TOKEN_PID_MASK	0xFF
 
 #define uhci_explen(len)	((((len) - 1) & TD_TOKEN_EXPLEN_MASK) << \
-					TD_TOKEN_EXPLEN_SHIFT)
+							 TD_TOKEN_EXPLEN_SHIFT)
 
 #define uhci_expected_length(token) ((((token) >> TD_TOKEN_EXPLEN_SHIFT) + \
-					1) & TD_TOKEN_EXPLEN_MASK)
+									  1) & TD_TOKEN_EXPLEN_MASK)
 #define uhci_toggle(token)	(((token) >> TD_TOKEN_TOGGLE_SHIFT) & 1)
 #define uhci_endpoint(token)	(((token) >> 15) & 0xf)
 #define uhci_devaddr(token)	(((token) >> TD_TOKEN_DEVADDR_SHIFT) & 0x7f)
@@ -251,7 +252,8 @@ struct uhci_qh {
  * td->link points to either another TD (not necessarily for the same urb or
  * even the same endpoint), or nothing (PTR_TERM), or a QH.
  */
-struct uhci_td {
+struct uhci_td
+{
 	/* Hardware fields */
 	__hc32 link;
 	__hc32 status;
@@ -272,7 +274,7 @@ struct uhci_td {
  * subject to asynchronous updates by the controller.
  */
 #define td_status(uhci, td)		hc32_to_cpu((uhci), \
-						ACCESS_ONCE((td)->status))
+		ACCESS_ONCE((td)->status))
 
 #define LINK_TO_TD(uhci, td)		(cpu_to_hc32((uhci), (td)->dma_handle))
 
@@ -327,7 +329,7 @@ struct uhci_td {
 #define skel_unlink_qh		skelqh[SKEL_UNLINK]
 #define SKEL_ISO		1
 #define skel_iso_qh		skelqh[SKEL_ISO]
-	/* int128, int64, ..., int1 = 2, 3, ..., 9 */
+/* int128, int64, ..., int1 = 2, 3, ..., 9 */
 #define SKEL_INDEX(exponent)	(9 - exponent)
 #define SKEL_ASYNC		9
 #define skel_async_qh		skelqh[SKEL_ASYNC]
@@ -350,11 +352,12 @@ struct uhci_td {
  * To prevent "bouncing" in the presence of electrical noise,
  * when there are no devices attached we delay for 1 second in the
  * RUNNING_NODEVS state before switching to the AUTO_STOPPED state.
- * 
+ *
  * (Note that the AUTO_STOPPED state won't be necessary once the hub
  * driver learns to autosuspend.)
  */
-enum uhci_rh_state {
+enum uhci_rh_state
+{
 	/* In the following states the HC must be halted.
 	 * These two must come first. */
 	UHCI_RH_RESET,
@@ -376,7 +379,8 @@ enum uhci_rh_state {
 /*
  * The full UHCI controller information:
  */
-struct uhci_hcd {
+struct uhci_hcd
+{
 
 	/* debugfs */
 	struct dentry *dentry;
@@ -409,24 +413,24 @@ struct uhci_hcd {
 	unsigned int last_iso_frame;		/* Frame of last scan */
 	unsigned int cur_iso_frame;		/* Frame for current scan */
 
-	unsigned int scan_in_progress:1;	/* Schedule scan is running */
-	unsigned int need_rescan:1;		/* Redo the schedule scan */
-	unsigned int dead:1;			/* Controller has died */
-	unsigned int RD_enable:1;		/* Suspended root hub with
+	unsigned int scan_in_progress: 1;	/* Schedule scan is running */
+	unsigned int need_rescan: 1;		/* Redo the schedule scan */
+	unsigned int dead: 1;			/* Controller has died */
+	unsigned int RD_enable: 1;		/* Suspended root hub with
 						   Resume-Detect interrupts
 						   enabled */
-	unsigned int is_initialized:1;		/* Data structure is usable */
-	unsigned int fsbr_is_on:1;		/* FSBR is turned on */
-	unsigned int fsbr_is_wanted:1;		/* Does any URB want FSBR? */
-	unsigned int fsbr_expiring:1;		/* FSBR is timing out */
+	unsigned int is_initialized: 1;		/* Data structure is usable */
+	unsigned int fsbr_is_on: 1;		/* FSBR is turned on */
+	unsigned int fsbr_is_wanted: 1;		/* Does any URB want FSBR? */
+	unsigned int fsbr_expiring: 1;		/* FSBR is timing out */
 
 	struct timer_list fsbr_timer;		/* For turning off FBSR */
 
 	/* Silicon quirks */
-	unsigned int oc_low:1;			/* OverCurrent bit active low */
-	unsigned int wait_for_hp:1;		/* Wait for HP port reset */
-	unsigned int big_endian_mmio:1;		/* Big endian registers */
-	unsigned int big_endian_desc:1;		/* Big endian descriptors */
+	unsigned int oc_low: 1;			/* OverCurrent bit active low */
+	unsigned int wait_for_hp: 1;		/* Wait for HP port reset */
+	unsigned int big_endian_mmio: 1;		/* Big endian registers */
+	unsigned int big_endian_desc: 1;		/* Big endian descriptors */
 
 	/* Support for port suspend/resume/reset */
 	unsigned long port_c_suspend;		/* Bit-arrays of ports */
@@ -473,7 +477,8 @@ static inline struct usb_hcd *uhci_to_hcd(struct uhci_hcd *uhci)
 /*
  *	Private per-URB data
  */
-struct urb_priv {
+struct urb_priv
+{
 	struct list_head node;		/* Node in the QH's urbp list */
 
 	struct urb *urb;
@@ -481,7 +486,7 @@ struct urb_priv {
 	struct uhci_qh *qh;		/* QH for this URB */
 	struct list_head td_list;
 
-	unsigned fsbr:1;		/* URB wants FSBR */
+	unsigned fsbr: 1;		/* URB wants FSBR */
 };
 
 
@@ -531,90 +536,138 @@ static inline void uhci_writeb(const struct uhci_hcd *uhci, u8 val, int reg)
 #else
 /* Support non-PCI host controllers */
 #ifdef CONFIG_PCI
-/* Support PCI and non-PCI host controllers */
-#define uhci_has_pci_registers(u)	((u)->io_addr != 0)
+	/* Support PCI and non-PCI host controllers */
+	#define uhci_has_pci_registers(u)	((u)->io_addr != 0)
 #else
-/* Support non-PCI host controllers only */
-#define uhci_has_pci_registers(u)	0
+	/* Support non-PCI host controllers only */
+	#define uhci_has_pci_registers(u)	0
 #endif
 
 #ifdef CONFIG_USB_UHCI_BIG_ENDIAN_MMIO
-/* Support (non-PCI) big endian host controllers */
-#define uhci_big_endian_mmio(u)		((u)->big_endian_mmio)
+	/* Support (non-PCI) big endian host controllers */
+	#define uhci_big_endian_mmio(u)		((u)->big_endian_mmio)
 #else
-#define uhci_big_endian_mmio(u)		0
+	#define uhci_big_endian_mmio(u)		0
 #endif
 
 static inline u32 uhci_readl(const struct uhci_hcd *uhci, int reg)
 {
 	if (uhci_has_pci_registers(uhci))
+	{
 		return inl(uhci->io_addr + reg);
+	}
+
 #ifdef CONFIG_USB_UHCI_BIG_ENDIAN_MMIO
 	else if (uhci_big_endian_mmio(uhci))
+	{
 		return readl_be(uhci->regs + reg);
+	}
+
 #endif
 	else
+	{
 		return readl(uhci->regs + reg);
+	}
 }
 
 static inline void uhci_writel(const struct uhci_hcd *uhci, u32 val, int reg)
 {
 	if (uhci_has_pci_registers(uhci))
+	{
 		outl(val, uhci->io_addr + reg);
+	}
+
 #ifdef CONFIG_USB_UHCI_BIG_ENDIAN_MMIO
 	else if (uhci_big_endian_mmio(uhci))
+	{
 		writel_be(val, uhci->regs + reg);
+	}
+
 #endif
 	else
+	{
 		writel(val, uhci->regs + reg);
+	}
 }
 
 static inline u16 uhci_readw(const struct uhci_hcd *uhci, int reg)
 {
 	if (uhci_has_pci_registers(uhci))
+	{
 		return inw(uhci->io_addr + reg);
+	}
+
 #ifdef CONFIG_USB_UHCI_BIG_ENDIAN_MMIO
 	else if (uhci_big_endian_mmio(uhci))
+	{
 		return readw_be(uhci->regs + reg);
+	}
+
 #endif
 	else
+	{
 		return readw(uhci->regs + reg);
+	}
 }
 
 static inline void uhci_writew(const struct uhci_hcd *uhci, u16 val, int reg)
 {
 	if (uhci_has_pci_registers(uhci))
+	{
 		outw(val, uhci->io_addr + reg);
+	}
+
 #ifdef CONFIG_USB_UHCI_BIG_ENDIAN_MMIO
 	else if (uhci_big_endian_mmio(uhci))
+	{
 		writew_be(val, uhci->regs + reg);
+	}
+
 #endif
 	else
+	{
 		writew(val, uhci->regs + reg);
+	}
 }
 
 static inline u8 uhci_readb(const struct uhci_hcd *uhci, int reg)
 {
 	if (uhci_has_pci_registers(uhci))
+	{
 		return inb(uhci->io_addr + reg);
+	}
+
 #ifdef CONFIG_USB_UHCI_BIG_ENDIAN_MMIO
 	else if (uhci_big_endian_mmio(uhci))
+	{
 		return readb_be(uhci->regs + reg);
+	}
+
 #endif
 	else
+	{
 		return readb(uhci->regs + reg);
+	}
 }
 
 static inline void uhci_writeb(const struct uhci_hcd *uhci, u8 val, int reg)
 {
 	if (uhci_has_pci_registers(uhci))
+	{
 		outb(val, uhci->io_addr + reg);
+	}
+
 #ifdef CONFIG_USB_UHCI_BIG_ENDIAN_MMIO
 	else if (uhci_big_endian_mmio(uhci))
+	{
 		writeb_be(val, uhci->regs + reg);
+	}
+
 #endif
 	else
+	{
 		writeb(val, uhci->regs + reg);
+	}
 }
 #endif /* CONFIG_USB_UHCI_SUPPORT_NON_PCI_HC */
 
@@ -631,16 +684,16 @@ static inline void uhci_writeb(const struct uhci_hcd *uhci, u8 val, int reg)
 static inline __hc32 cpu_to_hc32(const struct uhci_hcd *uhci, const u32 x)
 {
 	return uhci_big_endian_desc(uhci)
-		? (__force __hc32)cpu_to_be32(x)
-		: (__force __hc32)cpu_to_le32(x);
+		   ? (__force __hc32)cpu_to_be32(x)
+		   : (__force __hc32)cpu_to_le32(x);
 }
 
 /* uhci to cpu */
 static inline u32 hc32_to_cpu(const struct uhci_hcd *uhci, const __hc32 x)
 {
 	return uhci_big_endian_desc(uhci)
-		? be32_to_cpu((__force __be32)x)
-		: le32_to_cpu((__force __le32)x);
+		   ? be32_to_cpu((__force __be32)x)
+		   : le32_to_cpu((__force __le32)x);
 }
 
 #else

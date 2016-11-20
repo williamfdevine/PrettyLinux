@@ -19,7 +19,8 @@
 #include <linux/olpc-ec.h>
 #include <asm/olpc.h>
 
-struct ec_cmd_desc {
+struct ec_cmd_desc
+{
 	u8 cmd;
 	u8 *inbuf, *outbuf;
 	size_t inlen, outlen;
@@ -31,7 +32,8 @@ struct ec_cmd_desc {
 	void *priv;
 };
 
-struct olpc_ec_priv {
+struct olpc_ec_priv
+{
 	struct olpc_ec_driver *drv;
 	struct work_struct worker;
 	struct mutex cmd_lock;
@@ -73,20 +75,25 @@ static void olpc_ec_worker(struct work_struct *w)
 
 	/* Grab the first pending command from the queue */
 	spin_lock_irqsave(&ec->cmd_q_lock, flags);
-	if (!list_empty(&ec->cmd_q)) {
+
+	if (!list_empty(&ec->cmd_q))
+	{
 		desc = list_first_entry(&ec->cmd_q, struct ec_cmd_desc, node);
 		list_del(&desc->node);
 	}
+
 	spin_unlock_irqrestore(&ec->cmd_q_lock, flags);
 
 	/* Do we actually have anything to do? */
 	if (!desc)
+	{
 		return;
+	}
 
 	/* Protect the EC hw with a mutex; only run one cmd at a time */
 	mutex_lock(&ec->cmd_lock);
 	desc->err = ec_driver->ec_cmd(desc->cmd, desc->inbuf, desc->inlen,
-			desc->outbuf, desc->outlen, ec_cb_arg);
+								  desc->outbuf, desc->outlen, ec_cb_arg);
 	mutex_unlock(&ec->cmd_lock);
 
 	/* Finished, wake up olpc_ec_cmd() */
@@ -101,7 +108,7 @@ static void olpc_ec_worker(struct work_struct *w)
  * locking is pretty critical.
  */
 static void queue_ec_descriptor(struct ec_cmd_desc *desc,
-		struct olpc_ec_priv *ec)
+								struct olpc_ec_priv *ec)
 {
 	unsigned long flags;
 
@@ -121,14 +128,20 @@ int olpc_ec_cmd(u8 cmd, u8 *inbuf, size_t inlen, u8 *outbuf, size_t outlen)
 
 	/* Ensure a driver and ec hook have been registered */
 	if (WARN_ON(!ec_driver || !ec_driver->ec_cmd))
+	{
 		return -ENODEV;
+	}
 
 	if (!ec)
+	{
 		return -ENOMEM;
+	}
 
 	/* Suspending in the middle of a command hoses things really badly */
 	if (WARN_ON(ec->suspended))
+	{
 		return -EBUSY;
+	}
 
 	might_sleep();
 
@@ -165,7 +178,7 @@ static unsigned char ec_dbgfs_resp[EC_MAX_CMD_REPLY];
 static unsigned int ec_dbgfs_resp_bytes;
 
 static ssize_t ec_dbgfs_cmd_write(struct file *file, const char __user *buf,
-		size_t size, loff_t *ppos)
+								  size_t size, loff_t *ppos)
 {
 	int i, m;
 	unsigned char ec_cmd[EC_MAX_CMD_ARGS];
@@ -178,9 +191,11 @@ static ssize_t ec_dbgfs_cmd_write(struct file *file, const char __user *buf,
 	size = simple_write_to_buffer(cmdbuf, sizeof(cmdbuf), ppos, buf, size);
 
 	m = sscanf(cmdbuf, "%x:%u %x %x %x %x %x", &ec_cmd_int[0],
-			&ec_dbgfs_resp_bytes, &ec_cmd_int[1], &ec_cmd_int[2],
-			&ec_cmd_int[3], &ec_cmd_int[4], &ec_cmd_int[5]);
-	if (m < 2 || ec_dbgfs_resp_bytes > EC_MAX_CMD_REPLY) {
+			   &ec_dbgfs_resp_bytes, &ec_cmd_int[1], &ec_cmd_int[2],
+			   &ec_cmd_int[3], &ec_cmd_int[4], &ec_cmd_int[5]);
+
+	if (m < 2 || ec_dbgfs_resp_bytes > EC_MAX_CMD_REPLY)
+	{
 		/* reset to prevent overflow on read */
 		ec_dbgfs_resp_bytes = 0;
 
@@ -191,18 +206,21 @@ static ssize_t ec_dbgfs_cmd_write(struct file *file, const char __user *buf,
 
 	/* convert scanf'd ints to char */
 	ec_cmd_bytes = m - 2;
+
 	for (i = 0; i <= ec_cmd_bytes; i++)
+	{
 		ec_cmd[i] = ec_cmd_int[i];
+	}
 
 	pr_debug("olpc-ec: debugfs cmd 0x%02x with %d args %5ph, want %d returns\n",
-			ec_cmd[0], ec_cmd_bytes, ec_cmd + 1,
-			ec_dbgfs_resp_bytes);
+			 ec_cmd[0], ec_cmd_bytes, ec_cmd + 1,
+			 ec_dbgfs_resp_bytes);
 
 	olpc_ec_cmd(ec_cmd[0], (ec_cmd_bytes == 0) ? NULL : &ec_cmd[1],
-			ec_cmd_bytes, ec_dbgfs_resp, ec_dbgfs_resp_bytes);
+				ec_cmd_bytes, ec_dbgfs_resp, ec_dbgfs_resp_bytes);
 
 	pr_debug("olpc-ec: response %8ph (%d bytes expected)\n",
-			ec_dbgfs_resp, ec_dbgfs_resp_bytes);
+			 ec_dbgfs_resp, ec_dbgfs_resp_bytes);
 
 out:
 	mutex_unlock(&ec_dbgfs_lock);
@@ -210,7 +228,7 @@ out:
 }
 
 static ssize_t ec_dbgfs_cmd_read(struct file *file, char __user *buf,
-		size_t size, loff_t *ppos)
+								 size_t size, loff_t *ppos)
 {
 	unsigned int i, r;
 	char *rp;
@@ -219,8 +237,12 @@ static ssize_t ec_dbgfs_cmd_read(struct file *file, char __user *buf,
 	mutex_lock(&ec_dbgfs_lock);
 	rp = respbuf;
 	rp += sprintf(rp, "%02x", ec_dbgfs_resp[0]);
+
 	for (i = 1; i < ec_dbgfs_resp_bytes; i++)
+	{
 		rp += sprintf(rp, ", %02x", ec_dbgfs_resp[i]);
+	}
+
 	mutex_unlock(&ec_dbgfs_lock);
 	rp += sprintf(rp, "\n");
 
@@ -228,7 +250,8 @@ static ssize_t ec_dbgfs_cmd_read(struct file *file, char __user *buf,
 	return simple_read_from_buffer(buf, size, ppos, respbuf, r);
 }
 
-static const struct file_operations ec_dbgfs_ops = {
+static const struct file_operations ec_dbgfs_ops =
+{
 	.write = ec_dbgfs_cmd_write,
 	.read = ec_dbgfs_cmd_read,
 };
@@ -238,8 +261,11 @@ static struct dentry *olpc_ec_setup_debugfs(void)
 	struct dentry *dbgfs_dir;
 
 	dbgfs_dir = debugfs_create_dir("olpc-ec", NULL);
+
 	if (IS_ERR_OR_NULL(dbgfs_dir))
+	{
 		return NULL;
+	}
 
 	debugfs_create_file("cmd", 0600, dbgfs_dir, NULL, &ec_dbgfs_ops);
 
@@ -261,11 +287,16 @@ static int olpc_ec_probe(struct platform_device *pdev)
 	int err;
 
 	if (!ec_driver)
+	{
 		return -ENODEV;
+	}
 
 	ec = kzalloc(sizeof(*ec), GFP_KERNEL);
+
 	if (!ec)
+	{
 		return -ENOMEM;
+	}
 
 	ec->drv = ec_driver;
 	INIT_WORK(&ec->worker, olpc_ec_worker);
@@ -278,10 +309,14 @@ static int olpc_ec_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, ec);
 
 	err = ec_driver->probe ? ec_driver->probe(pdev) : 0;
-	if (err) {
+
+	if (err)
+	{
 		ec_priv = NULL;
 		kfree(ec);
-	} else {
+	}
+	else
+	{
 		ec->dbgfs_dir = olpc_ec_setup_debugfs();
 	}
 
@@ -295,9 +330,14 @@ static int olpc_ec_suspend(struct device *dev)
 	int err = 0;
 
 	if (ec_driver->suspend)
+	{
 		err = ec_driver->suspend(pdev);
+	}
+
 	if (!err)
+	{
 		ec->suspended = true;
+	}
 
 	return err;
 }
@@ -311,12 +351,14 @@ static int olpc_ec_resume(struct device *dev)
 	return ec_driver->resume ? ec_driver->resume(pdev) : 0;
 }
 
-static const struct dev_pm_ops olpc_ec_pm_ops = {
+static const struct dev_pm_ops olpc_ec_pm_ops =
+{
 	.suspend_late = olpc_ec_suspend,
 	.resume_early = olpc_ec_resume,
 };
 
-static struct platform_driver olpc_ec_plat_driver = {
+static struct platform_driver olpc_ec_plat_driver =
+{
 	.probe = olpc_ec_probe,
 	.driver = {
 		.name = "olpc-ec",

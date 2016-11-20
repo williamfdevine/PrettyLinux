@@ -1,5 +1,5 @@
 /*
- *  scsi.h Copyright (C) 1992 Drew Eckhardt 
+ *  scsi.h Copyright (C) 1992 Drew Eckhardt
  *         Copyright (C) 1993, 1994, 1995, 1998, 1999 Eric Youngdale
  *  generic SCSI package header file by
  *      Initial versions: Drew Eckhardt
@@ -30,10 +30,10 @@
  * Some defs, in case these are not defined elsewhere.
  */
 #ifndef TRUE
-#define TRUE 1
+	#define TRUE 1
 #endif
 #ifndef FALSE
-#define FALSE 0
+	#define FALSE 0
 #endif
 
 struct Scsi_Host;

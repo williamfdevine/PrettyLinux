@@ -102,7 +102,8 @@ extern "C" {
 
 #endif				/* __R128_SAREA_DEFINES__ */
 
-typedef struct {
+typedef struct
+{
 	/* Context state - can be written in one large chunk */
 	unsigned int dst_pitch_offset_c;
 	unsigned int dp_gui_master_cntl_c;
@@ -139,7 +140,8 @@ typedef struct {
 
 /* Setup registers for each texture unit
  */
-typedef struct {
+typedef struct
+{
 	unsigned int tex_cntl;
 	unsigned int tex_combine_cntl;
 	unsigned int tex_size_pitch;
@@ -147,7 +149,8 @@ typedef struct {
 	unsigned int tex_border_color;
 } drm_r128_texture_regs_t;
 
-typedef struct drm_r128_sarea {
+typedef struct drm_r128_sarea
+{
 	/* The channel for communication of state information to the kernel
 	 * on firing a vertex buffer.
 	 */
@@ -223,8 +226,10 @@ typedef struct drm_r128_sarea {
 #define DRM_IOCTL_R128_GETPARAM   DRM_IOWR( DRM_COMMAND_BASE + DRM_R128_GETPARAM, drm_r128_getparam_t)
 #define DRM_IOCTL_R128_FLIP       DRM_IO(  DRM_COMMAND_BASE + DRM_R128_FLIP)
 
-typedef struct drm_r128_init {
-	enum {
+typedef struct drm_r128_init
+{
+	enum
+	{
 		R128_INIT_CCE = 0x01,
 		R128_CLEANUP_CCE = 0x02
 	} func;
@@ -250,12 +255,14 @@ typedef struct drm_r128_init {
 	unsigned long agp_textures_offset;
 } drm_r128_init_t;
 
-typedef struct drm_r128_cce_stop {
+typedef struct drm_r128_cce_stop
+{
 	int flush;
 	int idle;
 } drm_r128_cce_stop_t;
 
-typedef struct drm_r128_clear {
+typedef struct drm_r128_clear
+{
 	unsigned int flags;
 	unsigned int clear_color;
 	unsigned int clear_depth;
@@ -263,14 +270,16 @@ typedef struct drm_r128_clear {
 	unsigned int depth_mask;
 } drm_r128_clear_t;
 
-typedef struct drm_r128_vertex {
+typedef struct drm_r128_vertex
+{
 	int prim;
 	int idx;		/* Index of vertex buffer */
 	int count;		/* Number of vertices in buffer */
 	int discard;		/* Client finished with buffer? */
 } drm_r128_vertex_t;
 
-typedef struct drm_r128_indices {
+typedef struct drm_r128_indices
+{
 	int prim;
 	int idx;
 	int start;
@@ -278,7 +287,8 @@ typedef struct drm_r128_indices {
 	int discard;		/* Client finished with buffer? */
 } drm_r128_indices_t;
 
-typedef struct drm_r128_blit {
+typedef struct drm_r128_blit
+{
 	int idx;
 	int pitch;
 	int offset;
@@ -287,8 +297,10 @@ typedef struct drm_r128_blit {
 	unsigned short width, height;
 } drm_r128_blit_t;
 
-typedef struct drm_r128_depth {
-	enum {
+typedef struct drm_r128_depth
+{
+	enum
+	{
 		R128_WRITE_SPAN = 0x01,
 		R128_WRITE_PIXELS = 0x02,
 		R128_READ_SPAN = 0x03,
@@ -301,19 +313,23 @@ typedef struct drm_r128_depth {
 	unsigned char __user *mask;
 } drm_r128_depth_t;
 
-typedef struct drm_r128_stipple {
+typedef struct drm_r128_stipple
+{
 	unsigned int __user *mask;
 } drm_r128_stipple_t;
 
-typedef struct drm_r128_indirect {
+typedef struct drm_r128_indirect
+{
 	int idx;
 	int start;
 	int end;
 	int discard;
 } drm_r128_indirect_t;
 
-typedef struct drm_r128_fullscreen {
-	enum {
+typedef struct drm_r128_fullscreen
+{
+	enum
+	{
 		R128_INIT_FULLSCREEN = 0x01,
 		R128_CLEANUP_FULLSCREEN = 0x02
 	} func;
@@ -324,7 +340,8 @@ typedef struct drm_r128_fullscreen {
  */
 #define R128_PARAM_IRQ_NR            1
 
-typedef struct drm_r128_getparam {
+typedef struct drm_r128_getparam
+{
 	int param;
 	void __user *value;
 } drm_r128_getparam_t;

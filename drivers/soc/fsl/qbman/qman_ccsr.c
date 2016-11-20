@@ -107,7 +107,8 @@ EXPORT_SYMBOL(qm_channel_pool1);
 #define QM_CI_SCHED_CFG_SRCCIV_EN	BIT(31)
 
 /* Follows WQ_CS_CFG0-5 */
-enum qm_wq_class {
+enum qm_wq_class
+{
 	qm_wq_portal = 0,
 	qm_wq_pool = 1,
 	qm_wq_fman0 = 2,
@@ -119,7 +120,8 @@ enum qm_wq_class {
 };
 
 /* Follows FQD_[BARE|BAR|AR] and PFDR_[BARE|BAR|AR] */
-enum qm_memory {
+enum qm_memory
+{
 	qm_memory_fqd,
 	qm_memory_pfdr
 };
@@ -146,13 +148,14 @@ enum qm_memory {
 
 /* QMAN_ECIR valid error bit */
 #define PORTAL_ECSR_ERR	(QM_EIRQ_IEQI | QM_EIRQ_IESI | QM_EIRQ_IEOI | \
-			 QM_EIRQ_IDQI | QM_EIRQ_IDSI | QM_EIRQ_IDFI | \
-			 QM_EIRQ_IDDI | QM_EIRQ_ICVI | QM_EIRQ_IFSI)
+						 QM_EIRQ_IDQI | QM_EIRQ_IDSI | QM_EIRQ_IDFI | \
+						 QM_EIRQ_IDDI | QM_EIRQ_ICVI | QM_EIRQ_IFSI)
 #define FQID_ECSR_ERR	(QM_EIRQ_IEQI | QM_EIRQ_IECI | QM_EIRQ_IESI | \
-			 QM_EIRQ_IEOI | QM_EIRQ_IDQI | QM_EIRQ_IDFI | \
-			 QM_EIRQ_IFSI)
+						 QM_EIRQ_IEOI | QM_EIRQ_IDQI | QM_EIRQ_IDFI | \
+						 QM_EIRQ_IFSI)
 
-struct qm_ecir {
+struct qm_ecir
+{
 	u32 info; /* res[30-31], ptyp[29], pnum[24-28], fqid[0-23] */
 };
 
@@ -171,7 +174,8 @@ static int qm_ecir_get_fqid(const struct qm_ecir *p)
 	return p->info & (BIT(24) - 1);
 }
 
-struct qm_ecir2 {
+struct qm_ecir2
+{
 	u32 info; /* ptyp[31], res[10-30], pnum[0-9] */
 };
 
@@ -185,9 +189,10 @@ static int qm_ecir2_get_pnum(const struct qm_ecir2 *p)
 	return p->info & (BIT(10) - 1);
 }
 
-struct qm_eadr {
+struct qm_eadr
+{
 	u32 info; /* memid[24-27], eadr[0-11] */
-		  /* v3: memid[24-28], eadr[0-15] */
+	/* v3: memid[24-28], eadr[0-15] */
 };
 
 static int qm_eadr_get_memid(const struct qm_eadr *p)
@@ -210,13 +215,15 @@ static int qm_eadr_v3_get_eadr(const struct qm_eadr *p)
 	return p->info & (BIT(16) - 1);
 }
 
-struct qman_hwerr_txt {
+struct qman_hwerr_txt
+{
 	u32 mask;
 	const char *txt;
 };
 
 
-static const struct qman_hwerr_txt qman_hwerr_txts[] = {
+static const struct qman_hwerr_txt qman_hwerr_txts[] =
+{
 	{ QM_EIRQ_CIDE, "Corenet Initiator Data Error" },
 	{ QM_EIRQ_CTDE, "Corenet Target Data Error" },
 	{ QM_EIRQ_CITT, "Corenet Invalid Target Transaction" },
@@ -237,13 +244,15 @@ static const struct qman_hwerr_txt qman_hwerr_txts[] = {
 	{ QM_EIRQ_IEQI, "Invalid Enqueue Queue" },
 };
 
-struct qman_error_info_mdata {
+struct qman_error_info_mdata
+{
 	u16 addr_mask;
 	u16 bits;
 	const char *txt;
 };
 
-static const struct qman_error_info_mdata error_mdata[] = {
+static const struct qman_error_info_mdata error_mdata[] =
+{
 	{ 0x01FF, 24, "FQD cache tag memory 0" },
 	{ 0x01FF, 24, "FQD cache tag memory 1" },
 	{ 0x01FF, 24, "FQD cache tag memory 2" },
@@ -274,12 +283,12 @@ static u32 qm_pools_sdqcr;
 
 static inline u32 qm_ccsr_in(u32 offset)
 {
-	return ioread32be(qm_ccsr_start + offset/4);
+	return ioread32be(qm_ccsr_start + offset / 4);
 }
 
 static inline void qm_ccsr_out(u32 offset, u32 val)
 {
-	iowrite32be(val, qm_ccsr_start + offset/4);
+	iowrite32be(val, qm_ccsr_start + offset / 4);
 }
 
 u32 qm_get_pools_sdqcr(void)
@@ -287,7 +296,8 @@ u32 qm_get_pools_sdqcr(void)
 	return qm_pools_sdqcr;
 }
 
-enum qm_dc_portal {
+enum qm_dc_portal
+{
 	qm_dc_portal_fman0 = 0,
 	qm_dc_portal_fman1 = 1
 };
@@ -295,23 +305,24 @@ enum qm_dc_portal {
 static void qm_set_dc(enum qm_dc_portal portal, int ed, u8 sernd)
 {
 	DPAA_ASSERT(!ed || portal == qm_dc_portal_fman0 ||
-		    portal == qm_dc_portal_fman1);
+				portal == qm_dc_portal_fman1);
+
 	if ((qman_ip_rev & 0xFF00) >= QMAN_REV30)
 		qm_ccsr_out(REG_DCP_CFG(portal),
-			    (ed ? 0x1000 : 0) | (sernd & 0x3ff));
+					(ed ? 0x1000 : 0) | (sernd & 0x3ff));
 	else
 		qm_ccsr_out(REG_DCP_CFG(portal),
-			    (ed ? 0x100 : 0) | (sernd & 0x1f));
+					(ed ? 0x100 : 0) | (sernd & 0x1f));
 }
 
 static void qm_set_wq_scheduling(enum qm_wq_class wq_class,
-				 u8 cs_elev, u8 csw2, u8 csw3, u8 csw4,
-				 u8 csw5, u8 csw6, u8 csw7)
+								 u8 cs_elev, u8 csw2, u8 csw3, u8 csw4,
+								 u8 csw5, u8 csw6, u8 csw7)
 {
 	qm_ccsr_out(REG_WQ_CS_CFG(wq_class), ((cs_elev & 0xff) << 24) |
-		    ((csw2 & 0x7) << 20) | ((csw3 & 0x7) << 16) |
-		    ((csw4 & 0x7) << 12) | ((csw5 & 0x7) << 8) |
-		    ((csw6 & 0x7) << 4) | (csw7 & 0x7));
+				((csw2 & 0x7) << 20) | ((csw3 & 0x7) << 16) |
+				((csw4 & 0x7) << 12) | ((csw5 & 0x7) << 8) |
+				((csw6 & 0x7) << 4) | (csw7 & 0x7));
 }
 
 static void qm_set_hid(void)
@@ -322,10 +333,10 @@ static void qm_set_hid(void)
 static void qm_set_corenet_initiator(void)
 {
 	qm_ccsr_out(REG_CI_SCHED_CFG, QM_CI_SCHED_CFG_SRCCIV_EN |
-		    (QM_CI_SCHED_CFG_SRCCIV << 24) |
-		    (QM_CI_SCHED_CFG_SRQ_W << 8) |
-		    (QM_CI_SCHED_CFG_RW_W << 4) |
-		    QM_CI_SCHED_CFG_BMAN_W);
+				(QM_CI_SCHED_CFG_SRCCIV << 24) |
+				(QM_CI_SCHED_CFG_SRQ_W << 8) |
+				(QM_CI_SCHED_CFG_RW_W << 4) |
+				QM_CI_SCHED_CFG_BMAN_W);
 }
 
 static void qm_get_version(u16 *id, u8 *major, u8 *minor)
@@ -343,8 +354,8 @@ static void qm_set_memory(enum qm_memory memory, u64 ba, u32 size)
 	u32 exp = ilog2(size);
 
 	/* choke if size isn't within range */
-	DPAA_ASSERT((size >= 4096) && (size <= 1024*1024*1024) &&
-		    is_power_of_2(size));
+	DPAA_ASSERT((size >= 4096) && (size <= 1024 * 1024 * 1024) &&
+				is_power_of_2(size));
 	/* choke if 'ba' has lower-alignment than 'size' */
 	DPAA_ASSERT(!(ba & (size - 1)));
 	qm_ccsr_out(offset, upper_32_bits(ba));
@@ -368,8 +379,10 @@ static int qm_init_pfdr(struct device *dev, u32 pfdr_start, u32 num)
 	u8 rslt = MCR_get_rslt(qm_ccsr_in(REG_MCR));
 
 	DPAA_ASSERT(pfdr_start && !(pfdr_start & 7) && !(num & 7) && num);
+
 	/* Make sure the command interface is 'idle' */
-	if (!MCR_rslt_idle(rslt)) {
+	if (!MCR_rslt_idle(rslt))
+	{
 		dev_crit(dev, "QMAN_MCR isn't idle");
 		WARN_ON(1);
 	}
@@ -384,16 +397,29 @@ static int qm_init_pfdr(struct device *dev, u32 pfdr_start, u32 num)
 	qm_ccsr_out(REG_MCP(1), pfdr_start + num - 16);
 	dma_wmb();
 	qm_ccsr_out(REG_MCR, MCR_INIT_PFDR);
+
 	/* Poll for the result */
-	do {
+	do
+	{
 		rslt = MCR_get_rslt(qm_ccsr_in(REG_MCR));
-	} while (!MCR_rslt_idle(rslt));
+	}
+	while (!MCR_rslt_idle(rslt));
+
 	if (MCR_rslt_ok(rslt))
+	{
 		return 0;
+	}
+
 	if (MCR_rslt_eaccess(rslt))
+	{
 		return -EACCES;
+	}
+
 	if (MCR_rslt_inval(rslt))
+	{
 		return -EINVAL;
+	}
+
 	dev_crit(dev, "Unexpected result from MCR_INIT_PFDR: %02x\n", rslt);
 	return -ENODEV;
 }
@@ -439,14 +465,14 @@ static unsigned int qm_get_fqid_maxcnt(void)
  * transactions for this memory region could be marked non-coherent.
  */
 static int zero_priv_mem(struct device *dev, struct device_node *node,
-			 phys_addr_t addr, size_t sz)
+						 phys_addr_t addr, size_t sz)
 {
 	/* map as cacheable, non-guarded */
 	void __iomem *tmpp = ioremap_prot(addr, sz, 0);
 
 	memset_io(tmpp, 0, sz);
 	flush_dcache_range((unsigned long)tmpp,
-			   (unsigned long)tmpp + sz);
+					   (unsigned long)tmpp + sz);
 	iounmap(tmpp);
 
 	return 0;
@@ -458,65 +484,82 @@ static void log_edata_bits(struct device *dev, u32 bit_count)
 
 	dev_warn(dev, "ErrInt, EDATA:\n");
 	i = bit_count / 32;
-	if (bit_count % 32) {
+
+	if (bit_count % 32)
+	{
 		i++;
 		mask = ~(mask << bit_count % 32);
 	}
+
 	j = 16 - i;
 	dev_warn(dev, "  0x%08x\n", qm_ccsr_in(REG_EDATA(j)) & mask);
 	j++;
+
 	for (; j < 16; j++)
+	{
 		dev_warn(dev, "  0x%08x\n", qm_ccsr_in(REG_EDATA(j)));
+	}
 }
 
 static void log_additional_error_info(struct device *dev, u32 isr_val,
-				      u32 ecsr_val)
+									  u32 ecsr_val)
 {
 	struct qm_ecir ecir_val;
 	struct qm_eadr eadr_val;
 	int memid;
 
 	ecir_val.info = qm_ccsr_in(REG_ECIR);
+
 	/* Is portal info valid */
-	if ((qman_ip_rev & 0xFF00) >= QMAN_REV30) {
+	if ((qman_ip_rev & 0xFF00) >= QMAN_REV30)
+	{
 		struct qm_ecir2 ecir2_val;
 
 		ecir2_val.info = qm_ccsr_in(REG_ECIR2);
-		if (ecsr_val & PORTAL_ECSR_ERR) {
+
+		if (ecsr_val & PORTAL_ECSR_ERR)
+		{
 			dev_warn(dev, "ErrInt: %s id %d\n",
-				 qm_ecir2_is_dcp(&ecir2_val) ? "DCP" : "SWP",
-				 qm_ecir2_get_pnum(&ecir2_val));
+					 qm_ecir2_is_dcp(&ecir2_val) ? "DCP" : "SWP",
+					 qm_ecir2_get_pnum(&ecir2_val));
 		}
+
 		if (ecsr_val & (FQID_ECSR_ERR | QM_EIRQ_IECE))
 			dev_warn(dev, "ErrInt: ecir.fqid 0x%x\n",
-				 qm_ecir_get_fqid(&ecir_val));
+					 qm_ecir_get_fqid(&ecir_val));
 
-		if (ecsr_val & (QM_EIRQ_SBEI|QM_EIRQ_MBEI)) {
+		if (ecsr_val & (QM_EIRQ_SBEI | QM_EIRQ_MBEI))
+		{
 			eadr_val.info = qm_ccsr_in(REG_EADR);
 			memid = qm_eadr_v3_get_memid(&eadr_val);
 			dev_warn(dev, "ErrInt: EADR Memory: %s, 0x%x\n",
-				 error_mdata[memid].txt,
-				 error_mdata[memid].addr_mask
-					& qm_eadr_v3_get_eadr(&eadr_val));
+					 error_mdata[memid].txt,
+					 error_mdata[memid].addr_mask
+					 & qm_eadr_v3_get_eadr(&eadr_val));
 			log_edata_bits(dev, error_mdata[memid].bits);
 		}
-	} else {
-		if (ecsr_val & PORTAL_ECSR_ERR) {
+	}
+	else
+	{
+		if (ecsr_val & PORTAL_ECSR_ERR)
+		{
 			dev_warn(dev, "ErrInt: %s id %d\n",
-				 qm_ecir_is_dcp(&ecir_val) ? "DCP" : "SWP",
-				 qm_ecir_get_pnum(&ecir_val));
+					 qm_ecir_is_dcp(&ecir_val) ? "DCP" : "SWP",
+					 qm_ecir_get_pnum(&ecir_val));
 		}
+
 		if (ecsr_val & FQID_ECSR_ERR)
 			dev_warn(dev, "ErrInt: ecir.fqid 0x%x\n",
-				 qm_ecir_get_fqid(&ecir_val));
+					 qm_ecir_get_fqid(&ecir_val));
 
-		if (ecsr_val & (QM_EIRQ_SBEI|QM_EIRQ_MBEI)) {
+		if (ecsr_val & (QM_EIRQ_SBEI | QM_EIRQ_MBEI))
+		{
 			eadr_val.info = qm_ccsr_in(REG_EADR);
 			memid = qm_eadr_get_memid(&eadr_val);
 			dev_warn(dev, "ErrInt: EADR Memory: %s, 0x%x\n",
-				 error_mdata[memid].txt,
-				 error_mdata[memid].addr_mask
-					& qm_eadr_get_eadr(&eadr_val));
+					 error_mdata[memid].txt,
+					 error_mdata[memid].addr_mask
+					 & qm_eadr_get_eadr(&eadr_val));
 			log_edata_bits(dev, error_mdata[memid].bits);
 		}
 	}
@@ -533,26 +576,35 @@ static irqreturn_t qman_isr(int irq, void *ptr)
 	isr_mask = isr_val & ier_val;
 
 	if (!isr_mask)
+	{
 		return IRQ_NONE;
+	}
 
-	for (i = 0; i < ARRAY_SIZE(qman_hwerr_txts); i++) {
-		if (qman_hwerr_txts[i].mask & isr_mask) {
+	for (i = 0; i < ARRAY_SIZE(qman_hwerr_txts); i++)
+	{
+		if (qman_hwerr_txts[i].mask & isr_mask)
+		{
 			dev_err_ratelimited(dev, "ErrInt: %s\n",
-					    qman_hwerr_txts[i].txt);
-			if (qman_hwerr_txts[i].mask & ecsr_val) {
+								qman_hwerr_txts[i].txt);
+
+			if (qman_hwerr_txts[i].mask & ecsr_val)
+			{
 				log_additional_error_info(dev, isr_mask,
-							  ecsr_val);
+										  ecsr_val);
 				/* Re-arm error capture registers */
 				qm_ccsr_out(REG_ECSR, ecsr_val);
 			}
-			if (qman_hwerr_txts[i].mask & QMAN_ERRS_TO_DISABLE) {
+
+			if (qman_hwerr_txts[i].mask & QMAN_ERRS_TO_DISABLE)
+			{
 				dev_dbg(dev, "Disabling error 0x%x\n",
-					qman_hwerr_txts[i].mask);
+						qman_hwerr_txts[i].mask);
 				ier_val &= ~qman_hwerr_txts[i].mask;
 				qm_ccsr_out(REG_ERR_IER, ier_val);
 			}
 		}
 	}
+
 	qm_ccsr_out(REG_ERR_ISR, isr_val);
 
 	return IRQ_HANDLED;
@@ -567,8 +619,12 @@ static int qman_init_ccsr(struct device *dev)
 	/* PFDR memory */
 	qm_set_memory(qm_memory_pfdr, pfdr_a, pfdr_sz);
 	err = qm_init_pfdr(dev, 8, pfdr_sz / 64 - 8);
+
 	if (err)
+	{
 		return err;
+	}
+
 	/* thresholds */
 	qm_set_pfdr_threshold(512, 64);
 	qm_set_sfdr_threshold(128);
@@ -578,9 +634,13 @@ static int qman_init_ccsr(struct device *dev)
 	qm_set_corenet_initiator();
 	/* HID settings */
 	qm_set_hid();
+
 	/* Set scheduling weights to defaults */
 	for (i = qm_wq_first; i <= qm_wq_last; i++)
+	{
 		qm_set_wq_scheduling(i, 0, 0, 0, 0, 0, 0, 0);
+	}
+
 	/* We are not prepared to accept ERNs for hardware enqueues */
 	qm_set_dc(qm_dc_portal_fman0, 1, 0);
 	qm_set_dc(qm_dc_portal_fman1, 1, 0);
@@ -596,19 +656,31 @@ void qman_liodn_fixup(u16 channel)
 	int idx = channel - QM_CHANNEL_SWPORTAL0;
 
 	if ((qman_ip_rev & 0xFF00) >= QMAN_REV30)
+	{
 		before = qm_ccsr_in(REG_REV3_QCSP_LIO_CFG(idx));
+	}
 	else
+	{
 		before = qm_ccsr_in(REG_QCSP_LIO_CFG(idx));
-	if (!done) {
+	}
+
+	if (!done)
+	{
 		liodn_offset = before & LIO_CFG_LIODN_MASK;
 		done = 1;
 		return;
 	}
+
 	after = (before & (~LIO_CFG_LIODN_MASK)) | liodn_offset;
+
 	if ((qman_ip_rev & 0xFF00) >= QMAN_REV30)
+	{
 		qm_ccsr_out(REG_REV3_QCSP_LIO_CFG(idx), after);
+	}
 	else
+	{
 		qm_ccsr_out(REG_QCSP_LIO_CFG(idx), after);
+	}
 }
 
 #define IO_CFG_SDEST_MASK 0x00ff0000
@@ -617,13 +689,16 @@ void qman_set_sdest(u16 channel, unsigned int cpu_idx)
 	int idx = channel - QM_CHANNEL_SWPORTAL0;
 	u32 before, after;
 
-	if ((qman_ip_rev & 0xFF00) >= QMAN_REV30) {
+	if ((qman_ip_rev & 0xFF00) >= QMAN_REV30)
+	{
 		before = qm_ccsr_in(REG_REV3_QCSP_IO_CFG(idx));
 		/* Each pair of vcpu share the same SRQ(SDEST) */
 		cpu_idx /= 2;
 		after = (before & (~IO_CFG_SDEST_MASK)) | (cpu_idx << 16);
 		qm_ccsr_out(REG_REV3_QCSP_IO_CFG(idx), after);
-	} else {
+	}
+	else
+	{
 		before = qm_ccsr_in(REG_QCSP_IO_CFG(idx));
 		after = (before & (~IO_CFG_SDEST_MASK)) | (cpu_idx << 16);
 		qm_ccsr_out(REG_QCSP_IO_CFG(idx), after);
@@ -635,43 +710,55 @@ static int qman_resource_init(struct device *dev)
 	int pool_chan_num, cgrid_num;
 	int ret, i;
 
-	switch (qman_ip_rev >> 8) {
-	case 1:
-		pool_chan_num = 15;
-		cgrid_num = 256;
-		break;
-	case 2:
-		pool_chan_num = 3;
-		cgrid_num = 64;
-		break;
-	case 3:
-		pool_chan_num = 15;
-		cgrid_num = 256;
-		break;
-	default:
-		return -ENODEV;
+	switch (qman_ip_rev >> 8)
+	{
+		case 1:
+			pool_chan_num = 15;
+			cgrid_num = 256;
+			break;
+
+		case 2:
+			pool_chan_num = 3;
+			cgrid_num = 64;
+			break;
+
+		case 3:
+			pool_chan_num = 15;
+			cgrid_num = 256;
+			break;
+
+		default:
+			return -ENODEV;
 	}
 
 	ret = gen_pool_add(qm_qpalloc, qm_channel_pool1 | DPAA_GENALLOC_OFF,
-			   pool_chan_num, -1);
-	if (ret) {
+					   pool_chan_num, -1);
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to seed pool channels (%d)\n", ret);
 		return ret;
 	}
 
 	ret = gen_pool_add(qm_cgralloc, DPAA_GENALLOC_OFF, cgrid_num, -1);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to seed CGRID range (%d)\n", ret);
 		return ret;
 	}
 
 	/* parse pool channels into the SDQCR mask */
 	for (i = 0; i < cgrid_num; i++)
+	{
 		qm_pools_sdqcr |= QM_SDQCR_CHANNELS_POOL_CONV(i);
+	}
 
 	ret = gen_pool_add(qm_fqalloc, QM_FQID_RANGE_START | DPAA_GENALLOC_OFF,
-			   qm_get_fqid_maxcnt() - QM_FQID_RANGE_START, -1);
-	if (ret) {
+					   qm_get_fqid_maxcnt() - QM_FQID_RANGE_START, -1);
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to seed FQID range (%d)\n", ret);
 		return ret;
 	}
@@ -689,59 +776,91 @@ static int fsl_qman_probe(struct platform_device *pdev)
 	u8 major, minor;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(dev, "Can't get %s property 'IORESOURCE_MEM'\n",
-			node->full_name);
+				node->full_name);
 		return -ENXIO;
 	}
+
 	qm_ccsr_start = devm_ioremap(dev, res->start, resource_size(res));
+
 	if (!qm_ccsr_start)
+	{
 		return -ENXIO;
+	}
 
 	qm_get_version(&id, &major, &minor);
-	if (major == 1 && minor == 0) {
+
+	if (major == 1 && minor == 0)
+	{
 		dev_err(dev, "Rev1.0 on P4080 rev1 is not supported!\n");
-			return -ENODEV;
-	} else if (major == 1 && minor == 1)
+		return -ENODEV;
+	}
+	else if (major == 1 && minor == 1)
+	{
 		qman_ip_rev = QMAN_REV11;
+	}
 	else if	(major == 1 && minor == 2)
+	{
 		qman_ip_rev = QMAN_REV12;
+	}
 	else if (major == 2 && minor == 0)
+	{
 		qman_ip_rev = QMAN_REV20;
+	}
 	else if (major == 3 && minor == 0)
+	{
 		qman_ip_rev = QMAN_REV30;
+	}
 	else if (major == 3 && minor == 1)
+	{
 		qman_ip_rev = QMAN_REV31;
-	else {
+	}
+	else
+	{
 		dev_err(dev, "Unknown QMan version\n");
 		return -ENODEV;
 	}
 
 	if ((qman_ip_rev & 0xff00) >= QMAN_REV30)
+	{
 		qm_channel_pool1 = QMAN_CHANNEL_POOL1_REV3;
+	}
 
 	ret = zero_priv_mem(dev, node, fqd_a, fqd_sz);
 	WARN_ON(ret);
+
 	if (ret)
+	{
 		return -ENODEV;
+	}
 
 	ret = qman_init_ccsr(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "CCSR setup failed\n");
 		return ret;
 	}
 
 	err_irq = platform_get_irq(pdev, 0);
-	if (err_irq <= 0) {
+
+	if (err_irq <= 0)
+	{
 		dev_info(dev, "Can't get %s property 'interrupts'\n",
-			 node->full_name);
+				 node->full_name);
 		return -ENODEV;
 	}
+
 	ret = devm_request_irq(dev, err_irq, qman_isr, IRQF_SHARED, "qman-err",
-			       dev);
-	if (ret)  {
+						   dev);
+
+	if (ret)
+	{
 		dev_err(dev, "devm_request_irq() failed %d for '%s'\n",
-			ret, node->full_name);
+				ret, node->full_name);
 		return ret;
 	}
 
@@ -754,49 +873,66 @@ static int fsl_qman_probe(struct platform_device *pdev)
 	qm_ccsr_out(REG_ERR_IER, 0xffffffff);
 
 	qm_fqalloc = devm_gen_pool_create(dev, 0, -1, "qman-fqalloc");
-	if (IS_ERR(qm_fqalloc)) {
+
+	if (IS_ERR(qm_fqalloc))
+	{
 		ret = PTR_ERR(qm_fqalloc);
 		dev_err(dev, "qman-fqalloc pool init failed (%d)\n", ret);
 		return ret;
 	}
 
 	qm_qpalloc = devm_gen_pool_create(dev, 0, -1, "qman-qpalloc");
-	if (IS_ERR(qm_qpalloc)) {
+
+	if (IS_ERR(qm_qpalloc))
+	{
 		ret = PTR_ERR(qm_qpalloc);
 		dev_err(dev, "qman-qpalloc pool init failed (%d)\n", ret);
 		return ret;
 	}
 
 	qm_cgralloc = devm_gen_pool_create(dev, 0, -1, "qman-cgralloc");
-	if (IS_ERR(qm_cgralloc)) {
+
+	if (IS_ERR(qm_cgralloc))
+	{
 		ret = PTR_ERR(qm_cgralloc);
 		dev_err(dev, "qman-cgralloc pool init failed (%d)\n", ret);
 		return ret;
 	}
 
 	ret = qman_resource_init(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = qman_alloc_fq_table(qm_get_fqid_maxcnt());
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = qman_wq_alloc();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
-static const struct of_device_id fsl_qman_ids[] = {
+static const struct of_device_id fsl_qman_ids[] =
+{
 	{
 		.compatible = "fsl,qman",
 	},
 	{}
 };
 
-static struct platform_driver fsl_qman_driver = {
+static struct platform_driver fsl_qman_driver =
+{
 	.driver = {
 		.name = KBUILD_MODNAME,
 		.of_match_table = fsl_qman_ids,

@@ -22,7 +22,8 @@
 #include <linux/of_device.h>
 #include <linux/platform_device.h>
 
-static const struct mfd_cell max77843_devs[] = {
+static const struct mfd_cell max77843_devs[] =
+{
 	{
 		.name = "max77843-muic",
 		.of_compatible = "maxim,max77843-muic",
@@ -41,19 +42,22 @@ static const struct mfd_cell max77843_devs[] = {
 	},
 };
 
-static const struct regmap_config max77843_charger_regmap_config = {
+static const struct regmap_config max77843_charger_regmap_config =
+{
 	.reg_bits	= 8,
 	.val_bits	= 8,
 	.max_register	= MAX77843_CHG_REG_END,
 };
 
-static const struct regmap_config max77843_regmap_config = {
+static const struct regmap_config max77843_regmap_config =
+{
 	.reg_bits	= 8,
 	.val_bits	= 8,
 	.max_register	= MAX77843_SYS_REG_END,
 };
 
-static const struct regmap_irq max77843_irqs[] = {
+static const struct regmap_irq max77843_irqs[] =
+{
 	/* TOPSYS interrupts */
 	{ .reg_offset = 0, .mask = MAX77843_SYS_IRQ_SYSUVLO_INT, },
 	{ .reg_offset = 0, .mask = MAX77843_SYS_IRQ_SYSOVLO_INT, },
@@ -61,7 +65,8 @@ static const struct regmap_irq max77843_irqs[] = {
 	{ .reg_offset = 0, .mask = MAX77843_SYS_IRQ_TM_INT, },
 };
 
-static const struct regmap_irq_chip max77843_irq_chip = {
+static const struct regmap_irq_chip max77843_irq_chip =
+{
 	.name		= "max77843",
 	.status_base	= MAX77843_SYS_REG_SYSINTSRC,
 	.mask_base	= MAX77843_SYS_REG_SYSINTMASK,
@@ -77,16 +82,21 @@ static int max77843_chg_init(struct max77693_dev *max77843)
 	int ret;
 
 	max77843->i2c_chg = i2c_new_dummy(max77843->i2c->adapter, I2C_ADDR_CHG);
-	if (!max77843->i2c_chg) {
+
+	if (!max77843->i2c_chg)
+	{
 		dev_err(&max77843->i2c->dev,
 				"Cannot allocate I2C device for Charger\n");
 		return -ENODEV;
 	}
+
 	i2c_set_clientdata(max77843->i2c_chg, max77843);
 
 	max77843->regmap_chg = devm_regmap_init_i2c(max77843->i2c_chg,
-			&max77843_charger_regmap_config);
-	if (IS_ERR(max77843->regmap_chg)) {
+						   &max77843_charger_regmap_config);
+
+	if (IS_ERR(max77843->regmap_chg))
+	{
 		ret = PTR_ERR(max77843->regmap_chg);
 		goto err_chg_i2c;
 	}
@@ -100,15 +110,18 @@ err_chg_i2c:
 }
 
 static int max77843_probe(struct i2c_client *i2c,
-			  const struct i2c_device_id *id)
+						  const struct i2c_device_id *id)
 {
 	struct max77693_dev *max77843;
 	unsigned int reg_data;
 	int ret;
 
 	max77843 = devm_kzalloc(&i2c->dev, sizeof(*max77843), GFP_KERNEL);
+
 	if (!max77843)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(i2c, max77843);
 	max77843->dev = &i2c->dev;
@@ -117,46 +130,59 @@ static int max77843_probe(struct i2c_client *i2c,
 	max77843->type = id->driver_data;
 
 	max77843->regmap = devm_regmap_init_i2c(i2c,
-			&max77843_regmap_config);
-	if (IS_ERR(max77843->regmap)) {
+											&max77843_regmap_config);
+
+	if (IS_ERR(max77843->regmap))
+	{
 		dev_err(&i2c->dev, "Failed to allocate topsys register map\n");
 		return PTR_ERR(max77843->regmap);
 	}
 
 	ret = regmap_add_irq_chip(max77843->regmap, max77843->irq,
-			IRQF_TRIGGER_LOW | IRQF_ONESHOT | IRQF_SHARED,
-			0, &max77843_irq_chip, &max77843->irq_data_topsys);
-	if (ret) {
+							  IRQF_TRIGGER_LOW | IRQF_ONESHOT | IRQF_SHARED,
+							  0, &max77843_irq_chip, &max77843->irq_data_topsys);
+
+	if (ret)
+	{
 		dev_err(&i2c->dev, "Failed to add TOPSYS IRQ chip\n");
 		return ret;
 	}
 
 	ret = regmap_read(max77843->regmap,
-			MAX77843_SYS_REG_PMICID, &reg_data);
-	if (ret < 0) {
+					  MAX77843_SYS_REG_PMICID, &reg_data);
+
+	if (ret < 0)
+	{
 		dev_err(&i2c->dev, "Failed to read PMIC ID\n");
 		goto err_pmic_id;
 	}
+
 	dev_info(&i2c->dev, "device ID: 0x%x\n", reg_data);
 
 	ret = max77843_chg_init(max77843);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&i2c->dev, "Failed to init Charger\n");
 		goto err_pmic_id;
 	}
 
 	ret = regmap_update_bits(max77843->regmap,
-				 MAX77843_SYS_REG_INTSRCMASK,
-				 MAX77843_INTSRC_MASK_MASK,
-				 (unsigned int)~MAX77843_INTSRC_MASK_MASK);
-	if (ret < 0) {
+							 MAX77843_SYS_REG_INTSRCMASK,
+							 MAX77843_INTSRC_MASK_MASK,
+							 (unsigned int)~MAX77843_INTSRC_MASK_MASK);
+
+	if (ret < 0)
+	{
 		dev_err(&i2c->dev, "Failed to unmask interrupt source\n");
 		goto err_pmic_id;
 	}
 
 	ret = mfd_add_devices(max77843->dev, -1, max77843_devs,
-			      ARRAY_SIZE(max77843_devs), NULL, 0, NULL);
-	if (ret < 0) {
+						  ARRAY_SIZE(max77843_devs), NULL, 0, NULL);
+
+	if (ret < 0)
+	{
 		dev_err(&i2c->dev, "Failed to add mfd device\n");
 		goto err_pmic_id;
 	}
@@ -171,12 +197,14 @@ err_pmic_id:
 	return ret;
 }
 
-static const struct of_device_id max77843_dt_match[] = {
+static const struct of_device_id max77843_dt_match[] =
+{
 	{ .compatible = "maxim,max77843", },
 	{ },
 };
 
-static const struct i2c_device_id max77843_id[] = {
+static const struct i2c_device_id max77843_id[] =
+{
 	{ "max77843", TYPE_MAX77843, },
 	{ },
 };
@@ -187,8 +215,11 @@ static int __maybe_unused max77843_suspend(struct device *dev)
 	struct max77693_dev *max77843 = i2c_get_clientdata(i2c);
 
 	disable_irq(max77843->irq);
+
 	if (device_may_wakeup(dev))
+	{
 		enable_irq_wake(max77843->irq);
+	}
 
 	return 0;
 }
@@ -199,7 +230,10 @@ static int __maybe_unused max77843_resume(struct device *dev)
 	struct max77693_dev *max77843 = i2c_get_clientdata(i2c);
 
 	if (device_may_wakeup(dev))
+	{
 		disable_irq_wake(max77843->irq);
+	}
+
 	enable_irq(max77843->irq);
 
 	return 0;
@@ -207,7 +241,8 @@ static int __maybe_unused max77843_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(max77843_pm, max77843_suspend, max77843_resume);
 
-static struct i2c_driver max77843_i2c_driver = {
+static struct i2c_driver max77843_i2c_driver =
+{
 	.driver	= {
 		.name = "max77843",
 		.pm = &max77843_pm,

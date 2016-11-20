@@ -18,12 +18,14 @@
 #include "pci.h"
 
 void pci_add_resource_offset(struct list_head *resources, struct resource *res,
-			     resource_size_t offset)
+							 resource_size_t offset)
 {
 	struct resource_entry *entry;
 
 	entry = resource_list_create_entry(res, 0);
-	if (!entry) {
+
+	if (!entry)
+	{
 		printk(KERN_ERR "PCI: can't add host bridge window %pR\n", res);
 		return;
 	}
@@ -46,12 +48,14 @@ void pci_free_resource_list(struct list_head *resources)
 EXPORT_SYMBOL(pci_free_resource_list);
 
 void pci_bus_add_resource(struct pci_bus *bus, struct resource *res,
-			  unsigned int flags)
+						  unsigned int flags)
 {
 	struct pci_bus_resource *bus_res;
 
 	bus_res = kzalloc(sizeof(struct pci_bus_resource), GFP_KERNEL);
-	if (!bus_res) {
+
+	if (!bus_res)
+	{
 		dev_err(&bus->dev, "can't add %pR resource\n", res);
 		return;
 	}
@@ -66,12 +70,17 @@ struct resource *pci_bus_resource_n(const struct pci_bus *bus, int n)
 	struct pci_bus_resource *bus_res;
 
 	if (n < PCI_BRIDGE_RESOURCE_NUM)
+	{
 		return bus->resource[n];
+	}
 
 	n -= PCI_BRIDGE_RESOURCE_NUM;
-	list_for_each_entry(bus_res, &bus->resources, list) {
+	list_for_each_entry(bus_res, &bus->resources, list)
+	{
 		if (n-- == 0)
+		{
 			return bus_res->res;
+		}
 	}
 	return NULL;
 }
@@ -83,37 +92,48 @@ void pci_bus_remove_resources(struct pci_bus *bus)
 	struct pci_bus_resource *bus_res, *tmp;
 
 	for (i = 0; i < PCI_BRIDGE_RESOURCE_NUM; i++)
+	{
 		bus->resource[i] = NULL;
+	}
 
-	list_for_each_entry_safe(bus_res, tmp, &bus->resources, list) {
+	list_for_each_entry_safe(bus_res, tmp, &bus->resources, list)
+	{
 		list_del(&bus_res->list);
 		kfree(bus_res);
 	}
 }
 
 int devm_request_pci_bus_resources(struct device *dev,
-				   struct list_head *resources)
+								   struct list_head *resources)
 {
 	struct resource_entry *win;
 	struct resource *parent, *res;
 	int err;
 
-	resource_list_for_each_entry(win, resources) {
+	resource_list_for_each_entry(win, resources)
+	{
 		res = win->res;
-		switch (resource_type(res)) {
-		case IORESOURCE_IO:
-			parent = &ioport_resource;
-			break;
-		case IORESOURCE_MEM:
-			parent = &iomem_resource;
-			break;
-		default:
-			continue;
+
+		switch (resource_type(res))
+		{
+			case IORESOURCE_IO:
+				parent = &ioport_resource;
+				break;
+
+			case IORESOURCE_MEM:
+				parent = &iomem_resource;
+				break;
+
+			default:
+				continue;
 		}
 
 		err = devm_request_resource(dev, parent, res);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	return 0;
@@ -123,9 +143,11 @@ EXPORT_SYMBOL_GPL(devm_request_pci_bus_resources);
 static struct pci_bus_region pci_32_bit = {0, 0xffffffffULL};
 #ifdef CONFIG_PCI_BUS_ADDR_T_64BIT
 static struct pci_bus_region pci_64_bit = {0,
-				(pci_bus_addr_t) 0xffffffffffffffffULL};
+		   (pci_bus_addr_t) 0xffffffffffffffffULL
+};
 static struct pci_bus_region pci_high = {(pci_bus_addr_t) 0x100000000ULL,
-				(pci_bus_addr_t) 0xffffffffffffffffULL};
+		   (pci_bus_addr_t) 0xffffffffffffffffULL
+};
 #endif
 
 /*
@@ -135,32 +157,42 @@ static struct pci_bus_region pci_high = {(pci_bus_addr_t) 0x100000000ULL,
  * can be mapped by a 32-bit BAR.
  */
 static void pci_clip_resource_to_region(struct pci_bus *bus,
-					struct resource *res,
-					struct pci_bus_region *region)
+										struct resource *res,
+										struct pci_bus_region *region)
 {
 	struct pci_bus_region r;
 
 	pcibios_resource_to_bus(bus, &r, res);
+
 	if (r.start < region->start)
+	{
 		r.start = region->start;
+	}
+
 	if (r.end > region->end)
+	{
 		r.end = region->end;
+	}
 
 	if (r.end < r.start)
+	{
 		res->end = res->start - 1;
+	}
 	else
+	{
 		pcibios_bus_to_resource(bus, res, &r);
+	}
 }
 
 static int pci_bus_alloc_from_region(struct pci_bus *bus, struct resource *res,
-		resource_size_t size, resource_size_t align,
-		resource_size_t min, unsigned long type_mask,
-		resource_size_t (*alignf)(void *,
-					  const struct resource *,
-					  resource_size_t,
-					  resource_size_t),
-		void *alignf_data,
-		struct pci_bus_region *region)
+									 resource_size_t size, resource_size_t align,
+									 resource_size_t min, unsigned long type_mask,
+									 resource_size_t (*alignf)(void *,
+											 const struct resource *,
+											 resource_size_t,
+											 resource_size_t),
+									 void *alignf_data,
+									 struct pci_bus_region *region)
 {
 	int i, ret;
 	struct resource *r, avail;
@@ -168,21 +200,28 @@ static int pci_bus_alloc_from_region(struct pci_bus *bus, struct resource *res,
 
 	type_mask |= IORESOURCE_TYPE_BITS;
 
-	pci_bus_for_each_resource(bus, r, i) {
+	pci_bus_for_each_resource(bus, r, i)
+	{
 		resource_size_t min_used = min;
 
 		if (!r)
+		{
 			continue;
+		}
 
 		/* type_mask must match */
 		if ((res->flags ^ r->flags) & type_mask)
+		{
 			continue;
+		}
 
 		/* We cannot allocate a non-prefetching resource
 		   from a pre-fetching area */
 		if ((r->flags & IORESOURCE_PREFETCH) &&
-		    !(res->flags & IORESOURCE_PREFETCH))
+			!(res->flags & IORESOURCE_PREFETCH))
+		{
 			continue;
+		}
 
 		avail = *r;
 		pci_clip_resource_to_region(bus, &avail, region);
@@ -194,15 +233,20 @@ static int pci_bus_alloc_from_region(struct pci_bus *bus, struct resource *res,
 		 * overrides "min".
 		 */
 		if (avail.start)
+		{
 			min_used = avail.start;
+		}
 
 		max = avail.end;
 
 		/* Ok, try it out.. */
 		ret = allocate_resource(r, res, size, min_used, max,
-					align, alignf, alignf_data);
+								align, alignf, alignf_data);
+
 		if (ret == 0)
+		{
 			return 0;
+		}
 	}
 	return -ENOMEM;
 }
@@ -223,33 +267,38 @@ static int pci_bus_alloc_from_region(struct pci_bus *bus, struct resource *res,
  * for a specific device resource.
  */
 int pci_bus_alloc_resource(struct pci_bus *bus, struct resource *res,
-		resource_size_t size, resource_size_t align,
-		resource_size_t min, unsigned long type_mask,
-		resource_size_t (*alignf)(void *,
-					  const struct resource *,
-					  resource_size_t,
-					  resource_size_t),
-		void *alignf_data)
+						   resource_size_t size, resource_size_t align,
+						   resource_size_t min, unsigned long type_mask,
+						   resource_size_t (*alignf)(void *,
+								   const struct resource *,
+								   resource_size_t,
+								   resource_size_t),
+						   void *alignf_data)
 {
 #ifdef CONFIG_PCI_BUS_ADDR_T_64BIT
 	int rc;
 
-	if (res->flags & IORESOURCE_MEM_64) {
+	if (res->flags & IORESOURCE_MEM_64)
+	{
 		rc = pci_bus_alloc_from_region(bus, res, size, align, min,
-					       type_mask, alignf, alignf_data,
-					       &pci_high);
+									   type_mask, alignf, alignf_data,
+									   &pci_high);
+
 		if (rc == 0)
+		{
 			return 0;
+		}
 
 		return pci_bus_alloc_from_region(bus, res, size, align, min,
-						 type_mask, alignf, alignf_data,
-						 &pci_64_bit);
+										 type_mask, alignf, alignf_data,
+										 &pci_64_bit);
 	}
+
 #endif
 
 	return pci_bus_alloc_from_region(bus, res, size, align, min,
-					 type_mask, alignf, alignf_data,
-					 &pci_32_bit);
+									 type_mask, alignf, alignf_data,
+									 &pci_32_bit);
 }
 EXPORT_SYMBOL(pci_bus_alloc_resource);
 
@@ -267,30 +316,39 @@ bool pci_bus_clip_resource(struct pci_dev *dev, int idx)
 	struct resource *r;
 	int i;
 
-	pci_bus_for_each_resource(bus, r, i) {
+	pci_bus_for_each_resource(bus, r, i)
+	{
 		resource_size_t start, end;
 
 		if (!r)
+		{
 			continue;
+		}
 
 		if (resource_type(res) != resource_type(r))
+		{
 			continue;
+		}
 
 		start = max(r->start, res->start);
 		end = min(r->end, res->end);
 
 		if (start > end)
-			continue;	/* no overlap */
+		{
+			continue;    /* no overlap */
+		}
 
 		if (res->start == start && res->end == end)
-			return false;	/* no change */
+		{
+			return false;    /* no change */
+		}
 
 		res->start = start;
 		res->end = end;
 		res->flags &= ~IORESOURCE_UNSET;
 		orig_res.flags &= ~IORESOURCE_UNSET;
 		dev_printk(KERN_DEBUG, &dev->dev, "%pR clipped to %pR\n",
-				 &orig_res, res);
+				   &orig_res, res);
 
 		return true;
 	}
@@ -324,7 +382,9 @@ void pci_bus_add_device(struct pci_dev *dev)
 
 	dev->match_driver = true;
 	retval = device_attach(&dev->dev);
-	if (retval < 0 && retval != -EPROBE_DEFER) {
+
+	if (retval < 0 && retval != -EPROBE_DEFER)
+	{
 		dev_warn(&dev->dev, "device attach failed (%d)\n", retval);
 		pci_proc_detach_device(dev);
 		pci_remove_sysfs_dev_files(dev);
@@ -346,20 +406,31 @@ void pci_bus_add_devices(const struct pci_bus *bus)
 	struct pci_dev *dev;
 	struct pci_bus *child;
 
-	list_for_each_entry(dev, &bus->devices, bus_list) {
+	list_for_each_entry(dev, &bus->devices, bus_list)
+	{
 		/* Skip already-added devices */
 		if (dev->is_added)
+		{
 			continue;
+		}
+
 		pci_bus_add_device(dev);
 	}
 
-	list_for_each_entry(dev, &bus->devices, bus_list) {
+	list_for_each_entry(dev, &bus->devices, bus_list)
+	{
 		/* Skip if device attach failed */
 		if (!dev->is_added)
+		{
 			continue;
+		}
+
 		child = dev->subordinate;
+
 		if (child)
+		{
 			pci_bus_add_devices(child);
+		}
 	}
 }
 EXPORT_SYMBOL(pci_bus_add_devices);
@@ -378,7 +449,7 @@ EXPORT_SYMBOL(pci_bus_add_devices);
  *
  */
 void pci_walk_bus(struct pci_bus *top, int (*cb)(struct pci_dev *, void *),
-		  void *userdata)
+				  void *userdata)
 {
 	struct pci_dev *dev;
 	struct pci_bus *bus;
@@ -388,27 +459,43 @@ void pci_walk_bus(struct pci_bus *top, int (*cb)(struct pci_dev *, void *),
 	bus = top;
 	down_read(&pci_bus_sem);
 	next = top->devices.next;
-	for (;;) {
-		if (next == &bus->devices) {
+
+	for (;;)
+	{
+		if (next == &bus->devices)
+		{
 			/* end of this bus, go up or finish */
 			if (bus == top)
+			{
 				break;
+			}
+
 			next = bus->self->bus_list.next;
 			bus = bus->self->bus;
 			continue;
 		}
+
 		dev = list_entry(next, struct pci_dev, bus_list);
-		if (dev->subordinate) {
+
+		if (dev->subordinate)
+		{
 			/* this is a pci-pci bridge, do its devices next */
 			next = dev->subordinate->devices.next;
 			bus = dev->subordinate;
-		} else
+		}
+		else
+		{
 			next = dev->bus_list.next;
+		}
 
 		retval = cb(dev, userdata);
+
 		if (retval)
+		{
 			break;
+		}
 	}
+
 	up_read(&pci_bus_sem);
 }
 EXPORT_SYMBOL_GPL(pci_walk_bus);
@@ -416,7 +503,10 @@ EXPORT_SYMBOL_GPL(pci_walk_bus);
 struct pci_bus *pci_bus_get(struct pci_bus *bus)
 {
 	if (bus)
+	{
 		get_device(&bus->dev);
+	}
+
 	return bus;
 }
 EXPORT_SYMBOL(pci_bus_get);
@@ -424,6 +514,8 @@ EXPORT_SYMBOL(pci_bus_get);
 void pci_bus_put(struct pci_bus *bus)
 {
 	if (bus)
+	{
 		put_device(&bus->dev);
+	}
 }
 EXPORT_SYMBOL(pci_bus_put);

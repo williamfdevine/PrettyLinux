@@ -20,7 +20,7 @@
 #include <asm/param.h>
 #include <asm/byteorder.h>
 
-/* 
+/*
  *  comp_t is a 16-bit "floating" point number with a 3-bit base 8
  *  exponent and a 13-bit fraction.
  *  comp2_t is 24-bit with 5-bit base 2 exponent and 20 bit fraction
@@ -58,7 +58,7 @@ struct acct
 	comp_t		ac_minflt;		/* Minor Pagefaults */
 	comp_t		ac_majflt;		/* Major Pagefaults */
 	comp_t		ac_swaps;		/* Number of Swaps */
-/* m68k had no padding here. */
+	/* m68k had no padding here. */
 #if !defined(CONFIG_M68K) || !defined(__KERNEL__)
 	__u16		ac_ahz;			/* AHZ */
 #endif
@@ -100,7 +100,7 @@ struct acct_v3
 /*
  *  accounting flags
  */
-				/* bit set when the process ... */
+/* bit set when the process ... */
 #define AFORK		0x01	/* ... executed fork, but did not exec */
 #define ASU		0x02	/* ... used super-user privileges */
 #define ACOMPAT		0x04	/* ... used compatibility mode (VAX only not used) */
@@ -108,16 +108,16 @@ struct acct_v3
 #define AXSIG		0x10	/* ... was killed by a signal */
 
 #if defined(__BYTE_ORDER) ? __BYTE_ORDER == __BIG_ENDIAN : defined(__BIG_ENDIAN)
-#define ACCT_BYTEORDER	0x80	/* accounting file is big endian */
+	#define ACCT_BYTEORDER	0x80	/* accounting file is big endian */
 #elif defined(__BYTE_ORDER) ? __BYTE_ORDER == __LITTLE_ENDIAN : defined(__LITTLE_ENDIAN)
-#define ACCT_BYTEORDER	0x00	/* accounting file is little endian */
+	#define ACCT_BYTEORDER	0x00	/* accounting file is little endian */
 #else
-#error unspecified endianness
+	#error unspecified endianness
 #endif
 
 #ifndef __KERNEL__
-#define ACCT_VERSION	2
-#define AHZ		(HZ)
+	#define ACCT_VERSION	2
+	#define AHZ		(HZ)
 #endif	/* __KERNEL */
 
 

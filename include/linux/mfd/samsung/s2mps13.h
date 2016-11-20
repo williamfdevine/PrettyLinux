@@ -20,7 +20,8 @@
 #define __LINUX_MFD_S2MPS13_H
 
 /* S2MPS13 registers */
-enum s2mps13_reg {
+enum s2mps13_reg
+{
 	S2MPS13_REG_ID,
 	S2MPS13_REG_INT1,
 	S2MPS13_REG_INT2,
@@ -123,7 +124,8 @@ enum s2mps13_reg {
 };
 
 /*  regulator ids */
-enum s2mps13_regulators {
+enum s2mps13_regulators
+{
 	S2MPS13_LDO1,
 	S2MPS13_LDO2,
 	S2MPS13_LDO3,

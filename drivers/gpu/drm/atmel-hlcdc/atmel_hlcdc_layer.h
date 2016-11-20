@@ -162,7 +162,8 @@
  * @disc_size: discard area size register
  * @csc: color space conversion register
  */
-struct atmel_hlcdc_layer_cfg_layout {
+struct atmel_hlcdc_layer_cfg_layout
+{
 	int xstride[ATMEL_HLCDC_MAX_PLANES];
 	int pstride[ATMEL_HLCDC_MAX_PLANES];
 	int pos;
@@ -190,7 +191,8 @@ struct atmel_hlcdc_layer_cfg_layout {
  * @ngems: number of GEM objects referenced by the fb element
  * @status: fb flip operation status
  */
-struct atmel_hlcdc_layer_fb_flip {
+struct atmel_hlcdc_layer_fb_flip
+{
 	struct atmel_hlcdc_dma_channel_dscr *dscrs[ATMEL_HLCDC_MAX_PLANES];
 	struct drm_flip_task *task;
 	struct drm_framebuffer *fb;
@@ -212,7 +214,8 @@ struct atmel_hlcdc_layer_fb_flip {
  * @next: next DMA descriptor to fetch
  * @gem_flip: the attached gem_flip operation
  */
-struct atmel_hlcdc_dma_channel_dscr {
+struct atmel_hlcdc_dma_channel_dscr
+{
 	dma_addr_t addr;
 	u32 ctrl;
 	dma_addr_t next;
@@ -222,7 +225,8 @@ struct atmel_hlcdc_dma_channel_dscr {
 /**
  * Atmel HLCDC layer types
  */
-enum atmel_hlcdc_layer_type {
+enum atmel_hlcdc_layer_type
+{
 	ATMEL_HLCDC_BASE_LAYER,
 	ATMEL_HLCDC_OVERLAY_LAYER,
 	ATMEL_HLCDC_CURSOR_LAYER,
@@ -237,7 +241,8 @@ enum atmel_hlcdc_layer_type {
  * @nformats: number of supported formats
  * @formats: supported formats
  */
-struct atmel_hlcdc_formats {
+struct atmel_hlcdc_formats
+{
 	int nformats;
 	uint32_t *formats;
 };
@@ -257,7 +262,8 @@ struct atmel_hlcdc_formats {
  * @max_width: maximum width supported by this layer (0 means unlimited)
  * @max_height: maximum height supported by this layer (0 means unlimited)
  */
-struct atmel_hlcdc_layer_desc {
+struct atmel_hlcdc_layer_desc
+{
 	const char *name;
 	enum atmel_hlcdc_layer_type type;
 	int id;
@@ -288,7 +294,8 @@ struct atmel_hlcdc_layer_desc {
  * @updated_configs: bitmask used to record modified configs
  * @configs: new config values
  */
-struct atmel_hlcdc_layer_update_slot {
+struct atmel_hlcdc_layer_update_slot
+{
 	struct atmel_hlcdc_layer_fb_flip *fb_flip;
 	unsigned long *updated_configs;
 	u32 *configs;
@@ -313,13 +320,15 @@ struct atmel_hlcdc_layer_update_slot {
  * @pending: the pending slot index or -1 if no request is pending
  * @next: the started update slot index or -1 no update has been started
  */
-struct atmel_hlcdc_layer_update {
+struct atmel_hlcdc_layer_update
+{
 	struct atmel_hlcdc_layer_update_slot slots[2];
 	int pending;
 	int next;
 };
 
-enum atmel_hlcdc_layer_dma_channel_status {
+enum atmel_hlcdc_layer_dma_channel_status
+{
 	ATMEL_HLCDC_LAYER_DISABLED,
 	ATMEL_HLCDC_LAYER_ENABLED,
 	ATMEL_HLCDC_LAYER_DISABLING,
@@ -336,7 +345,8 @@ enum atmel_hlcdc_layer_dma_channel_status {
  * @queue: next framebuffer
  * @dscrs: allocated DMA descriptors
  */
-struct atmel_hlcdc_layer_dma_channel {
+struct atmel_hlcdc_layer_dma_channel
+{
 	enum atmel_hlcdc_layer_dma_channel_status status;
 	struct atmel_hlcdc_layer_fb_flip *cur;
 	struct atmel_hlcdc_layer_fb_flip *queue;
@@ -357,7 +367,8 @@ struct atmel_hlcdc_layer_dma_channel {
  * @update: update handler
  * @lock: layer lock
  */
-struct atmel_hlcdc_layer {
+struct atmel_hlcdc_layer
+{
 	const struct atmel_hlcdc_layer_desc *desc;
 	int max_planes;
 	struct atmel_hlcdc *hlcdc;
@@ -371,26 +382,26 @@ struct atmel_hlcdc_layer {
 void atmel_hlcdc_layer_irq(struct atmel_hlcdc_layer *layer);
 
 int atmel_hlcdc_layer_init(struct drm_device *dev,
-			   struct atmel_hlcdc_layer *layer,
-			   const struct atmel_hlcdc_layer_desc *desc);
+						   struct atmel_hlcdc_layer *layer,
+						   const struct atmel_hlcdc_layer_desc *desc);
 
 void atmel_hlcdc_layer_cleanup(struct drm_device *dev,
-			       struct atmel_hlcdc_layer *layer);
+							   struct atmel_hlcdc_layer *layer);
 
 void atmel_hlcdc_layer_disable(struct atmel_hlcdc_layer *layer);
 
 int atmel_hlcdc_layer_update_start(struct atmel_hlcdc_layer *layer);
 
 void atmel_hlcdc_layer_update_cfg(struct atmel_hlcdc_layer *layer, int cfg,
-				  u32 mask, u32 val);
+								  u32 mask, u32 val);
 
 void atmel_hlcdc_layer_update_set_fb(struct atmel_hlcdc_layer *layer,
-				     struct drm_framebuffer *fb,
-				     unsigned int *offsets);
+									 struct drm_framebuffer *fb,
+									 unsigned int *offsets);
 
 void atmel_hlcdc_layer_update_set_finished(struct atmel_hlcdc_layer *layer,
-					   void (*finished)(void *data),
-					   void *finished_data);
+		void (*finished)(void *data),
+		void *finished_data);
 
 void atmel_hlcdc_layer_update_rollback(struct atmel_hlcdc_layer *layer);
 

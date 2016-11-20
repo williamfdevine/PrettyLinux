@@ -25,7 +25,8 @@
  * @rx_control_0: RX control word 0
  * @rx_control_1: RX control word 1
  */
-struct ath5k_hw_rx_ctl {
+struct ath5k_hw_rx_ctl
+{
 	u32	rx_control_0;
 	u32	rx_control_1;
 } __packed __aligned(4);
@@ -41,7 +42,8 @@ struct ath5k_hw_rx_ctl {
  *
  * 5210, 5211 and 5212 differ only in the fields and flags defined below
  */
-struct ath5k_hw_rx_status {
+struct ath5k_hw_rx_status
+{
 	u32	rx_status_0;
 	u32	rx_status_1;
 } __packed __aligned(4);
@@ -124,7 +126,8 @@ struct ath5k_hw_rx_status {
  * @AR5K_RX_PHY_ERROR_CCK_SERVICE: CCK Service (?) [5212+]
  * @AR5K_RX_PHY_ERROR_CCK_RESTART: CCK Restart (?) [5212+]
  */
-enum ath5k_phy_error_code {
+enum ath5k_phy_error_code
+{
 	AR5K_RX_PHY_ERROR_UNDERRUN		= 0,
 	AR5K_RX_PHY_ERROR_TIMING		= 1,
 	AR5K_RX_PHY_ERROR_PARITY		= 2,
@@ -152,7 +155,8 @@ enum ath5k_phy_error_code {
  * @tx_control_0: TX control word 0
  * @tx_control_1: TX control word 1
  */
-struct ath5k_hw_2w_tx_ctl {
+struct ath5k_hw_2w_tx_ctl
+{
 	u32	tx_control_0;
 	u32	tx_control_1;
 } __packed __aligned(4);
@@ -170,9 +174,9 @@ struct ath5k_hw_2w_tx_ctl {
 #define AR5K_2W_TX_DESC_CTL0_ANT_MODE_XMIT_5210	0x02000000 /* [5210] antenna selection */
 #define AR5K_2W_TX_DESC_CTL0_ANT_MODE_XMIT_5211	0x1e000000 /* [5211] antenna selection */
 #define AR5K_2W_TX_DESC_CTL0_ANT_MODE_XMIT			\
-		(ah->ah_version == AR5K_AR5210 ?		\
-		AR5K_2W_TX_DESC_CTL0_ANT_MODE_XMIT_5210 :	\
-		AR5K_2W_TX_DESC_CTL0_ANT_MODE_XMIT_5211)
+	(ah->ah_version == AR5K_AR5210 ?		\
+	 AR5K_2W_TX_DESC_CTL0_ANT_MODE_XMIT_5210 :	\
+	 AR5K_2W_TX_DESC_CTL0_ANT_MODE_XMIT_5211)
 #define AR5K_2W_TX_DESC_CTL0_ANT_MODE_XMIT_S	25
 #define AR5K_2W_TX_DESC_CTL0_FRAME_TYPE_5210	0x1c000000 /* [5210] frame type */
 #define AR5K_2W_TX_DESC_CTL0_FRAME_TYPE_5210_S	26
@@ -185,9 +189,9 @@ struct ath5k_hw_2w_tx_ctl {
 #define AR5K_2W_TX_DESC_CTL1_ENC_KEY_IDX_5210	0x0007e000 /* [5210] key table index */
 #define AR5K_2W_TX_DESC_CTL1_ENC_KEY_IDX_5211	0x000fe000 /* [5211] key table index */
 #define AR5K_2W_TX_DESC_CTL1_ENC_KEY_IDX				\
-			(ah->ah_version == AR5K_AR5210 ?		\
-			AR5K_2W_TX_DESC_CTL1_ENC_KEY_IDX_5210 :		\
-			AR5K_2W_TX_DESC_CTL1_ENC_KEY_IDX_5211)
+	(ah->ah_version == AR5K_AR5210 ?		\
+	 AR5K_2W_TX_DESC_CTL1_ENC_KEY_IDX_5210 :		\
+	 AR5K_2W_TX_DESC_CTL1_ENC_KEY_IDX_5211)
 #define AR5K_2W_TX_DESC_CTL1_ENC_KEY_IDX_S	13
 #define AR5K_2W_TX_DESC_CTL1_FRAME_TYPE_5211	0x00700000 /* [5211] frame type */
 #define AR5K_2W_TX_DESC_CTL1_FRAME_TYPE_5211_S	20
@@ -210,7 +214,8 @@ struct ath5k_hw_2w_tx_ctl {
  * @tx_control_2: TX control word 2
  * @tx_control_3: TX control word 3
  */
-struct ath5k_hw_4w_tx_ctl {
+struct ath5k_hw_4w_tx_ctl
+{
 	u32	tx_control_0;
 	u32	tx_control_1;
 	u32	tx_control_2;
@@ -273,7 +278,8 @@ struct ath5k_hw_4w_tx_ctl {
  * @tx_status_0: TX status word 0
  * @tx_status_1: TX status word 1
  */
-struct ath5k_hw_tx_status {
+struct ath5k_hw_tx_status
+{
 	u32	tx_status_0;
 	u32	tx_status_1;
 } __packed __aligned(4);
@@ -313,7 +319,8 @@ struct ath5k_hw_tx_status {
  * @tx_ctl: The &struct ath5k_hw_2w_tx_ctl
  * @tx_stat: The &struct ath5k_hw_tx_status
  */
-struct ath5k_hw_5210_tx_desc {
+struct ath5k_hw_5210_tx_desc
+{
 	struct ath5k_hw_2w_tx_ctl	tx_ctl;
 	struct ath5k_hw_tx_status	tx_stat;
 } __packed __aligned(4);
@@ -323,7 +330,8 @@ struct ath5k_hw_5210_tx_desc {
  * @tx_ctl: The &struct ath5k_hw_4w_tx_ctl
  * @tx_stat: The &struct ath5k_hw_tx_status
  */
-struct ath5k_hw_5212_tx_desc {
+struct ath5k_hw_5212_tx_desc
+{
 	struct ath5k_hw_4w_tx_ctl	tx_ctl;
 	struct ath5k_hw_tx_status	tx_stat;
 } __packed __aligned(4);
@@ -333,7 +341,8 @@ struct ath5k_hw_5212_tx_desc {
  * @rx_ctl: The &struct ath5k_hw_rx_ctl
  * @rx_stat: The &struct ath5k_hw_rx_status
  */
-struct ath5k_hw_all_rx_desc {
+struct ath5k_hw_all_rx_desc
+{
 	struct ath5k_hw_rx_ctl		rx_ctl;
 	struct ath5k_hw_rx_status	rx_stat;
 } __packed __aligned(4);
@@ -346,11 +355,13 @@ struct ath5k_hw_all_rx_desc {
  *
  * This is read and written to by the hardware
  */
-struct ath5k_desc {
+struct ath5k_desc
+{
 	u32	ds_link;
 	u32	ds_data;
 
-	union {
+	union
+	{
 		struct ath5k_hw_5210_tx_desc	ds_tx5210;
 		struct ath5k_hw_5212_tx_desc	ds_tx5212;
 		struct ath5k_hw_all_rx_desc	ds_rx;

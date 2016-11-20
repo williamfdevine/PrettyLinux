@@ -14,7 +14,8 @@
 #include "shdma.h"
 
 /* Transmit sizes and respective CHCR register values */
-enum {
+enum
+{
 	XMIT_SZ_8BIT		= 0,
 	XMIT_SZ_16BIT		= 1,
 	XMIT_SZ_32BIT		= 2,
@@ -26,14 +27,14 @@ enum {
 
 /* log2(size / 8) - used to calculate number of transfers */
 #define SH_DMAE_TS_SHIFT {		\
-	[XMIT_SZ_8BIT]		= 0,	\
-	[XMIT_SZ_16BIT]		= 1,	\
-	[XMIT_SZ_32BIT]		= 2,	\
-	[XMIT_SZ_64BIT]		= 3,	\
-	[XMIT_SZ_128BIT]	= 4,	\
-	[XMIT_SZ_256BIT]	= 5,	\
-	[XMIT_SZ_512BIT]	= 6,	\
-}
+		[XMIT_SZ_8BIT]		= 0,	\
+							  [XMIT_SZ_16BIT]		= 1,	\
+									  [XMIT_SZ_32BIT]		= 2,	\
+											  [XMIT_SZ_64BIT]		= 3,	\
+													  [XMIT_SZ_128BIT]	= 4,	\
+															  [XMIT_SZ_256BIT]	= 5,	\
+																	  [XMIT_SZ_512BIT]	= 6,	\
+	}
 
 #define TS_LOW_BIT	0x3 /* --xx */
 #define TS_HI_BIT	0xc /* xx-- */

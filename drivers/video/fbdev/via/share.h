@@ -315,14 +315,16 @@
 #define     LCD_OPENLDI               0x00
 #define     LCD_SPWG                  0x01
 
-struct crt_mode_table {
+struct crt_mode_table
+{
 	int refresh_rate;
 	int h_sync_polarity;
 	int v_sync_polarity;
 	struct via_display_timing crtc;
 };
 
-struct io_reg {
+struct io_reg
+{
 	int port;
 	u8 index;
 	u8 mask;

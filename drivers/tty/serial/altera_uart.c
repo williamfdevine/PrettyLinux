@@ -59,7 +59,7 @@
 #define ALTERA_UART_STATUS_CTS_MSK	0x0800	/* CTS logic state */
 #define ALTERA_UART_STATUS_EOP_MSK	0x1000	/* EOP written/read */
 
-						/* Enable interrupt on... */
+/* Enable interrupt on... */
 #define ALTERA_UART_CONTROL_PE_MSK	0x0001	/* ...parity error */
 #define ALTERA_UART_CONTROL_FE_MSK	0x0002	/* ...framing error */
 #define ALTERA_UART_CONTROL_BRK_MSK	0x0004	/* ...break */
@@ -78,7 +78,8 @@
 /*
  * Local per-uart structure.
  */
-struct altera_uart {
+struct altera_uart
+{
 	struct uart_port port;
 	struct timer_list tmr;
 	unsigned int sigs;	/* Local copy of line sigs */
@@ -98,7 +99,7 @@ static void altera_uart_writel(struct uart_port *port, u32 dat, int reg)
 static unsigned int altera_uart_tx_empty(struct uart_port *port)
 {
 	return (altera_uart_readl(port, ALTERA_UART_STATUS_REG) &
-		ALTERA_UART_STATUS_TMT_MSK) ? TIOCSER_TEMT : 0;
+			ALTERA_UART_STATUS_TMT_MSK) ? TIOCSER_TEMT : 0;
 }
 
 static unsigned int altera_uart_get_mctrl(struct uart_port *port)
@@ -107,7 +108,7 @@ static unsigned int altera_uart_get_mctrl(struct uart_port *port)
 	unsigned int sigs;
 
 	sigs = (altera_uart_readl(port, ALTERA_UART_STATUS_REG) &
-	     ALTERA_UART_STATUS_CTS_MSK) ? TIOCM_CTS : 0;
+			ALTERA_UART_STATUS_CTS_MSK) ? TIOCM_CTS : 0;
 	sigs |= (pp->sigs & TIOCM_RTS);
 
 	return sigs;
@@ -118,10 +119,16 @@ static void altera_uart_set_mctrl(struct uart_port *port, unsigned int sigs)
 	struct altera_uart *pp = container_of(port, struct altera_uart, port);
 
 	pp->sigs = sigs;
+
 	if (sigs & TIOCM_RTS)
+	{
 		pp->imr |= ALTERA_UART_CONTROL_RTS_MSK;
+	}
 	else
+	{
 		pp->imr &= ~ALTERA_UART_CONTROL_RTS_MSK;
+	}
+
 	altera_uart_writel(port, pp->imr, ALTERA_UART_CONTROL_REG);
 }
 
@@ -155,17 +162,23 @@ static void altera_uart_break_ctl(struct uart_port *port, int break_state)
 	unsigned long flags;
 
 	spin_lock_irqsave(&port->lock, flags);
+
 	if (break_state == -1)
+	{
 		pp->imr |= ALTERA_UART_CONTROL_TRBK_MSK;
+	}
 	else
+	{
 		pp->imr &= ~ALTERA_UART_CONTROL_TRBK_MSK;
+	}
+
 	altera_uart_writel(port, pp->imr, ALTERA_UART_CONTROL_REG);
 	spin_unlock_irqrestore(&port->lock, flags);
 }
 
 static void altera_uart_set_termios(struct uart_port *port,
-				    struct ktermios *termios,
-				    struct ktermios *old)
+									struct ktermios *termios,
+									struct ktermios *old)
 {
 	unsigned long flags;
 	unsigned int baud, baudclk;
@@ -174,7 +187,10 @@ static void altera_uart_set_termios(struct uart_port *port,
 	baudclk = port->uartclk / baud;
 
 	if (old)
+	{
 		tty_termios_copy_hw(termios, old);
+	}
+
 	tty_termios_encode_baud_rate(termios, baud, baud);
 
 	spin_lock_irqsave(&port->lock, flags);
@@ -196,41 +212,62 @@ static void altera_uart_rx_chars(struct altera_uart *pp)
 	unsigned short status;
 
 	while ((status = altera_uart_readl(port, ALTERA_UART_STATUS_REG)) &
-	       ALTERA_UART_STATUS_RRDY_MSK) {
+		   ALTERA_UART_STATUS_RRDY_MSK)
+	{
 		ch = altera_uart_readl(port, ALTERA_UART_RXDATA_REG);
 		flag = TTY_NORMAL;
 		port->icount.rx++;
 
-		if (status & ALTERA_UART_STATUS_E_MSK) {
+		if (status & ALTERA_UART_STATUS_E_MSK)
+		{
 			altera_uart_writel(port, status,
-					   ALTERA_UART_STATUS_REG);
+							   ALTERA_UART_STATUS_REG);
 
-			if (status & ALTERA_UART_STATUS_BRK_MSK) {
+			if (status & ALTERA_UART_STATUS_BRK_MSK)
+			{
 				port->icount.brk++;
+
 				if (uart_handle_break(port))
+				{
 					continue;
-			} else if (status & ALTERA_UART_STATUS_PE_MSK) {
+				}
+			}
+			else if (status & ALTERA_UART_STATUS_PE_MSK)
+			{
 				port->icount.parity++;
-			} else if (status & ALTERA_UART_STATUS_ROE_MSK) {
+			}
+			else if (status & ALTERA_UART_STATUS_ROE_MSK)
+			{
 				port->icount.overrun++;
-			} else if (status & ALTERA_UART_STATUS_FE_MSK) {
+			}
+			else if (status & ALTERA_UART_STATUS_FE_MSK)
+			{
 				port->icount.frame++;
 			}
 
 			status &= port->read_status_mask;
 
 			if (status & ALTERA_UART_STATUS_BRK_MSK)
+			{
 				flag = TTY_BREAK;
+			}
 			else if (status & ALTERA_UART_STATUS_PE_MSK)
+			{
 				flag = TTY_PARITY;
+			}
 			else if (status & ALTERA_UART_STATUS_FE_MSK)
+			{
 				flag = TTY_FRAME;
+			}
 		}
 
 		if (uart_handle_sysrq_char(port, ch))
+		{
 			continue;
+		}
+
 		uart_insert_char(port, status, ALTERA_UART_STATUS_ROE_MSK, ch,
-				 flag);
+						 flag);
 	}
 
 	spin_unlock(&port->lock);
@@ -243,7 +280,8 @@ static void altera_uart_tx_chars(struct altera_uart *pp)
 	struct uart_port *port = &pp->port;
 	struct circ_buf *xmit = &port->state->xmit;
 
-	if (port->x_char) {
+	if (port->x_char)
+	{
 		/* Send special char - probably flow control */
 		altera_uart_writel(port, port->x_char, ALTERA_UART_TXDATA_REG);
 		port->x_char = 0;
@@ -252,19 +290,26 @@ static void altera_uart_tx_chars(struct altera_uart *pp)
 	}
 
 	while (altera_uart_readl(port, ALTERA_UART_STATUS_REG) &
-	       ALTERA_UART_STATUS_TRDY_MSK) {
+		   ALTERA_UART_STATUS_TRDY_MSK)
+	{
 		if (xmit->head == xmit->tail)
+		{
 			break;
+		}
+
 		altera_uart_writel(port, xmit->buf[xmit->tail],
-		       ALTERA_UART_TXDATA_REG);
+						   ALTERA_UART_TXDATA_REG);
 		xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE - 1);
 		port->icount.tx++;
 	}
 
 	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
+	{
 		uart_write_wakeup(port);
+	}
 
-	if (xmit->head == xmit->tail) {
+	if (xmit->head == xmit->tail)
+	{
 		pp->imr &= ~ALTERA_UART_CONTROL_TRDY_MSK;
 		altera_uart_writel(port, pp->imr, ALTERA_UART_CONTROL_REG);
 	}
@@ -279,10 +324,17 @@ static irqreturn_t altera_uart_interrupt(int irq, void *data)
 	isr = altera_uart_readl(port, ALTERA_UART_STATUS_REG) & pp->imr;
 
 	spin_lock(&port->lock);
+
 	if (isr & ALTERA_UART_STATUS_RRDY_MSK)
+	{
 		altera_uart_rx_chars(pp);
+	}
+
 	if (isr & ALTERA_UART_STATUS_TRDY_MSK)
+	{
 		altera_uart_tx_chars(pp);
+	}
+
 	spin_unlock(&port->lock);
 
 	return IRQ_RETVAL(isr);
@@ -313,17 +365,20 @@ static int altera_uart_startup(struct uart_port *port)
 	unsigned long flags;
 	int ret;
 
-	if (!port->irq) {
+	if (!port->irq)
+	{
 		setup_timer(&pp->tmr, altera_uart_timer, (unsigned long)port);
 		mod_timer(&pp->tmr, jiffies + uart_poll_timeout(port));
 		return 0;
 	}
 
 	ret = request_irq(port->irq, altera_uart_interrupt, 0,
-			DRV_NAME, port);
-	if (ret) {
+					  DRV_NAME, port);
+
+	if (ret)
+	{
 		pr_err(DRV_NAME ": unable to attach Altera UART %d "
-		       "interrupt vector=%d\n", port->line, port->irq);
+			   "interrupt vector=%d\n", port->line, port->irq);
 		return ret;
 	}
 
@@ -352,9 +407,13 @@ static void altera_uart_shutdown(struct uart_port *port)
 	spin_unlock_irqrestore(&port->lock, flags);
 
 	if (port->irq)
+	{
 		free_irq(port->irq, port);
+	}
 	else
+	{
 		del_timer_sync(&pp->tmr);
+	}
 }
 
 static const char *altera_uart_type(struct uart_port *port)
@@ -374,10 +433,13 @@ static void altera_uart_release_port(struct uart_port *port)
 }
 
 static int altera_uart_verify_port(struct uart_port *port,
-				   struct serial_struct *ser)
+								   struct serial_struct *ser)
 {
 	if ((ser->type != PORT_UNKNOWN) && (ser->type != PORT_ALTERA_UART))
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
@@ -385,8 +447,10 @@ static int altera_uart_verify_port(struct uart_port *port,
 static int altera_uart_poll_get_char(struct uart_port *port)
 {
 	while (!(altera_uart_readl(port, ALTERA_UART_STATUS_REG) &
-		 ALTERA_UART_STATUS_RRDY_MSK))
+			 ALTERA_UART_STATUS_RRDY_MSK))
+	{
 		cpu_relax();
+	}
 
 	return altera_uart_readl(port, ALTERA_UART_RXDATA_REG);
 }
@@ -394,8 +458,10 @@ static int altera_uart_poll_get_char(struct uart_port *port)
 static void altera_uart_poll_put_char(struct uart_port *port, unsigned char c)
 {
 	while (!(altera_uart_readl(port, ALTERA_UART_STATUS_REG) &
-		 ALTERA_UART_STATUS_TRDY_MSK))
+			 ALTERA_UART_STATUS_TRDY_MSK))
+	{
 		cpu_relax();
+	}
 
 	altera_uart_writel(port, c, ALTERA_UART_TXDATA_REG);
 }
@@ -404,7 +470,8 @@ static void altera_uart_poll_put_char(struct uart_port *port, unsigned char c)
 /*
  *	Define the basic serial functions we support.
  */
-static const struct uart_ops altera_uart_ops = {
+static const struct uart_ops altera_uart_ops =
+{
 	.tx_empty	= altera_uart_tx_empty,
 	.get_mctrl	= altera_uart_get_mctrl,
 	.set_mctrl	= altera_uart_set_mctrl,
@@ -433,14 +500,16 @@ static struct altera_uart altera_uart_ports[CONFIG_SERIAL_ALTERA_UART_MAXPORTS];
 static void altera_uart_console_putc(struct uart_port *port, int c)
 {
 	while (!(altera_uart_readl(port, ALTERA_UART_STATUS_REG) &
-		 ALTERA_UART_STATUS_TRDY_MSK))
+			 ALTERA_UART_STATUS_TRDY_MSK))
+	{
 		cpu_relax();
+	}
 
 	writel(c, port->membase + ALTERA_UART_TXDATA_REG);
 }
 
 static void altera_uart_console_write(struct console *co, const char *s,
-				      unsigned int count)
+									  unsigned int count)
 {
 	struct uart_port *port = &(altera_uart_ports + co->index)->port;
 
@@ -456,20 +525,29 @@ static int __init altera_uart_console_setup(struct console *co, char *options)
 	int flow = 'n';
 
 	if (co->index < 0 || co->index >= CONFIG_SERIAL_ALTERA_UART_MAXPORTS)
+	{
 		return -EINVAL;
+	}
+
 	port = &altera_uart_ports[co->index].port;
+
 	if (!port->membase)
+	{
 		return -ENODEV;
+	}
 
 	if (options)
+	{
 		uart_parse_options(options, &baud, &parity, &bits, &flow);
+	}
 
 	return uart_set_options(port, co, baud, parity, bits, flow);
 }
 
 static struct uart_driver altera_uart_driver;
 
-static struct console altera_uart_console = {
+static struct console altera_uart_console =
+{
 	.name	= "ttyAL",
 	.write	= altera_uart_console_write,
 	.device	= uart_console_device,
@@ -498,7 +576,8 @@ console_initcall(altera_uart_console_init);
 /*
  *	Define the altera_uart UART driver structure.
  */
-static struct uart_driver altera_uart_driver = {
+static struct uart_driver altera_uart_driver =
+{
 	.owner		= THIS_MODULE,
 	.driver_name	= DRV_NAME,
 	.dev_name	= "ttyAL",
@@ -518,49 +597,79 @@ static int altera_uart_probe(struct platform_device *pdev)
 	int ret;
 
 	/* if id is -1 scan for a free id and use that one */
-	if (i == -1) {
+	if (i == -1)
+	{
 		for (i = 0; i < CONFIG_SERIAL_ALTERA_UART_MAXPORTS; i++)
 			if (altera_uart_ports[i].port.mapbase == 0)
+			{
 				break;
+			}
 	}
 
 	if (i < 0 || i >= CONFIG_SERIAL_ALTERA_UART_MAXPORTS)
+	{
 		return -EINVAL;
+	}
 
 	port = &altera_uart_ports[i].port;
 
 	res_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (res_mem)
+	{
 		port->mapbase = res_mem->start;
+	}
 	else if (platp)
+	{
 		port->mapbase = platp->mapbase;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	res_irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+
 	if (res_irq)
+	{
 		port->irq = res_irq->start;
+	}
 	else if (platp)
+	{
 		port->irq = platp->irq;
+	}
 
 	/* Check platform data first so we can override device node data */
 	if (platp)
+	{
 		port->uartclk = platp->uartclk;
-	else {
+	}
+	else
+	{
 		ret = of_property_read_u32(pdev->dev.of_node, "clock-frequency",
-					   &port->uartclk);
+								   &port->uartclk);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	port->membase = ioremap(port->mapbase, ALTERA_UART_SIZE);
+
 	if (!port->membase)
+	{
 		return -ENOMEM;
+	}
 
 	if (platp)
+	{
 		port->regshift = platp->bus_shift;
+	}
 	else
+	{
 		port->regshift = 0;
+	}
 
 	port->line = i;
 	port->type = PORT_ALTERA_UART;
@@ -580,7 +689,8 @@ static int altera_uart_remove(struct platform_device *pdev)
 {
 	struct uart_port *port = platform_get_drvdata(pdev);
 
-	if (port) {
+	if (port)
+	{
 		uart_remove_one_port(&altera_uart_driver, port);
 		port->mapbase = 0;
 	}
@@ -589,7 +699,8 @@ static int altera_uart_remove(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id altera_uart_match[] = {
+static const struct of_device_id altera_uart_match[] =
+{
 	{ .compatible = "ALTR,uart-1.0", },
 	{ .compatible = "altr,uart-1.0", },
 	{},
@@ -597,7 +708,8 @@ static const struct of_device_id altera_uart_match[] = {
 MODULE_DEVICE_TABLE(of, altera_uart_match);
 #endif /* CONFIG_OF */
 
-static struct platform_driver altera_uart_platform_driver = {
+static struct platform_driver altera_uart_platform_driver =
+{
 	.probe	= altera_uart_probe,
 	.remove	= altera_uart_remove,
 	.driver	= {
@@ -611,11 +723,19 @@ static int __init altera_uart_init(void)
 	int rc;
 
 	rc = uart_register_driver(&altera_uart_driver);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	rc = platform_driver_register(&altera_uart_platform_driver);
+
 	if (rc)
+	{
 		uart_unregister_driver(&altera_uart_driver);
+	}
+
 	return rc;
 }
 

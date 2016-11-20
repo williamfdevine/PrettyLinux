@@ -22,20 +22,23 @@
 #define _KBUFFER_H
 
 #ifndef TS_SHIFT
-#define TS_SHIFT		27
+	#define TS_SHIFT		27
 #endif
 
-enum kbuffer_endian {
+enum kbuffer_endian
+{
 	KBUFFER_ENDIAN_BIG,
 	KBUFFER_ENDIAN_LITTLE,
 };
 
-enum kbuffer_long_size {
+enum kbuffer_long_size
+{
 	KBUFFER_LSIZE_4,
 	KBUFFER_LSIZE_8,
 };
 
-enum {
+enum
+{
 	KBUFFER_TYPE_PADDING		= 29,
 	KBUFFER_TYPE_TIME_EXTEND	= 30,
 	KBUFFER_TYPE_TIME_STAMP		= 31,

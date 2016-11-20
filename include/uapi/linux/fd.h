@@ -10,15 +10,16 @@
 /*
  * Geometry
  */
-struct floppy_struct {
+struct floppy_struct
+{
 	unsigned int	size,		/* nr of sectors total */
-			sect,		/* sectors per track */
-			head,		/* nr of heads */
-			track,		/* nr of tracks */
-			stretch;	/* bit 0 !=0 means double track steps */
-					/* bit 1 != 0 means swap sides */
-					/* bits 2..9 give the first sector */
-					/*  number (the LSB is flipped) */
+				sect,		/* sectors per track */
+				head,		/* nr of heads */
+				track,		/* nr of tracks */
+				stretch;	/* bit 0 !=0 means double track steps */
+	/* bit 1 != 0 means swap sides */
+	/* bits 2..9 give the first sector */
+	/*  number (the LSB is flipped) */
 #define FD_STRETCH 1
 #define FD_SWAPSIDES 2
 #define FD_ZEROBASED 4
@@ -28,17 +29,17 @@ struct floppy_struct {
 
 	unsigned char	gap,		/* gap1 size */
 
-			rate,		/* data rate. |= 0x40 for perpendicular */
+			   rate,		/* data rate. |= 0x40 for perpendicular */
 #define FD_2M 0x4
 #define FD_SIZECODEMASK 0x38
 #define FD_SIZECODE(floppy) (((((floppy)->rate&FD_SIZECODEMASK)>> 3)+ 2) %8)
-#define FD_SECTSIZE(floppy) ( (floppy)->rate & FD_2M ? \
-			     512 : 128 << FD_SIZECODE(floppy) )
+		   #define FD_SECTSIZE(floppy) ( (floppy)->rate & FD_2M ? \
+				   512 : 128 << FD_SIZECODE(floppy) )
 #define FD_PERP 0x40
 
-			spec1,		/* stepping rate, head unload time */
-			fmt_gap;	/* gap2 size */
-	const char	* name; /* used only for predefined formats */
+			   spec1,		/* stepping rate, head unload time */
+			   fmt_gap;	/* gap2 size */
+	const char	 *name; /* used only for predefined formats */
 };
 
 
@@ -48,11 +49,11 @@ struct floppy_struct {
 #define FDCLRPRM _IO(2, 0x41)
 /* clear user-defined parameters */
 
-#define FDSETPRM _IOW(2, 0x42, struct floppy_struct) 
+#define FDSETPRM _IOW(2, 0x42, struct floppy_struct)
 #define FDSETMEDIAPRM FDSETPRM
 /* set user-defined parameters for current media */
 
-#define FDDEFPRM _IOW(2, 0x43, struct floppy_struct) 
+#define FDDEFPRM _IOW(2, 0x43, struct floppy_struct)
 #define FDGETPRM _IOR(2, 0x04, struct floppy_struct)
 #define FDDEFMEDIAPRM FDDEFPRM
 #define FDGETMEDIAPRM FDGETPRM
@@ -64,13 +65,14 @@ struct floppy_struct {
 /* issue/don't issue kernel messages on media type change */
 
 
-/* 
+/*
  * Formatting (obsolete)
  */
 #define FD_FILL_BYTE 0xF6 /* format fill byte. */
 
-struct format_descr {
-	unsigned int device,head,track;
+struct format_descr
+{
+	unsigned int device, head, track;
 };
 
 #define FDFMTBEG _IO(2,0x47)
@@ -84,21 +86,22 @@ struct format_descr {
 /*
  * Error thresholds
  */
-struct floppy_max_errors {
+struct floppy_max_errors
+{
 	unsigned int
-	  abort,      /* number of errors to be reached before aborting */
-	  read_track, /* maximal number of errors permitted to read an
+	abort,      /* number of errors to be reached before aborting */
+	read_track, /* maximal number of errors permitted to read an
 		       * entire track at once */
-	  reset,      /* maximal number of errors before a reset is tried */
-	  recal,      /* maximal number of errors before a recalibrate is
+	reset,      /* maximal number of errors before a reset is tried */
+	recal,      /* maximal number of errors before a recalibrate is
 		       * tried */
 
-	  /*
-	   * Threshold for reporting FDC errors to the console.
-	   * Setting this to zero may flood your screen when using
-	   * ultra cheap floppies ;-)
-	   */
-	  reporting;
+	/*
+	 * Threshold for reporting FDC errors to the console.
+	 * Setting this to zero may flood your screen when using
+	 * ultra cheap floppies ;-)
+	 */
+	reporting;
 
 };
 
@@ -123,15 +126,16 @@ typedef char floppy_drive_name[16];
 /*
  * Drive parameters (user modifiable)
  */
-struct floppy_drive_params {
+struct floppy_drive_params
+{
 	signed char cmos;		/* CMOS type */
-	
-	/* Spec2 is (HLD<<1 | ND), where HLD is head load time (1=2ms, 2=4 ms 
+
+	/* Spec2 is (HLD<<1 | ND), where HLD is head load time (1=2ms, 2=4 ms
 	 * etc) and ND is set means no DMA. Hardcoded to 6 (HLD=6ms, use DMA).
 	 */
 	unsigned long max_dtr;		/* Step rate, usec */
 	unsigned long hlt;     		/* Head load/settle time, msec */
-	unsigned long hut;     		/* Head unload time (remnant of 
+	unsigned long hut;     		/* Head unload time (remnant of
 					 * 8" drives) */
 	unsigned long srt;     		/* Step rate, usec */
 
@@ -144,18 +148,18 @@ struct floppy_drive_params {
 	unsigned char rps;		/* rotations per second */
 	unsigned char tracks;		/* maximum number of tracks */
 	unsigned long timeout;		/* timeout for interrupt requests */
-	
-	unsigned char interleave_sect;	/* if there are more sectors, use 
+
+	unsigned char interleave_sect;	/* if there are more sectors, use
 					 * interleave */
-	
+
 	struct floppy_max_errors max_errors;
-	
+
 	char flags;			/* various flags, including ftd_msg */
-/*
- * Announce successful media type detection and media information loss after
- * disk changes.
- * Also used to enable/disable printing of overrun warnings.
- */
+	/*
+	 * Announce successful media type detection and media information loss after
+	 * disk changes.
+	 * Also used to enable/disable printing of overrun warnings.
+	 */
 
 #define FTD_MSG 0x10
 #define FD_BROKEN_DCL 0x20
@@ -166,19 +170,20 @@ struct floppy_drive_params {
 
 	char read_track;		/* use readtrack during probing? */
 
-/*
- * Auto-detection. Each drive type has eight formats which are
- * used in succession to try to read the disk. If the FDC cannot lock onto
- * the disk, the next format is tried. This uses the variable 'probing'.
- */
+	/*
+	 * Auto-detection. Each drive type has eight formats which are
+	 * used in succession to try to read the disk. If the FDC cannot lock onto
+	 * the disk, the next format is tried. This uses the variable 'probing'.
+	 */
 	short autodetect[8];		/* autodetected formats */
-	
-	int checkfreq; /* how often should the drive be checked for disk 
+
+	int checkfreq; /* how often should the drive be checked for disk
 			* changes */
 	int native_format; /* native format of this drive */
 };
 
-enum {
+enum
+{
 	FD_NEED_TWADDLE_BIT,	/* more magic */
 	FD_VERIFY_BIT,		/* inquire for write protection */
 	FD_DISK_NEWCHANGE_BIT,	/* change detected, and no action undertaken yet
@@ -197,9 +202,10 @@ enum {
 /*
  * Current drive state (not directly modifiable by user, readonly)
  */
-struct floppy_drive_struct {
+struct floppy_drive_struct
+{
 	unsigned long flags;
-/* values for these flags */
+	/* values for these flags */
 #define FD_NEED_TWADDLE (1 << FD_NEED_TWADDLE_BIT)
 #define FD_VERIFY (1 << FD_VERIFY_BIT)
 #define FD_DISK_NEWCHANGE (1 << FD_DISK_NEWCHANGE_BIT)
@@ -215,19 +221,19 @@ struct floppy_drive_struct {
 	short maxtrack; /* id of highest half track read */
 	int generation; /* how many diskchanges? */
 
-/*
- * (User-provided) media information is _not_ discarded after a media change
- * if the corresponding keep_data flag is non-zero. Positive values are
- * decremented after each probe.
- */
+	/*
+	 * (User-provided) media information is _not_ discarded after a media change
+	 * if the corresponding keep_data flag is non-zero. Positive values are
+	 * decremented after each probe.
+	 */
 	int keep_data;
-	
+
 	/* Prevent "aliased" accesses. */
 	int fd_ref;
 	int fd_device;
-	unsigned long last_checked; /* when was the drive last checked for a disk 
+	unsigned long last_checked; /* when was the drive last checked for a disk
 			   * change? */
-	
+
 	char *dmabuf;
 	int bufblocks;
 };
@@ -240,7 +246,8 @@ struct floppy_drive_struct {
 /*
  * reset FDC
  */
-enum reset_mode {
+enum reset_mode
+{
 	FD_RESET_IF_NEEDED,	/* reset only if the reset flags is set */
 	FD_RESET_IF_RAWCMD,	/* obsolete */
 	FD_RESET_ALWAYS		/* reset always */
@@ -251,26 +258,27 @@ enum reset_mode {
 /*
  * FDC state
  */
-struct floppy_fdc_state {	
+struct floppy_fdc_state
+{
 	int spec1;		/* spec1 value last used */
 	int spec2;		/* spec2 value last used */
 	int dtr;
 	unsigned char version;	/* FDC version code */
 	unsigned char dor;
 	unsigned long address;	/* io address */
-	unsigned int rawcmd:2;
-	unsigned int reset:1;
-	unsigned int need_configure:1;
-	unsigned int perp_mode:2;
-	unsigned int has_fifo:1;
+	unsigned int rawcmd: 2;
+	unsigned int reset: 1;
+	unsigned int need_configure: 1;
+	unsigned int perp_mode: 2;
+	unsigned int has_fifo: 1;
 	unsigned int driver_version;	/* version code for floppy driver */
 #define FD_DRIVER_VERSION 0x100
-/* user programs using the floppy API should use floppy_fdc_state to
- * get the version number of the floppy driver that they are running
- * on. If this version number is bigger than the one compiled into the
- * user program (the FD_DRIVER_VERSION define), it should be prepared
- * to bigger structures
- */
+	/* user programs using the floppy API should use floppy_fdc_state to
+	 * get the version number of the floppy driver that they are running
+	 * on. If this version number is bigger than the one compiled into the
+	 * user program (the FD_DRIVER_VERSION define), it should be prepared
+	 * to bigger structures
+	 */
 
 	unsigned char track[4];
 	/* Position of the heads of the 4 units attached to this FDC,
@@ -289,7 +297,8 @@ struct floppy_fdc_state {
 /*
  * Asynchronous Write error tracking
  */
-struct floppy_write_errors {
+struct floppy_write_errors
+{
 	/* Write error logging.
 	 *
 	 * These fields can be cleared with the FDWERRORCLR ioctl.
@@ -298,16 +307,16 @@ struct floppy_write_errors {
 	 * to the user process are not counted.
 	 */
 
-	unsigned int write_errors;  /* number of physical write errors 
+	unsigned int write_errors;  /* number of physical write errors
 				     * encountered */
-	
+
 	/* position of first and last write errors */
 	unsigned long first_error_sector;
 	int           first_error_generation;
 	unsigned long last_error_sector;
 	int           last_error_generation;
-	
-	unsigned int badness; /* highest retry count for a read or write 
+
+	unsigned int badness; /* highest retry count for a read or write
 			       * operation */
 };
 
@@ -323,7 +332,8 @@ struct floppy_write_errors {
 /* new interface flag: now we can do them in batches */
 #define FDHAVEBATCHEDRAWCMD
 
-struct floppy_raw_cmd {
+struct floppy_raw_cmd
+{
 	unsigned int flags;
 #define FD_RAW_READ 1
 #define FD_RAW_WRITE 2
@@ -336,20 +346,20 @@ struct floppy_raw_cmd {
 #define FD_RAW_NEED_DISK 0x40  /* this command needs a disk to be present */
 #define FD_RAW_NEED_SEEK 0x80  /* this command uses an implied seek (soft) */
 
-/* more "in" flags */
+	/* more "in" flags */
 #define FD_RAW_MORE 0x100  /* more records follow */
 #define FD_RAW_STOP_IF_FAILURE 0x200 /* stop if we encounter a failure */
 #define FD_RAW_STOP_IF_SUCCESS 0x400 /* stop if command successful */
 #define FD_RAW_SOFTFAILURE 0x800 /* consider the return value for failure
 				  * detection too */
 
-/* more "out" flags */
+	/* more "out" flags */
 #define FD_RAW_FAILURE 0x10000 /* command sent to fdc, fdc returned error */
 #define FD_RAW_HARDFAILURE 0x20000 /* fdc had to be reset, or timed out */
 
 	void __user *data;
 	char *kernel_data; /* location of data buffer in the kernel */
-	struct floppy_raw_cmd *next; /* used for chaining of raw cmd's 
+	struct floppy_raw_cmd *next; /* used for chaining of raw cmd's
 				      * within the kernel */
 	long length; /* in: length of dma transfer. out: remaining bytes */
 	long phys_length; /* physical length, if different from dma length */

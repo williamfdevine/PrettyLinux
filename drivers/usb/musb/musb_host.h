@@ -38,7 +38,8 @@
 #include <linux/scatterlist.h>
 
 /* stored in "usb_host_endpoint.hcpriv" for scheduled endpoints */
-struct musb_qh {
+struct musb_qh
+{
 	struct usb_host_endpoint *hep;		/* usbcore info */
 	struct usb_device	*dev;
 	struct musb_hw_ep	*hw_ep;		/* current binding */
@@ -71,7 +72,10 @@ struct musb_qh {
 static inline struct musb_qh *first_qh(struct list_head *q)
 {
 	if (list_empty(q))
+	{
 		return NULL;
+	}
+
 	return list_entry(q->next, struct musb_qh, ring);
 }
 
@@ -133,18 +137,25 @@ struct usb_hcd;
 
 extern int musb_hub_status_data(struct usb_hcd *hcd, char *buf);
 extern int musb_hub_control(struct usb_hcd *hcd,
-			u16 typeReq, u16 wValue, u16 wIndex,
-			char *buf, u16 wLength);
+							u16 typeReq, u16 wValue, u16 wIndex,
+							char *buf, u16 wLength);
 
 static inline struct urb *next_urb(struct musb_qh *qh)
 {
 	struct list_head	*queue;
 
 	if (!qh)
+	{
 		return NULL;
+	}
+
 	queue = &qh->hep->urb_list;
+
 	if (list_empty(queue))
+	{
 		return NULL;
+	}
+
 	return list_entry(queue->next, struct urb, urb_list);
 }
 

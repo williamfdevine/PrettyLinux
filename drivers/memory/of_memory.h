@@ -16,18 +16,18 @@
 extern const struct lpddr2_min_tck *of_get_min_tck(struct device_node *np,
 		struct device *dev);
 extern const struct lpddr2_timings
-	*of_get_ddr_timings(struct device_node *np_ddr, struct device *dev,
-	u32 device_type, u32 *nr_frequencies);
+*of_get_ddr_timings(struct device_node *np_ddr, struct device *dev,
+					u32 device_type, u32 *nr_frequencies);
 #else
 static inline const struct lpddr2_min_tck
-	*of_get_min_tck(struct device_node *np, struct device *dev)
+*of_get_min_tck(struct device_node *np, struct device *dev)
 {
 	return NULL;
 }
 
 static inline const struct lpddr2_timings
-	*of_get_ddr_timings(struct device_node *np_ddr, struct device *dev,
-	u32 device_type, u32 *nr_frequencies)
+*of_get_ddr_timings(struct device_node *np_ddr, struct device *dev,
+					u32 device_type, u32 *nr_frequencies)
 {
 	return NULL;
 }

@@ -39,19 +39,19 @@ static inline void lo_hi_writeq_relaxed(__u64 val, volatile void __iomem *addr)
 }
 
 #ifndef readq
-#define readq lo_hi_readq
+	#define readq lo_hi_readq
 #endif
 
 #ifndef writeq
-#define writeq lo_hi_writeq
+	#define writeq lo_hi_writeq
 #endif
 
 #ifndef readq_relaxed
-#define readq_relaxed lo_hi_readq_relaxed
+	#define readq_relaxed lo_hi_readq_relaxed
 #endif
 
 #ifndef writeq_relaxed
-#define writeq_relaxed lo_hi_writeq_relaxed
+	#define writeq_relaxed lo_hi_writeq_relaxed
 #endif
 
 #endif	/* _LINUX_IO_64_NONATOMIC_LO_HI_H_ */

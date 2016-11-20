@@ -50,19 +50,22 @@
 #include "adf_dh895xcc_hw_data.h"
 
 /* Worker thread to service arbiter mappings based on dev SKUs */
-static const uint32_t thrd_to_arb_map_sku4[] = {
+static const uint32_t thrd_to_arb_map_sku4[] =
+{
 	0x12222AAA, 0x11666666, 0x12222AAA, 0x11666666,
 	0x12222AAA, 0x11222222, 0x12222AAA, 0x11222222,
 	0x00000000, 0x00000000, 0x00000000, 0x00000000
 };
 
-static const uint32_t thrd_to_arb_map_sku6[] = {
+static const uint32_t thrd_to_arb_map_sku6[] =
+{
 	0x12222AAA, 0x11666666, 0x12222AAA, 0x11666666,
 	0x12222AAA, 0x11222222, 0x12222AAA, 0x11222222,
 	0x12222AAA, 0x11222222, 0x12222AAA, 0x11222222
 };
 
-static struct adf_hw_device_class dh895xcc_class = {
+static struct adf_hw_device_class dh895xcc_class =
+{
 	.name = ADF_DH895XCC_DEVICE_NAME,
 	.type = DEV_DH895XCC,
 	.instances = 0
@@ -71,7 +74,7 @@ static struct adf_hw_device_class dh895xcc_class = {
 static uint32_t get_accel_mask(uint32_t fuse)
 {
 	return (~fuse) >> ADF_DH895XCC_ACCELERATORS_REG_OFFSET &
-			  ADF_DH895XCC_ACCELERATORS_MASK;
+		   ADF_DH895XCC_ACCELERATORS_MASK;
 }
 
 static uint32_t get_ae_mask(uint32_t fuse)
@@ -84,12 +87,18 @@ static uint32_t get_num_accels(struct adf_hw_device_data *self)
 	uint32_t i, ctr = 0;
 
 	if (!self || !self->accel_mask)
+	{
 		return 0;
-
-	for (i = 0; i < ADF_DH895XCC_MAX_ACCELERATORS; i++) {
-		if (self->accel_mask & (1 << i))
-			ctr++;
 	}
+
+	for (i = 0; i < ADF_DH895XCC_MAX_ACCELERATORS; i++)
+	{
+		if (self->accel_mask & (1 << i))
+		{
+			ctr++;
+		}
+	}
+
 	return ctr;
 }
 
@@ -98,12 +107,18 @@ static uint32_t get_num_aes(struct adf_hw_device_data *self)
 	uint32_t i, ctr = 0;
 
 	if (!self || !self->ae_mask)
+	{
 		return 0;
-
-	for (i = 0; i < ADF_DH895XCC_MAX_ACCELENGINES; i++) {
-		if (self->ae_mask & (1 << i))
-			ctr++;
 	}
+
+	for (i = 0; i < ADF_DH895XCC_MAX_ACCELENGINES; i++)
+	{
+		if (self->ae_mask & (1 << i))
+		{
+			ctr++;
+		}
+	}
+
 	return ctr;
 }
 
@@ -125,39 +140,47 @@ static uint32_t get_sram_bar_id(struct adf_hw_device_data *self)
 static enum dev_sku_info get_sku(struct adf_hw_device_data *self)
 {
 	int sku = (self->fuses & ADF_DH895XCC_FUSECTL_SKU_MASK)
-	    >> ADF_DH895XCC_FUSECTL_SKU_SHIFT;
+			  >> ADF_DH895XCC_FUSECTL_SKU_SHIFT;
 
-	switch (sku) {
-	case ADF_DH895XCC_FUSECTL_SKU_1:
-		return DEV_SKU_1;
-	case ADF_DH895XCC_FUSECTL_SKU_2:
-		return DEV_SKU_2;
-	case ADF_DH895XCC_FUSECTL_SKU_3:
-		return DEV_SKU_3;
-	case ADF_DH895XCC_FUSECTL_SKU_4:
-		return DEV_SKU_4;
-	default:
-		return DEV_SKU_UNKNOWN;
+	switch (sku)
+	{
+		case ADF_DH895XCC_FUSECTL_SKU_1:
+			return DEV_SKU_1;
+
+		case ADF_DH895XCC_FUSECTL_SKU_2:
+			return DEV_SKU_2;
+
+		case ADF_DH895XCC_FUSECTL_SKU_3:
+			return DEV_SKU_3;
+
+		case ADF_DH895XCC_FUSECTL_SKU_4:
+			return DEV_SKU_4;
+
+		default:
+			return DEV_SKU_UNKNOWN;
 	}
+
 	return DEV_SKU_UNKNOWN;
 }
 
 static void adf_get_arbiter_mapping(struct adf_accel_dev *accel_dev,
-				    u32 const **arb_map_config)
+									u32 const **arb_map_config)
 {
-	switch (accel_dev->accel_pci_dev.sku) {
-	case DEV_SKU_1:
-		*arb_map_config = thrd_to_arb_map_sku4;
-		break;
+	switch (accel_dev->accel_pci_dev.sku)
+	{
+		case DEV_SKU_1:
+			*arb_map_config = thrd_to_arb_map_sku4;
+			break;
 
-	case DEV_SKU_2:
-	case DEV_SKU_4:
-		*arb_map_config = thrd_to_arb_map_sku6;
-		break;
-	default:
-		dev_err(&GET_DEV(accel_dev),
-			"The configuration doesn't match any SKU");
-		*arb_map_config = NULL;
+		case DEV_SKU_2:
+		case DEV_SKU_4:
+			*arb_map_config = thrd_to_arb_map_sku6;
+			break;
+
+		default:
+			dev_err(&GET_DEV(accel_dev),
+					"The configuration doesn't match any SKU");
+			*arb_map_config = NULL;
 	}
 }
 
@@ -179,7 +202,8 @@ static void adf_enable_error_correction(struct adf_accel_dev *accel_dev)
 	unsigned int val, i;
 
 	/* Enable Accel Engine error detection & correction */
-	for (i = 0; i < hw_device->get_num_aes(hw_device); i++) {
+	for (i = 0; i < hw_device->get_num_aes(hw_device); i++)
+	{
 		val = ADF_CSR_RD(csr, ADF_DH895XCC_AE_CTX_ENABLES(i));
 		val |= ADF_DH895XCC_ENABLE_AE_ECC_ERR;
 		ADF_CSR_WR(csr, ADF_DH895XCC_AE_CTX_ENABLES(i), val);
@@ -189,7 +213,8 @@ static void adf_enable_error_correction(struct adf_accel_dev *accel_dev)
 	}
 
 	/* Enable shared memory error detection & correction */
-	for (i = 0; i < hw_device->get_num_accels(hw_device); i++) {
+	for (i = 0; i < hw_device->get_num_accels(hw_device); i++)
+	{
 		val = ADF_CSR_RD(csr, ADF_DH895XCC_UERRSSMSH(i));
 		val |= ADF_DH895XCC_ERRSSMSH_EN;
 		ADF_CSR_WR(csr, ADF_DH895XCC_UERRSSMSH(i), val);
@@ -207,10 +232,10 @@ static void adf_enable_ints(struct adf_accel_dev *accel_dev)
 
 	/* Enable bundle and misc interrupts */
 	ADF_CSR_WR(addr, ADF_DH895XCC_SMIAPF0_MASK_OFFSET,
-		   accel_dev->pf.vf_info ? 0 :
-			GENMASK_ULL(GET_MAX_BANKS(accel_dev) - 1, 0));
+			   accel_dev->pf.vf_info ? 0 :
+			   GENMASK_ULL(GET_MAX_BANKS(accel_dev) - 1, 0));
 	ADF_CSR_WR(addr, ADF_DH895XCC_SMIAPF1_MASK_OFFSET,
-		   ADF_DH895XCC_SMIA1_MASK);
+			   ADF_DH895XCC_SMIA1_MASK);
 }
 
 static int adf_pf_enable_vf2pf_comms(struct adf_accel_dev *accel_dev)

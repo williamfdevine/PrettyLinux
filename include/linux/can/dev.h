@@ -22,7 +22,8 @@
 /*
  * CAN mode
  */
-enum can_mode {
+enum can_mode
+{
 	CAN_MODE_STOP = 0,
 	CAN_MODE_START,
 	CAN_MODE_SLEEP
@@ -31,13 +32,14 @@ enum can_mode {
 /*
  * CAN common private data
  */
-struct can_priv {
+struct can_priv
+{
 	struct net_device *dev;
 	struct can_device_stats can_stats;
 
 	struct can_bittiming bittiming, data_bittiming;
 	const struct can_bittiming_const *bittiming_const,
-		*data_bittiming_const;
+			  *data_bittiming_const;
 	struct can_clock clock;
 
 	enum can_state state;
@@ -54,9 +56,9 @@ struct can_priv {
 	int (*do_set_data_bittiming)(struct net_device *dev);
 	int (*do_set_mode)(struct net_device *dev, enum can_mode mode);
 	int (*do_get_state)(const struct net_device *dev,
-			    enum can_state *state);
+						enum can_state *state);
 	int (*do_get_berr_counter)(const struct net_device *dev,
-				   struct can_berr_counter *bec);
+							   struct can_berr_counter *bec);
 
 	unsigned int echo_skb_max;
 	struct sk_buff **echo_skb;
@@ -83,20 +85,30 @@ struct can_priv {
 
 /* Drop a given socketbuffer if it does not contain a valid CAN frame. */
 static inline bool can_dropped_invalid_skb(struct net_device *dev,
-					  struct sk_buff *skb)
+		struct sk_buff *skb)
 {
 	const struct canfd_frame *cfd = (struct canfd_frame *)skb->data;
 
-	if (skb->protocol == htons(ETH_P_CAN)) {
+	if (skb->protocol == htons(ETH_P_CAN))
+	{
 		if (unlikely(skb->len != CAN_MTU ||
-			     cfd->len > CAN_MAX_DLEN))
+					 cfd->len > CAN_MAX_DLEN))
+		{
 			goto inval_skb;
-	} else if (skb->protocol == htons(ETH_P_CANFD)) {
+		}
+	}
+	else if (skb->protocol == htons(ETH_P_CANFD))
+	{
 		if (unlikely(skb->len != CANFD_MTU ||
-			     cfd->len > CANFD_MAX_DLEN))
+					 cfd->len > CANFD_MAX_DLEN))
+		{
 			goto inval_skb;
-	} else
+		}
+	}
+	else
+	{
 		goto inval_skb;
+	}
 
 	return false;
 
@@ -114,7 +126,7 @@ static inline bool can_is_canfd_skb(const struct sk_buff *skb)
 
 /* helper to define static CAN controller features at device creation time */
 static inline void can_set_static_ctrlmode(struct net_device *dev,
-					   u32 static_mode)
+		u32 static_mode)
 {
 	struct can_priv *priv = netdev_priv(dev);
 
@@ -124,7 +136,9 @@ static inline void can_set_static_ctrlmode(struct net_device *dev,
 
 	/* override MTU which was set by default in can_setup()? */
 	if (static_mode & CAN_CTRLMODE_FD)
+	{
 		dev->mtu = CANFD_MTU;
+	}
 }
 
 /* get data length from can_dlc with sanitized can_dlc */
@@ -150,17 +164,17 @@ int can_restart_now(struct net_device *dev);
 void can_bus_off(struct net_device *dev);
 
 void can_change_state(struct net_device *dev, struct can_frame *cf,
-		      enum can_state tx_state, enum can_state rx_state);
+					  enum can_state tx_state, enum can_state rx_state);
 
 void can_put_echo_skb(struct sk_buff *skb, struct net_device *dev,
-		      unsigned int idx);
+					  unsigned int idx);
 unsigned int can_get_echo_skb(struct net_device *dev, unsigned int idx);
 void can_free_echo_skb(struct net_device *dev, unsigned int idx);
 
 struct sk_buff *alloc_can_skb(struct net_device *dev, struct can_frame **cf);
 struct sk_buff *alloc_canfd_skb(struct net_device *dev,
-				struct canfd_frame **cfd);
+								struct canfd_frame **cfd);
 struct sk_buff *alloc_can_err_skb(struct net_device *dev,
-				  struct can_frame **cf);
+								  struct can_frame **cf);
 
 #endif /* !_CAN_DEV_H */

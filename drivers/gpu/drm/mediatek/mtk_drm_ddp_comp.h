@@ -23,7 +23,8 @@ struct drm_device;
 struct mtk_plane_state;
 struct drm_crtc_state;
 
-enum mtk_ddp_comp_type {
+enum mtk_ddp_comp_type
+{
 	MTK_DISP_OVL,
 	MTK_DISP_RDMA,
 	MTK_DISP_WDMA,
@@ -39,7 +40,8 @@ enum mtk_ddp_comp_type {
 	MTK_DDP_COMP_TYPE_MAX,
 };
 
-enum mtk_ddp_comp_id {
+enum mtk_ddp_comp_id
+{
 	DDP_COMPONENT_AAL,
 	DDP_COMPONENT_COLOR0,
 	DDP_COMPONENT_COLOR1,
@@ -63,9 +65,10 @@ enum mtk_ddp_comp_id {
 
 struct mtk_ddp_comp;
 
-struct mtk_ddp_comp_funcs {
+struct mtk_ddp_comp_funcs
+{
 	void (*config)(struct mtk_ddp_comp *comp, unsigned int w,
-		       unsigned int h, unsigned int vrefresh, unsigned int bpc);
+				   unsigned int h, unsigned int vrefresh, unsigned int bpc);
 	void (*start)(struct mtk_ddp_comp *comp);
 	void (*stop)(struct mtk_ddp_comp *comp);
 	void (*enable_vblank)(struct mtk_ddp_comp *comp, struct drm_crtc *crtc);
@@ -73,12 +76,13 @@ struct mtk_ddp_comp_funcs {
 	void (*layer_on)(struct mtk_ddp_comp *comp, unsigned int idx);
 	void (*layer_off)(struct mtk_ddp_comp *comp, unsigned int idx);
 	void (*layer_config)(struct mtk_ddp_comp *comp, unsigned int idx,
-			     struct mtk_plane_state *state);
+						 struct mtk_plane_state *state);
 	void (*gamma_set)(struct mtk_ddp_comp *comp,
-			  struct drm_crtc_state *state);
+					  struct drm_crtc_state *state);
 };
 
-struct mtk_ddp_comp {
+struct mtk_ddp_comp
+{
 	struct clk *clk;
 	void __iomem *regs;
 	int irq;
@@ -88,75 +92,93 @@ struct mtk_ddp_comp {
 };
 
 static inline void mtk_ddp_comp_config(struct mtk_ddp_comp *comp,
-				       unsigned int w, unsigned int h,
-				       unsigned int vrefresh, unsigned int bpc)
+									   unsigned int w, unsigned int h,
+									   unsigned int vrefresh, unsigned int bpc)
 {
 	if (comp->funcs && comp->funcs->config)
+	{
 		comp->funcs->config(comp, w, h, vrefresh, bpc);
+	}
 }
 
 static inline void mtk_ddp_comp_start(struct mtk_ddp_comp *comp)
 {
 	if (comp->funcs && comp->funcs->start)
+	{
 		comp->funcs->start(comp);
+	}
 }
 
 static inline void mtk_ddp_comp_stop(struct mtk_ddp_comp *comp)
 {
 	if (comp->funcs && comp->funcs->stop)
+	{
 		comp->funcs->stop(comp);
+	}
 }
 
 static inline void mtk_ddp_comp_enable_vblank(struct mtk_ddp_comp *comp,
-					      struct drm_crtc *crtc)
+		struct drm_crtc *crtc)
 {
 	if (comp->funcs && comp->funcs->enable_vblank)
+	{
 		comp->funcs->enable_vblank(comp, crtc);
+	}
 }
 
 static inline void mtk_ddp_comp_disable_vblank(struct mtk_ddp_comp *comp)
 {
 	if (comp->funcs && comp->funcs->disable_vblank)
+	{
 		comp->funcs->disable_vblank(comp);
+	}
 }
 
 static inline void mtk_ddp_comp_layer_on(struct mtk_ddp_comp *comp,
-					 unsigned int idx)
+		unsigned int idx)
 {
 	if (comp->funcs && comp->funcs->layer_on)
+	{
 		comp->funcs->layer_on(comp, idx);
+	}
 }
 
 static inline void mtk_ddp_comp_layer_off(struct mtk_ddp_comp *comp,
-					  unsigned int idx)
+		unsigned int idx)
 {
 	if (comp->funcs && comp->funcs->layer_off)
+	{
 		comp->funcs->layer_off(comp, idx);
+	}
 }
 
 static inline void mtk_ddp_comp_layer_config(struct mtk_ddp_comp *comp,
-					     unsigned int idx,
-					     struct mtk_plane_state *state)
+		unsigned int idx,
+		struct mtk_plane_state *state)
 {
 	if (comp->funcs && comp->funcs->layer_config)
+	{
 		comp->funcs->layer_config(comp, idx, state);
+	}
 }
 
 static inline void mtk_ddp_gamma_set(struct mtk_ddp_comp *comp,
-				     struct drm_crtc_state *state)
+									 struct drm_crtc_state *state)
 {
 	if (comp->funcs && comp->funcs->gamma_set)
+	{
 		comp->funcs->gamma_set(comp, state);
+	}
 }
 
 int mtk_ddp_comp_get_id(struct device_node *node,
-			enum mtk_ddp_comp_type comp_type);
+						enum mtk_ddp_comp_type comp_type);
 int mtk_ddp_comp_init(struct device *dev, struct device_node *comp_node,
-		      struct mtk_ddp_comp *comp, enum mtk_ddp_comp_id comp_id,
-		      const struct mtk_ddp_comp_funcs *funcs);
+					  struct mtk_ddp_comp *comp, enum mtk_ddp_comp_id comp_id,
+					  const struct mtk_ddp_comp_funcs *funcs);
 int mtk_ddp_comp_register(struct drm_device *drm, struct mtk_ddp_comp *comp);
 void mtk_ddp_comp_unregister(struct drm_device *drm, struct mtk_ddp_comp *comp);
 void mtk_dither_set(struct mtk_ddp_comp *comp, unsigned int bpc,
-		    unsigned int CFG);
+					unsigned int CFG);
 
 #endif /* MTK_DRM_DDP_COMP_H */

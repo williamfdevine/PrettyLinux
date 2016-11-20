@@ -1,14 +1,14 @@
-/*     
+/*
  *   ALSA Driver for Ego Systems Inc. (ESI) Miditerminal 4140
  *   Copyright (c) 2006 by Matthias König <mk@phasorlab.de>
  *
- *   This program is free software; you can redistribute it and/or modify 
- *   it under the terms of the GNU General Public License as published by 
- *   the Free Software Foundation; either version 2 of the License, or 
- *   (at your option) any later version. 
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful, 
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
  *
@@ -38,7 +38,7 @@ static int index[SNDRV_CARDS]  = SNDRV_DEFAULT_IDX;
 static char *id[SNDRV_CARDS]   = SNDRV_DEFAULT_STR;
 static bool enable[SNDRV_CARDS] = SNDRV_DEFAULT_ENABLE_PNP;
 
-static struct platform_device *platform_devices[SNDRV_CARDS]; 
+static struct platform_device *platform_devices[SNDRV_CARDS];
 static int device_count;
 
 module_param_array(index, int, NULL, S_IRUGO);
@@ -60,7 +60,8 @@ MODULE_SUPPORTED_DEVICE("{{ESI,Miditerminal 4140}}");
 #define MTS64_NUM_OUTPUT_PORTS 4
 #define MTS64_SMPTE_SUBSTREAM 4
 
-struct mts64 {
+struct mts64
+{
 	spinlock_t lock;
 	struct snd_card *card;
 	struct snd_rawmidi *rmidi;
@@ -82,16 +83,19 @@ static int snd_mts64_free(struct mts64 *mts)
 }
 
 static int snd_mts64_create(struct snd_card *card,
-			    struct pardevice *pardev,
-			    struct mts64 **rchip)
+							struct pardevice *pardev,
+							struct mts64 **rchip)
 {
 	struct mts64 *mts;
 
 	*rchip = NULL;
 
 	mts = kzalloc(sizeof(struct mts64), GFP_KERNEL);
-	if (mts == NULL) 
+
+	if (mts == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	/* Init chip specific data */
 	spin_lock_init(&mts->lock);
@@ -116,9 +120,9 @@ static int snd_mts64_create(struct snd_card *card,
 
 /* Control Bits */
 #define MTS64_CTL_READOUT          0x08  /* enable readout */
-#define MTS64_CTL_WRITE_CMD        0x06  
-#define MTS64_CTL_WRITE_DATA       0x02  
-#define MTS64_CTL_STROBE           0x01  
+#define MTS64_CTL_WRITE_CMD        0x06
+#define MTS64_CTL_WRITE_DATA       0x02
+#define MTS64_CTL_STROBE           0x01
 
 /* Command */
 #define MTS64_CMD_RESET            0xfe
@@ -128,7 +132,7 @@ static int snd_mts64_create(struct snd_card *card,
 #define MTS64_CMD_SMPTE_STOP       0xef
 #define MTS64_CMD_SMPTE_FPS_24     0xe3
 #define MTS64_CMD_SMPTE_FPS_25     0xe2
-#define MTS64_CMD_SMPTE_FPS_2997   0xe4 
+#define MTS64_CMD_SMPTE_FPS_2997   0xe4
 #define MTS64_CMD_SMPTE_FPS_30D    0xe1
 #define MTS64_CMD_SMPTE_FPS_30     0xe0
 #define MTS64_CMD_COM_OPEN         0xf8  /* setting the communication mode */
@@ -149,9 +153,9 @@ static int mts64_probe(struct parport *p);
 static u16 mts64_read(struct parport *p);
 static u8 mts64_read_char(struct parport *p);
 static void mts64_smpte_start(struct parport *p,
-			      u8 hours, u8 minutes,
-			      u8 seconds, u8 frames,
-			      u8 idx);
+							  u8 hours, u8 minutes,
+							  u8 seconds, u8 frames,
+							  u8 idx);
 static void mts64_smpte_stop(struct parport *p);
 static void mts64_write_command(struct parport *p, u8 c);
 static void mts64_write_data(struct parport *p, u8 c);
@@ -169,10 +173,10 @@ static void mts64_enable_readout(struct parport *p)
 
 	c = parport_read_control(p);
 	c |= MTS64_CTL_READOUT;
-	parport_write_control(p, c); 
+	parport_write_control(p, c);
 }
 
-/*  Disables readout 
+/*  Disables readout
  *
  *  Readout is disabled by clearing bit 3 of control
  */
@@ -196,12 +200,16 @@ static int mts64_device_ready(struct parport *p)
 	int i;
 	u8 c;
 
-	for (i = 0; i < 0xffff; ++i) {
+	for (i = 0; i < 0xffff; ++i)
+	{
 		c = parport_read_status(p);
 		c &= MTS64_STAT_BSY;
-		if (c != 0) 
+
+		if (c != 0)
+		{
 			return 1;
-	} 
+		}
+	}
 
 	return 0;
 }
@@ -218,21 +226,24 @@ static int mts64_device_init(struct parport *p)
 
 	mts64_write_command(p, MTS64_CMD_RESET);
 
-	for (i = 0; i < 64; ++i) {
+	for (i = 0; i < 64; ++i)
+	{
 		msleep(100);
 
-		if (mts64_probe(p) == 0) {
+		if (mts64_probe(p) == 0)
+		{
 			/* success */
 			mts64_disable_readout(p);
 			return 0;
 		}
 	}
+
 	mts64_disable_readout(p);
 
 	return -EIO;
 }
 
-/* 
+/*
  *  Opens the device (set communication mode)
  */
 static int mts64_device_open(struct mts64 *mts)
@@ -241,12 +252,14 @@ static int mts64_device_open(struct mts64 *mts)
 	struct parport *p = mts->pardev->port;
 
 	for (i = 0; i < 5; ++i)
+	{
 		mts64_write_command(p, MTS64_CMD_COM_OPEN);
+	}
 
 	return 0;
 }
 
-/*  
+/*
  *  Close device (clear communication mode)
  */
 static int mts64_device_close(struct mts64 *mts)
@@ -254,7 +267,8 @@ static int mts64_device_close(struct mts64 *mts)
 	int i;
 	struct parport *p = mts->pardev->port;
 
-	for (i = 0; i < 5; ++i) {
+	for (i = 0; i < 5; ++i)
+	{
 		mts64_write_command(p, MTS64_CMD_COM_CLOSE1);
 		mts64_write_command(p, MTS64_CMD_COM_CLOSE2);
 	}
@@ -263,14 +277,14 @@ static int mts64_device_close(struct mts64 *mts)
 }
 
 /*  map hardware port to substream number
- * 
+ *
  *  When reading a byte from the device, the device tells us
  *  on what port the byte is. This HW port has to be mapped to
  *  the midiport (substream number).
  *  substream 0-3 are Midiports 1-4
  *  substream 4 is SMPTE Timecode
  *  The mapping is done by the table:
- *  HW | 0 | 1 | 2 | 3 | 4 
+ *  HW | 0 | 1 | 2 | 3 | 4
  *  SW | 0 | 1 | 4 | 2 | 3
  */
 static u8 mts64_map_midi_input(u8 c)
@@ -283,7 +297,7 @@ static u8 mts64_map_midi_input(u8 c)
 
 /*  Probe parport for device
  *
- *  Do we have a Miditerminal 4140 on parport? 
+ *  Do we have a Miditerminal 4140 on parport?
  *  Returns:
  *  0       device found
  *  -ENODEV no device
@@ -296,14 +310,19 @@ static int mts64_probe(struct parport *p)
 	mts64_write_command(p, MTS64_CMD_PROBE);
 
 	msleep(50);
-	
+
 	c = mts64_read(p);
 
 	c &= 0x00ff;
-	if (c != MTS64_CMD_PROBE) 
+
+	if (c != MTS64_CMD_PROBE)
+	{
 		return -ENODEV;
-	else 
+	}
+	else
+	{
 		return 0;
+	}
 
 }
 
@@ -328,7 +347,7 @@ static u16 mts64_read(struct parport *p)
 /*  Read a byte from device
  *
  *  Note, that readout mode has to be enabled.
- *  readout procedure is as follows: 
+ *  readout procedure is as follows:
  *  - Write number of the Bit to read to DATA
  *  - Read STATUS
  *  - Bit 5 of STATUS indicates if Bit is set
@@ -342,14 +361,18 @@ static u8 mts64_read_char(struct parport *p)
 	u8 status;
 	u8 i;
 
-	for (i = 0; i < 8; ++i) {
+	for (i = 0; i < 8; ++i)
+	{
 		parport_write_data(p, i);
 		c >>= 1;
 		status = parport_read_status(p);
-		if (status & MTS64_STAT_BIT_SET) 
+
+		if (status & MTS64_STAT_BIT_SET)
+		{
 			c |= 0x80;
+		}
 	}
-	
+
 	return c;
 }
 
@@ -363,15 +386,16 @@ static u8 mts64_read_char(struct parport *p)
  *  4 30 fps
  */
 static void mts64_smpte_start(struct parport *p,
-			      u8 hours, u8 minutes,
-			      u8 seconds, u8 frames,
-			      u8 idx)
+							  u8 hours, u8 minutes,
+							  u8 seconds, u8 frames,
+							  u8 idx)
 {
-	static u8 fps[5] = { MTS64_CMD_SMPTE_FPS_24, 
-			     MTS64_CMD_SMPTE_FPS_25,
-			     MTS64_CMD_SMPTE_FPS_2997, 
-			     MTS64_CMD_SMPTE_FPS_30D,
-			     MTS64_CMD_SMPTE_FPS_30    };
+	static u8 fps[5] = { MTS64_CMD_SMPTE_FPS_24,
+						 MTS64_CMD_SMPTE_FPS_25,
+						 MTS64_CMD_SMPTE_FPS_2997,
+						 MTS64_CMD_SMPTE_FPS_30D,
+						 MTS64_CMD_SMPTE_FPS_30
+					   };
 
 	mts64_write_command(p, MTS64_CMD_SMPTE_SET_TIME);
 	mts64_write_command(p, frames);
@@ -403,7 +427,7 @@ static void mts64_write_command(struct parport *p, u8 c)
 	parport_write_control(p, MTS64_CTL_WRITE_CMD);
 }
 
-/*  Write a data byte to device 
+/*  Write a data byte to device
  */
 static void mts64_write_data(struct parport *p, u8 c)
 {
@@ -422,13 +446,15 @@ static void mts64_write_data(struct parport *p, u8 c)
  *  assumptions: communication mode is on
  */
 static void mts64_write_midi(struct mts64 *mts, u8 c,
-			     int midiport)
+							 int midiport)
 {
 	struct parport *p = mts->pardev->port;
 
 	/* check current midiport */
 	if (mts->current_midi_output_port != midiport)
+	{
 		mts64_write_command(p, midiport);
+	}
 
 	/* write midi byte */
 	mts64_write_data(p, c);
@@ -441,8 +467,8 @@ static void mts64_write_midi(struct mts64 *mts, u8 c,
 /* SMPTE Switch */
 #define snd_mts64_ctl_smpte_switch_info		snd_ctl_boolean_mono_info
 
-static int snd_mts64_ctl_smpte_switch_get(struct snd_kcontrol* kctl,
-					  struct snd_ctl_elem_value *uctl)
+static int snd_mts64_ctl_smpte_switch_get(struct snd_kcontrol *kctl,
+		struct snd_ctl_elem_value *uctl)
 {
 	struct mts64 *mts = snd_kcontrol_chip(kctl);
 
@@ -455,33 +481,42 @@ static int snd_mts64_ctl_smpte_switch_get(struct snd_kcontrol* kctl,
 
 /* smpte_switch is not accessed from IRQ handler, so we just need
    to protect the HW access */
-static int snd_mts64_ctl_smpte_switch_put(struct snd_kcontrol* kctl,
-					  struct snd_ctl_elem_value *uctl)
+static int snd_mts64_ctl_smpte_switch_put(struct snd_kcontrol *kctl,
+		struct snd_ctl_elem_value *uctl)
 {
 	struct mts64 *mts = snd_kcontrol_chip(kctl);
 	int changed = 0;
 	int val = !!uctl->value.integer.value[0];
 
 	spin_lock_irq(&mts->lock);
+
 	if (mts->smpte_switch == val)
+	{
 		goto __out;
+	}
 
 	changed = 1;
 	mts->smpte_switch = val;
-	if (mts->smpte_switch) {
+
+	if (mts->smpte_switch)
+	{
 		mts64_smpte_start(mts->pardev->port,
-				  mts->time[0], mts->time[1],
-				  mts->time[2], mts->time[3],
-				  mts->fps);
-	} else {
+						  mts->time[0], mts->time[1],
+						  mts->time[2], mts->time[3],
+						  mts->fps);
+	}
+	else
+	{
 		mts64_smpte_stop(mts->pardev->port);
 	}
+
 __out:
 	spin_unlock_irq(&mts->lock);
 	return changed;
 }
 
-static struct snd_kcontrol_new mts64_ctl_smpte_switch = {
+static struct snd_kcontrol_new mts64_ctl_smpte_switch =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_RAWMIDI,
 	.name  = "SMPTE Playback Switch",
 	.index = 0,
@@ -494,7 +529,7 @@ static struct snd_kcontrol_new mts64_ctl_smpte_switch = {
 
 /* Time */
 static int snd_mts64_ctl_smpte_time_h_info(struct snd_kcontrol *kctl,
-					   struct snd_ctl_elem_info *uinfo)
+		struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 1;
@@ -504,7 +539,7 @@ static int snd_mts64_ctl_smpte_time_h_info(struct snd_kcontrol *kctl,
 }
 
 static int snd_mts64_ctl_smpte_time_f_info(struct snd_kcontrol *kctl,
-					   struct snd_ctl_elem_info *uinfo)
+		struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 1;
@@ -514,7 +549,7 @@ static int snd_mts64_ctl_smpte_time_f_info(struct snd_kcontrol *kctl,
 }
 
 static int snd_mts64_ctl_smpte_time_info(struct snd_kcontrol *kctl,
-					 struct snd_ctl_elem_info *uinfo)
+		struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 1;
@@ -524,7 +559,7 @@ static int snd_mts64_ctl_smpte_time_info(struct snd_kcontrol *kctl,
 }
 
 static int snd_mts64_ctl_smpte_time_get(struct snd_kcontrol *kctl,
-					struct snd_ctl_elem_value *uctl)
+										struct snd_ctl_elem_value *uctl)
 {
 	struct mts64 *mts = snd_kcontrol_chip(kctl);
 	int idx = kctl->private_value;
@@ -537,7 +572,7 @@ static int snd_mts64_ctl_smpte_time_get(struct snd_kcontrol *kctl,
 }
 
 static int snd_mts64_ctl_smpte_time_put(struct snd_kcontrol *kctl,
-					struct snd_ctl_elem_value *uctl)
+										struct snd_ctl_elem_value *uctl)
 {
 	struct mts64 *mts = snd_kcontrol_chip(kctl);
 	int idx = kctl->private_value;
@@ -545,16 +580,20 @@ static int snd_mts64_ctl_smpte_time_put(struct snd_kcontrol *kctl,
 	int changed = 0;
 
 	spin_lock_irq(&mts->lock);
-	if (mts->time[idx] != time) {
+
+	if (mts->time[idx] != time)
+	{
 		changed = 1;
 		mts->time[idx] = time;
 	}
+
 	spin_unlock_irq(&mts->lock);
 
 	return changed;
 }
 
-static struct snd_kcontrol_new mts64_ctl_smpte_time_hours = {
+static struct snd_kcontrol_new mts64_ctl_smpte_time_hours =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_RAWMIDI,
 	.name  = "SMPTE Time Hours",
 	.index = 0,
@@ -565,7 +604,8 @@ static struct snd_kcontrol_new mts64_ctl_smpte_time_hours = {
 	.put  = snd_mts64_ctl_smpte_time_put
 };
 
-static struct snd_kcontrol_new mts64_ctl_smpte_time_minutes = {
+static struct snd_kcontrol_new mts64_ctl_smpte_time_minutes =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_RAWMIDI,
 	.name  = "SMPTE Time Minutes",
 	.index = 0,
@@ -576,7 +616,8 @@ static struct snd_kcontrol_new mts64_ctl_smpte_time_minutes = {
 	.put  = snd_mts64_ctl_smpte_time_put
 };
 
-static struct snd_kcontrol_new mts64_ctl_smpte_time_seconds = {
+static struct snd_kcontrol_new mts64_ctl_smpte_time_seconds =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_RAWMIDI,
 	.name  = "SMPTE Time Seconds",
 	.index = 0,
@@ -587,7 +628,8 @@ static struct snd_kcontrol_new mts64_ctl_smpte_time_seconds = {
 	.put  = snd_mts64_ctl_smpte_time_put
 };
 
-static struct snd_kcontrol_new mts64_ctl_smpte_time_frames = {
+static struct snd_kcontrol_new mts64_ctl_smpte_time_frames =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_RAWMIDI,
 	.name  = "SMPTE Time Frames",
 	.index = 0,
@@ -600,9 +642,10 @@ static struct snd_kcontrol_new mts64_ctl_smpte_time_frames = {
 
 /* FPS */
 static int snd_mts64_ctl_smpte_fps_info(struct snd_kcontrol *kctl,
-					struct snd_ctl_elem_info *uinfo)
+										struct snd_ctl_elem_info *uinfo)
 {
-	static const char * const texts[5] = {
+	static const char *const texts[5] =
+	{
 		"24", "25", "29.97", "30D", "30"
 	};
 
@@ -610,7 +653,7 @@ static int snd_mts64_ctl_smpte_fps_info(struct snd_kcontrol *kctl,
 }
 
 static int snd_mts64_ctl_smpte_fps_get(struct snd_kcontrol *kctl,
-				       struct snd_ctl_elem_value *uctl)
+									   struct snd_ctl_elem_value *uctl)
 {
 	struct mts64 *mts = snd_kcontrol_chip(kctl);
 
@@ -622,24 +665,31 @@ static int snd_mts64_ctl_smpte_fps_get(struct snd_kcontrol *kctl,
 }
 
 static int snd_mts64_ctl_smpte_fps_put(struct snd_kcontrol *kctl,
-				       struct snd_ctl_elem_value *uctl)
+									   struct snd_ctl_elem_value *uctl)
 {
 	struct mts64 *mts = snd_kcontrol_chip(kctl);
 	int changed = 0;
 
 	if (uctl->value.enumerated.item[0] >= 5)
+	{
 		return -EINVAL;
+	}
+
 	spin_lock_irq(&mts->lock);
-	if (mts->fps != uctl->value.enumerated.item[0]) {
+
+	if (mts->fps != uctl->value.enumerated.item[0])
+	{
 		changed = 1;
 		mts->fps = uctl->value.enumerated.item[0];
 	}
+
 	spin_unlock_irq(&mts->lock);
 
 	return changed;
 }
 
-static struct snd_kcontrol_new mts64_ctl_smpte_fps = {
+static struct snd_kcontrol_new mts64_ctl_smpte_fps =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_RAWMIDI,
 	.name  = "SMPTE Fps",
 	.index = 0,
@@ -652,23 +702,28 @@ static struct snd_kcontrol_new mts64_ctl_smpte_fps = {
 
 
 static int snd_mts64_ctl_create(struct snd_card *card,
-				struct mts64 *mts)
+								struct mts64 *mts)
 {
 	int err, i;
-	static struct snd_kcontrol_new *control[] = {
+	static struct snd_kcontrol_new *control[] =
+	{
 		&mts64_ctl_smpte_switch,
 		&mts64_ctl_smpte_time_hours,
 		&mts64_ctl_smpte_time_minutes,
 		&mts64_ctl_smpte_time_seconds,
 		&mts64_ctl_smpte_time_frames,
 		&mts64_ctl_smpte_fps,
-	        NULL  };
+		NULL
+	};
 
-	for (i = 0; control[i]; ++i) {
+	for (i = 0; control[i]; ++i)
+	{
 		err = snd_ctl_add(card, snd_ctl_new1(control[i], mts));
-		if (err < 0) {
-			snd_printd("Cannot create control: %s\n", 
-				   control[i]->name);
+
+		if (err < 0)
+		{
+			snd_printd("Cannot create control: %s\n",
+					   control[i]->name);
 			return err;
 		}
 	}
@@ -685,14 +740,16 @@ static int snd_mts64_rawmidi_open(struct snd_rawmidi_substream *substream)
 {
 	struct mts64 *mts = substream->rmidi->private_data;
 
-	if (mts->open_count == 0) {
-		/* We don't need a spinlock here, because this is just called 
-		   if the device has not been opened before. 
+	if (mts->open_count == 0)
+	{
+		/* We don't need a spinlock here, because this is just called
+		   if the device has not been opened before.
 		   So there aren't any IRQs from the device */
 		mts64_device_open(mts);
 
 		msleep(50);
 	}
+
 	++(mts->open_count);
 
 	return 0;
@@ -704,7 +761,9 @@ static int snd_mts64_rawmidi_close(struct snd_rawmidi_substream *substream)
 	unsigned long flags;
 
 	--(mts->open_count);
-	if (mts->open_count == 0) {
+
+	if (mts->open_count == 0)
+	{
 		/* We need the spinlock_irqsave here because we can still
 		   have IRQs at this point */
 		spin_lock_irqsave(&mts->lock, flags);
@@ -713,49 +772,62 @@ static int snd_mts64_rawmidi_close(struct snd_rawmidi_substream *substream)
 
 		msleep(500);
 
-	} else if (mts->open_count < 0)
+	}
+	else if (mts->open_count < 0)
+	{
 		mts->open_count = 0;
+	}
 
 	return 0;
 }
 
 static void snd_mts64_rawmidi_output_trigger(struct snd_rawmidi_substream *substream,
-					     int up)
+		int up)
 {
 	struct mts64 *mts = substream->rmidi->private_data;
 	u8 data;
 	unsigned long flags;
 
 	spin_lock_irqsave(&mts->lock, flags);
-	while (snd_rawmidi_transmit_peek(substream, &data, 1) == 1) {
-		mts64_write_midi(mts, data, substream->number+1);
+
+	while (snd_rawmidi_transmit_peek(substream, &data, 1) == 1)
+	{
+		mts64_write_midi(mts, data, substream->number + 1);
 		snd_rawmidi_transmit_ack(substream, 1);
 	}
+
 	spin_unlock_irqrestore(&mts->lock, flags);
 }
 
 static void snd_mts64_rawmidi_input_trigger(struct snd_rawmidi_substream *substream,
-					    int up)
+		int up)
 {
 	struct mts64 *mts = substream->rmidi->private_data;
 	unsigned long flags;
 
 	spin_lock_irqsave(&mts->lock, flags);
+
 	if (up)
+	{
 		mts->mode[substream->number] |= MTS64_MODE_INPUT_TRIGGERED;
+	}
 	else
- 		mts->mode[substream->number] &= ~MTS64_MODE_INPUT_TRIGGERED;
-	
+	{
+		mts->mode[substream->number] &= ~MTS64_MODE_INPUT_TRIGGERED;
+	}
+
 	spin_unlock_irqrestore(&mts->lock, flags);
 }
 
-static struct snd_rawmidi_ops snd_mts64_rawmidi_output_ops = {
+static struct snd_rawmidi_ops snd_mts64_rawmidi_output_ops =
+{
 	.open    = snd_mts64_rawmidi_open,
 	.close   = snd_mts64_rawmidi_close,
 	.trigger = snd_mts64_rawmidi_output_trigger
 };
 
-static struct snd_rawmidi_ops snd_mts64_rawmidi_input_ops = {
+static struct snd_rawmidi_ops snd_mts64_rawmidi_input_ops =
+{
 	.open    = snd_mts64_rawmidi_open,
 	.close   = snd_mts64_rawmidi_close,
 	.trigger = snd_mts64_rawmidi_input_trigger
@@ -769,48 +841,56 @@ static int snd_mts64_rawmidi_create(struct snd_card *card)
 	struct snd_rawmidi_substream *substream;
 	struct list_head *list;
 	int err;
-	
-	err = snd_rawmidi_new(card, CARD_NAME, 0, 
-			      MTS64_NUM_OUTPUT_PORTS, 
-			      MTS64_NUM_INPUT_PORTS, 
-			      &rmidi);
-	if (err < 0) 
+
+	err = snd_rawmidi_new(card, CARD_NAME, 0,
+						  MTS64_NUM_OUTPUT_PORTS,
+						  MTS64_NUM_INPUT_PORTS,
+						  &rmidi);
+
+	if (err < 0)
+	{
 		return err;
+	}
 
 	rmidi->private_data = mts;
 	strcpy(rmidi->name, CARD_NAME);
 	rmidi->info_flags = SNDRV_RAWMIDI_INFO_OUTPUT |
-		            SNDRV_RAWMIDI_INFO_INPUT |
-                            SNDRV_RAWMIDI_INFO_DUPLEX;
+						SNDRV_RAWMIDI_INFO_INPUT |
+						SNDRV_RAWMIDI_INFO_DUPLEX;
 
 	mts->rmidi = rmidi;
 
 	/* register rawmidi ops */
-	snd_rawmidi_set_ops(rmidi, SNDRV_RAWMIDI_STREAM_OUTPUT, 
-			    &snd_mts64_rawmidi_output_ops);
-	snd_rawmidi_set_ops(rmidi, SNDRV_RAWMIDI_STREAM_INPUT, 
-			    &snd_mts64_rawmidi_input_ops);
+	snd_rawmidi_set_ops(rmidi, SNDRV_RAWMIDI_STREAM_OUTPUT,
+						&snd_mts64_rawmidi_output_ops);
+	snd_rawmidi_set_ops(rmidi, SNDRV_RAWMIDI_STREAM_INPUT,
+						&snd_mts64_rawmidi_input_ops);
 
 	/* name substreams */
 	/* output */
-	list_for_each(list, 
-		      &rmidi->streams[SNDRV_RAWMIDI_STREAM_OUTPUT].substreams) {
+	list_for_each(list,
+				  &rmidi->streams[SNDRV_RAWMIDI_STREAM_OUTPUT].substreams)
+	{
 		substream = list_entry(list, struct snd_rawmidi_substream, list);
 		sprintf(substream->name,
-			"Miditerminal %d", substream->number+1);
+				"Miditerminal %d", substream->number + 1);
 	}
 	/* input */
-	list_for_each(list, 
-		      &rmidi->streams[SNDRV_RAWMIDI_STREAM_INPUT].substreams) {
+	list_for_each(list,
+				  &rmidi->streams[SNDRV_RAWMIDI_STREAM_INPUT].substreams)
+	{
 		substream = list_entry(list, struct snd_rawmidi_substream, list);
 		mts->midi_input_substream[substream->number] = substream;
-		switch(substream->number) {
-		case MTS64_SMPTE_SUBSTREAM:
-			strcpy(substream->name, "Miditerminal SMPTE");
-			break;
-		default:
-			sprintf(substream->name,
-				"Miditerminal %d", substream->number+1);
+
+		switch (substream->number)
+		{
+			case MTS64_SMPTE_SUBSTREAM:
+				strcpy(substream->name, "Miditerminal SMPTE");
+				break;
+
+			default:
+				sprintf(substream->name,
+						"Miditerminal %d", substream->number + 1);
 		}
 	}
 
@@ -825,7 +905,7 @@ static int snd_mts64_rawmidi_create(struct snd_card *card)
  *********************************************************************/
 static void snd_mts64_interrupt(void *private)
 {
-	struct mts64 *mts = ((struct snd_card*)private)->private_data;
+	struct mts64 *mts = ((struct snd_card *)private)->private_data;
 	u16 ret;
 	u8 status, data;
 	struct snd_rawmidi_substream *substream;
@@ -835,15 +915,25 @@ static void snd_mts64_interrupt(void *private)
 	data = ret & 0x00ff;
 	status = ret >> 8;
 
-	if (status & MTS64_STAT_PORT) {
+	if (status & MTS64_STAT_PORT)
+	{
 		mts->current_midi_input_port = mts64_map_midi_input(data);
-	} else {
-		if (mts->current_midi_input_port == -1) 
-			goto __out;
-		substream = mts->midi_input_substream[mts->current_midi_input_port];
-		if (mts->mode[substream->number] & MTS64_MODE_INPUT_TRIGGERED)
-			snd_rawmidi_receive(substream, &data, 1);
 	}
+	else
+	{
+		if (mts->current_midi_input_port == -1)
+		{
+			goto __out;
+		}
+
+		substream = mts->midi_input_substream[mts->current_midi_input_port];
+
+		if (mts->mode[substream->number] & MTS64_MODE_INPUT_TRIGGERED)
+		{
+			snd_rawmidi_receive(substream, &data, 1);
+		}
+	}
+
 __out:
 	spin_unlock(&mts->lock);
 }
@@ -853,20 +943,25 @@ static void snd_mts64_attach(struct parport *p)
 	struct platform_device *device;
 
 	device = platform_device_alloc(PLATFORM_DRIVER, device_count);
+
 	if (!device)
+	{
 		return;
+	}
 
 	/* Temporary assignment to forward the parport */
 	platform_set_drvdata(device, p);
 
-	if (platform_device_add(device) < 0) {
+	if (platform_device_add(device) < 0)
+	{
 		platform_device_put(device);
 		return;
 	}
 
 	/* Since we dont get the return value of probe
 	 * We need to check if device probing succeeded or not */
-	if (!platform_get_drvdata(device)) {
+	if (!platform_get_drvdata(device))
+	{
 		platform_device_unregister(device);
 		return;
 	}
@@ -884,12 +979,15 @@ static void snd_mts64_detach(struct parport *p)
 static int snd_mts64_dev_probe(struct pardevice *pardev)
 {
 	if (strcmp(pardev->name, DRIVER_NAME))
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
 
-static struct parport_driver mts64_parport_driver = {
+static struct parport_driver mts64_parport_driver =
+{
 	.name		= "mts64",
 	.probe		= snd_mts64_dev_probe,
 	.match_port	= snd_mts64_attach,
@@ -905,7 +1003,8 @@ static void snd_mts64_card_private_free(struct snd_card *card)
 	struct mts64 *mts = card->private_data;
 	struct pardevice *pardev = mts->pardev;
 
-	if (pardev) {
+	if (pardev)
+	{
 		parport_release(pardev);
 		parport_unregister_device(pardev);
 	}
@@ -921,7 +1020,8 @@ static int snd_mts64_probe(struct platform_device *pdev)
 	struct snd_card *card = NULL;
 	struct mts64 *mts = NULL;
 	int err;
-	struct pardev_cb mts64_cb = {
+	struct pardev_cb mts64_cb =
+	{
 		.preempt = NULL,
 		.wakeup = NULL,
 		.irq_func = snd_mts64_interrupt,	/* ISR */
@@ -932,65 +1032,84 @@ static int snd_mts64_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, NULL);
 
 	if (dev >= SNDRV_CARDS)
+	{
 		return -ENODEV;
-	if (!enable[dev]) 
+	}
+
+	if (!enable[dev])
+	{
 		return -ENOENT;
+	}
 
 	err = snd_card_new(&pdev->dev, index[dev], id[dev], THIS_MODULE,
-			   0, &card);
-	if (err < 0) {
+					   0, &card);
+
+	if (err < 0)
+	{
 		snd_printd("Cannot create card\n");
 		return err;
 	}
+
 	strcpy(card->driver, DRIVER_NAME);
 	strcpy(card->shortname, "ESI " CARD_NAME);
-	sprintf(card->longname,  "%s at 0x%lx, irq %i", 
-		card->shortname, p->base, p->irq);
+	sprintf(card->longname,  "%s at 0x%lx, irq %i",
+			card->shortname, p->base, p->irq);
 
 	mts64_cb.private = card;			 /* private */
 	pardev = parport_register_dev_model(p,		 /* port */
-					    DRIVER_NAME, /* name */
-					    &mts64_cb,	 /* callbacks */
-					    pdev->id);	 /* device number */
-	if (!pardev) {
+										DRIVER_NAME, /* name */
+										&mts64_cb,	 /* callbacks */
+										pdev->id);	 /* device number */
+
+	if (!pardev)
+	{
 		snd_printd("Cannot register pardevice\n");
 		err = -EIO;
 		goto __err;
 	}
 
 	/* claim parport */
-	if (parport_claim(pardev)) {
+	if (parport_claim(pardev))
+	{
 		snd_printd("Cannot claim parport 0x%lx\n", pardev->port->base);
 		err = -EIO;
 		goto free_pardev;
 	}
 
-	if ((err = snd_mts64_create(card, pardev, &mts)) < 0) {
+	if ((err = snd_mts64_create(card, pardev, &mts)) < 0)
+	{
 		snd_printd("Cannot create main component\n");
 		goto release_pardev;
 	}
+
 	card->private_data = mts;
 	card->private_free = snd_mts64_card_private_free;
 
 	err = mts64_probe(p);
-	if (err) {
+
+	if (err)
+	{
 		err = -EIO;
 		goto __err;
 	}
-	
-	if ((err = snd_mts64_rawmidi_create(card)) < 0) {
+
+	if ((err = snd_mts64_rawmidi_create(card)) < 0)
+	{
 		snd_printd("Creating Rawmidi component failed\n");
 		goto __err;
 	}
 
 	/* init device */
 	if ((err = mts64_device_init(p)) < 0)
+	{
 		goto __err;
+	}
 
 	platform_set_drvdata(pdev, card);
 
 	/* At this point card will be usable */
-	if ((err = snd_card_register(card)) < 0) {
+	if ((err = snd_card_register(card)) < 0)
+	{
 		snd_printd("Cannot register card\n");
 		goto __err;
 	}
@@ -1012,12 +1131,15 @@ static int snd_mts64_remove(struct platform_device *pdev)
 	struct snd_card *card = platform_get_drvdata(pdev);
 
 	if (card)
+	{
 		snd_card_free(card);
+	}
 
 	return 0;
 }
 
-static struct platform_driver snd_mts64_driver = {
+static struct platform_driver snd_mts64_driver =
+{
 	.probe  = snd_mts64_probe,
 	.remove = snd_mts64_remove,
 	.driver = {
@@ -1032,12 +1154,15 @@ static void snd_mts64_unregister_all(void)
 {
 	int i;
 
-	for (i = 0; i < SNDRV_CARDS; ++i) {
-		if (platform_devices[i]) {
+	for (i = 0; i < SNDRV_CARDS; ++i)
+	{
+		if (platform_devices[i])
+		{
 			platform_device_unregister(platform_devices[i]);
 			platform_devices[i] = NULL;
 		}
-	}		
+	}
+
 	platform_driver_unregister(&snd_mts64_driver);
 	parport_unregister_driver(&mts64_parport_driver);
 }
@@ -1047,14 +1172,18 @@ static int __init snd_mts64_module_init(void)
 	int err;
 
 	if ((err = platform_driver_register(&snd_mts64_driver)) < 0)
+	{
 		return err;
+	}
 
-	if (parport_register_driver(&mts64_parport_driver) != 0) {
+	if (parport_register_driver(&mts64_parport_driver) != 0)
+	{
 		platform_driver_unregister(&snd_mts64_driver);
 		return -EIO;
 	}
 
-	if (device_count == 0) {
+	if (device_count == 0)
+	{
 		snd_mts64_unregister_all();
 		return -ENODEV;
 	}

@@ -48,14 +48,21 @@ static int read_i2c_reg(void __iomem *addr, u8 index, u8 *data)
 	iowrite32((tmp << 17) | IIC_READ, addr + IIC_CSR2);
 	mmiowb();
 	udelay(45); /* wait at least 43 usec for NEW_CYCLE to clear */
+
 	if (ioread32(addr + IIC_CSR2) & NEW_CYCLE)
-		return -EIO; /* error: NEW_CYCLE not cleared */
+	{
+		return -EIO;    /* error: NEW_CYCLE not cleared */
+	}
+
 	tmp = ioread32(addr + IIC_CSR1);
-	if (tmp & DIRECT_ABORT) {
+
+	if (tmp & DIRECT_ABORT)
+	{
 		/* reset DIRECT_ABORT bit */
 		iowrite32(DIRECT_ABORT, addr + IIC_CSR1);
 		return -EIO; /* error: DIRECT_ABORT set */
 	}
+
 	*data = tmp >> 24;
 	return 0;
 }
@@ -79,13 +86,19 @@ static int write_i2c_reg(void __iomem *addr, u8 index, u8 data)
 	iowrite32((tmp << 17) | IIC_WRITE | data, addr + IIC_CSR2);
 	mmiowb();
 	udelay(65); /* wait at least 63 usec for NEW_CYCLE to clear */
+
 	if (ioread32(addr + IIC_CSR2) & NEW_CYCLE)
-		return -EIO; /* error: NEW_CYCLE not cleared */
-	if (ioread32(addr + IIC_CSR1) & DIRECT_ABORT) {
+	{
+		return -EIO;    /* error: NEW_CYCLE not cleared */
+	}
+
+	if (ioread32(addr + IIC_CSR1) & DIRECT_ABORT)
+	{
 		/* reset DIRECT_ABORT bit */
 		iowrite32(DIRECT_ABORT, addr + IIC_CSR1);
 		return -EIO; /* error: DIRECT_ABORT set */
 	}
+
 	return 0;
 }
 
@@ -119,30 +132,44 @@ static void write_i2c_reg_nowait(void __iomem *addr, u8 index, u8 data)
 static int wait_i2c_reg(void __iomem *addr)
 {
 	if (ioread32(addr + IIC_CSR2) & NEW_CYCLE)
-		udelay(65); /* wait at least 63 usec for NEW_CYCLE to clear */
+	{
+		udelay(65);    /* wait at least 63 usec for NEW_CYCLE to clear */
+	}
+
 	if (ioread32(addr + IIC_CSR2) & NEW_CYCLE)
-		return -EIO; /* error: NEW_CYCLE not cleared */
-	if (ioread32(addr + IIC_CSR1) & DIRECT_ABORT) {
+	{
+		return -EIO;    /* error: NEW_CYCLE not cleared */
+	}
+
+	if (ioread32(addr + IIC_CSR1) & DIRECT_ABORT)
+	{
 		/* reset DIRECT_ABORT bit */
 		iowrite32(DIRECT_ABORT, addr + IIC_CSR1);
 		return -EIO; /* error: DIRECT_ABORT set */
 	}
+
 	return 0;
 }
 
 static int
 dt3155_queue_setup(struct vb2_queue *vq,
-		unsigned int *nbuffers, unsigned int *num_planes,
-		unsigned int sizes[], struct device *alloc_devs[])
+				   unsigned int *nbuffers, unsigned int *num_planes,
+				   unsigned int sizes[], struct device *alloc_devs[])
 
 {
 	struct dt3155_priv *pd = vb2_get_drv_priv(vq);
 	unsigned size = pd->width * pd->height;
 
 	if (vq->num_buffers + *nbuffers < 2)
+	{
 		*nbuffers = 2 - vq->num_buffers;
+	}
+
 	if (*num_planes)
+	{
 		return sizes[0] < size ? -EINVAL : 0;
+	}
+
 	*num_planes = 1;
 	sizes[0] = size;
 	return 0;
@@ -170,10 +197,10 @@ static int dt3155_start_streaming(struct vb2_queue *q, unsigned count)
 	iowrite32(pd->width, pd->regs + ODD_DMA_STRIDE);
 	/* enable interrupts, clear all irq flags */
 	iowrite32(FLD_START_EN | FLD_END_ODD_EN | FLD_START |
-			FLD_END_EVEN | FLD_END_ODD, pd->regs + INT_CSR);
+			  FLD_END_EVEN | FLD_END_ODD, pd->regs + INT_CSR);
 	iowrite32(FIFO_EN | SRST | FLD_CRPT_ODD | FLD_CRPT_EVEN |
-		  FLD_DN_ODD | FLD_DN_EVEN | CAP_CONT_EVEN | CAP_CONT_ODD,
-							pd->regs + CSR1);
+			  FLD_DN_ODD | FLD_DN_EVEN | CAP_CONT_EVEN | CAP_CONT_ODD,
+			  pd->regs + CSR1);
 	wait_i2c_reg(pd->regs);
 	write_i2c_reg(pd->regs, CONFIG, pd->config);
 	write_i2c_reg(pd->regs, EVEN_CSR, CSR_ERROR | CSR_DONE);
@@ -193,7 +220,7 @@ static void dt3155_stop_streaming(struct vb2_queue *q)
 	/* stop the board */
 	write_i2c_reg_nowait(pd->regs, CSR2, pd->csr2);
 	iowrite32(FIFO_EN | SRST | FLD_CRPT_ODD | FLD_CRPT_EVEN |
-		  FLD_DN_ODD | FLD_DN_EVEN, pd->regs + CSR1);
+			  FLD_DN_ODD | FLD_DN_EVEN, pd->regs + CSR1);
 	/* disable interrupts, clear all irq flags */
 	iowrite32(FLD_START | FLD_END_EVEN | FLD_END_ODD, pd->regs + INT_CSR);
 	spin_unlock_irq(&pd->lock);
@@ -206,16 +233,20 @@ static void dt3155_stop_streaming(struct vb2_queue *q)
 	msleep(45);
 
 	spin_lock_irq(&pd->lock);
-	if (pd->curr_buf) {
+
+	if (pd->curr_buf)
+	{
 		vb2_buffer_done(&pd->curr_buf->vb2_buf, VB2_BUF_STATE_ERROR);
 		pd->curr_buf = NULL;
 	}
 
-	while (!list_empty(&pd->dmaq)) {
+	while (!list_empty(&pd->dmaq))
+	{
 		vb = list_first_entry(&pd->dmaq, typeof(*vb), done_entry);
 		list_del(&vb->done_entry);
 		vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
 	}
+
 	spin_unlock_irq(&pd->lock);
 }
 
@@ -226,14 +257,21 @@ static void dt3155_buf_queue(struct vb2_buffer *vb)
 
 	/*  pd->vidq.streaming = 1 when dt3155_buf_queue() is invoked  */
 	spin_lock_irq(&pd->lock);
+
 	if (pd->curr_buf)
+	{
 		list_add_tail(&vb->done_entry, &pd->dmaq);
+	}
 	else
+	{
 		pd->curr_buf = vbuf;
+	}
+
 	spin_unlock_irq(&pd->lock);
 }
 
-static const struct vb2_ops q_ops = {
+static const struct vb2_ops q_ops =
+{
 	.queue_setup = dt3155_queue_setup,
 	.wait_prepare = vb2_ops_wait_prepare,
 	.wait_finish = vb2_ops_wait_finish,
@@ -251,24 +289,34 @@ static irqreturn_t dt3155_irq_handler_even(int irq, void *dev_id)
 	u32 tmp;
 
 	tmp = ioread32(ipd->regs + INT_CSR) & (FLD_START | FLD_END_ODD);
+
 	if (!tmp)
-		return IRQ_NONE;  /* not our irq */
-	if ((tmp & FLD_START) && !(tmp & FLD_END_ODD)) {
+	{
+		return IRQ_NONE;    /* not our irq */
+	}
+
+	if ((tmp & FLD_START) && !(tmp & FLD_END_ODD))
+	{
 		iowrite32(FLD_START_EN | FLD_END_ODD_EN | FLD_START,
-							ipd->regs + INT_CSR);
+				  ipd->regs + INT_CSR);
 		return IRQ_HANDLED; /* start of field irq */
 	}
+
 	tmp = ioread32(ipd->regs + CSR1) & (FLD_CRPT_EVEN | FLD_CRPT_ODD);
-	if (tmp) {
+
+	if (tmp)
+	{
 		iowrite32(FIFO_EN | SRST | FLD_CRPT_ODD | FLD_CRPT_EVEN |
-						FLD_DN_ODD | FLD_DN_EVEN |
-						CAP_CONT_EVEN | CAP_CONT_ODD,
-							ipd->regs + CSR1);
+				  FLD_DN_ODD | FLD_DN_EVEN |
+				  CAP_CONT_EVEN | CAP_CONT_ODD,
+				  ipd->regs + CSR1);
 		mmiowb();
 	}
 
 	spin_lock(&ipd->lock);
-	if (ipd->curr_buf && !list_empty(&ipd->dmaq)) {
+
+	if (ipd->curr_buf && !list_empty(&ipd->dmaq))
+	{
 		ipd->curr_buf->vb2_buf.timestamp = ktime_get_ns();
 		ipd->curr_buf->sequence = ipd->sequence++;
 		ipd->curr_buf->field = V4L2_FIELD_NONE;
@@ -287,12 +335,13 @@ static irqreturn_t dt3155_irq_handler_even(int irq, void *dev_id)
 
 	/* enable interrupts, clear all irq flags */
 	iowrite32(FLD_START_EN | FLD_END_ODD_EN | FLD_START |
-			FLD_END_EVEN | FLD_END_ODD, ipd->regs + INT_CSR);
+			  FLD_END_EVEN | FLD_END_ODD, ipd->regs + INT_CSR);
 	spin_unlock(&ipd->lock);
 	return IRQ_HANDLED;
 }
 
-static const struct v4l2_file_operations dt3155_fops = {
+static const struct v4l2_file_operations dt3155_fops =
+{
 	.owner = THIS_MODULE,
 	.open = v4l2_fh_open,
 	.release = vb2_fop_release,
@@ -303,7 +352,7 @@ static const struct v4l2_file_operations dt3155_fops = {
 };
 
 static int dt3155_querycap(struct file *filp, void *p,
-			   struct v4l2_capability *cap)
+						   struct v4l2_capability *cap)
 {
 	struct dt3155_priv *pd = video_drvdata(filp);
 
@@ -311,16 +360,19 @@ static int dt3155_querycap(struct file *filp, void *p,
 	strcpy(cap->card, DT3155_NAME " frame grabber");
 	sprintf(cap->bus_info, "PCI:%s", pci_name(pd->pdev));
 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE |
-		V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
+					   V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
 	return 0;
 }
 
 static int dt3155_enum_fmt_vid_cap(struct file *filp,
-				   void *p, struct v4l2_fmtdesc *f)
+								   void *p, struct v4l2_fmtdesc *f)
 {
 	if (f->index)
+	{
 		return -EINVAL;
+	}
+
 	f->pixelformat = V4L2_PIX_FMT_GREY;
 	strcpy(f->description, "8-bit Greyscale");
 	return 0;
@@ -353,32 +405,49 @@ static int dt3155_s_std(struct file *filp, void *p, v4l2_std_id norm)
 	struct dt3155_priv *pd = video_drvdata(filp);
 
 	if (pd->std == norm)
+	{
 		return 0;
+	}
+
 	if (vb2_is_busy(&pd->vidq))
+	{
 		return -EBUSY;
+	}
+
 	pd->std = norm;
-	if (pd->std & V4L2_STD_525_60) {
+
+	if (pd->std & V4L2_STD_525_60)
+	{
 		pd->csr2 = VT_60HZ;
 		pd->width = 640;
 		pd->height = 480;
-	} else {
+	}
+	else
+	{
 		pd->csr2 = VT_50HZ;
 		pd->width = 768;
 		pd->height = 576;
 	}
+
 	return 0;
 }
 
 static int dt3155_enum_input(struct file *filp, void *p,
-			     struct v4l2_input *input)
+							 struct v4l2_input *input)
 {
 	if (input->index > 3)
+	{
 		return -EINVAL;
+	}
+
 	if (input->index)
 		snprintf(input->name, sizeof(input->name), "VID%d",
-			 input->index);
+				 input->index);
 	else
+	{
 		strlcpy(input->name, "J2/VID0", sizeof(input->name));
+	}
+
 	input->type = V4L2_INPUT_TYPE_CAMERA;
 	input->std = V4L2_STD_ALL;
 	input->status = 0;
@@ -398,14 +467,18 @@ static int dt3155_s_input(struct file *filp, void *p, unsigned int i)
 	struct dt3155_priv *pd = video_drvdata(filp);
 
 	if (i > 3)
+	{
 		return -EINVAL;
+	}
+
 	pd->input = i;
 	write_i2c_reg(pd->regs, AD_ADDR, AD_CMD_REG);
 	write_i2c_reg(pd->regs, AD_CMD, (i << 6) | (i << 4) | SYNC_LVL_3);
 	return 0;
 }
 
-static const struct v4l2_ioctl_ops dt3155_ioctl_ops = {
+static const struct v4l2_ioctl_ops dt3155_ioctl_ops =
+{
 	.vidioc_querycap = dt3155_querycap,
 	.vidioc_enum_fmt_vid_cap = dt3155_enum_fmt_vid_cap,
 	.vidioc_try_fmt_vid_cap = dt3155_fmt_vid_cap,
@@ -436,7 +509,7 @@ static int dt3155_init_board(struct dt3155_priv *pd)
 
 	/*  resetting the adapter  */
 	iowrite32(ADDR_ERR_ODD | ADDR_ERR_EVEN | FLD_CRPT_ODD | FLD_CRPT_EVEN |
-			FLD_DN_ODD | FLD_DN_EVEN, pd->regs + CSR1);
+			  FLD_DN_ODD | FLD_DN_EVEN, pd->regs + CSR1);
 	mmiowb();
 	msleep(20);
 
@@ -458,13 +531,19 @@ static int dt3155_init_board(struct dt3155_priv *pd)
 
 	/* verifying that we have a DT3155 board (not just a SAA7116 chip) */
 	read_i2c_reg(pd->regs, DT_ID, &tmp);
+
 	if (tmp != DT3155_ID)
+	{
 		return -ENODEV;
+	}
 
 	/* initialize AD LUT */
 	write_i2c_reg(pd->regs, AD_ADDR, 0);
+
 	for (i = 0; i < 256; i++)
+	{
 		write_i2c_reg(pd->regs, AD_LUT, i);
+	}
 
 	/* initialize ADC references */
 	/* FIXME: pos_ref & neg_ref depend on VT_50HZ */
@@ -477,15 +556,21 @@ static int dt3155_init_board(struct dt3155_priv *pd)
 
 	/* initialize PM LUT */
 	write_i2c_reg(pd->regs, CONFIG, pd->config | PM_LUT_PGM);
-	for (i = 0; i < 256; i++) {
+
+	for (i = 0; i < 256; i++)
+	{
 		write_i2c_reg(pd->regs, PM_LUT_ADDR, i);
 		write_i2c_reg(pd->regs, PM_LUT_DATA, i);
 	}
+
 	write_i2c_reg(pd->regs, CONFIG, pd->config | PM_LUT_PGM | PM_LUT_SEL);
-	for (i = 0; i < 256; i++) {
+
+	for (i = 0; i < 256; i++)
+	{
 		write_i2c_reg(pd->regs, PM_LUT_ADDR, i);
 		write_i2c_reg(pd->regs, PM_LUT_DATA, i);
 	}
+
 	write_i2c_reg(pd->regs, CONFIG, pd->config); /*  ACQ_MODE_EVEN  */
 
 	/* select channel 1 for input and set sync level */
@@ -494,12 +579,13 @@ static int dt3155_init_board(struct dt3155_priv *pd)
 
 	/* disable all irqs, clear all irq flags */
 	iowrite32(FLD_START | FLD_END_EVEN | FLD_END_ODD,
-			pd->regs + INT_CSR);
+			  pd->regs + INT_CSR);
 
 	return 0;
 }
 
-static struct video_device dt3155_vdev = {
+static struct video_device dt3155_vdev =
+{
 	.name = DT3155_NAME,
 	.fops = &dt3155_fops,
 	.ioctl_ops = &dt3155_ioctl_ops,
@@ -514,15 +600,26 @@ static int dt3155_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	struct dt3155_priv *pd;
 
 	err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
+
 	if (err)
+	{
 		return -ENODEV;
+	}
+
 	pd = devm_kzalloc(&pdev->dev, sizeof(*pd), GFP_KERNEL);
+
 	if (!pd)
+	{
 		return -ENOMEM;
+	}
 
 	err = v4l2_device_register(&pdev->dev, &pd->v4l2_dev);
+
 	if (err)
+	{
 		return err;
+	}
+
 	pd->vdev = dt3155_vdev;
 	pd->vdev.v4l2_dev = &pd->v4l2_dev;
 	video_set_drvdata(&pd->vdev, pd);  /* for use in video_fops */
@@ -546,31 +643,58 @@ static int dt3155_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	pd->vidq.dev = &pdev->dev;
 	pd->vdev.queue = &pd->vidq;
 	err = vb2_queue_init(&pd->vidq);
+
 	if (err < 0)
+	{
 		goto err_v4l2_dev_unreg;
+	}
+
 	spin_lock_init(&pd->lock);
 	pd->config = ACQ_MODE_EVEN;
 	err = pci_enable_device(pdev);
+
 	if (err)
+	{
 		goto err_v4l2_dev_unreg;
+	}
+
 	err = pci_request_region(pdev, 0, pci_name(pdev));
+
 	if (err)
+	{
 		goto err_pci_disable;
+	}
+
 	pd->regs = pci_iomap(pdev, 0, pci_resource_len(pd->pdev, 0));
-	if (!pd->regs) {
+
+	if (!pd->regs)
+	{
 		err = -ENOMEM;
 		goto err_free_reg;
 	}
+
 	err = dt3155_init_board(pd);
+
 	if (err)
+	{
 		goto err_iounmap;
+	}
+
 	err = request_irq(pd->pdev->irq, dt3155_irq_handler_even,
-					IRQF_SHARED, DT3155_NAME, pd);
+					  IRQF_SHARED, DT3155_NAME, pd);
+
 	if (err)
+	{
 		goto err_iounmap;
+	}
+
 	err = video_register_device(&pd->vdev, VFL_TYPE_GRABBER, -1);
+
 	if (err)
+	{
 		goto err_free_irq;
+	}
+
 	dev_info(&pdev->dev, "/dev/video%i is ready\n", pd->vdev.minor);
 	return 0;  /*   success   */
 
@@ -591,7 +715,7 @@ static void dt3155_remove(struct pci_dev *pdev)
 {
 	struct v4l2_device *v4l2_dev = pci_get_drvdata(pdev);
 	struct dt3155_priv *pd = container_of(v4l2_dev, struct dt3155_priv,
-					      v4l2_dev);
+										  v4l2_dev);
 
 	video_unregister_device(&pd->vdev);
 	free_irq(pd->pdev->irq, pd);
@@ -602,13 +726,15 @@ static void dt3155_remove(struct pci_dev *pdev)
 	pci_disable_device(pdev);
 }
 
-static const struct pci_device_id pci_ids[] = {
+static const struct pci_device_id pci_ids[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, DT3155_DEVICE_ID) },
 	{ 0, /* zero marks the end */ },
 };
 MODULE_DEVICE_TABLE(pci, pci_ids);
 
-static struct pci_driver pci_driver = {
+static struct pci_driver pci_driver =
+{
 	.name = DT3155_NAME,
 	.id_table = pci_ids,
 	.probe = dt3155_probe,

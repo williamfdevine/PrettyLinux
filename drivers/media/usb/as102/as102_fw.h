@@ -16,13 +16,16 @@
 
 extern int dual_tuner;
 
-struct as10x_raw_fw_pkt {
+struct as10x_raw_fw_pkt
+{
 	unsigned char address[4];
 	unsigned char data[MAX_FW_PKT_SIZE - 6];
 } __packed;
 
-struct as10x_fw_pkt_t {
-	union {
+struct as10x_fw_pkt_t
+{
+	union
+	{
 		unsigned char request[2];
 		unsigned char length[2];
 	} __packed u;

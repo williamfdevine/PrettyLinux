@@ -10,8 +10,8 @@ struct b43_wldev;
 struct b43_c32 { s32 i, q; };
 
 #define CORDIC_CONVERT(value)	(((value) >= 0) ? \
-				 ((((value) >> 15) + 1) >> 1) : \
-				 -((((-(value)) >> 15) + 1) >> 1))
+								 ((((value) >> 15) + 1) >> 1) : \
+								 -((((-(value)) >> 15) + 1) >> 1))
 
 /* PHY register routing bits */
 #define B43_PHYROUTE			0x0C00 /* PHY register routing bits mask */
@@ -50,7 +50,8 @@ struct b43_c32 { s32 i, q; };
  * @B43_INTERFMODE_MANUALWLAN:	WLAN Interference Mitigation
  * @B43_INTERFMODE_AUTOWLAN:	Automatic WLAN Interference Mitigation
  */
-enum b43_interference_mitigation {
+enum b43_interference_mitigation
+{
 	B43_INTERFMODE_NONE,
 	B43_INTERFMODE_NONWLAN,
 	B43_INTERFMODE_MANUALWLAN,
@@ -58,7 +59,8 @@ enum b43_interference_mitigation {
 };
 
 /* Antenna identifiers */
-enum {
+enum
+{
 	B43_ANTENNA0 = 0,	/* Antenna 0 */
 	B43_ANTENNA1 = 1,	/* Antenna 1 */
 	B43_ANTENNA_AUTO0 = 2,	/* Automatic, starting with antenna 0 */
@@ -76,7 +78,8 @@ enum {
  * @B43_TXPWR_RES_NEED_ADJUST:	Values changed. Hardware adjustment is needed.
  * @B43_TXPWR_RES_DONE:		No more work to do. Everything is done.
  */
-enum b43_txpwr_result {
+enum b43_txpwr_result
+{
 	B43_TXPWR_RES_NEED_ADJUST,
 	B43_TXPWR_RES_DONE,
 };
@@ -154,7 +157,8 @@ enum b43_txpwr_result {
  * @pwork_60sec:	Periodic work. Called every 60 seconds.
  * 			Can be NULL, if not required.
  */
-struct b43_phy_operations {
+struct b43_phy_operations
+{
 	/* Initialisation */
 	int (*allocate)(struct b43_wldev *dev);
 	void (*free)(struct b43_wldev *dev);
@@ -178,11 +182,11 @@ struct b43_phy_operations {
 	unsigned int (*get_default_chan)(struct b43_wldev *dev);
 	void (*set_rx_antenna)(struct b43_wldev *dev, int antenna);
 	int (*interf_mitigation)(struct b43_wldev *dev,
-				 enum b43_interference_mitigation new_mode);
+							 enum b43_interference_mitigation new_mode);
 
 	/* Transmission power adjustment */
 	enum b43_txpwr_result (*recalc_txpower)(struct b43_wldev *dev,
-						bool ignore_tssi);
+											bool ignore_tssi);
 	void (*adjust_txpower)(struct b43_wldev *dev);
 
 	/* Misc */
@@ -196,7 +200,8 @@ struct b43_phy_lp;
 struct b43_phy_ht;
 struct b43_phy_lcn;
 
-struct b43_phy {
+struct b43_phy
+{
 	/* Hardware operation callbacks. */
 	const struct b43_phy_operations *ops;
 
@@ -205,9 +210,11 @@ struct b43_phy {
 	 * Only one of them is valid (the currently enabled PHY). */
 #ifdef CONFIG_B43_DEBUG
 	/* No union for debug build to force NULL derefs in buggy code. */
-	struct {
+	struct
+	{
 #else
-	union {
+	union
+	{
 #endif
 		/* G-PHY specific information */
 		struct b43_phy_g *g;
@@ -366,7 +373,7 @@ void b43_radio_maskset(struct b43_wldev *dev, u16 offset, u16 mask, u16 set);
  * b43_radio_wait_value - Waits for a given value in masked register read
  */
 bool b43_radio_wait_value(struct b43_wldev *dev, u16 offset, u16 mask,
-			  u16 value, int delay, int timeout);
+						  u16 value, int delay, int timeout);
 
 /**
  * b43_radio_lock - Lock firmware radio register access
@@ -419,7 +426,8 @@ void b43_phy_txpower_check(struct b43_wldev *dev, unsigned int flags);
  * @B43_TXPWR_IGNORE_TSSI: Redo the recalculation, even if the average
  *                         TSSI did not change.
  */
-enum b43_phy_txpower_check_flags {
+enum b43_phy_txpower_check_flags
+{
 	B43_TXPWR_IGNORE_TIME		= (1 << 0),
 	B43_TXPWR_IGNORE_TSSI		= (1 << 1),
 };

@@ -33,7 +33,8 @@ static const char *vpu_sel_clks[] = { "spll", "mpll_main2", };
 static const char *cpu_sel_clks[] = { "mpll_main2", "mpll", };
 static const char *mpll_sel_clks[] = { "fpm", "mpll_osc_sel", };
 static const char *mpll_osc_sel_clks[] = { "ckih_gate", "ckih_div1p5", };
-static const char *clko_sel_clks[] = {
+static const char *clko_sel_clks[] =
+{
 	"ckil", "fpm", "ckih_gate", "ckih_gate",
 	"ckih_gate", "mpll", "spll", "cpu_div",
 	"ahb", "ipg", "per1_div", "per2_div",
@@ -47,7 +48,8 @@ static const char *ssi_sel_clks[] = { "spll_gate", "mpll", };
 static struct clk *clk[IMX27_CLK_MAX];
 static struct clk_onecell_data clk_data;
 
-static struct clk ** const uart_clks[] __initconst = {
+static struct clk **const uart_clks[] __initconst =
+{
 	&clk[IMX27_CLK_PER1_GATE],
 	&clk[IMX27_CLK_UART1_IPG_GATE],
 	&clk[IMX27_CLK_UART2_IPG_GATE],
@@ -68,17 +70,21 @@ static void __init _mx27_clocks_init(unsigned long fref)
 	clk[IMX27_CLK_FPM] = imx_clk_fixed_factor("fpm", "ckil", 1024, 1);
 	clk[IMX27_CLK_CKIH_DIV1P5] = imx_clk_fixed_factor("ckih_div1p5", "ckih_gate", 2, 3);
 	clk[IMX27_CLK_CKIH_GATE] = imx_clk_gate_dis("ckih_gate", "ckih", CCM_CSCR, 3);
-	clk[IMX27_CLK_MPLL_OSC_SEL] = imx_clk_mux("mpll_osc_sel", CCM_CSCR, 4, 1, mpll_osc_sel_clks, ARRAY_SIZE(mpll_osc_sel_clks));
+	clk[IMX27_CLK_MPLL_OSC_SEL] = imx_clk_mux("mpll_osc_sel", CCM_CSCR, 4, 1, mpll_osc_sel_clks,
+								  ARRAY_SIZE(mpll_osc_sel_clks));
 	clk[IMX27_CLK_MPLL_SEL] = imx_clk_mux("mpll_sel", CCM_CSCR, 16, 1, mpll_sel_clks, ARRAY_SIZE(mpll_sel_clks));
 	clk[IMX27_CLK_MPLL] = imx_clk_pllv1(IMX_PLLV1_IMX27, "mpll", "mpll_sel", CCM_MPCTL0);
 	clk[IMX27_CLK_SPLL] = imx_clk_pllv1(IMX_PLLV1_IMX27, "spll", "ckih_gate", CCM_SPCTL0);
 	clk[IMX27_CLK_SPLL_GATE] = imx_clk_gate("spll_gate", "spll", CCM_CSCR, 1);
 	clk[IMX27_CLK_MPLL_MAIN2] = imx_clk_fixed_factor("mpll_main2", "mpll", 2, 3);
 
-	if (mx27_revision() >= IMX_CHIP_REVISION_2_0) {
+	if (mx27_revision() >= IMX_CHIP_REVISION_2_0)
+	{
 		clk[IMX27_CLK_AHB] = imx_clk_divider("ahb", "mpll_main2", CCM_CSCR, 8, 2);
 		clk[IMX27_CLK_IPG] = imx_clk_fixed_factor("ipg", "ahb", 1, 2);
-	} else {
+	}
+	else
+	{
 		clk[IMX27_CLK_AHB] = imx_clk_divider("ahb", "mpll_main2", CCM_CSCR, 9, 4);
 		clk[IMX27_CLK_IPG] = imx_clk_divider("ipg", "ahb", CCM_CSCR, 8, 1);
 	}
@@ -96,9 +102,13 @@ static void __init _mx27_clocks_init(unsigned long fref)
 	clk[IMX27_CLK_CLKO_SEL] = imx_clk_mux("clko_sel", CCM_CCSR, 0, 5, clko_sel_clks, ARRAY_SIZE(clko_sel_clks));
 
 	if (mx27_revision() >= IMX_CHIP_REVISION_2_0)
+	{
 		clk[IMX27_CLK_CPU_DIV] = imx_clk_divider("cpu_div", "cpu_sel", CCM_CSCR, 12, 2);
+	}
 	else
+	{
 		clk[IMX27_CLK_CPU_DIV] = imx_clk_divider("cpu_div", "cpu_sel", CCM_CSCR, 13, 3);
+	}
 
 	clk[IMX27_CLK_CLKO_DIV] = imx_clk_divider("clko_div", "clko_sel", CCM_PCDR0, 22, 3);
 	clk[IMX27_CLK_SSI1_SEL] = imx_clk_mux("ssi1_sel", CCM_CSCR, 22, 1, ssi_sel_clks, ARRAY_SIZE(ssi_sel_clks));
@@ -257,11 +267,15 @@ static void __init mx27_clocks_init_dt(struct device_node *np)
 	struct device_node *refnp;
 	u32 fref = 26000000; /* default */
 
-	for_each_compatible_node(refnp, NULL, "fixed-clock") {
+	for_each_compatible_node(refnp, NULL, "fixed-clock")
+	{
 		if (!of_device_is_compatible(refnp, "fsl,imx-osc26m"))
+		{
 			continue;
+		}
 
-		if (!of_property_read_u32(refnp, "clock-frequency", &fref)) {
+		if (!of_property_read_u32(refnp, "clock-frequency", &fref))
+		{
 			of_node_put(refnp);
 			break;
 		}

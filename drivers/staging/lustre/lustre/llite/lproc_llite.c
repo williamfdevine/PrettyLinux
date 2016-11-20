@@ -44,40 +44,47 @@ static struct file_operations ll_rw_extents_stats_pp_fops;
 static struct file_operations ll_rw_offset_stats_fops;
 
 static ssize_t blocksize_show(struct kobject *kobj, struct attribute *attr,
-			      char *buf)
+							  char *buf)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	struct obd_statfs osfs;
 	int rc;
 
 	rc = ll_statfs_internal(sbi->ll_sb, &osfs,
-				cfs_time_shift_64(-OBD_STATFS_CACHE_SECONDS),
-				OBD_STATFS_NODELAY);
+							cfs_time_shift_64(-OBD_STATFS_CACHE_SECONDS),
+							OBD_STATFS_NODELAY);
+
 	if (!rc)
+	{
 		return sprintf(buf, "%u\n", osfs.os_bsize);
+	}
 
 	return rc;
 }
 LUSTRE_RO_ATTR(blocksize);
 
 static ssize_t kbytestotal_show(struct kobject *kobj, struct attribute *attr,
-				char *buf)
+								char *buf)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	struct obd_statfs osfs;
 	int rc;
 
 	rc = ll_statfs_internal(sbi->ll_sb, &osfs,
-				cfs_time_shift_64(-OBD_STATFS_CACHE_SECONDS),
-				OBD_STATFS_NODELAY);
-	if (!rc) {
+							cfs_time_shift_64(-OBD_STATFS_CACHE_SECONDS),
+							OBD_STATFS_NODELAY);
+
+	if (!rc)
+	{
 		__u32 blk_size = osfs.os_bsize >> 10;
 		__u64 result = osfs.os_blocks;
 
 		while (blk_size >>= 1)
+		{
 			result <<= 1;
+		}
 
 		rc = sprintf(buf, "%llu\n", result);
 	}
@@ -87,22 +94,26 @@ static ssize_t kbytestotal_show(struct kobject *kobj, struct attribute *attr,
 LUSTRE_RO_ATTR(kbytestotal);
 
 static ssize_t kbytesfree_show(struct kobject *kobj, struct attribute *attr,
-			       char *buf)
+							   char *buf)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	struct obd_statfs osfs;
 	int rc;
 
 	rc = ll_statfs_internal(sbi->ll_sb, &osfs,
-				cfs_time_shift_64(-OBD_STATFS_CACHE_SECONDS),
-				OBD_STATFS_NODELAY);
-	if (!rc) {
+							cfs_time_shift_64(-OBD_STATFS_CACHE_SECONDS),
+							OBD_STATFS_NODELAY);
+
+	if (!rc)
+	{
 		__u32 blk_size = osfs.os_bsize >> 10;
 		__u64 result = osfs.os_bfree;
 
 		while (blk_size >>= 1)
+		{
 			result <<= 1;
+		}
 
 		rc = sprintf(buf, "%llu\n", result);
 	}
@@ -112,22 +123,26 @@ static ssize_t kbytesfree_show(struct kobject *kobj, struct attribute *attr,
 LUSTRE_RO_ATTR(kbytesfree);
 
 static ssize_t kbytesavail_show(struct kobject *kobj, struct attribute *attr,
-				char *buf)
+								char *buf)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	struct obd_statfs osfs;
 	int rc;
 
 	rc = ll_statfs_internal(sbi->ll_sb, &osfs,
-				cfs_time_shift_64(-OBD_STATFS_CACHE_SECONDS),
-				OBD_STATFS_NODELAY);
-	if (!rc) {
+							cfs_time_shift_64(-OBD_STATFS_CACHE_SECONDS),
+							OBD_STATFS_NODELAY);
+
+	if (!rc)
+	{
 		__u32 blk_size = osfs.os_bsize >> 10;
 		__u64 result = osfs.os_bavail;
 
 		while (blk_size >>= 1)
+		{
 			result <<= 1;
+		}
 
 		rc = sprintf(buf, "%llu\n", result);
 	}
@@ -137,63 +152,69 @@ static ssize_t kbytesavail_show(struct kobject *kobj, struct attribute *attr,
 LUSTRE_RO_ATTR(kbytesavail);
 
 static ssize_t filestotal_show(struct kobject *kobj, struct attribute *attr,
-			       char *buf)
+							   char *buf)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	struct obd_statfs osfs;
 	int rc;
 
 	rc = ll_statfs_internal(sbi->ll_sb, &osfs,
-				cfs_time_shift_64(-OBD_STATFS_CACHE_SECONDS),
-				OBD_STATFS_NODELAY);
+							cfs_time_shift_64(-OBD_STATFS_CACHE_SECONDS),
+							OBD_STATFS_NODELAY);
+
 	if (!rc)
+	{
 		return sprintf(buf, "%llu\n", osfs.os_files);
+	}
 
 	return rc;
 }
 LUSTRE_RO_ATTR(filestotal);
 
 static ssize_t filesfree_show(struct kobject *kobj, struct attribute *attr,
-			      char *buf)
+							  char *buf)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	struct obd_statfs osfs;
 	int rc;
 
 	rc = ll_statfs_internal(sbi->ll_sb, &osfs,
-				cfs_time_shift_64(-OBD_STATFS_CACHE_SECONDS),
-				OBD_STATFS_NODELAY);
+							cfs_time_shift_64(-OBD_STATFS_CACHE_SECONDS),
+							OBD_STATFS_NODELAY);
+
 	if (!rc)
+	{
 		return sprintf(buf, "%llu\n", osfs.os_ffree);
+	}
 
 	return rc;
 }
 LUSTRE_RO_ATTR(filesfree);
 
 static ssize_t client_type_show(struct kobject *kobj, struct attribute *attr,
-				char *buf)
+								char *buf)
 {
 	return sprintf(buf, "local client\n");
 }
 LUSTRE_RO_ATTR(client_type);
 
 static ssize_t fstype_show(struct kobject *kobj, struct attribute *attr,
-			   char *buf)
+						   char *buf)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 
 	return sprintf(buf, "%s\n", sbi->ll_sb->s_type->name);
 }
 LUSTRE_RO_ATTR(fstype);
 
 static ssize_t uuid_show(struct kobject *kobj, struct attribute *attr,
-			 char *buf)
+						 char *buf)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 
 	return sprintf(buf, "%s\n", sbi->ll_sb_uuid.uuid);
 }
@@ -213,10 +234,10 @@ static int ll_site_stats_seq_show(struct seq_file *m, void *v)
 LPROC_SEQ_FOPS_RO(ll_site_stats);
 
 static ssize_t max_read_ahead_mb_show(struct kobject *kobj,
-				      struct attribute *attr, char *buf)
+									  struct attribute *attr, char *buf)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	long pages_number;
 	int mult;
 
@@ -229,24 +250,28 @@ static ssize_t max_read_ahead_mb_show(struct kobject *kobj,
 }
 
 static ssize_t max_read_ahead_mb_store(struct kobject *kobj,
-				       struct attribute *attr,
-				       const char *buffer,
-				       size_t count)
+									   struct attribute *attr,
+									   const char *buffer,
+									   size_t count)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	int rc;
 	unsigned long pages_number;
 
 	rc = kstrtoul(buffer, 10, &pages_number);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	pages_number *= 1 << (20 - PAGE_SHIFT); /* MB -> pages */
 
-	if (pages_number > totalram_pages / 2) {
+	if (pages_number > totalram_pages / 2)
+	{
 		CERROR("can't set file readahead more than %lu MB\n",
-		       totalram_pages >> (20 - PAGE_SHIFT + 1)); /*1/2 of RAM*/
+			   totalram_pages >> (20 - PAGE_SHIFT + 1)); /*1/2 of RAM*/
 		return -ERANGE;
 	}
 
@@ -259,11 +284,11 @@ static ssize_t max_read_ahead_mb_store(struct kobject *kobj,
 LUSTRE_RW_ATTR(max_read_ahead_mb);
 
 static ssize_t max_read_ahead_per_file_mb_show(struct kobject *kobj,
-					       struct attribute *attr,
-					       char *buf)
+		struct attribute *attr,
+		char *buf)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	long pages_number;
 	int mult;
 
@@ -276,22 +301,26 @@ static ssize_t max_read_ahead_per_file_mb_show(struct kobject *kobj,
 }
 
 static ssize_t max_read_ahead_per_file_mb_store(struct kobject *kobj,
-						struct attribute *attr,
-						const char *buffer,
-						size_t count)
+		struct attribute *attr,
+		const char *buffer,
+		size_t count)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	int rc;
 	unsigned long pages_number;
 
 	rc = kstrtoul(buffer, 10, &pages_number);
-	if (rc)
-		return rc;
 
-	if (pages_number > sbi->ll_ra_info.ra_max_pages) {
+	if (rc)
+	{
+		return rc;
+	}
+
+	if (pages_number > sbi->ll_ra_info.ra_max_pages)
+	{
 		CERROR("can't set file readahead more than max_read_ahead_mb %lu MB\n",
-		       sbi->ll_ra_info.ra_max_pages);
+			   sbi->ll_ra_info.ra_max_pages);
 		return -ERANGE;
 	}
 
@@ -304,11 +333,11 @@ static ssize_t max_read_ahead_per_file_mb_store(struct kobject *kobj,
 LUSTRE_RW_ATTR(max_read_ahead_per_file_mb);
 
 static ssize_t max_read_ahead_whole_mb_show(struct kobject *kobj,
-					    struct attribute *attr,
-					    char *buf)
+		struct attribute *attr,
+		char *buf)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	long pages_number;
 	int mult;
 
@@ -321,25 +350,29 @@ static ssize_t max_read_ahead_whole_mb_show(struct kobject *kobj,
 }
 
 static ssize_t max_read_ahead_whole_mb_store(struct kobject *kobj,
-					     struct attribute *attr,
-					     const char  *buffer,
-					     size_t count)
+		struct attribute *attr,
+		const char  *buffer,
+		size_t count)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	int rc;
 	unsigned long pages_number;
 
 	rc = kstrtoul(buffer, 10, &pages_number);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* Cap this at the current max readahead window size, the readahead
 	 * algorithm does this anyway so it's pointless to set it larger.
 	 */
-	if (pages_number > sbi->ll_ra_info.ra_max_pages_per_file) {
+	if (pages_number > sbi->ll_ra_info.ra_max_pages_per_file)
+	{
 		CERROR("can't set max_read_ahead_whole_mb more than max_read_ahead_per_file_mb: %lu\n",
-		       sbi->ll_ra_info.ra_max_pages_per_file >> (20 - PAGE_SHIFT));
+			   sbi->ll_ra_info.ra_max_pages_per_file >> (20 - PAGE_SHIFT));
 		return -ERANGE;
 	}
 
@@ -363,22 +396,22 @@ static int ll_max_cached_mb_seq_show(struct seq_file *m, void *v)
 	max_cached_mb = cache->ccc_lru_max >> shift;
 	unused_mb = atomic_long_read(&cache->ccc_lru_left) >> shift;
 	seq_printf(m,
-		   "users: %d\n"
-		   "max_cached_mb: %ld\n"
-		   "used_mb: %ld\n"
-		   "unused_mb: %ld\n"
-		   "reclaim_count: %u\n",
-		   atomic_read(&cache->ccc_users),
-		   max_cached_mb,
-		   max_cached_mb - unused_mb,
-		   unused_mb,
-		   cache->ccc_lru_shrinkers);
+			   "users: %d\n"
+			   "max_cached_mb: %ld\n"
+			   "used_mb: %ld\n"
+			   "unused_mb: %ld\n"
+			   "reclaim_count: %u\n",
+			   atomic_read(&cache->ccc_users),
+			   max_cached_mb,
+			   max_cached_mb - unused_mb,
+			   unused_mb,
+			   cache->ccc_lru_shrinkers);
 	return 0;
 }
 
 static ssize_t ll_max_cached_mb_seq_write(struct file *file,
-					  const char __user *buffer,
-					  size_t count, loff_t *off)
+		const char __user *buffer,
+		size_t count, loff_t *off)
 {
 	struct super_block *sb = ((struct seq_file *)file->private_data)->private;
 	struct ll_sb_info *sbi = ll_s2sbi(sb);
@@ -394,27 +427,39 @@ static ssize_t ll_max_cached_mb_seq_write(struct file *file,
 	char kernbuf[128];
 
 	if (count >= sizeof(kernbuf))
+	{
 		return -EINVAL;
+	}
 
 	if (copy_from_user(kernbuf, buffer, count))
+	{
 		return -EFAULT;
+	}
+
 	kernbuf[count] = 0;
 
 	mult = 1 << (20 - PAGE_SHIFT);
 	buffer += lprocfs_find_named_value(kernbuf, "max_cached_mb:", &count) -
-		  kernbuf;
+			  kernbuf;
 	rc = lprocfs_write_frac_u64_helper(buffer, count, &val, mult);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	if (val > LONG_MAX)
+	{
 		return -ERANGE;
+	}
+
 	pages_number = (long)val;
 
-	if (pages_number < 0 || pages_number > totalram_pages) {
+	if (pages_number < 0 || pages_number > totalram_pages)
+	{
 		CERROR("%s: can't set max cache more than %lu MB\n",
-		       ll_get_fsname(sb, NULL, 0),
-		       totalram_pages >> (20 - PAGE_SHIFT));
+			   ll_get_fsname(sb, NULL, 0),
+			   totalram_pages >> (20 - PAGE_SHIFT));
 		return -ERANGE;
 	}
 
@@ -423,41 +468,57 @@ static ssize_t ll_max_cached_mb_seq_write(struct file *file,
 	spin_unlock(&sbi->ll_lock);
 
 	/* easy - add more LRU slots. */
-	if (diff >= 0) {
+	if (diff >= 0)
+	{
 		atomic_long_add(diff, &cache->ccc_lru_left);
 		rc = 0;
 		goto out;
 	}
 
 	env = cl_env_get(&refcheck);
+
 	if (IS_ERR(env))
+	{
 		return 0;
+	}
 
 	diff = -diff;
-	while (diff > 0) {
+
+	while (diff > 0)
+	{
 		long tmp;
 
 		/* reduce LRU budget from free slots. */
-		do {
+		do
+		{
 			long ov, nv;
 
 			ov = atomic_long_read(&cache->ccc_lru_left);
+
 			if (ov == 0)
+			{
 				break;
+			}
 
 			nv = ov > diff ? ov - diff : 0;
 			rc = atomic_long_cmpxchg(&cache->ccc_lru_left, ov, nv);
-			if (likely(ov == rc)) {
+
+			if (likely(ov == rc))
+			{
 				diff -= ov - nv;
 				nrpages += ov - nv;
 				break;
 			}
-		} while (1);
+		}
+		while (1);
 
 		if (diff <= 0)
+		{
 			break;
+		}
 
-		if (!sbi->ll_dt_exp) { /* being initialized */
+		if (!sbi->ll_dt_exp)   /* being initialized */
+		{
 			rc = 0;
 			goto out;
 		}
@@ -465,213 +526,263 @@ static ssize_t ll_max_cached_mb_seq_write(struct file *file,
 		/* difficult - have to ask OSCs to drop LRU slots. */
 		tmp = diff << 1;
 		rc = obd_set_info_async(env, sbi->ll_dt_exp,
-					sizeof(KEY_CACHE_LRU_SHRINK),
-					KEY_CACHE_LRU_SHRINK,
-					sizeof(tmp), &tmp, NULL);
+								sizeof(KEY_CACHE_LRU_SHRINK),
+								KEY_CACHE_LRU_SHRINK,
+								sizeof(tmp), &tmp, NULL);
+
 		if (rc < 0)
+		{
 			break;
+		}
 	}
+
 	cl_env_put(env, &refcheck);
 
 out:
-	if (rc >= 0) {
+
+	if (rc >= 0)
+	{
 		spin_lock(&sbi->ll_lock);
 		cache->ccc_lru_max = pages_number;
 		spin_unlock(&sbi->ll_lock);
 		rc = count;
-	} else {
+	}
+	else
+	{
 		atomic_long_add(nrpages, &cache->ccc_lru_left);
 	}
+
 	return rc;
 }
 
 LPROC_SEQ_FOPS(ll_max_cached_mb);
 
 static ssize_t checksum_pages_show(struct kobject *kobj, struct attribute *attr,
-				   char *buf)
+								   char *buf)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 
 	return sprintf(buf, "%u\n", (sbi->ll_flags & LL_SBI_CHECKSUM) ? 1 : 0);
 }
 
 static ssize_t checksum_pages_store(struct kobject *kobj,
-				    struct attribute *attr,
-				    const char *buffer,
-				    size_t count)
+									struct attribute *attr,
+									const char *buffer,
+									size_t count)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	int rc;
 	unsigned long val;
 
 	if (!sbi->ll_dt_exp)
 		/* Not set up yet */
+	{
 		return -EAGAIN;
+	}
 
 	rc = kstrtoul(buffer, 10, &val);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	if (val)
+	{
 		sbi->ll_flags |= LL_SBI_CHECKSUM;
+	}
 	else
+	{
 		sbi->ll_flags &= ~LL_SBI_CHECKSUM;
+	}
 
 	rc = obd_set_info_async(NULL, sbi->ll_dt_exp, sizeof(KEY_CHECKSUM),
-				KEY_CHECKSUM, sizeof(val), &val, NULL);
+							KEY_CHECKSUM, sizeof(val), &val, NULL);
+
 	if (rc)
+	{
 		CWARN("Failed to set OSC checksum flags: %d\n", rc);
+	}
 
 	return count;
 }
 LUSTRE_RW_ATTR(checksum_pages);
 
 static ssize_t ll_rd_track_id(struct kobject *kobj, char *buf,
-			      enum stats_track_type type)
+							  enum stats_track_type type)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 
 	if (sbi->ll_stats_track_type == type)
+	{
 		return sprintf(buf, "%d\n", sbi->ll_stats_track_id);
+	}
 	else if (sbi->ll_stats_track_type == STATS_TRACK_ALL)
+	{
 		return sprintf(buf, "0 (all)\n");
+	}
 	else
+	{
 		return sprintf(buf, "untracked\n");
+	}
 }
 
 static ssize_t ll_wr_track_id(struct kobject *kobj, const char *buffer,
-			      size_t count,
-			      enum stats_track_type type)
+							  size_t count,
+							  enum stats_track_type type)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	int rc;
 	unsigned long pid;
 
 	rc = kstrtoul(buffer, 10, &pid);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	sbi->ll_stats_track_id = pid;
+
 	if (pid == 0)
+	{
 		sbi->ll_stats_track_type = STATS_TRACK_ALL;
+	}
 	else
+	{
 		sbi->ll_stats_track_type = type;
+	}
+
 	lprocfs_clear_stats(sbi->ll_stats);
 	return count;
 }
 
 static ssize_t stats_track_pid_show(struct kobject *kobj,
-				    struct attribute *attr,
-				    char *buf)
+									struct attribute *attr,
+									char *buf)
 {
 	return ll_rd_track_id(kobj, buf, STATS_TRACK_PID);
 }
 
 static ssize_t stats_track_pid_store(struct kobject *kobj,
-				     struct attribute *attr,
-				     const char *buffer,
-				     size_t count)
+									 struct attribute *attr,
+									 const char *buffer,
+									 size_t count)
 {
 	return ll_wr_track_id(kobj, buffer, count, STATS_TRACK_PID);
 }
 LUSTRE_RW_ATTR(stats_track_pid);
 
 static ssize_t stats_track_ppid_show(struct kobject *kobj,
-				     struct attribute *attr,
-				     char *buf)
+									 struct attribute *attr,
+									 char *buf)
 {
 	return ll_rd_track_id(kobj, buf, STATS_TRACK_PPID);
 }
 
 static ssize_t stats_track_ppid_store(struct kobject *kobj,
-				      struct attribute *attr,
-				      const char *buffer,
-				      size_t count)
+									  struct attribute *attr,
+									  const char *buffer,
+									  size_t count)
 {
 	return ll_wr_track_id(kobj, buffer, count, STATS_TRACK_PPID);
 }
 LUSTRE_RW_ATTR(stats_track_ppid);
 
 static ssize_t stats_track_gid_show(struct kobject *kobj,
-				    struct attribute *attr,
-				    char *buf)
+									struct attribute *attr,
+									char *buf)
 {
 	return ll_rd_track_id(kobj, buf, STATS_TRACK_GID);
 }
 
 static ssize_t stats_track_gid_store(struct kobject *kobj,
-				     struct attribute *attr,
-				     const char *buffer,
-				     size_t count)
+									 struct attribute *attr,
+									 const char *buffer,
+									 size_t count)
 {
 	return ll_wr_track_id(kobj, buffer, count, STATS_TRACK_GID);
 }
 LUSTRE_RW_ATTR(stats_track_gid);
 
 static ssize_t statahead_max_show(struct kobject *kobj,
-				  struct attribute *attr,
-				  char *buf)
+								  struct attribute *attr,
+								  char *buf)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 
 	return sprintf(buf, "%u\n", sbi->ll_sa_max);
 }
 
 static ssize_t statahead_max_store(struct kobject *kobj,
-				   struct attribute *attr,
-				   const char *buffer,
-				   size_t count)
+								   struct attribute *attr,
+								   const char *buffer,
+								   size_t count)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	int rc;
 	unsigned long val;
 
 	rc = kstrtoul(buffer, 10, &val);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	if (val <= LL_SA_RPC_MAX)
+	{
 		sbi->ll_sa_max = val;
+	}
 	else
 		CERROR("Bad statahead_max value %lu. Valid values are in the range [0, %d]\n",
-		       val, LL_SA_RPC_MAX);
+			   val, LL_SA_RPC_MAX);
 
 	return count;
 }
 LUSTRE_RW_ATTR(statahead_max);
 
 static ssize_t statahead_agl_show(struct kobject *kobj,
-				  struct attribute *attr,
-				  char *buf)
+								  struct attribute *attr,
+								  char *buf)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 
 	return sprintf(buf, "%u\n", sbi->ll_flags & LL_SBI_AGL_ENABLED ? 1 : 0);
 }
 
 static ssize_t statahead_agl_store(struct kobject *kobj,
-				   struct attribute *attr,
-				   const char *buffer,
-				   size_t count)
+								   struct attribute *attr,
+								   const char *buffer,
+								   size_t count)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	int rc;
 	unsigned long val;
 
 	rc = kstrtoul(buffer, 10, &val);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	if (val)
+	{
 		sbi->ll_flags |= LL_SBI_AGL_ENABLED;
+	}
 	else
+	{
 		sbi->ll_flags &= ~LL_SBI_AGL_ENABLED;
+	}
 
 	return count;
 }
@@ -683,62 +794,72 @@ static int ll_statahead_stats_seq_show(struct seq_file *m, void *v)
 	struct ll_sb_info *sbi = ll_s2sbi(sb);
 
 	seq_printf(m,
-		   "statahead total: %u\n"
-		   "statahead wrong: %u\n"
-		   "agl total: %u\n",
-		   atomic_read(&sbi->ll_sa_total),
-		   atomic_read(&sbi->ll_sa_wrong),
-		   atomic_read(&sbi->ll_agl_total));
+			   "statahead total: %u\n"
+			   "statahead wrong: %u\n"
+			   "agl total: %u\n",
+			   atomic_read(&sbi->ll_sa_total),
+			   atomic_read(&sbi->ll_sa_wrong),
+			   atomic_read(&sbi->ll_agl_total));
 	return 0;
 }
 
 LPROC_SEQ_FOPS_RO(ll_statahead_stats);
 
 static ssize_t lazystatfs_show(struct kobject *kobj,
-			       struct attribute *attr,
-			       char *buf)
+							   struct attribute *attr,
+							   char *buf)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 
 	return sprintf(buf, "%u\n", sbi->ll_flags & LL_SBI_LAZYSTATFS ? 1 : 0);
 }
 
 static ssize_t lazystatfs_store(struct kobject *kobj,
-				struct attribute *attr,
-				const char *buffer,
-				size_t count)
+								struct attribute *attr,
+								const char *buffer,
+								size_t count)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	int rc;
 	unsigned long val;
 
 	rc = kstrtoul(buffer, 10, &val);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	if (val)
+	{
 		sbi->ll_flags |= LL_SBI_LAZYSTATFS;
+	}
 	else
+	{
 		sbi->ll_flags &= ~LL_SBI_LAZYSTATFS;
+	}
 
 	return count;
 }
 LUSTRE_RW_ATTR(lazystatfs);
 
 static ssize_t max_easize_show(struct kobject *kobj,
-			       struct attribute *attr,
-			       char *buf)
+							   struct attribute *attr,
+							   char *buf)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	unsigned int ealen;
 	int rc;
 
 	rc = ll_get_max_mdsize(sbi, &ealen);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	return sprintf(buf, "%u\n", ealen);
 }
@@ -757,17 +878,20 @@ LUSTRE_RO_ATTR(max_easize);
  * \retval negative	negated errno on failure
  */
 static ssize_t default_easize_show(struct kobject *kobj,
-				   struct attribute *attr,
-				   char *buf)
+								   struct attribute *attr,
+								   char *buf)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	unsigned int ealen;
 	int rc;
 
 	rc = ll_get_default_mdsize(sbi, &ealen);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	return sprintf(buf, "%u\n", ealen);
 }
@@ -789,22 +913,28 @@ static ssize_t default_easize_show(struct kobject *kobj,
  * \retval negative	negated errno on failure
  */
 static ssize_t default_easize_store(struct kobject *kobj,
-				    struct attribute *attr,
-				    const char *buffer,
-				    size_t count)
+									struct attribute *attr,
+									const char *buffer,
+									size_t count)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	unsigned long val;
 	int rc;
 
 	rc = kstrtoul(buffer, 10, &val);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = ll_set_default_mdsize(sbi, val);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	return count;
 }
@@ -817,18 +947,24 @@ static int ll_sbi_flags_seq_show(struct seq_file *m, void *v)
 	int flags = ll_s2sbi(sb)->ll_flags;
 	int i = 0;
 
-	while (flags != 0) {
-		if (ARRAY_SIZE(str) <= i) {
+	while (flags != 0)
+	{
+		if (ARRAY_SIZE(str) <= i)
+		{
 			CERROR("%s: Revise array LL_SBI_FLAGS to match sbi flags please.\n",
-			       ll_get_fsname(sb, NULL, 0));
+				   ll_get_fsname(sb, NULL, 0));
 			return -EINVAL;
 		}
 
 		if (flags & 0x1)
+		{
 			seq_printf(m, "%s ", str[i]);
+		}
+
 		flags >>= 1;
 		++i;
 	}
+
 	seq_puts(m, "\b\n");
 	return 0;
 }
@@ -836,34 +972,41 @@ static int ll_sbi_flags_seq_show(struct seq_file *m, void *v)
 LPROC_SEQ_FOPS_RO(ll_sbi_flags);
 
 static ssize_t xattr_cache_show(struct kobject *kobj,
-				struct attribute *attr,
-				char *buf)
+								struct attribute *attr,
+								char *buf)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 
 	return sprintf(buf, "%u\n", sbi->ll_xattr_cache_enabled);
 }
 
 static ssize_t xattr_cache_store(struct kobject *kobj,
-				 struct attribute *attr,
-				 const char *buffer,
-				 size_t count)
+								 struct attribute *attr,
+								 const char *buffer,
+								 size_t count)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	int rc;
 	unsigned long val;
 
 	rc = kstrtoul(buffer, 10, &val);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	if (val != 0 && val != 1)
+	{
 		return -ERANGE;
+	}
 
 	if (val == 1 && !(sbi->ll_flags & LL_SBI_XATTR_CACHE))
+	{
 		return -ENOTSUPP;
+	}
 
 	sbi->ll_xattr_cache_enabled = val;
 
@@ -883,17 +1026,17 @@ static int ll_unstable_stats_seq_show(struct seq_file *m, void *v)
 	mb = (pages * PAGE_SIZE) >> 20;
 
 	seq_printf(m,
-		   "unstable_check:     %8d\n"
-		   "unstable_pages: %12ld\n"
-		   "unstable_mb:        %8d\n",
-		   cache->ccc_unstable_check, pages, mb);
+			   "unstable_check:     %8d\n"
+			   "unstable_pages: %12ld\n"
+			   "unstable_mb:        %8d\n",
+			   cache->ccc_unstable_check, pages, mb);
 
 	return 0;
 }
 
 static ssize_t ll_unstable_stats_seq_write(struct file *file,
-					   const char __user *buffer,
-					   size_t count, loff_t *off)
+		const char __user *buffer,
+		size_t count, loff_t *off)
 {
 	struct super_block *sb = ((struct seq_file *)file->private_data)->private;
 	struct ll_sb_info *sbi = ll_s2sbi(sb);
@@ -901,19 +1044,30 @@ static ssize_t ll_unstable_stats_seq_write(struct file *file,
 	int val, rc;
 
 	if (!count)
+	{
 		return 0;
+	}
+
 	if (count >= sizeof(kernbuf))
+	{
 		return -EINVAL;
+	}
 
 	if (copy_from_user(kernbuf, buffer, count))
+	{
 		return -EFAULT;
+	}
+
 	kernbuf[count] = 0;
 
 	buffer += lprocfs_find_named_value(kernbuf, "unstable_check:", &count) -
-		  kernbuf;
+			  kernbuf;
 	rc = lprocfs_write_helper(buffer, count, &val);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	/* borrow lru lock to set the value */
 	spin_lock(&sbi->ll_cache->ccc_lru_lock);
@@ -925,24 +1079,24 @@ static ssize_t ll_unstable_stats_seq_write(struct file *file,
 LPROC_SEQ_FOPS(ll_unstable_stats);
 
 static ssize_t root_squash_show(struct kobject *kobj, struct attribute *attr,
-				char *buf)
+								char *buf)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	struct root_squash_info *squash = &sbi->ll_squash;
 
 	return sprintf(buf, "%u:%u\n", squash->rsi_uid, squash->rsi_gid);
 }
 
 static ssize_t root_squash_store(struct kobject *kobj, struct attribute *attr,
-				 const char *buffer, size_t count)
+								 const char *buffer, size_t count)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	struct root_squash_info *squash = &sbi->ll_squash;
 
 	return lprocfs_wr_root_squash(buffer, count, squash,
-				      ll_get_fsname(sbi->ll_sb, NULL, 0));
+								  ll_get_fsname(sbi->ll_sb, NULL, 0));
 }
 LUSTRE_RW_ATTR(root_squash);
 
@@ -954,22 +1108,27 @@ static int ll_nosquash_nids_seq_show(struct seq_file *m, void *v)
 	int len;
 
 	down_read(&squash->rsi_sem);
-	if (!list_empty(&squash->rsi_nosquash_nids)) {
+
+	if (!list_empty(&squash->rsi_nosquash_nids))
+	{
 		len = cfs_print_nidlist(m->buf + m->count, m->size - m->count,
-					&squash->rsi_nosquash_nids);
+								&squash->rsi_nosquash_nids);
 		m->count += len;
 		seq_puts(m, "\n");
-	} else {
+	}
+	else
+	{
 		seq_puts(m, "NONE\n");
 	}
+
 	up_read(&squash->rsi_sem);
 
 	return 0;
 }
 
 static ssize_t ll_nosquash_nids_seq_write(struct file *file,
-					  const char __user *buffer,
-					  size_t count, loff_t *off)
+		const char __user *buffer,
+		size_t count, loff_t *off)
 {
 	struct seq_file *m = file->private_data;
 	struct super_block *sb = m->private;
@@ -978,9 +1137,12 @@ static ssize_t ll_nosquash_nids_seq_write(struct file *file,
 	int rc;
 
 	rc = lprocfs_wr_nosquash_nids(buffer, count, squash,
-				      ll_get_fsname(sb, NULL, 0));
+								  ll_get_fsname(sb, NULL, 0));
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	ll_compute_rootsquash_state(sbi);
 
@@ -989,7 +1151,8 @@ static ssize_t ll_nosquash_nids_seq_write(struct file *file,
 
 LPROC_SEQ_FOPS(ll_nosquash_nids);
 
-static struct lprocfs_vars lprocfs_llite_obd_vars[] = {
+static struct lprocfs_vars lprocfs_llite_obd_vars[] =
+{
 	/* { "mntpt_path",   ll_rd_path,	     0, 0 }, */
 	{ "site",	  &ll_site_stats_fops,    NULL, 0 },
 	/* { "filegroups",   lprocfs_rd_filegroups,  0, 0 }, */
@@ -997,14 +1160,17 @@ static struct lprocfs_vars lprocfs_llite_obd_vars[] = {
 	{ "statahead_stats",  &ll_statahead_stats_fops, NULL, 0 },
 	{ "unstable_stats",   &ll_unstable_stats_fops, NULL },
 	{ "sbi_flags",	      &ll_sbi_flags_fops, NULL, 0 },
-	{ .name =		"nosquash_nids",
-	  .fops =		&ll_nosquash_nids_fops		},
+	{
+		.name =		"nosquash_nids",
+		.fops =		&ll_nosquash_nids_fops
+	},
 	{ NULL }
 };
 
 #define MAX_STRING_SIZE 128
 
-static struct attribute *llite_attrs[] = {
+static struct attribute *llite_attrs[] =
+{
 	&lustre_attr_blocksize.attr,
 	&lustre_attr_kbytestotal.attr,
 	&lustre_attr_kbytesfree.attr,
@@ -1034,36 +1200,51 @@ static struct attribute *llite_attrs[] = {
 static void llite_sb_release(struct kobject *kobj)
 {
 	struct ll_sb_info *sbi = container_of(kobj, struct ll_sb_info,
-					      ll_kobj);
+										  ll_kobj);
 	complete(&sbi->ll_kobj_unregister);
 }
 
-static struct kobj_type llite_ktype = {
+static struct kobj_type llite_ktype =
+{
 	.default_attrs	= llite_attrs,
 	.sysfs_ops	= &lustre_sysfs_ops,
 	.release	= llite_sb_release,
 };
 
-static const struct llite_file_opcode {
+static const struct llite_file_opcode
+{
 	__u32       opcode;
 	__u32       type;
 	const char *opname;
-} llite_opcode_table[LPROC_LL_FILE_OPCODES] = {
+} llite_opcode_table[LPROC_LL_FILE_OPCODES] =
+{
 	/* file operation */
 	{ LPROC_LL_DIRTY_HITS,     LPROCFS_TYPE_REGS, "dirty_pages_hits" },
 	{ LPROC_LL_DIRTY_MISSES,   LPROCFS_TYPE_REGS, "dirty_pages_misses" },
-	{ LPROC_LL_READ_BYTES,     LPROCFS_CNTR_AVGMINMAX | LPROCFS_TYPE_BYTES,
-				   "read_bytes" },
-	{ LPROC_LL_WRITE_BYTES,    LPROCFS_CNTR_AVGMINMAX | LPROCFS_TYPE_BYTES,
-				   "write_bytes" },
-	{ LPROC_LL_BRW_READ,       LPROCFS_CNTR_AVGMINMAX | LPROCFS_TYPE_PAGES,
-				   "brw_read" },
-	{ LPROC_LL_BRW_WRITE,      LPROCFS_CNTR_AVGMINMAX | LPROCFS_TYPE_PAGES,
-				   "brw_write" },
-	{ LPROC_LL_OSC_READ,       LPROCFS_CNTR_AVGMINMAX | LPROCFS_TYPE_BYTES,
-				   "osc_read" },
-	{ LPROC_LL_OSC_WRITE,      LPROCFS_CNTR_AVGMINMAX | LPROCFS_TYPE_BYTES,
-				   "osc_write" },
+	{
+		LPROC_LL_READ_BYTES,     LPROCFS_CNTR_AVGMINMAX | LPROCFS_TYPE_BYTES,
+		"read_bytes"
+	},
+	{
+		LPROC_LL_WRITE_BYTES,    LPROCFS_CNTR_AVGMINMAX | LPROCFS_TYPE_BYTES,
+		"write_bytes"
+	},
+	{
+		LPROC_LL_BRW_READ,       LPROCFS_CNTR_AVGMINMAX | LPROCFS_TYPE_PAGES,
+		"brw_read"
+	},
+	{
+		LPROC_LL_BRW_WRITE,      LPROCFS_CNTR_AVGMINMAX | LPROCFS_TYPE_PAGES,
+		"brw_write"
+	},
+	{
+		LPROC_LL_OSC_READ,       LPROCFS_CNTR_AVGMINMAX | LPROCFS_TYPE_BYTES,
+		"osc_read"
+	},
+	{
+		LPROC_LL_OSC_WRITE,      LPROCFS_CNTR_AVGMINMAX | LPROCFS_TYPE_BYTES,
+		"osc_write"
+	},
 	{ LPROC_LL_IOCTL,	  LPROCFS_TYPE_REGS, "ioctl" },
 	{ LPROC_LL_OPEN,	   LPROCFS_TYPE_REGS, "open" },
 	{ LPROC_LL_RELEASE,	LPROCFS_TYPE_REGS, "close" },
@@ -1099,23 +1280,35 @@ static const struct llite_file_opcode {
 void ll_stats_ops_tally(struct ll_sb_info *sbi, int op, int count)
 {
 	if (!sbi->ll_stats)
+	{
 		return;
+	}
+
 	if (sbi->ll_stats_track_type == STATS_TRACK_ALL)
+	{
 		lprocfs_counter_add(sbi->ll_stats, op, count);
+	}
 	else if (sbi->ll_stats_track_type == STATS_TRACK_PID &&
-		 sbi->ll_stats_track_id == current->pid)
+			 sbi->ll_stats_track_id == current->pid)
+	{
 		lprocfs_counter_add(sbi->ll_stats, op, count);
+	}
 	else if (sbi->ll_stats_track_type == STATS_TRACK_PPID &&
-		 sbi->ll_stats_track_id == current->real_parent->pid)
+			 sbi->ll_stats_track_id == current->real_parent->pid)
+	{
 		lprocfs_counter_add(sbi->ll_stats, op, count);
+	}
 	else if (sbi->ll_stats_track_type == STATS_TRACK_GID &&
-		 sbi->ll_stats_track_id ==
-			from_kgid(&init_user_ns, current_gid()))
+			 sbi->ll_stats_track_id ==
+			 from_kgid(&init_user_ns, current_gid()))
+	{
 		lprocfs_counter_add(sbi->ll_stats, op, count);
+	}
 }
 EXPORT_SYMBOL(ll_stats_ops_tally);
 
-static const char *ra_stat_string[] = {
+static const char *ra_stat_string[] =
+{
 	[RA_STAT_HIT] = "hits",
 	[RA_STAT_MISS] = "misses",
 	[RA_STAT_DISTANT_READPAGE] = "readpage not consecutive",
@@ -1132,7 +1325,7 @@ static const char *ra_stat_string[] = {
 };
 
 int ldebugfs_register_mountpoint(struct dentry *parent,
-				 struct super_block *sb, char *osc, char *mdc)
+								 struct super_block *sb, char *osc, char *mdc)
 {
 	struct lustre_sb_info *lsi = s2lsi(sb);
 	struct ll_sb_info *sbi = ll_s2sbi(sb);
@@ -1150,123 +1343,174 @@ int ldebugfs_register_mountpoint(struct dentry *parent,
 	/* Get fsname */
 	len = strlen(lsi->lsi_lmd->lmd_profile);
 	ptr = strrchr(lsi->lsi_lmd->lmd_profile, '-');
+
 	if (ptr && (strcmp(ptr, "-client") == 0))
+	{
 		len -= 7;
+	}
 
 	/* Mount info */
 	snprintf(name, MAX_STRING_SIZE, "%.*s-%p", len,
-		 lsi->lsi_lmd->lmd_profile, sb);
+			 lsi->lsi_lmd->lmd_profile, sb);
 
 	dir = ldebugfs_register(name, parent, NULL, NULL);
-	if (IS_ERR_OR_NULL(dir)) {
+
+	if (IS_ERR_OR_NULL(dir))
+	{
 		err = dir ? PTR_ERR(dir) : -ENOMEM;
 		sbi->ll_debugfs_entry = NULL;
 		return err;
 	}
+
 	sbi->ll_debugfs_entry = dir;
 
 	rc = ldebugfs_seq_create(sbi->ll_debugfs_entry, "dump_page_cache", 0444,
-				 &vvp_dump_pgcache_file_ops, sbi);
+							 &vvp_dump_pgcache_file_ops, sbi);
+
 	if (rc)
+	{
 		CWARN("Error adding the dump_page_cache file\n");
+	}
 
 	rc = ldebugfs_seq_create(sbi->ll_debugfs_entry, "extents_stats", 0644,
-				 &ll_rw_extents_stats_fops, sbi);
+							 &ll_rw_extents_stats_fops, sbi);
+
 	if (rc)
+	{
 		CWARN("Error adding the extent_stats file\n");
+	}
 
 	rc = ldebugfs_seq_create(sbi->ll_debugfs_entry,
-				 "extents_stats_per_process",
-				 0644, &ll_rw_extents_stats_pp_fops, sbi);
+							 "extents_stats_per_process",
+							 0644, &ll_rw_extents_stats_pp_fops, sbi);
+
 	if (rc)
+	{
 		CWARN("Error adding the extents_stats_per_process file\n");
+	}
 
 	rc = ldebugfs_seq_create(sbi->ll_debugfs_entry, "offset_stats", 0644,
-				 &ll_rw_offset_stats_fops, sbi);
+							 &ll_rw_offset_stats_fops, sbi);
+
 	if (rc)
+	{
 		CWARN("Error adding the offset_stats file\n");
+	}
 
 	/* File operations stats */
 	sbi->ll_stats = lprocfs_alloc_stats(LPROC_LL_FILE_OPCODES,
-					    LPROCFS_STATS_FLAG_NONE);
-	if (!sbi->ll_stats) {
+										LPROCFS_STATS_FLAG_NONE);
+
+	if (!sbi->ll_stats)
+	{
 		err = -ENOMEM;
 		goto out;
 	}
+
 	/* do counter init */
-	for (id = 0; id < LPROC_LL_FILE_OPCODES; id++) {
+	for (id = 0; id < LPROC_LL_FILE_OPCODES; id++)
+	{
 		__u32 type = llite_opcode_table[id].type;
 		void *ptr = NULL;
 
 		if (type & LPROCFS_TYPE_REGS)
+		{
 			ptr = "regs";
+		}
 		else if (type & LPROCFS_TYPE_BYTES)
+		{
 			ptr = "bytes";
+		}
 		else if (type & LPROCFS_TYPE_PAGES)
+		{
 			ptr = "pages";
+		}
+
 		lprocfs_counter_init(sbi->ll_stats,
-				     llite_opcode_table[id].opcode,
-				     (type & LPROCFS_CNTR_AVGMINMAX),
-				     llite_opcode_table[id].opname, ptr);
+							 llite_opcode_table[id].opcode,
+							 (type & LPROCFS_CNTR_AVGMINMAX),
+							 llite_opcode_table[id].opname, ptr);
 	}
+
 	err = ldebugfs_register_stats(sbi->ll_debugfs_entry, "stats",
-				      sbi->ll_stats);
+								  sbi->ll_stats);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	sbi->ll_ra_stats = lprocfs_alloc_stats(ARRAY_SIZE(ra_stat_string),
-					       LPROCFS_STATS_FLAG_NONE);
-	if (!sbi->ll_ra_stats) {
+										   LPROCFS_STATS_FLAG_NONE);
+
+	if (!sbi->ll_ra_stats)
+	{
 		err = -ENOMEM;
 		goto out;
 	}
 
 	for (id = 0; id < ARRAY_SIZE(ra_stat_string); id++)
 		lprocfs_counter_init(sbi->ll_ra_stats, id, 0,
-				     ra_stat_string[id], "pages");
+							 ra_stat_string[id], "pages");
 
 	err = ldebugfs_register_stats(sbi->ll_debugfs_entry, "read_ahead_stats",
-				      sbi->ll_ra_stats);
+								  sbi->ll_ra_stats);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	err = ldebugfs_add_vars(sbi->ll_debugfs_entry,
-				lprocfs_llite_obd_vars, sb);
+							lprocfs_llite_obd_vars, sb);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	sbi->ll_kobj.kset = llite_kset;
 	init_completion(&sbi->ll_kobj_unregister);
 	err = kobject_init_and_add(&sbi->ll_kobj, &llite_ktype, NULL,
-				   "%s", name);
+							   "%s", name);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	/* MDC info */
 	obd = class_name2obd(mdc);
 
 	err = sysfs_create_link(&sbi->ll_kobj, &obd->obd_kobj,
-				obd->obd_type->typ_name);
+							obd->obd_type->typ_name);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	/* OSC */
 	obd = class_name2obd(osc);
 
 	err = sysfs_create_link(&sbi->ll_kobj, &obd->obd_kobj,
-				obd->obd_type->typ_name);
+							obd->obd_type->typ_name);
 out:
-	if (err) {
+
+	if (err)
+	{
 		ldebugfs_remove(&sbi->ll_debugfs_entry);
 		lprocfs_free_stats(&sbi->ll_ra_stats);
 		lprocfs_free_stats(&sbi->ll_stats);
 	}
+
 	return err;
 }
 
 void ldebugfs_unregister_mountpoint(struct ll_sb_info *sbi)
 {
-	if (sbi->ll_debugfs_entry) {
+	if (sbi->ll_debugfs_entry)
+	{
 		ldebugfs_remove(&sbi->ll_debugfs_entry);
 		kobject_put(&sbi->ll_kobj);
 		wait_for_completion(&sbi->ll_kobj_unregister);
@@ -1280,7 +1524,7 @@ void ldebugfs_unregister_mountpoint(struct ll_sb_info *sbi)
 #define pct(a, b) (b ? a * 100 / b : 0)
 
 static void ll_display_extents_info(struct ll_rw_extents_info *io_extents,
-				    struct seq_file *seq, int which)
+									struct seq_file *seq, int which)
 {
 	unsigned long read_tot = 0, write_tot = 0, read_cum, write_cum;
 	unsigned long start, end, r, w;
@@ -1292,30 +1536,37 @@ static void ll_display_extents_info(struct ll_rw_extents_info *io_extents,
 	write_cum = 0;
 	start = 0;
 
-	for (i = 0; i < LL_HIST_MAX; i++) {
+	for (i = 0; i < LL_HIST_MAX; i++)
+	{
 		read_tot += pp_info->pp_r_hist.oh_buckets[i];
 		write_tot += pp_info->pp_w_hist.oh_buckets[i];
 	}
 
-	for (i = 0; i < LL_HIST_MAX; i++) {
+	for (i = 0; i < LL_HIST_MAX; i++)
+	{
 		r = pp_info->pp_r_hist.oh_buckets[i];
 		w = pp_info->pp_w_hist.oh_buckets[i];
 		read_cum += r;
 		write_cum += w;
 		end = 1 << (i + LL_HIST_START - units);
 		seq_printf(seq, "%4lu%c - %4lu%c%c: %14lu %4lu %4lu  | %14lu %4lu %4lu\n",
-			   start, *unitp, end, *unitp,
-			   (i == LL_HIST_MAX - 1) ? '+' : ' ',
-			   r, pct(r, read_tot), pct(read_cum, read_tot),
-			   w, pct(w, write_tot), pct(write_cum, write_tot));
+				   start, *unitp, end, *unitp,
+				   (i == LL_HIST_MAX - 1) ? '+' : ' ',
+				   r, pct(r, read_tot), pct(read_cum, read_tot),
+				   w, pct(w, write_tot), pct(write_cum, write_tot));
 		start = end;
-		if (start == 1 << 10) {
+
+		if (start == 1 << 10)
+		{
 			start = 1;
 			units += 10;
 			unitp++;
 		}
+
 		if (read_cum == read_tot && write_cum == write_tot)
+		{
 			break;
+		}
 	}
 }
 
@@ -1328,33 +1579,39 @@ static int ll_rw_extents_stats_pp_seq_show(struct seq_file *seq, void *v)
 
 	ktime_get_real_ts64(&now);
 
-	if (!sbi->ll_rw_stats_on) {
+	if (!sbi->ll_rw_stats_on)
+	{
 		seq_printf(seq, "disabled\n"
-			   "write anything in this file to activate, then 0 or \"[D/d]isabled\" to deactivate\n");
+				   "write anything in this file to activate, then 0 or \"[D/d]isabled\" to deactivate\n");
 		return 0;
 	}
+
 	seq_printf(seq, "snapshot_time:	 %llu.%09lu (secs.usecs)\n",
-		   (s64)now.tv_sec, (unsigned long)now.tv_nsec);
+			   (s64)now.tv_sec, (unsigned long)now.tv_nsec);
 	seq_printf(seq, "%15s %19s       | %20s\n", " ", "read", "write");
 	seq_printf(seq, "%13s   %14s %4s %4s  | %14s %4s %4s\n",
-		   "extents", "calls", "%", "cum%",
-		   "calls", "%", "cum%");
+			   "extents", "calls", "%", "cum%",
+			   "calls", "%", "cum%");
 	spin_lock(&sbi->ll_pp_extent_lock);
-	for (k = 0; k < LL_PROCESS_HIST_MAX; k++) {
-		if (io_extents->pp_extents[k].pid != 0) {
+
+	for (k = 0; k < LL_PROCESS_HIST_MAX; k++)
+	{
+		if (io_extents->pp_extents[k].pid != 0)
+		{
 			seq_printf(seq, "\nPID: %d\n",
-				   io_extents->pp_extents[k].pid);
+					   io_extents->pp_extents[k].pid);
 			ll_display_extents_info(io_extents, seq, k);
 		}
 	}
+
 	spin_unlock(&sbi->ll_pp_extent_lock);
 	return 0;
 }
 
 static ssize_t ll_rw_extents_stats_pp_seq_write(struct file *file,
-						const char __user *buf,
-						size_t len,
-						loff_t *off)
+		const char __user *buf,
+		size_t len,
+		loff_t *off)
 {
 	struct seq_file *seq = file->private_data;
 	struct ll_sb_info *sbi = seq->private;
@@ -1363,35 +1620,53 @@ static ssize_t ll_rw_extents_stats_pp_seq_write(struct file *file,
 	int value = 1, rc = 0;
 
 	if (len == 0)
+	{
 		return -EINVAL;
+	}
 
 	rc = lprocfs_write_helper(buf, len, &value);
-	if (rc < 0 && len < 16) {
+
+	if (rc < 0 && len < 16)
+	{
 		char kernbuf[16];
 
 		if (copy_from_user(kernbuf, buf, len))
+		{
 			return -EFAULT;
+		}
+
 		kernbuf[len] = 0;
 
 		if (kernbuf[len - 1] == '\n')
+		{
 			kernbuf[len - 1] = 0;
+		}
 
 		if (strcmp(kernbuf, "disabled") == 0 ||
-		    strcmp(kernbuf, "Disabled") == 0)
+			strcmp(kernbuf, "Disabled") == 0)
+		{
 			value = 0;
+		}
 	}
 
 	if (value == 0)
+	{
 		sbi->ll_rw_stats_on = 0;
+	}
 	else
+	{
 		sbi->ll_rw_stats_on = 1;
+	}
 
 	spin_lock(&sbi->ll_pp_extent_lock);
-	for (i = 0; i < LL_PROCESS_HIST_MAX; i++) {
+
+	for (i = 0; i < LL_PROCESS_HIST_MAX; i++)
+	{
 		io_extents->pp_extents[i].pid = 0;
 		lprocfs_oh_clear(&io_extents->pp_extents[i].pp_r_hist);
 		lprocfs_oh_clear(&io_extents->pp_extents[i].pp_w_hist);
 	}
+
 	spin_unlock(&sbi->ll_pp_extent_lock);
 	return len;
 }
@@ -1406,18 +1681,20 @@ static int ll_rw_extents_stats_seq_show(struct seq_file *seq, void *v)
 
 	ktime_get_real_ts64(&now);
 
-	if (!sbi->ll_rw_stats_on) {
+	if (!sbi->ll_rw_stats_on)
+	{
 		seq_printf(seq, "disabled\n"
-			   "write anything in this file to activate, then 0 or \"[D/d]isabled\" to deactivate\n");
+				   "write anything in this file to activate, then 0 or \"[D/d]isabled\" to deactivate\n");
 		return 0;
 	}
+
 	seq_printf(seq, "snapshot_time:	 %llu.%09lu (secs.usecs)\n",
-		   (u64)now.tv_sec, (unsigned long)now.tv_nsec);
+			   (u64)now.tv_sec, (unsigned long)now.tv_nsec);
 
 	seq_printf(seq, "%15s %19s       | %20s\n", " ", "read", "write");
 	seq_printf(seq, "%13s   %14s %4s %4s  | %14s %4s %4s\n",
-		   "extents", "calls", "%", "cum%",
-		   "calls", "%", "cum%");
+			   "extents", "calls", "%", "cum%",
+			   "calls", "%", "cum%");
 	spin_lock(&sbi->ll_lock);
 	ll_display_extents_info(io_extents, seq, LL_PROCESS_HIST_MAX);
 	spin_unlock(&sbi->ll_lock);
@@ -1426,8 +1703,8 @@ static int ll_rw_extents_stats_seq_show(struct seq_file *seq, void *v)
 }
 
 static ssize_t ll_rw_extents_stats_seq_write(struct file *file,
-					     const char __user *buf,
-					     size_t len, loff_t *off)
+		const char __user *buf,
+		size_t len, loff_t *off)
 {
 	struct seq_file *seq = file->private_data;
 	struct ll_sb_info *sbi = seq->private;
@@ -1436,35 +1713,53 @@ static ssize_t ll_rw_extents_stats_seq_write(struct file *file,
 	int value = 1, rc = 0;
 
 	if (len == 0)
+	{
 		return -EINVAL;
+	}
 
 	rc = lprocfs_write_helper(buf, len, &value);
-	if (rc < 0 && len < 16) {
+
+	if (rc < 0 && len < 16)
+	{
 		char kernbuf[16];
 
 		if (copy_from_user(kernbuf, buf, len))
+		{
 			return -EFAULT;
+		}
+
 		kernbuf[len] = 0;
 
 		if (kernbuf[len - 1] == '\n')
+		{
 			kernbuf[len - 1] = 0;
+		}
 
 		if (strcmp(kernbuf, "disabled") == 0 ||
-		    strcmp(kernbuf, "Disabled") == 0)
+			strcmp(kernbuf, "Disabled") == 0)
+		{
 			value = 0;
+		}
 	}
 
 	if (value == 0)
+	{
 		sbi->ll_rw_stats_on = 0;
+	}
 	else
+	{
 		sbi->ll_rw_stats_on = 1;
+	}
 
 	spin_lock(&sbi->ll_pp_extent_lock);
-	for (i = 0; i <= LL_PROCESS_HIST_MAX; i++) {
+
+	for (i = 0; i <= LL_PROCESS_HIST_MAX; i++)
+	{
 		io_extents->pp_extents[i].pid = 0;
 		lprocfs_oh_clear(&io_extents->pp_extents[i].pp_r_hist);
 		lprocfs_oh_clear(&io_extents->pp_extents[i].pp_w_hist);
 	}
+
 	spin_unlock(&sbi->ll_pp_extent_lock);
 
 	return len;
@@ -1473,8 +1768,8 @@ static ssize_t ll_rw_extents_stats_seq_write(struct file *file,
 LPROC_SEQ_FOPS(ll_rw_extents_stats);
 
 void ll_rw_stats_tally(struct ll_sb_info *sbi, pid_t pid,
-		       struct ll_file_data *file, loff_t pos,
-		       size_t count, int rw)
+					   struct ll_file_data *file, loff_t pos,
+					   size_t count, int rw)
 {
 	int i, cur = -1;
 	struct ll_rw_process_info *process;
@@ -1484,20 +1779,27 @@ void ll_rw_stats_tally(struct ll_sb_info *sbi, pid_t pid,
 	struct ll_rw_extents_info *io_extents = &sbi->ll_rw_extents_info;
 
 	if (!sbi->ll_rw_stats_on)
+	{
 		return;
+	}
+
 	process = sbi->ll_rw_process_info;
 	offset = sbi->ll_rw_offset_info;
 
 	spin_lock(&sbi->ll_pp_extent_lock);
+
 	/* Extent statistics */
-	for (i = 0; i < LL_PROCESS_HIST_MAX; i++) {
-		if (io_extents->pp_extents[i].pid == pid) {
+	for (i = 0; i < LL_PROCESS_HIST_MAX; i++)
+	{
+		if (io_extents->pp_extents[i].pid == pid)
+		{
 			cur = i;
 			break;
 		}
 	}
 
-	if (cur == -1) {
+	if (cur == -1)
+	{
 		/* new process */
 		sbi->ll_extent_process_count =
 			(sbi->ll_extent_process_count + 1) % LL_PROCESS_HIST_MAX;
@@ -1508,22 +1810,31 @@ void ll_rw_stats_tally(struct ll_sb_info *sbi, pid_t pid,
 	}
 
 	for (i = 0; (count >= (1 << LL_HIST_START << i)) &&
-	     (i < (LL_HIST_MAX - 1)); i++)
+		 (i < (LL_HIST_MAX - 1)); i++)
 		;
-	if (rw == 0) {
+
+	if (rw == 0)
+	{
 		io_extents->pp_extents[cur].pp_r_hist.oh_buckets[i]++;
 		io_extents->pp_extents[LL_PROCESS_HIST_MAX].pp_r_hist.oh_buckets[i]++;
-	} else {
+	}
+	else
+	{
 		io_extents->pp_extents[cur].pp_w_hist.oh_buckets[i]++;
 		io_extents->pp_extents[LL_PROCESS_HIST_MAX].pp_w_hist.oh_buckets[i]++;
 	}
+
 	spin_unlock(&sbi->ll_pp_extent_lock);
 
 	spin_lock(&sbi->ll_process_lock);
+
 	/* Offset statistics */
-	for (i = 0; i < LL_PROCESS_HIST_MAX; i++) {
-		if (process[i].rw_pid == pid) {
-			if (process[i].rw_last_file != file) {
+	for (i = 0; i < LL_PROCESS_HIST_MAX; i++)
+	{
+		if (process[i].rw_pid == pid)
+		{
+			if (process[i].rw_last_file != file)
+			{
 				process[i].rw_range_start = pos;
 				process[i].rw_last_file_pos = pos + count;
 				process[i].rw_smallest_extent = count;
@@ -1533,9 +1844,11 @@ void ll_rw_stats_tally(struct ll_sb_info *sbi, pid_t pid,
 				spin_unlock(&sbi->ll_process_lock);
 				return;
 			}
-			if (process[i].rw_last_file_pos != pos) {
+
+			if (process[i].rw_last_file_pos != pos)
+			{
 				*off_count =
-				    (*off_count + 1) % LL_OFFSET_HIST_MAX;
+					(*off_count + 1) % LL_OFFSET_HIST_MAX;
 				offset[*off_count].rw_op = process[i].rw_op;
 				offset[*off_count].rw_pid = pid;
 				offset[*off_count].rw_range_start =
@@ -1553,17 +1866,25 @@ void ll_rw_stats_tally(struct ll_sb_info *sbi, pid_t pid,
 				process[i].rw_smallest_extent = count;
 				process[i].rw_largest_extent = count;
 				process[i].rw_offset = pos -
-					process[i].rw_last_file_pos;
+									   process[i].rw_last_file_pos;
 			}
+
 			if (process[i].rw_smallest_extent > count)
+			{
 				process[i].rw_smallest_extent = count;
+			}
+
 			if (process[i].rw_largest_extent < count)
+			{
 				process[i].rw_largest_extent = count;
+			}
+
 			process[i].rw_last_file_pos = pos + count;
 			spin_unlock(&sbi->ll_process_lock);
 			return;
 		}
 	}
+
 	*process_count = (*process_count + 1) % LL_PROCESS_HIST_MAX;
 	process[*process_count].rw_pid = pid;
 	process[*process_count].rw_op = rw;
@@ -1586,52 +1907,59 @@ static int ll_rw_offset_stats_seq_show(struct seq_file *seq, void *v)
 
 	ktime_get_real_ts64(&now);
 
-	if (!sbi->ll_rw_stats_on) {
+	if (!sbi->ll_rw_stats_on)
+	{
 		seq_printf(seq, "disabled\n"
-			   "write anything in this file to activate, then 0 or \"[D/d]isabled\" to deactivate\n");
+				   "write anything in this file to activate, then 0 or \"[D/d]isabled\" to deactivate\n");
 		return 0;
 	}
+
 	spin_lock(&sbi->ll_process_lock);
 
 	seq_printf(seq, "snapshot_time:	 %llu.%09lu (secs.usecs)\n",
-		   (s64)now.tv_sec, (unsigned long)now.tv_nsec);
+			   (s64)now.tv_sec, (unsigned long)now.tv_nsec);
 	seq_printf(seq, "%3s %10s %14s %14s %17s %17s %14s\n",
-		   "R/W", "PID", "RANGE START", "RANGE END",
-		   "SMALLEST EXTENT", "LARGEST EXTENT", "OFFSET");
+			   "R/W", "PID", "RANGE START", "RANGE END",
+			   "SMALLEST EXTENT", "LARGEST EXTENT", "OFFSET");
+
 	/* We stored the discontiguous offsets here; print them first */
-	for (i = 0; i < LL_OFFSET_HIST_MAX; i++) {
+	for (i = 0; i < LL_OFFSET_HIST_MAX; i++)
+	{
 		if (offset[i].rw_pid != 0)
 			seq_printf(seq,
-				   "%3c %10d %14Lu %14Lu %17lu %17lu %14Lu",
-				   offset[i].rw_op == READ ? 'R' : 'W',
-				   offset[i].rw_pid,
-				   offset[i].rw_range_start,
-				   offset[i].rw_range_end,
-				   (unsigned long)offset[i].rw_smallest_extent,
-				   (unsigned long)offset[i].rw_largest_extent,
-				   offset[i].rw_offset);
+					   "%3c %10d %14Lu %14Lu %17lu %17lu %14Lu",
+					   offset[i].rw_op == READ ? 'R' : 'W',
+					   offset[i].rw_pid,
+					   offset[i].rw_range_start,
+					   offset[i].rw_range_end,
+					   (unsigned long)offset[i].rw_smallest_extent,
+					   (unsigned long)offset[i].rw_largest_extent,
+					   offset[i].rw_offset);
 	}
+
 	/* Then print the current offsets for each process */
-	for (i = 0; i < LL_PROCESS_HIST_MAX; i++) {
+	for (i = 0; i < LL_PROCESS_HIST_MAX; i++)
+	{
 		if (process[i].rw_pid != 0)
 			seq_printf(seq,
-				   "%3c %10d %14Lu %14Lu %17lu %17lu %14Lu",
-				   process[i].rw_op == READ ? 'R' : 'W',
-				   process[i].rw_pid,
-				   process[i].rw_range_start,
-				   process[i].rw_last_file_pos,
-				   (unsigned long)process[i].rw_smallest_extent,
-				   (unsigned long)process[i].rw_largest_extent,
-				   process[i].rw_offset);
+					   "%3c %10d %14Lu %14Lu %17lu %17lu %14Lu",
+					   process[i].rw_op == READ ? 'R' : 'W',
+					   process[i].rw_pid,
+					   process[i].rw_range_start,
+					   process[i].rw_last_file_pos,
+					   (unsigned long)process[i].rw_smallest_extent,
+					   (unsigned long)process[i].rw_largest_extent,
+					   process[i].rw_offset);
 	}
+
 	spin_unlock(&sbi->ll_process_lock);
 
 	return 0;
 }
 
 static ssize_t ll_rw_offset_stats_seq_write(struct file *file,
-					    const char __user *buf,
-					    size_t len, loff_t *off)
+		const char __user *buf,
+		size_t len, loff_t *off)
 {
 	struct seq_file *seq = file->private_data;
 	struct ll_sb_info *sbi = seq->private;
@@ -1640,37 +1968,51 @@ static ssize_t ll_rw_offset_stats_seq_write(struct file *file,
 	int value = 1, rc = 0;
 
 	if (len == 0)
+	{
 		return -EINVAL;
+	}
 
 	rc = lprocfs_write_helper(buf, len, &value);
 
-	if (rc < 0 && len < 16) {
+	if (rc < 0 && len < 16)
+	{
 		char kernbuf[16];
 
 		if (copy_from_user(kernbuf, buf, len))
+		{
 			return -EFAULT;
+		}
+
 		kernbuf[len] = 0;
 
 		if (kernbuf[len - 1] == '\n')
+		{
 			kernbuf[len - 1] = 0;
+		}
 
 		if (strcmp(kernbuf, "disabled") == 0 ||
-		    strcmp(kernbuf, "Disabled") == 0)
+			strcmp(kernbuf, "Disabled") == 0)
+		{
 			value = 0;
+		}
 	}
 
 	if (value == 0)
+	{
 		sbi->ll_rw_stats_on = 0;
+	}
 	else
+	{
 		sbi->ll_rw_stats_on = 1;
+	}
 
 	spin_lock(&sbi->ll_process_lock);
 	sbi->ll_offset_process_count = 0;
 	sbi->ll_rw_offset_entry_count = 0;
 	memset(process_info, 0, sizeof(struct ll_rw_process_info) *
-	       LL_PROCESS_HIST_MAX);
+		   LL_PROCESS_HIST_MAX);
 	memset(offset_info, 0, sizeof(struct ll_rw_process_info) *
-	       LL_OFFSET_HIST_MAX);
+		   LL_OFFSET_HIST_MAX);
 	spin_unlock(&sbi->ll_process_lock);
 
 	return len;

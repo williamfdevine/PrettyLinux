@@ -39,14 +39,16 @@
 #define WT_INT_EN	(0x01 << 23)
 #define ADC_DIV		(0x04 << 1)	/* div = 6 */
 
-enum ts_state {
+enum ts_state
+{
 	TS_WAIT_NEW_PACKET,	/* We are waiting next touch report */
 	TS_WAIT_X_COORD,	/* We are waiting for ADC to report X coord */
 	TS_WAIT_Y_COORD,	/* We are waiting for ADC to report Y coord */
 	TS_IDLE,		/* Input device is closed, don't do anything */
 };
 
-struct w90p910_ts {
+struct w90p910_ts
+{
 	struct input_dev *input;
 	struct timer_list timer;
 	struct clk *clk;
@@ -60,11 +62,12 @@ static void w90p910_report_event(struct w90p910_ts *w90p910_ts, bool down)
 {
 	struct input_dev *dev = w90p910_ts->input;
 
-	if (down) {
+	if (down)
+	{
 		input_report_abs(dev, ABS_X,
-				 __raw_readl(w90p910_ts->ts_reg + 0x0c));
+						 __raw_readl(w90p910_ts->ts_reg + 0x0c));
 		input_report_abs(dev, ABS_Y,
-				 __raw_readl(w90p910_ts->ts_reg + 0x10));
+						 __raw_readl(w90p910_ts->ts_reg + 0x10));
 	}
 
 	input_report_key(dev, BTN_TOUCH, down);
@@ -116,29 +119,30 @@ static irqreturn_t w90p910_ts_interrupt(int irq, void *dev_id)
 
 	spin_lock_irqsave(&w90p910_ts->lock, flags);
 
-	switch (w90p910_ts->state) {
-	case TS_WAIT_NEW_PACKET:
-		/*
-		 * The controller only generates interrupts when pen
-		 * is down.
-		 */
-		del_timer(&w90p910_ts->timer);
-		w90p910_prepare_x_reading(w90p910_ts);
-		break;
+	switch (w90p910_ts->state)
+	{
+		case TS_WAIT_NEW_PACKET:
+			/*
+			 * The controller only generates interrupts when pen
+			 * is down.
+			 */
+			del_timer(&w90p910_ts->timer);
+			w90p910_prepare_x_reading(w90p910_ts);
+			break;
 
 
-	case TS_WAIT_X_COORD:
-		w90p910_prepare_y_reading(w90p910_ts);
-		break;
+		case TS_WAIT_X_COORD:
+			w90p910_prepare_y_reading(w90p910_ts);
+			break;
 
-	case TS_WAIT_Y_COORD:
-		w90p910_report_event(w90p910_ts, true);
-		w90p910_prepare_next_packet(w90p910_ts);
-		mod_timer(&w90p910_ts->timer, jiffies + msecs_to_jiffies(100));
-		break;
+		case TS_WAIT_Y_COORD:
+			w90p910_report_event(w90p910_ts, true);
+			w90p910_prepare_next_packet(w90p910_ts);
+			mod_timer(&w90p910_ts->timer, jiffies + msecs_to_jiffies(100));
+			break;
 
-	case TS_IDLE:
-		break;
+		case TS_IDLE:
+			break;
 	}
 
 	spin_unlock_irqrestore(&w90p910_ts->lock, flags);
@@ -154,7 +158,8 @@ static void w90p910_check_pen_up(unsigned long data)
 	spin_lock_irqsave(&w90p910_ts->lock, flags);
 
 	if (w90p910_ts->state == TS_WAIT_NEW_PACKET &&
-	    !(__raw_readl(w90p910_ts->ts_reg + 0x04) & ADC_DOWN)) {
+		!(__raw_readl(w90p910_ts->ts_reg + 0x04) & ADC_DOWN))
+	{
 
 		w90p910_report_event(w90p910_ts, false);
 	}
@@ -224,7 +229,9 @@ static int w90x900ts_probe(struct platform_device *pdev)
 
 	w90p910_ts = kzalloc(sizeof(struct w90p910_ts), GFP_KERNEL);
 	input_dev = input_allocate_device();
-	if (!w90p910_ts || !input_dev) {
+
+	if (!w90p910_ts || !input_dev)
+	{
 		err = -ENOMEM;
 		goto fail1;
 	}
@@ -233,28 +240,35 @@ static int w90x900ts_probe(struct platform_device *pdev)
 	w90p910_ts->state = TS_IDLE;
 	spin_lock_init(&w90p910_ts->lock);
 	setup_timer(&w90p910_ts->timer, w90p910_check_pen_up,
-		    (unsigned long)w90p910_ts);
+				(unsigned long)w90p910_ts);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		err = -ENXIO;
 		goto fail1;
 	}
 
 	if (!request_mem_region(res->start, resource_size(res),
-				pdev->name)) {
+							pdev->name))
+	{
 		err = -EBUSY;
 		goto fail1;
 	}
 
 	w90p910_ts->ts_reg = ioremap(res->start, resource_size(res));
-	if (!w90p910_ts->ts_reg) {
+
+	if (!w90p910_ts->ts_reg)
+	{
 		err = -ENOMEM;
 		goto fail2;
 	}
 
 	w90p910_ts->clk = clk_get(&pdev->dev, NULL);
-	if (IS_ERR(w90p910_ts->clk)) {
+
+	if (IS_ERR(w90p910_ts->clk))
+	{
 		err = PTR_ERR(w90p910_ts->clk);
 		goto fail3;
 	}
@@ -278,15 +292,20 @@ static int w90x900ts_probe(struct platform_device *pdev)
 	input_set_drvdata(input_dev, w90p910_ts);
 
 	w90p910_ts->irq_num = platform_get_irq(pdev, 0);
+
 	if (request_irq(w90p910_ts->irq_num, w90p910_ts_interrupt,
-			0, "w90p910ts", w90p910_ts)) {
+					0, "w90p910ts", w90p910_ts))
+	{
 		err = -EBUSY;
 		goto fail4;
 	}
 
 	err = input_register_device(w90p910_ts->input);
+
 	if (err)
+	{
 		goto fail5;
+	}
 
 	platform_set_drvdata(pdev, w90p910_ts);
 
@@ -321,7 +340,8 @@ static int w90x900ts_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver w90x900ts_driver = {
+static struct platform_driver w90x900ts_driver =
+{
 	.probe		= w90x900ts_probe,
 	.remove		= w90x900ts_remove,
 	.driver		= {

@@ -20,7 +20,8 @@
 #define TUSB1210_VENDOR_SPECIFIC2_ZHSDRV_SHIFT	4
 #define TUSB1210_VENDOR_SPECIFIC2_DP_SHIFT	6
 
-struct tusb1210 {
+struct tusb1210
+{
 	struct ulpi *ulpi;
 	struct phy *phy;
 	struct gpio_desc *gpio_reset;
@@ -38,7 +39,7 @@ static int tusb1210_power_on(struct phy *phy)
 	/* Restore the optional eye diagram optimization value */
 	if (tusb->vendor_specific2)
 		ulpi_write(tusb->ulpi, TUSB1210_VENDOR_SPECIFIC2,
-			   tusb->vendor_specific2);
+				   tusb->vendor_specific2);
 
 	return 0;
 }
@@ -53,7 +54,8 @@ static int tusb1210_power_off(struct phy *phy)
 	return 0;
 }
 
-static const struct phy_ops phy_ops = {
+static const struct phy_ops phy_ops =
+{
 	.power_on = tusb1210_power_on,
 	.power_off = tusb1210_power_off,
 	.owner = THIS_MODULE,
@@ -65,20 +67,29 @@ static int tusb1210_probe(struct ulpi *ulpi)
 	u8 val, reg;
 
 	tusb = devm_kzalloc(&ulpi->dev, sizeof(*tusb), GFP_KERNEL);
+
 	if (!tusb)
+	{
 		return -ENOMEM;
+	}
 
 	tusb->gpio_reset = devm_gpiod_get_optional(&ulpi->dev, "reset",
-						   GPIOD_OUT_LOW);
+					   GPIOD_OUT_LOW);
+
 	if (IS_ERR(tusb->gpio_reset))
+	{
 		return PTR_ERR(tusb->gpio_reset);
+	}
 
 	gpiod_set_value_cansleep(tusb->gpio_reset, 1);
 
 	tusb->gpio_cs = devm_gpiod_get_optional(&ulpi->dev, "cs",
-						GPIOD_OUT_LOW);
+											GPIOD_OUT_LOW);
+
 	if (IS_ERR(tusb->gpio_cs))
+	{
 		return PTR_ERR(tusb->gpio_cs);
+	}
 
 	gpiod_set_value_cansleep(tusb->gpio_cs, 1);
 
@@ -99,14 +110,18 @@ static int tusb1210_probe(struct ulpi *ulpi)
 	device_property_read_u8(&ulpi->dev, "datapolarity", &val);
 	reg |= val << TUSB1210_VENDOR_SPECIFIC2_DP_SHIFT;
 
-	if (reg) {
+	if (reg)
+	{
 		ulpi_write(ulpi, TUSB1210_VENDOR_SPECIFIC2, reg);
 		tusb->vendor_specific2 = reg;
 	}
 
 	tusb->phy = ulpi_phy_create(ulpi, &phy_ops);
+
 	if (IS_ERR(tusb->phy))
+	{
 		return PTR_ERR(tusb->phy);
+	}
 
 	tusb->ulpi = ulpi;
 
@@ -124,13 +139,15 @@ static void tusb1210_remove(struct ulpi *ulpi)
 
 #define TI_VENDOR_ID 0x0451
 
-static const struct ulpi_device_id tusb1210_ulpi_id[] = {
+static const struct ulpi_device_id tusb1210_ulpi_id[] =
+{
 	{ TI_VENDOR_ID, 0x1507, },
 	{ },
 };
 MODULE_DEVICE_TABLE(ulpi, tusb1210_ulpi_id);
 
-static struct ulpi_driver tusb1210_driver = {
+static struct ulpi_driver tusb1210_driver =
+{
 	.id_table = tusb1210_ulpi_id,
 	.probe = tusb1210_probe,
 	.remove = tusb1210_remove,

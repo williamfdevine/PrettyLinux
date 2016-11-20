@@ -73,7 +73,8 @@
  * @lock:		Lock to protect the PDC syswake registers and the cached
  *			values of those registers in this struct.
  */
-struct pdc_intc_priv {
+struct pdc_intc_priv
+{
 	unsigned int		nr_perips;
 	unsigned int		nr_syswakes;
 	unsigned int		*perip_irqs;
@@ -86,13 +87,13 @@ struct pdc_intc_priv {
 };
 
 static void pdc_write(struct pdc_intc_priv *priv, unsigned int reg_offs,
-		      unsigned int data)
+					  unsigned int data)
 {
 	iowrite32(data, priv->pdc_base + reg_offs);
 }
 
 static unsigned int pdc_read(struct pdc_intc_priv *priv,
-			     unsigned int reg_offs)
+							 unsigned int reg_offs)
 {
 	return ioread32(priv->pdc_base + reg_offs);
 }
@@ -155,30 +156,36 @@ static int syswake_irq_set_type(struct irq_data *data, unsigned int flow_type)
 	unsigned int soc_sys_wake_regoff, soc_sys_wake;
 
 	/* translate to syswake IRQ mode */
-	switch (flow_type) {
-	case IRQ_TYPE_EDGE_BOTH:
-		irq_mode = PDC_SYS_WAKE_INT_CHANGE;
-		break;
-	case IRQ_TYPE_EDGE_RISING:
-		irq_mode = PDC_SYS_WAKE_INT_UP;
-		break;
-	case IRQ_TYPE_EDGE_FALLING:
-		irq_mode = PDC_SYS_WAKE_INT_DOWN;
-		break;
-	case IRQ_TYPE_LEVEL_HIGH:
-		irq_mode = PDC_SYS_WAKE_INT_HIGH;
-		break;
-	case IRQ_TYPE_LEVEL_LOW:
-		irq_mode = PDC_SYS_WAKE_INT_LOW;
-		break;
-	default:
-		return -EINVAL;
+	switch (flow_type)
+	{
+		case IRQ_TYPE_EDGE_BOTH:
+			irq_mode = PDC_SYS_WAKE_INT_CHANGE;
+			break;
+
+		case IRQ_TYPE_EDGE_RISING:
+			irq_mode = PDC_SYS_WAKE_INT_UP;
+			break;
+
+		case IRQ_TYPE_EDGE_FALLING:
+			irq_mode = PDC_SYS_WAKE_INT_DOWN;
+			break;
+
+		case IRQ_TYPE_LEVEL_HIGH:
+			irq_mode = PDC_SYS_WAKE_INT_HIGH;
+			break;
+
+		case IRQ_TYPE_LEVEL_LOW:
+			irq_mode = PDC_SYS_WAKE_INT_LOW;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	raw_spin_lock(&priv->lock);
 
 	/* set the IRQ mode */
-	soc_sys_wake_regoff = PDC_SYS_WAKE_BASE + syswake*PDC_SYS_WAKE_STRIDE;
+	soc_sys_wake_regoff = PDC_SYS_WAKE_BASE + syswake * PDC_SYS_WAKE_STRIDE;
 	soc_sys_wake = pdc_read(priv, soc_sys_wake_regoff);
 	soc_sys_wake &= ~PDC_SYS_WAKE_INT_MODE;
 	soc_sys_wake |= irq_mode << PDC_SYS_WAKE_INT_MODE_SHIFT;
@@ -201,18 +208,29 @@ static int pdc_irq_set_wake(struct irq_data *data, unsigned int on)
 	unsigned int dst_irq;
 
 	raw_spin_lock(&priv->lock);
+
 	if (on)
+	{
 		priv->irq_route |= mask;
+	}
 	else
+	{
 		priv->irq_route &= ~mask;
+	}
+
 	pdc_write(priv, PDC_IRQ_ROUTE, priv->irq_route);
 	raw_spin_unlock(&priv->lock);
 
 	/* control the destination IRQ wakeup too for standby mode */
 	if (hwirq_is_syswake(hw))
+	{
 		dst_irq = priv->syswake_irq;
+	}
 	else
+	{
 		dst_irq = priv->perip_irqs[hw];
+	}
+
 	irq_set_irq_wake(dst_irq, on);
 
 	return 0;
@@ -229,7 +247,9 @@ static void pdc_intc_perip_isr(struct irq_desc *desc)
 	/* find the peripheral number */
 	for (i = 0; i < priv->nr_perips; ++i)
 		if (irq == priv->perip_irqs[i])
+		{
 			goto found;
+		}
 
 	/* should never get here */
 	return;
@@ -249,16 +269,19 @@ static void pdc_intc_syswake_isr(struct irq_desc *desc)
 	priv = (struct pdc_intc_priv *)irq_desc_get_handler_data(desc);
 
 	status = pdc_read(priv, PDC_IRQ_STATUS) &
-		 pdc_read(priv, PDC_IRQ_ENABLE);
+			 pdc_read(priv, PDC_IRQ_ENABLE);
 	status &= (1 << priv->nr_syswakes) - 1;
 
-	for (syswake = 0; status; status >>= 1, ++syswake) {
+	for (syswake = 0; status; status >>= 1, ++syswake)
+	{
 		/* Has this sys_wake triggered? */
 		if (!(status & 1))
+		{
 			continue;
+		}
 
 		irq_no = irq_linear_revmap(priv->domain,
-					   syswake_to_hwirq(syswake));
+								   syswake_to_hwirq(syswake));
 		generic_handle_irq(irq_no);
 	}
 }
@@ -280,15 +303,16 @@ static void pdc_intc_setup(struct pdc_intc_priv *priv)
 	 * Disable all wake sources
 	 */
 	priv->irq_route = ((PDC_IRQ_ROUTE_EXT_EN_SYS0 << priv->nr_syswakes) -
-				PDC_IRQ_ROUTE_EXT_EN_SYS0);
+					   PDC_IRQ_ROUTE_EXT_EN_SYS0);
 	pdc_write(priv, PDC_IRQ_ROUTE, priv->irq_route);
 
 	/* Initialise syswake IRQ */
-	for (i = 0; i < priv->nr_syswakes; ++i) {
+	for (i = 0; i < priv->nr_syswakes; ++i)
+	{
 		/* set the IRQ mode to none */
-		soc_sys_wake_regoff = PDC_SYS_WAKE_BASE + i*PDC_SYS_WAKE_STRIDE;
+		soc_sys_wake_regoff = PDC_SYS_WAKE_BASE + i * PDC_SYS_WAKE_STRIDE;
 		soc_sys_wake = PDC_SYS_WAKE_INT_NONE
-				<< PDC_SYS_WAKE_INT_MODE_SHIFT;
+					   << PDC_SYS_WAKE_INT_MODE_SHIFT;
 		pdc_write(priv, soc_sys_wake_regoff, soc_sys_wake);
 	}
 }
@@ -304,87 +328,121 @@ static int pdc_intc_probe(struct platform_device *pdev)
 	u32 val;
 
 	if (!node)
+	{
 		return -ENOENT;
+	}
 
 	/* Get registers */
 	res_regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (res_regs == NULL) {
+
+	if (res_regs == NULL)
+	{
 		dev_err(&pdev->dev, "cannot find registers resource\n");
 		return -ENOENT;
 	}
 
 	/* Allocate driver data */
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-	if (!priv) {
+
+	if (!priv)
+	{
 		dev_err(&pdev->dev, "cannot allocate device data\n");
 		return -ENOMEM;
 	}
+
 	raw_spin_lock_init(&priv->lock);
 	platform_set_drvdata(pdev, priv);
 
 	/* Ioremap the registers */
 	priv->pdc_base = devm_ioremap(&pdev->dev, res_regs->start,
-				      res_regs->end - res_regs->start);
+								  res_regs->end - res_regs->start);
+
 	if (!priv->pdc_base)
+	{
 		return -EIO;
+	}
 
 	/* Get number of peripherals */
 	ret = of_property_read_u32(node, "num-perips", &val);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "No num-perips node property found\n");
 		return -EINVAL;
 	}
-	if (val > SYS0_HWIRQ) {
+
+	if (val > SYS0_HWIRQ)
+	{
 		dev_err(&pdev->dev, "num-perips (%u) out of range\n", val);
 		return -EINVAL;
 	}
+
 	priv->nr_perips = val;
 
 	/* Get number of syswakes */
 	ret = of_property_read_u32(node, "num-syswakes", &val);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "No num-syswakes node property found\n");
 		return -EINVAL;
 	}
-	if (val > SYS0_HWIRQ) {
+
+	if (val > SYS0_HWIRQ)
+	{
 		dev_err(&pdev->dev, "num-syswakes (%u) out of range\n", val);
 		return -EINVAL;
 	}
+
 	priv->nr_syswakes = val;
 
 	/* Get peripheral IRQ numbers */
 	priv->perip_irqs = devm_kzalloc(&pdev->dev, 4 * priv->nr_perips,
-					GFP_KERNEL);
-	if (!priv->perip_irqs) {
+									GFP_KERNEL);
+
+	if (!priv->perip_irqs)
+	{
 		dev_err(&pdev->dev, "cannot allocate perip IRQ list\n");
 		return -ENOMEM;
 	}
-	for (i = 0; i < priv->nr_perips; ++i) {
+
+	for (i = 0; i < priv->nr_perips; ++i)
+	{
 		irq = platform_get_irq(pdev, 1 + i);
-		if (irq < 0) {
+
+		if (irq < 0)
+		{
 			dev_err(&pdev->dev, "cannot find perip IRQ #%u\n", i);
 			return irq;
 		}
+
 		priv->perip_irqs[i] = irq;
 	}
+
 	/* check if too many were provided */
-	if (platform_get_irq(pdev, 1 + i) >= 0) {
+	if (platform_get_irq(pdev, 1 + i) >= 0)
+	{
 		dev_err(&pdev->dev, "surplus perip IRQs detected\n");
 		return -EINVAL;
 	}
 
 	/* Get syswake IRQ number */
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "cannot find syswake IRQ\n");
 		return irq;
 	}
+
 	priv->syswake_irq = irq;
 
 	/* Set up an IRQ domain */
 	priv->domain = irq_domain_add_linear(node, 16, &irq_generic_chip_ops,
-					     priv);
-	if (unlikely(!priv->domain)) {
+										 priv);
+
+	if (unlikely(!priv->domain))
+	{
 		dev_err(&pdev->dev, "cannot add IRQ domain\n");
 		return -ENOMEM;
 	}
@@ -395,10 +453,13 @@ static int pdc_intc_probe(struct platform_device *pdev)
 	 * The second one for syswake irqs (edge and level chip types)
 	 */
 	ret = irq_alloc_domain_generic_chips(priv->domain, 8, 2, "pdc",
-					     handle_level_irq, 0, 0,
-					     IRQ_GC_INIT_NESTED_LOCK);
+										 handle_level_irq, 0, 0,
+										 IRQ_GC_INIT_NESTED_LOCK);
+
 	if (ret)
+	{
 		goto err_generic;
+	}
 
 	/* peripheral interrupt chip */
 
@@ -450,20 +511,21 @@ static int pdc_intc_probe(struct platform_device *pdev)
 	pdc_intc_setup(priv);
 
 	/* Setup chained handlers for the peripheral IRQs */
-	for (i = 0; i < priv->nr_perips; ++i) {
+	for (i = 0; i < priv->nr_perips; ++i)
+	{
 		irq = priv->perip_irqs[i];
 		irq_set_chained_handler_and_data(irq, pdc_intc_perip_isr,
-						 priv);
+										 priv);
 	}
 
 	/* Setup chained handler for the syswake IRQ */
 	irq_set_chained_handler_and_data(priv->syswake_irq,
-					 pdc_intc_syswake_isr, priv);
+									 pdc_intc_syswake_isr, priv);
 
 	dev_info(&pdev->dev,
-		 "PDC IRQ controller initialised (%u perip IRQs, %u syswake IRQs)\n",
-		 priv->nr_perips,
-		 priv->nr_syswakes);
+			 "PDC IRQ controller initialised (%u perip IRQs, %u syswake IRQs)\n",
+			 priv->nr_perips,
+			 priv->nr_syswakes);
 
 	return 0;
 err_generic:
@@ -479,12 +541,14 @@ static int pdc_intc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id pdc_intc_match[] = {
+static const struct of_device_id pdc_intc_match[] =
+{
 	{ .compatible = "img,pdc-intc" },
 	{}
 };
 
-static struct platform_driver pdc_intc_driver = {
+static struct platform_driver pdc_intc_driver =
+{
 	.driver = {
 		.name		= "pdc-intc",
 		.of_match_table	= pdc_intc_match,

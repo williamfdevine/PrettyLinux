@@ -13,7 +13,8 @@
 #ifndef _UAPI_LINUX_HASH_INFO_H
 #define _UAPI_LINUX_HASH_INFO_H
 
-enum hash_algo {
+enum hash_algo
+{
 	HASH_ALGO_MD4,
 	HASH_ALGO_MD5,
 	HASH_ALGO_SHA1,

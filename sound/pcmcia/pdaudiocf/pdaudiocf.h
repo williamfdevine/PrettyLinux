@@ -81,7 +81,8 @@
 #define PDAUDIOCF_STAT_IS_CONFIGURED (1<<1)
 #define PDAUDIOCF_STAT_IS_SUSPENDED (1<<2)
 
-struct snd_pdacf {
+struct snd_pdacf
+{
 	struct snd_card *card;
 	int index;
 
@@ -111,14 +112,14 @@ struct snd_pdacf {
 	unsigned int pcm_tdone;
 	unsigned int pcm_hwptr;
 	void *pcm_area;
-	
+
 	/* pcmcia stuff */
 	struct pcmcia_device	*p_dev;
 };
 
 static inline void pdacf_reg_write(struct snd_pdacf *chip, unsigned char reg, unsigned short val)
 {
-	outw(chip->regmap[reg>>1] = val, chip->port + reg);
+	outw(chip->regmap[reg >> 1] = val, chip->port + reg);
 }
 
 static inline unsigned short pdacf_reg_read(struct snd_pdacf *chip, unsigned char reg)
@@ -130,8 +131,8 @@ struct snd_pdacf *snd_pdacf_create(struct snd_card *card);
 int snd_pdacf_ak4117_create(struct snd_pdacf *pdacf);
 void snd_pdacf_powerdown(struct snd_pdacf *chip);
 #ifdef CONFIG_PM
-int snd_pdacf_suspend(struct snd_pdacf *chip);
-int snd_pdacf_resume(struct snd_pdacf *chip);
+	int snd_pdacf_suspend(struct snd_pdacf *chip);
+	int snd_pdacf_resume(struct snd_pdacf *chip);
 #endif
 int snd_pdacf_pcm_new(struct snd_pdacf *chip);
 irqreturn_t pdacf_interrupt(int irq, void *dev);

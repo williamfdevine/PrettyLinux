@@ -22,23 +22,25 @@
 /**
  * pch_gbe_stats - Stats item information
  */
-struct pch_gbe_stats {
+struct pch_gbe_stats
+{
 	char string[ETH_GSTRING_LEN];
 	size_t size;
 	size_t offset;
 };
 
 #define PCH_GBE_STAT(m)						\
-{								\
-	.string = #m,						\
-	.size = FIELD_SIZEOF(struct pch_gbe_hw_stats, m),	\
-	.offset = offsetof(struct pch_gbe_hw_stats, m),		\
-}
+	{								\
+		.string = #m,						\
+				  .size = FIELD_SIZEOF(struct pch_gbe_hw_stats, m),	\
+						  .offset = offsetof(struct pch_gbe_hw_stats, m),		\
+	}
 
 /**
  * pch_gbe_gstrings_stats - ethtool information status name list
  */
-static const struct pch_gbe_stats pch_gbe_gstrings_stats[] = {
+static const struct pch_gbe_stats pch_gbe_gstrings_stats[] =
+{
 	PCH_GBE_STAT(rx_packets),
 	PCH_GBE_STAT(tx_packets),
 	PCH_GBE_STAT(rx_bytes),
@@ -81,7 +83,7 @@ static const struct pch_gbe_stats pch_gbe_gstrings_stats[] = {
  *	Negative value:		Failed.
  */
 static int pch_gbe_get_settings(struct net_device *netdev,
-				 struct ethtool_cmd *ecmd)
+								struct ethtool_cmd *ecmd)
 {
 	struct pch_gbe_adapter *adapter = netdev_priv(netdev);
 	int ret;
@@ -91,7 +93,10 @@ static int pch_gbe_get_settings(struct net_device *netdev,
 	ecmd->advertising &= ~(ADVERTISED_TP | ADVERTISED_1000baseT_Half);
 
 	if (!netif_carrier_ok(adapter->netdev))
+	{
 		ethtool_cmd_speed_set(ecmd, SPEED_UNKNOWN);
+	}
+
 	return ret;
 }
 
@@ -104,7 +109,7 @@ static int pch_gbe_get_settings(struct net_device *netdev,
  *	Negative value:		Failed.
  */
 static int pch_gbe_set_settings(struct net_device *netdev,
-				 struct ethtool_cmd *ecmd)
+								struct ethtool_cmd *ecmd)
 {
 	struct pch_gbe_adapter *adapter = netdev_priv(netdev);
 	struct pch_gbe_hw *hw = &adapter->hw;
@@ -115,28 +120,37 @@ static int pch_gbe_set_settings(struct net_device *netdev,
 
 	/* when set_settings() is called with a ethtool_cmd previously
 	 * filled by get_settings() on a down link, speed is -1: */
-	if (speed == UINT_MAX) {
+	if (speed == UINT_MAX)
+	{
 		speed = SPEED_1000;
 		ethtool_cmd_speed_set(ecmd, speed);
 		ecmd->duplex = DUPLEX_FULL;
 	}
+
 	ret = mii_ethtool_sset(&adapter->mii, ecmd);
-	if (ret) {
+
+	if (ret)
+	{
 		netdev_err(netdev, "Error: mii_ethtool_sset\n");
 		return ret;
 	}
+
 	hw->mac.link_speed = speed;
 	hw->mac.link_duplex = ecmd->duplex;
 	hw->phy.autoneg_advertised = ecmd->advertising;
 	hw->mac.autoneg = ecmd->autoneg;
 
 	/* reset the link */
-	if (netif_running(adapter->netdev)) {
+	if (netif_running(adapter->netdev))
+	{
 		pch_gbe_down(adapter);
 		ret = pch_gbe_up(adapter);
-	} else {
+	}
+	else
+	{
 		pch_gbe_reset(adapter);
 	}
+
 	return ret;
 }
 
@@ -156,14 +170,14 @@ static int pch_gbe_get_regs_len(struct net_device *netdev)
  * @drvinfo: Driver information structure
  */
 static void pch_gbe_get_drvinfo(struct net_device *netdev,
-				 struct ethtool_drvinfo *drvinfo)
+								struct ethtool_drvinfo *drvinfo)
 {
 	struct pch_gbe_adapter *adapter = netdev_priv(netdev);
 
 	strlcpy(drvinfo->driver, KBUILD_MODNAME, sizeof(drvinfo->driver));
 	strlcpy(drvinfo->version, pch_driver_version, sizeof(drvinfo->version));
 	strlcpy(drvinfo->bus_info, pci_name(adapter->pdev),
-		sizeof(drvinfo->bus_info));
+			sizeof(drvinfo->bus_info));
 }
 
 /**
@@ -173,7 +187,7 @@ static void pch_gbe_get_drvinfo(struct net_device *netdev,
  * @p:      Buffer pointer of read device register date
  */
 static void pch_gbe_get_regs(struct net_device *netdev,
-				struct ethtool_regs *regs, void *p)
+							 struct ethtool_regs *regs, void *p)
 {
 	struct pch_gbe_adapter *adapter = netdev_priv(netdev);
 	struct pch_gbe_hw *hw = &adapter->hw;
@@ -182,10 +196,15 @@ static void pch_gbe_get_regs(struct net_device *netdev,
 	u16 i, tmp;
 
 	regs->version = 0x1000000 | (__u32)pdev->revision << 16 | pdev->device;
+
 	for (i = 0; i < PCH_GBE_MAC_REGS_LEN; i++)
+	{
 		*regs_buff++ = ioread32(&hw->reg->INT_ST + i);
+	}
+
 	/* PHY register */
-	for (i = 0; i < PCH_GBE_PHY_REGS_LEN; i++) {
+	for (i = 0; i < PCH_GBE_PHY_REGS_LEN; i++)
+	{
 		pch_gbe_hal_read_phy_reg(&adapter->hw, i, &tmp);
 		*regs_buff++ = tmp;
 	}
@@ -197,7 +216,7 @@ static void pch_gbe_get_regs(struct net_device *netdev,
  * @wol:    Wake-on-Lan information
  */
 static void pch_gbe_get_wol(struct net_device *netdev,
-				struct ethtool_wolinfo *wol)
+							struct ethtool_wolinfo *wol)
 {
 	struct pch_gbe_adapter *adapter = netdev_priv(netdev);
 
@@ -205,13 +224,24 @@ static void pch_gbe_get_wol(struct net_device *netdev,
 	wol->wolopts = 0;
 
 	if ((adapter->wake_up_evt & PCH_GBE_WLC_IND))
+	{
 		wol->wolopts |= WAKE_UCAST;
+	}
+
 	if ((adapter->wake_up_evt & PCH_GBE_WLC_MLT))
+	{
 		wol->wolopts |= WAKE_MCAST;
+	}
+
 	if ((adapter->wake_up_evt & PCH_GBE_WLC_BR))
+	{
 		wol->wolopts |= WAKE_BCAST;
+	}
+
 	if ((adapter->wake_up_evt & PCH_GBE_WLC_MP))
+	{
 		wol->wolopts |= WAKE_MAGIC;
+	}
 }
 
 /**
@@ -223,23 +253,38 @@ static void pch_gbe_get_wol(struct net_device *netdev,
  *	Negative value:		Failed.
  */
 static int pch_gbe_set_wol(struct net_device *netdev,
-				struct ethtool_wolinfo *wol)
+						   struct ethtool_wolinfo *wol)
 {
 	struct pch_gbe_adapter *adapter = netdev_priv(netdev);
 
 	if ((wol->wolopts & (WAKE_PHY | WAKE_ARP | WAKE_MAGICSECURE)))
+	{
 		return -EOPNOTSUPP;
+	}
+
 	/* these settings will always override what we currently have */
 	adapter->wake_up_evt = 0;
 
 	if ((wol->wolopts & WAKE_UCAST))
+	{
 		adapter->wake_up_evt |= PCH_GBE_WLC_IND;
+	}
+
 	if ((wol->wolopts & WAKE_MCAST))
+	{
 		adapter->wake_up_evt |= PCH_GBE_WLC_MLT;
+	}
+
 	if ((wol->wolopts & WAKE_BCAST))
+	{
 		adapter->wake_up_evt |= PCH_GBE_WLC_BR;
+	}
+
 	if ((wol->wolopts & WAKE_MAGIC))
+	{
 		adapter->wake_up_evt |= PCH_GBE_WLC_MP;
+	}
+
 	return 0;
 }
 
@@ -263,7 +308,7 @@ static int pch_gbe_nway_reset(struct net_device *netdev)
  * @ring:    Ring param structure
  */
 static void pch_gbe_get_ringparam(struct net_device *netdev,
-					struct ethtool_ringparam *ring)
+								  struct ethtool_ringparam *ring)
 {
 	struct pch_gbe_adapter *adapter = netdev_priv(netdev);
 	struct pch_gbe_tx_ring *txdr = adapter->tx_ring;
@@ -284,7 +329,7 @@ static void pch_gbe_get_ringparam(struct net_device *netdev,
  *	Negative value:		Failed.
  */
 static int pch_gbe_set_ringparam(struct net_device *netdev,
-					struct ethtool_ringparam *ring)
+								 struct ethtool_ringparam *ring)
 {
 	struct pch_gbe_adapter *adapter = netdev_priv(netdev);
 	struct pch_gbe_tx_ring *txdr, *tx_old;
@@ -293,25 +338,37 @@ static int pch_gbe_set_ringparam(struct net_device *netdev,
 	int err = 0;
 
 	if ((ring->rx_mini_pending) || (ring->rx_jumbo_pending))
+	{
 		return -EINVAL;
+	}
+
 	tx_ring_size = (int)sizeof(struct pch_gbe_tx_ring);
 	rx_ring_size = (int)sizeof(struct pch_gbe_rx_ring);
 
 	if ((netif_running(adapter->netdev)))
+	{
 		pch_gbe_down(adapter);
+	}
+
 	tx_old = adapter->tx_ring;
 	rx_old = adapter->rx_ring;
 
 	txdr = kzalloc(tx_ring_size, GFP_KERNEL);
-	if (!txdr) {
+
+	if (!txdr)
+	{
 		err = -ENOMEM;
 		goto err_alloc_tx;
 	}
+
 	rxdr = kzalloc(rx_ring_size, GFP_KERNEL);
-	if (!rxdr) {
+
+	if (!rxdr)
+	{
 		err = -ENOMEM;
 		goto err_alloc_rx;
 	}
+
 	adapter->tx_ring = txdr;
 	adapter->rx_ring = rxdr;
 
@@ -323,14 +380,23 @@ static int pch_gbe_set_ringparam(struct net_device *netdev,
 		clamp_val(ring->tx_pending, PCH_GBE_MIN_RXD, PCH_GBE_MAX_RXD);
 	txdr->count = roundup(txdr->count, PCH_GBE_TX_DESC_MULTIPLE);
 
-	if ((netif_running(adapter->netdev))) {
+	if ((netif_running(adapter->netdev)))
+	{
 		/* Try to get new resources before deleting old */
 		err = pch_gbe_setup_rx_resources(adapter, adapter->rx_ring);
+
 		if (err)
+		{
 			goto err_setup_rx;
+		}
+
 		err = pch_gbe_setup_tx_resources(adapter, adapter->tx_ring);
+
 		if (err)
+		{
 			goto err_setup_tx;
+		}
+
 		/* save the new, restore the old in order to free it,
 		 * then restore the new back again */
 #ifdef RINGFREE
@@ -352,6 +418,7 @@ static int pch_gbe_set_ringparam(struct net_device *netdev,
 #endif
 		err = pch_gbe_up(adapter);
 	}
+
 	return err;
 
 err_setup_tx:
@@ -363,8 +430,12 @@ err_setup_rx:
 err_alloc_rx:
 	kfree(txdr);
 err_alloc_tx:
+
 	if (netif_running(adapter->netdev))
+	{
 		pch_gbe_up(adapter);
+	}
+
 	return err;
 }
 
@@ -374,19 +445,24 @@ err_alloc_tx:
  * @pause:   Pause parameters structure
  */
 static void pch_gbe_get_pauseparam(struct net_device *netdev,
-				       struct ethtool_pauseparam *pause)
+								   struct ethtool_pauseparam *pause)
 {
 	struct pch_gbe_adapter *adapter = netdev_priv(netdev);
 	struct pch_gbe_hw *hw = &adapter->hw;
 
 	pause->autoneg =
-	    ((hw->mac.fc_autoneg) ? AUTONEG_ENABLE : AUTONEG_DISABLE);
+		((hw->mac.fc_autoneg) ? AUTONEG_ENABLE : AUTONEG_DISABLE);
 
-	if (hw->mac.fc == PCH_GBE_FC_RX_PAUSE) {
+	if (hw->mac.fc == PCH_GBE_FC_RX_PAUSE)
+	{
 		pause->rx_pause = 1;
-	} else if (hw->mac.fc == PCH_GBE_FC_TX_PAUSE) {
+	}
+	else if (hw->mac.fc == PCH_GBE_FC_TX_PAUSE)
+	{
 		pause->tx_pause = 1;
-	} else if (hw->mac.fc == PCH_GBE_FC_FULL) {
+	}
+	else if (hw->mac.fc == PCH_GBE_FC_FULL)
+	{
 		pause->rx_pause = 1;
 		pause->tx_pause = 1;
 	}
@@ -401,32 +477,48 @@ static void pch_gbe_get_pauseparam(struct net_device *netdev,
  *	Negative value:		Failed.
  */
 static int pch_gbe_set_pauseparam(struct net_device *netdev,
-				       struct ethtool_pauseparam *pause)
+								  struct ethtool_pauseparam *pause)
 {
 	struct pch_gbe_adapter *adapter = netdev_priv(netdev);
 	struct pch_gbe_hw *hw = &adapter->hw;
 	int ret = 0;
 
 	hw->mac.fc_autoneg = pause->autoneg;
-	if ((pause->rx_pause) && (pause->tx_pause))
-		hw->mac.fc = PCH_GBE_FC_FULL;
-	else if ((pause->rx_pause) && (!pause->tx_pause))
-		hw->mac.fc = PCH_GBE_FC_RX_PAUSE;
-	else if ((!pause->rx_pause) && (pause->tx_pause))
-		hw->mac.fc = PCH_GBE_FC_TX_PAUSE;
-	else if ((!pause->rx_pause) && (!pause->tx_pause))
-		hw->mac.fc = PCH_GBE_FC_NONE;
 
-	if (hw->mac.fc_autoneg == AUTONEG_ENABLE) {
-		if ((netif_running(adapter->netdev))) {
+	if ((pause->rx_pause) && (pause->tx_pause))
+	{
+		hw->mac.fc = PCH_GBE_FC_FULL;
+	}
+	else if ((pause->rx_pause) && (!pause->tx_pause))
+	{
+		hw->mac.fc = PCH_GBE_FC_RX_PAUSE;
+	}
+	else if ((!pause->rx_pause) && (pause->tx_pause))
+	{
+		hw->mac.fc = PCH_GBE_FC_TX_PAUSE;
+	}
+	else if ((!pause->rx_pause) && (!pause->tx_pause))
+	{
+		hw->mac.fc = PCH_GBE_FC_NONE;
+	}
+
+	if (hw->mac.fc_autoneg == AUTONEG_ENABLE)
+	{
+		if ((netif_running(adapter->netdev)))
+		{
 			pch_gbe_down(adapter);
 			ret = pch_gbe_up(adapter);
-		} else {
+		}
+		else
+		{
 			pch_gbe_reset(adapter);
 		}
-	} else {
+	}
+	else
+	{
 		ret = pch_gbe_mac_force_mac_fc(hw);
 	}
+
 	return ret;
 }
 
@@ -438,19 +530,22 @@ static int pch_gbe_set_pauseparam(struct net_device *netdev,
  * @data:      Pointer of read string data.
  */
 static void pch_gbe_get_strings(struct net_device *netdev, u32 stringset,
-					u8 *data)
+								u8 *data)
 {
 	u8 *p = data;
 	int i;
 
-	switch (stringset) {
-	case (u32) ETH_SS_STATS:
-		for (i = 0; i < PCH_GBE_GLOBAL_STATS_LEN; i++) {
-			memcpy(p, pch_gbe_gstrings_stats[i].string,
-			       ETH_GSTRING_LEN);
-			p += ETH_GSTRING_LEN;
-		}
-		break;
+	switch (stringset)
+	{
+		case (u32) ETH_SS_STATS:
+			for (i = 0; i < PCH_GBE_GLOBAL_STATS_LEN; i++)
+			{
+				memcpy(p, pch_gbe_gstrings_stats[i].string,
+					   ETH_GSTRING_LEN);
+				p += ETH_GSTRING_LEN;
+			}
+
+			break;
 	}
 }
 
@@ -461,7 +556,7 @@ static void pch_gbe_get_strings(struct net_device *netdev, u32 stringset,
  * @data:   Pointer of read status area
  */
 static void pch_gbe_get_ethtool_stats(struct net_device *netdev,
-				  struct ethtool_stats *stats, u64 *data)
+									  struct ethtool_stats *stats, u64 *data)
 {
 	struct pch_gbe_adapter *adapter = netdev_priv(netdev);
 	int i;
@@ -469,24 +564,29 @@ static void pch_gbe_get_ethtool_stats(struct net_device *netdev,
 	char *hw_stats = (char *)&adapter->stats;
 
 	pch_gbe_update_stats(adapter);
-	for (i = 0; i < PCH_GBE_GLOBAL_STATS_LEN; i++) {
+
+	for (i = 0; i < PCH_GBE_GLOBAL_STATS_LEN; i++)
+	{
 		char *p = hw_stats + gstats->offset;
-		data[i] = gstats->size == sizeof(u64) ? *(u64 *)p:(*(u32 *)p);
+		data[i] = gstats->size == sizeof(u64) ? *(u64 *)p : (*(u32 *)p);
 		gstats++;
 	}
 }
 
 static int pch_gbe_get_sset_count(struct net_device *netdev, int sset)
 {
-	switch (sset) {
-	case ETH_SS_STATS:
-		return PCH_GBE_STATS_LEN;
-	default:
-		return -EOPNOTSUPP;
+	switch (sset)
+	{
+		case ETH_SS_STATS:
+			return PCH_GBE_STATS_LEN;
+
+		default:
+			return -EOPNOTSUPP;
 	}
 }
 
-static const struct ethtool_ops pch_gbe_ethtool_ops = {
+static const struct ethtool_ops pch_gbe_ethtool_ops =
+{
 	.get_settings = pch_gbe_get_settings,
 	.set_settings = pch_gbe_set_settings,
 	.get_drvinfo = pch_gbe_get_drvinfo,

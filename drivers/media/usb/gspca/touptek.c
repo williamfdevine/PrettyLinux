@@ -143,7 +143,8 @@ MODULE_LICENSE("GPL");
 
 
 /* specific webcam descriptor */
-struct sd {
+struct sd
+{
 	struct gspca_dev gspca_dev;	/* !! must be the first item */
 	/* How many bytes this frame */
 	unsigned int this_f;
@@ -158,30 +159,38 @@ struct sd {
 };
 
 /* Used to simplify reg write error handling */
-struct cmd {
+struct cmd
+{
 	u16 value;
 	u16 index;
 };
 
-static const struct v4l2_pix_format vga_mode[] = {
-	{800, 600,
+static const struct v4l2_pix_format vga_mode[] =
+{
+	{
+		800, 600,
 		V4L2_PIX_FMT_SGRBG8,
 		V4L2_FIELD_NONE,
 		.bytesperline = 800,
 		.sizeimage = 800 * 600,
-		.colorspace = V4L2_COLORSPACE_SRGB},
-	{1600, 1200,
+		.colorspace = V4L2_COLORSPACE_SRGB
+	},
+	{
+		1600, 1200,
 		V4L2_PIX_FMT_SGRBG8,
 		V4L2_FIELD_NONE,
 		.bytesperline = 1600,
 		.sizeimage = 1600 * 1200,
-		.colorspace = V4L2_COLORSPACE_SRGB},
-	{3264, 2448,
+		.colorspace = V4L2_COLORSPACE_SRGB
+	},
+	{
+		3264, 2448,
 		V4L2_PIX_FMT_SGRBG8,
 		V4L2_FIELD_NONE,
 		.bytesperline = 3264,
 		.sizeimage = 3264 * 2448,
-		.colorspace = V4L2_COLORSPACE_SRGB},
+		.colorspace = V4L2_COLORSPACE_SRGB
+	},
 };
 
 /*
@@ -189,23 +198,29 @@ static const struct v4l2_pix_format vga_mode[] = {
  * to never miss any packets
  */
 #if MAX_NURBS < 4
-#error "Not enough URBs in the gspca table"
+	#error "Not enough URBs in the gspca table"
 #endif
 
 static int val_reply(struct gspca_dev *gspca_dev, const char *reply, int rc)
 {
-	if (rc < 0) {
+	if (rc < 0)
+	{
 		PERR("reply has error %d", rc);
 		return -EIO;
 	}
-	if (rc != 1) {
+
+	if (rc != 1)
+	{
 		PERR("Bad reply size %d", rc);
 		return -EIO;
 	}
-	if (reply[0] != 0x08) {
+
+	if (reply[0] != 0x08)
+	{
 		PERR("Bad reply 0x%02x", (int)reply[0]);
 		return -EIO;
 	}
+
 	return 0;
 }
 
@@ -215,31 +230,37 @@ static void reg_w(struct gspca_dev *gspca_dev, u16 value, u16 index)
 	int rc;
 
 	PDEBUG(D_USBO,
-		"reg_w bReq=0x0B, bReqT=0xC0, wVal=0x%04X, wInd=0x%04X\n",
-		value, index);
+		   "reg_w bReq=0x0B, bReqT=0xC0, wVal=0x%04X, wInd=0x%04X\n",
+		   value, index);
 	rc = usb_control_msg(gspca_dev->dev, usb_rcvctrlpipe(gspca_dev->dev, 0),
-		0x0B, 0xC0, value, index, buff, 1, 500);
+						 0x0B, 0xC0, value, index, buff, 1, 500);
 	PDEBUG(D_USBO, "rc=%d, ret={0x%02x}", rc, (int)buff[0]);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		PERR("Failed reg_w(0x0B, 0xC0, 0x%04X, 0x%04X) w/ rc %d\n",
-			value, index, rc);
+			 value, index, rc);
 		gspca_dev->usb_err = rc;
 		return;
 	}
-	if (val_reply(gspca_dev, buff, rc)) {
+
+	if (val_reply(gspca_dev, buff, rc))
+	{
 		PERR("Bad reply to reg_w(0x0B, 0xC0, 0x%04X, 0x%04X\n",
-			value, index);
+			 value, index);
 		gspca_dev->usb_err = -EIO;
 	}
 }
 
 static void reg_w_buf(struct gspca_dev *gspca_dev,
-		const struct cmd *p, int l)
+					  const struct cmd *p, int l)
 {
-	do {
+	do
+	{
 		reg_w(gspca_dev, p->value, p->index);
 		p++;
-	} while (--l > 0);
+	}
+	while (--l > 0);
 }
 
 static void setexposure(struct gspca_dev *gspca_dev, s32 val)
@@ -248,16 +269,24 @@ static void setexposure(struct gspca_dev *gspca_dev, s32 val)
 	unsigned int w = gspca_dev->pixfmt.width;
 
 	if (w == 800)
+	{
 		value = val * 5;
+	}
 	else if (w == 1600)
+	{
 		value = val * 3;
+	}
 	else if (w == 3264)
+	{
 		value = val * 3 / 2;
-	else {
+	}
+	else
+	{
 		PERR("Invalid width %u\n", w);
 		gspca_dev->usb_err = -EINVAL;
 		return;
 	}
+
 	PDEBUG(D_STREAM, "exposure: 0x%04X ms\n", value);
 	/* Wonder if theres a good reason for sending it twice */
 	/* probably not but leave it in because...why not */
@@ -274,11 +303,17 @@ static int gainify(int in)
 	 * 0x100 (256) - max: regH, regM, regL
 	 */
 	if (in <= 0x7F)
+	{
 		return 0x1000 | in;
+	}
 	else if (in <= 0xFF)
+	{
 		return 0x1080 | in / 2;
+	}
 	else
+	{
 		return 0x1180 | in / 4;
+	}
 }
 
 static void setggain(struct gspca_dev *gspca_dev, u16 global_gain)
@@ -287,47 +322,53 @@ static void setggain(struct gspca_dev *gspca_dev, u16 global_gain)
 
 	normalized = gainify(global_gain);
 	PDEBUG(D_STREAM, "gain G1/G2 (0x%04X): 0x%04X (src 0x%04X)\n",
-		 REG_GREEN1_GAIN,
-		 normalized, global_gain);
+		   REG_GREEN1_GAIN,
+		   normalized, global_gain);
 
 	reg_w(gspca_dev, normalized, REG_GREEN1_GAIN);
 	reg_w(gspca_dev, normalized, REG_GREEN2_GAIN);
 }
 
 static void setbgain(struct gspca_dev *gspca_dev,
-		u16 gain, u16 global_gain)
+					 u16 gain, u16 global_gain)
 {
 	u16 normalized;
 
 	normalized = global_gain +
-		((u32)global_gain) * gain / GAIN_MAX;
-	if (normalized > GAIN_MAX) {
+				 ((u32)global_gain) * gain / GAIN_MAX;
+
+	if (normalized > GAIN_MAX)
+	{
 		PDEBUG(D_STREAM, "Truncating blue 0x%04X w/ value 0x%04X\n",
-			 GAIN_MAX, normalized);
+			   GAIN_MAX, normalized);
 		normalized = GAIN_MAX;
 	}
+
 	normalized = gainify(normalized);
 	PDEBUG(D_STREAM, "gain B (0x%04X): 0x%04X w/ source 0x%04X\n",
-		 REG_BLUE_GAIN, normalized, gain);
+		   REG_BLUE_GAIN, normalized, gain);
 
 	reg_w(gspca_dev, normalized, REG_BLUE_GAIN);
 }
 
 static void setrgain(struct gspca_dev *gspca_dev,
-		u16 gain, u16 global_gain)
+					 u16 gain, u16 global_gain)
 {
 	u16 normalized;
 
 	normalized = global_gain +
-		((u32)global_gain) * gain / GAIN_MAX;
-	if (normalized > GAIN_MAX) {
+				 ((u32)global_gain) * gain / GAIN_MAX;
+
+	if (normalized > GAIN_MAX)
+	{
 		PDEBUG(D_STREAM, "Truncating gain 0x%04X w/ value 0x%04X\n",
-			 GAIN_MAX, normalized);
+			   GAIN_MAX, normalized);
 		normalized = GAIN_MAX;
 	}
+
 	normalized = gainify(normalized);
 	PDEBUG(D_STREAM, "gain R (0x%04X): 0x%04X w / source 0x%04X\n",
-		 REG_RED_GAIN, normalized, gain);
+		   REG_RED_GAIN, normalized, gain);
 
 	reg_w(gspca_dev, normalized, REG_RED_GAIN);
 }
@@ -338,8 +379,10 @@ static void configure_wh(struct gspca_dev *gspca_dev)
 
 	PDEBUG(D_STREAM, "configure_wh\n");
 
-	if (w == 800) {
-		static const struct cmd reg_init_res[] = {
+	if (w == 800)
+	{
+		static const struct cmd reg_init_res[] =
+		{
 			{0x0060, REG_X_ADDR_START},
 			{0x0CD9, REG_X_ADDR_END},
 			{0x0036, REG_Y_ADDR_START},
@@ -348,9 +391,12 @@ static void configure_wh(struct gspca_dev *gspca_dev)
 		};
 
 		reg_w_buf(gspca_dev,
-			       reg_init_res, ARRAY_SIZE(reg_init_res));
-	} else if (w == 1600) {
-		static const struct cmd reg_init_res[] = {
+				  reg_init_res, ARRAY_SIZE(reg_init_res));
+	}
+	else if (w == 1600)
+	{
+		static const struct cmd reg_init_res[] =
+		{
 			{0x009C, REG_X_ADDR_START},
 			{0x0D19, REG_X_ADDR_END},
 			{0x0068, REG_Y_ADDR_START},
@@ -359,9 +405,12 @@ static void configure_wh(struct gspca_dev *gspca_dev)
 		};
 
 		reg_w_buf(gspca_dev,
-			       reg_init_res, ARRAY_SIZE(reg_init_res));
-	} else if (w == 3264) {
-		static const struct cmd reg_init_res[] = {
+				  reg_init_res, ARRAY_SIZE(reg_init_res));
+	}
+	else if (w == 3264)
+	{
+		static const struct cmd reg_init_res[] =
+		{
 			{0x00E8, REG_X_ADDR_START},
 			{0x0DA7, REG_X_ADDR_END},
 			{0x009E, REG_Y_ADDR_START},
@@ -370,8 +419,10 @@ static void configure_wh(struct gspca_dev *gspca_dev)
 		};
 
 		reg_w_buf(gspca_dev,
-			       reg_init_res, ARRAY_SIZE(reg_init_res));
-	} else {
+				  reg_init_res, ARRAY_SIZE(reg_init_res));
+	}
+	else
+	{
 		PERR("bad width %u\n", w);
 		gspca_dev->usb_err = -EINVAL;
 		return;
@@ -382,16 +433,23 @@ static void configure_wh(struct gspca_dev *gspca_dev)
 	reg_w(gspca_dev, w, REG_X_OUTPUT_SIZE);
 	reg_w(gspca_dev, gspca_dev->pixfmt.height, REG_Y_OUTPUT_SIZE);
 
-	if (w == 800) {
+	if (w == 800)
+	{
 		reg_w(gspca_dev, 0x0384, REG_FRAME_LENGTH_LINES_);
 		reg_w(gspca_dev, 0x0960, REG_LINE_LENGTH_PCK_);
-	} else if (w == 1600) {
+	}
+	else if (w == 1600)
+	{
 		reg_w(gspca_dev, 0x0640, REG_FRAME_LENGTH_LINES_);
 		reg_w(gspca_dev, 0x0FA0, REG_LINE_LENGTH_PCK_);
-	} else if (w == 3264) {
+	}
+	else if (w == 3264)
+	{
 		reg_w(gspca_dev, 0x0B4B, REG_FRAME_LENGTH_LINES_);
 		reg_w(gspca_dev, 0x1F40, REG_LINE_LENGTH_PCK_);
-	} else {
+	}
+	else
+	{
 		PERR("bad width %u\n", w);
 		gspca_dev->usb_err = -EINVAL;
 		return;
@@ -401,7 +459,8 @@ static void configure_wh(struct gspca_dev *gspca_dev)
 /* Packets that were encrypted, no idea if the grouping is significant */
 static void configure_encrypted(struct gspca_dev *gspca_dev)
 {
-	static const struct cmd reg_init_begin[] = {
+	static const struct cmd reg_init_begin[] =
+	{
 		{0x0100, REG_SOFTWARE_RESET},
 		{0x0000, REG_MODE_SELECT},
 		{0x0100, REG_GROUPED_PARAMETER_HOLD},
@@ -414,7 +473,8 @@ static void configure_encrypted(struct gspca_dev *gspca_dev)
 		{0x0000, REG_GROUPED_PARAMETER_HOLD},
 		{0x0100, REG_GROUPED_PARAMETER_HOLD},
 	};
-	static const struct cmd reg_init_end[] = {
+	static const struct cmd reg_init_end[] =
+	{
 		{0x0000, REG_GROUPED_PARAMETER_HOLD},
 		{0x0301, 0x31AE},
 		{0x0805, 0x3064},
@@ -456,8 +516,10 @@ static int configure(struct gspca_dev *gspca_dev)
 	 * By setting 0 we XOR with 0 and the shifting and XOR drops out
 	 */
 	rc = usb_control_msg(gspca_dev->dev, usb_rcvctrlpipe(gspca_dev->dev, 0),
-			     0x16, 0xC0, 0x0000, 0x0000, buff, 2, 500);
-	if (val_reply(gspca_dev, buff, rc)) {
+						 0x16, 0xC0, 0x0000, 0x0000, buff, 2, 500);
+
+	if (val_reply(gspca_dev, buff, rc))
+	{
 		PERR("failed key req");
 		return -EIO;
 	}
@@ -473,22 +535,28 @@ static int configure(struct gspca_dev *gspca_dev)
 	 */
 
 	rc = usb_control_msg(gspca_dev->dev, usb_sndctrlpipe(gspca_dev->dev, 0),
-			     0x01, 0x40, 0x0001, 0x000F, NULL, 0, 500);
-	if (rc < 0) {
+						 0x01, 0x40, 0x0001, 0x000F, NULL, 0, 500);
+
+	if (rc < 0)
+	{
 		PERR("failed to replay packet 176 w/ rc %d\n", rc);
 		return rc;
 	}
 
 	rc = usb_control_msg(gspca_dev->dev, usb_sndctrlpipe(gspca_dev->dev, 0),
-			     0x01, 0x40, 0x0000, 0x000F, NULL, 0, 500);
-	if (rc < 0) {
+						 0x01, 0x40, 0x0000, 0x000F, NULL, 0, 500);
+
+	if (rc < 0)
+	{
 		PERR("failed to replay packet 178 w/ rc %d\n", rc);
 		return rc;
 	}
 
 	rc = usb_control_msg(gspca_dev->dev, usb_sndctrlpipe(gspca_dev->dev, 0),
-			     0x01, 0x40, 0x0001, 0x000F, NULL, 0, 500);
-	if (rc < 0) {
+						 0x01, 0x40, 0x0001, 0x000F, NULL, 0, 500);
+
+	if (rc < 0)
+	{
 		PERR("failed to replay packet 180 w/ rc %d\n", rc);
 		return rc;
 	}
@@ -504,13 +572,18 @@ static int configure(struct gspca_dev *gspca_dev)
 	/* Large (EEPROM?) read, skip it since no idea what to do with it */
 	gspca_dev->usb_err = 0;
 	configure_encrypted(gspca_dev);
+
 	if (gspca_dev->usb_err)
+	{
 		return gspca_dev->usb_err;
+	}
 
 	/* Omitted this by accident, does not work without it */
 	rc = usb_control_msg(gspca_dev->dev, usb_sndctrlpipe(gspca_dev->dev, 0),
-			     0x01, 0x40, 0x0003, 0x000F, NULL, 0, 500);
-	if (rc < 0) {
+						 0x01, 0x40, 0x0003, 0x000F, NULL, 0, 500);
+
+	if (rc < 0)
+	{
 		PERR("failed to replay final packet w/ rc %d\n", rc);
 		return rc;
 	}
@@ -520,7 +593,7 @@ static int configure(struct gspca_dev *gspca_dev)
 }
 
 static int sd_config(struct gspca_dev *gspca_dev,
-		     const struct usb_device_id *id)
+					 const struct usb_device_id *id)
 {
 	gspca_dev->cam.cam_mode = vga_mode;
 	gspca_dev->cam.nmodes = ARRAY_SIZE(vga_mode);
@@ -544,39 +617,54 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	sd->this_f = 0;
 
 	rc = configure(gspca_dev);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		PERR("Failed configure");
 		return rc;
 	}
+
 	/* First two frames have messed up gains
 	Drop them to avoid special cases in user apps? */
 	return 0;
 }
 
 static void sd_pkt_scan(struct gspca_dev *gspca_dev,
-			u8 *data,	/* isoc packet */
-			int len)	/* iso packet length */
+						u8 *data,	/* isoc packet */
+						int len)	/* iso packet length */
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 
-	if (len != BULK_SIZE) {
+	if (len != BULK_SIZE)
+	{
 		/* can we finish a frame? */
-		if (sd->this_f + len == gspca_dev->pixfmt.sizeimage) {
+		if (sd->this_f + len == gspca_dev->pixfmt.sizeimage)
+		{
 			gspca_frame_add(gspca_dev, LAST_PACKET, data, len);
 			PDEBUG(D_FRAM, "finish frame sz %u/%u w/ len %u\n",
-				 sd->this_f, gspca_dev->pixfmt.sizeimage, len);
-		/* lost some data, discard the frame */
-		} else {
+				   sd->this_f, gspca_dev->pixfmt.sizeimage, len);
+			/* lost some data, discard the frame */
+		}
+		else
+		{
 			gspca_frame_add(gspca_dev, DISCARD_PACKET, NULL, 0);
 			PDEBUG(D_FRAM, "abort frame sz %u/%u w/ len %u\n",
-				 sd->this_f, gspca_dev->pixfmt.sizeimage, len);
+				   sd->this_f, gspca_dev->pixfmt.sizeimage, len);
 		}
+
 		sd->this_f = 0;
-	} else {
+	}
+	else
+	{
 		if (sd->this_f == 0)
+		{
 			gspca_frame_add(gspca_dev, FIRST_PACKET, data, len);
+		}
 		else
+		{
 			gspca_frame_add(gspca_dev, INTER_PACKET, data, len);
+		}
+
 		sd->this_f += len;
 	}
 }
@@ -595,29 +683,37 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
 	gspca_dev->usb_err = 0;
 
 	if (!gspca_dev->streaming)
+	{
 		return 0;
-
-	switch (ctrl->id) {
-	case V4L2_CID_EXPOSURE:
-		setexposure(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_GAIN:
-		/* gspca_dev->gain automatically updated */
-		setggain(gspca_dev, gspca_dev->gain->val);
-		break;
-	case V4L2_CID_BLUE_BALANCE:
-		sd->blue->val = ctrl->val;
-		setbgain(gspca_dev, sd->blue->val, gspca_dev->gain->val);
-		break;
-	case V4L2_CID_RED_BALANCE:
-		sd->red->val = ctrl->val;
-		setrgain(gspca_dev, sd->red->val, gspca_dev->gain->val);
-		break;
 	}
+
+	switch (ctrl->id)
+	{
+		case V4L2_CID_EXPOSURE:
+			setexposure(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_GAIN:
+			/* gspca_dev->gain automatically updated */
+			setggain(gspca_dev, gspca_dev->gain->val);
+			break;
+
+		case V4L2_CID_BLUE_BALANCE:
+			sd->blue->val = ctrl->val;
+			setbgain(gspca_dev, sd->blue->val, gspca_dev->gain->val);
+			break;
+
+		case V4L2_CID_RED_BALANCE:
+			sd->red->val = ctrl->val;
+			setrgain(gspca_dev, sd->red->val, gspca_dev->gain->val);
+			break;
+	}
+
 	return gspca_dev->usb_err;
 }
 
-static const struct v4l2_ctrl_ops sd_ctrl_ops = {
+static const struct v4l2_ctrl_ops sd_ctrl_ops =
+{
 	.s_ctrl = sd_s_ctrl,
 };
 
@@ -630,25 +726,28 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 	v4l2_ctrl_handler_init(hdl, 4);
 
 	gspca_dev->exposure = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-	/* Mostly limited by URB timeouts */
-	/* XXX: make dynamic based on frame rate? */
-		V4L2_CID_EXPOSURE, 0, 800, 1, 350);
+											/* Mostly limited by URB timeouts */
+											/* XXX: make dynamic based on frame rate? */
+											V4L2_CID_EXPOSURE, 0, 800, 1, 350);
 	gspca_dev->gain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_GAIN, 0, 511, 1, 128);
+										V4L2_CID_GAIN, 0, 511, 1, 128);
 	sd->blue = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_BLUE_BALANCE, 0, 1023, 1, 80);
+								 V4L2_CID_BLUE_BALANCE, 0, 1023, 1, 80);
 	sd->red = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_RED_BALANCE, 0, 1023, 1, 295);
+								V4L2_CID_RED_BALANCE, 0, 1023, 1, 295);
 
-	if (hdl->error) {
+	if (hdl->error)
+	{
 		PERR("Could not initialize controls\n");
 		return hdl->error;
 	}
+
 	return 0;
 }
 
 /* sub-driver description */
-static const struct sd_desc sd_desc = {
+static const struct sd_desc sd_desc =
+{
 	.name = MODULE_NAME,
 	.config = sd_config,
 	.init = sd_init,
@@ -658,7 +757,8 @@ static const struct sd_desc sd_desc = {
 };
 
 /* Table of supported USB devices */
-static const struct usb_device_id device_table[] = {
+static const struct usb_device_id device_table[] =
+{
 	/* Commented out devices should be related */
 	/* AS: AmScope, TT: ToupTek */
 	/* { USB_DEVICE(0x0547, 0x6035) },  TT UCMOS00350KPA */
@@ -696,13 +796,14 @@ static const struct usb_device_id device_table[] = {
 MODULE_DEVICE_TABLE(usb, device_table);
 
 static int sd_probe(struct usb_interface *intf,
-		    const struct usb_device_id *id)
+					const struct usb_device_id *id)
 {
 	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd),
-			     THIS_MODULE);
+						   THIS_MODULE);
 }
 
-static struct usb_driver sd_driver = {
+static struct usb_driver sd_driver =
+{
 	.name = MODULE_NAME,
 	.id_table = device_table,
 	.probe = sd_probe,
@@ -718,8 +819,12 @@ static int __init sd_mod_init(void)
 	int ret;
 
 	ret = usb_register(&sd_driver);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return 0;
 }
 static void __exit sd_mod_exit(void)

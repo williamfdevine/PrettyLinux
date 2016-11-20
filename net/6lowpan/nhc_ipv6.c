@@ -20,7 +20,7 @@ static void ipv6_nhid_setup(struct lowpan_nhc *nhc)
 }
 
 LOWPAN_NHC(nhc_ipv6, "RFC6282 IPv6", NEXTHDR_IPV6, 0, ipv6_nhid_setup,
-	   LOWPAN_NHC_IPV6_IDLEN, NULL, NULL);
+		   LOWPAN_NHC_IPV6_IDLEN, NULL, NULL);
 
 module_lowpan_nhc(nhc_ipv6);
 MODULE_DESCRIPTION("6LoWPAN next header RFC6282 IPv6 compression");

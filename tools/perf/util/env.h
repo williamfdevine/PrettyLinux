@@ -4,12 +4,14 @@
 #include <linux/types.h>
 #include "cpumap.h"
 
-struct cpu_topology_map {
+struct cpu_topology_map
+{
 	int	socket_id;
 	int	core_id;
 };
 
-struct cpu_cache_level {
+struct cpu_cache_level
+{
 	u32	level;
 	u32	line_size;
 	u32	sets;
@@ -19,14 +21,16 @@ struct cpu_cache_level {
 	char	*map;
 };
 
-struct numa_node {
+struct numa_node
+{
 	u32		 node;
 	u64		 mem_total;
 	u64		 mem_free;
 	struct cpu_map	*map;
 };
 
-struct perf_env {
+struct perf_env
+{
 	char			*hostname;
 	char			*os_release;
 	char			*version;

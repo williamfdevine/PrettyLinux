@@ -64,7 +64,8 @@
 #define PCIE_DEBUG_CTRL         0x1a60
 #define  PCIE_DEBUG_SOFT_RESET		BIT(20)
 
-enum {
+enum
+{
 	PCISWCAP = PCI_BRIDGE_CONTROL + 2,
 	PCISWCAP_EXP_LIST_ID	= PCISWCAP + PCI_CAP_LIST_ID,
 	PCISWCAP_EXP_DEVCAP	= PCISWCAP + PCI_EXP_DEVCAP,
@@ -84,7 +85,8 @@ enum {
 };
 
 /* PCI configuration space of a PCI-to-PCI bridge */
-struct mvebu_sw_pci_bridge {
+struct mvebu_sw_pci_bridge
+{
 	u16 vendor;
 	u16 device;
 	u16 command;
@@ -122,7 +124,8 @@ struct mvebu_sw_pci_bridge {
 struct mvebu_pcie_port;
 
 /* Structure representing all PCIe interfaces */
-struct mvebu_pcie {
+struct mvebu_pcie
+{
 	struct platform_device *pdev;
 	struct mvebu_pcie_port *ports;
 	struct msi_controller *msi;
@@ -134,7 +137,8 @@ struct mvebu_pcie {
 };
 
 /* Structure representing one PCIe interface */
-struct mvebu_pcie_port {
+struct mvebu_pcie_port
+{
 	char *name;
 	void __iomem *base;
 	u32 port;
@@ -211,13 +215,15 @@ static void mvebu_pcie_setup_wins(struct mvebu_pcie_port *port)
 	dram = mv_mbus_dram_info();
 
 	/* First, disable and clear BARs and windows. */
-	for (i = 1; i < 3; i++) {
+	for (i = 1; i < 3; i++)
+	{
 		mvebu_writel(port, 0, PCIE_BAR_CTRL_OFF(i));
 		mvebu_writel(port, 0, PCIE_BAR_LO_OFF(i));
 		mvebu_writel(port, 0, PCIE_BAR_HI_OFF(i));
 	}
 
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 5; i++)
+	{
 		mvebu_writel(port, 0, PCIE_WIN04_CTRL_OFF(i));
 		mvebu_writel(port, 0, PCIE_WIN04_BASE_OFF(i));
 		mvebu_writel(port, 0, PCIE_WIN04_REMAP_OFF(i));
@@ -229,30 +235,34 @@ static void mvebu_pcie_setup_wins(struct mvebu_pcie_port *port)
 
 	/* Setup windows for DDR banks.  Count total DDR size on the fly. */
 	size = 0;
-	for (i = 0; i < dram->num_cs; i++) {
+
+	for (i = 0; i < dram->num_cs; i++)
+	{
 		const struct mbus_dram_window *cs = dram->cs + i;
 
 		mvebu_writel(port, cs->base & 0xffff0000,
-			     PCIE_WIN04_BASE_OFF(i));
+					 PCIE_WIN04_BASE_OFF(i));
 		mvebu_writel(port, 0, PCIE_WIN04_REMAP_OFF(i));
 		mvebu_writel(port,
-			     ((cs->size - 1) & 0xffff0000) |
-			     (cs->mbus_attr << 8) |
-			     (dram->mbus_dram_target_id << 4) | 1,
-			     PCIE_WIN04_CTRL_OFF(i));
+					 ((cs->size - 1) & 0xffff0000) |
+					 (cs->mbus_attr << 8) |
+					 (dram->mbus_dram_target_id << 4) | 1,
+					 PCIE_WIN04_CTRL_OFF(i));
 
 		size += cs->size;
 	}
 
 	/* Round up 'size' to the nearest power of two. */
 	if ((size & (size - 1)) != 0)
+	{
 		size = 1 << fls(size);
+	}
 
 	/* Setup BAR[1] to all DRAM banks. */
 	mvebu_writel(port, dram->cs[0].base, PCIE_BAR_LO_OFF(1));
 	mvebu_writel(port, 0, PCIE_BAR_HI_OFF(1));
 	mvebu_writel(port, ((size - 1) & 0xffff0000) | 1,
-		     PCIE_BAR_CTRL_OFF(1));
+				 PCIE_BAR_CTRL_OFF(1));
 }
 
 static void mvebu_pcie_setup_hw(struct mvebu_pcie_port *port)
@@ -276,50 +286,57 @@ static void mvebu_pcie_setup_hw(struct mvebu_pcie_port *port)
 }
 
 static int mvebu_pcie_hw_rd_conf(struct mvebu_pcie_port *port,
-				 struct pci_bus *bus,
-				 u32 devfn, int where, int size, u32 *val)
+								 struct pci_bus *bus,
+								 u32 devfn, int where, int size, u32 *val)
 {
 	void __iomem *conf_data = port->base + PCIE_CONF_DATA_OFF;
 
 	mvebu_writel(port, PCIE_CONF_ADDR(bus->number, devfn, where),
-		     PCIE_CONF_ADDR_OFF);
+				 PCIE_CONF_ADDR_OFF);
 
-	switch (size) {
-	case 1:
-		*val = readb_relaxed(conf_data + (where & 3));
-		break;
-	case 2:
-		*val = readw_relaxed(conf_data + (where & 2));
-		break;
-	case 4:
-		*val = readl_relaxed(conf_data);
-		break;
+	switch (size)
+	{
+		case 1:
+			*val = readb_relaxed(conf_data + (where & 3));
+			break;
+
+		case 2:
+			*val = readw_relaxed(conf_data + (where & 2));
+			break;
+
+		case 4:
+			*val = readl_relaxed(conf_data);
+			break;
 	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
 
 static int mvebu_pcie_hw_wr_conf(struct mvebu_pcie_port *port,
-				 struct pci_bus *bus,
-				 u32 devfn, int where, int size, u32 val)
+								 struct pci_bus *bus,
+								 u32 devfn, int where, int size, u32 val)
 {
 	void __iomem *conf_data = port->base + PCIE_CONF_DATA_OFF;
 
 	mvebu_writel(port, PCIE_CONF_ADDR(bus->number, devfn, where),
-		     PCIE_CONF_ADDR_OFF);
+				 PCIE_CONF_ADDR_OFF);
 
-	switch (size) {
-	case 1:
-		writeb(val, conf_data + (where & 3));
-		break;
-	case 2:
-		writew(val, conf_data + (where & 2));
-		break;
-	case 4:
-		writel(val, conf_data);
-		break;
-	default:
-		return PCIBIOS_BAD_REGISTER_NUMBER;
+	switch (size)
+	{
+		case 1:
+			writeb(val, conf_data + (where & 3));
+			break;
+
+		case 2:
+			writew(val, conf_data + (where & 2));
+			break;
+
+		case 4:
+			writel(val, conf_data);
+			break;
+
+		default:
+			return PCIBIOS_BAD_REGISTER_NUMBER;
 	}
 
 	return PCIBIOS_SUCCESSFUL;
@@ -330,9 +347,10 @@ static int mvebu_pcie_hw_wr_conf(struct mvebu_pcie_port *port,
  * ones.
  */
 static void mvebu_pcie_del_windows(struct mvebu_pcie_port *port,
-				   phys_addr_t base, size_t size)
+								   phys_addr_t base, size_t size)
 {
-	while (size) {
+	while (size)
+	{
 		size_t sz = 1 << (fls(size) - 1);
 
 		mvebu_mbus_del_window(base, sz);
@@ -348,34 +366,40 @@ static void mvebu_pcie_del_windows(struct mvebu_pcie_port *port,
  * one (i.e highest order bit set in the size).
  */
 static void mvebu_pcie_add_windows(struct mvebu_pcie_port *port,
-				   unsigned int target, unsigned int attribute,
-				   phys_addr_t base, size_t size,
-				   phys_addr_t remap)
+								   unsigned int target, unsigned int attribute,
+								   phys_addr_t base, size_t size,
+								   phys_addr_t remap)
 {
 	size_t size_mapped = 0;
 
-	while (size) {
+	while (size)
+	{
 		size_t sz = 1 << (fls(size) - 1);
 		int ret;
 
 		ret = mvebu_mbus_add_window_remap_by_id(target, attribute, base,
-							sz, remap);
-		if (ret) {
+												sz, remap);
+
+		if (ret)
+		{
 			phys_addr_t end = base + sz - 1;
 
 			dev_err(&port->pcie->pdev->dev,
-				"Could not create MBus window at [mem %pa-%pa]: %d\n",
-				&base, &end, ret);
+					"Could not create MBus window at [mem %pa-%pa]: %d\n",
+					&base, &end, ret);
 			mvebu_pcie_del_windows(port, base - size_mapped,
-					       size_mapped);
+								   size_mapped);
 			return;
 		}
 
 		size -= sz;
 		size_mapped += sz;
 		base += sz;
+
 		if (remap != MVEBU_MBUS_NO_REMAP)
+		{
 			remap += sz;
+		}
 	}
 }
 
@@ -385,13 +409,15 @@ static void mvebu_pcie_handle_iobase_change(struct mvebu_pcie_port *port)
 
 	/* Are the new iobase/iolimit values invalid? */
 	if (port->bridge.iolimit < port->bridge.iobase ||
-	    port->bridge.iolimitupper < port->bridge.iobaseupper ||
-	    !(port->bridge.command & PCI_COMMAND_IO)) {
+		port->bridge.iolimitupper < port->bridge.iobaseupper ||
+		!(port->bridge.command & PCI_COMMAND_IO))
+	{
 
 		/* If a window was configured, remove it */
-		if (port->iowin_base) {
+		if (port->iowin_base)
+		{
 			mvebu_pcie_del_windows(port, port->iowin_base,
-					       port->iowin_size);
+								   port->iowin_size);
 			port->iowin_base = 0;
 			port->iowin_size = 0;
 		}
@@ -399,9 +425,10 @@ static void mvebu_pcie_handle_iobase_change(struct mvebu_pcie_port *port)
 		return;
 	}
 
-	if (!mvebu_has_ioport(port)) {
+	if (!mvebu_has_ioport(port))
+	{
 		dev_WARN(&port->pcie->pdev->dev,
-			 "Attempt to set IO when IO is disabled\n");
+				 "Attempt to set IO when IO is disabled\n");
 		return;
 	}
 
@@ -413,27 +440,29 @@ static void mvebu_pcie_handle_iobase_change(struct mvebu_pcie_port *port)
 	 * is the CPU address.
 	 */
 	iobase = ((port->bridge.iobase & 0xF0) << 8) |
-		(port->bridge.iobaseupper << 16);
+			 (port->bridge.iobaseupper << 16);
 	port->iowin_base = port->pcie->io.start + iobase;
 	port->iowin_size = ((0xFFF | ((port->bridge.iolimit & 0xF0) << 8) |
-			    (port->bridge.iolimitupper << 16)) -
-			    iobase) + 1;
+						 (port->bridge.iolimitupper << 16)) -
+						iobase) + 1;
 
 	mvebu_pcie_add_windows(port, port->io_target, port->io_attr,
-			       port->iowin_base, port->iowin_size,
-			       iobase);
+						   port->iowin_base, port->iowin_size,
+						   iobase);
 }
 
 static void mvebu_pcie_handle_membase_change(struct mvebu_pcie_port *port)
 {
 	/* Are the new membase/memlimit values invalid? */
 	if (port->bridge.memlimit < port->bridge.membase ||
-	    !(port->bridge.command & PCI_COMMAND_MEMORY)) {
+		!(port->bridge.command & PCI_COMMAND_MEMORY))
+	{
 
 		/* If a window was configured, remove it */
-		if (port->memwin_base) {
+		if (port->memwin_base)
+		{
 			mvebu_pcie_del_windows(port, port->memwin_base,
-					       port->memwin_size);
+								   port->memwin_size);
 			port->memwin_base = 0;
 			port->memwin_size = 0;
 		}
@@ -453,8 +482,8 @@ static void mvebu_pcie_handle_membase_change(struct mvebu_pcie_port *port)
 		port->memwin_base + 1;
 
 	mvebu_pcie_add_windows(port, port->mem_target, port->mem_attr,
-			       port->memwin_base, port->memwin_size,
-			       MVEBU_MBUS_NO_REMAP);
+						   port->memwin_base, port->memwin_size,
+						   MVEBU_MBUS_NO_REMAP);
 }
 
 /*
@@ -487,266 +516,299 @@ static void mvebu_sw_pci_bridge_init(struct mvebu_pcie_port *port)
  * the given PCIe interface.
  */
 static int mvebu_sw_pci_bridge_read(struct mvebu_pcie_port *port,
-				  unsigned int where, int size, u32 *value)
+									unsigned int where, int size, u32 *value)
 {
 	struct mvebu_sw_pci_bridge *bridge = &port->bridge;
 
-	switch (where & ~3) {
-	case PCI_VENDOR_ID:
-		*value = bridge->device << 16 | bridge->vendor;
-		break;
+	switch (where & ~3)
+	{
+		case PCI_VENDOR_ID:
+			*value = bridge->device << 16 | bridge->vendor;
+			break;
 
-	case PCI_COMMAND:
-		*value = bridge->command | bridge->status << 16;
-		break;
+		case PCI_COMMAND:
+			*value = bridge->command | bridge->status << 16;
+			break;
 
-	case PCI_CLASS_REVISION:
-		*value = bridge->class << 16 | bridge->interface << 8 |
-			 bridge->revision;
-		break;
+		case PCI_CLASS_REVISION:
+			*value = bridge->class << 16 | bridge->interface << 8 |
+						 bridge->revision;
+			break;
 
-	case PCI_CACHE_LINE_SIZE:
-		*value = bridge->bist << 24 | bridge->header_type << 16 |
-			 bridge->latency_timer << 8 | bridge->cache_line_size;
-		break;
+		case PCI_CACHE_LINE_SIZE:
+			*value = bridge->bist << 24 | bridge->header_type << 16 |
+					 bridge->latency_timer << 8 | bridge->cache_line_size;
+			break;
 
-	case PCI_BASE_ADDRESS_0 ... PCI_BASE_ADDRESS_1:
-		*value = bridge->bar[((where & ~3) - PCI_BASE_ADDRESS_0) / 4];
-		break;
+		case PCI_BASE_ADDRESS_0 ... PCI_BASE_ADDRESS_1:
+			*value = bridge->bar[((where & ~3) - PCI_BASE_ADDRESS_0) / 4];
+			break;
 
-	case PCI_PRIMARY_BUS:
-		*value = (bridge->secondary_latency_timer << 24 |
-			  bridge->subordinate_bus         << 16 |
-			  bridge->secondary_bus           <<  8 |
-			  bridge->primary_bus);
-		break;
+		case PCI_PRIMARY_BUS:
+			*value = (bridge->secondary_latency_timer << 24 |
+					  bridge->subordinate_bus         << 16 |
+					  bridge->secondary_bus           <<  8 |
+					  bridge->primary_bus);
+			break;
 
-	case PCI_IO_BASE:
-		if (!mvebu_has_ioport(port))
-			*value = bridge->secondary_status << 16;
-		else
-			*value = (bridge->secondary_status << 16 |
-				  bridge->iolimit          <<  8 |
-				  bridge->iobase);
-		break;
+		case PCI_IO_BASE:
+			if (!mvebu_has_ioport(port))
+			{
+				*value = bridge->secondary_status << 16;
+			}
+			else
+				*value = (bridge->secondary_status << 16 |
+						  bridge->iolimit          <<  8 |
+						  bridge->iobase);
 
-	case PCI_MEMORY_BASE:
-		*value = (bridge->memlimit << 16 | bridge->membase);
-		break;
+			break;
 
-	case PCI_PREF_MEMORY_BASE:
-		*value = 0;
-		break;
+		case PCI_MEMORY_BASE:
+			*value = (bridge->memlimit << 16 | bridge->membase);
+			break;
 
-	case PCI_IO_BASE_UPPER16:
-		*value = (bridge->iolimitupper << 16 | bridge->iobaseupper);
-		break;
+		case PCI_PREF_MEMORY_BASE:
+			*value = 0;
+			break;
 
-	case PCI_CAPABILITY_LIST:
-		*value = PCISWCAP;
-		break;
+		case PCI_IO_BASE_UPPER16:
+			*value = (bridge->iolimitupper << 16 | bridge->iobaseupper);
+			break;
 
-	case PCI_ROM_ADDRESS1:
-		*value = 0;
-		break;
+		case PCI_CAPABILITY_LIST:
+			*value = PCISWCAP;
+			break;
 
-	case PCI_INTERRUPT_LINE:
-		/* LINE PIN MIN_GNT MAX_LAT */
-		*value = 0;
-		break;
+		case PCI_ROM_ADDRESS1:
+			*value = 0;
+			break;
 
-	case PCISWCAP_EXP_LIST_ID:
-		/* Set PCIe v2, root port, slot support */
-		*value = (PCI_EXP_TYPE_ROOT_PORT << 4 | 2 |
-			  PCI_EXP_FLAGS_SLOT) << 16 | PCI_CAP_ID_EXP;
-		break;
+		case PCI_INTERRUPT_LINE:
+			/* LINE PIN MIN_GNT MAX_LAT */
+			*value = 0;
+			break;
 
-	case PCISWCAP_EXP_DEVCAP:
-		*value = mvebu_readl(port, PCIE_CAP_PCIEXP + PCI_EXP_DEVCAP);
-		break;
+		case PCISWCAP_EXP_LIST_ID:
+			/* Set PCIe v2, root port, slot support */
+			*value = (PCI_EXP_TYPE_ROOT_PORT << 4 | 2 |
+					  PCI_EXP_FLAGS_SLOT) << 16 | PCI_CAP_ID_EXP;
+			break;
 
-	case PCISWCAP_EXP_DEVCTL:
-		*value = mvebu_readl(port, PCIE_CAP_PCIEXP + PCI_EXP_DEVCTL) &
-				 ~(PCI_EXP_DEVCTL_URRE | PCI_EXP_DEVCTL_FERE |
-				   PCI_EXP_DEVCTL_NFERE | PCI_EXP_DEVCTL_CERE);
-		*value |= bridge->pcie_devctl;
-		break;
+		case PCISWCAP_EXP_DEVCAP:
+			*value = mvebu_readl(port, PCIE_CAP_PCIEXP + PCI_EXP_DEVCAP);
+			break;
 
-	case PCISWCAP_EXP_LNKCAP:
-		/*
-		 * PCIe requires the clock power management capability to be
-		 * hard-wired to zero for downstream ports
-		 */
-		*value = mvebu_readl(port, PCIE_CAP_PCIEXP + PCI_EXP_LNKCAP) &
-			 ~PCI_EXP_LNKCAP_CLKPM;
-		break;
+		case PCISWCAP_EXP_DEVCTL:
+			*value = mvebu_readl(port, PCIE_CAP_PCIEXP + PCI_EXP_DEVCTL) &
+					 ~(PCI_EXP_DEVCTL_URRE | PCI_EXP_DEVCTL_FERE |
+					   PCI_EXP_DEVCTL_NFERE | PCI_EXP_DEVCTL_CERE);
+			*value |= bridge->pcie_devctl;
+			break;
 
-	case PCISWCAP_EXP_LNKCTL:
-		*value = mvebu_readl(port, PCIE_CAP_PCIEXP + PCI_EXP_LNKCTL);
-		break;
+		case PCISWCAP_EXP_LNKCAP:
+			/*
+			 * PCIe requires the clock power management capability to be
+			 * hard-wired to zero for downstream ports
+			 */
+			*value = mvebu_readl(port, PCIE_CAP_PCIEXP + PCI_EXP_LNKCAP) &
+					 ~PCI_EXP_LNKCAP_CLKPM;
+			break;
 
-	case PCISWCAP_EXP_SLTCAP:
-		*value = bridge->pcie_sltcap;
-		break;
+		case PCISWCAP_EXP_LNKCTL:
+			*value = mvebu_readl(port, PCIE_CAP_PCIEXP + PCI_EXP_LNKCTL);
+			break;
 
-	case PCISWCAP_EXP_SLTCTL:
-		*value = PCI_EXP_SLTSTA_PDS << 16;
-		break;
+		case PCISWCAP_EXP_SLTCAP:
+			*value = bridge->pcie_sltcap;
+			break;
 
-	case PCISWCAP_EXP_RTCTL:
-		*value = bridge->pcie_rtctl;
-		break;
+		case PCISWCAP_EXP_SLTCTL:
+			*value = PCI_EXP_SLTSTA_PDS << 16;
+			break;
 
-	case PCISWCAP_EXP_RTSTA:
-		*value = mvebu_readl(port, PCIE_RC_RTSTA);
-		break;
+		case PCISWCAP_EXP_RTCTL:
+			*value = bridge->pcie_rtctl;
+			break;
 
-	/* PCIe requires the v2 fields to be hard-wired to zero */
-	case PCISWCAP_EXP_DEVCAP2:
-	case PCISWCAP_EXP_DEVCTL2:
-	case PCISWCAP_EXP_LNKCAP2:
-	case PCISWCAP_EXP_LNKCTL2:
-	case PCISWCAP_EXP_SLTCAP2:
-	case PCISWCAP_EXP_SLTCTL2:
-	default:
-		/*
-		 * PCI defines configuration read accesses to reserved or
-		 * unimplemented registers to read as zero and complete
-		 * normally.
-		 */
-		*value = 0;
-		return PCIBIOS_SUCCESSFUL;
+		case PCISWCAP_EXP_RTSTA:
+			*value = mvebu_readl(port, PCIE_RC_RTSTA);
+			break;
+
+		/* PCIe requires the v2 fields to be hard-wired to zero */
+		case PCISWCAP_EXP_DEVCAP2:
+		case PCISWCAP_EXP_DEVCTL2:
+		case PCISWCAP_EXP_LNKCAP2:
+		case PCISWCAP_EXP_LNKCTL2:
+		case PCISWCAP_EXP_SLTCAP2:
+		case PCISWCAP_EXP_SLTCTL2:
+		default:
+			/*
+			 * PCI defines configuration read accesses to reserved or
+			 * unimplemented registers to read as zero and complete
+			 * normally.
+			 */
+			*value = 0;
+			return PCIBIOS_SUCCESSFUL;
 	}
 
 	if (size == 2)
+	{
 		*value = (*value >> (8 * (where & 3))) & 0xffff;
+	}
 	else if (size == 1)
+	{
 		*value = (*value >> (8 * (where & 3))) & 0xff;
+	}
 
 	return PCIBIOS_SUCCESSFUL;
 }
 
 /* Write to the PCI-to-PCI bridge configuration space */
 static int mvebu_sw_pci_bridge_write(struct mvebu_pcie_port *port,
-				     unsigned int where, int size, u32 value)
+									 unsigned int where, int size, u32 value)
 {
 	struct mvebu_sw_pci_bridge *bridge = &port->bridge;
 	u32 mask, reg;
 	int err;
 
 	if (size == 4)
+	{
 		mask = 0x0;
+	}
 	else if (size == 2)
+	{
 		mask = ~(0xffff << ((where & 3) * 8));
+	}
 	else if (size == 1)
+	{
 		mask = ~(0xff << ((where & 3) * 8));
+	}
 	else
+	{
 		return PCIBIOS_BAD_REGISTER_NUMBER;
+	}
 
 	err = mvebu_sw_pci_bridge_read(port, where & ~3, 4, &reg);
+
 	if (err)
+	{
 		return err;
+	}
 
 	value = (reg & mask) | value << ((where & 3) * 8);
 
-	switch (where & ~3) {
-	case PCI_COMMAND:
+	switch (where & ~3)
 	{
-		u32 old = bridge->command;
+		case PCI_COMMAND:
+			{
+				u32 old = bridge->command;
 
-		if (!mvebu_has_ioport(port))
-			value &= ~PCI_COMMAND_IO;
+				if (!mvebu_has_ioport(port))
+				{
+					value &= ~PCI_COMMAND_IO;
+				}
 
-		bridge->command = value & 0xffff;
-		if ((old ^ bridge->command) & PCI_COMMAND_IO)
+				bridge->command = value & 0xffff;
+
+				if ((old ^ bridge->command) & PCI_COMMAND_IO)
+				{
+					mvebu_pcie_handle_iobase_change(port);
+				}
+
+				if ((old ^ bridge->command) & PCI_COMMAND_MEMORY)
+				{
+					mvebu_pcie_handle_membase_change(port);
+				}
+
+				break;
+			}
+
+		case PCI_BASE_ADDRESS_0 ... PCI_BASE_ADDRESS_1:
+			bridge->bar[((where & ~3) - PCI_BASE_ADDRESS_0) / 4] = value;
+			break;
+
+		case PCI_IO_BASE:
+			/*
+			 * We also keep bit 1 set, it is a read-only bit that
+			 * indicates we support 32 bits addressing for the
+			 * I/O
+			 */
+			bridge->iobase = (value & 0xff) | PCI_IO_RANGE_TYPE_32;
+			bridge->iolimit = ((value >> 8) & 0xff) | PCI_IO_RANGE_TYPE_32;
 			mvebu_pcie_handle_iobase_change(port);
-		if ((old ^ bridge->command) & PCI_COMMAND_MEMORY)
+			break;
+
+		case PCI_MEMORY_BASE:
+			bridge->membase = value & 0xffff;
+			bridge->memlimit = value >> 16;
 			mvebu_pcie_handle_membase_change(port);
-		break;
-	}
+			break;
 
-	case PCI_BASE_ADDRESS_0 ... PCI_BASE_ADDRESS_1:
-		bridge->bar[((where & ~3) - PCI_BASE_ADDRESS_0) / 4] = value;
-		break;
+		case PCI_IO_BASE_UPPER16:
+			bridge->iobaseupper = value & 0xffff;
+			bridge->iolimitupper = value >> 16;
+			mvebu_pcie_handle_iobase_change(port);
+			break;
 
-	case PCI_IO_BASE:
-		/*
-		 * We also keep bit 1 set, it is a read-only bit that
-		 * indicates we support 32 bits addressing for the
-		 * I/O
-		 */
-		bridge->iobase = (value & 0xff) | PCI_IO_RANGE_TYPE_32;
-		bridge->iolimit = ((value >> 8) & 0xff) | PCI_IO_RANGE_TYPE_32;
-		mvebu_pcie_handle_iobase_change(port);
-		break;
+		case PCI_PRIMARY_BUS:
+			bridge->primary_bus             = value & 0xff;
+			bridge->secondary_bus           = (value >> 8) & 0xff;
+			bridge->subordinate_bus         = (value >> 16) & 0xff;
+			bridge->secondary_latency_timer = (value >> 24) & 0xff;
+			mvebu_pcie_set_local_bus_nr(port, bridge->secondary_bus);
+			break;
 
-	case PCI_MEMORY_BASE:
-		bridge->membase = value & 0xffff;
-		bridge->memlimit = value >> 16;
-		mvebu_pcie_handle_membase_change(port);
-		break;
+		case PCISWCAP_EXP_DEVCTL:
+			/*
+			 * Armada370 data says these bits must always
+			 * be zero when in root complex mode.
+			 */
+			value &= ~(PCI_EXP_DEVCTL_URRE | PCI_EXP_DEVCTL_FERE |
+					   PCI_EXP_DEVCTL_NFERE | PCI_EXP_DEVCTL_CERE);
 
-	case PCI_IO_BASE_UPPER16:
-		bridge->iobaseupper = value & 0xffff;
-		bridge->iolimitupper = value >> 16;
-		mvebu_pcie_handle_iobase_change(port);
-		break;
+			/*
+			 * If the mask is 0xffff0000, then we only want to write
+			 * the device control register, rather than clearing the
+			 * RW1C bits in the device status register.  Mask out the
+			 * status register bits.
+			 */
+			if (mask == 0xffff0000)
+			{
+				value &= 0xffff;
+			}
 
-	case PCI_PRIMARY_BUS:
-		bridge->primary_bus             = value & 0xff;
-		bridge->secondary_bus           = (value >> 8) & 0xff;
-		bridge->subordinate_bus         = (value >> 16) & 0xff;
-		bridge->secondary_latency_timer = (value >> 24) & 0xff;
-		mvebu_pcie_set_local_bus_nr(port, bridge->secondary_bus);
-		break;
+			mvebu_writel(port, value, PCIE_CAP_PCIEXP + PCI_EXP_DEVCTL);
+			break;
 
-	case PCISWCAP_EXP_DEVCTL:
-		/*
-		 * Armada370 data says these bits must always
-		 * be zero when in root complex mode.
-		 */
-		value &= ~(PCI_EXP_DEVCTL_URRE | PCI_EXP_DEVCTL_FERE |
-			   PCI_EXP_DEVCTL_NFERE | PCI_EXP_DEVCTL_CERE);
+		case PCISWCAP_EXP_LNKCTL:
+			/*
+			 * If we don't support CLKREQ, we must ensure that the
+			 * CLKREQ enable bit always reads zero.  Since we haven't
+			 * had this capability, and it's dependent on board wiring,
+			 * disable it for the time being.
+			 */
+			value &= ~PCI_EXP_LNKCTL_CLKREQ_EN;
 
-		/*
-		 * If the mask is 0xffff0000, then we only want to write
-		 * the device control register, rather than clearing the
-		 * RW1C bits in the device status register.  Mask out the
-		 * status register bits.
-		 */
-		if (mask == 0xffff0000)
-			value &= 0xffff;
+			/*
+			 * If the mask is 0xffff0000, then we only want to write
+			 * the link control register, rather than clearing the
+			 * RW1C bits in the link status register.  Mask out the
+			 * status register bits.
+			 */
+			if (mask == 0xffff0000)
+			{
+				value &= 0xffff;
+			}
 
-		mvebu_writel(port, value, PCIE_CAP_PCIEXP + PCI_EXP_DEVCTL);
-		break;
+			mvebu_writel(port, value, PCIE_CAP_PCIEXP + PCI_EXP_LNKCTL);
+			break;
 
-	case PCISWCAP_EXP_LNKCTL:
-		/*
-		 * If we don't support CLKREQ, we must ensure that the
-		 * CLKREQ enable bit always reads zero.  Since we haven't
-		 * had this capability, and it's dependent on board wiring,
-		 * disable it for the time being.
-		 */
-		value &= ~PCI_EXP_LNKCTL_CLKREQ_EN;
+		case PCISWCAP_EXP_RTSTA:
+			mvebu_writel(port, value, PCIE_RC_RTSTA);
+			break;
 
-		/*
-		 * If the mask is 0xffff0000, then we only want to write
-		 * the link control register, rather than clearing the
-		 * RW1C bits in the link status register.  Mask out the
-		 * status register bits.
-		 */
-		if (mask == 0xffff0000)
-			value &= 0xffff;
-
-		mvebu_writel(port, value, PCIE_CAP_PCIEXP + PCI_EXP_LNKCTL);
-		break;
-
-	case PCISWCAP_EXP_RTSTA:
-		mvebu_writel(port, value, PCIE_RC_RTSTA);
-		break;
-
-	default:
-		break;
+		default:
+			break;
 	}
 
 	return PCIBIOS_SUCCESSFUL;
@@ -758,20 +820,26 @@ static inline struct mvebu_pcie *sys_to_pcie(struct pci_sys_data *sys)
 }
 
 static struct mvebu_pcie_port *mvebu_pcie_find_port(struct mvebu_pcie *pcie,
-						    struct pci_bus *bus,
-						    int devfn)
+		struct pci_bus *bus,
+		int devfn)
 {
 	int i;
 
-	for (i = 0; i < pcie->nports; i++) {
+	for (i = 0; i < pcie->nports; i++)
+	{
 		struct mvebu_pcie_port *port = &pcie->ports[i];
 
 		if (bus->number == 0 && port->devfn == devfn)
+		{
 			return port;
+		}
+
 		if (bus->number != 0 &&
-		    bus->number >= port->bridge.secondary_bus &&
-		    bus->number <= port->bridge.subordinate_bus)
+			bus->number >= port->bridge.secondary_bus &&
+			bus->number <= port->bridge.subordinate_bus)
+		{
 			return port;
+		}
 	}
 
 	return NULL;
@@ -779,61 +847,74 @@ static struct mvebu_pcie_port *mvebu_pcie_find_port(struct mvebu_pcie *pcie,
 
 /* PCI configuration space write function */
 static int mvebu_pcie_wr_conf(struct pci_bus *bus, u32 devfn,
-			      int where, int size, u32 val)
+							  int where, int size, u32 val)
 {
 	struct mvebu_pcie *pcie = sys_to_pcie(bus->sysdata);
 	struct mvebu_pcie_port *port;
 	int ret;
 
 	port = mvebu_pcie_find_port(pcie, bus, devfn);
+
 	if (!port)
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
 	/* Access the emulated PCI-to-PCI bridge */
 	if (bus->number == 0)
+	{
 		return mvebu_sw_pci_bridge_write(port, where, size, val);
+	}
 
 	if (!mvebu_pcie_link_up(port))
+	{
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	}
 
 	/* Access the real PCIe interface */
 	ret = mvebu_pcie_hw_wr_conf(port, bus, devfn,
-				    where, size, val);
+								where, size, val);
 
 	return ret;
 }
 
 /* PCI configuration space read function */
 static int mvebu_pcie_rd_conf(struct pci_bus *bus, u32 devfn, int where,
-			      int size, u32 *val)
+							  int size, u32 *val)
 {
 	struct mvebu_pcie *pcie = sys_to_pcie(bus->sysdata);
 	struct mvebu_pcie_port *port;
 	int ret;
 
 	port = mvebu_pcie_find_port(pcie, bus, devfn);
-	if (!port) {
+
+	if (!port)
+	{
 		*val = 0xffffffff;
 		return PCIBIOS_DEVICE_NOT_FOUND;
 	}
 
 	/* Access the emulated PCI-to-PCI bridge */
 	if (bus->number == 0)
+	{
 		return mvebu_sw_pci_bridge_read(port, where, size, val);
+	}
 
-	if (!mvebu_pcie_link_up(port)) {
+	if (!mvebu_pcie_link_up(port))
+	{
 		*val = 0xffffffff;
 		return PCIBIOS_DEVICE_NOT_FOUND;
 	}
 
 	/* Access the real PCIe interface */
 	ret = mvebu_pcie_hw_rd_conf(port, bus, devfn,
-				    where, size, val);
+								where, size, val);
 
 	return ret;
 }
 
-static struct pci_ops mvebu_pcie_ops = {
+static struct pci_ops mvebu_pcie_ops =
+{
 	.read = mvebu_pcie_rd_conf,
 	.write = mvebu_pcie_wr_conf,
 };
@@ -848,20 +929,27 @@ static int mvebu_pcie_setup(int nr, struct pci_sys_data *sys)
 
 	if (resource_size(&pcie->realio) != 0)
 		pci_add_resource_offset(&sys->resources, &pcie->realio,
-					sys->io_offset);
+								sys->io_offset);
 
 	pci_add_resource_offset(&sys->resources, &pcie->mem, sys->mem_offset);
 	pci_add_resource(&sys->resources, &pcie->busn);
 
 	err = devm_request_pci_bus_resources(&pcie->pdev->dev, &sys->resources);
-	if (err)
-		return 0;
 
-	for (i = 0; i < pcie->nports; i++) {
+	if (err)
+	{
+		return 0;
+	}
+
+	for (i = 0; i < pcie->nports; i++)
+	{
 		struct mvebu_pcie_port *port = &pcie->ports[i];
 
 		if (!port->base)
+		{
 			continue;
+		}
+
 		mvebu_pcie_setup_hw(port);
 	}
 
@@ -869,13 +957,15 @@ static int mvebu_pcie_setup(int nr, struct pci_sys_data *sys)
 }
 
 static resource_size_t mvebu_pcie_align_resource(struct pci_dev *dev,
-						 const struct resource *res,
-						 resource_size_t start,
-						 resource_size_t size,
-						 resource_size_t align)
+		const struct resource *res,
+		resource_size_t start,
+		resource_size_t size,
+		resource_size_t align)
 {
 	if (dev->bus->number != 0)
+	{
 		return start;
+	}
 
 	/*
 	 * On the PCI-to-PCI bridge side, the I/O windows must have at
@@ -890,12 +980,14 @@ static resource_size_t mvebu_pcie_align_resource(struct pci_dev *dev,
 	 */
 	if (res->flags & IORESOURCE_IO)
 		return round_up(start, max_t(resource_size_t, SZ_64K,
-					     rounddown_pow_of_two(size)));
+									 rounddown_pow_of_two(size)));
 	else if (res->flags & IORESOURCE_MEM)
 		return round_up(start, max_t(resource_size_t, SZ_1M,
-					     rounddown_pow_of_two(size)));
+									 rounddown_pow_of_two(size)));
 	else
+	{
 		return start;
+	}
 }
 
 static void mvebu_pcie_enable(struct mvebu_pcie *pcie)
@@ -924,15 +1016,18 @@ static void mvebu_pcie_enable(struct mvebu_pcie *pcie)
  * found, maps it.
  */
 static void __iomem *mvebu_pcie_map_registers(struct platform_device *pdev,
-					      struct device_node *np,
-					      struct mvebu_pcie_port *port)
+		struct device_node *np,
+		struct mvebu_pcie_port *port)
 {
 	struct resource regs;
 	int ret = 0;
 
 	ret = of_address_to_resource(np, 0, &regs);
+
 	if (ret)
+	{
 		return ERR_PTR(ret);
+	}
 
 	return devm_ioremap_resource(&pdev->dev, &regs);
 }
@@ -944,9 +1039,9 @@ static void __iomem *mvebu_pcie_map_registers(struct platform_device *pdev,
 #define DT_CPUADDR_TO_ATTR(cpuaddr)   (((cpuaddr) >> 48) & 0xFF)
 
 static int mvebu_get_tgt_attr(struct device_node *np, int devfn,
-			      unsigned long type,
-			      unsigned int *tgt,
-			      unsigned int *attr)
+							  unsigned long type,
+							  unsigned int *tgt,
+							  unsigned int *attr)
 {
 	const int na = 3, ns = 2;
 	const __be32 *range;
@@ -956,27 +1051,38 @@ static int mvebu_get_tgt_attr(struct device_node *np, int devfn,
 	*attr = -1;
 
 	range = of_get_property(np, "ranges", &rlen);
+
 	if (!range)
+	{
 		return -EINVAL;
+	}
 
 	pna = of_n_addr_cells(np);
 	rangesz = pna + na + ns;
 	nranges = rlen / sizeof(__be32) / rangesz;
 
-	for (i = 0; i < nranges; i++, range += rangesz) {
+	for (i = 0; i < nranges; i++, range += rangesz)
+	{
 		u32 flags = of_read_number(range, 1);
 		u32 slot = of_read_number(range + 1, 1);
 		u64 cpuaddr = of_read_number(range + na, pna);
 		unsigned long rtype;
 
 		if (DT_FLAGS_TO_TYPE(flags) == DT_TYPE_IO)
+		{
 			rtype = IORESOURCE_IO;
+		}
 		else if (DT_FLAGS_TO_TYPE(flags) == DT_TYPE_MEM32)
+		{
 			rtype = IORESOURCE_MEM;
+		}
 		else
+		{
 			continue;
+		}
 
-		if (slot == PCI_SLOT(devfn) && type == rtype) {
+		if (slot == PCI_SLOT(devfn) && type == rtype)
+		{
 			*tgt = DT_CPUADDR_TO_TARGET(cpuaddr);
 			*attr = DT_CPUADDR_TO_ATTR(cpuaddr);
 			return 0;
@@ -991,15 +1097,20 @@ static void mvebu_pcie_msi_enable(struct mvebu_pcie *pcie)
 	struct device_node *msi_node;
 
 	msi_node = of_parse_phandle(pcie->pdev->dev.of_node,
-				    "msi-parent", 0);
+								"msi-parent", 0);
+
 	if (!msi_node)
+	{
 		return;
+	}
 
 	pcie->msi = of_pci_find_msi_chip_by_node(msi_node);
 	of_node_put(msi_node);
 
 	if (pcie->msi)
+	{
 		pcie->msi->dev = &pcie->pdev->dev;
+	}
 }
 
 #ifdef CONFIG_PM_SLEEP
@@ -1009,7 +1120,9 @@ static int mvebu_pcie_suspend(struct device *dev)
 	int i;
 
 	pcie = dev_get_drvdata(dev);
-	for (i = 0; i < pcie->nports; i++) {
+
+	for (i = 0; i < pcie->nports; i++)
+	{
 		struct mvebu_pcie_port *port = pcie->ports + i;
 		port->saved_pcie_stat = mvebu_readl(port, PCIE_STAT_OFF);
 	}
@@ -1023,7 +1136,9 @@ static int mvebu_pcie_resume(struct device *dev)
 	int i;
 
 	pcie = dev_get_drvdata(dev);
-	for (i = 0; i < pcie->nports; i++) {
+
+	for (i = 0; i < pcie->nports; i++)
+	{
 		struct mvebu_pcie_port *port = pcie->ports + i;
 		mvebu_writel(port, port->saved_pcie_stat, PCIE_STAT_OFF);
 		mvebu_pcie_setup_hw(port);
@@ -1041,7 +1156,7 @@ static void mvebu_pcie_port_clk_put(void *data)
 }
 
 static int mvebu_pcie_parse_port(struct mvebu_pcie *pcie,
-	struct mvebu_pcie_port *port, struct device_node *child)
+								 struct mvebu_pcie_port *port, struct device_node *child)
 {
 	struct device *dev = &pcie->pdev->dev;
 	enum of_gpio_flags flags;
@@ -1049,72 +1164,98 @@ static int mvebu_pcie_parse_port(struct mvebu_pcie *pcie,
 
 	port->pcie = pcie;
 
-	if (of_property_read_u32(child, "marvell,pcie-port", &port->port)) {
+	if (of_property_read_u32(child, "marvell,pcie-port", &port->port))
+	{
 		dev_warn(dev, "ignoring %s, missing pcie-port property\n",
-			 of_node_full_name(child));
+				 of_node_full_name(child));
 		goto skip;
 	}
 
 	if (of_property_read_u32(child, "marvell,pcie-lane", &port->lane))
+	{
 		port->lane = 0;
+	}
 
 	port->name = devm_kasprintf(dev, GFP_KERNEL, "pcie%d.%d", port->port,
-				    port->lane);
-	if (!port->name) {
+								port->lane);
+
+	if (!port->name)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
 
 	port->devfn = of_pci_get_devfn(child);
-	if (port->devfn < 0)
-		goto skip;
 
-	ret = mvebu_get_tgt_attr(dev->of_node, port->devfn, IORESOURCE_MEM,
-				 &port->mem_target, &port->mem_attr);
-	if (ret < 0) {
-		dev_err(dev, "%s: cannot get tgt/attr for mem window\n",
-			port->name);
+	if (port->devfn < 0)
+	{
 		goto skip;
 	}
 
-	if (resource_size(&pcie->io) != 0) {
+	ret = mvebu_get_tgt_attr(dev->of_node, port->devfn, IORESOURCE_MEM,
+							 &port->mem_target, &port->mem_attr);
+
+	if (ret < 0)
+	{
+		dev_err(dev, "%s: cannot get tgt/attr for mem window\n",
+				port->name);
+		goto skip;
+	}
+
+	if (resource_size(&pcie->io) != 0)
+	{
 		mvebu_get_tgt_attr(dev->of_node, port->devfn, IORESOURCE_IO,
-				   &port->io_target, &port->io_attr);
-	} else {
+						   &port->io_target, &port->io_attr);
+	}
+	else
+	{
 		port->io_target = -1;
 		port->io_attr = -1;
 	}
 
 	reset_gpio = of_get_named_gpio_flags(child, "reset-gpios", 0, &flags);
-	if (reset_gpio == -EPROBE_DEFER) {
+
+	if (reset_gpio == -EPROBE_DEFER)
+	{
 		ret = reset_gpio;
 		goto err;
 	}
 
-	if (gpio_is_valid(reset_gpio)) {
+	if (gpio_is_valid(reset_gpio))
+	{
 		unsigned long gpio_flags;
 
 		port->reset_name = devm_kasprintf(dev, GFP_KERNEL, "%s-reset",
-						  port->name);
-		if (!port->reset_name) {
+										  port->name);
+
+		if (!port->reset_name)
+		{
 			ret = -ENOMEM;
 			goto err;
 		}
 
-		if (flags & OF_GPIO_ACTIVE_LOW) {
+		if (flags & OF_GPIO_ACTIVE_LOW)
+		{
 			dev_info(dev, "%s: reset gpio is active low\n",
-				 of_node_full_name(child));
+					 of_node_full_name(child));
 			gpio_flags = GPIOF_ACTIVE_LOW |
-				     GPIOF_OUT_INIT_LOW;
-		} else {
+						 GPIOF_OUT_INIT_LOW;
+		}
+		else
+		{
 			gpio_flags = GPIOF_OUT_INIT_HIGH;
 		}
 
 		ret = devm_gpio_request_one(dev, reset_gpio, gpio_flags,
-					    port->reset_name);
-		if (ret) {
+									port->reset_name);
+
+		if (ret)
+		{
 			if (ret == -EPROBE_DEFER)
+			{
 				goto err;
+			}
+
 			goto skip;
 		}
 
@@ -1122,13 +1263,17 @@ static int mvebu_pcie_parse_port(struct mvebu_pcie *pcie,
 	}
 
 	port->clk = of_clk_get_by_name(child, NULL);
-	if (IS_ERR(port->clk)) {
+
+	if (IS_ERR(port->clk))
+	{
 		dev_err(dev, "%s: cannot get clock\n", port->name);
 		goto skip;
 	}
 
 	ret = devm_add_action(dev, mvebu_pcie_port_clk_put, port);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		clk_put(port->clk);
 		goto err;
 	}
@@ -1158,14 +1303,18 @@ static int mvebu_pcie_powerup(struct mvebu_pcie_port *port)
 	int ret;
 
 	ret = clk_prepare_enable(port->clk);
-	if (ret < 0)
-		return ret;
 
-	if (port->reset_gpio) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (port->reset_gpio)
+	{
 		u32 reset_udelay = 20000;
 
 		of_property_read_u32(port->dn, "reset-delay-us",
-				     &reset_udelay);
+							 &reset_udelay);
 
 		udelay(100);
 
@@ -1183,7 +1332,9 @@ static int mvebu_pcie_powerup(struct mvebu_pcie_port *port)
 static void mvebu_pcie_powerdown(struct mvebu_pcie_port *port)
 {
 	if (port->reset_gpio)
+	{
 		gpiod_set_value_cansleep(port->reset_gpio, 1);
+	}
 
 	clk_disable_unprepare(port->clk);
 }
@@ -1197,33 +1348,44 @@ static int mvebu_pcie_probe(struct platform_device *pdev)
 	int num, i, ret;
 
 	pcie = devm_kzalloc(dev, sizeof(*pcie), GFP_KERNEL);
+
 	if (!pcie)
+	{
 		return -ENOMEM;
+	}
 
 	pcie->pdev = pdev;
 	platform_set_drvdata(pdev, pcie);
 
 	/* Get the PCIe memory and I/O aperture */
 	mvebu_mbus_get_pcie_mem_aperture(&pcie->mem);
-	if (resource_size(&pcie->mem) == 0) {
+
+	if (resource_size(&pcie->mem) == 0)
+	{
 		dev_err(dev, "invalid memory aperture size\n");
 		return -EINVAL;
 	}
 
 	mvebu_mbus_get_pcie_io_aperture(&pcie->io);
 
-	if (resource_size(&pcie->io) != 0) {
+	if (resource_size(&pcie->io) != 0)
+	{
 		pcie->realio.flags = pcie->io.flags;
 		pcie->realio.start = PCIBIOS_MIN_IO;
 		pcie->realio.end = min_t(resource_size_t,
-					 IO_SPACE_LIMIT,
-					 resource_size(&pcie->io));
-	} else
+								 IO_SPACE_LIMIT,
+								 resource_size(&pcie->io));
+	}
+	else
+	{
 		pcie->realio = pcie->io;
+	}
 
 	/* Get the bus range */
 	ret = of_pci_parse_bus_range(np, &pcie->busn);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to parse bus-range property: %d\n", ret);
 		return ret;
 	}
@@ -1231,18 +1393,26 @@ static int mvebu_pcie_probe(struct platform_device *pdev)
 	num = of_get_available_child_count(np);
 
 	pcie->ports = devm_kcalloc(dev, num, sizeof(*pcie->ports), GFP_KERNEL);
+
 	if (!pcie->ports)
+	{
 		return -ENOMEM;
+	}
 
 	i = 0;
-	for_each_available_child_of_node(np, child) {
+	for_each_available_child_of_node(np, child)
+	{
 		struct mvebu_pcie_port *port = &pcie->ports[i];
 
 		ret = mvebu_pcie_parse_port(pcie, port, child);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			of_node_put(child);
 			return ret;
-		} else if (ret == 0) {
+		}
+		else if (ret == 0)
+		{
 			continue;
 		}
 
@@ -1251,19 +1421,28 @@ static int mvebu_pcie_probe(struct platform_device *pdev)
 	}
 	pcie->nports = i;
 
-	for (i = 0; i < pcie->nports; i++) {
+	for (i = 0; i < pcie->nports; i++)
+	{
 		struct mvebu_pcie_port *port = &pcie->ports[i];
 
 		child = port->dn;
+
 		if (!child)
+		{
 			continue;
+		}
 
 		ret = mvebu_pcie_powerup(port);
+
 		if (ret < 0)
+		{
 			continue;
+		}
 
 		port->base = mvebu_pcie_map_registers(pdev, child, port);
-		if (IS_ERR(port->base)) {
+
+		if (IS_ERR(port->base))
+		{
 			dev_err(dev, "%s: cannot map registers\n", port->name);
 			port->base = NULL;
 			mvebu_pcie_powerdown(port);
@@ -1277,7 +1456,9 @@ static int mvebu_pcie_probe(struct platform_device *pdev)
 	pcie->nports = i;
 
 	for (i = 0; i < (IO_SPACE_LIMIT - SZ_64K); i += SZ_64K)
+	{
 		pci_ioremap_io(i, pcie->io.start + i);
+	}
 
 	mvebu_pcie_msi_enable(pcie);
 	mvebu_pcie_enable(pcie);
@@ -1287,7 +1468,8 @@ static int mvebu_pcie_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id mvebu_pcie_of_match_table[] = {
+static const struct of_device_id mvebu_pcie_of_match_table[] =
+{
 	{ .compatible = "marvell,armada-xp-pcie", },
 	{ .compatible = "marvell,armada-370-pcie", },
 	{ .compatible = "marvell,dove-pcie", },
@@ -1295,11 +1477,13 @@ static const struct of_device_id mvebu_pcie_of_match_table[] = {
 	{},
 };
 
-static const struct dev_pm_ops mvebu_pcie_pm_ops = {
+static const struct dev_pm_ops mvebu_pcie_pm_ops =
+{
 	SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(mvebu_pcie_suspend, mvebu_pcie_resume)
 };
 
-static struct platform_driver mvebu_pcie_driver = {
+static struct platform_driver mvebu_pcie_driver =
+{
 	.driver = {
 		.name = "mvebu-pcie",
 		.of_match_table = mvebu_pcie_of_match_table,

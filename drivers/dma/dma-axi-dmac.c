@@ -72,7 +72,8 @@
 
 #define AXI_DMAC_FLAG_CYCLIC		BIT(0)
 
-struct axi_dmac_sg {
+struct axi_dmac_sg
+{
 	dma_addr_t src_addr;
 	dma_addr_t dest_addr;
 	unsigned int x_len;
@@ -82,7 +83,8 @@ struct axi_dmac_sg {
 	unsigned int id;
 };
 
-struct axi_dmac_desc {
+struct axi_dmac_desc
+{
 	struct virt_dma_desc vdesc;
 	bool cyclic;
 
@@ -92,7 +94,8 @@ struct axi_dmac_desc {
 	struct axi_dmac_sg sg[];
 };
 
-struct axi_dmac_chan {
+struct axi_dmac_chan
+{
 	struct virt_dma_chan vchan;
 
 	struct axi_dmac_desc *next_desc;
@@ -111,7 +114,8 @@ struct axi_dmac_chan {
 	bool hw_2d;
 };
 
-struct axi_dmac {
+struct axi_dmac
+{
 	void __iomem *base;
 	int irq;
 
@@ -126,7 +130,7 @@ struct axi_dmac {
 static struct axi_dmac *chan_to_axi_dmac(struct axi_dmac_chan *chan)
 {
 	return container_of(chan->vchan.chan.device, struct axi_dmac,
-		dma_dev);
+						dma_dev);
 }
 
 static struct axi_dmac_chan *to_axi_dmac_chan(struct dma_chan *c)
@@ -140,7 +144,7 @@ static struct axi_dmac_desc *to_axi_dmac_desc(struct virt_dma_desc *vdesc)
 }
 
 static void axi_dmac_write(struct axi_dmac *axi_dmac, unsigned int reg,
-	unsigned int val)
+						   unsigned int val)
 {
 	writel(val, axi_dmac->base + reg);
 }
@@ -163,16 +167,25 @@ static int axi_dmac_dest_is_mem(struct axi_dmac_chan *chan)
 static bool axi_dmac_check_len(struct axi_dmac_chan *chan, unsigned int len)
 {
 	if (len == 0 || len > chan->max_length)
+	{
 		return false;
+	}
+
 	if ((len & chan->align_mask) != 0) /* Not aligned */
+	{
 		return false;
+	}
+
 	return true;
 }
 
 static bool axi_dmac_check_addr(struct axi_dmac_chan *chan, dma_addr_t addr)
 {
 	if ((addr & chan->align_mask) != 0) /* Not aligned */
+	{
 		return false;
+	}
+
 	return true;
 }
 
@@ -186,34 +199,50 @@ static void axi_dmac_start_transfer(struct axi_dmac_chan *chan)
 	unsigned int val;
 
 	val = axi_dmac_read(dmac, AXI_DMAC_REG_START_TRANSFER);
+
 	if (val) /* Queue is full, wait for the next SOT IRQ */
+	{
 		return;
+	}
 
 	desc = chan->next_desc;
 
-	if (!desc) {
+	if (!desc)
+	{
 		vdesc = vchan_next_desc(&chan->vchan);
+
 		if (!vdesc)
+		{
 			return;
+		}
+
 		list_move_tail(&vdesc->node, &chan->active_descs);
 		desc = to_axi_dmac_desc(vdesc);
 	}
+
 	sg = &desc->sg[desc->num_submitted];
 
 	desc->num_submitted++;
+
 	if (desc->num_submitted == desc->num_sgs)
+	{
 		chan->next_desc = NULL;
+	}
 	else
+	{
 		chan->next_desc = desc;
+	}
 
 	sg->id = axi_dmac_read(dmac, AXI_DMAC_REG_TRANSFER_ID);
 
-	if (axi_dmac_dest_is_mem(chan)) {
+	if (axi_dmac_dest_is_mem(chan))
+	{
 		axi_dmac_write(dmac, AXI_DMAC_REG_DEST_ADDRESS, sg->dest_addr);
 		axi_dmac_write(dmac, AXI_DMAC_REG_DEST_STRIDE, sg->dest_stride);
 	}
 
-	if (axi_dmac_src_is_mem(chan)) {
+	if (axi_dmac_src_is_mem(chan))
+	{
 		axi_dmac_write(dmac, AXI_DMAC_REG_SRC_ADDRESS, sg->src_addr);
 		axi_dmac_write(dmac, AXI_DMAC_REG_SRC_STRIDE, sg->src_stride);
 	}
@@ -223,7 +252,9 @@ static void axi_dmac_start_transfer(struct axi_dmac_chan *chan)
 	 * call, enable hw cyclic mode to avoid unnecessary interrupts.
 	 */
 	if (chan->hw_cyclic && desc->cyclic && !desc->vdesc.tx.callback)
+	{
 		flags |= AXI_DMAC_FLAG_CYCLIC;
+	}
 
 	axi_dmac_write(dmac, AXI_DMAC_REG_X_LENGTH, sg->x_len - 1);
 	axi_dmac_write(dmac, AXI_DMAC_REG_Y_LENGTH, sg->y_len - 1);
@@ -234,33 +265,47 @@ static void axi_dmac_start_transfer(struct axi_dmac_chan *chan)
 static struct axi_dmac_desc *axi_dmac_active_desc(struct axi_dmac_chan *chan)
 {
 	return list_first_entry_or_null(&chan->active_descs,
-		struct axi_dmac_desc, vdesc.node);
+									struct axi_dmac_desc, vdesc.node);
 }
 
 static void axi_dmac_transfer_done(struct axi_dmac_chan *chan,
-	unsigned int completed_transfers)
+								   unsigned int completed_transfers)
 {
 	struct axi_dmac_desc *active;
 	struct axi_dmac_sg *sg;
 
 	active = axi_dmac_active_desc(chan);
-	if (!active)
-		return;
 
-	if (active->cyclic) {
+	if (!active)
+	{
+		return;
+	}
+
+	if (active->cyclic)
+	{
 		vchan_cyclic_callback(&active->vdesc);
-	} else {
-		do {
+	}
+	else
+	{
+		do
+		{
 			sg = &active->sg[active->num_completed];
+
 			if (!(BIT(sg->id) & completed_transfers))
+			{
 				break;
+			}
+
 			active->num_completed++;
-			if (active->num_completed == active->num_sgs) {
+
+			if (active->num_completed == active->num_sgs)
+			{
 				list_del(&active->vdesc.node);
 				vchan_cookie_complete(&active->vdesc);
 				active = axi_dmac_active_desc(chan);
 			}
-		} while (active);
+		}
+		while (active);
 	}
 }
 
@@ -270,22 +315,31 @@ static irqreturn_t axi_dmac_interrupt_handler(int irq, void *devid)
 	unsigned int pending;
 
 	pending = axi_dmac_read(dmac, AXI_DMAC_REG_IRQ_PENDING);
+
 	if (!pending)
+	{
 		return IRQ_NONE;
+	}
 
 	axi_dmac_write(dmac, AXI_DMAC_REG_IRQ_PENDING, pending);
 
 	spin_lock(&dmac->chan.vchan.lock);
+
 	/* One or more transfers have finished */
-	if (pending & AXI_DMAC_IRQ_EOT) {
+	if (pending & AXI_DMAC_IRQ_EOT)
+	{
 		unsigned int completed;
 
 		completed = axi_dmac_read(dmac, AXI_DMAC_REG_TRANSFER_DONE);
 		axi_dmac_transfer_done(&dmac->chan, completed);
 	}
+
 	/* Space has become available in the descriptor queue */
 	if (pending & AXI_DMAC_IRQ_SOT)
+	{
 		axi_dmac_start_transfer(&dmac->chan);
+	}
+
 	spin_unlock(&dmac->chan.vchan.lock);
 
 	return IRQ_HANDLED;
@@ -326,8 +380,12 @@ static void axi_dmac_issue_pending(struct dma_chan *c)
 	axi_dmac_write(dmac, AXI_DMAC_REG_CTRL, AXI_DMAC_CTRL_ENABLE);
 
 	spin_lock_irqsave(&chan->vchan.lock, flags);
+
 	if (vchan_issue_pending(&chan->vchan))
+	{
 		axi_dmac_start_transfer(chan);
+	}
+
 	spin_unlock_irqrestore(&chan->vchan.lock, flags);
 }
 
@@ -336,9 +394,12 @@ static struct axi_dmac_desc *axi_dmac_alloc_desc(unsigned int num_sgs)
 	struct axi_dmac_desc *desc;
 
 	desc = kzalloc(sizeof(struct axi_dmac_desc) +
-		sizeof(struct axi_dmac_sg) * num_sgs, GFP_NOWAIT);
+				   sizeof(struct axi_dmac_sg) * num_sgs, GFP_NOWAIT);
+
 	if (!desc)
+	{
 		return NULL;
+	}
 
 	desc->num_sgs = num_sgs;
 
@@ -356,23 +417,35 @@ static struct dma_async_tx_descriptor *axi_dmac_prep_slave_sg(
 	unsigned int i;
 
 	if (direction != chan->direction)
+	{
 		return NULL;
+	}
 
 	desc = axi_dmac_alloc_desc(sg_len);
-	if (!desc)
-		return NULL;
 
-	for_each_sg(sgl, sg, sg_len, i) {
+	if (!desc)
+	{
+		return NULL;
+	}
+
+	for_each_sg(sgl, sg, sg_len, i)
+	{
 		if (!axi_dmac_check_addr(chan, sg_dma_address(sg)) ||
-		    !axi_dmac_check_len(chan, sg_dma_len(sg))) {
+			!axi_dmac_check_len(chan, sg_dma_len(sg)))
+		{
 			kfree(desc);
 			return NULL;
 		}
 
 		if (direction == DMA_DEV_TO_MEM)
+		{
 			desc->sg[i].dest_addr = sg_dma_address(sg);
+		}
 		else
+		{
 			desc->sg[i].src_addr = sg_dma_address(sg);
+		}
+
 		desc->sg[i].x_len = sg_dma_len(sg);
 		desc->sg[i].y_len = 1;
 	}
@@ -392,26 +465,41 @@ static struct dma_async_tx_descriptor *axi_dmac_prep_dma_cyclic(
 	unsigned int num_periods, i;
 
 	if (direction != chan->direction)
+	{
 		return NULL;
+	}
 
 	if (!axi_dmac_check_len(chan, buf_len) ||
-	    !axi_dmac_check_addr(chan, buf_addr))
+		!axi_dmac_check_addr(chan, buf_addr))
+	{
 		return NULL;
+	}
 
 	if (period_len == 0 || buf_len % period_len)
+	{
 		return NULL;
+	}
 
 	num_periods = buf_len / period_len;
 
 	desc = axi_dmac_alloc_desc(num_periods);
-	if (!desc)
-		return NULL;
 
-	for (i = 0; i < num_periods; i++) {
+	if (!desc)
+	{
+		return NULL;
+	}
+
+	for (i = 0; i < num_periods; i++)
+	{
 		if (direction == DMA_DEV_TO_MEM)
+		{
 			desc->sg[i].dest_addr = buf_addr;
+		}
 		else
+		{
 			desc->sg[i].src_addr = buf_addr;
+		}
+
 		desc->sg[i].x_len = period_len;
 		desc->sg[i].y_len = 1;
 		buf_addr += period_len;
@@ -431,58 +519,92 @@ static struct dma_async_tx_descriptor *axi_dmac_prep_interleaved(
 	size_t dst_icg, src_icg;
 
 	if (xt->frame_size != 1)
+	{
 		return NULL;
-
-	if (xt->dir != chan->direction)
-		return NULL;
-
-	if (axi_dmac_src_is_mem(chan)) {
-		if (!xt->src_inc || !axi_dmac_check_addr(chan, xt->src_start))
-			return NULL;
 	}
 
-	if (axi_dmac_dest_is_mem(chan)) {
-		if (!xt->dst_inc || !axi_dmac_check_addr(chan, xt->dst_start))
+	if (xt->dir != chan->direction)
+	{
+		return NULL;
+	}
+
+	if (axi_dmac_src_is_mem(chan))
+	{
+		if (!xt->src_inc || !axi_dmac_check_addr(chan, xt->src_start))
+		{
 			return NULL;
+		}
+	}
+
+	if (axi_dmac_dest_is_mem(chan))
+	{
+		if (!xt->dst_inc || !axi_dmac_check_addr(chan, xt->dst_start))
+		{
+			return NULL;
+		}
 	}
 
 	dst_icg = dmaengine_get_dst_icg(xt, &xt->sgl[0]);
 	src_icg = dmaengine_get_src_icg(xt, &xt->sgl[0]);
 
-	if (chan->hw_2d) {
+	if (chan->hw_2d)
+	{
 		if (!axi_dmac_check_len(chan, xt->sgl[0].size) ||
-		    !axi_dmac_check_len(chan, xt->numf))
+			!axi_dmac_check_len(chan, xt->numf))
+		{
 			return NULL;
+		}
+
 		if (xt->sgl[0].size + dst_icg > chan->max_length ||
-		    xt->sgl[0].size + src_icg > chan->max_length)
+			xt->sgl[0].size + src_icg > chan->max_length)
+		{
 			return NULL;
-	} else {
+		}
+	}
+	else
+	{
 		if (dst_icg != 0 || src_icg != 0)
+		{
 			return NULL;
+		}
+
 		if (chan->max_length / xt->sgl[0].size < xt->numf)
+		{
 			return NULL;
+		}
+
 		if (!axi_dmac_check_len(chan, xt->sgl[0].size * xt->numf))
+		{
 			return NULL;
+		}
 	}
 
 	desc = axi_dmac_alloc_desc(1);
-	if (!desc)
-		return NULL;
 
-	if (axi_dmac_src_is_mem(chan)) {
+	if (!desc)
+	{
+		return NULL;
+	}
+
+	if (axi_dmac_src_is_mem(chan))
+	{
 		desc->sg[0].src_addr = xt->src_start;
 		desc->sg[0].src_stride = xt->sgl[0].size + src_icg;
 	}
 
-	if (axi_dmac_dest_is_mem(chan)) {
+	if (axi_dmac_dest_is_mem(chan))
+	{
 		desc->sg[0].dest_addr = xt->dst_start;
 		desc->sg[0].dest_stride = xt->sgl[0].size + dst_icg;
 	}
 
-	if (chan->hw_2d) {
+	if (chan->hw_2d)
+	{
 		desc->sg[0].x_len = xt->sgl[0].size;
 		desc->sg[0].y_len = xt->numf;
-	} else {
+	}
+	else
+	{
 		desc->sg[0].x_len = xt->sgl[0].size * xt->numf;
 		desc->sg[0].y_len = 1;
 	}
@@ -506,62 +628,104 @@ static void axi_dmac_desc_free(struct virt_dma_desc *vdesc)
  * features are implemented and how it should behave.
  */
 static int axi_dmac_parse_chan_dt(struct device_node *of_chan,
-	struct axi_dmac_chan *chan)
+								  struct axi_dmac_chan *chan)
 {
 	u32 val;
 	int ret;
 
 	ret = of_property_read_u32(of_chan, "reg", &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* We only support 1 channel for now */
 	if (val != 0)
+	{
 		return -EINVAL;
+	}
 
 	ret = of_property_read_u32(of_chan, "adi,source-bus-type", &val);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	if (val > AXI_DMAC_BUS_TYPE_FIFO)
+	{
 		return -EINVAL;
+	}
+
 	chan->src_type = val;
 
 	ret = of_property_read_u32(of_chan, "adi,destination-bus-type", &val);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	if (val > AXI_DMAC_BUS_TYPE_FIFO)
+	{
 		return -EINVAL;
+	}
+
 	chan->dest_type = val;
 
 	ret = of_property_read_u32(of_chan, "adi,source-bus-width", &val);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	chan->src_width = val / 8;
 
 	ret = of_property_read_u32(of_chan, "adi,destination-bus-width", &val);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	chan->dest_width = val / 8;
 
 	ret = of_property_read_u32(of_chan, "adi,length-width", &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (val >= 32)
+	{
 		chan->max_length = UINT_MAX;
+	}
 	else
+	{
 		chan->max_length = (1ULL << val) - 1;
+	}
 
 	chan->align_mask = max(chan->dest_width, chan->src_width) - 1;
 
 	if (axi_dmac_dest_is_mem(chan) && axi_dmac_src_is_mem(chan))
+	{
 		chan->direction = DMA_MEM_TO_MEM;
+	}
 	else if (!axi_dmac_dest_is_mem(chan) && axi_dmac_src_is_mem(chan))
+	{
 		chan->direction = DMA_MEM_TO_DEV;
+	}
 	else if (axi_dmac_dest_is_mem(chan) && !axi_dmac_src_is_mem(chan))
+	{
 		chan->direction = DMA_DEV_TO_MEM;
+	}
 	else
+	{
 		chan->direction = DMA_DEV_TO_DEV;
+	}
 
 	chan->hw_cyclic = of_property_read_bool(of_chan, "adi,cyclic");
 	chan->hw_2d = of_property_read_bool(of_chan, "adi,2d");
@@ -578,33 +742,54 @@ static int axi_dmac_probe(struct platform_device *pdev)
 	int ret;
 
 	dmac = devm_kzalloc(&pdev->dev, sizeof(*dmac), GFP_KERNEL);
+
 	if (!dmac)
+	{
 		return -ENOMEM;
+	}
 
 	dmac->irq = platform_get_irq(pdev, 0);
+
 	if (dmac->irq < 0)
+	{
 		return dmac->irq;
+	}
+
 	if (dmac->irq == 0)
+	{
 		return -EINVAL;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	dmac->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(dmac->base))
+	{
 		return PTR_ERR(dmac->base);
+	}
 
 	dmac->clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(dmac->clk))
+	{
 		return PTR_ERR(dmac->clk);
+	}
 
 	INIT_LIST_HEAD(&dmac->chan.active_descs);
 
 	of_channels = of_get_child_by_name(pdev->dev.of_node, "adi,channels");
-	if (of_channels == NULL)
-		return -ENODEV;
 
-	for_each_child_of_node(of_channels, of_chan) {
+	if (of_channels == NULL)
+	{
+		return -ENODEV;
+	}
+
+	for_each_child_of_node(of_channels, of_chan)
+	{
 		ret = axi_dmac_parse_chan_dt(of_chan, &dmac->chan);
-		if (ret) {
+
+		if (ret)
+		{
 			of_node_put(of_chan);
 			of_node_put(of_channels);
 			return -EINVAL;
@@ -638,24 +823,36 @@ static int axi_dmac_probe(struct platform_device *pdev)
 	vchan_init(&dmac->chan.vchan, dma_dev);
 
 	ret = clk_prepare_enable(dmac->clk);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	axi_dmac_write(dmac, AXI_DMAC_REG_IRQ_MASK, 0x00);
 
 	ret = dma_async_device_register(dma_dev);
+
 	if (ret)
+	{
 		goto err_clk_disable;
+	}
 
 	ret = of_dma_controller_register(pdev->dev.of_node,
-		of_dma_xlate_by_chan_id, dma_dev);
+									 of_dma_xlate_by_chan_id, dma_dev);
+
 	if (ret)
+	{
 		goto err_unregister_device;
+	}
 
 	ret = request_irq(dmac->irq, axi_dmac_interrupt_handler, 0,
-		dev_name(&pdev->dev), dmac);
+					  dev_name(&pdev->dev), dmac);
+
 	if (ret)
+	{
 		goto err_unregister_of;
+	}
 
 	platform_set_drvdata(pdev, dmac);
 
@@ -684,13 +881,15 @@ static int axi_dmac_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id axi_dmac_of_match_table[] = {
+static const struct of_device_id axi_dmac_of_match_table[] =
+{
 	{ .compatible = "adi,axi-dmac-1.00.a" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, axi_dmac_of_match_table);
 
-static struct platform_driver axi_dmac_driver = {
+static struct platform_driver axi_dmac_driver =
+{
 	.driver = {
 		.name = "dma-axi-dmac",
 		.of_match_table = axi_dmac_of_match_table,

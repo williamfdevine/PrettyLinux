@@ -1,7 +1,7 @@
 #define DTLK_MINOR	0
 #define DTLK_IO_EXTENT	0x02
 
-	/* ioctl's use magic number of 0xa3 */
+/* ioctl's use magic number of 0xa3 */
 #define DTLK_INTERROGATE 0xa390	/* get settings from the DoubleTalk */
 #define DTLK_STATUS 0xa391	/* get status from the DoubleTalk */
 
@@ -10,7 +10,7 @@
 
 #define DTLK_MAX_RETRIES (loops_per_jiffy/(10000/HZ))
 
-	/* TTS Port Status Flags */
+/* TTS Port Status Flags */
 #define TTS_READABLE     0x80	/* mask for bit which is nonzero if a
 				   byte can be read from the TTS port */
 #define TTS_SPEAKING     0x40	/* mask for SYNC bit, which is nonzero
@@ -39,14 +39,14 @@
 				   always 1 in the TGN and CVSD
 				   modes. */
 
-	/* LPC speak commands */
+/* LPC speak commands */
 #define LPC_5220_NORMAL 0x60	/* 5220 format decoding table, normal rate */
 #define LPC_5220_FAST 0x64	/* 5220 format decoding table, fast rate */
 #define LPC_D6_NORMAL 0x20	/* D6 format decoding table, normal rate */
 #define LPC_D6_FAST 0x24	/* D6 format decoding table, fast rate */
 
-	/* LPC Port Status Flags (valid only after one of the LPC
-           speak commands) */
+/* LPC Port Status Flags (valid only after one of the LPC
+       speak commands) */
 #define LPC_SPEAKING     0x80	/* mask for TS bit: When set to 1,
 				   indicates the LPC synthesizer is
 				   producing speech.*/
@@ -60,26 +60,26 @@
 				   ran out of data (error condition if
 				   TS is also 1).  */
 
-				/* data returned by Interrogate command */
+/* data returned by Interrogate command */
 struct dtlk_settings
 {
-  unsigned short serial_number;	/* 0-7Fh:0-7Fh */
-  unsigned char rom_version[24]; /* null terminated string */
-  unsigned char mode;		/* 0=Character; 1=Phoneme; 2=Text */
-  unsigned char punc_level;	/* nB; 0-7 */
-  unsigned char formant_freq;	/* nF; 0-9 */
-  unsigned char pitch;		/* nP; 0-99 */
-  unsigned char speed;		/* nS; 0-9 */
-  unsigned char volume;		/* nV; 0-9 */
-  unsigned char tone;		/* nX; 0-2 */
-  unsigned char expression;	/* nE; 0-9 */
-  unsigned char ext_dict_loaded; /* 1=exception dictionary loaded */
-  unsigned char ext_dict_status; /* 1=exception dictionary enabled */
-  unsigned char free_ram;	/* # pages (truncated) remaining for
+	unsigned short serial_number;	/* 0-7Fh:0-7Fh */
+	unsigned char rom_version[24]; /* null terminated string */
+	unsigned char mode;		/* 0=Character; 1=Phoneme; 2=Text */
+	unsigned char punc_level;	/* nB; 0-7 */
+	unsigned char formant_freq;	/* nF; 0-9 */
+	unsigned char pitch;		/* nP; 0-99 */
+	unsigned char speed;		/* nS; 0-9 */
+	unsigned char volume;		/* nV; 0-9 */
+	unsigned char tone;		/* nX; 0-2 */
+	unsigned char expression;	/* nE; 0-9 */
+	unsigned char ext_dict_loaded; /* 1=exception dictionary loaded */
+	unsigned char ext_dict_status; /* 1=exception dictionary enabled */
+	unsigned char free_ram;	/* # pages (truncated) remaining for
                                    text buffer */
-  unsigned char articulation;	/* nA; 0-9 */
-  unsigned char reverb;		/* nR; 0-9 */
-  unsigned char eob;		/* 7Fh value indicating end of
+	unsigned char articulation;	/* nA; 0-9 */
+	unsigned char reverb;		/* nR; 0-9 */
+	unsigned char eob;		/* 7Fh value indicating end of
                                    parameter block */
-  unsigned char has_indexing;	/* nonzero if indexing is implemented */
+	unsigned char has_indexing;	/* nonzero if indexing is implemented */
 };

@@ -37,7 +37,8 @@
 #define MCP3221_SAR_MASK	0xfff
 #define MCP3221_OUTPUT_RES	12	/* 12-bit resolution */
 
-enum chips {
+enum chips
+{
 	mcp3021,
 	mcp3221
 };
@@ -45,7 +46,8 @@ enum chips {
 /*
  * Client data (each client gets its own)
  */
-struct mcp3021_data {
+struct mcp3021_data
+{
 	struct device *hwmon_dev;
 	u32 vdd;	/* device power supply */
 	u16 sar_shift;
@@ -61,10 +63,16 @@ static int mcp3021_read16(struct i2c_client *client)
 	__be16 buf;
 
 	ret = i2c_master_recv(client, (char *)&buf, 2);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (ret != 2)
+	{
 		return -EIO;
+	}
 
 	/* The output code of the MCP3021 is transmitted with MSB first. */
 	reg = be16_to_cpu(buf);
@@ -84,15 +92,18 @@ static inline u16 volts_from_reg(struct mcp3021_data *data, u16 val)
 }
 
 static ssize_t show_in_input(struct device *dev, struct device_attribute *attr,
-		char *buf)
+							 char *buf)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct mcp3021_data *data = i2c_get_clientdata(client);
 	int reg, in_input;
 
 	reg = mcp3021_read16(client);
+
 	if (reg < 0)
+	{
 		return reg;
+	}
 
 	in_input = volts_from_reg(data, reg);
 
@@ -102,49 +113,66 @@ static ssize_t show_in_input(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR(in0_input, S_IRUGO, show_in_input, NULL);
 
 static int mcp3021_probe(struct i2c_client *client,
-				const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	int err;
 	struct mcp3021_data *data = NULL;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		return -ENODEV;
+	}
 
 	data = devm_kzalloc(&client->dev, sizeof(struct mcp3021_data),
-			    GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(client, data);
 
-	switch (id->driver_data) {
-	case mcp3021:
-		data->sar_shift = MCP3021_SAR_SHIFT;
-		data->sar_mask = MCP3021_SAR_MASK;
-		data->output_res = MCP3021_OUTPUT_RES;
-		break;
+	switch (id->driver_data)
+	{
+		case mcp3021:
+			data->sar_shift = MCP3021_SAR_SHIFT;
+			data->sar_mask = MCP3021_SAR_MASK;
+			data->output_res = MCP3021_OUTPUT_RES;
+			break;
 
-	case mcp3221:
-		data->sar_shift = MCP3221_SAR_SHIFT;
-		data->sar_mask = MCP3221_SAR_MASK;
-		data->output_res = MCP3221_OUTPUT_RES;
-		break;
+		case mcp3221:
+			data->sar_shift = MCP3221_SAR_SHIFT;
+			data->sar_mask = MCP3221_SAR_MASK;
+			data->output_res = MCP3221_OUTPUT_RES;
+			break;
 	}
 
-	if (dev_get_platdata(&client->dev)) {
+	if (dev_get_platdata(&client->dev))
+	{
 		data->vdd = *(u32 *)dev_get_platdata(&client->dev);
+
 		if (data->vdd > MCP3021_VDD_MAX || data->vdd < MCP3021_VDD_MIN)
+		{
 			return -EINVAL;
-	} else {
+		}
+	}
+	else
+	{
 		data->vdd = MCP3021_VDD_REF;
 	}
 
 	err = sysfs_create_file(&client->dev.kobj, &dev_attr_in0_input.attr);
+
 	if (err)
+	{
 		return err;
+	}
 
 	data->hwmon_dev = hwmon_device_register(&client->dev);
-	if (IS_ERR(data->hwmon_dev)) {
+
+	if (IS_ERR(data->hwmon_dev))
+	{
 		err = PTR_ERR(data->hwmon_dev);
 		goto exit_remove;
 	}
@@ -166,14 +194,16 @@ static int mcp3021_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id mcp3021_id[] = {
+static const struct i2c_device_id mcp3021_id[] =
+{
 	{ "mcp3021", mcp3021 },
 	{ "mcp3221", mcp3221 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, mcp3021_id);
 
-static struct i2c_driver mcp3021_driver = {
+static struct i2c_driver mcp3021_driver =
+{
 	.driver = {
 		.name = "mcp3021",
 	},

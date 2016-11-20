@@ -31,11 +31,11 @@ static ssize_t cap_show(struct dma_chan *c, char *page)
 	struct dma_device *dma = c->device;
 
 	return sprintf(page, "copy%s%s%s%s%s\n",
-		       dma_has_cap(DMA_PQ, dma->cap_mask) ? " pq" : "",
-		       dma_has_cap(DMA_PQ_VAL, dma->cap_mask) ? " pq_val" : "",
-		       dma_has_cap(DMA_XOR, dma->cap_mask) ? " xor" : "",
-		       dma_has_cap(DMA_XOR_VAL, dma->cap_mask) ? " xor_val" : "",
-		       dma_has_cap(DMA_INTERRUPT, dma->cap_mask) ? " intr" : "");
+				   dma_has_cap(DMA_PQ, dma->cap_mask) ? " pq" : "",
+				   dma_has_cap(DMA_PQ_VAL, dma->cap_mask) ? " pq_val" : "",
+				   dma_has_cap(DMA_XOR, dma->cap_mask) ? " xor" : "",
+				   dma_has_cap(DMA_XOR_VAL, dma->cap_mask) ? " xor_val" : "",
+				   dma_has_cap(DMA_INTERRUPT, dma->cap_mask) ? " intr" : "");
 
 }
 struct ioat_sysfs_entry ioat_cap_attr = __ATTR_RO(cap);
@@ -46,7 +46,7 @@ static ssize_t version_show(struct dma_chan *c, char *page)
 	struct ioatdma_device *ioat_dma = to_ioatdma_device(dma);
 
 	return sprintf(page, "%d.%d\n",
-		       ioat_dma->version >> 4, ioat_dma->version & 0xf);
+				   ioat_dma->version >> 4, ioat_dma->version & 0xf);
 }
 struct ioat_sysfs_entry ioat_version_attr = __ATTR_RO(version);
 
@@ -60,11 +60,15 @@ ioat_attr_show(struct kobject *kobj, struct attribute *attr, char *page)
 	ioat_chan = container_of(kobj, struct ioatdma_chan, kobj);
 
 	if (!entry->show)
+	{
 		return -EIO;
+	}
+
 	return entry->show(&ioat_chan->dma_chan, page);
 }
 
-const struct sysfs_ops ioat_sysfs_ops = {
+const struct sysfs_ops ioat_sysfs_ops =
+{
 	.show	= ioat_attr_show,
 };
 
@@ -73,16 +77,19 @@ void ioat_kobject_add(struct ioatdma_device *ioat_dma, struct kobj_type *type)
 	struct dma_device *dma = &ioat_dma->dma_dev;
 	struct dma_chan *c;
 
-	list_for_each_entry(c, &dma->channels, device_node) {
+	list_for_each_entry(c, &dma->channels, device_node)
+	{
 		struct ioatdma_chan *ioat_chan = to_ioat_chan(c);
 		struct kobject *parent = &c->dev->device.kobj;
 		int err;
 
 		err = kobject_init_and_add(&ioat_chan->kobj, type,
-					   parent, "quickdata");
-		if (err) {
+								   parent, "quickdata");
+
+		if (err)
+		{
 			dev_warn(to_dev(ioat_chan),
-				 "sysfs init error (%d), continuing...\n", err);
+					 "sysfs init error (%d), continuing...\n", err);
 			kobject_put(&ioat_chan->kobj);
 			set_bit(IOAT_KOBJ_INIT_FAIL, &ioat_chan->state);
 		}
@@ -94,10 +101,12 @@ void ioat_kobject_del(struct ioatdma_device *ioat_dma)
 	struct dma_device *dma = &ioat_dma->dma_dev;
 	struct dma_chan *c;
 
-	list_for_each_entry(c, &dma->channels, device_node) {
+	list_for_each_entry(c, &dma->channels, device_node)
+	{
 		struct ioatdma_chan *ioat_chan = to_ioat_chan(c);
 
-		if (!test_bit(IOAT_KOBJ_INIT_FAIL, &ioat_chan->state)) {
+		if (!test_bit(IOAT_KOBJ_INIT_FAIL, &ioat_chan->state))
+		{
 			kobject_del(&ioat_chan->kobj);
 			kobject_put(&ioat_chan->kobj);
 		}
@@ -121,7 +130,8 @@ static ssize_t ring_active_show(struct dma_chan *c, char *page)
 }
 static struct ioat_sysfs_entry ring_active_attr = __ATTR_RO(ring_active);
 
-static struct attribute *ioat_attrs[] = {
+static struct attribute *ioat_attrs[] =
+{
 	&ring_size_attr.attr,
 	&ring_active_attr.attr,
 	&ioat_cap_attr.attr,
@@ -129,7 +139,8 @@ static struct attribute *ioat_attrs[] = {
 	NULL,
 };
 
-struct kobj_type ioat_ktype = {
+struct kobj_type ioat_ktype =
+{
 	.sysfs_ops = &ioat_sysfs_ops,
 	.default_attrs = ioat_attrs,
 };

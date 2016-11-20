@@ -19,7 +19,8 @@
 /* This structure is a private property of HDLC protocols.
    Hardware drivers have no interest here */
 
-struct hdlc_proto {
+struct hdlc_proto
+{
 	int (*open)(struct net_device *dev);
 	void (*close)(struct net_device *dev);
 	void (*start)(struct net_device *dev); /* if open & DCD */
@@ -35,10 +36,11 @@ struct hdlc_proto {
 
 
 /* Pointed to by netdev_priv(dev) */
-typedef struct hdlc_device {
+typedef struct hdlc_device
+{
 	/* used by HDLC layer to take control over HDLC device from hw driver*/
 	int (*attach)(struct net_device *dev,
-		      unsigned short encoding, unsigned short parity);
+				  unsigned short encoding, unsigned short parity);
 
 	/* hardware driver must handle this instead of dev->hard_start_xmit */
 	netdev_tx_t (*xmit)(struct sk_buff *skb, struct net_device *dev);
@@ -69,7 +71,7 @@ void unregister_hdlc_protocol(struct hdlc_proto *proto);
 
 struct net_device *alloc_hdlcdev(void *priv);
 
-static inline struct hdlc_device* dev_to_hdlc(struct net_device *dev)
+static inline struct hdlc_device *dev_to_hdlc(struct net_device *dev)
 {
 	return netdev_priv(dev);
 }
@@ -78,13 +80,17 @@ static __inline__ void debug_frame(const struct sk_buff *skb)
 {
 	int i;
 
-	for (i=0; i < skb->len; i++) {
-		if (i == 100) {
+	for (i = 0; i < skb->len; i++)
+	{
+		if (i == 100)
+		{
 			printk("...\n");
 			return;
 		}
+
 		printk(" %02X", skb->data[i]);
 	}
+
 	printk("\n");
 }
 
@@ -99,12 +105,12 @@ int hdlc_change_mtu(struct net_device *dev, int new_mtu);
 netdev_tx_t hdlc_start_xmit(struct sk_buff *skb, struct net_device *dev);
 
 int attach_hdlc_protocol(struct net_device *dev, struct hdlc_proto *proto,
-			 size_t size);
+						 size_t size);
 /* May be used by hardware driver to gain control over HDLC device */
 int detach_hdlc_protocol(struct net_device *dev);
 
 static __inline__ __be16 hdlc_type_trans(struct sk_buff *skb,
-					 struct net_device *dev)
+		struct net_device *dev)
 {
 	hdlc_device *hdlc = dev_to_hdlc(dev);
 
@@ -112,9 +118,13 @@ static __inline__ __be16 hdlc_type_trans(struct sk_buff *skb,
 	skb_reset_mac_header(skb);
 
 	if (hdlc->proto->type_trans)
+	{
 		return hdlc->proto->type_trans(skb, dev);
+	}
 	else
+	{
 		return htons(ETH_P_HDLC);
+	}
 }
 
 #endif /* __HDLC_H */

@@ -49,7 +49,8 @@
  * This structure is used to hold the arguments that are used when
  * loading  kernel binaries.
  */
-struct kexec_segment {
+struct kexec_segment
+{
 	const void *buf;
 	size_t bufsz;
 	const void *mem;

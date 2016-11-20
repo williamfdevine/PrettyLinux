@@ -44,26 +44,40 @@ static void __init sun8i_a23_mbus_setup(struct device_node *node)
 	int err;
 
 	parents = kcalloc(num_parents, sizeof(*parents), GFP_KERNEL);
+
 	if (!parents)
+	{
 		return;
+	}
 
 	reg = of_io_request_and_map(node, 0, of_node_full_name(node));
-	if (IS_ERR(reg)) {
+
+	if (IS_ERR(reg))
+	{
 		pr_err("Could not get registers for sun8i-mbus-clk\n");
 		goto err_free_parents;
 	}
 
 	div = kzalloc(sizeof(*div), GFP_KERNEL);
+
 	if (!div)
+	{
 		goto err_unmap;
+	}
 
 	mux = kzalloc(sizeof(*mux), GFP_KERNEL);
+
 	if (!mux)
+	{
 		goto err_free_div;
+	}
 
 	gate = kzalloc(sizeof(*gate), GFP_KERNEL);
+
 	if (!gate)
+	{
 		goto err_free_mux;
+	}
 
 	of_property_read_string(node, "clock-output-names", &clk_name);
 	of_clk_parent_fill(node, parents, num_parents);
@@ -83,16 +97,22 @@ static void __init sun8i_a23_mbus_setup(struct device_node *node)
 	mux->lock = &sun8i_a23_mbus_lock;
 
 	clk = clk_register_composite(NULL, clk_name, parents, num_parents,
-				     &mux->hw, &clk_mux_ops,
-				     &div->hw, &clk_divider_ops,
-				     &gate->hw, &clk_gate_ops,
-				     0);
+								 &mux->hw, &clk_mux_ops,
+								 &div->hw, &clk_divider_ops,
+								 &gate->hw, &clk_gate_ops,
+								 0);
+
 	if (IS_ERR(clk))
+	{
 		goto err_free_gate;
+	}
 
 	err = of_clk_add_provider(node, of_clk_src_simple_get, clk);
+
 	if (err)
+	{
 		goto err_unregister_clk;
+	}
 
 	kfree(parents); /* parents is deep copied */
 	/* The MBUS clocks needs to be always enabled */

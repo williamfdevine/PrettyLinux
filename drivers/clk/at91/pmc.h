@@ -19,7 +19,8 @@
 
 extern spinlock_t pmc_pcr_lock;
 
-struct clk_range {
+struct clk_range
+{
 	unsigned long min;
 	unsigned long max;
 };
@@ -27,6 +28,6 @@ struct clk_range {
 #define CLK_RANGE(MIN, MAX) {.min = MIN, .max = MAX,}
 
 int of_at91_get_clk_range(struct device_node *np, const char *propname,
-			  struct clk_range *range);
+						  struct clk_range *range);
 
 #endif /* __PMC_H_ */

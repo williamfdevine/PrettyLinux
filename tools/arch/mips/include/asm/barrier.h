@@ -8,12 +8,12 @@
  * CONFIG_ needed for properly doing that.
  */
 #define mb()		asm volatile(					\
-				".set	mips2\n\t"			\
-				"sync\n\t"				\
-				".set	mips0"				\
-				: /* no output */			\
-				: /* no input */			\
-				: "memory")
+		".set	mips2\n\t"			\
+		"sync\n\t"				\
+		".set	mips0"				\
+		: /* no output */			\
+		: /* no input */			\
+		: "memory")
 #define wmb()	mb()
 #define rmb()	mb()
 

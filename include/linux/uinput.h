@@ -47,23 +47,27 @@
 
 enum uinput_state { UIST_NEW_DEVICE, UIST_SETUP_COMPLETE, UIST_CREATED };
 
-struct uinput_request {
+struct uinput_request
+{
 	unsigned int		id;
 	unsigned int		code;	/* UI_FF_UPLOAD, UI_FF_ERASE */
 
 	int			retval;
 	struct completion	done;
 
-	union {
+	union
+	{
 		unsigned int	effect_id;
-		struct {
+		struct
+		{
 			struct ff_effect *effect;
 			struct ff_effect *old;
 		} upload;
 	} u;
 };
 
-struct uinput_device {
+struct uinput_device
+{
 	struct input_dev	*dev;
 	struct mutex		mutex;
 	enum uinput_state	state;

@@ -47,7 +47,8 @@
 #define II_INTFLAG_CLEAR	0x8
 #define II_INTENABLE		0xa
 
-struct dc_i2c {
+struct dc_i2c
+{
 	struct i2c_adapter	adap;
 	struct device		*dev;
 	void __iomem		*regs;
@@ -63,7 +64,8 @@ struct dc_i2c {
 	int			error;
 };
 
-enum {
+enum
+{
 	STATE_IDLE,
 	STATE_START,
 	STATE_ADDR,
@@ -82,7 +84,9 @@ static u8 dc_i2c_addr_cmd(struct i2c_msg *msg)
 	u8 addr = (msg->addr & 0x7f) << 1;
 
 	if (msg->flags & I2C_M_RD)
+	{
 		addr |= 1;
+	}
 
 	return addr;
 }
@@ -113,10 +117,15 @@ static void dc_i2c_next_read(struct dc_i2c *i2c)
 static void dc_i2c_stop(struct dc_i2c *i2c)
 {
 	i2c->state = STATE_STOP;
+
 	if (i2c->last)
+	{
 		dc_i2c_cmd(i2c, II_CMD_STOP);
+	}
 	else
+	{
 		complete(&i2c->done);
+	}
 }
 
 static u8 dc_i2c_read_byte(struct dc_i2c *i2c)
@@ -133,7 +142,10 @@ static void dc_i2c_read_buf(struct dc_i2c *i2c)
 static void dc_i2c_set_irq(struct dc_i2c *i2c, int enable)
 {
 	if (enable)
+	{
 		writeb_relaxed(1, i2c->regs + II_INTFLAG_CLEAR);
+	}
+
 	writeb_relaxed(!!enable, i2c->regs + II_INTENABLE);
 }
 
@@ -148,13 +160,18 @@ static void dc_i2c_start_msg(struct dc_i2c *i2c, int first)
 {
 	struct i2c_msg *msg = i2c->msg;
 
-	if (!(msg->flags & I2C_M_NOSTART)) {
+	if (!(msg->flags & I2C_M_NOSTART))
+	{
 		i2c->state = STATE_START;
 		dc_i2c_cmd(i2c, first ? II_CMD_START : II_CMD_RESTART);
-	} else if (msg->flags & I2C_M_RD) {
+	}
+	else if (msg->flags & I2C_M_RD)
+	{
 		i2c->state = STATE_READ;
 		dc_i2c_next_read(i2c);
-	} else {
+	}
+	else
+	{
 		i2c->state = STATE_WRITE;
 		dc_i2c_write_buf(i2c);
 	}
@@ -172,42 +189,60 @@ static irqreturn_t dc_i2c_irq(int irq, void *dev_id)
 	spin_lock_irqsave(&i2c->lock, flags);
 
 	if (cmd_status == II_CMD_STATUS_ACK_BAD
-	    || cmd_status == II_CMD_STATUS_ABORT) {
+		|| cmd_status == II_CMD_STATUS_ABORT)
+	{
 		i2c->error = -EIO;
 		complete(&i2c->done);
 		goto out;
 	}
 
-	switch (i2c->state) {
-	case STATE_START:
-		addr_cmd = dc_i2c_addr_cmd(i2c->msg);
-		dc_i2c_write_byte(i2c, addr_cmd);
-		i2c->state = STATE_ADDR;
-		break;
-	case STATE_ADDR:
-		if (i2c->msg->flags & I2C_M_RD) {
-			dc_i2c_next_read(i2c);
-			i2c->state = STATE_READ;
+	switch (i2c->state)
+	{
+		case STATE_START:
+			addr_cmd = dc_i2c_addr_cmd(i2c->msg);
+			dc_i2c_write_byte(i2c, addr_cmd);
+			i2c->state = STATE_ADDR;
 			break;
-		}
-		i2c->state = STATE_WRITE;
+
+		case STATE_ADDR:
+			if (i2c->msg->flags & I2C_M_RD)
+			{
+				dc_i2c_next_read(i2c);
+				i2c->state = STATE_READ;
+				break;
+			}
+
+			i2c->state = STATE_WRITE;
+
 		/* fall through */
-	case STATE_WRITE:
-		if (i2c->msgbuf_ptr < i2c->msg->len)
-			dc_i2c_write_buf(i2c);
-		else
-			dc_i2c_stop(i2c);
-		break;
-	case STATE_READ:
-		if (i2c->msgbuf_ptr < i2c->msg->len)
-			dc_i2c_read_buf(i2c);
-		else
-			dc_i2c_stop(i2c);
-		break;
-	case STATE_STOP:
-		i2c->state = STATE_IDLE;
-		complete(&i2c->done);
-		break;
+		case STATE_WRITE:
+			if (i2c->msgbuf_ptr < i2c->msg->len)
+			{
+				dc_i2c_write_buf(i2c);
+			}
+			else
+			{
+				dc_i2c_stop(i2c);
+			}
+
+			break;
+
+		case STATE_READ:
+			if (i2c->msgbuf_ptr < i2c->msg->len)
+			{
+				dc_i2c_read_buf(i2c);
+			}
+			else
+			{
+				dc_i2c_stop(i2c);
+			}
+
+			break;
+
+		case STATE_STOP:
+			i2c->state = STATE_IDLE;
+			complete(&i2c->done);
+			break;
 	}
 
 out:
@@ -216,7 +251,7 @@ out:
 }
 
 static int dc_i2c_xfer_msg(struct dc_i2c *i2c, struct i2c_msg *msg, int first,
-			   int last)
+						   int last)
 {
 	unsigned long timeout = msecs_to_jiffies(TIMEOUT_MS);
 	unsigned long flags;
@@ -234,13 +269,17 @@ static int dc_i2c_xfer_msg(struct dc_i2c *i2c, struct i2c_msg *msg, int first,
 
 	timeout = wait_for_completion_timeout(&i2c->done, timeout);
 	dc_i2c_set_irq(i2c, 0);
-	if (timeout == 0) {
+
+	if (timeout == 0)
+	{
 		i2c->state = STATE_IDLE;
 		return -ETIMEDOUT;
 	}
 
 	if (i2c->error)
+	{
 		return i2c->error;
+	}
 
 	return 0;
 }
@@ -250,10 +289,14 @@ static int dc_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
 	struct dc_i2c *i2c = adap->algo_data;
 	int i, ret;
 
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num; i++)
+	{
 		ret = dc_i2c_xfer_msg(i2c, &msgs[i], i == 0, i == num - 1);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return num;
@@ -270,11 +313,14 @@ static int dc_i2c_init_hw(struct dc_i2c *i2c)
 	udelay(100);
 
 	clocktime = DIV_ROUND_UP(clk_rate, 64 * i2c->frequency);
-	if (clocktime < 1 || clocktime > 0xff) {
+
+	if (clocktime < 1 || clocktime > 0xff)
+	{
 		dev_err(i2c->dev, "can't set bus speed of %u Hz\n",
-			i2c->frequency);
+				i2c->frequency);
 		return -EINVAL;
 	}
+
 	writeb_relaxed(clocktime - 1, i2c->regs + II_CLOCKTIME);
 
 	return 0;
@@ -285,7 +331,8 @@ static u32 dc_i2c_func(struct i2c_adapter *adap)
 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL | I2C_FUNC_NOSTART;
 }
 
-static const struct i2c_algorithm dc_i2c_algorithm = {
+static const struct i2c_algorithm dc_i2c_algorithm =
+{
 	.master_xfer	= dc_i2c_xfer,
 	.functionality	= dc_i2c_func,
 };
@@ -298,12 +345,17 @@ static int dc_i2c_probe(struct platform_device *pdev)
 	int ret = 0, irq;
 
 	i2c = devm_kzalloc(&pdev->dev, sizeof(struct dc_i2c), GFP_KERNEL);
+
 	if (!i2c)
+	{
 		return -ENOMEM;
+	}
 
 	if (of_property_read_u32(pdev->dev.of_node, "clock-frequency",
-				 &i2c->frequency))
+							 &i2c->frequency))
+	{
 		i2c->frequency = DEFAULT_FREQ;
+	}
 
 	i2c->dev = &pdev->dev;
 	platform_set_drvdata(pdev, i2c);
@@ -312,25 +364,37 @@ static int dc_i2c_probe(struct platform_device *pdev)
 	init_completion(&i2c->done);
 
 	i2c->clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(i2c->clk))
+	{
 		return PTR_ERR(i2c->clk);
+	}
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	i2c->regs = devm_ioremap_resource(&pdev->dev, r);
+
 	if (IS_ERR(i2c->regs))
+	{
 		return PTR_ERR(i2c->regs);
+	}
 
 	irq = platform_get_irq(pdev, 0);
+
 	if (irq < 0)
+	{
 		return irq;
+	}
 
 	ret = devm_request_irq(&pdev->dev, irq, dc_i2c_irq, 0,
-			       dev_name(&pdev->dev), i2c);
+						   dev_name(&pdev->dev), i2c);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	strlcpy(i2c->adap.name, "Conexant Digicolor I2C adapter",
-		sizeof(i2c->adap.name));
+			sizeof(i2c->adap.name));
 	i2c->adap.owner = THIS_MODULE;
 	i2c->adap.algo = &dc_i2c_algorithm;
 	i2c->adap.dev.parent = &pdev->dev;
@@ -338,15 +402,23 @@ static int dc_i2c_probe(struct platform_device *pdev)
 	i2c->adap.algo_data = i2c;
 
 	ret = dc_i2c_init_hw(i2c);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = clk_prepare_enable(i2c->clk);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = i2c_add_adapter(&i2c->adap);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		clk_unprepare(i2c->clk);
 		return ret;
 	}
@@ -364,13 +436,15 @@ static int dc_i2c_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id dc_i2c_match[] = {
+static const struct of_device_id dc_i2c_match[] =
+{
 	{ .compatible = "cnxt,cx92755-i2c" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, dc_i2c_match);
 
-static struct platform_driver dc_i2c_driver = {
+static struct platform_driver dc_i2c_driver =
+{
 	.probe   = dc_i2c_probe,
 	.remove  = dc_i2c_remove,
 	.driver  = {

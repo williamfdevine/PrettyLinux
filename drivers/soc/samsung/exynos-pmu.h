@@ -16,12 +16,14 @@
 
 #define PMU_TABLE_END	(-1U)
 
-struct exynos_pmu_conf {
+struct exynos_pmu_conf
+{
 	unsigned int offset;
 	u8 val[NUM_SYS_POWERDOWN];
 };
 
-struct exynos_pmu_data {
+struct exynos_pmu_data
+{
 	const struct exynos_pmu_conf *pmu_config;
 	const struct exynos_pmu_conf *pmu_config_extra;
 

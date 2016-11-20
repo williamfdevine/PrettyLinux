@@ -8,7 +8,8 @@
 #define NLGRPSZ(x)	(ALIGN(x, sizeof(unsigned long) * 8) / 8)
 #define NLGRPLONGS(x)	(NLGRPSZ(x)/sizeof(unsigned long))
 
-struct netlink_sock {
+struct netlink_sock
+{
 	/* struct sock has to be the first member of netlink_sock */
 	struct sock		sk;
 	u32			portid;
@@ -40,7 +41,8 @@ static inline struct netlink_sock *nlk_sk(struct sock *sk)
 	return container_of(sk, struct netlink_sock, sk);
 }
 
-struct netlink_table {
+struct netlink_table
+{
 	struct rhashtable	hash;
 	struct hlist_head	mc_list;
 	struct listeners __rcu	*listeners;

@@ -28,7 +28,8 @@
 
 
 /* channel structure */
-struct l1oip_chan {
+struct l1oip_chan
+{
 	struct dchannel		*dch;
 	struct bchannel		*bch;
 	u32			tx_counter;	/* counts xmit bytes/packets */
@@ -43,7 +44,8 @@ struct l1oip_chan {
 
 
 /* card structure */
-struct l1oip {
+struct l1oip
+{
 	struct list_head        list;
 
 	/* card */

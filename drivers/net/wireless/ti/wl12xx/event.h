@@ -24,7 +24,8 @@
 
 #include "../wlcore/wlcore.h"
 
-enum {
+enum
+{
 	MEASUREMENT_START_EVENT_ID		 = BIT(8),
 	MEASUREMENT_COMPLETE_EVENT_ID		 = BIT(9),
 	SCAN_COMPLETE_EVENT_ID			 = BIT(10),
@@ -51,7 +52,8 @@ enum {
 	REMAIN_ON_CHANNEL_COMPLETE_EVENT_ID	 = BIT(31),
 };
 
-struct wl12xx_event_mailbox {
+struct wl12xx_event_mailbox
+{
 	__le32 events_vector;
 	__le32 events_mask;
 	__le32 reserved_1;
@@ -104,7 +106,7 @@ struct wl12xx_event_mailbox {
 } __packed;
 
 int wl12xx_wait_for_event(struct wl1271 *wl, enum wlcore_wait_event event,
-			  bool *timeout);
+						  bool *timeout);
 int wl12xx_process_mailbox_events(struct wl1271 *wl);
 
 #endif

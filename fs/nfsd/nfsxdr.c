@@ -13,7 +13,8 @@
 /*
  * Mapping of S_IF* types to NFS file types
  */
-static u32	nfs_ftypes[] = {
+static u32	nfs_ftypes[] =
+{
 	NFNON,  NFCHR,  NFCHR, NFBAD,
 	NFDIR,  NFBAD,  NFBLK, NFBAD,
 	NFREG,  NFBAD,  NFLNK, NFBAD,
@@ -46,7 +47,7 @@ static __be32 *
 encode_fh(__be32 *p, struct svc_fh *fhp)
 {
 	memcpy(p, &fhp->fh_handle.fh_base, NFS_FHSIZE);
-	return p + (NFS_FHSIZE>> 2);
+	return p + (NFS_FHSIZE >> 2);
 }
 
 /*
@@ -59,10 +60,14 @@ decode_filename(__be32 *p, char **namp, unsigned int *lenp)
 	char		*name;
 	unsigned int	i;
 
-	if ((p = xdr_decode_string_inplace(p, namp, lenp, NFS_MAXNAMLEN)) != NULL) {
-		for (i = 0, name = *namp; i < *lenp; i++, name++) {
+	if ((p = xdr_decode_string_inplace(p, namp, lenp, NFS_MAXNAMLEN)) != NULL)
+	{
+		for (i = 0, name = *namp; i < *lenp; i++, name++)
+		{
 			if (*name == '\0' || *name == '/')
+			{
 				return NULL;
+			}
 		}
 	}
 
@@ -75,10 +80,14 @@ decode_pathname(__be32 *p, char **namp, unsigned int *lenp)
 	char		*name;
 	unsigned int	i;
 
-	if ((p = xdr_decode_string_inplace(p, namp, lenp, NFS_MAXPATHLEN)) != NULL) {
-		for (i = 0, name = *namp; i < *lenp; i++, name++) {
+	if ((p = xdr_decode_string_inplace(p, namp, lenp, NFS_MAXPATHLEN)) != NULL)
+	{
+		for (i = 0, name = *namp; i < *lenp; i++, name++)
+		{
 			if (*name == '\0')
+			{
 				return NULL;
+			}
 		}
 	}
 
@@ -96,35 +105,55 @@ decode_sattr(__be32 *p, struct iattr *iap)
 	 * put 0xffff in the mode field when they mean 0xffffffff.
 	 * Quoting the 4.4BSD nfs server code: Nah nah nah nah na nah.
 	 */
-	if ((tmp = ntohl(*p++)) != (u32)-1 && tmp != 0xffff) {
+	if ((tmp = ntohl(*p++)) != (u32) - 1 && tmp != 0xffff)
+	{
 		iap->ia_valid |= ATTR_MODE;
 		iap->ia_mode = tmp;
 	}
-	if ((tmp = ntohl(*p++)) != (u32)-1) {
+
+	if ((tmp = ntohl(*p++)) != (u32) - 1)
+	{
 		iap->ia_uid = make_kuid(&init_user_ns, tmp);
+
 		if (uid_valid(iap->ia_uid))
+		{
 			iap->ia_valid |= ATTR_UID;
+		}
 	}
-	if ((tmp = ntohl(*p++)) != (u32)-1) {
+
+	if ((tmp = ntohl(*p++)) != (u32) - 1)
+	{
 		iap->ia_gid = make_kgid(&init_user_ns, tmp);
+
 		if (gid_valid(iap->ia_gid))
+		{
 			iap->ia_valid |= ATTR_GID;
+		}
 	}
-	if ((tmp = ntohl(*p++)) != (u32)-1) {
+
+	if ((tmp = ntohl(*p++)) != (u32) - 1)
+	{
 		iap->ia_valid |= ATTR_SIZE;
 		iap->ia_size = tmp;
 	}
+
 	tmp  = ntohl(*p++); tmp1 = ntohl(*p++);
-	if (tmp != (u32)-1 && tmp1 != (u32)-1) {
+
+	if (tmp != (u32) - 1 && tmp1 != (u32) - 1)
+	{
 		iap->ia_valid |= ATTR_ATIME | ATTR_ATIME_SET;
 		iap->ia_atime.tv_sec = tmp;
-		iap->ia_atime.tv_nsec = tmp1 * 1000; 
+		iap->ia_atime.tv_nsec = tmp1 * 1000;
 	}
+
 	tmp  = ntohl(*p++); tmp1 = ntohl(*p++);
-	if (tmp != (u32)-1 && tmp1 != (u32)-1) {
+
+	if (tmp != (u32) - 1 && tmp1 != (u32) - 1)
+	{
 		iap->ia_valid |= ATTR_MTIME | ATTR_MTIME_SET;
 		iap->ia_mtime.tv_sec = tmp;
-		iap->ia_mtime.tv_nsec = tmp1 * 1000; 
+		iap->ia_mtime.tv_nsec = tmp1 * 1000;
+
 		/*
 		 * Passing the invalid value useconds=1000000 for mtime
 		 * is a Sun convention for "set both mtime and atime to
@@ -135,14 +164,17 @@ decode_sattr(__be32 *p, struct iattr *iap)
 		 * Brent Callaghan, Addison-Wesley, ISBN 0-201-32750-5
 		 */
 		if (tmp1 == 1000000)
-			iap->ia_valid &= ~(ATTR_ATIME_SET|ATTR_MTIME_SET);
+		{
+			iap->ia_valid &= ~(ATTR_ATIME_SET | ATTR_MTIME_SET);
+		}
 	}
+
 	return p;
 }
 
 static __be32 *
 encode_fattr(struct svc_rqst *rqstp, __be32 *p, struct svc_fh *fhp,
-	     struct kstat *stat)
+			 struct kstat *stat)
 {
 	struct dentry	*dentry = fhp->fh_dentry;
 	int type;
@@ -157,39 +189,54 @@ encode_fattr(struct svc_rqst *rqstp, __be32 *p, struct svc_fh *fhp,
 	*p++ = htonl((u32) from_kuid(&init_user_ns, stat->uid));
 	*p++ = htonl((u32) from_kgid(&init_user_ns, stat->gid));
 
-	if (S_ISLNK(type) && stat->size > NFS_MAXPATHLEN) {
+	if (S_ISLNK(type) && stat->size > NFS_MAXPATHLEN)
+	{
 		*p++ = htonl(NFS_MAXPATHLEN);
-	} else {
+	}
+	else
+	{
 		*p++ = htonl((u32) stat->size);
 	}
+
 	*p++ = htonl((u32) stat->blksize);
+
 	if (S_ISCHR(type) || S_ISBLK(type))
+	{
 		*p++ = htonl(new_encode_dev(stat->rdev));
-	else
-		*p++ = htonl(0xffffffff);
-	*p++ = htonl((u32) stat->blocks);
-	switch (fsid_source(fhp)) {
-	default:
-	case FSIDSOURCE_DEV:
-		*p++ = htonl(new_encode_dev(stat->dev));
-		break;
-	case FSIDSOURCE_FSID:
-		*p++ = htonl((u32) fhp->fh_export->ex_fsid);
-		break;
-	case FSIDSOURCE_UUID:
-		f = ((u32*)fhp->fh_export->ex_uuid)[0];
-		f ^= ((u32*)fhp->fh_export->ex_uuid)[1];
-		f ^= ((u32*)fhp->fh_export->ex_uuid)[2];
-		f ^= ((u32*)fhp->fh_export->ex_uuid)[3];
-		*p++ = htonl(f);
-		break;
 	}
+	else
+	{
+		*p++ = htonl(0xffffffff);
+	}
+
+	*p++ = htonl((u32) stat->blocks);
+
+	switch (fsid_source(fhp))
+	{
+		default:
+		case FSIDSOURCE_DEV:
+			*p++ = htonl(new_encode_dev(stat->dev));
+			break;
+
+		case FSIDSOURCE_FSID:
+			*p++ = htonl((u32) fhp->fh_export->ex_fsid);
+			break;
+
+		case FSIDSOURCE_UUID:
+			f = ((u32 *)fhp->fh_export->ex_uuid)[0];
+			f ^= ((u32 *)fhp->fh_export->ex_uuid)[1];
+			f ^= ((u32 *)fhp->fh_export->ex_uuid)[2];
+			f ^= ((u32 *)fhp->fh_export->ex_uuid)[3];
+			*p++ = htonl(f);
+			break;
+	}
+
 	*p++ = htonl((u32) stat->ino);
 	*p++ = htonl((u32) stat->atime.tv_sec);
 	*p++ = htonl(stat->atime.tv_nsec ? stat->atime.tv_nsec / 1000 : 0);
-	lease_get_mtime(d_inode(dentry), &time); 
+	lease_get_mtime(d_inode(dentry), &time);
 	*p++ = htonl((u32) time.tv_sec);
-	*p++ = htonl(time.tv_nsec ? time.tv_nsec / 1000 : 0); 
+	*p++ = htonl(time.tv_nsec ? time.tv_nsec / 1000 : 0);
 	*p++ = htonl((u32) stat->ctime.tv_sec);
 	*p++ = htonl(stat->ctime.tv_nsec ? stat->ctime.tv_nsec / 1000 : 0);
 
@@ -215,18 +262,26 @@ int
 nfssvc_decode_fhandle(struct svc_rqst *rqstp, __be32 *p, struct nfsd_fhandle *args)
 {
 	p = decode_fh(p, &args->fh);
+
 	if (!p)
+	{
 		return 0;
+	}
+
 	return xdr_argsize_check(rqstp, p);
 }
 
 int
 nfssvc_decode_sattrargs(struct svc_rqst *rqstp, __be32 *p,
-					struct nfsd_sattrargs *args)
+						struct nfsd_sattrargs *args)
 {
 	p = decode_fh(p, &args->fh);
+
 	if (!p)
+	{
 		return 0;
+	}
+
 	p = decode_sattr(p, &args->attrs);
 
 	return xdr_argsize_check(rqstp, p);
@@ -234,24 +289,29 @@ nfssvc_decode_sattrargs(struct svc_rqst *rqstp, __be32 *p,
 
 int
 nfssvc_decode_diropargs(struct svc_rqst *rqstp, __be32 *p,
-					struct nfsd_diropargs *args)
+						struct nfsd_diropargs *args)
 {
 	if (!(p = decode_fh(p, &args->fh))
-	 || !(p = decode_filename(p, &args->name, &args->len)))
+		|| !(p = decode_filename(p, &args->name, &args->len)))
+	{
 		return 0;
+	}
 
 	return xdr_argsize_check(rqstp, p);
 }
 
 int
 nfssvc_decode_readargs(struct svc_rqst *rqstp, __be32 *p,
-					struct nfsd_readargs *args)
+					   struct nfsd_readargs *args)
 {
 	unsigned int len;
 	int v;
 	p = decode_fh(p, &args->fh);
+
 	if (!p)
+	{
 		return 0;
+	}
 
 	args->offset    = ntohl(*p++);
 	len = args->count     = ntohl(*p++);
@@ -262,8 +322,10 @@ nfssvc_decode_readargs(struct svc_rqst *rqstp, __be32 *p,
 	/* set up somewhere to store response.
 	 * We take pages, put them on reslist and include in iovec
 	 */
-	v=0;
-	while (len > 0) {
+	v = 0;
+
+	while (len > 0)
+	{
 		struct page *p = *(rqstp->rq_next_page++);
 
 		rqstp->rq_vec[v].iov_base = page_address(p);
@@ -271,38 +333,45 @@ nfssvc_decode_readargs(struct svc_rqst *rqstp, __be32 *p,
 		len -= rqstp->rq_vec[v].iov_len;
 		v++;
 	}
+
 	args->vlen = v;
 	return xdr_argsize_check(rqstp, p);
 }
 
 int
 nfssvc_decode_writeargs(struct svc_rqst *rqstp, __be32 *p,
-					struct nfsd_writeargs *args)
+						struct nfsd_writeargs *args)
 {
 	unsigned int len, hdr, dlen;
 	int v;
 
 	p = decode_fh(p, &args->fh);
+
 	if (!p)
+	{
 		return 0;
+	}
 
 	p++;				/* beginoffset */
 	args->offset = ntohl(*p++);	/* offset */
 	p++;				/* totalcount */
 	len = args->len = ntohl(*p++);
+
 	/*
 	 * The protocol specifies a maximum of 8192 bytes.
 	 */
 	if (len > NFSSVC_MAXBLKSIZE_V2)
+	{
 		return 0;
+	}
 
 	/*
 	 * Check to make sure that we got the right number of
 	 * bytes.
 	 */
-	hdr = (void*)p - rqstp->rq_arg.head[0].iov_base;
+	hdr = (void *)p - rqstp->rq_arg.head[0].iov_base;
 	dlen = rqstp->rq_arg.head[0].iov_len + rqstp->rq_arg.page_len
-		- hdr;
+		   - hdr;
 
 	/*
 	 * Round the length of the data which was specified up to
@@ -312,18 +381,23 @@ nfssvc_decode_writeargs(struct svc_rqst *rqstp, __be32 *p,
 	 * data buffer can be padded so dlen might be larger
 	 * than required.  It must never be smaller.
 	 */
-	if (dlen < XDR_QUADLEN(len)*4)
+	if (dlen < XDR_QUADLEN(len) * 4)
+	{
 		return 0;
+	}
 
-	rqstp->rq_vec[0].iov_base = (void*)p;
+	rqstp->rq_vec[0].iov_base = (void *)p;
 	rqstp->rq_vec[0].iov_len = rqstp->rq_arg.head[0].iov_len - hdr;
 	v = 0;
-	while (len > rqstp->rq_vec[v].iov_len) {
+
+	while (len > rqstp->rq_vec[v].iov_len)
+	{
 		len -= rqstp->rq_vec[v].iov_len;
 		v++;
 		rqstp->rq_vec[v].iov_base = page_address(rqstp->rq_pages[v]);
 		rqstp->rq_vec[v].iov_len = PAGE_SIZE;
 	}
+
 	rqstp->rq_vec[v].iov_len = len;
 	args->vlen = v + 1;
 	return 1;
@@ -331,11 +405,14 @@ nfssvc_decode_writeargs(struct svc_rqst *rqstp, __be32 *p,
 
 int
 nfssvc_decode_createargs(struct svc_rqst *rqstp, __be32 *p,
-					struct nfsd_createargs *args)
+						 struct nfsd_createargs *args)
 {
 	if (   !(p = decode_fh(p, &args->fh))
-	    || !(p = decode_filename(p, &args->name, &args->len)))
+		   || !(p = decode_filename(p, &args->name, &args->len)))
+	{
 		return 0;
+	}
+
 	p = decode_sattr(p, &args->attrs);
 
 	return xdr_argsize_check(rqstp, p);
@@ -343,13 +420,15 @@ nfssvc_decode_createargs(struct svc_rqst *rqstp, __be32 *p,
 
 int
 nfssvc_decode_renameargs(struct svc_rqst *rqstp, __be32 *p,
-					struct nfsd_renameargs *args)
+						 struct nfsd_renameargs *args)
 {
 	if (!(p = decode_fh(p, &args->ffh))
-	 || !(p = decode_filename(p, &args->fname, &args->flen))
-	 || !(p = decode_fh(p, &args->tfh))
-	 || !(p = decode_filename(p, &args->tname, &args->tlen)))
+		|| !(p = decode_filename(p, &args->fname, &args->flen))
+		|| !(p = decode_fh(p, &args->tfh))
+		|| !(p = decode_filename(p, &args->tname, &args->tlen)))
+	{
 		return 0;
+	}
 
 	return xdr_argsize_check(rqstp, p);
 }
@@ -358,8 +437,12 @@ int
 nfssvc_decode_readlinkargs(struct svc_rqst *rqstp, __be32 *p, struct nfsd_readlinkargs *args)
 {
 	p = decode_fh(p, &args->fh);
+
 	if (!p)
+	{
 		return 0;
+	}
+
 	args->buffer = page_address(*(rqstp->rq_next_page++));
 
 	return xdr_argsize_check(rqstp, p);
@@ -367,24 +450,29 @@ nfssvc_decode_readlinkargs(struct svc_rqst *rqstp, __be32 *p, struct nfsd_readli
 
 int
 nfssvc_decode_linkargs(struct svc_rqst *rqstp, __be32 *p,
-					struct nfsd_linkargs *args)
+					   struct nfsd_linkargs *args)
 {
 	if (!(p = decode_fh(p, &args->ffh))
-	 || !(p = decode_fh(p, &args->tfh))
-	 || !(p = decode_filename(p, &args->tname, &args->tlen)))
+		|| !(p = decode_fh(p, &args->tfh))
+		|| !(p = decode_filename(p, &args->tname, &args->tlen)))
+	{
 		return 0;
+	}
 
 	return xdr_argsize_check(rqstp, p);
 }
 
 int
 nfssvc_decode_symlinkargs(struct svc_rqst *rqstp, __be32 *p,
-					struct nfsd_symlinkargs *args)
+						  struct nfsd_symlinkargs *args)
 {
 	if (   !(p = decode_fh(p, &args->ffh))
-	    || !(p = decode_filename(p, &args->fname, &args->flen))
-	    || !(p = decode_pathname(p, &args->tname, &args->tlen)))
+		   || !(p = decode_filename(p, &args->fname, &args->flen))
+		   || !(p = decode_pathname(p, &args->tname, &args->tlen)))
+	{
 		return 0;
+	}
+
 	p = decode_sattr(p, &args->attrs);
 
 	return xdr_argsize_check(rqstp, p);
@@ -392,11 +480,15 @@ nfssvc_decode_symlinkargs(struct svc_rqst *rqstp, __be32 *p,
 
 int
 nfssvc_decode_readdirargs(struct svc_rqst *rqstp, __be32 *p,
-					struct nfsd_readdirargs *args)
+						  struct nfsd_readdirargs *args)
 {
 	p = decode_fh(p, &args->fh);
+
 	if (!p)
+	{
 		return 0;
+	}
+
 	args->cookie = ntohl(*p++);
 	args->count  = ntohl(*p++);
 	args->count  = min_t(u32, args->count, PAGE_SIZE);
@@ -416,7 +508,7 @@ nfssvc_encode_void(struct svc_rqst *rqstp, __be32 *p, void *dummy)
 
 int
 nfssvc_encode_attrstat(struct svc_rqst *rqstp, __be32 *p,
-					struct nfsd_attrstat *resp)
+					   struct nfsd_attrstat *resp)
 {
 	p = encode_fattr(rqstp, p, &resp->fh, &resp->stat);
 	return xdr_ressize_check(rqstp, p);
@@ -424,7 +516,7 @@ nfssvc_encode_attrstat(struct svc_rqst *rqstp, __be32 *p,
 
 int
 nfssvc_encode_diropres(struct svc_rqst *rqstp, __be32 *p,
-					struct nfsd_diropres *resp)
+					   struct nfsd_diropres *resp)
 {
 	p = encode_fh(p, &resp->fh);
 	p = encode_fattr(rqstp, p, &resp->fh, &resp->stat);
@@ -433,23 +525,26 @@ nfssvc_encode_diropres(struct svc_rqst *rqstp, __be32 *p,
 
 int
 nfssvc_encode_readlinkres(struct svc_rqst *rqstp, __be32 *p,
-					struct nfsd_readlinkres *resp)
+						  struct nfsd_readlinkres *resp)
 {
 	*p++ = htonl(resp->len);
 	xdr_ressize_check(rqstp, p);
 	rqstp->rq_res.page_len = resp->len;
-	if (resp->len & 3) {
+
+	if (resp->len & 3)
+	{
 		/* need to pad the tail */
 		rqstp->rq_res.tail[0].iov_base = p;
 		*p = 0;
-		rqstp->rq_res.tail[0].iov_len = 4 - (resp->len&3);
+		rqstp->rq_res.tail[0].iov_len = 4 - (resp->len & 3);
 	}
+
 	return 1;
 }
 
 int
 nfssvc_encode_readres(struct svc_rqst *rqstp, __be32 *p,
-					struct nfsd_readres *resp)
+					  struct nfsd_readres *resp)
 {
 	p = encode_fattr(rqstp, p, &resp->fh, &resp->stat);
 	*p++ = htonl(resp->count);
@@ -457,31 +552,34 @@ nfssvc_encode_readres(struct svc_rqst *rqstp, __be32 *p,
 
 	/* now update rqstp->rq_res to reflect data as well */
 	rqstp->rq_res.page_len = resp->count;
-	if (resp->count & 3) {
+
+	if (resp->count & 3)
+	{
 		/* need to pad the tail */
 		rqstp->rq_res.tail[0].iov_base = p;
 		*p = 0;
-		rqstp->rq_res.tail[0].iov_len = 4 - (resp->count&3);
+		rqstp->rq_res.tail[0].iov_len = 4 - (resp->count & 3);
 	}
+
 	return 1;
 }
 
 int
 nfssvc_encode_readdirres(struct svc_rqst *rqstp, __be32 *p,
-					struct nfsd_readdirres *resp)
+						 struct nfsd_readdirres *resp)
 {
 	xdr_ressize_check(rqstp, p);
 	p = resp->buffer;
 	*p++ = 0;			/* no more entries */
 	*p++ = htonl((resp->common.err == nfserr_eof));
-	rqstp->rq_res.page_len = (((unsigned long)p-1) & ~PAGE_MASK)+1;
+	rqstp->rq_res.page_len = (((unsigned long)p - 1) & ~PAGE_MASK) + 1;
 
 	return 1;
 }
 
 int
 nfssvc_encode_statfsres(struct svc_rqst *rqstp, __be32 *p,
-					struct nfsd_statfsres *resp)
+						struct nfsd_statfsres *resp)
 {
 	struct kstatfs	*stat = &resp->stats;
 
@@ -495,7 +593,7 @@ nfssvc_encode_statfsres(struct svc_rqst *rqstp, __be32 *p,
 
 int
 nfssvc_encode_entry(void *ccdv, const char *name,
-		    int namlen, loff_t offset, u64 ino, unsigned int d_type)
+					int namlen, loff_t offset, u64 ino, unsigned int d_type)
 {
 	struct readdir_cd *ccd = ccdv;
 	struct nfsd_readdirres *cd = container_of(ccd, struct nfsd_readdirres, common);
@@ -507,25 +605,33 @@ nfssvc_encode_entry(void *ccdv, const char *name,
 			namlen, name, offset, ino);
 	 */
 
-	if (offset > ~((u32) 0)) {
+	if (offset > ~((u32) 0))
+	{
 		cd->common.err = nfserr_fbig;
 		return -EINVAL;
 	}
+
 	if (cd->offset)
+	{
 		*cd->offset = htonl(offset);
+	}
 
 	/* truncate filename */
 	namlen = min(namlen, NFS2_MAXNAMLEN);
 	slen = XDR_QUADLEN(namlen);
 
-	if ((buflen = cd->buflen - slen - 4) < 0) {
+	if ((buflen = cd->buflen - slen - 4) < 0)
+	{
 		cd->common.err = nfserr_toosmall;
 		return -EINVAL;
 	}
-	if (ino > ~((u32) 0)) {
+
+	if (ino > ~((u32) 0))
+	{
 		cd->common.err = nfserr_fbig;
 		return -EINVAL;
 	}
+
 	*p++ = xdr_one;				/* mark entry present */
 	*p++ = htonl((u32) ino);		/* file id */
 	p    = xdr_encode_array(p, name, namlen);/* name length & name */
@@ -543,7 +649,7 @@ nfssvc_encode_entry(void *ccdv, const char *name,
  */
 int
 nfssvc_release_fhandle(struct svc_rqst *rqstp, __be32 *p,
-					struct nfsd_fhandle *resp)
+					   struct nfsd_fhandle *resp)
 {
 	fh_put(&resp->fh);
 	return 1;

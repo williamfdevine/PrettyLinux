@@ -7,42 +7,46 @@
  *  VIA-specific information
  */
 
-union msr_bcr2 {
-	struct {
-		unsigned Reseved:19,	// 18:0
-		ESOFTBF:1,		// 19
-		Reserved2:3,		// 22:20
-		CLOCKMUL:4,		// 26:23
-		Reserved3:5;		// 31:27
+union msr_bcr2
+{
+	struct
+	{
+		unsigned Reseved: 19,	// 18:0
+				 ESOFTBF: 1,		// 19
+				 Reserved2: 3,		// 22:20
+				 CLOCKMUL: 4,		// 26:23
+				 Reserved3: 5;		// 31:27
 	} bits;
 	unsigned long val;
 };
 
-union msr_longhaul {
-	struct {
-		unsigned RevisionID:4,	// 3:0
-		RevisionKey:4,		// 7:4
-		EnableSoftBusRatio:1,	// 8
-		EnableSoftVID:1,	// 9
-		EnableSoftBSEL:1,	// 10
-		Reserved:3,		// 11:13
-		SoftBusRatio4:1,	// 14
-		VRMRev:1,		// 15
-		SoftBusRatio:4,		// 19:16
-		SoftVID:5,		// 24:20
-		Reserved2:3,		// 27:25
-		SoftBSEL:2,		// 29:28
-		Reserved3:2,		// 31:30
-		MaxMHzBR:4,		// 35:32
-		MaximumVID:5,		// 40:36
-		MaxMHzFSB:2,		// 42:41
-		MaxMHzBR4:1,		// 43
-		Reserved4:4,		// 47:44
-		MinMHzBR:4,		// 51:48
-		MinimumVID:5,		// 56:52
-		MinMHzFSB:2,		// 58:57
-		MinMHzBR4:1,		// 59
-		Reserved5:4;		// 63:60
+union msr_longhaul
+{
+	struct
+	{
+		unsigned RevisionID: 4,	// 3:0
+				 RevisionKey: 4,		// 7:4
+				 EnableSoftBusRatio: 1,	// 8
+				 EnableSoftVID: 1,	// 9
+				 EnableSoftBSEL: 1,	// 10
+				 Reserved: 3,		// 11:13
+				 SoftBusRatio4: 1,	// 14
+				 VRMRev: 1,		// 15
+				 SoftBusRatio: 4,		// 19:16
+				 SoftVID: 5,		// 24:20
+				 Reserved2: 3,		// 27:25
+				 SoftBSEL: 2,		// 29:28
+				 Reserved3: 2,		// 31:30
+				 MaxMHzBR: 4,		// 35:32
+				 MaximumVID: 5,		// 40:36
+				 MaxMHzFSB: 2,		// 42:41
+				 MaxMHzBR4: 1,		// 43
+				 Reserved4: 4,		// 47:44
+				 MinMHzBR: 4,		// 51:48
+				 MinimumVID: 5,		// 56:52
+				 MinMHzFSB: 2,		// 58:57
+				 MinMHzBR4: 1,		// 59
+				 Reserved5: 4;		// 63:60
 	} bits;
 	unsigned long long val;
 };
@@ -56,7 +60,8 @@ union msr_longhaul {
 /*
  * VIA C3 Samuel 1  & Samuel 2 (stepping 0)
  */
-static const int samuel1_mults[16] = {
+static const int samuel1_mults[16] =
+{
 	-1, /* 0000 -> RESERVED */
 	30, /* 0001 ->  3.0x */
 	40, /* 0010 ->  4.0x */
@@ -75,7 +80,8 @@ static const int samuel1_mults[16] = {
 	-1, /* 1111 -> RESERVED */
 };
 
-static const int samuel1_eblcr[16] = {
+static const int samuel1_eblcr[16] =
+{
 	50, /* 0000 -> RESERVED */
 	30, /* 0001 ->  3.0x */
 	40, /* 0010 ->  4.0x */
@@ -97,7 +103,8 @@ static const int samuel1_eblcr[16] = {
 /*
  * VIA C3 Samuel2 Stepping 1->15
  */
-static const int samuel2_eblcr[16] = {
+static const int samuel2_eblcr[16] =
+{
 	50,  /* 0000 ->  5.0x */
 	30,  /* 0001 ->  3.0x */
 	40,  /* 0010 ->  4.0x */
@@ -119,7 +126,8 @@ static const int samuel2_eblcr[16] = {
 /*
  * VIA C3 Ezra
  */
-static const int ezra_mults[16] = {
+static const int ezra_mults[16] =
+{
 	100, /* 0000 -> 10.0x */
 	30,  /* 0001 ->  3.0x */
 	40,  /* 0010 ->  4.0x */
@@ -138,7 +146,8 @@ static const int ezra_mults[16] = {
 	120, /* 1111 -> 12.0x */
 };
 
-static const int ezra_eblcr[16] = {
+static const int ezra_eblcr[16] =
+{
 	50,  /* 0000 ->  5.0x */
 	30,  /* 0001 ->  3.0x */
 	40,  /* 0010 ->  4.0x */
@@ -160,7 +169,8 @@ static const int ezra_eblcr[16] = {
 /*
  * VIA C3 (Ezra-T) [C5M].
  */
-static const int ezrat_mults[32] = {
+static const int ezrat_mults[32] =
+{
 	100, /* 0000 -> 10.0x */
 	30,  /* 0001 ->  3.0x */
 	40,  /* 0010 ->  4.0x */
@@ -196,7 +206,8 @@ static const int ezrat_mults[32] = {
 	-1,  /* 1111 -> RESERVED (12.0x) */
 };
 
-static const int ezrat_eblcr[32] = {
+static const int ezrat_eblcr[32] =
+{
 	50,  /* 0000 ->  5.0x */
 	30,  /* 0001 ->  3.0x */
 	40,  /* 0010 ->  4.0x */
@@ -235,7 +246,8 @@ static const int ezrat_eblcr[32] = {
 /*
  * VIA C3 Nehemiah */
 
-static const int nehemiah_mults[32] = {
+static const int nehemiah_mults[32] =
+{
 	100, /* 0000 -> 10.0x */
 	-1, /* 0001 -> 16.0x */
 	40,  /* 0010 ->  4.0x */
@@ -270,7 +282,8 @@ static const int nehemiah_mults[32] = {
 	-1, /* 1111 -> 12.0x */
 };
 
-static const int nehemiah_eblcr[32] = {
+static const int nehemiah_eblcr[32] =
+{
 	50,  /* 0000 ->  5.0x */
 	160, /* 0001 -> 16.0x */
 	40,  /* 0010 ->  4.0x */
@@ -310,12 +323,14 @@ static const int nehemiah_eblcr[32] = {
  * Which scale to use depends on the VRM type in use.
  */
 
-struct mV_pos {
+struct mV_pos
+{
 	unsigned short mV;
 	unsigned short pos;
 };
 
-static const struct mV_pos vrm85_mV[32] = {
+static const struct mV_pos vrm85_mV[32] =
+{
 	{1250, 8},	{1200, 6},	{1150, 4},	{1100, 2},
 	{1050, 0},	{1800, 30},	{1750, 28},	{1700, 26},
 	{1650, 24},	{1600, 22},	{1550, 20},	{1500, 18},
@@ -326,14 +341,16 @@ static const struct mV_pos vrm85_mV[32] = {
 	{1475, 17},	{1425, 15},	{1375, 13},	{1325, 11}
 };
 
-static const unsigned char mV_vrm85[32] = {
+static const unsigned char mV_vrm85[32] =
+{
 	0x04,	0x14,	0x03,	0x13,	0x02,	0x12,	0x01,	0x11,
 	0x00,	0x10,	0x0f,	0x1f,	0x0e,	0x1e,	0x0d,	0x1d,
 	0x0c,	0x1c,	0x0b,	0x1b,	0x0a,	0x1a,	0x09,	0x19,
 	0x08,	0x18,	0x07,	0x17,	0x06,	0x16,	0x05,	0x15
 };
 
-static const struct mV_pos mobilevrm_mV[32] = {
+static const struct mV_pos mobilevrm_mV[32] =
+{
 	{1750, 31},	{1700, 30},	{1650, 29},	{1600, 28},
 	{1550, 27},	{1500, 26},	{1450, 25},	{1400, 24},
 	{1350, 23},	{1300, 22},	{1250, 21},	{1200, 20},
@@ -344,7 +361,8 @@ static const struct mV_pos mobilevrm_mV[32] = {
 	{675, 3},	{650, 2},	{625, 1},	{600, 0}
 };
 
-static const unsigned char mV_mobilevrm[32] = {
+static const unsigned char mV_mobilevrm[32] =
+{
 	0x1f,	0x1e,	0x1d,	0x1c,	0x1b,	0x1a,	0x19,	0x18,
 	0x17,	0x16,	0x15,	0x14,	0x13,	0x12,	0x11,	0x10,
 	0x0f,	0x0e,	0x0d,	0x0c,	0x0b,	0x0a,	0x09,	0x08,

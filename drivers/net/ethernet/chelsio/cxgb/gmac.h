@@ -41,17 +41,20 @@
 
 #include "common.h"
 
-enum {
+enum
+{
 	MAC_STATS_UPDATE_FAST,
 	MAC_STATS_UPDATE_FULL
 };
 
-enum {
+enum
+{
 	MAC_DIRECTION_RX = 1,
 	MAC_DIRECTION_TX = 2
 };
 
-struct cmac_statistics {
+struct cmac_statistics
+{
 	/* Transmit */
 	u64 TxOctetsOK;
 	u64 TxOctetsBad;
@@ -93,7 +96,8 @@ struct cmac_statistics {
 	u64 RxJumboOctetsOK;
 };
 
-struct cmac_ops {
+struct cmac_ops
+{
 	void (*destroy)(struct cmac *);
 	int (*reset)(struct cmac *);
 	int (*interrupt_enable)(struct cmac *);
@@ -112,7 +116,7 @@ struct cmac_ops {
 
 	int (*set_speed_duplex_fc)(struct cmac *, int speed, int duplex, int fc);
 	int (*get_speed_duplex_fc)(struct cmac *, int *speed, int *duplex,
-				   int *fc);
+							   int *fc);
 
 	const struct cmac_statistics *(*statistics_update)(struct cmac *, int);
 
@@ -122,14 +126,16 @@ struct cmac_ops {
 
 typedef struct _cmac_instance cmac_instance;
 
-struct cmac {
+struct cmac
+{
 	struct cmac_statistics stats;
 	adapter_t *adapter;
 	const struct cmac_ops *ops;
 	cmac_instance *instance;
 };
 
-struct gmac {
+struct gmac
+{
 	unsigned int stats_update_period;
 	struct cmac *(*create)(adapter_t *adapter, int index);
 	int (*reset)(adapter_t *);

@@ -36,7 +36,8 @@ struct call_path;
  * CALL_RETURN_NO_CALL: 'return' but no matching 'call'
  * CALL_RETURN_NO_RETURN: 'call' but no matching 'return'
  */
-enum {
+enum
+{
 	CALL_RETURN_NO_CALL	= 1 << 0,
 	CALL_RETURN_NO_RETURN	= 1 << 1,
 };
@@ -54,7 +55,8 @@ enum {
  * @db_id: id used for db-export
  * @flags: Call/Return flags
  */
-struct call_return {
+struct call_return
+{
 	struct thread *thread;
 	struct comm *comm;
 	struct call_path *cp;
@@ -74,29 +76,30 @@ struct call_return {
  * @process: call-back that accepts call/return information
  * @data: anonymous data for call-back
  */
-struct call_return_processor {
+struct call_return_processor
+{
 	struct call_path_root *cpr;
 	int (*process)(struct call_return *cr, void *data);
 	void *data;
 };
 
 int thread_stack__event(struct thread *thread, u32 flags, u64 from_ip,
-			u64 to_ip, u16 insn_len, u64 trace_nr);
+						u64 to_ip, u16 insn_len, u64 trace_nr);
 void thread_stack__set_trace_nr(struct thread *thread, u64 trace_nr);
 void thread_stack__sample(struct thread *thread, struct ip_callchain *chain,
-			  size_t sz, u64 ip);
+						  size_t sz, u64 ip);
 int thread_stack__flush(struct thread *thread);
 void thread_stack__free(struct thread *thread);
 size_t thread_stack__depth(struct thread *thread);
 
 struct call_return_processor *
 call_return_processor__new(int (*process)(struct call_return *cr, void *data),
-			   void *data);
+						   void *data);
 void call_return_processor__free(struct call_return_processor *crp);
 int thread_stack__process(struct thread *thread, struct comm *comm,
-			  struct perf_sample *sample,
-			  struct addr_location *from_al,
-			  struct addr_location *to_al, u64 ref,
-			  struct call_return_processor *crp);
+						  struct perf_sample *sample,
+						  struct addr_location *from_al,
+						  struct addr_location *to_al, u64 ref,
+						  struct call_return_processor *crp);
 
 #endif

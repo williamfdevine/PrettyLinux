@@ -26,7 +26,7 @@
 #define WL18XX_CONF_VERSION	(WLCORE_CONF_VERSION | 0x0007)
 #define WL18XX_CONF_MASK	0x0000ffff
 #define WL18XX_CONF_SIZE	(WLCORE_CONF_SIZE + \
-				 sizeof(struct wl18xx_priv_conf))
+							 sizeof(struct wl18xx_priv_conf))
 
 #define NUM_OF_CHANNELS_11_ABG 150
 #define NUM_OF_CHANNELS_11_P 7
@@ -35,7 +35,8 @@
 #define WL18XX_TRACE_LOSS_GAPS_TX 10
 #define WL18XX_TRACE_LOSS_GAPS_RX 18
 
-struct wl18xx_mac_and_phy_params {
+struct wl18xx_mac_and_phy_params
+{
 	u8 phy_standalone;
 	u8 spare0;
 	u8 enable_clpc;
@@ -94,7 +95,8 @@ struct wl18xx_mac_and_phy_params {
 	u8 padding[1];
 } __packed;
 
-enum wl18xx_ht_mode {
+enum wl18xx_ht_mode
+{
 	/* Default - use MIMO, fallback to SISO20 */
 	HT_MODE_DEFAULT = 0,
 
@@ -105,12 +107,14 @@ enum wl18xx_ht_mode {
 	HT_MODE_SISO20 = 2,
 };
 
-struct wl18xx_ht_settings {
+struct wl18xx_ht_settings
+{
 	/* DEFAULT / WIDE / SISO20 */
 	u8 mode;
 } __packed;
 
-struct conf_ap_sleep_settings {
+struct conf_ap_sleep_settings
+{
 	/* Duty Cycle (20-80% of staying Awake) for IDLE AP
 	 * (0: disable)
 	 */
@@ -129,7 +133,8 @@ struct conf_ap_sleep_settings {
 	u8 idle_conn_thresh;
 } __packed;
 
-struct wl18xx_priv_conf {
+struct wl18xx_priv_conf
+{
 	/* Module params structures */
 	struct wl18xx_ht_settings ht;
 
@@ -139,7 +144,8 @@ struct wl18xx_priv_conf {
 	struct conf_ap_sleep_settings ap_sleep;
 } __packed;
 
-enum wl18xx_sg_params {
+enum wl18xx_sg_params
+{
 	WL18XX_CONF_SG_PARAM_0 = 0,
 
 	/* Configuration Parameters */

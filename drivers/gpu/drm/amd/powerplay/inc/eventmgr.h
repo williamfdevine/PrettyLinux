@@ -33,20 +33,23 @@
 #include "power_state.h"
 
 typedef int (*pem_event_action)(struct pp_eventmgr *eventmgr,
-				struct pem_event_data *event_data);
+								struct pem_event_data *event_data);
 
-struct action_chain {
+struct action_chain
+{
 	const char *description;  /* action chain description for debugging purpose */
-	const pem_event_action * const *action_chain; /* pointer to chain of event actions */
+	const pem_event_action *const *action_chain;  /* pointer to chain of event actions */
 };
 
-struct pem_power_source_ui_state_info {
+struct pem_power_source_ui_state_info
+{
 	enum PP_StateUILabel current_ui_label;
 	enum PP_StateUILabel default_ui_lable;
 	unsigned long    configurable_ui_mapping;
 };
 
-struct pp_clock_range {
+struct pp_clock_range
+{
 	uint32_t min_sclk_khz;
 	uint32_t max_sclk_khz;
 
@@ -66,13 +69,15 @@ struct pp_clock_range {
 	uint32_t max_eclk_khz;
 };
 
-enum pp_state {
+enum pp_state
+{
 	UNINITIALIZED,
 	INACTIVE,
 	ACTIVE
 };
 
-enum pp_ring_index {
+enum pp_ring_index
+{
 	PP_RING_TYPE_GFX_INDEX = 0,
 	PP_RING_TYPE_DMA_INDEX,
 	PP_RING_TYPE_DMA1_INDEX,
@@ -84,7 +89,8 @@ enum pp_ring_index {
 	PP_NUM_RINGS,
 };
 
-struct pp_request {
+struct pp_request
+{
 	uint32_t flags;
 	uint32_t sclk;
 	uint32_t sclk_throttle;
@@ -98,7 +104,8 @@ struct pp_request {
 	uint32_t rsv[32];
 };
 
-struct pp_eventmgr {
+struct pp_eventmgr
+{
 	struct pp_hwmgr	*hwmgr;
 	struct pp_smumgr *smumgr;
 

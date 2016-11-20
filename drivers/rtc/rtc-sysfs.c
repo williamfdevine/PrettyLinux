@@ -38,9 +38,11 @@ date_show(struct device *dev, struct device_attribute *attr, char *buf)
 	struct rtc_time tm;
 
 	retval = rtc_read_time(to_rtc_device(dev), &tm);
-	if (retval == 0) {
+
+	if (retval == 0)
+	{
 		retval = sprintf(buf, "%04d-%02d-%02d\n",
-			tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+						 tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
 	}
 
 	return retval;
@@ -54,9 +56,11 @@ time_show(struct device *dev, struct device_attribute *attr, char *buf)
 	struct rtc_time tm;
 
 	retval = rtc_read_time(to_rtc_device(dev), &tm);
-	if (retval == 0) {
+
+	if (retval == 0)
+	{
 		retval = sprintf(buf, "%02d:%02d:%02d\n",
-			tm.tm_hour, tm.tm_min, tm.tm_sec);
+						 tm.tm_hour, tm.tm_min, tm.tm_sec);
 	}
 
 	return retval;
@@ -70,7 +74,9 @@ since_epoch_show(struct device *dev, struct device_attribute *attr, char *buf)
 	struct rtc_time tm;
 
 	retval = rtc_read_time(to_rtc_device(dev), &tm);
-	if (retval == 0) {
+
+	if (retval == 0)
+	{
 		unsigned long time;
 		rtc_tm_to_time(&tm, &time);
 		retval = sprintf(buf, "%lu\n", time);
@@ -88,18 +94,23 @@ max_user_freq_show(struct device *dev, struct device_attribute *attr, char *buf)
 
 static ssize_t
 max_user_freq_store(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t n)
+					const char *buf, size_t n)
 {
 	struct rtc_device *rtc = to_rtc_device(dev);
 	unsigned long val;
 	int err;
 
 	err = kstrtoul(buf, 0, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (val >= 4096 || val == 0)
+	{
 		return -EINVAL;
+	}
 
 	rtc->max_user_freq = (int)val;
 
@@ -117,10 +128,13 @@ static ssize_t
 hctosys_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
 #ifdef CONFIG_RTC_HCTOSYS_DEVICE
+
 	if (rtc_hctosys_ret == 0 &&
-			strcmp(dev_name(&to_rtc_device(dev)->dev),
-				CONFIG_RTC_HCTOSYS_DEVICE) == 0)
+		strcmp(dev_name(&to_rtc_device(dev)->dev),
+			   CONFIG_RTC_HCTOSYS_DEVICE) == 0)
+	{
 		return sprintf(buf, "1\n");
+	}
 	else
 #endif
 		return sprintf(buf, "0\n");
@@ -143,7 +157,9 @@ wakealarm_show(struct device *dev, struct device_attribute *attr, char *buf)
 	 * alarms after they trigger, to ensure one-shot semantics.
 	 */
 	retval = rtc_read_alarm(to_rtc_device(dev), &alm);
-	if (retval == 0 && alm.enabled) {
+
+	if (retval == 0 && alm.enabled)
+	{
 		rtc_tm_to_time(&alm.time, &alarm);
 		retval = sprintf(buf, "%lu\n", alarm);
 	}
@@ -153,7 +169,7 @@ wakealarm_show(struct device *dev, struct device_attribute *attr, char *buf)
 
 static ssize_t
 wakealarm_store(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t n)
+				const char *buf, size_t n)
 {
 	ssize_t retval;
 	unsigned long now, alarm;
@@ -167,43 +183,77 @@ wakealarm_store(struct device *dev, struct device_attribute *attr,
 	 * by writing another time, e.g. 0 meaning Jan 1 1970 UTC.
 	 */
 	retval = rtc_read_time(rtc, &alm.time);
+
 	if (retval < 0)
+	{
 		return retval;
+	}
+
 	rtc_tm_to_time(&alm.time, &now);
 
 	buf_ptr = buf;
-	if (*buf_ptr == '+') {
+
+	if (*buf_ptr == '+')
+	{
 		buf_ptr++;
-		if (*buf_ptr == '=') {
+
+		if (*buf_ptr == '=')
+		{
 			buf_ptr++;
 			push = 1;
-		} else
+		}
+		else
+		{
 			adjust = 1;
+		}
 	}
+
 	retval = kstrtoul(buf_ptr, 0, &alarm);
+
 	if (retval)
+	{
 		return retval;
-	if (adjust) {
+	}
+
+	if (adjust)
+	{
 		alarm += now;
 	}
-	if (alarm > now || push) {
+
+	if (alarm > now || push)
+	{
 		/* Avoid accidentally clobbering active alarms; we can't
 		 * entirely prevent that here, without even the minimal
 		 * locking from the /dev/rtcN api.
 		 */
 		retval = rtc_read_alarm(rtc, &alm);
+
 		if (retval < 0)
+		{
 			return retval;
-		if (alm.enabled) {
-			if (push) {
+		}
+
+		if (alm.enabled)
+		{
+			if (push)
+			{
 				rtc_tm_to_time(&alm.time, &push);
 				alarm += push;
-			} else
+			}
+			else
+			{
 				return -EBUSY;
-		} else if (push)
+			}
+		}
+		else if (push)
+		{
 			return -EINVAL;
+		}
+
 		alm.enabled = 1;
-	} else {
+	}
+	else
+	{
 		alm.enabled = 0;
 
 		/* Provide a valid future alarm time.  Linux isn't EFI,
@@ -211,6 +261,7 @@ wakealarm_store(struct device *dev, struct device_attribute *attr,
 		 */
 		alarm = now + 300;
 	}
+
 	rtc_time_to_tm(alarm, &alm.time);
 
 	retval = rtc_set_alarm(rtc, &alm);
@@ -225,28 +276,35 @@ offset_show(struct device *dev, struct device_attribute *attr, char *buf)
 	long offset;
 
 	retval = rtc_read_offset(to_rtc_device(dev), &offset);
+
 	if (retval == 0)
+	{
 		retval = sprintf(buf, "%ld\n", offset);
+	}
 
 	return retval;
 }
 
 static ssize_t
 offset_store(struct device *dev, struct device_attribute *attr,
-	     const char *buf, size_t n)
+			 const char *buf, size_t n)
 {
 	ssize_t retval;
 	long offset;
 
 	retval = kstrtol(buf, 10, &offset);
+
 	if (retval == 0)
+	{
 		retval = rtc_set_offset(to_rtc_device(dev), offset);
+	}
 
 	return (retval < 0) ? retval : n;
 }
 static DEVICE_ATTR_RW(offset);
 
-static struct attribute *rtc_attrs[] = {
+static struct attribute *rtc_attrs[] =
+{
 	&dev_attr_name.attr,
 	&dev_attr_date.attr,
 	&dev_attr_time.attr,
@@ -266,35 +324,46 @@ static struct attribute *rtc_attrs[] = {
 static bool rtc_does_wakealarm(struct rtc_device *rtc)
 {
 	if (!device_can_wakeup(rtc->dev.parent))
+	{
 		return false;
+	}
 
 	return rtc->ops->set_alarm != NULL;
 }
 
 static umode_t rtc_attr_is_visible(struct kobject *kobj,
-				   struct attribute *attr, int n)
+								   struct attribute *attr, int n)
 {
 	struct device *dev = container_of(kobj, struct device, kobj);
 	struct rtc_device *rtc = to_rtc_device(dev);
 	umode_t mode = attr->mode;
 
-	if (attr == &dev_attr_wakealarm.attr) {
+	if (attr == &dev_attr_wakealarm.attr)
+	{
 		if (!rtc_does_wakealarm(rtc))
+		{
 			mode = 0;
-	} else if (attr == &dev_attr_offset.attr) {
+		}
+	}
+	else if (attr == &dev_attr_offset.attr)
+	{
 		if (!rtc->ops->set_offset)
+		{
 			mode = 0;
+		}
 	}
 
 	return mode;
 }
 
-static struct attribute_group rtc_attr_group = {
+static struct attribute_group rtc_attr_group =
+{
 	.is_visible	= rtc_attr_is_visible,
 	.attrs		= rtc_attrs,
 };
 
-static const struct attribute_group *rtc_attr_groups[] = {
+static const struct attribute_group *rtc_attr_groups[] =
+{
 	&rtc_attr_group,
 	NULL
 };

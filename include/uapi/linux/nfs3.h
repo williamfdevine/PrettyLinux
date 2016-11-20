@@ -34,7 +34,8 @@
 #define NFS3_ACCESS_FULL	0x003f
 
 /* Flags for create mode */
-enum nfs3_createmode {
+enum nfs3_createmode
+{
 	NFS3_CREATE_UNCHECKED = 0,
 	NFS3_CREATE_GUARDED = 1,
 	NFS3_CREATE_EXCLUSIVE = 2
@@ -50,7 +51,8 @@ enum nfs3_createmode {
 #define NFS3_FSF_BILLYBOY	0x0018
 #define NFS3_FSF_READONLY	0x0008
 
-enum nfs3_ftype {
+enum nfs3_ftype
+{
 	NF3NON  = 0,
 	NF3REG  = 1,
 	NF3DIR  = 2,
@@ -62,7 +64,8 @@ enum nfs3_ftype {
 	NF3BAD  = 8
 };
 
-struct nfs3_fh {
+struct nfs3_fh
+{
 	unsigned short size;
 	unsigned char  data[NFS3_FHSIZE];
 };
@@ -92,6 +95,6 @@ struct nfs3_fh {
 #define NFS3PROC_COMMIT		21
 
 #define NFS_MNT3_VERSION	3
- 
+
 
 #endif /* _UAPI_LINUX_NFS3_H */

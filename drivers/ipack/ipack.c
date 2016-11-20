@@ -29,26 +29,35 @@ static void ipack_device_release(struct device *dev)
 
 static inline const struct ipack_device_id *
 ipack_match_one_device(const struct ipack_device_id *id,
-		       const struct ipack_device *device)
+					   const struct ipack_device *device)
 {
 	if ((id->format == IPACK_ANY_FORMAT ||
-				id->format == device->id_format) &&
-	    (id->vendor == IPACK_ANY_ID || id->vendor == device->id_vendor) &&
-	    (id->device == IPACK_ANY_ID || id->device == device->id_device))
+		 id->format == device->id_format) &&
+		(id->vendor == IPACK_ANY_ID || id->vendor == device->id_vendor) &&
+		(id->device == IPACK_ANY_ID || id->device == device->id_device))
+	{
 		return id;
+	}
+
 	return NULL;
 }
 
 static const struct ipack_device_id *
 ipack_match_id(const struct ipack_device_id *ids, struct ipack_device *idev)
 {
-	if (ids) {
-		while (ids->vendor || ids->device) {
+	if (ids)
+	{
+		while (ids->vendor || ids->device)
+		{
 			if (ipack_match_one_device(ids, idev))
+			{
 				return ids;
+			}
+
 			ids++;
 		}
 	}
+
 	return NULL;
 }
 
@@ -68,7 +77,9 @@ static int ipack_bus_probe(struct device *device)
 	struct ipack_driver *drv = to_ipack_driver(device->driver);
 
 	if (!drv->ops->probe)
+	{
 		return -EINVAL;
+	}
 
 	return drv->ops->probe(dev);
 }
@@ -79,7 +90,9 @@ static int ipack_bus_remove(struct device *device)
 	struct ipack_driver *drv = to_ipack_driver(device->driver);
 
 	if (!drv->ops->remove)
+	{
 		return -EINVAL;
+	}
 
 	drv->ops->remove(dev);
 	return 0;
@@ -90,53 +103,70 @@ static int ipack_uevent(struct device *dev, struct kobj_uevent_env *env)
 	struct ipack_device *idev;
 
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	idev = to_ipack_dev(dev);
 
 	if (add_uevent_var(env,
-			   "MODALIAS=ipack:f%02Xv%08Xd%08X", idev->id_format,
-			   idev->id_vendor, idev->id_device))
+					   "MODALIAS=ipack:f%02Xv%08Xd%08X", idev->id_format,
+					   idev->id_vendor, idev->id_device))
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
 
 #define ipack_device_attr(field, format_string)				\
-static ssize_t								\
-field##_show(struct device *dev, struct device_attribute *attr,		\
-		char *buf)						\
-{									\
-	struct ipack_device *idev = to_ipack_dev(dev);			\
-	return sprintf(buf, format_string, idev->field);		\
-}
+	static ssize_t								\
+	field##_show(struct device *dev, struct device_attribute *attr,		\
+				 char *buf)						\
+	{									\
+		struct ipack_device *idev = to_ipack_dev(dev);			\
+		return sprintf(buf, format_string, idev->field);		\
+	}
 
 static ssize_t id_show(struct device *dev,
-		       struct device_attribute *attr, char *buf)
+					   struct device_attribute *attr, char *buf)
 {
 	unsigned int i, c, l, s;
 	struct ipack_device *idev = to_ipack_dev(dev);
 
 
-	switch (idev->id_format) {
-	case IPACK_ID_VERSION_1:
-		l = 0x7; s = 1; break;
-	case IPACK_ID_VERSION_2:
-		l = 0xf; s = 2; break;
-	default:
-		return -EIO;
+	switch (idev->id_format)
+	{
+		case IPACK_ID_VERSION_1:
+			l = 0x7; s = 1; break;
+
+		case IPACK_ID_VERSION_2:
+			l = 0xf; s = 2; break;
+
+		default:
+			return -EIO;
 	}
+
 	c = 0;
-	for (i = 0; i < idev->id_avail; i++) {
-		if (i > 0) {
+
+	for (i = 0; i < idev->id_avail; i++)
+	{
+		if (i > 0)
+		{
 			if ((i & l) == 0)
+			{
 				buf[c++] = '\n';
+			}
 			else if ((i & s) == 0)
+			{
 				buf[c++] = ' ';
+			}
 		}
+
 		sprintf(&buf[c], "%02x", idev->id[i]);
 		c += 2;
 	}
+
 	buf[c++] = '\n';
 	return c;
 }
@@ -145,13 +175,17 @@ static ssize_t
 id_vendor_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	struct ipack_device *idev = to_ipack_dev(dev);
-	switch (idev->id_format) {
-	case IPACK_ID_VERSION_1:
-		return sprintf(buf, "0x%02x\n", idev->id_vendor);
-	case IPACK_ID_VERSION_2:
-		return sprintf(buf, "0x%06x\n", idev->id_vendor);
-	default:
-		return -EIO;
+
+	switch (idev->id_format)
+	{
+		case IPACK_ID_VERSION_1:
+			return sprintf(buf, "0x%02x\n", idev->id_vendor);
+
+		case IPACK_ID_VERSION_2:
+			return sprintf(buf, "0x%06x\n", idev->id_vendor);
+
+		default:
+			return -EIO;
 	}
 }
 
@@ -159,23 +193,27 @@ static ssize_t
 id_device_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	struct ipack_device *idev = to_ipack_dev(dev);
-	switch (idev->id_format) {
-	case IPACK_ID_VERSION_1:
-		return sprintf(buf, "0x%02x\n", idev->id_device);
-	case IPACK_ID_VERSION_2:
-		return sprintf(buf, "0x%04x\n", idev->id_device);
-	default:
-		return -EIO;
+
+	switch (idev->id_format)
+	{
+		case IPACK_ID_VERSION_1:
+			return sprintf(buf, "0x%02x\n", idev->id_device);
+
+		case IPACK_ID_VERSION_2:
+			return sprintf(buf, "0x%04x\n", idev->id_device);
+
+		default:
+			return -EIO;
 	}
 }
 
 static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
-			     char *buf)
+							 char *buf)
 {
 	struct ipack_device *idev = to_ipack_dev(dev);
 
 	return sprintf(buf, "ipac:f%02Xv%08Xd%08X", idev->id_format,
-		       idev->id_vendor, idev->id_device);
+				   idev->id_vendor, idev->id_device);
 }
 
 ipack_device_attr(id_format, "0x%hhx\n");
@@ -186,7 +224,8 @@ static DEVICE_ATTR_RO(id_format);
 static DEVICE_ATTR_RO(id_vendor);
 static DEVICE_ATTR_RO(modalias);
 
-static struct attribute *ipack_attrs[] = {
+static struct attribute *ipack_attrs[] =
+{
 	&dev_attr_id.attr,
 	&dev_attr_id_device.attr,
 	&dev_attr_id_format.attr,
@@ -196,7 +235,8 @@ static struct attribute *ipack_attrs[] = {
 };
 ATTRIBUTE_GROUPS(ipack);
 
-static struct bus_type ipack_bus_type = {
+static struct bus_type ipack_bus_type =
+{
 	.name      = "ipack",
 	.probe     = ipack_bus_probe,
 	.match     = ipack_bus_match,
@@ -206,18 +246,23 @@ static struct bus_type ipack_bus_type = {
 };
 
 struct ipack_bus_device *ipack_bus_register(struct device *parent, int slots,
-					    const struct ipack_bus_ops *ops,
-					    struct module *owner)
+		const struct ipack_bus_ops *ops,
+		struct module *owner)
 {
 	int bus_nr;
 	struct ipack_bus_device *bus;
 
 	bus = kzalloc(sizeof(struct ipack_bus_device), GFP_KERNEL);
+
 	if (!bus)
+	{
 		return NULL;
+	}
 
 	bus_nr = ida_simple_get(&ipack_ida, 0, 0, GFP_KERNEL);
-	if (bus_nr < 0) {
+
+	if (bus_nr < 0)
+	{
 		kfree(bus);
 		return NULL;
 	}
@@ -237,7 +282,9 @@ static int ipack_unregister_bus_member(struct device *dev, void *data)
 	struct ipack_bus_device *bus = data;
 
 	if (idev->bus == bus)
+	{
 		ipack_device_del(idev);
+	}
 
 	return 1;
 }
@@ -245,7 +292,7 @@ static int ipack_unregister_bus_member(struct device *dev, void *data)
 int ipack_bus_unregister(struct ipack_bus_device *bus)
 {
 	bus_for_each_dev(&ipack_bus_type, NULL, bus,
-		ipack_unregister_bus_member);
+					 ipack_unregister_bus_member);
 	ida_simple_remove(&ipack_ida, bus->bus_nr);
 	kfree(bus);
 	return 0;
@@ -253,7 +300,7 @@ int ipack_bus_unregister(struct ipack_bus_device *bus)
 EXPORT_SYMBOL_GPL(ipack_bus_unregister);
 
 int ipack_driver_register(struct ipack_driver *edrv, struct module *owner,
-			  const char *name)
+						  const char *name)
 {
 	edrv->driver.owner = owner;
 	edrv->driver.name = name;
@@ -273,8 +320,12 @@ static u16 ipack_crc_byte(u16 crc, u8 c)
 	int i;
 
 	crc ^= c << 8;
+
 	for (i = 0; i < 8; i++)
+	{
 		crc = (crc << 1) ^ ((crc & 0x8000) ? 0x1021 : 0);
+	}
+
 	return crc;
 }
 
@@ -289,10 +340,13 @@ static u8 ipack_calc_crc1(struct ipack_device *dev)
 	unsigned int i;
 
 	crc = 0xffff;
-	for (i = 0; i < dev->id_avail; i++) {
+
+	for (i = 0; i < dev->id_avail; i++)
+	{
 		c = (i != 11) ? dev->id[i] : 0;
 		crc = ipack_crc_byte(crc, c);
 	}
+
 	crc = ~crc;
 	return crc & 0xff;
 }
@@ -304,10 +358,13 @@ static u16 ipack_calc_crc2(struct ipack_device *dev)
 	unsigned int i;
 
 	crc = 0xffff;
-	for (i = 0; i < dev->id_avail; i++) {
+
+	for (i = 0; i < dev->id_avail; i++)
+	{
 		c = ((i != 0x18) && (i != 0x19)) ? dev->id[i] : 0;
 		crc = ipack_crc_byte(crc, c);
 	}
+
 	crc = ~crc;
 	return crc;
 }
@@ -323,9 +380,11 @@ static void ipack_parse_id1(struct ipack_device *dev)
 	dev->speed_32mhz = (id[7] == 'H');
 	crc = ipack_calc_crc1(dev);
 	dev->id_crc_correct = (crc == id[11]);
-	if (!dev->id_crc_correct) {
+
+	if (!dev->id_crc_correct)
+	{
 		dev_warn(&dev->dev, "ID CRC invalid found 0x%x, expected 0x%x.\n",
-				id[11], crc);
+				 id[11], crc);
 	}
 }
 
@@ -335,16 +394,18 @@ static void ipack_parse_id2(struct ipack_device *dev)
 	u16 flags, crc;
 
 	dev->id_vendor = ((be16_to_cpu(id[3]) & 0xff) << 16)
-			 + be16_to_cpu(id[4]);
+					 + be16_to_cpu(id[4]);
 	dev->id_device = be16_to_cpu(id[5]);
 	flags = be16_to_cpu(id[10]);
 	dev->speed_8mhz = !!(flags & 2);
 	dev->speed_32mhz = !!(flags & 4);
 	crc = ipack_calc_crc2(dev);
 	dev->id_crc_correct = (crc == be16_to_cpu(id[12]));
-	if (!dev->id_crc_correct) {
+
+	if (!dev->id_crc_correct)
+	{
 		dev_warn(&dev->dev, "ID CRC invalid found 0x%x, expected 0x%x.\n",
-				id[11], crc);
+				 id[11], crc);
 	}
 }
 
@@ -355,8 +416,10 @@ static int ipack_device_read_id(struct ipack_device *dev)
 	int ret = 0;
 
 	idmem = ioremap(dev->region[IPACK_ID_SPACE].start,
-			dev->region[IPACK_ID_SPACE].size);
-	if (!idmem) {
+					dev->region[IPACK_ID_SPACE].size);
+
+	if (!idmem)
+	{
 		dev_err(&dev->dev, "error mapping memory\n");
 		return -ENOMEM;
 	}
@@ -366,34 +429,44 @@ static int ipack_device_read_id(struct ipack_device *dev)
 	 * "VITA4 " (16 bit big endian formatted) we are dealing with a
 	 * IndustryPack format 2 device */
 	if ((ioread8(idmem + 1) == 'I') &&
-			(ioread8(idmem + 3) == 'P') &&
-			(ioread8(idmem + 5) == 'A') &&
-			((ioread8(idmem + 7) == 'C') ||
-			 (ioread8(idmem + 7) == 'H'))) {
+		(ioread8(idmem + 3) == 'P') &&
+		(ioread8(idmem + 5) == 'A') &&
+		((ioread8(idmem + 7) == 'C') ||
+		 (ioread8(idmem + 7) == 'H')))
+	{
 		dev->id_format = IPACK_ID_VERSION_1;
 		dev->id_avail = ioread8(idmem + 0x15);
-		if ((dev->id_avail < 0x0c) || (dev->id_avail > 0x40)) {
+
+		if ((dev->id_avail < 0x0c) || (dev->id_avail > 0x40))
+		{
 			dev_warn(&dev->dev, "invalid id size");
 			dev->id_avail = 0x0c;
 		}
-	} else if ((ioread8(idmem + 0) == 'I') &&
-			(ioread8(idmem + 1) == 'V') &&
-			(ioread8(idmem + 2) == 'A') &&
-			(ioread8(idmem + 3) == 'T') &&
-			(ioread8(idmem + 4) == ' ') &&
-			(ioread8(idmem + 5) == '4')) {
+	}
+	else if ((ioread8(idmem + 0) == 'I') &&
+			 (ioread8(idmem + 1) == 'V') &&
+			 (ioread8(idmem + 2) == 'A') &&
+			 (ioread8(idmem + 3) == 'T') &&
+			 (ioread8(idmem + 4) == ' ') &&
+			 (ioread8(idmem + 5) == '4'))
+	{
 		dev->id_format = IPACK_ID_VERSION_2;
 		dev->id_avail = ioread16be(idmem + 0x16);
-		if ((dev->id_avail < 0x1a) || (dev->id_avail > 0x40)) {
+
+		if ((dev->id_avail < 0x1a) || (dev->id_avail > 0x40))
+		{
 			dev_warn(&dev->dev, "invalid id size");
 			dev->id_avail = 0x1a;
 		}
-	} else {
+	}
+	else
+	{
 		dev->id_format = IPACK_ID_VERSION_INVALID;
 		dev->id_avail = 0;
 	}
 
-	if (!dev->id_avail) {
+	if (!dev->id_avail)
+	{
 		ret = -ENODEV;
 		goto out;
 	}
@@ -401,26 +474,36 @@ static int ipack_device_read_id(struct ipack_device *dev)
 	/* Obtain the amount of memory required to store a copy of the complete
 	 * ID ROM contents */
 	dev->id = kmalloc(dev->id_avail, GFP_KERNEL);
-	if (!dev->id) {
+
+	if (!dev->id)
+	{
 		dev_err(&dev->dev, "dev->id alloc failed.\n");
 		ret = -ENOMEM;
 		goto out;
 	}
-	for (i = 0; i < dev->id_avail; i++) {
+
+	for (i = 0; i < dev->id_avail; i++)
+	{
 		if (dev->id_format == IPACK_ID_VERSION_1)
+		{
 			dev->id[i] = ioread8(idmem + (i << 1) + 1);
+		}
 		else
+		{
 			dev->id[i] = ioread8(idmem + i);
+		}
 	}
 
 	/* now we can finally work with the copy */
-	switch (dev->id_format) {
-	case IPACK_ID_VERSION_1:
-		ipack_parse_id1(dev);
-		break;
-	case IPACK_ID_VERSION_2:
-		ipack_parse_id2(dev);
-		break;
+	switch (dev->id_format)
+	{
+		case IPACK_ID_VERSION_1:
+			ipack_parse_id1(dev);
+			break;
+
+		case IPACK_ID_VERSION_2:
+			ipack_parse_id2(dev);
+			break;
 	}
 
 out:
@@ -437,25 +520,36 @@ int ipack_device_init(struct ipack_device *dev)
 	dev->dev.release = ipack_device_release;
 	dev->dev.parent = dev->bus->parent;
 	dev_set_name(&dev->dev,
-		     "ipack-dev.%u.%u", dev->bus->bus_nr, dev->slot);
+				 "ipack-dev.%u.%u", dev->bus->bus_nr, dev->slot);
 	device_initialize(&dev->dev);
 
 	if (dev->bus->ops->set_clockrate(dev, 8))
+	{
 		dev_warn(&dev->dev, "failed to switch to 8 MHz operation for reading of device ID.\n");
+	}
+
 	if (dev->bus->ops->reset_timeout(dev))
+	{
 		dev_warn(&dev->dev, "failed to reset potential timeout.");
+	}
 
 	ret = ipack_device_read_id(dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&dev->dev, "error reading device id section.\n");
 		return ret;
 	}
 
 	/* if the device supports 32 MHz operation, use it. */
-	if (dev->speed_32mhz) {
+	if (dev->speed_32mhz)
+	{
 		ret = dev->bus->ops->set_clockrate(dev, 32);
+
 		if (ret < 0)
+		{
 			dev_err(&dev->dev, "failed to switch to 32 MHz operation.\n");
+		}
 	}
 
 	return 0;

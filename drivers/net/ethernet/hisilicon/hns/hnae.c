@@ -43,7 +43,9 @@ static int hnae_alloc_buffer(struct hnae_ring *ring, struct hnae_desc_cb *cb)
 	struct page *p = dev_alloc_pages(order);
 
 	if (!p)
+	{
 		return -ENOMEM;
+	}
 
 	cb->priv = p;
 	cb->page_offset = 0;
@@ -58,19 +60,26 @@ static int hnae_alloc_buffer(struct hnae_ring *ring, struct hnae_desc_cb *cb)
 static void hnae_free_buffer(struct hnae_ring *ring, struct hnae_desc_cb *cb)
 {
 	if (cb->type == DESC_TYPE_SKB)
+	{
 		dev_kfree_skb_any((struct sk_buff *)cb->priv);
+	}
 	else if (unlikely(is_rx_ring(ring)))
+	{
 		put_page((struct page *)cb->priv);
+	}
+
 	memset(cb, 0, sizeof(*cb));
 }
 
 static int hnae_map_buffer(struct hnae_ring *ring, struct hnae_desc_cb *cb)
 {
 	cb->dma = dma_map_page(ring_to_dev(ring), cb->priv, 0,
-			       cb->length, ring_to_dma_dir(ring));
+						   cb->length, ring_to_dma_dir(ring));
 
 	if (dma_mapping_error(ring_to_dev(ring), cb->dma))
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
@@ -79,13 +88,14 @@ static void hnae_unmap_buffer(struct hnae_ring *ring, struct hnae_desc_cb *cb)
 {
 	if (cb->type == DESC_TYPE_SKB)
 		dma_unmap_single(ring_to_dev(ring), cb->dma, cb->length,
-				 ring_to_dma_dir(ring));
+						 ring_to_dma_dir(ring));
 	else
 		dma_unmap_page(ring_to_dev(ring), cb->dma, cb->length,
-			       ring_to_dma_dir(ring));
+					   ring_to_dma_dir(ring));
 }
 
-static struct hnae_buf_ops hnae_bops = {
+static struct hnae_buf_ops hnae_bops =
+{
 	.alloc_buffer = hnae_alloc_buffer,
 	.free_buffer = hnae_free_buffer,
 	.map_buffer = hnae_map_buffer,
@@ -97,9 +107,13 @@ static int __ae_match(struct device *dev, const void *data)
 	struct hnae_ae_dev *hdev = cls_to_ae_dev(dev);
 
 	if (dev_of_node(hdev->dev))
+	{
 		return (data == &hdev->dev->of_node->fwnode);
+	}
 	else if (is_acpi_node(hdev->dev->fwnode))
+	{
 		return (data == hdev->dev->fwnode);
+	}
 
 	dev_err(dev, "__ae_match cannot read cfg data from OF or acpi\n");
 	return 0;
@@ -121,7 +135,9 @@ static void hnae_free_buffers(struct hnae_ring *ring)
 	int i;
 
 	for (i = 0; i < ring->desc_num; i++)
+	{
 		hnae_free_buffer_detach(ring, i);
+	}
 }
 
 /* Allocate memory for raw pkg, and map with dma */
@@ -129,17 +145,25 @@ static int hnae_alloc_buffers(struct hnae_ring *ring)
 {
 	int i, j, ret;
 
-	for (i = 0; i < ring->desc_num; i++) {
+	for (i = 0; i < ring->desc_num; i++)
+	{
 		ret = hnae_alloc_buffer_attach(ring, i);
+
 		if (ret)
+		{
 			goto out_buffer_fail;
+		}
 	}
 
 	return 0;
 
 out_buffer_fail:
+
 	for (j = i - 1; j >= 0; j--)
+	{
 		hnae_free_buffer_detach(ring, j);
+	}
+
 	return ret;
 }
 
@@ -148,8 +172,8 @@ static void hnae_free_desc(struct hnae_ring *ring)
 {
 	hnae_free_buffers(ring);
 	dma_unmap_single(ring_to_dev(ring), ring->desc_dma_addr,
-			 ring->desc_num * sizeof(ring->desc[0]),
-			 ring_to_dma_dir(ring));
+					 ring->desc_num * sizeof(ring->desc[0]),
+					 ring_to_dma_dir(ring));
 	ring->desc_dma_addr = 0;
 	kfree(ring->desc);
 	ring->desc = NULL;
@@ -161,12 +185,17 @@ static int hnae_alloc_desc(struct hnae_ring *ring)
 	int size = ring->desc_num * sizeof(ring->desc[0]);
 
 	ring->desc = kzalloc(size, GFP_KERNEL);
+
 	if (!ring->desc)
+	{
 		return -ENOMEM;
+	}
 
 	ring->desc_dma_addr = dma_map_single(ring_to_dev(ring),
-		ring->desc, size, ring_to_dma_dir(ring));
-	if (dma_mapping_error(ring_to_dev(ring), ring->desc_dma_addr)) {
+										 ring->desc, size, ring_to_dma_dir(ring));
+
+	if (dma_mapping_error(ring_to_dev(ring), ring->desc_dma_addr))
+	{
 		ring->desc_dma_addr = 0;
 		kfree(ring->desc);
 		ring->desc = NULL;
@@ -193,7 +222,9 @@ hnae_init_ring(struct hnae_queue *q, struct hnae_ring *ring, int flags)
 	int ret;
 
 	if (ring->desc_num <= 0 || ring->buf_size <= 0)
+	{
 		return -EINVAL;
+	}
 
 	ring->q = q;
 	ring->flags = flags;
@@ -204,20 +235,29 @@ hnae_init_ring(struct hnae_queue *q, struct hnae_ring *ring, int flags)
 	assert(ring->next_to_clean == 0);
 
 	ring->desc_cb = kcalloc(ring->desc_num, sizeof(ring->desc_cb[0]),
-			GFP_KERNEL);
-	if (!ring->desc_cb) {
+							GFP_KERNEL);
+
+	if (!ring->desc_cb)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	ret = hnae_alloc_desc(ring);
-	if (ret)
-		goto out_with_desc_cb;
 
-	if (is_rx_ring(ring)) {
+	if (ret)
+	{
+		goto out_with_desc_cb;
+	}
+
+	if (is_rx_ring(ring))
+	{
 		ret = hnae_alloc_buffers(ring);
+
 		if (ret)
+		{
 			goto out_with_desc;
+		}
 	}
 
 	return 0;
@@ -232,7 +272,7 @@ out:
 }
 
 static int hnae_init_queue(struct hnae_handle *h, struct hnae_queue *q,
-			   struct hnae_ae_dev *dev)
+						   struct hnae_ae_dev *dev)
 {
 	int ret;
 
@@ -240,15 +280,23 @@ static int hnae_init_queue(struct hnae_handle *h, struct hnae_queue *q,
 	q->handle = h;
 
 	ret = hnae_init_ring(q, &q->tx_ring, q->tx_ring.flags | RINGF_DIR);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ret = hnae_init_ring(q, &q->rx_ring, q->rx_ring.flags & ~RINGF_DIR);
+
 	if (ret)
+	{
 		goto out_with_tx_ring;
+	}
 
 	if (dev->ops->init_queue)
+	{
 		dev->ops->init_queue(q);
+	}
 
 	return 0;
 
@@ -261,7 +309,9 @@ out:
 static void hnae_fini_queue(struct hnae_queue *q)
 {
 	if (q->dev->ops->fini_queue)
+	{
 		q->dev->ops->fini_queue(q);
+	}
 
 	hnae_fini_ring(&q->tx_ring);
 	hnae_fini_ring(&q->rx_ring);
@@ -281,7 +331,9 @@ EXPORT_SYMBOL(hnae_register_notifier);
 void hnae_unregister_notifier(struct notifier_block *nb)
 {
 	if (raw_notifier_chain_unregister(&ae_chain, nb))
+	{
 		dev_err(NULL, "notifier chain unregister fail\n");
+	}
 }
 EXPORT_SYMBOL(hnae_unregister_notifier);
 
@@ -291,20 +343,33 @@ int hnae_reinit_handle(struct hnae_handle *handle)
 	int ret;
 
 	for (i = 0; i < handle->q_num; i++) /* free ring*/
+	{
 		hnae_fini_queue(handle->qs[i]);
+	}
 
 	if (handle->dev->ops->reset)
+	{
 		handle->dev->ops->reset(handle);
-
-	for (i = 0; i < handle->q_num; i++) {/* reinit ring*/
-		ret = hnae_init_queue(handle, handle->qs[i], handle->dev);
-		if (ret)
-			goto out_when_init_queue;
 	}
+
+	for (i = 0; i < handle->q_num; i++)  /* reinit ring*/
+	{
+		ret = hnae_init_queue(handle, handle->qs[i], handle->dev);
+
+		if (ret)
+		{
+			goto out_when_init_queue;
+		}
+	}
+
 	return 0;
 out_when_init_queue:
+
 	for (j = i - 1; j >= 0; j--)
+	{
 		hnae_fini_queue(handle->qs[j]);
+	}
+
 	return ret;
 }
 EXPORT_SYMBOL(hnae_reinit_handle);
@@ -318,9 +383,9 @@ EXPORT_SYMBOL(hnae_reinit_handle);
  * return handle ptr or ERR_PTR
  */
 struct hnae_handle *hnae_get_handle(struct device *owner_dev,
-				    const struct fwnode_handle	*fwnode,
-				    u32 port_id,
-				    struct hnae_buf_ops *bops)
+									const struct fwnode_handle	*fwnode,
+									u32 port_id,
+									struct hnae_buf_ops *bops)
 {
 	struct hnae_ae_dev *dev;
 	struct hnae_handle *handle;
@@ -328,11 +393,16 @@ struct hnae_handle *hnae_get_handle(struct device *owner_dev,
 	int ret;
 
 	dev = find_ae(fwnode);
+
 	if (!dev)
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
 	handle = dev->ops->get_handle(dev, port_id);
-	if (IS_ERR(handle)) {
+
+	if (IS_ERR(handle))
+	{
 		put_device(&dev->cls_dev);
 		return handle;
 	}
@@ -342,10 +412,14 @@ struct hnae_handle *hnae_get_handle(struct device *owner_dev,
 	handle->bops = bops ? bops : &hnae_bops;
 	handle->eport_id = port_id;
 
-	for (i = 0; i < handle->q_num; i++) {
+	for (i = 0; i < handle->q_num; i++)
+	{
 		ret = hnae_init_queue(handle, handle->qs[i], dev);
+
 		if (ret)
+		{
 			goto out_when_init_queue;
+		}
 	}
 
 	__module_get(dev->owner);
@@ -355,8 +429,11 @@ struct hnae_handle *hnae_get_handle(struct device *owner_dev,
 	return handle;
 
 out_when_init_queue:
+
 	for (j = i - 1; j >= 0; j--)
+	{
 		hnae_fini_queue(handle->qs[j]);
+	}
 
 	put_device(&dev->cls_dev);
 
@@ -370,15 +447,21 @@ void hnae_put_handle(struct hnae_handle *h)
 	int i;
 
 	for (i = 0; i < h->q_num; i++)
+	{
 		hnae_fini_queue(h->qs[i]);
+	}
 
 	if (h->dev->ops->reset)
+	{
 		h->dev->ops->reset(h);
+	}
 
 	hnae_list_del(&dev->lock, &h->node);
 
 	if (dev->ops->put_handle)
+	{
 		dev->ops->put_handle(h);
+	}
 
 	module_put(dev->owner);
 
@@ -402,12 +485,16 @@ int hnae_ae_register(struct hnae_ae_dev *hdev, struct module *owner)
 	int ret;
 
 	if (!hdev->dev)
+	{
 		return -ENODEV;
+	}
 
 	if (!hdev->ops || !hdev->ops->get_handle ||
-	    !hdev->ops->toggle_ring_irq ||
-	    !hdev->ops->get_status || !hdev->ops->adjust_link)
+		!hdev->ops->toggle_ring_irq ||
+		!hdev->ops->get_status || !hdev->ops->adjust_link)
+	{
 		return -EINVAL;
+	}
 
 	hdev->owner = owner;
 	hdev->id = (int)atomic_inc_return(&id);
@@ -416,8 +503,11 @@ int hnae_ae_register(struct hnae_ae_dev *hdev, struct module *owner)
 	hdev->cls_dev.release = hnae_release;
 	(void)dev_set_name(&hdev->cls_dev, "hnae%d", hdev->id);
 	ret = device_register(&hdev->cls_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	__module_get(THIS_MODULE);
 
@@ -425,9 +515,10 @@ int hnae_ae_register(struct hnae_ae_dev *hdev, struct module *owner)
 	spin_lock_init(&hdev->lock);
 
 	ret = raw_notifier_call_chain(&ae_chain, HNAE_AE_REGISTER, NULL);
+
 	if (ret)
 		dev_dbg(hdev->dev,
-			"has not notifier for AE: %s\n", hdev->name);
+				"has not notifier for AE: %s\n", hdev->name);
 
 	return 0;
 }

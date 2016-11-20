@@ -23,7 +23,8 @@
 
 #include "dvb_frontend.h"
 
-struct tda18212_config {
+struct tda18212_config
+{
 	u16 if_dvbt_6;
 	u16 if_dvbt_7;
 	u16 if_dvbt_8;

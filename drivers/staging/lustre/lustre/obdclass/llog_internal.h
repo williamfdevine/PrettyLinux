@@ -35,7 +35,8 @@
 
 #include "../include/lustre_log.h"
 
-struct llog_process_info {
+struct llog_process_info
+{
 	struct llog_handle *lpi_loghandle;
 	llog_cb_t	   lpi_cb;
 	void	       *lpi_cbdata;
@@ -46,7 +47,8 @@ struct llog_process_info {
 
 };
 
-struct llog_thread_info {
+struct llog_thread_info
+{
 	struct lu_attr			 lgi_attr;
 	struct lu_fid			 lgi_fid;
 	struct lu_buf			 lgi_buf;
@@ -63,13 +65,13 @@ void llog_info_fini(void);
 void llog_handle_get(struct llog_handle *loghandle);
 void llog_handle_put(struct llog_handle *loghandle);
 int class_config_dump_handler(const struct lu_env *env,
-			      struct llog_handle *handle,
-			      struct llog_rec_hdr *rec, void *data);
+							  struct llog_handle *handle,
+							  struct llog_rec_hdr *rec, void *data);
 int llog_process_or_fork(const struct lu_env *env,
-			 struct llog_handle *loghandle,
-			 llog_cb_t cb, void *data, void *catdata, bool fork);
+						 struct llog_handle *loghandle,
+						 llog_cb_t cb, void *data, void *catdata, bool fork);
 int llog_cat_cleanup(const struct lu_env *env, struct llog_handle *cathandle,
-		     struct llog_handle *loghandle, int index);
+					 struct llog_handle *loghandle, int index);
 
 static inline struct llog_rec_hdr *llog_rec_hdr_next(struct llog_rec_hdr *rec)
 {

@@ -40,7 +40,7 @@ static void syncpt_restore_wait_base(struct host1x_syncpt *sp)
 	struct host1x *host = sp->host;
 
 	host1x_sync_writel(host, sp->base_val,
-			   HOST1X_SYNC_SYNCPT_BASE(sp->id));
+					   HOST1X_SYNC_SYNCPT_BASE(sp->id));
 }
 
 /*
@@ -63,15 +63,17 @@ static u32 syncpt_load(struct host1x_syncpt *sp)
 	u32 old, live;
 
 	/* Loop in case there's a race writing to min_val */
-	do {
+	do
+	{
 		old = host1x_syncpt_read_min(sp);
 		live = host1x_sync_readl(host, HOST1X_SYNC_SYNCPT(sp->id));
-	} while ((u32)atomic_cmpxchg(&sp->min_val, old, live) != old);
+	}
+	while ((u32)atomic_cmpxchg(&sp->min_val, old, live) != old);
 
 	if (!host1x_syncpt_check_max(sp, live))
 		dev_err(host->dev, "%s failed: id=%u, min=%d, max=%d\n",
-			__func__, sp->id, host1x_syncpt_read_min(sp),
-			host1x_syncpt_read_max(sp));
+				__func__, sp->id, host1x_syncpt_read_min(sp),
+				host1x_syncpt_read_max(sp));
 
 	return live;
 }
@@ -86,11 +88,13 @@ static int syncpt_cpu_incr(struct host1x_syncpt *sp)
 	u32 reg_offset = sp->id / 32;
 
 	if (!host1x_syncpt_client_managed(sp) &&
-	    host1x_syncpt_idle(sp))
+		host1x_syncpt_idle(sp))
+	{
 		return -EINVAL;
+	}
 
 	host1x_sync_writel(host, BIT_MASK(sp->id),
-			   HOST1X_SYNC_SYNCPT_CPU_INCR(reg_offset));
+					   HOST1X_SYNC_SYNCPT_CPU_INCR(reg_offset));
 	wmb();
 
 	return 0;
@@ -106,7 +110,8 @@ static int syncpt_patch_wait(struct host1x_syncpt *sp, void *patch_addr)
 	return 0;
 }
 
-static const struct host1x_syncpt_ops host1x_syncpt_ops = {
+static const struct host1x_syncpt_ops host1x_syncpt_ops =
+{
 	.restore = syncpt_restore,
 	.restore_wait_base = syncpt_restore_wait_base,
 	.load_wait_base = syncpt_read_wait_base,

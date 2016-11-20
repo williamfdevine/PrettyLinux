@@ -31,7 +31,8 @@ struct mcb_device;
  * @model: the FPGA's model number
  * @filename: the FPGA's name
  */
-struct mcb_bus {
+struct mcb_bus
+{
 	struct device dev;
 	struct device *carrier;
 	int bus_nr;
@@ -63,7 +64,8 @@ static inline struct mcb_bus *to_mcb_bus(struct device *dev)
  * @irq: IRQ resource
  * @memory: memory resource
  */
-struct mcb_device {
+struct mcb_device
+{
 	struct device dev;
 	struct mcb_bus *bus;
 	bool is_added;
@@ -93,7 +95,8 @@ static inline struct mcb_device *to_mcb_device(struct device *dev)
  * @remove: remove callback
  * @shutdown: shutdown callback
  */
-struct mcb_driver {
+struct mcb_driver
+{
 	struct device_driver driver;
 	const struct mcb_device_id *id_table;
 	int (*probe)(struct mcb_device *mdev, const struct mcb_device_id *id);
@@ -117,8 +120,8 @@ static inline void mcb_set_drvdata(struct mcb_device *dev, void *data)
 }
 
 extern int __must_check __mcb_register_driver(struct mcb_driver *drv,
-					struct module *owner,
-					const char *mod_name);
+		struct module *owner,
+		const char *mod_name);
 #define mcb_register_driver(driver)		\
 	__mcb_register_driver(driver, THIS_MODULE, KBUILD_MODNAME)
 extern void mcb_unregister_driver(struct mcb_driver *driver);
@@ -133,7 +136,7 @@ extern struct mcb_device *mcb_alloc_dev(struct mcb_bus *bus);
 extern void mcb_free_dev(struct mcb_device *dev);
 extern void mcb_release_bus(struct mcb_bus *bus);
 extern struct resource *mcb_request_mem(struct mcb_device *dev,
-					const char *name);
+										const char *name);
 extern void mcb_release_mem(struct resource *mem);
 extern int mcb_get_irq(struct mcb_device *dev);
 

@@ -25,7 +25,7 @@
 
 static void psb_lid_timer_func(unsigned long data)
 {
-	struct drm_psb_private * dev_priv = (struct drm_psb_private *)data;
+	struct drm_psb_private *dev_priv = (struct drm_psb_private *)data;
 	struct drm_device *dev = (struct drm_device *)dev_priv->dev;
 	struct timer_list *lid_timer = &dev_priv->lid_timer;
 	unsigned long irq_flags;
@@ -33,39 +33,57 @@ static void psb_lid_timer_func(unsigned long data)
 	u32 pp_status;
 
 	if (readl(lid_state) == dev_priv->lid_last_state)
+	{
 		goto lid_timer_schedule;
+	}
 
-	if ((readl(lid_state)) & 0x01) {
+	if ((readl(lid_state)) & 0x01)
+	{
 		/*lid state is open*/
 		REG_WRITE(PP_CONTROL, REG_READ(PP_CONTROL) | POWER_TARGET_ON);
-		do {
-			pp_status = REG_READ(PP_STATUS);
-		} while ((pp_status & PP_ON) == 0 &&
-			 (pp_status & PP_SEQUENCE_MASK) != 0);
 
-		if (REG_READ(PP_STATUS) & PP_ON) {
+		do
+		{
+			pp_status = REG_READ(PP_STATUS);
+		}
+		while ((pp_status & PP_ON) == 0 &&
+			   (pp_status & PP_SEQUENCE_MASK) != 0);
+
+		if (REG_READ(PP_STATUS) & PP_ON)
+		{
 			/*FIXME: should be backlight level before*/
 			psb_intel_lvds_set_brightness(dev, 100);
-		} else {
+		}
+		else
+		{
 			DRM_DEBUG("LVDS panel never powered up");
 			return;
 		}
-	} else {
+	}
+	else
+	{
 		psb_intel_lvds_set_brightness(dev, 0);
 
 		REG_WRITE(PP_CONTROL, REG_READ(PP_CONTROL) & ~POWER_TARGET_ON);
-		do {
+
+		do
+		{
 			pp_status = REG_READ(PP_STATUS);
-		} while ((pp_status & PP_ON) == 0);
+		}
+		while ((pp_status & PP_ON) == 0);
 	}
+
 	dev_priv->lid_last_state =  readl(lid_state);
 
 lid_timer_schedule:
 	spin_lock_irqsave(&dev_priv->lid_lock, irq_flags);
-	if (!timer_pending(lid_timer)) {
+
+	if (!timer_pending(lid_timer))
+	{
 		lid_timer->expires = jiffies + PSB_LID_DELAY;
 		add_timer(lid_timer);
 	}
+
 	spin_unlock_irqrestore(&dev_priv->lid_lock, irq_flags);
 }
 

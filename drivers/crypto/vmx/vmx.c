@@ -33,7 +33,8 @@ extern struct crypto_alg p8_aes_alg;
 extern struct crypto_alg p8_aes_cbc_alg;
 extern struct crypto_alg p8_aes_ctr_alg;
 extern struct crypto_alg p8_aes_xts_alg;
-static struct crypto_alg *algs[] = {
+static struct crypto_alg *algs[] =
+{
 	&p8_aes_alg,
 	&p8_aes_cbc_alg,
 	&p8_aes_ctr_alg,
@@ -46,24 +47,38 @@ int __init p8_init(void)
 	int ret = 0;
 	struct crypto_alg **alg_it;
 
-	for (alg_it = algs; *alg_it; alg_it++) {
+	for (alg_it = algs; *alg_it; alg_it++)
+	{
 		ret = crypto_register_alg(*alg_it);
 		printk(KERN_INFO "crypto_register_alg '%s' = %d\n",
-		       (*alg_it)->cra_name, ret);
-		if (ret) {
+			   (*alg_it)->cra_name, ret);
+
+		if (ret)
+		{
 			for (alg_it--; alg_it >= algs; alg_it--)
+			{
 				crypto_unregister_alg(*alg_it);
+			}
+
 			break;
 		}
 	}
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = crypto_register_shash(&p8_ghash_alg);
-	if (ret) {
+
+	if (ret)
+	{
 		for (alg_it = algs; *alg_it; alg_it++)
+		{
 			crypto_unregister_alg(*alg_it);
+		}
 	}
+
 	return ret;
 }
 
@@ -71,10 +86,12 @@ void __exit p8_exit(void)
 {
 	struct crypto_alg **alg_it;
 
-	for (alg_it = algs; *alg_it; alg_it++) {
+	for (alg_it = algs; *alg_it; alg_it++)
+	{
 		printk(KERN_INFO "Removing '%s'\n", (*alg_it)->cra_name);
 		crypto_unregister_alg(*alg_it);
 	}
+
 	crypto_unregister_shash(&p8_ghash_alg);
 }
 
@@ -83,6 +100,6 @@ module_exit(p8_exit);
 
 MODULE_AUTHOR("Marcelo Cerri<mhcerri@br.ibm.com>");
 MODULE_DESCRIPTION("IBM VMX cryptographic acceleration instructions "
-		   "support on Power 8");
+				   "support on Power 8");
 MODULE_LICENSE("GPL");
 MODULE_VERSION("1.0.0");

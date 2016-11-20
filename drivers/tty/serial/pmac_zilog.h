@@ -6,12 +6,13 @@
  */
 #define MAX_ZS_PORTS	4
 
-/* 
+/*
  * We wrap our port structure around the generic uart_port.
  */
 #define NUM_ZSREGS    17
 
-struct uart_pmac_port {
+struct uart_pmac_port
+{
 	struct uart_port		port;
 	struct uart_pmac_port		*mate;
 
@@ -71,7 +72,10 @@ struct uart_pmac_port {
 static inline struct uart_pmac_port *pmz_get_port_A(struct uart_pmac_port *uap)
 {
 	if (uap->flags & PMACZILOG_FLAG_IS_CHANNEL_A)
+	{
 		return uap;
+	}
+
 	return uap->mate;
 }
 
@@ -84,14 +88,20 @@ static inline struct uart_pmac_port *pmz_get_port_A(struct uart_pmac_port *uap)
 static inline u8 read_zsreg(struct uart_pmac_port *port, u8 reg)
 {
 	if (reg != 0)
+	{
 		writeb(reg, port->control_reg);
+	}
+
 	return readb(port->control_reg);
 }
 
 static inline void write_zsreg(struct uart_pmac_port *port, u8 reg, u8 value)
 {
 	if (reg != 0)
+	{
 		writeb(reg, port->control_reg);
+	}
+
 	writeb(value, port->control_reg);
 }
 
@@ -362,10 +372,10 @@ static inline void zssync(struct uart_pmac_port *port)
 /* Misc macros */
 #define ZS_CLEARERR(port)    (write_zsreg(port, 0, ERR_RES))
 #define ZS_CLEARFIFO(port)   do { volatile unsigned char garbage; \
-				     garbage = read_zsdata(port); \
-				     garbage = read_zsdata(port); \
-				     garbage = read_zsdata(port); \
-				} while(0)
+		garbage = read_zsdata(port); \
+		garbage = read_zsdata(port); \
+		garbage = read_zsdata(port); \
+	} while(0)
 
 #define ZS_IS_CONS(UP)			((UP)->flags & PMACZILOG_FLAG_IS_CONS)
 #define ZS_IS_KGDB(UP)			((UP)->flags & PMACZILOG_FLAG_IS_KGDB)

@@ -22,7 +22,7 @@
 #define STACK_SIZE 65536
 
 static int sys_memfd_create(const char *name,
-			    unsigned int flags)
+							unsigned int flags)
 {
 	return syscall(__NR_memfd_create, name, flags);
 }
@@ -32,14 +32,18 @@ static int mfd_assert_new(const char *name, loff_t sz, unsigned int flags)
 	int r, fd;
 
 	fd = sys_memfd_create(name, flags);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		printf("memfd_create(\"%s\", %u) failed: %m\n",
-		       name, flags);
+			   name, flags);
 		abort();
 	}
 
 	r = ftruncate(fd, sz);
-	if (r < 0) {
+
+	if (r < 0)
+	{
 		printf("ftruncate(%llu) failed: %m\n", (unsigned long long)sz);
 		abort();
 	}
@@ -52,9 +56,11 @@ static void mfd_fail_new(const char *name, unsigned int flags)
 	int r;
 
 	r = sys_memfd_create(name, flags);
-	if (r >= 0) {
+
+	if (r >= 0)
+	{
 		printf("memfd_create(\"%s\", %u) succeeded, but failure expected\n",
-		       name, flags);
+			   name, flags);
 		close(r);
 		abort();
 	}
@@ -65,7 +71,9 @@ static unsigned int mfd_assert_get_seals(int fd)
 	int r;
 
 	r = fcntl(fd, F_GET_SEALS);
-	if (r < 0) {
+
+	if (r < 0)
+	{
 		printf("GET_SEALS(%d) failed: %m\n", fd);
 		abort();
 	}
@@ -78,7 +86,9 @@ static void mfd_assert_has_seals(int fd, unsigned int seals)
 	unsigned int s;
 
 	s = mfd_assert_get_seals(fd);
-	if (s != seals) {
+
+	if (s != seals)
+	{
 		printf("%u != %u = GET_SEALS(%d)\n", seals, s, fd);
 		abort();
 	}
@@ -91,7 +101,9 @@ static void mfd_assert_add_seals(int fd, unsigned int seals)
 
 	s = mfd_assert_get_seals(fd);
 	r = fcntl(fd, F_ADD_SEALS, seals);
-	if (r < 0) {
+
+	if (r < 0)
+	{
 		printf("ADD_SEALS(%d, %u -> %u) failed: %m\n", fd, s, seals);
 		abort();
 	}
@@ -103,15 +115,22 @@ static void mfd_fail_add_seals(int fd, unsigned int seals)
 	unsigned int s;
 
 	r = fcntl(fd, F_GET_SEALS);
+
 	if (r < 0)
+	{
 		s = 0;
+	}
 	else
+	{
 		s = (unsigned int)r;
+	}
 
 	r = fcntl(fd, F_ADD_SEALS, seals);
-	if (r >= 0) {
+
+	if (r >= 0)
+	{
 		printf("ADD_SEALS(%d, %u -> %u) didn't fail as expected\n",
-				fd, s, seals);
+			   fd, s, seals);
 		abort();
 	}
 }
@@ -122,12 +141,16 @@ static void mfd_assert_size(int fd, size_t size)
 	int r;
 
 	r = fstat(fd, &st);
-	if (r < 0) {
+
+	if (r < 0)
+	{
 		printf("fstat(%d) failed: %m\n", fd);
 		abort();
-	} else if (st.st_size != size) {
+	}
+	else if (st.st_size != size)
+	{
 		printf("wrong file size %lld, but expected %lld\n",
-		       (long long)st.st_size, (long long)size);
+			   (long long)st.st_size, (long long)size);
 		abort();
 	}
 }
@@ -137,7 +160,9 @@ static int mfd_assert_dup(int fd)
 	int r;
 
 	r = dup(fd);
-	if (r < 0) {
+
+	if (r < 0)
+	{
 		printf("dup(%d) failed: %m\n", fd);
 		abort();
 	}
@@ -150,12 +175,14 @@ static void *mfd_assert_mmap_shared(int fd)
 	void *p;
 
 	p = mmap(NULL,
-		 MFD_DEF_SIZE,
-		 PROT_READ | PROT_WRITE,
-		 MAP_SHARED,
-		 fd,
-		 0);
-	if (p == MAP_FAILED) {
+			 MFD_DEF_SIZE,
+			 PROT_READ | PROT_WRITE,
+			 MAP_SHARED,
+			 fd,
+			 0);
+
+	if (p == MAP_FAILED)
+	{
 		printf("mmap() failed: %m\n");
 		abort();
 	}
@@ -168,12 +195,14 @@ static void *mfd_assert_mmap_private(int fd)
 	void *p;
 
 	p = mmap(NULL,
-		 MFD_DEF_SIZE,
-		 PROT_READ,
-		 MAP_PRIVATE,
-		 fd,
-		 0);
-	if (p == MAP_FAILED) {
+			 MFD_DEF_SIZE,
+			 PROT_READ,
+			 MAP_PRIVATE,
+			 fd,
+			 0);
+
+	if (p == MAP_FAILED)
+	{
 		printf("mmap() failed: %m\n");
 		abort();
 	}
@@ -188,7 +217,9 @@ static int mfd_assert_open(int fd, int flags, mode_t mode)
 
 	sprintf(buf, "/proc/self/fd/%d", fd);
 	r = open(buf, flags, mode);
-	if (r < 0) {
+
+	if (r < 0)
+	{
 		printf("open(%s) failed: %m\n", buf);
 		abort();
 	}
@@ -203,7 +234,9 @@ static void mfd_fail_open(int fd, int flags, mode_t mode)
 
 	sprintf(buf, "/proc/self/fd/%d", fd);
 	r = open(buf, flags, mode);
-	if (r >= 0) {
+
+	if (r >= 0)
+	{
 		printf("open(%s) didn't fail as expected\n", buf);
 		abort();
 	}
@@ -216,35 +249,43 @@ static void mfd_assert_read(int fd)
 	ssize_t l;
 
 	l = read(fd, buf, sizeof(buf));
-	if (l != sizeof(buf)) {
+
+	if (l != sizeof(buf))
+	{
 		printf("read() failed: %m\n");
 		abort();
 	}
 
 	/* verify PROT_READ *is* allowed */
 	p = mmap(NULL,
-		 MFD_DEF_SIZE,
-		 PROT_READ,
-		 MAP_PRIVATE,
-		 fd,
-		 0);
-	if (p == MAP_FAILED) {
+			 MFD_DEF_SIZE,
+			 PROT_READ,
+			 MAP_PRIVATE,
+			 fd,
+			 0);
+
+	if (p == MAP_FAILED)
+	{
 		printf("mmap() failed: %m\n");
 		abort();
 	}
+
 	munmap(p, MFD_DEF_SIZE);
 
 	/* verify MAP_PRIVATE is *always* allowed (even writable) */
 	p = mmap(NULL,
-		 MFD_DEF_SIZE,
-		 PROT_READ | PROT_WRITE,
-		 MAP_PRIVATE,
-		 fd,
-		 0);
-	if (p == MAP_FAILED) {
+			 MFD_DEF_SIZE,
+			 PROT_READ | PROT_WRITE,
+			 MAP_PRIVATE,
+			 fd,
+			 0);
+
+	if (p == MAP_FAILED)
+	{
 		printf("mmap() failed: %m\n");
 		abort();
 	}
+
 	munmap(p, MFD_DEF_SIZE);
 }
 
@@ -256,54 +297,66 @@ static void mfd_assert_write(int fd)
 
 	/* verify write() succeeds */
 	l = write(fd, "\0\0\0\0", 4);
-	if (l != 4) {
+
+	if (l != 4)
+	{
 		printf("write() failed: %m\n");
 		abort();
 	}
 
 	/* verify PROT_READ | PROT_WRITE is allowed */
 	p = mmap(NULL,
-		 MFD_DEF_SIZE,
-		 PROT_READ | PROT_WRITE,
-		 MAP_SHARED,
-		 fd,
-		 0);
-	if (p == MAP_FAILED) {
+			 MFD_DEF_SIZE,
+			 PROT_READ | PROT_WRITE,
+			 MAP_SHARED,
+			 fd,
+			 0);
+
+	if (p == MAP_FAILED)
+	{
 		printf("mmap() failed: %m\n");
 		abort();
 	}
+
 	*(char *)p = 0;
 	munmap(p, MFD_DEF_SIZE);
 
 	/* verify PROT_WRITE is allowed */
 	p = mmap(NULL,
-		 MFD_DEF_SIZE,
-		 PROT_WRITE,
-		 MAP_SHARED,
-		 fd,
-		 0);
-	if (p == MAP_FAILED) {
+			 MFD_DEF_SIZE,
+			 PROT_WRITE,
+			 MAP_SHARED,
+			 fd,
+			 0);
+
+	if (p == MAP_FAILED)
+	{
 		printf("mmap() failed: %m\n");
 		abort();
 	}
+
 	*(char *)p = 0;
 	munmap(p, MFD_DEF_SIZE);
 
 	/* verify PROT_READ with MAP_SHARED is allowed and a following
 	 * mprotect(PROT_WRITE) allows writing */
 	p = mmap(NULL,
-		 MFD_DEF_SIZE,
-		 PROT_READ,
-		 MAP_SHARED,
-		 fd,
-		 0);
-	if (p == MAP_FAILED) {
+			 MFD_DEF_SIZE,
+			 PROT_READ,
+			 MAP_SHARED,
+			 fd,
+			 0);
+
+	if (p == MAP_FAILED)
+	{
 		printf("mmap() failed: %m\n");
 		abort();
 	}
 
 	r = mprotect(p, MFD_DEF_SIZE, PROT_READ | PROT_WRITE);
-	if (r < 0) {
+
+	if (r < 0)
+	{
 		printf("mprotect() failed: %m\n");
 		abort();
 	}
@@ -313,10 +366,12 @@ static void mfd_assert_write(int fd)
 
 	/* verify PUNCH_HOLE works */
 	r = fallocate(fd,
-		      FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
-		      0,
-		      MFD_DEF_SIZE);
-	if (r < 0) {
+				  FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
+				  0,
+				  MFD_DEF_SIZE);
+
+	if (r < 0)
+	{
 		printf("fallocate(PUNCH_HOLE) failed: %m\n");
 		abort();
 	}
@@ -330,31 +385,37 @@ static void mfd_fail_write(int fd)
 
 	/* verify write() fails */
 	l = write(fd, "data", 4);
-	if (l != -EPERM) {
+
+	if (l != -EPERM)
+	{
 		printf("expected EPERM on write(), but got %d: %m\n", (int)l);
 		abort();
 	}
 
 	/* verify PROT_READ | PROT_WRITE is not allowed */
 	p = mmap(NULL,
-		 MFD_DEF_SIZE,
-		 PROT_READ | PROT_WRITE,
-		 MAP_SHARED,
-		 fd,
-		 0);
-	if (p != MAP_FAILED) {
+			 MFD_DEF_SIZE,
+			 PROT_READ | PROT_WRITE,
+			 MAP_SHARED,
+			 fd,
+			 0);
+
+	if (p != MAP_FAILED)
+	{
 		printf("mmap() didn't fail as expected\n");
 		abort();
 	}
 
 	/* verify PROT_WRITE is not allowed */
 	p = mmap(NULL,
-		 MFD_DEF_SIZE,
-		 PROT_WRITE,
-		 MAP_SHARED,
-		 fd,
-		 0);
-	if (p != MAP_FAILED) {
+			 MFD_DEF_SIZE,
+			 PROT_WRITE,
+			 MAP_SHARED,
+			 fd,
+			 0);
+
+	if (p != MAP_FAILED)
+	{
 		printf("mmap() didn't fail as expected\n");
 		abort();
 	}
@@ -362,14 +423,18 @@ static void mfd_fail_write(int fd)
 	/* Verify PROT_READ with MAP_SHARED with a following mprotect is not
 	 * allowed. Note that for r/w the kernel already prevents the mmap. */
 	p = mmap(NULL,
-		 MFD_DEF_SIZE,
-		 PROT_READ,
-		 MAP_SHARED,
-		 fd,
-		 0);
-	if (p != MAP_FAILED) {
+			 MFD_DEF_SIZE,
+			 PROT_READ,
+			 MAP_SHARED,
+			 fd,
+			 0);
+
+	if (p != MAP_FAILED)
+	{
 		r = mprotect(p, MFD_DEF_SIZE, PROT_READ | PROT_WRITE);
-		if (r >= 0) {
+
+		if (r >= 0)
+		{
 			printf("mmap()+mprotect() didn't fail as expected\n");
 			abort();
 		}
@@ -377,10 +442,12 @@ static void mfd_fail_write(int fd)
 
 	/* verify PUNCH_HOLE fails */
 	r = fallocate(fd,
-		      FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
-		      0,
-		      MFD_DEF_SIZE);
-	if (r >= 0) {
+				  FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
+				  0,
+				  MFD_DEF_SIZE);
+
+	if (r >= 0)
+	{
 		printf("fallocate(PUNCH_HOLE) didn't fail as expected\n");
 		abort();
 	}
@@ -391,7 +458,9 @@ static void mfd_assert_shrink(int fd)
 	int r, fd2;
 
 	r = ftruncate(fd, MFD_DEF_SIZE / 2);
-	if (r < 0) {
+
+	if (r < 0)
+	{
 		printf("ftruncate(SHRINK) failed: %m\n");
 		abort();
 	}
@@ -399,8 +468,8 @@ static void mfd_assert_shrink(int fd)
 	mfd_assert_size(fd, MFD_DEF_SIZE / 2);
 
 	fd2 = mfd_assert_open(fd,
-			      O_RDWR | O_CREAT | O_TRUNC,
-			      S_IRUSR | S_IWUSR);
+						  O_RDWR | O_CREAT | O_TRUNC,
+						  S_IRUSR | S_IWUSR);
 	close(fd2);
 
 	mfd_assert_size(fd, 0);
@@ -411,14 +480,16 @@ static void mfd_fail_shrink(int fd)
 	int r;
 
 	r = ftruncate(fd, MFD_DEF_SIZE / 2);
-	if (r >= 0) {
+
+	if (r >= 0)
+	{
 		printf("ftruncate(SHRINK) didn't fail as expected\n");
 		abort();
 	}
 
 	mfd_fail_open(fd,
-		      O_RDWR | O_CREAT | O_TRUNC,
-		      S_IRUSR | S_IWUSR);
+				  O_RDWR | O_CREAT | O_TRUNC,
+				  S_IRUSR | S_IWUSR);
 }
 
 static void mfd_assert_grow(int fd)
@@ -426,7 +497,9 @@ static void mfd_assert_grow(int fd)
 	int r;
 
 	r = ftruncate(fd, MFD_DEF_SIZE * 2);
-	if (r < 0) {
+
+	if (r < 0)
+	{
 		printf("ftruncate(GROW) failed: %m\n");
 		abort();
 	}
@@ -434,10 +507,12 @@ static void mfd_assert_grow(int fd)
 	mfd_assert_size(fd, MFD_DEF_SIZE * 2);
 
 	r = fallocate(fd,
-		      0,
-		      0,
-		      MFD_DEF_SIZE * 4);
-	if (r < 0) {
+				  0,
+				  0,
+				  MFD_DEF_SIZE * 4);
+
+	if (r < 0)
+	{
 		printf("fallocate(ALLOC) failed: %m\n");
 		abort();
 	}
@@ -450,16 +525,20 @@ static void mfd_fail_grow(int fd)
 	int r;
 
 	r = ftruncate(fd, MFD_DEF_SIZE * 2);
-	if (r >= 0) {
+
+	if (r >= 0)
+	{
 		printf("ftruncate(GROW) didn't fail as expected\n");
 		abort();
 	}
 
 	r = fallocate(fd,
-		      0,
-		      0,
-		      MFD_DEF_SIZE * 4);
-	if (r >= 0) {
+				  0,
+				  0,
+				  MFD_DEF_SIZE * 4);
+
+	if (r >= 0)
+	{
 		printf("fallocate(ALLOC) didn't fail as expected\n");
 		abort();
 	}
@@ -471,7 +550,9 @@ static void mfd_assert_grow_write(int fd)
 	ssize_t l;
 
 	l = pwrite(fd, buf, sizeof(buf), 0);
-	if (l != sizeof(buf)) {
+
+	if (l != sizeof(buf))
+	{
 		printf("pwrite() failed: %m\n");
 		abort();
 	}
@@ -485,7 +566,9 @@ static void mfd_fail_grow_write(int fd)
 	ssize_t l;
 
 	l = pwrite(fd, buf, sizeof(buf), 0);
-	if (l == sizeof(buf)) {
+
+	if (l == sizeof(buf))
+	{
 		printf("pwrite() didn't fail as expected\n");
 		abort();
 	}
@@ -510,16 +593,20 @@ static pid_t spawn_idle_thread(unsigned int flags)
 	pid_t pid;
 
 	stack = malloc(STACK_SIZE);
-	if (!stack) {
+
+	if (!stack)
+	{
 		printf("malloc(STACK_SIZE) failed: %m\n");
 		abort();
 	}
 
 	pid = clone(idle_thread_fn,
-		    stack + STACK_SIZE,
-		    SIGCHLD | flags,
-		    NULL);
-	if (pid < 0) {
+				stack + STACK_SIZE,
+				SIGCHLD | flags,
+				NULL);
+
+	if (pid < 0)
+	{
 		printf("clone() failed: %m\n");
 		abort();
 	}
@@ -588,28 +675,28 @@ static void test_basic(void)
 	int fd;
 
 	fd = mfd_assert_new("kern_memfd_basic",
-			    MFD_DEF_SIZE,
-			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
+						MFD_DEF_SIZE,
+						MFD_CLOEXEC | MFD_ALLOW_SEALING);
 
 	/* add basic seals */
 	mfd_assert_has_seals(fd, 0);
 	mfd_assert_add_seals(fd, F_SEAL_SHRINK |
-				 F_SEAL_WRITE);
+						 F_SEAL_WRITE);
 	mfd_assert_has_seals(fd, F_SEAL_SHRINK |
-				 F_SEAL_WRITE);
+						 F_SEAL_WRITE);
 
 	/* add them again */
 	mfd_assert_add_seals(fd, F_SEAL_SHRINK |
-				 F_SEAL_WRITE);
+						 F_SEAL_WRITE);
 	mfd_assert_has_seals(fd, F_SEAL_SHRINK |
-				 F_SEAL_WRITE);
+						 F_SEAL_WRITE);
 
 	/* add more seals and seal against sealing */
 	mfd_assert_add_seals(fd, F_SEAL_GROW | F_SEAL_SEAL);
 	mfd_assert_has_seals(fd, F_SEAL_SHRINK |
-				 F_SEAL_GROW |
-				 F_SEAL_WRITE |
-				 F_SEAL_SEAL);
+						 F_SEAL_GROW |
+						 F_SEAL_WRITE |
+						 F_SEAL_SEAL);
 
 	/* verify that sealing no longer works */
 	mfd_fail_add_seals(fd, F_SEAL_GROW);
@@ -619,12 +706,12 @@ static void test_basic(void)
 
 	/* verify sealing does not work without MFD_ALLOW_SEALING */
 	fd = mfd_assert_new("kern_memfd_basic",
-			    MFD_DEF_SIZE,
-			    MFD_CLOEXEC);
+						MFD_DEF_SIZE,
+						MFD_CLOEXEC);
 	mfd_assert_has_seals(fd, F_SEAL_SEAL);
 	mfd_fail_add_seals(fd, F_SEAL_SHRINK |
-			       F_SEAL_GROW |
-			       F_SEAL_WRITE);
+					   F_SEAL_GROW |
+					   F_SEAL_WRITE);
 	mfd_assert_has_seals(fd, F_SEAL_SEAL);
 	close(fd);
 }
@@ -638,8 +725,8 @@ static void test_seal_write(void)
 	int fd;
 
 	fd = mfd_assert_new("kern_memfd_seal_write",
-			    MFD_DEF_SIZE,
-			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
+						MFD_DEF_SIZE,
+						MFD_CLOEXEC | MFD_ALLOW_SEALING);
 	mfd_assert_has_seals(fd, 0);
 	mfd_assert_add_seals(fd, F_SEAL_WRITE);
 	mfd_assert_has_seals(fd, F_SEAL_WRITE);
@@ -662,8 +749,8 @@ static void test_seal_shrink(void)
 	int fd;
 
 	fd = mfd_assert_new("kern_memfd_seal_shrink",
-			    MFD_DEF_SIZE,
-			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
+						MFD_DEF_SIZE,
+						MFD_CLOEXEC | MFD_ALLOW_SEALING);
 	mfd_assert_has_seals(fd, 0);
 	mfd_assert_add_seals(fd, F_SEAL_SHRINK);
 	mfd_assert_has_seals(fd, F_SEAL_SHRINK);
@@ -686,8 +773,8 @@ static void test_seal_grow(void)
 	int fd;
 
 	fd = mfd_assert_new("kern_memfd_seal_grow",
-			    MFD_DEF_SIZE,
-			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
+						MFD_DEF_SIZE,
+						MFD_CLOEXEC | MFD_ALLOW_SEALING);
 	mfd_assert_has_seals(fd, 0);
 	mfd_assert_add_seals(fd, F_SEAL_GROW);
 	mfd_assert_has_seals(fd, F_SEAL_GROW);
@@ -710,8 +797,8 @@ static void test_seal_resize(void)
 	int fd;
 
 	fd = mfd_assert_new("kern_memfd_seal_resize",
-			    MFD_DEF_SIZE,
-			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
+						MFD_DEF_SIZE,
+						MFD_CLOEXEC | MFD_ALLOW_SEALING);
 	mfd_assert_has_seals(fd, 0);
 	mfd_assert_add_seals(fd, F_SEAL_SHRINK | F_SEAL_GROW);
 	mfd_assert_has_seals(fd, F_SEAL_SHRINK | F_SEAL_GROW);
@@ -734,8 +821,8 @@ static void test_share_dup(void)
 	int fd, fd2;
 
 	fd = mfd_assert_new("kern_memfd_share_dup",
-			    MFD_DEF_SIZE,
-			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
+						MFD_DEF_SIZE,
+						MFD_CLOEXEC | MFD_ALLOW_SEALING);
 	mfd_assert_has_seals(fd, 0);
 
 	fd2 = mfd_assert_dup(fd);
@@ -774,8 +861,8 @@ static void test_share_mmap(void)
 	void *p;
 
 	fd = mfd_assert_new("kern_memfd_share_mmap",
-			    MFD_DEF_SIZE,
-			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
+						MFD_DEF_SIZE,
+						MFD_CLOEXEC | MFD_ALLOW_SEALING);
 	mfd_assert_has_seals(fd, 0);
 
 	/* shared/writable ref prevents sealing WRITE, but allows others */
@@ -806,8 +893,8 @@ static void test_share_open(void)
 	int fd, fd2;
 
 	fd = mfd_assert_new("kern_memfd_share_open",
-			    MFD_DEF_SIZE,
-			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
+						MFD_DEF_SIZE,
+						MFD_CLOEXEC | MFD_ALLOW_SEALING);
 	mfd_assert_has_seals(fd, 0);
 
 	fd2 = mfd_assert_open(fd, O_RDWR, 0);
@@ -847,8 +934,8 @@ static void test_share_fork(void)
 	pid_t pid;
 
 	fd = mfd_assert_new("kern_memfd_share_fork",
-			    MFD_DEF_SIZE,
-			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
+						MFD_DEF_SIZE,
+						MFD_CLOEXEC | MFD_ALLOW_SEALING);
 	mfd_assert_has_seals(fd, 0);
 
 	pid = spawn_idle_thread(0);

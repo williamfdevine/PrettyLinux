@@ -194,16 +194,23 @@ static int ep93xx_mdio_read(struct net_device *dev, int phy_id, int reg)
 
 	wrl(ep, REG_MIICMD, REG_MIICMD_READ | (phy_id << 5) | reg);
 
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; i++)
+	{
 		if ((rdl(ep, REG_MIISTS) & REG_MIISTS_BUSY) == 0)
+		{
 			break;
+		}
+
 		msleep(1);
 	}
 
-	if (i == 10) {
+	if (i == 10)
+	{
 		pr_info("mdio read timed out\n");
 		data = 0xffff;
-	} else {
+	}
+	else
+	{
 		data = rdl(ep, REG_MIIDATA);
 	}
 
@@ -218,21 +225,28 @@ static void ep93xx_mdio_write(struct net_device *dev, int phy_id, int reg, int d
 	wrl(ep, REG_MIIDATA, data);
 	wrl(ep, REG_MIICMD, REG_MIICMD_WRITE | (phy_id << 5) | reg);
 
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; i++)
+	{
 		if ((rdl(ep, REG_MIISTS) & REG_MIISTS_BUSY) == 0)
+		{
 			break;
+		}
+
 		msleep(1);
 	}
 
 	if (i == 10)
+	{
 		pr_info("mdio write timed out\n");
+	}
 }
 
 static int ep93xx_rx(struct net_device *dev, int processed, int budget)
 {
 	struct ep93xx_priv *ep = netdev_priv(dev);
 
-	while (processed < budget) {
+	while (processed < budget)
+	{
 		int entry;
 		struct ep93xx_rstat *rstat;
 		u32 rstat0;
@@ -245,52 +259,83 @@ static int ep93xx_rx(struct net_device *dev, int processed, int budget)
 
 		rstat0 = rstat->rstat0;
 		rstat1 = rstat->rstat1;
+
 		if (!(rstat0 & RSTAT0_RFP) || !(rstat1 & RSTAT1_RFP))
+		{
 			break;
+		}
 
 		rstat->rstat0 = 0;
 		rstat->rstat1 = 0;
 
 		if (!(rstat0 & RSTAT0_EOF))
+		{
 			pr_crit("not end-of-frame %.8x %.8x\n", rstat0, rstat1);
-		if (!(rstat0 & RSTAT0_EOB))
-			pr_crit("not end-of-buffer %.8x %.8x\n", rstat0, rstat1);
-		if ((rstat1 & RSTAT1_BUFFER_INDEX) >> 16 != entry)
-			pr_crit("entry mismatch %.8x %.8x\n", rstat0, rstat1);
+		}
 
-		if (!(rstat0 & RSTAT0_RWE)) {
+		if (!(rstat0 & RSTAT0_EOB))
+		{
+			pr_crit("not end-of-buffer %.8x %.8x\n", rstat0, rstat1);
+		}
+
+		if ((rstat1 & RSTAT1_BUFFER_INDEX) >> 16 != entry)
+		{
+			pr_crit("entry mismatch %.8x %.8x\n", rstat0, rstat1);
+		}
+
+		if (!(rstat0 & RSTAT0_RWE))
+		{
 			dev->stats.rx_errors++;
+
 			if (rstat0 & RSTAT0_OE)
+			{
 				dev->stats.rx_fifo_errors++;
+			}
+
 			if (rstat0 & RSTAT0_FE)
+			{
 				dev->stats.rx_frame_errors++;
+			}
+
 			if (rstat0 & (RSTAT0_RUNT | RSTAT0_EDATA))
+			{
 				dev->stats.rx_length_errors++;
+			}
+
 			if (rstat0 & RSTAT0_CRCE)
+			{
 				dev->stats.rx_crc_errors++;
+			}
+
 			goto err;
 		}
 
 		length = rstat1 & RSTAT1_FRAME_LENGTH;
-		if (length > MAX_PKT_SIZE) {
+
+		if (length > MAX_PKT_SIZE)
+		{
 			pr_notice("invalid length %.8x %.8x\n", rstat0, rstat1);
 			goto err;
 		}
 
 		/* Strip FCS.  */
 		if (rstat0 & RSTAT0_CRCI)
+		{
 			length -= 4;
+		}
 
 		skb = netdev_alloc_skb(dev, length + 2);
-		if (likely(skb != NULL)) {
+
+		if (likely(skb != NULL))
+		{
 			struct ep93xx_rdesc *rxd = &ep->descs->rdesc[entry];
 			skb_reserve(skb, 2);
 			dma_sync_single_for_cpu(dev->dev.parent, rxd->buf_addr,
-						length, DMA_FROM_DEVICE);
+									length, DMA_FROM_DEVICE);
 			skb_copy_to_linear_data(skb, ep->rx_buf[entry], length);
 			dma_sync_single_for_device(dev->dev.parent,
-						   rxd->buf_addr, length,
-						   DMA_FROM_DEVICE);
+									   rxd->buf_addr, length,
+									   DMA_FROM_DEVICE);
 			skb_put(skb, length);
 			skb->protocol = eth_type_trans(skb, dev);
 
@@ -298,7 +343,9 @@ static int ep93xx_rx(struct net_device *dev, int processed, int budget)
 
 			dev->stats.rx_packets++;
 			dev->stats.rx_bytes += length;
-		} else {
+		}
+		else
+		{
 			dev->stats.rx_dropped++;
 		}
 
@@ -324,24 +371,32 @@ static int ep93xx_poll(struct napi_struct *napi, int budget)
 
 poll_some_more:
 	rx = ep93xx_rx(dev, rx, budget);
-	if (rx < budget) {
+
+	if (rx < budget)
+	{
 		int more = 0;
 
 		spin_lock_irq(&ep->rx_lock);
 		__napi_complete(napi);
 		wrl(ep, REG_INTEN, REG_INTEN_TX | REG_INTEN_RX);
-		if (ep93xx_have_more_rx(ep)) {
+
+		if (ep93xx_have_more_rx(ep))
+		{
 			wrl(ep, REG_INTEN, REG_INTEN_TX);
 			wrl(ep, REG_INTSTSP, REG_INTSTS_RX);
 			more = 1;
 		}
+
 		spin_unlock_irq(&ep->rx_lock);
 
 		if (more && napi_reschedule(napi))
+		{
 			goto poll_some_more;
+		}
 	}
 
-	if (rx) {
+	if (rx)
+	{
 		wrw(ep, REG_RXDENQ, rx);
 		wrw(ep, REG_RXSTSENQ, rx);
 	}
@@ -355,7 +410,8 @@ static int ep93xx_xmit(struct sk_buff *skb, struct net_device *dev)
 	struct ep93xx_tdesc *txd;
 	int entry;
 
-	if (unlikely(skb->len > MAX_PKT_SIZE)) {
+	if (unlikely(skb->len > MAX_PKT_SIZE))
+	{
 		dev->stats.tx_dropped++;
 		dev_kfree_skb(skb);
 		return NETDEV_TX_OK;
@@ -368,16 +424,20 @@ static int ep93xx_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	txd->tdesc1 = TDESC1_EOF | (entry << 16) | (skb->len & 0xfff);
 	dma_sync_single_for_cpu(dev->dev.parent, txd->buf_addr, skb->len,
-				DMA_TO_DEVICE);
+							DMA_TO_DEVICE);
 	skb_copy_and_csum_dev(skb, ep->tx_buf[entry]);
 	dma_sync_single_for_device(dev->dev.parent, txd->buf_addr, skb->len,
-				   DMA_TO_DEVICE);
+							   DMA_TO_DEVICE);
 	dev_kfree_skb(skb);
 
 	spin_lock_irq(&ep->tx_pending_lock);
 	ep->tx_pending++;
+
 	if (ep->tx_pending == TX_QUEUE_ENTRIES)
+	{
 		netif_stop_queue(dev);
+	}
+
 	spin_unlock_irq(&ep->tx_pending_lock);
 
 	wrl(ep, REG_TXDENQ, 1);
@@ -393,7 +453,9 @@ static void ep93xx_tx_complete(struct net_device *dev)
 	wake = 0;
 
 	spin_lock(&ep->tx_pending_lock);
-	while (1) {
+
+	while (1)
+	{
 		int entry;
 		struct ep93xx_tstat *tstat;
 		u32 tstat0;
@@ -402,40 +464,64 @@ static void ep93xx_tx_complete(struct net_device *dev)
 		tstat = ep->descs->tstat + entry;
 
 		tstat0 = tstat->tstat0;
+
 		if (!(tstat0 & TSTAT0_TXFP))
+		{
 			break;
+		}
 
 		tstat->tstat0 = 0;
 
 		if (tstat0 & TSTAT0_FA)
+		{
 			pr_crit("frame aborted %.8x\n", tstat0);
-		if ((tstat0 & TSTAT0_BUFFER_INDEX) != entry)
-			pr_crit("entry mismatch %.8x\n", tstat0);
+		}
 
-		if (tstat0 & TSTAT0_TXWE) {
+		if ((tstat0 & TSTAT0_BUFFER_INDEX) != entry)
+		{
+			pr_crit("entry mismatch %.8x\n", tstat0);
+		}
+
+		if (tstat0 & TSTAT0_TXWE)
+		{
 			int length = ep->descs->tdesc[entry].tdesc1 & 0xfff;
 
 			dev->stats.tx_packets++;
 			dev->stats.tx_bytes += length;
-		} else {
+		}
+		else
+		{
 			dev->stats.tx_errors++;
 		}
 
 		if (tstat0 & TSTAT0_OW)
+		{
 			dev->stats.tx_window_errors++;
+		}
+
 		if (tstat0 & TSTAT0_TXU)
+		{
 			dev->stats.tx_fifo_errors++;
+		}
+
 		dev->stats.collisions += (tstat0 >> 16) & 0x1f;
 
 		ep->tx_clean_pointer = (entry + 1) & (TX_QUEUE_ENTRIES - 1);
+
 		if (ep->tx_pending == TX_QUEUE_ENTRIES)
+		{
 			wake = 1;
+		}
+
 		ep->tx_pending--;
 	}
+
 	spin_unlock(&ep->tx_pending_lock);
 
 	if (wake)
+	{
 		netif_wake_queue(dev);
+	}
 }
 
 static irqreturn_t ep93xx_irq(int irq, void *dev_id)
@@ -445,20 +531,29 @@ static irqreturn_t ep93xx_irq(int irq, void *dev_id)
 	u32 status;
 
 	status = rdl(ep, REG_INTSTSC);
-	if (status == 0)
-		return IRQ_NONE;
 
-	if (status & REG_INTSTS_RX) {
+	if (status == 0)
+	{
+		return IRQ_NONE;
+	}
+
+	if (status & REG_INTSTS_RX)
+	{
 		spin_lock(&ep->rx_lock);
-		if (likely(napi_schedule_prep(&ep->napi))) {
+
+		if (likely(napi_schedule_prep(&ep->napi)))
+		{
 			wrl(ep, REG_INTEN, REG_INTEN_TX);
 			__napi_schedule(&ep->napi);
 		}
+
 		spin_unlock(&ep->rx_lock);
 	}
 
 	if (status & REG_INTSTS_TX)
+	{
 		ep93xx_tx_complete(dev);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -468,28 +563,36 @@ static void ep93xx_free_buffers(struct ep93xx_priv *ep)
 	struct device *dev = ep->dev->dev.parent;
 	int i;
 
-	for (i = 0; i < RX_QUEUE_ENTRIES; i++) {
+	for (i = 0; i < RX_QUEUE_ENTRIES; i++)
+	{
 		dma_addr_t d;
 
 		d = ep->descs->rdesc[i].buf_addr;
+
 		if (d)
+		{
 			dma_unmap_single(dev, d, PKT_BUF_SIZE, DMA_FROM_DEVICE);
+		}
 
 		kfree(ep->rx_buf[i]);
 	}
 
-	for (i = 0; i < TX_QUEUE_ENTRIES; i++) {
+	for (i = 0; i < TX_QUEUE_ENTRIES; i++)
+	{
 		dma_addr_t d;
 
 		d = ep->descs->tdesc[i].buf_addr;
+
 		if (d)
+		{
 			dma_unmap_single(dev, d, PKT_BUF_SIZE, DMA_TO_DEVICE);
+		}
 
 		kfree(ep->tx_buf[i]);
 	}
 
 	dma_free_coherent(dev, sizeof(struct ep93xx_descs), ep->descs,
-							ep->descs_dma_addr);
+					  ep->descs_dma_addr);
 }
 
 static int ep93xx_alloc_buffers(struct ep93xx_priv *ep)
@@ -498,20 +601,29 @@ static int ep93xx_alloc_buffers(struct ep93xx_priv *ep)
 	int i;
 
 	ep->descs = dma_alloc_coherent(dev, sizeof(struct ep93xx_descs),
-				&ep->descs_dma_addr, GFP_KERNEL);
-	if (ep->descs == NULL)
-		return 1;
+								   &ep->descs_dma_addr, GFP_KERNEL);
 
-	for (i = 0; i < RX_QUEUE_ENTRIES; i++) {
+	if (ep->descs == NULL)
+	{
+		return 1;
+	}
+
+	for (i = 0; i < RX_QUEUE_ENTRIES; i++)
+	{
 		void *buf;
 		dma_addr_t d;
 
 		buf = kmalloc(PKT_BUF_SIZE, GFP_KERNEL);
+
 		if (buf == NULL)
+		{
 			goto err;
+		}
 
 		d = dma_map_single(dev, buf, PKT_BUF_SIZE, DMA_FROM_DEVICE);
-		if (dma_mapping_error(dev, d)) {
+
+		if (dma_mapping_error(dev, d))
+		{
 			kfree(buf);
 			goto err;
 		}
@@ -521,16 +633,22 @@ static int ep93xx_alloc_buffers(struct ep93xx_priv *ep)
 		ep->descs->rdesc[i].rdesc1 = (i << 16) | PKT_BUF_SIZE;
 	}
 
-	for (i = 0; i < TX_QUEUE_ENTRIES; i++) {
+	for (i = 0; i < TX_QUEUE_ENTRIES; i++)
+	{
 		void *buf;
 		dma_addr_t d;
 
 		buf = kmalloc(PKT_BUF_SIZE, GFP_KERNEL);
+
 		if (buf == NULL)
+		{
 			goto err;
+		}
 
 		d = dma_map_single(dev, buf, PKT_BUF_SIZE, DMA_TO_DEVICE);
-		if (dma_mapping_error(dev, d)) {
+
+		if (dma_mapping_error(dev, d))
+		{
 			kfree(buf);
 			goto err;
 		}
@@ -553,13 +671,19 @@ static int ep93xx_start_hw(struct net_device *dev)
 	int i;
 
 	wrl(ep, REG_SELFCTL, REG_SELFCTL_RESET);
-	for (i = 0; i < 10; i++) {
+
+	for (i = 0; i < 10; i++)
+	{
 		if ((rdl(ep, REG_SELFCTL) & REG_SELFCTL_RESET) == 0)
+		{
 			break;
+		}
+
 		msleep(1);
 	}
 
-	if (i == 10) {
+	if (i == 10)
+	{
 		pr_crit("hw failed to reset\n");
 		return 1;
 	}
@@ -568,7 +692,9 @@ static int ep93xx_start_hw(struct net_device *dev)
 
 	/* Does the PHY support preamble suppress?  */
 	if ((ep93xx_mdio_read(dev, ep->mii.phy_id, MII_BMSR) & 0x0040) != 0)
+	{
 		wrl(ep, REG_SELFCTL, ((ep->mdc_divisor - 1) << 9) | (1 << 8));
+	}
 
 	/* Receive descriptor ring.  */
 	addr = ep->descs_dma_addr + offsetof(struct ep93xx_descs, rdesc);
@@ -598,13 +724,18 @@ static int ep93xx_start_hw(struct net_device *dev)
 	wrl(ep, REG_INTEN, REG_INTEN_TX | REG_INTEN_RX);
 	wrl(ep, REG_GIINTMSK, 0);
 
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; i++)
+	{
 		if ((rdl(ep, REG_BMSTS) & REG_BMSTS_RX_ACTIVE) != 0)
+		{
 			break;
+		}
+
 		msleep(1);
 	}
 
-	if (i == 10) {
+	if (i == 10)
+	{
 		pr_crit("hw failed to start\n");
 		return 1;
 	}
@@ -634,14 +765,21 @@ static void ep93xx_stop_hw(struct net_device *dev)
 	int i;
 
 	wrl(ep, REG_SELFCTL, REG_SELFCTL_RESET);
-	for (i = 0; i < 10; i++) {
+
+	for (i = 0; i < 10; i++)
+	{
 		if ((rdl(ep, REG_SELFCTL) & REG_SELFCTL_RESET) == 0)
+		{
 			break;
+		}
+
 		msleep(1);
 	}
 
 	if (i == 10)
+	{
 		pr_crit("hw failed to reset\n");
+	}
 }
 
 static int ep93xx_open(struct net_device *dev)
@@ -650,11 +788,14 @@ static int ep93xx_open(struct net_device *dev)
 	int err;
 
 	if (ep93xx_alloc_buffers(ep))
+	{
 		return -ENOMEM;
+	}
 
 	napi_enable(&ep->napi);
 
-	if (ep93xx_start_hw(dev)) {
+	if (ep93xx_start_hw(dev))
+	{
 		napi_disable(&ep->napi);
 		ep93xx_free_buffers(ep);
 		return -EIO;
@@ -668,7 +809,9 @@ static int ep93xx_open(struct net_device *dev)
 	ep->tx_pending = 0;
 
 	err = request_irq(ep->irq, ep93xx_irq, IRQF_SHARED, dev->name, dev);
-	if (err) {
+
+	if (err)
+	{
 		napi_disable(&ep->napi);
 		ep93xx_stop_hw(dev);
 		ep93xx_free_buffers(ep);
@@ -735,7 +878,8 @@ static u32 ep93xx_get_link(struct net_device *dev)
 	return mii_link_ok(&ep->mii);
 }
 
-static const struct ethtool_ops ep93xx_ethtool_ops = {
+static const struct ethtool_ops ep93xx_ethtool_ops =
+{
 	.get_drvinfo		= ep93xx_get_drvinfo,
 	.get_settings		= ep93xx_get_settings,
 	.set_settings		= ep93xx_set_settings,
@@ -743,7 +887,8 @@ static const struct ethtool_ops ep93xx_ethtool_ops = {
 	.get_link		= ep93xx_get_link,
 };
 
-static const struct net_device_ops ep93xx_netdev_ops = {
+static const struct net_device_ops ep93xx_netdev_ops =
+{
 	.ndo_open		= ep93xx_open,
 	.ndo_stop		= ep93xx_close,
 	.ndo_start_xmit		= ep93xx_xmit,
@@ -758,8 +903,11 @@ static struct net_device *ep93xx_dev_alloc(struct ep93xx_eth_data *data)
 	struct net_device *dev;
 
 	dev = alloc_etherdev(sizeof(struct ep93xx_priv));
+
 	if (dev == NULL)
+	{
 		return NULL;
+	}
 
 	memcpy(dev->dev_addr, data->dev_addr, ETH_ALEN);
 
@@ -778,8 +926,11 @@ static int ep93xx_eth_remove(struct platform_device *pdev)
 	struct ep93xx_priv *ep;
 
 	dev = platform_get_drvdata(pdev);
+
 	if (dev == NULL)
+	{
 		return 0;
+	}
 
 	ep = netdev_priv(dev);
 
@@ -788,9 +939,12 @@ static int ep93xx_eth_remove(struct platform_device *pdev)
 	ep93xx_free_buffers(ep);
 
 	if (ep->base_addr != NULL)
+	{
 		iounmap(ep->base_addr);
+	}
 
-	if (ep->res != NULL) {
+	if (ep->res != NULL)
+	{
 		release_resource(ep->res);
 		kfree(ep->res);
 	}
@@ -810,19 +964,28 @@ static int ep93xx_eth_probe(struct platform_device *pdev)
 	int err;
 
 	if (pdev == NULL)
+	{
 		return -ENODEV;
+	}
+
 	data = dev_get_platdata(&pdev->dev);
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	irq = platform_get_irq(pdev, 0);
+
 	if (!mem || irq < 0)
+	{
 		return -ENXIO;
+	}
 
 	dev = ep93xx_dev_alloc(data);
-	if (dev == NULL) {
+
+	if (dev == NULL)
+	{
 		err = -ENOMEM;
 		goto err_out;
 	}
+
 	ep = netdev_priv(dev);
 	ep->dev = dev;
 	SET_NETDEV_DEV(dev, &pdev->dev);
@@ -831,19 +994,24 @@ static int ep93xx_eth_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, dev);
 
 	ep->res = request_mem_region(mem->start, resource_size(mem),
-				     dev_name(&pdev->dev));
-	if (ep->res == NULL) {
+								 dev_name(&pdev->dev));
+
+	if (ep->res == NULL)
+	{
 		dev_err(&pdev->dev, "Could not reserve memory region\n");
 		err = -ENOMEM;
 		goto err_out;
 	}
 
 	ep->base_addr = ioremap(mem->start, resource_size(mem));
-	if (ep->base_addr == NULL) {
+
+	if (ep->base_addr == NULL)
+	{
 		dev_err(&pdev->dev, "Failed to ioremap ethernet registers\n");
 		err = -EIO;
 		goto err_out;
 	}
+
 	ep->irq = irq;
 
 	ep->mii.phy_id = data->phy_id;
@@ -855,16 +1023,20 @@ static int ep93xx_eth_probe(struct platform_device *pdev)
 	ep->mdc_divisor = 40;	/* Max HCLK 100 MHz, min MDIO clk 2.5 MHz.  */
 
 	if (is_zero_ether_addr(dev->dev_addr))
+	{
 		eth_hw_addr_random(dev);
+	}
 
 	err = register_netdev(dev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Failed to register netdev\n");
 		goto err_out;
 	}
 
 	printk(KERN_INFO "%s: ep93xx on-chip ethernet, IRQ %d, %pM\n",
-			dev->name, ep->irq, dev->dev_addr);
+		   dev->name, ep->irq, dev->dev_addr);
 
 	return 0;
 
@@ -874,7 +1046,8 @@ err_out:
 }
 
 
-static struct platform_driver ep93xx_eth_driver = {
+static struct platform_driver ep93xx_eth_driver =
+{
 	.probe		= ep93xx_eth_probe,
 	.remove		= ep93xx_eth_remove,
 	.driver		= {

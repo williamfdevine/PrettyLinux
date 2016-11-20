@@ -35,18 +35,28 @@ static struct integrity_iint_cache *__integrity_iint_find(struct inode *inode)
 	struct integrity_iint_cache *iint;
 	struct rb_node *n = integrity_iint_tree.rb_node;
 
-	while (n) {
+	while (n)
+	{
 		iint = rb_entry(n, struct integrity_iint_cache, rb_node);
 
 		if (inode < iint->inode)
+		{
 			n = n->rb_left;
+		}
 		else if (inode > iint->inode)
+		{
 			n = n->rb_right;
+		}
 		else
+		{
 			break;
+		}
 	}
+
 	if (!n)
+	{
 		return NULL;
+	}
 
 	return iint;
 }
@@ -59,7 +69,9 @@ struct integrity_iint_cache *integrity_iint_find(struct inode *inode)
 	struct integrity_iint_cache *iint;
 
 	if (!IS_IMA(inode))
+	{
 		return NULL;
+	}
 
 	read_lock(&integrity_iint_lock);
 	iint = __integrity_iint_find(inode);
@@ -97,24 +109,37 @@ struct integrity_iint_cache *integrity_inode_get(struct inode *inode)
 	struct integrity_iint_cache *iint, *test_iint;
 
 	iint = integrity_iint_find(inode);
+
 	if (iint)
+	{
 		return iint;
+	}
 
 	iint = kmem_cache_alloc(iint_cache, GFP_NOFS);
+
 	if (!iint)
+	{
 		return NULL;
+	}
 
 	write_lock(&integrity_iint_lock);
 
 	p = &integrity_iint_tree.rb_node;
-	while (*p) {
+
+	while (*p)
+	{
 		parent = *p;
 		test_iint = rb_entry(parent, struct integrity_iint_cache,
-				     rb_node);
+							 rb_node);
+
 		if (inode < test_iint->inode)
+		{
 			p = &(*p)->rb_left;
+		}
 		else
+		{
 			p = &(*p)->rb_right;
+		}
 	}
 
 	iint->inode = inode;
@@ -138,7 +163,9 @@ void integrity_inode_free(struct inode *inode)
 	struct integrity_iint_cache *iint;
 
 	if (!IS_IMA(inode))
+	{
 		return;
+	}
 
 	write_lock(&integrity_iint_lock);
 	iint = __integrity_iint_find(inode);
@@ -166,8 +193,8 @@ static void init_once(void *foo)
 static int __init integrity_iintcache_init(void)
 {
 	iint_cache =
-	    kmem_cache_create("iint_cache", sizeof(struct integrity_iint_cache),
-			      0, SLAB_PANIC, init_once);
+		kmem_cache_create("iint_cache", sizeof(struct integrity_iint_cache),
+						  0, SLAB_PANIC, init_once);
 	return 0;
 }
 security_initcall(integrity_iintcache_init);
@@ -182,14 +209,16 @@ security_initcall(integrity_iintcache_init);
  *
  */
 int integrity_kernel_read(struct file *file, loff_t offset,
-			  char *addr, unsigned long count)
+						  char *addr, unsigned long count)
 {
 	mm_segment_t old_fs;
 	char __user *buf = (char __user *)addr;
 	ssize_t ret;
 
 	if (!(file->f_mode & FMODE_READ))
+	{
 		return -EBADF;
+	}
 
 	old_fs = get_fs();
 	set_fs(get_ds());
@@ -216,33 +245,50 @@ int __init integrity_read_file(const char *path, char **data)
 	int rc = -EINVAL;
 
 	if (!path || !*path)
+	{
 		return -EINVAL;
+	}
 
 	file = filp_open(path, O_RDONLY, 0);
-	if (IS_ERR(file)) {
+
+	if (IS_ERR(file))
+	{
 		rc = PTR_ERR(file);
 		pr_err("Unable to open file: %s (%d)", path, rc);
 		return rc;
 	}
 
 	size = i_size_read(file_inode(file));
+
 	if (size <= 0)
+	{
 		goto out;
+	}
 
 	buf = kmalloc(size, GFP_KERNEL);
-	if (!buf) {
+
+	if (!buf)
+	{
 		rc = -ENOMEM;
 		goto out;
 	}
 
 	rc = integrity_kernel_read(file, 0, buf, size);
-	if (rc == size) {
+
+	if (rc == size)
+	{
 		*data = buf;
-	} else {
-		kfree(buf);
-		if (rc >= 0)
-			rc = -EIO;
 	}
+	else
+	{
+		kfree(buf);
+
+		if (rc >= 0)
+		{
+			rc = -EIO;
+		}
+	}
+
 out:
 	fput(file);
 	return rc;

@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-struct xt_classify_target_info {
+struct xt_classify_target_info
+{
 	__u32 priority;
 };
 

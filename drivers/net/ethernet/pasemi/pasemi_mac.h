@@ -33,7 +33,8 @@
 
 #define MAX_CS	2
 
-struct pasemi_mac_txring {
+struct pasemi_mac_txring
+{
 	struct pasemi_dmachan chan; /* Must be first */
 	spinlock_t	 lock;
 	unsigned int	 size;
@@ -44,7 +45,8 @@ struct pasemi_mac_txring {
 	struct timer_list clean_timer;
 };
 
-struct pasemi_mac_rxring {
+struct pasemi_mac_rxring
+{
 	struct pasemi_dmachan chan; /* Must be first */
 	spinlock_t	 lock;
 	u64		*buffers;	/* RX interface buffer ring */
@@ -56,7 +58,8 @@ struct pasemi_mac_rxring {
 	struct pasemi_mac *mac;	/* Needed in intr handler */
 };
 
-struct pasemi_mac_csring {
+struct pasemi_mac_csring
+{
 	struct pasemi_dmachan chan;
 	unsigned int	size;
 	unsigned int	next_to_fill;
@@ -65,7 +68,8 @@ struct pasemi_mac_csring {
 	int		fun;
 };
 
-struct pasemi_mac {
+struct pasemi_mac
+{
 	struct net_device *netdev;
 	struct pci_dev *pdev;
 	struct pci_dev *dma_pdev;
@@ -97,7 +101,8 @@ struct pasemi_mac {
 };
 
 /* Software status descriptor (ring_info) */
-struct pasemi_mac_buffer {
+struct pasemi_mac_buffer
+{
 	struct sk_buff *skb;
 	dma_addr_t	dma;
 };
@@ -110,14 +115,15 @@ struct pasemi_mac_buffer {
 #define CS_DESC(cs, num)	((cs)->chan.ring_virt[(num) & (CS_RING_SIZE-1)])
 
 #define RING_USED(ring)	(((ring)->next_to_fill - (ring)->next_to_clean) \
-				& ((ring)->size - 1))
+						 & ((ring)->size - 1))
 #define RING_AVAIL(ring)	((ring->size) - RING_USED(ring))
 
 /* PCI register offsets and formats */
 
 
 /* MAC CFG register offsets */
-enum {
+enum
+{
 	PAS_MAC_CFG_PCFG = 0x80,
 	PAS_MAC_CFG_MACCFG = 0x84,
 	PAS_MAC_CFG_ADR0 = 0x8c,
@@ -165,7 +171,7 @@ enum {
 #define PAS_MAC_CFG_MACCFG_MAXF_M	0x00ffff00
 #define PAS_MAC_CFG_MACCFG_MAXF_S	8
 #define PAS_MAC_CFG_MACCFG_MAXF(x)	(((x) << PAS_MAC_CFG_MACCFG_MAXF_S) & \
-					 PAS_MAC_CFG_MACCFG_MAXF_M)
+									 PAS_MAC_CFG_MACCFG_MAXF_M)
 #define PAS_MAC_CFG_MACCFG_MINF_M	0x000000ff
 #define PAS_MAC_CFG_MACCFG_MINF_S	0
 
@@ -175,36 +181,36 @@ enum {
 #define PAS_MAC_CFG_TXP_FPC_M		0x00300000
 #define PAS_MAC_CFG_TXP_FPC_S		20
 #define PAS_MAC_CFG_TXP_FPC(x)		(((x) << PAS_MAC_CFG_TXP_FPC_S) & \
-					 PAS_MAC_CFG_TXP_FPC_M)
+									 PAS_MAC_CFG_TXP_FPC_M)
 #define PAS_MAC_CFG_TXP_RT		0x00080000
 #define PAS_MAC_CFG_TXP_BL		0x00040000
 #define PAS_MAC_CFG_TXP_SL_M		0x00030000
 #define PAS_MAC_CFG_TXP_SL_S		16
 #define PAS_MAC_CFG_TXP_SL(x)		(((x) << PAS_MAC_CFG_TXP_SL_S) & \
-					 PAS_MAC_CFG_TXP_SL_M)
+									 PAS_MAC_CFG_TXP_SL_M)
 #define PAS_MAC_CFG_TXP_COB_M		0x0000f000
 #define PAS_MAC_CFG_TXP_COB_S		12
 #define PAS_MAC_CFG_TXP_COB(x)		(((x) << PAS_MAC_CFG_TXP_COB_S) & \
-					 PAS_MAC_CFG_TXP_COB_M)
+									 PAS_MAC_CFG_TXP_COB_M)
 #define PAS_MAC_CFG_TXP_TIFT_M		0x00000f00
 #define PAS_MAC_CFG_TXP_TIFT_S		8
 #define PAS_MAC_CFG_TXP_TIFT(x)		(((x) << PAS_MAC_CFG_TXP_TIFT_S) & \
-					 PAS_MAC_CFG_TXP_TIFT_M)
+									 PAS_MAC_CFG_TXP_TIFT_M)
 #define PAS_MAC_CFG_TXP_TIFG_M		0x000000ff
 #define PAS_MAC_CFG_TXP_TIFG_S		0
 #define PAS_MAC_CFG_TXP_TIFG(x)		(((x) << PAS_MAC_CFG_TXP_TIFG_S) & \
-					 PAS_MAC_CFG_TXP_TIFG_M)
+									 PAS_MAC_CFG_TXP_TIFG_M)
 
 #define PAS_MAC_RMON(r)			(0x100+(r)*4)
 
 #define PAS_MAC_IPC_CHNL_DCHNO_M	0x003f0000
 #define PAS_MAC_IPC_CHNL_DCHNO_S	16
 #define PAS_MAC_IPC_CHNL_DCHNO(x)	(((x) << PAS_MAC_IPC_CHNL_DCHNO_S) & \
-					 PAS_MAC_IPC_CHNL_DCHNO_M)
+									 PAS_MAC_IPC_CHNL_DCHNO_M)
 #define PAS_MAC_IPC_CHNL_BCH_M		0x0000003f
 #define PAS_MAC_IPC_CHNL_BCH_S		0
 #define PAS_MAC_IPC_CHNL_BCH(x)		(((x) << PAS_MAC_IPC_CHNL_BCH_S) & \
-					 PAS_MAC_IPC_CHNL_BCH_M)
+									 PAS_MAC_IPC_CHNL_BCH_M)
 
 
 #endif /* PASEMI_MAC_H */

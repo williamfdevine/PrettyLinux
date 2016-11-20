@@ -84,7 +84,8 @@
  * @bcn_received_while_port_unassigned: bcn to report after port association
  * @sata_timer: timeout SATA signature FIS arrival
  */
-struct isci_phy {
+struct isci_phy
+{
 	struct sci_base_state_machine sm;
 	struct isci_port *owning_port;
 	enum sas_linkrate max_negotiated_speed;
@@ -97,7 +98,8 @@ struct isci_phy {
 	struct scu_link_layer_registers __iomem *link_layer_registers;
 	struct asd_sas_phy sas_phy;
 	u8 sas_addr[SAS_ADDR_SIZE];
-	union {
+	union
+	{
 		struct sas_identify_frame iaf;
 		struct dev_to_host_fis fis;
 	} frame_rcvd;
@@ -110,9 +112,12 @@ static inline struct isci_phy *to_iphy(struct asd_sas_phy *sas_phy)
 	return iphy;
 }
 
-struct sci_phy_cap {
-	union {
-		struct {
+struct sci_phy_cap
+{
+	union
+	{
+		struct
+		{
 			/*
 			 * The SAS specification indicates the start bit shall
 			 * always be set to
@@ -120,38 +125,41 @@ struct sci_phy_cap {
 			 * to 0 if the PHY CAPABILITIES were either not
 			 * received or speed negotiation failed.
 			 */
-			u8 start:1;
-			u8 tx_ssc_type:1;
-			u8 res1:2;
-			u8 req_logical_linkrate:4;
+			u8 start: 1;
+			u8 tx_ssc_type: 1;
+			u8 res1: 2;
+			u8 req_logical_linkrate: 4;
 
-			u32 gen1_no_ssc:1;
-			u32 gen1_ssc:1;
-			u32 gen2_no_ssc:1;
-			u32 gen2_ssc:1;
-			u32 gen3_no_ssc:1;
-			u32 gen3_ssc:1;
-			u32 res2:17;
-			u32 parity:1;
+			u32 gen1_no_ssc: 1;
+			u32 gen1_ssc: 1;
+			u32 gen2_no_ssc: 1;
+			u32 gen2_ssc: 1;
+			u32 gen3_no_ssc: 1;
+			u32 gen3_ssc: 1;
+			u32 res2: 17;
+			u32 parity: 1;
 		};
 		u32 all;
 	};
 }  __packed;
 
 /* this data structure reflects the link layer transmit identification reg */
-struct sci_phy_proto {
-	union {
-		struct {
-			u16 _r_a:1;
-			u16 smp_iport:1;
-			u16 stp_iport:1;
-			u16 ssp_iport:1;
-			u16 _r_b:4;
-			u16 _r_c:1;
-			u16 smp_tport:1;
-			u16 stp_tport:1;
-			u16 ssp_tport:1;
-			u16 _r_d:4;
+struct sci_phy_proto
+{
+	union
+	{
+		struct
+		{
+			u16 _r_a: 1;
+			u16 smp_iport: 1;
+			u16 stp_iport: 1;
+			u16 ssp_iport: 1;
+			u16 _r_b: 4;
+			u16 _r_c: 1;
+			u16 smp_tport: 1;
+			u16 stp_tport: 1;
+			u16 ssp_tport: 1;
+			u16 _r_d: 4;
 		};
 		u16 all;
 	};
@@ -164,7 +172,8 @@ struct sci_phy_proto {
  *
  *
  */
-struct sci_phy_properties {
+struct sci_phy_properties
+{
 	/**
 	 * This field specifies the port that currently contains the
 	 * supplied phy.  This field may be set to NULL
@@ -191,7 +200,8 @@ struct sci_phy_properties {
  *
  *
  */
-struct sci_sas_phy_properties {
+struct sci_sas_phy_properties
+{
 	/**
 	 * This field delineates the Identify Address Frame received
 	 * from the remote end point.
@@ -212,7 +222,8 @@ struct sci_sas_phy_properties {
  *
  *
  */
-struct sci_sata_phy_properties {
+struct sci_sata_phy_properties
+{
 	/**
 	 * This field delineates the signature FIS received from the
 	 * attached target.
@@ -233,7 +244,8 @@ struct sci_sata_phy_properties {
  *
  *
  */
-enum sci_phy_counter_id {
+enum sci_phy_counter_id
+{
 	/**
 	 * This PHY information field tracks the number of frames received.
 	 */
@@ -374,22 +386,22 @@ enum sci_phy_counter_id {
  *		   machine.
  */
 #define PHY_STATES {\
-	C(PHY_INITIAL),\
-	C(PHY_STOPPED),\
-	C(PHY_STARTING),\
-	C(PHY_SUB_INITIAL),\
-	C(PHY_SUB_AWAIT_OSSP_EN),\
-	C(PHY_SUB_AWAIT_SAS_SPEED_EN),\
-	C(PHY_SUB_AWAIT_IAF_UF),\
-	C(PHY_SUB_AWAIT_SAS_POWER),\
-	C(PHY_SUB_AWAIT_SATA_POWER),\
-	C(PHY_SUB_AWAIT_SATA_PHY_EN),\
-	C(PHY_SUB_AWAIT_SATA_SPEED_EN),\
-	C(PHY_SUB_AWAIT_SIG_FIS_UF),\
-	C(PHY_SUB_FINAL),\
-	C(PHY_READY),\
-	C(PHY_RESETTING),\
-	C(PHY_FINAL),\
+		C(PHY_INITIAL),\
+		C(PHY_STOPPED),\
+		C(PHY_STARTING),\
+		C(PHY_SUB_INITIAL),\
+		C(PHY_SUB_AWAIT_OSSP_EN),\
+		C(PHY_SUB_AWAIT_SAS_SPEED_EN),\
+		C(PHY_SUB_AWAIT_IAF_UF),\
+		C(PHY_SUB_AWAIT_SAS_POWER),\
+		C(PHY_SUB_AWAIT_SATA_POWER),\
+		C(PHY_SUB_AWAIT_SATA_PHY_EN),\
+		C(PHY_SUB_AWAIT_SATA_SPEED_EN),\
+		C(PHY_SUB_AWAIT_SIG_FIS_UF),\
+		C(PHY_SUB_FINAL),\
+		C(PHY_READY),\
+		C(PHY_RESETTING),\
+		C(PHY_FINAL),\
 	}
 #undef C
 #define C(a) SCI_##a

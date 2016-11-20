@@ -21,23 +21,23 @@
 #include "dvb_frontend.h"
 
 #if IS_REACHABLE(CONFIG_MEDIA_TUNER_TEA5761)
-extern int tea5761_autodetection(struct i2c_adapter* i2c_adap, u8 i2c_addr);
+extern int tea5761_autodetection(struct i2c_adapter *i2c_adap, u8 i2c_addr);
 
 extern struct dvb_frontend *tea5761_attach(struct dvb_frontend *fe,
-					   struct i2c_adapter* i2c_adap,
-					   u8 i2c_addr);
+		struct i2c_adapter *i2c_adap,
+		u8 i2c_addr);
 #else
-static inline int tea5761_autodetection(struct i2c_adapter* i2c_adap,
-					u8 i2c_addr)
+static inline int tea5761_autodetection(struct i2c_adapter *i2c_adap,
+										u8 i2c_addr)
 {
 	printk(KERN_INFO "%s: not probed - driver disabled by Kconfig\n",
-	       __func__);
+		   __func__);
 	return -EINVAL;
 }
 
 static inline struct dvb_frontend *tea5761_attach(struct dvb_frontend *fe,
-						   struct i2c_adapter* i2c_adap,
-						   u8 i2c_addr)
+		struct i2c_adapter *i2c_adap,
+		u8 i2c_addr)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

@@ -22,7 +22,8 @@
 #define ROT_CUDINV	CUDINV		/* CUD Pin Polarity Invert */
 #define ROT_CZMINV	CZMINV		/* CZM Pin Polarity Invert */
 
-struct bfin_rotary_platform_data {
+struct bfin_rotary_platform_data
+{
 	/* set rotary UP KEY_### or BTN_### in case you prefer
 	 * bfin-rotary to send EV_KEY otherwise set 0
 	 */

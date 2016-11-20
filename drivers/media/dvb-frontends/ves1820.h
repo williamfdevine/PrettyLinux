@@ -35,18 +35,18 @@ struct ves1820_config
 	u32 xin;
 
 	/* does inversion need inverted? */
-	u8 invert:1;
+	u8 invert: 1;
 
 	/* SELAGC control */
-	u8 selagc:1;
+	u8 selagc: 1;
 };
 
 #if IS_REACHABLE(CONFIG_DVB_VES1820)
-extern struct dvb_frontend* ves1820_attach(const struct ves1820_config* config,
-					   struct i2c_adapter* i2c, u8 pwm);
+extern struct dvb_frontend *ves1820_attach(const struct ves1820_config *config,
+		struct i2c_adapter *i2c, u8 pwm);
 #else
-static inline struct dvb_frontend* ves1820_attach(const struct ves1820_config* config,
-					   struct i2c_adapter* i2c, u8 pwm)
+static inline struct dvb_frontend *ves1820_attach(const struct ves1820_config *config,
+		struct i2c_adapter *i2c, u8 pwm)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

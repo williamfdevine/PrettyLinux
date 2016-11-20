@@ -40,12 +40,18 @@ static int __init drm_kms_helper_init(void)
 
 	/* Call init functions from specific kms helpers here */
 	ret = drm_fb_helper_modinit();
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	ret = drm_dp_aux_dev_init();
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 out:
 	return ret;

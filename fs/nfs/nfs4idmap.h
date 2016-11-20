@@ -52,8 +52,8 @@ int nfs_idmap_new(struct nfs_client *);
 void nfs_idmap_delete(struct nfs_client *);
 
 void nfs_fattr_init_names(struct nfs_fattr *fattr,
-		struct nfs4_string *owner_name,
-		struct nfs4_string *group_name);
+						  struct nfs4_string *owner_name,
+						  struct nfs4_string *group_name);
 void nfs_fattr_free_names(struct nfs_fattr *);
 void nfs_fattr_map_and_free_names(struct nfs_server *, struct nfs_fattr *);
 

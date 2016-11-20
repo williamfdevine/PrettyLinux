@@ -84,13 +84,14 @@
 #define FSL_DMA_DGSR_EOLSI	0x01
 
 #define FSL_DMA_BUSWIDTHS	(BIT(DMA_SLAVE_BUSWIDTH_1_BYTE) | \
-				BIT(DMA_SLAVE_BUSWIDTH_2_BYTES) | \
-				BIT(DMA_SLAVE_BUSWIDTH_4_BYTES) | \
-				BIT(DMA_SLAVE_BUSWIDTH_8_BYTES))
+							 BIT(DMA_SLAVE_BUSWIDTH_2_BYTES) | \
+							 BIT(DMA_SLAVE_BUSWIDTH_4_BYTES) | \
+							 BIT(DMA_SLAVE_BUSWIDTH_8_BYTES))
 typedef u64 __bitwise v64;
 typedef u32 __bitwise v32;
 
-struct fsl_dma_ld_hw {
+struct fsl_dma_ld_hw
+{
 	v64 src_addr;
 	v64 dst_addr;
 	v64 next_ln_addr;
@@ -98,14 +99,16 @@ struct fsl_dma_ld_hw {
 	v32 reserve;
 } __attribute__((aligned(32)));
 
-struct fsl_desc_sw {
+struct fsl_desc_sw
+{
 	struct fsl_dma_ld_hw hw;
 	struct list_head node;
 	struct list_head tx_list;
 	struct dma_async_tx_descriptor async_tx;
 } __attribute__((aligned(32)));
 
-struct fsldma_chan_regs {
+struct fsldma_chan_regs
+{
 	u32 mr;		/* 0x00 - Mode Register */
 	u32 sr;		/* 0x04 - Status Register */
 	u64 cdar;	/* 0x08 - Current descriptor address register */
@@ -118,7 +121,8 @@ struct fsldma_chan_regs {
 struct fsldma_chan;
 #define FSL_DMA_MAX_CHANS_PER_DEVICE 8
 
-struct fsldma_device {
+struct fsldma_device
+{
 	void __iomem *regs;	/* DGSR register base */
 	struct device *dev;
 	struct dma_device common;
@@ -139,17 +143,20 @@ struct fsldma_device {
 #define FSL_DMA_CHAN_START_EXT	0x00002000
 
 #ifdef CONFIG_PM
-struct fsldma_chan_regs_save {
+struct fsldma_chan_regs_save
+{
 	u32 mr;
 };
 
-enum fsldma_pm_state {
+enum fsldma_pm_state
+{
 	RUNNING = 0,
 	SUSPENDED,
 };
 #endif
 
-struct fsldma_chan {
+struct fsldma_chan
+{
 	char name[8];			/* Channel name */
 	struct fsldma_chan_regs __iomem *regs;
 	spinlock_t desc_lock;		/* Descriptor operation lock */
@@ -196,7 +203,7 @@ struct fsldma_chan {
 static u64 in_be64(const u64 __iomem *addr)
 {
 	return ((u64)in_be32((u32 __iomem *)addr) << 32) |
-		(in_be32((u32 __iomem *)addr + 1));
+		   (in_be32((u32 __iomem *)addr + 1));
 }
 
 static void out_be64(u64 __iomem *addr, u64 val)
@@ -209,7 +216,7 @@ static void out_be64(u64 __iomem *addr, u64 val)
 static u64 in_le64(const u64 __iomem *addr)
 {
 	return ((u64)in_le32((u32 __iomem *)addr + 1) << 32) |
-		(in_le32((u32 __iomem *)addr));
+		   (in_le32((u32 __iomem *)addr));
 }
 
 static void out_le64(u64 __iomem *addr, u64 val)
@@ -220,19 +227,19 @@ static void out_le64(u64 __iomem *addr, u64 val)
 #endif
 
 #define DMA_IN(fsl_chan, addr, width)					\
-		(((fsl_chan)->feature & FSL_DMA_BIG_ENDIAN) ?		\
-			in_be##width(addr) : in_le##width(addr))
+	(((fsl_chan)->feature & FSL_DMA_BIG_ENDIAN) ?		\
+	 in_be##width(addr) : in_le##width(addr))
 #define DMA_OUT(fsl_chan, addr, val, width)				\
-		(((fsl_chan)->feature & FSL_DMA_BIG_ENDIAN) ?		\
-			out_be##width(addr, val) : out_le##width(addr, val))
+	(((fsl_chan)->feature & FSL_DMA_BIG_ENDIAN) ?		\
+	 out_be##width(addr, val) : out_le##width(addr, val))
 
 #define DMA_TO_CPU(fsl_chan, d, width)					\
-		(((fsl_chan)->feature & FSL_DMA_BIG_ENDIAN) ?		\
-			be##width##_to_cpu((__force __be##width)(v##width)d) : \
-			le##width##_to_cpu((__force __le##width)(v##width)d))
+	(((fsl_chan)->feature & FSL_DMA_BIG_ENDIAN) ?		\
+	 be##width##_to_cpu((__force __be##width)(v##width)d) : \
+	 le##width##_to_cpu((__force __le##width)(v##width)d))
 #define CPU_TO_DMA(fsl_chan, c, width)					\
-		(((fsl_chan)->feature & FSL_DMA_BIG_ENDIAN) ?		\
-			(__force v##width)cpu_to_be##width(c) :		\
-			(__force v##width)cpu_to_le##width(c))
+	(((fsl_chan)->feature & FSL_DMA_BIG_ENDIAN) ?		\
+	 (__force v##width)cpu_to_be##width(c) :		\
+	 (__force v##width)cpu_to_le##width(c))
 
 #endif	/* __DMA_FSLDMA_H */

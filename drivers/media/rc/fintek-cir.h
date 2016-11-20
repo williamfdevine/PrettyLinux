@@ -41,23 +41,24 @@ static int debug;
 #define fit_dbg(text, ...) \
 	if (debug) \
 		printk(KERN_DEBUG \
-			KBUILD_MODNAME ": " text "\n" , ## __VA_ARGS__)
+			   KBUILD_MODNAME ": " text "\n" , ## __VA_ARGS__)
 
 #define fit_dbg_verbose(text, ...) \
 	if (debug > 1) \
 		printk(KERN_DEBUG \
-			KBUILD_MODNAME ": " text "\n" , ## __VA_ARGS__)
+			   KBUILD_MODNAME ": " text "\n" , ## __VA_ARGS__)
 
 #define fit_dbg_wake(text, ...) \
 	if (debug > 2) \
 		printk(KERN_DEBUG \
-			KBUILD_MODNAME ": " text "\n" , ## __VA_ARGS__)
+			   KBUILD_MODNAME ": " text "\n" , ## __VA_ARGS__)
 
 
 #define TX_BUF_LEN 256
 #define RX_BUF_LEN 32
 
-struct fintek_dev {
+struct fintek_dev
+{
 	struct pnp_dev *pdev;
 	struct rc_dev *rdev;
 
@@ -67,7 +68,8 @@ struct fintek_dev {
 	u8 buf[RX_BUF_LEN];
 	unsigned int pkts;
 
-	struct {
+	struct
+	{
 		spinlock_t lock;
 		u8 buf[TX_BUF_LEN];
 		unsigned int buf_count;
@@ -98,7 +100,8 @@ struct fintek_dev {
 	bool learning_enabled;
 	bool carrier_detect_enabled;
 
-	enum {
+	enum
+	{
 		CMD_HEADER = 0,
 		SUBCMD,
 		CMD_DATA,

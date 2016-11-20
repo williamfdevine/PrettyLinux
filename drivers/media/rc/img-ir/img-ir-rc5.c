@@ -13,7 +13,7 @@
 
 /* Convert RC5 data to a scancode */
 static int img_ir_rc5_scancode(int len, u64 raw, u64 enabled_protocols,
-				struct img_ir_scancode_req *request)
+							   struct img_ir_scancode_req *request)
 {
 	unsigned int addr, cmd, tgl, start;
 
@@ -31,7 +31,9 @@ static int img_ir_rc5_scancode(int len, u64 raw, u64 enabled_protocols,
 	cmd	+= ((raw >> 12) & 0x01) ? 0 : 0x40;
 
 	if (!start)
+	{
 		return -EINVAL;
+	}
 
 	request->protocol = RC_TYPE_RC5;
 	request->scancode = addr << 8 | cmd;
@@ -41,7 +43,7 @@ static int img_ir_rc5_scancode(int len, u64 raw, u64 enabled_protocols,
 
 /* Convert RC5 scancode to RC5 data filter */
 static int img_ir_rc5_filter(const struct rc_scancode_filter *in,
-				 struct img_ir_filter *out, u64 protocols)
+							 struct img_ir_filter *out, u64 protocols)
 {
 	/* Not supported by the hw. */
 	return -EINVAL;
@@ -51,7 +53,8 @@ static int img_ir_rc5_filter(const struct rc_scancode_filter *in,
  * RC-5 decoder
  * see http://www.sbprojects.com/knowledge/ir/rc5.php
  */
-struct img_ir_decoder img_ir_rc5 = {
+struct img_ir_decoder img_ir_rc5 =
+{
 	.type      = RC_BIT_RC5,
 	.control   = {
 		.bitoriend2	= 1,

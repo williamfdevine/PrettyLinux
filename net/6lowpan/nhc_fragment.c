@@ -20,7 +20,7 @@ static void fragment_nhid_setup(struct lowpan_nhc *nhc)
 }
 
 LOWPAN_NHC(nhc_fragment, "RFC6282 Fragment", NEXTHDR_FRAGMENT, 0,
-	   fragment_nhid_setup, LOWPAN_NHC_FRAGMENT_IDLEN, NULL, NULL);
+		   fragment_nhid_setup, LOWPAN_NHC_FRAGMENT_IDLEN, NULL, NULL);
 
 module_lowpan_nhc(nhc_fragment);
 MODULE_DESCRIPTION("6LoWPAN next header RFC6282 Fragment compression");

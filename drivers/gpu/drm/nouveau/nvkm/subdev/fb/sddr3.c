@@ -24,7 +24,8 @@
  */
 #include "priv.h"
 
-struct ramxlat {
+struct ramxlat
+{
 	int id;
 	u8 enc;
 };
@@ -32,16 +33,22 @@ struct ramxlat {
 static inline int
 ramxlat(const struct ramxlat *xlat, int id)
 {
-	while (xlat->id >= 0) {
+	while (xlat->id >= 0)
+	{
 		if (xlat->id == id)
+		{
 			return xlat->enc;
+		}
+
 		xlat++;
 	}
+
 	return -EINVAL;
 }
 
 static const struct ramxlat
-ramddr3_cl[] = {
+	ramddr3_cl[] =
+{
 	{ 5, 2 }, { 6, 4 }, { 7, 6 }, { 8, 8 }, { 9, 10 }, { 10, 12 },
 	{ 11, 14 },
 	/* the below are mentioned in some, but not all, ddr3 docs */
@@ -50,7 +57,8 @@ ramddr3_cl[] = {
 };
 
 static const struct ramxlat
-ramddr3_wr[] = {
+	ramddr3_wr[] =
+{
 	{ 5, 1 }, { 6, 2 }, { 7, 3 }, { 8, 4 }, { 10, 5 }, { 12, 6 },
 	/* the below are mentioned in some, but not all, ddr3 docs */
 	{ 14, 7 }, { 15, 7 }, { 16, 0 },
@@ -58,7 +66,8 @@ ramddr3_wr[] = {
 };
 
 static const struct ramxlat
-ramddr3_cwl[] = {
+	ramddr3_cwl[] =
+{
 	{ 5, 0 }, { 6, 1 }, { 7, 2 }, { 8, 3 },
 	/* the below are mentioned in some, but not all, ddr3 docs */
 	{ 9, 4 }, { 10, 5 },
@@ -72,35 +81,43 @@ nvkm_sddr3_calc(struct nvkm_ram *ram)
 
 	DLL = !ram->next->bios.ramcfg_DLLoff;
 
-	switch (ram->next->bios.timing_ver) {
-	case 0x10:
-		if (ram->next->bios.timing_hdr < 0x17) {
-			/* XXX: NV50: Get CWL from the timing register */
+	switch (ram->next->bios.timing_ver)
+	{
+		case 0x10:
+			if (ram->next->bios.timing_hdr < 0x17)
+			{
+				/* XXX: NV50: Get CWL from the timing register */
+				return -ENOSYS;
+			}
+
+			CWL = ram->next->bios.timing_10_CWL;
+			CL  = ram->next->bios.timing_10_CL;
+			WR  = ram->next->bios.timing_10_WR;
+			ODT = ram->next->bios.timing_10_ODT;
+			break;
+
+		case 0x20:
+			CWL = (ram->next->bios.timing[1] & 0x00000f80) >> 7;
+			CL  = (ram->next->bios.timing[1] & 0x0000001f) >> 0;
+			WR  = (ram->next->bios.timing[2] & 0x007f0000) >> 16;
+			/* XXX: Get these values from the VBIOS instead */
+			ODT =   (ram->mr[1] & 0x004) >> 2 |
+					(ram->mr[1] & 0x040) >> 5 |
+					(ram->mr[1] & 0x200) >> 7;
+			break;
+
+		default:
 			return -ENOSYS;
-		}
-		CWL = ram->next->bios.timing_10_CWL;
-		CL  = ram->next->bios.timing_10_CL;
-		WR  = ram->next->bios.timing_10_WR;
-		ODT = ram->next->bios.timing_10_ODT;
-		break;
-	case 0x20:
-		CWL = (ram->next->bios.timing[1] & 0x00000f80) >> 7;
-		CL  = (ram->next->bios.timing[1] & 0x0000001f) >> 0;
-		WR  = (ram->next->bios.timing[2] & 0x007f0000) >> 16;
-		/* XXX: Get these values from the VBIOS instead */
-		ODT =   (ram->mr[1] & 0x004) >> 2 |
-			(ram->mr[1] & 0x040) >> 5 |
-		        (ram->mr[1] & 0x200) >> 7;
-		break;
-	default:
-		return -ENOSYS;
 	}
 
 	CWL = ramxlat(ramddr3_cwl, CWL);
 	CL  = ramxlat(ramddr3_cl, CL);
 	WR  = ramxlat(ramddr3_wr, WR);
+
 	if (CL < 0 || CWL < 0 || WR < 0)
+	{
 		return -EINVAL;
+	}
 
 	ram->mr[0] &= ~0xf74;
 	ram->mr[0] |= (WR & 0x07) << 9;

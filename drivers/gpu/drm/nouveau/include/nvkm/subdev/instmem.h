@@ -3,7 +3,8 @@
 #include <core/subdev.h>
 struct nvkm_memory;
 
-struct nvkm_instmem {
+struct nvkm_instmem
+{
 	const struct nvkm_instmem_func *func;
 	struct nvkm_subdev subdev;
 
@@ -20,7 +21,7 @@ struct nvkm_instmem {
 u32 nvkm_instmem_rd32(struct nvkm_instmem *, u32 addr);
 void nvkm_instmem_wr32(struct nvkm_instmem *, u32 addr, u32 data);
 int nvkm_instobj_new(struct nvkm_instmem *, u32 size, u32 align, bool zero,
-		     struct nvkm_memory **);
+					 struct nvkm_memory **);
 
 
 int nv04_instmem_new(struct nvkm_device *, int, struct nvkm_instmem **);

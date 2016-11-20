@@ -11,7 +11,8 @@
 extern "C" {
 #endif
 
-typedef struct {
+typedef struct
+{
 	unsigned long	pc;
 	int		line_number;
 	int		discrim; /* discriminator -- 0 for now */
@@ -20,14 +21,14 @@ typedef struct {
 void *jvmti_open(void);
 int   jvmti_close(void *agent);
 int   jvmti_write_code(void *agent, char const *symbol_name,
-		       uint64_t vma, void const *code,
-		       const unsigned int code_size);
+					   uint64_t vma, void const *code,
+					   const unsigned int code_size);
 
 int   jvmti_write_debug_info(void *agent,
-		             uint64_t code,
-			     const char *file,
-			     jvmti_line_info_t *li,
-			     int nr_lines);
+							 uint64_t code,
+							 const char *file,
+							 jvmti_line_info_t *li,
+							 int nr_lines);
 
 #if defined(__cplusplus)
 }

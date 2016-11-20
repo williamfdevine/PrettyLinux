@@ -52,6 +52,6 @@ extern int dvb_usb_dtt200u_debug;
 #define RESET_PID_FILTER	0x05
 #define SET_STREAMING		0x08
 
-extern struct dvb_frontend * dtt200u_fe_attach(struct dvb_usb_device *d);
+extern struct dvb_frontend *dtt200u_fe_attach(struct dvb_usb_device *d);
 
 #endif

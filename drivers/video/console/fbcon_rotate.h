@@ -12,19 +12,19 @@
 #define _FBCON_ROTATE_H
 
 #define GETVYRES(s,i) ({                           \
-        (s == SCROLL_REDRAW || s == SCROLL_MOVE) ? \
-        (i)->var.yres : (i)->var.yres_virtual; })
+		(s == SCROLL_REDRAW || s == SCROLL_MOVE) ? \
+		(i)->var.yres : (i)->var.yres_virtual; })
 
 #define GETVXRES(s,i) ({                           \
-        (s == SCROLL_REDRAW || s == SCROLL_MOVE || !(i)->fix.xpanstep) ? \
-        (i)->var.xres : (i)->var.xres_virtual; })
+		(s == SCROLL_REDRAW || s == SCROLL_MOVE || !(i)->fix.xpanstep) ? \
+		(i)->var.xres : (i)->var.xres_virtual; })
 
 
 static inline int pattern_test_bit(u32 x, u32 y, u32 pitch, const char *pat)
 {
 	u32 tmp = (y * pitch) + x, index = tmp / 8,  bit = tmp % 8;
 
-	pat +=index;
+	pat += index;
 	return (*pat) & (0x80 >> bit);
 }
 
@@ -44,12 +44,14 @@ static inline void rotate_ud(const char *in, char *out, u32 width, u32 height)
 
 	width = (width + 7) & ~7;
 
-	for (i = 0; i < height; i++) {
-		for (j = 0; j < width - shift; j++) {
+	for (i = 0; i < height; i++)
+	{
+		for (j = 0; j < width - shift; j++)
+		{
 			if (pattern_test_bit(j, i, width, in))
 				pattern_set_bit(width - (1 + j + shift),
-						height - (1 + i),
-						width, out);
+								height - (1 + i),
+								width, out);
 		}
 
 	}
@@ -63,11 +65,13 @@ static inline void rotate_cw(const char *in, char *out, u32 width, u32 height)
 	width = (width + 7) & ~7;
 	height = (height + 7) & ~7;
 
-	for (i = 0; i < h; i++) {
-		for (j = 0; j < w; j++) {
+	for (i = 0; i < h; i++)
+	{
+		for (j = 0; j < w; j++)
+		{
 			if (pattern_test_bit(j, i, width, in))
 				pattern_set_bit(height - 1 - i - shift, j,
-						height, out);
+								height, out);
 
 		}
 	}
@@ -81,11 +85,13 @@ static inline void rotate_ccw(const char *in, char *out, u32 width, u32 height)
 	width = (width + 7) & ~7;
 	height = (height + 7) & ~7;
 
-	for (i = 0; i < h; i++) {
-		for (j = 0; j < w; j++) {
+	for (i = 0; i < h; i++)
+	{
+		for (j = 0; j < w; j++)
+		{
 			if (pattern_test_bit(j, i, width, in))
 				pattern_set_bit(i, width - 1 - j - shift,
-						height, out);
+								height, out);
 		}
 	}
 }

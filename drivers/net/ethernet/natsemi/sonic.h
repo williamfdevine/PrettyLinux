@@ -208,16 +208,16 @@
  */
 
 #define SONIC_IMR_DEFAULT     ( SONIC_INT_BR | \
-                                SONIC_INT_LCD | \
-                                SONIC_INT_RFO | \
-                                SONIC_INT_PKTRX | \
-                                SONIC_INT_TXDN | \
-                                SONIC_INT_TXER | \
-                                SONIC_INT_RDE | \
-                                SONIC_INT_RBAE | \
-                                SONIC_INT_CRC | \
-                                SONIC_INT_FAE | \
-                                SONIC_INT_MP)
+								SONIC_INT_LCD | \
+								SONIC_INT_RFO | \
+								SONIC_INT_PKTRX | \
+								SONIC_INT_TXDN | \
+								SONIC_INT_TXER | \
+								SONIC_INT_RDE | \
+								SONIC_INT_RBAE | \
+								SONIC_INT_CRC | \
+								SONIC_INT_FAE | \
+								SONIC_INT_MP)
 
 
 #define SONIC_EOL       0x0001
@@ -280,12 +280,13 @@
 
 /* Again, measured in bus size units! */
 #define SIZEOF_SONIC_DESC (SIZEOF_SONIC_CDA	\
-	+ (SIZEOF_SONIC_TD * SONIC_NUM_TDS)	\
-	+ (SIZEOF_SONIC_RD * SONIC_NUM_RDS)	\
-	+ (SIZEOF_SONIC_RR * SONIC_NUM_RRS))
+						   + (SIZEOF_SONIC_TD * SONIC_NUM_TDS)	\
+						   + (SIZEOF_SONIC_RD * SONIC_NUM_RDS)	\
+						   + (SIZEOF_SONIC_RR * SONIC_NUM_RRS))
 
 /* Information that need to be kept for each board. */
-struct sonic_local {
+struct sonic_local
+{
 	/* Bus size.  0 == 16 bits, 1 == 32 bits. */
 	int dma_bitmode;
 	/* Register offset within the longword (independent of endianness,
@@ -294,13 +295,13 @@ struct sonic_local {
 	int reg_offset;
 	void *descriptors;
 	/* Crud.  These areas have to be within the same 64K.  Therefore
-       we allocate a desriptors page, and point these to places within it. */
+	   we allocate a desriptors page, and point these to places within it. */
 	void *cda;  /* CAM descriptor area */
 	void *tda;  /* Transmit descriptor area */
 	void *rra;  /* Receive resource area */
 	void *rda;  /* Receive descriptor area */
-	struct sk_buff* volatile rx_skb[SONIC_NUM_RRS];	/* packets to be received */
-	struct sk_buff* volatile tx_skb[SONIC_NUM_TDS];	/* packets to be transmitted */
+	struct sk_buff *volatile rx_skb[SONIC_NUM_RRS];	/* packets to be received */
+	struct sk_buff *volatile tx_skb[SONIC_NUM_TDS];	/* packets to be transmitted */
 	unsigned int tx_len[SONIC_NUM_TDS]; /* lengths of tx DMA mappings */
 	/* Logical DMA addresses on MIPS, bus addresses on m68k
 	 * (so "laddr" is a bit misleading) */
@@ -341,110 +342,116 @@ static void sonic_tx_timeout(struct net_device *dev);
    as far as we can tell. */
 /* OpenBSD calls this "SWO".  I'd like to think that sonic_buf_put()
    is a much better name. */
-static inline void sonic_buf_put(void* base, int bitmode,
-				 int offset, __u16 val)
+static inline void sonic_buf_put(void *base, int bitmode,
+								 int offset, __u16 val)
 {
 	if (bitmode)
 #ifdef __BIG_ENDIAN
-		((__u16 *) base + (offset*2))[1] = val;
+		((__u16 *) base + (offset * 2))[1] = val;
+
 #else
-		((__u16 *) base + (offset*2))[0] = val;
+		((__u16 *) base + (offset * 2))[0] = val;
 #endif
 	else
-	 	((__u16 *) base)[offset] = val;
+	{
+		((__u16 *) base)[offset] = val;
+	}
 }
 
-static inline __u16 sonic_buf_get(void* base, int bitmode,
-				  int offset)
+static inline __u16 sonic_buf_get(void *base, int bitmode,
+								  int offset)
 {
 	if (bitmode)
 #ifdef __BIG_ENDIAN
-		return ((volatile __u16 *) base + (offset*2))[1];
+		return ((volatile __u16 *) base + (offset * 2))[1];
+
 #else
-		return ((volatile __u16 *) base + (offset*2))[0];
+		return ((volatile __u16 *) base + (offset * 2))[0];
 #endif
 	else
+	{
 		return ((volatile __u16 *) base)[offset];
+	}
 }
 
 /* Inlines that you should actually use for reading/writing DMA buffers */
-static inline void sonic_cda_put(struct net_device* dev, int entry,
-				 int offset, __u16 val)
+static inline void sonic_cda_put(struct net_device *dev, int entry,
+								 int offset, __u16 val)
 {
 	struct sonic_local *lp = netdev_priv(dev);
 	sonic_buf_put(lp->cda, lp->dma_bitmode,
-		      (entry * SIZEOF_SONIC_CD) + offset, val);
+				  (entry * SIZEOF_SONIC_CD) + offset, val);
 }
 
-static inline __u16 sonic_cda_get(struct net_device* dev, int entry,
-				  int offset)
+static inline __u16 sonic_cda_get(struct net_device *dev, int entry,
+								  int offset)
 {
 	struct sonic_local *lp = netdev_priv(dev);
 	return sonic_buf_get(lp->cda, lp->dma_bitmode,
-			     (entry * SIZEOF_SONIC_CD) + offset);
+						 (entry * SIZEOF_SONIC_CD) + offset);
 }
 
-static inline void sonic_set_cam_enable(struct net_device* dev, __u16 val)
+static inline void sonic_set_cam_enable(struct net_device *dev, __u16 val)
 {
 	struct sonic_local *lp = netdev_priv(dev);
 	sonic_buf_put(lp->cda, lp->dma_bitmode, SONIC_CDA_CAM_ENABLE, val);
 }
 
-static inline __u16 sonic_get_cam_enable(struct net_device* dev)
+static inline __u16 sonic_get_cam_enable(struct net_device *dev)
 {
 	struct sonic_local *lp = netdev_priv(dev);
 	return sonic_buf_get(lp->cda, lp->dma_bitmode, SONIC_CDA_CAM_ENABLE);
 }
 
-static inline void sonic_tda_put(struct net_device* dev, int entry,
-				 int offset, __u16 val)
+static inline void sonic_tda_put(struct net_device *dev, int entry,
+								 int offset, __u16 val)
 {
 	struct sonic_local *lp = netdev_priv(dev);
 	sonic_buf_put(lp->tda, lp->dma_bitmode,
-		      (entry * SIZEOF_SONIC_TD) + offset, val);
+				  (entry * SIZEOF_SONIC_TD) + offset, val);
 }
 
-static inline __u16 sonic_tda_get(struct net_device* dev, int entry,
-				  int offset)
+static inline __u16 sonic_tda_get(struct net_device *dev, int entry,
+								  int offset)
 {
 	struct sonic_local *lp = netdev_priv(dev);
 	return sonic_buf_get(lp->tda, lp->dma_bitmode,
-			     (entry * SIZEOF_SONIC_TD) + offset);
+						 (entry * SIZEOF_SONIC_TD) + offset);
 }
 
-static inline void sonic_rda_put(struct net_device* dev, int entry,
-				 int offset, __u16 val)
+static inline void sonic_rda_put(struct net_device *dev, int entry,
+								 int offset, __u16 val)
 {
 	struct sonic_local *lp = netdev_priv(dev);
 	sonic_buf_put(lp->rda, lp->dma_bitmode,
-		      (entry * SIZEOF_SONIC_RD) + offset, val);
+				  (entry * SIZEOF_SONIC_RD) + offset, val);
 }
 
-static inline __u16 sonic_rda_get(struct net_device* dev, int entry,
-				  int offset)
+static inline __u16 sonic_rda_get(struct net_device *dev, int entry,
+								  int offset)
 {
 	struct sonic_local *lp = netdev_priv(dev);
 	return sonic_buf_get(lp->rda, lp->dma_bitmode,
-			     (entry * SIZEOF_SONIC_RD) + offset);
+						 (entry * SIZEOF_SONIC_RD) + offset);
 }
 
-static inline void sonic_rra_put(struct net_device* dev, int entry,
-				 int offset, __u16 val)
+static inline void sonic_rra_put(struct net_device *dev, int entry,
+								 int offset, __u16 val)
 {
 	struct sonic_local *lp = netdev_priv(dev);
 	sonic_buf_put(lp->rra, lp->dma_bitmode,
-		      (entry * SIZEOF_SONIC_RR) + offset, val);
+				  (entry * SIZEOF_SONIC_RR) + offset, val);
 }
 
-static inline __u16 sonic_rra_get(struct net_device* dev, int entry,
-				  int offset)
+static inline __u16 sonic_rra_get(struct net_device *dev, int entry,
+								  int offset)
 {
 	struct sonic_local *lp = netdev_priv(dev);
 	return sonic_buf_get(lp->rra, lp->dma_bitmode,
-			     (entry * SIZEOF_SONIC_RR) + offset);
+						 (entry * SIZEOF_SONIC_RR) + offset);
 }
 
 static const char *version =
-    "sonic.c:v0.92 20.9.98 tsbogend@alpha.franken.de\n";
+	"sonic.c:v0.92 20.9.98 tsbogend@alpha.franken.de\n";
 
 #endif /* SONIC_H */

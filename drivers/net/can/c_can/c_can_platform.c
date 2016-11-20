@@ -48,31 +48,31 @@ static DEFINE_SPINLOCK(raminit_lock);
  * Handle the same by providing a common read/write interface.
  */
 static u16 c_can_plat_read_reg_aligned_to_16bit(const struct c_can_priv *priv,
-						enum reg index)
+		enum reg index)
 {
 	return readw(priv->base + priv->regs[index]);
 }
 
 static void c_can_plat_write_reg_aligned_to_16bit(const struct c_can_priv *priv,
-						enum reg index, u16 val)
+		enum reg index, u16 val)
 {
 	writew(val, priv->base + priv->regs[index]);
 }
 
 static u16 c_can_plat_read_reg_aligned_to_32bit(const struct c_can_priv *priv,
-						enum reg index)
+		enum reg index)
 {
 	return readw(priv->base + 2 * priv->regs[index]);
 }
 
 static void c_can_plat_write_reg_aligned_to_32bit(const struct c_can_priv *priv,
-						enum reg index, u16 val)
+		enum reg index, u16 val)
 {
 	writew(val, priv->base + 2 * priv->regs[index]);
 }
 
 static void c_can_hw_raminit_wait_syscon(const struct c_can_priv *priv,
-					 u32 mask, u32 val)
+		u32 mask, u32 val)
 {
 	const struct c_can_raminit *raminit = &priv->raminit_sys;
 	int timeout = 0;
@@ -80,16 +80,21 @@ static void c_can_hw_raminit_wait_syscon(const struct c_can_priv *priv,
 
 	/* We look only at the bits of our instance. */
 	val &= mask;
-	do {
+
+	do
+	{
 		udelay(1);
 		timeout++;
 
 		regmap_read(raminit->syscon, raminit->reg, &ctrl);
-		if (timeout == 1000) {
+
+		if (timeout == 1000)
+		{
 			dev_err(&priv->dev->dev, "%s: time out\n", __func__);
 			break;
 		}
-	} while ((ctrl & mask) != val);
+	}
+	while ((ctrl & mask) != val);
 }
 
 static void c_can_hw_raminit_syscon(const struct c_can_priv *priv, bool enable)
@@ -118,7 +123,8 @@ static void c_can_hw_raminit_syscon(const struct c_can_priv *priv, bool enable)
 	 */
 	c_can_hw_raminit_wait_syscon(priv, 1 << raminit->bits.start, ctrl);
 
-	if (enable) {
+	if (enable)
+	{
 		/* Clear DONE bit & set START bit. */
 		ctrl |= 1 << raminit->bits.start;
 		/* DONE must be written with 1 to clear it */
@@ -126,16 +132,19 @@ static void c_can_hw_raminit_syscon(const struct c_can_priv *priv, bool enable)
 		regmap_update_bits(raminit->syscon, raminit->reg, mask, ctrl);
 		/* prevent further clearing of DONE bit */
 		ctrl &= ~(1 << raminit->bits.done);
+
 		/* clear START bit if start pulse is needed */
-		if (raminit->needs_pulse) {
+		if (raminit->needs_pulse)
+		{
 			ctrl &= ~(1 << raminit->bits.start);
 			regmap_update_bits(raminit->syscon, raminit->reg,
-					   mask, ctrl);
+							   mask, ctrl);
 		}
 
 		ctrl |= 1 << raminit->bits.done;
 		c_can_hw_raminit_wait_syscon(priv, mask, ctrl);
 	}
+
 	spin_unlock(&raminit_lock);
 }
 
@@ -150,7 +159,7 @@ static u32 c_can_plat_read_reg32(const struct c_can_priv *priv, enum reg index)
 }
 
 static void c_can_plat_write_reg32(const struct c_can_priv *priv, enum reg index,
-		u32 val)
+								   u32 val)
 {
 	priv->write_reg(priv, index + 1, val >> 16);
 	priv->write_reg(priv, index, val);
@@ -162,7 +171,7 @@ static u32 d_can_plat_read_reg32(const struct c_can_priv *priv, enum reg index)
 }
 
 static void d_can_plat_write_reg32(const struct c_can_priv *priv, enum reg index,
-		u32 val)
+								   u32 val)
 {
 	writel(val, priv->base + priv->regs[index]);
 }
@@ -170,7 +179,9 @@ static void d_can_plat_write_reg32(const struct c_can_priv *priv, enum reg index
 static void c_can_hw_raminit_wait(const struct c_can_priv *priv, u32 mask)
 {
 	while (priv->read_reg32(priv, C_CAN_FUNCTION_REG) & mask)
+	{
 		udelay(1);
+	}
 }
 
 static void c_can_hw_raminit(const struct c_can_priv *priv, bool enable)
@@ -182,62 +193,71 @@ static void c_can_hw_raminit(const struct c_can_priv *priv, bool enable)
 	priv->write_reg32(priv, C_CAN_FUNCTION_REG, ctrl);
 	c_can_hw_raminit_wait(priv, ctrl);
 
-	if (enable) {
+	if (enable)
+	{
 		ctrl |= DCAN_RAM_INIT_BIT;
 		priv->write_reg32(priv, C_CAN_FUNCTION_REG, ctrl);
 		c_can_hw_raminit_wait(priv, ctrl);
 	}
 }
 
-static const struct c_can_driver_data c_can_drvdata = {
+static const struct c_can_driver_data c_can_drvdata =
+{
 	.id = BOSCH_C_CAN,
 };
 
-static const struct c_can_driver_data d_can_drvdata = {
+static const struct c_can_driver_data d_can_drvdata =
+{
 	.id = BOSCH_D_CAN,
 };
 
-static const struct raminit_bits dra7_raminit_bits[] = {
+static const struct raminit_bits dra7_raminit_bits[] =
+{
 	[0] = { .start = 3, .done = 1, },
 	[1] = { .start = 5, .done = 2, },
 };
 
-static const struct c_can_driver_data dra7_dcan_drvdata = {
+static const struct c_can_driver_data dra7_dcan_drvdata =
+{
 	.id = BOSCH_D_CAN,
 	.raminit_num = ARRAY_SIZE(dra7_raminit_bits),
 	.raminit_bits = dra7_raminit_bits,
 	.raminit_pulse = true,
 };
 
-static const struct raminit_bits am3352_raminit_bits[] = {
+static const struct raminit_bits am3352_raminit_bits[] =
+{
 	[0] = { .start = 0, .done = 8, },
 	[1] = { .start = 1, .done = 9, },
 };
 
-static const struct c_can_driver_data am3352_dcan_drvdata = {
+static const struct c_can_driver_data am3352_dcan_drvdata =
+{
 	.id = BOSCH_D_CAN,
 	.raminit_num = ARRAY_SIZE(am3352_raminit_bits),
 	.raminit_bits = am3352_raminit_bits,
 };
 
-static struct platform_device_id c_can_id_table[] = {
+static struct platform_device_id c_can_id_table[] =
+{
 	{
 		.name = KBUILD_MODNAME,
-		.driver_data = (kernel_ulong_t)&c_can_drvdata,
+		.driver_data = (kernel_ulong_t) &c_can_drvdata,
 	},
 	{
 		.name = "c_can",
-		.driver_data = (kernel_ulong_t)&c_can_drvdata,
+		.driver_data = (kernel_ulong_t) &c_can_drvdata,
 	},
 	{
 		.name = "d_can",
-		.driver_data = (kernel_ulong_t)&d_can_drvdata,
+		.driver_data = (kernel_ulong_t) &d_can_drvdata,
 	},
 	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(platform, c_can_id_table);
 
-static const struct of_device_id c_can_of_table[] = {
+static const struct of_device_id c_can_of_table[] =
+{
 	{ .compatible = "bosch,c_can", .data = &c_can_drvdata },
 	{ .compatible = "bosch,d_can", .data = &d_can_drvdata },
 	{ .compatible = "ti,dra7-d_can", .data = &dra7_dcan_drvdata },
@@ -261,119 +281,150 @@ static int c_can_plat_probe(struct platform_device *pdev)
 	struct device_node *np = pdev->dev.of_node;
 
 	match = of_match_device(c_can_of_table, &pdev->dev);
-	if (match) {
+
+	if (match)
+	{
 		drvdata = match->data;
-	} else if (pdev->id_entry->driver_data) {
+	}
+	else if (pdev->id_entry->driver_data)
+	{
 		drvdata = (struct c_can_driver_data *)
-			platform_get_device_id(pdev)->driver_data;
-	} else {
+				  platform_get_device_id(pdev)->driver_data;
+	}
+	else
+	{
 		return -ENODEV;
 	}
 
 	/* get the appropriate clk */
 	clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		ret = PTR_ERR(clk);
 		goto exit;
 	}
 
 	/* get the platform data */
 	irq = platform_get_irq(pdev, 0);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		ret = -ENODEV;
 		goto exit;
 	}
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	addr = devm_ioremap_resource(&pdev->dev, mem);
-	if (IS_ERR(addr)) {
+
+	if (IS_ERR(addr))
+	{
 		ret =  PTR_ERR(addr);
 		goto exit;
 	}
 
 	/* allocate the c_can device */
 	dev = alloc_c_can_dev();
-	if (!dev) {
+
+	if (!dev)
+	{
 		ret = -ENOMEM;
 		goto exit;
 	}
 
 	priv = netdev_priv(dev);
-	switch (drvdata->id) {
-	case BOSCH_C_CAN:
-		priv->regs = reg_map_c_can;
-		switch (mem->flags & IORESOURCE_MEM_TYPE_MASK) {
-		case IORESOURCE_MEM_32BIT:
-			priv->read_reg = c_can_plat_read_reg_aligned_to_32bit;
-			priv->write_reg = c_can_plat_write_reg_aligned_to_32bit;
-			priv->read_reg32 = c_can_plat_read_reg32;
-			priv->write_reg32 = c_can_plat_write_reg32;
+
+	switch (drvdata->id)
+	{
+		case BOSCH_C_CAN:
+			priv->regs = reg_map_c_can;
+
+			switch (mem->flags & IORESOURCE_MEM_TYPE_MASK)
+			{
+				case IORESOURCE_MEM_32BIT:
+					priv->read_reg = c_can_plat_read_reg_aligned_to_32bit;
+					priv->write_reg = c_can_plat_write_reg_aligned_to_32bit;
+					priv->read_reg32 = c_can_plat_read_reg32;
+					priv->write_reg32 = c_can_plat_write_reg32;
+					break;
+
+				case IORESOURCE_MEM_16BIT:
+				default:
+					priv->read_reg = c_can_plat_read_reg_aligned_to_16bit;
+					priv->write_reg = c_can_plat_write_reg_aligned_to_16bit;
+					priv->read_reg32 = c_can_plat_read_reg32;
+					priv->write_reg32 = c_can_plat_write_reg32;
+					break;
+			}
+
 			break;
-		case IORESOURCE_MEM_16BIT:
-		default:
+
+		case BOSCH_D_CAN:
+			priv->regs = reg_map_d_can;
+			priv->can.ctrlmode_supported |= CAN_CTRLMODE_3_SAMPLES;
 			priv->read_reg = c_can_plat_read_reg_aligned_to_16bit;
 			priv->write_reg = c_can_plat_write_reg_aligned_to_16bit;
-			priv->read_reg32 = c_can_plat_read_reg32;
-			priv->write_reg32 = c_can_plat_write_reg32;
+			priv->read_reg32 = d_can_plat_read_reg32;
+			priv->write_reg32 = d_can_plat_write_reg32;
+
+			/* Check if we need custom RAMINIT via syscon. Mostly for TI
+			 * platforms. Only supported with DT boot.
+			 */
+			if (np && of_property_read_bool(np, "syscon-raminit"))
+			{
+				u32 id;
+				struct c_can_raminit *raminit = &priv->raminit_sys;
+
+				ret = -EINVAL;
+				raminit->syscon = syscon_regmap_lookup_by_phandle(np,
+								  "syscon-raminit");
+
+				if (IS_ERR(raminit->syscon))
+				{
+					/* can fail with -EPROBE_DEFER */
+					ret = PTR_ERR(raminit->syscon);
+					free_c_can_dev(dev);
+					return ret;
+				}
+
+				if (of_property_read_u32_index(np, "syscon-raminit", 1,
+											   &raminit->reg))
+				{
+					dev_err(&pdev->dev,
+							"couldn't get the RAMINIT reg. offset!\n");
+					goto exit_free_device;
+				}
+
+				if (of_property_read_u32_index(np, "syscon-raminit", 2,
+											   &id))
+				{
+					dev_err(&pdev->dev,
+							"couldn't get the CAN instance ID\n");
+					goto exit_free_device;
+				}
+
+				if (id >= drvdata->raminit_num)
+				{
+					dev_err(&pdev->dev,
+							"Invalid CAN instance ID\n");
+					goto exit_free_device;
+				}
+
+				raminit->bits = drvdata->raminit_bits[id];
+				raminit->needs_pulse = drvdata->raminit_pulse;
+
+				priv->raminit = c_can_hw_raminit_syscon;
+			}
+			else
+			{
+				priv->raminit = c_can_hw_raminit;
+			}
+
 			break;
-		}
-		break;
-	case BOSCH_D_CAN:
-		priv->regs = reg_map_d_can;
-		priv->can.ctrlmode_supported |= CAN_CTRLMODE_3_SAMPLES;
-		priv->read_reg = c_can_plat_read_reg_aligned_to_16bit;
-		priv->write_reg = c_can_plat_write_reg_aligned_to_16bit;
-		priv->read_reg32 = d_can_plat_read_reg32;
-		priv->write_reg32 = d_can_plat_write_reg32;
 
-		/* Check if we need custom RAMINIT via syscon. Mostly for TI
-		 * platforms. Only supported with DT boot.
-		 */
-		if (np && of_property_read_bool(np, "syscon-raminit")) {
-			u32 id;
-			struct c_can_raminit *raminit = &priv->raminit_sys;
-
+		default:
 			ret = -EINVAL;
-			raminit->syscon = syscon_regmap_lookup_by_phandle(np,
-									  "syscon-raminit");
-			if (IS_ERR(raminit->syscon)) {
-				/* can fail with -EPROBE_DEFER */
-				ret = PTR_ERR(raminit->syscon);
-				free_c_can_dev(dev);
-				return ret;
-			}
-
-			if (of_property_read_u32_index(np, "syscon-raminit", 1,
-						       &raminit->reg)) {
-				dev_err(&pdev->dev,
-					"couldn't get the RAMINIT reg. offset!\n");
-				goto exit_free_device;
-			}
-
-			if (of_property_read_u32_index(np, "syscon-raminit", 2,
-						       &id)) {
-				dev_err(&pdev->dev,
-					"couldn't get the CAN instance ID\n");
-				goto exit_free_device;
-			}
-
-			if (id >= drvdata->raminit_num) {
-				dev_err(&pdev->dev,
-					"Invalid CAN instance ID\n");
-				goto exit_free_device;
-			}
-
-			raminit->bits = drvdata->raminit_bits[id];
-			raminit->needs_pulse = drvdata->raminit_pulse;
-
-			priv->raminit = c_can_hw_raminit_syscon;
-		} else {
-			priv->raminit = c_can_hw_raminit;
-		}
-		break;
-	default:
-		ret = -EINVAL;
-		goto exit_free_device;
+			goto exit_free_device;
 	}
 
 	dev->irq = irq;
@@ -387,14 +438,16 @@ static int c_can_plat_probe(struct platform_device *pdev)
 	SET_NETDEV_DEV(dev, &pdev->dev);
 
 	ret = register_c_can_dev(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "registering %s failed (err=%d)\n",
-			KBUILD_MODNAME, ret);
+				KBUILD_MODNAME, ret);
 		goto exit_free_device;
 	}
 
 	dev_info(&pdev->dev, "%s device registered (regs=%p, irq=%d)\n",
-		 KBUILD_MODNAME, priv->base, dev->irq);
+			 KBUILD_MODNAME, priv->base, dev->irq);
 	return 0;
 
 exit_free_device:
@@ -423,18 +476,22 @@ static int c_can_suspend(struct platform_device *pdev, pm_message_t state)
 	struct net_device *ndev = platform_get_drvdata(pdev);
 	struct c_can_priv *priv = netdev_priv(ndev);
 
-	if (priv->type != BOSCH_D_CAN) {
+	if (priv->type != BOSCH_D_CAN)
+	{
 		dev_warn(&pdev->dev, "Not supported\n");
 		return 0;
 	}
 
-	if (netif_running(ndev)) {
+	if (netif_running(ndev))
+	{
 		netif_stop_queue(ndev);
 		netif_device_detach(ndev);
 	}
 
 	ret = c_can_power_down(ndev);
-	if (ret) {
+
+	if (ret)
+	{
 		netdev_err(ndev, "failed to enter power down mode\n");
 		return ret;
 	}
@@ -450,20 +507,24 @@ static int c_can_resume(struct platform_device *pdev)
 	struct net_device *ndev = platform_get_drvdata(pdev);
 	struct c_can_priv *priv = netdev_priv(ndev);
 
-	if (priv->type != BOSCH_D_CAN) {
+	if (priv->type != BOSCH_D_CAN)
+	{
 		dev_warn(&pdev->dev, "Not supported\n");
 		return 0;
 	}
 
 	ret = c_can_power_up(ndev);
-	if (ret) {
+
+	if (ret)
+	{
 		netdev_err(ndev, "Still in power down mode\n");
 		return ret;
 	}
 
 	priv->can.state = CAN_STATE_ERROR_ACTIVE;
 
-	if (netif_running(ndev)) {
+	if (netif_running(ndev))
+	{
 		netif_device_attach(ndev);
 		netif_start_queue(ndev);
 	}
@@ -475,7 +536,8 @@ static int c_can_resume(struct platform_device *pdev)
 #define c_can_resume NULL
 #endif
 
-static struct platform_driver c_can_plat_driver = {
+static struct platform_driver c_can_plat_driver =
+{
 	.driver = {
 		.name = KBUILD_MODNAME,
 		.of_match_table = c_can_of_table,

@@ -37,7 +37,8 @@
  * @RC_TYPE_XMP: XMP protocol
  * @RC_TYPE_CEC: CEC protocol
  */
-enum rc_type {
+enum rc_type
+{
 	RC_TYPE_UNKNOWN		= 0,
 	RC_TYPE_OTHER		= 1,
 	RC_TYPE_RC5		= 2,
@@ -87,14 +88,14 @@ enum rc_type {
 #define RC_BIT_CEC		(1ULL << RC_TYPE_CEC)
 
 #define RC_BIT_ALL	(RC_BIT_UNKNOWN | RC_BIT_OTHER | \
-			 RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \
-			 RC_BIT_JVC | \
-			 RC_BIT_SONY12 | RC_BIT_SONY15 | RC_BIT_SONY20 | \
-			 RC_BIT_NEC | RC_BIT_NECX | RC_BIT_NEC32 | \
-			 RC_BIT_SANYO | RC_BIT_MCE_KBD | RC_BIT_RC6_0 | \
-			 RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | \
-			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | RC_BIT_SHARP | \
-			 RC_BIT_XMP | RC_BIT_CEC)
+					 RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \
+					 RC_BIT_JVC | \
+					 RC_BIT_SONY12 | RC_BIT_SONY15 | RC_BIT_SONY20 | \
+					 RC_BIT_NEC | RC_BIT_NECX | RC_BIT_NEC32 | \
+					 RC_BIT_SANYO | RC_BIT_MCE_KBD | RC_BIT_RC6_0 | \
+					 RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | \
+					 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | RC_BIT_SHARP | \
+					 RC_BIT_XMP | RC_BIT_CEC)
 
 
 #define RC_SCANCODE_UNKNOWN(x)			(x)
@@ -113,7 +114,8 @@ enum rc_type {
  * @scancode: scan code (u32)
  * @keycode: Linux input keycode
  */
-struct rc_map_table {
+struct rc_map_table
+{
 	u32	scancode;
 	u32	keycode;
 };
@@ -130,7 +132,8 @@ struct rc_map_table {
  * @name: name of the key map table
  * @lock: lock to protect access to this structure
  */
-struct rc_map {
+struct rc_map
+{
 	struct rc_map_table	*scan;
 	unsigned int		size;
 	unsigned int		len;
@@ -146,7 +149,8 @@ struct rc_map {
  * @list: pointer to struct &list_head
  * @map: pointer to struct &rc_map
  */
-struct rc_map_list {
+struct rc_map_list
+{
 	struct list_head	 list;
 	struct rc_map map;
 };

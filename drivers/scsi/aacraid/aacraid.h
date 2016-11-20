@@ -1,5 +1,5 @@
 #ifndef dprintk
-# define dprintk(x)
+	#define dprintk(x)
 #endif
 /* eg: if (nblank(dprintk(x))) */
 #define _nblank(x) #x
@@ -15,7 +15,8 @@
 #define AAC_MAX_MSIX		32	/* vectors */
 #define AAC_PCI_MSI_ENABLE	0x8000
 
-enum {
+enum
+{
 	AAC_ENABLE_INTERRUPT	= 0x0,
 	AAC_DISABLE_INTERRUPT,
 	AAC_ENABLE_MSIX,
@@ -49,22 +50,22 @@ enum {
 #define PMC_ALLOW_MSIX_VECTOR0		(1<<0)
 
 #define PMC_IOA_ERROR_INTERRUPTS	(PMC_IOARCB_TRANSFER_FAILED | \
-					 PMC_IOA_UNIT_CHECK | \
-					 PMC_NO_HOST_RRQ_FOR_CMD_RESPONSE | \
-					 PMC_IOARRIN_LOST | \
-					 PMC_SYSTEM_BUS_MMIO_ERROR | \
-					 PMC_IOA_PROCESSOR_IN_ERROR_STATE)
+									 PMC_IOA_UNIT_CHECK | \
+									 PMC_NO_HOST_RRQ_FOR_CMD_RESPONSE | \
+									 PMC_IOARRIN_LOST | \
+									 PMC_SYSTEM_BUS_MMIO_ERROR | \
+									 PMC_IOA_PROCESSOR_IN_ERROR_STATE)
 
 #define PMC_ALL_INTERRUPT_BITS		(PMC_IOA_ERROR_INTERRUPTS | \
-					 PMC_HOST_RRQ_VALID | \
-					 PMC_TRANSITION_TO_OPERATIONAL | \
-					 PMC_ALLOW_MSIX_VECTOR0)
+									 PMC_HOST_RRQ_VALID | \
+									 PMC_TRANSITION_TO_OPERATIONAL | \
+									 PMC_ALLOW_MSIX_VECTOR0)
 #define	PMC_GLOBAL_INT_BIT2		0x00000004
 #define	PMC_GLOBAL_INT_BIT0		0x00000001
 
 #ifndef AAC_DRIVER_BUILD
-# define AAC_DRIVER_BUILD 41066
-# define AAC_DRIVER_BRANCH "-ms"
+	#define AAC_DRIVER_BUILD 41066
+	#define AAC_DRIVER_BRANCH "-ms"
 #endif
 #define MAXIMUM_NUM_CONTAINERS	32
 
@@ -127,27 +128,32 @@ struct diskparm
  *	We have separate 32 and 64 bit version because even
  *	on 64 bit systems not all cards support the 64 bit version
  */
-struct sgentry {
+struct sgentry
+{
 	__le32	addr;	/* 32-bit address. */
 	__le32	count;	/* Length. */
 };
 
-struct user_sgentry {
+struct user_sgentry
+{
 	u32	addr;	/* 32-bit address. */
 	u32	count;	/* Length. */
 };
 
-struct sgentry64 {
+struct sgentry64
+{
 	__le32	addr[2];	/* 64-bit addr. 2 pieces for data alignment */
 	__le32	count;	/* Length. */
 };
 
-struct user_sgentry64 {
+struct user_sgentry64
+{
 	u32	addr[2];	/* 64-bit addr. 2 pieces for data alignment */
 	u32	count;	/* Length. */
 };
 
-struct sgentryraw {
+struct sgentryraw
+{
 	__le32		next;	/* reserved for F/W use */
 	__le32		prev;	/* reserved for F/W use */
 	__le32		addr[2];
@@ -155,7 +161,8 @@ struct sgentryraw {
 	__le32		flags;	/* reserved for F/W use */
 };
 
-struct user_sgentryraw {
+struct user_sgentryraw
+{
 	u32		next;	/* reserved for F/W use */
 	u32		prev;	/* reserved for F/W use */
 	u32		addr[2];
@@ -163,7 +170,8 @@ struct user_sgentryraw {
 	u32		flags;	/* reserved for F/W use */
 };
 
-struct sge_ieee1212 {
+struct sge_ieee1212
+{
 	u32	addrLow;
 	u32	addrHigh;
 	u32	length;
@@ -177,32 +185,38 @@ struct sge_ieee1212 {
  *	32-bit addressing.
  */
 
-struct sgmap {
+struct sgmap
+{
 	__le32		count;
 	struct sgentry	sg[1];
 };
 
-struct user_sgmap {
+struct user_sgmap
+{
 	u32		count;
 	struct user_sgentry	sg[1];
 };
 
-struct sgmap64 {
+struct sgmap64
+{
 	__le32		count;
 	struct sgentry64 sg[1];
 };
 
-struct user_sgmap64 {
+struct user_sgmap64
+{
 	u32		count;
 	struct user_sgentry64 sg[1];
 };
 
-struct sgmapraw {
+struct sgmapraw
+{
 	__le32		  count;
 	struct sgentryraw sg[1];
 };
 
-struct user_sgmapraw {
+struct user_sgmapraw
+{
 	u32		  count;
 	struct user_sgentryraw sg[1];
 };
@@ -249,8 +263,8 @@ struct creation_info
 #define ADAP_NORM_RESP_ENTRIES 8
 
 #define TOTAL_QUEUE_ENTRIES  \
-    (HOST_NORM_CMD_ENTRIES + HOST_HIGH_CMD_ENTRIES + ADAP_NORM_CMD_ENTRIES + ADAP_HIGH_CMD_ENTRIES + \
-	    HOST_NORM_RESP_ENTRIES + HOST_HIGH_RESP_ENTRIES + ADAP_NORM_RESP_ENTRIES + ADAP_HIGH_RESP_ENTRIES)
+	(HOST_NORM_CMD_ENTRIES + HOST_HIGH_CMD_ENTRIES + ADAP_NORM_CMD_ENTRIES + ADAP_HIGH_CMD_ENTRIES + \
+	 HOST_NORM_RESP_ENTRIES + HOST_HIGH_RESP_ENTRIES + ADAP_NORM_RESP_ENTRIES + ADAP_HIGH_RESP_ENTRIES)
 
 
 /*
@@ -266,7 +280,8 @@ struct creation_info
  *	they will be represented as individual units in the data structures.
  */
 
-struct aac_entry {
+struct aac_entry
+{
 	__le32 size; /* Size in bytes of Fib which this QE points to */
 	__le32 addr; /* Receiver address of the FIB */
 };
@@ -276,7 +291,8 @@ struct aac_entry {
  *	adjacently and in that order.
  */
 
-struct aac_qhdr {
+struct aac_qhdr
+{
 	__le64 header_addr;/* Address to hand the adapter to access
 			      to this queue head */
 	__le32 *producer; /* The producer index for this queue (host address) */
@@ -324,15 +340,16 @@ struct aac_qhdr {
  *	Number them to match the physical queue layout.
  */
 
-enum aac_queue_types {
-        HostNormCmdQueue = 0,	/* Adapter to host normal priority command traffic */
-        HostHighCmdQueue,	/* Adapter to host high priority command traffic */
-        AdapNormCmdQueue,	/* Host to adapter normal priority command traffic */
-        AdapHighCmdQueue,	/* Host to adapter high priority command traffic */
-        HostNormRespQueue,	/* Adapter to host normal priority response traffic */
-        HostHighRespQueue,	/* Adapter to host high priority response traffic */
-        AdapNormRespQueue,	/* Host to adapter normal priority response traffic */
-        AdapHighRespQueue	/* Host to adapter high priority response traffic */
+enum aac_queue_types
+{
+	HostNormCmdQueue = 0,	/* Adapter to host normal priority command traffic */
+	HostHighCmdQueue,	/* Adapter to host high priority command traffic */
+	AdapNormCmdQueue,	/* Host to adapter normal priority command traffic */
+	AdapHighCmdQueue,	/* Host to adapter high priority command traffic */
+	HostNormRespQueue,	/* Adapter to host normal priority response traffic */
+	HostHighRespQueue,	/* Adapter to host high priority response traffic */
+	AdapNormRespQueue,	/* Host to adapter normal priority response traffic */
+	AdapHighRespQueue	/* Host to adapter high priority response traffic */
 };
 
 /*
@@ -350,7 +367,8 @@ enum aac_queue_types {
 #define		FsaNormal	1
 
 /* transport FIB header (PMC) */
-struct aac_fib_xporthdr {
+struct aac_fib_xporthdr
+{
 	u64	HostAddress;	/* FIB host address w/o xport header */
 	u32	Size;		/* FIB size excluding xport header */
 	u32	Handle;		/* driver handle to reference the FIB */
@@ -364,7 +382,8 @@ struct aac_fib_xporthdr {
  * command information are put to the application on the FSA adapter.
  */
 
-struct aac_fibhdr {
+struct aac_fibhdr
+{
 	__le32 XferState;	/* Current transfer state for this CCB */
 	__le16 Command;		/* Routing information for the destination */
 	u8 StructType;		/* Type FIB */
@@ -373,7 +392,8 @@ struct aac_fibhdr {
 	__le16 SenderSize;	/* Size of the FIB in the sender
 				   (for response sizing) */
 	__le32 SenderFibAddress;  /* Host defined data in the FIB */
-	union {
+	union
+	{
 		__le32 ReceiverFibAddress;/* Logical address of this FIB for
 				     the adapter (old) */
 		__le32 SenderFibAddressHigh;/* upper 32bit of phys. FIB address */
@@ -384,9 +404,10 @@ struct aac_fibhdr {
 	u32 Next;		/* FW internal use */
 };
 
-struct hw_fib {
+struct hw_fib
+{
 	struct aac_fibhdr header;
-	u8 data[512-sizeof(struct aac_fibhdr)];	// Command specific data
+	u8 data[512 - sizeof(struct aac_fibhdr)];	// Command specific data
 };
 
 /*
@@ -453,31 +474,32 @@ struct hw_fib {
  * Commands that will target the failover level on the FSA adapter
  */
 
-enum fib_xfer_state {
-	HostOwned			= (1<<0),
-	AdapterOwned			= (1<<1),
-	FibInitialized			= (1<<2),
-	FibEmpty			= (1<<3),
-	AllocatedFromPool		= (1<<4),
-	SentFromHost			= (1<<5),
-	SentFromAdapter			= (1<<6),
-	ResponseExpected		= (1<<7),
-	NoResponseExpected		= (1<<8),
-	AdapterProcessed		= (1<<9),
-	HostProcessed			= (1<<10),
-	HighPriority			= (1<<11),
-	NormalPriority			= (1<<12),
-	Async				= (1<<13),
-	AsyncIo				= (1<<13),	// rpbfix: remove with new regime
-	PageFileIo			= (1<<14),	// rpbfix: remove with new regime
-	ShutdownRequest			= (1<<15),
-	LazyWrite			= (1<<16),	// rpbfix: remove with new regime
-	AdapterMicroFib			= (1<<17),
-	BIOSFibPath			= (1<<18),
-	FastResponseCapable		= (1<<19),
-	ApiFib				= (1<<20),	/* Its an API Fib */
+enum fib_xfer_state
+{
+	HostOwned			= (1 << 0),
+	AdapterOwned			= (1 << 1),
+	FibInitialized			= (1 << 2),
+	FibEmpty			= (1 << 3),
+	AllocatedFromPool		= (1 << 4),
+	SentFromHost			= (1 << 5),
+	SentFromAdapter			= (1 << 6),
+	ResponseExpected		= (1 << 7),
+	NoResponseExpected		= (1 << 8),
+	AdapterProcessed		= (1 << 9),
+	HostProcessed			= (1 << 10),
+	HighPriority			= (1 << 11),
+	NormalPriority			= (1 << 12),
+	Async				= (1 << 13),
+	AsyncIo				= (1 << 13),	// rpbfix: remove with new regime
+	PageFileIo			= (1 << 14),	// rpbfix: remove with new regime
+	ShutdownRequest			= (1 << 15),
+	LazyWrite			= (1 << 16),	// rpbfix: remove with new regime
+	AdapterMicroFib			= (1 << 17),
+	BIOSFibPath			= (1 << 18),
+	FastResponseCapable		= (1 << 19),
+	ApiFib				= (1 << 20),	/* Its an API Fib */
 	/* PMC NEW COMM: There is no more AIF data pending */
-	NoMoreAifDataAvailable		= (1<<21)
+	NoMoreAifDataAvailable		= (1 << 21)
 };
 
 /*
@@ -526,7 +548,8 @@ struct aac_init
 	__le32	HostRRQ_AddrHigh;	/* Host RRQ (response queue) for SRC */
 };
 
-enum aac_log_level {
+enum aac_log_level
+{
 	LOG_AAC_INIT			= 10,
 	LOG_AAC_INFORMATIONAL		= 20,
 	LOG_AAC_WARNING			= 30,
@@ -552,21 +575,22 @@ struct adapter_ops
 	void (*adapter_notify)(struct aac_dev *dev, u32 event);
 	void (*adapter_disable_int)(struct aac_dev *dev);
 	void (*adapter_enable_int)(struct aac_dev *dev);
-	int  (*adapter_sync_cmd)(struct aac_dev *dev, u32 command, u32 p1, u32 p2, u32 p3, u32 p4, u32 p5, u32 p6, u32 *status, u32 *r1, u32 *r2, u32 *r3, u32 *r4);
+	int  (*adapter_sync_cmd)(struct aac_dev *dev, u32 command, u32 p1, u32 p2, u32 p3, u32 p4, u32 p5, u32 p6, u32 *status,
+							 u32 *r1, u32 *r2, u32 *r3, u32 *r4);
 	int  (*adapter_check_health)(struct aac_dev *dev);
 	int  (*adapter_restart)(struct aac_dev *dev, int bled);
 	void (*adapter_start)(struct aac_dev *dev);
 	/* Transport operations */
-	int  (*adapter_ioremap)(struct aac_dev * dev, u32 size);
+	int  (*adapter_ioremap)(struct aac_dev *dev, u32 size);
 	irq_handler_t adapter_intr;
 	/* Packet operations */
-	int  (*adapter_deliver)(struct fib * fib);
-	int  (*adapter_bounds)(struct aac_dev * dev, struct scsi_cmnd * cmd, u64 lba);
-	int  (*adapter_read)(struct fib * fib, struct scsi_cmnd * cmd, u64 lba, u32 count);
-	int  (*adapter_write)(struct fib * fib, struct scsi_cmnd * cmd, u64 lba, u32 count, int fua);
-	int  (*adapter_scsi)(struct fib * fib, struct scsi_cmnd * cmd);
+	int  (*adapter_deliver)(struct fib *fib);
+	int  (*adapter_bounds)(struct aac_dev *dev, struct scsi_cmnd *cmd, u64 lba);
+	int  (*adapter_read)(struct fib *fib, struct scsi_cmnd *cmd, u64 lba, u32 count);
+	int  (*adapter_write)(struct fib *fib, struct scsi_cmnd *cmd, u64 lba, u32 count, int fua);
+	int  (*adapter_scsi)(struct fib *fib, struct scsi_cmnd *cmd);
 	/* Administrative operations */
-	int  (*adapter_comm)(struct aac_dev * dev, int comm);
+	int  (*adapter_comm)(struct aac_dev *dev, int comm);
 };
 
 /*
@@ -576,9 +600,9 @@ struct adapter_ops
 struct aac_driver_ident
 {
 	int	(*init)(struct aac_dev *dev);
-	char *	name;
-	char *	vname;
-	char *	model;
+	char 	*name;
+	char 	*vname;
+	char 	*model;
 	u16	channels;
 	int	quirks;
 };
@@ -635,21 +659,22 @@ struct aac_driver_ident
  *	commuication. These regions are accessed by both the host and adapter.
  */
 
-struct aac_queue {
+struct aac_queue
+{
 	u64			logical;	/*address we give the adapter */
 	struct aac_entry	*base;		/*system virtual address */
 	struct aac_qhdr		headers;	/*producer,consumer q headers*/
 	u32			entries;	/*Number of queue entries */
 	wait_queue_head_t	qfull;		/*Event to wait on if q full */
 	wait_queue_head_t	cmdready;	/*Cmd ready from the adapter */
-		/* This is only valid for adapter to host command queues. */
+	/* This is only valid for adapter to host command queues. */
 	spinlock_t		*lock;		/* Spinlock for this queue must take this lock before accessing the lock */
 	spinlock_t		lockdata;	/* Actual lock (used only on one side of the lock) */
 	struct list_head	cmdq;		/* A queue of FIBs which need to be prcessed by the FS thread. This is */
-						/* only valid for command queues which receive entries from the adapter. */
+	/* only valid for command queues which receive entries from the adapter. */
 	/* Number of entries on outstanding queue. */
 	atomic_t		numpending;
-	struct aac_dev *	dev;		/* Back pointer to adapter structure */
+	struct aac_dev 	*dev;		/* Back pointer to adapter structure */
 };
 
 /*
@@ -666,8 +691,9 @@ struct aac_queue_block
  *	SaP1 Message Unit Registers
  */
 
-struct sa_drawbridge_CSR {
-				/*	Offset	|  Name */
+struct sa_drawbridge_CSR
+{
+	/*	Offset	|  Name */
 	__le32	reserved[10];	/*	00h-27h |  Reserved */
 	u8	LUT_Offset;	/*	28h	|  Lookup Table Offset */
 	u8	reserved1[3];	/*	29h-2bh	|  Reserved */
@@ -721,7 +747,8 @@ struct sa_drawbridge_CSR {
 #define PrintfReady	DOORBELL_5
 #define PrintfDone	DOORBELL_5
 
-struct sa_registers {
+struct sa_registers
+{
 	struct sa_drawbridge_CSR	SaDbCSR;			/* 98h - c4h */
 };
 
@@ -737,8 +764,9 @@ struct sa_registers {
  *	Rx Message Unit Registers
  */
 
-struct rx_mu_registers {
-			    /*	Local  | PCI*| Name */
+struct rx_mu_registers
+{
+	/*	Local  | PCI*| Name */
 	__le32	ARSR;	    /*	1300h  | 00h | APIC Register Select Register */
 	__le32	reserved0;  /*	1304h  | 04h | Reserved */
 	__le32	AWR;	    /*	1308h  | 08h | APIC Window Register */
@@ -759,11 +787,12 @@ struct rx_mu_registers {
 	__le32	reserved3;  /*	133Ch  | 3Ch | Reserved */
 	__le32	InboundQueue;/*	1340h  | 40h | Inbound Queue Port relative to firmware */
 	__le32	OutboundQueue;/*1344h  | 44h | Outbound Queue Port relative to firmware */
-			    /* * Must access through ATU Inbound
-				 Translation Window */
+	/* * Must access through ATU Inbound
+	 Translation Window */
 };
 
-struct rx_inbound {
+struct rx_inbound
+{
 	__le32	Mailbox[8];
 };
 
@@ -784,7 +813,8 @@ struct rx_inbound {
 #define InboundDoorbellReg	MUnit.IDR
 #define OutboundDoorbellReg	MUnit.ODR
 
-struct rx_registers {
+struct rx_registers
+{
 	struct rx_mu_registers		MUnit;		/* 1300h - 1347h */
 	__le32				reserved1[2];	/* 1348h - 134ch */
 	struct rx_inbound		IndexRegs;
@@ -802,7 +832,8 @@ struct rx_registers {
 #define rkt_mu_registers rx_mu_registers
 #define rkt_inbound rx_inbound
 
-struct rkt_registers {
+struct rkt_registers
+{
 	struct rkt_mu_registers		MUnit;		 /* 1300h - 1347h */
 	__le32				reserved1[1006]; /* 1348h - 22fch */
 	struct rkt_inbound		IndexRegs;	 /* 2300h - */
@@ -819,8 +850,9 @@ struct rkt_registers {
 
 #define src_inbound rx_inbound
 
-struct src_mu_registers {
-				/*	PCI*| Name */
+struct src_mu_registers
+{
+	/*	PCI*| Name */
 	__le32	reserved0[6];	/*	00h | Reserved */
 	__le32	IOAR[2];	/*	18h | IOA->host interrupt register */
 	__le32	IDR;		/*	20h | Inbound Doorbell Register */
@@ -837,14 +869,18 @@ struct src_mu_registers {
 	__le32	ODR_MSI;	/*  c8h | MSI register for sync./AIF */
 };
 
-struct src_registers {
+struct src_registers
+{
 	struct src_mu_registers MUnit;	/* 00h - cbh */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__le32 reserved1[130789];	/* cch - 7fc5fh */
 			struct src_inbound IndexRegs;	/* 7fc60h */
 		} tupelo;
-		struct {
+		struct
+		{
 			__le32 reserved1[973];		/* cch - fffh */
 			struct src_inbound IndexRegs;	/* 1000h */
 		} denali;
@@ -854,12 +890,12 @@ struct src_registers {
 #define src_readb(AEP, CSR)		readb(&((AEP)->regs.src.bar0->CSR))
 #define src_readl(AEP, CSR)		readl(&((AEP)->regs.src.bar0->CSR))
 #define src_writeb(AEP, CSR, value)	writeb(value, \
-						&((AEP)->regs.src.bar0->CSR))
+		&((AEP)->regs.src.bar0->CSR))
 #define src_writel(AEP, CSR, value)	writel(value, \
-						&((AEP)->regs.src.bar0->CSR))
+		&((AEP)->regs.src.bar0->CSR))
 #if defined(writeq)
 #define	src_writeq(AEP, CSR, value)	writeq(value, \
-						&((AEP)->regs.src.bar0->CSR))
+		&((AEP)->regs.src.bar0->CSR))
 #endif
 
 #define SRC_ODR_SHIFT		12
@@ -867,7 +903,8 @@ struct src_registers {
 
 typedef void (*fib_callback)(void *ctxt, struct fib *fibctx);
 
-struct aac_fib_context {
+struct aac_fib_context
+{
 	s16			type;		// used for verification of structure
 	s16			size;
 	u32			unique;		// unique value representing this context
@@ -879,18 +916,19 @@ struct aac_fib_context {
 	struct list_head	fib_list;	// this holds fibs and their attachd hw_fibs
 };
 
-struct sense_data {
+struct sense_data
+{
 	u8 error_code;		/* 70h (current errors), 71h(deferred errors) */
-	u8 valid:1;		/* A valid bit of one indicates that the information  */
-				/* field contains valid information as defined in the
-				 * SCSI-2 Standard.
-				 */
+	u8 valid: 1;		/* A valid bit of one indicates that the information  */
+	/* field contains valid information as defined in the
+	 * SCSI-2 Standard.
+	 */
 	u8 segment_number;	/* Only used for COPY, COMPARE, or COPY AND VERIFY Commands */
-	u8 sense_key:4;		/* Sense Key */
-	u8 reserved:1;
-	u8 ILI:1;		/* Incorrect Length Indicator */
-	u8 EOM:1;		/* End Of Medium - reserved for random access devices */
-	u8 filemark:1;		/* Filemark - reserved for random access devices */
+	u8 sense_key: 4;		/* Sense Key */
+	u8 reserved: 1;
+	u8 ILI: 1;		/* Incorrect Length Indicator */
+	u8 EOM: 1;		/* End Of Medium - reserved for random access devices */
+	u8 filemark: 1;		/* Filemark - reserved for random access devices */
 
 	u8 information[4];	/* for direct-access devices, contains the unsigned
 				 * logical block address or residue associated with
@@ -901,21 +939,22 @@ struct sense_data {
 	u8 ASC;			/* Additional Sense Code */
 	u8 ASCQ;		/* Additional Sense Code Qualifier */
 	u8 FRUC;		/* Field Replaceable Unit Code - not used */
-	u8 bit_ptr:3;		/* indicates which byte of the CDB or parameter data
+	u8 bit_ptr: 3;		/* indicates which byte of the CDB or parameter data
 				 * was in error
 				 */
-	u8 BPV:1;		/* bit pointer valid (BPV): 1- indicates that
+	u8 BPV: 1;		/* bit pointer valid (BPV): 1- indicates that
 				 * the bit_ptr field has valid value
 				 */
-	u8 reserved2:2;
-	u8 CD:1;		/* command data bit: 1- illegal parameter in CDB.
+	u8 reserved2: 2;
+	u8 CD: 1;		/* command data bit: 1- illegal parameter in CDB.
 				 * 0- illegal parameter in data.
 				 */
-	u8 SKSV:1;
+	u8 SKSV: 1;
 	u8 field_ptr[2];	/* byte of the CDB or parameter data in error */
 };
 
-struct fsa_dev_info {
+struct fsa_dev_info
+{
 	u64		last;
 	u64		size;
 	u32		type;
@@ -932,7 +971,8 @@ struct fsa_dev_info {
 	u32		block_size;
 };
 
-struct fib {
+struct fib
+{
 	void			*next;	/* this is used by the allocator */
 	s16			type;
 	s16			size;
@@ -995,7 +1035,7 @@ struct aac_adapter_info
 
 struct aac_supplement_adapter_info
 {
-	u8	AdapterTypeText[17+1];
+	u8	AdapterTypeText[17 + 1];
 	u8	Pad[2];
 	__le32	FlashMemoryByteSize;
 	__le32	FlashImageId;
@@ -1006,7 +1046,8 @@ struct aac_supplement_adapter_info
 	u8	ReservedPad0[3];
 	u8	BuildDate[12];
 	__le32	CurrentNumberPorts;
-	struct {
+	struct
+	{
 		u8	AssemblyPn[8];
 		u8	FruPn[8];
 		u8	BatteryFruPn[8];
@@ -1042,7 +1083,8 @@ struct aac_supplement_adapter_info
 #define AAC_SIS_SLOT_UNKNOWN	0xFF
 
 #define GetBusInfo 0x00000009
-struct aac_bus_info {
+struct aac_bus_info
+{
 	__le32	Command;	/* VM_Ioctl */
 	__le32	ObjType;	/* FT_DRIVE */
 	__le32	MethodId;	/* 1 = SCSI Layer */
@@ -1050,7 +1092,8 @@ struct aac_bus_info {
 	__le32	CtlCmd;		/* GetBusInfo */
 };
 
-struct aac_bus_info_response {
+struct aac_bus_info_response
+{
 	__le32	Status;		/* ST_OK */
 	__le32	ObjType;
 	__le32	MethodId;	/* unused */
@@ -1105,7 +1148,8 @@ struct aac_bus_info_response {
 #define AAC_OPT_NEW_COMM_TYPE4		cpu_to_le32(1<<31)
 
 /* MSIX context */
-struct aac_msix_ctx {
+struct aac_msix_ctx
+{
 	int		vector_no;
 	struct aac_dev	*dev;
 };
@@ -1170,8 +1214,8 @@ struct aac_dev
 	atomic_t		rrq_outstanding[AAC_MAX_MSIX];
 	u32			fibs_pushed_no;
 	struct pci_dev		*pdev;		/* Our PCI interface */
-	void *			printfbuf;	/* pointer to buffer used for printf's from the adapter */
-	void *			comm_addr;	/* Base address of Comm area */
+	void 			*printfbuf;	/* pointer to buffer used for printf's from the adapter */
+	void 			*comm_addr;	/* Base address of Comm area */
 	dma_addr_t		comm_phys;	/* Physical Address of Comm area */
 	size_t			comm_size;
 
@@ -1203,7 +1247,8 @@ struct aac_dev
 		struct sa_registers __iomem *sa;
 		struct rx_registers __iomem *rx;
 		struct rkt_registers __iomem *rkt;
-		struct {
+		struct
+		{
 			struct src_registers __iomem *bar0;
 			char __iomem *bar1;
 		} src;
@@ -1487,7 +1532,8 @@ struct aac_raw_io
 	struct sgmapraw	sg;
 };
 
-struct aac_raw_io2 {
+struct aac_raw_io2
+{
 	__le32		blockLow;
 	__le32		blockHigh;
 	__le32		byteCount;
@@ -1504,7 +1550,8 @@ struct aac_raw_io2 {
 };
 
 #define CT_FLUSH_CACHE 129
-struct aac_synchronize {
+struct aac_synchronize
+{
 	__le32		command;	/* VM_ContainerConfig */
 	__le32		type;		/* CT_FLUSH_CACHE */
 	__le32		cid;
@@ -1515,7 +1562,8 @@ struct aac_synchronize {
 	__le32		count;	/* sizeof(((struct aac_synchronize_reply *)NULL)->data) */
 };
 
-struct aac_synchronize_reply {
+struct aac_synchronize_reply
+{
 	__le32		dummy0;
 	__le32		dummy1;
 	__le32		status;	/* CT_OK */
@@ -1531,7 +1579,8 @@ struct aac_synchronize_reply {
 #define CT_PM_START_UNIT	2
 #define CT_PM_STOP_UNIT		3
 #define CT_PM_UNIT_IMMEDIATE	1
-struct aac_power_management {
+struct aac_power_management
+{
 	__le32		command;	/* VM_ContainerConfig */
 	__le32		type;		/* CT_POWER_MANAGEMENT */
 	__le32		sub;		/* CT_PM_* */
@@ -1541,7 +1590,8 @@ struct aac_power_management {
 
 #define CT_PAUSE_IO    65
 #define CT_RELEASE_IO  66
-struct aac_pause {
+struct aac_pause
+{
 	__le32		command;	/* VM_ContainerConfig */
 	__le32		type;		/* CT_PAUSE_IO */
 	__le32		timeout;	/* 10ms ticks */
@@ -1703,7 +1753,8 @@ struct aac_srb_reply
  *	another.
  */
 
-struct aac_fsinfo {
+struct aac_fsinfo
+{
 	__le32  fsTotalSize;	/* Consumed by fs, incl. metadata */
 	__le32  fsBlockSize;
 	__le32  fsFragSize;
@@ -1714,11 +1765,13 @@ struct aac_fsinfo {
 	__le32  fsInodeDensity;
 };	/* valid iff ObjType == FT_FILESYS && !(ContentState & FSCS_NOTCLEAN) */
 
-struct  aac_blockdevinfo {
+struct  aac_blockdevinfo
+{
 	__le32	block_size;
 };
 
-union aac_contentinfo {
+union aac_contentinfo
+{
 	struct	aac_fsinfo		filesys;
 	struct	aac_blockdevinfo	bdevinfo;
 };
@@ -1728,7 +1781,8 @@ union aac_contentinfo {
  */
 
 #define CT_GET_CONFIG_STATUS 147
-struct aac_get_config_status {
+struct aac_get_config_status
+{
 	__le32		command;	/* VM_ContainerConfig */
 	__le32		type;		/* CT_GET_CONFIG_STATUS */
 	__le32		parm1;
@@ -1742,7 +1796,8 @@ struct aac_get_config_status {
 #define CFACT_CONTINUE 0
 #define CFACT_PAUSE    1
 #define CFACT_ABORT    2
-struct aac_get_config_status_resp {
+struct aac_get_config_status_resp
+{
 	__le32		response; /* ST_OK */
 	__le32		dummy0;
 	__le32		status;	/* CT_OK */
@@ -1751,7 +1806,8 @@ struct aac_get_config_status_resp {
 	__le32		parm3;
 	__le32		parm4;
 	__le32		parm5;
-	struct {
+	struct
+	{
 		__le32	action; /* CFACT_CONTINUE, CFACT_PAUSE or CFACT_ABORT */
 		__le16	flags;
 		__le16	count;
@@ -1764,7 +1820,8 @@ struct aac_get_config_status_resp {
 
 #define CT_COMMIT_CONFIG 152
 
-struct aac_commit_config {
+struct aac_commit_config
+{
 	__le32		command;	/* VM_ContainerConfig */
 	__le32		type;		/* CT_COMMIT_CONFIG */
 };
@@ -1774,12 +1831,14 @@ struct aac_commit_config {
  */
 
 #define CT_GET_CONTAINER_COUNT 4
-struct aac_get_container_count {
+struct aac_get_container_count
+{
 	__le32		command;	/* VM_ContainerConfig */
 	__le32		type;		/* CT_GET_CONTAINER_COUNT */
 };
 
-struct aac_get_container_count_resp {
+struct aac_get_container_count_resp
+{
 	__le32		response; /* ST_OK */
 	__le32		dummy0;
 	__le32		MaxContainers;
@@ -1794,7 +1853,8 @@ struct aac_get_container_count_resp {
  *	associated with a drive letter on the client (host) side.
  */
 
-struct aac_mntent {
+struct aac_mntent
+{
 	__le32			oid;
 	u8			name[16];	/* if applicable */
 	struct creation_info	create_info;	/* if applicable */
@@ -1815,13 +1875,15 @@ struct aac_mntent {
 #define FSCS_HIDDEN	0x0004	/* should be ignored - set during a clear */
 #define FSCS_NOT_READY	0x0008	/* Array spinning up to fulfil request */
 
-struct aac_query_mount {
+struct aac_query_mount
+{
 	__le32		command;
 	__le32		type;
 	__le32		count;
 };
 
-struct aac_mount {
+struct aac_mount
+{
 	__le32		status;
 	__le32		type;           /* should be same as that requested */
 	__le32		count;
@@ -1829,7 +1891,8 @@ struct aac_mount {
 };
 
 #define CT_READ_NAME 130
-struct aac_get_name {
+struct aac_get_name
+{
 	__le32		command;	/* VM_ContainerConfig */
 	__le32		type;		/* CT_READ_NAME */
 	__le32		cid;
@@ -1840,7 +1903,8 @@ struct aac_get_name {
 	__le32		count;	/* sizeof(((struct aac_get_name_resp *)NULL)->data) */
 };
 
-struct aac_get_name_resp {
+struct aac_get_name_resp
+{
 	__le32		dummy0;
 	__le32		dummy1;
 	__le32		status;	/* CT_OK */
@@ -1853,13 +1917,15 @@ struct aac_get_name_resp {
 };
 
 #define CT_CID_TO_32BITS_UID 165
-struct aac_get_serial {
+struct aac_get_serial
+{
 	__le32		command;	/* VM_ContainerConfig */
 	__le32		type;		/* CT_CID_TO_32BITS_UID */
 	__le32		cid;
 };
 
-struct aac_get_serial_resp {
+struct aac_get_serial_resp
+{
 	__le32		dummy0;
 	__le32		dummy1;
 	__le32		status;	/* CT_OK */
@@ -1870,7 +1936,8 @@ struct aac_get_serial_resp {
  * The following command is sent to shut down each container.
  */
 
-struct aac_close {
+struct aac_close
+{
 	__le32	command;
 	__le32	cid;
 };
@@ -1889,7 +1956,8 @@ struct aac_query_disk
 	u32	unmapped;
 };
 
-struct aac_delete_disk {
+struct aac_delete_disk
+{
 	u32	disknum;
 	u32	cnum;
 };
@@ -1914,8 +1982,8 @@ struct revision
  */
 
 #define CTL_CODE(function, method) (                 \
-    (4<< 16) | ((function) << 2) | (method) \
-)
+		(4<< 16) | ((function) << 2) | (method) \
+								   )
 
 /*
  *	Define the method codes for how buffers are passed for I/O and FS
@@ -1977,9 +2045,9 @@ extern struct aac_common aac_config;
  */
 
 #ifdef DBG
-#define	FIB_COUNTER_INCREMENT(counter)		(counter)++
+	#define	FIB_COUNTER_INCREMENT(counter)		(counter)++
 #else
-#define	FIB_COUNTER_INCREMENT(counter)
+	#define	FIB_COUNTER_INCREMENT(counter)
 #endif
 
 /*
@@ -2107,7 +2175,8 @@ extern struct aac_common aac_config;
  *	to by the host.
  */
 
-struct aac_aifcmd {
+struct aac_aifcmd
+{
 	__le32 command;		/* Tell host what type of notify this is */
 	__le32 seqnum;		/* To allow ordering of reports (if necessary) */
 	u8 data[1];		/* Undefined length (from kernel viewpoint) */
@@ -2138,13 +2207,14 @@ struct fib *aac_fib_alloc(struct aac_dev *dev);
 struct fib *aac_fib_alloc_tag(struct aac_dev *dev, struct scsi_cmnd *scmd);
 int aac_fib_setup(struct aac_dev *dev);
 void aac_fib_map_free(struct aac_dev *dev);
-void aac_fib_free(struct fib * context);
-void aac_fib_init(struct fib * context);
+void aac_fib_free(struct fib *context);
+void aac_fib_init(struct fib *context);
 void aac_printf(struct aac_dev *dev, u32 val);
-int aac_fib_send(u16 command, struct fib * context, unsigned long size, int priority, int wait, int reply, fib_callback callback, void *ctxt);
-int aac_consumer_get(struct aac_dev * dev, struct aac_queue * q, struct aac_entry **entry);
-void aac_consumer_free(struct aac_dev * dev, struct aac_queue * q, u32 qnum);
-int aac_fib_complete(struct fib * context);
+int aac_fib_send(u16 command, struct fib *context, unsigned long size, int priority, int wait, int reply,
+				 fib_callback callback, void *ctxt);
+int aac_consumer_get(struct aac_dev *dev, struct aac_queue *q, struct aac_entry **entry);
+void aac_consumer_free(struct aac_dev *dev, struct aac_queue *q, u32 qnum);
+int aac_fib_complete(struct fib *context);
 #define fib_data(fibctx) ((void *)(fibctx)->hw_fib_va->data)
 struct aac_dev *aac_init_adapter(struct aac_dev *dev);
 void aac_src_access_devreg(struct aac_dev *dev, int mode);
@@ -2153,36 +2223,37 @@ int aac_get_containers(struct aac_dev *dev);
 int aac_scsi_cmd(struct scsi_cmnd *cmd);
 int aac_dev_ioctl(struct aac_dev *dev, int cmd, void __user *arg);
 #ifndef shost_to_class
-#define shost_to_class(shost) &shost->shost_dev
+	#define shost_to_class(shost) &shost->shost_dev
 #endif
 ssize_t aac_get_serial_number(struct device *dev, char *buf);
-int aac_do_ioctl(struct aac_dev * dev, int cmd, void __user *arg);
+int aac_do_ioctl(struct aac_dev *dev, int cmd, void __user *arg);
 int aac_rx_init(struct aac_dev *dev);
 int aac_rkt_init(struct aac_dev *dev);
 int aac_nark_init(struct aac_dev *dev);
 int aac_sa_init(struct aac_dev *dev);
 int aac_src_init(struct aac_dev *dev);
 int aac_srcv_init(struct aac_dev *dev);
-int aac_queue_get(struct aac_dev * dev, u32 * index, u32 qid, struct hw_fib * hw_fib, int wait, struct fib * fibptr, unsigned long *nonotify);
+int aac_queue_get(struct aac_dev *dev, u32 *index, u32 qid, struct hw_fib *hw_fib, int wait, struct fib *fibptr,
+				  unsigned long *nonotify);
 void aac_define_int_mode(struct aac_dev *dev);
-unsigned int aac_response_normal(struct aac_queue * q);
-unsigned int aac_command_normal(struct aac_queue * q);
+unsigned int aac_response_normal(struct aac_queue *q);
+unsigned int aac_command_normal(struct aac_queue *q);
 unsigned int aac_intr_normal(struct aac_dev *dev, u32 Index,
-			int isAif, int isFastResponse,
-			struct hw_fib *aif_fib);
-int aac_reset_adapter(struct aac_dev * dev, int forced);
-int aac_check_health(struct aac_dev * dev);
+							 int isAif, int isFastResponse,
+							 struct hw_fib *aif_fib);
+int aac_reset_adapter(struct aac_dev *dev, int forced);
+int aac_check_health(struct aac_dev *dev);
 int aac_command_thread(void *data);
-int aac_close_fib_context(struct aac_dev * dev, struct aac_fib_context *fibctx);
-int aac_fib_adapter_complete(struct fib * fibptr, unsigned short size);
-struct aac_driver_ident* aac_get_driver_ident(int devtype);
-int aac_get_adapter_info(struct aac_dev* dev);
+int aac_close_fib_context(struct aac_dev *dev, struct aac_fib_context *fibctx);
+int aac_fib_adapter_complete(struct fib *fibptr, unsigned short size);
+struct aac_driver_ident *aac_get_driver_ident(int devtype);
+int aac_get_adapter_info(struct aac_dev *dev);
 int aac_send_shutdown(struct aac_dev *dev);
 int aac_probe_container(struct aac_dev *dev, int cid);
 int _aac_rx_init(struct aac_dev *dev);
 int aac_rx_select_comm(struct aac_dev *dev, int comm);
-int aac_rx_deliver_producer(struct fib * fib);
-char * get_container_type(unsigned type);
+int aac_rx_deliver_producer(struct fib *fib);
+char *get_container_type(unsigned type);
 extern int numacb;
 extern int acbsize;
 extern char aac_driver_version[];

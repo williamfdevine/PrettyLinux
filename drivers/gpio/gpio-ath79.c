@@ -29,7 +29,8 @@
 #define AR71XX_GPIO_REG_INT_PENDING	0x20
 #define AR71XX_GPIO_REG_INT_MASK	0x24
 
-struct ath79_gpio_ctrl {
+struct ath79_gpio_ctrl
+{
 	struct gpio_chip gc;
 	void __iomem *base;
 	spinlock_t lock;
@@ -49,7 +50,7 @@ static u32 ath79_gpio_read(struct ath79_gpio_ctrl *ctrl, unsigned reg)
 }
 
 static void ath79_gpio_write(struct ath79_gpio_ctrl *ctrl,
-			unsigned reg, u32 val)
+							 unsigned reg, u32 val)
 {
 	return writel(val, ctrl->base + reg);
 }
@@ -63,7 +64,9 @@ static bool ath79_gpio_update_bits(
 	new_val = (old_val & ~mask) | (bits & mask);
 
 	if (new_val != old_val)
+	{
 		ath79_gpio_write(ctrl, reg, new_val);
+	}
 
 	return new_val != old_val;
 }
@@ -115,7 +118,7 @@ static void ath79_gpio_irq_disable(struct irq_data *data)
 }
 
 static int ath79_gpio_irq_set_type(struct irq_data *data,
-				unsigned int flow_type)
+								   unsigned int flow_type)
 {
 	struct ath79_gpio_ctrl *ctrl = irq_data_to_ath79_gpio(data);
 	u32 mask = BIT(irqd_to_hwirq(data));
@@ -123,29 +126,35 @@ static int ath79_gpio_irq_set_type(struct irq_data *data,
 	unsigned long flags;
 	bool disabled;
 
-	switch (flow_type) {
-	case IRQ_TYPE_EDGE_RISING:
-		polarity |= mask;
-	case IRQ_TYPE_EDGE_FALLING:
-	case IRQ_TYPE_EDGE_BOTH:
-		break;
+	switch (flow_type)
+	{
+		case IRQ_TYPE_EDGE_RISING:
+			polarity |= mask;
 
-	case IRQ_TYPE_LEVEL_HIGH:
-		polarity |= mask;
-	case IRQ_TYPE_LEVEL_LOW:
-		type |= mask;
-		break;
+		case IRQ_TYPE_EDGE_FALLING:
+		case IRQ_TYPE_EDGE_BOTH:
+			break;
 
-	default:
-		return -EINVAL;
+		case IRQ_TYPE_LEVEL_HIGH:
+			polarity |= mask;
+
+		case IRQ_TYPE_LEVEL_LOW:
+			type |= mask;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	spin_lock_irqsave(&ctrl->lock, flags);
 
-	if (flow_type == IRQ_TYPE_EDGE_BOTH) {
+	if (flow_type == IRQ_TYPE_EDGE_BOTH)
+	{
 		ctrl->both_edges |= mask;
 		polarity = ~ath79_gpio_read(ctrl, AR71XX_GPIO_REG_IN);
-	} else {
+	}
+	else
+	{
 		ctrl->both_edges &= ~mask;
 	}
 
@@ -154,7 +163,7 @@ static int ath79_gpio_irq_set_type(struct irq_data *data,
 	 * is invalid.
 	 */
 	disabled = ath79_gpio_update_bits(
-		ctrl, AR71XX_GPIO_REG_INT_ENABLE, mask, 0);
+				   ctrl, AR71XX_GPIO_REG_INT_ENABLE, mask, 0);
 
 	ath79_gpio_update_bits(
 		ctrl, AR71XX_GPIO_REG_INT_TYPE, mask, type);
@@ -170,7 +179,8 @@ static int ath79_gpio_irq_set_type(struct irq_data *data,
 	return 0;
 }
 
-static struct irq_chip ath79_gpio_irqchip = {
+static struct irq_chip ath79_gpio_irqchip =
+{
 	.name = "gpio-ath79",
 	.irq_enable = ath79_gpio_irq_enable,
 	.irq_disable = ath79_gpio_irq_disable,
@@ -197,24 +207,28 @@ static void ath79_gpio_irq_handler(struct irq_desc *desc)
 
 	/* Update the polarity of the both edges irqs */
 	both_edges = ctrl->both_edges & pending;
-	if (both_edges) {
+
+	if (both_edges)
+	{
 		state = ath79_gpio_read(ctrl, AR71XX_GPIO_REG_IN);
 		ath79_gpio_update_bits(ctrl, AR71XX_GPIO_REG_INT_POLARITY,
-				both_edges, ~state);
+							   both_edges, ~state);
 	}
 
 	spin_unlock_irqrestore(&ctrl->lock, flags);
 
-	if (pending) {
+	if (pending)
+	{
 		for_each_set_bit(irq, &pending, gc->ngpio)
-			generic_handle_irq(
-				irq_linear_revmap(gc->irqdomain, irq));
+		generic_handle_irq(
+			irq_linear_revmap(gc->irqdomain, irq));
 	}
 
 	chained_irq_exit(irqchip, desc);
 }
 
-static const struct of_device_id ath79_gpio_of_match[] = {
+static const struct of_device_id ath79_gpio_of_match[] =
+{
 	{ .compatible = "qca,ar7100-gpio" },
 	{ .compatible = "qca,ar9340-gpio" },
 	{},
@@ -232,71 +246,96 @@ static int ath79_gpio_probe(struct platform_device *pdev)
 	int err;
 
 	ctrl = devm_kzalloc(&pdev->dev, sizeof(*ctrl), GFP_KERNEL);
+
 	if (!ctrl)
+	{
 		return -ENOMEM;
+	}
+
 	platform_set_drvdata(pdev, ctrl);
 
-	if (np) {
+	if (np)
+	{
 		err = of_property_read_u32(np, "ngpios", &ath79_gpio_count);
-		if (err) {
+
+		if (err)
+		{
 			dev_err(&pdev->dev, "ngpios property is not valid\n");
 			return err;
 		}
+
 		oe_inverted = of_device_is_compatible(np, "qca,ar9340-gpio");
-	} else if (pdata) {
+	}
+	else if (pdata)
+	{
 		ath79_gpio_count = pdata->ngpios;
 		oe_inverted = pdata->oe_inverted;
-	} else {
+	}
+	else
+	{
 		dev_err(&pdev->dev, "No DT node or platform data found\n");
 		return -EINVAL;
 	}
 
-	if (ath79_gpio_count >= 32) {
+	if (ath79_gpio_count >= 32)
+	{
 		dev_err(&pdev->dev, "ngpios must be less than 32\n");
 		return -EINVAL;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ctrl->base = devm_ioremap_nocache(
-		&pdev->dev, res->start, resource_size(res));
+					 &pdev->dev, res->start, resource_size(res));
+
 	if (!ctrl->base)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&ctrl->lock);
 	err = bgpio_init(&ctrl->gc, &pdev->dev, 4,
-			ctrl->base + AR71XX_GPIO_REG_IN,
-			ctrl->base + AR71XX_GPIO_REG_SET,
-			ctrl->base + AR71XX_GPIO_REG_CLEAR,
-			oe_inverted ? NULL : ctrl->base + AR71XX_GPIO_REG_OE,
-			oe_inverted ? ctrl->base + AR71XX_GPIO_REG_OE : NULL,
-			0);
-	if (err) {
+					 ctrl->base + AR71XX_GPIO_REG_IN,
+					 ctrl->base + AR71XX_GPIO_REG_SET,
+					 ctrl->base + AR71XX_GPIO_REG_CLEAR,
+					 oe_inverted ? NULL : ctrl->base + AR71XX_GPIO_REG_OE,
+					 oe_inverted ? ctrl->base + AR71XX_GPIO_REG_OE : NULL,
+					 0);
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "bgpio_init failed\n");
 		return err;
 	}
+
 	/* Use base 0 to stay compatible with legacy platforms */
 	ctrl->gc.base = 0;
 
 	err = gpiochip_add_data(&ctrl->gc, ctrl);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev,
-			"cannot add AR71xx GPIO chip, error=%d", err);
+				"cannot add AR71xx GPIO chip, error=%d", err);
 		return err;
 	}
 
 	if (np && !of_property_read_bool(np, "interrupt-controller"))
+	{
 		return 0;
+	}
 
 	err = gpiochip_irqchip_add(&ctrl->gc, &ath79_gpio_irqchip, 0,
-				handle_simple_irq, IRQ_TYPE_NONE);
-	if (err) {
+							   handle_simple_irq, IRQ_TYPE_NONE);
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "failed to add gpiochip_irqchip\n");
 		goto gpiochip_remove;
 	}
 
 	gpiochip_set_chained_irqchip(&ctrl->gc, &ath79_gpio_irqchip,
-				platform_get_irq(pdev, 0),
-				ath79_gpio_irq_handler);
+								 platform_get_irq(pdev, 0),
+								 ath79_gpio_irq_handler);
 
 	return 0;
 
@@ -313,7 +352,8 @@ static int ath79_gpio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ath79_gpio_driver = {
+static struct platform_driver ath79_gpio_driver =
+{
 	.driver = {
 		.name = "ath79-gpio",
 		.of_match_table	= ath79_gpio_of_match,

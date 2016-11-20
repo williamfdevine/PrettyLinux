@@ -27,7 +27,8 @@
 #ifndef _NTERR_H
 #define _NTERR_H
 
-struct nt_err_code_struct {
+struct nt_err_code_struct
+{
 	char *nt_errstr;
 	__u32 nt_errcode;
 };

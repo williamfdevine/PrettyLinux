@@ -29,7 +29,9 @@ pick_next_task_stop(struct rq *rq, struct task_struct *prev, struct pin_cookie c
 	struct task_struct *stop = rq->stop;
 
 	if (!stop || !task_on_rq_queued(stop))
+	{
 		return NULL;
+	}
 
 	put_prev_task(rq, prev);
 
@@ -61,11 +63,14 @@ static void put_prev_task_stop(struct rq *rq, struct task_struct *prev)
 	u64 delta_exec;
 
 	delta_exec = rq_clock_task(rq) - curr->se.exec_start;
+
 	if (unlikely((s64)delta_exec < 0))
+	{
 		delta_exec = 0;
+	}
 
 	schedstat_set(curr->se.statistics.exec_max,
-			max(curr->se.statistics.exec_max, delta_exec));
+				  max(curr->se.statistics.exec_max, delta_exec));
 
 	curr->se.sum_exec_runtime += delta_exec;
 	account_group_exec_runtime(curr, delta_exec);
@@ -109,7 +114,8 @@ static void update_curr_stop(struct rq *rq)
 /*
  * Simple, special scheduling class for the per-CPU stop tasks:
  */
-const struct sched_class stop_sched_class = {
+const struct sched_class stop_sched_class =
+{
 	.next			= &dl_sched_class,
 
 	.enqueue_task		= enqueue_task_stop,

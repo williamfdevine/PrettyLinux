@@ -79,7 +79,8 @@ struct il_priv;
 #define IL_OFDM_RATES	8
 #define IL_MAX_RATES	(IL_CCK_RATES + IL_OFDM_RATES)
 
-enum {
+enum
+{
 	N_ALIVE = 0x1,
 	N_ERROR = 0x2,
 
@@ -175,7 +176,8 @@ enum {
  * This header format appears in the beginning of each command sent from the
  * driver, and each response/notification received from uCode.
  */
-struct il_cmd_header {
+struct il_cmd_header
+{
 	u8 cmd;			/* Command ID:  C_RXON, etc. */
 	u8 flags;		/* 0:5 reserved, 6 abort, 7 internal */
 	/*
@@ -220,7 +222,8 @@ struct il_cmd_header {
  *
  * Driver obtains values from struct il3945_tx_power power_gain_table[][].
  */
-struct il3945_tx_power {
+struct il3945_tx_power
+{
 	u8 tx_gain;		/* gain for analog radio */
 	u8 dsp_atten;		/* gain for DSP */
 } __packed;
@@ -230,7 +233,8 @@ struct il3945_tx_power {
  *
  * Used in C_TX_PWR_TBL, C_CHANNEL_SWITCH
  */
-struct il3945_power_per_rate {
+struct il3945_power_per_rate
+{
 	u8 rate;		/* plcp */
 	struct il3945_tx_power tpc;
 	u8 reserved;
@@ -344,8 +348,10 @@ struct il3945_power_per_rate {
  *
  * See more details in doc for TXPOWER in 4965.h.
  */
-union il4965_tx_power_dual_stream {
-	struct {
+union il4965_tx_power_dual_stream
+{
+	struct
+	{
 		u8 radio_tx_gain[2];
 		u8 dsp_predis_atten[2];
 	} s;
@@ -359,7 +365,8 @@ union il4965_tx_power_dual_stream {
  *
  * Same format as il_tx_power_dual_stream, but __le32
  */
-struct tx_power_dual_stream {
+struct tx_power_dual_stream
+{
 	__le32 dw;
 } __packed;
 
@@ -368,7 +375,8 @@ struct tx_power_dual_stream {
  *
  * Entire table within C_TX_PWR_TBL, C_CHANNEL_SWITCH
  */
-struct il4965_tx_power_db {
+struct il4965_tx_power_db
+{
 	struct tx_power_dual_stream power_tbl[POWER_TBL_NUM_ENTRIES];
 } __packed;
 
@@ -405,7 +413,8 @@ struct il4965_tx_power_db {
  * 3)  Tx gain compensation to balance 4965's 2 Tx chains for MIMO operation,
  *     for each of 5 frequency ranges.
  */
-struct il_init_alive_resp {
+struct il_init_alive_resp
+{
 	u8 ucode_minor;
 	u8 ucode_major;
 	__le16 reserved1;
@@ -505,7 +514,8 @@ struct il_init_alive_resp {
  * The Linux driver can print both logs to the system log when a uCode error
  * occurs.
  */
-struct il_alive_resp {
+struct il_alive_resp
+{
 	u8 ucode_minor;
 	u8 ucode_major;
 	__le16 reserved1;
@@ -522,7 +532,8 @@ struct il_alive_resp {
 /*
  * N_ERROR = 0x2 (response only, not a command)
  */
-struct il_error_resp {
+struct il_error_resp
+{
 	__le32 error_type;
 	u8 cmd_id;
 	u8 reserved1;
@@ -541,7 +552,8 @@ struct il_error_resp {
  * Rx config defines & structure
  */
 /* rx_config device types  */
-enum {
+enum
+{
 	RXON_DEV_TYPE_AP = 1,
 	RXON_DEV_TYPE_ESS = 3,
 	RXON_DEV_TYPE_IBSS = 4,
@@ -599,7 +611,8 @@ enum {
 #define RXON_FLG_CHANNEL_MODE_MSK		cpu_to_le32(0x3 << 25)
 
 /* channel mode */
-enum {
+enum
+{
 	CHANNEL_MODE_LEGACY = 0,
 	CHANNEL_MODE_PURE_40 = 1,
 	CHANNEL_MODE_MIXED = 2,
@@ -649,7 +662,8 @@ enum {
  *        regardless of whether RXON_FILTER_ASSOC_MSK is set.
  */
 
-struct il3945_rxon_cmd {
+struct il3945_rxon_cmd
+{
 	u8 node_addr[6];
 	__le16 reserved1;
 	u8 bssid_addr[6];
@@ -668,7 +682,8 @@ struct il3945_rxon_cmd {
 	__le16 reserved5;
 } __packed;
 
-struct il4965_rxon_cmd {
+struct il4965_rxon_cmd
+{
 	u8 node_addr[6];
 	__le16 reserved1;
 	u8 bssid_addr[6];
@@ -691,7 +706,8 @@ struct il4965_rxon_cmd {
 /* Create a common rxon cmd which will be typecast into the 3945 or 4965
  * specific rxon cmd, depending on where it is called from.
  */
-struct il_rxon_cmd {
+struct il_rxon_cmd
+{
 	u8 node_addr[6];
 	__le16 reserved1;
 	u8 bssid_addr[6];
@@ -716,7 +732,8 @@ struct il_rxon_cmd {
 /*
  * C_RXON_ASSOC = 0x11 (command, has simple generic response)
  */
-struct il3945_rxon_assoc_cmd {
+struct il3945_rxon_assoc_cmd
+{
 	__le32 flags;
 	__le32 filter_flags;
 	u8 ofdm_basic_rates;
@@ -724,7 +741,8 @@ struct il3945_rxon_assoc_cmd {
 	__le16 reserved;
 } __packed;
 
-struct il4965_rxon_assoc_cmd {
+struct il4965_rxon_assoc_cmd
+{
 	__le32 flags;
 	__le32 filter_flags;
 	u8 ofdm_basic_rates;
@@ -742,7 +760,8 @@ struct il4965_rxon_assoc_cmd {
 /*
  * C_RXON_TIMING = 0x14 (command, has simple generic response)
  */
-struct il_rxon_time_cmd {
+struct il_rxon_time_cmd
+{
 	__le64 timestamp;
 	__le16 beacon_interval;
 	__le16 atim_win;
@@ -755,7 +774,8 @@ struct il_rxon_time_cmd {
 /*
  * C_CHANNEL_SWITCH = 0x72 (command, has simple generic response)
  */
-struct il3945_channel_switch_cmd {
+struct il3945_channel_switch_cmd
+{
 	u8 band;
 	u8 expect_beacon;
 	__le16 channel;
@@ -765,7 +785,8 @@ struct il3945_channel_switch_cmd {
 	struct il3945_power_per_rate power[IL_MAX_RATES];
 } __packed;
 
-struct il4965_channel_switch_cmd {
+struct il4965_channel_switch_cmd
+{
 	u8 band;
 	u8 expect_beacon;
 	__le16 channel;
@@ -778,7 +799,8 @@ struct il4965_channel_switch_cmd {
 /*
  * N_CHANNEL_SWITCH = 0x73 (notification only, not a command)
  */
-struct il_csa_notification {
+struct il_csa_notification
+{
 	__le16 band;
 	__le16 channel;
 	__le32 status;		/* 0 - OK, 1 - fail */
@@ -806,7 +828,8 @@ struct il_csa_notification {
  * transmission retry.  Device uses cw_max as a bit mask, ANDed with new CW
  * value, to cap the CW value.
  */
-struct il_ac_qos {
+struct il_ac_qos
+{
 	__le16 cw_min;
 	__le16 cw_max;
 	u8 aifsn;
@@ -828,7 +851,8 @@ struct il_ac_qos {
  * This command sets up timings for each of the 4 prioritized EDCA Tx FIFOs
  * 0: Background, 1: Best Effort, 2: Video, 3: Voice.
  */
-struct il_qosparam_cmd {
+struct il_qosparam_cmd
+{
 	__le32 qos_flags;
 	struct il_ac_qos ac[AC_NUM];
 } __packed;
@@ -896,7 +920,8 @@ struct il_qosparam_cmd {
  * combined with Traffic ID (QOS priority), in format used by Tx Scheduler */
 #define BUILD_RAxTID(sta_id, tid)	(((sta_id) << 4) + (tid))
 
-struct il4965_keyinfo {
+struct il4965_keyinfo
+{
 	__le16 key_flags;
 	u8 tkip_rx_tsc_byte2;	/* TSC[2] for key mix ph1 detection */
 	u8 reserved1;
@@ -918,7 +943,8 @@ struct il4965_keyinfo {
  *
  * modify_mask flags select which parameters to modify vs. leave alone.
  */
-struct sta_id_modify {
+struct sta_id_modify
+{
 	u8 addr[ETH_ALEN];
 	__le16 reserved1;
 	u8 sta_id;
@@ -953,7 +979,8 @@ struct sta_id_modify {
  *        entries for all STAs in network, starting with idx IL_STA_ID.
  */
 
-struct il3945_addsta_cmd {
+struct il3945_addsta_cmd
+{
 	u8 mode;		/* 1: modify existing, 0: add new station */
 	u8 reserved[3];
 	struct sta_id_modify sta;
@@ -981,7 +1008,8 @@ struct il3945_addsta_cmd {
 	__le16 add_immediate_ba_ssn;
 } __packed;
 
-struct il4965_addsta_cmd {
+struct il4965_addsta_cmd
+{
 	u8 mode;		/* 1: modify existing, 0: add new station */
 	u8 reserved[3];
 	struct sta_id_modify sta;
@@ -1019,7 +1047,8 @@ struct il4965_addsta_cmd {
 } __packed;
 
 /* Wrapper struct for 3945 and 4965 addsta_cmd structures */
-struct il_addsta_cmd {
+struct il_addsta_cmd
+{
 	u8 mode;		/* 1: modify existing, 0: add new station */
 	u8 reserved[3];
 	struct sta_id_modify sta;
@@ -1063,7 +1092,8 @@ struct il_addsta_cmd {
 /*
  * C_ADD_STA = 0x18 (response)
  */
-struct il_add_sta_resp {
+struct il_add_sta_resp
+{
 	u8 status;		/* ADD_STA_* */
 } __packed;
 
@@ -1071,14 +1101,16 @@ struct il_add_sta_resp {
 /*
  *  C_REM_STA = 0x19 (response)
  */
-struct il_rem_sta_resp {
+struct il_rem_sta_resp
+{
 	u8 status;
 } __packed;
 
 /*
  *  C_REM_STA = 0x19 (command)
  */
-struct il_rem_sta_cmd {
+struct il_rem_sta_cmd
+{
 	u8 num_sta;		/* number of removed stations */
 	u8 reserved[3];
 	u8 addr[ETH_ALEN];	/* MAC addr of the first station */
@@ -1098,7 +1130,8 @@ struct il_rem_sta_cmd {
 /*
  * REPLY_WEP_KEY = 0x20
  */
-struct il_wep_key {
+struct il_wep_key
+{
 	u8 key_idx;
 	u8 key_offset;
 	u8 reserved1[2];
@@ -1107,7 +1140,8 @@ struct il_wep_key {
 	u8 key[16];
 } __packed;
 
-struct il_wep_cmd {
+struct il_wep_cmd
+{
 	u8 num_keys;
 	u8 global_key_type;
 	u8 flags;
@@ -1159,7 +1193,8 @@ struct il_wep_cmd {
 #define RX_MPDU_RES_STATUS_TTAK_OK	(1 << 7)
 #define RX_MPDU_RES_STATUS_DEC_DONE_MSK	(0x800)
 
-struct il3945_rx_frame_stats {
+struct il3945_rx_frame_stats
+{
 	u8 phy_count;
 	u8 id;
 	u8 rssi;
@@ -1169,7 +1204,8 @@ struct il3945_rx_frame_stats {
 	u8 payload[0];
 } __packed;
 
-struct il3945_rx_frame_hdr {
+struct il3945_rx_frame_hdr
+{
 	__le16 channel;
 	__le16 phy_flags;
 	u8 reserved1;
@@ -1178,7 +1214,8 @@ struct il3945_rx_frame_hdr {
 	u8 payload[0];
 } __packed;
 
-struct il3945_rx_frame_end {
+struct il3945_rx_frame_end
+{
 	__le32 status;
 	__le64 timestamp;
 	__le32 beacon_timestamp;
@@ -1192,7 +1229,8 @@ struct il3945_rx_frame_end {
  * The actual offsets of the hdr and end are dynamic based on
  * stats.phy_count
  */
-struct il3945_rx_frame {
+struct il3945_rx_frame
+{
 	struct il3945_rx_frame_stats stats;
 	struct il3945_rx_frame_hdr hdr;
 	struct il3945_rx_frame_end end;
@@ -1207,7 +1245,8 @@ struct il3945_rx_frame {
 #define IL49_RX_PHY_FLAGS_ANTENNAE_MASK	(0x70)
 #define IL49_AGC_DB_MASK			(0x3f80)	/* MASK(7,13) */
 #define IL49_AGC_DB_POS			(7)
-struct il4965_rx_non_cfg_phy {
+struct il4965_rx_non_cfg_phy
+{
 	__le16 ant_selection;	/* ant A bit 4, ant B bit 5, ant C bit 6 */
 	__le16 agc_info;	/* agc code 0:6, agc dB 7:13, reserved 14:15 */
 	u8 rssi_info[6];	/* we use even entries, 0/2/4 for A/B/C rssi */
@@ -1218,7 +1257,8 @@ struct il4965_rx_non_cfg_phy {
  * N_RX = 0xc3 (response only, not a command)
  * Used only for legacy (non 11n) frames.
  */
-struct il_rx_phy_res {
+struct il_rx_phy_res
+{
 	u8 non_cfg_phy_cnt;	/* non configurable DSP phy data byte count */
 	u8 cfg_phy_cnt;		/* configurable DSP phy data byte count */
 	u8 stat_id;		/* configurable DSP phy data set ID */
@@ -1233,7 +1273,8 @@ struct il_rx_phy_res {
 	__le16 frame_time;	/* frame's time on the air */
 } __packed;
 
-struct il_rx_mpdu_res_start {
+struct il_rx_mpdu_res_start
+{
 	__le16 byte_count;
 	__le16 reserved;
 } __packed;
@@ -1351,7 +1392,8 @@ struct il_rx_mpdu_res_start {
  * C_TX = 0x1c (command)
  */
 
-struct il3945_tx_cmd {
+struct il3945_tx_cmd
+{
 	/*
 	 * MPDU byte count:
 	 * MAC header (24/26/30/32 bytes) + 2 bytes pad if 26/30 header size,
@@ -1380,20 +1422,23 @@ struct il3945_tx_cmd {
 	u8 tid_tspec;
 	u8 sec_ctl;
 	u8 key[16];
-	union {
+	union
+	{
 		u8 byte[8];
 		__le16 word[4];
 		__le32 dw[2];
 	} tkip_mic;
 	__le32 next_frame_info;
-	union {
+	union
+	{
 		__le32 life_time;
 		__le32 attempt;
 	} stop_time;
 	u8 supp_rates[2];
 	u8 rts_retry_limit;	/*byte 50 */
 	u8 data_retry_limit;	/*byte 51 */
-	union {
+	union
+	{
 		__le16 pm_frame_timeout;
 		__le16 attempt_duration;
 	} timeout;
@@ -1415,7 +1460,8 @@ struct il3945_tx_cmd {
 /*
  * C_TX = 0x1c (response)
  */
-struct il3945_tx_resp {
+struct il3945_tx_resp
+{
 	u8 failure_rts;
 	u8 failure_frame;
 	u8 bt_kill_count;
@@ -1429,13 +1475,15 @@ struct il3945_tx_resp {
  * Used for managing Tx retries when expecting block-acks.
  * Driver should set these fields to 0.
  */
-struct il_dram_scratch {
+struct il_dram_scratch
+{
 	u8 try_cnt;		/* Tx attempts */
 	u8 bt_kill_cnt;		/* Tx attempts blocked by Bluetooth device */
 	__le16 reserved;
 } __packed;
 
-struct il_tx_cmd {
+struct il_tx_cmd
+{
 	/*
 	 * MPDU byte count:
 	 * MAC header (24/26/30/32 bytes) + 2 bytes pad if 26/30 header size,
@@ -1482,7 +1530,8 @@ struct il_tx_cmd {
 	u8 key[16];
 	__le16 next_frame_flags;
 	__le16 reserved2;
-	union {
+	union
+	{
 		__le32 life_time;
 		__le32 attempt;
 	} stop_time;
@@ -1495,7 +1544,8 @@ struct il_tx_cmd {
 	u8 rts_retry_limit;	/*byte 50 */
 	u8 data_retry_limit;	/*byte 51 */
 	u8 tid_tspec;
-	union {
+	union
+	{
 		__le16 pm_frame_timeout;
 		__le16 attempt_duration;
 	} timeout;
@@ -1541,7 +1591,8 @@ struct il_tx_cmd {
  * command FIFO has been cleared.  The host must then deactivate the TX Abort
  * control line.  Receiving is still allowed in this case.
  */
-enum {
+enum
+{
 	TX_3945_STATUS_SUCCESS = 0x01,
 	TX_3945_STATUS_DIRECT_DONE = 0x02,
 	TX_3945_STATUS_FAIL_SHORT_LIMIT = 0x82,
@@ -1569,7 +1620,8 @@ enum {
  * no special operation required from driver; except for RFKILL_FLUSH,
  * which required tx flush host command to flush all the tx frames in queues
  */
-enum {
+enum
+{
 	TX_STATUS_SUCCESS = 0x01,
 	TX_STATUS_DIRECT_DONE = 0x02,
 	/* postpone TX */
@@ -1601,11 +1653,13 @@ enum {
 #define	TX_PACKET_MODE_BURST_SEQ	0x0100
 #define	TX_PACKET_MODE_BURST_FIRST	0x0200
 
-enum {
+enum
+{
 	TX_POWER_PA_NOT_ACTIVE = 0x0,
 };
 
-enum {
+enum
+{
 	TX_STATUS_MSK = 0x000000ff,	/* bits 0:7 */
 	TX_STATUS_DELAY_MSK = 0x00000040,
 	TX_STATUS_ABORT_MSK = 0x00000080,
@@ -1620,7 +1674,8 @@ enum {
  * TX aggregation status
  ******************************* */
 
-enum {
+enum
+{
 	AGG_TX_STATE_TRANSMITTED = 0x00,
 	AGG_TX_STATE_UNDERRUN_MSK = 0x01,
 	AGG_TX_STATE_FEW_BYTES_MSK = 0x04,
@@ -1638,7 +1693,7 @@ enum {
 #define AGG_TX_TRY_MSK		0x0000f000	/* bits 12:15 */
 
 #define AGG_TX_STATE_LAST_SENT_MSK  (AGG_TX_STATE_LAST_SENT_TTL_MSK | \
-				     AGG_TX_STATE_LAST_SENT_TRY_CNT_MSK)
+									 AGG_TX_STATE_LAST_SENT_TRY_CNT_MSK)
 
 /* # tx attempts for first frame in aggregation */
 #define AGG_TX_STATE_TRY_CNT_POS 12
@@ -1670,12 +1725,14 @@ enum {
  *     within the sending station (this 4965 device), rather than whether it was
  *     received successfully by the destination station.
  */
-struct agg_tx_status {
+struct agg_tx_status
+{
 	__le16 status;
 	__le16 sequence;
 } __packed;
 
-struct il4965_tx_resp {
+struct il4965_tx_resp
+{
 	u8 frame_count;		/* 1 no aggregation, >1 aggregation */
 	u8 bt_kill_count;	/* # blocked by bluetooth (unused for agg) */
 	u8 failure_rts;		/* # failures due to unsuccessful RTS */
@@ -1706,7 +1763,8 @@ struct il4965_tx_resp {
 	 *                   table entry used for all frames in the new agg.
 	 *           31-16:  Sequence # for this frame's Tx cmd (not SSN!)
 	 */
-	union {
+	union
+	{
 		__le32 status;
 		struct agg_tx_status agg_status[0];	/* for each agg frame */
 	} u;
@@ -1717,7 +1775,8 @@ struct il4965_tx_resp {
  *
  * Reports Block-Acknowledge from recipient station
  */
-struct il_compressed_ba_resp {
+struct il_compressed_ba_resp
+{
 	__le32 sta_addr_lo32;
 	__le16 sta_addr_hi16;
 	__le16 reserved;
@@ -1737,14 +1796,16 @@ struct il_compressed_ba_resp {
  * See details under "TXPOWER" in 4965.h.
  */
 
-struct il3945_txpowertable_cmd {
+struct il3945_txpowertable_cmd
+{
 	u8 band;		/* 0: 5 GHz, 1: 2.4 GHz */
 	u8 reserved;
 	__le16 channel;
 	struct il3945_power_per_rate power[IL_MAX_RATES];
 } __packed;
 
-struct il4965_txpowertable_cmd {
+struct il4965_txpowertable_cmd
+{
 	u8 band;		/* 0: 5 GHz, 1: 2.4 GHz */
 	u8 reserved;
 	__le16 channel;
@@ -1766,13 +1827,15 @@ struct il4965_txpowertable_cmd {
  * when passed through ofdm_basic_rates on the C_RXON
  * command would be bit 0 (1 << 0)
  */
-struct il3945_rate_scaling_info {
+struct il3945_rate_scaling_info
+{
 	__le16 rate_n_flags;
 	u8 try_cnt;
 	u8 next_rate_idx;
 } __packed;
 
-struct il3945_rate_scaling_cmd {
+struct il3945_rate_scaling_cmd
+{
 	u8 table_id;
 	u8 reserved[3];
 	struct il3945_rate_scaling_info table[IL_MAX_RATES];
@@ -1797,7 +1860,8 @@ struct il3945_rate_scaling_cmd {
  *
  * Used in C_TX_LINK_QUALITY_CMD
  */
-struct il_link_qual_general_params {
+struct il_link_qual_general_params
+{
 	u8 flags;
 
 	/* No entries at or above this (driver chosen) idx contain MIMO */
@@ -1840,7 +1904,8 @@ struct il_link_qual_general_params {
  *
  * Used in C_TX_LINK_QUALITY_CMD
  */
-struct il_link_qual_agg_params {
+struct il_link_qual_agg_params
+{
 
 	/*
 	 *Maximum number of uSec in aggregation.
@@ -2054,7 +2119,8 @@ struct il_link_qual_agg_params {
  * legacy), and then repeat the search process.
  *
  */
-struct il_link_quality_cmd {
+struct il_link_quality_cmd
+{
 
 	/* Index of destination/recipient station in uCode's station table */
 	u8 sta_id;
@@ -2068,7 +2134,8 @@ struct il_link_quality_cmd {
 	 * specifies 1st Tx rate attempted, via idx into this table.
 	 * 4965 devices works its way through table when retrying Tx.
 	 */
-	struct {
+	struct
+	{
 		__le32 rate_n_flags;	/* RATE_MCS_*, RATE_* */
 	} rs_table[LINK_QUAL_MAX_RETRY_NUM];
 	__le32 reserved2;
@@ -2098,7 +2165,8 @@ struct il_link_quality_cmd {
  * same platform.  Bluetooth device alerts wireless device when it will Tx;
  * wireless device can delay or kill its own Tx to accommodate.
  */
-struct il_bt_cmd {
+struct il_bt_cmd
+{
 	u8 flags;
 	u8 lead_time;
 	u8 max_kill;
@@ -2117,14 +2185,15 @@ struct il_bt_cmd {
  * Spectrum Management
  */
 #define MEASUREMENT_FILTER_FLAG (RXON_FILTER_PROMISC_MSK         | \
-				 RXON_FILTER_CTL2HOST_MSK        | \
-				 RXON_FILTER_ACCEPT_GRP_MSK      | \
-				 RXON_FILTER_DIS_DECRYPT_MSK     | \
-				 RXON_FILTER_DIS_GRP_DECRYPT_MSK | \
-				 RXON_FILTER_ASSOC_MSK           | \
-				 RXON_FILTER_BCON_AWARE_MSK)
+								 RXON_FILTER_CTL2HOST_MSK        | \
+								 RXON_FILTER_ACCEPT_GRP_MSK      | \
+								 RXON_FILTER_DIS_DECRYPT_MSK     | \
+								 RXON_FILTER_DIS_GRP_DECRYPT_MSK | \
+								 RXON_FILTER_ASSOC_MSK           | \
+								 RXON_FILTER_BCON_AWARE_MSK)
 
-struct il_measure_channel {
+struct il_measure_channel
+{
 	__le32 duration;	/* measurement duration in extended beacon
 				 * format */
 	u8 channel;		/* channel to measure */
@@ -2135,7 +2204,8 @@ struct il_measure_channel {
 /*
  * C_SPECTRUM_MEASUREMENT = 0x74 (command)
  */
-struct il_spectrum_cmd {
+struct il_spectrum_cmd
+{
 	__le16 len;		/* number of bytes starting from token */
 	u8 token;		/* token id */
 	u8 id;			/* measurement id -- 0 or 1 */
@@ -2154,7 +2224,8 @@ struct il_spectrum_cmd {
 /*
  * C_SPECTRUM_MEASUREMENT = 0x74 (response)
  */
-struct il_spectrum_resp {
+struct il_spectrum_resp
+{
 	u8 token;
 	u8 id;			/* id of the prior command replaced, or 0xff */
 	__le16 status;		/* 0 - command will be handled
@@ -2162,12 +2233,14 @@ struct il_spectrum_resp {
 				 *     measurement) */
 } __packed;
 
-enum il_measurement_state {
+enum il_measurement_state
+{
 	IL_MEASUREMENT_START = 0,
 	IL_MEASUREMENT_STOP = 1,
 };
 
-enum il_measurement_status {
+enum il_measurement_status
+{
 	IL_MEASUREMENT_OK = 0,
 	IL_MEASUREMENT_CONCURRENT = 1,
 	IL_MEASUREMENT_CSA_CONFLICT = 2,
@@ -2180,18 +2253,21 @@ enum il_measurement_status {
 
 #define NUM_ELEMENTS_IN_HISTOGRAM 8
 
-struct il_measurement_histogram {
+struct il_measurement_histogram
+{
 	__le32 ofdm[NUM_ELEMENTS_IN_HISTOGRAM];	/* in 0.8usec counts */
 	__le32 cck[NUM_ELEMENTS_IN_HISTOGRAM];	/* in 1usec counts */
 } __packed;
 
 /* clear channel availability counters */
-struct il_measurement_cca_counters {
+struct il_measurement_cca_counters
+{
 	__le32 ofdm;
 	__le32 cck;
 } __packed;
 
-enum il_measure_type {
+enum il_measure_type
+{
 	IL_MEASURE_BASIC = (1 << 0),
 	IL_MEASURE_CHANNEL_LOAD = (1 << 1),
 	IL_MEASURE_HISTOGRAM_RPI = (1 << 2),
@@ -2204,7 +2280,8 @@ enum il_measure_type {
 /*
  * N_SPECTRUM_MEASUREMENT = 0x75 (notification only, not a command)
  */
-struct il_spectrum_notification {
+struct il_spectrum_notification
+{
 	u8 id;			/* measurement id -- 0 or 1 */
 	u8 token;
 	u8 channel_idx;		/* idx in measurement channel list */
@@ -2274,7 +2351,8 @@ struct il_spectrum_notification {
 #define IL_POWER_SLEEP_OVER_DTIM_MSK		cpu_to_le16(BIT(2))
 #define IL_POWER_PCI_PM_MSK			cpu_to_le16(BIT(3))
 
-struct il3945_powertable_cmd {
+struct il3945_powertable_cmd
+{
 	__le16 flags;
 	u8 reserved[2];
 	__le32 rx_data_timeout;
@@ -2282,7 +2360,8 @@ struct il3945_powertable_cmd {
 	__le32 sleep_interval[IL_POWER_VEC_SIZE];
 } __packed;
 
-struct il_powertable_cmd {
+struct il_powertable_cmd
+{
 	__le16 flags;
 	u8 keep_alive_seconds;	/* 3945 reserved */
 	u8 debug_flags;		/* 3945 reserved */
@@ -2296,7 +2375,8 @@ struct il_powertable_cmd {
  * N_PM_SLEEP = 0x7A (notification only, not a command)
  * all devices identical.
  */
-struct il_sleep_notification {
+struct il_sleep_notification
+{
 	u8 pm_sleep_mode;
 	u8 pm_wakeup_src;
 	__le16 reserved;
@@ -2306,7 +2386,8 @@ struct il_sleep_notification {
 } __packed;
 
 /* Sleep states.  all devices identical. */
-enum {
+enum
+{
 	IL_PM_NO_SLEEP = 0,
 	IL_PM_SLP_MAC = 1,
 	IL_PM_SLP_FULL_MAC_UNASSOCIATE = 2,
@@ -2323,7 +2404,8 @@ enum {
 /*
  * N_CARD_STATE = 0xa1 (notification only, not a command)
  */
-struct il_card_state_notif {
+struct il_card_state_notif
+{
 	__le32 flags;
 } __packed;
 
@@ -2332,7 +2414,8 @@ struct il_card_state_notif {
 #define CT_CARD_DISABLED   0x04
 #define RXON_CARD_DISABLED 0x10
 
-struct il_ct_kill_config {
+struct il_ct_kill_config
+{
 	__le32 reserved;
 	__le32 critical_temperature_M;
 	__le32 critical_temperature_R;
@@ -2366,7 +2449,8 @@ struct il_ct_kill_config {
  *     passive_dwell < max_out_time
  *     active_dwell < max_out_time
  */
-struct il3945_scan_channel {
+struct il3945_scan_channel
+{
 	/*
 	 * type is defined as:
 	 * 0:0 1 = active, 0 = passive
@@ -2384,7 +2468,8 @@ struct il3945_scan_channel {
 /* set number of direct probes u8 type */
 #define IL39_SCAN_PROBE_MASK(n) ((BIT(n) | (BIT(n) - BIT(1))))
 
-struct il_scan_channel {
+struct il_scan_channel
+{
 	/*
 	 * type is defined as:
 	 * 0:0 1 = active, 0 = passive
@@ -2411,7 +2496,8 @@ struct il_scan_channel {
  * each channel may select different ssids from among the 20 (4) entries.
  * SSID IEs get transmitted in reverse order of entry.
  */
-struct il_ssid_ie {
+struct il_ssid_ie
+{
 	u8 id;
 	u8 len;
 	u8 ssid[32];
@@ -2479,7 +2565,8 @@ struct il_ssid_ie {
  * struct il_scan_channel.
  */
 
-struct il3945_scan_cmd {
+struct il3945_scan_cmd
+{
 	__le16 len;
 	u8 reserved0;
 	u8 channel_count;	/* # channels in channel list */
@@ -2523,7 +2610,8 @@ struct il3945_scan_cmd {
 	u8 data[0];
 } __packed;
 
-struct il_scan_cmd {
+struct il_scan_cmd
+{
 	__le16 len;
 	u8 reserved0;
 	u8 channel_count;	/* # channels in channel list */
@@ -2575,14 +2663,16 @@ struct il_scan_cmd {
 /*
  * C_SCAN = 0x80 (response)
  */
-struct il_scanreq_notification {
+struct il_scanreq_notification
+{
 	__le32 status;		/* 1: okay, 2: cannot fulfill request */
 } __packed;
 
 /*
  * N_SCAN_START = 0x82 (notification only, not a command)
  */
-struct il_scanstart_notification {
+struct il_scanstart_notification
+{
 	__le32 tsf_low;
 	__le32 tsf_high;
 	__le32 beacon_timer;
@@ -2605,7 +2695,8 @@ struct il_scanstart_notification {
 /*
  * N_SCAN_RESULTS = 0x83 (notification only, not a command)
  */
-struct il_scanresults_notification {
+struct il_scanresults_notification
+{
 	u8 channel;
 	u8 band;
 	u8 probe_status;
@@ -2618,7 +2709,8 @@ struct il_scanresults_notification {
 /*
  * N_SCAN_COMPLETE = 0x84 (notification only, not a command)
  */
-struct il_scancomplete_notification {
+struct il_scancomplete_notification
+{
 	u8 scanned_channels;
 	u8 status;
 	u8 last_channel;
@@ -2632,7 +2724,8 @@ struct il_scancomplete_notification {
  *
  *****************************************************************************/
 
-enum il_ibss_manager {
+enum il_ibss_manager
+{
 	IL_NOT_IBSS_MANAGER = 0,
 	IL_IBSS_MANAGER = 1,
 };
@@ -2641,14 +2734,16 @@ enum il_ibss_manager {
  * N_BEACON = 0x90 (notification only, not a command)
  */
 
-struct il3945_beacon_notif {
+struct il3945_beacon_notif
+{
 	struct il3945_tx_resp beacon_notify_hdr;
 	__le32 low_tsf;
 	__le32 high_tsf;
 	__le32 ibss_mgr_status;
 } __packed;
 
-struct il4965_beacon_notif {
+struct il4965_beacon_notif
+{
 	struct il4965_tx_resp beacon_notify_hdr;
 	__le32 low_tsf;
 	__le32 high_tsf;
@@ -2659,7 +2754,8 @@ struct il4965_beacon_notif {
  * C_TX_BEACON= 0x91 (command, has simple generic response)
  */
 
-struct il3945_tx_beacon_cmd {
+struct il3945_tx_beacon_cmd
+{
 	struct il3945_tx_cmd tx;
 	__le16 tim_idx;
 	u8 tim_size;
@@ -2667,7 +2763,8 @@ struct il3945_tx_beacon_cmd {
 	struct ieee80211_hdr frame[0];	/* beacon frame */
 } __packed;
 
-struct il_tx_beacon_cmd {
+struct il_tx_beacon_cmd
+{
 	struct il_tx_cmd tx;
 	__le16 tim_idx;
 	u8 tim_size;
@@ -2688,13 +2785,16 @@ struct il_tx_beacon_cmd {
 #define SUP_RATE_11G_MAX_NUM_CHANNELS  12
 
 /* Used for passing to driver number of successes and failures per rate */
-struct rate_histogram {
-	union {
+struct rate_histogram
+{
+	union
+	{
 		__le32 a[SUP_RATE_11A_MAX_NUM_CHANNELS];
 		__le32 b[SUP_RATE_11B_MAX_NUM_CHANNELS];
 		__le32 g[SUP_RATE_11G_MAX_NUM_CHANNELS];
 	} success;
-	union {
+	union
+	{
 		__le32 a[SUP_RATE_11A_MAX_NUM_CHANNELS];
 		__le32 b[SUP_RATE_11B_MAX_NUM_CHANNELS];
 		__le32 g[SUP_RATE_11G_MAX_NUM_CHANNELS];
@@ -2703,7 +2803,8 @@ struct rate_histogram {
 
 /* stats command response */
 
-struct iwl39_stats_rx_phy {
+struct iwl39_stats_rx_phy
+{
 	__le32 ina_cnt;
 	__le32 fina_cnt;
 	__le32 plcp_err;
@@ -2721,7 +2822,8 @@ struct iwl39_stats_rx_phy {
 	__le32 sent_cts_cnt;
 } __packed;
 
-struct iwl39_stats_rx_non_phy {
+struct iwl39_stats_rx_non_phy
+{
 	__le32 bogus_cts;	/* CTS received when not expecting CTS */
 	__le32 bogus_ack;	/* ACK received when not expecting ACK */
 	__le32 non_bssid_frames;	/* number of frames with BSSID that
@@ -2732,13 +2834,15 @@ struct iwl39_stats_rx_non_phy {
 					 * our serving channel */
 } __packed;
 
-struct iwl39_stats_rx {
+struct iwl39_stats_rx
+{
 	struct iwl39_stats_rx_phy ofdm;
 	struct iwl39_stats_rx_phy cck;
 	struct iwl39_stats_rx_non_phy general;
 } __packed;
 
-struct iwl39_stats_tx {
+struct iwl39_stats_tx
+{
 	__le32 preamble_cnt;
 	__le32 rx_detected_cnt;
 	__le32 bt_prio_defer_cnt;
@@ -2750,21 +2854,24 @@ struct iwl39_stats_tx {
 	__le32 actual_ack_cnt;
 } __packed;
 
-struct stats_dbg {
+struct stats_dbg
+{
 	__le32 burst_check;
 	__le32 burst_count;
 	__le32 wait_for_silence_timeout_cnt;
 	__le32 reserved[3];
 } __packed;
 
-struct iwl39_stats_div {
+struct iwl39_stats_div
+{
 	__le32 tx_on_a;
 	__le32 tx_on_b;
 	__le32 exec_time;
 	__le32 probe_time;
 } __packed;
 
-struct iwl39_stats_general {
+struct iwl39_stats_general
+{
 	__le32 temperature;
 	struct stats_dbg dbg;
 	__le32 sleep_time;
@@ -2774,7 +2881,8 @@ struct iwl39_stats_general {
 	struct iwl39_stats_div div;
 } __packed;
 
-struct stats_rx_phy {
+struct stats_rx_phy
+{
 	__le32 ina_cnt;
 	__le32 fina_cnt;
 	__le32 plcp_err;
@@ -2797,7 +2905,8 @@ struct stats_rx_phy {
 	__le32 reserved3;
 } __packed;
 
-struct stats_rx_ht_phy {
+struct stats_rx_ht_phy
+{
 	__le32 plcp_err;
 	__le32 overrun_err;
 	__le32 early_overrun_err;
@@ -2812,7 +2921,8 @@ struct stats_rx_ht_phy {
 
 #define INTERFERENCE_DATA_AVAILABLE      cpu_to_le32(1)
 
-struct stats_rx_non_phy {
+struct stats_rx_non_phy
+{
 	__le32 bogus_cts;	/* CTS received when not expecting CTS */
 	__le32 bogus_ack;	/* ACK received when not expecting ACK */
 	__le32 non_bssid_frames;	/* number of frames with BSSID that
@@ -2845,7 +2955,8 @@ struct stats_rx_non_phy {
 	__le32 beacon_energy_c;
 } __packed;
 
-struct stats_rx {
+struct stats_rx
+{
 	struct stats_rx_phy ofdm;
 	struct stats_rx_phy cck;
 	struct stats_rx_non_phy general;
@@ -2859,14 +2970,16 @@ struct stats_rx {
  * @ant_b: current tx power on chain b in 1/2 dB step
  * @ant_c: current tx power on chain c in 1/2 dB step
  */
-struct stats_tx_power {
+struct stats_tx_power
+{
 	u8 ant_a;
 	u8 ant_b;
 	u8 ant_c;
 	u8 reserved;
 } __packed;
 
-struct stats_tx_non_phy_agg {
+struct stats_tx_non_phy_agg
+{
 	__le32 ba_timeout;
 	__le32 ba_reschedule_frames;
 	__le32 scd_query_agg_frame_cnt;
@@ -2879,7 +2992,8 @@ struct stats_tx_non_phy_agg {
 	__le32 rx_ba_rsp_cnt;
 } __packed;
 
-struct stats_tx {
+struct stats_tx
+{
 	__le32 preamble_cnt;
 	__le32 rx_detected_cnt;
 	__le32 bt_prio_defer_cnt;
@@ -2899,7 +3013,8 @@ struct stats_tx {
 	__le32 reserved1;
 } __packed;
 
-struct stats_div {
+struct stats_div
+{
 	__le32 tx_on_a;
 	__le32 tx_on_b;
 	__le32 exec_time;
@@ -2908,7 +3023,8 @@ struct stats_div {
 	__le32 reserved2;
 } __packed;
 
-struct stats_general_common {
+struct stats_general_common
+{
 	__le32 temperature;	/* radio temperature */
 	struct stats_dbg dbg;
 	__le32 sleep_time;
@@ -2925,7 +3041,8 @@ struct stats_general_common {
 	__le32 num_of_sos_states;
 } __packed;
 
-struct stats_general {
+struct stats_general
+{
 	struct stats_general_common common;
 	__le32 reserved2;
 	__le32 reserved3;
@@ -2952,7 +3069,8 @@ struct stats_general {
  */
 #define IL_STATS_CONF_CLEAR_STATS cpu_to_le32(0x1)	/* see above */
 #define IL_STATS_CONF_DISABLE_NOTIF cpu_to_le32(0x2)	/* see above */
-struct il_stats_cmd {
+struct il_stats_cmd
+{
 	__le32 configuration_flags;	/* IL_STATS_CONF_* */
 } __packed;
 
@@ -2974,14 +3092,16 @@ struct il_stats_cmd {
 #define STATS_REPLY_FLG_BAND_24G_MSK         cpu_to_le32(0x2)
 #define STATS_REPLY_FLG_HT40_MODE_MSK        cpu_to_le32(0x8)
 
-struct il3945_notif_stats {
+struct il3945_notif_stats
+{
 	__le32 flag;
 	struct iwl39_stats_rx rx;
 	struct iwl39_stats_tx tx;
 	struct iwl39_stats_general general;
 } __packed;
 
-struct il_notif_stats {
+struct il_notif_stats
+{
 	__le32 flag;
 	struct stats_rx rx;
 	struct stats_tx tx;
@@ -3012,7 +3132,8 @@ struct il_notif_stats {
 #define IL_MISSED_BEACON_THRESHOLD_DEF	(5)
 #define IL_MISSED_BEACON_THRESHOLD_MAX	IL_MISSED_BEACON_THRESHOLD_DEF
 
-struct il_missed_beacon_notif {
+struct il_missed_beacon_notif
+{
 	__le32 consecutive_missed_beacons;
 	__le32 total_missed_becons;
 	__le32 num_expected_beacons;
@@ -3215,7 +3336,8 @@ struct il_missed_beacon_notif {
  *
  * Always use "1" in "control" to update uCode's working table and DSP.
  */
-struct il_sensitivity_cmd {
+struct il_sensitivity_cmd
+{
 	__le16 control;		/* always use "1" */
 	__le16 table[HD_TBL_SIZE];	/* use HD_* as idx */
 } __packed;
@@ -3278,14 +3400,16 @@ struct il_sensitivity_cmd {
 /* Phy calibration command for series */
 /* The default calibrate table size if not specified by firmware */
 #define IL_DEFAULT_STANDARD_PHY_CALIBRATE_TBL_SIZE	18
-enum {
+enum
+{
 	IL_PHY_CALIBRATE_DIFF_GAIN_CMD = 7,
 	IL_MAX_STANDARD_PHY_CALIBRATE_TBL_SIZE = 19,
 };
 
 #define IL_MAX_PHY_CALIBRATE_TBL_SIZE		(253)
 
-struct il_calib_hdr {
+struct il_calib_hdr
+{
 	u8 op_code;
 	u8 first_group;
 	u8 groups_num;
@@ -3293,7 +3417,8 @@ struct il_calib_hdr {
 } __packed;
 
 /* IL_PHY_CALIBRATE_DIFF_GAIN_CMD (7) */
-struct il_calib_diff_gain_cmd {
+struct il_calib_diff_gain_cmd
+{
 	struct il_calib_hdr hdr;
 	s8 diff_gain_a;		/* see above */
 	s8 diff_gain_b;
@@ -3314,7 +3439,8 @@ struct il_calib_diff_gain_cmd {
  * For each of 3 possible LEDs (Activity/Link/Tech, selected by "id" field),
  * this command turns it on or off, or sets up a periodic blinking cycle.
  */
-struct il_led_cmd {
+struct il_led_cmd
+{
 	__le32 interval;	/* "interval" in uSec */
 	u8 id;			/* 1: Activity, 2: Link, 3: Tech */
 	u8 off;			/* # intervals off while blinking;
@@ -3332,7 +3458,8 @@ struct il_led_cmd {
 
 #define IL_RX_FRAME_SIZE_MSK	0x00003fff
 
-struct il_rx_pkt {
+struct il_rx_pkt
+{
 	/*
 	 * The first 4 bytes of the RX frame header contain both the RX frame
 	 * size and some flags.
@@ -3345,7 +3472,8 @@ struct il_rx_pkt {
 	 */
 	__le32 len_n_flags;
 	struct il_cmd_header hdr;
-	union {
+	union
+	{
 		struct il3945_rx_frame rx_frame;
 		struct il3945_tx_resp tx_resp;
 		struct il3945_beacon_notif beacon_status;

@@ -17,7 +17,8 @@
  * This table contains the complete RC5 code, instead of just the data part
  */
 
-static struct rc_map_table rc5_dvbsky[] = {
+static struct rc_map_table rc5_dvbsky[] =
+{
 	{ 0x0000, KEY_0 },
 	{ 0x0001, KEY_1 },
 	{ 0x0002, KEY_2 },
@@ -52,7 +53,8 @@ static struct rc_map_table rc5_dvbsky[] = {
 	{ 0x002d, KEY_ZOOM },
 };
 
-static struct rc_map_list rc5_dvbsky_map = {
+static struct rc_map_list rc5_dvbsky_map =
+{
 	.map = {
 		.scan    = rc5_dvbsky,
 		.size    = ARRAY_SIZE(rc5_dvbsky),

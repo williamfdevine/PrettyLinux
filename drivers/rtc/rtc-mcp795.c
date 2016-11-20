@@ -52,7 +52,7 @@ static int mcp795_rtcc_read(struct device *dev, u8 addr, u8 *buf, u8 count)
 
 	if (ret)
 		dev_err(dev, "Failed reading %d bytes from address %x.\n",
-					count, addr);
+				count, addr);
 
 	return ret;
 }
@@ -71,7 +71,7 @@ static int mcp795_rtcc_write(struct device *dev, u8 addr, u8 *data, u8 count)
 
 	if (ret)
 		dev_err(dev, "Failed to write %d bytes to address %x.\n",
-					count, addr);
+				count, addr);
 
 	return ret;
 }
@@ -82,10 +82,14 @@ static int mcp795_rtcc_set_bits(struct device *dev, u8 addr, u8 mask, u8 state)
 	u8 tmp;
 
 	ret = mcp795_rtcc_read(dev, addr, &tmp, 1);
-	if (ret)
-		return ret;
 
-	if ((tmp & mask) != state) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if ((tmp & mask) != state)
+	{
 		tmp = (tmp & ~mask) | state;
 		ret = mcp795_rtcc_write(dev, addr, &tmp, 1);
 	}
@@ -102,7 +106,9 @@ static int mcp795_set_time(struct device *dev, struct rtc_time *tim)
 	ret = mcp795_rtcc_read(dev, 0x01, data, sizeof(data));
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	data[0] = (data[0] & 0x80) | ((tim->tm_sec / 10) << 4) | (tim->tm_sec % 10);
 	data[1] = (data[1] & 0x80) | ((tim->tm_min / 10) << 4) | (tim->tm_min % 10);
@@ -111,14 +117,18 @@ static int mcp795_set_time(struct device *dev, struct rtc_time *tim)
 	data[5] = (data[5] & 0x10) | (tim->tm_mon / 10) | (tim->tm_mon % 10);
 
 	if (tim->tm_year > 100)
+	{
 		tim->tm_year -= 100;
+	}
 
 	data[6] = ((tim->tm_year / 10) << 4) | (tim->tm_year % 10);
 
 	ret = mcp795_rtcc_write(dev, 0x01, data, sizeof(data));
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	dev_dbg(dev, "Set mcp795: %04d-%02d-%02d %02d:%02d:%02d\n",
 			tim->tm_year + 1900, tim->tm_mon, tim->tm_mday,
@@ -135,7 +145,9 @@ static int mcp795_read_time(struct device *dev, struct rtc_time *tim)
 	ret = mcp795_rtcc_read(dev, 0x01, data, sizeof(data));
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	tim->tm_sec		= ((data[0] & 0x70) >> 4) * 10 + (data[0] & 0x0f);
 	tim->tm_min		= ((data[1] & 0x70) >> 4) * 10 + (data[1] & 0x0f);
@@ -145,15 +157,16 @@ static int mcp795_read_time(struct device *dev, struct rtc_time *tim)
 	tim->tm_year	= ((data[6] & 0xf0) >> 4) * 10 + (data[6] & 0x0f) + 100; /* Assume we are in 20xx */
 
 	dev_dbg(dev, "Read from mcp795: %04d-%02d-%02d %02d:%02d:%02d\n",
-				tim->tm_year + 1900, tim->tm_mon, tim->tm_mday,
-				tim->tm_hour, tim->tm_min, tim->tm_sec);
+			tim->tm_year + 1900, tim->tm_mon, tim->tm_mday,
+			tim->tm_hour, tim->tm_min, tim->tm_sec);
 
 	return rtc_valid_tm(tim);
 }
 
-static const struct rtc_class_ops mcp795_rtc_ops = {
-		.read_time = mcp795_read_time,
-		.set_time = mcp795_set_time
+static const struct rtc_class_ops mcp795_rtc_ops =
+{
+	.read_time = mcp795_read_time,
+	.set_time = mcp795_set_time
 };
 
 static int mcp795_probe(struct spi_device *spi)
@@ -164,7 +177,9 @@ static int mcp795_probe(struct spi_device *spi)
 	spi->mode = SPI_MODE_0;
 	spi->bits_per_word = 8;
 	ret = spi_setup(spi);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&spi->dev, "Unable to setup SPI\n");
 		return ret;
 	}
@@ -175,9 +190,12 @@ static int mcp795_probe(struct spi_device *spi)
 	mcp795_rtcc_set_bits(&spi->dev, 0x03, MCP795_24_BIT, 0);
 
 	rtc = devm_rtc_device_register(&spi->dev, "rtc-mcp795",
-								&mcp795_rtc_ops, THIS_MODULE);
+								   &mcp795_rtc_ops, THIS_MODULE);
+
 	if (IS_ERR(rtc))
+	{
 		return PTR_ERR(rtc);
+	}
 
 	spi_set_drvdata(spi, rtc);
 
@@ -185,19 +203,21 @@ static int mcp795_probe(struct spi_device *spi)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id mcp795_of_match[] = {
+static const struct of_device_id mcp795_of_match[] =
+{
 	{ .compatible = "maxim,mcp795" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, mcp795_of_match);
 #endif
 
-static struct spi_driver mcp795_driver = {
-		.driver = {
-				.name = "rtc-mcp795",
-				.of_match_table = of_match_ptr(mcp795_of_match),
-		},
-		.probe = mcp795_probe,
+static struct spi_driver mcp795_driver =
+{
+	.driver = {
+		.name = "rtc-mcp795",
+		.of_match_table = of_match_ptr(mcp795_of_match),
+	},
+	.probe = mcp795_probe,
 };
 
 module_spi_driver(mcp795_driver);

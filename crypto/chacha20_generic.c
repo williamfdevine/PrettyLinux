@@ -21,20 +21,25 @@ static inline u32 le32_to_cpuvp(const void *p)
 }
 
 static void chacha20_docrypt(u32 *state, u8 *dst, const u8 *src,
-			     unsigned int bytes)
+							 unsigned int bytes)
 {
 	u8 stream[CHACHA20_BLOCK_SIZE];
 
 	if (dst != src)
+	{
 		memcpy(dst, src, bytes);
+	}
 
-	while (bytes >= CHACHA20_BLOCK_SIZE) {
+	while (bytes >= CHACHA20_BLOCK_SIZE)
+	{
 		chacha20_block(state, stream);
 		crypto_xor(dst, stream, CHACHA20_BLOCK_SIZE);
 		bytes -= CHACHA20_BLOCK_SIZE;
 		dst += CHACHA20_BLOCK_SIZE;
 	}
-	if (bytes) {
+
+	if (bytes)
+	{
 		chacha20_block(state, stream);
 		crypto_xor(dst, stream, bytes);
 	}
@@ -64,23 +69,27 @@ void crypto_chacha20_init(u32 *state, struct chacha20_ctx *ctx, u8 *iv)
 EXPORT_SYMBOL_GPL(crypto_chacha20_init);
 
 int crypto_chacha20_setkey(struct crypto_tfm *tfm, const u8 *key,
-			   unsigned int keysize)
+						   unsigned int keysize)
 {
 	struct chacha20_ctx *ctx = crypto_tfm_ctx(tfm);
 	int i;
 
 	if (keysize != CHACHA20_KEY_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	for (i = 0; i < ARRAY_SIZE(ctx->key); i++)
+	{
 		ctx->key[i] = le32_to_cpuvp(key + i * sizeof(u32));
+	}
 
 	return 0;
 }
 EXPORT_SYMBOL_GPL(crypto_chacha20_setkey);
 
 int crypto_chacha20_crypt(struct blkcipher_desc *desc, struct scatterlist *dst,
-			  struct scatterlist *src, unsigned int nbytes)
+						  struct scatterlist *src, unsigned int nbytes)
 {
 	struct blkcipher_walk walk;
 	u32 state[16];
@@ -91,16 +100,18 @@ int crypto_chacha20_crypt(struct blkcipher_desc *desc, struct scatterlist *dst,
 
 	crypto_chacha20_init(state, crypto_blkcipher_ctx(desc->tfm), walk.iv);
 
-	while (walk.nbytes >= CHACHA20_BLOCK_SIZE) {
+	while (walk.nbytes >= CHACHA20_BLOCK_SIZE)
+	{
 		chacha20_docrypt(state, walk.dst.virt.addr, walk.src.virt.addr,
-				 rounddown(walk.nbytes, CHACHA20_BLOCK_SIZE));
+						 rounddown(walk.nbytes, CHACHA20_BLOCK_SIZE));
 		err = blkcipher_walk_done(desc, &walk,
-					  walk.nbytes % CHACHA20_BLOCK_SIZE);
+								  walk.nbytes % CHACHA20_BLOCK_SIZE);
 	}
 
-	if (walk.nbytes) {
+	if (walk.nbytes)
+	{
 		chacha20_docrypt(state, walk.dst.virt.addr, walk.src.virt.addr,
-				 walk.nbytes);
+						 walk.nbytes);
 		err = blkcipher_walk_done(desc, &walk, 0);
 	}
 
@@ -108,7 +119,8 @@ int crypto_chacha20_crypt(struct blkcipher_desc *desc, struct scatterlist *dst,
 }
 EXPORT_SYMBOL_GPL(crypto_chacha20_crypt);
 
-static struct crypto_alg alg = {
+static struct crypto_alg alg =
+{
 	.cra_name		= "chacha20",
 	.cra_driver_name	= "chacha20-generic",
 	.cra_priority		= 100,

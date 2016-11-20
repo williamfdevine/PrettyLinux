@@ -24,7 +24,8 @@
  * @irq_dbf: irq number for falling transition
  * @irq_dbr: irq number for rising transition
  */
-struct ab8500_ponkey {
+struct ab8500_ponkey
+{
 	struct input_dev	*idev;
 	struct ab8500		*ab8500;
 	int			irq_dbf;
@@ -37,9 +38,13 @@ static irqreturn_t ab8500_ponkey_handler(int irq, void *data)
 	struct ab8500_ponkey *ponkey = data;
 
 	if (irq == ponkey->irq_dbf)
+	{
 		input_report_key(ponkey->idev, KEY_POWER, true);
+	}
 	else if (irq == ponkey->irq_dbr)
+	{
 		input_report_key(ponkey->idev, KEY_POWER, false);
+	}
 
 	input_sync(ponkey->idev);
 
@@ -55,25 +60,35 @@ static int ab8500_ponkey_probe(struct platform_device *pdev)
 	int error;
 
 	irq_dbf = platform_get_irq_byname(pdev, "ONKEY_DBF");
-	if (irq_dbf < 0) {
+
+	if (irq_dbf < 0)
+	{
 		dev_err(&pdev->dev, "No IRQ for ONKEY_DBF, error=%d\n", irq_dbf);
 		return irq_dbf;
 	}
 
 	irq_dbr = platform_get_irq_byname(pdev, "ONKEY_DBR");
-	if (irq_dbr < 0) {
+
+	if (irq_dbr < 0)
+	{
 		dev_err(&pdev->dev, "No IRQ for ONKEY_DBR, error=%d\n", irq_dbr);
 		return irq_dbr;
 	}
 
 	ponkey = devm_kzalloc(&pdev->dev, sizeof(struct ab8500_ponkey),
-			      GFP_KERNEL);
+						  GFP_KERNEL);
+
 	if (!ponkey)
+	{
 		return -ENOMEM;
+	}
 
 	input = devm_input_allocate_device(&pdev->dev);
+
 	if (!input)
+	{
 		return -ENOMEM;
+	}
 
 	ponkey->idev = input;
 	ponkey->ab8500 = ab8500;
@@ -86,25 +101,31 @@ static int ab8500_ponkey_probe(struct platform_device *pdev)
 	input_set_capability(input, EV_KEY, KEY_POWER);
 
 	error = devm_request_any_context_irq(&pdev->dev, ponkey->irq_dbf,
-					     ab8500_ponkey_handler, 0,
-					     "ab8500-ponkey-dbf", ponkey);
-	if (error < 0) {
+										 ab8500_ponkey_handler, 0,
+										 "ab8500-ponkey-dbf", ponkey);
+
+	if (error < 0)
+	{
 		dev_err(ab8500->dev, "Failed to request dbf IRQ#%d: %d\n",
-			ponkey->irq_dbf, error);
+				ponkey->irq_dbf, error);
 		return error;
 	}
 
 	error = devm_request_any_context_irq(&pdev->dev, ponkey->irq_dbr,
-					     ab8500_ponkey_handler, 0,
-					     "ab8500-ponkey-dbr", ponkey);
-	if (error < 0) {
+										 ab8500_ponkey_handler, 0,
+										 "ab8500-ponkey-dbr", ponkey);
+
+	if (error < 0)
+	{
 		dev_err(ab8500->dev, "Failed to request dbr IRQ#%d: %d\n",
-			ponkey->irq_dbr, error);
+				ponkey->irq_dbr, error);
 		return error;
 	}
 
 	error = input_register_device(ponkey->idev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(ab8500->dev, "Can't register input device: %d\n", error);
 		return error;
 	}
@@ -114,14 +135,16 @@ static int ab8500_ponkey_probe(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id ab8500_ponkey_match[] = {
+static const struct of_device_id ab8500_ponkey_match[] =
+{
 	{ .compatible = "stericsson,ab8500-ponkey", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, ab8500_ponkey_match);
 #endif
 
-static struct platform_driver ab8500_ponkey_driver = {
+static struct platform_driver ab8500_ponkey_driver =
+{
 	.driver		= {
 		.name	= "ab8500-poweron-key",
 		.of_match_table = of_match_ptr(ab8500_ponkey_match),

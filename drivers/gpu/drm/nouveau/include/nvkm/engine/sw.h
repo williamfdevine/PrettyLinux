@@ -2,7 +2,8 @@
 #define __NVKM_SW_H__
 #include <core/engine.h>
 
-struct nvkm_sw {
+struct nvkm_sw
+{
 	const struct nvkm_sw_func *func;
 	struct nvkm_engine engine;
 

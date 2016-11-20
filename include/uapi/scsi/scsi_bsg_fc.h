@@ -43,14 +43,14 @@
 #define FC_BSG_HST_MASK		0x80000000	/* fc host class */
 #define FC_BSG_RPT_MASK		0x40000000	/* fc rport class */
 
-	/* fc_host Message Codes */
+/* fc_host Message Codes */
 #define FC_BSG_HST_ADD_RPORT		(FC_BSG_HST_MASK | 0x00000001)
 #define FC_BSG_HST_DEL_RPORT		(FC_BSG_HST_MASK | 0x00000002)
 #define FC_BSG_HST_ELS_NOLOGIN		(FC_BSG_HST_MASK | 0x00000003)
 #define FC_BSG_HST_CT			(FC_BSG_HST_MASK | 0x00000004)
 #define FC_BSG_HST_VENDOR		(FC_BSG_HST_MASK | 0x000000FF)
 
-	/* fc_rport Message Codes */
+/* fc_rport Message Codes */
 #define FC_BSG_RPT_ELS			(FC_BSG_RPT_MASK | 0x00000001)
 #define FC_BSG_RPT_CT			(FC_BSG_RPT_MASK | 0x00000002)
 
@@ -79,7 +79,8 @@
  * at the specified N_Port_Id.  The remote port is to be enumerated
  * with the transport upon completion of the login.
  */
-struct fc_bsg_host_add_rport {
+struct fc_bsg_host_add_rport
+{
 	uint8_t		reserved;
 
 	/* FC Address Identier of the remote port to login to */
@@ -100,7 +101,8 @@ struct fc_bsg_host_add_rport {
  * Note: The driver is free to reject this request if it desires to
  * remain logged in with the remote port.
  */
-struct fc_bsg_host_del_rport {
+struct fc_bsg_host_del_rport
+{
 	uint8_t		reserved;
 
 	/* FC Address Identier of the remote port to logout of */
@@ -120,7 +122,8 @@ struct fc_bsg_host_del_rport {
  * nor does it need to enumerate the rport for further traffic
  * (although, the FC host is free to do so if it desires).
  */
-struct fc_bsg_host_els {
+struct fc_bsg_host_els
+{
 	/*
 	 * ELS Command Code being sent (must be the same as byte 0
 	 * of the payload)
@@ -140,7 +143,8 @@ struct fc_bsg_host_els {
 #define FC_CTELS_STATUS_F_RJT	0x00000003
 #define FC_CTELS_STATUS_P_BSY	0x00000004
 #define FC_CTELS_STATUS_F_BSY	0x00000006
-struct fc_bsg_ctels_reply {
+struct fc_bsg_ctels_reply
+{
 	/*
 	 * Note: An ELS LS_RJT may be reported in 2 ways:
 	 *  a) A status of FC_CTELS_STATUS_OK is returned. The caller
@@ -168,7 +172,8 @@ struct fc_bsg_ctels_reply {
 	uint32_t	status;		/* See FC_CTELS_STATUS_xxx */
 
 	/* valid if status is not FC_CTELS_STATUS_OK */
-	struct	{
+	struct
+	{
 		uint8_t	action;		/* fragment_id for CT REJECT */
 		uint8_t	reason_code;
 		uint8_t	reason_explanation;
@@ -187,7 +192,8 @@ struct fc_bsg_ctels_reply {
  * transport. The driver is allowed to decide whether to enumerate it,
  * and whether to tear it down after the request.
  */
-struct fc_bsg_host_ct {
+struct fc_bsg_host_ct
+{
 	uint8_t		reserved;
 
 	/* FC Address Identier of the remote port to send the ELS to */
@@ -213,7 +219,8 @@ struct fc_bsg_host_ct {
  * Note: When specifying vendor_id, be sure to read the Vendor Type and ID
  *   formatting requirements specified in scsi_netlink.h
  */
-struct fc_bsg_host_vendor {
+struct fc_bsg_host_vendor
+{
 	/*
 	 * Identifies the vendor that the message is formatted for. This
 	 * should be the recipient of the message.
@@ -226,7 +233,8 @@ struct fc_bsg_host_vendor {
 
 /* Response:
  */
-struct fc_bsg_host_vendor_reply {
+struct fc_bsg_host_vendor_reply
+{
 	/* start of vendor response area */
 	uint32_t vendor_rsp[0];
 };
@@ -242,7 +250,8 @@ struct fc_bsg_host_vendor_reply {
 /* Request:
  * This message requests that an ELS be performed with the rport.
  */
-struct fc_bsg_rport_els {
+struct fc_bsg_rport_els
+{
 	/*
 	 * ELS Command Code being sent (must be the same as
 	 * byte 0 of the payload)
@@ -261,7 +270,8 @@ struct fc_bsg_rport_els {
 /* Request:
  * This message requests that a CT Request be performed with the rport.
  */
-struct fc_bsg_rport_ct {
+struct fc_bsg_rport_ct
+{
 	/*
 	 * We need words 0-2 of the generic preamble for the LLD's
 	 */
@@ -278,9 +288,11 @@ struct fc_bsg_rport_ct {
 
 
 /* request (CDB) structure of the sg_io_v4 */
-struct fc_bsg_request {
+struct fc_bsg_request
+{
 	uint32_t msgcode;
-	union {
+	union
+	{
 		struct fc_bsg_host_add_rport	h_addrport;
 		struct fc_bsg_host_del_rport	h_delrport;
 		struct fc_bsg_host_els		h_els;
@@ -294,7 +306,8 @@ struct fc_bsg_request {
 
 
 /* response (request sense data) structure of the sg_io_v4 */
-struct fc_bsg_reply {
+struct fc_bsg_reply
+{
 	/*
 	 * The completion result. Result exists in two forms:
 	 *  if negative, it is an -Exxx system errno value. There will
@@ -308,7 +321,8 @@ struct fc_bsg_reply {
 	/* If there was reply_payload, how much was recevied ? */
 	uint32_t reply_payload_rcv_len;
 
-	union {
+	union
+	{
 		struct fc_bsg_host_vendor_reply		vendor_reply;
 
 		struct fc_bsg_ctels_reply		ctels_reply;

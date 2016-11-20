@@ -16,12 +16,14 @@
 #include <linux/ioport.h>
 #include <linux/spinlock_types.h>
 
-struct nfit_test_request {
+struct nfit_test_request
+{
 	struct list_head list;
 	struct resource res;
 };
 
-struct nfit_test_resource {
+struct nfit_test_resource
+{
 	struct list_head requests;
 	struct list_head list;
 	struct resource res;
@@ -33,7 +35,7 @@ struct nfit_test_resource {
 
 typedef struct nfit_test_resource *(*nfit_test_lookup_fn)(resource_size_t);
 void __iomem *__wrap_ioremap_nocache(resource_size_t offset,
-		unsigned long size);
+									 unsigned long size);
 void __wrap_iounmap(volatile void __iomem *addr);
 void nfit_test_setup(nfit_test_lookup_fn lookup);
 void nfit_test_teardown(void);

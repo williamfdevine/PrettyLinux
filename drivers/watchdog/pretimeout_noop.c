@@ -25,7 +25,8 @@ static void pretimeout_noop(struct watchdog_device *wdd)
 	pr_alert("watchdog%d: pretimeout event\n", wdd->id);
 }
 
-static struct watchdog_governor watchdog_gov_noop = {
+static struct watchdog_governor watchdog_gov_noop =
+{
 	.name		= "noop",
 	.pretimeout	= pretimeout_noop,
 };

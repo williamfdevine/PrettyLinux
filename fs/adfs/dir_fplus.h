@@ -15,7 +15,8 @@
 #define BIGDIRSTARTNAME ('S' | 'B' << 8 | 'P' << 16 | 'r' << 24)
 #define BIGDIRENDNAME	('o' | 'v' << 8 | 'e' << 16 | 'n' << 24)
 
-struct adfs_bigdirheader {
+struct adfs_bigdirheader
+{
 	__u8	startmasseq;
 	__u8	bigdirversion[3];
 	__le32	bigdirstartname;
@@ -27,7 +28,8 @@ struct adfs_bigdirheader {
 	char	bigdirname[1];
 };
 
-struct adfs_bigdirentry {
+struct adfs_bigdirentry
+{
 	__le32	bigdirload;
 	__le32	bigdirexec;
 	__le32	bigdirlen;
@@ -37,7 +39,8 @@ struct adfs_bigdirentry {
 	__le32	bigdirobnameptr;
 };
 
-struct adfs_bigdirtail {
+struct adfs_bigdirtail
+{
 	__le32	bigdirendname;
 	__u8	bigdirendmasseq;
 	__u8	reserved[2];

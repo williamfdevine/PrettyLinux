@@ -34,12 +34,18 @@ int dasd_gendisk_alloc(struct dasd_block *block)
 
 	/* Make sure the minor for this device exists. */
 	base = block->base;
+
 	if (base->devindex >= DASD_PER_MAJOR)
+	{
 		return -EBUSY;
+	}
 
 	gdp = alloc_disk(1 << DASD_PARTN_BITS);
+
 	if (!gdp)
+	{
 		return -ENOMEM;
+	}
 
 	/* Initialize gendisk structure. */
 	gdp->major = DASD_MAJOR;
@@ -54,23 +60,32 @@ int dasd_gendisk_alloc(struct dasd_block *block)
 	 *   dasdaaaa - dasdzzzz : 456976 devices, added up = 475252
 	 */
 	len = sprintf(gdp->disk_name, "dasd");
-	if (base->devindex > 25) {
-		if (base->devindex > 701) {
+
+	if (base->devindex > 25)
+	{
+		if (base->devindex > 701)
+		{
 			if (base->devindex > 18277)
-			        len += sprintf(gdp->disk_name + len, "%c",
-					       'a'+(((base->devindex-18278)
-						     /17576)%26));
+				len += sprintf(gdp->disk_name + len, "%c",
+							   'a' + (((base->devindex - 18278)
+									   / 17576) % 26));
+
 			len += sprintf(gdp->disk_name + len, "%c",
-				       'a'+(((base->devindex-702)/676)%26));
+						   'a' + (((base->devindex - 702) / 676) % 26));
 		}
+
 		len += sprintf(gdp->disk_name + len, "%c",
-			       'a'+(((base->devindex-26)/26)%26));
+					   'a' + (((base->devindex - 26) / 26) % 26));
 	}
-	len += sprintf(gdp->disk_name + len, "%c", 'a'+(base->devindex%26));
+
+	len += sprintf(gdp->disk_name + len, "%c", 'a' + (base->devindex % 26));
 
 	if (base->features & DASD_FEATURE_READONLY ||
-	    test_bit(DASD_FLAG_DEVICE_RO, &base->flags))
+		test_bit(DASD_FLAG_DEVICE_RO, &base->flags))
+	{
 		set_disk_ro(gdp, 1);
+	}
+
 	dasd_add_link_to_gendisk(gdp, base);
 	gdp->queue = block->request_queue;
 	block->gdp = gdp;
@@ -84,7 +99,8 @@ int dasd_gendisk_alloc(struct dasd_block *block)
  */
 void dasd_gendisk_free(struct dasd_block *block)
 {
-	if (block->gdp) {
+	if (block->gdp)
+	{
 		del_gendisk(block->gdp);
 		block->gdp->private_data = NULL;
 		put_disk(block->gdp);
@@ -101,24 +117,29 @@ int dasd_scan_partitions(struct dasd_block *block)
 	int rc;
 
 	bdev = bdget_disk(block->gdp, 0);
-	if (!bdev) {
+
+	if (!bdev)
+	{
 		DBF_DEV_EVENT(DBF_ERR, block->base, "%s",
-			      "scan partitions error, bdget returned NULL");
+					  "scan partitions error, bdget returned NULL");
 		return -ENODEV;
 	}
 
 	rc = blkdev_get(bdev, FMODE_READ, NULL);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		DBF_DEV_EVENT(DBF_ERR, block->base,
-			      "scan partitions error, blkdev_get returned %d",
-			      rc);
+					  "scan partitions error, blkdev_get returned %d",
+					  rc);
 		return -ENODEV;
 	}
 
 	rc = blkdev_reread_part(bdev);
+
 	if (rc)
 		DBF_DEV_EVENT(DBF_ERR, block->base,
-				"scan partitions error, rc %d", rc);
+					  "scan partitions error, rc %d", rc);
 
 	/*
 	 * Since the matching blkdev_put call to the blkdev_get in
@@ -161,8 +182,11 @@ void dasd_destroy_partitions(struct dasd_block *block)
 	memset(&barg, 0, sizeof(struct blkpg_ioctl_arg));
 	barg.data = (void __force __user *) &bpart;
 	barg.op = BLKPG_DEL_PARTITION;
+
 	for (bpart.pno = block->gdp->minors - 1; bpart.pno > 0; bpart.pno--)
+	{
 		ioctl_by_bdev(bdev, BLKPG, (unsigned long) &barg);
+	}
 
 	invalidate_partition(block->gdp, 0);
 	/* Matching blkdev_put to the blkdev_get in dasd_scan_partitions. */
@@ -176,11 +200,14 @@ int dasd_gendisk_init(void)
 
 	/* Register to static dasd major 94 */
 	rc = register_blkdev(DASD_MAJOR, "dasd");
-	if (rc != 0) {
+
+	if (rc != 0)
+	{
 		pr_warn("Registering the device driver with major number %d failed\n",
-			DASD_MAJOR);
+				DASD_MAJOR);
 		return rc;
 	}
+
 	return 0;
 }
 

@@ -23,19 +23,22 @@
 /**
  * UFS DWC specific variant operations
  */
-static struct ufs_hba_variant_ops tc_dwc_g210_20bit_pltfm_hba_vops = {
+static struct ufs_hba_variant_ops tc_dwc_g210_20bit_pltfm_hba_vops =
+{
 	.name                   = "tc-dwc-g210-pltfm",
 	.link_startup_notify	= ufshcd_dwc_link_startup_notify,
 	.phy_initialization = tc_dwc_g210_config_20_bit,
 };
 
-static struct ufs_hba_variant_ops tc_dwc_g210_40bit_pltfm_hba_vops = {
+static struct ufs_hba_variant_ops tc_dwc_g210_40bit_pltfm_hba_vops =
+{
 	.name                   = "tc-dwc-g210-pltfm",
 	.link_startup_notify	= ufshcd_dwc_link_startup_notify,
 	.phy_initialization = tc_dwc_g210_config_40_bit,
 };
 
-static const struct of_device_id tc_dwc_g210_pltfm_match[] = {
+static const struct of_device_id tc_dwc_g210_pltfm_match[] =
+{
 	{
 		.compatible = "snps,g210-tc-6.00-20bit",
 		.data = &tc_dwc_g210_20bit_pltfm_hba_vops,
@@ -65,8 +68,11 @@ static int tc_dwc_g210_pltfm_probe(struct platform_device *pdev)
 
 	/* Perform generic probe */
 	err = ufshcd_pltfrm_init(pdev, vops);
+
 	if (err)
+	{
 		dev_err(dev, "ufshcd_pltfrm_init() failed %d\n", err);
+	}
 
 	return err;
 }
@@ -86,7 +92,8 @@ static int tc_dwc_g210_pltfm_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct dev_pm_ops tc_dwc_g210_pltfm_pm_ops = {
+static const struct dev_pm_ops tc_dwc_g210_pltfm_pm_ops =
+{
 	.suspend	= ufshcd_pltfrm_suspend,
 	.resume		= ufshcd_pltfrm_resume,
 	.runtime_suspend = ufshcd_pltfrm_runtime_suspend,
@@ -94,7 +101,8 @@ static const struct dev_pm_ops tc_dwc_g210_pltfm_pm_ops = {
 	.runtime_idle    = ufshcd_pltfrm_runtime_idle,
 };
 
-static struct platform_driver tc_dwc_g210_pltfm_driver = {
+static struct platform_driver tc_dwc_g210_pltfm_driver =
+{
 	.probe		= tc_dwc_g210_pltfm_probe,
 	.remove		= tc_dwc_g210_pltfm_remove,
 	.shutdown = ufshcd_pltfrm_shutdown,

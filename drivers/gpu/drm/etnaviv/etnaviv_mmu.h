@@ -19,7 +19,8 @@
 
 #include <linux/iommu.h>
 
-enum etnaviv_iommu_version {
+enum etnaviv_iommu_version
+{
 	ETNAVIV_IOMMU_V1 = 0,
 	ETNAVIV_IOMMU_V2,
 };
@@ -27,13 +28,15 @@ enum etnaviv_iommu_version {
 struct etnaviv_gpu;
 struct etnaviv_vram_mapping;
 
-struct etnaviv_iommu_ops {
+struct etnaviv_iommu_ops
+{
 	struct iommu_ops ops;
 	size_t (*dump_size)(struct iommu_domain *);
 	void (*dump)(struct iommu_domain *, void *);
 };
 
-struct etnaviv_iommu {
+struct etnaviv_iommu
+{
 	struct etnaviv_gpu *gpu;
 	struct iommu_domain *domain;
 
@@ -50,22 +53,22 @@ struct etnaviv_iommu {
 struct etnaviv_gem_object;
 
 int etnaviv_iommu_attach(struct etnaviv_iommu *iommu, const char **names,
-	int cnt);
+						 int cnt);
 int etnaviv_iommu_map(struct etnaviv_iommu *iommu, u32 iova,
-	struct sg_table *sgt, unsigned len, int prot);
+					  struct sg_table *sgt, unsigned len, int prot);
 int etnaviv_iommu_unmap(struct etnaviv_iommu *iommu, u32 iova,
-	struct sg_table *sgt, unsigned len);
+						struct sg_table *sgt, unsigned len);
 int etnaviv_iommu_map_gem(struct etnaviv_iommu *mmu,
-	struct etnaviv_gem_object *etnaviv_obj, u32 memory_base,
-	struct etnaviv_vram_mapping *mapping);
+						  struct etnaviv_gem_object *etnaviv_obj, u32 memory_base,
+						  struct etnaviv_vram_mapping *mapping);
 void etnaviv_iommu_unmap_gem(struct etnaviv_iommu *mmu,
-	struct etnaviv_vram_mapping *mapping);
+							 struct etnaviv_vram_mapping *mapping);
 void etnaviv_iommu_destroy(struct etnaviv_iommu *iommu);
 
 u32 etnaviv_iommu_get_cmdbuf_va(struct etnaviv_gpu *gpu,
-				struct etnaviv_cmdbuf *buf);
+								struct etnaviv_cmdbuf *buf);
 void etnaviv_iommu_put_cmdbuf_va(struct etnaviv_gpu *gpu,
-				 struct etnaviv_cmdbuf *buf);
+								 struct etnaviv_cmdbuf *buf);
 
 size_t etnaviv_iommu_dump_size(struct etnaviv_iommu *iommu);
 void etnaviv_iommu_dump(struct etnaviv_iommu *iommu, void *buf);

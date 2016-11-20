@@ -25,14 +25,20 @@ static int octeon_spi_probe(struct platform_device *pdev)
 	int err = -ENOENT;
 
 	master = spi_alloc_master(&pdev->dev, sizeof(struct octeon_spi));
+
 	if (!master)
+	{
 		return -ENOMEM;
+	}
+
 	p = spi_master_get_devdata(master);
 	platform_set_drvdata(pdev, master);
 
 	res_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	reg_base = devm_ioremap_resource(&pdev->dev, res_mem);
-	if (IS_ERR(reg_base)) {
+
+	if (IS_ERR(reg_base))
+	{
 		err = PTR_ERR(reg_base);
 		goto fail;
 	}
@@ -47,10 +53,10 @@ static int octeon_spi_probe(struct platform_device *pdev)
 
 	master->num_chipselect = 4;
 	master->mode_bits = SPI_CPHA |
-			    SPI_CPOL |
-			    SPI_CS_HIGH |
-			    SPI_LSB_FIRST |
-			    SPI_3WIRE;
+						SPI_CPOL |
+						SPI_CS_HIGH |
+						SPI_LSB_FIRST |
+						SPI_3WIRE;
 
 	master->transfer_one_message = octeon_spi_transfer_one_message;
 	master->bits_per_word_mask = SPI_BPW_MASK(8);
@@ -58,7 +64,9 @@ static int octeon_spi_probe(struct platform_device *pdev)
 
 	master->dev.of_node = pdev->dev.of_node;
 	err = devm_spi_register_master(&pdev->dev, master);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "register master failed: %d\n", err);
 		goto fail;
 	}
@@ -82,13 +90,15 @@ static int octeon_spi_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id octeon_spi_match[] = {
+static const struct of_device_id octeon_spi_match[] =
+{
 	{ .compatible = "cavium,octeon-3010-spi", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, octeon_spi_match);
 
-static struct platform_driver octeon_spi_driver = {
+static struct platform_driver octeon_spi_driver =
+{
 	.driver = {
 		.name		= "spi-octeon",
 		.of_match_table = octeon_spi_match,

@@ -28,7 +28,7 @@
     and other provisions required by the GPL.  If you do not delete
     the provisions above, a recipient may use your version of this
     file under either the MPL or the GPL.
-    
+
 ======================================================================*/
 
 #include <linux/module.h>
@@ -60,7 +60,8 @@
 
 static char qlogic_name[] = "qlogic_cs";
 
-static struct scsi_host_template qlogicfas_driver_template = {
+static struct scsi_host_template qlogicfas_driver_template =
+{
 	.module			= THIS_MODULE,
 	.name			= qlogic_name,
 	.proc_name		= qlogic_name,
@@ -77,7 +78,8 @@ static struct scsi_host_template qlogicfas_driver_template = {
 
 /*====================================================================*/
 
-typedef struct scsi_info_t {
+typedef struct scsi_info_t
+{
 	struct pcmcia_device	*p_dev;
 	struct Scsi_Host *host;
 	unsigned short manf_id;
@@ -85,10 +87,10 @@ typedef struct scsi_info_t {
 
 static void qlogic_release(struct pcmcia_device *link);
 static void qlogic_detach(struct pcmcia_device *p_dev);
-static int qlogic_config(struct pcmcia_device * link);
+static int qlogic_config(struct pcmcia_device *link);
 
 static struct Scsi_Host *qlogic_detect(struct scsi_host_template *host,
-				struct pcmcia_device *link, int qbase, int qlirq)
+									   struct pcmcia_device *link, int qbase, int qlirq)
 {
 	int qltyp;		/* type of chip */
 	int qinitid;
@@ -97,37 +99,51 @@ static struct Scsi_Host *qlogic_detect(struct scsi_host_template *host,
 
 	qltyp = qlogicfas408_get_chip_type(qbase, INT_TYPE);
 	qinitid = host->this_id;
+
 	if (qinitid < 0)
-		qinitid = 7;	/* if no ID, use 7 */
+	{
+		qinitid = 7;    /* if no ID, use 7 */
+	}
 
 	qlogicfas408_setup(qbase, qinitid, INT_TYPE);
 
 	host->name = qlogic_name;
 	shost = scsi_host_alloc(host, sizeof(struct qlogicfas408_priv));
+
 	if (!shost)
+	{
 		goto err;
+	}
+
 	shost->io_port = qbase;
 	shost->n_io_port = 16;
 	shost->dma_channel = -1;
+
 	if (qlirq != -1)
+	{
 		shost->irq = qlirq;
+	}
 
 	priv = get_priv_by_host(shost);
 	priv->qlirq = qlirq;
 	priv->qbase = qbase;
 	priv->qinitid = qinitid;
 	priv->shost = shost;
-	priv->int_type = INT_TYPE;					
+	priv->int_type = INT_TYPE;
 
 	if (request_irq(qlirq, qlogicfas408_ihandl, 0, qlogic_name, shost))
+	{
 		goto free_scsi_host;
+	}
 
 	sprintf(priv->qinfo,
-		"Qlogicfas Driver version 0.46, chip %02X at %03X, IRQ %d, TPdma:%d",
-		qltyp, qbase, qlirq, QL_TURBO_PDMA);
+			"Qlogicfas Driver version 0.46, chip %02X at %03X, IRQ %d, TPdma:%d",
+			qltyp, qbase, qlirq, QL_TURBO_PDMA);
 
 	if (scsi_add_host(shost, NULL))
+	{
 		goto free_interrupt;
+	}
 
 	scsi_scan_host(shost);
 
@@ -138,7 +154,7 @@ free_interrupt:
 
 free_scsi_host:
 	scsi_host_put(shost);
-	
+
 err:
 	return NULL;
 }
@@ -150,8 +166,12 @@ static int qlogic_probe(struct pcmcia_device *link)
 
 	/* Create new SCSI device */
 	info = kzalloc(sizeof(*info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
+
 	info->p_dev = link;
 	link->priv = info;
 	link->config_flags |= CONF_ENABLE_IRQ | CONF_AUTO_SET_IO;
@@ -180,12 +200,14 @@ static int qlogic_config_check(struct pcmcia_device *p_dev, void *priv_data)
 	p_dev->resource[0]->flags |= IO_DATA_PATH_WIDTH_AUTO;
 
 	if (p_dev->resource[0]->start == 0)
+	{
 		return -ENODEV;
+	}
 
 	return pcmcia_request_io(p_dev);
 }
 
-static int qlogic_config(struct pcmcia_device * link)
+static int qlogic_config(struct pcmcia_device *link)
 {
 	scsi_info_t *info = link->priv;
 	int ret;
@@ -194,17 +216,26 @@ static int qlogic_config(struct pcmcia_device * link)
 	dev_dbg(&link->dev, "qlogic_config\n");
 
 	ret = pcmcia_loop_config(link, qlogic_config_check, NULL);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	if (!link->irq)
+	{
 		goto failed;
+	}
 
 	ret = pcmcia_enable_device(link);
-	if (ret)
-		goto failed;
 
-	if ((info->manf_id == MANFID_MACNICA) || (info->manf_id == MANFID_PIONEER) || (info->manf_id == 0x0098)) {
+	if (ret)
+	{
+		goto failed;
+	}
+
+	if ((info->manf_id == MANFID_MACNICA) || (info->manf_id == MANFID_PIONEER) || (info->manf_id == 0x0098))
+	{
 		/* set ATAcmd */
 		outb(0xb4, link->resource[0]->start + 0xd);
 		outb(0x24, link->resource[0]->start + 0x9);
@@ -214,12 +245,13 @@ static int qlogic_config(struct pcmcia_device * link)
 	/* The KXL-810AN has a bigger IO port window */
 	if (resource_size(link->resource[0]) == 32)
 		host = qlogic_detect(&qlogicfas_driver_template, link,
-			link->resource[0]->start + 16, link->irq);
+							 link->resource[0]->start + 16, link->irq);
 	else
 		host = qlogic_detect(&qlogicfas_driver_template, link,
-			link->resource[0]->start, link->irq);
-	
-	if (!host) {
+							 link->resource[0]->start, link->irq);
+
+	if (!host)
+	{
 		printk(KERN_INFO "%s: no SCSI devices found\n", qlogic_name);
 		goto failed;
 	}
@@ -256,20 +288,24 @@ static int qlogic_resume(struct pcmcia_device *link)
 	scsi_info_t *info = link->priv;
 
 	pcmcia_enable_device(link);
+
 	if ((info->manf_id == MANFID_MACNICA) ||
-	    (info->manf_id == MANFID_PIONEER) ||
-	    (info->manf_id == 0x0098)) {
+		(info->manf_id == MANFID_PIONEER) ||
+		(info->manf_id == 0x0098))
+	{
 		outb(0x80, link->resource[0]->start + 0xd);
 		outb(0x24, link->resource[0]->start + 0x9);
 		outb(0x04, link->resource[0]->start + 0xd);
 	}
+
 	/* Ugggglllyyyy!!! */
 	qlogicfas408_bus_reset(NULL);
 
 	return 0;
 }
 
-static const struct pcmcia_device_id qlogic_ids[] = {
+static const struct pcmcia_device_id qlogic_ids[] =
+{
 	PCMCIA_DEVICE_PROD_ID12("EIger Labs", "PCMCIA-to-SCSI Adapter", 0x88395fa7, 0x33b7a5e6),
 	PCMCIA_DEVICE_PROD_ID12("EPSON", "SCSI-2 PC Card SC200", 0xd361772f, 0x299d1751),
 	PCMCIA_DEVICE_PROD_ID12("MACNICA", "MIRACLE SCSI-II mPS110", 0x20841b68, 0xab3c3b6d),
@@ -291,7 +327,8 @@ static const struct pcmcia_device_id qlogic_ids[] = {
 };
 MODULE_DEVICE_TABLE(pcmcia, qlogic_ids);
 
-static struct pcmcia_driver qlogic_cs_driver = {
+static struct pcmcia_driver qlogic_cs_driver =
+{
 	.owner		= THIS_MODULE,
 	.name		= "qlogic_cs",
 	.probe		= qlogic_probe,

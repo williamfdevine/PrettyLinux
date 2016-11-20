@@ -26,7 +26,8 @@
  * data encoded, and member idx is used to specify the one.  And each
  * register has SET, CLR and TOG registers at offset 0x4 0x8 and 0xc.
  */
-struct clk_pfd {
+struct clk_pfd
+{
 	struct clk_hw	hw;
 	void __iomem	*reg;
 	u8		idx;
@@ -55,7 +56,7 @@ static void clk_pfd_disable(struct clk_hw *hw)
 }
 
 static unsigned long clk_pfd_recalc_rate(struct clk_hw *hw,
-					 unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_pfd *pfd = to_clk_pfd(hw);
 	u64 tmp = parent_rate;
@@ -68,7 +69,7 @@ static unsigned long clk_pfd_recalc_rate(struct clk_hw *hw,
 }
 
 static long clk_pfd_round_rate(struct clk_hw *hw, unsigned long rate,
-			       unsigned long *prate)
+							   unsigned long *prate)
 {
 	u64 tmp = *prate;
 	u8 frac;
@@ -76,10 +77,16 @@ static long clk_pfd_round_rate(struct clk_hw *hw, unsigned long rate,
 	tmp = tmp * 18 + rate / 2;
 	do_div(tmp, rate);
 	frac = tmp;
+
 	if (frac < 12)
+	{
 		frac = 12;
+	}
 	else if (frac > 35)
+	{
 		frac = 35;
+	}
+
 	tmp = *prate;
 	tmp *= 18;
 	do_div(tmp, frac);
@@ -88,7 +95,7 @@ static long clk_pfd_round_rate(struct clk_hw *hw, unsigned long rate,
 }
 
 static int clk_pfd_set_rate(struct clk_hw *hw, unsigned long rate,
-		unsigned long parent_rate)
+							unsigned long parent_rate)
 {
 	struct clk_pfd *pfd = to_clk_pfd(hw);
 	u64 tmp = parent_rate;
@@ -97,10 +104,15 @@ static int clk_pfd_set_rate(struct clk_hw *hw, unsigned long rate,
 	tmp = tmp * 18 + rate / 2;
 	do_div(tmp, rate);
 	frac = tmp;
+
 	if (frac < 12)
+	{
 		frac = 12;
+	}
 	else if (frac > 35)
+	{
 		frac = 35;
+	}
 
 	writel_relaxed(0x3f << (pfd->idx * 8), pfd->reg + CLR);
 	writel_relaxed(frac << (pfd->idx * 8), pfd->reg + SET);
@@ -113,12 +125,15 @@ static int clk_pfd_is_enabled(struct clk_hw *hw)
 	struct clk_pfd *pfd = to_clk_pfd(hw);
 
 	if (readl_relaxed(pfd->reg) & (1 << ((pfd->idx + 1) * 8 - 1)))
+	{
 		return 0;
+	}
 
 	return 1;
 }
 
-static const struct clk_ops clk_pfd_ops = {
+static const struct clk_ops clk_pfd_ops =
+{
 	.enable		= clk_pfd_enable,
 	.disable	= clk_pfd_disable,
 	.recalc_rate	= clk_pfd_recalc_rate,
@@ -128,15 +143,18 @@ static const struct clk_ops clk_pfd_ops = {
 };
 
 struct clk *imx_clk_pfd(const char *name, const char *parent_name,
-			void __iomem *reg, u8 idx)
+						void __iomem *reg, u8 idx)
 {
 	struct clk_pfd *pfd;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	pfd = kzalloc(sizeof(*pfd), GFP_KERNEL);
+
 	if (!pfd)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	pfd->reg = reg;
 	pfd->idx = idx;
@@ -150,8 +168,11 @@ struct clk *imx_clk_pfd(const char *name, const char *parent_name,
 	pfd->hw.init = &init;
 
 	clk = clk_register(NULL, &pfd->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(pfd);
+	}
 
 	return clk;
 }

@@ -60,7 +60,8 @@
 #define IH_REPLY_DONE		0x2000
 #define IH_REPLY_NOT_DONE	0x2001
 
-enum fimc_is_scenario {
+enum fimc_is_scenario
+{
 	IS_SC_PREVIEW_STILL,
 	IS_SC_PREVIEW_VIDEO,
 	IS_SC_CAPTURE_STILL,
@@ -68,7 +69,8 @@ enum fimc_is_scenario {
 	IS_SC_MAX
 };
 
-enum fimc_is_sub_scenario {
+enum fimc_is_sub_scenario
+{
 	IS_SC_SUB_DEFAULT,
 	IS_SC_SUB_PS_VTCALL,
 	IS_SC_SUB_CS_VTCALL,
@@ -76,7 +78,8 @@ enum fimc_is_sub_scenario {
 	IS_SC_SUB_CV_VTCALL,
 };
 
-struct is_common_regs {
+struct is_common_regs
+{
 	u32 hicmd;
 	u32 hic_sensorid;
 	u32 hic_param[4];
@@ -104,7 +107,8 @@ struct is_common_regs {
 	u32 reserved6[29];
 } __packed;
 
-struct is_mcuctl_reg {
+struct is_mcuctl_reg
+{
 	u32 mcuctl;
 	u32 bboar;
 

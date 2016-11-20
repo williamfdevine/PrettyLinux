@@ -177,14 +177,15 @@
 /* SIEN:IMOD 0:0 = legacy irq, 0:1 = INTA, 1:0 = serialized IRQ */
 
 #if defined(CONFIG_GAMEPORT) || (defined(MODULE) && defined(CONFIG_GAMEPORT_MODULE))
-#define SUPPORT_JOYSTICK
+	#define SUPPORT_JOYSTICK
 #endif
 
 /*
  *
  */
 
-struct snd_ymfpci_playback_bank {
+struct snd_ymfpci_playback_bank
+{
 	u32 format;
 	u32 loop_default;
 	u32 base;			/* 32-bit address */
@@ -215,16 +216,18 @@ struct snd_ymfpci_playback_bank {
 	u32 eff3_gain;
 	u32 lpfD1;
 	u32 lpfD2;
- };
+};
 
-struct snd_ymfpci_capture_bank {
+struct snd_ymfpci_capture_bank
+{
 	u32 base;			/* 32-bit address */
 	u32 loop_end;			/* 32-bit offset */
 	u32 start;			/* 32-bit offset */
 	u32 num_of_loops;		/* counter */
 };
 
-struct snd_ymfpci_effect_bank {
+struct snd_ymfpci_effect_bank
+{
 	u32 base;			/* 32-bit address */
 	u32 loop_end;			/* 32-bit offset */
 	u32 start;			/* 32-bit offset */
@@ -234,26 +237,29 @@ struct snd_ymfpci_effect_bank {
 struct snd_ymfpci_pcm;
 struct snd_ymfpci;
 
-enum snd_ymfpci_voice_type {
+enum snd_ymfpci_voice_type
+{
 	YMFPCI_PCM,
 	YMFPCI_SYNTH,
 	YMFPCI_MIDI
 };
 
-struct snd_ymfpci_voice {
+struct snd_ymfpci_voice
+{
 	struct snd_ymfpci *chip;
 	int number;
 	unsigned int use: 1,
-	    pcm: 1,
-	    synth: 1,
-	    midi: 1;
+			 pcm: 1,
+			 synth: 1,
+			 midi: 1;
 	struct snd_ymfpci_playback_bank *bank;
 	dma_addr_t bank_addr;
 	void (*interrupt)(struct snd_ymfpci *chip, struct snd_ymfpci_voice *voice);
 	struct snd_ymfpci_pcm *ypcm;
 };
 
-enum snd_ymfpci_pcm_type {
+enum snd_ymfpci_pcm_type
+{
 	PLAYBACK_VOICE,
 	CAPTURE_REC,
 	CAPTURE_AC97,
@@ -264,16 +270,17 @@ enum snd_ymfpci_pcm_type {
 	EFFECT_EFF3
 };
 
-struct snd_ymfpci_pcm {
+struct snd_ymfpci_pcm
+{
 	struct snd_ymfpci *chip;
 	enum snd_ymfpci_pcm_type type;
 	struct snd_pcm_substream *substream;
 	struct snd_ymfpci_voice *voices[2];	/* playback only */
 	unsigned int running: 1,
-		     use_441_slot: 1,
-	             output_front: 1,
-	             output_rear: 1,
-	             swap_rear: 1;
+			 use_441_slot: 1,
+			 output_front: 1,
+			 output_rear: 1,
+			 swap_rear: 1;
 	unsigned int update_pcm_vol;
 	u32 period_size;		/* cached from runtime->period_size */
 	u32 buffer_size;		/* cached from runtime->buffer_size */
@@ -283,7 +290,8 @@ struct snd_ymfpci_pcm {
 	u32 shift;
 };
 
-struct snd_ymfpci {
+struct snd_ymfpci
+{
 	int irq;
 
 	unsigned int device_id;	/* PCI device ID */
@@ -349,7 +357,8 @@ struct snd_ymfpci {
 	int mode_dup4ch;
 	int rear_opened;
 	int spdif_opened;
-	struct snd_ymfpci_pcm_mixer {
+	struct snd_ymfpci_pcm_mixer
+	{
 		u16 left;
 		u16 right;
 		struct snd_kcontrol *ctl;
@@ -372,9 +381,9 @@ struct snd_ymfpci {
 };
 
 int snd_ymfpci_create(struct snd_card *card,
-		      struct pci_dev *pci,
-		      unsigned short old_legacy_ctrl,
-		      struct snd_ymfpci ** rcodec);
+					  struct pci_dev *pci,
+					  unsigned short old_legacy_ctrl,
+					  struct snd_ymfpci **rcodec);
 void snd_ymfpci_free_gameport(struct snd_ymfpci *chip);
 
 extern const struct dev_pm_ops snd_ymfpci_pm;

@@ -48,10 +48,10 @@ extern int shpchp_poll_time;
 extern bool shpchp_debug;
 
 #define dbg(format, arg...)						\
-do {									\
-	if (shpchp_debug)						\
-		printk(KERN_DEBUG "%s: " format, MY_NAME, ## arg);	\
-} while (0)
+	do {									\
+		if (shpchp_debug)						\
+			printk(KERN_DEBUG "%s: " format, MY_NAME, ## arg);	\
+	} while (0)
 #define err(format, arg...)						\
 	printk(KERN_ERR "%s: " format, MY_NAME, ## arg)
 #define info(format, arg...)						\
@@ -63,7 +63,7 @@ do {									\
 	do {								\
 		if (shpchp_debug)					\
 			dev_printk(KERN_DEBUG, &ctrl->pci_dev->dev,	\
-					format, ## arg);		\
+					   format, ## arg);		\
 	} while (0)
 #define ctrl_err(ctrl, format, arg...)					\
 	dev_err(&ctrl->pci_dev->dev, format, ## arg)
@@ -74,7 +74,8 @@ do {									\
 
 
 #define SLOT_NAME_SIZE 10
-struct slot {
+struct slot
+{
 	u8 bus;
 	u8 device;
 	u16 status;
@@ -93,13 +94,15 @@ struct slot {
 	u8 hp_slot;
 };
 
-struct event_info {
+struct event_info
+{
 	u32 event_type;
 	struct slot *p_slot;
 	struct work_struct work;
 };
 
-struct controller {
+struct controller
+{
 	struct mutex crit_sect;		/* critical section mutex */
 	struct mutex cmd_lock;		/* command lock */
 	int num_slots;			/* Number of slots on ctlr */
@@ -198,7 +201,8 @@ static inline int get_hp_hw_control_from_firmware(struct pci_dev *dev)
 #define get_hp_hw_control_from_firmware(dev) (0)
 #endif
 
-struct ctrl_reg {
+struct ctrl_reg
+{
 	volatile u32 base_offset;
 	volatile u32 slot_avail1;
 	volatile u32 slot_avail2;
@@ -215,7 +219,8 @@ struct ctrl_reg {
 } __attribute__ ((packed));
 
 /* offsets to the controller registers based on the above structure layout */
-enum ctrl_offsets {
+enum ctrl_offsets
+{
 	BASE_OFFSET	 = offsetof(struct ctrl_reg, base_offset),
 	SLOT_AVAIL1	 = offsetof(struct ctrl_reg, slot_avail1),
 	SLOT_AVAIL2	 = offsetof(struct ctrl_reg, slot_avail2),
@@ -240,9 +245,12 @@ static inline struct slot *shpchp_find_slot(struct controller *ctrl, u8 device)
 {
 	struct slot *slot;
 
-	list_for_each_entry(slot, &ctrl->slot_list, slot_list) {
+	list_for_each_entry(slot, &ctrl->slot_list, slot_list)
+	{
 		if (slot->device == device)
+		{
 			return slot;
+		}
 	}
 
 	ctrl_err(ctrl, "Slot (device=0x%02x) not found\n", device);
@@ -278,10 +286,12 @@ static inline void amd_pogo_errata_restore_misc_reg(struct slot *p_slot)
 	/* write-one-to-clear Bridge_Errors[ PERR_OBSERVED ] */
 	pci_read_config_dword(p_slot->ctrl->pci_dev, PCIX_MISC_BRIDGE_ERRORS_OFFSET, &pcix_bridge_errors_reg);
 	perr_set = pcix_bridge_errors_reg & PERR_OBSERVED_MASK;
-	if (perr_set) {
+
+	if (perr_set)
+	{
 		ctrl_dbg(p_slot->ctrl,
-			 "Bridge_Errors[ PERR_OBSERVED = %08X] (W1C)\n",
-			 perr_set);
+				 "Bridge_Errors[ PERR_OBSERVED = %08X] (W1C)\n",
+				 perr_set);
 
 		pci_write_config_dword(p_slot->ctrl->pci_dev, PCIX_MISC_BRIDGE_ERRORS_OFFSET, perr_set);
 	}
@@ -289,42 +299,67 @@ static inline void amd_pogo_errata_restore_misc_reg(struct slot *p_slot)
 	/* write-one-to-clear Memory_Base_Limit[ RSE ] */
 	pci_read_config_dword(p_slot->ctrl->pci_dev, PCIX_MEM_BASE_LIMIT_OFFSET, &pcix_mem_base_reg);
 	rse_set = pcix_mem_base_reg & RSE_MASK;
-	if (rse_set) {
+
+	if (rse_set)
+	{
 		ctrl_dbg(p_slot->ctrl, "Memory_Base_Limit[ RSE ] (W1C)\n");
 
 		pci_write_config_dword(p_slot->ctrl->pci_dev, PCIX_MEM_BASE_LIMIT_OFFSET, rse_set);
 	}
+
 	/* restore MiscII register */
 	pci_read_config_dword(p_slot->ctrl->pci_dev, PCIX_MISCII_OFFSET, &pcix_misc2_temp);
 
 	if (p_slot->ctrl->pcix_misc2_reg & SERRFATALENABLE_MASK)
+	{
 		pcix_misc2_temp |= SERRFATALENABLE_MASK;
+	}
 	else
+	{
 		pcix_misc2_temp &= ~SERRFATALENABLE_MASK;
+	}
 
 	if (p_slot->ctrl->pcix_misc2_reg & SERRNONFATALENABLE_MASK)
+	{
 		pcix_misc2_temp |= SERRNONFATALENABLE_MASK;
+	}
 	else
+	{
 		pcix_misc2_temp &= ~SERRNONFATALENABLE_MASK;
+	}
 
 	if (p_slot->ctrl->pcix_misc2_reg & PERRFLOODENABLE_MASK)
+	{
 		pcix_misc2_temp |= PERRFLOODENABLE_MASK;
+	}
 	else
+	{
 		pcix_misc2_temp &= ~PERRFLOODENABLE_MASK;
+	}
 
 	if (p_slot->ctrl->pcix_misc2_reg & PERRFATALENABLE_MASK)
+	{
 		pcix_misc2_temp |= PERRFATALENABLE_MASK;
+	}
 	else
+	{
 		pcix_misc2_temp &= ~PERRFATALENABLE_MASK;
+	}
 
 	if (p_slot->ctrl->pcix_misc2_reg & PERRNONFATALENABLE_MASK)
+	{
 		pcix_misc2_temp |= PERRNONFATALENABLE_MASK;
+	}
 	else
+	{
 		pcix_misc2_temp &= ~PERRNONFATALENABLE_MASK;
+	}
+
 	pci_write_config_dword(p_slot->ctrl->pci_dev, PCIX_MISCII_OFFSET, pcix_misc2_temp);
 }
 
-struct hpc_ops {
+struct hpc_ops
+{
 	int (*power_on_slot)(struct slot *slot);
 	int (*slot_enable)(struct slot *slot);
 	int (*slot_disable)(struct slot *slot);

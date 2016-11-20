@@ -1,7 +1,8 @@
 #ifndef __MM_CMA_H__
 #define __MM_CMA_H__
 
-struct cma {
+struct cma
+{
 	unsigned long   base_pfn;
 	unsigned long   count;
 	unsigned long   *bitmap;

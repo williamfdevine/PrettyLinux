@@ -24,14 +24,16 @@
 #include "priv.h"
 
 const struct nvkm_mc_map
-nv04_mc_reset[] = {
+	nv04_mc_reset[] =
+{
 	{ 0x00001000, NVKM_ENGINE_GR },
 	{ 0x00000100, NVKM_ENGINE_FIFO },
 	{}
 };
 
 static const struct nvkm_mc_map
-nv04_mc_intr[] = {
+	nv04_mc_intr[] =
+{
 	{ 0x01010000, NVKM_ENGINE_DISP },
 	{ 0x00001000, NVKM_ENGINE_GR },
 	{ 0x00000100, NVKM_ENGINE_FIFO },
@@ -70,7 +72,8 @@ nv04_mc_init(struct nvkm_mc *mc)
 }
 
 static const struct nvkm_mc_func
-nv04_mc = {
+	nv04_mc =
+{
 	.init = nv04_mc_init,
 	.intr = nv04_mc_intr,
 	.intr_unarm = nv04_mc_intr_unarm,

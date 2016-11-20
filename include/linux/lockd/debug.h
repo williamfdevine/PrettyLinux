@@ -11,18 +11,18 @@
 
 #ifdef __KERNEL__
 
-#include <linux/sunrpc/debug.h>
+	#include <linux/sunrpc/debug.h>
 
-/*
- * Enable lockd debugging.
- * Requires RPC_DEBUG.
- */
-#undef ifdebug
-#if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
-# define ifdebug(flag)		if (unlikely(nlm_debug & NLMDBG_##flag))
-#else
-# define ifdebug(flag)		if (0)
-#endif
+	/*
+	* Enable lockd debugging.
+	* Requires RPC_DEBUG.
+	*/
+	#undef ifdebug
+	#if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
+		#define ifdebug(flag)		if (unlikely(nlm_debug & NLMDBG_##flag))
+	#else
+		#define ifdebug(flag)		if (0)
+	#endif
 
 #endif /* __KERNEL__ */
 

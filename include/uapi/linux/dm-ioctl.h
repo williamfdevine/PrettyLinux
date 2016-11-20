@@ -99,7 +99,8 @@
  * lookup (eg. for a DM_INFO) will be done on that, *not* the
  * name.
  */
-struct dm_ioctl {
+struct dm_ioctl
+{
 	/*
 	 * The version number is made up of three parts:
 	 * major - no backward or forward compatibility,
@@ -149,7 +150,8 @@ struct dm_ioctl {
  * Used to specify tables.  These structures appear after the
  * dm_ioctl.
  */
-struct dm_target_spec {
+struct dm_target_spec
+{
 	__u64 sector_start;
 	__u64 length;
 	__s32 status;		/* used when reading from kernel only */
@@ -178,7 +180,8 @@ struct dm_target_spec {
 /*
  * Used to retrieve the target dependencies.
  */
-struct dm_target_deps {
+struct dm_target_deps
+{
 	__u32 count;	/* Array size */
 	__u32 padding;	/* unused */
 	__u64 dev[0];	/* out */
@@ -187,7 +190,8 @@ struct dm_target_deps {
 /*
  * Used to get a list of all dm devices.
  */
-struct dm_name_list {
+struct dm_name_list
+{
 	__u64 dev;
 	__u32 next;		/* offset to the next record from
 				   the _start_ of this */
@@ -197,17 +201,19 @@ struct dm_name_list {
 /*
  * Used to retrieve the target versions
  */
-struct dm_target_versions {
-        __u32 next;
-        __u32 version[3];
+struct dm_target_versions
+{
+	__u32 next;
+	__u32 version[3];
 
-        char name[0];
+	char name[0];
 };
 
 /*
  * Used to pass message to a target
  */
-struct dm_target_msg {
+struct dm_target_msg
+{
 	__u64 sector;	/* Device sector */
 
 	char message[0];
@@ -217,7 +223,8 @@ struct dm_target_msg {
  * If you change this make sure you make the corresponding change
  * to dm-ioctl.c:lookup_ioctl()
  */
-enum {
+enum
+{
 	/* Top level cmds */
 	DM_VERSION_CMD = 0,
 	DM_REMOVE_ALL_CMD,

@@ -133,10 +133,11 @@ static unsigned int debug;
 
 #define dprintk(level, fmt, arg...)\
 	do { if (debug >= level)\
-		printk(KERN_DEBUG "tda10048: " fmt, ## arg);\
+			printk(KERN_DEBUG "tda10048: " fmt, ## arg);\
 	} while (0)
 
-struct tda10048_state {
+struct tda10048_state
+{
 
 	struct i2c_adapter *i2c;
 
@@ -156,10 +157,12 @@ struct tda10048_state {
 	u32 bandwidth;
 };
 
-static struct init_tab {
+static struct init_tab
+{
 	u8	reg;
 	u16	data;
-} init_tab[] = {
+} init_tab[] =
+{
 	{ TDA10048_CONF_PLL1, 0x08 },
 	{ TDA10048_CONF_ADC_2, 0x00 },
 	{ TDA10048_CONF_C4_1, 0x00 },
@@ -203,10 +206,12 @@ static struct init_tab {
 	{ TDA10048_CONF_C4_2, 0x04 },
 };
 
-static struct pll_tab {
+static struct pll_tab
+{
 	u32	clk_freq_khz;
 	u32	if_freq_khz;
-} pll_tab[] = {
+} pll_tab[] =
+{
 	{ TDA10048_CLK_4000,  TDA10048_IF_36130 },
 	{ TDA10048_CLK_16000, TDA10048_IF_3300 },
 	{ TDA10048_CLK_16000, TDA10048_IF_3500 },
@@ -223,16 +228,20 @@ static int tda10048_writereg(struct tda10048_state *state, u8 reg, u8 data)
 	struct tda10048_config *config = &state->config;
 	int ret;
 	u8 buf[] = { reg, data };
-	struct i2c_msg msg = {
+	struct i2c_msg msg =
+	{
 		.addr = config->demod_address,
-		.flags = 0, .buf = buf, .len = 2 };
+		.flags = 0, .buf = buf, .len = 2
+	};
 
 	dprintk(2, "%s(reg = 0x%02x, data = 0x%02x)\n", __func__, reg, data);
 
 	ret = i2c_transfer(state->i2c, &msg, 1);
 
 	if (ret != 1)
+	{
 		printk("%s: writereg error (ret == %i)\n", __func__, ret);
+	}
 
 	return (ret != 1) ? -1 : 0;
 }
@@ -243,11 +252,17 @@ static u8 tda10048_readreg(struct tda10048_state *state, u8 reg)
 	int ret;
 	u8 b0[] = { reg };
 	u8 b1[] = { 0 };
-	struct i2c_msg msg[] = {
-		{ .addr = config->demod_address,
-			.flags = 0, .buf = b0, .len = 1 },
-		{ .addr = config->demod_address,
-			.flags = I2C_M_RD, .buf = b1, .len = 1 } };
+	struct i2c_msg msg[] =
+	{
+		{
+			.addr = config->demod_address,
+			.flags = 0, .buf = b0, .len = 1
+		},
+		{
+			.addr = config->demod_address,
+			.flags = I2C_M_RD, .buf = b1, .len = 1
+		}
+	};
 
 	dprintk(2, "%s(reg = 0x%02x)\n", __func__, reg);
 
@@ -255,13 +270,13 @@ static u8 tda10048_readreg(struct tda10048_state *state, u8 reg)
 
 	if (ret != 2)
 		printk(KERN_ERR "%s: readreg error (ret == %i)\n",
-			__func__, ret);
+			   __func__, ret);
 
 	return b1[0];
 }
 
 static int tda10048_writeregbulk(struct tda10048_state *state, u8 reg,
-				 const u8 *data, u16 len)
+								 const u8 *data, u16 len)
 {
 	struct tda10048_config *config = &state->config;
 	int ret = -EREMOTEIO;
@@ -271,7 +286,9 @@ static int tda10048_writeregbulk(struct tda10048_state *state, u8 reg,
 	dprintk(2, "%s(%d, ?, len = %d)\n", __func__, reg, len);
 
 	buf = kmalloc(len + 1, GFP_KERNEL);
-	if (buf == NULL) {
+
+	if (buf == NULL)
+	{
 		ret = -ENOMEM;
 		goto error;
 	}
@@ -285,12 +302,14 @@ static int tda10048_writeregbulk(struct tda10048_state *state, u8 reg,
 	msg.len = len + 1;
 
 	dprintk(2, "%s():  write len = %d\n",
-		__func__, msg.len);
+			__func__, msg.len);
 
 	ret = i2c_transfer(state->i2c, &msg, 1);
-	if (ret != 1) {
+
+	if (ret != 1)
+	{
 		printk(KERN_ERR "%s(): writereg error err %i\n",
-			 __func__, ret);
+			   __func__, ret);
 		ret = -EREMOTEIO;
 	}
 
@@ -301,7 +320,7 @@ error:
 }
 
 static int tda10048_set_phy2(struct dvb_frontend *fe, u32 sample_freq_hz,
-			     u32 if_hz)
+							 u32 if_hz)
 {
 	struct tda10048_state *state = fe->demodulator_priv;
 	u64 t;
@@ -309,9 +328,12 @@ static int tda10048_set_phy2(struct dvb_frontend *fe, u32 sample_freq_hz,
 	dprintk(1, "%s()\n", __func__);
 
 	if (sample_freq_hz == 0)
+	{
 		return -EINVAL;
+	}
 
-	if (if_hz < (sample_freq_hz / 2)) {
+	if (if_hz < (sample_freq_hz / 2))
+	{
 		/* PHY2 = (if2/fs) * 2^15 */
 		t = if_hz;
 		t *= 10;
@@ -319,7 +341,9 @@ static int tda10048_set_phy2(struct dvb_frontend *fe, u32 sample_freq_hz,
 		do_div(t, sample_freq_hz);
 		t += 5;
 		do_div(t, 10);
-	} else {
+	}
+	else
+	{
 		/* PHY2 = ((IF1-fs)/fs) * 2^15 */
 		t = sample_freq_hz - if_hz;
 		t *= 10;
@@ -337,7 +361,7 @@ static int tda10048_set_phy2(struct dvb_frontend *fe, u32 sample_freq_hz,
 }
 
 static int tda10048_set_wref(struct dvb_frontend *fe, u32 sample_freq_hz,
-			     u32 bw)
+							 u32 bw)
 {
 	struct tda10048_state *state = fe->demodulator_priv;
 	u64 t, z;
@@ -345,7 +369,9 @@ static int tda10048_set_wref(struct dvb_frontend *fe, u32 sample_freq_hz,
 	dprintk(1, "%s()\n", __func__);
 
 	if (sample_freq_hz == 0)
+	{
 		return -EINVAL;
+	}
 
 	/* WREF = (B / (7 * fs)) * 2^31 */
 	t = bw * 10;
@@ -367,7 +393,7 @@ static int tda10048_set_wref(struct dvb_frontend *fe, u32 sample_freq_hz,
 }
 
 static int tda10048_set_invwref(struct dvb_frontend *fe, u32 sample_freq_hz,
-				u32 bw)
+								u32 bw)
 {
 	struct tda10048_state *state = fe->demodulator_priv;
 	u64 t;
@@ -375,7 +401,9 @@ static int tda10048_set_invwref(struct dvb_frontend *fe, u32 sample_freq_hz,
 	dprintk(1, "%s()\n", __func__);
 
 	if (sample_freq_hz == 0)
+	{
 		return -EINVAL;
+	}
 
 	/* INVWREF = ((7 * fs) / B) * 2^5 */
 	t = sample_freq_hz;
@@ -393,22 +421,24 @@ static int tda10048_set_invwref(struct dvb_frontend *fe, u32 sample_freq_hz,
 }
 
 static int tda10048_set_bandwidth(struct dvb_frontend *fe,
-	u32 bw)
+								  u32 bw)
 {
 	struct tda10048_state *state = fe->demodulator_priv;
 	dprintk(1, "%s(bw=%d)\n", __func__, bw);
 
 	/* Bandwidth setting may need to be adjusted */
-	switch (bw) {
-	case 6000000:
-	case 7000000:
-	case 8000000:
-		tda10048_set_wref(fe, state->sample_freq, bw);
-		tda10048_set_invwref(fe, state->sample_freq, bw);
-		break;
-	default:
-		printk(KERN_ERR "%s() invalid bandwidth\n", __func__);
-		return -EINVAL;
+	switch (bw)
+	{
+		case 6000000:
+		case 7000000:
+		case 8000000:
+			tda10048_set_wref(fe, state->sample_freq, bw);
+			tda10048_set_invwref(fe, state->sample_freq, bw);
+			break;
+
+		default:
+			printk(KERN_ERR "%s() invalid bandwidth\n", __func__);
+			return -EINVAL;
 	}
 
 	state->bandwidth = bw;
@@ -426,33 +456,41 @@ static int tda10048_set_if(struct dvb_frontend *fe, u32 bw)
 	dprintk(1, "%s(bw = %d)\n", __func__, bw);
 
 	/* based on target bandwidth and clk we calculate pll factors */
-	switch (bw) {
-	case 6000000:
-		if_freq_khz = config->dtv6_if_freq_khz;
-		break;
-	case 7000000:
-		if_freq_khz = config->dtv7_if_freq_khz;
-		break;
-	case 8000000:
-		if_freq_khz = config->dtv8_if_freq_khz;
-		break;
-	default:
-		printk(KERN_ERR "%s() no default\n", __func__);
-		return -EINVAL;
+	switch (bw)
+	{
+		case 6000000:
+			if_freq_khz = config->dtv6_if_freq_khz;
+			break;
+
+		case 7000000:
+			if_freq_khz = config->dtv7_if_freq_khz;
+			break;
+
+		case 8000000:
+			if_freq_khz = config->dtv8_if_freq_khz;
+			break;
+
+		default:
+			printk(KERN_ERR "%s() no default\n", __func__);
+			return -EINVAL;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(pll_tab); i++) {
+	for (i = 0; i < ARRAY_SIZE(pll_tab); i++)
+	{
 		if ((pll_tab[i].clk_freq_khz == config->clk_freq_khz) &&
-			(pll_tab[i].if_freq_khz == if_freq_khz)) {
+			(pll_tab[i].if_freq_khz == if_freq_khz))
+		{
 
 			state->freq_if_hz = pll_tab[i].if_freq_khz * 1000;
 			state->xtal_hz = pll_tab[i].clk_freq_khz * 1000;
 			break;
 		}
 	}
-	if (i == ARRAY_SIZE(pll_tab)) {
+
+	if (i == ARRAY_SIZE(pll_tab))
+	{
 		printk(KERN_ERR "%s() Incorrect attach settings\n",
-			__func__);
+			   __func__);
 		return -EINVAL;
 	}
 
@@ -485,73 +523,90 @@ static int tda10048_firmware_upload(struct dvb_frontend *fe)
 	u8 wlen = config->fwbulkwritelen;
 
 	if ((wlen != TDA10048_BULKWRITE_200) && (wlen != TDA10048_BULKWRITE_50))
+	{
 		wlen = TDA10048_BULKWRITE_200;
+	}
 
 	/* request the firmware, this will block and timeout */
 	printk(KERN_INFO "%s: waiting for firmware upload (%s)...\n",
-		__func__,
-		TDA10048_DEFAULT_FIRMWARE);
+		   __func__,
+		   TDA10048_DEFAULT_FIRMWARE);
 
 	ret = request_firmware(&fw, TDA10048_DEFAULT_FIRMWARE,
-		state->i2c->dev.parent);
-	if (ret) {
+						   state->i2c->dev.parent);
+
+	if (ret)
+	{
 		printk(KERN_ERR "%s: Upload failed. (file not found?)\n",
-			__func__);
+			   __func__);
 		return -EIO;
-	} else {
+	}
+	else
+	{
 		printk(KERN_INFO "%s: firmware read %Zu bytes.\n",
-			__func__,
-			fw->size);
+			   __func__,
+			   fw->size);
 		ret = 0;
 	}
 
-	if (fw->size != TDA10048_DEFAULT_FIRMWARE_SIZE) {
+	if (fw->size != TDA10048_DEFAULT_FIRMWARE_SIZE)
+	{
 		printk(KERN_ERR "%s: firmware incorrect size\n", __func__);
 		ret = -EIO;
-	} else {
+	}
+	else
+	{
 		printk(KERN_INFO "%s: firmware uploading\n", __func__);
 
 		/* Soft reset */
 		tda10048_writereg(state, TDA10048_CONF_TRISTATE1,
-			tda10048_readreg(state, TDA10048_CONF_TRISTATE1)
-				& 0xfe);
+						  tda10048_readreg(state, TDA10048_CONF_TRISTATE1)
+						  & 0xfe);
 		tda10048_writereg(state, TDA10048_CONF_TRISTATE1,
-			tda10048_readreg(state, TDA10048_CONF_TRISTATE1)
-				| 0x01);
+						  tda10048_readreg(state, TDA10048_CONF_TRISTATE1)
+						  | 0x01);
 
 		/* Put the demod into host download mode */
 		tda10048_writereg(state, TDA10048_CONF_C4_1,
-			tda10048_readreg(state, TDA10048_CONF_C4_1) & 0xf9);
+						  tda10048_readreg(state, TDA10048_CONF_C4_1) & 0xf9);
 
 		/* Boot the DSP */
 		tda10048_writereg(state, TDA10048_CONF_C4_1,
-			tda10048_readreg(state, TDA10048_CONF_C4_1) | 0x08);
+						  tda10048_readreg(state, TDA10048_CONF_C4_1) | 0x08);
 
 		/* Prepare for download */
 		tda10048_writereg(state, TDA10048_DSP_CODE_CPT, 0);
 
 		/* Download the firmware payload */
-		while (pos < fw->size) {
+		while (pos < fw->size)
+		{
 
 			if ((fw->size - pos) > wlen)
+			{
 				cnt = wlen;
+			}
 			else
+			{
 				cnt = fw->size - pos;
+			}
 
 			tda10048_writeregbulk(state, TDA10048_DSP_CODE_IN,
-				&fw->data[pos], cnt);
+								  &fw->data[pos], cnt);
 
 			pos += cnt;
 		}
 
 		ret = -EIO;
+
 		/* Wait up to 250ms for the DSP to boot */
-		for (cnt = 0; cnt < 250 ; cnt += 10) {
+		for (cnt = 0; cnt < 250 ; cnt += 10)
+		{
 
 			msleep(10);
 
 			if (tda10048_readreg(state, TDA10048_SYNC_STATUS)
-				& 0x40) {
+				& 0x40)
+			{
 				ret = 0;
 				break;
 			}
@@ -560,11 +615,15 @@ static int tda10048_firmware_upload(struct dvb_frontend *fe)
 
 	release_firmware(fw);
 
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		printk(KERN_INFO "%s: firmware uploaded\n", __func__);
 		state->fwloaded = 1;
-	} else
+	}
+	else
+	{
 		printk(KERN_ERR "%s: firmware upload failed\n", __func__);
+	}
 
 	return ret;
 }
@@ -577,109 +636,140 @@ static int tda10048_set_inversion(struct dvb_frontend *fe, int inversion)
 
 	if (inversion == TDA10048_INVERSION_ON)
 		tda10048_writereg(state, TDA10048_CONF_C1_1,
-			tda10048_readreg(state, TDA10048_CONF_C1_1) | 0x20);
+						  tda10048_readreg(state, TDA10048_CONF_C1_1) | 0x20);
 	else
 		tda10048_writereg(state, TDA10048_CONF_C1_1,
-			tda10048_readreg(state, TDA10048_CONF_C1_1) & 0xdf);
+						  tda10048_readreg(state, TDA10048_CONF_C1_1) & 0xdf);
 
 	return 0;
 }
 
 /* Retrieve the demod settings */
 static int tda10048_get_tps(struct tda10048_state *state,
-	struct dtv_frontend_properties *p)
+							struct dtv_frontend_properties *p)
 {
 	u8 val;
 
 	/* Make sure the TPS regs are valid */
 	if (!(tda10048_readreg(state, TDA10048_AUTO) & 0x01))
+	{
 		return -EAGAIN;
+	}
 
 	val = tda10048_readreg(state, TDA10048_OUT_CONF2);
-	switch ((val & 0x60) >> 5) {
-	case 0:
-		p->modulation = QPSK;
-		break;
-	case 1:
-		p->modulation = QAM_16;
-		break;
-	case 2:
-		p->modulation = QAM_64;
-		break;
+
+	switch ((val & 0x60) >> 5)
+	{
+		case 0:
+			p->modulation = QPSK;
+			break;
+
+		case 1:
+			p->modulation = QAM_16;
+			break;
+
+		case 2:
+			p->modulation = QAM_64;
+			break;
 	}
-	switch ((val & 0x18) >> 3) {
-	case 0:
-		p->hierarchy = HIERARCHY_NONE;
-		break;
-	case 1:
-		p->hierarchy = HIERARCHY_1;
-		break;
-	case 2:
-		p->hierarchy = HIERARCHY_2;
-		break;
-	case 3:
-		p->hierarchy = HIERARCHY_4;
-		break;
+
+	switch ((val & 0x18) >> 3)
+	{
+		case 0:
+			p->hierarchy = HIERARCHY_NONE;
+			break;
+
+		case 1:
+			p->hierarchy = HIERARCHY_1;
+			break;
+
+		case 2:
+			p->hierarchy = HIERARCHY_2;
+			break;
+
+		case 3:
+			p->hierarchy = HIERARCHY_4;
+			break;
 	}
-	switch (val & 0x07) {
-	case 0:
-		p->code_rate_HP = FEC_1_2;
-		break;
-	case 1:
-		p->code_rate_HP = FEC_2_3;
-		break;
-	case 2:
-		p->code_rate_HP = FEC_3_4;
-		break;
-	case 3:
-		p->code_rate_HP = FEC_5_6;
-		break;
-	case 4:
-		p->code_rate_HP = FEC_7_8;
-		break;
+
+	switch (val & 0x07)
+	{
+		case 0:
+			p->code_rate_HP = FEC_1_2;
+			break;
+
+		case 1:
+			p->code_rate_HP = FEC_2_3;
+			break;
+
+		case 2:
+			p->code_rate_HP = FEC_3_4;
+			break;
+
+		case 3:
+			p->code_rate_HP = FEC_5_6;
+			break;
+
+		case 4:
+			p->code_rate_HP = FEC_7_8;
+			break;
 	}
 
 	val = tda10048_readreg(state, TDA10048_OUT_CONF3);
-	switch (val & 0x07) {
-	case 0:
-		p->code_rate_LP = FEC_1_2;
-		break;
-	case 1:
-		p->code_rate_LP = FEC_2_3;
-		break;
-	case 2:
-		p->code_rate_LP = FEC_3_4;
-		break;
-	case 3:
-		p->code_rate_LP = FEC_5_6;
-		break;
-	case 4:
-		p->code_rate_LP = FEC_7_8;
-		break;
+
+	switch (val & 0x07)
+	{
+		case 0:
+			p->code_rate_LP = FEC_1_2;
+			break;
+
+		case 1:
+			p->code_rate_LP = FEC_2_3;
+			break;
+
+		case 2:
+			p->code_rate_LP = FEC_3_4;
+			break;
+
+		case 3:
+			p->code_rate_LP = FEC_5_6;
+			break;
+
+		case 4:
+			p->code_rate_LP = FEC_7_8;
+			break;
 	}
 
 	val = tda10048_readreg(state, TDA10048_OUT_CONF1);
-	switch ((val & 0x0c) >> 2) {
-	case 0:
-		p->guard_interval = GUARD_INTERVAL_1_32;
-		break;
-	case 1:
-		p->guard_interval = GUARD_INTERVAL_1_16;
-		break;
-	case 2:
-		p->guard_interval =  GUARD_INTERVAL_1_8;
-		break;
-	case 3:
-		p->guard_interval =  GUARD_INTERVAL_1_4;
-		break;
+
+	switch ((val & 0x0c) >> 2)
+	{
+		case 0:
+			p->guard_interval = GUARD_INTERVAL_1_32;
+			break;
+
+		case 1:
+			p->guard_interval = GUARD_INTERVAL_1_16;
+			break;
+
+		case 2:
+			p->guard_interval =  GUARD_INTERVAL_1_8;
+			break;
+
+		case 3:
+			p->guard_interval =  GUARD_INTERVAL_1_4;
+			break;
 	}
-	switch (val & 0x03) {
-	case 0:
-		p->transmission_mode = TRANSMISSION_MODE_2K;
-		break;
-	case 1:
-		p->transmission_mode = TRANSMISSION_MODE_8K;
-		break;
+
+	switch (val & 0x03)
+	{
+		case 0:
+			p->transmission_mode = TRANSMISSION_MODE_2K;
+			break;
+
+		case 1:
+			p->transmission_mode = TRANSMISSION_MODE_8K;
+			break;
 	}
 
 	return 0;
@@ -692,14 +782,16 @@ static int tda10048_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
 	dprintk(1, "%s(%d)\n", __func__, enable);
 
 	if (config->disable_gate_access)
+	{
 		return 0;
+	}
 
 	if (enable)
 		return tda10048_writereg(state, TDA10048_CONF_C4_1,
-			tda10048_readreg(state, TDA10048_CONF_C4_1) | 0x02);
+								 tda10048_readreg(state, TDA10048_CONF_C4_1) | 0x02);
 	else
 		return tda10048_writereg(state, TDA10048_CONF_C4_1,
-			tda10048_readreg(state, TDA10048_CONF_C4_1) & 0xfd);
+								 tda10048_readreg(state, TDA10048_CONF_C4_1) & 0xfd);
 }
 
 static int tda10048_output_mode(struct dvb_frontend *fe, int serial)
@@ -711,10 +803,13 @@ static int tda10048_output_mode(struct dvb_frontend *fe, int serial)
 	tda10048_writereg(state, TDA10048_CONF_TRISTATE1, 0x21);
 	tda10048_writereg(state, TDA10048_CONF_TRISTATE2, 0x00);
 
-	if (serial) {
+	if (serial)
+	{
 		tda10048_writereg(state, TDA10048_IC_MODE, 0x80 | 0x20);
 		tda10048_writereg(state, TDA10048_CONF_TS2, 0xc0);
-	} else {
+	}
+	else
+	{
 		tda10048_writereg(state, TDA10048_IC_MODE, 0x00);
 		tda10048_writereg(state, TDA10048_CONF_TS2, 0x01);
 	}
@@ -732,20 +827,26 @@ static int tda10048_set_frontend(struct dvb_frontend *fe)
 	dprintk(1, "%s(frequency=%d)\n", __func__, p->frequency);
 
 	/* Update the I/F pll's if the bandwidth changes */
-	if (p->bandwidth_hz != state->bandwidth) {
+	if (p->bandwidth_hz != state->bandwidth)
+	{
 		tda10048_set_if(fe, p->bandwidth_hz);
 		tda10048_set_bandwidth(fe, p->bandwidth_hz);
 	}
 
-	if (fe->ops.tuner_ops.set_params) {
+	if (fe->ops.tuner_ops.set_params)
+	{
 
 		if (fe->ops.i2c_gate_ctrl)
+		{
 			fe->ops.i2c_gate_ctrl(fe, 1);
+		}
 
 		fe->ops.tuner_ops.set_params(fe);
 
 		if (fe->ops.i2c_gate_ctrl)
+		{
 			fe->ops.i2c_gate_ctrl(fe, 0);
+		}
 	}
 
 	/* Enable demod TPS auto detection and begin acquisition */
@@ -771,10 +872,14 @@ static int tda10048_init(struct dvb_frontend *fe)
 
 	/* Apply register defaults */
 	for (i = 0; i < ARRAY_SIZE(init_tab); i++)
+	{
 		tda10048_writereg(state, init_tab[i].reg, init_tab[i].data);
+	}
 
 	if (state->fwloaded == 0)
+	{
 		ret = tda10048_firmware_upload(fe);
+	}
 
 	/* Set either serial or parallel */
 	tda10048_output_mode(fe, config->output_mode);
@@ -804,12 +909,17 @@ static int tda10048_read_status(struct dvb_frontend *fe, enum fe_status *status)
 	dprintk(1, "%s() status =0x%02x\n", __func__, reg);
 
 	if (reg & 0x02)
+	{
 		*status |= FE_HAS_CARRIER;
+	}
 
 	if (reg & 0x04)
+	{
 		*status |= FE_HAS_SIGNAL;
+	}
 
-	if (reg & 0x08) {
+	if (reg & 0x08)
+	{
 		*status |= FE_HAS_LOCK;
 		*status |= FE_HAS_VITERBI;
 		*status |= FE_HAS_SYNC;
@@ -828,11 +938,12 @@ static int tda10048_read_ber(struct dvb_frontend *fe, u32 *ber)
 	dprintk(1, "%s()\n", __func__);
 
 	/* update cber on interrupt */
-	if (tda10048_readreg(state, TDA10048_SOFT_IT_C3) & 0x01) {
+	if (tda10048_readreg(state, TDA10048_SOFT_IT_C3) & 0x01)
+	{
 		cber_tmp = tda10048_readreg(state, TDA10048_CBER_MSB) << 8 |
-			tda10048_readreg(state, TDA10048_CBER_LSB);
+				   tda10048_readreg(state, TDA10048_CBER_LSB);
 		cber_nmax = tda10048_readreg(state, TDA10048_CBER_NMAX_MSB) << 8 |
-			tda10048_readreg(state, TDA10048_CBER_NMAX_LSB);
+					tda10048_readreg(state, TDA10048_CBER_NMAX_LSB);
 		cber_tmp *= 100000000;
 		cber_tmp *= 2;
 		cber_tmp = div_u64(cber_tmp, (cber_nmax * 32) + 1);
@@ -840,6 +951,7 @@ static int tda10048_read_ber(struct dvb_frontend *fe, u32 *ber)
 		/* retrigger cber acquisition */
 		tda10048_writereg(state, TDA10048_CVBER_CTRL, 0x39);
 	}
+
 	/* actual cber is (*ber)/1e8 */
 	*ber = cber_current;
 
@@ -847,7 +959,7 @@ static int tda10048_read_ber(struct dvb_frontend *fe, u32 *ber)
 }
 
 static int tda10048_read_signal_strength(struct dvb_frontend *fe,
-	u16 *signal_strength)
+		u16 *signal_strength)
 {
 	struct tda10048_state *state = fe->demodulator_priv;
 	u8 v;
@@ -857,17 +969,22 @@ static int tda10048_read_signal_strength(struct dvb_frontend *fe,
 	*signal_strength = 65535;
 
 	v = tda10048_readreg(state, TDA10048_NP_OUT);
+
 	if (v > 0)
+	{
 		*signal_strength -= (v << 8) | v;
+	}
 
 	return 0;
 }
 
 /* SNR lookup table */
-static struct snr_tab {
+static struct snr_tab
+{
 	u8 val;
 	u8 data;
-} snr_tab[] = {
+} snr_tab[] =
+{
 	{   0,   0 },
 	{   1, 246 },
 	{   2, 215 },
@@ -1002,8 +1119,11 @@ static int tda10048_read_snr(struct dvb_frontend *fe, u16 *snr)
 	dprintk(1, "%s()\n", __func__);
 
 	v = tda10048_readreg(state, TDA10048_NP_OUT);
-	for (i = 0; i < ARRAY_SIZE(snr_tab); i++) {
-		if (v <= snr_tab[i].val) {
+
+	for (i = 0; i < ARRAY_SIZE(snr_tab); i++)
+	{
+		if (v <= snr_tab[i].val)
+		{
 			*snr = snr_tab[i].data;
 			ret = 0;
 			break;
@@ -1020,29 +1140,32 @@ static int tda10048_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
 	dprintk(1, "%s()\n", __func__);
 
 	*ucblocks = tda10048_readreg(state, TDA10048_UNCOR_CPT_MSB) << 8 |
-		tda10048_readreg(state, TDA10048_UNCOR_CPT_LSB);
+				tda10048_readreg(state, TDA10048_UNCOR_CPT_LSB);
+
 	/* clear the uncorrected TS packets counter when saturated */
 	if (*ucblocks == 0xFFFF)
+	{
 		tda10048_writereg(state, TDA10048_UNCOR_CTRL, 0x80);
+	}
 
 	return 0;
 }
 
 static int tda10048_get_frontend(struct dvb_frontend *fe,
-				 struct dtv_frontend_properties *p)
+								 struct dtv_frontend_properties *p)
 {
 	struct tda10048_state *state = fe->demodulator_priv;
 
 	dprintk(1, "%s()\n", __func__);
 
 	p->inversion = tda10048_readreg(state, TDA10048_CONF_C1_1)
-		& 0x20 ? INVERSION_ON : INVERSION_OFF;
+				   & 0x20 ? INVERSION_ON : INVERSION_OFF;
 
 	return tda10048_get_tps(state, p);
 }
 
 static int tda10048_get_tune_settings(struct dvb_frontend *fe,
-	struct dvb_frontend_tune_settings *tune)
+									  struct dvb_frontend_tune_settings *tune)
 {
 	tune->min_delay_ms = 1000;
 	return 0;
@@ -1061,43 +1184,47 @@ static void tda10048_establish_defaults(struct dvb_frontend *fe)
 	struct tda10048_config *config = &state->config;
 
 	/* Validate/default the config */
-	if (config->dtv6_if_freq_khz == 0) {
+	if (config->dtv6_if_freq_khz == 0)
+	{
 		config->dtv6_if_freq_khz = TDA10048_IF_4300;
 		printk(KERN_WARNING "%s() tda10048_config.dtv6_if_freq_khz "
-			"is not set (defaulting to %d)\n",
-			__func__,
-			config->dtv6_if_freq_khz);
+			   "is not set (defaulting to %d)\n",
+			   __func__,
+			   config->dtv6_if_freq_khz);
 	}
 
-	if (config->dtv7_if_freq_khz == 0) {
+	if (config->dtv7_if_freq_khz == 0)
+	{
 		config->dtv7_if_freq_khz = TDA10048_IF_4300;
 		printk(KERN_WARNING "%s() tda10048_config.dtv7_if_freq_khz "
-			"is not set (defaulting to %d)\n",
-			__func__,
-			config->dtv7_if_freq_khz);
+			   "is not set (defaulting to %d)\n",
+			   __func__,
+			   config->dtv7_if_freq_khz);
 	}
 
-	if (config->dtv8_if_freq_khz == 0) {
+	if (config->dtv8_if_freq_khz == 0)
+	{
 		config->dtv8_if_freq_khz = TDA10048_IF_4300;
 		printk(KERN_WARNING "%s() tda10048_config.dtv8_if_freq_khz "
-			"is not set (defaulting to %d)\n",
-			__func__,
-			config->dtv8_if_freq_khz);
+			   "is not set (defaulting to %d)\n",
+			   __func__,
+			   config->dtv8_if_freq_khz);
 	}
 
-	if (config->clk_freq_khz == 0) {
+	if (config->clk_freq_khz == 0)
+	{
 		config->clk_freq_khz = TDA10048_CLK_16000;
 		printk(KERN_WARNING "%s() tda10048_config.clk_freq_khz "
-			"is not set (defaulting to %d)\n",
-			__func__,
-			config->clk_freq_khz);
+			   "is not set (defaulting to %d)\n",
+			   __func__,
+			   config->clk_freq_khz);
 	}
 }
 
 static struct dvb_frontend_ops tda10048_ops;
 
 struct dvb_frontend *tda10048_attach(const struct tda10048_config *config,
-	struct i2c_adapter *i2c)
+									 struct i2c_adapter *i2c)
 {
 	struct tda10048_state *state = NULL;
 
@@ -1105,8 +1232,11 @@ struct dvb_frontend *tda10048_attach(const struct tda10048_config *config,
 
 	/* allocate memory for the internal state */
 	state = kzalloc(sizeof(struct tda10048_state), GFP_KERNEL);
+
 	if (state == NULL)
+	{
 		goto error;
+	}
 
 	/* setup the state and clone the config */
 	memcpy(&state->config, config, sizeof(*config));
@@ -1116,19 +1246,24 @@ struct dvb_frontend *tda10048_attach(const struct tda10048_config *config,
 
 	/* check if the demod is present */
 	if (tda10048_readreg(state, TDA10048_IDENTITY) != 0x048)
+	{
 		goto error;
+	}
 
 	/* create dvb_frontend */
 	memcpy(&state->frontend.ops, &tda10048_ops,
-		sizeof(struct dvb_frontend_ops));
+		   sizeof(struct dvb_frontend_ops));
 	state->frontend.demodulator_priv = state;
 
 	/* set pll */
-	if (config->set_pll) {
+	if (config->set_pll)
+	{
 		state->pll_mfactor = config->pll_m;
 		state->pll_nfactor = config->pll_n;
 		state->pll_pfactor = config->pll_p;
-	} else {
+	}
+	else
+	{
 		state->pll_mfactor = 10;
 		state->pll_nfactor = 3;
 		state->pll_pfactor = 0;
@@ -1139,11 +1274,15 @@ struct dvb_frontend *tda10048_attach(const struct tda10048_config *config,
 
 	/* Set the xtal and freq defaults */
 	if (tda10048_set_if(&state->frontend, 8000000) != 0)
+	{
 		goto error;
+	}
 
 	/* Default bandwidth */
 	if (tda10048_set_bandwidth(&state->frontend, 8000000) != 0)
+	{
 		goto error;
+	}
 
 	/* Leave the gate closed */
 	tda10048_i2c_gate_ctrl(&state->frontend, 0);
@@ -1156,7 +1295,8 @@ error:
 }
 EXPORT_SYMBOL(tda10048_attach);
 
-static struct dvb_frontend_ops tda10048_ops = {
+static struct dvb_frontend_ops tda10048_ops =
+{
 	.delsys = { SYS_DVBT },
 	.info = {
 		.name			= "NXP TDA10048HN DVB-T",

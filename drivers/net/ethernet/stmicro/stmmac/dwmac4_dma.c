@@ -23,46 +23,59 @@ static void dwmac4_dma_axi(void __iomem *ioaddr, struct stmmac_axi *axi)
 	int i;
 
 	pr_info("dwmac4: Master AXI performs %s burst length\n",
-		(value & DMA_SYS_BUS_FB) ? "fixed" : "any");
+			(value & DMA_SYS_BUS_FB) ? "fixed" : "any");
 
 	if (axi->axi_lpi_en)
+	{
 		value |= DMA_AXI_EN_LPI;
+	}
+
 	if (axi->axi_xit_frm)
+	{
 		value |= DMA_AXI_LPI_XIT_FRM;
+	}
 
 	value |= (axi->axi_wr_osr_lmt & DMA_AXI_OSR_MAX) <<
-		 DMA_AXI_WR_OSR_LMT_SHIFT;
+			 DMA_AXI_WR_OSR_LMT_SHIFT;
 
 	value |= (axi->axi_rd_osr_lmt & DMA_AXI_OSR_MAX) <<
-		 DMA_AXI_RD_OSR_LMT_SHIFT;
+			 DMA_AXI_RD_OSR_LMT_SHIFT;
 
 	/* Depending on the UNDEF bit the Master AXI will perform any burst
 	 * length according to the BLEN programmed (by default all BLEN are
 	 * set).
 	 */
-	for (i = 0; i < AXI_BLEN; i++) {
-		switch (axi->axi_blen[i]) {
-		case 256:
-			value |= DMA_AXI_BLEN256;
-			break;
-		case 128:
-			value |= DMA_AXI_BLEN128;
-			break;
-		case 64:
-			value |= DMA_AXI_BLEN64;
-			break;
-		case 32:
-			value |= DMA_AXI_BLEN32;
-			break;
-		case 16:
-			value |= DMA_AXI_BLEN16;
-			break;
-		case 8:
-			value |= DMA_AXI_BLEN8;
-			break;
-		case 4:
-			value |= DMA_AXI_BLEN4;
-			break;
+	for (i = 0; i < AXI_BLEN; i++)
+	{
+		switch (axi->axi_blen[i])
+		{
+			case 256:
+				value |= DMA_AXI_BLEN256;
+				break;
+
+			case 128:
+				value |= DMA_AXI_BLEN128;
+				break;
+
+			case 64:
+				value |= DMA_AXI_BLEN64;
+				break;
+
+			case 32:
+				value |= DMA_AXI_BLEN32;
+				break;
+
+			case 16:
+				value |= DMA_AXI_BLEN16;
+				break;
+
+			case 8:
+				value |= DMA_AXI_BLEN8;
+				break;
+
+			case 4:
+				value |= DMA_AXI_BLEN4;
+				break;
 		}
 	}
 
@@ -70,8 +83,8 @@ static void dwmac4_dma_axi(void __iomem *ioaddr, struct stmmac_axi *axi)
 }
 
 static void dwmac4_dma_init_channel(void __iomem *ioaddr, int pbl,
-				    u32 dma_tx_phy, u32 dma_rx_phy,
-				    u32 channel)
+									u32 dma_tx_phy, u32 dma_rx_phy,
+									u32 channel)
 {
 	u32 value;
 
@@ -98,65 +111,73 @@ static void dwmac4_dma_init_channel(void __iomem *ioaddr, int pbl,
 }
 
 static void dwmac4_dma_init(void __iomem *ioaddr, int pbl, int fb, int mb,
-			    int aal, u32 dma_tx, u32 dma_rx, int atds)
+							int aal, u32 dma_tx, u32 dma_rx, int atds)
 {
 	u32 value = readl(ioaddr + DMA_SYS_BUS_MODE);
 	int i;
 
 	/* Set the Fixed burst mode */
 	if (fb)
+	{
 		value |= DMA_SYS_BUS_FB;
+	}
 
 	/* Mixed Burst has no effect when fb is set */
 	if (mb)
+	{
 		value |= DMA_SYS_BUS_MB;
+	}
 
 	if (aal)
+	{
 		value |= DMA_SYS_BUS_AAL;
+	}
 
 	writel(value, ioaddr + DMA_SYS_BUS_MODE);
 
 	for (i = 0; i < DMA_CHANNEL_NB_MAX; i++)
+	{
 		dwmac4_dma_init_channel(ioaddr, pbl, dma_tx, dma_rx, i);
+	}
 }
 
 static void _dwmac4_dump_dma_regs(void __iomem *ioaddr, u32 channel)
 {
 	pr_debug(" Channel %d\n", channel);
 	pr_debug("\tDMA_CHAN_CONTROL, offset: 0x%x, val: 0x%x\n", 0,
-		 readl(ioaddr + DMA_CHAN_CONTROL(channel)));
+			 readl(ioaddr + DMA_CHAN_CONTROL(channel)));
 	pr_debug("\tDMA_CHAN_TX_CONTROL, offset: 0x%x, val: 0x%x\n", 0x4,
-		 readl(ioaddr + DMA_CHAN_TX_CONTROL(channel)));
+			 readl(ioaddr + DMA_CHAN_TX_CONTROL(channel)));
 	pr_debug("\tDMA_CHAN_RX_CONTROL, offset: 0x%x, val: 0x%x\n", 0x8,
-		 readl(ioaddr + DMA_CHAN_RX_CONTROL(channel)));
+			 readl(ioaddr + DMA_CHAN_RX_CONTROL(channel)));
 	pr_debug("\tDMA_CHAN_TX_BASE_ADDR, offset: 0x%x, val: 0x%x\n", 0x14,
-		 readl(ioaddr + DMA_CHAN_TX_BASE_ADDR(channel)));
+			 readl(ioaddr + DMA_CHAN_TX_BASE_ADDR(channel)));
 	pr_debug("\tDMA_CHAN_RX_BASE_ADDR, offset: 0x%x, val: 0x%x\n", 0x1c,
-		 readl(ioaddr + DMA_CHAN_RX_BASE_ADDR(channel)));
+			 readl(ioaddr + DMA_CHAN_RX_BASE_ADDR(channel)));
 	pr_debug("\tDMA_CHAN_TX_END_ADDR, offset: 0x%x, val: 0x%x\n", 0x20,
-		 readl(ioaddr + DMA_CHAN_TX_END_ADDR(channel)));
+			 readl(ioaddr + DMA_CHAN_TX_END_ADDR(channel)));
 	pr_debug("\tDMA_CHAN_RX_END_ADDR, offset: 0x%x, val: 0x%x\n", 0x28,
-		 readl(ioaddr + DMA_CHAN_RX_END_ADDR(channel)));
+			 readl(ioaddr + DMA_CHAN_RX_END_ADDR(channel)));
 	pr_debug("\tDMA_CHAN_TX_RING_LEN, offset: 0x%x, val: 0x%x\n", 0x2c,
-		 readl(ioaddr + DMA_CHAN_TX_RING_LEN(channel)));
+			 readl(ioaddr + DMA_CHAN_TX_RING_LEN(channel)));
 	pr_debug("\tDMA_CHAN_RX_RING_LEN, offset: 0x%x, val: 0x%x\n", 0x30,
-		 readl(ioaddr + DMA_CHAN_RX_RING_LEN(channel)));
+			 readl(ioaddr + DMA_CHAN_RX_RING_LEN(channel)));
 	pr_debug("\tDMA_CHAN_INTR_ENA, offset: 0x%x, val: 0x%x\n", 0x34,
-		 readl(ioaddr + DMA_CHAN_INTR_ENA(channel)));
+			 readl(ioaddr + DMA_CHAN_INTR_ENA(channel)));
 	pr_debug("\tDMA_CHAN_RX_WATCHDOG, offset: 0x%x, val: 0x%x\n", 0x38,
-		 readl(ioaddr + DMA_CHAN_RX_WATCHDOG(channel)));
+			 readl(ioaddr + DMA_CHAN_RX_WATCHDOG(channel)));
 	pr_debug("\tDMA_CHAN_SLOT_CTRL_STATUS, offset: 0x%x, val: 0x%x\n", 0x3c,
-		 readl(ioaddr + DMA_CHAN_SLOT_CTRL_STATUS(channel)));
+			 readl(ioaddr + DMA_CHAN_SLOT_CTRL_STATUS(channel)));
 	pr_debug("\tDMA_CHAN_CUR_TX_DESC, offset: 0x%x, val: 0x%x\n", 0x44,
-		 readl(ioaddr + DMA_CHAN_CUR_TX_DESC(channel)));
+			 readl(ioaddr + DMA_CHAN_CUR_TX_DESC(channel)));
 	pr_debug("\tDMA_CHAN_CUR_RX_DESC, offset: 0x%x, val: 0x%x\n", 0x4c,
-		 readl(ioaddr + DMA_CHAN_CUR_RX_DESC(channel)));
+			 readl(ioaddr + DMA_CHAN_CUR_RX_DESC(channel)));
 	pr_debug("\tDMA_CHAN_CUR_TX_BUF_ADDR, offset: 0x%x, val: 0x%x\n", 0x54,
-		 readl(ioaddr + DMA_CHAN_CUR_TX_BUF_ADDR(channel)));
+			 readl(ioaddr + DMA_CHAN_CUR_TX_BUF_ADDR(channel)));
 	pr_debug("\tDMA_CHAN_CUR_RX_BUF_ADDR, offset: 0x%x, val: 0x%x\n", 0x5c,
-		 readl(ioaddr + DMA_CHAN_CUR_RX_BUF_ADDR(channel)));
+			 readl(ioaddr + DMA_CHAN_CUR_RX_BUF_ADDR(channel)));
 	pr_debug("\tDMA_CHAN_STATUS, offset: 0x%x, val: 0x%x\n", 0x60,
-		 readl(ioaddr + DMA_CHAN_STATUS(channel)));
+			 readl(ioaddr + DMA_CHAN_STATUS(channel)));
 }
 
 static void dwmac4_dump_dma_regs(void __iomem *ioaddr)
@@ -166,7 +187,9 @@ static void dwmac4_dump_dma_regs(void __iomem *ioaddr)
 	pr_debug(" GMAC4 DMA registers\n");
 
 	for (i = 0; i < DMA_CHANNEL_NB_MAX; i++)
+	{
 		_dwmac4_dump_dma_regs(ioaddr, i);
+	}
 }
 
 static void dwmac4_rx_watchdog(void __iomem *ioaddr, u32 riwt)
@@ -174,11 +197,13 @@ static void dwmac4_rx_watchdog(void __iomem *ioaddr, u32 riwt)
 	int i;
 
 	for (i = 0; i < DMA_CHANNEL_NB_MAX; i++)
+	{
 		writel(riwt, ioaddr + DMA_CHAN_RX_WATCHDOG(i));
+	}
 }
 
 static void dwmac4_dma_chan_op_mode(void __iomem *ioaddr, int txmode,
-				    int rxmode, u32 channel)
+									int rxmode, u32 channel)
 {
 	u32 mtl_tx_op, mtl_rx_op, mtl_rx_int;
 
@@ -187,52 +212,84 @@ static void dwmac4_dma_chan_op_mode(void __iomem *ioaddr, int txmode,
 	 */
 	mtl_tx_op = readl(ioaddr + MTL_CHAN_TX_OP_MODE(channel));
 
-	if (txmode == SF_DMA_MODE) {
+	if (txmode == SF_DMA_MODE)
+	{
 		pr_debug("GMAC: enable TX store and forward mode\n");
 		/* Transmit COE type 2 cannot be done in cut-through mode. */
 		mtl_tx_op |= MTL_OP_MODE_TSF;
-	} else {
+	}
+	else
+	{
 		pr_debug("GMAC: disabling TX SF (threshold %d)\n", txmode);
 		mtl_tx_op &= ~MTL_OP_MODE_TSF;
 		mtl_tx_op &= MTL_OP_MODE_TTC_MASK;
+
 		/* Set the transmit threshold */
 		if (txmode <= 32)
+		{
 			mtl_tx_op |= MTL_OP_MODE_TTC_32;
+		}
 		else if (txmode <= 64)
+		{
 			mtl_tx_op |= MTL_OP_MODE_TTC_64;
+		}
 		else if (txmode <= 96)
+		{
 			mtl_tx_op |= MTL_OP_MODE_TTC_96;
+		}
 		else if (txmode <= 128)
+		{
 			mtl_tx_op |= MTL_OP_MODE_TTC_128;
+		}
 		else if (txmode <= 192)
+		{
 			mtl_tx_op |= MTL_OP_MODE_TTC_192;
+		}
 		else if (txmode <= 256)
+		{
 			mtl_tx_op |= MTL_OP_MODE_TTC_256;
+		}
 		else if (txmode <= 384)
+		{
 			mtl_tx_op |= MTL_OP_MODE_TTC_384;
+		}
 		else
+		{
 			mtl_tx_op |= MTL_OP_MODE_TTC_512;
+		}
 	}
 
 	writel(mtl_tx_op, ioaddr +  MTL_CHAN_TX_OP_MODE(channel));
 
 	mtl_rx_op = readl(ioaddr + MTL_CHAN_RX_OP_MODE(channel));
 
-	if (rxmode == SF_DMA_MODE) {
+	if (rxmode == SF_DMA_MODE)
+	{
 		pr_debug("GMAC: enable RX store and forward mode\n");
 		mtl_rx_op |= MTL_OP_MODE_RSF;
-	} else {
+	}
+	else
+	{
 		pr_debug("GMAC: disable RX SF mode (threshold %d)\n", rxmode);
 		mtl_rx_op &= ~MTL_OP_MODE_RSF;
 		mtl_rx_op &= MTL_OP_MODE_RTC_MASK;
+
 		if (rxmode <= 32)
+		{
 			mtl_rx_op |= MTL_OP_MODE_RTC_32;
+		}
 		else if (rxmode <= 64)
+		{
 			mtl_rx_op |= MTL_OP_MODE_RTC_64;
+		}
 		else if (rxmode <= 96)
+		{
 			mtl_rx_op |= MTL_OP_MODE_RTC_96;
+		}
 		else
+		{
 			mtl_rx_op |= MTL_OP_MODE_RTC_128;
+		}
 	}
 
 	writel(mtl_rx_op, ioaddr + MTL_CHAN_RX_OP_MODE(channel));
@@ -240,18 +297,18 @@ static void dwmac4_dma_chan_op_mode(void __iomem *ioaddr, int txmode,
 	/* Enable MTL RX overflow */
 	mtl_rx_int = readl(ioaddr + MTL_CHAN_INT_CTRL(channel));
 	writel(mtl_rx_int | MTL_RX_OVERFLOW_INT_EN,
-	       ioaddr + MTL_CHAN_INT_CTRL(channel));
+		   ioaddr + MTL_CHAN_INT_CTRL(channel));
 }
 
 static void dwmac4_dma_operation_mode(void __iomem *ioaddr, int txmode,
-				      int rxmode, int rxfifosz)
+									  int rxmode, int rxfifosz)
 {
 	/* Only Channel 0 is actually configured and used */
 	dwmac4_dma_chan_op_mode(ioaddr, txmode, rxmode, 0);
 }
 
 static void dwmac4_get_hw_feature(void __iomem *ioaddr,
-				  struct dma_features *dma_cap)
+								  struct dma_features *dma_cap)
 {
 	u32 hw_cap = readl(ioaddr + GMAC_HW_FEATURE0);
 
@@ -296,20 +353,24 @@ static void dwmac4_enable_tso(void __iomem *ioaddr, bool en, u32 chan)
 {
 	u32 value;
 
-	if (en) {
+	if (en)
+	{
 		/* enable TSO */
 		value = readl(ioaddr + DMA_CHAN_TX_CONTROL(chan));
 		writel(value | DMA_CONTROL_TSE,
-		       ioaddr + DMA_CHAN_TX_CONTROL(chan));
-	} else {
+			   ioaddr + DMA_CHAN_TX_CONTROL(chan));
+	}
+	else
+	{
 		/* enable TSO */
 		value = readl(ioaddr + DMA_CHAN_TX_CONTROL(chan));
 		writel(value & ~DMA_CONTROL_TSE,
-		       ioaddr + DMA_CHAN_TX_CONTROL(chan));
+			   ioaddr + DMA_CHAN_TX_CONTROL(chan));
 	}
 }
 
-const struct stmmac_dma_ops dwmac4_dma_ops = {
+const struct stmmac_dma_ops dwmac4_dma_ops =
+{
 	.reset = dwmac4_dma_reset,
 	.init = dwmac4_dma_init,
 	.axi = dwmac4_dma_axi,
@@ -331,7 +392,8 @@ const struct stmmac_dma_ops dwmac4_dma_ops = {
 	.enable_tso = dwmac4_enable_tso,
 };
 
-const struct stmmac_dma_ops dwmac410_dma_ops = {
+const struct stmmac_dma_ops dwmac410_dma_ops =
+{
 	.reset = dwmac4_dma_reset,
 	.init = dwmac4_dma_init,
 	.axi = dwmac4_dma_axi,

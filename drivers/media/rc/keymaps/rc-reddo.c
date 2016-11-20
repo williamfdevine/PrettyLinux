@@ -34,7 +34,8 @@
  *    navigation buttons and main power button.
  */
 
-static struct rc_map_table reddo[] = {
+static struct rc_map_table reddo[] =
+{
 	{ 0x61d601, KEY_EPG },             /* EPG */
 	{ 0x61d602, KEY_3 },
 	{ 0x61d604, KEY_1 },
@@ -60,7 +61,8 @@ static struct rc_map_table reddo[] = {
 	{ 0x61d643, KEY_POWER2 },          /* [red power button] */
 };
 
-static struct rc_map_list reddo_map = {
+static struct rc_map_list reddo_map =
+{
 	.map = {
 		.scan    = reddo,
 		.size    = ARRAY_SIZE(reddo),

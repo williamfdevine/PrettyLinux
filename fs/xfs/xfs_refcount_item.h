@@ -61,7 +61,8 @@ struct kmem_zone;
  * see the comments about that structure (in xfs_extfree_item.h) for
  * more details.
  */
-struct xfs_cui_log_item {
+struct xfs_cui_log_item
+{
 	struct xfs_log_item		cui_item;
 	atomic_t			cui_refcount;
 	atomic_t			cui_next_extent;
@@ -74,7 +75,7 @@ xfs_cui_log_item_sizeof(
 	unsigned int		nr)
 {
 	return offsetof(struct xfs_cui_log_item, cui_format) +
-			xfs_cui_log_format_sizeof(nr);
+		   xfs_cui_log_format_sizeof(nr);
 }
 
 /*
@@ -82,7 +83,8 @@ xfs_cui_log_item_sizeof(
  * fact that some refcountbt updates mentioned in an earlier cui item
  * have been performed.
  */
-struct xfs_cud_log_item {
+struct xfs_cud_log_item
+{
 	struct xfs_log_item		cud_item;
 	struct xfs_cui_log_item		*cud_cuip;
 	struct xfs_cud_log_format	cud_format;
@@ -93,7 +95,7 @@ extern struct kmem_zone	*xfs_cud_zone;
 
 struct xfs_cui_log_item *xfs_cui_init(struct xfs_mount *, uint);
 struct xfs_cud_log_item *xfs_cud_init(struct xfs_mount *,
-		struct xfs_cui_log_item *);
+									  struct xfs_cui_log_item *);
 void xfs_cui_item_free(struct xfs_cui_log_item *);
 void xfs_cui_release(struct xfs_cui_log_item *);
 int xfs_cui_recover(struct xfs_mount *mp, struct xfs_cui_log_item *cuip);

@@ -32,7 +32,8 @@ gf119_gpio_reset(struct nvkm_gpio *gpio, u8 match)
 	u16 entry;
 	int ent = -1;
 
-	while ((entry = dcb_gpio_entry(bios, 0, ++ent, &ver, &len))) {
+	while ((entry = dcb_gpio_entry(bios, 0, ++ent, &ver, &len)))
+	{
 		u32 data = nvbios_rd32(bios, entry);
 		u8  line =   (data & 0x0000003f);
 		u8  defs = !!(data & 0x00000080);
@@ -41,14 +42,19 @@ gf119_gpio_reset(struct nvkm_gpio *gpio, u8 match)
 		u8  unk1 =   (data & 0x1f000000) >> 24;
 
 		if ( func  == DCB_GPIO_UNUSED ||
-		    (match != DCB_GPIO_UNUSED && match != func))
+			 (match != DCB_GPIO_UNUSED && match != func))
+		{
 			continue;
+		}
 
 		nvkm_gpio_set(gpio, 0, func, line, defs);
 
 		nvkm_mask(device, 0x00d610 + (line * 4), 0xff, unk0);
+
 		if (unk1--)
+		{
 			nvkm_mask(device, 0x00d740 + (unk1 * 4), 0xff, line);
+		}
 	}
 }
 
@@ -70,7 +76,8 @@ gf119_gpio_sense(struct nvkm_gpio *gpio, int line)
 }
 
 static const struct nvkm_gpio_func
-gf119_gpio = {
+	gf119_gpio =
+{
 	.lines = 32,
 	.intr_stat = g94_gpio_intr_stat,
 	.intr_mask = g94_gpio_intr_mask,

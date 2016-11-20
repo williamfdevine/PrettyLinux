@@ -7,13 +7,15 @@
  * Licensed under the GPL-2 or later.
  */
 
-enum {
+enum
+{
 	W5100,
 	W5200,
 	W5500,
 };
 
-struct w5100_ops {
+struct w5100_ops
+{
 	bool may_sleep;
 	int chip_id;
 	int (*read)(struct net_device *ndev, u32 addr);
@@ -22,7 +24,7 @@ struct w5100_ops {
 	int (*write16)(struct net_device *ndev, u32 addr, u16 data);
 	int (*readbulk)(struct net_device *ndev, u32 addr, u8 *buf, int len);
 	int (*writebulk)(struct net_device *ndev, u32 addr, const u8 *buf,
-			 int len);
+					 int len);
 	int (*reset)(struct net_device *ndev);
 	int (*init)(struct net_device *ndev);
 };
@@ -30,8 +32,8 @@ struct w5100_ops {
 void *w5100_ops_priv(const struct net_device *ndev);
 
 int w5100_probe(struct device *dev, const struct w5100_ops *ops,
-		int sizeof_ops_priv, const void *mac_addr, int irq,
-		int link_gpio);
+				int sizeof_ops_priv, const void *mac_addr, int irq,
+				int link_gpio);
 int w5100_remove(struct device *dev);
 
 extern const struct dev_pm_ops w5100_pm_ops;

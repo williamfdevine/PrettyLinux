@@ -40,7 +40,9 @@
 static void free_urb(struct urb *urb)
 {
 	if (!urb)
+	{
 		return;
+	}
 
 	kfree(urb->setup_packet);
 	urb->setup_packet = NULL;
@@ -56,8 +58,11 @@ struct urbp *alloc_urbp(void)
 	struct urbp *urb_p;
 
 	urb_p = kzalloc(sizeof(*urb_p), GFP_KERNEL);
+
 	if (!urb_p)
+	{
 		return urb_p;
+	}
 
 	urb_p->urb = NULL;
 	urb_p->ep = NULL;
@@ -73,7 +78,10 @@ static void free_urbp(struct urbp *urb_p)
 void free_urbp_and_urb(struct urbp *urb_p)
 {
 	if (!urb_p)
+	{
 		return;
+	}
+
 	free_urb(urb_p->urb);
 	free_urbp(urb_p);
 }
@@ -86,9 +94,10 @@ static void nuke(struct vudc *udc, struct vep *ep)
 {
 	struct vrequest	*req;
 
-	while (!list_empty(&ep->req_queue)) {
+	while (!list_empty(&ep->req_queue))
+	{
 		req = list_first_entry(&ep->req_queue, struct vrequest,
-				       req_entry);
+							   req_entry);
 		list_del_init(&req->req_entry);
 		req->req.status = -ESHUTDOWN;
 
@@ -107,9 +116,12 @@ static void stop_activity(struct vudc *udc)
 	udc->address = 0;
 
 	for (i = 0; i < VIRTUAL_ENDPOINTS; i++)
+	{
 		nuke(udc, &udc->ep[i]);
+	}
 
-	list_for_each_entry_safe(urb_p, tmp, &udc->urb_queue, urb_entry) {
+	list_for_each_entry_safe(urb_p, tmp, &udc->urb_queue, urb_entry)
+	{
 		list_del(&urb_p->urb_entry);
 		free_urbp_and_urb(urb_p);
 	}
@@ -120,16 +132,25 @@ struct vep *vudc_find_endpoint(struct vudc *udc, u8 address)
 	int i;
 
 	if ((address & ~USB_DIR_IN) == 0)
+	{
 		return &udc->ep[0];
+	}
 
-	for (i = 1; i < VIRTUAL_ENDPOINTS; i++) {
+	for (i = 1; i < VIRTUAL_ENDPOINTS; i++)
+	{
 		struct vep *ep = &udc->ep[i];
 
 		if (!ep->desc)
+		{
 			continue;
+		}
+
 		if (ep->desc->bEndpointAddress == address)
+		{
 			return ep;
+		}
 	}
+
 	return NULL;
 }
 
@@ -144,7 +165,7 @@ static int vgadget_get_frame(struct usb_gadget *_gadget)
 	do_gettimeofday(&now);
 	return ((now.tv_sec - udc->start_time.tv_sec) * 1000 +
 			(now.tv_usec - udc->start_time.tv_usec) / 1000)
-			% 0x7FF;
+		   % 0x7FF;
 }
 
 static int vgadget_set_selfpowered(struct usb_gadget *_gadget, int value)
@@ -152,9 +173,14 @@ static int vgadget_set_selfpowered(struct usb_gadget *_gadget, int value)
 	struct vudc *udc = usb_gadget_to_vudc(_gadget);
 
 	if (value)
+	{
 		udc->devstatus |= (1 << USB_DEVICE_SELF_POWERED);
+	}
 	else
+	{
 		udc->devstatus &= ~(1 << USB_DEVICE_SELF_POWERED);
+	}
+
 	return 0;
 }
 
@@ -167,27 +193,36 @@ static int vgadget_pullup(struct usb_gadget *_gadget, int value)
 
 	spin_lock_irqsave(&udc->lock, flags);
 	value = !!value;
+
 	if (value == udc->pullup)
+	{
 		goto unlock;
+	}
 
 	udc->pullup = value;
-	if (value) {
+
+	if (value)
+	{
 		udc->gadget.speed = min_t(u8, USB_SPEED_HIGH,
-					   udc->driver->max_speed);
+								  udc->driver->max_speed);
 		udc->ep[0].ep.maxpacket = 64;
 		/*
 		 * This is the first place where we can ask our
 		 * gadget driver for descriptors.
 		 */
 		ret = get_gadget_descs(udc);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(&udc->gadget.dev, "Unable go get desc: %d", ret);
 			goto unlock;
 		}
 
 		spin_unlock_irqrestore(&udc->lock, flags);
 		usbip_start_eh(&udc->ud);
-	} else {
+	}
+	else
+	{
 		/* Invalidate descriptors */
 		udc->desc_cached = 0;
 
@@ -204,7 +239,7 @@ unlock:
 }
 
 static int vgadget_udc_start(struct usb_gadget *g,
-		struct usb_gadget_driver *driver)
+							 struct usb_gadget_driver *driver)
 {
 	struct vudc *udc = usb_gadget_to_vudc(g);
 	unsigned long flags;
@@ -228,7 +263,8 @@ static int vgadget_udc_stop(struct usb_gadget *g)
 	return 0;
 }
 
-static const struct usb_gadget_ops vgadget_ops = {
+static const struct usb_gadget_ops vgadget_ops =
+{
 	.get_frame	= vgadget_get_frame,
 	.set_selfpowered = vgadget_set_selfpowered,
 	.pullup		= vgadget_pullup,
@@ -240,7 +276,7 @@ static const struct usb_gadget_ops vgadget_ops = {
 /* endpoint ops */
 
 static int vep_enable(struct usb_ep *_ep,
-		const struct usb_endpoint_descriptor *desc)
+					  const struct usb_endpoint_descriptor *desc)
 {
 	struct vep *ep;
 	struct vudc *udc;
@@ -251,11 +287,15 @@ static int vep_enable(struct usb_ep *_ep,
 	udc = ep_to_vudc(ep);
 
 	if (!_ep || !desc || ep->desc || _ep->caps.type_control
-			|| desc->bDescriptorType != USB_DT_ENDPOINT)
+		|| desc->bDescriptorType != USB_DT_ENDPOINT)
+	{
 		return -EINVAL;
+	}
 
 	if (!udc->driver)
+	{
 		return -ESHUTDOWN;
+	}
 
 	spin_lock_irqsave(&udc->lock, flags);
 
@@ -278,8 +318,11 @@ static int vep_disable(struct usb_ep *_ep)
 
 	ep = to_vep(_ep);
 	udc = ep_to_vudc(ep);
+
 	if (!_ep || !ep->desc || _ep->caps.type_control)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&udc->lock, flags);
 	ep->desc = NULL;
@@ -296,12 +339,18 @@ static struct usb_request *vep_alloc_request(struct usb_ep *_ep,
 	struct vrequest *req;
 
 	if (!_ep)
+	{
 		return NULL;
+	}
+
 	ep = to_vep(_ep);
 
 	req = kzalloc(sizeof(*req), mem_flags);
+
 	if (!req)
+	{
 		return NULL;
+	}
 
 	INIT_LIST_HEAD(&req->req_entry);
 
@@ -313,14 +362,16 @@ static void vep_free_request(struct usb_ep *_ep, struct usb_request *_req)
 	struct vrequest *req;
 
 	if (WARN_ON(!_ep || !_req))
+	{
 		return;
+	}
 
 	req = to_vrequest(_req);
 	kfree(req);
 }
 
 static int vep_queue(struct usb_ep *_ep, struct usb_request *_req,
-		gfp_t mem_flags)
+					 gfp_t mem_flags)
 {
 	struct vep *ep;
 	struct vrequest *req;
@@ -328,7 +379,9 @@ static int vep_queue(struct usb_ep *_ep, struct usb_request *_req,
 	unsigned long flags;
 
 	if (!_ep || !_req)
+	{
 		return -EINVAL;
+	}
 
 	ep = to_vep(_ep);
 	req = to_vrequest(_req);
@@ -354,18 +407,24 @@ static int vep_dequeue(struct usb_ep *_ep, struct usb_request *_req)
 	int ret = -EINVAL;
 
 	if (!_ep || !_req)
+	{
 		return ret;
+	}
 
 	ep = to_vep(_ep);
 	req = to_vrequest(_req);
 	udc = req->udc;
 
 	if (!udc->driver)
+	{
 		return -ESHUTDOWN;
+	}
 
 	spin_lock_irqsave(&udc->lock, flags);
-	list_for_each_entry(lst, &ep->req_queue, req_entry) {
-		if (&lst->req == _req) {
+	list_for_each_entry(lst, &ep->req_queue, req_entry)
+	{
+		if (&lst->req == _req)
+		{
 			list_del_init(&lst->req_entry);
 			_req->status = -ECONNRESET;
 			ret = 0;
@@ -375,7 +434,9 @@ static int vep_dequeue(struct usb_ep *_ep, struct usb_request *_req)
 	spin_unlock_irqrestore(&udc->lock, flags);
 
 	if (ret == 0)
+	{
 		usb_gadget_giveback_request(_ep, _req);
+	}
 
 	return ret;
 }
@@ -389,23 +450,38 @@ vep_set_halt_and_wedge(struct usb_ep *_ep, int value, int wedged)
 	int ret = 0;
 
 	ep = to_vep(_ep);
+
 	if (!_ep)
+	{
 		return -EINVAL;
+	}
 
 	udc = ep_to_vudc(ep);
+
 	if (!udc->driver)
+	{
 		return -ESHUTDOWN;
+	}
 
 	spin_lock_irqsave(&udc->lock, flags);
+
 	if (!value)
+	{
 		ep->halted = ep->wedged = 0;
+	}
 	else if (ep->desc && (ep->desc->bEndpointAddress & USB_DIR_IN) &&
-			!list_empty(&ep->req_queue))
+			 !list_empty(&ep->req_queue))
+	{
 		ret = -EAGAIN;
-	else {
+	}
+	else
+	{
 		ep->halted = 1;
+
 		if (wedged)
+		{
 			ep->wedged = 1;
+		}
 	}
 
 	spin_unlock_irqrestore(&udc->lock, flags);
@@ -423,7 +499,8 @@ static int vep_set_wedge(struct usb_ep *_ep)
 	return vep_set_halt_and_wedge(_ep, 1, 1);
 }
 
-static const struct usb_ep_ops vep_ops = {
+static const struct usb_ep_ops vep_ops =
+{
 	.enable		= vep_enable,
 	.disable	= vep_disable,
 
@@ -447,31 +524,45 @@ static void vudc_shutdown(struct usbip_device *ud)
 	unsigned long flags;
 
 	dev_dbg(&udc->pdev->dev, "device shutdown");
-	if (ud->tcp_socket)
-		kernel_sock_shutdown(ud->tcp_socket, SHUT_RDWR);
 
-	if (ud->tcp_rx) {
+	if (ud->tcp_socket)
+	{
+		kernel_sock_shutdown(ud->tcp_socket, SHUT_RDWR);
+	}
+
+	if (ud->tcp_rx)
+	{
 		kthread_stop_put(ud->tcp_rx);
 		ud->tcp_rx = NULL;
 	}
-	if (ud->tcp_tx) {
+
+	if (ud->tcp_tx)
+	{
 		kthread_stop_put(ud->tcp_tx);
 		ud->tcp_tx = NULL;
 	}
 
-	if (ud->tcp_socket) {
+	if (ud->tcp_socket)
+	{
 		sockfd_put(ud->tcp_socket);
 		ud->tcp_socket = NULL;
 	}
 
 	spin_lock_irqsave(&udc->lock, flags);
 	stop_activity(udc);
+
 	if (udc->connected && udc->driver->disconnect)
+	{
 		call_disconnect = 1;
+	}
+
 	udc->connected = 0;
 	spin_unlock_irqrestore(&udc->lock, flags);
+
 	if (call_disconnect)
+	{
 		udc->driver->disconnect(&udc->gadget);
+	}
 }
 
 static void vudc_device_reset(struct usbip_device *ud)
@@ -483,8 +574,12 @@ static void vudc_device_reset(struct usbip_device *ud)
 	spin_lock_irqsave(&udc->lock, flags);
 	stop_activity(udc);
 	spin_unlock_irqrestore(&udc->lock, flags);
+
 	if (udc->driver)
+	{
 		usb_gadget_udc_reset(&udc->gadget, udc->driver);
+	}
+
 	spin_lock_irqsave(&ud->lock, flags);
 	ud->status = SDEV_ST_AVAILABLE;
 	spin_unlock_irqrestore(&ud->lock, flags);
@@ -506,13 +601,18 @@ struct vudc_device *alloc_vudc_device(int devid)
 	struct vudc_device *udc_dev = NULL;
 
 	udc_dev = kzalloc(sizeof(*udc_dev), GFP_KERNEL);
+
 	if (!udc_dev)
+	{
 		goto out;
+	}
 
 	INIT_LIST_HEAD(&udc_dev->dev_entry);
 
 	udc_dev->pdev = platform_device_alloc(GADGET_NAME, devid);
-	if (!udc_dev->pdev) {
+
+	if (!udc_dev->pdev)
+	{
 		kfree(udc_dev);
 		udc_dev = NULL;
 	}
@@ -534,40 +634,52 @@ static int init_vudc_hw(struct vudc *udc)
 	struct vep *ep;
 
 	udc->ep = kcalloc(VIRTUAL_ENDPOINTS, sizeof(*udc->ep), GFP_KERNEL);
+
 	if (!udc->ep)
+	{
 		goto nomem_ep;
+	}
 
 	INIT_LIST_HEAD(&udc->gadget.ep_list);
 
 	/* create ep0 and 15 in, 15 out general purpose eps */
-	for (i = 0; i < VIRTUAL_ENDPOINTS; ++i) {
+	for (i = 0; i < VIRTUAL_ENDPOINTS; ++i)
+	{
 		int is_out = i % 2;
 		int num = (i + 1) / 2;
 
 		ep = &udc->ep[i];
 
 		sprintf(ep->name, "ep%d%s", num,
-			i ? (is_out ? "out" : "in") : "");
+				i ? (is_out ? "out" : "in") : "");
 		ep->ep.name = ep->name;
-		if (i == 0) {
+
+		if (i == 0)
+		{
 			ep->ep.caps.type_control = true;
 			ep->ep.caps.dir_out = true;
 			ep->ep.caps.dir_in = true;
-		} else {
+		}
+		else
+		{
 			ep->ep.caps.type_iso = true;
 			ep->ep.caps.type_int = true;
 			ep->ep.caps.type_bulk = true;
 		}
 
 		if (is_out)
+		{
 			ep->ep.caps.dir_out = true;
+		}
 		else
+		{
 			ep->ep.caps.dir_in = true;
+		}
 
 		ep->ep.ops = &vep_ops;
 		list_add_tail(&ep->ep.ep_list, &udc->gadget.ep_list);
 		ep->halted = ep->wedged = ep->already_seen =
-			ep->setup_stage = 0;
+									  ep->setup_stage = 0;
 		usb_ep_set_maxpacket_limit(&ep->ep, ~0);
 		ep->ep.max_streams = 16;
 		ep->gadget = &udc->gadget;
@@ -596,7 +708,7 @@ static int init_vudc_hw(struct vudc *udc)
 	return 0;
 
 nomem_ep:
-		return -ENOMEM;
+	return -ENOMEM;
 }
 
 static void cleanup_vudc_hw(struct vudc *udc)
@@ -612,8 +724,11 @@ int vudc_probe(struct platform_device *pdev)
 	int ret = -ENOMEM;
 
 	udc = kzalloc(sizeof(*udc), GFP_KERNEL);
+
 	if (!udc)
+	{
 		goto out;
+	}
 
 	udc->gadget.name = GADGET_NAME;
 	udc->gadget.ops = &vgadget_ops;
@@ -622,15 +737,23 @@ int vudc_probe(struct platform_device *pdev)
 	udc->pdev = pdev;
 
 	ret = init_vudc_hw(udc);
+
 	if (ret)
+	{
 		goto err_init_vudc_hw;
+	}
 
 	ret = usb_add_gadget_udc(&pdev->dev, &udc->gadget);
+
 	if (ret < 0)
+	{
 		goto err_add_udc;
+	}
 
 	ret = sysfs_create_group(&pdev->dev.kobj, &vudc_attr_group);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&udc->pdev->dev, "create sysfs files\n");
 		goto err_sysfs;
 	}

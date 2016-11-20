@@ -1,6 +1,6 @@
 /***************************************************************************
  * Linux PPP over X - Generic PPP transport layer sockets
- * Linux PPP over Ethernet (PPPoE) Socket Implementation (RFC 2516) 
+ * Linux PPP over Ethernet (PPPoE) Socket Implementation (RFC 2516)
  *
  * This file supplies definitions required by the PPP over Ethernet driver
  * (pppox.c).  All version information wrt this file is located in pppox.c
@@ -31,24 +31,26 @@
  * which they wouldn't get otherwise without defining __KERNEL__
  */
 #ifndef AF_PPPOX
-#define AF_PPPOX	24
-#define PF_PPPOX	AF_PPPOX
+	#define AF_PPPOX	24
+	#define PF_PPPOX	AF_PPPOX
 #endif /* !(AF_PPPOX) */
 
-/************************************************************************ 
- * PPPoE addressing definition 
- */ 
+/************************************************************************
+ * PPPoE addressing definition
+ */
 typedef __be16 sid_t;
-struct pppoe_addr {
+struct pppoe_addr
+{
 	sid_t         sid;                    /* Session identifier */
 	unsigned char remote[ETH_ALEN];       /* Remote address */
 	char          dev[IFNAMSIZ];          /* Local device to use */
-}; 
- 
-/************************************************************************ 
+};
+
+/************************************************************************
  * PPTP addressing definition
  */
-struct pptp_addr {
+struct pptp_addr
+{
 	__u16		call_id;
 	struct in_addr	sin_addr;
 };
@@ -61,10 +63,12 @@ struct pptp_addr {
 #define PX_PROTO_PPTP  2
 #define PX_MAX_PROTO   3
 
-struct sockaddr_pppox {
+struct sockaddr_pppox
+{
 	__kernel_sa_family_t sa_family;       /* address family, AF_PPPOX */
 	unsigned int    sa_protocol;          /* protocol identifier */
-	union {
+	union
+	{
 		struct pppoe_addr  pppoe;
 		struct pptp_addr   pptp;
 	} sa_addr;
@@ -75,13 +79,15 @@ struct sockaddr_pppox {
  * sockaddr_pppox) to fill it. We use a protocol specific sockaddr
  * type instead.
  */
-struct sockaddr_pppol2tp {
+struct sockaddr_pppol2tp
+{
 	__kernel_sa_family_t sa_family; /* address family, AF_PPPOX */
 	unsigned int    sa_protocol;    /* protocol identifier */
 	struct pppol2tp_addr pppol2tp;
 } __packed;
 
-struct sockaddr_pppol2tpin6 {
+struct sockaddr_pppol2tpin6
+{
 	__kernel_sa_family_t sa_family; /* address family, AF_PPPOX */
 	unsigned int    sa_protocol;    /* protocol identifier */
 	struct pppol2tpin6_addr pppol2tp;
@@ -90,13 +96,15 @@ struct sockaddr_pppol2tpin6 {
 /* The L2TPv3 protocol changes tunnel and session ids from 16 to 32
  * bits. So we need a different sockaddr structure.
  */
-struct sockaddr_pppol2tpv3 {
+struct sockaddr_pppol2tpv3
+{
 	__kernel_sa_family_t sa_family; /* address family, AF_PPPOX */
 	unsigned int    sa_protocol;    /* protocol identifier */
 	struct pppol2tpv3_addr pppol2tp;
 } __packed;
 
-struct sockaddr_pppol2tpv3in6 {
+struct sockaddr_pppol2tpv3in6
+{
 	__kernel_sa_family_t sa_family; /* address family, AF_PPPOX */
 	unsigned int    sa_protocol;    /* protocol identifier */
 	struct pppol2tpv3in6_addr pppol2tp;
@@ -118,7 +126,8 @@ struct sockaddr_pppol2tpv3in6 {
 #define PADR_CODE	0x19
 #define PADS_CODE	0x65
 #define PADT_CODE	0xa7
-struct pppoe_tag {
+struct pppoe_tag
+{
 	__be16 tag_type;
 	__be16 tag_len;
 	char tag_data[0];
@@ -136,7 +145,8 @@ struct pppoe_tag {
 #define PTT_SYS_ERR  	__cpu_to_be16(0x0202)
 #define PTT_GEN_ERR  	__cpu_to_be16(0x0203)
 
-struct pppoe_hdr {
+struct pppoe_hdr
+{
 #if defined(__LITTLE_ENDIAN_BITFIELD)
 	__u8 type : 4;
 	__u8 ver : 4;

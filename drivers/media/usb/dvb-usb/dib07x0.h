@@ -1,7 +1,8 @@
 #ifndef _DIB07X0_H_
 #define _DIB07X0_H_
 
-enum dib07x0_gpios {
+enum dib07x0_gpios
+{
 	GPIO0  =  0,
 	GPIO1  =  2,
 	GPIO2  =  3,

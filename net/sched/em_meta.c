@@ -73,18 +73,21 @@
 #include <net/pkt_cls.h>
 #include <net/sock.h>
 
-struct meta_obj {
+struct meta_obj
+{
 	unsigned long		value;
 	unsigned int		len;
 };
 
-struct meta_value {
+struct meta_value
+{
 	struct tcf_meta_val	hdr;
 	unsigned long		val;
 	unsigned int		len;
 };
 
-struct meta_match {
+struct meta_match
+{
 	struct meta_value	lvalue;
 	struct meta_value	rvalue;
 };
@@ -100,8 +103,8 @@ static inline int meta_type(struct meta_value *v)
 }
 
 #define META_COLLECTOR(FUNC) static void meta_##FUNC(struct sk_buff *skb, \
-	struct tcf_pkt_info *info, struct meta_value *v, \
-	struct meta_obj *dst, int *err)
+		struct tcf_pkt_info *info, struct meta_value *v, \
+		struct meta_obj *dst, int *err)
 
 /**************************************************************************
  * System status & misc
@@ -114,8 +117,8 @@ META_COLLECTOR(int_random)
 
 static inline unsigned long fixed_loadavg(int load)
 {
-	int rnd_load = load + (FIXED_1/200);
-	int rnd_frac = ((rnd_load & (FIXED_1-1)) * 100) >> FSHIFT;
+	int rnd_load = load + (FIXED_1 / 200);
+	int rnd_frac = ((rnd_load & (FIXED_1 - 1)) * 100) >> FSHIFT;
 
 	return ((rnd_load >> FSHIFT) * 100) + rnd_frac;
 }
@@ -142,7 +145,9 @@ META_COLLECTOR(int_loadavg_2)
 static inline int int_dev(struct net_device *dev, struct meta_obj *dst)
 {
 	if (unlikely(dev == NULL))
+	{
 		return -1;
+	}
 
 	dst->value = dev->ifindex;
 	return 0;
@@ -151,7 +156,9 @@ static inline int int_dev(struct net_device *dev, struct meta_obj *dst)
 static inline int var_dev(struct net_device *dev, struct meta_obj *dst)
 {
 	if (unlikely(dev == NULL))
+	{
 		return -1;
+	}
 
 	dst->value = (unsigned long) dev->name;
 	dst->len = strlen(dev->name);
@@ -177,10 +184,15 @@ META_COLLECTOR(int_vlan_tag)
 	unsigned short tag;
 
 	tag = skb_vlan_tag_get(skb);
+
 	if (!tag && __vlan_get_tag(skb, &tag))
+	{
 		*err = -1;
+	}
 	else
+	{
 		dst->value = tag;
+	}
 }
 
 
@@ -250,10 +262,13 @@ META_COLLECTOR(int_tcindex)
 META_COLLECTOR(int_rtclassid)
 {
 	if (unlikely(skb_dst(skb) == NULL))
+	{
 		*err = -1;
+	}
 	else
 #ifdef CONFIG_IP_ROUTE_CLASSID
 		dst->value = skb_dst(skb)->tclassid;
+
 #else
 		dst->value = 0;
 #endif
@@ -262,9 +277,13 @@ META_COLLECTOR(int_rtclassid)
 META_COLLECTOR(int_rtiif)
 {
 	if (unlikely(skb_rtable(skb) == NULL))
+	{
 		*err = -1;
+	}
 	else
+	{
 		dst->value = inet_iif(skb);
+	}
 }
 
 /**************************************************************************
@@ -276,57 +295,69 @@ META_COLLECTOR(int_rtiif)
 
 META_COLLECTOR(int_sk_family)
 {
-	if (skip_nonlocal(skb)) {
+	if (skip_nonlocal(skb))
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = skb->sk->sk_family;
 }
 
 META_COLLECTOR(int_sk_state)
 {
-	if (skip_nonlocal(skb)) {
+	if (skip_nonlocal(skb))
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = skb->sk->sk_state;
 }
 
 META_COLLECTOR(int_sk_reuse)
 {
-	if (skip_nonlocal(skb)) {
+	if (skip_nonlocal(skb))
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = skb->sk->sk_reuse;
 }
 
 META_COLLECTOR(int_sk_bound_if)
 {
-	if (skip_nonlocal(skb)) {
+	if (skip_nonlocal(skb))
+	{
 		*err = -1;
 		return;
 	}
+
 	/* No error if bound_dev_if is 0, legal userspace check */
 	dst->value = skb->sk->sk_bound_dev_if;
 }
 
 META_COLLECTOR(var_sk_bound_if)
 {
-	if (skip_nonlocal(skb)) {
+	if (skip_nonlocal(skb))
+	{
 		*err = -1;
 		return;
 	}
 
-	if (skb->sk->sk_bound_dev_if == 0) {
+	if (skb->sk->sk_bound_dev_if == 0)
+	{
 		dst->value = (unsigned long) "any";
 		dst->len = 3;
-	} else {
+	}
+	else
+	{
 		struct net_device *dev;
 
 		rcu_read_lock();
 		dev = dev_get_by_index_rcu(sock_net(skb->sk),
-					   skb->sk->sk_bound_dev_if);
+								   skb->sk->sk_bound_dev_if);
 		*err = var_dev(dev, dst);
 		rcu_read_unlock();
 	}
@@ -334,10 +365,12 @@ META_COLLECTOR(var_sk_bound_if)
 
 META_COLLECTOR(int_sk_refcnt)
 {
-	if (skip_nonlocal(skb)) {
+	if (skip_nonlocal(skb))
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = atomic_read(&skb->sk->sk_refcnt);
 }
 
@@ -345,10 +378,12 @@ META_COLLECTOR(int_sk_rcvbuf)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk->sk_rcvbuf;
 }
 
@@ -356,10 +391,12 @@ META_COLLECTOR(int_sk_shutdown)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk->sk_shutdown;
 }
 
@@ -367,10 +404,12 @@ META_COLLECTOR(int_sk_proto)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk->sk_protocol;
 }
 
@@ -378,10 +417,12 @@ META_COLLECTOR(int_sk_type)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk->sk_type;
 }
 
@@ -389,10 +430,12 @@ META_COLLECTOR(int_sk_rmem_alloc)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk_rmem_alloc_get(sk);
 }
 
@@ -400,10 +443,12 @@ META_COLLECTOR(int_sk_wmem_alloc)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk_wmem_alloc_get(sk);
 }
 
@@ -411,10 +456,12 @@ META_COLLECTOR(int_sk_omem_alloc)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = atomic_read(&sk->sk_omem_alloc);
 }
 
@@ -422,10 +469,12 @@ META_COLLECTOR(int_sk_rcv_qlen)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk->sk_receive_queue.qlen;
 }
 
@@ -433,10 +482,12 @@ META_COLLECTOR(int_sk_snd_qlen)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk->sk_write_queue.qlen;
 }
 
@@ -444,10 +495,12 @@ META_COLLECTOR(int_sk_wmem_queued)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk->sk_wmem_queued;
 }
 
@@ -455,10 +508,12 @@ META_COLLECTOR(int_sk_fwd_alloc)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk->sk_forward_alloc;
 }
 
@@ -466,10 +521,12 @@ META_COLLECTOR(int_sk_sndbuf)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk->sk_sndbuf;
 }
 
@@ -477,19 +534,23 @@ META_COLLECTOR(int_sk_alloc)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = (__force int) sk->sk_allocation;
 }
 
 META_COLLECTOR(int_sk_hash)
 {
-	if (skip_nonlocal(skb)) {
+	if (skip_nonlocal(skb))
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = skb->sk->sk_hash;
 }
 
@@ -497,10 +558,12 @@ META_COLLECTOR(int_sk_lingertime)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk->sk_lingertime / HZ;
 }
 
@@ -508,10 +571,12 @@ META_COLLECTOR(int_sk_err_qlen)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk->sk_error_queue.qlen;
 }
 
@@ -519,10 +584,12 @@ META_COLLECTOR(int_sk_ack_bl)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk->sk_ack_backlog;
 }
 
@@ -530,10 +597,12 @@ META_COLLECTOR(int_sk_max_ack_bl)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk->sk_max_ack_backlog;
 }
 
@@ -541,10 +610,12 @@ META_COLLECTOR(int_sk_prio)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk->sk_priority;
 }
 
@@ -552,10 +623,12 @@ META_COLLECTOR(int_sk_rcvlowat)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk->sk_rcvlowat;
 }
 
@@ -563,10 +636,12 @@ META_COLLECTOR(int_sk_rcvtimeo)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk->sk_rcvtimeo / HZ;
 }
 
@@ -574,10 +649,12 @@ META_COLLECTOR(int_sk_sndtimeo)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk->sk_sndtimeo / HZ;
 }
 
@@ -585,10 +662,12 @@ META_COLLECTOR(int_sk_sendmsg_off)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk->sk_frag.offset;
 }
 
@@ -596,10 +675,12 @@ META_COLLECTOR(int_sk_write_pend)
 {
 	const struct sock *sk = skb_to_full_sk(skb);
 
-	if (!sk) {
+	if (!sk)
+	{
 		*err = -1;
 		return;
 	}
+
 	dst->value = sk->sk_write_pending;
 }
 
@@ -607,9 +688,10 @@ META_COLLECTOR(int_sk_write_pend)
  * Meta value collectors assignment table
  **************************************************************************/
 
-struct meta_ops {
+struct meta_ops
+{
 	void		(*get)(struct sk_buff *, struct tcf_pkt_info *,
-			       struct meta_value *, struct meta_obj *, int *);
+					   struct meta_value *, struct meta_obj *, int *);
 };
 
 #define META_ID(name) TCF_META_ID_##name
@@ -617,7 +699,8 @@ struct meta_ops {
 
 /* Meta value operations table listing all meta value collectors and
  * assigns them to a type and meta id. */
-static struct meta_ops __meta_ops[TCF_META_TYPE_MAX + 1][TCF_META_ID_MAX + 1] = {
+static struct meta_ops __meta_ops[TCF_META_TYPE_MAX + 1][TCF_META_ID_MAX + 1] =
+{
 	[TCF_META_TYPE_VAR] = {
 		[META_ID(DEV)]			= META_FUNC(var_dev),
 		[META_ID(SK_BOUND_IF)] 		= META_FUNC(var_sk_bound_if),
@@ -686,7 +769,9 @@ static int meta_var_compare(struct meta_obj *a, struct meta_obj *b)
 	int r = a->len - b->len;
 
 	if (r == 0)
+	{
 		r = memcmp((void *) a->value, (void *) b->value, a->len);
+	}
 
 	return r;
 }
@@ -696,8 +781,12 @@ static int meta_var_change(struct meta_value *dst, struct nlattr *nla)
 	int len = nla_len(nla);
 
 	dst->val = (unsigned long)kmemdup(nla_data(nla), len, GFP_KERNEL);
+
 	if (dst->val == 0UL)
+	{
 		return -ENOMEM;
+	}
+
 	dst->len = len;
 	return 0;
 }
@@ -708,19 +797,24 @@ static void meta_var_destroy(struct meta_value *v)
 }
 
 static void meta_var_apply_extras(struct meta_value *v,
-				  struct meta_obj *dst)
+								  struct meta_obj *dst)
 {
 	int shift = v->hdr.shift;
 
 	if (shift && shift < dst->len)
+	{
 		dst->len -= shift;
+	}
 }
 
 static int meta_var_dump(struct sk_buff *skb, struct meta_value *v, int tlv)
 {
 	if (v->val && v->len &&
-	    nla_put(skb, tlv, v->len, (void *) v->val))
+		nla_put(skb, tlv, v->len, (void *) v->val))
+	{
 		goto nla_put_failure;
+	}
+
 	return 0;
 
 nla_put_failure:
@@ -737,45 +831,68 @@ static int meta_int_compare(struct meta_obj *a, struct meta_obj *b)
 	 * some numbers but jump free code for mismatches seems
 	 * more logical. */
 	if (unlikely(a->value == b->value))
+	{
 		return 0;
+	}
 	else if (a->value < b->value)
+	{
 		return -1;
+	}
 	else
+	{
 		return 1;
+	}
 }
 
 static int meta_int_change(struct meta_value *dst, struct nlattr *nla)
 {
-	if (nla_len(nla) >= sizeof(unsigned long)) {
+	if (nla_len(nla) >= sizeof(unsigned long))
+	{
 		dst->val = *(unsigned long *) nla_data(nla);
 		dst->len = sizeof(unsigned long);
-	} else if (nla_len(nla) == sizeof(u32)) {
+	}
+	else if (nla_len(nla) == sizeof(u32))
+	{
 		dst->val = nla_get_u32(nla);
 		dst->len = sizeof(u32);
-	} else
+	}
+	else
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 static void meta_int_apply_extras(struct meta_value *v,
-				  struct meta_obj *dst)
+								  struct meta_obj *dst)
 {
 	if (v->hdr.shift)
+	{
 		dst->value >>= v->hdr.shift;
+	}
 
 	if (v->val)
+	{
 		dst->value &= v->val;
+	}
 }
 
 static int meta_int_dump(struct sk_buff *skb, struct meta_value *v, int tlv)
 {
-	if (v->len == sizeof(unsigned long)) {
+	if (v->len == sizeof(unsigned long))
+	{
 		if (nla_put(skb, tlv, sizeof(unsigned long), &v->val))
+		{
 			goto nla_put_failure;
-	} else if (v->len == sizeof(u32)) {
+		}
+	}
+	else if (v->len == sizeof(u32))
+	{
 		if (nla_put_u32(skb, tlv, v->val))
+		{
 			goto nla_put_failure;
+		}
 	}
 
 	return 0;
@@ -788,7 +905,8 @@ nla_put_failure:
  * Type specific operations table
  **************************************************************************/
 
-struct meta_type_ops {
+struct meta_type_ops
+{
 	void	(*destroy)(struct meta_value *);
 	int	(*compare)(struct meta_obj *, struct meta_obj *);
 	int	(*change)(struct meta_value *, struct nlattr *);
@@ -796,7 +914,8 @@ struct meta_type_ops {
 	int	(*dump)(struct sk_buff *, struct meta_value *, int);
 };
 
-static const struct meta_type_ops __meta_type_ops[TCF_META_TYPE_MAX + 1] = {
+static const struct meta_type_ops __meta_type_ops[TCF_META_TYPE_MAX + 1] =
+{
 	[TCF_META_TYPE_VAR] = {
 		.destroy = meta_var_destroy,
 		.compare = meta_var_compare,
@@ -822,46 +941,57 @@ static inline const struct meta_type_ops *meta_type_ops(struct meta_value *v)
  **************************************************************************/
 
 static int meta_get(struct sk_buff *skb, struct tcf_pkt_info *info,
-		    struct meta_value *v, struct meta_obj *dst)
+					struct meta_value *v, struct meta_obj *dst)
 {
 	int err = 0;
 
-	if (meta_id(v) == TCF_META_ID_VALUE) {
+	if (meta_id(v) == TCF_META_ID_VALUE)
+	{
 		dst->value = v->val;
 		dst->len = v->len;
 		return 0;
 	}
 
 	meta_ops(v)->get(skb, info, v, dst, &err);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if (meta_type_ops(v)->apply_extras)
+	{
 		meta_type_ops(v)->apply_extras(v, dst);
+	}
 
 	return 0;
 }
 
 static int em_meta_match(struct sk_buff *skb, struct tcf_ematch *m,
-			 struct tcf_pkt_info *info)
+						 struct tcf_pkt_info *info)
 {
 	int r;
 	struct meta_match *meta = (struct meta_match *) m->data;
 	struct meta_obj l_value, r_value;
 
 	if (meta_get(skb, info, &meta->lvalue, &l_value) < 0 ||
-	    meta_get(skb, info, &meta->rvalue, &r_value) < 0)
+		meta_get(skb, info, &meta->rvalue, &r_value) < 0)
+	{
 		return 0;
+	}
 
 	r = meta_type_ops(&meta->lvalue)->compare(&l_value, &r_value);
 
-	switch (meta->lvalue.hdr.op) {
-	case TCF_EM_OPND_EQ:
-		return !r;
-	case TCF_EM_OPND_LT:
-		return r < 0;
-	case TCF_EM_OPND_GT:
-		return r > 0;
+	switch (meta->lvalue.hdr.op)
+	{
+		case TCF_EM_OPND_EQ:
+			return !r;
+
+		case TCF_EM_OPND_LT:
+			return r < 0;
+
+		case TCF_EM_OPND_GT:
+			return r > 0;
 	}
 
 	return 0;
@@ -869,10 +999,12 @@ static int em_meta_match(struct sk_buff *skb, struct tcf_ematch *m,
 
 static void meta_delete(struct meta_match *meta)
 {
-	if (meta) {
+	if (meta)
+	{
 		const struct meta_type_ops *ops = meta_type_ops(&meta->lvalue);
 
-		if (ops && ops->destroy) {
+		if (ops && ops->destroy)
+		{
 			ops->destroy(&meta->lvalue);
 			ops->destroy(&meta->rvalue);
 		}
@@ -883,9 +1015,12 @@ static void meta_delete(struct meta_match *meta)
 
 static inline int meta_change_data(struct meta_value *dst, struct nlattr *nla)
 {
-	if (nla) {
+	if (nla)
+	{
 		if (nla_len(nla) == 0)
+		{
 			return -EINVAL;
+		}
 
 		return meta_type_ops(dst)->change(dst, nla);
 	}
@@ -898,12 +1033,13 @@ static inline int meta_is_supported(struct meta_value *val)
 	return !meta_id(val) || meta_ops(val)->get;
 }
 
-static const struct nla_policy meta_policy[TCA_EM_META_MAX + 1] = {
+static const struct nla_policy meta_policy[TCA_EM_META_MAX + 1] =
+{
 	[TCA_EM_META_HDR]	= { .len = sizeof(struct tcf_meta_hdr) },
 };
 
 static int em_meta_change(struct net *net, void *data, int len,
-			  struct tcf_ematch *m)
+						  struct tcf_ematch *m)
 {
 	int err;
 	struct nlattr *tb[TCA_EM_META_MAX + 1];
@@ -911,22 +1047,33 @@ static int em_meta_change(struct net *net, void *data, int len,
 	struct meta_match *meta = NULL;
 
 	err = nla_parse(tb, TCA_EM_META_MAX, data, len, meta_policy);
+
 	if (err < 0)
+	{
 		goto errout;
+	}
 
 	err = -EINVAL;
+
 	if (tb[TCA_EM_META_HDR] == NULL)
+	{
 		goto errout;
+	}
+
 	hdr = nla_data(tb[TCA_EM_META_HDR]);
 
 	if (TCF_META_TYPE(hdr->left.kind) != TCF_META_TYPE(hdr->right.kind) ||
-	    TCF_META_TYPE(hdr->left.kind) > TCF_META_TYPE_MAX ||
-	    TCF_META_ID(hdr->left.kind) > TCF_META_ID_MAX ||
-	    TCF_META_ID(hdr->right.kind) > TCF_META_ID_MAX)
+		TCF_META_TYPE(hdr->left.kind) > TCF_META_TYPE_MAX ||
+		TCF_META_ID(hdr->left.kind) > TCF_META_ID_MAX ||
+		TCF_META_ID(hdr->right.kind) > TCF_META_ID_MAX)
+	{
 		goto errout;
+	}
 
 	meta = kzalloc(sizeof(*meta), GFP_KERNEL);
-	if (meta == NULL) {
+
+	if (meta == NULL)
+	{
 		err = -ENOMEM;
 		goto errout;
 	}
@@ -935,29 +1082,38 @@ static int em_meta_change(struct net *net, void *data, int len,
 	memcpy(&meta->rvalue.hdr, &hdr->right, sizeof(hdr->right));
 
 	if (!meta_is_supported(&meta->lvalue) ||
-	    !meta_is_supported(&meta->rvalue)) {
+		!meta_is_supported(&meta->rvalue))
+	{
 		err = -EOPNOTSUPP;
 		goto errout;
 	}
 
 	if (meta_change_data(&meta->lvalue, tb[TCA_EM_META_LVALUE]) < 0 ||
-	    meta_change_data(&meta->rvalue, tb[TCA_EM_META_RVALUE]) < 0)
+		meta_change_data(&meta->rvalue, tb[TCA_EM_META_RVALUE]) < 0)
+	{
 		goto errout;
+	}
 
 	m->datalen = sizeof(*meta);
 	m->data = (unsigned long) meta;
 
 	err = 0;
 errout:
+
 	if (err && meta)
+	{
 		meta_delete(meta);
+	}
+
 	return err;
 }
 
 static void em_meta_destroy(struct tcf_ematch *m)
 {
 	if (m)
+	{
 		meta_delete((struct meta_match *) m->data);
+	}
 }
 
 static int em_meta_dump(struct sk_buff *skb, struct tcf_ematch *em)
@@ -971,12 +1127,17 @@ static int em_meta_dump(struct sk_buff *skb, struct tcf_ematch *em)
 	memcpy(&hdr.right, &meta->rvalue.hdr, sizeof(hdr.right));
 
 	if (nla_put(skb, TCA_EM_META_HDR, sizeof(hdr), &hdr))
+	{
 		goto nla_put_failure;
+	}
 
 	ops = meta_type_ops(&meta->lvalue);
+
 	if (ops->dump(skb, &meta->lvalue, TCA_EM_META_LVALUE) < 0 ||
-	    ops->dump(skb, &meta->rvalue, TCA_EM_META_RVALUE) < 0)
+		ops->dump(skb, &meta->rvalue, TCA_EM_META_RVALUE) < 0)
+	{
 		goto nla_put_failure;
+	}
 
 	return 0;
 
@@ -984,7 +1145,8 @@ nla_put_failure:
 	return -1;
 }
 
-static struct tcf_ematch_ops em_meta_ops = {
+static struct tcf_ematch_ops em_meta_ops =
+{
 	.kind	  = TCF_EM_META,
 	.change	  = em_meta_change,
 	.match	  = em_meta_match,

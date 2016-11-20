@@ -53,7 +53,8 @@
 #define LXT_LUNIDX_SHIFT  8	/* LXT entry, shift for LUN index */
 #define LXT_PERM_SHIFT    4	/* LXT entry, shift for permission bits */
 
-struct ba_lun_info {
+struct ba_lun_info
+{
 	u64 *lun_alloc_map;
 	u32 lun_bmap_size;
 	u32 total_aus;
@@ -67,7 +68,8 @@ struct ba_lun_info {
 	u8 *aun_clone_map;
 };
 
-struct ba_lun {
+struct ba_lun
+{
 	u64 lun_id;
 	u64 wwpn;
 	size_t lsize;		/* LUN size in number of LBAs             */
@@ -77,7 +79,8 @@ struct ba_lun {
 };
 
 /* Block Allocator */
-struct blka {
+struct blka
+{
 	struct ba_lun ba_lun;
 	u64 nchunk;		/* number of chunks */
 	struct mutex mutex;

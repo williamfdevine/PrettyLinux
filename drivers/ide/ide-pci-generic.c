@@ -39,21 +39,23 @@ static void netcell_quirkproc(ide_drive_t *drive)
 	drive->id[ATA_ID_CSF_DEFAULT] |= 0x4000;
 }
 
-static const struct ide_port_ops netcell_port_ops = {
+static const struct ide_port_ops netcell_port_ops =
+{
 	.quirkproc		= netcell_quirkproc,
 };
 
 #define DECLARE_GENERIC_PCI_DEV(extra_flags) \
 	{ \
 		.name		= DRV_NAME, \
-		.host_flags	= IDE_HFLAG_TRUST_BIOS_FOR_DMA | \
-				  extra_flags, \
-		.swdma_mask	= ATA_SWDMA2, \
-		.mwdma_mask	= ATA_MWDMA2, \
-		.udma_mask	= ATA_UDMA6, \
+					  .host_flags	= IDE_HFLAG_TRUST_BIOS_FOR_DMA | \
+									extra_flags, \
+									.swdma_mask	= ATA_SWDMA2, \
+											.mwdma_mask	= ATA_MWDMA2, \
+													.udma_mask	= ATA_UDMA6, \
 	}
 
-static const struct ide_port_info generic_chipsets[] = {
+static const struct ide_port_info generic_chipsets[] =
+{
 	/*  0: Unknown */
 	DECLARE_GENERIC_PCI_DEV(0),
 
@@ -76,7 +78,7 @@ static const struct ide_port_info generic_chipsets[] = {
 	{	/* 5: VIA8237SATA */
 		.name		= DRV_NAME,
 		.host_flags	= IDE_HFLAG_TRUST_BIOS_FOR_DMA |
-				  IDE_HFLAG_OFF_BOARD,
+		IDE_HFLAG_OFF_BOARD,
 		.swdma_mask	= ATA_SWDMA2,
 		.mwdma_mask	= ATA_MWDMA2,
 		.udma_mask	= ATA_UDMA6,
@@ -86,8 +88,8 @@ static const struct ide_port_info generic_chipsets[] = {
 		.name		= DRV_NAME,
 		.port_ops	= &netcell_port_ops,
 		.host_flags	= IDE_HFLAG_CLEAR_SIMPLEX |
-				  IDE_HFLAG_TRUST_BIOS_FOR_DMA |
-				  IDE_HFLAG_OFF_BOARD,
+		IDE_HFLAG_TRUST_BIOS_FOR_DMA |
+		IDE_HFLAG_OFF_BOARD,
 		.swdma_mask	= ATA_SWDMA2,
 		.mwdma_mask	= ATA_MWDMA2,
 		.udma_mask	= ATA_UDMA6,
@@ -110,46 +112,69 @@ static int generic_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 
 	/* Don't use the generic entry unless instructed to do so */
 	if (id->driver_data == 0 && ide_generic_all == 0)
-			goto out;
-
-	switch (dev->vendor) {
-	case PCI_VENDOR_ID_UMC:
-		if (dev->device == PCI_DEVICE_ID_UMC_UM8886A &&
-				!(PCI_FUNC(dev->devfn) & 1))
-			goto out; /* UM8886A/BF pair */
-		break;
-	case PCI_VENDOR_ID_OPTI:
-		if (dev->device == PCI_DEVICE_ID_OPTI_82C558 &&
-				!(PCI_FUNC(dev->devfn) & 1))
-			goto out;
-		break;
-	case PCI_VENDOR_ID_JMICRON:
-		if (dev->device != PCI_DEVICE_ID_JMICRON_JMB368 &&
-				PCI_FUNC(dev->devfn) != 1)
-			goto out;
-		break;
-	case PCI_VENDOR_ID_NS:
-		if (dev->device == PCI_DEVICE_ID_NS_87410 &&
-				(dev->class >> 8) != PCI_CLASS_STORAGE_IDE)
-			goto out;
-		break;
+	{
+		goto out;
 	}
 
-	if (dev->vendor != PCI_VENDOR_ID_JMICRON) {
+	switch (dev->vendor)
+	{
+		case PCI_VENDOR_ID_UMC:
+			if (dev->device == PCI_DEVICE_ID_UMC_UM8886A &&
+				!(PCI_FUNC(dev->devfn) & 1))
+			{
+				goto out;    /* UM8886A/BF pair */
+			}
+
+			break;
+
+		case PCI_VENDOR_ID_OPTI:
+			if (dev->device == PCI_DEVICE_ID_OPTI_82C558 &&
+				!(PCI_FUNC(dev->devfn) & 1))
+			{
+				goto out;
+			}
+
+			break;
+
+		case PCI_VENDOR_ID_JMICRON:
+			if (dev->device != PCI_DEVICE_ID_JMICRON_JMB368 &&
+				PCI_FUNC(dev->devfn) != 1)
+			{
+				goto out;
+			}
+
+			break;
+
+		case PCI_VENDOR_ID_NS:
+			if (dev->device == PCI_DEVICE_ID_NS_87410 &&
+				(dev->class >> 8) != PCI_CLASS_STORAGE_IDE)
+			{
+				goto out;
+			}
+
+			break;
+	}
+
+	if (dev->vendor != PCI_VENDOR_ID_JMICRON)
+	{
 		u16 command;
 		pci_read_config_word(dev, PCI_COMMAND, &command);
-		if (!(command & PCI_COMMAND_IO)) {
+
+		if (!(command & PCI_COMMAND_IO))
+		{
 			printk(KERN_INFO "%s %s: skipping disabled "
-				"controller\n", d->name, pci_name(dev));
+				   "controller\n", d->name, pci_name(dev));
 			goto out;
 		}
 	}
+
 	ret = ide_pci_init_one(dev, d, NULL);
 out:
 	return ret;
 }
 
-static const struct pci_device_id generic_pci_tbl[] = {
+static const struct pci_device_id generic_pci_tbl[] =
+{
 	{ PCI_VDEVICE(NS,	PCI_DEVICE_ID_NS_87410),		 1 },
 	{ PCI_VDEVICE(PCTECH,	PCI_DEVICE_ID_PCTECH_SAMURAI_IDE),	 2 },
 	{ PCI_VDEVICE(HOLTEK,	PCI_DEVICE_ID_HOLTEK_6565),		 2 },
@@ -176,7 +201,8 @@ static const struct pci_device_id generic_pci_tbl[] = {
 };
 MODULE_DEVICE_TABLE(pci, generic_pci_tbl);
 
-static struct pci_driver generic_pci_driver = {
+static struct pci_driver generic_pci_driver =
+{
 	.name		= "PCI_IDE",
 	.id_table	= generic_pci_tbl,
 	.probe		= generic_init_one,

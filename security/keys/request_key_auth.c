@@ -23,7 +23,7 @@
 static int request_key_auth_preparse(struct key_preparsed_payload *);
 static void request_key_auth_free_preparse(struct key_preparsed_payload *);
 static int request_key_auth_instantiate(struct key *,
-					struct key_preparsed_payload *);
+										struct key_preparsed_payload *);
 static void request_key_auth_describe(const struct key *, struct seq_file *);
 static void request_key_auth_revoke(struct key *);
 static void request_key_auth_destroy(struct key *);
@@ -32,7 +32,8 @@ static long request_key_auth_read(const struct key *, char __user *, size_t);
 /*
  * The request-key authorisation key type definition.
  */
-struct key_type key_type_request_key_auth = {
+struct key_type key_type_request_key_auth =
+{
 	.name		= ".request_key_auth",
 	.def_datalen	= sizeof(struct request_key_auth),
 	.preparse	= request_key_auth_preparse,
@@ -57,7 +58,7 @@ static void request_key_auth_free_preparse(struct key_preparsed_payload *prep)
  * Instantiate a request-key authorisation key.
  */
 static int request_key_auth_instantiate(struct key *key,
-					struct key_preparsed_payload *prep)
+										struct key_preparsed_payload *prep)
 {
 	key->payload.data[0] = (struct request_key_auth *)prep->data;
 	return 0;
@@ -67,14 +68,17 @@ static int request_key_auth_instantiate(struct key *key,
  * Describe an authorisation token.
  */
 static void request_key_auth_describe(const struct key *key,
-				      struct seq_file *m)
+									  struct seq_file *m)
 {
 	struct request_key_auth *rka = key->payload.data[0];
 
 	seq_puts(m, "key:");
 	seq_puts(m, key->description);
+
 	if (key_is_instantiated(key))
+	{
 		seq_printf(m, " pid:%d ci:%zu", rka->pid, rka->callout_len);
+	}
 }
 
 /*
@@ -82,7 +86,7 @@ static void request_key_auth_describe(const struct key *key,
  * - the key's semaphore is read-locked
  */
 static long request_key_auth_read(const struct key *key,
-				  char __user *buffer, size_t buflen)
+								  char __user *buffer, size_t buflen)
 {
 	struct request_key_auth *rka = key->payload.data[0];
 	size_t datalen;
@@ -92,12 +96,17 @@ static long request_key_auth_read(const struct key *key,
 	ret = datalen;
 
 	/* we can return the data as is */
-	if (buffer && buflen > 0) {
+	if (buffer && buflen > 0)
+	{
 		if (buflen > datalen)
+		{
 			buflen = datalen;
+		}
 
 		if (copy_to_user(buffer, rka->callout_info, buflen) != 0)
+		{
 			ret = -EFAULT;
+		}
 	}
 
 	return ret;
@@ -114,7 +123,8 @@ static void request_key_auth_revoke(struct key *key)
 
 	kenter("{%d}", key->serial);
 
-	if (rka->cred) {
+	if (rka->cred)
+	{
 		put_cred(rka->cred);
 		rka->cred = NULL;
 	}
@@ -129,7 +139,8 @@ static void request_key_auth_destroy(struct key *key)
 
 	kenter("{%d}", key->serial);
 
-	if (rka->cred) {
+	if (rka->cred)
+	{
 		put_cred(rka->cred);
 		rka->cred = NULL;
 	}
@@ -145,7 +156,7 @@ static void request_key_auth_destroy(struct key *key)
  * access to the caller's security data.
  */
 struct key *request_key_auth_new(struct key *target, const void *callout_info,
-				 size_t callout_len, struct key *dest_keyring)
+								 size_t callout_len, struct key *dest_keyring)
 {
 	struct request_key_auth *rka, *irka;
 	const struct cred *cred = current->cred;
@@ -157,12 +168,17 @@ struct key *request_key_auth_new(struct key *target, const void *callout_info,
 
 	/* allocate a auth record */
 	rka = kmalloc(sizeof(*rka), GFP_KERNEL);
-	if (!rka) {
+
+	if (!rka)
+	{
 		kleave(" = -ENOMEM");
 		return ERR_PTR(-ENOMEM);
 	}
+
 	rka->callout_info = kmalloc(callout_len, GFP_KERNEL);
-	if (!rka->callout_info) {
+
+	if (!rka->callout_info)
+	{
 		kleave(" = -ENOMEM");
 		kfree(rka);
 		return ERR_PTR(-ENOMEM);
@@ -170,14 +186,17 @@ struct key *request_key_auth_new(struct key *target, const void *callout_info,
 
 	/* see if the calling process is already servicing the key request of
 	 * another process */
-	if (cred->request_key_auth) {
+	if (cred->request_key_auth)
+	{
 		/* it is - use that instantiation context here too */
 		down_read(&cred->request_key_auth->sem);
 
 		/* if the auth key has been revoked, then the key we're
 		 * servicing is already instantiated */
 		if (test_bit(KEY_FLAG_REVOKED, &cred->request_key_auth->flags))
+		{
 			goto auth_key_revoked;
+		}
 
 		irka = cred->request_key_auth->payload.data[0];
 		rka->cred = get_cred(irka->cred);
@@ -185,7 +204,8 @@ struct key *request_key_auth_new(struct key *target, const void *callout_info,
 
 		up_read(&cred->request_key_auth->sem);
 	}
-	else {
+	else
+	{
 		/* it isn't - use this process as the context */
 		rka->cred = get_cred(cred);
 		rka->pid = current->pid;
@@ -200,18 +220,23 @@ struct key *request_key_auth_new(struct key *target, const void *callout_info,
 	sprintf(desc, "%x", target->serial);
 
 	authkey = key_alloc(&key_type_request_key_auth, desc,
-			    cred->fsuid, cred->fsgid, cred,
-			    KEY_POS_VIEW | KEY_POS_READ | KEY_POS_SEARCH |
-			    KEY_USR_VIEW, KEY_ALLOC_NOT_IN_QUOTA, NULL);
-	if (IS_ERR(authkey)) {
+						cred->fsuid, cred->fsgid, cred,
+						KEY_POS_VIEW | KEY_POS_READ | KEY_POS_SEARCH |
+						KEY_USR_VIEW, KEY_ALLOC_NOT_IN_QUOTA, NULL);
+
+	if (IS_ERR(authkey))
+	{
 		ret = PTR_ERR(authkey);
 		goto error_alloc;
 	}
 
 	/* construct the auth key */
 	ret = key_instantiate_and_link(authkey, rka, 0, NULL, NULL);
+
 	if (ret < 0)
+	{
 		goto error_inst;
+	}
 
 	kleave(" = {%d,%d}", authkey->serial, atomic_read(&authkey->usage));
 	return authkey;
@@ -242,7 +267,8 @@ error_alloc:
 struct key *key_get_instantiation_authkey(key_serial_t target_id)
 {
 	char description[16];
-	struct keyring_search_context ctx = {
+	struct keyring_search_context ctx =
+	{
 		.index_key.type		= &key_type_request_key_auth,
 		.index_key.description	= description,
 		.cred			= current_cred(),
@@ -258,15 +284,22 @@ struct key *key_get_instantiation_authkey(key_serial_t target_id)
 
 	authkey_ref = search_process_keyrings(&ctx);
 
-	if (IS_ERR(authkey_ref)) {
+	if (IS_ERR(authkey_ref))
+	{
 		authkey = ERR_CAST(authkey_ref);
+
 		if (authkey == ERR_PTR(-EAGAIN))
+		{
 			authkey = ERR_PTR(-ENOKEY);
+		}
+
 		goto error;
 	}
 
 	authkey = key_ref_to_ptr(authkey_ref);
-	if (test_bit(KEY_FLAG_REVOKED, &authkey->flags)) {
+
+	if (test_bit(KEY_FLAG_REVOKED, &authkey->flags))
+	{
 		key_put(authkey);
 		authkey = ERR_PTR(-EKEYREVOKED);
 	}

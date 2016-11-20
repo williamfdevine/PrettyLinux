@@ -3,8 +3,8 @@
  * Test basic LLVM building
  */
 #ifndef LINUX_VERSION_CODE
-# error Need LINUX_VERSION_CODE
-# error Example: for 4.2 kernel, put 'clang-opt="-DLINUX_VERSION_CODE=0x40200" into llvm section of ~/.perfconfig'
+	# error Need LINUX_VERSION_CODE
+	# error Example: for 4.2 kernel, put 'clang-opt="-DLINUX_VERSION_CODE=0x40200" into llvm section of ~/.perfconfig'
 #endif
 #define BPF_ANY 0
 #define BPF_MAP_TYPE_ARRAY 2
@@ -16,7 +16,8 @@ static void *(*bpf_map_lookup_elem)(void *map, void *key) =
 static void *(*bpf_map_update_elem)(void *map, void *key, void *value, int flags) =
 	(void *) BPF_FUNC_map_update_elem;
 
-struct bpf_map_def {
+struct bpf_map_def
+{
 	unsigned int type;
 	unsigned int key_size;
 	unsigned int value_size;
@@ -24,7 +25,8 @@ struct bpf_map_def {
 };
 
 #define SEC(NAME) __attribute__((section(NAME), used))
-struct bpf_map_def SEC("maps") flip_table = {
+struct bpf_map_def SEC("maps") flip_table =
+{
 	.type = BPF_MAP_TYPE_ARRAY,
 	.key_size = sizeof(int),
 	.value_size = sizeof(int),
@@ -34,11 +36,15 @@ struct bpf_map_def SEC("maps") flip_table = {
 SEC("func=SyS_epoll_wait")
 int bpf_func__SyS_epoll_wait(void *ctx)
 {
-	int ind =0;
+	int ind = 0;
 	int *flag = bpf_map_lookup_elem(&flip_table, &ind);
 	int new_flag;
+
 	if (!flag)
+	{
 		return 0;
+	}
+
 	/* flip flag and store back */
 	new_flag = !*flag;
 	bpf_map_update_elem(&flip_table, &ind, &new_flag, BPF_ANY);

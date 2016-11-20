@@ -17,7 +17,7 @@
  *      The percussive mode is implemented in the left side only.
  *
  *      With the above exceptions the both sides can be operated independently.
- *      
+ *
  *      A 4 OP voice can be created by setting the corresponding
  *      bit at offset 4 of the right side.
  *
@@ -26,7 +26,7 @@
  *      voice is made inaccessible.
  *
  *      If a voice is set to the 2 OP mode, it works like 2 OP modes
- *      of the original YM3812 (AdLib). In addition the voice can 
+ *      of the original YM3812 (AdLib). In addition the voice can
  *      be connected the left, right or both stereo channels. It can
  *      even be left unconnected. This works with 4 OP voices also.
  *
@@ -56,8 +56,8 @@
 #include <sound/timer.h>
 #include <sound/seq_midi_emul.h>
 #ifdef CONFIG_SND_SEQUENCER_OSS
-#include <sound/seq_oss.h>
-#include <sound/seq_oss_legacy.h>
+	#include <sound/seq_oss.h>
+	#include <sound/seq_oss_legacy.h>
 #endif
 #include <sound/seq_device.h>
 #include <sound/asound_fm.h>
@@ -117,9 +117,9 @@
 #define   OPL3_KSR			0x10	/* Key scaling rate */
 #define   OPL3_MULTIPLE_MASK		0x0f	/* Frequency multiplier */
 
- /*
-  *   KSL/Total level (0x40 to 0x55)
-  */
+/*
+ *   KSL/Total level (0x40 to 0x55)
+ */
 #define OPL3_REG_KSL_LEVEL		0x40
 #define   OPL3_KSL_MASK			0xc0	/* Envelope scaling bits */
 #define   OPL3_TOTAL_LEVEL_MASK		0x3f	/* Strength (volume) of OP */
@@ -188,13 +188,13 @@
  *      0               0               >+-1-+--2--3--4-->
  *
  *
- *                                      
+ *
  *                                       +---+
  *                                       |   |
  *      0               1               >+-1-+--2-+
  *                                                |->
  *                                      >--3----4-+
- *                                      
+ *
  *                                       +---+
  *                                       |   |
  *      1               0               >+-1-+-----+
@@ -241,7 +241,8 @@ struct snd_opl3;
  */
 
 /* FM operator */
-struct fm_operator {
+struct fm_operator
+{
 	unsigned char am_vib;
 	unsigned char ksl_level;
 	unsigned char attack_decay;
@@ -250,7 +251,8 @@ struct fm_operator {
 } __attribute__((packed));
 
 /* Instrument data */
-struct fm_instrument {
+struct fm_instrument
+{
 	struct fm_operator op[4];
 	unsigned char feedback_connection[2];
 	unsigned char echo_delay;
@@ -267,7 +269,8 @@ struct fm_instrument {
 #define FM_PATCH_OPL3	0x02		/* OPL3 4 operators FM instrument */
 
 /* Instrument record */
-struct fm_patch {
+struct fm_patch
+{
 	unsigned char prog;
 	unsigned char bank;
 	unsigned char type;
@@ -280,7 +283,8 @@ struct fm_patch {
 /*
  * A structure to keep track of each hardware voice
  */
-struct snd_opl3_voice {
+struct snd_opl3_voice
+{
 	int  state;		/* status */
 #define SNDRV_OPL3_ST_OFF		0	/* Not playing */
 #define SNDRV_OPL3_ST_ON_2OP	1	/* 2op voice is allocated */
@@ -298,14 +302,15 @@ struct snd_opl3_voice {
 	struct snd_midi_channel *chan;	/* Midi channel for this note */
 };
 
-struct snd_opl3 {
+struct snd_opl3
+{
 	unsigned long l_port;
 	unsigned long r_port;
 	struct resource *res_l_port;
 	struct resource *res_r_port;
 	unsigned short hardware;
 	/* hardware access */
-	void (*command) (struct snd_opl3 * opl3, unsigned short cmd, unsigned char val);
+	void (*command) (struct snd_opl3 *opl3, unsigned short cmd, unsigned char val);
 	unsigned short timer_enable;
 	int seq_dev_num;	/* sequencer device number */
 	struct snd_timer *timer1;
@@ -328,13 +333,13 @@ struct snd_opl3 {
 	int seq_client;
 
 	struct snd_seq_device *seq_dev;	/* sequencer device */
-	struct snd_midi_channel_set * chset;
+	struct snd_midi_channel_set *chset;
 
 #ifdef CONFIG_SND_SEQUENCER_OSS
 	struct snd_seq_device *oss_seq_dev;	/* OSS sequencer device */
-	struct snd_midi_channel_set * oss_chset;
+	struct snd_midi_channel_set *oss_chset;
 #endif
- 
+
 #define OPL3_PATCH_HASH_SIZE	32
 	struct fm_patch *patch_table[OPL3_PATCH_HASH_SIZE];
 
@@ -353,37 +358,37 @@ struct snd_opl3 {
 };
 
 /* opl3.c */
-void snd_opl3_interrupt(struct snd_hwdep * hw);
+void snd_opl3_interrupt(struct snd_hwdep *hw);
 int snd_opl3_new(struct snd_card *card, unsigned short hardware,
-		 struct snd_opl3 **ropl3);
+				 struct snd_opl3 **ropl3);
 int snd_opl3_init(struct snd_opl3 *opl3);
 int snd_opl3_create(struct snd_card *card,
-		    unsigned long l_port, unsigned long r_port,
-		    unsigned short hardware,
-		    int integrated,
-		    struct snd_opl3 ** opl3);
-int snd_opl3_timer_new(struct snd_opl3 * opl3, int timer1_dev, int timer2_dev);
-int snd_opl3_hwdep_new(struct snd_opl3 * opl3, int device, int seq_device,
-		       struct snd_hwdep ** rhwdep);
+					unsigned long l_port, unsigned long r_port,
+					unsigned short hardware,
+					int integrated,
+					struct snd_opl3 **opl3);
+int snd_opl3_timer_new(struct snd_opl3 *opl3, int timer1_dev, int timer2_dev);
+int snd_opl3_hwdep_new(struct snd_opl3 *opl3, int device, int seq_device,
+					   struct snd_hwdep **rhwdep);
 
 /* opl3_synth */
-int snd_opl3_open(struct snd_hwdep * hw, struct file *file);
-int snd_opl3_ioctl(struct snd_hwdep * hw, struct file *file,
-		   unsigned int cmd, unsigned long arg);
-int snd_opl3_release(struct snd_hwdep * hw, struct file *file);
+int snd_opl3_open(struct snd_hwdep *hw, struct file *file);
+int snd_opl3_ioctl(struct snd_hwdep *hw, struct file *file,
+				   unsigned int cmd, unsigned long arg);
+int snd_opl3_release(struct snd_hwdep *hw, struct file *file);
 
-void snd_opl3_reset(struct snd_opl3 * opl3);
+void snd_opl3_reset(struct snd_opl3 *opl3);
 
 #if defined(CONFIG_SND_SEQUENCER) || defined(CONFIG_SND_SEQUENCER_MODULE)
 long snd_opl3_write(struct snd_hwdep *hw, const char __user *buf, long count,
-		    loff_t *offset);
+					loff_t *offset);
 int snd_opl3_load_patch(struct snd_opl3 *opl3,
-			int prog, int bank, int type,
-			const char *name,
-			const unsigned char *ext,
-			const unsigned char *data);
+						int prog, int bank, int type,
+						const char *name,
+						const unsigned char *ext,
+						const unsigned char *data);
 struct fm_patch *snd_opl3_find_patch(struct snd_opl3 *opl3, int prog, int bank,
-				     int create_patch);
+									 int create_patch);
 void snd_opl3_clear_patches(struct snd_opl3 *opl3);
 #else
 #define snd_opl3_write	NULL

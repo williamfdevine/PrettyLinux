@@ -49,12 +49,15 @@ void xprt_free_bc_rqst(struct rpc_rqst *req);
 static inline int svc_is_backchannel(const struct svc_rqst *rqstp)
 {
 	if (rqstp->rq_server->sv_bc_xprt)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 #else /* CONFIG_SUNRPC_BACKCHANNEL */
 static inline int xprt_setup_backchannel(struct rpc_xprt *xprt,
-					 unsigned int min_reqs)
+		unsigned int min_reqs)
 {
 	return 0;
 }

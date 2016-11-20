@@ -142,7 +142,8 @@
 #define MICROREAD_ELT_ID_SE2 0x04
 #define MICROREAD_ELT_ID_SE3 0x05
 
-static struct nfc_hci_gate microread_gates[] = {
+static struct nfc_hci_gate microread_gates[] =
+{
 	{MICROREAD_GATE_ID_ADM, MICROREAD_PIPE_ID_ADMIN},
 	{MICROREAD_GATE_ID_LOOPBACK, MICROREAD_PIPE_ID_HDS_LOOPBACK},
 	{MICROREAD_GATE_ID_IDT, MICROREAD_PIPE_ID_HDS_IDT},
@@ -162,7 +163,8 @@ static struct nfc_hci_gate microread_gates[] = {
 #define MICROREAD_CMDS_HEADROOM	2
 #define MICROREAD_CMD_TAILROOM	2
 
-struct microread_info {
+struct microread_info
+{
 	struct nfc_phy_ops *phy_ops;
 	void *phy_id;
 
@@ -194,34 +196,46 @@ static int microread_hci_ready(struct nfc_hci_dev *hdev)
 
 	param[0] = 0x03;
 	r = nfc_hci_send_cmd(hdev, MICROREAD_GATE_ID_MREAD_ISO_A,
-			     MICROREAD_CMD_MREAD_SUBSCRIBE, param, 1, NULL);
+						 MICROREAD_CMD_MREAD_SUBSCRIBE, param, 1, NULL);
+
 	if (r)
+	{
 		return r;
+	}
 
 	r = nfc_hci_send_cmd(hdev, MICROREAD_GATE_ID_MREAD_ISO_A_3,
-			     MICROREAD_CMD_MREAD_SUBSCRIBE, NULL, 0, NULL);
+						 MICROREAD_CMD_MREAD_SUBSCRIBE, NULL, 0, NULL);
+
 	if (r)
+	{
 		return r;
+	}
 
 	param[0] = 0x00;
 	param[1] = 0x03;
 	param[2] = 0x00;
 	r = nfc_hci_send_cmd(hdev, MICROREAD_GATE_ID_MREAD_ISO_B,
-			     MICROREAD_CMD_MREAD_SUBSCRIBE, param, 3, NULL);
+						 MICROREAD_CMD_MREAD_SUBSCRIBE, param, 3, NULL);
+
 	if (r)
+	{
 		return r;
+	}
 
 	r = nfc_hci_send_cmd(hdev, MICROREAD_GATE_ID_MREAD_NFC_T1,
-			     MICROREAD_CMD_MREAD_SUBSCRIBE, NULL, 0, NULL);
+						 MICROREAD_CMD_MREAD_SUBSCRIBE, NULL, 0, NULL);
+
 	if (r)
+	{
 		return r;
+	}
 
 	param[0] = 0xFF;
 	param[1] = 0xFF;
 	param[2] = 0x00;
 	param[3] = 0x00;
 	r = nfc_hci_send_cmd(hdev, MICROREAD_GATE_ID_MREAD_NFC_T3,
-			     MICROREAD_CMD_MREAD_SUBSCRIBE, param, 4, NULL);
+						 MICROREAD_CMD_MREAD_SUBSCRIBE, param, 4, NULL);
 
 	return r;
 }
@@ -234,7 +248,7 @@ static int microread_xmit(struct nfc_hci_dev *hdev, struct sk_buff *skb)
 }
 
 static int microread_start_poll(struct nfc_hci_dev *hdev,
-				u32 im_protocols, u32 tm_protocols)
+								u32 im_protocols, u32 tm_protocols)
 {
 	int r;
 
@@ -245,92 +259,130 @@ static int microread_start_poll(struct nfc_hci_dev *hdev,
 	param[1] = 0x00;
 
 	if (im_protocols & NFC_PROTO_ISO14443_MASK)
+	{
 		param[0] |= (1 << 2);
+	}
 
 	if (im_protocols & NFC_PROTO_ISO14443_B_MASK)
+	{
 		param[0] |= 1;
+	}
 
 	if (im_protocols & NFC_PROTO_MIFARE_MASK)
+	{
 		param[1] |= 1;
+	}
 
 	if (im_protocols & NFC_PROTO_JEWEL_MASK)
+	{
 		param[0] |= (1 << 1);
+	}
 
 	if (im_protocols & NFC_PROTO_FELICA_MASK)
+	{
 		param[0] |= (1 << 5);
+	}
 
 	if (im_protocols & NFC_PROTO_NFC_DEP_MASK)
+	{
 		param[1] |= (1 << 1);
+	}
 
-	if ((im_protocols | tm_protocols) & NFC_PROTO_NFC_DEP_MASK) {
+	if ((im_protocols | tm_protocols) & NFC_PROTO_NFC_DEP_MASK)
+	{
 		hdev->gb = nfc_get_local_general_bytes(hdev->ndev,
-						       &hdev->gb_len);
-		if (hdev->gb == NULL || hdev->gb_len == 0) {
+											   &hdev->gb_len);
+
+		if (hdev->gb == NULL || hdev->gb_len == 0)
+		{
 			im_protocols &= ~NFC_PROTO_NFC_DEP_MASK;
 			tm_protocols &= ~NFC_PROTO_NFC_DEP_MASK;
 		}
 	}
 
 	r = nfc_hci_send_event(hdev, MICROREAD_GATE_ID_MREAD_ISO_A,
-			       MICROREAD_EVT_MREAD_DISCOVERY_STOP, NULL, 0);
+						   MICROREAD_EVT_MREAD_DISCOVERY_STOP, NULL, 0);
+
 	if (r)
+	{
 		return r;
+	}
 
 	mode = 0xff;
 	r = nfc_hci_set_param(hdev, MICROREAD_GATE_ID_P2P_TARGET,
-			      MICROREAD_PAR_P2P_TARGET_MODE, &mode, 1);
-	if (r)
-		return r;
+						  MICROREAD_PAR_P2P_TARGET_MODE, &mode, 1);
 
-	if (im_protocols & NFC_PROTO_NFC_DEP_MASK) {
-		r = nfc_hci_set_param(hdev, MICROREAD_GATE_ID_P2P_INITIATOR,
-				      MICROREAD_PAR_P2P_INITIATOR_GI,
-				      hdev->gb, hdev->gb_len);
-		if (r)
-			return r;
+	if (r)
+	{
+		return r;
 	}
 
-	if (tm_protocols & NFC_PROTO_NFC_DEP_MASK) {
-		r = nfc_hci_set_param(hdev, MICROREAD_GATE_ID_P2P_TARGET,
-				      MICROREAD_PAR_P2P_TARGET_GT,
-				      hdev->gb, hdev->gb_len);
+	if (im_protocols & NFC_PROTO_NFC_DEP_MASK)
+	{
+		r = nfc_hci_set_param(hdev, MICROREAD_GATE_ID_P2P_INITIATOR,
+							  MICROREAD_PAR_P2P_INITIATOR_GI,
+							  hdev->gb, hdev->gb_len);
+
 		if (r)
+		{
 			return r;
+		}
+	}
+
+	if (tm_protocols & NFC_PROTO_NFC_DEP_MASK)
+	{
+		r = nfc_hci_set_param(hdev, MICROREAD_GATE_ID_P2P_TARGET,
+							  MICROREAD_PAR_P2P_TARGET_GT,
+							  hdev->gb, hdev->gb_len);
+
+		if (r)
+		{
+			return r;
+		}
 
 		mode = 0x02;
 		r = nfc_hci_set_param(hdev, MICROREAD_GATE_ID_P2P_TARGET,
-				      MICROREAD_PAR_P2P_TARGET_MODE, &mode, 1);
+							  MICROREAD_PAR_P2P_TARGET_MODE, &mode, 1);
+
 		if (r)
+		{
 			return r;
+		}
 	}
 
 	return nfc_hci_send_event(hdev, MICROREAD_GATE_ID_MREAD_ISO_A,
-				  MICROREAD_EVT_MREAD_DISCOVERY_START_SOME,
-				  param, 2);
+							  MICROREAD_EVT_MREAD_DISCOVERY_START_SOME,
+							  param, 2);
 }
 
 static int microread_dep_link_up(struct nfc_hci_dev *hdev,
-				struct nfc_target *target, u8 comm_mode,
-				u8 *gb, size_t gb_len)
+								 struct nfc_target *target, u8 comm_mode,
+								 u8 *gb, size_t gb_len)
 {
 	struct sk_buff *rgb_skb = NULL;
 	int r;
 
 	r = nfc_hci_get_param(hdev, target->hci_reader_gate,
-			      MICROREAD_PAR_P2P_INITIATOR_GT, &rgb_skb);
-	if (r < 0)
-		return r;
+						  MICROREAD_PAR_P2P_INITIATOR_GT, &rgb_skb);
 
-	if (rgb_skb->len == 0 || rgb_skb->len > NFC_GB_MAXSIZE) {
+	if (r < 0)
+	{
+		return r;
+	}
+
+	if (rgb_skb->len == 0 || rgb_skb->len > NFC_GB_MAXSIZE)
+	{
 		r = -EPROTO;
 		goto exit;
 	}
 
 	r = nfc_set_remote_general_bytes(hdev->ndev, rgb_skb->data,
-					 rgb_skb->len);
+									 rgb_skb->len);
+
 	if (r == 0)
 		r = nfc_dep_link_is_up(hdev->ndev, target->idx, comm_mode,
-				       NFC_RF_INITIATOR);
+							   NFC_RF_INITIATOR);
+
 exit:
 	kfree_skb(rgb_skb);
 
@@ -340,26 +392,28 @@ exit:
 static int microread_dep_link_down(struct nfc_hci_dev *hdev)
 {
 	return nfc_hci_send_event(hdev, MICROREAD_GATE_ID_P2P_INITIATOR,
-				  MICROREAD_EVT_MREAD_DISCOVERY_STOP, NULL, 0);
+							  MICROREAD_EVT_MREAD_DISCOVERY_STOP, NULL, 0);
 }
 
 static int microread_target_from_gate(struct nfc_hci_dev *hdev, u8 gate,
-				      struct nfc_target *target)
+									  struct nfc_target *target)
 {
-	switch (gate) {
-	case MICROREAD_GATE_ID_P2P_INITIATOR:
-		target->supported_protocols = NFC_PROTO_NFC_DEP_MASK;
-		break;
-	default:
-		return -EPROTO;
+	switch (gate)
+	{
+		case MICROREAD_GATE_ID_P2P_INITIATOR:
+			target->supported_protocols = NFC_PROTO_NFC_DEP_MASK;
+			break;
+
+		default:
+			return -EPROTO;
 	}
 
 	return 0;
 }
 
 static int microread_complete_target_discovered(struct nfc_hci_dev *hdev,
-						u8 gate,
-						struct nfc_target *target)
+		u8 gate,
+		struct nfc_target *target)
 {
 	return 0;
 }
@@ -367,38 +421,47 @@ static int microread_complete_target_discovered(struct nfc_hci_dev *hdev,
 #define MICROREAD_CB_TYPE_READER_ALL 1
 
 static void microread_im_transceive_cb(void *context, struct sk_buff *skb,
-				       int err)
+									   int err)
 {
 	struct microread_info *info = context;
 
-	switch (info->async_cb_type) {
-	case MICROREAD_CB_TYPE_READER_ALL:
-		if (err == 0) {
-			if (skb->len == 0) {
-				err = -EPROTO;
-				kfree_skb(skb);
-				info->async_cb(info->async_cb_context, NULL,
-					       -EPROTO);
-				return;
+	switch (info->async_cb_type)
+	{
+		case MICROREAD_CB_TYPE_READER_ALL:
+			if (err == 0)
+			{
+				if (skb->len == 0)
+				{
+					err = -EPROTO;
+					kfree_skb(skb);
+					info->async_cb(info->async_cb_context, NULL,
+								   -EPROTO);
+					return;
+				}
+
+				if (skb->data[skb->len - 1] != 0)
+				{
+					err = nfc_hci_result_to_errno(
+							  skb->data[skb->len - 1]);
+					kfree_skb(skb);
+					info->async_cb(info->async_cb_context, NULL,
+								   err);
+					return;
+				}
+
+				skb_trim(skb, skb->len - 1);	/* RF Error ind. */
 			}
 
-			if (skb->data[skb->len - 1] != 0) {
-				err = nfc_hci_result_to_errno(
-						       skb->data[skb->len - 1]);
+			info->async_cb(info->async_cb_context, skb, err);
+			break;
+
+		default:
+			if (err == 0)
+			{
 				kfree_skb(skb);
-				info->async_cb(info->async_cb_context, NULL,
-					       err);
-				return;
 			}
 
-			skb_trim(skb, skb->len - 1);	/* RF Error ind. */
-		}
-		info->async_cb(info->async_cb_context, skb, err);
-		break;
-	default:
-		if (err == 0)
-			kfree_skb(skb);
-		break;
+			break;
 	}
 }
 
@@ -408,9 +471,9 @@ static void microread_im_transceive_cb(void *context, struct sk_buff *skb,
  *    1: driver doesn't especially handle, please do standard processing
  */
 static int microread_im_transceive(struct nfc_hci_dev *hdev,
-				   struct nfc_target *target,
-				   struct sk_buff *skb, data_exchange_cb_t cb,
-				   void *cb_context)
+								   struct nfc_target *target,
+								   struct sk_buff *skb, data_exchange_cb_t cb,
+								   void *cb_context)
 {
 	struct microread_info *info = nfc_hci_get_clientdata(hdev);
 	u8 control_bits;
@@ -418,39 +481,46 @@ static int microread_im_transceive(struct nfc_hci_dev *hdev,
 
 	pr_info("data exchange to gate 0x%x\n", target->hci_reader_gate);
 
-	if (target->hci_reader_gate == MICROREAD_GATE_ID_P2P_INITIATOR) {
+	if (target->hci_reader_gate == MICROREAD_GATE_ID_P2P_INITIATOR)
+	{
 		*skb_push(skb, 1) = 0;
 
 		return nfc_hci_send_event(hdev, target->hci_reader_gate,
-				     MICROREAD_EVT_P2P_INITIATOR_EXCHANGE_TO_RF,
-				     skb->data, skb->len);
+								  MICROREAD_EVT_P2P_INITIATOR_EXCHANGE_TO_RF,
+								  skb->data, skb->len);
 	}
 
-	switch (target->hci_reader_gate) {
-	case MICROREAD_GATE_ID_MREAD_ISO_A:
-		control_bits = 0xCB;
-		break;
-	case MICROREAD_GATE_ID_MREAD_ISO_A_3:
-		control_bits = 0xCB;
-		break;
-	case MICROREAD_GATE_ID_MREAD_ISO_B:
-		control_bits = 0xCB;
-		break;
-	case MICROREAD_GATE_ID_MREAD_NFC_T1:
-		control_bits = 0x1B;
+	switch (target->hci_reader_gate)
+	{
+		case MICROREAD_GATE_ID_MREAD_ISO_A:
+			control_bits = 0xCB;
+			break;
 
-		crc = crc_ccitt(0xffff, skb->data, skb->len);
-		crc = ~crc;
-		*skb_put(skb, 1) = crc & 0xff;
-		*skb_put(skb, 1) = crc >> 8;
-		break;
-	case MICROREAD_GATE_ID_MREAD_NFC_T3:
-		control_bits = 0xDB;
-		break;
-	default:
-		pr_info("Abort im_transceive to invalid gate 0x%x\n",
-			target->hci_reader_gate);
-		return 1;
+		case MICROREAD_GATE_ID_MREAD_ISO_A_3:
+			control_bits = 0xCB;
+			break;
+
+		case MICROREAD_GATE_ID_MREAD_ISO_B:
+			control_bits = 0xCB;
+			break;
+
+		case MICROREAD_GATE_ID_MREAD_NFC_T1:
+			control_bits = 0x1B;
+
+			crc = crc_ccitt(0xffff, skb->data, skb->len);
+			crc = ~crc;
+			*skb_put(skb, 1) = crc & 0xff;
+			*skb_put(skb, 1) = crc >> 8;
+			break;
+
+		case MICROREAD_GATE_ID_MREAD_NFC_T3:
+			control_bits = 0xDB;
+			break;
+
+		default:
+			pr_info("Abort im_transceive to invalid gate 0x%x\n",
+					target->hci_reader_gate);
+			return 1;
 	}
 
 	*skb_push(skb, 1) = control_bits;
@@ -460,9 +530,9 @@ static int microread_im_transceive(struct nfc_hci_dev *hdev,
 	info->async_cb_context = cb_context;
 
 	return nfc_hci_send_cmd_async(hdev, target->hci_reader_gate,
-				      MICROREAD_CMD_MREAD_EXCHANGE,
-				      skb->data, skb->len,
-				      microread_im_transceive_cb, info);
+								  MICROREAD_CMD_MREAD_EXCHANGE,
+								  skb->data, skb->len,
+								  microread_im_transceive_cb, info);
 }
 
 static int microread_tm_send(struct nfc_hci_dev *hdev, struct sk_buff *skb)
@@ -470,8 +540,8 @@ static int microread_tm_send(struct nfc_hci_dev *hdev, struct sk_buff *skb)
 	int r;
 
 	r = nfc_hci_send_event(hdev, MICROREAD_GATE_ID_P2P_TARGET,
-			       MICROREAD_EVT_MCARD_EXCHANGE,
-			       skb->data, skb->len);
+						   MICROREAD_EVT_MCARD_EXCHANGE,
+						   skb->data, skb->len);
 
 	kfree_skb(skb);
 
@@ -479,7 +549,7 @@ static int microread_tm_send(struct nfc_hci_dev *hdev, struct sk_buff *skb)
 }
 
 static void microread_target_discovered(struct nfc_hci_dev *hdev, u8 gate,
-					struct sk_buff *skb)
+										struct sk_buff *skb)
 {
 	struct nfc_target *targets;
 	int r = 0;
@@ -487,62 +557,76 @@ static void microread_target_discovered(struct nfc_hci_dev *hdev, u8 gate,
 	pr_info("target discovered to gate 0x%x\n", gate);
 
 	targets = kzalloc(sizeof(struct nfc_target), GFP_KERNEL);
-	if (targets == NULL) {
+
+	if (targets == NULL)
+	{
 		r = -ENOMEM;
 		goto exit;
 	}
 
 	targets->hci_reader_gate = gate;
 
-	switch (gate) {
-	case MICROREAD_GATE_ID_MREAD_ISO_A:
-		targets->supported_protocols =
-		      nfc_hci_sak_to_protocol(skb->data[MICROREAD_EMCF_A_SAK]);
-		targets->sens_res =
-			 be16_to_cpu(*(u16 *)&skb->data[MICROREAD_EMCF_A_ATQA]);
-		targets->sel_res = skb->data[MICROREAD_EMCF_A_SAK];
-		targets->nfcid1_len = skb->data[MICROREAD_EMCF_A_LEN];
-		if (targets->nfcid1_len > sizeof(targets->nfcid1)) {
-			r = -EINVAL;
+	switch (gate)
+	{
+		case MICROREAD_GATE_ID_MREAD_ISO_A:
+			targets->supported_protocols =
+				nfc_hci_sak_to_protocol(skb->data[MICROREAD_EMCF_A_SAK]);
+			targets->sens_res =
+				be16_to_cpu(*(u16 *)&skb->data[MICROREAD_EMCF_A_ATQA]);
+			targets->sel_res = skb->data[MICROREAD_EMCF_A_SAK];
+			targets->nfcid1_len = skb->data[MICROREAD_EMCF_A_LEN];
+
+			if (targets->nfcid1_len > sizeof(targets->nfcid1))
+			{
+				r = -EINVAL;
+				goto exit_free;
+			}
+
+			memcpy(targets->nfcid1, &skb->data[MICROREAD_EMCF_A_UID],
+				   targets->nfcid1_len);
+			break;
+
+		case MICROREAD_GATE_ID_MREAD_ISO_A_3:
+			targets->supported_protocols =
+				nfc_hci_sak_to_protocol(skb->data[MICROREAD_EMCF_A3_SAK]);
+			targets->sens_res =
+				be16_to_cpu(*(u16 *)&skb->data[MICROREAD_EMCF_A3_ATQA]);
+			targets->sel_res = skb->data[MICROREAD_EMCF_A3_SAK];
+			targets->nfcid1_len = skb->data[MICROREAD_EMCF_A3_LEN];
+
+			if (targets->nfcid1_len > sizeof(targets->nfcid1))
+			{
+				r = -EINVAL;
+				goto exit_free;
+			}
+
+			memcpy(targets->nfcid1, &skb->data[MICROREAD_EMCF_A3_UID],
+				   targets->nfcid1_len);
+			break;
+
+		case MICROREAD_GATE_ID_MREAD_ISO_B:
+			targets->supported_protocols = NFC_PROTO_ISO14443_B_MASK;
+			memcpy(targets->nfcid1, &skb->data[MICROREAD_EMCF_B_UID], 4);
+			targets->nfcid1_len = 4;
+			break;
+
+		case MICROREAD_GATE_ID_MREAD_NFC_T1:
+			targets->supported_protocols = NFC_PROTO_JEWEL_MASK;
+			targets->sens_res =
+				le16_to_cpu(*(u16 *)&skb->data[MICROREAD_EMCF_T1_ATQA]);
+			memcpy(targets->nfcid1, &skb->data[MICROREAD_EMCF_T1_UID], 4);
+			targets->nfcid1_len = 4;
+			break;
+
+		case MICROREAD_GATE_ID_MREAD_NFC_T3:
+			targets->supported_protocols = NFC_PROTO_FELICA_MASK;
+			memcpy(targets->nfcid1, &skb->data[MICROREAD_EMCF_T3_UID], 8);
+			targets->nfcid1_len = 8;
+			break;
+
+		default:
+			pr_info("discard target discovered to gate 0x%x\n", gate);
 			goto exit_free;
-		}
-		memcpy(targets->nfcid1, &skb->data[MICROREAD_EMCF_A_UID],
-		       targets->nfcid1_len);
-		break;
-	case MICROREAD_GATE_ID_MREAD_ISO_A_3:
-		targets->supported_protocols =
-		      nfc_hci_sak_to_protocol(skb->data[MICROREAD_EMCF_A3_SAK]);
-		targets->sens_res =
-			 be16_to_cpu(*(u16 *)&skb->data[MICROREAD_EMCF_A3_ATQA]);
-		targets->sel_res = skb->data[MICROREAD_EMCF_A3_SAK];
-		targets->nfcid1_len = skb->data[MICROREAD_EMCF_A3_LEN];
-		if (targets->nfcid1_len > sizeof(targets->nfcid1)) {
-			r = -EINVAL;
-			goto exit_free;
-		}
-		memcpy(targets->nfcid1, &skb->data[MICROREAD_EMCF_A3_UID],
-		       targets->nfcid1_len);
-		break;
-	case MICROREAD_GATE_ID_MREAD_ISO_B:
-		targets->supported_protocols = NFC_PROTO_ISO14443_B_MASK;
-		memcpy(targets->nfcid1, &skb->data[MICROREAD_EMCF_B_UID], 4);
-		targets->nfcid1_len = 4;
-		break;
-	case MICROREAD_GATE_ID_MREAD_NFC_T1:
-		targets->supported_protocols = NFC_PROTO_JEWEL_MASK;
-		targets->sens_res =
-			le16_to_cpu(*(u16 *)&skb->data[MICROREAD_EMCF_T1_ATQA]);
-		memcpy(targets->nfcid1, &skb->data[MICROREAD_EMCF_T1_UID], 4);
-		targets->nfcid1_len = 4;
-		break;
-	case MICROREAD_GATE_ID_MREAD_NFC_T3:
-		targets->supported_protocols = NFC_PROTO_FELICA_MASK;
-		memcpy(targets->nfcid1, &skb->data[MICROREAD_EMCF_T3_UID], 8);
-		targets->nfcid1_len = 8;
-		break;
-	default:
-		pr_info("discard target discovered to gate 0x%x\n", gate);
-		goto exit_free;
 	}
 
 	r = nfc_targets_found(hdev->ndev, targets, 1);
@@ -554,11 +638,13 @@ exit:
 	kfree_skb(skb);
 
 	if (r)
+	{
 		pr_err("Failed to handle discovered target err=%d\n", r);
+	}
 }
 
 static int microread_event_received(struct nfc_hci_dev *hdev, u8 pipe,
-				     u8 event, struct sk_buff *skb)
+									u8 event, struct sk_buff *skb)
 {
 	int r;
 	u8 gate = hdev->pipes[pipe].gate;
@@ -566,78 +652,87 @@ static int microread_event_received(struct nfc_hci_dev *hdev, u8 pipe,
 
 	pr_info("Microread received event 0x%x to gate 0x%x\n", event, gate);
 
-	switch (event) {
-	case MICROREAD_EVT_MREAD_CARD_FOUND:
-		microread_target_discovered(hdev, gate, skb);
-		return 0;
+	switch (event)
+	{
+		case MICROREAD_EVT_MREAD_CARD_FOUND:
+			microread_target_discovered(hdev, gate, skb);
+			return 0;
 
-	case MICROREAD_EVT_P2P_INITIATOR_EXCHANGE_FROM_RF:
-		if (skb->len < 1) {
-			kfree_skb(skb);
-			return -EPROTO;
-		}
+		case MICROREAD_EVT_P2P_INITIATOR_EXCHANGE_FROM_RF:
+			if (skb->len < 1)
+			{
+				kfree_skb(skb);
+				return -EPROTO;
+			}
 
-		if (skb->data[skb->len - 1]) {
-			kfree_skb(skb);
-			return -EIO;
-		}
+			if (skb->data[skb->len - 1])
+			{
+				kfree_skb(skb);
+				return -EIO;
+			}
 
-		skb_trim(skb, skb->len - 1);
+			skb_trim(skb, skb->len - 1);
 
-		r = nfc_tm_data_received(hdev->ndev, skb);
-		break;
-
-	case MICROREAD_EVT_MCARD_FIELD_ON:
-	case MICROREAD_EVT_MCARD_FIELD_OFF:
-		kfree_skb(skb);
-		return 0;
-
-	case MICROREAD_EVT_P2P_TARGET_ACTIVATED:
-		r = nfc_tm_activated(hdev->ndev, NFC_PROTO_NFC_DEP_MASK,
-				     NFC_COMM_PASSIVE, skb->data,
-				     skb->len);
-
-		kfree_skb(skb);
-		break;
-
-	case MICROREAD_EVT_MCARD_EXCHANGE:
-		if (skb->len < 1) {
-			kfree_skb(skb);
-			return -EPROTO;
-		}
-
-		if (skb->data[skb->len-1]) {
-			kfree_skb(skb);
-			return -EIO;
-		}
-
-		skb_trim(skb, skb->len - 1);
-
-		r = nfc_tm_data_received(hdev->ndev, skb);
-		break;
-
-	case MICROREAD_EVT_P2P_TARGET_DEACTIVATED:
-		kfree_skb(skb);
-
-		mode = 0xff;
-		r = nfc_hci_set_param(hdev, MICROREAD_GATE_ID_P2P_TARGET,
-				      MICROREAD_PAR_P2P_TARGET_MODE, &mode, 1);
-		if (r)
+			r = nfc_tm_data_received(hdev->ndev, skb);
 			break;
 
-		r = nfc_hci_send_event(hdev, gate,
-				       MICROREAD_EVT_MREAD_DISCOVERY_STOP, NULL,
-				       0);
-		break;
+		case MICROREAD_EVT_MCARD_FIELD_ON:
+		case MICROREAD_EVT_MCARD_FIELD_OFF:
+			kfree_skb(skb);
+			return 0;
 
-	default:
-		return 1;
+		case MICROREAD_EVT_P2P_TARGET_ACTIVATED:
+			r = nfc_tm_activated(hdev->ndev, NFC_PROTO_NFC_DEP_MASK,
+								 NFC_COMM_PASSIVE, skb->data,
+								 skb->len);
+
+			kfree_skb(skb);
+			break;
+
+		case MICROREAD_EVT_MCARD_EXCHANGE:
+			if (skb->len < 1)
+			{
+				kfree_skb(skb);
+				return -EPROTO;
+			}
+
+			if (skb->data[skb->len - 1])
+			{
+				kfree_skb(skb);
+				return -EIO;
+			}
+
+			skb_trim(skb, skb->len - 1);
+
+			r = nfc_tm_data_received(hdev->ndev, skb);
+			break;
+
+		case MICROREAD_EVT_P2P_TARGET_DEACTIVATED:
+			kfree_skb(skb);
+
+			mode = 0xff;
+			r = nfc_hci_set_param(hdev, MICROREAD_GATE_ID_P2P_TARGET,
+								  MICROREAD_PAR_P2P_TARGET_MODE, &mode, 1);
+
+			if (r)
+			{
+				break;
+			}
+
+			r = nfc_hci_send_event(hdev, gate,
+								   MICROREAD_EVT_MREAD_DISCOVERY_STOP, NULL,
+								   0);
+			break;
+
+		default:
+			return 1;
 	}
 
 	return r;
 }
 
-static struct nfc_hci_ops microread_hci_ops = {
+static struct nfc_hci_ops microread_hci_ops =
+{
 	.open = microread_open,
 	.close = microread_close,
 	.hci_ready = microread_hci_ready,
@@ -654,8 +749,8 @@ static struct nfc_hci_ops microread_hci_ops = {
 };
 
 int microread_probe(void *phy_id, struct nfc_phy_ops *phy_ops, char *llc_name,
-		    int phy_headroom, int phy_tailroom, int phy_payload,
-		    struct nfc_hci_dev **hdev)
+					int phy_headroom, int phy_tailroom, int phy_payload,
+					struct nfc_hci_dev **hdev)
 {
 	struct microread_info *info;
 	unsigned long quirks = 0;
@@ -664,7 +759,9 @@ int microread_probe(void *phy_id, struct nfc_phy_ops *phy_ops, char *llc_name,
 	int r;
 
 	info = kzalloc(sizeof(struct microread_info), GFP_KERNEL);
-	if (!info) {
+
+	if (!info)
+	{
 		r = -ENOMEM;
 		goto err_info_alloc;
 	}
@@ -680,20 +777,22 @@ int microread_probe(void *phy_id, struct nfc_phy_ops *phy_ops, char *llc_name,
 	set_bit(NFC_HCI_QUIRK_SHORT_CLEAR, &quirks);
 
 	protocols = NFC_PROTO_JEWEL_MASK |
-		    NFC_PROTO_MIFARE_MASK |
-		    NFC_PROTO_FELICA_MASK |
-		    NFC_PROTO_ISO14443_MASK |
-		    NFC_PROTO_ISO14443_B_MASK |
-		    NFC_PROTO_NFC_DEP_MASK;
+				NFC_PROTO_MIFARE_MASK |
+				NFC_PROTO_FELICA_MASK |
+				NFC_PROTO_ISO14443_MASK |
+				NFC_PROTO_ISO14443_B_MASK |
+				NFC_PROTO_NFC_DEP_MASK;
 
 	info->hdev = nfc_hci_allocate_device(&microread_hci_ops, &init_data,
-					     quirks, protocols, llc_name,
-					     phy_headroom +
-					     MICROREAD_CMDS_HEADROOM,
-					     phy_tailroom +
-					     MICROREAD_CMD_TAILROOM,
-					     phy_payload);
-	if (!info->hdev) {
+										 quirks, protocols, llc_name,
+										 phy_headroom +
+										 MICROREAD_CMDS_HEADROOM,
+										 phy_tailroom +
+										 MICROREAD_CMD_TAILROOM,
+										 phy_payload);
+
+	if (!info->hdev)
+	{
 		pr_err("Cannot allocate nfc hdev\n");
 		r = -ENOMEM;
 		goto err_alloc_hdev;
@@ -702,8 +801,11 @@ int microread_probe(void *phy_id, struct nfc_phy_ops *phy_ops, char *llc_name,
 	nfc_hci_set_clientdata(info->hdev, info);
 
 	r = nfc_hci_register_device(info->hdev);
+
 	if (r)
+	{
 		goto err_regdev;
+	}
 
 	*hdev = info->hdev;
 

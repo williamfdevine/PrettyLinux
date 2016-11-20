@@ -17,7 +17,8 @@
 /* details of this structure hidden by the implementation */
 struct xt_hashlimit_htable;
 
-enum {
+enum
+{
 	XT_HASHLIMIT_HASH_DIP = 1 << 0,
 	XT_HASHLIMIT_HASH_DPT = 1 << 1,
 	XT_HASHLIMIT_HASH_SIP = 1 << 2,
@@ -26,7 +27,8 @@ enum {
 	XT_HASHLIMIT_BYTES    = 1 << 5,
 };
 
-struct hashlimit_cfg {
+struct hashlimit_cfg
+{
 	__u32 mode;	  /* bitmask of XT_HASHLIMIT_HASH_* */
 	__u32 avg;    /* Average secs between packets * scale */
 	__u32 burst;  /* Period multiplier for upper limit. */
@@ -38,19 +40,22 @@ struct hashlimit_cfg {
 	__u32 expire;	/* when do entries expire? */
 };
 
-struct xt_hashlimit_info {
+struct xt_hashlimit_info
+{
 	char name [IFNAMSIZ];		/* name */
 	struct hashlimit_cfg cfg;
 
 	/* Used internally by the kernel */
 	struct xt_hashlimit_htable *hinfo;
-	union {
+	union
+	{
 		void *ptr;
 		struct xt_hashlimit_info *master;
 	} u;
 };
 
-struct hashlimit_cfg1 {
+struct hashlimit_cfg1
+{
 	__u32 mode;	  /* bitmask of XT_HASHLIMIT_HASH_* */
 	__u32 avg;    /* Average secs between packets * scale */
 	__u32 burst;  /* Period multiplier for upper limit. */
@@ -64,7 +69,8 @@ struct hashlimit_cfg1 {
 	__u8 srcmask, dstmask;
 };
 
-struct hashlimit_cfg2 {
+struct hashlimit_cfg2
+{
 	__u64 avg;		/* Average secs between packets * scale */
 	__u64 burst;		/* Period multiplier for upper limit. */
 	__u32 mode;		/* bitmask of XT_HASHLIMIT_HASH_* */
@@ -78,7 +84,8 @@ struct hashlimit_cfg2 {
 	__u8 srcmask, dstmask;
 };
 
-struct xt_hashlimit_mtinfo1 {
+struct xt_hashlimit_mtinfo1
+{
 	char name[IFNAMSIZ];
 	struct hashlimit_cfg1 cfg;
 
@@ -86,7 +93,8 @@ struct xt_hashlimit_mtinfo1 {
 	struct xt_hashlimit_htable *hinfo __attribute__((aligned(8)));
 };
 
-struct xt_hashlimit_mtinfo2 {
+struct xt_hashlimit_mtinfo2
+{
 	char name[NAME_MAX];
 	struct hashlimit_cfg2 cfg;
 

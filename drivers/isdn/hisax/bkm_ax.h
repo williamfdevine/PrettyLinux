@@ -31,7 +31,8 @@
 
 
 /* Application specific registers I20 (Siemens SZB6120H) */
-typedef	struct {
+typedef	struct
+{
 	/* Video front end horizontal configuration register */
 	volatile u_int	i20VFEHorzCfg;	/* Offset 00 */
 	/* Video front end vertical configuration register */

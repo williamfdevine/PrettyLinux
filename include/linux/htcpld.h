@@ -1,7 +1,8 @@
 #ifndef __LINUX_HTCPLD_H
 #define __LINUX_HTCPLD_H
 
-struct htcpld_chip_platform_data {
+struct htcpld_chip_platform_data
+{
 	unsigned int addr;
 	unsigned int reset;
 	unsigned int num_gpios;
@@ -11,7 +12,8 @@ struct htcpld_chip_platform_data {
 	unsigned int num_irqs;
 };
 
-struct htcpld_core_platform_data {
+struct htcpld_core_platform_data
+{
 	unsigned int                      int_reset_gpio_hi;
 	unsigned int                      int_reset_gpio_lo;
 	unsigned int                      i2c_adapter_id;

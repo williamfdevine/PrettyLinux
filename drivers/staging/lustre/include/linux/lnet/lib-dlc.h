@@ -37,7 +37,8 @@
 #define LNET_MAX_SHOW_NUM_CPT	128
 #define LNET_UNDEFINED_HOPS	((__u32)(-1))
 
-struct lnet_ioctl_config_lnd_cmn_tunables {
+struct lnet_ioctl_config_lnd_cmn_tunables
+{
 	__u32 lct_version;
 	__u32 lct_peer_timeout;
 	__u32 lct_peer_tx_credits;
@@ -45,7 +46,8 @@ struct lnet_ioctl_config_lnd_cmn_tunables {
 	__u32 lct_max_tx_credits;
 };
 
-struct lnet_ioctl_config_o2iblnd_tunables {
+struct lnet_ioctl_config_o2iblnd_tunables
+{
 	__u32 lnd_version;
 	__u32 lnd_peercredits_hiw;
 	__u32 lnd_map_on_demand;
@@ -56,14 +58,17 @@ struct lnet_ioctl_config_o2iblnd_tunables {
 	__u32 pad;
 };
 
-struct lnet_ioctl_config_lnd_tunables {
+struct lnet_ioctl_config_lnd_tunables
+{
 	struct lnet_ioctl_config_lnd_cmn_tunables lt_cmn;
-	union {
+	union
+	{
 		struct lnet_ioctl_config_o2iblnd_tunables lt_o2ib;
 	} lt_tun_u;
 };
 
-struct lnet_ioctl_net_config {
+struct lnet_ioctl_net_config
+{
 	char ni_interfaces[LNET_MAX_INTERFACES][LNET_MAX_STR_LEN];
 	__u32 ni_status;
 	__u32 ni_cpts[LNET_MAX_SHOW_NUM_CPT];
@@ -77,8 +82,10 @@ struct lnet_ioctl_net_config {
 /* # different router buffer pools */
 #define LNET_NRBPOOLS		(LNET_LARGE_BUF_IDX + 1)
 
-struct lnet_ioctl_pool_cfg {
-	struct {
+struct lnet_ioctl_pool_cfg
+{
+	struct
+	{
 		__u32 pl_npages;
 		__u32 pl_nbuffers;
 		__u32 pl_credits;
@@ -87,7 +94,8 @@ struct lnet_ioctl_pool_cfg {
 	__u32 pl_routing;
 };
 
-struct lnet_ioctl_config_data {
+struct lnet_ioctl_config_data
+{
 	struct libcfs_ioctl_hdr cfg_hdr;
 
 	__u32 cfg_net;
@@ -95,13 +103,16 @@ struct lnet_ioctl_config_data {
 	__u64 cfg_nid;
 	__u32 cfg_ncpts;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__u32 rtr_hop;
 			__u32 rtr_priority;
 			__u32 rtr_flags;
 		} cfg_route;
-		struct {
+		struct
+		{
 			char net_intf[LNET_MAX_STR_LEN];
 			__s32 net_peer_timeout;
 			__s32 net_peer_tx_credits;
@@ -110,7 +121,8 @@ struct lnet_ioctl_config_data {
 			__u32 net_cksum_algo;
 			__u32 net_interface_count;
 		} cfg_net;
-		struct {
+		struct
+		{
 			__u32 buf_enable;
 			__s32 buf_tiny;
 			__s32 buf_small;
@@ -121,14 +133,17 @@ struct lnet_ioctl_config_data {
 	char cfg_bulk[0];
 };
 
-struct lnet_ioctl_peer {
+struct lnet_ioctl_peer
+{
 	struct libcfs_ioctl_hdr pr_hdr;
 	__u32 pr_count;
 	__u32 pr_pad;
 	__u64 pr_nid;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			char cr_aliveness[LNET_MAX_STR_LEN];
 			__u32 cr_refcount;
 			__u32 cr_ni_peer_tx_credits;
@@ -141,7 +156,8 @@ struct lnet_ioctl_peer {
 	} pr_lnd_u;
 };
 
-struct lnet_ioctl_lnet_stats {
+struct lnet_ioctl_lnet_stats
+{
 	struct libcfs_ioctl_hdr st_hdr;
 	struct lnet_counters st_cntrs;
 };

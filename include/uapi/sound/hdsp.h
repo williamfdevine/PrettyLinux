@@ -3,7 +3,7 @@
 
 /*
  *   Copyright (C) 2003 Thomas Charbonnel (thomas@undata.org)
- *    
+ *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation; either version 2 of the License, or
@@ -23,7 +23,8 @@
 
 #define HDSP_MATRIX_MIXER_SIZE 2048
 
-enum HDSP_IO_Type {
+enum HDSP_IO_Type
+{
 	Digiface,
 	Multiface,
 	H9652,
@@ -32,7 +33,8 @@ enum HDSP_IO_Type {
 	Undefined,
 };
 
-struct hdsp_peak_rms {
+struct hdsp_peak_rms
+{
 	__u32 input_peaks[26];
 	__u32 playback_peaks[26];
 	__u32 output_peaks[28];
@@ -44,7 +46,8 @@ struct hdsp_peak_rms {
 
 #define SNDRV_HDSP_IOCTL_GET_PEAK_RMS _IOR('H', 0x40, struct hdsp_peak_rms)
 
-struct hdsp_config_info {
+struct hdsp_config_info
+{
 	unsigned char pref_sync_ref;
 	unsigned char wordclock_sync_check;
 	unsigned char spdif_sync_check;
@@ -62,7 +65,7 @@ struct hdsp_config_info {
 	unsigned char clock_source;
 	unsigned char autosync_ref;
 	unsigned char line_out;
-	unsigned char passthru; 
+	unsigned char passthru;
 	unsigned char da_gain;
 	unsigned char ad_gain;
 	unsigned char phone_gain;
@@ -72,26 +75,30 @@ struct hdsp_config_info {
 
 #define SNDRV_HDSP_IOCTL_GET_CONFIG_INFO _IOR('H', 0x41, struct hdsp_config_info)
 
-struct hdsp_firmware {
+struct hdsp_firmware
+{
 	void __user *firmware_data;	/* 24413 x 4 bytes */
 };
 
 #define SNDRV_HDSP_IOCTL_UPLOAD_FIRMWARE _IOW('H', 0x42, struct hdsp_firmware)
 
-struct hdsp_version {
+struct hdsp_version
+{
 	enum HDSP_IO_Type io_type;
 	unsigned short firmware_rev;
 };
 
 #define SNDRV_HDSP_IOCTL_GET_VERSION _IOR('H', 0x43, struct hdsp_version)
 
-struct hdsp_mixer {
+struct hdsp_mixer
+{
 	unsigned short matrix[HDSP_MATRIX_MIXER_SIZE];
 };
 
 #define SNDRV_HDSP_IOCTL_GET_MIXER _IOR('H', 0x44, struct hdsp_mixer)
 
-struct hdsp_9632_aeb {
+struct hdsp_9632_aeb
+{
 	int aebi;
 	int aebo;
 };

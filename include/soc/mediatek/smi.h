@@ -23,12 +23,14 @@
 
 #define MTK_SMI_MMU_EN(port)	BIT(port)
 
-struct mtk_smi_larb_iommu {
+struct mtk_smi_larb_iommu
+{
 	struct device *dev;
 	unsigned int   mmu;
 };
 
-struct mtk_smi_iommu {
+struct mtk_smi_iommu
+{
 	unsigned int larb_nr;
 	struct mtk_smi_larb_iommu larb_imu[MTK_LARB_NR_MAX];
 };

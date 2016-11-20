@@ -34,7 +34,8 @@
 #include <subdev/clk/pll.h>
 #include <subdev/ltc.h>
 
-struct gf100_ramfuc {
+struct gf100_ramfuc
+{
 	struct ramfuc base;
 
 	struct ramfuc_reg r_0x10fe20;
@@ -97,7 +98,8 @@ struct gf100_ramfuc {
 	struct ramfuc_reg r_0x13d8f4;
 };
 
-struct gf100_ram {
+struct gf100_ram
+{
 	struct nvkm_ram base;
 	struct gf100_ramfuc fuc;
 	struct nvbios_pll refpll;
@@ -117,9 +119,13 @@ gf100_ram_train(struct gf100_ramfuc *fuc, u32 magic)
 	ram_wr32(fuc, 0x10f910, magic);
 	ram_wr32(fuc, 0x10f914, magic);
 
-	for (i = 0; (magic & 0x80000000) && i < part; addr += 0x1000, i++) {
+	for (i = 0; (magic & 0x80000000) && i < part; addr += 0x1000, i++)
+	{
 		if (mask & (1 << i))
+		{
 			continue;
+		}
+
 		ram_wait(fuc, addr, 0x0000000f, 0x00000000, 500000);
 	}
 }
@@ -135,7 +141,8 @@ gf100_ram_calc(struct nvkm_ram *base, u32 freq)
 	struct nvkm_bios *bios = device->bios;
 	struct nvbios_ramcfg cfg;
 	u8  ver, cnt, len, strap;
-	struct {
+	struct
+	{
 		u32 data;
 		u8  size;
 	} rammap, ramcfg, timing;
@@ -146,76 +153,101 @@ gf100_ram_calc(struct nvkm_ram *base, u32 freq)
 
 	/* lookup memory config data relevant to the target frequency */
 	rammap.data = nvbios_rammapEm(bios, freq / 1000, &ver, &rammap.size,
-				      &cnt, &ramcfg.size, &cfg);
-	if (!rammap.data || ver != 0x10 || rammap.size < 0x0e) {
+								  &cnt, &ramcfg.size, &cfg);
+
+	if (!rammap.data || ver != 0x10 || rammap.size < 0x0e)
+	{
 		nvkm_error(subdev, "invalid/missing rammap entry\n");
 		return -EINVAL;
 	}
 
 	/* locate specific data set for the attached memory */
 	strap = nvbios_ramcfg_index(subdev);
-	if (strap >= cnt) {
+
+	if (strap >= cnt)
+	{
 		nvkm_error(subdev, "invalid ramcfg strap\n");
 		return -EINVAL;
 	}
 
 	ramcfg.data = rammap.data + rammap.size + (strap * ramcfg.size);
-	if (!ramcfg.data || ver != 0x10 || ramcfg.size < 0x0e) {
+
+	if (!ramcfg.data || ver != 0x10 || ramcfg.size < 0x0e)
+	{
 		nvkm_error(subdev, "invalid/missing ramcfg entry\n");
 		return -EINVAL;
 	}
 
 	/* lookup memory timings, if bios says they're present */
 	strap = nvbios_rd08(bios, ramcfg.data + 0x01);
-	if (strap != 0xff) {
+
+	if (strap != 0xff)
+	{
 		timing.data = nvbios_timingEe(bios, strap, &ver, &timing.size,
-					      &cnt, &len);
-		if (!timing.data || ver != 0x10 || timing.size < 0x19) {
+									  &cnt, &len);
+
+		if (!timing.data || ver != 0x10 || timing.size < 0x19)
+		{
 			nvkm_error(subdev, "invalid/missing timing entry\n");
 			return -EINVAL;
 		}
-	} else {
+	}
+	else
+	{
 		timing.data = 0;
 	}
 
 	ret = ram_init(fuc, ram->base.fb);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* determine current mclk configuration */
 	from = !!(ram_rd32(fuc, 0x1373f0) & 0x00000002); /*XXX: ok? */
 
 	/* determine target mclk configuration */
 	if (!(ram_rd32(fuc, 0x137300) & 0x00000100))
+	{
 		ref = nvkm_clk_read(clk, nv_clk_src_sppll0);
+	}
 	else
+	{
 		ref = nvkm_clk_read(clk, nv_clk_src_sppll1);
+	}
+
 	div = max(min((ref * 2) / freq, (u32)65), (u32)2) - 2;
 	out = (ref * 2) / (div + 2);
 	mode = freq != out;
 
 	ram_mask(fuc, 0x137360, 0x00000002, 0x00000000);
 
-	if ((ram_rd32(fuc, 0x132000) & 0x00000002) || 0 /*XXX*/) {
+	if ((ram_rd32(fuc, 0x132000) & 0x00000002) || 0 /*XXX*/)
+	{
 		ram_nuke(fuc, 0x132000);
 		ram_mask(fuc, 0x132000, 0x00000002, 0x00000002);
 		ram_mask(fuc, 0x132000, 0x00000002, 0x00000000);
 	}
 
-	if (mode == 1) {
+	if (mode == 1)
+	{
 		ram_nuke(fuc, 0x10fe20);
 		ram_mask(fuc, 0x10fe20, 0x00000002, 0x00000002);
 		ram_mask(fuc, 0x10fe20, 0x00000002, 0x00000000);
 	}
 
-// 0x00020034 // 0x0000000a
+	// 0x00020034 // 0x0000000a
 	ram_wr32(fuc, 0x132100, 0x00000001);
 
-	if (mode == 1 && from == 0) {
+	if (mode == 1 && from == 0)
+	{
 		/* calculate refpll */
 		ret = gt215_pll_calc(subdev, &ram->refpll, ram->mempll.refclk,
-				     &N1, NULL, &M1, &P);
-		if (ret <= 0) {
+							 &N1, NULL, &M1, &P);
+
+		if (ret <= 0)
+		{
 			nvkm_error(subdev, "unable to calc refpll\n");
 			return ret ? ret : -ERANGE;
 		}
@@ -229,8 +261,10 @@ gf100_ram_calc(struct nvkm_ram *base, u32 freq)
 
 		/* calculate mempll */
 		ret = gt215_pll_calc(subdev, &ram->mempll, freq,
-				     &N1, NULL, &M1, &P);
-		if (ret <= 0) {
+							 &N1, NULL, &M1, &P);
+
+		if (ret <= 0)
+		{
 			nvkm_error(subdev, "unable to calc refpll\n");
 			return ret ? ret : -ERANGE;
 		}
@@ -239,12 +273,14 @@ gf100_ram_calc(struct nvkm_ram *base, u32 freq)
 		ram_wr32(fuc, 0x132004, (P << 16) | (N1 << 8) | M1);
 		ram_wr32(fuc, 0x132000, 0x18010101);
 		ram_wait(fuc, 0x137390, 0x00000002, 0x00000002, 64000);
-	} else
-	if (mode == 0) {
+	}
+	else if (mode == 0)
+	{
 		ram_wr32(fuc, 0x137300, 0x00000003);
 	}
 
-	if (from == 0) {
+	if (from == 0)
+	{
 		ram_nuke(fuc, 0x10fb04);
 		ram_mask(fuc, 0x10fb04, 0x0000ffff, 0x00000000);
 		ram_nuke(fuc, 0x10fb08);
@@ -254,43 +290,54 @@ gf100_ram_calc(struct nvkm_ram *base, u32 freq)
 		ram_wr32(fuc, 0x10f990, 0x20012001);
 		ram_wr32(fuc, 0x10f998, 0x00011a00);
 		ram_wr32(fuc, 0x13d8f4, 0x00000000);
-	} else {
+	}
+	else
+	{
 		ram_wr32(fuc, 0x10f988, 0x20010000);
 		ram_wr32(fuc, 0x10f98c, 0x00000000);
 		ram_wr32(fuc, 0x10f990, 0x20012001);
 		ram_wr32(fuc, 0x10f998, 0x00010a00);
 	}
 
-	if (from == 0) {
-// 0x00020039 // 0x000000ba
+	if (from == 0)
+	{
+		// 0x00020039 // 0x000000ba
 	}
 
-// 0x0002003a // 0x00000002
+	// 0x0002003a // 0x00000002
 	ram_wr32(fuc, 0x100b0c, 0x00080012);
-// 0x00030014 // 0x00000000 // 0x02b5f070
-// 0x00030014 // 0x00010000 // 0x02b5f070
+	// 0x00030014 // 0x00000000 // 0x02b5f070
+	// 0x00030014 // 0x00010000 // 0x02b5f070
 	ram_wr32(fuc, 0x611200, 0x00003300);
-// 0x00020034 // 0x0000000a
-// 0x00030020 // 0x00000001 // 0x00000000
+	// 0x00020034 // 0x0000000a
+	// 0x00030020 // 0x00000001 // 0x00000000
 
 	ram_mask(fuc, 0x10f200, 0x00000800, 0x00000000);
 	ram_wr32(fuc, 0x10f210, 0x00000000);
 	ram_nsec(fuc, 1000);
+
 	if (mode == 0)
+	{
 		gf100_ram_train(fuc, 0x000c1001);
+	}
+
 	ram_wr32(fuc, 0x10f310, 0x00000001);
 	ram_nsec(fuc, 1000);
 	ram_wr32(fuc, 0x10f090, 0x00000061);
 	ram_wr32(fuc, 0x10f090, 0xc000007f);
 	ram_nsec(fuc, 1000);
 
-	if (from == 0) {
+	if (from == 0)
+	{
 		ram_wr32(fuc, 0x10f824, 0x00007fd4);
-	} else {
+	}
+	else
+	{
 		ram_wr32(fuc, 0x1373ec, 0x00020404);
 	}
 
-	if (mode == 0) {
+	if (mode == 0)
+	{
 		ram_mask(fuc, 0x10f808, 0x00080000, 0x00000000);
 		ram_mask(fuc, 0x10f200, 0x00008000, 0x00008000);
 		ram_wr32(fuc, 0x10f830, 0x41500010);
@@ -301,7 +348,7 @@ gf100_ram_calc(struct nvkm_ram *base, u32 freq)
 		ram_wr32(fuc, 0x1373f0, 0x00000003);
 		ram_wr32(fuc, 0x137310, 0x81201616);
 		ram_wr32(fuc, 0x132100, 0x00000001);
-// 0x00020039 // 0x000000ba
+		// 0x00020039 // 0x000000ba
 		ram_wr32(fuc, 0x10f830, 0x00300017);
 		ram_wr32(fuc, 0x1373f0, 0x00000001);
 		ram_wr32(fuc, 0x10f824, 0x00007e77);
@@ -331,11 +378,13 @@ gf100_ram_calc(struct nvkm_ram *base, u32 freq)
 		ram_nsec(fuc, 1000);
 		ram_wr32(fuc, 0x10f830, 0x01300017);
 		ram_wr32(fuc, 0x10f830, 0x00300017);
-// 0x00030020 // 0x00000000 // 0x00000000
-// 0x00020034 // 0x0000000b
+		// 0x00030020 // 0x00000000 // 0x00000000
+		// 0x00020034 // 0x0000000b
 		ram_wr32(fuc, 0x100b0c, 0x00080028);
 		ram_wr32(fuc, 0x611200, 0x00003330);
-	} else {
+	}
+	else
+	{
 		ram_wr32(fuc, 0x10f800, 0x00001800);
 		ram_wr32(fuc, 0x13d8f4, 0x00000000);
 		ram_wr32(fuc, 0x1373ec, 0x00020404);
@@ -349,7 +398,7 @@ gf100_ram_calc(struct nvkm_ram *base, u32 freq)
 		ram_wr32(fuc, 0x10f050, 0xff000090);
 		ram_wr32(fuc, 0x1373ec, 0x00030404);
 		ram_wr32(fuc, 0x1373f0, 0x00000002);
-	// 0x00020039 // 0x00000011
+		// 0x00020039 // 0x00000011
 		ram_wr32(fuc, 0x132100, 0x00000001);
 		ram_wr32(fuc, 0x1373f8, 0x00002000);
 		ram_nsec(fuc, 2000);
@@ -383,8 +432,8 @@ gf100_ram_calc(struct nvkm_ram *base, u32 freq)
 
 		ram_nsec(fuc, 1000);
 		ram_wr32(fuc, 0x10f800, 0x00001804);
-	// 0x00030020 // 0x00000000 // 0x00000000
-	// 0x00020034 // 0x0000000b
+		// 0x00030020 // 0x00000000 // 0x00000000
+		// 0x00020034 // 0x0000000b
 		ram_wr32(fuc, 0x13d8f4, 0x00000000);
 		ram_wr32(fuc, 0x100b0c, 0x00080028);
 		ram_wr32(fuc, 0x611200, 0x00003330);
@@ -396,10 +445,12 @@ gf100_ram_calc(struct nvkm_ram *base, u32 freq)
 	}
 
 	ram_mask(fuc, 0x10f200, 0x00000800, 0x00000800);
-// 0x00020016 // 0x00000000
+	// 0x00020016 // 0x00000000
 
 	if (mode == 0)
+	{
 		ram_mask(fuc, 0x132000, 0x00000001, 0x00000000);
+	}
 
 	return 0;
 }
@@ -429,12 +480,19 @@ gf100_ram_put(struct nvkm_ram *ram, struct nvkm_mem **pmem)
 	struct nvkm_mem *mem = *pmem;
 
 	*pmem = NULL;
+
 	if (unlikely(mem == NULL))
+	{
 		return;
+	}
 
 	mutex_lock(&ram->fb->subdev.mutex);
+
 	if (mem->tag)
+	{
 		nvkm_ltc_tags_free(ltc, &mem->tag);
+	}
+
 	__nv50_ram_put(ram, mem);
 	mutex_unlock(&ram->fb->subdev.mutex);
 
@@ -443,7 +501,7 @@ gf100_ram_put(struct nvkm_ram *ram, struct nvkm_mem **pmem)
 
 int
 gf100_ram_get(struct nvkm_ram *ram, u64 size, u32 align, u32 ncmin,
-	      u32 memtype, struct nvkm_mem **pmem)
+			  u32 memtype, struct nvkm_mem **pmem)
 {
 	struct nvkm_ltc *ltc = ram->fb->subdev.device->ltc;
 	struct nvkm_mm *mm = &ram->vram;
@@ -457,35 +515,54 @@ gf100_ram_get(struct nvkm_ram *ram, u64 size, u32 align, u32 ncmin,
 	size  >>= NVKM_RAM_MM_SHIFT;
 	align >>= NVKM_RAM_MM_SHIFT;
 	ncmin >>= NVKM_RAM_MM_SHIFT;
+
 	if (!ncmin)
+	{
 		ncmin = size;
+	}
 
 	mem = kzalloc(sizeof(*mem), GFP_KERNEL);
+
 	if (!mem)
+	{
 		return -ENOMEM;
+	}
 
 	INIT_LIST_HEAD(&mem->regions);
 	mem->size = size;
 
 	mutex_lock(&ram->fb->subdev.mutex);
-	if (comp) {
+
+	if (comp)
+	{
 		/* compression only works with lpages */
-		if (align == (1 << (17 - NVKM_RAM_MM_SHIFT))) {
+		if (align == (1 << (17 - NVKM_RAM_MM_SHIFT)))
+		{
 			int n = size >> 5;
 			nvkm_ltc_tags_alloc(ltc, n, &mem->tag);
 		}
 
 		if (unlikely(!mem->tag))
+		{
 			type = gf100_pte_storage_type_map[type];
+		}
 	}
+
 	mem->memtype = type;
 
-	do {
+	do
+	{
 		if (back)
+		{
 			ret = nvkm_mm_tail(mm, 0, 1, size, ncmin, align, &r);
+		}
 		else
+		{
 			ret = nvkm_mm_head(mm, 0, 1, size, ncmin, align, &r);
-		if (ret) {
+		}
+
+		if (ret)
+		{
 			mutex_unlock(&ram->fb->subdev.mutex);
 			ram->func->put(ram, &mem);
 			return ret;
@@ -493,7 +570,9 @@ gf100_ram_get(struct nvkm_ram *ram, u64 size, u32 align, u32 ncmin,
 
 		list_add_tail(&r->rl_entry, &mem->regions);
 		size -= r->length;
-	} while (size);
+	}
+	while (size);
+
 	mutex_unlock(&ram->fb->subdev.mutex);
 
 	r = list_first_entry(&mem->regions, struct nvkm_mm_node, rl_entry);
@@ -505,11 +584,13 @@ gf100_ram_get(struct nvkm_ram *ram, u64 size, u32 align, u32 ncmin,
 static int
 gf100_ram_init(struct nvkm_ram *base)
 {
-	static const u8  train0[] = {
+	static const u8  train0[] =
+	{
 		0x00, 0xff, 0x55, 0xaa, 0x33, 0xcc,
 		0x00, 0xff, 0xff, 0x00, 0xff, 0x00,
 	};
-	static const u32 train1[] = {
+	static const u32 train1[] =
+	{
 		0x00000000, 0xffffffff,
 		0x55555555, 0xaaaaaaaa,
 		0x33333333, 0xcccccccc,
@@ -521,15 +602,18 @@ gf100_ram_init(struct nvkm_ram *base)
 	struct nvkm_device *device = ram->base.fb->subdev.device;
 	int i;
 
-	switch (ram->base.type) {
-	case NVKM_RAM_TYPE_GDDR5:
-		break;
-	default:
-		return 0;
+	switch (ram->base.type)
+	{
+		case NVKM_RAM_TYPE_GDDR5:
+			break;
+
+		default:
+			return 0;
 	}
 
 	/* prepare for ddr link training, and load training patterns */
-	for (i = 0; i < 0x30; i++) {
+	for (i = 0; i < 0x30; i++)
+	{
 		nvkm_wr32(device, 0x10f968, 0x00000000 | (i << 8));
 		nvkm_wr32(device, 0x10f96c, 0x00000000 | (i << 8));
 		nvkm_wr32(device, 0x10f920, 0x00000100 | train0[i % 12]);
@@ -546,7 +630,8 @@ gf100_ram_init(struct nvkm_ram *base)
 }
 
 static const struct nvkm_ram_func
-gf100_ram_func = {
+	gf100_ram_func =
+{
 	.init = gf100_ram_init,
 	.get = gf100_ram_get,
 	.put = gf100_ram_put,
@@ -557,7 +642,7 @@ gf100_ram_func = {
 
 int
 gf100_ram_ctor(const struct nvkm_ram_func *func, struct nvkm_fb *fb,
-	       u32 maskaddr, struct nvkm_ram *ram)
+			   u32 maskaddr, struct nvkm_ram *ram)
 {
 	struct nvkm_subdev *subdev = &fb->subdev;
 	struct nvkm_device *device = subdev->device;
@@ -576,14 +661,22 @@ gf100_ram_ctor(const struct nvkm_ram_func *func, struct nvkm_fb *fb,
 	nvkm_debug(subdev, "parts %08x mask %08x\n", parts, pmask);
 
 	/* read amount of vram attached to each memory controller */
-	for (i = 0; i < parts; i++) {
+	for (i = 0; i < parts; i++)
+	{
 		if (pmask & (1 << i))
+		{
 			continue;
+		}
 
 		psize = (u64)nvkm_rd32(device, 0x11020c + (i * 0x1000)) << 20;
-		if (psize != bsize) {
+
+		if (psize != bsize)
+		{
 			if (psize < bsize)
+			{
 				bsize = psize;
+			}
+
 			uniform = false;
 		}
 
@@ -592,33 +685,48 @@ gf100_ram_ctor(const struct nvkm_ram_func *func, struct nvkm_fb *fb,
 	}
 
 	ret = nvkm_ram_ctor(func, fb, type, size, 0, ram);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	nvkm_mm_fini(&ram->vram);
 
 	/* if all controllers have the same amount attached, there's no holes */
-	if (uniform) {
+	if (uniform)
+	{
 		ret = nvkm_mm_init(&ram->vram, rsvd_head >> NVKM_RAM_MM_SHIFT,
-				   (size - rsvd_head - rsvd_tail) >>
-				   NVKM_RAM_MM_SHIFT, 1);
+						   (size - rsvd_head - rsvd_tail) >>
+						   NVKM_RAM_MM_SHIFT, 1);
+
 		if (ret)
+		{
 			return ret;
-	} else {
+		}
+	}
+	else
+	{
 		/* otherwise, address lowest common amount from 0GiB */
 		ret = nvkm_mm_init(&ram->vram, rsvd_head >> NVKM_RAM_MM_SHIFT,
-				   ((bsize * parts) - rsvd_head) >>
-				   NVKM_RAM_MM_SHIFT, 1);
+						   ((bsize * parts) - rsvd_head) >>
+						   NVKM_RAM_MM_SHIFT, 1);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		/* and the rest starting from (8GiB + common_size) */
 		ret = nvkm_mm_init(&ram->vram, (0x0200000000ULL + bsize) >>
-				   NVKM_RAM_MM_SHIFT,
-				   (size - (bsize * parts) - rsvd_tail) >>
-				   NVKM_RAM_MM_SHIFT, 1);
+						   NVKM_RAM_MM_SHIFT,
+						   (size - (bsize * parts) - rsvd_tail) >>
+						   NVKM_RAM_MM_SHIFT, 1);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	ram->ranks = (nvkm_rd32(device, 0x10f200) & 0x00000004) ? 2 : 1;
@@ -634,21 +742,31 @@ gf100_ram_new(struct nvkm_fb *fb, struct nvkm_ram **pram)
 	int ret;
 
 	if (!(ram = kzalloc(sizeof(*ram), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pram = &ram->base;
 
 	ret = gf100_ram_ctor(&gf100_ram_func, fb, 0x022554, &ram->base);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = nvbios_pll_parse(bios, 0x0c, &ram->refpll);
-	if (ret) {
+
+	if (ret)
+	{
 		nvkm_error(subdev, "mclk refpll data not found\n");
 		return ret;
 	}
 
 	ret = nvbios_pll_parse(bios, 0x04, &ram->mempll);
-	if (ret) {
+
+	if (ret)
+	{
 		nvkm_error(subdev, "mclk pll data not found\n");
 		return ret;
 	}

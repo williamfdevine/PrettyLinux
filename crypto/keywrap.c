@@ -87,11 +87,13 @@
 #include <crypto/scatterwalk.h>
 #include <crypto/internal/skcipher.h>
 
-struct crypto_kw_ctx {
+struct crypto_kw_ctx
+{
 	struct crypto_cipher *child;
 };
 
-struct crypto_kw_block {
+struct crypto_kw_block
+{
 #define SEMIBSIZE 8
 	u8 A[SEMIBSIZE];
 	u8 R[SEMIBSIZE];
@@ -111,8 +113,8 @@ static inline void crypto_kw_cpu_to_be64(u64 val, u8 *buf)
  * the walk variable
  */
 static void crypto_kw_scatterlist_ff(struct scatter_walk *walk,
-				     struct scatterlist *sg,
-				     unsigned int end)
+									 struct scatterlist *sg,
+									 unsigned int end)
 {
 	unsigned int skip = 0;
 
@@ -120,33 +122,39 @@ static void crypto_kw_scatterlist_ff(struct scatter_walk *walk,
 	BUG_ON(end < SEMIBSIZE);
 
 	skip = end - SEMIBSIZE;
-	while (sg) {
-		if (sg->length > skip) {
+
+	while (sg)
+	{
+		if (sg->length > skip)
+		{
 			scatterwalk_start(walk, sg);
 			scatterwalk_advance(walk, skip);
 			break;
-		} else
+		}
+		else
+		{
 			skip -= sg->length;
+		}
 
 		sg = sg_next(sg);
 	}
 }
 
 static int crypto_kw_decrypt(struct blkcipher_desc *desc,
-			     struct scatterlist *dst, struct scatterlist *src,
-			     unsigned int nbytes)
+							 struct scatterlist *dst, struct scatterlist *src,
+							 unsigned int nbytes)
 {
 	struct crypto_blkcipher *tfm = desc->tfm;
 	struct crypto_kw_ctx *ctx = crypto_blkcipher_ctx(tfm);
 	struct crypto_cipher *child = ctx->child;
 
 	unsigned long alignmask = max_t(unsigned long, SEMIBSIZE,
-					crypto_cipher_alignmask(child));
+									crypto_cipher_alignmask(child));
 	unsigned int i;
 
 	u8 blockbuf[sizeof(struct crypto_kw_block) + alignmask];
 	struct crypto_kw_block *block = (struct crypto_kw_block *)
-					PTR_ALIGN(blockbuf + 0, alignmask + 1);
+									PTR_ALIGN(blockbuf + 0, alignmask + 1);
 
 	u64 t = 6 * ((nbytes) >> 3);
 	struct scatterlist *lsrc, *ldst;
@@ -157,7 +165,9 @@ static int crypto_kw_decrypt(struct blkcipher_desc *desc,
 	 * required by SP800-38F is the IV.
 	 */
 	if (nbytes < (2 * SEMIBSIZE) || nbytes % SEMIBSIZE)
+	{
 		return -EINVAL;
+	}
 
 	/* Place the IV into block A */
 	memcpy(block->A, desc->info, SEMIBSIZE);
@@ -170,19 +180,21 @@ static int crypto_kw_decrypt(struct blkcipher_desc *desc,
 	lsrc = src;
 	ldst = dst;
 
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < 6; i++)
+	{
 		u8 tbe_buffer[SEMIBSIZE + alignmask];
 		/* alignment for the crypto_xor and the _to_be64 operation */
 		u8 *tbe = PTR_ALIGN(tbe_buffer + 0, alignmask + 1);
 		unsigned int tmp_nbytes = nbytes;
 		struct scatter_walk src_walk, dst_walk;
 
-		while (tmp_nbytes) {
+		while (tmp_nbytes)
+		{
 			/* move pointer by tmp_nbytes in the SGL */
 			crypto_kw_scatterlist_ff(&src_walk, lsrc, tmp_nbytes);
 			/* get the source block */
 			scatterwalk_copychunks(block->R, &src_walk, SEMIBSIZE,
-					       false);
+								   false);
 
 			/* perform KW operation: get counter as byte string */
 			crypto_kw_cpu_to_be64(t, tbe);
@@ -190,14 +202,14 @@ static int crypto_kw_decrypt(struct blkcipher_desc *desc,
 			crypto_xor(block->A, tbe, SEMIBSIZE);
 			t--;
 			/* perform KW operation: decrypt block */
-			crypto_cipher_decrypt_one(child, (u8*)block,
-						  (u8*)block);
+			crypto_cipher_decrypt_one(child, (u8 *)block,
+									  (u8 *)block);
 
 			/* move pointer by tmp_nbytes in the SGL */
 			crypto_kw_scatterlist_ff(&dst_walk, ldst, tmp_nbytes);
 			/* Copy block->R into place */
 			scatterwalk_copychunks(block->R, &dst_walk, SEMIBSIZE,
-					       true);
+								   true);
 
 			tmp_nbytes -= SEMIBSIZE;
 		}
@@ -209,8 +221,10 @@ static int crypto_kw_decrypt(struct blkcipher_desc *desc,
 
 	/* Perform authentication check */
 	if (crypto_memneq("\xA6\xA6\xA6\xA6\xA6\xA6\xA6\xA6", block->A,
-			  SEMIBSIZE))
+					  SEMIBSIZE))
+	{
 		ret = -EBADMSG;
+	}
 
 	memzero_explicit(block, sizeof(struct crypto_kw_block));
 
@@ -218,20 +232,20 @@ static int crypto_kw_decrypt(struct blkcipher_desc *desc,
 }
 
 static int crypto_kw_encrypt(struct blkcipher_desc *desc,
-			     struct scatterlist *dst, struct scatterlist *src,
-			     unsigned int nbytes)
+							 struct scatterlist *dst, struct scatterlist *src,
+							 unsigned int nbytes)
 {
 	struct crypto_blkcipher *tfm = desc->tfm;
 	struct crypto_kw_ctx *ctx = crypto_blkcipher_ctx(tfm);
 	struct crypto_cipher *child = ctx->child;
 
 	unsigned long alignmask = max_t(unsigned long, SEMIBSIZE,
-					crypto_cipher_alignmask(child));
+									crypto_cipher_alignmask(child));
 	unsigned int i;
 
 	u8 blockbuf[sizeof(struct crypto_kw_block) + alignmask];
 	struct crypto_kw_block *block = (struct crypto_kw_block *)
-					PTR_ALIGN(blockbuf + 0, alignmask + 1);
+									PTR_ALIGN(blockbuf + 0, alignmask + 1);
 
 	u64 t = 1;
 	struct scatterlist *lsrc, *ldst;
@@ -243,7 +257,9 @@ static int crypto_kw_encrypt(struct blkcipher_desc *desc,
 	 * Also ensure that the given data is aligned to semiblock.
 	 */
 	if (nbytes < (2 * SEMIBSIZE) || nbytes % SEMIBSIZE)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Place the predefined IV into block A -- for encrypt, the caller
@@ -259,7 +275,8 @@ static int crypto_kw_encrypt(struct blkcipher_desc *desc,
 	lsrc = src;
 	ldst = dst;
 
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < 6; i++)
+	{
 		u8 tbe_buffer[SEMIBSIZE + alignmask];
 		u8 *tbe = PTR_ALIGN(tbe_buffer + 0, alignmask + 1);
 		unsigned int tmp_nbytes = nbytes;
@@ -268,14 +285,15 @@ static int crypto_kw_encrypt(struct blkcipher_desc *desc,
 		scatterwalk_start(&src_walk, lsrc);
 		scatterwalk_start(&dst_walk, ldst);
 
-		while (tmp_nbytes) {
+		while (tmp_nbytes)
+		{
 			/* get the source block */
 			scatterwalk_copychunks(block->R, &src_walk, SEMIBSIZE,
-					       false);
+								   false);
 
 			/* perform KW operation: encrypt block */
 			crypto_cipher_encrypt_one(child, (u8 *)block,
-						  (u8 *)block);
+									  (u8 *)block);
 			/* perform KW operation: get counter as byte string */
 			crypto_kw_cpu_to_be64(t, tbe);
 			/* perform KW operation: modify IV with counter */
@@ -284,7 +302,7 @@ static int crypto_kw_encrypt(struct blkcipher_desc *desc,
 
 			/* Copy block->R into place */
 			scatterwalk_copychunks(block->R, &dst_walk, SEMIBSIZE,
-					       true);
+								   true);
 
 			tmp_nbytes -= SEMIBSIZE;
 		}
@@ -303,7 +321,7 @@ static int crypto_kw_encrypt(struct blkcipher_desc *desc,
 }
 
 static int crypto_kw_setkey(struct crypto_tfm *parent, const u8 *key,
-			    unsigned int keylen)
+							unsigned int keylen)
 {
 	struct crypto_kw_ctx *ctx = crypto_tfm_ctx(parent);
 	struct crypto_cipher *child = ctx->child;
@@ -311,10 +329,10 @@ static int crypto_kw_setkey(struct crypto_tfm *parent, const u8 *key,
 
 	crypto_cipher_clear_flags(child, CRYPTO_TFM_REQ_MASK);
 	crypto_cipher_set_flags(child, crypto_tfm_get_flags(parent) &
-				       CRYPTO_TFM_REQ_MASK);
+							CRYPTO_TFM_REQ_MASK);
 	err = crypto_cipher_setkey(child, key, keylen);
 	crypto_tfm_set_flags(parent, crypto_cipher_get_flags(child) &
-				     CRYPTO_TFM_RES_MASK);
+						 CRYPTO_TFM_RES_MASK);
 	return err;
 }
 
@@ -326,8 +344,11 @@ static int crypto_kw_init_tfm(struct crypto_tfm *tfm)
 	struct crypto_cipher *cipher;
 
 	cipher = crypto_spawn_cipher(spawn);
+
 	if (IS_ERR(cipher))
+	{
 		return PTR_ERR(cipher);
+	}
 
 	ctx->child = cipher;
 	return 0;
@@ -347,22 +368,34 @@ static struct crypto_instance *crypto_kw_alloc(struct rtattr **tb)
 	int err;
 
 	err = crypto_check_attr_type(tb, CRYPTO_ALG_TYPE_BLKCIPHER);
+
 	if (err)
+	{
 		return ERR_PTR(err);
+	}
 
 	alg = crypto_get_attr_alg(tb, CRYPTO_ALG_TYPE_CIPHER,
-				  CRYPTO_ALG_TYPE_MASK);
+							  CRYPTO_ALG_TYPE_MASK);
+
 	if (IS_ERR(alg))
+	{
 		return ERR_CAST(alg);
+	}
 
 	inst = ERR_PTR(-EINVAL);
+
 	/* Section 5.1 requirement for KW */
 	if (alg->cra_blocksize != sizeof(struct crypto_kw_block))
+	{
 		goto err;
+	}
 
 	inst = crypto_alloc_instance("kw", alg);
+
 	if (IS_ERR(inst))
+	{
 		goto err;
+	}
 
 	inst->alg.cra_flags = CRYPTO_ALG_TYPE_BLKCIPHER;
 	inst->alg.cra_priority = alg->cra_priority;
@@ -393,7 +426,8 @@ static void crypto_kw_free(struct crypto_instance *inst)
 	kfree(inst);
 }
 
-static struct crypto_template crypto_kw_tmpl = {
+static struct crypto_template crypto_kw_tmpl =
+{
 	.name = "kw",
 	.alloc = crypto_kw_alloc,
 	.free = crypto_kw_free,

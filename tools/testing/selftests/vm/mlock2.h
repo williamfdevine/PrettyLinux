@@ -4,11 +4,11 @@
 #include <stdlib.h>
 
 #ifndef MLOCK_ONFAULT
-#define MLOCK_ONFAULT 1
+	#define MLOCK_ONFAULT 1
 #endif
 
 #ifndef MCL_ONFAULT
-#define MCL_ONFAULT (MCL_FUTURE << 1)
+	#define MCL_ONFAULT (MCL_FUTURE << 1)
 #endif
 
 static int mlock2_(void *start, size_t len, int flags)
@@ -34,18 +34,25 @@ static FILE *seek_to_smaps_entry(unsigned long addr)
 	char path[BUFSIZ];
 
 	file = fopen("/proc/self/smaps", "r");
-	if (!file) {
+
+	if (!file)
+	{
 		perror("fopen smaps");
 		_exit(1);
 	}
 
-	while (getline(&line, &size, file) > 0) {
+	while (getline(&line, &size, file) > 0)
+	{
 		if (sscanf(line, "%lx-%lx %s %lx %s %lu %s\n",
-			   &start, &end, perms, &offset, dev, &inode, path) < 6)
+				   &start, &end, perms, &offset, dev, &inode, path) < 6)
+		{
 			goto next;
+		}
 
 		if (start <= addr && addr < end)
+		{
 			goto out;
+		}
 
 next:
 		free(line);

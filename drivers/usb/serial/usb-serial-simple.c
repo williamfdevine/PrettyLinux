@@ -21,18 +21,18 @@
 #include <linux/usb/serial.h>
 
 #define DEVICE_N(vendor, IDS, nport)				\
-static const struct usb_device_id vendor##_id_table[] = {	\
-	IDS(),							\
-	{ },							\
-};								\
-static struct usb_serial_driver vendor##_device = {		\
-	.driver = {						\
-		.owner =	THIS_MODULE,			\
-		.name =		#vendor,			\
-	},							\
-	.id_table =		vendor##_id_table,		\
-	.num_ports =		nport,				\
-};
+	static const struct usb_device_id vendor##_id_table[] = {	\
+		IDS(),							\
+		{ },							\
+	};								\
+	static struct usb_serial_driver vendor##_device = {		\
+		.driver = {						\
+										.owner =	THIS_MODULE,			\
+										.name =		#vendor,			\
+				  },							\
+				  .id_table =		vendor##_id_table,		\
+								  .num_ports =		nport,				\
+	};
 
 #define DEVICE(vendor, IDS)	DEVICE_N(vendor, IDS, 1)
 
@@ -61,9 +61,9 @@ DEVICE(flashloader, FLASHLOADER_IDS);
 /* Google Serial USB SubClass */
 #define GOOGLE_IDS()						\
 	{ USB_VENDOR_AND_INTERFACE_INFO(0x18d1,			\
-					USB_CLASS_VENDOR_SPEC,	\
-					0x50,			\
-					0x01) }
+									USB_CLASS_VENDOR_SPEC,	\
+									0x50,			\
+									0x01) }
 DEVICE(google, GOOGLE_IDS);
 
 /* ViVOpay USB Serial Driver */
@@ -102,7 +102,8 @@ DEVICE(suunto, SUUNTO_IDS);
 DEVICE(siemens_mpi, SIEMENS_IDS);
 
 /* All of the above structures mushed into two lists */
-static struct usb_serial_driver * const serial_drivers[] = {
+static struct usb_serial_driver *const serial_drivers[] =
+{
 	&carelink_device,
 	&zio_device,
 	&funsoft_device,
@@ -117,7 +118,8 @@ static struct usb_serial_driver * const serial_drivers[] = {
 	NULL
 };
 
-static const struct usb_device_id id_table[] = {
+static const struct usb_device_id id_table[] =
+{
 	CARELINK_IDS(),
 	ZIO_IDS(),
 	FUNSOFT_IDS(),

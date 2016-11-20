@@ -45,33 +45,48 @@ static int b53_mdio_op(struct b53_device *dev, u8 page, u8 reg, u16 op)
 	int ret;
 	struct mii_bus *bus = dev->priv;
 
-	if (dev->current_page != page) {
+	if (dev->current_page != page)
+	{
 		/* set page number */
 		v = (page << 8) | REG_MII_PAGE_ENABLE;
 		ret = mdiobus_write_nested(bus, BRCM_PSEUDO_PHY_ADDR,
-					   REG_MII_PAGE, v);
+								   REG_MII_PAGE, v);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		dev->current_page = page;
 	}
 
 	/* set register address */
 	v = (reg << 8) | op;
 	ret = mdiobus_write_nested(bus, BRCM_PSEUDO_PHY_ADDR, REG_MII_ADDR, v);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* check if operation completed */
-	for (i = 0; i < 5; ++i) {
+	for (i = 0; i < 5; ++i)
+	{
 		v = mdiobus_read_nested(bus, BRCM_PSEUDO_PHY_ADDR,
-					REG_MII_ADDR);
+								REG_MII_ADDR);
+
 		if (!(v & (REG_MII_ADDR_WRITE | REG_MII_ADDR_READ)))
+		{
 			break;
+		}
+
 		usleep_range(10, 100);
 	}
 
 	if (WARN_ON(i == 5))
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
@@ -82,11 +97,14 @@ static int b53_mdio_read8(struct b53_device *dev, u8 page, u8 reg, u8 *val)
 	int ret;
 
 	ret = b53_mdio_op(dev, page, reg, REG_MII_ADDR_READ);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	*val = mdiobus_read_nested(bus, BRCM_PSEUDO_PHY_ADDR,
-				   REG_MII_DATA0) & 0xff;
+							   REG_MII_DATA0) & 0xff;
 
 	return 0;
 }
@@ -97,8 +115,11 @@ static int b53_mdio_read16(struct b53_device *dev, u8 page, u8 reg, u16 *val)
 	int ret;
 
 	ret = b53_mdio_op(dev, page, reg, REG_MII_ADDR_READ);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	*val = mdiobus_read_nested(bus, BRCM_PSEUDO_PHY_ADDR, REG_MII_DATA0);
 
@@ -111,12 +132,15 @@ static int b53_mdio_read32(struct b53_device *dev, u8 page, u8 reg, u32 *val)
 	int ret;
 
 	ret = b53_mdio_op(dev, page, reg, REG_MII_ADDR_READ);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	*val = mdiobus_read_nested(bus, BRCM_PSEUDO_PHY_ADDR, REG_MII_DATA0);
 	*val |= mdiobus_read_nested(bus, BRCM_PSEUDO_PHY_ADDR,
-				    REG_MII_DATA1) << 16;
+								REG_MII_DATA1) << 16;
 
 	return 0;
 }
@@ -129,13 +153,17 @@ static int b53_mdio_read48(struct b53_device *dev, u8 page, u8 reg, u64 *val)
 	int ret;
 
 	ret = b53_mdio_op(dev, page, reg, REG_MII_ADDR_READ);
-	if (ret)
-		return ret;
 
-	for (i = 2; i >= 0; i--) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	for (i = 2; i >= 0; i--)
+	{
 		temp <<= 16;
 		temp |= mdiobus_read_nested(bus, BRCM_PSEUDO_PHY_ADDR,
-				     REG_MII_DATA0 + i);
+									REG_MII_DATA0 + i);
 	}
 
 	*val = temp;
@@ -151,13 +179,17 @@ static int b53_mdio_read64(struct b53_device *dev, u8 page, u8 reg, u64 *val)
 	int ret;
 
 	ret = b53_mdio_op(dev, page, reg, REG_MII_ADDR_READ);
-	if (ret)
-		return ret;
 
-	for (i = 3; i >= 0; i--) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	for (i = 3; i >= 0; i--)
+	{
 		temp <<= 16;
 		temp |= mdiobus_read_nested(bus, BRCM_PSEUDO_PHY_ADDR,
-					    REG_MII_DATA0 + i);
+									REG_MII_DATA0 + i);
 	}
 
 	*val = temp;
@@ -171,40 +203,51 @@ static int b53_mdio_write8(struct b53_device *dev, u8 page, u8 reg, u8 value)
 	int ret;
 
 	ret = mdiobus_write_nested(bus, BRCM_PSEUDO_PHY_ADDR,
-				   REG_MII_DATA0, value);
+							   REG_MII_DATA0, value);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return b53_mdio_op(dev, page, reg, REG_MII_ADDR_WRITE);
 }
 
 static int b53_mdio_write16(struct b53_device *dev, u8 page, u8 reg,
-			    u16 value)
+							u16 value)
 {
 	struct mii_bus *bus = dev->priv;
 	int ret;
 
 	ret = mdiobus_write_nested(bus, BRCM_PSEUDO_PHY_ADDR,
-				   REG_MII_DATA0, value);
+							   REG_MII_DATA0, value);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return b53_mdio_op(dev, page, reg, REG_MII_ADDR_WRITE);
 }
 
 static int b53_mdio_write32(struct b53_device *dev, u8 page, u8 reg,
-			    u32 value)
+							u32 value)
 {
 	struct mii_bus *bus = dev->priv;
 	unsigned int i;
 	u32 temp = value;
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		int ret = mdiobus_write_nested(bus, BRCM_PSEUDO_PHY_ADDR,
-					       REG_MII_DATA0 + i,
-					       temp & 0xffff);
+									   REG_MII_DATA0 + i,
+									   temp & 0xffff);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		temp >>= 16;
 	}
 
@@ -212,18 +255,23 @@ static int b53_mdio_write32(struct b53_device *dev, u8 page, u8 reg,
 }
 
 static int b53_mdio_write48(struct b53_device *dev, u8 page, u8 reg,
-			    u64 value)
+							u64 value)
 {
 	struct mii_bus *bus = dev->priv;
 	unsigned int i;
 	u64 temp = value;
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		int ret = mdiobus_write_nested(bus, BRCM_PSEUDO_PHY_ADDR,
-					       REG_MII_DATA0 + i,
-					       temp & 0xffff);
+									   REG_MII_DATA0 + i,
+									   temp & 0xffff);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		temp >>= 16;
 	}
 
@@ -231,18 +279,23 @@ static int b53_mdio_write48(struct b53_device *dev, u8 page, u8 reg,
 }
 
 static int b53_mdio_write64(struct b53_device *dev, u8 page, u8 reg,
-			    u64 value)
+							u64 value)
 {
 	struct mii_bus *bus = dev->priv;
 	unsigned int i;
 	u64 temp = value;
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		int ret = mdiobus_write_nested(bus, BRCM_PSEUDO_PHY_ADDR,
-					       REG_MII_DATA0 + i,
-					       temp & 0xffff);
+									   REG_MII_DATA0 + i,
+									   temp & 0xffff);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		temp >>= 16;
 	}
 
@@ -250,7 +303,7 @@ static int b53_mdio_write64(struct b53_device *dev, u8 page, u8 reg,
 }
 
 static int b53_mdio_phy_read16(struct b53_device *dev, int addr, int reg,
-			       u16 *value)
+							   u16 *value)
 {
 	struct mii_bus *bus = dev->priv;
 
@@ -260,14 +313,15 @@ static int b53_mdio_phy_read16(struct b53_device *dev, int addr, int reg,
 }
 
 static int b53_mdio_phy_write16(struct b53_device *dev, int addr, int reg,
-				u16 value)
+								u16 value)
 {
 	struct mii_bus *bus = dev->bus;
 
 	return mdiobus_write_nested(bus, addr, reg, value);
 }
 
-static const struct b53_io_ops b53_mdio_ops = {
+static const struct b53_io_ops b53_mdio_ops =
+{
 	.read8 = b53_mdio_read8,
 	.read16 = b53_mdio_read16,
 	.read32 = b53_mdio_read32,
@@ -295,9 +349,10 @@ static int b53_mdio_probe(struct mdio_device *mdiodev)
 	/* allow the generic PHY driver to take over the non-management MDIO
 	 * addresses
 	 */
-	if (mdiodev->addr != BRCM_PSEUDO_PHY_ADDR && mdiodev->addr != 0) {
+	if (mdiodev->addr != BRCM_PSEUDO_PHY_ADDR && mdiodev->addr != 0)
+	{
 		dev_err(&mdiodev->dev, "leaving address %d to PHY\n",
-			mdiodev->addr);
+				mdiodev->addr);
 		return -ENODEV;
 	}
 
@@ -310,8 +365,9 @@ static int b53_mdio_probe(struct mdio_device *mdiodev)
 	 * BCM5365 (OUI_3)
 	 */
 	if ((phy_id & 0xfffffc00) != B53_BRCM_OUI_1 &&
-	    (phy_id & 0xfffffc00) != B53_BRCM_OUI_2 &&
-	    (phy_id & 0xfffffc00) != B53_BRCM_OUI_3) {
+		(phy_id & 0xfffffc00) != B53_BRCM_OUI_2 &&
+		(phy_id & 0xfffffc00) != B53_BRCM_OUI_3)
+	{
 		dev_err(&mdiodev->dev, "Unsupported device: 0x%08x\n", phy_id);
 		return -ENODEV;
 	}
@@ -324,12 +380,17 @@ static int b53_mdio_probe(struct mdio_device *mdiodev)
 	 * layer setup
 	 */
 	if (of_machine_is_compatible("brcm,bcm7445d0") &&
-	    strcmp(mdiodev->bus->name, "sf2 slave mii"))
+		strcmp(mdiodev->bus->name, "sf2 slave mii"))
+	{
 		return -EPROBE_DEFER;
+	}
 
 	dev = b53_switch_alloc(&mdiodev->dev, &b53_mdio_ops, mdiodev->bus);
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	/* we don't use page 0xff, so force a page set */
 	dev->current_page = 0xff;
@@ -338,7 +399,9 @@ static int b53_mdio_probe(struct mdio_device *mdiodev)
 	dev_set_drvdata(&mdiodev->dev, dev);
 
 	ret = b53_switch_register(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&mdiodev->dev, "failed to register switch: %i\n", ret);
 		return ret;
 	}
@@ -354,7 +417,8 @@ static void b53_mdio_remove(struct mdio_device *mdiodev)
 	dsa_unregister_switch(ds);
 }
 
-static const struct of_device_id b53_of_match[] = {
+static const struct of_device_id b53_of_match[] =
+{
 	{ .compatible = "brcm,bcm5325" },
 	{ .compatible = "brcm,bcm53115" },
 	{ .compatible = "brcm,bcm53125" },
@@ -367,7 +431,8 @@ static const struct of_device_id b53_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, b53_of_match);
 
-static struct mdio_driver b53_mdio_driver = {
+static struct mdio_driver b53_mdio_driver =
+{
 	.probe	= b53_mdio_probe,
 	.remove	= b53_mdio_remove,
 	.mdiodrv.driver = {

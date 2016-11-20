@@ -16,7 +16,8 @@
 #define QDIO_BUSY_BIT_RETRIES		1000		/* = 10s retry time */
 #define QDIO_INPUT_THRESHOLD		(500 << 12)	/* 500 microseconds */
 
-enum qdio_irq_states {
+enum qdio_irq_states
+{
 	QDIO_IRQ_STATE_INACTIVE,
 	QDIO_IRQ_STATE_ESTABLISHED,
 	QDIO_IRQ_STATE_ACTIVE,
@@ -85,7 +86,7 @@ enum qdio_irq_states {
 #define QDIO_SIGA_QEBSM_FLAG	0x80
 
 static inline int do_sqbs(u64 token, unsigned char state, int queue,
-			  int *start, int *count)
+						  int *start, int *count)
 {
 	register unsigned long _ccq asm ("0") = *count;
 	register unsigned long _token asm ("1") = token;
@@ -103,7 +104,7 @@ static inline int do_sqbs(u64 token, unsigned char state, int queue,
 }
 
 static inline int do_eqbs(u64 token, unsigned char *state, int queue,
-			  int *start, int *count, int ack)
+						  int *start, int *count, int ack)
 {
 	register unsigned long _ccq asm ("0") = *count;
 	register unsigned long _token asm ("1") = token;
@@ -124,16 +125,18 @@ static inline int do_eqbs(u64 token, unsigned char *state, int queue,
 
 struct qdio_irq;
 
-struct siga_flag {
-	u8 input:1;
-	u8 output:1;
-	u8 sync:1;
-	u8 sync_after_ai:1;
-	u8 sync_out_after_pci:1;
-	u8:3;
+struct siga_flag
+{
+	u8 input: 1;
+	u8 output: 1;
+	u8 sync: 1;
+	u8 sync_after_ai: 1;
+	u8 sync_out_after_pci: 1;
+	u8: 3;
 } __attribute__ ((packed));
 
-struct qdio_dev_perf_stat {
+struct qdio_dev_perf_stat
+{
 	unsigned int adapter_int;
 	unsigned int qdio_int;
 	unsigned int pci_request_int;
@@ -163,7 +166,8 @@ struct qdio_dev_perf_stat {
 	unsigned int int_discarded;
 } ____cacheline_aligned;
 
-struct qdio_queue_perf_stat {
+struct qdio_queue_perf_stat
+{
 	/*
 	 * Sorted into order-2 buckets: 1, 2-3, 4-7, ... 64-127, 128.
 	 * Since max. 127 SBALs are scanned reuse entry for 128 as queue full
@@ -175,11 +179,13 @@ struct qdio_queue_perf_stat {
 	unsigned int nr_sbal_total;
 };
 
-enum qdio_queue_irq_states {
+enum qdio_queue_irq_states
+{
 	QDIO_QUEUE_IRQS_DISABLED,
 };
 
-struct qdio_input_q {
+struct qdio_input_q
+{
 	/* input buffer acknowledgement flag */
 	int polling;
 	/* first ACK'ed buffer */
@@ -194,7 +200,8 @@ struct qdio_input_q {
 	void (*queue_start_poll) (struct ccw_device *, int, unsigned long);
 };
 
-struct qdio_output_q {
+struct qdio_output_q
+{
 	/* PCIs are enabled for the queue */
 	int pci_out_enabled;
 	/* cq: use asynchronous output buffers */
@@ -213,10 +220,12 @@ struct qdio_output_q {
  * Note on cache alignment: grouped slsb and write mostly data at the beginning
  * sbal[] is read-only and starts on a new cacheline followed by read mostly.
  */
-struct qdio_q {
+struct qdio_q
+{
 	struct slsb slsb;
 
-	union {
+	union
+	{
 		struct qdio_input_q in;
 		struct qdio_output_q out;
 	} u;
@@ -272,7 +281,8 @@ struct qdio_q {
 	struct slib *slib;
 } __attribute__ ((aligned(256)));
 
-struct qdio_irq {
+struct qdio_irq
+{
 	struct qib qib;
 	u32 *dsci;		/* address of device state change indicator */
 	struct ccw_device *cdev;
@@ -321,11 +331,11 @@ struct qdio_irq {
 #define qperf(__qdev, __attr)	((__qdev)->perf_stat.(__attr))
 
 #define qperf_inc(__q, __attr)						\
-({									\
-	struct qdio_irq *qdev = (__q)->irq_ptr;				\
-	if (qdev->perf_stat_enabled)					\
-		(qdev->perf_stat.__attr)++;				\
-})
+	({									\
+		struct qdio_irq *qdev = (__q)->irq_ptr;				\
+		if (qdev->perf_stat_enabled)					\
+			(qdev->perf_stat.__attr)++;				\
+	})
 
 static inline void account_sbals_error(struct qdio_q *q, int count)
 {
@@ -337,7 +347,7 @@ static inline void account_sbals_error(struct qdio_q *q, int count)
 static inline int multicast_outbound(struct qdio_q *q)
 {
 	return (q->irq_ptr->nr_output_qs > 1) &&
-	       (q->nr == q->irq_ptr->nr_output_qs - 1);
+		   (q->nr == q->irq_ptr->nr_output_qs - 1);
 }
 
 #define pci_out_supported(q) \
@@ -354,10 +364,10 @@ static inline int multicast_outbound(struct qdio_q *q)
 
 #define for_each_input_queue(irq_ptr, q, i)		\
 	for (i = 0; i < irq_ptr->nr_input_qs &&		\
-		({ q = irq_ptr->input_qs[i]; 1; }); i++)
+	({ q = irq_ptr->input_qs[i]; 1; }); i++)
 #define for_each_output_queue(irq_ptr, q, i)		\
 	for (i = 0; i < irq_ptr->nr_output_qs &&	\
-		({ q = irq_ptr->output_qs[i]; 1; }); i++)
+	({ q = irq_ptr->output_qs[i]; 1; }); i++)
 
 #define prev_buf(bufnr)	\
 	((bufnr + QDIO_MAX_BUFFERS_MASK) & QDIO_MAX_BUFFERS_MASK)
@@ -394,16 +404,16 @@ void qdio_inbound_processing(unsigned long data);
 void qdio_outbound_processing(unsigned long data);
 void qdio_outbound_timer(unsigned long data);
 void qdio_int_handler(struct ccw_device *cdev, unsigned long intparm,
-		      struct irb *irb);
+					  struct irb *irb);
 int qdio_allocate_qs(struct qdio_irq *irq_ptr, int nr_input_qs,
-		     int nr_output_qs);
+					 int nr_output_qs);
 void qdio_setup_ssqd_info(struct qdio_irq *irq_ptr);
 int qdio_setup_get_ssqd(struct qdio_irq *irq_ptr,
-			struct subchannel_id *schid,
-			struct qdio_ssqd_desc *data);
+						struct subchannel_id *schid,
+						struct qdio_ssqd_desc *data);
 int qdio_setup_irq(struct qdio_initialize *init_data);
 void qdio_print_subchannel_info(struct qdio_irq *irq_ptr,
-				struct ccw_device *cdev);
+								struct ccw_device *cdev);
 void qdio_release_memory(struct qdio_irq *irq_ptr);
 int qdio_setup_create_sysfs(struct ccw_device *cdev);
 void qdio_setup_destroy_sysfs(struct ccw_device *cdev);
@@ -414,5 +424,5 @@ void qdio_disable_async_operation(struct qdio_output_q *q);
 struct qaob *qdio_allocate_aob(void);
 
 int debug_get_buf_state(struct qdio_q *q, unsigned int bufnr,
-			unsigned char *state);
+						unsigned char *state);
 #endif /* _CIO_QDIO_H */

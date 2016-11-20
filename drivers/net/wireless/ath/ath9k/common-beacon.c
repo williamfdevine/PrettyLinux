@@ -19,7 +19,7 @@
 #define FUDGE 2
 
 static u32 ath9k_get_next_tbtt(struct ath_hw *ah, u64 tsf,
-			       unsigned int interval)
+							   unsigned int interval)
 {
 	unsigned int offset, divisor;
 
@@ -39,17 +39,18 @@ static u32 ath9k_get_next_tbtt(struct ath_hw *ah, u64 tsf,
  * we've associated with.
  */
 int ath9k_cmn_beacon_config_sta(struct ath_hw *ah,
-				 struct ath_beacon_config *conf,
-				 struct ath9k_beacon_state *bs)
+								struct ath_beacon_config *conf,
+								struct ath9k_beacon_state *bs)
 {
 	struct ath_common *common = ath9k_hw_common(ah);
 	int dtim_intval;
 	u64 tsf;
 
 	/* No need to configure beacon if we are not associated */
-	if (!test_bit(ATH_OP_PRIM_STA_VIF, &common->op_flags)) {
+	if (!test_bit(ATH_OP_PRIM_STA_VIF, &common->op_flags))
+	{
 		ath_dbg(common, BEACON,
-			"STA is not yet associated..skipping beacon config\n");
+				"STA is not yet associated..skipping beacon config\n");
 		return -EPERM;
 	}
 
@@ -73,8 +74,11 @@ int ath9k_cmn_beacon_config_sta(struct ath_hw *ah,
 	bs->bs_dtimperiod = conf->dtim_period * bs->bs_intval;
 	bs->bs_nexttbtt = conf->nexttbtt;
 	bs->bs_nextdtim = conf->nexttbtt;
+
 	if (conf->dtim_period > 1)
+	{
 		bs->bs_nextdtim = ath9k_get_next_tbtt(ah, tsf, dtim_intval);
+	}
 
 	/*
 	 * Calculate the number of consecutive beacons to miss* before taking
@@ -83,10 +87,15 @@ int ath9k_cmn_beacon_config_sta(struct ath_hw *ah,
 	 * result to at most 15 beacons.
 	 */
 	bs->bs_bmissthreshold = DIV_ROUND_UP(conf->bmiss_timeout, conf->intval);
+
 	if (bs->bs_bmissthreshold > 15)
+	{
 		bs->bs_bmissthreshold = 15;
+	}
 	else if (bs->bs_bmissthreshold <= 0)
+	{
 		bs->bs_bmissthreshold = 1;
+	}
 
 	/*
 	 * Calculate sleep duration. The configuration is given in ms.
@@ -98,41 +107,50 @@ int ath9k_cmn_beacon_config_sta(struct ath_hw *ah,
 	 */
 
 	bs->bs_sleepduration = TU_TO_USEC(roundup(IEEE80211_MS_TO_TU(100),
-						  conf->intval));
+									  conf->intval));
+
 	if (bs->bs_sleepduration > bs->bs_dtimperiod)
+	{
 		bs->bs_sleepduration = bs->bs_dtimperiod;
+	}
 
 	/* TSF out of range threshold fixed at 1 second */
 	bs->bs_tsfoor_threshold = ATH9K_TSFOOR_THRESHOLD;
 
 	ath_dbg(common, BEACON, "bmiss: %u sleep: %u\n",
-		bs->bs_bmissthreshold, bs->bs_sleepduration);
+			bs->bs_bmissthreshold, bs->bs_sleepduration);
 	return 0;
 }
 EXPORT_SYMBOL(ath9k_cmn_beacon_config_sta);
 
 void ath9k_cmn_beacon_config_adhoc(struct ath_hw *ah,
-				   struct ath_beacon_config *conf)
+								   struct ath_beacon_config *conf)
 {
 	struct ath_common *common = ath9k_hw_common(ah);
 
 	conf->intval = TU_TO_USEC(conf->beacon_interval);
 
 	if (conf->ibss_creator)
+	{
 		conf->nexttbtt = conf->intval;
+	}
 	else
 		conf->nexttbtt = ath9k_get_next_tbtt(ah, ath9k_hw_gettsf64(ah),
-					       conf->beacon_interval);
+											 conf->beacon_interval);
 
 	if (conf->enable_beacon)
+	{
 		ah->imask |= ATH9K_INT_SWBA;
+	}
 	else
+	{
 		ah->imask &= ~ATH9K_INT_SWBA;
+	}
 
 	ath_dbg(common, BEACON,
-		"IBSS (%s) nexttbtt: %u intval: %u conf_intval: %u\n",
-		(conf->enable_beacon) ? "Enable" : "Disable",
-		conf->nexttbtt, conf->intval, conf->beacon_interval);
+			"IBSS (%s) nexttbtt: %u intval: %u conf_intval: %u\n",
+			(conf->enable_beacon) ? "Enable" : "Disable",
+			conf->nexttbtt, conf->intval, conf->beacon_interval);
 }
 EXPORT_SYMBOL(ath9k_cmn_beacon_config_adhoc);
 
@@ -142,8 +160,8 @@ EXPORT_SYMBOL(ath9k_cmn_beacon_config_adhoc);
  * slot. Slots that are not occupied will generate nothing.
  */
 void ath9k_cmn_beacon_config_ap(struct ath_hw *ah,
-				struct ath_beacon_config *conf,
-				unsigned int bc_buf)
+								struct ath_beacon_config *conf,
+								unsigned int bc_buf)
 {
 	struct ath_common *common = ath9k_hw_common(ah);
 
@@ -151,16 +169,20 @@ void ath9k_cmn_beacon_config_ap(struct ath_hw *ah,
 	conf->intval = TU_TO_USEC(conf->beacon_interval);
 	conf->intval /= bc_buf;
 	conf->nexttbtt = ath9k_get_next_tbtt(ah, ath9k_hw_gettsf64(ah),
-				       conf->beacon_interval);
+										 conf->beacon_interval);
 
 	if (conf->enable_beacon)
+	{
 		ah->imask |= ATH9K_INT_SWBA;
+	}
 	else
+	{
 		ah->imask &= ~ATH9K_INT_SWBA;
+	}
 
 	ath_dbg(common, BEACON,
-		"AP (%s) nexttbtt: %u intval: %u conf_intval: %u\n",
-		(conf->enable_beacon) ? "Enable" : "Disable",
-		conf->nexttbtt, conf->intval, conf->beacon_interval);
+			"AP (%s) nexttbtt: %u intval: %u conf_intval: %u\n",
+			(conf->enable_beacon) ? "Enable" : "Disable",
+			conf->nexttbtt, conf->intval, conf->beacon_interval);
 }
 EXPORT_SYMBOL(ath9k_cmn_beacon_config_ap);

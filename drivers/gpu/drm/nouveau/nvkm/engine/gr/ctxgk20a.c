@@ -48,7 +48,9 @@ gk20a_grctx_generate_main(struct gf100_gr *gr, struct gf100_grctx *info)
 	gf100_grctx_generate_r406800(gr);
 
 	for (i = 0; i < 8; i++)
+	{
 		nvkm_wr32(device, 0x4064d0 + (i * 0x04), 0x00000000);
+	}
 
 	nvkm_wr32(device, 0x405b00, (gr->tpc_total << 8) | gr->gpc_nr);
 
@@ -68,7 +70,8 @@ gk20a_grctx_generate_main(struct gf100_gr *gr, struct gf100_grctx *info)
 }
 
 const struct gf100_grctx_func
-gk20a_grctx = {
+	gk20a_grctx =
+{
 	.main  = gk20a_grctx_generate_main,
 	.unkn  = gk104_grctx_generate_unkn,
 	.bundle = gk104_grctx_generate_bundle,

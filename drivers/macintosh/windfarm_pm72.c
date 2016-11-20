@@ -25,15 +25,15 @@
 #undef LOTSA_DEBUG
 
 #ifdef DEBUG
-#define DBG(args...)	printk(args)
+	#define DBG(args...)	printk(args)
 #else
-#define DBG(args...)	do { } while(0)
+	#define DBG(args...)	do { } while(0)
 #endif
 
 #ifdef LOTSA_DEBUG
-#define DBG_LOTS(args...)	printk(args)
+	#define DBG_LOTS(args...)	printk(args)
 #else
-#define DBG_LOTS(args...)	do { } while(0)
+	#define DBG_LOTS(args...)	do { } while(0)
 #endif
 
 /* define this to force CPU overtemp to 60 degree, useful for testing
@@ -112,14 +112,26 @@ static void cpu_max_all_fans(void)
 	 * generic code anyway, we do it earlier here to react faster
 	 */
 	if (cpufreq_clamp)
+	{
 		wf_control_set_max(cpufreq_clamp);
-	for (i = 0; i < nr_chips; i++) {
+	}
+
+	for (i = 0; i < nr_chips; i++)
+	{
 		if (cpu_front_fans[i])
+		{
 			wf_control_set_max(cpu_front_fans[i]);
+		}
+
 		if (cpu_rear_fans[i])
+		{
 			wf_control_set_max(cpu_rear_fans[i]);
+		}
+
 		if (cpu_pumps[i])
+		{
 			wf_control_set_max(cpu_pumps[i]);
+		}
 	}
 }
 
@@ -130,31 +142,40 @@ static int cpu_check_overtemp(s32 temp)
 	static bool first = true;
 
 	/* First check for immediate overtemps */
-	if (temp >= (cpu_all_tmax + LOW_OVER_IMMEDIATE)) {
+	if (temp >= (cpu_all_tmax + LOW_OVER_IMMEDIATE))
+	{
 		new_state |= FAILURE_LOW_OVERTEMP;
+
 		if ((failure_state & FAILURE_LOW_OVERTEMP) == 0)
 			printk(KERN_ERR "windfarm: Overtemp due to immediate CPU"
-			       " temperature !\n");
+				   " temperature !\n");
 	}
-	if (temp >= (cpu_all_tmax + HIGH_OVER_IMMEDIATE)) {
+
+	if (temp >= (cpu_all_tmax + HIGH_OVER_IMMEDIATE))
+	{
 		new_state |= FAILURE_HIGH_OVERTEMP;
+
 		if ((failure_state & FAILURE_HIGH_OVERTEMP) == 0)
 			printk(KERN_ERR "windfarm: Critical overtemp due to"
-			       " immediate CPU temperature !\n");
+				   " immediate CPU temperature !\n");
 	}
 
 	/*
 	 * The first time around, initialize the array with the first
 	 * temperature reading
 	 */
-	if (first) {
+	if (first)
+	{
 		int i;
 
 		cpu_thist_total = 0;
-		for (i = 0; i < CPU_TEMP_HIST_SIZE; i++) {
+
+		for (i = 0; i < CPU_TEMP_HIST_SIZE; i++)
+		{
 			cpu_thist[i] = temp;
 			cpu_thist_total += temp;
 		}
+
 		first = false;
 	}
 
@@ -170,35 +191,49 @@ static int cpu_check_overtemp(s32 temp)
 	t_avg = cpu_thist_total / CPU_TEMP_HIST_SIZE;
 
 	DBG_LOTS("  t_avg = %d.%03d (out: %d.%03d, in: %d.%03d)\n",
-		 FIX32TOPRINT(t_avg), FIX32TOPRINT(t_old), FIX32TOPRINT(temp));
+			 FIX32TOPRINT(t_avg), FIX32TOPRINT(t_old), FIX32TOPRINT(temp));
 
 	/* Now check for average overtemps */
-	if (t_avg >= (cpu_all_tmax + LOW_OVER_AVERAGE)) {
+	if (t_avg >= (cpu_all_tmax + LOW_OVER_AVERAGE))
+	{
 		new_state |= FAILURE_LOW_OVERTEMP;
+
 		if ((failure_state & FAILURE_LOW_OVERTEMP) == 0)
 			printk(KERN_ERR "windfarm: Overtemp due to average CPU"
-			       " temperature !\n");
+				   " temperature !\n");
 	}
-	if (t_avg >= (cpu_all_tmax + HIGH_OVER_AVERAGE)) {
+
+	if (t_avg >= (cpu_all_tmax + HIGH_OVER_AVERAGE))
+	{
 		new_state |= FAILURE_HIGH_OVERTEMP;
+
 		if ((failure_state & FAILURE_HIGH_OVERTEMP) == 0)
 			printk(KERN_ERR "windfarm: Critical overtemp due to"
-			       " average CPU temperature !\n");
+				   " average CPU temperature !\n");
 	}
 
 	/* Now handle overtemp conditions. We don't currently use the windfarm
 	 * overtemp handling core as it's not fully suited to the needs of those
 	 * new machine. This will be fixed later.
 	 */
-	if (new_state) {
+	if (new_state)
+	{
 		/* High overtemp -> immediate shutdown */
 		if (new_state & FAILURE_HIGH_OVERTEMP)
+		{
 			machine_power_off();
+		}
+
 		if ((failure_state & new_state) != new_state)
+		{
 			cpu_max_all_fans();
+		}
+
 		failure_state |= new_state;
-	} else if ((failure_state & FAILURE_LOW_OVERTEMP) &&
-		   (temp < (cpu_all_tmax + LOW_OVER_CLEAR))) {
+	}
+	else if ((failure_state & FAILURE_LOW_OVERTEMP) &&
+			 (temp < (cpu_all_tmax + LOW_OVER_CLEAR)))
+	{
 		printk(KERN_ERR "windfarm: Overtemp condition cleared !\n");
 		failure_state &= ~FAILURE_LOW_OVERTEMP;
 	}
@@ -213,27 +248,36 @@ static int read_one_cpu_vals(int cpu, s32 *temp, s32 *power)
 
 	/* Get diode temperature */
 	rc = wf_sensor_get(sens_cpu_temp[cpu], &dtemp);
-	if (rc) {
+
+	if (rc)
+	{
 		DBG("  CPU%d: temp reading error !\n", cpu);
 		return -EIO;
 	}
+
 	DBG_LOTS("  CPU%d: temp   = %d.%03d\n", cpu, FIX32TOPRINT((dtemp)));
 	*temp = dtemp;
 
 	/* Get voltage */
 	rc = wf_sensor_get(sens_cpu_volts[cpu], &volts);
-	if (rc) {
+
+	if (rc)
+	{
 		DBG("  CPU%d, volts reading error !\n", cpu);
 		return -EIO;
 	}
+
 	DBG_LOTS("  CPU%d: volts  = %d.%03d\n", cpu, FIX32TOPRINT((volts)));
 
 	/* Get current */
 	rc = wf_sensor_get(sens_cpu_amps[cpu], &amps);
-	if (rc) {
+
+	if (rc)
+	{
 		DBG("  CPU%d, current reading error !\n", cpu);
 		return -EIO;
 	}
+
 	DBG_LOTS("  CPU%d: amps   = %d.%03d\n", cpu, FIX32TOPRINT((amps)));
 
 	/* Calculate power */
@@ -256,7 +300,8 @@ static void cpu_fans_tick_split(void)
 
 	DBG_LOTS("* cpu fans_tick_split()\n");
 
-	for (cpu = 0; cpu < nr_chips; ++cpu) {
+	for (cpu = 0; cpu < nr_chips; ++cpu)
+	{
 		struct wf_cpu_pid_state *sp = &cpu_pid[cpu];
 
 		/* Read current speed */
@@ -265,7 +310,9 @@ static void cpu_fans_tick_split(void)
 		DBG_LOTS("  CPU%d: cur_target = %d RPM\n", cpu, sp->target);
 
 		err = read_one_cpu_vals(cpu, &temp, &power);
-		if (err) {
+
+		if (err)
+		{
 			failure_state |= FAILURE_SENSOR;
 			cpu_max_all_fans();
 			return;
@@ -276,7 +323,9 @@ static void cpu_fans_tick_split(void)
 
 		/* Handle possible overtemps */
 		if (cpu_check_overtemp(t_max))
+		{
 			return;
+		}
 
 		/* Run PID */
 		wf_cpu_pid_run(sp, power, temp);
@@ -285,9 +334,11 @@ static void cpu_fans_tick_split(void)
 
 		/* Apply result directly to exhaust fan */
 		err = wf_control_set(cpu_rear_fans[cpu], sp->target);
-		if (err) {
+
+		if (err)
+		{
 			pr_warning("wf_pm72: Fan %s reports error %d\n",
-			       cpu_rear_fans[cpu]->name, err);
+					   cpu_rear_fans[cpu]->name, err);
 			failure_state |= FAILURE_FAN;
 			break;
 		}
@@ -296,9 +347,11 @@ static void cpu_fans_tick_split(void)
 		intake = (sp->target * CPU_INTAKE_SCALE) >> 16;
 		DBG_LOTS("  CPU%d: intake = %d RPM\n", cpu, intake);
 		err = wf_control_set(cpu_front_fans[cpu], intake);
-		if (err) {
+
+		if (err)
+		{
 			pr_warning("wf_pm72: Fan %s reports error %d\n",
-			       cpu_front_fans[cpu]->name, err);
+					   cpu_front_fans[cpu]->name, err);
 			failure_state |= FAILURE_FAN;
 			break;
 		}
@@ -322,13 +375,18 @@ static void cpu_fans_tick_combined(void)
 
 	/* Read values for both CPUs */
 	err = read_one_cpu_vals(0, &temp0, &power0);
-	if (err) {
+
+	if (err)
+	{
 		failure_state |= FAILURE_SENSOR;
 		cpu_max_all_fans();
 		return;
 	}
+
 	err = read_one_cpu_vals(1, &temp1, &power1);
-	if (err) {
+
+	if (err)
+	{
 		failure_state |= FAILURE_SENSOR;
 		cpu_max_all_fans();
 		return;
@@ -339,7 +397,9 @@ static void cpu_fans_tick_combined(void)
 
 	/* Handle possible overtemps */
 	if (cpu_check_overtemp(t_max))
+	{
 		return;
+	}
 
 	/* Use the max temp & power of both */
 	temp = max(temp0, temp1);
@@ -354,36 +414,51 @@ static void cpu_fans_tick_combined(void)
 	/* Same deal with pump speed */
 	pump0 = cpu_pumps[0];
 	pump1 = cpu_pumps[1];
-	if (!pump0) {
+
+	if (!pump0)
+	{
 		pump0 = pump1;
 		pump1 = NULL;
 	}
+
 	pump = (sp->target * wf_control_get_max(pump0)) /
-		cpu_mpu_data[0]->rmaxn_exhaust_fan;
+		   cpu_mpu_data[0]->rmaxn_exhaust_fan;
 
 	DBG_LOTS("  CPUs: target = %d RPM\n", sp->target);
 	DBG_LOTS("  CPUs: intake = %d RPM\n", intake);
 	DBG_LOTS("  CPUs: pump   = %d RPM\n", pump);
 
-	for (cpu = 0; cpu < nr_chips; cpu++) {
+	for (cpu = 0; cpu < nr_chips; cpu++)
+	{
 		err = wf_control_set(cpu_rear_fans[cpu], sp->target);
-		if (err) {
+
+		if (err)
+		{
 			pr_warning("wf_pm72: Fan %s reports error %d\n",
-				   cpu_rear_fans[cpu]->name, err);
+					   cpu_rear_fans[cpu]->name, err);
 			failure_state |= FAILURE_FAN;
 		}
+
 		err = wf_control_set(cpu_front_fans[cpu], intake);
-		if (err) {
+
+		if (err)
+		{
 			pr_warning("wf_pm72: Fan %s reports error %d\n",
-				   cpu_front_fans[cpu]->name, err);
+					   cpu_front_fans[cpu]->name, err);
 			failure_state |= FAILURE_FAN;
 		}
+
 		err = 0;
+
 		if (cpu_pumps[cpu])
+		{
 			err = wf_control_set(cpu_pumps[cpu], pump);
-		if (err) {
+		}
+
+		if (err)
+		{
 			pr_warning("wf_pm72: Pump %s reports error %d\n",
-				   cpu_pumps[cpu]->name, err);
+					   cpu_pumps[cpu]->name, err);
 			failure_state |= FAILURE_FAN;
 		}
 	}
@@ -403,11 +478,13 @@ static int cpu_setup_pid(int cpu)
 	ptarget = ((s32)(mpu->pmaxh - mpu->padjmax)) << 16;
 
 	DBG("wf_72: CPU%d ttarget = %d.%03d, tmax = %d.%03d\n",
-	    cpu, FIX32TOPRINT(ttarget), FIX32TOPRINT(tmax));
+		cpu, FIX32TOPRINT(ttarget), FIX32TOPRINT(tmax));
 
 	/* We keep a global tmax for overtemp calculations */
 	if (tmax < cpu_all_tmax)
+	{
 		cpu_all_tmax = tmax;
+	}
 
 	/* Set PID min/max by using the rear fan min/max */
 	fmin = wf_control_get_min(cpu_rear_fans[cpu]);
@@ -437,7 +514,8 @@ static int cpu_setup_pid(int cpu)
 }
 
 /* Backside/U3 fan */
-static struct wf_pid_param backside_u3_param = {
+static struct wf_pid_param backside_u3_param =
+{
 	.interval	= 5,
 	.history_len	= 2,
 	.gd		= 40 << 20,
@@ -449,7 +527,8 @@ static struct wf_pid_param backside_u3_param = {
 	.max		= 100,
 };
 
-static struct wf_pid_param backside_u3h_param = {
+static struct wf_pid_param backside_u3h_param =
+{
 	.interval	= 5,
 	.history_len	= 2,
 	.gd		= 20 << 20,
@@ -468,33 +547,47 @@ static void backside_fan_tick(void)
 	int err;
 
 	if (!backside_fan || !backside_temp || !backside_tick)
+	{
 		return;
+	}
+
 	if (--backside_tick > 0)
+	{
 		return;
+	}
+
 	backside_tick = backside_pid.param.interval;
 
 	DBG_LOTS("* backside fans tick\n");
 
 	/* Update fan speed from actual fans */
 	err = wf_control_get(backside_fan, &speed);
+
 	if (!err)
+	{
 		backside_pid.target = speed;
+	}
 
 	err = wf_sensor_get(backside_temp, &temp);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_WARNING "windfarm: U4 temp sensor error %d\n",
-		       err);
+			   err);
 		failure_state |= FAILURE_SENSOR;
 		wf_control_set_max(backside_fan);
 		return;
 	}
+
 	speed = wf_pid_run(&backside_pid, temp);
 
 	DBG_LOTS("backside PID temp=%d.%.3d speed=%d\n",
-		 FIX32TOPRINT(temp), speed);
+			 FIX32TOPRINT(temp), speed);
 
 	err = wf_control_set(backside_fan, speed);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_WARNING "windfarm: backside fan error %d\n", err);
 		failure_state |= FAILURE_FAN;
 	}
@@ -510,11 +603,17 @@ static void backside_setup_pid(void)
 	int u3h = 1; /* conservative by default */
 
 	u3 = of_find_node_by_path("/u3@0,f8000000");
-	if (u3 != NULL) {
+
+	if (u3 != NULL)
+	{
 		const u32 *vers = of_get_property(u3, "device-rev", NULL);
+
 		if (vers)
 			if (((*vers) & 0x3f) < 0x34)
+			{
 				u3h = 0;
+			}
+
 		of_node_put(u3);
 	}
 
@@ -529,7 +628,8 @@ static void backside_setup_pid(void)
 }
 
 /* Drive bay fan */
-static const struct wf_pid_param drives_param = {
+static const struct wf_pid_param drives_param =
+{
 	.interval	= 5,
 	.history_len	= 2,
 	.gd		= 30 << 20,
@@ -548,32 +648,46 @@ static void drives_fan_tick(void)
 	int err;
 
 	if (!drives_fan || !drives_temp || !drives_tick)
+	{
 		return;
+	}
+
 	if (--drives_tick > 0)
+	{
 		return;
+	}
+
 	drives_tick = drives_pid.param.interval;
 
 	DBG_LOTS("* drives fans tick\n");
 
 	/* Update fan speed from actual fans */
 	err = wf_control_get(drives_fan, &speed);
+
 	if (!err)
+	{
 		drives_pid.target = speed;
+	}
 
 	err = wf_sensor_get(drives_temp, &temp);
-	if (err) {
+
+	if (err)
+	{
 		pr_warning("wf_pm72: drive bay temp sensor error %d\n", err);
 		failure_state |= FAILURE_SENSOR;
 		wf_control_set_max(drives_fan);
 		return;
 	}
+
 	speed = wf_pid_run(&drives_pid, temp);
 
 	DBG_LOTS("drives PID temp=%d.%.3d speed=%d\n",
-		 FIX32TOPRINT(temp), speed);
+			 FIX32TOPRINT(temp), speed);
 
 	err = wf_control_set(drives_fan, speed);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_WARNING "windfarm: drive bay fan error %d\n", err);
 		failure_state |= FAILURE_FAN;
 	}
@@ -599,27 +713,40 @@ static void set_fail_state(void)
 	cpu_max_all_fans();
 
 	if (backside_fan)
+	{
 		wf_control_set_max(backside_fan);
+	}
+
 	if (slots_fan)
+	{
 		wf_control_set_max(slots_fan);
+	}
+
 	if (drives_fan)
+	{
 		wf_control_set_max(drives_fan);
+	}
 }
 
 static void pm72_tick(void)
 {
 	int i, last_failure;
 
-	if (!started) {
+	if (!started)
+	{
 		started = 1;
 		printk(KERN_INFO "windfarm: CPUs control loops started.\n");
-		for (i = 0; i < nr_chips; ++i) {
-			if (cpu_setup_pid(i) < 0) {
+
+		for (i = 0; i < nr_chips; ++i)
+		{
+			if (cpu_setup_pid(i) < 0)
+			{
 				failure_state = FAILURE_PERM;
 				set_fail_state();
 				break;
 			}
 		}
+
 		DBG_LOTS("cpu_all_tmax=%d.%03d\n", FIX32TOPRINT(cpu_all_tmax));
 
 		backside_setup_pid();
@@ -638,7 +765,9 @@ static void pm72_tick(void)
 
 	/* Permanent failure, bail out */
 	if (failure_state & FAILURE_PERM)
+	{
 		return;
+	}
 
 	/*
 	 * Clear all failure bits except low overtemp which will be eventually
@@ -646,21 +775,32 @@ static void pm72_tick(void)
 	 */
 	last_failure = failure_state;
 	failure_state &= FAILURE_LOW_OVERTEMP;
+
 	if (cpu_pid_combined)
+	{
 		cpu_fans_tick_combined();
+	}
 	else
+	{
 		cpu_fans_tick_split();
+	}
+
 	backside_fan_tick();
 	drives_fan_tick();
 
 	DBG_LOTS("  last_failure: 0x%x, failure_state: %x\n",
-		 last_failure, failure_state);
+			 last_failure, failure_state);
 
 	/* Check for failures. Any failure causes cpufreq clamping */
 	if (failure_state && last_failure == 0 && cpufreq_clamp)
+	{
 		wf_control_set_max(cpufreq_clamp);
+	}
+
 	if (failure_state == 0 && last_failure && cpufreq_clamp)
+	{
 		wf_control_set_min(cpufreq_clamp);
+	}
 
 	/* That's it for now, we might want to deal with other failures
 	 * differently in the future though
@@ -673,25 +813,45 @@ static void pm72_new_control(struct wf_control *ct)
 	bool had_pump = cpu_pumps[0] || cpu_pumps[1];
 
 	if (!strcmp(ct->name, "cpu-front-fan-0"))
+	{
 		cpu_front_fans[0] = ct;
+	}
 	else if (!strcmp(ct->name, "cpu-front-fan-1"))
+	{
 		cpu_front_fans[1] = ct;
+	}
 	else if (!strcmp(ct->name, "cpu-rear-fan-0"))
+	{
 		cpu_rear_fans[0] = ct;
+	}
 	else if (!strcmp(ct->name, "cpu-rear-fan-1"))
+	{
 		cpu_rear_fans[1] = ct;
+	}
 	else if (!strcmp(ct->name, "cpu-pump-0"))
+	{
 		cpu_pumps[0] = ct;
+	}
 	else if (!strcmp(ct->name, "cpu-pump-1"))
+	{
 		cpu_pumps[1] = ct;
+	}
 	else if (!strcmp(ct->name, "backside-fan"))
+	{
 		backside_fan = ct;
+	}
 	else if (!strcmp(ct->name, "slots-fan"))
+	{
 		slots_fan = ct;
+	}
 	else if (!strcmp(ct->name, "drive-bay-fan"))
+	{
 		drives_fan = ct;
+	}
 	else if (!strcmp(ct->name, "cpufreq-clamp"))
+	{
 		cpufreq_clamp = ct;
+	}
 
 	all_controls =
 		cpu_front_fans[0] &&
@@ -699,15 +859,18 @@ static void pm72_new_control(struct wf_control *ct)
 		backside_fan &&
 		slots_fan &&
 		drives_fan;
+
 	if (nr_chips > 1)
 		all_controls &=
 			cpu_front_fans[1] &&
 			cpu_rear_fans[1];
+
 	have_all_controls = all_controls;
 
-	if ((cpu_pumps[0] || cpu_pumps[1]) && !had_pump) {
+	if ((cpu_pumps[0] || cpu_pumps[1]) && !had_pump)
+	{
 		pr_info("wf_pm72: Liquid cooling pump(s) detected,"
-			" using new algorithm !\n");
+				" using new algorithm !\n");
 		cpu_pid_combined = true;
 	}
 }
@@ -718,21 +881,37 @@ static void pm72_new_sensor(struct wf_sensor *sr)
 	bool all_sensors;
 
 	if (!strcmp(sr->name, "cpu-diode-temp-0"))
+	{
 		sens_cpu_temp[0] = sr;
+	}
 	else if (!strcmp(sr->name, "cpu-diode-temp-1"))
+	{
 		sens_cpu_temp[1] = sr;
+	}
 	else if (!strcmp(sr->name, "cpu-voltage-0"))
+	{
 		sens_cpu_volts[0] = sr;
+	}
 	else if (!strcmp(sr->name, "cpu-voltage-1"))
+	{
 		sens_cpu_volts[1] = sr;
+	}
 	else if (!strcmp(sr->name, "cpu-current-0"))
+	{
 		sens_cpu_amps[0] = sr;
+	}
 	else if (!strcmp(sr->name, "cpu-current-1"))
+	{
 		sens_cpu_amps[1] = sr;
+	}
 	else if (!strcmp(sr->name, "backside-temp"))
+	{
 		backside_temp = sr;
+	}
 	else if (!strcmp(sr->name, "hd-temp"))
+	{
 		drives_temp = sr;
+	}
 
 	all_sensors =
 		sens_cpu_temp[0] &&
@@ -740,6 +919,7 @@ static void pm72_new_sensor(struct wf_sensor *sr)
 		sens_cpu_amps[0] &&
 		backside_temp &&
 		drives_temp;
+
 	if (nr_chips > 1)
 		all_sensors &=
 			sens_cpu_temp[1] &&
@@ -750,23 +930,30 @@ static void pm72_new_sensor(struct wf_sensor *sr)
 }
 
 static int pm72_wf_notify(struct notifier_block *self,
-			  unsigned long event, void *data)
+						  unsigned long event, void *data)
 {
-	switch (event) {
-	case WF_EVENT_NEW_SENSOR:
-		pm72_new_sensor(data);
-		break;
-	case WF_EVENT_NEW_CONTROL:
-		pm72_new_control(data);
-		break;
-	case WF_EVENT_TICK:
-		if (have_all_controls && have_all_sensors)
-			pm72_tick();
+	switch (event)
+	{
+		case WF_EVENT_NEW_SENSOR:
+			pm72_new_sensor(data);
+			break;
+
+		case WF_EVENT_NEW_CONTROL:
+			pm72_new_control(data);
+			break;
+
+		case WF_EVENT_TICK:
+			if (have_all_controls && have_all_sensors)
+			{
+				pm72_tick();
+			}
 	}
+
 	return 0;
 }
 
-static struct notifier_block pm72_events = {
+static struct notifier_block pm72_events =
+{
 	.notifier_call = pm72_wf_notify,
 };
 
@@ -784,7 +971,8 @@ static int wf_pm72_remove(struct platform_device *dev)
 	return 0;
 }
 
-static struct platform_driver wf_pm72_driver = {
+static struct platform_driver wf_pm72_driver =
+{
 	.probe	= wf_pm72_probe,
 	.remove	= wf_pm72_remove,
 	.driver	= {
@@ -798,23 +986,31 @@ static int __init wf_pm72_init(void)
 	int i;
 
 	if (!of_machine_is_compatible("PowerMac7,2") &&
-	    !of_machine_is_compatible("PowerMac7,3"))
+		!of_machine_is_compatible("PowerMac7,3"))
+	{
 		return -ENODEV;
+	}
 
 	/* Count the number of CPU cores */
 	nr_chips = 0;
 	for_each_node_by_type(cpu, "cpu")
-		++nr_chips;
+	++nr_chips;
+
 	if (nr_chips > NR_CHIPS)
+	{
 		nr_chips = NR_CHIPS;
+	}
 
 	pr_info("windfarm: Initializing for desktop G5 with %d chips\n",
-		nr_chips);
+			nr_chips);
 
 	/* Get MPU data for each CPU */
-	for (i = 0; i < nr_chips; i++) {
+	for (i = 0; i < nr_chips; i++)
+	{
 		cpu_mpu_data[i] = wf_get_mpu(i);
-		if (!cpu_mpu_data[i]) {
+
+		if (!cpu_mpu_data[i])
+		{
 			pr_err("wf_pm72: Failed to find MPU data for CPU %d\n", i);
 			return -ENXIO;
 		}

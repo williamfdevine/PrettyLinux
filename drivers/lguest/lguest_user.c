@@ -22,7 +22,9 @@ static int getreg_setup(struct lg_cpu *cpu, const unsigned long __user *input)
 
 	/* We re-use the ptrace structure to specify which register to read. */
 	if (get_user(which, input) != 0)
+	{
 		return -EFAULT;
+	}
 
 	/*
 	 * We set up the cpu register pointer, and their next read will
@@ -31,8 +33,11 @@ static int getreg_setup(struct lg_cpu *cpu, const unsigned long __user *input)
 	 * The last argument 'true' says we can access any register.
 	 */
 	cpu->reg_read = lguest_arch_regptr(cpu, which, true);
+
 	if (!cpu->reg_read)
+	{
 		return -ENOENT;
+	}
 
 	/* And because this is a write() call, we return the length used. */
 	return sizeof(unsigned long) * 2;
@@ -44,15 +49,24 @@ static int setreg(struct lg_cpu *cpu, const unsigned long __user *input)
 
 	/* We re-use the ptrace structure to specify which register to read. */
 	if (get_user(which, input) != 0)
+	{
 		return -EFAULT;
+	}
+
 	input++;
+
 	if (get_user(value, input) != 0)
+	{
 		return -EFAULT;
+	}
 
 	/* The last argument 'false' means we can't access all registers. */
 	reg = lguest_arch_regptr(cpu, which, false);
+
 	if (!reg)
+	{
 		return -ENOENT;
+	}
 
 	*reg = value;
 
@@ -69,9 +83,14 @@ static int user_send_irq(struct lg_cpu *cpu, const unsigned long __user *input)
 	unsigned long irq;
 
 	if (get_user(irq, input) != 0)
+	{
 		return -EFAULT;
+	}
+
 	if (irq >= LGUEST_IRQS)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Next time the Guest runs, the core code will see if it can deliver
@@ -90,10 +109,14 @@ static int trap(struct lg_cpu *cpu, const unsigned long __user *input)
 	unsigned long trapnum;
 
 	if (get_user(trapnum, input) != 0)
+	{
 		return -EFAULT;
+	}
 
 	if (!deliver_trap(cpu, trapnum))
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -102,7 +125,7 @@ static int trap(struct lg_cpu *cpu, const unsigned long __user *input)
  * Once our Guest is initialized, the Launcher makes it run by reading
  * from /dev/lguest.
  */
-static ssize_t read(struct file *file, char __user *user, size_t size,loff_t*o)
+static ssize_t read(struct file *file, char __user *user, size_t size, loff_t *o)
 {
 	struct lguest *lg = file->private_data;
 	struct lg_cpu *cpu;
@@ -110,30 +133,43 @@ static ssize_t read(struct file *file, char __user *user, size_t size,loff_t*o)
 
 	/* You must write LHREQ_INITIALIZE first! */
 	if (!lg)
+	{
 		return -EINVAL;
+	}
 
 	/* Watch out for arbitrary vcpu indexes! */
 	if (cpu_id >= lg->nr_cpus)
+	{
 		return -EINVAL;
+	}
 
 	cpu = &lg->cpus[cpu_id];
 
 	/* If you're not the task which owns the Guest, go away. */
 	if (current != cpu->tsk)
+	{
 		return -EPERM;
+	}
 
 	/* If the Guest is already dead, we indicate why */
-	if (lg->dead) {
+	if (lg->dead)
+	{
 		size_t len;
 
 		/* lg->dead either contains an error code, or a string. */
 		if (IS_ERR(lg->dead))
+		{
 			return PTR_ERR(lg->dead);
+		}
 
 		/* We can only return as much as the buffer they read with. */
-		len = min(size, strlen(lg->dead)+1);
+		len = min(size, strlen(lg->dead) + 1);
+
 		if (copy_to_user(user, lg->dead, len) != 0)
+		{
 			return -EFAULT;
+		}
+
 		return len;
 	}
 
@@ -142,7 +178,9 @@ static ssize_t read(struct file *file, char __user *user, size_t size,loff_t*o)
 	 * clear the flag.
 	 */
 	if (cpu->pending.trap)
+	{
 		cpu->pending.trap = 0;
+	}
 
 	/* Run the Guest until something interesting happens. */
 	return run_guest(cpu, (unsigned long __user *)user);
@@ -156,7 +194,9 @@ static int lg_cpu_start(struct lg_cpu *cpu, unsigned id, unsigned long start_ip)
 {
 	/* We have a limited number of CPUs in the lguest struct. */
 	if (id >= ARRAY_SIZE(cpu->lg->cpus))
+	{
 		return -EINVAL;
+	}
 
 	/* Set up this CPU's id, and pointer back to the lguest struct. */
 	cpu->id = id;
@@ -171,8 +211,11 @@ static int lg_cpu_start(struct lg_cpu *cpu, unsigned id, unsigned long start_ip)
 	 * to the Guest and we can only grant it access to whole pages.
 	 */
 	cpu->regs_page = get_zeroed_page(GFP_KERNEL);
+
 	if (!cpu->regs_page)
+	{
 		return -ENOMEM;
+	}
 
 	/* We actually put the registers at the end of the page. */
 	cpu->regs = (void *)cpu->regs_page + PAGE_SIZE - sizeof(*cpu->regs);
@@ -230,19 +273,24 @@ static int initialize(struct file *file, const unsigned long __user *input)
 	 * simultaneous initializations.
 	 */
 	mutex_lock(&lguest_lock);
+
 	/* You can't initialize twice!  Close the device and start again... */
-	if (file->private_data) {
+	if (file->private_data)
+	{
 		err = -EBUSY;
 		goto unlock;
 	}
 
-	if (copy_from_user(args, input, sizeof(args)) != 0) {
+	if (copy_from_user(args, input, sizeof(args)) != 0)
+	{
 		err = -EFAULT;
 		goto unlock;
 	}
 
 	lg = kzalloc(sizeof(*lg), GFP_KERNEL);
-	if (!lg) {
+
+	if (!lg)
+	{
 		err = -ENOMEM;
 		goto unlock;
 	}
@@ -254,16 +302,22 @@ static int initialize(struct file *file, const unsigned long __user *input)
 
 	/* This is the first cpu (cpu 0) and it will start booting at args[2] */
 	err = lg_cpu_start(&lg->cpus[0], 0, args[2]);
+
 	if (err)
+	{
 		goto free_lg;
+	}
 
 	/*
 	 * Initialize the Guest's shadow page tables.  This allocates
 	 * memory, so can fail.
 	 */
 	err = init_guest_pagetable(lg);
+
 	if (err)
+	{
 		goto free_regs;
+	}
 
 	/* We keep our "struct lguest" in the file's private_data. */
 	file->private_data = lg;
@@ -295,7 +349,7 @@ unlock:
  * here.
  */
 static ssize_t write(struct file *file, const char __user *in,
-		     size_t size, loff_t *off)
+					 size_t size, loff_t *off)
 {
 	/*
 	 * Once the Guest is initialized, we hold the "struct lguest" in the
@@ -309,33 +363,48 @@ static ssize_t write(struct file *file, const char __user *in,
 
 	/* The first value tells us what this request is. */
 	if (get_user(req, input) != 0)
+	{
 		return -EFAULT;
+	}
+
 	input++;
 
 	/* If you haven't initialized, you must do that first. */
-	if (req != LHREQ_INITIALIZE) {
+	if (req != LHREQ_INITIALIZE)
+	{
 		if (!lg || (cpu_id >= lg->nr_cpus))
+		{
 			return -EINVAL;
+		}
+
 		cpu = &lg->cpus[cpu_id];
 
 		/* Once the Guest is dead, you can only read() why it died. */
 		if (lg->dead)
+		{
 			return -ENOENT;
+		}
 	}
 
-	switch (req) {
-	case LHREQ_INITIALIZE:
-		return initialize(file, input);
-	case LHREQ_IRQ:
-		return user_send_irq(cpu, input);
-	case LHREQ_GETREG:
-		return getreg_setup(cpu, input);
-	case LHREQ_SETREG:
-		return setreg(cpu, input);
-	case LHREQ_TRAP:
-		return trap(cpu, input);
-	default:
-		return -EINVAL;
+	switch (req)
+	{
+		case LHREQ_INITIALIZE:
+			return initialize(file, input);
+
+		case LHREQ_IRQ:
+			return user_send_irq(cpu, input);
+
+		case LHREQ_GETREG:
+			return getreg_setup(cpu, input);
+
+		case LHREQ_SETREG:
+			return setreg(cpu, input);
+
+		case LHREQ_TRAP:
+			return trap(cpu, input);
+
+		default:
+			return -EINVAL;
 	}
 }
 
@@ -362,7 +431,9 @@ static int close(struct inode *inode, struct file *file)
 
 	/* If we never successfully initialized, there's nothing to clean up */
 	if (!lg)
+	{
 		return 0;
+	}
 
 	/*
 	 * We need the big lock, to protect from inter-guest I/O and other
@@ -373,7 +444,8 @@ static int close(struct inode *inode, struct file *file)
 	/* Free up the shadow page tables for the Guest. */
 	free_guest_pagetable(lg);
 
-	for (i = 0; i < lg->nr_cpus; i++) {
+	for (i = 0; i < lg->nr_cpus; i++)
+	{
 		/* Cancels the hrtimer set via LHCALL_SET_CLOCKEVENT. */
 		hrtimer_cancel(&lg->cpus[i].hrt);
 		/* We can free up the register page we allocated. */
@@ -390,7 +462,10 @@ static int close(struct inode *inode, struct file *file)
 	 * kmalloc()ed string, either of which is ok to hand to kfree().
 	 */
 	if (!IS_ERR(lg->dead))
+	{
 		kfree(lg->dead);
+	}
+
 	/* Free the memory allocated to the lguest_struct */
 	kfree(lg);
 	/* Release lock and exit. */
@@ -414,7 +489,8 @@ static int close(struct inode *inode, struct file *file)
  * uses: reading and writing a character device called /dev/lguest.  All the
  * work happens in the read(), write() and close() routines:
  */
-static const struct file_operations lguest_fops = {
+static const struct file_operations lguest_fops =
+{
 	.owner	 = THIS_MODULE,
 	.open	 = open,
 	.release = close,
@@ -428,7 +504,8 @@ static const struct file_operations lguest_fops = {
  * This is a textbook example of a "misc" character device.  Populate a "struct
  * miscdevice" and register it with misc_register().
  */
-static struct miscdevice lguest_dev = {
+static struct miscdevice lguest_dev =
+{
 	.minor	= MISC_DYNAMIC_MINOR,
 	.name	= "lguest",
 	.fops	= &lguest_fops,

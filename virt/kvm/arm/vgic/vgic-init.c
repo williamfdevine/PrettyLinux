@@ -74,7 +74,9 @@ int kvm_vgic_create(struct kvm *kvm, u32 type)
 	struct kvm_vcpu *vcpu;
 
 	if (irqchip_in_kernel(kvm))
+	{
 		return -EEXIST;
+	}
 
 	/*
 	 * This function is also called by the KVM_CREATE_IRQCHIP handler,
@@ -84,7 +86,9 @@ int kvm_vgic_create(struct kvm *kvm, u32 type)
 	 */
 	if (type == KVM_DEV_TYPE_ARM_VGIC_V2 &&
 		!kvm_vgic_global_state.can_emulate_gicv2)
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * Any time a vcpu is run, vcpu_load is called which tries to grab the
@@ -92,24 +96,36 @@ int kvm_vgic_create(struct kvm *kvm, u32 type)
 	 * that no other VCPUs are run while we create the vgic.
 	 */
 	ret = -EBUSY;
-	kvm_for_each_vcpu(i, vcpu, kvm) {
+	kvm_for_each_vcpu(i, vcpu, kvm)
+	{
 		if (!mutex_trylock(&vcpu->mutex))
+		{
 			goto out_unlock;
+		}
+
 		vcpu_lock_idx = i;
 	}
 
-	kvm_for_each_vcpu(i, vcpu, kvm) {
+	kvm_for_each_vcpu(i, vcpu, kvm)
+	{
 		if (vcpu->arch.has_run_once)
+		{
 			goto out_unlock;
+		}
 	}
 	ret = 0;
 
 	if (type == KVM_DEV_TYPE_ARM_VGIC_V2)
+	{
 		kvm->arch.max_vcpus = VGIC_V2_MAX_CPUS;
+	}
 	else
+	{
 		kvm->arch.max_vcpus = VGIC_V3_MAX_CPUS;
+	}
 
-	if (atomic_read(&kvm->online_vcpus) > kvm->arch.max_vcpus) {
+	if (atomic_read(&kvm->online_vcpus) > kvm->arch.max_vcpus)
+	{
 		ret = -E2BIG;
 		goto out_unlock;
 	}
@@ -128,10 +144,13 @@ int kvm_vgic_create(struct kvm *kvm, u32 type)
 	kvm->arch.vgic.vgic_redist_base = VGIC_ADDR_UNDEF;
 
 out_unlock:
-	for (; vcpu_lock_idx >= 0; vcpu_lock_idx--) {
+
+	for (; vcpu_lock_idx >= 0; vcpu_lock_idx--)
+	{
 		vcpu = kvm_get_vcpu(kvm, vcpu_lock_idx);
 		mutex_unlock(&vcpu->mutex);
 	}
+
 	return ret;
 }
 
@@ -152,8 +171,11 @@ static int kvm_vgic_dist_init(struct kvm *kvm, unsigned int nr_spis)
 	spin_lock_init(&dist->lpi_list_lock);
 
 	dist->spis = kcalloc(nr_spis, sizeof(struct vgic_irq), GFP_KERNEL);
+
 	if (!dist->spis)
+	{
 		return  -ENOMEM;
+	}
 
 	/*
 	 * In the following code we do not take the irq struct lock since
@@ -163,7 +185,8 @@ static int kvm_vgic_dist_init(struct kvm *kvm, unsigned int nr_spis)
 	 * require prior initialization in case of a virtual GICv3 or trigger
 	 * initialization when using a virtual GICv2.
 	 */
-	for (i = 0; i < nr_spis; i++) {
+	for (i = 0; i < nr_spis; i++)
+	{
 		struct vgic_irq *irq = &dist->spis[i];
 
 		irq->intid = i + VGIC_NR_PRIVATE_IRQS;
@@ -172,11 +195,17 @@ static int kvm_vgic_dist_init(struct kvm *kvm, unsigned int nr_spis)
 		irq->vcpu = NULL;
 		irq->target_vcpu = vcpu0;
 		kref_init(&irq->refcount);
+
 		if (dist->vgic_model == KVM_DEV_TYPE_ARM_VGIC_V2)
+		{
 			irq->targets = 0;
+		}
 		else
+		{
 			irq->mpidr = 0;
+		}
 	}
+
 	return 0;
 }
 
@@ -197,7 +226,8 @@ static void kvm_vgic_vcpu_init(struct kvm_vcpu *vcpu)
 	 * Enable and configure all SGIs to be edge-triggered and
 	 * configure all PPIs as level-triggered.
 	 */
-	for (i = 0; i < VGIC_NR_PRIVATE_IRQS; i++) {
+	for (i = 0; i < VGIC_NR_PRIVATE_IRQS; i++)
+	{
 		struct vgic_irq *irq = &vgic_cpu->private_irqs[i];
 
 		INIT_LIST_HEAD(&irq->ap_list);
@@ -207,19 +237,28 @@ static void kvm_vgic_vcpu_init(struct kvm_vcpu *vcpu)
 		irq->target_vcpu = vcpu;
 		irq->targets = 1U << vcpu->vcpu_id;
 		kref_init(&irq->refcount);
-		if (vgic_irq_is_sgi(i)) {
+
+		if (vgic_irq_is_sgi(i))
+		{
 			/* SGIs */
 			irq->enabled = 1;
 			irq->config = VGIC_CONFIG_EDGE;
-		} else {
+		}
+		else
+		{
 			/* PPIs */
 			irq->config = VGIC_CONFIG_LEVEL;
 		}
 	}
+
 	if (kvm_vgic_global_state.type == VGIC_V2)
+	{
 		vgic_v2_enable(vcpu);
+	}
 	else
+	{
 		vgic_v3_enable(vcpu);
+	}
 }
 
 /*
@@ -239,25 +278,37 @@ int vgic_init(struct kvm *kvm)
 	int ret = 0, i;
 
 	if (vgic_initialized(kvm))
+	{
 		return 0;
+	}
 
 	/* freeze the number of spis */
 	if (!dist->nr_spis)
+	{
 		dist->nr_spis = VGIC_NR_IRQS_LEGACY - VGIC_NR_PRIVATE_IRQS;
+	}
 
 	ret = kvm_vgic_dist_init(kvm, dist->nr_spis);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	if (vgic_has_its(kvm))
+	{
 		dist->msis_require_devid = true;
+	}
 
 	kvm_for_each_vcpu(i, vcpu, kvm)
-		kvm_vgic_vcpu_init(vcpu);
+	kvm_vgic_vcpu_init(vcpu);
 
 	ret = kvm_vgic_setup_default_irq_routing(kvm);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	dist->initialized = true;
 out:
@@ -294,7 +345,7 @@ void kvm_vgic_destroy(struct kvm *kvm)
 	kvm_vgic_dist_destroy(kvm);
 
 	kvm_for_each_vcpu(i, vcpu, kvm)
-		kvm_vgic_vcpu_destroy(vcpu);
+	kvm_vgic_vcpu_destroy(vcpu);
 }
 
 /**
@@ -307,7 +358,8 @@ int vgic_lazy_init(struct kvm *kvm)
 {
 	int ret = 0;
 
-	if (unlikely(!vgic_initialized(kvm))) {
+	if (unlikely(!vgic_initialized(kvm)))
+	{
 		/*
 		 * We only provide the automatic initialization of the VGIC
 		 * for the legacy case of a GICv2. Any other type must
@@ -315,7 +367,9 @@ int vgic_lazy_init(struct kvm *kvm)
 		 * KVM device call.
 		 */
 		if (kvm->arch.vgic.vgic_model != KVM_DEV_TYPE_ARM_VGIC_V2)
+		{
 			return -EBUSY;
+		}
 
 		mutex_lock(&kvm->lock);
 		ret = vgic_init(kvm);
@@ -341,13 +395,21 @@ int kvm_vgic_map_resources(struct kvm *kvm)
 	int ret = 0;
 
 	mutex_lock(&kvm->lock);
+
 	if (!irqchip_in_kernel(kvm))
+	{
 		goto out;
+	}
 
 	if (dist->vgic_model == KVM_DEV_TYPE_ARM_VGIC_V2)
+	{
 		ret = vgic_v2_map_resources(kvm);
+	}
 	else
+	{
 		ret = vgic_v3_map_resources(kvm);
+	}
+
 out:
 	mutex_unlock(&kvm->lock);
 	return ret;
@@ -391,46 +453,62 @@ int kvm_vgic_hyp_init(void)
 	int ret;
 
 	gic_kvm_info = gic_get_kvm_info();
-	if (!gic_kvm_info)
-		return -ENODEV;
 
-	if (!gic_kvm_info->maint_irq) {
+	if (!gic_kvm_info)
+	{
+		return -ENODEV;
+	}
+
+	if (!gic_kvm_info->maint_irq)
+	{
 		kvm_err("No vgic maintenance irq\n");
 		return -ENXIO;
 	}
 
-	switch (gic_kvm_info->type) {
-	case GIC_V2:
-		ret = vgic_v2_probe(gic_kvm_info);
-		break;
-	case GIC_V3:
-		ret = vgic_v3_probe(gic_kvm_info);
-		if (!ret) {
-			static_branch_enable(&kvm_vgic_global_state.gicv3_cpuif);
-			kvm_info("GIC system register CPU interface enabled\n");
-		}
-		break;
-	default:
-		ret = -ENODEV;
+	switch (gic_kvm_info->type)
+	{
+		case GIC_V2:
+			ret = vgic_v2_probe(gic_kvm_info);
+			break;
+
+		case GIC_V3:
+			ret = vgic_v3_probe(gic_kvm_info);
+
+			if (!ret)
+			{
+				static_branch_enable(&kvm_vgic_global_state.gicv3_cpuif);
+				kvm_info("GIC system register CPU interface enabled\n");
+			}
+
+			break;
+
+		default:
+			ret = -ENODEV;
 	};
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	kvm_vgic_global_state.maint_irq = gic_kvm_info->maint_irq;
 	ret = request_percpu_irq(kvm_vgic_global_state.maint_irq,
-				 vgic_maintenance_handler,
-				 "vgic", kvm_get_running_vcpus());
-	if (ret) {
+							 vgic_maintenance_handler,
+							 "vgic", kvm_get_running_vcpus());
+
+	if (ret)
+	{
 		kvm_err("Cannot register interrupt %d\n",
-			kvm_vgic_global_state.maint_irq);
+				kvm_vgic_global_state.maint_irq);
 		return ret;
 	}
 
 	ret = cpuhp_setup_state(CPUHP_AP_KVM_ARM_VGIC_INIT_STARTING,
-				"AP_KVM_ARM_VGIC_INIT_STARTING",
-				vgic_init_cpu_starting, vgic_init_cpu_dying);
-	if (ret) {
+							"AP_KVM_ARM_VGIC_INIT_STARTING",
+							vgic_init_cpu_starting, vgic_init_cpu_dying);
+
+	if (ret)
+	{
 		kvm_err("Cannot register vgic CPU notifier\n");
 		goto out_free_irq;
 	}
@@ -440,6 +518,6 @@ int kvm_vgic_hyp_init(void)
 
 out_free_irq:
 	free_percpu_irq(kvm_vgic_global_state.maint_irq,
-			kvm_get_running_vcpus());
+					kvm_get_running_vcpus());
 	return ret;
 }

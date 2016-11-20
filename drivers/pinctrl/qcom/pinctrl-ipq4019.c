@@ -18,7 +18,8 @@
 
 #include "pinctrl-msm.h"
 
-static const struct pinctrl_pin_desc ipq4019_pins[] = {
+static const struct pinctrl_pin_desc ipq4019_pins[] =
+{
 	PINCTRL_PIN(0, "GPIO_0"),
 	PINCTRL_PIN(1, "GPIO_1"),
 	PINCTRL_PIN(2, "GPIO_2"),
@@ -226,16 +227,16 @@ DECLARE_QCA_GPIO_PINS(99);
 
 #define FUNCTION(fname)			                \
 	[qca_mux_##fname] = {		                \
-		.name = #fname,				\
-		.groups = fname##_groups,               \
-		.ngroups = ARRAY_SIZE(fname##_groups),	\
-	}
+												.name = #fname,				\
+												.groups = fname##_groups,               \
+												.ngroups = ARRAY_SIZE(fname##_groups),	\
+						}
 
 #define PINGROUP(id, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14) \
 	{					        \
 		.name = "gpio" #id,			\
-		.pins = gpio##id##_pins,		\
-		.npins = (unsigned)ARRAY_SIZE(gpio##id##_pins),	\
+				.pins = gpio##id##_pins,		\
+						.npins = (unsigned)ARRAY_SIZE(gpio##id##_pins),	\
 		.funcs = (int[]){			\
 			qca_mux_gpio, /* gpio mode */	\
 			qca_mux_##f1,			\
@@ -254,28 +255,29 @@ DECLARE_QCA_GPIO_PINS(99);
 			qca_mux_##f14			\
 		},				        \
 		.nfuncs = 15,				\
-		.ctl_reg = 0x0 + 0x1000 * id,		\
-		.io_reg = 0x4 + 0x1000 * id,		\
-		.intr_cfg_reg = 0x8 + 0x1000 * id,	\
-		.intr_status_reg = 0xc + 0x1000 * id,	\
-		.intr_target_reg = 0x8 + 0x1000 * id,	\
-		.mux_bit = 2,			\
-		.pull_bit = 0,			\
-		.drv_bit = 6,			\
-		.oe_bit = 9,			\
-		.in_bit = 0,			\
-		.out_bit = 1,			\
-		.intr_enable_bit = 0,		\
-		.intr_status_bit = 0,		\
-		.intr_target_bit = 5,		\
-		.intr_raw_status_bit = 4,	\
-		.intr_polarity_bit = 1,		\
-		.intr_detection_bit = 2,	\
-		.intr_detection_width = 2,	\
+				  .ctl_reg = 0x0 + 0x1000 * id,		\
+							 .io_reg = 0x4 + 0x1000 * id,		\
+									   .intr_cfg_reg = 0x8 + 0x1000 * id,	\
+											   .intr_status_reg = 0xc + 0x1000 * id,	\
+													   .intr_target_reg = 0x8 + 0x1000 * id,	\
+															   .mux_bit = 2,			\
+																	   .pull_bit = 0,			\
+																			   .drv_bit = 6,			\
+																					   .oe_bit = 9,			\
+																							   .in_bit = 0,			\
+																									   .out_bit = 1,			\
+																											   .intr_enable_bit = 0,		\
+																													   .intr_status_bit = 0,		\
+																															   .intr_target_bit = 5,		\
+																																	   .intr_raw_status_bit = 4,	\
+																																			   .intr_polarity_bit = 1,		\
+																																					   .intr_detection_bit = 2,	\
+																																							   .intr_detection_width = 2,	\
 	}
 
 
-enum ipq4019_functions {
+enum ipq4019_functions
+{
 	qca_mux_gpio,
 	qca_mux_blsp_uart1,
 	qca_mux_blsp_i2c0,
@@ -286,7 +288,8 @@ enum ipq4019_functions {
 	qca_mux_NA,
 };
 
-static const char * const gpio_groups[] = {
+static const char *const gpio_groups[] =
+{
 	"gpio0", "gpio1", "gpio2", "gpio3", "gpio4", "gpio5", "gpio6", "gpio7",
 	"gpio8", "gpio9", "gpio10", "gpio11", "gpio12", "gpio13", "gpio14",
 	"gpio15", "gpio16", "gpio17", "gpio18", "gpio19", "gpio20", "gpio21",
@@ -304,27 +307,34 @@ static const char * const gpio_groups[] = {
 	"gpio99",
 };
 
-static const char * const blsp_uart1_groups[] = {
+static const char *const blsp_uart1_groups[] =
+{
 	"gpio8", "gpio9", "gpio10", "gpio11",
 };
-static const char * const blsp_i2c0_groups[] = {
+static const char *const blsp_i2c0_groups[] =
+{
 	"gpio10", "gpio11", "gpio20", "gpio21", "gpio58", "gpio59",
 };
-static const char * const blsp_spi0_groups[] = {
+static const char *const blsp_spi0_groups[] =
+{
 	"gpio12", "gpio13", "gpio14", "gpio15", "gpio45",
 	"gpio54", "gpio55", "gpio56", "gpio57",
 };
-static const char * const blsp_i2c1_groups[] = {
+static const char *const blsp_i2c1_groups[] =
+{
 	"gpio12", "gpio13", "gpio34", "gpio35",
 };
-static const char * const blsp_uart0_groups[] = {
+static const char *const blsp_uart0_groups[] =
+{
 	"gpio16", "gpio17", "gpio60", "gpio61",
 };
-static const char * const blsp_spi1_groups[] = {
+static const char *const blsp_spi1_groups[] =
+{
 	"gpio44", "gpio45", "gpio46", "gpio47",
 };
 
-static const struct msm_function ipq4019_functions[] = {
+static const struct msm_function ipq4019_functions[] =
+{
 	FUNCTION(gpio),
 	FUNCTION(blsp_uart1),
 	FUNCTION(blsp_i2c0),
@@ -334,7 +344,8 @@ static const struct msm_function ipq4019_functions[] = {
 	FUNCTION(blsp_spi0),
 };
 
-static const struct msm_pingroup ipq4019_groups[] = {
+static const struct msm_pingroup ipq4019_groups[] =
+{
 	PINGROUP(0, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA),
 	PINGROUP(1, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA),
 	PINGROUP(2, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA),
@@ -407,7 +418,8 @@ static const struct msm_pingroup ipq4019_groups[] = {
 	PINGROUP(69, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA),
 };
 
-static const struct msm_pinctrl_soc_data ipq4019_pinctrl = {
+static const struct msm_pinctrl_soc_data ipq4019_pinctrl =
+{
 	.pins = ipq4019_pins,
 	.npins = ARRAY_SIZE(ipq4019_pins),
 	.functions = ipq4019_functions,
@@ -422,12 +434,14 @@ static int ipq4019_pinctrl_probe(struct platform_device *pdev)
 	return msm_pinctrl_probe(pdev, &ipq4019_pinctrl);
 }
 
-static const struct of_device_id ipq4019_pinctrl_of_match[] = {
+static const struct of_device_id ipq4019_pinctrl_of_match[] =
+{
 	{ .compatible = "qcom,ipq4019-pinctrl", },
 	{ },
 };
 
-static struct platform_driver ipq4019_pinctrl_driver = {
+static struct platform_driver ipq4019_pinctrl_driver =
+{
 	.driver = {
 		.name = "ipq4019-pinctrl",
 		.of_match_table = ipq4019_pinctrl_of_match,

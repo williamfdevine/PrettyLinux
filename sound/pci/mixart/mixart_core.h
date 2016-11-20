@@ -24,7 +24,8 @@
 #define __SOUND_MIXART_CORE_H
 
 
-enum mixart_message_id {
+enum mixart_message_id
+{
 	MSG_CONNECTOR_GET_AUDIO_INFO         = 0x050008,
 	MSG_CONNECTOR_GET_OUT_AUDIO_LEVEL    = 0x050009,
 	MSG_CONNECTOR_SET_OUT_AUDIO_LEVEL    = 0x05000A,
@@ -67,7 +68,7 @@ struct mixart_msg
 {
 	u32          message_id;
 	struct mixart_uid uid;
-	void*        data;
+	void        *data;
 	size_t       size;
 };
 
@@ -286,7 +287,8 @@ struct mixart_return_uid
 	MSG_CLOCK_SET_PROPERTIES             = 0x200002,
 */
 
-enum mixart_clock_generic_type {
+enum mixart_clock_generic_type
+{
 	CGT_NO_CLOCK,
 	CGT_INTERNAL_CLOCK,
 	CGT_PROGRAMMABLE_CLOCK,
@@ -295,7 +297,8 @@ enum mixart_clock_generic_type {
 	CGT_CURRENT_CLOCK
 };
 
-enum mixart_clock_mode {
+enum mixart_clock_mode
+{
 	CM_UNDEFINED,
 	CM_MASTER,
 	CM_SLAVE,
@@ -332,7 +335,8 @@ struct mixart_clock_properties_resp
 /*	MSG_STREAM_SET_INPUT_STAGE_PARAM     = 0x13000F */
 /*	MSG_STREAM_SET_OUTPUT_STAGE_PARAM    = 0x130010 */
 
-enum mixart_coding_type {
+enum mixart_coding_type
+{
 	CT_NOT_DEFINED,
 	CT_LINEAR,
 	CT_MPEG_L1,
@@ -341,7 +345,8 @@ enum mixart_coding_type {
 	CT_MPEG_L3_LSF,
 	CT_GSM
 };
-enum mixart_sample_type {
+enum mixart_sample_type
+{
 	ST_NOT_DEFINED,
 	ST_FLOATING_POINT_32BE,
 	ST_FLOATING_POINT_32LE,
@@ -368,15 +373,18 @@ struct mixart_stream_param_desc
 	u32 coding_type;  /* use enum mixart_coding_type */
 	u32 sample_type;  /* use enum mixart_sample_type */
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u32 linear_endian_ness;
 			u32 linear_bits;
 			u32 is_signed;
 			u32 is_float;
 		} linear_format_info;
 
-		struct {
+		struct
+		{
 			u32 mpeg_layer;
 			u32 mpeg_mode;
 			u32 mpeg_mode_extension;

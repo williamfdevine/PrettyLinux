@@ -59,10 +59,10 @@ void csio_fchost_attr_init(struct csio_lnode *);
 
 /* INTx handlers */
 void csio_scsi_intx_handler(struct csio_hw *, void *, uint32_t,
-			       struct csio_fl_dma_buf *, void *);
+							struct csio_fl_dma_buf *, void *);
 
 void csio_fwevt_intx_handler(struct csio_hw *, void *, uint32_t,
-				struct csio_fl_dma_buf *, void *);
+							 struct csio_fl_dma_buf *, void *);
 
 /* Common os lnode APIs */
 void csio_lnodes_block_request(struct csio_hw *);
@@ -71,13 +71,13 @@ void csio_lnodes_block_by_port(struct csio_hw *, uint8_t);
 void csio_lnodes_unblock_by_port(struct csio_hw *, uint8_t);
 
 struct csio_lnode *csio_shost_init(struct csio_hw *, struct device *, bool,
-					struct csio_lnode *);
+								   struct csio_lnode *);
 void csio_shost_exit(struct csio_lnode *);
 void csio_lnodes_exit(struct csio_hw *, bool);
 
 /* DebugFS helper routines */
 void csio_add_debugfs_mem(struct csio_hw *, const char *,
-		unsigned int, unsigned int);
+						  unsigned int, unsigned int);
 
 static inline struct Scsi_Host *
 csio_ln_to_shost(struct csio_lnode *ln)
@@ -101,7 +101,7 @@ csio_get_scsi_ioreq_lock(struct csio_hw *hw, struct csio_scsim *scsim)
 
 static inline void
 csio_put_scsi_ioreq_lock(struct csio_hw *hw, struct csio_scsim *scsim,
-			 struct csio_ioreq *ioreq)
+						 struct csio_ioreq *ioreq)
 {
 	unsigned long flags;
 
@@ -113,7 +113,7 @@ csio_put_scsi_ioreq_lock(struct csio_hw *hw, struct csio_scsim *scsim,
 /* Called in interrupt context */
 static inline void
 csio_put_scsi_ioreq_list_lock(struct csio_hw *hw, struct csio_scsim *scsim,
-			      struct list_head *reqlist, int n)
+							  struct list_head *reqlist, int n)
 {
 	unsigned long flags;
 
@@ -125,7 +125,7 @@ csio_put_scsi_ioreq_list_lock(struct csio_hw *hw, struct csio_scsim *scsim,
 /* Called in interrupt context */
 static inline void
 csio_put_scsi_ddp_list_lock(struct csio_hw *hw, struct csio_scsim *scsim,
-			      struct list_head *reqlist, int n)
+							struct list_head *reqlist, int n)
 {
 	unsigned long flags;
 

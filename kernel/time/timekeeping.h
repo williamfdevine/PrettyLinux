@@ -4,9 +4,9 @@
  * Internal interfaces for kernel/time/
  */
 extern ktime_t ktime_get_update_offsets_now(unsigned int *cwsseq,
-					    ktime_t *offs_real,
-					    ktime_t *offs_boot,
-					    ktime_t *offs_tai);
+		ktime_t *offs_real,
+		ktime_t *offs_boot,
+		ktime_t *offs_tai);
 
 extern int timekeeping_valid_for_hres(void);
 extern u64 timekeeping_max_deferment(void);

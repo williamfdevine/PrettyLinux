@@ -44,7 +44,9 @@ static struct sk_buff *qca_tag_xmit(struct sk_buff *skb, struct net_device *dev)
 	dev->stats.tx_bytes += skb->len;
 
 	if (skb_cow_head(skb, 0) < 0)
+	{
 		goto out_free;
+	}
 
 	skb_push(skb, QCA_HDR_LEN);
 
@@ -53,8 +55,8 @@ static struct sk_buff *qca_tag_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	/* Set the version field, and set destination port information */
 	hdr = QCA_HDR_VERSION << QCA_HDR_XMIT_VERSION_S |
-		QCA_HDR_XMIT_FROM_CPU |
-		BIT(p->port);
+		  QCA_HDR_XMIT_FROM_CPU |
+		  BIT(p->port);
 
 	*phdr = htons(hdr);
 
@@ -66,7 +68,7 @@ out_free:
 }
 
 static int qca_tag_rcv(struct sk_buff *skb, struct net_device *dev,
-		       struct packet_type *pt, struct net_device *orig_dev)
+					   struct packet_type *pt, struct net_device *orig_dev)
 {
 	struct dsa_switch_tree *dst = dev->dsa_ptr;
 	struct dsa_switch *ds;
@@ -75,14 +77,21 @@ static int qca_tag_rcv(struct sk_buff *skb, struct net_device *dev,
 	__be16 *phdr, hdr;
 
 	if (unlikely(!dst))
+	{
 		goto out_drop;
+	}
 
 	skb = skb_unshare(skb, GFP_ATOMIC);
+
 	if (!skb)
+	{
 		goto out;
+	}
 
 	if (unlikely(!pskb_may_pull(skb, QCA_HDR_LEN)))
+	{
 		goto out_drop;
+	}
 
 	/* The QCA header is added by the switch between src addr and Ethertype
 	 * At this point, skb->data points to ethertype so header should be
@@ -93,25 +102,34 @@ static int qca_tag_rcv(struct sk_buff *skb, struct net_device *dev,
 
 	/* Make sure the version is correct */
 	ver = (hdr & QCA_HDR_RECV_VERSION_MASK) >> QCA_HDR_RECV_VERSION_S;
+
 	if (unlikely(ver != QCA_HDR_VERSION))
+	{
 		goto out_drop;
+	}
 
 	/* Remove QCA tag and recalculate checksum */
 	skb_pull_rcsum(skb, QCA_HDR_LEN);
 	memmove(skb->data - ETH_HLEN, skb->data - ETH_HLEN - QCA_HDR_LEN,
-		ETH_HLEN - QCA_HDR_LEN);
+			ETH_HLEN - QCA_HDR_LEN);
 
 	/* This protocol doesn't support cascading multiple switches so it's
 	 * safe to assume the switch is first in the tree
 	 */
 	ds = dst->ds[0];
+
 	if (!ds)
+	{
 		goto out_drop;
+	}
 
 	/* Get source port information */
 	port = (hdr & QCA_HDR_RECV_SOURCE_PORT_MASK);
+
 	if (!ds->ports[port].netdev)
+	{
 		goto out_drop;
+	}
 
 	/* Update skb & forward the frame accordingly */
 	skb_push(skb, ETH_HLEN);
@@ -132,7 +150,8 @@ out:
 	return 0;
 }
 
-const struct dsa_device_ops qca_netdev_ops = {
+const struct dsa_device_ops qca_netdev_ops =
+{
 	.xmit	= qca_tag_xmit,
 	.rcv	= qca_tag_rcv,
 };

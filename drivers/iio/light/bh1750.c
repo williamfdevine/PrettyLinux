@@ -31,21 +31,24 @@
 #define BH1750_CHANGE_INT_TIME_H_BIT	0x40
 #define BH1750_CHANGE_INT_TIME_L_BIT	0x60
 
-enum {
+enum
+{
 	BH1710,
 	BH1721,
 	BH1750,
 };
 
 struct bh1750_chip_info;
-struct bh1750_data {
+struct bh1750_data
+{
 	struct i2c_client *client;
 	struct mutex lock;
 	const struct bh1750_chip_info *chip_info;
 	u16 mtreg;
 };
 
-struct bh1750_chip_info {
+struct bh1750_chip_info
+{
 	u16 mtreg_min;
 	u16 mtreg_max;
 	u16 mtreg_default;
@@ -64,7 +67,8 @@ struct bh1750_chip_info {
 	u16 int_time_high_mask;
 }
 
-static const bh1750_chip_info_tbl[] = {
+static const bh1750_chip_info_tbl[] =
+{
 	[BH1710] = { 140, 1022, 300, 400,  250000000, 2, 0x001F, 0x03E0 },
 	[BH1721] = { 140, 1020, 300, 400,  250000000, 2, 0x0010, 0x03E0 },
 	[BH1750] = { 31,  254,  69,  1740, 57500000,  1, 0x001F, 0x00E0 },
@@ -78,27 +82,41 @@ static int bh1750_change_int_time(struct bh1750_data *data, int usec)
 	const struct bh1750_chip_info *chip_info = data->chip_info;
 
 	if ((usec % chip_info->mtreg_to_usec) != 0)
+	{
 		return -EINVAL;
+	}
 
 	val = usec / chip_info->mtreg_to_usec;
+
 	if (val < chip_info->mtreg_min || val > chip_info->mtreg_max)
+	{
 		return -EINVAL;
+	}
 
 	ret = i2c_smbus_write_byte(data->client, BH1750_POWER_DOWN);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	regval = (val & chip_info->int_time_high_mask) >> 5;
 	ret = i2c_smbus_write_byte(data->client,
-				   BH1750_CHANGE_INT_TIME_H_BIT | regval);
+							   BH1750_CHANGE_INT_TIME_H_BIT | regval);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	regval = val & chip_info->int_time_low_mask;
 	ret = i2c_smbus_write_byte(data->client,
-				   BH1750_CHANGE_INT_TIME_L_BIT | regval);
+							   BH1750_CHANGE_INT_TIME_L_BIT | regval);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	data->mtreg = val;
 
@@ -117,14 +135,20 @@ static int bh1750_read(struct bh1750_data *data, int *val)
 	 * Note, that this eliminates need for bh1750_resume().
 	 */
 	ret = i2c_smbus_write_byte(data->client, BH1750_ONE_TIME_H_RES_MODE);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	usleep_range(delay + 15000, delay + 40000);
 
 	ret = i2c_master_recv(data->client, (char *)&result, 2);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	*val = be16_to_cpu(result);
 
@@ -132,59 +156,72 @@ static int bh1750_read(struct bh1750_data *data, int *val)
 }
 
 static int bh1750_read_raw(struct iio_dev *indio_dev,
-			   struct iio_chan_spec const *chan,
-			   int *val, int *val2, long mask)
+						   struct iio_chan_spec const *chan,
+						   int *val, int *val2, long mask)
 {
 	int ret, tmp;
 	struct bh1750_data *data = iio_priv(indio_dev);
 	const struct bh1750_chip_info *chip_info = data->chip_info;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		switch (chan->type) {
-		case IIO_LIGHT:
-			mutex_lock(&data->lock);
-			ret = bh1750_read(data, val);
-			mutex_unlock(&data->lock);
-			if (ret < 0)
-				return ret;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			switch (chan->type)
+			{
+				case IIO_LIGHT:
+					mutex_lock(&data->lock);
+					ret = bh1750_read(data, val);
+					mutex_unlock(&data->lock);
 
-			return IIO_VAL_INT;
+					if (ret < 0)
+					{
+						return ret;
+					}
+
+					return IIO_VAL_INT;
+
+				default:
+					return -EINVAL;
+			}
+
+		case IIO_CHAN_INFO_SCALE:
+			tmp = chip_info->mtreg_to_scale / data->mtreg;
+			*val = tmp / 1000000;
+			*val2 = tmp % 1000000;
+			return IIO_VAL_INT_PLUS_MICRO;
+
+		case IIO_CHAN_INFO_INT_TIME:
+			*val = 0;
+			*val2 = chip_info->mtreg_to_usec * data->mtreg;
+			return IIO_VAL_INT_PLUS_MICRO;
+
 		default:
 			return -EINVAL;
-		}
-	case IIO_CHAN_INFO_SCALE:
-		tmp = chip_info->mtreg_to_scale / data->mtreg;
-		*val = tmp / 1000000;
-		*val2 = tmp % 1000000;
-		return IIO_VAL_INT_PLUS_MICRO;
-	case IIO_CHAN_INFO_INT_TIME:
-		*val = 0;
-		*val2 = chip_info->mtreg_to_usec * data->mtreg;
-		return IIO_VAL_INT_PLUS_MICRO;
-	default:
-		return -EINVAL;
 	}
 }
 
 static int bh1750_write_raw(struct iio_dev *indio_dev,
-			    struct iio_chan_spec const *chan,
-			    int val, int val2, long mask)
+							struct iio_chan_spec const *chan,
+							int val, int val2, long mask)
 {
 	int ret;
 	struct bh1750_data *data = iio_priv(indio_dev);
 
-	switch (mask) {
-	case IIO_CHAN_INFO_INT_TIME:
-		if (val != 0)
-			return -EINVAL;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_INT_TIME:
+			if (val != 0)
+			{
+				return -EINVAL;
+			}
 
-		mutex_lock(&data->lock);
-		ret = bh1750_change_int_time(data, val2);
-		mutex_unlock(&data->lock);
-		return ret;
-	default:
-		return -EINVAL;
+			mutex_lock(&data->lock);
+			ret = bh1750_change_int_time(data, val2);
+			mutex_unlock(&data->lock);
+			return ret;
+
+		default:
+			return -EINVAL;
 	}
 }
 
@@ -198,7 +235,7 @@ static ssize_t bh1750_show_int_time_available(struct device *dev,
 
 	for (i = chip_info->mtreg_min; i <= chip_info->mtreg_max; i += chip_info->inc)
 		len += scnprintf(buf + len, PAGE_SIZE - len, "0.%06d ",
-				 chip_info->mtreg_to_usec * i);
+						 chip_info->mtreg_to_usec * i);
 
 	buf[len - 1] = '\n';
 
@@ -207,45 +244,54 @@ static ssize_t bh1750_show_int_time_available(struct device *dev,
 
 static IIO_DEV_ATTR_INT_TIME_AVAIL(bh1750_show_int_time_available);
 
-static struct attribute *bh1750_attributes[] = {
+static struct attribute *bh1750_attributes[] =
+{
 	&iio_dev_attr_integration_time_available.dev_attr.attr,
 	NULL,
 };
 
-static struct attribute_group bh1750_attribute_group = {
+static struct attribute_group bh1750_attribute_group =
+{
 	.attrs = bh1750_attributes,
 };
 
-static const struct iio_info bh1750_info = {
+static const struct iio_info bh1750_info =
+{
 	.driver_module = THIS_MODULE,
 	.attrs = &bh1750_attribute_group,
 	.read_raw = bh1750_read_raw,
 	.write_raw = bh1750_write_raw,
 };
 
-static const struct iio_chan_spec bh1750_channels[] = {
+static const struct iio_chan_spec bh1750_channels[] =
+{
 	{
 		.type = IIO_LIGHT,
 		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |
-				      BIT(IIO_CHAN_INFO_SCALE) |
-				      BIT(IIO_CHAN_INFO_INT_TIME)
+		BIT(IIO_CHAN_INFO_SCALE) |
+		BIT(IIO_CHAN_INFO_INT_TIME)
 	}
 };
 
 static int bh1750_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	int ret, usec;
 	struct bh1750_data *data;
 	struct iio_dev *indio_dev;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C |
-				I2C_FUNC_SMBUS_WRITE_BYTE))
+								 I2C_FUNC_SMBUS_WRITE_BYTE))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	data = iio_priv(indio_dev);
 	i2c_set_clientdata(client, indio_dev);
@@ -254,8 +300,11 @@ static int bh1750_probe(struct i2c_client *client,
 
 	usec = data->chip_info->mtreg_to_usec * data->chip_info->mtreg_default;
 	ret = bh1750_change_int_time(data, usec);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	mutex_init(&data->lock);
 	indio_dev->dev.parent = &client->dev;
@@ -306,7 +355,8 @@ static SIMPLE_DEV_PM_OPS(bh1750_pm_ops, bh1750_suspend, NULL);
 #define BH1750_PM_OPS NULL
 #endif
 
-static const struct i2c_device_id bh1750_id[] = {
+static const struct i2c_device_id bh1750_id[] =
+{
 	{ "bh1710", BH1710 },
 	{ "bh1715", BH1750 },
 	{ "bh1721", BH1721 },
@@ -316,7 +366,8 @@ static const struct i2c_device_id bh1750_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, bh1750_id);
 
-static struct i2c_driver bh1750_driver = {
+static struct i2c_driver bh1750_driver =
+{
 	.driver = {
 		.name = "bh1750",
 		.pm = BH1750_PM_OPS,

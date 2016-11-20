@@ -53,15 +53,15 @@ void bfa_isr_unhandled(struct bfa_s *bfa, struct bfi_msg_s *m);
 #define bfa_reqq_next(__bfa, __reqq)					\
 	(bfa_reqq_full(__bfa, __reqq) ? NULL :				\
 	 ((void *)((struct bfi_msg_s *)((__bfa)->iocfc.req_cq_ba[__reqq].kva) \
-		   + bfa_reqq_pi((__bfa), (__reqq)))))
+			   + bfa_reqq_pi((__bfa), (__reqq)))))
 
 #define bfa_reqq_produce(__bfa, __reqq, __mh)  do {			\
 		(__mh).mtag.h2i.qid     = (__bfa)->iocfc.hw_qid[__reqq];\
 		(__bfa)->iocfc.req_cq_pi[__reqq]++;			\
 		(__bfa)->iocfc.req_cq_pi[__reqq] &=			\
-			((__bfa)->iocfc.cfg.drvcfg.num_reqq_elems - 1); \
+				((__bfa)->iocfc.cfg.drvcfg.num_reqq_elems - 1); \
 		writel((__bfa)->iocfc.req_cq_pi[__reqq],		\
-			(__bfa)->iocfc.bfa_regs.cpe_q_pi[__reqq]);	\
+			   (__bfa)->iocfc.bfa_regs.cpe_q_pi[__reqq]);	\
 		mmiowb();      \
 	} while (0)
 
@@ -73,14 +73,15 @@ void bfa_isr_unhandled(struct bfa_s *bfa, struct bfi_msg_s *m);
 	(&((struct bfi_msg_s *)((__bfa)->iocfc.rsp_cq_ba[__rspq].kva))[__ci])
 
 #define CQ_INCR(__index, __size) do {			\
-	(__index)++;					\
-	(__index) &= ((__size) - 1);			\
-} while (0)
+		(__index)++;					\
+		(__index) &= ((__size) - 1);			\
+	} while (0)
 
 /*
  * Circular queue usage assignments
  */
-enum {
+enum
+{
 	BFA_REQQ_IOC	= 0,	/*  all low-priority IOC msgs	*/
 	BFA_REQQ_FCXP	= 0,	/*  all FCXP messages		*/
 	BFA_REQQ_LPS	= 0,	/*  all lport service msgs	*/
@@ -96,7 +97,7 @@ enum {
 
 static inline void
 bfa_reqq_winit(struct bfa_reqq_wait_s *wqe, void (*qresume) (void *cbarg),
-	       void *cbarg)
+			   void *cbarg)
 {
 	wqe->qresume = qresume;
 	wqe->cbarg = cbarg;
@@ -109,12 +110,12 @@ bfa_reqq_winit(struct bfa_reqq_wait_s *wqe, void (*qresume) (void *cbarg),
  * bfa_reqq_wait(struct bfa_s *bfa, int reqq, struct bfa_reqq_wait_s *wqe)
  */
 #define bfa_reqq_wait(__bfa, __reqq, __wqe) do {			\
-									\
+		\
 		struct list_head *waitq = bfa_reqq(__bfa, __reqq);      \
-									\
+		\
 		WARN_ON(((__reqq) >= BFI_IOC_MAX_CQS));			\
 		WARN_ON(!((__wqe)->qresume && (__wqe)->cbarg));		\
-									\
+		\
 		list_add_tail(&(__wqe)->qe, waitq);      \
 	} while (0)
 
@@ -141,7 +142,7 @@ bfa_reqq_winit(struct bfa_reqq_wait_s *wqe, void (*qresume) (void *cbarg),
 #define bfa_cb_queue_status(__bfa, __hcb_qe, __status) do {		\
 		(__hcb_qe)->fw_status = (__status);			\
 		list_add_tail(&(__hcb_qe)->qe, &(__bfa)->comp_q);	\
-} while (0)
+	} while (0)
 
 #define bfa_cb_queue_done(__hcb_qe) do {	\
 		(__hcb_qe)->once = BFA_FALSE;	\
@@ -151,14 +152,16 @@ bfa_reqq_winit(struct bfa_reqq_wait_s *wqe, void (*qresume) (void *cbarg),
 /*
  * PCI devices supported by the current BFA
  */
-struct bfa_pciid_s {
+struct bfa_pciid_s
+{
 	u16	device_id;
 	u16	vendor_id;
 };
 
 extern char     bfa_version[];
 
-struct bfa_iocfc_regs_s {
+struct bfa_iocfc_regs_s
+{
 	void __iomem	*intr_status;
 	void __iomem	*intr_mask;
 	void __iomem	*cpe_q_pi[BFI_IOC_MAX_CQS];
@@ -174,7 +177,8 @@ struct bfa_iocfc_regs_s {
  */
 #define BFA_MSIX_MAX_VECTORS	22
 typedef void (*bfa_msix_handler_t)(struct bfa_s *bfa, int vec);
-struct bfa_msix_s {
+struct bfa_msix_s
+{
 	int	nvecs;
 	bfa_msix_handler_t handler[BFA_MSIX_MAX_VECTORS];
 };
@@ -182,7 +186,8 @@ struct bfa_msix_s {
 /*
  * Chip specific interfaces
  */
-struct bfa_hwif_s {
+struct bfa_hwif_s
+{
 	void (*hw_reginit)(struct bfa_s *bfa);
 	void (*hw_reqq_ack)(struct bfa_s *bfa, int reqq);
 	void (*hw_rspq_ack)(struct bfa_s *bfa, int rspq, u32 ci);
@@ -192,15 +197,16 @@ struct bfa_hwif_s {
 	void (*hw_msix_uninstall)(struct bfa_s *bfa);
 	void (*hw_isr_mode_set)(struct bfa_s *bfa, bfa_boolean_t msix);
 	void (*hw_msix_getvecs)(struct bfa_s *bfa, u32 *vecmap,
-				u32 *nvecs, u32 *maxvec);
+							u32 *nvecs, u32 *maxvec);
 	void (*hw_msix_get_rme_range) (struct bfa_s *bfa, u32 *start,
-				       u32 *end);
+								   u32 *end);
 	int	cpe_vec_q0;
 	int	rme_vec_q0;
 };
 typedef void (*bfa_cb_iocfc_t) (void *cbarg, enum bfa_status status);
 
-struct bfa_faa_cbfn_s {
+struct bfa_faa_cbfn_s
+{
 	bfa_cb_iocfc_t	faa_cbfn;
 	void		*faa_cbarg;
 };
@@ -211,21 +217,24 @@ struct bfa_faa_cbfn_s {
 /*
  *	FAA attributes
  */
-struct bfa_faa_attr_s {
+struct bfa_faa_attr_s
+{
 	wwn_t	faa;
 	u8	faa_state;
 	u8	pwwn_source;
 	u8	rsvd[6];
 };
 
-struct bfa_faa_args_s {
+struct bfa_faa_args_s
+{
 	struct bfa_faa_attr_s	*faa_attr;
 	struct bfa_faa_cbfn_s	faa_cb;
 	u8			faa_state;
 	bfa_boolean_t		busy;
 };
 
-struct bfa_iocfc_s {
+struct bfa_iocfc_s
+{
 	bfa_fsm_t		fsm;
 	struct bfa_s		*bfa;
 	struct bfa_iocfc_cfg_s	cfg;
@@ -281,16 +290,16 @@ struct bfa_iocfc_s {
 #define bfa_isr_rspq_ack(__bfa, __queue, __ci)				\
 	((__bfa)->iocfc.hwif.hw_rspq_ack(__bfa, __queue, __ci))
 #define bfa_isr_reqq_ack(__bfa, __queue) do {				\
-	if ((__bfa)->iocfc.hwif.hw_reqq_ack)				\
-		(__bfa)->iocfc.hwif.hw_reqq_ack(__bfa, __queue);	\
-} while (0)
+		if ((__bfa)->iocfc.hwif.hw_reqq_ack)				\
+			(__bfa)->iocfc.hwif.hw_reqq_ack(__bfa, __queue);	\
+	} while (0)
 #define bfa_isr_mode_set(__bfa, __msix) do {				\
-	if ((__bfa)->iocfc.hwif.hw_isr_mode_set)			\
-		(__bfa)->iocfc.hwif.hw_isr_mode_set(__bfa, __msix);	\
-} while (0)
+		if ((__bfa)->iocfc.hwif.hw_isr_mode_set)			\
+			(__bfa)->iocfc.hwif.hw_isr_mode_set(__bfa, __msix);	\
+	} while (0)
 #define bfa_msix_getvecs(__bfa, __vecmap, __nvecs, __maxvec)		\
 	((__bfa)->iocfc.hwif.hw_msix_getvecs(__bfa, __vecmap,		\
-					__nvecs, __maxvec))
+										 __nvecs, __maxvec))
 #define bfa_msix_get_rme_range(__bfa, __start, __end)			\
 	((__bfa)->iocfc.hwif.hw_msix_get_rme_range(__bfa, __start, __end))
 #define bfa_msix(__bfa, __vec)						\
@@ -300,11 +309,11 @@ struct bfa_iocfc_s {
  * FC specific IOC functions.
  */
 void bfa_iocfc_meminfo(struct bfa_iocfc_cfg_s *cfg,
-			struct bfa_meminfo_s *meminfo,
-			struct bfa_s *bfa);
+					   struct bfa_meminfo_s *meminfo,
+					   struct bfa_s *bfa);
 void bfa_iocfc_attach(struct bfa_s *bfa, void *bfad,
-		      struct bfa_iocfc_cfg_s *cfg,
-		      struct bfa_pcidev_s *pcidev);
+					  struct bfa_iocfc_cfg_s *cfg,
+					  struct bfa_pcidev_s *pcidev);
 void bfa_iocfc_init(struct bfa_s *bfa);
 void bfa_iocfc_start(struct bfa_s *bfa);
 void bfa_iocfc_stop(struct bfa_s *bfa);
@@ -326,9 +335,9 @@ void bfa_hwcb_msix_queue_install(struct bfa_s *bfa);
 void bfa_hwcb_msix_uninstall(struct bfa_s *bfa);
 void bfa_hwcb_isr_mode_set(struct bfa_s *bfa, bfa_boolean_t msix);
 void bfa_hwcb_msix_getvecs(struct bfa_s *bfa, u32 *vecmap, u32 *nvecs,
-			   u32 *maxvec);
+						   u32 *maxvec);
 void bfa_hwcb_msix_get_rme_range(struct bfa_s *bfa, u32 *start,
-				 u32 *end);
+								 u32 *end);
 void bfa_hwct_reginit(struct bfa_s *bfa);
 void bfa_hwct2_reginit(struct bfa_s *bfa);
 void bfa_hwct_reqq_ack(struct bfa_s *bfa, int rspq);
@@ -340,12 +349,12 @@ void bfa_hwct_msix_queue_install(struct bfa_s *bfa);
 void bfa_hwct_msix_uninstall(struct bfa_s *bfa);
 void bfa_hwct_isr_mode_set(struct bfa_s *bfa, bfa_boolean_t msix);
 void bfa_hwct_msix_getvecs(struct bfa_s *bfa, u32 *vecmap, u32 *nvecs,
-			   u32 *maxvec);
+						   u32 *maxvec);
 void bfa_hwct_msix_get_rme_range(struct bfa_s *bfa, u32 *start,
-				 u32 *end);
+								 u32 *end);
 void bfa_iocfc_get_bootwwns(struct bfa_s *bfa, u8 *nwwns, wwn_t *wwns);
 int bfa_iocfc_get_pbc_vports(struct bfa_s *bfa,
-				struct bfi_pbc_vport_s *pbc_vport);
+							 struct bfi_pbc_vport_s *pbc_vport);
 
 
 /*
@@ -389,11 +398,11 @@ int bfa_iocfc_get_pbc_vports(struct bfa_s *bfa,
  */
 #define bfa_get_lun_mask(__bfa)					\
 	((&(__bfa)->modules.dconf_mod)->min_cfg) ? NULL :	\
-	 (&(BFA_DCONF_MOD(__bfa)->dconf->lun_mask))
+	(&(BFA_DCONF_MOD(__bfa)->dconf->lun_mask))
 
 #define bfa_get_lun_mask_list(_bfa)				\
 	((&(_bfa)->modules.dconf_mod)->min_cfg) ? NULL :	\
-	 (bfa_get_lun_mask(_bfa)->lun_list)
+	(bfa_get_lun_mask(_bfa)->lun_list)
 
 #define bfa_get_lun_mask_status(_bfa)				\
 	(((&(_bfa)->modules.dconf_mod)->min_cfg)		\
@@ -403,11 +412,11 @@ void bfa_get_pciids(struct bfa_pciid_s **pciids, int *npciids);
 void bfa_cfg_get_default(struct bfa_iocfc_cfg_s *cfg);
 void bfa_cfg_get_min(struct bfa_iocfc_cfg_s *cfg);
 void bfa_cfg_get_meminfo(struct bfa_iocfc_cfg_s *cfg,
-			struct bfa_meminfo_s *meminfo,
-			struct bfa_s *bfa);
+						 struct bfa_meminfo_s *meminfo,
+						 struct bfa_s *bfa);
 void bfa_attach(struct bfa_s *bfa, void *bfad, struct bfa_iocfc_cfg_s *cfg,
-		struct bfa_meminfo_s *meminfo,
-		struct bfa_pcidev_s *pcidev);
+				struct bfa_meminfo_s *meminfo,
+				struct bfa_pcidev_s *pcidev);
 void bfa_detach(struct bfa_s *bfa);
 void bfa_cb_init(void *bfad, bfa_status_t status);
 void bfa_cb_updateq(void *bfad, bfa_status_t status);
@@ -425,25 +434,26 @@ void bfa_iocfc_get_attr(struct bfa_s *bfa, struct bfa_iocfc_attr_s *attr);
 
 
 bfa_status_t bfa_iocfc_israttr_set(struct bfa_s *bfa,
-				   struct bfa_iocfc_intr_attr_s *attr);
+								   struct bfa_iocfc_intr_attr_s *attr);
 
 void bfa_iocfc_enable(struct bfa_s *bfa);
 void bfa_iocfc_disable(struct bfa_s *bfa);
 #define bfa_timer_start(_bfa, _timer, _timercb, _arg, _timeout)		\
 	bfa_timer_begin(&(_bfa)->timer_mod, _timer, _timercb, _arg, _timeout)
 
-struct bfa_cb_pending_q_s {
+struct bfa_cb_pending_q_s
+{
 	struct bfa_cb_qe_s	hcb_qe;
 	void			*data;  /* Driver buffer */
 };
 
 /* Common macros to operate on pending stats/attr apis */
 #define bfa_pending_q_init(__qe, __cbfn, __cbarg, __data) do {	\
-	bfa_q_qe_init(&((__qe)->hcb_qe.qe));			\
-	(__qe)->hcb_qe.cbfn = (__cbfn);				\
-	(__qe)->hcb_qe.cbarg = (__cbarg);			\
-	(__qe)->hcb_qe.pre_rmv = BFA_TRUE;			\
-	(__qe)->data = (__data);				\
-} while (0)
+		bfa_q_qe_init(&((__qe)->hcb_qe.qe));			\
+		(__qe)->hcb_qe.cbfn = (__cbfn);				\
+		(__qe)->hcb_qe.cbarg = (__cbarg);			\
+		(__qe)->hcb_qe.pre_rmv = BFA_TRUE;			\
+		(__qe)->data = (__data);				\
+	} while (0)
 
 #endif /* __BFA_H__ */

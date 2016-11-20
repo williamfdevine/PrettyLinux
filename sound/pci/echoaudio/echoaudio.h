@@ -218,7 +218,7 @@
 
 
 /****************************************************************************
- 
+
    Clocks
 
 *****************************************************************************/
@@ -293,7 +293,8 @@
 
 
 
-struct audiopipe {
+struct audiopipe
+{
 	volatile u32 *dma_counter;	/* Commpage register that contains
 					 * the current dma position
 					 * (lower 32 bits only)
@@ -317,7 +318,8 @@ struct audiopipe {
 };
 
 
-struct audioformat {
+struct audioformat
+{
 	u8 interleave;			/* How the data is arranged in memory:
 					 * mono = 1, stereo = 2, ...
 					 */
@@ -329,7 +331,8 @@ struct audioformat {
 };
 
 
-struct echoaudio {
+struct echoaudio
+{
 	spinlock_t lock;
 	struct snd_pcm_substream *substream[DSP_MAXPIPES];
 	int last_period[DSP_MAXPIPES];
@@ -399,9 +402,9 @@ struct echoaudio {
 	s8 output_gain[ECHO_MAXAUDIOOUTPUTS];	/* Output level -128..+6 dB
 						 * (-128=muted) */
 	s8 monitor_gain[ECHO_MAXAUDIOOUTPUTS][ECHO_MAXAUDIOINPUTS];
-		/* -128..+6 dB */
+	/* -128..+6 dB */
 	s8 vmixer_gain[ECHO_MAXAUDIOOUTPUTS][ECHO_MAXAUDIOOUTPUTS];
-		/* -128..+6 dB */
+	/* -128..+6 dB */
 
 	u16 digital_modes;		/* Bitmask of supported modes
 					 * (see ECHOCAPS_HAS_DIGITAL_MODE_*) */
@@ -436,17 +439,17 @@ static int load_firmware(struct echoaudio *chip);
 static int wait_handshake(struct echoaudio *chip);
 static int send_vector(struct echoaudio *chip, u32 command);
 static int get_firmware(const struct firmware **fw_entry,
-			struct echoaudio *chip, const short fw_index);
+						struct echoaudio *chip, const short fw_index);
 static void free_firmware(const struct firmware *fw_entry,
-			  struct echoaudio *chip);
+						  struct echoaudio *chip);
 
 #ifdef ECHOCARD_HAS_MIDI
 static int enable_midi_input(struct echoaudio *chip, char enable);
 static void snd_echo_midi_output_trigger(
-			struct snd_rawmidi_substream *substream, int up);
+	struct snd_rawmidi_substream *substream, int up);
 static int midi_service_irq(struct echoaudio *chip);
 static int snd_echo_midi_create(struct snd_card *card,
-				struct echoaudio *chip);
+								struct echoaudio *chip);
 #endif
 
 
@@ -461,7 +464,7 @@ static inline u32 get_dsp_register(struct echoaudio *chip, u32 index)
 }
 
 static inline void set_dsp_register(struct echoaudio *chip, u32 index,
-				    u32 value)
+									u32 value)
 {
 	writel(value, &chip->dsp_registers[index]);
 }
@@ -561,7 +564,7 @@ static inline int monitor_index(const struct echoaudio *chip, int out, int in)
 
 
 #ifndef pci_device
-#define pci_device(chip) (&chip->pci->dev)
+	#define pci_device(chip) (&chip->pci->dev)
 #endif
 
 

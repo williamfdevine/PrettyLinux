@@ -42,7 +42,8 @@
 #define ER_SMC_CALC		1
 #define ER_SMC_RECALC		2
 
-struct at91_ide_info {
+struct at91_ide_info
+{
 	unsigned long mode;
 	unsigned int cs;
 	struct clk *mck;
@@ -53,14 +54,16 @@ struct at91_ide_info {
 /**
  * struct smc_range - range of valid values for SMC register.
  */
-struct smc_range {
+struct smc_range
+{
 	int min;
 	int max;
 };
 
 struct regmap *smc;
 
-struct at91sam9_smc_generic_fields {
+struct at91sam9_smc_generic_fields
+{
 	struct regmap_field *setup;
 	struct regmap_field *pulse;
 	struct regmap_field *cycle;
@@ -82,16 +85,23 @@ static int adjust_smc_value(int *value, struct smc_range *range, int size)
 	int maximum = (range + size - 1)->max;
 	int remainder;
 
-	do {
-		if (*value < range->min) {
+	do
+	{
+		if (*value < range->min)
+		{
 			remainder = range->min - *value;
 			*value = range->min; /* nearest valid value */
 			return remainder;
-		} else if ((range->min <= *value) && (*value <= range->max))
+		}
+		else if ((range->min <= *value) && (*value <= range->max))
+		{
 			return 0;
+		}
 
 		range++;
-	} while (--size);
+	}
+	while (--size);
+
 	*value = maximum;
 
 	return -1; /* invalid value */
@@ -116,19 +126,22 @@ static int adjust_smc_value(int *value, struct smc_range *range, int size)
  *	SMC_CYCLE = 256*cycle[8:7] + cycle[6:0]
  */
 static int calc_smc_vals(struct device *dev,
-		int *setup, int *pulse, int *cycle, int *cs_pulse)
+						 int *setup, int *pulse, int *cycle, int *cs_pulse)
 {
 	int ret_val;
 	int err = 0;
-	struct smc_range range_setup[] = {	/* SMC_SETUP valid values */
+	struct smc_range range_setup[] =  	/* SMC_SETUP valid values */
+	{
 		{.min = 0,	.max = 31},	/* first  range */
 		{.min = 128,	.max = 159}	/* second range */
 	};
-	struct smc_range range_pulse[] = {	/* SMC_PULSE valid values */
+	struct smc_range range_pulse[] =  	/* SMC_PULSE valid values */
+	{
 		{.min = 0,	.max = 63},	/* first  range */
 		{.min = 256,	.max = 319}	/* second range */
 	};
-	struct smc_range range_cycle[] = {	/* SMC_CYCLE valid values */
+	struct smc_range range_cycle[] =  	/* SMC_CYCLE valid values */
+	{
 		{.min = 0,	.max = 127},	/* first  range */
 		{.min = 256,	.max = 383},	/* second range */
 		{.min = 512,	.max = 639},	/* third  range */
@@ -136,32 +149,51 @@ static int calc_smc_vals(struct device *dev,
 	};
 
 	ret_val = adjust_smc_value(setup, range_setup, ARRAY_SIZE(range_setup));
+
 	if (ret_val < 0)
+	{
 		dev_warn(dev, "maximal SMC Setup value\n");
+	}
 	else
+	{
 		*cycle += ret_val;
+	}
 
 	ret_val = adjust_smc_value(pulse, range_pulse, ARRAY_SIZE(range_pulse));
+
 	if (ret_val < 0)
+	{
 		dev_warn(dev, "maximal SMC Pulse value\n");
+	}
 	else
+	{
 		*cycle += ret_val;
+	}
 
 	ret_val = adjust_smc_value(cycle, range_cycle, ARRAY_SIZE(range_cycle));
+
 	if (ret_val < 0)
+	{
 		dev_warn(dev, "maximal SMC Cycle value\n");
+	}
 
 	*cs_pulse = *cycle;
-	if (*cs_pulse > CS_PULSE_MAXIMUM) {
+
+	if (*cs_pulse > CS_PULSE_MAXIMUM)
+	{
 		dev_err(dev, "unable to calculate valid SMC settings\n");
 		return -ER_SMC_CALC;
 	}
 
 	ret_val = adjust_smc_value(cs_pulse, range_pulse,
-					ARRAY_SIZE(range_pulse));
-	if (ret_val < 0) {
+							   ARRAY_SIZE(range_pulse));
+
+	if (ret_val < 0)
+	{
 		dev_warn(dev, "maximal SMC CS Pulse value\n");
-	} else if (ret_val != 0) {
+	}
+	else if (ret_val != 0)
+	{
 		*cycle = *cs_pulse;
 		dev_warn(dev, "SMC Cycle extended\n");
 		err = -ER_SMC_RECALC;
@@ -212,7 +244,7 @@ static unsigned long calc_mck_cycles(unsigned long ns, unsigned long mck_hz)
  * cs_setup = 0 and cs_pulse = cycle.
  */
 static void set_smc_timing(struct device *dev, struct ata_device *adev,
-		struct at91_ide_info *info, const struct ata_timing *ata)
+						   struct at91_ide_info *info, const struct ata_timing *ata)
 {
 	int ret = 0;
 	int use_iordy;
@@ -231,22 +263,30 @@ static void set_smc_timing(struct device *dev, struct ata_device *adev,
 	pulse = calc_mck_cycles(ata->act8b, mck_hz);
 	tdf_cycles = calc_mck_cycles(t6z, mck_hz);
 
-	do {
+	do
+	{
 		ret = calc_smc_vals(dev, &setup, &pulse, &cycle, &cs_pulse);
-	} while (ret == -ER_SMC_RECALC);
+	}
+	while (ret == -ER_SMC_RECALC);
 
 	if (ret == -ER_SMC_CALC)
+	{
 		dev_err(dev, "Interface may not operate correctly\n");
+	}
 
 	dev_dbg(dev, "SMC Setup=%u, Pulse=%u, Cycle=%u, CS Pulse=%u\n",
-		setup, pulse, cycle, cs_pulse);
+			setup, pulse, cycle, cs_pulse);
 	to_smc_format(&setup, &pulse, &cycle, &cs_pulse);
 	/* disable or enable waiting for IORDY signal */
 	use_iordy = ata_pio_need_iordy(adev);
-	if (use_iordy)
-		info->mode |= AT91_SMC_EXNWMODE_READY;
 
-	if (tdf_cycles > 15) {
+	if (use_iordy)
+	{
+		info->mode |= AT91_SMC_EXNWMODE_READY;
+	}
+
+	if (tdf_cycles > 15)
+	{
 		tdf_cycles = 15;
 		dev_warn(dev, "maximal SMC TDF Cycles value\n");
 	}
@@ -254,20 +294,20 @@ static void set_smc_timing(struct device *dev, struct ata_device *adev,
 	dev_dbg(dev, "Use IORDY=%u, TDF Cycles=%u\n", use_iordy, tdf_cycles);
 
 	regmap_fields_write(fields.setup, info->cs,
-			    AT91SAM9_SMC_NRDSETUP(setup) |
-			    AT91SAM9_SMC_NWESETUP(setup) |
-			    AT91SAM9_SMC_NCS_NRDSETUP(0) |
-			    AT91SAM9_SMC_NCS_WRSETUP(0));
+						AT91SAM9_SMC_NRDSETUP(setup) |
+						AT91SAM9_SMC_NWESETUP(setup) |
+						AT91SAM9_SMC_NCS_NRDSETUP(0) |
+						AT91SAM9_SMC_NCS_WRSETUP(0));
 	regmap_fields_write(fields.pulse, info->cs,
-			    AT91SAM9_SMC_NRDPULSE(pulse) |
-			    AT91SAM9_SMC_NWEPULSE(pulse) |
-			    AT91SAM9_SMC_NCS_NRDPULSE(cs_pulse) |
-			    AT91SAM9_SMC_NCS_WRPULSE(cs_pulse));
+						AT91SAM9_SMC_NRDPULSE(pulse) |
+						AT91SAM9_SMC_NWEPULSE(pulse) |
+						AT91SAM9_SMC_NCS_NRDPULSE(cs_pulse) |
+						AT91SAM9_SMC_NCS_WRPULSE(cs_pulse));
 	regmap_fields_write(fields.cycle, info->cs,
-			    AT91SAM9_SMC_NRDCYCLE(cycle) |
-			    AT91SAM9_SMC_NWECYCLE(cycle));
+						AT91SAM9_SMC_NRDCYCLE(cycle) |
+						AT91SAM9_SMC_NWECYCLE(cycle));
 	regmap_fields_write(fields.mode, info->cs, info->mode |
-			    AT91_SMC_TDF_(tdf_cycles));
+						AT91_SMC_TDF_(tdf_cycles));
 }
 
 static void pata_at91_set_piomode(struct ata_port *ap, struct ata_device *adev)
@@ -278,11 +318,14 @@ static void pata_at91_set_piomode(struct ata_port *ap, struct ata_device *adev)
 
 	/* Compute ATA timing and set it to SMC */
 	ret = ata_timing_compute(adev, adev->pio_mode, &timing, 1000, 0);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_warn(ap->dev, "Failed to compute ATA timing %d, "
-			 "set PIO_0 timing\n", ret);
+				 "set PIO_0 timing\n", ret);
 		timing = *ata_timing_find_mode(XFER_PIO_0);
 	}
+
 	set_smc_timing(ap->dev, adev, info, &timing);
 }
 
@@ -299,23 +342,25 @@ static unsigned int pata_at91_data_xfer_noirq(struct ata_device *dev,
 
 	/* set 16bit mode before writing data */
 	regmap_fields_write(fields.mode, info->cs, (mode & ~AT91_SMC_DBW) |
-			    AT91_SMC_DBW_16);
+						AT91_SMC_DBW_16);
 
 	consumed = ata_sff_data_xfer(dev, buf, buflen, rw);
 
 	/* restore 8bit mode after data is written */
 	regmap_fields_write(fields.mode, info->cs, (mode & ~AT91_SMC_DBW) |
-			    AT91_SMC_DBW_8);
+						AT91_SMC_DBW_8);
 
 	local_irq_restore(flags);
 	return consumed;
 }
 
-static struct scsi_host_template pata_at91_sht = {
+static struct scsi_host_template pata_at91_sht =
+{
 	ATA_PIO_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations pata_at91_port_ops = {
+static struct ata_port_operations pata_at91_port_ops =
+{
 	.inherits	= &ata_sff_port_ops,
 
 	.sff_data_xfer	= pata_at91_data_xfer_noirq,
@@ -332,18 +377,27 @@ static int at91sam9_smc_fields_init(struct device *dev)
 
 	field.reg = AT91SAM9_SMC_SETUP(AT91SAM9_SMC_GENERIC);
 	fields.setup = devm_regmap_field_alloc(dev, smc, field);
+
 	if (IS_ERR(fields.setup))
+	{
 		return PTR_ERR(fields.setup);
+	}
 
 	field.reg = AT91SAM9_SMC_PULSE(AT91SAM9_SMC_GENERIC);
 	fields.pulse = devm_regmap_field_alloc(dev, smc, field);
+
 	if (IS_ERR(fields.pulse))
+	{
 		return PTR_ERR(fields.pulse);
+	}
 
 	field.reg = AT91SAM9_SMC_CYCLE(AT91SAM9_SMC_GENERIC);
 	fields.cycle = devm_regmap_field_alloc(dev, smc, field);
+
 	if (IS_ERR(fields.cycle))
+	{
 		return PTR_ERR(fields.cycle);
+	}
 
 	field.reg = AT91SAM9_SMC_MODE(AT91SAM9_SMC_GENERIC);
 	fields.mode = devm_regmap_field_alloc(dev, smc, field);
@@ -366,14 +420,16 @@ static int pata_at91_probe(struct platform_device *pdev)
 
 	/*  get platform resources: IO/CTL memories and irq/rst pins */
 
-	if (pdev->num_resources != 1) {
+	if (pdev->num_resources != 1)
+	{
 		dev_err(&pdev->dev, "invalid number of resources\n");
 		return -EINVAL;
 	}
 
 	mem_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 
-	if (!mem_res) {
+	if (!mem_res)
+	{
 		dev_err(dev, "failed to get mem resource\n");
 		return -EINVAL;
 	}
@@ -381,62 +437,75 @@ static int pata_at91_probe(struct platform_device *pdev)
 	irq = board->irq_pin;
 
 	smc = syscon_regmap_lookup_by_phandle(pdev->dev.of_node, "atmel,smc");
+
 	if (IS_ERR(smc))
+	{
 		return PTR_ERR(smc);
+	}
 
 	ret = at91sam9_smc_fields_init(dev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* init ata host */
 
 	host = ata_host_alloc(dev, 1);
 
 	if (!host)
+	{
 		return -ENOMEM;
+	}
 
 	ap = host->ports[0];
 	ap->ops = &pata_at91_port_ops;
 	ap->flags |= ATA_FLAG_SLAVE_POSS;
 	ap->pio_mask = ATA_PIO4;
 
-	if (!gpio_is_valid(irq)) {
+	if (!gpio_is_valid(irq))
+	{
 		ap->flags |= ATA_FLAG_PIO_POLLING;
 		ata_port_desc(ap, "no IRQ, using PIO polling");
 	}
 
 	info = devm_kzalloc(dev, sizeof(*info), GFP_KERNEL);
 
-	if (!info) {
+	if (!info)
+	{
 		dev_err(dev, "failed to allocate memory for private data\n");
 		return -ENOMEM;
 	}
 
 	info->mck = clk_get(NULL, "mck");
 
-	if (IS_ERR(info->mck)) {
+	if (IS_ERR(info->mck))
+	{
 		dev_err(dev, "failed to get access to mck clock\n");
 		return -ENODEV;
 	}
 
 	info->cs    = board->chipselect;
 	info->mode  = AT91_SMC_READMODE | AT91_SMC_WRITEMODE |
-		AT91_SMC_EXNWMODE_READY | AT91_SMC_BAT_SELECT |
-		AT91_SMC_DBW_8 | AT91_SMC_TDF_(0);
+				  AT91_SMC_EXNWMODE_READY | AT91_SMC_BAT_SELECT |
+				  AT91_SMC_DBW_8 | AT91_SMC_TDF_(0);
 
 	info->ide_addr = devm_ioremap(dev,
-			mem_res->start + CF_IDE_OFFSET, CF_IDE_RES_SIZE);
+								  mem_res->start + CF_IDE_OFFSET, CF_IDE_RES_SIZE);
 
-	if (!info->ide_addr) {
+	if (!info->ide_addr)
+	{
 		dev_err(dev, "failed to map IO base\n");
 		ret = -ENOMEM;
 		goto err_put;
 	}
 
 	info->alt_addr = devm_ioremap(dev,
-			mem_res->start + CF_ALT_IDE_OFFSET, CF_IDE_RES_SIZE);
+								  mem_res->start + CF_ALT_IDE_OFFSET, CF_IDE_RES_SIZE);
 
-	if (!info->alt_addr) {
+	if (!info->alt_addr)
+	{
 		dev_err(dev, "failed to map CTL base\n");
 		ret = -ENOMEM;
 		goto err_put;
@@ -449,16 +518,19 @@ static int pata_at91_probe(struct platform_device *pdev)
 	ata_sff_std_ports(&ap->ioaddr);
 
 	ata_port_desc(ap, "mmio cmd 0x%llx ctl 0x%llx",
-			(unsigned long long)mem_res->start + CF_IDE_OFFSET,
-			(unsigned long long)mem_res->start + CF_ALT_IDE_OFFSET);
+				  (unsigned long long)mem_res->start + CF_IDE_OFFSET,
+				  (unsigned long long)mem_res->start + CF_ALT_IDE_OFFSET);
 
 	host->private_data = info;
 
 	ret = ata_host_activate(host, gpio_is_valid(irq) ? gpio_to_irq(irq) : 0,
-				gpio_is_valid(irq) ? ata_sff_interrupt : NULL,
-				irq_flags, &pata_at91_sht);
+							gpio_is_valid(irq) ? ata_sff_interrupt : NULL,
+							irq_flags, &pata_at91_sht);
+
 	if (ret)
+	{
 		goto err_put;
+	}
 
 	return 0;
 
@@ -473,20 +545,26 @@ static int pata_at91_remove(struct platform_device *pdev)
 	struct at91_ide_info *info;
 
 	if (!host)
+	{
 		return 0;
+	}
+
 	info = host->private_data;
 
 	ata_host_detach(host);
 
 	if (!info)
+	{
 		return 0;
+	}
 
 	clk_put(info->mck);
 
 	return 0;
 }
 
-static struct platform_driver pata_at91_driver = {
+static struct platform_driver pata_at91_driver =
+{
 	.probe		= pata_at91_probe,
 	.remove		= pata_at91_remove,
 	.driver		= {

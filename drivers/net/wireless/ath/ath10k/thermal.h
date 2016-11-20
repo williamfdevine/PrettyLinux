@@ -23,7 +23,8 @@
 #define ATH10K_THERMAL_SYNC_TIMEOUT_HZ (5 * HZ)
 #define ATH10K_THERMAL_THROTTLE_MAX     100
 
-struct ath10k_thermal {
+struct ath10k_thermal
+{
 	struct thermal_cooling_device *cdev;
 	struct completion wmi_sync;
 
@@ -52,7 +53,7 @@ static inline void ath10k_thermal_unregister(struct ath10k *ar)
 }
 
 static inline void ath10k_thermal_event_temperature(struct ath10k *ar,
-						    int temperature)
+		int temperature)
 {
 }
 

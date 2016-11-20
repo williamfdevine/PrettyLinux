@@ -16,7 +16,7 @@
 #define PKRU_BITS_PER_PKEY 2
 
 #ifndef DEBUG_LEVEL
-#define DEBUG_LEVEL 0
+	#define DEBUG_LEVEL 0
 #endif
 #define DPRINT_IN_SIGNAL_BUF_SIZE 4096
 extern int dprint_in_signal;
@@ -26,27 +26,36 @@ static inline void sigsafe_printf(const char *format, ...)
 	va_list ap;
 
 	va_start(ap, format);
-	if (!dprint_in_signal) {
+
+	if (!dprint_in_signal)
+	{
 		vprintf(format, ap);
-	} else {
+	}
+	else
+	{
 		int len = vsnprintf(dprint_in_signal_buffer,
-				    DPRINT_IN_SIGNAL_BUF_SIZE,
-				    format, ap);
+							DPRINT_IN_SIGNAL_BUF_SIZE,
+							format, ap);
+
 		/*
 		 * len is amount that would have been printed,
 		 * but actual write is truncated at BUF_SIZE.
 		 */
 		if (len > DPRINT_IN_SIGNAL_BUF_SIZE)
+		{
 			len = DPRINT_IN_SIGNAL_BUF_SIZE;
+		}
+
 		write(1, dprint_in_signal_buffer, len);
 	}
+
 	va_end(ap);
 }
 #define dprintf_level(level, args...) do {	\
-	if (level <= DEBUG_LEVEL)		\
-		sigsafe_printf(args);		\
-	fflush(NULL);				\
-} while (0)
+		if (level <= DEBUG_LEVEL)		\
+			sigsafe_printf(args);		\
+		fflush(NULL);				\
+	} while (0)
 #define dprintf0(args...) dprintf_level(0, args)
 #define dprintf1(args...) dprintf_level(1, args)
 #define dprintf2(args...) dprintf_level(2, args)
@@ -61,8 +70,8 @@ static inline unsigned int __rdpkru(void)
 	unsigned int pkru;
 
 	asm volatile(".byte 0x0f,0x01,0xee\n\t"
-		     : "=a" (eax), "=d" (edx)
-		     : "c" (ecx));
+				 : "=a" (eax), "=d" (edx)
+				 : "c" (ecx));
 	pkru = eax;
 	return pkru;
 }
@@ -72,7 +81,7 @@ static inline unsigned int _rdpkru(int line)
 	unsigned int pkru = __rdpkru();
 
 	dprintf4("rdpkru(line=%d) pkru: %x shadow: %x\n",
-			line, pkru, shadow_pkru);
+			 line, pkru, shadow_pkru);
 	assert(pkru == shadow_pkru);
 
 	return pkru;
@@ -88,7 +97,7 @@ static inline void __wrpkru(unsigned int pkru)
 
 	dprintf4("%s() changing %08x to %08x\n", __func__, __rdpkru(), pkru);
 	asm volatile(".byte 0x0f,0x01,0xef\n\t"
-		     : : "a" (eax), "c" (ecx), "d" (edx));
+				 : : "a" (eax), "c" (ecx), "d" (edx));
 	assert(pkru == __rdpkru());
 }
 
@@ -112,9 +121,13 @@ static inline void __pkey_access_allow(int pkey, int do_allow)
 	int bit = pkey * 2;
 
 	if (do_allow)
-		pkru &= (1<<bit);
+	{
+		pkru &= (1 << bit);
+	}
 	else
-		pkru |= (1<<bit);
+	{
+		pkru |= (1 << bit);
+	}
 
 	dprintf4("pkru now: %08x\n", rdpkru());
 	wrpkru(pkru);
@@ -126,9 +139,13 @@ static inline void __pkey_write_allow(int pkey, int do_allow_write)
 	int bit = pkey * 2 + 1;
 
 	if (do_allow_write)
-		pkru &= (1<<bit);
+	{
+		pkru &= (1 << bit);
+	}
 	else
-		pkru |= (1<<bit);
+	{
+		pkru |= (1 << bit);
+	}
 
 	wrpkru(pkru);
 	dprintf4("pkru now: %08x\n", rdpkru());
@@ -143,15 +160,15 @@ static inline void __pkey_write_allow(int pkey, int do_allow_write)
 #define MB	(1<<20)
 
 static inline void __cpuid(unsigned int *eax, unsigned int *ebx,
-		unsigned int *ecx, unsigned int *edx)
+						   unsigned int *ecx, unsigned int *edx)
 {
 	/* ecx is often an input as well as an output. */
 	asm volatile(
 		"cpuid;"
 		: "=a" (*eax),
-		  "=b" (*ebx),
-		  "=c" (*ecx),
-		  "=d" (*edx)
+		"=b" (*ebx),
+		"=c" (*ecx),
+		"=d" (*edx)
 		: "0" (*eax), "2" (*ecx));
 }
 
@@ -170,14 +187,18 @@ static inline int cpu_has_pku(void)
 	ecx = 0x0;
 	__cpuid(&eax, &ebx, &ecx, &edx);
 
-	if (!(ecx & X86_FEATURE_PKU)) {
+	if (!(ecx & X86_FEATURE_PKU))
+	{
 		dprintf2("cpu does not have PKU\n");
 		return 0;
 	}
-	if (!(ecx & X86_FEATURE_OSPKE)) {
+
+	if (!(ecx & X86_FEATURE_OSPKE))
+	{
 		dprintf2("cpu does not have OSPKE\n");
 		return 0;
 	}
+
 	return 1;
 }
 
@@ -202,13 +223,15 @@ int pkru_xstate_offset(void)
 		ecx = leaf;
 		__cpuid(&eax, &ebx, &ecx, &edx);
 
-		if (leaf == XSTATE_PKRU_BIT) {
+		if (leaf == XSTATE_PKRU_BIT)
+		{
 			xstate_offset = ebx;
 			xstate_size = eax;
 		}
 	}
 
-	if (xstate_size == 0) {
+	if (xstate_size == 0)
+	{
 		printf("could not find size/offset of PKRU in xsave state\n");
 		return 0;
 	}

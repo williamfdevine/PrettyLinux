@@ -17,7 +17,8 @@
 #define __LINUX_MFD_S2MPS15_H
 
 /* S2MPS15 registers */
-enum s2mps15_reg {
+enum s2mps15_reg
+{
 	S2MPS15_REG_ID,
 	S2MPS15_REG_INT1,
 	S2MPS15_REG_INT2,
@@ -104,7 +105,8 @@ enum s2mps15_reg {
 };
 
 /* S2MPS15 regulator ids */
-enum s2mps15_regulators {
+enum s2mps15_regulators
+{
 	S2MPS15_LDO1,
 	S2MPS15_LDO2,
 	S2MPS15_LDO3,

@@ -10,7 +10,8 @@
 
 /* inode in-kernel data */
 
-struct shmem_inode_info {
+struct shmem_inode_info
+{
 	spinlock_t		lock;
 	unsigned int		seals;		/* shmem seals */
 	unsigned long		flags;
@@ -23,7 +24,8 @@ struct shmem_inode_info {
 	struct inode		vfs_inode;
 };
 
-struct shmem_sb_info {
+struct shmem_sb_info
+{
 	unsigned long max_blocks;   /* How many blocks are allowed */
 	struct percpu_counter used_blocks;  /* How many are allocated */
 	unsigned long max_inodes;   /* How many inodes are allowed */
@@ -50,9 +52,9 @@ static inline struct shmem_inode_info *SHMEM_I(struct inode *inode)
 extern int shmem_init(void);
 extern int shmem_fill_super(struct super_block *sb, void *data, int silent);
 extern struct file *shmem_file_setup(const char *name,
-					loff_t size, unsigned long flags);
+									 loff_t size, unsigned long flags);
 extern struct file *shmem_kernel_file_setup(const char *name, loff_t size,
-					    unsigned long flags);
+		unsigned long flags);
 extern int shmem_zero_setup(struct vm_area_struct *);
 extern unsigned long shmem_get_unmapped_area(struct file *, unsigned long addr,
 		unsigned long len, unsigned long pgoff, unsigned long flags);
@@ -60,16 +62,17 @@ extern int shmem_lock(struct file *file, int lock, struct user_struct *user);
 extern bool shmem_mapping(struct address_space *mapping);
 extern void shmem_unlock_mapping(struct address_space *mapping);
 extern struct page *shmem_read_mapping_page_gfp(struct address_space *mapping,
-					pgoff_t index, gfp_t gfp_mask);
+		pgoff_t index, gfp_t gfp_mask);
 extern void shmem_truncate_range(struct inode *inode, loff_t start, loff_t end);
 extern int shmem_unuse(swp_entry_t entry, struct page *page);
 
 extern unsigned long shmem_swap_usage(struct vm_area_struct *vma);
 extern unsigned long shmem_partial_swap_usage(struct address_space *mapping,
-						pgoff_t start, pgoff_t end);
+		pgoff_t start, pgoff_t end);
 
 /* Flag allocation requirements to shmem_getpage */
-enum sgp_type {
+enum sgp_type
+{
 	SGP_READ,	/* don't exceed i_size, don't allocate page */
 	SGP_CACHE,	/* don't exceed i_size, may allocate page */
 	SGP_NOHUGE,	/* like SGP_CACHE, but no huge pages */
@@ -79,21 +82,27 @@ enum sgp_type {
 };
 
 extern int shmem_getpage(struct inode *inode, pgoff_t index,
-		struct page **pagep, enum sgp_type sgp);
+						 struct page **pagep, enum sgp_type sgp);
 
 static inline struct page *shmem_read_mapping_page(
-				struct address_space *mapping, pgoff_t index)
+	struct address_space *mapping, pgoff_t index)
 {
 	return shmem_read_mapping_page_gfp(mapping, index,
-					mapping_gfp_mask(mapping));
+									   mapping_gfp_mask(mapping));
 }
 
 static inline bool shmem_file(struct file *file)
 {
 	if (!IS_ENABLED(CONFIG_SHMEM))
+	{
 		return false;
+	}
+
 	if (!file || !file->f_mapping)
+	{
 		return false;
+	}
+
 	return shmem_mapping(file->f_mapping);
 }
 

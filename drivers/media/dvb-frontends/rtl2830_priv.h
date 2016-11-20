@@ -26,7 +26,8 @@
 #include <linux/regmap.h>
 #include <linux/bitops.h>
 
-struct rtl2830_dev {
+struct rtl2830_dev
+{
 	struct rtl2830_platform_data *pdata;
 	struct i2c_client *client;
 	struct regmap *regmap;
@@ -40,7 +41,8 @@ struct rtl2830_dev {
 	u64 post_bit_count;
 };
 
-struct rtl2830_reg_val_mask {
+struct rtl2830_reg_val_mask
+{
 	u16 reg;
 	u8  val;
 	u8  mask;

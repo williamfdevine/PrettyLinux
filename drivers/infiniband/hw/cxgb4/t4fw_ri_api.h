@@ -33,7 +33,8 @@
 
 #include "t4fw_api.h"
 
-enum fw_ri_wr_opcode {
+enum fw_ri_wr_opcode
+{
 	FW_RI_RDMA_WRITE		= 0x0,	/* IETF RDMAP v1.0 ... */
 	FW_RI_READ_REQ			= 0x1,
 	FW_RI_READ_RESP			= 0x2,
@@ -53,7 +54,8 @@ enum fw_ri_wr_opcode {
 	FW_RI_SGE_EC_CR_RETURN		= 0xf
 };
 
-enum fw_ri_wr_flags {
+enum fw_ri_wr_flags
+{
 	FW_RI_COMPLETION_FLAG		= 0x01,
 	FW_RI_NOTIFICATION_FLAG		= 0x02,
 	FW_RI_SOLICITED_EVENT_FLAG	= 0x04,
@@ -62,14 +64,16 @@ enum fw_ri_wr_flags {
 	FW_RI_RDMA_READ_INVALIDATE	= 0x20
 };
 
-enum fw_ri_mpa_attrs {
+enum fw_ri_mpa_attrs
+{
 	FW_RI_MPA_RX_MARKER_ENABLE	= 0x01,
 	FW_RI_MPA_TX_MARKER_ENABLE	= 0x02,
 	FW_RI_MPA_CRC_ENABLE		= 0x04,
 	FW_RI_MPA_IETF_ENABLE		= 0x08
 };
 
-enum fw_ri_qp_caps {
+enum fw_ri_qp_caps
+{
 	FW_RI_QP_RDMA_READ_ENABLE	= 0x01,
 	FW_RI_QP_RDMA_WRITE_ENABLE	= 0x02,
 	FW_RI_QP_BIND_ENABLE		= 0x04,
@@ -77,12 +81,14 @@ enum fw_ri_qp_caps {
 	FW_RI_QP_STAG0_ENABLE		= 0x10
 };
 
-enum fw_ri_addr_type {
+enum fw_ri_addr_type
+{
 	FW_RI_ZERO_BASED_TO		= 0x00,
 	FW_RI_VA_BASED_TO		= 0x01
 };
 
-enum fw_ri_mem_perms {
+enum fw_ri_mem_perms
+{
 	FW_RI_MEM_ACCESS_REM_WRITE	= 0x01,
 	FW_RI_MEM_ACCESS_REM_READ	= 0x02,
 	FW_RI_MEM_ACCESS_REM		= 0x03,
@@ -91,30 +97,35 @@ enum fw_ri_mem_perms {
 	FW_RI_MEM_ACCESS_LOCAL		= 0x0C
 };
 
-enum fw_ri_stag_type {
+enum fw_ri_stag_type
+{
 	FW_RI_STAG_NSMR			= 0x00,
 	FW_RI_STAG_SMR			= 0x01,
 	FW_RI_STAG_MW			= 0x02,
 	FW_RI_STAG_MW_RELAXED		= 0x03
 };
 
-enum fw_ri_data_op {
+enum fw_ri_data_op
+{
 	FW_RI_DATA_IMMD			= 0x81,
 	FW_RI_DATA_DSGL			= 0x82,
 	FW_RI_DATA_ISGL			= 0x83
 };
 
-enum fw_ri_sgl_depth {
+enum fw_ri_sgl_depth
+{
 	FW_RI_SGL_DEPTH_MAX_SQ		= 16,
 	FW_RI_SGL_DEPTH_MAX_RQ		= 4
 };
 
-struct fw_ri_dsge_pair {
+struct fw_ri_dsge_pair
+{
 	__be32	len[2];
 	__be64	addr[2];
 };
 
-struct fw_ri_dsgl {
+struct fw_ri_dsgl
+{
 	__u8	op;
 	__u8	r1;
 	__be16	nsge;
@@ -125,13 +136,15 @@ struct fw_ri_dsgl {
 #endif
 };
 
-struct fw_ri_sge {
+struct fw_ri_sge
+{
 	__be32 stag;
 	__be32 len;
 	__be64 to;
 };
 
-struct fw_ri_isgl {
+struct fw_ri_isgl
+{
 	__u8	op;
 	__u8	r1;
 	__be16	nsge;
@@ -141,7 +154,8 @@ struct fw_ri_isgl {
 #endif
 };
 
-struct fw_ri_immd {
+struct fw_ri_immd
+{
 	__u8	op;
 	__u8	r1;
 	__be16	r2;
@@ -151,7 +165,8 @@ struct fw_ri_immd {
 #endif
 };
 
-struct fw_ri_tpte {
+struct fw_ri_tpte
+{
 	__be32 valid_to_pdid;
 	__be32 locread_to_qpid;
 	__be32 nosnoop_pbladdr;
@@ -259,20 +274,25 @@ struct fw_ri_tpte {
 #define FW_RI_TPTE_MWBCNT_PSTAG_G(x)	\
 	(((x) >> FW_RI_TPTE_MWBCNT_PSTAG_S) & FW_RI_TPTE_MWBCNT_PSTAG_M)
 
-enum fw_ri_res_type {
+enum fw_ri_res_type
+{
 	FW_RI_RES_TYPE_SQ,
 	FW_RI_RES_TYPE_RQ,
 	FW_RI_RES_TYPE_CQ,
 };
 
-enum fw_ri_res_op {
+enum fw_ri_res_op
+{
 	FW_RI_RES_OP_WRITE,
 	FW_RI_RES_OP_RESET,
 };
 
-struct fw_ri_res {
-	union fw_ri_restype {
-		struct fw_ri_res_sqrq {
+struct fw_ri_res
+{
+	union fw_ri_restype
+	{
+		struct fw_ri_res_sqrq
+		{
 			__u8   restype;
 			__u8   op;
 			__be16 r3;
@@ -282,7 +302,8 @@ struct fw_ri_res {
 			__be32 dcaen_to_eqsize;
 			__be64 eqaddr;
 		} sqrq;
-		struct fw_ri_res_cq {
+		struct fw_ri_res_cq
+		{
 			__u8   restype;
 			__u8   op;
 			__be16 r3;
@@ -299,7 +320,8 @@ struct fw_ri_res {
 	} u;
 };
 
-struct fw_ri_res_wr {
+struct fw_ri_res_wr
+{
 	__be32 op_nres;
 	__be32 len16_pkd;
 	__u64  cookie;
@@ -525,7 +547,8 @@ struct fw_ri_res_wr {
 	(((x) >> FW_RI_RES_WR_IQRO_S) & FW_RI_RES_WR_IQRO_M)
 #define FW_RI_RES_WR_IQRO_F	FW_RI_RES_WR_IQRO_V(1U)
 
-struct fw_ri_rdma_write_wr {
+struct fw_ri_rdma_write_wr
+{
 	__u8   opcode;
 	__u8   flags;
 	__u16  wrid;
@@ -536,14 +559,16 @@ struct fw_ri_rdma_write_wr {
 	__be32 stag_sink;
 	__be64 to_sink;
 #ifndef C99_NOT_SUPPORTED
-	union {
+	union
+	{
 		struct fw_ri_immd immd_src[0];
 		struct fw_ri_isgl isgl_src[0];
 	} u;
 #endif
 };
 
-struct fw_ri_send_wr {
+struct fw_ri_send_wr
+{
 	__u8   opcode;
 	__u8   flags;
 	__u16  wrid;
@@ -555,7 +580,8 @@ struct fw_ri_send_wr {
 	__be32 r3;
 	__be64 r4;
 #ifndef C99_NOT_SUPPORTED
-	union {
+	union
+	{
 		struct fw_ri_immd immd_src[0];
 		struct fw_ri_isgl isgl_src[0];
 	} u;
@@ -568,7 +594,8 @@ struct fw_ri_send_wr {
 #define FW_RI_SEND_WR_SENDOP_G(x)	\
 	(((x) >> FW_RI_SEND_WR_SENDOP_S) & FW_RI_SEND_WR_SENDOP_M)
 
-struct fw_ri_rdma_read_wr {
+struct fw_ri_rdma_read_wr
+{
 	__u8   opcode;
 	__u8   flags;
 	__u16  wrid;
@@ -585,7 +612,8 @@ struct fw_ri_rdma_read_wr {
 	__be32 r5;
 };
 
-struct fw_ri_recv_wr {
+struct fw_ri_recv_wr
+{
 	__u8   opcode;
 	__u8   r1;
 	__u16  wrid;
@@ -594,7 +622,8 @@ struct fw_ri_recv_wr {
 	struct fw_ri_isgl isgl;
 };
 
-struct fw_ri_bind_mw_wr {
+struct fw_ri_bind_mw_wr
+{
 	__u8   opcode;
 	__u8   flags;
 	__u16  wrid;
@@ -632,7 +661,8 @@ struct fw_ri_bind_mw_wr {
 #define FW_RI_BIND_MW_WR_DCACPU_G(x)	\
 	(((x) >> FW_RI_BIND_MW_WR_DCACPU_S) & FW_RI_BIND_MW_WR_DCACPU_M)
 
-struct fw_ri_fr_nsmr_wr {
+struct fw_ri_fr_nsmr_wr
+{
 	__u8   opcode;
 	__u8   flags;
 	__u16  wrid;
@@ -669,7 +699,8 @@ struct fw_ri_fr_nsmr_wr {
 #define FW_RI_FR_NSMR_WR_DCACPU_G(x)	\
 	(((x) >> FW_RI_FR_NSMR_WR_DCACPU_S) & FW_RI_FR_NSMR_WR_DCACPU_M)
 
-struct fw_ri_fr_nsmr_tpte_wr {
+struct fw_ri_fr_nsmr_tpte_wr
+{
 	__u8	opcode;
 	__u8   flags;
 	__u16  wrid;
@@ -681,7 +712,8 @@ struct fw_ri_fr_nsmr_tpte_wr {
 	__u64  pbl[2];
 };
 
-struct fw_ri_inv_lstag_wr {
+struct fw_ri_inv_lstag_wr
+{
 	__u8   opcode;
 	__u8   flags;
 	__u16  wrid;
@@ -691,13 +723,15 @@ struct fw_ri_inv_lstag_wr {
 	__be32 stag_inv;
 };
 
-enum fw_ri_type {
+enum fw_ri_type
+{
 	FW_RI_TYPE_INIT,
 	FW_RI_TYPE_FINI,
 	FW_RI_TYPE_TERMINATE
 };
 
-enum fw_ri_init_p2ptype {
+enum fw_ri_init_p2ptype
+{
 	FW_RI_INIT_P2PTYPE_RDMA_WRITE		= FW_RI_RDMA_WRITE,
 	FW_RI_INIT_P2PTYPE_READ_REQ		= FW_RI_READ_REQ,
 	FW_RI_INIT_P2PTYPE_SEND			= FW_RI_SEND,
@@ -707,12 +741,15 @@ enum fw_ri_init_p2ptype {
 	FW_RI_INIT_P2PTYPE_DISABLED		= 0xf,
 };
 
-struct fw_ri_wr {
+struct fw_ri_wr
+{
 	__be32 op_compl;
 	__be32 flowid_len16;
 	__u64  cookie;
-	union fw_ri {
-		struct fw_ri_init {
+	union fw_ri
+	{
+		struct fw_ri_init
+		{
 			__u8   type;
 			__u8   mpareqbit_p2ptype;
 			__u8   r4[2];
@@ -732,18 +769,21 @@ struct fw_ri_wr {
 			__be32 hwrqsize;
 			__be32 hwrqaddr;
 			__be64 r5;
-			union fw_ri_init_p2p {
+			union fw_ri_init_p2p
+			{
 				struct fw_ri_rdma_write_wr write;
 				struct fw_ri_rdma_read_wr read;
 				struct fw_ri_send_wr send;
 			} u;
 		} init;
-		struct fw_ri_fini {
+		struct fw_ri_fini
+		{
 			__u8   type;
 			__u8   r3[7];
 			__be64 r4;
 		} fini;
-		struct fw_ri_terminate {
+		struct fw_ri_terminate
+		{
 			__u8   type;
 			__u8   r3[3];
 			__be32 immdlen;

@@ -47,7 +47,7 @@ void __init early_ioremap_reset(void)
  */
 #ifndef __late_set_fixmap
 static inline void __init __late_set_fixmap(enum fixed_addresses idx,
-					    phys_addr_t phys, pgprot_t prot)
+		phys_addr_t phys, pgprot_t prot)
 {
 	BUG();
 }
@@ -70,10 +70,14 @@ void __init early_ioremap_setup(void)
 
 	for (i = 0; i < FIX_BTMAPS_SLOTS; i++)
 		if (WARN_ON(prev_map[i]))
+		{
 			break;
+		}
 
 	for (i = 0; i < FIX_BTMAPS_SLOTS; i++)
-		slot_virt[i] = __fix_to_virt(FIX_BTMAP_BEGIN - NR_FIX_BTMAPS*i);
+	{
+		slot_virt[i] = __fix_to_virt(FIX_BTMAP_BEGIN - NR_FIX_BTMAPS * i);
+	}
 }
 
 static int __init check_early_ioremap_leak(void)
@@ -83,13 +87,18 @@ static int __init check_early_ioremap_leak(void)
 
 	for (i = 0; i < FIX_BTMAPS_SLOTS; i++)
 		if (prev_map[i])
+		{
 			count++;
+		}
 
 	if (WARN(count, KERN_WARNING
-		 "Debug warning: early ioremap leak of %d areas detected.\n"
-		 "please boot with early_ioremap_debug and report the dmesg.\n",
-		 count))
+			 "Debug warning: early ioremap leak of %d areas detected.\n"
+			 "please boot with early_ioremap_debug and report the dmesg.\n",
+			 count))
+	{
 		return 1;
+	}
+
 	return 0;
 }
 late_initcall(check_early_ioremap_leak);
@@ -106,21 +115,29 @@ __early_ioremap(resource_size_t phys_addr, unsigned long size, pgprot_t prot)
 	WARN_ON(system_state != SYSTEM_BOOTING);
 
 	slot = -1;
-	for (i = 0; i < FIX_BTMAPS_SLOTS; i++) {
-		if (!prev_map[i]) {
+
+	for (i = 0; i < FIX_BTMAPS_SLOTS; i++)
+	{
+		if (!prev_map[i])
+		{
 			slot = i;
 			break;
 		}
 	}
 
 	if (WARN(slot < 0, "%s(%08llx, %08lx) not found slot\n",
-		 __func__, (u64)phys_addr, size))
+			 __func__, (u64)phys_addr, size))
+	{
 		return NULL;
+	}
 
 	/* Don't allow wraparound or zero size */
 	last_addr = phys_addr + size - 1;
+
 	if (WARN_ON(!size || last_addr < phys_addr))
+	{
 		return NULL;
+	}
 
 	prev_size[slot] = size;
 	/*
@@ -134,24 +151,35 @@ __early_ioremap(resource_size_t phys_addr, unsigned long size, pgprot_t prot)
 	 * Mappings have to fit in the FIX_BTMAP area.
 	 */
 	nrpages = size >> PAGE_SHIFT;
+
 	if (WARN_ON(nrpages > NR_FIX_BTMAPS))
+	{
 		return NULL;
+	}
 
 	/*
 	 * Ok, go for it..
 	 */
-	idx = FIX_BTMAP_BEGIN - NR_FIX_BTMAPS*slot;
-	while (nrpages > 0) {
+	idx = FIX_BTMAP_BEGIN - NR_FIX_BTMAPS * slot;
+
+	while (nrpages > 0)
+	{
 		if (after_paging_init)
+		{
 			__late_set_fixmap(idx, phys_addr, prot);
+		}
 		else
+		{
 			__early_set_fixmap(idx, phys_addr, prot);
+		}
+
 		phys_addr += PAGE_SIZE;
 		--idx;
 		--nrpages;
 	}
+
 	WARN(early_ioremap_debug, "%s(%08llx, %08lx) [%d] => %08lx + %08lx\n",
-	     __func__, (u64)phys_addr, size, slot, offset, slot_virt[slot]);
+		 __func__, (u64)phys_addr, size, slot, offset, slot_virt[slot]);
 
 	prev_map[slot] = (void __iomem *)(offset + slot_virt[slot]);
 	return prev_map[slot];
@@ -166,41 +194,59 @@ void __init early_iounmap(void __iomem *addr, unsigned long size)
 	int i, slot;
 
 	slot = -1;
-	for (i = 0; i < FIX_BTMAPS_SLOTS; i++) {
-		if (prev_map[i] == addr) {
+
+	for (i = 0; i < FIX_BTMAPS_SLOTS; i++)
+	{
+		if (prev_map[i] == addr)
+		{
 			slot = i;
 			break;
 		}
 	}
 
 	if (WARN(slot < 0, "early_iounmap(%p, %08lx) not found slot\n",
-		 addr, size))
+			 addr, size))
+	{
 		return;
+	}
 
 	if (WARN(prev_size[slot] != size,
-		 "early_iounmap(%p, %08lx) [%d] size not consistent %08lx\n",
-		 addr, size, slot, prev_size[slot]))
+			 "early_iounmap(%p, %08lx) [%d] size not consistent %08lx\n",
+			 addr, size, slot, prev_size[slot]))
+	{
 		return;
+	}
 
 	WARN(early_ioremap_debug, "early_iounmap(%p, %08lx) [%d]\n",
-	     addr, size, slot);
+		 addr, size, slot);
 
 	virt_addr = (unsigned long)addr;
+
 	if (WARN_ON(virt_addr < fix_to_virt(FIX_BTMAP_BEGIN)))
+	{
 		return;
+	}
 
 	offset = offset_in_page(virt_addr);
 	nrpages = PAGE_ALIGN(offset + size) >> PAGE_SHIFT;
 
-	idx = FIX_BTMAP_BEGIN - NR_FIX_BTMAPS*slot;
-	while (nrpages > 0) {
+	idx = FIX_BTMAP_BEGIN - NR_FIX_BTMAPS * slot;
+
+	while (nrpages > 0)
+	{
 		if (after_paging_init)
+		{
 			__late_clear_fixmap(idx);
+		}
 		else
+		{
 			__early_set_fixmap(idx, 0, FIXMAP_PAGE_CLEAR);
+		}
+
 		--idx;
 		--nrpages;
 	}
+
 	prev_map[slot] = NULL;
 }
 
@@ -216,7 +262,7 @@ void __init *
 early_memremap(resource_size_t phys_addr, unsigned long size)
 {
 	return (__force void *)__early_ioremap(phys_addr, size,
-					       FIXMAP_PAGE_NORMAL);
+										   FIXMAP_PAGE_NORMAL);
 }
 #ifdef FIXMAP_PAGE_RO
 void __init *
@@ -233,11 +279,16 @@ void __init copy_from_early_mem(void *dest, phys_addr_t src, unsigned long size)
 	unsigned long slop, clen;
 	char *p;
 
-	while (size) {
+	while (size)
+	{
 		slop = offset_in_page(src);
 		clen = size;
+
 		if (clen > MAX_MAP_CHUNK - slop)
+		{
 			clen = MAX_MAP_CHUNK - slop;
+		}
+
 		p = early_memremap(src & PAGE_MASK, clen + slop);
 		memcpy(dest, p + slop, clen);
 		early_memunmap(p, clen + slop);

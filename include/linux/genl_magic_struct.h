@@ -2,15 +2,15 @@
 #define GENL_MAGIC_STRUCT_H
 
 #ifndef GENL_MAGIC_FAMILY
-# error "you need to define GENL_MAGIC_FAMILY before inclusion"
+	# error "you need to define GENL_MAGIC_FAMILY before inclusion"
 #endif
 
 #ifndef GENL_MAGIC_VERSION
-# error "you need to define GENL_MAGIC_VERSION before inclusion"
+	# error "you need to define GENL_MAGIC_VERSION before inclusion"
 #endif
 
 #ifndef GENL_MAGIC_INCLUDE_FILE
-# error "you need to define GENL_MAGIC_INCLUDE_FILE before inclusion"
+	# error "you need to define GENL_MAGIC_INCLUDE_FILE before inclusion"
 #endif
 
 #include <linux/genetlink.h>
@@ -106,10 +106,10 @@ static inline int nla_put_u64_0pad(struct sk_buff *skb, int attrtype, u64 value)
 #define GENL_op_init(args...)	args
 #define GENL_doit(handler)		\
 	.doit = handler,		\
-	.flags = GENL_ADMIN_PERM,
+			.flags = GENL_ADMIN_PERM,
 #define GENL_dumpit(handler)		\
 	.dumpit = handler,		\
-	.flags = GENL_ADMIN_PERM,
+			  .flags = GENL_ADMIN_PERM,
 
 /*									}}}1
  * Magic: define the enum symbols for genl_ops
@@ -132,7 +132,8 @@ static inline int nla_put_u64_0pad(struct sk_buff *skb, int attrtype, u64 value)
 #define GENL_op(op_name, op_num, handler, tla_list)			\
 	op_name = op_num,
 
-enum {
+enum
+{
 #include GENL_MAGIC_INCLUDE_FILE
 };
 
@@ -144,27 +145,28 @@ enum {
 
 #undef GENL_struct
 #define GENL_struct(tag_name, tag_number, s_name, s_fields) \
-		tag_name = tag_number,
+	tag_name = tag_number,
 
-enum {
+enum
+{
 #include GENL_MAGIC_INCLUDE_FILE
 };
 
 #undef GENL_struct
 #define GENL_struct(tag_name, tag_number, s_name, s_fields)	\
-enum {								\
-	s_fields						\
-};
+	enum {								\
+		s_fields						\
+	};
 
 #undef __field
 #define __field(attr_nr, attr_flag, name, nla_type, type,	\
-		__get, __put, __is_signed)			\
-	T_ ## name = (__u16)(attr_nr | ((attr_flag) & DRBD_GENLA_F_MANDATORY)),
+				__get, __put, __is_signed)			\
+T_ ## name = (__u16)(attr_nr | ((attr_flag) & DRBD_GENLA_F_MANDATORY)),
 
 #undef __array
 #define __array(attr_nr, attr_flag, name, nla_type, type,	\
-		maxlen, __get, __put, __is_signed)		\
-	T_ ## name = (__u16)(attr_nr | ((attr_flag) & DRBD_GENLA_F_MANDATORY)),
+				maxlen, __get, __put, __is_signed)		\
+T_ ## name = (__u16)(attr_nr | ((attr_flag) & DRBD_GENLA_F_MANDATORY)),
 
 #include GENL_MAGIC_INCLUDE_FILE
 
@@ -188,9 +190,10 @@ enum {								\
 
 static inline void ct_assert_unique_operations(void)
 {
-	switch (0) {
+	switch (0)
+	{
 #include GENL_MAGIC_INCLUDE_FILE
-		;
+			;
 	}
 }
 
@@ -202,35 +205,36 @@ static inline void ct_assert_unique_operations(void)
 
 #undef GENL_struct
 #define GENL_struct(tag_name, tag_number, s_name, s_fields)		\
-		case tag_number:
+	case tag_number:
 
 static inline void ct_assert_unique_top_level_attributes(void)
 {
-	switch (0) {
+	switch (0)
+	{
 #include GENL_MAGIC_INCLUDE_FILE
-		;
+			;
 	}
 }
 
 #undef GENL_struct
 #define GENL_struct(tag_name, tag_number, s_name, s_fields)		\
-static inline void ct_assert_unique_ ## s_name ## _attributes(void)	\
-{									\
-	switch (0) {							\
-		s_fields						\
-			;						\
-	}								\
-}
+	static inline void ct_assert_unique_ ## s_name ## _attributes(void)	\
+	{									\
+		switch (0) {							\
+				s_fields						\
+				;						\
+		}								\
+	}
 
 #undef __field
 #define __field(attr_nr, attr_flag, name, nla_type, type, __get, __put,	\
-		__is_signed)						\
-	case attr_nr:
+				__is_signed)						\
+case attr_nr:
 
 #undef __array
 #define __array(attr_nr, attr_flag, name, nla_type, type, maxlen,	\
-		__get, __put, __is_signed)				\
-	case attr_nr:
+				__get, __put, __is_signed)				\
+case attr_nr:
 
 #include GENL_MAGIC_INCLUDE_FILE
 
@@ -244,36 +248,36 @@ static inline void ct_assert_unique_ ## s_name ## _attributes(void)	\
 
 #undef GENL_struct
 #define GENL_struct(tag_name, tag_number, s_name, s_fields)		\
-struct s_name { s_fields };
+	struct s_name { s_fields };
 
 #undef __field
 #define __field(attr_nr, attr_flag, name, nla_type, type, __get, __put,	\
-		__is_signed)						\
-	type name;
+				__is_signed)						\
+type name;
 
 #undef __array
 #define __array(attr_nr, attr_flag, name, nla_type, type, maxlen,	\
-		__get, __put, __is_signed)				\
-	type name[maxlen];	\
-	__u32 name ## _len;
+				__get, __put, __is_signed)				\
+type name[maxlen];	\
+__u32 name ## _len;
 
 #include GENL_MAGIC_INCLUDE_FILE
 
 #undef GENL_struct
 #define GENL_struct(tag_name, tag_number, s_name, s_fields)		\
-enum {									\
-	s_fields							\
-};
+	enum {									\
+		s_fields							\
+	};
 
 #undef __field
 #define __field(attr_nr, attr_flag, name, nla_type, type, __get, __put,	\
-		is_signed)						\
-	F_ ## name ## _IS_SIGNED = is_signed,
+				is_signed)						\
+F_ ## name ## _IS_SIGNED = is_signed,
 
 #undef __array
 #define __array(attr_nr, attr_flag, name, nla_type, type, maxlen,	\
-		__get, __put, is_signed)				\
-	F_ ## name ## _IS_SIGNED = is_signed,
+				__get, __put, is_signed)				\
+F_ ## name ## _IS_SIGNED = is_signed,
 
 #include GENL_MAGIC_INCLUDE_FILE
 

@@ -4,7 +4,8 @@
 #include <linux/netfilter/xt_ecn.h>
 #define ipt_ecn_info xt_ecn_info
 
-enum {
+enum
+{
 	IPT_ECN_IP_MASK       = XT_ECN_IP_MASK,
 	IPT_ECN_OP_MATCH_IP   = XT_ECN_OP_MATCH_IP,
 	IPT_ECN_OP_MATCH_ECE  = XT_ECN_OP_MATCH_ECE,

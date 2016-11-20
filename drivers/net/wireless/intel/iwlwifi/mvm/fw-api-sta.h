@@ -91,7 +91,8 @@
  *	driver and can be updated by fw upon reception of action frames.
  * @STA_FLG_MFP_EN: Management Frame Protection
  */
-enum iwl_sta_flags {
+enum iwl_sta_flags
+{
 	STA_FLG_REDUCED_TX_PWR_CTRL	= BIT(3),
 	STA_FLG_REDUCED_TX_PWR_DATA	= BIT(6),
 
@@ -154,7 +155,8 @@ enum iwl_sta_flags {
  * @STA_KEY_MULTICAST: set for multical key
  * @STA_KEY_MFP: key is used for Management Frame Protection
  */
-enum iwl_sta_key_flag {
+enum iwl_sta_key_flag
+{
 	STA_KEY_FLG_NO_ENC		= (0 << 0),
 	STA_KEY_FLG_WEP			= (1 << 0),
 	STA_KEY_FLG_CCM			= (2 << 0),
@@ -186,7 +188,8 @@ enum iwl_sta_key_flag {
  * @STA_MODIFY_PROT_TH:
  * @STA_MODIFY_QUEUES: modify the queues used by this station
  */
-enum iwl_sta_modify_flag {
+enum iwl_sta_modify_flag
+{
 	STA_MODIFY_QUEUE_REMOVAL		= BIT(0),
 	STA_MODIFY_TID_DISABLE_TX		= BIT(1),
 	STA_MODIFY_TX_RATE			= BIT(2),
@@ -207,7 +210,8 @@ enum iwl_sta_modify_flag {
  * @STA_SLEEP_STATE_MOREDATA: set more-data bit on
  *	(last) released frame
  */
-enum iwl_sta_sleep_flag {
+enum iwl_sta_sleep_flag
+{
 	STA_SLEEP_STATE_AWAKE		= 0,
 	STA_SLEEP_STATE_PS_POLL		= BIT(0),
 	STA_SLEEP_STATE_UAPSD		= BIT(1),
@@ -246,7 +250,8 @@ enum iwl_sta_sleep_flag {
  * @hw_tkip_mic_rx_key: byte: MIC Rx Key - used for TKIP only
  * @hw_tkip_mic_tx_key: byte: MIC Tx Key - used for TKIP only
  */
-struct iwl_mvm_keyinfo {
+struct iwl_mvm_keyinfo
+{
 	__le16 key_flags;
 	u8 tkip_rx_tsc_byte2;
 	u8 reserved1;
@@ -301,7 +306,8 @@ struct iwl_mvm_keyinfo {
  * ADD_STA sets up the table entry for one station, either creating a new
  * entry, or modifying a pre-existing one.
  */
-struct iwl_mvm_add_sta_cmd_v7 {
+struct iwl_mvm_add_sta_cmd_v7
+{
 	u8 add_modify;
 	u8 awake_acs;
 	__le16 tid_disable_tx;
@@ -361,7 +367,8 @@ struct iwl_mvm_add_sta_cmd_v7 {
  * ADD_STA sets up the table entry for one station, either creating a new
  * entry, or modifying a pre-existing one.
  */
-struct iwl_mvm_add_sta_cmd {
+struct iwl_mvm_add_sta_cmd
+{
 	u8 add_modify;
 	u8 awake_acs;
 	__le16 tid_disable_tx;
@@ -396,7 +403,8 @@ struct iwl_mvm_add_sta_cmd {
  * @tkip_rx_tsc_byte2: TSC[2] for key mix ph1 detection
  * @tkip_rx_ttak: 10-byte unicast TKIP TTAK for Rx
  */
-struct iwl_mvm_add_sta_key_cmd {
+struct iwl_mvm_add_sta_key_cmd
+{
 	u8 sta_id;
 	u8 key_offset;
 	__le16 key_flags;
@@ -415,7 +423,8 @@ struct iwl_mvm_add_sta_key_cmd {
  * @ADD_STA_MODIFY_NON_EXISTING_STA: driver requested to modify a station that
  *	doesn't exist.
  */
-enum iwl_mvm_add_sta_rsp_status {
+enum iwl_mvm_add_sta_rsp_status
+{
 	ADD_STA_SUCCESS			= 0x1,
 	ADD_STA_STATIONS_OVERLOAD	= 0x2,
 	ADD_STA_IMMEDIATE_BA_FAILURE	= 0x4,
@@ -427,7 +436,8 @@ enum iwl_mvm_add_sta_rsp_status {
  * ( REMOVE_STA = 0x19 )
  * @sta_id: the station id of the station to be removed
  */
-struct iwl_mvm_rm_sta_cmd {
+struct iwl_mvm_rm_sta_cmd
+{
 	u8 sta_id;
 	u8 reserved[3];
 } __packed; /* REMOVE_STA_CMD_API_S_VER_2 */
@@ -443,7 +453,8 @@ struct iwl_mvm_rm_sta_cmd {
  * @key_id:
  * @receive_seq_cnt: initial RSC/PN needed for replay check
  */
-struct iwl_mvm_mgmt_mcast_key_cmd_v1 {
+struct iwl_mvm_mgmt_mcast_key_cmd_v1
+{
 	__le32 ctrl_flags;
 	u8 igtk[16];
 	u8 k1[16];
@@ -462,7 +473,8 @@ struct iwl_mvm_mgmt_mcast_key_cmd_v1 {
  * @key_id:
  * @receive_seq_cnt: initial RSC/PN needed for replay check
  */
-struct iwl_mvm_mgmt_mcast_key_cmd {
+struct iwl_mvm_mgmt_mcast_key_cmd
+{
 	__le32 ctrl_flags;
 	u8 igtk[32];
 	__le32 key_id;
@@ -470,7 +482,8 @@ struct iwl_mvm_mgmt_mcast_key_cmd {
 	__le64 receive_seq_cnt;
 } __packed; /* SEC_MGMT_MULTICAST_KEY_CMD_API_S_VER_2 */
 
-struct iwl_mvm_wep_key {
+struct iwl_mvm_wep_key
+{
 	u8 key_index;
 	u8 key_offset;
 	__le16 reserved1;
@@ -479,7 +492,8 @@ struct iwl_mvm_wep_key {
 	u8 key[16];
 } __packed;
 
-struct iwl_mvm_wep_key_cmd {
+struct iwl_mvm_wep_key_cmd
+{
 	__le32 mac_id_n_color;
 	u8 num_keys;
 	u8 decryption_type;
@@ -494,7 +508,8 @@ struct iwl_mvm_wep_key_cmd {
  *	short by GO absence
  * @sta_id: station ID
  */
-struct iwl_mvm_eosp_notification {
+struct iwl_mvm_eosp_notification
+{
 	__le32 remain_frame_count;
 	__le32 sta_id;
 } __packed; /* UAPSD_EOSP_NTFY_API_S_VER_1 */

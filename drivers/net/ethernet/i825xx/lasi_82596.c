@@ -134,10 +134,13 @@ static void mpu_port(struct net_device *dev, int c, dma_addr_t x)
 	u32 v = (u32) (c) | (u32) (x);
 	u16 a, b;
 
-	if (lp->options & OPT_SWAP_PORT) {
+	if (lp->options & OPT_SWAP_PORT)
+	{
 		a = v >> 16;
 		b = v & 0xffff;
-	} else {
+	}
+	else
+	{
 		a = v & 0xffff;
 		b = v >> 16;
 	}
@@ -157,40 +160,51 @@ lan_init_chip(struct parisc_device *dev)
 	int	retval;
 	int i;
 
-	if (!dev->irq) {
+	if (!dev->irq)
+	{
 		printk(KERN_ERR "%s: IRQ not found for i82596 at 0x%lx\n",
-			__FILE__, (unsigned long)dev->hpa.start);
+			   __FILE__, (unsigned long)dev->hpa.start);
 		return -ENODEV;
 	}
 
 	printk(KERN_INFO "Found i82596 at 0x%lx, IRQ %d\n",
-			(unsigned long)dev->hpa.start, dev->irq);
+		   (unsigned long)dev->hpa.start, dev->irq);
 
 	netdevice = alloc_etherdev(sizeof(struct i596_private));
+
 	if (!netdevice)
+	{
 		return -ENOMEM;
+	}
+
 	SET_NETDEV_DEV(netdevice, &dev->dev);
 	parisc_set_drvdata (dev, netdevice);
 
 	netdevice->base_addr = dev->hpa.start;
 	netdevice->irq = dev->irq;
 
-	if (pdc_lan_station_id(netdevice->dev_addr, netdevice->base_addr)) {
-		for (i = 0; i < 6; i++) {
+	if (pdc_lan_station_id(netdevice->dev_addr, netdevice->base_addr))
+	{
+		for (i = 0; i < 6; i++)
+		{
 			netdevice->dev_addr[i] = gsc_readb(LAN_PROM_ADDR + i);
 		}
+
 		printk(KERN_INFO
-		       "%s: MAC of HP700 LAN read from EEPROM\n", __FILE__);
+			   "%s: MAC of HP700 LAN read from EEPROM\n", __FILE__);
 	}
 
 	lp = netdev_priv(netdevice);
 	lp->options = dev->id.sversion == 0x72 ? OPT_SWAP_PORT : 0;
 
 	retval = i82596_probe(netdevice);
-	if (retval) {
+
+	if (retval)
+	{
 		free_netdev(netdevice);
 		return -ENODEV;
 	}
+
 	return retval;
 }
 
@@ -201,12 +215,13 @@ static int lan_remove_chip(struct parisc_device *pdev)
 
 	unregister_netdev (dev);
 	DMA_FREE(&pdev->dev, sizeof(struct i596_private),
-		 (void *)lp->dma, lp->dma_addr);
+			 (void *)lp->dma, lp->dma_addr);
 	free_netdev (dev);
 	return 0;
 }
 
-static struct parisc_device_id lan_tbl[] = {
+static struct parisc_device_id lan_tbl[] =
+{
 	{ HPHW_FIO, HVERSION_REV_ANY_ID, HVERSION_ANY_ID, 0x0008a },
 	{ HPHW_FIO, HVERSION_REV_ANY_ID, HVERSION_ANY_ID, 0x00072 },
 	{ 0, }
@@ -214,7 +229,8 @@ static struct parisc_device_id lan_tbl[] = {
 
 MODULE_DEVICE_TABLE(parisc, lan_tbl);
 
-static struct parisc_driver lan_driver = {
+static struct parisc_driver lan_driver =
+{
 	.name		= "lasi_82596",
 	.id_table	= lan_tbl,
 	.probe		= lan_init_chip,

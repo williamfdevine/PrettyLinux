@@ -15,46 +15,49 @@
 
 struct transport_container;
 
-struct transport_class {
+struct transport_class
+{
 	struct class class;
 	int (*setup)(struct transport_container *, struct device *,
-		     struct device *);
+				 struct device *);
 	int (*configure)(struct transport_container *, struct device *,
-			 struct device *);
+					 struct device *);
 	int (*remove)(struct transport_container *, struct device *,
-		      struct device *);
+				  struct device *);
 };
 
 #define DECLARE_TRANSPORT_CLASS(cls, nm, su, rm, cfg)			\
-struct transport_class cls = {						\
-	.class = {							\
-		.name = nm,						\
-	},								\
-	.setup = su,							\
-	.remove = rm,							\
-	.configure = cfg,						\
-}
+	struct transport_class cls = {						\
+		.class = {							\
+											.name = nm,						\
+				 },								\
+				 .setup = su,							\
+						  .remove = rm,							\
+									.configure = cfg,						\
+	}
 
 
-struct anon_transport_class {
+struct anon_transport_class
+{
 	struct transport_class tclass;
 	struct attribute_container container;
 };
 
 #define DECLARE_ANON_TRANSPORT_CLASS(cls, mtch, cfg)		\
-struct anon_transport_class cls = {				\
-	.tclass = {						\
-		.configure = cfg,				\
-	},							\
-	. container = {						\
-		.match = mtch,					\
-	},							\
-}
+	struct anon_transport_class cls = {				\
+		.tclass = {						\
+										.configure = cfg,				\
+				  },							\
+				  . container = {						\
+													  .match = mtch,					\
+								},							\
+	}
 
 #define class_to_transport_class(x) \
 	container_of(x, struct transport_class, class)
 
-struct transport_container {
+struct transport_container
+{
 	struct attribute_container ac;
 	const struct attribute_group *statistics;
 };
@@ -90,7 +93,9 @@ static inline int transport_container_register(struct transport_container *tc)
 static inline void transport_container_unregister(struct transport_container *tc)
 {
 	if (unlikely(attribute_container_unregister(&tc->ac)))
+	{
 		BUG();
+	}
 }
 
 int transport_class_register(struct transport_class *);

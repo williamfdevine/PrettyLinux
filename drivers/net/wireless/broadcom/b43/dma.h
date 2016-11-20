@@ -8,7 +8,7 @@
 
 /* DMA-Interrupt reasons. */
 #define B43_DMAIRQ_FATALMASK	((1 << 10) | (1 << 11) | (1 << 12) \
-					 | (1 << 14) | (1 << 15))
+								 | (1 << 14) | (1 << 15))
 #define B43_DMAIRQ_RDESC_UFLOW		(1 << 13)
 #define B43_DMAIRQ_RX_DONE		(1 << 16)
 
@@ -66,7 +66,8 @@
 #define		B43_DMA32_RXACTIVE			0xFFF00000
 
 /* 32-bit DMA descriptor. */
-struct b43_dmadesc32 {
+struct b43_dmadesc32
+{
 	__le32 control;
 	__le32 address;
 } __packed;
@@ -139,7 +140,8 @@ struct b43_dmadesc32 {
 #define			B43_DMA64_RXERR_CORE	0x50000000
 
 /* 64-bit DMA descriptor. */
-struct b43_dmadesc64 {
+struct b43_dmadesc64
+{
 	__le32 control0;
 	__le32 control1;
 	__le32 address_low;
@@ -153,8 +155,10 @@ struct b43_dmadesc64 {
 #define B43_DMA64_DCTL1_ADDREXT_MASK	0x00030000
 #define B43_DMA64_DCTL1_ADDREXT_SHIFT	16
 
-struct b43_dmadesc_generic {
-	union {
+struct b43_dmadesc_generic
+{
+	union
+	{
 		struct b43_dmadesc32 dma32;
 		struct b43_dmadesc64 dma64;
 	} __packed;
@@ -182,7 +186,8 @@ struct sk_buff;
 struct b43_private;
 struct b43_txstatus;
 
-struct b43_dmadesc_meta {
+struct b43_dmadesc_meta
+{
 	/* The kernel DMA-able buffer. */
 	struct sk_buff *skb;
 	/* DMA base bus-address of the descriptor buffer. */
@@ -194,35 +199,39 @@ struct b43_dmadesc_meta {
 struct b43_dmaring;
 
 /* Lowlevel DMA operations that differ between 32bit and 64bit DMA. */
-struct b43_dma_ops {
-	struct b43_dmadesc_generic *(*idx2desc) (struct b43_dmaring * ring,
-						 int slot,
-						 struct b43_dmadesc_meta **
-						 meta);
-	void (*fill_descriptor) (struct b43_dmaring * ring,
-				 struct b43_dmadesc_generic * desc,
-				 dma_addr_t dmaaddr, u16 bufsize, int start,
-				 int end, int irq);
-	void (*poke_tx) (struct b43_dmaring * ring, int slot);
-	void (*tx_suspend) (struct b43_dmaring * ring);
-	void (*tx_resume) (struct b43_dmaring * ring);
-	int (*get_current_rxslot) (struct b43_dmaring * ring);
-	void (*set_current_rxslot) (struct b43_dmaring * ring, int slot);
+struct b43_dma_ops
+{
+	struct b43_dmadesc_generic *(*idx2desc) (struct b43_dmaring *ring,
+			int slot,
+			struct b43_dmadesc_meta **
+			meta);
+	void (*fill_descriptor) (struct b43_dmaring *ring,
+							 struct b43_dmadesc_generic *desc,
+							 dma_addr_t dmaaddr, u16 bufsize, int start,
+							 int end, int irq);
+	void (*poke_tx) (struct b43_dmaring *ring, int slot);
+	void (*tx_suspend) (struct b43_dmaring *ring);
+	void (*tx_resume) (struct b43_dmaring *ring);
+	int (*get_current_rxslot) (struct b43_dmaring *ring);
+	void (*set_current_rxslot) (struct b43_dmaring *ring, int slot);
 };
 
-enum b43_dmatype {
+enum b43_dmatype
+{
 	B43_DMA_30BIT	= 30,
 	B43_DMA_32BIT	= 32,
 	B43_DMA_64BIT	= 64,
 };
 
-enum b43_addrtype {
+enum b43_addrtype
+{
 	B43_DMA_ADDR_LOW,
 	B43_DMA_ADDR_HIGH,
 	B43_DMA_ADDR_EXT,
 };
 
-struct b43_dmaring {
+struct b43_dmaring
+{
 	/* Lowlevel DMA ops. */
 	const struct b43_dma_ops *ops;
 	/* Kernel virtual base address of the ring memory. */
@@ -291,15 +300,15 @@ void b43_dma_tx_suspend(struct b43_wldev *dev);
 void b43_dma_tx_resume(struct b43_wldev *dev);
 
 int b43_dma_tx(struct b43_wldev *dev,
-	       struct sk_buff *skb);
+			   struct sk_buff *skb);
 void b43_dma_handle_txstatus(struct b43_wldev *dev,
-			     const struct b43_txstatus *status);
+							 const struct b43_txstatus *status);
 
 void b43_dma_handle_rx_overflow(struct b43_dmaring *ring);
 
 void b43_dma_rx(struct b43_dmaring *ring);
 
 void b43_dma_direct_fifo_rx(struct b43_wldev *dev,
-			    unsigned int engine_index, bool enable);
+							unsigned int engine_index, bool enable);
 
 #endif /* B43_DMA_H_ */

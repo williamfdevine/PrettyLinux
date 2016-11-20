@@ -38,7 +38,8 @@
  * DoorbellEntry describes the a doorbell notification handle allocated by the
  * host.
  */
-struct dbell_entry {
+struct dbell_entry
+{
 	struct vmci_resource resource;
 	struct hlist_node node;
 	struct work_struct work;
@@ -51,12 +52,14 @@ struct dbell_entry {
 };
 
 /* The VMCI index table keeps track of currently registered doorbells. */
-struct dbell_index_table {
+struct dbell_index_table
+{
 	spinlock_t lock;	/* Index table lock */
 	struct hlist_head entries[VMCI_DOORBELL_INDEX_TABLE_SIZE];
 };
 
-static struct dbell_index_table vmci_doorbell_it = {
+static struct dbell_index_table vmci_doorbell_it =
+{
 	.lock = __SPIN_LOCK_UNLOCKED(vmci_doorbell_it.lock),
 };
 
@@ -93,27 +96,37 @@ static u32 last_notify_idx_released = PAGE_SIZE;
 int vmci_dbell_get_priv_flags(struct vmci_handle handle, u32 *priv_flags)
 {
 	if (priv_flags == NULL || handle.context == VMCI_INVALID_ID)
+	{
 		return VMCI_ERROR_INVALID_ARGS;
+	}
 
-	if (handle.context == VMCI_HOST_CONTEXT_ID) {
+	if (handle.context == VMCI_HOST_CONTEXT_ID)
+	{
 		struct dbell_entry *entry;
 		struct vmci_resource *resource;
 
 		resource = vmci_resource_by_handle(handle,
-						   VMCI_RESOURCE_TYPE_DOORBELL);
+										   VMCI_RESOURCE_TYPE_DOORBELL);
+
 		if (!resource)
+		{
 			return VMCI_ERROR_NOT_FOUND;
+		}
 
 		entry = container_of(resource, struct dbell_entry, resource);
 		*priv_flags = entry->priv_flags;
 		vmci_resource_put(resource);
-	} else if (handle.context == VMCI_HYPERVISOR_CONTEXT_ID) {
+	}
+	else if (handle.context == VMCI_HYPERVISOR_CONTEXT_ID)
+	{
 		/*
 		 * Hypervisor endpoints for notifications are not
 		 * supported (yet).
 		 */
 		return VMCI_ERROR_INVALID_ARGS;
-	} else {
+	}
+	else
+	{
 		*priv_flags = vmci_context_get_priv_flags(handle.context);
 	}
 
@@ -129,9 +142,12 @@ static struct dbell_entry *dbell_index_table_find(u32 idx)
 	struct dbell_entry *dbell;
 
 	hlist_for_each_entry(dbell, &vmci_doorbell_it.entries[bucket],
-			     node) {
+						 node)
+	{
 		if (idx == dbell->idx)
+		{
 			return dbell;
+		}
 	}
 
 	return NULL;
@@ -159,32 +175,46 @@ static void dbell_index_table_add(struct dbell_entry *entry)
 	 * or we search for unused ones. If we use the full bitmap, we
 	 * allocate the index round robin.
 	 */
-	if (max_notify_idx < PAGE_SIZE || notify_idx_count < PAGE_SIZE) {
+	if (max_notify_idx < PAGE_SIZE || notify_idx_count < PAGE_SIZE)
+	{
 		if (last_notify_idx_released < max_notify_idx &&
-		    !dbell_index_table_find(last_notify_idx_released)) {
+			!dbell_index_table_find(last_notify_idx_released))
+		{
 			new_notify_idx = last_notify_idx_released;
 			last_notify_idx_released = PAGE_SIZE;
-		} else {
+		}
+		else
+		{
 			bool reused = false;
 			new_notify_idx = last_notify_idx_reserved;
-			if (notify_idx_count + 1 < max_notify_idx) {
-				do {
+
+			if (notify_idx_count + 1 < max_notify_idx)
+			{
+				do
+				{
 					if (!dbell_index_table_find
-					    (new_notify_idx)) {
+						(new_notify_idx))
+					{
 						reused = true;
 						break;
 					}
+
 					new_notify_idx = (new_notify_idx + 1) %
-					    max_notify_idx;
-				} while (new_notify_idx !=
-					 last_notify_idx_released);
+									 max_notify_idx;
+				}
+				while (new_notify_idx !=
+					   last_notify_idx_released);
 			}
-			if (!reused) {
+
+			if (!reused)
+			{
 				new_notify_idx = max_notify_idx;
 				max_notify_idx++;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		new_notify_idx = (last_notify_idx_reserved + 1) % PAGE_SIZE;
 	}
 
@@ -209,7 +239,9 @@ static void dbell_index_table_remove(struct dbell_entry *entry)
 	hlist_del_init(&entry->node);
 
 	notify_idx_count--;
-	if (entry->idx == max_notify_idx - 1) {
+
+	if (entry->idx == max_notify_idx - 1)
+	{
 		/*
 		 * If we delete an entry with the maximum known
 		 * notification index, we take the opportunity to
@@ -218,8 +250,10 @@ static void dbell_index_table_remove(struct dbell_entry *entry)
 		 * maximum until we hit an index in use.
 		 */
 		while (max_notify_idx > 0 &&
-		       !dbell_index_table_find(max_notify_idx - 1))
+			   !dbell_index_table_find(max_notify_idx - 1))
+		{
 			max_notify_idx--;
+		}
 	}
 
 	last_notify_idx_released = entry->idx;
@@ -239,7 +273,7 @@ static int dbell_link(struct vmci_handle handle, u32 notify_idx)
 	struct vmci_doorbell_link_msg link_msg;
 
 	link_msg.hdr.dst = vmci_make_handle(VMCI_HYPERVISOR_CONTEXT_ID,
-					    VMCI_DOORBELL_LINK);
+										VMCI_DOORBELL_LINK);
 	link_msg.hdr.src = VMCI_ANON_SRC_HANDLE;
 	link_msg.hdr.payload_size = sizeof(link_msg) - VMCI_DG_HEADERSIZE;
 	link_msg.handle = handle;
@@ -257,7 +291,7 @@ static int dbell_unlink(struct vmci_handle handle)
 	struct vmci_doorbell_unlink_msg unlink_msg;
 
 	unlink_msg.hdr.dst = vmci_make_handle(VMCI_HYPERVISOR_CONTEXT_ID,
-					      VMCI_DOORBELL_UNLINK);
+										  VMCI_DOORBELL_UNLINK);
 	unlink_msg.hdr.src = VMCI_ANON_SRC_HANDLE;
 	unlink_msg.hdr.payload_size = sizeof(unlink_msg) - VMCI_DG_HEADERSIZE;
 	unlink_msg.handle = handle;
@@ -274,7 +308,7 @@ static int dbell_notify_as_guest(struct vmci_handle handle, u32 priv_flags)
 	struct vmci_doorbell_notify_msg notify_msg;
 
 	notify_msg.hdr.dst = vmci_make_handle(VMCI_HYPERVISOR_CONTEXT_ID,
-					      VMCI_DOORBELL_NOTIFY);
+										  VMCI_DOORBELL_NOTIFY);
 	notify_msg.hdr.src = VMCI_ANON_SRC_HANDLE;
 	notify_msg.hdr.payload_size = sizeof(notify_msg) - VMCI_DG_HEADERSIZE;
 	notify_msg.handle = handle;
@@ -288,7 +322,7 @@ static int dbell_notify_as_guest(struct vmci_handle handle, u32 priv_flags)
 static void dbell_delayed_dispatch(struct work_struct *work)
 {
 	struct dbell_entry *entry = container_of(work,
-						 struct dbell_entry, work);
+								struct dbell_entry, work);
 
 	entry->notify_cb(entry->client_data);
 	vmci_resource_put(&entry->resource);
@@ -302,24 +336,31 @@ int vmci_dbell_host_context_notify(u32 src_cid, struct vmci_handle handle)
 	struct dbell_entry *entry;
 	struct vmci_resource *resource;
 
-	if (vmci_handle_is_invalid(handle)) {
+	if (vmci_handle_is_invalid(handle))
+	{
 		pr_devel("Notifying an invalid doorbell (handle=0x%x:0x%x)\n",
-			 handle.context, handle.resource);
+				 handle.context, handle.resource);
 		return VMCI_ERROR_INVALID_ARGS;
 	}
 
 	resource = vmci_resource_by_handle(handle,
-					   VMCI_RESOURCE_TYPE_DOORBELL);
-	if (!resource) {
+									   VMCI_RESOURCE_TYPE_DOORBELL);
+
+	if (!resource)
+	{
 		pr_devel("Notifying an unknown doorbell (handle=0x%x:0x%x)\n",
-			 handle.context, handle.resource);
+				 handle.context, handle.resource);
 		return VMCI_ERROR_NOT_FOUND;
 	}
 
 	entry = container_of(resource, struct dbell_entry, resource);
-	if (entry->run_delayed) {
+
+	if (entry->run_delayed)
+	{
 		schedule_work(&entry->work);
-	} else {
+	}
+	else
+	{
 		entry->notify_cb(entry->client_data);
 		vmci_resource_put(resource);
 	}
@@ -336,18 +377,21 @@ bool vmci_dbell_register_notification_bitmap(u32 bitmap_ppn)
 	struct vmci_notify_bm_set_msg bitmap_set_msg;
 
 	bitmap_set_msg.hdr.dst = vmci_make_handle(VMCI_HYPERVISOR_CONTEXT_ID,
-						  VMCI_SET_NOTIFY_BITMAP);
+							 VMCI_SET_NOTIFY_BITMAP);
 	bitmap_set_msg.hdr.src = VMCI_ANON_SRC_HANDLE;
 	bitmap_set_msg.hdr.payload_size = sizeof(bitmap_set_msg) -
-	    VMCI_DG_HEADERSIZE;
+									  VMCI_DG_HEADERSIZE;
 	bitmap_set_msg.bitmap_ppn = bitmap_ppn;
 
 	result = vmci_send_datagram(&bitmap_set_msg.hdr);
-	if (result != VMCI_SUCCESS) {
+
+	if (result != VMCI_SUCCESS)
+	{
 		pr_devel("Failed to register (PPN=%u) as notification bitmap (error=%d)\n",
-			 bitmap_ppn, result);
+				 bitmap_ppn, result);
 		return false;
 	}
+
 	return true;
 }
 
@@ -361,13 +405,18 @@ static void dbell_fire_entries(u32 notify_idx)
 
 	spin_lock_bh(&vmci_doorbell_it.lock);
 
-	hlist_for_each_entry(dbell, &vmci_doorbell_it.entries[bucket], node) {
+	hlist_for_each_entry(dbell, &vmci_doorbell_it.entries[bucket], node)
+	{
 		if (dbell->idx == notify_idx &&
-		    atomic_read(&dbell->active) == 1) {
-			if (dbell->run_delayed) {
+			atomic_read(&dbell->active) == 1)
+		{
+			if (dbell->run_delayed)
+			{
 				vmci_resource_get(&dbell->resource);
 				schedule_work(&dbell->work);
-			} else {
+			}
+			else
+			{
 				dbell->notify_cb(dbell->client_data);
 			}
 		}
@@ -384,8 +433,10 @@ void vmci_dbell_scan_notification_entries(u8 *bitmap)
 {
 	u32 idx;
 
-	for (idx = 0; idx < max_notify_idx; idx++) {
-		if (bitmap[idx] & 0x1) {
+	for (idx = 0; idx < max_notify_idx; idx++)
+	{
+		if (bitmap[idx] & 0x1)
+		{
 			bitmap[idx] &= ~1;
 			dbell_fire_entries(idx);
 		}
@@ -410,28 +461,34 @@ void vmci_dbell_scan_notification_entries(u8 *bitmap)
  * unlikely).
  */
 int vmci_doorbell_create(struct vmci_handle *handle,
-			 u32 flags,
-			 u32 priv_flags,
-			 vmci_callback notify_cb, void *client_data)
+						 u32 flags,
+						 u32 priv_flags,
+						 vmci_callback notify_cb, void *client_data)
 {
 	struct dbell_entry *entry;
 	struct vmci_handle new_handle;
 	int result;
 
 	if (!handle || !notify_cb || flags & ~VMCI_FLAG_DELAYED_CB ||
-	    priv_flags & ~VMCI_PRIVILEGE_ALL_FLAGS)
+		priv_flags & ~VMCI_PRIVILEGE_ALL_FLAGS)
+	{
 		return VMCI_ERROR_INVALID_ARGS;
+	}
 
 	entry = kmalloc(sizeof(*entry), GFP_KERNEL);
-	if (entry == NULL) {
+
+	if (entry == NULL)
+	{
 		pr_warn("Failed allocating memory for datagram entry\n");
 		return VMCI_ERROR_NO_MEM;
 	}
 
-	if (vmci_handle_is_invalid(*handle)) {
+	if (vmci_handle_is_invalid(*handle))
+	{
 		u32 context_id = vmci_get_context_id();
 
-		if (context_id == VMCI_INVALID_ID) {
+		if (context_id == VMCI_INVALID_ID)
+		{
 			pr_warn("Failed to get context ID\n");
 			result = VMCI_ERROR_NO_RESOURCES;
 			goto free_mem;
@@ -439,7 +496,9 @@ int vmci_doorbell_create(struct vmci_handle *handle,
 
 		/* Let resource code allocate a free ID for us */
 		new_handle = vmci_make_handle(context_id, VMCI_INVALID_ID);
-	} else {
+	}
+	else
+	{
 		bool valid_context = false;
 
 		/*
@@ -450,14 +509,16 @@ int vmci_doorbell_create(struct vmci_handle *handle,
 		 * unified driver.
 		 */
 		if (handle->context == VMCI_HOST_CONTEXT_ID ||
-		    (vmci_guest_code_active() &&
-		     vmci_get_context_id() == handle->context)) {
+			(vmci_guest_code_active() &&
+			 vmci_get_context_id() == handle->context))
+		{
 			valid_context = true;
 		}
 
-		if (!valid_context || handle->resource == VMCI_INVALID_ID) {
+		if (!valid_context || handle->resource == VMCI_INVALID_ID)
+		{
 			pr_devel("Invalid argument (handle=0x%x:0x%x)\n",
-				 handle->context, handle->resource);
+					 handle->context, handle->resource);
 			result = VMCI_ERROR_INVALID_ARGS;
 			goto free_mem;
 		}
@@ -475,20 +536,27 @@ int vmci_doorbell_create(struct vmci_handle *handle,
 	atomic_set(&entry->active, 0);
 
 	result = vmci_resource_add(&entry->resource,
-				   VMCI_RESOURCE_TYPE_DOORBELL,
-				   new_handle);
-	if (result != VMCI_SUCCESS) {
+							   VMCI_RESOURCE_TYPE_DOORBELL,
+							   new_handle);
+
+	if (result != VMCI_SUCCESS)
+	{
 		pr_warn("Failed to add new resource (handle=0x%x:0x%x), error: %d\n",
-			new_handle.context, new_handle.resource, result);
+				new_handle.context, new_handle.resource, result);
 		goto free_mem;
 	}
 
 	new_handle = vmci_resource_handle(&entry->resource);
-	if (vmci_guest_code_active()) {
+
+	if (vmci_guest_code_active())
+	{
 		dbell_index_table_add(entry);
 		result = dbell_link(new_handle, entry->idx);
+
 		if (VMCI_SUCCESS != result)
+		{
 			goto destroy_resource;
+		}
 
 		atomic_set(&entry->active, 1);
 	}
@@ -497,10 +565,10 @@ int vmci_doorbell_create(struct vmci_handle *handle,
 
 	return result;
 
- destroy_resource:
+destroy_resource:
 	dbell_index_table_remove(entry);
 	vmci_resource_remove(&entry->resource);
- free_mem:
+free_mem:
 	kfree(entry);
 	return result;
 }
@@ -519,25 +587,32 @@ int vmci_doorbell_destroy(struct vmci_handle handle)
 	struct vmci_resource *resource;
 
 	if (vmci_handle_is_invalid(handle))
+	{
 		return VMCI_ERROR_INVALID_ARGS;
+	}
 
 	resource = vmci_resource_by_handle(handle,
-					   VMCI_RESOURCE_TYPE_DOORBELL);
-	if (!resource) {
+									   VMCI_RESOURCE_TYPE_DOORBELL);
+
+	if (!resource)
+	{
 		pr_devel("Failed to destroy doorbell (handle=0x%x:0x%x)\n",
-			 handle.context, handle.resource);
+				 handle.context, handle.resource);
 		return VMCI_ERROR_NOT_FOUND;
 	}
 
 	entry = container_of(resource, struct dbell_entry, resource);
 
-	if (!hlist_unhashed(&entry->node)) {
+	if (!hlist_unhashed(&entry->node))
+	{
 		int result;
 
 		dbell_index_table_remove(entry);
 
 		result = dbell_unlink(handle);
-		if (VMCI_SUCCESS != result) {
+
+		if (VMCI_SUCCESS != result)
+		{
 
 			/*
 			 * The only reason this should fail would be
@@ -553,7 +628,7 @@ int vmci_doorbell_destroy(struct vmci_handle handle)
 			 * print a warning and return success.
 			 */
 			pr_devel("Unlink of doorbell (handle=0x%x:0x%x) unknown by hypervisor (error=%d)\n",
-				 handle.context, handle.resource, result);
+					 handle.context, handle.resource, result);
 		}
 	}
 
@@ -586,20 +661,27 @@ int vmci_doorbell_notify(struct vmci_handle dst, u32 priv_flags)
 	struct vmci_handle src;
 
 	if (vmci_handle_is_invalid(dst) ||
-	    (priv_flags & ~VMCI_PRIVILEGE_ALL_FLAGS))
+		(priv_flags & ~VMCI_PRIVILEGE_ALL_FLAGS))
+	{
 		return VMCI_ERROR_INVALID_ARGS;
+	}
 
 	src = VMCI_INVALID_HANDLE;
 	retval = vmci_route(&src, &dst, false, &route);
+
 	if (retval < VMCI_SUCCESS)
+	{
 		return retval;
+	}
 
 	if (VMCI_ROUTE_AS_HOST == route)
 		return vmci_ctx_notify_dbell(VMCI_HOST_CONTEXT_ID,
-					     dst, priv_flags);
+									 dst, priv_flags);
 
 	if (VMCI_ROUTE_AS_GUEST == route)
+	{
 		return dbell_notify_as_guest(dst, priv_flags);
+	}
 
 	pr_warn("Unknown route (%d) for doorbell\n", route);
 	return VMCI_ERROR_DST_UNREACHABLE;

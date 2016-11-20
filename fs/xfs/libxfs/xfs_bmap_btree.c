@@ -46,10 +46,12 @@ xfs_extent_state(
 	xfs_filblks_t		blks,
 	int			extent_flag)
 {
-	if (extent_flag) {
+	if (extent_flag)
+	{
 		ASSERT(blks != 0);	/* saved for DMIG */
 		return XFS_EXT_UNWRITTEN;
 	}
+
 	return XFS_EXT_NORM;
 }
 
@@ -73,12 +75,12 @@ xfs_bmdr_to_bmbt(
 
 	if (xfs_sb_version_hascrc(&mp->m_sb))
 		xfs_btree_init_block_int(mp, rblock, XFS_BUF_DADDR_NULL,
-				 XFS_BMAP_CRC_MAGIC, 0, 0, ip->i_ino,
-				 XFS_BTREE_LONG_PTRS | XFS_BTREE_CRC_BLOCKS);
+								 XFS_BMAP_CRC_MAGIC, 0, 0, ip->i_ino,
+								 XFS_BTREE_LONG_PTRS | XFS_BTREE_CRC_BLOCKS);
 	else
 		xfs_btree_init_block_int(mp, rblock, XFS_BUF_DADDR_NULL,
-				 XFS_BMAP_MAGIC, 0, 0, ip->i_ino,
-				 XFS_BTREE_LONG_PTRS);
+								 XFS_BMAP_MAGIC, 0, 0, ip->i_ino,
+								 XFS_BTREE_LONG_PTRS);
 
 	rblock->bb_level = dblock->bb_level;
 	ASSERT(be16_to_cpu(rblock->bb_level) > 0);
@@ -100,25 +102,31 @@ xfs_bmdr_to_bmbt(
  */
 STATIC void
 __xfs_bmbt_get_all(
-		__uint64_t l0,
-		__uint64_t l1,
-		xfs_bmbt_irec_t *s)
+	__uint64_t l0,
+	__uint64_t l1,
+	xfs_bmbt_irec_t *s)
 {
 	int	ext_flag;
 	xfs_exntst_t st;
 
 	ext_flag = (int)(l0 >> (64 - BMBT_EXNTFLAG_BITLEN));
 	s->br_startoff = ((xfs_fileoff_t)l0 &
-			   xfs_mask64lo(64 - BMBT_EXNTFLAG_BITLEN)) >> 9;
+					  xfs_mask64lo(64 - BMBT_EXNTFLAG_BITLEN)) >> 9;
 	s->br_startblock = (((xfs_fsblock_t)l0 & xfs_mask64lo(9)) << 43) |
-			   (((xfs_fsblock_t)l1) >> 21);
+					   (((xfs_fsblock_t)l1) >> 21);
 	s->br_blockcount = (xfs_filblks_t)(l1 & xfs_mask64lo(21));
+
 	/* This is xfs_extent_state() in-line */
-	if (ext_flag) {
+	if (ext_flag)
+	{
 		ASSERT(s->br_blockcount != 0);	/* saved for DMIG */
 		st = XFS_EXT_UNWRITTEN;
-	} else
+	}
+	else
+	{
 		st = XFS_EXT_NORM;
+	}
+
 	s->br_state = st;
 }
 
@@ -148,7 +156,7 @@ xfs_bmbt_get_startblock(
 	xfs_bmbt_rec_host_t	*r)
 {
 	return (((xfs_fsblock_t)r->l0 & xfs_mask64lo(9)) << 43) |
-	       (((xfs_fsblock_t)r->l1) >> 21);
+		   (((xfs_fsblock_t)r->l1) >> 21);
 }
 
 /*
@@ -159,7 +167,7 @@ xfs_bmbt_get_startoff(
 	xfs_bmbt_rec_host_t	*r)
 {
 	return ((xfs_fileoff_t)r->l0 &
-		 xfs_mask64lo(64 - BMBT_EXNTFLAG_BITLEN)) >> 9;
+			xfs_mask64lo(64 - BMBT_EXNTFLAG_BITLEN)) >> 9;
 }
 
 xfs_exntst_t
@@ -170,7 +178,7 @@ xfs_bmbt_get_state(
 
 	ext_flag = (int)((r->l0) >> (64 - BMBT_EXNTFLAG_BITLEN));
 	return xfs_extent_state(xfs_bmbt_get_blockcount(r),
-				ext_flag);
+							ext_flag);
 }
 
 /*
@@ -191,7 +199,7 @@ xfs_bmbt_disk_get_startoff(
 	xfs_bmbt_rec_t	*r)
 {
 	return ((xfs_fileoff_t)be64_to_cpu(r->l0) &
-		 xfs_mask64lo(64 - BMBT_EXNTFLAG_BITLEN)) >> 9;
+			xfs_mask64lo(64 - BMBT_EXNTFLAG_BITLEN)) >> 9;
 }
 
 
@@ -209,17 +217,17 @@ xfs_bmbt_set_allf(
 	int		extent_flag = (state == XFS_EXT_NORM) ? 0 : 1;
 
 	ASSERT(state == XFS_EXT_NORM || state == XFS_EXT_UNWRITTEN);
-	ASSERT((startoff & xfs_mask64hi(64-BMBT_STARTOFF_BITLEN)) == 0);
-	ASSERT((blockcount & xfs_mask64hi(64-BMBT_BLOCKCOUNT_BITLEN)) == 0);
+	ASSERT((startoff & xfs_mask64hi(64 - BMBT_STARTOFF_BITLEN)) == 0);
+	ASSERT((blockcount & xfs_mask64hi(64 - BMBT_BLOCKCOUNT_BITLEN)) == 0);
 
-	ASSERT((startblock & xfs_mask64hi(64-BMBT_STARTBLOCK_BITLEN)) == 0);
+	ASSERT((startblock & xfs_mask64hi(64 - BMBT_STARTBLOCK_BITLEN)) == 0);
 
 	r->l0 = ((xfs_bmbt_rec_base_t)extent_flag << 63) |
-		((xfs_bmbt_rec_base_t)startoff << 9) |
-		((xfs_bmbt_rec_base_t)startblock >> 43);
+			((xfs_bmbt_rec_base_t)startoff << 9) |
+			((xfs_bmbt_rec_base_t)startblock >> 43);
 	r->l1 = ((xfs_bmbt_rec_base_t)startblock << 21) |
-		((xfs_bmbt_rec_base_t)blockcount &
-		(xfs_bmbt_rec_base_t)xfs_mask64lo(21));
+			((xfs_bmbt_rec_base_t)blockcount &
+			 (xfs_bmbt_rec_base_t)xfs_mask64lo(21));
 }
 
 /*
@@ -231,7 +239,7 @@ xfs_bmbt_set_all(
 	xfs_bmbt_irec_t	*s)
 {
 	xfs_bmbt_set_allf(r, s->br_startoff, s->br_startblock,
-			     s->br_blockcount, s->br_state);
+					  s->br_blockcount, s->br_state);
 }
 
 
@@ -249,18 +257,18 @@ xfs_bmbt_disk_set_allf(
 	int			extent_flag = (state == XFS_EXT_NORM) ? 0 : 1;
 
 	ASSERT(state == XFS_EXT_NORM || state == XFS_EXT_UNWRITTEN);
-	ASSERT((startoff & xfs_mask64hi(64-BMBT_STARTOFF_BITLEN)) == 0);
-	ASSERT((blockcount & xfs_mask64hi(64-BMBT_BLOCKCOUNT_BITLEN)) == 0);
-	ASSERT((startblock & xfs_mask64hi(64-BMBT_STARTBLOCK_BITLEN)) == 0);
+	ASSERT((startoff & xfs_mask64hi(64 - BMBT_STARTOFF_BITLEN)) == 0);
+	ASSERT((blockcount & xfs_mask64hi(64 - BMBT_BLOCKCOUNT_BITLEN)) == 0);
+	ASSERT((startblock & xfs_mask64hi(64 - BMBT_STARTBLOCK_BITLEN)) == 0);
 
 	r->l0 = cpu_to_be64(
-		((xfs_bmbt_rec_base_t)extent_flag << 63) |
-		 ((xfs_bmbt_rec_base_t)startoff << 9) |
-		 ((xfs_bmbt_rec_base_t)startblock >> 43));
+				((xfs_bmbt_rec_base_t)extent_flag << 63) |
+				((xfs_bmbt_rec_base_t)startoff << 9) |
+				((xfs_bmbt_rec_base_t)startblock >> 43));
 	r->l1 = cpu_to_be64(
-		((xfs_bmbt_rec_base_t)startblock << 21) |
-		 ((xfs_bmbt_rec_base_t)blockcount &
-		  (xfs_bmbt_rec_base_t)xfs_mask64lo(21)));
+				((xfs_bmbt_rec_base_t)startblock << 21) |
+				((xfs_bmbt_rec_base_t)blockcount &
+				 (xfs_bmbt_rec_base_t)xfs_mask64lo(21)));
 }
 
 /*
@@ -272,7 +280,7 @@ xfs_bmbt_disk_set_all(
 	xfs_bmbt_irec_t *s)
 {
 	xfs_bmbt_disk_set_allf(r, s->br_startoff, s->br_startblock,
-				  s->br_blockcount, s->br_state);
+						   s->br_blockcount, s->br_state);
 }
 
 /*
@@ -285,7 +293,7 @@ xfs_bmbt_set_blockcount(
 {
 	ASSERT((v & xfs_mask64hi(43)) == 0);
 	r->l1 = (r->l1 & (xfs_bmbt_rec_base_t)xfs_mask64hi(43)) |
-		  (xfs_bmbt_rec_base_t)(v & xfs_mask64lo(21));
+			(xfs_bmbt_rec_base_t)(v & xfs_mask64lo(21));
 }
 
 /*
@@ -298,9 +306,9 @@ xfs_bmbt_set_startblock(
 {
 	ASSERT((v & xfs_mask64hi(12)) == 0);
 	r->l0 = (r->l0 & (xfs_bmbt_rec_base_t)xfs_mask64hi(55)) |
-		  (xfs_bmbt_rec_base_t)(v >> 43);
+			(xfs_bmbt_rec_base_t)(v >> 43);
 	r->l1 = (r->l1 & (xfs_bmbt_rec_base_t)xfs_mask64lo(21)) |
-		  (xfs_bmbt_rec_base_t)(v << 21);
+			(xfs_bmbt_rec_base_t)(v << 21);
 }
 
 /*
@@ -313,8 +321,8 @@ xfs_bmbt_set_startoff(
 {
 	ASSERT((v & xfs_mask64hi(9)) == 0);
 	r->l0 = (r->l0 & (xfs_bmbt_rec_base_t) xfs_mask64hi(1)) |
-		((xfs_bmbt_rec_base_t)v << 9) |
-		  (r->l0 & (xfs_bmbt_rec_base_t)xfs_mask64lo(9));
+			((xfs_bmbt_rec_base_t)v << 9) |
+			(r->l0 & (xfs_bmbt_rec_base_t)xfs_mask64lo(9));
 }
 
 /*
@@ -326,10 +334,15 @@ xfs_bmbt_set_state(
 	xfs_exntst_t	v)
 {
 	ASSERT(v == XFS_EXT_NORM || v == XFS_EXT_UNWRITTEN);
+
 	if (v == XFS_EXT_NORM)
+	{
 		r->l0 &= xfs_mask64lo(64 - BMBT_EXNTFLAG_BITLEN);
+	}
 	else
+	{
 		r->l0 |= xfs_mask64hi(BMBT_EXNTFLAG_BITLEN);
+	}
 }
 
 /*
@@ -349,14 +362,19 @@ xfs_bmbt_to_bmdr(
 	xfs_bmbt_key_t		*tkp;
 	__be64			*tpp;
 
-	if (xfs_sb_version_hascrc(&mp->m_sb)) {
+	if (xfs_sb_version_hascrc(&mp->m_sb))
+	{
 		ASSERT(rblock->bb_magic == cpu_to_be32(XFS_BMAP_CRC_MAGIC));
 		ASSERT(uuid_equal(&rblock->bb_u.l.bb_uuid,
-		       &mp->m_sb.sb_meta_uuid));
+						  &mp->m_sb.sb_meta_uuid));
 		ASSERT(rblock->bb_u.l.bb_blkno ==
-		       cpu_to_be64(XFS_BUF_DADDR_NULL));
-	} else
+			   cpu_to_be64(XFS_BUF_DADDR_NULL));
+	}
+	else
+	{
 		ASSERT(rblock->bb_magic == cpu_to_be32(XFS_BMAP_MAGIC));
+	}
+
 	ASSERT(rblock->bb_u.l.bb_leftsib == cpu_to_be64(NULLFSBLOCK));
 	ASSERT(rblock->bb_u.l.bb_rightsib == cpu_to_be64(NULLFSBLOCK));
 	ASSERT(rblock->bb_level != 0);
@@ -386,14 +404,18 @@ xfs_check_nostate_extents(
 	xfs_extnum_t		idx,
 	xfs_extnum_t		num)
 {
-	for (; num > 0; num--, idx++) {
+	for (; num > 0; num--, idx++)
+	{
 		xfs_bmbt_rec_host_t *ep = xfs_iext_get_ext(ifp, idx);
+
 		if ((ep->l0 >>
-		     (64 - BMBT_EXNTFLAG_BITLEN)) != 0) {
+			 (64 - BMBT_EXNTFLAG_BITLEN)) != 0)
+		{
 			ASSERT(0);
 			return 1;
 		}
 	}
+
 	return 0;
 }
 
@@ -405,7 +427,7 @@ xfs_bmbt_dup_cursor(
 	struct xfs_btree_cur	*new;
 
 	new = xfs_bmbt_init_cursor(cur->bc_mp, cur->bc_tp,
-			cur->bc_private.b.ip, cur->bc_private.b.whichfork);
+							   cur->bc_private.b.ip, cur->bc_private.b.whichfork);
 
 	/*
 	 * Copy the firstblock, dfops, and flags values,
@@ -424,7 +446,7 @@ xfs_bmbt_update_cursor(
 	struct xfs_btree_cur	*dst)
 {
 	ASSERT((dst->bc_private.b.firstblock != NULLFSBLOCK) ||
-	       (dst->bc_private.b.ip->i_d.di_flags & XFS_DIFLAG_REALTIME));
+		   (dst->bc_private.b.ip->i_d.di_flags & XFS_DIFLAG_REALTIME));
 	ASSERT(dst->bc_private.b.dfops == src->bc_private.b.dfops);
 
 	dst->bc_private.b.allocated += src->bc_private.b.allocated;
@@ -449,9 +471,10 @@ xfs_bmbt_alloc_block(
 	args.fsbno = cur->bc_private.b.firstblock;
 	args.firstblock = args.fsbno;
 	xfs_rmap_ino_bmbt_owner(&args.oinfo, cur->bc_private.b.ip->i_ino,
-			cur->bc_private.b.whichfork);
+							cur->bc_private.b.whichfork);
 
-	if (args.fsbno == NULLFSBLOCK) {
+	if (args.fsbno == NULLFSBLOCK)
+	{
 		args.fsbno = be64_to_cpu(start->l);
 try_another_ag:
 		args.type = XFS_ALLOCTYPE_START_BNO;
@@ -467,21 +490,31 @@ try_another_ag:
 		 * block allocation here and corrupt the filesystem.
 		 */
 		args.minleft = args.tp->t_blk_res;
-	} else if (cur->bc_private.b.dfops->dop_low) {
+	}
+	else if (cur->bc_private.b.dfops->dop_low)
+	{
 		args.type = XFS_ALLOCTYPE_START_BNO;
-	} else {
+	}
+	else
+	{
 		args.type = XFS_ALLOCTYPE_NEAR_BNO;
 	}
 
 	args.minlen = args.maxlen = args.prod = 1;
 	args.wasdel = cur->bc_private.b.flags & XFS_BTCUR_BPRV_WASDEL;
-	if (!args.wasdel && args.tp->t_blk_res == 0) {
+
+	if (!args.wasdel && args.tp->t_blk_res == 0)
+	{
 		error = -ENOSPC;
 		goto error0;
 	}
+
 	error = xfs_alloc_vextent(&args);
+
 	if (error)
+	{
 		goto error0;
+	}
 
 	/*
 	 * During a CoW operation, the allocation and bmbt updates occur in
@@ -492,14 +525,16 @@ try_another_ag:
 	 * of space we'll try again with another AG.
 	 */
 	if (xfs_sb_version_hasreflink(&cur->bc_mp->m_sb) &&
-	    args.fsbno == NULLFSBLOCK &&
-	    args.type == XFS_ALLOCTYPE_NEAR_BNO) {
+		args.fsbno == NULLFSBLOCK &&
+		args.type == XFS_ALLOCTYPE_NEAR_BNO)
+	{
 		cur->bc_private.b.dfops->dop_low = true;
 		args.fsbno = cur->bc_private.b.firstblock;
 		goto try_another_ag;
 	}
 
-	if (args.fsbno == NULLFSBLOCK && args.minleft) {
+	if (args.fsbno == NULLFSBLOCK && args.minleft)
+	{
 		/*
 		 * Could not find an AG with enough free space to satisfy
 		 * a full btree split.  Try again without minleft and if
@@ -509,22 +544,29 @@ try_another_ag:
 		args.type = XFS_ALLOCTYPE_FIRST_AG;
 		args.minleft = 0;
 		error = xfs_alloc_vextent(&args);
+
 		if (error)
+		{
 			goto error0;
+		}
+
 		cur->bc_private.b.dfops->dop_low = true;
 	}
-	if (args.fsbno == NULLFSBLOCK) {
+
+	if (args.fsbno == NULLFSBLOCK)
+	{
 		XFS_BTREE_TRACE_CURSOR(cur, XBT_EXIT);
 		*stat = 0;
 		return 0;
 	}
+
 	ASSERT(args.len == 1);
 	cur->bc_private.b.firstblock = args.fsbno;
 	cur->bc_private.b.allocated++;
 	cur->bc_private.b.ip->i_d.di_nblocks++;
 	xfs_trans_log_inode(args.tp, cur->bc_private.b.ip, XFS_ILOG_CORE);
 	xfs_trans_mod_dquot_byino(args.tp, cur->bc_private.b.ip,
-			XFS_TRANS_DQ_BCOUNT, 1L);
+							  XFS_TRANS_DQ_BCOUNT, 1L);
 
 	new->l = cpu_to_be64(args.fsbno);
 
@@ -532,7 +574,7 @@ try_another_ag:
 	*stat = 1;
 	return 0;
 
- error0:
+error0:
 	XFS_BTREE_TRACE_CURSOR(cur, XBT_ERROR);
 	return error;
 }
@@ -562,14 +604,15 @@ xfs_bmbt_get_minrecs(
 	struct xfs_btree_cur	*cur,
 	int			level)
 {
-	if (level == cur->bc_nlevels - 1) {
+	if (level == cur->bc_nlevels - 1)
+	{
 		struct xfs_ifork	*ifp;
 
 		ifp = XFS_IFORK_PTR(cur->bc_private.b.ip,
-				    cur->bc_private.b.whichfork);
+							cur->bc_private.b.whichfork);
 
 		return xfs_bmbt_maxrecs(cur->bc_mp,
-					ifp->if_broot_bytes, level == 0) / 2;
+								ifp->if_broot_bytes, level == 0) / 2;
 	}
 
 	return cur->bc_mp->m_bmap_dmnr[level != 0];
@@ -580,14 +623,15 @@ xfs_bmbt_get_maxrecs(
 	struct xfs_btree_cur	*cur,
 	int			level)
 {
-	if (level == cur->bc_nlevels - 1) {
+	if (level == cur->bc_nlevels - 1)
+	{
 		struct xfs_ifork	*ifp;
 
 		ifp = XFS_IFORK_PTR(cur->bc_private.b.ip,
-				    cur->bc_private.b.whichfork);
+							cur->bc_private.b.whichfork);
 
 		return xfs_bmbt_maxrecs(cur->bc_mp,
-					ifp->if_broot_bytes, level == 0);
+								ifp->if_broot_bytes, level == 0);
 	}
 
 	return cur->bc_mp->m_bmap_dmxr[level != 0];
@@ -609,7 +653,10 @@ xfs_bmbt_get_dmaxrecs(
 	int			level)
 {
 	if (level != cur->bc_nlevels - 1)
+	{
 		return cur->bc_mp->m_bmap_dmxr[level != 0];
+	}
+
 	return xfs_bmdr_maxrecs(cur->bc_private.b.forksize, level == 0);
 }
 
@@ -644,7 +691,7 @@ xfs_bmbt_key_diff(
 	union xfs_btree_key	*key)
 {
 	return (__int64_t)be64_to_cpu(key->bmbt.br_startoff) -
-				      cur->bc_rec.b.br_startoff;
+		   cur->bc_rec.b.br_startoff;
 }
 
 static bool
@@ -655,25 +702,39 @@ xfs_bmbt_verify(
 	struct xfs_btree_block	*block = XFS_BUF_TO_BLOCK(bp);
 	unsigned int		level;
 
-	switch (block->bb_magic) {
-	case cpu_to_be32(XFS_BMAP_CRC_MAGIC):
-		if (!xfs_sb_version_hascrc(&mp->m_sb))
-			return false;
-		if (!uuid_equal(&block->bb_u.l.bb_uuid, &mp->m_sb.sb_meta_uuid))
-			return false;
-		if (be64_to_cpu(block->bb_u.l.bb_blkno) != bp->b_bn)
-			return false;
-		/*
-		 * XXX: need a better way of verifying the owner here. Right now
-		 * just make sure there has been one set.
-		 */
-		if (be64_to_cpu(block->bb_u.l.bb_owner) == 0)
-			return false;
+	switch (block->bb_magic)
+	{
+		case cpu_to_be32(XFS_BMAP_CRC_MAGIC):
+			if (!xfs_sb_version_hascrc(&mp->m_sb))
+			{
+				return false;
+			}
+
+			if (!uuid_equal(&block->bb_u.l.bb_uuid, &mp->m_sb.sb_meta_uuid))
+			{
+				return false;
+			}
+
+			if (be64_to_cpu(block->bb_u.l.bb_blkno) != bp->b_bn)
+			{
+				return false;
+			}
+
+			/*
+			 * XXX: need a better way of verifying the owner here. Right now
+			 * just make sure there has been one set.
+			 */
+			if (be64_to_cpu(block->bb_u.l.bb_owner) == 0)
+			{
+				return false;
+			}
+
 		/* fall through */
-	case cpu_to_be32(XFS_BMAP_MAGIC):
-		break;
-	default:
-		return false;
+		case cpu_to_be32(XFS_BMAP_MAGIC):
+			break;
+
+		default:
+			return false;
 	}
 
 	/*
@@ -684,20 +745,31 @@ xfs_bmbt_verify(
 	 * precise.
 	 */
 	level = be16_to_cpu(block->bb_level);
+
 	if (level > max(mp->m_bm_maxlevels[0], mp->m_bm_maxlevels[1]))
+	{
 		return false;
+	}
+
 	if (be16_to_cpu(block->bb_numrecs) > mp->m_bmap_dmxr[level != 0])
+	{
 		return false;
+	}
 
 	/* sibling pointer verification */
 	if (!block->bb_u.l.bb_leftsib ||
-	    (block->bb_u.l.bb_leftsib != cpu_to_be64(NULLFSBLOCK) &&
-	     !XFS_FSB_SANITY_CHECK(mp, be64_to_cpu(block->bb_u.l.bb_leftsib))))
+		(block->bb_u.l.bb_leftsib != cpu_to_be64(NULLFSBLOCK) &&
+		 !XFS_FSB_SANITY_CHECK(mp, be64_to_cpu(block->bb_u.l.bb_leftsib))))
+	{
 		return false;
+	}
+
 	if (!block->bb_u.l.bb_rightsib ||
-	    (block->bb_u.l.bb_rightsib != cpu_to_be64(NULLFSBLOCK) &&
-	     !XFS_FSB_SANITY_CHECK(mp, be64_to_cpu(block->bb_u.l.bb_rightsib))))
+		(block->bb_u.l.bb_rightsib != cpu_to_be64(NULLFSBLOCK) &&
+		 !XFS_FSB_SANITY_CHECK(mp, be64_to_cpu(block->bb_u.l.bb_rightsib))))
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -707,11 +779,16 @@ xfs_bmbt_read_verify(
 	struct xfs_buf	*bp)
 {
 	if (!xfs_btree_lblock_verify_crc(bp))
+	{
 		xfs_buf_ioerror(bp, -EFSBADCRC);
+	}
 	else if (!xfs_bmbt_verify(bp))
+	{
 		xfs_buf_ioerror(bp, -EFSCORRUPTED);
+	}
 
-	if (bp->b_error) {
+	if (bp->b_error)
+	{
 		trace_xfs_btree_corrupt(bp, _RET_IP_);
 		xfs_verifier_error(bp);
 	}
@@ -721,16 +798,19 @@ static void
 xfs_bmbt_write_verify(
 	struct xfs_buf	*bp)
 {
-	if (!xfs_bmbt_verify(bp)) {
+	if (!xfs_bmbt_verify(bp))
+	{
 		trace_xfs_btree_corrupt(bp, _RET_IP_);
 		xfs_buf_ioerror(bp, -EFSCORRUPTED);
 		xfs_verifier_error(bp);
 		return;
 	}
+
 	xfs_btree_lblock_calc_crc(bp);
 }
 
-const struct xfs_buf_ops xfs_bmbt_buf_ops = {
+const struct xfs_buf_ops xfs_bmbt_buf_ops =
+{
 	.name = "xfs_bmbt",
 	.verify_read = xfs_bmbt_read_verify,
 	.verify_write = xfs_bmbt_write_verify,
@@ -745,7 +825,7 @@ xfs_bmbt_keys_inorder(
 	union xfs_btree_key	*k2)
 {
 	return be64_to_cpu(k1->bmbt.br_startoff) <
-		be64_to_cpu(k2->bmbt.br_startoff);
+		   be64_to_cpu(k2->bmbt.br_startoff);
 }
 
 STATIC int
@@ -755,12 +835,13 @@ xfs_bmbt_recs_inorder(
 	union xfs_btree_rec	*r2)
 {
 	return xfs_bmbt_disk_get_startoff(&r1->bmbt) +
-		xfs_bmbt_disk_get_blockcount(&r1->bmbt) <=
-		xfs_bmbt_disk_get_startoff(&r2->bmbt);
+		   xfs_bmbt_disk_get_blockcount(&r1->bmbt) <=
+		   xfs_bmbt_disk_get_startoff(&r2->bmbt);
 }
 #endif	/* DEBUG */
 
-static const struct xfs_btree_ops xfs_bmbt_ops = {
+static const struct xfs_btree_ops xfs_bmbt_ops =
+{
 	.rec_len		= sizeof(xfs_bmbt_rec_t),
 	.key_len		= sizeof(xfs_bmbt_key_t),
 
@@ -806,8 +887,11 @@ xfs_bmbt_init_cursor(
 
 	cur->bc_ops = &xfs_bmbt_ops;
 	cur->bc_flags = XFS_BTREE_LONG_PTRS | XFS_BTREE_ROOT_IN_INODE;
+
 	if (xfs_sb_version_hascrc(&mp->m_sb))
+	{
 		cur->bc_flags |= XFS_BTREE_CRC_BLOCKS;
+	}
 
 	cur->bc_private.b.forksize = XFS_IFORK_SIZE(ip, whichfork);
 	cur->bc_private.b.ip = ip;
@@ -832,7 +916,10 @@ xfs_bmbt_maxrecs(
 	blocklen -= XFS_BMBT_BLOCK_LEN(mp);
 
 	if (leaf)
+	{
 		return blocklen / sizeof(xfs_bmbt_rec_t);
+	}
+
 	return blocklen / (sizeof(xfs_bmbt_key_t) + sizeof(xfs_bmbt_ptr_t));
 }
 
@@ -847,7 +934,10 @@ xfs_bmdr_maxrecs(
 	blocklen -= sizeof(xfs_bmdr_block_t);
 
 	if (leaf)
+	{
 		return blocklen / sizeof(xfs_bmdr_rec_t);
+	}
+
 	return blocklen / (sizeof(xfs_bmdr_key_t) + sizeof(xfs_bmdr_ptr_t));
 }
 
@@ -881,14 +971,22 @@ xfs_bmbt_change_owner(
 
 	ASSERT(tp || buffer_list);
 	ASSERT(!(tp && buffer_list));
+
 	if (whichfork == XFS_DATA_FORK)
+	{
 		ASSERT(ip->i_d.di_format == XFS_DINODE_FMT_BTREE);
+	}
 	else
+	{
 		ASSERT(ip->i_d.di_aformat == XFS_DINODE_FMT_BTREE);
+	}
 
 	cur = xfs_bmbt_init_cursor(ip->i_mount, tp, ip, whichfork);
+
 	if (!cur)
+	{
 		return -ENOMEM;
+	}
 
 	error = xfs_btree_change_owner(cur, new_owner, buffer_list);
 	xfs_btree_del_cursor(cur, error ? XFS_BTREE_ERROR : XFS_BTREE_NOERROR);

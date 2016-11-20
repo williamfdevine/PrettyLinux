@@ -819,7 +819,8 @@
 #define M98925_REV_ID_SHIFT	0
 #define M98925_REV_ID_WIDTH	8
 
-struct max98925_priv {
+struct max98925_priv
+{
 	struct regmap *regmap;
 	struct snd_soc_codec *codec;
 	struct max98925_pdata *pdata;

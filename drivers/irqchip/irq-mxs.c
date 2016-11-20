@@ -53,12 +53,14 @@
 
 #define ICOLL_NUM_IRQS		128
 
-enum icoll_type {
+enum icoll_type
+{
 	ICOLL,
 	ASM9260_ICOLL,
 };
 
-struct icoll_priv {
+struct icoll_priv
+{
 	void __iomem *vector;
 	void __iomem *levelack;
 	void __iomem *ctrl;
@@ -96,44 +98,46 @@ static void icoll_ack_irq(struct irq_data *d)
 	 * BV_ICOLL_LEVELACK_IRQLEVELACK__LEVEL0 unconditionally.
 	 */
 	__raw_writel(BV_ICOLL_LEVELACK_IRQLEVELACK__LEVEL0,
-			icoll_priv.levelack);
+				 icoll_priv.levelack);
 }
 
 static void icoll_mask_irq(struct irq_data *d)
 {
 	__raw_writel(BM_ICOLL_INTR_ENABLE,
-			icoll_priv.intr + CLR_REG + HW_ICOLL_INTERRUPTn(d->hwirq));
+				 icoll_priv.intr + CLR_REG + HW_ICOLL_INTERRUPTn(d->hwirq));
 }
 
 static void icoll_unmask_irq(struct irq_data *d)
 {
 	__raw_writel(BM_ICOLL_INTR_ENABLE,
-			icoll_priv.intr + SET_REG + HW_ICOLL_INTERRUPTn(d->hwirq));
+				 icoll_priv.intr + SET_REG + HW_ICOLL_INTERRUPTn(d->hwirq));
 }
 
 static void asm9260_mask_irq(struct irq_data *d)
 {
 	__raw_writel(icoll_intr_bitshift(d, BM_ICOLL_INTR_ENABLE),
-			icoll_intr_reg(d) + CLR_REG);
+				 icoll_intr_reg(d) + CLR_REG);
 }
 
 static void asm9260_unmask_irq(struct irq_data *d)
 {
 	__raw_writel(ASM9260_BM_CLEAR_BIT(d->hwirq),
-		     icoll_priv.clear +
-		     ASM9260_HW_ICOLL_CLEARn(d->hwirq));
+				 icoll_priv.clear +
+				 ASM9260_HW_ICOLL_CLEARn(d->hwirq));
 
 	__raw_writel(icoll_intr_bitshift(d, BM_ICOLL_INTR_ENABLE),
-			icoll_intr_reg(d) + SET_REG);
+				 icoll_intr_reg(d) + SET_REG);
 }
 
-static struct irq_chip mxs_icoll_chip = {
+static struct irq_chip mxs_icoll_chip =
+{
 	.irq_ack = icoll_ack_irq,
 	.irq_mask = icoll_mask_irq,
 	.irq_unmask = icoll_unmask_irq,
 };
 
-static struct irq_chip asm9260_icoll_chip = {
+static struct irq_chip asm9260_icoll_chip =
+{
 	.irq_ack = icoll_ack_irq,
 	.irq_mask = asm9260_mask_irq,
 	.irq_unmask = asm9260_unmask_irq,
@@ -149,47 +153,58 @@ asmlinkage void __exception_irq_entry icoll_handle_irq(struct pt_regs *regs)
 }
 
 static int icoll_irq_domain_map(struct irq_domain *d, unsigned int virq,
-				irq_hw_number_t hw)
+								irq_hw_number_t hw)
 {
 	struct irq_chip *chip;
 
 	if (icoll_priv.type == ICOLL)
+	{
 		chip = &mxs_icoll_chip;
+	}
 	else
+	{
 		chip = &asm9260_icoll_chip;
+	}
 
 	irq_set_chip_and_handler(virq, chip, handle_level_irq);
 
 	return 0;
 }
 
-static const struct irq_domain_ops icoll_irq_domain_ops = {
+static const struct irq_domain_ops icoll_irq_domain_ops =
+{
 	.map = icoll_irq_domain_map,
 	.xlate = irq_domain_xlate_onecell,
 };
 
 static void __init icoll_add_domain(struct device_node *np,
-			  int num)
+									int num)
 {
 	icoll_domain = irq_domain_add_linear(np, num,
-					     &icoll_irq_domain_ops, NULL);
+										 &icoll_irq_domain_ops, NULL);
 
 	if (!icoll_domain)
+	{
 		panic("%s: unable to create irq domain", np->full_name);
+	}
 }
 
-static void __iomem * __init icoll_init_iobase(struct device_node *np)
+static void __iomem *__init icoll_init_iobase(struct device_node *np)
 {
 	void __iomem *icoll_base;
 
 	icoll_base = of_io_request_and_map(np, 0, np->name);
+
 	if (IS_ERR(icoll_base))
+	{
 		panic("%s: unable to map resource", np->full_name);
+	}
+
 	return icoll_base;
 }
 
 static int __init icoll_of_init(struct device_node *np,
-			  struct device_node *interrupt_parent)
+								struct device_node *interrupt_parent)
 {
 	void __iomem *icoll_base;
 
@@ -216,7 +231,7 @@ static int __init icoll_of_init(struct device_node *np,
 IRQCHIP_DECLARE(mxs, "fsl,icoll", icoll_of_init);
 
 static int __init asm9260_of_init(struct device_node *np,
-			  struct device_node *interrupt_parent)
+								  struct device_node *interrupt_parent)
 {
 	void __iomem *icoll_base;
 	int i;
@@ -232,13 +247,16 @@ static int __init asm9260_of_init(struct device_node *np,
 	icoll_priv.clear	= icoll_base + ASM9260_HW_ICOLL_CLEAR0;
 
 	writel_relaxed(ASM9260_BM_CTRL_IRQ_ENABLE,
-			icoll_priv.ctrl);
+				   icoll_priv.ctrl);
+
 	/*
 	 * ASM9260 don't provide reset bit. So, we need to set level 0
 	 * manually.
 	 */
 	for (i = 0; i < 16 * 0x10; i += 0x10)
+	{
 		writel(0, icoll_priv.intr + i);
+	}
 
 	icoll_add_domain(np, ASM9260_NUM_IRQS);
 	set_handle_irq(icoll_handle_irq);

@@ -13,23 +13,35 @@
 #define Z0194A
 
 static int sharp_z0194a_set_symbol_rate(struct dvb_frontend *fe,
-					 u32 srate, u32 ratio)
+										u32 srate, u32 ratio)
 {
 	u8 aclk = 0;
 	u8 bclk = 0;
 
-	if (srate < 1500000) {
-		aclk = 0xb7; bclk = 0x47; }
-	else if (srate < 3000000) {
-		aclk = 0xb7; bclk = 0x4b; }
-	else if (srate < 7000000) {
-		aclk = 0xb7; bclk = 0x4f; }
-	else if (srate < 14000000) {
-		aclk = 0xb7; bclk = 0x53; }
-	else if (srate < 30000000) {
-		aclk = 0xb6; bclk = 0x53; }
-	else if (srate < 45000000) {
-		aclk = 0xb4; bclk = 0x51; }
+	if (srate < 1500000)
+	{
+		aclk = 0xb7; bclk = 0x47;
+	}
+	else if (srate < 3000000)
+	{
+		aclk = 0xb7; bclk = 0x4b;
+	}
+	else if (srate < 7000000)
+	{
+		aclk = 0xb7; bclk = 0x4f;
+	}
+	else if (srate < 14000000)
+	{
+		aclk = 0xb7; bclk = 0x53;
+	}
+	else if (srate < 30000000)
+	{
+		aclk = 0xb6; bclk = 0x53;
+	}
+	else if (srate < 45000000)
+	{
+		aclk = 0xb4; bclk = 0x51;
+	}
 
 	stv0299_writereg(fe, 0x13, aclk);
 	stv0299_writereg(fe, 0x14, bclk);
@@ -40,7 +52,8 @@ static int sharp_z0194a_set_symbol_rate(struct dvb_frontend *fe,
 	return 0;
 }
 
-static u8 sharp_z0194a_inittab[] = {
+static u8 sharp_z0194a_inittab[] =
+{
 	0x01, 0x15,
 	0x02, 0x30,
 	0x03, 0x00,

@@ -41,11 +41,11 @@ int paste(void *i)
 	int cr;
 
 	asm volatile(str(PASTE(0, %1, 1, 1))";"
-			"mfcr %0;"
-			: "=r" (cr)
-			: "b" (i)
-			: "memory"
-		    );
+				 "mfcr %0;"
+				 : "=r" (cr)
+				 : "b" (i)
+				 : "memory"
+				);
 	return cr;
 }
 
@@ -56,10 +56,10 @@ int paste(void *i)
 void copy(void *i)
 {
 	asm volatile(str(COPY(0, %0, 1))";"
-			:
-			: "b" (i)
-			: "memory"
-		    );
+				 :
+				 : "b" (i)
+				 : "memory"
+				);
 }
 
 int test_cp_abort(void)
@@ -86,20 +86,26 @@ int test_cp_abort(void)
 	pid = fork();
 	FAIL_IF(pid < 0);
 
-	if (!pid) {
-		for (int i = 0; i < NUM_LOOPS; i++) {
+	if (!pid)
+	{
+		for (int i = 0; i < NUM_LOOPS; i++)
+		{
 			FAIL_IF((write(fd1[WRITE_FD], &c, 1)) != 1);
 			FAIL_IF((read(fd2[READ_FD], &c, 1)) != 1);
 			/* A paste succeeds if CR0 EQ bit is set */
 			FAIL_IF(paste(buf) & 0x20000000);
 		}
-	} else {
-		for (int i = 0; i < NUM_LOOPS; i++) {
+	}
+	else
+	{
+		for (int i = 0; i < NUM_LOOPS; i++)
+		{
 			FAIL_IF((read(fd1[READ_FD], &c, 1)) != 1);
 			copy(buf);
 			FAIL_IF((write(fd2[WRITE_FD], &c, 1) != 1));
 		}
 	}
+
 	return 0;
 
 }

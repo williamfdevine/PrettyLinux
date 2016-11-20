@@ -50,7 +50,8 @@
 #define NES_PAU_COUNTER 10
 #define NES_CQP_OPCODE_MASK 0x3f
 
-enum pci_regs {
+enum pci_regs
+{
 	NES_INT_STAT = 0x0000,
 	NES_INT_MASK = 0x0004,
 	NES_INT_PENDING = 0x0008,
@@ -70,7 +71,8 @@ enum pci_regs {
 	NES_AEQ_ALLOC = 0x0048
 };
 
-enum indexed_regs {
+enum indexed_regs
+{
 	NES_IDX_CREATE_CQP_LOW = 0x0000,
 	NES_IDX_CREATE_CQP_HIGH = 0x0004,
 	NES_IDX_QP_CONTROL = 0x0040,
@@ -194,7 +196,8 @@ enum indexed_regs {
 #define NES_IDX_MAC_TX_CONFIG_ENABLE_PAUSE   1
 #define NES_IDX_MPP_DEBUG_PORT_DISABLE_PAUSE (1 << 17)
 
-enum nes_cqp_opcodes {
+enum nes_cqp_opcodes
+{
 	NES_CQP_CREATE_QP = 0x00,
 	NES_CQP_MODIFY_QP = 0x01,
 	NES_CQP_DESTROY_QP = 0x02,
@@ -220,7 +223,8 @@ enum nes_cqp_opcodes {
 	NES_CQP_MANAGE_QUAD_HASH = 0x25
 };
 
-enum nes_cqp_wqe_word_idx {
+enum nes_cqp_wqe_word_idx
+{
 	NES_CQP_WQE_OPCODE_IDX = 0,
 	NES_CQP_WQE_ID_IDX = 1,
 	NES_CQP_WQE_COMP_CTX_LOW_IDX = 2,
@@ -229,15 +233,17 @@ enum nes_cqp_wqe_word_idx {
 	NES_CQP_WQE_COMP_SCRATCH_HIGH_IDX = 5,
 };
 
-enum nes_cqp_wqe_word_download_idx { /* format differs from other cqp ops */
+enum nes_cqp_wqe_word_download_idx   /* format differs from other cqp ops */
+{
 	NES_CQP_WQE_DL_OPCODE_IDX = 0,
 	NES_CQP_WQE_DL_COMP_CTX_LOW_IDX = 1,
 	NES_CQP_WQE_DL_COMP_CTX_HIGH_IDX = 2,
 	NES_CQP_WQE_DL_LENGTH_0_TOTAL_IDX = 3
-	/* For index values 4-15 use NES_NIC_SQ_WQE_ values */
+										/* For index values 4-15 use NES_NIC_SQ_WQE_ values */
 };
 
-enum nes_cqp_cq_wqeword_idx {
+enum nes_cqp_cq_wqeword_idx
+{
 	NES_CQP_CQ_WQE_PBL_LOW_IDX = 6,
 	NES_CQP_CQ_WQE_PBL_HIGH_IDX = 7,
 	NES_CQP_CQ_WQE_CQ_CONTEXT_LOW_IDX = 8,
@@ -245,7 +251,8 @@ enum nes_cqp_cq_wqeword_idx {
 	NES_CQP_CQ_WQE_DOORBELL_INDEX_HIGH_IDX = 10,
 };
 
-enum nes_cqp_stag_wqeword_idx {
+enum nes_cqp_stag_wqeword_idx
+{
 	NES_CQP_STAG_WQE_PBL_BLK_COUNT_IDX = 1,
 	NES_CQP_STAG_WQE_LEN_HIGH_PD_IDX = 6,
 	NES_CQP_STAG_WQE_LEN_LOW_IDX = 7,
@@ -261,35 +268,37 @@ enum nes_cqp_stag_wqeword_idx {
 #define NES_CQP_OP_IWARP_STATE_SHIFT 28
 #define NES_CQP_OP_TERMLEN_SHIFT     28
 
-enum nes_cqp_qp_bits {
-	NES_CQP_QP_ARP_VALID = (1<<8),
-	NES_CQP_QP_WINBUF_VALID = (1<<9),
-	NES_CQP_QP_CONTEXT_VALID = (1<<10),
-	NES_CQP_QP_ORD_VALID = (1<<11),
-	NES_CQP_QP_WINBUF_DATAIND_EN = (1<<12),
-	NES_CQP_QP_VIRT_WQS = (1<<13),
-	NES_CQP_QP_DEL_HTE = (1<<14),
-	NES_CQP_QP_CQS_VALID = (1<<15),
+enum nes_cqp_qp_bits
+{
+	NES_CQP_QP_ARP_VALID = (1 << 8),
+	NES_CQP_QP_WINBUF_VALID = (1 << 9),
+	NES_CQP_QP_CONTEXT_VALID = (1 << 10),
+	NES_CQP_QP_ORD_VALID = (1 << 11),
+	NES_CQP_QP_WINBUF_DATAIND_EN = (1 << 12),
+	NES_CQP_QP_VIRT_WQS = (1 << 13),
+	NES_CQP_QP_DEL_HTE = (1 << 14),
+	NES_CQP_QP_CQS_VALID = (1 << 15),
 	NES_CQP_QP_TYPE_TSA = 0,
-	NES_CQP_QP_TYPE_IWARP = (1<<16),
-	NES_CQP_QP_TYPE_CQP = (4<<16),
-	NES_CQP_QP_TYPE_NIC = (5<<16),
-	NES_CQP_QP_MSS_CHG = (1<<20),
-	NES_CQP_QP_STATIC_RESOURCES = (1<<21),
-	NES_CQP_QP_IGNORE_MW_BOUND = (1<<22),
-	NES_CQP_QP_VWQ_USE_LMI = (1<<23),
-	NES_CQP_QP_IWARP_STATE_IDLE = (1<<NES_CQP_OP_IWARP_STATE_SHIFT),
-	NES_CQP_QP_IWARP_STATE_RTS = (2<<NES_CQP_OP_IWARP_STATE_SHIFT),
-	NES_CQP_QP_IWARP_STATE_CLOSING = (3<<NES_CQP_OP_IWARP_STATE_SHIFT),
-	NES_CQP_QP_IWARP_STATE_TERMINATE = (5<<NES_CQP_OP_IWARP_STATE_SHIFT),
-	NES_CQP_QP_IWARP_STATE_ERROR = (6<<NES_CQP_OP_IWARP_STATE_SHIFT),
-	NES_CQP_QP_IWARP_STATE_MASK = (7<<NES_CQP_OP_IWARP_STATE_SHIFT),
-	NES_CQP_QP_TERM_DONT_SEND_FIN = (1<<24),
-	NES_CQP_QP_TERM_DONT_SEND_TERM_MSG = (1<<25),
-	NES_CQP_QP_RESET = (1<<31),
+	NES_CQP_QP_TYPE_IWARP = (1 << 16),
+	NES_CQP_QP_TYPE_CQP = (4 << 16),
+	NES_CQP_QP_TYPE_NIC = (5 << 16),
+	NES_CQP_QP_MSS_CHG = (1 << 20),
+	NES_CQP_QP_STATIC_RESOURCES = (1 << 21),
+	NES_CQP_QP_IGNORE_MW_BOUND = (1 << 22),
+	NES_CQP_QP_VWQ_USE_LMI = (1 << 23),
+	NES_CQP_QP_IWARP_STATE_IDLE = (1 << NES_CQP_OP_IWARP_STATE_SHIFT),
+	NES_CQP_QP_IWARP_STATE_RTS = (2 << NES_CQP_OP_IWARP_STATE_SHIFT),
+	NES_CQP_QP_IWARP_STATE_CLOSING = (3 << NES_CQP_OP_IWARP_STATE_SHIFT),
+	NES_CQP_QP_IWARP_STATE_TERMINATE = (5 << NES_CQP_OP_IWARP_STATE_SHIFT),
+	NES_CQP_QP_IWARP_STATE_ERROR = (6 << NES_CQP_OP_IWARP_STATE_SHIFT),
+	NES_CQP_QP_IWARP_STATE_MASK = (7 << NES_CQP_OP_IWARP_STATE_SHIFT),
+	NES_CQP_QP_TERM_DONT_SEND_FIN = (1 << 24),
+	NES_CQP_QP_TERM_DONT_SEND_TERM_MSG = (1 << 25),
+	NES_CQP_QP_RESET = (1 << 31),
 };
 
-enum nes_cqp_qp_wqe_word_idx {
+enum nes_cqp_qp_wqe_word_idx
+{
 	NES_CQP_QP_WQE_CONTEXT_LOW_IDX = 6,
 	NES_CQP_QP_WQE_CONTEXT_HIGH_IDX = 7,
 	NES_CQP_QP_WQE_FLUSH_SQ_CODE = 8,
@@ -297,14 +306,16 @@ enum nes_cqp_qp_wqe_word_idx {
 	NES_CQP_QP_WQE_NEW_MSS_IDX = 15,
 };
 
-enum nes_nic_ctx_bits {
-	NES_NIC_CTX_RQ_SIZE_32 = (3<<8),
-	NES_NIC_CTX_RQ_SIZE_512 = (3<<8),
-	NES_NIC_CTX_SQ_SIZE_32 = (1<<10),
-	NES_NIC_CTX_SQ_SIZE_512 = (3<<10),
+enum nes_nic_ctx_bits
+{
+	NES_NIC_CTX_RQ_SIZE_32 = (3 << 8),
+	NES_NIC_CTX_RQ_SIZE_512 = (3 << 8),
+	NES_NIC_CTX_SQ_SIZE_32 = (1 << 10),
+	NES_NIC_CTX_SQ_SIZE_512 = (3 << 10),
 };
 
-enum nes_nic_qp_ctx_word_idx {
+enum nes_nic_qp_ctx_word_idx
+{
 	NES_NIC_CTX_MISC_IDX = 0,
 	NES_NIC_CTX_SQ_LOW_IDX = 2,
 	NES_NIC_CTX_SQ_HIGH_IDX = 3,
@@ -312,93 +323,106 @@ enum nes_nic_qp_ctx_word_idx {
 	NES_NIC_CTX_RQ_HIGH_IDX = 5,
 };
 
-enum nes_cqp_cq_bits {
-	NES_CQP_CQ_CEQE_MASK = (1<<9),
-	NES_CQP_CQ_CEQ_VALID = (1<<10),
-	NES_CQP_CQ_RESIZE = (1<<11),
-	NES_CQP_CQ_CHK_OVERFLOW = (1<<12),
-	NES_CQP_CQ_4KB_CHUNK = (1<<14),
-	NES_CQP_CQ_VIRT = (1<<15),
+enum nes_cqp_cq_bits
+{
+	NES_CQP_CQ_CEQE_MASK = (1 << 9),
+	NES_CQP_CQ_CEQ_VALID = (1 << 10),
+	NES_CQP_CQ_RESIZE = (1 << 11),
+	NES_CQP_CQ_CHK_OVERFLOW = (1 << 12),
+	NES_CQP_CQ_4KB_CHUNK = (1 << 14),
+	NES_CQP_CQ_VIRT = (1 << 15),
 };
 
-enum nes_cqp_stag_bits {
-	NES_CQP_STAG_VA_TO = (1<<9),
-	NES_CQP_STAG_DEALLOC_PBLS = (1<<10),
-	NES_CQP_STAG_PBL_BLK_SIZE = (1<<11),
-	NES_CQP_STAG_MR = (1<<13),
-	NES_CQP_STAG_RIGHTS_LOCAL_READ = (1<<16),
-	NES_CQP_STAG_RIGHTS_LOCAL_WRITE = (1<<17),
-	NES_CQP_STAG_RIGHTS_REMOTE_READ = (1<<18),
-	NES_CQP_STAG_RIGHTS_REMOTE_WRITE = (1<<19),
-	NES_CQP_STAG_RIGHTS_WINDOW_BIND = (1<<20),
-	NES_CQP_STAG_REM_ACC_EN = (1<<21),
-	NES_CQP_STAG_LEAVE_PENDING = (1<<31),
+enum nes_cqp_stag_bits
+{
+	NES_CQP_STAG_VA_TO = (1 << 9),
+	NES_CQP_STAG_DEALLOC_PBLS = (1 << 10),
+	NES_CQP_STAG_PBL_BLK_SIZE = (1 << 11),
+	NES_CQP_STAG_MR = (1 << 13),
+	NES_CQP_STAG_RIGHTS_LOCAL_READ = (1 << 16),
+	NES_CQP_STAG_RIGHTS_LOCAL_WRITE = (1 << 17),
+	NES_CQP_STAG_RIGHTS_REMOTE_READ = (1 << 18),
+	NES_CQP_STAG_RIGHTS_REMOTE_WRITE = (1 << 19),
+	NES_CQP_STAG_RIGHTS_WINDOW_BIND = (1 << 20),
+	NES_CQP_STAG_REM_ACC_EN = (1 << 21),
+	NES_CQP_STAG_LEAVE_PENDING = (1 << 31),
 };
 
-enum nes_cqp_ceq_wqeword_idx {
+enum nes_cqp_ceq_wqeword_idx
+{
 	NES_CQP_CEQ_WQE_ELEMENT_COUNT_IDX = 1,
 	NES_CQP_CEQ_WQE_PBL_LOW_IDX = 6,
 	NES_CQP_CEQ_WQE_PBL_HIGH_IDX = 7,
 };
 
-enum nes_cqp_ceq_bits {
-	NES_CQP_CEQ_4KB_CHUNK = (1<<14),
-	NES_CQP_CEQ_VIRT = (1<<15),
+enum nes_cqp_ceq_bits
+{
+	NES_CQP_CEQ_4KB_CHUNK = (1 << 14),
+	NES_CQP_CEQ_VIRT = (1 << 15),
 };
 
-enum nes_cqp_aeq_wqeword_idx {
+enum nes_cqp_aeq_wqeword_idx
+{
 	NES_CQP_AEQ_WQE_ELEMENT_COUNT_IDX = 1,
 	NES_CQP_AEQ_WQE_PBL_LOW_IDX = 6,
 	NES_CQP_AEQ_WQE_PBL_HIGH_IDX = 7,
 };
 
-enum nes_cqp_aeq_bits {
-	NES_CQP_AEQ_4KB_CHUNK = (1<<14),
-	NES_CQP_AEQ_VIRT = (1<<15),
+enum nes_cqp_aeq_bits
+{
+	NES_CQP_AEQ_4KB_CHUNK = (1 << 14),
+	NES_CQP_AEQ_VIRT = (1 << 15),
 };
 
-enum nes_cqp_lmi_wqeword_idx {
+enum nes_cqp_lmi_wqeword_idx
+{
 	NES_CQP_LMI_WQE_LMI_OFFSET_IDX = 1,
 	NES_CQP_LMI_WQE_FRAG_LOW_IDX = 8,
 	NES_CQP_LMI_WQE_FRAG_HIGH_IDX = 9,
 	NES_CQP_LMI_WQE_FRAG_LEN_IDX = 10,
 };
 
-enum nes_cqp_arp_wqeword_idx {
+enum nes_cqp_arp_wqeword_idx
+{
 	NES_CQP_ARP_WQE_MAC_ADDR_LOW_IDX = 6,
 	NES_CQP_ARP_WQE_MAC_HIGH_IDX = 7,
 	NES_CQP_ARP_WQE_REACHABILITY_MAX_IDX = 1,
 };
 
-enum nes_cqp_upload_wqeword_idx {
+enum nes_cqp_upload_wqeword_idx
+{
 	NES_CQP_UPLOAD_WQE_CTXT_LOW_IDX = 6,
 	NES_CQP_UPLOAD_WQE_CTXT_HIGH_IDX = 7,
 	NES_CQP_UPLOAD_WQE_HTE_IDX = 8,
 };
 
-enum nes_cqp_arp_bits {
-	NES_CQP_ARP_VALID = (1<<8),
-	NES_CQP_ARP_PERM = (1<<9),
+enum nes_cqp_arp_bits
+{
+	NES_CQP_ARP_VALID = (1 << 8),
+	NES_CQP_ARP_PERM = (1 << 9),
 };
 
-enum nes_cqp_flush_bits {
-	NES_CQP_FLUSH_SQ = (1<<30),
-	NES_CQP_FLUSH_RQ = (1<<31),
-	NES_CQP_FLUSH_MAJ_MIN = (1<<28),
+enum nes_cqp_flush_bits
+{
+	NES_CQP_FLUSH_SQ = (1 << 30),
+	NES_CQP_FLUSH_RQ = (1 << 31),
+	NES_CQP_FLUSH_MAJ_MIN = (1 << 28),
 };
 
-enum nes_cqe_opcode_bits {
-	NES_CQE_STAG_VALID = (1<<6),
-	NES_CQE_ERROR = (1<<7),
-	NES_CQE_SQ = (1<<8),
-	NES_CQE_SE = (1<<9),
-	NES_CQE_PSH = (1<<29),
-	NES_CQE_FIN = (1<<30),
-	NES_CQE_VALID = (1<<31),
+enum nes_cqe_opcode_bits
+{
+	NES_CQE_STAG_VALID = (1 << 6),
+	NES_CQE_ERROR = (1 << 7),
+	NES_CQE_SQ = (1 << 8),
+	NES_CQE_SE = (1 << 9),
+	NES_CQE_PSH = (1 << 29),
+	NES_CQE_FIN = (1 << 30),
+	NES_CQE_VALID = (1 << 31),
 };
 
 
-enum nes_cqe_word_idx {
+enum nes_cqe_word_idx
+{
 	NES_CQE_PAYLOAD_LENGTH_IDX = 0,
 	NES_CQE_COMP_COMP_CTX_LOW_IDX = 2,
 	NES_CQE_COMP_COMP_CTX_HIGH_IDX = 3,
@@ -408,80 +432,87 @@ enum nes_cqe_word_idx {
 	NES_CQE_OPCODE_IDX = 7,
 };
 
-enum nes_ceqe_word_idx {
+enum nes_ceqe_word_idx
+{
 	NES_CEQE_CQ_CTX_LOW_IDX = 0,
 	NES_CEQE_CQ_CTX_HIGH_IDX = 1,
 };
 
-enum nes_ceqe_status_bit {
-	NES_CEQE_VALID = (1<<31),
+enum nes_ceqe_status_bit
+{
+	NES_CEQE_VALID = (1 << 31),
 };
 
-enum nes_int_bits {
-	NES_INT_CEQ0 = (1<<0),
-	NES_INT_CEQ1 = (1<<1),
-	NES_INT_CEQ2 = (1<<2),
-	NES_INT_CEQ3 = (1<<3),
-	NES_INT_CEQ4 = (1<<4),
-	NES_INT_CEQ5 = (1<<5),
-	NES_INT_CEQ6 = (1<<6),
-	NES_INT_CEQ7 = (1<<7),
-	NES_INT_CEQ8 = (1<<8),
-	NES_INT_CEQ9 = (1<<9),
-	NES_INT_CEQ10 = (1<<10),
-	NES_INT_CEQ11 = (1<<11),
-	NES_INT_CEQ12 = (1<<12),
-	NES_INT_CEQ13 = (1<<13),
-	NES_INT_CEQ14 = (1<<14),
-	NES_INT_CEQ15 = (1<<15),
-	NES_INT_AEQ0 = (1<<16),
-	NES_INT_AEQ1 = (1<<17),
-	NES_INT_AEQ2 = (1<<18),
-	NES_INT_AEQ3 = (1<<19),
-	NES_INT_AEQ4 = (1<<20),
-	NES_INT_AEQ5 = (1<<21),
-	NES_INT_AEQ6 = (1<<22),
-	NES_INT_AEQ7 = (1<<23),
-	NES_INT_MAC0 = (1<<24),
-	NES_INT_MAC1 = (1<<25),
-	NES_INT_MAC2 = (1<<26),
-	NES_INT_MAC3 = (1<<27),
-	NES_INT_TSW = (1<<28),
-	NES_INT_TIMER = (1<<29),
-	NES_INT_INTF = (1<<30),
+enum nes_int_bits
+{
+	NES_INT_CEQ0 = (1 << 0),
+	NES_INT_CEQ1 = (1 << 1),
+	NES_INT_CEQ2 = (1 << 2),
+	NES_INT_CEQ3 = (1 << 3),
+	NES_INT_CEQ4 = (1 << 4),
+	NES_INT_CEQ5 = (1 << 5),
+	NES_INT_CEQ6 = (1 << 6),
+	NES_INT_CEQ7 = (1 << 7),
+	NES_INT_CEQ8 = (1 << 8),
+	NES_INT_CEQ9 = (1 << 9),
+	NES_INT_CEQ10 = (1 << 10),
+	NES_INT_CEQ11 = (1 << 11),
+	NES_INT_CEQ12 = (1 << 12),
+	NES_INT_CEQ13 = (1 << 13),
+	NES_INT_CEQ14 = (1 << 14),
+	NES_INT_CEQ15 = (1 << 15),
+	NES_INT_AEQ0 = (1 << 16),
+	NES_INT_AEQ1 = (1 << 17),
+	NES_INT_AEQ2 = (1 << 18),
+	NES_INT_AEQ3 = (1 << 19),
+	NES_INT_AEQ4 = (1 << 20),
+	NES_INT_AEQ5 = (1 << 21),
+	NES_INT_AEQ6 = (1 << 22),
+	NES_INT_AEQ7 = (1 << 23),
+	NES_INT_MAC0 = (1 << 24),
+	NES_INT_MAC1 = (1 << 25),
+	NES_INT_MAC2 = (1 << 26),
+	NES_INT_MAC3 = (1 << 27),
+	NES_INT_TSW = (1 << 28),
+	NES_INT_TIMER = (1 << 29),
+	NES_INT_INTF = (1 << 30),
 };
 
-enum nes_intf_int_bits {
-	NES_INTF_INT_PCIERR = (1<<0),
-	NES_INTF_PERIODIC_TIMER = (1<<2),
-	NES_INTF_ONE_SHOT_TIMER = (1<<3),
-	NES_INTF_INT_CRITERR = (1<<14),
-	NES_INTF_INT_AEQ0_OFLOW = (1<<16),
-	NES_INTF_INT_AEQ1_OFLOW = (1<<17),
-	NES_INTF_INT_AEQ2_OFLOW = (1<<18),
-	NES_INTF_INT_AEQ3_OFLOW = (1<<19),
-	NES_INTF_INT_AEQ4_OFLOW = (1<<20),
-	NES_INTF_INT_AEQ5_OFLOW = (1<<21),
-	NES_INTF_INT_AEQ6_OFLOW = (1<<22),
-	NES_INTF_INT_AEQ7_OFLOW = (1<<23),
-	NES_INTF_INT_AEQ_OFLOW = (0xff<<16),
+enum nes_intf_int_bits
+{
+	NES_INTF_INT_PCIERR = (1 << 0),
+	NES_INTF_PERIODIC_TIMER = (1 << 2),
+	NES_INTF_ONE_SHOT_TIMER = (1 << 3),
+	NES_INTF_INT_CRITERR = (1 << 14),
+	NES_INTF_INT_AEQ0_OFLOW = (1 << 16),
+	NES_INTF_INT_AEQ1_OFLOW = (1 << 17),
+	NES_INTF_INT_AEQ2_OFLOW = (1 << 18),
+	NES_INTF_INT_AEQ3_OFLOW = (1 << 19),
+	NES_INTF_INT_AEQ4_OFLOW = (1 << 20),
+	NES_INTF_INT_AEQ5_OFLOW = (1 << 21),
+	NES_INTF_INT_AEQ6_OFLOW = (1 << 22),
+	NES_INTF_INT_AEQ7_OFLOW = (1 << 23),
+	NES_INTF_INT_AEQ_OFLOW = (0xff << 16),
 };
 
-enum nes_mac_int_bits {
-	NES_MAC_INT_LINK_STAT_CHG = (1<<1),
-	NES_MAC_INT_XGMII_EXT = (1<<2),
-	NES_MAC_INT_TX_UNDERFLOW = (1<<6),
-	NES_MAC_INT_TX_ERROR = (1<<7),
+enum nes_mac_int_bits
+{
+	NES_MAC_INT_LINK_STAT_CHG = (1 << 1),
+	NES_MAC_INT_XGMII_EXT = (1 << 2),
+	NES_MAC_INT_TX_UNDERFLOW = (1 << 6),
+	NES_MAC_INT_TX_ERROR = (1 << 7),
 };
 
-enum nes_cqe_allocate_bits {
-	NES_CQE_ALLOC_INC_SELECT = (1<<28),
-	NES_CQE_ALLOC_NOTIFY_NEXT = (1<<29),
-	NES_CQE_ALLOC_NOTIFY_SE = (1<<30),
-	NES_CQE_ALLOC_RESET = (1<<31),
+enum nes_cqe_allocate_bits
+{
+	NES_CQE_ALLOC_INC_SELECT = (1 << 28),
+	NES_CQE_ALLOC_NOTIFY_NEXT = (1 << 29),
+	NES_CQE_ALLOC_NOTIFY_SE = (1 << 30),
+	NES_CQE_ALLOC_RESET = (1 << 31),
 };
 
-enum nes_nic_rq_wqe_word_idx {
+enum nes_nic_rq_wqe_word_idx
+{
 	NES_NIC_RQ_WQE_LENGTH_1_0_IDX = 0,
 	NES_NIC_RQ_WQE_LENGTH_3_2_IDX = 1,
 	NES_NIC_RQ_WQE_FRAG0_LOW_IDX = 2,
@@ -494,7 +525,8 @@ enum nes_nic_rq_wqe_word_idx {
 	NES_NIC_RQ_WQE_FRAG3_HIGH_IDX = 9,
 };
 
-enum nes_nic_sq_wqe_word_idx {
+enum nes_nic_sq_wqe_word_idx
+{
 	NES_NIC_SQ_WQE_MISC_IDX = 0,
 	NES_NIC_SQ_WQE_TOTAL_LENGTH_IDX = 1,
 	NES_NIC_SQ_WQE_LSO_INFO_IDX = 2,
@@ -513,7 +545,8 @@ enum nes_nic_sq_wqe_word_idx {
 	NES_NIC_SQ_WQE_FRAG4_HIGH_IDX = 15,
 };
 
-enum nes_iwarp_sq_wqe_word_idx {
+enum nes_iwarp_sq_wqe_word_idx
+{
 	NES_IWARP_SQ_WQE_MISC_IDX = 0,
 	NES_IWARP_SQ_WQE_TOTAL_PAYLOAD_IDX = 1,
 	NES_IWARP_SQ_WQE_COMP_CTX_LOW_IDX = 2,
@@ -544,7 +577,8 @@ enum nes_iwarp_sq_wqe_word_idx {
 	NES_IWARP_SQ_WQE_STAG3_IDX = 31,
 };
 
-enum nes_iwarp_sq_bind_wqe_word_idx {
+enum nes_iwarp_sq_bind_wqe_word_idx
+{
 	NES_IWARP_SQ_BIND_WQE_MR_IDX = 6,
 	NES_IWARP_SQ_BIND_WQE_MW_IDX = 7,
 	NES_IWARP_SQ_BIND_WQE_LENGTH_LOW_IDX = 8,
@@ -553,7 +587,8 @@ enum nes_iwarp_sq_bind_wqe_word_idx {
 	NES_IWARP_SQ_BIND_WQE_VA_FBO_HIGH_IDX = 11,
 };
 
-enum nes_iwarp_sq_fmr_wqe_word_idx {
+enum nes_iwarp_sq_fmr_wqe_word_idx
+{
 	NES_IWARP_SQ_FMR_WQE_MR_STAG_IDX = 7,
 	NES_IWARP_SQ_FMR_WQE_LENGTH_LOW_IDX = 8,
 	NES_IWARP_SQ_FMR_WQE_LENGTH_HIGH_IDX = 9,
@@ -564,24 +599,27 @@ enum nes_iwarp_sq_fmr_wqe_word_idx {
 	NES_IWARP_SQ_FMR_WQE_PBL_LENGTH_IDX = 14,
 };
 
-enum nes_iwarp_sq_fmr_opcodes {
-	NES_IWARP_SQ_FMR_WQE_ZERO_BASED			= (1<<6),
-	NES_IWARP_SQ_FMR_WQE_PAGE_SIZE_4K		= (0<<7),
-	NES_IWARP_SQ_FMR_WQE_PAGE_SIZE_2M		= (1<<7),
-	NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_LOCAL_READ	= (1<<16),
-	NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_LOCAL_WRITE 	= (1<<17),
-	NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_REMOTE_READ 	= (1<<18),
-	NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_REMOTE_WRITE = (1<<19),
-	NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_WINDOW_BIND 	= (1<<20),
+enum nes_iwarp_sq_fmr_opcodes
+{
+	NES_IWARP_SQ_FMR_WQE_ZERO_BASED			= (1 << 6),
+	NES_IWARP_SQ_FMR_WQE_PAGE_SIZE_4K		= (0 << 7),
+	NES_IWARP_SQ_FMR_WQE_PAGE_SIZE_2M		= (1 << 7),
+	NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_LOCAL_READ	= (1 << 16),
+	NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_LOCAL_WRITE 	= (1 << 17),
+	NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_REMOTE_READ 	= (1 << 18),
+	NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_REMOTE_WRITE = (1 << 19),
+	NES_IWARP_SQ_FMR_WQE_RIGHTS_ENABLE_WINDOW_BIND 	= (1 << 20),
 };
 
 #define NES_IWARP_SQ_FMR_WQE_MR_LENGTH_HIGH_MASK	0xFF;
 
-enum nes_iwarp_sq_locinv_wqe_word_idx {
+enum nes_iwarp_sq_locinv_wqe_word_idx
+{
 	NES_IWARP_SQ_LOCINV_WQE_INV_STAG_IDX = 6,
 };
 
-enum nes_iwarp_rq_wqe_word_idx {
+enum nes_iwarp_rq_wqe_word_idx
+{
 	NES_IWARP_RQ_WQE_TOTAL_PAYLOAD_IDX = 1,
 	NES_IWARP_RQ_WQE_COMP_CTX_LOW_IDX = 2,
 	NES_IWARP_RQ_WQE_COMP_CTX_HIGH_IDX = 3,
@@ -605,15 +643,17 @@ enum nes_iwarp_rq_wqe_word_idx {
 	NES_IWARP_RQ_WQE_STAG3_IDX = 23,
 };
 
-enum nes_nic_sq_wqe_bits {
-	NES_NIC_SQ_WQE_PHDR_CS_READY =  (1<<21),
-	NES_NIC_SQ_WQE_LSO_ENABLE = (1<<22),
-	NES_NIC_SQ_WQE_TAGVALUE_ENABLE = (1<<23),
-	NES_NIC_SQ_WQE_DISABLE_CHKSUM = (1<<30),
-	NES_NIC_SQ_WQE_COMPLETION = (1<<31),
+enum nes_nic_sq_wqe_bits
+{
+	NES_NIC_SQ_WQE_PHDR_CS_READY =  (1 << 21),
+	NES_NIC_SQ_WQE_LSO_ENABLE = (1 << 22),
+	NES_NIC_SQ_WQE_TAGVALUE_ENABLE = (1 << 23),
+	NES_NIC_SQ_WQE_DISABLE_CHKSUM = (1 << 30),
+	NES_NIC_SQ_WQE_COMPLETION = (1 << 31),
 };
 
-enum nes_nic_cqe_word_idx {
+enum nes_nic_cqe_word_idx
+{
 	NES_NIC_CQE_ACCQP_ID_IDX = 0,
 	NES_NIC_CQE_HASH_RCVNXT = 1,
 	NES_NIC_CQE_TAG_PKT_TYPE_IDX = 2,
@@ -639,39 +679,43 @@ enum nes_nic_cqe_word_idx {
 #define NES_PKT_TYPE_OTHER_MASK 0x0030
 
 #define NES_NIC_CQE_ERRV_SHIFT 16
-enum nes_nic_ev_bits {
-	NES_NIC_ERRV_BITS_MODE = (1<<0),
-	NES_NIC_ERRV_BITS_IPV4_CSUM_ERR = (1<<1),
-	NES_NIC_ERRV_BITS_TCPUDP_CSUM_ERR = (1<<2),
-	NES_NIC_ERRV_BITS_WQE_OVERRUN = (1<<3),
-	NES_NIC_ERRV_BITS_IPH_ERR = (1<<4),
+enum nes_nic_ev_bits
+{
+	NES_NIC_ERRV_BITS_MODE = (1 << 0),
+	NES_NIC_ERRV_BITS_IPV4_CSUM_ERR = (1 << 1),
+	NES_NIC_ERRV_BITS_TCPUDP_CSUM_ERR = (1 << 2),
+	NES_NIC_ERRV_BITS_WQE_OVERRUN = (1 << 3),
+	NES_NIC_ERRV_BITS_IPH_ERR = (1 << 4),
 };
 
-enum nes_nic_cqe_bits {
-	NES_NIC_CQE_ERRV_MASK = (0xff<<NES_NIC_CQE_ERRV_SHIFT),
-	NES_NIC_CQE_SQ = (1<<24),
-	NES_NIC_CQE_ACCQP_PORT = (1<<28),
-	NES_NIC_CQE_ACCQP_VALID = (1<<29),
-	NES_NIC_CQE_TAG_VALID = (1<<30),
-	NES_NIC_CQE_VALID = (1<<31),
+enum nes_nic_cqe_bits
+{
+	NES_NIC_CQE_ERRV_MASK = (0xff << NES_NIC_CQE_ERRV_SHIFT),
+	NES_NIC_CQE_SQ = (1 << 24),
+	NES_NIC_CQE_ACCQP_PORT = (1 << 28),
+	NES_NIC_CQE_ACCQP_VALID = (1 << 29),
+	NES_NIC_CQE_TAG_VALID = (1 << 30),
+	NES_NIC_CQE_VALID = (1 << 31),
 };
 
-enum nes_aeqe_word_idx {
+enum nes_aeqe_word_idx
+{
 	NES_AEQE_COMP_CTXT_LOW_IDX = 0,
 	NES_AEQE_COMP_CTXT_HIGH_IDX = 1,
 	NES_AEQE_COMP_QP_CQ_ID_IDX = 2,
 	NES_AEQE_MISC_IDX = 3,
 };
 
-enum nes_aeqe_bits {
-	NES_AEQE_QP = (1<<16),
-	NES_AEQE_CQ = (1<<17),
-	NES_AEQE_SQ = (1<<18),
-	NES_AEQE_INBOUND_RDMA = (1<<19),
-	NES_AEQE_IWARP_STATE_MASK = (7<<20),
-	NES_AEQE_TCP_STATE_MASK = (0xf<<24),
-	NES_AEQE_Q2_DATA_WRITTEN = (0x3<<28),
-	NES_AEQE_VALID = (1<<31),
+enum nes_aeqe_bits
+{
+	NES_AEQE_QP = (1 << 16),
+	NES_AEQE_CQ = (1 << 17),
+	NES_AEQE_SQ = (1 << 18),
+	NES_AEQE_INBOUND_RDMA = (1 << 19),
+	NES_AEQE_IWARP_STATE_MASK = (7 << 20),
+	NES_AEQE_TCP_STATE_MASK = (0xf << 24),
+	NES_AEQE_Q2_DATA_WRITTEN = (0x3 << 28),
+	NES_AEQE_VALID = (1 << 31),
 };
 
 #define NES_AEQE_IWARP_STATE_SHIFT	20
@@ -679,7 +723,8 @@ enum nes_aeqe_bits {
 #define NES_AEQE_Q2_DATA_ETHERNET       (1<<28)
 #define NES_AEQE_Q2_DATA_MPA            (1<<29)
 
-enum nes_aeqe_iwarp_state {
+enum nes_aeqe_iwarp_state
+{
 	NES_AEQE_IWARP_STATE_NON_EXISTANT = 0,
 	NES_AEQE_IWARP_STATE_IDLE = 1,
 	NES_AEQE_IWARP_STATE_RTS = 2,
@@ -688,7 +733,8 @@ enum nes_aeqe_iwarp_state {
 	NES_AEQE_IWARP_STATE_ERROR = 6
 };
 
-enum nes_aeqe_tcp_state {
+enum nes_aeqe_tcp_state
+{
 	NES_AEQE_TCP_STATE_NON_EXISTANT = 0,
 	NES_AEQE_TCP_STATE_CLOSED = 1,
 	NES_AEQE_TCP_STATE_LISTEN = 2,
@@ -703,7 +749,8 @@ enum nes_aeqe_tcp_state {
 	NES_AEQE_TCP_STATE_TIME_WAIT = 11
 };
 
-enum nes_aeqe_aeid {
+enum nes_aeqe_aeid
+{
 	NES_AEQE_AEID_AMP_UNALLOCATED_STAG                            = 0x0102,
 	NES_AEQE_AEID_AMP_INVALID_STAG                                = 0x0103,
 	NES_AEQE_AEID_AMP_BAD_QP                                      = 0x0104,
@@ -767,17 +814,19 @@ enum nes_aeqe_aeid {
 	NES_AEQE_AEID_DDP_LCE_LOCAL_CATASTROPHIC                      = 0x0700
 };
 
-enum nes_iwarp_sq_opcodes {
-	NES_IWARP_SQ_WQE_WRPDU = (1<<15),
-	NES_IWARP_SQ_WQE_PSH = (1<<21),
-	NES_IWARP_SQ_WQE_STREAMING = (1<<23),
-	NES_IWARP_SQ_WQE_IMM_DATA = (1<<28),
-	NES_IWARP_SQ_WQE_READ_FENCE = (1<<29),
-	NES_IWARP_SQ_WQE_LOCAL_FENCE = (1<<30),
-	NES_IWARP_SQ_WQE_SIGNALED_COMPL = (1<<31),
+enum nes_iwarp_sq_opcodes
+{
+	NES_IWARP_SQ_WQE_WRPDU = (1 << 15),
+	NES_IWARP_SQ_WQE_PSH = (1 << 21),
+	NES_IWARP_SQ_WQE_STREAMING = (1 << 23),
+	NES_IWARP_SQ_WQE_IMM_DATA = (1 << 28),
+	NES_IWARP_SQ_WQE_READ_FENCE = (1 << 29),
+	NES_IWARP_SQ_WQE_LOCAL_FENCE = (1 << 30),
+	NES_IWARP_SQ_WQE_SIGNALED_COMPL = (1 << 31),
 };
 
-enum nes_iwarp_sq_wqe_bits {
+enum nes_iwarp_sq_wqe_bits
+{
 	NES_IWARP_SQ_OP_RDMAW = 0,
 	NES_IWARP_SQ_OP_RDMAR = 1,
 	NES_IWARP_SQ_OP_SEND = 3,
@@ -791,12 +840,14 @@ enum nes_iwarp_sq_wqe_bits {
 	NES_IWARP_SQ_OP_NOP = 12,
 };
 
-enum nes_iwarp_cqe_major_code {
+enum nes_iwarp_cqe_major_code
+{
 	NES_IWARP_CQE_MAJOR_FLUSH = 1,
 	NES_IWARP_CQE_MAJOR_DRV = 0x8000
 };
 
-enum nes_iwarp_cqe_minor_code {
+enum nes_iwarp_cqe_minor_code
+{
 	NES_IWARP_CQE_MINOR_FLUSH = 1
 };
 
@@ -806,7 +857,8 @@ enum nes_iwarp_cqe_minor_code {
 /*
  * NES index registers init values.
  */
-struct nes_init_values {
+struct nes_init_values
+{
 	u32 index;
 	u32 data;
 	u8  wrt;
@@ -815,7 +867,8 @@ struct nes_init_values {
 /*
  * NES registers in BAR0.
  */
-struct nes_pci_regs {
+struct nes_pci_regs
+{
 	u32 int_status;
 	u32 int_mask;
 	u32 int_pending;
@@ -832,48 +885,60 @@ struct nes_pci_regs {
 
 struct nes_device;
 
-struct nes_hw_nic_qp_context {
+struct nes_hw_nic_qp_context
+{
 	__le32 context_words[6];
 };
 
-struct nes_hw_nic_sq_wqe {
+struct nes_hw_nic_sq_wqe
+{
 	__le32 wqe_words[16];
 };
 
-struct nes_hw_nic_rq_wqe {
+struct nes_hw_nic_rq_wqe
+{
 	__le32 wqe_words[16];
 };
 
-struct nes_hw_nic_cqe {
+struct nes_hw_nic_cqe
+{
 	__le32 cqe_words[4];
 };
 
-struct nes_hw_cqp_qp_context {
+struct nes_hw_cqp_qp_context
+{
 	__le32 context_words[4];
 };
 
-struct nes_hw_cqp_wqe {
+struct nes_hw_cqp_wqe
+{
 	__le32 wqe_words[16];
 };
 
-struct nes_hw_qp_wqe {
+struct nes_hw_qp_wqe
+{
 	__le32 wqe_words[32];
 };
 
-struct nes_hw_cqe {
+struct nes_hw_cqe
+{
 	__le32 cqe_words[8];
 };
 
-struct nes_hw_ceqe {
+struct nes_hw_ceqe
+{
 	__le32 ceqe_words[2];
 };
 
-struct nes_hw_aeqe {
+struct nes_hw_aeqe
+{
 	__le32 aeqe_words[4];
 };
 
-struct nes_cqp_request {
-	union {
+struct nes_cqp_request
+{
+	union
+	{
 		u64 cqp_callback_context;
 		void *cqp_callback_pointer;
 	};
@@ -890,7 +955,8 @@ struct nes_cqp_request {
 	u8                    callback;
 };
 
-struct nes_hw_cqp {
+struct nes_hw_cqp
+{
 	struct nes_hw_cqp_wqe *sq_vbase;
 	dma_addr_t            sq_pbase;
 	spinlock_t            lock;
@@ -902,11 +968,13 @@ struct nes_hw_cqp {
 };
 
 #define NES_FIRST_FRAG_SIZE 128
-struct nes_first_frag {
+struct nes_first_frag
+{
 	u8 buffer[NES_FIRST_FRAG_SIZE];
 };
 
-struct nes_hw_nic {
+struct nes_hw_nic
+{
 	struct nes_first_frag    *first_frag_vbase;	/* virtual address of first frags */
 	struct nes_hw_nic_sq_wqe *sq_vbase;			/* virtual address of sq */
 	struct nes_hw_nic_rq_wqe *rq_vbase;			/* virtual address of rq */
@@ -930,7 +998,8 @@ struct nes_hw_nic {
 	spinlock_t rq_lock;
 };
 
-struct nes_hw_nic_cq {
+struct nes_hw_nic_cq
+{
 	struct nes_hw_nic_cqe volatile *cq_vbase;	/* PCI memory for host rings */
 	void (*ce_handler)(struct nes_device *nesdev, struct nes_hw_nic_cq *cq);
 	dma_addr_t cq_pbase;	/* PCI memory for host rings */
@@ -943,7 +1012,8 @@ struct nes_hw_nic_cq {
 	u8  cqes_pending;
 };
 
-struct nes_hw_qp {
+struct nes_hw_qp
+{
 	struct nes_hw_qp_wqe *sq_vbase;		/* PCI memory for host rings */
 	struct nes_hw_qp_wqe *rq_vbase;		/* PCI memory for host rings */
 	void                 *q2_vbase;			/* PCI memory for host rings */
@@ -961,7 +1031,8 @@ struct nes_hw_qp {
 	u8  sq_encoded_size;
 };
 
-struct nes_hw_cq {
+struct nes_hw_cq
+{
 	struct nes_hw_cqe *cq_vbase;	/* PCI memory for host rings */
 	void (*ce_handler)(struct nes_device *nesdev, struct nes_hw_cq *cq);
 	dma_addr_t cq_pbase;	/* PCI memory for host rings */
@@ -970,21 +1041,24 @@ struct nes_hw_cq {
 	u16 cq_number;
 };
 
-struct nes_hw_ceq {
+struct nes_hw_ceq
+{
 	struct nes_hw_ceqe volatile *ceq_vbase;	/* PCI memory for host rings */
 	dma_addr_t ceq_pbase;	/* PCI memory for host rings */
 	u16 ceq_head;
 	u16 ceq_size;
 };
 
-struct nes_hw_aeq {
+struct nes_hw_aeq
+{
 	struct nes_hw_aeqe volatile *aeq_vbase;	/* PCI memory for host rings */
 	dma_addr_t aeq_pbase;	/* PCI memory for host rings */
 	u16 aeq_head;
 	u16 aeq_size;
 };
 
-struct nic_qp_map {
+struct nic_qp_map
+{
 	u8 qpid;
 	u8 nic_index;
 	u8 logical_port;
@@ -1005,7 +1079,8 @@ struct nic_qp_map {
 #define NES_MAC_SW_INTERRUPT 1
 #define NES_MAC_SW_MH        2
 
-struct nes_arp_entry {
+struct nes_arp_entry
+{
 	u32 ip_addr;
 	u8  mac_addr[ETH_ALEN];
 };
@@ -1027,19 +1102,20 @@ struct nes_arp_entry {
 #define NES_MGT_QP_OFFSET 36
 #define NES_MGT_QP_COUNT 4
 
-struct nes_hw_tune_timer {
-    /* u16 cq_count; */
-    u16 threshold_low;
-    u16 threshold_target;
-    u16 threshold_high;
-    u16 timer_in_use;
-    u16 timer_in_use_old;
-    u16 timer_in_use_min;
-    u16 timer_in_use_max;
-    u8  timer_direction_upward;
-    u8  timer_direction_downward;
-    u16 cq_count_old;
-    u8  cq_direction_downward;
+struct nes_hw_tune_timer
+{
+	/* u16 cq_count; */
+	u16 threshold_low;
+	u16 threshold_target;
+	u16 threshold_high;
+	u16 timer_in_use;
+	u16 timer_in_use_old;
+	u16 timer_in_use_min;
+	u16 timer_in_use_max;
+	u8  timer_direction_upward;
+	u8  timer_direction_downward;
+	u16 cq_count_old;
+	u8  cq_direction_downward;
 };
 
 #define NES_TIMER_INT_LIMIT         2
@@ -1048,7 +1124,8 @@ struct nes_hw_tune_timer {
 #define NES_MAX_LINK_INTERRUPTS     128
 #define NES_MAX_LINK_CHECK          200
 
-struct nes_adapter {
+struct nes_adapter
+{
 	u64              fw_ver;
 	unsigned long    *allocated_qps;
 	unsigned long    *allocated_cqs;
@@ -1179,7 +1256,8 @@ struct nes_adapter {
 	u8 pft_mcast_map[NES_PFT_SIZE];
 };
 
-struct nes_pbl {
+struct nes_pbl
+{
 	u64              *pbl_vbase;
 	dma_addr_t       pbl_pbase;
 	struct page      *page;
@@ -1191,12 +1269,14 @@ struct nes_pbl {
 
 #define NES_4K_PBL_CHUNK_SIZE	4096
 
-struct nes_fast_mr_wqe_pbl {
+struct nes_fast_mr_wqe_pbl
+{
 	u64		*kva;
 	dma_addr_t	paddr;
 };
 
-struct nes_listener {
+struct nes_listener
+{
 	struct work_struct      work;
 	struct workqueue_struct *wq;
 	struct nes_vnic         *nesvnic;
@@ -1210,7 +1290,8 @@ struct nes_ib_device;
 
 #define NES_EVENT_DELAY msecs_to_jiffies(100)
 
-struct nes_vnic {
+struct nes_vnic
+{
 	struct nes_ib_device *nesibdev;
 	u64 sq_full;
 	u64 tso_requests;
@@ -1242,9 +1323,9 @@ struct nes_vnic {
 	struct nes_hw_nic_cq nic_cq;
 	u32    mcrq_qp_id;
 	struct nes_ucontext *mcrq_ucontext;
-	struct nes_cqp_request* (*get_cqp_request)(struct nes_device *nesdev);
-	void (*post_cqp_request)(struct nes_device*, struct nes_cqp_request *);
-	int (*mcrq_mcast_filter)( struct nes_vnic* nesvnic, __u8* dmi_addr );
+	struct nes_cqp_request *(*get_cqp_request)(struct nes_device *nesdev);
+	void (*post_cqp_request)(struct nes_device *, struct nes_cqp_request *);
+	int (*mcrq_mcast_filter)( struct nes_vnic *nesvnic, __u8 *dmi_addr );
 	struct net_device_stats netstats;
 	/* used to put the netdev on the adapters logical port list */
 	struct list_head list;
@@ -1273,7 +1354,8 @@ struct nes_vnic {
 
 };
 
-struct nes_ib_device {
+struct nes_ib_device
+{
 	struct ib_device ibdev;
 	struct nes_vnic *nesvnic;
 
@@ -1288,19 +1370,22 @@ struct nes_ib_device {
 	u32 num_pd;
 };
 
-enum nes_hdrct_flags {
+enum nes_hdrct_flags
+{
 	DDP_LEN_FLAG                    = 0x80,
 	DDP_HDR_FLAG                    = 0x40,
 	RDMA_HDR_FLAG                   = 0x20
 };
 
-enum nes_term_layers {
+enum nes_term_layers
+{
 	LAYER_RDMA			= 0,
 	LAYER_DDP			= 1,
 	LAYER_MPA			= 2
 };
 
-enum nes_term_error_types {
+enum nes_term_error_types
+{
 	RDMAP_CATASTROPHIC		= 0,
 	RDMAP_REMOTE_PROT		= 1,
 	RDMAP_REMOTE_OP			= 2,
@@ -1310,7 +1395,8 @@ enum nes_term_error_types {
 	DDP_LLP				= 3
 };
 
-enum nes_term_rdma_errors {
+enum nes_term_rdma_errors
+{
 	RDMAP_INV_STAG			= 0x00,
 	RDMAP_INV_BOUNDS		= 0x01,
 	RDMAP_ACCESS			= 0x02,
@@ -1324,7 +1410,8 @@ enum nes_term_rdma_errors {
 	RDMAP_UNSPECIFIED		= 0xff
 };
 
-enum nes_term_ddp_errors {
+enum nes_term_ddp_errors
+{
 	DDP_CATASTROPHIC_LOCAL		= 0x00,
 	DDP_TAGGED_INV_STAG		= 0x00,
 	DDP_TAGGED_BOUNDS		= 0x01,
@@ -1339,14 +1426,16 @@ enum nes_term_ddp_errors {
 	DDP_UNTAGGED_INV_DDP_VER	= 0x06
 };
 
-enum nes_term_mpa_errors {
+enum nes_term_mpa_errors
+{
 	MPA_CLOSED			= 0x01,
 	MPA_CRC				= 0x02,
 	MPA_MARKER			= 0x03,
 	MPA_REQ_RSP			= 0x04,
 };
 
-struct nes_terminate_hdr {
+struct nes_terminate_hdr
+{
 	u8 layer_etype;
 	u8 error_code;
 	u8 hdrct;

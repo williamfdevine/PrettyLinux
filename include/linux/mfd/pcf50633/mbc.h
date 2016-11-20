@@ -28,7 +28,8 @@
 #define PCF50633_REG_MBCS2	0x4c
 #define PCF50633_REG_MBCS3	0x4d
 
-enum pcf50633_reg_mbcc1 {
+enum pcf50633_reg_mbcc1
+{
 	PCF50633_MBCC1_CHGENA		= 0x01,	/* Charger enable */
 	PCF50633_MBCC1_AUTOSTOP		= 0x02,
 	PCF50633_MBCC1_AUTORES		= 0x04, /* automatic resume */
@@ -42,7 +43,8 @@ enum pcf50633_reg_mbcc1 {
 };
 #define PCF50633_MBCC1_WDTIME_MASK	  0xc0
 
-enum pcf50633_reg_mbcc2 {
+enum pcf50633_reg_mbcc2
+{
 	PCF50633_MBCC2_VBATCOND_2V7	= 0x00,
 	PCF50633_MBCC2_VBATCOND_2V85	= 0x01,
 	PCF50633_MBCC2_VBATCOND_3V0	= 0x02,
@@ -52,7 +54,8 @@ enum pcf50633_reg_mbcc2 {
 	PCF50633_MBCC2_VRESDEBTIME_64S	= 0x80,	/* debounce time (32/64sec) */
 };
 
-enum pcf50633_reg_mbcc7 {
+enum pcf50633_reg_mbcc7
+{
 	PCF50633_MBCC7_USB_100mA	= 0x00,
 	PCF50633_MBCC7_USB_500mA	= 0x01,
 	PCF50633_MBCC7_USB_1000mA	= 0x02,
@@ -65,11 +68,13 @@ enum pcf50633_reg_mbcc7 {
 };
 #define PCF50633_MBCC7_USB_MASK 0x03
 
-enum pcf50633_reg_mbcc8 {
+enum pcf50633_reg_mbcc8
+{
 	PCF50633_MBCC8_USBENASUS	= 0x10,
 };
 
-enum pcf50633_reg_mbcs1 {
+enum pcf50633_reg_mbcs1
+{
 	PCF50633_MBCS1_USBPRES		= 0x01,
 	PCF50633_MBCS1_USBOK		= 0x02,
 	PCF50633_MBCS1_ADAPTPRES	= 0x04,
@@ -82,7 +87,8 @@ enum pcf50633_reg_mbcs1 {
 	PCF50633_MBCS1_WDTEXP		= 0x80,
 };
 
-enum pcf50633_reg_mbcs2_mbcmod {
+enum pcf50633_reg_mbcs2_mbcmod
+{
 	PCF50633_MBCS2_MBC_PLAY		= 0x00,
 	PCF50633_MBCS2_MBC_USB_PRE	= 0x01,
 	PCF50633_MBCS2_MBC_USB_PRE_WAIT	= 0x02,
@@ -97,7 +103,8 @@ enum pcf50633_reg_mbcs2_mbcmod {
 	PCF50633_MBCS2_MBC_HALT		= 0x0b,
 };
 #define PCF50633_MBCS2_MBC_MASK		0x0f
-enum pcf50633_reg_mbcs2_chgstat {
+enum pcf50633_reg_mbcs2_chgstat
+{
 	PCF50633_MBCS2_CHGS_NONE	= 0x00,
 	PCF50633_MBCS2_CHGS_ADAPTER	= 0x10,
 	PCF50633_MBCS2_CHGS_USB		= 0x20,
@@ -105,7 +112,8 @@ enum pcf50633_reg_mbcs2_chgstat {
 };
 #define PCF50633_MBCS2_RESSTAT_AUTO	0x40
 
-enum pcf50633_reg_mbcs3 {
+enum pcf50633_reg_mbcs3
+{
 	PCF50633_MBCS3_USBLIM_PLAY	= 0x01,
 	PCF50633_MBCS3_USBLIM_CGH	= 0x02,
 	PCF50633_MBCS3_TLIM_PLAY	= 0x04,

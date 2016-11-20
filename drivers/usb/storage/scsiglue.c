@@ -69,10 +69,10 @@
 #define VENDOR_ID_MOTOROLA	0x22b8
 
 /***********************************************************************
- * Host functions 
+ * Host functions
  ***********************************************************************/
 
-static const char* host_info(struct Scsi_Host *host)
+static const char *host_info(struct Scsi_Host *host)
 {
 	struct us_data *us = host_to_us(host);
 	return us->scsi_name;
@@ -109,7 +109,9 @@ static int slave_alloc (struct scsi_device *sdev)
 
 	/* Tell the SCSI layer if we know there is more than one LUN */
 	if (us->protocol == USB_PR_BULK && us->max_lun > 0)
+	{
 		sdev->sdev_bflags |= BLIST_FORCELUN;
+	}
 
 	return 0;
 }
@@ -123,22 +125,30 @@ static int slave_configure(struct scsi_device *sdev)
 	 * while others have trouble with more than 64K. At this time we
 	 * are limiting both to 32K (64 sectores).
 	 */
-	if (us->fflags & (US_FL_MAX_SECTORS_64 | US_FL_MAX_SECTORS_MIN)) {
+	if (us->fflags & (US_FL_MAX_SECTORS_64 | US_FL_MAX_SECTORS_MIN))
+	{
 		unsigned int max_sectors = 64;
 
 		if (us->fflags & US_FL_MAX_SECTORS_MIN)
+		{
 			max_sectors = PAGE_SIZE >> 9;
+		}
+
 		if (queue_max_hw_sectors(sdev->request_queue) > max_sectors)
 			blk_queue_max_hw_sectors(sdev->request_queue,
-					      max_sectors);
-	} else if (sdev->type == TYPE_TAPE) {
+									 max_sectors);
+	}
+	else if (sdev->type == TYPE_TAPE)
+	{
 		/*
 		 * Tapes need much higher max_sector limits, so just
 		 * raise it to the maximum possible (4 GB / 512) and
 		 * let the queue segment size sort out the real limit.
 		 */
 		blk_queue_max_hw_sectors(sdev->request_queue, 0x7FFFFF);
-	} else if (us->pusb_dev->speed >= USB_SPEED_SUPER) {
+	}
+	else if (us->pusb_dev->speed >= USB_SPEED_SUPER)
+	{
 		/*
 		 * USB3 devices will be limited to 2048 sectors. This gives us
 		 * better throughput on most devices.
@@ -153,14 +163,17 @@ static int slave_configure(struct scsi_device *sdev)
 	 * up bounce buffers in addressable memory.
 	 */
 	if (!us->pusb_dev->bus->controller->dma_mask)
+	{
 		blk_queue_bounce_limit(sdev->request_queue, BLK_BOUNCE_HIGH);
+	}
 
 	/*
 	 * We can't put these settings in slave_alloc() because that gets
 	 * called before the device type is known.  Consequently these
 	 * settings can't be overridden via the scsi devinfo mechanism.
 	 */
-	if (sdev->type == TYPE_DISK) {
+	if (sdev->type == TYPE_DISK)
+	{
 
 		/*
 		 * Some vendors seem to put the READ CAPACITY bug into
@@ -170,15 +183,19 @@ static int slave_configure(struct scsi_device *sdev)
 		 * of sectors, we will always enable the CAPACITY_HEURISTICS
 		 * flag unless told otherwise.
 		 */
-		switch (le16_to_cpu(us->pusb_dev->descriptor.idVendor)) {
-		case VENDOR_ID_NOKIA:
-		case VENDOR_ID_NIKON:
-		case VENDOR_ID_PENTAX:
-		case VENDOR_ID_MOTOROLA:
-			if (!(us->fflags & (US_FL_FIX_CAPACITY |
-					US_FL_CAPACITY_OK)))
-				us->fflags |= US_FL_CAPACITY_HEURISTICS;
-			break;
+		switch (le16_to_cpu(us->pusb_dev->descriptor.idVendor))
+		{
+			case VENDOR_ID_NOKIA:
+			case VENDOR_ID_NIKON:
+			case VENDOR_ID_PENTAX:
+			case VENDOR_ID_MOTOROLA:
+				if (!(us->fflags & (US_FL_FIX_CAPACITY |
+									US_FL_CAPACITY_OK)))
+				{
+					us->fflags |= US_FL_CAPACITY_HEURISTICS;
+				}
+
+				break;
 		}
 
 		/*
@@ -187,7 +204,9 @@ static int slave_configure(struct scsi_device *sdev)
 		 * MODE SENSE(10).
 		 */
 		if (us->subclass != USB_SC_SCSI && us->subclass != USB_SC_CYP_ATACB)
+		{
 			sdev->use_10_for_ms = 1;
+		}
 
 		/*
 		 *Many disks only accept MODE SENSE transfer lengths of
@@ -205,7 +224,9 @@ static int slave_configure(struct scsi_device *sdev)
 		 * devices are write-enabled.
 		 */
 		if (us->fflags & US_FL_NO_WP_DETECT)
+		{
 			sdev->skip_ms_page_3f = 1;
+		}
 
 		/*
 		 * A number of devices have problems with MODE SENSE for
@@ -228,7 +249,9 @@ static int slave_configure(struct scsi_device *sdev)
 		 * If this device makes that mistake, tell the sd driver.
 		 */
 		if (us->fflags & US_FL_FIX_CAPACITY)
+		{
 			sdev->fix_capacity = 1;
+		}
 
 		/*
 		 * A few disks have two indistinguishable version, one of
@@ -236,11 +259,15 @@ static int slave_configure(struct scsi_device *sdev)
 		 * The sd driver has to guess which is the case.
 		 */
 		if (us->fflags & US_FL_CAPACITY_HEURISTICS)
+		{
 			sdev->guess_capacity = 1;
+		}
 
 		/* Some devices cannot handle READ_CAPACITY_16 */
 		if (us->fflags & US_FL_NO_READ_CAPACITY_16)
+		{
 			sdev->no_read_capacity_16 = 1;
+		}
 
 		/*
 		 * Many devices do not respond properly to READ_CAPACITY_16.
@@ -249,11 +276,15 @@ static int slave_configure(struct scsi_device *sdev)
 		 * modulo 2TB. Those must use READ_CAPACITY_16
 		 */
 		if (!(us->fflags & US_FL_NEEDS_CAP16))
+		{
 			sdev->try_rc_10_first = 1;
+		}
 
 		/* assume SPC3 or latter devices support sense size > 18 */
 		if (sdev->scsi_level > SCSI_SPC_2)
+		{
 			us->fflags |= US_FL_SANE_SENSE;
+		}
 
 		/*
 		 * USB-IDE bridges tend to report SK = 0x04 (Non-recoverable
@@ -284,27 +315,36 @@ static int slave_configure(struct scsi_device *sdev)
 		 * capacity will be decremented or is correct.
 		 */
 		if (!(us->fflags & (US_FL_FIX_CAPACITY | US_FL_CAPACITY_OK |
-					US_FL_SCM_MULT_TARG)) &&
-				us->protocol == USB_PR_BULK)
+							US_FL_SCM_MULT_TARG)) &&
+			us->protocol == USB_PR_BULK)
+		{
 			us->use_last_sector_hacks = 1;
+		}
 
 		/* Check if write cache default on flag is set or not */
 		if (us->fflags & US_FL_WRITE_CACHE)
+		{
 			sdev->wce_default_on = 1;
+		}
 
 		/* A few buggy USB-ATA bridges don't understand FUA */
 		if (us->fflags & US_FL_BROKEN_FUA)
+		{
 			sdev->broken_fua = 1;
+		}
 
 		/* Some even totally fail to indicate a cache */
-		if (us->fflags & US_FL_ALWAYS_SYNC) {
+		if (us->fflags & US_FL_ALWAYS_SYNC)
+		{
 			/* don't read caching information */
 			sdev->skip_ms_page_8 = 1;
 			sdev->skip_ms_page_3f = 1;
 			/* assume sync is needed */
 			sdev->wce_default_on = 1;
 		}
-	} else {
+	}
+	else
+	{
 
 		/*
 		 * Non-disk-type devices don't need to blacklist any pages
@@ -315,7 +355,9 @@ static int slave_configure(struct scsi_device *sdev)
 
 		/* Some (fake) usb cdrom devices don't like READ_DISC_INFO */
 		if (us->fflags & US_FL_NO_READ_DISC_INFO)
+		{
 			sdev->no_read_disc_info = 1;
+		}
 	}
 
 	/*
@@ -326,18 +368,22 @@ static int slave_configure(struct scsi_device *sdev)
 	 * be single-LUN.
 	 */
 	if ((us->protocol == USB_PR_CB || us->protocol == USB_PR_CBI) &&
-			sdev->scsi_level == SCSI_UNKNOWN)
+		sdev->scsi_level == SCSI_UNKNOWN)
+	{
 		us->max_lun = 0;
+	}
 
 	/*
 	 * Some devices choke when they receive a PREVENT-ALLOW MEDIUM
 	 * REMOVAL command, so suppress those commands.
 	 */
 	if (us->fflags & US_FL_NOT_LOCKABLE)
+	{
 		sdev->lockable = 0;
+	}
 
 	/*
-	 * this is to satisfy the compiler, tho I don't think the 
+	 * this is to satisfy the compiler, tho I don't think the
 	 * return code is ever checked anywhere.
 	 */
 	return 0;
@@ -365,7 +411,9 @@ static int target_alloc(struct scsi_target *starget)
 	 * Peripheral Device Type to 0x1f to indicate no LUN.
 	 */
 	if (us->subclass == USB_SC_UFI)
+	{
 		starget->pdt_1f_for_no_lun = 1;
+	}
 
 	return 0;
 }
@@ -373,19 +421,21 @@ static int target_alloc(struct scsi_target *starget)
 /* queue a command */
 /* This is always called with scsi_lock(host) held */
 static int queuecommand_lck(struct scsi_cmnd *srb,
-			void (*done)(struct scsi_cmnd *))
+							void (*done)(struct scsi_cmnd *))
 {
 	struct us_data *us = host_to_us(srb->device->host);
 
 	/* check for state-transition errors */
-	if (us->srb != NULL) {
+	if (us->srb != NULL)
+	{
 		printk(KERN_ERR USB_STORAGE "Error in %s: us->srb = %p\n",
-			__func__, us->srb);
+			   __func__, us->srb);
 		return SCSI_MLQUEUE_HOST_BUSY;
 	}
 
 	/* fail the command if we are disconnecting */
-	if (test_bit(US_FLIDX_DISCONNECTING, &us->dflags)) {
+	if (test_bit(US_FLIDX_DISCONNECTING, &us->dflags))
+	{
 		usb_stor_dbg(us, "Fail command during disconnect\n");
 		srb->result = DID_NO_CONNECT << 16;
 		done(srb);
@@ -420,7 +470,8 @@ static int command_abort(struct scsi_cmnd *srb)
 	scsi_lock(us_to_host(us));
 
 	/* Is this command still active? */
-	if (us->srb != srb) {
+	if (us->srb != srb)
+	{
 		scsi_unlock(us_to_host(us));
 		usb_stor_dbg(us, "-- nothing to abort\n");
 		return FAILED;
@@ -434,10 +485,13 @@ static int command_abort(struct scsi_cmnd *srb)
 	 * with an auto-reset that begins as soon as we release the lock.
 	 */
 	set_bit(US_FLIDX_TIMED_OUT, &us->dflags);
-	if (!test_bit(US_FLIDX_RESETTING, &us->dflags)) {
+
+	if (!test_bit(US_FLIDX_RESETTING, &us->dflags))
+	{
 		set_bit(US_FLIDX_ABORTING, &us->dflags);
 		usb_stor_stop_transport(us);
 	}
+
 	scsi_unlock(us_to_host(us));
 
 	/* Wait for the aborted command to finish */
@@ -487,9 +541,13 @@ void usb_stor_report_device_reset(struct us_data *us)
 	struct Scsi_Host *host = us_to_host(us);
 
 	scsi_report_device_reset(host, 0, 0);
-	if (us->fflags & US_FL_SCM_MULT_TARG) {
+
+	if (us->fflags & US_FL_SCM_MULT_TARG)
+	{
 		for (i = 1; i < host->max_id; ++i)
+		{
 			scsi_report_device_reset(host, 0, i);
+		}
 	}
 }
 
@@ -527,23 +585,44 @@ static int show_info (struct seq_file *m, struct Scsi_Host *host)
 
 	/* print product, vendor, and serial number strings */
 	if (us->pusb_dev->manufacturer)
+	{
 		string = us->pusb_dev->manufacturer;
+	}
 	else if (us->unusual_dev->vendorName)
+	{
 		string = us->unusual_dev->vendorName;
+	}
 	else
+	{
 		string = "Unknown";
+	}
+
 	seq_printf(m, "       Vendor: %s\n", string);
+
 	if (us->pusb_dev->product)
+	{
 		string = us->pusb_dev->product;
+	}
 	else if (us->unusual_dev->productName)
+	{
 		string = us->unusual_dev->productName;
+	}
 	else
+	{
 		string = "Unknown";
+	}
+
 	seq_printf(m, "      Product: %s\n", string);
+
 	if (us->pusb_dev->serial)
+	{
 		string = us->pusb_dev->serial;
+	}
 	else
+	{
 		string = "None";
+	}
+
 	seq_printf(m, "Serial Number: %s\n", string);
 
 	/* show the protocol and transport */
@@ -555,7 +634,7 @@ static int show_info (struct seq_file *m, struct Scsi_Host *host)
 
 #define US_FLAG(name, value) \
 	if (us->fflags & value) seq_printf(m, " " #name);
-US_DO_ALL_FLAGS
+	US_DO_ALL_FLAGS
 #undef US_FLAG
 	seq_putc(m, '\n');
 	return 0;
@@ -575,20 +654,23 @@ static ssize_t max_sectors_show(struct device *dev, struct device_attribute *att
 
 /* Input routine for the sysfs max_sectors file */
 static ssize_t max_sectors_store(struct device *dev, struct device_attribute *attr, const char *buf,
-		size_t count)
+								 size_t count)
 {
 	struct scsi_device *sdev = to_scsi_device(dev);
 	unsigned short ms;
 
-	if (sscanf(buf, "%hu", &ms) > 0) {
+	if (sscanf(buf, "%hu", &ms) > 0)
+	{
 		blk_queue_max_hw_sectors(sdev->request_queue, ms);
 		return count;
 	}
+
 	return -EINVAL;
 }
 static DEVICE_ATTR_RW(max_sectors);
 
-static struct device_attribute *sysfs_device_attr_list[] = {
+static struct device_attribute *sysfs_device_attr_list[] =
+{
 	&dev_attr_max_sectors,
 	NULL,
 };
@@ -597,7 +679,8 @@ static struct device_attribute *sysfs_device_attr_list[] = {
  * this defines our host template, with which we'll allocate hosts
  */
 
-static const struct scsi_host_template usb_stor_host_template = {
+static const struct scsi_host_template usb_stor_host_template =
+{
 	/* basic userland interface stuff */
 	.name =				"usb-storage",
 	.proc_name =			"usb-storage",
@@ -667,7 +750,7 @@ static const struct scsi_host_template usb_stor_host_template = {
 };
 
 void usb_stor_host_template_init(struct scsi_host_template *sht,
-				 const char *name, struct module *owner)
+								 const char *name, struct module *owner)
 {
 	*sht = usb_stor_host_template;
 	sht->name = name;
@@ -677,7 +760,8 @@ void usb_stor_host_template_init(struct scsi_host_template *sht,
 EXPORT_SYMBOL_GPL(usb_stor_host_template_init);
 
 /* To Report "Illegal Request: Invalid Field in CDB */
-unsigned char usb_stor_sense_invalidCDB[18] = {
+unsigned char usb_stor_sense_invalidCDB[18] =
+{
 	[0]	= 0x70,			    /* current error */
 	[2]	= ILLEGAL_REQUEST,	    /* Illegal Request = 0x05 */
 	[7]	= 0x0a,			    /* additional length */

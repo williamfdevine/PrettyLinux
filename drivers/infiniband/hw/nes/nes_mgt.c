@@ -57,27 +57,38 @@ static void nes_replenish_mgt_rq(struct nes_vnic_mgt *mgtvnic)
 	nesmgt = &mgtvnic->mgt;
 	nesdev = mgtvnic->nesvnic->nesdev;
 	spin_lock_irqsave(&nesmgt->rq_lock, flags);
-	if (nesmgt->replenishing_rq != 0) {
+
+	if (nesmgt->replenishing_rq != 0)
+	{
 		if (((nesmgt->rq_size - 1) == atomic_read(&mgtvnic->rx_skbs_needed)) &&
-		    (atomic_read(&mgtvnic->rx_skb_timer_running) == 0)) {
+			(atomic_read(&mgtvnic->rx_skb_timer_running) == 0))
+		{
 			atomic_set(&mgtvnic->rx_skb_timer_running, 1);
 			spin_unlock_irqrestore(&nesmgt->rq_lock, flags);
 			mgtvnic->rq_wqes_timer.expires = jiffies + (HZ / 2);      /* 1/2 second */
 			add_timer(&mgtvnic->rq_wqes_timer);
-		} else {
+		}
+		else
+		{
 			spin_unlock_irqrestore(&nesmgt->rq_lock, flags);
 		}
+
 		return;
 	}
+
 	nesmgt->replenishing_rq = 1;
 	spin_unlock_irqrestore(&nesmgt->rq_lock, flags);
-	do {
+
+	do
+	{
 		skb = dev_alloc_skb(mgtvnic->nesvnic->max_frame_size);
-		if (skb) {
+
+		if (skb)
+		{
 			skb->dev = mgtvnic->nesvnic->netdev;
 
 			bus_address = pci_map_single(nesdev->pcidev,
-						     skb->data, mgtvnic->nesvnic->max_frame_size, PCI_DMA_FROMDEVICE);
+										 skb->data, mgtvnic->nesvnic->max_frame_size, PCI_DMA_FROMDEVICE);
 			cb = (struct nes_rskb_cb *)&skb->cb[0];
 			cb->busaddr = bus_address;
 			cb->maplen = mgtvnic->nesvnic->max_frame_size;
@@ -95,27 +106,42 @@ static void nes_replenish_mgt_rq(struct nes_vnic_mgt *mgtvnic)
 			nesmgt->rq_head &= nesmgt->rq_size - 1;
 			atomic_dec(&mgtvnic->rx_skbs_needed);
 			barrier();
-			if (++rx_wqes_posted == 255) {
+
+			if (++rx_wqes_posted == 255)
+			{
 				nes_write32(nesdev->regs + NES_WQE_ALLOC, (rx_wqes_posted << 24) | nesmgt->qp_id);
 				rx_wqes_posted = 0;
 			}
-		} else {
+		}
+		else
+		{
 			spin_lock_irqsave(&nesmgt->rq_lock, flags);
+
 			if (((nesmgt->rq_size - 1) == atomic_read(&mgtvnic->rx_skbs_needed)) &&
-			    (atomic_read(&mgtvnic->rx_skb_timer_running) == 0)) {
+				(atomic_read(&mgtvnic->rx_skb_timer_running) == 0))
+			{
 				atomic_set(&mgtvnic->rx_skb_timer_running, 1);
 				spin_unlock_irqrestore(&nesmgt->rq_lock, flags);
 				mgtvnic->rq_wqes_timer.expires = jiffies + (HZ / 2);      /* 1/2 second */
 				add_timer(&mgtvnic->rq_wqes_timer);
-			} else {
+			}
+			else
+			{
 				spin_unlock_irqrestore(&nesmgt->rq_lock, flags);
 			}
+
 			break;
 		}
-	} while (atomic_read(&mgtvnic->rx_skbs_needed));
+	}
+	while (atomic_read(&mgtvnic->rx_skbs_needed));
+
 	barrier();
+
 	if (rx_wqes_posted)
+	{
 		nes_write32(nesdev->regs + NES_WQE_ALLOC, (rx_wqes_posted << 24) | nesmgt->qp_id);
+	}
+
 	nesmgt->replenishing_rq = 0;
 }
 
@@ -127,8 +153,11 @@ static void nes_mgt_rq_wqes_timeout(unsigned long parm)
 	struct nes_vnic_mgt *mgtvnic = (struct nes_vnic_mgt *)parm;
 
 	atomic_set(&mgtvnic->rx_skb_timer_running, 0);
+
 	if (atomic_read(&mgtvnic->rx_skbs_needed))
+	{
 		nes_replenish_mgt_rq(mgtvnic);
+	}
 }
 
 /**
@@ -154,9 +183,12 @@ static void nes_download_callback(struct nes_device *nesdev, struct nes_cqp_requ
 	struct sk_buff *skb;
 	int i;
 
-	for (i = 0; i < fpdu_info->frag_cnt; i++) {
+	for (i = 0; i < fpdu_info->frag_cnt; i++)
+	{
 		skb = fpdu_info->frags[i].skb;
-		if (fpdu_info->frags[i].cmplt) {
+
+		if (fpdu_info->frags[i].cmplt)
+		{
 			nes_mgt_free_skb(nesdev, skb, PCI_DMA_TODEVICE);
 			nes_rem_ref_cm_node(nesqp->cm_node);
 		}
@@ -164,7 +196,8 @@ static void nes_download_callback(struct nes_device *nesdev, struct nes_cqp_requ
 
 	if (fpdu_info->hdr_vbase)
 		pci_free_consistent(nesdev->pcidev, fpdu_info->hdr_len,
-				    fpdu_info->hdr_vbase, fpdu_info->hdr_pbase);
+							fpdu_info->hdr_vbase, fpdu_info->hdr_pbase);
+
 	kfree(fpdu_info);
 }
 
@@ -188,36 +221,54 @@ static u32 nes_get_seq(struct sk_buff *skb, u32 *ack, u16 *wnd, u32 *fin_rcvd, u
  * nes_get_next_skb - Get the next skb based on where current skb is in the queue
  */
 static struct sk_buff *nes_get_next_skb(struct nes_device *nesdev, struct nes_qp *nesqp,
-					struct sk_buff *skb, u32 nextseq, u32 *ack,
-					u16 *wnd, u32 *fin_rcvd, u32 *rst_rcvd)
+										struct sk_buff *skb, u32 nextseq, u32 *ack,
+										u16 *wnd, u32 *fin_rcvd, u32 *rst_rcvd)
 {
 	u32 seq;
 	bool processacks;
 	struct sk_buff *old_skb;
 
-	if (skb) {
+	if (skb)
+	{
 		/* Continue processing fpdu */
 		if (skb->next == (struct sk_buff *)&nesqp->pau_list)
+		{
 			goto out;
+		}
+
 		skb = skb->next;
 		processacks = false;
-	} else {
+	}
+	else
+	{
 		/* Starting a new one */
 		if (skb_queue_empty(&nesqp->pau_list))
+		{
 			goto out;
+		}
+
 		skb = skb_peek(&nesqp->pau_list);
 		processacks = true;
 	}
 
-	while (1) {
+	while (1)
+	{
 		if (skb_queue_empty(&nesqp->pau_list))
+		{
 			goto out;
+		}
 
 		seq = nes_get_seq(skb, ack, wnd, fin_rcvd, rst_rcvd);
-		if (seq == nextseq) {
+
+		if (seq == nextseq)
+		{
 			if (skb->len || processacks)
+			{
 				break;
-		} else if (after(seq, nextseq)) {
+			}
+		}
+		else if (after(seq, nextseq))
+		{
 			goto out;
 		}
 
@@ -226,9 +277,13 @@ static struct sk_buff *nes_get_next_skb(struct nes_device *nesdev, struct nes_qp
 		skb_unlink(old_skb, &nesqp->pau_list);
 		nes_mgt_free_skb(nesdev, old_skb, PCI_DMA_TODEVICE);
 		nes_rem_ref_cm_node(nesqp->cm_node);
+
 		if (skb == (struct sk_buff *)&nesqp->pau_list)
+		{
 			goto out;
+		}
 	}
+
 	return skb;
 
 out:
@@ -239,7 +294,7 @@ out:
  * get_fpdu_info - Find the next complete fpdu and return its fragments.
  */
 static int get_fpdu_info(struct nes_device *nesdev, struct nes_qp *nesqp,
-			 struct pau_fpdu_info **pau_fpdu_info)
+						 struct pau_fpdu_info **pau_fpdu_info)
 {
 	struct sk_buff *skb;
 	struct iphdr *iph;
@@ -262,11 +317,16 @@ static int get_fpdu_info(struct nes_device *nesdev, struct nes_qp *nesqp,
 	*pau_fpdu_info = NULL;
 
 	skb = nes_get_next_skb(nesdev, nesqp, NULL, nesqp->pau_rcv_nxt, &ack, &wnd, &fin_rcvd, &rst_rcvd);
+
 	if (!skb)
+	{
 		goto out;
+	}
 
 	cb = (struct nes_rskb_cb *)&skb->cb[0];
-	if (skb->len) {
+
+	if (skb->len)
+	{
 		fpdu_len = be16_to_cpu(*(__be16 *) skb->data) + MPA_FRAMING;
 		fpdu_len = (fpdu_len + 3) & 0xfffffffc;
 		tmp_len = fpdu_len;
@@ -274,7 +334,9 @@ static int get_fpdu_info(struct nes_device *nesdev, struct nes_qp *nesqp,
 		/* See if we have all of the fpdu */
 		frag_tot = 0;
 		memset(&frags, 0, sizeof frags);
-		for (i = 0; i < MAX_FPDU_FRAGS; i++) {
+
+		for (i = 0; i < MAX_FPDU_FRAGS; i++)
+		{
 			frags[i].physaddr = cb->busaddr;
 			frags[i].physaddr += skb->data - cb->data_start;
 			frags[i].frag_len = min(tmp_len, skb->len);
@@ -284,19 +346,29 @@ static int get_fpdu_info(struct nes_device *nesdev, struct nes_qp *nesqp,
 			frag_cnt++;
 
 			tmp_len -= frags[i].frag_len;
+
 			if (tmp_len == 0)
+			{
 				break;
+			}
 
 			skb = nes_get_next_skb(nesdev, nesqp, skb,
-					       nesqp->pau_rcv_nxt + frag_tot, &ack, &wnd, &fin_rcvd, &rst_rcvd);
+								   nesqp->pau_rcv_nxt + frag_tot, &ack, &wnd, &fin_rcvd, &rst_rcvd);
+
 			if (!skb)
+			{
 				goto out;
-			if (rst_rcvd) {
+			}
+
+			if (rst_rcvd)
+			{
 				/* rst received in the middle of fpdu */
-				for (; i >= 0; i--) {
+				for (; i >= 0; i--)
+				{
 					skb_unlink(frags[i].skb, &nesqp->pau_list);
 					nes_mgt_free_skb(nesdev, frags[i].skb, PCI_DMA_TODEVICE);
 				}
+
 				cb = (struct nes_rskb_cb *)&skb->cb[0];
 				frags[0].physaddr = cb->busaddr;
 				frags[0].physaddr += skb->data - cb->data_start;
@@ -309,7 +381,9 @@ static int get_fpdu_info(struct nes_device *nesdev, struct nes_qp *nesqp,
 
 			cb = (struct nes_rskb_cb *)&skb->cb[0];
 		}
-	} else {
+	}
+	else
+	{
 		/* no data */
 		frags[0].physaddr = cb->busaddr;
 		frags[0].frag_len = 0;
@@ -320,14 +394,18 @@ static int get_fpdu_info(struct nes_device *nesdev, struct nes_qp *nesqp,
 
 	/* Found one */
 	fpdu_info = kzalloc(sizeof(*fpdu_info), GFP_ATOMIC);
-	if (fpdu_info == NULL) {
+
+	if (fpdu_info == NULL)
+	{
 		nes_debug(NES_DBG_PAU, "Failed to alloc a fpdu_info.\n");
 		rc = -ENOMEM;
 		goto out;
 	}
 
 	fpdu_info->cqp_request = nes_get_cqp_request(nesdev);
-	if (fpdu_info->cqp_request == NULL) {
+
+	if (fpdu_info->cqp_request == NULL)
+	{
 		nes_debug(NES_DBG_PAU, "Failed to get a cqp_request.\n");
 		rc = -ENOMEM;
 		goto out;
@@ -340,13 +418,18 @@ static int get_fpdu_info(struct nes_device *nesdev, struct nes_qp *nesqp,
 	fpdu_info->data_len = fpdu_len;
 	tot_len = fpdu_info->hdr_len + fpdu_len - ETH_HLEN;
 
-	if (frags[0].cmplt) {
+	if (frags[0].cmplt)
+	{
 		fpdu_info->hdr_pbase = cb->busaddr;
 		fpdu_info->hdr_vbase = NULL;
-	} else {
+	}
+	else
+	{
 		fpdu_info->hdr_vbase = pci_alloc_consistent(nesdev->pcidev,
-							    fpdu_info->hdr_len, &fpdu_info->hdr_pbase);
-		if (!fpdu_info->hdr_vbase) {
+							   fpdu_info->hdr_len, &fpdu_info->hdr_pbase);
+
+		if (!fpdu_info->hdr_vbase)
+		{
 			nes_debug(NES_DBG_PAU, "Unable to allocate memory for pau first frag\n");
 			rc = -ENOMEM;
 			goto out;
@@ -373,15 +456,21 @@ static int get_fpdu_info(struct nes_device *nesdev, struct nes_qp *nesqp,
 	*pau_fpdu_info = fpdu_info;
 
 	/* Update skb's for next pass */
-	for (i = 0; i < frag_cnt; i++) {
+	for (i = 0; i < frag_cnt; i++)
+	{
 		cb = (struct nes_rskb_cb *)&frags[i].skb->cb[0];
 		skb_pull(frags[i].skb, frags[i].frag_len);
 
-		if (frags[i].skb->len == 0) {
+		if (frags[i].skb->len == 0)
+		{
 			/* Pull skb off the list - it will be freed in the callback */
 			if (!skb_queue_empty(&nesqp->pau_list))
+			{
 				skb_unlink(frags[i].skb, &nesqp->pau_list);
-		} else {
+			}
+		}
+		else
+		{
 			/* Last skb still has data so update the seq */
 			iph = (struct iphdr *)(cb->data_start + ETH_HLEN);
 			tcph = (struct tcphdr *)(((char *)iph) + (4 * iph->ihl));
@@ -390,13 +479,20 @@ static int get_fpdu_info(struct nes_device *nesdev, struct nes_qp *nesqp,
 	}
 
 out:
-	if (rc) {
-		if (fpdu_info) {
+
+	if (rc)
+	{
+		if (fpdu_info)
+		{
 			if (fpdu_info->cqp_request)
+			{
 				nes_put_cqp_request(nesdev, fpdu_info->cqp_request);
+			}
+
 			kfree(fpdu_info);
 		}
 	}
+
 	return rc;
 }
 
@@ -414,10 +510,13 @@ static int forward_fpdus(struct nes_vnic *nesvnic, struct nes_qp *nesqp)
 	u32 u32tmp;
 	int rc;
 
-	while (1) {
+	while (1)
+	{
 		spin_lock_irqsave(&nesqp->pau_lock, flags);
 		rc = get_fpdu_info(nesdev, nesqp, &fpdu_info);
-		if (rc || (fpdu_info == NULL)) {
+
+		if (rc || (fpdu_info == NULL))
+		{
 			spin_unlock_irqrestore(&nesqp->pau_lock, flags);
 			return rc;
 		}
@@ -426,47 +525,47 @@ static int forward_fpdus(struct nes_vnic *nesvnic, struct nes_qp *nesqp)
 		cqp_wqe = &cqp_request->cqp_wqe;
 		nes_fill_init_cqp_wqe(cqp_wqe, nesdev);
 		set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_DL_OPCODE_IDX,
-				    NES_CQP_DOWNLOAD_SEGMENT |
-				    (((u32)nesvnic->logical_port) << NES_CQP_OP_LOGICAL_PORT_SHIFT));
+							NES_CQP_DOWNLOAD_SEGMENT |
+							(((u32)nesvnic->logical_port) << NES_CQP_OP_LOGICAL_PORT_SHIFT));
 
 		u32tmp = fpdu_info->hdr_len << 16;
 		u32tmp |= fpdu_info->hdr_len + (u32)fpdu_info->data_len;
 		set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_DL_LENGTH_0_TOTAL_IDX,
-				    u32tmp);
+							u32tmp);
 
 		u32tmp = (fpdu_info->frags[1].frag_len << 16) | fpdu_info->frags[0].frag_len;
 		set_wqe_32bit_value(cqp_wqe->wqe_words, NES_NIC_SQ_WQE_LENGTH_2_1_IDX,
-				    u32tmp);
+							u32tmp);
 
 		u32tmp = (fpdu_info->frags[3].frag_len << 16) | fpdu_info->frags[2].frag_len;
 		set_wqe_32bit_value(cqp_wqe->wqe_words, NES_NIC_SQ_WQE_LENGTH_4_3_IDX,
-				    u32tmp);
+							u32tmp);
 
 		u64tmp = (u64)fpdu_info->hdr_pbase;
 		set_wqe_32bit_value(cqp_wqe->wqe_words, NES_NIC_SQ_WQE_FRAG0_LOW_IDX,
-				    lower_32_bits(u64tmp));
+							lower_32_bits(u64tmp));
 		set_wqe_32bit_value(cqp_wqe->wqe_words, NES_NIC_SQ_WQE_FRAG0_HIGH_IDX,
-				    upper_32_bits(u64tmp));
+							upper_32_bits(u64tmp));
 
 		set_wqe_32bit_value(cqp_wqe->wqe_words, NES_NIC_SQ_WQE_FRAG1_LOW_IDX,
-				    lower_32_bits(fpdu_info->frags[0].physaddr));
+							lower_32_bits(fpdu_info->frags[0].physaddr));
 		set_wqe_32bit_value(cqp_wqe->wqe_words, NES_NIC_SQ_WQE_FRAG1_HIGH_IDX,
-				    upper_32_bits(fpdu_info->frags[0].physaddr));
+							upper_32_bits(fpdu_info->frags[0].physaddr));
 
 		set_wqe_32bit_value(cqp_wqe->wqe_words, NES_NIC_SQ_WQE_FRAG2_LOW_IDX,
-				    lower_32_bits(fpdu_info->frags[1].physaddr));
+							lower_32_bits(fpdu_info->frags[1].physaddr));
 		set_wqe_32bit_value(cqp_wqe->wqe_words, NES_NIC_SQ_WQE_FRAG2_HIGH_IDX,
-				    upper_32_bits(fpdu_info->frags[1].physaddr));
+							upper_32_bits(fpdu_info->frags[1].physaddr));
 
 		set_wqe_32bit_value(cqp_wqe->wqe_words, NES_NIC_SQ_WQE_FRAG3_LOW_IDX,
-				    lower_32_bits(fpdu_info->frags[2].physaddr));
+							lower_32_bits(fpdu_info->frags[2].physaddr));
 		set_wqe_32bit_value(cqp_wqe->wqe_words, NES_NIC_SQ_WQE_FRAG3_HIGH_IDX,
-				    upper_32_bits(fpdu_info->frags[2].physaddr));
+							upper_32_bits(fpdu_info->frags[2].physaddr));
 
 		set_wqe_32bit_value(cqp_wqe->wqe_words, NES_NIC_SQ_WQE_FRAG4_LOW_IDX,
-				    lower_32_bits(fpdu_info->frags[3].physaddr));
+							lower_32_bits(fpdu_info->frags[3].physaddr));
 		set_wqe_32bit_value(cqp_wqe->wqe_words, NES_NIC_SQ_WQE_FRAG4_HIGH_IDX,
-				    upper_32_bits(fpdu_info->frags[3].physaddr));
+							upper_32_bits(fpdu_info->frags[3].physaddr));
 
 		cqp_request->cqp_callback_pointer = fpdu_info;
 		cqp_request->callback = 1;
@@ -485,20 +584,26 @@ static void process_fpdus(struct nes_vnic *nesvnic, struct nes_qp *nesqp)
 	int again = 1;
 	unsigned long flags;
 
-	do {
+	do
+	{
 		/* Ignore rc - if it failed, tcp retries will cause it to try again */
 		forward_fpdus(nesvnic, nesqp);
 
 		spin_lock_irqsave(&nesqp->pau_lock, flags);
-		if (nesqp->pau_pending) {
+
+		if (nesqp->pau_pending)
+		{
 			nesqp->pau_pending = 0;
-		} else {
+		}
+		else
+		{
 			nesqp->pau_busy = 0;
 			again = 0;
 		}
 
 		spin_unlock_irqrestore(&nesqp->pau_lock, flags);
-	} while (again);
+	}
+	while (again);
 }
 
 /**
@@ -525,8 +630,12 @@ static void queue_fpdus(struct sk_buff *skb, struct nes_vnic *nesvnic, struct ne
 	tcph_end = (((char *)tcph) + (4 * tcph->doff));
 
 	len = be16_to_cpu(iph->tot_len);
+
 	if (skb->len > len)
+	{
 		skb_trim(skb, len);
+	}
+
 	skb_pull(skb, tcph_end - skb->data);
 
 	/* Initialize tracking values */
@@ -536,7 +645,9 @@ static void queue_fpdus(struct sk_buff *skb, struct nes_vnic *nesvnic, struct ne
 	/* Make sure data is in the receive window */
 	rcv_nxt = nesqp->pau_rcv_nxt;
 	rcv_wnd = le32_to_cpu(nesqp->nesqp_context->rcv_wnd);
-	if (!between(seqnum, rcv_nxt, (rcv_nxt + rcv_wnd))) {
+
+	if (!between(seqnum, rcv_nxt, (rcv_nxt + rcv_wnd)))
+	{
 		nes_mgt_free_skb(nesvnic->nesdev, skb, PCI_DMA_TODEVICE);
 		nes_rem_ref_cm_node(nesqp->cm_node);
 		return;
@@ -545,29 +656,49 @@ static void queue_fpdus(struct sk_buff *skb, struct nes_vnic *nesvnic, struct ne
 	spin_lock_irqsave(&nesqp->pau_lock, flags);
 
 	if (nesqp->pau_busy)
+	{
 		nesqp->pau_pending = 1;
+	}
 	else
+	{
 		nesqp->pau_busy = 1;
+	}
 
 	/* Queue skb by sequence number */
-	if (skb_queue_len(&nesqp->pau_list) == 0) {
+	if (skb_queue_len(&nesqp->pau_list) == 0)
+	{
 		skb_queue_head(&nesqp->pau_list, skb);
-	} else {
+	}
+	else
+	{
 		tmpskb = nesqp->pau_list.next;
-		while (tmpskb != (struct sk_buff *)&nesqp->pau_list) {
+
+		while (tmpskb != (struct sk_buff *)&nesqp->pau_list)
+		{
 			cb = (struct nes_rskb_cb *)&tmpskb->cb[0];
+
 			if (before(seqnum, cb->seqnum))
+			{
 				break;
+			}
+
 			tmpskb = tmpskb->next;
 		}
+
 		skb_insert(tmpskb, skb, &nesqp->pau_list);
 	}
+
 	if (nesqp->pau_state == PAU_READY)
+	{
 		process_it = true;
+	}
+
 	spin_unlock_irqrestore(&nesqp->pau_lock, flags);
 
 	if (process_it)
+	{
 		process_fpdus(nesvnic, nesqp);
+	}
 
 	return;
 }
@@ -581,26 +712,31 @@ static int mgt_thread(void *context)
 	struct sk_buff *skb;
 	struct nes_rskb_cb *cb;
 
-	while (!kthread_should_stop()) {
+	while (!kthread_should_stop())
+	{
 		wait_event_interruptible(nesvnic->mgt_wait_queue,
-					 skb_queue_len(&nesvnic->mgt_skb_list) || kthread_should_stop());
-		while ((skb_queue_len(&nesvnic->mgt_skb_list)) && !kthread_should_stop()) {
+								 skb_queue_len(&nesvnic->mgt_skb_list) || kthread_should_stop());
+
+		while ((skb_queue_len(&nesvnic->mgt_skb_list)) && !kthread_should_stop())
+		{
 			skb = skb_dequeue(&nesvnic->mgt_skb_list);
 			cb = (struct nes_rskb_cb *)&skb->cb[0];
 			cb->data_start = skb->data - ETH_HLEN;
 			cb->busaddr = pci_map_single(nesvnic->nesdev->pcidev, cb->data_start,
-						     nesvnic->max_frame_size, PCI_DMA_TODEVICE);
+										 nesvnic->max_frame_size, PCI_DMA_TODEVICE);
 			queue_fpdus(skb, nesvnic, cb->nesqp);
 		}
 	}
 
 	/* Closing down so delete any entries on the queue */
-	while (skb_queue_len(&nesvnic->mgt_skb_list)) {
+	while (skb_queue_len(&nesvnic->mgt_skb_list))
+	{
 		skb = skb_dequeue(&nesvnic->mgt_skb_list);
 		cb = (struct nes_rskb_cb *)&skb->cb[0];
 		nes_rem_ref_cm_node(cb->nesqp->cm_node);
 		dev_kfree_skb_any(skb);
 	}
+
 	return 0;
 }
 
@@ -626,11 +762,14 @@ void nes_destroy_pau_qp(struct nes_device *nesdev, struct nes_qp *nesqp)
 	/* Free packets that have not yet been forwarded */
 	/* Lock is acquired by skb_dequeue when removing the skb */
 	spin_lock_irqsave(&nesqp->pau_lock, flags);
-	while (skb_queue_len(&nesqp->pau_list)) {
+
+	while (skb_queue_len(&nesqp->pau_list))
+	{
 		skb = skb_dequeue(&nesqp->pau_list);
 		nes_mgt_free_skb(nesdev, skb, PCI_DMA_TODEVICE);
 		nes_rem_ref_cm_node(nesqp->cm_node);
 	}
+
 	spin_unlock_irqrestore(&nesqp->pau_lock, flags);
 }
 
@@ -651,61 +790,64 @@ static void nes_chg_qh_handler(struct nes_device *nesdev, struct nes_cqp_request
 	/* Should we handle the bad completion */
 	if (cqp_request->major_code)
 		WARN(1, PFX "Invalid cqp_request major_code=0x%x\n",
-		       cqp_request->major_code);
+			 cqp_request->major_code);
 
-	switch (nesqp->pau_state) {
-	case PAU_DEL_QH:
-		/* Old hash code deleted, now set the new one */
-		nesqp->pau_state = PAU_ADD_LB_QH;
-		new_request = nes_get_cqp_request(nesdev);
-		if (new_request == NULL) {
-			nes_debug(NES_DBG_PAU, "Failed to get a new_request.\n");
-			WARN_ON(1);
-			return;
-		}
+	switch (nesqp->pau_state)
+	{
+		case PAU_DEL_QH:
+			/* Old hash code deleted, now set the new one */
+			nesqp->pau_state = PAU_ADD_LB_QH;
+			new_request = nes_get_cqp_request(nesdev);
 
-		memset(&nes_quad, 0, sizeof(nes_quad));
-		nes_quad.DstIpAdrIndex =
-			cpu_to_le32((u32)PCI_FUNC(nesdev->pcidev->devfn) << 24);
-		nes_quad.SrcIpadr = cpu_to_be32(0x7f000001);
-		nes_quad.TcpPorts[0] = swab16(nesqp->nesqp_context->tcpPorts[1]);
-		nes_quad.TcpPorts[1] = swab16(nesqp->nesqp_context->tcpPorts[0]);
+			if (new_request == NULL)
+			{
+				nes_debug(NES_DBG_PAU, "Failed to get a new_request.\n");
+				WARN_ON(1);
+				return;
+			}
 
-		/* Produce hash key */
-		crc_value = get_crc_value(&nes_quad);
-		nesqp->hte_index = cpu_to_be32(crc_value ^ 0xffffffff);
-		nes_debug(NES_DBG_PAU, "new HTE Index = 0x%08X, CRC = 0x%08X\n",
-			  nesqp->hte_index, nesqp->hte_index & nesadapter->hte_index_mask);
+			memset(&nes_quad, 0, sizeof(nes_quad));
+			nes_quad.DstIpAdrIndex =
+				cpu_to_le32((u32)PCI_FUNC(nesdev->pcidev->devfn) << 24);
+			nes_quad.SrcIpadr = cpu_to_be32(0x7f000001);
+			nes_quad.TcpPorts[0] = swab16(nesqp->nesqp_context->tcpPorts[1]);
+			nes_quad.TcpPorts[1] = swab16(nesqp->nesqp_context->tcpPorts[0]);
 
-		nesqp->hte_index &= nesadapter->hte_index_mask;
-		nesqp->nesqp_context->hte_index = cpu_to_le32(nesqp->hte_index);
-		nesqp->nesqp_context->ip0 = cpu_to_le32(0x7f000001);
-		nesqp->nesqp_context->rcv_nxt = cpu_to_le32(nesqp->pau_rcv_nxt);
+			/* Produce hash key */
+			crc_value = get_crc_value(&nes_quad);
+			nesqp->hte_index = cpu_to_be32(crc_value ^ 0xffffffff);
+			nes_debug(NES_DBG_PAU, "new HTE Index = 0x%08X, CRC = 0x%08X\n",
+					  nesqp->hte_index, nesqp->hte_index & nesadapter->hte_index_mask);
 
-		cqp_wqe = &new_request->cqp_wqe;
-		nes_fill_init_cqp_wqe(cqp_wqe, nesdev);
-		set_wqe_32bit_value(cqp_wqe->wqe_words,
-				    NES_CQP_WQE_OPCODE_IDX, NES_CQP_MANAGE_QUAD_HASH |
-				    NES_CQP_QP_TYPE_IWARP | NES_CQP_QP_CONTEXT_VALID | NES_CQP_QP_IWARP_STATE_RTS);
-		set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_ID_IDX, nesqp->hwqp.qp_id);
-		u64temp = (u64)nesqp->nesqp_context_pbase;
-		set_wqe_64bit_value(cqp_wqe->wqe_words, NES_CQP_QP_WQE_CONTEXT_LOW_IDX, u64temp);
+			nesqp->hte_index &= nesadapter->hte_index_mask;
+			nesqp->nesqp_context->hte_index = cpu_to_le32(nesqp->hte_index);
+			nesqp->nesqp_context->ip0 = cpu_to_le32(0x7f000001);
+			nesqp->nesqp_context->rcv_nxt = cpu_to_le32(nesqp->pau_rcv_nxt);
 
-		nes_debug(NES_DBG_PAU, "Waiting for CQP completion for adding the quad hash.\n");
+			cqp_wqe = &new_request->cqp_wqe;
+			nes_fill_init_cqp_wqe(cqp_wqe, nesdev);
+			set_wqe_32bit_value(cqp_wqe->wqe_words,
+								NES_CQP_WQE_OPCODE_IDX, NES_CQP_MANAGE_QUAD_HASH |
+								NES_CQP_QP_TYPE_IWARP | NES_CQP_QP_CONTEXT_VALID | NES_CQP_QP_IWARP_STATE_RTS);
+			set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_ID_IDX, nesqp->hwqp.qp_id);
+			u64temp = (u64)nesqp->nesqp_context_pbase;
+			set_wqe_64bit_value(cqp_wqe->wqe_words, NES_CQP_QP_WQE_CONTEXT_LOW_IDX, u64temp);
 
-		new_request->cqp_callback_pointer = qh_chg;
-		new_request->callback = 1;
-		new_request->cqp_callback = nes_chg_qh_handler;
-		atomic_set(&new_request->refcount, 1);
-		nes_post_cqp_request(nesdev, new_request);
-		break;
+			nes_debug(NES_DBG_PAU, "Waiting for CQP completion for adding the quad hash.\n");
 
-	case PAU_ADD_LB_QH:
-		/* Start processing the queued fpdu's */
-		nesqp->pau_state = PAU_READY;
-		process_fpdus(qh_chg->nesvnic, qh_chg->nesqp);
-		kfree(qh_chg);
-		break;
+			new_request->cqp_callback_pointer = qh_chg;
+			new_request->callback = 1;
+			new_request->cqp_callback = nes_chg_qh_handler;
+			atomic_set(&new_request->refcount, 1);
+			nes_post_cqp_request(nesdev, new_request);
+			break;
+
+		case PAU_ADD_LB_QH:
+			/* Start processing the queued fpdu's */
+			nesqp->pau_state = PAU_READY;
+			process_fpdus(qh_chg->nesvnic, qh_chg->nesqp);
+			kfree(qh_chg);
+			break;
 	}
 }
 
@@ -713,7 +855,7 @@ static void nes_chg_qh_handler(struct nes_device *nesdev, struct nes_cqp_request
  * nes_change_quad_hash
  */
 static int nes_change_quad_hash(struct nes_device *nesdev,
-				struct nes_vnic *nesvnic, struct nes_qp *nesqp)
+								struct nes_vnic *nesvnic, struct nes_qp *nesqp)
 {
 	struct nes_cqp_request *cqp_request = NULL;
 	struct pau_qh_chg *qh_chg = NULL;
@@ -722,18 +864,23 @@ static int nes_change_quad_hash(struct nes_device *nesdev,
 	int ret = 0;
 
 	cqp_request = nes_get_cqp_request(nesdev);
-	if (cqp_request == NULL) {
+
+	if (cqp_request == NULL)
+	{
 		nes_debug(NES_DBG_PAU, "Failed to get a cqp_request.\n");
 		ret = -ENOMEM;
 		goto chg_qh_err;
 	}
 
-	qh_chg = kmalloc(sizeof *qh_chg, GFP_ATOMIC);
-	if (qh_chg == NULL) {
+	qh_chg = kmalloc(sizeof * qh_chg, GFP_ATOMIC);
+
+	if (qh_chg == NULL)
+	{
 		nes_debug(NES_DBG_PAU, "Failed to get a cqp_request.\n");
 		ret = -ENOMEM;
 		goto chg_qh_err;
 	}
+
 	qh_chg->nesdev = nesdev;
 	qh_chg->nesvnic = nesvnic;
 	qh_chg->nesqp = nesqp;
@@ -742,8 +889,8 @@ static int nes_change_quad_hash(struct nes_device *nesdev,
 	cqp_wqe = &cqp_request->cqp_wqe;
 	nes_fill_init_cqp_wqe(cqp_wqe, nesdev);
 	set_wqe_32bit_value(cqp_wqe->wqe_words,
-			    NES_CQP_WQE_OPCODE_IDX, NES_CQP_MANAGE_QUAD_HASH | NES_CQP_QP_DEL_HTE |
-			    NES_CQP_QP_TYPE_IWARP | NES_CQP_QP_CONTEXT_VALID | NES_CQP_QP_IWARP_STATE_RTS);
+						NES_CQP_WQE_OPCODE_IDX, NES_CQP_MANAGE_QUAD_HASH | NES_CQP_QP_DEL_HTE |
+						NES_CQP_QP_TYPE_IWARP | NES_CQP_QP_CONTEXT_VALID | NES_CQP_QP_IWARP_STATE_RTS);
 	set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_ID_IDX, nesqp->hwqp.qp_id);
 	u64temp = (u64)nesqp->nesqp_context_pbase;
 	set_wqe_64bit_value(cqp_wqe->wqe_words, NES_CQP_QP_WQE_CONTEXT_LOW_IDX, u64temp);
@@ -760,8 +907,12 @@ static int nes_change_quad_hash(struct nes_device *nesdev,
 
 chg_qh_err:
 	kfree(qh_chg);
+
 	if (cqp_request)
+	{
 		nes_put_cqp_request(nesdev, cqp_request);
+	}
+
 	return ret;
 }
 
@@ -788,26 +939,36 @@ static void nes_mgt_ce_handler(struct nes_device *nesdev, struct nes_hw_nic_cq *
 	head = cq->cq_head;
 	cq_size = cq->cq_size;
 
-	while (1) {
+	while (1)
+	{
 		cqe_misc = le32_to_cpu(cq->cq_vbase[head].cqe_words[NES_NIC_CQE_MISC_IDX]);
+
 		if (!(cqe_misc & NES_NIC_CQE_VALID))
+		{
 			break;
+		}
 
 		nesqp = NULL;
-		if (cqe_misc & NES_NIC_CQE_ACCQP_VALID) {
+
+		if (cqe_misc & NES_NIC_CQE_ACCQP_VALID)
+		{
 			qp_id = le32_to_cpu(cq->cq_vbase[head].cqe_words[NES_NIC_CQE_ACCQP_ID_IDX]);
 			qp_id &= 0x001fffff;
-			if (qp_id < nesadapter->max_qp) {
+
+			if (qp_id < nesadapter->max_qp)
+			{
 				context = (unsigned long)nesadapter->qp_table[qp_id - NES_FIRST_QPN];
 				nesqp = (struct nes_qp *)context;
 			}
 		}
 
-		if (nesqp) {
-			if (nesqp->pau_mode == false) {
+		if (nesqp)
+		{
+			if (nesqp->pau_mode == false)
+			{
 				nesqp->pau_mode = true; /* First time for this qp */
 				nesqp->pau_rcv_nxt = le32_to_cpu(
-					cq->cq_vbase[head].cqe_words[NES_NIC_CQE_HASH_RCVNXT]);
+										 cq->cq_vbase[head].cqe_words[NES_NIC_CQE_HASH_RCVNXT]);
 				skb_queue_head_init(&nesqp->pau_list);
 				spin_lock_init(&nesqp->pau_lock);
 				atomic_inc(&pau_qps_created);
@@ -826,16 +987,22 @@ static void nes_mgt_ce_handler(struct nes_device *nesdev, struct nes_hw_nic_cq *
 
 			nes_add_ref_cm_node(nesqp->cm_node);
 			nes_queue_mgt_skbs(rx_skb, mgtvnic->nesvnic, nesqp);
-		} else {
+		}
+		else
+		{
 			printk(KERN_ERR PFX "Invalid QP %d for packed/unaligned handling\n", qp_id);
 		}
 
 		cq->cq_vbase[head].cqe_words[NES_NIC_CQE_MISC_IDX] = 0;
 		cqe_count++;
-		if (++head >= cq_size)
-			head = 0;
 
-		if (cqe_count == 255) {
+		if (++head >= cq_size)
+		{
+			head = 0;
+		}
+
+		if (cqe_count == 255)
+		{
 			/* Replenish mgt CQ */
 			nes_write32(nesdev->regs + NES_CQE_ALLOC, cq->cq_number | (cqe_count << 16));
 			nesdev->currcq_count += cqe_count;
@@ -843,13 +1010,16 @@ static void nes_mgt_ce_handler(struct nes_device *nesdev, struct nes_hw_nic_cq *
 		}
 
 		skbs_needed = atomic_inc_return(&mgtvnic->rx_skbs_needed);
+
 		if (skbs_needed > (mgtvnic->mgt.rq_size >> 1))
+		{
 			nes_replenish_mgt_rq(mgtvnic);
+		}
 	}
 
 	cq->cq_head = head;
 	nes_write32(nesdev->regs + NES_CQE_ALLOC, NES_CQE_ALLOC_NOTIFY_NEXT |
-		    cq->cq_number | (cqe_count << 16));
+				cq->cq_number | (cqe_count << 16));
 	nes_read32(nesdev->regs + NES_CQE_ALLOC);
 	nesdev->currcq_count += cqe_count;
 }
@@ -880,7 +1050,9 @@ int nes_init_mgt_qp(struct nes_device *nesdev, struct net_device *netdev, struct
 
 	/* Allocate space the all mgt QPs once */
 	mgtvnic = kzalloc(NES_MGT_QP_COUNT * sizeof(struct nes_vnic_mgt), GFP_KERNEL);
-	if (mgtvnic == NULL) {
+
+	if (mgtvnic == NULL)
+	{
 		nes_debug(NES_DBG_INIT, "Unable to allocate memory for mgt structure\n");
 		return -ENOMEM;
 	}
@@ -888,12 +1060,14 @@ int nes_init_mgt_qp(struct nes_device *nesdev, struct net_device *netdev, struct
 	/* Allocate fragment, RQ, and CQ; Reuse CEQ based on the PCI function */
 	/* We are not sending from this NIC so sq is not allocated */
 	mgt_mem_size = 256 +
-		       (NES_MGT_WQ_COUNT * sizeof(struct nes_hw_nic_rq_wqe)) +
-		       (NES_MGT_WQ_COUNT * sizeof(struct nes_hw_nic_cqe)) +
-		       sizeof(struct nes_hw_nic_qp_context);
+				   (NES_MGT_WQ_COUNT * sizeof(struct nes_hw_nic_rq_wqe)) +
+				   (NES_MGT_WQ_COUNT * sizeof(struct nes_hw_nic_cqe)) +
+				   sizeof(struct nes_hw_nic_qp_context);
 	mgt_mem_size = (mgt_mem_size + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
 	mgt_vbase = pci_alloc_consistent(nesdev->pcidev, NES_MGT_QP_COUNT * mgt_mem_size, &mgt_pbase);
-	if (!mgt_vbase) {
+
+	if (!mgt_vbase)
+	{
 		kfree(mgtvnic);
 		nes_debug(NES_DBG_INIT, "Unable to allocate memory for mgt host descriptor rings\n");
 		return -ENOMEM;
@@ -907,17 +1081,18 @@ int nes_init_mgt_qp(struct nes_device *nesdev, struct net_device *netdev, struct
 	init_waitqueue_head(&nesvnic->mgt_wait_queue);
 	nesvnic->mgt_thread = kthread_run(mgt_thread, nesvnic, "nes_mgt_thread");
 
-	for (i = 0; i < NES_MGT_QP_COUNT; i++) {
+	for (i = 0; i < NES_MGT_QP_COUNT; i++)
+	{
 		mgtvnic->nesvnic = nesvnic;
 		mgtvnic->mgt.qp_id = nesdev->mac_index + NES_MGT_QP_OFFSET + i;
 		memset(mgt_vbase, 0, mgt_mem_size);
 		nes_debug(NES_DBG_INIT, "Allocated mgt QP structures at %p (phys = %016lX), size = %u.\n",
-			  mgt_vbase, (unsigned long)mgt_pbase, mgt_mem_size);
+				  mgt_vbase, (unsigned long)mgt_pbase, mgt_mem_size);
 
 		vmem = (void *)(((unsigned long)mgt_vbase + (256 - 1)) &
-				~(unsigned long)(256 - 1));
+						~(unsigned long)(256 - 1));
 		pmem = (dma_addr_t)(((unsigned long long)mgt_pbase + (256 - 1)) &
-				    ~(unsigned long long)(256 - 1));
+							~(unsigned long long)(256 - 1));
 
 		spin_lock_init(&mgtvnic->mgt.rq_lock);
 
@@ -948,10 +1123,10 @@ int nes_init_mgt_qp(struct nes_device *nesdev, struct net_device *netdev, struct
 		nes_fill_init_cqp_wqe(cqp_wqe, nesdev);
 
 		cqp_wqe->wqe_words[NES_CQP_WQE_OPCODE_IDX] = cpu_to_le32(
-			NES_CQP_CREATE_CQ | NES_CQP_CQ_CEQ_VALID |
-			((u32)mgtvnic->mgt_cq.cq_size << 16));
+					NES_CQP_CREATE_CQ | NES_CQP_CQ_CEQ_VALID |
+					((u32)mgtvnic->mgt_cq.cq_size << 16));
 		cqp_wqe->wqe_words[NES_CQP_WQE_ID_IDX] = cpu_to_le32(
-			mgtvnic->mgt_cq.cq_number | ((u32)nesdev->ceq_index << 16));
+					mgtvnic->mgt_cq.cq_number | ((u32)nesdev->ceq_index << 16));
 		u64temp = (u64)mgtvnic->mgt_cq.cq_pbase;
 		set_wqe_64bit_value(cqp_wqe->wqe_words, NES_CQP_CQ_WQE_PBL_LOW_IDX, u64temp);
 		cqp_wqe->wqe_words[NES_CQP_CQ_WQE_CQ_CONTEXT_HIGH_IDX] = 0;
@@ -962,7 +1137,10 @@ int nes_init_mgt_qp(struct nes_device *nesdev, struct net_device *netdev, struct
 		cqp_wqe->wqe_words[NES_CQP_CQ_WQE_DOORBELL_INDEX_HIGH_IDX] = 0;
 
 		if (++cqp_head >= nesdev->cqp.sq_size)
+		{
 			cqp_head = 0;
+		}
+
 		cqp_wqe = &nesdev->cqp.sq_vbase[cqp_head];
 		nes_fill_init_cqp_wqe(cqp_wqe, nesdev);
 
@@ -970,12 +1148,15 @@ int nes_init_mgt_qp(struct nes_device *nesdev, struct net_device *netdev, struct
 		mgt_context = (void *)(&mgtvnic->mgt_cq.cq_vbase[mgtvnic->mgt_cq.cq_size]);
 		mgt_context->context_words[NES_NIC_CTX_MISC_IDX] =
 			cpu_to_le32((u32)NES_MGT_CTX_SIZE |
-				    ((u32)PCI_FUNC(nesdev->pcidev->devfn) << 12));
+						((u32)PCI_FUNC(nesdev->pcidev->devfn) << 12));
 		nes_debug(NES_DBG_INIT, "RX_WINDOW_BUFFER_PAGE_TABLE_SIZE = 0x%08X, RX_WINDOW_BUFFER_SIZE = 0x%08X\n",
-			  nes_read_indexed(nesdev, NES_IDX_RX_WINDOW_BUFFER_PAGE_TABLE_SIZE),
-			  nes_read_indexed(nesdev, NES_IDX_RX_WINDOW_BUFFER_SIZE));
+				  nes_read_indexed(nesdev, NES_IDX_RX_WINDOW_BUFFER_PAGE_TABLE_SIZE),
+				  nes_read_indexed(nesdev, NES_IDX_RX_WINDOW_BUFFER_SIZE));
+
 		if (nes_read_indexed(nesdev, NES_IDX_RX_WINDOW_BUFFER_SIZE) != 0)
+		{
 			mgt_context->context_words[NES_NIC_CTX_MISC_IDX] |= cpu_to_le32(NES_NIC_BACK_STORE);
+		}
 
 		u64temp = (u64)mgtvnic->mgt.rq_pbase;
 		mgt_context->context_words[NES_NIC_CTX_SQ_LOW_IDX] = cpu_to_le32((u32)u64temp);
@@ -985,14 +1166,17 @@ int nes_init_mgt_qp(struct nes_device *nesdev, struct net_device *netdev, struct
 		mgt_context->context_words[NES_NIC_CTX_RQ_HIGH_IDX] = cpu_to_le32((u32)(u64temp >> 32));
 
 		cqp_wqe->wqe_words[NES_CQP_WQE_OPCODE_IDX] = cpu_to_le32(NES_CQP_CREATE_QP |
-									 NES_CQP_QP_TYPE_NIC);
+				NES_CQP_QP_TYPE_NIC);
 		cqp_wqe->wqe_words[NES_CQP_WQE_ID_IDX] = cpu_to_le32(mgtvnic->mgt.qp_id);
 		u64temp = (u64)mgtvnic->mgt_cq.cq_pbase +
-			  (mgtvnic->mgt_cq.cq_size * sizeof(struct nes_hw_nic_cqe));
+				  (mgtvnic->mgt_cq.cq_size * sizeof(struct nes_hw_nic_cqe));
 		set_wqe_64bit_value(cqp_wqe->wqe_words, NES_CQP_QP_WQE_CONTEXT_LOW_IDX, u64temp);
 
 		if (++cqp_head >= nesdev->cqp.sq_size)
+		{
 			cqp_head = 0;
+		}
+
 		nesdev->cqp.sq_head = cqp_head;
 
 		barrier();
@@ -1002,28 +1186,38 @@ int nes_init_mgt_qp(struct nes_device *nesdev, struct net_device *netdev, struct
 
 		spin_unlock_irqrestore(&nesdev->cqp.lock, flags);
 		nes_debug(NES_DBG_INIT, "Waiting for create MGT QP%u to complete.\n",
-			  mgtvnic->mgt.qp_id);
+				  mgtvnic->mgt.qp_id);
 
 		ret = wait_event_timeout(nesdev->cqp.waitq, (nesdev->cqp.sq_tail == cqp_head),
-					 NES_EVENT_TIMEOUT);
+								 NES_EVENT_TIMEOUT);
 		nes_debug(NES_DBG_INIT, "Create MGT QP%u completed, wait_event_timeout ret = %u.\n",
-			  mgtvnic->mgt.qp_id, ret);
-		if (!ret) {
+				  mgtvnic->mgt.qp_id, ret);
+
+		if (!ret)
+		{
 			nes_debug(NES_DBG_INIT, "MGT QP%u create timeout expired\n", mgtvnic->mgt.qp_id);
-			if (i == 0) {
+
+			if (i == 0)
+			{
 				pci_free_consistent(nesdev->pcidev, nesvnic->mgt_mem_size, nesvnic->mgt_vbase,
-						    nesvnic->mgt_pbase);
+									nesvnic->mgt_pbase);
 				kfree(mgtvnic);
-			} else {
+			}
+			else
+			{
 				nes_destroy_mgt(nesvnic);
 			}
+
 			return -EIO;
 		}
 
 		/* Populate the RQ */
-		for (counter = 0; counter < (NES_MGT_WQ_COUNT - 1); counter++) {
+		for (counter = 0; counter < (NES_MGT_WQ_COUNT - 1); counter++)
+		{
 			skb = dev_alloc_skb(nesvnic->max_frame_size);
-			if (!skb) {
+
+			if (!skb)
+			{
 				nes_debug(NES_DBG_INIT, "%s: out of memory for receive skb\n", netdev->name);
 				return -ENOMEM;
 			}
@@ -1031,7 +1225,7 @@ int nes_init_mgt_qp(struct nes_device *nesdev, struct net_device *netdev, struct
 			skb->dev = netdev;
 
 			pmem = pci_map_single(nesdev->pcidev, skb->data,
-					      nesvnic->max_frame_size, PCI_DMA_FROMDEVICE);
+								  nesvnic->max_frame_size, PCI_DMA_FROMDEVICE);
 			cb = (struct nes_rskb_cb *)&skb->cb[0];
 			cb->busaddr = pmem;
 			cb->maplen = nesvnic->max_frame_size;
@@ -1051,20 +1245,24 @@ int nes_init_mgt_qp(struct nes_device *nesdev, struct net_device *netdev, struct
 		wqe_count = NES_MGT_WQ_COUNT - 1;
 		mgtvnic->mgt.rq_head = wqe_count;
 		barrier();
-		do {
+
+		do
+		{
 			counter = min(wqe_count, ((u32)255));
 			wqe_count -= counter;
 			nes_write32(nesdev->regs + NES_WQE_ALLOC, (counter << 24) | mgtvnic->mgt.qp_id);
-		} while (wqe_count);
+		}
+		while (wqe_count);
 
 		nes_write32(nesdev->regs + NES_CQE_ALLOC, NES_CQE_ALLOC_NOTIFY_NEXT |
-			    mgtvnic->mgt_cq.cq_number);
+					mgtvnic->mgt_cq.cq_number);
 		nes_read32(nesdev->regs + NES_CQE_ALLOC);
 
 		mgt_vbase += mgt_mem_size;
 		mgt_pbase += mgt_mem_size;
 		nesvnic->mgtvnic[i] = mgtvnic++;
 	}
+
 	return 0;
 }
 
@@ -1085,12 +1283,18 @@ void nes_destroy_mgt(struct nes_vnic *nesvnic)
 
 	/* Free remaining NIC receive buffers */
 	first_mgtvnic = nesvnic->mgtvnic[0];
-	for (i = 0; i < NES_MGT_QP_COUNT; i++) {
-		mgtvnic = nesvnic->mgtvnic[i];
-		if (mgtvnic == NULL)
-			continue;
 
-		while (mgtvnic->mgt.rq_head != mgtvnic->mgt.rq_tail) {
+	for (i = 0; i < NES_MGT_QP_COUNT; i++)
+	{
+		mgtvnic = nesvnic->mgtvnic[i];
+
+		if (mgtvnic == NULL)
+		{
+			continue;
+		}
+
+		while (mgtvnic->mgt.rq_head != mgtvnic->mgt.rq_tail)
+		{
 			rx_skb = mgtvnic->mgt.rx_skb[mgtvnic->mgt.rq_tail];
 			nes_mgt_free_skb(nesdev, rx_skb, PCI_DMA_FROMDEVICE);
 			mgtvnic->mgt.rq_tail++;
@@ -1105,24 +1309,28 @@ void nes_destroy_mgt(struct nes_vnic *nesvnic)
 		nes_fill_init_cqp_wqe(cqp_wqe, nesdev);
 
 		set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_OPCODE_IDX,
-				    (NES_CQP_DESTROY_QP | NES_CQP_QP_TYPE_NIC));
+							(NES_CQP_DESTROY_QP | NES_CQP_QP_TYPE_NIC));
 		set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_ID_IDX,
-				    mgtvnic->mgt.qp_id);
+							mgtvnic->mgt.qp_id);
 
 		if (++cqp_head >= nesdev->cqp.sq_size)
+		{
 			cqp_head = 0;
+		}
 
 		cqp_wqe = &nesdev->cqp.sq_vbase[cqp_head];
 
 		/* Destroy NIC CQ */
 		nes_fill_init_cqp_wqe(cqp_wqe, nesdev);
 		set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_OPCODE_IDX,
-				    (NES_CQP_DESTROY_CQ | ((u32)mgtvnic->mgt_cq.cq_size << 16)));
+							(NES_CQP_DESTROY_CQ | ((u32)mgtvnic->mgt_cq.cq_size << 16)));
 		set_wqe_32bit_value(cqp_wqe->wqe_words, NES_CQP_WQE_ID_IDX,
-				    (mgtvnic->mgt_cq.cq_number | ((u32)nesdev->ceq_index << 16)));
+							(mgtvnic->mgt_cq.cq_number | ((u32)nesdev->ceq_index << 16)));
 
 		if (++cqp_head >= nesdev->cqp.sq_size)
+		{
 			cqp_head = 0;
+		}
 
 		nesdev->cqp.sq_head = cqp_head;
 		barrier();
@@ -1132,26 +1340,28 @@ void nes_destroy_mgt(struct nes_vnic *nesvnic)
 
 		spin_unlock_irqrestore(&nesdev->cqp.lock, flags);
 		nes_debug(NES_DBG_SHUTDOWN, "Waiting for CQP, cqp_head=%u, cqp.sq_head=%u,"
-			  " cqp.sq_tail=%u, cqp.sq_size=%u\n",
-			  cqp_head, nesdev->cqp.sq_head,
-			  nesdev->cqp.sq_tail, nesdev->cqp.sq_size);
+				  " cqp.sq_tail=%u, cqp.sq_size=%u\n",
+				  cqp_head, nesdev->cqp.sq_head,
+				  nesdev->cqp.sq_tail, nesdev->cqp.sq_size);
 
 		ret = wait_event_timeout(nesdev->cqp.waitq, (nesdev->cqp.sq_tail == cqp_head),
-					 NES_EVENT_TIMEOUT);
+								 NES_EVENT_TIMEOUT);
 
 		nes_debug(NES_DBG_SHUTDOWN, "Destroy MGT QP returned, wait_event_timeout ret = %u, cqp_head=%u,"
-			  " cqp.sq_head=%u, cqp.sq_tail=%u\n",
-			  ret, cqp_head, nesdev->cqp.sq_head, nesdev->cqp.sq_tail);
+				  " cqp.sq_head=%u, cqp.sq_tail=%u\n",
+				  ret, cqp_head, nesdev->cqp.sq_head, nesdev->cqp.sq_tail);
+
 		if (!ret)
 			nes_debug(NES_DBG_SHUTDOWN, "MGT QP%u destroy timeout expired\n",
-				  mgtvnic->mgt.qp_id);
+					  mgtvnic->mgt.qp_id);
 
 		nesvnic->mgtvnic[i] = NULL;
 	}
 
-	if (nesvnic->mgt_vbase) {
+	if (nesvnic->mgt_vbase)
+	{
 		pci_free_consistent(nesdev->pcidev, nesvnic->mgt_mem_size, nesvnic->mgt_vbase,
-				    nesvnic->mgt_pbase);
+							nesvnic->mgt_pbase);
 		nesvnic->mgt_vbase = NULL;
 		nesvnic->mgt_pbase = 0;
 	}

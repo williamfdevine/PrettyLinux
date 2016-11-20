@@ -79,7 +79,8 @@
  * EMI_ERR: External Memory Interface Error
  * HECMI_ERR: HEC Memory Interface Error
  */
-enum hva_hw_error {
+enum hva_hw_error
+{
 	NO_ERROR = 0x0,
 	H264_BITSTREAM_OVERSIZE = 0x2,
 	H264_FRAME_SKIPPED = 0x4,
@@ -118,76 +119,92 @@ static irqreturn_t hva_hw_its_irq_thread(int irq, void *arg)
 	struct hva_ctx *ctx = NULL;
 
 	dev_dbg(dev, "%s     %s: status: 0x%02x fifo level: 0x%02x\n",
-		HVA_PREFIX, __func__, hva->sts_reg & 0xFF, hva->sfl_reg & 0xF);
+			HVA_PREFIX, __func__, hva->sts_reg & 0xFF, hva->sfl_reg & 0xF);
 
 	/*
 	 * status: task_id[31:16] client_id[15:8] status[7:0]
 	 * the context identifier is retrieved from the client identifier
 	 */
 	ctx_id = (hva->sts_reg & 0xFF00) >> 8;
-	if (ctx_id >= HVA_MAX_INSTANCES) {
+
+	if (ctx_id >= HVA_MAX_INSTANCES)
+	{
 		dev_err(dev, "%s     %s: bad context identifier: %d\n",
-			ctx->name, __func__, ctx_id);
+				ctx->name, __func__, ctx_id);
 		ctx->hw_err = true;
 		goto out;
 	}
 
 	ctx = hva->instances[ctx_id];
-	if (!ctx)
-		goto out;
 
-	switch (status) {
-	case NO_ERROR:
-		dev_dbg(dev, "%s     %s: no error\n",
-			ctx->name, __func__);
-		ctx->hw_err = false;
-		break;
-	case H264_SLICE_READY:
-		dev_dbg(dev, "%s     %s: h264 slice ready\n",
-			ctx->name, __func__);
-		ctx->hw_err = false;
-		break;
-	case H264_FRAME_SKIPPED:
-		dev_dbg(dev, "%s     %s: h264 frame skipped\n",
-			ctx->name, __func__);
-		ctx->hw_err = false;
-		break;
-	case H264_BITSTREAM_OVERSIZE:
-		dev_err(dev, "%s     %s:h264 bitstream oversize\n",
-			ctx->name, __func__);
-		ctx->hw_err = true;
-		break;
-	case H264_SLICE_LIMIT_SIZE:
-		dev_err(dev, "%s     %s: h264 slice limit size is reached\n",
-			ctx->name, __func__);
-		ctx->hw_err = true;
-		break;
-	case H264_MAX_SLICE_NUMBER:
-		dev_err(dev, "%s     %s: h264 max slice number is reached\n",
-			ctx->name, __func__);
-		ctx->hw_err = true;
-		break;
-	case TASK_LIST_FULL:
-		dev_err(dev, "%s     %s:task list full\n",
-			ctx->name, __func__);
-		ctx->hw_err = true;
-		break;
-	case UNKNOWN_COMMAND:
-		dev_err(dev, "%s     %s: command not known\n",
-			ctx->name, __func__);
-		ctx->hw_err = true;
-		break;
-	case WRONG_CODEC_OR_RESOLUTION:
-		dev_err(dev, "%s     %s: wrong codec or resolution\n",
-			ctx->name, __func__);
-		ctx->hw_err = true;
-		break;
-	default:
-		dev_err(dev, "%s     %s: status not recognized\n",
-			ctx->name, __func__);
-		ctx->hw_err = true;
-		break;
+	if (!ctx)
+	{
+		goto out;
 	}
+
+	switch (status)
+	{
+		case NO_ERROR:
+			dev_dbg(dev, "%s     %s: no error\n",
+					ctx->name, __func__);
+			ctx->hw_err = false;
+			break;
+
+		case H264_SLICE_READY:
+			dev_dbg(dev, "%s     %s: h264 slice ready\n",
+					ctx->name, __func__);
+			ctx->hw_err = false;
+			break;
+
+		case H264_FRAME_SKIPPED:
+			dev_dbg(dev, "%s     %s: h264 frame skipped\n",
+					ctx->name, __func__);
+			ctx->hw_err = false;
+			break;
+
+		case H264_BITSTREAM_OVERSIZE:
+			dev_err(dev, "%s     %s:h264 bitstream oversize\n",
+					ctx->name, __func__);
+			ctx->hw_err = true;
+			break;
+
+		case H264_SLICE_LIMIT_SIZE:
+			dev_err(dev, "%s     %s: h264 slice limit size is reached\n",
+					ctx->name, __func__);
+			ctx->hw_err = true;
+			break;
+
+		case H264_MAX_SLICE_NUMBER:
+			dev_err(dev, "%s     %s: h264 max slice number is reached\n",
+					ctx->name, __func__);
+			ctx->hw_err = true;
+			break;
+
+		case TASK_LIST_FULL:
+			dev_err(dev, "%s     %s:task list full\n",
+					ctx->name, __func__);
+			ctx->hw_err = true;
+			break;
+
+		case UNKNOWN_COMMAND:
+			dev_err(dev, "%s     %s: command not known\n",
+					ctx->name, __func__);
+			ctx->hw_err = true;
+			break;
+
+		case WRONG_CODEC_OR_RESOLUTION:
+			dev_err(dev, "%s     %s: wrong codec or resolution\n",
+					ctx->name, __func__);
+			ctx->hw_err = true;
+			break;
+
+		default:
+			dev_err(dev, "%s     %s: status not recognized\n",
+					ctx->name, __func__);
+			ctx->hw_err = true;
+			break;
+	}
+
 out:
 	complete(&hva->interrupt);
 
@@ -206,7 +223,7 @@ static irqreturn_t hva_hw_err_interrupt(int irq, void *data)
 	hva->lmi_err_reg = readl_relaxed(hva->regs + HVA_HIF_REG_LMI_ERR);
 	hva->emi_err_reg = readl_relaxed(hva->regs + HVA_HIF_REG_EMI_ERR);
 	hva->hec_mif_err_reg = readl_relaxed(hva->regs +
-					     HVA_HIF_REG_HEC_MIF_ERR);
+										 HVA_HIF_REG_HEC_MIF_ERR);
 
 	/* acknowledge interruption */
 	writel_relaxed(0x1, hva->regs + HVA_HIF_REG_IT_ACK);
@@ -222,40 +239,49 @@ static irqreturn_t hva_hw_err_irq_thread(int irq, void *arg)
 	struct hva_ctx *ctx;
 
 	dev_dbg(dev, "%s     status: 0x%02x fifo level: 0x%02x\n",
-		HVA_PREFIX, hva->sts_reg & 0xFF, hva->sfl_reg & 0xF);
+			HVA_PREFIX, hva->sts_reg & 0xFF, hva->sfl_reg & 0xF);
 
 	/*
 	 * status: task_id[31:16] client_id[15:8] status[7:0]
 	 * the context identifier is retrieved from the client identifier
 	 */
 	ctx_id = (hva->sts_reg & 0xFF00) >> 8;
-	if (ctx_id >= HVA_MAX_INSTANCES) {
+
+	if (ctx_id >= HVA_MAX_INSTANCES)
+	{
 		dev_err(dev, "%s     bad context identifier: %d\n", HVA_PREFIX,
-			ctx_id);
+				ctx_id);
 		goto out;
 	}
 
 	ctx = hva->instances[ctx_id];
+
 	if (!ctx)
+	{
 		goto out;
+	}
 
-	if (hva->lmi_err_reg) {
+	if (hva->lmi_err_reg)
+	{
 		dev_err(dev, "%s     local memory interface error: 0x%08x\n",
-			ctx->name, hva->lmi_err_reg);
+				ctx->name, hva->lmi_err_reg);
 		ctx->hw_err = true;
 	}
 
-	if (hva->lmi_err_reg) {
+	if (hva->lmi_err_reg)
+	{
 		dev_err(dev, "%s     external memory interface error: 0x%08x\n",
-			ctx->name, hva->emi_err_reg);
+				ctx->name, hva->emi_err_reg);
 		ctx->hw_err = true;
 	}
 
-	if (hva->hec_mif_err_reg) {
+	if (hva->hec_mif_err_reg)
+	{
 		dev_err(dev, "%s     hec memory interface error: 0x%08x\n",
-			ctx->name, hva->hec_mif_err_reg);
+				ctx->name, hva->hec_mif_err_reg);
 		ctx->hw_err = true;
 	}
+
 out:
 	complete(&hva->interrupt);
 
@@ -267,27 +293,30 @@ static unsigned long int hva_hw_get_ip_version(struct hva_dev *hva)
 	struct device *dev = hva_to_dev(hva);
 	unsigned long int version;
 
-	if (pm_runtime_get_sync(dev) < 0) {
+	if (pm_runtime_get_sync(dev) < 0)
+	{
 		dev_err(dev, "%s     failed to get pm_runtime\n", HVA_PREFIX);
 		mutex_unlock(&hva->protect_mutex);
 		return -EFAULT;
 	}
 
 	version = readl_relaxed(hva->regs + HVA_HIF_REG_VERSION) &
-				VERSION_ID_MASK;
+			  VERSION_ID_MASK;
 
 	pm_runtime_put_autosuspend(dev);
 
-	switch (version) {
-	case HVA_VERSION_V400:
-		dev_dbg(dev, "%s     IP hardware version 0x%lx\n",
-			HVA_PREFIX, version);
-		break;
-	default:
-		dev_err(dev, "%s     unknown IP hardware version 0x%lx\n",
-			HVA_PREFIX, version);
-		version = HVA_VERSION_UNKNOWN;
-		break;
+	switch (version)
+	{
+		case HVA_VERSION_V400:
+			dev_dbg(dev, "%s     IP hardware version 0x%lx\n",
+					HVA_PREFIX, version);
+			break;
+
+		default:
+			dev_err(dev, "%s     unknown IP hardware version 0x%lx\n",
+					HVA_PREFIX, version);
+			version = HVA_VERSION_UNKNOWN;
+			break;
 	}
 
 	return version;
@@ -305,32 +334,41 @@ int hva_hw_probe(struct platform_device *pdev, struct hva_dev *hva)
 	/* get memory for registers */
 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	hva->regs = devm_ioremap_resource(dev, regs);
-	if (IS_ERR_OR_NULL(hva->regs)) {
+
+	if (IS_ERR_OR_NULL(hva->regs))
+	{
 		dev_err(dev, "%s     failed to get regs\n", HVA_PREFIX);
 		return PTR_ERR(hva->regs);
 	}
 
 	/* get memory for esram */
 	esram = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-	if (IS_ERR_OR_NULL(esram)) {
+
+	if (IS_ERR_OR_NULL(esram))
+	{
 		dev_err(dev, "%s     failed to get esram\n", HVA_PREFIX);
 		return PTR_ERR(esram);
 	}
+
 	hva->esram_addr = esram->start;
 	hva->esram_size = resource_size(esram);
 
 	dev_info(dev, "%s     esram reserved for address: 0x%x size:%d\n",
-		 HVA_PREFIX, hva->esram_addr, hva->esram_size);
+			 HVA_PREFIX, hva->esram_addr, hva->esram_size);
 
 	/* get clock resource */
 	hva->clk = devm_clk_get(dev, "clk_hva");
-	if (IS_ERR(hva->clk)) {
+
+	if (IS_ERR(hva->clk))
+	{
 		dev_err(dev, "%s     failed to get clock\n", HVA_PREFIX);
 		return PTR_ERR(hva->clk);
 	}
 
 	ret = clk_prepare(hva->clk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "%s     failed to prepare clock\n", HVA_PREFIX);
 		hva->clk = ERR_PTR(-EINVAL);
 		return ret;
@@ -338,40 +376,52 @@ int hva_hw_probe(struct platform_device *pdev, struct hva_dev *hva)
 
 	/* get status interruption resource */
 	ret  = platform_get_irq(pdev, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "%s     failed to get status IRQ\n", HVA_PREFIX);
 		goto err_clk;
 	}
+
 	hva->irq_its = ret;
 
 	ret = devm_request_threaded_irq(dev, hva->irq_its, hva_hw_its_interrupt,
-					hva_hw_its_irq_thread,
-					IRQF_ONESHOT,
-					"hva_its_irq", hva);
-	if (ret) {
+									hva_hw_its_irq_thread,
+									IRQF_ONESHOT,
+									"hva_its_irq", hva);
+
+	if (ret)
+	{
 		dev_err(dev, "%s     failed to install status IRQ 0x%x\n",
-			HVA_PREFIX, hva->irq_its);
+				HVA_PREFIX, hva->irq_its);
 		goto err_clk;
 	}
+
 	disable_irq(hva->irq_its);
 
 	/* get error interruption resource */
 	ret = platform_get_irq(pdev, 1);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "%s     failed to get error IRQ\n", HVA_PREFIX);
 		goto err_clk;
 	}
+
 	hva->irq_err = ret;
 
 	ret = devm_request_threaded_irq(dev, hva->irq_err, hva_hw_err_interrupt,
-					hva_hw_err_irq_thread,
-					IRQF_ONESHOT,
-					"hva_err_irq", hva);
-	if (ret) {
+									hva_hw_err_irq_thread,
+									IRQF_ONESHOT,
+									"hva_err_irq", hva);
+
+	if (ret)
+	{
 		dev_err(dev, "%s     failed to install error IRQ 0x%x\n",
-			HVA_PREFIX, hva->irq_err);
+				HVA_PREFIX, hva->irq_err);
 		goto err_clk;
 	}
+
 	disable_irq(hva->irq_err);
 
 	/* initialise protection mutex */
@@ -387,7 +437,9 @@ int hva_hw_probe(struct platform_device *pdev, struct hva_dev *hva)
 	pm_runtime_enable(dev);
 
 	ret = pm_runtime_get_sync(dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "%s     failed to set PM\n", HVA_PREFIX);
 		goto err_clk;
 	}
@@ -395,21 +447,25 @@ int hva_hw_probe(struct platform_device *pdev, struct hva_dev *hva)
 	/* check IP hardware version */
 	hva->ip_version = hva_hw_get_ip_version(hva);
 
-	if (hva->ip_version == HVA_VERSION_UNKNOWN) {
+	if (hva->ip_version == HVA_VERSION_UNKNOWN)
+	{
 		ret = -EINVAL;
 		goto err_pm;
 	}
 
 	dev_info(dev, "%s     found hva device (version 0x%lx)\n", HVA_PREFIX,
-		 hva->ip_version);
+			 hva->ip_version);
 
 	return 0;
 
 err_pm:
 	pm_runtime_put(dev);
 err_clk:
+
 	if (hva->clk)
+	{
 		clk_unprepare(hva->clk);
+	}
 
 	return ret;
 }
@@ -438,15 +494,17 @@ int hva_hw_runtime_resume(struct device *dev)
 {
 	struct hva_dev *hva = dev_get_drvdata(dev);
 
-	if (clk_prepare_enable(hva->clk)) {
+	if (clk_prepare_enable(hva->clk))
+	{
 		dev_err(hva->dev, "%s     failed to prepare hva clk\n",
-			HVA_PREFIX);
+				HVA_PREFIX);
 		return -EINVAL;
 	}
 
-	if (clk_set_rate(hva->clk, CLK_RATE)) {
+	if (clk_set_rate(hva->clk, CLK_RATE))
+	{
 		dev_err(dev, "%s     failed to set clock frequency\n",
-			HVA_PREFIX);
+				HVA_PREFIX);
 		return -EINVAL;
 	}
 
@@ -454,7 +512,7 @@ int hva_hw_runtime_resume(struct device *dev)
 }
 
 int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
-			struct hva_buffer *task)
+						struct hva_buffer *task)
 {
 	struct hva_dev *hva = ctx_to_hdev(ctx);
 	struct device *dev = hva_to_dev(hva);
@@ -468,26 +526,31 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
 	enable_irq(hva->irq_its);
 	enable_irq(hva->irq_err);
 
-	if (pm_runtime_get_sync(dev) < 0) {
+	if (pm_runtime_get_sync(dev) < 0)
+	{
 		dev_err(dev, "%s     failed to get pm_runtime\n", ctx->name);
 		ret = -EFAULT;
 		goto out;
 	}
 
 	reg = readl_relaxed(hva->regs + HVA_HIF_REG_CLK_GATING);
-	switch (cmd) {
-	case H264_ENC:
-		reg |= CLK_GATING_HVC;
-		break;
-	default:
-		dev_dbg(dev, "%s     unknown command 0x%x\n", ctx->name, cmd);
-		ret = -EFAULT;
-		goto out;
+
+	switch (cmd)
+	{
+		case H264_ENC:
+			reg |= CLK_GATING_HVC;
+			break;
+
+		default:
+			dev_dbg(dev, "%s     unknown command 0x%x\n", ctx->name, cmd);
+			ret = -EFAULT;
+			goto out;
 	}
+
 	writel_relaxed(reg, hva->regs + HVA_HIF_REG_CLK_GATING);
 
 	dev_dbg(dev, "%s     %s: write configuration registers\n", ctx->name,
-		__func__);
+			__func__);
 
 	/* byte swap config */
 	writel_relaxed(BSM_CFG_VAL1, hva->regs + HVA_HIF_REG_BSM);
@@ -503,14 +566,15 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
 	 * status register
 	 */
 	dev_dbg(dev, "%s     %s: send task (cmd: %d, task_desc: %pad)\n",
-		ctx->name, __func__, cmd + (client_id << 8), &task->paddr);
+			ctx->name, __func__, cmd + (client_id << 8), &task->paddr);
 	writel_relaxed(cmd + (client_id << 8), hva->regs + HVA_HIF_FIFO_CMD);
 	writel_relaxed(task->paddr, hva->regs + HVA_HIF_FIFO_CMD);
 
 	if (!wait_for_completion_timeout(&hva->interrupt,
-					 msecs_to_jiffies(2000))) {
+									 msecs_to_jiffies(2000)))
+	{
 		dev_err(dev, "%s     %s: time out on completion\n", ctx->name,
-			__func__);
+				__func__);
 		ret = -EFAULT;
 		goto out;
 	}
@@ -522,13 +586,15 @@ out:
 	disable_irq(hva->irq_its);
 	disable_irq(hva->irq_err);
 
-	switch (cmd) {
-	case H264_ENC:
-		reg &= ~CLK_GATING_HVC;
-		writel_relaxed(reg, hva->regs + HVA_HIF_REG_CLK_GATING);
-		break;
-	default:
-		dev_dbg(dev, "%s     unknown command 0x%x\n", ctx->name, cmd);
+	switch (cmd)
+	{
+		case H264_ENC:
+			reg &= ~CLK_GATING_HVC;
+			writel_relaxed(reg, hva->regs + HVA_HIF_REG_CLK_GATING);
+			break;
+
+		default:
+			dev_dbg(dev, "%s     unknown command 0x%x\n", ctx->name, cmd);
 	}
 
 	pm_runtime_put_autosuspend(dev);

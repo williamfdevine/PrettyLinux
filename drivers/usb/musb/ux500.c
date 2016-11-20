@@ -30,14 +30,16 @@
 
 #include "musb_core.h"
 
-static struct musb_hdrc_config ux500_musb_hdrc_config = {
+static struct musb_hdrc_config ux500_musb_hdrc_config =
+{
 	.multipoint	= true,
 	.dyn_fifo	= true,
 	.num_eps	= 16,
 	.ram_bits	= 16,
 };
 
-struct ux500_glue {
+struct ux500_glue
+{
 	struct device		*dev;
 	struct platform_device	*musb;
 	struct clk		*clk;
@@ -55,32 +57,41 @@ static void ux500_musb_set_vbus(struct musb *musb, int is_on)
 
 	devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
 
-	if (is_on) {
-		if (musb->xceiv->otg->state == OTG_STATE_A_IDLE) {
+	if (is_on)
+	{
+		if (musb->xceiv->otg->state == OTG_STATE_A_IDLE)
+		{
 			/* start the session */
 			devctl |= MUSB_DEVCTL_SESSION;
 			musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
+
 			/*
 			 * Wait for the musb to set as A device to enable the
 			 * VBUS
 			 */
-			while (musb_readb(musb->mregs, MUSB_DEVCTL) & 0x80) {
+			while (musb_readb(musb->mregs, MUSB_DEVCTL) & 0x80)
+			{
 
-				if (time_after(jiffies, timeout)) {
+				if (time_after(jiffies, timeout))
+				{
 					dev_err(musb->controller,
-					"configured as A device timeout");
+							"configured as A device timeout");
 					break;
 				}
 			}
 
-		} else {
+		}
+		else
+		{
 			musb->is_active = 1;
 			musb->xceiv->otg->default_a = 1;
 			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
 			devctl |= MUSB_DEVCTL_SESSION;
 			MUSB_HST_MODE(musb);
 		}
-	} else {
+	}
+	else
+	{
 		musb->is_active = 0;
 
 		/* NOTE: we're skipping A_WAIT_VFALL -> A_IDLE and jumping
@@ -90,6 +101,7 @@ static void ux500_musb_set_vbus(struct musb *musb, int is_on)
 		devctl &= ~MUSB_DEVCTL_SESSION;
 		MUSB_DEV_MODE(musb);
 	}
+
 	musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
 
 	/*
@@ -99,40 +111,53 @@ static void ux500_musb_set_vbus(struct musb *musb, int is_on)
 	 * as per the spec. Typically on our platform, it is 200ms
 	 */
 	if (!is_on)
+	{
 		mdelay(200);
+	}
 
 	dev_dbg(musb->controller, "VBUS %s, devctl %02x\n",
-		usb_otg_state_string(musb->xceiv->otg->state),
-		musb_readb(musb->mregs, MUSB_DEVCTL));
+			usb_otg_state_string(musb->xceiv->otg->state),
+			musb_readb(musb->mregs, MUSB_DEVCTL));
 }
 
 static int musb_otg_notifications(struct notifier_block *nb,
-		unsigned long event, void *unused)
+								  unsigned long event, void *unused)
 {
 	struct musb *musb = container_of(nb, struct musb, nb);
 
 	dev_dbg(musb->controller, "musb_otg_notifications %ld %s\n",
 			event, usb_otg_state_string(musb->xceiv->otg->state));
 
-	switch (event) {
-	case UX500_MUSB_ID:
-		dev_dbg(musb->controller, "ID GND\n");
-		ux500_musb_set_vbus(musb, 1);
-		break;
-	case UX500_MUSB_VBUS:
-		dev_dbg(musb->controller, "VBUS Connect\n");
-		break;
-	case UX500_MUSB_NONE:
-		dev_dbg(musb->controller, "VBUS Disconnect\n");
-		if (is_host_active(musb))
-			ux500_musb_set_vbus(musb, 0);
-		else
-			musb->xceiv->otg->state = OTG_STATE_B_IDLE;
-		break;
-	default:
-		dev_dbg(musb->controller, "ID float\n");
-		return NOTIFY_DONE;
+	switch (event)
+	{
+		case UX500_MUSB_ID:
+			dev_dbg(musb->controller, "ID GND\n");
+			ux500_musb_set_vbus(musb, 1);
+			break;
+
+		case UX500_MUSB_VBUS:
+			dev_dbg(musb->controller, "VBUS Connect\n");
+			break;
+
+		case UX500_MUSB_NONE:
+			dev_dbg(musb->controller, "VBUS Disconnect\n");
+
+			if (is_host_active(musb))
+			{
+				ux500_musb_set_vbus(musb, 0);
+			}
+			else
+			{
+				musb->xceiv->otg->state = OTG_STATE_B_IDLE;
+			}
+
+			break;
+
+		default:
+			dev_dbg(musb->controller, "ID float\n");
+			return NOTIFY_DONE;
 	}
+
 	return NOTIFY_OK;
 }
 
@@ -149,7 +174,9 @@ static irqreturn_t ux500_musb_interrupt(int irq, void *__hci)
 	musb->int_rx = musb_readw(musb->mregs, MUSB_INTRRX);
 
 	if (musb->int_usb || musb->int_tx || musb->int_rx)
+	{
 		retval = musb_interrupt(musb);
+	}
 
 	spin_unlock_irqrestore(&musb->lock, flags);
 
@@ -161,14 +188,18 @@ static int ux500_musb_init(struct musb *musb)
 	int status;
 
 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
-	if (IS_ERR_OR_NULL(musb->xceiv)) {
+
+	if (IS_ERR_OR_NULL(musb->xceiv))
+	{
 		pr_err("HS USB OTG: no transceiver configured\n");
 		return -EPROBE_DEFER;
 	}
 
 	musb->nb.notifier_call = musb_otg_notifications;
 	status = usb_register_notifier(musb->xceiv, &musb->nb);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		dev_dbg(musb->controller, "notification register failed\n");
 		return status;
 	}
@@ -187,7 +218,8 @@ static int ux500_musb_exit(struct musb *musb)
 	return 0;
 }
 
-static const struct musb_platform_ops ux500_ops = {
+static const struct musb_platform_ops ux500_ops =
+{
 	.quirks		= MUSB_DMA_UX500 | MUSB_INDEXED_EP,
 #ifdef CONFIG_USB_UX500_DMA
 	.dma_init	= ux500_dma_controller_create,
@@ -208,22 +240,36 @@ ux500_of_probe(struct platform_device *pdev, struct device_node *np)
 	int strlen;
 
 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+
 	if (!pdata)
+	{
 		return NULL;
+	}
 
 	mode = of_get_property(np, "dr_mode", &strlen);
-	if (!mode) {
+
+	if (!mode)
+	{
 		dev_err(&pdev->dev, "No 'dr_mode' property found\n");
 		return NULL;
 	}
 
-	if (strlen > 0) {
+	if (strlen > 0)
+	{
 		if (!strcmp(mode, "host"))
+		{
 			pdata->mode = MUSB_HOST;
+		}
+
 		if (!strcmp(mode, "otg"))
+		{
 			pdata->mode = MUSB_OTG;
+		}
+
 		if (!strcmp(mode, "peripheral"))
+		{
 			pdata->mode = MUSB_PERIPHERAL;
+		}
 	}
 
 	return pdata;
@@ -239,38 +285,54 @@ static int ux500_probe(struct platform_device *pdev)
 	struct clk			*clk;
 	int				ret = -ENOMEM;
 
-	if (!pdata) {
-		if (np) {
+	if (!pdata)
+	{
+		if (np)
+		{
 			pdata = ux500_of_probe(pdev, np);
+
 			if (!pdata)
+			{
 				goto err0;
+			}
 
 			pdev->dev.platform_data = pdata;
-		} else {
+		}
+		else
+		{
 			dev_err(&pdev->dev, "no pdata or device tree found\n");
 			goto err0;
 		}
 	}
 
 	glue = devm_kzalloc(&pdev->dev, sizeof(*glue), GFP_KERNEL);
+
 	if (!glue)
+	{
 		goto err0;
+	}
 
 	musb = platform_device_alloc("musb-hdrc", PLATFORM_DEVID_AUTO);
-	if (!musb) {
+
+	if (!musb)
+	{
 		dev_err(&pdev->dev, "failed to allocate musb device\n");
 		goto err0;
 	}
 
 	clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "failed to get clock\n");
 		ret = PTR_ERR(clk);
 		goto err1;
 	}
 
 	ret = clk_prepare_enable(clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to enable clock\n");
 		goto err1;
 	}
@@ -289,7 +351,7 @@ static int ux500_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, glue);
 
 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
-			ARRAY_SIZE(musb_resources));
+		   ARRAY_SIZE(musb_resources));
 
 	musb_resources[0].name = pdev->resource[0].name;
 	musb_resources[0].start = pdev->resource[0].start;
@@ -302,20 +364,26 @@ static int ux500_probe(struct platform_device *pdev)
 	musb_resources[1].flags = pdev->resource[1].flags;
 
 	ret = platform_device_add_resources(musb, musb_resources,
-			ARRAY_SIZE(musb_resources));
-	if (ret) {
+										ARRAY_SIZE(musb_resources));
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to add resources\n");
 		goto err2;
 	}
 
 	ret = platform_device_add_data(musb, pdata, sizeof(*pdata));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to add platform_data\n");
 		goto err2;
 	}
 
 	ret = platform_device_add(musb);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to register musb device\n");
 		goto err2;
 	}
@@ -349,7 +417,9 @@ static int ux500_suspend(struct device *dev)
 	struct musb		*musb = glue_to_musb(glue);
 
 	if (musb)
+	{
 		usb_phy_set_suspend(musb->xceiv, 1);
+	}
 
 	clk_disable_unprepare(glue->clk);
 
@@ -363,13 +433,17 @@ static int ux500_resume(struct device *dev)
 	int			ret;
 
 	ret = clk_prepare_enable(glue->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to enable clock\n");
 		return ret;
 	}
 
 	if (musb)
+	{
 		usb_phy_set_suspend(musb->xceiv, 0);
+	}
 
 	return 0;
 }
@@ -377,14 +451,16 @@ static int ux500_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(ux500_pm_ops, ux500_suspend, ux500_resume);
 
-static const struct of_device_id ux500_match[] = {
-        { .compatible = "stericsson,db8500-musb", },
-        {}
+static const struct of_device_id ux500_match[] =
+{
+	{ .compatible = "stericsson,db8500-musb", },
+	{}
 };
 
 MODULE_DEVICE_TABLE(of, ux500_match);
 
-static struct platform_driver ux500_driver = {
+static struct platform_driver ux500_driver =
+{
 	.probe		= ux500_probe,
 	.remove		= ux500_remove,
 	.driver		= {

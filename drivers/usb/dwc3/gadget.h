@@ -63,7 +63,9 @@ struct dwc3;
 static inline struct dwc3_request *next_request(struct list_head *list)
 {
 	if (list_empty(list))
+	{
 		return NULL;
+	}
 
 	return list_first_entry(list, struct dwc3_request, list);
 }
@@ -77,15 +79,15 @@ static inline void dwc3_gadget_move_started_request(struct dwc3_request *req)
 }
 
 void dwc3_gadget_giveback(struct dwc3_ep *dep, struct dwc3_request *req,
-		int status);
+						  int status);
 
 void dwc3_ep0_interrupt(struct dwc3 *dwc,
-		const struct dwc3_event_depevt *event);
+						const struct dwc3_event_depevt *event);
 void dwc3_ep0_out_start(struct dwc3 *dwc);
 int __dwc3_gadget_ep0_set_halt(struct usb_ep *ep, int value);
 int dwc3_gadget_ep0_set_halt(struct usb_ep *ep, int value);
 int dwc3_gadget_ep0_queue(struct usb_ep *ep, struct usb_request *request,
-		gfp_t gfp_flags);
+						  gfp_t gfp_flags);
 int __dwc3_gadget_ep_set_halt(struct dwc3_ep *dep, int value, int protocol);
 
 /**

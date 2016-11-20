@@ -34,13 +34,16 @@ static int test_sock(void)
 	long long value = 0, tcp_cnt, udp_cnt, icmp_cnt;
 
 	map_fd = bpf_create_map(BPF_MAP_TYPE_ARRAY, sizeof(key), sizeof(value),
-				256, 0);
-	if (map_fd < 0) {
+							256, 0);
+
+	if (map_fd < 0)
+	{
 		printf("failed to create map '%s'\n", strerror(errno));
 		goto cleanup;
 	}
 
-	struct bpf_insn prog[] = {
+	struct bpf_insn prog[] =
+	{
 		BPF_MOV64_REG(BPF_REG_6, BPF_REG_1),
 		BPF_LD_ABS(BPF_B, ETH_HLEN + offsetof(struct iphdr, protocol) /* R0 = ip->proto */),
 		BPF_STX_MEM(BPF_W, BPF_REG_10, BPF_REG_0, -4), /* *(u32 *)(fp - 4) = r0 */
@@ -56,8 +59,10 @@ static int test_sock(void)
 	};
 
 	prog_fd = bpf_prog_load(BPF_PROG_TYPE_SOCKET_FILTER, prog, sizeof(prog),
-				"GPL", 0);
-	if (prog_fd < 0) {
+							"GPL", 0);
+
+	if (prog_fd < 0)
+	{
 		printf("failed to load prog '%s'\n", strerror(errno));
 		goto cleanup;
 	}
@@ -65,12 +70,14 @@ static int test_sock(void)
 	sock = open_raw_sock("lo");
 
 	if (setsockopt(sock, SOL_SOCKET, SO_ATTACH_BPF, &prog_fd,
-		       sizeof(prog_fd)) < 0) {
+				   sizeof(prog_fd)) < 0)
+	{
 		printf("setsockopt %s\n", strerror(errno));
 		goto cleanup;
 	}
 
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; i++)
+	{
 		key = IPPROTO_TCP;
 		assert(bpf_lookup_elem(map_fd, &key, &tcp_cnt) == 0);
 
@@ -81,7 +88,7 @@ static int test_sock(void)
 		assert(bpf_lookup_elem(map_fd, &key, &icmp_cnt) == 0);
 
 		printf("TCP %lld UDP %lld ICMP %lld packets\n",
-		       tcp_cnt, udp_cnt, icmp_cnt);
+			   tcp_cnt, udp_cnt, icmp_cnt);
 		sleep(1);
 	}
 

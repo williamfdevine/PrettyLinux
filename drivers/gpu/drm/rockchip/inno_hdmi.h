@@ -18,7 +18,8 @@
 
 #define DDC_SEGMENT_ADDR		0x30
 
-enum PWR_MODE {
+enum PWR_MODE
+{
 	NORMAL,
 	LOWER_PWR,
 };
@@ -56,7 +57,8 @@ enum PWR_MODE {
 #define v_VIDEO_INPUT_FORMAT(n)		(n << 1)
 #define v_DE_EXTERNAL			1
 #define v_DE_INTERNAL			0
-enum {
+enum
+{
 	VIDEO_INPUT_SDR_RGB444 = 0,
 	VIDEO_INPUT_DDR_RGB444 = 5,
 	VIDEO_INPUT_DDR_YCBCR422 = 6
@@ -69,7 +71,8 @@ enum {
 #define v_VIDEO_OUTPUT_COLOR(n)		(((n) & 0x3) << 6)
 #define v_VIDEO_INPUT_BITS(n)		(n << 4)
 #define v_VIDEO_INPUT_CSP(n)		(n << 0)
-enum {
+enum
+{
 	VIDEO_INPUT_12BITS = 0,
 	VIDEO_INPUT_10BITS = 1,
 	VIDEO_INPUT_REVERT = 2,
@@ -81,7 +84,8 @@ enum {
 #define v_VIDEO_AUTO_CSC(n)		(n << 7)
 #define m_VIDEO_C0_C2_SWAP		(1 << 0)
 #define v_VIDEO_C0_C2_SWAP(n)		(n << 0)
-enum {
+enum
+{
 	C0_C2_CHANGE_ENABLE = 0,
 	C0_C2_CHANGE_DISABLE = 1,
 	AUTO_CSC_DISABLE = 0,
@@ -134,27 +138,31 @@ enum {
 #define HDMI_VIDEO_CSC_COEF		0x18
 
 #define HDMI_AUDIO_CTRL1		0x35
-enum {
+enum
+{
 	CTS_SOURCE_INTERNAL = 0,
 	CTS_SOURCE_EXTERNAL = 1,
 };
 #define v_CTS_SOURCE(n)			(n << 7)
 
-enum {
+enum
+{
 	DOWNSAMPLE_DISABLE = 0,
 	DOWNSAMPLE_1_2 = 1,
 	DOWNSAMPLE_1_4 = 2,
 };
 #define v_DOWN_SAMPLE(n)		(n << 5)
 
-enum {
+enum
+{
 	AUDIO_SOURCE_IIS = 0,
 	AUDIO_SOURCE_SPDIF = 1,
 };
 #define v_AUDIO_SOURCE(n)		(n << 3)
 
 #define v_MCLK_ENABLE(n)		(n << 2)
-enum {
+enum
+{
 	MCLK_128FS = 0,
 	MCLK_256FS = 1,
 	MCLK_384FS = 2,
@@ -163,7 +171,8 @@ enum {
 #define v_MCLK_RATIO(n)			(n)
 
 #define AUDIO_SAMPLE_RATE		0x37
-enum {
+enum
+{
 	AUDIO_32K = 0x3,
 	AUDIO_441K = 0x0,
 	AUDIO_48K = 0x2,
@@ -174,14 +183,16 @@ enum {
 };
 
 #define AUDIO_I2S_MODE			0x38
-enum {
+enum
+{
 	I2S_CHANNEL_1_2 = 1,
 	I2S_CHANNEL_3_4 = 3,
 	I2S_CHANNEL_5_6 = 7,
 	I2S_CHANNEL_7_8 = 0xf
 };
 #define v_I2S_CHANNEL(n)		((n) << 2)
-enum {
+enum
+{
 	I2S_STANDARD = 0,
 	I2S_LEFT_JUSTIFIED = 1,
 	I2S_RIGHT_JUSTIFIED = 2,
@@ -235,7 +246,8 @@ enum {
 #define v_PACKET_VSI_EN(n)		((n & 1) << 4)
 
 #define HDMI_CONTROL_PACKET_BUF_INDEX	0x9f
-enum {
+enum
+{
 	INFOFRAME_VSI = 0x05,
 	INFOFRAME_AVI = 0x06,
 	INFOFRAME_AAI = 0x08,
@@ -243,7 +255,8 @@ enum {
 
 #define HDMI_CONTROL_PACKET_ADDR	0xa0
 #define HDMI_MAXIMUM_INFO_FRAME_SIZE	0x11
-enum {
+enum
+{
 	AVI_COLOR_MODE_RGB = 0,
 	AVI_COLOR_MODE_YCBCR422 = 1,
 	AVI_COLOR_MODE_YCBCR444 = 2,

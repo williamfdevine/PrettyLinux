@@ -31,7 +31,8 @@
 #include <linux/types.h>
 
 /* types */
-enum pstore_type_id {
+enum pstore_type_id
+{
 	PSTORE_TYPE_DMESG	= 0,
 	PSTORE_TYPE_MCE		= 1,
 	PSTORE_TYPE_CONSOLE	= 2,
@@ -47,7 +48,8 @@ enum pstore_type_id {
 
 struct module;
 
-struct pstore_info {
+struct pstore_info
+{
 	struct module	*owner;
 	char		*name;
 	spinlock_t	buf_lock;	/* serialize access to 'buf' */
@@ -58,24 +60,24 @@ struct pstore_info {
 	int		(*open)(struct pstore_info *psi);
 	int		(*close)(struct pstore_info *psi);
 	ssize_t		(*read)(u64 *id, enum pstore_type_id *type,
-			int *count, struct timespec *time, char **buf,
-			bool *compressed, ssize_t *ecc_notice_size,
-			struct pstore_info *psi);
+						int *count, struct timespec *time, char **buf,
+						bool *compressed, ssize_t *ecc_notice_size,
+						struct pstore_info *psi);
 	int		(*write)(enum pstore_type_id type,
-			enum kmsg_dump_reason reason, u64 *id,
-			unsigned int part, int count, bool compressed,
-			size_t size, struct pstore_info *psi);
+					 enum kmsg_dump_reason reason, u64 *id,
+					 unsigned int part, int count, bool compressed,
+					 size_t size, struct pstore_info *psi);
 	int		(*write_buf)(enum pstore_type_id type,
-			enum kmsg_dump_reason reason, u64 *id,
-			unsigned int part, const char *buf, bool compressed,
-			size_t size, struct pstore_info *psi);
+						 enum kmsg_dump_reason reason, u64 *id,
+						 unsigned int part, const char *buf, bool compressed,
+						 size_t size, struct pstore_info *psi);
 	int		(*write_buf_user)(enum pstore_type_id type,
-			enum kmsg_dump_reason reason, u64 *id,
-			unsigned int part, const char __user *buf,
-			bool compressed, size_t size, struct pstore_info *psi);
+							  enum kmsg_dump_reason reason, u64 *id,
+							  unsigned int part, const char __user *buf,
+							  bool compressed, size_t size, struct pstore_info *psi);
 	int		(*erase)(enum pstore_type_id type, u64 id,
-			int count, struct timespec time,
-			struct pstore_info *psi);
+					 int count, struct timespec time,
+					 struct pstore_info *psi);
 	void		*data;
 };
 

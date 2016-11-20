@@ -8,7 +8,8 @@
 #define CSR_FCP_COMMAND			0xfffff0000b00ull
 #define CSR_FCP_RESPONSE		0xfffff0000d00ull
 
-static const char * const ctype_names[] = {
+static const char *const ctype_names[] =
+{
 	[0x0] = "control",		[0x8] = "not implemented",
 	[0x1] = "status",		[0x9] = "accepted",
 	[0x2] = "specific inquiry",	[0xa] = "rejected",
@@ -19,12 +20,13 @@ static const char * const ctype_names[] = {
 	[0x7] = "(reserved 0x07)",	[0xf] = "interim",
 };
 
-static const char * const subunit_type_names[] = {
+static const char *const subunit_type_names[] =
+{
 	[0x00] = "monitor",		[0x10] = "(reserved 0x10)",
 	[0x01] = "audio",		[0x11] = "(reserved 0x11)",
 	[0x02] = "printer",		[0x12] = "(reserved 0x12)",
 	[0x03] = "disc",		[0x13] = "(reserved 0x13)",
-	[0x04] = "tape recorder/player",[0x14] = "(reserved 0x14)",
+	[0x04] = "tape recorder/player", [0x14] = "(reserved 0x14)",
 	[0x05] = "tuner",		[0x15] = "(reserved 0x15)",
 	[0x06] = "ca",			[0x16] = "(reserved 0x16)",
 	[0x07] = "camera",		[0x17] = "(reserved 0x17)",
@@ -38,31 +40,36 @@ static const char * const subunit_type_names[] = {
 	[0x0f] = "(reserved 0x0f)",	[0x1f] = "unit",
 };
 
-struct avc_enum {
+struct avc_enum
+{
 	int value;
 	const char *name;
 };
 
-struct avc_field {
+struct avc_field
+{
 	const char *name;	/* Short name for field. */
 	int offset;		/* Location of field, specified in bits; */
-				/* negative means from end of packet.    */
+	/* negative means from end of packet.    */
 	int width;		/* Width of field, 0 means use data_length. */
 	struct avc_enum *names;
 };
 
-struct avc_opcode_info {
+struct avc_opcode_info
+{
 	const char *name;
 	struct avc_field fields[8];
 };
 
-struct avc_enum power_field_names[] = {
+struct avc_enum power_field_names[] =
+{
 	{ 0x70, "on" },
 	{ 0x60, "off" },
 	{ }
 };
 
-static const struct avc_opcode_info opcode_info[256] = {
+static const struct avc_opcode_info opcode_info[256] =
+{
 
 	/* TA Document 1999026 */
 	/* AV/C Digital Interface Command Set General Specification 4.0 */
@@ -131,40 +138,47 @@ static const struct avc_opcode_info opcode_info[256] = {
 	[0x26] = { "asynchronous connection" },
 };
 
-struct avc_frame {
-	uint32_t operand0:8;
-	uint32_t opcode:8;
-	uint32_t subunit_id:3;
-	uint32_t subunit_type:5;
-	uint32_t ctype:4;
-	uint32_t cts:4;
+struct avc_frame
+{
+	uint32_t operand0: 8;
+	uint32_t opcode: 8;
+	uint32_t subunit_id: 3;
+	uint32_t subunit_type: 5;
+	uint32_t ctype: 4;
+	uint32_t cts: 4;
 };
 
 static void
 decode_avc(struct link_transaction *t)
 {
 	struct avc_frame *frame =
-	    (struct avc_frame *) t->request->packet.write_block.data;
+		(struct avc_frame *) t->request->packet.write_block.data;
 	const struct avc_opcode_info *info;
 	const char *name;
 	char buffer[32];
 	int i;
 
 	info = &opcode_info[frame->opcode];
-	if (info->name == NULL) {
+
+	if (info->name == NULL)
+	{
 		snprintf(buffer, sizeof(buffer),
-			 "(unknown opcode 0x%02x)", frame->opcode);
+				 "(unknown opcode 0x%02x)", frame->opcode);
 		name = buffer;
-	} else {
+	}
+	else
+	{
 		name = info->name;
 	}
 
 	printf("av/c %s, subunit_type=%s, subunit_id=%d, opcode=%s",
-	    ctype_names[frame->ctype], subunit_type_names[frame->subunit_type],
-	    frame->subunit_id, name);
+		   ctype_names[frame->ctype], subunit_type_names[frame->subunit_type],
+		   frame->subunit_id, name);
 
 	for (i = 0; info->fields[i].name != NULL; i++)
+	{
 		printf(", %s", info->fields[i].name);
+	}
 
 	printf("\n");
 }
@@ -173,38 +187,49 @@ int
 decode_fcp(struct link_transaction *t)
 {
 	struct avc_frame *frame =
-	    (struct avc_frame *) t->request->packet.write_block.data;
+		(struct avc_frame *) t->request->packet.write_block.data;
 	unsigned long long offset =
-	    ((unsigned long long) t->request->packet.common.offset_high << 32) |
-	    t->request->packet.common.offset_low;
+		((unsigned long long) t->request->packet.common.offset_high << 32) |
+		t->request->packet.common.offset_low;
 
 	if (t->request->packet.common.tcode != TCODE_WRITE_BLOCK_REQUEST)
+	{
 		return 0;
+	}
 
-	if (offset == CSR_FCP_COMMAND || offset == CSR_FCP_RESPONSE) {
-		switch (frame->cts) {
-		case 0x00:
-			decode_avc(t);
-			break;
-		case 0x01:
-			printf("cal fcp frame (cts=0x01)\n");
-			break;
-		case 0x02:
-			printf("ehs fcp frame (cts=0x02)\n");
-			break;
-		case 0x03:
-			printf("havi fcp frame (cts=0x03)\n");
-			break;
-		case 0x0e:
-			printf("vendor specific fcp frame (cts=0x0e)\n");
-			break;
-		case 0x0f:
-			printf("extended cts\n");
-			break;
-		default:
-			printf("reserved fcp frame (ctx=0x%02x)\n", frame->cts);
-			break;
+	if (offset == CSR_FCP_COMMAND || offset == CSR_FCP_RESPONSE)
+	{
+		switch (frame->cts)
+		{
+			case 0x00:
+				decode_avc(t);
+				break;
+
+			case 0x01:
+				printf("cal fcp frame (cts=0x01)\n");
+				break;
+
+			case 0x02:
+				printf("ehs fcp frame (cts=0x02)\n");
+				break;
+
+			case 0x03:
+				printf("havi fcp frame (cts=0x03)\n");
+				break;
+
+			case 0x0e:
+				printf("vendor specific fcp frame (cts=0x0e)\n");
+				break;
+
+			case 0x0f:
+				printf("extended cts\n");
+				break;
+
+			default:
+				printf("reserved fcp frame (ctx=0x%02x)\n", frame->cts);
+				break;
 		}
+
 		return 1;
 	}
 

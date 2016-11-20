@@ -43,7 +43,8 @@ static inline u32 xgene_get_bits(u32 val, u32 start, u32 end)
 	return (val & GENMASK(end, start)) >> start;
 }
 
-enum xgene_enet_rm {
+enum xgene_enet_rm
+{
 	RM0,
 	RM1,
 	RM3 = 3
@@ -262,14 +263,16 @@ enum xgene_enet_rm {
 #define TSO_MSS1_POS			16
 #define TSO_MSS1_LEN			14
 
-struct xgene_enet_raw_desc {
+struct xgene_enet_raw_desc
+{
 	__le64 m0;
 	__le64 m1;
 	__le64 m2;
 	__le64 m3;
 };
 
-struct xgene_enet_raw_desc16 {
+struct xgene_enet_raw_desc16
+{
 	__le64 m0;
 	__le64 m1;
 };
@@ -288,7 +291,8 @@ static inline bool xgene_enet_is_desc_slot_empty(void *desc_slot_ptr)
 	return (desc_slot[EMPTY_SLOT_INDEX] == cpu_to_le64(EMPTY_SLOT));
 }
 
-enum xgene_enet_ring_cfgsize {
+enum xgene_enet_ring_cfgsize
+{
 	RING_CFGSIZE_512B,
 	RING_CFGSIZE_2KB,
 	RING_CFGSIZE_16KB,
@@ -297,26 +301,30 @@ enum xgene_enet_ring_cfgsize {
 	RING_CFGSIZE_INVALID
 };
 
-enum xgene_enet_ring_type {
+enum xgene_enet_ring_type
+{
 	RING_DISABLED,
 	RING_REGULAR,
 	RING_BUFPOOL
 };
 
-enum xgene_ring_owner {
+enum xgene_ring_owner
+{
 	RING_OWNER_ETH0,
 	RING_OWNER_ETH1,
 	RING_OWNER_CPU = 15,
 	RING_OWNER_INVALID
 };
 
-enum xgene_enet_ring_bufnum {
+enum xgene_enet_ring_bufnum
+{
 	RING_BUFNUM_REGULAR = 0x0,
 	RING_BUFNUM_BUFPOOL = 0x20,
 	RING_BUFNUM_INVALID
 };
 
-enum xgene_enet_err_code {
+enum xgene_enet_err_code
+{
 	HBF_READ_DATA = 3,
 	HBF_LL_READ = 4,
 	BAD_WORK_MSG = 6,
@@ -351,12 +359,12 @@ static inline u16 xgene_enet_get_numslots(u16 id, u32 size)
 	bool is_bufpool = xgene_enet_is_bufpool(id);
 
 	return (is_bufpool) ? size / BUFPOOL_DESC_SIZE :
-		      size / WORK_DESC_SIZE;
+		   size / WORK_DESC_SIZE;
 }
 
 void xgene_enet_parse_error(struct xgene_enet_desc_ring *ring,
-			    struct xgene_enet_pdata *pdata,
-			    enum xgene_enet_err_code status);
+							struct xgene_enet_pdata *pdata,
+							enum xgene_enet_err_code status);
 
 int xgene_enet_mdio_config(struct xgene_enet_pdata *pdata);
 void xgene_enet_mdio_remove(struct xgene_enet_pdata *pdata);

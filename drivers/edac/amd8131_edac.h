@@ -33,7 +33,8 @@
  *	PCI-X Bridge Status and Command Register, DevA:0x04
  ************************************************************/
 #define REG_STS_CMD	0x04
-enum sts_cmd_bits {
+enum sts_cmd_bits
+{
 	STS_CMD_SSE	= BIT(30),
 	STS_CMD_SERREN	= BIT(8)
 };
@@ -42,7 +43,8 @@ enum sts_cmd_bits {
  *	PCI-X Bridge Interrupt and Bridge Control Register,
  ************************************************************/
 #define REG_INT_CTLR	0x3c
-enum int_ctlr_bits {
+enum int_ctlr_bits
+{
 	INT_CTLR_DTSE	= BIT(27),
 	INT_CTLR_DTS	= BIT(26),
 	INT_CTLR_SERR	= BIT(17),
@@ -53,15 +55,16 @@ enum int_ctlr_bits {
  *	PCI-X Bridge Memory Base-Limit Register, DevA:0x1C
  ************************************************************/
 #define REG_MEM_LIM	0x1c
-enum mem_limit_bits {
+enum mem_limit_bits
+{
 	MEM_LIMIT_DPE 	= BIT(31),
 	MEM_LIMIT_RSE 	= BIT(30),
 	MEM_LIMIT_RMA 	= BIT(29),
 	MEM_LIMIT_RTA 	= BIT(28),
 	MEM_LIMIT_STA	= BIT(27),
 	MEM_LIMIT_MDPE	= BIT(24),
-	MEM_LIMIT_MASK	= MEM_LIMIT_DPE|MEM_LIMIT_RSE|MEM_LIMIT_RMA|
-				MEM_LIMIT_RTA|MEM_LIMIT_STA|MEM_LIMIT_MDPE
+	MEM_LIMIT_MASK	= MEM_LIMIT_DPE | MEM_LIMIT_RSE | MEM_LIMIT_RMA |
+					  MEM_LIMIT_RTA | MEM_LIMIT_STA | MEM_LIMIT_MDPE
 };
 
 /************************************************************
@@ -74,13 +77,15 @@ enum mem_limit_bits {
  ************************************************************/
 #define REG_LNK_CTRL_B  0xc8
 
-enum lnk_ctrl_bits {
+enum lnk_ctrl_bits
+{
 	LNK_CTRL_CRCERR_A	= BIT(9),
 	LNK_CTRL_CRCERR_B	= BIT(8),
 	LNK_CTRL_CRCFEN		= BIT(1)
 };
 
-enum pcix_bridge_inst {
+enum pcix_bridge_inst
+{
 	NORTH_A = 0,
 	NORTH_B = 1,
 	SOUTH_A = 2,
@@ -88,7 +93,8 @@ enum pcix_bridge_inst {
 	NO_BRIDGE = 4
 };
 
-struct amd8131_dev_info {
+struct amd8131_dev_info
+{
 	int devfn;
 	enum pcix_bridge_inst inst;
 	struct pci_dev *dev;
@@ -107,7 +113,8 @@ struct amd8131_dev_info {
  * They share the same set of init/check/exit methods, and their
  * private structures are collected in the devices[] array.
  */
-struct amd8131_info {
+struct amd8131_info
+{
 	u16 err_dev;	/* PCI Device ID for AMD8131 APIC*/
 	struct amd8131_dev_info *devices;
 	void (*init)(struct amd8131_dev_info *dev_info);

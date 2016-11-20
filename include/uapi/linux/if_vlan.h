@@ -17,7 +17,8 @@
 /* VLAN IOCTLs are found in sockios.h */
 
 /* Passed in vlan_ioctl_args structure to determine behaviour. */
-enum vlan_ioctl_cmds {
+enum vlan_ioctl_cmds
+{
 	ADD_VLAN_CMD,
 	DEL_VLAN_CMD,
 	SET_VLAN_INGRESS_PRIORITY_CMD,
@@ -30,14 +31,16 @@ enum vlan_ioctl_cmds {
 	GET_VLAN_VID_CMD /* Get the VID of this VLAN (specified by name) */
 };
 
-enum vlan_flags {
+enum vlan_flags
+{
 	VLAN_FLAG_REORDER_HDR	= 0x1,
 	VLAN_FLAG_GVRP		= 0x2,
 	VLAN_FLAG_LOOSE_BINDING	= 0x4,
 	VLAN_FLAG_MVRP		= 0x8,
 };
 
-enum vlan_name_types {
+enum vlan_name_types
+{
 	VLAN_NAME_TYPE_PLUS_VID, /* Name will look like:  vlan0005 */
 	VLAN_NAME_TYPE_RAW_PLUS_VID, /* name will look like:  eth1.0005 */
 	VLAN_NAME_TYPE_PLUS_VID_NO_PAD, /* Name will look like:  vlan5 */
@@ -45,20 +48,22 @@ enum vlan_name_types {
 	VLAN_NAME_TYPE_HIGHEST
 };
 
-struct vlan_ioctl_args {
+struct vlan_ioctl_args
+{
 	int cmd; /* Should be one of the vlan_ioctl_cmds enum above. */
 	char device1[24];
 
-        union {
+	union
+	{
 		char device2[24];
 		int VID;
 		unsigned int skb_priority;
 		unsigned int name_type;
 		unsigned int bind_type;
 		unsigned int flag; /* Matches vlan_dev_priv flags */
-        } u;
+	} u;
 
-	short vlan_qos;   
+	short vlan_qos;
 };
 
 #endif /* _UAPI_LINUX_IF_VLAN_H_ */

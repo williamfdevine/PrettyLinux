@@ -89,7 +89,8 @@ static void	ether3_timeout(struct net_device *dev);
 
 /* --------------------------------------------------------------------------- */
 
-typedef enum {
+typedef enum
+{
 	buffer_write,
 	buffer_read
 } buffer_rw_t;
@@ -121,22 +122,29 @@ ether3_setbuffer(struct net_device *dev, buffer_rw_t read, int start)
 	ether3_outw(priv(dev)->regs.config1 | CFG1_LOCBUFMEM, REG_CONFIG1);
 	ether3_outw(priv(dev)->regs.command | CMD_FIFOWRITE, REG_COMMAND);
 
-	while ((ether3_inw(REG_STATUS) & STAT_FIFOEMPTY) == 0) {
-		if (!timeout--) {
+	while ((ether3_inw(REG_STATUS) & STAT_FIFOEMPTY) == 0)
+	{
+		if (!timeout--)
+		{
 			printk("%s: setbuffer broken\n", dev->name);
 			priv(dev)->broken = 1;
 			return 1;
 		}
+
 		udelay(1);
 	}
 
-	if (read == buffer_read) {
+	if (read == buffer_read)
+	{
 		ether3_outw(start, REG_DMAADDR);
 		ether3_outw(priv(dev)->regs.command | CMD_FIFOREAD, REG_COMMAND);
-	} else {
+	}
+	else
+	{
 		ether3_outw(priv(dev)->regs.command | CMD_FIFOWRITE, REG_COMMAND);
 		ether3_outw(start, REG_DMAADDR);
 	}
+
 	return 0;
 }
 
@@ -150,10 +158,10 @@ ether3_setbuffer(struct net_device *dev, buffer_rw_t read, int start)
 	writew((data), REG_BUFWIN)
 
 #define ether3_writelong(dev,data)	{			\
-	void __iomem *reg_bufwin = REG_BUFWIN;			\
-	writew((data), reg_bufwin);				\
-	writew((data) >> 16, reg_bufwin);			\
-}
+		void __iomem *reg_bufwin = REG_BUFWIN;			\
+		writew((data), reg_bufwin);				\
+		writew((data) >> 16, reg_bufwin);			\
+	}
 
 /*
  * read data from the buffer memory
@@ -186,8 +194,11 @@ static inline void ether3_ledon(struct net_device *dev)
 	priv(dev)->timer.data = (unsigned long)dev;
 	priv(dev)->timer.function = ether3_ledoff;
 	add_timer(&priv(dev)->timer);
+
 	if (priv(dev)->regs.config2 & CFG2_CTRLO)
+	{
 		ether3_outw(priv(dev)->regs.config2 &= ~CFG2_CTRLO, REG_CONFIG2);
+	}
 }
 
 /*
@@ -199,17 +210,27 @@ ether3_addr(char *addr, struct expansion_card *ec)
 {
 	struct in_chunk_dir cd;
 	char *s;
-	
-	if (ecard_readchunk(&cd, ec, 0xf5, 0) && (s = strchr(cd.d.string, '('))) {
+
+	if (ecard_readchunk(&cd, ec, 0xf5, 0) && (s = strchr(cd.d.string, '(')))
+	{
 		int i;
-		for (i = 0; i<6; i++) {
+
+		for (i = 0; i < 6; i++)
+		{
 			addr[i] = simple_strtoul(s + 1, &s, 0x10);
-			if (*s != (i==5?')' : ':' ))
+
+			if (*s != (i == 5 ? ')' : ':' ))
+			{
 				break;
+			}
 		}
+
 		if (i == 6)
+		{
 			return 0;
+		}
 	}
+
 	/* I wonder if we should even let the user continue in this case
 	 *   - no, it would be better to disable the device
 	 */
@@ -223,12 +244,14 @@ static int
 ether3_ramtest(struct net_device *dev, unsigned char byte)
 {
 	unsigned char *buffer = kmalloc(RX_END, GFP_KERNEL);
-	int i,ret = 0;
+	int i, ret = 0;
 	int max_errors = 4;
 	int bad = -1;
 
 	if (!buffer)
+	{
 		return 1;
+	}
 
 	memset(buffer, byte, RX_END);
 	ether3_setbuffer(dev, buffer_write, 0);
@@ -241,26 +264,39 @@ ether3_ramtest(struct net_device *dev, unsigned char byte)
 	ether3_setbuffer(dev, buffer_read, RX_START);
 	ether3_readbuffer(dev, buffer + RX_START, RX_LEN);
 
-	for (i = 0; i < RX_END; i++) {
-		if (buffer[i] != byte) {
-			if (max_errors > 0 && bad != buffer[i]) {
+	for (i = 0; i < RX_END; i++)
+	{
+		if (buffer[i] != byte)
+		{
+			if (max_errors > 0 && bad != buffer[i])
+			{
 				printk("%s: RAM failed with (%02X instead of %02X) at 0x%04X",
-				       dev->name, buffer[i], byte, i);
+					   dev->name, buffer[i], byte, i);
 				ret = 2;
 				max_errors--;
 				bad = i;
 			}
-		} else {
-			if (bad != -1) {
+		}
+		else
+		{
+			if (bad != -1)
+			{
 				if (bad != i - 1)
+				{
 					printk(" - 0x%04X\n", i - 1);
+				}
+
 				printk("\n");
 				bad = -1;
 			}
 		}
 	}
+
 	if (bad != -1)
+	{
 		printk(" - 0xffff\n");
+	}
+
 	kfree(buffer);
 
 	return ret;
@@ -272,23 +308,32 @@ static int ether3_init_2(struct net_device *dev)
 {
 	int i;
 
-	priv(dev)->regs.config1 = CFG1_RECVCOMPSTAT0|CFG1_DMABURST8;
-	priv(dev)->regs.config2 = CFG2_CTRLO|CFG2_RECVCRC|CFG2_ERRENCRC;
+	priv(dev)->regs.config1 = CFG1_RECVCOMPSTAT0 | CFG1_DMABURST8;
+	priv(dev)->regs.config2 = CFG2_CTRLO | CFG2_RECVCRC | CFG2_ERRENCRC;
 	priv(dev)->regs.command = 0;
 
 	/*
 	 * Set up our hardware address
 	 */
 	ether3_outw(priv(dev)->regs.config1 | CFG1_BUFSELSTAT0, REG_CONFIG1);
+
 	for (i = 0; i < 6; i++)
+	{
 		ether3_outb(dev->dev_addr[i], REG_BUFWIN);
+	}
 
 	if (dev->flags & IFF_PROMISC)
+	{
 		priv(dev)->regs.config1 |= CFG1_RECVPROMISC;
+	}
 	else if (dev->flags & IFF_MULTICAST)
+	{
 		priv(dev)->regs.config1 |= CFG1_RECVSPECBRMULTI;
+	}
 	else
+	{
 		priv(dev)->regs.config1 |= CFG1_RECVSPECBROAD;
+	}
 
 	/*
 	 * There is a problem with the NQ8005 in that it occasionally loses the
@@ -296,7 +341,7 @@ static int ether3_init_2(struct net_device *dev)
 	 * well.  That way, if we do lose the last two, then it doesn't matter.
 	 */
 	ether3_outw(priv(dev)->regs.config1 | CFG1_TRANSEND, REG_CONFIG1);
-	ether3_outw((TX_END>>8) - 1, REG_BUFWIN);
+	ether3_outw((TX_END >> 8) - 1, REG_BUFWIN);
 	ether3_outw(priv(dev)->rx_head, REG_RECVPTR);
 	ether3_outw(0, REG_TRANSMITPTR);
 	ether3_outw(priv(dev)->rx_head >> 8, REG_RECVEND);
@@ -305,11 +350,18 @@ static int ether3_init_2(struct net_device *dev)
 	ether3_outw(priv(dev)->regs.command, REG_COMMAND);
 
 	i = ether3_ramtest(dev, 0x5A);
-	if(i)
+
+	if (i)
+	{
 		return i;
+	}
+
 	i = ether3_ramtest(dev, 0x1E);
-	if(i)
+
+	if (i)
+	{
 		return i;
+	}
 
 	ether3_setbuffer(dev, buffer_write, 0);
 	ether3_writelong(dev, 0);
@@ -326,13 +378,19 @@ ether3_init_for_open(struct net_device *dev)
 	udelay(4);
 
 	priv(dev)->regs.command = 0;
-	ether3_outw(CMD_RXOFF|CMD_TXOFF, REG_COMMAND);
-	while (ether3_inw(REG_STATUS) & (STAT_RXON|STAT_TXON))
+	ether3_outw(CMD_RXOFF | CMD_TXOFF, REG_COMMAND);
+
+	while (ether3_inw(REG_STATUS) & (STAT_RXON | STAT_TXON))
+	{
 		barrier();
+	}
 
 	ether3_outw(priv(dev)->regs.config1 | CFG1_BUFSELSTAT0, REG_CONFIG1);
+
 	for (i = 0; i < 6; i++)
+	{
 		ether3_outb(dev->dev_addr[i], REG_BUFWIN);
+	}
 
 	priv(dev)->tx_head	= 0;
 	priv(dev)->tx_tail	= 0;
@@ -340,7 +398,7 @@ ether3_init_for_open(struct net_device *dev)
 	priv(dev)->rx_head	= RX_START;
 
 	ether3_outw(priv(dev)->regs.config1 | CFG1_TRANSEND, REG_CONFIG1);
-	ether3_outw((TX_END>>8) - 1, REG_BUFWIN);
+	ether3_outw((TX_END >> 8) - 1, REG_BUFWIN);
 	ether3_outw(priv(dev)->rx_head, REG_RECVPTR);
 	ether3_outw(priv(dev)->rx_head >> 8, REG_RECVEND);
 	ether3_outw(0, REG_TRANSMITPTR);
@@ -400,7 +458,9 @@ static int
 ether3_open(struct net_device *dev)
 {
 	if (request_irq(dev->irq, ether3_interrupt, 0, "ether3", dev))
+	{
 		return -EAGAIN;
+	}
 
 	ether3_init_for_open(dev);
 
@@ -419,10 +479,14 @@ ether3_close(struct net_device *dev)
 
 	disable_irq(dev->irq);
 
-	ether3_outw(CMD_RXOFF|CMD_TXOFF, REG_COMMAND);
+	ether3_outw(CMD_RXOFF | CMD_TXOFF, REG_COMMAND);
 	priv(dev)->regs.command = 0;
-	while (ether3_inw(REG_STATUS) & (STAT_RXON|STAT_TXON))
+
+	while (ether3_inw(REG_STATUS) & (STAT_RXON | STAT_TXON))
+	{
 		barrier();
+	}
+
 	ether3_outb(0x80, REG_CONFIG2 + 4);
 	ether3_outw(0, REG_COMMAND);
 
@@ -441,13 +505,19 @@ static void ether3_setmulticastlist(struct net_device *dev)
 {
 	priv(dev)->regs.config1 &= ~CFG1_RECVPROMISC;
 
-	if (dev->flags & IFF_PROMISC) {
+	if (dev->flags & IFF_PROMISC)
+	{
 		/* promiscuous mode */
 		priv(dev)->regs.config1 |= CFG1_RECVPROMISC;
-	} else if (dev->flags & IFF_ALLMULTI || !netdev_mc_empty(dev)) {
+	}
+	else if (dev->flags & IFF_ALLMULTI || !netdev_mc_empty(dev))
+	{
 		priv(dev)->regs.config1 |= CFG1_RECVSPECBRMULTI;
-	} else
+	}
+	else
+	{
 		priv(dev)->regs.config1 |= CFG1_RECVSPECBROAD;
+	}
 
 	ether3_outw(priv(dev)->regs.config1 | CFG1_LOCBUFMEM, REG_CONFIG1);
 }
@@ -461,11 +531,11 @@ static void ether3_timeout(struct net_device *dev)
 	local_irq_save(flags);
 	printk(KERN_ERR "%s: transmit timed out, network cable problem?\n", dev->name);
 	printk(KERN_ERR "%s: state: { status=%04X cfg1=%04X cfg2=%04X }\n", dev->name,
-		ether3_inw(REG_STATUS), ether3_inw(REG_CONFIG1), ether3_inw(REG_CONFIG2));
+		   ether3_inw(REG_STATUS), ether3_inw(REG_CONFIG1), ether3_inw(REG_CONFIG2));
 	printk(KERN_ERR "%s: { rpr=%04X rea=%04X tpr=%04X }\n", dev->name,
-		ether3_inw(REG_RECVPTR), ether3_inw(REG_RECVEND), ether3_inw(REG_TRANSMITPTR));
+		   ether3_inw(REG_RECVPTR), ether3_inw(REG_RECVEND), ether3_inw(REG_TRANSMITPTR));
 	printk(KERN_ERR "%s: tx head=%X tx tail=%X\n", dev->name,
-		priv(dev)->tx_head, priv(dev)->tx_tail);
+		   priv(dev)->tx_head, priv(dev)->tx_tail);
 	ether3_setbuffer(dev, buffer_read, priv(dev)->tx_tail);
 	printk(KERN_ERR "%s: packet status = %08X\n", dev->name, ether3_readlong(dev));
 	local_irq_restore(flags);
@@ -488,7 +558,8 @@ ether3_sendpacket(struct sk_buff *skb, struct net_device *dev)
 	unsigned int length = ETH_ZLEN < skb->len ? skb->len : ETH_ZLEN;
 	unsigned int ptr, next_ptr;
 
-	if (priv(dev)->broken) {
+	if (priv(dev)->broken)
+	{
 		dev_kfree_skb(skb);
 		dev->stats.tx_dropped++;
 		netif_start_queue(dev);
@@ -496,16 +567,21 @@ ether3_sendpacket(struct sk_buff *skb, struct net_device *dev)
 	}
 
 	length = (length + 1) & ~1;
-	if (length != skb->len) {
+
+	if (length != skb->len)
+	{
 		if (skb_padto(skb, length))
+		{
 			goto out;
+		}
 	}
 
 	next_ptr = (priv(dev)->tx_head + 1) & 15;
 
 	local_irq_save(flags);
 
-	if (priv(dev)->tx_tail == next_ptr) {
+	if (priv(dev)->tx_tail == next_ptr)
+	{
 		local_irq_restore(flags);
 		return NETDEV_TX_BUSY;	/* unable to queue */
 	}
@@ -528,7 +604,8 @@ ether3_sendpacket(struct sk_buff *skb, struct net_device *dev)
 	ether3_writeword(dev, TXHDR_FLAGS >> 16);
 	ether3_ledon(dev);
 
-	if (!(ether3_inw(REG_STATUS) & STAT_TXON)) {
+	if (!(ether3_inw(REG_STATUS) & STAT_TXON))
+	{
 		ether3_outw(ptr, REG_TRANSMITPTR);
 		ether3_outw(priv(dev)->regs.command | CMD_TXON, REG_COMMAND);
 	}
@@ -539,9 +616,11 @@ ether3_sendpacket(struct sk_buff *skb, struct net_device *dev)
 	dev_kfree_skb(skb);
 
 	if (priv(dev)->tx_tail == next_ptr)
+	{
 		netif_stop_queue(dev);
+	}
 
- out:
+out:
 	return NETDEV_TX_OK;
 }
 
@@ -552,27 +631,37 @@ ether3_interrupt(int irq, void *dev_id)
 	unsigned int status, handled = IRQ_NONE;
 
 #if NET_DEBUG > 1
-	if(net_debug & DEBUG_INT)
+
+	if (net_debug & DEBUG_INT)
+	{
 		printk("eth3irq: %d ", irq);
+	}
+
 #endif
 
 	status = ether3_inw(REG_STATUS);
 
-	if (status & STAT_INTRX) {
+	if (status & STAT_INTRX)
+	{
 		ether3_outw(CMD_ACKINTRX | priv(dev)->regs.command, REG_COMMAND);
 		ether3_rx(dev, 12);
 		handled = IRQ_HANDLED;
 	}
 
-	if (status & STAT_INTTX) {
+	if (status & STAT_INTTX)
+	{
 		ether3_outw(CMD_ACKINTTX | priv(dev)->regs.command, REG_COMMAND);
 		ether3_tx(dev);
 		handled = IRQ_HANDLED;
 	}
 
 #if NET_DEBUG > 1
-	if(net_debug & DEBUG_INT)
+
+	if (net_debug & DEBUG_INT)
+	{
 		printk("done\n");
+	}
+
 #endif
 	return handled;
 }
@@ -586,7 +675,8 @@ static int ether3_rx(struct net_device *dev, unsigned int maxcnt)
 
 	ether3_ledon(dev);
 
-	do {
+	do
+	{
 		unsigned int this_ptr, status;
 		unsigned char addrs[16];
 
@@ -601,43 +691,58 @@ static int ether3_rx(struct net_device *dev, unsigned int maxcnt)
 			ether3_setbuffer(dev, buffer_read, next_ptr);
 			temp_ptr = ether3_readword(dev);
 			status = ether3_readword(dev);
+
 			if ((status & (RXSTAT_DONE | RXHDR_CHAINCONTINUE | RXHDR_RECEIVE)) !=
 				(RXSTAT_DONE | RXHDR_CHAINCONTINUE) || !temp_ptr)
+			{
 				break;
+			}
 
 			this_ptr = next_ptr + 4;
 			next_ptr = ntohs(temp_ptr);
 		}
 		ether3_setbuffer(dev, buffer_read, this_ptr);
-		ether3_readbuffer(dev, addrs+2, 12);
+		ether3_readbuffer(dev, addrs + 2, 12);
 
-if (next_ptr < RX_START || next_ptr >= RX_END) {
- int i;
- printk("%s: bad next pointer @%04X: ", dev->name, priv(dev)->rx_head);
- printk("%02X %02X %02X %02X ", next_ptr >> 8, next_ptr & 255, status & 255, status >> 8);
- for (i = 2; i < 14; i++)
-   printk("%02X ", addrs[i]);
- printk("\n");
- next_ptr = priv(dev)->rx_head;
- break;
-}
+		if (next_ptr < RX_START || next_ptr >= RX_END)
+		{
+			int i;
+			printk("%s: bad next pointer @%04X: ", dev->name, priv(dev)->rx_head);
+			printk("%02X %02X %02X %02X ", next_ptr >> 8, next_ptr & 255, status & 255, status >> 8);
+
+			for (i = 2; i < 14; i++)
+			{
+				printk("%02X ", addrs[i]);
+			}
+
+			printk("\n");
+			next_ptr = priv(dev)->rx_head;
+			break;
+		}
+
 		/*
- 		 * ignore our own packets...
-	 	 */
-		if (!(*(unsigned long *)&dev->dev_addr[0] ^ *(unsigned long *)&addrs[2+6]) &&
-		    !(*(unsigned short *)&dev->dev_addr[4] ^ *(unsigned short *)&addrs[2+10])) {
+		 * ignore our own packets...
+		 */
+		if (!(*(unsigned long *)&dev->dev_addr[0] ^ * (unsigned long *)&addrs[2 + 6]) &&
+			!(*(unsigned short *)&dev->dev_addr[4] ^ * (unsigned short *)&addrs[2 + 10]))
+		{
 			maxcnt ++; /* compensate for loopedback packet */
 			ether3_outw(next_ptr >> 8, REG_RECVEND);
-		} else
-		if (!(status & (RXSTAT_OVERSIZE|RXSTAT_CRCERROR|RXSTAT_DRIBBLEERROR|RXSTAT_SHORTPACKET))) {
+		}
+		else if (!(status & (RXSTAT_OVERSIZE | RXSTAT_CRCERROR | RXSTAT_DRIBBLEERROR | RXSTAT_SHORTPACKET)))
+		{
 			unsigned int length = next_ptr - this_ptr;
 			struct sk_buff *skb;
 
 			if (next_ptr <= this_ptr)
+			{
 				length += RX_END - RX_START;
+			}
 
 			skb = netdev_alloc_skb(dev, length + 2);
-			if (skb) {
+
+			if (skb)
+			{
 				unsigned char *buf;
 
 				skb_reserve(skb, 2);
@@ -651,18 +756,27 @@ if (next_ptr < RX_START || next_ptr >= RX_END) {
 				skb->protocol = eth_type_trans(skb, dev);
 				netif_rx(skb);
 				received ++;
-			} else {
+			}
+			else
+			{
 				ether3_outw(next_ptr >> 8, REG_RECVEND);
 				dev->stats.rx_dropped++;
 				goto done;
 			}
-		} else {
+		}
+		else
+		{
 			struct net_device_stats *stats = &dev->stats;
 			ether3_outw(next_ptr >> 8, REG_RECVEND);
-			if (status & RXSTAT_OVERSIZE)	  stats->rx_over_errors ++;
-			if (status & RXSTAT_CRCERROR)	  stats->rx_crc_errors ++;
-			if (status & RXSTAT_DRIBBLEERROR) stats->rx_fifo_errors ++;
-			if (status & RXSTAT_SHORTPACKET)  stats->rx_length_errors ++;
+
+			if (status & RXSTAT_OVERSIZE) { stats->rx_over_errors ++; }
+
+			if (status & RXSTAT_CRCERROR) { stats->rx_crc_errors ++; }
+
+			if (status & RXSTAT_DRIBBLEERROR) { stats->rx_fifo_errors ++; }
+
+			if (status & RXSTAT_SHORTPACKET) { stats->rx_length_errors ++; }
+
 			stats->rx_errors++;
 		}
 	}
@@ -671,13 +785,15 @@ if (next_ptr < RX_START || next_ptr >= RX_END) {
 done:
 	dev->stats.rx_packets += received;
 	priv(dev)->rx_head = next_ptr;
+
 	/*
 	 * If rx went off line, then that means that the buffer may be full.  We
 	 * have dropped at least one packet.
 	 */
-	if (!(ether3_inw(REG_STATUS) & STAT_RXON)) {
+	if (!(ether3_inw(REG_STATUS) & STAT_RXON))
+	{
 		dev->stats.rx_dropped++;
-    		ether3_outw(next_ptr, REG_RECVPTR);
+		ether3_outw(next_ptr, REG_RECVPTR);
 		ether3_outw(priv(dev)->regs.command | CMD_RXON, REG_COMMAND);
 	}
 
@@ -692,39 +808,53 @@ static void ether3_tx(struct net_device *dev)
 	unsigned int tx_tail = priv(dev)->tx_tail;
 	int max_work = 14;
 
-	do {
-	    	unsigned long status;
+	do
+	{
+		unsigned long status;
 
-    		/*
-	    	 * Read the packet header
-    		 */
-	    	ether3_setbuffer(dev, buffer_read, tx_tail * 0x600);
-    		status = ether3_readlong(dev);
+		/*
+		 * Read the packet header
+		 */
+		ether3_setbuffer(dev, buffer_read, tx_tail * 0x600);
+		status = ether3_readlong(dev);
 
 		/*
 		 * Check to see if this packet has been transmitted
 		 */
 		if ((status & (TXSTAT_DONE | TXHDR_TRANSMIT)) !=
-		    (TXSTAT_DONE | TXHDR_TRANSMIT))
+			(TXSTAT_DONE | TXHDR_TRANSMIT))
+		{
 			break;
+		}
 
 		/*
 		 * Update errors
 		 */
 		if (!(status & (TXSTAT_BABBLED | TXSTAT_16COLLISIONS)))
+		{
 			dev->stats.tx_packets++;
-		else {
+		}
+		else
+		{
 			dev->stats.tx_errors++;
+
 			if (status & TXSTAT_16COLLISIONS)
+			{
 				dev->stats.collisions += 16;
+			}
+
 			if (status & TXSTAT_BABBLED)
+			{
 				dev->stats.tx_fifo_errors++;
+			}
 		}
 
 		tx_tail = (tx_tail + 1) & 15;
-	} while (--max_work);
+	}
+	while (--max_work);
 
-	if (priv(dev)->tx_tail != tx_tail) {
+	if (priv(dev)->tx_tail != tx_tail)
+	{
 		priv(dev)->tx_tail = tx_tail;
 		netif_wake_queue(dev);
 	}
@@ -735,10 +865,13 @@ static void ether3_banner(void)
 	static unsigned version_printed = 0;
 
 	if (net_debug && version_printed++ == 0)
+	{
 		printk(KERN_INFO "%s", version);
+	}
 }
 
-static const struct net_device_ops ether3_netdev_ops = {
+static const struct net_device_ops ether3_netdev_ops =
+{
 	.ndo_open		= ether3_open,
 	.ndo_stop		= ether3_close,
 	.ndo_start_xmit		= ether3_sendpacket,
@@ -759,11 +892,16 @@ ether3_probe(struct expansion_card *ec, const struct ecard_id *id)
 	ether3_banner();
 
 	ret = ecard_request_resources(ec);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	dev = alloc_etherdev(sizeof(struct dev_priv));
-	if (!dev) {
+
+	if (!dev)
+	{
 		ret = -ENOMEM;
 		goto release;
 	}
@@ -771,7 +909,9 @@ ether3_probe(struct expansion_card *ec, const struct ecard_id *id)
 	SET_NETDEV_DEV(dev, &ec->dev);
 
 	priv(dev)->base = ecardm_iomap(ec, ECARD_RES_MEMC, 0, 0);
-	if (!priv(dev)->base) {
+
+	if (!priv(dev)->base)
+	{
 		ret = -ENOMEM;
 		goto free;
 	}
@@ -796,31 +936,37 @@ ether3_probe(struct expansion_card *ec, const struct ecard_id *id)
 	 * how the ether3 is connected to the bus...
 	 */
 	if (ether3_probe_bus_8(dev, 0x100) &&
-	    ether3_probe_bus_8(dev, 0x201))
+		ether3_probe_bus_8(dev, 0x201))
+	{
 		bus_type = BUS_8;
-
-	if (bus_type == BUS_UNKNOWN &&
-	    ether3_probe_bus_16(dev, 0x101) &&
-	    ether3_probe_bus_16(dev, 0x201))
-		bus_type = BUS_16;
-
-	switch (bus_type) {
-	case BUS_UNKNOWN:
-		printk(KERN_ERR "%s: unable to identify bus width\n", dev->name);
-		ret = -ENODEV;
-		goto free;
-
-	case BUS_8:
-		printk(KERN_ERR "%s: %s found, but is an unsupported "
-			"8-bit card\n", dev->name, data->name);
-		ret = -ENODEV;
-		goto free;
-
-	default:
-		break;
 	}
 
-	if (ether3_init_2(dev)) {
+	if (bus_type == BUS_UNKNOWN &&
+		ether3_probe_bus_16(dev, 0x101) &&
+		ether3_probe_bus_16(dev, 0x201))
+	{
+		bus_type = BUS_16;
+	}
+
+	switch (bus_type)
+	{
+		case BUS_UNKNOWN:
+			printk(KERN_ERR "%s: unable to identify bus width\n", dev->name);
+			ret = -ENODEV;
+			goto free;
+
+		case BUS_8:
+			printk(KERN_ERR "%s: %s found, but is an unsupported "
+				   "8-bit card\n", dev->name, data->name);
+			ret = -ENODEV;
+			goto free;
+
+		default:
+			break;
+	}
+
+	if (ether3_init_2(dev))
+	{
 		ret = -ENODEV;
 		goto free;
 	}
@@ -829,20 +975,23 @@ ether3_probe(struct expansion_card *ec, const struct ecard_id *id)
 	dev->watchdog_timeo	= 5 * HZ / 100;
 
 	ret = register_netdev(dev);
+
 	if (ret)
+	{
 		goto free;
+	}
 
 	printk("%s: %s in slot %d, %pM\n",
-	       dev->name, data->name, ec->slot_no, dev->dev_addr);
+		   dev->name, data->name, ec->slot_no, dev->dev_addr);
 
 	ecard_set_drvdata(ec, dev);
 	return 0;
 
- free:
+free:
 	free_netdev(dev);
- release:
+release:
 	ecard_release_resources(ec);
- out:
+out:
 	return ret;
 }
 
@@ -857,24 +1006,28 @@ static void ether3_remove(struct expansion_card *ec)
 	ecard_release_resources(ec);
 }
 
-static struct ether3_data ether3 = {
+static struct ether3_data ether3 =
+{
 	.name		= "ether3",
 	.base_offset	= 0,
 };
 
-static struct ether3_data etherb = {
+static struct ether3_data etherb =
+{
 	.name		= "etherb",
 	.base_offset	= 0x800,
 };
 
-static const struct ecard_id ether3_ids[] = {
+static const struct ecard_id ether3_ids[] =
+{
 	{ MANU_ANT2, PROD_ANT_ETHER3, &ether3 },
 	{ MANU_ANT,  PROD_ANT_ETHER3, &ether3 },
 	{ MANU_ANT,  PROD_ANT_ETHERB, &etherb },
 	{ 0xffff, 0xffff }
 };
 
-static struct ecard_driver ether3_driver = {
+static struct ecard_driver ether3_driver =
+{
 	.probe		= ether3_probe,
 	.remove		= ether3_remove,
 	.id_table	= ether3_ids,

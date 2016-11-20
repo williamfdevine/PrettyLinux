@@ -4,7 +4,8 @@
 #include <linux/pinctrl/pinctrl.h>
 #include "pinctrl-mtk-common.h"
 
-static const struct mtk_desc_pin mtk_pins_mt6397[] = {
+static const struct mtk_desc_pin mtk_pins_mt6397[] =
+{
 	MTK_PIN(
 		PINCTRL_PIN(0, "INT"),
 		"N2", "mt6397",

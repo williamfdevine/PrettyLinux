@@ -34,7 +34,8 @@ struct mt7601u_dev;
 
 #define INBAND_PACKET_MAX_LEN		192
 
-enum mcu_cmd {
+enum mcu_cmd
+{
 	CMD_FUN_SET_OP = 1,
 	CMD_LOAD_CR = 2,
 	CMD_INIT_GAIN_OP = 3,
@@ -58,12 +59,14 @@ enum mcu_cmd {
 	CMD_ANTENNA_OP = 33,
 };
 
-enum mcu_function {
+enum mcu_function
+{
 	Q_SELECT = 1,
 	ATOMIC_TSSI_SETTING = 5,
 };
 
-enum mcu_power_mode {
+enum mcu_power_mode
+{
 	RADIO_OFF = 0x30,
 	RADIO_ON = 0x31,
 	RADIO_OFF_AUTO_WAKEUP = 0x32,
@@ -71,7 +74,8 @@ enum mcu_power_mode {
 	RADIO_ON_ADVANCE = 0x34,
 };
 
-enum mcu_calibrate {
+enum mcu_calibrate
+{
 	MCU_CAL_R = 1,
 	MCU_CAL_DCOC,
 	MCU_CAL_LC,

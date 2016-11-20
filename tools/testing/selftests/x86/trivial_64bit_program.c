@@ -5,7 +5,7 @@
  */
 
 #ifndef __x86_64__
-# error wrong architecture
+	# error wrong architecture
 #endif
 
 #include <stdio.h>

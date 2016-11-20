@@ -25,9 +25,9 @@
 #define STLS3A_N_GPIO		16
 
 #ifdef CONFIG_CPU_LOONGSON3
-#define LOONGSON_N_GPIO	STLS3A_N_GPIO
+	#define LOONGSON_N_GPIO	STLS3A_N_GPIO
 #else
-#define LOONGSON_N_GPIO	STLS2F_N_GPIO
+	#define LOONGSON_N_GPIO	STLS2F_N_GPIO
 #endif
 
 #define LOONGSON_GPIO_IN_OFFSET	16
@@ -80,7 +80,7 @@ static int loongson_gpio_get_value(struct gpio_chip *chip, unsigned gpio)
 }
 
 static void loongson_gpio_set_value(struct gpio_chip *chip,
-		unsigned gpio, int value)
+									unsigned gpio, int value)
 {
 	u32 val;
 	u32 mask;
@@ -89,15 +89,22 @@ static void loongson_gpio_set_value(struct gpio_chip *chip,
 
 	spin_lock(&gpio_lock);
 	val = LOONGSON_GPIODATA;
+
 	if (value)
+	{
 		val |= mask;
+	}
 	else
+	{
 		val &= (~mask);
+	}
+
 	LOONGSON_GPIODATA = val;
 	spin_unlock(&gpio_lock);
 }
 
-static struct gpio_chip loongson_chip = {
+static struct gpio_chip loongson_chip =
+{
 	.label                  = "Loongson-gpio-chip",
 	.direction_input        = loongson_gpio_direction_input,
 	.get                    = loongson_gpio_get_value,

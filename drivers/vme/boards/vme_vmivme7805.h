@@ -17,11 +17,11 @@
 #define _VMIVME_7805_H
 
 #ifndef PCI_VENDOR_ID_VMIC
-#define PCI_VENDOR_ID_VMIC		0x114A
+	#define PCI_VENDOR_ID_VMIC		0x114A
 #endif
 
 #ifndef PCI_DEVICE_ID_VTIMR
-#define PCI_DEVICE_ID_VTIMR		0x0004
+	#define PCI_DEVICE_ID_VTIMR		0x0004
 #endif
 
 #define VME_CONTROL			0x0000

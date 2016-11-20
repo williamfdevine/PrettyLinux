@@ -38,7 +38,8 @@
 #define MPL3115_CTRL_ACTIVE BIT(0) /* continuous measurement */
 #define MPL3115_CTRL_OS_258MS (BIT(5) | BIT(4)) /* 64x oversampling */
 
-struct mpl3115_data {
+struct mpl3115_data
+{
 	struct i2c_client *client;
 	struct mutex lock;
 	u8 ctrl_reg1;
@@ -50,21 +51,33 @@ static int mpl3115_request(struct mpl3115_data *data)
 
 	/* trigger measurement */
 	ret = i2c_smbus_write_byte_data(data->client, MPL3115_CTRL_REG1,
-		data->ctrl_reg1 | MPL3115_CTRL_OST);
-	if (ret < 0)
-		return ret;
+									data->ctrl_reg1 | MPL3115_CTRL_OST);
 
-	while (tries-- > 0) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	while (tries-- > 0)
+	{
 		ret = i2c_smbus_read_byte_data(data->client, MPL3115_CTRL_REG1);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		/* wait for data ready, i.e. OST cleared */
 		if (!(ret & MPL3115_CTRL_OST))
+		{
 			break;
+		}
+
 		msleep(20);
 	}
 
-	if (tries < 0) {
+	if (tries < 0)
+	{
 		dev_err(&data->client->dev, "data not ready\n");
 		return -EIO;
 	}
@@ -73,64 +86,89 @@ static int mpl3115_request(struct mpl3115_data *data)
 }
 
 static int mpl3115_read_raw(struct iio_dev *indio_dev,
-			    struct iio_chan_spec const *chan,
-			    int *val, int *val2, long mask)
+							struct iio_chan_spec const *chan,
+							int *val, int *val2, long mask)
 {
 	struct mpl3115_data *data = iio_priv(indio_dev);
 	__be32 tmp = 0;
 	int ret;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		if (iio_buffer_enabled(indio_dev))
-			return -EBUSY;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			if (iio_buffer_enabled(indio_dev))
+			{
+				return -EBUSY;
+			}
 
-		switch (chan->type) {
-		case IIO_PRESSURE: /* in 0.25 pascal / LSB */
-			mutex_lock(&data->lock);
-			ret = mpl3115_request(data);
-			if (ret < 0) {
-				mutex_unlock(&data->lock);
-				return ret;
+			switch (chan->type)
+			{
+				case IIO_PRESSURE: /* in 0.25 pascal / LSB */
+					mutex_lock(&data->lock);
+					ret = mpl3115_request(data);
+
+					if (ret < 0)
+					{
+						mutex_unlock(&data->lock);
+						return ret;
+					}
+
+					ret = i2c_smbus_read_i2c_block_data(data->client,
+														MPL3115_OUT_PRESS, 3, (u8 *) &tmp);
+					mutex_unlock(&data->lock);
+
+					if (ret < 0)
+					{
+						return ret;
+					}
+
+					*val = be32_to_cpu(tmp) >> 12;
+					return IIO_VAL_INT;
+
+				case IIO_TEMP: /* in 0.0625 celsius / LSB */
+					mutex_lock(&data->lock);
+					ret = mpl3115_request(data);
+
+					if (ret < 0)
+					{
+						mutex_unlock(&data->lock);
+						return ret;
+					}
+
+					ret = i2c_smbus_read_i2c_block_data(data->client,
+														MPL3115_OUT_TEMP, 2, (u8 *) &tmp);
+					mutex_unlock(&data->lock);
+
+					if (ret < 0)
+					{
+						return ret;
+					}
+
+					*val = sign_extend32(be32_to_cpu(tmp) >> 20, 11);
+					return IIO_VAL_INT;
+
+				default:
+					return -EINVAL;
 			}
-			ret = i2c_smbus_read_i2c_block_data(data->client,
-				MPL3115_OUT_PRESS, 3, (u8 *) &tmp);
-			mutex_unlock(&data->lock);
-			if (ret < 0)
-				return ret;
-			*val = be32_to_cpu(tmp) >> 12;
-			return IIO_VAL_INT;
-		case IIO_TEMP: /* in 0.0625 celsius / LSB */
-			mutex_lock(&data->lock);
-			ret = mpl3115_request(data);
-			if (ret < 0) {
-				mutex_unlock(&data->lock);
-				return ret;
+
+		case IIO_CHAN_INFO_SCALE:
+			switch (chan->type)
+			{
+				case IIO_PRESSURE:
+					*val = 0;
+					*val2 = 250; /* want kilopascal */
+					return IIO_VAL_INT_PLUS_MICRO;
+
+				case IIO_TEMP:
+					*val = 0;
+					*val2 = 62500;
+					return IIO_VAL_INT_PLUS_MICRO;
+
+				default:
+					return -EINVAL;
 			}
-			ret = i2c_smbus_read_i2c_block_data(data->client,
-				MPL3115_OUT_TEMP, 2, (u8 *) &tmp);
-			mutex_unlock(&data->lock);
-			if (ret < 0)
-				return ret;
-			*val = sign_extend32(be32_to_cpu(tmp) >> 20, 11);
-			return IIO_VAL_INT;
-		default:
-			return -EINVAL;
-		}
-	case IIO_CHAN_INFO_SCALE:
-		switch (chan->type) {
-		case IIO_PRESSURE:
-			*val = 0;
-			*val2 = 250; /* want kilopascal */
-			return IIO_VAL_INT_PLUS_MICRO;
-		case IIO_TEMP:
-			*val = 0;
-			*val2 = 62500;
-			return IIO_VAL_INT_PLUS_MICRO;
-		default:
-			return -EINVAL;
-		}
 	}
+
 	return -EINVAL;
 }
 
@@ -144,45 +182,57 @@ static irqreturn_t mpl3115_trigger_handler(int irq, void *p)
 
 	mutex_lock(&data->lock);
 	ret = mpl3115_request(data);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		mutex_unlock(&data->lock);
 		goto done;
 	}
 
 	memset(buffer, 0, sizeof(buffer));
-	if (test_bit(0, indio_dev->active_scan_mask)) {
+
+	if (test_bit(0, indio_dev->active_scan_mask))
+	{
 		ret = i2c_smbus_read_i2c_block_data(data->client,
-			MPL3115_OUT_PRESS, 3, &buffer[pos]);
-		if (ret < 0) {
+											MPL3115_OUT_PRESS, 3, &buffer[pos]);
+
+		if (ret < 0)
+		{
 			mutex_unlock(&data->lock);
 			goto done;
 		}
+
 		pos += 4;
 	}
 
-	if (test_bit(1, indio_dev->active_scan_mask)) {
+	if (test_bit(1, indio_dev->active_scan_mask))
+	{
 		ret = i2c_smbus_read_i2c_block_data(data->client,
-			MPL3115_OUT_TEMP, 2, &buffer[pos]);
-		if (ret < 0) {
+											MPL3115_OUT_TEMP, 2, &buffer[pos]);
+
+		if (ret < 0)
+		{
 			mutex_unlock(&data->lock);
 			goto done;
 		}
 	}
+
 	mutex_unlock(&data->lock);
 
 	iio_push_to_buffers_with_timestamp(indio_dev, buffer,
-		iio_get_time_ns(indio_dev));
+									   iio_get_time_ns(indio_dev));
 
 done:
 	iio_trigger_notify_done(indio_dev->trig);
 	return IRQ_HANDLED;
 }
 
-static const struct iio_chan_spec mpl3115_channels[] = {
+static const struct iio_chan_spec mpl3115_channels[] =
+{
 	{
 		.type = IIO_PRESSURE,
 		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),
-			BIT(IIO_CHAN_INFO_SCALE),
+		BIT(IIO_CHAN_INFO_SCALE),
 		.scan_index = 0,
 		.scan_type = {
 			.sign = 'u',
@@ -195,7 +245,7 @@ static const struct iio_chan_spec mpl3115_channels[] = {
 	{
 		.type = IIO_TEMP,
 		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),
-			BIT(IIO_CHAN_INFO_SCALE),
+		BIT(IIO_CHAN_INFO_SCALE),
 		.scan_index = 1,
 		.scan_type = {
 			.sign = 's',
@@ -208,27 +258,37 @@ static const struct iio_chan_spec mpl3115_channels[] = {
 	IIO_CHAN_SOFT_TIMESTAMP(2),
 };
 
-static const struct iio_info mpl3115_info = {
+static const struct iio_info mpl3115_info =
+{
 	.read_raw = &mpl3115_read_raw,
 	.driver_module = THIS_MODULE,
 };
 
 static int mpl3115_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct mpl3115_data *data;
 	struct iio_dev *indio_dev;
 	int ret;
 
 	ret = i2c_smbus_read_byte_data(client, MPL3115_WHO_AM_I);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (ret != MPL3115_DEVICE_ID)
+	{
 		return -ENODEV;
+	}
 
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	data = iio_priv(indio_dev);
 	data->client = client;
@@ -244,23 +304,33 @@ static int mpl3115_probe(struct i2c_client *client,
 
 	/* software reset, I2C transfer is aborted (fails) */
 	i2c_smbus_write_byte_data(client, MPL3115_CTRL_REG1,
-		MPL3115_CTRL_RESET);
+							  MPL3115_CTRL_RESET);
 	msleep(50);
 
 	data->ctrl_reg1 = MPL3115_CTRL_OS_258MS;
 	ret = i2c_smbus_write_byte_data(client, MPL3115_CTRL_REG1,
-		data->ctrl_reg1);
+									data->ctrl_reg1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = iio_triggered_buffer_setup(indio_dev, NULL,
-		mpl3115_trigger_handler, NULL);
+									 mpl3115_trigger_handler, NULL);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret < 0)
+	{
 		goto buffer_cleanup;
+	}
+
 	return 0;
 
 buffer_cleanup:
@@ -271,7 +341,7 @@ buffer_cleanup:
 static int mpl3115_standby(struct mpl3115_data *data)
 {
 	return i2c_smbus_write_byte_data(data->client, MPL3115_CTRL_REG1,
-		data->ctrl_reg1 & ~MPL3115_CTRL_ACTIVE);
+									 data->ctrl_reg1 & ~MPL3115_CTRL_ACTIVE);
 }
 
 static int mpl3115_remove(struct i2c_client *client)
@@ -289,16 +359,16 @@ static int mpl3115_remove(struct i2c_client *client)
 static int mpl3115_suspend(struct device *dev)
 {
 	return mpl3115_standby(iio_priv(i2c_get_clientdata(
-		to_i2c_client(dev))));
+										to_i2c_client(dev))));
 }
 
 static int mpl3115_resume(struct device *dev)
 {
 	struct mpl3115_data *data = iio_priv(i2c_get_clientdata(
-		to_i2c_client(dev)));
+			to_i2c_client(dev)));
 
 	return i2c_smbus_write_byte_data(data->client, MPL3115_CTRL_REG1,
-		data->ctrl_reg1);
+									 data->ctrl_reg1);
 }
 
 static SIMPLE_DEV_PM_OPS(mpl3115_pm_ops, mpl3115_suspend, mpl3115_resume);
@@ -307,13 +377,15 @@ static SIMPLE_DEV_PM_OPS(mpl3115_pm_ops, mpl3115_suspend, mpl3115_resume);
 #define MPL3115_PM_OPS NULL
 #endif
 
-static const struct i2c_device_id mpl3115_id[] = {
+static const struct i2c_device_id mpl3115_id[] =
+{
 	{ "mpl3115", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, mpl3115_id);
 
-static struct i2c_driver mpl3115_driver = {
+static struct i2c_driver mpl3115_driver =
+{
 	.driver = {
 		.name	= "mpl3115",
 		.pm	= MPL3115_PM_OPS,

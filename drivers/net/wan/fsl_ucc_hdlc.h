@@ -22,10 +22,11 @@
 
 /* UCC HDLC event register */
 #define UCCE_HDLC_RX_EVENTS	\
-(UCC_HDLC_UCCE_RXF | UCC_HDLC_UCCE_RXB | UCC_HDLC_UCCE_BSY)
+	(UCC_HDLC_UCCE_RXF | UCC_HDLC_UCCE_RXB | UCC_HDLC_UCCE_BSY)
 #define UCCE_HDLC_TX_EVENTS	(UCC_HDLC_UCCE_TXB | UCC_HDLC_UCCE_TXE)
 
-struct ucc_hdlc_param {
+struct ucc_hdlc_param
+{
 	__be16 riptr;
 	__be16 tiptr;
 	__be16 res0;
@@ -66,7 +67,8 @@ struct ucc_hdlc_param {
 	__be16 tmp_mb;
 };
 
-struct ucc_hdlc_private {
+struct ucc_hdlc_private
+{
 	struct ucc_tdm	*utdm;
 	struct ucc_tdm_info *ut_info;
 	struct ucc_fast_private *uccf;

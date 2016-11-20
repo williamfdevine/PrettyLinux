@@ -55,7 +55,8 @@
 #define MF_DUPLICATE_MD		0x01
 #define MF_MIRROR_FE_LOADED	0x02
 
-struct udf_meta_data {
+struct udf_meta_data
+{
 	__u32	s_meta_file_loc;
 	__u32	s_mirror_file_loc;
 	__u32	s_bitmap_file_loc;
@@ -72,28 +73,34 @@ struct udf_meta_data {
 	struct inode *s_bitmap_fe;
 };
 
-struct udf_sparing_data {
+struct udf_sparing_data
+{
 	__u16	s_packet_len;
 	struct buffer_head *s_spar_map[4];
 };
 
-struct udf_virtual_data {
+struct udf_virtual_data
+{
 	__u32	s_num_entries;
 	__u16	s_start_offset;
 };
 
-struct udf_bitmap {
+struct udf_bitmap
+{
 	__u32			s_extPosition;
 	int			s_nr_groups;
 	struct buffer_head 	*s_block_bitmap[0];
 };
 
-struct udf_part_map {
-	union {
+struct udf_part_map
+{
+	union
+	{
 		struct udf_bitmap	*s_bitmap;
 		struct inode		*s_table;
 	} s_uspace;
-	union {
+	union
+	{
 		struct udf_bitmap	*s_bitmap;
 		struct inode		*s_table;
 	} s_fspace;
@@ -101,7 +108,8 @@ struct udf_part_map {
 	__u32	s_partition_len;
 	__u16	s_partition_type;
 	__u16	s_partition_num;
-	union {
+	union
+	{
 		struct udf_sparing_data s_sparing;
 		struct udf_virtual_data s_virtual;
 		struct udf_meta_data s_metadata;
@@ -113,7 +121,8 @@ struct udf_part_map {
 
 #pragma pack()
 
-struct udf_sb_info {
+struct udf_sb_info
+{
 	struct udf_part_map	*s_partmaps;
 	__u8			s_volume_ident[32];
 

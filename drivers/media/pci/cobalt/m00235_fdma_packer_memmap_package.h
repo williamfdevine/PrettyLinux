@@ -23,7 +23,8 @@
  * Register Block
  * M00235_FDMA_PACKER_MEMMAP_PACKAGE_VHD_REGMAP
  *******************************************************************/
-struct m00235_fdma_packer_regmap {
+struct m00235_fdma_packer_regmap
+{
 	uint32_t control; /* Reg 0x0000, Default=0x0 */
 };
 

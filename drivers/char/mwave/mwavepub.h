@@ -53,7 +53,8 @@
 #include <linux/miscdevice.h>
 
 
-typedef struct _MW_ABILITIES {
+typedef struct _MW_ABILITIES
+{
 	unsigned long instr_per_sec;
 	unsigned long data_size;
 	unsigned long inst_size;
@@ -66,7 +67,8 @@ typedef struct _MW_ABILITIES {
 } MW_ABILITIES, *pMW_ABILITIES;
 
 
-typedef struct _MW_READWRITE {
+typedef struct _MW_READWRITE
+{
 	unsigned short usDspAddress;	/* The dsp address */
 	unsigned long ulDataLength;	/* The size in bytes of the data or user buffer */
 	void __user *pBuf;		/* Input:variable sized buffer */

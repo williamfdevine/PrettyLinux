@@ -24,14 +24,16 @@
 #include <linux/mfd/dln2.h>
 #include <linux/rculist.h>
 
-struct dln2_header {
+struct dln2_header
+{
 	__le16 size;
 	__le16 id;
 	__le16 echo;
 	__le16 handle;
 };
 
-struct dln2_response {
+struct dln2_response
+{
 	struct dln2_header hdr;
 	__le16 result;
 };
@@ -47,7 +49,8 @@ struct dln2_response {
 #define DLN2_MAX_URBS			16
 #define DLN2_RX_BUF_SIZE		512
 
-enum dln2_handle {
+enum dln2_handle
+{
 	DLN2_HANDLE_EVENT = 0,		/* don't change, hardware defined */
 	DLN2_HANDLE_CTRL,
 	DLN2_HANDLE_GPIO,
@@ -62,7 +65,8 @@ enum dln2_handle {
  * receive context and use it to wait for a response and to receive the URB and
  * thus the response data.
  */
-struct dln2_rx_context {
+struct dln2_rx_context
+{
 	/* completion used to wait for a response */
 	struct completion done;
 
@@ -79,7 +83,8 @@ struct dln2_rx_context {
  * the echo header field to index the slots field and find the receive context
  * for a particular request.
  */
-struct dln2_mod_rx_slots {
+struct dln2_mod_rx_slots
+{
 	/* RX slots bitmap */
 	DECLARE_BITMAP(bmap, DLN2_MAX_RX_SLOTS);
 
@@ -93,7 +98,8 @@ struct dln2_mod_rx_slots {
 	spinlock_t lock;
 };
 
-struct dln2_dev {
+struct dln2_dev
+{
 	struct usb_device *usb_dev;
 	struct usb_interface *interface;
 	u8 ep_in;
@@ -113,7 +119,8 @@ struct dln2_dev {
 	spinlock_t disconnect_lock;
 };
 
-struct dln2_event_cb_entry {
+struct dln2_event_cb_entry
+{
 	struct list_head list;
 	u16 id;
 	struct platform_device *pdev;
@@ -121,7 +128,7 @@ struct dln2_event_cb_entry {
 };
 
 int dln2_register_event_cb(struct platform_device *pdev, u16 id,
-			   dln2_event_cb_t event_cb)
+						   dln2_event_cb_t event_cb)
 {
 	struct dln2_dev *dln2 = dev_get_drvdata(pdev->dev.parent);
 	struct dln2_event_cb_entry *i, *entry;
@@ -129,8 +136,11 @@ int dln2_register_event_cb(struct platform_device *pdev, u16 id,
 	int ret = 0;
 
 	entry = kzalloc(sizeof(*entry), GFP_KERNEL);
+
 	if (!entry)
+	{
 		return -ENOMEM;
+	}
 
 	entry->id = id;
 	entry->callback = event_cb;
@@ -138,20 +148,26 @@ int dln2_register_event_cb(struct platform_device *pdev, u16 id,
 
 	spin_lock_irqsave(&dln2->event_cb_lock, flags);
 
-	list_for_each_entry(i, &dln2->event_cb_list, list) {
-		if (i->id == id) {
+	list_for_each_entry(i, &dln2->event_cb_list, list)
+	{
+		if (i->id == id)
+		{
 			ret = -EBUSY;
 			break;
 		}
 	}
 
 	if (!ret)
+	{
 		list_add_rcu(&entry->list, &dln2->event_cb_list);
+	}
 
 	spin_unlock_irqrestore(&dln2->event_cb_lock, flags);
 
 	if (ret)
+	{
 		kfree(entry);
+	}
 
 	return ret;
 }
@@ -166,8 +182,10 @@ void dln2_unregister_event_cb(struct platform_device *pdev, u16 id)
 
 	spin_lock_irqsave(&dln2->event_cb_lock, flags);
 
-	list_for_each_entry(i, &dln2->event_cb_list, list) {
-		if (i->id == id) {
+	list_for_each_entry(i, &dln2->event_cb_list, list)
+	{
+		if (i->id == id)
+		{
 			list_del_rcu(&i->list);
 			found = true;
 			break;
@@ -176,7 +194,8 @@ void dln2_unregister_event_cb(struct platform_device *pdev, u16 id)
 
 	spin_unlock_irqrestore(&dln2->event_cb_lock, flags);
 
-	if (found) {
+	if (found)
+	{
 		synchronize_rcu();
 		kfree(i);
 	}
@@ -189,7 +208,7 @@ EXPORT_SYMBOL(dln2_unregister_event_cb);
  * is woke up. It will be resubmitted there.
  */
 static bool dln2_transfer_complete(struct dln2_dev *dln2, struct urb *urb,
-				   u16 handle, u16 rx_slot)
+								   u16 handle, u16 rx_slot)
 {
 	struct device *dev = &dln2->interface->dev;
 	struct dln2_mod_rx_slots *rxs = &dln2->mod_rx_slots[handle];
@@ -197,7 +216,9 @@ static bool dln2_transfer_complete(struct dln2_dev *dln2, struct urb *urb,
 	bool valid_slot = false;
 
 	if (rx_slot >= DLN2_MAX_RX_SLOTS)
+	{
 		goto out;
+	}
 
 	rxc = &rxs->slots[rx_slot];
 
@@ -207,29 +228,37 @@ static bool dln2_transfer_complete(struct dln2_dev *dln2, struct urb *urb,
 	 * also not exported to other modules.
 	 */
 	spin_lock(&rxs->lock);
-	if (rxc->in_use && !rxc->urb) {
+
+	if (rxc->in_use && !rxc->urb)
+	{
 		rxc->urb = urb;
 		complete(&rxc->done);
 		valid_slot = true;
 	}
+
 	spin_unlock(&rxs->lock);
 
 out:
+
 	if (!valid_slot)
+	{
 		dev_warn(dev, "bad/late response %d/%d\n", handle, rx_slot);
+	}
 
 	return valid_slot;
 }
 
 static void dln2_run_event_callbacks(struct dln2_dev *dln2, u16 id, u16 echo,
-				     void *data, int len)
+									 void *data, int len)
 {
 	struct dln2_event_cb_entry *i;
 
 	rcu_read_lock();
 
-	list_for_each_entry_rcu(i, &dln2->event_cb_list, list) {
-		if (i->id == id) {
+	list_for_each_entry_rcu(i, &dln2->event_cb_list, list)
+	{
+		if (i->id == id)
+		{
 			i->callback(i->pdev, echo, data, len);
 			break;
 		}
@@ -248,23 +277,27 @@ static void dln2_rx(struct urb *urb)
 	int len;
 	int err;
 
-	switch (urb->status) {
-	case 0:
-		/* success */
-		break;
-	case -ECONNRESET:
-	case -ENOENT:
-	case -ESHUTDOWN:
-	case -EPIPE:
-		/* this urb is terminated, clean up */
-		dev_dbg(dev, "urb shutting down with status %d\n", urb->status);
-		return;
-	default:
-		dev_dbg(dev, "nonzero urb status received %d\n", urb->status);
-		goto out;
+	switch (urb->status)
+	{
+		case 0:
+			/* success */
+			break;
+
+		case -ECONNRESET:
+		case -ENOENT:
+		case -ESHUTDOWN:
+		case -EPIPE:
+			/* this urb is terminated, clean up */
+			dev_dbg(dev, "urb shutting down with status %d\n", urb->status);
+			return;
+
+		default:
+			dev_dbg(dev, "nonzero urb status received %d\n", urb->status);
+			goto out;
 	}
 
-	if (urb->actual_length < sizeof(struct dln2_header)) {
+	if (urb->actual_length < sizeof(struct dln2_header))
+	{
 		dev_err(dev, "short response: %d\n", urb->actual_length);
 		goto out;
 	}
@@ -274,13 +307,15 @@ static void dln2_rx(struct urb *urb)
 	echo = le16_to_cpu(hdr->echo);
 	size = le16_to_cpu(hdr->size);
 
-	if (size != urb->actual_length) {
+	if (size != urb->actual_length)
+	{
 		dev_err(dev, "size mismatch: handle %x cmd %x echo %x size %d actual %d\n",
-			handle, id, echo, size, urb->actual_length);
+				handle, id, echo, size, urb->actual_length);
 		goto out;
 	}
 
-	if (handle >= DLN2_HANDLES) {
+	if (handle >= DLN2_HANDLES)
+	{
 		dev_warn(dev, "invalid handle %d\n", handle);
 		goto out;
 	}
@@ -288,22 +323,30 @@ static void dln2_rx(struct urb *urb)
 	data = urb->transfer_buffer + sizeof(struct dln2_header);
 	len = urb->actual_length - sizeof(struct dln2_header);
 
-	if (handle == DLN2_HANDLE_EVENT) {
+	if (handle == DLN2_HANDLE_EVENT)
+	{
 		dln2_run_event_callbacks(dln2, id, echo, data, len);
-	} else {
+	}
+	else
+	{
 		/* URB will be re-submitted in _dln2_transfer (free_rx_slot) */
 		if (dln2_transfer_complete(dln2, urb, handle, echo))
+		{
 			return;
+		}
 	}
 
 out:
 	err = usb_submit_urb(urb, GFP_ATOMIC);
+
 	if (err < 0)
+	{
 		dev_err(dev, "failed to resubmit RX URB: %d\n", err);
+	}
 }
 
 static void *dln2_prep_buf(u16 handle, u16 cmd, u16 echo, const void *obuf,
-			   int *obuf_len, gfp_t gfp)
+						   int *obuf_len, gfp_t gfp)
 {
 	int len;
 	void *buf;
@@ -311,8 +354,11 @@ static void *dln2_prep_buf(u16 handle, u16 cmd, u16 echo, const void *obuf,
 
 	len = *obuf_len + sizeof(*hdr);
 	buf = kmalloc(len, gfp);
+
 	if (!buf)
+	{
 		return NULL;
+	}
 
 	hdr = (struct dln2_header *)buf;
 	hdr->id = cpu_to_le16(cmd);
@@ -328,7 +374,7 @@ static void *dln2_prep_buf(u16 handle, u16 cmd, u16 echo, const void *obuf,
 }
 
 static int dln2_send_wait(struct dln2_dev *dln2, u16 handle, u16 cmd, u16 echo,
-			  const void *obuf, int obuf_len)
+						  const void *obuf, int obuf_len)
 {
 	int ret = 0;
 	int len = obuf_len;
@@ -336,12 +382,15 @@ static int dln2_send_wait(struct dln2_dev *dln2, u16 handle, u16 cmd, u16 echo,
 	int actual;
 
 	buf = dln2_prep_buf(handle, cmd, echo, obuf, &len, GFP_KERNEL);
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	ret = usb_bulk_msg(dln2->usb_dev,
-			   usb_sndbulkpipe(dln2->usb_dev, dln2->ep_out),
-			   buf, len, &actual, DLN2_USB_TIMEOUT);
+					   usb_sndbulkpipe(dln2->usb_dev, dln2->ep_out),
+					   buf, len, &actual, DLN2_USB_TIMEOUT);
 
 	kfree(buf);
 
@@ -353,7 +402,8 @@ static bool find_free_slot(struct dln2_dev *dln2, u16 handle, int *slot)
 	struct dln2_mod_rx_slots *rxs;
 	unsigned long flags;
 
-	if (dln2->disconnect) {
+	if (dln2->disconnect)
+	{
 		*slot = -ENODEV;
 		return true;
 	}
@@ -364,7 +414,8 @@ static bool find_free_slot(struct dln2_dev *dln2, u16 handle, int *slot)
 
 	*slot = find_first_zero_bit(rxs->bmap, DLN2_MAX_RX_SLOTS);
 
-	if (*slot < DLN2_MAX_RX_SLOTS) {
+	if (*slot < DLN2_MAX_RX_SLOTS)
+	{
 		struct dln2_rx_context *rxc = &rxs->slots[*slot];
 
 		set_bit(*slot, rxs->bmap);
@@ -386,9 +437,12 @@ static int alloc_rx_slot(struct dln2_dev *dln2, u16 handle)
 	 * _dln2_transfer.
 	 */
 	ret = wait_event_interruptible(dln2->mod_rx_slots[handle].wq,
-				       find_free_slot(dln2, handle, &slot));
+								   find_free_slot(dln2, handle, &slot));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return slot;
 }
@@ -414,21 +468,25 @@ static void free_rx_slot(struct dln2_dev *dln2, u16 handle, int slot)
 
 	spin_unlock_irqrestore(&rxs->lock, flags);
 
-	if (urb) {
+	if (urb)
+	{
 		int err;
 		struct device *dev = &dln2->interface->dev;
 
 		err = usb_submit_urb(urb, GFP_KERNEL);
+
 		if (err < 0)
+		{
 			dev_err(dev, "failed to resubmit RX URB: %d\n", err);
+		}
 	}
 
 	wake_up_interruptible(&rxs->wq);
 }
 
 static int _dln2_transfer(struct dln2_dev *dln2, u16 handle, u16 cmd,
-			  const void *obuf, unsigned obuf_len,
-			  void *ibuf, unsigned *ibuf_len)
+						  const void *obuf, unsigned obuf_len,
+						  void *ibuf, unsigned *ibuf_len)
 {
 	int ret = 0;
 	int rx_slot;
@@ -440,23 +498,35 @@ static int _dln2_transfer(struct dln2_dev *dln2, u16 handle, u16 cmd,
 	int size;
 
 	spin_lock(&dln2->disconnect_lock);
+
 	if (!dln2->disconnect)
+	{
 		dln2->active_transfers++;
+	}
 	else
+	{
 		ret = -ENODEV;
+	}
+
 	spin_unlock(&dln2->disconnect_lock);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	rx_slot = alloc_rx_slot(dln2, handle);
-	if (rx_slot < 0) {
+
+	if (rx_slot < 0)
+	{
 		ret = rx_slot;
 		goto out_decr;
 	}
 
 	ret = dln2_send_wait(dln2, handle, cmd, rx_slot, obuf, obuf_len);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "USB write failed: %d\n", ret);
 		goto out_free_rx_slot;
 	}
@@ -464,15 +534,23 @@ static int _dln2_transfer(struct dln2_dev *dln2, u16 handle, u16 cmd,
 	rxc = &rxs->slots[rx_slot];
 
 	ret = wait_for_completion_interruptible_timeout(&rxc->done, timeout);
-	if (ret <= 0) {
+
+	if (ret <= 0)
+	{
 		if (!ret)
+		{
 			ret = -ETIMEDOUT;
+		}
+
 		goto out_free_rx_slot;
-	} else {
+	}
+	else
+	{
 		ret = 0;
 	}
 
-	if (dln2->disconnect) {
+	if (dln2->disconnect)
+	{
 		ret = -ENODEV;
 		goto out_free_rx_slot;
 	}
@@ -481,23 +559,29 @@ static int _dln2_transfer(struct dln2_dev *dln2, u16 handle, u16 cmd,
 	rsp = rxc->urb->transfer_buffer;
 	size = le16_to_cpu(rsp->hdr.size);
 
-	if (size < sizeof(*rsp)) {
+	if (size < sizeof(*rsp))
+	{
 		ret = -EPROTO;
 		goto out_free_rx_slot;
 	}
 
-	if (le16_to_cpu(rsp->result) > 0x80) {
+	if (le16_to_cpu(rsp->result) > 0x80)
+	{
 		dev_dbg(dev, "%d received response with error %d\n",
-			handle, le16_to_cpu(rsp->result));
+				handle, le16_to_cpu(rsp->result));
 		ret = -EREMOTEIO;
 		goto out_free_rx_slot;
 	}
 
 	if (!ibuf)
+	{
 		goto out_free_rx_slot;
+	}
 
 	if (*ibuf_len > size - sizeof(*rsp))
+	{
 		*ibuf_len = size - sizeof(*rsp);
+	}
 
 	memcpy(ibuf, rsp + 1, *ibuf_len);
 
@@ -507,15 +591,18 @@ out_decr:
 	spin_lock(&dln2->disconnect_lock);
 	dln2->active_transfers--;
 	spin_unlock(&dln2->disconnect_lock);
+
 	if (dln2->disconnect)
+	{
 		wake_up(&dln2->disconnect_wq);
+	}
 
 	return ret;
 }
 
 int dln2_transfer(struct platform_device *pdev, u16 cmd,
-		  const void *obuf, unsigned obuf_len,
-		  void *ibuf, unsigned *ibuf_len)
+				  const void *obuf, unsigned obuf_len,
+				  void *ibuf, unsigned *ibuf_len)
 {
 	struct dln2_platform_data *dln2_pdata;
 	struct dln2_dev *dln2;
@@ -526,7 +613,7 @@ int dln2_transfer(struct platform_device *pdev, u16 cmd,
 	handle = dln2_pdata->handle;
 
 	return _dln2_transfer(dln2, handle, cmd, obuf, obuf_len, ibuf,
-			      ibuf_len);
+						  ibuf_len);
 }
 EXPORT_SYMBOL(dln2_transfer);
 
@@ -537,15 +624,22 @@ static int dln2_check_hw(struct dln2_dev *dln2)
 	int len = sizeof(hw_type);
 
 	ret = _dln2_transfer(dln2, DLN2_HANDLE_CTRL, CMD_GET_DEVICE_VER,
-			     NULL, 0, &hw_type, &len);
-	if (ret < 0)
-		return ret;
-	if (len < sizeof(hw_type))
-		return -EREMOTEIO;
+						 NULL, 0, &hw_type, &len);
 
-	if (le32_to_cpu(hw_type) != DLN2_HW_ID) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (len < sizeof(hw_type))
+	{
+		return -EREMOTEIO;
+	}
+
+	if (le32_to_cpu(hw_type) != DLN2_HW_ID)
+	{
 		dev_err(&dln2->interface->dev, "Device ID 0x%x not supported\n",
-			le32_to_cpu(hw_type));
+				le32_to_cpu(hw_type));
 		return -ENODEV;
 	}
 
@@ -560,11 +654,17 @@ static int dln2_print_serialno(struct dln2_dev *dln2)
 	struct device *dev = &dln2->interface->dev;
 
 	ret = _dln2_transfer(dln2, DLN2_HANDLE_CTRL, CMD_GET_DEVICE_SN, NULL, 0,
-			     &serial_no, &len);
+						 &serial_no, &len);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (len < sizeof(serial_no))
+	{
 		return -EREMOTEIO;
+	}
 
 	dev_info(dev, "Diolan DLN2 serial %u\n", le32_to_cpu(serial_no));
 
@@ -576,8 +676,11 @@ static int dln2_hw_init(struct dln2_dev *dln2)
 	int ret;
 
 	ret = dln2_check_hw(dln2);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return dln2_print_serialno(dln2);
 }
@@ -586,7 +689,8 @@ static void dln2_free_rx_urbs(struct dln2_dev *dln2)
 {
 	int i;
 
-	for (i = 0; i < DLN2_MAX_URBS; i++) {
+	for (i = 0; i < DLN2_MAX_URBS; i++)
+	{
 		usb_free_urb(dln2->rx_urb[i]);
 		kfree(dln2->rx_buf[i]);
 	}
@@ -597,7 +701,9 @@ static void dln2_stop_rx_urbs(struct dln2_dev *dln2)
 	int i;
 
 	for (i = 0; i < DLN2_MAX_URBS; i++)
+	{
 		usb_kill_urb(dln2->rx_urb[i]);
+	}
 }
 
 static void dln2_free(struct dln2_dev *dln2)
@@ -608,23 +714,30 @@ static void dln2_free(struct dln2_dev *dln2)
 }
 
 static int dln2_setup_rx_urbs(struct dln2_dev *dln2,
-			      struct usb_host_interface *hostif)
+							  struct usb_host_interface *hostif)
 {
 	int i;
 	const int rx_max_size = DLN2_RX_BUF_SIZE;
 
-	for (i = 0; i < DLN2_MAX_URBS; i++) {
+	for (i = 0; i < DLN2_MAX_URBS; i++)
+	{
 		dln2->rx_buf[i] = kmalloc(rx_max_size, GFP_KERNEL);
+
 		if (!dln2->rx_buf[i])
+		{
 			return -ENOMEM;
+		}
 
 		dln2->rx_urb[i] = usb_alloc_urb(0, GFP_KERNEL);
+
 		if (!dln2->rx_urb[i])
+		{
 			return -ENOMEM;
+		}
 
 		usb_fill_bulk_urb(dln2->rx_urb[i], dln2->usb_dev,
-				  usb_rcvbulkpipe(dln2->usb_dev, dln2->ep_in),
-				  dln2->rx_buf[i], rx_max_size, dln2_rx, dln2);
+						  usb_rcvbulkpipe(dln2->usb_dev, dln2->ep_in),
+						  dln2->rx_buf[i], rx_max_size, dln2_rx, dln2);
 	}
 
 	return 0;
@@ -636,9 +749,12 @@ static int dln2_start_rx_urbs(struct dln2_dev *dln2, gfp_t gfp)
 	int ret;
 	int i;
 
-	for (i = 0; i < DLN2_MAX_URBS; i++) {
+	for (i = 0; i < DLN2_MAX_URBS; i++)
+	{
 		ret = usb_submit_urb(dln2->rx_urb[i], gfp);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(dev, "failed to submit RX URB: %d\n", ret);
 			return ret;
 		}
@@ -647,23 +763,27 @@ static int dln2_start_rx_urbs(struct dln2_dev *dln2, gfp_t gfp)
 	return 0;
 }
 
-static struct dln2_platform_data dln2_pdata_gpio = {
+static struct dln2_platform_data dln2_pdata_gpio =
+{
 	.handle = DLN2_HANDLE_GPIO,
 };
 
 /* Only one I2C port seems to be supported on current hardware */
-static struct dln2_platform_data dln2_pdata_i2c = {
+static struct dln2_platform_data dln2_pdata_i2c =
+{
 	.handle = DLN2_HANDLE_I2C,
 	.port = 0,
 };
 
 /* Only one SPI port supported */
-static struct dln2_platform_data dln2_pdata_spi = {
+static struct dln2_platform_data dln2_pdata_spi =
+{
 	.handle = DLN2_HANDLE_SPI,
 	.port = 0,
 };
 
-static const struct mfd_cell dln2_devs[] = {
+static const struct mfd_cell dln2_devs[] =
+{
 	{
 		.name = "dln2-gpio",
 		.platform_data = &dln2_pdata_gpio,
@@ -691,18 +811,22 @@ static void dln2_stop(struct dln2_dev *dln2)
 	spin_unlock(&dln2->disconnect_lock);
 
 	/* cancel in progress transfers */
-	for (i = 0; i < DLN2_HANDLES; i++) {
+	for (i = 0; i < DLN2_HANDLES; i++)
+	{
 		struct dln2_mod_rx_slots *rxs = &dln2->mod_rx_slots[i];
 		unsigned long flags;
 
 		spin_lock_irqsave(&rxs->lock, flags);
 
 		/* cancel all response waiters */
-		for (j = 0; j < DLN2_MAX_RX_SLOTS; j++) {
+		for (j = 0; j < DLN2_MAX_RX_SLOTS; j++)
+		{
 			struct dln2_rx_context *rxc = &rxs->slots[j];
 
 			if (rxc->in_use)
+			{
 				complete(&rxc->done);
+			}
 		}
 
 		spin_unlock_irqrestore(&rxs->lock, flags);
@@ -726,7 +850,7 @@ static void dln2_disconnect(struct usb_interface *interface)
 }
 
 static int dln2_probe(struct usb_interface *interface,
-		      const struct usb_device_id *usb_id)
+					  const struct usb_device_id *usb_id)
 {
 	struct usb_host_interface *hostif = interface->cur_altsetting;
 	struct device *dev = &interface->dev;
@@ -735,12 +859,17 @@ static int dln2_probe(struct usb_interface *interface,
 	int i, j;
 
 	if (hostif->desc.bInterfaceNumber != 0 ||
-	    hostif->desc.bNumEndpoints < 2)
+		hostif->desc.bNumEndpoints < 2)
+	{
 		return -ENODEV;
+	}
 
 	dln2 = kzalloc(sizeof(*dln2), GFP_KERNEL);
+
 	if (!dln2)
+	{
 		return -ENOMEM;
+	}
 
 	dln2->ep_out = hostif->endpoint[0].desc.bEndpointAddress;
 	dln2->ep_in = hostif->endpoint[1].desc.bEndpointAddress;
@@ -749,11 +878,15 @@ static int dln2_probe(struct usb_interface *interface,
 	usb_set_intfdata(interface, dln2);
 	init_waitqueue_head(&dln2->disconnect_wq);
 
-	for (i = 0; i < DLN2_HANDLES; i++) {
+	for (i = 0; i < DLN2_HANDLES; i++)
+	{
 		init_waitqueue_head(&dln2->mod_rx_slots[i].wq);
 		spin_lock_init(&dln2->mod_rx_slots[i].lock);
+
 		for (j = 0; j < DLN2_MAX_RX_SLOTS; j++)
+		{
 			init_completion(&dln2->mod_rx_slots[i].slots[j].done);
+		}
 	}
 
 	spin_lock_init(&dln2->event_cb_lock);
@@ -761,21 +894,31 @@ static int dln2_probe(struct usb_interface *interface,
 	INIT_LIST_HEAD(&dln2->event_cb_list);
 
 	ret = dln2_setup_rx_urbs(dln2, hostif);
+
 	if (ret)
+	{
 		goto out_free;
+	}
 
 	ret = dln2_start_rx_urbs(dln2, GFP_KERNEL);
+
 	if (ret)
+	{
 		goto out_stop_rx;
+	}
 
 	ret = dln2_hw_init(dln2);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to initialize hardware\n");
 		goto out_stop_rx;
 	}
 
 	ret = mfd_add_hotplug_devices(dev, dln2_devs, ARRAY_SIZE(dln2_devs));
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		dev_err(dev, "failed to add mfd devices to core\n");
 		goto out_stop_rx;
 	}
@@ -809,14 +952,16 @@ static int dln2_resume(struct usb_interface *iface)
 	return dln2_start_rx_urbs(dln2, GFP_NOIO);
 }
 
-static const struct usb_device_id dln2_table[] = {
+static const struct usb_device_id dln2_table[] =
+{
 	{ USB_DEVICE(0xa257, 0x2013) },
 	{ }
 };
 
 MODULE_DEVICE_TABLE(usb, dln2_table);
 
-static struct usb_driver dln2_driver = {
+static struct usb_driver dln2_driver =
+{
 	.name = "dln2",
 	.probe = dln2_probe,
 	.disconnect = dln2_disconnect,

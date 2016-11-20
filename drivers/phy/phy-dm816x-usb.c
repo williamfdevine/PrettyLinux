@@ -49,7 +49,8 @@
 #define DM816X_USBPHY_CTRL_TXVREFTUNE	0xc
 #define DM816X_USBPHY_CTRL_TXPREEMTUNE	0x2
 
-struct dm816x_usb_phy {
+struct dm816x_usb_phy
+{
 	struct regmap *syscon;
 	struct device *dev;
 	unsigned int instance;
@@ -62,18 +63,24 @@ struct dm816x_usb_phy {
 static int dm816x_usb_phy_set_host(struct usb_otg *otg, struct usb_bus *host)
 {
 	otg->host = host;
+
 	if (!host)
+	{
 		otg->state = OTG_STATE_UNDEFINED;
+	}
 
 	return 0;
 }
 
 static int dm816x_usb_phy_set_peripheral(struct usb_otg *otg,
-					 struct usb_gadget *gadget)
+		struct usb_gadget *gadget)
 {
 	otg->gadget = gadget;
+
 	if (!gadget)
+	{
 		otg->state = OTG_STATE_UNDEFINED;
+	}
 
 	return 0;
 }
@@ -85,19 +92,22 @@ static int dm816x_usb_phy_init(struct phy *x)
 	int error;
 
 	if (clk_get_rate(phy->refclk) != 24000000)
+	{
 		dev_warn(phy->dev, "nonstandard phy refclk\n");
+	}
 
 	/* Set PLL ref clock and put phys to sleep */
 	error = regmap_update_bits(phy->syscon, phy->usb_ctrl,
-				   DM816X_USB_CTRL_PHYCLKSRC |
-				   DM816X_USB_CTRL_PHYSLEEP1 |
-				   DM816X_USB_CTRL_PHYSLEEP0,
-				   0);
+							   DM816X_USB_CTRL_PHYCLKSRC |
+							   DM816X_USB_CTRL_PHYSLEEP1 |
+							   DM816X_USB_CTRL_PHYSLEEP0,
+							   0);
 	regmap_read(phy->syscon, phy->usb_ctrl, &val);
+
 	if ((val & 3) != 0)
 		dev_info(phy->dev,
-			 "Working dm816x USB_CTRL! (0x%08x)\n",
-			 val);
+				 "Working dm816x USB_CTRL! (0x%08x)\n",
+				 val);
 
 	/*
 	 * TI kernel sets these values for "symmetrical eye diagram and
@@ -106,14 +116,15 @@ static int dm816x_usb_phy_init(struct phy *x)
 	 */
 	regmap_read(phy->syscon, phy->usbphy_ctrl, &val);
 	val |= DM816X_USBPHY_CTRL_TXRISETUNE |
-		DM816X_USBPHY_CTRL_TXVREFTUNE |
-		DM816X_USBPHY_CTRL_TXPREEMTUNE;
+		   DM816X_USBPHY_CTRL_TXVREFTUNE |
+		   DM816X_USBPHY_CTRL_TXPREEMTUNE;
 	regmap_write(phy->syscon, phy->usbphy_ctrl, val);
 
 	return 0;
 }
 
-static const struct phy_ops ops = {
+static const struct phy_ops ops =
+{
 	.init		= dm816x_usb_phy_init,
 	.owner		= THIS_MODULE,
 };
@@ -127,10 +138,12 @@ static int __maybe_unused dm816x_usb_phy_runtime_suspend(struct device *dev)
 	mask = BIT(phy->instance);
 	val = ~BIT(phy->instance);
 	error = regmap_update_bits(phy->syscon, phy->usb_ctrl,
-				   mask, val);
+							   mask, val);
+
 	if (error)
 		dev_err(phy->dev, "phy%i failed to power off\n",
-			phy->instance);
+				phy->instance);
+
 	clk_disable(phy->refclk);
 
 	return 0;
@@ -143,8 +156,11 @@ static int __maybe_unused dm816x_usb_phy_runtime_resume(struct device *dev)
 	int error;
 
 	error = clk_enable(phy->refclk);
+
 	if (error)
+	{
 		return error;
+	}
 
 	/*
 	 * Note that at least dm816x rev c does not seem to do
@@ -155,10 +171,12 @@ static int __maybe_unused dm816x_usb_phy_runtime_resume(struct device *dev)
 	mask = BIT(phy->instance);
 	val = BIT(phy->instance);
 	error = regmap_update_bits(phy->syscon, phy->usb_ctrl,
-				   mask, val);
-	if (error) {
+							   mask, val);
+
+	if (error)
+	{
 		dev_err(phy->dev, "phy%i failed to power on\n",
-			phy->instance);
+				phy->instance);
 		clk_disable(phy->refclk);
 		return error;
 	}
@@ -167,12 +185,13 @@ static int __maybe_unused dm816x_usb_phy_runtime_resume(struct device *dev)
 }
 
 static UNIVERSAL_DEV_PM_OPS(dm816x_usb_phy_pm_ops,
-			    dm816x_usb_phy_runtime_suspend,
-			    dm816x_usb_phy_runtime_resume,
-			    NULL);
+							dm816x_usb_phy_runtime_suspend,
+							dm816x_usb_phy_runtime_resume,
+							NULL);
 
 #ifdef CONFIG_OF
-static const struct of_device_id dm816x_usb_phy_id_table[] = {
+static const struct of_device_id dm816x_usb_phy_id_table[] =
+{
 	{
 		.compatible = "ti,dm8168-usb-phy",
 	},
@@ -193,22 +212,34 @@ static int dm816x_usb_phy_probe(struct platform_device *pdev)
 	int error;
 
 	of_id = of_match_device(of_match_ptr(dm816x_usb_phy_id_table),
-				&pdev->dev);
+							&pdev->dev);
+
 	if (!of_id)
+	{
 		return -EINVAL;
+	}
 
 	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
+
 	if (!phy)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		return -ENOENT;
+	}
 
 	phy->syscon = syscon_regmap_lookup_by_phandle(pdev->dev.of_node,
-						      "syscon");
+				  "syscon");
+
 	if (IS_ERR(phy->syscon))
+	{
 		return PTR_ERR(phy->syscon);
+	}
 
 	/*
 	 * According to sprs614e.pdf, the first usb_ctrl is shared and
@@ -217,14 +248,20 @@ static int dm816x_usb_phy_probe(struct platform_device *pdev)
 	 */
 	phy->usb_ctrl = 0x20;
 	phy->usbphy_ctrl = (res->start & 0xff) + 4;
+
 	if (phy->usbphy_ctrl == 0x2c)
+	{
 		phy->instance = 1;
+	}
 
 	phy_data = of_id->data;
 
 	otg = devm_kzalloc(&pdev->dev, sizeof(*otg), GFP_KERNEL);
+
 	if (!otg)
+	{
 		return -ENOMEM;
+	}
 
 	phy->dev = &pdev->dev;
 	phy->phy.dev = phy->dev;
@@ -238,23 +275,36 @@ static int dm816x_usb_phy_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, phy);
 
 	phy->refclk = devm_clk_get(phy->dev, "refclk");
+
 	if (IS_ERR(phy->refclk))
+	{
 		return PTR_ERR(phy->refclk);
+	}
+
 	error = clk_prepare(phy->refclk);
+
 	if (error)
+	{
 		return error;
+	}
 
 	pm_runtime_enable(phy->dev);
 	generic_phy = devm_phy_create(phy->dev, NULL, &ops);
+
 	if (IS_ERR(generic_phy))
+	{
 		return PTR_ERR(generic_phy);
+	}
 
 	phy_set_drvdata(generic_phy, phy);
 
 	phy_provider = devm_of_phy_provider_register(phy->dev,
-						     of_phy_simple_xlate);
+				   of_phy_simple_xlate);
+
 	if (IS_ERR(phy_provider))
+	{
 		return PTR_ERR(phy_provider);
+	}
 
 	usb_add_phy_dev(&phy->phy);
 
@@ -272,7 +322,8 @@ static int dm816x_usb_phy_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver dm816x_usb_phy_driver = {
+static struct platform_driver dm816x_usb_phy_driver =
+{
 	.probe		= dm816x_usb_phy_probe,
 	.remove		= dm816x_usb_phy_remove,
 	.driver		= {

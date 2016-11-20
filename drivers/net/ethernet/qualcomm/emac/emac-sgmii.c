@@ -318,20 +318,20 @@
 #define SGMII_PHY_IRQ_CLR_WAIT_TIME		10
 
 #define SGMII_PHY_INTERRUPT_ERR (\
-	DECODE_CODE_ERR         |\
-	DECODE_DISP_ERR)
+								 DECODE_CODE_ERR         |\
+								 DECODE_DISP_ERR)
 
 #define SGMII_ISR_AN_MASK       (\
-	AN_REQUEST              |\
-	AN_START                |\
-	AN_END                  |\
-	AN_ILLEGAL_TERM         |\
-	PLL_UNLOCK              |\
-	SYNC_FAIL)
+								 AN_REQUEST              |\
+								 AN_START                |\
+								 AN_END                  |\
+								 AN_ILLEGAL_TERM         |\
+								 PLL_UNLOCK              |\
+								 SYNC_FAIL)
 
 #define SGMII_ISR_MASK          (\
-	SGMII_PHY_INTERRUPT_ERR |\
-	SGMII_ISR_AN_MASK)
+								 SGMII_PHY_INTERRUPT_ERR |\
+								 SGMII_ISR_AN_MASK)
 
 /* SGMII TX_CONFIG */
 #define TXCFG_LINK				0x8000
@@ -344,41 +344,55 @@
 
 #define SERDES_START_WAIT_TIMES			100
 
-struct emac_reg_write {
+struct emac_reg_write
+{
 	unsigned int offset;
 	u32 val;
 };
 
 static void emac_reg_write_all(void __iomem *base,
-			       const struct emac_reg_write *itr, size_t size)
+							   const struct emac_reg_write *itr, size_t size)
 {
 	size_t i;
 
 	for (i = 0; i < size; ++itr, ++i)
+	{
 		writel(itr->val, base + itr->offset);
+	}
 }
 
-static const struct emac_reg_write physical_coding_sublayer_programming_v1[] = {
+static const struct emac_reg_write physical_coding_sublayer_programming_v1[] =
+{
 	{EMAC_SGMII_PHY_CDR_CTRL0, CDR_MAX_CNT(15)},
 	{EMAC_SGMII_PHY_POW_DWN_CTRL0, PWRDN_B},
-	{EMAC_SGMII_PHY_CMN_PWR_CTRL,
-		BIAS_EN | SYSCLK_EN | CLKBUF_L_EN | PLL_TXCLK_EN | PLL_RXCLK_EN},
+	{
+		EMAC_SGMII_PHY_CMN_PWR_CTRL,
+		BIAS_EN | SYSCLK_EN | CLKBUF_L_EN | PLL_TXCLK_EN | PLL_RXCLK_EN
+	},
 	{EMAC_SGMII_PHY_TX_PWR_CTRL, L0_TX_EN | L0_CLKBUF_EN | L0_TRAN_BIAS_EN},
-	{EMAC_SGMII_PHY_RX_PWR_CTRL,
-		L0_RX_SIGDET_EN | L0_RX_TERM_MODE(1) | L0_RX_I_EN},
-	{EMAC_SGMII_PHY_CMN_PWR_CTRL,
+	{
+		EMAC_SGMII_PHY_RX_PWR_CTRL,
+		L0_RX_SIGDET_EN | L0_RX_TERM_MODE(1) | L0_RX_I_EN
+	},
+	{
+		EMAC_SGMII_PHY_CMN_PWR_CTRL,
 		BIAS_EN | PLL_EN | SYSCLK_EN | CLKBUF_L_EN | PLL_TXCLK_EN |
-		PLL_RXCLK_EN},
-	{EMAC_SGMII_PHY_LANE_CTRL1,
-		L0_RX_EQUALIZE_ENABLE | L0_RESET_TSYNC_EN | L0_DRV_LVL(15)},
+		PLL_RXCLK_EN
+	},
+	{
+		EMAC_SGMII_PHY_LANE_CTRL1,
+		L0_RX_EQUALIZE_ENABLE | L0_RESET_TSYNC_EN | L0_DRV_LVL(15)
+	},
 };
 
-static const struct emac_reg_write sysclk_refclk_setting[] = {
+static const struct emac_reg_write sysclk_refclk_setting[] =
+{
 	{EMAC_QSERDES_COM_SYSCLK_EN_SEL, SYSCLK_SEL_CMOS},
 	{EMAC_QSERDES_COM_SYS_CLK_CTRL,	SYSCLK_CM | SYSCLK_AC_COUPLE},
 };
 
-static const struct emac_reg_write pll_setting[] = {
+static const struct emac_reg_write pll_setting[] =
+{
 	{EMAC_QSERDES_COM_PLL_IP_SETI, PLL_IPSETI(1)},
 	{EMAC_QSERDES_COM_PLL_CP_SETI, PLL_CPSETI(59)},
 	{EMAC_QSERDES_COM_PLL_IP_SETP, PLL_IPSETP(10)},
@@ -387,12 +401,18 @@ static const struct emac_reg_write pll_setting[] = {
 	{EMAC_QSERDES_COM_PLL_CNTRL, OCP_EN | PLL_DIV_FFEN | PLL_DIV_ORD},
 	{EMAC_QSERDES_COM_DEC_START1, DEC_START1_MUX | DEC_START1(2)},
 	{EMAC_QSERDES_COM_DEC_START2, DEC_START2_MUX | DEC_START2},
-	{EMAC_QSERDES_COM_DIV_FRAC_START1,
-		DIV_FRAC_START_MUX | DIV_FRAC_START(85)},
-	{EMAC_QSERDES_COM_DIV_FRAC_START2,
-		DIV_FRAC_START_MUX | DIV_FRAC_START(42)},
-	{EMAC_QSERDES_COM_DIV_FRAC_START3,
-		DIV_FRAC_START3_MUX | DIV_FRAC_START3(3)},
+	{
+		EMAC_QSERDES_COM_DIV_FRAC_START1,
+		DIV_FRAC_START_MUX | DIV_FRAC_START(85)
+	},
+	{
+		EMAC_QSERDES_COM_DIV_FRAC_START2,
+		DIV_FRAC_START_MUX | DIV_FRAC_START(42)
+	},
+	{
+		EMAC_QSERDES_COM_DIV_FRAC_START3,
+		DIV_FRAC_START3_MUX | DIV_FRAC_START3(3)
+	},
 	{EMAC_QSERDES_COM_PLLLOCK_CMP1, PLLLOCK_CMP(43)},
 	{EMAC_QSERDES_COM_PLLLOCK_CMP2, PLLLOCK_CMP(104)},
 	{EMAC_QSERDES_COM_PLLLOCK_CMP3, PLLLOCK_CMP(0)},
@@ -400,27 +420,38 @@ static const struct emac_reg_write pll_setting[] = {
 	{EMAC_QSERDES_COM_RESETSM_CNTRL, FRQ_TUNE_MODE},
 };
 
-static const struct emac_reg_write cdr_setting[] = {
-	{EMAC_QSERDES_RX_CDR_CONTROL,
-		SECONDORDERENABLE | FIRSTORDER_THRESH(3) | SECONDORDERGAIN(2)},
-	{EMAC_QSERDES_RX_CDR_CONTROL2,
-		SECONDORDERENABLE | FIRSTORDER_THRESH(3) | SECONDORDERGAIN(4)},
+static const struct emac_reg_write cdr_setting[] =
+{
+	{
+		EMAC_QSERDES_RX_CDR_CONTROL,
+		SECONDORDERENABLE | FIRSTORDER_THRESH(3) | SECONDORDERGAIN(2)
+	},
+	{
+		EMAC_QSERDES_RX_CDR_CONTROL2,
+		SECONDORDERENABLE | FIRSTORDER_THRESH(3) | SECONDORDERGAIN(4)
+	},
 };
 
-static const struct emac_reg_write tx_rx_setting[] = {
+static const struct emac_reg_write tx_rx_setting[] =
+{
 	{EMAC_QSERDES_TX_BIST_MODE_LANENO, 0},
 	{EMAC_QSERDES_TX_TX_DRV_LVL, TX_DRV_LVL_MUX | TX_DRV_LVL(15)},
 	{EMAC_QSERDES_TX_TRAN_DRVR_EMP_EN, EMP_EN_MUX | EMP_EN},
-	{EMAC_QSERDES_TX_TX_EMP_POST1_LVL,
-		TX_EMP_POST1_LVL_MUX | TX_EMP_POST1_LVL(1)},
+	{
+		EMAC_QSERDES_TX_TX_EMP_POST1_LVL,
+		TX_EMP_POST1_LVL_MUX | TX_EMP_POST1_LVL(1)
+	},
 	{EMAC_QSERDES_RX_RX_EQ_GAIN12, RX_EQ_GAIN2(15) | RX_EQ_GAIN1(15)},
 	{EMAC_QSERDES_TX_LANE_MODE, LANE_MODE(8)},
 };
 
-static const struct emac_reg_write sgmii_v2_laned[] = {
+static const struct emac_reg_write sgmii_v2_laned[] =
+{
 	/* CDR Settings */
-	{EMAC_SGMII_LN_UCDR_FO_GAIN_MODE0,
-		UCDR_STEP_BY_TWO_MODE0 | UCDR_xO_GAIN_MODE(10)},
+	{
+		EMAC_SGMII_LN_UCDR_FO_GAIN_MODE0,
+		UCDR_STEP_BY_TWO_MODE0 | UCDR_xO_GAIN_MODE(10)
+	},
 	{EMAC_SGMII_LN_UCDR_SO_GAIN_MODE0, UCDR_xO_GAIN_MODE(0)},
 	{EMAC_SGMII_LN_UCDR_SO_CONFIG, UCDR_ENABLE | UCDR_SO_SATURATION(12)},
 
@@ -433,19 +464,27 @@ static const struct emac_reg_write sgmii_v2_laned[] = {
 	{EMAC_SGMII_LN_TX_PRE, TX_PRE_MUX},
 	{EMAC_SGMII_LN_TX_POST, TX_POST_MUX},
 
-	{EMAC_SGMII_LN_CML_CTRL_MODE0,
-		CML_GEAR_MODE(1) | CML2CMOS_IBOOST_MODE(1)},
-	{EMAC_SGMII_LN_MIXER_CTRL_MODE0,
-		MIXER_LOADB_MODE(12) | MIXER_DATARATE_MODE(1)},
+	{
+		EMAC_SGMII_LN_CML_CTRL_MODE0,
+		CML_GEAR_MODE(1) | CML2CMOS_IBOOST_MODE(1)
+	},
+	{
+		EMAC_SGMII_LN_MIXER_CTRL_MODE0,
+		MIXER_LOADB_MODE(12) | MIXER_DATARATE_MODE(1)
+	},
 	{EMAC_SGMII_LN_VGA_INITVAL, VGA_THRESH_DFE(31)},
-	{EMAC_SGMII_LN_SIGDET_ENABLES,
-		SIGDET_LP_BYP_PS0_TO_PS2 | SIGDET_FLT_BYP},
+	{
+		EMAC_SGMII_LN_SIGDET_ENABLES,
+		SIGDET_LP_BYP_PS0_TO_PS2 | SIGDET_FLT_BYP
+	},
 	{EMAC_SGMII_LN_SIGDET_CNTRL, SIGDET_LVL(8)},
 
 	{EMAC_SGMII_LN_SIGDET_DEGLITCH_CNTRL, SIGDET_DEGLITCH_CTRL(4)},
 	{EMAC_SGMII_LN_RX_MISC_CNTRL0, 0},
-	{EMAC_SGMII_LN_DRVR_LOGIC_CLKDIV,
-		DRVR_LOGIC_CLK_EN | DRVR_LOGIC_CLK_DIV(4)},
+	{
+		EMAC_SGMII_LN_DRVR_LOGIC_CLKDIV,
+		DRVR_LOGIC_CLK_EN | DRVR_LOGIC_CLK_DIV(4)
+	},
 
 	{EMAC_SGMII_LN_PARALLEL_RATE, PARALLEL_RATE_MODE0(1)},
 	{EMAC_SGMII_LN_TX_BAND_MODE, BAND_MODE0(2)},
@@ -455,7 +494,8 @@ static const struct emac_reg_write sgmii_v2_laned[] = {
 	{EMAC_SGMII_LN_RSM_CONFIG, BYPASS_RSM_SAMP_CAL | BYPASS_RSM_DLL_CAL},
 };
 
-static const struct emac_reg_write physical_coding_sublayer_programming_v2[] = {
+static const struct emac_reg_write physical_coding_sublayer_programming_v2[] =
+{
 	{EMAC_SGMII_PHY_POW_DWN_CTRL0, PWRDN_B},
 	{EMAC_SGMII_PHY_CDR_CTRL0, CDR_MAX_CNT(15)},
 	{EMAC_SGMII_PHY_TX_PWR_CTRL, 0},
@@ -470,29 +510,38 @@ static int emac_sgmii_link_init(struct emac_adapter *adpt)
 
 	val = readl(phy->base + EMAC_SGMII_PHY_AUTONEG_CFG2);
 
-	if (phydev->autoneg == AUTONEG_ENABLE) {
+	if (phydev->autoneg == AUTONEG_ENABLE)
+	{
 		val &= ~(FORCE_AN_RX_CFG | FORCE_AN_TX_CFG);
 		val |= AN_ENABLE;
 		writel(val, phy->base + EMAC_SGMII_PHY_AUTONEG_CFG2);
-	} else {
+	}
+	else
+	{
 		u32 speed_cfg;
 
-		switch (phydev->speed) {
-		case SPEED_10:
-			speed_cfg = SPDMODE_10;
-			break;
-		case SPEED_100:
-			speed_cfg = SPDMODE_100;
-			break;
-		case SPEED_1000:
-			speed_cfg = SPDMODE_1000;
-			break;
-		default:
-			return -EINVAL;
+		switch (phydev->speed)
+		{
+			case SPEED_10:
+				speed_cfg = SPDMODE_10;
+				break;
+
+			case SPEED_100:
+				speed_cfg = SPDMODE_100;
+				break;
+
+			case SPEED_1000:
+				speed_cfg = SPDMODE_1000;
+				break;
+
+			default:
+				return -EINVAL;
 		}
 
 		if (phydev->duplex == DUPLEX_FULL)
+		{
 			speed_cfg |= DUPLEX_MODE;
+		}
 
 		val &= ~AN_ENABLE;
 		writel(speed_cfg, phy->base + EMAC_SGMII_PHY_SPEED_CFG1);
@@ -517,12 +566,13 @@ static int emac_sgmii_irq_clear(struct emac_adapter *adpt, u32 irq_bits)
 	 * It takes a few cycles for hw to clear the interrupt status.
 	 */
 	if (readl_poll_timeout_atomic(phy->base +
-				      EMAC_SGMII_PHY_INTERRUPT_STATUS,
-				      status, !(status & irq_bits), 1,
-				      SGMII_PHY_IRQ_CLR_WAIT_TIME)) {
+								  EMAC_SGMII_PHY_INTERRUPT_STATUS,
+								  status, !(status & irq_bits), 1,
+								  SGMII_PHY_IRQ_CLR_WAIT_TIME))
+	{
 		netdev_err(adpt->netdev,
-			   "error: failed clear SGMII irq: status:0x%x bits:0x%x\n",
-			   status, irq_bits);
+				   "error: failed clear SGMII irq: status:0x%x bits:0x%x\n",
+				   status, irq_bits);
 		return -EIO;
 	}
 
@@ -543,31 +593,40 @@ int emac_sgmii_init_v1(struct emac_adapter *adpt)
 	int ret;
 
 	ret = emac_sgmii_link_init(adpt);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	emac_reg_write_all(phy->base, physical_coding_sublayer_programming_v1,
-			   ARRAY_SIZE(physical_coding_sublayer_programming_v1));
+					   ARRAY_SIZE(physical_coding_sublayer_programming_v1));
 	emac_reg_write_all(phy->base, sysclk_refclk_setting,
-			   ARRAY_SIZE(sysclk_refclk_setting));
+					   ARRAY_SIZE(sysclk_refclk_setting));
 	emac_reg_write_all(phy->base, pll_setting, ARRAY_SIZE(pll_setting));
 	emac_reg_write_all(phy->base, cdr_setting, ARRAY_SIZE(cdr_setting));
 	emac_reg_write_all(phy->base, tx_rx_setting,
-			   ARRAY_SIZE(tx_rx_setting));
+					   ARRAY_SIZE(tx_rx_setting));
 
 	/* Power up the Ser/Des engine */
 	writel(SERDES_START, phy->base + EMAC_SGMII_PHY_SERDES_START);
 
-	for (i = 0; i < SERDES_START_WAIT_TIMES; i++) {
+	for (i = 0; i < SERDES_START_WAIT_TIMES; i++)
+	{
 		if (readl(phy->base + EMAC_QSERDES_COM_RESET_SM) & READY)
+		{
 			break;
+		}
+
 		usleep_range(100, 200);
 	}
 
-	if (i == SERDES_START_WAIT_TIMES) {
+	if (i == SERDES_START_WAIT_TIMES)
+	{
 		netdev_err(adpt->netdev, "error: ser/des failed to start\n");
 		return -EIO;
 	}
+
 	/* Mask out all the SGMII Interrupt */
 	writel(0, phy->base + EMAC_SGMII_PHY_INTERRUPT_MASK);
 
@@ -586,16 +645,19 @@ int emac_sgmii_init_v2(struct emac_adapter *adpt)
 	int ret;
 
 	ret = emac_sgmii_link_init(adpt);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* PCS lane-x init */
 	emac_reg_write_all(phy->base, physical_coding_sublayer_programming_v2,
-			   ARRAY_SIZE(physical_coding_sublayer_programming_v2));
+					   ARRAY_SIZE(physical_coding_sublayer_programming_v2));
 
 	/* SGMII lane-x init */
 	emac_reg_write_all(phy->digital,
-			   sgmii_v2_laned, ARRAY_SIZE(sgmii_v2_laned));
+					   sgmii_v2_laned, ARRAY_SIZE(sgmii_v2_laned));
 
 	/* Power up PCS and start reset lane state machine */
 
@@ -603,14 +665,20 @@ int emac_sgmii_init_v2(struct emac_adapter *adpt)
 	writel(1, laned + SGMII_LN_RSM_START);
 
 	/* Wait for c_ready assertion */
-	for (i = 0; i < SERDES_START_WAIT_TIMES; i++) {
+	for (i = 0; i < SERDES_START_WAIT_TIMES; i++)
+	{
 		lnstatus = readl(phy_regs + SGMII_PHY_LN_LANE_STATUS);
+
 		if (lnstatus & BIT(1))
+		{
 			break;
+		}
+
 		usleep_range(100, 200);
 	}
 
-	if (i == SERDES_START_WAIT_TIMES) {
+	if (i == SERDES_START_WAIT_TIMES)
+	{
 		netdev_err(adpt->netdev, "SGMII failed to start\n");
 		return -EIO;
 	}
@@ -636,7 +704,7 @@ static void emac_sgmii_reset_prepare(struct emac_adapter *adpt)
 	/* Reset PHY */
 	val = readl(phy->base + EMAC_EMAC_WRAPPER_CSR2);
 	writel(((val & ~PHY_RESET) | PHY_RESET), phy->base +
-	       EMAC_EMAC_WRAPPER_CSR2);
+		   EMAC_EMAC_WRAPPER_CSR2);
 	/* Ensure phy-reset command is written to HW before the release cmd */
 	msleep(50);
 	val = readl(phy->base + EMAC_EMAC_WRAPPER_CSR2);
@@ -655,17 +723,19 @@ void emac_sgmii_reset(struct emac_adapter *adpt)
 	emac_sgmii_reset_prepare(adpt);
 
 	ret = adpt->phy.initialize(adpt);
+
 	if (ret)
 		netdev_err(adpt->netdev,
-			   "could not reinitialize internal PHY (error=%i)\n",
-			   ret);
+				   "could not reinitialize internal PHY (error=%i)\n",
+				   ret);
 
 	clk_set_rate(adpt->clk[EMAC_CLK_HIGH_SPEED], 125000000);
 }
 
 static int emac_sgmii_acpi_match(struct device *dev, void *data)
 {
-	static const struct acpi_device_id match_table[] = {
+	static const struct acpi_device_id match_table[] =
+	{
 		{
 			.id = "QCOM8071",
 			.driver_data = (kernel_ulong_t)emac_sgmii_init_v2,
@@ -676,12 +746,15 @@ static int emac_sgmii_acpi_match(struct device *dev, void *data)
 	emac_sgmii_initialize *initialize = data;
 
 	if (id)
+	{
 		*initialize = (emac_sgmii_initialize)id->driver_data;
+	}
 
 	return !!id;
 }
 
-static const struct of_device_id emac_sgmii_dt_match[] = {
+static const struct of_device_id emac_sgmii_dt_match[] =
+{
 	{
 		.compatible = "qcom,fsm9900-emac-sgmii",
 		.data = emac_sgmii_init_v1,
@@ -700,36 +773,46 @@ int emac_sgmii_config(struct platform_device *pdev, struct emac_adapter *adpt)
 	struct resource *res;
 	int ret;
 
-	if (has_acpi_companion(&pdev->dev)) {
+	if (has_acpi_companion(&pdev->dev))
+	{
 		struct device *dev;
 
 		dev = device_find_child(&pdev->dev, &phy->initialize,
-					emac_sgmii_acpi_match);
+								emac_sgmii_acpi_match);
 
-		if (!dev) {
+		if (!dev)
+		{
 			dev_err(&pdev->dev, "cannot find internal phy node\n");
 			return -ENODEV;
 		}
 
 		sgmii_pdev = to_platform_device(dev);
-	} else {
+	}
+	else
+	{
 		const struct of_device_id *match;
 		struct device_node *np;
 
 		np = of_parse_phandle(pdev->dev.of_node, "internal-phy", 0);
-		if (!np) {
+
+		if (!np)
+		{
 			dev_err(&pdev->dev, "missing internal-phy property\n");
 			return -ENODEV;
 		}
 
 		sgmii_pdev = of_find_device_by_node(np);
-		if (!sgmii_pdev) {
+
+		if (!sgmii_pdev)
+		{
 			dev_err(&pdev->dev, "invalid internal-phy property\n");
 			return -ENODEV;
 		}
 
 		match = of_match_device(emac_sgmii_dt_match, &sgmii_pdev->dev);
-		if (!match) {
+
+		if (!match)
+		{
 			dev_err(&pdev->dev, "unrecognized internal phy node\n");
 			ret = -ENODEV;
 			goto error_put_device;
@@ -740,30 +823,41 @@ int emac_sgmii_config(struct platform_device *pdev, struct emac_adapter *adpt)
 
 	/* Base address is the first address */
 	res = platform_get_resource(sgmii_pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		ret = -EINVAL;
 		goto error_put_device;
 	}
 
 	phy->base = ioremap(res->start, resource_size(res));
-	if (!phy->base) {
+
+	if (!phy->base)
+	{
 		ret = -ENOMEM;
 		goto error_put_device;
 	}
 
 	/* v2 SGMII has a per-lane digital digital, so parse it if it exists */
 	res = platform_get_resource(sgmii_pdev, IORESOURCE_MEM, 1);
-	if (res) {
+
+	if (res)
+	{
 		phy->digital = ioremap(res->start, resource_size(res));
-		if (!phy->digital) {
+
+		if (!phy->digital)
+		{
 			ret = -ENOMEM;
 			goto error_unmap_base;
 		}
 	}
 
 	ret = phy->initialize(adpt);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	/* We've remapped the addresses, so we don't need the device any
 	 * more.  of_find_device_by_node() says we should release it.
@@ -773,8 +867,12 @@ int emac_sgmii_config(struct platform_device *pdev, struct emac_adapter *adpt)
 	return 0;
 
 error:
+
 	if (phy->digital)
+	{
 		iounmap(phy->digital);
+	}
+
 error_unmap_base:
 	iounmap(phy->base);
 error_put_device:

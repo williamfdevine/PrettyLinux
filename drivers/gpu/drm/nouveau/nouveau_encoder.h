@@ -36,7 +36,8 @@
 
 struct nvkm_i2c_port;
 
-struct nouveau_encoder {
+struct nouveau_encoder
+{
 	struct drm_encoder_slave base;
 
 	struct dcb_output *dcb;
@@ -55,8 +56,10 @@ struct nouveau_encoder {
 
 	struct nv04_output_reg restore;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u8  dpcd[8];
 			int link_nr;
 			int link_bw;

@@ -16,7 +16,7 @@
 #include <net/addrconf.h>
 #include <net/inet_frag.h>
 #ifdef CONFIG_NETLABEL
-#include <net/calipso.h>
+	#include <net/calipso.h>
 #endif
 
 static int one = 1;
@@ -24,7 +24,8 @@ static int auto_flowlabels_min;
 static int auto_flowlabels_max = IP6_AUTO_FLOW_LABEL_MAX;
 
 
-static struct ctl_table ipv6_table_template[] = {
+static struct ctl_table ipv6_table_template[] =
+{
 	{
 		.procname	= "bindv6only",
 		.data		= &init_net.ipv6.sysctl.bindv6only,
@@ -93,7 +94,8 @@ static struct ctl_table ipv6_table_template[] = {
 	{ }
 };
 
-static struct ctl_table ipv6_rotable[] = {
+static struct ctl_table ipv6_rotable[] =
+{
 	{
 		.procname	= "mld_max_msf",
 		.data		= &sysctl_mld_max_msf,
@@ -137,9 +139,13 @@ static int __net_init ipv6_sysctl_net_init(struct net *net)
 
 	err = -ENOMEM;
 	ipv6_table = kmemdup(ipv6_table_template, sizeof(ipv6_table_template),
-			     GFP_KERNEL);
+						 GFP_KERNEL);
+
 	if (!ipv6_table)
+	{
 		goto out;
+	}
+
 	ipv6_table[0].data = &net->ipv6.sysctl.bindv6only;
 	ipv6_table[1].data = &net->ipv6.sysctl.anycast_src_echo_reply;
 	ipv6_table[2].data = &net->ipv6.sysctl.flowlabel_consistency;
@@ -151,26 +157,41 @@ static int __net_init ipv6_sysctl_net_init(struct net *net)
 	ipv6_table[8].data = &net->ipv6.sysctl.ip_nonlocal_bind;
 
 	ipv6_route_table = ipv6_route_sysctl_init(net);
+
 	if (!ipv6_route_table)
+	{
 		goto out_ipv6_table;
+	}
 
 	ipv6_icmp_table = ipv6_icmp_sysctl_init(net);
+
 	if (!ipv6_icmp_table)
+	{
 		goto out_ipv6_route_table;
+	}
 
 	net->ipv6.sysctl.hdr = register_net_sysctl(net, "net/ipv6", ipv6_table);
+
 	if (!net->ipv6.sysctl.hdr)
+	{
 		goto out_ipv6_icmp_table;
+	}
 
 	net->ipv6.sysctl.route_hdr =
 		register_net_sysctl(net, "net/ipv6/route", ipv6_route_table);
+
 	if (!net->ipv6.sysctl.route_hdr)
+	{
 		goto out_unregister_ipv6_table;
+	}
 
 	net->ipv6.sysctl.icmp_hdr =
 		register_net_sysctl(net, "net/ipv6/icmp", ipv6_icmp_table);
+
 	if (!net->ipv6.sysctl.icmp_hdr)
+	{
 		goto out_unregister_route_table;
+	}
 
 	err = 0;
 out:
@@ -207,7 +228,8 @@ static void __net_exit ipv6_sysctl_net_exit(struct net *net)
 	kfree(ipv6_icmp_table);
 }
 
-static struct pernet_operations ipv6_sysctl_net_ops = {
+static struct pernet_operations ipv6_sysctl_net_ops =
+{
 	.init = ipv6_sysctl_net_init,
 	.exit = ipv6_sysctl_net_exit,
 };
@@ -219,12 +241,19 @@ int ipv6_sysctl_register(void)
 	int err = -ENOMEM;
 
 	ip6_header = register_net_sysctl(&init_net, "net/ipv6", ipv6_rotable);
+
 	if (!ip6_header)
+	{
 		goto out;
+	}
 
 	err = register_pernet_subsys(&ipv6_sysctl_net_ops);
+
 	if (err)
+	{
 		goto err_pernet;
+	}
+
 out:
 	return err;
 

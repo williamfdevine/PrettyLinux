@@ -19,11 +19,11 @@
 
 #if IS_ENABLED(CONFIG_COMPAT)
 
-long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+	long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
 
 #else
 
-#define compat_ion_ioctl  NULL
+	#define compat_ion_ioctl  NULL
 
 #endif /* CONFIG_COMPAT */
 #endif /* _LINUX_COMPAT_ION_H */

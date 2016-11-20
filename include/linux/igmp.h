@@ -26,18 +26,19 @@ static inline struct igmphdr *igmp_hdr(const struct sk_buff *skb)
 }
 
 static inline struct igmpv3_report *
-			igmpv3_report_hdr(const struct sk_buff *skb)
+igmpv3_report_hdr(const struct sk_buff *skb)
 {
 	return (struct igmpv3_report *)skb_transport_header(skb);
 }
 
 static inline struct igmpv3_query *
-			igmpv3_query_hdr(const struct sk_buff *skb)
+igmpv3_query_hdr(const struct sk_buff *skb)
 {
 	return (struct igmpv3_query *)skb_transport_header(skb);
 }
 
-struct ip_sf_socklist {
+struct ip_sf_socklist
+{
 	unsigned int		sl_max;
 	unsigned int		sl_count;
 	struct rcu_head		rcu;
@@ -45,7 +46,7 @@ struct ip_sf_socklist {
 };
 
 #define IP_SFLSIZE(count)	(sizeof(struct ip_sf_socklist) + \
-	(count) * sizeof(__be32))
+							 (count) * sizeof(__be32))
 
 #define IP_SFBLOCK	10	/* allocate this many at once */
 
@@ -53,7 +54,8 @@ struct ip_sf_socklist {
    this list never used in fast path code
  */
 
-struct ip_mc_socklist {
+struct ip_mc_socklist
+{
 	struct ip_mc_socklist __rcu *next_rcu;
 	struct ip_mreqn		multi;
 	unsigned int		sfmode;		/* MCAST_{INCLUDE,EXCLUDE} */
@@ -61,7 +63,8 @@ struct ip_mc_socklist {
 	struct rcu_head		rcu;
 };
 
-struct ip_sf_list {
+struct ip_sf_list
+{
 	struct ip_sf_list	*sf_next;
 	__be32			sf_inaddr;
 	unsigned long		sf_count[2];	/* include/exclude counts */
@@ -70,14 +73,16 @@ struct ip_sf_list {
 	unsigned char		sf_crcount;	/* retrans. left to send */
 };
 
-struct ip_mc_list {
+struct ip_mc_list
+{
 	struct in_device	*interface;
 	__be32			multiaddr;
 	unsigned int		sfmode;
 	struct ip_sf_list	*sources;
 	struct ip_sf_list	*tomb;
 	unsigned long		sfcount[2];
-	union {
+	union
+	{
 		struct ip_mc_list *next;
 		struct ip_mc_list __rcu *next_rcu;
 	};
@@ -99,8 +104,8 @@ struct ip_mc_list {
 #define IGMPV3_MASK(value, nb) ((nb)>=32 ? (value) : ((1<<(nb))-1) & (value))
 #define IGMPV3_EXP(thresh, nbmant, nbexp, value) \
 	((value) < (thresh) ? (value) : \
-        ((IGMPV3_MASK(value, nbmant) | (1<<(nbmant))) << \
-         (IGMPV3_MASK((value) >> (nbmant), nbexp) + (nbexp))))
+	 ((IGMPV3_MASK(value, nbmant) | (1<<(nbmant))) << \
+	  (IGMPV3_MASK((value) >> (nbmant), nbexp) + (nbexp))))
 
 #define IGMPV3_QQIC(value) IGMPV3_EXP(0x80, 4, 3, value)
 #define IGMPV3_MRC(value) IGMPV3_EXP(0x80, 4, 3, value)
@@ -111,12 +116,12 @@ extern int ip_mc_join_group(struct sock *sk, struct ip_mreqn *imr);
 extern int ip_mc_leave_group(struct sock *sk, struct ip_mreqn *imr);
 extern void ip_mc_drop_socket(struct sock *sk);
 extern int ip_mc_source(int add, int omode, struct sock *sk,
-		struct ip_mreq_source *mreqs, int ifindex);
-extern int ip_mc_msfilter(struct sock *sk, struct ip_msfilter *msf,int ifindex);
+						struct ip_mreq_source *mreqs, int ifindex);
+extern int ip_mc_msfilter(struct sock *sk, struct ip_msfilter *msf, int ifindex);
 extern int ip_mc_msfget(struct sock *sk, struct ip_msfilter *msf,
-		struct ip_msfilter __user *optval, int __user *optlen);
+						struct ip_msfilter __user *optval, int __user *optlen);
 extern int ip_mc_gsfget(struct sock *sk, struct group_filter *gsf,
-		struct group_filter __user *optval, int __user *optlen);
+						struct group_filter __user *optval, int __user *optlen);
 extern int ip_mc_sf_allow(struct sock *sk, __be32 local, __be32 rmt, int dif);
 extern void ip_mc_init_dev(struct in_device *);
 extern void ip_mc_destroy_dev(struct in_device *);

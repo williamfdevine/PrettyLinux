@@ -62,31 +62,36 @@
 #include "../include/lustre_req_layout.h"
 #include "../include/lustre_fld.h"
 
-enum {
+enum
+{
 	LUSTRE_FLD_INIT = 1 << 0,
 	LUSTRE_FLD_RUN  = 1 << 1
 };
 
-struct fld_stats {
+struct fld_stats
+{
 	__u64   fst_count;
 	__u64   fst_cache;
 	__u64   fst_inflight;
 };
 
-struct lu_fld_hash {
+struct lu_fld_hash
+{
 	const char	      *fh_name;
 	int (*fh_hash_func)(struct lu_client_fld *, __u64);
 	struct lu_fld_target *(*fh_scan_func)(struct lu_client_fld *, __u64);
 };
 
-struct fld_cache_entry {
+struct fld_cache_entry
+{
 	struct list_head	       fce_lru;
 	struct list_head	       fce_list;
 	/** fld cache entries are sorted on range->lsr_start field. */
 	struct lu_seq_range      fce_range;
 };
 
-struct fld_cache {
+struct fld_cache
+{
 	/**
 	 * Cache guard, protects fci_hash mostly because others immutable after
 	 * init is finished.
@@ -113,10 +118,11 @@ struct fld_cache {
 
 	/** Cache name used for debug and messages. */
 	char		     fci_name[LUSTRE_MDT_MAXNAMELEN];
-	unsigned int		 fci_no_shrink:1;
+	unsigned int		 fci_no_shrink: 1;
 };
 
-enum {
+enum
+{
 	/* 4M of FLD cache will not hurt client a lot. */
 	FLD_SERVER_CACHE_SIZE      = (4 * 0x100000),
 
@@ -124,7 +130,8 @@ enum {
 	FLD_CLIENT_CACHE_SIZE      = (1 * 0x100000)
 };
 
-enum {
+enum
+{
 	/* Cache threshold is 10 percent of size. */
 	FLD_SERVER_CACHE_THRESHOLD = 10,
 
@@ -135,39 +142,41 @@ enum {
 extern struct lu_fld_hash fld_hash[];
 
 int fld_client_rpc(struct obd_export *exp,
-		   struct lu_seq_range *range, __u32 fld_op,
-		   struct ptlrpc_request **reqp);
+				   struct lu_seq_range *range, __u32 fld_op,
+				   struct ptlrpc_request **reqp);
 
 extern struct lprocfs_vars fld_client_debugfs_list[];
 
 struct fld_cache *fld_cache_init(const char *name,
-				 int cache_size, int cache_threshold);
+								 int cache_size, int cache_threshold);
 
 void fld_cache_fini(struct fld_cache *cache);
 
 void fld_cache_flush(struct fld_cache *cache);
 
 int fld_cache_insert(struct fld_cache *cache,
-		     const struct lu_seq_range *range);
+					 const struct lu_seq_range *range);
 
 struct fld_cache_entry
 *fld_cache_entry_create(const struct lu_seq_range *range);
 
 int fld_cache_lookup(struct fld_cache *cache,
-		     const u64 seq, struct lu_seq_range *range);
+					 const u64 seq, struct lu_seq_range *range);
 
-struct fld_cache_entry*
+struct fld_cache_entry *
 fld_cache_entry_lookup(struct fld_cache *cache, struct lu_seq_range *range);
 
 struct fld_cache_entry
 *fld_cache_entry_lookup_nolock(struct fld_cache *cache,
-			      struct lu_seq_range *range);
+							   struct lu_seq_range *range);
 
 static inline const char *
 fld_target_name(struct lu_fld_target *tar)
 {
 	if (tar->ft_srv)
+	{
 		return tar->ft_srv->lsf_name;
+	}
 
 	return (const char *)tar->ft_exp->exp_obd->obd_name;
 }

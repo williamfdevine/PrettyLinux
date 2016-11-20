@@ -8,7 +8,8 @@
 #define SYNC_URBS	4	/* always four urbs for sync */
 #define MAX_QUEUE	18	/* try not to exceed this queue length, in ms */
 
-struct audioformat {
+struct audioformat
+{
 	struct list_head list;
 	u64 formats;			/* ALSA format bits */
 	unsigned int channels;		/* # channels */
@@ -36,7 +37,8 @@ struct audioformat {
 struct snd_usb_substream;
 struct snd_usb_endpoint;
 
-struct snd_urb_ctx {
+struct snd_urb_ctx
+{
 	struct urb *urb;
 	unsigned int buffer_size;	/* size of data buffer, if data URB */
 	struct snd_usb_substream *subs;
@@ -47,7 +49,8 @@ struct snd_urb_ctx {
 	struct list_head ready_list;
 };
 
-struct snd_usb_endpoint {
+struct snd_usb_endpoint
+{
 	struct snd_usb_audio *chip;
 
 	int use_count;
@@ -56,9 +59,9 @@ struct snd_usb_endpoint {
 	unsigned long flags;
 
 	void (*prepare_data_urb) (struct snd_usb_substream *subs,
-				  struct urb *urb);
+							  struct urb *urb);
 	void (*retire_data_urb) (struct snd_usb_substream *subs,
-				 struct urb *urb);
+							 struct urb *urb);
 
 	struct snd_usb_substream *data_subs;
 	struct snd_usb_endpoint *sync_master;
@@ -66,7 +69,8 @@ struct snd_usb_endpoint {
 
 	struct snd_urb_ctx urb[MAX_URBS];
 
-	struct snd_usb_packet_info {
+	struct snd_usb_packet_info
+	{
 		uint32_t packet_size[MAX_PACKS_HS];
 		int packets;
 	} next_packet[MAX_URBS];
@@ -91,8 +95,8 @@ struct snd_usb_endpoint {
 	unsigned int curpacksize;	/* current packet size in bytes (for capture) */
 	unsigned int curframesize;      /* current packet size in frames (for capture) */
 	unsigned int syncmaxsize;	/* sync endpoint packet size */
-	unsigned int fill_max:1;	/* fill max packet size always */
-	unsigned int tenor_fb_quirk:1;	/* corrupted feedback data */
+	unsigned int fill_max: 1;	/* fill max packet size always */
+	unsigned int tenor_fb_quirk: 1;	/* corrupted feedback data */
 	unsigned int datainterval;      /* log_2 of data packet interval */
 	unsigned int syncinterval;	/* P for adaptive mode, 0 otherwise */
 	unsigned char silence_value;
@@ -105,7 +109,8 @@ struct snd_usb_endpoint {
 	struct list_head list;
 };
 
-struct snd_usb_substream {
+struct snd_usb_substream
+{
 	struct snd_usb_stream *stream;
 	struct usb_device *dev;
 	struct snd_pcm_substream *pcm_substream;
@@ -121,8 +126,8 @@ struct snd_usb_substream {
 	unsigned int period_frames;	/* current frames per period */
 	unsigned int buffer_periods;	/* current periods per buffer */
 	unsigned int altset_idx;     /* USB data format: index of alternate setting */
-	unsigned int txfr_quirk:1;	/* allow sub-frame alignment */
-	unsigned int tx_length_quirk:1;	/* add length specifier to transfers */
+	unsigned int txfr_quirk: 1;	/* allow sub-frame alignment */
+	unsigned int tx_length_quirk: 1;	/* add length specifier to transfers */
 	unsigned int fmt_type;		/* USB audio format type (1-3) */
 	unsigned int pkt_offset_adj;	/* Bytes to drop from beginning of packets (for non-compliant devices) */
 
@@ -149,7 +154,8 @@ struct snd_usb_substream {
 	int last_frame_number;          /* stored frame number */
 	int last_delay;                 /* stored delay */
 
-	struct {
+	struct
+	{
 		int marker;
 		int channel;
 		int byte_idx;
@@ -158,7 +164,8 @@ struct snd_usb_substream {
 	bool trigger_tstamp_pending_update; /* trigger timestamp being updated from initial estimate */
 };
 
-struct snd_usb_stream {
+struct snd_usb_stream
+{
 	struct snd_usb_audio *chip;
 	struct snd_pcm *pcm;
 	int pcm_index;

@@ -19,7 +19,8 @@
  *    (number of registers = DIV_ROUND_UP(num_gpios, reg_width))
  * @direction: bitfield, '0' = input, '1' = output,
  */
-struct htc_egpio_chip {
+struct htc_egpio_chip
+{
 	int           reg_start;
 	int           gpio_base;
 	int           num_gpios;
@@ -38,7 +39,8 @@ struct htc_egpio_chip {
  * @chip: pointer to array of htc_egpio_chip descriptors
  * @num_chips: number of egpio chip descriptors
  */
-struct htc_egpio_platform_data {
+struct htc_egpio_platform_data
+{
 	int                   bus_width;
 	int                   reg_width;
 

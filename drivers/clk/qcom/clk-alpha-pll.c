@@ -57,10 +57,10 @@
 #define ALPHA_BITWIDTH		32
 
 #define to_clk_alpha_pll(_hw) container_of(to_clk_regmap(_hw), \
-					   struct clk_alpha_pll, clkr)
+		struct clk_alpha_pll, clkr)
 
 #define to_clk_alpha_pll_postdiv(_hw) container_of(to_clk_regmap(_hw), \
-					   struct clk_alpha_pll_postdiv, clkr)
+		struct clk_alpha_pll_postdiv, clkr)
 
 static int wait_for_pll(struct clk_alpha_pll *pll)
 {
@@ -71,21 +71,35 @@ static int wait_for_pll(struct clk_alpha_pll *pll)
 
 	off = pll->offset;
 	ret = regmap_read(pll->clkr.regmap, off + PLL_MODE, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (val & PLL_VOTE_FSM_ENA)
+	{
 		mask = PLL_ACTIVE_FLAG;
+	}
 	else
+	{
 		mask = PLL_LOCK_DET;
+	}
 
 	/* Wait for pll to enable. */
-	for (count = 100; count > 0; count--) {
+	for (count = 100; count > 0; count--)
+	{
 		ret = regmap_read(pll->clkr.regmap, off + PLL_MODE, &val);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		if ((val & mask) == mask)
+		{
 			return 0;
+		}
 
 		udelay(1);
 	}
@@ -104,25 +118,38 @@ static int clk_alpha_pll_enable(struct clk_hw *hw)
 
 	mask = PLL_OUTCTRL | PLL_RESET_N | PLL_BYPASSNL;
 	ret = regmap_read(pll->clkr.regmap, off + PLL_MODE, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* If in FSM mode, just vote for it */
-	if (val & PLL_VOTE_FSM_ENA) {
+	if (val & PLL_VOTE_FSM_ENA)
+	{
 		ret = clk_enable_regmap(hw);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		return wait_for_pll(pll);
 	}
 
 	/* Skip if already enabled */
 	if ((val & mask) == mask)
+	{
 		return 0;
+	}
 
 	ret = regmap_update_bits(pll->clkr.regmap, off + PLL_MODE,
-				 PLL_BYPASSNL, PLL_BYPASSNL);
+							 PLL_BYPASSNL, PLL_BYPASSNL);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * H/W requires a 5us delay between disabling the bypass and
@@ -132,16 +159,22 @@ static int clk_alpha_pll_enable(struct clk_hw *hw)
 	udelay(5);
 
 	ret = regmap_update_bits(pll->clkr.regmap, off + PLL_MODE,
-				 PLL_RESET_N, PLL_RESET_N);
+							 PLL_RESET_N, PLL_RESET_N);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = wait_for_pll(pll);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = regmap_update_bits(pll->clkr.regmap, off + PLL_MODE,
-				 PLL_OUTCTRL, PLL_OUTCTRL);
+							 PLL_OUTCTRL, PLL_OUTCTRL);
 
 	/* Ensure that the write above goes through before returning. */
 	mb();
@@ -157,11 +190,15 @@ static void clk_alpha_pll_disable(struct clk_hw *hw)
 	off = pll->offset;
 
 	ret = regmap_read(pll->clkr.regmap, off + PLL_MODE, &val);
+
 	if (ret)
+	{
 		return;
+	}
 
 	/* If in FSM mode, just unvote it */
-	if (val & PLL_VOTE_FSM_ENA) {
+	if (val & PLL_VOTE_FSM_ENA)
+	{
 		clk_disable_regmap(hw);
 		return;
 	}
@@ -192,7 +229,8 @@ alpha_pll_round_rate(unsigned long rate, unsigned long prate, u32 *l, u64 *a)
 	remainder = do_div(quotient, prate);
 	*l = quotient;
 
-	if (!remainder) {
+	if (!remainder)
+	{
 		*a = 0;
 		return rate;
 	}
@@ -202,7 +240,9 @@ alpha_pll_round_rate(unsigned long rate, unsigned long prate, u32 *l, u64 *a)
 	remainder = do_div(quotient, prate);
 
 	if (remainder)
+	{
 		quotient++;
+	}
 
 	*a = quotient;
 	return alpha_pll_calc_rate(prate, *l, *a);
@@ -216,7 +256,9 @@ alpha_pll_find_vco(const struct clk_alpha_pll *pll, unsigned long rate)
 
 	for (; v < end; v++)
 		if (rate >= v->min_freq && rate <= v->max_freq)
+		{
 			return v;
+		}
 
 	return NULL;
 }
@@ -232,7 +274,9 @@ clk_alpha_pll_recalc_rate(struct clk_hw *hw, unsigned long parent_rate)
 	regmap_read(pll->clkr.regmap, off + PLL_L_VAL, &l);
 
 	regmap_read(pll->clkr.regmap, off + PLL_USER_CTL, &ctl);
-	if (ctl & PLL_ALPHA_EN) {
+
+	if (ctl & PLL_ALPHA_EN)
+	{
 		regmap_read(pll->clkr.regmap, off + PLL_ALPHA_VAL, &low);
 		regmap_read(pll->clkr.regmap, off + PLL_ALPHA_VAL_U, &high);
 		a = (u64)high << 32 | low;
@@ -243,7 +287,7 @@ clk_alpha_pll_recalc_rate(struct clk_hw *hw, unsigned long parent_rate)
 }
 
 static int clk_alpha_pll_set_rate(struct clk_hw *hw, unsigned long rate,
-				  unsigned long prate)
+								  unsigned long prate)
 {
 	struct clk_alpha_pll *pll = to_clk_alpha_pll(hw);
 	const struct pll_vco *vco;
@@ -252,7 +296,9 @@ static int clk_alpha_pll_set_rate(struct clk_hw *hw, unsigned long rate,
 
 	rate = alpha_pll_round_rate(rate, prate, &l, &a);
 	vco = alpha_pll_find_vco(pll, rate);
-	if (!vco) {
+
+	if (!vco)
+	{
 		pr_err("alpha pll not in a valid vco range\n");
 		return -EINVAL;
 	}
@@ -264,17 +310,17 @@ static int clk_alpha_pll_set_rate(struct clk_hw *hw, unsigned long rate,
 	regmap_write(pll->clkr.regmap, off + PLL_ALPHA_VAL_U, a >> 32);
 
 	regmap_update_bits(pll->clkr.regmap, off + PLL_USER_CTL,
-			   PLL_VCO_MASK << PLL_VCO_SHIFT,
-			   vco->val << PLL_VCO_SHIFT);
+					   PLL_VCO_MASK << PLL_VCO_SHIFT,
+					   vco->val << PLL_VCO_SHIFT);
 
 	regmap_update_bits(pll->clkr.regmap, off + PLL_USER_CTL, PLL_ALPHA_EN,
-			   PLL_ALPHA_EN);
+					   PLL_ALPHA_EN);
 
 	return 0;
 }
 
 static long clk_alpha_pll_round_rate(struct clk_hw *hw, unsigned long rate,
-				     unsigned long *prate)
+									 unsigned long *prate)
 {
 	struct clk_alpha_pll *pll = to_clk_alpha_pll(hw);
 	u32 l;
@@ -282,8 +328,11 @@ static long clk_alpha_pll_round_rate(struct clk_hw *hw, unsigned long rate,
 	unsigned long min_freq, max_freq;
 
 	rate = alpha_pll_round_rate(rate, *prate, &l, &a);
+
 	if (alpha_pll_find_vco(pll, rate))
+	{
 		return rate;
+	}
 
 	min_freq = pll->vco_table[0].min_freq;
 	max_freq = pll->vco_table[pll->num_vco - 1].max_freq;
@@ -291,7 +340,8 @@ static long clk_alpha_pll_round_rate(struct clk_hw *hw, unsigned long rate,
 	return clamp(rate, min_freq, max_freq);
 }
 
-const struct clk_ops clk_alpha_pll_ops = {
+const struct clk_ops clk_alpha_pll_ops =
+{
 	.enable = clk_alpha_pll_enable,
 	.disable = clk_alpha_pll_disable,
 	.recalc_rate = clk_alpha_pll_recalc_rate,
@@ -314,7 +364,8 @@ clk_alpha_pll_postdiv_recalc_rate(struct clk_hw *hw, unsigned long parent_rate)
 	return parent_rate >> fls(ctl);
 }
 
-static const struct clk_div_table clk_alpha_div_table[] = {
+static const struct clk_div_table clk_alpha_div_table[] =
+{
 	{ 0x0, 1 },
 	{ 0x1, 2 },
 	{ 0x3, 4 },
@@ -325,16 +376,16 @@ static const struct clk_div_table clk_alpha_div_table[] = {
 
 static long
 clk_alpha_pll_postdiv_round_rate(struct clk_hw *hw, unsigned long rate,
-				 unsigned long *prate)
+								 unsigned long *prate)
 {
 	struct clk_alpha_pll_postdiv *pll = to_clk_alpha_pll_postdiv(hw);
 
 	return divider_round_rate(hw, rate, prate, clk_alpha_div_table,
-				  pll->width, CLK_DIVIDER_POWER_OF_TWO);
+							  pll->width, CLK_DIVIDER_POWER_OF_TWO);
 }
 
 static int clk_alpha_pll_postdiv_set_rate(struct clk_hw *hw, unsigned long rate,
-					  unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_alpha_pll_postdiv *pll = to_clk_alpha_pll_postdiv(hw);
 	int div;
@@ -343,11 +394,12 @@ static int clk_alpha_pll_postdiv_set_rate(struct clk_hw *hw, unsigned long rate,
 	div = DIV_ROUND_UP_ULL((u64)parent_rate, rate) - 1;
 
 	return regmap_update_bits(pll->clkr.regmap, pll->offset + PLL_USER_CTL,
-				  PLL_POST_DIV_MASK << PLL_POST_DIV_SHIFT,
-				  div << PLL_POST_DIV_SHIFT);
+							  PLL_POST_DIV_MASK << PLL_POST_DIV_SHIFT,
+							  div << PLL_POST_DIV_SHIFT);
 }
 
-const struct clk_ops clk_alpha_pll_postdiv_ops = {
+const struct clk_ops clk_alpha_pll_postdiv_ops =
+{
 	.recalc_rate = clk_alpha_pll_postdiv_recalc_rate,
 	.round_rate = clk_alpha_pll_postdiv_round_rate,
 	.set_rate = clk_alpha_pll_postdiv_set_rate,

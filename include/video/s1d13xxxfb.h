@@ -142,12 +142,14 @@
 /* Note: all above defines should go in separate header files
    when implementing other S1D13xxx chip support. */
 
-struct s1d13xxxfb_regval {
+struct s1d13xxxfb_regval
+{
 	u16	addr;
 	u8	value;
 };
 
-struct s1d13xxxfb_par {
+struct s1d13xxxfb_par
+{
 	void __iomem	*regs;
 	unsigned char	display;
 	unsigned char	prod_id;
@@ -160,7 +162,8 @@ struct s1d13xxxfb_par {
 #endif
 };
 
-struct s1d13xxxfb_pdata {
+struct s1d13xxxfb_pdata
+{
 	const struct s1d13xxxfb_regval	*initregs;
 	const unsigned int		initregssize;
 	void				(*platform_init_video)(void);

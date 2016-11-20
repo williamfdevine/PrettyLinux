@@ -29,7 +29,8 @@
 #define SURFACE3_REPORT_TOUCH	0xd2
 #define SURFACE3_REPORT_PEN	0x16
 
-struct surface3_ts_data {
+struct surface3_ts_data
+{
 	struct spi_device *spi;
 	struct gpio_desc *gpiod_rst[2];
 	struct input_dev *input_dev;
@@ -39,7 +40,8 @@ struct surface3_ts_data {
 	u8 rd_buf[SURFACE3_PACKET_SIZE]		____cacheline_aligned;
 };
 
-struct surface3_ts_data_finger {
+struct surface3_ts_data_finger
+{
 	u8 status;
 	__le16 tracking_id;
 	__le16 x;
@@ -51,7 +53,8 @@ struct surface3_ts_data_finger {
 	u32 padding;
 } __packed;
 
-struct surface3_ts_data_pen {
+struct surface3_ts_data_pen
+{
 	u8 status;
 	__le16 x;
 	__le16 y;
@@ -68,31 +71,36 @@ static int surface3_spi_read(struct surface3_ts_data *ts_data)
 }
 
 static void surface3_spi_report_touch(struct surface3_ts_data *ts_data,
-				   struct surface3_ts_data_finger *finger)
+									  struct surface3_ts_data_finger *finger)
 {
 	int st = finger->status & 0x01;
 	int slot;
 
 	slot = input_mt_get_slot_by_key(ts_data->input_dev,
-				get_unaligned_le16(&finger->tracking_id));
+									get_unaligned_le16(&finger->tracking_id));
+
 	if (slot < 0)
+	{
 		return;
+	}
 
 	input_mt_slot(ts_data->input_dev, slot);
 	input_mt_report_slot_state(ts_data->input_dev, MT_TOOL_FINGER, st);
-	if (st) {
+
+	if (st)
+	{
 		input_report_abs(ts_data->input_dev,
-				 ABS_MT_POSITION_X,
-				 get_unaligned_le16(&finger->x));
+						 ABS_MT_POSITION_X,
+						 get_unaligned_le16(&finger->x));
 		input_report_abs(ts_data->input_dev,
-				 ABS_MT_POSITION_Y,
-				 get_unaligned_le16(&finger->y));
+						 ABS_MT_POSITION_Y,
+						 get_unaligned_le16(&finger->y));
 		input_report_abs(ts_data->input_dev,
-				 ABS_MT_WIDTH_MAJOR,
-				 get_unaligned_le16(&finger->width));
+						 ABS_MT_WIDTH_MAJOR,
+						 get_unaligned_le16(&finger->width));
 		input_report_abs(ts_data->input_dev,
-				 ABS_MT_WIDTH_MINOR,
-				 get_unaligned_le16(&finger->height));
+						 ABS_MT_WIDTH_MINOR,
+						 get_unaligned_le16(&finger->height));
 	}
 }
 
@@ -102,11 +110,12 @@ static void surface3_spi_process_touch(struct surface3_ts_data *ts_data, u8 *dat
 	unsigned int i;
 	timestamp = get_unaligned_le16(&data[15]);
 
-	for (i = 0; i < 13; i++) {
+	for (i = 0; i < 13; i++)
+	{
 		struct surface3_ts_data_finger *finger;
 
 		finger = (struct surface3_ts_data_finger *)&data[17 +
-				i * sizeof(struct surface3_ts_data_finger)];
+				 i * sizeof(struct surface3_ts_data_finger)];
 
 		/*
 		 * When bit 5 of status is 1, it marks the end of the report:
@@ -115,7 +124,9 @@ static void surface3_spi_process_touch(struct surface3_ts_data *ts_data, u8 *dat
 		 * - nothing valuable: 0xff
 		 */
 		if (finger->status & 0x10)
+		{
 			break;
+		}
 
 		surface3_spi_report_touch(ts_data, finger);
 	}
@@ -125,7 +136,7 @@ static void surface3_spi_process_touch(struct surface3_ts_data *ts_data, u8 *dat
 }
 
 static void surface3_spi_report_pen(struct surface3_ts_data *ts_data,
-				    struct surface3_ts_data_pen *pen)
+									struct surface3_ts_data_pen *pen)
 {
 	struct input_dev *dev = ts_data->pen_input_dev;
 	int st = pen->status;
@@ -134,7 +145,8 @@ static void surface3_spi_report_pen(struct surface3_ts_data *ts_data,
 	int tool = (prox && rubber) ? BTN_TOOL_RUBBER : BTN_TOOL_PEN;
 
 	/* fake proximity out to switch tools */
-	if (ts_data->pen_tool != tool) {
+	if (ts_data->pen_tool != tool)
+	{
 		input_report_key(dev, ts_data->pen_tool, 0);
 		input_sync(dev);
 		ts_data->pen_tool = tool;
@@ -144,20 +156,21 @@ static void surface3_spi_report_pen(struct surface3_ts_data *ts_data,
 
 	input_report_key(dev, ts_data->pen_tool, prox);
 
-	if (st) {
+	if (st)
+	{
 		input_report_key(dev,
-				 BTN_STYLUS,
-				 st & 0x04);
+						 BTN_STYLUS,
+						 st & 0x04);
 
 		input_report_abs(dev,
-				 ABS_X,
-				 get_unaligned_le16(&pen->x));
+						 ABS_X,
+						 get_unaligned_le16(&pen->x));
 		input_report_abs(dev,
-				 ABS_Y,
-				 get_unaligned_le16(&pen->y));
+						 ABS_Y,
+						 get_unaligned_le16(&pen->y));
 		input_report_abs(dev,
-				 ABS_PRESSURE,
-				 get_unaligned_le16(&pen->pressure));
+						 ABS_PRESSURE,
+						 get_unaligned_le16(&pen->pressure));
 	}
 }
 
@@ -173,28 +186,32 @@ static void surface3_spi_process_pen(struct surface3_ts_data *ts_data, u8 *data)
 
 static void surface3_spi_process(struct surface3_ts_data *ts_data)
 {
-	const char header[] = {
+	const char header[] =
+	{
 		0xff, 0xff, 0xff, 0xff, 0xa5, 0x5a, 0xe7, 0x7e, 0x01
 	};
 	u8 *data = ts_data->rd_buf;
 
 	if (memcmp(header, data, sizeof(header)))
 		dev_err(&ts_data->spi->dev,
-			"%s header error: %*ph, ignoring...\n",
-			__func__, (int)sizeof(header), data);
+				"%s header error: %*ph, ignoring...\n",
+				__func__, (int)sizeof(header), data);
 
-	switch (data[9]) {
-	case SURFACE3_REPORT_TOUCH:
-		surface3_spi_process_touch(ts_data, data);
-		break;
-	case SURFACE3_REPORT_PEN:
-		surface3_spi_process_pen(ts_data, data);
-		break;
-	default:
-		dev_err(&ts_data->spi->dev,
-			"%s unknown packet type: %x, ignoring...\n",
-			__func__, data[9]);
-		break;
+	switch (data[9])
+	{
+		case SURFACE3_REPORT_TOUCH:
+			surface3_spi_process_touch(ts_data, data);
+			break;
+
+		case SURFACE3_REPORT_PEN:
+			surface3_spi_process_pen(ts_data, data);
+			break;
+
+		default:
+			dev_err(&ts_data->spi->dev,
+					"%s unknown packet type: %x, ignoring...\n",
+					__func__, data[9]);
+			break;
 	}
 }
 
@@ -203,10 +220,12 @@ static irqreturn_t surface3_spi_irq_handler(int irq, void *dev_id)
 	struct surface3_ts_data *data = dev_id;
 
 	if (surface3_spi_read(data))
+	{
 		return IRQ_HANDLED;
+	}
 
 	dev_dbg(&data->spi->dev, "%s received -> %*ph\n",
-		__func__, SURFACE3_PACKET_SIZE, data->rd_buf);
+			__func__, SURFACE3_PACKET_SIZE, data->rd_buf);
 	surface3_spi_process(data);
 
 	return IRQ_HANDLED;
@@ -235,15 +254,20 @@ static int surface3_spi_get_gpio_config(struct surface3_ts_data *data)
 	dev = &data->spi->dev;
 
 	/* Get the reset lines GPIO pin number */
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		gpiod = devm_gpiod_get_index(dev, NULL, i, GPIOD_OUT_LOW);
-		if (IS_ERR(gpiod)) {
+
+		if (IS_ERR(gpiod))
+		{
 			error = PTR_ERR(gpiod);
+
 			if (error != -EPROBE_DEFER)
 				dev_err(dev,
-					"Failed to get power GPIO %d: %d\n",
-					i,
-					error);
+						"Failed to get power GPIO %d: %d\n",
+						i,
+						error);
+
 			return error;
 		}
 
@@ -259,8 +283,11 @@ static int surface3_spi_create_touch_input(struct surface3_ts_data *data)
 	int error;
 
 	input = devm_input_allocate_device(&data->spi->dev);
+
 	if (!input)
+	{
 		return -ENOMEM;
+	}
 
 	data->input_dev = input;
 
@@ -280,9 +307,11 @@ static int surface3_spi_create_touch_input(struct surface3_ts_data *data)
 	input->id.version = 0x0000;
 
 	error = input_register_device(input);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&data->spi->dev,
-			"Failed to register input device: %d", error);
+				"Failed to register input device: %d", error);
 		return error;
 	}
 
@@ -295,8 +324,11 @@ static int surface3_spi_create_pen_input(struct surface3_ts_data *data)
 	int error;
 
 	input = devm_input_allocate_device(&data->spi->dev);
+
 	if (!input)
+	{
 		return -ENOMEM;
+	}
 
 	data->pen_input_dev = input;
 	data->pen_tool = BTN_TOOL_PEN;
@@ -321,9 +353,11 @@ static int surface3_spi_create_pen_input(struct surface3_ts_data *data)
 	input->id.version = 0x0000;
 
 	error = input_register_device(input);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&data->spi->dev,
-			"Failed to register input device: %d", error);
+				"Failed to register input device: %d", error);
 		return error;
 	}
 
@@ -339,38 +373,56 @@ static int surface3_spi_probe(struct spi_device *spi)
 	spi->bits_per_word = 8;
 	spi->mode = SPI_MODE_0;
 	error = spi_setup(spi);
+
 	if (error)
+	{
 		return error;
+	}
 
 	data = devm_kzalloc(&spi->dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	data->spi = spi;
 	spi_set_drvdata(spi, data);
 
 	error = surface3_spi_get_gpio_config(data);
+
 	if (error)
+	{
 		return error;
+	}
 
 	surface3_spi_power(data, true);
 	surface3_spi_power(data, false);
 	surface3_spi_power(data, true);
 
 	error = surface3_spi_create_touch_input(data);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = surface3_spi_create_pen_input(data);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = devm_request_threaded_irq(&spi->dev, spi->irq,
-					  NULL, surface3_spi_irq_handler,
-					  IRQF_ONESHOT,
-					  "Surface3-irq", data);
+									  NULL, surface3_spi_irq_handler,
+									  IRQF_ONESHOT,
+									  "Surface3-irq", data);
+
 	if (error)
+	{
 		return error;
+	}
 
 	return 0;
 }
@@ -400,18 +452,20 @@ static int __maybe_unused surface3_spi_resume(struct device *dev)
 }
 
 static SIMPLE_DEV_PM_OPS(surface3_spi_pm_ops,
-			 surface3_spi_suspend,
-			 surface3_spi_resume);
+						 surface3_spi_suspend,
+						 surface3_spi_resume);
 
 #ifdef CONFIG_ACPI
-static const struct acpi_device_id surface3_spi_acpi_match[] = {
+static const struct acpi_device_id surface3_spi_acpi_match[] =
+{
 	{ "MSHW0037", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(acpi, surface3_spi_acpi_match);
 #endif
 
-static struct spi_driver surface3_spi_driver = {
+static struct spi_driver surface3_spi_driver =
+{
 	.driver = {
 		.name	= "Surface3-spi",
 		.acpi_match_table = ACPI_PTR(surface3_spi_acpi_match),

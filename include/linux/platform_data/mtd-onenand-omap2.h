@@ -17,7 +17,8 @@
 #define ONENAND_SYNC_READWRITE	(1 << 1)
 #define	ONENAND_IN_OMAP34XX	(1 << 2)
 
-struct omap_onenand_platform_data {
+struct omap_onenand_platform_data
+{
 	int			cs;
 	int			gpio_irq;
 	struct mtd_partition	*parts;

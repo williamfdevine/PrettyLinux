@@ -48,10 +48,10 @@ MODULE_VERSION(DRIVER_VERSION);
 /* dev_warn macro with driver name */
 #define MA901_DRIVER_NAME "radio-ma901"
 #define ma901radio_dev_warn(dev, fmt, arg...)				\
-		dev_warn(dev, MA901_DRIVER_NAME " - " fmt, ##arg)
+	dev_warn(dev, MA901_DRIVER_NAME " - " fmt, ##arg)
 
 #define ma901radio_dev_err(dev, fmt, arg...) \
-		dev_err(dev, MA901_DRIVER_NAME " - " fmt, ##arg)
+	dev_err(dev, MA901_DRIVER_NAME " - " fmt, ##arg)
 
 /* Probably USB_TIMEOUT should be modified in module parameter */
 #define BUFFER_LENGTH 8
@@ -81,7 +81,8 @@ module_param(radio_nr, int, 0);
 MODULE_PARM_DESC(radio_nr, "Radio file number");
 
 /* Data for one (physical) device */
-struct ma901radio_device {
+struct ma901radio_device
+{
 	/* reference to USB and video device */
 	struct usb_device *usbdev;
 	struct usb_interface *intf;
@@ -118,10 +119,13 @@ static int ma901radio_set_freq(struct ma901radio_device *radio, int freq)
 	radio->buffer[7] = 0x00;
 
 	retval = usb_control_msg(radio->usbdev, usb_sndctrlpipe(radio->usbdev, 0),
-				9, 0x21, 0x0300, 0,
-				radio->buffer, BUFFER_LENGTH, USB_TIMEOUT);
+							 9, 0x21, 0x0300, 0,
+							 radio->buffer, BUFFER_LENGTH, USB_TIMEOUT);
+
 	if (retval < 0)
+	{
 		return retval;
+	}
 
 	radio->curfreq = freq;
 	return 0;
@@ -141,10 +145,13 @@ static int ma901radio_set_volume(struct ma901radio_device *radio, u16 vol_to_set
 	radio->buffer[7] = 0x00;
 
 	retval = usb_control_msg(radio->usbdev, usb_sndctrlpipe(radio->usbdev, 0),
-				9, 0x21, 0x0300, 0,
-				radio->buffer, BUFFER_LENGTH, USB_TIMEOUT);
+							 9, 0x21, 0x0300, 0,
+							 radio->buffer, BUFFER_LENGTH, USB_TIMEOUT);
+
 	if (retval < 0)
+	{
 		return retval;
+	}
 
 	radio->volume = vol_to_set;
 	return retval;
@@ -164,16 +171,22 @@ static int ma901_set_stereo(struct ma901radio_device *radio, u8 stereo)
 	radio->buffer[7] = 0x00;
 
 	retval = usb_control_msg(radio->usbdev, usb_sndctrlpipe(radio->usbdev, 0),
-				9, 0x21, 0x0300, 0,
-				radio->buffer, BUFFER_LENGTH, USB_TIMEOUT);
+							 9, 0x21, 0x0300, 0,
+							 radio->buffer, BUFFER_LENGTH, USB_TIMEOUT);
 
 	if (retval < 0)
+	{
 		return retval;
+	}
 
 	if (stereo == MA901_WANT_STEREO)
+	{
 		radio->stereo = V4L2_TUNER_MODE_STEREO;
+	}
 	else
+	{
 		radio->stereo = V4L2_TUNER_MODE_MONO;
+	}
 
 	return retval;
 }
@@ -197,7 +210,7 @@ static void usb_ma901radio_disconnect(struct usb_interface *intf)
 
 /* vidioc_querycap - query device capabilities */
 static int vidioc_querycap(struct file *file, void *priv,
-					struct v4l2_capability *v)
+						   struct v4l2_capability *v)
 {
 	struct ma901radio_device *radio = video_drvdata(file);
 
@@ -211,12 +224,14 @@ static int vidioc_querycap(struct file *file, void *priv,
 
 /* vidioc_g_tuner - get tuner attributes */
 static int vidioc_g_tuner(struct file *file, void *priv,
-				struct v4l2_tuner *v)
+						  struct v4l2_tuner *v)
 {
 	struct ma901radio_device *radio = video_drvdata(file);
 
 	if (v->index > 0)
+	{
 		return -EINVAL;
+	}
 
 	v->signal = 0;
 
@@ -233,49 +248,58 @@ static int vidioc_g_tuner(struct file *file, void *priv,
 	v->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
 	/* v->rxsubchans = is_stereo ? V4L2_TUNER_SUB_STEREO : V4L2_TUNER_SUB_MONO; */
 	v->audmode = radio->stereo ?
-		V4L2_TUNER_MODE_STEREO : V4L2_TUNER_MODE_MONO;
+				 V4L2_TUNER_MODE_STEREO : V4L2_TUNER_MODE_MONO;
 	return 0;
 }
 
 /* vidioc_s_tuner - set tuner attributes */
 static int vidioc_s_tuner(struct file *file, void *priv,
-				const struct v4l2_tuner *v)
+						  const struct v4l2_tuner *v)
 {
 	struct ma901radio_device *radio = video_drvdata(file);
 
 	if (v->index > 0)
+	{
 		return -EINVAL;
+	}
 
 	/* mono/stereo selector */
-	switch (v->audmode) {
-	case V4L2_TUNER_MODE_MONO:
-		return ma901_set_stereo(radio, MA901_WANT_MONO);
-	default:
-		return ma901_set_stereo(radio, MA901_WANT_STEREO);
+	switch (v->audmode)
+	{
+		case V4L2_TUNER_MODE_MONO:
+			return ma901_set_stereo(radio, MA901_WANT_MONO);
+
+		default:
+			return ma901_set_stereo(radio, MA901_WANT_STEREO);
 	}
 }
 
 /* vidioc_s_frequency - set tuner radio frequency */
 static int vidioc_s_frequency(struct file *file, void *priv,
-				const struct v4l2_frequency *f)
+							  const struct v4l2_frequency *f)
 {
 	struct ma901radio_device *radio = video_drvdata(file);
 
 	if (f->tuner != 0)
+	{
 		return -EINVAL;
+	}
 
 	return ma901radio_set_freq(radio, clamp_t(unsigned, f->frequency,
-				FREQ_MIN * FREQ_MUL, FREQ_MAX * FREQ_MUL));
+							   FREQ_MIN * FREQ_MUL, FREQ_MAX * FREQ_MUL));
 }
 
 /* vidioc_g_frequency - get tuner radio frequency */
 static int vidioc_g_frequency(struct file *file, void *priv,
-				struct v4l2_frequency *f)
+							  struct v4l2_frequency *f)
 {
 	struct ma901radio_device *radio = video_drvdata(file);
 
 	if (f->tuner != 0)
+	{
 		return -EINVAL;
+	}
+
 	f->frequency = radio->curfreq;
 
 	return 0;
@@ -286,9 +310,10 @@ static int usb_ma901radio_s_ctrl(struct v4l2_ctrl *ctrl)
 	struct ma901radio_device *radio =
 		container_of(ctrl->handler, struct ma901radio_device, hdl);
 
-	switch (ctrl->id) {
-	case V4L2_CID_AUDIO_VOLUME:     /* set volume */
-		return ma901radio_set_volume(radio, (u16)ctrl->val);
+	switch (ctrl->id)
+	{
+		case V4L2_CID_AUDIO_VOLUME:     /* set volume */
+			return ma901radio_set_volume(radio, (u16)ctrl->val);
 	}
 
 	return -EINVAL;
@@ -309,12 +334,14 @@ static int usb_ma901radio_resume(struct usb_interface *intf)
 	return 0;
 }
 
-static const struct v4l2_ctrl_ops usb_ma901radio_ctrl_ops = {
+static const struct v4l2_ctrl_ops usb_ma901radio_ctrl_ops =
+{
 	.s_ctrl = usb_ma901radio_s_ctrl,
 };
 
 /* File system interface */
-static const struct v4l2_file_operations usb_ma901radio_fops = {
+static const struct v4l2_file_operations usb_ma901radio_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= v4l2_fh_open,
 	.release	= v4l2_fh_release,
@@ -322,7 +349,8 @@ static const struct v4l2_file_operations usb_ma901radio_fops = {
 	.unlocked_ioctl	= video_ioctl2,
 };
 
-static const struct v4l2_ioctl_ops usb_ma901radio_ioctl_ops = {
+static const struct v4l2_ioctl_ops usb_ma901radio_ioctl_ops =
+{
 	.vidioc_querycap    = vidioc_querycap,
 	.vidioc_g_tuner     = vidioc_g_tuner,
 	.vidioc_s_tuner     = vidioc_s_tuner,
@@ -345,7 +373,7 @@ static void usb_ma901radio_release(struct v4l2_device *v4l2_dev)
 
 /* check if the device is present and register with v4l and usb if it is */
 static int usb_ma901radio_probe(struct usb_interface *intf,
-				const struct usb_device_id *id)
+								const struct usb_device_id *id)
 {
 	struct usb_device *dev = interface_to_usbdev(intf);
 	struct ma901radio_device *radio;
@@ -358,25 +386,33 @@ static int usb_ma901radio_probe(struct usb_interface *intf,
 
 	if (dev->product && dev->manufacturer &&
 		(strncmp(dev->product, "MA901", 5) != 0
-		|| strncmp(dev->manufacturer, "www.masterkit.ru", 16) != 0))
+		 || strncmp(dev->manufacturer, "www.masterkit.ru", 16) != 0))
+	{
 		return -ENODEV;
+	}
 
 	radio = kzalloc(sizeof(struct ma901radio_device), GFP_KERNEL);
-	if (!radio) {
+
+	if (!radio)
+	{
 		dev_err(&intf->dev, "kzalloc for ma901radio_device failed\n");
 		retval = -ENOMEM;
 		goto err;
 	}
 
 	radio->buffer = kmalloc(BUFFER_LENGTH, GFP_KERNEL);
-	if (!radio->buffer) {
+
+	if (!radio->buffer)
+	{
 		dev_err(&intf->dev, "kmalloc for radio->buffer failed\n");
 		retval = -ENOMEM;
 		goto err_nobuf;
 	}
 
 	retval = v4l2_device_register(&intf->dev, &radio->v4l2_dev);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		dev_err(&intf->dev, "couldn't register v4l2_device\n");
 		goto err_v4l2;
 	}
@@ -392,20 +428,22 @@ static int usb_ma901radio_probe(struct usb_interface *intf,
 	 */
 
 	v4l2_ctrl_new_std(&radio->hdl, &usb_ma901radio_ctrl_ops,
-			  V4L2_CID_AUDIO_VOLUME, MA901_VOLUME_MIN,
-			  MA901_VOLUME_MAX, 1, MA901_VOLUME_MAX);
+					  V4L2_CID_AUDIO_VOLUME, MA901_VOLUME_MIN,
+					  MA901_VOLUME_MAX, 1, MA901_VOLUME_MAX);
 
-	if (radio->hdl.error) {
+	if (radio->hdl.error)
+	{
 		retval = radio->hdl.error;
 		dev_err(&intf->dev, "couldn't register control\n");
 		goto err_ctrl;
 	}
+
 	mutex_init(&radio->lock);
 
 	radio->v4l2_dev.ctrl_handler = &radio->hdl;
 	radio->v4l2_dev.release = usb_ma901radio_release;
 	strlcpy(radio->vdev.name, radio->v4l2_dev.name,
-		sizeof(radio->vdev.name));
+			sizeof(radio->vdev.name));
 	radio->vdev.v4l2_dev = &radio->v4l2_dev;
 	radio->vdev.fops = &usb_ma901radio_fops;
 	radio->vdev.ioctl_ops = &usb_ma901radio_ioctl_ops;
@@ -427,8 +465,10 @@ static int usb_ma901radio_probe(struct usb_interface *intf,
 	 */
 
 	retval = video_register_device(&radio->vdev, VFL_TYPE_RADIO,
-					radio_nr);
-	if (retval < 0) {
+								   radio_nr);
+
+	if (retval < 0)
+	{
 		dev_err(&intf->dev, "could not register video device\n");
 		goto err_vdev;
 	}
@@ -448,16 +488,20 @@ err:
 }
 
 /* USB Device ID List */
-static struct usb_device_id usb_ma901radio_device_table[] = {
-	{ USB_DEVICE_AND_INTERFACE_INFO(USB_MA901_VENDOR, USB_MA901_PRODUCT,
-							USB_CLASS_HID, 0, 0) },
+static struct usb_device_id usb_ma901radio_device_table[] =
+{
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_MA901_VENDOR, USB_MA901_PRODUCT,
+		USB_CLASS_HID, 0, 0)
+	},
 	{ }						/* Terminating entry */
 };
 
 MODULE_DEVICE_TABLE(usb, usb_ma901radio_device_table);
 
 /* USB subsystem interface */
-static struct usb_driver usb_ma901radio_driver = {
+static struct usb_driver usb_ma901radio_driver =
+{
 	.name			= MA901_DRIVER_NAME,
 	.probe			= usb_ma901radio_probe,
 	.disconnect		= usb_ma901radio_disconnect,

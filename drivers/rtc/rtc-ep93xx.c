@@ -32,13 +32,14 @@
  * struct device dev.platform_data is used to store our private data
  * because struct rtc_device does not have a variable to hold it.
  */
-struct ep93xx_rtc {
+struct ep93xx_rtc
+{
 	void __iomem	*mmio_base;
 	struct rtc_device *rtc;
 };
 
 static int ep93xx_rtc_get_swcomp(struct device *dev, unsigned short *preload,
-				unsigned short *delete)
+								 unsigned short *delete)
 {
 	struct ep93xx_rtc *ep93xx_rtc = dev_get_platdata(dev);
 	unsigned long comp;
@@ -47,11 +48,11 @@ static int ep93xx_rtc_get_swcomp(struct device *dev, unsigned short *preload,
 
 	if (preload)
 		*preload = (comp & EP93XX_RTC_SWCOMP_INT_MASK)
-				>> EP93XX_RTC_SWCOMP_INT_SHIFT;
+				   >> EP93XX_RTC_SWCOMP_INT_SHIFT;
 
 	if (delete)
 		*delete = (comp & EP93XX_RTC_SWCOMP_DEL_MASK)
-				>> EP93XX_RTC_SWCOMP_DEL_SHIFT;
+				  >> EP93XX_RTC_SWCOMP_DEL_SHIFT;
 
 	return 0;
 }
@@ -61,7 +62,7 @@ static int ep93xx_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	struct ep93xx_rtc *ep93xx_rtc = dev_get_platdata(dev);
 	unsigned long time;
 
-	 time = readl(ep93xx_rtc->mmio_base + EP93XX_RTC_DATA);
+	time = readl(ep93xx_rtc->mmio_base + EP93XX_RTC_DATA);
 
 	rtc_time_to_tm(time, tm);
 	return 0;
@@ -87,14 +88,15 @@ static int ep93xx_rtc_proc(struct device *dev, struct seq_file *seq)
 	return 0;
 }
 
-static const struct rtc_class_ops ep93xx_rtc_ops = {
+static const struct rtc_class_ops ep93xx_rtc_ops =
+{
 	.read_time	= ep93xx_rtc_read_time,
 	.set_mmss	= ep93xx_rtc_set_mmss,
 	.proc		= ep93xx_rtc_proc,
 };
 
 static ssize_t ep93xx_rtc_show_comp_preload(struct device *dev,
-			struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	unsigned short preload;
 
@@ -105,7 +107,7 @@ static ssize_t ep93xx_rtc_show_comp_preload(struct device *dev,
 static DEVICE_ATTR(comp_preload, S_IRUGO, ep93xx_rtc_show_comp_preload, NULL);
 
 static ssize_t ep93xx_rtc_show_comp_delete(struct device *dev,
-			struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	unsigned short delete;
 
@@ -115,13 +117,15 @@ static ssize_t ep93xx_rtc_show_comp_delete(struct device *dev,
 }
 static DEVICE_ATTR(comp_delete, S_IRUGO, ep93xx_rtc_show_comp_delete, NULL);
 
-static struct attribute *ep93xx_rtc_attrs[] = {
+static struct attribute *ep93xx_rtc_attrs[] =
+{
 	&dev_attr_comp_preload.attr,
 	&dev_attr_comp_delete.attr,
 	NULL
 };
 
-static const struct attribute_group ep93xx_rtc_sysfs_files = {
+static const struct attribute_group ep93xx_rtc_sysfs_files =
+{
 	.attrs	= ep93xx_rtc_attrs,
 };
 
@@ -132,27 +136,38 @@ static int ep93xx_rtc_probe(struct platform_device *pdev)
 	int err;
 
 	ep93xx_rtc = devm_kzalloc(&pdev->dev, sizeof(*ep93xx_rtc), GFP_KERNEL);
+
 	if (!ep93xx_rtc)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ep93xx_rtc->mmio_base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(ep93xx_rtc->mmio_base))
+	{
 		return PTR_ERR(ep93xx_rtc->mmio_base);
+	}
 
 	pdev->dev.platform_data = ep93xx_rtc;
 	platform_set_drvdata(pdev, ep93xx_rtc);
 
 	ep93xx_rtc->rtc = devm_rtc_device_register(&pdev->dev,
-				pdev->name, &ep93xx_rtc_ops, THIS_MODULE);
-	if (IS_ERR(ep93xx_rtc->rtc)) {
+					  pdev->name, &ep93xx_rtc_ops, THIS_MODULE);
+
+	if (IS_ERR(ep93xx_rtc->rtc))
+	{
 		err = PTR_ERR(ep93xx_rtc->rtc);
 		goto exit;
 	}
 
 	err = sysfs_create_group(&pdev->dev.kobj, &ep93xx_rtc_sysfs_files);
+
 	if (err)
+	{
 		goto exit;
+	}
 
 	return 0;
 
@@ -169,7 +184,8 @@ static int ep93xx_rtc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ep93xx_rtc_driver = {
+static struct platform_driver ep93xx_rtc_driver =
+{
 	.driver		= {
 		.name	= "ep93xx-rtc",
 	},

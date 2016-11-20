@@ -31,7 +31,8 @@
 
 #include <nvif/class.h>
 
-static const struct nvkm_enum g98_sec_isr_error_name[] = {
+static const struct nvkm_enum g98_sec_isr_error_name[] =
+{
 	{ 0x0000, "ILLEGAL_MTHD" },
 	{ 0x0001, "INVALID_BITFIELD" },
 	{ 0x0002, "INVALID_ENUM" },
@@ -54,14 +55,15 @@ g98_sec_intr(struct nvkm_falcon *sec, struct nvkm_fifo_chan *chan)
 
 	nvkm_error(subdev, "DISPATCH_ERROR %04x [%s] ch %d [%010llx %s] "
 			   "subc %d mthd %04x data %08x\n", ssta,
-		   en ? en->name : "UNKNOWN", chan ? chan->chid : -1,
-		   chan ? chan->inst->addr : 0,
-		   chan ? chan->object.client->name : "unknown",
-		   subc, mthd, data);
+			   en ? en->name : "UNKNOWN", chan ? chan->chid : -1,
+			   chan ? chan->inst->addr : 0,
+			   chan ? chan->object.client->name : "unknown",
+			   subc, mthd, data);
 }
 
 static const struct nvkm_falcon_func
-g98_sec = {
+	g98_sec =
+{
 	.code.data = g98_sec_code,
 	.code.size = sizeof(g98_sec_code),
 	.data.data = g98_sec_data,
@@ -75,8 +77,8 @@ g98_sec = {
 
 int
 g98_sec_new(struct nvkm_device *device, int index,
-	    struct nvkm_engine **pengine)
+			struct nvkm_engine **pengine)
 {
 	return nvkm_falcon_new_(&g98_sec, device, index,
-				true, 0x087000, pengine);
+							true, 0x087000, pengine);
 }

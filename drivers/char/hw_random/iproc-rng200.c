@@ -47,7 +47,8 @@
 #define RNG_FIFO_COUNT_OFFSET				0x24
 #define RNG_FIFO_COUNT_RNG_FIFO_COUNT_MASK		0x000000FF
 
-struct iproc_rng200_dev {
+struct iproc_rng200_dev
+{
 	struct hwrng rng;
 	void __iomem *base;
 };
@@ -92,27 +93,32 @@ static void iproc_rng200_restart(void __iomem *rng_base)
 }
 
 static int iproc_rng200_read(struct hwrng *rng, void *buf, size_t max,
-			     bool wait)
+							 bool wait)
 {
 	struct iproc_rng200_dev *priv = to_rng_priv(rng);
 	uint32_t num_remaining = max;
 	uint32_t status;
 
-	#define MAX_RESETS_PER_READ	1
+#define MAX_RESETS_PER_READ	1
 	uint32_t num_resets = 0;
 
-	#define MAX_IDLE_TIME	(1 * HZ)
+#define MAX_IDLE_TIME	(1 * HZ)
 	unsigned long idle_endtime = jiffies + MAX_IDLE_TIME;
 
-	while ((num_remaining > 0) && time_before(jiffies, idle_endtime)) {
+	while ((num_remaining > 0) && time_before(jiffies, idle_endtime))
+	{
 
 		/* Is RNG sane? If not, reset it. */
 		status = ioread32(priv->base + RNG_INT_STATUS_OFFSET);
+
 		if ((status & (RNG_INT_STATUS_MASTER_FAIL_LOCKOUT_IRQ_MASK |
-			RNG_INT_STATUS_NIST_FAIL_IRQ_MASK)) != 0) {
+					   RNG_INT_STATUS_NIST_FAIL_IRQ_MASK)) != 0)
+		{
 
 			if (num_resets >= MAX_RESETS_PER_READ)
+			{
 				return max - num_remaining;
+			}
 
 			iproc_rng200_restart(priv->base);
 			num_resets++;
@@ -120,18 +126,22 @@ static int iproc_rng200_read(struct hwrng *rng, void *buf, size_t max,
 
 		/* Are there any random numbers available? */
 		if ((ioread32(priv->base + RNG_FIFO_COUNT_OFFSET) &
-				RNG_FIFO_COUNT_RNG_FIFO_COUNT_MASK) > 0) {
+			 RNG_FIFO_COUNT_RNG_FIFO_COUNT_MASK) > 0)
+		{
 
-			if (num_remaining >= sizeof(uint32_t)) {
+			if (num_remaining >= sizeof(uint32_t))
+			{
 				/* Buffer has room to store entire word */
 				*(uint32_t *)buf = ioread32(priv->base +
-							RNG_FIFO_DATA_OFFSET);
+											RNG_FIFO_DATA_OFFSET);
 				buf += sizeof(uint32_t);
 				num_remaining -= sizeof(uint32_t);
-			} else {
+			}
+			else
+			{
 				/* Buffer can only store partial word */
 				uint32_t rnd_number = ioread32(priv->base +
-							RNG_FIFO_DATA_OFFSET);
+											   RNG_FIFO_DATA_OFFSET);
 				memcpy(buf, &rnd_number, num_remaining);
 				buf += num_remaining;
 				num_remaining = 0;
@@ -139,10 +149,14 @@ static int iproc_rng200_read(struct hwrng *rng, void *buf, size_t max,
 
 			/* Reset the IDLE timeout */
 			idle_endtime = jiffies + MAX_IDLE_TIME;
-		} else {
+		}
+		else
+		{
 			if (!wait)
 				/* Cannot wait, return immediately */
+			{
 				return max - num_remaining;
+			}
 
 			/* Can wait, give others chance to run */
 			usleep_range(min(num_remaining * 10, 500U), 500);
@@ -186,30 +200,39 @@ static int iproc_rng200_probe(struct platform_device *pdev)
 	int ret;
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	/* Map peripheral */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(dev, "failed to get rng resources\n");
 		return -EINVAL;
 	}
 
 	priv->base = devm_ioremap_resource(dev, res);
-	if (IS_ERR(priv->base)) {
+
+	if (IS_ERR(priv->base))
+	{
 		dev_err(dev, "failed to remap rng regs\n");
 		return PTR_ERR(priv->base);
 	}
 
 	priv->rng.name = "iproc-rng200",
-	priv->rng.read = iproc_rng200_read,
-	priv->rng.init = iproc_rng200_init,
-	priv->rng.cleanup = iproc_rng200_cleanup,
+			  priv->rng.read = iproc_rng200_read,
+						priv->rng.init = iproc_rng200_init,
+								  priv->rng.cleanup = iproc_rng200_cleanup,
 
-	/* Register driver */
-	ret = devm_hwrng_register(dev, &priv->rng);
-	if (ret) {
+											/* Register driver */
+											ret = devm_hwrng_register(dev, &priv->rng);
+
+	if (ret)
+	{
 		dev_err(dev, "hwrng registration failed\n");
 		return ret;
 	}
@@ -219,13 +242,15 @@ static int iproc_rng200_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id iproc_rng200_of_match[] = {
+static const struct of_device_id iproc_rng200_of_match[] =
+{
 	{ .compatible = "brcm,iproc-rng200", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, iproc_rng200_of_match);
 
-static struct platform_driver iproc_rng200_driver = {
+static struct platform_driver iproc_rng200_driver =
+{
 	.driver = {
 		.name		= "iproc-rng200",
 		.of_match_table = iproc_rng200_of_match,

@@ -40,7 +40,8 @@
  *
  * pmc_dev contains info about power management controller device.
  */
-struct pmc_dev {
+struct pmc_dev
+{
 	u32 base_addr;
 	void __iomem *regbase;
 	struct dentry *dbgfs_dir;

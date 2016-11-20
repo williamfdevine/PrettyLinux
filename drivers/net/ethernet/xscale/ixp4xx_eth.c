@@ -104,8 +104,8 @@
 #define CORE_MDC_EN		0x10 /* MDIO using NPE-B ETH-0 only */
 
 #define DEFAULT_TX_CNTRL0	(TX_CNTRL0_TX_EN | TX_CNTRL0_RETRY |	\
-				 TX_CNTRL0_PAD_EN | TX_CNTRL0_APPEND_FCS | \
-				 TX_CNTRL0_2DEFER)
+							 TX_CNTRL0_PAD_EN | TX_CNTRL0_APPEND_FCS | \
+							 TX_CNTRL0_2DEFER)
 #define DEFAULT_RX_CNTRL0	RX_CNTRL0_RX_EN
 #define DEFAULT_CORE_CNTRL	CORE_MDC_EN
 
@@ -137,16 +137,17 @@
 
 
 #ifdef __ARMEB__
-typedef struct sk_buff buffer_t;
-#define free_buffer dev_kfree_skb
-#define free_buffer_irq dev_kfree_skb_irq
+	typedef struct sk_buff buffer_t;
+	#define free_buffer dev_kfree_skb
+	#define free_buffer_irq dev_kfree_skb_irq
 #else
-typedef void buffer_t;
-#define free_buffer kfree
-#define free_buffer_irq kfree
+	typedef void buffer_t;
+	#define free_buffer kfree
+	#define free_buffer_irq kfree
 #endif
 
-struct eth_regs {
+struct eth_regs
+{
 	u32 tx_control[2], __res1[2];		/* 000 */
 	u32 rx_control[2], __res2[2];		/* 010 */
 	u32 random_seed, __res3[3];		/* 020 */
@@ -165,7 +166,8 @@ struct eth_regs {
 	u32 core_control;			/* 1FC */
 };
 
-struct port {
+struct port
+{
 	struct resource *mem_res;
 	struct eth_regs __iomem *regs;
 	struct npe *npe;
@@ -183,7 +185,8 @@ struct port {
 };
 
 /* NPE message structure */
-struct msg {
+struct msg
+{
 #ifdef __ARMEB__
 	u8 cmd, eth_id, byte2, byte3;
 	u8 byte4, byte5, byte6, byte7;
@@ -194,7 +197,8 @@ struct msg {
 };
 
 /* Ethernet packet descriptor */
-struct desc {
+struct desc
+{
 	u32 next;		/* pointer to next buffer, unused */
 
 #ifdef __ARMEB__
@@ -232,19 +236,22 @@ struct desc {
 
 
 #define rx_desc_phys(port, n)	((port)->desc_tab_phys +		\
-				 (n) * sizeof(struct desc))
+								 (n) * sizeof(struct desc))
 #define rx_desc_ptr(port, n)	(&(port)->desc_tab[n])
 
 #define tx_desc_phys(port, n)	((port)->desc_tab_phys +		\
-				 ((n) + RX_DESCS) * sizeof(struct desc))
+								 ((n) + RX_DESCS) * sizeof(struct desc))
 #define tx_desc_ptr(port, n)	(&(port)->desc_tab[(n) + RX_DESCS])
 
 #ifndef __ARMEB__
 static inline void memcpy_swab32(u32 *dest, u32 *src, int cnt)
 {
 	int i;
+
 	for (i = 0; i < cnt; i++)
+	{
 		dest[i] = swab32(src[i]);
+	}
 }
 #endif
 
@@ -263,12 +270,16 @@ static int ixp_ptp_match(struct sk_buff *skb, u16 uid_hi, u32 uid_lo, u16 seqid)
 	u32 lo;
 
 	if (ptp_classify_raw(skb) != PTP_CLASS_V1_IPV4)
+	{
 		return 0;
+	}
 
 	offset = ETH_HLEN + IPV4_HLEN(data) + UDP_HLEN;
 
 	if (skb->len < offset + OFF_PTP_SEQUENCE_ID + sizeof(seqid))
+	{
 		return 0;
+	}
 
 	hi = (u16 *)(data + offset + OFF_PTP_SOURCE_UUID);
 	id = (u16 *)(data + offset + OFF_PTP_SEQUENCE_ID);
@@ -276,8 +287,8 @@ static int ixp_ptp_match(struct sk_buff *skb, u16 uid_hi, u32 uid_lo, u16 seqid)
 	memcpy(&lo, &hi[1], sizeof(lo));
 
 	return (uid_hi == ntohs(*hi) &&
-		uid_lo == ntohl(lo) &&
-		seqid  == ntohs(*id));
+			uid_lo == ntohl(lo) &&
+			seqid  == ntohs(*id));
 }
 
 static void ixp_rx_timestamp(struct port *port, struct sk_buff *skb)
@@ -289,7 +300,9 @@ static void ixp_rx_timestamp(struct port *port, struct sk_buff *skb)
 	u16 uid, seq;
 
 	if (!port->hwts_rx_en)
+	{
 		return;
+	}
 
 	ch = PORT2CHANNEL(port);
 
@@ -298,7 +311,9 @@ static void ixp_rx_timestamp(struct port *port, struct sk_buff *skb)
 	val = __raw_readl(&regs->channel[ch].ch_event);
 
 	if (!(val & RX_SNAPSHOT_LOCKED))
+	{
 		return;
+	}
 
 	lo = __raw_readl(&regs->channel[ch].src_uuid_lo);
 	hi = __raw_readl(&regs->channel[ch].src_uuid_hi);
@@ -307,7 +322,9 @@ static void ixp_rx_timestamp(struct port *port, struct sk_buff *skb)
 	seq = (hi >> 16) & 0xffff;
 
 	if (!ixp_ptp_match(skb, htons(uid), htonl(lo), htons(seq)))
+	{
 		goto out;
+	}
 
 	lo = __raw_readl(&regs->channel[ch].rx_snap_lo);
 	hi = __raw_readl(&regs->channel[ch].rx_snap_hi);
@@ -331,10 +348,15 @@ static void ixp_tx_timestamp(struct port *port, struct sk_buff *skb)
 	u32 ch, cnt, hi, lo, val;
 
 	shtx = skb_shinfo(skb);
+
 	if (unlikely(shtx->tx_flags & SKBTX_HW_TSTAMP && port->hwts_tx_en))
+	{
 		shtx->tx_flags |= SKBTX_IN_PROGRESS;
+	}
 	else
+	{
 		return;
+	}
 
 	ch = PORT2CHANNEL(port);
 
@@ -344,13 +366,20 @@ static void ixp_tx_timestamp(struct port *port, struct sk_buff *skb)
 	 * This really stinks, but we have to poll for the Tx time stamp.
 	 * Usually, the time stamp is ready after 4 to 6 microseconds.
 	 */
-	for (cnt = 0; cnt < 100; cnt++) {
+	for (cnt = 0; cnt < 100; cnt++)
+	{
 		val = __raw_readl(&regs->channel[ch].ch_event);
+
 		if (val & TX_SNAPSHOT_LOCKED)
+		{
 			break;
+		}
+
 		udelay(1);
 	}
-	if (!(val & TX_SNAPSHOT_LOCKED)) {
+
+	if (!(val & TX_SNAPSHOT_LOCKED))
+	{
 		shtx->tx_flags &= ~SKBTX_IN_PROGRESS;
 		return;
 	}
@@ -376,38 +405,48 @@ static int hwtstamp_set(struct net_device *netdev, struct ifreq *ifr)
 	int ch;
 
 	if (copy_from_user(&cfg, ifr->ifr_data, sizeof(cfg)))
+	{
 		return -EFAULT;
+	}
 
 	if (cfg.flags) /* reserved for future extensions */
+	{
 		return -EINVAL;
+	}
 
 	ch = PORT2CHANNEL(port);
 	regs = (struct ixp46x_ts_regs __iomem *) IXP4XX_TIMESYNC_BASE_VIRT;
 
 	if (cfg.tx_type != HWTSTAMP_TX_OFF && cfg.tx_type != HWTSTAMP_TX_ON)
+	{
 		return -ERANGE;
+	}
 
-	switch (cfg.rx_filter) {
-	case HWTSTAMP_FILTER_NONE:
-		port->hwts_rx_en = 0;
-		break;
-	case HWTSTAMP_FILTER_PTP_V1_L4_SYNC:
-		port->hwts_rx_en = PTP_SLAVE_MODE;
-		__raw_writel(0, &regs->channel[ch].ch_control);
-		break;
-	case HWTSTAMP_FILTER_PTP_V1_L4_DELAY_REQ:
-		port->hwts_rx_en = PTP_MASTER_MODE;
-		__raw_writel(MASTER_MODE, &regs->channel[ch].ch_control);
-		break;
-	default:
-		return -ERANGE;
+	switch (cfg.rx_filter)
+	{
+		case HWTSTAMP_FILTER_NONE:
+			port->hwts_rx_en = 0;
+			break;
+
+		case HWTSTAMP_FILTER_PTP_V1_L4_SYNC:
+			port->hwts_rx_en = PTP_SLAVE_MODE;
+			__raw_writel(0, &regs->channel[ch].ch_control);
+			break;
+
+		case HWTSTAMP_FILTER_PTP_V1_L4_DELAY_REQ:
+			port->hwts_rx_en = PTP_MASTER_MODE;
+			__raw_writel(MASTER_MODE, &regs->channel[ch].ch_control);
+			break;
+
+		default:
+			return -ERANGE;
 	}
 
 	port->hwts_tx_en = cfg.tx_type == HWTSTAMP_TX_ON;
 
 	/* Clear out any old time stamps. */
 	__raw_writel(TX_SNAPSHOT_LOCKED | RX_SNAPSHOT_LOCKED,
-		     &regs->channel[ch].ch_event);
+				 &regs->channel[ch].ch_event);
 
 	return copy_to_user(ifr->ifr_data, &cfg, sizeof(cfg)) ? -EFAULT : 0;
 }
@@ -420,73 +459,85 @@ static int hwtstamp_get(struct net_device *netdev, struct ifreq *ifr)
 	cfg.flags = 0;
 	cfg.tx_type = port->hwts_tx_en ? HWTSTAMP_TX_ON : HWTSTAMP_TX_OFF;
 
-	switch (port->hwts_rx_en) {
-	case 0:
-		cfg.rx_filter = HWTSTAMP_FILTER_NONE;
-		break;
-	case PTP_SLAVE_MODE:
-		cfg.rx_filter = HWTSTAMP_FILTER_PTP_V1_L4_SYNC;
-		break;
-	case PTP_MASTER_MODE:
-		cfg.rx_filter = HWTSTAMP_FILTER_PTP_V1_L4_DELAY_REQ;
-		break;
-	default:
-		WARN_ON_ONCE(1);
-		return -ERANGE;
+	switch (port->hwts_rx_en)
+	{
+		case 0:
+			cfg.rx_filter = HWTSTAMP_FILTER_NONE;
+			break;
+
+		case PTP_SLAVE_MODE:
+			cfg.rx_filter = HWTSTAMP_FILTER_PTP_V1_L4_SYNC;
+			break;
+
+		case PTP_MASTER_MODE:
+			cfg.rx_filter = HWTSTAMP_FILTER_PTP_V1_L4_DELAY_REQ;
+			break;
+
+		default:
+			WARN_ON_ONCE(1);
+			return -ERANGE;
 	}
 
 	return copy_to_user(ifr->ifr_data, &cfg, sizeof(cfg)) ? -EFAULT : 0;
 }
 
 static int ixp4xx_mdio_cmd(struct mii_bus *bus, int phy_id, int location,
-			   int write, u16 cmd)
+						   int write, u16 cmd)
 {
 	int cycles = 0;
 
-	if (__raw_readl(&mdio_regs->mdio_command[3]) & 0x80) {
+	if (__raw_readl(&mdio_regs->mdio_command[3]) & 0x80)
+	{
 		printk(KERN_ERR "%s: MII not ready to transmit\n", bus->name);
 		return -1;
 	}
 
-	if (write) {
+	if (write)
+	{
 		__raw_writel(cmd & 0xFF, &mdio_regs->mdio_command[0]);
 		__raw_writel(cmd >> 8, &mdio_regs->mdio_command[1]);
 	}
+
 	__raw_writel(((phy_id << 5) | location) & 0xFF,
-		     &mdio_regs->mdio_command[2]);
+				 &mdio_regs->mdio_command[2]);
 	__raw_writel((phy_id >> 3) | (write << 2) | 0x80 /* GO */,
-		     &mdio_regs->mdio_command[3]);
+				 &mdio_regs->mdio_command[3]);
 
 	while ((cycles < MAX_MDIO_RETRIES) &&
-	       (__raw_readl(&mdio_regs->mdio_command[3]) & 0x80)) {
+		   (__raw_readl(&mdio_regs->mdio_command[3]) & 0x80))
+	{
 		udelay(1);
 		cycles++;
 	}
 
-	if (cycles == MAX_MDIO_RETRIES) {
+	if (cycles == MAX_MDIO_RETRIES)
+	{
 		printk(KERN_ERR "%s #%i: MII write failed\n", bus->name,
-		       phy_id);
+			   phy_id);
 		return -1;
 	}
 
 #if DEBUG_MDIO
 	printk(KERN_DEBUG "%s #%i: mdio_%s() took %i cycles\n", bus->name,
-	       phy_id, write ? "write" : "read", cycles);
+		   phy_id, write ? "write" : "read", cycles);
 #endif
 
 	if (write)
+	{
 		return 0;
+	}
 
-	if (__raw_readl(&mdio_regs->mdio_status[3]) & 0x80) {
+	if (__raw_readl(&mdio_regs->mdio_status[3]) & 0x80)
+	{
 #if DEBUG_MDIO
 		printk(KERN_DEBUG "%s #%i: MII read failed\n", bus->name,
-		       phy_id);
+			   phy_id);
 #endif
 		return 0xFFFF; /* don't return error */
 	}
 
 	return (__raw_readl(&mdio_regs->mdio_status[0]) & 0xFF) |
-		((__raw_readl(&mdio_regs->mdio_status[1]) & 0xFF) << 8);
+		   ((__raw_readl(&mdio_regs->mdio_status[1]) & 0xFF) << 8);
 }
 
 static int ixp4xx_mdio_read(struct mii_bus *bus, int phy_id, int location)
@@ -499,13 +550,13 @@ static int ixp4xx_mdio_read(struct mii_bus *bus, int phy_id, int location)
 	spin_unlock_irqrestore(&mdio_lock, flags);
 #if DEBUG_MDIO
 	printk(KERN_DEBUG "%s #%i: MII read [%i] -> 0x%X\n", bus->name,
-	       phy_id, location, ret);
+		   phy_id, location, ret);
 #endif
 	return ret;
 }
 
 static int ixp4xx_mdio_write(struct mii_bus *bus, int phy_id, int location,
-			     u16 val)
+							 u16 val)
 {
 	unsigned long flags;
 	int ret;
@@ -515,7 +566,7 @@ static int ixp4xx_mdio_write(struct mii_bus *bus, int phy_id, int location,
 	spin_unlock_irqrestore(&mdio_lock, flags);
 #if DEBUG_MDIO
 	printk(KERN_DEBUG "%s #%i: MII write [%i] <- 0x%X, err = %i\n",
-	       bus->name, phy_id, location, val, ret);
+		   bus->name, phy_id, location, val, ret);
 #endif
 	return ret;
 }
@@ -525,17 +576,28 @@ static int ixp4xx_mdio_register(void)
 	int err;
 
 	if (!(mdio_bus = mdiobus_alloc()))
+	{
 		return -ENOMEM;
+	}
 
-	if (cpu_is_ixp43x()) {
+	if (cpu_is_ixp43x())
+	{
 		/* IXP43x lacks NPE-B and uses NPE-C for MII PHY access */
 		if (!(ixp4xx_read_feature_bits() & IXP4XX_FEATURE_NPEC_ETH))
+		{
 			return -ENODEV;
+		}
+
 		mdio_regs = (struct eth_regs __iomem *)IXP4XX_EthC_BASE_VIRT;
-	} else {
+	}
+	else
+	{
 		/* All MII PHY accesses use NPE-B Ethernet registers */
 		if (!(ixp4xx_read_feature_bits() & IXP4XX_FEATURE_NPEB_ETH0))
+		{
 			return -ENODEV;
+		}
+
 		mdio_regs = (struct eth_regs __iomem *)IXP4XX_EthB_BASE_VIRT;
 	}
 
@@ -547,7 +609,10 @@ static int ixp4xx_mdio_register(void)
 	snprintf(mdio_bus->id, MII_BUS_ID_SIZE, "ixp4xx-eth-0");
 
 	if ((err = mdiobus_register(mdio_bus)))
+	{
 		mdiobus_free(mdio_bus);
+	}
+
 	return err;
 }
 
@@ -563,46 +628,57 @@ static void ixp4xx_adjust_link(struct net_device *dev)
 	struct port *port = netdev_priv(dev);
 	struct phy_device *phydev = dev->phydev;
 
-	if (!phydev->link) {
-		if (port->speed) {
+	if (!phydev->link)
+	{
+		if (port->speed)
+		{
 			port->speed = 0;
 			printk(KERN_INFO "%s: link down\n", dev->name);
 		}
+
 		return;
 	}
 
 	if (port->speed == phydev->speed && port->duplex == phydev->duplex)
+	{
 		return;
+	}
 
 	port->speed = phydev->speed;
 	port->duplex = phydev->duplex;
 
 	if (port->duplex)
 		__raw_writel(DEFAULT_TX_CNTRL0 & ~TX_CNTRL0_HALFDUPLEX,
-			     &port->regs->tx_control[0]);
+					 &port->regs->tx_control[0]);
 	else
 		__raw_writel(DEFAULT_TX_CNTRL0 | TX_CNTRL0_HALFDUPLEX,
-			     &port->regs->tx_control[0]);
+					 &port->regs->tx_control[0]);
 
 	printk(KERN_INFO "%s: link up, speed %u Mb/s, %s duplex\n",
-	       dev->name, port->speed, port->duplex ? "full" : "half");
+		   dev->name, port->speed, port->duplex ? "full" : "half");
 }
 
 
 static inline void debug_pkt(struct net_device *dev, const char *func,
-			     u8 *data, int len)
+							 u8 *data, int len)
 {
 #if DEBUG_PKT_BYTES
 	int i;
 
 	printk(KERN_DEBUG "%s: %s(%i) ", dev->name, func, len);
-	for (i = 0; i < len; i++) {
+
+	for (i = 0; i < len; i++)
+	{
 		if (i >= DEBUG_PKT_BYTES)
+		{
 			break;
+		}
+
 		printk("%s%02X",
-		       ((i == 6) || (i == 12) || (i >= 14)) ? " " : "",
-		       data[i]);
+			   ((i == 6) || (i == 12) || (i >= 14)) ? " " : "",
+			   data[i]);
 	}
+
 	printk("\n");
 #endif
 }
@@ -612,25 +688,27 @@ static inline void debug_desc(u32 phys, struct desc *desc)
 {
 #if DEBUG_DESC
 	printk(KERN_DEBUG "%X: %X %3X %3X %08X %2X < %2X %4X %X"
-	       " %X %X %02X%02X%02X%02X%02X%02X < %02X%02X%02X%02X%02X%02X\n",
-	       phys, desc->next, desc->buf_len, desc->pkt_len,
-	       desc->data, desc->dest_id, desc->src_id, desc->flags,
-	       desc->qos, desc->padlen, desc->vlan_tci,
-	       desc->dst_mac_0, desc->dst_mac_1, desc->dst_mac_2,
-	       desc->dst_mac_3, desc->dst_mac_4, desc->dst_mac_5,
-	       desc->src_mac_0, desc->src_mac_1, desc->src_mac_2,
-	       desc->src_mac_3, desc->src_mac_4, desc->src_mac_5);
+		   " %X %X %02X%02X%02X%02X%02X%02X < %02X%02X%02X%02X%02X%02X\n",
+		   phys, desc->next, desc->buf_len, desc->pkt_len,
+		   desc->data, desc->dest_id, desc->src_id, desc->flags,
+		   desc->qos, desc->padlen, desc->vlan_tci,
+		   desc->dst_mac_0, desc->dst_mac_1, desc->dst_mac_2,
+		   desc->dst_mac_3, desc->dst_mac_4, desc->dst_mac_5,
+		   desc->src_mac_0, desc->src_mac_1, desc->src_mac_2,
+		   desc->src_mac_3, desc->src_mac_4, desc->src_mac_5);
 #endif
 }
 
 static inline int queue_get_desc(unsigned int queue, struct port *port,
-				 int is_tx)
+								 int is_tx)
 {
 	u32 phys, tab_phys, n_desc;
 	struct desc *tab;
 
 	if (!(phys = qmgr_get_entry(queue)))
+	{
 		return -1;
+	}
 
 	phys &= ~0x1F; /* mask out non-address bits */
 	tab_phys = is_tx ? tx_desc_phys(port, 0) : rx_desc_phys(port, 0);
@@ -643,7 +721,7 @@ static inline int queue_get_desc(unsigned int queue, struct port *port,
 }
 
 static inline void queue_put_desc(unsigned int queue, u32 phys,
-				  struct desc *desc)
+								  struct desc *desc)
 {
 	debug_desc(phys, desc);
 	BUG_ON(phys & 0x1F);
@@ -657,11 +735,11 @@ static inline void dma_unmap_tx(struct port *port, struct desc *desc)
 {
 #ifdef __ARMEB__
 	dma_unmap_single(&port->netdev->dev, desc->data,
-			 desc->buf_len, DMA_TO_DEVICE);
+					 desc->buf_len, DMA_TO_DEVICE);
 #else
 	dma_unmap_single(&port->netdev->dev, desc->data & ~3,
-			 ALIGN((desc->data & 3) + desc->buf_len, 4),
-			 DMA_TO_DEVICE);
+					 ALIGN((desc->data & 3) + desc->buf_len, 4),
+					 DMA_TO_DEVICE);
 #endif
 }
 
@@ -689,7 +767,8 @@ static int eth_poll(struct napi_struct *napi, int budget)
 	printk(KERN_DEBUG "%s: eth_poll\n", dev->name);
 #endif
 
-	while (received < budget) {
+	while (received < budget)
+	{
 		struct sk_buff *skb;
 		struct desc *desc;
 		int n;
@@ -698,25 +777,29 @@ static int eth_poll(struct napi_struct *napi, int budget)
 		u32 phys;
 #endif
 
-		if ((n = queue_get_desc(rxq, port, 0)) < 0) {
+		if ((n = queue_get_desc(rxq, port, 0)) < 0)
+		{
 #if DEBUG_RX
 			printk(KERN_DEBUG "%s: eth_poll napi_complete\n",
-			       dev->name);
+				   dev->name);
 #endif
 			napi_complete(napi);
 			qmgr_enable_irq(rxq);
+
 			if (!qmgr_stat_below_low_watermark(rxq) &&
-			    napi_reschedule(napi)) { /* not empty again */
+				napi_reschedule(napi))   /* not empty again */
+			{
 #if DEBUG_RX
 				printk(KERN_DEBUG "%s: eth_poll napi_reschedule succeeded\n",
-				       dev->name);
+					   dev->name);
 #endif
 				qmgr_disable_irq(rxq);
 				continue;
 			}
+
 #if DEBUG_RX
 			printk(KERN_DEBUG "%s: eth_poll all done\n",
-			       dev->name);
+				   dev->name);
 #endif
 			return received; /* all work done */
 		}
@@ -724,20 +807,26 @@ static int eth_poll(struct napi_struct *napi, int budget)
 		desc = rx_desc_ptr(port, n);
 
 #ifdef __ARMEB__
-		if ((skb = netdev_alloc_skb(dev, RX_BUFF_SIZE))) {
+
+		if ((skb = netdev_alloc_skb(dev, RX_BUFF_SIZE)))
+		{
 			phys = dma_map_single(&dev->dev, skb->data,
-					      RX_BUFF_SIZE, DMA_FROM_DEVICE);
-			if (dma_mapping_error(&dev->dev, phys)) {
+								  RX_BUFF_SIZE, DMA_FROM_DEVICE);
+
+			if (dma_mapping_error(&dev->dev, phys))
+			{
 				dev_kfree_skb(skb);
 				skb = NULL;
 			}
 		}
+
 #else
 		skb = netdev_alloc_skb(dev,
-				       ALIGN(NET_IP_ALIGN + desc->pkt_len, 4));
+							   ALIGN(NET_IP_ALIGN + desc->pkt_len, 4));
 #endif
 
-		if (!skb) {
+		if (!skb)
+		{
 			dev->stats.rx_dropped++;
 			/* put the desc back on RX-ready queue */
 			desc->buf_len = MAX_MRU;
@@ -751,12 +840,12 @@ static int eth_poll(struct napi_struct *napi, int budget)
 		temp = skb;
 		skb = port->rx_buff_tab[n];
 		dma_unmap_single(&dev->dev, desc->data - NET_IP_ALIGN,
-				 RX_BUFF_SIZE, DMA_FROM_DEVICE);
+						 RX_BUFF_SIZE, DMA_FROM_DEVICE);
 #else
 		dma_sync_single_for_cpu(&dev->dev, desc->data - NET_IP_ALIGN,
-					RX_BUFF_SIZE, DMA_FROM_DEVICE);
+								RX_BUFF_SIZE, DMA_FROM_DEVICE);
 		memcpy_swab32((u32 *)skb->data, (u32 *)port->rx_buff_tab[n],
-			      ALIGN(NET_IP_ALIGN + desc->pkt_len, 4) / 4);
+					  ALIGN(NET_IP_ALIGN + desc->pkt_len, 4) / 4);
 #endif
 		skb_reserve(skb, NET_IP_ALIGN);
 		skb_put(skb, desc->pkt_len);
@@ -794,7 +883,9 @@ static void eth_txdone_irq(void *unused)
 #if DEBUG_TX
 	printk(KERN_DEBUG DRV_NAME ": eth_txdone_irq\n");
 #endif
-	while ((phys = qmgr_get_entry(TXDONE_QUEUE)) != 0) {
+
+	while ((phys = qmgr_get_entry(TXDONE_QUEUE)) != 0)
+	{
 		u32 npe_id, n_desc;
 		struct port *port;
 		struct desc *desc;
@@ -810,14 +901,15 @@ static void eth_txdone_irq(void *unused)
 		desc = tx_desc_ptr(port, n_desc);
 		debug_desc(phys, desc);
 
-		if (port->tx_buff_tab[n_desc]) { /* not the draining packet */
+		if (port->tx_buff_tab[n_desc])   /* not the draining packet */
+		{
 			port->netdev->stats.tx_packets++;
 			port->netdev->stats.tx_bytes += desc->pkt_len;
 
 			dma_unmap_tx(port, desc);
 #if DEBUG_TX
 			printk(KERN_DEBUG "%s: eth_txdone_irq free %p\n",
-			       port->netdev->name, port->tx_buff_tab[n_desc]);
+				   port->netdev->name, port->tx_buff_tab[n_desc]);
 #endif
 			free_buffer_irq(port->tx_buff_tab[n_desc]);
 			port->tx_buff_tab[n_desc] = NULL;
@@ -825,10 +917,12 @@ static void eth_txdone_irq(void *unused)
 
 		start = qmgr_stat_below_low_watermark(port->plat->txreadyq);
 		queue_put_desc(port->plat->txreadyq, phys, desc);
-		if (start) { /* TX-ready queue was empty */
+
+		if (start)   /* TX-ready queue was empty */
+		{
 #if DEBUG_TX
 			printk(KERN_DEBUG "%s: eth_txdone_irq xmit ready\n",
-			       port->netdev->name);
+				   port->netdev->name);
 #endif
 			netif_wake_queue(port->netdev);
 		}
@@ -848,7 +942,8 @@ static int eth_xmit(struct sk_buff *skb, struct net_device *dev)
 	printk(KERN_DEBUG "%s: eth_xmit\n", dev->name);
 #endif
 
-	if (unlikely(skb->len > MAX_MRU)) {
+	if (unlikely(skb->len > MAX_MRU))
+	{
 		dev_kfree_skb(skb);
 		dev->stats.tx_errors++;
 		return NETDEV_TX_OK;
@@ -864,16 +959,21 @@ static int eth_xmit(struct sk_buff *skb, struct net_device *dev)
 #else
 	offset = (int)skb->data & 3; /* keep 32-bit alignment */
 	bytes = ALIGN(offset + len, 4);
-	if (!(mem = kmalloc(bytes, GFP_ATOMIC))) {
+
+	if (!(mem = kmalloc(bytes, GFP_ATOMIC)))
+	{
 		dev_kfree_skb(skb);
 		dev->stats.tx_dropped++;
 		return NETDEV_TX_OK;
 	}
+
 	memcpy_swab32(mem, (u32 *)((int)skb->data & ~3), bytes / 4);
 #endif
 
 	phys = dma_map_single(&dev->dev, mem, bytes, DMA_TO_DEVICE);
-	if (dma_mapping_error(&dev->dev, phys)) {
+
+	if (dma_mapping_error(&dev->dev, phys))
+	{
 		dev_kfree_skb(skb);
 #ifndef __ARMEB__
 		kfree(mem);
@@ -898,17 +998,20 @@ static int eth_xmit(struct sk_buff *skb, struct net_device *dev)
 	wmb();
 	queue_put_desc(TX_QUEUE(port->id), tx_desc_phys(port, n), desc);
 
-	if (qmgr_stat_below_low_watermark(txreadyq)) { /* empty */
+	if (qmgr_stat_below_low_watermark(txreadyq))   /* empty */
+	{
 #if DEBUG_TX
 		printk(KERN_DEBUG "%s: eth_xmit queue full\n", dev->name);
 #endif
 		netif_stop_queue(dev);
+
 		/* we could miss TX ready interrupt */
 		/* really empty in fact */
-		if (!qmgr_stat_below_low_watermark(txreadyq)) {
+		if (!qmgr_stat_below_low_watermark(txreadyq))
+		{
 #if DEBUG_TX
 			printk(KERN_DEBUG "%s: eth_xmit ready again\n",
-			       dev->name);
+				   dev->name);
 #endif
 			netif_wake_queue(dev);
 		}
@@ -936,52 +1039,71 @@ static void eth_set_mcast_list(struct net_device *dev)
 	int i;
 	static const u8 allmulti[] = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
-	if ((dev->flags & IFF_ALLMULTI) && !(dev->flags & IFF_PROMISC)) {
-		for (i = 0; i < ETH_ALEN; i++) {
+	if ((dev->flags & IFF_ALLMULTI) && !(dev->flags & IFF_PROMISC))
+	{
+		for (i = 0; i < ETH_ALEN; i++)
+		{
 			__raw_writel(allmulti[i], &port->regs->mcast_addr[i]);
 			__raw_writel(allmulti[i], &port->regs->mcast_mask[i]);
 		}
+
 		__raw_writel(DEFAULT_RX_CNTRL0 | RX_CNTRL0_ADDR_FLTR_EN,
-			&port->regs->rx_control[0]);
+					 &port->regs->rx_control[0]);
 		return;
 	}
 
-	if ((dev->flags & IFF_PROMISC) || netdev_mc_empty(dev)) {
+	if ((dev->flags & IFF_PROMISC) || netdev_mc_empty(dev))
+	{
 		__raw_writel(DEFAULT_RX_CNTRL0 & ~RX_CNTRL0_ADDR_FLTR_EN,
-			     &port->regs->rx_control[0]);
+					 &port->regs->rx_control[0]);
 		return;
 	}
 
 	eth_zero_addr(diffs);
 
 	addr = NULL;
-	netdev_for_each_mc_addr(ha, dev) {
+	netdev_for_each_mc_addr(ha, dev)
+	{
 		if (!addr)
-			addr = ha->addr; /* first MAC address */
+		{
+			addr = ha->addr;    /* first MAC address */
+		}
+
 		for (i = 0; i < ETH_ALEN; i++)
+		{
 			diffs[i] |= addr[i] ^ ha->addr[i];
+		}
 	}
 
-	for (i = 0; i < ETH_ALEN; i++) {
+	for (i = 0; i < ETH_ALEN; i++)
+	{
 		__raw_writel(addr[i], &port->regs->mcast_addr[i]);
 		__raw_writel(~diffs[i], &port->regs->mcast_mask[i]);
 	}
 
 	__raw_writel(DEFAULT_RX_CNTRL0 | RX_CNTRL0_ADDR_FLTR_EN,
-		     &port->regs->rx_control[0]);
+				 &port->regs->rx_control[0]);
 }
 
 
 static int eth_ioctl(struct net_device *dev, struct ifreq *req, int cmd)
 {
 	if (!netif_running(dev))
+	{
 		return -EINVAL;
+	}
 
-	if (cpu_is_ixp46x()) {
+	if (cpu_is_ixp46x())
+	{
 		if (cmd == SIOCSHWTSTAMP)
+		{
 			return hwtstamp_set(dev, req);
+		}
+
 		if (cmd == SIOCGHWTSTAMP)
+		{
 			return hwtstamp_get(dev, req);
+		}
 	}
 
 	return phy_mii_ioctl(dev->phydev, req, cmd);
@@ -990,14 +1112,14 @@ static int eth_ioctl(struct net_device *dev, struct ifreq *req, int cmd)
 /* ethtool support */
 
 static void ixp4xx_get_drvinfo(struct net_device *dev,
-			       struct ethtool_drvinfo *info)
+							   struct ethtool_drvinfo *info)
 {
 	struct port *port = netdev_priv(dev);
 
 	strlcpy(info->driver, DRV_NAME, sizeof(info->driver));
 	snprintf(info->fw_version, sizeof(info->fw_version), "%u:%u:%u:%u",
-		 port->firmware[0], port->firmware[1],
-		 port->firmware[2], port->firmware[3]);
+			 port->firmware[0], port->firmware[1],
+			 port->firmware[2], port->firmware[3]);
 	strlcpy(info->bus_info, "internal", sizeof(info->bus_info));
 }
 
@@ -1010,9 +1132,10 @@ int ixp46x_phc_index = -1;
 EXPORT_SYMBOL_GPL(ixp46x_phc_index);
 
 static int ixp4xx_get_ts_info(struct net_device *dev,
-			      struct ethtool_ts_info *info)
+							  struct ethtool_ts_info *info)
 {
-	if (!cpu_is_ixp46x()) {
+	if (!cpu_is_ixp46x())
+	{
 		info->so_timestamping =
 			SOF_TIMESTAMPING_TX_SOFTWARE |
 			SOF_TIMESTAMPING_RX_SOFTWARE |
@@ -1020,6 +1143,7 @@ static int ixp4xx_get_ts_info(struct net_device *dev,
 		info->phc_index = -1;
 		return 0;
 	}
+
 	info->so_timestamping =
 		SOF_TIMESTAMPING_TX_HARDWARE |
 		SOF_TIMESTAMPING_RX_HARDWARE |
@@ -1035,7 +1159,8 @@ static int ixp4xx_get_ts_info(struct net_device *dev,
 	return 0;
 }
 
-static const struct ethtool_ops ixp4xx_ethtool_ops = {
+static const struct ethtool_ops ixp4xx_ethtool_ops =
+{
 	.get_drvinfo = ixp4xx_get_drvinfo,
 	.nway_reset = ixp4xx_nway_reset,
 	.get_link = ethtool_op_get_link,
@@ -1050,32 +1175,49 @@ static int request_queues(struct port *port)
 	int err;
 
 	err = qmgr_request_queue(RXFREE_QUEUE(port->id), RX_DESCS, 0, 0,
-				 "%s:RX-free", port->netdev->name);
+							 "%s:RX-free", port->netdev->name);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = qmgr_request_queue(port->plat->rxq, RX_DESCS, 0, 0,
-				 "%s:RX", port->netdev->name);
+							 "%s:RX", port->netdev->name);
+
 	if (err)
+	{
 		goto rel_rxfree;
+	}
 
 	err = qmgr_request_queue(TX_QUEUE(port->id), TX_DESCS, 0, 0,
-				 "%s:TX", port->netdev->name);
+							 "%s:TX", port->netdev->name);
+
 	if (err)
+	{
 		goto rel_rx;
+	}
 
 	err = qmgr_request_queue(port->plat->txreadyq, TX_DESCS, 0, 0,
-				 "%s:TX-ready", port->netdev->name);
+							 "%s:TX-ready", port->netdev->name);
+
 	if (err)
+	{
 		goto rel_tx;
+	}
 
 	/* TX-done queue handles skbs sent out by the NPEs */
-	if (!ports_open) {
+	if (!ports_open)
+	{
 		err = qmgr_request_queue(TXDONE_QUEUE, TXDONE_QUEUE_LEN, 0, 0,
-					 "%s:TX-done", DRV_NAME);
+								 "%s:TX-done", DRV_NAME);
+
 		if (err)
+		{
 			goto rel_txready;
+		}
 	}
+
 	return 0;
 
 rel_txready:
@@ -1087,7 +1229,7 @@ rel_rx:
 rel_rxfree:
 	qmgr_release_queue(RXFREE_QUEUE(port->id));
 	printk(KERN_DEBUG "%s: unable to request hardware queues\n",
-	       port->netdev->name);
+		   port->netdev->name);
 	return err;
 }
 
@@ -1099,48 +1241,69 @@ static void release_queues(struct port *port)
 	qmgr_release_queue(port->plat->txreadyq);
 
 	if (!ports_open)
+	{
 		qmgr_release_queue(TXDONE_QUEUE);
+	}
 }
 
 static int init_queues(struct port *port)
 {
 	int i;
 
-	if (!ports_open) {
+	if (!ports_open)
+	{
 		dma_pool = dma_pool_create(DRV_NAME, &port->netdev->dev,
-					   POOL_ALLOC_SIZE, 32, 0);
+								   POOL_ALLOC_SIZE, 32, 0);
+
 		if (!dma_pool)
+		{
 			return -ENOMEM;
+		}
 	}
 
 	if (!(port->desc_tab = dma_pool_alloc(dma_pool, GFP_KERNEL,
-					      &port->desc_tab_phys)))
+										  &port->desc_tab_phys)))
+	{
 		return -ENOMEM;
+	}
+
 	memset(port->desc_tab, 0, POOL_ALLOC_SIZE);
 	memset(port->rx_buff_tab, 0, sizeof(port->rx_buff_tab)); /* tables */
 	memset(port->tx_buff_tab, 0, sizeof(port->tx_buff_tab));
 
 	/* Setup RX buffers */
-	for (i = 0; i < RX_DESCS; i++) {
+	for (i = 0; i < RX_DESCS; i++)
+	{
 		struct desc *desc = rx_desc_ptr(port, i);
 		buffer_t *buff; /* skb or kmalloc()ated memory */
 		void *data;
 #ifdef __ARMEB__
+
 		if (!(buff = netdev_alloc_skb(port->netdev, RX_BUFF_SIZE)))
+		{
 			return -ENOMEM;
+		}
+
 		data = buff->data;
 #else
+
 		if (!(buff = kmalloc(RX_BUFF_SIZE, GFP_KERNEL)))
+		{
 			return -ENOMEM;
+		}
+
 		data = buff;
 #endif
 		desc->buf_len = MAX_MRU;
 		desc->data = dma_map_single(&port->netdev->dev, data,
-					    RX_BUFF_SIZE, DMA_FROM_DEVICE);
-		if (dma_mapping_error(&port->netdev->dev, desc->data)) {
+									RX_BUFF_SIZE, DMA_FROM_DEVICE);
+
+		if (dma_mapping_error(&port->netdev->dev, desc->data))
+		{
 			free_buffer(buff);
 			return -EIO;
 		}
+
 		desc->data += NET_IP_ALIGN;
 		port->rx_buff_tab[i] = buff;
 	}
@@ -1152,30 +1315,40 @@ static void destroy_queues(struct port *port)
 {
 	int i;
 
-	if (port->desc_tab) {
-		for (i = 0; i < RX_DESCS; i++) {
+	if (port->desc_tab)
+	{
+		for (i = 0; i < RX_DESCS; i++)
+		{
 			struct desc *desc = rx_desc_ptr(port, i);
 			buffer_t *buff = port->rx_buff_tab[i];
-			if (buff) {
+
+			if (buff)
+			{
 				dma_unmap_single(&port->netdev->dev,
-						 desc->data - NET_IP_ALIGN,
-						 RX_BUFF_SIZE, DMA_FROM_DEVICE);
+								 desc->data - NET_IP_ALIGN,
+								 RX_BUFF_SIZE, DMA_FROM_DEVICE);
 				free_buffer(buff);
 			}
 		}
-		for (i = 0; i < TX_DESCS; i++) {
+
+		for (i = 0; i < TX_DESCS; i++)
+		{
 			struct desc *desc = tx_desc_ptr(port, i);
 			buffer_t *buff = port->tx_buff_tab[i];
-			if (buff) {
+
+			if (buff)
+			{
 				dma_unmap_tx(port, desc);
 				free_buffer(buff);
 			}
 		}
+
 		dma_pool_free(dma_pool, port->desc_tab, port->desc_tab_phys);
 		port->desc_tab = NULL;
 	}
 
-	if (!ports_open && dma_pool) {
+	if (!ports_open && dma_pool)
+	{
 		dma_pool_destroy(dma_pool);
 		dma_pool = NULL;
 	}
@@ -1188,16 +1361,22 @@ static int eth_open(struct net_device *dev)
 	struct msg msg;
 	int i, err;
 
-	if (!npe_running(npe)) {
+	if (!npe_running(npe))
+	{
 		err = npe_load_firmware(npe, npe_name(npe), &dev->dev);
-		if (err)
-			return err;
 
-		if (npe_recv_message(npe, &msg, "ETH_GET_STATUS")) {
+		if (err)
+		{
+			return err;
+		}
+
+		if (npe_recv_message(npe, &msg, "ETH_GET_STATUS"))
+		{
 			printk(KERN_ERR "%s: %s not responding\n", dev->name,
-			       npe_name(npe));
+				   npe_name(npe));
 			return -EIO;
 		}
+
 		port->firmware[0] = msg.byte4;
 		port->firmware[1] = msg.byte5;
 		port->firmware[2] = msg.byte6;
@@ -1209,10 +1388,15 @@ static int eth_open(struct net_device *dev)
 	msg.eth_id = port->id;
 	msg.byte5 = port->plat->rxq | 0x80;
 	msg.byte7 = port->plat->rxq << 4;
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		msg.byte3 = i;
+
 		if (npe_send_recv_message(port->npe, &msg, "ETH_SET_RXQ"))
+		{
 			return -EIO;
+		}
 	}
 
 	msg.cmd = NPE_EDB_SETPORTADDRESS;
@@ -1223,19 +1407,28 @@ static int eth_open(struct net_device *dev)
 	msg.byte5 = dev->dev_addr[3];
 	msg.byte6 = dev->dev_addr[4];
 	msg.byte7 = dev->dev_addr[5];
+
 	if (npe_send_recv_message(port->npe, &msg, "ETH_SET_MAC"))
+	{
 		return -EIO;
+	}
 
 	memset(&msg, 0, sizeof(msg));
 	msg.cmd = NPE_FW_SETFIREWALLMODE;
 	msg.eth_id = port->id;
+
 	if (npe_send_recv_message(port->npe, &msg, "ETH_SET_FIREWALL_MODE"))
+	{
 		return -EIO;
+	}
 
 	if ((err = request_queues(port)) != 0)
+	{
 		return err;
+	}
 
-	if ((err = init_queues(port)) != 0) {
+	if ((err = init_queues(port)) != 0)
+	{
 		destroy_queues(port);
 		release_queues(port);
 		return err;
@@ -1245,7 +1438,10 @@ static int eth_open(struct net_device *dev)
 	phy_start(dev->phydev);
 
 	for (i = 0; i < ETH_ALEN; i++)
+	{
 		__raw_writel(dev->dev_addr[i], &port->regs->hw_addr[i]);
+	}
+
 	__raw_writel(0x08, &port->regs->random_seed);
 	__raw_writel(0x12, &port->regs->partial_empty_threshold);
 	__raw_writel(0x30, &port->regs->partial_full_threshold);
@@ -1259,11 +1455,11 @@ static int eth_open(struct net_device *dev)
 	/* Populate queues with buffers, no failure after this point */
 	for (i = 0; i < TX_DESCS; i++)
 		queue_put_desc(port->plat->txreadyq,
-			       tx_desc_phys(port, i), tx_desc_ptr(port, i));
+					   tx_desc_phys(port, i), tx_desc_ptr(port, i));
 
 	for (i = 0; i < RX_DESCS; i++)
 		queue_put_desc(RXFREE_QUEUE(port->id),
-			       rx_desc_phys(port, i), rx_desc_ptr(port, i));
+					   rx_desc_phys(port, i), rx_desc_ptr(port, i));
 
 	__raw_writel(TX_CNTRL1_RETRIES, &port->regs->tx_control[1]);
 	__raw_writel(DEFAULT_TX_CNTRL0, &port->regs->tx_control[0]);
@@ -1275,12 +1471,15 @@ static int eth_open(struct net_device *dev)
 	netif_start_queue(dev);
 
 	qmgr_set_irq(port->plat->rxq, QUEUE_IRQ_SRC_NOT_EMPTY,
-		     eth_rx_irq, dev);
-	if (!ports_open) {
+				 eth_rx_irq, dev);
+
+	if (!ports_open)
+	{
 		qmgr_set_irq(TXDONE_QUEUE, QUEUE_IRQ_SRC_NOT_EMPTY,
-			     eth_txdone_irq, NULL);
+					 eth_txdone_irq, NULL);
 		qmgr_enable_irq(TXDONE_QUEUE);
 	}
+
 	ports_open++;
 	/* we may already have RX data, enables IRQ */
 	napi_schedule(&port->napi);
@@ -1300,22 +1499,36 @@ static int eth_close(struct net_device *dev)
 	netif_stop_queue(dev);
 
 	while (queue_get_desc(RXFREE_QUEUE(port->id), port, 0) >= 0)
+	{
 		buffs--;
+	}
 
 	memset(&msg, 0, sizeof(msg));
 	msg.cmd = NPE_SETLOOPBACK_MODE;
 	msg.eth_id = port->id;
 	msg.byte3 = 1;
+
 	if (npe_send_recv_message(port->npe, &msg, "ETH_ENABLE_LOOPBACK"))
+	{
 		printk(KERN_CRIT "%s: unable to enable loopback\n", dev->name);
+	}
 
 	i = 0;
-	do {			/* drain RX buffers */
+
+	do  			/* drain RX buffers */
+	{
 		while (queue_get_desc(port->plat->rxq, port, 0) >= 0)
+		{
 			buffs--;
+		}
+
 		if (!buffs)
+		{
 			break;
-		if (qmgr_stat_empty(TX_QUEUE(port->id))) {
+		}
+
+		if (qmgr_stat_empty(TX_QUEUE(port->id)))
+		{
 			/* we have to inject some packet */
 			struct desc *desc;
 			u32 phys;
@@ -1327,52 +1540,80 @@ static int eth_close(struct net_device *dev)
 			wmb();
 			queue_put_desc(TX_QUEUE(port->id), phys, desc);
 		}
+
 		udelay(1);
-	} while (++i < MAX_CLOSE_WAIT);
+	}
+	while (++i < MAX_CLOSE_WAIT);
 
 	if (buffs)
 		printk(KERN_CRIT "%s: unable to drain RX queue, %i buffer(s)"
-		       " left in NPE\n", dev->name, buffs);
+			   " left in NPE\n", dev->name, buffs);
+
 #if DEBUG_CLOSE
+
 	if (!buffs)
+	{
 		printk(KERN_DEBUG "Draining RX queue took %i cycles\n", i);
+	}
+
 #endif
 
 	buffs = TX_DESCS;
+
 	while (queue_get_desc(TX_QUEUE(port->id), port, 1) >= 0)
-		buffs--; /* cancel TX */
+	{
+		buffs--;    /* cancel TX */
+	}
 
 	i = 0;
-	do {
+
+	do
+	{
 		while (queue_get_desc(port->plat->txreadyq, port, 1) >= 0)
+		{
 			buffs--;
+		}
+
 		if (!buffs)
+		{
 			break;
-	} while (++i < MAX_CLOSE_WAIT);
+		}
+	}
+	while (++i < MAX_CLOSE_WAIT);
 
 	if (buffs)
 		printk(KERN_CRIT "%s: unable to drain TX queue, %i buffer(s) "
-		       "left in NPE\n", dev->name, buffs);
+			   "left in NPE\n", dev->name, buffs);
+
 #if DEBUG_CLOSE
+
 	if (!buffs)
+	{
 		printk(KERN_DEBUG "Draining TX queues took %i cycles\n", i);
+	}
+
 #endif
 
 	msg.byte3 = 0;
+
 	if (npe_send_recv_message(port->npe, &msg, "ETH_DISABLE_LOOPBACK"))
 		printk(KERN_CRIT "%s: unable to disable loopback\n",
-		       dev->name);
+			   dev->name);
 
 	phy_stop(dev->phydev);
 
 	if (!ports_open)
+	{
 		qmgr_disable_irq(TXDONE_QUEUE);
+	}
+
 	destroy_queues(port);
 	release_queues(port);
 	return 0;
 }
 
-static const struct net_device_ops ixp4xx_netdev_ops = {
+static const struct net_device_ops ixp4xx_netdev_ops =
+{
 	.ndo_open = eth_open,
 	.ndo_stop = eth_close,
 	.ndo_start_xmit = eth_xmit,
@@ -1394,29 +1635,35 @@ static int eth_init_one(struct platform_device *pdev)
 	int err;
 
 	if (!(dev = alloc_etherdev(sizeof(struct port))))
+	{
 		return -ENOMEM;
+	}
 
 	SET_NETDEV_DEV(dev, &pdev->dev);
 	port = netdev_priv(dev);
 	port->netdev = dev;
 	port->id = pdev->id;
 
-	switch (port->id) {
-	case IXP4XX_ETH_NPEA:
-		port->regs = (struct eth_regs __iomem *)IXP4XX_EthA_BASE_VIRT;
-		regs_phys  = IXP4XX_EthA_BASE_PHYS;
-		break;
-	case IXP4XX_ETH_NPEB:
-		port->regs = (struct eth_regs __iomem *)IXP4XX_EthB_BASE_VIRT;
-		regs_phys  = IXP4XX_EthB_BASE_PHYS;
-		break;
-	case IXP4XX_ETH_NPEC:
-		port->regs = (struct eth_regs __iomem *)IXP4XX_EthC_BASE_VIRT;
-		regs_phys  = IXP4XX_EthC_BASE_PHYS;
-		break;
-	default:
-		err = -ENODEV;
-		goto err_free;
+	switch (port->id)
+	{
+		case IXP4XX_ETH_NPEA:
+			port->regs = (struct eth_regs __iomem *)IXP4XX_EthA_BASE_VIRT;
+			regs_phys  = IXP4XX_EthA_BASE_PHYS;
+			break;
+
+		case IXP4XX_ETH_NPEB:
+			port->regs = (struct eth_regs __iomem *)IXP4XX_EthB_BASE_VIRT;
+			regs_phys  = IXP4XX_EthB_BASE_PHYS;
+			break;
+
+		case IXP4XX_ETH_NPEC:
+			port->regs = (struct eth_regs __iomem *)IXP4XX_EthC_BASE_VIRT;
+			regs_phys  = IXP4XX_EthC_BASE_PHYS;
+			break;
+
+		default:
+			err = -ENODEV;
+			goto err_free;
 	}
 
 	dev->netdev_ops = &ixp4xx_netdev_ops;
@@ -1425,13 +1672,16 @@ static int eth_init_one(struct platform_device *pdev)
 
 	netif_napi_add(dev, &port->napi, eth_poll, NAPI_WEIGHT);
 
-	if (!(port->npe = npe_request(NPE_ID(port->id)))) {
+	if (!(port->npe = npe_request(NPE_ID(port->id))))
+	{
 		err = -EIO;
 		goto err_free;
 	}
 
 	port->mem_res = request_mem_region(regs_phys, REGS_SIZE, dev->name);
-	if (!port->mem_res) {
+
+	if (!port->mem_res)
+	{
 		err = -EBUSY;
 		goto err_npe_rel;
 	}
@@ -1443,16 +1693,18 @@ static int eth_init_one(struct platform_device *pdev)
 	platform_set_drvdata(pdev, dev);
 
 	__raw_writel(DEFAULT_CORE_CNTRL | CORE_RESET,
-		     &port->regs->core_control);
+				 &port->regs->core_control);
 	udelay(50);
 	__raw_writel(DEFAULT_CORE_CNTRL, &port->regs->core_control);
 	udelay(50);
 
 	snprintf(phy_id, MII_BUS_ID_SIZE + 3, PHY_ID_FMT,
-		mdio_bus->id, plat->phy);
+			 mdio_bus->id, plat->phy);
 	phydev = phy_connect(dev, phy_id, &ixp4xx_adjust_link,
-			     PHY_INTERFACE_MODE_MII);
-	if (IS_ERR(phydev)) {
+						 PHY_INTERFACE_MODE_MII);
+
+	if (IS_ERR(phydev))
+	{
 		err = PTR_ERR(phydev);
 		goto err_free_mem;
 	}
@@ -1460,10 +1712,12 @@ static int eth_init_one(struct platform_device *pdev)
 	phydev->irq = PHY_POLL;
 
 	if ((err = register_netdev(dev)))
+	{
 		goto err_phy_dis;
+	}
 
 	printk(KERN_INFO "%s: MII PHY %i on %s\n", dev->name, plat->phy,
-	       npe_name(port->npe));
+		   npe_name(port->npe));
 
 	return 0;
 
@@ -1494,7 +1748,8 @@ static int eth_remove_one(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ixp4xx_eth_driver = {
+static struct platform_driver ixp4xx_eth_driver =
+{
 	.driver.name	= DRV_NAME,
 	.probe		= eth_init_one,
 	.remove		= eth_remove_one,
@@ -1503,8 +1758,12 @@ static struct platform_driver ixp4xx_eth_driver = {
 static int __init eth_init_module(void)
 {
 	int err;
+
 	if ((err = ixp4xx_mdio_register()))
+	{
 		return err;
+	}
+
 	return platform_driver_register(&ixp4xx_eth_driver);
 }
 

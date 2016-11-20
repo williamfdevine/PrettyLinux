@@ -36,7 +36,8 @@
 #define DRV_NAME "pata_mpiix"
 #define DRV_VERSION "0.7.7"
 
-enum {
+enum
+{
 	IDETIM = 0x6C,		/* IDE control register */
 	IORDY = (1 << 1),
 	PPE = (1 << 2),
@@ -52,7 +53,9 @@ static int mpiix_pre_reset(struct ata_link *link, unsigned long deadline)
 	static const struct pci_bits mpiix_enable_bits = { 0x6D, 1, 0x80, 0x80 };
 
 	if (!pci_test_config_bits(pdev, &mpiix_enable_bits))
+	{
 		return -ENOENT;
+	}
 
 	return ata_sff_prereset(link, deadline);
 }
@@ -80,20 +83,29 @@ static void mpiix_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	u16 idetim;
 	static const	 /* ISP  RTC */
 	u8 timings[][2]	= { { 0, 0 },
-			    { 0, 0 },
-			    { 1, 0 },
-			    { 2, 1 },
-			    { 2, 3 }, };
+		{ 0, 0 },
+		{ 1, 0 },
+		{ 2, 1 },
+		{ 2, 3 },
+	};
 
 	pci_read_config_word(pdev, IDETIM, &idetim);
 
 	/* Mask the IORDY/TIME/PPE for this device */
 	if (adev->class == ATA_DEV_ATA)
-		control |= PPE;		/* Enable prefetch/posting for disk */
+	{
+		control |= PPE;    /* Enable prefetch/posting for disk */
+	}
+
 	if (ata_pio_need_iordy(adev))
+	{
 		control |= IORDY;
+	}
+
 	if (pio > 1)
-		control |= FTIM;	/* This drive is on the fast timing bank */
+	{
+		control |= FTIM;    /* This drive is on the fast timing bank */
+	}
 
 	/* Mask out timing and clear both TIME bank selects */
 	idetim &= 0xCCEE;
@@ -130,16 +142,20 @@ static unsigned int mpiix_qc_issue(struct ata_queued_cmd *qc)
 	   logical */
 
 	if (adev->pio_mode && adev != ap->private_data)
+	{
 		mpiix_set_piomode(ap, adev);
+	}
 
 	return ata_sff_qc_issue(qc);
 }
 
-static struct scsi_host_template mpiix_sht = {
+static struct scsi_host_template mpiix_sht =
+{
 	ATA_PIO_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations mpiix_port_ops = {
+static struct ata_port_operations mpiix_port_ops =
+{
 	.inherits	= &ata_sff_port_ops,
 	.qc_issue	= mpiix_qc_issue,
 	.cable_detect	= ata_cable_40wire,
@@ -160,8 +176,12 @@ static int mpiix_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 	ata_print_version_once(&dev->dev, DRV_VERSION);
 
 	host = ata_host_alloc(&dev->dev, 1);
+
 	if (!host)
+	{
 		return -ENOMEM;
+	}
+
 	ap = host->ports[0];
 
 	/* MPIIX has many functions which can be turned on or off according
@@ -169,15 +189,21 @@ static int mpiix_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 	   and use it */
 
 	pci_read_config_word(dev, IDETIM, &idetim);
+
 	if (!(idetim & ENABLED))
+	{
 		return -ENODEV;
+	}
 
 	/* See if it's primary or secondary channel... */
-	if (!(idetim & SECONDARY)) {
+	if (!(idetim & SECONDARY))
+	{
 		cmd = 0x1F0;
 		ctl = 0x3F6;
 		irq = 14;
-	} else {
+	}
+	else
+	{
 		cmd = 0x170;
 		ctl = 0x376;
 		irq = 15;
@@ -185,8 +211,11 @@ static int mpiix_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 
 	cmd_addr = devm_ioport_map(&dev->dev, cmd, 8);
 	ctl_addr = devm_ioport_map(&dev->dev, ctl, 1);
+
 	if (!cmd_addr || !ctl_addr)
+	{
 		return -ENOMEM;
+	}
 
 	ata_port_desc(ap, "cmd 0x%x ctl 0x%x", cmd, ctl);
 
@@ -209,16 +238,18 @@ static int mpiix_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 
 	/* activate host */
 	return ata_host_activate(host, irq, ata_sff_interrupt, IRQF_SHARED,
-				 &mpiix_sht);
+							 &mpiix_sht);
 }
 
-static const struct pci_device_id mpiix[] = {
+static const struct pci_device_id mpiix[] =
+{
 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_82371MX), },
 
 	{ },
 };
 
-static struct pci_driver mpiix_pci_driver = {
+static struct pci_driver mpiix_pci_driver =
+{
 	.name 		= DRV_NAME,
 	.id_table	= mpiix,
 	.probe 		= mpiix_init_one,

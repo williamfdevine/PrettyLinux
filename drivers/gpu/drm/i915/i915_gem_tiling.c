@@ -66,52 +66,86 @@ i915_tiling_ok(struct drm_device *dev, int stride, int size, int tiling_mode)
 
 	/* Linear is always fine */
 	if (tiling_mode == I915_TILING_NONE)
+	{
 		return true;
+	}
 
 	if (tiling_mode > I915_TILING_LAST)
+	{
 		return false;
+	}
 
 	if (IS_GEN2(dev) ||
-	    (tiling_mode == I915_TILING_Y && HAS_128_BYTE_Y_TILING(dev)))
+		(tiling_mode == I915_TILING_Y && HAS_128_BYTE_Y_TILING(dev)))
+	{
 		tile_width = 128;
+	}
 	else
+	{
 		tile_width = 512;
+	}
 
 	/* check maximum stride & object size */
 	/* i965+ stores the end address of the gtt mapping in the fence
 	 * reg, so dont bother to check the size */
-	if (INTEL_INFO(dev)->gen >= 7) {
+	if (INTEL_INFO(dev)->gen >= 7)
+	{
 		if (stride / 128 > GEN7_FENCE_MAX_PITCH_VAL)
+		{
 			return false;
-	} else if (INTEL_INFO(dev)->gen >= 4) {
+		}
+	}
+	else if (INTEL_INFO(dev)->gen >= 4)
+	{
 		if (stride / 128 > I965_FENCE_MAX_PITCH_VAL)
+		{
 			return false;
-	} else {
+		}
+	}
+	else
+	{
 		if (stride > 8192)
+		{
 			return false;
+		}
 
-		if (IS_GEN3(dev)) {
+		if (IS_GEN3(dev))
+		{
 			if (size > I830_FENCE_MAX_SIZE_VAL << 20)
+			{
 				return false;
-		} else {
+			}
+		}
+		else
+		{
 			if (size > I830_FENCE_MAX_SIZE_VAL << 19)
+			{
 				return false;
+			}
 		}
 	}
 
 	if (stride < tile_width)
+	{
 		return false;
+	}
 
 	/* 965+ just needs multiples of tile width */
-	if (INTEL_INFO(dev)->gen >= 4) {
+	if (INTEL_INFO(dev)->gen >= 4)
+	{
 		if (stride & (tile_width - 1))
+		{
 			return false;
+		}
+
 		return true;
 	}
 
 	/* Pre-965 needs power of two tile widths */
 	if (stride & (stride - 1))
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -122,22 +156,36 @@ static bool i915_vma_fence_prepare(struct i915_vma *vma, int tiling_mode)
 	u32 size;
 
 	if (!i915_vma_is_map_and_fenceable(vma))
+	{
 		return true;
+	}
 
-	if (INTEL_GEN(dev_priv) == 3) {
+	if (INTEL_GEN(dev_priv) == 3)
+	{
 		if (vma->node.start & ~I915_FENCE_START_MASK)
+		{
 			return false;
-	} else {
+		}
+	}
+	else
+	{
 		if (vma->node.start & ~I830_FENCE_START_MASK)
+		{
 			return false;
+		}
 	}
 
 	size = i915_gem_get_ggtt_size(dev_priv, vma->size, tiling_mode);
+
 	if (vma->node.size < size)
+	{
 		return false;
+	}
 
 	if (vma->node.start & (size - 1))
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -151,18 +199,28 @@ i915_gem_object_fence_prepare(struct drm_i915_gem_object *obj, int tiling_mode)
 	int ret;
 
 	if (tiling_mode == I915_TILING_NONE)
+	{
 		return 0;
+	}
 
 	if (INTEL_GEN(dev_priv) >= 4)
+	{
 		return 0;
+	}
 
-	list_for_each_entry(vma, &obj->vma_list, obj_link) {
+	list_for_each_entry(vma, &obj->vma_list, obj_link)
+	{
 		if (i915_vma_fence_prepare(vma, tiling_mode))
+		{
 			continue;
+		}
 
 		ret = i915_vma_unbind(vma);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
@@ -184,7 +242,7 @@ i915_gem_object_fence_prepare(struct drm_i915_gem_object *obj, int tiling_mode)
  */
 int
 i915_gem_set_tiling(struct drm_device *dev, void *data,
-		   struct drm_file *file)
+					struct drm_file *file)
 {
 	struct drm_i915_gem_set_tiling *args = data;
 	struct drm_i915_private *dev_priv = to_i915(dev);
@@ -195,11 +253,15 @@ i915_gem_set_tiling(struct drm_device *dev, void *data,
 	BUILD_BUG_ON(I915_TILING_LAST & STRIDE_MASK);
 
 	obj = i915_gem_object_lookup(file, args->handle);
+
 	if (!obj)
+	{
 		return -ENOENT;
+	}
 
 	if (!i915_tiling_ok(dev,
-			    args->stride, obj->base.size, args->tiling_mode)) {
+						args->stride, obj->base.size, args->tiling_mode))
+	{
 		i915_gem_object_put_unlocked(obj);
 		return -EINVAL;
 	}
@@ -207,19 +269,28 @@ i915_gem_set_tiling(struct drm_device *dev, void *data,
 	intel_runtime_pm_get(dev_priv);
 
 	mutex_lock(&dev->struct_mutex);
-	if (obj->pin_display || obj->framebuffer_references) {
+
+	if (obj->pin_display || obj->framebuffer_references)
+	{
 		err = -EBUSY;
 		goto err;
 	}
 
-	if (args->tiling_mode == I915_TILING_NONE) {
+	if (args->tiling_mode == I915_TILING_NONE)
+	{
 		args->swizzle_mode = I915_BIT_6_SWIZZLE_NONE;
 		args->stride = 0;
-	} else {
+	}
+	else
+	{
 		if (args->tiling_mode == I915_TILING_X)
+		{
 			args->swizzle_mode = dev_priv->mm.bit_6_swizzle_x;
+		}
 		else
+		{
 			args->swizzle_mode = dev_priv->mm.bit_6_swizzle_y;
+		}
 
 		/* Hide bit 17 swizzling from the user.  This prevents old Mesa
 		 * from aborting the application on sw fallbacks to bit 17,
@@ -229,12 +300,18 @@ i915_gem_set_tiling(struct drm_device *dev, void *data,
 		 * break it, but we don't have any of those.
 		 */
 		if (args->swizzle_mode == I915_BIT_6_SWIZZLE_9_17)
+		{
 			args->swizzle_mode = I915_BIT_6_SWIZZLE_9;
+		}
+
 		if (args->swizzle_mode == I915_BIT_6_SWIZZLE_9_10_17)
+		{
 			args->swizzle_mode = I915_BIT_6_SWIZZLE_9_10;
+		}
 
 		/* If we can't handle the swizzling, make it untiled. */
-		if (args->swizzle_mode == I915_BIT_6_SWIZZLE_UNKNOWN) {
+		if (args->swizzle_mode == I915_BIT_6_SWIZZLE_UNKNOWN)
+		{
 			args->tiling_mode = I915_TILING_NONE;
 			args->swizzle_mode = I915_BIT_6_SWIZZLE_NONE;
 			args->stride = 0;
@@ -242,7 +319,8 @@ i915_gem_set_tiling(struct drm_device *dev, void *data,
 	}
 
 	if (args->tiling_mode != i915_gem_object_get_tiling(obj) ||
-	    args->stride != i915_gem_object_get_stride(obj)) {
+		args->stride != i915_gem_object_get_stride(obj))
+	{
 		/* We need to rebind the object if its current allocation
 		 * no longer meets the alignment restrictions for its new
 		 * tiling mode. Otherwise we can just leave it alone, but
@@ -257,21 +335,32 @@ i915_gem_set_tiling(struct drm_device *dev, void *data,
 		 */
 
 		err = i915_gem_object_fence_prepare(obj, args->tiling_mode);
-		if (!err) {
+
+		if (!err)
+		{
 			struct i915_vma *vma;
 
 			if (obj->pages &&
-			    obj->madv == I915_MADV_WILLNEED &&
-			    dev_priv->quirks & QUIRK_PIN_SWIZZLED_PAGES) {
+				obj->madv == I915_MADV_WILLNEED &&
+				dev_priv->quirks & QUIRK_PIN_SWIZZLED_PAGES)
+			{
 				if (args->tiling_mode == I915_TILING_NONE)
+				{
 					i915_gem_object_unpin_pages(obj);
+				}
+
 				if (!i915_gem_object_is_tiled(obj))
+				{
 					i915_gem_object_pin_pages(obj);
+				}
 			}
 
-			list_for_each_entry(vma, &obj->vma_list, obj_link) {
+			list_for_each_entry(vma, &obj->vma_list, obj_link)
+			{
 				if (!vma->fence)
+				{
 					continue;
+				}
 
 				vma->fence->dirty = true;
 			}
@@ -282,17 +371,22 @@ i915_gem_set_tiling(struct drm_device *dev, void *data,
 			i915_gem_release_mmap(obj);
 		}
 	}
+
 	/* we have to maintain this existing ABI... */
 	args->stride = i915_gem_object_get_stride(obj);
 	args->tiling_mode = i915_gem_object_get_tiling(obj);
 
 	/* Try to preallocate memory required to save swizzling on put-pages */
-	if (i915_gem_object_needs_bit17_swizzle(obj)) {
-		if (obj->bit_17 == NULL) {
+	if (i915_gem_object_needs_bit17_swizzle(obj))
+	{
+		if (obj->bit_17 == NULL)
+		{
 			obj->bit_17 = kcalloc(BITS_TO_LONGS(obj->base.size >> PAGE_SHIFT),
-					      sizeof(long), GFP_KERNEL);
+								  sizeof(long), GFP_KERNEL);
 		}
-	} else {
+	}
+	else
+	{
 		kfree(obj->bit_17);
 		obj->bit_17 = NULL;
 	}
@@ -321,40 +415,58 @@ err:
  */
 int
 i915_gem_get_tiling(struct drm_device *dev, void *data,
-		   struct drm_file *file)
+					struct drm_file *file)
 {
 	struct drm_i915_gem_get_tiling *args = data;
 	struct drm_i915_private *dev_priv = to_i915(dev);
 	struct drm_i915_gem_object *obj;
 
 	obj = i915_gem_object_lookup(file, args->handle);
+
 	if (!obj)
+	{
 		return -ENOENT;
+	}
 
 	args->tiling_mode = READ_ONCE(obj->tiling_and_stride) & TILING_MASK;
-	switch (args->tiling_mode) {
-	case I915_TILING_X:
-		args->swizzle_mode = dev_priv->mm.bit_6_swizzle_x;
-		break;
-	case I915_TILING_Y:
-		args->swizzle_mode = dev_priv->mm.bit_6_swizzle_y;
-		break;
-	case I915_TILING_NONE:
-		args->swizzle_mode = I915_BIT_6_SWIZZLE_NONE;
-		break;
-	default:
-		DRM_ERROR("unknown tiling mode\n");
+
+	switch (args->tiling_mode)
+	{
+		case I915_TILING_X:
+			args->swizzle_mode = dev_priv->mm.bit_6_swizzle_x;
+			break;
+
+		case I915_TILING_Y:
+			args->swizzle_mode = dev_priv->mm.bit_6_swizzle_y;
+			break;
+
+		case I915_TILING_NONE:
+			args->swizzle_mode = I915_BIT_6_SWIZZLE_NONE;
+			break;
+
+		default:
+			DRM_ERROR("unknown tiling mode\n");
 	}
 
 	/* Hide bit 17 from the user -- see comment in i915_gem_set_tiling */
 	if (dev_priv->quirks & QUIRK_PIN_SWIZZLED_PAGES)
+	{
 		args->phys_swizzle_mode = I915_BIT_6_SWIZZLE_UNKNOWN;
+	}
 	else
+	{
 		args->phys_swizzle_mode = args->swizzle_mode;
+	}
+
 	if (args->swizzle_mode == I915_BIT_6_SWIZZLE_9_17)
+	{
 		args->swizzle_mode = I915_BIT_6_SWIZZLE_9;
+	}
+
 	if (args->swizzle_mode == I915_BIT_6_SWIZZLE_9_10_17)
+	{
 		args->swizzle_mode = I915_BIT_6_SWIZZLE_9_10;
+	}
 
 	i915_gem_object_put_unlocked(obj);
 	return 0;

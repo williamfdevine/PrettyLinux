@@ -56,9 +56,9 @@
 #include "orangefs-dev-proto.h"
 
 #ifdef ORANGEFS_KERNEL_DEBUG
-#define ORANGEFS_DEFAULT_OP_TIMEOUT_SECS       10
+	#define ORANGEFS_DEFAULT_OP_TIMEOUT_SECS       10
 #else
-#define ORANGEFS_DEFAULT_OP_TIMEOUT_SECS       20
+	#define ORANGEFS_DEFAULT_OP_TIMEOUT_SECS       20
 #endif
 
 #define ORANGEFS_BUFMAP_WAIT_TIMEOUT_SECS   30
@@ -75,9 +75,9 @@
 #define ORANGEFS_MAX_FSKEY_LEN            64
 
 #define MAX_DEV_REQ_UPSIZE (2 * sizeof(__s32) +   \
-sizeof(__u64) + sizeof(struct orangefs_upcall_s))
+							sizeof(__u64) + sizeof(struct orangefs_upcall_s))
 #define MAX_DEV_REQ_DOWNSIZE (2 * sizeof(__s32) + \
-sizeof(__u64) + sizeof(struct orangefs_downcall_s))
+							  sizeof(__u64) + sizeof(struct orangefs_downcall_s))
 
 /*
  * valid orangefs kernel operation states
@@ -90,7 +90,8 @@ sizeof(__u64) + sizeof(struct orangefs_downcall_s))
  *            exited uncleanly before servicing op
  * given up - submitter has given up waiting for it
  */
-enum orangefs_vfs_op_states {
+enum orangefs_vfs_op_states
+{
 	OP_VFS_STATE_UNKNOWN = 0,
 	OP_VFS_STATE_WAITING = 1,
 	OP_VFS_STATE_INPROGR = 2,
@@ -104,9 +105,9 @@ enum orangefs_vfs_op_states {
  */
 
 #if ((defined ORANGEFS_KERNEL_DEBUG) && (defined CONFIG_DEBUG_SLAB))
-#define ORANGEFS_CACHE_CREATE_FLAGS SLAB_RED_ZONE
+	#define ORANGEFS_CACHE_CREATE_FLAGS SLAB_RED_ZONE
 #else
-#define ORANGEFS_CACHE_CREATE_FLAGS 0
+	#define ORANGEFS_CACHE_CREATE_FLAGS 0
 #endif /* ((defined ORANGEFS_KERNEL_DEBUG) && (defined CONFIG_DEBUG_SLAB)) */
 
 extern int orangefs_init_acl(struct inode *inode, struct inode *dir);
@@ -119,7 +120,8 @@ extern int orangefs_set_acl(struct inode *inode, struct posix_acl *acl, int type
  * Redefine xtvec structure so that we could move helper functions out of
  * the define
  */
-struct xtvec {
+struct xtvec
+{
 	__kernel_off_t xtv_off;		/* must be off_t */
 	__kernel_size_t xtv_len;	/* must be size_t */
 };
@@ -127,7 +129,8 @@ struct xtvec {
 /*
  * orangefs data structures
  */
-struct orangefs_kernel_op_s {
+struct orangefs_kernel_op_s
+{
 	enum orangefs_vfs_op_states op_state;
 	__u64 tag;
 
@@ -139,7 +142,8 @@ struct orangefs_kernel_op_s {
 	 * retry logics and cancels don't go through it anymore. It
 	 * safely stays non-zero when we use it as slot_to_free.
 	 */
-	union {
+	union
+	{
 		int uses_shared_memory;
 		int slot_to_free;
 	};
@@ -183,11 +187,15 @@ static inline void put_cancel(struct orangefs_kernel_op_s *op)
 static inline void set_op_state_purged(struct orangefs_kernel_op_s *op)
 {
 	spin_lock(&op->lock);
-	if (unlikely(op_is_cancel(op))) {
+
+	if (unlikely(op_is_cancel(op)))
+	{
 		list_del_init(&op->list);
 		spin_unlock(&op->lock);
 		put_cancel(op);
-	} else {
+	}
+	else
+	{
 		op->op_state |= OP_VFS_STATE_PURGED;
 		complete(&op->waitq);
 		spin_unlock(&op->lock);
@@ -195,7 +203,8 @@ static inline void set_op_state_purged(struct orangefs_kernel_op_s *op)
 }
 
 /* per inode private orangefs info */
-struct orangefs_inode_s {
+struct orangefs_inode_s
+{
 	struct orangefs_object_kref refn;
 	char link_target[ORANGEFS_NAME_MAX];
 	__s64 blksize;
@@ -239,7 +248,8 @@ struct orangefs_inode_s {
 #define ModeFlag(pinode)      test_bit(P_MODE_FLAG, &(pinode)->pinode_flags)
 
 /* per superblock private orangefs info */
-struct orangefs_sb_info_s {
+struct orangefs_sb_info_s
+{
 	struct orangefs_khandle root_khandle;
 	__s32 fs_id;
 	int id;
@@ -258,7 +268,8 @@ struct orangefs_sb_info_s {
  * or even completion notification so that the VFS client-side daemon
  * can free up its vfs_request slots.
  */
-struct orangefs_kiocb_s {
+struct orangefs_kiocb_s
+{
 	/* the pointer to the task that initiated the AIO */
 	struct task_struct *tsk;
 
@@ -291,7 +302,8 @@ struct orangefs_kiocb_s {
 	int needs_cleanup;
 };
 
-struct orangefs_stats {
+struct orangefs_stats
+{
 	unsigned long cache_hits;
 	unsigned long cache_misses;
 	unsigned long reads;
@@ -317,7 +329,8 @@ static inline struct orangefs_sb_info_s *ORANGEFS_SB(struct super_block *sb)
 /* ino_t descends from "unsigned long", 8 bytes, 64 bits. */
 static inline ino_t orangefs_khandle_to_ino(struct orangefs_khandle *khandle)
 {
-	union {
+	union
+	{
 		unsigned char u[8];
 		__u64 ino;
 	} ihandle;
@@ -362,31 +375,39 @@ static inline ino_t get_parent_ino_from_dentry(struct dentry *dentry)
 static inline int is_root_handle(struct inode *inode)
 {
 	gossip_debug(GOSSIP_DCACHE_DEBUG,
-		     "%s: root handle: %pU, this handle: %pU:\n",
-		     __func__,
-		     &ORANGEFS_SB(inode->i_sb)->root_khandle,
-		     get_khandle_from_ino(inode));
+				 "%s: root handle: %pU, this handle: %pU:\n",
+				 __func__,
+				 &ORANGEFS_SB(inode->i_sb)->root_khandle,
+				 get_khandle_from_ino(inode));
 
 	if (ORANGEFS_khandle_cmp(&(ORANGEFS_SB(inode->i_sb)->root_khandle),
-			     get_khandle_from_ino(inode)))
+							 get_khandle_from_ino(inode)))
+	{
 		return 0;
+	}
 	else
+	{
 		return 1;
+	}
 }
 
 static inline int match_handle(struct orangefs_khandle resp_handle,
-			       struct inode *inode)
+							   struct inode *inode)
 {
 	gossip_debug(GOSSIP_DCACHE_DEBUG,
-		     "%s: one handle: %pU, another handle:%pU:\n",
-		     __func__,
-		     &resp_handle,
-		     get_khandle_from_ino(inode));
+				 "%s: one handle: %pU, another handle:%pU:\n",
+				 __func__,
+				 &resp_handle,
+				 get_khandle_from_ino(inode));
 
 	if (ORANGEFS_khandle_cmp(&resp_handle, get_khandle_from_ino(inode)))
+	{
 		return 0;
+	}
 	else
+	{
 		return 1;
+	}
 }
 
 /*
@@ -417,9 +438,9 @@ void purge_waiting_ops(void);
 extern uint64_t orangefs_features;
 
 struct dentry *orangefs_mount(struct file_system_type *fst,
-			   int flags,
-			   const char *devname,
-			   void *data);
+							  int flags,
+							  const char *devname,
+							  void *data);
 
 void orangefs_kill_sb(struct super_block *sb);
 int orangefs_remount(struct orangefs_sb_info_s *);
@@ -432,16 +453,16 @@ void fsid_key_table_finalize(void);
  */
 __u32 convert_to_orangefs_mask(unsigned long lite_mask);
 struct inode *orangefs_new_inode(struct super_block *sb,
-			      struct inode *dir,
-			      int mode,
-			      dev_t dev,
-			      struct orangefs_object_kref *ref);
+								 struct inode *dir,
+								 int mode,
+								 dev_t dev,
+								 struct orangefs_object_kref *ref);
 
 int orangefs_setattr(struct dentry *dentry, struct iattr *iattr);
 
 int orangefs_getattr(struct vfsmount *mnt,
-		  struct dentry *dentry,
-		  struct kstat *kstat);
+					 struct dentry *dentry,
+					 struct kstat *kstat);
 
 int orangefs_permission(struct inode *inode, int mask);
 
@@ -449,15 +470,15 @@ int orangefs_permission(struct inode *inode, int mask);
  * defined in xattr.c
  */
 int orangefs_setxattr(struct dentry *dentry,
-		   const char *name,
-		   const void *value,
-		   size_t size,
-		   int flags);
+					  const char *name,
+					  const void *value,
+					  size_t size,
+					  int flags);
 
 ssize_t orangefs_getxattr(struct dentry *dentry,
-		       const char *name,
-		       void *buffer,
-		       size_t size);
+						  const char *name,
+						  void *buffer,
+						  size_t size);
 
 ssize_t orangefs_listxattr(struct dentry *dentry, char *buffer, size_t size);
 
@@ -465,12 +486,12 @@ ssize_t orangefs_listxattr(struct dentry *dentry, char *buffer, size_t size);
  * defined in namei.c
  */
 struct inode *orangefs_iget(struct super_block *sb,
-			 struct orangefs_object_kref *ref);
+							struct orangefs_object_kref *ref);
 
 ssize_t orangefs_inode_read(struct inode *inode,
-			    struct iov_iter *iter,
-			    loff_t *offset,
-			    loff_t readahead_size);
+							struct iov_iter *iter,
+							loff_t *offset,
+							loff_t readahead_size);
 
 /*
  * defined in devorangefs-req.c
@@ -490,15 +511,15 @@ __s32 fsid_of_op(struct orangefs_kernel_op_s *op);
 int orangefs_flush_inode(struct inode *inode);
 
 ssize_t orangefs_inode_getxattr(struct inode *inode,
-			     const char *name,
-			     void *buffer,
-			     size_t size);
+								const char *name,
+								void *buffer,
+								size_t size);
 
 int orangefs_inode_setxattr(struct inode *inode,
-			 const char *name,
-			 const void *value,
-			 size_t size,
-			 int flags);
+							const char *name,
+							const void *value,
+							size_t size,
+							int flags);
 
 int orangefs_inode_getattr(struct inode *inode, int new, int bypass);
 
@@ -551,23 +572,23 @@ extern wait_queue_head_t orangefs_bufmap_init_waitq;
 #define ORANGEFS_OP_ASYNC         16  /* Queue it, but don't wait */
 
 int service_operation(struct orangefs_kernel_op_s *op,
-		      const char *op_name,
-		      int flags);
+					  const char *op_name,
+					  int flags);
 
 #define get_interruptible_flag(inode) \
 	((ORANGEFS_SB(inode->i_sb)->flags & ORANGEFS_OPT_INTR) ? \
-		ORANGEFS_OP_INTERRUPTIBLE : 0)
+	 ORANGEFS_OP_INTERRUPTIBLE : 0)
 
 #define fill_default_sys_attrs(sys_attr, type, mode)			\
-do {									\
-	sys_attr.owner = from_kuid(&init_user_ns, current_fsuid()); \
-	sys_attr.group = from_kgid(&init_user_ns, current_fsgid()); \
-	sys_attr.perms = ORANGEFS_util_translate_mode(mode);		\
-	sys_attr.mtime = 0;						\
-	sys_attr.atime = 0;						\
-	sys_attr.ctime = 0;						\
-	sys_attr.mask = ORANGEFS_ATTR_SYS_ALL_SETABLE;			\
-} while (0)
+	do {									\
+		sys_attr.owner = from_kuid(&init_user_ns, current_fsuid()); \
+		sys_attr.group = from_kgid(&init_user_ns, current_fsgid()); \
+		sys_attr.perms = ORANGEFS_util_translate_mode(mode);		\
+		sys_attr.mtime = 0;						\
+		sys_attr.atime = 0;						\
+		sys_attr.ctime = 0;						\
+		sys_attr.mask = ORANGEFS_ATTR_SYS_ALL_SETABLE;			\
+	} while (0)
 
 static inline void orangefs_i_size_write(struct inode *inode, loff_t i_size)
 {
@@ -582,7 +603,7 @@ static inline void orangefs_i_size_write(struct inode *inode, loff_t i_size)
 
 static inline void orangefs_set_timeout(struct dentry *dentry)
 {
-	unsigned long time = jiffies + orangefs_dcache_timeout_msecs*HZ/1000;
+	unsigned long time = jiffies + orangefs_dcache_timeout_msecs * HZ / 1000;
 
 	dentry->d_fsdata = (void *) time;
 }

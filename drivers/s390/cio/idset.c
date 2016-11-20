@@ -9,7 +9,8 @@
 #include "idset.h"
 #include "css.h"
 
-struct idset {
+struct idset
+{
 	int num_ssid;
 	int num_id;
 	unsigned long bitmap[0];
@@ -25,11 +26,14 @@ static struct idset *idset_new(int num_ssid, int num_id)
 	struct idset *set;
 
 	set = vmalloc(sizeof(struct idset) + bitmap_size(num_ssid, num_id));
-	if (set) {
+
+	if (set)
+	{
 		set->num_ssid = num_ssid;
 		set->num_id = num_id;
 		memset(set->bitmap, 0, bitmap_size(num_ssid, num_id));
 	}
+
 	return set;
 }
 
@@ -63,8 +67,12 @@ static inline int idset_get_first(struct idset *set, int *ssid, int *id)
 	int bitnum;
 
 	bitnum = find_first_bit(set->bitmap, set->num_ssid * set->num_id);
+
 	if (bitnum >= set->num_ssid * set->num_id)
+	{
 		return 0;
+	}
+
 	*ssid = bitnum / set->num_id;
 	*id = bitnum % set->num_id;
 	return 1;

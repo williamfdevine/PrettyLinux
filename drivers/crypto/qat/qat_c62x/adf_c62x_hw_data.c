@@ -50,17 +50,20 @@
 #include "adf_c62x_hw_data.h"
 
 /* Worker thread to service arbiter mappings based on dev SKUs */
-static const u32 thrd_to_arb_map_8_me_sku[] = {
+static const u32 thrd_to_arb_map_8_me_sku[] =
+{
 	0x12222AAA, 0x11222AAA, 0x12222AAA, 0x11222AAA, 0x12222AAA,
 	0x11222AAA, 0x12222AAA, 0x11222AAA, 0, 0
 };
 
-static const u32 thrd_to_arb_map_10_me_sku[] = {
+static const u32 thrd_to_arb_map_10_me_sku[] =
+{
 	0x12222AAA, 0x11222AAA, 0x12222AAA, 0x11222AAA, 0x12222AAA,
 	0x11222AAA, 0x12222AAA, 0x11222AAA, 0x12222AAA, 0x11222AAA
 };
 
-static struct adf_hw_device_class c62x_class = {
+static struct adf_hw_device_class c62x_class =
+{
 	.name = ADF_C62X_DEVICE_NAME,
 	.type = DEV_C62X,
 	.instances = 0
@@ -69,7 +72,7 @@ static struct adf_hw_device_class c62x_class = {
 static u32 get_accel_mask(u32 fuse)
 {
 	return (~fuse) >> ADF_C62X_ACCELERATORS_REG_OFFSET &
-			  ADF_C62X_ACCELERATORS_MASK;
+		   ADF_C62X_ACCELERATORS_MASK;
 }
 
 static u32 get_ae_mask(u32 fuse)
@@ -82,12 +85,18 @@ static u32 get_num_accels(struct adf_hw_device_data *self)
 	u32 i, ctr = 0;
 
 	if (!self || !self->accel_mask)
+	{
 		return 0;
-
-	for (i = 0; i < ADF_C62X_MAX_ACCELERATORS; i++) {
-		if (self->accel_mask & (1 << i))
-			ctr++;
 	}
+
+	for (i = 0; i < ADF_C62X_MAX_ACCELERATORS; i++)
+	{
+		if (self->accel_mask & (1 << i))
+		{
+			ctr++;
+		}
+	}
+
 	return ctr;
 }
 
@@ -96,12 +105,18 @@ static u32 get_num_aes(struct adf_hw_device_data *self)
 	u32 i, ctr = 0;
 
 	if (!self || !self->ae_mask)
+	{
 		return 0;
-
-	for (i = 0; i < ADF_C62X_MAX_ACCELENGINES; i++) {
-		if (self->ae_mask & (1 << i))
-			ctr++;
 	}
+
+	for (i = 0; i < ADF_C62X_MAX_ACCELENGINES; i++)
+	{
+		if (self->ae_mask & (1 << i))
+		{
+			ctr++;
+		}
+	}
+
 	return ctr;
 }
 
@@ -125,27 +140,34 @@ static enum dev_sku_info get_sku(struct adf_hw_device_data *self)
 	int aes = get_num_aes(self);
 
 	if (aes == 8)
+	{
 		return DEV_SKU_2;
+	}
 	else if (aes == 10)
+	{
 		return DEV_SKU_4;
+	}
 
 	return DEV_SKU_UNKNOWN;
 }
 
 static void adf_get_arbiter_mapping(struct adf_accel_dev *accel_dev,
-				    u32 const **arb_map_config)
+									u32 const **arb_map_config)
 {
-	switch (accel_dev->accel_pci_dev.sku) {
-	case DEV_SKU_2:
-		*arb_map_config = thrd_to_arb_map_8_me_sku;
-		break;
-	case DEV_SKU_4:
-		*arb_map_config = thrd_to_arb_map_10_me_sku;
-		break;
-	default:
-		dev_err(&GET_DEV(accel_dev),
-			"The configuration doesn't match any SKU");
-		*arb_map_config = NULL;
+	switch (accel_dev->accel_pci_dev.sku)
+	{
+		case DEV_SKU_2:
+			*arb_map_config = thrd_to_arb_map_8_me_sku;
+			break;
+
+		case DEV_SKU_4:
+			*arb_map_config = thrd_to_arb_map_10_me_sku;
+			break;
+
+		default:
+			dev_err(&GET_DEV(accel_dev),
+					"The configuration doesn't match any SKU");
+			*arb_map_config = NULL;
 	}
 }
 
@@ -167,7 +189,8 @@ static void adf_enable_error_correction(struct adf_accel_dev *accel_dev)
 	unsigned int val, i;
 
 	/* Enable Accel Engine error detection & correction */
-	for (i = 0; i < hw_device->get_num_aes(hw_device); i++) {
+	for (i = 0; i < hw_device->get_num_aes(hw_device); i++)
+	{
 		val = ADF_CSR_RD(csr, ADF_C62X_AE_CTX_ENABLES(i));
 		val |= ADF_C62X_ENABLE_AE_ECC_ERR;
 		ADF_CSR_WR(csr, ADF_C62X_AE_CTX_ENABLES(i), val);
@@ -177,7 +200,8 @@ static void adf_enable_error_correction(struct adf_accel_dev *accel_dev)
 	}
 
 	/* Enable shared memory error detection & correction */
-	for (i = 0; i < hw_device->get_num_accels(hw_device); i++) {
+	for (i = 0; i < hw_device->get_num_accels(hw_device); i++)
+	{
 		val = ADF_CSR_RD(csr, ADF_C62X_UERRSSMSH(i));
 		val |= ADF_C62X_ERRSSMSH_EN;
 		ADF_CSR_WR(csr, ADF_C62X_UERRSSMSH(i), val);
@@ -195,9 +219,9 @@ static void adf_enable_ints(struct adf_accel_dev *accel_dev)
 
 	/* Enable bundle and misc interrupts */
 	ADF_CSR_WR(addr, ADF_C62X_SMIAPF0_MASK_OFFSET,
-		   ADF_C62X_SMIA0_MASK);
+			   ADF_C62X_SMIA0_MASK);
 	ADF_CSR_WR(addr, ADF_C62X_SMIAPF1_MASK_OFFSET,
-		   ADF_C62X_SMIA1_MASK);
+			   ADF_C62X_SMIA1_MASK);
 }
 
 static int adf_pf_enable_vf2pf_comms(struct adf_accel_dev *accel_dev)

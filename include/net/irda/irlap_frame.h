@@ -1,5 +1,5 @@
 /*********************************************************************
- *                
+ *
  * Filename:      irlap_frame.h
  * Version:       0.9
  * Description:   IrLAP frame declarations
@@ -8,24 +8,24 @@
  * Created at:    Tue Aug 19 10:27:26 1997
  * Modified at:   Sat Dec 25 21:07:26 1999
  * Modified by:   Dag Brattli <dagb@cs.uit.no>
- * 
+ *
  *     Copyright (c) 1997-1999 Dag Brattli <dagb@cs.uit.no>,
  *     All Rights Reserved.
  *     Copyright (c) 2000-2002 Jean Tourrilhes <jt@hpl.hp.com>
- *     
- *     This program is free software; you can redistribute it and/or 
- *     modify it under the terms of the GNU General Public License as 
- *     published by the Free Software Foundation; either version 2 of 
+ *
+ *     This program is free software; you can redistribute it and/or
+ *     modify it under the terms of the GNU General Public License as
+ *     published by the Free Software Foundation; either version 2 of
  *     the License, or (at your option) any later version.
- * 
+ *
  *     This program is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
  *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  *     GNU General Public License for more details.
- * 
- *     You should have received a copy of the GNU General Public License 
+ *
+ *     You should have received a copy of the GNU General Public License
  *     along with this program; if not, see <http://www.gnu.org/licenses/>.
- *     
+ *
  ********************************************************************/
 
 #ifndef IRLAP_FRAME_H
@@ -80,15 +80,17 @@ struct discovery_t;
 #define IRLAP_NEGOCIATION_PARAMS_LEN 25
 #define IRLAP_DISCOVERY_INFO_LEN     32
 
-struct disc_frame {
+struct disc_frame
+{
 	__u8 caddr;          /* Connection address */
 	__u8 control;
 } __packed;
 
-struct xid_frame {
+struct xid_frame
+{
 	__u8  caddr; /* Connection address */
 	__u8  control;
-	__u8  ident; /* Should always be XID_FORMAT */ 
+	__u8  ident; /* Should always be XID_FORMAT */
 	__le32 saddr; /* Source device address */
 	__le32 daddr; /* Destination device address */
 	__u8  flags; /* Discovery flags */
@@ -96,41 +98,48 @@ struct xid_frame {
 	__u8  version;
 } __packed;
 
-struct test_frame {
+struct test_frame
+{
 	__u8 caddr;          /* Connection address */
 	__u8 control;
 	__le32 saddr;         /* Source device address */
 	__le32 daddr;         /* Destination device address */
 } __packed;
 
-struct ua_frame {
+struct ua_frame
+{
 	__u8 caddr;
 	__u8 control;
 	__le32 saddr; /* Source device address */
 	__le32 daddr; /* Dest device address */
 } __packed;
 
-struct dm_frame {
+struct dm_frame
+{
 	__u8 caddr;          /* Connection address */
 	__u8 control;
 } __packed;
 
-struct rd_frame {
+struct rd_frame
+{
 	__u8 caddr;          /* Connection address */
 	__u8 control;
 } __packed;
 
-struct rr_frame {
+struct rr_frame
+{
 	__u8 caddr;          /* Connection address */
 	__u8 control;
 } __packed;
 
-struct i_frame {
+struct i_frame
+{
 	__u8 caddr;
 	__u8 control;
 } __packed;
 
-struct snrm_frame {
+struct snrm_frame
+{
 	__u8  caddr;
 	__u8  control;
 	__le32 saddr;
@@ -139,12 +148,12 @@ struct snrm_frame {
 } __packed;
 
 void irlap_queue_xmit(struct irlap_cb *self, struct sk_buff *skb);
-void irlap_send_discovery_xid_frame(struct irlap_cb *, int S, __u8 s, 
-				    __u8 command,
-				    struct discovery_t *discovery);
+void irlap_send_discovery_xid_frame(struct irlap_cb *, int S, __u8 s,
+									__u8 command,
+									struct discovery_t *discovery);
 void irlap_send_snrm_frame(struct irlap_cb *, struct qos_info *);
-void irlap_send_test_frame(struct irlap_cb *self, __u8 caddr, __u32 daddr, 
-			   struct sk_buff *cmd);
+void irlap_send_test_frame(struct irlap_cb *self, __u8 caddr, __u32 daddr,
+						   struct sk_buff *cmd);
 void irlap_send_ua_response_frame(struct irlap_cb *, struct qos_info *);
 void irlap_send_dm_frame(struct irlap_cb *self);
 void irlap_send_rd_frame(struct irlap_cb *self);
@@ -159,9 +168,9 @@ void irlap_resend_rejected_frames(struct irlap_cb *, int command);
 void irlap_resend_rejected_frame(struct irlap_cb *self, int command);
 
 void irlap_send_ui_frame(struct irlap_cb *self, struct sk_buff *skb,
-			 __u8 caddr, int command);
+						 __u8 caddr, int command);
 
 int irlap_insert_qos_negotiation_params(struct irlap_cb *self,
-					struct sk_buff *skb);
+										struct sk_buff *skb);
 
 #endif

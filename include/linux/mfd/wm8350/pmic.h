@@ -707,13 +707,15 @@ struct regulator_init_data;
 /*
  * WM8350 LED platform data
  */
-struct wm8350_led_platform_data {
+struct wm8350_led_platform_data
+{
 	const char *name;
 	const char *default_trigger;
 	int max_uA;
 };
 
-struct wm8350_led {
+struct wm8350_led
+{
 	struct platform_device *pdev;
 	struct work_struct work;
 	spinlock_t value_lock;
@@ -730,7 +732,8 @@ struct wm8350_led {
 	struct regulator_init_data dcdc_init;
 };
 
-struct wm8350_pmic {
+struct wm8350_pmic
+{
 	/* Number of regulators of each type on this device */
 	int max_dcdc;
 	int max_isink;
@@ -753,17 +756,17 @@ struct wm8350_pmic {
 };
 
 int wm8350_register_regulator(struct wm8350 *wm8350, int reg,
-			      struct regulator_init_data *initdata);
+							  struct regulator_init_data *initdata);
 int wm8350_register_led(struct wm8350 *wm8350, int lednum, int dcdc, int isink,
-			struct wm8350_led_platform_data *pdata);
+						struct wm8350_led_platform_data *pdata);
 
 /*
  * Additional DCDC control not supported via regulator API
  */
 int wm8350_dcdc_set_slot(struct wm8350 *wm8350, int dcdc, u16 start,
-			 u16 stop, u16 fault);
+						 u16 stop, u16 fault);
 int wm8350_dcdc25_set_mode(struct wm8350 *wm8350, int dcdc, u16 mode,
-			   u16 ilim, u16 ramp, u16 feedback);
+						   u16 ilim, u16 ramp, u16 feedback);
 
 /*
  * Additional LDO control not supported via regulator API
@@ -774,7 +777,7 @@ int wm8350_ldo_set_slot(struct wm8350 *wm8350, int ldo, u16 start, u16 stop);
  * Additional ISINK control not supported via regulator API
  */
 int wm8350_isink_set_flash(struct wm8350 *wm8350, int isink, u16 mode,
-			   u16 trigger, u16 duration, u16 on_ramp,
-			   u16 off_ramp, u16 drive);
+						   u16 trigger, u16 duration, u16 on_ramp,
+						   u16 off_ramp, u16 drive);
 
 #endif

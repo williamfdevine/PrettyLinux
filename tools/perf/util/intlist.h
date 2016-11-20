@@ -6,13 +6,15 @@
 
 #include "rblist.h"
 
-struct int_node {
+struct int_node
+{
 	struct rb_node rb_node;
 	int i;
 	void *priv;
 };
 
-struct intlist {
+struct intlist
+{
 	struct rblist rblist;
 };
 
@@ -50,8 +52,12 @@ static inline struct int_node *intlist__first(struct intlist *ilist)
 static inline struct int_node *intlist__next(struct int_node *in)
 {
 	struct rb_node *rn;
+
 	if (!in)
+	{
 		return NULL;
+	}
+
 	rn = rb_next(&in->rb_node);
 	return rn ? rb_entry(rn, struct int_node, rb_node) : NULL;
 }
@@ -73,5 +79,5 @@ static inline struct int_node *intlist__next(struct int_node *in)
  */
 #define intlist__for_each_entry_safe(pos, n, ilist)	\
 	for (pos = intlist__first(ilist), n = intlist__next(pos); pos;\
-	     pos = n, n = intlist__next(n))
+		 pos = n, n = intlist__next(n))
 #endif /* __PERF_INTLIST_H */

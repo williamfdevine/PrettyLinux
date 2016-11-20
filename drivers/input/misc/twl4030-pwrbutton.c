@@ -40,13 +40,17 @@ static irqreturn_t powerbutton_irq(int irq, void *_pwr)
 	u8 value;
 
 	err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &value, STS_HW_CONDITIONS);
-	if (!err)  {
+
+	if (!err)
+	{
 		pm_wakeup_event(pwr->dev.parent, 0);
 		input_report_key(pwr, KEY_POWER, value & PWR_PWRON_IRQ);
 		input_sync(pwr);
-	} else {
+	}
+	else
+	{
 		dev_err(pwr->dev.parent, "twl4030: i2c error %d while reading"
-			" TWL4030 PM_MASTER STS_HW_CONDITIONS register\n", err);
+				" TWL4030 PM_MASTER STS_HW_CONDITIONS register\n", err);
 	}
 
 	return IRQ_HANDLED;
@@ -59,7 +63,9 @@ static int twl4030_pwrbutton_probe(struct platform_device *pdev)
 	int err;
 
 	pwr = devm_input_allocate_device(&pdev->dev);
-	if (!pwr) {
+
+	if (!pwr)
+	{
 		dev_err(&pdev->dev, "Can't allocate power button\n");
 		return -ENOMEM;
 	}
@@ -71,16 +77,20 @@ static int twl4030_pwrbutton_probe(struct platform_device *pdev)
 	pwr->dev.parent = &pdev->dev;
 
 	err = devm_request_threaded_irq(&pwr->dev, irq, NULL, powerbutton_irq,
-			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING |
-			IRQF_ONESHOT,
-			"twl4030_pwrbutton", pwr);
-	if (err < 0) {
+									IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING |
+									IRQF_ONESHOT,
+									"twl4030_pwrbutton", pwr);
+
+	if (err < 0)
+	{
 		dev_err(&pdev->dev, "Can't get IRQ for pwrbutton: %d\n", err);
 		return err;
 	}
 
 	err = input_register_device(pwr);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Can't register power button: %d\n", err);
 		return err;
 	}
@@ -92,14 +102,16 @@ static int twl4030_pwrbutton_probe(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id twl4030_pwrbutton_dt_match_table[] = {
-       { .compatible = "ti,twl4030-pwrbutton" },
-       {},
+static const struct of_device_id twl4030_pwrbutton_dt_match_table[] =
+{
+	{ .compatible = "ti,twl4030-pwrbutton" },
+	{},
 };
 MODULE_DEVICE_TABLE(of, twl4030_pwrbutton_dt_match_table);
 #endif
 
-static struct platform_driver twl4030_pwrbutton_driver = {
+static struct platform_driver twl4030_pwrbutton_driver =
+{
 	.probe		= twl4030_pwrbutton_probe,
 	.driver		= {
 		.name	= "twl4030_pwrbutton",

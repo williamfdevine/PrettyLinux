@@ -61,8 +61,8 @@ module_param(eee_timer, int, S_IRUGO | S_IWUSR);
 
 module_param(debug, int, S_IRUGO | S_IWUSR);
 static const u32 default_msg_level = (NETIF_MSG_DRV | NETIF_MSG_PROBE |
-				      NETIF_MSG_LINK | NETIF_MSG_IFUP |
-				      NETIF_MSG_IFDOWN | NETIF_MSG_TIMER);
+									  NETIF_MSG_LINK | NETIF_MSG_IFUP |
+									  NETIF_MSG_IFDOWN | NETIF_MSG_TIMER);
 
 static irqreturn_t sxgbe_common_interrupt(int irq, void *dev_id);
 static irqreturn_t sxgbe_tx_interrupt(int irq, void *dev_id);
@@ -80,17 +80,21 @@ static irqreturn_t sxgbe_rx_interrupt(int irq, void *dev_id);
 static void sxgbe_verify_args(void)
 {
 	if (unlikely(eee_timer < 0))
+	{
 		eee_timer = SXGBE_DEFAULT_LPI_TIMER;
+	}
 }
 
 static void sxgbe_enable_eee_mode(const struct sxgbe_priv_data *priv)
 {
 	/* Check and enter in LPI mode */
 	if (!priv->tx_path_in_lpi_mode)
+	{
 		priv->hw->mac->set_eee_mode(priv->ioaddr);
+	}
 }
 
-void sxgbe_disable_eee_mode(struct sxgbe_priv_data * const priv)
+void sxgbe_disable_eee_mode(struct sxgbe_priv_data *const priv)
 {
 	/* Exit and disable EEE in case of we are are in LPI state. */
 	priv->hw->mac->reset_eee_mode(priv->ioaddr);
@@ -122,26 +126,29 @@ static void sxgbe_eee_ctrl_timer(unsigned long arg)
  *  phy can also manage EEE, so enable the LPI state and start the timer
  *  to verify if the tx path can enter in LPI state.
  */
-bool sxgbe_eee_init(struct sxgbe_priv_data * const priv)
+bool sxgbe_eee_init(struct sxgbe_priv_data *const priv)
 {
 	struct net_device *ndev = priv->dev;
 	bool ret = false;
 
 	/* MAC core supports the EEE feature. */
-	if (priv->hw_cap.eee) {
+	if (priv->hw_cap.eee)
+	{
 		/* Check if the PHY supports EEE */
 		if (phy_init_eee(ndev->phydev, 1))
+		{
 			return false;
+		}
 
 		priv->eee_active = 1;
 		setup_timer(&priv->eee_ctrl_timer, sxgbe_eee_ctrl_timer,
-			    (unsigned long)priv);
+					(unsigned long)priv);
 		priv->eee_ctrl_timer.expires = SXGBE_LPI_TIMER(eee_timer);
 		add_timer(&priv->eee_ctrl_timer);
 
 		priv->hw->mac->set_eee_timer(priv->ioaddr,
-					     SXGBE_DEFAULT_LPI_TIMER,
-					     priv->tx_lpi_timer);
+									 SXGBE_DEFAULT_LPI_TIMER,
+									 priv->tx_lpi_timer);
 
 		pr_info("Energy-Efficient Ethernet initialized\n");
 
@@ -160,7 +167,9 @@ static void sxgbe_eee_adjust(const struct sxgbe_priv_data *priv)
 	 * to the PHY link status. For this reason.
 	 */
 	if (priv->eee_enabled)
+	{
 		priv->hw->mac->set_eee_pls(priv->ioaddr, ndev->phydev->link);
+	}
 }
 
 /**
@@ -177,17 +186,29 @@ static void sxgbe_clk_csr_set(struct sxgbe_priv_data *priv)
 	 * mdio communication
 	 */
 	if (clk_rate < SXGBE_CSR_F_150M)
+	{
 		priv->clk_csr = SXGBE_CSR_100_150M;
+	}
 	else if (clk_rate <= SXGBE_CSR_F_250M)
+	{
 		priv->clk_csr = SXGBE_CSR_150_250M;
+	}
 	else if (clk_rate <= SXGBE_CSR_F_300M)
+	{
 		priv->clk_csr = SXGBE_CSR_250_300M;
+	}
 	else if (clk_rate <= SXGBE_CSR_F_350M)
+	{
 		priv->clk_csr = SXGBE_CSR_300_350M;
+	}
 	else if (clk_rate <= SXGBE_CSR_F_400M)
+	{
 		priv->clk_csr = SXGBE_CSR_350_400M;
+	}
 	else if (clk_rate <= SXGBE_CSR_F_500M)
+	{
 		priv->clk_csr = SXGBE_CSR_400_500M;
+	}
 }
 
 /* minimum number of free TX descriptors required to wake up TX process */
@@ -211,47 +232,61 @@ static void sxgbe_adjust_link(struct net_device *dev)
 	u8 speed = 0xff;
 
 	if (!phydev)
+	{
 		return;
+	}
 
 	/* SXGBE is not supporting auto-negotiation and
 	 * half duplex mode. so, not handling duplex change
 	 * in this function. only handling speed and link status
 	 */
-	if (phydev->link) {
-		if (phydev->speed != priv->speed) {
+	if (phydev->link)
+	{
+		if (phydev->speed != priv->speed)
+		{
 			new_state = 1;
-			switch (phydev->speed) {
-			case SPEED_10000:
-				speed = SXGBE_SPEED_10G;
-				break;
-			case SPEED_2500:
-				speed = SXGBE_SPEED_2_5G;
-				break;
-			case SPEED_1000:
-				speed = SXGBE_SPEED_1G;
-				break;
-			default:
-				netif_err(priv, link, dev,
-					  "Speed (%d) not supported\n",
-					  phydev->speed);
+
+			switch (phydev->speed)
+			{
+				case SPEED_10000:
+					speed = SXGBE_SPEED_10G;
+					break;
+
+				case SPEED_2500:
+					speed = SXGBE_SPEED_2_5G;
+					break;
+
+				case SPEED_1000:
+					speed = SXGBE_SPEED_1G;
+					break;
+
+				default:
+					netif_err(priv, link, dev,
+							  "Speed (%d) not supported\n",
+							  phydev->speed);
 			}
 
 			priv->speed = phydev->speed;
 			priv->hw->mac->set_speed(priv->ioaddr, speed);
 		}
 
-		if (!priv->oldlink) {
+		if (!priv->oldlink)
+		{
 			new_state = 1;
 			priv->oldlink = 1;
 		}
-	} else if (priv->oldlink) {
+	}
+	else if (priv->oldlink)
+	{
 		new_state = 1;
 		priv->oldlink = 0;
 		priv->speed = SPEED_UNKNOWN;
 	}
 
 	if (new_state & netif_msg_link(priv))
+	{
 		phy_print_status(phydev);
+	}
 
 	/* Alter the MAC settings for EEE */
 	sxgbe_eee_adjust(priv);
@@ -280,34 +315,37 @@ static int sxgbe_init_phy(struct net_device *ndev)
 
 	if (priv->plat->phy_bus_name)
 		snprintf(bus_id, MII_BUS_ID_SIZE, "%s-%x",
-			 priv->plat->phy_bus_name, priv->plat->bus_id);
+				 priv->plat->phy_bus_name, priv->plat->bus_id);
 	else
 		snprintf(bus_id, MII_BUS_ID_SIZE, "sxgbe-%x",
-			 priv->plat->bus_id);
+				 priv->plat->bus_id);
 
 	snprintf(phy_id_fmt, MII_BUS_ID_SIZE + 3, PHY_ID_FMT, bus_id,
-		 priv->plat->phy_addr);
+			 priv->plat->phy_addr);
 	netdev_dbg(ndev, "%s: trying to attach to %s\n", __func__, phy_id_fmt);
 
 	phydev = phy_connect(ndev, phy_id_fmt, &sxgbe_adjust_link, phy_iface);
 
-	if (IS_ERR(phydev)) {
+	if (IS_ERR(phydev))
+	{
 		netdev_err(ndev, "Could not attach to PHY\n");
 		return PTR_ERR(phydev);
 	}
 
 	/* Stop Advertising 1000BASE Capability if interface is not GMII */
 	if ((phy_iface == PHY_INTERFACE_MODE_MII) ||
-	    (phy_iface == PHY_INTERFACE_MODE_RMII))
+		(phy_iface == PHY_INTERFACE_MODE_RMII))
 		phydev->advertising &= ~(SUPPORTED_1000baseT_Half |
-					 SUPPORTED_1000baseT_Full);
-	if (phydev->phy_id == 0) {
+								 SUPPORTED_1000baseT_Full);
+
+	if (phydev->phy_id == 0)
+	{
 		phy_disconnect(phydev);
 		return -ENODEV;
 	}
 
 	netdev_dbg(ndev, "%s: attached to PHY (UID 0x%x) Link = %d\n",
-		   __func__, phydev->phy_id, phydev->link);
+			   __func__, phydev->phy_id, phydev->link);
 
 	return 0;
 }
@@ -325,36 +363,44 @@ static void sxgbe_clear_descriptors(struct sxgbe_priv_data *priv)
 	unsigned int rxsize = priv->dma_rx_size;
 
 	/* Clear the Rx/Tx descriptors */
-	for (j = 0; j < SXGBE_RX_QUEUES; j++) {
+	for (j = 0; j < SXGBE_RX_QUEUES; j++)
+	{
 		for (i = 0; i < rxsize; i++)
 			priv->hw->desc->init_rx_desc(&priv->rxq[j]->dma_rx[i],
-						     priv->use_riwt, priv->mode,
-						     (i == rxsize - 1));
+										 priv->use_riwt, priv->mode,
+										 (i == rxsize - 1));
 	}
 
-	for (j = 0; j < SXGBE_TX_QUEUES; j++) {
+	for (j = 0; j < SXGBE_TX_QUEUES; j++)
+	{
 		for (i = 0; i < txsize; i++)
+		{
 			priv->hw->desc->init_tx_desc(&priv->txq[j]->dma_tx[i]);
+		}
 	}
 }
 
 static int sxgbe_init_rx_buffers(struct net_device *dev,
-				 struct sxgbe_rx_norm_desc *p, int i,
-				 unsigned int dma_buf_sz,
-				 struct sxgbe_rx_queue *rx_ring)
+								 struct sxgbe_rx_norm_desc *p, int i,
+								 unsigned int dma_buf_sz,
+								 struct sxgbe_rx_queue *rx_ring)
 {
 	struct sxgbe_priv_data *priv = netdev_priv(dev);
 	struct sk_buff *skb;
 
 	skb = __netdev_alloc_skb_ip_align(dev, dma_buf_sz, GFP_KERNEL);
+
 	if (!skb)
+	{
 		return -ENOMEM;
+	}
 
 	rx_ring->rx_skbuff[i] = skb;
 	rx_ring->rx_skbuff_dma[i] = dma_map_single(priv->device, skb->data,
-						   dma_buf_sz, DMA_FROM_DEVICE);
+								dma_buf_sz, DMA_FROM_DEVICE);
 
-	if (dma_mapping_error(priv->device, rx_ring->rx_skbuff_dma[i])) {
+	if (dma_mapping_error(priv->device, rx_ring->rx_skbuff_dma[i]))
+	{
 		netdev_err(dev, "%s: DMA mapping error\n", __func__);
 		dev_kfree_skb_any(skb);
 		return -EINVAL;
@@ -373,15 +419,15 @@ static int sxgbe_init_rx_buffers(struct net_device *dev,
  * Description:  this function initializes the DMA RX descriptor
  */
 static void sxgbe_free_rx_buffers(struct net_device *dev,
-				  struct sxgbe_rx_norm_desc *p, int i,
-				  unsigned int dma_buf_sz,
-				  struct sxgbe_rx_queue *rx_ring)
+								  struct sxgbe_rx_norm_desc *p, int i,
+								  unsigned int dma_buf_sz,
+								  struct sxgbe_rx_queue *rx_ring)
 {
 	struct sxgbe_priv_data *priv = netdev_priv(dev);
 
 	kfree_skb(rx_ring->rx_skbuff[i]);
 	dma_unmap_single(priv->device, rx_ring->rx_skbuff_dma[i],
-			 dma_buf_sz, DMA_FROM_DEVICE);
+					 dma_buf_sz, DMA_FROM_DEVICE);
 }
 
 /**
@@ -392,32 +438,41 @@ static void sxgbe_free_rx_buffers(struct net_device *dev,
  * Description:  this function initializes the DMA TX descriptor
  */
 static int init_tx_ring(struct device *dev, u8 queue_no,
-			struct sxgbe_tx_queue *tx_ring,	int tx_rsize)
+						struct sxgbe_tx_queue *tx_ring,	int tx_rsize)
 {
 	/* TX ring is not allcoated */
-	if (!tx_ring) {
+	if (!tx_ring)
+	{
 		dev_err(dev, "No memory for TX queue of SXGBE\n");
 		return -ENOMEM;
 	}
 
 	/* allocate memory for TX descriptors */
 	tx_ring->dma_tx = dma_zalloc_coherent(dev,
-					      tx_rsize * sizeof(struct sxgbe_tx_norm_desc),
-					      &tx_ring->dma_tx_phy, GFP_KERNEL);
+										  tx_rsize * sizeof(struct sxgbe_tx_norm_desc),
+										  &tx_ring->dma_tx_phy, GFP_KERNEL);
+
 	if (!tx_ring->dma_tx)
+	{
 		return -ENOMEM;
+	}
 
 	/* allocate memory for TX skbuff array */
 	tx_ring->tx_skbuff_dma = devm_kcalloc(dev, tx_rsize,
-					      sizeof(dma_addr_t), GFP_KERNEL);
+										  sizeof(dma_addr_t), GFP_KERNEL);
+
 	if (!tx_ring->tx_skbuff_dma)
+	{
 		goto dmamem_err;
+	}
 
 	tx_ring->tx_skbuff = devm_kcalloc(dev, tx_rsize,
-					  sizeof(struct sk_buff *), GFP_KERNEL);
+									  sizeof(struct sk_buff *), GFP_KERNEL);
 
 	if (!tx_ring->tx_skbuff)
+	{
 		goto dmamem_err;
+	}
 
 	/* assign queue number */
 	tx_ring->queue_no = queue_no;
@@ -433,7 +488,7 @@ static int init_tx_ring(struct device *dev, u8 queue_no,
 
 dmamem_err:
 	dma_free_coherent(dev, tx_rsize * sizeof(struct sxgbe_tx_norm_desc),
-			  tx_ring->dma_tx, tx_ring->dma_tx_phy);
+					  tx_ring->dma_tx, tx_ring->dma_tx_phy);
 	return -ENOMEM;
 }
 
@@ -445,10 +500,10 @@ dmamem_err:
  * Description:  this function initializes the DMA RX descriptor
  */
 static void free_rx_ring(struct device *dev, struct sxgbe_rx_queue *rx_ring,
-			 int rx_rsize)
+						 int rx_rsize)
 {
 	dma_free_coherent(dev, rx_rsize * sizeof(struct sxgbe_rx_norm_desc),
-			  rx_ring->dma_rx, rx_ring->dma_rx_phy);
+					  rx_ring->dma_rx, rx_ring->dma_rx_phy);
 	kfree(rx_ring->rx_skbuff_dma);
 	kfree(rx_ring->rx_skbuff);
 }
@@ -461,7 +516,7 @@ static void free_rx_ring(struct device *dev, struct sxgbe_rx_queue *rx_ring,
  * Description:  this function initializes the DMA RX descriptor
  */
 static int init_rx_ring(struct net_device *dev, u8 queue_no,
-			struct sxgbe_rx_queue *rx_ring,	int rx_rsize)
+						struct sxgbe_rx_queue *rx_ring,	int rx_rsize)
 {
 	struct sxgbe_priv_data *priv = netdev_priv(dev);
 	int desc_index;
@@ -474,7 +529,8 @@ static int init_rx_ring(struct net_device *dev, u8 queue_no,
 	netif_dbg(priv, probe, dev, "%s: bfsize %d\n", __func__, bfsize);
 
 	/* RX ring is not allcoated */
-	if (rx_ring == NULL) {
+	if (rx_ring == NULL)
+	{
 		netdev_err(dev, "No memory for RX queue\n");
 		return -ENOMEM;
 	}
@@ -484,35 +540,45 @@ static int init_rx_ring(struct net_device *dev, u8 queue_no,
 
 	/* allocate memory for RX descriptors */
 	rx_ring->dma_rx = dma_zalloc_coherent(priv->device,
-					      rx_rsize * sizeof(struct sxgbe_rx_norm_desc),
-					      &rx_ring->dma_rx_phy, GFP_KERNEL);
+										  rx_rsize * sizeof(struct sxgbe_rx_norm_desc),
+										  &rx_ring->dma_rx_phy, GFP_KERNEL);
 
 	if (rx_ring->dma_rx == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	/* allocate memory for RX skbuff array */
 	rx_ring->rx_skbuff_dma = kmalloc_array(rx_rsize,
-					       sizeof(dma_addr_t), GFP_KERNEL);
-	if (!rx_ring->rx_skbuff_dma) {
+										   sizeof(dma_addr_t), GFP_KERNEL);
+
+	if (!rx_ring->rx_skbuff_dma)
+	{
 		ret = -ENOMEM;
 		goto err_free_dma_rx;
 	}
 
 	rx_ring->rx_skbuff = kmalloc_array(rx_rsize,
-					   sizeof(struct sk_buff *), GFP_KERNEL);
-	if (!rx_ring->rx_skbuff) {
+									   sizeof(struct sk_buff *), GFP_KERNEL);
+
+	if (!rx_ring->rx_skbuff)
+	{
 		ret = -ENOMEM;
 		goto err_free_skbuff_dma;
 	}
 
 	/* initialise the buffers */
-	for (desc_index = 0; desc_index < rx_rsize; desc_index++) {
+	for (desc_index = 0; desc_index < rx_rsize; desc_index++)
+	{
 		struct sxgbe_rx_norm_desc *p;
 		p = rx_ring->dma_rx + desc_index;
 		ret = sxgbe_init_rx_buffers(dev, p, desc_index,
-					    bfsize, rx_ring);
+									bfsize, rx_ring);
+
 		if (ret)
+		{
 			goto err_free_rx_buffers;
+		}
 	}
 
 	/* initialise counters */
@@ -523,19 +589,22 @@ static int init_rx_ring(struct net_device *dev, u8 queue_no,
 	return 0;
 
 err_free_rx_buffers:
-	while (--desc_index >= 0) {
+
+	while (--desc_index >= 0)
+	{
 		struct sxgbe_rx_norm_desc *p;
 
 		p = rx_ring->dma_rx + desc_index;
 		sxgbe_free_rx_buffers(dev, p, desc_index, bfsize, rx_ring);
 	}
+
 	kfree(rx_ring->rx_skbuff);
 err_free_skbuff_dma:
 	kfree(rx_ring->rx_skbuff_dma);
 err_free_dma_rx:
 	dma_free_coherent(priv->device,
-			  rx_rsize * sizeof(struct sxgbe_rx_norm_desc),
-			  rx_ring->dma_rx, rx_ring->dma_rx_phy);
+					  rx_rsize * sizeof(struct sxgbe_rx_norm_desc),
+					  rx_ring->dma_rx, rx_ring->dma_rx_phy);
 
 	return ret;
 }
@@ -547,10 +616,10 @@ err_free_dma_rx:
  * Description:  this function initializes the DMA TX descriptor
  */
 static void free_tx_ring(struct device *dev, struct sxgbe_tx_queue *tx_ring,
-			 int tx_rsize)
+						 int tx_rsize)
 {
 	dma_free_coherent(dev, tx_rsize * sizeof(struct sxgbe_tx_norm_desc),
-			  tx_ring->dma_tx, tx_ring->dma_tx_phy);
+					  tx_ring->dma_tx, tx_ring->dma_tx_phy);
 }
 
 /**
@@ -568,10 +637,13 @@ static int init_dma_desc_rings(struct net_device *netd)
 	int rx_rsize = priv->dma_rx_size;
 
 	/* Allocate memory for queue structures and TX descs */
-	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num) {
+	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num)
+	{
 		ret = init_tx_ring(priv->device, queue_num,
-				   priv->txq[queue_num], tx_rsize);
-		if (ret) {
+						   priv->txq[queue_num], tx_rsize);
+
+		if (ret)
+		{
 			dev_err(&netd->dev, "TX DMA ring allocation failed!\n");
 			goto txalloc_err;
 		}
@@ -583,10 +655,13 @@ static int init_dma_desc_rings(struct net_device *netd)
 	}
 
 	/* Allocate memory for queue structures and RX descs */
-	SXGBE_FOR_EACH_QUEUE(SXGBE_RX_QUEUES, queue_num) {
+	SXGBE_FOR_EACH_QUEUE(SXGBE_RX_QUEUES, queue_num)
+	{
 		ret = init_rx_ring(netd, queue_num,
-				   priv->rxq[queue_num], rx_rsize);
-		if (ret) {
+						   priv->rxq[queue_num], rx_rsize);
+
+		if (ret)
+		{
 			netdev_err(netd, "RX DMA ring allocation failed!!\n");
 			goto rxalloc_err;
 		}
@@ -602,13 +677,21 @@ static int init_dma_desc_rings(struct net_device *netd)
 	return 0;
 
 txalloc_err:
+
 	while (queue_num--)
+	{
 		free_tx_ring(priv->device, priv->txq[queue_num], tx_rsize);
+	}
+
 	return ret;
 
 rxalloc_err:
+
 	while (queue_num--)
+	{
 		free_rx_ring(priv->device, priv->rxq[queue_num], rx_rsize);
+	}
+
 	return ret;
 }
 
@@ -618,14 +701,15 @@ static void tx_free_ring_skbufs(struct sxgbe_tx_queue *txqueue)
 	struct sxgbe_priv_data *priv = txqueue->priv_ptr;
 	int tx_rsize = priv->dma_tx_size;
 
-	for (dma_desc = 0; dma_desc < tx_rsize; dma_desc++) {
+	for (dma_desc = 0; dma_desc < tx_rsize; dma_desc++)
+	{
 		struct sxgbe_tx_norm_desc *tdesc = txqueue->dma_tx + dma_desc;
 
 		if (txqueue->tx_skbuff_dma[dma_desc])
 			dma_unmap_single(priv->device,
-					 txqueue->tx_skbuff_dma[dma_desc],
-					 priv->hw->desc->get_tx_len(tdesc),
-					 DMA_TO_DEVICE);
+							 txqueue->tx_skbuff_dma[dma_desc],
+							 priv->hw->desc->get_tx_len(tdesc),
+							 DMA_TO_DEVICE);
 
 		dev_kfree_skb_any(txqueue->tx_skbuff[dma_desc]);
 		txqueue->tx_skbuff[dma_desc] = NULL;
@@ -638,7 +722,8 @@ static void dma_free_tx_skbufs(struct sxgbe_priv_data *priv)
 {
 	int queue_num;
 
-	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num) {
+	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num)
+	{
 		struct sxgbe_tx_queue *tqueue = priv->txq[queue_num];
 		tx_free_ring_skbufs(tqueue);
 	}
@@ -654,12 +739,14 @@ static void free_dma_desc_resources(struct sxgbe_priv_data *priv)
 	dma_free_tx_skbufs(priv);
 
 	/* Release the TX ring memory also */
-	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num) {
+	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num)
+	{
 		free_tx_ring(priv->device, priv->txq[queue_num], tx_rsize);
 	}
 
 	/* Release the RX ring memory also */
-	SXGBE_FOR_EACH_QUEUE(SXGBE_RX_QUEUES, queue_num) {
+	SXGBE_FOR_EACH_QUEUE(SXGBE_RX_QUEUES, queue_num)
+	{
 		free_rx_ring(priv->device, priv->rxq[queue_num], rx_rsize);
 	}
 }
@@ -668,11 +755,15 @@ static int txring_mem_alloc(struct sxgbe_priv_data *priv)
 {
 	int queue_num;
 
-	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num) {
+	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num)
+	{
 		priv->txq[queue_num] = devm_kmalloc(priv->device,
-						    sizeof(struct sxgbe_tx_queue), GFP_KERNEL);
+											sizeof(struct sxgbe_tx_queue), GFP_KERNEL);
+
 		if (!priv->txq[queue_num])
+		{
 			return -ENOMEM;
+		}
 	}
 
 	return 0;
@@ -682,11 +773,15 @@ static int rxring_mem_alloc(struct sxgbe_priv_data *priv)
 {
 	int queue_num;
 
-	SXGBE_FOR_EACH_QUEUE(SXGBE_RX_QUEUES, queue_num) {
+	SXGBE_FOR_EACH_QUEUE(SXGBE_RX_QUEUES, queue_num)
+	{
 		priv->rxq[queue_num] = devm_kmalloc(priv->device,
-						    sizeof(struct sxgbe_rx_queue), GFP_KERNEL);
+											sizeof(struct sxgbe_rx_queue), GFP_KERNEL);
+
 		if (!priv->rxq[queue_num])
+		{
 			return -ENOMEM;
+		}
 	}
 
 	return 0;
@@ -703,28 +798,33 @@ static void sxgbe_mtl_operation_mode(struct sxgbe_priv_data *priv)
 	int queue_num;
 
 	/* TX/RX threshold control */
-	if (likely(priv->plat->force_sf_dma_mode)) {
+	if (likely(priv->plat->force_sf_dma_mode))
+	{
 		/* set TC mode for TX QUEUES */
 		SXGBE_FOR_EACH_QUEUE(priv->hw_cap.tx_mtl_queues, queue_num)
-			priv->hw->mtl->set_tx_mtl_mode(priv->ioaddr, queue_num,
-						       SXGBE_MTL_SFMODE);
+		priv->hw->mtl->set_tx_mtl_mode(priv->ioaddr, queue_num,
+									   SXGBE_MTL_SFMODE);
 		priv->tx_tc = SXGBE_MTL_SFMODE;
 
 		/* set TC mode for RX QUEUES */
 		SXGBE_FOR_EACH_QUEUE(priv->hw_cap.rx_mtl_queues, queue_num)
-			priv->hw->mtl->set_rx_mtl_mode(priv->ioaddr, queue_num,
-						       SXGBE_MTL_SFMODE);
+		priv->hw->mtl->set_rx_mtl_mode(priv->ioaddr, queue_num,
+									   SXGBE_MTL_SFMODE);
 		priv->rx_tc = SXGBE_MTL_SFMODE;
-	} else if (unlikely(priv->plat->force_thresh_dma_mode)) {
+	}
+	else if (unlikely(priv->plat->force_thresh_dma_mode))
+	{
 		/* set TC mode for TX QUEUES */
 		SXGBE_FOR_EACH_QUEUE(priv->hw_cap.tx_mtl_queues, queue_num)
-			priv->hw->mtl->set_tx_mtl_mode(priv->ioaddr, queue_num,
-						       priv->tx_tc);
+		priv->hw->mtl->set_tx_mtl_mode(priv->ioaddr, queue_num,
+									   priv->tx_tc);
 		/* set TC mode for RX QUEUES */
 		SXGBE_FOR_EACH_QUEUE(priv->hw_cap.rx_mtl_queues, queue_num)
-			priv->hw->mtl->set_rx_mtl_mode(priv->ioaddr, queue_num,
-						       priv->rx_tc);
-	} else {
+		priv->hw->mtl->set_rx_mtl_mode(priv->ioaddr, queue_num,
+									   priv->rx_tc);
+	}
+	else
+	{
 		pr_err("ERROR: %s: Invalid TX threshold mode\n", __func__);
 	}
 }
@@ -746,7 +846,9 @@ static void sxgbe_tx_queue_clean(struct sxgbe_tx_queue *tqueue)
 	spin_lock(&tqueue->tx_lock);
 
 	priv->xstats.tx_clean++;
-	while (tqueue->dirty_tx != tqueue->cur_tx) {
+
+	while (tqueue->dirty_tx != tqueue->cur_tx)
+	{
 		unsigned int entry = tqueue->dirty_tx % tx_rsize;
 		struct sk_buff *skb = tqueue->tx_skbuff[entry];
 		struct sxgbe_tx_norm_desc *p;
@@ -755,21 +857,25 @@ static void sxgbe_tx_queue_clean(struct sxgbe_tx_queue *tqueue)
 
 		/* Check if the descriptor is owned by the DMA. */
 		if (priv->hw->desc->get_tx_owner(p))
+		{
 			break;
+		}
 
 		if (netif_msg_tx_done(priv))
 			pr_debug("%s: curr %d, dirty %d\n",
-				 __func__, tqueue->cur_tx, tqueue->dirty_tx);
+					 __func__, tqueue->cur_tx, tqueue->dirty_tx);
 
-		if (likely(tqueue->tx_skbuff_dma[entry])) {
+		if (likely(tqueue->tx_skbuff_dma[entry]))
+		{
 			dma_unmap_single(priv->device,
-					 tqueue->tx_skbuff_dma[entry],
-					 priv->hw->desc->get_tx_len(p),
-					 DMA_TO_DEVICE);
+							 tqueue->tx_skbuff_dma[entry],
+							 priv->hw->desc->get_tx_len(p),
+							 DMA_TO_DEVICE);
 			tqueue->tx_skbuff_dma[entry] = 0;
 		}
 
-		if (likely(skb)) {
+		if (likely(skb))
+		{
 			dev_kfree_skb(skb);
 			tqueue->tx_skbuff[entry] = NULL;
 		}
@@ -781,14 +887,21 @@ static void sxgbe_tx_queue_clean(struct sxgbe_tx_queue *tqueue)
 
 	/* wake up queue */
 	if (unlikely(netif_tx_queue_stopped(dev_txq) &&
-		     sxgbe_tx_avail(tqueue, tx_rsize) > SXGBE_TX_THRESH(priv))) {
+				 sxgbe_tx_avail(tqueue, tx_rsize) > SXGBE_TX_THRESH(priv)))
+	{
 		netif_tx_lock(priv->dev);
+
 		if (netif_tx_queue_stopped(dev_txq) &&
-		    sxgbe_tx_avail(tqueue, tx_rsize) > SXGBE_TX_THRESH(priv)) {
+			sxgbe_tx_avail(tqueue, tx_rsize) > SXGBE_TX_THRESH(priv))
+		{
 			if (netif_msg_tx_done(priv))
+			{
 				pr_debug("%s: restart transmit\n", __func__);
+			}
+
 			netif_tx_wake_queue(dev_txq);
 		}
+
 		netif_tx_unlock(priv->dev);
 	}
 
@@ -800,17 +913,19 @@ static void sxgbe_tx_queue_clean(struct sxgbe_tx_queue *tqueue)
  * @priv: driver private structure
  * Description: it reclaims resources after transmission completes.
  */
-static void sxgbe_tx_all_clean(struct sxgbe_priv_data * const priv)
+static void sxgbe_tx_all_clean(struct sxgbe_priv_data *const priv)
 {
 	u8 queue_num;
 
-	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num) {
+	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num)
+	{
 		struct sxgbe_tx_queue *tqueue = priv->txq[queue_num];
 
 		sxgbe_tx_queue_clean(tqueue);
 	}
 
-	if ((priv->eee_enabled) && (!priv->tx_path_in_lpi_mode)) {
+	if ((priv->eee_enabled) && (!priv->tx_path_in_lpi_mode))
+	{
 		sxgbe_enable_eee_mode(priv);
 		mod_timer(&priv->eee_ctrl_timer, SXGBE_LPI_TIMER(eee_timer));
 	}
@@ -826,7 +941,7 @@ static void sxgbe_restart_tx_queue(struct sxgbe_priv_data *priv, int queue_num)
 {
 	struct sxgbe_tx_queue *tx_ring = priv->txq[queue_num];
 	struct netdev_queue *dev_txq = netdev_get_tx_queue(priv->dev,
-							   queue_num);
+								   queue_num);
 
 	/* stop the queue */
 	netif_tx_stop_queue(dev_txq);
@@ -864,7 +979,7 @@ static void sxgbe_reset_all_tx_queues(struct sxgbe_priv_data *priv)
 	 * may not be proper way, revisit this later if needed
 	 */
 	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num)
-		sxgbe_restart_tx_queue(priv, queue_num);
+	sxgbe_restart_tx_queue(priv, queue_num);
 }
 
 /**
@@ -876,14 +991,16 @@ static void sxgbe_reset_all_tx_queues(struct sxgbe_priv_data *priv)
  *  This can be also used to override the value passed through the
  *  platform and necessary for old MAC10/100 and GMAC chips.
  */
-static int sxgbe_get_hw_features(struct sxgbe_priv_data * const priv)
+static int sxgbe_get_hw_features(struct sxgbe_priv_data *const priv)
 {
 	int rval = 0;
 	struct sxgbe_hw_features *features = &priv->hw_cap;
 
 	/* Read First Capability Register CAP[0] */
 	rval = priv->hw->mac->get_hw_feature(priv->ioaddr, 0);
-	if (rval) {
+
+	if (rval)
+	{
 		features->pmt_remote_wake_up =
 			SXGBE_HW_FEAT_PMT_TEMOTE_WOP(rval);
 		features->pmt_magic_frame = SXGBE_HW_FEAT_PMT_MAGIC_PKT(rval);
@@ -900,7 +1017,9 @@ static int sxgbe_get_hw_features(struct sxgbe_priv_data * const priv)
 
 	/* Read First Capability Register CAP[1] */
 	rval = priv->hw->mac->get_hw_feature(priv->ioaddr, 1);
-	if (rval) {
+
+	if (rval)
+	{
 		features->rxfifo_size = SXGBE_HW_FEAT_RX_FIFO_SIZE(rval);
 		features->txfifo_size = SXGBE_HW_FEAT_TX_FIFO_SIZE(rval);
 		features->atstmap_hword = SXGBE_HW_FEAT_TX_FIFO_SIZE(rval);
@@ -915,7 +1034,9 @@ static int sxgbe_get_hw_features(struct sxgbe_priv_data * const priv)
 
 	/* Read First Capability Register CAP[2] */
 	rval = priv->hw->mac->get_hw_feature(priv->ioaddr, 2);
-	if (rval) {
+
+	if (rval)
+	{
 		features->rx_mtl_queues = SXGBE_HW_FEAT_RX_MTL_QUEUES(rval);
 		features->tx_mtl_queues = SXGBE_HW_FEAT_TX_MTL_QUEUES(rval);
 		features->rx_dma_channels = SXGBE_HW_FEAT_RX_DMA_CHANNELS(rval);
@@ -936,15 +1057,20 @@ static int sxgbe_get_hw_features(struct sxgbe_priv_data * const priv)
  */
 static void sxgbe_check_ether_addr(struct sxgbe_priv_data *priv)
 {
-	if (!is_valid_ether_addr(priv->dev->dev_addr)) {
+	if (!is_valid_ether_addr(priv->dev->dev_addr))
+	{
 		priv->hw->mac->get_umac_addr((void __iomem *)
-					     priv->ioaddr,
-					     priv->dev->dev_addr, 0);
+									 priv->ioaddr,
+									 priv->dev->dev_addr, 0);
+
 		if (!is_valid_ether_addr(priv->dev->dev_addr))
+		{
 			eth_hw_addr_random(priv->dev);
+		}
 	}
+
 	dev_info(priv->device, "device MAC address %pM\n",
-		 priv->dev->dev_addr);
+			 priv->dev->dev_addr);
 }
 
 /**
@@ -960,18 +1086,19 @@ static int sxgbe_init_dma_engine(struct sxgbe_priv_data *priv)
 	int pbl = DEFAULT_DMA_PBL, fixed_burst = 0, burst_map = 0;
 	int queue_num;
 
-	if (priv->plat->dma_cfg) {
+	if (priv->plat->dma_cfg)
+	{
 		pbl = priv->plat->dma_cfg->pbl;
 		fixed_burst = priv->plat->dma_cfg->fixed_burst;
 		burst_map = priv->plat->dma_cfg->burst_map;
 	}
 
 	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num)
-		priv->hw->dma->cha_init(priv->ioaddr, queue_num,
-					fixed_burst, pbl,
-					(priv->txq[queue_num])->dma_tx_phy,
-					(priv->rxq[queue_num])->dma_rx_phy,
-					priv->dma_tx_size, priv->dma_rx_size);
+	priv->hw->dma->cha_init(priv->ioaddr, queue_num,
+							fixed_burst, pbl,
+							(priv->txq[queue_num])->dma_tx_phy,
+							(priv->rxq[queue_num])->dma_rx_phy,
+							priv->dma_tx_size, priv->dma_rx_size);
 
 	return priv->hw->dma->init(priv->ioaddr, fixed_burst, burst_map);
 }
@@ -986,9 +1113,10 @@ static void sxgbe_init_mtl_engine(struct sxgbe_priv_data *priv)
 {
 	int queue_num;
 
-	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num) {
+	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num)
+	{
 		priv->hw->mtl->mtl_set_txfifosize(priv->ioaddr, queue_num,
-						  priv->hw_cap.tx_mtl_qsize);
+										  priv->hw_cap.tx_mtl_qsize);
 		priv->hw->mtl->mtl_enable_txqueue(priv->ioaddr, queue_num);
 	}
 }
@@ -1004,7 +1132,7 @@ static void sxgbe_disable_mtl_engine(struct sxgbe_priv_data *priv)
 	int queue_num;
 
 	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num)
-		priv->hw->mtl->mtl_disable_txqueue(priv->ioaddr, queue_num);
+	priv->hw->mtl->mtl_disable_txqueue(priv->ioaddr, queue_num);
 }
 
 
@@ -1032,12 +1160,13 @@ static void sxgbe_tx_init_coalesce(struct sxgbe_priv_data *priv)
 {
 	u8 queue_num;
 
-	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num) {
+	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num)
+	{
 		struct sxgbe_tx_queue *p = priv->txq[queue_num];
 		p->tx_coal_frames =  SXGBE_TX_FRAMES;
 		p->tx_coal_timer = SXGBE_COAL_TX_TIMER;
 		setup_timer(&p->txtimer, sxgbe_tx_timer,
-			    (unsigned long)&priv->txq[queue_num]);
+					(unsigned long)&priv->txq[queue_num]);
 		p->txtimer.expires = SXGBE_COAL_TIMER(p->tx_coal_timer);
 		add_timer(&p->txtimer);
 	}
@@ -1047,7 +1176,8 @@ static void sxgbe_tx_del_timer(struct sxgbe_priv_data *priv)
 {
 	u8 queue_num;
 
-	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num) {
+	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num)
+	{
 		struct sxgbe_tx_queue *p = priv->txq[queue_num];
 		del_timer_sync(&p->txtimer);
 	}
@@ -1073,9 +1203,11 @@ static int sxgbe_open(struct net_device *dev)
 
 	/* Init the phy */
 	ret = sxgbe_init_phy(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		netdev_err(dev, "%s: Cannot attach to PHY (error: %d)\n",
-			   __func__, ret);
+				   __func__, ret);
 		goto phy_error;
 	}
 
@@ -1089,7 +1221,9 @@ static int sxgbe_open(struct net_device *dev)
 
 	/* DMA initialization and SW reset */
 	ret = sxgbe_init_dma_engine(priv);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		netdev_err(dev, "%s: DMA initialization failed\n", __func__);
 		goto init_error;
 	}
@@ -1102,55 +1236,67 @@ static int sxgbe_open(struct net_device *dev)
 
 	/* Initialize the MAC Core */
 	priv->hw->mac->core_init(priv->ioaddr);
-	SXGBE_FOR_EACH_QUEUE(SXGBE_RX_QUEUES, queue_num) {
+	SXGBE_FOR_EACH_QUEUE(SXGBE_RX_QUEUES, queue_num)
+	{
 		priv->hw->mac->enable_rxqueue(priv->ioaddr, queue_num);
 	}
 
 	/* Request the IRQ lines */
 	ret = devm_request_irq(priv->device, priv->irq, sxgbe_common_interrupt,
-			       IRQF_SHARED, dev->name, dev);
-	if (unlikely(ret < 0)) {
+						   IRQF_SHARED, dev->name, dev);
+
+	if (unlikely(ret < 0))
+	{
 		netdev_err(dev, "%s: ERROR: allocating the IRQ %d (error: %d)\n",
-			   __func__, priv->irq, ret);
+				   __func__, priv->irq, ret);
 		goto init_error;
 	}
 
 	/* If the LPI irq is different from the mac irq
 	 * register a dedicated handler
 	 */
-	if (priv->lpi_irq != dev->irq) {
+	if (priv->lpi_irq != dev->irq)
+	{
 		ret = devm_request_irq(priv->device, priv->lpi_irq,
-				       sxgbe_common_interrupt,
-				       IRQF_SHARED, dev->name, dev);
-		if (unlikely(ret < 0)) {
+							   sxgbe_common_interrupt,
+							   IRQF_SHARED, dev->name, dev);
+
+		if (unlikely(ret < 0))
+		{
 			netdev_err(dev, "%s: ERROR: allocating the LPI IRQ %d (%d)\n",
-				   __func__, priv->lpi_irq, ret);
+					   __func__, priv->lpi_irq, ret);
 			goto init_error;
 		}
 	}
 
 	/* Request TX DMA irq lines */
-	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num) {
+	SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num)
+	{
 		ret = devm_request_irq(priv->device,
-				       (priv->txq[queue_num])->irq_no,
-				       sxgbe_tx_interrupt, 0,
-				       dev->name, priv->txq[queue_num]);
-		if (unlikely(ret < 0)) {
+							   (priv->txq[queue_num])->irq_no,
+							   sxgbe_tx_interrupt, 0,
+							   dev->name, priv->txq[queue_num]);
+
+		if (unlikely(ret < 0))
+		{
 			netdev_err(dev, "%s: ERROR: allocating TX IRQ %d (error: %d)\n",
-				   __func__, priv->irq, ret);
+					   __func__, priv->irq, ret);
 			goto init_error;
 		}
 	}
 
 	/* Request RX DMA irq lines */
-	SXGBE_FOR_EACH_QUEUE(SXGBE_RX_QUEUES, queue_num) {
+	SXGBE_FOR_EACH_QUEUE(SXGBE_RX_QUEUES, queue_num)
+	{
 		ret = devm_request_irq(priv->device,
-				       (priv->rxq[queue_num])->irq_no,
-				       sxgbe_rx_interrupt, 0,
-				       dev->name, priv->rxq[queue_num]);
-		if (unlikely(ret < 0)) {
+							   (priv->rxq[queue_num])->irq_no,
+							   sxgbe_rx_interrupt, 0,
+							   dev->name, priv->rxq[queue_num]);
+
+		if (unlikely(ret < 0))
+		{
 			netdev_err(dev, "%s: ERROR: allocating TX IRQ %d (error: %d)\n",
-				   __func__, priv->irq, ret);
+					   __func__, priv->irq, ret);
 			goto init_error;
 		}
 	}
@@ -1174,12 +1320,15 @@ static int sxgbe_open(struct net_device *dev)
 	priv->hw->dma->start_rx(priv->ioaddr, SXGBE_RX_QUEUES);
 
 	if (dev->phydev)
+	{
 		phy_start(dev->phydev);
+	}
 
 	/* initialise TX coalesce parameters */
 	sxgbe_tx_init_coalesce(priv);
 
-	if ((priv->use_riwt) && (priv->hw->dma->rx_watchdog)) {
+	if ((priv->use_riwt) && (priv->hw->dma->rx_watchdog))
+	{
 		priv->rx_riwt = SXGBE_MAX_DMA_RIWT;
 		priv->hw->dma->rx_watchdog(priv->ioaddr, SXGBE_MAX_DMA_RIWT);
 	}
@@ -1194,8 +1343,12 @@ static int sxgbe_open(struct net_device *dev)
 
 init_error:
 	free_dma_desc_resources(priv);
+
 	if (dev->phydev)
+	{
 		phy_disconnect(dev->phydev);
+	}
+
 phy_error:
 	clk_disable_unprepare(priv->sxgbe_clk);
 
@@ -1213,10 +1366,13 @@ static int sxgbe_release(struct net_device *dev)
 	struct sxgbe_priv_data *priv = netdev_priv(dev);
 
 	if (priv->eee_enabled)
+	{
 		del_timer_sync(&priv->eee_ctrl_timer);
+	}
 
 	/* Stop and disconnect the PHY */
-	if (dev->phydev) {
+	if (dev->phydev)
+	{
 		phy_stop(dev->phydev);
 		phy_disconnect(dev->phydev);
 	}
@@ -1248,8 +1404,8 @@ static int sxgbe_release(struct net_device *dev)
 }
 /* Prepare first Tx descriptor for doing TSO operation */
 static void sxgbe_tso_prepare(struct sxgbe_priv_data *priv,
-			      struct sxgbe_tx_norm_desc *first_desc,
-			      struct sk_buff *skb)
+							  struct sxgbe_tx_norm_desc *first_desc,
+							  struct sk_buff *skb)
 {
 	unsigned int total_hdr_len, tcp_hdr_len;
 
@@ -1258,14 +1414,17 @@ static void sxgbe_tso_prepare(struct sxgbe_priv_data *priv,
 	total_hdr_len = skb_transport_offset(skb) + tcp_hdr_len;
 
 	first_desc->tdes01 = dma_map_single(priv->device, skb->data,
-					    total_hdr_len, DMA_TO_DEVICE);
+										total_hdr_len, DMA_TO_DEVICE);
+
 	if (dma_mapping_error(priv->device, first_desc->tdes01))
+	{
 		pr_err("%s: TX dma mapping failed!!\n", __func__);
+	}
 
 	first_desc->tdes23.tx_rd_des23.first_desc = 1;
 	priv->hw->desc->tx_desc_enable_tse(first_desc, 1, total_hdr_len,
-					   tcp_hdr_len,
-					   skb->len - total_hdr_len);
+									   tcp_hdr_len,
+									   skb->len - total_hdr_len);
 }
 
 /**
@@ -1297,25 +1456,34 @@ static netdev_tx_t sxgbe_xmit(struct sk_buff *skb, struct net_device *dev)
 	dev_txq = netdev_get_tx_queue(dev, txq_index);
 
 	if (unlikely(skb_is_gso(skb) && tqueue->prev_mss != cur_mss))
+	{
 		ctxt_desc_req = 1;
+	}
 
 	if (unlikely(skb_vlan_tag_present(skb) ||
-		     ((skb_shinfo(skb)->tx_flags & SKBTX_HW_TSTAMP) &&
-		      tqueue->hwts_tx_en)))
+				 ((skb_shinfo(skb)->tx_flags & SKBTX_HW_TSTAMP) &&
+				  tqueue->hwts_tx_en)))
+	{
 		ctxt_desc_req = 1;
+	}
 
 	/* get the spinlock */
 	spin_lock(&tqueue->tx_lock);
 
 	if (priv->tx_path_in_lpi_mode)
+	{
 		sxgbe_disable_eee_mode(priv);
+	}
 
-	if (unlikely(sxgbe_tx_avail(tqueue, tx_rsize) < nr_frags + 1)) {
-		if (!netif_tx_queue_stopped(dev_txq)) {
+	if (unlikely(sxgbe_tx_avail(tqueue, tx_rsize) < nr_frags + 1))
+	{
+		if (!netif_tx_queue_stopped(dev_txq))
+		{
 			netif_tx_stop_queue(dev_txq);
 			netdev_err(dev, "%s: Tx Ring is full when %d queue is awake\n",
-				   __func__, txq_index);
+					   __func__, txq_index);
 		}
+
 		/* release the spin lock in case of BUSY */
 		spin_unlock(&tqueue->tx_lock);
 		return NETDEV_TX_BUSY;
@@ -1325,60 +1493,71 @@ static netdev_tx_t sxgbe_xmit(struct sk_buff *skb, struct net_device *dev)
 	tx_desc = tqueue->dma_tx + entry;
 
 	first_desc = tx_desc;
+
 	if (ctxt_desc_req)
+	{
 		ctxt_desc = (struct sxgbe_tx_ctxt_desc *)first_desc;
+	}
 
 	/* save the skb address */
 	tqueue->tx_skbuff[entry] = skb;
 
-	if (!is_jumbo) {
-		if (likely(skb_is_gso(skb))) {
+	if (!is_jumbo)
+	{
+		if (likely(skb_is_gso(skb)))
+		{
 			/* TSO support */
-			if (unlikely(tqueue->prev_mss != cur_mss)) {
+			if (unlikely(tqueue->prev_mss != cur_mss))
+			{
 				priv->hw->desc->tx_ctxt_desc_set_mss(
-						ctxt_desc, cur_mss);
+					ctxt_desc, cur_mss);
 				priv->hw->desc->tx_ctxt_desc_set_tcmssv(
-						ctxt_desc);
+					ctxt_desc);
 				priv->hw->desc->tx_ctxt_desc_reset_ostc(
-						ctxt_desc);
+					ctxt_desc);
 				priv->hw->desc->tx_ctxt_desc_set_ctxt(
-						ctxt_desc);
+					ctxt_desc);
 				priv->hw->desc->tx_ctxt_desc_set_owner(
-						ctxt_desc);
+					ctxt_desc);
 
 				entry = (++tqueue->cur_tx) % tx_rsize;
 				first_desc = tqueue->dma_tx + entry;
 
 				tqueue->prev_mss = cur_mss;
 			}
+
 			sxgbe_tso_prepare(priv, first_desc, skb);
-		} else {
+		}
+		else
+		{
 			tx_desc->tdes01 = dma_map_single(priv->device,
-							 skb->data, no_pagedlen, DMA_TO_DEVICE);
+											 skb->data, no_pagedlen, DMA_TO_DEVICE);
+
 			if (dma_mapping_error(priv->device, tx_desc->tdes01))
 				netdev_err(dev, "%s: TX dma mapping failed!!\n",
-					   __func__);
+						   __func__);
 
 			priv->hw->desc->prepare_tx_desc(tx_desc, 1, no_pagedlen,
-							no_pagedlen, cksum_flag);
+											no_pagedlen, cksum_flag);
 		}
 	}
 
-	for (frag_num = 0; frag_num < nr_frags; frag_num++) {
+	for (frag_num = 0; frag_num < nr_frags; frag_num++)
+	{
 		const skb_frag_t *frag = &skb_shinfo(skb)->frags[frag_num];
 		int len = skb_frag_size(frag);
 
 		entry = (++tqueue->cur_tx) % tx_rsize;
 		tx_desc = tqueue->dma_tx + entry;
 		tx_desc->tdes01 = skb_frag_dma_map(priv->device, frag, 0, len,
-						   DMA_TO_DEVICE);
+										   DMA_TO_DEVICE);
 
 		tqueue->tx_skbuff_dma[entry] = tx_desc->tdes01;
 		tqueue->tx_skbuff[entry] = NULL;
 
 		/* prepare the descriptor */
 		priv->hw->desc->prepare_tx_desc(tx_desc, 0, len,
-						len, cksum_flag);
+										len, cksum_flag);
 		/* memory barrier to flush descriptor */
 		wmb();
 
@@ -1393,12 +1572,16 @@ static netdev_tx_t sxgbe_xmit(struct sk_buff *skb, struct net_device *dev)
 	wmb();
 
 	tqueue->tx_count_frames += nr_frags + 1;
-	if (tqueue->tx_count_frames > tqueue->tx_coal_frames) {
+
+	if (tqueue->tx_count_frames > tqueue->tx_coal_frames)
+	{
 		priv->hw->desc->clear_tx_ic(tx_desc);
 		priv->xstats.tx_reset_ic_bit++;
 		mod_timer(&tqueue->txtimer,
-			  SXGBE_COAL_TIMER(tqueue->tx_coal_timer));
-	} else {
+				  SXGBE_COAL_TIMER(tqueue->tx_coal_timer));
+	}
+	else
+	{
 		tqueue->tx_count_frames = 0;
 	}
 
@@ -1412,27 +1595,31 @@ static netdev_tx_t sxgbe_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	/* display current ring */
 	netif_dbg(priv, pktdata, dev, "%s: curr %d dirty=%d entry=%d, first=%p, nfrags=%d\n",
-		  __func__, tqueue->cur_tx % tx_rsize,
-		  tqueue->dirty_tx % tx_rsize, entry,
-		  first_desc, nr_frags);
+			  __func__, tqueue->cur_tx % tx_rsize,
+			  tqueue->dirty_tx % tx_rsize, entry,
+			  first_desc, nr_frags);
 
-	if (unlikely(sxgbe_tx_avail(tqueue, tx_rsize) <= (MAX_SKB_FRAGS + 1))) {
+	if (unlikely(sxgbe_tx_avail(tqueue, tx_rsize) <= (MAX_SKB_FRAGS + 1)))
+	{
 		netif_dbg(priv, hw, dev, "%s: stop transmitted packets\n",
-			  __func__);
+				  __func__);
 		netif_tx_stop_queue(dev_txq);
 	}
 
 	dev->stats.tx_bytes += skb->len;
 
 	if (unlikely((skb_shinfo(skb)->tx_flags & SKBTX_HW_TSTAMP) &&
-		     tqueue->hwts_tx_en)) {
+				 tqueue->hwts_tx_en))
+	{
 		/* declare that device is doing timestamping */
 		skb_shinfo(skb)->tx_flags |= SKBTX_IN_PROGRESS;
 		priv->hw->desc->tx_enable_tstamp(first_desc);
 	}
 
 	if (!tqueue->hwts_tx_en)
+	{
 		skb_tx_timestamp(skb);
+	}
 
 	priv->hw->dma->enable_dma_transmission(priv->ioaddr, txq_index);
 
@@ -1454,24 +1641,28 @@ static void sxgbe_rx_refill(struct sxgbe_priv_data *priv)
 	u8 qnum = priv->cur_rx_qnum;
 
 	for (; priv->rxq[qnum]->cur_rx - priv->rxq[qnum]->dirty_rx > 0;
-	     priv->rxq[qnum]->dirty_rx++) {
+		 priv->rxq[qnum]->dirty_rx++)
+	{
 		unsigned int entry = priv->rxq[qnum]->dirty_rx % rxsize;
 		struct sxgbe_rx_norm_desc *p;
 
 		p = priv->rxq[qnum]->dma_rx + entry;
 
-		if (likely(priv->rxq[qnum]->rx_skbuff[entry] == NULL)) {
+		if (likely(priv->rxq[qnum]->rx_skbuff[entry] == NULL))
+		{
 			struct sk_buff *skb;
 
 			skb = netdev_alloc_skb_ip_align(priv->dev, bfsize);
 
 			if (unlikely(skb == NULL))
+			{
 				break;
+			}
 
 			priv->rxq[qnum]->rx_skbuff[entry] = skb;
 			priv->rxq[qnum]->rx_skbuff_dma[entry] =
 				dma_map_single(priv->device, skb->data, bfsize,
-					       DMA_FROM_DEVICE);
+							   DMA_FROM_DEVICE);
 
 			p->rdes23.rx_rd_des23.buf2_addr =
 				priv->rxq[qnum]->rx_skbuff_dma[entry];
@@ -1503,7 +1694,8 @@ static int sxgbe_rx(struct sxgbe_priv_data *priv, int limit)
 	int checksum;
 	int status;
 
-	while (count < limit) {
+	while (count < limit)
+	{
 		struct sxgbe_rx_norm_desc *p;
 		struct sk_buff *skb;
 		int frame_len;
@@ -1511,7 +1703,9 @@ static int sxgbe_rx(struct sxgbe_priv_data *priv, int limit)
 		p = priv->rxq[qnum]->dma_rx + entry;
 
 		if (priv->hw->desc->get_rx_owner(p))
+		{
 			break;
+		}
 
 		count++;
 
@@ -1523,18 +1717,25 @@ static int sxgbe_rx(struct sxgbe_priv_data *priv, int limit)
 		 * not.
 		 */
 		status = priv->hw->desc->rx_wbstatus(p, &priv->xstats,
-						     &checksum);
-		if (unlikely(status < 0)) {
+											 &checksum);
+
+		if (unlikely(status < 0))
+		{
 			entry = next_entry;
 			continue;
 		}
+
 		if (unlikely(!priv->rxcsum_insertion))
+		{
 			checksum = CHECKSUM_NONE;
+		}
 
 		skb = priv->rxq[qnum]->rx_skbuff[entry];
 
 		if (unlikely(!skb))
+		{
 			netdev_err(priv->dev, "rx descriptor is not consistent\n");
+		}
 
 		prefetch(skb->data - NET_IP_ALIGN);
 		priv->rxq[qnum]->rx_skbuff[entry] = NULL;
@@ -1544,10 +1745,15 @@ static int sxgbe_rx(struct sxgbe_priv_data *priv, int limit)
 		skb_put(skb, frame_len);
 
 		skb->ip_summed = checksum;
+
 		if (checksum == CHECKSUM_NONE)
+		{
 			netif_receive_skb(skb);
+		}
 		else
+		{
 			napi_gro_receive(&priv->napi, skb);
+		}
 
 		entry = next_entry;
 	}
@@ -1568,7 +1774,7 @@ static int sxgbe_rx(struct sxgbe_priv_data *priv, int limit)
 static int sxgbe_poll(struct napi_struct *napi, int budget)
 {
 	struct sxgbe_priv_data *priv = container_of(napi,
-						    struct sxgbe_priv_data, napi);
+								   struct sxgbe_priv_data, napi);
 	int work_done = 0;
 	u8 qnum = priv->cur_rx_qnum;
 
@@ -1577,7 +1783,9 @@ static int sxgbe_poll(struct napi_struct *napi, int budget)
 	sxgbe_tx_all_clean(priv);
 
 	work_done = sxgbe_rx(priv, budget);
-	if (work_done < budget) {
+
+	if (work_done < budget)
+	{
 		napi_complete(napi);
 		priv->hw->dma->enable_dma_irq(priv->ioaddr, qnum);
 	}
@@ -1615,19 +1823,29 @@ static irqreturn_t sxgbe_common_interrupt(int irq, void *dev_id)
 	int status;
 
 	status = priv->hw->mac->host_irq_status(priv->ioaddr, &priv->xstats);
+
 	/* For LPI we need to save the tx status */
-	if (status & TX_ENTRY_LPI_MODE) {
+	if (status & TX_ENTRY_LPI_MODE)
+	{
 		priv->xstats.tx_lpi_entry_n++;
 		priv->tx_path_in_lpi_mode = true;
 	}
-	if (status & TX_EXIT_LPI_MODE) {
+
+	if (status & TX_EXIT_LPI_MODE)
+	{
 		priv->xstats.tx_lpi_exit_n++;
 		priv->tx_path_in_lpi_mode = false;
 	}
+
 	if (status & RX_ENTRY_LPI_MODE)
+	{
 		priv->xstats.rx_lpi_entry_n++;
+	}
+
 	if (status & RX_EXIT_LPI_MODE)
+	{
 		priv->xstats.rx_lpi_exit_n++;
+	}
 
 	return IRQ_HANDLED;
 }
@@ -1646,23 +1864,29 @@ static irqreturn_t sxgbe_tx_interrupt(int irq, void *dev_id)
 
 	/* get the channel status */
 	status = priv->hw->dma->tx_dma_int_status(priv->ioaddr, txq->queue_no,
-						  &priv->xstats);
+			 &priv->xstats);
+
 	/* check for normal path */
 	if (likely((status & handle_tx)))
+	{
 		napi_schedule(&priv->napi);
+	}
 
 	/* check for unrecoverable error */
 	if (unlikely((status & tx_hard_error)))
+	{
 		sxgbe_restart_tx_queue(priv, txq->queue_no);
+	}
 
 	/* check for TC configuration change */
 	if (unlikely((status & tx_bump_tc) &&
-		     (priv->tx_tc != SXGBE_MTL_SFMODE) &&
-		     (priv->tx_tc < 512))) {
+				 (priv->tx_tc != SXGBE_MTL_SFMODE) &&
+				 (priv->tx_tc < 512)))
+	{
 		/* step of TX TC is 32 till 128, otherwise 64 */
 		priv->tx_tc += (priv->tx_tc < 128) ? 32 : 64;
 		priv->hw->mtl->set_tx_mtl_mode(priv->ioaddr,
-					       txq->queue_no, priv->tx_tc);
+									   txq->queue_no, priv->tx_tc);
 		priv->xstats.tx_threshold = priv->tx_tc;
 	}
 
@@ -1683,21 +1907,23 @@ static irqreturn_t sxgbe_rx_interrupt(int irq, void *dev_id)
 
 	/* get the channel status */
 	status = priv->hw->dma->rx_dma_int_status(priv->ioaddr, rxq->queue_no,
-						  &priv->xstats);
+			 &priv->xstats);
 
-	if (likely((status & handle_rx) && (napi_schedule_prep(&priv->napi)))) {
+	if (likely((status & handle_rx) && (napi_schedule_prep(&priv->napi))))
+	{
 		priv->hw->dma->disable_dma_irq(priv->ioaddr, rxq->queue_no);
 		__napi_schedule(&priv->napi);
 	}
 
 	/* check for TC configuration change */
 	if (unlikely((status & rx_bump_tc) &&
-		     (priv->rx_tc != SXGBE_MTL_SFMODE) &&
-		     (priv->rx_tc < 128))) {
+				 (priv->rx_tc != SXGBE_MTL_SFMODE) &&
+				 (priv->rx_tc < 128)))
+	{
 		/* step of TC is 32 */
 		priv->rx_tc += 32;
 		priv->hw->mtl->set_rx_mtl_mode(priv->ioaddr,
-					       rxq->queue_no, priv->rx_tc);
+									   rxq->queue_no, priv->rx_tc);
 		priv->xstats.rx_threshold = priv->rx_tc;
 	}
 
@@ -1725,7 +1951,7 @@ static inline u64 sxgbe_get_stat64(void __iomem *ioaddr, int reg_lo, int reg_hi)
  *  This function returns various statistical information of device.
  */
 static struct rtnl_link_stats64 *sxgbe_get_stats64(struct net_device *dev,
-						   struct rtnl_link_stats64 *stats)
+		struct rtnl_link_stats64 *stats)
 {
 	struct sxgbe_priv_data *priv = netdev_priv(dev);
 	void __iomem *ioaddr = priv->ioaddr;
@@ -1738,42 +1964,42 @@ static struct rtnl_link_stats64 *sxgbe_get_stats64(struct net_device *dev,
 	writel(SXGBE_MMC_CTRL_CNT_FRZ, ioaddr + SXGBE_MMC_CTL_REG);
 
 	stats->rx_bytes = sxgbe_get_stat64(ioaddr,
-					   SXGBE_MMC_RXOCTETLO_GCNT_REG,
-					   SXGBE_MMC_RXOCTETHI_GCNT_REG);
+									   SXGBE_MMC_RXOCTETLO_GCNT_REG,
+									   SXGBE_MMC_RXOCTETHI_GCNT_REG);
 
 	stats->rx_packets = sxgbe_get_stat64(ioaddr,
-					     SXGBE_MMC_RXFRAMELO_GBCNT_REG,
-					     SXGBE_MMC_RXFRAMEHI_GBCNT_REG);
+										 SXGBE_MMC_RXFRAMELO_GBCNT_REG,
+										 SXGBE_MMC_RXFRAMEHI_GBCNT_REG);
 
 	stats->multicast = sxgbe_get_stat64(ioaddr,
-					    SXGBE_MMC_RXMULTILO_GCNT_REG,
-					    SXGBE_MMC_RXMULTIHI_GCNT_REG);
+										SXGBE_MMC_RXMULTILO_GCNT_REG,
+										SXGBE_MMC_RXMULTIHI_GCNT_REG);
 
 	stats->rx_crc_errors = sxgbe_get_stat64(ioaddr,
-						SXGBE_MMC_RXCRCERRLO_REG,
-						SXGBE_MMC_RXCRCERRHI_REG);
+											SXGBE_MMC_RXCRCERRLO_REG,
+											SXGBE_MMC_RXCRCERRHI_REG);
 
 	stats->rx_length_errors = sxgbe_get_stat64(ioaddr,
-						  SXGBE_MMC_RXLENERRLO_REG,
-						  SXGBE_MMC_RXLENERRHI_REG);
+							  SXGBE_MMC_RXLENERRLO_REG,
+							  SXGBE_MMC_RXLENERRHI_REG);
 
 	stats->rx_missed_errors = sxgbe_get_stat64(ioaddr,
-						   SXGBE_MMC_RXFIFOOVERFLOWLO_GBCNT_REG,
-						   SXGBE_MMC_RXFIFOOVERFLOWHI_GBCNT_REG);
+							  SXGBE_MMC_RXFIFOOVERFLOWLO_GBCNT_REG,
+							  SXGBE_MMC_RXFIFOOVERFLOWHI_GBCNT_REG);
 
 	stats->tx_bytes = sxgbe_get_stat64(ioaddr,
-					   SXGBE_MMC_TXOCTETLO_GCNT_REG,
-					   SXGBE_MMC_TXOCTETHI_GCNT_REG);
+									   SXGBE_MMC_TXOCTETLO_GCNT_REG,
+									   SXGBE_MMC_TXOCTETHI_GCNT_REG);
 
 	count = sxgbe_get_stat64(ioaddr, SXGBE_MMC_TXFRAMELO_GBCNT_REG,
-				 SXGBE_MMC_TXFRAMEHI_GBCNT_REG);
+							 SXGBE_MMC_TXFRAMEHI_GBCNT_REG);
 
 	stats->tx_errors = sxgbe_get_stat64(ioaddr, SXGBE_MMC_TXFRAMELO_GCNT_REG,
-					    SXGBE_MMC_TXFRAMEHI_GCNT_REG);
+										SXGBE_MMC_TXFRAMEHI_GCNT_REG);
 	stats->tx_errors = count - stats->tx_errors;
 	stats->tx_packets = count;
 	stats->tx_fifo_errors = sxgbe_get_stat64(ioaddr, SXGBE_MMC_TXUFLWLO_GBCNT_REG,
-						 SXGBE_MMC_TXUFLWHI_GBCNT_REG);
+							SXGBE_MMC_TXUFLWHI_GBCNT_REG);
 	writel(0, ioaddr + SXGBE_MMC_CTL_REG);
 	spin_unlock(&priv->stats_lock);
 
@@ -1790,16 +2016,20 @@ static struct rtnl_link_stats64 *sxgbe_get_stats64(struct net_device *dev,
  *  This function returns 0 after setting or resetting device features.
  */
 static int sxgbe_set_features(struct net_device *dev,
-			      netdev_features_t features)
+							  netdev_features_t features)
 {
 	struct sxgbe_priv_data *priv = netdev_priv(dev);
 	netdev_features_t changed = dev->features ^ features;
 
-	if (changed & NETIF_F_RXCSUM) {
-		if (features & NETIF_F_RXCSUM) {
+	if (changed & NETIF_F_RXCSUM)
+	{
+		if (features & NETIF_F_RXCSUM)
+		{
 			priv->hw->mac->enable_rx_csum(priv->ioaddr);
 			priv->rxcsum_insertion = true;
-		} else {
+		}
+		else
+		{
 			priv->hw->mac->disable_rx_csum(priv->ioaddr);
 			priv->rxcsum_insertion = false;
 		}
@@ -1823,20 +2053,25 @@ static int sxgbe_change_mtu(struct net_device *dev, int new_mtu)
 	/* RFC 791, page 25, "Every internet module must be able to forward
 	 * a datagram of 68 octets without further fragmentation."
 	 */
-	if (new_mtu < MIN_MTU || (new_mtu > MAX_MTU)) {
+	if (new_mtu < MIN_MTU || (new_mtu > MAX_MTU))
+	{
 		netdev_err(dev, "invalid MTU, MTU should be in between %d and %d\n",
-			   MIN_MTU, MAX_MTU);
+				   MIN_MTU, MAX_MTU);
 		return -EINVAL;
 	}
 
 	/* Return if the buffer sizes will not change */
 	if (dev->mtu == new_mtu)
+	{
 		return 0;
+	}
 
 	dev->mtu = new_mtu;
 
 	if (!netif_running(dev))
+	{
 		return 0;
+	}
 
 	/* Recevice ring buffer size is needed to be set based on MTU. If MTU is
 	 * changed then reinitilisation of the receive ring buffers need to be
@@ -1847,7 +2082,7 @@ static int sxgbe_change_mtu(struct net_device *dev, int new_mtu)
 }
 
 static void sxgbe_set_umac_addr(void __iomem *ioaddr, unsigned char *addr,
-				unsigned int reg_n)
+								unsigned int reg_n)
 {
 	unsigned long data;
 
@@ -1882,23 +2117,29 @@ static void sxgbe_set_rx_mode(struct net_device *dev)
 	int reg = 1;
 
 	netdev_dbg(dev, "%s: # mcasts %d, # unicast %d\n",
-		   __func__, netdev_mc_count(dev), netdev_uc_count(dev));
+			   __func__, netdev_mc_count(dev), netdev_uc_count(dev));
 
-	if (dev->flags & IFF_PROMISC) {
+	if (dev->flags & IFF_PROMISC)
+	{
 		value = SXGBE_FRAME_FILTER_PR;
 
-	} else if ((netdev_mc_count(dev) > SXGBE_HASH_TABLE_SIZE) ||
-		   (dev->flags & IFF_ALLMULTI)) {
+	}
+	else if ((netdev_mc_count(dev) > SXGBE_HASH_TABLE_SIZE) ||
+			 (dev->flags & IFF_ALLMULTI))
+	{
 		value = SXGBE_FRAME_FILTER_PM;	/* pass all multi */
 		writel(0xffffffff, ioaddr + SXGBE_HASH_HIGH);
 		writel(0xffffffff, ioaddr + SXGBE_HASH_LOW);
 
-	} else if (!netdev_mc_empty(dev)) {
+	}
+	else if (!netdev_mc_empty(dev))
+	{
 		/* Hash filter for multicast */
 		value = SXGBE_FRAME_FILTER_HMC;
 
 		memset(mc_filter, 0, sizeof(mc_filter));
-		netdev_for_each_mc_addr(ha, dev) {
+		netdev_for_each_mc_addr(ha, dev)
+		{
 			/* The upper 6 bits of the calculated CRC are used to
 			 * index the contens of the hash table
 			 */
@@ -1919,13 +2160,18 @@ static void sxgbe_set_rx_mode(struct net_device *dev)
 		/* Switch to promiscuous mode if more than 16 addrs
 		 * are required
 		 */
+	{
 		value |= SXGBE_FRAME_FILTER_PR;
-	else {
-		netdev_for_each_uc_addr(ha, dev) {
+	}
+	else
+	{
+		netdev_for_each_uc_addr(ha, dev)
+		{
 			sxgbe_set_umac_addr(ioaddr, ha->addr, reg);
 			reg++;
 		}
 	}
+
 #ifdef FRAME_FILTER_DEBUG
 	/* Enable Receive all mode (to debug filtering_fail errors) */
 	value |= SXGBE_FRAME_FILTER_RA;
@@ -1933,9 +2179,9 @@ static void sxgbe_set_rx_mode(struct net_device *dev)
 	writel(value, ioaddr + SXGBE_FRAME_FILTER);
 
 	netdev_dbg(dev, "Filter: 0x%08x\n\tHash: HI 0x%08x, LO 0x%08x\n",
-		   readl(ioaddr + SXGBE_FRAME_FILTER),
-		   readl(ioaddr + SXGBE_HASH_HIGH),
-		   readl(ioaddr + SXGBE_HASH_LOW));
+			   readl(ioaddr + SXGBE_FRAME_FILTER),
+			   readl(ioaddr + SXGBE_HASH_HIGH),
+			   readl(ioaddr + SXGBE_HASH_LOW));
 }
 
 #ifdef CONFIG_NET_POLL_CONTROLLER
@@ -1971,24 +2217,32 @@ static int sxgbe_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 	int ret = -EOPNOTSUPP;
 
 	if (!netif_running(dev))
+	{
 		return -EINVAL;
+	}
 
-	switch (cmd) {
-	case SIOCGMIIPHY:
-	case SIOCGMIIREG:
-	case SIOCSMIIREG:
-		if (!dev->phydev)
-			return -EINVAL;
-		ret = phy_mii_ioctl(dev->phydev, rq, cmd);
-		break;
-	default:
-		break;
+	switch (cmd)
+	{
+		case SIOCGMIIPHY:
+		case SIOCGMIIREG:
+		case SIOCSMIIREG:
+			if (!dev->phydev)
+			{
+				return -EINVAL;
+			}
+
+			ret = phy_mii_ioctl(dev->phydev, rq, cmd);
+			break;
+
+		default:
+			break;
 	}
 
 	return ret;
 }
 
-static const struct net_device_ops sxgbe_netdev_ops = {
+static const struct net_device_ops sxgbe_netdev_ops =
+{
 	.ndo_open		= sxgbe_open,
 	.ndo_start_xmit		= sxgbe_xmit,
 	.ndo_stop		= sxgbe_release,
@@ -2005,7 +2259,7 @@ static const struct net_device_ops sxgbe_netdev_ops = {
 };
 
 /* Get the hardware ops */
-static void sxgbe_get_ops(struct sxgbe_ops * const ops_ptr)
+static void sxgbe_get_ops(struct sxgbe_ops *const ops_ptr)
 {
 	ops_ptr->mac		= sxgbe_get_core_ops();
 	ops_ptr->desc		= sxgbe_get_desc_ops();
@@ -2031,13 +2285,16 @@ static void sxgbe_get_ops(struct sxgbe_ops * const ops_ptr)
  *  Description: this function checks the HW capability
  *  (if supported) and sets the driver's features.
  */
-static int sxgbe_hw_init(struct sxgbe_priv_data * const priv)
+static int sxgbe_hw_init(struct sxgbe_priv_data *const priv)
 {
 	u32 ctrl_ids;
 
 	priv->hw = kmalloc(sizeof(*priv->hw), GFP_KERNEL);
-	if(!priv->hw)
+
+	if (!priv->hw)
+	{
 		return -ENOMEM;
+	}
 
 	/* get the hardware ops */
 	sxgbe_get_ops(priv->hw);
@@ -2047,17 +2304,23 @@ static int sxgbe_hw_init(struct sxgbe_priv_data * const priv)
 	priv->hw->ctrl_uid = (ctrl_ids & 0x00ff0000) >> 16;
 	priv->hw->ctrl_id = (ctrl_ids & 0x000000ff);
 	pr_info("user ID: 0x%x, Controller ID: 0x%x\n",
-		priv->hw->ctrl_uid, priv->hw->ctrl_id);
+			priv->hw->ctrl_uid, priv->hw->ctrl_id);
 
 	/* get the H/W features */
 	if (!sxgbe_get_hw_features(priv))
+	{
 		pr_info("Hardware features not found\n");
+	}
 
 	if (priv->hw_cap.tx_csum_offload)
+	{
 		pr_info("TX Checksum offload supported\n");
+	}
 
 	if (priv->hw_cap.rx_csum_offload)
+	{
 		pr_info("RX Checksum offload supported\n");
+	}
 
 	return 0;
 }
@@ -2067,15 +2330,22 @@ static int sxgbe_sw_reset(void __iomem *addr)
 	int retry_count = 10;
 
 	writel(SXGBE_DMA_SOFT_RESET, addr + SXGBE_DMA_MODE_REG);
-	while (retry_count--) {
+
+	while (retry_count--)
+	{
 		if (!(readl(addr + SXGBE_DMA_MODE_REG) &
-		      SXGBE_DMA_SOFT_RESET))
+			  SXGBE_DMA_SOFT_RESET))
+		{
 			break;
+		}
+
 		mdelay(10);
 	}
 
 	if (retry_count < 0)
+	{
 		return -EBUSY;
+	}
 
 	return 0;
 }
@@ -2089,8 +2359,8 @@ static int sxgbe_sw_reset(void __iomem *addr)
  * call the alloc_etherdev, allocate the priv structure.
  */
 struct sxgbe_priv_data *sxgbe_drv_probe(struct device *device,
-					struct sxgbe_plat_data *plat_dat,
-					void __iomem *addr)
+										struct sxgbe_plat_data *plat_dat,
+										void __iomem *addr)
 {
 	struct sxgbe_priv_data *priv;
 	struct net_device *ndev;
@@ -2098,9 +2368,12 @@ struct sxgbe_priv_data *sxgbe_drv_probe(struct device *device,
 	u8 queue_num;
 
 	ndev = alloc_etherdev_mqs(sizeof(struct sxgbe_priv_data),
-				  SXGBE_TX_QUEUES, SXGBE_RX_QUEUES);
+							  SXGBE_TX_QUEUES, SXGBE_RX_QUEUES);
+
 	if (!ndev)
+	{
 		return NULL;
+	}
 
 	SET_NETDEV_DEV(ndev, device);
 
@@ -2113,31 +2386,43 @@ struct sxgbe_priv_data *sxgbe_drv_probe(struct device *device,
 	priv->ioaddr = addr;
 
 	ret = sxgbe_sw_reset(priv->ioaddr);
+
 	if (ret)
+	{
 		goto error_free_netdev;
+	}
 
 	/* Verify driver arguments */
 	sxgbe_verify_args();
 
 	/* Init MAC and get the capabilities */
 	ret = sxgbe_hw_init(priv);
+
 	if (ret)
+	{
 		goto error_free_netdev;
+	}
 
 	/* allocate memory resources for Descriptor rings */
 	ret = txring_mem_alloc(priv);
+
 	if (ret)
+	{
 		goto error_free_hw;
+	}
 
 	ret = rxring_mem_alloc(priv);
+
 	if (ret)
+	{
 		goto error_free_hw;
+	}
 
 	ndev->netdev_ops = &sxgbe_netdev_ops;
 
 	ndev->hw_features = NETIF_F_SG | NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM |
-		NETIF_F_RXCSUM | NETIF_F_TSO | NETIF_F_TSO6 |
-		NETIF_F_GRO;
+						NETIF_F_RXCSUM | NETIF_F_TSO | NETIF_F_TSO6 |
+						NETIF_F_GRO;
 	ndev->features |= ndev->hw_features | NETIF_F_HIGHDMA;
 	ndev->watchdog_timeo = msecs_to_jiffies(TX_TIMEO);
 
@@ -2147,14 +2432,17 @@ struct sxgbe_priv_data *sxgbe_drv_probe(struct device *device,
 	priv->msg_enable = netif_msg_init(debug, default_msg_level);
 
 	/* Enable TCP segmentation offload for all DMA channels */
-	if (priv->hw_cap.tcpseg_offload) {
-		SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num) {
+	if (priv->hw_cap.tcpseg_offload)
+	{
+		SXGBE_FOR_EACH_QUEUE(SXGBE_TX_QUEUES, queue_num)
+		{
 			priv->hw->dma->enable_tso(priv->ioaddr, queue_num);
 		}
 	}
 
 	/* Enable Rx checksum offload */
-	if (priv->hw_cap.rx_csum_offload) {
+	if (priv->hw_cap.rx_csum_offload)
+	{
 		priv->hw->mac->enable_rx_csum(priv->ioaddr);
 		priv->rxcsum_insertion = true;
 	}
@@ -2164,7 +2452,8 @@ struct sxgbe_priv_data *sxgbe_drv_probe(struct device *device,
 	priv->tx_pause = 1;
 
 	/* Rx Watchdog is available, enable depend on platform data */
-	if (!priv->plat->riwt_off) {
+	if (!priv->plat->riwt_off)
+	{
 		priv->use_riwt = 1;
 		pr_info("Enable RX Mitigation via HW Watchdog Timer\n");
 	}
@@ -2174,9 +2463,11 @@ struct sxgbe_priv_data *sxgbe_drv_probe(struct device *device,
 	spin_lock_init(&priv->stats_lock);
 
 	priv->sxgbe_clk = clk_get(priv->device, SXGBE_RESOURCE_NAME);
-	if (IS_ERR(priv->sxgbe_clk)) {
+
+	if (IS_ERR(priv->sxgbe_clk))
+	{
 		netdev_warn(ndev, "%s: warning: cannot get CSR clock\n",
-			    __func__);
+					__func__);
 		goto error_napi_del;
 	}
 
@@ -2187,20 +2478,28 @@ struct sxgbe_priv_data *sxgbe_drv_probe(struct device *device,
 	 * clock input.
 	 */
 	if (!priv->plat->clk_csr)
+	{
 		sxgbe_clk_csr_set(priv);
+	}
 	else
+	{
 		priv->clk_csr = priv->plat->clk_csr;
+	}
 
 	/* MDIO bus Registration */
 	ret = sxgbe_mdio_register(ndev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		netdev_dbg(ndev, "%s: MDIO bus (id: %d) registration failed\n",
-			   __func__, priv->plat->bus_id);
+				   __func__, priv->plat->bus_id);
 		goto error_clk_put;
 	}
 
 	ret = register_netdev(ndev);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s: ERROR %i registering the device\n", __func__, ret);
 		goto error_mdio_unregister;
 	}
@@ -2236,7 +2535,8 @@ int sxgbe_drv_remove(struct net_device *ndev)
 
 	netdev_info(ndev, "%s: removing driver\n", __func__);
 
-	SXGBE_FOR_EACH_QUEUE(SXGBE_RX_QUEUES, queue_num) {
+	SXGBE_FOR_EACH_QUEUE(SXGBE_RX_QUEUES, queue_num)
+	{
 		priv->hw->mac->disable_rxqueue(priv->ioaddr, queue_num);
 	}
 
@@ -2289,8 +2589,12 @@ static int __init sxgbe_init(void)
 	int ret;
 
 	ret = sxgbe_register_platform();
+
 	if (ret)
+	{
 		goto err;
+	}
+
 	return 0;
 err:
 	pr_err("driver registration failed\n");
@@ -2311,13 +2615,21 @@ static int __init sxgbe_cmdline_opt(char *str)
 	char *opt;
 
 	if (!str || !*str)
+	{
 		return -EINVAL;
-	while ((opt = strsep(&str, ",")) != NULL) {
-		if (!strncmp(opt, "eee_timer:", 6)) {
+	}
+
+	while ((opt = strsep(&str, ",")) != NULL)
+	{
+		if (!strncmp(opt, "eee_timer:", 6))
+		{
 			if (kstrtoint(opt + 10, 0, &eee_timer))
+			{
 				goto err;
+			}
 		}
 	}
+
 	return 0;
 
 err:

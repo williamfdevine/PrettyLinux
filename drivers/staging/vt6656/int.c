@@ -33,7 +33,8 @@
 #include "power.h"
 #include "usbpipe.h"
 
-static const u8 fallback_rate0[5][5] = {
+static const u8 fallback_rate0[5][5] =
+{
 	{RATE_18M, RATE_18M, RATE_12M, RATE_12M, RATE_12M},
 	{RATE_24M, RATE_24M, RATE_18M, RATE_12M, RATE_12M},
 	{RATE_36M, RATE_36M, RATE_24M, RATE_18M, RATE_18M},
@@ -41,7 +42,8 @@ static const u8 fallback_rate0[5][5] = {
 	{RATE_54M, RATE_54M, RATE_48M, RATE_36M, RATE_36M}
 };
 
-static const u8 fallback_rate1[5][5] = {
+static const u8 fallback_rate1[5][5] =
+{
 	{RATE_18M, RATE_18M, RATE_12M, RATE_6M, RATE_6M},
 	{RATE_24M, RATE_24M, RATE_18M, RATE_6M, RATE_6M},
 	{RATE_36M, RATE_36M, RATE_24M, RATE_12M, RATE_12M},
@@ -72,17 +74,22 @@ static int vnt_int_report_rate(struct vnt_private *priv, u8 pkt_no, u8 tsr)
 	s8 idx;
 
 	if (pkt_no >= priv->num_tx_context)
+	{
 		return -EINVAL;
+	}
 
 	context = priv->tx_context[pkt_no];
 
 	if (!context->skb)
+	{
 		return -EINVAL;
+	}
 
 	info = IEEE80211_SKB_CB(context->skb);
 	idx = info->control.rates[0].idx;
 
-	if (context->fb_option && !(tsr & (TSR_TMO | TSR_RETRYTMO))) {
+	if (context->fb_option && !(tsr & (TSR_TMO | TSR_RETRYTMO)))
+	{
 		u8 tx_rate;
 		u8 retry = tx_retry;
 
@@ -90,24 +97,35 @@ static int vnt_int_report_rate(struct vnt_private *priv, u8 pkt_no, u8 tsr)
 		tx_rate = rate->hw_value - RATE_18M;
 
 		if (retry > 4)
+		{
 			retry = 4;
+		}
 
 		if (context->fb_option == AUTO_FB_0)
+		{
 			tx_rate = fallback_rate0[tx_rate][retry];
+		}
 		else if (context->fb_option == AUTO_FB_1)
+		{
 			tx_rate = fallback_rate1[tx_rate][retry];
+		}
 
 		if (info->band == NL80211_BAND_5GHZ)
+		{
 			idx = tx_rate - RATE_6M;
+		}
 		else
+		{
 			idx = tx_rate;
+		}
 	}
 
 	ieee80211_tx_info_clear_status(info);
 
 	info->status.rates[0].count = tx_retry;
 
-	if (!(tsr & (TSR_TMO | TSR_RETRYTMO))) {
+	if (!(tsr & (TSR_TMO | TSR_RETRYTMO)))
+	{
 		info->status.rates[0].idx = idx;
 		info->flags |= IEEE80211_TX_STAT_ACK;
 	}
@@ -129,24 +147,36 @@ void vnt_int_process_data(struct vnt_private *priv)
 	int_data = (struct vnt_interrupt_data *)priv->int_buf.data_buf;
 
 	if (int_data->tsr0 & TSR_VALID)
+	{
 		vnt_int_report_rate(priv, int_data->pkt0, int_data->tsr0);
+	}
 
 	if (int_data->tsr1 & TSR_VALID)
+	{
 		vnt_int_report_rate(priv, int_data->pkt1, int_data->tsr1);
+	}
 
 	if (int_data->tsr2 & TSR_VALID)
+	{
 		vnt_int_report_rate(priv, int_data->pkt2, int_data->tsr2);
+	}
 
 	if (int_data->tsr3 & TSR_VALID)
+	{
 		vnt_int_report_rate(priv, int_data->pkt3, int_data->tsr3);
+	}
 
-	if (int_data->isr0 != 0) {
+	if (int_data->isr0 != 0)
+	{
 		if (int_data->isr0 & ISR_BNTX &&
-				priv->op_mode == NL80211_IFTYPE_AP)
+			priv->op_mode == NL80211_IFTYPE_AP)
+		{
 			vnt_schedule_command(priv, WLAN_CMD_BECON_SEND);
+		}
 
 		if (int_data->isr0 & ISR_TBTT &&
-		    priv->hw->conf.flags & IEEE80211_CONF_PS) {
+			priv->hw->conf.flags & IEEE80211_CONF_PS)
+		{
 			if (!priv->wake_up_count)
 				priv->wake_up_count =
 					priv->hw->conf.listen_interval;
@@ -156,8 +186,9 @@ void vnt_int_process_data(struct vnt_private *priv)
 			/* Turn on wake up to listen next beacon */
 			if (priv->wake_up_count == 1)
 				vnt_schedule_command(priv,
-						     WLAN_CMD_TBTT_WAKEUP);
+									 WLAN_CMD_TBTT_WAKEUP);
 		}
+
 		priv->current_tsf = le64_to_cpu(int_data->tsf);
 
 		low_stats->dot11RTSSuccessCount += int_data->rts_success;

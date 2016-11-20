@@ -113,19 +113,22 @@ static void fsl_re_issue_pending(struct dma_chan *chan)
 
 	spin_lock_irqsave(&re_chan->desc_lock, flags);
 	avail = FSL_RE_SLOT_AVAIL(
-		in_be32(&re_chan->jrregs->inbring_slot_avail));
+				in_be32(&re_chan->jrregs->inbring_slot_avail));
 
-	list_for_each_entry_safe(desc, _desc, &re_chan->submit_q, node) {
+	list_for_each_entry_safe(desc, _desc, &re_chan->submit_q, node)
+	{
 		if (!avail)
+		{
 			break;
+		}
 
 		list_move_tail(&desc->node, &re_chan->active_q);
 
 		memcpy(&re_chan->inb_ring_virt_addr[re_chan->inb_count],
-		       &desc->hwdesc, sizeof(struct fsl_re_hw_desc));
+			   &desc->hwdesc, sizeof(struct fsl_re_hw_desc));
 
 		re_chan->inb_count = (re_chan->inb_count + 1) &
-						FSL_RE_RING_SIZE_MASK;
+							 FSL_RE_RING_SIZE_MASK;
 		out_be32(&re_chan->jrregs->inbring_add_job, FSL_RE_ADD_JOB(1));
 		avail--;
 	}
@@ -145,9 +148,12 @@ static void fsl_re_cleanup_descs(struct fsl_re_chan *re_chan)
 	unsigned long flags;
 
 	spin_lock_irqsave(&re_chan->desc_lock, flags);
-	list_for_each_entry_safe(desc, _desc, &re_chan->ack_q, node) {
+	list_for_each_entry_safe(desc, _desc, &re_chan->ack_q, node)
+	{
 		if (async_tx_test_ack(&desc->async_tx))
+		{
 			list_move_tail(&desc->node, &re_chan->free_q);
+		}
 	}
 	spin_unlock_irqrestore(&re_chan->desc_lock, flags);
 
@@ -169,33 +175,41 @@ static void fsl_re_dequeue(unsigned long data)
 
 	spin_lock_irqsave(&re_chan->desc_lock, flags);
 	count =	FSL_RE_SLOT_FULL(in_be32(&re_chan->jrregs->oubring_slot_full));
-	while (count--) {
+
+	while (count--)
+	{
 		found = 0;
 		hwdesc = &re_chan->oub_ring_virt_addr[re_chan->oub_count];
 		list_for_each_entry_safe(desc, _desc, &re_chan->active_q,
-					 node) {
+								 node)
+		{
 			/* compare the hw dma addr to find the completed */
 			if (desc->hwdesc.lbea32 == hwdesc->lbea32 &&
-			    desc->hwdesc.addr_low == hwdesc->addr_low) {
+				desc->hwdesc.addr_low == hwdesc->addr_low)
+			{
 				found = 1;
 				break;
 			}
 		}
 
-		if (found) {
+		if (found)
+		{
 			fsl_re_desc_done(desc);
 			list_move_tail(&desc->node, &re_chan->ack_q);
-		} else {
+		}
+		else
+		{
 			dev_err(re_chan->dev,
-				"found hwdesc not in sw queue, discard it\n");
+					"found hwdesc not in sw queue, discard it\n");
 		}
 
 		oub_count = (re_chan->oub_count + 1) & FSL_RE_RING_SIZE_MASK;
 		re_chan->oub_count = oub_count;
 
 		out_be32(&re_chan->jrregs->oubring_job_rmvd,
-			 FSL_RE_RMVD_JOB(1));
+				 FSL_RE_RMVD_JOB(1));
 	}
+
 	spin_unlock_irqrestore(&re_chan->desc_lock, flags);
 }
 
@@ -208,18 +222,22 @@ static irqreturn_t fsl_re_isr(int irq, void *data)
 	re_chan = dev_get_drvdata((struct device *)data);
 
 	irqstate = in_be32(&re_chan->jrregs->jr_interrupt_status);
+
 	if (!irqstate)
+	{
 		return IRQ_NONE;
+	}
 
 	/*
 	 * There's no way in upper layer (read MD layer) to recover from
 	 * error conditions except restart everything. In long term we
 	 * need to do something more than just crashing
 	 */
-	if (irqstate & FSL_RE_ERROR) {
+	if (irqstate & FSL_RE_ERROR)
+	{
 		status = in_be32(&re_chan->jrregs->jr_status);
 		dev_err(re_chan->dev, "chan error irqstate: %x, status: %x\n",
-			irqstate, status);
+				irqstate, status);
 	}
 
 	/* Clear interrupt */
@@ -231,14 +249,14 @@ static irqreturn_t fsl_re_isr(int irq, void *data)
 }
 
 static enum dma_status fsl_re_tx_status(struct dma_chan *chan,
-					dma_cookie_t cookie,
-					struct dma_tx_state *txstate)
+										dma_cookie_t cookie,
+										struct dma_tx_state *txstate)
 {
 	return dma_cookie_status(chan, cookie, txstate);
 }
 
 static void fill_cfd_frame(struct fsl_re_cmpnd_frame *cf, u8 index,
-			   size_t length, dma_addr_t addr, bool final)
+						   size_t length, dma_addr_t addr, bool final)
 {
 	u32 efrl = length & FSL_RE_CF_LENGTH_MASK;
 
@@ -249,8 +267,8 @@ static void fill_cfd_frame(struct fsl_re_cmpnd_frame *cf, u8 index,
 }
 
 static struct fsl_re_desc *fsl_re_init_desc(struct fsl_re_chan *re_chan,
-					    struct fsl_re_desc *desc,
-					    void *cf, dma_addr_t paddr)
+		struct fsl_re_desc *desc,
+		void *cf, dma_addr_t paddr)
 {
 	desc->re_chan = re_chan;
 	desc->async_tx.tx_submit = fsl_re_tx_submit;
@@ -270,7 +288,7 @@ static struct fsl_re_desc *fsl_re_init_desc(struct fsl_re_chan *re_chan,
 }
 
 static struct fsl_re_desc *fsl_re_chan_alloc_desc(struct fsl_re_chan *re_chan,
-						  unsigned long flags)
+		unsigned long flags)
 {
 	struct fsl_re_desc *desc = NULL;
 	void *cf;
@@ -280,24 +298,33 @@ static struct fsl_re_desc *fsl_re_chan_alloc_desc(struct fsl_re_chan *re_chan,
 	fsl_re_cleanup_descs(re_chan);
 
 	spin_lock_irqsave(&re_chan->desc_lock, lock_flag);
-	if (!list_empty(&re_chan->free_q)) {
+
+	if (!list_empty(&re_chan->free_q))
+	{
 		/* take one desc from free_q */
 		desc = list_first_entry(&re_chan->free_q,
-					struct fsl_re_desc, node);
+								struct fsl_re_desc, node);
 		list_del(&desc->node);
 
 		desc->async_tx.flags = flags;
 	}
+
 	spin_unlock_irqrestore(&re_chan->desc_lock, lock_flag);
 
-	if (!desc) {
+	if (!desc)
+	{
 		desc = kzalloc(sizeof(*desc), GFP_NOWAIT);
+
 		if (!desc)
+		{
 			return NULL;
+		}
 
 		cf = dma_pool_alloc(re_chan->re_dev->cf_desc_pool, GFP_NOWAIT,
-				    &paddr);
-		if (!cf) {
+							&paddr);
+
+		if (!cf)
+		{
 			kfree(desc);
 			return NULL;
 		}
@@ -314,9 +341,9 @@ static struct fsl_re_desc *fsl_re_chan_alloc_desc(struct fsl_re_chan *re_chan,
 }
 
 static struct dma_async_tx_descriptor *fsl_re_prep_dma_genq(
-		struct dma_chan *chan, dma_addr_t dest, dma_addr_t *src,
-		unsigned int src_cnt, const unsigned char *scf, size_t len,
-		unsigned long flags)
+	struct dma_chan *chan, dma_addr_t dest, dma_addr_t *src,
+	unsigned int src_cnt, const unsigned char *scf, size_t len,
+	unsigned long flags)
 {
 	struct fsl_re_chan *re_chan;
 	struct fsl_re_desc *desc;
@@ -328,17 +355,23 @@ static struct dma_async_tx_descriptor *fsl_re_prep_dma_genq(
 	int cont_q = 0;
 
 	re_chan = container_of(chan, struct fsl_re_chan, chan);
-	if (len > FSL_RE_MAX_DATA_LEN) {
+
+	if (len > FSL_RE_MAX_DATA_LEN)
+	{
 		dev_err(re_chan->dev, "genq tx length %zu, max length %d\n",
-			len, FSL_RE_MAX_DATA_LEN);
+				len, FSL_RE_MAX_DATA_LEN);
 		return NULL;
 	}
 
 	desc = fsl_re_chan_alloc_desc(re_chan, flags);
-	if (desc <= 0)
-		return NULL;
 
-	if (scf && (flags & DMA_PREP_CONTINUE)) {
+	if (desc <= 0)
+	{
+		return NULL;
+	}
+
+	if (scf && (flags & DMA_PREP_CONTINUE))
+	{
 		cont_q = 1;
 		src_cnt += 1;
 	}
@@ -352,16 +385,26 @@ static struct dma_async_tx_descriptor *fsl_re_prep_dma_genq(
 	xor = desc->cdb_addr;
 	xor->cdb32 = cdb;
 
-	if (scf) {
+	if (scf)
+	{
 		/* compute q = src0*coef0^src1*coef1^..., * is GF(8) mult */
 		for (i = 0; i < save_src_cnt; i++)
+		{
 			xor->gfm[i] = scf[i];
+		}
+
 		if (cont_q)
+		{
 			xor->gfm[i++] = 1;
-	} else {
+		}
+	}
+	else
+	{
 		/* compute P, that is XOR all srcs */
 		for (i = 0; i < src_cnt; i++)
+		{
 			xor->gfm[i] = 1;
+		}
 	}
 
 	/* Filling frame 0 of compound frame descriptor with CDB */
@@ -373,10 +416,14 @@ static struct dma_async_tx_descriptor *fsl_re_prep_dma_genq(
 
 	/* Fill CFD's rest of the frames with source buffers */
 	for (i = 2, j = 0; j < save_src_cnt; i++, j++)
+	{
 		fill_cfd_frame(cf, i, len, src[j], 0);
+	}
 
 	if (cont_q)
+	{
 		fill_cfd_frame(cf, i++, len, dest, 0);
+	}
 
 	/* Setting the final bit in the last source buffer frame in CFD */
 	cf[i - 1].efrl32 |= 1 << FSL_RE_CF_FINAL_SHIFT;
@@ -389,8 +436,8 @@ static struct dma_async_tx_descriptor *fsl_re_prep_dma_genq(
  * XOR calculation is called GenQ calculation done through GenQ command
  */
 static struct dma_async_tx_descriptor *fsl_re_prep_dma_xor(
-		struct dma_chan *chan, dma_addr_t dest, dma_addr_t *src,
-		unsigned int src_cnt, size_t len, unsigned long flags)
+	struct dma_chan *chan, dma_addr_t dest, dma_addr_t *src,
+	unsigned int src_cnt, size_t len, unsigned long flags)
 {
 	/* NULL let genq take all coef as 1 */
 	return fsl_re_prep_dma_genq(chan, dest, src, src_cnt, NULL, len, flags);
@@ -401,9 +448,9 @@ static struct dma_async_tx_descriptor *fsl_re_prep_dma_xor(
  * P/Q calculation is called GenQQ done through GenQQ command
  */
 static struct dma_async_tx_descriptor *fsl_re_prep_dma_pq(
-		struct dma_chan *chan, dma_addr_t *dest, dma_addr_t *src,
-		unsigned int src_cnt, const unsigned char *scf, size_t len,
-		unsigned long flags)
+	struct dma_chan *chan, dma_addr_t *dest, dma_addr_t *src,
+	unsigned int src_cnt, const unsigned char *scf, size_t len,
+	unsigned long flags)
 {
 	struct fsl_re_chan *re_chan;
 	struct fsl_re_desc *desc;
@@ -415,9 +462,11 @@ static struct dma_async_tx_descriptor *fsl_re_prep_dma_pq(
 	unsigned int save_src_cnt = src_cnt;
 
 	re_chan = container_of(chan, struct fsl_re_chan, chan);
-	if (len > FSL_RE_MAX_DATA_LEN) {
+
+	if (len > FSL_RE_MAX_DATA_LEN)
+	{
 		dev_err(re_chan->dev, "pq tx length is %zu, max length is %d\n",
-			len, FSL_RE_MAX_DATA_LEN);
+				len, FSL_RE_MAX_DATA_LEN);
 		return NULL;
 	}
 
@@ -426,7 +475,8 @@ static struct dma_async_tx_descriptor *fsl_re_prep_dma_pq(
 	 * second source same as the first one.
 	 * With only one source, generating P is meaningless, only generate Q.
 	 */
-	if (src_cnt == 1) {
+	if (src_cnt == 1)
+	{
 		struct dma_async_tx_descriptor *tx;
 		dma_addr_t dma_src[2];
 		unsigned char coef[2];
@@ -436,9 +486,12 @@ static struct dma_async_tx_descriptor *fsl_re_prep_dma_pq(
 		dma_src[1] = *src;
 		coef[1] = 0;
 		tx = fsl_re_prep_dma_genq(chan, dest[1], dma_src, 2, coef, len,
-					  flags);
+								  flags);
+
 		if (tx)
+		{
 			desc = to_fsl_re_dma_desc(tx);
+		}
 
 		return tx;
 	}
@@ -453,14 +506,19 @@ static struct dma_async_tx_descriptor *fsl_re_prep_dma_pq(
 
 	if (flags & DMA_PREP_PQ_DISABLE_P)
 		return fsl_re_prep_dma_genq(chan, dest[1], src, src_cnt,
-				scf, len, flags);
+									scf, len, flags);
 
 	if (flags & DMA_PREP_CONTINUE)
+	{
 		src_cnt += 3;
+	}
 
 	desc = fsl_re_chan_alloc_desc(re_chan, flags);
+
 	if (desc <= 0)
+	{
 		return NULL;
+	}
 
 	/* Filling GenQQ CDB */
 	cdb = FSL_RE_PQ_OPCODE << FSL_RE_CDB_OPCODE_SHIFT;
@@ -473,17 +531,23 @@ static struct dma_async_tx_descriptor *fsl_re_prep_dma_pq(
 	pq->cdb32 = cdb;
 
 	p = pq->gfm_q1;
+
 	/* Init gfm_q1[] */
 	for (i = 0; i < src_cnt; i++)
+	{
 		p[i] = 1;
+	}
 
 	/* Align gfm[] to 32bit */
 	gfmq_len = ALIGN(src_cnt, 4);
 
 	/* Init gfm_q2[] */
 	p += gfmq_len;
+
 	for (i = 0; i < src_cnt; i++)
+	{
 		p[i] = scf[i];
+	}
 
 	/* Filling frame 0 of compound frame descriptor with CDB */
 	cf = desc->cf_addr;
@@ -491,22 +555,30 @@ static struct dma_async_tx_descriptor *fsl_re_prep_dma_pq(
 
 	/* Fill CFD's 1st & 2nd frame with dest buffers */
 	for (i = 1, j = 0; i < 3; i++, j++)
+	{
 		fill_cfd_frame(cf, i, len, dest[j], 0);
+	}
 
 	/* Fill CFD's rest of the frames with source buffers */
 	for (i = 3, j = 0; j < save_src_cnt; i++, j++)
+	{
 		fill_cfd_frame(cf, i, len, src[j], 0);
+	}
 
 	/* PQ computation continuation */
-	if (flags & DMA_PREP_CONTINUE) {
-		if (src_cnt - save_src_cnt == 3) {
+	if (flags & DMA_PREP_CONTINUE)
+	{
+		if (src_cnt - save_src_cnt == 3)
+		{
 			p[save_src_cnt] = 0;
 			p[save_src_cnt + 1] = 0;
 			p[save_src_cnt + 2] = 1;
 			fill_cfd_frame(cf, i++, len, dest[0], 0);
 			fill_cfd_frame(cf, i++, len, dest[1], 0);
 			fill_cfd_frame(cf, i++, len, dest[1], 0);
-		} else {
+		}
+		else
+		{
 			dev_err(re_chan->dev, "PQ tx continuation error!\n");
 			return NULL;
 		}
@@ -524,8 +596,8 @@ static struct dma_async_tx_descriptor *fsl_re_prep_dma_pq(
  * support is added in Linux's MD/ASYNC Layer
  */
 static struct dma_async_tx_descriptor *fsl_re_prep_dma_memcpy(
-		struct dma_chan *chan, dma_addr_t dest, dma_addr_t src,
-		size_t len, unsigned long flags)
+	struct dma_chan *chan, dma_addr_t dest, dma_addr_t src,
+	size_t len, unsigned long flags)
 {
 	struct fsl_re_chan *re_chan;
 	struct fsl_re_desc *desc;
@@ -536,15 +608,19 @@ static struct dma_async_tx_descriptor *fsl_re_prep_dma_memcpy(
 
 	re_chan = container_of(chan, struct fsl_re_chan, chan);
 
-	if (len > FSL_RE_MAX_DATA_LEN) {
+	if (len > FSL_RE_MAX_DATA_LEN)
+	{
 		dev_err(re_chan->dev, "cp tx length is %zu, max length is %d\n",
-			len, FSL_RE_MAX_DATA_LEN);
+				len, FSL_RE_MAX_DATA_LEN);
 		return NULL;
 	}
 
 	desc = fsl_re_chan_alloc_desc(re_chan, flags);
+
 	if (desc <= 0)
+	{
 		return NULL;
+	}
 
 	/* Filling move CDB */
 	cdb = FSL_RE_MOVE_OPCODE << FSL_RE_CDB_OPCODE_SHIFT;
@@ -579,14 +655,21 @@ static int fsl_re_alloc_chan_resources(struct dma_chan *chan)
 	int i;
 
 	re_chan = container_of(chan, struct fsl_re_chan, chan);
-	for (i = 0; i < FSL_RE_MIN_DESCS; i++) {
+
+	for (i = 0; i < FSL_RE_MIN_DESCS; i++)
+	{
 		desc = kzalloc(sizeof(*desc), GFP_KERNEL);
+
 		if (!desc)
+		{
 			break;
+		}
 
 		cf = dma_pool_alloc(re_chan->re_dev->cf_desc_pool, GFP_KERNEL,
-				    &paddr);
-		if (!cf) {
+							&paddr);
+
+		if (!cf)
+		{
 			kfree(desc);
 			break;
 		}
@@ -597,6 +680,7 @@ static int fsl_re_alloc_chan_resources(struct dma_chan *chan)
 		list_add_tail(&desc->node, &re_chan->free_q);
 		re_chan->alloc_count++;
 	}
+
 	return re_chan->alloc_count;
 }
 
@@ -606,23 +690,27 @@ static void fsl_re_free_chan_resources(struct dma_chan *chan)
 	struct fsl_re_desc *desc;
 
 	re_chan = container_of(chan, struct fsl_re_chan, chan);
-	while (re_chan->alloc_count--) {
+
+	while (re_chan->alloc_count--)
+	{
 		desc = list_first_entry(&re_chan->free_q,
-					struct fsl_re_desc,
-					node);
+								struct fsl_re_desc,
+								node);
 
 		list_del(&desc->node);
 		dma_pool_free(re_chan->re_dev->cf_desc_pool, desc->cf_addr,
-			      desc->cf_paddr);
+					  desc->cf_paddr);
 		kfree(desc);
 	}
 
 	if (!list_empty(&re_chan->free_q))
+	{
 		dev_err(re_chan->dev, "chan resource cannot be cleaned!\n");
+	}
 }
 
 static int fsl_re_chan_probe(struct platform_device *ofdev,
-		      struct device_node *np, u8 q, u32 off)
+							 struct device_node *np, u8 q, u32 off)
 {
 	struct device *dev, *chandev;
 	struct fsl_re_drv_private *re_priv;
@@ -638,12 +726,17 @@ static int fsl_re_chan_probe(struct platform_device *ofdev,
 	dma_dev = &re_priv->dma_dev;
 
 	chan = devm_kzalloc(dev, sizeof(*chan), GFP_KERNEL);
+
 	if (!chan)
+	{
 		return -ENOMEM;
+	}
 
 	/* create platform device for chan node */
 	chan_ofdev = of_platform_device_create(np, NULL, dev);
-	if (!chan_ofdev) {
+
+	if (!chan_ofdev)
+	{
 		dev_err(dev, "Not able to create ofdev for jr %d\n", q);
 		ret = -EINVAL;
 		goto err_free;
@@ -651,18 +744,22 @@ static int fsl_re_chan_probe(struct platform_device *ofdev,
 
 	/* read reg property from dts */
 	rc = of_property_read_u32(np, "reg", &ptr);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(dev, "Reg property not found in jr %d\n", q);
 		ret = -ENODEV;
 		goto err_free;
 	}
 
 	chan->jrregs = (struct fsl_re_chan_cfg *)((u8 *)re_priv->re_regs +
-			off + ptr);
+				   off + ptr);
 
 	/* read irq property from dts */
 	chan->irq = irq_of_parse_and_map(np, 0);
-	if (!chan->irq) {
+
+	if (!chan->irq)
+	{
 		dev_err(dev, "No IRQ defined for JR %d\n", q);
 		ret = -ENODEV;
 		goto err_free;
@@ -674,7 +771,9 @@ static int fsl_re_chan_probe(struct platform_device *ofdev,
 	tasklet_init(&chan->irqtask, fsl_re_dequeue, (unsigned long)chandev);
 
 	ret = request_irq(chan->irq, fsl_re_isr, 0, chan->name, chandev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Unable to register interrupt for JR %d\n", q);
 		ret = -EINVAL;
 		goto err_free;
@@ -693,16 +792,20 @@ static int fsl_re_chan_probe(struct platform_device *ofdev,
 	INIT_LIST_HEAD(&chan->free_q);
 
 	chan->inb_ring_virt_addr = dma_pool_alloc(chan->re_dev->hw_desc_pool,
-		GFP_KERNEL, &chan->inb_phys_addr);
-	if (!chan->inb_ring_virt_addr) {
+							   GFP_KERNEL, &chan->inb_phys_addr);
+
+	if (!chan->inb_ring_virt_addr)
+	{
 		dev_err(dev, "No dma memory for inb_ring_virt_addr\n");
 		ret = -ENOMEM;
 		goto err_free;
 	}
 
 	chan->oub_ring_virt_addr = dma_pool_alloc(chan->re_dev->hw_desc_pool,
-		GFP_KERNEL, &chan->oub_phys_addr);
-	if (!chan->oub_ring_virt_addr) {
+							   GFP_KERNEL, &chan->oub_phys_addr);
+
+	if (!chan->oub_ring_virt_addr)
+	{
 		dev_err(dev, "No dma memory for oub_ring_virt_addr\n");
 		ret = -ENOMEM;
 		goto err_free_1;
@@ -710,24 +813,24 @@ static int fsl_re_chan_probe(struct platform_device *ofdev,
 
 	/* Program the Inbound/Outbound ring base addresses and size */
 	out_be32(&chan->jrregs->inbring_base_h,
-		 chan->inb_phys_addr & FSL_RE_ADDR_BIT_MASK);
+			 chan->inb_phys_addr & FSL_RE_ADDR_BIT_MASK);
 	out_be32(&chan->jrregs->oubring_base_h,
-		 chan->oub_phys_addr & FSL_RE_ADDR_BIT_MASK);
+			 chan->oub_phys_addr & FSL_RE_ADDR_BIT_MASK);
 	out_be32(&chan->jrregs->inbring_base_l,
-		 chan->inb_phys_addr >> FSL_RE_ADDR_BIT_SHIFT);
+			 chan->inb_phys_addr >> FSL_RE_ADDR_BIT_SHIFT);
 	out_be32(&chan->jrregs->oubring_base_l,
-		 chan->oub_phys_addr >> FSL_RE_ADDR_BIT_SHIFT);
+			 chan->oub_phys_addr >> FSL_RE_ADDR_BIT_SHIFT);
 	out_be32(&chan->jrregs->inbring_size,
-		 FSL_RE_RING_SIZE << FSL_RE_RING_SIZE_SHIFT);
+			 FSL_RE_RING_SIZE << FSL_RE_RING_SIZE_SHIFT);
 	out_be32(&chan->jrregs->oubring_size,
-		 FSL_RE_RING_SIZE << FSL_RE_RING_SIZE_SHIFT);
+			 FSL_RE_RING_SIZE << FSL_RE_RING_SIZE_SHIFT);
 
 	/* Read LIODN value from u-boot */
 	status = in_be32(&chan->jrregs->jr_config_1) & FSL_RE_REG_LIODN_MASK;
 
 	/* Program the CFG reg */
 	out_be32(&chan->jrregs->jr_config_1,
-		 FSL_RE_CFG1_CBSI | FSL_RE_CFG1_CBS0 | status);
+			 FSL_RE_CFG1_CBSI | FSL_RE_CFG1_CBS0 | status);
 
 	dev_set_drvdata(chandev, chan);
 
@@ -738,7 +841,7 @@ static int fsl_re_chan_probe(struct platform_device *ofdev,
 
 err_free_1:
 	dma_pool_free(chan->re_dev->hw_desc_pool, chan->inb_ring_virt_addr,
-		      chan->inb_phys_addr);
+				  chan->inb_phys_addr);
 err_free:
 	return ret;
 }
@@ -757,17 +860,26 @@ static int fsl_re_probe(struct platform_device *ofdev)
 	struct device *dev = &ofdev->dev;
 
 	re_priv = devm_kzalloc(dev, sizeof(*re_priv), GFP_KERNEL);
+
 	if (!re_priv)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(ofdev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		return -ENODEV;
+	}
 
 	/* IOMAP the entire RAID Engine region */
 	re_priv->re_regs = devm_ioremap(dev, res->start, resource_size(res));
+
 	if (!re_priv->re_regs)
+	{
 		return -EBUSY;
+	}
 
 	/* Program the RE mode */
 	out_be32(&re_priv->re_regs->global_config, FSL_RE_NON_DPAA_MODE);
@@ -776,9 +888,9 @@ static int fsl_re_probe(struct platform_device *ofdev)
 	out_be32(&re_priv->re_regs->galois_field_config, FSL_RE_GFM_POLY);
 
 	dev_info(dev, "version %x, mode %x, gfp %x\n",
-		 in_be32(&re_priv->re_regs->re_version_id),
-		 in_be32(&re_priv->re_regs->global_config),
-		 in_be32(&re_priv->re_regs->galois_field_config));
+			 in_be32(&re_priv->re_regs->re_version_id),
+			 in_be32(&re_priv->re_regs->global_config),
+			 in_be32(&re_priv->re_regs->galois_field_config));
 
 	dma_dev = &re_priv->dma_dev;
 	dma_dev->dev = dev;
@@ -805,18 +917,21 @@ static int fsl_re_probe(struct platform_device *ofdev)
 	re_priv->total_chans = 0;
 
 	re_priv->cf_desc_pool = dmam_pool_create("fsl_re_cf_desc_pool", dev,
-					FSL_RE_CF_CDB_SIZE,
-					FSL_RE_CF_CDB_ALIGN, 0);
+							FSL_RE_CF_CDB_SIZE,
+							FSL_RE_CF_CDB_ALIGN, 0);
 
-	if (!re_priv->cf_desc_pool) {
+	if (!re_priv->cf_desc_pool)
+	{
 		dev_err(dev, "No memory for fsl re_cf desc pool\n");
 		return -ENOMEM;
 	}
 
 	re_priv->hw_desc_pool = dmam_pool_create("fsl_re_hw_desc_pool", dev,
-			sizeof(struct fsl_re_hw_desc) * FSL_RE_RING_SIZE,
-			FSL_RE_FRAME_ALIGN, 0);
-	if (!re_priv->hw_desc_pool) {
+							sizeof(struct fsl_re_hw_desc) * FSL_RE_RING_SIZE,
+							FSL_RE_FRAME_ALIGN, 0);
+
+	if (!re_priv->hw_desc_pool)
+	{
 		dev_err(dev, "No memory for fsl re_hw desc pool\n");
 		return -ENOMEM;
 	}
@@ -824,18 +939,25 @@ static int fsl_re_probe(struct platform_device *ofdev)
 	dev_set_drvdata(dev, re_priv);
 
 	/* Parse Device tree to find out the total number of JQs present */
-	for_each_compatible_node(np, NULL, "fsl,raideng-v1.0-job-queue") {
+	for_each_compatible_node(np, NULL, "fsl,raideng-v1.0-job-queue")
+	{
 		rc = of_property_read_u32(np, "reg", &off);
-		if (rc) {
+
+		if (rc)
+		{
 			dev_err(dev, "Reg property not found in JQ node\n");
 			of_node_put(np);
 			return -ENODEV;
 		}
+
 		/* Find out the Job Rings present under each JQ */
-		for_each_child_of_node(np, child) {
+		for_each_child_of_node(np, child)
+		{
 			rc = of_device_is_compatible(child,
-					     "fsl,raideng-v1.0-job-ring");
-			if (rc) {
+										 "fsl,raideng-v1.0-job-ring");
+
+			if (rc)
+			{
 				fsl_re_chan_probe(ofdev, child, ridx++, off);
 				re_priv->total_chans++;
 			}
@@ -852,10 +974,10 @@ static void fsl_re_remove_chan(struct fsl_re_chan *chan)
 	tasklet_kill(&chan->irqtask);
 
 	dma_pool_free(chan->re_dev->hw_desc_pool, chan->inb_ring_virt_addr,
-		      chan->inb_phys_addr);
+				  chan->inb_phys_addr);
 
 	dma_pool_free(chan->re_dev->hw_desc_pool, chan->oub_ring_virt_addr,
-		      chan->oub_phys_addr);
+				  chan->oub_phys_addr);
 }
 
 static int fsl_re_remove(struct platform_device *ofdev)
@@ -869,7 +991,9 @@ static int fsl_re_remove(struct platform_device *ofdev)
 
 	/* Cleanup chan related memory areas */
 	for (i = 0; i < re_priv->total_chans; i++)
+	{
 		fsl_re_remove_chan(re_priv->re_jrs[i]);
+	}
 
 	/* Unregister the driver */
 	dma_async_device_unregister(&re_priv->dma_dev);
@@ -877,12 +1001,14 @@ static int fsl_re_remove(struct platform_device *ofdev)
 	return 0;
 }
 
-static struct of_device_id fsl_re_ids[] = {
+static struct of_device_id fsl_re_ids[] =
+{
 	{ .compatible = "fsl,raideng-v1.0", },
 	{}
 };
 
-static struct platform_driver fsl_re_driver = {
+static struct platform_driver fsl_re_driver =
+{
 	.driver = {
 		.name = "fsl-raideng",
 		.of_match_table = fsl_re_ids,

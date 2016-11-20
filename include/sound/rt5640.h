@@ -11,7 +11,8 @@
 #ifndef __LINUX_SND_RT5640_H
 #define __LINUX_SND_RT5640_H
 
-struct rt5640_platform_data {
+struct rt5640_platform_data
+{
 	/* IN1 & IN2 & IN3 can optionally be differential */
 	bool in1_diff;
 	bool in2_diff;

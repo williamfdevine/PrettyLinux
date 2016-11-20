@@ -23,9 +23,13 @@ static int sa1100_gpio_get(struct gpio_chip *chip, unsigned offset)
 static void sa1100_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 {
 	if (value)
+	{
 		GPSR = GPIO_GPIO(offset);
+	}
 	else
+	{
 		GPCR = GPIO_GPIO(offset);
+	}
 }
 
 static int sa1100_direction_input(struct gpio_chip *chip, unsigned offset)
@@ -54,7 +58,8 @@ static int sa1100_to_irq(struct gpio_chip *chip, unsigned offset)
 	return IRQ_GPIO0 + offset;
 }
 
-static struct gpio_chip sa1100_gpio_chip = {
+static struct gpio_chip sa1100_gpio_chip =
+{
 	.label			= "gpio",
 	.direction_input	= sa1100_direction_input,
 	.direction_output	= sa1100_direction_output,
@@ -80,20 +85,33 @@ static int sa1100_gpio_type(struct irq_data *d, unsigned int type)
 
 	mask = BIT(d->hwirq);
 
-	if (type == IRQ_TYPE_PROBE) {
+	if (type == IRQ_TYPE_PROBE)
+	{
 		if ((GPIO_IRQ_rising_edge | GPIO_IRQ_falling_edge) & mask)
+		{
 			return 0;
+		}
+
 		type = IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING;
 	}
 
 	if (type & IRQ_TYPE_EDGE_RISING)
+	{
 		GPIO_IRQ_rising_edge |= mask;
+	}
 	else
+	{
 		GPIO_IRQ_rising_edge &= ~mask;
+	}
+
 	if (type & IRQ_TYPE_EDGE_FALLING)
+	{
 		GPIO_IRQ_falling_edge |= mask;
+	}
 	else
+	{
 		GPIO_IRQ_falling_edge &= ~mask;
+	}
 
 	GRER = GPIO_IRQ_rising_edge & GPIO_IRQ_mask;
 	GFER = GPIO_IRQ_falling_edge & GPIO_IRQ_mask;
@@ -132,16 +150,22 @@ static void sa1100_gpio_unmask(struct irq_data *d)
 static int sa1100_gpio_wake(struct irq_data *d, unsigned int on)
 {
 	if (on)
+	{
 		PWER |= BIT(d->hwirq);
+	}
 	else
+	{
 		PWER &= ~BIT(d->hwirq);
+	}
+
 	return 0;
 }
 
 /*
  * This is for GPIO IRQs
  */
-static struct irq_chip sa1100_gpio_irq_chip = {
+static struct irq_chip sa1100_gpio_irq_chip =
+{
 	.name		= "GPIO",
 	.irq_ack	= sa1100_gpio_ack,
 	.irq_mask	= sa1100_gpio_mask,
@@ -151,16 +175,17 @@ static struct irq_chip sa1100_gpio_irq_chip = {
 };
 
 static int sa1100_gpio_irqdomain_map(struct irq_domain *d,
-		unsigned int irq, irq_hw_number_t hwirq)
+									 unsigned int irq, irq_hw_number_t hwirq)
 {
 	irq_set_chip_and_handler(irq, &sa1100_gpio_irq_chip,
-				 handle_edge_irq);
+							 handle_edge_irq);
 	irq_set_probe(irq);
 
 	return 0;
 }
 
-static const struct irq_domain_ops sa1100_gpio_irqdomain_ops = {
+static const struct irq_domain_ops sa1100_gpio_irqdomain_ops =
+{
 	.map = sa1100_gpio_irqdomain_map,
 	.xlate = irq_domain_xlate_onetwocell,
 };
@@ -177,7 +202,9 @@ static void sa1100_gpio_handler(struct irq_desc *desc)
 	unsigned int irq, mask;
 
 	mask = GEDR;
-	do {
+
+	do
+	{
 		/*
 		 * clear down all currently active IRQ sources.
 		 * We will be processing them all.
@@ -185,15 +212,22 @@ static void sa1100_gpio_handler(struct irq_desc *desc)
 		GEDR = mask;
 
 		irq = IRQ_GPIO0;
-		do {
+
+		do
+		{
 			if (mask & 1)
+			{
 				generic_handle_irq(irq);
+			}
+
 			mask >>= 1;
 			irq++;
-		} while (mask);
+		}
+		while (mask);
 
 		mask = GEDR;
-	} while (mask);
+	}
+	while (mask);
 }
 
 static int sa1100_gpio_suspend(void)
@@ -218,7 +252,8 @@ static void sa1100_gpio_resume(void)
 	GFER = GPIO_IRQ_falling_edge & GPIO_IRQ_mask;
 }
 
-static struct syscore_ops sa1100_gpio_syscore_ops = {
+static struct syscore_ops sa1100_gpio_syscore_ops =
+{
 	.suspend	= sa1100_gpio_suspend,
 	.resume		= sa1100_gpio_resume,
 };
@@ -241,8 +276,8 @@ void __init sa1100_init_gpio(void)
 	gpiochip_add_data(&sa1100_gpio_chip, NULL);
 
 	sa1100_gpio_irqdomain = irq_domain_add_simple(NULL,
-			28, IRQ_GPIO0,
-			&sa1100_gpio_irqdomain_ops, NULL);
+							28, IRQ_GPIO0,
+							&sa1100_gpio_irqdomain_ops, NULL);
 
 	/*
 	 * Install handlers for GPIO 0-10 edge detect interrupts

@@ -18,7 +18,8 @@
  * Adrian Pardini <pardo.bsso@gmail.com>
  */
 
-static struct rc_map_table genius_tvgo_a11mce[] = {
+static struct rc_map_table genius_tvgo_a11mce[] =
+{
 	/* Keys 0 to 9 */
 	{ 0x48, KEY_0 },
 	{ 0x09, KEY_1 },
@@ -59,7 +60,8 @@ static struct rc_map_table genius_tvgo_a11mce[] = {
 	{ 0x50, KEY_BLUE },
 };
 
-static struct rc_map_list genius_tvgo_a11mce_map = {
+static struct rc_map_list genius_tvgo_a11mce_map =
+{
 	.map = {
 		.scan    = genius_tvgo_a11mce,
 		.size    = ARRAY_SIZE(genius_tvgo_a11mce),

@@ -72,7 +72,7 @@
  *
  */
 bool MACbIsRegBitsOn(struct vnt_private *priv, unsigned char byRegOfs,
-		     unsigned char byTestBits)
+					 unsigned char byTestBits)
 {
 	void __iomem *io_base = priv->PortOffset;
 
@@ -95,7 +95,7 @@ bool MACbIsRegBitsOn(struct vnt_private *priv, unsigned char byRegOfs,
  *
  */
 bool MACbIsRegBitsOff(struct vnt_private *priv, unsigned char byRegOfs,
-		      unsigned char byTestBits)
+					  unsigned char byTestBits)
 {
 	void __iomem *io_base = priv->PortOffset;
 
@@ -120,7 +120,9 @@ bool MACbIsIntDisable(struct vnt_private *priv)
 	void __iomem *io_base = priv->PortOffset;
 
 	if (ioread32(io_base + MAC_REG_IMR))
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -140,7 +142,7 @@ bool MACbIsIntDisable(struct vnt_private *priv)
  *
  */
 void MACvSetShortRetryLimit(struct vnt_private *priv,
-			    unsigned char byRetryLimit)
+							unsigned char byRetryLimit)
 {
 	void __iomem *io_base = priv->PortOffset;
 	/* set SRT */
@@ -163,7 +165,7 @@ void MACvSetShortRetryLimit(struct vnt_private *priv,
  *
  */
 void MACvSetLongRetryLimit(struct vnt_private *priv,
-			   unsigned char byRetryLimit)
+						   unsigned char byRetryLimit)
 {
 	void __iomem *io_base = priv->PortOffset;
 	/* set LRT */
@@ -191,7 +193,7 @@ void MACvSetLoopbackMode(struct vnt_private *priv, unsigned char byLoopbackMode)
 	byLoopbackMode <<= 6;
 	/* set TCR */
 	iowrite8((ioread8(io_base + MAC_REG_TEST) & 0x3f) | byLoopbackMode,
-		 io_base + MAC_REG_TEST);
+			 io_base + MAC_REG_TEST);
 }
 
 /*
@@ -218,7 +220,7 @@ void MACvSaveContext(struct vnt_private *priv, unsigned char *cxt_buf)
 
 	/* read page1 register */
 	memcpy_fromio(cxt_buf + MAC_MAX_CONTEXT_SIZE_PAGE0, io_base,
-		      MAC_MAX_CONTEXT_SIZE_PAGE1);
+				  MAC_MAX_CONTEXT_SIZE_PAGE1);
 
 	MACvSelectPage0(io_base);
 }
@@ -244,35 +246,35 @@ void MACvRestoreContext(struct vnt_private *priv, unsigned char *cxt_buf)
 	MACvSelectPage1(io_base);
 	/* restore page1 */
 	memcpy_toio(io_base, cxt_buf + MAC_MAX_CONTEXT_SIZE_PAGE0,
-		    MAC_MAX_CONTEXT_SIZE_PAGE1);
+				MAC_MAX_CONTEXT_SIZE_PAGE1);
 
 	MACvSelectPage0(io_base);
 
 	/* restore RCR,TCR,IMR... */
 	memcpy_toio(io_base + MAC_REG_RCR, cxt_buf + MAC_REG_RCR,
-		    MAC_REG_ISR - MAC_REG_RCR);
+				MAC_REG_ISR - MAC_REG_RCR);
 
 	/* restore MAC Config. */
 	memcpy_toio(io_base + MAC_REG_LRT, cxt_buf + MAC_REG_LRT,
-		    MAC_REG_PAGE1SEL - MAC_REG_LRT);
+				MAC_REG_PAGE1SEL - MAC_REG_LRT);
 
 	iowrite8(*(cxt_buf + MAC_REG_CFG), io_base + MAC_REG_CFG);
 
 	/* restore PS Config. */
 	memcpy_toio(io_base + MAC_REG_PSCFG, cxt_buf + MAC_REG_PSCFG,
-		    MAC_REG_BBREGCTL - MAC_REG_PSCFG);
+				MAC_REG_BBREGCTL - MAC_REG_PSCFG);
 
 	/* restore CURR_RX_DESC_ADDR, CURR_TX_DESC_ADDR */
 	iowrite32(*(u32 *)(cxt_buf + MAC_REG_TXDMAPTR0),
-		  io_base + MAC_REG_TXDMAPTR0);
+			  io_base + MAC_REG_TXDMAPTR0);
 	iowrite32(*(u32 *)(cxt_buf + MAC_REG_AC0DMAPTR),
-		  io_base + MAC_REG_AC0DMAPTR);
+			  io_base + MAC_REG_AC0DMAPTR);
 	iowrite32(*(u32 *)(cxt_buf + MAC_REG_BCNDMAPTR),
-		  io_base + MAC_REG_BCNDMAPTR);
+			  io_base + MAC_REG_BCNDMAPTR);
 	iowrite32(*(u32 *)(cxt_buf + MAC_REG_RXDMAPTR0),
-		  io_base + MAC_REG_RXDMAPTR0);
+			  io_base + MAC_REG_RXDMAPTR0);
 	iowrite32(*(u32 *)(cxt_buf + MAC_REG_RXDMAPTR1),
-		  io_base + MAC_REG_RXDMAPTR1);
+			  io_base + MAC_REG_RXDMAPTR1);
 }
 
 /*
@@ -296,12 +298,19 @@ bool MACbSoftwareReset(struct vnt_private *priv)
 	/* turn on HOSTCR_SOFTRST, just write 0x01 to reset */
 	iowrite8(0x01, io_base + MAC_REG_HOSTCR);
 
-	for (ww = 0; ww < W_MAX_TIMEOUT; ww++) {
+	for (ww = 0; ww < W_MAX_TIMEOUT; ww++)
+	{
 		if (!(ioread8(io_base + MAC_REG_HOSTCR) & HOSTCR_SOFTRST))
+		{
 			break;
+		}
 	}
+
 	if (ww == W_MAX_TIMEOUT)
+	{
 		return false;
+	}
+
 	return true;
 }
 
@@ -321,7 +330,7 @@ bool MACbSoftwareReset(struct vnt_private *priv)
  */
 bool MACbSafeSoftwareReset(struct vnt_private *priv)
 {
-	unsigned char abyTmpRegData[MAC_MAX_CONTEXT_SIZE_PAGE0+MAC_MAX_CONTEXT_SIZE_PAGE1];
+	unsigned char abyTmpRegData[MAC_MAX_CONTEXT_SIZE_PAGE0 + MAC_MAX_CONTEXT_SIZE_PAGE1];
 	bool bRetVal;
 
 	/* PATCH....
@@ -361,34 +370,53 @@ bool MACbSafeRxOff(struct vnt_private *priv)
 	/* Clear RX DMA0,1 */
 	iowrite32(DMACTL_CLRRUN, io_base + MAC_REG_RXDMACTL0);
 	iowrite32(DMACTL_CLRRUN, io_base + MAC_REG_RXDMACTL1);
-	for (ww = 0; ww < W_MAX_TIMEOUT; ww++) {
+
+	for (ww = 0; ww < W_MAX_TIMEOUT; ww++)
+	{
 		if (!(ioread32(io_base + MAC_REG_RXDMACTL0) & DMACTL_RUN))
+		{
 			break;
+		}
 	}
-	if (ww == W_MAX_TIMEOUT) {
+
+	if (ww == W_MAX_TIMEOUT)
+	{
 		pr_debug(" DBG_PORT80(0x10)\n");
 		return false;
 	}
-	for (ww = 0; ww < W_MAX_TIMEOUT; ww++) {
+
+	for (ww = 0; ww < W_MAX_TIMEOUT; ww++)
+	{
 		if (!(ioread32(io_base + MAC_REG_RXDMACTL1) & DMACTL_RUN))
+		{
 			break;
+		}
 	}
-	if (ww == W_MAX_TIMEOUT) {
+
+	if (ww == W_MAX_TIMEOUT)
+	{
 		pr_debug(" DBG_PORT80(0x11)\n");
 		return false;
 	}
 
 	/* try to safe shutdown RX */
 	MACvRegBitsOff(io_base, MAC_REG_HOSTCR, HOSTCR_RXON);
+
 	/* W_MAX_TIMEOUT is the timeout period */
-	for (ww = 0; ww < W_MAX_TIMEOUT; ww++) {
+	for (ww = 0; ww < W_MAX_TIMEOUT; ww++)
+	{
 		if (!(ioread8(io_base + MAC_REG_HOSTCR) & HOSTCR_RXONST))
+		{
 			break;
+		}
 	}
-	if (ww == W_MAX_TIMEOUT) {
+
+	if (ww == W_MAX_TIMEOUT)
+	{
 		pr_debug(" DBG_PORT80(0x12)\n");
 		return false;
 	}
+
 	return true;
 }
 
@@ -416,19 +444,30 @@ bool MACbSafeTxOff(struct vnt_private *priv)
 	/* AC0 */
 	iowrite32(DMACTL_CLRRUN, io_base + MAC_REG_AC0DMACTL);
 
-	for (ww = 0; ww < W_MAX_TIMEOUT; ww++) {
+	for (ww = 0; ww < W_MAX_TIMEOUT; ww++)
+	{
 		if (!(ioread32(io_base + MAC_REG_TXDMACTL0) & DMACTL_RUN))
+		{
 			break;
+		}
 	}
-	if (ww == W_MAX_TIMEOUT) {
+
+	if (ww == W_MAX_TIMEOUT)
+	{
 		pr_debug(" DBG_PORT80(0x20)\n");
 		return false;
 	}
-	for (ww = 0; ww < W_MAX_TIMEOUT; ww++) {
+
+	for (ww = 0; ww < W_MAX_TIMEOUT; ww++)
+	{
 		if (!(ioread32(io_base + MAC_REG_AC0DMACTL) & DMACTL_RUN))
+		{
 			break;
+		}
 	}
-	if (ww == W_MAX_TIMEOUT) {
+
+	if (ww == W_MAX_TIMEOUT)
+	{
 		pr_debug(" DBG_PORT80(0x21)\n");
 		return false;
 	}
@@ -437,14 +476,20 @@ bool MACbSafeTxOff(struct vnt_private *priv)
 	MACvRegBitsOff(io_base, MAC_REG_HOSTCR, HOSTCR_TXON);
 
 	/* W_MAX_TIMEOUT is the timeout period */
-	for (ww = 0; ww < W_MAX_TIMEOUT; ww++) {
+	for (ww = 0; ww < W_MAX_TIMEOUT; ww++)
+	{
 		if (!(ioread8(io_base + MAC_REG_HOSTCR) & HOSTCR_TXONST))
+		{
 			break;
+		}
 	}
-	if (ww == W_MAX_TIMEOUT) {
+
+	if (ww == W_MAX_TIMEOUT)
+	{
 		pr_debug(" DBG_PORT80(0x24)\n");
 		return false;
 	}
+
 	return true;
 }
 
@@ -467,12 +512,15 @@ bool MACbSafeStop(struct vnt_private *priv)
 
 	MACvRegBitsOff(io_base, MAC_REG_TCR, TCR_AUTOBCNTX);
 
-	if (!MACbSafeRxOff(priv)) {
+	if (!MACbSafeRxOff(priv))
+	{
 		pr_debug(" MACbSafeRxOff == false)\n");
 		MACbSafeSoftwareReset(priv);
 		return false;
 	}
-	if (!MACbSafeTxOff(priv)) {
+
+	if (!MACbSafeTxOff(priv))
+	{
 		pr_debug(" MACbSafeTxOff == false)\n");
 		MACbSafeSoftwareReset(priv);
 		return false;
@@ -502,11 +550,14 @@ bool MACbShutdown(struct vnt_private *priv)
 	/* disable MAC IMR */
 	MACvIntDisable(io_base);
 	MACvSetLoopbackMode(priv, MAC_LB_INTERNAL);
+
 	/* stop the adapter */
-	if (!MACbSafeStop(priv)) {
+	if (!MACbSafeStop(priv))
+	{
 		MACvSetLoopbackMode(priv, MAC_LB_NONE);
 		return false;
 	}
+
 	MACvSetLoopbackMode(priv, MAC_LB_NONE);
 	return true;
 }
@@ -563,17 +614,26 @@ void MACvSetCurrRx0DescAddr(struct vnt_private *priv, u32 curr_desc_addr)
 	unsigned char org_dma_ctl;
 
 	org_dma_ctl = ioread8(io_base + MAC_REG_RXDMACTL0);
-	if (org_dma_ctl & DMACTL_RUN)
-		iowrite8(DMACTL_RUN, io_base + MAC_REG_RXDMACTL0 + 2);
 
-	for (ww = 0; ww < W_MAX_TIMEOUT; ww++) {
+	if (org_dma_ctl & DMACTL_RUN)
+	{
+		iowrite8(DMACTL_RUN, io_base + MAC_REG_RXDMACTL0 + 2);
+	}
+
+	for (ww = 0; ww < W_MAX_TIMEOUT; ww++)
+	{
 		if (!(ioread8(io_base + MAC_REG_RXDMACTL0) & DMACTL_RUN))
+		{
 			break;
+		}
 	}
 
 	iowrite32(curr_desc_addr, io_base + MAC_REG_RXDMAPTR0);
+
 	if (org_dma_ctl & DMACTL_RUN)
+	{
 		iowrite8(DMACTL_RUN, io_base + MAC_REG_RXDMACTL0);
+	}
 }
 
 /*
@@ -597,17 +657,26 @@ void MACvSetCurrRx1DescAddr(struct vnt_private *priv, u32 curr_desc_addr)
 	unsigned char org_dma_ctl;
 
 	org_dma_ctl = ioread8(io_base + MAC_REG_RXDMACTL1);
-	if (org_dma_ctl & DMACTL_RUN)
-		iowrite8(DMACTL_RUN, io_base + MAC_REG_RXDMACTL1 + 2);
 
-	for (ww = 0; ww < W_MAX_TIMEOUT; ww++) {
+	if (org_dma_ctl & DMACTL_RUN)
+	{
+		iowrite8(DMACTL_RUN, io_base + MAC_REG_RXDMACTL1 + 2);
+	}
+
+	for (ww = 0; ww < W_MAX_TIMEOUT; ww++)
+	{
 		if (!(ioread8(io_base + MAC_REG_RXDMACTL1) & DMACTL_RUN))
+		{
 			break;
+		}
 	}
 
 	iowrite32(curr_desc_addr, io_base + MAC_REG_RXDMAPTR1);
+
 	if (org_dma_ctl & DMACTL_RUN)
+	{
 		iowrite8(DMACTL_RUN, io_base + MAC_REG_RXDMACTL1);
+	}
 
 }
 
@@ -626,24 +695,33 @@ void MACvSetCurrRx1DescAddr(struct vnt_private *priv, u32 curr_desc_addr)
  *
  */
 void MACvSetCurrTx0DescAddrEx(struct vnt_private *priv,
-			      u32 curr_desc_addr)
+							  u32 curr_desc_addr)
 {
 	void __iomem *io_base = priv->PortOffset;
 	unsigned short ww;
 	unsigned char org_dma_ctl;
 
 	org_dma_ctl = ioread8(io_base + MAC_REG_TXDMACTL0);
-	if (org_dma_ctl & DMACTL_RUN)
-		iowrite8(DMACTL_RUN, io_base + MAC_REG_TXDMACTL0 + 2);
 
-	for (ww = 0; ww < W_MAX_TIMEOUT; ww++) {
+	if (org_dma_ctl & DMACTL_RUN)
+	{
+		iowrite8(DMACTL_RUN, io_base + MAC_REG_TXDMACTL0 + 2);
+	}
+
+	for (ww = 0; ww < W_MAX_TIMEOUT; ww++)
+	{
 		if (!(ioread8(io_base + MAC_REG_TXDMACTL0) & DMACTL_RUN))
+		{
 			break;
+		}
 	}
 
 	iowrite32(curr_desc_addr, io_base + MAC_REG_TXDMAPTR0);
+
 	if (org_dma_ctl & DMACTL_RUN)
+	{
 		iowrite8(DMACTL_RUN, io_base + MAC_REG_TXDMACTL0);
+	}
 }
 
 /*
@@ -662,34 +740,51 @@ void MACvSetCurrTx0DescAddrEx(struct vnt_private *priv,
  */
 /* TxDMA1 = AC0DMA */
 void MACvSetCurrAC0DescAddrEx(struct vnt_private *priv,
-			      u32 curr_desc_addr)
+							  u32 curr_desc_addr)
 {
 	void __iomem *io_base = priv->PortOffset;
 	unsigned short ww;
 	unsigned char org_dma_ctl;
 
 	org_dma_ctl = ioread8(io_base + MAC_REG_AC0DMACTL);
-	if (org_dma_ctl & DMACTL_RUN)
-		iowrite8(DMACTL_RUN, io_base + MAC_REG_AC0DMACTL + 2);
 
-	for (ww = 0; ww < W_MAX_TIMEOUT; ww++) {
-		if (!(ioread8(io_base + MAC_REG_AC0DMACTL) & DMACTL_RUN))
-			break;
-	}
-	if (ww == W_MAX_TIMEOUT)
-		pr_debug(" DBG_PORT80(0x26)\n");
-	iowrite32(curr_desc_addr, io_base + MAC_REG_AC0DMAPTR);
 	if (org_dma_ctl & DMACTL_RUN)
+	{
+		iowrite8(DMACTL_RUN, io_base + MAC_REG_AC0DMACTL + 2);
+	}
+
+	for (ww = 0; ww < W_MAX_TIMEOUT; ww++)
+	{
+		if (!(ioread8(io_base + MAC_REG_AC0DMACTL) & DMACTL_RUN))
+		{
+			break;
+		}
+	}
+
+	if (ww == W_MAX_TIMEOUT)
+	{
+		pr_debug(" DBG_PORT80(0x26)\n");
+	}
+
+	iowrite32(curr_desc_addr, io_base + MAC_REG_AC0DMAPTR);
+
+	if (org_dma_ctl & DMACTL_RUN)
+	{
 		iowrite8(DMACTL_RUN, io_base + MAC_REG_AC0DMACTL);
+	}
 }
 
 void MACvSetCurrTXDescAddr(int iTxType, struct vnt_private *priv,
-			   u32 curr_desc_addr)
+						   u32 curr_desc_addr)
 {
 	if (iTxType == TYPE_AC0DMA)
+	{
 		MACvSetCurrAC0DescAddrEx(priv, curr_desc_addr);
+	}
 	else if (iTxType == TYPE_TXDMA0)
+	{
 		MACvSetCurrTx0DescAddrEx(priv, curr_desc_addr);
+	}
 }
 
 /*
@@ -715,16 +810,22 @@ void MACvTimer0MicroSDelay(struct vnt_private *priv, unsigned int uDelay)
 	iowrite8(0, io_base + MAC_REG_TMCTL0);
 	iowrite32(uDelay, io_base + MAC_REG_TMDATA0);
 	iowrite8((TMCTL_TMD | TMCTL_TE), io_base + MAC_REG_TMCTL0);
-	for (ii = 0; ii < 66; ii++) {  /* assume max PCI clock is 66Mhz */
-		for (uu = 0; uu < uDelay; uu++) {
+
+	for (ii = 0; ii < 66; ii++)    /* assume max PCI clock is 66Mhz */
+	{
+		for (uu = 0; uu < uDelay; uu++)
+		{
 			byValue = ioread8(io_base + MAC_REG_TMCTL0);
+
 			if ((byValue == 0) ||
-			    (byValue & TMCTL_TSUSP)) {
+				(byValue & TMCTL_TSUSP))
+			{
 				iowrite8(0, io_base + MAC_REG_TMCTL0);
 				return;
 			}
 		}
 	}
+
 	iowrite8(0, io_base + MAC_REG_TMCTL0);
 }
 
@@ -743,7 +844,7 @@ void MACvTimer0MicroSDelay(struct vnt_private *priv, unsigned int uDelay)
  *
  */
 void MACvOneShotTimer1MicroSec(struct vnt_private *priv,
-			       unsigned int uDelayTime)
+							   unsigned int uDelayTime)
 {
 	void __iomem *io_base = priv->PortOffset;
 
@@ -753,12 +854,15 @@ void MACvOneShotTimer1MicroSec(struct vnt_private *priv,
 }
 
 void MACvSetMISCFifo(struct vnt_private *priv, unsigned short offset,
-		     u32 data)
+					 u32 data)
 {
 	void __iomem *io_base = priv->PortOffset;
 
 	if (offset > 273)
+	{
 		return;
+	}
+
 	iowrite16(offset, io_base + MAC_REG_MISCFFNDEX);
 	iowrite32(data, io_base + MAC_REG_MISCFFDATA);
 	iowrite16(MISCFFCTL_WRITE, io_base + MAC_REG_MISCFFCTL);
@@ -768,22 +872,31 @@ bool MACbPSWakeup(struct vnt_private *priv)
 {
 	void __iomem *io_base = priv->PortOffset;
 	unsigned int ww;
+
 	/* Read PSCTL */
 	if (MACbIsRegBitsOff(priv, MAC_REG_PSCTL, PSCTL_PS))
+	{
 		return true;
+	}
 
 	/* Disable PS */
 	MACvRegBitsOff(io_base, MAC_REG_PSCTL, PSCTL_PSEN);
 
 	/* Check if SyncFlushOK */
-	for (ww = 0; ww < W_MAX_TIMEOUT; ww++) {
+	for (ww = 0; ww < W_MAX_TIMEOUT; ww++)
+	{
 		if (ioread8(io_base + MAC_REG_PSCTL) & PSCTL_WAKEDONE)
+		{
 			break;
+		}
 	}
-	if (ww == W_MAX_TIMEOUT) {
+
+	if (ww == W_MAX_TIMEOUT)
+	{
 		pr_debug(" DBG_PORT80(0x33)\n");
 		return false;
 	}
+
 	return true;
 }
 
@@ -803,9 +916,9 @@ bool MACbPSWakeup(struct vnt_private *priv)
  */
 
 void MACvSetKeyEntry(struct vnt_private *priv, unsigned short wKeyCtl,
-		     unsigned int uEntryIdx, unsigned int uKeyIdx,
-		     unsigned char *pbyAddr, u32 *pdwKey,
-		     unsigned char byLocalID)
+					 unsigned int uEntryIdx, unsigned int uKeyIdx,
+					 unsigned char *pbyAddr, u32 *pdwKey,
+					 unsigned char byLocalID)
 {
 	void __iomem *io_base = priv->PortOffset;
 	unsigned short offset;
@@ -813,7 +926,9 @@ void MACvSetKeyEntry(struct vnt_private *priv, unsigned short wKeyCtl,
 	int     ii;
 
 	if (byLocalID <= 1)
+	{
 		return;
+	}
 
 	pr_debug("MACvSetKeyEntry\n");
 	offset = MISCFIFO_KEYETRY0;
@@ -824,7 +939,7 @@ void MACvSetKeyEntry(struct vnt_private *priv, unsigned short wKeyCtl,
 	data <<= 16;
 	data |= MAKEWORD(*(pbyAddr + 4), *(pbyAddr + 5));
 	pr_debug("1. offset: %d, Data: %X, KeyCtl:%X\n",
-		 offset, data, wKeyCtl);
+			 offset, data, wKeyCtl);
 
 	iowrite16(offset, io_base + MAC_REG_MISCFFNDEX);
 	iowrite32(data, io_base + MAC_REG_MISCFFDATA);
@@ -847,10 +962,12 @@ void MACvSetKeyEntry(struct vnt_private *priv, unsigned short wKeyCtl,
 	offset++;
 
 	offset += (uKeyIdx * 4);
-	for (ii = 0; ii < 4; ii++) {
+
+	for (ii = 0; ii < 4; ii++)
+	{
 		/* always push 128 bits */
 		pr_debug("3.(%d) offset: %d, Data: %X\n",
-			 ii, offset + ii, *pdwKey);
+				 ii, offset + ii, *pdwKey);
 		iowrite16(offset + ii, io_base + MAC_REG_MISCFFNDEX);
 		iowrite32(*pdwKey++, io_base + MAC_REG_MISCFFDATA);
 		iowrite16(MISCFFCTL_WRITE, io_base + MAC_REG_MISCFFCTL);

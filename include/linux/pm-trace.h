@@ -9,7 +9,7 @@ extern int pm_trace_enabled;
 
 static inline int pm_trace_is_enabled(void)
 {
-       return pm_trace_enabled;
+	return pm_trace_enabled;
 }
 
 struct device;
@@ -18,8 +18,8 @@ extern void generate_pm_trace(const void *tracedata, unsigned int user);
 extern int show_trace_dev_match(char *buf, size_t size);
 
 #define TRACE_DEVICE(dev) do { \
-	if (pm_trace_enabled) \
-		set_trace_device(dev); \
+		if (pm_trace_enabled) \
+			set_trace_device(dev); \
 	} while(0)
 
 #else

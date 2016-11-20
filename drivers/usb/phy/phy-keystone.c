@@ -34,7 +34,8 @@
 
 #define PHY_REF_SSP_EN			BIT(29)
 
-struct keystone_usbphy {
+struct keystone_usbphy
+{
 	struct usb_phy_generic	usb_phy_gen;
 	void __iomem			*phy_ctrl;
 };
@@ -45,7 +46,7 @@ static inline u32 keystone_usbphy_readl(void __iomem *base, u32 offset)
 }
 
 static inline void keystone_usbphy_writel(void __iomem *base,
-					  u32 offset, u32 value)
+		u32 offset, u32 value)
 {
 	writel(value, base + offset);
 }
@@ -57,7 +58,7 @@ static int keystone_usbphy_init(struct usb_phy *phy)
 
 	val  = keystone_usbphy_readl(k_phy->phy_ctrl, USB_PHY_CTL_CLOCK);
 	keystone_usbphy_writel(k_phy->phy_ctrl, USB_PHY_CTL_CLOCK,
-				val | PHY_REF_SSP_EN);
+						   val | PHY_REF_SSP_EN);
 	return 0;
 }
 
@@ -68,7 +69,7 @@ static void keystone_usbphy_shutdown(struct usb_phy *phy)
 
 	val  = keystone_usbphy_readl(k_phy->phy_ctrl, USB_PHY_CTL_CLOCK);
 	keystone_usbphy_writel(k_phy->phy_ctrl, USB_PHY_CTL_CLOCK,
-				val &= ~PHY_REF_SSP_EN);
+						   val &= ~PHY_REF_SSP_EN);
 }
 
 static int keystone_usbphy_probe(struct platform_device *pdev)
@@ -79,17 +80,26 @@ static int keystone_usbphy_probe(struct platform_device *pdev)
 	int ret;
 
 	k_phy = devm_kzalloc(dev, sizeof(*k_phy), GFP_KERNEL);
+
 	if (!k_phy)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	k_phy->phy_ctrl = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(k_phy->phy_ctrl))
+	{
 		return PTR_ERR(k_phy->phy_ctrl);
+	}
 
 	ret = usb_phy_gen_create_phy(dev, &k_phy->usb_phy_gen, NULL);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	k_phy->usb_phy_gen.phy.init = keystone_usbphy_init;
 	k_phy->usb_phy_gen.phy.shutdown = keystone_usbphy_shutdown;
@@ -108,13 +118,15 @@ static int keystone_usbphy_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id keystone_usbphy_ids[] = {
+static const struct of_device_id keystone_usbphy_ids[] =
+{
 	{ .compatible = "ti,keystone-usbphy" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, keystone_usbphy_ids);
 
-static struct platform_driver keystone_usbphy_driver = {
+static struct platform_driver keystone_usbphy_driver =
+{
 	.probe          = keystone_usbphy_probe,
 	.remove         = keystone_usbphy_remove,
 	.driver         = {

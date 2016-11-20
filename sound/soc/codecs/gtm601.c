@@ -23,17 +23,20 @@
 #include <sound/initval.h>
 #include <sound/soc.h>
 
-static const struct snd_soc_dapm_widget gtm601_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget gtm601_dapm_widgets[] =
+{
 	SND_SOC_DAPM_OUTPUT("AOUT"),
 	SND_SOC_DAPM_INPUT("AIN"),
 };
 
-static const struct snd_soc_dapm_route gtm601_dapm_routes[] = {
+static const struct snd_soc_dapm_route gtm601_dapm_routes[] =
+{
 	{ "AOUT", NULL, "Playback" },
 	{ "Capture", NULL, "AIN" },
 };
 
-static struct snd_soc_dai_driver gtm601_dai = {
+static struct snd_soc_dai_driver gtm601_dai =
+{
 	.name = "gtm601",
 	.playback = {
 		.stream_name = "Playback",
@@ -41,7 +44,7 @@ static struct snd_soc_dai_driver gtm601_dai = {
 		.channels_max = 1,
 		.rates = SNDRV_PCM_RATE_8000,
 		.formats = SNDRV_PCM_FMTBIT_S16_LE,
-		},
+	},
 	.capture = {
 		.stream_name = "Capture",
 		.channels_min = 1,
@@ -51,7 +54,8 @@ static struct snd_soc_dai_driver gtm601_dai = {
 	},
 };
 
-static const struct snd_soc_codec_driver soc_codec_dev_gtm601 = {
+static const struct snd_soc_codec_driver soc_codec_dev_gtm601 =
+{
 	.component_driver = {
 		.dapm_widgets		= gtm601_dapm_widgets,
 		.num_dapm_widgets	= ARRAY_SIZE(gtm601_dapm_widgets),
@@ -63,7 +67,7 @@ static const struct snd_soc_codec_driver soc_codec_dev_gtm601 = {
 static int gtm601_platform_probe(struct platform_device *pdev)
 {
 	return snd_soc_register_codec(&pdev->dev,
-			&soc_codec_dev_gtm601, &gtm601_dai, 1);
+								  &soc_codec_dev_gtm601, &gtm601_dai, 1);
 }
 
 static int gtm601_platform_remove(struct platform_device *pdev)
@@ -73,14 +77,16 @@ static int gtm601_platform_remove(struct platform_device *pdev)
 }
 
 #if defined(CONFIG_OF)
-static const struct of_device_id gtm601_codec_of_match[] = {
+static const struct of_device_id gtm601_codec_of_match[] =
+{
 	{ .compatible = "option,gtm601", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, gtm601_codec_of_match);
 #endif
 
-static struct platform_driver gtm601_codec_driver = {
+static struct platform_driver gtm601_codec_driver =
+{
 	.driver = {
 		.name = "gtm601",
 		.of_match_table = of_match_ptr(gtm601_codec_of_match),

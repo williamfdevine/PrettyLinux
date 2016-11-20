@@ -345,7 +345,8 @@ struct irq_domain;
 #define WM831X_NUM_IRQ_REGS 5
 #define WM831X_NUM_GPIO_REGS 16
 
-enum wm831x_parent {
+enum wm831x_parent
+{
 	WM8310 = 0x8310,
 	WM8311 = 0x8311,
 	WM8312 = 0x8312,
@@ -358,9 +359,10 @@ enum wm831x_parent {
 struct wm831x;
 
 typedef int (*wm831x_auxadc_read_fn)(struct wm831x *wm831x,
-				     enum wm831x_auxadc input);
+									 enum wm831x_auxadc input);
 
-struct wm831x {
+struct wm831x
+{
 	struct mutex io_lock;
 
 	struct device *dev;
@@ -376,9 +378,9 @@ struct wm831x {
 	bool soft_shutdown;
 
 	/* Chip revision based flags */
-	unsigned has_gpio_ena:1;         /* Has GPIO enable bit */
-	unsigned has_cs_sts:1;           /* Has current sink status bit */
-	unsigned charger_irq_wake:1;     /* Are charger IRQs a wake source? */
+	unsigned has_gpio_ena: 1;        /* Has GPIO enable bit */
+	unsigned has_cs_sts: 1;          /* Has current sink status bit */
+	unsigned charger_irq_wake: 1;    /* Are charger IRQs a wake source? */
 
 	int num_gpio;
 
@@ -398,19 +400,19 @@ struct wm831x {
 	 * writes if the lock is held.
 	 */
 	struct mutex key_lock;
-	unsigned int locked:1;
+	unsigned int locked: 1;
 };
 
 /* Device I/O API */
 int wm831x_reg_read(struct wm831x *wm831x, unsigned short reg);
 int wm831x_reg_write(struct wm831x *wm831x, unsigned short reg,
-		 unsigned short val);
+					 unsigned short val);
 void wm831x_reg_lock(struct wm831x *wm831x);
 int wm831x_reg_unlock(struct wm831x *wm831x);
 int wm831x_set_bits(struct wm831x *wm831x, unsigned short reg,
-		    unsigned short mask, unsigned short val);
+					unsigned short mask, unsigned short val);
 int wm831x_bulk_read(struct wm831x *wm831x, unsigned short reg,
-		     int count, u16 *buf);
+					 int count, u16 *buf);
 
 int wm831x_device_init(struct wm831x *wm831x, unsigned long id, int irq);
 void wm831x_device_exit(struct wm831x *wm831x);

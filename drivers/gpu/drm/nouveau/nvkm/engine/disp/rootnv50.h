@@ -5,7 +5,8 @@
 #include "channv50.h"
 #include "dmacnv50.h"
 
-struct nv50_disp_root {
+struct nv50_disp_root
+{
 	const struct nv50_disp_root_func *func;
 	struct nv50_disp *disp;
 	struct nvkm_object object;
@@ -14,7 +15,8 @@ struct nv50_disp_root {
 	struct nvkm_ramht *ramht;
 };
 
-struct nv50_disp_root_func {
+struct nv50_disp_root_func
+{
 	int (*init)(struct nv50_disp_root *);
 	void (*fini)(struct nv50_disp_root *);
 	const struct nv50_disp_dmac_oclass *dmac[3];
@@ -22,8 +24,8 @@ struct nv50_disp_root_func {
 };
 
 int  nv50_disp_root_new_(const struct nv50_disp_root_func *, struct nvkm_disp *,
-			 const struct nvkm_oclass *, void *data, u32 size,
-			 struct nvkm_object **);
+						 const struct nvkm_oclass *, void *data, u32 size,
+						 struct nvkm_object **);
 int  nv50_disp_root_init(struct nv50_disp_root *);
 void nv50_disp_root_fini(struct nv50_disp_root *);
 

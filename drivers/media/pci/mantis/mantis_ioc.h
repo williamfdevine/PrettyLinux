@@ -38,7 +38,8 @@
 #define GPIF_A13		0x0d
 #define GPIF_A14		0x0e
 
-enum mantis_stream_control {
+enum mantis_stream_control
+{
 	STREAM_TO_HIF = 0,
 	STREAM_TO_CAM
 };

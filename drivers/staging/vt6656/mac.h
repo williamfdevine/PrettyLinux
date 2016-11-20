@@ -353,9 +353,12 @@
 #define MAC_REVISION_A0		0x00
 #define MAC_REVISION_A1		0x01
 
-struct vnt_mac_set_key {
-	union {
-		struct {
+struct vnt_mac_set_key
+{
+	union
+	{
+		struct
+		{
 			u8 addr[ETH_ALEN];
 			__le16 key_ctl;
 		} write __packed;

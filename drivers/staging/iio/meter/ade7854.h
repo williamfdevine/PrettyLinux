@@ -150,7 +150,8 @@
  * @tx:			transmit buffer
  * @rx:			receive buffer
  **/
-struct ade7854_state {
+struct ade7854_state
+{
 	struct spi_device	*spi;
 	struct i2c_client	*i2c;
 	int			(*read_reg_8)(struct device *, u16, u8 *);

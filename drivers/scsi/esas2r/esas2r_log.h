@@ -46,7 +46,8 @@
 
 struct device;
 
-enum {
+enum
+{
 	ESAS2R_LOG_NONE = 0,    /* no events logged */
 	ESAS2R_LOG_CRIT = 1,    /* critical events  */
 	ESAS2R_LOG_WARN = 2,    /* warning events   */
@@ -63,12 +64,12 @@ enum {
 
 int esas2r_log(const long level, const char *format, ...);
 int esas2r_log_dev(const long level,
-		   const struct device *dev,
-		   const char *format,
-		   ...);
+				   const struct device *dev,
+				   const char *format,
+				   ...);
 int esas2r_log_hexdump(const long level,
-		       const void *buf,
-		       size_t len);
+					   const void *buf,
+					   size_t len);
 
 /*
  * the following macros are provided specifically for debugging and tracing
@@ -78,11 +79,11 @@ int esas2r_log_hexdump(const long level,
  */
 
 #ifdef ESAS2R_DEBUG
-#define esas2r_debug(f, args ...) esas2r_log(ESAS2R_LOG_DEBG, f, ## args)
-#define esas2r_hdebug(f, args ...) esas2r_log(ESAS2R_LOG_DEBG, f, ## args)
+	#define esas2r_debug(f, args ...) esas2r_log(ESAS2R_LOG_DEBG, f, ## args)
+	#define esas2r_hdebug(f, args ...) esas2r_log(ESAS2R_LOG_DEBG, f, ## args)
 #else
-#define esas2r_debug(f, args ...)
-#define esas2r_hdebug(f, args ...)
+	#define esas2r_debug(f, args ...)
+	#define esas2r_hdebug(f, args ...)
 #endif  /* ESAS2R_DEBUG */
 
 /*
@@ -95,19 +96,19 @@ int esas2r_log_hexdump(const long level,
 #define esas2r_bugon() \
 	do { \
 		esas2r_log(ESAS2R_LOG_TRCE, "esas2r_bugon() called in %s:%d" \
-			   " - dumping stack and stopping kernel", __func__, \
-			   __LINE__); \
+				   " - dumping stack and stopping kernel", __func__, \
+				   __LINE__); \
 		dump_stack(); \
 		BUG(); \
 	} while (0)
 
 #define esas2r_trace_enter() esas2r_log(ESAS2R_LOG_TRCE, "entered %s (%s:%d)", \
-					__func__, __FILE__, __LINE__)
+										__func__, __FILE__, __LINE__)
 #define esas2r_trace_exit() esas2r_log(ESAS2R_LOG_TRCE, "exited %s (%s:%d)", \
-				       __func__, __FILE__, __LINE__)
+									   __func__, __FILE__, __LINE__)
 #define esas2r_trace(f, args ...) esas2r_log(ESAS2R_LOG_TRCE, "(%s:%s:%d): " \
-					     f, __func__, __FILE__, __LINE__, \
-					     ## args)
+		f, __func__, __FILE__, __LINE__, \
+		## args)
 #else
 #define esas2r_bugon()
 #define esas2r_trace_enter()

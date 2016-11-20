@@ -142,16 +142,16 @@ int ocfs2_drop_inode(struct inode *inode);
 
 struct inode *ocfs2_ilookup(struct super_block *sb, u64 feoff);
 struct inode *ocfs2_iget(struct ocfs2_super *osb, u64 feoff, unsigned flags,
-			 int sysfile_type);
+						 int sysfile_type);
 int ocfs2_inode_revalidate(struct dentry *dentry);
 void ocfs2_populate_inode(struct inode *inode, struct ocfs2_dinode *fe,
-			  int create_ino);
+						  int create_ino);
 void ocfs2_sync_blockdev(struct super_block *sb);
 void ocfs2_refresh_inode(struct inode *inode,
-			 struct ocfs2_dinode *fe);
+						 struct ocfs2_dinode *fe);
 int ocfs2_mark_inode_dirty(handle_t *handle,
-			   struct inode *inode,
-			   struct buffer_head *bh);
+						   struct inode *inode,
+						   struct buffer_head *bh);
 
 void ocfs2_set_inode_flags(struct inode *inode);
 void ocfs2_get_inode_flags(struct ocfs2_inode_info *oi);
@@ -165,7 +165,7 @@ static inline blkcnt_t ocfs2_inode_sector_count(struct inode *inode)
 
 /* Validate that a bh contains a valid inode */
 int ocfs2_validate_inode_block(struct super_block *sb,
-			       struct buffer_head *bh);
+							   struct buffer_head *bh);
 /*
  * Read an inode block into *bh.  If *bh is NULL, a bh will be allocated.
  * This is a cached read.  The inode will be validated with
@@ -174,7 +174,7 @@ int ocfs2_validate_inode_block(struct super_block *sb,
 int ocfs2_read_inode_block(struct inode *inode, struct buffer_head **bh);
 /* The same, but can be passed OCFS2_BH_* flags */
 int ocfs2_read_inode_block_full(struct inode *inode, struct buffer_head **bh,
-				int flags);
+								int flags);
 
 static inline struct ocfs2_inode_info *cache_info_to_inode(struct ocfs2_caching_info *ci)
 {

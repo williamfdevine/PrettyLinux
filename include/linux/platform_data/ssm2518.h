@@ -15,7 +15,8 @@
  * @enable_gpio: GPIO connected to the nSD pin. Set to -1 if the nSD pin is
  *            hardwired.
  */
-struct ssm2518_platform_data {
+struct ssm2518_platform_data
+{
 	int enable_gpio;
 };
 

@@ -42,7 +42,8 @@
  *   using {TCP,UDP}/IPv{4,6} 4-tuple or local 2-tuple, local MAC or I/G bit,
  *   with or without outer and inner VID
  */
-enum efx_filter_match_flags {
+enum efx_filter_match_flags
+{
 	EFX_FILTER_MATCH_REM_HOST =	0x0001,
 	EFX_FILTER_MATCH_LOC_HOST =	0x0002,
 	EFX_FILTER_MATCH_REM_MAC =	0x0004,
@@ -66,7 +67,8 @@ enum efx_filter_match_flags {
  * @EFX_FILTER_PRI_REQUIRED: Required for correct behaviour (user-level
  *	networking and SR-IOV)
  */
-enum efx_filter_priority {
+enum efx_filter_priority
+{
 	EFX_FILTER_PRI_HINT = 0,
 	EFX_FILTER_PRI_AUTO,
 	EFX_FILTER_PRI_MANUAL,
@@ -90,7 +92,8 @@ enum efx_filter_priority {
  * @EFX_FILTER_FLAG_RX: Filter is for RX
  * @EFX_FILTER_FLAG_TX: Filter is for TX
  */
-enum efx_filter_flags {
+enum efx_filter_flags
+{
 	EFX_FILTER_FLAG_RX_RSS = 0x01,
 	EFX_FILTER_FLAG_RX_SCATTER = 0x02,
 	EFX_FILTER_FLAG_RX_OVER_AUTO = 0x04,
@@ -128,11 +131,12 @@ enum efx_filter_flags {
  * filter may replace an old one.  The hardware priority of a filter
  * depends on which fields are matched.
  */
-struct efx_filter_spec {
-	u32	match_flags:12;
-	u32	priority:2;
-	u32	flags:6;
-	u32	dmaq_id:12;
+struct efx_filter_spec
+{
+	u32	match_flags: 12;
+	u32	priority: 2;
+	u32	flags: 6;
+	u32	dmaq_id: 12;
 	u32	rss_context;
 	__be16	outer_vid __aligned(4); /* allow jhash2() of match values */
 	__be16	inner_vid;
@@ -147,15 +151,16 @@ struct efx_filter_spec {
 	/* total 64 bytes */
 };
 
-enum {
+enum
+{
 	EFX_FILTER_RSS_CONTEXT_DEFAULT = 0xffffffff,
 	EFX_FILTER_RX_DMAQ_ID_DROP = 0xfff
 };
 
 static inline void efx_filter_init_rx(struct efx_filter_spec *spec,
-				      enum efx_filter_priority priority,
-				      enum efx_filter_flags flags,
-				      unsigned rxq_id)
+									  enum efx_filter_priority priority,
+									  enum efx_filter_flags flags,
+									  unsigned rxq_id)
 {
 	memset(spec, 0, sizeof(*spec));
 	spec->priority = priority;
@@ -165,7 +170,7 @@ static inline void efx_filter_init_rx(struct efx_filter_spec *spec,
 }
 
 static inline void efx_filter_init_tx(struct efx_filter_spec *spec,
-				      unsigned txq_id)
+									  unsigned txq_id)
 {
 	memset(spec, 0, sizeof(*spec));
 	spec->priority = EFX_FILTER_PRI_REQUIRED;
@@ -182,7 +187,7 @@ static inline void efx_filter_init_tx(struct efx_filter_spec *spec,
  */
 static inline int
 efx_filter_set_ipv4_local(struct efx_filter_spec *spec, u8 proto,
-			  __be32 host, __be16 port)
+						  __be32 host, __be16 port)
 {
 	spec->match_flags |=
 		EFX_FILTER_MATCH_ETHER_TYPE | EFX_FILTER_MATCH_IP_PROTO |
@@ -205,8 +210,8 @@ efx_filter_set_ipv4_local(struct efx_filter_spec *spec, u8 proto,
  */
 static inline int
 efx_filter_set_ipv4_full(struct efx_filter_spec *spec, u8 proto,
-			 __be32 lhost, __be16 lport,
-			 __be32 rhost, __be16 rport)
+						 __be32 lhost, __be16 lport,
+						 __be32 rhost, __be16 rport)
 {
 	spec->match_flags |=
 		EFX_FILTER_MATCH_ETHER_TYPE | EFX_FILTER_MATCH_IP_PROTO |
@@ -221,7 +226,8 @@ efx_filter_set_ipv4_full(struct efx_filter_spec *spec, u8 proto,
 	return 0;
 }
 
-enum {
+enum
+{
 	EFX_FILTER_VID_UNSPEC = 0xffff,
 };
 
@@ -232,19 +238,25 @@ enum {
  * @addr: Local Ethernet MAC address, or %NULL
  */
 static inline int efx_filter_set_eth_local(struct efx_filter_spec *spec,
-					   u16 vid, const u8 *addr)
+		u16 vid, const u8 *addr)
 {
 	if (vid == EFX_FILTER_VID_UNSPEC && addr == NULL)
+	{
 		return -EINVAL;
+	}
 
-	if (vid != EFX_FILTER_VID_UNSPEC) {
+	if (vid != EFX_FILTER_VID_UNSPEC)
+	{
 		spec->match_flags |= EFX_FILTER_MATCH_OUTER_VID;
 		spec->outer_vid = htons(vid);
 	}
-	if (addr != NULL) {
+
+	if (addr != NULL)
+	{
 		spec->match_flags |= EFX_FILTER_MATCH_LOC_MAC;
 		ether_addr_copy(spec->loc_mac, addr);
 	}
+
 	return 0;
 }
 

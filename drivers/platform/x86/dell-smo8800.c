@@ -26,7 +26,8 @@
 #include <linux/miscdevice.h>
 #include <linux/uaccess.h>
 
-struct smo8800_device {
+struct smo8800_device
+{
 	u32 irq;                     /* acpi device irq */
 	atomic_t counter;            /* count after last read */
 	struct miscdevice miscdev;   /* for /dev/freefall */
@@ -53,16 +54,21 @@ static irqreturn_t smo8800_interrupt_thread(int irq, void *data)
 }
 
 static acpi_status smo8800_get_resource(struct acpi_resource *resource,
-					void *context)
+										void *context)
 {
 	struct acpi_resource_extended_irq *irq;
 
 	if (resource->type != ACPI_RESOURCE_TYPE_EXTENDED_IRQ)
+	{
 		return AE_OK;
+	}
 
 	irq = &resource->data.extended_irq;
+
 	if (!irq || !irq->interrupt_count)
+	{
 		return AE_OK;
+	}
 
 	*((u32 *)context) = irq->interrupts[0];
 	return AE_CTRL_TERMINATE;
@@ -74,8 +80,10 @@ static u32 smo8800_get_irq(struct acpi_device *device)
 	acpi_status status;
 
 	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
-				     smo8800_get_resource, &irq);
-	if (ACPI_FAILURE(status)) {
+								 smo8800_get_resource, &irq);
+
+	if (ACPI_FAILURE(status))
+	{
 		dev_err(&device->dev, "acpi_walk_resources failed\n");
 		return 0;
 	}
@@ -84,35 +92,45 @@ static u32 smo8800_get_irq(struct acpi_device *device)
 }
 
 static ssize_t smo8800_misc_read(struct file *file, char __user *buf,
-				 size_t count, loff_t *pos)
+								 size_t count, loff_t *pos)
 {
 	struct smo8800_device *smo8800 = container_of(file->private_data,
-					 struct smo8800_device, miscdev);
+									 struct smo8800_device, miscdev);
 
 	u32 data = 0;
 	unsigned char byte_data = 0;
 	ssize_t retval = 1;
 
 	if (count < 1)
+	{
 		return -EINVAL;
+	}
 
 	atomic_set(&smo8800->counter, 0);
 	retval = wait_event_interruptible(smo8800->misc_wait,
-				(data = atomic_xchg(&smo8800->counter, 0)));
+									  (data = atomic_xchg(&smo8800->counter, 0)));
 
 	if (retval)
+	{
 		return retval;
+	}
 
 	byte_data = 1;
 	retval = 1;
 
 	if (data < 255)
+	{
 		byte_data = data;
+	}
 	else
+	{
 		byte_data = 255;
+	}
 
 	if (put_user(byte_data, buf))
+	{
 		retval = -EFAULT;
+	}
 
 	return retval;
 }
@@ -120,10 +138,12 @@ static ssize_t smo8800_misc_read(struct file *file, char __user *buf,
 static int smo8800_misc_open(struct inode *inode, struct file *file)
 {
 	struct smo8800_device *smo8800 = container_of(file->private_data,
-					 struct smo8800_device, miscdev);
+									 struct smo8800_device, miscdev);
 
 	if (test_and_set_bit(0, &smo8800->misc_opened))
-		return -EBUSY; /* already open */
+	{
+		return -EBUSY;    /* already open */
+	}
 
 	atomic_set(&smo8800->counter, 0);
 	return 0;
@@ -132,13 +152,14 @@ static int smo8800_misc_open(struct inode *inode, struct file *file)
 static int smo8800_misc_release(struct inode *inode, struct file *file)
 {
 	struct smo8800_device *smo8800 = container_of(file->private_data,
-					 struct smo8800_device, miscdev);
+									 struct smo8800_device, miscdev);
 
 	clear_bit(0, &smo8800->misc_opened); /* release the device */
 	return 0;
 }
 
-static const struct file_operations smo8800_misc_fops = {
+static const struct file_operations smo8800_misc_fops =
+{
 	.owner = THIS_MODULE,
 	.read = smo8800_misc_read,
 	.open = smo8800_misc_open,
@@ -151,7 +172,9 @@ static int smo8800_add(struct acpi_device *device)
 	struct smo8800_device *smo8800;
 
 	smo8800 = devm_kzalloc(&device->dev, sizeof(*smo8800), GFP_KERNEL);
-	if (!smo8800) {
+
+	if (!smo8800)
+	{
 		dev_err(&device->dev, "failed to allocate device data\n");
 		return -ENOMEM;
 	}
@@ -164,7 +187,9 @@ static int smo8800_add(struct acpi_device *device)
 	init_waitqueue_head(&smo8800->misc_wait);
 
 	err = misc_register(&smo8800->miscdev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&device->dev, "failed to register misc dev: %d\n", err);
 		return err;
 	}
@@ -172,25 +197,29 @@ static int smo8800_add(struct acpi_device *device)
 	device->driver_data = smo8800;
 
 	smo8800->irq = smo8800_get_irq(device);
-	if (!smo8800->irq) {
+
+	if (!smo8800->irq)
+	{
 		dev_err(&device->dev, "failed to obtain IRQ\n");
 		err = -EINVAL;
 		goto error;
 	}
 
 	err = request_threaded_irq(smo8800->irq, smo8800_interrupt_quick,
-				   smo8800_interrupt_thread,
-				   IRQF_TRIGGER_RISING | IRQF_ONESHOT,
-				   DRIVER_NAME, smo8800);
-	if (err) {
+							   smo8800_interrupt_thread,
+							   IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+							   DRIVER_NAME, smo8800);
+
+	if (err)
+	{
 		dev_err(&device->dev,
-			"failed to request thread for IRQ %d: %d\n",
-			smo8800->irq, err);
+				"failed to request thread for IRQ %d: %d\n",
+				smo8800->irq, err);
 		goto error;
 	}
 
 	dev_dbg(&device->dev, "device /dev/freefall registered with IRQ %d\n",
-		 smo8800->irq);
+			smo8800->irq);
 	return 0;
 
 error:
@@ -208,7 +237,8 @@ static int smo8800_remove(struct acpi_device *device)
 	return 0;
 }
 
-static const struct acpi_device_id smo8800_ids[] = {
+static const struct acpi_device_id smo8800_ids[] =
+{
 	{ "SMO8800", 0 },
 	{ "SMO8801", 0 },
 	{ "SMO8810", 0 },
@@ -222,7 +252,8 @@ static const struct acpi_device_id smo8800_ids[] = {
 
 MODULE_DEVICE_TABLE(acpi, smo8800_ids);
 
-static struct acpi_driver smo8800_driver = {
+static struct acpi_driver smo8800_driver =
+{
 	.name = DRIVER_NAME,
 	.class = "Latitude",
 	.ids = smo8800_ids,

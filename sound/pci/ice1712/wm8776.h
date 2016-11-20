@@ -137,11 +137,13 @@
 
 struct snd_wm8776;
 
-struct snd_wm8776_ops {
+struct snd_wm8776_ops
+{
 	void (*write)(struct snd_wm8776 *wm, u8 addr, u8 data);
 };
 
-enum snd_wm8776_ctl_id {
+enum snd_wm8776_ctl_id
+{
 	WM8776_CTL_DAC_VOL,
 	WM8776_CTL_DAC_SW,
 	WM8776_CTL_DAC_ZC_SW,
@@ -186,7 +188,8 @@ enum snd_wm8776_ctl_id {
 #define WM8776_FLAG_LIM		(1 << 3)
 #define WM8776_FLAG_ALC		(1 << 4)
 
-struct snd_wm8776_ctl {
+struct snd_wm8776_ctl
+{
 	const char *name;
 	snd_ctl_elem_type_t type;
 	const char *const enum_names[WM8776_ENUM_MAX];
@@ -196,7 +199,8 @@ struct snd_wm8776_ctl {
 	void (*get)(struct snd_wm8776 *wm, u16 *ch1, u16 *ch2);
 };
 
-enum snd_wm8776_agc_mode {
+enum snd_wm8776_agc_mode
+{
 	WM8776_AGC_OFF,
 	WM8776_AGC_LIM,
 	WM8776_AGC_ALC_R,
@@ -204,7 +208,8 @@ enum snd_wm8776_agc_mode {
 	WM8776_AGC_ALC_STEREO
 };
 
-struct snd_wm8776 {
+struct snd_wm8776
+{
 	struct snd_card *card;
 	struct snd_wm8776_ctl ctl[WM8776_CTL_COUNT];
 	enum snd_wm8776_agc_mode agc_mode;

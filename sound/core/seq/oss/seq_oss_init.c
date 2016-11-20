@@ -80,16 +80,21 @@ snd_seq_oss_create_client(void)
 	struct snd_seq_port_callback port_callback;
 
 	port = kmalloc(sizeof(*port), GFP_KERNEL);
-	if (!port) {
+
+	if (!port)
+	{
 		rc = -ENOMEM;
 		goto __error;
 	}
 
 	/* create ALSA client */
 	rc = snd_seq_create_kernel_client(NULL, SNDRV_SEQ_CLIENT_OSS,
-					  "OSS sequencer");
+									  "OSS sequencer");
+
 	if (rc < 0)
+	{
 		goto __error;
+	}
 
 	system_client = rc;
 
@@ -106,9 +111,11 @@ snd_seq_oss_create_client(void)
 	 */
 	port_callback.event_input = receive_announce;
 	port->kernel = &port_callback;
-	
+
 	call_ctl(SNDRV_SEQ_IOCTL_CREATE_PORT, port);
-	if ((system_port = port->addr.port) >= 0) {
+
+	if ((system_port = port->addr.port) >= 0)
+	{
 		struct snd_seq_port_subscribe subs;
 
 		memset(&subs, 0, sizeof(subs));
@@ -118,12 +125,13 @@ snd_seq_oss_create_client(void)
 		subs.dest.port = system_port;
 		call_ctl(SNDRV_SEQ_IOCTL_SUBSCRIBE_PORT, &subs);
 	}
+
 	rc = 0;
 
 	/* look up midi devices */
 	schedule_work(&async_lookup_work);
 
- __error:
+__error:
 	kfree(port);
 	return rc;
 }
@@ -138,26 +146,40 @@ receive_announce(struct snd_seq_event *ev, int direct, void *private, int atomic
 	struct snd_seq_port_info pinfo;
 
 	if (atomic)
-		return 0; /* it must not happen */
-
-	switch (ev->type) {
-	case SNDRV_SEQ_EVENT_PORT_START:
-	case SNDRV_SEQ_EVENT_PORT_CHANGE:
-		if (ev->data.addr.client == system_client)
-			break; /* ignore myself */
-		memset(&pinfo, 0, sizeof(pinfo));
-		pinfo.addr = ev->data.addr;
-		if (call_ctl(SNDRV_SEQ_IOCTL_GET_PORT_INFO, &pinfo) >= 0)
-			snd_seq_oss_midi_check_new_port(&pinfo);
-		break;
-
-	case SNDRV_SEQ_EVENT_PORT_EXIT:
-		if (ev->data.addr.client == system_client)
-			break; /* ignore myself */
-		snd_seq_oss_midi_check_exit_port(ev->data.addr.client,
-						ev->data.addr.port);
-		break;
+	{
+		return 0;    /* it must not happen */
 	}
+
+	switch (ev->type)
+	{
+		case SNDRV_SEQ_EVENT_PORT_START:
+		case SNDRV_SEQ_EVENT_PORT_CHANGE:
+			if (ev->data.addr.client == system_client)
+			{
+				break;    /* ignore myself */
+			}
+
+			memset(&pinfo, 0, sizeof(pinfo));
+			pinfo.addr = ev->data.addr;
+
+			if (call_ctl(SNDRV_SEQ_IOCTL_GET_PORT_INFO, &pinfo) >= 0)
+			{
+				snd_seq_oss_midi_check_new_port(&pinfo);
+			}
+
+			break;
+
+		case SNDRV_SEQ_EVENT_PORT_EXIT:
+			if (ev->data.addr.client == system_client)
+			{
+				break;    /* ignore myself */
+			}
+
+			snd_seq_oss_midi_check_exit_port(ev->data.addr.client,
+											 ev->data.addr.port);
+			break;
+	}
+
 	return 0;
 }
 
@@ -169,8 +191,11 @@ int
 snd_seq_oss_delete_client(void)
 {
 	cancel_work_sync(&async_lookup_work);
+
 	if (system_client >= 0)
+	{
 		snd_seq_delete_kernel_client(system_client);
+	}
 
 	snd_seq_oss_midi_clear_all();
 
@@ -188,20 +213,28 @@ snd_seq_oss_open(struct file *file, int level)
 	struct seq_oss_devinfo *dp;
 
 	dp = kzalloc(sizeof(*dp), GFP_KERNEL);
+
 	if (!dp)
+	{
 		return -ENOMEM;
+	}
 
 	dp->cseq = system_client;
 	dp->port = -1;
 	dp->queue = -1;
 
-	for (i = 0; i < SNDRV_SEQ_OSS_MAX_CLIENTS; i++) {
+	for (i = 0; i < SNDRV_SEQ_OSS_MAX_CLIENTS; i++)
+	{
 		if (client_table[i] == NULL)
+		{
 			break;
+		}
 	}
 
 	dp->index = i;
-	if (i >= SNDRV_SEQ_OSS_MAX_CLIENTS) {
+
+	if (i >= SNDRV_SEQ_OSS_MAX_CLIENTS)
+	{
 		pr_debug("ALSA: seq_oss: too many applications\n");
 		rc = -ENOMEM;
 		goto _error;
@@ -211,7 +244,8 @@ snd_seq_oss_open(struct file *file, int level)
 	snd_seq_oss_synth_setup(dp);
 	snd_seq_oss_midi_setup(dp);
 
-	if (dp->synth_opened == 0 && dp->max_mididev == 0) {
+	if (dp->synth_opened == 0 && dp->max_mididev == 0)
+	{
 		/* pr_err("ALSA: seq_oss: no device found\n"); */
 		rc = -ENODEV;
 		goto _error;
@@ -219,15 +253,20 @@ snd_seq_oss_open(struct file *file, int level)
 
 	/* create port */
 	rc = create_port(dp);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		pr_err("ALSA: seq_oss: can't create port\n");
 		goto _error;
 	}
 
 	/* allocate queue */
 	rc = alloc_seq_queue(dp);
+
 	if (rc < 0)
+	{
 		goto _error;
+	}
 
 	/* set address */
 	dp->addr.client = dp->cseq;
@@ -241,18 +280,24 @@ snd_seq_oss_open(struct file *file, int level)
 	dp->file_mode = translate_mode(file);
 
 	/* initialize read queue */
-	if (is_read_mode(dp->file_mode)) {
+	if (is_read_mode(dp->file_mode))
+	{
 		dp->readq = snd_seq_oss_readq_new(dp, maxqlen);
-		if (!dp->readq) {
+
+		if (!dp->readq)
+		{
 			rc = -ENOMEM;
 			goto _error;
 		}
 	}
 
 	/* initialize write queue */
-	if (is_write_mode(dp->file_mode)) {
+	if (is_write_mode(dp->file_mode))
+	{
 		dp->writeq = snd_seq_oss_writeq_new(dp, maxqlen);
-		if (!dp->writeq) {
+
+		if (!dp->writeq)
+		{
 			rc = -ENOMEM;
 			goto _error;
 		}
@@ -260,7 +305,9 @@ snd_seq_oss_open(struct file *file, int level)
 
 	/* initialize timer */
 	dp->timer = snd_seq_oss_timer_new(dp);
-	if (!dp->timer) {
+
+	if (!dp->timer)
+	{
 		pr_err("ALSA: seq_oss: can't alloc timer\n");
 		rc = -ENOMEM;
 		goto _error;
@@ -271,16 +318,20 @@ snd_seq_oss_open(struct file *file, int level)
 
 	/* set up for mode2 */
 	if (level == SNDRV_SEQ_OSS_MODE_MUSIC)
+	{
 		snd_seq_oss_synth_setup_midi(dp);
+	}
 	else if (is_read_mode(dp->file_mode))
+	{
 		snd_seq_oss_midi_open_all(dp, SNDRV_SEQ_OSS_FILE_READ);
+	}
 
 	client_table[dp->index] = dp;
 	num_clients++;
 
 	return 0;
 
- _error:
+_error:
 	snd_seq_oss_synth_cleanup(dp);
 	snd_seq_oss_midi_cleanup(dp);
 	delete_seq_queue(dp->queue);
@@ -296,12 +347,22 @@ static int
 translate_mode(struct file *file)
 {
 	int file_mode = 0;
+
 	if ((file->f_flags & O_ACCMODE) != O_RDONLY)
+	{
 		file_mode |= SNDRV_SEQ_OSS_FILE_WRITE;
+	}
+
 	if ((file->f_flags & O_ACCMODE) != O_WRONLY)
+	{
 		file_mode |= SNDRV_SEQ_OSS_FILE_READ;
+	}
+
 	if (file->f_flags & O_NONBLOCK)
+	{
 		file_mode |= SNDRV_SEQ_OSS_FILE_NONBLOCK;
+	}
+
 	return file_mode;
 }
 
@@ -319,7 +380,7 @@ create_port(struct seq_oss_devinfo *dp)
 	memset(&port, 0, sizeof(port));
 	port.addr.client = dp->cseq;
 	sprintf(port.name, "Sequencer-%d", dp->index);
-	port.capability = SNDRV_SEQ_PORT_CAP_READ|SNDRV_SEQ_PORT_CAP_WRITE; /* no subscription */
+	port.capability = SNDRV_SEQ_PORT_CAP_READ | SNDRV_SEQ_PORT_CAP_WRITE; /* no subscription */
 	port.type = SNDRV_SEQ_PORT_TYPE_SPECIFIC;
 	port.midi_channels = 128;
 	port.synth_voices = 128;
@@ -332,8 +393,11 @@ create_port(struct seq_oss_devinfo *dp)
 	port.kernel = &callback;
 
 	rc = call_ctl(SNDRV_SEQ_IOCTL_CREATE_PORT, &port);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	dp->port = port.addr.port;
 
@@ -346,7 +410,8 @@ create_port(struct seq_oss_devinfo *dp)
 static int
 delete_port(struct seq_oss_devinfo *dp)
 {
-	if (dp->port < 0) {
+	if (dp->port < 0)
+	{
 		kfree(dp);
 		return 0;
 	}
@@ -367,8 +432,12 @@ alloc_seq_queue(struct seq_oss_devinfo *dp)
 	qinfo.owner = system_client;
 	qinfo.locked = 1;
 	strcpy(qinfo.name, "OSS Sequencer Emulation");
+
 	if ((rc = call_ctl(SNDRV_SEQ_IOCTL_CREATE_QUEUE, &qinfo)) < 0)
+	{
 		return rc;
+	}
+
 	dp->queue = qinfo.queue;
 	return 0;
 }
@@ -383,12 +452,19 @@ delete_seq_queue(int queue)
 	int rc;
 
 	if (queue < 0)
+	{
 		return 0;
+	}
+
 	memset(&qinfo, 0, sizeof(qinfo));
 	qinfo.queue = queue;
 	rc = call_ctl(SNDRV_SEQ_IOCTL_DELETE_QUEUE, &qinfo);
+
 	if (rc < 0)
+	{
 		pr_err("ALSA: seq_oss: unable to delete queue %d (%d)\n", queue, rc);
+	}
+
 	return rc;
 }
 
@@ -402,11 +478,11 @@ free_devinfo(void *private)
 	struct seq_oss_devinfo *dp = (struct seq_oss_devinfo *)private;
 
 	snd_seq_oss_timer_delete(dp->timer);
-		
+
 	snd_seq_oss_writeq_delete(dp->writeq);
 
 	snd_seq_oss_readq_delete(dp->readq);
-	
+
 	kfree(dp);
 }
 
@@ -429,8 +505,12 @@ snd_seq_oss_release(struct seq_oss_devinfo *dp)
 
 	/* clear slot */
 	queue = dp->queue;
+
 	if (dp->port >= 0)
+	{
 		delete_port(dp);
+	}
+
 	delete_seq_queue(queue);
 }
 
@@ -445,19 +525,29 @@ snd_seq_oss_reset(struct seq_oss_devinfo *dp)
 
 	/* reset all synth devices */
 	for (i = 0; i < dp->max_synthdev; i++)
+	{
 		snd_seq_oss_synth_reset(dp, i);
+	}
 
 	/* reset all midi devices */
-	if (dp->seq_mode != SNDRV_SEQ_OSS_MODE_MUSIC) {
+	if (dp->seq_mode != SNDRV_SEQ_OSS_MODE_MUSIC)
+	{
 		for (i = 0; i < dp->max_mididev; i++)
+		{
 			snd_seq_oss_midi_reset(dp, i);
+		}
 	}
 
 	/* remove queues */
 	if (dp->readq)
+	{
 		snd_seq_oss_readq_clear(dp->readq);
+	}
+
 	if (dp->writeq)
+	{
 		snd_seq_oss_writeq_clear(dp->writeq);
+	}
 
 	/* reset timer */
 	snd_seq_oss_timer_stop(dp->timer);
@@ -476,7 +566,8 @@ enabled_str(int bool)
 static char *
 filemode_str(int val)
 {
-	static char *str[] = {
+	static char *str[] =
+	{
 		"none", "read", "write", "read/write",
 	};
 	return str[val & SNDRV_SEQ_OSS_FILE_ACMODE];
@@ -496,22 +587,32 @@ snd_seq_oss_system_info_read(struct snd_info_buffer *buf)
 	snd_iprintf(buf, "ALSA receiver port %d\n", system_port);
 
 	snd_iprintf(buf, "\nNumber of applications: %d\n", num_clients);
-	for (i = 0; i < num_clients; i++) {
+
+	for (i = 0; i < num_clients; i++)
+	{
 		snd_iprintf(buf, "\nApplication %d: ", i);
-		if ((dp = client_table[i]) == NULL) {
+
+		if ((dp = client_table[i]) == NULL)
+		{
 			snd_iprintf(buf, "*empty*\n");
 			continue;
 		}
+
 		snd_iprintf(buf, "port %d : queue %d\n", dp->port, dp->queue);
 		snd_iprintf(buf, "  sequencer mode = %s : file open mode = %s\n",
-			    (dp->seq_mode ? "music" : "synth"),
-			    filemode_str(dp->file_mode));
+					(dp->seq_mode ? "music" : "synth"),
+					filemode_str(dp->file_mode));
+
 		if (dp->seq_mode)
 			snd_iprintf(buf, "  timer tempo = %d, timebase = %d\n",
-				    dp->timer->oss_tempo, dp->timer->oss_timebase);
+						dp->timer->oss_tempo, dp->timer->oss_timebase);
+
 		snd_iprintf(buf, "  max queue length %d\n", maxqlen);
+
 		if (is_read_mode(dp->file_mode) && dp->readq)
+		{
 			snd_seq_oss_readq_info_read(dp->readq, buf);
+		}
 	}
 }
 #endif /* CONFIG_SND_PROC_FS */

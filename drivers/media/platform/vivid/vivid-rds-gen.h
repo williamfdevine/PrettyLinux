@@ -30,7 +30,8 @@
 #define VIVID_RDS_GEN_BLKS_PER_GRP 4
 #define VIVID_RDS_GEN_BLOCKS (VIVID_RDS_GEN_BLKS_PER_GRP * VIVID_RDS_GEN_GROUPS)
 
-struct vivid_rds_gen {
+struct vivid_rds_gen
+{
 	struct v4l2_rds_data	data[VIVID_RDS_GEN_BLOCKS];
 	bool			use_rbds;
 	u16			picode;
@@ -47,7 +48,7 @@ struct vivid_rds_gen {
 };
 
 void vivid_rds_gen_fill(struct vivid_rds_gen *rds, unsigned freq,
-		    bool use_alternate);
+						bool use_alternate);
 void vivid_rds_generate(struct vivid_rds_gen *rds);
 
 #endif

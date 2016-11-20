@@ -42,7 +42,8 @@ static int read_r8d16(void *client, u8 reg)
 	return i2c_smbus_read_word_data(client, reg);
 }
 
-static const struct ad_dpot_bus_ops bops = {
+static const struct ad_dpot_bus_ops bops =
+{
 	.read_d8	= read_d8,
 	.read_r8d8	= read_r8d8,
 	.read_r8d16	= read_r8d16,
@@ -52,15 +53,17 @@ static const struct ad_dpot_bus_ops bops = {
 };
 
 static int ad_dpot_i2c_probe(struct i2c_client *client,
-				      const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
-	struct ad_dpot_bus_data bdata = {
+	struct ad_dpot_bus_data bdata =
+	{
 		.client = client,
 		.bops = &bops,
 	};
 
 	if (!i2c_check_functionality(client->adapter,
-				     I2C_FUNC_SMBUS_WORD_DATA)) {
+								 I2C_FUNC_SMBUS_WORD_DATA))
+	{
 		dev_err(&client->dev, "SMBUS Word Data not Supported\n");
 		return -EIO;
 	}
@@ -73,7 +76,8 @@ static int ad_dpot_i2c_remove(struct i2c_client *client)
 	return ad_dpot_remove(&client->dev);
 }
 
-static const struct i2c_device_id ad_dpot_id[] = {
+static const struct i2c_device_id ad_dpot_id[] =
+{
 	{"ad5258", AD5258_ID},
 	{"ad5259", AD5259_ID},
 	{"ad5251", AD5251_ID},
@@ -103,7 +107,8 @@ static const struct i2c_device_id ad_dpot_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, ad_dpot_id);
 
-static struct i2c_driver ad_dpot_i2c_driver = {
+static struct i2c_driver ad_dpot_i2c_driver =
+{
 	.driver = {
 		.name	= "ad_dpot",
 	},

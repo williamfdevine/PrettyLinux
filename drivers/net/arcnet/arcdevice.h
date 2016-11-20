@@ -70,11 +70,11 @@
 #define D_DEBUG         8192    /* Very detailed debug line for line */
 
 #ifndef ARCNET_DEBUG_MAX
-#define ARCNET_DEBUG_MAX (127)	/* change to ~0 if you want detailed debugging */
+	#define ARCNET_DEBUG_MAX (127)	/* change to ~0 if you want detailed debugging */
 #endif
 
 #ifndef ARCNET_DEBUG
-#define ARCNET_DEBUG (D_NORMAL | D_EXTRA)
+	#define ARCNET_DEBUG (D_NORMAL | D_EXTRA)
 #endif
 extern int arcnet_debug;
 
@@ -82,39 +82,39 @@ extern int arcnet_debug;
 
 /* macros to simplify debug checking */
 #define arc_printk(x, dev, fmt, ...)					\
-do {									\
-	if (BUGLVL(x)) {						\
-		if ((x) == D_NORMAL)					\
-			netdev_warn(dev, fmt, ##__VA_ARGS__);		\
-		else if ((x) < D_DURING)				\
-			netdev_info(dev, fmt, ##__VA_ARGS__);		\
-		else							\
-			netdev_dbg(dev, fmt, ##__VA_ARGS__);		\
-	}								\
-} while (0)
+	do {									\
+		if (BUGLVL(x)) {						\
+			if ((x) == D_NORMAL)					\
+				netdev_warn(dev, fmt, ##__VA_ARGS__);		\
+			else if ((x) < D_DURING)				\
+				netdev_info(dev, fmt, ##__VA_ARGS__);		\
+			else							\
+				netdev_dbg(dev, fmt, ##__VA_ARGS__);		\
+		}								\
+	} while (0)
 
 #define arc_cont(x, fmt, ...)						\
-do {									\
-	if (BUGLVL(x))							\
-		pr_cont(fmt, ##__VA_ARGS__);				\
-} while (0)
+	do {									\
+		if (BUGLVL(x))							\
+			pr_cont(fmt, ##__VA_ARGS__);				\
+	} while (0)
 
 /* see how long a function call takes to run, expressed in CPU cycles */
 #define TIME(dev, name, bytes, call)					\
-do {									\
-	if (BUGLVL(D_TIMING)) {						\
-		unsigned long _x, _y;					\
-		_x = get_cycles();					\
-		call;							\
-		_y = get_cycles();					\
-		arc_printk(D_TIMING, dev,				\
-			   "%s: %d bytes in %lu cycles == %lu Kbytes/100Mcycle\n", \
-			   name, bytes, _y - _x,			\
-			   100000000 / 1024 * bytes / (_y - _x + 1));	\
-	} else {							\
-		call;							\
-	}								\
-} while (0)
+	do {									\
+		if (BUGLVL(D_TIMING)) {						\
+			unsigned long _x, _y;					\
+			_x = get_cycles();					\
+			call;							\
+			_y = get_cycles();					\
+			arc_printk(D_TIMING, dev,				\
+					   "%s: %d bytes in %lu cycles == %lu Kbytes/100Mcycle\n", \
+					   name, bytes, _y - _x,			\
+					   100000000 / 1024 * bytes / (_y - _x + 1));	\
+		} else {							\
+			call;							\
+		}								\
+	} while (0)
 
 /*
  * Time needed to reset the card - in ms (milliseconds).  This works on my
@@ -193,61 +193,65 @@ do {									\
 				 but default is 2.5MBit. */
 
 /* information needed to define an encapsulation driver */
-struct ArcProto {
+struct ArcProto
+{
 	char suffix;		/* a for RFC1201, e for ether-encap, etc. */
 	int mtu;		/* largest possible packet */
 	int is_ip;              /* This is a ip plugin - not a raw thing */
 
 	void (*rx)(struct net_device *dev, int bufnum,
-		   struct archdr *pkthdr, int length);
+			   struct archdr *pkthdr, int length);
 	int (*build_header)(struct sk_buff *skb, struct net_device *dev,
-			    unsigned short ethproto, uint8_t daddr);
+						unsigned short ethproto, uint8_t daddr);
 
 	/* these functions return '1' if the skb can now be freed */
 	int (*prepare_tx)(struct net_device *dev, struct archdr *pkt,
-			  int length, int bufnum);
+					  int length, int bufnum);
 	int (*continue_tx)(struct net_device *dev, int bufnum);
 	int (*ack_tx)(struct net_device *dev, int acked);
 };
 
 extern struct ArcProto *arc_proto_map[256], *arc_proto_default,
-	*arc_bcast_proto, *arc_raw_proto;
+		   *arc_bcast_proto, *arc_raw_proto;
 
 /*
  * "Incoming" is information needed for each address that could be sending
  * to us.  Mostly for partially-received split packets.
  */
-struct Incoming {
+struct Incoming
+{
 	struct sk_buff *skb;	/* packet data buffer             */
 	__be16 sequence;	/* sequence number of assembly    */
 	uint8_t lastpacket,	/* number of last packet (from 1) */
-		numpackets;	/* number of packets in split     */
+			numpackets;	/* number of packets in split     */
 };
 
 /* only needed for RFC1201 */
-struct Outgoing {
+struct Outgoing
+{
 	struct ArcProto *proto;	/* protocol driver that owns this:
 				 *   if NULL, no packet is pending.
 				 */
 	struct sk_buff *skb;	/* buffer from upper levels */
 	struct archdr *pkt;	/* a pointer into the skb */
 	uint16_t length,	/* bytes total */
-		dataleft,	/* bytes left */
-		segnum,		/* segment being sent */
-		numsegs;	/* number of segments */
+			 dataleft,	/* bytes left */
+			 segnum,		/* segment being sent */
+			 numsegs;	/* number of segments */
 };
 
 #define ARCNET_LED_NAME_SZ (IFNAMSIZ + 6)
 
-struct arcnet_local {
+struct arcnet_local
+{
 	uint8_t config,		/* current value of CONFIG register */
-		timeout,	/* Extended timeout for COM20020 */
-		backplane,	/* Backplane flag for COM20020 */
-		clockp,		/* COM20020 clock divider */
-		clockm,		/* COM20020 clock multiplier flag */
-		setup,		/* Contents of setup1 register */
-		setup2,		/* Contents of setup2 register */
-		intmask;	/* current value of INTMASK register */
+			timeout,	/* Extended timeout for COM20020 */
+			backplane,	/* Backplane flag for COM20020 */
+			clockp,		/* COM20020 clock divider */
+			clockm,		/* COM20020 clock multiplier flag */
+			setup,		/* Contents of setup1 register */
+			setup2,		/* Contents of setup2 register */
+			intmask;	/* current value of INTMASK register */
 	uint8_t default_proto[256];	/* default encap to use for each host */
 	int	cur_tx,		/* buffer used by current transmit, or -1 */
 		next_tx,	/* buffer where a packet is ready to send */
@@ -299,7 +303,8 @@ struct arcnet_local {
 
 	int excnak_pending;    /* We just got an excesive nak interrupt */
 
-	struct {
+	struct
+	{
 		uint16_t sequence;	/* sequence number (incs with each packet) */
 		__be16 aborted_seq;
 
@@ -310,7 +315,8 @@ struct arcnet_local {
 	struct Outgoing outgoing;	/* packet currently being sent */
 
 	/* hardware-specific functions */
-	struct {
+	struct
+	{
 		struct module *owner;
 		void (*command)(struct net_device *dev, int cmd);
 		int (*status)(struct net_device *dev);
@@ -318,19 +324,20 @@ struct arcnet_local {
 		int (*reset)(struct net_device *dev, int really_reset);
 		void (*open)(struct net_device *dev);
 		void (*close)(struct net_device *dev);
-		void (*datatrigger) (struct net_device * dev, int enable);
-		void (*recontrigger) (struct net_device * dev, int enable);
+		void (*datatrigger) (struct net_device *dev, int enable);
+		void (*recontrigger) (struct net_device *dev, int enable);
 
 		void (*copy_to_card)(struct net_device *dev, int bufnum,
-				     int offset, void *buf, int count);
+							 int offset, void *buf, int count);
 		void (*copy_from_card)(struct net_device *dev, int bufnum,
-				       int offset, void *buf, int count);
+							   int offset, void *buf, int count);
 	} hw;
 
 	void __iomem *mem_start;	/* pointer to ioremap'ed MMIO */
 };
 
-enum arcnet_led_event {
+enum arcnet_led_event
+{
 	ARCNET_LED_EVENT_RECON,
 	ARCNET_LED_EVENT_OPEN,
 	ARCNET_LED_EVENT_STOP,
@@ -356,15 +363,15 @@ struct net_device *alloc_arcdev(const char *name);
 int arcnet_open(struct net_device *dev);
 int arcnet_close(struct net_device *dev);
 netdev_tx_t arcnet_send_packet(struct sk_buff *skb,
-			       struct net_device *dev);
+							   struct net_device *dev);
 void arcnet_timeout(struct net_device *dev);
 
 /* I/O equivalents */
 
 #ifdef CONFIG_SA1100_CT6001
-#define BUS_ALIGN  2  /* 8 bit device on a 16 bit bus - needs padding */
+	#define BUS_ALIGN  2  /* 8 bit device on a 16 bit bus - needs padding */
 #else
-#define BUS_ALIGN  1
+	#define BUS_ALIGN  1
 #endif
 
 /* addr and offset allow register like names to define the actual IO  address.

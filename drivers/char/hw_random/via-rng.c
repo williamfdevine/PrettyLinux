@@ -38,7 +38,8 @@
 
 
 
-enum {
+enum
+{
 	VIA_STRFILT_CNT_SHIFT	= 16,
 	VIA_STRFILT_FAIL	= (1 << 15),
 	VIA_STRFILT_ENABLE	= (1 << 14),
@@ -91,7 +92,7 @@ static inline u32 xstore(u32 *addr, u32 edx_in)
 static int via_rng_data_present(struct hwrng *rng, int wait)
 {
 	char buf[16 + PADLOCK_ALIGNMENT - STACK_ALIGN] __attribute__
-		((aligned(STACK_ALIGN)));
+	((aligned(STACK_ALIGN)));
 	u32 *via_rng_datum = (u32 *)PTR_ALIGN(&buf[0], PADLOCK_ALIGNMENT);
 	u32 bytes_out;
 	int i;
@@ -109,14 +110,20 @@ static int via_rng_data_present(struct hwrng *rng, int wait)
 	 * completes.
 	 */
 
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < 20; i++)
+	{
 		*via_rng_datum = 0; /* paranoia, not really necessary */
 		bytes_out = xstore(via_rng_datum, VIA_RNG_CHUNK_1);
 		bytes_out &= VIA_XSTORE_CNT_MASK;
+
 		if (bytes_out || !wait)
+		{
 			break;
+		}
+
 		udelay(10);
 	}
+
 	rng->priv = *via_rng_datum;
 	return bytes_out ? 1 : 0;
 }
@@ -139,12 +146,15 @@ static int via_rng_init(struct hwrng *rng)
 	 * is always enabled if CPUID rng_en is set.  There is no
 	 * RNG configuration like it used to be the case in this
 	 * register */
-	if ((c->x86 == 6) && (c->x86_model >= 0x0f)) {
-		if (!boot_cpu_has(X86_FEATURE_XSTORE_EN)) {
+	if ((c->x86 == 6) && (c->x86_model >= 0x0f))
+	{
+		if (!boot_cpu_has(X86_FEATURE_XSTORE_EN))
+		{
 			pr_err(PFX "can't enable hardware RNG "
-				"if XSTORE is not enabled\n");
+				   "if XSTORE is not enabled\n");
 			return -ENODEV;
 		}
+
 		return 0;
 	}
 
@@ -167,19 +177,27 @@ static int via_rng_init(struct hwrng *rng)
 
 	/* Nehemiah stepping 8 and higher */
 	if ((c->x86_model == 9) && (c->x86_mask > 7))
+	{
 		lo |= VIA_NOISESRC2;
+	}
 
 	/* Esther */
 	if (c->x86_model >= 10)
+	{
 		lo |= VIA_NOISESRC2;
+	}
 
 	if (lo != old_lo)
+	{
 		wrmsr(MSR_VIA_RNG, lo, hi);
+	}
 
 	/* perhaps-unnecessary sanity check; remove after testing if
 	   unneeded */
 	rdmsr(MSR_VIA_RNG, lo, hi);
-	if ((lo & VIA_RNG_ENABLE) == 0) {
+
+	if ((lo & VIA_RNG_ENABLE) == 0)
+	{
 		pr_err(PFX "cannot enable VIA C3 RNG, aborting\n");
 		return -ENODEV;
 	}
@@ -188,7 +206,8 @@ static int via_rng_init(struct hwrng *rng)
 }
 
 
-static struct hwrng via_rng = {
+static struct hwrng via_rng =
+{
 	.name		= "via",
 	.init		= via_rng_init,
 	.data_present	= via_rng_data_present,
@@ -201,15 +220,20 @@ static int __init mod_init(void)
 	int err;
 
 	if (!boot_cpu_has(X86_FEATURE_XSTORE))
+	{
 		return -ENODEV;
+	}
 
 	pr_info("VIA RNG detected\n");
 	err = hwrng_register(&via_rng);
-	if (err) {
+
+	if (err)
+	{
 		pr_err(PFX "RNG registering failed (%d)\n",
-		       err);
+			   err);
 		goto out;
 	}
+
 out:
 	return err;
 }
@@ -222,7 +246,8 @@ static void __exit mod_exit(void)
 module_init(mod_init);
 module_exit(mod_exit);
 
-static struct x86_cpu_id __maybe_unused via_rng_cpu_id[] = {
+static struct x86_cpu_id __maybe_unused via_rng_cpu_id[] =
+{
 	X86_FEATURE_MATCH(X86_FEATURE_XSTORE),
 	{}
 };

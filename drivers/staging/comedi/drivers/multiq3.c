@@ -84,26 +84,30 @@ static void multiq3_set_ctrl(struct comedi_device *dev, unsigned int bits)
 	 * be kept high at all times.
 	 */
 	outw(MULTIQ3_CTRL_SH | MULTIQ3_CTRL_CLK | bits,
-	     dev->iobase + MULTIQ3_CTRL_REG);
+		 dev->iobase + MULTIQ3_CTRL_REG);
 }
 
 static int multiq3_ai_status(struct comedi_device *dev,
-			     struct comedi_subdevice *s,
-			     struct comedi_insn *insn,
-			     unsigned long context)
+							 struct comedi_subdevice *s,
+							 struct comedi_insn *insn,
+							 unsigned long context)
 {
 	unsigned int status;
 
 	status = inw(dev->iobase + MULTIQ3_STATUS_REG);
+
 	if (status & context)
+	{
 		return 0;
+	}
+
 	return -EBUSY;
 }
 
 static int multiq3_ai_insn_read(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int val;
@@ -113,17 +117,24 @@ static int multiq3_ai_insn_read(struct comedi_device *dev,
 	multiq3_set_ctrl(dev, MULTIQ3_CTRL_EN | MULTIQ3_CTRL_AI_CHAN(chan));
 
 	ret = comedi_timeout(dev, s, insn, multiq3_ai_status,
-			     MULTIQ3_STATUS_EOC);
-	if (ret)
-		return ret;
+						 MULTIQ3_STATUS_EOC);
 
-	for (i = 0; i < insn->n; i++) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	for (i = 0; i < insn->n; i++)
+	{
 		outw(0, dev->iobase + MULTIQ3_AI_CONV_REG);
 
 		ret = comedi_timeout(dev, s, insn, multiq3_ai_status,
-				     MULTIQ3_STATUS_EOC_I);
+							 MULTIQ3_STATUS_EOC_I);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		/* get a 16-bit sample; mask it to the subdevice resolution */
 		val = inb(dev->iobase + MULTIQ3_AI_REG) << 8;
@@ -138,29 +149,31 @@ static int multiq3_ai_insn_read(struct comedi_device *dev,
 }
 
 static int multiq3_ao_insn_write(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int val = s->readback[chan];
 	int i;
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		val = data[i];
 		multiq3_set_ctrl(dev, MULTIQ3_CTRL_LD |
-				      MULTIQ3_CTRL_AO_CHAN(chan));
+						 MULTIQ3_CTRL_AO_CHAN(chan));
 		outw(val, dev->iobase + MULTIQ3_AO_REG);
 		multiq3_set_ctrl(dev, 0);
 	}
+
 	s->readback[chan] = val;
 
 	return insn->n;
 }
 
 static int multiq3_di_insn_bits(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn, unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn, unsigned int *data)
 {
 	data[1] = inw(dev->iobase + MULTIQ3_DI_REG);
 
@@ -168,12 +181,14 @@ static int multiq3_di_insn_bits(struct comedi_device *dev,
 }
 
 static int multiq3_do_insn_bits(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	if (comedi_dio_update_state(s, data))
+	{
 		outw(s->state, dev->iobase + MULTIQ3_DO_REG);
+	}
 
 	data[1] = s->state;
 
@@ -181,18 +196,19 @@ static int multiq3_do_insn_bits(struct comedi_device *dev,
 }
 
 static int multiq3_encoder_insn_read(struct comedi_device *dev,
-				     struct comedi_subdevice *s,
-				     struct comedi_insn *insn,
-				     unsigned int *data)
+									 struct comedi_subdevice *s,
+									 struct comedi_insn *insn,
+									 unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int val;
 	int i;
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		/* select encoder channel */
 		multiq3_set_ctrl(dev, MULTIQ3_CTRL_EN |
-				      MULTIQ3_CTRL_E_CHAN(chan));
+						 MULTIQ3_CTRL_E_CHAN(chan));
 
 		/* reset the byte pointer */
 		outb(MULTIQ3_BP_RESET, dev->iobase + MULTIQ3_ENC_CTRL_REG);
@@ -227,7 +243,7 @@ static int multiq3_encoder_insn_read(struct comedi_device *dev,
 }
 
 static void multiq3_encoder_reset(struct comedi_device *dev,
-				  unsigned int chan)
+								  unsigned int chan)
 {
 	multiq3_set_ctrl(dev, MULTIQ3_CTRL_EN | MULTIQ3_CTRL_E_CHAN(chan));
 	outb(MULTIQ3_EFLAG_RESET, dev->iobase + MULTIQ3_ENC_CTRL_REG);
@@ -240,37 +256,45 @@ static void multiq3_encoder_reset(struct comedi_device *dev,
 }
 
 static int multiq3_encoder_insn_config(struct comedi_device *dev,
-				       struct comedi_subdevice *s,
-				       struct comedi_insn *insn,
-				       unsigned int *data)
+									   struct comedi_subdevice *s,
+									   struct comedi_insn *insn,
+									   unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 
-	switch (data[0]) {
-	case INSN_CONFIG_RESET:
-		multiq3_encoder_reset(dev, chan);
-		break;
-	default:
-		return -EINVAL;
+	switch (data[0])
+	{
+		case INSN_CONFIG_RESET:
+			multiq3_encoder_reset(dev, chan);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return insn->n;
 }
 
 static int multiq3_attach(struct comedi_device *dev,
-			  struct comedi_devconfig *it)
+						  struct comedi_devconfig *it)
 {
 	struct comedi_subdevice *s;
 	int ret;
 	int i;
 
 	ret = comedi_request_region(dev, it->options[0], 0x10);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = comedi_alloc_subdevices(dev, 5);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Analog Input subdevice */
 	s = &dev->subdevices[0];
@@ -291,8 +315,11 @@ static int multiq3_attach(struct comedi_device *dev,
 	s->insn_write	= multiq3_ao_insn_write;
 
 	ret = comedi_alloc_subdev_readback(s);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Digital Input subdevice */
 	s = &dev->subdevices[2];
@@ -323,12 +350,15 @@ static int multiq3_attach(struct comedi_device *dev,
 	s->insn_config	= multiq3_encoder_insn_config;
 
 	for (i = 0; i < s->n_chan; i++)
+	{
 		multiq3_encoder_reset(dev, i);
+	}
 
 	return 0;
 }
 
-static struct comedi_driver multiq3_driver = {
+static struct comedi_driver multiq3_driver =
+{
 	.driver_name	= "multiq3",
 	.module		= THIS_MODULE,
 	.attach		= multiq3_attach,

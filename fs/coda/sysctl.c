@@ -2,7 +2,7 @@
  * Sysctl operations for Coda filesystem
  * Original version: (C) 1996 P. Braam and M. Callahan
  * Rewritten for Linux 2.1. (C) 1997 Carnegie Mellon University
- * 
+ *
  * Carnegie Mellon encourages users to contribute improvements to
  * the Coda project. Contact Peter Braam (coda@cs.cmu.edu).
  */
@@ -14,7 +14,8 @@
 #ifdef CONFIG_SYSCTL
 static struct ctl_table_header *fs_table_header;
 
-static struct ctl_table coda_table[] = {
+static struct ctl_table coda_table[] =
+{
 	{
 		.procname	= "timeout",
 		.data		= &coda_timeout,
@@ -39,7 +40,8 @@ static struct ctl_table coda_table[] = {
 	{}
 };
 
-static struct ctl_table fs_table[] = {
+static struct ctl_table fs_table[] =
+{
 	{
 		.procname	= "coda",
 		.mode		= 0555,
@@ -51,12 +53,15 @@ static struct ctl_table fs_table[] = {
 void coda_sysctl_init(void)
 {
 	if ( !fs_table_header )
+	{
 		fs_table_header = register_sysctl_table(fs_table);
+	}
 }
 
 void coda_sysctl_clean(void)
 {
-	if ( fs_table_header ) {
+	if ( fs_table_header )
+	{
 		unregister_sysctl_table(fs_table_header);
 		fs_table_header = NULL;
 	}

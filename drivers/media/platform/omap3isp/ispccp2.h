@@ -28,14 +28,16 @@ struct isp_csiphy;
 #define CCP2_PADS_NUM			2
 
 /* CCP2 input media entity */
-enum ccp2_input_entity {
+enum ccp2_input_entity
+{
 	CCP2_INPUT_NONE,
 	CCP2_INPUT_SENSOR,
 	CCP2_INPUT_MEMORY,
 };
 
 /* CCP2 output media entity */
-enum ccp2_output_entity {
+enum ccp2_output_entity
+{
 	CCP2_OUTPUT_NONE,
 	CCP2_OUTPUT_CCDC,
 	CCP2_OUTPUT_MEMORY,
@@ -43,7 +45,8 @@ enum ccp2_output_entity {
 
 
 /* Logical channel configuration */
-struct isp_interface_lcx_config {
+struct isp_interface_lcx_config
+{
 	int crc;
 	u32 data_start;
 	u32 data_size;
@@ -51,7 +54,8 @@ struct isp_interface_lcx_config {
 };
 
 /* Memory channel configuration */
-struct isp_interface_mem_config {
+struct isp_interface_mem_config
+{
 	u32 dst_port;
 	u32 vsize_count;
 	u32 hsize_count;
@@ -60,7 +64,8 @@ struct isp_interface_mem_config {
 };
 
 /* CCP2 device */
-struct isp_ccp2_device {
+struct isp_ccp2_device
+{
 	struct v4l2_subdev subdev;
 	struct v4l2_mbus_framefmt formats[CCP2_PADS_NUM];
 	struct media_pad pads[CCP2_PADS_NUM];
@@ -81,7 +86,7 @@ struct isp_ccp2_device {
 int omap3isp_ccp2_init(struct isp_device *isp);
 void omap3isp_ccp2_cleanup(struct isp_device *isp);
 int omap3isp_ccp2_register_entities(struct isp_ccp2_device *ccp2,
-			struct v4l2_device *vdev);
+									struct v4l2_device *vdev);
 void omap3isp_ccp2_unregister_entities(struct isp_ccp2_device *ccp2);
 void omap3isp_ccp2_isr(struct isp_ccp2_device *ccp2);
 

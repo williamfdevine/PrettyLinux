@@ -9,13 +9,15 @@
 #define IFE_ENCODE 1
 #define IFE_DECODE 0
 
-struct tc_ife {
+struct tc_ife
+{
 	tc_gen;
 	__u16 flags;
 };
 
 /*XXX: We need to encode the total number of bytes consumed */
-enum {
+enum
+{
 	TCA_IFE_UNSPEC,
 	TCA_IFE_PARMS,
 	TCA_IFE_TM,

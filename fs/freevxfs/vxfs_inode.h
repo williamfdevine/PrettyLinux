@@ -56,7 +56,8 @@
 /*
  * Possible extent descriptor types for %VXFS_ORG_TYPED extents.
  */
-enum {
+enum
+{
 	VXFS_TYPED_INDIRECT		= 1,
 	VXFS_TYPED_DATA			= 2,
 	VXFS_TYPED_INDIRECT_DEV4	= 3,
@@ -66,27 +67,32 @@ enum {
 /*
  * Data stored immediately in the inode.
  */
-struct vxfs_immed {
+struct vxfs_immed
+{
 	__u8			vi_immed[VXFS_NIMMED];
 };
 
-struct vxfs_ext4 {
+struct vxfs_ext4
+{
 	__fs32			ve4_spare;		/* ?? */
 	__fs32			ve4_indsize;		/* Indirect extent size */
 	__fs32			ve4_indir[VXFS_NIADDR];	/* Indirect extents */
-	struct direct {					/* Direct extents */
+	struct direct  					/* Direct extents */
+	{
 		__fs32		extent;			/* Extent number */
 		__fs32		size;			/* Size of extent */
 	} ve4_direct[VXFS_NDADDR];
 };
 
-struct vxfs_typed {
+struct vxfs_typed
+{
 	__fs64		vt_hdr;		/* Header, 0xTTOOOOOOOOOOOOOO; T=type,O=offs */
 	__fs32		vt_block;	/* Extent block */
 	__fs32		vt_size;	/* Size in blocks */
 };
 
-struct vxfs_typed_dev4 {
+struct vxfs_typed_dev4
+{
 	__fs64		vd4_hdr;	/* Header, 0xTTOOOOOOOOOOOOOO; T=type,O=offs */
 	__fs64		vd4_block;	/* Extent block */
 	__fs64		vd4_size;	/* Size in blocks */
@@ -97,7 +103,8 @@ struct vxfs_typed_dev4 {
 /*
  * The inode as contained on the physical device.
  */
-struct vxfs_dinode {
+struct vxfs_dinode
+{
 	__fs32		vdi_mode;
 	__fs32		vdi_nlink;	/* Link count */
 	__fs32		vdi_uid;	/* UID */
@@ -113,14 +120,17 @@ struct vxfs_dinode {
 	__u8		vdi_orgtype;	/* Organisation type */
 	__fs16		vdi_eopflags;
 	__fs32		vdi_eopdata;
-	union {
+	union
+	{
 		__fs32			rdev;
 		__fs32			dotdot;
-		struct {
+		struct
+		{
 			__u32		reserved;
 			__fs32		fixextsize;
 		} i_regular;
-		struct {
+		struct
+		{
 			__fs32		matchino;
 			__fs32		fsetindex;
 		} i_vxspec;
@@ -129,7 +139,8 @@ struct vxfs_dinode {
 	__fs32		vdi_blocks;	/* How much blocks does inode occupy */
 	__fs32		vdi_gen;	/* Inode generation */
 	__fs64		vdi_version;	/* Version */
-	union {
+	union
+	{
 		struct vxfs_immed	immed;
 		struct vxfs_ext4	ext4;
 		struct vxfs_typed	typed[VXFS_NTYPED];
@@ -151,7 +162,8 @@ struct vxfs_dinode {
 /*
  * The inode as represented in the main memory.
  */
-struct vxfs_inode_info {
+struct vxfs_inode_info
+{
 	struct inode	vfs_inode;
 
 	__u32		vii_mode;
@@ -166,13 +178,15 @@ struct vxfs_inode_info {
 	__u32		vii_ctime;	/* Create time - sec */
 	__u32		vii_cutime;	/* Create time - usec */
 	__u8		vii_orgtype;	/* Organisation type */
-	union {
+	union
+	{
 		__u32			rdev;
 		__u32			dotdot;
 	} vii_ftarea;
 	__u32		vii_blocks;	/* How much blocks does inode occupy */
 	__u32		vii_gen;	/* Inode generation */
-	union {
+	union
+	{
 		struct vxfs_immed	immed;
 		struct vxfs_ext4	ext4;
 		struct vxfs_typed	typed[VXFS_NTYPED];

@@ -26,7 +26,7 @@
 	edac_mc_chipset_printk(mci, level, "i82860", fmt, ##arg)
 
 #ifndef PCI_DEVICE_ID_INTEL_82860_0
-#define PCI_DEVICE_ID_INTEL_82860_0	0x2531
+	#define PCI_DEVICE_ID_INTEL_82860_0	0x2531
 #endif				/* PCI_DEVICE_ID_INTEL_82860_0 */
 
 #define I82860_MCHCFG 0x50
@@ -37,24 +37,29 @@
 #define I82860_EAP 0xE4
 #define I82860_DERRCTL_STS 0xE2
 
-enum i82860_chips {
+enum i82860_chips
+{
 	I82860 = 0,
 };
 
-struct i82860_dev_info {
+struct i82860_dev_info
+{
 	const char *ctl_name;
 };
 
-struct i82860_error_info {
+struct i82860_error_info
+{
 	u16 errsts;
 	u32 eap;
 	u16 derrsyn;
 	u16 errsts2;
 };
 
-static const struct i82860_dev_info i82860_devs[] = {
+static const struct i82860_dev_info i82860_devs[] =
+{
 	[I82860] = {
-		.ctl_name = "i82860"},
+		.ctl_name = "i82860"
+	},
 };
 
 static struct pci_dev *mci_pdev;	/* init dev: in case that AGP code
@@ -63,7 +68,7 @@ static struct pci_dev *mci_pdev;	/* init dev: in case that AGP code
 static struct edac_pci_ctl_info *i82860_pci;
 
 static void i82860_get_error_info(struct mem_ctl_info *mci,
-				struct i82860_error_info *info)
+								  struct i82860_error_info *info)
 {
 	struct pci_dev *pdev;
 
@@ -87,30 +92,38 @@ static void i82860_get_error_info(struct mem_ctl_info *mci,
 	 * second set of reads is valid and should be UE info.
 	 */
 	if (!(info->errsts2 & 0x0003))
+	{
 		return;
+	}
 
-	if ((info->errsts ^ info->errsts2) & 0x0003) {
+	if ((info->errsts ^ info->errsts2) & 0x0003)
+	{
 		pci_read_config_dword(pdev, I82860_EAP, &info->eap);
 		pci_read_config_word(pdev, I82860_DERRCTL_STS, &info->derrsyn);
 	}
 }
 
 static int i82860_process_error_info(struct mem_ctl_info *mci,
-				struct i82860_error_info *info,
-				int handle_errors)
+									 struct i82860_error_info *info,
+									 int handle_errors)
 {
 	struct dimm_info *dimm;
 	int row;
 
 	if (!(info->errsts2 & 0x0003))
+	{
 		return 0;
+	}
 
 	if (!handle_errors)
+	{
 		return 1;
+	}
 
-	if ((info->errsts ^ info->errsts2) & 0x0003) {
+	if ((info->errsts ^ info->errsts2) & 0x0003)
+	{
 		edac_mc_handle_error(HW_EVENT_ERR_UNCORRECTED, mci, 1, 0, 0, 0,
-				     -1, -1, -1, "UE overwrote CE", "");
+							 -1, -1, -1, "UE overwrote CE", "");
 		info->errsts = info->errsts2;
 	}
 
@@ -120,14 +133,14 @@ static int i82860_process_error_info(struct mem_ctl_info *mci,
 
 	if (info->errsts & 0x0002)
 		edac_mc_handle_error(HW_EVENT_ERR_UNCORRECTED, mci, 1,
-				     info->eap, 0, 0,
-				     dimm->location[0], dimm->location[1], -1,
-				     "i82860 UE", "");
+							 info->eap, 0, 0,
+							 dimm->location[0], dimm->location[1], -1,
+							 "i82860 UE", "");
 	else
 		edac_mc_handle_error(HW_EVENT_ERR_CORRECTED, mci, 1,
-				     info->eap, 0, info->derrsyn,
-				     dimm->location[0], dimm->location[1], -1,
-				     "i82860 CE", "");
+							 info->eap, 0, info->derrsyn,
+							 dimm->location[0], dimm->location[1], -1,
+							 "i82860 CE", "");
 
 	return 1;
 }
@@ -160,17 +173,20 @@ static void i82860_init_csrows(struct mem_ctl_info *mci, struct pci_dev *pdev)
 	 * cumulative; therefore GRA15 will contain the total memory contained
 	 * in all eight rows.
 	 */
-	for (index = 0; index < mci->nr_csrows; index++) {
+	for (index = 0; index < mci->nr_csrows; index++)
+	{
 		csrow = mci->csrows[index];
 		dimm = csrow->channels[0]->dimm;
 
 		pci_read_config_word(pdev, I82860_GBA + index * 2, &value);
 		cumul_size = (value & I82860_GBA_MASK) <<
-			(I82860_GBA_SHIFT - PAGE_SHIFT);
+					 (I82860_GBA_SHIFT - PAGE_SHIFT);
 		edac_dbg(3, "(%d) cumul_size 0x%x\n", index, cumul_size);
 
 		if (cumul_size == last_cumul_size)
-			continue;	/* not populated */
+		{
+			continue;    /* not populated */
+		}
 
 		csrow->first_page = last_cumul_size;
 		csrow->last_page = cumul_size - 1;
@@ -206,8 +222,11 @@ static int i82860_probe1(struct pci_dev *pdev, int dev_idx)
 	layers[1].size = 8;
 	layers[1].is_virt_csrow = true;
 	mci = edac_mc_alloc(0, ARRAY_SIZE(layers), layers, 0);
+
 	if (!mci)
+	{
 		return -ENOMEM;
+	}
 
 	edac_dbg(3, "init mci\n");
 	mci->pdev = &pdev->dev;
@@ -227,20 +246,23 @@ static int i82860_probe1(struct pci_dev *pdev, int dev_idx)
 	/* Here we assume that we will never see multiple instances of this
 	 * type of memory controller.  The ID is therefore hardcoded to 0.
 	 */
-	if (edac_mc_add_mc(mci)) {
+	if (edac_mc_add_mc(mci))
+	{
 		edac_dbg(3, "failed edac_mc_add_mc()\n");
 		goto fail;
 	}
 
 	/* allocating generic PCI control info */
 	i82860_pci = edac_pci_create_generic_ctl(&pdev->dev, EDAC_MOD_STR);
-	if (!i82860_pci) {
+
+	if (!i82860_pci)
+	{
 		printk(KERN_WARNING
-			"%s(): Unable to create PCI control\n",
-			__func__);
+			   "%s(): Unable to create PCI control\n",
+			   __func__);
 		printk(KERN_WARNING
-			"%s(): PCI error report via EDAC not setup\n",
-			__func__);
+			   "%s(): PCI error report via EDAC not setup\n",
+			   __func__);
 	}
 
 	/* get this far and it's successful */
@@ -255,7 +277,7 @@ fail:
 
 /* returns count (>= 0), or negative on error */
 static int i82860_init_one(struct pci_dev *pdev,
-			   const struct pci_device_id *ent)
+						   const struct pci_device_id *ent)
 {
 	int rc;
 
@@ -263,12 +285,16 @@ static int i82860_init_one(struct pci_dev *pdev,
 	i82860_printk(KERN_INFO, "i82860 init one\n");
 
 	if (pci_enable_device(pdev) < 0)
+	{
 		return -EIO;
+	}
 
 	rc = i82860_probe1(pdev, ent->driver_data);
 
 	if (rc == 0)
+	{
 		mci_pdev = pci_dev_get(pdev);
+	}
 
 	return rc;
 }
@@ -280,26 +306,33 @@ static void i82860_remove_one(struct pci_dev *pdev)
 	edac_dbg(0, "\n");
 
 	if (i82860_pci)
+	{
 		edac_pci_release_generic_ctl(i82860_pci);
+	}
 
 	if ((mci = edac_mc_del_mc(&pdev->dev)) == NULL)
+	{
 		return;
+	}
 
 	edac_mc_free(mci);
 }
 
-static const struct pci_device_id i82860_pci_tbl[] = {
+static const struct pci_device_id i82860_pci_tbl[] =
+{
 	{
-	 PCI_VEND_DEV(INTEL, 82860_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-	 I82860},
+		PCI_VEND_DEV(INTEL, 82860_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+		I82860
+	},
 	{
-	 0,
-	 }			/* 0 terminated list. */
+		0,
+	}			/* 0 terminated list. */
 };
 
 MODULE_DEVICE_TABLE(pci, i82860_pci_tbl);
 
-static struct pci_driver i82860_driver = {
+static struct pci_driver i82860_driver =
+{
 	.name = EDAC_MOD_STR,
 	.probe = i82860_init_one,
 	.remove = i82860_remove_one,
@@ -312,17 +345,21 @@ static int __init i82860_init(void)
 
 	edac_dbg(3, "\n");
 
-       /* Ensure that the OPSTATE is set correctly for POLL or NMI */
-       opstate_init();
+	/* Ensure that the OPSTATE is set correctly for POLL or NMI */
+	opstate_init();
 
 	if ((pci_rc = pci_register_driver(&i82860_driver)) < 0)
+	{
 		goto fail0;
+	}
 
-	if (!mci_pdev) {
+	if (!mci_pdev)
+	{
 		mci_pdev = pci_get_device(PCI_VENDOR_ID_INTEL,
-					PCI_DEVICE_ID_INTEL_82860_0, NULL);
+								  PCI_DEVICE_ID_INTEL_82860_0, NULL);
 
-		if (mci_pdev == NULL) {
+		if (mci_pdev == NULL)
+		{
 			edac_dbg(0, "860 pci_get_device fail\n");
 			pci_rc = -ENODEV;
 			goto fail1;
@@ -330,7 +367,8 @@ static int __init i82860_init(void)
 
 		pci_rc = i82860_init_one(mci_pdev, i82860_pci_tbl);
 
-		if (pci_rc < 0) {
+		if (pci_rc < 0)
+		{
 			edac_dbg(0, "860 init fail\n");
 			pci_rc = -ENODEV;
 			goto fail1;
@@ -359,7 +397,7 @@ module_exit(i82860_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Red Hat Inc. (http://www.redhat.com) "
-		"Ben Woodard <woodard@redhat.com>");
+			  "Ben Woodard <woodard@redhat.com>");
 MODULE_DESCRIPTION("ECC support for Intel 82860 memory hub controllers");
 
 module_param(edac_op_state, int, 0444);

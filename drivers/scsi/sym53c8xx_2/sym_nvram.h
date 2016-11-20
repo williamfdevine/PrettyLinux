@@ -1,5 +1,5 @@
 /*
- * Device driver for the SYMBIOS/LSILOGIC 53C8XX and 53C1010 family 
+ * Device driver for the SYMBIOS/LSILOGIC 53C8XX and 53C1010 family
  * of PCI-SCSI IO processors.
  *
  * Copyright (C) 1999-2001  Gerard Roudier <groudier@free.fr>
@@ -7,7 +7,7 @@
  * This driver is derived from the Linux sym53c8xx driver.
  * Copyright (C) 1998-2000  Gerard Roudier
  *
- * The sym53c8xx driver is derived from the ncr53c8xx driver that had been 
+ * The sym53c8xx driver is derived from the ncr53c8xx driver that had been
  * a port of the FreeBSD ncr driver to Linux-1.2.13.
  *
  * The original ncr driver has been written for 386bsd and FreeBSD by
@@ -48,13 +48,14 @@
 #define SYMBIOS_NVRAM_SIZE 368
 #define SYMBIOS_NVRAM_ADDRESS 0x100
 
-struct Symbios_nvram {
-/* Header 6 bytes */
+struct Symbios_nvram
+{
+	/* Header 6 bytes */
 	u_short type;		/* 0x0000 */
 	u_short byte_count;	/* excluding header/trailer */
 	u_short checksum;
 
-/* Controller set up 20 bytes */
+	/* Controller set up 20 bytes */
 	u_char	v_major;	/* 0x00 */
 	u_char	v_minor;	/* 0x30 */
 	u32	boot_crc;
@@ -82,8 +83,9 @@ struct Symbios_nvram {
 	u_char	flags2;
 #define SYMBIOS_AVOID_BUS_RESET		(1<<2)
 
-/* Boot order 14 bytes * 4 */
-	struct Symbios_host{
+	/* Boot order 14 bytes * 4 */
+	struct Symbios_host
+	{
 		u_short	type;		/* 4:8xx / 0:nok */
 		u_short	device_id;	/* PCI device id */
 		u_short	vendor_id;	/* PCI vendor id */
@@ -95,8 +97,9 @@ struct Symbios_nvram {
 		u_short	io_port;	/* PCI io_port address */
 	} host[4];
 
-/* Targets 8 bytes * 16 */
-	struct Symbios_target {
+	/* Targets 8 bytes * 16 */
+	struct Symbios_target
+	{
 		u_char	flags;
 #define SYMBIOS_DISCONNECT_ENABLE	(1)
 #define SYMBIOS_SCAN_AT_BOOT_TIME	(1<<1)
@@ -108,8 +111,9 @@ struct Symbios_nvram {
 		u_short	sync_period;	/* 4*period factor */
 		u_short	timeout;
 	} target[16];
-/* Scam table 8 bytes * 4 */
-	struct Symbios_scam {
+	/* Scam table 8 bytes * 4 */
+	struct Symbios_scam
+	{
 		u_short	id;
 		u_short	method;
 #define SYMBIOS_SCAM_DEFAULT_METHOD	(0)
@@ -125,7 +129,7 @@ struct Symbios_nvram {
 		u_char	rsvd;
 	} scam[4];
 
-	u_char	spare_devices[15*8];
+	u_char	spare_devices[15 * 8];
 	u_char	trailer[6];		/* 0xfe 0xfe 0x00 0x00 0x00 0x00 */
 };
 typedef struct Symbios_nvram	Symbios_nvram;
@@ -140,8 +144,10 @@ typedef struct Symbios_scam	Symbios_scam;
 #define TEKRAM_93C46_NVRAM_ADDRESS 0
 #define TEKRAM_24C16_NVRAM_ADDRESS 0x40
 
-struct Tekram_nvram {
-	struct Tekram_target {
+struct Tekram_nvram
+{
+	struct Tekram_target
+	{
 		u_char	flags;
 #define	TEKRAM_PARITY_CHECK		(1)
 #define TEKRAM_SYNC_NEGO		(1<<1)
@@ -161,7 +167,7 @@ struct Tekram_nvram {
 #define TEKRAM_IMMEDIATE_SEEK		(1<<4)
 #define	TEKRAM_SCAN_LUNS		(1<<5)
 #define	TEKRAM_REMOVABLE_FLAGS		(3<<6)	/* 0: disable; */
-						/* 1: boot device; 2:all */
+	/* 1: boot device; 2:all */
 	u_char	boot_delay_index;
 	u_char	max_tags_index;
 	u_short	flags1;
@@ -178,13 +184,15 @@ struct pdc_initiator { int dummy; };
 /*
  *  Union of supported NVRAM formats.
  */
-struct sym_nvram {
+struct sym_nvram
+{
 	int type;
 #define	SYM_SYMBIOS_NVRAM	(1)
 #define	SYM_TEKRAM_NVRAM	(2)
 #define SYM_PARISC_PDC		(3)
 #if SYM_CONF_NVRAM_SUPPORT
-	union {
+	union
+	{
 		Symbios_nvram Symbios;
 		Tekram_nvram Tekram;
 		struct pdc_initiator parisc;

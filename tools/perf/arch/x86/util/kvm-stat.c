@@ -6,7 +6,8 @@
 define_exit_reasons_table(vmx_exit_reasons, VMX_EXIT_REASONS);
 define_exit_reasons_table(svm_exit_reasons, SVM_EXIT_REASONS);
 
-static struct kvm_events_ops exit_events = {
+static struct kvm_events_ops exit_events =
+{
 	.is_begin_event = exit_event_begin,
 	.is_end_event = exit_event_end,
 	.decode_key = exit_event_decode_key,
@@ -25,7 +26,7 @@ const char *kvm_exit_trace = "kvm:kvm_exit";
  * the time of MMIO read: kvm_exit -> kvm_mmio(KVM_TRACE_MMIO_READ...).
  */
 static void mmio_event_get_key(struct perf_evsel *evsel, struct perf_sample *sample,
-			       struct event_key *key)
+							   struct event_key *key)
 {
 	key->key  = perf_evsel__intval(evsel, sample, "gpa");
 	key->info = perf_evsel__intval(evsel, sample, "type");
@@ -36,15 +37,18 @@ static void mmio_event_get_key(struct perf_evsel *evsel, struct perf_sample *sam
 #define KVM_TRACE_MMIO_WRITE 2
 
 static bool mmio_event_begin(struct perf_evsel *evsel,
-			     struct perf_sample *sample, struct event_key *key)
+							 struct perf_sample *sample, struct event_key *key)
 {
 	/* MMIO read begin event in kernel. */
 	if (kvm_exit_event(evsel))
+	{
 		return true;
+	}
 
 	/* MMIO write begin event in kernel. */
 	if (!strcmp(evsel->name, "kvm:kvm_mmio") &&
-	    perf_evsel__intval(evsel, sample, "type") == KVM_TRACE_MMIO_WRITE) {
+		perf_evsel__intval(evsel, sample, "type") == KVM_TRACE_MMIO_WRITE)
+	{
 		mmio_event_get_key(evsel, sample, key);
 		return true;
 	}
@@ -53,15 +57,18 @@ static bool mmio_event_begin(struct perf_evsel *evsel,
 }
 
 static bool mmio_event_end(struct perf_evsel *evsel, struct perf_sample *sample,
-			   struct event_key *key)
+						   struct event_key *key)
 {
 	/* MMIO write end event in kernel. */
 	if (kvm_entry_event(evsel))
+	{
 		return true;
+	}
 
 	/* MMIO read end event in kernel.*/
 	if (!strcmp(evsel->name, "kvm:kvm_mmio") &&
-	    perf_evsel__intval(evsel, sample, "type") == KVM_TRACE_MMIO_READ) {
+		perf_evsel__intval(evsel, sample, "type") == KVM_TRACE_MMIO_READ)
+	{
 		mmio_event_get_key(evsel, sample, key);
 		return true;
 	}
@@ -70,35 +77,37 @@ static bool mmio_event_end(struct perf_evsel *evsel, struct perf_sample *sample,
 }
 
 static void mmio_event_decode_key(struct perf_kvm_stat *kvm __maybe_unused,
-				  struct event_key *key,
-				  char *decode)
+								  struct event_key *key,
+								  char *decode)
 {
 	scnprintf(decode, decode_str_len, "%#lx:%s",
-		  (unsigned long)key->key,
-		  key->info == KVM_TRACE_MMIO_WRITE ? "W" : "R");
+			  (unsigned long)key->key,
+			  key->info == KVM_TRACE_MMIO_WRITE ? "W" : "R");
 }
 
-static struct kvm_events_ops mmio_events = {
+static struct kvm_events_ops mmio_events =
+{
 	.is_begin_event = mmio_event_begin,
 	.is_end_event = mmio_event_end,
 	.decode_key = mmio_event_decode_key,
 	.name = "MMIO Access"
 };
 
- /* The time of emulation pio access is from kvm_pio to kvm_entry. */
+/* The time of emulation pio access is from kvm_pio to kvm_entry. */
 static void ioport_event_get_key(struct perf_evsel *evsel,
-				 struct perf_sample *sample,
-				 struct event_key *key)
+								 struct perf_sample *sample,
+								 struct event_key *key)
 {
 	key->key  = perf_evsel__intval(evsel, sample, "port");
 	key->info = perf_evsel__intval(evsel, sample, "rw");
 }
 
 static bool ioport_event_begin(struct perf_evsel *evsel,
-			       struct perf_sample *sample,
-			       struct event_key *key)
+							   struct perf_sample *sample,
+							   struct event_key *key)
 {
-	if (!strcmp(evsel->name, "kvm:kvm_pio")) {
+	if (!strcmp(evsel->name, "kvm:kvm_pio"))
+	{
 		ioport_event_get_key(evsel, sample, key);
 		return true;
 	}
@@ -107,29 +116,31 @@ static bool ioport_event_begin(struct perf_evsel *evsel,
 }
 
 static bool ioport_event_end(struct perf_evsel *evsel,
-			     struct perf_sample *sample __maybe_unused,
-			     struct event_key *key __maybe_unused)
+							 struct perf_sample *sample __maybe_unused,
+							 struct event_key *key __maybe_unused)
 {
 	return kvm_entry_event(evsel);
 }
 
 static void ioport_event_decode_key(struct perf_kvm_stat *kvm __maybe_unused,
-				    struct event_key *key,
-				    char *decode)
+									struct event_key *key,
+									char *decode)
 {
 	scnprintf(decode, decode_str_len, "%#llx:%s",
-		  (unsigned long long)key->key,
-		  key->info ? "POUT" : "PIN");
+			  (unsigned long long)key->key,
+			  key->info ? "POUT" : "PIN");
 }
 
-static struct kvm_events_ops ioport_events = {
+static struct kvm_events_ops ioport_events =
+{
 	.is_begin_event = ioport_event_begin,
 	.is_end_event = ioport_event_end,
 	.decode_key = ioport_event_decode_key,
 	.name = "IO Port Access"
 };
 
-const char *kvm_events_tp[] = {
+const char *kvm_events_tp[] =
+{
 	"kvm:kvm_entry",
 	"kvm:kvm_exit",
 	"kvm:kvm_mmio",
@@ -137,28 +148,36 @@ const char *kvm_events_tp[] = {
 	NULL,
 };
 
-struct kvm_reg_events_ops kvm_reg_events_ops[] = {
+struct kvm_reg_events_ops kvm_reg_events_ops[] =
+{
 	{ .name = "vmexit", .ops = &exit_events },
 	{ .name = "mmio", .ops = &mmio_events },
 	{ .name = "ioport", .ops = &ioport_events },
 	{ NULL, NULL },
 };
 
-const char * const kvm_skip_events[] = {
+const char *const kvm_skip_events[] =
+{
 	"HLT",
 	NULL,
 };
 
 int cpu_isa_init(struct perf_kvm_stat *kvm, const char *cpuid)
 {
-	if (strstr(cpuid, "Intel")) {
+	if (strstr(cpuid, "Intel"))
+	{
 		kvm->exit_reasons = vmx_exit_reasons;
 		kvm->exit_reasons_isa = "VMX";
-	} else if (strstr(cpuid, "AMD")) {
+	}
+	else if (strstr(cpuid, "AMD"))
+	{
 		kvm->exit_reasons = svm_exit_reasons;
 		kvm->exit_reasons_isa = "SVM";
-	} else
+	}
+	else
+	{
 		return -ENOTSUP;
+	}
 
 	return 0;
 }

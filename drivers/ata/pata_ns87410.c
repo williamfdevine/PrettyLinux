@@ -40,13 +40,16 @@ static int ns87410_pre_reset(struct ata_link *link, unsigned long deadline)
 {
 	struct ata_port *ap = link->ap;
 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
-	static const struct pci_bits ns87410_enable_bits[] = {
+	static const struct pci_bits ns87410_enable_bits[] =
+	{
 		{ 0x43, 1, 0x08, 0x08 },
 		{ 0x47, 1, 0x08, 0x08 }
 	};
 
 	if (!pci_test_config_bits(pdev, &ns87410_enable_bits[ap->port_no]))
+	{
 		return -ENOENT;
+	}
 
 	return ata_sff_prereset(link, deadline);
 }
@@ -67,24 +70,31 @@ static void ns87410_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	u8 idetcr, idefr;
 	struct ata_timing at;
 
-	static const u8 activebits[15] = {
+	static const u8 activebits[15] =
+	{
 		0, 1, 2, 3, 4,
 		5, 5, 6, 6, 6,
 		6, 7, 7, 7, 7
 	};
 
-	static const u8 recoverbits[12] = {
+	static const u8 recoverbits[12] =
+	{
 		0, 1, 2, 3, 4, 5, 6, 6, 7, 7, 7, 7
 	};
 
 	pci_read_config_byte(pdev, port + 3, &idefr);
 
 	if (ata_pio_need_iordy(adev))
-		idefr |= 0x04;	/* IORDY enable */
+	{
+		idefr |= 0x04;    /* IORDY enable */
+	}
 	else
+	{
 		idefr &= ~0x04;
+	}
 
-	if (ata_timing_compute(adev, adev->pio_mode, &at, 30303, 1) < 0) {
+	if (ata_timing_compute(adev, adev->pio_mode, &at, 30303, 1) < 0)
+	{
 		dev_err(&pdev->dev, "unknown mode %d\n", adev->pio_mode);
 		return;
 	}
@@ -122,16 +132,20 @@ static unsigned int ns87410_qc_issue(struct ata_queued_cmd *qc)
 	   logical */
 
 	if (adev->pio_mode && adev != ap->private_data)
+	{
 		ns87410_set_piomode(ap, adev);
+	}
 
 	return ata_sff_qc_issue(qc);
 }
 
-static struct scsi_host_template ns87410_sht = {
+static struct scsi_host_template ns87410_sht =
+{
 	ATA_PIO_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations ns87410_port_ops = {
+static struct ata_port_operations ns87410_port_ops =
+{
 	.inherits	= &ata_sff_port_ops,
 	.qc_issue	= ns87410_qc_issue,
 	.cable_detect	= ata_cable_40wire,
@@ -141,7 +155,8 @@ static struct ata_port_operations ns87410_port_ops = {
 
 static int ns87410_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 {
-	static const struct ata_port_info info = {
+	static const struct ata_port_info info =
+	{
 		.flags = ATA_FLAG_SLAVE_POSS,
 		.pio_mask = ATA_PIO3,
 		.port_ops = &ns87410_port_ops
@@ -150,13 +165,15 @@ static int ns87410_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 	return ata_pci_sff_init_one(dev, ppi, &ns87410_sht, NULL, 0);
 }
 
-static const struct pci_device_id ns87410[] = {
+static const struct pci_device_id ns87410[] =
+{
 	{ PCI_VDEVICE(NS, PCI_DEVICE_ID_NS_87410), },
 
 	{ },
 };
 
-static struct pci_driver ns87410_pci_driver = {
+static struct pci_driver ns87410_pci_driver =
+{
 	.name 		= DRV_NAME,
 	.id_table	= ns87410,
 	.probe 		= ns87410_init_one,

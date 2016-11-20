@@ -22,7 +22,8 @@
 
 static DEFINE_MUTEX(flash_mutex);
 static DEFINE_SPINLOCK(flash_lock);
-static struct {
+static struct
+{
 	unsigned long read_base;	/* Physical read address */
 	unsigned long write_base;	/* Physical write address */
 	unsigned long read_size;	/* Size of read area */
@@ -39,40 +40,59 @@ flash_mmap(struct file *file, struct vm_area_struct *vma)
 	unsigned long size;
 
 	spin_lock(&flash_lock);
-	if (flash.read_base == flash.write_base) {
+
+	if (flash.read_base == flash.write_base)
+	{
 		addr = flash.read_base;
 		size = flash.read_size;
-	} else {
+	}
+	else
+	{
 		if ((vma->vm_flags & VM_READ) &&
-		    (vma->vm_flags & VM_WRITE)) {
+			(vma->vm_flags & VM_WRITE))
+		{
 			spin_unlock(&flash_lock);
 			return -EINVAL;
 		}
-		if (vma->vm_flags & VM_READ) {
+
+		if (vma->vm_flags & VM_READ)
+		{
 			addr = flash.read_base;
 			size = flash.read_size;
-		} else if (vma->vm_flags & VM_WRITE) {
+		}
+		else if (vma->vm_flags & VM_WRITE)
+		{
 			addr = flash.write_base;
 			size = flash.write_size;
-		} else {
+		}
+		else
+		{
 			spin_unlock(&flash_lock);
 			return -ENXIO;
 		}
 	}
+
 	spin_unlock(&flash_lock);
 
 	if ((vma->vm_pgoff << PAGE_SHIFT) > size)
+	{
 		return -ENXIO;
+	}
+
 	addr = vma->vm_pgoff + (addr >> PAGE_SHIFT);
 
 	if (vma->vm_end - (vma->vm_start + (vma->vm_pgoff << PAGE_SHIFT)) > size)
+	{
 		size = vma->vm_end - (vma->vm_start + (vma->vm_pgoff << PAGE_SHIFT));
+	}
 
 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
 
 	if (io_remap_pfn_range(vma, vma->vm_start, addr, size, vma->vm_page_prot))
+	{
 		return -EAGAIN;
-		
+	}
+
 	return 0;
 }
 
@@ -80,40 +100,57 @@ static long long
 flash_llseek(struct file *file, long long offset, int origin)
 {
 	mutex_lock(&flash_mutex);
-	switch (origin) {
+
+	switch (origin)
+	{
 		case 0:
 			file->f_pos = offset;
 			break;
+
 		case 1:
 			file->f_pos += offset;
+
 			if (file->f_pos > flash.read_size)
+			{
 				file->f_pos = flash.read_size;
+			}
+
 			break;
+
 		case 2:
 			file->f_pos = flash.read_size;
 			break;
+
 		default:
 			mutex_unlock(&flash_mutex);
 			return -EINVAL;
 	}
+
 	mutex_unlock(&flash_mutex);
 	return file->f_pos;
 }
 
 static ssize_t
-flash_read(struct file * file, char __user * buf,
-	   size_t count, loff_t *ppos)
+flash_read(struct file *file, char __user *buf,
+		   size_t count, loff_t *ppos)
 {
 	loff_t p = *ppos;
 	int i;
 
 	if (count > flash.read_size - p)
+	{
 		count = flash.read_size - p;
+	}
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		u8 data = upa_readb(flash.read_base + p + i);
+
 		if (put_user(data, buf))
+		{
 			return -EFAULT;
+		}
+
 		buf++;
 	}
 
@@ -125,7 +162,9 @@ static int
 flash_open(struct inode *inode, struct file *file)
 {
 	mutex_lock(&flash_mutex);
-	if (test_and_set_bit(0, (void *)&flash.busy) != 0) {
+
+	if (test_and_set_bit(0, (void *)&flash.busy) != 0)
+	{
 		mutex_unlock(&flash_mutex);
 		return -EBUSY;
 	}
@@ -144,7 +183,8 @@ flash_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static const struct file_operations flash_fops = {
+static const struct file_operations flash_fops =
+{
 	/* no write to the Flash, use mmap
 	 * and play flash dependent tricks.
 	 */
@@ -166,25 +206,32 @@ static int flash_probe(struct platform_device *op)
 	parent = dp->parent;
 
 	if (strcmp(parent->name, "sbus") &&
-	    strcmp(parent->name, "sbi") &&
-	    strcmp(parent->name, "ebus"))
+		strcmp(parent->name, "sbi") &&
+		strcmp(parent->name, "ebus"))
+	{
 		return -ENODEV;
+	}
 
 	flash.read_base = op->resource[0].start;
 	flash.read_size = resource_size(&op->resource[0]);
-	if (op->resource[1].flags) {
+
+	if (op->resource[1].flags)
+	{
 		flash.write_base = op->resource[1].start;
 		flash.write_size = resource_size(&op->resource[1]);
-	} else {
+	}
+	else
+	{
 		flash.write_base = op->resource[0].start;
 		flash.write_size = resource_size(&op->resource[0]);
 	}
+
 	flash.busy = 0;
 
 	printk(KERN_INFO "%s: OBP Flash, RD %lx[%lx] WR %lx[%lx]\n",
-	       op->dev.of_node->full_name,
-	       flash.read_base, flash.read_size,
-	       flash.write_base, flash.write_size);
+		   op->dev.of_node->full_name,
+		   flash.read_base, flash.read_size,
+		   flash.write_base, flash.write_size);
 
 	return misc_register(&flash_dev);
 }
@@ -196,7 +243,8 @@ static int flash_remove(struct platform_device *op)
 	return 0;
 }
 
-static const struct of_device_id flash_match[] = {
+static const struct of_device_id flash_match[] =
+{
 	{
 		.name = "flashprom",
 	},
@@ -204,7 +252,8 @@ static const struct of_device_id flash_match[] = {
 };
 MODULE_DEVICE_TABLE(of, flash_match);
 
-static struct platform_driver flash_driver = {
+static struct platform_driver flash_driver =
+{
 	.driver = {
 		.name = "flash",
 		.of_match_table = flash_match,

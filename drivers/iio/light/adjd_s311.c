@@ -55,12 +55,14 @@
 #define ADJD_S311_INT_MASK	0x0fff
 #define ADJD_S311_DATA_MASK	0x03ff
 
-struct adjd_s311_data {
+struct adjd_s311_data
+{
 	struct i2c_client *client;
 	u16 *buffer;
 };
 
-enum adjd_s311_channel_idx {
+enum adjd_s311_channel_idx
+{
 	IDX_RED, IDX_GREEN, IDX_BLUE, IDX_CLEAR
 };
 
@@ -74,22 +76,34 @@ static int adjd_s311_req_data(struct iio_dev *indio_dev)
 	int tries = 10;
 
 	int ret = i2c_smbus_write_byte_data(data->client, ADJD_S311_CTRL,
-		ADJD_S311_CTRL_GSSR);
-	if (ret < 0)
-		return ret;
+										ADJD_S311_CTRL_GSSR);
 
-	while (tries--) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	while (tries--)
+	{
 		ret = i2c_smbus_read_byte_data(data->client, ADJD_S311_CTRL);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		if (!(ret & ADJD_S311_CTRL_GSSR))
+		{
 			break;
+		}
+
 		msleep(20);
 	}
 
-	if (tries < 0) {
+	if (tries < 0)
+	{
 		dev_err(&data->client->dev,
-			"adjd_s311_req_data() failed, data not ready\n");
+				"adjd_s311_req_data() failed, data not ready\n");
 		return -EIO;
 	}
 
@@ -101,12 +115,18 @@ static int adjd_s311_read_data(struct iio_dev *indio_dev, u8 reg, int *val)
 	struct adjd_s311_data *data = iio_priv(indio_dev);
 
 	int ret = adjd_s311_req_data(indio_dev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = i2c_smbus_read_word_data(data->client, reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	*val = ret & ADJD_S311_DATA_MASK;
 
@@ -122,15 +142,22 @@ static irqreturn_t adjd_s311_trigger_handler(int irq, void *p)
 	int i, j = 0;
 
 	int ret = adjd_s311_req_data(indio_dev);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	for_each_set_bit(i, indio_dev->active_scan_mask,
-		indio_dev->masklength) {
+					 indio_dev->masklength)
+	{
 		ret = i2c_smbus_read_word_data(data->client,
-			ADJD_S311_DATA_REG(i));
+									   ADJD_S311_DATA_REG(i));
+
 		if (ret < 0)
+		{
 			goto done;
+		}
 
 		data->buffer[j++] = ret & ADJD_S311_DATA_MASK;
 	}
@@ -144,23 +171,24 @@ done:
 }
 
 #define ADJD_S311_CHANNEL(_color, _scan_idx) { \
-	.type = IIO_INTENSITY, \
-	.modified = 1, \
-	.address = (IDX_##_color), \
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) | \
-		BIT(IIO_CHAN_INFO_HARDWAREGAIN) | \
-		BIT(IIO_CHAN_INFO_INT_TIME), \
-	.channel2 = (IIO_MOD_LIGHT_##_color), \
-	.scan_index = (_scan_idx), \
-	.scan_type = { \
-		.sign = 'u', \
-		.realbits = 10, \
-		.storagebits = 16, \
-		.endianness = IIO_CPU, \
-	}, \
-}
+		.type = IIO_INTENSITY, \
+				.modified = 1, \
+							.address = (IDX_##_color), \
+									   .info_mask_separate = BIT(IIO_CHAN_INFO_RAW) | \
+											   BIT(IIO_CHAN_INFO_HARDWAREGAIN) | \
+											   BIT(IIO_CHAN_INFO_INT_TIME), \
+											   .channel2 = (IIO_MOD_LIGHT_##_color), \
+													   .scan_index = (_scan_idx), \
+															   .scan_type = { \
+																			  .sign = 'u', \
+																			  .realbits = 10, \
+																			  .storagebits = 16, \
+																			  .endianness = IIO_CPU, \
+																			}, \
+	}
 
-static const struct iio_chan_spec adjd_s311_channels[] = {
+static const struct iio_chan_spec adjd_s311_channels[] =
+{
 	ADJD_S311_CHANNEL(RED, 0),
 	ADJD_S311_CHANNEL(GREEN, 1),
 	ADJD_S311_CHANNEL(BLUE, 2),
@@ -169,79 +197,106 @@ static const struct iio_chan_spec adjd_s311_channels[] = {
 };
 
 static int adjd_s311_read_raw(struct iio_dev *indio_dev,
-			   struct iio_chan_spec const *chan,
-			   int *val, int *val2, long mask)
+							  struct iio_chan_spec const *chan,
+							  int *val, int *val2, long mask)
 {
 	struct adjd_s311_data *data = iio_priv(indio_dev);
 	int ret;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		ret = adjd_s311_read_data(indio_dev,
-			ADJD_S311_DATA_REG(chan->address), val);
-		if (ret < 0)
-			return ret;
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_HARDWAREGAIN:
-		ret = i2c_smbus_read_byte_data(data->client,
-			ADJD_S311_CAP_REG(chan->address));
-		if (ret < 0)
-			return ret;
-		*val = ret & ADJD_S311_CAP_MASK;
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_INT_TIME:
-		ret = i2c_smbus_read_word_data(data->client,
-			ADJD_S311_INT_REG(chan->address));
-		if (ret < 0)
-			return ret;
-		*val = 0;
-		/*
-		 * not documented, based on measurement:
-		 * 4095 LSBs correspond to roughly 4 ms
-		 */
-		*val2 = ret & ADJD_S311_INT_MASK;
-		return IIO_VAL_INT_PLUS_MICRO;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			ret = adjd_s311_read_data(indio_dev,
+									  ADJD_S311_DATA_REG(chan->address), val);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_HARDWAREGAIN:
+			ret = i2c_smbus_read_byte_data(data->client,
+										   ADJD_S311_CAP_REG(chan->address));
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			*val = ret & ADJD_S311_CAP_MASK;
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_INT_TIME:
+			ret = i2c_smbus_read_word_data(data->client,
+										   ADJD_S311_INT_REG(chan->address));
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			*val = 0;
+			/*
+			 * not documented, based on measurement:
+			 * 4095 LSBs correspond to roughly 4 ms
+			 */
+			*val2 = ret & ADJD_S311_INT_MASK;
+			return IIO_VAL_INT_PLUS_MICRO;
 	}
+
 	return -EINVAL;
 }
 
 static int adjd_s311_write_raw(struct iio_dev *indio_dev,
-			       struct iio_chan_spec const *chan,
-			       int val, int val2, long mask)
+							   struct iio_chan_spec const *chan,
+							   int val, int val2, long mask)
 {
 	struct adjd_s311_data *data = iio_priv(indio_dev);
 
-	switch (mask) {
-	case IIO_CHAN_INFO_HARDWAREGAIN:
-		if (val < 0 || val > ADJD_S311_CAP_MASK)
-			return -EINVAL;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_HARDWAREGAIN:
+			if (val < 0 || val > ADJD_S311_CAP_MASK)
+			{
+				return -EINVAL;
+			}
 
-		return i2c_smbus_write_byte_data(data->client,
-			ADJD_S311_CAP_REG(chan->address), val);
-	case IIO_CHAN_INFO_INT_TIME:
-		if (val != 0 || val2 < 0 || val2 > ADJD_S311_INT_MASK)
-			return -EINVAL;
+			return i2c_smbus_write_byte_data(data->client,
+											 ADJD_S311_CAP_REG(chan->address), val);
 
-		return i2c_smbus_write_word_data(data->client,
-			ADJD_S311_INT_REG(chan->address), val2);
+		case IIO_CHAN_INFO_INT_TIME:
+			if (val != 0 || val2 < 0 || val2 > ADJD_S311_INT_MASK)
+			{
+				return -EINVAL;
+			}
+
+			return i2c_smbus_write_word_data(data->client,
+											 ADJD_S311_INT_REG(chan->address), val2);
 	}
+
 	return -EINVAL;
 }
 
 static int adjd_s311_update_scan_mode(struct iio_dev *indio_dev,
-	const unsigned long *scan_mask)
+									  const unsigned long *scan_mask)
 {
 	struct adjd_s311_data *data = iio_priv(indio_dev);
 
 	kfree(data->buffer);
 	data->buffer = kmalloc(indio_dev->scan_bytes, GFP_KERNEL);
+
 	if (data->buffer == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
 
-static const struct iio_info adjd_s311_info = {
+static const struct iio_info adjd_s311_info =
+{
 	.read_raw = adjd_s311_read_raw,
 	.write_raw = adjd_s311_write_raw,
 	.update_scan_mode = adjd_s311_update_scan_mode,
@@ -249,15 +304,18 @@ static const struct iio_info adjd_s311_info = {
 };
 
 static int adjd_s311_probe(struct i2c_client *client,
-			   const struct i2c_device_id *id)
+						   const struct i2c_device_id *id)
 {
 	struct adjd_s311_data *data;
 	struct iio_dev *indio_dev;
 	int err;
 
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
+
 	if (indio_dev == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	data = iio_priv(indio_dev);
 	i2c_set_clientdata(client, indio_dev);
@@ -271,13 +329,19 @@ static int adjd_s311_probe(struct i2c_client *client,
 	indio_dev->modes = INDIO_DIRECT_MODE;
 
 	err = iio_triggered_buffer_setup(indio_dev, NULL,
-		adjd_s311_trigger_handler, NULL);
+									 adjd_s311_trigger_handler, NULL);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = iio_device_register(indio_dev);
+
 	if (err)
+	{
 		goto exit_unreg_buffer;
+	}
 
 	dev_info(&client->dev, "ADJD-S311 color sensor registered\n");
 
@@ -300,13 +364,15 @@ static int adjd_s311_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id adjd_s311_id[] = {
+static const struct i2c_device_id adjd_s311_id[] =
+{
 	{ "adjd_s311", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, adjd_s311_id);
 
-static struct i2c_driver adjd_s311_driver = {
+static struct i2c_driver adjd_s311_driver =
+{
 	.driver = {
 		.name	= ADJD_S311_DRV_NAME,
 	},

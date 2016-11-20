@@ -12,7 +12,8 @@
 
 #define NF_CT_FLAG_MARK		1
 
-struct nf_conntrack_zone {
+struct nf_conntrack_zone
+{
 	u16	id;
 	u8	flags;
 	u8	dir;

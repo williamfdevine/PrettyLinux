@@ -35,7 +35,7 @@ void rtl_btc_lps_notify(struct rtl_priv *rtlpriv, u8 type);
 void rtl_btc_scan_notify(struct rtl_priv *rtlpriv, u8 scantype);
 void rtl_btc_connect_notify(struct rtl_priv *rtlpriv, u8 action);
 void rtl_btc_mediastatus_notify(struct rtl_priv *rtlpriv,
-				enum rt_media_status mstatus);
+								enum rt_media_status mstatus);
 void rtl_btc_periodical(struct rtl_priv *rtlpriv);
 void rtl_btc_halt_notify(void);
 void rtl_btc_btinfo_notify(struct rtl_priv *rtlpriv, u8 *tmpbuf, u8 length);

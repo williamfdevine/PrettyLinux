@@ -52,18 +52,21 @@
 /* The Quark I2C controller source clock */
 #define INTEL_QUARK_I2C_CLK_HZ	33000000
 
-struct intel_quark_mfd {
+struct intel_quark_mfd
+{
 	struct device		*dev;
 	struct clk		*i2c_clk;
 	struct clk_lookup	*i2c_clk_lookup;
 };
 
-struct i2c_mode_info {
+struct i2c_mode_info
+{
 	const char *name;
 	unsigned int i2c_scl_freq;
 };
 
-static const struct i2c_mode_info platform_i2c_mode_info[] = {
+static const struct i2c_mode_info platform_i2c_mode_info[] =
+{
 	{
 		.name = "Galileo",
 		.i2c_scl_freq = 100000,
@@ -75,7 +78,8 @@ static const struct i2c_mode_info platform_i2c_mode_info[] = {
 	{}
 };
 
-static struct resource intel_quark_i2c_res[] = {
+static struct resource intel_quark_i2c_res[] =
+{
 	[INTEL_QUARK_IORES_MEM] = {
 		.flags = IORESOURCE_MEM,
 	},
@@ -84,21 +88,25 @@ static struct resource intel_quark_i2c_res[] = {
 	},
 };
 
-static struct mfd_cell_acpi_match intel_quark_acpi_match_i2c = {
+static struct mfd_cell_acpi_match intel_quark_acpi_match_i2c =
+{
 	.adr = MFD_ACPI_MATCH_I2C,
 };
 
-static struct resource intel_quark_gpio_res[] = {
+static struct resource intel_quark_gpio_res[] =
+{
 	[INTEL_QUARK_IORES_MEM] = {
 		.flags = IORESOURCE_MEM,
 	},
 };
 
-static struct mfd_cell_acpi_match intel_quark_acpi_match_gpio = {
+static struct mfd_cell_acpi_match intel_quark_acpi_match_gpio =
+{
 	.adr = MFD_ACPI_MATCH_GPIO,
 };
 
-static struct mfd_cell intel_quark_mfd_cells[] = {
+static struct mfd_cell intel_quark_mfd_cells[] =
+{
 	{
 		.id = MFD_GPIO_BAR,
 		.name = "gpio-dwapb",
@@ -117,7 +125,8 @@ static struct mfd_cell intel_quark_mfd_cells[] = {
 	},
 };
 
-static const struct pci_device_id intel_quark_mfd_ids[] = {
+static const struct pci_device_id intel_quark_mfd_ids[] =
+{
 	{ PCI_VDEVICE(INTEL, 0x0934), },
 	{},
 };
@@ -129,16 +138,20 @@ static int intel_quark_register_i2c_clk(struct device *dev)
 	struct clk *i2c_clk;
 
 	i2c_clk = clk_register_fixed_rate(dev,
-					  INTEL_QUARK_I2C_CONTROLLER_CLK, NULL,
-					  0, INTEL_QUARK_I2C_CLK_HZ);
+									  INTEL_QUARK_I2C_CONTROLLER_CLK, NULL,
+									  0, INTEL_QUARK_I2C_CLK_HZ);
+
 	if (IS_ERR(i2c_clk))
+	{
 		return PTR_ERR(i2c_clk);
+	}
 
 	quark_mfd->i2c_clk = i2c_clk;
 	quark_mfd->i2c_clk_lookup = clkdev_create(i2c_clk, NULL,
-						INTEL_QUARK_I2C_CONTROLLER_CLK);
+								INTEL_QUARK_I2C_CONTROLLER_CLK);
 
-	if (!quark_mfd->i2c_clk_lookup) {
+	if (!quark_mfd->i2c_clk_lookup)
+	{
 		clk_unregister(quark_mfd->i2c_clk);
 		dev_err(dev, "Fixed clk register failed\n");
 		return -ENOMEM;
@@ -152,7 +165,9 @@ static void intel_quark_unregister_i2c_clk(struct device *dev)
 	struct intel_quark_mfd *quark_mfd = dev_get_drvdata(dev);
 
 	if (!quark_mfd->i2c_clk_lookup)
+	{
 		return;
+	}
 
 	clkdev_drop(quark_mfd->i2c_clk_lookup);
 	clk_unregister(quark_mfd->i2c_clk);
@@ -175,15 +190,21 @@ static int intel_quark_i2c_setup(struct pci_dev *pdev, struct mfd_cell *cell)
 	res[INTEL_QUARK_IORES_IRQ].end = pdev->irq;
 
 	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+
 	if (!pdata)
+	{
 		return -ENOMEM;
+	}
 
 	/* Normal mode by default */
 	pdata->i2c_scl_freq = 100000;
 
-	if (board_name) {
-		for (info = platform_i2c_mode_info; info->name; info++) {
-			if (!strcmp(board_name, info->name)) {
+	if (board_name)
+	{
+		for (info = platform_i2c_mode_info; info->name; info++)
+		{
+			if (!strcmp(board_name, info->name))
+			{
 				pdata->i2c_scl_freq = info->i2c_scl_freq;
 				break;
 			}
@@ -208,16 +229,22 @@ static int intel_quark_gpio_setup(struct pci_dev *pdev, struct mfd_cell *cell)
 		pci_resource_end(pdev, MFD_GPIO_BAR);
 
 	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+
 	if (!pdata)
+	{
 		return -ENOMEM;
+	}
 
 	/* For intel quark x1000, it has only one port: portA */
 	pdata->nports = INTEL_QUARK_GPIO_NPORTS;
 	pdata->properties = devm_kcalloc(dev, pdata->nports,
-					 sizeof(*pdata->properties),
-					 GFP_KERNEL);
+									 sizeof(*pdata->properties),
+									 GFP_KERNEL);
+
 	if (!pdata->properties)
+	{
 		return -ENOMEM;
+	}
 
 	/* Set the properties for portA */
 	pdata->properties->fwnode	= NULL;
@@ -234,39 +261,57 @@ static int intel_quark_gpio_setup(struct pci_dev *pdev, struct mfd_cell *cell)
 }
 
 static int intel_quark_mfd_probe(struct pci_dev *pdev,
-				 const struct pci_device_id *id)
+								 const struct pci_device_id *id)
 {
 	struct intel_quark_mfd *quark_mfd;
 	int ret;
 
 	ret = pcim_enable_device(pdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	quark_mfd = devm_kzalloc(&pdev->dev, sizeof(*quark_mfd), GFP_KERNEL);
+
 	if (!quark_mfd)
+	{
 		return -ENOMEM;
+	}
 
 	quark_mfd->dev = &pdev->dev;
 	dev_set_drvdata(&pdev->dev, quark_mfd);
 
 	ret = intel_quark_register_i2c_clk(&pdev->dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = intel_quark_i2c_setup(pdev, &intel_quark_mfd_cells[1]);
+
 	if (ret)
+	{
 		goto err_unregister_i2c_clk;
+	}
 
 	ret = intel_quark_gpio_setup(pdev, &intel_quark_mfd_cells[0]);
+
 	if (ret)
+	{
 		goto err_unregister_i2c_clk;
+	}
 
 	ret = mfd_add_devices(&pdev->dev, 0, intel_quark_mfd_cells,
-			      ARRAY_SIZE(intel_quark_mfd_cells), NULL, 0,
-			      NULL);
+						  ARRAY_SIZE(intel_quark_mfd_cells), NULL, 0,
+						  NULL);
+
 	if (ret)
+	{
 		goto err_unregister_i2c_clk;
+	}
 
 	return 0;
 
@@ -281,7 +326,8 @@ static void intel_quark_mfd_remove(struct pci_dev *pdev)
 	mfd_remove_devices(&pdev->dev);
 }
 
-static struct pci_driver intel_quark_mfd_driver = {
+static struct pci_driver intel_quark_mfd_driver =
+{
 	.name		= "intel_quark_mfd_i2c_gpio",
 	.id_table	= intel_quark_mfd_ids,
 	.probe		= intel_quark_mfd_probe,

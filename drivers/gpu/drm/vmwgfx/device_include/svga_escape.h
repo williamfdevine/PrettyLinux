@@ -78,12 +78,14 @@
 #define SVGA_ESCAPE_VMWARE_HINT_FULLSCREEN    0x00030001  /* Deprecated */
 
 typedef
-struct {
-   uint32 command;
-   uint32 fullscreen;
-   struct {
-      int32 x, y;
-   } monitorPosition;
+struct
+{
+	uint32 command;
+	uint32 fullscreen;
+	struct
+	{
+		int32 x, y;
+	} monitorPosition;
 } SVGAEscapeHintFullscreen;
 
 #endif /* _SVGA_ESCAPE_H_ */

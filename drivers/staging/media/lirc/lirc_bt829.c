@@ -68,23 +68,32 @@ static struct pci_dev *do_pci_probe(void)
 	struct pci_dev *my_dev;
 
 	my_dev = pci_get_device(PCI_VENDOR_ID_ATI,
-				PCI_DEVICE_ID_ATI_264VT, NULL);
-	if (my_dev) {
+							PCI_DEVICE_ID_ATI_264VT, NULL);
+
+	if (my_dev)
+	{
 		pr_err("Using device: %s\n", pci_name(my_dev));
 		pci_addr_phys = 0;
-		if (my_dev->resource[0].flags & IORESOURCE_MEM) {
+
+		if (my_dev->resource[0].flags & IORESOURCE_MEM)
+		{
 			pci_addr_phys = my_dev->resource[0].start;
 			pr_info("memory at %pa\n", &pci_addr_phys);
 		}
-		if (pci_addr_phys == 0) {
+
+		if (pci_addr_phys == 0)
+		{
 			pr_err("no memory resource ?\n");
 			pci_dev_put(my_dev);
 			return NULL;
 		}
-	} else {
+	}
+	else
+	{
 		pr_err("pci_probe failed\n");
 		return NULL;
 	}
+
 	return my_dev;
 }
 
@@ -95,11 +104,14 @@ static int atir_add_to_buf(void *data, struct lirc_buffer *buf)
 
 	status = poll_main();
 	key = (status >> 8) & 0xFF;
-	if (status & 0xFF) {
+
+	if (status & 0xFF)
+	{
 		dev_dbg(atir_driver.dev, "reading key %02X\n", key);
 		lirc_buffer_write(buf, &key);
 		return 0;
 	}
+
 	return -ENODATA;
 }
 
@@ -120,14 +132,21 @@ int init_module(void)
 	int rc;
 
 	pdev = do_pci_probe();
+
 	if (!pdev)
+	{
 		return -ENODEV;
+	}
 
 	rc = pci_enable_device(pdev);
-	if (rc)
-		goto err_put_dev;
 
-	if (!atir_init_start()) {
+	if (rc)
+	{
+		goto err_put_dev;
+	}
+
+	if (!atir_init_start())
+	{
 		rc = -ENODEV;
 		goto err_disable;
 	}
@@ -144,13 +163,16 @@ int init_module(void)
 	atir_driver.owner       = THIS_MODULE;
 
 	atir_minor = lirc_register_driver(&atir_driver);
-	if (atir_minor < 0) {
+
+	if (atir_minor < 0)
+	{
 		pr_err("failed to register driver!\n");
 		rc = atir_minor;
 		goto err_unmap;
 	}
+
 	dev_dbg(atir_driver.dev, "driver is registered on minor %d\n",
-				atir_minor);
+			atir_minor);
 
 	return 0;
 
@@ -176,10 +198,13 @@ void cleanup_module(void)
 static int atir_init_start(void)
 {
 	pci_addr_lin = ioremap(pci_addr_phys + DATA_PCI_OFF, 0x400);
-	if (!pci_addr_lin) {
+
+	if (!pci_addr_lin)
+	{
 		pr_info("pci mem must be mapped\n");
 		return 0;
 	}
+
 	return 1;
 }
 
@@ -246,11 +271,17 @@ static void seems_wr_byte(unsigned char value)
 	unsigned char reg;
 
 	reg = do_get_bits();
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		if (value & 0x80)
+		{
 			reg |= 0x02;
+		}
 		else
+		{
 			reg &= 0xFD;
+		}
 
 		do_set_bits(reg);
 		cycle_delay(1);
@@ -264,6 +295,7 @@ static void seems_wr_byte(unsigned char value)
 		cycle_delay(1);
 		value <<= 1;
 	}
+
 	cycle_delay(2);
 
 	reg |= 2;
@@ -290,7 +322,9 @@ static unsigned char seems_rd_byte(void)
 	do_set_bits(bits_1);
 
 	rd_byte = 0;
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		bits_1 &= 0xFE;
 		do_set_bits(bits_1);
 		cycle_delay(2);
@@ -300,15 +334,21 @@ static unsigned char seems_rd_byte(void)
 		cycle_delay(1);
 
 		bits_2 = do_get_bits();
+
 		if (bits_2 & 2)
+		{
 			rd_byte |= 1;
+		}
 
 		rd_byte <<= 1;
 	}
 
 	bits_1 = 0;
+
 	if (bits_2 == 0)
+	{
 		bits_1 |= 2;
+	}
 
 	do_set_bits(bits_1);
 	cycle_delay(2);
@@ -331,21 +371,31 @@ static void do_set_bits(unsigned char new_bits)
 	int reg_val;
 
 	reg_val = read_index(0x34);
-	if (new_bits & 2) {
+
+	if (new_bits & 2)
+	{
 		reg_val &= 0xFFFFFFDF;
 		reg_val |= 1;
-	} else {
+	}
+	else
+	{
 		reg_val &= 0xFFFFFFFE;
 		reg_val |= 0x20;
 	}
+
 	reg_val |= 0x10;
 	write_index(0x34, reg_val);
 
 	reg_val = read_index(0x31);
+
 	if (new_bits & 1)
+	{
 		reg_val |= 0x1000000;
+	}
 	else
+	{
 		reg_val &= 0xFEFFFFFF;
+	}
 
 	reg_val |= 0x8000000;
 	write_index(0x31, reg_val);
@@ -363,16 +413,26 @@ static unsigned char do_get_bits(void)
 
 	reg_val = read_index(0x34);
 	bits = 0;
+
 	if (reg_val & 8)
+	{
 		bits |= 2;
+	}
 	else
+	{
 		bits &= 0xFD;
+	}
 
 	reg_val = read_index(0x31);
+
 	if (reg_val & 0x1000000)
+	{
 		bits |= 1;
+	}
 	else
+	{
 		bits &= 0xFE;
+	}
 
 	return bits;
 }

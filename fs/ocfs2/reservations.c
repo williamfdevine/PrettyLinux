@@ -36,7 +36,7 @@
 #include "ocfs2_trace.h"
 
 #ifdef CONFIG_OCFS2_DEBUG_FS
-#define OCFS2_CHECK_RESERVATIONS
+	#define OCFS2_CHECK_RESERVATIONS
 #endif
 
 static DEFINE_SPINLOCK(resv_lock);
@@ -50,24 +50,31 @@ int ocfs2_dir_resv_allowed(struct ocfs2_super *osb)
 }
 
 static unsigned int ocfs2_resv_window_bits(struct ocfs2_reservation_map *resmap,
-					   struct ocfs2_alloc_reservation *resv)
+		struct ocfs2_alloc_reservation *resv)
 {
 	struct ocfs2_super *osb = resmap->m_osb;
 	unsigned int bits;
 
-	if (!(resv->r_flags & OCFS2_RESV_FLAG_DIR)) {
+	if (!(resv->r_flags & OCFS2_RESV_FLAG_DIR))
+	{
 		/* 8, 16, 32, 64, 128, 256, 512, 1024 */
 		bits = 4 << osb->osb_resv_level;
-	} else {
+	}
+	else
+	{
 		bits = 4 << osb->osb_dir_resv_level;
 	}
+
 	return bits;
 }
 
 static inline unsigned int ocfs2_resv_end(struct ocfs2_alloc_reservation *resv)
 {
 	if (resv->r_len)
+	{
 		return resv->r_start + resv->r_len - 1;
+	}
+
 	return resv->r_start;
 }
 
@@ -79,7 +86,10 @@ static inline int ocfs2_resv_empty(struct ocfs2_alloc_reservation *resv)
 static inline int ocfs2_resmap_disabled(struct ocfs2_reservation_map *resmap)
 {
 	if (resmap->m_osb->osb_resv_level == 0)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -91,16 +101,18 @@ static void ocfs2_dump_resv(struct ocfs2_reservation_map *resmap)
 	int i = 0;
 
 	mlog(ML_NOTICE, "Dumping resmap for device %s. Bitmap length: %u\n",
-	     osb->dev_str, resmap->m_bitmap_len);
+		 osb->dev_str, resmap->m_bitmap_len);
 
 	node = rb_first(&resmap->m_reservations);
-	while (node) {
+
+	while (node)
+	{
 		resv = rb_entry(node, struct ocfs2_alloc_reservation, r_node);
 
 		mlog(ML_NOTICE, "start: %u\tend: %u\tlen: %u\tlast_start: %u"
-		     "\tlast_len: %u\n", resv->r_start,
-		     ocfs2_resv_end(resv), resv->r_len, resv->r_last_start,
-		     resv->r_last_len);
+			 "\tlast_len: %u\n", resv->r_start,
+			 ocfs2_resv_end(resv), resv->r_len, resv->r_last_start,
+			 resv->r_last_len);
 
 		node = rb_next(node);
 		i++;
@@ -109,11 +121,12 @@ static void ocfs2_dump_resv(struct ocfs2_reservation_map *resmap)
 	mlog(ML_NOTICE, "%d reservations found. LRU follows\n", i);
 
 	i = 0;
-	list_for_each_entry(resv, &resmap->m_lru, r_lru) {
+	list_for_each_entry(resv, &resmap->m_lru, r_lru)
+	{
 		mlog(ML_NOTICE, "LRU(%d) start: %u\tend: %u\tlen: %u\t"
-		     "last_start: %u\tlast_len: %u\n", i, resv->r_start,
-		     ocfs2_resv_end(resv), resv->r_len, resv->r_last_start,
-		     resv->r_last_len);
+			 "last_start: %u\tlast_len: %u\n", i, resv->r_start,
+			 ocfs2_resv_end(resv), resv->r_len, resv->r_last_start,
+			 resv->r_last_len);
 
 		i++;
 	}
@@ -121,23 +134,26 @@ static void ocfs2_dump_resv(struct ocfs2_reservation_map *resmap)
 
 #ifdef OCFS2_CHECK_RESERVATIONS
 static int ocfs2_validate_resmap_bits(struct ocfs2_reservation_map *resmap,
-				      int i,
-				      struct ocfs2_alloc_reservation *resv)
+									  int i,
+									  struct ocfs2_alloc_reservation *resv)
 {
 	char *disk_bitmap = resmap->m_disk_bitmap;
 	unsigned int start = resv->r_start;
 	unsigned int end = ocfs2_resv_end(resv);
 
-	while (start <= end) {
-		if (ocfs2_test_bit(start, disk_bitmap)) {
+	while (start <= end)
+	{
+		if (ocfs2_test_bit(start, disk_bitmap))
+		{
 			mlog(ML_ERROR,
-			     "reservation %d covers an allocated area "
-			     "starting at bit %u!\n", i, start);
+				 "reservation %d covers an allocated area "
+				 "starting at bit %u!\n", i, start);
 			return 1;
 		}
 
 		start++;
 	}
+
 	return 0;
 }
 
@@ -149,41 +165,50 @@ static void ocfs2_check_resmap(struct ocfs2_reservation_map *resmap)
 	struct ocfs2_alloc_reservation *resv;
 
 	node = rb_first(&resmap->m_reservations);
-	while (node) {
+
+	while (node)
+	{
 		resv = rb_entry(node, struct ocfs2_alloc_reservation, r_node);
 
-		if (i > 0 && resv->r_start <= off) {
+		if (i > 0 && resv->r_start <= off)
+		{
 			mlog(ML_ERROR, "reservation %d has bad start off!\n",
-			     i);
+				 i);
 			goto bad;
 		}
 
-		if (resv->r_len == 0) {
+		if (resv->r_len == 0)
+		{
 			mlog(ML_ERROR, "reservation %d has no length!\n",
-			     i);
+				 i);
 			goto bad;
 		}
 
-		if (resv->r_start > ocfs2_resv_end(resv)) {
+		if (resv->r_start > ocfs2_resv_end(resv))
+		{
 			mlog(ML_ERROR, "reservation %d has invalid range!\n",
-			     i);
+				 i);
 			goto bad;
 		}
 
-		if (ocfs2_resv_end(resv) >= resmap->m_bitmap_len) {
+		if (ocfs2_resv_end(resv) >= resmap->m_bitmap_len)
+		{
 			mlog(ML_ERROR, "reservation %d extends past bitmap!\n",
-			     i);
+				 i);
 			goto bad;
 		}
 
 		if (ocfs2_validate_resmap_bits(resmap, i, resv))
+		{
 			goto bad;
+		}
 
 		off = ocfs2_resv_end(resv);
 		node = rb_next(node);
 
 		i++;
 	}
+
 	return;
 
 bad:
@@ -204,7 +229,7 @@ void ocfs2_resv_init_once(struct ocfs2_alloc_reservation *resv)
 }
 
 void ocfs2_resv_set_type(struct ocfs2_alloc_reservation *resv,
-			 unsigned int flags)
+						 unsigned int flags)
 {
 	BUG_ON(flags & ~OCFS2_RESV_TYPES);
 
@@ -212,7 +237,7 @@ void ocfs2_resv_set_type(struct ocfs2_alloc_reservation *resv,
 }
 
 int ocfs2_resmap_init(struct ocfs2_super *osb,
-		      struct ocfs2_reservation_map *resmap)
+					  struct ocfs2_reservation_map *resmap)
 {
 	memset(resmap, 0, sizeof(*resmap));
 
@@ -225,12 +250,14 @@ int ocfs2_resmap_init(struct ocfs2_super *osb,
 }
 
 static void ocfs2_resv_mark_lru(struct ocfs2_reservation_map *resmap,
-				struct ocfs2_alloc_reservation *resv)
+								struct ocfs2_alloc_reservation *resv)
 {
 	assert_spin_locked(&resv_lock);
 
 	if (!list_empty(&resv->r_lru))
+	{
 		list_del_init(&resv->r_lru);
+	}
 
 	list_add_tail(&resv->r_lru, &resmap->m_lru);
 }
@@ -242,9 +269,10 @@ static void __ocfs2_resv_trunc(struct ocfs2_alloc_reservation *resv)
 }
 
 static void ocfs2_resv_remove(struct ocfs2_reservation_map *resmap,
-			      struct ocfs2_alloc_reservation *resv)
+							  struct ocfs2_alloc_reservation *resv)
 {
-	if (resv->r_flags & OCFS2_RESV_FLAG_INUSE) {
+	if (resv->r_flags & OCFS2_RESV_FLAG_INUSE)
+	{
 		list_del_init(&resv->r_lru);
 		rb_erase(&resv->r_node, &resmap->m_reservations);
 		resv->r_flags &= ~OCFS2_RESV_FLAG_INUSE;
@@ -252,7 +280,7 @@ static void ocfs2_resv_remove(struct ocfs2_reservation_map *resmap,
 }
 
 static void __ocfs2_resv_discard(struct ocfs2_reservation_map *resmap,
-				 struct ocfs2_alloc_reservation *resv)
+								 struct ocfs2_alloc_reservation *resv)
 {
 	assert_spin_locked(&resv_lock);
 
@@ -268,9 +296,10 @@ static void __ocfs2_resv_discard(struct ocfs2_reservation_map *resmap,
 
 /* does nothing if 'resv' is null */
 void ocfs2_resv_discard(struct ocfs2_reservation_map *resmap,
-			struct ocfs2_alloc_reservation *resv)
+						struct ocfs2_alloc_reservation *resv)
 {
-	if (resv) {
+	if (resv)
+	{
 		spin_lock(&resv_lock);
 		__ocfs2_resv_discard(resmap, resv);
 		spin_unlock(&resv_lock);
@@ -284,7 +313,8 @@ static void ocfs2_resmap_clear_all_resv(struct ocfs2_reservation_map *resmap)
 
 	assert_spin_locked(&resv_lock);
 
-	while ((node = rb_last(&resmap->m_reservations)) != NULL) {
+	while ((node = rb_last(&resmap->m_reservations)) != NULL)
+	{
 		resv = rb_entry(node, struct ocfs2_alloc_reservation, r_node);
 
 		__ocfs2_resv_discard(resmap, resv);
@@ -292,10 +322,12 @@ static void ocfs2_resmap_clear_all_resv(struct ocfs2_reservation_map *resmap)
 }
 
 void ocfs2_resmap_restart(struct ocfs2_reservation_map *resmap,
-			  unsigned int clen, char *disk_bitmap)
+						  unsigned int clen, char *disk_bitmap)
 {
 	if (ocfs2_resmap_disabled(resmap))
+	{
 		return;
+	}
 
 	spin_lock(&resv_lock);
 
@@ -312,7 +344,7 @@ void ocfs2_resmap_uninit(struct ocfs2_reservation_map *resmap)
 }
 
 static void ocfs2_resv_insert(struct ocfs2_reservation_map *resmap,
-			      struct ocfs2_alloc_reservation *new)
+							  struct ocfs2_alloc_reservation *new)
 {
 	struct rb_root *root = &resmap->m_reservations;
 	struct rb_node *parent = NULL;
@@ -323,12 +355,14 @@ static void ocfs2_resv_insert(struct ocfs2_reservation_map *resmap,
 
 	trace_ocfs2_resv_insert(new->r_start, new->r_len);
 
-	while (*p) {
+	while (*p)
+	{
 		parent = *p;
 
 		tmp = rb_entry(parent, struct ocfs2_alloc_reservation, r_node);
 
-		if (new->r_start < tmp->r_start) {
+		if (new->r_start < tmp->r_start)
+		{
 			p = &(*p)->rb_left;
 
 			/*
@@ -336,9 +370,13 @@ static void ocfs2_resv_insert(struct ocfs2_reservation_map *resmap,
 			 * overlapping reservations.
 			 */
 			BUG_ON(ocfs2_resv_end(new) >= tmp->r_start);
-		} else if (new->r_start > ocfs2_resv_end(tmp)) {
+		}
+		else if (new->r_start > ocfs2_resv_end(tmp))
+		{
 			p = &(*p)->rb_right;
-		} else {
+		}
+		else
+		{
 			/* This should never happen! */
 			mlog(ML_ERROR, "Duplicate reservation window!\n");
 			BUG();
@@ -373,17 +411,24 @@ ocfs2_find_resv_lhs(struct ocfs2_reservation_map *resmap, unsigned int goal)
 	assert_spin_locked(&resv_lock);
 
 	if (!node)
+	{
 		return NULL;
+	}
 
 	node = rb_first(&resmap->m_reservations);
-	while (node) {
+
+	while (node)
+	{
 		resv = rb_entry(node, struct ocfs2_alloc_reservation, r_node);
 
 		if (resv->r_start <= goal && ocfs2_resv_end(resv) >= goal)
+		{
 			break;
+		}
 
 		/* Check if we overshot the reservation just before goal? */
-		if (resv->r_start > goal) {
+		if (resv->r_start > goal)
+		{
 			resv = prev_resv;
 			break;
 		}
@@ -412,52 +457,67 @@ ocfs2_find_resv_lhs(struct ocfs2_reservation_map *resmap, unsigned int goal)
  * *cstart and *clen will also be populated with the result.
  */
 static int ocfs2_resmap_find_free_bits(struct ocfs2_reservation_map *resmap,
-				       unsigned int wanted,
-				       unsigned int search_start,
-				       unsigned int search_len,
-				       unsigned int *rstart,
-				       unsigned int *rlen)
+									   unsigned int wanted,
+									   unsigned int search_start,
+									   unsigned int search_len,
+									   unsigned int *rstart,
+									   unsigned int *rlen)
 {
 	void *bitmap = resmap->m_disk_bitmap;
 	unsigned int best_start, best_len = 0;
 	int offset, start, found;
 
 	trace_ocfs2_resmap_find_free_bits_begin(search_start, search_len,
-						wanted, resmap->m_bitmap_len);
+											wanted, resmap->m_bitmap_len);
 
 	found = best_start = best_len = 0;
 
 	start = search_start;
+
 	while ((offset = ocfs2_find_next_zero_bit(bitmap, resmap->m_bitmap_len,
-						 start)) != -1) {
+					 start)) != -1)
+	{
 		/* Search reached end of the region */
 		if (offset >= (search_start + search_len))
+		{
 			break;
+		}
 
-		if (offset == start) {
+		if (offset == start)
+		{
 			/* we found a zero */
 			found++;
 			/* move start to the next bit to test */
 			start++;
-		} else {
+		}
+		else
+		{
 			/* got a zero after some ones */
 			found = 1;
 			start = offset + 1;
 		}
-		if (found > best_len) {
+
+		if (found > best_len)
+		{
 			best_len = found;
 			best_start = start - found;
 		}
 
 		if (found >= wanted)
+		{
 			break;
+		}
 	}
 
 	if (best_len == 0)
+	{
 		return 0;
+	}
 
 	if (best_len >= wanted)
+	{
 		best_len = wanted;
+	}
 
 	*rlen = best_len;
 	*rstart = best_start;
@@ -468,8 +528,8 @@ static int ocfs2_resmap_find_free_bits(struct ocfs2_reservation_map *resmap,
 }
 
 static void __ocfs2_resv_find_window(struct ocfs2_reservation_map *resmap,
-				     struct ocfs2_alloc_reservation *resv,
-				     unsigned int goal, unsigned int wanted)
+									 struct ocfs2_alloc_reservation *resv,
+									 unsigned int goal, unsigned int wanted)
 {
 	struct rb_root *root = &resmap->m_reservations;
 	unsigned int gap_start, gap_end, gap_len;
@@ -487,18 +547,19 @@ static void __ocfs2_resv_find_window(struct ocfs2_reservation_map *resmap,
 	 * - need to make sure we don't go past end of bitmap
 	 */
 	trace_ocfs2_resv_find_window_begin(resv->r_start, ocfs2_resv_end(resv),
-					   goal, wanted, RB_EMPTY_ROOT(root));
+									   goal, wanted, RB_EMPTY_ROOT(root));
 
 	assert_spin_locked(&resv_lock);
 
-	if (RB_EMPTY_ROOT(root)) {
+	if (RB_EMPTY_ROOT(root))
+	{
 		/*
 		 * Easiest case - empty tree. We can just take
 		 * whatever window of free bits we want.
 		 */
 		clen = ocfs2_resmap_find_free_bits(resmap, wanted, goal,
-						   resmap->m_bitmap_len - goal,
-						   &cstart, &clen);
+										   resmap->m_bitmap_len - goal,
+										   &cstart, &clen);
 
 		/*
 		 * This should never happen - the local alloc window
@@ -507,7 +568,9 @@ static void __ocfs2_resv_find_window(struct ocfs2_reservation_map *resmap,
 		BUG_ON(goal == 0 && clen == 0);
 
 		if (clen == 0)
+		{
 			return;
+		}
 
 		resv->r_start = cstart;
 		resv->r_len = clen;
@@ -518,7 +581,8 @@ static void __ocfs2_resv_find_window(struct ocfs2_reservation_map *resmap,
 
 	prev_resv = ocfs2_find_resv_lhs(resmap, goal);
 
-	if (prev_resv == NULL) {
+	if (prev_resv == NULL)
+	{
 		/*
 		 * A NULL here means that the search code couldn't
 		 * find a window that starts before goal.
@@ -536,27 +600,33 @@ static void __ocfs2_resv_find_window(struct ocfs2_reservation_map *resmap,
 
 		next = rb_first(root);
 		next_resv = rb_entry(next, struct ocfs2_alloc_reservation,
-				     r_node);
+							 r_node);
 
 		/*
 		 * The search should never return such a window. (see
 		 * comment above
 		 */
-		if (next_resv->r_start <= goal) {
+		if (next_resv->r_start <= goal)
+		{
 			mlog(ML_ERROR, "goal: %u next_resv: start %u len %u\n",
-			     goal, next_resv->r_start, next_resv->r_len);
+				 goal, next_resv->r_start, next_resv->r_len);
 			ocfs2_dump_resv(resmap);
 			BUG();
 		}
 
 		clen = ocfs2_resmap_find_free_bits(resmap, wanted, goal,
-						   next_resv->r_start - goal,
-						   &cstart, &clen);
-		if (clen) {
+										   next_resv->r_start - goal,
+										   &cstart, &clen);
+
+		if (clen)
+		{
 			best_len = clen;
 			best_start = cstart;
+
 			if (best_len == wanted)
+			{
 				goto out_insert;
+			}
 		}
 
 		prev_resv = next_resv;
@@ -564,22 +634,27 @@ static void __ocfs2_resv_find_window(struct ocfs2_reservation_map *resmap,
 	}
 
 	trace_ocfs2_resv_find_window_prev(prev_resv->r_start,
-					  ocfs2_resv_end(prev_resv));
+									  ocfs2_resv_end(prev_resv));
 
 	prev = &prev_resv->r_node;
 
 	/* Now we do a linear search for a window, starting at 'prev_rsv' */
-	while (1) {
+	while (1)
+	{
 		next = rb_next(prev);
-		if (next) {
+
+		if (next)
+		{
 			next_resv = rb_entry(next,
-					     struct ocfs2_alloc_reservation,
-					     r_node);
+								 struct ocfs2_alloc_reservation,
+								 r_node);
 
 			gap_start = ocfs2_resv_end(prev_resv) + 1;
 			gap_end = next_resv->r_start - 1;
 			gap_len = gap_end - gap_start + 1;
-		} else {
+		}
+		else
+		{
 			/*
 			 * We're at the rightmost edge of the
 			 * tree. See if a reservation between this
@@ -590,37 +665,49 @@ static void __ocfs2_resv_find_window(struct ocfs2_reservation_map *resmap,
 			gap_end = resmap->m_bitmap_len - 1;
 		}
 
-		trace_ocfs2_resv_find_window_next(next ? next_resv->r_start: -1,
-					next ? ocfs2_resv_end(next_resv) : -1);
+		trace_ocfs2_resv_find_window_next(next ? next_resv->r_start : -1,
+										  next ? ocfs2_resv_end(next_resv) : -1);
+
 		/*
 		 * No need to check this gap if we have already found
 		 * a larger region of free bits.
 		 */
 		if (gap_len <= best_len)
+		{
 			goto next_resv;
+		}
 
 		clen = ocfs2_resmap_find_free_bits(resmap, wanted, gap_start,
-						   gap_len, &cstart, &clen);
-		if (clen == wanted) {
+										   gap_len, &cstart, &clen);
+
+		if (clen == wanted)
+		{
 			best_len = clen;
 			best_start = cstart;
 			goto out_insert;
-		} else if (clen > best_len) {
+		}
+		else if (clen > best_len)
+		{
 			best_len = clen;
 			best_start = cstart;
 		}
 
 next_resv:
+
 		if (!next)
+		{
 			break;
+		}
 
 		prev = next;
 		prev_resv = rb_entry(prev, struct ocfs2_alloc_reservation,
-				     r_node);
+							 r_node);
 	}
 
 out_insert:
-	if (best_len) {
+
+	if (best_len)
+	{
 		resv->r_start = best_start;
 		resv->r_len = best_len;
 		ocfs2_resv_insert(resmap, resv);
@@ -628,17 +715,22 @@ out_insert:
 }
 
 static void ocfs2_cannibalize_resv(struct ocfs2_reservation_map *resmap,
-				   struct ocfs2_alloc_reservation *resv,
-				   unsigned int wanted)
+								   struct ocfs2_alloc_reservation *resv,
+								   unsigned int wanted)
 {
 	struct ocfs2_alloc_reservation *lru_resv;
 	int tmpwindow = !!(resv->r_flags & OCFS2_RESV_FLAG_TMP);
 	unsigned int min_bits;
 
 	if (!tmpwindow)
+	{
 		min_bits = ocfs2_resv_window_bits(resmap, resv) >> 1;
+	}
 	else
-		min_bits = wanted; /* We at know the temp window will use all
+	{
+		min_bits = wanted;
+	} /* We at know the temp window will use all
+
 				    * of these bits */
 
 	/*
@@ -648,17 +740,18 @@ static void ocfs2_cannibalize_resv(struct ocfs2_reservation_map *resmap,
 	 * sure. --Mark (3/16/2010)
 	 */
 	lru_resv = list_first_entry(&resmap->m_lru,
-				    struct ocfs2_alloc_reservation, r_lru);
+								struct ocfs2_alloc_reservation, r_lru);
 
 	trace_ocfs2_cannibalize_resv_begin(lru_resv->r_start,
-					   lru_resv->r_len,
-					   ocfs2_resv_end(lru_resv));
+									   lru_resv->r_len,
+									   ocfs2_resv_end(lru_resv));
 
 	/*
 	 * Cannibalize (some or all) of the target reservation and
 	 * feed it to the current window.
 	 */
-	if (lru_resv->r_len <= min_bits) {
+	if (lru_resv->r_len <= min_bits)
+	{
 		/*
 		 * Discard completely if size is less than or equal to a
 		 * reasonable threshold - 50% of window bits for non temporary
@@ -668,12 +761,19 @@ static void ocfs2_cannibalize_resv(struct ocfs2_reservation_map *resmap,
 		resv->r_len = lru_resv->r_len;
 
 		__ocfs2_resv_discard(resmap, lru_resv);
-	} else {
+	}
+	else
+	{
 		unsigned int shrink;
+
 		if (tmpwindow)
+		{
 			shrink = min_bits;
+		}
 		else
+		{
 			shrink = lru_resv->r_len / 2;
+		}
 
 		lru_resv->r_len -= shrink;
 
@@ -682,15 +782,15 @@ static void ocfs2_cannibalize_resv(struct ocfs2_reservation_map *resmap,
 	}
 
 	trace_ocfs2_cannibalize_resv_end(resv->r_start, ocfs2_resv_end(resv),
-					 resv->r_len, resv->r_last_start,
-					 resv->r_last_len);
+									 resv->r_len, resv->r_last_start,
+									 resv->r_last_len);
 
 	ocfs2_resv_insert(resmap, resv);
 }
 
 static void ocfs2_resv_find_window(struct ocfs2_reservation_map *resmap,
-				   struct ocfs2_alloc_reservation *resv,
-				   unsigned int wanted)
+								   struct ocfs2_alloc_reservation *resv,
+								   unsigned int wanted)
 {
 	unsigned int goal = 0;
 
@@ -701,19 +801,26 @@ static void ocfs2_resv_find_window(struct ocfs2_reservation_map *resmap,
 	 * one as possible. Using the most recent allocation as a
 	 * start goal makes sense.
 	 */
-	if (resv->r_last_len) {
+	if (resv->r_last_len)
+	{
 		goal = resv->r_last_start + resv->r_last_len;
+
 		if (goal >= resmap->m_bitmap_len)
+		{
 			goal = 0;
+		}
 	}
 
 	__ocfs2_resv_find_window(resmap, resv, goal, wanted);
 
 	/* Search from last alloc didn't work, try once more from beginning. */
 	if (ocfs2_resv_empty(resv) && goal != 0)
+	{
 		__ocfs2_resv_find_window(resmap, resv, 0, wanted);
+	}
 
-	if (ocfs2_resv_empty(resv)) {
+	if (ocfs2_resv_empty(resv))
+	{
 		/*
 		 * Still empty? Pull oldest one off the LRU, remove it from
 		 * tree, put this one in it's place.
@@ -725,15 +832,18 @@ static void ocfs2_resv_find_window(struct ocfs2_reservation_map *resmap,
 }
 
 int ocfs2_resmap_resv_bits(struct ocfs2_reservation_map *resmap,
-			   struct ocfs2_alloc_reservation *resv,
-			   int *cstart, int *clen)
+						   struct ocfs2_alloc_reservation *resv,
+						   int *cstart, int *clen)
 {
 	if (resv == NULL || ocfs2_resmap_disabled(resmap))
+	{
 		return -ENOSPC;
+	}
 
 	spin_lock(&resv_lock);
 
-	if (ocfs2_resv_empty(resv)) {
+	if (ocfs2_resv_empty(resv))
+	{
 		/*
 		 * We don't want to over-allocate for temporary
 		 * windows. Otherwise, we run the risk of fragmenting the
@@ -742,7 +852,9 @@ int ocfs2_resmap_resv_bits(struct ocfs2_reservation_map *resmap,
 		unsigned int wanted = ocfs2_resv_window_bits(resmap, resv);
 
 		if ((resv->r_flags & OCFS2_RESV_FLAG_TMP) || wanted < *clen)
+		{
 			wanted = *clen;
+		}
 
 		/*
 		 * Try to get a window here. If it works, we must fall
@@ -765,9 +877,9 @@ int ocfs2_resmap_resv_bits(struct ocfs2_reservation_map *resmap,
 }
 
 static void
-	ocfs2_adjust_resv_from_alloc(struct ocfs2_reservation_map *resmap,
-				     struct ocfs2_alloc_reservation *resv,
-				     unsigned int start, unsigned int end)
+ocfs2_adjust_resv_from_alloc(struct ocfs2_reservation_map *resmap,
+							 struct ocfs2_alloc_reservation *resv,
+							 unsigned int start, unsigned int end)
 {
 	unsigned int rhs = 0;
 	unsigned int old_end = ocfs2_resv_end(resv);
@@ -777,7 +889,8 @@ static void
 	/*
 	 * Completely used? We can remove it then.
 	 */
-	if (old_end == end) {
+	if (old_end == end)
+	{
 		__ocfs2_resv_discard(resmap, resv);
 		return;
 	}
@@ -794,25 +907,29 @@ static void
 }
 
 void ocfs2_resmap_claimed_bits(struct ocfs2_reservation_map *resmap,
-			       struct ocfs2_alloc_reservation *resv,
-			       u32 cstart, u32 clen)
+							   struct ocfs2_alloc_reservation *resv,
+							   u32 cstart, u32 clen)
 {
 	unsigned int cend = cstart + clen - 1;
 
 	if (resmap == NULL || ocfs2_resmap_disabled(resmap))
+	{
 		return;
+	}
 
 	if (resv == NULL)
+	{
 		return;
+	}
 
 	BUG_ON(cstart != resv->r_start);
 
 	spin_lock(&resv_lock);
 
 	trace_ocfs2_resmap_claimed_bits_begin(cstart, cend, clen, resv->r_start,
-					      ocfs2_resv_end(resv), resv->r_len,
-					      resv->r_last_start,
-					      resv->r_last_len);
+										  ocfs2_resv_end(resv), resv->r_len,
+										  resv->r_last_start,
+										  resv->r_last_len);
 
 	BUG_ON(cstart < resv->r_start);
 	BUG_ON(cstart > ocfs2_resv_end(resv));
@@ -827,11 +944,13 @@ void ocfs2_resmap_claimed_bits(struct ocfs2_reservation_map *resmap,
 	 * ocfs2_adjust_resv_from_alloc().
 	 */
 	if (!ocfs2_resv_empty(resv))
+	{
 		ocfs2_resv_mark_lru(resmap, resv);
+	}
 
 	trace_ocfs2_resmap_claimed_bits_end(resv->r_start, ocfs2_resv_end(resv),
-					    resv->r_len, resv->r_last_start,
-					    resv->r_last_len);
+										resv->r_len, resv->r_last_start,
+										resv->r_last_len);
 
 	ocfs2_check_resmap(resmap);
 

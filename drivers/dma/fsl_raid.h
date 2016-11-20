@@ -108,7 +108,8 @@
 #define FSL_RE_CF_CDB_SIZE		512
 #define FSL_RE_CF_CDB_ALIGN		64
 
-struct fsl_re_ctrl {
+struct fsl_re_ctrl
+{
 	/* General Configuration Registers */
 	__be32 global_config;	/* Global Configuration Register */
 	u8     rsvd1[4];
@@ -130,7 +131,8 @@ struct fsl_re_ctrl {
 	__be32 host_config;	/* Host I/F Configuration Register */
 };
 
-struct fsl_re_chan_cfg {
+struct fsl_re_chan_cfg
+{
 	/* Registers for JR interface */
 	__be32 jr_config_0;	/* Job Queue Configuration 0 Register */
 	__be32 jr_config_1;	/* Job Queue Configuration 1 Register */
@@ -169,7 +171,8 @@ struct fsl_re_chan_cfg {
  * Command Descriptor Block (CDB) for unicast move command.
  * In RAID Engine terms, memcpy is done through move command
  */
-struct fsl_re_move_cdb {
+struct fsl_re_move_cdb
+{
 	__be32 cdb32;
 };
 
@@ -184,7 +187,8 @@ struct fsl_re_move_cdb {
 #define FSL_RE_DPI_ATTR_SHIFT		24
 #define FSL_RE_DPI_META_MASK		0x0000FFFF
 
-struct fsl_re_dpi {
+struct fsl_re_dpi
+{
 	__be32 dpi32;
 	__be32 ref;
 };
@@ -193,7 +197,8 @@ struct fsl_re_dpi {
  * CDB for GenQ command. In RAID Engine terminology, XOR is
  * done through this command
  */
-struct fsl_re_xor_cdb {
+struct fsl_re_xor_cdb
+{
 	__be32 cdb32;
 	u8 gfm[16];
 	struct fsl_re_dpi dpi_dest_spec;
@@ -201,7 +206,8 @@ struct fsl_re_xor_cdb {
 };
 
 /* CDB for no-op command */
-struct fsl_re_noop_cdb {
+struct fsl_re_noop_cdb
+{
 	__be32 cdb32;
 };
 
@@ -209,7 +215,8 @@ struct fsl_re_noop_cdb {
  * CDB for GenQQ command. In RAID Engine terminology, P/Q is
  * done through this command
  */
-struct fsl_re_pq_cdb {
+struct fsl_re_pq_cdb
+{
 	__be32 cdb32;
 	u8 gfm_q1[16];
 	u8 gfm_q2[16];
@@ -228,7 +235,8 @@ struct fsl_re_pq_cdb {
 #define FSL_RE_CF_BPID_SHIFT		16
 #define FSL_RE_CF_OFFSET_MASK		0x00001FFF
 
-struct fsl_re_cmpnd_frame {
+struct fsl_re_cmpnd_frame
+{
 	__be32 addr_high;
 	__be32 addr_low;
 	__be32 efrl32;
@@ -245,7 +253,8 @@ struct fsl_re_cmpnd_frame {
 #define FSL_RE_HWDESC_FMT_SHIFT		29
 #define FSL_RE_HWDESC_FMT_MASK		(0x3 << FSL_RE_HWDESC_FMT_SHIFT)
 
-struct fsl_re_hw_desc {
+struct fsl_re_hw_desc
+{
 	__be32 lbea32;
 	__be32 addr_low;
 	__be32 fmt32;
@@ -253,7 +262,8 @@ struct fsl_re_hw_desc {
 };
 
 /* Raid Engine device private data */
-struct fsl_re_drv_private {
+struct fsl_re_drv_private
+{
 	u8 total_chans;
 	struct dma_device dma_dev;
 	struct fsl_re_ctrl *re_regs;
@@ -263,7 +273,8 @@ struct fsl_re_drv_private {
 };
 
 /* Per job ring data structure */
-struct fsl_re_chan {
+struct fsl_re_chan
+{
 	char name[16];
 	spinlock_t desc_lock; /* queue lock */
 	struct list_head ack_q;  /* wait to acked queue */
@@ -290,7 +301,8 @@ struct fsl_re_chan {
 };
 
 /* Async transaction descriptor */
-struct fsl_re_desc {
+struct fsl_re_desc
+{
 	struct dma_async_tx_descriptor async_tx;
 	struct list_head node;
 	struct fsl_re_hw_desc hwdesc;

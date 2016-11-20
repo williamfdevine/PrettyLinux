@@ -9,7 +9,7 @@
 extern bool test_attr__enabled;
 void test_attr__init(void);
 void test_attr__open(struct perf_event_attr *attr, pid_t pid, int cpu,
-		     int fd, int group_fd, unsigned long flags);
+					 int fd, int group_fd, unsigned long flags);
 
 #define HAVE_ATTR_TEST
 #include "perf-sys.h"
@@ -32,7 +32,8 @@ void pthread__unblock_sigwinch(void);
 
 #include "util/target.h"
 
-struct record_opts {
+struct record_opts
+{
 	struct target target;
 	bool	     group;
 	bool	     inherit_stat;
@@ -73,6 +74,6 @@ struct record_opts {
 };
 
 struct option;
-extern const char * const *record_usage;
+extern const char *const *record_usage;
 extern struct option *record_options;
 #endif

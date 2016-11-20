@@ -1,7 +1,8 @@
 #ifndef TARGET_CORE_FABRIC_H
 #define TARGET_CORE_FABRIC_H
 
-struct target_core_fabric_ops {
+struct target_core_fabric_ops
+{
 	struct module *module;
 	const char *name;
 	size_t node_acl_size;
@@ -57,7 +58,7 @@ struct target_core_fabric_ops {
 	 * (like iSCSI).  All other SCSI fabrics should set this to NULL.
 	 */
 	u32 (*sess_get_initiator_sid)(struct se_session *,
-				      unsigned char *, u32);
+								  unsigned char *, u32);
 	int (*write_pending)(struct se_cmd *);
 	int (*write_pending_status)(struct se_cmd *);
 	void (*set_default_node_attributes)(struct se_node_acl *);
@@ -70,18 +71,18 @@ struct target_core_fabric_ops {
 	 * fabric module calls for target_core_fabric_configfs.c
 	 */
 	struct se_wwn *(*fabric_make_wwn)(struct target_fabric_configfs *,
-				struct config_group *, const char *);
+									  struct config_group *, const char *);
 	void (*fabric_drop_wwn)(struct se_wwn *);
 	void (*add_wwn_groups)(struct se_wwn *);
 	struct se_portal_group *(*fabric_make_tpg)(struct se_wwn *,
-				struct config_group *, const char *);
+			struct config_group *, const char *);
 	void (*fabric_drop_tpg)(struct se_portal_group *);
 	int (*fabric_post_link)(struct se_portal_group *,
-				struct se_lun *);
+							struct se_lun *);
 	void (*fabric_pre_unlink)(struct se_portal_group *,
-				struct se_lun *);
+							  struct se_lun *);
 	struct se_tpg_np *(*fabric_make_np)(struct se_portal_group *,
-				struct config_group *, const char *);
+										struct config_group *, const char *);
 	void (*fabric_drop_np)(struct se_tpg_np *);
 	int (*fabric_init_nodeacl)(struct se_node_acl *, const char *);
 
@@ -105,20 +106,20 @@ int target_depend_item(struct config_item *item);
 void target_undepend_item(struct config_item *item);
 
 struct se_session *target_alloc_session(struct se_portal_group *,
-		unsigned int, unsigned int, enum target_prot_op prot_op,
-		const char *, void *,
-		int (*callback)(struct se_portal_group *,
-				struct se_session *, void *));
+										unsigned int, unsigned int, enum target_prot_op prot_op,
+										const char *, void *,
+										int (*callback)(struct se_portal_group *,
+												struct se_session *, void *));
 
 struct se_session *transport_init_session(enum target_prot_op);
 int transport_alloc_session_tags(struct se_session *, unsigned int,
-		unsigned int);
+								 unsigned int);
 struct se_session *transport_init_session_tags(unsigned int, unsigned int,
 		enum target_prot_op);
 void	__transport_register_session(struct se_portal_group *,
-		struct se_node_acl *, struct se_session *, void *);
+									 struct se_node_acl *, struct se_session *, void *);
 void	transport_register_session(struct se_portal_group *,
-		struct se_node_acl *, struct se_session *, void *);
+								   struct se_node_acl *, struct se_session *, void *);
 ssize_t	target_show_dynamic_sessions(struct se_portal_group *, char *);
 void	transport_free_session(struct se_session *);
 void	target_put_nacl(struct se_node_acl *);
@@ -127,20 +128,20 @@ void	transport_deregister_session(struct se_session *);
 
 
 void	transport_init_se_cmd(struct se_cmd *,
-		const struct target_core_fabric_ops *,
-		struct se_session *, u32, int, int, unsigned char *);
+							  const struct target_core_fabric_ops *,
+							  struct se_session *, u32, int, int, unsigned char *);
 sense_reason_t transport_lookup_cmd_lun(struct se_cmd *, u64);
 sense_reason_t target_setup_cmd_from_cdb(struct se_cmd *, unsigned char *);
 int	target_submit_cmd_map_sgls(struct se_cmd *, struct se_session *,
-		unsigned char *, unsigned char *, u64, u32, int, int, int,
-		struct scatterlist *, u32, struct scatterlist *, u32,
-		struct scatterlist *, u32);
+							   unsigned char *, unsigned char *, u64, u32, int, int, int,
+							   struct scatterlist *, u32, struct scatterlist *, u32,
+							   struct scatterlist *, u32);
 int	target_submit_cmd(struct se_cmd *, struct se_session *, unsigned char *,
-		unsigned char *, u64, u32, int, int, int);
+					  unsigned char *, u64, u32, int, int, int);
 int	target_submit_tmr(struct se_cmd *se_cmd, struct se_session *se_sess,
-		unsigned char *sense, u64 unpacked_lun,
-		void *fabric_tmr_ptr, unsigned char tm_type,
-		gfp_t, u64, int);
+					  unsigned char *sense, u64 unpacked_lun,
+					  void *fabric_tmr_ptr, unsigned char tm_type,
+					  gfp_t, u64, int);
 int	transport_handle_cdb_direct(struct se_cmd *);
 sense_reason_t	transport_generic_new_cmd(struct se_cmd *);
 
@@ -169,17 +170,17 @@ void	core_allocate_nexus_loss_ua(struct se_node_acl *acl);
 struct se_node_acl *core_tpg_get_initiator_node_acl(struct se_portal_group *tpg,
 		unsigned char *);
 bool	target_tpg_has_node_acl(struct se_portal_group *tpg,
-		const char *);
+								const char *);
 struct se_node_acl *core_tpg_check_initiator_node_acl(struct se_portal_group *,
 		unsigned char *);
 int	core_tpg_set_initiator_node_queue_depth(struct se_node_acl *, u32);
 int	core_tpg_set_initiator_node_tag(struct se_portal_group *,
-		struct se_node_acl *, const char *);
+									struct se_node_acl *, const char *);
 int	core_tpg_register(struct se_wwn *, struct se_portal_group *, int);
 int	core_tpg_deregister(struct se_portal_group *);
 
 int	target_alloc_sgl(struct scatterlist **sgl, unsigned int *nents,
-		u32 length, bool zero_page, bool chainable);
+					 u32 length, bool zero_page, bool chainable);
 void	target_free_sgl(struct scatterlist *sgl, int nents);
 
 /*
@@ -195,16 +196,21 @@ static inline enum dma_data_direction
 target_reverse_dma_direction(struct se_cmd *se_cmd)
 {
 	if (se_cmd->se_cmd_flags & SCF_BIDI)
+	{
 		return DMA_BIDIRECTIONAL;
+	}
 
-	switch (se_cmd->data_direction) {
-	case DMA_TO_DEVICE:
-		return DMA_FROM_DEVICE;
-	case DMA_FROM_DEVICE:
-		return DMA_TO_DEVICE;
-	case DMA_NONE:
-	default:
-		return DMA_NONE;
+	switch (se_cmd->data_direction)
+	{
+		case DMA_TO_DEVICE:
+			return DMA_FROM_DEVICE;
+
+		case DMA_FROM_DEVICE:
+			return DMA_TO_DEVICE;
+
+		case DMA_NONE:
+		default:
+			return DMA_NONE;
 	}
 }
 

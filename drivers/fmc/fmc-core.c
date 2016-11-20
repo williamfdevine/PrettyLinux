@@ -16,15 +16,17 @@
 
 static int fmc_check_version(unsigned long version, const char *name)
 {
-	if (__FMC_MAJOR(version) != FMC_MAJOR) {
+	if (__FMC_MAJOR(version) != FMC_MAJOR)
+	{
 		pr_err("%s: \"%s\" has wrong major (has %li, expected %i)\n",
-		       __func__, name, __FMC_MAJOR(version), FMC_MAJOR);
+			   __func__, name, __FMC_MAJOR(version), FMC_MAJOR);
 		return -EINVAL;
 	}
 
 	if (__FMC_MINOR(version) != FMC_MINOR)
 		pr_info("%s: \"%s\" has wrong minor (has %li, expected %i)\n",
-		       __func__, name, __FMC_MINOR(version), FMC_MINOR);
+				__func__, name, __FMC_MINOR(version), FMC_MINOR);
+
 	return 0;
 }
 
@@ -58,7 +60,8 @@ static void fmc_shutdown(struct device *dev)
 	/* not implemented but mandatory */
 }
 
-static struct bus_type fmc_bus_type = {
+static struct bus_type fmc_bus_type =
+{
 	.name = "fmc",
 	.match = fmc_match,
 	.uevent = fmc_uevent,
@@ -79,8 +82,8 @@ static void fmc_release(struct device *dev)
  */
 
 static ssize_t fmc_read_eeprom(struct file *file, struct kobject *kobj,
-			   struct bin_attribute *bin_attr,
-			   char *buf, loff_t off, size_t count)
+							   struct bin_attribute *bin_attr,
+							   char *buf, loff_t off, size_t count)
 {
 	struct device *dev;
 	struct fmc_device *fmc;
@@ -89,19 +92,29 @@ static ssize_t fmc_read_eeprom(struct file *file, struct kobject *kobj,
 	dev = container_of(kobj, struct device, kobj);
 	fmc = container_of(dev, struct fmc_device, dev);
 	eelen = fmc->eeprom_len;
+
 	if (off > eelen)
+	{
 		return -ESPIPE;
+	}
+
 	if (off == eelen)
-		return 0; /* EOF */
+	{
+		return 0;    /* EOF */
+	}
+
 	if (off + count > eelen)
+	{
 		count = eelen - off;
+	}
+
 	memcpy(buf, fmc->eeprom + off, count);
 	return count;
 }
 
 static ssize_t fmc_write_eeprom(struct file *file, struct kobject *kobj,
-				struct bin_attribute *bin_attr,
-				char *buf, loff_t off, size_t count)
+								struct bin_attribute *bin_attr,
+								char *buf, loff_t off, size_t count)
 {
 	struct device *dev;
 	struct fmc_device *fmc;
@@ -111,7 +124,8 @@ static ssize_t fmc_write_eeprom(struct file *file, struct kobject *kobj,
 	return fmc->op->write_ee(fmc, off, buf, count);
 }
 
-static struct bin_attribute fmc_eeprom_attr = {
+static struct bin_attribute fmc_eeprom_attr =
+{
 	.attr = { .name = "eeprom", .mode = S_IRUGO | S_IWUSR, },
 	.size = 8192, /* more or less standard */
 	.read = fmc_read_eeprom,
@@ -125,7 +139,10 @@ static struct bin_attribute fmc_eeprom_attr = {
 int fmc_driver_register(struct fmc_driver *drv)
 {
 	if (fmc_check_version(drv->version, drv->driver.name))
+	{
 		return -EINVAL;
+	}
+
 	drv->driver.bus = &fmc_bus_type;
 	return driver_register(&drv->driver);
 }
@@ -148,58 +165,82 @@ int fmc_device_register_n(struct fmc_device **devs, int n)
 	int i, ret = 0;
 
 	if (n < 1)
+	{
 		return 0;
+	}
 
 	/* Check the version of the first data structure (function prints) */
 	if (fmc_check_version(devs[0]->version, devs[0]->carrier_name))
+	{
 		return -EINVAL;
+	}
 
 	devarray = kmemdup(devs, n * sizeof(*devs), GFP_KERNEL);
+
 	if (!devarray)
+	{
 		return -ENOMEM;
+	}
 
 	/* Make all other checks before continuing, for all devices */
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		fmc = devarray[i];
-		if (!fmc->hwdev) {
+
+		if (!fmc->hwdev)
+		{
 			pr_err("%s: device nr. %i has no hwdev pointer\n",
-			       __func__, i);
+				   __func__, i);
 			ret = -EINVAL;
 			break;
 		}
-		if (fmc->flags & FMC_DEVICE_NO_MEZZANINE) {
+
+		if (fmc->flags & FMC_DEVICE_NO_MEZZANINE)
+		{
 			dev_info(fmc->hwdev, "absent mezzanine in slot %d\n",
-				 fmc->slot_id);
+					 fmc->slot_id);
 			continue;
 		}
-		if (!fmc->eeprom) {
+
+		if (!fmc->eeprom)
+		{
 			dev_err(fmc->hwdev, "no eeprom provided for slot %i\n",
-				fmc->slot_id);
+					fmc->slot_id);
 			ret = -EINVAL;
 		}
-		if (!fmc->eeprom_addr) {
+
+		if (!fmc->eeprom_addr)
+		{
 			dev_err(fmc->hwdev, "no eeprom_addr for slot %i\n",
-				fmc->slot_id);
+					fmc->slot_id);
 			ret = -EINVAL;
 		}
+
 		if (!fmc->carrier_name || !fmc->carrier_data ||
-		    !fmc->device_id) {
+			!fmc->device_id)
+		{
 			dev_err(fmc->hwdev,
-				"deivce nr %i: carrier name, "
-				"data or dev_id not set\n", i);
+					"deivce nr %i: carrier name, "
+					"data or dev_id not set\n", i);
 			ret = -EINVAL;
 		}
+
 		if (ret)
+		{
 			break;
+		}
 
 	}
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(devarray);
 		return ret;
 	}
 
 	/* Validation is ok. Now init and register the devices */
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		fmc = devarray[i];
 
 		fmc->nr_slots = n; /* each slot must know how many are there */
@@ -216,26 +257,37 @@ int fmc_device_register_n(struct fmc_device **devs, int n)
 
 		/* Name from mezzanine info or carrier info. Or 0,1,2.. */
 		device_id = fmc->device_id;
+
 		if (!fmc->mezzanine_name)
+		{
 			dev_set_name(&fmc->dev, "fmc-%04x", device_id);
+		}
 		else
 			dev_set_name(&fmc->dev, "%s-%04x", fmc->mezzanine_name,
-				     device_id);
+						 device_id);
+
 		ret = device_add(&fmc->dev);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(fmc->hwdev, "Slot %i: Failed in registering "
-				"\"%s\"\n", fmc->slot_id, fmc->dev.kobj.name);
+					"\"%s\"\n", fmc->slot_id, fmc->dev.kobj.name);
 			goto out;
 		}
+
 		ret = sysfs_create_bin_file(&fmc->dev.kobj, &fmc_eeprom_attr);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(&fmc->dev, "Failed in registering eeprom\n");
 			goto out1;
 		}
+
 		/* This device went well, give information to the user */
 		fmc_dump_eeprom(fmc);
 		fmc_dump_sdb(fmc);
 	}
+
 	return 0;
 
 out1:
@@ -245,12 +297,15 @@ out:
 	put_device(&fmc->dev);
 
 	kfree(devarray);
-	for (i--; i >= 0; i--) {
+
+	for (i--; i >= 0; i--)
+	{
 		sysfs_remove_bin_file(&devs[i]->dev.kobj, &fmc_eeprom_attr);
 		device_del(&devs[i]->dev);
 		fmc_free_id_info(devs[i]);
 		put_device(&devs[i]->dev);
 	}
+
 	return ret;
 
 }
@@ -267,12 +322,15 @@ void fmc_device_unregister_n(struct fmc_device **devs, int n)
 	int i;
 
 	if (n < 1)
+	{
 		return;
+	}
 
 	/* Free devarray first, not used by the later loop */
 	kfree(devs[0]->devarray);
 
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		sysfs_remove_bin_file(&devs[i]->dev.kobj, &fmc_eeprom_attr);
 		device_del(&devs[i]->dev);
 		fmc_free_id_info(devs[i]);

@@ -31,17 +31,20 @@
 #define CODA_MAX_FRAMEBUFFERS	8
 #define FMO_SLICE_SAVE_BUF_SIZE	(32)
 
-enum {
+enum
+{
 	V4L2_M2M_SRC = 0,
 	V4L2_M2M_DST = 1,
 };
 
-enum coda_inst_type {
+enum coda_inst_type
+{
 	CODA_INST_ENCODER,
 	CODA_INST_DECODER,
 };
 
-enum coda_product {
+enum coda_product
+{
 	CODA_DX6 = 0xf001,
 	CODA_7541 = 0xf012,
 	CODA_960 = 0xf020,
@@ -49,7 +52,8 @@ enum coda_product {
 
 struct coda_video_device;
 
-struct coda_devtype {
+struct coda_devtype
+{
 	char			*firmware[2];
 	enum coda_product	product;
 	const struct coda_codec	*codecs;
@@ -61,7 +65,8 @@ struct coda_devtype {
 	size_t			iram_size;
 };
 
-struct coda_aux_buf {
+struct coda_aux_buf
+{
 	void			*vaddr;
 	dma_addr_t		paddr;
 	u32			size;
@@ -69,7 +74,8 @@ struct coda_aux_buf {
 	struct dentry		*dentry;
 };
 
-struct coda_dev {
+struct coda_dev
+{
 	struct v4l2_device	v4l2_dev;
 	struct video_device	vfd[5];
 	struct platform_device	*plat_dev;
@@ -97,7 +103,8 @@ struct coda_dev {
 	struct dentry		*debugfs_root;
 };
 
-struct coda_codec {
+struct coda_codec
+{
 	u32 mode;
 	u32 src_fourcc;
 	u32 dst_fourcc;
@@ -107,7 +114,8 @@ struct coda_codec {
 
 struct coda_huff_tab;
 
-struct coda_params {
+struct coda_params
+{
 	u8			rot_mode;
 	u8			h264_intra_qp;
 	u8			h264_inter_qp;
@@ -134,7 +142,8 @@ struct coda_params {
 	u32			slice_max_mb;
 };
 
-struct coda_buffer_meta {
+struct coda_buffer_meta
+{
 	struct list_head	list;
 	u32			sequence;
 	struct v4l2_timecode	timecode;
@@ -144,7 +153,8 @@ struct coda_buffer_meta {
 };
 
 /* Per-queue, driver-specific private data */
-struct coda_q_data {
+struct coda_q_data
+{
 	unsigned int		width;
 	unsigned int		height;
 	unsigned int		bytesperline;
@@ -153,7 +163,8 @@ struct coda_q_data {
 	struct v4l2_rect	rect;
 };
 
-struct coda_iram_info {
+struct coda_iram_info
+{
 	u32		axi_sram_use;
 	phys_addr_t	buf_bit_use;
 	phys_addr_t	buf_ip_ac_dc_use;
@@ -172,9 +183,10 @@ struct coda_iram_info {
 
 struct coda_ctx;
 
-struct coda_context_ops {
+struct coda_context_ops
+{
 	int (*queue_init)(void *priv, struct vb2_queue *src_vq,
-			  struct vb2_queue *dst_vq);
+					  struct vb2_queue *dst_vq);
 	int (*reqbufs)(struct coda_ctx *ctx, struct v4l2_requestbuffers *rb);
 	int (*start_streaming)(struct coda_ctx *ctx);
 	int (*prepare_run)(struct coda_ctx *ctx);
@@ -183,7 +195,8 @@ struct coda_context_ops {
 	void (*release)(struct coda_ctx *ctx);
 };
 
-struct coda_ctx {
+struct coda_ctx
+{
 	struct coda_dev			*dev;
 	struct mutex			buffer_mutex;
 	struct list_head		list;
@@ -243,16 +256,16 @@ extern int coda_debug;
 void coda_write(struct coda_dev *dev, u32 data, u32 reg);
 unsigned int coda_read(struct coda_dev *dev, u32 reg);
 void coda_write_base(struct coda_ctx *ctx, struct coda_q_data *q_data,
-		     struct vb2_v4l2_buffer *buf, unsigned int reg_y);
+					 struct vb2_v4l2_buffer *buf, unsigned int reg_y);
 
 int coda_alloc_aux_buf(struct coda_dev *dev, struct coda_aux_buf *buf,
-		       size_t size, const char *name, struct dentry *parent);
+					   size_t size, const char *name, struct dentry *parent);
 void coda_free_aux_buf(struct coda_dev *dev, struct coda_aux_buf *buf);
 
 int coda_encoder_queue_init(void *priv, struct vb2_queue *src_vq,
-			    struct vb2_queue *dst_vq);
+							struct vb2_queue *dst_vq);
 int coda_decoder_queue_init(void *priv, struct vb2_queue *src_vq,
-			    struct vb2_queue *dst_vq);
+							struct vb2_queue *dst_vq);
 
 int coda_hw_reset(struct coda_ctx *ctx);
 
@@ -261,15 +274,18 @@ void coda_fill_bitstream(struct coda_ctx *ctx, bool streaming);
 void coda_set_gdi_regs(struct coda_ctx *ctx);
 
 static inline struct coda_q_data *get_q_data(struct coda_ctx *ctx,
-					     enum v4l2_buf_type type)
+		enum v4l2_buf_type type)
 {
-	switch (type) {
-	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-		return &(ctx->q_data[V4L2_M2M_SRC]);
-	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-		return &(ctx->q_data[V4L2_M2M_DST]);
-	default:
-		return NULL;
+	switch (type)
+	{
+		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+			return &(ctx->q_data[V4L2_M2M_SRC]);
+
+		case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+			return &(ctx->q_data[V4L2_M2M_DST]);
+
+		default:
+			return NULL;
 	}
 }
 
@@ -285,7 +301,7 @@ static inline unsigned int coda_get_bitstream_payload(struct coda_ctx *ctx)
 void coda_bit_stream_end_flag(struct coda_ctx *ctx);
 
 void coda_m2m_buf_done(struct coda_ctx *ctx, struct vb2_v4l2_buffer *buf,
-		       enum vb2_buffer_state state);
+					   enum vb2_buffer_state state);
 
 int coda_h264_padding(int size, char *p);
 

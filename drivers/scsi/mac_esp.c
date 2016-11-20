@@ -48,7 +48,8 @@
 #define esp_read8(REG)		mac_esp_read8(esp, REG)
 #define esp_write8(VAL, REG)	mac_esp_write8(esp, VAL, REG)
 
-struct mac_esp_priv {
+struct mac_esp_priv
+{
 	struct esp *esp;
 	void __iomem *pdma_regs;
 	void __iomem *pdma_io;
@@ -57,8 +58,8 @@ struct mac_esp_priv {
 static struct esp *esp_chips[2];
 
 #define MAC_ESP_GET_PRIV(esp) ((struct mac_esp_priv *) \
-			       platform_get_drvdata((struct platform_device *) \
-						    (esp->dev)))
+							   platform_get_drvdata((struct platform_device *) \
+									   (esp->dev)))
 
 static inline void mac_esp_write8(struct esp *esp, u8 val, unsigned long reg)
 {
@@ -75,29 +76,32 @@ static inline u8 mac_esp_read8(struct esp *esp, unsigned long reg)
  */
 
 static dma_addr_t mac_esp_map_single(struct esp *esp, void *buf,
-				     size_t sz, int dir)
+									 size_t sz, int dir)
 {
 	return (dma_addr_t)buf;
 }
 
 static int mac_esp_map_sg(struct esp *esp, struct scatterlist *sg,
-			  int num_sg, int dir)
+						  int num_sg, int dir)
 {
 	int i;
 
 	for (i = 0; i < num_sg; i++)
+	{
 		sg[i].dma_address = (u32)sg_virt(&sg[i]);
+	}
+
 	return num_sg;
 }
 
 static void mac_esp_unmap_single(struct esp *esp, dma_addr_t addr,
-				 size_t sz, int dir)
+								 size_t sz, int dir)
 {
 	/* Nothing to do. */
 }
 
 static void mac_esp_unmap_sg(struct esp *esp, struct scatterlist *sg,
-			     int num_sg, int dir)
+							 int num_sg, int dir)
 {
 	/* Nothing to do. */
 }
@@ -127,18 +131,24 @@ static inline int mac_esp_wait_for_empty_fifo(struct esp *esp)
 	struct mac_esp_priv *mep = MAC_ESP_GET_PRIV(esp);
 	int i = 500000;
 
-	do {
+	do
+	{
 		if (!(esp_read8(ESP_FFLAGS) & ESP_FF_FBYTES))
+		{
 			return 0;
+		}
 
 		if (esp_read8(ESP_STATUS) & ESP_STAT_INTR)
+		{
 			return 1;
+		}
 
 		udelay(2);
-	} while (--i);
+	}
+	while (--i);
 
 	printk(KERN_ERR PFX "FIFO is not empty (sreg %02x)\n",
-	       esp_read8(ESP_STATUS));
+		   esp_read8(ESP_STATUS));
 	mep->error = 1;
 	return 1;
 }
@@ -148,126 +158,148 @@ static inline int mac_esp_wait_for_dreq(struct esp *esp)
 	struct mac_esp_priv *mep = MAC_ESP_GET_PRIV(esp);
 	int i = 500000;
 
-	do {
-		if (mep->pdma_regs == NULL) {
+	do
+	{
+		if (mep->pdma_regs == NULL)
+		{
 			if (via2_scsi_drq_pending())
+			{
 				return 0;
-		} else {
+			}
+		}
+		else
+		{
 			if (nubus_readl(mep->pdma_regs) & 0x200)
+			{
 				return 0;
+			}
 		}
 
 		if (esp_read8(ESP_STATUS) & ESP_STAT_INTR)
+		{
 			return 1;
+		}
 
 		udelay(2);
-	} while (--i);
+	}
+	while (--i);
 
 	printk(KERN_ERR PFX "PDMA timeout (sreg %02x)\n",
-	       esp_read8(ESP_STATUS));
+		   esp_read8(ESP_STATUS));
 	mep->error = 1;
 	return 1;
 }
 
 #define MAC_ESP_PDMA_LOOP(operands) \
 	asm volatile ( \
-	     "       tstw %1                   \n" \
-	     "       jbeq 20f                  \n" \
-	     "1:     movew " operands "        \n" \
-	     "2:     movew " operands "        \n" \
-	     "3:     movew " operands "        \n" \
-	     "4:     movew " operands "        \n" \
-	     "5:     movew " operands "        \n" \
-	     "6:     movew " operands "        \n" \
-	     "7:     movew " operands "        \n" \
-	     "8:     movew " operands "        \n" \
-	     "9:     movew " operands "        \n" \
-	     "10:    movew " operands "        \n" \
-	     "11:    movew " operands "        \n" \
-	     "12:    movew " operands "        \n" \
-	     "13:    movew " operands "        \n" \
-	     "14:    movew " operands "        \n" \
-	     "15:    movew " operands "        \n" \
-	     "16:    movew " operands "        \n" \
-	     "       subqw #1,%1               \n" \
-	     "       jbne 1b                   \n" \
-	     "20:    tstw %2                   \n" \
-	     "       jbeq 30f                  \n" \
-	     "21:    movew " operands "        \n" \
-	     "       subqw #1,%2               \n" \
-	     "       jbne 21b                  \n" \
-	     "30:    tstw %3                   \n" \
-	     "       jbeq 40f                  \n" \
-	     "31:    moveb " operands "        \n" \
-	     "32:    nop                       \n" \
-	     "40:                              \n" \
-	     "                                 \n" \
-	     "       .section __ex_table,\"a\" \n" \
-	     "       .align  4                 \n" \
-	     "       .long   1b,40b            \n" \
-	     "       .long   2b,40b            \n" \
-	     "       .long   3b,40b            \n" \
-	     "       .long   4b,40b            \n" \
-	     "       .long   5b,40b            \n" \
-	     "       .long   6b,40b            \n" \
-	     "       .long   7b,40b            \n" \
-	     "       .long   8b,40b            \n" \
-	     "       .long   9b,40b            \n" \
-	     "       .long  10b,40b            \n" \
-	     "       .long  11b,40b            \n" \
-	     "       .long  12b,40b            \n" \
-	     "       .long  13b,40b            \n" \
-	     "       .long  14b,40b            \n" \
-	     "       .long  15b,40b            \n" \
-	     "       .long  16b,40b            \n" \
-	     "       .long  21b,40b            \n" \
-	     "       .long  31b,40b            \n" \
-	     "       .long  32b,40b            \n" \
-	     "       .previous                 \n" \
-	     : "+a" (addr), "+r" (count32), "+r" (count2) \
-	     : "g" (count1), "a" (mep->pdma_io))
+				   "       tstw %1                   \n" \
+				   "       jbeq 20f                  \n" \
+				   "1:     movew " operands "        \n" \
+				   "2:     movew " operands "        \n" \
+				   "3:     movew " operands "        \n" \
+				   "4:     movew " operands "        \n" \
+				   "5:     movew " operands "        \n" \
+				   "6:     movew " operands "        \n" \
+				   "7:     movew " operands "        \n" \
+				   "8:     movew " operands "        \n" \
+				   "9:     movew " operands "        \n" \
+				   "10:    movew " operands "        \n" \
+				   "11:    movew " operands "        \n" \
+				   "12:    movew " operands "        \n" \
+				   "13:    movew " operands "        \n" \
+				   "14:    movew " operands "        \n" \
+				   "15:    movew " operands "        \n" \
+				   "16:    movew " operands "        \n" \
+				   "       subqw #1,%1               \n" \
+				   "       jbne 1b                   \n" \
+				   "20:    tstw %2                   \n" \
+				   "       jbeq 30f                  \n" \
+				   "21:    movew " operands "        \n" \
+				   "       subqw #1,%2               \n" \
+				   "       jbne 21b                  \n" \
+				   "30:    tstw %3                   \n" \
+				   "       jbeq 40f                  \n" \
+				   "31:    moveb " operands "        \n" \
+				   "32:    nop                       \n" \
+				   "40:                              \n" \
+				   "                                 \n" \
+				   "       .section __ex_table,\"a\" \n" \
+				   "       .align  4                 \n" \
+				   "       .long   1b,40b            \n" \
+				   "       .long   2b,40b            \n" \
+				   "       .long   3b,40b            \n" \
+				   "       .long   4b,40b            \n" \
+				   "       .long   5b,40b            \n" \
+				   "       .long   6b,40b            \n" \
+				   "       .long   7b,40b            \n" \
+				   "       .long   8b,40b            \n" \
+				   "       .long   9b,40b            \n" \
+				   "       .long  10b,40b            \n" \
+				   "       .long  11b,40b            \n" \
+				   "       .long  12b,40b            \n" \
+				   "       .long  13b,40b            \n" \
+				   "       .long  14b,40b            \n" \
+				   "       .long  15b,40b            \n" \
+				   "       .long  16b,40b            \n" \
+				   "       .long  21b,40b            \n" \
+				   "       .long  31b,40b            \n" \
+				   "       .long  32b,40b            \n" \
+				   "       .previous                 \n" \
+				   : "+a" (addr), "+r" (count32), "+r" (count2) \
+				   : "g" (count1), "a" (mep->pdma_io))
 
 static void mac_esp_send_pdma_cmd(struct esp *esp, u32 addr, u32 esp_count,
-				  u32 dma_count, int write, u8 cmd)
+								  u32 dma_count, int write, u8 cmd)
 {
 	struct mac_esp_priv *mep = MAC_ESP_GET_PRIV(esp);
 
 	mep->error = 0;
 
 	if (!write)
+	{
 		scsi_esp_cmd(esp, ESP_CMD_FLUSH);
+	}
 
 	esp_write8((esp_count >> 0) & 0xFF, ESP_TCLOW);
 	esp_write8((esp_count >> 8) & 0xFF, ESP_TCMED);
 
 	scsi_esp_cmd(esp, cmd);
 
-	do {
+	do
+	{
 		unsigned int count32 = esp_count >> 5;
 		unsigned int count2 = (esp_count & 0x1F) >> 1;
 		unsigned int count1 = esp_count & 1;
 		unsigned int start_addr = addr;
 
 		if (mac_esp_wait_for_dreq(esp))
+		{
 			break;
+		}
 
-		if (write) {
+		if (write)
+		{
 			MAC_ESP_PDMA_LOOP("%4@,%0@+");
 
 			esp_count -= addr - start_addr;
-		} else {
+		}
+		else
+		{
 			unsigned int n;
 
 			MAC_ESP_PDMA_LOOP("%0@+,%4@");
 
 			if (mac_esp_wait_for_empty_fifo(esp))
+			{
 				break;
+			}
 
 			n = (esp_read8(ESP_TCMED) << 8) + esp_read8(ESP_TCLOW);
 			addr = start_addr + esp_count - n;
 			esp_count = n;
 		}
-	} while (esp_count);
+	}
+	while (esp_count);
 }
 
 /*
@@ -278,17 +310,21 @@ static inline unsigned int mac_esp_wait_for_fifo(struct esp *esp)
 {
 	int i = 500000;
 
-	do {
+	do
+	{
 		unsigned int fbytes = esp_read8(ESP_FFLAGS) & ESP_FF_FBYTES;
 
 		if (fbytes)
+		{
 			return fbytes;
+		}
 
 		udelay(2);
-	} while (--i);
+	}
+	while (--i);
 
 	printk(KERN_ERR PFX "FIFO is empty (sreg %02x)\n",
-	       esp_read8(ESP_STATUS));
+		   esp_read8(ESP_STATUS));
 	return 0;
 }
 
@@ -297,13 +333,18 @@ static inline int mac_esp_wait_for_intr(struct esp *esp)
 	struct mac_esp_priv *mep = MAC_ESP_GET_PRIV(esp);
 	int i = 500000;
 
-	do {
+	do
+	{
 		esp->sreg = esp_read8(ESP_STATUS);
+
 		if (esp->sreg & ESP_STAT_INTR)
+		{
 			return 0;
+		}
 
 		udelay(2);
-	} while (--i);
+	}
+	while (--i);
 
 	printk(KERN_ERR PFX "IRQ timeout (sreg %02x)\n", esp->sreg);
 	mep->error = 1;
@@ -312,39 +353,39 @@ static inline int mac_esp_wait_for_intr(struct esp *esp)
 
 #define MAC_ESP_PIO_LOOP(operands, reg1) \
 	asm volatile ( \
-	     "1:     moveb " operands " \n" \
-	     "       subqw #1,%1        \n" \
-	     "       jbne 1b            \n" \
-	     : "+a" (addr), "+r" (reg1) \
-	     : "a" (fifo))
+				   "1:     moveb " operands " \n" \
+				   "       subqw #1,%1        \n" \
+				   "       jbne 1b            \n" \
+				   : "+a" (addr), "+r" (reg1) \
+				   : "a" (fifo))
 
 #define MAC_ESP_PIO_FILL(operands, reg1) \
 	asm volatile ( \
-	     "       moveb " operands " \n" \
-	     "       moveb " operands " \n" \
-	     "       moveb " operands " \n" \
-	     "       moveb " operands " \n" \
-	     "       moveb " operands " \n" \
-	     "       moveb " operands " \n" \
-	     "       moveb " operands " \n" \
-	     "       moveb " operands " \n" \
-	     "       moveb " operands " \n" \
-	     "       moveb " operands " \n" \
-	     "       moveb " operands " \n" \
-	     "       moveb " operands " \n" \
-	     "       moveb " operands " \n" \
-	     "       moveb " operands " \n" \
-	     "       moveb " operands " \n" \
-	     "       moveb " operands " \n" \
-	     "       subqw #8,%1        \n" \
-	     "       subqw #8,%1        \n" \
-	     : "+a" (addr), "+r" (reg1) \
-	     : "a" (fifo))
+				   "       moveb " operands " \n" \
+				   "       moveb " operands " \n" \
+				   "       moveb " operands " \n" \
+				   "       moveb " operands " \n" \
+				   "       moveb " operands " \n" \
+				   "       moveb " operands " \n" \
+				   "       moveb " operands " \n" \
+				   "       moveb " operands " \n" \
+				   "       moveb " operands " \n" \
+				   "       moveb " operands " \n" \
+				   "       moveb " operands " \n" \
+				   "       moveb " operands " \n" \
+				   "       moveb " operands " \n" \
+				   "       moveb " operands " \n" \
+				   "       moveb " operands " \n" \
+				   "       moveb " operands " \n" \
+				   "       subqw #8,%1        \n" \
+				   "       subqw #8,%1        \n" \
+				   : "+a" (addr), "+r" (reg1) \
+				   : "a" (fifo))
 
 #define MAC_ESP_FIFO_SIZE 16
 
 static void mac_esp_send_pio_cmd(struct esp *esp, u32 addr, u32 esp_count,
-				 u32 dma_count, int write, u8 cmd)
+								 u32 dma_count, int write, u8 cmd)
 {
 	struct mac_esp_priv *mep = MAC_ESP_GET_PRIV(esp);
 	u8 *fifo = esp->regs + ESP_FDATA * 16;
@@ -352,72 +393,109 @@ static void mac_esp_send_pio_cmd(struct esp *esp, u32 addr, u32 esp_count,
 	cmd &= ~ESP_CMD_DMA;
 	mep->error = 0;
 
-	if (write) {
+	if (write)
+	{
 		scsi_esp_cmd(esp, cmd);
 
-		while (1) {
+		while (1)
+		{
 			unsigned int n;
 
 			n = mac_esp_wait_for_fifo(esp);
+
 			if (!n)
+			{
 				break;
+			}
 
 			if (n > esp_count)
+			{
 				n = esp_count;
+			}
+
 			esp_count -= n;
 
 			MAC_ESP_PIO_LOOP("%2@,%0@+", n);
 
 			if (!esp_count)
+			{
 				break;
+			}
 
 			if (mac_esp_wait_for_intr(esp))
+			{
 				break;
+			}
 
 			if (((esp->sreg & ESP_STAT_PMASK) != ESP_DIP) &&
-			    ((esp->sreg & ESP_STAT_PMASK) != ESP_MIP))
+				((esp->sreg & ESP_STAT_PMASK) != ESP_MIP))
+			{
 				break;
+			}
 
 			esp->ireg = esp_read8(ESP_INTRPT);
+
 			if ((esp->ireg & (ESP_INTR_DC | ESP_INTR_BSERV)) !=
-			    ESP_INTR_BSERV)
+				ESP_INTR_BSERV)
+			{
 				break;
+			}
 
 			scsi_esp_cmd(esp, ESP_CMD_TI);
 		}
-	} else {
+	}
+	else
+	{
 		scsi_esp_cmd(esp, ESP_CMD_FLUSH);
 
 		if (esp_count >= MAC_ESP_FIFO_SIZE)
+		{
 			MAC_ESP_PIO_FILL("%0@+,%2@", esp_count);
+		}
 		else
+		{
 			MAC_ESP_PIO_LOOP("%0@+,%2@", esp_count);
+		}
 
 		scsi_esp_cmd(esp, cmd);
 
-		while (esp_count) {
+		while (esp_count)
+		{
 			unsigned int n;
 
 			if (mac_esp_wait_for_intr(esp))
+			{
 				break;
+			}
 
 			if (((esp->sreg & ESP_STAT_PMASK) != ESP_DOP) &&
-			    ((esp->sreg & ESP_STAT_PMASK) != ESP_MOP))
+				((esp->sreg & ESP_STAT_PMASK) != ESP_MOP))
+			{
 				break;
+			}
 
 			esp->ireg = esp_read8(ESP_INTRPT);
+
 			if ((esp->ireg & (ESP_INTR_DC | ESP_INTR_BSERV)) !=
-			    ESP_INTR_BSERV)
+				ESP_INTR_BSERV)
+			{
 				break;
+			}
 
 			n = MAC_ESP_FIFO_SIZE -
-			    (esp_read8(ESP_FFLAGS) & ESP_FF_FBYTES);
-			if (n > esp_count)
-				n = esp_count;
+				(esp_read8(ESP_FFLAGS) & ESP_FF_FBYTES);
 
-			if (n == MAC_ESP_FIFO_SIZE) {
+			if (n > esp_count)
+			{
+				n = esp_count;
+			}
+
+			if (n == MAC_ESP_FIFO_SIZE)
+			{
 				MAC_ESP_PIO_FILL("%0@+,%2@", esp_count);
-			} else {
+			}
+			else
+			{
 				esp_count -= n;
 				MAC_ESP_PIO_LOOP("%0@+,%2@", n);
 			}
@@ -430,7 +508,10 @@ static void mac_esp_send_pio_cmd(struct esp *esp, u32 addr, u32 esp_count,
 static int mac_esp_irq_pending(struct esp *esp)
 {
 	if (esp_read8(ESP_STATUS) & ESP_STAT_INTR)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -448,24 +529,31 @@ static irqreturn_t mac_scsi_esp_intr(int irq, void *dev_id)
 	 * avoid missing a transition when it is shared by two ESP devices.
 	 */
 
-	do {
+	do
+	{
 		got_intr = 0;
+
 		if (esp_chips[0] &&
-		    (mac_esp_read8(esp_chips[0], ESP_STATUS) & ESP_STAT_INTR)) {
+			(mac_esp_read8(esp_chips[0], ESP_STATUS) & ESP_STAT_INTR))
+		{
 			(void)scsi_esp_intr(irq, esp_chips[0]);
 			got_intr = 1;
 		}
+
 		if (esp_chips[1] &&
-		    (mac_esp_read8(esp_chips[1], ESP_STATUS) & ESP_STAT_INTR)) {
+			(mac_esp_read8(esp_chips[1], ESP_STATUS) & ESP_STAT_INTR))
+		{
 			(void)scsi_esp_intr(irq, esp_chips[1]);
 			got_intr = 1;
 		}
-	} while (got_intr);
+	}
+	while (got_intr);
 
 	return IRQ_HANDLED;
 }
 
-static struct esp_driver_ops mac_esp_ops = {
+static struct esp_driver_ops mac_esp_ops =
+{
 	.esp_write8       = mac_esp_write8,
 	.esp_read8        = mac_esp_read8,
 	.map_single       = mac_esp_map_single,
@@ -490,16 +578,23 @@ static int esp_mac_probe(struct platform_device *dev)
 	struct mac_esp_priv *mep;
 
 	if (!MACH_IS_MAC)
+	{
 		return -ENODEV;
+	}
 
 	if (dev->id > 1)
+	{
 		return -ENODEV;
+	}
 
 	host = scsi_host_alloc(tpnt, sizeof(struct esp));
 
 	err = -ENOMEM;
+
 	if (!host)
+	{
 		goto fail;
+	}
 
 	host->max_id = 8;
 	host->use_clustering = DISABLE_CLUSTERING;
@@ -509,8 +604,12 @@ static int esp_mac_probe(struct platform_device *dev)
 	esp->dev = dev;
 
 	esp->command_block = kzalloc(16, GFP_KERNEL);
+
 	if (!esp->command_block)
+	{
 		goto fail_unlink;
+	}
+
 	esp->command_block_dma = (dma_addr_t)esp->command_block;
 
 	esp->scsi_id = 7;
@@ -518,69 +617,91 @@ static int esp_mac_probe(struct platform_device *dev)
 	esp->scsi_id_mask = 1 << esp->scsi_id;
 
 	mep = kzalloc(sizeof(struct mac_esp_priv), GFP_KERNEL);
+
 	if (!mep)
+	{
 		goto fail_free_command_block;
+	}
+
 	mep->esp = esp;
 	platform_set_drvdata(dev, mep);
 
-	switch (macintosh_config->scsi_type) {
-	case MAC_SCSI_QUADRA:
-		esp->cfreq     = 16500000;
-		esp->regs      = (void __iomem *)MAC_ESP_REGS_QUADRA;
-		mep->pdma_io   = esp->regs + MAC_ESP_PDMA_IO_OFFSET;
-		mep->pdma_regs = NULL;
-		break;
-	case MAC_SCSI_QUADRA2:
-		esp->cfreq     = 25000000;
-		esp->regs      = (void __iomem *)(MAC_ESP_REGS_QUADRA2 +
-				 dev->id * MAC_ESP_REGS_SPACING);
-		mep->pdma_io   = esp->regs + MAC_ESP_PDMA_IO_OFFSET;
-		mep->pdma_regs = (void __iomem *)(MAC_ESP_PDMA_REG +
-				 dev->id * MAC_ESP_PDMA_REG_SPACING);
-		nubus_writel(0x1d1, mep->pdma_regs);
-		break;
-	case MAC_SCSI_QUADRA3:
-		/* These quadras have a real DMA controller (the PSC) but we
-		 * don't know how to drive it so we must use PIO instead.
-		 */
-		esp->cfreq     = 25000000;
-		esp->regs      = (void __iomem *)MAC_ESP_REGS_QUADRA3;
-		mep->pdma_io   = NULL;
-		mep->pdma_regs = NULL;
-		break;
+	switch (macintosh_config->scsi_type)
+	{
+		case MAC_SCSI_QUADRA:
+			esp->cfreq     = 16500000;
+			esp->regs      = (void __iomem *)MAC_ESP_REGS_QUADRA;
+			mep->pdma_io   = esp->regs + MAC_ESP_PDMA_IO_OFFSET;
+			mep->pdma_regs = NULL;
+			break;
+
+		case MAC_SCSI_QUADRA2:
+			esp->cfreq     = 25000000;
+			esp->regs      = (void __iomem *)(MAC_ESP_REGS_QUADRA2 +
+											  dev->id * MAC_ESP_REGS_SPACING);
+			mep->pdma_io   = esp->regs + MAC_ESP_PDMA_IO_OFFSET;
+			mep->pdma_regs = (void __iomem *)(MAC_ESP_PDMA_REG +
+											  dev->id * MAC_ESP_PDMA_REG_SPACING);
+			nubus_writel(0x1d1, mep->pdma_regs);
+			break;
+
+		case MAC_SCSI_QUADRA3:
+			/* These quadras have a real DMA controller (the PSC) but we
+			 * don't know how to drive it so we must use PIO instead.
+			 */
+			esp->cfreq     = 25000000;
+			esp->regs      = (void __iomem *)MAC_ESP_REGS_QUADRA3;
+			mep->pdma_io   = NULL;
+			mep->pdma_regs = NULL;
+			break;
 	}
 
 	esp->ops = &mac_esp_ops;
-	if (mep->pdma_io == NULL) {
+
+	if (mep->pdma_io == NULL)
+	{
 		printk(KERN_INFO PFX "using PIO for controller %d\n", dev->id);
 		esp_write8(0, ESP_TCLOW);
 		esp_write8(0, ESP_TCMED);
 		esp->flags = ESP_FLAG_DISABLE_SYNC;
 		mac_esp_ops.send_dma_cmd = mac_esp_send_pio_cmd;
-	} else {
+	}
+	else
+	{
 		printk(KERN_INFO PFX "using PDMA for controller %d\n", dev->id);
 	}
 
 	host->irq = IRQ_MAC_SCSI;
 	esp_chips[dev->id] = esp;
 	mb();
-	if (esp_chips[!dev->id] == NULL) {
+
+	if (esp_chips[!dev->id] == NULL)
+	{
 		err = request_irq(host->irq, mac_scsi_esp_intr, 0, "ESP", NULL);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			esp_chips[dev->id] = NULL;
 			goto fail_free_priv;
 		}
 	}
 
 	err = scsi_esp_register(esp, &dev->dev);
+
 	if (err)
+	{
 		goto fail_free_irq;
+	}
 
 	return 0;
 
 fail_free_irq:
+
 	if (esp_chips[!dev->id] == NULL)
+	{
 		free_irq(host->irq, esp);
+	}
+
 fail_free_priv:
 	kfree(mep);
 fail_free_command_block:
@@ -600,8 +721,11 @@ static int esp_mac_remove(struct platform_device *dev)
 	scsi_esp_unregister(esp);
 
 	esp_chips[dev->id] = NULL;
+
 	if (!(esp_chips[0] || esp_chips[1]))
+	{
 		free_irq(irq, NULL);
+	}
 
 	kfree(mep);
 
@@ -612,7 +736,8 @@ static int esp_mac_remove(struct platform_device *dev)
 	return 0;
 }
 
-static struct platform_driver esp_mac_driver = {
+static struct platform_driver esp_mac_driver =
+{
 	.probe    = esp_mac_probe,
 	.remove   = esp_mac_remove,
 	.driver   = {

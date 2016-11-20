@@ -20,8 +20,8 @@ static void frag_ghid_setup(struct lowpan_nhc *nhc)
 }
 
 LOWPAN_NHC(ghc_ext_frag, "RFC7400 Fragmentation Extension Header",
-	   NEXTHDR_FRAGMENT, 0, frag_ghid_setup,
-	   LOWPAN_GHC_EXT_FRAG_IDLEN, NULL, NULL);
+		   NEXTHDR_FRAGMENT, 0, frag_ghid_setup,
+		   LOWPAN_GHC_EXT_FRAG_IDLEN, NULL, NULL);
 
 module_lowpan_nhc(ghc_ext_frag);
 MODULE_DESCRIPTION("6LoWPAN generic header fragmentation extension compression");

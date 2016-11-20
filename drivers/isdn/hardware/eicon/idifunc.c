@@ -46,7 +46,8 @@ static void stop_dbg(void)
 	dprintf = no_printf;
 }
 
-typedef struct _udiva_card {
+typedef struct _udiva_card
+{
 	struct list_head list;
 	int Id;
 	DESCRIPTOR d;
@@ -65,11 +66,14 @@ static udiva_card *find_card_in_list(DESCRIPTOR *d)
 	diva_os_spin_lock_magic_t old_irql;
 
 	diva_os_enter_spin_lock(&ll_lock, &old_irql, "find card");
-	list_for_each(tmp, &cards) {
+	list_for_each(tmp, &cards)
+	{
 		card = list_entry(tmp, udiva_card, list);
-		if (card->d.request == d->request) {
+
+		if (card->d.request == d->request)
+		{
 			diva_os_leave_spin_lock(&ll_lock, &old_irql,
-						"find card");
+									"find card");
 			return (card);
 		}
 	}
@@ -87,10 +91,12 @@ static void um_new_card(DESCRIPTOR *d)
 	IDI_SYNC_REQ sync_req;
 	diva_os_spin_lock_magic_t old_irql;
 
-	if (!(card = diva_os_malloc(0, sizeof(udiva_card)))) {
+	if (!(card = diva_os_malloc(0, sizeof(udiva_card))))
+	{
 		DBG_ERR(("cannot get buffer for card"));
 		return;
 	}
+
 	memcpy(&card->d, d, sizeof(DESCRIPTOR));
 	sync_req.xdi_logical_adapter_number.Req = 0;
 	sync_req.xdi_logical_adapter_number.Rc =
@@ -99,13 +105,17 @@ static void um_new_card(DESCRIPTOR *d)
 	adapter_nr =
 		sync_req.xdi_logical_adapter_number.info.logical_adapter_number;
 	card->Id = adapter_nr;
-	if (!(diva_user_mode_idi_create_adapter(d, adapter_nr))) {
+
+	if (!(diva_user_mode_idi_create_adapter(d, adapter_nr)))
+	{
 		diva_os_enter_spin_lock(&ll_lock, &old_irql, "add card");
 		list_add_tail(&card->list, &cards);
 		diva_os_leave_spin_lock(&ll_lock, &old_irql, "add card");
-	} else {
+	}
+	else
+	{
 		DBG_ERR(("could not create user mode idi card %d",
-			 adapter_nr));
+				 adapter_nr));
 		diva_os_free(0, card);
 	}
 }
@@ -118,10 +128,12 @@ static void um_remove_card(DESCRIPTOR *d)
 	diva_os_spin_lock_magic_t old_irql;
 	udiva_card *card = NULL;
 
-	if (!(card = find_card_in_list(d))) {
+	if (!(card = find_card_in_list(d)))
+	{
 		DBG_ERR(("cannot find card to remove"));
 		return;
 	}
+
 	diva_user_mode_idi_remove_adapter(card->Id);
 	diva_os_enter_spin_lock(&ll_lock, &old_irql, "remove card");
 	list_del(&card->list);
@@ -140,7 +152,9 @@ static void __exit remove_all_idi_proc(void)
 
 rescan:
 	diva_os_enter_spin_lock(&ll_lock, &old_irql, "remove all");
-	if (!list_empty(&cards)) {
+
+	if (!list_empty(&cards))
+	{
 		card = list_entry(cards.next, udiva_card, list);
 		list_del(&card->list);
 		diva_os_leave_spin_lock(&ll_lock, &old_irql, "remove all");
@@ -148,6 +162,7 @@ rescan:
 		diva_os_free(0, card);
 		goto rescan;
 	}
+
 	diva_os_leave_spin_lock(&ll_lock, &old_irql, "remove all");
 }
 
@@ -155,26 +170,38 @@ rescan:
  * DIDD notify callback
  */
 static void *didd_callback(void *context, DESCRIPTOR *adapter,
-			   int removal)
+						   int removal)
 {
-	if (adapter->type == IDI_DADAPTER) {
+	if (adapter->type == IDI_DADAPTER)
+	{
 		DBG_ERR(("Notification about IDI_DADAPTER change ! Oops."));
 		return (NULL);
-	} else if (adapter->type == IDI_DIMAINT) {
-		if (removal) {
+	}
+	else if (adapter->type == IDI_DIMAINT)
+	{
+		if (removal)
+		{
 			stop_dbg();
-		} else {
+		}
+		else
+		{
 			memcpy(&MAdapter, adapter, sizeof(MAdapter));
 			dprintf = (DIVA_DI_PRINTF) MAdapter.request;
 			DbgRegister("User IDI", DRIVERRELEASE_IDI, DBG_DEFAULT);
 		}
-	} else if ((adapter->type > 0) && (adapter->type < 16)) {	/* IDI Adapter */
-		if (removal) {
+	}
+	else if ((adapter->type > 0) && (adapter->type < 16))  	/* IDI Adapter */
+	{
+		if (removal)
+		{
 			um_remove_card(adapter);
-		} else {
+		}
+		else
+		{
 			um_new_card(adapter);
 		}
 	}
+
 	return (NULL);
 }
 
@@ -190,8 +217,10 @@ static int __init connect_didd(void)
 
 	DIVA_DIDD_Read(DIDD_Table, sizeof(DIDD_Table));
 
-	for (x = 0; x < MAX_DESCRIPTORS; x++) {
-		if (DIDD_Table[x].type == IDI_DADAPTER) {	/* DADAPTER found */
+	for (x = 0; x < MAX_DESCRIPTORS; x++)
+	{
+		if (DIDD_Table[x].type == IDI_DADAPTER)  	/* DADAPTER found */
+		{
 			dadapter = 1;
 			memcpy(&DAdapter, &DIDD_Table[x], sizeof(DAdapter));
 			req.didd_notify.e.Req = 0;
@@ -200,22 +229,30 @@ static int __init connect_didd(void)
 			req.didd_notify.info.callback = (void *)didd_callback;
 			req.didd_notify.info.context = NULL;
 			DAdapter.request((ENTITY *)&req);
-			if (req.didd_notify.e.Rc != 0xff) {
+
+			if (req.didd_notify.e.Rc != 0xff)
+			{
 				stop_dbg();
 				return (0);
 			}
+
 			notify_handle = req.didd_notify.info.handle;
-		} else if (DIDD_Table[x].type == IDI_DIMAINT) {	/* MAINT found */
+		}
+		else if (DIDD_Table[x].type == IDI_DIMAINT)  	/* MAINT found */
+		{
 			memcpy(&MAdapter, &DIDD_Table[x], sizeof(DAdapter));
 			dprintf = (DIVA_DI_PRINTF) MAdapter.request;
 			DbgRegister("User IDI", DRIVERRELEASE_IDI, DBG_DEFAULT);
-		} else if ((DIDD_Table[x].type > 0)
-			   && (DIDD_Table[x].type < 16)) {	/* IDI Adapter found */
+		}
+		else if ((DIDD_Table[x].type > 0)
+				 && (DIDD_Table[x].type < 16))  	/* IDI Adapter found */
+		{
 			um_new_card(&DIDD_Table[x]);
 		}
 	}
 
-	if (!dadapter) {
+	if (!dadapter)
+	{
 		stop_dbg();
 	}
 
@@ -244,16 +281,19 @@ int __init idifunc_init(void)
 {
 	diva_os_initialize_spin_lock(&ll_lock, "idifunc");
 
-	if (diva_user_mode_idi_init()) {
+	if (diva_user_mode_idi_init())
+	{
 		DBG_ERR(("init: init failed."));
 		return (0);
 	}
 
-	if (!connect_didd()) {
+	if (!connect_didd())
+	{
 		diva_user_mode_idi_finit();
 		DBG_ERR(("init: failed to connect to DIDD."));
 		return (0);
 	}
+
 	return (1);
 }
 

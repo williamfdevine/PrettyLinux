@@ -19,7 +19,8 @@
 /* Use the Base address register size to cap number of ports */
 #define FL_REGION_SZ_CAP	0x0100
 
-struct pciserial_board {
+struct pciserial_board
+{
 	unsigned int flags;
 	unsigned int num_ports;
 	unsigned int base_baud;

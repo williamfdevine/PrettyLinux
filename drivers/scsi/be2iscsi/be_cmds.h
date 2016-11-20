@@ -25,7 +25,8 @@
  * WRB inside a MAILBOX.
  * The commands are serviced by the ARM processor in the OneConnect's MPU.
  */
-struct be_sge {
+struct be_sge
+{
 	__le32 pa_lo;
 	__le32 pa_hi;
 	__le32 len;
@@ -33,13 +34,15 @@ struct be_sge {
 
 #define MCC_WRB_SGE_CNT_SHIFT 3	/* bits 3 - 7 of dword 0 */
 #define MCC_WRB_SGE_CNT_MASK 0x1F	/* bits 3 - 7 of dword 0 */
-struct be_mcc_wrb {
+struct be_mcc_wrb
+{
 	u32 embedded;		/* dword 0 */
 	u32 payload_length;	/* dword 1 */
 	u32 tag0;		/* dword 2 */
 	u32 tag1;		/* dword 3 */
 	u32 rsvd;		/* dword 4 */
-	union {
+	union
+	{
 #define EMBED_MBX_MAX_PAYLOAD_SIZE  220
 		u8 embedded_payload[236];	/* used by embedded cmds */
 		struct be_sge sgl[19];	/* used by non-embedded cmds */
@@ -76,7 +79,8 @@ struct be_mcc_wrb {
 #define MBX_CMD_VER1	0x01
 #define MBX_CMD_VER2	0x02
 
-struct be_mcc_compl {
+struct be_mcc_compl
+{
 	u32 status;		/* dword 0 */
 	u32 tag0;		/* dword 1 */
 	u32 tag1;		/* dword 2 */
@@ -146,11 +150,13 @@ struct be_mcc_compl {
 #define ASYNC_SLI_LINK_EFFECT_SEV(le)		((le >> 1)  & 0x03)
 #define ASYNC_SLI_LINK_EFFECT_STATE(le)		(le & 0x01)
 
-struct be_async_event_trailer {
+struct be_async_event_trailer
+{
 	u32 code;
 };
 
-enum {
+enum
+{
 	ASYNC_EVENT_LINK_DOWN = 0x0,
 	ASYNC_EVENT_LINK_UP = 0x1,
 };
@@ -159,19 +165,20 @@ enum {
  * When the event code of an async trailer is link-state, the mcc_compl
  * must be interpreted as follows
  */
-struct be_async_event_link_state {
+struct be_async_event_link_state
+{
 	u8 physical_port;
 	u8 port_link_status;
-/**
- * ASYNC_EVENT_LINK_DOWN		0x0
- * ASYNC_EVENT_LINK_UP			0x1
- * ASYNC_EVENT_LINK_LOGICAL_DOWN	0x2
- * ASYNC_EVENT_LINK_LOGICAL_UP		0x3
- */
+	/**
+	 * ASYNC_EVENT_LINK_DOWN		0x0
+	 * ASYNC_EVENT_LINK_UP			0x1
+	 * ASYNC_EVENT_LINK_LOGICAL_DOWN	0x2
+	 * ASYNC_EVENT_LINK_LOGICAL_UP		0x3
+	 */
 #define BE_ASYNC_LINK_UP_MASK		0x01
 	u8 port_duplex;
 	u8 port_speed;
-/* BE2ISCSI_LINK_SPEED_ZERO	0x00 - no link */
+	/* BE2ISCSI_LINK_SPEED_ZERO	0x00 - no link */
 #define BE2ISCSI_LINK_SPEED_10MBPS	0x01
 #define BE2ISCSI_LINK_SPEED_100MBPS	0x02
 #define BE2ISCSI_LINK_SPEED_1GBPS	0x03
@@ -188,14 +195,16 @@ struct be_async_event_link_state {
 /**
  * When async-trailer is SLI event, mcc_compl is interpreted as
  */
-struct be_async_event_sli {
+struct be_async_event_sli
+{
 	u32 event_data1;
 	u32 event_data2;
 	u32 reserved;
 	u32 trailer;
 } __packed;
 
-struct be_mcc_mailbox {
+struct be_mcc_mailbox
+{
 	struct be_mcc_wrb wrb;
 	struct be_mcc_compl compl;
 };
@@ -251,7 +260,8 @@ struct be_mcc_mailbox {
 #define OPCODE_COMMON_ISCSI_WRBQ_CREATE			66
 #define OPCODE_COMMON_ISCSI_WRBQ_DESTROY		67
 
-struct be_cmd_req_hdr {
+struct be_cmd_req_hdr
+{
 	u8 opcode;		/* dword 0 */
 	u8 subsystem;		/* dword 0 */
 	u8 port_number;		/* dword 0 */
@@ -262,19 +272,22 @@ struct be_cmd_req_hdr {
 	u8 rsvd0[3];		/* dword 3 */
 };
 
-struct be_cmd_resp_hdr {
+struct be_cmd_resp_hdr
+{
 	u32 info;		/* dword 0 */
 	u32 status;		/* dword 1 */
 	u32 response_length;	/* dword 2 */
 	u32 actual_resp_len;	/* dword 3 */
 };
 
-struct phys_addr {
+struct phys_addr
+{
 	u32 lo;
 	u32 hi;
 };
 
-struct virt_addr {
+struct virt_addr
+{
 	u32 lo;
 	u32 hi;
 };
@@ -286,7 +299,8 @@ struct virt_addr {
  * Pseudo amap definition in which each bit of the actual structure is defined
  * as a byte - used to calculate offset/shift/mask of each field
  */
-struct amap_eq_context {
+struct amap_eq_context
+{
 	u8 cidx[13];		/* dword 0 */
 	u8 rsvd0[3];		/* dword 0 */
 	u8 epidx[13];		/* dword 0 */
@@ -311,7 +325,8 @@ struct amap_eq_context {
 	u8 rsvd7[32];		/* dword 3 */
 } __packed;
 
-struct be_cmd_req_eq_create {
+struct be_cmd_req_eq_create
+{
 	struct be_cmd_req_hdr hdr;	/* dw[4] */
 	u16 num_pages;		/* sword */
 	u16 rsvd0;		/* sword */
@@ -319,19 +334,22 @@ struct be_cmd_req_eq_create {
 	struct phys_addr pages[8];
 } __packed;
 
-struct be_cmd_resp_eq_create {
+struct be_cmd_resp_eq_create
+{
 	struct be_cmd_resp_hdr resp_hdr;
 	u16 eq_id;		/* sword */
 	u16 rsvd0;		/* sword */
 } __packed;
 
-struct be_set_eqd {
+struct be_set_eqd
+{
 	u32 eq_id;
 	u32 phase;
 	u32 delay_multiplier;
 } __packed;
 
-struct mgmt_chap_format {
+struct mgmt_chap_format
+{
 	u32 flags;
 	u8  intr_chap_name[256];
 	u8  intr_secret[16];
@@ -343,24 +361,28 @@ struct mgmt_chap_format {
 	u16 target_secret_length;
 } __packed;
 
-struct mgmt_auth_method_format {
+struct mgmt_auth_method_format
+{
 	u8	auth_method_type;
 	u8	padding[3];
 	struct	mgmt_chap_format chap;
 } __packed;
 
-struct be_cmd_req_logout_fw_sess {
+struct be_cmd_req_logout_fw_sess
+{
 	struct be_cmd_req_hdr hdr;	/* dw[4] */
 	uint32_t session_handle;
 } __packed;
 
-struct be_cmd_resp_logout_fw_sess {
+struct be_cmd_resp_logout_fw_sess
+{
 	struct be_cmd_resp_hdr hdr;	/* dw[4] */
 	uint32_t session_status;
 #define BE_SESS_STATUS_CLOSE		0x20
 } __packed;
 
-struct mgmt_conn_login_options {
+struct mgmt_conn_login_options
+{
 	u8 flags;
 	u8 header_digest;
 	u8 data_digest;
@@ -372,14 +394,15 @@ struct mgmt_conn_login_options {
 	struct	mgmt_auth_method_format auth_data;
 } __packed;
 
-struct ip_addr_format {
+struct ip_addr_format
+{
 	u16 size_of_structure;
 	u8 reserved;
 	u8 ip_type;
 #define BEISCSI_IP_TYPE_V4		0x1
 #define BEISCSI_IP_TYPE_STATIC_V4	0x3
 #define BEISCSI_IP_TYPE_DHCP_V4		0x5
-/* type v4 values < type v6 values */
+	/* type v4 values < type v6 values */
 #define BEISCSI_IP_TYPE_V6		0x10
 #define BEISCSI_IP_TYPE_ROUTABLE_V6	0x30
 #define BEISCSI_IP_TYPE_LINK_LOCAL_V6	0x50
@@ -388,7 +411,8 @@ struct ip_addr_format {
 	u32 rsvd0;
 } __packed;
 
-struct mgmt_conn_info {
+struct mgmt_conn_info
+{
 	u32	connection_handle;
 	u32	connection_status;
 	u16	src_port;
@@ -402,7 +426,8 @@ struct mgmt_conn_info {
 	struct	mgmt_conn_login_options	negotiated_login_options;
 } __packed;
 
-struct mgmt_session_login_options {
+struct mgmt_session_login_options
+{
 	u8	flags;
 	u8	error_recovery_level;
 	u16	rsvd0;
@@ -414,7 +439,8 @@ struct mgmt_session_login_options {
 	u16	default_time2retain;
 } __packed;
 
-struct mgmt_session_info {
+struct mgmt_session_info
+{
 	u32	session_handle;
 	u32	status;
 	u8	isid[6];
@@ -428,37 +454,43 @@ struct mgmt_session_info {
 	struct	mgmt_conn_info	conn_list[1];
 } __packed;
 
-struct be_cmd_get_session_req {
+struct be_cmd_get_session_req
+{
 	struct be_cmd_req_hdr hdr;
 	u32 session_handle;
 } __packed;
 
-struct be_cmd_get_session_resp {
+struct be_cmd_get_session_resp
+{
 	struct be_cmd_resp_hdr hdr;
 	struct mgmt_session_info session_info;
 } __packed;
 
-struct mac_addr {
+struct mac_addr
+{
 	u16 size_of_structure;
 	u8 addr[ETH_ALEN];
 } __packed;
 
-struct be_cmd_get_boot_target_req {
+struct be_cmd_get_boot_target_req
+{
 	struct be_cmd_req_hdr hdr;
 } __packed;
 
-struct be_cmd_get_boot_target_resp {
+struct be_cmd_get_boot_target_resp
+{
 	struct be_cmd_resp_hdr hdr;
 	u32 boot_session_count;
 	u32 boot_session_handle;
-/**
- * FW returns 0xffffffff if it couldn't establish connection with
- * configured boot target.
- */
+	/**
+	 * FW returns 0xffffffff if it couldn't establish connection with
+	 * configured boot target.
+	 */
 #define BE_BOOT_INVALID_SHANDLE	0xffffffff
 };
 
-struct be_cmd_reopen_session_req {
+struct be_cmd_reopen_session_req
+{
 	struct be_cmd_req_hdr hdr;
 #define BE_REOPEN_ALL_SESSIONS  0x00
 #define BE_REOPEN_BOOT_SESSIONS 0x01
@@ -468,26 +500,30 @@ struct be_cmd_reopen_session_req {
 	u32 session_handle;
 } __packed;
 
-struct be_cmd_reopen_session_resp {
+struct be_cmd_reopen_session_resp
+{
 	struct be_cmd_resp_hdr hdr;
 	u32 rsvd;
 	u32 session_handle;
 } __packed;
 
 
-struct be_cmd_mac_query_req {
+struct be_cmd_mac_query_req
+{
 	struct be_cmd_req_hdr hdr;
 	u8 type;
 	u8 permanent;
 	u16 if_id;
 } __packed;
 
-struct be_cmd_get_mac_resp {
+struct be_cmd_get_mac_resp
+{
 	struct be_cmd_resp_hdr hdr;
 	struct mac_addr mac;
 };
 
-struct be_ip_addr_subnet_format {
+struct be_ip_addr_subnet_format
+{
 	u16 size_of_structure;
 	u8 ip_type;
 	u8 ipv6_prefix_length;
@@ -496,13 +532,15 @@ struct be_ip_addr_subnet_format {
 	u32 rsvd0;
 } __packed;
 
-struct be_cmd_get_if_info_req {
+struct be_cmd_get_if_info_req
+{
 	struct be_cmd_req_hdr hdr;
 	u32 interface_hndl;
 	u32 ip_type;
 } __packed;
 
-struct be_cmd_get_if_info_resp {
+struct be_cmd_get_if_info_resp
+{
 	struct be_cmd_req_hdr hdr;
 	u32 interface_hndl;
 	u32 vlan_priority;
@@ -511,25 +549,29 @@ struct be_cmd_get_if_info_resp {
 	struct be_ip_addr_subnet_format ip_addr;
 } __packed;
 
-struct be_ip_addr_record {
+struct be_ip_addr_record
+{
 	u32 action;
 	u32 interface_hndl;
 	struct be_ip_addr_subnet_format ip_addr;
 	u32 status;
 } __packed;
 
-struct be_ip_addr_record_params {
+struct be_ip_addr_record_params
+{
 	u32 record_entry_count;
 	struct be_ip_addr_record ip_record;
 } __packed;
 
-struct be_cmd_set_ip_addr_req {
+struct be_cmd_set_ip_addr_req
+{
 	struct be_cmd_req_hdr hdr;
 	struct be_ip_addr_record_params ip_params;
 } __packed;
 
 
-struct be_cmd_set_dhcp_req {
+struct be_cmd_set_dhcp_req
+{
 	struct be_cmd_req_hdr hdr;
 	u32 interface_hndl;
 	u32 ip_type;
@@ -537,30 +579,35 @@ struct be_cmd_set_dhcp_req {
 	u32 retry_count;
 } __packed;
 
-struct be_cmd_rel_dhcp_req {
+struct be_cmd_rel_dhcp_req
+{
 	struct be_cmd_req_hdr hdr;
 	u32 interface_hndl;
 	u32 ip_type;
 } __packed;
 
-struct be_cmd_set_def_gateway_req {
+struct be_cmd_set_def_gateway_req
+{
 	struct be_cmd_req_hdr hdr;
 	u32 action;
 	struct ip_addr_format ip_addr;
 } __packed;
 
-struct be_cmd_get_def_gateway_req {
+struct be_cmd_get_def_gateway_req
+{
 	struct be_cmd_req_hdr hdr;
 	u32 ip_type;
 } __packed;
 
-struct be_cmd_get_def_gateway_resp {
+struct be_cmd_get_def_gateway_resp
+{
 	struct be_cmd_req_hdr hdr;
 	struct ip_addr_format ip_addr;
 } __packed;
 
 #define BEISCSI_VLAN_DISABLE	0xFFFF
-struct be_cmd_set_vlan_req {
+struct be_cmd_set_vlan_req
+{
 	struct be_cmd_req_hdr hdr;
 	u32 interface_hndl;
 	u32 vlan_priority;
@@ -570,7 +617,8 @@ struct be_cmd_set_vlan_req {
  * Pseudo amap definition in which each bit of the actual structure is defined
  * as a byte - used to calculate offset/shift/mask of each field
  */
-struct amap_cq_context {
+struct amap_cq_context
+{
 	u8 cidx[11];		/* dword 0 */
 	u8 rsvd0;		/* dword 0 */
 	u8 coalescwm[2];	/* dword 0 */
@@ -593,7 +641,8 @@ struct amap_cq_context {
 	u8 rsvd5[32];		/* dword 3 */
 } __packed;
 
-struct amap_cq_context_v2 {
+struct amap_cq_context_v2
+{
 	u8 rsvd0[12];   /* dword 0 */
 	u8 coalescwm[2];    /* dword 0 */
 	u8 nodelay;     /* dword 0 */
@@ -610,7 +659,8 @@ struct amap_cq_context_v2 {
 	u8 rsvd5[32];   /* dword 3 */
 };
 
-struct be_cmd_req_cq_create {
+struct be_cmd_req_cq_create
+{
 	struct be_cmd_req_hdr hdr;
 	u16 num_pages;
 	u8 page_size;
@@ -619,7 +669,8 @@ struct be_cmd_req_cq_create {
 	struct phys_addr pages[4];
 } __packed;
 
-struct be_cmd_resp_cq_create {
+struct be_cmd_resp_cq_create
+{
 	struct be_cmd_resp_hdr hdr;
 	u16 cq_id;
 	u16 rsvd0;
@@ -630,7 +681,8 @@ struct be_cmd_resp_cq_create {
  * Pseudo amap definition in which each bit of the actual structure is defined
  * as a byte - used to calculate offset/shift/mask of each field
  */
-struct amap_mcc_context {
+struct amap_mcc_context
+{
 	u8 con_index[14];
 	u8 rsvd0[2];
 	u8 ring_size[4];
@@ -645,7 +697,8 @@ struct amap_mcc_context {
 	u8 rsvd2[32];
 } __packed;
 
-struct be_cmd_req_mcc_create_ext {
+struct be_cmd_req_mcc_create_ext
+{
 	struct be_cmd_req_hdr hdr;
 	u16 num_pages;
 	u16 rsvd0;
@@ -654,7 +707,8 @@ struct be_cmd_req_mcc_create_ext {
 	struct phys_addr pages[8];
 } __packed;
 
-struct be_cmd_resp_mcc_create {
+struct be_cmd_resp_mcc_create
+{
 	struct be_cmd_resp_hdr hdr;
 	u16 id;
 	u16 rsvd0;
@@ -662,7 +716,8 @@ struct be_cmd_resp_mcc_create {
 
 /******************** Q Destroy  ***************************/
 /* Type of Queue to be destroyed */
-enum {
+enum
+{
 	QTYPE_EQ = 1,
 	QTYPE_CQ,
 	QTYPE_MCCQ,
@@ -671,17 +726,20 @@ enum {
 	QTYPE_SGL
 };
 
-struct be_cmd_req_q_destroy {
+struct be_cmd_req_q_destroy
+{
 	struct be_cmd_req_hdr hdr;
 	u16 id;
 	u16 bypass_flush;	/* valid only for rx q destroy */
 } __packed;
 
-struct macaddr {
+struct macaddr
+{
 	u8 byte[ETH_ALEN];
 };
 
-struct be_cmd_req_mcast_mac_config {
+struct be_cmd_req_mcast_mac_config
+{
 	struct be_cmd_req_hdr hdr;
 	u16 num_mac;
 	u8 promiscuous;
@@ -700,10 +758,12 @@ static inline struct be_sge *nonembedded_sgl(struct be_mcc_wrb *wrb)
 }
 
 /******************** Modify EQ Delay *******************/
-struct be_cmd_req_modify_eq_delay {
+struct be_cmd_req_modify_eq_delay
+{
 	struct be_cmd_req_hdr hdr;
 	__le32 num_eq;
-	struct {
+	struct
+	{
 		__le32 eq_id;
 		__le32 phase;
 		__le32 delay_multiplier;
@@ -712,7 +772,8 @@ struct be_cmd_req_modify_eq_delay {
 
 /******************** Get MAC ADDR *******************/
 
-struct be_cmd_get_nic_conf_resp {
+struct be_cmd_get_nic_conf_resp
+{
 	struct be_cmd_resp_hdr hdr;
 	u32 nic_port_count;
 	u32 speed;
@@ -725,7 +786,8 @@ struct be_cmd_get_nic_conf_resp {
 
 /******************** Get HBA NAME *******************/
 
-struct be_cmd_hba_name {
+struct be_cmd_hba_name
+{
 	struct be_cmd_req_hdr hdr;
 	u16 flags;
 	u16 rsvd0;
@@ -737,25 +799,30 @@ struct be_cmd_hba_name {
 /******************** COMMON SET Features *******************/
 #define BE_CMD_SET_FEATURE_UER	0x10
 #define BE_CMD_UER_SUPP_BIT	0x1
-struct be_uer_req {
+struct be_uer_req
+{
 	u32 uer;
 	u32 rsvd;
 };
 
-struct be_uer_resp {
+struct be_uer_resp
+{
 	u32 uer;
 	u16 ue2rp;
 	u16 ue2sr;
 };
 
-struct be_cmd_set_features {
-	union {
+struct be_cmd_set_features
+{
+	union
+	{
 		struct be_cmd_req_hdr req_hdr;
 		struct be_cmd_resp_hdr resp_hdr;
 	} h;
 	u32 feature;
 	u32 param_len;
-	union {
+	union
+	{
 		struct be_uer_req req;
 		struct be_uer_resp resp;
 		u32 rsvd[2];
@@ -777,67 +844,67 @@ int beiscsi_detect_ue(struct beiscsi_hba *phba);
 int beiscsi_detect_tpe(struct beiscsi_hba *phba);
 
 int beiscsi_cmd_eq_create(struct be_ctrl_info *ctrl,
-			  struct be_queue_info *eq, int eq_delay);
+						  struct be_queue_info *eq, int eq_delay);
 
 int beiscsi_cmd_cq_create(struct be_ctrl_info *ctrl,
-			  struct be_queue_info *cq, struct be_queue_info *eq,
-			  bool sol_evts, bool no_delay,
-			  int num_cqe_dma_coalesce);
+						  struct be_queue_info *cq, struct be_queue_info *eq,
+						  bool sol_evts, bool no_delay,
+						  int num_cqe_dma_coalesce);
 
 int beiscsi_cmd_q_destroy(struct be_ctrl_info *ctrl, struct be_queue_info *q,
-			  int type);
+						  int type);
 int beiscsi_cmd_mccq_create(struct beiscsi_hba *phba,
-			struct be_queue_info *mccq,
-			struct be_queue_info *cq);
+							struct be_queue_info *mccq,
+							struct be_queue_info *cq);
 
 unsigned int be_cmd_get_initname(struct beiscsi_hba *phba);
 
 void free_mcc_wrb(struct be_ctrl_info *ctrl, unsigned int tag);
 
 int beiscsi_modify_eq_delay(struct beiscsi_hba *phba, struct be_set_eqd *,
-			    int num);
+							int num);
 int beiscsi_mccq_compl_wait(struct beiscsi_hba *phba,
-			    unsigned int tag,
-			    struct be_mcc_wrb **wrb,
-			    struct be_dma_mem *mbx_cmd_mem);
+							unsigned int tag,
+							struct be_mcc_wrb **wrb,
+							struct be_dma_mem *mbx_cmd_mem);
 int __beiscsi_mcc_compl_status(struct beiscsi_hba *phba,
-			       unsigned int tag,
-			       struct be_mcc_wrb **wrb,
-			       struct be_dma_mem *mbx_cmd_mem);
+							   unsigned int tag,
+							   struct be_mcc_wrb **wrb,
+							   struct be_dma_mem *mbx_cmd_mem);
 struct be_mcc_wrb *wrb_from_mbox(struct be_dma_mem *mbox_mem);
 void be_mcc_notify(struct beiscsi_hba *phba, unsigned int tag);
 struct be_mcc_wrb *alloc_mcc_wrb(struct beiscsi_hba *phba,
-				 unsigned int *ref_tag);
+								 unsigned int *ref_tag);
 void beiscsi_process_async_event(struct beiscsi_hba *phba,
-				struct be_mcc_compl *compl);
+								 struct be_mcc_compl *compl);
 int beiscsi_process_mcc_compl(struct be_ctrl_info *ctrl,
-			      struct be_mcc_compl *compl);
+							  struct be_mcc_compl *compl);
 
 int be_cmd_create_default_pdu_queue(struct be_ctrl_info *ctrl,
-				    struct be_queue_info *cq,
-				    struct be_queue_info *dq, int length,
-				    int entry_size, uint8_t is_header,
-				    uint8_t ulp_num);
+									struct be_queue_info *cq,
+									struct be_queue_info *dq, int length,
+									int entry_size, uint8_t is_header,
+									uint8_t ulp_num);
 
 int be_cmd_iscsi_post_template_hdr(struct be_ctrl_info *ctrl,
-				    struct be_dma_mem *q_mem);
+								   struct be_dma_mem *q_mem);
 
 int be_cmd_iscsi_remove_template_hdr(struct be_ctrl_info *ctrl);
 
 int be_cmd_iscsi_post_sgl_pages(struct be_ctrl_info *ctrl,
-				struct be_dma_mem *q_mem, u32 page_offset,
-				u32 num_pages);
+								struct be_dma_mem *q_mem, u32 page_offset,
+								u32 num_pages);
 
 int be_cmd_wrbq_create(struct be_ctrl_info *ctrl, struct be_dma_mem *q_mem,
-		       struct be_queue_info *wrbq,
-		       struct hwi_wrb_context *pwrb_context,
-		       uint8_t ulp_num);
+					   struct be_queue_info *wrbq,
+					   struct hwi_wrb_context *pwrb_context,
+					   uint8_t ulp_num);
 
 /* Configuration Functions */
 int be_cmd_set_vlan(struct beiscsi_hba *phba, uint16_t vlan_tag);
 
 int beiscsi_check_supported_fw(struct be_ctrl_info *ctrl,
-			       struct beiscsi_hba *phba);
+							   struct beiscsi_hba *phba);
 
 int beiscsi_get_fw_config(struct be_ctrl_info *ctrl, struct beiscsi_hba *phba);
 
@@ -845,11 +912,13 @@ int beiscsi_get_port_name(struct be_ctrl_info *ctrl, struct beiscsi_hba *phba);
 
 int beiscsi_set_uer_feature(struct beiscsi_hba *phba);
 
-struct be_default_pdu_context {
+struct be_default_pdu_context
+{
 	u32 dw[4];
 } __packed;
 
-struct amap_be_default_pdu_context {
+struct amap_be_default_pdu_context
+{
 	u8 dbuf_cindex[13];	/* dword 0 */
 	u8 rsvd0[3];		/* dword 0 */
 	u8 ring_size[4];	/* dword 0 */
@@ -867,7 +936,8 @@ struct amap_be_default_pdu_context {
 	u8 rsvd4[32];		/* dword 3 */
 } __packed;
 
-struct amap_default_pdu_context_ext {
+struct amap_default_pdu_context_ext
+{
 	u8 rsvd0[16];   /* dword 0 */
 	u8 ring_size[4];    /* dword 0 */
 	u8 rsvd1[12];   /* dword 0 */
@@ -879,7 +949,8 @@ struct amap_default_pdu_context_ext {
 	u8 rsvd3[32];   /* dword 3 */
 } __packed;
 
-struct be_defq_create_req {
+struct be_defq_create_req
+{
 	struct be_cmd_req_hdr hdr;
 	u16 num_pages;
 	u8 ulp_num;
@@ -890,7 +961,8 @@ struct be_defq_create_req {
 	struct phys_addr pages[8];
 } __packed;
 
-struct be_defq_create_resp {
+struct be_defq_create_resp
+{
 	struct be_cmd_req_hdr hdr;
 	u16 id;
 	u8 rsvd0;
@@ -900,7 +972,8 @@ struct be_defq_create_resp {
 	u16 doorbell_format;
 } __packed;
 
-struct be_post_template_pages_req {
+struct be_post_template_pages_req
+{
 	struct be_cmd_req_hdr hdr;
 	u16 num_pages;
 #define BEISCSI_TEMPLATE_HDR_TYPE_ISCSI	0x1
@@ -911,13 +984,15 @@ struct be_post_template_pages_req {
 	struct phys_addr pages[16];
 } __packed;
 
-struct be_remove_template_pages_req {
+struct be_remove_template_pages_req
+{
 	struct be_cmd_req_hdr hdr;
 	u16 type;
 	u16 rsvd0;
 } __packed;
 
-struct be_post_sgl_pages_req {
+struct be_post_sgl_pages_req
+{
 	struct be_cmd_req_hdr hdr;
 	u16 num_pages;
 	u16 page_offset;
@@ -926,7 +1001,8 @@ struct be_post_sgl_pages_req {
 	u32 rsvd1;
 } __packed;
 
-struct be_wrbq_create_req {
+struct be_wrbq_create_req
+{
 	struct be_cmd_req_hdr hdr;
 	u16 num_pages;
 	u8 ulp_num;
@@ -934,7 +1010,8 @@ struct be_wrbq_create_req {
 	struct phys_addr pages[8];
 } __packed;
 
-struct be_wrbq_create_resp {
+struct be_wrbq_create_resp
+{
 	struct be_cmd_resp_hdr resp_hdr;
 	u16 cid;
 	u8 rsvd0;
@@ -956,11 +1033,13 @@ struct be_wrbq_create_resp {
 #define SOL_FLAGS_MASK		0x7F000000
 #define SOL_S_MASK		0x80000000
 
-struct sol_cqe {
+struct sol_cqe
+{
 	u32 dw[4];
 };
 
-struct amap_sol_cqe {
+struct amap_sol_cqe
+{
 	u8 hw_sts[8];		/* dword 0 */
 	u8 i_sts[8];		/* dword 0 */
 	u8 i_resp[8];		/* dword 0 */
@@ -976,7 +1055,8 @@ struct amap_sol_cqe {
 } __packed;
 
 #define SOL_ICD_INDEX_MASK	0x0003FFC0
-struct amap_sol_cqe_ring {
+struct amap_sol_cqe_ring
+{
 	u8 hw_sts[8];		/* dword 0 */
 	u8 i_sts[8];		/* dword 0 */
 	u8 i_resp[8];		/* dword 0 */
@@ -991,7 +1071,8 @@ struct amap_sol_cqe_ring {
 	u8 valid;		/* dword 3 */
 } __packed;
 
-struct amap_sol_cqe_v2 {
+struct amap_sol_cqe_v2
+{
 	u8 hw_sts[8];   /* dword 0 */
 	u8 i_sts[8];    /* dword 0 */
 	u8 wrb_index[16];   /* dword 0 */
@@ -1008,7 +1089,8 @@ struct amap_sol_cqe_v2 {
 	u8 valid;   /* dword 3 */
 } __packed;
 
-struct common_sol_cqe {
+struct common_sol_cqe
+{
 	u32 exp_cmdsn;
 	u32 res_cnt;
 	u16 wrb_index;
@@ -1022,7 +1104,8 @@ struct common_sol_cqe {
 };
 
 /*** iSCSI ack/driver message completions ***/
-struct amap_it_dmsg_cqe {
+struct amap_it_dmsg_cqe
+{
 	u8 ack_num[32]; /* DWORD 0 */
 	u8 pdu_bytes_rcvd[32];  /* DWORD 1 */
 	u8 code[6]; /* DWORD 2 */
@@ -1033,7 +1116,8 @@ struct amap_it_dmsg_cqe {
 	u8 valid;   /* DWORD 3 */
 } __packed;
 
-struct amap_it_dmsg_cqe_v2 {
+struct amap_it_dmsg_cqe_v2
+{
 	u8 ack_num[32]; /* DWORD 0 */
 	u8 pdu_bytes_rcvd[32];  /* DWORD 1 */
 	u8 code[6]; /* DWORD 2 */
@@ -1057,19 +1141,22 @@ struct amap_it_dmsg_cqe_v2 {
 #define DB_DEF_PDU_WRB_INDEX_SHIFT	16
 #define DB_DEF_PDU_NUM_POSTED_SHIFT	24
 
-struct fragnum_bits_for_sgl_cra_in {
+struct fragnum_bits_for_sgl_cra_in
+{
 	struct be_cmd_req_hdr hdr;
 	u32 num_bits;
 } __packed;
 
-struct iscsi_cleanup_req {
+struct iscsi_cleanup_req
+{
 	struct be_cmd_req_hdr hdr;
 	u16 chute;
 	u8 hdr_ring_id;
 	u8 data_ring_id;
 } __packed;
 
-struct iscsi_cleanup_req_v1 {
+struct iscsi_cleanup_req_v1
+{
 	struct be_cmd_req_hdr hdr;
 	u16 chute;
 	u16 rsvd1;
@@ -1079,19 +1166,22 @@ struct iscsi_cleanup_req_v1 {
 	u16 rsvd3;
 } __packed;
 
-struct eq_delay {
+struct eq_delay
+{
 	u32 eq_id;
 	u32 phase;
 	u32 delay_multiplier;
 } __packed;
 
-struct be_eq_delay_params_in {
+struct be_eq_delay_params_in
+{
 	struct be_cmd_req_hdr hdr;
 	u32 num_eq;
 	struct eq_delay delay[8];
 } __packed;
 
-struct tcp_connect_and_offload_in {
+struct tcp_connect_and_offload_in
+{
 	struct be_cmd_req_hdr hdr;
 	struct ip_addr_format ip_address;
 	u16 tcp_port;
@@ -1105,7 +1195,8 @@ struct tcp_connect_and_offload_in {
 	u8 rsvd0[3];
 } __packed;
 
-struct tcp_connect_and_offload_in_v1 {
+struct tcp_connect_and_offload_in_v1
+{
 	struct be_cmd_req_hdr hdr;
 	struct ip_addr_format ip_address;
 	u16 tcp_port;
@@ -1121,11 +1212,12 @@ struct tcp_connect_and_offload_in_v1 {
 	u16 tcp_window_size;
 	u8 tcp_window_scale_count;
 	u8 rsvd1;
-	u32 tcp_mss:24;
+	u32 tcp_mss: 24;
 	u8 rsvd2;
 } __packed;
 
-struct tcp_connect_and_offload_out {
+struct tcp_connect_and_offload_out
+{
 	struct be_cmd_resp_hdr hdr;
 	u32 connection_handle;
 	u16 cid;
@@ -1133,7 +1225,8 @@ struct tcp_connect_and_offload_out {
 
 } __packed;
 
-struct be_mcc_wrb_context {
+struct be_mcc_wrb_context
+{
 	struct MCC_WRB *wrb;
 	int *users_final_status;
 } __packed;
@@ -1144,27 +1237,32 @@ struct be_mcc_wrb_context {
 #define DB_DEF_PDU_EVENT_SHIFT		15
 #define DB_DEF_PDU_CQPROC_SHIFT		16
 
-struct dmsg_cqe {
+struct dmsg_cqe
+{
 	u32 dw[4];
 } __packed;
 
-struct tcp_upload_params_in {
+struct tcp_upload_params_in
+{
 	struct be_cmd_req_hdr hdr;
 	u16 id;
 	u16 upload_type;
 	u32 reset_seq;
 } __packed;
 
-struct tcp_upload_params_out {
+struct tcp_upload_params_out
+{
 	u32 dw[32];
 } __packed;
 
-union tcp_upload_params {
+union tcp_upload_params
+{
 	struct tcp_upload_params_in request;
 	struct tcp_upload_params_out response;
 } __packed;
 
-struct be_ulp_fw_cfg {
+struct be_ulp_fw_cfg
+{
 #define BEISCSI_ULP_ISCSI_INI_MODE	0x10
 	u32 ulp_mode;
 	u32 etx_base;
@@ -1181,12 +1279,14 @@ struct be_ulp_fw_cfg {
 	u32 icd_count;
 };
 
-struct be_ulp_chain_icd {
+struct be_ulp_chain_icd
+{
 	u32 chain_base;
 	u32 chain_count;
 };
 
-struct be_fw_cfg {
+struct be_fw_cfg
+{
 	struct be_cmd_req_hdr hdr;
 	u32 be_config_number;
 	u32 asic_revision;
@@ -1203,22 +1303,28 @@ struct be_fw_cfg {
 	struct be_ulp_chain_icd chain_icd[2];
 } __packed;
 
-struct be_cmd_get_all_if_id_req {
+struct be_cmd_get_all_if_id_req
+{
 	struct be_cmd_req_hdr hdr;
 	u32 if_count;
 	u32 if_hndl_list[1];
 } __packed;
 
-struct be_cmd_get_port_name {
-	union {
+struct be_cmd_get_port_name
+{
+	union
+	{
 		struct be_cmd_req_hdr req_hdr;
 		struct be_cmd_resp_hdr resp_hdr;
 	} h;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u32 reserved;
 		} req;
-		struct {
+		struct
+		{
 			u32 port_names;
 		} resp;
 	} p;
@@ -1294,11 +1400,11 @@ struct be_cmd_get_port_name {
 #define BE_NUMBER_OF_FIELD(_type_, _field_)	\
 	(FIELD_SIZEOF(_type_, _field_)/sizeof((((_type_ *)0)->_field_[0])))\
 
-/**
- * Different types of iSCSI completions to host driver for both initiator
- * and taget mode
- * of operation.
- */
+	/**
+	 * Different types of iSCSI completions to host driver for both initiator
+	 * and taget mode
+	 * of operation.
+	 */
 #define SOL_CMD_COMPLETE		1	/* Solicited command completed
 						 * normally
 						 */
@@ -1445,9 +1551,9 @@ struct be_cmd_get_port_name {
 						 * the cxn
 						 */
 
-void be_wrb_hdr_prepare(struct be_mcc_wrb *wrb, int payload_len,
-			bool embedded, u8 sge_cnt);
+	void be_wrb_hdr_prepare(struct be_mcc_wrb *wrb, int payload_len,
+							bool embedded, u8 sge_cnt);
 
-void be_cmd_hdr_prepare(struct be_cmd_req_hdr *req_hdr,
-			u8 subsystem, u8 opcode, int cmd_len);
+	void be_cmd_hdr_prepare(struct be_cmd_req_hdr *req_hdr,
+							u8 subsystem, u8 opcode, int cmd_len);
 #endif /* !BEISCSI_CMDS_H */

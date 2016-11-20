@@ -80,9 +80,9 @@
 #define GAHBCFG_HBSTLEN_INCR16		7
 #define GAHBCFG_GLBL_INTR_EN		(1 << 0)
 #define GAHBCFG_CTRL_MASK		(GAHBCFG_P_TXF_EMP_LVL | \
-					 GAHBCFG_NP_TXF_EMP_LVL | \
-					 GAHBCFG_DMA_EN | \
-					 GAHBCFG_GLBL_INTR_EN)
+								 GAHBCFG_NP_TXF_EMP_LVL | \
+								 GAHBCFG_DMA_EN | \
+								 GAHBCFG_GLBL_INTR_EN)
 
 #define GUSBCFG				HSOTG_REG(0x00C)
 #define GUSBCFG_FORCEDEVMODE		(1 << 30)
@@ -798,7 +798,8 @@
  * DMA Descriptor structure contains two quadlets:
  * Status quadlet and Data buffer pointer.
  */
-struct dwc2_hcd_dma_desc {
+struct dwc2_hcd_dma_desc
+{
 	u32 status;
 	u32 buf;
 };

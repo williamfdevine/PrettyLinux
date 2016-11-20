@@ -22,12 +22,12 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
- */      
+ */
 
 #define REVO_DEVICE_DESC \
-		"{MidiMan M Audio,Revolution 7.1},"\
-		"{MidiMan M Audio,Revolution 5.1},"\
-		"{MidiMan M Audio,Audiophile 192},"
+	"{MidiMan M Audio,Revolution 7.1},"\
+	"{MidiMan M Audio,Revolution 5.1},"\
+	"{MidiMan M Audio,Audiophile 192},"
 
 #define VT1724_SUBDEVICE_REVOLUTION71	0x12143036
 #define VT1724_SUBDEVICE_REVOLUTION51	0x12143136

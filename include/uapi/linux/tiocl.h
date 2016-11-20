@@ -10,7 +10,8 @@
 #define 	TIOCL_SELMOUSEREPORT	16	/* report beginning of selection */
 #define 	TIOCL_SELBUTTONMASK	15	/* button mask for report */
 /* selection extent */
-struct tiocl_selection {
+struct tiocl_selection
+{
 	unsigned short xs;	/* X start */
 	unsigned short ys;	/* Y start */
 	unsigned short xe;	/* X end */
@@ -22,8 +23,8 @@ struct tiocl_selection {
 #define TIOCL_UNBLANKSCREEN	4	/* unblank screen */
 
 #define TIOCL_SELLOADLUT	5
-	/* set characters to be considered alphabetic when selecting */
-	/* u32[8] bit array, 4 bytes-aligned with type */
+/* set characters to be considered alphabetic when selecting */
+/* u32[8] bit array, 4 bytes-aligned with type */
 
 /* these two don't return a value: they write it back in the type */
 #define TIOCL_GETSHIFTSTATE	6	/* write shift state */

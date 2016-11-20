@@ -5,7 +5,8 @@
 #define for_each_test(i, test)	\
 	for (i = 0; i < ARRAY_SIZE(test); i++)
 
-struct test_fail {
+struct test_fail
+{
 	const char *str;
 	unsigned int base;
 };
@@ -24,51 +25,52 @@ struct test_fail {
 	const type test[] __initconst
 
 #define TEST_FAIL(fn, type, fmt, test)					\
-{									\
-	unsigned int i;							\
-									\
-	for_each_test(i, test) {					\
-		const struct test_fail *t = &test[i];			\
-		type tmp;						\
-		int rv;							\
-									\
-		tmp = 0;						\
-		rv = fn(t->str, t->base, &tmp);				\
-		if (rv >= 0) {						\
-			WARN(1, "str '%s', base %u, expected -E, got %d/" fmt "\n",	\
-				t->str, t->base, rv, tmp);		\
-			continue;					\
-		}							\
-	}								\
-}
+	{									\
+		unsigned int i;							\
+		\
+		for_each_test(i, test) {					\
+			const struct test_fail *t = &test[i];			\
+			type tmp;						\
+			int rv;							\
+			\
+			tmp = 0;						\
+			rv = fn(t->str, t->base, &tmp);				\
+			if (rv >= 0) {						\
+				WARN(1, "str '%s', base %u, expected -E, got %d/" fmt "\n",	\
+					 t->str, t->base, rv, tmp);		\
+				continue;					\
+			}							\
+		}								\
+	}
 
 #define TEST_OK(fn, type, fmt, test)					\
-{									\
-	unsigned int i;							\
-									\
-	for_each_test(i, test) {					\
-		const typeof(test[0]) *t = &test[i];			\
-		type res;						\
-		int rv;							\
-									\
-		rv = fn(t->str, t->base, &res);				\
-		if (rv != 0) {						\
-			WARN(1, "str '%s', base %u, expected 0/" fmt ", got %d\n",	\
-				t->str, t->base, t->expected_res, rv);	\
-			continue;					\
-		}							\
-		if (res != t->expected_res) {				\
-			WARN(1, "str '%s', base %u, expected " fmt ", got " fmt "\n",	\
-				t->str, t->base, t->expected_res, res);	\
-			continue;					\
-		}							\
-	}								\
-}
+	{									\
+		unsigned int i;							\
+		\
+		for_each_test(i, test) {					\
+			const typeof(test[0]) *t = &test[i];			\
+			type res;						\
+			int rv;							\
+			\
+			rv = fn(t->str, t->base, &res);				\
+			if (rv != 0) {						\
+				WARN(1, "str '%s', base %u, expected 0/" fmt ", got %d\n",	\
+					 t->str, t->base, t->expected_res, rv);	\
+				continue;					\
+			}							\
+			if (res != t->expected_res) {				\
+				WARN(1, "str '%s', base %u, expected " fmt ", got " fmt "\n",	\
+					 t->str, t->base, t->expected_res, res);	\
+				continue;					\
+			}							\
+		}								\
+	}
 
 static void __init test_kstrtoull_ok(void)
 {
 	DECLARE_TEST_OK(unsigned long long, struct test_ull);
-	static DEFINE_TEST_OK(struct test_ull, test_ull_ok) = {
+	static DEFINE_TEST_OK(struct test_ull, test_ull_ok) =
+	{
 		{"0",	10,	0ULL},
 		{"1",	10,	1ULL},
 		{"127",	10,	127ULL},
@@ -154,7 +156,8 @@ static void __init test_kstrtoull_ok(void)
 
 static void __init test_kstrtoull_fail(void)
 {
-	static DEFINE_TEST_FAIL(test_ull_fail) = {
+	static DEFINE_TEST_FAIL(test_ull_fail) =
+	{
 		{"",	0},
 		{"",	8},
 		{"",	10},
@@ -237,7 +240,8 @@ static void __init test_kstrtoull_fail(void)
 static void __init test_kstrtoll_ok(void)
 {
 	DECLARE_TEST_OK(long long, struct test_ll);
-	static DEFINE_TEST_OK(struct test_ll, test_ll_ok) = {
+	static DEFINE_TEST_OK(struct test_ll, test_ll_ok) =
+	{
 		{"0",	10,	0LL},
 		{"1",	10,	1LL},
 		{"127",	10,	127LL},
@@ -270,7 +274,8 @@ static void __init test_kstrtoll_ok(void)
 
 static void __init test_kstrtoll_fail(void)
 {
-	static DEFINE_TEST_FAIL(test_ll_fail) = {
+	static DEFINE_TEST_FAIL(test_ll_fail) =
+	{
 		{"9223372036854775808",	10},
 		{"9223372036854775809",	10},
 		{"18446744073709551614",	10},
@@ -290,7 +295,8 @@ static void __init test_kstrtoll_fail(void)
 static void __init test_kstrtou64_ok(void)
 {
 	DECLARE_TEST_OK(u64, struct test_u64);
-	static DEFINE_TEST_OK(struct test_u64, test_u64_ok) = {
+	static DEFINE_TEST_OK(struct test_u64, test_u64_ok) =
+	{
 		{"0",	10,	0},
 		{"1",	10,	1},
 		{"126",	10,	126},
@@ -329,7 +335,8 @@ static void __init test_kstrtou64_ok(void)
 
 static void __init test_kstrtou64_fail(void)
 {
-	static DEFINE_TEST_FAIL(test_u64_fail) = {
+	static DEFINE_TEST_FAIL(test_u64_fail) =
+	{
 		{"-2",	10},
 		{"-1",	10},
 		{"18446744073709551616",	10},
@@ -341,7 +348,8 @@ static void __init test_kstrtou64_fail(void)
 static void __init test_kstrtos64_ok(void)
 {
 	DECLARE_TEST_OK(s64, struct test_s64);
-	static DEFINE_TEST_OK(struct test_s64, test_s64_ok) = {
+	static DEFINE_TEST_OK(struct test_s64, test_s64_ok) =
+	{
 		{"-128",	10,	-128},
 		{"-127",	10,	-127},
 		{"-1",	10,	-1},
@@ -379,7 +387,8 @@ static void __init test_kstrtos64_ok(void)
 
 static void __init test_kstrtos64_fail(void)
 {
-	static DEFINE_TEST_FAIL(test_s64_fail) = {
+	static DEFINE_TEST_FAIL(test_s64_fail) =
+	{
 		{"9223372036854775808",	10},
 		{"9223372036854775809",	10},
 		{"18446744073709551614",	10},
@@ -393,7 +402,8 @@ static void __init test_kstrtos64_fail(void)
 static void __init test_kstrtou32_ok(void)
 {
 	DECLARE_TEST_OK(u32, struct test_u32);
-	static DEFINE_TEST_OK(struct test_u32, test_u32_ok) = {
+	static DEFINE_TEST_OK(struct test_u32, test_u32_ok) =
+	{
 		{"0",	10,	0},
 		{"1",	10,	1},
 		{"126",	10,	126},
@@ -424,7 +434,8 @@ static void __init test_kstrtou32_ok(void)
 
 static void __init test_kstrtou32_fail(void)
 {
-	static DEFINE_TEST_FAIL(test_u32_fail) = {
+	static DEFINE_TEST_FAIL(test_u32_fail) =
+	{
 		{"-2",	10},
 		{"-1",	10},
 		{"4294967296",	10},
@@ -444,7 +455,8 @@ static void __init test_kstrtou32_fail(void)
 static void __init test_kstrtos32_ok(void)
 {
 	DECLARE_TEST_OK(s32, struct test_s32);
-	static DEFINE_TEST_OK(struct test_s32, test_s32_ok) = {
+	static DEFINE_TEST_OK(struct test_s32, test_s32_ok) =
+	{
 		{"-128",	10,	-128},
 		{"-127",	10,	-127},
 		{"-1",	10,	-1},
@@ -474,7 +486,8 @@ static void __init test_kstrtos32_ok(void)
 
 static void __init test_kstrtos32_fail(void)
 {
-	static DEFINE_TEST_FAIL(test_s32_fail) = {
+	static DEFINE_TEST_FAIL(test_s32_fail) =
+	{
 		{"2147483648",	10},
 		{"2147483649",	10},
 		{"4294967294",	10},
@@ -496,7 +509,8 @@ static void __init test_kstrtos32_fail(void)
 static void __init test_kstrtou16_ok(void)
 {
 	DECLARE_TEST_OK(u16, struct test_u16);
-	static DEFINE_TEST_OK(struct test_u16, test_u16_ok) = {
+	static DEFINE_TEST_OK(struct test_u16, test_u16_ok) =
+	{
 		{"0",	10,	0},
 		{"1",	10,	1},
 		{"126",	10,	126},
@@ -519,7 +533,8 @@ static void __init test_kstrtou16_ok(void)
 
 static void __init test_kstrtou16_fail(void)
 {
-	static DEFINE_TEST_FAIL(test_u16_fail) = {
+	static DEFINE_TEST_FAIL(test_u16_fail) =
+	{
 		{"-2",	10},
 		{"-1",	10},
 		{"65536",	10},
@@ -547,7 +562,8 @@ static void __init test_kstrtou16_fail(void)
 static void __init test_kstrtos16_ok(void)
 {
 	DECLARE_TEST_OK(s16, struct test_s16);
-	static DEFINE_TEST_OK(struct test_s16, test_s16_ok) = {
+	static DEFINE_TEST_OK(struct test_s16, test_s16_ok) =
+	{
 		{"-130",	10,	-130},
 		{"-129",	10,	-129},
 		{"-128",	10,	-128},
@@ -571,7 +587,8 @@ static void __init test_kstrtos16_ok(void)
 
 static void __init test_kstrtos16_fail(void)
 {
-	static DEFINE_TEST_FAIL(test_s16_fail) = {
+	static DEFINE_TEST_FAIL(test_s16_fail) =
+	{
 		{"32768",	10},
 		{"32769",	10},
 		{"65534",	10},
@@ -601,7 +618,8 @@ static void __init test_kstrtos16_fail(void)
 static void __init test_kstrtou8_ok(void)
 {
 	DECLARE_TEST_OK(u8, struct test_u8);
-	static DEFINE_TEST_OK(struct test_u8, test_u8_ok) = {
+	static DEFINE_TEST_OK(struct test_u8, test_u8_ok) =
+	{
 		{"0",	10,	0},
 		{"1",	10,	1},
 		{"126",	10,	126},
@@ -616,7 +634,8 @@ static void __init test_kstrtou8_ok(void)
 
 static void __init test_kstrtou8_fail(void)
 {
-	static DEFINE_TEST_FAIL(test_u8_fail) = {
+	static DEFINE_TEST_FAIL(test_u8_fail) =
+	{
 		{"-2",	10},
 		{"-1",	10},
 		{"256",	10},
@@ -652,7 +671,8 @@ static void __init test_kstrtou8_fail(void)
 static void __init test_kstrtos8_ok(void)
 {
 	DECLARE_TEST_OK(s8, struct test_s8);
-	static DEFINE_TEST_OK(struct test_s8, test_s8_ok) = {
+	static DEFINE_TEST_OK(struct test_s8, test_s8_ok) =
+	{
 		{"-128",	10,	-128},
 		{"-127",	10,	-127},
 		{"-1",	10,	-1},
@@ -666,7 +686,8 @@ static void __init test_kstrtos8_ok(void)
 
 static void __init test_kstrtos8_fail(void)
 {
-	static DEFINE_TEST_FAIL(test_s8_fail) = {
+	static DEFINE_TEST_FAIL(test_s8_fail) =
+	{
 		{"-130",	10},
 		{"-129",	10},
 		{"128",	10},

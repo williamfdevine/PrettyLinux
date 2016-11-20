@@ -26,7 +26,8 @@
 #define MAX8998_NUM_IRQ_REGS	4
 
 /* MAX 8998 registers */
-enum {
+enum
+{
 	MAX8998_REG_IRQ1,
 	MAX8998_REG_IRQ2,
 	MAX8998_REG_IRQ3,
@@ -75,7 +76,8 @@ enum {
 };
 
 /* IRQ definitions */
-enum {
+enum
+{
 	MAX8998_IRQ_DCINF,
 	MAX8998_IRQ_DCINR,
 	MAX8998_IRQ_JIGF,
@@ -102,7 +104,8 @@ enum {
 };
 
 /* MAX8998 various variants */
-enum {
+enum
+{
 	TYPE_MAX8998 = 0, /* Default */
 	TYPE_LP3974,	/* National version of MAX8998 */
 	TYPE_LP3979,	/* Added AVS */
@@ -149,7 +152,8 @@ struct irq_domain;
  * @irq_masks_cache: cached hardware value
  * @type: indicate which max8998 "variant" is used
  */
-struct max8998_dev {
+struct max8998_dev
+{
 	struct device *dev;
 	struct max8998_platform_data *pdata;
 	struct i2c_client *i2c;
@@ -173,10 +177,10 @@ int max8998_irq_resume(struct max8998_dev *max8998);
 
 extern int max8998_read_reg(struct i2c_client *i2c, u8 reg, u8 *dest);
 extern int max8998_bulk_read(struct i2c_client *i2c, u8 reg, int count,
-		u8 *buf);
+							 u8 *buf);
 extern int max8998_write_reg(struct i2c_client *i2c, u8 reg, u8 value);
 extern int max8998_bulk_write(struct i2c_client *i2c, u8 reg, int count,
-		u8 *buf);
+							  u8 *buf);
 extern int max8998_update_reg(struct i2c_client *i2c, u8 reg, u8 val, u8 mask);
 
 #endif /*  __LINUX_MFD_MAX8998_PRIV_H */

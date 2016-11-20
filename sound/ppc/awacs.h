@@ -26,16 +26,17 @@
 /* AWACs Audio Register Layout */
 /*******************************/
 
-struct awacs_regs {
-    unsigned	control;	/* Audio control register */
-    unsigned	pad0[3];
-    unsigned	codec_ctrl;	/* Codec control register */
-    unsigned	pad1[3];
-    unsigned	codec_stat;	/* Codec status register */
-    unsigned	pad2[3];
-    unsigned	clip_count;	/* Clipping count register */
-    unsigned	pad3[3];
-    unsigned	byteswap;	/* Data is little-endian if 1 */
+struct awacs_regs
+{
+	unsigned	control;	/* Audio control register */
+	unsigned	pad0[3];
+	unsigned	codec_ctrl;	/* Codec control register */
+	unsigned	pad1[3];
+	unsigned	codec_stat;	/* Codec status register */
+	unsigned	pad2[3];
+	unsigned	clip_count;	/* Clipping count register */
+	unsigned	pad3[3];
+	unsigned	byteswap;	/* Data is little-endian if 1 */
 };
 
 /*******************/

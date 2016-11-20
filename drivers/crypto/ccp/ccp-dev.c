@@ -24,7 +24,7 @@
 #include <linux/hw_random.h>
 #include <linux/cpu.h>
 #ifdef CONFIG_X86
-#include <asm/cpu_device_id.h>
+	#include <asm/cpu_device_id.h>
 #endif
 #include <linux/ccp.h>
 
@@ -35,13 +35,15 @@ MODULE_LICENSE("GPL");
 MODULE_VERSION("1.0.0");
 MODULE_DESCRIPTION("AMD Cryptographic Coprocessor driver");
 
-struct ccp_tasklet_data {
+struct ccp_tasklet_data
+{
 	struct completion completion;
 	struct ccp_cmd *cmd;
 };
 
 /* Human-readable error strings */
-char *ccp_error_codes[] = {
+char *ccp_error_codes[] =
+{
 	"",
 	"ERR 01: ILLEGAL_ENGINE",
 	"ERR 02: ILLEGAL_KEY_ID",
@@ -133,11 +135,15 @@ void ccp_add_device(struct ccp_device *ccp)
 
 	write_lock_irqsave(&ccp_unit_lock, flags);
 	list_add_tail(&ccp->entry, &ccp_units);
+
 	if (!ccp_rr)
 		/* We already have the list lock (we're first) so this
 		 * pointer can't change on us. Set its initial value.
 		 */
+	{
 		ccp_rr = ccp;
+	}
+
 	write_unlock_irqrestore(&ccp_unit_lock, flags);
 }
 
@@ -155,20 +161,29 @@ void ccp_del_device(struct ccp_device *ccp)
 	unsigned long flags;
 
 	write_lock_irqsave(&ccp_unit_lock, flags);
-	if (ccp_rr == ccp) {
+
+	if (ccp_rr == ccp)
+	{
 		/* ccp_unit_lock is read/write; any read access
 		 * will be suspended while we make changes to the
 		 * list and RR pointer.
 		 */
 		if (list_is_last(&ccp_rr->entry, &ccp_units))
 			ccp_rr = list_first_entry(&ccp_units, struct ccp_device,
-						  entry);
+									  entry);
 		else
+		{
 			ccp_rr = list_next_entry(ccp_rr, entry);
+		}
 	}
+
 	list_del(&ccp->entry);
+
 	if (list_empty(&ccp_units))
+	{
 		ccp_rr = NULL;
+	}
+
 	write_unlock_irqrestore(&ccp_unit_lock, flags);
 }
 
@@ -183,8 +198,11 @@ int ccp_register_rng(struct ccp_device *ccp)
 	ccp->hwrng.name = ccp->rngname;
 	ccp->hwrng.read = ccp_trng_read;
 	ret = hwrng_register(&ccp->hwrng);
+
 	if (ret)
+	{
 		dev_err(ccp->dev, "error registering hwrng (%d)\n", ret);
+	}
 
 	return ret;
 }
@@ -192,7 +210,9 @@ int ccp_register_rng(struct ccp_device *ccp)
 void ccp_unregister_rng(struct ccp_device *ccp)
 {
 	if (ccp->hwrng.name)
+	{
 		hwrng_unregister(&ccp->hwrng);
+	}
 }
 
 static struct ccp_device *ccp_get_device(void)
@@ -204,16 +224,23 @@ static struct ccp_device *ccp_get_device(void)
 	 * The (ccp_rr) pointer refers to the next unit to use.
 	 */
 	read_lock_irqsave(&ccp_unit_lock, flags);
-	if (!list_empty(&ccp_units)) {
+
+	if (!list_empty(&ccp_units))
+	{
 		spin_lock(&ccp_rr_lock);
 		dp = ccp_rr;
+
 		if (list_is_last(&ccp_rr->entry, &ccp_units))
 			ccp_rr = list_first_entry(&ccp_units, struct ccp_device,
-						  entry);
+									  entry);
 		else
+		{
 			ccp_rr = list_next_entry(ccp_rr, entry);
+		}
+
 		spin_unlock(&ccp_rr_lock);
 	}
+
 	read_unlock_irqrestore(&ccp_unit_lock, flags);
 
 	return dp;
@@ -250,10 +277,13 @@ unsigned int ccp_version(void)
 	int ret = 0;
 
 	read_lock_irqsave(&ccp_unit_lock, flags);
-	if (!list_empty(&ccp_units)) {
+
+	if (!list_empty(&ccp_units))
+	{
 		dp = list_first_entry(&ccp_units, struct ccp_device, entry);
 		ret = dp->vdata->version;
 	}
+
 	read_unlock_irqrestore(&ccp_unit_lock, flags);
 
 	return ret;
@@ -289,11 +319,15 @@ int ccp_enqueue_cmd(struct ccp_cmd *cmd)
 	int ret;
 
 	if (!ccp)
+	{
 		return -ENODEV;
+	}
 
 	/* Caller must supply a callback routine */
 	if (!cmd->callback)
+	{
 		return -EINVAL;
+	}
 
 	cmd->ccp = ccp;
 
@@ -301,20 +335,30 @@ int ccp_enqueue_cmd(struct ccp_cmd *cmd)
 
 	i = ccp->cmd_q_count;
 
-	if (ccp->cmd_count >= MAX_CMD_QLEN) {
+	if (ccp->cmd_count >= MAX_CMD_QLEN)
+	{
 		ret = -EBUSY;
+
 		if (cmd->flags & CCP_CMD_MAY_BACKLOG)
+		{
 			list_add_tail(&cmd->entry, &ccp->backlog);
-	} else {
+		}
+	}
+	else
+	{
 		ret = -EINPROGRESS;
 		ccp->cmd_count++;
 		list_add_tail(&cmd->entry, &ccp->cmd);
 
 		/* Find an idle queue */
-		if (!ccp->suspending) {
-			for (i = 0; i < ccp->cmd_q_count; i++) {
+		if (!ccp->suspending)
+		{
+			for (i = 0; i < ccp->cmd_q_count; i++)
+			{
 				if (ccp->cmd_q[i].active)
+				{
 					continue;
+				}
 
 				break;
 			}
@@ -325,7 +369,9 @@ int ccp_enqueue_cmd(struct ccp_cmd *cmd)
 
 	/* If we found an idle queue, wake it up */
 	if (i < ccp->cmd_q_count)
+	{
 		wake_up_process(ccp->cmd_q[i].kthread);
+	}
 
 	return ret;
 }
@@ -346,9 +392,12 @@ static void ccp_do_cmd_backlog(struct work_struct *work)
 	list_add_tail(&cmd->entry, &ccp->cmd);
 
 	/* Find an idle queue */
-	for (i = 0; i < ccp->cmd_q_count; i++) {
+	for (i = 0; i < ccp->cmd_q_count; i++)
+	{
 		if (ccp->cmd_q[i].active)
+		{
 			continue;
+		}
 
 		break;
 	}
@@ -357,7 +406,9 @@ static void ccp_do_cmd_backlog(struct work_struct *work)
 
 	/* If we found an idle queue, wake it up */
 	if (i < ccp->cmd_q_count)
+	{
 		wake_up_process(ccp->cmd_q[i].kthread);
+	}
 }
 
 static struct ccp_cmd *ccp_dequeue_cmd(struct ccp_cmd_queue *cmd_q)
@@ -371,7 +422,8 @@ static struct ccp_cmd *ccp_dequeue_cmd(struct ccp_cmd_queue *cmd_q)
 
 	cmd_q->active = 0;
 
-	if (ccp->suspending) {
+	if (ccp->suspending)
+	{
 		cmd_q->suspended = 1;
 
 		spin_unlock_irqrestore(&ccp->cmd_lock, flags);
@@ -380,7 +432,8 @@ static struct ccp_cmd *ccp_dequeue_cmd(struct ccp_cmd_queue *cmd_q)
 		return NULL;
 	}
 
-	if (ccp->cmd_count) {
+	if (ccp->cmd_count)
+	{
 		cmd_q->active = 1;
 
 		cmd = list_first_entry(&ccp->cmd, struct ccp_cmd, entry);
@@ -389,15 +442,17 @@ static struct ccp_cmd *ccp_dequeue_cmd(struct ccp_cmd_queue *cmd_q)
 		ccp->cmd_count--;
 	}
 
-	if (!list_empty(&ccp->backlog)) {
+	if (!list_empty(&ccp->backlog))
+	{
 		backlog = list_first_entry(&ccp->backlog, struct ccp_cmd,
-					   entry);
+								   entry);
 		list_del(&backlog->entry);
 	}
 
 	spin_unlock_irqrestore(&ccp->cmd_lock, flags);
 
-	if (backlog) {
+	if (backlog)
+	{
 		INIT_WORK(&backlog->work, ccp_do_cmd_backlog);
 		schedule_work(&backlog->work);
 	}
@@ -429,14 +484,19 @@ int ccp_cmd_queue_thread(void *data)
 	tasklet_init(&tasklet, ccp_do_cmd_complete, (unsigned long)&tdata);
 
 	set_current_state(TASK_INTERRUPTIBLE);
-	while (!kthread_should_stop()) {
+
+	while (!kthread_should_stop())
+	{
 		schedule();
 
 		set_current_state(TASK_INTERRUPTIBLE);
 
 		cmd = ccp_dequeue_cmd(cmd_q);
+
 		if (!cmd)
+		{
 			continue;
+		}
 
 		__set_current_state(TASK_RUNNING);
 
@@ -465,8 +525,12 @@ struct ccp_device *ccp_alloc_struct(struct device *dev)
 	struct ccp_device *ccp;
 
 	ccp = devm_kzalloc(dev, sizeof(*ccp), GFP_KERNEL);
+
 	if (!ccp)
+	{
 		return NULL;
+	}
+
 	ccp->dev = dev;
 
 	INIT_LIST_HEAD(&ccp->cmd);
@@ -495,13 +559,17 @@ int ccp_trng_read(struct hwrng *rng, void *data, size_t max, bool wait)
 	 * hwrng-related fields safely
 	 */
 	trng_value = ioread32(ccp->io_regs + TRNG_OUT_REG);
-	if (!trng_value) {
+
+	if (!trng_value)
+	{
 		/* Zero is returned if not data is available or if a
 		 * bad-entropy error is present. Assume an error if
 		 * we exceed TRNG_RETRIES reads of zero.
 		 */
 		if (ccp->hwrng_retries++ > TRNG_RETRIES)
+		{
 			return -EIO;
+		}
 
 		return 0;
 	}
@@ -524,7 +592,9 @@ bool ccp_queues_suspended(struct ccp_device *ccp)
 
 	for (i = 0; i < ccp->cmd_q_count; i++)
 		if (ccp->cmd_q[i].suspended)
+		{
 			suspended++;
+		}
 
 	spin_unlock_irqrestore(&ccp->cmd_lock, flags);
 
@@ -538,11 +608,15 @@ static int __init ccp_mod_init(void)
 	int ret;
 
 	ret = ccp_pci_init();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Don't leave the driver loaded if init failed */
-	if (ccp_present() != 0) {
+	if (ccp_present() != 0)
+	{
 		ccp_pci_exit();
 		return -ENODEV;
 	}
@@ -554,11 +628,15 @@ static int __init ccp_mod_init(void)
 	int ret;
 
 	ret = ccp_platform_init();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Don't leave the driver loaded if init failed */
-	if (ccp_present() != 0) {
+	if (ccp_present() != 0)
+	{
 		ccp_platform_exit();
 		return -ENODEV;
 	}

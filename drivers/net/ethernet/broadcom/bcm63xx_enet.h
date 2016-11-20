@@ -133,7 +133,8 @@
 #define ETHSW_MIB_RX_8192_9728			47
 
 
-struct bcm_enet_mib_counters {
+struct bcm_enet_mib_counters
+{
 	u64 tx_gd_octets;
 	u32 tx_gd_pkts;
 	u32 tx_all_octets;
@@ -191,7 +192,8 @@ struct bcm_enet_mib_counters {
 };
 
 
-struct bcm_enet_priv {
+struct bcm_enet_priv
+{
 
 	/* mac id (from platform device id) */
 	int mac_id;

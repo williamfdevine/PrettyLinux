@@ -70,7 +70,8 @@
 #define SAIMR_RFS	(1 << 4)	/* Enable Rx FIFO Service Interrupt */
 #define SAIMR_TFS	(1 << 3)	/* Enable Tx FIFO Service Interrupt */
 
-struct pxa_i2s_port {
+struct pxa_i2s_port
+{
 	u32 sadiv;
 	u32 sacr0;
 	u32 sacr1;
@@ -83,7 +84,8 @@ static struct clk *clk_i2s;
 static int clk_ena = 0;
 
 static unsigned long pxa2xx_i2s_pcm_stereo_out_req = 3;
-static struct snd_dmaengine_dai_dma_data pxa2xx_i2s_pcm_stereo_out = {
+static struct snd_dmaengine_dai_dma_data pxa2xx_i2s_pcm_stereo_out =
+{
 	.addr		= __PREG(SADR),
 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
 	.maxburst	= 32,
@@ -91,7 +93,8 @@ static struct snd_dmaengine_dai_dma_data pxa2xx_i2s_pcm_stereo_out = {
 };
 
 static unsigned long pxa2xx_i2s_pcm_stereo_in_req = 2;
-static struct snd_dmaengine_dai_dma_data pxa2xx_i2s_pcm_stereo_in = {
+static struct snd_dmaengine_dai_dma_data pxa2xx_i2s_pcm_stereo_in =
+{
 	.addr		= __PREG(SADR),
 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
 	.maxburst	= 32,
@@ -99,16 +102,20 @@ static struct snd_dmaengine_dai_dma_data pxa2xx_i2s_pcm_stereo_in = {
 };
 
 static int pxa2xx_i2s_startup(struct snd_pcm_substream *substream,
-			      struct snd_soc_dai *dai)
+							  struct snd_soc_dai *dai)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
 
 	if (IS_ERR(clk_i2s))
+	{
 		return PTR_ERR(clk_i2s);
+	}
 
 	if (!cpu_dai->active)
+	{
 		SACR0 = 0;
+	}
 
 	return 0;
 }
@@ -119,147 +126,195 @@ static int pxa_i2s_wait(void)
 	int i;
 
 	/* flush the Rx FIFO */
-	for(i = 0; i < 16; i++)
+	for (i = 0; i < 16; i++)
+	{
 		SADR;
+	}
+
 	return 0;
 }
 
 static int pxa2xx_i2s_set_dai_fmt(struct snd_soc_dai *cpu_dai,
-		unsigned int fmt)
+								  unsigned int fmt)
 {
 	/* interface format */
-	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-	case SND_SOC_DAIFMT_I2S:
-		pxa_i2s.fmt = 0;
-		break;
-	case SND_SOC_DAIFMT_LEFT_J:
-		pxa_i2s.fmt = SACR1_AMSL;
-		break;
+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK)
+	{
+		case SND_SOC_DAIFMT_I2S:
+			pxa_i2s.fmt = 0;
+			break;
+
+		case SND_SOC_DAIFMT_LEFT_J:
+			pxa_i2s.fmt = SACR1_AMSL;
+			break;
 	}
 
-	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
-	case SND_SOC_DAIFMT_CBS_CFS:
-		pxa_i2s.master = 1;
-		break;
-	case SND_SOC_DAIFMT_CBM_CFS:
-		pxa_i2s.master = 0;
-		break;
-	default:
-		break;
+	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK)
+	{
+		case SND_SOC_DAIFMT_CBS_CFS:
+			pxa_i2s.master = 1;
+			break;
+
+		case SND_SOC_DAIFMT_CBM_CFS:
+			pxa_i2s.master = 0;
+			break;
+
+		default:
+			break;
 	}
+
 	return 0;
 }
 
 static int pxa2xx_i2s_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
-		int clk_id, unsigned int freq, int dir)
+									 int clk_id, unsigned int freq, int dir)
 {
 	if (clk_id != PXA2XX_I2S_SYSCLK)
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
 
 static int pxa2xx_i2s_hw_params(struct snd_pcm_substream *substream,
-				struct snd_pcm_hw_params *params,
-				struct snd_soc_dai *dai)
+								struct snd_pcm_hw_params *params,
+								struct snd_soc_dai *dai)
 {
 	struct snd_dmaengine_dai_dma_data *dma_data;
 
 	if (WARN_ON(IS_ERR(clk_i2s)))
+	{
 		return -EINVAL;
+	}
+
 	clk_prepare_enable(clk_i2s);
 	clk_ena = 1;
 	pxa_i2s_wait();
 
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+	{
 		dma_data = &pxa2xx_i2s_pcm_stereo_out;
+	}
 	else
+	{
 		dma_data = &pxa2xx_i2s_pcm_stereo_in;
+	}
 
 	snd_soc_dai_set_dma_data(dai, substream, dma_data);
 
 	/* is port used by another stream */
-	if (!(SACR0 & SACR0_ENB)) {
+	if (!(SACR0 & SACR0_ENB))
+	{
 		SACR0 = 0;
+
 		if (pxa_i2s.master)
+		{
 			SACR0 |= SACR0_BCKD;
+		}
 
 		SACR0 |= SACR0_RFTH(14) | SACR0_TFTH(1);
 		SACR1 |= pxa_i2s.fmt;
 	}
-	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
-		SAIMR |= SAIMR_TFS;
-	else
-		SAIMR |= SAIMR_RFS;
 
-	switch (params_rate(params)) {
-	case 8000:
-		SADIV = 0x48;
-		break;
-	case 11025:
-		SADIV = 0x34;
-		break;
-	case 16000:
-		SADIV = 0x24;
-		break;
-	case 22050:
-		SADIV = 0x1a;
-		break;
-	case 44100:
-		SADIV = 0xd;
-		break;
-	case 48000:
-		SADIV = 0xc;
-		break;
-	case 96000: /* not in manual and possibly slightly inaccurate */
-		SADIV = 0x6;
-		break;
+	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+	{
+		SAIMR |= SAIMR_TFS;
+	}
+	else
+	{
+		SAIMR |= SAIMR_RFS;
+	}
+
+	switch (params_rate(params))
+	{
+		case 8000:
+			SADIV = 0x48;
+			break;
+
+		case 11025:
+			SADIV = 0x34;
+			break;
+
+		case 16000:
+			SADIV = 0x24;
+			break;
+
+		case 22050:
+			SADIV = 0x1a;
+			break;
+
+		case 44100:
+			SADIV = 0xd;
+			break;
+
+		case 48000:
+			SADIV = 0xc;
+			break;
+
+		case 96000: /* not in manual and possibly slightly inaccurate */
+			SADIV = 0x6;
+			break;
 	}
 
 	return 0;
 }
 
 static int pxa2xx_i2s_trigger(struct snd_pcm_substream *substream, int cmd,
-			      struct snd_soc_dai *dai)
+							  struct snd_soc_dai *dai)
 {
 	int ret = 0;
 
-	switch (cmd) {
-	case SNDRV_PCM_TRIGGER_START:
-		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
-			SACR1 &= ~SACR1_DRPL;
-		else
-			SACR1 &= ~SACR1_DREC;
-		SACR0 |= SACR0_ENB;
-		break;
-	case SNDRV_PCM_TRIGGER_RESUME:
-	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-	case SNDRV_PCM_TRIGGER_STOP:
-	case SNDRV_PCM_TRIGGER_SUSPEND:
-	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
-		break;
-	default:
-		ret = -EINVAL;
+	switch (cmd)
+	{
+		case SNDRV_PCM_TRIGGER_START:
+			if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+			{
+				SACR1 &= ~SACR1_DRPL;
+			}
+			else
+			{
+				SACR1 &= ~SACR1_DREC;
+			}
+
+			SACR0 |= SACR0_ENB;
+			break;
+
+		case SNDRV_PCM_TRIGGER_RESUME:
+		case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+		case SNDRV_PCM_TRIGGER_STOP:
+		case SNDRV_PCM_TRIGGER_SUSPEND:
+		case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	return ret;
 }
 
 static void pxa2xx_i2s_shutdown(struct snd_pcm_substream *substream,
-				struct snd_soc_dai *dai)
+								struct snd_soc_dai *dai)
 {
-	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
+	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+	{
 		SACR1 |= SACR1_DRPL;
 		SAIMR &= ~SAIMR_TFS;
-	} else {
+	}
+	else
+	{
 		SACR1 |= SACR1_DREC;
 		SAIMR &= ~SAIMR_RFS;
 	}
 
-	if ((SACR1 & (SACR1_DREC | SACR1_DRPL)) == (SACR1_DREC | SACR1_DRPL)) {
+	if ((SACR1 & (SACR1_DREC | SACR1_DRPL)) == (SACR1_DREC | SACR1_DRPL))
+	{
 		SACR0 &= ~SACR0_ENB;
 		pxa_i2s_wait();
-		if (clk_ena) {
+
+		if (clk_ena)
+		{
 			clk_disable_unprepare(clk_i2s);
 			clk_ena = 0;
 		}
@@ -303,8 +358,11 @@ static int pxa2xx_i2s_resume(struct snd_soc_dai *dai)
 static int pxa2xx_i2s_probe(struct snd_soc_dai *dai)
 {
 	clk_i2s = clk_get(dai->dev, "I2SCLK");
+
 	if (IS_ERR(clk_i2s))
+	{
 		return PTR_ERR(clk_i2s);
+	}
 
 	/*
 	 * PXA Developer's Manual:
@@ -320,7 +378,7 @@ static int pxa2xx_i2s_probe(struct snd_soc_dai *dai)
 	SAIMR &= ~(SAIMR_RFS | SAIMR_TFS);
 
 	snd_soc_dai_init_dma_data(dai, &pxa2xx_i2s_pcm_stereo_out,
-		&pxa2xx_i2s_pcm_stereo_in);
+							  &pxa2xx_i2s_pcm_stereo_in);
 
 	return 0;
 }
@@ -333,10 +391,11 @@ static int  pxa2xx_i2s_remove(struct snd_soc_dai *dai)
 }
 
 #define PXA2XX_I2S_RATES (SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_11025 |\
-		SNDRV_PCM_RATE_16000 | SNDRV_PCM_RATE_22050 | SNDRV_PCM_RATE_44100 | \
-		SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_96000)
+						  SNDRV_PCM_RATE_16000 | SNDRV_PCM_RATE_22050 | SNDRV_PCM_RATE_44100 | \
+						  SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_96000)
 
-static const struct snd_soc_dai_ops pxa_i2s_dai_ops = {
+static const struct snd_soc_dai_ops pxa_i2s_dai_ops =
+{
 	.startup	= pxa2xx_i2s_startup,
 	.shutdown	= pxa2xx_i2s_shutdown,
 	.trigger	= pxa2xx_i2s_trigger,
@@ -345,7 +404,8 @@ static const struct snd_soc_dai_ops pxa_i2s_dai_ops = {
 	.set_sysclk	= pxa2xx_i2s_set_dai_sysclk,
 };
 
-static struct snd_soc_dai_driver pxa_i2s_dai = {
+static struct snd_soc_dai_driver pxa_i2s_dai =
+{
 	.probe = pxa2xx_i2s_probe,
 	.remove = pxa2xx_i2s_remove,
 	.suspend = pxa2xx_i2s_suspend,
@@ -354,27 +414,31 @@ static struct snd_soc_dai_driver pxa_i2s_dai = {
 		.channels_min = 2,
 		.channels_max = 2,
 		.rates = PXA2XX_I2S_RATES,
-		.formats = SNDRV_PCM_FMTBIT_S16_LE,},
+		.formats = SNDRV_PCM_FMTBIT_S16_LE,
+	},
 	.capture = {
 		.channels_min = 2,
 		.channels_max = 2,
 		.rates = PXA2XX_I2S_RATES,
-		.formats = SNDRV_PCM_FMTBIT_S16_LE,},
+		.formats = SNDRV_PCM_FMTBIT_S16_LE,
+	},
 	.ops = &pxa_i2s_dai_ops,
 	.symmetric_rates = 1,
 };
 
-static const struct snd_soc_component_driver pxa_i2s_component = {
+static const struct snd_soc_component_driver pxa_i2s_component =
+{
 	.name		= "pxa-i2s",
 };
 
 static int pxa2xx_i2s_drv_probe(struct platform_device *pdev)
 {
 	return devm_snd_soc_register_component(&pdev->dev, &pxa_i2s_component,
-					       &pxa_i2s_dai, 1);
+										   &pxa_i2s_dai, 1);
 }
 
-static struct platform_driver pxa2xx_i2s_driver = {
+static struct platform_driver pxa2xx_i2s_driver =
+{
 	.probe = pxa2xx_i2s_drv_probe,
 
 	.driver = {

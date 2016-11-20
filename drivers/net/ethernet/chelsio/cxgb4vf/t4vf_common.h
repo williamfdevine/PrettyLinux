@@ -54,7 +54,8 @@
 #define CHELSIO_T5		0x5
 #define CHELSIO_T6		0x6
 
-enum chip_type {
+enum chip_type
+{
 	T4_A1 = CHELSIO_CHIP_CODE(CHELSIO_T4, 1),
 	T4_A2 = CHELSIO_CHIP_CODE(CHELSIO_T4, 2),
 	T4_FIRST_REV	= T4_A1,
@@ -74,7 +75,8 @@ enum chip_type {
 /*
  * Per-VF statistics.
  */
-struct t4vf_port_stats {
+struct t4vf_port_stats
+{
 	/*
 	 * TX statistics.
 	 */
@@ -104,7 +106,8 @@ struct t4vf_port_stats {
 /*
  * Per-"port" (Virtual Interface) link configuration ...
  */
-struct link_config {
+struct link_config
+{
 	unsigned int   supported;        /* link capabilities */
 	unsigned int   advertising;      /* advertised capabilities */
 	unsigned short lp_advertising;   /* peer advertised capabilities */
@@ -116,7 +119,8 @@ struct link_config {
 	unsigned char  link_ok;          /* link up? */
 };
 
-enum {
+enum
+{
 	PAUSE_RX      = 1 << 0,
 	PAUSE_TX      = 1 << 1,
 	PAUSE_AUTONEG = 1 << 2
@@ -125,7 +129,8 @@ enum {
 /*
  * General device parameters ...
  */
-struct dev_params {
+struct dev_params
+{
 	u32 fwrev;			/* firmware version */
 	u32 tprev;			/* TP Microcode Version */
 };
@@ -135,7 +140,8 @@ struct dev_params {
  * Physical Function Driver.  We just need to grab them to see within which
  * environment we're playing ...
  */
-struct sge_params {
+struct sge_params
+{
 	u32 sge_control;		/* padding, boundaries, lengths, etc. */
 	u32 sge_control2;		/* T5: more of the same */
 	u32 sge_host_page_size;		/* PF0-7 page sizes */
@@ -155,12 +161,14 @@ struct sge_params {
 /*
  * Vital Product Data parameters.
  */
-struct vpd_params {
+struct vpd_params
+{
 	u32 cclk;			/* Core Clock (KHz) */
 };
 
 /* Stores chip specific parameters */
-struct arch_specific_params {
+struct arch_specific_params
+{
 	u32 sge_fl_db;
 	u16 mps_tcam_size;
 };
@@ -168,41 +176,47 @@ struct arch_specific_params {
 /*
  * Global Receive Side Scaling (RSS) parameters in host-native format.
  */
-struct rss_params {
+struct rss_params
+{
 	unsigned int mode;		/* RSS mode */
-	union {
-	    struct {
-		unsigned int synmapen:1;	/* SYN Map Enable */
-		unsigned int syn4tupenipv6:1;	/* enable hashing 4-tuple IPv6 SYNs */
-		unsigned int syn2tupenipv6:1;	/* enable hashing 2-tuple IPv6 SYNs */
-		unsigned int syn4tupenipv4:1;	/* enable hashing 4-tuple IPv4 SYNs */
-		unsigned int syn2tupenipv4:1;	/* enable hashing 2-tuple IPv4 SYNs */
-		unsigned int ofdmapen:1;	/* Offload Map Enable */
-		unsigned int tnlmapen:1;	/* Tunnel Map Enable */
-		unsigned int tnlalllookup:1;	/* Tunnel All Lookup */
-		unsigned int hashtoeplitz:1;	/* use Toeplitz hash */
-	    } basicvirtual;
+	union
+	{
+		struct
+		{
+			unsigned int synmapen: 1;	/* SYN Map Enable */
+			unsigned int syn4tupenipv6: 1;	/* enable hashing 4-tuple IPv6 SYNs */
+			unsigned int syn2tupenipv6: 1;	/* enable hashing 2-tuple IPv6 SYNs */
+			unsigned int syn4tupenipv4: 1;	/* enable hashing 4-tuple IPv4 SYNs */
+			unsigned int syn2tupenipv4: 1;	/* enable hashing 2-tuple IPv4 SYNs */
+			unsigned int ofdmapen: 1;	/* Offload Map Enable */
+			unsigned int tnlmapen: 1;	/* Tunnel Map Enable */
+			unsigned int tnlalllookup: 1;	/* Tunnel All Lookup */
+			unsigned int hashtoeplitz: 1;	/* use Toeplitz hash */
+		} basicvirtual;
 	} u;
 };
 
 /*
  * Virtual Interface RSS Configuration in host-native format.
  */
-union rss_vi_config {
-    struct {
-	u16 defaultq;			/* Ingress Queue ID for !tnlalllookup */
-	unsigned int ip6fourtupen:1;	/* hash 4-tuple IPv6 ingress packets */
-	unsigned int ip6twotupen:1;	/* hash 2-tuple IPv6 ingress packets */
-	unsigned int ip4fourtupen:1;	/* hash 4-tuple IPv4 ingress packets */
-	unsigned int ip4twotupen:1;	/* hash 2-tuple IPv4 ingress packets */
-	int udpen;			/* hash 4-tuple UDP ingress packets */
-    } basicvirtual;
+union rss_vi_config
+{
+	struct
+	{
+		u16 defaultq;			/* Ingress Queue ID for !tnlalllookup */
+		unsigned int ip6fourtupen: 1;	/* hash 4-tuple IPv6 ingress packets */
+		unsigned int ip6twotupen: 1;	/* hash 2-tuple IPv6 ingress packets */
+		unsigned int ip4fourtupen: 1;	/* hash 4-tuple IPv4 ingress packets */
+		unsigned int ip4twotupen: 1;	/* hash 2-tuple IPv4 ingress packets */
+		int udpen;			/* hash 4-tuple UDP ingress packets */
+	} basicvirtual;
 };
 
 /*
  * Maximum resources provisioned for a PCI VF.
  */
-struct vf_resources {
+struct vf_resources
+{
 	unsigned int nvi;		/* N virtual interfaces */
 	unsigned int neq;		/* N egress Qs */
 	unsigned int nethctrl;		/* N egress ETH or CTRL Qs */
@@ -218,7 +232,8 @@ struct vf_resources {
 /*
  * Per-"adapter" (Virtual Function) parameters.
  */
-struct adapter_params {
+struct adapter_params
+{
 	struct dev_params dev;		/* general device parameters */
 	struct sge_params sge;		/* Scatter Gather Engine */
 	struct vpd_params vpd;		/* Vital Product Data */
@@ -233,7 +248,8 @@ struct adapter_params {
  * The access and execute times are signed in order to accommodate negative
  * error returns.
  */
-struct mbox_cmd {
+struct mbox_cmd
+{
 	u64 cmd[MBOX_LEN / 8];		/* a Firmware Mailbox Command/Reply */
 	u64 timestamp;			/* OS-dependent timestamp */
 	u32 seqno;			/* sequence number */
@@ -241,7 +257,8 @@ struct mbox_cmd {
 	s16 execute;			/* time (ms) to execute */
 };
 
-struct mbox_cmd_log {
+struct mbox_cmd_log
+{
 	unsigned int size;		/* number of entries in the log */
 	unsigned int cursor;		/* next position in the log to write */
 	u32 seqno;			/* next sequence number */
@@ -252,15 +269,15 @@ struct mbox_cmd_log {
  * return a pointer to the specified entry.
  */
 static inline struct mbox_cmd *mbox_cmd_log_entry(struct mbox_cmd_log *log,
-						  unsigned int entry_idx)
+		unsigned int entry_idx)
 {
-	return &((struct mbox_cmd *)&(log)[1])[entry_idx];
+	return &((struct mbox_cmd *) & (log)[1])[entry_idx];
 }
 
 #include "adapter.h"
 
 #ifndef PCI_VENDOR_ID_CHELSIO
-# define PCI_VENDOR_ID_CHELSIO 0x1425
+	#define PCI_VENDOR_ID_CHELSIO 0x1425
 #endif
 
 #define for_each_port(adapter, iter) \
@@ -290,13 +307,13 @@ static inline unsigned int core_ticks_per_usec(const struct adapter *adapter)
 }
 
 static inline unsigned int us_to_core_ticks(const struct adapter *adapter,
-					    unsigned int us)
+		unsigned int us)
 {
 	return (us * adapter->params.vpd.cclk) / 1000;
 }
 
 static inline unsigned int core_ticks_to_us(const struct adapter *adapter,
-					    unsigned int ticks)
+		unsigned int ticks)
 {
 	return (ticks * 1000) / adapter->params.vpd.cclk;
 }
@@ -304,13 +321,13 @@ static inline unsigned int core_ticks_to_us(const struct adapter *adapter,
 int t4vf_wr_mbox_core(struct adapter *, const void *, int, void *, bool);
 
 static inline int t4vf_wr_mbox(struct adapter *adapter, const void *cmd,
-			       int size, void *rpl)
+							   int size, void *rpl)
 {
 	return t4vf_wr_mbox_core(adapter, cmd, size, rpl, true);
 }
 
 static inline int t4vf_wr_mbox_ns(struct adapter *adapter, const void *cmd,
-				  int size, void *rpl)
+								  int size, void *rpl)
 {
 	return t4vf_wr_mbox_core(adapter, cmd, size, rpl, false);
 }
@@ -349,10 +366,10 @@ int t4vf_set_params(struct adapter *, unsigned int, const u32 *, const u32 *);
 int t4vf_fl_pkt_align(struct adapter *adapter);
 enum t4_bar2_qtype { T4_BAR2_QTYPE_EGRESS, T4_BAR2_QTYPE_INGRESS };
 int t4vf_bar2_sge_qregs(struct adapter *adapter,
-			unsigned int qid,
-			enum t4_bar2_qtype qtype,
-			u64 *pbar2_qoffset,
-			unsigned int *pbar2_qid);
+						unsigned int qid,
+						enum t4_bar2_qtype qtype,
+						u64 *pbar2_qoffset,
+						unsigned int *pbar2_qid);
 
 unsigned int t4vf_get_pf_from_vf(struct adapter *);
 int t4vf_get_sge_params(struct adapter *);
@@ -362,11 +379,11 @@ int t4vf_get_rss_glb_config(struct adapter *);
 int t4vf_get_vfres(struct adapter *);
 
 int t4vf_read_rss_vi_config(struct adapter *, unsigned int,
-			    union rss_vi_config *);
+							union rss_vi_config *);
 int t4vf_write_rss_vi_config(struct adapter *, unsigned int,
-			     union rss_vi_config *);
+							 union rss_vi_config *);
 int t4vf_config_rss_range(struct adapter *, unsigned int, int, int,
-			  const u16 *, int);
+						  const u16 *, int);
 
 int t4vf_alloc_vi(struct adapter *, int);
 int t4vf_free_vi(struct adapter *, int);
@@ -374,22 +391,22 @@ int t4vf_enable_vi(struct adapter *, unsigned int, bool, bool);
 int t4vf_identify_port(struct adapter *, unsigned int, unsigned int);
 
 int t4vf_set_rxmode(struct adapter *, unsigned int, int, int, int, int, int,
-		    bool);
+					bool);
 int t4vf_alloc_mac_filt(struct adapter *, unsigned int, bool, unsigned int,
-			const u8 **, u16 *, u64 *, bool);
+						const u8 **, u16 *, u64 *, bool);
 int t4vf_free_mac_filt(struct adapter *, unsigned int, unsigned int naddr,
-		       const u8 **, bool);
+					   const u8 **, bool);
 int t4vf_change_mac(struct adapter *, unsigned int, int, const u8 *, bool);
 int t4vf_set_addr_hash(struct adapter *, unsigned int, bool, u64, bool);
 int t4vf_get_port_stats(struct adapter *, int, struct t4vf_port_stats *);
 
 int t4vf_iq_free(struct adapter *, unsigned int, unsigned int, unsigned int,
-		 unsigned int);
+				 unsigned int);
 int t4vf_eth_eq_free(struct adapter *, unsigned int);
 
 int t4vf_handle_fw_rpl(struct adapter *, const __be64 *);
 int t4vf_prep_adapter(struct adapter *);
 int t4vf_get_vf_mac_acl(struct adapter *adapter, unsigned int pf,
-			unsigned int *naddr, u8 *addr);
+						unsigned int *naddr, u8 *addr);
 
 #endif /* __T4VF_COMMON_H__ */

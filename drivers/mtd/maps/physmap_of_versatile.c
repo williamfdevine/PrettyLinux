@@ -32,14 +32,16 @@
 
 static struct regmap *syscon_regmap;
 
-enum versatile_flashprot {
+enum versatile_flashprot
+{
 	INTEGRATOR_AP_FLASHPROT,
 	INTEGRATOR_CP_FLASHPROT,
 	VERSATILE_FLASHPROT,
 	REALVIEW_FLASHPROT,
 };
 
-static const struct of_device_id syscon_match[] = {
+static const struct of_device_id syscon_match[] =
+{
 	{
 		.compatible = "arm,integrator-ap-syscon",
 		.data = (void *)INTEGRATOR_AP_FLASHPROT,
@@ -89,7 +91,8 @@ static const struct of_device_id syscon_match[] = {
 #define INTEGRATOR_EBI_LOCK_OFFSET	0x20
 #define INTEGRATOR_EBI_LOCK_VAL		0xA05F
 
-static const struct of_device_id ebi_match[] = {
+static const struct of_device_id ebi_match[] =
+{
 	{ .compatible = "arm,external-bus-interface"},
 	{ },
 };
@@ -103,19 +106,28 @@ static int ap_flash_init(struct platform_device *pdev)
 
 	/* Look up the EBI */
 	ebi = of_find_matching_node(NULL, ebi_match);
-	if (!ebi) {
+
+	if (!ebi)
+	{
 		return -ENODEV;
 	}
+
 	ebi_base = of_iomap(ebi, 0);
+
 	if (!ebi_base)
+	{
 		return -ENODEV;
+	}
 
 	/* Clear VPP and write protection bits */
 	ret = regmap_write(syscon_regmap,
-		INTEGRATOR_SC_CTRLC_OFFSET,
-		INTEGRATOR_SC_CTRL_FLVPPEN | INTEGRATOR_SC_CTRL_FLWP);
+					   INTEGRATOR_SC_CTRLC_OFFSET,
+					   INTEGRATOR_SC_CTRL_FLVPPEN | INTEGRATOR_SC_CTRL_FLWP);
+
 	if (ret)
+	{
 		dev_err(&pdev->dev, "error clearing Integrator VPP/WP\n");
+	}
 
 	/* Unlock the EBI */
 	writel(INTEGRATOR_EBI_LOCK_VAL, ebi_base + INTEGRATOR_EBI_LOCK_OFFSET);
@@ -136,18 +148,27 @@ static void ap_flash_set_vpp(struct map_info *map, int on)
 {
 	int ret;
 
-	if (on) {
+	if (on)
+	{
 		ret = regmap_write(syscon_regmap,
-			INTEGRATOR_SC_CTRLS_OFFSET,
-			INTEGRATOR_SC_CTRL_FLVPPEN | INTEGRATOR_SC_CTRL_FLWP);
+						   INTEGRATOR_SC_CTRLS_OFFSET,
+						   INTEGRATOR_SC_CTRL_FLVPPEN | INTEGRATOR_SC_CTRL_FLWP);
+
 		if (ret)
+		{
 			pr_err("error enabling AP VPP\n");
-	} else {
+		}
+	}
+	else
+	{
 		ret = regmap_write(syscon_regmap,
-			INTEGRATOR_SC_CTRLC_OFFSET,
-			INTEGRATOR_SC_CTRL_FLVPPEN | INTEGRATOR_SC_CTRL_FLWP);
+						   INTEGRATOR_SC_CTRLC_OFFSET,
+						   INTEGRATOR_SC_CTRL_FLVPPEN | INTEGRATOR_SC_CTRL_FLWP);
+
 		if (ret)
+		{
 			pr_err("error disabling AP VPP\n");
+		}
 	}
 }
 
@@ -164,20 +185,29 @@ static void cp_flash_set_vpp(struct map_info *map, int on)
 {
 	int ret;
 
-	if (on) {
+	if (on)
+	{
 		ret = regmap_update_bits(syscon_regmap,
-				INTCP_FLASHPROG_OFFSET,
-				CINTEGRATOR_FLMASK,
-				CINTEGRATOR_FLVPPEN | CINTEGRATOR_FLWREN);
+								 INTCP_FLASHPROG_OFFSET,
+								 CINTEGRATOR_FLMASK,
+								 CINTEGRATOR_FLVPPEN | CINTEGRATOR_FLWREN);
+
 		if (ret)
+		{
 			pr_err("error setting CP VPP\n");
-	} else {
+		}
+	}
+	else
+	{
 		ret = regmap_update_bits(syscon_regmap,
-				INTCP_FLASHPROG_OFFSET,
-				CINTEGRATOR_FLMASK,
-				0);
+								 INTCP_FLASHPROG_OFFSET,
+								 CINTEGRATOR_FLMASK,
+								 0);
+
 		if (ret)
+		{
 			pr_err("error setting CP VPP\n");
+		}
 	}
 }
 
@@ -192,14 +222,17 @@ static void versatile_flash_set_vpp(struct map_info *map, int on)
 	int ret;
 
 	ret = regmap_update_bits(syscon_regmap, VERSATILE_SYS_FLASH_OFFSET,
-				 0x01, !!on);
+							 0x01, !!on);
+
 	if (ret)
+	{
 		pr_err("error setting Versatile VPP\n");
+	}
 }
 
 int of_flash_probe_versatile(struct platform_device *pdev,
-			     struct device_node *np,
-			     struct map_info *map)
+							 struct device_node *np,
+							 struct map_info *map)
 {
 	struct device_node *sysnp;
 	const struct of_device_id *devid;
@@ -209,45 +242,62 @@ int of_flash_probe_versatile(struct platform_device *pdev,
 
 	/* Not all flash chips use this protection line */
 	if (!of_device_is_compatible(np, "arm,versatile-flash"))
+	{
 		return 0;
+	}
 
 	/* For first chip probed, look up the syscon regmap */
-	if (!syscon_regmap) {
+	if (!syscon_regmap)
+	{
 		sysnp = of_find_matching_node_and_match(NULL,
-							syscon_match,
-							&devid);
+												syscon_match,
+												&devid);
+
 		if (!sysnp)
+		{
 			return -ENODEV;
+		}
 
 		versatile_flashprot = (enum versatile_flashprot)devid->data;
 		rmap = syscon_node_to_regmap(sysnp);
+
 		if (IS_ERR(rmap))
+		{
 			return PTR_ERR(rmap);
+		}
 
 		syscon_regmap = rmap;
 	}
 
-	switch (versatile_flashprot) {
-	case INTEGRATOR_AP_FLASHPROT:
-		ret = ap_flash_init(pdev);
-		if (ret)
-			return ret;
-		map->set_vpp = ap_flash_set_vpp;
-		dev_info(&pdev->dev, "Integrator/AP flash protection\n");
-		break;
-	case INTEGRATOR_CP_FLASHPROT:
-		map->set_vpp = cp_flash_set_vpp;
-		dev_info(&pdev->dev, "Integrator/CP flash protection\n");
-		break;
-	case VERSATILE_FLASHPROT:
-	case REALVIEW_FLASHPROT:
-		map->set_vpp = versatile_flash_set_vpp;
-		dev_info(&pdev->dev, "versatile/realview flash protection\n");
-		break;
-	default:
-		dev_info(&pdev->dev, "device marked as Versatile flash "
-			 "but no system controller was found\n");
-		break;
+	switch (versatile_flashprot)
+	{
+		case INTEGRATOR_AP_FLASHPROT:
+			ret = ap_flash_init(pdev);
+
+			if (ret)
+			{
+				return ret;
+			}
+
+			map->set_vpp = ap_flash_set_vpp;
+			dev_info(&pdev->dev, "Integrator/AP flash protection\n");
+			break;
+
+		case INTEGRATOR_CP_FLASHPROT:
+			map->set_vpp = cp_flash_set_vpp;
+			dev_info(&pdev->dev, "Integrator/CP flash protection\n");
+			break;
+
+		case VERSATILE_FLASHPROT:
+		case REALVIEW_FLASHPROT:
+			map->set_vpp = versatile_flash_set_vpp;
+			dev_info(&pdev->dev, "versatile/realview flash protection\n");
+			break;
+
+		default:
+			dev_info(&pdev->dev, "device marked as Versatile flash "
+					 "but no system controller was found\n");
+			break;
 	}
 
 	return 0;

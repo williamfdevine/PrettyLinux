@@ -45,11 +45,12 @@ struct si_sm_data;
  * machine doesn't have the actual I/O routines, they are done through
  * this interface.
  */
-struct si_sm_io {
+struct si_sm_io
+{
 	unsigned char (*inputb)(const struct si_sm_io *io, unsigned int offset);
 	void (*outputb)(const struct si_sm_io *io,
-			unsigned int  offset,
-			unsigned char b);
+					unsigned int  offset,
+					unsigned char b);
 
 	/*
 	 * Generic info used by the actual handling routines, the
@@ -64,7 +65,8 @@ struct si_sm_io {
 };
 
 /* Results of SMI events. */
-enum si_sm_result {
+enum si_sm_result
+{
 	SI_SM_CALL_WITHOUT_DELAY, /* Call the driver again immediately */
 	SI_SM_CALL_WITH_DELAY,	/* Delay some before calling again. */
 	SI_SM_CALL_WITH_TICK_DELAY,/* Delay >=1 tick before calling again. */
@@ -80,7 +82,8 @@ enum si_sm_result {
 };
 
 /* Handlers for the SMI state machine. */
-struct si_sm_handlers {
+struct si_sm_handlers
+{
 	/*
 	 * Put the version number of the state machine here so the
 	 * upper layer can print it.
@@ -92,7 +95,7 @@ struct si_sm_handlers {
 	 * reserve for the space.
 	 */
 	unsigned int (*init_data)(struct si_sm_data *smi,
-				  struct si_sm_io   *io);
+							  struct si_sm_io   *io);
 
 	/*
 	 * Start a new transaction in the state machine.  This will
@@ -101,7 +104,7 @@ struct si_sm_handlers {
 	 * is successfully completed.
 	 */
 	int (*start_transaction)(struct si_sm_data *smi,
-				 unsigned char *data, unsigned int size);
+							 unsigned char *data, unsigned int size);
 
 	/*
 	 * Return the results after the transaction.  This will return
@@ -109,7 +112,7 @@ struct si_sm_handlers {
 	 * present, or the actual length of the result data.
 	 */
 	int (*get_result)(struct si_sm_data *smi,
-			  unsigned char *data, unsigned int length);
+					  unsigned char *data, unsigned int length);
 
 	/*
 	 * Call this periodically (for a polled interface) or upon

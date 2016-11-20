@@ -39,25 +39,34 @@ static void longrun_get_policy(struct cpufreq_policy *policy)
 
 	rdmsr(MSR_TMTA_LONGRUN_FLAGS, msr_lo, msr_hi);
 	pr_debug("longrun flags are %x - %x\n", msr_lo, msr_hi);
+
 	if (msr_lo & 0x01)
+	{
 		policy->policy = CPUFREQ_POLICY_PERFORMANCE;
+	}
 	else
+	{
 		policy->policy = CPUFREQ_POLICY_POWERSAVE;
+	}
 
 	rdmsr(MSR_TMTA_LONGRUN_CTRL, msr_lo, msr_hi);
 	pr_debug("longrun ctrl is %x - %x\n", msr_lo, msr_hi);
 	msr_lo &= 0x0000007F;
 	msr_hi &= 0x0000007F;
 
-	if (longrun_high_freq <= longrun_low_freq) {
+	if (longrun_high_freq <= longrun_low_freq)
+	{
 		/* Assume degenerate Longrun table */
 		policy->min = policy->max = longrun_high_freq;
-	} else {
-		policy->min = longrun_low_freq + msr_lo *
-			((longrun_high_freq - longrun_low_freq) / 100);
-		policy->max = longrun_low_freq + msr_hi *
-			((longrun_high_freq - longrun_low_freq) / 100);
 	}
+	else
+	{
+		policy->min = longrun_low_freq + msr_lo *
+					  ((longrun_high_freq - longrun_low_freq) / 100);
+		policy->max = longrun_low_freq + msr_hi *
+					  ((longrun_high_freq - longrun_low_freq) / 100);
+	}
+
 	policy->cpu = 0;
 }
 
@@ -75,33 +84,47 @@ static int longrun_set_policy(struct cpufreq_policy *policy)
 	u32 pctg_lo, pctg_hi;
 
 	if (!policy)
+	{
 		return -EINVAL;
+	}
 
-	if (longrun_high_freq <= longrun_low_freq) {
+	if (longrun_high_freq <= longrun_low_freq)
+	{
 		/* Assume degenerate Longrun table */
 		pctg_lo = pctg_hi = 100;
-	} else {
+	}
+	else
+	{
 		pctg_lo = (policy->min - longrun_low_freq) /
-			((longrun_high_freq - longrun_low_freq) / 100);
+				  ((longrun_high_freq - longrun_low_freq) / 100);
 		pctg_hi = (policy->max - longrun_low_freq) /
-			((longrun_high_freq - longrun_low_freq) / 100);
+				  ((longrun_high_freq - longrun_low_freq) / 100);
 	}
 
 	if (pctg_hi > 100)
+	{
 		pctg_hi = 100;
+	}
+
 	if (pctg_lo > pctg_hi)
+	{
 		pctg_lo = pctg_hi;
+	}
 
 	/* performance or economy mode */
 	rdmsr(MSR_TMTA_LONGRUN_FLAGS, msr_lo, msr_hi);
 	msr_lo &= 0xFFFFFFFE;
-	switch (policy->policy) {
-	case CPUFREQ_POLICY_PERFORMANCE:
-		msr_lo |= 0x00000001;
-		break;
-	case CPUFREQ_POLICY_POWERSAVE:
-		break;
+
+	switch (policy->policy)
+	{
+		case CPUFREQ_POLICY_PERFORMANCE:
+			msr_lo |= 0x00000001;
+			break;
+
+		case CPUFREQ_POLICY_POWERSAVE:
+			break;
 	}
+
 	wrmsr(MSR_TMTA_LONGRUN_FLAGS, msr_lo, msr_hi);
 
 	/* lower and upper boundary */
@@ -126,14 +149,18 @@ static int longrun_set_policy(struct cpufreq_policy *policy)
 static int longrun_verify_policy(struct cpufreq_policy *policy)
 {
 	if (!policy)
+	{
 		return -EINVAL;
+	}
 
 	policy->cpu = 0;
 	cpufreq_verify_within_cpu_limits(policy);
 
 	if ((policy->policy != CPUFREQ_POLICY_POWERSAVE) &&
-	    (policy->policy != CPUFREQ_POLICY_PERFORMANCE))
+		(policy->policy != CPUFREQ_POLICY_PERFORMANCE))
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -143,7 +170,9 @@ static unsigned int longrun_get(unsigned int cpu)
 	u32 eax, ebx, ecx, edx;
 
 	if (cpu)
+	{
 		return 0;
+	}
 
 	cpuid(0x80860007, &eax, &ebx, &ecx, &edx);
 	pr_debug("cpuid eax is %u\n", eax);
@@ -162,7 +191,7 @@ static unsigned int longrun_get(unsigned int cpu)
  * performance_pctg = (target_freq - low_freq)/(high_freq - low_freq)
  */
 static int longrun_determine_freqs(unsigned int *low_freq,
-						      unsigned int *high_freq)
+								   unsigned int *high_freq)
 {
 	u32 msr_lo, msr_hi;
 	u32 save_lo, save_hi;
@@ -171,9 +200,12 @@ static int longrun_determine_freqs(unsigned int *low_freq,
 	struct cpuinfo_x86 *c = &cpu_data(0);
 
 	if (!low_freq || !high_freq)
+	{
 		return -EINVAL;
+	}
 
-	if (cpu_has(c, X86_FEATURE_LRTI)) {
+	if (cpu_has(c, X86_FEATURE_LRTI))
+	{
 		/* if the LongRun Table Interface is present, the
 		 * detection is a bit easier:
 		 * For minimum frequency, read out the maximum
@@ -193,10 +225,13 @@ static int longrun_determine_freqs(unsigned int *low_freq,
 		*high_freq = msr_lo * 1000; /* to kHz */
 
 		pr_debug("longrun table interface told %u - %u kHz\n",
-				*low_freq, *high_freq);
+				 *low_freq, *high_freq);
 
 		if (*low_freq > *high_freq)
+		{
 			*low_freq = *high_freq;
+		}
+
 		return 0;
 	}
 
@@ -214,9 +249,11 @@ static int longrun_determine_freqs(unsigned int *low_freq,
 	 * upper limit to make the calculation more accurate.
 	 */
 	cpuid(0x80860007, &eax, &ebx, &ecx, &edx);
+
 	/* try decreasing in 10% steps, some processors react only
 	 * on some barrier values */
-	for (try_hi = 80; try_hi > 0 && ecx > 90; try_hi -= 10) {
+	for (try_hi = 80; try_hi > 0 && ecx > 90; try_hi -= 10)
+	{
 		/* set to 0 to try_hi perf_pctg */
 		msr_lo &= 0xFFFFFF80;
 		msr_hi &= 0xFFFFFF80;
@@ -229,6 +266,7 @@ static int longrun_determine_freqs(unsigned int *low_freq,
 		/* restore values */
 		wrmsr(MSR_TMTA_LONGRUN_CTRL, save_lo, save_hi);
 	}
+
 	pr_debug("percentage is %u %%, freq is %u MHz\n", ecx, eax);
 
 	/* performance_pctg = (current_freq - low_freq)/(high_freq - low_freq)
@@ -240,7 +278,9 @@ static int longrun_determine_freqs(unsigned int *low_freq,
 	ebx = (((cpu_khz / 1000) * ecx) / 100); /* to MHz */
 
 	if ((ecx > 95) || (ecx == 0) || (eax < ebx))
+	{
 		return -EIO;
+	}
 
 	edx = ((eax - ebx) * 100) / (100 - ecx);
 	*low_freq = edx * 1000; /* back to kHz */
@@ -248,7 +288,9 @@ static int longrun_determine_freqs(unsigned int *low_freq,
 	pr_debug("low frequency is %u kHz\n", *low_freq);
 
 	if (*low_freq > *high_freq)
+	{
 		*low_freq = *high_freq;
+	}
 
 	return 0;
 }
@@ -260,12 +302,17 @@ static int longrun_cpu_init(struct cpufreq_policy *policy)
 
 	/* capability check */
 	if (policy->cpu != 0)
+	{
 		return -ENODEV;
+	}
 
 	/* detect low and high frequency */
 	result = longrun_determine_freqs(&longrun_low_freq, &longrun_high_freq);
+
 	if (result)
+	{
 		return result;
+	}
 
 	/* cpuinfo and default policy values */
 	policy->cpuinfo.min_freq = longrun_low_freq;
@@ -277,7 +324,8 @@ static int longrun_cpu_init(struct cpufreq_policy *policy)
 }
 
 
-static struct cpufreq_driver longrun_driver = {
+static struct cpufreq_driver longrun_driver =
+{
 	.flags		= CPUFREQ_CONST_LOOPS,
 	.verify		= longrun_verify_policy,
 	.setpolicy	= longrun_set_policy,
@@ -286,9 +334,12 @@ static struct cpufreq_driver longrun_driver = {
 	.name		= "longrun",
 };
 
-static const struct x86_cpu_id longrun_ids[] = {
-	{ X86_VENDOR_TRANSMETA, X86_FAMILY_ANY, X86_MODEL_ANY,
-	  X86_FEATURE_LONGRUN },
+static const struct x86_cpu_id longrun_ids[] =
+{
+	{
+		X86_VENDOR_TRANSMETA, X86_FAMILY_ANY, X86_MODEL_ANY,
+		X86_FEATURE_LONGRUN
+	},
 	{}
 };
 MODULE_DEVICE_TABLE(x86cpu, longrun_ids);
@@ -301,7 +352,10 @@ MODULE_DEVICE_TABLE(x86cpu, longrun_ids);
 static int __init longrun_init(void)
 {
 	if (!x86_match_cpu(longrun_ids))
+	{
 		return -ENODEV;
+	}
+
 	return cpufreq_register_driver(&longrun_driver);
 }
 
@@ -317,7 +371,7 @@ static void __exit longrun_exit(void)
 
 MODULE_AUTHOR("Dominik Brodowski <linux@brodo.de>");
 MODULE_DESCRIPTION("LongRun driver for Transmeta Crusoe and "
-		"Efficeon processors.");
+				   "Efficeon processors.");
 MODULE_LICENSE("GPL");
 
 module_init(longrun_init);

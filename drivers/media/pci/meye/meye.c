@@ -61,7 +61,7 @@ MODULE_PARM_DESC(gbuffers, "number of capture buffers, default is 2 (32 max)");
 static unsigned int gbufsize = MEYE_MAX_BUFSIZE;
 module_param(gbufsize, int, 0444);
 MODULE_PARM_DESC(gbufsize, "size of the capture buffers, default is 614400"
-		 " (will be rounded up to a page multiple)");
+				 " (will be rounded up to a page multiple)");
 
 /* /dev/videoX registration number */
 static int video_nr = -1;
@@ -81,29 +81,38 @@ static void *rvmalloc(unsigned long size)
 
 	size = PAGE_ALIGN(size);
 	mem = vmalloc_32(size);
-	if (mem) {
+
+	if (mem)
+	{
 		memset(mem, 0, size);
 		adr = (unsigned long) mem;
-		while (size > 0) {
+
+		while (size > 0)
+		{
 			SetPageReserved(vmalloc_to_page((void *)adr));
 			adr += PAGE_SIZE;
 			size -= PAGE_SIZE;
 		}
 	}
+
 	return mem;
 }
 
-static void rvfree(void * mem, unsigned long size)
+static void rvfree(void *mem, unsigned long size)
 {
 	unsigned long adr;
 
-	if (mem) {
+	if (mem)
+	{
 		adr = (unsigned long) mem;
-		while ((long) size > 0) {
+
+		while ((long) size > 0)
+		{
 			ClearPageReserved(vmalloc_to_page((void *)adr));
 			adr += PAGE_SIZE;
 			size -= PAGE_SIZE;
 		}
+
 		vfree(mem);
 	}
 }
@@ -123,45 +132,58 @@ static int ptable_alloc(void)
 
 	/* give only 32 bit DMA addresses */
 	if (dma_set_mask(&meye.mchip_dev->dev, DMA_BIT_MASK(32)))
+	{
 		return -1;
+	}
 
 	meye.mchip_ptable_toc = dma_alloc_coherent(&meye.mchip_dev->dev,
-						   PAGE_SIZE,
-						   &meye.mchip_dmahandle,
-						   GFP_KERNEL);
-	if (!meye.mchip_ptable_toc) {
+							PAGE_SIZE,
+							&meye.mchip_dmahandle,
+							GFP_KERNEL);
+
+	if (!meye.mchip_ptable_toc)
+	{
 		meye.mchip_dmahandle = 0;
 		return -1;
 	}
 
 	pt = meye.mchip_ptable_toc;
-	for (i = 0; i < MCHIP_NB_PAGES; i++) {
+
+	for (i = 0; i < MCHIP_NB_PAGES; i++)
+	{
 		dma_addr_t dma;
 		meye.mchip_ptable[i] = dma_alloc_coherent(&meye.mchip_dev->dev,
-							  PAGE_SIZE,
-							  &dma,
-							  GFP_KERNEL);
-		if (!meye.mchip_ptable[i]) {
+							   PAGE_SIZE,
+							   &dma,
+							   GFP_KERNEL);
+
+		if (!meye.mchip_ptable[i])
+		{
 			int j;
 			pt = meye.mchip_ptable_toc;
-			for (j = 0; j < i; ++j) {
-				dma = (dma_addr_t) *pt;
+
+			for (j = 0; j < i; ++j)
+			{
+				dma = (dma_addr_t) * pt;
 				dma_free_coherent(&meye.mchip_dev->dev,
-						  PAGE_SIZE,
-						  meye.mchip_ptable[j], dma);
+								  PAGE_SIZE,
+								  meye.mchip_ptable[j], dma);
 				pt++;
 			}
+
 			dma_free_coherent(&meye.mchip_dev->dev,
-					  PAGE_SIZE,
-					  meye.mchip_ptable_toc,
-					  meye.mchip_dmahandle);
+							  PAGE_SIZE,
+							  meye.mchip_ptable_toc,
+							  meye.mchip_dmahandle);
 			meye.mchip_ptable_toc = NULL;
 			meye.mchip_dmahandle = 0;
 			return -1;
 		}
+
 		*pt = (u32) dma;
 		pt++;
 	}
+
 	return 0;
 }
 
@@ -171,20 +193,24 @@ static void ptable_free(void)
 	int i;
 
 	pt = meye.mchip_ptable_toc;
-	for (i = 0; i < MCHIP_NB_PAGES; i++) {
-		dma_addr_t dma = (dma_addr_t) *pt;
+
+	for (i = 0; i < MCHIP_NB_PAGES; i++)
+	{
+		dma_addr_t dma = (dma_addr_t) * pt;
+
 		if (meye.mchip_ptable[i])
 			dma_free_coherent(&meye.mchip_dev->dev,
-					  PAGE_SIZE,
-					  meye.mchip_ptable[i], dma);
+							  PAGE_SIZE,
+							  meye.mchip_ptable[i], dma);
+
 		pt++;
 	}
 
 	if (meye.mchip_ptable_toc)
 		dma_free_coherent(&meye.mchip_dev->dev,
-				  PAGE_SIZE,
-				  meye.mchip_ptable_toc,
-				  meye.mchip_dmahandle);
+						  PAGE_SIZE,
+						  meye.mchip_ptable_toc,
+						  meye.mchip_dmahandle);
 
 	memset(meye.mchip_ptable, 0, sizeof(meye.mchip_ptable));
 	meye.mchip_ptable_toc = NULL;
@@ -196,11 +222,16 @@ static void ptable_copy(u8 *buf, int start, int size, int pt_pages)
 {
 	int i;
 
-	for (i = 0; i < (size / PAGE_SIZE) * PAGE_SIZE; i += PAGE_SIZE) {
+	for (i = 0; i < (size / PAGE_SIZE) * PAGE_SIZE; i += PAGE_SIZE)
+	{
 		memcpy(buf + i, meye.mchip_ptable[start++], PAGE_SIZE);
+
 		if (start >= pt_pages)
+		{
 			start = 0;
+		}
 	}
+
 	memcpy(buf + i, meye.mchip_ptable[start], size % PAGE_SIZE);
 }
 
@@ -212,141 +243,143 @@ static void ptable_copy(u8 *buf, int start, int size, int pt_pages)
 static u16 *jpeg_quantisation_tables(int *length, int quality)
 {
 	static u16 jpeg_tables[][70] = { {
-		0xdbff, 0x4300, 0xff00, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
-		0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
-		0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
-		0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
-		0xffff, 0xffff, 0xffff,
-		0xdbff, 0x4300, 0xff01, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
-		0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
-		0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
-		0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
-		0xffff, 0xffff, 0xffff,
-	},
-	{
-		0xdbff, 0x4300, 0x5000, 0x3c37, 0x3c46, 0x5032, 0x4146, 0x5a46,
-		0x5055, 0x785f, 0x82c8, 0x6e78, 0x786e, 0xaff5, 0x91b9, 0xffc8,
-		0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
-		0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
-		0xffff, 0xffff, 0xffff,
-		0xdbff, 0x4300, 0x5501, 0x5a5a, 0x6978, 0xeb78, 0x8282, 0xffeb,
-		0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
-		0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
-		0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
-		0xffff, 0xffff, 0xffff,
-	},
-	{
-		0xdbff, 0x4300, 0x2800, 0x1e1c, 0x1e23, 0x2819, 0x2123, 0x2d23,
-		0x282b, 0x3c30, 0x4164, 0x373c, 0x3c37, 0x587b, 0x495d, 0x9164,
-		0x9980, 0x8f96, 0x8c80, 0xa08a, 0xe6b4, 0xa0c3, 0xdaaa, 0x8aad,
-		0xc88c, 0xcbff, 0xeeda, 0xfff5, 0xffff, 0xc19b, 0xffff, 0xfaff,
-		0xe6ff, 0xfffd, 0xfff8,
-		0xdbff, 0x4300, 0x2b01, 0x2d2d, 0x353c, 0x763c, 0x4141, 0xf876,
-		0x8ca5, 0xf8a5, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8,
-		0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8,
-		0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8,
-		0xf8f8, 0xf8f8, 0xfff8,
-	},
-	{
-		0xdbff, 0x4300, 0x1b00, 0x1412, 0x1417, 0x1b11, 0x1617, 0x1e17,
-		0x1b1c, 0x2820, 0x2b42, 0x2528, 0x2825, 0x3a51, 0x303d, 0x6042,
-		0x6555, 0x5f64, 0x5d55, 0x6a5b, 0x9978, 0x6a81, 0x9071, 0x5b73,
-		0x855d, 0x86b5, 0x9e90, 0xaba3, 0xabad, 0x8067, 0xc9bc, 0xa6ba,
-		0x99c7, 0xaba8, 0xffa4,
-		0xdbff, 0x4300, 0x1c01, 0x1e1e, 0x2328, 0x4e28, 0x2b2b, 0xa44e,
-		0x5d6e, 0xa46e, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4,
-		0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4,
-		0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4,
-		0xa4a4, 0xa4a4, 0xffa4,
-	},
-	{
-		0xdbff, 0x4300, 0x1400, 0x0f0e, 0x0f12, 0x140d, 0x1012, 0x1712,
-		0x1415, 0x1e18, 0x2132, 0x1c1e, 0x1e1c, 0x2c3d, 0x242e, 0x4932,
-		0x4c40, 0x474b, 0x4640, 0x5045, 0x735a, 0x5062, 0x6d55, 0x4556,
-		0x6446, 0x6588, 0x776d, 0x817b, 0x8182, 0x604e, 0x978d, 0x7d8c,
-		0x7396, 0x817e, 0xff7c,
-		0xdbff, 0x4300, 0x1501, 0x1717, 0x1a1e, 0x3b1e, 0x2121, 0x7c3b,
-		0x4653, 0x7c53, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c,
-		0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c,
-		0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c,
-		0x7c7c, 0x7c7c, 0xff7c,
-	},
-	{
-		0xdbff, 0x4300, 0x1000, 0x0c0b, 0x0c0e, 0x100a, 0x0d0e, 0x120e,
-		0x1011, 0x1813, 0x1a28, 0x1618, 0x1816, 0x2331, 0x1d25, 0x3a28,
-		0x3d33, 0x393c, 0x3833, 0x4037, 0x5c48, 0x404e, 0x5744, 0x3745,
-		0x5038, 0x516d, 0x5f57, 0x6762, 0x6768, 0x4d3e, 0x7971, 0x6470,
-		0x5c78, 0x6765, 0xff63,
-		0xdbff, 0x4300, 0x1101, 0x1212, 0x1518, 0x2f18, 0x1a1a, 0x632f,
-		0x3842, 0x6342, 0x6363, 0x6363, 0x6363, 0x6363, 0x6363, 0x6363,
-		0x6363, 0x6363, 0x6363, 0x6363, 0x6363, 0x6363, 0x6363, 0x6363,
-		0x6363, 0x6363, 0x6363, 0x6363, 0x6363, 0x6363, 0x6363, 0x6363,
-		0x6363, 0x6363, 0xff63,
-	},
-	{
-		0xdbff, 0x4300, 0x0d00, 0x0a09, 0x0a0b, 0x0d08, 0x0a0b, 0x0e0b,
-		0x0d0e, 0x130f, 0x1520, 0x1213, 0x1312, 0x1c27, 0x171e, 0x2e20,
-		0x3129, 0x2e30, 0x2d29, 0x332c, 0x4a3a, 0x333e, 0x4636, 0x2c37,
-		0x402d, 0x4157, 0x4c46, 0x524e, 0x5253, 0x3e32, 0x615a, 0x505a,
-		0x4a60, 0x5251, 0xff4f,
-		0xdbff, 0x4300, 0x0e01, 0x0e0e, 0x1113, 0x2613, 0x1515, 0x4f26,
-		0x2d35, 0x4f35, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f,
-		0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f,
-		0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f,
-		0x4f4f, 0x4f4f, 0xff4f,
-	},
-	{
-		0xdbff, 0x4300, 0x0a00, 0x0707, 0x0708, 0x0a06, 0x0808, 0x0b08,
-		0x0a0a, 0x0e0b, 0x1018, 0x0d0e, 0x0e0d, 0x151d, 0x1116, 0x2318,
-		0x251f, 0x2224, 0x221f, 0x2621, 0x372b, 0x262f, 0x3429, 0x2129,
-		0x3022, 0x3141, 0x3934, 0x3e3b, 0x3e3e, 0x2e25, 0x4944, 0x3c43,
-		0x3748, 0x3e3d, 0xff3b,
-		0xdbff, 0x4300, 0x0a01, 0x0b0b, 0x0d0e, 0x1c0e, 0x1010, 0x3b1c,
-		0x2228, 0x3b28, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b,
-		0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b,
-		0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b,
-		0x3b3b, 0x3b3b, 0xff3b,
-	},
-	{
-		0xdbff, 0x4300, 0x0600, 0x0504, 0x0506, 0x0604, 0x0506, 0x0706,
-		0x0607, 0x0a08, 0x0a10, 0x090a, 0x0a09, 0x0e14, 0x0c0f, 0x1710,
-		0x1814, 0x1718, 0x1614, 0x1a16, 0x251d, 0x1a1f, 0x231b, 0x161c,
-		0x2016, 0x202c, 0x2623, 0x2927, 0x292a, 0x1f19, 0x302d, 0x282d,
-		0x2530, 0x2928, 0xff28,
-		0xdbff, 0x4300, 0x0701, 0x0707, 0x080a, 0x130a, 0x0a0a, 0x2813,
-		0x161a, 0x281a, 0x2828, 0x2828, 0x2828, 0x2828, 0x2828, 0x2828,
-		0x2828, 0x2828, 0x2828, 0x2828, 0x2828, 0x2828, 0x2828, 0x2828,
-		0x2828, 0x2828, 0x2828, 0x2828, 0x2828, 0x2828, 0x2828, 0x2828,
-		0x2828, 0x2828, 0xff28,
-	},
-	{
-		0xdbff, 0x4300, 0x0300, 0x0202, 0x0203, 0x0302, 0x0303, 0x0403,
-		0x0303, 0x0504, 0x0508, 0x0405, 0x0504, 0x070a, 0x0607, 0x0c08,
-		0x0c0a, 0x0b0c, 0x0b0a, 0x0d0b, 0x120e, 0x0d10, 0x110e, 0x0b0e,
-		0x100b, 0x1016, 0x1311, 0x1514, 0x1515, 0x0f0c, 0x1817, 0x1416,
-		0x1218, 0x1514, 0xff14,
-		0xdbff, 0x4300, 0x0301, 0x0404, 0x0405, 0x0905, 0x0505, 0x1409,
-		0x0b0d, 0x140d, 0x1414, 0x1414, 0x1414, 0x1414, 0x1414, 0x1414,
-		0x1414, 0x1414, 0x1414, 0x1414, 0x1414, 0x1414, 0x1414, 0x1414,
-		0x1414, 0x1414, 0x1414, 0x1414, 0x1414, 0x1414, 0x1414, 0x1414,
-		0x1414, 0x1414, 0xff14,
-	},
-	{
-		0xdbff, 0x4300, 0x0100, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101,
-		0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101,
-		0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101,
-		0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101,
-		0x0101, 0x0101, 0xff01,
-		0xdbff, 0x4300, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101,
-		0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101,
-		0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101,
-		0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101,
-		0x0101, 0x0101, 0xff01,
-	} };
+			0xdbff, 0x4300, 0xff00, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+			0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+			0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+			0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+			0xffff, 0xffff, 0xffff,
+			0xdbff, 0x4300, 0xff01, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+			0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+			0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+			0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+			0xffff, 0xffff, 0xffff,
+		},
+		{
+			0xdbff, 0x4300, 0x5000, 0x3c37, 0x3c46, 0x5032, 0x4146, 0x5a46,
+			0x5055, 0x785f, 0x82c8, 0x6e78, 0x786e, 0xaff5, 0x91b9, 0xffc8,
+			0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+			0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+			0xffff, 0xffff, 0xffff,
+			0xdbff, 0x4300, 0x5501, 0x5a5a, 0x6978, 0xeb78, 0x8282, 0xffeb,
+			0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+			0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+			0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+			0xffff, 0xffff, 0xffff,
+		},
+		{
+			0xdbff, 0x4300, 0x2800, 0x1e1c, 0x1e23, 0x2819, 0x2123, 0x2d23,
+			0x282b, 0x3c30, 0x4164, 0x373c, 0x3c37, 0x587b, 0x495d, 0x9164,
+			0x9980, 0x8f96, 0x8c80, 0xa08a, 0xe6b4, 0xa0c3, 0xdaaa, 0x8aad,
+			0xc88c, 0xcbff, 0xeeda, 0xfff5, 0xffff, 0xc19b, 0xffff, 0xfaff,
+			0xe6ff, 0xfffd, 0xfff8,
+			0xdbff, 0x4300, 0x2b01, 0x2d2d, 0x353c, 0x763c, 0x4141, 0xf876,
+			0x8ca5, 0xf8a5, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8,
+			0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8,
+			0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8, 0xf8f8,
+			0xf8f8, 0xf8f8, 0xfff8,
+		},
+		{
+			0xdbff, 0x4300, 0x1b00, 0x1412, 0x1417, 0x1b11, 0x1617, 0x1e17,
+			0x1b1c, 0x2820, 0x2b42, 0x2528, 0x2825, 0x3a51, 0x303d, 0x6042,
+			0x6555, 0x5f64, 0x5d55, 0x6a5b, 0x9978, 0x6a81, 0x9071, 0x5b73,
+			0x855d, 0x86b5, 0x9e90, 0xaba3, 0xabad, 0x8067, 0xc9bc, 0xa6ba,
+			0x99c7, 0xaba8, 0xffa4,
+			0xdbff, 0x4300, 0x1c01, 0x1e1e, 0x2328, 0x4e28, 0x2b2b, 0xa44e,
+			0x5d6e, 0xa46e, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4,
+			0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4,
+			0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4, 0xa4a4,
+			0xa4a4, 0xa4a4, 0xffa4,
+		},
+		{
+			0xdbff, 0x4300, 0x1400, 0x0f0e, 0x0f12, 0x140d, 0x1012, 0x1712,
+			0x1415, 0x1e18, 0x2132, 0x1c1e, 0x1e1c, 0x2c3d, 0x242e, 0x4932,
+			0x4c40, 0x474b, 0x4640, 0x5045, 0x735a, 0x5062, 0x6d55, 0x4556,
+			0x6446, 0x6588, 0x776d, 0x817b, 0x8182, 0x604e, 0x978d, 0x7d8c,
+			0x7396, 0x817e, 0xff7c,
+			0xdbff, 0x4300, 0x1501, 0x1717, 0x1a1e, 0x3b1e, 0x2121, 0x7c3b,
+			0x4653, 0x7c53, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c,
+			0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c,
+			0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c, 0x7c7c,
+			0x7c7c, 0x7c7c, 0xff7c,
+		},
+		{
+			0xdbff, 0x4300, 0x1000, 0x0c0b, 0x0c0e, 0x100a, 0x0d0e, 0x120e,
+			0x1011, 0x1813, 0x1a28, 0x1618, 0x1816, 0x2331, 0x1d25, 0x3a28,
+			0x3d33, 0x393c, 0x3833, 0x4037, 0x5c48, 0x404e, 0x5744, 0x3745,
+			0x5038, 0x516d, 0x5f57, 0x6762, 0x6768, 0x4d3e, 0x7971, 0x6470,
+			0x5c78, 0x6765, 0xff63,
+			0xdbff, 0x4300, 0x1101, 0x1212, 0x1518, 0x2f18, 0x1a1a, 0x632f,
+			0x3842, 0x6342, 0x6363, 0x6363, 0x6363, 0x6363, 0x6363, 0x6363,
+			0x6363, 0x6363, 0x6363, 0x6363, 0x6363, 0x6363, 0x6363, 0x6363,
+			0x6363, 0x6363, 0x6363, 0x6363, 0x6363, 0x6363, 0x6363, 0x6363,
+			0x6363, 0x6363, 0xff63,
+		},
+		{
+			0xdbff, 0x4300, 0x0d00, 0x0a09, 0x0a0b, 0x0d08, 0x0a0b, 0x0e0b,
+			0x0d0e, 0x130f, 0x1520, 0x1213, 0x1312, 0x1c27, 0x171e, 0x2e20,
+			0x3129, 0x2e30, 0x2d29, 0x332c, 0x4a3a, 0x333e, 0x4636, 0x2c37,
+			0x402d, 0x4157, 0x4c46, 0x524e, 0x5253, 0x3e32, 0x615a, 0x505a,
+			0x4a60, 0x5251, 0xff4f,
+			0xdbff, 0x4300, 0x0e01, 0x0e0e, 0x1113, 0x2613, 0x1515, 0x4f26,
+			0x2d35, 0x4f35, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f,
+			0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f,
+			0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f, 0x4f4f,
+			0x4f4f, 0x4f4f, 0xff4f,
+		},
+		{
+			0xdbff, 0x4300, 0x0a00, 0x0707, 0x0708, 0x0a06, 0x0808, 0x0b08,
+			0x0a0a, 0x0e0b, 0x1018, 0x0d0e, 0x0e0d, 0x151d, 0x1116, 0x2318,
+			0x251f, 0x2224, 0x221f, 0x2621, 0x372b, 0x262f, 0x3429, 0x2129,
+			0x3022, 0x3141, 0x3934, 0x3e3b, 0x3e3e, 0x2e25, 0x4944, 0x3c43,
+			0x3748, 0x3e3d, 0xff3b,
+			0xdbff, 0x4300, 0x0a01, 0x0b0b, 0x0d0e, 0x1c0e, 0x1010, 0x3b1c,
+			0x2228, 0x3b28, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b,
+			0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b,
+			0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b, 0x3b3b,
+			0x3b3b, 0x3b3b, 0xff3b,
+		},
+		{
+			0xdbff, 0x4300, 0x0600, 0x0504, 0x0506, 0x0604, 0x0506, 0x0706,
+			0x0607, 0x0a08, 0x0a10, 0x090a, 0x0a09, 0x0e14, 0x0c0f, 0x1710,
+			0x1814, 0x1718, 0x1614, 0x1a16, 0x251d, 0x1a1f, 0x231b, 0x161c,
+			0x2016, 0x202c, 0x2623, 0x2927, 0x292a, 0x1f19, 0x302d, 0x282d,
+			0x2530, 0x2928, 0xff28,
+			0xdbff, 0x4300, 0x0701, 0x0707, 0x080a, 0x130a, 0x0a0a, 0x2813,
+			0x161a, 0x281a, 0x2828, 0x2828, 0x2828, 0x2828, 0x2828, 0x2828,
+			0x2828, 0x2828, 0x2828, 0x2828, 0x2828, 0x2828, 0x2828, 0x2828,
+			0x2828, 0x2828, 0x2828, 0x2828, 0x2828, 0x2828, 0x2828, 0x2828,
+			0x2828, 0x2828, 0xff28,
+		},
+		{
+			0xdbff, 0x4300, 0x0300, 0x0202, 0x0203, 0x0302, 0x0303, 0x0403,
+			0x0303, 0x0504, 0x0508, 0x0405, 0x0504, 0x070a, 0x0607, 0x0c08,
+			0x0c0a, 0x0b0c, 0x0b0a, 0x0d0b, 0x120e, 0x0d10, 0x110e, 0x0b0e,
+			0x100b, 0x1016, 0x1311, 0x1514, 0x1515, 0x0f0c, 0x1817, 0x1416,
+			0x1218, 0x1514, 0xff14,
+			0xdbff, 0x4300, 0x0301, 0x0404, 0x0405, 0x0905, 0x0505, 0x1409,
+			0x0b0d, 0x140d, 0x1414, 0x1414, 0x1414, 0x1414, 0x1414, 0x1414,
+			0x1414, 0x1414, 0x1414, 0x1414, 0x1414, 0x1414, 0x1414, 0x1414,
+			0x1414, 0x1414, 0x1414, 0x1414, 0x1414, 0x1414, 0x1414, 0x1414,
+			0x1414, 0x1414, 0xff14,
+		},
+		{
+			0xdbff, 0x4300, 0x0100, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101,
+			0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101,
+			0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101,
+			0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101,
+			0x0101, 0x0101, 0xff01,
+			0xdbff, 0x4300, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101,
+			0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101,
+			0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101,
+			0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101, 0x0101,
+			0x0101, 0x0101, 0xff01,
+		}
+	};
 
-	if (quality < 0 || quality > 10) {
+	if (quality < 0 || quality > 10)
+	{
 		printk(KERN_WARNING
-		       "meye: invalid quality level %d - using 8\n", quality);
+			   "meye: invalid quality level %d - using 8\n", quality);
 		quality = 8;
 	}
 
@@ -357,7 +390,8 @@ static u16 *jpeg_quantisation_tables(int *length, int quality)
 /* return a generic set of huffman tables */
 static u16 *jpeg_huffman_tables(int *length)
 {
-	static u16 tables[] = {
+	static u16 tables[] =
+	{
 		0xC4FF, 0xB500, 0x0010, 0x0102, 0x0303, 0x0402, 0x0503, 0x0405,
 		0x0004, 0x0100, 0x017D, 0x0302, 0x0400, 0x0511, 0x2112, 0x4131,
 		0x1306, 0x6151, 0x2207, 0x1471, 0x8132, 0xA191, 0x2308, 0xB142,
@@ -416,32 +450,52 @@ static void mchip_sync(int reg)
 	u32 status;
 	int i;
 
-	if (reg == MCHIP_MM_FIFO_DATA) {
-		for (i = 0; i < MCHIP_REG_TIMEOUT; i++) {
+	if (reg == MCHIP_MM_FIFO_DATA)
+	{
+		for (i = 0; i < MCHIP_REG_TIMEOUT; i++)
+		{
 			status = readl(meye.mchip_mmregs +
-				       MCHIP_MM_FIFO_STATUS);
-			if (!(status & MCHIP_MM_FIFO_WAIT)) {
+						   MCHIP_MM_FIFO_STATUS);
+
+			if (!(status & MCHIP_MM_FIFO_WAIT))
+			{
 				printk(KERN_WARNING "meye: fifo not ready\n");
 				return;
 			}
+
 			if (status & MCHIP_MM_FIFO_READY)
+			{
 				return;
+			}
+
 			udelay(1);
 		}
-	} else if (reg > 0x80) {
+	}
+	else if (reg > 0x80)
+	{
 		u32 mask = (reg < 0x100) ? MCHIP_HIC_STATUS_MCC_RDY
-					 : MCHIP_HIC_STATUS_VRJ_RDY;
-		for (i = 0; i < MCHIP_REG_TIMEOUT; i++) {
+				   : MCHIP_HIC_STATUS_VRJ_RDY;
+
+		for (i = 0; i < MCHIP_REG_TIMEOUT; i++)
+		{
 			status = readl(meye.mchip_mmregs + MCHIP_HIC_STATUS);
+
 			if (status & mask)
+			{
 				return;
+			}
+
 			udelay(1);
 		}
-	} else
+	}
+	else
+	{
 		return;
+	}
+
 	printk(KERN_WARNING
-	       "meye: mchip_sync() timeout on reg 0x%x status=0x%x\n",
-	       reg, status);
+		   "meye: mchip_sync() timeout on reg 0x%x status=0x%x\n",
+		   reg, status);
 }
 
 /* sets a value into the register */
@@ -462,8 +516,12 @@ static inline u32 mchip_read(int reg)
 static inline int mchip_delay(u32 reg, u32 v)
 {
 	int n = 10;
+
 	while (--n && mchip_read(reg) != v)
+	{
 		udelay(1);
+	}
+
 	return n;
 }
 
@@ -493,12 +551,18 @@ static void mchip_load_tables(void)
 	u16 *tables;
 
 	tables = jpeg_huffman_tables(&length);
+
 	for (i = 0; i < length; i++)
+	{
 		writel(tables[i], meye.mchip_mmregs + MCHIP_VRJ_TABLE_DATA);
+	}
 
 	tables = jpeg_quantisation_tables(&length, meye.params.quality);
+
 	for (i = 0; i < length; i++)
+	{
 		writel(tables[i], meye.mchip_mmregs + MCHIP_VRJ_TABLE_DATA);
+	}
 }
 
 /* setup the VRJ parameters in the chip */
@@ -531,8 +595,12 @@ static void mchip_dma_setup(dma_addr_t dma_addr)
 	int i;
 
 	mchip_set(MCHIP_MM_PT_ADDR, (u32)dma_addr);
+
 	for (i = 0; i < 4; i++)
+	{
 		mchip_set(MCHIP_MM_FIR(i), 0);
+	}
+
 	meye.mchip_fnum = 0;
 }
 
@@ -541,14 +609,18 @@ static int mchip_dma_alloc(void)
 {
 	if (!meye.mchip_dmahandle)
 		if (ptable_alloc())
+		{
 			return -1;
+		}
+
 	return 0;
 }
 
 /* frees the DMA buffer */
 static void mchip_dma_free(void)
 {
-	if (meye.mchip_dmahandle) {
+	if (meye.mchip_dmahandle)
+	{
 		mchip_dma_setup(0);
 		ptable_free();
 	}
@@ -561,22 +633,34 @@ static void mchip_hic_stop(void)
 	int i, j;
 
 	meye.mchip_mode = MCHIP_HIC_MODE_NOOP;
+
 	if (!(mchip_read(MCHIP_HIC_STATUS) & MCHIP_HIC_STATUS_BUSY))
+	{
 		return;
-	for (i = 0; i < 20; ++i) {
+	}
+
+	for (i = 0; i < 20; ++i)
+	{
 		mchip_set(MCHIP_HIC_CMD, MCHIP_HIC_CMD_STOP);
 		mchip_delay(MCHIP_HIC_CMD, 0);
-		for (j = 0; j < 100; ++j) {
+
+		for (j = 0; j < 100; ++j)
+		{
 			if (mchip_delay(MCHIP_HIC_STATUS,
-					MCHIP_HIC_STATUS_IDLE))
+							MCHIP_HIC_STATUS_IDLE))
+			{
 				return;
+			}
+
 			msleep(1);
 		}
+
 		printk(KERN_ERR "meye: need to reset HIC!\n");
 
 		mchip_set(MCHIP_HIC_CTL, MCHIP_HIC_CTL_SOFT_RESET);
 		msleep(250);
 	}
+
 	printk(KERN_ERR "meye: resetting HIC hanged!\n");
 }
 
@@ -625,13 +709,16 @@ static int mchip_comp_read_frame(u32 v, u8 *buf, int size)
 
 	if (pt_end < pt_start)
 		fsize = (MCHIP_NB_PAGES_MJPEG - pt_start) * PAGE_SIZE +
-			pt_end * PAGE_SIZE + trailer * 4;
+				pt_end * PAGE_SIZE + trailer * 4;
 	else
+	{
 		fsize = (pt_end - pt_start) * PAGE_SIZE + trailer * 4;
+	}
 
-	if (fsize > size) {
+	if (fsize > size)
+	{
 		printk(KERN_WARNING "meye: oversized compressed frame %d\n",
-		       fsize);
+			   fsize);
 		return -1;
 	}
 
@@ -650,7 +737,9 @@ static int mchip_comp_read_frame(u32 v, u8 *buf, int size)
 	for (i = fsize - 1; i > 0 && buf[i] == 0xff; i--) ;
 
 	if (i < 2 || buf[i - 1] != 0xff || buf[i] != 0xd9)
+	{
 		return -1;
+	}
 
 #endif
 
@@ -671,9 +760,13 @@ static void mchip_take_picture(void)
 
 	mchip_delay(MCHIP_HIC_CMD, 0);
 
-	for (i = 0; i < 100; ++i) {
+	for (i = 0; i < 100; ++i)
+	{
 		if (mchip_delay(MCHIP_HIC_STATUS, MCHIP_HIC_STATUS_IDLE))
+		{
 			break;
+		}
+
 		msleep(1);
 	}
 }
@@ -688,17 +781,27 @@ static void mchip_get_picture(u8 *buf, int bufsize)
 	mchip_set(MCHIP_HIC_CMD, MCHIP_HIC_CMD_START);
 
 	mchip_delay(MCHIP_HIC_CMD, 0);
-	for (i = 0; i < 100; ++i) {
+
+	for (i = 0; i < 100; ++i)
+	{
 		if (mchip_delay(MCHIP_HIC_STATUS, MCHIP_HIC_STATUS_IDLE))
+		{
 			break;
+		}
+
 		msleep(1);
 	}
-	for (i = 0; i < 4; ++i) {
+
+	for (i = 0; i < 4; ++i)
+	{
 		v = mchip_get_frame();
-		if (v & MCHIP_MM_FIR_RDY) {
+
+		if (v & MCHIP_MM_FIR_RDY)
+		{
 			mchip_cont_read_frame(v, buf, bufsize);
 			break;
 		}
+
 		mchip_free_frame();
 	}
 }
@@ -732,20 +835,30 @@ static int mchip_compress_frame(u8 *buf, int bufsize)
 	mchip_set(MCHIP_HIC_CMD, MCHIP_HIC_CMD_START);
 
 	mchip_delay(MCHIP_HIC_CMD, 0);
-	for (i = 0; i < 100; ++i) {
+
+	for (i = 0; i < 100; ++i)
+	{
 		if (mchip_delay(MCHIP_HIC_STATUS, MCHIP_HIC_STATUS_IDLE))
+		{
 			break;
+		}
+
 		msleep(1);
 	}
 
-	for (i = 0; i < 4; ++i) {
+	for (i = 0; i < 4; ++i)
+	{
 		v = mchip_get_frame();
-		if (v & MCHIP_MM_FIR_RDY) {
+
+		if (v & MCHIP_MM_FIR_RDY)
+		{
 			len = mchip_comp_read_frame(v, buf, bufsize);
 			break;
 		}
+
 		mchip_free_frame();
 	}
+
 	return len;
 }
 
@@ -795,51 +908,67 @@ static irqreturn_t meye_irq(int irq, void *dev_id)
 	v = mchip_read(MCHIP_MM_INTA);
 
 	if (meye.mchip_mode != MCHIP_HIC_MODE_CONT_OUT &&
-	    meye.mchip_mode != MCHIP_HIC_MODE_CONT_COMP)
+		meye.mchip_mode != MCHIP_HIC_MODE_CONT_COMP)
+	{
 		return IRQ_NONE;
+	}
 
 again:
 	v = mchip_get_frame();
-	if (!(v & MCHIP_MM_FIR_RDY))
-		return IRQ_HANDLED;
 
-	if (meye.mchip_mode == MCHIP_HIC_MODE_CONT_OUT) {
+	if (!(v & MCHIP_MM_FIR_RDY))
+	{
+		return IRQ_HANDLED;
+	}
+
+	if (meye.mchip_mode == MCHIP_HIC_MODE_CONT_OUT)
+	{
 		if (kfifo_out_locked(&meye.grabq, (unsigned char *)&reqnr,
-			      sizeof(int), &meye.grabq_lock) != sizeof(int)) {
+							 sizeof(int), &meye.grabq_lock) != sizeof(int))
+		{
 			mchip_free_frame();
 			return IRQ_HANDLED;
 		}
+
 		mchip_cont_read_frame(v, meye.grab_fbuffer + gbufsize * reqnr,
-				      mchip_hsize() * mchip_vsize() * 2);
+							  mchip_hsize() * mchip_vsize() * 2);
 		meye.grab_buffer[reqnr].size = mchip_hsize() * mchip_vsize() * 2;
 		meye.grab_buffer[reqnr].state = MEYE_BUF_DONE;
 		v4l2_get_timestamp(&meye.grab_buffer[reqnr].timestamp);
 		meye.grab_buffer[reqnr].sequence = sequence++;
 		kfifo_in_locked(&meye.doneq, (unsigned char *)&reqnr,
-				sizeof(int), &meye.doneq_lock);
+						sizeof(int), &meye.doneq_lock);
 		wake_up_interruptible(&meye.proc_list);
-	} else {
+	}
+	else
+	{
 		int size;
 		size = mchip_comp_read_frame(v, meye.grab_temp, gbufsize);
-		if (size == -1) {
+
+		if (size == -1)
+		{
 			mchip_free_frame();
 			goto again;
 		}
+
 		if (kfifo_out_locked(&meye.grabq, (unsigned char *)&reqnr,
-			      sizeof(int), &meye.grabq_lock) != sizeof(int)) {
+							 sizeof(int), &meye.grabq_lock) != sizeof(int))
+		{
 			mchip_free_frame();
 			goto again;
 		}
+
 		memcpy(meye.grab_fbuffer + gbufsize * reqnr, meye.grab_temp,
-		       size);
+			   size);
 		meye.grab_buffer[reqnr].size = size;
 		meye.grab_buffer[reqnr].state = MEYE_BUF_DONE;
 		v4l2_get_timestamp(&meye.grab_buffer[reqnr].timestamp);
 		meye.grab_buffer[reqnr].sequence = sequence++;
 		kfifo_in_locked(&meye.doneq, (unsigned char *)&reqnr,
-				sizeof(int), &meye.doneq_lock);
+						sizeof(int), &meye.doneq_lock);
 		wake_up_interruptible(&meye.proc_list);
 	}
+
 	mchip_free_frame();
 	goto again;
 }
@@ -853,18 +982,24 @@ static int meye_open(struct file *file)
 	int i;
 
 	if (test_and_set_bit(0, &meye.in_use))
+	{
 		return -EBUSY;
+	}
 
 	mchip_hic_stop();
 
-	if (mchip_dma_alloc()) {
+	if (mchip_dma_alloc())
+	{
 		printk(KERN_ERR "meye: mchip framebuffer allocation failed\n");
 		clear_bit(0, &meye.in_use);
 		return -ENOBUFS;
 	}
 
 	for (i = 0; i < MEYE_MAX_BUFNBRS; i++)
+	{
 		meye.grab_buffer[i].state = MEYE_BUF_UNUSED;
+	}
+
 	kfifo_reset(&meye.grabq);
 	kfifo_reset(&meye.doneq);
 	return v4l2_fh_open(file);
@@ -887,30 +1022,40 @@ static int meyeioc_g_params(struct meye_params *p)
 static int meyeioc_s_params(struct meye_params *jp)
 {
 	if (jp->subsample > 1)
+	{
 		return -EINVAL;
+	}
 
 	if (jp->quality > 10)
+	{
 		return -EINVAL;
+	}
 
 	if (jp->sharpness > 63 || jp->agc > 63 || jp->picture > 63)
+	{
 		return -EINVAL;
+	}
 
 	if (jp->framerate > 31)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&meye.lock);
 
 	if (meye.params.subsample != jp->subsample ||
-	    meye.params.quality != jp->quality)
-		mchip_hic_stop();	/* need restart */
+		meye.params.quality != jp->quality)
+	{
+		mchip_hic_stop();    /* need restart */
+	}
 
 	meye.params = *jp;
 	sony_pic_camera_command(SONY_PIC_COMMAND_SETCAMERASHARPNESS,
-			      meye.params.sharpness);
+							meye.params.sharpness);
 	sony_pic_camera_command(SONY_PIC_COMMAND_SETCAMERAAGC,
-			      meye.params.agc);
+							meye.params.agc);
 	sony_pic_camera_command(SONY_PIC_COMMAND_SETCAMERAPICTURE,
-			      meye.params.picture);
+							meye.params.picture);
 	mutex_unlock(&meye.lock);
 
 	return 0;
@@ -919,28 +1064,37 @@ static int meyeioc_s_params(struct meye_params *jp)
 static int meyeioc_qbuf_capt(int *nb)
 {
 	if (!meye.grab_fbuffer)
+	{
 		return -EINVAL;
+	}
 
 	if (*nb >= gbuffers)
+	{
 		return -EINVAL;
+	}
 
-	if (*nb < 0) {
+	if (*nb < 0)
+	{
 		/* stop capture */
 		mchip_hic_stop();
 		return 0;
 	}
 
 	if (meye.grab_buffer[*nb].state != MEYE_BUF_UNUSED)
+	{
 		return -EBUSY;
+	}
 
 	mutex_lock(&meye.lock);
 
 	if (meye.mchip_mode != MCHIP_HIC_MODE_CONT_COMP)
+	{
 		mchip_cont_compression_start();
+	}
 
 	meye.grab_buffer[*nb].state = MEYE_BUF_USING;
 	kfifo_in_locked(&meye.grabq, (unsigned char *)nb, sizeof(int),
-			 &meye.grabq_lock);
+					&meye.grabq_lock);
 	mutex_unlock(&meye.lock);
 
 	return 0;
@@ -951,31 +1105,44 @@ static int meyeioc_sync(struct file *file, void *fh, int *i)
 	int unused;
 
 	if (*i < 0 || *i >= gbuffers)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&meye.lock);
-	switch (meye.grab_buffer[*i].state) {
 
-	case MEYE_BUF_UNUSED:
-		mutex_unlock(&meye.lock);
-		return -EINVAL;
-	case MEYE_BUF_USING:
-		if (file->f_flags & O_NONBLOCK) {
+	switch (meye.grab_buffer[*i].state)
+	{
+
+		case MEYE_BUF_UNUSED:
 			mutex_unlock(&meye.lock);
-			return -EAGAIN;
-		}
-		if (wait_event_interruptible(meye.proc_list,
-			(meye.grab_buffer[*i].state != MEYE_BUF_USING))) {
-			mutex_unlock(&meye.lock);
-			return -EINTR;
-		}
+			return -EINVAL;
+
+		case MEYE_BUF_USING:
+			if (file->f_flags & O_NONBLOCK)
+			{
+				mutex_unlock(&meye.lock);
+				return -EAGAIN;
+			}
+
+			if (wait_event_interruptible(meye.proc_list,
+										 (meye.grab_buffer[*i].state != MEYE_BUF_USING)))
+			{
+				mutex_unlock(&meye.lock);
+				return -EINTR;
+			}
+
 		/* fall through */
-	case MEYE_BUF_DONE:
-		meye.grab_buffer[*i].state = MEYE_BUF_UNUSED;
-		if (kfifo_out_locked(&meye.doneq, (unsigned char *)&unused,
-				sizeof(int), &meye.doneq_lock) != sizeof(int))
-					break;
+		case MEYE_BUF_DONE:
+			meye.grab_buffer[*i].state = MEYE_BUF_UNUSED;
+
+			if (kfifo_out_locked(&meye.doneq, (unsigned char *)&unused,
+								 sizeof(int), &meye.doneq_lock) != sizeof(int))
+			{
+				break;
+			}
 	}
+
 	*i = meye.grab_buffer[*i].size;
 	mutex_unlock(&meye.lock);
 	return 0;
@@ -984,17 +1151,21 @@ static int meyeioc_sync(struct file *file, void *fh, int *i)
 static int meyeioc_stillcapt(void)
 {
 	if (!meye.grab_fbuffer)
+	{
 		return -EINVAL;
+	}
 
 	if (meye.grab_buffer[0].state != MEYE_BUF_UNUSED)
+	{
 		return -EBUSY;
+	}
 
 	mutex_lock(&meye.lock);
 	meye.grab_buffer[0].state = MEYE_BUF_USING;
 	mchip_take_picture();
 
 	mchip_get_picture(meye.grab_fbuffer,
-			mchip_hsize() * mchip_vsize() * 2);
+					  mchip_hsize() * mchip_vsize() * 2);
 
 	meye.grab_buffer[0].state = MEYE_BUF_DONE;
 	mutex_unlock(&meye.lock);
@@ -1005,16 +1176,21 @@ static int meyeioc_stillcapt(void)
 static int meyeioc_stilljcapt(int *len)
 {
 	if (!meye.grab_fbuffer)
+	{
 		return -EINVAL;
+	}
 
 	if (meye.grab_buffer[0].state != MEYE_BUF_UNUSED)
+	{
 		return -EBUSY;
+	}
 
 	mutex_lock(&meye.lock);
 	meye.grab_buffer[0].state = MEYE_BUF_USING;
 	*len = -1;
 
-	while (*len == -1) {
+	while (*len == -1)
+	{
 		mchip_take_picture();
 		*len = mchip_compress_frame(meye.grab_fbuffer, gbufsize);
 	}
@@ -1025,14 +1201,14 @@ static int meyeioc_stilljcapt(int *len)
 }
 
 static int vidioc_querycap(struct file *file, void *fh,
-				struct v4l2_capability *cap)
+						   struct v4l2_capability *cap)
 {
 	strcpy(cap->driver, "meye");
 	strcpy(cap->card, "meye");
 	sprintf(cap->bus_info, "PCI:%s", pci_name(meye.mchip_dev));
 
 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE |
-			    V4L2_CAP_STREAMING;
+					   V4L2_CAP_STREAMING;
 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
 
 	return 0;
@@ -1041,7 +1217,9 @@ static int vidioc_querycap(struct file *file, void *fh,
 static int vidioc_enum_input(struct file *file, void *fh, struct v4l2_input *i)
 {
 	if (i->index != 0)
+	{
 		return -EINVAL;
+	}
 
 	strcpy(i->name, "Camera");
 	i->type = V4L2_INPUT_TYPE_CAMERA;
@@ -1058,7 +1236,9 @@ static int vidioc_g_input(struct file *file, void *fh, unsigned int *i)
 static int vidioc_s_input(struct file *file, void *fh, unsigned int i)
 {
 	if (i != 0)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -1066,69 +1246,86 @@ static int vidioc_s_input(struct file *file, void *fh, unsigned int i)
 static int meye_s_ctrl(struct v4l2_ctrl *ctrl)
 {
 	mutex_lock(&meye.lock);
-	switch (ctrl->id) {
-	case V4L2_CID_BRIGHTNESS:
-		sony_pic_camera_command(
-			SONY_PIC_COMMAND_SETCAMERABRIGHTNESS, ctrl->val);
-		meye.brightness = ctrl->val << 10;
-		break;
-	case V4L2_CID_HUE:
-		sony_pic_camera_command(
-			SONY_PIC_COMMAND_SETCAMERAHUE, ctrl->val);
-		meye.hue = ctrl->val << 10;
-		break;
-	case V4L2_CID_CONTRAST:
-		sony_pic_camera_command(
-			SONY_PIC_COMMAND_SETCAMERACONTRAST, ctrl->val);
-		meye.contrast = ctrl->val << 10;
-		break;
-	case V4L2_CID_SATURATION:
-		sony_pic_camera_command(
-			SONY_PIC_COMMAND_SETCAMERACOLOR, ctrl->val);
-		meye.colour = ctrl->val << 10;
-		break;
-	case V4L2_CID_MEYE_AGC:
-		sony_pic_camera_command(
-			SONY_PIC_COMMAND_SETCAMERAAGC, ctrl->val);
-		meye.params.agc = ctrl->val;
-		break;
-	case V4L2_CID_SHARPNESS:
-		sony_pic_camera_command(
-			SONY_PIC_COMMAND_SETCAMERASHARPNESS, ctrl->val);
-		meye.params.sharpness = ctrl->val;
-		break;
-	case V4L2_CID_MEYE_PICTURE:
-		sony_pic_camera_command(
-			SONY_PIC_COMMAND_SETCAMERAPICTURE, ctrl->val);
-		meye.params.picture = ctrl->val;
-		break;
-	case V4L2_CID_JPEG_COMPRESSION_QUALITY:
-		meye.params.quality = ctrl->val;
-		break;
-	case V4L2_CID_MEYE_FRAMERATE:
-		meye.params.framerate = ctrl->val;
-		break;
-	default:
-		mutex_unlock(&meye.lock);
-		return -EINVAL;
+
+	switch (ctrl->id)
+	{
+		case V4L2_CID_BRIGHTNESS:
+			sony_pic_camera_command(
+				SONY_PIC_COMMAND_SETCAMERABRIGHTNESS, ctrl->val);
+			meye.brightness = ctrl->val << 10;
+			break;
+
+		case V4L2_CID_HUE:
+			sony_pic_camera_command(
+				SONY_PIC_COMMAND_SETCAMERAHUE, ctrl->val);
+			meye.hue = ctrl->val << 10;
+			break;
+
+		case V4L2_CID_CONTRAST:
+			sony_pic_camera_command(
+				SONY_PIC_COMMAND_SETCAMERACONTRAST, ctrl->val);
+			meye.contrast = ctrl->val << 10;
+			break;
+
+		case V4L2_CID_SATURATION:
+			sony_pic_camera_command(
+				SONY_PIC_COMMAND_SETCAMERACOLOR, ctrl->val);
+			meye.colour = ctrl->val << 10;
+			break;
+
+		case V4L2_CID_MEYE_AGC:
+			sony_pic_camera_command(
+				SONY_PIC_COMMAND_SETCAMERAAGC, ctrl->val);
+			meye.params.agc = ctrl->val;
+			break;
+
+		case V4L2_CID_SHARPNESS:
+			sony_pic_camera_command(
+				SONY_PIC_COMMAND_SETCAMERASHARPNESS, ctrl->val);
+			meye.params.sharpness = ctrl->val;
+			break;
+
+		case V4L2_CID_MEYE_PICTURE:
+			sony_pic_camera_command(
+				SONY_PIC_COMMAND_SETCAMERAPICTURE, ctrl->val);
+			meye.params.picture = ctrl->val;
+			break;
+
+		case V4L2_CID_JPEG_COMPRESSION_QUALITY:
+			meye.params.quality = ctrl->val;
+			break;
+
+		case V4L2_CID_MEYE_FRAMERATE:
+			meye.params.framerate = ctrl->val;
+			break;
+
+		default:
+			mutex_unlock(&meye.lock);
+			return -EINVAL;
 	}
+
 	mutex_unlock(&meye.lock);
 
 	return 0;
 }
 
 static int vidioc_enum_fmt_vid_cap(struct file *file, void *fh,
-				struct v4l2_fmtdesc *f)
+								   struct v4l2_fmtdesc *f)
 {
 	if (f->index > 1)
+	{
 		return -EINVAL;
+	}
 
-	if (f->index == 0) {
+	if (f->index == 0)
+	{
 		/* standard YUV 422 capture */
 		f->flags = 0;
 		strcpy(f->description, "YUV422");
 		f->pixelformat = V4L2_PIX_FMT_YUYV;
-	} else {
+	}
+	else
+	{
 		/* compressed MJPEG capture */
 		f->flags = V4L2_FMT_FLAG_COMPRESSED;
 		strcpy(f->description, "MJPEG");
@@ -1139,45 +1336,54 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void *fh,
 }
 
 static int vidioc_try_fmt_vid_cap(struct file *file, void *fh,
-				struct v4l2_format *f)
+								  struct v4l2_format *f)
 {
 	if (f->fmt.pix.pixelformat != V4L2_PIX_FMT_YUYV &&
-	    f->fmt.pix.pixelformat != V4L2_PIX_FMT_MJPEG)
+		f->fmt.pix.pixelformat != V4L2_PIX_FMT_MJPEG)
+	{
 		return -EINVAL;
+	}
 
 	if (f->fmt.pix.field != V4L2_FIELD_ANY &&
-	    f->fmt.pix.field != V4L2_FIELD_NONE)
+		f->fmt.pix.field != V4L2_FIELD_NONE)
+	{
 		return -EINVAL;
+	}
 
 	f->fmt.pix.field = V4L2_FIELD_NONE;
 
-	if (f->fmt.pix.width <= 320) {
+	if (f->fmt.pix.width <= 320)
+	{
 		f->fmt.pix.width = 320;
 		f->fmt.pix.height = 240;
-	} else {
+	}
+	else
+	{
 		f->fmt.pix.width = 640;
 		f->fmt.pix.height = 480;
 	}
 
 	f->fmt.pix.bytesperline = f->fmt.pix.width * 2;
 	f->fmt.pix.sizeimage = f->fmt.pix.height *
-			       f->fmt.pix.bytesperline;
+						   f->fmt.pix.bytesperline;
 	f->fmt.pix.colorspace = 0;
 
 	return 0;
 }
 
 static int vidioc_g_fmt_vid_cap(struct file *file, void *fh,
-				    struct v4l2_format *f)
+								struct v4l2_format *f)
 {
-	switch (meye.mchip_mode) {
-	case MCHIP_HIC_MODE_CONT_OUT:
-	default:
-		f->fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
-		break;
-	case MCHIP_HIC_MODE_CONT_COMP:
-		f->fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
-		break;
+	switch (meye.mchip_mode)
+	{
+		case MCHIP_HIC_MODE_CONT_OUT:
+		default:
+			f->fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
+			break;
+
+		case MCHIP_HIC_MODE_CONT_COMP:
+			f->fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
+			break;
 	}
 
 	f->fmt.pix.field = V4L2_FIELD_NONE;
@@ -1185,73 +1391,89 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *fh,
 	f->fmt.pix.height = mchip_vsize();
 	f->fmt.pix.bytesperline = f->fmt.pix.width * 2;
 	f->fmt.pix.sizeimage = f->fmt.pix.height *
-			       f->fmt.pix.bytesperline;
+						   f->fmt.pix.bytesperline;
 
 	return 0;
 }
 
 static int vidioc_s_fmt_vid_cap(struct file *file, void *fh,
-				    struct v4l2_format *f)
+								struct v4l2_format *f)
 {
 	if (f->fmt.pix.pixelformat != V4L2_PIX_FMT_YUYV &&
-	    f->fmt.pix.pixelformat != V4L2_PIX_FMT_MJPEG)
+		f->fmt.pix.pixelformat != V4L2_PIX_FMT_MJPEG)
+	{
 		return -EINVAL;
+	}
 
 	if (f->fmt.pix.field != V4L2_FIELD_ANY &&
-	    f->fmt.pix.field != V4L2_FIELD_NONE)
+		f->fmt.pix.field != V4L2_FIELD_NONE)
+	{
 		return -EINVAL;
+	}
 
 	f->fmt.pix.field = V4L2_FIELD_NONE;
 	mutex_lock(&meye.lock);
 
-	if (f->fmt.pix.width <= 320) {
+	if (f->fmt.pix.width <= 320)
+	{
 		f->fmt.pix.width = 320;
 		f->fmt.pix.height = 240;
 		meye.params.subsample = 1;
-	} else {
+	}
+	else
+	{
 		f->fmt.pix.width = 640;
 		f->fmt.pix.height = 480;
 		meye.params.subsample = 0;
 	}
 
-	switch (f->fmt.pix.pixelformat) {
-	case V4L2_PIX_FMT_YUYV:
-		meye.mchip_mode = MCHIP_HIC_MODE_CONT_OUT;
-		break;
-	case V4L2_PIX_FMT_MJPEG:
-		meye.mchip_mode = MCHIP_HIC_MODE_CONT_COMP;
-		break;
+	switch (f->fmt.pix.pixelformat)
+	{
+		case V4L2_PIX_FMT_YUYV:
+			meye.mchip_mode = MCHIP_HIC_MODE_CONT_OUT;
+			break;
+
+		case V4L2_PIX_FMT_MJPEG:
+			meye.mchip_mode = MCHIP_HIC_MODE_CONT_COMP;
+			break;
 	}
 
 	mutex_unlock(&meye.lock);
 	f->fmt.pix.bytesperline = f->fmt.pix.width * 2;
 	f->fmt.pix.sizeimage = f->fmt.pix.height *
-			       f->fmt.pix.bytesperline;
+						   f->fmt.pix.bytesperline;
 	f->fmt.pix.colorspace = 0;
 
 	return 0;
 }
 
 static int vidioc_reqbufs(struct file *file, void *fh,
-				struct v4l2_requestbuffers *req)
+						  struct v4l2_requestbuffers *req)
 {
 	int i;
 
 	if (req->memory != V4L2_MEMORY_MMAP)
+	{
 		return -EINVAL;
+	}
 
-	if (meye.grab_fbuffer && req->count == gbuffers) {
+	if (meye.grab_fbuffer && req->count == gbuffers)
+	{
 		/* already allocated, no modifications */
 		return 0;
 	}
 
 	mutex_lock(&meye.lock);
-	if (meye.grab_fbuffer) {
+
+	if (meye.grab_fbuffer)
+	{
 		for (i = 0; i < gbuffers; i++)
-			if (meye.vma_use_count[i]) {
+			if (meye.vma_use_count[i])
+			{
 				mutex_unlock(&meye.lock);
 				return -EINVAL;
 			}
+
 		rvfree(meye.grab_fbuffer, gbuffers * gbufsize);
 		meye.grab_fbuffer = NULL;
 	}
@@ -1260,15 +1482,18 @@ static int vidioc_reqbufs(struct file *file, void *fh,
 	req->count = gbuffers;
 	meye.grab_fbuffer = rvmalloc(gbuffers * gbufsize);
 
-	if (!meye.grab_fbuffer) {
+	if (!meye.grab_fbuffer)
+	{
 		printk(KERN_ERR "meye: v4l framebuffer allocation"
-				" failed\n");
+			   " failed\n");
 		mutex_unlock(&meye.lock);
 		return -ENOMEM;
 	}
 
 	for (i = 0; i < gbuffers; i++)
+	{
 		meye.vma_use_count[i] = 0;
+	}
 
 	mutex_unlock(&meye.lock);
 
@@ -1280,16 +1505,22 @@ static int vidioc_querybuf(struct file *file, void *fh, struct v4l2_buffer *buf)
 	unsigned int index = buf->index;
 
 	if (index >= gbuffers)
+	{
 		return -EINVAL;
+	}
 
 	buf->bytesused = meye.grab_buffer[index].size;
 	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
 
 	if (meye.grab_buffer[index].state == MEYE_BUF_USING)
+	{
 		buf->flags |= V4L2_BUF_FLAG_QUEUED;
+	}
 
 	if (meye.grab_buffer[index].state == MEYE_BUF_DONE)
+	{
 		buf->flags |= V4L2_BUF_FLAG_DONE;
+	}
 
 	buf->field = V4L2_FIELD_NONE;
 	buf->timestamp = meye.grab_buffer[index].timestamp;
@@ -1304,20 +1535,26 @@ static int vidioc_querybuf(struct file *file, void *fh, struct v4l2_buffer *buf)
 static int vidioc_qbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
 {
 	if (buf->memory != V4L2_MEMORY_MMAP)
+	{
 		return -EINVAL;
+	}
 
 	if (buf->index >= gbuffers)
+	{
 		return -EINVAL;
+	}
 
 	if (meye.grab_buffer[buf->index].state != MEYE_BUF_UNUSED)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&meye.lock);
 	buf->flags |= V4L2_BUF_FLAG_QUEUED;
 	buf->flags &= ~V4L2_BUF_FLAG_DONE;
 	meye.grab_buffer[buf->index].state = MEYE_BUF_USING;
 	kfifo_in_locked(&meye.grabq, (unsigned char *)&buf->index,
-			sizeof(int), &meye.grabq_lock);
+					sizeof(int), &meye.grabq_lock);
 	mutex_unlock(&meye.lock);
 
 	return 0;
@@ -1328,28 +1565,34 @@ static int vidioc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
 	int reqnr;
 
 	if (buf->memory != V4L2_MEMORY_MMAP)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&meye.lock);
 
-	if (kfifo_len(&meye.doneq) == 0 && file->f_flags & O_NONBLOCK) {
+	if (kfifo_len(&meye.doneq) == 0 && file->f_flags & O_NONBLOCK)
+	{
 		mutex_unlock(&meye.lock);
 		return -EAGAIN;
 	}
 
 	if (wait_event_interruptible(meye.proc_list,
-				     kfifo_len(&meye.doneq) != 0) < 0) {
+								 kfifo_len(&meye.doneq) != 0) < 0)
+	{
 		mutex_unlock(&meye.lock);
 		return -EINTR;
 	}
 
 	if (!kfifo_out_locked(&meye.doneq, (unsigned char *)&reqnr,
-		       sizeof(int), &meye.doneq_lock)) {
+						  sizeof(int), &meye.doneq_lock))
+	{
 		mutex_unlock(&meye.lock);
 		return -EBUSY;
 	}
 
-	if (meye.grab_buffer[reqnr].state != MEYE_BUF_DONE) {
+	if (meye.grab_buffer[reqnr].state != MEYE_BUF_DONE)
+	{
 		mutex_unlock(&meye.lock);
 		return -EINVAL;
 	}
@@ -1373,16 +1616,19 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
 {
 	mutex_lock(&meye.lock);
 
-	switch (meye.mchip_mode) {
-	case MCHIP_HIC_MODE_CONT_OUT:
-		mchip_continuous_start();
-		break;
-	case MCHIP_HIC_MODE_CONT_COMP:
-		mchip_cont_compression_start();
-		break;
-	default:
-		mutex_unlock(&meye.lock);
-		return -EINVAL;
+	switch (meye.mchip_mode)
+	{
+		case MCHIP_HIC_MODE_CONT_OUT:
+			mchip_continuous_start();
+			break;
+
+		case MCHIP_HIC_MODE_CONT_COMP:
+			mchip_cont_compression_start();
+			break;
+
+		default:
+			mutex_unlock(&meye.lock);
+			return -EINVAL;
 	}
 
 	mutex_unlock(&meye.lock);
@@ -1398,36 +1644,39 @@ static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_type i)
 	kfifo_reset(&meye.doneq);
 
 	for (i = 0; i < MEYE_MAX_BUFNBRS; i++)
+	{
 		meye.grab_buffer[i].state = MEYE_BUF_UNUSED;
+	}
 
 	mutex_unlock(&meye.lock);
 	return 0;
 }
 
 static long vidioc_default(struct file *file, void *fh, bool valid_prio,
-			   unsigned int cmd, void *arg)
+						   unsigned int cmd, void *arg)
 {
-	switch (cmd) {
-	case MEYEIOC_G_PARAMS:
-		return meyeioc_g_params((struct meye_params *) arg);
+	switch (cmd)
+	{
+		case MEYEIOC_G_PARAMS:
+			return meyeioc_g_params((struct meye_params *) arg);
 
-	case MEYEIOC_S_PARAMS:
-		return meyeioc_s_params((struct meye_params *) arg);
+		case MEYEIOC_S_PARAMS:
+			return meyeioc_s_params((struct meye_params *) arg);
 
-	case MEYEIOC_QBUF_CAPT:
-		return meyeioc_qbuf_capt((int *) arg);
+		case MEYEIOC_QBUF_CAPT:
+			return meyeioc_qbuf_capt((int *) arg);
 
-	case MEYEIOC_SYNC:
-		return meyeioc_sync(file, fh, (int *) arg);
+		case MEYEIOC_SYNC:
+			return meyeioc_sync(file, fh, (int *) arg);
 
-	case MEYEIOC_STILLCAPT:
-		return meyeioc_stillcapt();
+		case MEYEIOC_STILLCAPT:
+			return meyeioc_stillcapt();
 
-	case MEYEIOC_STILLJCAPT:
-		return meyeioc_stilljcapt((int *) arg);
+		case MEYEIOC_STILLJCAPT:
+			return meyeioc_stilljcapt((int *) arg);
 
-	default:
-		return -ENOTTY;
+		default:
+			return -ENOTTY;
 	}
 
 }
@@ -1438,8 +1687,12 @@ static unsigned int meye_poll(struct file *file, poll_table *wait)
 
 	mutex_lock(&meye.lock);
 	poll_wait(file, &meye.proc_list, wait);
+
 	if (kfifo_len(&meye.doneq))
+	{
 		res |= POLLIN | POLLRDNORM;
+	}
+
 	mutex_unlock(&meye.lock);
 	return res;
 }
@@ -1456,7 +1709,8 @@ static void meye_vm_close(struct vm_area_struct *vma)
 	meye.vma_use_count[idx]--;
 }
 
-static const struct vm_operations_struct meye_vm_ops = {
+static const struct vm_operations_struct meye_vm_ops =
+{
 	.open		= meye_vm_open,
 	.close		= meye_vm_close,
 };
@@ -1469,37 +1723,56 @@ static int meye_mmap(struct file *file, struct vm_area_struct *vma)
 	unsigned long page, pos;
 
 	mutex_lock(&meye.lock);
-	if (size > gbuffers * gbufsize) {
+
+	if (size > gbuffers * gbufsize)
+	{
 		mutex_unlock(&meye.lock);
 		return -EINVAL;
 	}
-	if (!meye.grab_fbuffer) {
+
+	if (!meye.grab_fbuffer)
+	{
 		int i;
 
 		/* lazy allocation */
-		meye.grab_fbuffer = rvmalloc(gbuffers*gbufsize);
-		if (!meye.grab_fbuffer) {
+		meye.grab_fbuffer = rvmalloc(gbuffers * gbufsize);
+
+		if (!meye.grab_fbuffer)
+		{
 			printk(KERN_ERR "meye: v4l framebuffer allocation failed\n");
 			mutex_unlock(&meye.lock);
 			return -ENOMEM;
 		}
+
 		for (i = 0; i < gbuffers; i++)
+		{
 			meye.vma_use_count[i] = 0;
+		}
 	}
+
 	pos = (unsigned long)meye.grab_fbuffer + offset;
 
-	while (size > 0) {
+	while (size > 0)
+	{
 		page = vmalloc_to_pfn((void *)pos);
-		if (remap_pfn_range(vma, start, page, PAGE_SIZE, PAGE_SHARED)) {
+
+		if (remap_pfn_range(vma, start, page, PAGE_SIZE, PAGE_SHARED))
+		{
 			mutex_unlock(&meye.lock);
 			return -EAGAIN;
 		}
+
 		start += PAGE_SIZE;
 		pos += PAGE_SIZE;
+
 		if (size > PAGE_SIZE)
+		{
 			size -= PAGE_SIZE;
+		}
 		else
+		{
 			size = 0;
+		}
 	}
 
 	vma->vm_ops = &meye_vm_ops;
@@ -1512,7 +1785,8 @@ static int meye_mmap(struct file *file, struct vm_area_struct *vma)
 	return 0;
 }
 
-static const struct v4l2_file_operations meye_fops = {
+static const struct v4l2_file_operations meye_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= meye_open,
 	.release	= meye_release,
@@ -1521,7 +1795,8 @@ static const struct v4l2_file_operations meye_fops = {
 	.poll		= meye_poll,
 };
 
-static const struct v4l2_ioctl_ops meye_ioctl_ops = {
+static const struct v4l2_ioctl_ops meye_ioctl_ops =
+{
 	.vidioc_querycap	= vidioc_querycap,
 	.vidioc_enum_input	= vidioc_enum_input,
 	.vidioc_g_input		= vidioc_g_input,
@@ -1542,14 +1817,16 @@ static const struct v4l2_ioctl_ops meye_ioctl_ops = {
 	.vidioc_default		= vidioc_default,
 };
 
-static struct video_device meye_template = {
+static struct video_device meye_template =
+{
 	.name		= "meye",
 	.fops		= &meye_fops,
 	.ioctl_ops 	= &meye_ioctl_ops,
 	.release	= video_device_release_empty,
 };
 
-static const struct v4l2_ctrl_ops meye_ctrl_ops = {
+static const struct v4l2_ctrl_ops meye_ctrl_ops =
+{
 	.s_ctrl = meye_s_ctrl,
 };
 
@@ -1577,21 +1854,25 @@ static int meye_resume(struct pci_dev *pdev)
 	msleep(1);
 	mchip_set(MCHIP_MM_INTA, MCHIP_MM_INTA_HIC_1_MASK);
 
-	switch (meye.pm_mchip_mode) {
-	case MCHIP_HIC_MODE_CONT_OUT:
-		mchip_continuous_start();
-		break;
-	case MCHIP_HIC_MODE_CONT_COMP:
-		mchip_cont_compression_start();
-		break;
+	switch (meye.pm_mchip_mode)
+	{
+		case MCHIP_HIC_MODE_CONT_OUT:
+			mchip_continuous_start();
+			break;
+
+		case MCHIP_HIC_MODE_CONT_COMP:
+			mchip_cont_compression_start();
+			break;
 	}
+
 	return 0;
 }
 #endif
 
 static int meye_probe(struct pci_dev *pcidev, const struct pci_device_id *ent)
 {
-	static const struct v4l2_ctrl_config ctrl_agc = {
+	static const struct v4l2_ctrl_config ctrl_agc =
+	{
 		.id = V4L2_CID_MEYE_AGC,
 		.type = V4L2_CTRL_TYPE_INTEGER,
 		.ops = &meye_ctrl_ops,
@@ -1601,7 +1882,8 @@ static int meye_probe(struct pci_dev *pcidev, const struct pci_device_id *ent)
 		.def = 48,
 		.flags = V4L2_CTRL_FLAG_SLIDER,
 	};
-	static const struct v4l2_ctrl_config ctrl_picture = {
+	static const struct v4l2_ctrl_config ctrl_picture =
+	{
 		.id = V4L2_CID_MEYE_PICTURE,
 		.type = V4L2_CTRL_TYPE_INTEGER,
 		.ops = &meye_ctrl_ops,
@@ -1609,7 +1891,8 @@ static int meye_probe(struct pci_dev *pcidev, const struct pci_device_id *ent)
 		.max = 63,
 		.step = 1,
 	};
-	static const struct v4l2_ctrl_config ctrl_framerate = {
+	static const struct v4l2_ctrl_config ctrl_framerate =
+	{
 		.id = V4L2_CID_MEYE_FRAMERATE,
 		.type = V4L2_CTRL_TYPE_INTEGER,
 		.ops = &meye_ctrl_ops,
@@ -1621,34 +1904,45 @@ static int meye_probe(struct pci_dev *pcidev, const struct pci_device_id *ent)
 	int ret = -EBUSY;
 	unsigned long mchip_adr;
 
-	if (meye.mchip_dev != NULL) {
+	if (meye.mchip_dev != NULL)
+	{
 		printk(KERN_ERR "meye: only one device allowed!\n");
 		return ret;
 	}
 
 	ret = v4l2_device_register(&pcidev->dev, v4l2_dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		v4l2_err(v4l2_dev, "Could not register v4l2_device\n");
 		return ret;
 	}
+
 	ret = -ENOMEM;
 	meye.mchip_dev = pcidev;
 
 	meye.grab_temp = vmalloc(MCHIP_NB_PAGES_MJPEG * PAGE_SIZE);
-	if (!meye.grab_temp) {
+
+	if (!meye.grab_temp)
+	{
 		v4l2_err(v4l2_dev, "grab buffer allocation failed\n");
 		goto outvmalloc;
 	}
 
 	spin_lock_init(&meye.grabq_lock);
+
 	if (kfifo_alloc(&meye.grabq, sizeof(int) * MEYE_MAX_BUFNBRS,
-				GFP_KERNEL)) {
+					GFP_KERNEL))
+	{
 		v4l2_err(v4l2_dev, "fifo allocation failed\n");
 		goto outkfifoalloc1;
 	}
+
 	spin_lock_init(&meye.doneq_lock);
+
 	if (kfifo_alloc(&meye.doneq, sizeof(int) * MEYE_MAX_BUFNBRS,
-				GFP_KERNEL)) {
+					GFP_KERNEL))
+	{
 		v4l2_err(v4l2_dev, "fifo allocation failed\n");
 		goto outkfifoalloc2;
 	}
@@ -1657,38 +1951,50 @@ static int meye_probe(struct pci_dev *pcidev, const struct pci_device_id *ent)
 	meye.vdev.v4l2_dev = &meye.v4l2_dev;
 
 	ret = -EIO;
-	if ((ret = sony_pic_camera_command(SONY_PIC_COMMAND_SETCAMERA, 1))) {
+
+	if ((ret = sony_pic_camera_command(SONY_PIC_COMMAND_SETCAMERA, 1)))
+	{
 		v4l2_err(v4l2_dev, "meye: unable to power on the camera\n");
 		v4l2_err(v4l2_dev, "meye: did you enable the camera in "
-				"sonypi using the module options ?\n");
+				 "sonypi using the module options ?\n");
 		goto outsonypienable;
 	}
 
-	if ((ret = pci_enable_device(meye.mchip_dev))) {
+	if ((ret = pci_enable_device(meye.mchip_dev)))
+	{
 		v4l2_err(v4l2_dev, "meye: pci_enable_device failed\n");
 		goto outenabledev;
 	}
 
-	mchip_adr = pci_resource_start(meye.mchip_dev,0);
-	if (!mchip_adr) {
+	mchip_adr = pci_resource_start(meye.mchip_dev, 0);
+
+	if (!mchip_adr)
+	{
 		v4l2_err(v4l2_dev, "meye: mchip has no device base address\n");
 		goto outregions;
 	}
+
 	if (!request_mem_region(pci_resource_start(meye.mchip_dev, 0),
-				pci_resource_len(meye.mchip_dev, 0),
-				"meye")) {
+							pci_resource_len(meye.mchip_dev, 0),
+							"meye"))
+	{
 		v4l2_err(v4l2_dev, "meye: request_mem_region failed\n");
 		goto outregions;
 	}
+
 	meye.mchip_mmregs = ioremap(mchip_adr, MCHIP_MM_REGS);
-	if (!meye.mchip_mmregs) {
+
+	if (!meye.mchip_mmregs)
+	{
 		v4l2_err(v4l2_dev, "meye: ioremap failed\n");
 		goto outremap;
 	}
 
 	meye.mchip_irq = pcidev->irq;
+
 	if (request_irq(meye.mchip_irq, meye_irq,
-			IRQF_SHARED, "meye", meye_irq)) {
+					IRQF_SHARED, "meye", meye_irq))
+	{
 		v4l2_err(v4l2_dev, "request_irq failed\n");
 		goto outreqirq;
 	}
@@ -1718,21 +2024,23 @@ static int meye_probe(struct pci_dev *pcidev, const struct pci_device_id *ent)
 
 	v4l2_ctrl_handler_init(&meye.hdl, 3);
 	v4l2_ctrl_new_std(&meye.hdl, &meye_ctrl_ops,
-			  V4L2_CID_BRIGHTNESS, 0, 63, 1, 32);
+					  V4L2_CID_BRIGHTNESS, 0, 63, 1, 32);
 	v4l2_ctrl_new_std(&meye.hdl, &meye_ctrl_ops,
-			  V4L2_CID_HUE, 0, 63, 1, 32);
+					  V4L2_CID_HUE, 0, 63, 1, 32);
 	v4l2_ctrl_new_std(&meye.hdl, &meye_ctrl_ops,
-			  V4L2_CID_CONTRAST, 0, 63, 1, 32);
+					  V4L2_CID_CONTRAST, 0, 63, 1, 32);
 	v4l2_ctrl_new_std(&meye.hdl, &meye_ctrl_ops,
-			  V4L2_CID_SATURATION, 0, 63, 1, 32);
+					  V4L2_CID_SATURATION, 0, 63, 1, 32);
 	v4l2_ctrl_new_custom(&meye.hdl, &ctrl_agc, NULL);
 	v4l2_ctrl_new_std(&meye.hdl, &meye_ctrl_ops,
-			  V4L2_CID_SHARPNESS, 0, 63, 1, 32);
+					  V4L2_CID_SHARPNESS, 0, 63, 1, 32);
 	v4l2_ctrl_new_custom(&meye.hdl, &ctrl_picture, NULL);
 	v4l2_ctrl_new_std(&meye.hdl, &meye_ctrl_ops,
-			  V4L2_CID_JPEG_COMPRESSION_QUALITY, 0, 10, 1, 8);
+					  V4L2_CID_JPEG_COMPRESSION_QUALITY, 0, 10, 1, 8);
 	v4l2_ctrl_new_custom(&meye.hdl, &ctrl_framerate, NULL);
-	if (meye.hdl.error) {
+
+	if (meye.hdl.error)
+	{
 		v4l2_err(v4l2_dev, "couldn't register controls\n");
 		goto outvideoreg;
 	}
@@ -1741,15 +2049,16 @@ static int meye_probe(struct pci_dev *pcidev, const struct pci_device_id *ent)
 	meye.vdev.ctrl_handler = &meye.hdl;
 
 	if (video_register_device(&meye.vdev, VFL_TYPE_GRABBER,
-				  video_nr) < 0) {
+							  video_nr) < 0)
+	{
 		v4l2_err(v4l2_dev, "video_register_device failed\n");
 		goto outvideoreg;
 	}
 
 	v4l2_info(v4l2_dev, "Motion Eye Camera Driver v%s.\n",
-	       MEYE_DRIVER_VERSION);
+			  MEYE_DRIVER_VERSION);
 	v4l2_info(v4l2_dev, "mchip KL5A72002 rev. %d, base %lx, irq %d\n",
-	       meye.mchip_dev->revision, mchip_adr, meye.mchip_irq);
+			  meye.mchip_dev->revision, mchip_adr, meye.mchip_irq);
 
 	return 0;
 
@@ -1760,7 +2069,7 @@ outreqirq:
 	iounmap(meye.mchip_mmregs);
 outremap:
 	release_mem_region(pci_resource_start(meye.mchip_dev, 0),
-			   pci_resource_len(meye.mchip_dev, 0));
+					   pci_resource_len(meye.mchip_dev, 0));
 outregions:
 	pci_disable_device(meye.mchip_dev);
 outenabledev:
@@ -1791,7 +2100,7 @@ static void meye_remove(struct pci_dev *pcidev)
 	iounmap(meye.mchip_mmregs);
 
 	release_mem_region(pci_resource_start(meye.mchip_dev, 0),
-			   pci_resource_len(meye.mchip_dev, 0));
+					   pci_resource_len(meye.mchip_dev, 0));
 
 	pci_disable_device(meye.mchip_dev);
 
@@ -1802,22 +2111,25 @@ static void meye_remove(struct pci_dev *pcidev)
 
 	vfree(meye.grab_temp);
 
-	if (meye.grab_fbuffer) {
-		rvfree(meye.grab_fbuffer, gbuffers*gbufsize);
+	if (meye.grab_fbuffer)
+	{
+		rvfree(meye.grab_fbuffer, gbuffers * gbufsize);
 		meye.grab_fbuffer = NULL;
 	}
 
 	printk(KERN_INFO "meye: removed\n");
 }
 
-static struct pci_device_id meye_pci_tbl[] = {
+static struct pci_device_id meye_pci_tbl[] =
+{
 	{ PCI_VDEVICE(KAWASAKI, PCI_DEVICE_ID_MCHIP_KL5A72002), 0 },
 	{ }
 };
 
 MODULE_DEVICE_TABLE(pci, meye_pci_tbl);
 
-static struct pci_driver meye_driver = {
+static struct pci_driver meye_driver =
+{
 	.name		= "meye",
 	.id_table	= meye_pci_tbl,
 	.probe		= meye_probe,
@@ -1831,13 +2143,17 @@ static struct pci_driver meye_driver = {
 static int __init meye_init(void)
 {
 	gbuffers = max(2, min((int)gbuffers, MEYE_MAX_BUFNBRS));
+
 	if (gbufsize > MEYE_MAX_BUFSIZE)
+	{
 		gbufsize = MEYE_MAX_BUFSIZE;
+	}
+
 	gbufsize = PAGE_ALIGN(gbufsize);
 	printk(KERN_INFO "meye: using %d buffers with %dk (%dk total) "
-			 "for capture\n",
-			 gbuffers,
-			 gbufsize / 1024, gbuffers * gbufsize / 1024);
+		   "for capture\n",
+		   gbuffers,
+		   gbufsize / 1024, gbuffers * gbufsize / 1024);
 	return pci_register_driver(&meye_driver);
 }
 
